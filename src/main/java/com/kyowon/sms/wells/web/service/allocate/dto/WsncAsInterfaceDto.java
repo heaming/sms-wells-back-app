@@ -1,10 +1,12 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
-import io.swagger.annotations.ApiModel;
-
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.swagger.annotations.ApiModel;
 
 public class WsncAsInterfaceDto {
 
@@ -163,22 +165,33 @@ public class WsncAsInterfaceDto {
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchCustomerInformationReq")
     public record SearchCustomerInformationReq(
         @NotBlank
+        @JsonProperty("AS_AK_ID")
         String asAkId,
         @NotBlank
+        @JsonProperty("CNTR_NO")
         String cntrNo,
         @NotNull
+        @JsonProperty("CNTR_SN")
         String cntrSn
     ) {}
 
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchCustomerInformationRes")
     public record SearchCustomerInformationRes(
+        @JsonProperty("AS_AK_ID")
         String asAkId,
+        @JsonProperty("SYS_DV_CD")
         String sysDvCd,
+        @JsonProperty("FST_RGST_DTM")
         String fstRgstDtm,
+        @JsonProperty("FST_RGST_USR_ID")
         String fstRgstUsrId,
+        @JsonProperty("PRTNR_KNM")
         String prtnrKnm,
+        @JsonProperty("OG_CD")
         String ogCd,
+        @JsonProperty("OG_NM")
         String ogNm,
+        @JsonProperty("CST_UNUITM_CN")
         String cstUnuitmCn
     ) {}
 
