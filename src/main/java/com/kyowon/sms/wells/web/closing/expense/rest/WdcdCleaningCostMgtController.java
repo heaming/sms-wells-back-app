@@ -1,5 +1,11 @@
 package com.kyowon.sms.wells.web.closing.expense.rest;
 
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.web.bind.annotation.*;
+
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtDto.CodeRes;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleaningCostMgtDto.SearchRes;
@@ -7,16 +13,13 @@ import com.kyowon.sms.wells.web.closing.expense.service.WdcdCleaningCostMgtSearv
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.util.List;
 
 @Api(tags = "[WDCD] 청소 용품비 관리")
 @RequiredArgsConstructor
@@ -52,8 +55,8 @@ public class WdcdCleaningCostMgtController {
     public List<SearchRes> getCleaningCostExcelDownload(@Valid SearchReq req) {
         return service.getCleaningCostExcelDownload(req);
     }
-
     @DeleteMapping
+
     public int removeCleanerCost(@RequestBody List<String> clingCostAdjRcpNos) {
         return service.removeCleaningCost(clingCostAdjRcpNos);
     }
