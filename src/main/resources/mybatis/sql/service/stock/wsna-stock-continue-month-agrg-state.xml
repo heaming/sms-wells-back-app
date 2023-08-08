@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaStockContinueMonthAgrgStateMapper">
+    <select id="selectMcByWares" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockContinueMonthAgrgStateWareDvo">
+        /*창고정보*/
+        SELECT *
+          FROM WSMDBS.TB_SVST_MCBY_WARE_IZ S1  /*월별창고내역 ST102TB*/
+         WHERE 1=1
+        <if test="@MybatisUtils@isNotEmpty(baseYm)">
+           AND S1.APY_YM = #{baseYm}
+        </if>
+           AND (S1.WARE_DV_CD IN ('2') OR S1.WARE_NO = '100002')
+           AND S1.WARE_DTL_DV_CD IN ('10','20')
+           AND S1.DTA_DL_YN = 'N'
+         ORDER BY S1.APY_YM, S1.WARE_NO
+    </select>
+    <select id="selectStockContinueMonthAgrgState" resultType="camelMap">
+	    WITH PART_INF AS (
+            /*품목정보*/
+            SELECT P1.PD_CD
+                 , P2.SAP_MAT_CD    /*SAP자재코드*/
+                 , P2.PD_NM         /*품목명*/
+                 , P1.PD_PRP_VAL15  /*기초자재*/
+                 , P1.PD_PRP_VAL17  /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD*/
+                 , P1.PD_PRP_VAL21  /*AS자재 공통분류, AS_MAT_CMN_CLSF_CD, CMN_PART_DV_CD*/
+                 , P1.PD_PRP_VAL30  /*회전율 대상여부, TRNOVR_RT_OJ_YN*/
+              FROM WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P1  /*상품각사속성상세*/
+                   INNER JOIN TB_PDBS_PD_BAS P2
+                           ON P1.PD_CD = P2.PD_CD
+                          AND P2.PD_TP_CD = 'M'    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
+                          AND P2.DTA_DL_YN = 'N'
+             WHERE 1=1
+               AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+               /*품목구분(Default : 상품, - 전체 항목 : 상품, 홈카페캡슐, 필터, AS자재, 판매사은품, AS소모품, LP활동물품, 모종, 웰스팜AS자재, 공구)*/
+            <if test="@MybatisUtils@isNotEmpty(itmKndCd) and !@MybatisUtils@equals(itmKndCd, 'ALL')">
+               AND P1.PD_PRP_VAL19 = #{itmKndCd}    /*AS자재 품목종류, AS_MAT_ITM_KND_CD, ITM_KND_CD*/
+            </if>
+               /*사용여부(전체, 사용, 미사용)*/
+            <if test="@MybatisUtils@isNotEmpty(useYn) and !@MybatisUtils@equals(useYn, 'ALL')">
+               AND P1.PD_PRP_VAL32 = #{useYn}    /*화면노출여부, UI_EXPSR_YN*/
+            </if>
+               /*관리유형(전체, 기초1, 기초2, 기초3, 기초4, 기초5) 전체 : ALL*/
+            <if test="@MybatisUtils@isNotEmpty(stockTpCd) and !@MybatisUtils@equals(stockTpCd, 'ALL')">
+               AND P1.PD_PRP_VAL17 = #{stockTpCd}
+            </if>
+               AND (P1.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '91', '92', '93', '95', '96')
+                 OR P1.PD_PRP_VAL20 IS NULL)
+               AND P1.DTA_DL_YN = 'N'
+         )
+       , WARE_IF AS (
+            /*창고정보*/
+            SELECT S1.APY_YM, S1.WARE_NO, S1.HGR_WARE_NO
+              FROM WSMDBS.TB_SVST_MCBY_WARE_IZ S1  /*월별창고내역 ST102TB*/
+             WHERE 1=1
+            <if test="@MybatisUtils@isNotEmpty(baseYm)">
+               AND S1.APY_YM = #{baseYm}
+            </if>
+               AND (S1.WARE_DV_CD IN ('2') OR S1.WARE_NO = '100002')
+               AND S1.WARE_DTL_DV_CD IN ('10','20')
+               AND S1.DTA_DL_YN = 'N'
+             ORDER BY S1.APY_YM, S1.WARE_NO
+         )
+       , BASE_QTY_INF AS (
+            /*창고별품목별 기준년월 기초/기말재고(물류 = 물류창고, 서비스센터 = 센터조직+하위엔지니어)*/
+            SELECT (CASE WHEN W1.WARE_NO NOT LIKE '%0' THEN W1.HGR_WARE_NO ELSE S1.WARE_NO END) AS WARE_NO
+                 , S1.ITM_PD_CD
+                 , (CASE WHEN 'A' = 'A' THEN SUM(S1.BTD_STOC_A_GD_QTY)
+                         WHEN 'A' = 'B' THEN SUM(S1.BTD_STOC_B_GD_QTY)
+                         WHEN 'A' = 'E' THEN SUM(S1.BTD_STOC_E_GD_QTY)
+                         WHEN 'A' = 'R' THEN SUM(S1.BTD_STOC_R_GD_QTY)
+                         ELSE SUM(S1.BTD_STOC_A_GD_QTY)
+                    END) AS BTD_STOC_GD_QTY
+                 , (CASE WHEN 'A' = 'A' THEN SUM(S1.PITM_STOC_A_GD_QTY)
+                         WHEN 'A' = 'B' THEN SUM(S1.PITM_STOC_B_GD_QTY)
+                         WHEN 'A' = 'E' THEN SUM(S1.PITM_STOC_E_GD_QTY)
+                         WHEN 'A' = 'R' THEN SUM(S1.PITM_STOC_R_GD_QTY)
+                         ELSE SUM(S1.PITM_STOC_A_GD_QTY)
+                    END) AS PITM_STOC_GD_QTY
+              FROM WSMDBS.TB_SVST_MCITM_STOC_IZ S1  /*월별품목재고내역, ST122TB*/
+                   INNER JOIN WARE_IF W1
+                           ON S1.BASE_YM = W1.APY_YM
+                          AND S1.WARE_NO = W1.WARE_NO
+             WHERE 1=1
+            <if test="@MybatisUtils@isNotEmpty(baseYm)">
+               AND S1.BASE_YM = #{baseYm}
+            </if>
+               AND S1.DTA_DL_YN = 'N'
+             GROUP BY (CASE WHEN W1.WARE_NO NOT LIKE '%0' THEN W1.HGR_WARE_NO ELSE S1.WARE_NO END), S1.ITM_PD_CD
+         )
+       , WK_OSTR_QTY_INF AS (
+            /*창고별품목별 기준년월 작업출고(서비스센터)*/
+            SELECT (CASE WHEN W1.WARE_NO NOT LIKE '%0' THEN W1.HGR_WARE_NO ELSE S1.WK_WARE_NO END) AS WARE_NO
+                 , S1.ITM_PD_CD
+                 , SUM(S1.USE_QTY) AS USE_QTY
+              FROM WSMDBS.TB_SVST_SV_WK_OSTR_IZ S1  /*서비스작업출고내역, ST163TB*/
+                   INNER JOIN WARE_IF W1
+                           ON S1.WK_WARE_NO = W1.WARE_NO
+             WHERE 1=1
+               AND S1.FNL_VST_FSH_DT LIKE #{baseYm} || '%'
+             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+               AND S1.FNL_ITM_GD_CD = #{itmGdCd}  /*조회 등급*/
+             </if>
+               AND S1.SV_BIZ_HCLSF_CD != '6' /*반품제외*/
+               AND S1.DTA_DL_YN = 'N'
+               AND S1.WK_WARE_NO != '100002'
+             GROUP BY (CASE WHEN W1.WARE_NO NOT LIKE '%0' THEN W1.HGR_WARE_NO ELSE S1.WK_WARE_NO END), S1.ITM_PD_CD
+             UNION ALL
+            /*창고별품목별 기준년월 작업출고(물류센터)*/
+            SELECT '100002' AS WARE_NO
+                 , S1.ITM_PD_CD
+                 , SUM(S1.USE_QTY) AS USE_QTY
+              FROM WSMDBS.TB_SVST_SV_WK_OSTR_IZ S1  /*서비스작업출고내역, ST163TB*/
+                   INNER JOIN WARE_IF W1
+                           ON S1.WK_WARE_NO = W1.WARE_NO
+             WHERE 1=1
+               AND S1.FNL_VST_FSH_DT LIKE #{baseYm} || '%'
+             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+               AND S1.FNL_ITM_GD_CD = #{itmGdCd}  /*조회 등급*/
+             </if>
+               AND S1.SV_BIZ_HCLSF_CD != '6' /*반품제외*/
+               AND S1.DTA_DL_YN = 'N'
+             GROUP BY S1.ITM_PD_CD
+         )
+       , BASE AS (
+           SELECT B1.WARE_NO
+                , P1.PD_CD
+                , P1.SAP_MAT_CD                                        /*SAP자재코드*/
+                , P1.PD_NM                                             /*품목명*/
+                , P1.PD_PRP_VAL15 AS ORDNY_HV_MAT_YN                   /*기초자재 필터*/
+                , P1.PD_PRP_VAL17 AS AS_MAT_MNG_TP_CD                  /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD*/
+                , P1.PD_PRP_VAL21 AS CMN_PART_DV_CD                    /*중수리 필터*/
+                , P1.PD_PRP_VAL30 AS TRNOVR_RT_OJ_YN                   /*회전율 필터*/
+                , NVL(B1.PITM_STOC_GD_QTY,0) AS PITM_STOC_GD_QTY       /*창고별기말재고 - 시점재고*/
+                , (CASE WHEN NVL(W1.USE_QTY,0) != 0
+                        THEN ROUND((((NVL(B1.BTD_STOC_GD_QTY,0) +  NVL(B1.PITM_STOC_GD_QTY,0)) / 2)
+                                  / (NVL(W1.USE_QTY,0))
+                                   )
+                                , 2)
+                        ELSE 0
+                   END) AS KEPP_MM  /* 재고지속월 === round(((기초재고수량금액 + 기말재고수량금액) / 2) / 작업출고수량 금액), 2) */
+             FROM PART_INF P1
+                  LEFT OUTER JOIN BASE_QTY_INF B1
+                               ON P1.PD_CD = B1.ITM_PD_CD
+                  LEFT OUTER JOIN WK_OSTR_QTY_INF W1
+                               ON P1.PD_CD = W1.ITM_PD_CD
+                       INNER JOIN WARE_IF B2
+                               ON B1.WARE_NO = B2.WARE_NO
+                              AND B1.WARE_NO IS NOT NULL
+             ORDER BY P1.PD_CD, B1.WARE_NO
+           )
+       SELECT T1.PD_CD
+            , T1.SAP_MAT_CD
+            , T1.PD_NM
+            , T1.ORDNY_HV_MAT_YN
+            , T1.AS_MAT_MNG_TP_CD
+            , T1.CMN_PART_DV_CD
+            , T1.TRNOVR_RT_OJ_YN
+            , ${wareNoPitmFields}
+            , ${wareNoKeppMmFields}
+         FROM BASE
+               PIVOT( SUM(PITM_STOC_GD_QTY) AS PITM, SUM(KEPP_MM) AS KEPP
+                         FOR WARE_NO
+                         IN (${wareNoInStr})
+               ) T1
+    </select>
+</mapper>
