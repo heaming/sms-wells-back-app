@@ -10,6 +10,7 @@ import lombok.Setter;
 public class WsnbIndividualServicePsDvo {
 
     /**/
+    String cntrNo;
     String cntrNoDtl;
     String cstNm;
     String cstGdNm;
