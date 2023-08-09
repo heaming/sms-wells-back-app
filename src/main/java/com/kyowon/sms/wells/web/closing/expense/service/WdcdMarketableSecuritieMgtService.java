@@ -56,7 +56,7 @@ public class WdcdMarketableSecuritieMgtService {
         }
         masterDvo.setDstAmt(dstAmtTotal.toString());
 
-        if (!StringUtils.isEmpty(res.opcsAdjNo())) { //4. 3번에서 OPCS_ADJ_NO(운영비정산번호)가 값이 있으면 원천세 정산 수정 진행
+        if (!StringUtils.isEmpty(reqs.get(0).opcsAdjNo())) { //4. 3번에서 OPCS_ADJ_NO(운영비정산번호)가 값이 있으면 원천세 정산 수정 진행
             count += mapper.deleteAccDetail(masterDvo);
             count += mapper.updateAccMst(masterDvo);
         } else { // 5. 3번에서 OPCS_ADJ_NO(운영비정산번호)가 값이 없으면 원천세 정산 신규 등록 진행
