@@ -1,12 +1,14 @@
 package com.kyowon.sms.wells.web.closing.performance.service;
 
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.*;
-import com.kyowon.sms.wells.web.closing.performance.mapper.WdccOverduePenaltyMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.*;
+import com.kyowon.sms.wells.web.closing.performance.mapper.WdccOverduePenaltyMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -19,33 +21,39 @@ public class WdccOverduePenaltyService {
         return mapper.selectCode();
     }
 
-    public List<SearchMainGridRes> getMainGridAggregate(
+    public List<SearchPointAggregateRes> getPointAggregates(
         SearchReq req
     ) {
-        return mapper.selectMainGridAggregate(req);
+        return mapper.selectPointAggregates(req);
     }
 
-    public List<SearchMainGridRes> getMainGridDates(
+    public List<SearchPointOrderRes> getPointOrders(
         SearchReq req
     ) {
-        return mapper.selectMainGridDates(req);
+        return mapper.selectPointOrders(req);
     }
 
-    public List<SearchSubGridRes> getSubGridOrder(
+    public List<SearchAggregateDateRes> getRegularShippingAggregates(
         SearchReq req
     ) {
-        return mapper.selectSubGridOrder(req);
+        return mapper.selectRegularShippingAggregates(req);
     }
 
-    public List<SearchThirdGridRes> getThirdGridAggregate(
+    public List<SearchOrderRes> getRegularShippingOrders(
         SearchReq req
     ) {
-        return mapper.selectThirdGridAggregate(req);
+        return mapper.selectRegularShippingOrders(req);
     }
 
-    public List<SearchFourthGridRes> getFourthGridOrder(
+    public List<SearchAggregateDateRes> getRegularShippingExceptAggregates(
         SearchReq req
     ) {
-        return mapper.selectFourthGridOrder(req);
+        return mapper.selectRegularShippingExceptAggregates(req);
+    }
+
+    public List<SearchOrderRes> getRegularShippingExceptOrders(
+        SearchReq req
+    ) {
+        return mapper.selectRegularShippingExceptOrders(req);
     }
 }
