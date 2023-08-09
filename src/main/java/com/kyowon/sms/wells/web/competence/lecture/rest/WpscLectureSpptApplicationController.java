@@ -26,7 +26,7 @@ public class WpscLectureSpptApplicationController {
 
     private final WpscLectureSpptApplicationService service;
 
-    @ApiOperation(value = "강의지원 신청 페이징 조회", notes = "")
+    @ApiOperation(value = "강의지원 신청, 신청현황 - 페이징 조회", notes = "")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "lectrSpptOgTpCd", value = "조직유형코드", required = true),
         @ApiImplicitParam(name = "lectrYm", value = "강의년월"),
@@ -41,6 +41,39 @@ public class WpscLectureSpptApplicationController {
         PageInfo pageInfo
     ) {
         return service.getLectureSpptApplicationPages(dto, pageInfo);
+    }
+
+    @GetMapping("/excel-download")
+    public List<SearchRes> getLectureSpptApplicationListForExcelDownload(
+        @Valid
+        SearchReq dto
+    ){
+        return service.getLectureSpptApplicationPagesForExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "강의지원 신청현황 - 조직별 페이징 조회", notes = "")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "lectrSpptOgTpCd", value = "조직유형코드", required = true),
+        @ApiImplicitParam(name = "lectrYm", value = "교육년월"),
+        @ApiImplicitParam(name = "ogLevlDvCd1", value = "조직레벨1"),
+        @ApiImplicitParam(name = "ogLevlDvCd2", value = "조직레벨2"),
+    })
+    @GetMapping("/pagingForOgType")
+    public PagingResult<SearchOgTypeRes> getLectureSpptApplicationPagesForOgType(
+        @Valid
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getLectureSpptApplicationPagesForOgType(dto, pageInfo);
+    }
+
+    @GetMapping("/excel-download-ogType")
+    public List<SearchOgTypeRes> getLectureSpptApplicationList(
+        @Valid
+        SearchReq dto
+    ){
+        return service.getLectureSpptApplicationListForOgTypeExcelDownload(dto);
     }
 
    @ApiOperation(value = "강의지원 강의관리 - 저장 ", notes = "강의 저장")
