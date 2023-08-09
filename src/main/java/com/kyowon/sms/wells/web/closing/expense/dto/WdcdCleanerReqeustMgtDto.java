@@ -108,7 +108,6 @@ public class WdcdCleanerReqeustMgtDto {
         //@MaskRequired(type = MaskingType.ALL)
         String dtlAdr,
         String bnkCd,
-        @MaskRequired(type = MaskingType.ACCOUNT)
         String acnoEncr,    // 계좌번호
         String idfApnFileId,
         String bnkbApnFileId,
