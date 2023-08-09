@@ -2,296 +2,156 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.bond.consultation.mapper.WbncSameCustomerContractMapper">
     <select id="selectContracts" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto$FindContractRes">
-        SELECT MPY_BSDT || DP_TP_NM AS MPY_DP_TP_NM  /* 이체 */
-             , BND_BIZ_DV_CD
-             , BND_BIZ_DV_NM  /* 업무구분 */
-             , PD_CLSF_NM  /* 제품군 */
-             , PD_NM  /* 제품명 */
-             , PD_CD
-             , CNTR_NO
-             , CNTR_SN
-             , CNTR_NO || '-' || CNTR_SN AS CNTR_NO_SN
-             , CST_NO
-             , CST_KNM
-             , SFK_VAL /* 세이프키값 */
-             , DLQ_MCN /* 연체개월 */
-             , OJ_AMT /* 대상금액 */
-             , (CASE WHEN OJ_AMT <![CDATA[ >= ]]> TOT_DP_AMT THEN TOT_DP_AMT
-                     WHEN OJ_AMT <![CDATA[ < ]]> TOT_DP_AMT THEN OJ_AMT
-               END) AS TOT_OJ_DP_AMT  /* 대상입금금액 */
-             , (CASE WHEN (OJ_AMT - TOT_DP_AMT) <![CDATA[ <= ]]> 0 THEN 0
-                     ELSE OJ_AMT - TOT_DP_AMT
-               END) AS TOT_REMAIN  /* 대상잔액 */
-             , CLCTAM_PRTNR_NO
-             , PRTNR_KNM  /* 집금파트너명 */
-             , AUTH_RSG_CNFMDT
-          FROM
-             (
-              SELECT T7.MPY_BSDT  /* 이체일자 */
-                   , T7.DP_TP_CD  /* 입금유형코드 */
-                   , (CASE WHEN T7.DP_TP_CD = '0102' THEN ''
-                           WHEN T7.DP_TP_CD = '0203' THEN '카'
-                           WHEN T7.DP_TP_CD = '0401' THEN '지로'
-                           ELSE '기타'
-                      END) AS DP_TP_NM  /* 입금유형명 */
-                   , T1.BND_BIZ_DV_CD
-                   , (CASE WHEN T1.BND_BIZ_DV_CD = 'L10' THEN '일시불'
-                           ELSE F_CMZ_CD_NM('TNT_WELLS', 'BND_BIZ_DV_CD', T1.BND_BIZ_DV_CD)
-                    END) BND_BIZ_DV_NM /* 채권업무구분명 */
-                   , CASE WHEN T10.PD_HCLSF_CD = '07' THEN T10.PD_LCLSF_NM
-                          ELSE T10.PD_MCLSF_NM
-                     END AS PD_CLSF_NM  /* 수정필요 : 상품군 */
-                   , T10.PD_CD  /* 상픔코드 */
-                   , T10.PD_NM  /* 상품명 */
-                   , T1.CNTR_NO
-                   , T1.CNTR_SN
-                   , T1.CST_NO
-                   , T8.CST_KNM
-                   , T8.SFK_VAL /* 세이프키값 */
-                   , NVL(T2.DLQ_MCN, 0) AS DLQ_MCN /* 연체개월 */
-                   , CASE WHEN T1.BND_BIZ_DV_CD = 'L10' THEN NVL(T2.DLQ_AMT, 0) + NVL(T2.THM_CHRAM_AMT, 0)
-                          ELSE NVL(T2.UC_AMT, 0) + NVL((SELECT SPMT_SL_AMT FROM TB_CBCL_WELLS_SL_MM_CL_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN),0)
-                     END AS OJ_AMT /* 대상금액 */
-                   , CASE WHEN T1.BND_BIZ_DV_CD = 'L10' THEN NVL(T9.DP_AMT, 0) + NVL(T9.BOR_DP_AMT, 0) + NVL(T9.DLQ_ADD_DP_AMT, 0)
-                          ELSE NVL(T9.DP_AMT, 0)
-                     END AS TOT_DP_AMT /* 총입금액 */
-                   , T1.CLCTAM_PRTNR_NO
-                   , (SELECT PRTNR_KNM FROM TB_CBBO_CLCTAM_PRTNR_DTL WHERE OG_TP_CD = T1.CLCTAM_OG_TP_CD AND PRTNR_NO = T1.CLCTAM_PRTNR_NO AND DTA_DL_YN = 'N') AS PRTNR_KNM
-                   , T11.AUTH_RSG_CNFMDT /* 직권해지확정일자 */
-                FROM TB_CBBO_BND_CNSL_BAS_IZ T1
-                LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T2
-                  ON T2.BASE_YM = T1.BASE_YM
-                 AND T2.CNTR_NO = T1.CNTR_NO
-                 AND T2.CNTR_SN = T1.CNTR_SN
-                 AND T2.DTA_DL_YN = 'N'
-                LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3
-                  ON T3.CNTR_NO = T1.CNTR_NO
-                 AND T3.CNTR_SN = T1.CNTR_SN
-                 AND T3.DTA_DL_YN = 'N'
-                LEFT OUTER JOIN TB_SSCT_CNTR_BAS T4
-                  ON T4.CNTR_NO = T1.CNTR_NO
-                 AND T4.DTA_DL_YN = 'N'
-                LEFT OUTER JOIN TB_RVCL_BIL_PLAN_BAS T5
-                  ON T5.BIL_YM = T1.BASE_YM
-                 AND T5.CNTR_NO = T1.CNTR_NO
-                 AND T5.CNTR_SN = T1.CNTR_SN
-                 AND T5.DTA_DL_YN = 'N'
-                LEFT OUTER JOIN TB_SSCT_CNTR_STLM_REL T6
-                  ON T6.CNTR_STLM_REL_ID = T5.CNTR_STLM_REL_ID
-                 AND T6.DTA_DL_YN = 'N'
-                LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T7
-                  ON T7.CNTR_STLM_ID = T6.CNTR_STLM_ID
-                 AND T7.DTA_DL_YN = 'N'
-               INNER JOIN TB_CUBS_CST_BAS T8 /* 고객기본 */
-                  ON T8.CST_NO = T4.CNTR_CST_NO /* 고객기본.고객번호 = 계약기본.계약고객번호 */
-                 AND T8.DTA_DL_YN = 'N'
-                LEFT OUTER JOIN (
-                                 SELECT SUM(CASE WHEN DP_DV_CD = '2' THEN RVE_AMT * (-1)
-                                                 WHEN DP_DV_CD = '1' THEN RVE_AMT
-                                                 ELSE 0
-                                             END) AS DP_AMT /*입금금액*/
-                                      , SUM(CASE WHEN RVE_DV_CD = '07' THEN CASE WHEN DP_DV_CD = '2' THEN RVE_AMT * (-1)
-                                                                                 WHEN DP_DV_CD = '1' THEN RVE_AMT
-                                                                             END
-                                                 ELSE 0
-                                            END) AS BOR_DP_AMT /*위약입금액*/
-                                      , SUM(CASE WHEN RVE_DV_CD = '02' THEN CASE WHEN DP_DV_CD = '2' THEN RVE_AMT * (-1)
-                                                                                 WHEN DP_DV_CD = '1' THEN RVE_AMT
-                                                                            END
-                                                 ELSE 0
-                                            END) AS DLQ_ADD_DP_AMT /*연체가산금입금액*/
-                                      , CNTR_NO
-                                      , CNTR_SN
-                                  FROM TB_RVDW_RVE_DTL
-                                 WHERE 1=1
-                                   AND SUBSTR(PERF_DT, 0, 6) = TO_CHAR(SYSDATE, 'YYYYMM')
-                                   AND DTA_DL_YN = 'N'
-                                 GROUP BY CNTR_NO, CNTR_SN
-                                ) T9
-                  ON T9.CNTR_NO = T1.CNTR_NO
-                 AND T9.CNTR_SN = T1.CNTR_SN
-                LEFT OUTER JOIN (
-                                 SELECT PB.PD_TP_CD                               /* 상품구분 */
-                                      , NVL2(C2.PD_CLSF_NM, C2.PD_CLSF_NM, '')
-                                        || NVL2(C3.PD_CLSF_NM, '>' || C3.PD_CLSF_NM, '')
-                                        || NVL2(C4.PD_CLSF_NM, '>' || C4.PD_CLSF_NM, '') AS PD_CLSF_NM  /* 상품분류 */
-                                      , C1.PD_CLSF_CD AS PD_HCLSF_CD            /* 대분류코드 */
-                                      , C1.PD_CLSF_NM AS PD_HCLSF_NM            /* 대분류명 */
-                                      , C2.PD_CLSF_NM AS PD_MCLSF_NM            /* 중분류명 */
-                                      , C3.PD_CLSF_NM AS PD_LCLSF_NM            /* 소분류명 */
-                                      , PB.PD_NM                                  /* 상품명 */
-                                      , PB.PD_CD                                  /* 상품코드 */
-                                   FROM TB_PDBS_PD_BAS PB
-                                   LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS C1          /* 분류 대 */
-                                     ON PB.PD_HCLSF_ID  = C1.PD_CLSF_ID
-                                   LEFT OUTER  JOIN TB_PDBS_PD_CLSF_BAS C2         /* 분류 중 */
-                                     ON PB.PD_MCLSF_ID  = C2.PD_CLSF_ID
-                                   LEFT OUTER  JOIN TB_PDBS_PD_CLSF_BAS C3         /* 분류 소 */
-                                     ON PB.PD_LCLSF_ID  = C3.PD_CLSF_ID
-                                   LEFT OUTER  JOIN TB_PDBS_PD_CLSF_BAS C4         /* 분류 세 */
-                                     ON PB.PD_DCLSF_ID  = C4.PD_CLSF_ID
-                                  WHERE PB.DTA_DL_YN = 'N'
-                                ) T10
-                  ON T10.PD_CD = T3.BASE_PD_CD
-                LEFT OUTER JOIN TB_CBBO_WELLS_AUTH_RSG_IZ T11
-                  ON T11.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.BASE_YM, 'YYYYMM'), -1) ,'YYYYMM')
-                 AND T11.CNTR_NO = T1.CNTR_NO
-                 AND T11.CNTR_SN = T1.CNTR_SN
-                 AND T11.DTA_DL_YN = 'N'
-               WHERE 1=1
-                 AND T1.BND_CNTR_TP_CD = '01'  /* 계약 */
-                 AND T1.DTA_DL_YN = 'N'
-             )
+        SELECT (T9.MPY_BSDT || CASE WHEN T9.DP_TP_CD = '0203' THEN '카' END) AS MPY_BSDT
+             , T1.BND_BIZ_DV_CD  /* 업무구분코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'BND_BIZ_DV_CD', T1.BND_BIZ_DV_CD) AS BND_BIZ_DV_NM  /* 업무구분명 */
+             , T4.PD_CLSF_NM  /* 제품군 */
+             , T3.PD_NM  /* 제품명 */
+             , T3.PD_CD /* 제품코드 */
+             , T1.CNTR_NO  /* 계약번호 */
+             , T1.CNTR_SN  /* 계약일련번호 */
+             , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_DTL_NO   /* 계약상세번호 */
+             , T1.CST_NO
+             , T5.CST_KNM
+             , NVL(T7.DLQ_MCN, 0) AS DLQ_MCN /* 연체개월 */
+             , NVL(T7.DLQ_AMT, 0) + NVL(T7.DLQ_ADD_AMT, 0) + NVL(T7.THM_CHRAM_AMT, 0) AS OJ_AMT /* 대상금액 = 총연체금(연체금액 + 연체가산금) + 당월청구 */
+             , NVL(T7.DLQ_DP_AMT, 0) + NVL(T7.DLQ_ADD_DP_AMT, 0) + NVL(T7.THM_CHRAM_DP_AMT, 0) AS OJ_DP_AMT  /* 대상입금 = 총연체입금(연체입금금액 + 연체가산금입금금액) + 당월요금입금금액 */
+             , (NVL(T7.DLQ_AMT, 0) + NVL(T7.DLQ_ADD_AMT, 0) + NVL(T7.THM_CHRAM_AMT, 0)) - (NVL(T7.DLQ_DP_AMT, 0) + NVL(T7.DLQ_ADD_DP_AMT, 0) + NVL(T7.THM_CHRAM_DP_AMT, 0)) AS OJ_BLAM  /* 대상잔액 = 대상금액 - 대상입금 */
+             , T6.AUTH_RSG_CNFMDT
+          FROM TB_CBBO_BND_CNSL_BAS_IZ T1
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.CNTR_SN = T1.CNTR_SN
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T3
+            ON T3.PD_CD = T2.BASE_PD_CD
+           AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS T4
+            ON T4.PD_CLSF_ID = T3.PD_MCLSF_ID
+           AND T4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T5
+            ON T5.CST_NO = T1.CST_NO
+           AND T5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBBO_WELLS_AUTH_RSG_IZ T6
+            ON T6.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.BASE_YM, 'YYYYMM'), -1) ,'YYYYMM')
+           AND T6.CNTR_NO = T1.CNTR_NO
+           AND T6.CNTR_SN = T1.CNTR_SN
+           AND T6.AUTH_RSG_CNFM_YN = 'Y'
+           AND T6.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T7
+            ON T7.BASE_YM = T1.BASE_YM
+           AND T7.CNTR_NO = T1.CNTR_NO
+           AND T7.CNTR_SN = T1.CNTR_SN
+           AND T7.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_STLM_REL T8
+            ON T8.DTL_CNTR_NO = T1.CNTR_NO
+           AND T8.DTL_CNTR_SN = T1.CNTR_SN
+           AND (TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') BETWEEN T8.VL_STRT_DTM AND T8.VL_END_DTM)
+           AND T8.DTA_DL_YN = 'N'
+          LEFT JOIN TB_SSCT_CNTR_STLM_BAS T9
+            ON T9.CNTR_STLM_ID = T8.CNTR_STLM_ID
+           AND (T9.DP_TP_CD = '0102' OR T9.DP_TP_CD = '0203')
+           AND T9.DTA_DL_YN = 'N'
          WHERE 1=1
-           AND CST_NO = #{cstNo}
+           AND T1.BND_CNTR_TP_CD = '01'
+           AND T1.CST_NO = #{cstNo}
+           AND T1.DTA_DL_YN = 'N'
     </select>
 
     <select id="selectContractDeposits" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto$FindDepositRes">
-        SELECT T1.BASE_YM
-             , NVL(T4.RENTAL_TN, 0) AS RENTAL_TN /* 렌탈회차 */
-             , 0 AS J_TN /* TODO: 멤버십가입회차 항목 확인필요 */
-             , NVL(T4.NOM_SL_AMT, 0) AS NOM_SL_AMT /* 정상매출금액 */
-             , NVL(T4.SL_DP_AGG_AMT, 0) AS SL_DP_AGG_AMT /* 매출입금누계금액 */
-             , CASE WHEN T1.BND_BIZ_DV_CD = 'L21' THEN NVL((T4.NOM_SL_AMT - T4.SL_CTR_AMT + T4.SPMT_SL_AMT + T4.NOM_INT_AMT - T4.INT_CTR_AMT + T4.SPMT_INT_AMT),0)
-                    ELSE NVL(T4.THM_SL_SUM_AMT,0)
-               END AS THM_SL_SUM_AMT /* 당월매출합계금액 */
-             , NVL((SELECT SUM(RVE_AMT)
-                      FROM TB_RVDW_RVE_DTL
-                     WHERE T1.CNTR_NO = CNTR_NO
-                       AND T1.CNTR_SN = CNTR_SN
-                       AND T1.BASE_YM = SUBSTR(PERF_DT, 0, 6)
-                       AND DTA_DL_YN = 'N'), 0) AS MSH_DP_AMT /* 멤버십입금금액 */
-             , NVL((T4.THM_ATAM_DP_AMT - T4.THM_ATAM_RFND_AMT + T4.MLG_DP_AMT - T4.MLG_RFND_AMT
-                    + CASE WHEN T4.RENTAL_TN = 0 THEN T4.RENTAL_RGST_COST*(-1) + T4.DSC_AMT
-                           ELSE 0
-                      END),0) AS LENTAL_DP_AMT /* 렌탈 입금금액 */
-             , NVL(T4.PRM_SL_AMT, 0) AS PRM_SL_AMT /* 선납매출금액 */
-             , NVL(T4.PRPD_SL_AMT, 0) AS PRPD_SL_AMT /* 선수매출금액 */
-             , NVL(T1.DLQ_AMT, 0) AS DLQ_AMT /* 연체금액 */
-             , NVL(T1.DLQ_MCN, 0) AS DLQ_MCN /* 연체개월 */
-             , NVL(T3.BTD_DLQ_ADD_AMT, 0) + NVL(T3.THM_OC_DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT /* ASIS:가산금기초금액+가산금당월발생 */
-             , NVL(T1.DLQ_ADD_DP_AMT, 0) AS DLQ_ADD_DP_AMT /* 연체가산입금금액 */
-             , NVL(T3.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT /* ASIS:가산금기말 */
-             , NVL(T1.UC_AMT, 0) AS UC_AMT /* 미수금액 */
-          FROM TB_CBBO_BND_CNTR_BAS T1
-          LEFT OUTER JOIN TB_CBBO_BND_CNSL_BAS_IZ T2
-            ON T2.BASE_YM = T1.BASE_YM
-           AND T2.CNTR_NO = T1.CNTR_NO
+        SELECT SUBSTR(T2.PERF_DT,0,6) AS PERF_DT  /* 실적월 */
+             , NVL(T3.BIL_TN, 0) AS BIL_TN  /* 차월 */
+             , NVL(T4.SL_BND_ALRPY_AMT, 0) AS SL_BND_ALRPY_AMT  /* 매출금액 */
+             , NVL(T2.DP_AMT, 0) AS DP_AMT /* 입금액 */
+             , NVL(T4.ATAM_CV_AMT, 0) AS ATAM_CV_AMT  /* 영업선수금액 */
+             , NVL(T5.EOT_DLQ_AMT, 0) AS EOT_DLQ_AMT  /* 연체금액 */
+             , NVL(T5.DLQ_MCN, 0) AS DLQ_MCN  /* 연체금액 */
+             , NVL(T5.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT  /* 연체가산금 */
+             , NVL(T5.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT  /* 연체가산입금 */
+             , NVL(T5.EOT_DLQ_ADD_AMT, 0) - NVL(T5.THM_DLQ_ADD_DP_SUM_AMT, 0) AS DLQ_ADD_BLAM /* 연체가산잔액 = 연체가산금 - 연체가산입금 */
+             , NVL(T4.UC_AMT, 0) AS UC_AMT  /* 미수금액 */
+          FROM TB_CBBO_BND_CNSL_BAS_IZ T1
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL T2
+            ON T2.CNTR_NO = T1.CNTR_NO
            AND T2.CNTR_SN = T1.CNTR_SN
+           AND T2.DP_DV_CD = '1'
            AND T2.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_CBCL_DLQ_BAS T3
-            ON T3.PERF_YM = T2.BASE_YM
-           AND T3.CNTR_NO = T2.CNTR_NO
-           AND T3.CNTR_SN = T2.CNTR_SN
+          LEFT OUTER JOIN TB_CBCL_BZNS_ATAM_BAS T3
+            ON T3.RVE_NO = T2.RVE_NO
+           AND T3.RVE_SN = T2.RVE_SN
            AND T3.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T4
-            ON T4.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.BASE_YM, 'YYYYMM'), -1) ,'YYYYMM')
-           AND T4.CNTR_NO = T1.CNTR_NO
-           AND T4.CNTR_SN = T1.CNTR_SN
+          LEFT OUTER JOIN TB_CBCL_SL_BND_ALRPY_BAS T4
+            ON T4.RVE_NO = T3.RVE_NO
+           AND T4.RVE_SN = T3.RVE_SN
            AND T4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS_HIST T5
+            ON T5.RVE_NO = T4.RVE_NO
+           AND T5.RVE_SN = T4.RVE_SN
+           AND T5.DTA_DL_YN = 'N'
          WHERE 1=1
+           AND T1.BND_CNTR_TP_CD = '01'
            AND T1.BND_BIZ_DV_CD = #{bndBizDvCd}
            AND T1.CNTR_NO = #{cntrNo}
            AND T1.CNTR_SN = #{cntrSn}
            AND T1.DTA_DL_YN = 'N'
-         ORDER BY T1.BASE_YM
     </select>
 
     <select id="selectContractDeposit" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto$FindDepositInfoRes">
-        SELECT CNTR_NO
-             , CNTR_SN
-             , CNTR_NO || '-' || CNTR_SN AS CNTR_NO_SN
-             , NVL(UC_AMT, 0) AS UC_AMT
-             , NVL(DLQ_MCN, 0) AS DLQ_MCN
-             , NVL(SL_DP_AMT, 0) AS SL_DP_AMT
-             , NVL(LENTAL_DP_AMT, 0) AS LENTAL_DP_AMT
-             , NVL(CASE WHEN UC_AMT <![CDATA[ > ]]> LENTAL_DP_AMT THEN LENTAL_DP_AMT
-                        WHEN UC_AMT <![CDATA[ < ]]> LENTAL_DP_AMT THEN UC_AMT
-               END, 0) AS DP_AMT /* 입금금액 */
-             , NVL(DLQ_AMT, 0) AS DLQ_AMT/* 연체금액 */
-             , NVL(THM_CHRAM_AMT, 0) AS THM_CHRAM_AMT /* 당월요금 */
-             , NVL(OJ_AMT, 0) AS OJ_AMT /* 미수 + 추가매출 :대상금액 */
-             , NVL(OJ_AMT - LENTAL_DP_AMT, 0) AS OJ_BLAM /* 대상잔액 */
-             , NVL(CASE WHEN UC_AMT <![CDATA[ < ]]> LENTAL_DP_AMT THEN UC_AMT
-                        ELSE LENTAL_DP_AMT
-               END, 0) AS UC_DP_AMT /* 미수입금금액 */
-             , NVL(CASE WHEN UC_AMT <![CDATA[ > ]]> LENTAL_DP_AMT THEN UC_AMT - LENTAL_DP_AMT
-                        WHEN UC_AMT <![CDATA[ < ]]> LENTAL_DP_AMT THEN 0
-               END, 0) AS UC_BLAM /* 미수잔액 */
-             , NVL(CASE WHEN DLQ_AMT <![CDATA[ > ]]> LENTAL_DP_AMT THEN DLQ_AMT - LENTAL_DP_AMT
-                        ELSE 0
-               END, 0) AS DLQ_BLAM /* 연체잔액 */
-             , NVL(CASE WHEN DLQ_AMT <![CDATA[ > ]]> LENTAL_DP_AMT THEN LENTAL_DP_AMT
-                        ELSE DLQ_AMT
-               END, 0) AS DLQ_DP_AMT /* 연체입금 */
-             , NVL(CASE WHEN LENTAL_DP_AMT <![CDATA[ > ]]> DLQ_AMT + THM_CHRAM_AMT THEN LENTAL_DP_AMT - DLQ_AMT
-                        WHEN LENTAL_DP_AMT = DLQ_AMT + THM_CHRAM_AMT THEN THM_CHRAM_AMT
-                        ELSE 0
-               END, 0) AS THM_CHRAM_DP_AMT /* 당월입금금액 */
-             , NVL(CASE WHEN LENTAL_DP_AMT <![CDATA[ > ]]> DLQ_AMT + THM_CHRAM_AMT THEN THM_CHRAM_AMT - ( LENTAL_DP_AMT - DLQ_AMT )
-                        WHEN LENTAL_DP_AMT = DLQ_AMT + THM_CHRAM_AMT THEN 0
-                        ELSE THM_CHRAM_AMT
-               END, 0) AS THM_CHRAM_BLAM /* 당월잔액 */
-             , NVL(DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT
-             , NVL(DLQ_ADD_DP_AMT, 0) AS DLQ_ADD_DP_AMT
-             , NVL(EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT
-             , NVL(SL_AGG_AMT, 0) AS SL_AGG_AMT
-             , NVL(BOR_AMT, 0) AS BOR_AMT
-             , NVL(LSFE, 0) AS LSFE
-             , NVL(DSC_AGG_AMT, 0) AS DSC_AGG_AMT
-             , NVL(CTR_AGG_AMT, 0) AS CTR_AGG_AMT
-             , NVL(SL_DP_AGG_AMT, 0) AS SL_DP_AGG_AMT
-          FROM
-             (
-              SELECT T1.CNTR_NO
-                   , T1.CNTR_SN
-                   , T1.UC_AMT  /* 미수금액 */
-                   , T1.DLQ_MCN /* 연체개월 */
-                   , 0 AS SL_DP_AMT /* ASIS매출입금금액 확인필요 */
-                   , (T4.THM_ATAM_DP_AMT - T4.THM_ATAM_RFND_AMT + T4.MLG_DP_AMT - T4.MLG_RFND_AMT
-                      + CASE WHEN T4.RENTAL_TN = 0 THEN T4.RENTAL_RGST_COST*(-1) + T4.RENTAL_DSC_AMT
-                             ELSE 0
-                        END) AS LENTAL_DP_AMT /* 렌탈 입금금액 */
-                   , T1.DLQ_AMT  /* 연체금액 */
-                   , T1.UC_AMT + T4.SPMT_SL_AMT AS OJ_AMT /* 미수 + 추가매출 :대상금액 */
-                   , T1.THM_CHRAM_AMT /* 당월요금 */
-                   , T1.DLQ_ADD_AMT /* 연체가산금액 */
-                   , T1.DLQ_ADD_DP_AMT /* 연체가산입금금액 */
-                   , T3.EOT_DLQ_ADD_AMT  /* ASIS:가산금기말 */
-                   , T4.SL_AGG_AMT  /* ASIS:매출누계 */
-                   , 0 AS SL_AGG_VAT_AMT /* 항목확인필요 ASIS:매출누계VAT */
-                   , T1.RSG_BOR_AMT AS BOR_AMT
-                   , T5.LS_RNTF AS LSFE /* 분실료 */
-                   , T4.DSC_AGG_AMT /* ASIS:할인누계 */
-                   , T4.CTR_AGG_AMT /* ASIS:조정누계 */
-                   , T4.SL_DP_AGG_AMT /* ASIS:매출입금누계 */
-                FROM TB_CBBO_BND_CNTR_BAS T1
-                LEFT OUTER JOIN TB_CBBO_BND_CNSL_BAS_IZ T2
-                  ON T2.BASE_YM = T1.BASE_YM
-                 AND T2.CNTR_NO = T1.CNTR_NO
-                 AND T2.CNTR_SN = T1.CNTR_SN
-                 AND T2.DTA_DL_YN = 'N'
-                LEFT OUTER JOIN TB_CBCL_DLQ_BAS T3
-                  ON T3.PERF_YM = T2.BASE_YM
-                 AND T3.CNTR_NO = T2.CNTR_NO
-                 AND T3.CNTR_SN = T2.CNTR_SN
-                 AND T3.DTA_DL_YN = 'N'
-                LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T4
-                  ON T4.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.BASE_YM,'YYYYMM'),-1),'YYYYMM')
-                 AND T4.CNTR_NO = T1.CNTR_NO
-                 AND T4.CNTR_SN = T1.CNTR_SN
-                 AND T4.DTA_DL_YN = 'N'
-                LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS T5
-                  ON T5.PERF_YM = T1.BASE_YM
-                 AND T5.CNTR_NO = T1.CNTR_NO
-                 AND T5.CNTR_SN = T1.CNTR_SN
-                 AND T5.DTA_DL_YN = 'N'
-               WHERE 1=1
-                 AND T1.BND_BIZ_DV_CD = #{bndBizDvCd}
-                 AND T1.CNTR_NO = #{cntrNo}
-                 AND T1.CNTR_SN = #{cntrSn}
-                 AND T1.DTA_DL_YN = 'N'
-             )
+        SELECT NVL(T2.DLQ_AMT, 0) + NVL(T2.DLQ_ADD_AMT, 0) + NVL(T2.THM_CHRAM_AMT, 0) AS OJ_AMT /* 대상금액 = 총연체금(연체금액 + 연체가산금) + 당월청구 */
+             , NVL(T2.RSG_BOR_AMT, 0) AS RSG_BOR_AMT  /* 위약금 */
+             , NVL(T2.DLQ_AMT, 0) AS DLQ_AMT /* 연체금액 */
+             , NVL(T3.SL_AGG_AMT, 0) AS SL_AGG_AMT  /* 매출누계 */
+             , NVL(T2.DLQ_DP_AMT, 0) + NVL(T2.DLQ_ADD_DP_AMT, 0) + NVL(T2.THM_CHRAM_DP_AMT, 0) AS OJ_DP_AMT  /* 대상입금 = 총연체입금(연체입금금액 + 연체가산금입금금액) + 당월요금입금금액 */
+             , NVL(T4.LS_RNTF, 0) AS LS_RNTF  /* 분실료 */
+             , NVL(T2.DLQ_DP_AMT, 0) AS DLQ_DP_AMT  /* 연체입금 */
+             , NVL(T5.DP_AGG_AMT, 0) AS DP_AGG_AMT  /* 입금누계 */
+             , (NVL(T2.DLQ_AMT, 0) + NVL(T2.DLQ_ADD_AMT, 0) + NVL(T2.THM_CHRAM_AMT, 0)) - (NVL(T2.DLQ_DP_AMT, 0) + NVL(T2.DLQ_ADD_DP_AMT, 0) + NVL(T2.THM_CHRAM_DP_AMT, 0)) AS OJ_BLAM  /* 대상잔액 = 대상금액 - 대상입금 */
+             , NVL(T2.DLQ_MCN, 0) AS DLQ_MCN  /* 연체개월 */
+             , NVL(T2.DLQ_AMT, 0) - NVL(T2.DLQ_DP_AMT, 0) AS DLQ_BLAM  /* 연체잔액 = 연체금액 - 연체입금 */
+             , NVL(T3.DSC_AGG_AMT, 0) AS DSC_AGG_AMT  /* 할인누계 */
+             , NVL(T2.UC_AMT, 0) AS UC_AMT  /* 미수금액 */
+             , NVL(T2.THM_CHRAM_AMT, 0) AS THM_CHRAM_AMT  /* 월요금액 */
+             , NVL(T2.DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT /* 연체가산금액 */
+             , NVL(T3.CTR_AGG_AMT, 0) AS CTR_AGG_AMT /* 조정누계 */
+             , NVL(T2.DLQ_DP_AMT, 0) + NVL(T2.DLQ_ADD_DP_AMT, 0) + NVL(T2.RSG_BOR_DP_AMT, 0) + NVL(T2.THM_CHRAM_DP_AMT, 0) AS UC_DP_AMT  /* 미수입금 */
+             , NVL(T2.THM_CHRAM_DP_AMT, 0) AS MM_CHRAM_DP_AMT /* 월요금입금 */
+             , NVL(T2.DLQ_ADD_DP_AMT, 0) AS DLQ_ADD_DP_AMT /* 연체가산입금 */
+             , NVL(T2.UC_AMT, 0) - (NVL(T2.DLQ_DP_AMT, 0) + NVL(T2.DLQ_ADD_DP_AMT, 0) + NVL(T2.RSG_BOR_DP_AMT, 0) + NVL(T2.THM_CHRAM_DP_AMT, 0)) AS UC_BLAM /* 미수잔액 = 미수금액 - 미수입금 */
+             , NVL(T2.THM_CHRAM_AMT, 0) - NVL(T2.THM_CHRAM_DP_AMT, 0) AS MM_CHRAM_BLAM /* 월요금잔액 = 당월요금금액 - 당월요금입금금액*/
+             , NVL(T2.DLQ_ADD_AMT, 0) - NVL(T2.DLQ_ADD_DP_AMT, 0) AS DLQ_ADD_BLAM  /* 연체가산잔액 = 연체가산금액 - 연체가산금입금금액 */
+          FROM TB_CBBO_BND_CNSL_BAS_IZ T1
+          LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T2
+            ON T2.BASE_YM = T1.BASE_YM
+           AND T2.CNTR_NO = T1.CNTR_NO
+           AND T2.CNTR_SN = T1.CNTR_SN
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3
+            ON T3.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.BASE_YM,'YYYYMM'),-1),'YYYYMM')
+           AND T3.CNTR_NO = T1.CNTR_NO
+           AND T3.CNTR_SN = T1.CNTR_SN
+           AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS T4
+            ON T4.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.BASE_YM,'YYYYMM'),-1),'YYYYMM')
+           AND T4.CNTR_NO = T1.CNTR_NO
+           AND T4.CNTR_SN = T1.CNTR_SN
+           AND T4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN (
+                           SELECT SUM(DP_AMT) AS DP_AGG_AMT
+                                , CNTR_NO
+                                , CNTR_SN
+                             FROM TB_RVDW_RVE_DTL
+                            WHERE DP_DV_CD = '1'
+                              AND DTA_DL_YN = 'N'
+                            GROUP BY CNTR_NO, CNTR_SN
+                          ) T5
+            ON T5.CNTR_NO = T1.CNTR_NO
+           AND T5.CNTR_SN = T1.CNTR_SN
+         WHERE 1=1
+           AND T1.BND_CNTR_TP_CD = '01'
+           AND T1.BND_BIZ_DV_CD = #{bndBizDvCd}
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.DTA_DL_YN = 'N'
     </select>
 
     <select id="selectBreachOfPromise" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto$FindBreachOfPromiseRes">
