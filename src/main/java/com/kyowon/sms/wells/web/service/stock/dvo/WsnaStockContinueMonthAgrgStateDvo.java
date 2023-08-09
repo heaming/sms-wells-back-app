@@ -16,10 +16,10 @@ public class WsnaStockContinueMonthAgrgStateDvo {
     String wareNoInStr;
     String wareNoPitmFields;
     String wareNoKeppMmFields;
+    String wareNoPitmSumFields;
     String sapMatCd;
     String pdCd;
     String pdNm;
-    String wareFieldsSumStr;
     String ordnyHvMatYn;
     String cmnPartDvCd;
     String trnovrRtOjYn;
