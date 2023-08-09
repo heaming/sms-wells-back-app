@@ -6,7 +6,10 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCustomerCenterInterfaceDto.*;
 import com.kyowon.sms.wells.web.service.interfaces.service.WsniCustomerCenterInterfaceService;
@@ -34,7 +37,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "asAkId", value = "AS요청ID", paramType = "query", required = true),
         @ApiImplicitParam(name = "cstSvAsnNo", value = "고객서비스배정번호", paramType = "query", required = true),
     })
-    @GetMapping("/enginner-contact")
+    @PostMapping("/enginner-contact")
     public EaiWrapper getEngineerContactPs(
         @RequestBody
         @Valid
@@ -52,7 +55,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "wkPrtnrNo", value = "작업파트너번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "wkDt", value = "작업일자", paramType = "query", required = true)
     })
-    @GetMapping("/engineer-promise-change")
+    @PostMapping("/engineer-promise-change")
     public EaiWrapper getEngineerPromChHist(
         @RequestBody
         @Valid
@@ -70,7 +73,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "wkPrtnrNo", value = "작업파트너번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "wkDt", value = "작업일자", paramType = "query", required = true)
     })
-    @GetMapping("/engineer-cancel")
+    @PostMapping("/engineer-cancel")
     public EaiWrapper getEngineerCancels(
         @RequestBody
         @Valid
@@ -87,7 +90,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
     })
-    @GetMapping("/seeding-product")
+    @PostMapping("/seeding-product")
     public EaiWrapper getSeedingRegularShippingPdct(
         @RequestBody
         @Valid
@@ -104,7 +107,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
     })
-    @GetMapping("/seeding-visit")
+    @PostMapping("/seeding-visit")
     public EaiWrapper getSeedingRegularShippingVst(
         @RequestBody
         @Valid
@@ -121,7 +124,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
     })
-    @GetMapping("/as-business")
+    @PostMapping("/as-business")
     public EaiWrapper getAfterServiceBusinessInf(
         @RequestBody
         @Valid
@@ -188,7 +191,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
     })
-    @GetMapping("/additionals")
+    @PostMapping("/additionals")
     public EaiWrapper<FindAdnInfRes> getAdditional(
         @Valid
         @RequestBody
@@ -205,7 +208,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
     })
-    @GetMapping("/package-change")
+    @PostMapping("/package-change")
     public EaiWrapper getPackageChangeHistory(
         @RequestBody
         @Valid
