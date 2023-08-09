@@ -240,6 +240,30 @@
                    AND T2.DTA_DL_YN = 'N'
                    AND #{ogTpCd} IN ('W03', 'W06')
                    AND T2.OG_ID = #{ogId}
+                 UNION
+                SELECT T1.OG_ID
+                     , T1.OG_TP_CD
+                     , T1.OG_CD
+                     , T1.OG_NM
+                     , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
+                     , T1.HGR_OG_ID
+                  FROM TB_OGBS_MM_OG_IZ T1
+                 WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND T1.OG_TP_CD IN ('W02', 'ALC')
+                   AND T1.OG_LEVL_DV_CD = '3'
+                   AND T1.DTA_DL_YN = 'N'
+                   AND T1.DGR2_LEVL_OG_ID IN (SELECT TT1.OG_ID
+                                                FROM TB_OGBS_SPPT_OG_IZ TT1
+                                               INNER JOIN TB_OGBS_MM_OG_IZ TT2
+                                                  ON TT2.OG_ID = TT1.OG_ID
+                                               WHERE 1=1
+                                                 AND TT1.BZNS_SPPT_RSB_DV_CD = 'W0206' -- 업무담당자 코드
+                                                 AND TT1.OG_TP_CD = 'W02' -- M조직
+                                                 AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TT1.MNGT_STRT_DT AND TT1.MNGT_END_DT
+                                                 AND TT2.OG_ID = TT2.DGR2_LEVL_OG_ID -- 지역단만 가져옴
+                                                 AND TT2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                 AND TT1.PRTNR_NO = #{session.employeeIDNumber}
+                                                 AND TT1.DTA_DL_YN = 'N')
               ) T3
         ORDER BY T3.OG_CD
     </select>
