@@ -7,7 +7,6 @@ import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -156,7 +155,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "sppFshDt", value = "배송완료일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", required = true),
     })
-    @PostMapping("/filter-shpadr")
+    @PostMapping("/filter-shpadr-rgst")
     public EaiWrapper<CreateShpadrRes> createFilterShippingAddress(
         @Valid
         @RequestBody
@@ -174,7 +173,7 @@ public class WsniCustomerCenterInterfaceController {
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "sppFshDt", value = "배송완료일자", paramType = "query", required = true),
     })
-    @PutMapping("/filter-shpadr")
+    @PostMapping("/filter-shpadr-mdfc")
     public EaiWrapper<EditShpadrRes> editFilterShippingAddress(
         @Valid
         @RequestBody
