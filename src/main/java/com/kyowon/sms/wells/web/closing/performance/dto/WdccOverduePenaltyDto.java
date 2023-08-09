@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.closing.performance.dto;
 
-import io.swagger.annotations.ApiModel;
-
 import javax.validation.constraints.NotBlank;
+
+import io.swagger.annotations.ApiModel;
 
 public class WdccOverduePenaltyDto {
 
@@ -14,8 +14,7 @@ public class WdccOverduePenaltyDto {
     public record FindCodeRes(
         String sapPdDvCd,
         String sapPdDvNm
-    ) {
-    }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -30,99 +29,110 @@ public class WdccOverduePenaltyDto {
         String sellTpCd,
         String sellTpDtlCd,
         String sellChnlDtl,
-        String cntr
-    ) {
-    }
+        String cntrNo,
+        String cntrSn
+    ) {}
 
     // *********************************************************
     // Result Dto
     // *********************************************************
     // 매출채권/선수금 현황 - 영업선수금 mainGrid
-    @ApiModel(value = "WdccOverdueQenaltyDto-SearchMainGridRes")
-    public record SearchMainGridRes(
+    @ApiModel(value = "WdccOverdueQenaltyDto-SearchPointAggregateRes")
+    public record SearchPointAggregateRes(
         String slClYm,
-        String perfDt,
-        String sellTpNm,
-        String sellTpDtlNm,
-        String sapPdDvNm,
-        String w1Am01,
-        String w1Am02,
-        String w1Am03,
-        String w1Am04,
-        String w1Am05,
-        String w1Am06,
-        String w1Am07,
-        String w1Am08,
-        String w1Am09
-    ) {
-    }
+        String sellTpCd,
+        String sellTpCdNm,
+        String sellTpDtlCd,
+        String sellTpDtlCdNm,
+        String sapPdDvCd,
+        String sapPdAtcNm,
+        String mlgBtdPrpdAmt,
+        String mlgDpAmt,
+        String mlgRfndAmt,
+        String mlgTotAmt,
+        String mlgSlAmt,
+        String mlgEotPrpdAmt
+    ) {}
 
     // *********************************************************
     // Result Dto
     // *********************************************************
     // 매출채권/선수금 현황 - 영업선수금 subGrid
-    @ApiModel(value = "WdccOverdueQenaltyDto-SearchSubGridRes")
-    public record SearchSubGridRes(
-        String slClYm, /* 실적년월*/
-        String sellTpNm, /* 판매유형*/
-        String sellTpDtlNm, /* 판매유형상세*/
-        String cntrNo, /* 계약상세번호*/
-        String cstKnm, /* 고객명*/
-        String pdCd, /* 상품코드*/
-        String pdNm, /* 상품코드명*/
-        String sapPdDvNm, /* SAP상품구분코드명*/
-        String w1Am01, /* 기초영업선수금*/
-        String w1Am02, /* 영업선수입금*/
-        String w1Am03, /* 선수환불*/
-        String w1Am04, /* 합계*/
-        String w1Am05, /* 매출대사*/
-        String w1Am06, /* 위약금*/
-        String w1Am07, /* 매출조정금액*/
-        String w1Am08, /* 잡이익*/
-        String w1Am09 /*기말영업선수금*/
-    ) {
-    }
+    @ApiModel(value = "WdccOverdueQenaltyDto-SearchPointOrderRes")
+    public record SearchPointOrderRes(
+        String slClYm,
+        String sellTpCd,
+        String sellTpCdNm,
+        String sellTpDtlCd,
+        String sellTpDtlCdNm,
+        String sapPdDvCd,
+        String sapPdAtcNm,
+        String cntrCstNo,
+        String cstKnm,
+        String cntrNo,
+        String slRcogDt,
+        String mlgBtdPrpdAmt,
+        String dpTpCd,
+        String chargedDpAmt,
+        String freeDpAmt,
+        String etcDpAmt,
+        String chargedSlAmt,
+        String freeSlAmt,
+        String etcSlAmt,
+        String mlgEotPrpdAmt
+    ) {}
 
     // *********************************************************
     // Result Dto
     // *********************************************************
     // 매출채권/선수금 현황 - 영업선수금 SearchFourthGridRes
-    @ApiModel(value = "WdccOverdueQenaltyDto-SearchThirdGridRes")
-    public record SearchThirdGridRes(
-        String slClYm, /* 실적년월*/
-        String sellTpNm,
-        String sellTpDtlNm,
-        String sapPdDvNm,
-        String wpAm01, /* 선수기초금액*/
-        String wpAm02, /* 선수입금*/
-        String wpAm03, /* 선수환불*/
-        String wpAm04, /* 합계*/
-        String wpAm05, /* 매출*/
-        String wpAm06 /* 기말잔액*/
-    ) {
-    }
+    @ApiModel(value = "WdccOverdueQenaltyDto-SearchAggregateDateRes")
+    public record SearchAggregateDateRes(
+        String slClYm,
+        String slClDt,
+        String sellTpCd,
+        String sellTpCdNm,
+        String sellTpDtlCd,
+        String sellTpDtlCdNm,
+        String sapPdDvCd,
+        String sapPdAtcNm,
+        String btdAtam,
+        String atamDpAmt,
+        String thmAtamRfndAmt,
+        String dpTotAmt,
+        String slBndAlrpyAmt,
+        String borAmt,
+        String adjAmt,
+        String etcProfit,
+        String eotAtam
+    ) {}
 
     // *********************************************************
     // Result Dto
     // *********************************************************
     // 매출채권/선수금 현황 - 영업선수금 SearchFourthGridRes
-    @ApiModel(value = "WdccOverdueQenaltyDto-SearchFourthGridRes")
-    public record SearchFourthGridRes(
-        String slClYm, /* 실적년월*/
-        String sellTpNm, /* 판매유형*/
-        String sellTpDtlNm, /* 판매유형상세*/
-        String cntr, /* 계약상세번호*/
-        String cstKnm, /* 고객명*/
-        String sapPdDvNm, /* SAP상품구분코드명*/
-        String slRcogDt, /* 매출인식일자*/
-        String mlgBtdPrpdAmt, /*기초금액*/
-        String lciam1, /*유상입금*/
-        String lciam2, /*무상입금*/
-        String lciam3, /*기타입금*/
-        String lcsam1, /*유상매출*/
-        String lcsam2, /*무상매출*/
-        String lcsam3, /*기타매출*/
-        String mlgEotPrpdAmt /* 기말잔액*/
-    ) {
-    }
+    @ApiModel(value = "WdccOverdueQenaltyDto-SearchOrderRes")
+    public record SearchOrderRes(
+        String slClYm,
+        String sellTpCd,
+        String sellTpCdNm,
+        String sellTpDtlCd,
+        String sellTpDtlCdNm,
+        String cntrNo,
+        String sapPdDvCd,
+        String sapPdAtcNm,
+        String cntrCstNo,
+        String cstKnm,
+        String pdCd,
+        String pdNm,
+        String btdAtam,
+        String atamDpAmt,
+        String thmAtamRfndAmt,
+        String dpTotAmt,
+        String slBndAlrpyAmt,
+        String borAmt,
+        String adjAmt,
+        String etcProfit,
+        String eotAtam
+    ) {}
 }
