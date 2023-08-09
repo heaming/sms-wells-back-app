@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.deduction.redf.dto;
 
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -23,12 +26,14 @@ public class WdeaAwRedfEtAmtDto {
         String cntrNo, /*계약번호*/
         String cntrSn, /*계약일련번호*/
         String cntrNoSn, /*계약상세번호*/
+        @MaskRequired(type = MaskingType.NAME)
         String cstKnm, /*고객명*/
         String istPlcTpCd, /*설치처(설치장소유형코드)*/
         String istPlc, /*설치처(설치장소유형코드)*/
         String pdNm, /*상품명*/
         String mchnChTpCd, /*기변유형(기기변경유형코드)*/
         String chdvcTp, /*기변유형(기기변경유형코드)*/
+        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, /*판매자(파트너성명)*/
         String prtnrNo, /*파트너번호*/
         String pstnDvNm, /*직책(직급)*/
