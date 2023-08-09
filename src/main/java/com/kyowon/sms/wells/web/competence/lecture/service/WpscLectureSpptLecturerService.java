@@ -29,6 +29,11 @@ public class WpscLectureSpptLecturerService {
         return mapper.selectLectureSpptLecturerPages(dto, pageInfo);
     }
 
+
+    public List<SearchRes> getLectureSpptLecturer(SearchReq dto) {
+        return mapper.selectLectureSpptLecturerPages(dto);
+    }
+
     /**
      * 강의지원 강사관리 - 강사 저장
      * @param reqs
@@ -53,4 +58,5 @@ public class WpscLectureSpptLecturerService {
         }
         return processCount;
     }
+
 }

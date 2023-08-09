@@ -7,6 +7,7 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDetailDvo;
@@ -32,6 +33,7 @@ import lombok.RequiredArgsConstructor;
  */
 
 @Api(tags = "[WSNA] 정상출고 관리 REST API")
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/normal-out-of-storages")

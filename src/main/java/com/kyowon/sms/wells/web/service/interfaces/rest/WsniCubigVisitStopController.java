@@ -5,12 +5,12 @@ import javax.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCubigVisitStopDto.CreateReq;
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCubigVisitStopDto.CreateRes;
 import com.kyowon.sms.wells.web.service.interfaces.service.WsniCubigVisitStopService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 
 import io.swagger.annotations.Api;
@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1)
 @RequiredArgsConstructor
-@RestController
+@InterfaceController
 @Slf4j
 @RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/visit-stops")
 public class WsniCubigVisitStopController {

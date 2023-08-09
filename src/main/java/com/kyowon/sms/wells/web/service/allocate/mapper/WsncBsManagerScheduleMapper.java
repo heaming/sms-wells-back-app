@@ -28,4 +28,12 @@ public interface WsncBsManagerScheduleMapper {
         WsncBsManagerScheduleDto.SearchReq dto, PageInfo pageInfo
     );
 
+    List<WsncBsManagerScheduleDto.Weekres> selectWeeksCodes(
+        WsncBsManagerScheduleDto.Weekreq dto
+    );
+
+    PagingResult<WsncBsManagerScheduleDto.Detailres> selectBsScheduleDateDetail(
+        WsncBsManagerScheduleDto.Detailreq dto
+    );
+
 }

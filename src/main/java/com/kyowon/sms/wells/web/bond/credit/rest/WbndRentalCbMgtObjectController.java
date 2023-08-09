@@ -14,6 +14,7 @@ import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchR
 import com.kyowon.sms.wells.web.bond.credit.service.WbndRentalCbMgtObjectService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -63,7 +64,7 @@ public class WbndRentalCbMgtObjectController {
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query", required = true),
     })
     @GetMapping("/{cstNo}/paging")
-    public List<SearchPaymentRes> getRentalCbMgtPaymentInfos(
+    public PagingResult<SearchPaymentRes> getRentalCbMgtPaymentInfos(
         @PathVariable
         @Valid
         @NotBlank

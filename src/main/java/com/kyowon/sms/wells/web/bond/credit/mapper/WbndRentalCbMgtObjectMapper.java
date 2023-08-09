@@ -29,7 +29,8 @@ public interface WbndRentalCbMgtObjectMapper {
         SearchReq dto
     );
 
-    PagingResult<WbndRentalCbDelinquentIzDvo> selectRentalCbMgtPaymentInfos(String cstNo, PageInfo pageInfo);
+    PagingResult<WbndRentalCbDelinquentIzDvo> selectRentalCbMgtPaymentInfos(@Param("cstNo")
+    String cstNo, PageInfo pageInfo);
 
     List<WbndRentalCbDelinquentIzDvo> selectRentalCbMgtPaymentInfos(@Param("cstNo")
     String cstNo);
