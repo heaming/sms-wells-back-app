@@ -12,7 +12,7 @@ import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.
 @Mapper
 public interface WdcbSalesPerformanceDetailMapper {
 
-    SearchMembershipRes selectMembershipSalesDetail(String cntrDtlNo, String slClYm);
+    SearchMembershipRes selectMembershipSalesDetail(String cntrNo, int cntrSn, String slClYm);
 
     SearchLeaseRes selectLeaseSalesDetail(String cntrDtlNo, String slClYm);
 
