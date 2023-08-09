@@ -37,6 +37,8 @@ public class WfedManagerVisitFeeDto {
         String prtnrNo,
         String prtnrKnm,
         String cntrNo, /*계약번호*/
+        String cntrCstNo, /*고객번호*/
+        String cstKnm, /*고객명*/
         String basePdCd, /*상품코드*/
         String pdNm, /*상품명*/
         String svFeePdDvCd, /*bs상품군*/
