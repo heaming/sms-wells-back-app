@@ -40,6 +40,7 @@ public class WsnaItemByStockAggregationDto {
         String itmGdCd,
         String useYn,
         String matUtlzDvCd,
+        String wareTpCd,
         String itmPdCd,
         String strtSapCd,
         String endSapCd

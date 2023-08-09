@@ -67,7 +67,7 @@ public class WsnaItemByStockAggregationService {
 
         // PIVOT 필드
         String wareNoFields = wares.stream()
-            .map(item -> "T2.QTY_" + item.wareNo())
+            .map(item -> "NVL(T2.QTY_" + item.wareNo() + ", 0) AS QTY_" + item.wareNo())
             .collect(Collectors.joining(","));
 
         dvo.setWareNoInStr(wareNoInStr);
@@ -129,7 +129,7 @@ public class WsnaItemByStockAggregationService {
 
         // PIVOT 필드
         String wareNoFields = wares.stream()
-            .map(item -> "T2.QTY_" + item.wareNo())
+            .map(item -> "NVL(T2.QTY_" + item.wareNo() + ", 0) AS QTY_" + item.wareNo())
             .collect(Collectors.joining(","));
 
         dvo.setWareNoInStr(wareNoInStr);

@@ -25,6 +25,7 @@ public class WsnaItemByStockAggregationDvo {
     private String itmGdCd;
     private String useYn;
     private String matUtlzDvCd;
+    private String wareTpCd;
     private String itmPdCd;
     private String strtSapCd;
     private String endSapCd;
