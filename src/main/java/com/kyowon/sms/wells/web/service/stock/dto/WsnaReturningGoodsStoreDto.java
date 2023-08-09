@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import com.sds.sflex.system.config.validation.validator.ValidDate;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -55,6 +53,7 @@ public class WsnaReturningGoodsStoreDto {
         String cntrSn,
         String itemGr,
         String rcgvpKnm, /*고객명*/
+        String mngtUnitNm, /*관리단위*/
         String sellTpCd, /*판매유형코드*/
         String sellTpNm, /*판매유형명*/
         String referArtc, /*참고사항*/
@@ -80,7 +79,7 @@ public class WsnaReturningGoodsStoreDto {
         String svProcsCn,
         String ichrPrtnrNo,
         String empNm,
-        String fstRgstUsrId,
+        String rcpIchrPrtnrNo,
         String fstRgstUserNm,
         String cnslMoCn,
         //        String col23,
