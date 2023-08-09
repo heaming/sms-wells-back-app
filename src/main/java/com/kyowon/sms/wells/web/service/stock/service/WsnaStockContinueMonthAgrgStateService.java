@@ -48,7 +48,6 @@ public class WsnaStockContinueMonthAgrgStateService {
     public WsnaStockContinueMonthAgrgStateDvo convertPivotStockContinueMonthAgrgStateDvo(
         SearchReq dto
     ) {
-
         String baseYm = dto.baseYm();
         List<WsnaStockContinueMonthAgrgStateWareDvo> wares = getWareHouses(baseYm);
 
