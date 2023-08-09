@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaStockContinueMonthAgrgStateDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockContinueMonthAgrgStateWareDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaStockContinueMonthAgrgStateService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 
@@ -58,6 +59,13 @@ public class WsnaStockContinueMonthAgrgStateController {
     public List<HashMap<String, String>> excelDownload(SearchReq dto) {
 
         return service.getStockContinueMonthAgrgState(dto);
+    }
+
+    @GetMapping("/ware-houses")
+    @ApiOperation(value = "창고 조회", notes = "창고를 조회한다.")
+    public List<WsnaStockContinueMonthAgrgStateWareDvo> getWareHouseNames(String baseYm) {
+
+        return this.service.getWareHouses(baseYm);
     }
 
 }
