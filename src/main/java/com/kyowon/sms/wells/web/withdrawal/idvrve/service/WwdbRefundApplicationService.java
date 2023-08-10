@@ -89,6 +89,17 @@ public class WwdbRefundApplicationService {
         return mapper.selectRefundContractDetail(req);
     }
 
+    /**
+     * 환불 신청 현황 P01. 환불정보 검색 ( 팝업- 조회 )
+     * @param req
+     * @return res
+     */
+    public SearchRefundRes getRefundApplication(
+        SearchRefundReq req
+    ) {
+        return mapper.selectRefund(req);
+    }
+
     /** TODO: 메인그리드에서 팝업조회시 **/
     /**
      * 환불 신청 현황 P01. 신청조회 - 계약상세 ( 팝업조회 - 신규 )

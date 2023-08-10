@@ -143,7 +143,7 @@
                                , RRD.CNTR_NO ||'-'|| RRD.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 */
                                , RRD.RVE_NO
                                , SCD.SELL_TP_CD /* 판매유형코드 */
-                               , CCB.CST_NO
+                               , SCB.CNTR_CST_NO AS CST_NO
                                , SCD.BASE_PD_CD AS PD_CD
                                , PPB.PD_NM /*상품명*/
                                , CCB.CST_KNM /*고객명*/
@@ -194,7 +194,7 @@
                     <if test="@MybatisUtils@isNotEmpty(cntrStartDay) or @MybatisUtils@isNotEmpty(cntrEndDay)">
                     AND (T1.CNTR_NO, T1.CNTR_SN) IN (SELECT CNTR_NO, CNTR_SN
                                                        FROM TB_RVDW_RVE_DTL RVE
-                                                      WHERE RVE.DP_DT BETWEEN #{cntrStartDay} || '000000' AND #{cntrEndDay} || '235959' ) /* 수납일자 */
+                                                      WHERE RVE.DP_DT BETWEEN #{cntrStartDay} AND #{cntrEndDay} ) /* 수납일자 */
                     </if>
                     <if test="@MybatisUtils@isNotEmpty(copnDvCd)">
                     AND T1.COPN_DV_CD = #{copnDvCd}             /* 고객유형 */
@@ -205,8 +205,8 @@
                     <if test="@MybatisUtils@isNotEmpty(cntrSn)">
                     AND T1.CNTR_SN = #{cntrSn}                  /* 계약일련번호 */
                     </if>
-                    <if test="@MybatisUtils@isNotEmpty(cntrCstNo)">
-                    AND T1.CNTR_CST_NO = #{cstNo}               /* 고객번호 */
+                    <if test="@MybatisUtils@isNotEmpty(cstNo)">
+                    AND T1.CST_NO = #{cstNo}               /* 고객번호 */
                     </if>
                     <choose>
                      <when test="@MybatisUtils@equals(encr ,'01') and @MybatisUtils@isNotEmpty(crdcdNo)">
@@ -226,6 +226,24 @@
                  , T2.PD_CD
                  , T2.PD_NM
                  , T2.CST_KNM
+    </select>
+
+    <!-- 환불기본정보조회 -->
+    <select id="selectRefund" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundRes">
+          SELECT T1.RFND_AK_NO /* 환불요청번호 */
+               , T1.ARFND_YN /* 선환불 구분 */
+               , T1.CSH_RFND_FNIT_CD /* 은행코드 */
+               , T1.CSH_RFND_ACNO_ENCR /* 계좌번호 */
+               , T1.CSH_RFND_ACOWN_NM /* 예금주 */
+               , T1.RFND_RVE_DT /* 환불수납일자*/
+               , T1.RFND_PERF_DT /* 환불실적일자*/
+               , T1.RFND_DSB_DT /* 환불지급일자 */
+               , T1.RFND_PROCS_DV_CD /* 환불처리구분코드 */
+               , T1.RFND_PROCS_CN /* 환불처리내용 */
+            FROM TB_RVDW_RFND_AK_BAS T1
+           WHERE 1 = 1
+             AND RFND_AK_NO = #{rfndAkNo}
+             AND RFND_AK_STAT_CD = #{rfndAkStatCd}
     </select>
 
     <!-- TODO: 계약상세 조회 -->
@@ -438,6 +456,11 @@
              , T1.RFND_BLTF_AK_SUM_AMT = #{rfndBltfAkSumAmt}
              , T1.CRDCD_FEE_SUM_AMT = #{crdcdFeeSumAmt}
              , T1.RFND_AK_STAT_CD = #{rfndAkStatCd}
+             , T1.RFND_RVE_DT  =  #{rveDt}
+             , T1.RFND_PERF_DT  =  #{perfDt}
+             , T1.RFND_DSB_DT  = #{dsbDt}
+             , T1.RFND_PROCS_DV_CD = #{rfndProcsDvCd}
+             , T1.RFND_PROCS_CN = #{rfndProcsCn}
              , T1.DTA_DL_YN = 'N'
            <include refid="COMMON.updateSystemField" />
          WHEN NOT MATCHED THEN
@@ -484,8 +507,8 @@
              , #{rveDt}
              , #{perfDt}
              , #{dsbDt}
-             , '01' /* TODO:처리구분코드예시가 없어 임시로 01처리 */
-             , #{rfndRsonCn}
+             , #{rfndProcsDvCd}
+             , #{rfndProcsCn}
              , #{seesion.userId}
              , #{session.companyCode}
              , 'N'

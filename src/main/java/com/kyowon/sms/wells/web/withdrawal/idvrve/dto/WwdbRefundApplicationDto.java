@@ -46,6 +46,28 @@ public class WwdbRefundApplicationDto {
         String rfndEvidMtrFileId /* 첨부파일:환불증빙자료파일 */
     ) {}
 
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundReq")
+    public record SearchRefundReq(
+        String cntrNo,
+        String cntrSn,
+        String rfndAkNo,
+        String rfndAkStatCd
+    ) {}
+
+    @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundRes")
+    public record SearchRefundRes(
+        String rfndAkNo,
+        String arfndYn,
+        String cshRfndFnitCd,
+        String cshRfndAcnoEncr,
+        String cshRfndAcownNm,
+        String rfndRveDt,
+        String rfndPerfDt,
+        String rfndDsbDt,
+        String rfndProcsDvCd,
+        String rfndProcsCn
+    ) {}
+
     /* TODO: 환불신청팝업 - 환불상세 */
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundDetailReq")
     public record SearchRefundDetailReq(
@@ -189,7 +211,12 @@ public class WwdbRefundApplicationDto {
         String procsDv, /* 처리구분 */
         String procsCn /* 처리내용 */
     ) {
-
+        //cshRfndAcnoEncr
+        public SaveBaseReq {
+            if (!StringUtil.isEmpty(cshRfndAcnoEncr)) {
+                cshRfndAcnoEncr = DbEncUtil.enc(cshRfndAcnoEncr); // 계좌번호 암호화
+            }
+        }
     }
     @ApiModel(value = "WwdbRefundApplicationDto-SaveCntrReq")
     public record SaveCntrReq(
