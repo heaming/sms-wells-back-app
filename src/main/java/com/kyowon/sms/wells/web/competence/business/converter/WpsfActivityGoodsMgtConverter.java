@@ -16,11 +16,15 @@ public interface WpsfActivityGoodsMgtConverter {
 
     WpsfActivityGoodsAplcIzDvo mapSaveApplicationReq(WpsfActivityGoodsMgtDto.SaveApplicationReq dto);
 
-    WpsfActiGdsAplcStatIzDvo mapCencelApplicationReq(WpsfActivityGoodsMgtDto.EditApplicationReq dto);
+    WpsfActiGdsAplcStatIzDvo mapCencelApplicationReq(WpsfActivityGoodsMgtDto.RemovepplicationReq dto);
 
-    WpsfActivityGoodsDeductionItemizationDvo mapSaveDeductionItemizationReq(WpsfActivityGoodsMgtDto.EditDeductionReq dto);
+    WpsfActivityGoodsDeductionItemizationDvo mapSaveDeductionItemizationReq(
+        WpsfActivityGoodsMgtDto.EditDeductionReq dto
+    );
 
-    WpsfActivityGoodsDeductionItemizationDvo mapRemoveDeductionItemizationReq(WpsfActivityGoodsMgtDto.RemoveDeductionReq dto);
+    WpsfActivityGoodsDeductionItemizationDvo mapRemoveDeductionItemizationReq(
+        WpsfActivityGoodsMgtDto.RemoveDeductionReq dto
+    );
 
     WpsfActivityGoodsSizeDvo mapSaveSizeReq(WpsfActivityGoodsMgtDto.EditSizeReq dto);
 

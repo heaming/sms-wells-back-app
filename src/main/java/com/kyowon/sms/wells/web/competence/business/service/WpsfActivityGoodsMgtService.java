@@ -158,7 +158,7 @@ public class WpsfActivityGoodsMgtService {
         for (WpsfActivityGoodsMgtDto.SaveApplicationReq dto : dtos) {
             WpsfActivityGoodsAplcIzDvo dvo = converter.mapSaveApplicationReq(dto);
             dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
-            if (dto.actiGdsAplcId() == null || dto.actiGdsAplcId().equals("")) {
+            if (StringUtil.isEmpty(dto.actiGdsAplcId())) {
                 String actiGdsAplcId = mapper.selectActiGdsAplcId();
                 dvo.setActiGdsAplcId(actiGdsAplcId);
                 processCount = mapper.insertActiGdsAplcIz(dvo);
@@ -185,10 +185,10 @@ public class WpsfActivityGoodsMgtService {
      * @return processCount
      */
     @Transactional
-    public int cencelApplication(List<WpsfActivityGoodsMgtDto.EditApplicationReq> dtos) throws Exception {
+    public int removeApplication(List<WpsfActivityGoodsMgtDto.RemovepplicationReq> dtos) throws Exception {
 
         int processCount = 0;
-        for (WpsfActivityGoodsMgtDto.EditApplicationReq dto : dtos) {
+        for (WpsfActivityGoodsMgtDto.RemovepplicationReq dto : dtos) {
 
             WpsfActivityGoodsMgtDto.SearchRes baseData = mapper.selectApplicationBase(dto);
 

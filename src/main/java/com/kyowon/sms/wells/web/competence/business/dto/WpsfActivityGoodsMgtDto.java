@@ -185,8 +185,8 @@ public class WpsfActivityGoodsMgtDto {
 
     ) {}
 
-    @ApiModel(value = "WpsfActivityGoodsMgtDto-EditApplicationReq")
-    public record EditApplicationReq(
+    @ApiModel(value = "WpsfActivityGoodsMgtDto-RemovepplicationReq")
+    public record RemovepplicationReq(
         @NotBlank
         String ogTpCd, /* 조직유형코드 */
         @NotBlank

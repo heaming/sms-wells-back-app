@@ -13,7 +13,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WpsfActivityGoodsMgtMapper {
     WpsfActivityGoodsMgtDto.SearchRes selectApplicationBase(WpsfActivityGoodsMgtDto.SearchReq dto);
 
-    WpsfActivityGoodsMgtDto.SearchRes selectApplicationBase(WpsfActivityGoodsMgtDto.EditApplicationReq dto);
+    WpsfActivityGoodsMgtDto.SearchRes selectApplicationBase(WpsfActivityGoodsMgtDto.RemovepplicationReq dto);
 
     int mergeApplicationBase(WpsfActivityGoodsApplicationBaseDvo dvo);
 
@@ -91,7 +91,7 @@ public interface WpsfActivityGoodsMgtMapper {
 
     int updateActivityGoodsSizeDetail(WpsfActivityGoodsSizeDetailDvo dvo);
 
-    int selectCountactiGdsDdtnId(WpsfActivityGoodsMgtDto.EditApplicationReq dto);
+    int selectCountactiGdsDdtnId(WpsfActivityGoodsMgtDto.RemovepplicationReq dto);
 
     WpsfActivityGoodsBaseDvo selectGoodsBase(WpsfActivityGoodsBaseDvo bDvo);
 }

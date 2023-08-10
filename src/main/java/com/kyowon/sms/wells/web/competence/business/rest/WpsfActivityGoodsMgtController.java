@@ -187,15 +187,15 @@ public class WpsfActivityGoodsMgtController {
             .build();
     }
 
-    @ApiOperation(value = "활동물품신청 취소,반품등록", notes = "활동물품신청 취소,반품등록를  저장한다.")
-    @PostMapping("/application-cencel")
-    public SaveResponse cencelApplication(
+    @ApiOperation(value = "활동물품신청 취소,반품등록", notes = "활동물품신청 취소,반품등록 한다.")
+    @DeleteMapping("/application")
+    public SaveResponse removeApplication(
         @RequestBody
         @Valid
-        List<WpsfActivityGoodsMgtDto.EditApplicationReq> dtos
+        List<WpsfActivityGoodsMgtDto.RemovepplicationReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.cencelApplication(dtos))
+            .processCount(service.removeApplication(dtos))
             .build();
     }
 
@@ -203,7 +203,7 @@ public class WpsfActivityGoodsMgtController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", required = true),
     })
-    @GetMapping("/deductionItemization")
+    @GetMapping("/deduction-itemization")
     public List<WpsfActivityGoodsMgtDto.SearchDeductionItemizationRes> getDeductionItemization(
         @Valid
         SearchReq dto
@@ -212,7 +212,7 @@ public class WpsfActivityGoodsMgtController {
     }
 
     @ApiOperation(value = "수수료 공재 등록", notes = "수수료 공재 등록한다.")
-    @PostMapping("/deductionItemization")
+    @PostMapping("/deduction-itemization")
     public SaveResponse saveDeductionItemization(
         @RequestBody
         @Valid
@@ -224,7 +224,7 @@ public class WpsfActivityGoodsMgtController {
     }
 
     @ApiOperation(value = "수수료 공재 삭제", notes = "수수료 공재 삭제 한다.")
-    @DeleteMapping("/deductionItemization")
+    @DeleteMapping("/deduction-itemization")
     public SaveResponse removeDeductionItemization(
         @RequestBody
         @Valid
