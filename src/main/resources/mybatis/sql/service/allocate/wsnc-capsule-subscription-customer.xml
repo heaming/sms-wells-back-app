@@ -24,15 +24,12 @@
       FROM TB_SSCT_CNTR_DTL C1
      INNER JOIN TB_SSCT_CNTR_BAS C0
         ON C0.CNTR_NO = C1.CNTR_NO
-       AND C0.CNTR_CAN_DTM IS NULL /*계약취소가 아니고*/
      INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S1
         ON S1.CNTR_NO = C1.CNTR_NO
        AND S1.CNTR_SN = C1.CNTR_SN
-       AND S1.IST_DT IS NULL /*설치일자가 없는건*/
      INNER JOIN TB_SSCT_CNTR_WELLS_DTL C3
         ON C3.CNTR_NO = C1.CNTR_NO
        AND C3.CNTR_SN = C1.CNTR_SN
-       AND C3.IST_DT IS NULL /*설치일자가 없는건*/
       LEFT JOIN TB_SVPD_CST_SV_RGBSPR_IZ B1 /*고객서비스정기BS주기내역*/
         ON B1.CNTR_NO = C1.CNTR_NO
        AND B1.CNTR_SN = C1.CNTR_SN
@@ -43,12 +40,14 @@
      INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL E1
         ON E1.PD_CD = S1.PDCT_PD_CD
        AND E1.PD_EXTS_PRP_GRP_CD = 'PART'
-       AND E1.PD_PRP_VAL20 IN ('12', '13', '14', '15', '16') /*12 홈카페캡슐, 13 활력홍삼, 14 화장품, 15 슬림쏙, 16 백수오*/
      WHERE 1 = 1
+       AND E1.PD_PRP_VAL20 IN ('12', '13', '14', '15', '16') /*12 홈카페캡슐, 13 활력홍삼, 14 화장품, 15 슬림쏙, 16 백수오*/
+       AND C3.IST_DT IS NULL /*계약WELLS상세 > 설치일자가 없는건*/
        AND C1.SELL_TP_CD = '6' /*정기배송*/
        AND ((C0.CNTR_CAN_DTM IS NULL AND B1.WK_SN IS NULL) /*정상건이나 BS주기 미생성시*/
          OR (C0.CNTR_CAN_DTM IS NOT NULL AND B1.WK_SN IS NOT NULL) /*BS주기 생성후 계약취소*/
        )
+       AND CNTR_PD_STRTDT IS NOT NULL
     </select>
 
     <delete id="deleteBfsvcPrd">
