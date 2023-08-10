@@ -29,7 +29,7 @@ public class WsniCustomerCenterInterfaceDvo {
     String allCleanYn;
     int changeCount;
     String dtlCntrNo;
-    String dtlCntrSn;
+    int dtlCntrSn;
     String newAdrZip;
     String rnadr;
     String rdadr;

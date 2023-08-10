@@ -65,9 +65,9 @@ public class WsniCustomerCenterInterfaceService {
     public List<SearchSppVstRes> getSeedingRegularShippingVst(SearchReq dto) {
         List<SearchSppVstRes> searchRes = mapper.selectSeedingRegularShippingVst(dto);
 
-        if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException("MSG_TXT_NO_DATA_RM");
-        }
+        //        if (ObjectUtils.isEmpty(searchRes)) {
+        //            throw new BizException("MSG_TXT_NO_DATA_RM");
+        //        }
 
         return searchRes;
     }
@@ -75,9 +75,9 @@ public class WsniCustomerCenterInterfaceService {
     public List<SearchAsRes> getAfterServiceBusinessInf(SearchReq dto) {
         List<SearchAsRes> searchRes = mapper.selectAfterServiceBusinessInf(dto);
 
-        if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException("MSG_TXT_NO_DATA_RM");
-        }
+        //        if (ObjectUtils.isEmpty(searchRes)) {
+        //            throw new BizException("MSG_TXT_NO_DATA_RM");
+        //        }
 
         return searchRes;
     }
@@ -113,13 +113,19 @@ public class WsniCustomerCenterInterfaceService {
         tempDvo = mapper.selectAllCleanYn(dto);
 
         returnDvo = mapper.selectFilterShippingAddressInfo(dto);
-        returnDvo.setAllCleanMsg(tempDvo.getAllCleanMsg());
-        returnDvo.setAllCleanYn(tempDvo.getAllCleanYn());
         returnDvo.setIstLctDtlCn(mapper.selectIstLctDtlCn(dto));
         returnDvo.setChangeCount(mapper.selectTotalMaterialUseYn(dto));
         returnDvo.setBsStopYn(mapper.selectBsStopYn(dto));
         returnDvo.setChangeYn(mapper.selectBespokePanelChangeYn(dto));
         returnDvo.setChangePossibleYn(mapper.selectTopPlateChangePossibleYn(dto));
+
+        if (!ObjectUtils.isEmpty(tempDvo)) {
+            returnDvo.setAllCleanMsg(tempDvo.getAllCleanMsg());
+            returnDvo.setAllCleanYn(tempDvo.getAllCleanYn());
+        } else {
+            returnDvo.setAllCleanMsg("");
+            returnDvo.setAllCleanYn("");
+        }
 
         return converter.mapDvoToFindAdnInfResDto(returnDvo);
     }
@@ -132,5 +138,9 @@ public class WsniCustomerCenterInterfaceService {
         }
 
         return searchRes;
+    }
+
+    public List<SearchFiltShpadrRes> getFilterShippingAddress(SearchFiltShpadrReq dto) {
+        return mapper.selectFilterShippingAddress(dto);
     }
 }
