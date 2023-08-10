@@ -17,6 +17,7 @@ public class WpscLectureSpptApplicationDto {
         String lectrSpptOgTpCd,    /* 강의지원조직유형코드 */
         @NotBlank
         String lectrYm,            /* 강의년월 */
+        String lectNm,
         String ogLevlDvCd1,        /* 조직레벨1 */
         String ogLevlDvCd2         /* 조직레벨2 */
     ) {
@@ -33,12 +34,47 @@ public class WpscLectureSpptApplicationDto {
         String lectrYm,              /* 강의년월 */
         Integer lectrTCnt,           /* 강의차수 */
         Integer lectrSpptLectCd,     /* 강의지원강사코드 */
+        String dgr1LevlOgNm,
+        String dgr2LevlOgNm,
+        String LectNm,
         Integer lectrSpptLectrCd,    /* 강의지원강의코드 */
+        String lectrNm,
         String lectrDt,              /* 강의일자 */
         String ogId,                 /* 조직ID */
         String bldCd,                /* 빌딩코드 */
+        String bldNm,
         String lectrAplcUsrId,       /* 강의신청사용자ID */
         String dtaDlYn              /* 데이터삭제여부 */
+    ) {
+    }
+
+    @ApiModel("WpscLectureSpptApplicationDto-SearchOgTypeRes")
+    public record SearchOgTypeRes(
+        String ogId,
+        String lectrYm,
+        String dgr1LevlOgNm,
+        String dgr2LevlOgNm,
+        String lectrTCnt1BldNm,
+        String lectrTCnt1BldCd,
+        String lectrTCnt1LectNm,
+        String lectrTCnt1LectCd,
+        String lectrTCnt1LectrNm,
+        String lectrTCnt1LectrCd,
+        String lectrTCnt1LectrDt,
+        String lectrTCnt2BldNm,
+        String lectrTCnt2BldCd,
+        String lectrTCnt2LectCd,
+        String lectrTCnt2LectNm,
+        String lectrTCnt2LectrCd,
+        String lectrTCnt2LectrNm,
+        String lectrTCnt2LectrDt,
+        String lectrTCnt3BldNm,
+        String lectrTCnt3BldCd,
+        String lectrTCnt3LectCd,
+        String lectrTCnt3LectNm,
+        String lectrTCnt3LectrCd,
+        String lectrTCnt3LectrNm,
+        String lectrTCnt3LectrDt
     ) {
     }
     // *********************************************************
@@ -82,7 +118,8 @@ public class WpscLectureSpptApplicationDto {
     @ApiModel("WpscLectureSpptApplicationDto-SearchLevelRes")
     public record SearchLevelRes(
         String bldCd,
-        String bldNm
+        String bldNm,
+        String ogId
     ) {
     }
 

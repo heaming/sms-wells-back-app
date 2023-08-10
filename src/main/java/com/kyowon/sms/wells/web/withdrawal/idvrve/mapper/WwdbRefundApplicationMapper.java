@@ -4,33 +4,8 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.App;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.Ctract;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.RefundBasic;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.RefundDetail;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchBankRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchCardRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationConnectHistoryRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailDepositReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailDepositRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPartnerRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPerformanceReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPerformanceRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPossibleReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailPossibleRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailReceiptRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationDetailReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundApplicationRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundContractDetailReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundContractDetailRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundPossibleAmountReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.SearchRefundPossibleAmountRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationBasicDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDetailDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationExcelUploadDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundApplicationInfoDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.*;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.*;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -55,78 +30,55 @@ public interface WwdbRefundApplicationMapper {
         SearchRefundContractDetailReq req
     );
 
-    SearchRefundPossibleAmountRes selectRefundPossibleAmount(
-        SearchRefundPossibleAmountReq req
-    );
-
-    List<SearchCardRes> selectRefundApplicationCard();
-
-    List<SearchBankRes> selectRefundApplicationBank();
-
-    //    int insertRefundApplicationDetail(WwdbRefundApplicationDvo vo);
-    int insertRefundApplicationDetail(WwdbRefundApplicationDetailDvo details);
-
-    //    int insertRefundApplicationDetailHistory(WwdbRefundApplicationDvo vo);
-    int insertRefundApplicationDetailHistory(WwdbRefundApplicationDetailDvo details);
-
-    int insertRefundApplication(WwdbRefundApplicationDvo vo);
-
-    int insertRefundApplicationHistory(WwdbRefundApplicationDvo vo);
-
-    RefundBasic selectRefundApplicationInfo(String rfndRcpNo);
-
-    List<RefundDetail> selectRefundApplicationDetailInfo(String rfndRcpNo);
-
-    int updateRefundApplicationDetail(WwdbRefundApplicationDetailDvo details);
-
-    int insertRefundApplicationHistory(WwdbRefundApplicationInfoDvo vo);
-
-    int updateRefundApplication(WwdbRefundApplicationBasicDvo vo);
-
-    int insertRefundApplicationHistory(String rfndRcpNo);
-
-    int deleteRefundApplication(String rfndRcpNo);
-
-    List<RefundDetail> selectRefundApplicationDetailInfo(SearchRefundApplicationDetailReq req);
-
-    RefundBasic selectRefundApplicationInfo(SearchRefundApplicationDetailReq req);
-
-    List<SearchRefundApplicationDetailPartnerRes> selectRefundApplicationDetailPartner(
-        String rfndRcpNo
-    );
-
-    List<SearchRefundApplicationDetailPossibleRes> selectRefundApplicationDetailPossible(
-        SearchRefundApplicationDetailPossibleReq req
-    );
-
-    Ctract selectRefundApplicationDetailContract(SearchRefundApplicationDetailReq req);
-
-    PagingResult<SearchRefundApplicationDetailDepositRes> selectRefundApplicationDetailDeposit(
-        SearchRefundApplicationDetailDepositReq req,
+    /* 환불상세-팝업에서 선택시 */
+    PagingResult<SearchRefundDetailRes> selectRefundDetail(
+        SearchRefundDetailReq req,
         PageInfo pageInfo
     );
 
-    List<SearchRefundApplicationDetailDepositRes> selectRefundApplicationDetailDeposit(
-        SearchRefundApplicationDetailDepositReq req
-    );
-
-    PagingResult<SearchRefundApplicationDetailPerformanceRes> selectRefundApplicationDetailPerformance(
-        SearchRefundApplicationDetailPerformanceReq req,
+    /*  환불상세 - 메인->그리드->팝업 */
+    PagingResult<SearchRefundDetailRes> selectRefundDetailPage(
+        SearchRefundDetailReq req,
         PageInfo pageInfo
     );
 
-    App selectRefundApplicationDetailApplication(SearchRefundApplicationDetailReq req);
-
-    List<RefundDetail> selectRefundApplicationDetailInfo2(SearchRefundApplicationDetailReq req);
-
-    List<SearchRefundApplicationDetailReceiptRes> selectRefundApplicationDetailReceipt(
-        String rfndRcpNo
+    /* 전금상세 */
+    PagingResult<SearchRefundBalanceTransferRes> selectRefundBalanceTransfer(
+        SearchRefundBalanceTransferReq req,
+        PageInfo pageInfo
     );
 
-    List<SearchRefundApplicationDetailPerformanceRes> selectRefundApplicationDetailPerformance(
-        SearchRefundApplicationDetailPerformanceReq req
+    /* TODO: 임시저장 START */
+    String selectRefundPk();
+
+    int insertRefundTempSave(WwdbRefundBaseDvo dvo);
+
+    int insertRefundTempSaveReqDetail(WwdbRefundCntrDvo dvo);
+
+    int insertRefundTempSaveDetail(WwdbRefundDtlDvo dvo);
+
+    int insertBalanceTempSaveDetail(WwdbRefundBltfDvo dvo);
+
+    int deleteBalanceTempSaveDetail(WwdbRefundBltfDvo dvo);
+
+    /* TODO:  임시저장 END*/
+
+    /* TODO: 삭제시  */
+    int deleteRefundBase(WwdbRefundRemoveDvo dvo);
+
+    int deleteRefundCntrDetail(WwdbRefundRemoveDvo dvo);
+
+    int deleteRefundDetail(WwdbRefundRemoveDvo dvo);
+
+    int deleteRefundBalanceDetail(WwdbRefundRemoveDvo dvo);
+
+    /*TODO: 그리드에서 선택하여 조회시 */
+    PagingResult<SearchRefundBaseRes> selectRefundBasePages(
+        SearchRefundBaseReq req,
+        PageInfo pageInfo
     );
 
+    /* TODO: 상세(P03) -> 컨텍이력조회 선택시 */
     PagingResult<SearchRefundApplicationConnectHistoryRes> selectRefundApplicationConnectHistory(
         String cntrNo,
         PageInfo pageInfo
@@ -135,13 +87,5 @@ public interface WwdbRefundApplicationMapper {
     List<SearchRefundApplicationConnectHistoryRes> selectRefundApplicationConnectHistory(
         String cntrNo
     );
-
-    void insertRefundApplicationDetail(WwdbRefundApplicationExcelUploadDvo refundApplication);
-
-    void insertRefundApplicationDetailHistory(WwdbRefundApplicationExcelUploadDvo refundApplication);
-
-    void insertRefundApplication(WwdbRefundApplicationExcelUploadDvo refundApplication);
-
-    void insertRefundApplicationHistory(WwdbRefundApplicationExcelUploadDvo refundApplication);
 
 }

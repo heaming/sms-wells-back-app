@@ -12,6 +12,7 @@ import com.kyowon.sms.wells.web.service.allocate.converter.WsncRegularBfsvcOjCon
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRegularBfsvcOjDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRegularBfsvcOjDvo;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.annotation.LongTransactional;
 import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
@@ -74,7 +75,7 @@ public class WsncRegularBfsvcOjService {
         return 1;
     }
 
-    @Transactional
+    @LongTransactional
     public int createRegularBfsvcOj(Map<String, Object> param) throws Exception {
         WsncRegularBfsvcOjDvo dvo = new WsncRegularBfsvcOjDvo();
         dvo.setAsnOjYm(StringUtil.nvl(param.get("PARAM1")));
