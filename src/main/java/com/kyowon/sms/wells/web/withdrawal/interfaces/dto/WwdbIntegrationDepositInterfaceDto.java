@@ -82,8 +82,8 @@ public class WwdbIntegrationDepositInterfaceDto {
     /* 공통 통합입금 내역 조회 Request Dto */
     @ApiModel("WwdbIntegrationDepositDto-SearchItemizationReq")
     public record SearchItemizationReq(
-        @JsonProperty("CNO_TP")
-        String cnoTp, // 유형(1계좌/2카드)
+        @JsonProperty("CRCD_AC_DV_CD")
+        String crcdAcDvCd, // 유형(1계좌/2카드)
         @JsonProperty("CNO")
         String cno, // 카드/계좌번호(유형이 1이면 계좌번호, 2면 카드번호)
         @JsonProperty("CARD_APRNO")
