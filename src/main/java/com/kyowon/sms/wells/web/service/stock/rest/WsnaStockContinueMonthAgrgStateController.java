@@ -37,10 +37,10 @@ public class WsnaStockContinueMonthAgrgStateController {
         @ApiImplicitParam(name = "itmGdCd", value = "등급", paramType = "query"),
         @ApiImplicitParam(name = "stockTpCd", value = "재고유형", paramType = "query"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query"),
-        @ApiImplicitParam(name = "itmKindCd", value = "품목구분", paramType = "query"),
+        @ApiImplicitParam(name = "itmKndCd", value = "품목구분", paramType = "query"),
     })
     @GetMapping
-    public List<HashMap<String, String>> getStockContinueMonthAgrgStatePages(
+    public List<HashMap<String, String>> getStockContinueMonthAgrgState(
         @Valid
         SearchReq dto
     ) {
@@ -53,7 +53,7 @@ public class WsnaStockContinueMonthAgrgStateController {
         @ApiImplicitParam(name = "itmGdCd", value = "등급", paramType = "query"),
         @ApiImplicitParam(name = "stockTpCd", value = "재고유형", paramType = "query"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query"),
-        @ApiImplicitParam(name = "itmKindCd", value = "품목구분", paramType = "query"),
+        @ApiImplicitParam(name = "itmKndCd", value = "품목구분", paramType = "query"),
     })
     @GetMapping("/excel-download")
     public List<HashMap<String, String>> excelDownload(SearchReq dto) {
