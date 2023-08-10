@@ -58,7 +58,7 @@ public class WpscLectureSpptApplicationController {
         @ApiImplicitParam(name = "ogLevlDvCd1", value = "조직레벨1"),
         @ApiImplicitParam(name = "ogLevlDvCd2", value = "조직레벨2"),
     })
-    @GetMapping("/pagingForOgType")
+    @GetMapping("/og-type/paging")
     public PagingResult<SearchOgTypeRes> getLectureSpptApplicationPagesForOgType(
         @Valid
         SearchReq dto,
@@ -68,7 +68,7 @@ public class WpscLectureSpptApplicationController {
         return service.getLectureSpptApplicationPagesForOgType(dto, pageInfo);
     }
 
-    @GetMapping("/excel-download-ogType")
+    @GetMapping("/og-type/excel-download")
     public List<SearchOgTypeRes> getLectureSpptApplicationList(
         @Valid
         SearchReq dto
@@ -101,7 +101,7 @@ public class WpscLectureSpptApplicationController {
         @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", required = true),
         @ApiImplicitParam(name = "baseYm", value = "기준년월")
     })
-    @GetMapping("/bldCode")
+    @GetMapping("/bld-code")
     public List<SearchLevelRes> getOrganizationBuildingCode(SearchLevelReq req){
         return service.getOrganizationBuildingCode(req);
     }
