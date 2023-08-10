@@ -47,41 +47,34 @@
                + NVL(T2.D31_QTY, 0) AS TOT_QTY   /* 계 */
           FROM
              (
-               SELECT S1.BASE_D
-                    , S1.SAP_MAT_CD
+               SELECT S1.SAP_MAT_CD
                     , S1.PD_CD
                     , S1.PD_NM
                     , S2.MLNG_CNTN          AS GUBUN
                     , SUBSTR(S2.MLNG_ID, 9) AS GUBUN_CD
-                    , CASE WHEN S2.MLNG_ID = 'MSG_TXT_WK_FSH_CTM' THEN 1
+                    , CASE WHEN S2.MLNG_ID = 'MSG_TXT_WK_FSH_CT' THEN 1
                            WHEN S2.MLNG_ID = 'MSG_TXT_GB_FSH_CT'  THEN 2
                            ELSE 3
                       END                   AS SORT_ORDER
                  FROM
                     (
-                      SELECT D1.BASE_D
-                           , D2.SAP_MAT_CD
-                           , D2.PD_CD
-                           , D2.PD_NM
-                        FROM TB_SVPD_SV_CLND_BAS D1            /* 서비스달력기본 */
-                       INNER JOIN TB_PDBS_PD_BAS D2            /* 상품기본 */
-                          ON 1 = 1
-                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3   /* 상품각사속성상세 */
-                          ON D3.PD_CD = D2.PD_CD
+                      SELECT D1.SAP_MAT_CD
+                           , D1.PD_CD
+                           , D1.PD_NM
+                        FROM TB_PDBS_PD_BAS D1                 /* 상품기본 */
+                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
+                          ON D2.PD_CD = D1.PD_CD
                        WHERE D1.DTA_DL_YN          = 'N'
+                         AND D1.PD_TP_CD           = 'M'
                          AND D2.DTA_DL_YN          = 'N'
-                         AND D2.PD_TP_CD           = 'M'
-                         AND D3.DTA_DL_YN          = 'N'
-                         AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
-                         AND D3.PD_PRP_VAL19       = '5'
-                         AND D1.BASE_Y             = SUBSTR(#{baseYm}, 1, 4)
-                         AND D1.BASE_MM            = SUBSTR(#{baseYm}, 5, 2)
+                         AND D2.PD_EXTS_PRP_GRP_CD = 'PART'
+                         AND D2.PD_PRP_VAL19       = '5'
                     ) S1
                 INNER JOIN T_CMZ_MLNG_D S2
                    ON 1 = 1
                 WHERE S2.TENANT_ID = 'TNT_BASE'
                   AND S2.LNG_ID    = #{session.langId}
-                  AND S2.MLNG_ID  IN ('MSG_TXT_WK_FSH_CTM', 'MSG_TXT_GB_FSH_CT', 'MSG_TXT_NOT_GB_CT')   /* 작업완료 건, 반납완료 건, 미 반납 건 */
+                  AND S2.MLNG_ID  IN ('MSG_TXT_WK_FSH_CT', 'MSG_TXT_GB_FSH_CT', 'MSG_TXT_NOT_GB_CT')   /* 작업완료 건, 반납완료 건, 미 반납 건 */
              ) T1
           LEFT OUTER JOIN
              (
@@ -91,7 +84,7 @@
                       SELECT SUBSTR(D1.FNL_VST_FSH_DT, 7, 2) AS DAYS
                            , D1.ITM_PD_CD
                            , COUNT(1)                        AS QTY
-                           , 'WK_FSH_CTM'                    AS GUBUN_CD
+                           , 'WK_FSH_CT'                    AS GUBUN_CD
                         FROM TB_SVST_SV_WK_OSTR_IZ D1          /* 서비스작업출고내역 */
                        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2    /* 고객서비스수행내역 */
                           ON D2.CNTR_NO = D1.CNTR_NO
@@ -214,7 +207,7 @@
              ) T2
             ON T2.ITM_PD_CD = T1.PD_CD
            AND T2.GUBUN_CD  = T1.GUBUN_CD
-         ORDER BY T1.ITM_PD_CD, T1.SORT_ORDER
+         ORDER BY T1.PD_CD, T1.SORT_ORDER
     </select>
 
 </mapper>
