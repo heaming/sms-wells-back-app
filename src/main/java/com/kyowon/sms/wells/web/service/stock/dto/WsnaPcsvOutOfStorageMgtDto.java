@@ -51,6 +51,7 @@ public class WsnaPcsvOutOfStorageMgtDto {
         String cntrSn,
 
         String rcgvpKnm,
+
         String pdCd,
 
         String pdNm,
@@ -203,8 +204,14 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String ivcPrntSn,
 
-        String istDt
+        String istDt,
 
+        /* 물류 인터페이스 필수 */
+        String rcgvpKnm, /* 고객명 */
+
+        String cralIdvTno, /* 휴대폰번호 */
+
+        String idvTno /* 전화번호 */
     ) {}
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-FindLogisticsCentersRes")
