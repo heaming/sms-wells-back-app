@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.FindTmlmRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.SearchItmRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNewManagerBsConsumableDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -28,4 +29,12 @@ public interface WsnaNewManagerBsConsumableMapper {
     int mergeNewManagerBsConsumableAplcClose(WsnaNewManagerBsConsumableDvo dvo);
 
     int mergeNewManagerBsConsumables(List<WsnaNewManagerBsConsumableDvo> dvos);
+
+    List<WsnaNewManagerBsConsumableDvo> selectBfsvcCsmbDdlvIzByMngtYm(String mngtYm);
+
+    String selectNewOstrAkNo(String ostrAkTpCd, String ostrAkRgstDt);
+
+    int updateBfsvcCsmbDdlvIzOstrAkNoSn(WsnaBuildingBsConsumableDvo dvo);
+
+    int updateBfsvcCsmbDdlvIzDdlvStatCd(WsnaBuildingBsConsumableDvo dvo);
 }
