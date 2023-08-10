@@ -49,8 +49,8 @@ public class WsnaShippingByFilterTypeController {
     @GetMapping("/paging")
     @ApiOperation(value = "필터 종류별 출고내역 페이징 조회", notes = "필터 종류별 출고내역을 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "strtDt", value = "입고희망시작일자", paramType = "query", example = "20230809", required = true),
-        @ApiImplicitParam(name = "endDt", value = "입고희망종료일자", paramType = "query", example = "20230809", required = true),
+        @ApiImplicitParam(name = "strtDt", value = "방문시작일자", paramType = "query", example = "20230809", required = true),
+        @ApiImplicitParam(name = "endDt", value = "방문종료일자", paramType = "query", example = "20230809", required = true),
         @ApiImplicitParam(name = "gbYn", value = "반납여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "svBizHclsfCd", value = "업무유형", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2", required = true),
@@ -69,8 +69,8 @@ public class WsnaShippingByFilterTypeController {
     @GetMapping("/excel-download")
     @ApiOperation(value = "필터 종류별 출고내역 엑셀 다운로드", notes = "조회조건에 해당하는 필터 종류별 출고내역을 엑셀 다운로드 한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "strtDt", value = "입고희망시작일자", paramType = "query", example = "20230809", required = true),
-        @ApiImplicitParam(name = "endDt", value = "입고희망종료일자", paramType = "query", example = "20230809", required = true),
+        @ApiImplicitParam(name = "strtDt", value = "방문시작일자", paramType = "query", example = "20230809", required = true),
+        @ApiImplicitParam(name = "endDt", value = "방문종료일자", paramType = "query", example = "20230809", required = true),
         @ApiImplicitParam(name = "gbYn", value = "반납여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "svBizHclsfCd", value = "업무유형", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2", required = true),
