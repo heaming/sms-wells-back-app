@@ -47,9 +47,7 @@ public class WdcbSinglePaymentDto {
         String sellEvCdNm, /* 행사정보(LC30.LCETC9) */
         Long sellAmt, /* 판매가격 */
         Long alncFee, /* 제휴수수료(LC30.LCFAMT) */
-        // TODO: 어떤게 SUBSC_AMT 청약금
-        Long subscAmt1, /* @TO-DO 청약금액(CW50.CWSAMT 값이 0이면, LC30.LCSAMT) */
-        Long subscAmt2, /* 청약금 @TO-BE는 청약금+인수금(CWSAMT+CWAAMT) 하나로 관리(인수금액은 TOBE 미관리) */
+        Long subscAmt, /* 청약금 @TO-BE는 청약금+인수금(CWSAMT+CWAAMT) 하나로 관리(인수금액은 TOBE 미관리) */
         String tkAmt, /* @TO-DO 인수금액(CW50.CWAAMT) */
         //        Long tkAmt, /* @TO-DO 인수금액(CW50.CWAAMT) */
         Long crpUcAmt, /* 법인미수금액(LC30.LCGAMT) */
