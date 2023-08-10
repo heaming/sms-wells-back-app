@@ -29,6 +29,33 @@ public class WpscLectureSpptApplicationService {
     }
 
     /**
+     * 강의지원 신청 - 엑셀 다운 리스트 조회
+     * @param dto
+     * @return List<SearchRes>
+     */
+    public List<SearchRes> getLectureSpptApplicationPagesForExcelDownload(SearchReq dto){
+        return mapper.selectLectureSpptApplicationPages(dto);
+    }
+
+    /**
+     * 강의지원 신청현황 - 페이징 리스트 조회 (조직별)
+     * @param dto, pageInfo
+     * @return PagingResult<SearchRes>
+     */
+    public PagingResult<SearchOgTypeRes> getLectureSpptApplicationPagesForOgType(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectLectureSpptApplicationPagesForOgType(dto, pageInfo);
+    }
+
+    /**
+     * 강의지원 신청현황 - 엑셀 다운 리스트 조회 (조직별)
+     * @param dto
+     * @return List<SearchOgTypeRes>
+     */
+   public List<SearchOgTypeRes> getLectureSpptApplicationListForOgTypeExcelDownload(SearchReq dto){
+        return mapper.selectLectureSpptApplicationPagesForOgType(dto);
+    }
+
+    /**
      * 강의지원 신청 - 리스트 저장
      * @param reqs
      * @return int

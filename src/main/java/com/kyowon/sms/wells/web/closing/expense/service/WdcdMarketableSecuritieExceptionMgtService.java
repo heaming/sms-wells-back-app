@@ -45,7 +45,7 @@ public class WdcdMarketableSecuritieExceptionMgtService {
         }
 
         //3. 카드 정보/금액 조회 (ASIS : getAccCardInfoDetail)
-        AccCardInfoDetailRes res = mapper.selectAccCardInfoDetail(reqs.get(0));
+        AccCardInfoDetailRes res = mapper.selectAccCardInfoDetail(reqs.get(0)); // TODO 정산번호 중복 되지 않게 조회 가능해야함 문의 필요
         WdcdMarketableSecuritieExceptionDvo masterDvo = converter.mapAccCardInfoDetailResToWdcdMarketableSecuritieExceptionDvo(res);
         masterDvo.setAdjOgId(res.ogId());
         masterDvo.setOgTpCd(reqs.get(0).ogTpCd());
@@ -56,7 +56,7 @@ public class WdcdMarketableSecuritieExceptionMgtService {
         }
         masterDvo.setDstAmt(dstAmtTotal.toString());
 
-        if (!StringUtils.isEmpty(res.opcsAdjNo())) { //4. 3번에서 OPCS_ADJ_NO(운영비정산번호)가 값이 있으면 원천세 정산 수정 진행
+        if (!StringUtils.isEmpty(reqs.get(0).opcsAdjNo())) { //4. 부모에서 전달받은 OPCS_ADJ_NO(운영비정산번호)가 값이 있으면 원천세 정산 수정 진행
             count += mapper.deleteAccDetail(masterDvo);
             count += mapper.updateAccMst(masterDvo);
         } else { // 5. 3번에서 OPCS_ADJ_NO(운영비정산번호)가 값이 없으면 원천세 정산 신규 등록 진행
