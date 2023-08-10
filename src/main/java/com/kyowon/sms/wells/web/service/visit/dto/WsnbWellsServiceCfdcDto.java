@@ -1,63 +1,76 @@
 package com.kyowon.sms.wells.web.service.visit.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
-import io.swagger.annotations.ApiModel;
-import org.apache.commons.lang.StringUtils;
 
-import javax.validation.constraints.NotBlank;
+import io.swagger.annotations.ApiModel;
 
 public class WsnbWellsServiceCfdcDto {
     @ApiModel(value = "WsnbWellsServiceCfdcDto-SearchReq")
     public record SearchReq(
         @NotBlank
+        String searchType,
+        String cntrNo,
+        String cntrSn,
+        String cstNo,
+        String cstNm,
+        String pno1,
+        String pno2,
+        String pno3,
+        String bzrno,
+        String sellPrtnrNo,
+        String fromOgCd,
+        String toOgCd,
+        @NotBlank
         @ValidDate
         String fromDate,
         @NotBlank
         @ValidDate
-        String toDate,
-        @NotBlank
-        String searchType,
-        String searchParam1,
-        String searchParam2,
-        String searchParam3,
-        String searchParam4
+        String toDate
     ) {
         public SearchReq {
-            if (StringUtils.isNotEmpty(searchType) && searchType.equals("4"))
-                searchParam3 = StringUtils.isNotEmpty(searchParam3) ? DbEncUtil.enc(searchParam3) : searchParam3;
+            pno2 = DbEncUtil.enc(pno2);
         }
     }
 
     @ApiModel(value = "WsnbWellsServiceCfdcDto-SearchRes")
     public record SearchRes(
-        String cntrCstNo,
-        String asnOjYm,
+        String cstSvAsnNo,
         String cntrNo,
-        Integer cntrSn,
-        String cntr,
+        String cntrSn,
+        String sellPrtnrOgTpCd,
         String sellPrtnrNo,
-        String ogCd,
-        String svpdNmAbbr1,
-        String cntrKnm,
-        String cralLocaraTno,
-        String mexnoEncr,
-        String cralIdvTno,
-        String locaraTno,
-        String exnoEncr,
-        String idvTno,
+        String sellPrtnrNm,
+        String sellPrtnrOgCd,
+        String cstNo,
+        String cstNm,
+        String cstMpno1,
+        String cstMpno2,
+        String cstMpno3,
+        String cstPno1,
+        String cstPno2,
+        String cstPno3,
+        String cstEmadr,
         String bzrno,
-        String installKnm,
-        String adr,
+        String rcgvpNm,
+        String adrId,
+        String newAdrZip,
+        String rnadr,
+        String rdadr,
         String wkExcnDt,
         String clsfCdSrnPrntCn,
-        String prtnrKnm,
-        String baseYm,
-        String nm
+        String psicPrtnrOgTpCd,
+        String psicPrtnrNo,
+        String psicPrtnrNm,
+        String pdCd,
+        String pdNm,
+        String pdAbbrNm
     ) {
         public SearchRes {
-            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
-            exnoEncr = StringUtils.isNotEmpty(exnoEncr) ? DbEncUtil.dec(exnoEncr) : exnoEncr;
+            cstPno2 = DbEncUtil.dec(cstPno2);
+            cstMpno2 = DbEncUtil.dec(cstMpno2);
         }
     }
 

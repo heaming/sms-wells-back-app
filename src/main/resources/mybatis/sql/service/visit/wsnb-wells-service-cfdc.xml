@@ -2,135 +2,181 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbWellsServiceCfdcMapper">
 
     <select id="selectWellsServiceConfirmations" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto$SearchRes">
-        SELECT T01.*
-          FROM (
-            SELECT T1.CNTR_CST_NO							-- 고객번호
-                 , T2.ASN_OJ_YM
-                 , T2.CNTR_NO
-                 , T2.CNTR_SN
-                 , T2.CNTR_NO || '-' || T2.CNTR_SN AS CNTR	-- 계약상세번호
-                 , T1.SELL_PRTNR_NO							-- 판매자사번
-                 , T3.OG_CD									-- 판매자소속
-                 , T10.SVPD_NM_ABBR1                        -- 상품명
-                 , T4.RCGVP_KNM AS CNTR_KNM					-- 계약자명
-                 , T4.CRAL_LOCARA_TNO						-- 계약자휴대번호 (1)
-                 , T4.MEXNO_ENCR							-- 계약자휴대번호 (2)
-                 , T4.CRAL_IDV_TNO							-- 계약자휴대번호 (3)
-                 , T4.LOCARA_TNO							-- 계약자전화번호 (1)
-                 , T4.EXNO_ENCR								-- 계약자전화번호 (2)
-                 , T4.IDV_TNO								-- 계약자전화번호 (3)
-                 , T5.BZRNO									-- 계약자사업번호
-                 , T6.RCGVP_KNM AS INSTALL_KNM				-- 설치자명
-                 , T6.ADR									-- 설치처 주소
-                 , T2.WK_EXCN_DT							-- 관리일자
-                 , T7.CLSF_CD_SRN_PRNT_CN					-- 관리내역
-                 , T9.PRTNR_KNM								-- 담당자
-                 , T9.BASE_YM
-                 , T4.RCGVP_KNM AS NM					    -- 성명
-              FROM TB_SSCT_CNTR_BAS T1
-             INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T2
-                ON T2.CNTR_NO = T1.CNTR_NO
-               AND T2.VST_PRGS_STAT_CD = '20'	-- 작업완료
-        LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T3
-                ON T3.OG_TP_CD = T1.SELL_OG_TP_CD
-               AND T3.PRTNR_NO = T1.SELL_PRTNR_NO
-        LEFT OUTER JOIN (
-                    SELECT T2.RCGVP_KNM   		-- 계약자명
-                         , T2.CRAL_LOCARA_TNO	-- 계약자휴대번호 (1)
-                         , T2.MEXNO_ENCR		-- 계약자휴대번호 (2)
-                         , T2.CRAL_IDV_TNO		-- 계약자휴대번호 (3)
-                         , T2.LOCARA_TNO		-- 계약자전화번호 (1)
-                         , T2.EXNO_ENCR			-- 계약자전화번호 (2)
-                         , T2.IDV_TNO			-- 계약자전화번호 (3)
-                         , T1.DTL_CNTR_NO		-- 계약번호
-                         , T1.DTL_CNTR_SN		-- 계약상세번호
-                      FROM TB_SSCT_CNTR_ADR_REL T1
-                         , TB_SSCT_CNTR_ADRPC_BAS T2
-                     WHERE T1.CNTR_ADRPC_ID = T2.CNTR_ADRPC_ID
-                       AND T1.ADRPC_TP_CD = '1'  -- 1 계약주소, 3 설치주소
-                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
-                   ) T4
-                ON T4.DTL_CNTR_NO = T2.CNTR_NO
-               AND T4.DTL_CNTR_SN = T2.CNTR_SN
-        LEFT OUTER JOIN TB_CUBS_CST_BAS T5
-                ON T5.CST_NO = T1.CNTR_CST_NO
-        LEFT OUTER JOIN (
-                    SELECT T2.ADR_ID    	-- 설치처주소ID
-                         , T2.RCGVP_KNM   	-- 설치자명
-                         , T1.DTL_CNTR_NO
-                         , T1.DTL_CNTR_SN
-                         , T3.RNADR || T3.RDADR AS ADR
-                      FROM TB_SSCT_CNTR_ADR_REL T1
-                     INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2
-                        ON T2.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID
-                LEFT OUTER JOIN TB_GBCO_ADR_BAS T3
-                        ON T3.ADR_ID = T2.ADR_ID
-                     WHERE T1.ADRPC_TP_CD = '3'  -- 1 계약주소, 3 설치주소
-                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
-                   ) T6
-                ON T6.DTL_CNTR_NO = T2.CNTR_NO
-               AND T6.DTL_CNTR_SN = T2.CNTR_SN
-        LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T7
-                ON T7.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-        LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ T8
-                ON T8.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-        LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T9
-                ON T9.OG_TP_CD = T8.OG_TP_CD
-               AND T9.PRTNR_NO = T8.PRTNR_NO
-               AND T9.BASE_YM = T2.ASN_OJ_YM
-        LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ T11
-                ON T11.CNTR_NO = T2.CNTR_NO
-               AND T11.CNTR_SN = T2.CNTR_SN
-        LEFT OUTER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T10
-                ON T10.SVPD_PD_CD = T11.PDCT_PD_CD
-             WHERE T2.VST_CNFMDT BETWEEN #{fromDate} AND #{toDate}
-             ORDER BY T2.VST_CNFMDT DESC
-                 , T2.CNTR_NO DESC
-                 , T2.CNTR_SN DESC
-                 , T1.CNTR_CST_NO
-                 , T3.OG_CD
-        ) T01
-        WHERE 1=1
-      <if test='@MybatisUtils@equals(searchType, "1")'>  -- 계약상세번호
-        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
-          AND T01.CNTR = #{searchParam1}
+        WITH CST_MPNO AS (
+            SELECT *
+              FROM (SELECT CST_CTPLC_OJ_REFK_VAL
+                         , LOCARA_TNO
+                         , EXNO_ENCR
+                         , IDV_TNO
+                         , RANK() OVER (PARTITION BY CST_CTPLC_OJ_DV_CD, CST_CTPLC_OJ_REFK_VAL, CTPLC_TP_CD ORDER BY HIST_STRT_DTM DESC) AS RNK
+                      FROM TB_CUBS_CST_CTPLC_BAS X
+                     WHERE 1=1
+                       AND CST_CTPLC_OJ_DV_CD = '03' /* 고객관계자 */
+                       AND CTPLC_TP_CD = '03' /* 휴대전화번호 */
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                       AND DTA_DL_YN = 'N')
+             WHERE RNK = 1
+        )
+        , CST_PNO AS (
+            SELECT *
+              FROM (SELECT CST_CTPLC_OJ_REFK_VAL
+                         , LOCARA_TNO
+                         , EXNO_ENCR
+                         , IDV_TNO
+                         , RANK() OVER (PARTITION BY CST_CTPLC_OJ_DV_CD, CST_CTPLC_OJ_REFK_VAL, CTPLC_TP_CD ORDER BY HIST_STRT_DTM DESC) AS RNK
+                      FROM TB_CUBS_CST_CTPLC_BAS X
+                     WHERE 1=1
+                       AND CST_CTPLC_OJ_DV_CD = '03' /* 고객관계자 */
+                       AND CTPLC_TP_CD = '04' /* 전화번호 */
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                       AND DTA_DL_YN = 'N')
+             WHERE RNK = 1
+        )
+        , CST_EML AS (
+            SELECT *
+              FROM (SELECT CST_CTPLC_OJ_REFK_VAL
+                         , EMADR
+                         , RANK() OVER (PARTITION BY CST_CTPLC_OJ_DV_CD, CST_CTPLC_OJ_REFK_VAL, CTPLC_TP_CD ORDER BY HIST_STRT_DTM DESC) AS RNK
+                      FROM TB_CUBS_CST_CTPLC_BAS X
+                     WHERE 1=1
+                       AND CST_CTPLC_OJ_DV_CD = '03' /* 고객관계자 */
+                       AND CTPLC_TP_CD = '07' /* 이메일 */
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                       AND DTA_DL_YN = 'N')
+             WHERE RNK = 1
+        )
+        , PART_MASTER AS (
+            <include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>
+        )
+        SELECT T1.CST_SV_ASN_NO
+             , T1.CNTR_NO
+             , T1.CNTR_SN
+             , T5.SELL_OG_TP_CD AS SELL_PRTNR_OG_TP_CD
+             , T5.SELL_PRTNR_NO
+             , T10.PRTNR_KNM AS SELL_PRTNR_NM
+             , T10.OG_CD AS SELL_PRTNR_OG_CD
+             , T5.CNTR_CST_NO AS CST_NO
+             , T6.CST_KNM AS CST_NM
+             , T11.LOCARA_TNO AS CST_MPNO_1
+             , T11.EXNO_ENCR AS CST_MPNO_2
+             , T11.IDV_TNO AS CST_MPNO_3
+             , T12.LOCARA_TNO AS CST_PNO_1
+             , T12.EXNO_ENCR AS CST_PNO_2
+             , T12.IDV_TNO AS CST_PNO_3
+             , T13.EMADR AS CST_EMADR
+             , T6.BZRNO
+             , T8.RCGVP_KNM AS RCGVP_NM
+             , T8.ADR_ID
+             , T9.NEW_ADR_ZIP
+             , T9.RNADR
+             , T9.RDADR
+             , T1.WK_EXCN_DT
+             , T2.CLSF_CD_SRN_PRNT_CN
+             , T4.OG_TP_CD AS PSIC_PRTNR_OG_TP_CD
+             , T4.PRTNR_NO AS PSIC_PRTNR_NO
+             , T14.PRTNR_KNM AS PSIC_PRTNR_NM
+             , T3.PDCT_PD_CD AS PD_CD
+             , T15.SVPD_NM_KOR AS PD_NM
+             , T15.SVPD_NM_ABBR1 AS PD_ABBR_NM
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+            ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+           AND T1.VST_PRGS_STAT_CD = '20'
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3
+            ON T3.CNTR_NO = T1.CNTR_NO
+           AND T3.CNTR_SN = T1.CNTR_SN
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ T4
+            ON T4.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+           AND T4.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS T5
+            ON T5.CNTR_NO = T1.CNTR_NO
+         INNER JOIN TB_CUBS_CST_BAS T6
+            ON T6.CST_NO = T5.CNTR_CST_NO
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T7
+            ON T7.DTL_CNTR_NO = T1.CNTR_NO
+           AND T7.DTL_CNTR_SN = T1.CNTR_SN
+           AND T7.ADRPC_TP_CD IN ('2', '3')
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T7.VL_STRT_DTM AND T7.VL_END_DTM
+           AND T7.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T8
+            ON T8.CNTR_ADRPC_ID = T7.CNTR_ADRPC_ID
+           AND T8.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS T9
+            ON T9.ADR_ID = T8.ADR_ID
+           AND T9.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T10
+            ON T10.OG_TP_CD = T5.SELL_OG_TP_CD
+           AND T10.PRTNR_NO = T5.SELL_PRTNR_NO
+          LEFT OUTER JOIN CST_MPNO T11
+            ON T11.CST_CTPLC_OJ_REFK_VAL = T6.CST_NO
+          LEFT OUTER JOIN CST_PNO T12
+            ON T12.CST_CTPLC_OJ_REFK_VAL = T6.CST_NO
+          LEFT OUTER JOIN CST_EML T13
+            ON T13.CST_CTPLC_OJ_REFK_VAL = T6.CST_NO
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T14
+            ON T14.OG_TP_CD = T4.OG_TP_CD
+           AND T14.PRTNR_NO = T4.PRTNR_NO
+          LEFT OUTER JOIN PART_MASTER T15
+            ON T15.SVPD_PD_CD = T3.PDCT_PD_CD
+         WHERE 1=1
+           AND T1.VST_CNFMDT BETWEEN #{fromDate} AND #{toDate}
+        <if test='@MybatisUtils@equals(searchType, "1")'>
+            <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+                AND T1.CNTR_NO = #{cntrNo}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+                AND T1.CNTR_SN = #{cntrSn}
+            </if>
         </if>
-      </if>
-      <if test='@MybatisUtils@equals(searchType, "2")'>  -- 고객번호
-        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
-          AND T01.CNTR_CST_NO = #{searchParam1}
+        <if test='@MybatisUtils@equals(searchType, "2") and @MybatisUtils@isNotEmpty(cstNo)'>
+           AND T5.CNTR_CST_NO = #{cstNo}
         </if>
-      </if>
-      <if test='@MybatisUtils@equals(searchType, "3")'>  -- 계약자명
-        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
-          AND T01.CNTR_KNM = #{searchParam1}
+        <if test='@MybatisUtils@equals(searchType, "3") and @MybatisUtils@isNotEmpty(cstNm)'>
+           AND T6.CST_KNM = #{cstNm}
         </if>
-      </if>
-      <if test='@MybatisUtils@equals(searchType, "4")'>  -- 계약자전화번호
-        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
-          AND T01.CRAL_LOCARA_TNO = #{searchParam2}
-          AND T01.MEXNO_ENCR = #{searchParam3}
-          AND T01.CRAL_IDV_TNO = #{searchParam4}
+        <if test='@MybatisUtils@equals(searchType, "4")'>
+            <if test='@MybatisUtils@isNotEmpty(pno1)'>
+                AND T11.LOCARA_TNO = #{pno1}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(pno2)'>
+                AND T11.EXNO_ENCR = #{pno2}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(pno3)'>
+                AND T11.IDV_TNO = #{pno3}
+            </if>
         </if>
-      </if>
-      <if test='@MybatisUtils@equals(searchType, "5")'>  -- 계약자사업자번호
-        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
-          AND T01.BZRNO = #{searchParam1}
+        <if test='@MybatisUtils@equals(searchType, "5")'>
+            <if test='@MybatisUtils@isNotEmpty(pno1)'>
+                AND T12.LOCARA_TNO = #{pno1}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(pno2)'>
+                AND T12.EXNO_ENCR = #{pno2}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(pno3)'>
+                AND T12.IDV_TNO = #{pno3}
+            </if>
         </if>
-      </if>
-      <if test='@MybatisUtils@equals(searchType, "6")'>  -- 판매자사번
-        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
-          AND T01.SELL_PRTNR_NO = #{searchParam1}
+        <if test='@MybatisUtils@equals(searchType, "6") and @MybatisUtils@isNotEmpty(bzrno)'>
+           AND T6.BZRNO = #{bzrno}
         </if>
-      </if>
-      <if test='@MybatisUtils@equals(searchType, "7")'>  -- 조직코드
-        <if test="@MybatisUtils@isNotEmpty(searchParam1)">
-          AND T01.OG_CD <![CDATA[ >= ]]> #{searchParam1}
+        <if test='@MybatisUtils@equals(searchType, "7") and @MybatisUtils@isNotEmpty(sellPrtnrNo)'>
+           AND T5.SELL_PRTNR_NO = #{sellPrtnrNo}
         </if>
-        <if test="@MybatisUtils@isNotEmpty(searchParam2)">
-          AND T01.OG_CD <![CDATA[ <= ]]> #{searchParam2}
+        <if test='@MybatisUtils@equals(searchType, "8")'>
+            <if test='@MybatisUtils@isNotEmpty(fromOgCd)'>
+                And T10.OG_CD <![CDATA[>=]]> #{fromOgCd}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(toOgCd)'>
+                And T10.OG_CD <![CDATA[<=]]> #{toOgCd}
+            </if>
         </if>
-      </if>
+         ORDER BY T1.VST_CNFMDT DESC
+                , T5.CNTR_CST_NO ASC
+                , T1.CNTR_NO DESC
+                , T1.CNTR_SN DESC
     </select>
 
     <select id="selectWellsServiceConfirmationHistoriesForKakao" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto$HistoryRes">
@@ -138,6 +184,7 @@
              , T1.DATE_CLIENT_REQ AS SEND_DATETIME
              , T1.CALLBACK AS SENDER
           FROM ATA_MMT_LOG T1
+         WHERE RESERVED2 = 'Wells18053'
          ORDER BY T1.DATE_CLIENT_REQ DESC
     </select>
 
