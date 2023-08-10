@@ -49,6 +49,14 @@ public class WwdbRefundApplicationController {
         return service.getRefundApplicationExcels(req);
     }
 
+    @ApiOperation(value = "환불 신청 팝업 (환불기본)", notes = "환불 신청 팝업 (환불기본)")
+    @GetMapping("/reg/refund")
+    public SearchRefundRes getRefundApplication(
+        SearchRefundReq req
+    ) {
+        return service.getRefundApplication(req);
+    }
+
     /* 환불상세 */
     @ApiOperation(value = "환불상세 목록 조회", notes = "환불상세 목록 조회")
     @GetMapping("/reg/refund-detail")

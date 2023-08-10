@@ -30,6 +30,8 @@ public interface WwdbRefundApplicationMapper {
         SearchRefundContractDetailReq req
     );
 
+    SearchRefundRes selectRefund(SearchRefundReq req);
+
     /* 환불상세-팝업에서 선택시 */
     PagingResult<SearchRefundDetailRes> selectRefundDetail(
         SearchRefundDetailReq req,
