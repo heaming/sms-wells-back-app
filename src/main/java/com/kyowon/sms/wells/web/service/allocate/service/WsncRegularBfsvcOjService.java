@@ -74,7 +74,7 @@ public class WsncRegularBfsvcOjService {
         return 1;
     }
 
-    @Transactional
+    @Transactional(timeout = -1)
     public int createRegularBfsvcOj(Map<String, Object> param) throws Exception {
         WsncRegularBfsvcOjDvo dvo = new WsncRegularBfsvcOjDvo();
         dvo.setAsnOjYm(StringUtil.nvl(param.get("PARAM1")));
