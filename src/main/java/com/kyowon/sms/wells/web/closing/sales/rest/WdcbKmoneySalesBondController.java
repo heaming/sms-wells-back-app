@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.closing.sales.rest;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbKmoneySalesBondDto.SearchBondRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbKmoneySalesBondDto.SearchCancelRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbKmoneySalesBondDto.SearchDepositRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbKmoneySalesBondDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.sales.service.WdcbKmoneySalesBondService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -38,11 +41,11 @@ public class WdcbKmoneySalesBondController {
     })
     @GetMapping("/sales-bond")
     public PagingResult<SearchBondRes> getSalesBondPages(
-        @RequestParam
-        String baseYr,
+        @Valid
+        SearchReq dto,
         PageInfo pageinfo
     ) {
-        return service.getSalesBondPages(baseYr, pageinfo);
+        return service.getSalesBondPages(dto, pageinfo);
     }
 
     @ApiOperation(value = "매출채권 현황 엑셀 다운로드", notes = "조회조건에 따른 매출채권 현황을 엑셀 다운로드")
@@ -51,10 +54,10 @@ public class WdcbKmoneySalesBondController {
     })
     @GetMapping("/sales-bond/excel-download")
     public List<SearchBondRes> getSalesBondExcelDownload(
-        @RequestParam
-        String baseYr
+        @Valid
+        SearchReq dto
     ) {
-        return service.getSalesBondExcelDownload(baseYr);
+        return service.getSalesBondExcelDownload(dto);
     }
 
     @ApiOperation(value = "월별 입금 상세내역", notes = "조회조건에 따른 월별 입금 상세내역을 조회")

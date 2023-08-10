@@ -4,6 +4,14 @@ import io.swagger.annotations.ApiModel;
 
 public class WdcbKmoneySalesBondDto {
     // *********************************************************
+    // Search Dto
+    // *********************************************************
+    // 매출채권 현황 Search Dto
+    @ApiModel("WdcbKmoneySalesBondDto-SearchReq")
+    public record SearchReq(
+        String baseYr
+    ) {}
+    // *********************************************************
     // Result Dto
     // *********************************************************
     // 매출채권 현황 Search Result Dto
