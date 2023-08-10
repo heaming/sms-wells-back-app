@@ -1,10 +1,6 @@
 package com.kyowon.sms.wells.web.competence.lecture.mapper;
 
-import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptApplicationDto.SearchReq;
-import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptApplicationDto.SearchRes;
-import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptApplicationDto.RemoveReq;
-import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptApplicationDto.SearchLevelReq;
-import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptApplicationDto.SearchLevelRes;
+import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptApplicationDto.*;
 import com.kyowon.sms.wells.web.competence.lecture.dvo.WpscLectureSpptApplicationDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -19,8 +15,17 @@ public interface WpscLectureSpptApplicationMapper {
         SearchReq dto,
         PageInfo pageInfo
     );
+    List<SearchRes> selectLectureSpptApplicationPages(SearchReq dto);
+
+    PagingResult<SearchOgTypeRes> selectLectureSpptApplicationPagesForOgType(
+        SearchReq dto,
+        PageInfo pageInfo
+    );
+    List<SearchOgTypeRes> selectLectureSpptApplicationPagesForOgType(SearchReq dto);
 
     List<SearchLevelRes> selectOrganizationBuildingCode(SearchLevelReq req);
+
+
 
     int insertLectureSpptApplication(WpscLectureSpptApplicationDvo dvo);
 
