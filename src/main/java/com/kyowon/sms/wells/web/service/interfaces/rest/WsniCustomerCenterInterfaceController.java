@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 @InterfaceController
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1 + "고객센터 인터페이스")
-@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/costumer-centers")
+@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/customer-centers")
 @RequiredArgsConstructor
 @Validated
 public class WsniCustomerCenterInterfaceController {
@@ -215,6 +215,18 @@ public class WsniCustomerCenterInterfaceController {
     ) throws IOException, Exception {
         EaiWrapper<List<SearchPkgChRes>> resWrapper = reqWrapper.newResInstance();
         resWrapper.setBody(service.getPackageChangeHistory(reqWrapper.getBody()));
+
+        return resWrapper;
+    }
+
+    @PostMapping("/filter-shpadr-inqr")
+    public EaiWrapper getFilterShippingAddress(
+        @RequestBody
+        @Valid
+        EaiWrapper<SearchFiltShpadrReq> reqWrapper
+    ) {
+        EaiWrapper<List<SearchFiltShpadrRes>> resWrapper = reqWrapper.newResInstance();
+        resWrapper.setBody(service.getFilterShippingAddress(reqWrapper.getBody()));
 
         return resWrapper;
     }

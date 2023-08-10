@@ -41,4 +41,6 @@ public interface WsniCustomerCenterInterfaceMapper {
     String selectTopPlateChangePossibleYn(FindAdnInfReq dto);
 
     List<SearchPkgChRes> selectPackageChangeHistory(FindAdnInfReq dto);
+
+    List<SearchFiltShpadrRes> selectFilterShippingAddress(SearchFiltShpadrReq dto);
 }
