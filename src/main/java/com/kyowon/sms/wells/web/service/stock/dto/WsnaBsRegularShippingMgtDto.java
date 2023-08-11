@@ -21,8 +21,7 @@ public class WsnaBsRegularShippingMgtDto {
         String pdCode, // 상품코드
         String pdName, // 상품명
         String pgGb, /*G :배송상품그룹매핑, P:미매핑상품*/
-        String pdGroupCd, // 상품그룹(콤보박스)
-        String sppThmYn // 배송0차월여부
+        String pdGroupCd // 상품그룹(콤보박스)
     ) {}
 
     @ApiModel("WsnaAsConsumablesStoreDto-SearchReq")
@@ -34,7 +33,6 @@ public class WsnaBsRegularShippingMgtDto {
         @NotBlank
         String pdCd, // 상품코드
         String pgGb,
-        String sppThmYn, // 배송0차월여부
         String procsDvCd, // 처리구분
         String rownum // 조회제한건수
     ) {}
@@ -140,7 +138,6 @@ public class WsnaBsRegularShippingMgtDto {
         String partNmQty08,
         String partNmQty09,
         String partNmQty10,
-        String sppThmYn,
         String cstNo,
         String pdGroupCd
     ) {
@@ -152,7 +149,6 @@ public class WsnaBsRegularShippingMgtDto {
                 tno = locaraTno + "-" + idvTno;
             }
             mpno = cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno;
-            pdGroupCd = null;
         }
     }
 
@@ -260,7 +256,6 @@ public class WsnaBsRegularShippingMgtDto {
         String partNmQty08,
         String partNmQty09,
         String partNmQty10,
-        String sppThmYn,
         String cstNo,
         String pdGroupCd
     ) {}

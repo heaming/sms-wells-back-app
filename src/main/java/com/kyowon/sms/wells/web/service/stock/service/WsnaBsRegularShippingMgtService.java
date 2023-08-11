@@ -17,6 +17,8 @@ import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsRegularShippingMgtMap
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
@@ -56,6 +58,19 @@ public class WsnaBsRegularShippingMgtService {
     public List<SearchRes> getShippingItems(SearchReq dto) {
         List<WsnaBsRegularShippingMgtDvo> dvos = mapper.selectShippingItems(dto);
         return converter.mapWsnaShippingManagementDvoToSearchRes(dvos);
+    }
+
+    /**
+     * (자가필터,건식상품) 목록 조회(페이징)
+     * @param dto, pageInfo
+     * @return
+     */
+    public PagingResult<SearchRes> getShippingItemPages(SearchReq dto, PageInfo pageInfo) {
+        PagingResult<SearchRes> pagingResult = converter.mapWsnaShippingManagementDvoToSearchRes(
+            mapper.selectShippingItems(dto, pageInfo)
+        );
+        pagingResult.setPageInfo(pageInfo);
+        return pagingResult;
     }
 
     /**
@@ -110,10 +125,7 @@ public class WsnaBsRegularShippingMgtService {
             mapper.updateBsPeriod(dvo);
             // 고객서비스BS배정내역(TB_SVPD_CST_SV_BSFVC_ASN_IZ) update
             mapper.updateBsAssign(dvo);
-            // 0차월 상품이면, 고객서비스수행내역(TB_SBPD_CST_SV_EXCN_IZ ) update
-            if (StringUtils.equals(dvo.getSppThmYn(), "Y")) {
-                mapper.updateExecution(dvo);
-            }
+
             // 작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) 저장
             dvo.setMexnoEncr(mexnoEncr);
             dvo.setExnoEncr(exnoEnncr);
@@ -273,4 +285,5 @@ public class WsnaBsRegularShippingMgtService {
         //재고변경 service 호출
         itemStockService.createStock(stockItem);
     }
+
 }
