@@ -148,14 +148,9 @@ public class WsnaWarehouseOrganizationService {
 
                         // 내부 반품 처리
                         transferMaterialsService.saveItmIostMaterials(returnDvo);
-                    }
 
-                    WsnaTransferMaterialsDataDvo dataDvo = dataDvos.get(0);
-
-                    List.of("A", "B", "E", "R").forEach(s -> {
                         WsnaTransferMaterialsHgrDvo hgrDvo = this.converter.mapDataDvoToHgrDvo(dataDvo);
                         hgrDvo.setItmStrNo(newItmStrNo);
-                        hgrDvo.setItmGdCd(s); // 품목등급코드
                         hgrDvo.setStrTpCd(SnServiceConst.RTNGD_STR); // 반품입고(내부) "161"
 
                         // 출고 상위 창고번호는 변경 전 상위창고이므로 그대로 두고, 입고 상위 창고번호만 변경 후 상위창고로 setting
@@ -168,7 +163,6 @@ public class WsnaWarehouseOrganizationService {
                         transferMaterialsService.saveTransferMaterialsForHgr(hgrDvo);
 
                         // (입고 대상 창고 = 현재 창고)
-                        dataDvo.setItmGdCd(s); // 품목등급코드
                         dataDvo.setStrOjWareNo(dataDvo.getOstrOjWareNo());
                         dataDvo.setStrWareDvCd(dataDvo.getOstrWareDvCd());
                         dataDvo.setStrPrtnrNo(dataDvo.getOstrPrtnrNo());
@@ -180,7 +174,7 @@ public class WsnaWarehouseOrganizationService {
 
                         // 정상 입출고 처리
                         transferMaterialsService.saveOutOfMaterials(hgrDvo, dataDvo);
-                    });
+                    }
                 }
             }
         }
