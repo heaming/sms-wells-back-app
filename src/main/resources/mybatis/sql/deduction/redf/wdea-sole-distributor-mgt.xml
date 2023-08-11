@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.deduction.redf.mapper.WdeaSoleDistributorMgtMapper">
-  
+
    <select id="selectSoleDistributorPrtnrs" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto$SearchSoleDistributorPrtnrRes">
         /*총판/B2B 되물림 생성 1번탭 조회기준 판매자별,총판 1번그리드*/
         SELECT MAIN.PERF_YM /*실적년월*/
@@ -58,21 +58,21 @@
                      , NVL((CASE WHEN M.BASE_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo}
                                   AND E.FEE_CD = ('W050001') /*ASIS AB9500P.AKAM52, AKAM53, TOBE*/
                                  THEN SUM(M.PERF_VAL) END), 0) AS FEE_BASE /*수수료(원).기본*/
-                     , NVL((CASE WHEN M.BASE_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo} 
+                     , NVL((CASE WHEN M.BASE_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo}
                                   AND E.FEE_CD = ('W050002') /*ASIS AB9500P.AKAM52, AKAM53, TOBE*/
                                  THEN SUM(M.PERF_VAL) END), 0) AS FEE_ENCRG /*수수료(원).장려*/
                  FROM TB_FEAM_NTORP_PERF_MM_CL M /*순주문파트너실적월마감*/
                 INNER JOIN TB_OGBS_PRTNR_BAS B /*파트너기본*/
-                   ON M.PRTNR_NO = B.PRTNR_NO 
+                   ON M.PRTNR_NO = B.PRTNR_NO
                   AND M.OG_TP_CD = B.OG_TP_CD
                  LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_BAS E /*수수료되물림재지급기본, 데이터 없어서 OUTER 조인, 추후 INNER로 변경 가능성있음*/
-                   ON M.PRTNR_NO = E.PRTNR_NO 
+                   ON M.PRTNR_NO = E.PRTNR_NO
                   AND M.OG_TP_CD = E.OG_TP_CD
                 INNER JOIN TB_FEAM_WELS_NRCTR_MM_CL C /*웰스순주문계약월마감, 현재 0 개인판매 데이터만 있어서 OUTER 조인, 추후 INNER로 변경가능성있음*/
                    ON M.BASE_YM = C.BASE_YM
-                  AND M.PERF_YM = C.PERF_YM 
-                  AND M.PRTNR_NO = C.PRTNR_NO 
-                  AND M.OG_TP_CD = C.OG_TP_CD 
+                  AND M.PERF_YM = C.PERF_YM
+                  AND M.PRTNR_NO = C.PRTNR_NO
+                  AND M.OG_TP_CD = C.OG_TP_CD
                  LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL D /*상품각사속성상세*/
                    ON C.PD_CD = D.PD_CD
                   AND D.PD_EXTS_PRP_GRP_CD = 'SPP'
@@ -95,24 +95,40 @@
                        , C.PERF_TP_CD, B.OG_CD, B.OG_NM, E.FEE_CD, C.BASE_YM
           ) MAIN
     </select>
-    
+
     <select id="selectSoleDistributorContracts" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto$SearchSoleDistributorContractRes">
         /*총판/B2B 되물림 생성 1번탭 조회기준 그리드 2번(계약별)*/
+        WITH T1 AS (
+         			SELECT X.BASE_YM
+         				 , X.PERF_YM
+         				 , X.FEE_TCNT_DV_CD
+         				 , X.CNTR_NO
+         				 , X.CNTR_SN
+         				 , X.CNTR_PERF_CRT_DV_CD
+         				 , X.CO_CD
+         				 , X.OG_TP_CD
+         				 , X.PRTNR_NO
+         				 , NVL(SUM(X.ACKMT_PERF_AMT), 0) AS ACKMT_PERF_AMT /*수수료(원)*/
+             			 , NVL(SUM(X.ACKMT_PERF_CT), 0) AS ACKMT_PERF_CT /*인정실적건수*/
+         			  FROM TB_FEAM_WELS_NRCTR_MM_CL X
+         			 GROUP BY X.BASE_YM, X.PERF_YM, X.FEE_TCNT_DV_CD, X.CNTR_NO, X.CNTR_SN
+         				 	, X.CNTR_PERF_CRT_DV_CD, X.CO_CD, X.OG_TP_CD, X.PRTNR_NO
+         )
         SELECT A.OG_CD /*지점코드(소속코드)*/
-             , A.OG_NM 
-             , A.PRTNR_KNM /*파트너성명(판매자)*/ 
+             , A.OG_NM
+             , A.PRTNR_KNM /*파트너성명(판매자)*/
              , M.PRTNR_NO /*파트너번호(판매자번호)*/
              , M.CNTR_NO /*계약번호*/
              , M.CNTR_SN /*계약일련번호*/
              , M.CNTR_NO || M.CNTR_SN AS CNTR_NO_SN /*계약상세번호*/
              , D.CST_KNM /*고객명*/
              , M.PD_CD /*상품코드*/
-             , D.PD_CLSF_NM /*상품명*/
-             , D.MODEL_NO /*모델명*/
+             , D.PD_NM AS PD_CLSF_NM /*상품명*/
+             , D.PD_ABBR_NM AS MODEL_NO /*모델명*/
              , M.SELL_DSC_DV_CD /*할인구분*/
              , M.SELL_DSC_TP_CD /*할인유형*/
-             , B.PMOT_CD /*할인제도, TODO: 데이터 자체는 프로모션 코드와 동일하나 어느 테이블인지 명확하지 않음*/
-             , (CASE WHEN (SELECT COUNT(1) 
+             , M.PMOT_USWY_DV_CD AS PMOT_CD /*할인제도(프로모션용도구분코드), TODO: 확실하지 않음*/
+             , (CASE WHEN (SELECT COUNT(1)
                              FROM TB_SSCT_CNTR_REL X
                             WHERE X.OJ_CNTR_NO = M.CNTR_NO) = 0
                      THEN '' ELSE '1' END) AS COMBI_DV /*결합구분*/
@@ -126,42 +142,54 @@
              , M.RCPDT /*접수일자*/
              , M.SL_DT /*매출일자*/
              , M.CAN_DT /*취소일자*/
-             , NVL(SUM(M.ACKMT_PERF_AMT), 0) AS ACKMT_PERF_AMT /*수수료(원)*/
-             , NVL(SUM(M.ACKMT_PERF_CT), 0) AS ACKMT_PERF_CT /*인정실적건수*/
+             , T1.ACKMT_PERF_AMT  /*수수료(원)*/
+             , T1.ACKMT_PERF_CT  /*인정실적건수*/
           FROM TB_FEAM_WELS_NRCTR_MM_CL M /*웰스순주문계약월마감*/
-         INNER JOIN TB_OGBS_PRTNR_BAS A /*파트너기본*/
-            ON M.PRTNR_NO = A.PRTNR_NO 
+         INNER JOIN T1
+            ON T1.BASE_YM             = M.BASE_YM
+		   AND T1.PERF_YM             = M.PERF_YM
+		   AND T1.FEE_TCNT_DV_CD      = M.FEE_TCNT_DV_CD
+		   AND T1.CNTR_NO             = M.CNTR_NO
+		   AND T1.CNTR_SN             = M.CNTR_SN
+		   AND T1.CNTR_PERF_CRT_DV_CD = M.CNTR_PERF_CRT_DV_CD
+		   AND T1.CO_CD               = M.CO_CD
+		   AND T1.OG_TP_CD            = M.OG_TP_CD
+		   AND T1.PRTNR_NO            = M.PRTNR_NO
+          INNER JOIN TB_OGBS_MM_PRTNR_IZ A /*월파트너내역*/
+            ON M.PERF_YM = A.BASE_YM
+           AND M.PRTNR_NO = A.PRTNR_NO
            AND M.OG_TP_CD = A.OG_TP_CD
           LEFT OUTER JOIN TB_FEAM_WELS_MM_ACU_CNTR_CL B /*웰스월누적계약마감, TODO: 데이터없음, 프로모션코드 여기서 뽑는게 맞는지 확인필요*/
-            ON M.BASE_YM = B.BASE_YM 
-           AND M.CNTR_NO = B.CNTR_NO 
-           AND M.CNTR_SN = B.CNTR_SN 
+            ON M.BASE_YM = B.BASE_YM
+           AND M.CNTR_NO = B.CNTR_NO
+           AND M.CNTR_SN = B.CNTR_SN
           LEFT OUTER JOIN (SELECT BASE_CNTR_NO
                           , BASE_CNTR_SN
                           , MCHN_CH_TP_CD
                        FROM TB_SSCT_MCHN_CH_IZ) E1 /*기기변경내역.상품구분1(ASIS유형1), TODO: 유형1이 신규인지 유형2가 신규인지 확인필요*/
-            ON M.CNTR_NO = E1.BASE_CNTR_NO 
+            ON M.CNTR_NO = E1.BASE_CNTR_NO
            AND M.CNTR_SN = E1.BASE_CNTR_SN
-          LEFT OUTER JOIN (SELECT OJ_CNTR_NO 
+          LEFT OUTER JOIN (SELECT OJ_CNTR_NO
                                 , OJ_CNTR_SN
                                 , MCHN_CH_TP_CD
                        FROM TB_SSCT_MCHN_CH_IZ) E2 /*기기변경내역.상품구분1(ASIS유형1), TODO: 유형1이 신규인지 유형2가 신규인지 확인필요*/
-            ON M.CNTR_NO = E2.OJ_CNTR_NO 
+            ON M.CNTR_NO = E2.OJ_CNTR_NO
            AND M.CNTR_SN = E2.OJ_CNTR_SN
           LEFT OUTER JOIN (
                              SELECT D1.CNTR_NO /*계약번호*/
                                   , D1.CNTR_SN /*계약일련번호*/
                                   , D3.CST_NO /*고객번호*/
                                   , D3.CST_KNM /*고객명*/
-                                  , D4.MODEL_NO /*모델번호(모델명)*/
+                                  , D4.PD_ABBR_NM /*모델명(상품약어명)*/
+                                  , D4.PD_NM
                                   , D5.PD_CLSF_NM /*상품분류명*/
                                FROM TB_FEAM_WELS_NRCTR_MM_CL D1 /*웰스순주문계약월마감*/
-                              INNER JOIN TB_SSCT_CNTR_BAS D2 /*계약기본*/
+                               LEFT OUTER JOIN TB_SSCT_CNTR_BAS D2 /*계약기본*/
                                  ON D1.CNTR_NO = D2.CNTR_NO
-                              INNER JOIN TB_CUBS_CST_BAS D3 /*고객기본*/
-                                 ON D2.CNTR_CST_NO = D3.CST_NO 
+                               LEFT OUTER JOIN TB_CUBS_CST_BAS D3 /*고객기본*/
+                                 ON D2.CNTR_CST_NO = D3.CST_NO
                                LEFT OUTER JOIN TB_PDBS_PD_BAS D4 /*상품기본*/
-                                 ON D1.PD_CD = D4.PD_CD 
+                                 ON D1.PD_CD = D4.PD_CD
                                LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS D5 /*상품분류기본*/
                                  ON D4.PD_MCLSF_ID = D5.PD_CLSF_ID /*상품기본.중분류ID = 상품분류기본.상품분류ID*/
                                 AND D5.PD_TP_CD = 'P'  /* 상품유형코드 = 'P'(기준상품) */
@@ -171,11 +199,11 @@
                                 AND D1.BASE_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo} /*발생년월*/
                                 </if>
                                 <if test='@MybatisUtils@isNotEmpty(perfYmFrom) and @MybatisUtils@isNotEmpty(perfYmTo)'>
-                                AND D1.PERF_YM BETWEEN #{perfYmFrom} AND #{perfYmFrom} /*실적년월*/
+                                AND D1.PERF_YM BETWEEN #{perfYmFrom} AND #{perfYmTo} /*실적년월*/
                                 </if>
-                                <if test='@MybatisUtils@isNotEmpty(ogCdFrom) and @MybatisUtils@isNotEmpty(ogCdTo)'>
-                                AND D1.HDQ_OG_ID BETWEEN #{ogCdFrom} AND #{ogCdTo} /*지점코드(소속코드)*/
-                                </if>
+                                <!--<if test='@MybatisUtils@isNotEmpty(ogCdFrom) and @MybatisUtils@isNotEmpty(ogCdTo)'>
+                                AND D1.OG_ID BETWEEN #{ogCdFrom} AND #{ogCdTo} /*지점코드(소속코드)*/
+                                </if>-->
                             ) D /*고객 및 상품 정보*/
             ON M.CNTR_NO = D.CNTR_NO
            AND M.CNTR_SN = D.CNTR_SN
@@ -185,17 +213,13 @@
            AND M.BASE_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo} /*발생년월*/
            </if>
            <if test='@MybatisUtils@isNotEmpty(perfYmFrom) and @MybatisUtils@isNotEmpty(perfYmTo)'>
-           AND M.PERF_YM BETWEEN #{perfYmFrom} AND #{perfYmFrom} /*실적년월*/
+           AND M.PERF_YM BETWEEN #{perfYmFrom} AND #{perfYmTo} /*실적년월*/
            </if>
            <if test='@MybatisUtils@isNotEmpty(ogCdFrom) and @MybatisUtils@isNotEmpty(ogCdTo)'>
-           AND M.HDQ_OG_ID BETWEEN #{ogCdFrom} AND #{ogCdTo} /*지점코드(소속코드)*/
+           AND A.OG_ID BETWEEN #{ogCdFrom} AND #{ogCdTo} /*지점코드(소속코드)*/
            </if>
-         GROUP BY A.OG_CD, A.OG_NM, A.PRTNR_KNM, M.PRTNR_NO, M.CNTR_NO, M.CNTR_SN, D.CST_KNM, M.PD_CD
-                , M.SELL_DSC_DV_CD, M.SELL_DSC_TP_CD, B.PMOT_CD, M.PMOT_USWY_DV_CD, M.BFSVC_PRD_CD
-                , M.RCPDT, M.SL_DT, M.CAN_DT, M.PERF_TP_CD, E1.MCHN_CH_TP_CD, E2.MCHN_CH_TP_CD
-                , D.PD_CLSF_NM, D.MODEL_NO
     </select>
-    
+
     <select id="selectBusinessToBusinessPrtnrs" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto$SearchBusinessToBusinessPrtnrRes">
         /*총판/B2B 되물림 생성 1번탭 조회기준 판매자별,조직유형 B2B 그리드 3번*/
         SELECT MAIN.PERF_YM
@@ -220,12 +244,12 @@
                                 THEN SUM(M.PERF_VAL) END), 0) AS FEE_BASE /*수수료(원)*/
                   FROM TB_FEAM_NTORP_PERF_MM_CL M /*순주문파트너실적월마감*/
                  INNER JOIN TB_OGBS_PRTNR_BAS A /*파트너기본*/
-                    ON M.PRTNR_NO = A.PRTNR_NO 
+                    ON M.PRTNR_NO = A.PRTNR_NO
                    AND M.OG_TP_CD = A.OG_TP_CD
                  LEFT OUTER JOIN TB_FEAM_WELS_NRCTR_MM_CL B
-                    ON M.BASE_YM = B.BASE_YM 
-                   AND M.PERF_YM = B.PERF_YM 
-                   AND M.PRTNR_NO = B.PRTNR_NO 
+                    ON M.BASE_YM = B.BASE_YM
+                   AND M.PERF_YM = B.PERF_YM
+                   AND M.PRTNR_NO = B.PRTNR_NO
                    AND M.OG_TP_CD = B.OG_TP_CD
                  WHERE M.DTA_DL_YN = 'N'
                    AND M.OG_TP_CD = 'W04'/*B2B (고정값)*/
@@ -243,7 +267,7 @@
                         , A.OG_CD, A.OG_NM
                 ) MAIN
     </select>
-    
+
     <select id="selectSoleDistributorB2bs" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto$SearchSoleDistributorMgtRes">
         /*총판/B2B 되물림 생성 2번탭*/
         SELECT A.OG_NM /*업체명(지점명)*/
@@ -267,7 +291,7 @@
            AND M.OG_TP_CD = #{ogTpCd}
          GROUP BY A.OG_NM, A.OG_CD, M.PRTNR_NO, M.REDF_ADSB_OC_YM, M.OG_TP_CD
     </select>
-    
+
     <update id="updateRedfDdtnAmt">
         UPDATE TB_FEDD_SODBT_FEE_MM_REDF_IZ /*총판수수료월되물림내역*/
            SET REDF_DDCTAM = #{redfDdctam}
@@ -276,5 +300,5 @@
            AND OG_TP_CD = #{ogTpCd}
            AND PRTNR_NO = #{prtnrNo}
     </update>
-  
+
 </mapper>
