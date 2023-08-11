@@ -13,7 +13,6 @@ import com.kyowon.sms.wells.web.service.stock.converter.WsnaNewManagerBsConsumab
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.SearchBldRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.*;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsConsumablesAskReqDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNewManagerBsConsumableDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBuildingBsConsumableMapper;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaNewManagerBsConsumableMapper;
@@ -24,6 +23,7 @@ import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -76,6 +76,16 @@ public class WsnaNewManagerBsConsumableService {
             if (CollectionUtils.isEmpty(itemInfos)) {
                 // 매니저 별 미등록 품목 계산 수량 조회
                 itemInfos = mapper.selectItemFirstQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
+
+                String mngtYear = dto.mngtYm().substring(0, 4);
+                String mngtMonth = "";
+                mngtMonth = dto.mngtYm().substring(4);
+                mngtMonth = mngtMonth.startsWith("0") ? " " + mngtMonth.substring(1) : mngtMonth;
+
+                BizAssert.isTrue(
+                    itemInfos.size() > 0, "MSG_ALT_BFSVC_CSMB_DDLV_BASE",
+                    new String[] {mngtYear, mngtMonth}
+                );
 
                 for (WsnaNewManagerBsConsumableDvo itemInfo : itemInfos) {
                     switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
@@ -197,7 +207,7 @@ public class WsnaNewManagerBsConsumableService {
 
     private void editBfsvcCsmbDdlvIzOstrAkNoSn(List<WsnaBsConsumablesAskReqDvo> reqDvos, String mngtYm) {
         for (WsnaBsConsumablesAskReqDvo reqDvo : reqDvos) {
-            WsnaBuildingBsConsumableDvo dvo = new WsnaBuildingBsConsumableDvo();
+            WsnaNewManagerBsConsumableDvo dvo = new WsnaNewManagerBsConsumableDvo();
 
             dvo.setMngtYm(mngtYm);
             dvo.setCsmbPdCd(reqDvo.getItmPdCd());
@@ -212,7 +222,7 @@ public class WsnaNewManagerBsConsumableService {
 
     private void editBfsvcCsmbDdlvIzDdlvStatCd(List<WsnaBsConsumablesAskReqDvo> reqDvos, String mngtYm) {
         for (WsnaBsConsumablesAskReqDvo reqDvo : reqDvos) {
-            WsnaBuildingBsConsumableDvo dvo = new WsnaBuildingBsConsumableDvo();
+            WsnaNewManagerBsConsumableDvo dvo = new WsnaNewManagerBsConsumableDvo();
 
             dvo.setMngtYm(mngtYm);
             dvo.setCsmbPdCd(reqDvo.getItmPdCd());

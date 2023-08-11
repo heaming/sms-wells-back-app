@@ -4,6 +4,279 @@
 
     <select id="selectAwRedfMgts" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto$SearchAwRedfRes">
         /*수당(실적) 되물림 관리_WELLS M, P, 홈마스터, 상조 */
+ 		SELECT T.REDF_ADSB_OC_YM /*발생년월*/
+ 			 , T.SL_YM /*실적년월*/
+ 			 , (CASE WHEN T.PD_GUB = '01' THEN '렌탈'
+                     WHEN T.PD_GUB = '02' THEN '일시불/할부'
+                     WHEN T.PD_GUB = '03' THEN '멤버십'
+                     WHEN T.PD_GUB = '04' THEN '정기배송'
+                     WHEN T.PD_GUB = '05' THEN '재약정'
+                  END) AS PD_GUB/*상품구분*/
+             , T.ENVR_YN
+             , T.PD_CD
+             , T.PD_CLSF_NM
+             , T.CNTR_NO
+             , T.CNTR_SN
+             , T.CNTR_NO_SN /*계약상세번호*/
+             , T.CST_KNM /*고객성명*/
+             , T.PRTNR_KNM /*판매자*/
+             , T.PRTNR_NO /*판매자번호*/
+             , T.GNLR_LEDR_NO /*총괄단장*/
+             , T.GNLR_LEDR /*총괄단장 성명*/
+             , T.LOCAL_AREA_MANAGER_NO /*지역단장*/
+             , T.LOCAL_AREA_MANAGER /*지역단장 성명*/
+             , T.BRANCH_MANAGER_NO /*지점장*/
+             , T.BRANCH_MANAGER /*지점장 성명*/
+             , T.DSTRC_MANAGER_NO /*지구장*/
+             , T.DSTRC_MANAGER /*지구장 성명*/
+             , T.PERF_TP_CD /*처리유형*/
+     	     , T.THM_OC_DLQ_AMT /*연체금액(기초연체금액+기초연체가산금액이 AS-IS데이터와 동일)*/
+     	     , T.CNTR_DTL_STAT_CH_RSON_NM /*취소유형*/
+     	     , T.DLQ_YM /*연체되물림년월*/
+     	     , T.RDSB_YM
+     	     , T.RENTAL_AMT
+     	     , T.MCHN_CH_TP_CD /*기변유형*/
+     	     , T.FEE_FXAM_YN /*정액여부*/
+     	     , T.FEE_ACKMT_CT /*인정건수*/
+     	     , T.PERF_VAL1
+             , T.PERF_VAL2
+ 	     	 , T.SELL_DSC_DV_CD /*할인구분*/
+ 	     	 , T.SELL_DSCR_CD /*판매할인율코드(할인유형)*/
+ 	     	 , T.SELL_DSC_TP_CD /*프로모션코드(할인제도)*/
+ 	     	 , T.PAK_SN
+ 	     	 , T.FEE_ACKMT_BASE_AMT /*수수료기준금액, WELLS-M 일 때*/
+ 	     	 , T.ACKMT_PERF_AMT /*수수료인정실적 WELLS-P 일 때*/
+ 	     	 , T.BOO_YN /*예약여부*/
+ 	 		 , T.OG_CD /*지점*/
+ 	 		 , T.CNTR_PD_STRTDT /*설치일자*/
+ 	 		 , T.CAN_DT /*취소일자*/
+	 		 , T.CPSN_REDF_YN /*강제되물림여부*/
+             , T.RSTL_YN
+ 		  FROM (
+		SELECT M.BASE_YM AS REDF_ADSB_OC_YM /*발생년월*/
+			 , SUBSTR(A.CNTR_PD_STRTDT, 1, 6) AS SL_YM /*실적년월*/
+			 , (CASE WHEN A.SELL_TP_CD = '1' AND A.STLM_TP_CD IN ('10', '20') THEN '02' /*일시불/할부*/
+				 	 WHEN A.SELL_TP_CD = '2' THEN '01' /*렌탈*/
+			 		 WHEN A.SELL_TP_CD =  '3' THEN '03' --'멤버십'
+                     WHEN A.SELL_TP_CD =  '6' THEN '04' --'정기배송'
+                   END) AS PD_GUB /*상품구분*/
+             , (CASE WHEN C2.PD_CD IN (SELECT T230.PD_CD
+	                                     FROM TB_PDBS_PD_ECOM_PRP_DTL T230 /* T.상품각사속성상세 */
+	                                    WHERE 1=1
+	                                      AND T230.PD_EXTS_PRP_GRP_CD = 'IND'
+	                                      AND T230.PD_PRP_VAL11 ='Y'  /* 환경가전여부 */)
+                     THEN 'Y'
+                     ELSE 'N'
+                   END) AS ENVR_YN /*환경여부*/
+             , C2.PD_CD
+             , C2.PD_NM AS PD_CLSF_NM /*상품명*/
+             , M.CNTR_NO
+             , M.CNTR_SN
+             , M.CNTR_NO || M.CNTR_SN AS CNTR_NO_SN /*계약상세번호*/
+             , C1.CST_KNM /*고객성명*/
+             , D.PRTNR_KNM /*판매자*/
+             , M.PRTNR_NO /*판매자번호*/
+             , T1.PRTNR_NO AS GNLR_LEDR_NO /*총괄단장*/
+             , T1.PRTNR_KNM AS GNLR_LEDR /*총괄단장 성명*/
+             , T2.PRTNR_NO AS LOCAL_AREA_MANAGER_NO /*지역단장*/
+             , T2.PRTNR_KNM AS LOCAL_AREA_MANAGER /*지역단장 성명*/
+             , T3.PRTNR_NO AS BRANCH_MANAGER_NO /*지점장*/
+             , T3.PRTNR_KNM AS BRANCH_MANAGER /*지점장 성명*/
+             , T4.PRTNR_NO AS DSTRC_MANAGER_NO /*지구장*/
+             , T4.PRTNR_KNM AS DSTRC_MANAGER /*지구장 성명*/
+             , (CASE WHEN M.PERF_TP_CD = '3' THEN '매변'
+             		 WHEN M.PERF_TP_CD IN ('0', '1') THEN '취소'
+             		 WHEN M.PERF_TP_CD = '10' THEN '연체'
+             	   END) AS PERF_TP_CD /*처리유형*/
+     	     , NVL(E.BTD_DLQ_AMT + E.BTD_DLQ_ADD_AMT, 0) AS THM_OC_DLQ_AMT /*연체금액(기초연체금액+기초연체가산금액이 AS-IS데이터와 동일)*/
+     	     , (CASE WHEN F.CNTR_DTL_STAT_CH_RSON_CD IS NOT NULL THEN
+     	     			  F.CNTR_DTL_STAT_CH_RSON_CD || '. ' || F_CMZ_CD_NM('TNT_WELLS', 'CMN_STAT_CH_RSON_CD', F.CNTR_DTL_STAT_CH_RSON_CD, 'ko')
+ 	     			 ELSE ''
+     			  END) AS CNTR_DTL_STAT_CH_RSON_NM /*취소유형*/
+     	     , E.PERF_YM AS DLQ_YM /*연체되물림년월*/
+     	     , (SELECT MIN(X.BASE_YM) AS BASE_YM
+     	     	  FROM TB_FEAM_WELS_NRCTR_MM_CL X
+     	     	 WHERE M.BASE_YM <![CDATA[ < ]]> X.BASE_YM
+     	     	   AND X.CNTR_NO = M.CNTR_NO
+     	     	   AND X.CNTR_SN = M.CNTR_SN
+     	     	   AND X.CNTR_PERF_CRT_DV_CD <![CDATA[ > ]]> '07'
+ 	     	    ) AS RDSB_YM
+     	     , (CASE WHEN A.SELL_TP_CD = '6' /*정기배송일 떄 ASIS 계산식, ((판매금액 - 할인금액)/서비스주기)*/
+     	     		 THEN TRUNC((A.SELL_AMT - A.DSC_AMT) / A.SV_PRD)
+     	     		 ELSE G.RENTAL_AMT
+     	     	  END) AS RENTAL_AMT
+     	     , M.MCHN_CH_TP_CD /*기변유형*/
+     	     , A.FEE_FXAM_YN /*정액여부*/
+     	     , M.ACKMT_PERF_CT AS FEE_ACKMT_CT /*인정건수*/
+     	     <!--, '' AS PERF_VAL1 /*BS인정건수*/-->
+     	     <!--, '' AS PERF_VAL2 /*BS신규건수*/-->
+     	     , (SELECT SUM(NVL((CASE WHEN X.PERF_ATC_CD = 'W00P00011' THEN X.PERF_VAL END), 0)) AS PERF_VAL
+     	          FROM TB_FEAM_NTORP_CNTR_MM_CL X
+     	         WHERE M.CNTR_NO = X.CNTR_NO
+     	           AND M.CNTR_SN = X.CNTR_SN
+     	           AND M.BASE_YM = X.BASE_YM
+     	           AND M.PERF_YM = X.PERF_YM
+     	           AND X.PERF_ATC_CD = 'W00P00011' /*BS인정건수*/
+     	         ) AS PERF_VAL1
+             , (SELECT SUM(NVL((CASE WHEN X.PERF_ATC_CD = 'W00P00010' THEN X.PERF_VAL END), 0)) AS PERF_VAL
+     	          FROM TB_FEAM_NTORP_CNTR_MM_CL X
+     	         WHERE M.CNTR_NO = X.CNTR_NO
+     	           AND M.CNTR_SN = X.CNTR_SN
+     	           AND M.BASE_YM = X.BASE_YM
+     	           AND M.PERF_YM = X.PERF_YM
+     	           AND X.PERF_ATC_CD = 'W00P00010' /*BS신규판매건수*/
+     	         ) AS PERF_VAL2
+ 	     	 , A.SELL_DSC_DV_CD /*할인구분*/
+ 	     	 , A.SELL_DSCR_CD /*판매할인율코드(할인유형)*/
+ 	     	 , A.SELL_DSC_TP_CD /*프로모션코드(할인제도)*/
+ 	     	 , '' AS PAK_SN
+ 	     	 /*TODO: 패키지 일련번호는 현재 TOBE에선 사용자에게 보여줄만한 데이터 값이 아니여서 잠시 보류중..추후 리뷰 후 협의해야할듯
+             * 만약 정말로 보여줘야 한다면 계약상세의 상위상품코드를 패키지 코드인것을 보여줘야하는데 데이터 정합성이 맞는지도 의문*/
+ 	     	 , A.FEE_ACKMT_BASE_AMT /*수수료기준금액, WELLS-M 일 때*/
+ 	     	 , M.ACKMT_PERF_AMT /*수수료인정실적 WELLS-P 일 때*/
+ 	     	 , (CASE WHEN A.SELL_TP_CD != '6' AND A.BOO_SELL_TP_CD IS NOT NULL THEN 'Y'
+ 	     	 		 ELSE '' END) AS BOO_YN /*예약여부*/
+ 	 		 , D.OG_CD /*지점*/
+ 	 		 , A.CNTR_PD_STRTDT /*설치일자*/
+ 	 		 , (CASE WHEN SUBSTR(A.CNTR_DTL_STAT_CD, 1, 1) = '3' THEN A.CNTR_PD_ENDDT /*계약상태 취소인것들*/
+ 	 		 		 ELSE '' END) AS CAN_DT /*취소일자*/
+	 		 , (CASE WHEN (SELECT COUNT(1)
+                             FROM TB_FEDD_FEE_CPSN_REDF_OJ_IZ SUB /*수수료강제되물림대상내역*/
+                            WHERE M.FEE_CPSN_REDF_ID = SUB.FEE_CPSN_REDF_ID
+                              AND M.PERF_TP_CD = '1' /*강제되물림은 수당되물림(취소)만 해당*/
+                           ) = '1' THEN 'Y'
+                     ELSE '' END) AS CPSN_REDF_YN /*강제되물림여부*/
+             , M.RSTL_YN
+		  FROM TB_FEAM_WELS_NRCTR_MM_CL M /*웰스순주문계약월마감*/
+		 INNER JOIN TB_SSCT_CNTR_DTL A /*계약상세*/
+		    ON M.CNTR_NO = A.CNTR_NO
+		   AND M.CNTR_SN = A.CNTR_SN
+		   AND M.PERF_YM = SUBSTR(A.CNTR_PD_STRTDT, 1, 6)
+		 INNER JOIN TB_SSCT_CNTR_BAS B /*계약기본*/
+		    ON A.CNTR_NO = B.CNTR_NO
+		 INNER JOIN TB_CUBS_CST_BAS C1 /*/*고객기본*/
+		    ON B.CNTR_CST_NO = C1.CST_NO
+		 INNER JOIN TB_PDBS_PD_BAS C2 /*상품기본*/
+            ON A.BASE_PD_CD = C2.PD_CD
+           AND C2.DTA_DL_YN = 'N'
+	   	 INNER JOIN TB_OGBS_MM_PRTNR_IZ D /*월파트너내역*/
+            ON D.BASE_YM = M.BASE_YM
+           AND D.PRTNR_NO = M.PRTNR_NO
+           AND D.OG_TP_CD = M.OG_TP_CD
+          LEFT OUTER JOIN (
+                           SELECT A.BASE_YM
+                                , A.OG_TP_CD
+                                , A.PRTNR_NO
+                                , A.PRTNR_KNM
+                                , A.OG_ID
+                                , A.OG_CD
+                                , A.OG_NM
+                            FROM TB_OGBS_MM_PRTNR_IZ A  /*월파트너내역*/
+                           WHERE A.PSTN_DV_CD = '2'  /*총괄단장*/
+                             AND A.DTA_DL_YN = 'N'
+                             ) T1  /* 총괄단장 */
+             ON T1.BASE_YM = M.PERF_YM
+            AND D.OG_ID = T1.OG_ID
+            AND D.OG_CD = T1.OG_CD
+           LEFT OUTER JOIN (
+                           SELECT A.BASE_YM
+                                , A.OG_TP_CD
+                                , A.PRTNR_NO
+                                , A.PRTNR_KNM
+                                , A.OG_ID
+                                , A.OG_CD
+                                , A.OG_NM
+                            FROM TB_OGBS_MM_PRTNR_IZ A  /*월파트너내역*/
+                           WHERE A.PSTN_DV_CD = '4'  /*지역단장*/
+                             AND A.DTA_DL_YN = 'N'
+                             ) T2  /* 지역단장 */
+             ON T2.BASE_YM = M.PERF_YM
+            AND D.OG_ID = T2.OG_ID
+            AND D.OG_CD = T2.OG_CD
+           LEFT OUTER JOIN (
+                           SELECT A.BASE_YM
+                                , A.OG_TP_CD
+                                , A.PRTNR_NO
+                                , A.PRTNR_KNM
+                                , A.OG_ID
+                                , A.OG_CD
+                                , A.OG_NM
+                            FROM TB_OGBS_MM_PRTNR_IZ A  /*월파트너내역*/
+                           WHERE A.PSTN_DV_CD = '7'  /*지점장 */
+                             AND A.DTA_DL_YN = 'N'
+                             ) T3  /* 지점장 */
+             ON T3.BASE_YM = M.PERF_YM
+            AND D.OG_ID = T3.OG_ID
+            AND D.OG_CD = T3.OG_CD
+           LEFT OUTER JOIN (
+                           SELECT A.BASE_YM
+                                , A.OG_TP_CD
+                                , A.PRTNR_NO
+                                , A.PRTNR_KNM
+                                , A.OG_ID
+                                , A.OG_CD
+                                , A.OG_NM
+                            FROM TB_OGBS_MM_PRTNR_IZ A  /*월파트너내역*/
+                           WHERE A.PSTN_DV_CD = '10'  /*지구장*/
+                             AND A.DTA_DL_YN = 'N'
+                             ) T4  /* 지구장 */
+            ON T4.BASE_YM = M.PERF_YM
+           AND D.OG_ID = T4.OG_ID
+           AND D.OG_CD = T4.OG_CD
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS E /*연체기본*/
+    	   ON M.CNTR_NO = E.CNTR_NO
+    	  AND M.CNTR_SN = E.CNTR_SN
+    	  AND M.BASE_YM = E.PERF_YM
+    	  LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST F /*계약상세상태변경이력*/
+            ON M.CNTR_NO = F.CNTR_NO
+           AND M.CNTR_SN = F.CNTR_SN
+           AND F.CNTR_DTL_STAT_CD != '101' /*정상이 아닌 계약만, 즉 취소유형이 존재할 데이터만 조회*/
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G /*WELLS매출월마감내역(영업마감 채권)*/
+            ON M.CNTR_NO = G.CNTR_NO
+           AND M.CNTR_SN = G.CNTR_SN
+           AND M.BASE_YM = G.SL_CL_YM
+         WHERE M.DTA_DL_YN = 'N'
+           AND M.FEE_TCNT_DV_CD = '02' /*수수료차수구분코드 02 고정*/
+           AND M.CNTR_PERF_CRT_DV_CD != '01' /*순주문 제외*/
+           <if test='@MybatisUtils@isNotEmpty(redfAdsbOcYmFrom) and @MybatisUtils@isNotEmpty(redfAdsbOcYmTo)'>
+           AND M.BASE_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo} /*PARAM: 발생년월*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(slYmFrom) and @MybatisUtils@isNotEmpty(slYmTo)'>
+           AND SUBSTR(A.CNTR_PD_STRTDT, 1, 6) BETWEEN #{slYmFrom} AND #{slYmTo} /*PARAM: 매출년월*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(prtnrNoFrom) and @MybatisUtils@isNotEmpty(prtnrNoTo)'>
+           AND TO_NUMBER(M.PRTNR_NO) BETWEEN TO_NUMBER(#{prtnrNoFrom}) AND TO_NUMBER(#{prtnrNoTo}) /*파트너번호*/
+           </if>
+           <if test='@MybatisUtils@equals(redfAdsbTpCd, "0202") and redfAdsbTpCd != "ALL"'>
+           AND M.PERF_TP_CD IN ('1', '3') /*화면값이 취소(0202)면 IN 조건 1:취소, 3:매변*/
+           </if>
+           <if test='@MybatisUtils@equals(redfAdsbTpCd, "0203") and redfAdsbTpCd != "ALL"'>
+           AND M.PERF_TP_CD = '10' /*화면값이 연체(0203)면 10: 연체(전집)*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
+           AND M.OG_TP_CD = #{ogTpCd} /*조직유형*/
+           AND (CASE WHEN 'W01' = #{ogTpCd} THEN '02'
+                     WHEN 'W02' = #{ogTpCd} THEN '03'
+                     WHEN 'W03' = #{ogTpCd} THEN '04'
+                     WHEN 'W05' = #{ogTpCd} THEN '05'
+                     WHEN 'W04' = #{ogTpCd} THEN '06'
+                     WHEN 'Z02' = #{ogTpCd} THEN '07'
+                  END) = M.CNTR_PERF_CRT_DV_CD
+           <!--AND M.CNTR_PERF_CRT_DV_CD BETWEEN '01' AND '08' /* 계약실적생성구분코드가 02~07 ( 되물림 )*/-->
+           </if>
+           ) T
+		 WHERE 1 = 1
+		   <if test='@MybatisUtils@isNotEmpty(envrYn) and envrYn != "ALL"'>
+		   AND T.ENVR_YN = #{envrYn} /*PARAM: 환경여부*/
+		   </if>
+		   <if test='@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd != "ALL"'>
+		   AND T.PD_GUB = #{sellTpCd} /*PARAM: 상품구분*/
+		   </if>
+		   <if test='@MybatisUtils@equals(sellTpCd, "5") and sellTpCd != "ALL"'>
+		   AND T.RSTL_YN = 'Y' /*PARAM: 상품구분이 재약정일 때*/
+		   </if>
+
+        <!--/*수당(실적) 되물림 관리_WELLS M, P, 홈마스터, 상조 */
         SELECT M.BASE_YM AS REDF_ADSB_OC_YM /*발생년월(기준년월)*/
              , M.PERF_YM AS SL_YM /*매출년월*/
              , (CASE WHEN A.PD_GUB = '01' THEN '렌탈'
@@ -62,10 +335,10 @@
                      ELSE '' END) AS CPSN_REDF_YN /*강제되물림여부*/
           FROM TB_FEAM_WELS_NRCTR_MM_CL M /*웰스순주문계약월마감*/
          INNER JOIN (
-                    SELECT (CASE WHEN A2.STLM_TP_CD IN ('10', '20') THEN '02'--'일시불/할부' /*결제유형코드 10:일시불, 20: 할부*/
-                                 WHEN A2.SELL_TP_CD =  '2' THEN '01' --'렌탈'
-                                 WHEN A2.SELL_TP_CD =  '3' THEN '03' --'멤버십'
-                                 WHEN A2.SELL_TP_CD =  '6' THEN '04' --'정기배송'
+                    SELECT (CASE WHEN A2.STLM_TP_CD IN ('10', '20') THEN '02'&#45;&#45;'일시불/할부' /*결제유형코드 10:일시불, 20: 할부*/
+                                 WHEN A2.SELL_TP_CD =  '2' THEN '01' &#45;&#45;'렌탈'
+                                 WHEN A2.SELL_TP_CD =  '3' THEN '03' &#45;&#45;'멤버십'
+                                 WHEN A2.SELL_TP_CD =  '6' THEN '04' &#45;&#45;'정기배송'
                                END) AS PD_GUB /*상품구분*/
                          , (CASE WHEN A1.SELL_TP_CD = '2' AND A2.SELL_TP_DTL_CD = '24' THEN 'Y'
                                  WHEN A1.SELL_TP_CD = '2' AND A2.SELL_TP_DTL_CD = '26' THEN 'Y'
@@ -95,8 +368,8 @@
                          , A2.CNTR_PD_STRTDT /*설치일자*/
                          , (CASE WHEN A2.CNTR_DTL_STAT_CD = '303' THEN A2.CNTR_PD_ENDDT
                                  ELSE '' END) AS CAN_DT /* TODO: ASIS 매핑대로일때 쿼리는 이렇고, 그냥 웰스순주문계약월마감 에서 취소일자 뽑으면 안되는건지 확인필요*/
---                       , (CASE WHEN '04' = '04' AND A2.SELL_TP_CD =  '6' THEN 0
---                               WHEN '03' = '03' AND A2.SELL_TP_CD =  '3' )
+&#45;&#45;                       , (CASE WHEN '04' = '04' AND A2.SELL_TP_CD =  '6' THEN 0
+&#45;&#45;                               WHEN '03' = '03' AND A2.SELL_TP_CD =  '3' )
                             /*TODO: 패키지 일련번호는 현재 TOBE에선 사용자에게 보여줄만한 데이터 값이 아니여서 잠시 보류중..추후 리뷰 후 협의해야할듯
                              * 만약 정말로 보여줘야 한다면 계약상세의 상위삼푸코드를 패키지 코드인것을 보여줘야하는데 데이터 정합성이 맞는지도 의문*/
                       FROM TB_FEAM_WELS_NRCTR_MM_CL A1 /*웰스순주문계약월마감*/
@@ -124,7 +397,7 @@
                         <if test='@MybatisUtils@isNotEmpty(prtnrNoFrom) and @MybatisUtils@isNotEmpty(prtnrNoTo)'>
                         AND TO_NUMBER(A1.PRTNR_NO) BETWEEN #{prtnrNoFrom} AND #{prtnrNoTo} /*파트너번호*/
                         </if>
-        --              AND A1.FEE_TCNT_DV_CD = '01' /*수수료 차수 구분코드가 01 이 대상생성할때 만드는건데 화면에서 리스트 보여줄때 1차, 2차 같이보여줄지 확정됨에 따라 조건 바뀌어야함*/
+        &#45;&#45;              AND A1.FEE_TCNT_DV_CD = '01' /*수수료 차수 구분코드가 01 이 대상생성할때 만드는건데 화면에서 리스트 보여줄때 1차, 2차 같이보여줄지 확정됨에 따라 조건 바뀌어야함*/
                         <if test='@MybatisUtils@equals(redfAdsbTpCd, "0202") and redfAdsbTpCd != "ALL"'>
                         AND A1.PERF_TP_CD IN ('1', '3') /*화면값이 취소(0202)면 IN 조건 1:취소, 3:매변*/
                         </if>
@@ -132,7 +405,7 @@
                         AND A1.PERF_TP_CD = '10' /*화면값이 연체(0203)면 10: 연체(전집)*/
                         </if>
                      UNION ALL
-                    SELECT (CASE WHEN A2.RSTL_STAT_CD = '020' THEN '05' END) AS PD_GUB /*상품구분*/ --'재약정' /*재약정상태코드 020: 확정*/
+                    SELECT (CASE WHEN A2.RSTL_STAT_CD = '020' THEN '05' END) AS PD_GUB /*상품구분*/ &#45;&#45;'재약정' /*재약정상태코드 020: 확정*/
                           , 'Y' AS ENVR_YN /*ASIS 기준 재약정의 경우 환경여부 Y 고정*/
                           , A1.CNTR_NO
                           , A1.CNTR_SN
@@ -175,7 +448,7 @@
                         <if test='@MybatisUtils@isNotEmpty(prtnrNoFrom) and @MybatisUtils@isNotEmpty(prtnrNoTo)'>
                         AND TO_NUMBER(A1.PRTNR_NO) BETWEEN #{prtnrNoFrom} AND #{prtnrNoTo} /*파트너번호*/
                         </if>
-        --              AND A1.FEE_TCNT_DV_CD = '01' /*수수료 차수 구분코드가 01 이 대상생성할때 만드는건데 화면에서 리스트 보여줄때 1차, 2차 같이보여줄지 확정됨에 따라 조건 바뀌어야함*/
+        &#45;&#45;              AND A1.FEE_TCNT_DV_CD = '01' /*수수료 차수 구분코드가 01 이 대상생성할때 만드는건데 화면에서 리스트 보여줄때 1차, 2차 같이보여줄지 확정됨에 따라 조건 바뀌어야함*/
                         <if test='@MybatisUtils@equals(redfAdsbTpCd, "0202") and redfAdsbTpCd != "ALL"'>
                         AND A1.PERF_TP_CD IN ('1', '3') /*화면값이 취소(0202)면 IN 조건 1:취소, 3:매변*/
                         </if>
@@ -350,7 +623,7 @@
             </if>
             <if test='@MybatisUtils@equals(redfAdsbTpCd, "0203") and redfAdsbTpCd != "ALL"'>
             AND M.PERF_TP_CD = '10' /*화면값이 연체(0203)면 10: 연체(전집)*/
-            </if>
+            </if>-->
     </select>
 
     <select id="selectRedfMgts" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto$SearchRedfRes">
@@ -368,8 +641,14 @@
              , M.PD_CD /*제품코드(상품코드)*/
              , D.PD_CLSF_NM /*제품명(상품명)*/
              , D.MODEL_NO /*모델명*/
-             , M.SELL_DSC_DV_CD || '-' || M.SELL_DSC_TP_CD AS SELL_DSC_DV_CD /*할인구분(ASIS: D-C)*/
-             , M.SELL_DSC_DV_CD || '-' || M.SELL_DSC_TP_CD AS SELL_DSC_TP_CD /*할인유형(ASIS: P)*/
+             , (CASE WHEN M.SELL_DSC_DV_CD IS NOT NULL AND M.SELL_DSC_TP_CD IS NOT NULL THEN
+             			  M.SELL_DSC_DV_CD || '-' || M.SELL_DSC_TP_CD
+         			 ELSE ''
+         		  END)  AS SELL_DSC_DV_CD /*할인구분(ASIS: D-C)*/
+             , (CASE WHEN M.SELL_DSC_DV_CD IS NOT NULL AND M.SELL_DSC_TP_CD IS NOT NULL THEN
+             			  M.SELL_DSC_DV_CD || '-' || M.SELL_DSC_TP_CD
+     			     ELSE ''
+         		  END) AS SELL_DSC_TP_CD /*할인유형(ASIS: P)*/
              , M.PMOT_USWY_DV_CD /*업소*/
              , M.BFSVC_PRD_CD /*주기*/
              , B1.MCHN_CH_TP_CD AS MCHN_CH1 /*기변영*/
@@ -434,7 +713,7 @@
                            , C1.FEE_TCNT_DV_CD /*조인용.수수료차수구분코드*/
                            , C1.CNTR_NO
                            , C1.CNTR_SN
-                           , C1.CNTR_PERF_CRT_DV_CD /*조인용.계약실적생성구분코드( 02: 되물림 고정 )*/
+                           , C1.CNTR_PERF_CRT_DV_CD /*조인용.계약실적생성구분코드( 되물림 고정 )*/
                            <if test='@MybatisUtils@equals(ogTpCd, "W05")'>
                            , NVL((CASE WHEN C1.PERF_ATC_CD = 'W05P00001' THEN C1.PERF_VAL END), 0) AS REDF_AMT /*되물림액(총판수수료)*/
                            </if>
@@ -449,7 +728,13 @@
                          <if test='@MybatisUtils@isNotEmpty(slYmFrom) and @MybatisUtils@isNotEmpty(slYmTo)'>
                          AND C1.PERF_YM BETWEEN #{slYmFrom} AND #{slYmTo}
                          </if>
---                           AND C1.CNTR_PERF_CRT_DV_CD = '02' /*계약실적생성구분코드 02: 되물림생성, TODO: 현재는 되물림생성 데이터가 없어서 주석처리, 추후 이행시 주석해제*/
+                         AND (CASE WHEN #{ogTpCd} = 'W01' THEN '02'
+			                       WHEN #{ogTpCd} = 'W02' THEN '03'
+			                       WHEN #{ogTpCd} = 'W03' THEN '04'
+			                       WHEN #{ogTpCd} = 'W05' THEN '05'
+			                       WHEN #{ogTpCd} = 'W04' THEN '06'
+			                       WHEN #{ogTpCd} = 'Z02' THEN '07'
+			                    END) = C1.CNTR_PERF_CRT_DV_CD /*계약실적생성구분코드: 되물림*/
                      ) C
              ON M.PRTNR_NO = C.PRTNR_NO
             AND M.OG_TP_CD = C.OG_TP_CD
@@ -463,6 +748,13 @@
           WHERE M.DTA_DL_YN = 'N'
             <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
             AND M.OG_TP_CD = #{ogTpCd}
+            AND (CASE WHEN #{ogTpCd} = 'W01' THEN '02'
+                      WHEN #{ogTpCd} = 'W02' THEN '03'
+                      WHEN #{ogTpCd} = 'W03' THEN '04'
+                      WHEN #{ogTpCd} = 'W05' THEN '05'
+                      WHEN #{ogTpCd} = 'W04' THEN '06'
+                      WHEN #{ogTpCd} = 'Z02' THEN '07'
+                   END) = M.CNTR_PERF_CRT_DV_CD /*계약실적생성구분코드: 되물림*/
             </if>
             <if test='@MybatisUtils@isNotEmpty(redfAdsbOcYmFrom) and @MybatisUtils@isNotEmpty(redfAdsbOcYmTo)'>
             AND M.BASE_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo}
