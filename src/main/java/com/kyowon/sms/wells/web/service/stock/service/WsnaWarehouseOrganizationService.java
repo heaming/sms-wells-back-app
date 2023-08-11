@@ -148,33 +148,35 @@ public class WsnaWarehouseOrganizationService {
 
                         // 내부 반품 처리
                         transferMaterialsService.saveItmIostMaterials(returnDvo);
-
-                        WsnaTransferMaterialsHgrDvo hgrDvo = this.converter.mapDataDvoToHgrDvo(dataDvo);
-                        hgrDvo.setItmStrNo(newItmStrNo);
-                        hgrDvo.setStrTpCd(SnServiceConst.RTNGD_STR); // 반품입고(내부) "161"
-
-                        // 출고 상위 창고번호는 변경 전 상위창고이므로 그대로 두고, 입고 상위 창고번호만 변경 후 상위창고로 setting
-                        hgrDvo.setStrHgrWareNo(newHgrDvo.getStrHgrWareNo()); // 입고 상위 창고번호
-                        hgrDvo.setStrHgrDvCd(newHgrDvo.getStrHgrDvCd()); // 입고 상위 창고구분코드
-                        hgrDvo.setStrHgrPrtnrNo(newHgrDvo.getStrHgrPrtnrNo()); // 입고 상위 파트너번호
-                        hgrDvo.setStrHgrPrtnrOgTpCd(newHgrDvo.getStrHgrPrtnrOgTpCd()); // 입고 상위 파트너 조직유형코드
-
-                        // 물량이동 처리 (입출고 상위 창고가 달라 상위 창고간 물량이동)
-                        transferMaterialsService.saveTransferMaterialsForHgr(hgrDvo);
-
-                        // (입고 대상 창고 = 현재 창고)
-                        dataDvo.setStrOjWareNo(dataDvo.getOstrOjWareNo());
-                        dataDvo.setStrWareDvCd(dataDvo.getOstrWareDvCd());
-                        dataDvo.setStrPrtnrNo(dataDvo.getOstrPrtnrNo());
-                        dataDvo.setStrPrtnrOgTpCd(dataDvo.getOstrPrtnrOgTpCd());
-                        dataDvo.setStrHgrWareNo(newHgrDvo.getStrHgrWareNo());
-                        dataDvo.setStrHgrDvCd(newHgrDvo.getStrHgrDvCd());
-                        dataDvo.setStrHgrPrtnrNo(newHgrDvo.getStrHgrPrtnrNo());
-                        dataDvo.setStrHgrPrtnrOgTpCd(newHgrDvo.getStrHgrPrtnrOgTpCd());
-
-                        // 정상 입출고 처리
-                        transferMaterialsService.saveOutOfMaterials(hgrDvo, dataDvo);
                     }
+
+                    WsnaTransferMaterialsDataDvo dataDvo = dataDvos.get(0);
+
+                    WsnaTransferMaterialsHgrDvo hgrDvo = this.converter.mapDataDvoToHgrDvo(dataDvo);
+                    hgrDvo.setItmStrNo(newItmStrNo);
+                    hgrDvo.setStrTpCd(SnServiceConst.RTNGD_STR); // 반품입고(내부) "161"
+
+                    // 출고 상위 창고번호는 변경 전 상위창고이므로 그대로 두고, 입고 상위 창고번호만 변경 후 상위창고로 setting
+                    hgrDvo.setStrHgrWareNo(newHgrDvo.getStrHgrWareNo()); // 입고 상위 창고번호
+                    hgrDvo.setStrHgrDvCd(newHgrDvo.getStrHgrDvCd()); // 입고 상위 창고구분코드
+                    hgrDvo.setStrHgrPrtnrNo(newHgrDvo.getStrHgrPrtnrNo()); // 입고 상위 파트너번호
+                    hgrDvo.setStrHgrPrtnrOgTpCd(newHgrDvo.getStrHgrPrtnrOgTpCd()); // 입고 상위 파트너 조직유형코드
+
+                    // 물량이동 처리 (입출고 상위 창고가 달라 상위 창고간 물량이동)
+                    transferMaterialsService.saveTransferMaterialsForHgr(hgrDvo);
+
+                    // (입고 대상 창고 = 현재 창고)
+                    dataDvo.setStrOjWareNo(dataDvo.getOstrOjWareNo());
+                    dataDvo.setStrWareDvCd(dataDvo.getOstrWareDvCd());
+                    dataDvo.setStrPrtnrNo(dataDvo.getOstrPrtnrNo());
+                    dataDvo.setStrPrtnrOgTpCd(dataDvo.getOstrPrtnrOgTpCd());
+                    dataDvo.setStrHgrWareNo(newHgrDvo.getStrHgrWareNo());
+                    dataDvo.setStrHgrDvCd(newHgrDvo.getStrHgrDvCd());
+                    dataDvo.setStrHgrPrtnrNo(newHgrDvo.getStrHgrPrtnrNo());
+                    dataDvo.setStrHgrPrtnrOgTpCd(newHgrDvo.getStrHgrPrtnrOgTpCd());
+
+                    // 정상 입출고 처리
+                    transferMaterialsService.saveOutOfMaterials(hgrDvo, dataDvo);
                 }
             }
         }
