@@ -9,6 +9,8 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.Se
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMaterialDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMgtDvo;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 ;
 
@@ -18,6 +20,8 @@ public interface WsnaBsRegularShippingMgtMapper {
     List<SearchProductRes> selectProducts(SearchProductReq dto);
 
     List<WsnaBsRegularShippingMgtDvo> selectShippingItems(SearchReq dto);
+
+    PagingResult<WsnaBsRegularShippingMgtDvo> selectShippingItems(SearchReq dto, PageInfo pageInfo);
 
     int insertParcelFwInformation(WsnaBsRegularShippingMaterialDvo materialDvo);
 

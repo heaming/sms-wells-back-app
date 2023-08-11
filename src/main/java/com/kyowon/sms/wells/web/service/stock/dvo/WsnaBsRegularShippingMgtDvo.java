@@ -94,7 +94,6 @@ public class WsnaBsRegularShippingMgtDvo {
     String bfsvcBzsDvCd;
     String sppDvCd;
     String sppPdCd;
-    String sppThmYn;
     String cstNo; // 계약고객번호
     String wareIchrNo;
     String wareMngtPrtnrno;
