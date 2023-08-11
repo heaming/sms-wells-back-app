@@ -1,9 +1,5 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStockMasterRenewalDto.EditReq;
-
-import java.util.List;
-
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockMasterRenewalDvo;
@@ -19,19 +15,11 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockMasterRenewalDvo;
 @Mapper
 public interface WsnaStockMasterRenewalMapper {
 
-    List<WsnaStockMasterRenewalDvo> selectBaseTermDateDiff(EditReq dto);
-
     int updateBaseTermDateStocks(WsnaStockMasterRenewalDvo dvo);
-
-    List<WsnaStockMasterRenewalDvo> selectMonthlyDiff(EditReq dto);
 
     int updateMonthlyStocks(WsnaStockMasterRenewalDvo dvo);
 
-    List<WsnaStockMasterRenewalDvo> selectPointInTimeDiff(EditReq dto);
-
     int updatePointInTimeStocks(WsnaStockMasterRenewalDvo dvo);
-
-    List<WsnaStockMasterRenewalDvo> selectMovementDiff();
 
     int updateMovementStocks(WsnaStockMasterRenewalDvo dvo);
 
