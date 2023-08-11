@@ -75,7 +75,6 @@ public class WdcdOperatingCostMgtDto {
     @ApiModel(value = "WwdcdOperatingCostMgtDto-SearchSummaryRes")
     public record SearchSummaryRes(
         String opcsCardId,
-        String opcsAdjNo,
         String opcsAdjCnt,
         String opcsSmryNCnt,
         String opcsWhtxCfdcApnFileId

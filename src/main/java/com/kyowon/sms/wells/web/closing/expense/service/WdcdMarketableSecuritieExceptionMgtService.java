@@ -36,6 +36,7 @@ public class WdcdMarketableSecuritieExceptionMgtService {
     @Transactional
     public int saveSettlementWithholdingTax(List<SaveReq> reqs) {
         int count = 0;
+        SaveReq firstReq = reqs.get(0);
         //1. 해당월 확정완료 여부 체크
         String cnfmYn = mapper.selectCheckWhetherMonthFinalized(reqs.get(0));
 
@@ -45,25 +46,28 @@ public class WdcdMarketableSecuritieExceptionMgtService {
         }
 
         //3. 카드 정보/금액 조회 (ASIS : getAccCardInfoDetail)
-        AccCardInfoDetailRes res = mapper.selectAccCardInfoDetail(reqs.get(0)); // TODO 정산번호 중복 되지 않게 조회 가능해야함 문의 필요
+        //3-1. 마스터 저장
+        AccCardInfoDetailRes res = mapper.selectAccCardInfoDetail(firstReq);
         WdcdMarketableSecuritieExceptionDvo masterDvo = converter.mapAccCardInfoDetailResToWdcdMarketableSecuritieExceptionDvo(res);
         masterDvo.setAdjOgId(res.ogId());
-        masterDvo.setOgTpCd(reqs.get(0).ogTpCd());
-        masterDvo.setPdstOpt(reqs.get(0).pdstOpt() != null ? reqs.get(0).pdstOpt() : "03");
+        masterDvo.setOgTpCd(firstReq.ogTpCd());
+        masterDvo.setPdstOpt(firstReq.pdstOpt() != null ? firstReq.pdstOpt() : "03");
         Integer dstAmtTotal = 0;
         for (SaveReq saveReq : reqs) {
             dstAmtTotal += Integer.valueOf(saveReq.dstAmt());
         }
         masterDvo.setDstAmt(dstAmtTotal.toString());
 
-        if (!StringUtils.isEmpty(reqs.get(0).opcsAdjNo())) { //4. 부모에서 전달받은 OPCS_ADJ_NO(운영비정산번호)가 값이 있으면 원천세 정산 수정 진행
-            count += mapper.deleteAccDetail(masterDvo);
-            count += mapper.updateAccMst(masterDvo);
+        if (!StringUtils.isEmpty(firstReq.opcsAdjNo())) { //4. 부모에서 전달받은 OPCS_ADJ_NO(운영비정산번호)가 값이 있으면 원천세 정산 수정 진행
+            masterDvo.setOpcsAdjNo(firstReq.opcsAdjNo());
+            mapper.deleteAccDetail(masterDvo);
+            mapper.updateAccMst(masterDvo);
         } else { // 5. 3번에서 OPCS_ADJ_NO(운영비정산번호)가 값이 없으면 원천세 정산 신규 등록 진행
             masterDvo.setOpcsAdjNo(mapper.selectOpcsAdjNo(masterDvo));
             mapper.insertAccMst(masterDvo);
         }
 
+        //3-2. 상세 저장
         for (SaveReq req : reqs) {
             WdcdMarketableSecuritieExceptionDvo dvo = converter.mapSaveReqToWdcdMarketableSecuritieExceptionDvo(req);
             dvo.setOpcsAdjNo(masterDvo.getOpcsAdjNo());
@@ -73,7 +77,7 @@ public class WdcdMarketableSecuritieExceptionMgtService {
         }
 
         mapper.updateOpcsCard(masterDvo); // 6. 카드정보 업데이트 (ASIS : updateOpcsCard). 운영비 정산카드내역
-        masterDvo.setOpcsCardUseIzId(reqs.get(0).opcsCardUseIzId());
+        masterDvo.setOpcsCardUseIzId(firstReq.opcsCardUseIzId());
         mapper.insertAccMap(masterDvo); //7. 매핑정보 등록 (ASIS : insertAccMap). 정산번호와 운영비사용카드내역 아이디를 매핑
         return count;
     }
