@@ -40,31 +40,31 @@ public class WsncCapsuleSubscriptionCustomerService {
 
     public void saveCapsuleSubscriptionCustomer(Map<String, String> map) throws Exception {
 
+        /*
         int updateCount = 0;
         String baseYmd = map.get("PARAM1");
 
         List<WsncCapsuleSubscriptionCustomerDvo> res = mapper.selectCapsuleRglrPrchsCsts(baseYmd);
         for (WsncCapsuleSubscriptionCustomerDvo row : res) {
 
-            if (StringUtil.isEmpty(row.getCntrCanDtm())) { /* 주기표 강제 생성 */
+            if (StringUtil.isEmpty(row.getCntrCanDtm())) { *//* 주기표 강제 생성 *//*
 
                 updateCount += mapper.deleteBfsvcPrd(row.getCntrNo(), row.getCntrSn());
 
-                /*@TODO 2. 방문주기 재생성(SP_LC_SERVICEVISIT_482_LST_I06)*/
+                *//*@TODO 2. 방문주기 재생성(SP_LC_SERVICEVISIT_482_LST_I06)*//*
                 updateCount += service1.processVisitPeriodRegen(
                     new WsnbIndividualVisitPrdDto.SearchProcessReq(
                         row.getCntrNo(),
                         row.getCntrSn(),
                         baseYmd,
                         "",
-                        "",
-                        "",
+                        row.getAsnOjYm(),
+                        row.getAsnOjYm(),
                         "",
                         ""
                     )
                 );
-
-                /*@TODO 3. 고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/
+                *//*@TODO 3. 고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*//*
                 updateCount += service2.removeRglrBfsvcDl(
                     new WsnbCustomerRglrBfsvcDlDto.SaveReq(
                         row.getCstSvAsnNo(), // 고객서비스배정번호
@@ -72,7 +72,7 @@ public class WsncCapsuleSubscriptionCustomerService {
                     )
                 );
 
-                /*@TODO 고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)*/
+                *//*@TODO 고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)*//*
                 updateCount += service3.processRegularBfsvcAsn(
                     new WsncRegularBfsvcAsnDto.SaveProcessReq(
                         row.getAsnOjYm(),
@@ -89,7 +89,7 @@ public class WsncCapsuleSubscriptionCustomerService {
                 updateCount += mapper.updateCancelDate(row.getCntrNo(), row.getCntrSn(), row.getCntrCanDtm());
                 updateCount += mapper.deleteSchd(row.getCntrNo());
 
-                /*@TODO 3. 고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/
+                *//*@TODO 3. 고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*//*
                 service2.removeRglrBfsvcDl(
                     new WsnbCustomerRglrBfsvcDlDto.SaveReq(
                         row.getCstSvAsnNo(),
@@ -98,9 +98,7 @@ public class WsncCapsuleSubscriptionCustomerService {
                 );
             }
 
-        }
-
-        //return new SaveRes("S001", String.valueOf(updateCount));
+        }*/
     }
 
 }

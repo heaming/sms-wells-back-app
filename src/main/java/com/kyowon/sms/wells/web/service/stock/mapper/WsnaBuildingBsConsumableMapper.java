@@ -29,4 +29,12 @@ public interface WsnaBuildingBsConsumableMapper {
     List<SearchBldRes> selectBuildingList(String mngtYm);
 
     int mergeBuildingBsConsumables(List<CreateReq> dto);
+
+    List<WsnaBuildingBsConsumableDvo> selectBfsvcCsmbDdlvIzByMngtYm(String mngtYm);
+
+    String selectNewOstrAkNo(String ostrAkTpCd, String ostrAkRgstDt);
+
+    int updateBfsvcCsmbDdlvIzOstrAkNoSn(WsnaBuildingBsConsumableDvo dvo);
+
+    int updateBfsvcCsmbDdlvIzDdlvStatCd(WsnaBuildingBsConsumableDvo dvo);
 }
