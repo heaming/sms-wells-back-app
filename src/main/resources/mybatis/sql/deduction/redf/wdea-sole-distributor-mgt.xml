@@ -4,7 +4,128 @@
 
    <select id="selectSoleDistributorPrtnrs" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto$SearchSoleDistributorPrtnrRes">
         /*총판/B2B 되물림 생성 1번탭 조회기준 판매자별,총판 1번그리드*/
-        SELECT MAIN.PERF_YM /*실적년월*/
+        /* 총실적 해당월: W05P00010 = 총실적(W05P00002 삼성제품을 제외한 토탈 계산된것이 들어가있음)
+  		 * 총실적 되물림전: ? 알수없음
+  		 * 총실적 홈케어: W05P00008 (홈케어)
+  		 *
+  		 * 삼성제품 해당월: W05P00002 (삼성제품 해당월)
+  		 * 삼성제품 되물림전: ? 알수없음
+  		 *
+  		 * 자사제품 해당월: W05P00003 - W05P00002 ( 렌탈수량 - 삼성제품 )
+  		 * 자사제품 되물림전: ? 알수없음
+  		 *
+  		 * 되물림 총실적: 알 수 없음
+  		 * 되물림 삼성실적: 알 수 없음
+  		 * 되물림 자사제품 실적: 알 수 없음
+  		 *
+  		 * 되물림 후 총실적: 되물림 후 삼성실적 + 되물림 후 자사제품 실적
+  		 * 되물림 후 삼성실적: 삼성제품 되물림전 - 되물림 삼성실적
+  		 * 되물림 후 자사제품 실적: 자사제품 실적 되물림전 - 되물림 자사제품 실적
+  		 *
+  		 * 수수료
+  		 * 기본: 수수료코드 W050001 되물림재지급대상금액
+  		 * 장려: 수수료코드 W050002 되물림재지급대상금액
+  		 * 합계: 기본 + 장려
+  		 * */
+          SELECT M.PERF_YM /*매출년월*/
+          	   , M.OG_CD /*소속코드*/
+          	   , M.OG_NM /*업체명*/
+          	   , M.PRTNR_NO /*파트너번호*/
+          	   , MAX(NVL((CASE WHEN B.PERF_ATC_CD = 'W05P00010' THEN B.PERF_VAL END), 0)) AS TOT_OC_MM_CNT /*총실적.발생월*/
+          	   , MAX(0) AS TOT_REDF_BF_CNT /*총실적.되물림전 알 수 없음, 수수료쪽 실적항목코드 데이터 이행되지 않음*/
+          	   , MAX(NVL((CASE WHEN B.PERF_ATC_CD = 'W05P00008' THEN B.PERF_VAL END), 0)) AS TOT_HCR_CNT /*총실적.홈케어*/
+          	   , MAX(NVL((CASE WHEN B.PERF_ATC_CD = 'W05P00002' THEN B.PERF_VAL END), 0)) AS SAM_OC_MM_CNT /*삼성제품.발생월*/
+          	   , MAX(0) AS SAM_REDF_BF_CNT /*삼성제품_되물림전 알 수 없음, 수수료쪽 실적항목코드 데이터 이행되지 않음*/
+          	   , SUM((NVL((CASE WHEN B.PERF_ATC_CD = 'W05P00003' THEN B.PERF_VAL END), 0))
+          	   	  	- (NVL((CASE WHEN B.PERF_ATC_CD = 'W05P00002' THEN B.PERF_VAL END), 0))) AS WEL_OC_MM_CNT /*자사제품.발생월*/
+          	   , MAX(0) AS WEL_REDF_BF_CNT /*자사제품_되물림전 알 수 없음, 수수료쪽 실적항목코드 데이터 이행되지 않음*/
+          	   , SUM(0) AS REDF_TOT_CNT /*되물림_총실적 알 수 없음, 수수료쪽 실적항목코드 데이터 이행되지 않음*/
+          	   , MAX(0) AS REDF_SAM_CNT /*되물림_삼성실적 알 수 없음, 수수료쪽 실적항목코드 데이터 이행되지 않음*/
+          	   , MAX(0) AS REDF_WEL_CNT /*되물림_자사제품실적 알 수 없음, 수수료쪽 실적항목코드 데이터 이행되지 않음*/
+          	   , MAX(0) AS TOT_REDF_AF_CNT /*되물림후_총실적 알 수 없음, 수수료쪽 실적항목코드 데이터 이행되지 않음*/
+          	   , MAX(0) AS SAM_REDF_AF_CNT /*되물림후_삼성실적 알 수 없음, 수수료쪽 실적항목코드 데이터 이행되지 않음*/
+          	   , MAX(0) AS WEL_REDF_AF_CNT /*되물림후_자사제품실적 알 수 없음, 수수료쪽 실적항목코드 데이터 이행되지 않음*/
+          	   , MAX(M.BASIC_FEE_AMT) AS FEE_BASE /*수수료.기본*/
+          	   , MAX(M.INCG_FEE_AMT) AS FEE_ENCRG /*수수료.장려*/
+          	   , MAX(M.TOT_FEE_AMT) AS FEE_SUM /*수수료.합계*/
+            FROM (
+		          SELECT T1.REDF_ADSB_OC_YM
+		          	   , T1.PERF_YM
+		          	   , T1.PRTNR_NO
+		          	   , T1.OG_TP_CD
+		          	   , T1.PERF_DV_CD
+		          	   , T1.OG_CD
+		          	   , T1.OG_NM
+		          	   , NVL(MAX(T1.BASIC_FEE_AMT), 0) AS BASIC_FEE_AMT
+		          	   , NVL(MAX(T1.INCG_FEE_AMT), 0) AS INCG_FEE_AMT
+		          	   , NVL(MAX(T1.BASIC_FEE_AMT), 0) + NVL(MAX(T1.INCG_FEE_AMT), 0) AS TOT_FEE_AMT
+		            FROM (
+				          SELECT T.REDF_ADSB_OC_YM
+				          	   , T.PERF_YM
+				          	   , T.PRTNR_NO
+				          	   , T.OG_TP_CD
+				          	   , T.PERF_DV_CD
+				          	   , T.OG_CD
+				          	   , T.OG_NM
+				          	   , (CASE WHEN T.FEE_CD_GROUP = 'W050002' THEN T.REDF_ADSB_OC_AMT END) AS INCG_FEE_AMT
+				          	   , (CASE WHEN T.FEE_CD_GROUP = 'W050001' THEN SUM(REDF_ADSB_OC_AMT) OVER(PARTITION BY T.PRTNR_NO, T.REDF_ADSB_OC_YM, T.PERF_YM, T.FEE_CD_GROUP)
+				          	   		 END) AS BASIC_FEE_AMT
+				            FROM (
+						          SELECT A.REDF_ADSB_OC_YM
+						          	   , A.PERF_YM
+						          	   , A.PRTNR_NO
+						          	   , A.OG_TP_CD
+						          	   , A.PERF_DV_CD
+						          	   , C.OG_CD
+						          	   , C.OG_NM
+						          	   , (CASE WHEN A.FEE_CD = 'W050001' OR A.FEE_CD = 'W059999999' THEN 'W050001'
+						          	   		   WHEN A.FEE_CD = 'W050002' THEN 'W050002'END) AS FEE_CD_GROUP
+						          	   , (CASE WHEN A.REDF_ADSB_CTR_CNFM_AMT IS NOT NULL THEN A.REDF_ADSB_CTR_CNFM_AMT
+						          	   		   ELSE A.REDF_ADSB_OC_AMT END) AS REDF_ADSB_OC_AMT
+								    FROM TB_FEDD_FEE_REDF_ADSB_BAS A /*수수료되물림재지급기본*/
+								   INNER JOIN TB_FEDD_SODBT_FEE_MM_REDF_IZ B /*총판수수료월되물림내역*/
+								      ON A.REDF_ADSB_OC_YM = B.REDF_ADSB_OC_YM
+								     AND A.PRTNR_NO = B.PRTNR_NO
+								     AND A.OG_TP_CD = B.OG_TP_CD
+								    LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ C /*월파트너내역*/
+						      	      ON A.PRTNR_NO = C.PRTNR_NO
+						      	     AND A.OG_TP_CD = C.OG_TP_CD
+						      	     AND A.PERF_YM = C.BASE_YM
+								   WHERE A.REDF_ADSB_DV_CD = '02' /*되물림*/
+								     AND A.DTA_DL_YN = 'N'
+                                     <if test='@MybatisUtils@isNotEmpty(redfAdsbOcYmFrom) and @MybatisUtils@isNotEmpty(redfAdsbOcYmTo)'>
+								     AND A.REDF_ADSB_OC_YM  BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo} /*PARAM: 발생년월*/
+                                     </if>
+                                     <if test='@MybatisUtils@isNotEmpty(perfYmFrom) and @MybatisUtils@isNotEmpty(perfYmTo)'>
+		                             AND A.PERF_YM BETWEEN #{perfYmFrom} AND #{perfYmTo} /*PARAM: 매출년월*/
+                                     </if>
+                                     <if test='@MybatisUtils@isNotEmpty(ogCdFrom) and @MybatisUtils@isNotEmpty(ogCdTo)'>
+		                             AND C.OG_CD BETWEEN #{ogCdFrom} AND #{ogCdTo} /*PARAM: 소속코드*/
+                                     </if>
+								     ) T
+						   ) T1
+				   GROUP BY T1.REDF_ADSB_OC_YM, T1.PERF_YM, T1.PRTNR_NO, T1.OG_TP_CD, T1.PERF_DV_CD, T1.OG_CD, T1.OG_NM
+      	   	) M
+      	   LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B /*순주문파트너실적월마감*/
+		     ON M.PRTNR_NO = B.PRTNR_NO
+		    AND M.OG_TP_CD = B.OG_TP_CD
+		    AND M.PERF_DV_CD = B.PERF_DV_CD
+		    AND M.PERF_YM = B.PERF_YM
+		    AND B.FEE_TCNT_DV_CD = '02'
+		    AND B.PERF_AGRG_CRT_DV_CD = '501' /*총판 순주문실적*/
+           <!--LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C /*순주문파트너실적월마감*/
+		     ON M.PRTNR_NO = C.PRTNR_NO
+		    AND M.OG_TP_CD = C.OG_TP_CD
+		    AND M.PERF_DV_CD = C.PERF_DV_CD
+		    AND M.PERF_YM = C.PERF_YM
+		    AND C.FEE_TCNT_DV_CD = '02'
+		    AND C.PERF_AGRG_CRT_DV_CD = '502' /*총판 되물림실적*/-->
+		  WHERE 1 = 1
+            <if test='@MybatisUtils@isNotEmpty(perfYmFrom) and @MybatisUtils@isNotEmpty(perfYmTo)'>
+            AND B.PERF_YM BETWEEN #{perfYmFrom} AND #{perfYmTo} /*PARAM: 매출년월*/
+            </if>
+		  GROUP BY M.PERF_YM, M.OG_CD, M.OG_NM, M.PRTNR_NO
+        <!--SELECT MAIN.PERF_YM /*실적년월*/
              , MAIN.OG_CD /*소속코드*/
              , MAIN.OG_NM /*업체명(지점명), TODO: 현재 파트너기본에 조직코드, 조직ID가 같은데 조직명은 모두 온라인총판으로 되어있음*/
              , MAIN.PRTNR_NO /*판매자번호*/
@@ -79,9 +200,9 @@
                 WHERE M.DTA_DL_YN = 'N'
                   AND M.OG_TP_CD = 'W05'/*총판 (고정값)*/
                   AND M.PERF_AGRG_CRT_DV_CD = '501' /*총판수수료실적생성(고정값)*/
-                  <!-- AND M.FEE_TCNT_DV_CD = '01' /*수수료차수 확정(고정값), TODO: 차수 1차인지 2차인지 확인필요*/ -->
+                  &lt;!&ndash; AND M.FEE_TCNT_DV_CD = '01' /*수수료차수 확정(고정값), TODO: 차수 1차인지 2차인지 확인필요*/ &ndash;&gt;
                   AND M.CO_CD = '2000' /*웰스 2000(고정값)*/
-                  <!-- AND M.PERF_DV_CD = '2' /*지국(지점)실적 (고정값)*/ TODO: 데이터 문제인지 '2'값이 없음 -->
+                  &lt;!&ndash; AND M.PERF_DV_CD = '2' /*지국(지점)실적 (고정값)*/ TODO: 데이터 문제인지 '2'값이 없음 &ndash;&gt;
                   <if test='@MybatisUtils@isNotEmpty(redfAdsbOcYmFrom) and @MybatisUtils@isNotEmpty(redfAdsbOcYmTo)'>
                   AND M.BASE_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo}
                   </if>
@@ -93,7 +214,7 @@
                   </if>
                 GROUP BY M.PERF_YM, M.BASE_YM, M.PERF_ATC_CD, M.PRTNR_NO
                        , C.PERF_TP_CD, B.OG_CD, B.OG_NM, E.FEE_CD, C.BASE_YM
-          ) MAIN
+          ) MAIN-->
     </select>
 
     <select id="selectSoleDistributorContracts" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto$SearchSoleDistributorContractRes">
@@ -108,7 +229,7 @@
          				 , X.CO_CD
          				 , X.OG_TP_CD
          				 , X.PRTNR_NO
-         				 , NVL(SUM(X.ACKMT_PERF_AMT), 0) AS ACKMT_PERF_AMT /*수수료(원)*/
+         				 , NVL(SUM(X.REDF_ADSB_OJ_AMT), 0) AS REDF_ADSB_OJ_AMT /*수수료(원), 컬럼명은 수수료지만 데이터는 대상 되물림액*/
              			 , NVL(SUM(X.ACKMT_PERF_CT), 0) AS ACKMT_PERF_CT /*인정실적건수*/
          			  FROM TB_FEAM_WELS_NRCTR_MM_CL X
          			 GROUP BY X.BASE_YM, X.PERF_YM, X.FEE_TCNT_DV_CD, X.CNTR_NO, X.CNTR_SN
@@ -130,19 +251,20 @@
              , M.PMOT_USWY_DV_CD AS PMOT_CD /*할인제도(프로모션용도구분코드), TODO: 확실하지 않음*/
              , (CASE WHEN (SELECT COUNT(1)
                              FROM TB_SSCT_CNTR_REL X
-                            WHERE X.OJ_CNTR_NO = M.CNTR_NO) = 0
-                     THEN '' ELSE '1' END) AS COMBI_DV /*결합구분*/
+                            WHERE X.OJ_DTL_CNTR_NO = M.CNTR_NO
+                              AND X.OJ_DTL_CNTR_SN = M.CNTR_SN) = 0
+                     THEN '' ELSE '1' END) AS COMBI_DV /*결합구분, ASIS 동일*/
              , M.PMOT_USWY_DV_CD /*용도구분*/
-             , (CASE WHEN M.PMOT_USWY_DV_CD = '1' THEN M.PMOT_USWY_DV_CD || '-' || ' 일반'
-                     WHEN M.PMOT_USWY_DV_CD = '2' THEN M.PMOT_USWY_DV_CD || '-' || ' 업소'
-                     ELSE '' END) AS PMOT_USWY_DV_NM /*관리유형, ASIS 동일*/
+             , (CASE WHEN M.PMOT_USWY_DV_CD IN ('1', '2') THEN
+                     M.PMOT_USWY_DV_CD || '-' || F_CMZ_CD_NM(#{session.tenantId}, 'PMOT_USWY_DV_ACD', M.PMOT_USWY_DV_CD, #{session.langId})
+             	  END) AS PMOT_USWY_DV_NM /*관리유형, ASIS 동일*/
              , M.BFSVC_PRD_CD /*방문주기*/
              , NVL(E1.MCHN_CH_TP_CD, 0) AS PD_GUB1 /*TODO: 확인필요, ASIS는 유형1과 유형2로 되어있는 컬럼, 상품중분류*/
              , NVL(E2.MCHN_CH_TP_CD, 0) AS PD_GUB2
              , M.RCPDT /*접수일자*/
              , M.SL_DT /*매출일자*/
              , M.CAN_DT /*취소일자*/
-             , T1.ACKMT_PERF_AMT  /*수수료(원)*/
+             , T1.REDF_ADSB_OJ_AMT AS ACKMT_PERF_AMT /*수수료(원), 컬럼명은 수수료(원)이지만 데이터는 대상의 되물림액*/
              , T1.ACKMT_PERF_CT  /*인정실적건수*/
           FROM TB_FEAM_WELS_NRCTR_MM_CL M /*웰스순주문계약월마감*/
          INNER JOIN T1
@@ -201,9 +323,6 @@
                                 <if test='@MybatisUtils@isNotEmpty(perfYmFrom) and @MybatisUtils@isNotEmpty(perfYmTo)'>
                                 AND D1.PERF_YM BETWEEN #{perfYmFrom} AND #{perfYmTo} /*실적년월*/
                                 </if>
-                                <!--<if test='@MybatisUtils@isNotEmpty(ogCdFrom) and @MybatisUtils@isNotEmpty(ogCdTo)'>
-                                AND D1.OG_ID BETWEEN #{ogCdFrom} AND #{ogCdTo} /*지점코드(소속코드)*/
-                                </if>-->
                             ) D /*고객 및 상품 정보*/
             ON M.CNTR_NO = D.CNTR_NO
            AND M.CNTR_SN = D.CNTR_SN
