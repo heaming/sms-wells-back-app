@@ -63,6 +63,9 @@ public class WdeaAllowanceRedfMgtService {
      * @return PagingResult<SearchRedfBizdRes>
      */
     public PagingResult<SearchRedfBizdRes> getRedfBizdMgt(SearchRedfBizdReq dto, PageInfo pageInfo) {
+
+        // PagingResult<SearchRedfBizdRes> TEST = mapper.selectRedfBizdMgts(dto, pageInfo);
+
         return mapper.selectRedfBizdMgts(dto, pageInfo);
     }
 
