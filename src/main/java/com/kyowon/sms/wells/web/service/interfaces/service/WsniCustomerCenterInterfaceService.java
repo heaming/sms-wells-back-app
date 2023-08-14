@@ -23,13 +23,13 @@ public class WsniCustomerCenterInterfaceService {
     private final WsniCustomerCenterInterfaceConverter converter;
 
     public List<SearchContactRes> getEngineerContactPs(SearchReq dto) {
-        List<SearchContactRes> searchRes = mapper.selectEngineerContactPs(dto);
+        //        List<SearchContactRes> searchRes = mapper.selectEngineerContactPs(dto);
 
-        if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException("MSG_TXT_NO_DATA_RM");
-        }
+        //        if (ObjectUtils.isEmpty(searchRes)) {
+        //            throw new BizException("MSG_TXT_NO_DATA_RM");
+        //        }
 
-        return searchRes;
+        return mapper.selectEngineerContactPs(dto);
     }
 
     public List<SearchPromChRes> getEngineerPromChHist(SearchReq dto) {
@@ -53,13 +53,13 @@ public class WsniCustomerCenterInterfaceService {
     }
 
     public List<SearchSppPdctRes> getSeedingRegularShippingPdct(SearchReq dto) {
-        List<SearchSppPdctRes> searchRes = mapper.selectSeedingRegularShippingPdct(dto);
+        //        List<SearchSppPdctRes> searchRes = mapper.selectSeedingRegularShippingPdct(dto);
 
-        if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException("MSG_TXT_NO_DATA_RM");
-        }
+        //        if (ObjectUtils.isEmpty(searchRes)) {
+        //            throw new BizException("MSG_TXT_NO_DATA_RM");
+        //        }
 
-        return searchRes;
+        return mapper.selectSeedingRegularShippingPdct(dto);
     }
 
     public List<SearchSppVstRes> getSeedingRegularShippingVst(SearchReq dto) {
