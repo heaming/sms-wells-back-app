@@ -162,7 +162,7 @@ public class WsnaPcsvOutOfStorageSaveService {
 
             }
 
-            logisticDvos.add(converter.mapPcsvOutOfStorageDvoToLogisticDvo(dvo));
+            // logisticDvos.add(converter.mapPcsvOutOfStorageDvoToLogisticDvo(dvo));
             processCount += 1;
         }
 
