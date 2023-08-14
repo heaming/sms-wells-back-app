@@ -19,6 +19,7 @@ public class WwdbBillDepositMgtDto {
         String cntrNo, /*계약번호*/
         String cntrSn, /*계약일련번호*/
         String cntrDtlNo, /*계약상세번호*/
+        String cntrCstNo,
         String mconBzsNm, /*거래처명*/
         String billRmkCn, /*어음구분*/
         String billDpAmt, /*입금액*/
@@ -133,6 +134,35 @@ public class WwdbBillDepositMgtDto {
 
         String rveDt, /*입금일자(수납일자)*/
         String pyAmt /*입금금액*/
+    ) {
+
+    }
+
+    public record SaveDepositSlip(
+        @NotBlank
+        String itgDpNo, /*통합입금번호*/
+        String cntrNo,
+        String cntrSn,
+        String billDpAmt,
+        String cntrCstNo,
+
+        String sort
+
+    ) {
+
+    }
+
+    public record SearchItgNoRes(
+        String itgDpNo /*통합입금번호*/
+    ) {
+
+    }
+
+    public record SearchSlipReq(
+        String zzsnum, /*전송번호*/
+        String wrbtr, /*금액*/
+        String itgDpNo /*통합입금번호*/
+
     ) {
 
     }
