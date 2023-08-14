@@ -32,7 +32,7 @@ public class WsnaStockMasterRenewalService {
     static final String POINT_IN_TIME_STOCK = "3";
     static final String MOVEMENT_STOCK = "4";
 
-    @Transactional
+    @Transactional(timeout = 300)
     public int editStockMaster(EditReq dto) {
         int processCount = 0;
 
