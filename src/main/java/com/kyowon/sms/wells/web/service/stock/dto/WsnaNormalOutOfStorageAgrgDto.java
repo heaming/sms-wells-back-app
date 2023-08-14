@@ -11,7 +11,6 @@ public class WsnaNormalOutOfStorageAgrgDto {
         String ostrOjWareNo,
         String itmKndCd,
         String wareDvCd,
-        String wareLocaraCd,
         String ostrCnfmYn
     ) {}
 

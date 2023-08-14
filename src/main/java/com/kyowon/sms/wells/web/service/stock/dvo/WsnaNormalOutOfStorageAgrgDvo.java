@@ -25,7 +25,5 @@ public class WsnaNormalOutOfStorageAgrgDvo {
 
     String wareDvCd;
 
-    String wareLocaraCd;
-
     String ostrCnfmYn;
 }
