@@ -91,8 +91,8 @@ public class WsnaBsRegularShippingMgtDto {
         String svBizDclsfCd, // 작업구분코드
         String svBizDclsfNm, // 작업구분명
         String vstDuedt, //방문예정일자
-        String pVstPrgsStatCd,
-        String pVstPrgsStatNm,
+        String ppVstPrgsStatCd,
+        String ppVstPrgsStatNm,
         String vstPrgsStatCd,
         String vstPrgsStatNm, //방문진행상태명
         String wkExcnDt, // 작업수행일자(작업완료일자)

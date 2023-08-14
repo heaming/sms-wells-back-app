@@ -14,7 +14,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper(componentModel = "spring")
 public interface WsnaBsRegularShippingMgtConverter {
 
-    SearchRes mapWsnaShippingManagementDvoToSearchRes(WsnaBsRegularShippingMgtDvo dvo);
+    List<SearchRes> mapDvoListoSearchResList(List<WsnaBsRegularShippingMgtDvo> dvos);
 
     PagingResult<SearchRes> mapWsnaShippingManagementDvoToSearchRes(List<WsnaBsRegularShippingMgtDvo> dvo);
 
