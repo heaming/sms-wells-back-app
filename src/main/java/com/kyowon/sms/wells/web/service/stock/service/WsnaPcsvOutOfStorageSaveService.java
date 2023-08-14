@@ -65,41 +65,44 @@ public class WsnaPcsvOutOfStorageSaveService {
                 //mapper.deleteSvpdCstSvRgbsprIz(dvo);
                 //mapper.insertSvpdCstSvRgbsprIz(dvo);
 
-                /* 수불처리 */
-                //작업엔지니어 정보를 구한다.
-                WsnaPcsvOutOfStorageSaveDvo engineerDvo = mapper.selectEngineerOgbsMmPrtnrIz(dvo);
-                if (engineerDvo != null) {
-                    dvo.setMngrDvCd(engineerDvo.getMngrDvCd());
-                    dvo.setDgr1LevlOgId(engineerDvo.getDgr1LevlOgId());
-                    dvo.setDgr3LevlOgId(engineerDvo.getDgr3LevlOgId());
-                    dvo.setBrchOgId(engineerDvo.getBrchOgId());
-                }
-
-                // 수불 오류 방지를 위해서 재고 수량 체크
-                int itmStocIzQty = 0;
-                WsnaPcsvOutOfStorageSaveDvo qtyDvo = mapper.selectQtySvstCstSvItmStocIz(dvo);
-                if (qtyDvo != null) {
-                    if ("A".equals(dvo.getPdGdCd())) {
-                        itmStocIzQty = qtyDvo.getAQty();
-                    } else if ("B".equals(dvo.getPdGdCd())) {
-                        itmStocIzQty = qtyDvo.getBQty();
-                    } else if ("E".equals(dvo.getPdGdCd())) {
-                        itmStocIzQty = qtyDvo.getEQty();
-                    } else if ("R".equals(dvo.getPdGdCd())) {
-                        itmStocIzQty = qtyDvo.getRQty();
-                    }
-                }
-                BizAssert.isFalse(itmStocIzQty < 0, "MSG_ALT_MAT_QTY_ERR", new String[] {""}); //자재 수량이 부족합니다.보유 자재를 확인해주세요!
-
                 //사용내역 IU
                 mapper.insertSvstSvWkOstrIz(dvo);
 
                 //출고 확정시 일자(설치일자,배송예정일자) 현재날짜 지정 (판매시스템 연계)
                 String istDt = DateUtil.getNowDayString();
                 String sppDueDt = DateUtil.getNowDayString();
-                //installationReqdDtInService.saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), istDt, "", sppDueDt);
-
+                int result = installationReqdDtInService
+                    .saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), istDt, "", sppDueDt);
+                if (result > 0) {
+                    mapper.updateSvpdCstSvExcnIz(dvo);
+                }
                 //TODO 수불처리
+                //
+                //                /* 수불처리 */
+                //                //작업엔지니어 정보를 구한다.
+                //                WsnaPcsvOutOfStorageSaveDvo engineerDvo = mapper.selectEngineerOgbsMmPrtnrIz(dvo);
+                //                if (engineerDvo != null) {
+                //                    dvo.setMngrDvCd(engineerDvo.getMngrDvCd());
+                //                    dvo.setDgr1LevlOgId(engineerDvo.getDgr1LevlOgId());
+                //                    dvo.setDgr3LevlOgId(engineerDvo.getDgr3LevlOgId());
+                //                    dvo.setBrchOgId(engineerDvo.getBrchOgId());
+                //                }
+                //
+                //                // 수불 오류 방지를 위해서 재고 수량 체크
+                //                int itmStocIzQty = 0;
+                //                WsnaPcsvOutOfStorageSaveDvo qtyDvo = mapper.selectQtySvstCstSvItmStocIz(dvo);
+                //                if (qtyDvo != null) {
+                //                    if ("A".equals(dvo.getPdGdCd())) {
+                //                        itmStocIzQty = qtyDvo.getAQty();
+                //                    } else if ("B".equals(dvo.getPdGdCd())) {
+                //                        itmStocIzQty = qtyDvo.getBQty();
+                //                    } else if ("E".equals(dvo.getPdGdCd())) {
+                //                        itmStocIzQty = qtyDvo.getEQty();
+                //                    } else if ("R".equals(dvo.getPdGdCd())) {
+                //                        itmStocIzQty = qtyDvo.getRQty();
+                //                    }
+                //                }
+                //                BizAssert.isFalse(itmStocIzQty < 0, "MSG_ALT_MAT_QTY_ERR", new String[] {""}); //자재 수량이 부족합니다.보유 자재를 확인해주세요!
                 //            WsnaItemStockItemizationReqDvo itemDvo = setPcsvOstrWsnaItemStockItemizationDtoSaveReq(dvo);
                 //            log.info("itemDvo qty---> {} ", itemDvo.getQty());
                 //            log.info("itemDvo itemPdCd---> {} ", itemDvo.getItmPdCd());
@@ -111,7 +114,7 @@ public class WsnaPcsvOutOfStorageSaveService {
                 //                throw new RuntimeException(e);
                 //            }
 
-                //throw new BizException("정상출고 에러!");
+                // throw new BizException("정상출고 에러!");
 
             } else if ("1113".equals(dvo.getSvBizDclsfCd())) {
                 /* 재배송출고 */
