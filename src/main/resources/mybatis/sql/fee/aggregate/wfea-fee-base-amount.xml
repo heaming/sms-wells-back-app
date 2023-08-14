@@ -35,8 +35,8 @@
              , T6.PMOT_CD AS LCCK02	/* 프로모션 번호 */
              , T1.FST_RGST_PRG_ID AS LCEPGM
              , T1.FST_RGST_USR_ID AS LCECDE
-             , T7.FNL_MDFC_PRG_ID AS LCMPGM
-             , T7.FNL_MDFC_USR_ID AS LCMCDE
+             , T1.FNL_MDFC_PRG_ID AS LCMPGM
+             , T1.FNL_MDFC_USR_ID AS LCMCDE
           FROM TB_SSCT_CNTR_BAS T1
          INNER JOIN ( SELECT O.DGR1_LEVL_OG_NM AS OG1_NM /* 총괄단 */
                            , O.DGR2_LEVL_OG_NM AS OG2_NM  /* 지역단 */
@@ -49,7 +49,7 @@
                           ON P.BASE_YM = O.BASE_YM
                          AND P.OG_ID = O.OG_ID
                          AND P.BASE_YM = #{perfYm}
-                         AND P.OG_TP_CD = #{ogTp}
+                         AND P.OG_TP_CD = #{ogTpCd}
                          AND SUBSTR(P.OG_ID,1,1) NOT IN ('X','Z')
                     ) OG
             ON T1.SELL_PRTNR_NO = OG.PRTNR_NO
@@ -59,7 +59,7 @@
            AND T2.SELL_TP_CD = '2'         /* 렌탈 */
            AND T2.CNTR_DTL_STAT_CD = '101' /* 정상계약 */
            AND T2.CTT_RS_CD = '01'         /*컨택코드*/
-           AND T2.BASE_PD_CD != '4129'
+           AND T2.BASE_PD_CD != 'WP02120086'
            AND T2.FRISU_YN != 'Y'
            AND T2.SELL_DSC_DV_CD != '2'
            AND T2.SELL_DSC_DV_CD != '5'
@@ -67,19 +67,24 @@
          INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3 /*T WELLS매출확정기본 T*/
             ON T2.CNTR_NO = T3.CNTR_NO
            AND T2.CNTR_SN = T3.CNTR_SN
+           AND T3.SL_CL_YM = #{perfYm}
          INNER JOIN TB_PDBS_PD_BAS T4
             ON T2.BASE_PD_CD = T4.PD_CD
          INNER JOIN T_CMZ_CD_D CD
             ON T2.SELL_TP_CD = CD.CD_VLD_VAL
            AND CD.CD_ID = 'SELL_TP_CD'
+           AND CD.TENANT_ID = 'TNT_WELLS'
           LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ T5  /*T 기기변경내역 T*/
             ON T2.CNTR_NO = T5.BASE_CNTR_NO
            AND T2.CNTR_SN = T5.BASE_CNTR_SN
-          LEFT OUTER JOIN TB_SSCT_CNTR_PMOT_IZ T6 /* T프로모션 계약내역T */
-            ON T2.CNTR_NO = T6.DTL_CNTR_NO
-           AND T2.CNTR_SN = T6.DTL_CNTR_SN
-          LEFT OUTER JOIN TB_SSCT_CNTR_CH_HIST T7 /* T 계약변경이력 T */
-            ON T1.CNTR_NO = T7.CNTR_NO
+          LEFT OUTER JOIN LATERAL ( SELECT A.PMOT_CD
+                                         , RANK() OVER (PARTITION BY (A.DTL_CNTR_NO || A.DTL_CNTR_SN) ORDER BY CNTR_PMOT_ID DESC) AS RK_NUM
+                                      FROM TB_SSCT_CNTR_PMOT_IZ A
+                                     WHERE A.DTL_CNTR_NO = T2.CNTR_NO
+                                       AND A.DTL_CNTR_SN = T2.CNTR_SN
+                                  )T6 /* T프로모션 계약내역T */
+            ON 1=1
+           AND T6.RK_NUM = 1
           LEFT OUTER JOIN TB_SSCT_CNTR_BAS T8  /*T 변경렌탈내역 T*/
             ON T5.OJ_CNTR_NO = T8.CNTR_NO
          WHERE 1=1
