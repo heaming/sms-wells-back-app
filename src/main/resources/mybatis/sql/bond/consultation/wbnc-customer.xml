@@ -34,7 +34,8 @@
              , MAX(DLQ_ADD_AMT) AS DLQ_ADD_AMT          /* 연체가산금액 */       
              , MAX(DLQ_ADD_DP) AS DLQ_ADD_DP            /* 연체가산입금 */     
              , MAX(DLQ_ADAMT_BLAM) AS DLQ_ADAMT_BLAM        /* 연체가산금액 - 연체가산금입금금액 = 연체가산금잔액 */      
-             , MAX(UC_AMT) AS UC_AMT                /* 미수금액 */       
+             , MAX(UC_AMT) AS UC_AMT                /* 미수금액 */  
+             , MAX(RSG_BOR_DP_AMT) AS RSG_BOR_DP_AMT  /* 해지위약입금금액 */     
              , MAX(UC_DP) AS UC_DP              /* 미수입금 */  
              , MAX(UC_BLAM) AS UC_BLAM              /* 미수금 - 총입금액 = 미수잔액 */ 
              , MAX(TOT_DP_AMT) AS TOT_DP_AMT            /* 연체입금금액 + 연체가산입금금액 + 해지위약금입금금액 + 당월요금입금금액 = 총입금액 */ 
@@ -91,7 +92,8 @@
                       , NVL(T4.DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT /* 연체가산금액 */       
                       , NVL(T4.DLQ_ADD_DP_AMT, 0) AS DLQ_ADD_DP /* 연체가산입금 */     
                       , NVL(T4.DLQ_ADD_AMT, 0) - NVL(T4.DLQ_ADD_DP_AMT, 0) AS DLQ_ADAMT_BLAM /* 연체가산금액 - 연체가산금입금금액 = 연체가산금잔액 */      
-                      , NVL(T4.UC_AMT, 0) AS UC_AMT /* 미수금액 */       
+                      , NVL(T4.UC_AMT, 0) AS UC_AMT /* 미수금액 */    
+                      , NVL(T4.RSG_BOR_DP_AMT, 0) AS RSG_BOR_DP_AMT /* 해지위약입금금액 */   
                       , NVL(T4.DLQ_DP_AMT, 0) + NVL(T4.DLQ_ADD_DP_AMT, 0) + NVL(T4.RSG_BOR_DP_AMT, 0) + NVL(T4.THM_CHRAM_DP_AMT, 0) AS UC_DP /* 미수입금 */  
                       , NVL(T4.UC_AMT, 0) - (NVL(T4.DLQ_DP_AMT, 0) + NVL(T4.DLQ_ADD_DP_AMT, 0) + NVL(T4.RSG_BOR_DP_AMT, 0) + NVL(T4.THM_CHRAM_DP_AMT, 0)) AS UC_BLAM /* 미수금 - 총입금액 = 미수잔액 */
                       , NVL(T4.DLQ_DP_AMT, 0) + NVL(T4.DLQ_ADD_DP_AMT, 0) + NVL(T4.RSG_BOR_DP_AMT, 0) + NVL(T4.THM_CHRAM_DP_AMT, 0) AS TOT_DP_AMT /* 연체입금금액 + 연체가산입금금액 + 해지위약금입금금액 + 당월요금입금금액 = 총입금액 */
@@ -265,16 +267,16 @@
          </if>
          <if test='@MybatisUtils@isNotEmpty(schCstDv)'>
            <if test="schDv == '01'">
-             AND DLQ_BLAM <![CDATA[<>]]> 0
+             AND (DLQ_AMT - DLQ_DP) <![CDATA[<>]]> 0 /*연체잔액0원제외*/
            </if>
            <if test="schDv == '02'">
-             AND TOT_DP_AMT <![CDATA[<>]]> 0
+             AND (DLQ_DP + DLQ_ADD_DP + RSG_BOR_DP_AMT + MM_CHRAM_DP) > 0 /*총입금액0원제외*/
            </if>
            <if test="schDv == '03'">
-             AND OJ_BLAM <![CDATA[<>]]> 0
+             AND ((DLQ_AMT + DLQ_ADD_AMT + MM_CHRAM_AMT) - (DLQ_DP + DLQ_ADD_DP + MM_CHRAM_DP)) <![CDATA[<>]]> 0 /*대상잔액0원제외*/
            </if>
            <if test="schDv == '04'">
-             AND DLQ_MCNT <![CDATA[<>]]> 0
+             AND DLQ_MCNT <![CDATA[<>]]> 0 /*연체개월0개월제외*/
            </if>
          </if>
          GROUP BY CST_NO
