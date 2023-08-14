@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,7 +58,7 @@ public class WsnaBsRegularShippingMgtService {
      */
     public List<SearchRes> getShippingItems(SearchReq dto) {
         List<WsnaBsRegularShippingMgtDvo> dvos = mapper.selectShippingItems(dto);
-        return converter.mapWsnaShippingManagementDvoToSearchRes(dvos);
+        return converter.mapDvoListoSearchResList(dvos);
     }
 
     /**
@@ -66,8 +67,9 @@ public class WsnaBsRegularShippingMgtService {
      * @return
      */
     public PagingResult<SearchRes> getShippingItemPages(SearchReq dto, PageInfo pageInfo) {
+        PagingResult<WsnaBsRegularShippingMgtDvo> dvos = mapper.selectShippingItems(dto, pageInfo);
         PagingResult<SearchRes> pagingResult = converter.mapWsnaShippingManagementDvoToSearchRes(
-            mapper.selectShippingItems(dto, pageInfo)
+            dvos
         );
         pagingResult.setPageInfo(pageInfo);
         return pagingResult;
@@ -110,15 +112,15 @@ public class WsnaBsRegularShippingMgtService {
                 mapper.insertOutOfStorage(materialDvo);
                 materialDvo.setAdrsTnoVal(tno);
                 materialDvo.setAdrsCphonNoVal(mpno);
-                // 3.재고정보변경(모종제품제외)
+                // 3.재고정보변경, 물류인터페이스 dvo list(모종제품제외)
                 if (!StringUtils.equals(dvo.getPdGroupCd(), "11")) {
                     this.putStockItems(materialDvo);
+                    // 물류인터페이스 dvo list에 추가
+                    materialDvo.setAdrsTnoVal(tno);
+                    materialDvo.setAdrsCphonNoVal(mpno);
+                    logisticDvos.add(converter.mapMaterialDvoToLogisticDvo(materialDvo));
                 }
 
-                // 물류인터페이스 dvo list에 추가
-                materialDvo.setAdrsTnoVal(tno);
-                materialDvo.setAdrsCphonNoVal(mpno);
-                logisticDvos.add(converter.mapMaterialDvoToLogisticDvo(materialDvo));
             }
             // 4.작업결과 저장
             // 고객서비스정기BS주기내역(TB_SVPD_CST_SV_RGBSPR_IZ) update
@@ -132,9 +134,10 @@ public class WsnaBsRegularShippingMgtService {
             mapper.insertWorkResult(dvo);
             processCount += 1;
         }
-
-        //물류인터페이스 호출
-        logisticsOutStorageAskService.createSelfFilterOutOfStorageAsks(logisticDvos);
+        if (ObjectUtils.isNotEmpty(logisticDvos)) {
+            //물류인터페이스 호출
+            logisticsOutStorageAskService.createSelfFilterOutOfStorageAsks(logisticDvos);
+        }
         return processCount;
     }
 

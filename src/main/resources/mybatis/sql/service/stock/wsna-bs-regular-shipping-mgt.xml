@@ -198,7 +198,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                  , (CASE WHEN (    V1.P_VST_PRGS_STAT_CD     NOT IN ('20')
                                AND (   V1.REQD_DT IS NOT NULL
                                     OR V1.CPS_DT  IS NOT NULL
-                                    OR V1.TH_REQD_DT IS NOT NULL ) )
+                                    OR V1.TH_REQD_DT <![CDATA[<=]]> TO_CHAR(SYSDATE,'YYYYMMDD') ) )
                          THEN '93'
                          ELSE V1.P_VST_PRGS_STAT_CD
                     END)   AS VST_PRGS_STAT_CD
@@ -225,7 +225,18 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                  , NVL2(PL.PART_NM_08, PL.PART_NM_08 || '(' || PL.PART_CD_08 || '): ' || PL.PART_QTY_08, '') AS PART_NM_QTY_08
                  , NVL2(PL.PART_NM_09, PL.PART_NM_09 || '(' || PL.PART_CD_09 || '): ' || PL.PART_QTY_09, '') AS PART_NM_QTY_09
                  , NVL2(PL.PART_NM_10, PL.PART_NM_10 || '(' || PL.PART_CD_10 || '): ' || PL.PART_QTY_10, '') AS PART_NM_QTY_10
-                 , F_CMZ_CD_NM(#{session.tenantId}, 'WK_PRGS_STAT_CD', V1.P_VST_PRGS_STAT_CD, #{session.langId}) AS VST_PRGS_STAT_NM
+                 , ( SELECT SA.CD_CNTN
+                       FROM T_CMZ_CD_D SA
+                      WHERE SA.TENANT_ID = 'TNT_WELLS'
+                        AND SA.CD_ID = 'WK_PRGS_STAT_CD'
+                        AND SA.CD_VLD_VAL = (CASE WHEN (    V1.P_VST_PRGS_STAT_CD     NOT IN ('20')
+                                                       AND (   V1.REQD_DT IS NOT NULL
+                                                            OR V1.CPS_DT  IS NOT NULL
+                                                            OR V1.TH_REQD_DT <![CDATA[<=]]> TO_CHAR(SYSDATE,'YYYYMMDD') ) )
+                                                 THEN '93'
+                                                 ELSE V1.P_VST_PRGS_STAT_CD
+                                            END)
+                   )     AS VST_PRGS_STAT_NM
               FROM (
 
                     SELECT DISTINCT
