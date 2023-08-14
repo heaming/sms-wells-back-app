@@ -36,8 +36,6 @@ public class WbnaFosterTransferMgtDto {
         String bzHdqDvCd,
         String baseYm,
         String clcoCd,
-        Double totCstCt,
-        Double totCntrCt,
         Double woCstCt,
         Double woCntrCt,
         Double woObjAmt,
@@ -93,8 +91,8 @@ public class WbnaFosterTransferMgtDto {
     public record SearchDetailRes(
         String fstrCoNm, /* 위탁사명 */
         String clctnOjPrtnrNo, /* 담당자명 */
-        String jbfClctamDvCd, /* 직전담당집금구분 */
-        String jbfClctamPrtnrNo, /* 직전담당자 */
+        String clctamDvd, /* 직전담당집금구분 */
+        String prtnrKnm, /* 직전담당자 */
         String cntrNo, /* 계약번호 */
         Integer cntrSn, /* 계약일련번호 */
         String cstNm, /* 고객명 */
@@ -106,7 +104,7 @@ public class WbnaFosterTransferMgtDto {
         Double thmChramAmt, /* 당월요금 */
         Double dlqAddAmt, /* 연체가산금 */
         Double rsgBorAmt, /* 위약금액 */
-        String lwmTpCd, /* 법조치유형 */
+        String lwmTp, /* 법조치유형 */
         String lwmDtlTpCd, /* 법조치상세 */
         String lwmDt, /* 법조치일자 */
         String dfltDt, /* 채불등록일자 */
