@@ -1,7 +1,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbFinishLocationMapper">
 
-    <select id="selectFinishLocations" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbFinishLocationDto$SearchRes">
+    <select id="selectFinishLocationsTemp" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbFinishLocationDto$SearchRes">
 		SELECT T1.CNTR_NO
 			 , T1.CNTR_SN
 			 , T1.ASN_OJ_YM
@@ -79,4 +79,90 @@
              , T2.RCGVP_KNM
              , T6.PRTNR_KNM
     </select>
+
+	<select id="selectFinishLocations" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbFinishLocationDto$SearchRes">
+		SELECT /*+ INDEX(T2 IX_SSCT_CNTR_ADR_REL_01) INDEX(T3 PK_SSCT_CNTR_ADRPC_BAS) INDEX(T5 PK_SVPD_CST_SV_EXCN_IZ) INDEX(T6 PK_SSCT_CNTR_DTL) */
+			   T1.CNTR_NO
+			 , T1.CNTR_SN
+			 , T1.ASN_OJ_YM
+			 , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR	-- 계약번호
+			 , T3.RCGVP_KNM								-- 고객명
+			 , T3.CRAL_LOCARA_TNO						-- 연락처 (1)
+			 , T3.MEXNO_ENCR							-- 연락처 (2)
+			 , T3.CRAL_IDV_TNO							-- 연락처 (3)
+		     , T9.SVPD_SAP_CD                           -- SAP코드
+			 , T5.PDCT_PD_CD
+		     , T9.SVPD_NM_ABBR1                         -- 상품명
+			 , T6.SELL_TP_CD							-- 판매유형
+			 , T4.RNADR || T4.RDADR AS ADR									-- 주소
+			 , (
+				SELECT TEMP.PRTNR_KNM
+				  FROM TB_OGBS_MM_PRTNR_IZ TEMP
+				 WHERE 1=1
+				   AND TEMP.BASE_YM = T1.ASN_OJ_YM
+				   AND TEMP.OG_TP_CD = T7.OG_TP_CD
+				   AND TEMP.PRTNR_NO = T7.PRTNR_NO
+				   AND TEMP.DTA_DL_YN = 'N'
+			   ) AS PRTNR_KNM
+			 , T7.VST_FSH_DSTN_VAL						-- 거리
+			 , CASE
+					WHEN TO_NUMBER(T7.VST_FSH_DSTN_VAL) > 5 THEN 'ERROR'
+					ELSE ''
+			   END AS STATUS
+			 , T1.CST_SV_ASN_NO
+		  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+		 INNER JOIN TB_SSCT_CNTR_ADR_REL T2
+		 ON (
+				T2.DTL_CNTR_NO = T1.CNTR_NO
+			AND T2.DTL_CNTR_SN = T1.CNTR_SN
+			AND T2.ADRPC_TP_CD = '3'  -- 1 계약주소, 3 설치주소
+			AND T2.DTA_DL_YN = 'N'
+			AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+		 )
+		 INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T3
+		 ON (
+			T3.CNTR_ADRPC_ID = T2.CNTR_ADRPC_ID
+		 )
+		 INNER JOIN TB_GBCO_ADR_BAS T4
+		 ON (
+			T4.ADR_ID = T3.ADR_ID
+		 )
+		 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T5
+		 ON (
+				T5.CNTR_NO = T1.CNTR_NO
+			AND T5.CNTR_SN = T1.CNTR_SN
+			AND T5.DTA_DL_YN = 'N'
+		 )
+		 INNER JOIN TB_SSCT_CNTR_DTL T6
+		 ON (
+				T6.CNTR_NO = T1.CNTR_NO
+			AND T6.CNTR_SN = T1.CNTR_SN
+			AND T6.DTA_DL_YN = 'N'
+		 )
+		 INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ T7
+		 ON (
+				T7.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+			AND T7.DTA_DL_YN = 'N'
+		 )
+		 INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T9
+		 ON (
+			T9.SVPD_PD_CD = T5.PDCT_PD_CD
+		 )
+		 WHERE 1=1
+		   AND T1.VST_PRGS_STAT_CD = '20'
+		   AND T1.DTA_DL_YN = 'N'
+		   AND T1.ASN_OJ_YM = #{asnOjYm}
+		<if test="@MybatisUtils@isNotEmpty(fshBaseDstn) and @MybatisUtils@equals(fshBaseDstn, '10')">
+           AND TO_NUMBER(T7.VST_FSH_DSTN_VAL) <![CDATA[ <= ]]> 5
+        </if>
+		<if test="@MybatisUtils@isNotEmpty(fshBaseDstn) and @MybatisUtils@equals(fshBaseDstn, '20')">
+           AND TO_NUMBER(T7.VST_FSH_DSTN_VAL) > 5
+        </if>
+		<if test="@MybatisUtils@isNotEmpty(mngtDvCd) and !@MybatisUtils@equals(mngtDvCd, 'ALL')">
+           AND T7.OG_TP_CD = #{ogTpCd}
+           AND T7.PRTNR_NO = #{prtnrNo}
+        </if>
+		 ORDER BY T1.CNTR_NO DESC
+				, T1.CNTR_SN DESC
+	</select>
 </mapper>
