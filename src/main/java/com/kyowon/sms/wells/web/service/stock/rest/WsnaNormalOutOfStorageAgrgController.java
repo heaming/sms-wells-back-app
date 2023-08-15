@@ -34,7 +34,6 @@ public class WsnaNormalOutOfStorageAgrgController {
         @ApiImplicitParam(name = "startStrHopDt", value = "입고희망일 시작일", paramType = "query", required = true),
         @ApiImplicitParam(name = "endStrHopDt", value = "입고희망일 종료일", paramType = "query", required = true),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "wareLocaraCd", value = "창고지역코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "ostrOjWareNo", value = "출고대상창고번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "ostrCnfmYn", value = "출고확정코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "ostrAkTpCd", value = "출고요청유형", paramType = "query"),
