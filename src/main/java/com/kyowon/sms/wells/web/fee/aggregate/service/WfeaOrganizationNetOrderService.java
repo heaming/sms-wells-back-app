@@ -95,17 +95,15 @@ public class WfeaOrganizationNetOrderService {
     public int editOrganizationAggregates(WfeaOrganizationNetOrderDto.SaveOgNetOrderReq dto) {
         int processCnt = 0;
 
-        // 조직별집계 생성 체크
-        SearchRes netOrderStat = zfezFeeNetOrderStatusService
-            .getFeeNetOrderStat(dto.perfYm(), dto.feeTcntDvCd(), dto.perfAgrgCrtDvCd(), "01");
-        BizAssert.isTrue(netOrderStat != null, "MSG_ALT_OG_CNFM_AFT_AGRG"); // 해당 차수의 조직별 집계 후 진행해주세요.
-
         WfeaOrganizationNetOrderDvo dvo = converter.mapSaveOgNetOrderReqToWfeaOrganizationNetOrderDvo(dto);
         if ("CO".equals(dvo.getDv())) { // 확정
+            SearchRes netOrderStat = zfezFeeNetOrderStatusService
+                .getFeeNetOrderStat(dto.perfYm(), dto.feeTcntDvCd(), dto.perfAgrgCrtDvCd(), "02");
             BizAssert
                 .isTrue(
-                    netOrderStat != null && "01".equals(netOrderStat.ntorCnfmStatCd()), "MSG_ALT_BF_CNFM_CONF"
+                    !(netOrderStat != null && "02".equals(netOrderStat.ntorCnfmStatCd())), "MSG_ALT_BF_CNFM_CONF"
                 ); // 이미 확정되었습니다.
+
             processCnt = mapper.updateNtorMmClConfirm(dvo);
         } else if ("CC".equals(dvo.getDv())) { // 확정취소
             processCnt = mapper.updateNtorMmClCancel(dvo);
