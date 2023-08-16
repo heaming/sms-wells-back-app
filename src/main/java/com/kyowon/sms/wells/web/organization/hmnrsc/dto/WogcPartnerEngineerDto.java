@@ -82,6 +82,7 @@ public class WogcPartnerEngineerDto {
         String rmkCn,
         String bizAgntPrtnrNo,
         String prtnrNo,
+        String wrkDt,
         String rowState
 
     ) {}
