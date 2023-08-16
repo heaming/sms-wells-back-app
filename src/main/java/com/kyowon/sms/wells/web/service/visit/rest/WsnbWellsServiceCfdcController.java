@@ -6,7 +6,9 @@ import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
+import com.kyowon.sflex.common.report.dto.ReportDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.*;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbWellsServiceCfdcService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
@@ -63,7 +65,7 @@ public class WsnbWellsServiceCfdcController {
     }
 
     @ApiOperation(value = "웰스 서비스 확인서 출력", notes = "웰스 서비스 확인서 출력한다.")
-    @PostMapping("/report")
+    @PostMapping("/print")
     public int printReport(
         @Valid
         @RequestBody
@@ -110,5 +112,22 @@ public class WsnbWellsServiceCfdcController {
         PageInfo pageInfo
     ) {
         return service.getWellsServiceConfirmationHistoriesForEmail(dto, pageInfo);
+    }
+
+    @GetMapping("/report/{cstSvAsnNo}")
+    public ModelAndView openReportAuthEntry(
+        @PathVariable
+        String cstSvAsnNo
+    ) {
+        return service.openReportAuthEntry(cstSvAsnNo);
+    }
+
+    @PostMapping("/report/{cstSvAsnNo}")
+    public ModelAndView openReport(
+        @PathVariable
+        String cstSvAsnNo,
+        ReportDto.FindEntryReq dto
+    ) {
+        return service.openReport(cstSvAsnNo, dto.custBday());
     }
 }
