@@ -56,6 +56,19 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
             saveDvo.setFnlMdfcUsrId(item.fnlMdfcUsrId());
             saveDvo.setFnlMdfcPrgId(item.fnlMdfcPrgId());
             saveDvo.setFnlMdfcDeptId(item.fnlMdfcDeptId());
+            if (StringUtils.isNotEmpty(item.ogTpCd())) {
+                String ogTpCd = item.ogTpCd();
+                if ("1".equals(item.ogTpCd())) {
+                    ogTpCd = "E01";
+                }
+                if ("2".equals(item.ogTpCd())) {
+                    ogTpCd = "W01";
+                }
+                if ("7".equals(item.ogTpCd())) {
+                    ogTpCd = "W02";
+                }
+                saveDvo.setOgTpCd(ogTpCd);
+            }
             String cnfmYn = mapper.selectLifeFeeValidKey(saveDvo);
             // 1.1 마감여부? 체크 후 마감이면 에러 CNFM_YN = 'Y'면 에러
             if ("Y".equals(cnfmYn)) {
