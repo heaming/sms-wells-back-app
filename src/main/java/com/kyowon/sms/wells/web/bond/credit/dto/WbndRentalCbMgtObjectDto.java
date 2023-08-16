@@ -23,12 +23,18 @@ public class WbndRentalCbMgtObjectDto {
     public record SearchRes(
         String cstNo, /*고객번호*/
         String cstKnm, /*고객명*/
+        String cntrDtlNo, /*계약상세번호*/
         String copnDvCd, /*법인격구분코드*/
         String copnDvNm, /*법인격구분명*/
+        String sellTpNm, /*상품구분*/
+        String pdClsfNm, /*상품명*/
+        String slRcogDt, /*매출일자*/
         String cralLocaraTno, /*휴대폰번호1*/
         String mexnoEncr, /*휴대폰번호2*/
         String cralIdvTno, /*휴대폰번호3*/
         String cralTno, /*휴대폰번호 통합*/
+        String mpyBsdt, /*자동이체 약정일자*/
+        String fntDvNm, /*결제수단*/
         Long dlqAmt, /*연체금액*/
         Long dlqBlam, /*연체잔액*/
         String clctamPrtnrNo, /*집금담당자번호*/
@@ -36,7 +42,6 @@ public class WbndRentalCbMgtObjectDto {
         String dsphTno, /*발신번호*/
         String rgstSchDt, /*등록예정일자-알림톡발송일자+4일*/
         String niceFwExcdYn, /*나이스발송제외여부*/
-        String col11, /*납입기한일자*/
         String msgFwDt, /*알림톡 발송일자*/
         String resultYn, /*알림톡성공여부*/
         String niceFwDt /* 나이스발송일자 */
@@ -55,7 +60,7 @@ public class WbndRentalCbMgtObjectDto {
     @ApiModel("WbndRentalCbMgtObjectDto-SearchPaymentRes")
     public record SearchPaymentRes(
         String cstNo, /*고객번호*/
-        String cntrDtlSn, /*계약상세번호*/
+        String cntrDtlNo, /*계약상세번호*/
         String cstKnm, /*고객명*/
         String copnDvNm, /*법인격구분명*/
         String sellTpNm, /*상품구분*/
