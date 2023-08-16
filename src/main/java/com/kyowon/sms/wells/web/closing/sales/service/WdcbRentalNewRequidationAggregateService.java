@@ -1,11 +1,12 @@
 package com.kyowon.sms.wells.web.closing.sales.service;
 
+import static com.kyowon.sms.wells.web.closing.sales.dto.WdcbRentalNewRequidationAggregateDto.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbRentalNewRequidationAggregateDto;
 import com.kyowon.sms.wells.web.closing.sales.mapper.WdcbRentalNewRequidationAggregateMapper;
 import com.sds.sflex.system.config.exception.BizException;
 
@@ -16,16 +17,16 @@ import lombok.RequiredArgsConstructor;
 public class WdcbRentalNewRequidationAggregateService {
     private final WdcbRentalNewRequidationAggregateMapper mapper;
 
-    public List<WdcbRentalNewRequidationAggregateDto.SearchRes> getAggregates(
-        WdcbRentalNewRequidationAggregateDto.SearchReq dto
+    public List<SearchRes> getAggregates(
+        SearchReq dto
     ) {
         return mapper.selectAggregates(dto);
     }
 
-    public List<WdcbRentalNewRequidationAggregateDto.SearchDetailRes> getRentalNewRequidations(
-        WdcbRentalNewRequidationAggregateDto.SearchDetailReq dto
+    public List<SearchDetailRes> getRentalNewRequidations(
+        SearchDetailReq dto
     ) {
-        List<WdcbRentalNewRequidationAggregateDto.SearchDetailRes> res = new ArrayList<>();
+        List<SearchDetailRes> res = new ArrayList<>();
         switch (dto.divCd()) {
             // 1. 무료제험
             case "10" -> res = this.mapper

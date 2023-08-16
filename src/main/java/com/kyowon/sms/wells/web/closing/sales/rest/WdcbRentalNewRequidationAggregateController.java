@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.closing.sales.rest;
 
+import static com.kyowon.sms.wells.web.closing.sales.dto.WdcbRentalNewRequidationAggregateDto.*;
+
 import java.util.List;
 
 import org.springframework.validation.annotation.Validated;
@@ -7,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbRentalNewRequidationAggregateDto;
 import com.kyowon.sms.wells.web.closing.sales.service.WdcbRentalNewRequidationAggregateService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 
@@ -34,8 +35,8 @@ public class WdcbRentalNewRequidationAggregateController {
         @ApiImplicitParam(name = "sppProcsBzsCd", value = "업체코드", paramType = "query"),
         @ApiImplicitParam(name = "slYm", value = "매출년월", paramType = "query"),
     })
-    public List<WdcbRentalNewRequidationAggregateDto.SearchRes> getAggregates(
-        WdcbRentalNewRequidationAggregateDto.SearchReq dto
+    public List<SearchRes> getAggregates(
+        SearchReq dto
     ) {
         return service.getAggregates(dto);
     }
@@ -51,8 +52,8 @@ public class WdcbRentalNewRequidationAggregateController {
         @ApiImplicitParam(name = "divCd", value = "구분코드", paramType = "query"),
         @ApiImplicitParam(name = "divDtlCd", value = "상세구분코드", paramType = "query"),
     })
-    public List<WdcbRentalNewRequidationAggregateDto.SearchDetailRes> getRentalNewRequidations(
-        WdcbRentalNewRequidationAggregateDto.SearchDetailReq dto
+    public List<SearchDetailRes> getRentalNewRequidations(
+        SearchDetailReq dto
     ) {
         return service.getRentalNewRequidations(dto);
     }

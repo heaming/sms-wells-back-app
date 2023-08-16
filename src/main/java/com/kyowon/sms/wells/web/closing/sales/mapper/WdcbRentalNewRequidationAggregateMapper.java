@@ -1,42 +1,42 @@
 package com.kyowon.sms.wells.web.closing.sales.mapper;
 
+import static com.kyowon.sms.wells.web.closing.sales.dto.WdcbRentalNewRequidationAggregateDto.*;
+
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbRentalNewRequidationAggregateDto;
-
 @Mapper
 public interface WdcbRentalNewRequidationAggregateMapper {
-    List<WdcbRentalNewRequidationAggregateDto.SearchRes> selectAggregates(
-        WdcbRentalNewRequidationAggregateDto.SearchReq dto
+    List<SearchRes> selectAggregates(
+        SearchReq dto
     );
 
-    List<WdcbRentalNewRequidationAggregateDto.SearchDetailRes> selectFreeExperiences(
-        WdcbRentalNewRequidationAggregateDto.SearchDetailReq dto
+    List<SearchDetailRes> selectFreeExperiences(
+        SearchDetailReq dto
     );
 
-    List<WdcbRentalNewRequidationAggregateDto.SearchDetailRes> selectRentalNews(
-        WdcbRentalNewRequidationAggregateDto.SearchDetailReq dto
+    List<SearchDetailRes> selectRentalNews(
+        SearchDetailReq dto
     );
 
-    List<WdcbRentalNewRequidationAggregateDto.SearchDetailRes> selectProductChanges(
-        WdcbRentalNewRequidationAggregateDto.SearchDetailReq dto
+    List<SearchDetailRes> selectProductChanges(
+        SearchDetailReq dto
     );
 
-    List<WdcbRentalNewRequidationAggregateDto.SearchDetailRes> selectRentalWithdrawalFreeExperiences(
-        WdcbRentalNewRequidationAggregateDto.SearchDetailReq dto
+    List<SearchDetailRes> selectRentalWithdrawalFreeExperiences(
+        SearchDetailReq dto
     );
 
-    List<WdcbRentalNewRequidationAggregateDto.SearchDetailRes> selectRentalWithdrawals(
-        WdcbRentalNewRequidationAggregateDto.SearchDetailReq dto
+    List<SearchDetailRes> selectRentalWithdrawals(
+        SearchDetailReq dto
     );
 
-    List<WdcbRentalNewRequidationAggregateDto.SearchDetailRes> selectRGradeCancels(
-        WdcbRentalNewRequidationAggregateDto.SearchDetailReq dto
+    List<SearchDetailRes> selectRGradeCancels(
+        SearchDetailReq dto
     );
 
-    List<WdcbRentalNewRequidationAggregateDto.SearchDetailRes> selectAuthorityAuthorityResigns(
-        WdcbRentalNewRequidationAggregateDto.SearchDetailReq dto
+    List<SearchDetailRes> selectAuthorityAuthorityResigns(
+        SearchDetailReq dto
     );
 }
