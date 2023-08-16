@@ -38,6 +38,10 @@
              , MPI3.PRTNR_KNM AS PCP_PRTNR_KNM             /*파트너명*/
              , EAI.PROCS_DTM                               /*처리일자*/
           FROM TB_OGPS_EGER_ATDC_IZ EAI
+         INNER JOIN TB_OGBS_PRTNR_DTL PD
+            ON PD.OG_TP_CD = EAI.OG_TP_CD
+           AND PD.PRTNR_NO = EAI.PRTNR_NO
+           AND PD.BZ_STAT_CD = '1'
           LEFT OUTER JOIN (SELECT OG_TP_CD, PRTNR_NO, APY_SEQN, WK_GRP_CD
                              FROM TB_OGBS_WK_GRP_BLG_DTL WGB1
                             WHERE APY_SEQN = (SELECT MAX(APY_SEQN)
@@ -137,8 +141,11 @@
           WHERE 1=1
             AND EVI.DTA_DL_YN = 'N'
             AND EVI.OG_TP_CD = 'W06'
-            AND EVI.VCN_STRT_DT = #{vcnStrtDt}
             AND EVI.PRTNR_NO = #{prtnrNo}
+            AND (#{vcnStrtDt} BETWEEN EVI.VCN_STRT_DT AND EVI.VCN_END_DT -- 휴가시작일자 비교
+             OR #{vcnEndDt} BETWEEN EVI.VCN_STRT_DT AND EVI.VCN_END_DT -- 휴가종료일자 비교
+             OR EVI.VCN_STRT_DT BETWEEN #{vcnStrtDt} AND #{vcnEndDt}
+             OR EVI.VCN_END_DT BETWEEN #{vcnStrtDt} AND #{vcnEndDt})
     </select>
 
     <!--엔지니어 휴가정보 관리등록 -->
@@ -191,15 +198,15 @@
    </update>
 
     <!--엔지니어 휴가정보 관리삭제-->
-   <update id="deleteVacation">
-       UPDATE TB_OGPS_EGER_VCN_IZ
+   <delete id="deleteVacation">
+       DELETE TB_OGPS_EGER_VCN_IZ
           SET DTA_DL_YN = 'Y'
           <include refid="COMMON.updateSystemField" />
         WHERE 1=1
           AND OG_TP_CD = 'W06'
           AND VCN_STRT_DT = #{oriVcnStrtDt}
           AND PRTNR_NO = #{prtnrNo}
-   </update>
+   </delete>
 
     <!-- 서비스센터 조 관리 -->
     <select id="selectJoeManagements" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo">
