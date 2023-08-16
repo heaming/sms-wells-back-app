@@ -99,6 +99,11 @@ public class WbnaCollectorAssignService {
         params.put("bndNwDvCd", BnBondConst.BndNwDvCd.OLD.getValue());
         dvo.setParams(params); // Job 실행시 필요한 파라미터
 
+        // TB_CBBO_BND_CNTR_BAS > CLCTAM_PRTNR_NO 정보 초기화
+        mapper.updateClctamPrtnrNoForCollectorAssing(dto.baseYm(), dto.bzHdqDvCd(), dto.clctamDvCd());
+        // TB_CBBO_BND_ASN_IZ > CLCTAM_PRTNR_NO 정보 초기화
+        mapper.updateClctamPrtnrNoForBondAssignItemization(dto.baseYm(), dto.bzHdqDvCd(), dto.clctamDvCd());
+
         //배치호출(try-catch대신, throw사용)
         String oldBondBatchJobRunId = batchCallService.runJob(dvo); //결과값으로 Control-M 에서 run-id를 받는다.
         BizAssert.isTrue(StringUtils.isNotEmpty(oldBondBatchJobRunId), "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
