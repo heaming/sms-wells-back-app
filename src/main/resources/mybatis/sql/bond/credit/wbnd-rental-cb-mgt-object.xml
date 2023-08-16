@@ -117,7 +117,14 @@
              , T2.CRAL_LOCARA_TNO                   /*휴대폰번호1*/
              , T2.MEXNO_ENCR                        /*휴대폰번호2*/
              , T2.CRAL_IDV_TNO                      /*휴대폰번호3*/
-             , T4.MPY_BSDT                          /*자동이체 약정일자*/
+             , (SELECT MPY_BSDT
+                  FROM (SELECT TT1.MPY_BSDT
+                             , ROWNUM
+                          FROM TB_SSCT_CNTR_STLM_BAS TT1
+                         WHERE TT1.CST_NO = X.CST_NO
+                           AND TT1.CNTR_NO = T3.CNTR_NO
+                         ORDER BY TT1.FNL_MDFC_DTM DESC)
+                 WHERE ROWNUM <![CDATA[<=]]> 1) AS MPY_BSDT /*자동이체 약정일자*/
              , (SELECT (SELECT CD_CNTN
                           FROM T_CMZ_CD_D
                          WHERE TENANT_ID = #{session.tenantId}
@@ -148,9 +155,6 @@
             ON T3.CST_NO = X.CST_NO
            AND T3.CNTR_NO = X.CNTR_NO
            AND T3.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')
-         INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*T:계약결제기본*/
-            ON T4.CST_NO = X.CST_NO
-           AND T4.CNTR_NO = T3.CNTR_NO
          INNER JOIN TB_SSCT_CNTR_DTL T5 /*T:계약상세*/
             ON T5.CNTR_NO = T3.CNTR_NO
            AND T5.CNTR_SN = T3.CNTR_SN
@@ -288,7 +292,14 @@
              , T2.CRAL_LOCARA_TNO                           /*휴대폰번호1*/
              , T2.MEXNO_ENCR                                /*휴대폰번호2*/
              , T2.CRAL_IDV_TNO                              /*휴대폰번호3*/
-             , T4.MPY_BSDT                                  /*자동이체 약정일자*/
+             , (SELECT MPY_BSDT
+                  FROM (SELECT TT1.MPY_BSDT
+                             , ROWNUM
+                          FROM TB_SSCT_CNTR_STLM_BAS TT1
+                         WHERE TT1.CST_NO = X.CST_NO
+                           AND TT1.CNTR_NO = T3.CNTR_NO
+                         ORDER BY TT1.FNL_MDFC_DTM DESC)
+                 WHERE ROWNUM <![CDATA[<=]]> 1) AS MPY_BSDT /*자동이체 약정일자*/
              , (SELECT F_CMZ_CD_NM(#{session.tenantId}, 'FNT_DV_CD', S1.FNT_DV_CD, #{session.langId})
                   FROM TB_RVCL_BIL_PLAN_BAS S1 /*T:청구계획기본*/
                  WHERE CNTR_NO = T3.CNTR_NO
@@ -303,7 +314,14 @@
                                 AND DP_DV_CD = '1'  /*입금구분코드-1:입금*/
                                 AND DP_MES_CD IN ('01','02')    /*입금수단코드-01:현금,02:신용카드*/
                                 AND (RVE_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(X.OC_BSDT,'YYYYMMDD'),1),'YYYYMM')||'01'
-                                                AND TO_CHAR(ADD_MONTHS(TO_DATE(X.OC_BSDT,'YYYYMMDD'),1),'YYYYMM')||LPAD(T4.MPY_BSDT,2,'0'))
+                                                AND TO_CHAR(ADD_MONTHS(TO_DATE(X.OC_BSDT,'YYYYMMDD'),1),'YYYYMM')||LPAD((SELECT MPY_BSDT
+                                                                                                                           FROM (SELECT TT1.MPY_BSDT
+                                                                                                                                      , ROWNUM
+                                                                                                                                   FROM TB_SSCT_CNTR_STLM_BAS TT1
+                                                                                                                                  WHERE TT1.CST_NO = X.CST_NO
+                                                                                                                                    AND TT1.CNTR_NO = T3.CNTR_NO
+                                                                                                                                  ORDER BY TT1.FNL_MDFC_DTM DESC)
+                                                                                                                          WHERE ROWNUM <![CDATA[<=]]> 1),2,'0'))
                             ) AS DLQ_BLAM                   /*연체잔액*/
              , T3.CLCTAM_PRTNR_NO                           /*집금담당자번호*/
              , (SELECT PRTNR_KNM
