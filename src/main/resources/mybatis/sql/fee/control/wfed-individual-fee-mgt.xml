@@ -566,9 +566,11 @@
                     ELSE MONTHS_BETWEEN(T3.ENDDT, TO_DATE(T3.CV_DT, 'YYYY-MM-DD'))
                END AS OPNG_NMM                                  /* 개시차월 = 해약일자 - 전환일자 */
              , NVL(SUBSTR(T3.ENDDT,0,6),0) AS MNG_CLTN_MM      /* 매니저 해약월 */
-             , NVL(T4.MGT_CNT,0) AS MGT_CNT /* BS 총 관리건수 */
+             , NVL(T4.MGT_CNT,0)-NVL(T6.CAN_CNT,0) AS MGT_CNT /* BS 총 관리건수 = 관리건수 - 취소건수*/
              , NVL(T4.VST_CNT,0) AS VST_CNT /* BS 총 방문건수 */
-             , NVL(T4.PROCS_RT,0) AS PROCS_RT /* BS 방문율 */
+             , CASE WHEN NVL(T4.MGT_CNT,0) = 0 THEN 0
+                    ELSE ROUND(NVL(T4.VST_CNT,0)/(NVL(T4.MGT_CNT,0)-NVL(T6.CAN_CNT,0))*100, 2)
+               END AS PROCS_RT
              , NVL(T5.INTBS_AMT,0) AS INTBS_SUM
              , NVL(T5.DDCTAM,0) AS DDTN_SUM
              , NVL(T5.DSB_OJ_AMT,0) AS ACL_DSB_AMT
@@ -595,7 +597,7 @@
                                  , ROUND(NVL(SUM(T.COL2),0)/NVL(SUM(T.COL1),0)*100, 2) AS PROCS_RT
                               FROM ( SELECT BS.PRTNR_NO
                                           , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN BS.PERF_VAL END AS COL1
-                                          , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '02' THEN BS.PERF_VAL END AS COL2
+                                          , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 IN ('02','03') THEN BS.PERF_VAL END AS COL2
                                        FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
                                       INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD GI
                                          ON BS.PRTNR_SV_PERF_ATC_CD = GI.PRTNR_SV_PERF_ATC_CD
@@ -609,7 +611,7 @@
                                       UNION ALL
                                      SELECT BS.PRTNR_NO
                                           , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN BS.PERF_VAL END AS COL1
-                                          , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '02' THEN BS.PERF_VAL END AS COL2
+                                          , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 IN ('02','03') THEN BS.PERF_VAL END AS COL2
                                        FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
                                       INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD GI
                                          ON BS.PRTNR_SV_PERF_ATC_CD = GI.PRTNR_SV_PERF_ATC_CD
@@ -624,24 +626,35 @@
                              GROUP BY T.PRTNR_NO
                           )T4
             ON T1.PRTNR_NO = T4.PRTNR_NO
-        LEFT OUTER JOIN TB_FEAM_FEE_DSB_IZ T5
-          ON T1.BASE_YM = T5.DSB_YM
-         AND T1.OG_TP_CD = T5.OG_TP_CD
-         AND T1.PRTNR_NO = T5.PRTNR_NO
-         AND T5.CO_CD = #{session.companyCode}
-         AND T5.FEE_TCNT_DV_CD = '02'
-         AND T5.SPMT_DSB_DV_CD = '01'
-        LEFT OUTER JOIN T_CMZ_CD_D CD1
-          ON T1.RSB_DV_CD = CD1.CD_VLD_VAL
-         AND CD1.CD_ID = 'RSB_DV_CD'
-         AND CD1.TENANT_ID = 'TNT_WELLS'
-        LEFT OUTER JOIN T_CMZ_CD_D CD2
-          ON T1.QLF_DV_CD = CD2.CD_VLD_VAL
-         AND CD2.CD_ID = 'QLF_DV_CD'
-         AND CD2.TENANT_ID = 'TNT_WELLS'
-       WHERE T1.BASE_YM = #{perfYm}
-         AND T1.OG_TP_CD = 'W02'     /* M 조직 */
-         AND T1.PRTNR_NO = #{no}
+          LEFT OUTER JOIN TB_FEAM_FEE_DSB_IZ T5
+            ON T1.BASE_YM = T5.DSB_YM
+           AND T1.OG_TP_CD = T5.OG_TP_CD
+           AND T1.PRTNR_NO = T5.PRTNR_NO
+           AND T5.CO_CD = #{session.companyCode}
+           AND T5.FEE_TCNT_DV_CD = '02'
+           AND T5.SPMT_DSB_DV_CD = '01'
+          LEFT OUTER JOIN ( SELECT PRTNR_NO
+                                 , COUNT(WK_CAN_RSON_CD) AS CAN_CNT
+                              FROM TB_FEAM_WELS_SV_PERF_IZ
+                             WHERE BASE_YM = #{perfYm}
+                               AND OG_TP_CD = 'W02'
+                               AND PRTNR_NO = #{no}
+                               AND CL_DV_CD = '02'
+                               AND WK_CAN_RSON_CD IS NOT NULL
+                             GROUP BY PRTNR_NO
+                          )T6
+            ON T1.PRTNR_NO = T6.PRTNR_NO
+          LEFT OUTER JOIN T_CMZ_CD_D CD1
+            ON T1.RSB_DV_CD = CD1.CD_VLD_VAL
+           AND CD1.CD_ID = 'RSB_DV_CD'
+           AND CD1.TENANT_ID = 'TNT_WELLS'
+          LEFT OUTER JOIN T_CMZ_CD_D CD2
+            ON T1.QLF_DV_CD = CD2.CD_VLD_VAL
+           AND CD2.CD_ID = 'QLF_DV_CD'
+           AND CD2.TENANT_ID = 'TNT_WELLS'
+         WHERE T1.BASE_YM = #{perfYm}
+           AND T1.OG_TP_CD = 'W02'     /* M 조직 */
+           AND T1.PRTNR_NO = #{no}
     </select>
 
     <select id='selectMngerBaseInfo'
@@ -794,7 +807,7 @@
                                , PRTNR_PERF_DTLP_ATC_CDV1||PRTNR_PERF_DTLP_ATC_CDV2 AS SV_CD
                                , PRTNR_PERF_DTLP_ATC_CDV2 AS SV_CD2
                                , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN BS.PERF_VAL END AS COL1
-                               , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '02' THEN BS.PERF_VAL END AS COL2
+                               , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 IN  ('02','03') THEN BS.PERF_VAL END AS COL2
                                , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '04' THEN BS.PERF_VAL END AS COL3
                             FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
                            INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD GI
@@ -823,7 +836,7 @@
                                , PRTNR_PERF_DTLP_ATC_CDV2 AS SV_CD2
                                , BS.BASE_YM
                                , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN BS.PERF_VAL END AS COL1
-                               , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '02' THEN BS.PERF_VAL END AS COL2
+                               , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 IN  ('02','03') THEN BS.PERF_VAL END AS COL2
                                , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '04' THEN BS.PERF_VAL END AS COL3
                             FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
                            INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD GI
