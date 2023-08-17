@@ -43,6 +43,10 @@ public class WfeaEgerAllowanceService {
      */
     @Transactional
     public String saveEgerPerformances(WfeaEgerAllowanceDto.SaveReq dto) throws Exception {
+        // 해당 월의 확정 자료 여부 체크
+        int count = mapper.selectEngineerPerformanceCount(dto);
+        BizAssert.isTrue(count == 0, "MSG_ALT_BF_CNFM_CONF_PERF"); //이미 확정되어 실적 생성이 불가합니다.
+
         // 배치 dvo 생성
         BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
 
