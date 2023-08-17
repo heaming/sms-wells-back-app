@@ -1,7 +1,7 @@
-package com.kyowon.sms.wells.web.competence.education.service;
+package com.kyowon.sms.wells.web.competence.educations.service;
 
-import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto.SearchReq;
-import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto.SearchRes;
+import static com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchReq;
+import static com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchRes;
 
 import java.util.List;
 
@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.common.web.deduction.zcommon.constant.DeDeductionConst;
-import com.kyowon.sms.wells.web.competence.education.converter.WpsbZoomMngtConverter;
-import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto;
-import com.kyowon.sms.wells.web.competence.education.dvo.WpsbZoomMgtDvo;
-import com.kyowon.sms.wells.web.competence.education.mapper.WpsbZoomMgtMapper;
+import com.kyowon.sms.wells.web.competence.educations.converter.WpsbZoomMngtConverter;
+import com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto;
+import com.kyowon.sms.wells.web.competence.educations.dvo.WpsbZoomMgtDvo;
+import com.kyowon.sms.wells.web.competence.educations.mapper.WpsbZoomMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
 
 import lombok.RequiredArgsConstructor;

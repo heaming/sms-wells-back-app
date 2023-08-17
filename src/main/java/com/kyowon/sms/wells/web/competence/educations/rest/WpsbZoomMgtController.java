@@ -1,7 +1,7 @@
-package com.kyowon.sms.wells.web.competence.education.rest;
+package com.kyowon.sms.wells.web.competence.educations.rest;
 
-import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto.SearchReq;
-import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto.SearchRes;
+import static com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchReq;
+import static com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchRes;
 
 import java.util.List;
 
@@ -10,8 +10,8 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto;
-import com.kyowon.sms.wells.web.competence.education.service.WpsbZoomMgtService;
+import com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto;
+import com.kyowon.sms.wells.web.competence.educations.service.WpsbZoomMgtService;
 import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/zoom-counsel")
+@RequestMapping(psCompetenceConst.REST_URL_V1 + "/educations/zoom-counsel")
 public class WpsbZoomMgtController {
 
     private final WpsbZoomMgtService service;

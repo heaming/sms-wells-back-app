@@ -1,29 +1,32 @@
-package com.kyowon.sms.wells.web.competence.education.rest;
+package com.kyowon.sms.wells.web.competence.educations.rest;
 
-import com.kyowon.sms.wells.web.competence.education.dto.WpsbOnlineLinkCourseInqrDto.SearchReq;
-import com.kyowon.sms.wells.web.competence.education.dto.WpsbOnlineLinkCourseInqrDto.SearchRes;
-import com.kyowon.sms.wells.web.competence.education.service.WpsbOnlineLinkCourseInqrService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
+import javax.validation.Valid;
+
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
-import java.util.List;
+import com.kyowon.sms.wells.web.competence.educations.dto.WpsbOnlineLinkCourseInqrDto.SearchReq;
+import com.kyowon.sms.wells.web.competence.educations.dto.WpsbOnlineLinkCourseInqrDto.SearchRes;
+import com.kyowon.sms.wells.web.competence.educations.service.WpsbOnlineLinkCourseInqrService;
+import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 
 @Api(tags = "[WSB] 온라인 연계 과정 조회")
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/online-link-course")
+@RequestMapping(psCompetenceConst.REST_URL_V1 + "/educations/online-link-course")
 public class WpsbOnlineLinkCourseInqrController {
 
     private final WpsbOnlineLinkCourseInqrService service;
