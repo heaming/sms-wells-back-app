@@ -73,6 +73,7 @@ public class WogcPartnerEngineerService {
         for (WogcPartnerEngineerDto.SaveEngineerAttendReq dto : dtos) {
             WogcPartnerEngineerDvo engineer = this.wogcPartnerEngineerConverter
                 .mapSaveEngineerAttendReqToWogcPartnerEngineerDvo(dto);
+            engineer.setDetail("N");
             engineer.setPrtnrNo(prtnrNo);
 
             processCount += this.mapper.updateEngineer(engineer);
@@ -99,31 +100,16 @@ public class WogcPartnerEngineerService {
         for (WogcPartnerEngineerDto.SaveReq dto : dtos) {
             WogcPartnerEngineerDvo vacations = this.wogcPartnerEngineerConverter
                 .mapSaveReqToWogcPartnerEngineerDvo(dto);
-
+            vacations.setDetail("Y");
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
                     processCount += this.mapper.insertVacation(vacations);
                     processCount += this.mapper.updateEngineer(vacations);
 
-                    //                    processCount = this.mapper.selectVacationsCnt(dto);
-                    //                    if (processCount != 0) {
-                    //                        throw new BizException("MSG_ALT_VCN_INFO_EX");
-                    //                    } else {
-                    //
-                    //                    }
-
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
                     processCount += this.mapper.updateVacation(vacations);
                     processCount += this.mapper.updateEngineer(vacations);
-                    // processCount += this.mapper.updateEngineer(vacations);
-
-                    //                    processCount = this.mapper.selectVacationsCnt(dto);
-                    //                    if (processCount != 0) {
-                    //                        throw new BizException("MSG_ALT_VCN_INFO_EX");
-                    //                    } else {
-                    //
-                    //                    }
 
                 }
                 default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
