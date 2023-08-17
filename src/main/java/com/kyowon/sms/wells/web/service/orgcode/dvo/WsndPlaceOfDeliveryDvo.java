@@ -21,6 +21,7 @@ public class WsndPlaceOfDeliveryDvo {
     String zip; // 우편번호
     String pdlvAdr; // 출고지주소
     String apyStrtdt; // 적용시작일
+    String apyEnddt; // 적용종료일
     String dataDlYn; // 데이터삭제여부
 
 }
