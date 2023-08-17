@@ -67,7 +67,6 @@ public class WsnyAsCodeMgtService {
         header.put("siteAwAtcDsnDt", messageResourceService.getMessage("MSG_TXT_AS_CAUS"));
         header.put("svAnaHclsfCd", messageResourceService.getMessage("MSG_TXT_SV_ANA_HCLSF_CD"));
         header.put("siteAwAtcCd", messageResourceService.getMessage("MSG_TXT_SITE_AW"));
-        header.put("fuleyAwAmt", messageResourceService.getMessage("MSG_TXT_FULEY_AW_AMT"));
         header.put("svAnaMclsfCd", messageResourceService.getMessage("MSG_TXT_SV_ANA_MCLSF_CD"));
         header.put("svAnaLclsfCd", messageResourceService.getMessage("MSG_TXT_SV_ANA_LCLSF_CD"));
         header.put("svAnaDsnDt", messageResourceService.getMessage("MSG_TXT_SV_ANA_DSN_DT"));
@@ -81,40 +80,6 @@ public class WsnyAsCodeMgtService {
 
         int row = 2;
         for (WsnyAsCodeMgtDvo excelRowDvo : list) {
-
-            log.debug("PdGrpCd: " + excelRowDvo.getPdGrpCd());
-            log.debug("SvDvCd: " + excelRowDvo.getSvDvCd());
-            log.debug("SiteAwAtcCd: " + excelRowDvo.getSiteAwAtcCd());
-            log.debug("rglvlDvCd: 1");
-            log.debug("PdCd: " + excelRowDvo.getPdCd());
-            log.debug("AsLctCd: " + excelRowDvo.getAsLctCd());
-            log.debug("AsPhnCd: " + excelRowDvo.getAsPhnCd());
-            log.debug("AsCausCd: " + excelRowDvo.getAsCausCd());
-            log.debug("SiteAwAtcDsnDt: " + excelRowDvo.getSiteAwAtcDsnDt());
-            log.debug("SvAnaHclsfCd: " + excelRowDvo.getSvAnaHclsfCd());
-            log.debug("FuleyAwAmt: " + excelRowDvo.getFuleyAwAmt());
-            log.debug("SvAnaMclsfCd: " + excelRowDvo.getSvAnaMclsfCd());
-            log.debug("SvAnaLclsfCd: " + excelRowDvo.getSvAnaLclsfCd());
-            log.debug("SvAnaDsnDt: " + excelRowDvo.getSvAnaDsnDt());
-            log.debug("ApyStrtdt: " + excelRowDvo.getApyStrtdt());
-            log.debug("ApyEnddt: " + excelRowDvo.getApyEnddt());
-
-            //PdGrpCd: 3110
-            //SvDvCd: C111
-            //SiteAwAtcCd: 1000
-            //rglvlDvCd: 1
-            //PdCd: 1
-            //AsLctCd: 20090101
-            //AsPhnCd:
-            //AsCausCd: 1311
-            //SiteAwAtcDsnDt: 20081216
-            //SvAnaHclsfCd: 20140810
-            //FuleyAwAmt: @999990000
-            //SvAnaMclsfCd:
-            //SvAnaLclsfCd:
-            //SvAnaDsnDt: 3
-            //ApyStrtdt: A207
-            //ApyEnddt: B110
 
             ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
 
@@ -289,34 +254,6 @@ public class WsnyAsCodeMgtService {
 
                 excelRowDvo.setSvTpCd(excelRowDvo.getSvDvCd());
                 mapper.saveAsCode(excelRowDvo);
-
-                /*List<WsnyAsCodeSiteAwDsbBaseDvo> dvos = mapper
-                    .selectSiteAwDsbBase(
-                        excelRowDvo.getPdGrpCd(), excelRowDvo.getSvTpCd(), excelRowDvo.getSiteAwAtcCd()
-                    );
-
-                if (dvos.size() == 0) {
-                    WsnyAsCodeSiteAwDsbBaseDvo dvo = converter.mapBaseToAsCodeDvo(excelRowDvo);
-                    dvo.setDsbBaseSn(1);
-                    dvo.setSvTpCd(excelRowDvo.getSvDvCd());
-                    dvo.setFuleyAwAmt(excelRowDvo.getFuleyAwAmt());
-                    dvo.setUseYn("Y");
-                    mapper.insertSiteAwDsbBase(dvo);
-                }
-
-                if (dvos.size() > 0) {
-
-                    WsnyAsCodeSiteAwDsbBaseDvo dvo = dvos.get(0);
-
-                    mapper.updateSiteAwDsbBase(
-                        dvo.getPdGrpCd(), dvo.getSvTpCd(), dvo.getSiteAwAtcCd(),
-                        dvo.getDsbBaseSn()
-                    );
-
-                    dvo.setDsbBaseSn(dvo.getDsbBaseSn() + 1);
-                    dvo.setFuleyAwAmt(excelRowDvo.getFuleyAwAmt());
-                    mapper.insertSiteAwDsbBase(dvo);
-                }*/
             }
             row++;
         }
