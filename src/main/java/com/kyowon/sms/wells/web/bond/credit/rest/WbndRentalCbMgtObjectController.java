@@ -4,10 +4,12 @@ import java.util.List;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SaveReq;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchPaymentRes;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchRes;
@@ -53,10 +55,12 @@ public class WbndRentalCbMgtObjectController {
     @PutMapping
     public SaveResponse saveRentalCbMgtObjects(
         @Valid
-        SearchReq dto
+        @RequestBody
+        @NotEmpty
+        List<SaveReq> dtos
     ) {
         return SaveResponse.builder()
-            .processCount(service.saveRentalCbMgtObjects(dto)).build();
+            .processCount(service.saveRentalCbMgtObjects(dtos)).build();
     }
 
     @ApiOperation(value = "렌탈CB 납입정보 팝업 조회", notes = "고객별 렌탈CB 대상 또는 기 등록된 고객의 납입 정보 조회")
