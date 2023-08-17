@@ -197,16 +197,16 @@
                        WHERE D1.DTA_DL_YN = 'N'
                        UNION ALL
                       SELECT D1.ITM_PD_CD
-                           , 0 AS BTD_STOC_A_GD_QTY
-                           , 0 AS BTD_STOC_B_GD_QTY
-                           , 0 AS BTD_STOC_E_GD_QTY
-                           , 0 AS BTD_STOC_R_GD_QTY
-                           , D1.STR_QTY
-                           , 0 AS RTNGD_STR_OTSD_QTY
-                           , 0 AS STR_CTR_QTY
-                           , 0 AS OSTR_QTY
-                           , 0 AS USE_QTY
-                           , 0 AS OSTR_CTR_QTY
+                           , 0               AS BTD_STOC_A_GD_QTY
+                           , 0               AS BTD_STOC_B_GD_QTY
+                           , 0               AS BTD_STOC_E_GD_QTY
+                           , 0               AS BTD_STOC_R_GD_QTY
+                           , SUM(D1.STR_QTY) AS STR_QTY
+                           , 0               AS RTNGD_STR_OTSD_QTY
+                           , 0               AS STR_CTR_QTY
+                           , 0               AS OSTR_QTY
+                           , 0               AS USE_QTY
+                           , 0               AS OSTR_CTR_QTY
                         FROM TB_SVST_ITM_STR_IZ D1   /* 품목입고내역 */
                        INNER JOIN PD D2              /* WITH절 상품 */
                           ON D2.PD_CD = D1.ITM_PD_CD
@@ -218,22 +218,23 @@
                     <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                          AND D1.ITM_GD_CD = #{itmGdCd}
                     </if>
+                       GROUP BY D1.ITM_PD_CD
                        UNION ALL
                       SELECT D1.ITM_PD_CD
-                           , 0   AS BTD_STOC_A_GD_QTY
-                           , 0   AS BTD_STOC_B_GD_QTY
-                           , 0   AS BTD_STOC_E_GD_QTY
-                           , 0   AS BTD_STOC_R_GD_QTY
-                           , 0   AS STR_QTY
-                           , CASE WHEN D1.SV_BIZ_HCLSF_CD = '6' THEN D1.USE_QTY
-                                  ELSE 0
-                             END AS RTNGD_STR_OTSD_QTY
-                           , 0   AS STR_CTR_QTY
-                           , 0   AS OSTR_QTY
-                           , CASE WHEN D1.SV_BIZ_HCLSF_CD <![CDATA[<>]]> '6' THEN D1.USE_QTY
-                                  ELSE 0
-                             END AS USE_QTY
-                           , 0   AS OSTR_CTR_QTY
+                           , 0        AS BTD_STOC_A_GD_QTY
+                           , 0        AS BTD_STOC_B_GD_QTY
+                           , 0        AS BTD_STOC_E_GD_QTY
+                           , 0        AS BTD_STOC_R_GD_QTY
+                           , 0        AS STR_QTY
+                           , SUM(CASE WHEN D1.SV_BIZ_HCLSF_CD = '6' THEN D1.USE_QTY
+                                      ELSE 0
+                                 END) AS RTNGD_STR_OTSD_QTY
+                           , 0        AS STR_CTR_QTY
+                           , 0        AS OSTR_QTY
+                           , SUM(CASE WHEN D1.SV_BIZ_HCLSF_CD <![CDATA[<>]]> '6' THEN D1.USE_QTY
+                                      ELSE 0
+                                 END) AS USE_QTY
+                           , 0        AS OSTR_CTR_QTY
                         FROM TB_SVST_SV_WK_OSTR_IZ D1   /* 서비스작업출고내역 */
                        INNER JOIN PD D2                 /* WITH절 상품 */
                           ON D2.PD_CD = D1.ITM_PD_CD
@@ -246,6 +247,7 @@
                     <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                          AND D1.FNL_ITM_GD_CD    = #{itmGdCd}
                     </if>
+                       GROUP BY D1.ITM_PD_CD
                        UNION ALL
                       SELECT D1.PD_CD AS ITM_PD_CD
                            , 0        AS BTD_STOC_A_GD_QTY
@@ -254,16 +256,16 @@
                            , 0        AS BTD_STOC_R_GD_QTY
                            , 0        AS STR_QTY
                            , 0        AS RTNGD_STR_OTSD_QTY
-                           , CASE WHEN #{itmGdCd} IS NULL             THEN D1.CTR_QTY
-                                  WHEN D1.AFCT_ITM_GD_CD = #{itmGdCd} THEN D1.CTR_QTY
-                                  ELSE 0
-                             END      AS STR_CTR_QTY
+                           , SUM(CASE WHEN #{itmGdCd} IS NULL             THEN D1.CTR_QTY
+                                      WHEN D1.AFCT_ITM_GD_CD = #{itmGdCd} THEN D1.CTR_QTY
+                                      ELSE 0
+                                 END) AS STR_CTR_QTY
                            , 0        AS OSTR_QTY
                            , 0        AS USE_QTY
-                           , CASE WHEN #{itmGdCd} IS NULL             THEN D1.CTR_QTY
-                                  WHEN D1.BFCT_ITM_GD_CD = #{itmGdCd} THEN D1.CTR_QTY
-                                  ELSE 0
-                             END      AS OSTR_CTR_QTY
+                           , SUM(CASE WHEN #{itmGdCd} IS NULL             THEN D1.CTR_QTY
+                                      WHEN D1.BFCT_ITM_GD_CD = #{itmGdCd} THEN D1.CTR_QTY
+                                      ELSE 0
+                                 END) AS OSTR_CTR_QTY
                         FROM TB_SVST_ITM_GD_CTR_IZ D1   /* 품목등급조정내역 */
                        INNER JOIN PD D2                 /* WITH절 상품 */
                           ON D2.PD_CD = D1.PD_CD
@@ -272,18 +274,19 @@
                        WHERE D1.DTA_DL_YN = 'N'
                          AND D1.STAT_CTR_APY_DT <![CDATA[>=]]> SUBSTR(#{stFromYmd}, 1, 6) || '01'
                          AND D1.STAT_CTR_APY_DT <![CDATA[<]]> #{stFromYmd}
+                       GROUP BY D1.PD_CD
                        UNION ALL
                       SELECT D1.ITM_PD_CD
-                           , 0 AS BTD_STOC_A_GD_QTY
-                           , 0 AS BTD_STOC_B_GD_QTY
-                           , 0 AS BTD_STOC_E_GD_QTY
-                           , 0 AS BTD_STOC_R_GD_QTY
-                           , 0 AS STR_QTY
-                           , 0 AS RTNGD_STR_OTSD_QTY
-                           , 0 AS STR_CTR_QTY
-                           , D1.OSTR_QTY
-                           , 0 AS USE_QTY
-                           , 0 AS OSTR_CTR_QTY
+                           , 0                AS BTD_STOC_A_GD_QTY
+                           , 0                AS BTD_STOC_B_GD_QTY
+                           , 0                AS BTD_STOC_E_GD_QTY
+                           , 0                AS BTD_STOC_R_GD_QTY
+                           , 0                AS STR_QTY
+                           , 0                AS RTNGD_STR_OTSD_QTY
+                           , 0                AS STR_CTR_QTY
+                           , SUM(D1.OSTR_QTY) AS OSTR_QTY
+                           , 0                AS USE_QTY
+                           , 0                AS OSTR_CTR_QTY
                         FROM TB_SVST_ITM_OSTR_IZ D1   /* 품목출고내역 */
                        INNER JOIN PD D2               /* WITH절 상품 */
                           ON D2.PD_CD = D1.ITM_PD_CD
@@ -295,6 +298,7 @@
                     <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                          AND D1.ITM_GD_CD = #{itmGdCd}
                     </if>
+                       GROUP BY D1.ITM_PD_CD
                     ) T
                 GROUP BY T.ITM_PD_CD
              ) T2   /* 기초재고 */
@@ -492,45 +496,48 @@
                     , SUM(T.USE_QTY)            AS USE_QTY              /* 작업출고수량 */
                  FROM
                     (
-                      SELECT STR_RGST_DT AS YMD
-                           , STR_QTY
-                           , 0 AS RTNGD_STR_OTSD_QTY
-                           , 0 AS OSTR_QTY
-                           , 0 AS USE_QTY
+                      SELECT STR_RGST_DT  AS YMD
+                           , SUM(STR_QTY) AS STR_QTY
+                           , 0            AS RTNGD_STR_OTSD_QTY
+                           , 0            AS OSTR_QTY
+                           , 0            AS USE_QTY
                         FROM TB_SVST_ITM_STR_IZ   /* 품목입고내역 */
                        WHERE DTA_DL_YN   = 'N'
                          AND STR_WARE_NO = #{wareNo}
                          AND ITM_PD_CD   = #{itmPdCd}
                          AND STR_RGST_DT <![CDATA[>=]]> SUBSTR(#{strRgstTo}, 1, 6) || '01'
                          AND STR_RGST_DT <![CDATA[<]]> #{strRgstTo}
+                       GROUP BY STR_RGST_DT
                        UNION ALL
                       SELECT FNL_VST_FSH_DT AS YMD
                            , 0              AS STR_QTY
-                           , CASE WHEN SV_BIZ_HCLSF_CD = '6' THEN USE_QTY
-                                  ELSE 0
-                             END            AS RTNGD_STR_OTSD_QTY
+                           , SUM(CASE WHEN SV_BIZ_HCLSF_CD = '6' THEN USE_QTY
+                                      ELSE 0
+                                 END)       AS RTNGD_STR_OTSD_QTY
                            , 0              AS OSTR_QTY
-                           , CASE WHEN SV_BIZ_HCLSF_CD <![CDATA[<>]]> '6' THEN USE_QTY
-                                  ELSE 0
-                             END            AS USE_QTY
+                           , SUM(CASE WHEN SV_BIZ_HCLSF_CD <![CDATA[<>]]> '6' THEN USE_QTY
+                                      ELSE 0
+                                 END)       AS USE_QTY
                         FROM TB_SVST_SV_WK_OSTR_IZ   /* 서비스작업출고내역 */
                        WHERE DTA_DL_YN  = 'N'
                          AND WK_WARE_NO = #{wareNo}
                          AND ITM_PD_CD  = #{itmPdCd}
                          AND FNL_VST_FSH_DT <![CDATA[>=]]> SUBSTR(#{strRgstTo}, 1, 6) || '01'
                          AND FNL_VST_FSH_DT <![CDATA[<]]> #{strRgstTo}
+                       GROUP BY FNL_VST_FSH_DT
                        UNION ALL
-                      SELECT OSTR_DT AS YMD
-                           , 0       AS STR_QTY
-                           , 0       AS RTNGD_STR_OTSD_QTY
-                           , OSTR_QTY
-                           , 0       AS USE_QTY
+                      SELECT OSTR_DT       AS YMD
+                           , 0             AS STR_QTY
+                           , 0             AS RTNGD_STR_OTSD_QTY
+                           , SUM(OSTR_QTY) AS OSTR_QTY
+                           , 0             AS USE_QTY
                         FROM TB_SVST_ITM_OSTR_IZ   /* 품목출고내역 */
                        WHERE DTA_DL_YN    = 'N'
                          AND OSTR_WARE_NO = #{wareNo}
                          AND ITM_PD_CD    = #{itmPdCd}
                          AND OSTR_DT <![CDATA[>=]]> SUBSTR(#{strRgstTo}, 1, 6) || '01'
                          AND OSTR_DT <![CDATA[<]]> #{strRgstTo}
+                       GROUP BY OSTR_DT
                     ) T
                 GROUP BY T.YMD
              )
