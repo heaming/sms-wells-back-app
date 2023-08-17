@@ -14,6 +14,7 @@ import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <pre>
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
  * @author WOO SEUNGMIN
  * @since 2023-04-13
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WdcbSalesConfirmCreateService {
@@ -113,6 +115,7 @@ public class WdcbSalesConfirmCreateService {
         String clssVal = "";
         String addCondition = "";
         String slpMapngCdv = "";
+
         if (StringUtils.isNotEmpty(dvo.getRtngdYn()) && "N".equals(dvo.getRtngdYn())) {
             slTpDvCd = "1";
         } else if (StringUtils.isNotEmpty(dvo.getRtngdYn()) && "Y".equals(dvo.getRtngdYn())) {
@@ -122,13 +125,15 @@ public class WdcbSalesConfirmCreateService {
         } else if (dvo.getSlCanAmt() > 0) {
             slTpDvCd = "7";
         }
-        if (StringUtils.isNotEmpty(sapSaveLctCd)) {
-            if ("Z1".equals(sapSaveLctCd.substring(0, 2))) {
+        if (StringUtils.isNotEmpty(sapMatEvlClssVal)) {
+            if ("Z1".equals(sapMatEvlClssVal.substring(0, 2))) {
                 clssVal = "1";
-            } else if ("Z2".equals(sapSaveLctCd.substring(0, 2))) {
+            } else if ("Z2".equals(sapMatEvlClssVal.substring(0, 2))) {
                 clssVal = "2";
-            } else if ("Z7".equals(sapSaveLctCd.substring(0, 2))) {
+            } else if ("Z7".equals(sapMatEvlClssVal.substring(0, 2))) {
                 clssVal = "3";
+            } else {
+                clssVal = "2";
             }
         } else {
             clssVal = "2";
