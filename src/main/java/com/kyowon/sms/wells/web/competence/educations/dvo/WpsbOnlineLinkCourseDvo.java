@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.competence.education.dvo;
+package com.kyowon.sms.wells.web.competence.educations.dvo;
 
 import lombok.Getter;
 import lombok.Setter;

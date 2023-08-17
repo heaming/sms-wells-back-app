@@ -1,9 +1,9 @@
-package com.kyowon.sms.wells.web.competence.education.converter;
+package com.kyowon.sms.wells.web.competence.educations.converter;
 
 import org.mapstruct.Mapper;
 
-import com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto;
-import com.kyowon.sms.wells.web.competence.education.dvo.WpsbZoomMgtDvo;
+import com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto;
+import com.kyowon.sms.wells.web.competence.educations.dvo.WpsbZoomMgtDvo;
 
 @Mapper(componentModel = "spring")
 public interface WpsbZoomMngtConverter {

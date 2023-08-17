@@ -1,13 +1,13 @@
-package com.kyowon.sms.wells.web.competence.education.mapper;
+package com.kyowon.sms.wells.web.competence.educations.mapper;
 
-import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto.SearchReq;
-import static com.kyowon.sms.wells.web.competence.education.dto.WpsbZoomMgtDto.SearchRes;
+import static com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchReq;
+import static com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchRes;
 
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.competence.education.dvo.WpsbZoomMgtDvo;
+import com.kyowon.sms.wells.web.competence.educations.dvo.WpsbZoomMgtDvo;
 
 @Mapper
 public interface WpsbZoomMgtMapper {

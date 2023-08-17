@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.competence.education.dto;
+package com.kyowon.sms.wells.web.competence.educations.dto;
 
 import java.util.List;
 

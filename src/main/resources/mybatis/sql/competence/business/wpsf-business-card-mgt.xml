@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.business.mapper.WpsfBusinessCardMgtMapper">
+
+    <select id="selectPartnerCustomerContactBasePages" resultType="com.kyowon.sms.wells.web.competence.business.dvo.WpsfPartnerCustomerContactBaseDvo">
+        SELECT T1.OG_TP_CD          /* 조직유형코드 */
+             , T1.PRTNR_NO          /* 파트너번호 */
+             , T1.CTPLC_SN          /* 연락처일련번호 */
+             , T1.FNM               /* 성명 */
+             , T1.CRAL_LOCARA_TNO   /* 휴대지역전화번호 */
+             , T1.MEXNO_ENCR        /* 휴대전화국번호암호화 */
+             , T1.CRAL_IDV_TNO      /* 휴대개별전화번호 */
+             , T1.ZIP               /* 우편번호 */
+             , T1.BAS_ADR           /* 기본주소 */
+             , T1.DTL_ADR           /* 상세주소 */
+             , T1.CTPLC_IMG_FILE_ID /* 연락처이미지파일ID */
+             , F1.FILE_NM
+             , F1.FILE_UID
+          FROM TB_PSGA_PRTNR_CST_CTPLC_BAS T1 INNER JOIN T_CMD_ATTH_FILE_D F1 /* 파트너고객연락처기본 */
+            ON F1.ATTH_DOC_ID = T1.CTPLC_IMG_FILE_ID
+           AND F1.DEL_YN = 'N'
+           AND F1.TENANT_ID = #{session.tenantId}
+         WHERE 1 = 1
+           AND T1.OG_TP_CD              =  #{session.ogTpCd}              /* 조직유형코드 */
+           AND T1.PRTNR_NO              =  #{session.employeeIDNumber}             /* 파트너번호 */
+            <if test='@MybatisUtils@isNotEmpty(fnm)'>
+           AND (T1.FNM LIKE '%'||#{fnm}||'%' OR T1.CRAL_LOCARA_TNO LIKE '%'||#{fnm}||'%')
+            </if>
+           AND T1.DTA_DL_YN = 'N'
+           ORDER BY T1.CTPLC_SN DESC
+
+    </select>
+
+
+    <select id="selectMaxCtplcSn" resultType="integer">
+        SELECT NVL(MAX(CTPLC_SN),0)+1 FROM TB_PSGA_PRTNR_CST_CTPLC_BAS
+    </select>
+
+    <insert id="insertPartnerCustomerContactBase">
+        INSERT INTO TB_PSGA_PRTNR_CST_CTPLC_BAS (  /* 파트너고객연락처기본 */
+               OG_TP_CD          /* 조직유형코드 */
+             , PRTNR_NO          /* 파트너번호 */
+             , CTPLC_SN          /* 연락처일련번호 */
+             , FNM               /* 성명 */
+             , CRAL_LOCARA_TNO   /* 휴대지역전화번호 */
+             , MEXNO_ENCR        /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO      /* 휴대개별전화번호 */
+             , ZIP               /* 우편번호 */
+             , BAS_ADR           /* 기본주소 */
+             , DTL_ADR           /* 상세주소 */
+             , CTPLC_IMG_FILE_ID /* 연락처이미지파일ID */
+             , DTA_DL_YN         /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{session.ogTpCd}
+             , #{session.employeeIDNumber}
+             , #{ctplcSn}
+             , #{fnm}
+             , #{cralLocaraTno}
+             , #{mexnoEncr}
+             , #{cralIdvTno}
+             , #{zip}
+             , #{basAdr}
+             , #{dtlAdr}
+             , #{ctplcImgFileId}
+             , #{dtaDlYn}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <update id="updatePartnerCustomerContactBase">
+        UPDATE TB_PSGA_PRTNR_CST_CTPLC_BAS /* 파트너고객연락처기본 */
+           SET FNM               = #{fnm}               /* 성명 */
+             , CRAL_LOCARA_TNO   = #{cralLocaraTno}     /* 휴대지역전화번호 */
+             , MEXNO_ENCR        = #{mexnoEncr}         /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO      = #{cralIdvTno}        /* 휴대개별전화번호 */
+             , ZIP               = #{zip}               /* 우편번호 */
+             , BAS_ADR           = #{basAdr}            /* 기본주소 */
+             , DTL_ADR           = #{dtlAdr}            /* 상세주소 */
+             , CTPLC_IMG_FILE_ID = #{ctplcImgFileId}    /* 연락처이미지파일ID */
+             , DTA_DL_YN         = #{dtaDlYn}           /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OG_TP_CD              =  #{session.ogTpCd}              /* 조직유형코드 */
+           AND PRTNR_NO              =  #{session.employeeIDNumber}             /* 파트너번호 */
+           AND CTPLC_SN          = #{ctplcSn}           /* 연락처일련번호 */
+    </update>
+
+    <update id="updatePartnerCustomerContactBaseDtaDlyn">
+        UPDATE TB_PSGA_PRTNR_CST_CTPLC_BAS /* 파트너고객연락처기본 */
+           SET DTA_DL_YN         = #{dtaDlYn}           /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OG_TP_CD              =  #{session.ogTpCd}              /* 조직유형코드 */
+           AND PRTNR_NO              =  #{session.employeeIDNumber}             /* 파트너번호 */
+           AND CTPLC_SN          = #{ctplcSn}           /* 연락처일련번호 */
+    </update>
+
+    <select id="selectCountPartnerContactBase" resultType="integer">
+        SELECT COUNT(*)
+          FROM TB_PSGA_PRTNR_CTPLC_BAS
+         WHERE DTA_DL_YN ='N'
+           AND OG_TP_CD              =  #{session.ogTpCd}              /* 조직유형코드 */
+           AND PRTNR_NO              =  #{session.employeeIDNumber}             /* 파트너번호 */
+    </select>
+
+
+
+    <insert id="insertPartnerContactBase">
+        INSERT INTO TB_PSGA_PRTNR_CTPLC_BAS (  /* 파트너연락처기본 */
+               OG_TP_CD              /* 조직유형코드 */
+             , PRTNR_NO              /* 파트너번호 */
+             , BLG_NM                /* 소속명 */
+             , FNM                   /* 성명 */
+             , RSB_NM                /* 직책명 */
+             , CRAL_LOCARA_TNO       /* 휴대지역전화번호 */
+             , MEXNO_ENCR            /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO          /* 휴대개별전화번호 */
+             , LOCARA_TNO            /* 지역전화번호 */
+             , EXNO_ENCR             /* 전화국번호암호화 */
+             , IDV_TNO               /* 개별전화번호 */
+             , ZIP                   /* 우편번호 */
+             , BAS_ADR               /* 기본주소 */
+             , DTL_ADR               /* 상세주소 */
+             , FAX_LOCARA_TNO        /* 팩스지역전화번호 */
+             , FAX_EXNO              /* 팩스전화국번호 */
+             , FAX_IDV_TNO           /* 팩스개별전화번호 */
+             , EMADR                 /* 이메일주소 */
+             , CTPLC_APN_IMG_FILE_ID /* 연락처첨부이미지파일ID */
+             , CTPLC_IMG_FILE_ID     /* 연락처이미지파일ID */
+             , DTA_DL_YN             /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{session.ogTpCd}
+             , #{session.employeeIDNumber}
+             , #{blgNm}
+             , #{fnm}
+             , #{rsbNm}
+             , #{cralLocaraTno}
+             , #{mexnoEncr}
+             , #{cralIdvTno}
+             , #{locaraTno}
+             , #{exnoEncr}
+             , #{idvTno}
+             , #{zip}
+             , #{basAdr}
+             , #{dtlAdr}
+             , #{faxLocaraTno}
+             , #{faxExno}
+             , #{faxIdvTno}
+             , #{emadr}
+             , #{ctplcApnImgFileId}
+             , #{ctplcImgFileId}
+             , #{dtaDlYn}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updatePartnerContactBase">
+        UPDATE TB_PSGA_PRTNR_CTPLC_BAS /* 파트너연락처기본 */
+           SET BLG_NM                = #{blgNm}                /* 소속명 */
+             , FNM                   = #{fnm}                  /* 성명 */
+             , RSB_NM                = #{rsbNm}                /* 직책명 */
+             , CRAL_LOCARA_TNO       = #{cralLocaraTno}        /* 휴대지역전화번호 */
+             , MEXNO_ENCR            = #{mexnoEncr}            /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO          = #{cralIdvTno}           /* 휴대개별전화번호 */
+             , LOCARA_TNO            = #{locaraTno}            /* 지역전화번호 */
+             , EXNO_ENCR             = #{exnoEncr}             /* 전화국번호암호화 */
+             , IDV_TNO               = #{idvTno}               /* 개별전화번호 */
+             , ZIP                   = #{zip}                  /* 우편번호 */
+             , BAS_ADR               = #{basAdr}               /* 기본주소 */
+             , DTL_ADR               = #{dtlAdr}               /* 상세주소 */
+             , FAX_LOCARA_TNO        = #{faxLocaraTno}         /* 팩스지역전화번호 */
+             , FAX_EXNO              = #{faxExno}              /* 팩스전화국번호 */
+             , FAX_IDV_TNO           = #{faxIdvTno}            /* 팩스개별전화번호 */
+             , EMADR                 = #{emadr}                /* 이메일주소 */
+             , CTPLC_APN_IMG_FILE_ID = #{ctplcApnImgFileId}    /* 연락처첨부이미지파일ID */
+             , CTPLC_IMG_FILE_ID     = #{ctplcImgFileId}       /* 연락처이미지파일ID */
+             , DTA_DL_YN             = #{dtaDlYn}              /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OG_TP_CD              = #{session.ogTpCd}              /* 조직유형코드 */
+           AND PRTNR_NO              = #{session.employeeIDNumber}           /* 파트너번호 */
+    </update>
+
+    <update id="updatePartnerContactBaseDlyn">
+        UPDATE TB_PSGA_PRTNR_CTPLC_BAS /* 파트너연락처기본 */
+           SET DTA_DL_YN             = #{dtaDlYn}              /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OG_TP_CD              = #{session.ogTpCd}              /* 조직유형코드 */
+           AND PRTNR_NO              = #{session.employeeIDNumber}                /* 파트너번호 */
+    </update>
+
+    <select id="selectPartnerInfo" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfBusinessCardMgtDto$SearchPartnerRes">
+        SELECT 'in' IN_MODE
+             , A.OG_TP_CD
+             , A.PRTNR_NO     /* 파트너번호 */
+             , A.PRTNR_KNM AS FNM   /* 성명 */
+             , F_CMZ_CD_NM('TNT_BASE', 'SAP_PSTN_DV_CD', B.PSTN_DV_CD) AS RSB_NM  /* 직책명 */
+             , A.CRAL_LOCARA_TNO  /* 휴대지역전화번호 */
+             , A.MEXNO_ENCR       /* 휴대전화국번호암호화 */
+             , A.CRAL_IDV_TNO  /* 휴대개별전화번호 */
+             , A.LOCARA_TNO  /* 지역전화번호 */
+             , A.EXNO_ENCR  /* 전화국번호암호화 */
+             , A.IDV_TNO AS /* 개별전화번호 */
+             , C.NEW_ADR_ZIP AS ZIP                   /* 우편번호 */
+             , C.LTN_ADR AS BAS_ADR               /* 기본주소 */
+             , C.LTN_DTL_ADR AS DTL_ADR               /* 상세주소 */
+             , A.OG_NM AS BLG_NM                /* 소속명 */
+             , '' FAX_LOCARA_TNO        /* 팩스지역전화번호 */
+             , '' FAX_EXNO              /* 팩스전화국번호 */
+             , '' FAX_IDV_TNO           /* 팩스개별전화번호 */
+             , '' EMADR                 /* 이메일주소 */
+             , '' CTPLC_APN_IMG_FILE_ID /* 연락처첨부이미지파일ID */
+             , '' CTPLC_IMG_FILE_ID     /* 연락처이미지파일ID */
+             , '' FILE_NM
+             , '' REAL_FPATH
+          FROM TB_OGBS_PRTNR_BAS A  INNER JOIN TB_OGBS_MM_PRTNR_IZ B
+            ON B.OG_TP_CD = A.OG_TP_CD
+           AND B.PRTNR_NO = A.PRTNR_NO
+           AND B.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS C
+            ON C.ADR_ID = A.ADR_ID
+           AND C.DTA_DL_YN = 'N'
+        WHERE 1=1
+            AND A.OG_TP_CD              = #{session.ogTpCd}               /* 조직유형코드 */
+            AND A.PRTNR_NO = #{session.employeeIDNumber}
+            AND A.DTA_DL_YN = 'N'
+            AND B.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+    </select>
+
+
+    <select id="selectPartnerContactBase" resultType="com.kyowon.sms.wells.web.competence.business.dvo.WpsfPartnerContactBaseDvo">
+        SELECT 'up' IN_MODE
+             , T1.OG_TP_CD              /* 조직유형코드 */
+             , T1.PRTNR_NO              /* 파트너번호 */
+             , T1.BLG_NM                /* 소속명 */
+             , T1.FNM                   /* 성명 */
+             , T1.RSB_NM                /* 직책명 */
+             , T1.CRAL_LOCARA_TNO       /* 휴대지역전화번호 */
+             , T1.MEXNO_ENCR            /* 휴대전화국번호암호화 */
+             , T1.CRAL_IDV_TNO          /* 휴대개별전화번호 */
+             , T1.LOCARA_TNO            /* 지역전화번호 */
+             , T1.EXNO_ENCR             /* 전화국번호암호화 */
+             , T1.IDV_TNO               /* 개별전화번호 */
+             , T1.ZIP                   /* 우편번호 */
+             , T1.BAS_ADR               /* 기본주소 */
+             , T1.DTL_ADR               /* 상세주소 */
+             , T1.FAX_LOCARA_TNO        /* 팩스지역전화번호 */
+             , T1.FAX_EXNO              /* 팩스전화국번호 */
+             , T1.FAX_IDV_TNO           /* 팩스개별전화번호 */
+             , T1.EMADR                 /* 이메일주소 */
+             , T1.CTPLC_IMG_FILE_ID     /* 연락처이미지파일ID */
+             , F1.FILE_NM
+             , '' REAL_FPATH
+             , F1.FILE_UID
+          FROM TB_PSGA_PRTNR_CTPLC_BAS T1 INNER JOIN T_CMD_ATTH_FILE_D F1 /* 파트너고객연락처기본 */
+            ON F1.ATTH_DOC_ID = T1.CTPLC_IMG_FILE_ID
+           AND F1.DEL_YN = 'N'
+           AND F1.TENANT_ID = #{session.tenantId}
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+        <choose>
+        <when test="@MybatisUtils@isNotEmpty(ogTpCd)">
+           AND T1.OG_TP_CD              = #{ogTpCd}               /* 조직유형코드 */
+        </when>
+        <otherwise>
+           AND T1.OG_TP_CD              = #{session.ogTpCd}               /* 조직유형코드 */
+        </otherwise>
+        </choose>
+        <choose>
+        <when test="@MybatisUtils@isNotEmpty(prtnrNo)">
+           AND T1.PRTNR_NO             = #{prtnrNo}               /* 조직유형코드 */
+        </when>
+        <otherwise>
+           AND T1.PRTNR_NO             = #{session.employeeIDNumber}            /* 조직유형코드 */
+        </otherwise>
+        </choose>
+    </select>
+
+
+</mapper>

@@ -1,9 +1,9 @@
-package com.kyowon.sms.wells.web.competence.education.dto;
+package com.kyowon.sms.wells.web.competence.educations.dto;
+
+import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
-
-import javax.validation.constraints.NotBlank;
 
 public class WpsbOnlineLinkCourseInqrDto {
     // *********************************************************
@@ -23,8 +23,7 @@ public class WpsbOnlineLinkCourseInqrDto {
         String educCrseNo,
         String prtnrNo,
         String educCpcAckmtYn
-    ) {
-    }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -47,6 +46,5 @@ public class WpsbOnlineLinkCourseInqrDto {
         String fnlCpcYn,
         String fshBsAcc
 
-    ) {
-    }
+    ) {}
 }
