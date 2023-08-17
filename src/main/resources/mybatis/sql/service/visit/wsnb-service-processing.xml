@@ -12,7 +12,15 @@
     </select>
 
     <select id="selectServiceProcessings" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcessingDvo">
-        SELECT S1.CNTR_NO /* 계약번호 */
+        SELECT <if test='@MybatisUtils@equals(inquiryBase, "1")'>
+               /*+ USE_NL(S2 S1 S3 S4 S5 S6 S7 C1 C2 C3 C4 O11 O12 O2 O3 P1) LEADING(S2 S1 S4 C3)
+                   NO_MERGE(S7) PUSH_PRED(S7) NO_MERGE(S6) PUSH_PRED(S6) */
+               </if>
+               <if test='@MybatisUtils@equals(inquiryBase, "2") or @MybatisUtils@equals(inquiryBase, "3") or @MybatisUtils@equals(inquiryBase, "4")'>
+               /*+ USE_NL(S1 S2 S3 S4 S5 S6 S7 C1 C2 C3 C4 O11 O12 O2 O3 P1) LEADING(S1 S4 C3)
+                   NO_MERGE(S7) PUSH_PRED(S7) NO_MERGE(S6) PUSH_PRED(S6) */
+               </if>
+               S1.CNTR_NO /* 계약번호 */
              , S1.CNTR_SN /* 계약일련번호 */
              , S1.CNTR_NO || '-' || S1.CNTR_SN AS CNTR_NO_SN
              , (SELECT X1.CST_KNM FROM TB_CUBS_CST_BAS X1 WHERE X1.CST_NO = S1.CNTR_CST_NO) AS CST_KNM /* 고객명 */
@@ -71,7 +79,18 @@
              , S5.SITE_AW_DV_NM /* 현장수당(항목명) */
              , S5.SITE_AW_AMT /* 현장수당(금액) */
              , S1.RGLVL_GD_CD /* 현장수당(급지) */
-             , NVL(B1.AW_AMT, 0) AS AW_AMT /* 현장수당(금액) */
+             , NVL((SELECT X1.AW_AMT
+                      FROM TB_SVPD_RGLVL_GD_AW_WTCF_IZ X1
+                     WHERE 1 = 1
+                       AND S1.WK_GRP_CD = X1.WK_GRP_CD
+                       AND S1.RGLVL_GD_CD = X1.RGLVL_GD_CD
+                       AND X1.DTA_DL_YN = 'N'
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT
+                       AND X1.GD_SN = (SELECT MAX(Y1.GD_SN)
+                                         FROM TB_SVPD_RGLVL_GD_AW_WTCF_IZ Y1
+                                        WHERE X1.WK_GRP_CD = Y1.WK_GRP_CD
+                                          AND X1.RGLVL_GD_CD = Y1.RGLVL_GD_CD)
+                    ), 0) AS AW_AMT /* 현장수당(금액) */
              , S4.CRAL_LOCARA_TNO AS CONTACT_CRAL_LOCARA_TNO /* 연락처(핸드폰) 1 */
              , C4.MEXNO_ENCR AS CONTACT_MEXNO_ENCR /* 연락처(핸드폰) 2 */
              , C4.CRAL_IDV_TNO AS CONTACT_CRAL_IDV_TNO /* 연락처(핸드폰) 3 */
@@ -170,7 +189,8 @@
                           , MAX(CASE WHEN Y1.SEQ = 8 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM08
                           , MAX(CASE WHEN Y1.SEQ = 9 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM09
                           , MAX(CASE WHEN Y1.SEQ = 10 THEN Y1.INOUT_GB || ' ' || Y1.ITM_PD_CD || ' ' || Y2.PD_NM END) PD_NM10
-                       FROM (SELECT X1.CST_SV_ASN_NO
+                       FROM (SELECT /*+ INDEX(X1 PK_SVST_SV_WK_OSTR_IZ) */
+                                    X1.CST_SV_ASN_NO
                                   , CASE WHEN X1.SV_BIZ_HCLSF_CD IN ('1', '2', '3') THEN '출고' ELSE '입고' END INOUT_GB
                                   , X1.ITM_PD_CD
                                   , RANK() OVER (PARTITION BY X1.CST_SV_ASN_NO ORDER BY X1.WK_OSTR_SN) SEQ
@@ -189,20 +209,6 @@
            AND S1.CNTR_NO = S8.CNTR_NO
            AND S1.CNTR_SN = S8.CNTR_SN
            AND S8.DTA_DL_YN = 'N' */
-          LEFT JOIN (SELECT X1.WK_GRP_CD
-                          , X1.RGLVL_GD_CD
-                          , X1.AW_AMT
-                       FROM TB_SVPD_RGLVL_GD_AW_WTCF_IZ X1
-                      WHERE 1 = 1
-                        AND X1.DTA_DL_YN = 'N'
-                        AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT
-                        AND X1.GD_SN = (SELECT MAX(Y1.GD_SN)
-                                          FROM TB_SVPD_RGLVL_GD_AW_WTCF_IZ Y1
-                                         WHERE X1.WK_GRP_CD = Y1.WK_GRP_CD
-                                           AND X1.RGLVL_GD_CD = Y1.RGLVL_GD_CD)
-             ) B1
-            ON S1.WK_GRP_CD = B1.WK_GRP_CD
-           AND S1.RGLVL_GD_CD = B1.RGLVL_GD_CD
          INNER JOIN TB_SSCT_CNTR_BAS C1
             ON C1.CNTR_NO = S1.CNTR_NO
          INNER JOIN TB_SSCT_CNTR_DTL C2
@@ -211,7 +217,7 @@
          INNER JOIN TB_SSCT_CNTR_ADR_REL C3
             ON C3.DTL_CNTR_NO = S1.CNTR_NO
            AND C3.DTL_CNTR_SN = S1.CNTR_SN
-           AND C3.ADRPC_TP_CD = '3'
+           AND C3.ADRPC_TP_CD IN ('2', '3')
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4
             ON C4.CNTR_ADRPC_ID = C3.CNTR_ADRPC_ID
