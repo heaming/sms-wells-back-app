@@ -7,9 +7,9 @@
              , CD.CD_CNTN AS RSB /* 직책 */
              , FLOOR(MONTHS_BETWEEN (#{perfYm}||'01',OG.CNTR_DT)) +1 AS AKDCHA    /* 차월 */
              , NVL(OG.PRTNR_GD_CD,0) AS PRTNR_GD_CD /* 급수 */
-             , '' AS ATCNT1 /* 집합교육참여일수 */
-             , '' AS ATCNT2 /* 동행교육참여일수 */
-             , OG.CNTR_DT AS AKDSYM /* 업무등록월 */
+             , NVL(EDU.EDU124,0) AS ATCNT1 /* 집합교육참여일수 */
+             , NVL(EDU.EDU125,0) AS ATCNT2 /* 동행교육참여일수 */
+             , TO_CHAR(TO_DATE(OG.CNTR_DT,'YYYYMMDD'),'YYYY-MM') AS AKDSYM /* 업무등록월 */
              , AK17.AKDEQ0 AS AKDEQ0 /* 총판매건수 */
              , AK17.SERCNT /* 서비스건수 */
              , AK17.SERRYL /* 서비스처리율 */
@@ -23,8 +23,8 @@
              , FEE.ACL_DSB_AMT /* 실지급액 */
         FROM TB_OGBS_MM_PRTNR_IZ OG
         LEFT OUTER JOIN T_CMZ_CD_D CD
-          ON OG.QLF_DV_CD = CD.CD_ID
-         AND CD.CD_ID = 'QLF_DV_CD'
+          ON OG.RSB_DV_CD = CD.CD_VLD_VAL
+         AND CD.CD_ID = 'RSB_DV_CD'
          AND CD.TENANT_ID = #{session.tenantId}
         LEFT OUTER JOIN ( SELECT E.PRTNR_NO
                                , E.OG_TP_CD
@@ -67,6 +67,22 @@
                            GROUP BY M.PRTNR_NO
                         ) AK17
           ON OG.PRTNR_NO = AK17.PRTNR_NO
+        LEFT OUTER JOIN ( SELECT PRTNR_NO
+                               , SUM(EDU124) AS EDU124
+                               , SUM(EDU125) AS EDU125
+                            FROM ( SELECT PRTNR_NO
+                                        , CASE WHEN EDUC_CRSE_NO = '124' THEN EDUC_PRSC_DC ELSE 0 END EDU124
+                                        , CASE WHEN EDUC_CRSE_NO = '125' THEN EDUC_PRSC_DC ELSE 0 END EDU125
+                                     FROM TB_PSCA_MCPTN_EDUC_IZ
+                                    WHERE EDUC_CRSE_NO IN ('124','125')
+                                      AND EDUC_CPC_ACKMT_YN = 'Y'
+                                      AND EDUC_CRSE_CRT_BASE_YM &lt;= #{perfYm}
+                                      AND OG_TP_CD = 'W03'
+                                      AND PRTNR_NO = #{no}
+                                 )
+                           GROUP BY PRTNR_NO
+                        ) EDU
+          ON OG.PRTNR_NO = EDU.PRTNR_NO
        WHERE OG.BASE_YM = #{perfYm}
          AND OG.OG_TP_CD = 'W03'
          AND OG.PRTNR_NO = #{no}

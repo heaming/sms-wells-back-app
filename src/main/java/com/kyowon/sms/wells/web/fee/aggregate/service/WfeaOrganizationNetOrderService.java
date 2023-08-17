@@ -67,6 +67,10 @@ public class WfeaOrganizationNetOrderService {
                 "MSG_ALT_ALREADY_TCNT_ORD_AGRG_CNFM_BYO_AGRG_PSB"
             ); // 이미 해당 차수의 조직별 집계가 확정되어 실적 생성이 불가합니다.
 
+        // 순주문 제품유형 체크(순주문월마감)
+        int cnt = mapper.selectFeeNetOrderPdCnt(dto);
+        BizAssert.isTrue(cnt == 0, "MSG_ALT_NO_PD_CD"); //유효하지 않은 제품유형이 포함되어 있습니다.
+
         // 배치 dvo 생성
         BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
 

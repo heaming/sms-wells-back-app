@@ -54,4 +54,6 @@ public interface WfeaOrganizationNetOrderMapper {
 
     int updateNtorMmClCancel(WfeaOrganizationNetOrderDvo dvo);
 
+    int selectFeeNetOrderPdCnt(SaveOgNetOrderReq dto);
+
 }
