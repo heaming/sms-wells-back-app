@@ -44,7 +44,8 @@ public class WbndRentalCbMgtObjectDto {
         String niceFwExcdYn, /*나이스발송제외여부*/
         String msgFwDt, /*알림톡 발송일자*/
         String resultYn, /*알림톡성공여부*/
-        String niceFwDt /* 나이스발송일자 */
+        String niceFwDt, /* 나이스발송일자 */
+        String notyRcvYn /* 알림톡 수신여부 */
     ) {
         public SearchRes {
             if (StringUtil.isNotBlank(mexnoEncr)) {
@@ -57,6 +58,11 @@ public class WbndRentalCbMgtObjectDto {
         }
     }
 
+    @ApiModel("WbndRentalCbMgtObjectDto-SaveReq")
+    public record SaveReq(
+        String baseYm,
+        String cstNo
+    ) {}
     @ApiModel("WbndRentalCbMgtObjectDto-SearchPaymentRes")
     public record SearchPaymentRes(
         String cstNo, /*고객번호*/

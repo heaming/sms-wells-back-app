@@ -40,7 +40,6 @@ public class WsnaWarehouseOrganizationDto {
     public record SearchRes(
         String apyYm, /* 적용년월 */
         String wareNo, /* 창고번호 */
-        String wareCd, /*창고코드*/
         String wareDvCd, /* 창고구분코드 */
         String wareDtlDvCd, /* 창고상세구분코드 */
         String wareLocaraCd, /* 창고지역코드 */
@@ -50,7 +49,6 @@ public class WsnaWarehouseOrganizationDto {
         String wareMngtPrtnrNo, /* 창고관리파트너번호 */
         String dsnBldNm, /*지정빌딩명*/
         String adrUseYn, /*주소사용여부*/
-        String hgrWare, /*상위창고*/
         String hgrWareNm, /*상위창고명*/
         //        String coCd, /* 회사코드 */
         String didyDvCd, /* 직배구분코드 */
@@ -60,7 +58,7 @@ public class WsnaWarehouseOrganizationDto {
         String adrNm,
         //        String bldCd, /* 빌딩코드 */
         String bldNm, /* 빌딩명 */
-        //        String ogCd, /* 조직코드 */
+        String ogCd, /* 조직코드 */
         String wareUseYn /* 창고사용여부 */
         //        String adrUseYn, /* 주소사용여부 */
         //        String apyStrtdt, /* 적용시작일자 */

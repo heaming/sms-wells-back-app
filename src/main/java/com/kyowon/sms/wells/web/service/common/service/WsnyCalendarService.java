@@ -30,7 +30,9 @@ public class WsnyCalendarService {
         WsnyCalendarDvo dvo = wsnyCalendarConverter.mapCalendarReqToCalendarDvo(dto);
 
         wsnyCalendarMapper.updateCalendar(dvo); //Calendar 저장
-        wsnyCalendarMapper.saveCalendar(dvo); //당직자 저장
+        if(!"holiday".equals(dvo.getSvCnrOgId())){
+            wsnyCalendarMapper.saveCalendar(dvo); //당직자 저장
+        }
         return 1;
     }
 
