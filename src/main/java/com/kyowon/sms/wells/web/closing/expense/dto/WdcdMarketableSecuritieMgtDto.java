@@ -38,7 +38,6 @@ public class WdcdMarketableSecuritieMgtDto {
     public record SearchSubjectReq(
         String baseYm, // 사용년월
         String rsbDvCd, // 직책유형코드
-        String mainOgId, // 정산조직ID
         String dgr2LevlOgId, // 2차레벨조직명 - 총괄단(에듀 웰스 같음)
         String bldCd, // 빌딩 코드
         String subOgTpCd, // 배분대상조직유형코드

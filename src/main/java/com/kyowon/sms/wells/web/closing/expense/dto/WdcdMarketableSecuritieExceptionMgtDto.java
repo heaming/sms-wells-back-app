@@ -2,13 +2,13 @@ package com.kyowon.sms.wells.web.closing.expense.dto;
 
 import io.swagger.annotations.ApiModel;
 
-public class WdcdMarketableSecuritieExceptionMgttDto {
+public class WdcdMarketableSecuritieExceptionMgtDto {
 
     // *********************************************************
     // Request Dto
     // *********************************************************
     // 운영비 원천세 정산(유가증권 제외) / 정산대상
-    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-FindCodeReq")
+    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgtDto-FindCodeReq")
     public record FindCodeReq(
         String baseYm,
         String dgr1LevlOgId
@@ -19,7 +19,7 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
     // Request Dto
     // *********************************************************
     // 운영비 원천세 정산(유가증권 제외) / 정산대상
-    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-FindCodeRes")
+    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgtDto-FindCodeRes")
     public record FindCodeRes(
         String dgr2LevlOgId,  /*2차레벨조직ID*/
         String dgr2LevlOgNm,  /*2차레벨조직명*/
@@ -34,11 +34,10 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
     // Request Dto
     // *********************************************************
     // 운영비 원천세 정산(유가증권 제외) / 정산대상
-    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-SearchSubjectReq")
+    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgtDto-SearchSubjectReq")
     public record SearchSubjectReq(
         String baseYm, // 사용년월
         String rsbDvCd, // 직책유형코드
-        String mainOgId, // 정산조직ID
         String dgr2LevlOgId, // 2차레벨조직명 - 총괄단(에듀 웰스 같음)
         String bldCd, // 빌딩 코드
         String subOgTpCd, // 배분대상조직유형코드
@@ -54,7 +53,7 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
     // Request Dto
     // *********************************************************
     // 운영비 원천세 정산(유가증권 제외) / 정산대상
-    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-SearchSubjectRes")
+    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgtDto-SearchSubjectRes")
     public record SearchSubjectRes(
         String baseYm,               /*(hidden)기준월*/
         String dgr1LevlOgNm,       /*1차레벨조직명-총괄단*/
@@ -87,7 +86,7 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
     // Request Dto
     // *********************************************************
     // 운영비 원천세 정산(유가증권 제외) / 원천세 정산 내역 Tab
-    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-SearchFinalSettlementReq")
+    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgtDto-SearchFinalSettlementReq")
     public record SearchFinalSettlementReq(
         String baseYm,
         String pstnDvCd,
@@ -106,7 +105,7 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
     // Request Dto
     // *********************************************************
     // 운영비 원천세 정산(유가증권 제외) / 정산대상
-    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-SearchFinalSettlementRes")
+    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgtDto-SearchFinalSettlementRes")
     public record SearchFinalSettlementRes(
         String baseYm,
         String opcsAdjNo,           /*(hidden)운영비정산번호*/
@@ -136,7 +135,7 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
     // Request Dto
     // *********************************************************
     // 운영비 원천세 정산(유가증권 제외) / 원천세 정산 내역 Tab
-    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-SaveReq")
+    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgtDto-SaveReq")
     public record SaveReq(
         String opcsAdjNo, // 운영비정산번호
         String dstOjOgTpCd,
@@ -163,7 +162,7 @@ public class WdcdMarketableSecuritieExceptionMgttDto {
     // Request Dto
     // *********************************************************
     // 운영비 원천세 정산(유가증권 제외) / 원천세 정산 내역 Tab
-    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgttDto-AccCardInfoDetailRes")
+    @ApiModel(value = "WdcdMarketableSecuritieExceptionMgtDto-AccCardInfoDetailRes")
     public record AccCardInfoDetailRes(
         String baseYm,       /*기준년월*/
         String pstnDvCd,    /*직급구분코드*/
