@@ -76,6 +76,10 @@ public class WpdcMaterialMgtService {
         return mapper.selectMaterialSapPages(dto, pageInfo);
     }
 
+    public List<SearchSapRes> getMaterialSapForExcelDownload(SearchSapReq dto) {
+        return mapper.selectMaterialSapPages(dto);
+    }
+
     @Transactional
     public ZpdcProductDto.TbPdbsPdBas saveMaterial(ZpdcMaterialMgtDto.SaveReq dto, boolean isCreate)
         throws Exception {

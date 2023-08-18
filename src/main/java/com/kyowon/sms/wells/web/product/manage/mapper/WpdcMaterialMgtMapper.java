@@ -21,6 +21,9 @@ public interface WpdcMaterialMgtMapper {
     PagingResult<SearchSapRes> selectMaterialSapPages(@Param("dto")
     SearchSapReq dto, PageInfo pageInfo);
 
+    List<SearchSapRes> selectMaterialSapPages(@Param("dto")
+    SearchSapReq dto);
+
     int deleteTbPdbsPdRel(@Param("pdCd")
     String pdCd,
         @Param("info")
