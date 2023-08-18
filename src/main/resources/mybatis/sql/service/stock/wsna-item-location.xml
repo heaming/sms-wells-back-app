@@ -119,7 +119,7 @@
              , D5.WARE_NO
              , D5.WARE_NM
              , D5.STD_WARE_USE_YN
-             , D3.PITM_STOC_A_GD_QTY
+             , NVL(D3.PITM_STOC_A_GD_QTY, 0) AS PITM_STOC_A_GD_QTY
              , D2.WARE_TP_CD
              , TRIM(D2.ITM_LCT_ANGLE_VAL)                                                                             AS ITM_LCT_ANGLE_VAL
              , D2.ITM_LCT_COF_VAL
@@ -136,12 +136,6 @@
                      || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', D2.ITM_LCT_FLOR_NO_VAL, #{session.langId})
                      || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', D2.ITM_LCT_MAT_GRP_CD, #{session.langId}) ) AS ITM_LCT_NM
           FROM TB_PDBS_PD_BAS D1                          /* 상품기본 */
-          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_LCT_IZ D2    /* 고객서비스품목위치내역 */
-            ON D2.ITM_PD_CD = D1.PD_CD
-           AND D2.DTA_DL_YN = 'N'
-        <if test="@MybatisUtils@isNotEmpty(wareNo)">
-           AND D2.WARE_NO   = #{wareNo}
-       </if>
           LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ D3   /* 고객서비스품목재고내역 */
             ON D3.ITM_PD_CD = D1.PD_CD
            AND D3.DTA_DL_YN = 'N'
@@ -152,6 +146,10 @@
             ON D4.PD_CD = D1.PD_CD
          INNER JOIN TB_SVST_MCBY_WARE_IZ    D5            /* 월별창고내역 */
             ON 1 = 1
+          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_LCT_IZ D2    /* 고객서비스품목위치내역 */
+            ON D2.ITM_PD_CD = D1.PD_CD
+           AND D2.DTA_DL_YN          = 'N'
+           AND D2.WARE_NO            = CASE WHEN D5.STD_WARE_USE_YN = 'Y' THEN #{wareNo} ELSE '200012' END
          WHERE D1.DTA_DL_YN          = 'N'
            AND D1.PD_TP_CD           = 'M'
            AND D4.DTA_DL_YN          = 'N'
@@ -159,7 +157,7 @@
            AND D5.DTA_DL_YN          = 'N'
            AND D5.APY_YM             = TO_CHAR(SYSDATE, 'YYYYMM')
        <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
-           AND D1.PD_CD = #{itmPdCd}
+           AND D1.PD_CD              = #{itmPdCd}
        </if>
        <if test="@MybatisUtils@isNotEmpty(wareNo)">
            AND D5.WARE_NO            = #{wareNo}
