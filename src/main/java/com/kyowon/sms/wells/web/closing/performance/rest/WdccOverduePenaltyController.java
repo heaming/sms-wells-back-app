@@ -64,64 +64,63 @@ public class WdccOverduePenaltyController {
         return service.getPointOrders(req);
     }
 
-    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택/정기배송/집계, 일자별)", notes = "매출채권/선수금 현황 - 연체가산금")
+    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/일자별)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
         @ApiImplicitParam(name = "sapPdDvCd", value = "sap상품구분코드명", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
         @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세코드", paramType = "query"),
     })
-    @GetMapping("/regularShippingAggregates")
-    public List<SearchAggregateDateRes> getRegularShippingAggregates(
+    @GetMapping("/anticipationDates")
+    public List<SearchAggregateDateRes> getAnticipationDates(
         @Valid
         SearchReq req
     ) {
-        return service.getRegularShippingAggregates(req);
+        return service.getAnticipationDates(req);
     }
 
-    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택/정기배송/주문별)", notes = "매출채권/선수금 현황 - 연체가산금")
+    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/일시불)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
         @ApiImplicitParam(name = "sapPdDvCd", value = "sap상품구분코드명", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
         @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세코드", paramType = "query"),
     })
-    @GetMapping("/regularShippingOrders")
-    public List<SearchOrderRes> getRegularShippingOrders(
+    @GetMapping("/anticipationSinglePayments")
+    public List<SearchOrderRes> getAnticipationSinglePayments(
         @Valid
         SearchReq req
     ) {
-        return service.getRegularShippingOrders(req);
+        return service.getAnticipationSinglePayments(req);
     }
 
-    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택/정기배송 외/집계, 일자별)", notes = "매출채권/선수금 현황 - 연체가산금")
+    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/멤버십)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
         @ApiImplicitParam(name = "sapPdDvCd", value = "sap상품구분코드명", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
         @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세코드", paramType = "query"),
     })
-    @GetMapping("/regularShippingExceptAggregates")
-    public List<SearchAggregateDateRes> getRegularShippingExceptAggregates(
+    @GetMapping("/anticipationMemberships")
+    public List<SearchOrderRes> getAnticipationMemberships(
         @Valid
         SearchReq req
     ) {
-        return service.getRegularShippingExceptAggregates(req);
+        return service.getAnticipationMemberships(req);
     }
 
-    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택/정기배송 외/주문별)", notes = "매출채권/선수금 현황 - 연체가산금")
+    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/정기배송)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
         @ApiImplicitParam(name = "sapPdDvCd", value = "sap상품구분코드명", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
         @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세코드", paramType = "query"),
     })
-    @GetMapping("/regularShippingExceptOrders")
-    public List<SearchOrderRes> getRegularShippingExceptOrders(
+    @GetMapping("/anticipationRegularShippings")
+    public List<SearchOrderRes> getAnticipationRegularShippings(
         @Valid
         SearchReq req
     ) {
-        return service.getRegularShippingExceptOrders(req);
+        return service.getAnticipationRegularShippings(req);
     }
-
 }

@@ -33,27 +33,19 @@ public class WdccOverduePenaltyService {
         return mapper.selectPointOrders(req);
     }
 
-    public List<SearchAggregateDateRes> getRegularShippingAggregates(
-        SearchReq req
-    ) {
-        return mapper.selectRegularShippingAggregates(req);
+    public List<SearchAggregateDateRes> getAnticipationDates(SearchReq req) {
+        return mapper.selectAnticipationDates(req);
     }
 
-    public List<SearchOrderRes> getRegularShippingOrders(
-        SearchReq req
-    ) {
-        return mapper.selectRegularShippingOrders(req);
+    public List<SearchOrderRes> getAnticipationSinglePayments(SearchReq req) {
+        return mapper.selectAnticipationSinglePayments(req);
     }
 
-    public List<SearchAggregateDateRes> getRegularShippingExceptAggregates(
-        SearchReq req
-    ) {
-        return mapper.selectRegularShippingExceptAggregates(req);
+    public List<SearchOrderRes> getAnticipationMemberships(SearchReq req) {
+        return mapper.selectAnticipationMemberships(req);
     }
 
-    public List<SearchOrderRes> getRegularShippingExceptOrders(
-        SearchReq req
-    ) {
-        return mapper.selectRegularShippingExceptOrders(req);
+    public List<SearchOrderRes> getAnticipationRegularShippings(SearchReq req) {
+        return mapper.selectAnticipationRegularShippings(req);
     }
 }
