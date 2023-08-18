@@ -7,10 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.closing.expense.converter.WdcdMarketableSecuritieExceptionMgtConverter;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieExceptionMgttDto.*;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieExceptionMgtDto.*;
 import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdMarketableSecuritieExceptionDvo;
 import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdMarketableSecuritieExceptionMgtMapper;
-import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,13 +37,11 @@ public class WdcdMarketableSecuritieExceptionMgtService {
         int count = 0;
         SaveReq firstReq = reqs.get(0);
         //1. 해당월 확정완료 여부 체크
-        String cnfmYn = mapper.selectCheckWhetherMonthFinalized(reqs.get(0));
-
-        //2. 1번에서 CNFM_YN 결과값이 'Y'이면 alert 띄운다.
-        if ("Y".equals(cnfmYn)) {
-            BizAssert.isTrue(false, "해당 월은 등록/수정 불가합니다."); // TODO 메세지 처리
-        }
-
+//        String cnfmYn = mapper.selectCheckWhetherMonthFinalized(reqs.get(0));
+//        //2. 1번에서 CNFM_YN 결과값이 'Y'이면 alert 띄운다.
+//        if ("Y".equals(cnfmYn)) {
+//            BizAssert.isTrue(false, "해당 월은 등록/수정 불가합니다."); // TODO 메세지 처리
+//        }
         //3. 카드 정보/금액 조회 (ASIS : getAccCardInfoDetail)
         //3-1. 마스터 저장
         AccCardInfoDetailRes res = mapper.selectAccCardInfoDetail(firstReq);

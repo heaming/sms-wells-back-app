@@ -128,4 +128,17 @@ public class WdcdOperatingCostMgtDto {
         List<AttachFileDto.AttachFile> attachOpcsWhtxCfdcApnFileId
     ) {
     }
+
+    @ApiModel(value = "WwdcdOperatingCostMgtDto-FindOrganizationLevelRes")
+    public record FindOrganizationLevelRes(
+        String dgr1LevlOgId,
+        String dgr1LevlOgNm,
+        String dgr2LevlOgId,
+        String dgr2LevlOgNm,
+        String dgr3LevlOgId,
+        String dgr3LevlOgNm,
+        String dgr4LevlOgId,
+        String dgr4LevlOgNm
+    ) {
+    }
 }

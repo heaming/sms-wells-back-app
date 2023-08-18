@@ -4,10 +4,7 @@ import javax.validation.Valid;
 
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.EditReq;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.SearchAmountRes;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.SearchSummaryRes;
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto.*;
 import com.kyowon.sms.wells.web.closing.expense.service.WdcdOperatingCostMgtService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -56,5 +53,10 @@ public class WdcdOperatingCostMgtController {
     @PostMapping
     public SaveResponse editFile(@RequestBody EditReq req) throws Exception {
         return SaveResponse.builder().processCount(service.editFile(req)).build();
+    }
+
+    @GetMapping("/organization-level")
+    public FindOrganizationLevelRes getOrganizationLevel() {
+        return service.getOrganizationLevel();
     }
 }
