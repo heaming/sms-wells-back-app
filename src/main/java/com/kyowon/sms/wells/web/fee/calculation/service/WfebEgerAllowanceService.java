@@ -83,7 +83,6 @@ public class WfebEgerAllowanceService {
             ); // 작업 가능한 기간이 아닙니다.
 
             int cnt = mapper.selectConfirmYnCheck(dvo);
-            log.debug("@@@@@@@@@@@@@@@@@@ : " + cnt);
             BizAssert.isTrue(cnt == 0, "MSG_ALT_BF_CNFM_CONF"); // 이미 확정되었습니다.
 
             // mapper.insertEgerAllowanceHist(dvo);
@@ -149,6 +148,19 @@ public class WfebEgerAllowanceService {
         }
 
         return processCnt;
+    }
+
+    /**
+     * 엔지니어 수수료 일정
+     * @param dto : {
+     * schPerfYm : 실적년월,
+     * schRsbTp : 직책유형 }
+     * @return 조회결과
+     */
+    public WfebEgerAllowanceDto.SearchSchdRes getEngineerSchedule(
+        WfebEgerAllowanceDto.SearchReq dto
+    ) {
+        return this.mapper.selectEngineerSchedule(dto);
     }
 
     /**
