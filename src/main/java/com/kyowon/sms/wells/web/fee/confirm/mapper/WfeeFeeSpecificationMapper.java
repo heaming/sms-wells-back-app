@@ -35,4 +35,15 @@ public interface WfeeFeeSpecificationMapper {
         , String feeCdFields, String feeSumField, String feeCdInStr
     );
 
+    //홈마스터 / 플래너
+    List<HashMap<String, Object>> selectHPlannerFeeSpecifications(
+        SearchReq dto, String feeCdStr // 수수료 계산단위 유형코드
+        , String feeCdFields, String feeSumField, String feeCdInStr
+    );
+
+    //홈마스터 / 지점장
+    List<HashMap<String, Object>> selectHManagerFeeSpecifications(
+        SearchReq dto, String feeCdStr // 수수료 계산단위 유형코드
+        , String feeCdFields, String feeSumField, String feeCdInStr
+    );
 }
