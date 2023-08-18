@@ -54,4 +54,11 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     int eQty;
     int rQty;
 
+    /* 물류 인터페이스 필수 */
+    String rcgvpKnm;
+
+    String cralIdvTno;
+
+    String idvTno;
+
 }

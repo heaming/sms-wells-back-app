@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.interfaces.service;
 
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCenterEngineerCancelFinishInterfaceDto.EditReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCenterEngineerCancelFinishInterfaceDto.EditRes;
 import com.kyowon.sms.wells.web.service.interfaces.mapper.WsniCenterEngineerCancelFinishMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -11,12 +13,9 @@ import lombok.RequiredArgsConstructor;
 public class WsniCenterEngineerCancelFinishService {
     private final WsniCenterEngineerCancelFinishMapper mapper;
 
-    public String editCenterEngineerCancelFinish(String asIstOjNo) {
-        int result = 0;
-        String resultValue;
+    public EditRes editCenterEngineerCancelFinish(EditReq dto) {
+        mapper.updateCenterEngineerCancelFinish(dto);
 
-        result = mapper.updateCenterEngineerCancelFinish(asIstOjNo);
-
-        return result == 1 ? "S" : "F";
+        return new EditRes("SUCCESS", "S001");
     }
 }

@@ -75,7 +75,7 @@
                  ELSE 'N'
                 END) AS EDIT_YN	--수정가능여부
             */
-             , CNR_AW_CNFM_DTM /*센터확정일시*/
+             , CASE WHEN CNR_AW_CNFM_DTM = '00000000' THEN '' ELSE CNR_AW_CNFM_DTM END AS CNR_AW_CNFM_DTM /*센터확정일시*/
              , '-' AS NOTE
         FROM (
             SELECT OG_ID
@@ -101,57 +101,53 @@
                 , FEE_CALC_AMT
                 , CNR_AW_CNFM_DTM
             FROM (
-                SELECT T2.OG_ID
-                     , T2.OG_NM
-                     , T2.OG_CD
-                     , T2.BASE_YM
-                     , T1.PRTNR_KNM
+                SELECT T3.OG_ID
+                     , T3.OG_NM
+                     , T1.OG_CD
+                     , T1.BASE_YM
+                     , T2.PRTNR_KNM
                      , T1.PRTNR_NO
-                     , T1.PSTN_DV_CD
-                     , T1.RSB_DV_CD
-                     , T3.PERF_ATC_CD
-                     , T3.PERF_VAL
+                     , T2.PSTN_DV_CD
+                     , T2.RSB_DV_CD
+                     , T1.PERF_ATC_CD
+                     , T1.PERF_VAL
                      , T4.FEE_CD
                      , NVL(T4.FEE_CTR_CNFM_AMT, T4.FEE_CALC_AMT) AS FEE_CALC_AMT
                      , T5.CNR_AW_CNFM_DTM
-                  FROM TB_OGBS_MM_PRTNR_IZ T1	/*월파트너내역*/
-                 INNER JOIN TB_OGBS_MM_OG_IZ T2	/*월조직내역*/
+                  FROM TB_FEAM_EGER_PERF_MM_CL	T1	/*엔지니어실적월마감*/
+                 INNER JOIN TB_OGBS_MM_PRTNR_IZ T2	/*월파트너내역*/
                     ON T1.BASE_YM = T2.BASE_YM
+                   AND T1.PERF_YM = T2.BASE_YM
                    AND T1.OG_TP_CD = T2.OG_TP_CD
-                   AND T1.OG_ID = T2.OG_ID
+                   AND T1.PRTNR_NO = T2.PRTNR_NO
                    AND T1.OG_CD = T2.OG_CD
                    AND T2.DTA_DL_YN = 'N'
-                   AND T2.OG_LEVL_DV_CD = '1'	/*센터*/
-                   AND T2.CLO_YN = 'N'	/*조직폐쇄여부*/
-                  LEFT OUTER JOIN TB_FEAM_EGER_PERF_MM_CL	T3	/*엔지니어실적월마감*/
-                    ON T1.BASE_YM = T3.BASE_YM
-                   AND T1.BASE_YM = T3.PERF_YM
-                   AND T1.OG_TP_CD = T3.OG_TP_CD
-                   AND T1.PRTNR_NO = T3.PRTNR_NO
-                   AND T1.OG_CD = T3.OG_CD
-                   AND T3.FEE_TCNT_DV_CD = '02'
-                   AND T3.PERF_AGRG_CRT_DV_CD = '601'/*실적집계생성구분코드 601-엔지니어실적*/
-                   AND T3.PERF_ATC_CD IN ('W06P00001', 'W06P00004', 'W06P00005', 'W06P00006', 'W06P00007', 'W06P00008', 'W06P00009', 'W06P00010', 'W06P00025', 'W06P00015', 'W06P00018')
-                   AND T3.CO_CD = '2000'
+                 INNER JOIN TB_OGBS_MM_OG_IZ T3	/*월조직내역*/
+                    ON T2.BASE_YM = T3.BASE_YM
+                   AND T2.OG_TP_CD = T3.OG_TP_CD
+                   AND T2.OG_ID = T3.OG_ID
+                   AND T2.OG_CD = T3.OG_CD
+                   AND T3.DTA_DL_YN = 'N'
+                   AND T3.OG_LEVL_DV_CD = '1'	/*센터*/
+                   AND T3.CLO_YN = 'N'	/*조직폐쇄여부*/
                   LEFT OUTER JOIN TB_FEAM_EGER_AW_CALC_BAS T4	/*엔지니어수당기본*/
                     ON T4.DTA_DL_YN = 'N'
-                   AND T3.BASE_YM = T4.BASE_YM
-                   AND T3.BASE_YM = T4.PERF_YM
-                   AND T3.BASE_YM = T4.OJ_DSB_YM
-                   AND T3.OG_TP_CD = T4.OG_TP_CD
-                   AND T3.PRTNR_NO = T4.PRTNR_NO
-                   AND T3.OG_CD = T4.OG_CD
-                   AND T3.CO_CD = T4.CO_CD
-                   AND T3.FEE_TCNT_DV_CD = T4.FEE_TCNT_DV_CD
+                   AND T1.BASE_YM = T4.BASE_YM
+                   AND T1.PERF_YM = T4.PERF_YM
+                   AND T1.BASE_YM = T4.OJ_DSB_YM
+                   AND T1.OG_TP_CD = T4.OG_TP_CD
+                   AND T1.PRTNR_NO = T4.PRTNR_NO
+                   AND T1.OG_CD = T4.OG_CD
+                   AND T1.CO_CD = T4.CO_CD
+                   AND T1.FEE_TCNT_DV_CD = T4.FEE_TCNT_DV_CD
                    AND T4.FEE_CD IN ('W060001', 'W060002', 'W060003', 'W060004', 'W060005', 'W060006', 'W060007', 'W060008', 'W060009', 'W060010'
                             , 'W060011', 'W060012', 'W060017', 'W060018', 'W060019', 'W060020', 'W060021', 'W060022'
                             , 'W060023', 'W060024', 'W060025', 'W060026', 'W060027', 'W060028')
                    AND T4.SPMT_DSB_DV_CD = '01'
-                   AND T4.FNL_FEE_YN = 'N'
                   LEFT OUTER JOIN TB_FEAM_EGER_AW_CNFM_BAS T5	/*엔지니어수당확정기본*/
                     ON T5.DTA_DL_YN = 'N'
                    AND T1.BASE_YM = T5.BASE_YM
-                   AND T1.BASE_YM = T5.PERF_YM
+                   AND T1.PERF_YM = T5.PERF_YM
                    AND T1.BASE_YM = T5.OJ_DSB_YM
                    AND T1.OG_TP_CD = T5.OG_TP_CD
                    AND T1.PRTNR_NO = T5.PRTNR_NO
@@ -159,18 +155,23 @@
                    AND T5.CO_CD = '2000'
                  WHERE T1.DTA_DL_YN = 'N'
                    AND T1.BASE_YM = #{perfYm}
+                   AND T1.PERF_YM = #{perfYm}
+                   AND T1.FEE_TCNT_DV_CD = '02'
+                   AND T1.PERF_AGRG_CRT_DV_CD = '601'/*실적집계생성구분코드 601-엔지니어실적*/
+                   AND T1.PERF_ATC_CD IN ('W06P00001', 'W06P00004', 'W06P00005', 'W06P00006', 'W06P00007', 'W06P00008', 'W06P00009', 'W06P00010', 'W06P00025', 'W06P00015', 'W06P00018')
+                   AND T1.CO_CD = '2000'
                    AND T1.OG_TP_CD = 'W06'
                 <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                    AND T1.PRTNR_NO = #{prtnrNo}
                 </if>
                 <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
-                   AND T2.OG_ID = #{ogLevlDvCd1}
+                   AND T3.OG_ID = #{ogLevlDvCd1}
                 </if>
                 <if test='@MybatisUtils@isEmpty(rsbDvCd)'>
-                   AND T1.RSB_DV_CD IN ('W0601', 'W0602', 'W0603')
+                   AND T2.RSB_DV_CD IN ('W0601', 'W0602', 'W0603')
                 </if>
                 <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
-                   AND T1.RSB_DV_CD = #{rsbDvCd}
+                   AND T2.RSB_DV_CD = #{rsbDvCd}
                 </if>
             )
             PIVOT
@@ -232,51 +233,51 @@
              , NVL(FEE_W060032, 0) AS FEE_W060032  /*자격수당*/
              , NVL(FEE_W060031 + FEE_W060032, 0) AS TOT_FEE
         FROM
-           ( SELECT T2.OG_ID
-                  , T2.OG_NM
-                  , T2.OG_CD
-                  , T2.BASE_YM
-                  , T1.PRTNR_KNM
+           ( SELECT T3.OG_ID
+                  , T3.OG_NM
+                  , T1.OG_CD
+                  , T1.BASE_YM
+                  , T2.PRTNR_KNM
                   , T1.PRTNR_NO
-                  , T1.PSTN_DV_CD
-                  , T1.RSB_DV_CD
-                  , T3.FEE_CD
-                  , NVL(T3.FEE_CTR_CNFM_AMT, T3.FEE_CALC_AMT) AS FEE_CALC_AMT
-               FROM TB_OGBS_MM_PRTNR_IZ T1	/*월파트너내역*/
-              INNER JOIN TB_OGBS_MM_OG_IZ T2	/*월조직내역*/
-                 ON T1.BASE_YM = T2.BASE_YM
-                AND T1.OG_TP_CD = T2.OG_TP_CD
-                AND T1.OG_ID = T2.OG_ID
-                AND T1.OG_CD = T2.OG_CD
-                AND T2.DTA_DL_YN = 'N'
-                AND T2.OG_LEVL_DV_CD = '1'	/*센터*/
-                AND T2.CLO_YN = 'N'	/*조직폐쇄여부*/
-               LEFT OUTER JOIN TB_FEAM_EGER_AW_CALC_BAS T3	/*엔지니어수당기본*/
-                 ON T3.DTA_DL_YN = 'N'
-                AND T1.BASE_YM = T3.BASE_YM
-                AND T1.BASE_YM = T3.PERF_YM
-                AND T1.BASE_YM = T3.OJ_DSB_YM
-                AND T1.OG_TP_CD = T3.OG_TP_CD
-                AND T1.PRTNR_NO = T3.PRTNR_NO
-                AND T1.OG_CD = T3.OG_CD
-                AND T3.CO_CD = '2000'
-                AND T3.FEE_CD IN ('W060031', 'W060032')
-                AND T3.FEE_TCNT_DV_CD = '02'
-                AND T3.SPMT_DSB_DV_CD = '01'
+                  , T2.PSTN_DV_CD
+                  , T2.RSB_DV_CD
+                  , T1.FEE_CD
+                  , NVL(T1.FEE_CTR_CNFM_AMT, T1.FEE_CALC_AMT) AS FEE_CALC_AMT
+               FROM TB_FEAM_EGER_AW_CALC_BAS T1	/*엔지니어수당기본*/
+              INNER JOIN TB_OGBS_MM_PRTNR_IZ T2	/*월파트너내역*/
+                 ON T2.DTA_DL_YN = 'N'
+                AND T2.BASE_YM = T1.BASE_YM
+                AND T2.BASE_YM = T1.PERF_YM
+                AND T2.BASE_YM = T1.OJ_DSB_YM
+                AND T2.OG_TP_CD = T1.OG_TP_CD
+                AND T2.PRTNR_NO = T1.PRTNR_NO
+                AND T2.OG_CD = T1.OG_CD
+              INNER JOIN TB_OGBS_MM_OG_IZ T3	/*월조직내역*/
+                 ON T3.BASE_YM = T2.BASE_YM
+                AND T3.OG_TP_CD = T2.OG_TP_CD
+                AND T3.OG_ID = T2.OG_ID
+                AND T3.OG_CD = T2.OG_CD
+                AND T3.DTA_DL_YN = 'N'
+                AND T3.OG_LEVL_DV_CD = '1'	/*센터*/
+                AND T3.CLO_YN = 'N'	/*조직폐쇄여부*/
               WHERE T1.DTA_DL_YN = 'N'
                 AND T1.BASE_YM = #{perfYm}
                 AND T1.OG_TP_CD = 'W06'
+                AND T1.CO_CD = '2000'
+                AND T1.FEE_CD IN ('W060031', 'W060032')
+                AND T1.FEE_TCNT_DV_CD = '02'
+                AND T1.SPMT_DSB_DV_CD = '01'
               <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                 AND T1.PRTNR_NO = #{prtnrNo}
               </if>
               <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
-                AND T2.OG_ID = #{ogLevlDvCd1}
+                AND T3.OG_ID = #{ogLevlDvCd1}
               </if>
               <if test='@MybatisUtils@isEmpty(rsbDvCd)'>
-                AND T1.RSB_DV_CD IN ('W0603', 'W0604')
+                AND T2.RSB_DV_CD IN ('W0603', 'W0604')
               </if>
               <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
-                AND T1.RSB_DV_CD = #{rsbDvCd}
+                AND T2.RSB_DV_CD = #{rsbDvCd}
               </if>
             )
         PIVOT
@@ -298,24 +299,58 @@
              , COUNT(CNFM_BTN_YN) OVER() AS CNFM_BTN_CNT
           FROM
              ( SELECT A.BASE_YM
-                    , A.OG_ID
-                    , A.HGR_OG_ID
-                    , A.OG_NM
-                    , B.OG_CD
-                    , NVL(B.CNR_AW_CNFM_DTM, '-') AS CNR_AW_CNFM_DTM
-                    , CASE WHEN B.CNR_AW_CNFM_DTM IS NOT NULL THEN 'Y'
-                      ELSE '' END AS CNFM_BTN_YN
-                 FROM TB_OGBS_MM_OG_IZ A
-                 LEFT OUTER JOIN TB_FEAM_EGER_AW_CNFM_BAS B
-                   ON A.BASE_YM = B.BASE_YM
-                  AND A.OG_CD = B.OG_CD
-                  AND B.DTA_DL_YN = 'N'
-                WHERE A.DTA_DL_YN = 'N'
-                  AND A.BASE_YM = #{perfYm}
-                  AND A.OG_TP_CD = 'W06'
-                  AND A.CLO_YN = 'N'
-                GROUP BY A.BASE_YM, A.OG_ID, A.HGR_OG_ID, A.OG_NM, B.OG_CD, B.CNR_AW_CNFM_DTM
-             ) T1
+                    , C.OG_ID
+                    , C.OG_NM
+                    , A.OG_CD
+                    , CASE WHEN B.CNR_AW_CNFM_DTM = '00000000' THEN ''
+                      ELSE B.CNR_AW_CNFM_DTM END AS CNR_AW_CNFM_DTM
+                    , CASE WHEN NVL(B.CNR_AW_CNFM_DTM, ' ') != '00000000' THEN 'Y'
+                      ELSE '' END AS CNFM_BTN_YN /*과거데이터는 확정일시가 없는 것이 있기때문에 확정취소를 00000000으로 구분함*/
+                 FROM
+                    ( SELECT BASE_YM
+                           , PERF_YM
+                           , CO_CD
+                           , OG_TP_CD
+                           , OG_CD
+                        FROM TB_FEAM_EGER_PERF_MM_CL	/*엔지니어실적월마감*/
+                       WHERE DTA_DL_YN = 'N'
+                         AND BASE_YM = #{perfYm}
+                         AND PERF_YM = #{perfYm}
+                         AND OG_TP_CD = 'W06'
+                         AND FEE_TCNT_DV_CD = '02'
+                         AND PERF_AGRG_CRT_DV_CD = '601'
+                       GROUP BY BASE_YM, PERF_YM, CO_CD, OG_TP_CD, OG_CD
+                   ) A
+                LEFT OUTER JOIN
+                   ( SELECT BASE_YM
+                          , PERF_YM
+                          , OJ_DSB_YM
+                          , CO_CD
+                          , OG_TP_CD
+                          , OG_CD
+                          , CNR_AW_CNFM_DTM
+                       FROM TB_FEAM_EGER_AW_CNFM_BAS	/*엔지니어수당확정기본*/
+                      WHERE DTA_DL_YN = 'N'
+                        AND BASE_YM = #{perfYm}
+                        AND PERF_YM = #{perfYm}
+                        AND OJ_DSB_YM = #{perfYm}
+                        AND OG_TP_CD = 'W06'
+                      GROUP BY BASE_YM, PERF_YM, OJ_DSB_YM, CO_CD, OG_TP_CD, OG_CD, CNR_AW_CNFM_DTM
+                  ) B
+                 ON A.BASE_YM = B.BASE_YM
+                AND A.PERF_YM = B.PERF_YM
+                AND A.BASE_YM = B.OJ_DSB_YM
+                AND A.CO_CD = B.CO_CD
+                AND A.OG_TP_CD = B.OG_TP_CD
+                AND A.OG_CD = B.OG_CD
+              INNER JOIN TB_OGBS_MM_OG_IZ C 	/*월조직내역*/
+                 ON A.BASE_YM = C.BASE_YM
+                AND A.OG_TP_CD = C.OG_TP_CD
+                AND A.OG_CD = C.OG_CD
+                AND C.CLO_YN = 'N'
+                AND C.DTA_DL_YN = 'N'
+              WHERE 1=1
+            ) T1
     </select>
 
     <insert id="insertEgerAllowanceHist">
@@ -461,24 +496,25 @@
         )
     </update>
 
-    <select id="selectConfirmYnCheck" resultType="Integer">
-        SELECT COUNT(*) AS CNT
+    <select id="selectConfirmYnCheck" resultType="int">
+        SELECT COUNT(BASE_YM) AS CNT
           FROM TB_FEAM_EGER_AW_CNFM_BAS
-         WHERE BASE_YM = #{baseYm}
+         WHERE DTA_DL_YN = 'N'
+           AND BASE_YM = #{baseYm}
            AND PERF_YM = #{baseYm}
            AND OJ_DSB_YM = #{baseYm}
            AND CO_CD = '2000'
            AND OG_TP_CD = 'W06'
            AND OG_CD = #{ogCd}
-           /*AND CNR_AW_CNFM_DTM IS NOT NULL*/
+           AND CNR_AW_CNFM_DTM IS NOT NULL
+           AND CNR_AW_CNFM_DTM != '00000000'  /*과거데이터가 확정되었는데 NULL인경우가 있어서 확정취소는 00000000 으로 구분함*/
         <if test='@MybatisUtils@isNotEmpty(hdof) and @MybatisUtils@equals(hdof, "Y")'>
            AND HDOF_AW_CNFM_DTM IS NOT NULL
         </if>
-           AND DTA_DL_YN = 'N'
     </select>
 
     <select id="selectCurrentSchd" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchSchdRes">
-        SELECT CASE WHEN COUNT(BASE_YM) > 0 THEN 'START'
+        SELECT CASE WHEN COUNT(BASE_YM) <![CDATA[>]]> 0 THEN 'START'
                ELSE 'END'
                END AS FEE_SCHD_LV_CD
           FROM TB_FEAM_FEE_SCHD_BAS T1	/*수수료일정기본*/
@@ -495,29 +531,53 @@
     </select>
 
     <insert id="insertEgerAllowanceConfirm">
-        INSERT INTO TB_FEAM_EGER_AW_CNFM_BAS (  /*엔지니어수당확정기본*/
-             BASE_YM
-             , PERF_YM
-             , OJ_DSB_YM
-             , CO_CD
-             , OG_TP_CD
-             , OG_CD
-             , PRTNR_NO
-             , CNR_AW_CNFM_DTM
-             , DTA_DL_YN         /* 데이터삭제여부 */
-            <include refid="COMMON.insertSystemField" />
+        MERGE INTO TB_FEAM_EGER_AW_CNFM_BAS T1  /* 엔지니어수당확정기본 */
+        USING (
+            SELECT #{baseYm} AS BASE_YM           /* 기준년월 */
+                 , #{baseYm} AS PERF_YM           /* 실적년월 */
+                 , #{baseYm} AS OJ_DSB_YM         /* 대상지급년월 */
+                 , '2000' AS CO_CD             /* 회사코드 */
+                 , 'W06' AS OG_TP_CD          /* 조직유형코드 */
+				 , #{ogCd} AS OG_CD		/*조직코드*/
+                 , #{prtnrNo} AS PRTNR_NO          /* 파트너번호 */
+                 , 'N' AS DTA_DL_YN         /* 데이터삭제여부 */
+              FROM DUAL
+        ) T2
+        ON (T1.BASE_YM = T2.BASE_YM           /* 기준년월 */
+        AND T1.PERF_YM = T2.PERF_YM           /* 실적년월 */
+        AND T1.OJ_DSB_YM = T2.OJ_DSB_YM         /* 대상지급년월 */
+        AND T1.CO_CD = T2.CO_CD             /* 회사코드 */
+        AND T1.OG_TP_CD = T2.OG_TP_CD          /* 조직유형코드 */
+		AND T1.OG_CD = T2.OG_CD	/*조직코드*/
+        AND T1.PRTNR_NO = T2.PRTNR_NO          /* 파트너번호 */
         )
-        VALUES (
-            #{baseYm}
-            , #{baseYm}
-            , #{baseYm}
-            , '2000'
-            , 'W06'
-            , #{ogCd}
-            , #{prtnrNo}
-            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-            , 'N'
-            <include refid="COMMON.insertSystemFieldValue" />
+        WHEN MATCHED THEN
+        UPDATE
+             SET CNR_AW_CNFM_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+        INSERT (
+                 BASE_YM
+				 , PERF_YM
+				 , OJ_DSB_YM
+				 , CO_CD
+				 , OG_TP_CD
+				 , OG_CD
+				 , PRTNR_NO
+				 , CNR_AW_CNFM_DTM
+				 , DTA_DL_YN         /* 데이터삭제여부 */
+               <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+                 T2.BASE_YM
+               , T2.PERF_YM
+               , T2.OJ_DSB_YM
+               , T2.CO_CD
+               , T2.OG_TP_CD
+			   , T2.OG_CD
+               , T2.PRTNR_NO
+			   , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               , T2.DTA_DL_YN
+                <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>
 
@@ -562,7 +622,7 @@
 
     <update id="updateEgerAllowanceConfirmCancel">
         UPDATE TB_FEAM_EGER_AW_CNFM_BAS
-           SET CNR_AW_CNFM_DTM = NULL
+           SET CNR_AW_CNFM_DTM = '00000000'
                <include refid="COMMON.updateSystemField"/>
          WHERE 1=1
            AND BASE_YM = #{baseYm}

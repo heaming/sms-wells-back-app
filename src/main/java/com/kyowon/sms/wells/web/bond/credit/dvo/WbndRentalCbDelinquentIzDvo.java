@@ -60,7 +60,7 @@ public class WbndRentalCbDelinquentIzDvo {
     private String prtnrKnm;/*집금담당자명*/
     private String dsphTno;/*발신번호*/
     private String rgstSchDt;/*등록예정일자-알림톡발송일자+4일*/
-    private String cntrDtlSn;/*계약상세번호*/
+    private String cntrDtlNo;/*계약상세번호*/
     private String sellTpNm;/*상품구분*/
     private String pdClsfNm;/*상품명*/
     private String slRcogDt;/*매출일자*/

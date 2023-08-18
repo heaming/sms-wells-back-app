@@ -80,4 +80,14 @@ public class WsnaBuildingBsConsumableController {
             .processCount(service.createBuildingBsConsumables(dtos))
             .build();
     }
+
+    @PostMapping("/{mngtYm}/request")
+    public SaveResponse createBuildingBsConsumablesRequest(
+        @PathVariable
+        String mngtYm
+    ) {
+        return SaveResponse.builder()
+            .processCount(service.createBuildingBsConsumablesRequest(mngtYm))
+            .build();
+    }
 }

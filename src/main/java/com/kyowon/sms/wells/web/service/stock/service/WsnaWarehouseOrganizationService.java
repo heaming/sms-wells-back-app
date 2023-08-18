@@ -105,7 +105,7 @@ public class WsnaWarehouseOrganizationService {
         return this.mapper.selectWarehouseByPk(apyYmWareNo).orElseThrow();
     }
 
-    @Transactional
+    @Transactional(timeout = 300)
     public int saveWarehouseOg(SaveReq dto) {
         int processCount = 0;
 

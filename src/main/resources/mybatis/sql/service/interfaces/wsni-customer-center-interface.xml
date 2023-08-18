@@ -2,26 +2,68 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniCustomerCenterInterfaceMapper">
     <select id="selectEngineerContactPs" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniCustomerCenterInterfaceDto$SearchContactRes">
-        SELECT I1.AS_AK_ID
-             , I1.SYS_DV_CD
-             , T2.CST_SV_ASN_NO
-             , T2.CNTC_DT
-             , T2.CNTC_HH
-             , T2.ABSNC_RSON_CD
-             , T2.OG_TP_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'OG_TP_CD', T2.OG_TP_CD) OG_TP_CD_NM
-             , O1.PRTNR_NO
-             , O1.PRTNR_KNM
-          FROM TB_IFIN_CST_CNR_AS_AK_RCV_ETXT I1
-         INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T1
-            ON I1.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
-         INNER JOIN TB_SVPD_CST_SV_CNTC_IZ T2
-            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-         INNER JOIN TB_OGBS_PRTNR_BAS O1
-            ON T2.OG_TP_CD = O1.OG_TP_CD
-           AND T2.PRTNR_NO = O1.PRTNR_NO
-         WHERE T1.AS_AK_ID = #{asAkId}
-           AND T1.CST_SV_ASN_NO = #{cstSvAsnNo}
+<!--        SELECT I1.AS_AK_ID-->
+<!--             , I1.SYS_DV_CD-->
+<!--             , T2.CST_SV_ASN_NO-->
+<!--             , T2.CNTC_DT-->
+<!--             , T2.CNTC_HH-->
+<!--             , T2.ABSNC_RSON_CD-->
+<!--             , T2.OG_TP_CD-->
+<!--             , F_CMZ_CD_NM('TNT_WELLS', 'OG_TP_CD', T2.OG_TP_CD) OG_TP_CD_NM-->
+<!--             , O1.PRTNR_NO-->
+<!--             , O1.PRTNR_KNM-->
+<!--          FROM TB_IFIN_CST_CNR_AS_AK_RCV_ETXT I1-->
+<!--         INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T1-->
+<!--            ON I1.CST_SV_ASN_NO = T1.CST_SV_ASN_NO-->
+<!--         INNER JOIN TB_SVPD_CST_SV_CNTC_IZ T2-->
+<!--            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO-->
+<!--         INNER JOIN TB_OGBS_PRTNR_BAS O1-->
+<!--            ON T2.OG_TP_CD = O1.OG_TP_CD-->
+<!--           AND T2.PRTNR_NO = O1.PRTNR_NO-->
+<!--         WHERE T1.CST_SV_ASN_NO = #{cstSvAsnNo}-->
+
+        SELECT M.CROW
+             , M.TROW
+             , M.FMT_CNTC_DT
+             , M.FMT_CNTC_HH
+             , M.ABSNC_RSON_CD
+             , M.ABSNC_RSON_NM
+             , M.CST_SV_ASN_NO
+             , M.CNTC_DT
+             , M.CNTC_HH
+             , M.PRTNR_NO
+             , M.PRTNR_KNM
+          FROM (SELECT ROWNUM AS CROW
+                     , T1.TROW
+                     , T1.FMT_CNTC_DT
+                     , T1.FMT_CNTC_HH
+                     , T1.ABSNC_RSON_CD
+                     , T1.ABSNC_RSON_NM
+                     , T1.CST_SV_ASN_NO
+                     , T1.CNTC_DT
+                     , T1.CNTC_HH
+                     , T1.PRTNR_NO
+                     , T1.PRTNR_KNM
+                  FROM (SELECT COUNT(1) OVER() AS TROW
+                             , TO_CHAR(TO_DATE(S1.CNTC_DT), 'YYYY-MM-DD') AS FMT_CNTC_DT
+                             , SUBSTR(S1.CNTC_HH, 0, 2) || ':' || SUBSTR(S1.CNTC_HH, 3, 2) AS FMT_CNTC_HH
+                             , S1.ABSNC_RSON_CD
+                             , F_CMZ_CD_NM('TNT_WELLS', 'ABSNC_RSON_CD', S1.ABSNC_RSON_CD, 'ko') AS ABSNC_RSON_NM
+                             , S1.CST_SV_ASN_NO
+                             , S1.CNTC_DT
+                             , S1.CNTC_HH
+                             , O1.PRTNR_NO
+                             , O1.PRTNR_KNM
+                          FROM TB_SVPD_CST_SV_CNTC_IZ S1
+                          LEFT JOIN TB_OGBS_MM_PRTNR_IZ O1
+                            ON S1.OG_TP_CD = O1.OG_TP_CD
+                           AND S1.PRTNR_NO = O1.PRTNR_NO
+                           AND O1.BASE_YM = SUBSTR(S1.CNTC_DT, 0, 6)
+                         WHERE S1.CST_SV_ASN_NO = #{cstSvAsnNo}
+                       ) T1
+               ) M
+         WHERE M.CROW BETWEEN (('9' * ('1' -1)) + 1) AND ('9' * '1')
+         ORDER BY M.CROW
     </select>
 
     <select id="selectEngineerPromChHist" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniCustomerCenterInterfaceDto$SearchPromChRes">
@@ -82,7 +124,6 @@
             ON T1.WK_PRTNR_OG_TP_CD = O2.OG_TP_CD
            AND T1.WK_PRTNR_NO = O2.PRTNR_NO
          WHERE 1 = 1
-           AND I1.AS_AK_ID = #{asAkId}
            AND T1.WK_PRTNR_NO = #{wkPrtnrNo}
            AND I1.RCPDT = #{wkDt}
     </select>
@@ -145,7 +186,6 @@
             ON T1.WK_PRTNR_OG_TP_CD = O2.OG_TP_CD
            AND T1.WK_PRTNR_NO = O2.PRTNR_NO
          WHERE 1 = 1
-           AND I1.AS_AK_ID = #{asAkId}
            AND T1.WK_PRTNR_NO = #{wkPrtnrNo}
            AND I1.RCPDT = #{wkDt}
     </select>
@@ -155,7 +195,7 @@
              , T1.CNTR_SN
              , T1.SV_BIZ_HCLSF_CD
              , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', T1.SV_BIZ_HCLSF_CD) AS SV_BIZ_HCLSF_NM
-             , T1.SPP_ORD_NO
+             , T1.SDING_SPP_NO
              , T1.SDING_PD_CD1
              , P1.PD_NM AS SDING_PD_NM1
              , T1.SDING_QTY1

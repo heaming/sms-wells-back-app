@@ -76,4 +76,14 @@ public class WsnaNewManagerBsConsumableController {
             .processCount(service.createNewManagerBsConsumables(dtos))
             .build();
     }
+
+    @PostMapping("/{mngtYm}/request")
+    public SaveResponse createNewManagerBsConsumablesRequest(
+        @PathVariable
+        String mngtYm
+    ) {
+        return SaveResponse.builder()
+            .processCount(service.createNewManagerBsConsumablesRequest(mngtYm))
+            .build();
+    }
 }

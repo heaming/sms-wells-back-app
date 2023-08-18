@@ -89,10 +89,11 @@ public class WdcbSalesConfirmCreateDvo {
     private String svDt;
     private int pvdaOjPcam;
     private int pvdaAmt;
-    private String slRcogClsfCd;
-    private String lgstItmGdCd;
-    private int reimPcsvCs;
-    private int pcsvReimAmt;
+    private String slRcogClsfCd; /*매출인식분류코드*/
+    private String slRcogDvCd; /*매출인식구분코드*/
+    private String lgstItmGdCd; /*물류품목등급코드*/
+    private int reimPcsvCs; /*변상택배비용*/
+    private int pcsvReimAmt; /*택배변상금액*/
     private String iostDt;
     private int slQty;
     private String rtngdYn;

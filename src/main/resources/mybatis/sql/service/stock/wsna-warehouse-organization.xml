@@ -30,7 +30,7 @@
              , DTA_DL_YN          /* 데이터삭제여부 */
              <include refid="COMMON.insertSystemField"/>
         )
-        SELECT TO_CHAR(ADD_MONTHS(TO_DATE(APY_YM,'YYYYMM'),1),'YYYYMM')
+        SELECT TO_CHAR(ADD_MONTHS(TO_DATE(APY_YM, 'YYYYMM'), 1), 'YYYYMM')
              , WARE_NO
              , WARE_DV_CD
              , WARE_DTL_DV_CD
@@ -57,7 +57,7 @@
              , DTA_DL_YN          /* 데이터삭제여부 */
              <include refid="COMMON.insertSystemFieldValue"/>
          FROM TB_SVST_MCBY_WARE_IZ
-        WHERE APY_YM=TO_CHAR(TO_DATE(#{baseYm},'YYYYMM'),'YYYYMM')
+        WHERE APY_YM = #{baseYm}
 
     </insert>
 
@@ -65,8 +65,6 @@
             resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto$SearchRes">
         SELECT B.APY_YM AS APY_YM       /* 적용년월 */
              , B.WARE_DV_CD AS WARE_DV_CD    /* 창고구분코드 */
-             , B.WARE_DV_CD ||B.WARE_LOCARA_CD||B.WARE_ICHR_NO AS WARE_CD /*창고코드*/
-             , A.WARE_DV_CD ||A.WARE_LOCARA_CD||A.WARE_ICHR_NO AS HGR_WARE /*상위창고코드*/
              , B.WARE_DTL_DV_CD AS WARE_DTL_DV_CD /*창고상세구분코드*/
              , B.WARE_LOCARA_CD AS WARE_LOCARA_CD /*창고지역코드*/
              , B.WARE_LOCARA_SN AS WARE_LOCARA_SN /*창고지역순번*/
@@ -79,7 +77,13 @@
              , B.WARE_ADR_ID AS WARE_ADR_ID /*창고주소*/
              , B.WARE_USE_YN AS WARE_USE_YN /*창고사용여부*/
              , B.ADR_USE_YN AS ADR_USE_YN /*지정주소사용여부*/
+             , B.SORT_DV_VAL AS SORT_DV_VAL /*정렬구분값*/
              , C.RNADR || ' ' || C.RDADR AS ADR_NM
+             , (SELECT D1.OG_CD
+                  FROM TB_OGBS_MM_OG_IZ D1
+                 WHERE D1.OG_ID     = B.OG_ID
+                   AND D1.BASE_YM   = B.APY_YM
+                   AND D1.DTA_DL_YN = 'N' ) AS OG_CD
              , (SELECT A.BLD_NM
               	  FROM TB_OGBS_BLD_BAS A
               	 WHERE A.BLD_CD = B.BLD_CD) AS DSN_BLD_NM /*지정빌딩명*/
@@ -97,16 +101,12 @@
                    AND C.OG_TP_CD IN ('W02','W06')
                    AND C.PRTNR_NO = B.WARE_MNGT_PRTNR_NO
                    AND C.BASE_YM = B.APY_YM ) AS BLD_NM /*빌딩명*/
-<!--             , C.RNADR AS RNADR /*도로명주소*/ -->
-<!--             , C.RDADR AS RDADR /*도로명상세주소*/ -->
           FROM TB_SVST_MCBY_WARE_IZ B
           LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ A
             ON B.HGR_WARE_NO = A.WARE_NO
            AND B.APY_YM = A.APY_YM
           LEFT OUTER JOIN TB_GBCO_ADR_BAS C
             ON C.ADR_ID = B.WARE_ADR_ID
-<!--          INNER JOIN TB_GBCO_ADR_BAS C
-            ON C.ADR_ID = B.WARE_ADR_ID -->
          WHERE 1 = 1
            AND B.APY_YM = #{baseYm}
          <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
@@ -127,7 +127,6 @@
          <if test="@MybatisUtils@isNotEmpty(codeUseYn)">
            AND B.WARE_USE_YN = #{codeUseYn}
          </if>
-            /*AND B.WARE_NO = '305821'*/
          ORDER BY B.WARE_DV_CD, B.HGR_WARE_NO, B.WARE_NM, B.WARE_LOCARA_CD, B.WARE_LOCARA_SN, B.WARE_DTL_DV_CD
 
     </select>
@@ -211,11 +210,9 @@
        <choose>
            <when test='@MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "30")'>
            AND T1.WARE_DTL_DV_CD IN ('20', '30') /* 조직창고인 경우 */
-           AND T1.WARE_ICHR_NO = '000' /* TODO: 추후 컬럼 삭제 예정 */
            </when>
            <otherwise>
            AND T1.WARE_DTL_DV_CD IN ('21', '31', '32') /* 조직창고가 아닌 경우 */
-           AND T1.WARE_ICHR_NO != '000' /* TODO: 추후 컬럼 삭제 예정 */
            </otherwise>
        </choose>
            AND T1.WARE_USE_YN = 'Y'
@@ -397,11 +394,11 @@
              , T1.ITM_PD_CD                                       /* 상품코드 */
              , 'A'                   AS ITM_GD_CD                 /* 상품등급코드 = 'A' */
              , T1.PITM_STOC_A_GD_QTY AS OSTR_AK_QTY               /* 출고요청수량 = 'A등급 시점재고' */
-             , T1.WARE_NO            AS STR_OJ_WARE_NO            /* 입고대상창고번호 */
+             , T2.WARE_NO            AS STR_OJ_WARE_NO            /* 입고대상창고번호 */
              , T2.WARE_DV_CD         AS STR_WARE_DV_CD            /* 입고창고구분코드 */
              , T2.WARE_MNGT_PRTNR_NO AS STR_PRTNR_NO              /* 입고대상 창고관리 파트너번호 */
              , T2.OG_TP_CD           AS STR_PRTNR_OG_TP_CD        /* 입고대상 창고관리 파트너 조직유형코드 */
-             , T2.HGR_WARE_NO        AS STR_HGR_WARE_NO           /* 입고대상 상위창고번호 */
+             , T4.WARE_NO            AS STR_HGR_WARE_NO           /* 입고대상 상위창고번호 */
              , T4.WARE_DV_CD         AS STR_HGR_DV_CD             /* 입고 상위 창고구분코드 */
              , T4.WARE_MNGT_PRTNR_NO AS STR_HGR_PRTNR_NO          /* 입고 상위 파트너번호 */
              , T4.OG_TP_CD           AS STR_HGR_PRTNR_OG_TP_CD    /* 입고 상위 파트너 조직유형코드 */
@@ -412,13 +409,12 @@
          INNER JOIN TB_SVST_MCBY_WARE_IZ T3   /* 월별창고내역(출고상위) = 변경 전 상위창고 */
             ON T3.APY_YM  = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T3.WARE_NO = #{orglhgrWareNo}
-         INNER JOIN TB_SVST_MCBY_WARE_IZ T4   /* 월별창고내역(입고상위) = 변경 후 상위창고 */
+         INNER JOIN TB_SVST_MCBY_WARE_IZ T4   /* 월별창고내역(입고상위) = 변경 전 상위창고의 상위창고 */
             ON T4.APY_YM  = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND T4.WARE_NO = T2.HGR_WARE_NO
-         WHERE 1 = 1
-           AND T1.WARE_NO = #{wareNo}
-           AND T1.PITM_STOC_A_GD_QTY > 0 /* A등급 시점재고 > 0 */
-           AND T1.DTA_DL_YN = 'N'
+           AND T4.WARE_NO = #{hgrWareNo}
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.WARE_NO   = #{wareNo}
+           AND T1.PITM_STOC_A_GD_QTY <![CDATA[>]]> 0 /* A등급 시점재고 > 0 */
          UNION ALL
         SELECT T1.WARE_NO            AS OSTR_OJ_WARE_NO           /* 출고대상창고번호 */
              , T2.WARE_DV_CD         AS OSTR_WARE_DV_CD           /* 출고창고구분코드 */
@@ -431,11 +427,11 @@
              , T1.ITM_PD_CD                                       /* 상품코드 */
              , 'B'                   AS ITM_GD_CD                 /* 상품등급코드 = 'B' */
              , T1.PITM_STOC_B_GD_QTY AS OSTR_AK_QTY               /* 출고요청수량 = 'B등급 시점재고' */
-             , T1.WARE_NO            AS STR_OJ_WARE_NO            /* 입고대상창고번호 */
+             , T2.WARE_NO            AS STR_OJ_WARE_NO            /* 입고대상창고번호 */
              , T2.WARE_DV_CD         AS STR_WARE_DV_CD            /* 입고창고구분코드 */
              , T2.WARE_MNGT_PRTNR_NO AS STR_PRTNR_NO              /* 입고대상 창고관리 파트너번호 */
              , T2.OG_TP_CD           AS STR_PRTNR_OG_TP_CD        /* 입고대상 창고관리 파트너 조직유형코드 */
-             , T2.HGR_WARE_NO        AS STR_HGR_WARE_NO           /* 입고대상 상위창고번호 */
+             , T4.WARE_NO            AS STR_HGR_WARE_NO           /* 입고대상 상위창고번호 */
              , T4.WARE_DV_CD         AS STR_HGR_DV_CD             /* 입고 상위 창고구분코드 */
              , T4.WARE_MNGT_PRTNR_NO AS STR_HGR_PRTNR_NO          /* 입고 상위 파트너번호 */
              , T4.OG_TP_CD           AS STR_HGR_PRTNR_OG_TP_CD    /* 입고 상위 파트너 조직유형코드 */
@@ -446,13 +442,12 @@
          INNER JOIN TB_SVST_MCBY_WARE_IZ T3   /* 월별창고내역(출고상위) = 변경 전 상위창고 */
             ON T3.APY_YM  = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T3.WARE_NO = #{orglhgrWareNo}
-         INNER JOIN TB_SVST_MCBY_WARE_IZ T4   /* 월별창고내역(입고상위) = 변경 후 상위창고 */
+         INNER JOIN TB_SVST_MCBY_WARE_IZ T4   /* 월별창고내역(입고상위) = 변경 전 상위창고의 상위창고 */
             ON T4.APY_YM  = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND T4.WARE_NO = T2.HGR_WARE_NO
-         WHERE 1 = 1
-           AND T1.WARE_NO = #{wareNo}
-           AND T1.PITM_STOC_B_GD_QTY > 0 /* B등급 시점재고 > 0 */
-           AND T1.DTA_DL_YN = 'N'
+           AND T4.WARE_NO = #{hgrWareNo}
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.WARE_NO   = #{wareNo}
+           AND T1.PITM_STOC_B_GD_QTY <![CDATA[>]]> 0 /* B등급 시점재고 > 0 */
          UNION ALL
         SELECT T1.WARE_NO            AS OSTR_OJ_WARE_NO           /* 출고대상창고번호 */
              , T2.WARE_DV_CD         AS OSTR_WARE_DV_CD           /* 출고창고구분코드 */
@@ -465,11 +460,11 @@
              , T1.ITM_PD_CD                                       /* 상품코드 */
              , 'E'                   AS ITM_GD_CD                 /* 상품등급코드 = 'E' */
              , T1.PITM_STOC_E_GD_QTY AS OSTR_AK_QTY               /* 출고요청수량 = 'E등급 시점재고' */
-             , T1.WARE_NO            AS STR_OJ_WARE_NO            /* 입고대상창고번호 */
+             , T2.WARE_NO            AS STR_OJ_WARE_NO            /* 입고대상창고번호 */
              , T2.WARE_DV_CD         AS STR_WARE_DV_CD            /* 입고창고구분코드 */
              , T2.WARE_MNGT_PRTNR_NO AS STR_PRTNR_NO              /* 입고대상 창고관리 파트너번호 */
              , T2.OG_TP_CD           AS STR_PRTNR_OG_TP_CD        /* 입고대상 창고관리 파트너 조직유형코드 */
-             , T2.HGR_WARE_NO        AS STR_HGR_WARE_NO           /* 입고대상 상위창고번호 */
+             , T4.WARE_NO            AS STR_HGR_WARE_NO           /* 입고대상 상위창고번호 */
              , T4.WARE_DV_CD         AS STR_HGR_DV_CD             /* 입고 상위 창고구분코드 */
              , T4.WARE_MNGT_PRTNR_NO AS STR_HGR_PRTNR_NO          /* 입고 상위 파트너번호 */
              , T4.OG_TP_CD           AS STR_HGR_PRTNR_OG_TP_CD    /* 입고 상위 파트너 조직유형코드 */
@@ -480,13 +475,12 @@
          INNER JOIN TB_SVST_MCBY_WARE_IZ T3   /* 월별창고내역(출고상위) = 변경 전 상위창고 */
             ON T3.APY_YM  = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T3.WARE_NO = #{orglhgrWareNo}
-         INNER JOIN TB_SVST_MCBY_WARE_IZ T4   /* 월별창고내역(입고상위) = 변경 후 상위창고 */
+         INNER JOIN TB_SVST_MCBY_WARE_IZ T4   /* 월별창고내역(입고상위) = 변경 전 상위창고의 상위창고 */
             ON T4.APY_YM  = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND T4.WARE_NO = T2.HGR_WARE_NO
-         WHERE 1 = 1
-           AND T1.WARE_NO = #{wareNo}
-           AND T1.PITM_STOC_E_GD_QTY > 0 /* E등급 시점재고 */
-           AND T1.DTA_DL_YN = 'N'
+           AND T4.WARE_NO = #{hgrWareNo}
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.WARE_NO   = #{wareNo}
+           AND T1.PITM_STOC_E_GD_QTY <![CDATA[>]]> 0 /* E등급 시점재고 */
          UNION ALL
         SELECT T1.WARE_NO            AS OSTR_OJ_WARE_NO           /* 출고대상창고번호 */
              , T2.WARE_DV_CD         AS OSTR_WARE_DV_CD           /* 출고창고구분코드 */
@@ -499,11 +493,11 @@
              , T1.ITM_PD_CD                                       /* 상품코드 */
              , 'R'                   AS ITM_GD_CD                 /* 상품등급코드 = 'R' */
              , T1.PITM_STOC_R_GD_QTY AS OSTR_AK_QTY               /* 출고요청수량 = 'R등급 시점재고' */
-             , T1.WARE_NO            AS STR_OJ_WARE_NO            /* 입고대상창고번호 */
+             , T2.WARE_NO            AS STR_OJ_WARE_NO            /* 입고대상창고번호 */
              , T2.WARE_DV_CD         AS STR_WARE_DV_CD            /* 입고창고구분코드 */
              , T2.WARE_MNGT_PRTNR_NO AS STR_PRTNR_NO              /* 입고대상 창고관리 파트너번호 */
              , T2.OG_TP_CD           AS STR_PRTNR_OG_TP_CD        /* 입고대상 창고관리 파트너 조직유형코드 */
-             , T2.HGR_WARE_NO        AS STR_HGR_WARE_NO           /* 입고대상 상위창고번호 */
+             , T4.WARE_NO            AS STR_HGR_WARE_NO           /* 입고대상 상위창고번호 */
              , T4.WARE_DV_CD         AS STR_HGR_DV_CD             /* 입고 상위 창고구분코드 */
              , T4.WARE_MNGT_PRTNR_NO AS STR_HGR_PRTNR_NO          /* 입고 상위 파트너번호 */
              , T4.OG_TP_CD           AS STR_HGR_PRTNR_OG_TP_CD    /* 입고 상위 파트너 조직유형코드 */
@@ -514,13 +508,12 @@
          INNER JOIN TB_SVST_MCBY_WARE_IZ T3   /* 월별창고내역(출고상위) = 변경 전 상위창고 */
             ON T3.APY_YM  = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T3.WARE_NO = #{orglhgrWareNo}
-         INNER JOIN TB_SVST_MCBY_WARE_IZ T4   /* 월별창고내역(입고상위) = 변경 후 상위창고 */
+         INNER JOIN TB_SVST_MCBY_WARE_IZ T4   /* 월별창고내역(입고상위) = 변경 전 상위창고의 상위창고 */
             ON T4.APY_YM  = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND T4.WARE_NO = T2.HGR_WARE_NO
-         WHERE 1 = 1
-           AND T1.WARE_NO = #{wareNo}
-           AND T1.PITM_STOC_R_GD_QTY > 0 /* R등급 시점재고 > 0 */
-           AND T1.DTA_DL_YN = 'N'
+           AND T4.WARE_NO = #{hgrWareNo}
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.WARE_NO   = #{wareNo}
+           AND T1.PITM_STOC_R_GD_QTY <![CDATA[>]]> 0 /* R등급 시점재고 > 0 */
     </select>
 
     <select id="selectNewItmOstrNo" resultType="java.lang.String">

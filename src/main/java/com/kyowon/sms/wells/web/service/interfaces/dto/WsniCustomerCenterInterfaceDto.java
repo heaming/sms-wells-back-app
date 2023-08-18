@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.service.interfaces.dto;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sds.sflex.common.utils.DbEncUtil;
 
@@ -8,8 +11,6 @@ import io.swagger.annotations.ApiModel;
 public class WsniCustomerCenterInterfaceDto {
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchReq")
     public record SearchReq(
-        @JsonProperty("AS_AK_ID")
-        String asAkId,
         @JsonProperty("CST_SV_ASN_NO")
         String cstSvAsnNo,
         @JsonProperty("WK_PRTNR_NO")
@@ -24,22 +25,24 @@ public class WsniCustomerCenterInterfaceDto {
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchContactRes")
     public record SearchContactRes(
-        @JsonProperty("AS_AK_ID")
-        String asAkId,
-        @JsonProperty("SYS_DV_CD")
-        String sysDvCd,
+        @JsonProperty("CROW")
+        String crow,
+        @JsonProperty("TROW")
+        String trow,
+        @JsonProperty("FMT_CNTC_DT")
+        String fmtCntcDt,
+        @JsonProperty("FMT_CNTC_HH")
+        String fmtCntcHh,
+        @JsonProperty("ABSNC_RSON_CD")
+        String absncRsonCd,
+        @JsonProperty("ABSNC_RSON_NM")
+        String absncRsonNm,
         @JsonProperty("CST_SV_ASN_NO")
         String cstSvAsnNo,
         @JsonProperty("CNTC_DT")
         String cntcDt,
         @JsonProperty("CNTC_HH")
         String cntcHh,
-        @JsonProperty("ABSNC_RSON_CD")
-        String absncRsonCd,
-        @JsonProperty("OG_TP_CD")
-        String ogTpCd,
-        @JsonProperty("OG_TP_CD_NM")
-        String ogTpCdNm,
         @JsonProperty("PRTNR_NO")
         String prtnrNo,
         @JsonProperty("PRTNR_KNM")
@@ -220,10 +223,10 @@ public class WsniCustomerCenterInterfaceDto {
         String svBizHclsfCd,
         @JsonProperty("SV_BIZ_HCLSF_NM")
         String svBizHclsfNm,
-        @JsonProperty("SPP_ORD_NO")
-        String sppOrdNo,
-        @JsonProperty("SPP_SN")
-        String sppSn,
+        @JsonProperty("SDING_SPP_NO")
+        String sdingSppNo,
+        // @JsonProperty("SPP_SN")
+        // String sppSn,
         @JsonProperty("SDING_PD_CD1")
         String sdingPdCd1,
         @JsonProperty("SDING_PD_NM1")
@@ -345,7 +348,9 @@ public class WsniCustomerCenterInterfaceDto {
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-CreateShpadrRes")
     public record CreateShpadrRes(
+        @JsonProperty("MSG")
         String msg,
+        @JsonProperty("RESULT")
         String result
     ) {}
 
@@ -369,8 +374,10 @@ public class WsniCustomerCenterInterfaceDto {
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-FindAdnInfReq")
     public record FindAdnInfReq(
+        @NotBlank
         @JsonProperty("CNTR_NO")
         String cntrNo,
+        @NotNull
         @JsonProperty("CNTR_SN")
         String cntrSn
     ) {}
@@ -513,5 +520,10 @@ public class WsniCustomerCenterInterfaceDto {
         String useYn,
         @JsonProperty("POPUP_YN")
         String popupYn
-    ) {}
+    ) {
+        public SearchFiltShpadrRes {
+            mexnoEncr = DbEncUtil.dec(mexnoEncr);
+            exnoEncr = DbEncUtil.dec(exnoEncr);
+        }
+    }
 }

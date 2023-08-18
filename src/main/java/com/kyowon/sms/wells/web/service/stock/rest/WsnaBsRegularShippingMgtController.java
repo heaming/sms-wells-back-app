@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.*;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaBsRegularShippingMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -51,6 +53,17 @@ public class WsnaBsRegularShippingMgtController {
         SearchReq dto
     ) {
         return this.service.getShippingItems(dto);
+    }
+
+    @GetMapping("/paging")
+    @ApiOperation(value = "(자가필터,건식상품) 목록 조회(페이징)", notes = "선택한 조회 조건에 맞는 배송 목록을 조회한다.")
+    public PagingResult<SearchRes> getShippingItemPages(
+        @Valid
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return this.service.getShippingItemPages(dto, pageInfo);
     }
 
     @PostMapping

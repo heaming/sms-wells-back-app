@@ -13,7 +13,6 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.S
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvReturningGoodsMgtMapper;
 import com.sds.sflex.common.utils.DateUtil;
 
@@ -92,17 +91,7 @@ public class WsnaPcsvReturningGoodsMgtService {
 
     @Transactional
     public int savePcsvReturningGoods(List<SaveReq> dtos) {
-        int processCount = 0;
-
-        for (SaveReq dto : dtos) {
-            WsnaPcsvReturningGoodsSaveDvo dvo = converter.mapSaveReqToPcsvReturningGoodsDvo(dto);
-
-            service.savePcsvReturningGoods(dvo);
-
-            processCount += 1;
-        }
-
-        return processCount;
+        return service.savePcsvReturningGoods(dtos);
     }
 
     private WsnaPcsvReturningGoodsDvo setPcsvReturnGoodsPdArvDtSaveReq(

@@ -19,4 +19,5 @@ public class WsncCapsuleSubscriptionCustomerDvo {
     String reqVstDt;
     String cstSvAsnNo;
     String asnOjYm;
+    String vstDuedt;
 }

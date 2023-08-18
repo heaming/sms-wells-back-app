@@ -26,8 +26,12 @@ public class WdcbCancelBorControlStatusDto {
         String perfYm, /*실적년월*/
         String cntrDtlSn, /*계약상세번호*/
         String canDtm, /*취소일자*/
-        String leaseSlCtrAmt, /*매출조정금액*/
-        String leaseSlCanAmt, /*매출취소금액 - 취소조정(취소 잔여 매출액포함)*/
+        String slCtrAmt, /*매출조정금액*/
+        String slCanAmt, /*매출취소금액 - 취소조정(취소 잔여 매출액포함)*/
+        String leaseSlCtrAmt, /*매출조정금액 - 원금*/
+        String leaseSlCanAmt, /*매출취소금액 - 원금*/
+        String ctrPvdaAmt, /*매출조정금액 - 이자*/
+        String canPvdaAmt, /*매출취소금액 - 이자*/
         String ctrTp, /*조정유형*/
         String slCtrRmkCn, /*취소조정사유*/
         String pdNm, /*상품명*/

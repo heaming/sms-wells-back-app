@@ -22,4 +22,6 @@ public interface WsnaPcsvOutOfStorageSaveMapper {
     void insertSvpdCstSvWkRsIz(WsnaPcsvOutOfStorageSaveDvo vo);
 
     void insertSvstSvWkOstrIz(WsnaPcsvOutOfStorageSaveDvo vo);
+
+    void updateSvpdCstSvExcnIz(WsnaPcsvOutOfStorageSaveDvo vo);
 }

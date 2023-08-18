@@ -77,7 +77,9 @@ public class WfeaLifeSaleCancelFeeInterfaceDto {
         @JsonProperty("FNL_MDFC_PRG_ID")
         String fnlMdfcPrgId,
         @JsonProperty("FNL_MDFC_DEPT_ID")
-        String fnlMdfcDeptId
+        String fnlMdfcDeptId,
+        @JsonProperty("OG_TP_CD")
+        String ogTpCd
     ) {}
     @Builder
     @ApiModel("WfeaLifeSaleCancelFeeInterfaceDto-SaveReq")

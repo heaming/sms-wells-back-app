@@ -85,4 +85,10 @@ public class WsnbIndividualServicePsDvo {
     String imgYn;
     String cstSvAsnNo;
     String procStus;
+    String istEnvrPhoPhDocId;
+    String istKitPhoPhDocId;
+    String istCelngPhoPhDocId;
+    String istEnvrFileUid;
+    String istKitFileUid;
+    String istCelngFileUid;
 }

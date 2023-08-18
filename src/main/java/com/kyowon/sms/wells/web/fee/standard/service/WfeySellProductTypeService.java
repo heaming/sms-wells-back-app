@@ -16,6 +16,7 @@ import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -68,9 +69,13 @@ public class WfeySellProductTypeService {
             WfeySellProductTypeDvo dvo = converter.mapSaveReqWfeySellProductTypeDvo(dto);
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
+                    int cntrExistCnt = mapper.selectDuplicateSellProductType(dvo);
+                    BizAssert.isFalse(cntrExistCnt > 0, "MSG_ALT_SAME_PD_DATE");
                     processCount += mapper.insertSellProductType(dvo);
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
+                    int cntrExistCnt = mapper.selectDuplicateSellProductType(dvo);
+                    BizAssert.isFalse(cntrExistCnt > 0, "MSG_ALT_SAME_PD_DATE");
                     processCount += mapper.updateSellProductType(dvo);
                 }
                 case CommConst.ROW_STATE_DELETED -> {
@@ -147,7 +152,7 @@ public class WfeySellProductTypeService {
                 if (cntrExistCnt > 0) { //기존데이터 체크
                     errorDvo.setErrorRow(finalRow);
                     errorDvo.setHeaderName(headerTitle.get("basePdCd"));
-                    errorDvo.setErrorData(messageService.getMessage("MSG_TXT_SMD_INF_EXST")); // 동일한 정보가 존재합니다.
+                    errorDvo.setErrorData(messageService.getMessage("MSG_ALT_SAME_PD_DATE")); // 동일한 정보가 존재합니다.
                 }
                 check.put("basePdCd", list.getBasePdCd());
                 check.put("apyStrtYm", list.getApyStrtYm());

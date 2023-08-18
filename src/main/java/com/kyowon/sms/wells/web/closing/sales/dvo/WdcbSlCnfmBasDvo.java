@@ -93,7 +93,12 @@ public class WdcbSlCnfmBasDvo {
     private String svDt;
     private int pvdaOjPcam;
     private int pvdaAmt;
-    private String lgstSppMthdCd;
+    private String slRcogClsfCd; /*매출인식분류코드*/
+    private String slRcogDvCd; /*매출인식구분코드*/
+    private String lgstSppMthdCd; /*물류배송방식코드*/
+    private String lgstItmGdCd; /*물류품목등급코드*/
+    private int reimPcsvCs; /*변상택배비용*/
+    private int pcsvReimAmt; /*택배변상금액*/
     private String iostWareCd;
     private String sapMatEvlClssVal;
     private String sapSlTpCd;

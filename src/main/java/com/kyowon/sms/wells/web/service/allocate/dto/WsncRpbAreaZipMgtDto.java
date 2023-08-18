@@ -31,8 +31,10 @@ public class WsncRpbAreaZipMgtDto {
     @ApiModel(value = "WsncRpbAreaZipMgtDto-SearchRes")
     public record SearchRes(
         String newAdrZip, // 신주소우편번호
+        /* 조회 속도 이슈로 미사용
         String mgtCnt, // 지역별 서비스 계정 수
         String wrkCnt, // 월별 수임 건수 (조회월 이전 3개월 평균)
+        */
         String ctpvNm, // 시도명
         String ctctyNm, // 시군구명
         String lawcEmdNm, // 법정읍면동명
