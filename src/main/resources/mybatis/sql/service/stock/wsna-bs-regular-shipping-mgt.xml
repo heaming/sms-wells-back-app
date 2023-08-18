@@ -4,12 +4,15 @@
 
     <select id="selectProducts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto$SearchProductRes">
         SELECT PD_CODE, PD_NAME, PG_GB, MIN(PD_GROUP_CD) AS PD_GROUP_CD
+             , MIN(LGST_WK_MTHD_CD) AS LGST_WK_MTHD_CD
+             , COUNT(DISTINCT LGST_WK_MTHD_CD) AS CNT_LGST_WK_MTHD_CD
         FROM (
                SELECT /*+ USE_NL(TA TN TC TK CO PB) LEADING(TA) */
                       NVL2(TN.PD_CD, TN.SPP_PD_CD, TA.PDCT_PD_CD) AS PD_CODE  /*배송상품코드, 매핑이 없으면 제품상품코드*/
                     , NVL2(TN.PD_CD, CO.CD_CNTN, PB.PD_NM) AS PD_NAME         /*상품명*/
                     , NVL2(TN.SPP_PD_CD, 'G', 'P') AS PG_GB                      /*G :배송상품그룹매핑, P:미매핑상품*/
                     , TK.PD_PRP_VAL20   AS PD_GROUP_CD                            /* 상품속성값 사용*/
+                    , CO.USER_DFN_06 AS LGST_WK_MTHD_CD /*물류작업방식코드*/
                  FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ TA
                  LEFT JOIN TB_SVPD_PCSV_PD_IZ TN
                    ON TN.PD_CD = TA.PDCT_PD_CD
@@ -27,9 +30,8 @@
                 INNER JOIN TB_PDBS_PD_BAS  PB
                    ON PB.PD_CD = TA.PDCT_PD_CD
                  WHERE 1=1
-                   AND TA.ASN_OJ_YM  = #{asnYm}
+                   AND TA.ASN_OJ_YM = #{asnYm}
                    AND NVL(TN.SPP_EXCD_YN,'N') != 'Y' /*씨앗제외*/
-                   AND NVL(TN.SPP_THM0_YN,'N') != 'Y' /*0차월배송 제외*/
                    AND TA.VST_DV_CD = '20' /*20:택배*/
                 <if test='@MybatisUtils@equals(sppDvCd,"A1")'>
                    AND TK.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '11', '91', '92', '93', '94', '95', '96') /*자가필터*/
@@ -80,7 +82,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                  , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 10) AS PART_NM_10
                  , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 10) AS PART_QTY_10
               FROM (
-                    SELECT TA.CST_SV_ASN_NO
+                    SELECT DISTINCT TA.CST_SV_ASN_NO  /* ==> 중복로우로 DISTINCT 추가 */
                          , TB.PDCT_PD_CD AS PDCT_PD_CD
                          , COUNT(1) OVER ( PARTITION BY TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN
                                            ORDER BY     TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN
@@ -114,6 +116,8 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                  , V1.CNTR_NO
                  , V1.CNTR_SN
                  , V1.CST_SV_ASN_NO
+                 , V1.CST_NO
+                 , DENSE_RANK() OVER (ORDER BY V1.CNTR_NO, V1.CNTR_SN) AS MPAC_NO /* 합포장번호 */
                  , V1.CST_KNM
                  , V1.ZIP
                  , V1.BAS_ADR
@@ -191,7 +195,6 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                  , V1.BFSVC_BZS_DV_CD
                  , V1.SPP_DV_CD
                  , V1.SPP_PD_CD
-                 , V1.CST_NO
                  , V1.WARE_ICHR_NO
                  , V1.WARE_MNGT_PRTNRNO
                  , V1.PD_GROUP_CD
@@ -244,6 +247,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                          , TA.ASN_OJ_YM    AS ASN_OJ_YM
                          , TA.CNTR_NO AS CNTR_NO
                          , TA.CNTR_SN AS CNTR_SN
+                         , C0.CNTR_CST_NO AS CST_NO
                          , TB.CST_SV_ASN_NO AS CST_SV_ASN_NO
                          , CB.RCGVP_KNM  AS CST_KNM
                          , AB.NEW_ADR_ZIP AS ZIP
@@ -302,7 +306,6 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                          , NVL(TRIM(TH.BFSVC_BZS_DV_CD), 0) AS BFSVC_BZS_DV_CD
                          , #{sppDvCd} AS SPP_DV_CD
                          , NVL2(TN.PD_CD, TA.PDCT_PD_CD, TN.SPP_PD_CD) AS SPP_PD_CD
-                         , C0.CNTR_CST_NO AS CST_NO
                          , TK.PD_PRP_VAL20   AS PD_GROUP_CD
                       FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ TA /*고객서비스BS대상내역*/
                       LEFT JOIN TB_SVPD_PCSV_PD_IZ TN /*택배상품내역*/
@@ -365,7 +368,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                        AND TA.PDCT_PD_CD = #{pdCd}
                     </if>
                     <if test='@MybatisUtils@equals(pgGb,"G")'>
-                       AND TA.PDCT_PD_CD IN (SELECT CD_VLD_VAL FROM T_CMZ_CD_D CO WHERE CO.TENANT_ID = 'TNT_WELLS' AND CO.CD_ID = 'SPP_PD_CD')
+                       AND TN.SPP_PD_CD = #{pdCd}
                     </if>
                      ) V1
               LEFT OUTER JOIN PART_LIST_TB PL
