@@ -69,6 +69,7 @@ public class WsnaWarehouseOrganizationService {
         return this.mapper.selectWareCarriedCounter(dto);
     }
 
+    @Transactional
     public int createWareCarried(CreateReq dto) {
 
         int processCount = 0;
