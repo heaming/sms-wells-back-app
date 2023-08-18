@@ -8,7 +8,16 @@
              , BASE_YM
              , PRTNR_KNM
              , PRTNR_NO
+             , HIR_FOM_CD
              , PSTN_DV_CD
+             , CASE WHEN PSTN_DV_CD = '86' THEN '직무사원(1급)'
+                    WHEN PSTN_DV_CD = '87' THEN '직무사원(2급)'
+                    WHEN PSTN_DV_CD = '88' THEN '직무사원(3급)'
+                    WHEN HIR_FOM_CD = '1' THEN '정규사원'
+                    WHEN HIR_FOM_CD = '2' THEN '직무사원'
+                    WHEN HIR_FOM_CD = '6' THEN '계약사원'
+                    WHEN HIR_FOM_CD = '7' THEN '개인사업자'
+               END AS PSTN_DV_NM
              , RSB_DV_CD
              , NVL(PERF_W06P00001, 0) AS PERF_W06P00001	/*설치작업 건수*/
              , NVL(PERF_W06P00004, 0) AS PERF_W06P00004	/*BS작업 건수*/
@@ -84,6 +93,7 @@
                 , BASE_YM
                 , PRTNR_KNM
                 , PRTNR_NO
+                , HIR_FOM_CD
                 , PSTN_DV_CD
                 , RSB_DV_CD
                 , PERF_W06P00001
@@ -107,6 +117,7 @@
                      , T1.BASE_YM
                      , T2.PRTNR_KNM
                      , T1.PRTNR_NO
+                     , T2.HIR_FOM_CD
                      , T2.PSTN_DV_CD
                      , T2.RSB_DV_CD
                      , T1.PERF_ATC_CD
@@ -227,7 +238,16 @@
              , BASE_YM
              , PRTNR_KNM
              , PRTNR_NO
+             , HIR_FOM_CD
              , PSTN_DV_CD
+             , CASE WHEN PSTN_DV_CD = '86' THEN '직무사원(1급)'
+                    WHEN PSTN_DV_CD = '87' THEN '직무사원(2급)'
+                    WHEN PSTN_DV_CD = '88' THEN '직무사원(3급)'
+                    WHEN HIR_FOM_CD = '1' THEN '정규사원'
+                    WHEN HIR_FOM_CD = '2' THEN '직무사원'
+                    WHEN HIR_FOM_CD = '6' THEN '계약사원'
+                    WHEN HIR_FOM_CD = '7' THEN '개인사업자'
+               END AS PSTN_DV_NM
              , RSB_DV_CD
              , NVL(FEE_W060031, 0) AS FEE_W060031  /*업적수당*/
              , NVL(FEE_W060032, 0) AS FEE_W060032  /*자격수당*/
@@ -239,6 +259,7 @@
                   , T1.BASE_YM
                   , T2.PRTNR_KNM
                   , T1.PRTNR_NO
+                  , T2.HIR_FOM_CD
                   , T2.PSTN_DV_CD
                   , T2.RSB_DV_CD
                   , T1.FEE_CD
@@ -633,6 +654,23 @@
            AND OG_CD = #{ogCd}
            AND DTA_DL_YN = 'N'
     </update>
+
+    <select id="selectEngineerSchedule" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchSchdRes">
+        SELECT CASE WHEN COUNT(BASE_YM) <![CDATA[>]]> 0 THEN 'START'
+               ELSE 'END'
+               END AS FEE_SCHD_LV_CD
+          FROM TB_FEAM_FEE_SCHD_BAS T1	/*수수료일정기본*/
+         INNER JOIN TB_FEAM_FEE_SCHD_LV_DTL T2	/*수수료일정단계상세*/
+            ON T1.FEE_SCHD_ID = T2.FEE_SCHD_ID
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.BASE_YM = #{perfYm}
+           AND T1.FEE_SCHD_TP_CD = '602'    /*엔지니어 직책수당*/
+           AND T1.FEE_TCNT_DV_CD = '02'
+           AND T1.OG_TP_CD = 'W06'
+           AND T1.FEE_SCHD_STAT_CD = '03'	/*수수료일정상태코드 03-진행중*/
+           AND T2.FEE_SCHD_LV_STAT_CD = '02'	/*수수료일정단계상태코드 02-진행중*/
+           AND T2.FEE_SCHD_LV_CD = 'W0604'  /*W0604-수당확정*/
+    </select>
 
     <delete id="deleteEgerAllowances">
 

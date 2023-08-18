@@ -44,4 +44,6 @@ public interface WfebEgerAllowanceMapper {
 
     int insertEgerAllowances(WfebEgerAllowanceDvo dvo);
 
+    WfebEgerAllowanceDto.SearchSchdRes selectEngineerSchedule(WfebEgerAllowanceDto.SearchReq dto);
+
 }
