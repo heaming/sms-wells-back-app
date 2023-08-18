@@ -25,6 +25,8 @@ public interface WfeaWelsMngerSettlementAwMapper {
         SearchReq dto
     );
 
+    int deleteWelsMngerOpng(WfeaWelsMngerSettlementAwDvo dvo);
+
     int insertWelsMngerOpng(WfeaWelsMngerSettlementAwDvo dvo);
 
     int updateWelsMnger(WfeaWelsMngerSettlementAwDvo dvo);

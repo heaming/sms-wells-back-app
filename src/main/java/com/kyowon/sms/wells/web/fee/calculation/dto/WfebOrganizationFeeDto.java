@@ -60,8 +60,8 @@ public class WfebOrganizationFeeDto {
     // *********************************************************
     @ApiModel(value = "WfebOrganizationFeeDto-SearchHmstRes")
     public record SearchHmstRes(
-        String dgr1LevlOgNm, /*지역단*/
-        String dgr2LevlOgNm, /*지점*/
+        String dgr2LevlOgNm, /*지역단*/
+        String dgr3LevlOgNm, /*지점*/
         String prtnrNo, /*번호*/
         String prtnrKnm, /*성명*/
         String rsbDvCd, /*직책*/
@@ -104,8 +104,8 @@ public class WfebOrganizationFeeDto {
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchHmstBrmgrRes")
     public record SearchHmstBrmgrRes(
-        String dgr1LevlOgNm, /*지역단*/
-        String dgr2LevlOgNm, /*지점*/
+        String dgr2LevlOgNm, /*지역단*/
+        String dgr3LevlOgNm, /*지점*/
         String prtnrNo, /*번호*/
         String prtnrKnm, /*성명*/
         String rsbDvCd, /*직책*/
