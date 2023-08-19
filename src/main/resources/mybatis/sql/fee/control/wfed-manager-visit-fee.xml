@@ -3,7 +3,8 @@
 
 
     <select id='selectManagerVisitFees' resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedManagerVisitFeeDto$SearchRes">
-        SELECT OG.DGR1_LEVL_OG_ID	/*총괄단*/
+        SELECT /*+ USE_NL(T1 T2 T4) LEADING(T1 T2) USE_HASH(BAS) */
+             OG.DGR1_LEVL_OG_ID	/*총괄단*/
              , OG.DGR2_LEVL_OG_ID	/*지역단*/
              , OG.DGR3_LEVL_OG_ID	/*지점*/
              , OG.DGR1_LEVL_DG_PRTNR_NO	/*총괄단장*/
@@ -57,8 +58,9 @@
                 * 웰스팜 기기 + 모종 결합 계약인 경우, 웰스팜 기기 방문에 수수료 지급
                 * => 정기배송 패키지 상품(모종)이고 결합 계약인 것을 제외함
                 * */
-                SELECT NULL AS HCR_DV_CD
-                     , CASE WHEN C3.CNTR_REL_DTL_CD = '216'	/*모종결합*/ THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
+                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1 C3) USE_NL(C1 C2 C3) */
+                    NULL AS HCR_DV_CD
+                     , 'N' AS COMBI_YN	/*결합제외여부*/
                      , C2.CNTR_CST_NO	/*계약고객번호*/
                   FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
                  INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
@@ -72,9 +74,11 @@
                    AND C1.CNTR_NO = T1.CNTR_NO
                    AND C1.CNTR_SN = T1.CNTR_SN
                    AND C1.SELL_TP_CD = '6'	/*정기배송*/
+                   AND C3.CNTR_REL_DTL_CD <![CDATA[<>]]> '216'
                  UNION ALL
                  /*멤버십*/
-                SELECT C3.HCR_DV_CD
+                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) USE_NL(C1 C2 C3) */
+                    C3.HCR_DV_CD
                      , 'N' AS COMBI_YN	/*결합여부*/
                      , C2.CNTR_CST_NO	/*계약고객번호*/
                   FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
@@ -93,7 +97,8 @@
                   * 렌탈
                   * 웰스팜 기기이고 결합이 아니면 제외
                   * */
-                SELECT NULL AS HCR_DV_CD
+                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1) USE_NL(C1 C2 C3 C4) */
+                    NULL AS HCR_DV_CD
                      , CASE WHEN T2.REF_PD_CLSF_VAL LIKE '05001003%' AND C3.CNTR_REL_DTL_CD != '216' THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
                      , C2.CNTR_CST_NO	/*계약고객번호*/
                   FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
@@ -117,7 +122,8 @@
                   * 할부판매(일시불)
                   * 웰스팜 기기이고 결합이 아니면 제외
                   * */
-                SELECT C4.HCR_DV_CD
+                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1) USE_NL(C1 C2 C3 C4) */
+                    C4.HCR_DV_CD
                      , CASE WHEN T2.REF_PD_CLSF_VAL LIKE '05001003%' AND C3.CNTR_REL_DTL_CD != '216' THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
                      , C2.CNTR_CST_NO	/*계약고객번호*/
                   FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
@@ -138,7 +144,8 @@
                    AND C1.SELL_TP_CD = '1'	/*일시불*/
             ) T4 ON 1=1
          LEFT OUTER JOIN
-            ( SELECT A.BASE_YM
+            ( SELECT /*+ USE_NL(A B) */
+                    A.BASE_YM
                    , A.OG_TP_CD
                    , A.DGR1_LEVL_OG_ID
                    , A.DGR2_LEVL_OG_ID

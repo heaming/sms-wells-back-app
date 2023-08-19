@@ -162,7 +162,6 @@
                    AND T1.PERF_YM = T5.PERF_YM
                    AND T1.BASE_YM = T5.OJ_DSB_YM
                    AND T1.OG_TP_CD = T5.OG_TP_CD
-                   AND T1.PRTNR_NO = T5.PRTNR_NO
                    AND T1.OG_CD = T5.OG_CD
                    AND T5.CO_CD = '2000'
                  WHERE T1.DTA_DL_YN = 'N'
@@ -180,10 +179,19 @@
                    AND T3.OG_ID = #{ogLevlDvCd1}
                 </if>
                 <if test='@MybatisUtils@isEmpty(rsbDvCd)'>
-                   AND T2.RSB_DV_CD IN ('W0601', 'W0602', 'W0603')
+                   /*조직에서 엔지니어 직책 정리되면 W0610 삭제*/
+                   AND T2.RSB_DV_CD IN ('W0601', 'W0602', 'W0603', 'W0610')
                 </if>
                 <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
-                   AND T2.RSB_DV_CD = #{rsbDvCd}
+                    <choose>
+                        <when test='@MybatisUtils@equals(rsbDvCd, "W0603")'>
+                           /*조직에서 엔지니어 직책 정리되면 W0610 삭제*/
+                           AND T2.RSB_DV_CD IN ('W0603', 'W0610')
+                        </when>
+                        <otherwise>
+                            AND T2.RSB_DV_CD = #{rsbDvCd}
+                        </otherwise>
+                    </choose>
                 </if>
             )
             PIVOT
@@ -285,6 +293,8 @@
                 AND T3.CLO_YN = 'N'	/*조직폐쇄여부*/
               WHERE T1.DTA_DL_YN = 'N'
                 AND T1.BASE_YM = #{perfYm}
+                AND T1.PERF_YM = #{perfYm}
+                AND T1.OJ_DSB_YM = #{perfYm}
                 AND T1.OG_TP_CD = 'W06'
                 AND T1.CO_CD = '2000'
                 AND T1.FEE_CD IN ('W060031', 'W060032')
@@ -297,10 +307,19 @@
                 AND T3.OG_ID = #{ogLevlDvCd1}
               </if>
               <if test='@MybatisUtils@isEmpty(rsbDvCd)'>
-                AND T2.RSB_DV_CD IN ('W0603', 'W0604')
+                /*조직에서 엔지니어 직책 정리하면 W0610 삭제*/
+                AND T2.RSB_DV_CD IN ('W0603', 'W0610', 'W0604')
               </if>
               <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
-                AND T2.RSB_DV_CD = #{rsbDvCd}
+                <choose>
+                    <when test='@MybatisUtils@equals(rsbDvCd, "W0603")'>
+                       /*조직에서 엔지니어 직책 정리되면 W0610 삭제*/
+                       AND T2.RSB_DV_CD IN ('W0603', 'W0610')
+                    </when>
+                    <otherwise>
+                        AND T2.RSB_DV_CD = #{rsbDvCd}
+                    </otherwise>
+                </choose>
               </if>
             )
         PIVOT
@@ -562,7 +581,6 @@
                  , '2000' AS CO_CD             /* 회사코드 */
                  , 'W06' AS OG_TP_CD          /* 조직유형코드 */
 				 , #{ogCd} AS OG_CD		/*조직코드*/
-                 , #{prtnrNo} AS PRTNR_NO          /* 파트너번호 */
                  , 'N' AS DTA_DL_YN         /* 데이터삭제여부 */
               FROM DUAL
         ) T2
@@ -572,7 +590,6 @@
         AND T1.CO_CD = T2.CO_CD             /* 회사코드 */
         AND T1.OG_TP_CD = T2.OG_TP_CD          /* 조직유형코드 */
 		AND T1.OG_CD = T2.OG_CD	/*조직코드*/
-        AND T1.PRTNR_NO = T2.PRTNR_NO          /* 파트너번호 */
         )
         WHEN MATCHED THEN
         UPDATE
@@ -586,7 +603,6 @@
 				 , CO_CD
 				 , OG_TP_CD
 				 , OG_CD
-				 , PRTNR_NO
 				 , CNR_AW_CNFM_DTM
 				 , DTA_DL_YN         /* 데이터삭제여부 */
                <include refid="COMMON.insertSystemField" />
@@ -597,7 +613,6 @@
                , T2.CO_CD
                , T2.OG_TP_CD
 			   , T2.OG_CD
-               , T2.PRTNR_NO
 			   , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
                , T2.DTA_DL_YN
                 <include refid="COMMON.insertSystemFieldValue" />
@@ -625,7 +640,6 @@
 					, CO_CD
 					, OG_TP_CD
 					, OG_CD
-					, PRTNR_NO
 					, HDOF_AW_CNFM_DTM
 					, DTA_DL_YN
                   <include refid="COMMON.insertSystemField"/>
@@ -636,7 +650,6 @@
 					, '2000'
 					, 'W06'
 					, #{ogCd}
-					, #{prtnrNo}
 					, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
 					, 'N'
                   <include refid="COMMON.insertSystemFieldValue"/>
