@@ -111,7 +111,7 @@ public class WfeeIndividualFeeDto {
         String pdNm, /*상품명*/
         String cstKnm, /*고객명*/
         String saleDiv, /*판매구분*/
-        String pdAccCnt, /*인정건수*/
+        int pdAccCnt, /*인정건수*/
         int perfRental, /*환경가전렌탈*/
         int perfSnglPmnt, /*환경가전일시불*/
         int perfFxam, /*환경가전정액*/
