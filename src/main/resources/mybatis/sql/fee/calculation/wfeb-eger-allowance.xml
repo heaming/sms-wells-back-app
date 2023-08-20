@@ -2,13 +2,27 @@
 <mapper namespace="com.kyowon.sms.wells.web.fee.calculation.mapper.WfebEgerAllowanceMapper">
 
     <select id='selectEngineerAllowances' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchEngineerRes">
+        <include refid="COMMON.dataAuthOrgWithClause">
+            <property name="paramOgTpCd" value="'W06'"/>
+            <property name="paramBaseYm" value="#{perfYm}"/>
+        </include>
         SELECT OG_ID
              , OG_NM
              , OG_CD
              , BASE_YM
              , PRTNR_KNM
              , PRTNR_NO
+             , HIR_FOM_CD
              , PSTN_DV_CD
+             , CASE WHEN PSTN_DV_CD = '86' THEN '직무사원(1급)'
+                    WHEN PSTN_DV_CD = '87' THEN '직무사원(2급)'
+                    WHEN PSTN_DV_CD = '88' THEN '직무사원(3급)'
+                    WHEN HIR_FOM_CD = '1' THEN '정규사원'
+                    WHEN HIR_FOM_CD = '2' THEN '직무사원'
+                    WHEN HIR_FOM_CD = '6' THEN '계약사원'
+                    WHEN HIR_FOM_CD = '7' THEN '개인사업자'
+                    ELSE ' '
+               END AS PSTN_DV_NM
              , RSB_DV_CD
              , NVL(PERF_W06P00001, 0) AS PERF_W06P00001	/*설치작업 건수*/
              , NVL(PERF_W06P00004, 0) AS PERF_W06P00004	/*BS작업 건수*/
@@ -84,6 +98,7 @@
                 , BASE_YM
                 , PRTNR_KNM
                 , PRTNR_NO
+                , HIR_FOM_CD
                 , PSTN_DV_CD
                 , RSB_DV_CD
                 , PERF_W06P00001
@@ -107,6 +122,7 @@
                      , T1.BASE_YM
                      , T2.PRTNR_KNM
                      , T1.PRTNR_NO
+                     , T2.HIR_FOM_CD
                      , T2.PSTN_DV_CD
                      , T2.RSB_DV_CD
                      , T1.PERF_ATC_CD
@@ -150,7 +166,6 @@
                    AND T1.PERF_YM = T5.PERF_YM
                    AND T1.BASE_YM = T5.OJ_DSB_YM
                    AND T1.OG_TP_CD = T5.OG_TP_CD
-                   AND T1.PRTNR_NO = T5.PRTNR_NO
                    AND T1.OG_CD = T5.OG_CD
                    AND T5.CO_CD = '2000'
                  WHERE T1.DTA_DL_YN = 'N'
@@ -161,6 +176,11 @@
                    AND T1.PERF_ATC_CD IN ('W06P00001', 'W06P00004', 'W06P00005', 'W06P00006', 'W06P00007', 'W06P00008', 'W06P00009', 'W06P00010', 'W06P00025', 'W06P00015', 'W06P00018')
                    AND T1.CO_CD = '2000'
                    AND T1.OG_TP_CD = 'W06'
+                   /*로그인한 사용자의 권한에 따라 하위 조직만 조회*/
+                   AND EXISTS (SELECT 1
+                         FROM OBJ_ORG X1
+                        WHERE X1.OG_TP_CD = T3.OG_TP_CD
+                          AND X1.OG_ID = T3.OG_ID)
                 <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                    AND T1.PRTNR_NO = #{prtnrNo}
                 </if>
@@ -168,10 +188,19 @@
                    AND T3.OG_ID = #{ogLevlDvCd1}
                 </if>
                 <if test='@MybatisUtils@isEmpty(rsbDvCd)'>
-                   AND T2.RSB_DV_CD IN ('W0601', 'W0602', 'W0603')
+                   /*조직에서 엔지니어 직책 정리되면 W0610 삭제*/
+                   AND T2.RSB_DV_CD IN ('W0601', 'W0602', 'W0603', 'W0610')
                 </if>
                 <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
-                   AND T2.RSB_DV_CD = #{rsbDvCd}
+                    <choose>
+                        <when test='@MybatisUtils@equals(rsbDvCd, "W0603")'>
+                           /*조직에서 엔지니어 직책 정리되면 W0610 삭제*/
+                           AND T2.RSB_DV_CD IN ('W0603', 'W0610')
+                        </when>
+                        <otherwise>
+                            AND T2.RSB_DV_CD = #{rsbDvCd}
+                        </otherwise>
+                    </choose>
                 </if>
             )
             PIVOT
@@ -221,13 +250,27 @@
     </select>
 
     <select id='selectEngineerManagerAllowances' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchEngineerManagerRes">
+        <include refid="COMMON.dataAuthOrgWithClause">
+            <property name="paramOgTpCd" value="'W06'"/>
+            <property name="paramBaseYm" value="#{perfYm}"/>
+        </include>
         SELECT OG_ID
              , OG_NM
              , OG_CD
              , BASE_YM
              , PRTNR_KNM
              , PRTNR_NO
+             , HIR_FOM_CD
              , PSTN_DV_CD
+             , CASE WHEN PSTN_DV_CD = '86' THEN '직무사원(1급)'
+                    WHEN PSTN_DV_CD = '87' THEN '직무사원(2급)'
+                    WHEN PSTN_DV_CD = '88' THEN '직무사원(3급)'
+                    WHEN HIR_FOM_CD = '1' THEN '정규사원'
+                    WHEN HIR_FOM_CD = '2' THEN '직무사원'
+                    WHEN HIR_FOM_CD = '6' THEN '계약사원'
+                    WHEN HIR_FOM_CD = '7' THEN '개인사업자'
+                    ELSE ' '
+               END AS PSTN_DV_NM
              , RSB_DV_CD
              , NVL(FEE_W060031, 0) AS FEE_W060031  /*업적수당*/
              , NVL(FEE_W060032, 0) AS FEE_W060032  /*자격수당*/
@@ -239,6 +282,7 @@
                   , T1.BASE_YM
                   , T2.PRTNR_KNM
                   , T1.PRTNR_NO
+                  , T2.HIR_FOM_CD
                   , T2.PSTN_DV_CD
                   , T2.RSB_DV_CD
                   , T1.FEE_CD
@@ -262,11 +306,18 @@
                 AND T3.CLO_YN = 'N'	/*조직폐쇄여부*/
               WHERE T1.DTA_DL_YN = 'N'
                 AND T1.BASE_YM = #{perfYm}
+                AND T1.PERF_YM = #{perfYm}
+                AND T1.OJ_DSB_YM = #{perfYm}
                 AND T1.OG_TP_CD = 'W06'
                 AND T1.CO_CD = '2000'
                 AND T1.FEE_CD IN ('W060031', 'W060032')
                 AND T1.FEE_TCNT_DV_CD = '02'
                 AND T1.SPMT_DSB_DV_CD = '01'
+                /*로그인한 사용자의 권한에 따라 하위 조직만 조회*/
+               AND EXISTS (SELECT 1
+                     FROM OBJ_ORG X1
+                    WHERE X1.OG_TP_CD = T3.OG_TP_CD
+                      AND X1.OG_ID = T3.OG_ID)
               <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                 AND T1.PRTNR_NO = #{prtnrNo}
               </if>
@@ -274,10 +325,19 @@
                 AND T3.OG_ID = #{ogLevlDvCd1}
               </if>
               <if test='@MybatisUtils@isEmpty(rsbDvCd)'>
-                AND T2.RSB_DV_CD IN ('W0603', 'W0604')
+                /*조직에서 엔지니어 직책 정리하면 W0610 삭제*/
+                AND T2.RSB_DV_CD IN ('W0603', 'W0610', 'W0604')
               </if>
               <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
-                AND T2.RSB_DV_CD = #{rsbDvCd}
+                <choose>
+                    <when test='@MybatisUtils@equals(rsbDvCd, "W0603")'>
+                       /*조직에서 엔지니어 직책 정리되면 W0610 삭제*/
+                       AND T2.RSB_DV_CD IN ('W0603', 'W0610')
+                    </when>
+                    <otherwise>
+                        AND T2.RSB_DV_CD = #{rsbDvCd}
+                    </otherwise>
+                </choose>
               </if>
             )
         PIVOT
@@ -304,7 +364,7 @@
                     , A.OG_CD
                     , CASE WHEN B.CNR_AW_CNFM_DTM = '00000000' THEN ''
                       ELSE B.CNR_AW_CNFM_DTM END AS CNR_AW_CNFM_DTM
-                    , CASE WHEN NVL(B.CNR_AW_CNFM_DTM, ' ') != '00000000' THEN 'Y'
+                    , CASE WHEN B.CNT IS NOT NULL AND NVL(B.CNR_AW_CNFM_DTM, ' ') != '00000000' THEN 'Y'
                       ELSE '' END AS CNFM_BTN_YN /*과거데이터는 확정일시가 없는 것이 있기때문에 확정취소를 00000000으로 구분함*/
                  FROM
                     ( SELECT BASE_YM
@@ -329,6 +389,7 @@
                           , OG_TP_CD
                           , OG_CD
                           , CNR_AW_CNFM_DTM
+                          , COUNT(BASE_YM) AS CNT
                        FROM TB_FEAM_EGER_AW_CNFM_BAS	/*엔지니어수당확정기본*/
                       WHERE DTA_DL_YN = 'N'
                         AND BASE_YM = #{perfYm}
@@ -351,6 +412,7 @@
                 AND C.DTA_DL_YN = 'N'
               WHERE 1=1
             ) T1
+        ORDER BY OG_NM
     </select>
 
     <insert id="insertEgerAllowanceHist">
@@ -539,7 +601,6 @@
                  , '2000' AS CO_CD             /* 회사코드 */
                  , 'W06' AS OG_TP_CD          /* 조직유형코드 */
 				 , #{ogCd} AS OG_CD		/*조직코드*/
-                 , #{prtnrNo} AS PRTNR_NO          /* 파트너번호 */
                  , 'N' AS DTA_DL_YN         /* 데이터삭제여부 */
               FROM DUAL
         ) T2
@@ -549,7 +610,6 @@
         AND T1.CO_CD = T2.CO_CD             /* 회사코드 */
         AND T1.OG_TP_CD = T2.OG_TP_CD          /* 조직유형코드 */
 		AND T1.OG_CD = T2.OG_CD	/*조직코드*/
-        AND T1.PRTNR_NO = T2.PRTNR_NO          /* 파트너번호 */
         )
         WHEN MATCHED THEN
         UPDATE
@@ -563,7 +623,6 @@
 				 , CO_CD
 				 , OG_TP_CD
 				 , OG_CD
-				 , PRTNR_NO
 				 , CNR_AW_CNFM_DTM
 				 , DTA_DL_YN         /* 데이터삭제여부 */
                <include refid="COMMON.insertSystemField" />
@@ -574,7 +633,6 @@
                , T2.CO_CD
                , T2.OG_TP_CD
 			   , T2.OG_CD
-               , T2.PRTNR_NO
 			   , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
                , T2.DTA_DL_YN
                 <include refid="COMMON.insertSystemFieldValue" />
@@ -602,7 +660,6 @@
 					, CO_CD
 					, OG_TP_CD
 					, OG_CD
-					, PRTNR_NO
 					, HDOF_AW_CNFM_DTM
 					, DTA_DL_YN
                   <include refid="COMMON.insertSystemField"/>
@@ -613,7 +670,6 @@
 					, '2000'
 					, 'W06'
 					, #{ogCd}
-					, #{prtnrNo}
 					, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
 					, 'N'
                   <include refid="COMMON.insertSystemFieldValue"/>
@@ -633,6 +689,23 @@
            AND OG_CD = #{ogCd}
            AND DTA_DL_YN = 'N'
     </update>
+
+    <select id="selectEngineerSchedule" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebEgerAllowanceDto$SearchSchdRes">
+        SELECT CASE WHEN COUNT(BASE_YM) <![CDATA[>]]> 0 THEN 'START'
+               ELSE 'END'
+               END AS FEE_SCHD_LV_CD
+          FROM TB_FEAM_FEE_SCHD_BAS T1	/*수수료일정기본*/
+         INNER JOIN TB_FEAM_FEE_SCHD_LV_DTL T2	/*수수료일정단계상세*/
+            ON T1.FEE_SCHD_ID = T2.FEE_SCHD_ID
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.BASE_YM = #{perfYm}
+           AND T1.FEE_SCHD_TP_CD = '602'    /*엔지니어 직책수당*/
+           AND T1.FEE_TCNT_DV_CD = '02'
+           AND T1.OG_TP_CD = 'W06'
+           AND T1.FEE_SCHD_STAT_CD = '03'	/*수수료일정상태코드 03-진행중*/
+           AND T2.FEE_SCHD_LV_STAT_CD = '02'	/*수수료일정단계상태코드 02-진행중*/
+           AND T2.FEE_SCHD_LV_CD = 'W0604'  /*W0604-수당확정*/
+    </select>
 
     <delete id="deleteEgerAllowances">
 

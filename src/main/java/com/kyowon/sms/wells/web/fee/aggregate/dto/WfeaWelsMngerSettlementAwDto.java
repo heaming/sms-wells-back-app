@@ -36,7 +36,8 @@ public class WfeaWelsMngerSettlementAwDto {
         @NotBlank
         String baseYm,
         @NotBlank
-        String tcntDvCd
+        String tcntDvCd,
+        String reCrtYn
     ) {}
 
     @ApiModel(value = "WfeaWelsMngerSettlementAwDto-SaveReq")
@@ -45,7 +46,6 @@ public class WfeaWelsMngerSettlementAwDto {
         String baseYm,
         @NotBlank
         String prtnrNo,
-        @NotBlank
         String tcntDvCd,
         @NotBlank
         String opngCd
@@ -92,7 +92,7 @@ public class WfeaWelsMngerSettlementAwDto {
 
     @ApiModel(value = "WfeaWelsMngerSettlementAwDto-SearchEtcRes")
     public record SearchEtcRes(
-        String opngcnfmYn,
+        String opngCnfmYn,
         String opngCnfmCnt,
         String feeCnfmYn
     ) {}

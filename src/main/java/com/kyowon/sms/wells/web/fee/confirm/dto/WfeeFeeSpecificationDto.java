@@ -33,7 +33,8 @@ public class WfeeFeeSpecificationDto {
     @ApiModel("WfeeFeeSpecificationDto-SearchFeeCdRes")
     public record SearchFeeCdRes(
         String feeNm,
-        String feeCalcUnitTpCd
+        String feeCalcUnitTpCd,
+        String feeClsfCd
 
     ) {}
 }

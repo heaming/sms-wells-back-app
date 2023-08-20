@@ -21,7 +21,9 @@ public class WsnaBsRegularShippingMgtDto {
         String pdCode, // 상품코드
         String pdName, // 상품명
         String pgGb, /*G :배송상품그룹매핑, P:미매핑상품*/
-        String pdGroupCd // 상품그룹(콤보박스)
+        String pdGroupCd, // 상품그룹(콤보박스)
+        String lgstWkMthdCd,
+        int cntLgstWkMthdCd
     ) {}
 
     @ApiModel("WsnaAsConsumablesStoreDto-SearchReq")
@@ -139,7 +141,8 @@ public class WsnaBsRegularShippingMgtDto {
         String partNmQty09,
         String partNmQty10,
         String cstNo,
-        String pdGroupCd
+        String pdGroupCd,
+        String mpacNo
     ) {
         public SearchRes {
             if (StringUtil.isNotBlank(locaraTno) && StringUtil.isNotBlank(exnoEncr)
@@ -257,6 +260,8 @@ public class WsnaBsRegularShippingMgtDto {
         String partNmQty09,
         String partNmQty10,
         String cstNo,
-        String pdGroupCd
+        String pdGroupCd,
+        String mpacNo,
+        String lgstWkMthdCd
     ) {}
 }

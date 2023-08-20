@@ -152,6 +152,21 @@ public class WpdcMaterialMgtController {
         return service.getMaterialSapPages(dto, pageInfo);
     }
 
+    /**
+     * SAP 교재/자재 엑셀다운(팝업)
+     * @param dto
+     * @return
+     */
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "searchCond", value = "모델No 또는 자재코드", paramType = "query", required = false, example = ""),
+        @ApiImplicitParam(name = "searchWord", value = "모델No 또는 자재코드명", paramType = "query", required = false, example = ""),
+    })
+    @ApiOperation(value = "SAP 교재/자재 페이징 조회(팝업)", notes = "검색조건을 입력받아 교재/자재 목록을 조회한다.")
+    @GetMapping("/sap-material/excel-download")
+    public List<SearchSapRes> getMaterialSapForExcelDownload(SearchSapReq dto) {
+        return service.getMaterialSapForExcelDownload(dto);
+    }
+
     @ApiOperation(value = "교재/자재 엑셀 업로드를 통한 일괄등록")
     @PostMapping("/excel-upload")
     public UploadRes saveForDirectExcelUpload(

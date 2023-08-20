@@ -20,17 +20,17 @@
                     WHEN T4.QLF_DV_CD = '3' THEN '웰스매니저'
                     WHEN T4.QLF_DV_CD = '6' THEN 'BS프리매니저'
                END AS NEXT_QLF_DV_CD /* M+1자격 */
-             , SUBSTR(T3.PYD,0,6) AS PROCS_DTM   /* WM전환월 */
+             , SUBSTR(T3.CNTR_DT,0,6) AS PROCS_DTM   /* WM전환월 */
              , T5.EDU096  AS SRTUP /* 스타트업 */
              , T5.EDU143  AS FREE_SRTUP /* 프리스타트업 */
              , CASE WHEN T1.BZ_STAT_CD = '1' THEN 'Y' /* 사업상태코드 = 1 사업 */
                     ELSE 'N'                          /* 사업상태코드 = (2,3) 해약, 휴업 */
                END AS BZ_STAT_CD  /* 활동여부 */
-             , T1.CNTR_DT /* 계약일 */
-             , T1.CLTN_DT/* 해약일 */
-             , T1.FST_CNTR_DT /* 최초계약일 */
-             , T1.FNL_CLTN_DT/* 최종해약일 */
-             , NVL(T6.OPNG_CD,'') AS OPNG_CD
+             , T3.CNTR_DT /* 계약일 */
+             , T3.CLTN_DT/* 해약일 */
+             , T3.FST_CNTR_DT /* 최초계약일 */
+             , T3.FNL_CLTN_DT/* 최종해약일 */
+             , NVL(T6.OPNG_CD,'999') AS OPNG_CD
              , T1.BASE_YM
              , T6.TCNT_DV_CD
              , NVL(T6.CNFM_STAT_YN,'X') AS CNFM_STAT_YN
@@ -43,14 +43,24 @@
            ON T1.RSB_DV_CD = CD.CD_VLD_VAL
           AND CD.CD_ID = 'RSB_DV_CD'
           AND CD.TENANT_ID = 'TNT_WELLS'
-        LEFT OUTER JOIN ( SELECT MAX(A.CV_DT) AS PYD
-                               , A.PRTNR_NO
-                            FROM TB_OGPS_PLAR_QLF_CH_IZ A /*플래너 자격 변경내역*/
-                           WHERE A.OG_TP_CD = 'W02'
-                             AND A.QLF_DV_CD = '3'  /* 웰스매니저 */
-                             AND A.QLF_APLC_DV_CD = '1'  /* 승급 */
-                             AND A.DTA_DL_YN = 'N'
-                           GROUP BY A.PRTNR_NO
+         LEFT OUTER JOIN ( SELECT PRTNR_NO
+                                , MAX(CNTR_DT) AS CNTR_DT         /* 매니저 최종 승급전환일 */
+                                , MIN(CNTR_DT) AS FST_CNTR_DT     /* 매니저 최초 승급전환일 */
+                                , MAX(CLTN_DT) AS FNL_CLTN_DT     /* 매니저 최종 자격해제일 */
+                                , MIN(CLTN_DT) AS CLTN_DT         /* 매니저 최초 자격해제일 */
+                             FROM ( SELECT PRTNR_NO
+                                         , CASE WHEN QLF_APLC_DV_CD = '1' THEN CV_DT END AS CNTR_DT      /* 매니저 승급전환일 */
+                                         , CASE WHEN QLF_APLC_DV_CD = '2' THEN CV_DT END AS CLTN_DT     /* 매니저 자격해제일 */
+                                      FROM TB_OGPS_PLAR_QLF_CH_IZ /*플래너 자격 변경내역*/
+                                     WHERE OG_TP_CD = 'W02'
+                                       AND QLF_DV_CD = '3'  /* 웰스매니저 */
+                                       AND QLF_APLC_DV_CD IN ('1','2')  /* 승급, 해약 */
+                                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                       AND PRTNR_NO = #{prtnrNo}
+                                  </if>
+                                       AND DTA_DL_YN = 'N'
+                                  )
+                            GROUP BY PRTNR_NO
                         )T3
             ON T1.PRTNR_NO = T3.PRTNR_NO
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4
@@ -99,10 +109,7 @@
            AND SUBSTR(T1.CLTN_DT,0,6) IS NULL /* 해약자 제외 */
            </if>
       </if>
-         ORDER BY T2.DGR1_LEVL_OG_NM
-                , T2.DGR2_LEVL_OG_NM
-                , T1.OG_CD
-                , T1.PRTNR_KNM
+         ORDER BY T2.DGR1_LEVL_OG_NM, T2.DGR2_LEVL_OG_NM, T6.OPNG_CD
     </select>
 
     <select id="selectCheckWelsMngerOpng"
@@ -256,13 +263,19 @@
                           ) /* 기 입력자 제외 AS-IS 확정=Y 였으나 DB구조상 조건 제외*/
     </insert>
 
+    <delete id="deleteWelsMngerOpng">
+        DELETE FROM TB_FEAM_WELS_MNGER_OPNG_BAS
+         WHERE BASE_YM = #{baseYm}
+           AND TCNT_DV_CD = #{tcntDvCd}
+    </delete>
+
     <update id="updateWelsMnger">
         UPDATE TB_FEAM_WELS_MNGER_OPNG_BAS
-        SET OPNG_CD = #{opngCd}
+           SET OPNG_CD = CASE WHEN #{opngCd} = '999' THEN '' ELSE #{opngCd} END
         <include refid="COMMON.updateSystemField"/>
-        WHERE BASE_YM = #{baseYm}
-          AND TCNT_DV_CD = #{tcntDvCd}
-          AND PRTNR_NO = #{prtnrNo}
+         WHERE BASE_YM = #{baseYm}
+           AND TCNT_DV_CD = #{tcntDvCd}
+           AND PRTNR_NO = #{prtnrNo}
     </update>
 
     <update id="updateWelsMngerConfirm">
