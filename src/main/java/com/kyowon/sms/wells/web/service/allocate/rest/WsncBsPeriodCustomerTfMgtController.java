@@ -2,28 +2,24 @@ package com.kyowon.sms.wells.web.service.allocate.rest;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.ManagersAndEngineersRes;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.BranchsAndServiceCentersRes;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.*;
+import com.kyowon.sms.wells.web.service.allocate.service.WsncBsPeriodCustomerTfMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.SearchReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.CreateTfReq;
-import com.kyowon.sms.wells.web.service.allocate.service.WsncBsPeriodCustomerTfMgtService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 
 @Api(tags = "[WSNC] 정기BS 고객이관 관리")
 @RequiredArgsConstructor
@@ -106,5 +102,11 @@ public class WsncBsPeriodCustomerTfMgtController {
         return SaveResponse.builder()
             .processCount(service.saveTransferConfirm(dtos))
             .build();
+    }
+
+    @ApiOperation(value = "정기BS 고객 컨택 이력 조회 - 매니저 권한 조회", notes = "정기BS 고객 컨택 이력 조회 시 매니저 권한 조회")
+    @GetMapping("/manager-auth-yn")
+    public SearchAuthRes getBsPeriodCustomersManagerAuthYn() {
+        return service.getBsPeriodCustomersManagerAuthYn();
     }
 }

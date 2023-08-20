@@ -135,4 +135,8 @@ public class WsncBsPeriodCustomerTfMgtService {
         }
         return cnt;
     }
+
+    public SearchAuthRes getBsPeriodCustomersManagerAuthYn() {
+        return mapper.selectBsPeriodCustomersManagerAuthYn();
+    }
 }
