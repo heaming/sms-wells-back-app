@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbProductInstallationPsAgrgMapper">
+    <select id="selectProductInstallationPsAgrgs" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbProductInstallationPsAgrgDto$SearchRes">
+        WITH PD_INF AS
+        (/* 상품정보 */
+          SELECT T1.PD_CD
+               , T1.PD_NM
+               , T1.PD_ABBR_NM
+               , T2.PD_PRP_VAL20
+          FROM TB_PDBS_PD_BAS T1
+          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+           ON T1.PD_CD = T2.PD_CD
+          WHERE T1.DTA_DL_YN ='N'
+           AND T2.DTA_DL_YN  ='N'
+           AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
+        )
+        , BASE AS
+        (
+          SELECT SUBSTR(T2.SV_BIZ_DCLSF_CD, 1, 2)  AS SV_BIZ_MCLSF_CD
+               , SUBSTR(T1.WK_EXCN_DT,1,4) AS YYYY
+               , SUBSTR(T1.WK_EXCN_DT,5,2) AS MM
+               , WK_EXCN_DT
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
+          INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2
+           ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+          INNER JOIN PD_INF T3
+           ON T2.PD_CD =  T3.PD_CD
+          WHERE 1=1
+           AND T1.WK_EXCN_DT LIKE #{baseYy} ||'%'
+           AND T1.WK_PRGS_STAT_CD ='20'
+           AND SUBSTR(T2.SV_BIZ_DCLSF_CD, 1, 2) IN ('11','32','34')
+
+           <if test="@MybatisUtils@isNotEmpty(pdCd)">
+           AND T2.PD_CD = #{pdCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
+           AND T3.PD_PRP_VAL20  = #{pdGrpCd}
+           </if>
+        )
+        SELECT YYYY
+             , SV_BIZ_MCLSF_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_MCLSF_CD', SV_BIZ_MCLSF_CD, 'ko') AS SV_BIZ_MCLSF_CD_NM
+             , SUM(DECODE(MM, '01', 1)) AS ACOL1
+             , SUM(DECODE(MM, '02', 1)) AS ACOL2
+             , SUM(DECODE(MM, '03', 1)) AS ACOL3
+             , SUM(DECODE(MM, '04', 1)) AS ACOL4
+             , SUM(DECODE(MM, '05', 1)) AS ACOL5
+             , SUM(DECODE(MM, '06', 1)) AS ACOL6
+             , SUM(DECODE(MM, '07', 1)) AS ACOL7
+             , SUM(DECODE(MM, '08', 1)) AS ACOL8
+             , SUM(DECODE(MM, '09', 1)) AS ACOL9
+             , SUM(DECODE(MM, '10', 1)) AS ACOL10
+             , SUM(DECODE(MM, '11', 1)) AS ACOL11
+             , SUM(DECODE(MM, '12', 1)) AS ACOL12
+             , COUNT(1) AS TCNT
+             , '' AS PER
+        FROM BASE
+        GROUP BY YYYY, SV_BIZ_MCLSF_CD
+        ORDER BY SV_BIZ_MCLSF_CD
+    </select>
+</mapper>
