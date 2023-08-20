@@ -121,7 +121,7 @@ public class WdccOverduePenaltyDto {
         String cntrNo,
         String sapPdDvCd,
         String sapPdAtcNm,
-        String cntrCstNo,
+        String cstNo,
         String cstKnm,
         String pdCd,
         String pdNm,

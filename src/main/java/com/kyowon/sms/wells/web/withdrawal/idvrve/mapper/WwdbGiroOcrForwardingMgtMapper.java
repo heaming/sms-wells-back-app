@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.mapper;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto.SavePrintReq;
@@ -26,7 +27,7 @@ public interface WwdbGiroOcrForwardingMgtMapper {
     public List<SearchRes> selectGiroOcrForwardings(SearchReq dto);
 
     /* 지로OCR발송관리 대상 조회 */
-    public List<SearchObjectRes> selectGiroOcrForwardingObjects(String cntr);
+    public List<SearchObjectRes> selectGiroOcrForwardingObjects(WwdbGiroOcrForwardingMgtDto.SearchCntrReq cntr);
 
     /* 지로OCR발송관리 등록 */
     public int insertGiroOcrForwardings(WwdbGiroOcrForwardingMgtDvo dvo);

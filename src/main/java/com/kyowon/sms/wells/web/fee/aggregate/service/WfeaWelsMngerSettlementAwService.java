@@ -67,9 +67,11 @@ public class WfeaWelsMngerSettlementAwService {
      * @return 조회결과
      */
     public int saveWelsMngerOpngs(SaveOpngReq dto) {
-
         int processCount = 0;
         WfeaWelsMngerSettlementAwDvo dvo = converter.mapSaveOpngReqToWfeaWelsMngerSettlementAwDvo(dto);
+        if (dvo.getReCrtYn().equals("Y")) {
+            mapper.deleteWelsMngerOpng(dvo);
+        }
         processCount = mapper.insertWelsMngerOpng(dvo);
         BizAssert.isTrue(processCount > 0, "MSG_ALT_CRT_FAIL");
         return processCount;
@@ -89,7 +91,9 @@ public class WfeaWelsMngerSettlementAwService {
         AtomicInteger processCount = new AtomicInteger();
         info.forEach(data -> {
             WfeaWelsMngerSettlementAwDvo dvo = this.converter.mapSaveReqToWfeaWelsMngerSettlementAwDvo(data);
-            processCount.addAndGet(this.mapper.updateWelsMnger(dvo));
+            if (dvo.getTcntDvCd() != null) {
+                processCount.addAndGet(this.mapper.updateWelsMnger(dvo));
+            }
         });
         BizAssert.isTrue(processCount.get() > 0, "MSG_ALT_CRT_FAIL");
 

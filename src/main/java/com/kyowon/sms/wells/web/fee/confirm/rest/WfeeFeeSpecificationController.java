@@ -18,7 +18,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[WFEE] EDU 수수료 지급명세서")
+@Api(tags = "[WFEE] WELLS 수수료 지급명세서")
 @Validated
 @RequiredArgsConstructor
 @RestController

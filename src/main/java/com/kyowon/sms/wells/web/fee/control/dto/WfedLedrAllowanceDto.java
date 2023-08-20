@@ -39,6 +39,7 @@ public class WfedLedrAllowanceDto {
         String ogNm, /*조직명*/
         String hgrOgCd, /*상위조직코드*/
         String ogCd, /*조직코드*/
+        String rsbDvCd, /*직책*/
         String prtnrKnm, /*성명*/
         Integer brchCt, /*지점건수*/
         Integer basAwAmt, /*기본수당금액*/
@@ -81,6 +82,7 @@ public class WfedLedrAllowanceDto {
         String dsbYm, /*지급년월*/
         String hmnrscEmpnoCnt, /*인원수*/
         String ogLevlDvNm, /*조직레벨구분명*/
+        String rsbDvCd, /*직책*/
         Integer basAwAmt, /*기본수당금액*/
         Integer hhExcpAwAmt, /*시간외수당금액 */
         Integer rsbAwAmt, /*직책수당금액*/

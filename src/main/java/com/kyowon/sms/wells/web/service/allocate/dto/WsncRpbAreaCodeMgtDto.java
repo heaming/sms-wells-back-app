@@ -39,8 +39,8 @@ public class WsncRpbAreaCodeMgtDto {
         String zipList, /* 우편번호 List */
         String apyStrtdt, /* 적용시작일자 */
         String apyEnddt, /* 적용종료일자 */
-        String mgtCnt, /* 지역별 서비스 계정 수 */
-        String wrkCnt, /* 월별 수임 건수 (조회월 이전 3개월 평균) */
+        //        String mgtCnt, /* 지역별 서비스 계정 수 */
+        //        String wrkCnt, /* 월별 수임 건수 (조회월 이전 3개월 평균) */
         String rpbLocaraCd, /* 책임지역코드 */
         String rpbLocaraGrpCd, /* 책임지역그룹코드 */
         String vstDowVal, /* 방문요일코드 */

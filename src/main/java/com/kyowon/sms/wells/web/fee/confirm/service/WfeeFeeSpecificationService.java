@@ -82,7 +82,26 @@ public class WfeeFeeSpecificationService {
                 }
             }
             case "W03" -> { //홈마스터
-                //@TODO : 홈마스터 일 경우 ( 아직 TB_FEAM_FEE_CD에 홈마스터 코드가 없음)
+                if ("1".equals(rsbDvCd)) { // 플래너
+                    feeCdMap = getFeeCdLists(dto.perfDt(), "301");
+                    if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
+                        resList = mapper.selectHPlannerFeeSpecifications(
+                            dto, String.valueOf(feeCdMap.get("feeCdInStr")),
+                            String.valueOf(feeCdMap.get("feeCdFields")),
+                            String.valueOf(feeCdMap.get("feeSumField")),
+                            String.valueOf(feeCdMap.get("feeCdInStr"))
+                        );
+
+                } else if ("2".equals(rsbDvCd)) { //지점장
+                    feeCdMap = getFeeCdLists(dto.perfDt(), "302");
+                    if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
+                        resList = mapper.selectHManagerFeeSpecifications(
+                            dto, String.valueOf(feeCdMap.get("feeCdInStr")),
+                            String.valueOf(feeCdMap.get("feeCdFields")),
+                            String.valueOf(feeCdMap.get("feeSumField")),
+                            String.valueOf(feeCdMap.get("feeCdInStr"))
+                        );
+                }
             }
         }
 
