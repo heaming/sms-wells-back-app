@@ -14,12 +14,12 @@ public class WwdbVirtualAccountInterfaceDto {
     @ApiModel("WwdbVirtualAccountInterfaceDto-SearchReq")
     public record SearchReq(
         @NotBlank
+        @JsonProperty("KW_GRP_CO_CD")
+        String kwGrpCoCd, //교원그룹코드
         @JsonProperty("VAC_NO")
         String vacNo, //가상계좌번호
-        @NotBlank
         @JsonProperty("CNTR_NO")
         String cntrNo, // 계약번호
-        @NotBlank
         @JsonProperty("CNTR_SN")
         String cntrSn // 계약일련번호
     ) {}
