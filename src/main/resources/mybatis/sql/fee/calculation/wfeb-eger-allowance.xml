@@ -73,6 +73,9 @@
              , (CASE WHEN FEE_W060025 > 0 THEN FEE_W060025/10000 ELSE 0 END) AS FEE_W060025_CNT  /*강의수당 건수*/
              , (CASE WHEN FEE_W060026 > 0 THEN FEE_W060026/10000 ELSE 0 END) AS FEE_W060026_CNT  /*도서방문수당 건수*/
              , (CASE WHEN FEE_W060023 > 0 THEN FEE_W060023/2000 ELSE 0 END) AS FEE_W060023_CNT  /*토요근무수당 건수*/
+             <!--, (CASE WHEN FEE_W060023 > 0 THEN FEE_W060023/(SELECT TO_NUMBER(SUBSTR(A.CALF_CN, INSTR(A.CALF_CN, '*', 1, 1) + 1, LENGTHB(A.CALF_CN) - INSTR(A.CALF_CN, '*', 1, 1))) FROM TB_FEAM_FEE_BASE_DTL A WHERE A.DTA_DL_YN = 'N' AND #{perfYm} BETWEEN A.APY_STRT_YM AND A.APY_END_YM  AND A.FEE_CD = 'W060023') ELSE 0 END) AS FEE_W060023_CNT
+             , (CASE WHEN FEE_W060024 > 0 THEN FEE_W060024/(SELECT TO_NUMBER(SUBSTR(A.CALF_CN, INSTR(A.CALF_CN, '*', 1, 1) + 1, LENGTHB(A.CALF_CN) - INSTR(A.CALF_CN, '*', 1, 1))) FROM TB_FEAM_FEE_BASE_DTL A WHERE A.DTA_DL_YN = 'N' AND #{perfYm} BETWEEN A.APY_STRT_YM AND A.APY_END_YM  AND A.FEE_CD = 'W060024') ELSE 0 END) AS FEE_W060024_CNT
+             , (CASE WHEN FEE_W060026 > 0 THEN FEE_W060026/(SELECT TO_NUMBER(SUBSTR(A.CALF_CN, INSTR(A.CALF_CN, '*', 1, 1) + 1, LENGTHB(A.CALF_CN) - INSTR(A.CALF_CN, '*', 1, 1))) FROM TB_FEAM_FEE_BASE_DTL A WHERE A.DTA_DL_YN = 'N' AND #{perfYm} BETWEEN A.APY_STRT_YM AND A.APY_END_YM  AND A.FEE_CD = 'W060026') ELSE 0 END) AS FEE_W060026_CNT-->
              , (CASE WHEN CNR_AW_CNFM_DTM IS NULL
                      THEN (CASE WHEN #{session.rsbCd} = '171' THEN 'Y'    /*센터장*/
                             ELSE 'N'
@@ -142,9 +145,8 @@
                     ON T2.BASE_YM = T3.BASE_YM
                    AND T2.OG_TP_CD = T3.OG_TP_CD
                    AND T2.OG_ID = T3.OG_ID
-                   AND T2.OG_CD = T3.OG_CD
                    AND T3.DTA_DL_YN = 'N'
-                   AND T3.OG_LEVL_DV_CD = '1'	/*센터*/
+                   /*AND T3.OG_LEVL_DV_CD = '1'	센터*/
                    AND T3.CLO_YN = 'N'	/*조직폐쇄여부*/
                   LEFT OUTER JOIN TB_FEAM_EGER_AW_CALC_BAS T4	/*엔지니어수당기본*/
                     ON T4.DTA_DL_YN = 'N'
@@ -300,9 +302,8 @@
                  ON T3.BASE_YM = T2.BASE_YM
                 AND T3.OG_TP_CD = T2.OG_TP_CD
                 AND T3.OG_ID = T2.OG_ID
-                AND T3.OG_CD = T2.OG_CD
                 AND T3.DTA_DL_YN = 'N'
-                AND T3.OG_LEVL_DV_CD = '1'	/*센터*/
+                /*AND T3.OG_LEVL_DV_CD = '1'	센터*/
                 AND T3.CLO_YN = 'N'	/*조직폐쇄여부*/
               WHERE T1.DTA_DL_YN = 'N'
                 AND T1.BASE_YM = #{perfYm}
@@ -364,7 +365,7 @@
                     , A.OG_CD
                     , CASE WHEN B.CNR_AW_CNFM_DTM = '00000000' THEN ''
                       ELSE B.CNR_AW_CNFM_DTM END AS CNR_AW_CNFM_DTM
-                    , CASE WHEN B.CNT IS NOT NULL AND NVL(B.CNR_AW_CNFM_DTM, ' ') != '00000000' THEN 'Y'
+                    , CASE WHEN B.BASE_YM IS NOT NULL AND NVL(B.CNR_AW_CNFM_DTM, ' ') != '00000000' THEN 'Y'
                       ELSE '' END AS CNFM_BTN_YN /*과거데이터는 확정일시가 없는 것이 있기때문에 확정취소를 00000000으로 구분함*/
                  FROM
                     ( SELECT BASE_YM
@@ -389,7 +390,6 @@
                           , OG_TP_CD
                           , OG_CD
                           , CNR_AW_CNFM_DTM
-                          , COUNT(BASE_YM) AS CNT
                        FROM TB_FEAM_EGER_AW_CNFM_BAS	/*엔지니어수당확정기본*/
                       WHERE DTA_DL_YN = 'N'
                         AND BASE_YM = #{perfYm}
