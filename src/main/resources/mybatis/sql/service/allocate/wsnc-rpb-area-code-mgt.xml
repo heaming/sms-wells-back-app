@@ -2,7 +2,36 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbAreaCodeMgtMapper">
 
-    <select id="selectAreaCodePages" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaCodeMgtDto$SearchRes">
+    <resultMap id="codes" type="com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo">
+        <result property="chk" column="CHK"/>
+        <result property="fr2pLgldCd" column="FR2P_LGLD_CD"/>
+        <result property="ctpvNm" column="CTPV_NM"/>
+        <result property="ctctyNm" column="CTCTY_NM"/>
+        <result property="lawcEmdNm" column="LAWC_EMD_NM"/>
+        <result property="amtdNm" column="AMTD_NM"/>
+        <result property="locaraSn" column="LOCARA_SN"/>
+        <result property="zipList" column="ZIP_LIST"/>
+        <result property="apyStrtdt" column="APY_STRTDT"/>
+        <result property="apyEnddt" column="APY_ENDDT"/>
+        <result property="rpbLocaraCd" column="RPB_LOCARA_CD"/>
+        <result property="rpbLocaraGrpCd" column="RPB_LOCARA_GRP_CD"/>
+        <result property="vstDowVal" column="VST_DOW_VAL"/>
+        <result property="vstDowNm" column="VST_DOW_NM"/>
+        <result property="mmtAvLdtm" column="MMT_AV_LDTM"/>
+        <result property="ogNm" column="OG_NM"/>
+        <result property="ichrPrtnrNo" column="ICHR_PRTNR_NO"/>
+        <result property="prtnrKnm" column="PRTNR_KNM"/>
+        <result property="locaraCenStruAdr" column="LOCARA_CEN_STRU_ADR"/>
+
+        <collection property="changeCodes"
+            ofType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo"
+            javaType="List"
+            select="selectLgldCtpvLocaras"
+            column="{ctpvNm = CTPV_NM, rpbLocaraCd = RPB_LOCARA_CD}"
+        />
+    </resultMap>
+
+    <select id="selectAreaCodePages" resultMap="codes">
 <!--        WITH-->
 <!--        TEMP1 AS (-->
 <!--          SELECT B3.FR2P_LGLD_CD-->
@@ -233,6 +262,46 @@
 <!--	       AND TM3.AMTD_NM      = TM2.AMTD_NM-->
 <!--	     WHERE 1=1-->
 <!--	     ORDER BY TM3.RPB_LOCARA_CD ,TM3.FR2P_LGLD_CD, TM3.CTPV_NM, TM3.CTCTY_NM, TM3.LAWC_EMD_NM, TM3.AMTD_NM-->
+    </select>
+
+    <select id='selectLgldCtpvLocaras' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo">
+        SELECT *
+         FROM (
+        SELECT DISTINCT CTPV_NM
+             , RPB_LOCARA_CD
+          FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T2
+         WHERE DTA_DL_YN = 'N'
+           AND ADR_ODR_NO =
+               (
+               SELECT MAX(ADR_ODR_NO)
+                 FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ TT1
+                WHERE TT1.FR2P_LGLD_CD = T2.FR2P_LGLD_CD
+                  AND TT1.CTPV_NM = T2.CTPV_NM
+                  AND TT1.CTCTY_NM = T2.CTCTY_NM
+                  AND TT1.LAWC_EMD_NM = T2.LAWC_EMD_NM
+                  AND TT1.AMTD_NM = T2.AMTD_NM
+                  AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TT1.APY_STRTDT AND TT1.APY_ENDDT
+               )
+        UNION ALL
+        SELECT CTPV_NM
+             , LPAD(MAX(RPB_LOCARA_CD), 3, '0') AS RPB_LOCARA_CD
+          FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T2
+         WHERE DTA_DL_YN = 'N'
+           AND ADR_ODR_NO =
+               (
+               SELECT MAX(ADR_ODR_NO)
+                 FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ TT1
+                WHERE TT1.FR2P_LGLD_CD = T2.FR2P_LGLD_CD
+                  AND TT1.CTPV_NM = T2.CTPV_NM
+                  AND TT1.CTCTY_NM = T2.CTCTY_NM
+                  AND TT1.LAWC_EMD_NM = T2.LAWC_EMD_NM
+                  AND TT1.AMTD_NM = T2.AMTD_NM
+                  AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TT1.APY_STRTDT AND TT1.APY_ENDDT
+               )
+         GROUP BY CTPV_NM
+        )
+        WHERE CTPV_NM = #{ctpvNm}
+        ORDER BY RPB_LOCARA_CD
     </select>
 
     <select id="selectCountAreaCodePsic" resultType="int">

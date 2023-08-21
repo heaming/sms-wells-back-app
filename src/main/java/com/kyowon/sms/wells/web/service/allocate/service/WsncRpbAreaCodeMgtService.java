@@ -42,7 +42,9 @@ public class WsncRpbAreaCodeMgtService {
     public PagingResult<SearchRes> getAreaCodePages(
         SearchReq dto, PageInfo pageInfo
     ) {
-        return mapper.selectAreaCodePages(dto, pageInfo);
+        PagingResult<SearchRes> pagingResult = converter
+            .mapWsncRpbAreaCodeDvoToSearchRes(mapper.selectAreaCodePages(dto, pageInfo));
+        return pagingResult;
     }
 
     /**
@@ -52,7 +54,8 @@ public class WsncRpbAreaCodeMgtService {
      * @return 조회결과
      */
     public List<SearchRes> getAreaCodePagesExcelDownload(SearchReq dto) {
-        return mapper.selectAreaCodePages(dto);
+        List<SearchRes> res = converter.mapDvoToSearchRes(mapper.selectAreaCodePages(dto));
+        return res;
     }
 
     /**

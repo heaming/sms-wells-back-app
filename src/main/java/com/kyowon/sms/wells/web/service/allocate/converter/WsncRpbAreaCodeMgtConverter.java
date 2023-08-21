@@ -1,9 +1,13 @@
 package com.kyowon.sms.wells.web.service.allocate.converter;
 
+import java.util.List;
+
 import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaCodeMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaCodeMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 /**
  * <pre>
@@ -17,4 +21,10 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo;
 public interface WsncRpbAreaCodeMgtConverter {
 
     WsncRpbAreaCodeDvo mapSaveReqToWsncRpbAreaCodeDvo(SaveReq dto);
+
+    PagingResult<SearchRes> mapWsncRpbAreaCodeDvoToSearchRes(
+        List<WsncRpbAreaCodeDvo> selectAreaCodePages
+    );
+
+    List<SearchRes> mapDvoToSearchRes(List<WsncRpbAreaCodeDvo> selectAreaCodePages);
 }
