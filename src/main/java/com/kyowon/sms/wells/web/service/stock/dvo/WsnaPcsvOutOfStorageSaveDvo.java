@@ -61,4 +61,16 @@ public class WsnaPcsvOutOfStorageSaveDvo {
 
     String idvTno;
 
+    String newAdrZip; // 우편번호
+
+    String rnadr; // 기본 주소
+
+    String rdadr; // 상세 주소
+
+    String cntrCstNo; // 계약자 고객번호
+
+    String pdNm; // 상품 명
+
+    String wareMngtPrtnrOgTpCd;
+
 }

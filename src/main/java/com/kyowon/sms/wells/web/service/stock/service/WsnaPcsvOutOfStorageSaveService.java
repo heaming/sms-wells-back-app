@@ -11,7 +11,9 @@ import com.kyowon.sms.wells.web.service.stock.converter.WsnaPcsvOutOfStorageSave
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvOutOfStorageMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvSendDtlDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvOutOfStorageSaveMapper;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvSendDtlMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -32,7 +34,7 @@ public class WsnaPcsvOutOfStorageSaveService {
 
     private final WctaInstallationReqdDtInService installationReqdDtInService;
 
-    private final WsnaItemStockItemizationService itemStockservice;
+    private final WsnaPcsvSendDtlMapper sendDtlMapper;
 
     @Transactional
     public int savePcsvOutOfStorage(List<SaveReq> dtos) {
@@ -170,41 +172,77 @@ public class WsnaPcsvOutOfStorageSaveService {
 
     }
 
-    private WsnaLogisticsOutStorageAskReqDvo setWsnaPcsvOutOfStorageSaveDvo(
+    @Transactional
+    public int savePcsvOutOfStorage2(List<SaveReq> dtos) {
+        int processCount = 0;
+
+        // 물류인터페이스 호출용 dvo
+        List<WsnaLogisticsOutStorageAskReqDvo> logisticDvos = new ArrayList<>();
+
+        List<WsnaPcsvOutOfStorageSaveDvo> dvos = converter.mapSaveReqToPcsvOutOfStorageDvo(dtos);
+        for (WsnaPcsvOutOfStorageSaveDvo dvo : dvos) {
+            if ("1112".equals(dvo.getSvBizDclsfCd())) {
+                //1. 택배 송신 상세 정보 저장
+                WsnaPcsvSendDtlDvo sendDtlDvo = this.setWsnaPcsvSendDtlDvo(dvo);
+                sendDtlMapper.insertPcsvSendDtl(sendDtlDvo);
+
+                // 물류 연동시 전화번호,휴대폰 번호 복호화 전송
+                sendDtlDvo.setAdrsCphonNoVal(dvo.getCralIdvTno());
+                sendDtlDvo.setAdrsTnoVal(dvo.getIdvTno());
+                // throw new BizException("테스트 에러!");
+            }
+        }
+        return processCount;
+    }
+
+    private WsnaPcsvSendDtlDvo setWsnaPcsvSendDtlDvo(
         WsnaPcsvOutOfStorageSaveDvo vo
     ) {
-        WsnaLogisticsOutStorageAskReqDvo logisticsAskReqDvo = new WsnaLogisticsOutStorageAskReqDvo();
+        // 출고요청 번호 생성
+        WsnaPcsvSendDtlDvo sendDtlDvo = new WsnaPcsvSendDtlDvo();
         String now = DateUtil.getNowString();
+        sendDtlDvo.setOstrAkNo(sendDtlMapper.selectOstAkNo());
+        // 고정 셋팅
+        sendDtlDvo.setOstrAkTpCd("400");
+        sendDtlDvo.setSppDvCd("1");
+        sendDtlDvo.setOstrAkRgstDt(now.substring(0, 8));
+        sendDtlDvo.setOstrHopDt(now.substring(0, 8));
+        sendDtlDvo.setIostAkDvCd("WE");
+        sendDtlDvo.setLgstSppMthdCd("2");
+        sendDtlDvo.setOstrOjWareNo("100002");
 
-        // 물류인터페이스호출용 값 세팅
-        logisticsAskReqDvo.setOstrAkTpCd("400");
-        logisticsAskReqDvo.setOstrAkRgstDt(now.substring(0, 8));
-        logisticsAskReqDvo.setIostAkDvCd("WE");
-        logisticsAskReqDvo.setMpacSn(0);
-        logisticsAskReqDvo.setLgstSppMthdCd("2");
-        logisticsAskReqDvo.setLgstWkMthdCd("WE01");
-        logisticsAskReqDvo.setWareMngtPrtnrNo("71321");
-        logisticsAskReqDvo.setWareMngtPrtnrOgTpCd("@7132");
-        logisticsAskReqDvo.setOstrOjWareNo("100002");
-        logisticsAskReqDvo.setItmGdCd("A");
+        // 파라미터(변수 셋팅)
+        sendDtlDvo.setOstrAkSn(1);
+        sendDtlDvo.setLgstWkMthdCd("WE01");
+        sendDtlDvo.setMpacSn(0);
+        sendDtlDvo.setItmGdCd("A");
+
         // 고객정보 파라미터 세팅
-        logisticsAskReqDvo.setCstNm(vo.getRcgvpKnm());
-        logisticsAskReqDvo.setAdrsTnoVal(vo.getIdvTno());
-        logisticsAskReqDvo.setAdrsCphonNoVal(vo.getCralIdvTno());
+        sendDtlDvo.setCstNo(vo.getCntrCstNo());
+        sendDtlDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
+        sendDtlDvo.setWareMngtPrtnrOgTpCd(vo.getWareMngtPrtnrOgTpCd());
+        sendDtlDvo.setCstNm(vo.getRcgvpKnm());
+        sendDtlDvo.setCntrNo(vo.getCntrNo());
+        sendDtlDvo.setCntrSn(vo.getCntrSn());
+        sendDtlDvo.setAdrsTnoVal(vo.getIdvTno());
+        sendDtlDvo.setAdrsCphonNoVal(vo.getCralIdvTno());
+        sendDtlDvo.setBasAdr(vo.getRnadr());
+        sendDtlDvo.setDtlAdr(vo.getRdadr());
+        sendDtlDvo.setCstSvAsnNo(vo.getCstSvAsnNo());
+        sendDtlDvo.setZip(vo.getNewAdrZip());
+        sendDtlDvo.setItmPdCd(vo.getPdCd());
+        sendDtlDvo.setOstrAkQty(Integer.parseInt(vo.getUseQty()));
+        sendDtlDvo.setPdCn(vo.getPdNm() + "(" + vo.getPdCd() + ")" + ": " + vo.getUseQty());
 
-        // 입고요청창고정보. 일단 파주물류센터로 세팅. TODO : 확인필요.
-        logisticsAskReqDvo.setStrOjWareNo("100002"); //입고대상창고번호
-        logisticsAskReqDvo.setWareDtlDvCd("10");
-        logisticsAskReqDvo.setWareNm("교원파주물류센터");
         // null대신 X값 세팅. (물류인터페이스요청)
-        logisticsAskReqDvo.setSvCnrCd("X");
-        logisticsAskReqDvo.setSvCnrNm("X");
-        logisticsAskReqDvo.setSvCnrIchrPrtnrNm("X");
-        logisticsAskReqDvo.setSvCnrLkTnoEncr("X");
-        logisticsAskReqDvo.setSvCnrAdr("X");
-        logisticsAskReqDvo.setOvivTpCd("X");
+        sendDtlDvo.setSvCnrCd("X");
+        sendDtlDvo.setSvCnrNm("X");
+        sendDtlDvo.setSvCnrIchrPrtnrNm("X");
+        sendDtlDvo.setSvCnrLkTnoEncr("X");
+        sendDtlDvo.setSvCnrAdr("X");
+        sendDtlDvo.setOvivTpCd("X");
 
-        return logisticsAskReqDvo;
+        return sendDtlDvo;
     }
     //    private WsnaItemStockItemizationReqDvo setPcsvOstrWsnaItemStockItemizationDtoSaveReq(
     //        WsnaPcsvOutOfStorageSaveDvo vo
