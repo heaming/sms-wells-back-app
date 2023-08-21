@@ -120,11 +120,14 @@ public class WdcbSalesConfirmCreateService {
             slTpDvCd = "1";
         } else if (StringUtils.isNotEmpty(dvo.getRtngdYn()) && "Y".equals(dvo.getRtngdYn())) {
             slTpDvCd = "2";
-        } else if (dvo.getPcsvReimAmt() > 0) {
+        }
+        if (dvo.getPcsvReimAmt() > 0) {
             slTpDvCd = "3";
-        } else if (dvo.getSlCanAmt() > 0) {
+        }
+        if (dvo.getSlCanAmt() > 0) {
             slTpDvCd = "7";
         }
+
         if (StringUtils.isNotEmpty(sapMatEvlClssVal)) {
             if ("Z1".equals(sapMatEvlClssVal.substring(0, 2))) {
                 clssVal = "1";
