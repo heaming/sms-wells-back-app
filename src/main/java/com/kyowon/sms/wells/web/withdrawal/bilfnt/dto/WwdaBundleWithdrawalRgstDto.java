@@ -45,7 +45,7 @@ public class WwdaBundleWithdrawalRgstDto {
         String fnitAprRsCd, // 상태
         String bnkNm, // 이체기관명
         String acnoEncr, // 이체번호
-        String crcdnoEncr, // 카드번호
+        //        String crcdnoEncr, // 카드번호
         String owrKnm, // 이체 소유주명
         String mpyBsdt, // 이체일자
         String bryyMmdd, //이체 인증번호
@@ -59,7 +59,7 @@ public class WwdaBundleWithdrawalRgstDto {
         String sdingDgCntrNo, // 모종 묶음대표번호
         String sdingBnkNm, // 모종 이체기관명
         String sdingAcnoEncr, // 모종이체번호
-        String sdingCrcdnoEncr, // 모종카드번호
+        //        String sdingCrcdnoEncr, // 모종카드번호
         String sdingOwrKnm, // 모종 이체 소유주명
         String sdingMpyBsdt, // 모종 이체일자
         String sdingBryyMmdd //모종 이체 인증번호
@@ -67,9 +67,9 @@ public class WwdaBundleWithdrawalRgstDto {
         public SearchUnrgPsRes {
             acnoEncr = StringUtils.isNotEmpty(acnoEncr) ? DbEncUtil.dec(acnoEncr) : acnoEncr;
             sdingAcnoEncr = StringUtils.isNotEmpty(sdingAcnoEncr) ? DbEncUtil.dec(sdingAcnoEncr) : sdingAcnoEncr;
-            crcdnoEncr = StringUtils.isNotEmpty(crcdnoEncr) ? DbEncUtil.dec(crcdnoEncr) : crcdnoEncr;
-            sdingCrcdnoEncr = StringUtils.isNotEmpty(sdingCrcdnoEncr) ? DbEncUtil.dec(sdingCrcdnoEncr)
-                : sdingCrcdnoEncr;
+            //            crcdnoEncr = StringUtils.isNotEmpty(crcdnoEncr) ? DbEncUtil.dec(crcdnoEncr) : crcdnoEncr;
+            //            sdingCrcdnoEncr = StringUtils.isNotEmpty(sdingCrcdnoEncr) ? DbEncUtil.dec(sdingCrcdnoEncr)
+            //                : sdingCrcdnoEncr;
         }
 
     }
@@ -89,7 +89,7 @@ public class WwdaBundleWithdrawalRgstDto {
         String dgCntrSn, //묶음대표번호
         String bnkCd, //이체기관명
         String acnoEncr, //이체번호
-        String crcdnoEncr, // 카드번호
+        //        String crcdnoEncr, // 카드번호
         String owrKnm, //이체 소유주명
         String mpyBsdt, //이체일자
         String bryyMmdd, //이체 인증번호
@@ -100,7 +100,7 @@ public class WwdaBundleWithdrawalRgstDto {
         String sdingDgCntrSn, //묶음대표번호
         String sdingBnkCd, //이체기관명
         String sdingAcnoEncr, //이체번호
-        String sdingCrcdnoEncr, // 모종카드번호
+        //        String sdingCrcdnoEncr, // 모종카드번호
         String sdingOwrKnm, //이체 소유주명
         String sdingMpyBsdt, //이체일자
         String sdingBryyMmdd //이체 인증번호
@@ -109,9 +109,9 @@ public class WwdaBundleWithdrawalRgstDto {
         public SearchRgstHistRes {
             acnoEncr = StringUtils.isNotEmpty(acnoEncr) ? DbEncUtil.dec(acnoEncr) : acnoEncr;
             sdingAcnoEncr = StringUtils.isNotEmpty(sdingAcnoEncr) ? DbEncUtil.dec(sdingAcnoEncr) : sdingAcnoEncr;
-            crcdnoEncr = StringUtils.isNotEmpty(crcdnoEncr) ? DbEncUtil.dec(crcdnoEncr) : crcdnoEncr;
-            sdingCrcdnoEncr = StringUtils.isNotEmpty(sdingCrcdnoEncr) ? DbEncUtil.dec(sdingCrcdnoEncr)
-                : sdingCrcdnoEncr;
+            //            crcdnoEncr = StringUtils.isNotEmpty(crcdnoEncr) ? DbEncUtil.dec(crcdnoEncr) : crcdnoEncr;
+            //            sdingCrcdnoEncr = StringUtils.isNotEmpty(sdingCrcdnoEncr) ? DbEncUtil.dec(sdingCrcdnoEncr)
+            //                : sdingCrcdnoEncr;
         }
 
     }
