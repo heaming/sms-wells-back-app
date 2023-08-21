@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.service.visit.service;
 
 import java.util.List;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,7 +9,6 @@ import com.kyowon.sms.wells.web.service.visit.converter.WsnbIndividualServicePsC
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualServicePsDto.*;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbIndividualServicePsDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbIndividualServicePsMapper;
-import com.sds.sflex.common.docs.dvo.AttachFileDvo;
 import com.sds.sflex.common.docs.service.AttachFileService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -41,27 +39,28 @@ public class WsnbIndividualServicePsService {
         return mapper.selectIndividualDelinquent(dto);
     } // 연체정보 조회
     public PagingResult<SearchStateRes> getIndividualProcessState(SearchReq dto, PageInfo pageInfo){
-        List<WsnbIndividualServicePsDvo> dvos = mapper.selectIndividualProcessState(dto);
-
-        for(WsnbIndividualServicePsDvo dvo : dvos){
-            if (ObjectUtils.isNotEmpty(dvo.getIstEnvrPhoPhDocId())){
-                List<AttachFileDvo> attachFileDvos = attachFileService.getAttachFiles(dvo.getIstEnvrPhoPhDocId());
-                if(ObjectUtils.isNotEmpty(attachFileDvos) && attachFileDvos.size() > 0)
-                    dvo.setIstEnvrFileUid(attachFileDvos.get(0).getFileUid());
-            }
-            if (ObjectUtils.isNotEmpty(dvo.getIstKitPhoPhDocId())){
-                List<AttachFileDvo> attachFileDvos = attachFileService.getAttachFiles(dvo.getIstKitPhoPhDocId());
-                if(ObjectUtils.isNotEmpty(attachFileDvos) && attachFileDvos.size() > 0)
-                    dvo.setIstKitFileUid(attachFileDvos.get(0).getFileUid());
-            }
-            if (ObjectUtils.isNotEmpty(dvo.getIstCelngPhoPhDocId())){
-                List<AttachFileDvo> attachFileDvos = attachFileService.getAttachFiles(dvo.getIstCelngPhoPhDocId());
-                if(ObjectUtils.isNotEmpty(attachFileDvos) && attachFileDvos.size() > 0)
-                    dvo.setIstCelngFileUid(attachFileDvos.get(0).getFileUid());
-            }
-        }
-
-        return converter.mapAllSearchStateToDvo(dvos,pageInfo);
+//        List<WsnbIndividualServicePsDvo> dvos = mapper.selectIndividualProcessState(dto);
+//
+//        for(WsnbIndividualServicePsDvo dvo : dvos){
+//            if (ObjectUtils.isNotEmpty(dvo.getIstEnvrPhoPhDocId())){
+//                List<AttachFileDvo> attachFileDvos = attachFileService.getAttachFiles(dvo.getIstEnvrPhoPhDocId());
+//                if(ObjectUtils.isNotEmpty(attachFileDvos) && attachFileDvos.size() > 0)
+//                    dvo.setIstEnvrFileUid(attachFileDvos.get(0).getFileUid());
+//            }
+//            if (ObjectUtils.isNotEmpty(dvo.getIstKitPhoPhDocId())){
+//                List<AttachFileDvo> attachFileDvos = attachFileService.getAttachFiles(dvo.getIstKitPhoPhDocId());
+//                if(ObjectUtils.isNotEmpty(attachFileDvos) && attachFileDvos.size() > 0)
+//                    dvo.setIstKitFileUid(attachFileDvos.get(0).getFileUid());
+//            }
+//            if (ObjectUtils.isNotEmpty(dvo.getIstCelngPhoPhDocId())){
+//                List<AttachFileDvo> attachFileDvos = attachFileService.getAttachFiles(dvo.getIstCelngPhoPhDocId());
+//                if(ObjectUtils.isNotEmpty(attachFileDvos) && attachFileDvos.size() > 0)
+//                    dvo.setIstCelngFileUid(attachFileDvos.get(0).getFileUid());
+//            }
+//        }
+//
+//        return converter.mapAllSearchStateToDvo(dvos,pageInfo);
+        return mapper.selectIndividualProcessState(dto, pageInfo);
     } // 처리내역 조회
     public PagingResult<SearchCounselRes> getIndividualCounsel(SearchReq dto, PageInfo pageInfo){
         return mapper.selectIndividualCounsel(dto, pageInfo);
