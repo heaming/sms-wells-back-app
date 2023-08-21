@@ -74,7 +74,7 @@ public class WfebB2bFeeMgtService {
             dvo.setDtaDlYn("N");
             /* W040005:알선수수료, W040004:프로모션, W040020:재지급, W040003:인센티브 */
             if (row.amtW040005() != null) { // 알선수수료
-                 dvo.setFeeCalcAmt(row.amtW040005());
+                dvo.setFeeCalcAmt(row.amtW040005());
                 dvo.setFeeCtrCnfmAmt(row.amtW040005());
                 dvo.setFeeCd("W040005");
                 dvo.setDtaCrtFeeCd("W040005");
