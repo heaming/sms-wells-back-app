@@ -165,9 +165,9 @@ public interface WfeyMOrganizationCalculationMapper {
     Integer updateBsManagementFeeForBrmgrCase8(String baseYm, String feeCd, String feeTcntDvCd, String ogTpCd);
 
     /**
-     * BS관리(지점장)수수료(W020087) 후처리
+     * WM급지(지점장)수수료(W020088) 후처리
      *
-     * 웰스서비스실적내역 테이블에 수수료계산금액 업데이트
+     * 웰스서비스실적내역 테이블에 매니저BS실적건수 120미만 대상자 급지수수료금액 업데이트
      *
      * @param baseYm 기준년월
      * @param feeCd 수수료코드
