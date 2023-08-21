@@ -105,11 +105,13 @@ public class WwdbBillDepositMgtDto {
 
     public record SearchElectronicReq(
         String itgDpNo, /* 통합입금번호 */
-        String cntrNo /* 계약번호 */
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약번호 */
+        String billBndNo
     ) {
 
     }
-
+    
     public record SearchElectronicRes(
         String itgDpNo, /* 통합입금번호 */
         String rveCd, /* 수납구분 */

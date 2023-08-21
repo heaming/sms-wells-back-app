@@ -201,6 +201,12 @@ public class WwdbBillDepositMgtService {
 
         int sumResult = 0;
 
+        String year = sysDateYmd.substring(0, 4);
+        String month = sysDateYmd.substring(4, 6);
+
+        //전표 PK
+        String zzsnum = slpnoService.getNumberingSlpno("FE", Integer.parseInt(year), Integer.parseInt(month));
+
         for (WwdbBillDepositMgtDto.SaveDepositSlip list : dto) {
             /*수납요청기본*/
             ZwdzWithdrawalReceiveAskDvo zwdzWithdrawalReceiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
@@ -280,10 +286,8 @@ public class WwdbBillDepositMgtService {
         //전표발행
 
 //        String dpCprcnfDtm = zwdzWithdrawalReceiveAskDvo.getReceiveAskDate();
-        String year = sysDateYmd.substring(0, 4);
-        String month = sysDateYmd.substring(4, 6);
 
-        String zzsnum = slpnoService.getNumberingSlpno("FE", Integer.parseInt(year), Integer.parseInt(month));
+
         WwdbBillDepositMgtDto.SearchSlipReq slipReq = new WwdbBillDepositMgtDto.SearchSlipReq(zzsnum, Integer.toString(sumResult), dto.get(0).itgDpNo());
 
         List<WwdbBillDepositSlipProcessingDvo> slipProcessingDvo = mapper.selectSlipProcessings(slipReq);
@@ -315,7 +319,7 @@ public class WwdbBillDepositMgtService {
 
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession(); //세션정보
         int sumResult = 0;
-        
+
         for (WwdbBillDepositMgtDto.SaveDepositSlip list : dto) {
             sumResult += Integer.parseInt(list.billDpAmt());
         }
