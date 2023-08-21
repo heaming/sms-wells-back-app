@@ -2,7 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.bond.credit.mapper.WbndRentalCbMgtObjectMapper">
     <select id="selectRentalCbMessageObjectsByCustomer" resultType="com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbDelinquentIzDvo">
-        <!-- TODO: 채권계약기본에서 고객번호 토대로 계약번호 추출 할 시 다건 출력 -->
         /* 렌탈CB 연체정보 조회 (고객번호별) */
         SELECT X.CST_NO             /*고객번호*/
              , T2.CST_KNM           /*고객명*/
@@ -13,21 +12,19 @@
              , T2.CRAL_IDV_TNO      /*휴대폰번호3*/
              , X.DLQ_AMT            /*연체금액*/
              , X.DLQ_BLAM           /*연체잔액*/
-<!--TODO: 임의수정             , T3.CLCTAM_PRTNR_NO   /*집금담당자번호*/-->
              , X.CLCTAM_PRTNR_NO   /*집금담당자번호*/  <!--TODO: 임의수정 -->
              , (SELECT PRTNR_KNM
                   FROM TB_CBBO_CLCTAM_PRTNR_DTL /*T:집금파트너상세*/
 <!--TODO: 임의수정                 WHERE PRTNR_NO = T3.CLCTAM_PRTNR_NO-->
                  WHERE PRTNR_NO = X.CLCTAM_PRTNR_NO <!--TODO: 임의수정 -->
-                   AND OG_TP_CD = 'HR1' -- TODO: 수정 예정
                    AND ROWNUM <![CDATA[<=]]> 1) AS PRTNR_KNM     /*집금담당자명*/
              , '1588-4113' AS DSPH_TNO              /*발신번호*/
              , TO_CHAR(TO_DATE(SUBSTR(T5.FWBOO_DTM,1,8),'YYYYMMDD')+4,'YYYYMMDD') AS RGST_SCH_DT /*등록예정일자-알림톡발송일자+4일*/
-             , (SELECT NOTY_RCV_YN
-                  FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ /*T:WELLS렌탈CB연체내역*/
-                 WHERE CST_NO = X.CST_NO
-                   AND SUBSTR(OC_BSDT,1,6) = X.OC_BSYM
-                   AND ROWNUM <![CDATA[<=]]> 1) AS NOTY_RCV_YN  /*알림수신여부*/ <!--TODO: ROWNUM임의수정 -->
+             , NVL((SELECT NOTY_RCV_YN
+                      FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ /*T:WELLS렌탈CB연체내역*/
+                     WHERE CST_NO = X.CST_NO
+                       AND SUBSTR(OC_BSDT,1,6) = X.OC_BSYM
+                       AND ROWNUM <![CDATA[<=]]> 1),'N') AS NOTY_RCV_YN  /*알림수신여부*/ <!--TODO: ROWNUM임의수정 -->
           FROM (SELECT SUBSTR(A.OC_BSDT,1,6) AS OC_BSYM
                      , A.CST_NO
                      , A.NOTY_TRS_DT
@@ -209,6 +206,7 @@
         /* 렌탈CB 연체정보 조회 - 저장(알림톡 대상 선정) */
         UPDATE TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ
            SET NOTY_FW_OJ_YN = 'Y'
+        <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
            AND CST_NO = #{cstNo}
            AND OC_BSDT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')||'%'
@@ -242,6 +240,7 @@
              , NOTAK_RS_CD             /*알림톡결과코드*/
              , SMS_FW_RCV_STAT_CD      /*SMS발송수신상태코드*/
              , DTA_DL_YN               /*데이터삭제여부*/
+        <include refid="COMMON.insertSystemField"/>
         )
         SELECT CNTR_NO                 /*계약번호*/
              , TO_CHAR(SYSDATE,'YYYYMMDDHH24MMSS')
@@ -268,6 +267,7 @@
              , NOTAK_RS_CD             /*알림톡결과코드*/
              , SMS_FW_RCV_STAT_CD      /*SMS발송수신상태코드*/
              , DTA_DL_YN               /*데이터삭제여부*/
+        <include refid="COMMON.insertSystemFieldValue"/>
           FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ /*T:WELLS렌탈CB연체내역*/
          WHERE 1 = 1
            AND CST_NO = #{cstNo}
@@ -362,7 +362,7 @@
                              FROM TB_CBBO_BND_MSG_RELY_IZ
                             WHERE FW_BIZ_NM = 'BN_KAKAO_MESSAGE'    /*발송업무명*/
                               AND MSG_FW_TP_CD = '01'               /*메시지발송유형코드-01:카카오알림톡*/
-                              AND BND_MSG_TP_VAL1 = 'E'             /*채권알림톡업무코드-E:등록관련*/
+                              AND BND_MSG_TP_VAL1 = 'B'             /*채권알림톡업무코드-B:등록관련*/
                               AND BND_MSG_TP_VAL2 = 'B05'           /*채권알림톡업무상세코드-B05:렌탈CB연체정보등록 예고*/
                           ) T8 /*T:채권메시지중계내역*/
             ON T8.CST_NO = X.CST_NO

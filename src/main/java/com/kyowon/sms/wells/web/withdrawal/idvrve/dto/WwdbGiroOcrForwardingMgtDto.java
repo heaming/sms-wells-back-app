@@ -33,7 +33,8 @@ public class WwdbGiroOcrForwardingMgtDto {
         String exnNmnAmt, //만료차월금액
         String ltpayYn, //후납여부
         String giroRglrDvCd //정기구분
-    ) {}
+    ) {
+    }
 
     public record SaveReq(
         String rowState,
@@ -120,7 +121,8 @@ public class WwdbGiroOcrForwardingMgtDto {
     public record SearchDateSeq(
         String giroOcrPblDtm,
         int giroOcrPblSeqn
-    ) {}
+    ) {
+    }
 
     public record SavePrintReq(
         String state,
@@ -128,10 +130,21 @@ public class WwdbGiroOcrForwardingMgtDto {
         String wkDt, //작업일자
         @NotBlank
         String giroOcrPblOjStrtdt
-    ) {}
+    ) {
+    }
 
     public record removePrintReq(
         String giroOcrPblDtm,
         String giroOcrPblSeqn
-    ) {}
+    ) {
+    }
+
+    public record SearchCntrReq(
+
+        String cntrNo,
+        String cntrSn,
+        String cntr
+    ) {
+
+    }
 }

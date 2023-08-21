@@ -18,7 +18,7 @@ public class WfebEgerAllowanceDto {
     // Request Dto
     // *********************************************************
     // 엔지니어 수당 생성관리 Search Request Dto
-    @ApiModel(value = "WfebEngineerAwCrtMgtDto-SearchReq")
+    @ApiModel(value = "WfebEgerAllowanceDto-SearchReq")
     public record SearchReq(
         @NotBlank
         String perfYm,
@@ -28,7 +28,7 @@ public class WfebEgerAllowanceDto {
         String prtnrNo
     ) {}
 
-    @ApiModel(value = "WfebEngineerAwCrtMgtDto-EditReq")
+    @ApiModel(value = "WfebEgerAllowanceDto-EditReq")
     public record EditReq(
         @NotBlank
         String perfYm,
@@ -42,7 +42,7 @@ public class WfebEgerAllowanceDto {
         int feeAmt
     ) {}
 
-    @ApiModel(value = "WfebEngineerAwCrtMgtDto-ConfirmReq")
+    @ApiModel(value = "WfebEgerAllowanceDto-ConfirmReq")
     public record ConfirmReq(
         @NotBlank
         String baseYm,
@@ -60,7 +60,7 @@ public class WfebEgerAllowanceDto {
     // Result Dto
     // *********************************************************
     // 엔지니어 수당 생성관리 Search Result Dto
-    @ApiModel(value = "WfebEngineerAwCrtMgtDto-SearchEngineerRes")
+    @ApiModel(value = "WfebEgerAllowanceDto-SearchEngineerRes")
     public record SearchEngineerRes(
         String baseYm, /*실적년월*/
         String ogId, /*조직ID*/
@@ -69,6 +69,7 @@ public class WfebEgerAllowanceDto {
         String prtnrKnm, /*성명*/
         String prtnrNo, /*파트너번호*/
         String pstnDvCd, /*직급*/
+        String pstnDvNm, /*직급명*/
         String rsbDvCd, /*직책*/
         Integer perfW06p00001, /*설치작업 건수*/
         Integer perfW06p00004, /*bs작업 건수*/
@@ -124,7 +125,7 @@ public class WfebEgerAllowanceDto {
         String note /*비고*/
     ) {}
 
-    @ApiModel(value = "WfebEngineerAwCrtMgtDto-SearchEngineerManagerRes")
+    @ApiModel(value = "WfebEgerAllowanceDto-SearchEngineerManagerRes")
     public record SearchEngineerManagerRes(
         String ogId, /*조직id*/
         String ogNm,
@@ -133,13 +134,14 @@ public class WfebEgerAllowanceDto {
         String prtnrKnm,
         String prtnrNo,
         String pstnDvCd,
+        String pstnDvNm,
         String rsbDvCd,
         int feeW060031, /*업적수당*/
         int feeW060032, /*자격수당*/
         int totFee
     ) {}
 
-    @ApiModel("WfebEngineerAwCrtMgtDto - SearchConfirmRes")
+    @ApiModel("WfebEgerAllowanceDto - SearchConfirmRes")
     public record SearchConfirmRes(
         String baseYm,
         String ogId,
@@ -151,7 +153,7 @@ public class WfebEgerAllowanceDto {
         int cnfmBtnCnt /*확정된 센터 개수*/
     ) {}
 
-    @ApiModel("WfebEngineerAwCrtMgtDto - SearchSchdRes")
+    @ApiModel("WfebEgerAllowanceDto - SearchSchdRes")
     public record SearchSchdRes(
         String feeSchdLvCd /*현재일정단계*/
     ) {}

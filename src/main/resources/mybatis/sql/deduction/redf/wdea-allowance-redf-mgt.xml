@@ -775,7 +775,8 @@
 
     <select id="selectRedfBizdMgts" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto$SearchRedfBizdRes">
         /*수당(실적) 되물림 관리 - 파트너 되물림 대상 집계 현황 조회 (통합) 목록 조회 - 영업부 되물림 생성 조회*/
-        SELECT M.PERF_YM /*실적년월*/
+        SELECT /*+ NO_PUSH_PRED(M) */
+               M.PERF_YM /*실적년월*/
              , D.REDF_ADSB_OC_YM AS BASE_YM /*발생년월*/
              , AK05.OG_CD /*소속코드*/
              , AK05.PRTNR_KNM /*성명*/
@@ -1293,7 +1294,7 @@
           LEFT OUTER JOIN (
                 SELECT MAX(B.BASE_YM) AS BASE_YM
                      , A.PERF_YM
-                     , TO_CHAR(ADD_MONTHS(A.PERF_YM || '01', 1), 'YYYYMM') AS PERF_YM_1
+                     , TO_CHAR(ADD_MONTHS(TO_DATE(A.PERF_YM || '01', 'YYYYMMDD'), 1), 'YYYYMM') AS PERF_YM_1
                      , A.OG_TP_CD
                      , A.PRTNR_NO
                      <!--, B.PERF_DV_CD-->
@@ -1323,50 +1324,50 @@
                      , NVL(A.T_OG_MGT_PPL, 0) AS T_OG_MGT_PPL /*조직관리 실활동(명).귀속월실적*/
                      , NVL(A.T_MC, 0) AS T_MC /*기변(WELLS-P).귀속월실적*/
                      , NVL(A.T_FXAM, 0) AS T_FXAM /*정액(WELLS-P).귀속월실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM, 0) END) AS A_ENVR_ELHM /*환경가전.되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_CNT, 0) END) AS A_ENVR_ELHM_CNT /*환경가전(건수).되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_CNT_PR, 0) END) AS A_ENVR_ELHM_CNT_PR /*환경가전 건수(개인).되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_CNT_JO, 0) END) AS A_ENVR_ELHM_CNT_JO /*환경가전 건수(조직).되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_BASE_AMT, 0) END) AS A_ENVR_ELHM_BASE_AMT /*환경가전(기준금액).되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_RENTAL, 0) END) AS A_ENVR_ELHM_RENTAL /*환경가전 렌탈.되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_RENTAL_PR, 0) END) AS A_ENVR_ELHM_RENTAL_PR /*환경가전 렌탈(개인).되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_RENTAL_JO, 0) END) AS A_ENVR_ELHM_RENTAL_JO /*환경가전 렌탈(조직).되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_SPAY, 0) END) AS A_ENVR_ELHM_SPAY /*환경가전 일시불.되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_SPAY_PR, 0) END) AS A_ENVR_ELHM_SPAY_PR /*환경가전 일시불(개인).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_SPAY_JO, 0) END) AS A_ENVR_ELHM_SPAY_JO /*환경가전 일시불(조직).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_EXCP, 0) END) AS A_ENVR_ELHM_EXCP /*환경가전외.되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_EXCP_PR, 0) END) AS A_ENVR_ELHM_EXCP_PR /*환경가전외 일시불(개인).되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_EXCP_JO, 0) END) AS A_ENVR_ELHM_EXCP_JO /*환경가전외 일시불(조직).되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_FXAM_PR, 0) END) AS A_ENVR_ELHM_FXAM_PR /*환경가전 정액(개인).되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_EXCP_FXAM_PR, 0) END) AS A_ENVR_ELHM_EXCP_FXAM_PR /*환경가전외 정액(개인).되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_ENVR_ELHM_EXCP_FXAM, 0) END) AS A_ENVR_ELHM_EXCP_FXAM /*환경가전외 정액.되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_NW_SELL_CNT_PR, 0) END) AS A_NW_SELL_CNT_PR /*신규판매건수(개인).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_NW_SELL_CNT_JO, 0) END) AS A_NW_SELL_CNT_JO /*신규판매건수(조직).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_OG_MGT_PPL, 0) END) AS A_OG_MGT_PPL /*조직관리 실활동(명).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_MC, 0) END) AS A_MC /*기변(WELLS-P).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '1' THEN NVL(B.A_FXAM, 0) END) AS A_FXAM /*정액(WELLS-P).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM, 0) END) AS B_ENVR_ELHM /*환경가전.되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_CNT_PR, 0) END) AS B_ENVR_ELHM_CNT_PR /*환경가전 건수(개인).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_CNT_JO, 0) END) AS B_ENVR_ELHM_CNT_JO /*환경가전 건수(조직).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_CNT, 0) END) AS B_ENVR_ELHM_CNT /*환경가전(건수).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_BASE_AMT, 0) END) AS B_ENVR_ELHM_BASE_AMT /*환경가전(기준금액).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_RENTAL, 0) END) AS B_ENVR_ELHM_RENTAL /*환경가전 렌탈.되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_RENTAL_PR, 0) END) AS B_ENVR_ELHM_RENTAL_PR /*환경가전 렌탈(개인).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_RENTAL_JO, 0) END) AS B_ENVR_ELHM_RENTAL_JO /*환경가전 렌탈(조직).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_SPAY, 0) END) AS B_ENVR_ELHM_SPAY /*환경가전 일시불.되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_SPAY_PR, 0) END) AS B_ENVR_ELHM_SPAY_PR /*환경가전 일시불(개인).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_SPAY_JO, 0) END) AS B_ENVR_ELHM_SPAY_JO /*환경가전 일시불(조직).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_EXCP, 0) END) AS B_ENVR_ELHM_EXCP /*환경가전외.되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_EXCP_PR, 0) END) AS B_ENVR_ELHM_EXCP_PR /*환경가전외 일시불(개인).되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_EXCP_JO, 0) END) AS B_ENVR_ELHM_EXCP_JO /*환경가전외 일시불(조직).되물림후실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_FXAM_PR, 0) END) AS B_ENVR_ELHM_FXAM_PR /*환경가전 정액(개인).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_EXCP_FXAM_PR, 0) END) AS B_ENVR_ELHM_EXCP_FXAM_PR /*환경가전외 정액.되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_ENVR_ELHM_EXCP_FXAM, 0) END) AS B_ENVR_ELHM_EXCP_FXAM /*환경가전외 정액.되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_NW_SELL_CNT_PR, 0) END) AS B_NW_SELL_CNT_PR /*신규판매건수(개인).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_NW_SELL_CNT_JO, 0) END) AS B_NW_SELL_CNT_JO /*신규판매건수(조직).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_OG_MGT_PPL, 0) END) AS B_OG_MGT_PPL /*조직관리 실활동(명).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_MC, 0) END) AS B_MC /*기변(WELLS-P).되물림전실적*/
-                     , MAX(CASE WHEN B.RN = '2' THEN NVL(B.A_FXAM, 0) END) AS B_FXAM /*정액(WELLS-P).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM, 0) END) AS A_ENVR_ELHM /*환경가전.되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_CNT, 0) END) AS A_ENVR_ELHM_CNT /*환경가전(건수).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_CNT_PR, 0) END) AS A_ENVR_ELHM_CNT_PR /*환경가전 건수(개인).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_CNT_JO, 0) END) AS A_ENVR_ELHM_CNT_JO /*환경가전 건수(조직).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_BASE_AMT, 0) END) AS A_ENVR_ELHM_BASE_AMT /*환경가전(기준금액).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_RENTAL, 0) END) AS A_ENVR_ELHM_RENTAL /*환경가전 렌탈.되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_RENTAL_PR, 0) END) AS A_ENVR_ELHM_RENTAL_PR /*환경가전 렌탈(개인).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_RENTAL_JO, 0) END) AS A_ENVR_ELHM_RENTAL_JO /*환경가전 렌탈(조직).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_SPAY, 0) END) AS A_ENVR_ELHM_SPAY /*환경가전 일시불.되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_SPAY_PR, 0) END) AS A_ENVR_ELHM_SPAY_PR /*환경가전 일시불(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_SPAY_JO, 0) END) AS A_ENVR_ELHM_SPAY_JO /*환경가전 일시불(조직).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_EXCP, 0) END) AS A_ENVR_ELHM_EXCP /*환경가전외.되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_EXCP_PR, 0) END) AS A_ENVR_ELHM_EXCP_PR /*환경가전외 일시불(개인).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_EXCP_JO, 0) END) AS A_ENVR_ELHM_EXCP_JO /*환경가전외 일시불(조직).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_FXAM_PR, 0) END) AS A_ENVR_ELHM_FXAM_PR /*환경가전 정액(개인).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_EXCP_FXAM_PR, 0) END) AS A_ENVR_ELHM_EXCP_FXAM_PR /*환경가전외 정액(개인).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_ENVR_ELHM_EXCP_FXAM, 0) END) AS A_ENVR_ELHM_EXCP_FXAM /*환경가전외 정액.되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_NW_SELL_CNT_PR, 0) END) AS A_NW_SELL_CNT_PR /*신규판매건수(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_NW_SELL_CNT_JO, 0) END) AS A_NW_SELL_CNT_JO /*신규판매건수(조직).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_OG_MGT_PPL, 0) END) AS A_OG_MGT_PPL /*조직관리 실활동(명).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_MC, 0) END) AS A_MC /*기변(WELLS-P).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 1 THEN NVL(B.A_FXAM, 0) END) AS A_FXAM /*정액(WELLS-P).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM, 0) END) AS B_ENVR_ELHM /*환경가전.되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_CNT_PR, 0) END) AS B_ENVR_ELHM_CNT_PR /*환경가전 건수(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_CNT_JO, 0) END) AS B_ENVR_ELHM_CNT_JO /*환경가전 건수(조직).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_CNT, 0) END) AS B_ENVR_ELHM_CNT /*환경가전(건수).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_BASE_AMT, 0) END) AS B_ENVR_ELHM_BASE_AMT /*환경가전(기준금액).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_RENTAL, 0) END) AS B_ENVR_ELHM_RENTAL /*환경가전 렌탈.되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_RENTAL_PR, 0) END) AS B_ENVR_ELHM_RENTAL_PR /*환경가전 렌탈(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_RENTAL_JO, 0) END) AS B_ENVR_ELHM_RENTAL_JO /*환경가전 렌탈(조직).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_SPAY, 0) END) AS B_ENVR_ELHM_SPAY /*환경가전 일시불.되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_SPAY_PR, 0) END) AS B_ENVR_ELHM_SPAY_PR /*환경가전 일시불(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_SPAY_JO, 0) END) AS B_ENVR_ELHM_SPAY_JO /*환경가전 일시불(조직).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_EXCP, 0) END) AS B_ENVR_ELHM_EXCP /*환경가전외.되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_EXCP_PR, 0) END) AS B_ENVR_ELHM_EXCP_PR /*환경가전외 일시불(개인).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_EXCP_JO, 0) END) AS B_ENVR_ELHM_EXCP_JO /*환경가전외 일시불(조직).되물림후실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_FXAM_PR, 0) END) AS B_ENVR_ELHM_FXAM_PR /*환경가전 정액(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_EXCP_FXAM_PR, 0) END) AS B_ENVR_ELHM_EXCP_FXAM_PR /*환경가전외 정액.되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_ENVR_ELHM_EXCP_FXAM, 0) END) AS B_ENVR_ELHM_EXCP_FXAM /*환경가전외 정액.되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_NW_SELL_CNT_PR, 0) END) AS B_NW_SELL_CNT_PR /*신규판매건수(개인).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_NW_SELL_CNT_JO, 0) END) AS B_NW_SELL_CNT_JO /*신규판매건수(조직).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_OG_MGT_PPL, 0) END) AS B_OG_MGT_PPL /*조직관리 실활동(명).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_MC, 0) END) AS B_MC /*기변(WELLS-P).되물림전실적*/
+                     , MAX(CASE WHEN B.RN = 2 THEN NVL(B.A_FXAM, 0) END) AS B_FXAM /*정액(WELLS-P).되물림전실적*/
                      , NVL(C.TB_ENVR_ELHM, 0) AS TB_ENVR_ELHM /*환경가전.귀속전월실적(T_BEFORE TB)*/
                      , NVL(C.TB_ENVR_ELHM_CNT, 0) AS TB_ENVR_ELHM_CNT /*환경가전(건수).귀속전월실적(T_BEFORE TB)*/
                      , NVL(C.TB_ENVR_ELHM_CNT_PR, 0) AS TB_ENVR_ELHM_CNT_PR /*귀속전월실적 환경가전 건수(개인)*/
@@ -1464,7 +1465,8 @@
                                        , NVL(SUM((CASE WHEN A.PERF_ATC_CD IN ('W00P00030', 'W00P00007') AND A.PERF_DV_CD = '0' THEN A.PERF_VAL END)), 0) AS A_ENVR_ELHM_EXCP_FXAM /*되물림전후실적 환경가전외 정액*/
                                        , NVL(SUM((CASE WHEN A.PERF_ATC_CD IN ('W00P00030', 'W00P00007') AND A.PERF_DV_CD = '0' THEN A.PERF_VAL END)), 0) AS A_ENVR_ELHM_EXCP_FXAM_PR /*되물림전후실적 환경가전외 정액(개인)*/
                                        , NVL(SUM((CASE WHEN A.PERF_ATC_CD IN ('W01P00020', 'W02P00111') AND A.PERF_DV_CD = '0' THEN A.PERF_VAL END)), 0) AS A_OG_MGT_PPL /*되물림전후실적 조직관리 실활동(명)*/
-                                    FROM ( SELECT BASE_YM
+                                    FROM ( SELECT /*+ INDEX(TB_FEAM_NTORP_PERF_MM_CL (PERF_AGRG_CRT_DV_CD, OG_TP_CD, PERF_YM, BASE_YM)) */
+                                                  BASE_YM
                                                 , PERF_YM
                                                 , OG_TP_CD
                                                 , PRTNR_NO
@@ -1540,7 +1542,7 @@
                                       <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                                       AND PRTNR_NO = #{prtnrNo}
                                       </if>
-                                      AND PERF_YM = TO_CHAR(ADD_MONTHS(PERF_YM||'01', -1), 'YYYYMM')
+                                      AND PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(PERF_YM||'01', 'YYYYMMDD'), -1), 'YYYYMM')
                                   ) C /*귀속전월실적*/
                     ON A.BASE_YM = C.BASE_YM
                    AND A.PERF_YM = C.PERF_YM

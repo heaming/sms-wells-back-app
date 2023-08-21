@@ -65,8 +65,6 @@
             resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto$SearchRes">
         SELECT B.APY_YM AS APY_YM       /* 적용년월 */
              , B.WARE_DV_CD AS WARE_DV_CD    /* 창고구분코드 */
-             , B.WARE_DV_CD ||B.WARE_LOCARA_CD||B.WARE_ICHR_NO AS WARE_CD /*창고코드*/
-             , A.WARE_DV_CD ||A.WARE_LOCARA_CD||A.WARE_ICHR_NO AS HGR_WARE /*상위창고코드*/
              , B.WARE_DTL_DV_CD AS WARE_DTL_DV_CD /*창고상세구분코드*/
              , B.WARE_LOCARA_CD AS WARE_LOCARA_CD /*창고지역코드*/
              , B.WARE_LOCARA_SN AS WARE_LOCARA_SN /*창고지역순번*/
@@ -81,27 +79,28 @@
              , B.ADR_USE_YN AS ADR_USE_YN /*지정주소사용여부*/
              , B.SORT_DV_VAL AS SORT_DV_VAL /*정렬구분값*/
              , C.RNADR || ' ' || C.RDADR AS ADR_NM
-             , (SELECT A.BLD_NM
-              	  FROM TB_OGBS_BLD_BAS A
-              	 WHERE A.BLD_CD = B.BLD_CD) AS DSN_BLD_NM /*지정빌딩명*/
-             , ( SELECT PRTNR_KNM
-                   FROM TB_OGBS_MM_PRTNR_IZ A
-                  WHERE A.PRTNR_NO = B.WARE_MNGT_PRTNR_NO
-                    AND A.BASE_YM = B.APY_YM
-                    AND A.OG_TP_CD IN ('W02', 'W06')
-                    AND ROWNUM = 1) AS WARE_STOC_MGR /*파트너담당자명*/
-             , (SELECT A.BLD_NM
-                  FROM TB_OGBS_MM_OG_IZ A
-                     , TB_OGBS_MM_PRTNR_IZ C
-                 WHERE A.OG_ID = C.OG_ID
-                   AND A.BASE_YM = C.BASE_YM
-                   AND C.OG_TP_CD IN ('W02','W06')
-                   AND C.PRTNR_NO = B.WARE_MNGT_PRTNR_NO
-                   AND C.BASE_YM = B.APY_YM ) AS BLD_NM /*빌딩명*/
+             , T3.OG_CD
+             , T5.BLD_NM AS DSN_BLD_NM /*지정빌딩명*/
+             , T3.BLD_NM /*빌딩명*/
+             , T2.PRTNR_KNM AS WARE_STOC_MGR /*파트너명*/
           FROM TB_SVST_MCBY_WARE_IZ B
           LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ A
             ON B.HGR_WARE_NO = A.WARE_NO
            AND B.APY_YM = A.APY_YM
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T2
+            ON T2.BASE_YM = B.APY_YM
+           AND T2.OG_TP_CD = B.OG_TP_CD
+           AND T2.PRTNR_NO = B.WARE_MNGT_PRTNR_NO
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T3
+              ON T3.BASE_YM = B.APY_YM
+             AND T3.OG_ID = B.OG_ID
+             AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_BLD_BAS T5
+            ON T5.BLD_CD = B.BLD_CD
+           AND T5.OG_TP_CD = B.OG_TP_CD
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS C
+            ON C.ADR_ID = B.WARE_ADR_ID
           LEFT OUTER JOIN TB_GBCO_ADR_BAS C
             ON C.ADR_ID = B.WARE_ADR_ID
          WHERE 1 = 1
@@ -112,9 +111,22 @@
          <if test="@MybatisUtils@isNotEmpty(wareMngtPrtnrNo)">
            AND B.WARE_MNGT_PRTNR_NO = #{wareMngtPrtnrNo}
          </if>
-         <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
-           AND B.WARE_DV_CD = #{wareDvCd}
-         </if>
+    <if test='@MybatisUtils@isNotEmpty(wareDvCd)'>
+        <choose>
+            <when test='@MybatisUtils@equals(wareDvCd, "1")'>
+                AND B.WARE_DV_CD = #{wareDvCd}
+		        AND T2.OG_TP_CD = 'W06'
+            </when>
+            <when test='@MybatisUtils@equals(wareDvCd, "2")'>
+                AND B.WARE_DV_CD = #{wareDvCd}
+		        AND T2.OG_TP_CD IN ('W03', 'W06')
+            </when>
+            <when test='@MybatisUtils@equals(wareDvCd, "3")'>
+                AND B.WARE_DV_CD = #{wareDvCd}
+		        AND T2.OG_TP_CD = 'W02'
+            </when>
+        </choose>
+    </if>
          <if test="@MybatisUtils@isNotEmpty(wareNoM)">
            AND (B.HGR_WARE_NO = #{wareNoM} or B.WARE_NO = #{wareNoM})
          </if>
@@ -124,7 +136,7 @@
          <if test="@MybatisUtils@isNotEmpty(codeUseYn)">
            AND B.WARE_USE_YN = #{codeUseYn}
          </if>
-         ORDER BY B.WARE_DV_CD, B.HGR_WARE_NO, B.WARE_NM, B.WARE_LOCARA_CD, B.WARE_LOCARA_SN, B.WARE_DTL_DV_CD
+         ORDER BY B.WARE_DV_CD, B.HGR_WARE_NO, B.WARE_NM, B.SORT_DV_VAL, B.WARE_DTL_DV_CD
 
     </select>
     <select id="selectWareCarriedCounter" resultType="integer">

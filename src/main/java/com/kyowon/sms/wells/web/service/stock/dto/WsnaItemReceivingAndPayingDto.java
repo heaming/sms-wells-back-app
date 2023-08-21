@@ -1,9 +1,10 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
-
-import java.util.List;
 
 public class WsnaItemReceivingAndPayingDto {
     // *********************************************************
@@ -37,33 +38,36 @@ public class WsnaItemReceivingAndPayingDto {
         String itmPdCd,
         String sapMatCd,
         String itmPdNm,
-        String basStocQty,
-        String prchsStrQty,
-        String nomStrQty,
-        String qomAsnStrQty,
-        String qomMmtStrQty,
-        String rtngdStrInsdQty,
-        String rtngdStrOtsdQty,
-        String etcStrQty,
-        String strCtrQty,
-        String cnfmPitmStrGapQty,
-        String nomOstrQty,
-        String svcNomOstrQty,
-        String sellNomOstrQty,
-        String qomAsnOstrQty,
-        String qomMmtOstrQty,
-        String rtngdOstrInsdQty,
-        String rtngdOstrOtsdQty,
-        String useQty,
-        String yearInUseQty,
-        String yearOutUseQty,
-        String refrOstrQty,
-        String sellOstrQty,
-        String dsuOstrQty,
-        String etcOstrQty,
-        String ostrCtrQty,
-        String cnfmPitmOstrGapQty,
-        String mmtStocQty
+        BigDecimal basStocQty,
+        BigDecimal prchsStrQty,
+        BigDecimal nomStrQty,
+        BigDecimal qomAsnStrQty,
+        BigDecimal qomMmtStrQty,
+        BigDecimal rtngdStrInsdQty,
+        BigDecimal rtngdStrOtsdQty,
+        BigDecimal etcStrQty,
+        BigDecimal strCtrQty,
+        BigDecimal cnfmPitmStrGapQty,
+        BigDecimal strQty,
+        BigDecimal nomOstrQty,
+        BigDecimal svcNomOstrQty,
+        BigDecimal sellNomOstrQty,
+        BigDecimal qomAsnOstrQty,
+        BigDecimal qomMmtOstrQty,
+        BigDecimal rtngdOstrInsdQty,
+        BigDecimal rtngdOstrOtsdQty,
+        BigDecimal useQty,
+        BigDecimal yearInUseQty,
+        BigDecimal yearOutUseQty,
+        BigDecimal refrOstrQty,
+        BigDecimal sellOstrQty,
+        BigDecimal dsuOstrQty,
+        BigDecimal etcOstrQty,
+        BigDecimal ostrCtrQty,
+        BigDecimal cnfmPitmOstrGapQty,
+        BigDecimal ostrQty,
+        BigDecimal eotStocQty,
+        BigDecimal mmtStocQty
 
     ) {}
 
@@ -78,32 +82,32 @@ public class WsnaItemReceivingAndPayingDto {
     @ApiModel("WsnaReceiptsAndPaymentsDto-SearchDateRes")
     public record SearchDateRes(
         String ymd,
-        String basStocQty,
-        String prchsStrQty,
-        String nomStrQty,
-        String qomAsnStrQty,
-        String qomMmtStrQty,
-        String rtngdStrInsdQty,
-        String rtngdStrOtsdQty,
-        String etcStrQty,
-        String strCtrQty,
-        String cnfmPitmStrGapQty,
-        String nomOstrQty,
-        String svcNomOstrQty,
-        String sellNomOstrQty,
-        String qomAsnOstrQty,
-        String qomMmtOstrQty,
-        String rtngdOstrInsdQty,
-        String rtngdOstrOtsdQty,
-        String useQty,
-        String refrOstrQty,
-        String sellOstrQty,
-        String dsuOstrQty,
-        String etcOstrQty,
-        String ostrCtrQty,
-        String cnfmPitmOstrGapQty,
-        String eotStocQty,
-        String mmtStocQty
+        BigDecimal basStocQty,
+        BigDecimal prchsStrQty,
+        BigDecimal nomStrQty,
+        BigDecimal qomAsnStrQty,
+        BigDecimal qomMmtStrQty,
+        BigDecimal rtngdStrInsdQty,
+        BigDecimal rtngdStrOtsdQty,
+        BigDecimal etcStrQty,
+        BigDecimal strCtrQty,
+        BigDecimal cnfmPitmStrGapQty,
+        BigDecimal nomOstrQty,
+        BigDecimal svcNomOstrQty,
+        BigDecimal sellNomOstrQty,
+        BigDecimal qomAsnOstrQty,
+        BigDecimal qomMmtOstrQty,
+        BigDecimal rtngdOstrInsdQty,
+        BigDecimal rtngdOstrOtsdQty,
+        BigDecimal useQty,
+        BigDecimal refrOstrQty,
+        BigDecimal sellOstrQty,
+        BigDecimal dsuOstrQty,
+        BigDecimal etcOstrQty,
+        BigDecimal ostrCtrQty,
+        BigDecimal cnfmPitmOstrGapQty,
+        BigDecimal eotStocQty,
+        BigDecimal mmtStocQty
 
     ) {}
 }

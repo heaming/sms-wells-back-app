@@ -69,6 +69,7 @@ public class WsnaWarehouseOrganizationService {
         return this.mapper.selectWareCarriedCounter(dto);
     }
 
+    @Transactional
     public int createWareCarried(CreateReq dto) {
 
         int processCount = 0;
@@ -105,7 +106,7 @@ public class WsnaWarehouseOrganizationService {
         return this.mapper.selectWarehouseByPk(apyYmWareNo).orElseThrow();
     }
 
-    @Transactional
+    @Transactional(timeout = 300)
     public int saveWarehouseOg(SaveReq dto) {
         int processCount = 0;
 
@@ -157,12 +158,6 @@ public class WsnaWarehouseOrganizationService {
 
                     // 물량이동 처리 (입출고 상위 창고가 달라 상위 창고간 물량이동)
                     transferMaterialsService.saveTransferMaterialsForHgr(hgrDvo);
-
-                    // (입고 대상 창고 = 현재 창고)
-                    dataDvo.setStrOjWareNo(dataDvo.getOstrOjWareNo());
-                    dataDvo.setStrWareDvCd(dataDvo.getOstrWareDvCd());
-                    dataDvo.setStrPrtnrNo(dataDvo.getOstrPrtnrNo());
-                    dataDvo.setStrPrtnrOgTpCd(dataDvo.getOstrPrtnrOgTpCd());
 
                     // 정상 입출고 처리
                     transferMaterialsService.saveOutOfMaterials(hgrDvo, dataDvo);

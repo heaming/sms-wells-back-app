@@ -34,5 +34,6 @@ public class WsnyAsVisitCostMgtDvo {
     String nextIzSn;
     String sapMatCd;
     String pdNm;
+    String isLast;
 
 }

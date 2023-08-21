@@ -63,7 +63,7 @@ public class WsnbWellsServiceCfdcController {
     }
 
     @ApiOperation(value = "웰스 서비스 확인서 출력", notes = "웰스 서비스 확인서 출력한다.")
-    @PostMapping("/report")
+    @PostMapping("/print")
     public int printReport(
         @Valid
         @RequestBody

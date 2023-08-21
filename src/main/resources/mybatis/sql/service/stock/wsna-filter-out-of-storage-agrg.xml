@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaFilterOutOfStorageAgrgMapper">
+    <select id="selectFilterOutOfStorageAgrgs" resultType="camelMap">
+       WITH PD_INF AS
+       ( /* 상품정보 */
+          SELECT T1.PD_CD
+               , T1.PD_NM
+               , T1.SAP_MAT_CD
+               , T1.PD_ABBR_NM
+               , T2.PD_PRP_VAL19
+               , (CASE WHEN T2.PD_PRP_VAL20 IS NULL THEN SUBSTR(T2.PD_PRP_VAL01,2,1) ELSE T2.PD_PRP_VAL20 END) AS AS_MAT_ITM_GRP_CD
+          FROM TB_PDBS_PD_BAS T1
+          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+           ON T1.PD_CD = T2.PD_CD
+          WHERE T1.DTA_DL_YN ='N'
+           AND T2.DTA_DL_YN  ='N'
+           AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
+        )
+       , SELL_OSTR_INF AS
+       ( /* 판매출고 */
+          SELECT  ITM_PD_CD
+            ,  SUM(OSTR_QTY)       AS PS01_AMTT
+          FROM  TB_SVST_ITM_OSTR_IZ
+          WHERE  OSTR_TP_CD    = '211'
+           AND  ITM_KND_CD   = #{itmKndCd}
+           AND  OSTR_DT BETWEEN #{startDt} AND #{endDt}
+          <if test='@MybatisUtils@isNotEmpty(findGb)'>
+           AND OSTR_WARE_NO LIKE #{findGb}||'%'
+          </if>
+          GROUP BY  ITM_PD_CD
+       )
+       , ETC_OSTR_INF AS
+       ( /* 기타출고 */
+          SELECT  ITM_PD_CD
+            ,  SUM(OSTR_QTY)       AS AS10_AMTT
+          FROM  TB_SVST_ITM_OSTR_IZ
+          WHERE  OSTR_TP_CD    = '217'
+           AND  ITM_KND_CD   = #{itmKndCd}
+           AND  OSTR_DT BETWEEN #{startDt} AND #{endDt}
+          <if test='@MybatisUtils@isNotEmpty(findGb)'>
+           AND OSTR_WARE_NO LIKE #{findGb}||'%'
+          </if>
+          GROUP BY  ITM_PD_CD
+       )
+       , WK_OSTR_IZ AS
+       ( /* 작업출고 */
+         SELECT  ITM_PD_CD                 AS ITM_PD_CD
+               , SUM(BS11_CNTT+BS21_CNTT)  AS BS01_AMTT
+               , SUM(BS12_CNTT+BS22_CNTT)  AS BS02_AMTT
+               , SUM(BS13_CNTT+BS23_CNTT)  AS BS03_AMTT
+               , SUM(BS14_CNTT+BS24_CNTT)  AS BS04_AMTT
+               , SUM(BS15_CNTT+BS25_CNTT)  AS BS05_AMTT
+               , SUM(BS19_CNTT+BS29_CNTT)  AS BS09_AMTT
+               , SUM(AS21_CNTT
+                   + AS22_CNTT
+                   + AS23_CNTT
+                   + AS24_CNTT
+                   + AS25_CNTT
+                   + AS29_CNTT)            AS AS00_AMTT
+               , SUM(AS11_CNTT)            AS AS01_AMTT
+               , SUM(AS12_CNTT)            AS AS02_AMTT
+               , SUM(AS13_CNTT)            AS AS03_AMTT
+               , SUM(AS14_CNTT)            AS AS04_AMTT
+               , SUM(AS15_CNTT)            AS AS05_AMTT
+               , SUM(AS19_CNTT)            AS AS09_AMTT
+               , SUM(PS02_CNTT)            AS PS02_AMTT
+               , SUM(PS02_CNTT_FREE)       AS PS02_AMTT_FREE
+         FROM (
+              SELECT  T1.ITM_PD_CD
+              /* BS */
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '2' AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '1'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS BS11_CNTT
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '2' AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '2'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS BS12_CNTT
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '2' AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '3'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS BS13_CNTT
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '2' AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '4'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS BS14_CNTT
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '2' AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '5'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS BS15_CNTT
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '2' AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '9'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS BS19_CNTT
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '2' AND T1.REFRI_DV_CD ='2' AND T1.FNL_SELL_TP_CD = '1'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS BS21_CNTT
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '2' AND T1.REFRI_DV_CD ='2' AND T1.FNL_SELL_TP_CD = '2'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS BS22_CNTT
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '2' AND T1.REFRI_DV_CD ='2' AND T1.FNL_SELL_TP_CD = '3'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS BS23_CNTT
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '2' AND T1.REFRI_DV_CD ='2' AND T1.FNL_SELL_TP_CD = '4'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS BS24_CNTT
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '2' AND T1.REFRI_DV_CD ='2' AND T1.FNL_SELL_TP_CD = '5'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS BS25_CNTT
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '2' AND T1.REFRI_DV_CD ='2' AND T1.FNL_SELL_TP_CD = '9'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS BS29_CNTT
+
+              /* AS */
+            , CASE WHEN (((T1.SV_BIZ_HCLSF_CD = '3') OR (SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='11')) AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '1')
+                        OR (T1.SV_BIZ_HCLSF_CD = '4'  AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '1')  /* 펫드라이룸 관련 추가 */
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS AS11_CNTT
+            , CASE WHEN ((T1.SV_BIZ_HCLSF_CD = '3') OR (SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='11')) AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '2'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS AS12_CNTT
+            , CASE WHEN (((T1.SV_BIZ_HCLSF_CD = '3') OR (SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='11')) AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '3')
+                        OR (T1.SV_BIZ_HCLSF_CD = '4'  AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '3')  /* 펫드라이룸 관련 추가 */
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS AS13_CNTT
+            , CASE WHEN ((T1.SV_BIZ_HCLSF_CD = '3') OR (SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='11')) AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '4'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS AS14_CNTT
+            , CASE WHEN ((T1.SV_BIZ_HCLSF_CD = '3') OR (SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='11')) AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '5'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS AS15_CNTT
+            , CASE WHEN ((T1.SV_BIZ_HCLSF_CD = '3') OR (SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='11')) AND T1.REFRI_DV_CD ='1' AND T1.FNL_SELL_TP_CD = '9'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS AS19_CNTT
+            , CASE WHEN ((T1.SV_BIZ_HCLSF_CD = '3') OR (SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='11')) AND T1.REFRI_DV_CD ='2' AND T1.FNL_SELL_TP_CD = '1'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS AS21_CNTT
+            , CASE WHEN ((T1.SV_BIZ_HCLSF_CD = '3') OR (SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='11')) AND T1.REFRI_DV_CD ='2' AND T1.FNL_SELL_TP_CD = '2'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS AS22_CNTT
+            , CASE WHEN ((T1.SV_BIZ_HCLSF_CD = '3') OR (SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='11')) AND T1.REFRI_DV_CD ='2' AND T1.FNL_SELL_TP_CD = '3'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS AS23_CNTT
+            , CASE WHEN ((T1.SV_BIZ_HCLSF_CD = '3') OR (SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='11')) AND T1.REFRI_DV_CD ='2' AND T1.FNL_SELL_TP_CD = '4'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS AS24_CNTT
+            , CASE WHEN ((T1.SV_BIZ_HCLSF_CD = '3') OR (SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='11')) AND T1.REFRI_DV_CD ='2' AND T1.FNL_SELL_TP_CD = '5'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS AS25_CNTT
+            , CASE WHEN ((T1.SV_BIZ_HCLSF_CD = '3') OR (SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='11')) AND T1.REFRI_DV_CD ='2' AND T1.FNL_SELL_TP_CD = '9'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS AS29_CNTT
+
+              /* PS */
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' AND T1.REFRI_DV_CD ='2' AND SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='13'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS PS02_CNTT
+            , CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' AND T1.REFRI_DV_CD ='1' AND SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) ='13'
+                   THEN SUM(T1.USE_QTY)
+                   ELSE 0
+              END  AS PS02_CNTT_FREE
+             FROM TB_SVST_SV_WK_OSTR_IZ T1
+             LEFT OUTER JOIN PD_INF T2
+              ON T1.ITM_PD_CD  = T2.PD_CD
+             WHERE 1=1
+              AND T2.PD_PRP_VAL19   = #{itmKndCd}
+              AND T1.SV_BIZ_HCLSF_CD IN ('1','2','3','4')
+              AND T1.FNL_VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
+
+             <if test='@MybatisUtils@isNotEmpty(findGb)'>
+              AND T1.WK_WARE_NO LIKE #{findGb}||'%'
+             </if>
+              GROUP BY T1.ITM_PD_CD
+                     , T1.SV_BIZ_HCLSF_CD
+                     , T1.REFRI_DV_CD
+                     , SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2)
+                     , T1.FNL_SELL_TP_CD
+         )
+         GROUP BY ITM_PD_CD
+       )
+       SELECT T1.PD_CD
+            , T1.PD_NM
+            , T1.SAP_MAT_CD
+            , T1.PD_ABBR_NM
+            , T1.AS_MAT_ITM_GRP_CD
+            , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', T1.AS_MAT_ITM_GRP_CD) AS AS_MAT_ITM_GRP_NM
+            , REPLACE(BS01_AMTT,0,'') AS BS01_AMTT               /* B/S 할부 */
+	        , REPLACE(BS02_AMTT,0,'') AS BS02_AMTT               /* B/S 렌탈 */
+	        , REPLACE(BS03_AMTT,0,'') AS BS03_AMTT               /* B/S 멤버십 */
+	        , REPLACE(BS04_AMTT,0,'') AS BS04_AMTT               /* B/S 회사 */
+	        , REPLACE(BS05_AMTT,0,'') AS BS05_AMTT               /* B/S 만료유지 */
+	        , REPLACE(BS09_AMTT,0,'') AS BS09_AMTT               /* B/S 필터판매 */
+	        , REPLACE(AS00_AMTT,0,'') AS AS00_AMTT               /* A/S 유상 */
+	        , REPLACE(AS01_AMTT,0,'') AS AS01_AMTT               /* A/S 할부(무상) */
+	        , REPLACE(AS02_AMTT,0,'') AS AS02_AMTT               /* A/S 렌탈(무상) */
+	        , REPLACE(AS03_AMTT,0,'') AS AS03_AMTT               /* A/S 멤버십(무상) */
+	        , REPLACE(AS04_AMTT,0,'') AS AS04_AMTT               /* A/S 회사(무상) */
+	        , REPLACE(AS05_AMTT,0,'') AS AS05_AMTT               /* A/S 만료유지 */
+	        , REPLACE(AS09_AMTT,0,'') AS AS09_AMTT               /* A/S 필터판매(무상) */
+	        , REPLACE(AS10_AMTT,0,'') AS AS10_AMTT               /* A/S 기타출고 */
+	        , REPLACE(PS01_AMTT,0,'') AS PS01_AMTT               /* PS 판매(자가) */
+	        , REPLACE(PS02_AMTT,0,'') AS PS02_AMTT               /* PS 판매(방문) */
+	        , REPLACE(PS02_AMTT_FREE,0,'') AS PS02_AMTT_FREE     /* PS 판매(방문) */
+	        , '' AS PS03_AMTT                                    /* PS 판매(기타) */
+	          /* SUM */
+	        , NVL(AS00_AMTT,0)+
+	          NVL(AS01_AMTT,0)+
+	          NVL(AS02_AMTT,0)+
+	          NVL(AS03_AMTT,0)+
+	          NVL(AS04_AMTT,0)+
+	          NVL(AS05_AMTT,0)+
+	          NVL(AS09_AMTT,0)+
+	          NVL(AS10_AMTT,0)      AS AS99_AMTT                  /* A/S소계 */
+
+	        , NVL(BS01_AMTT,0)+
+	          NVL(BS02_AMTT,0)+
+	          NVL(BS03_AMTT,0)+
+	          NVL(BS04_AMTT,0)+
+	          NVL(BS05_AMTT,0)+
+	          NVL(BS09_AMTT,0)      AS BS99_AMTT                  /* B/S소계 */
+
+			, NVL(PS01_AMTT,0)+
+	          NVL(PS02_AMTT,0)+
+	          NVL(PS02_AMTT_FREE,0) AS PS99_AMTT                  /* PS 소계 */
+
+	          /* AS|BS|PS SUM */
+	        , NVL(BS01_AMTT,0)+
+	          NVL(BS02_AMTT,0)+
+	          NVL(BS03_AMTT,0)+
+	          NVL(BS04_AMTT,0)+
+	          NVL(BS05_AMTT,0)+
+	          NVL(BS09_AMTT,0)+
+	          NVL(AS00_AMTT,0)+
+	          NVL(AS01_AMTT,0)+
+	          NVL(AS02_AMTT,0)+
+	          NVL(AS03_AMTT,0)+
+	          NVL(AS04_AMTT,0)+
+	          NVL(AS05_AMTT,0)+
+	          NVL(AS09_AMTT,0)+
+	          NVL(AS10_AMTT,0)+
+	          NVL(PS01_AMTT,0)+
+	          NVL(PS02_AMTT,0)+
+	          NVL(PS02_AMTT_FREE,0)     AS TOTL_AMTT               /* 총계 */
+       FROM PD_INF T1
+       LEFT OUTER JOIN WK_OSTR_IZ T2
+        ON T1.PD_CD = T2.ITM_PD_CD
+       LEFT OUTER JOIN SELL_OSTR_INF T3
+        ON T1.PD_CD = T3.ITM_PD_CD
+       LEFT OUTER JOIN ETC_OSTR_INF T4
+        ON T1.PD_CD = T4.ITM_PD_CD
+       WHERE 1=1
+        AND  T1.PD_PRP_VAL19  = #{itmKndCd}
+       ORDER BY T1.PD_CD
+    </select>
+</mapper>

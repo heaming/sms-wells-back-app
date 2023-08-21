@@ -11,19 +11,14 @@ public class WwdbCashReceiptApprovalInterfaceDto {
     /* wells 현금영수증 승인 내역 조회 Request Dto */
     @ApiModel("WwdbCashReceiptApprovalInterfaceDto-SearchReq")
     public record SearchReq(
-        @NotBlank
         @JsonProperty("CNTR_NO")
         String cntrNo,
-        @NotBlank
         @JsonProperty("CNTR_SN")
         String cntrSn,
-        @NotBlank
         @JsonProperty("APR_NO")
         String aprNo,
-        @NotBlank
         @JsonProperty("STRT_RVE_YM")
         String strtRveYm,
-        @NotBlank
         @JsonProperty("END_RVE_YM")
         String endRveYm
 

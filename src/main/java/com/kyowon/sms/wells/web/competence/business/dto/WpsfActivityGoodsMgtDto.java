@@ -26,7 +26,8 @@ public class WpsfActivityGoodsMgtDto {
         String actiGdsStddDvId, /* 활동물품규격구분ID */
         String actiGdsSn, /* 활동물품일련번호 */
         String actiGdsStddCd, /* 활동물품규격구분코드 */
-        String aplcQty /* 신청수량 */
+        String aplcQty, /* 신청수량 */
+        String bzStatCd /* 사업상태코드 */
 
     ) {}
 
@@ -85,7 +86,9 @@ public class WpsfActivityGoodsMgtDto {
         String actiGdsDdtnId,
 
         String aplcDtS,
-        String actiGdsStddNm
+        String actiGdsStddNm,
+        String cltnDt, /* 해약일자 */
+        String cntrDt /* 계약일자 */
 
     ) {
         public SearchStatRes {
