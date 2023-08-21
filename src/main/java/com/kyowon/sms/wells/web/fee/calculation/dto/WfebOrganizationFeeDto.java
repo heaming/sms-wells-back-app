@@ -228,6 +228,90 @@ public class WfebOrganizationFeeDto {
         String aclDsbAmt /*실지급액*/
     ) {}
 
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerBfRes")
+    public record SearchMngerBfRes(
+        String ogCd, /*소속*/
+        String prtnrNo, /*번호*/
+        String prtnrKnm, /*성명*/
+        String rsbDvCd, /*직책*/
+        String akcuil, /*미팅일수*/
+        String akdmi3, /*자격수수료월*/
+        String akdmi32, /*자격M+1*/
+        String edustr, /*스타트업매니저*/
+        String edu011, /*스타트업플래너*/
+        String edu129, /*보수교육*/
+        String edu106, /*수석플래너교육정착*/
+        String akdcha, /*수석플래너교육차월*/
+        String edu017, /*수석플래너교육실전*/
+        String ojtCnt, /*OJT일수*/
+        String akdsym, /*등록기준월*/
+        String akdenm, /*최초업무등록월*/
+        String akdjem, /*재등록월*/
+        String akdlym, /*최종해약월*/
+        String akdcym, /*업무해약월*/
+        String akdrym, /*승진월*/
+        String sustym, /*수석플래너등록월*/
+        String suscym, /*수석플래너해약월*/
+        String lccoym, /*WM개시*/
+        String lcccym, /*WM해약*/
+        String dalsyn, /*실활동달성*/
+        String akcda17, /*인정실적렌탈*/
+        String akcda18, /*인정실적일시불*/
+        String akcda1, /*인정실적환경가전외*/
+        String akcdq1, /*가전순주문건수*/
+        String akcdq0, /*개인가전인정건수*/
+        String akcdq7, /*개인BS인정건수*/
+        String akdet3, /*가전기변건수*/
+        String jasamt, /*가전기변금액*/
+        String akcda12, /*환경가전렌탈*/
+        String akcda13, /*환경가전일시불*/
+        String akcda14, /*환경가전정액*/
+        String akcda15, /*환경가전외일시불*/
+        String akcda16, /*환경가전외정액*/
+        String akcdq5, /*라이브팩건수*/
+        String akcdq6, /*개인신규판매건수*/
+        String akcda19, /*홈케어판매가*/
+        String jakcdq0, /*조직가전인정건수*/
+        String jakcdq6, /*조직신규판매건수*/
+        String jakcda12, /*조직환경가전렌탈*/
+        String jakcda13, /*조직환경가전일시불*/
+        String jakcda15, /*조직환경가전외일시불*/
+        String aksd49, /*홈케어*/
+        String aksd43, /*라이브팩*/
+        String aksd26, /*가전비례*/
+        String aksd29, /*가전외비례*/
+        String sd26m1, /*가전미팅*/
+        String sd26m2, /*일시불미팅*/
+        String sd26mt, /*가전외미팅*/
+        String aksd17, /*판매장려*/
+        String aksd50, /*교육*/
+        String aksd48, /*정착*/
+        String aksd04, /*기기변경*/
+        String aksd15, /*BS관리*/
+        String aksd23, /*급지*/
+        String aksd42, /*판매장려소급*/
+        String aksd31, /*가전조직비례*/
+        String aksd34, /*가전조직외비례*/
+        String aksd11, /*조직판매장려*/
+        String aksd08, /*신규판매*/
+        String aksd22, /*조직관리*/
+        String aksd13, /*조직배출1*/
+        String aksd09, /*조직배출2*/
+        String aksd36, /*신설지점*/
+        String aksd05, /*멤버십*/
+        String aksd14, /*재지급*/
+        String aksd39, /*기타지원*/
+        String aksd18, /*WM통신*/
+        String aksd19, /*WM기타*/
+        String aksd40, /*사전방문*/
+        String aksd16, /*유니폼*/
+        String aksd10, /*자재실장*/
+        String lccntt, /*BS완료계정*/
+        String intbsSum, /*과표합계*/
+        String ddtnSum, /*총공제액*/
+        String aclDsbAmt /*실지급액*/
+    ) {}
+
     @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerBrmgrRes")
     public record SearchMngerBrmgrRes(
         String ogNm, /*소속*/

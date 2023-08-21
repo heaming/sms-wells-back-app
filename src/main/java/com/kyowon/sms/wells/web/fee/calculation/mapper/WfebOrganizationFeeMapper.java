@@ -23,6 +23,10 @@ public interface WfebOrganizationFeeMapper {
         SearchMngerReq dto
     );
 
+    List<SearchMngerBfRes> selectManagerBeforeFees(
+        SearchMngerReq dto
+    );
+
     List<SearchMngerBrmgrRes> selectManagerBranchManagerFees(
         SearchMngerReq dto
     );
