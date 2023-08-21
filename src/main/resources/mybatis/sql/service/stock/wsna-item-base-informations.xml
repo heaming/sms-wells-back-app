@@ -21,7 +21,6 @@
              , NVL(T2.MY_CENTER_QTY, 0) AS MY_CENTER_QTY   /* 조직창고 수량 */
              , NVL(T2.INDI_STCK_QTY, 0) AS INDI_STCK_QTY   /* 개인창고 수량 */
              , 0                        AS LGST_QTY        /* 물류재고 */
-             , NVL(T2.L_QTY, 0)         AS L_QTY
           FROM
              (
                SELECT S1.SVPD_SAP_CD      AS SAP_CD          /* SAP코드 */
@@ -63,7 +62,6 @@
                           END)        AS MY_CENTER_QTY
                     , SUM(CASE WHEN D2.HGR_WARE_NO = D3.HGR_WARE_NO THEN D1.PITM_STOC_A_GD_QTY
                           END)        AS INDI_STCK_QTY
-                    , SUM(D4.USE_QTY) AS L_QTY
                  FROM TB_SVST_CST_SV_ITM_STOC_IZ D1   /* 고객서비스품목재고내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2    /* 월별창고내역 */
                    ON D2.WARE_NO = D1.WARE_NO
@@ -78,20 +76,6 @@
                          AND HGR_WARE_NO NOT LIKE '1%'
                     ) D3
                    ON 1 = 1
-                 LEFT OUTER JOIN
-                    (
-                      SELECT /*+ INDEX(TB_SVST_SV_WK_OSTR_IZ IX_SVST_SV_WK_OSTR_IZ_01) */
-                             WK_WARE_NO
-                           , ITM_PD_CD
-                           , SUM(USE_QTY) AS USE_QTY
-                        FROM TB_SVST_SV_WK_OSTR_IZ   /* 서비스작업출고내역 */
-                       WHERE DTA_DL_YN     = 'N'
-                         AND FNL_VST_FSH_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '%'
-                         AND ICHR_PRTNR_NO = #{session.employeeIDNumber}
-                       GROUP BY WK_WARE_NO, ITM_PD_CD
-                    ) D4
-                   ON D4.WK_WARE_NO = D1.WARE_NO
-                  AND D4.ITM_PD_CD  = D1.ITM_PD_CD
                 WHERE D1.DTA_DL_YN   = 'N'
                   AND D2.DTA_DL_YN   = 'N'
                   AND D2.WARE_USE_YN = 'Y'
@@ -227,7 +211,7 @@
             ON D8.ITM_PD_CD = D1.PD_CD
           LEFT OUTER JOIN T_CMD_ATTH_FILE_D D9
             ON D9.ATTH_DOC_ID = D1.IMG_APN_FILE_ID
-           AND D9.DTA_DL_YN   = 'N'
+           AND D9.DEL_YN      = 'N'
            AND D9.TENANT_ID   = 'TNT_WELLS'
          WHERE D1.DTA_DL_YN          = 'N'
            AND D1.PD_TP_CD           = 'M'
