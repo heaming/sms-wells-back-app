@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,15 +16,28 @@ import lombok.Setter;
 @Setter
 @Getter
 public class WsncRpbAreaCodeDvo {
-
-    String chLocaraCd; /* 변경 책임지역코드 */
-    String rpbLocaraCd; /* 변경 전 책임지역코드 */
+    String chk;
     String fr2pLgldCd; /* 법정동코드 앞2자리 */
     String ctpvNm; /* 시도명 */
     String ctctyNm; /* 시군구명 */
     String lawcEmdNm; /* 법정읍면동명 */
     String amtdNm; /* 행정동명 */
+    int locaraSn; /* 순번 */
+    String zipList; /* 우편번호 List */
     String apyStrtdt; /* 적용시작일자 */
     String apyEnddt; /* 적용종료일자 */
+    //        String mgtCnt; /* 지역별 서비스 계정 수 */
+    //        String wrkCnt; /* 월별 수임 건수 (조회월 이전 3개월 평균) */
+    String rpbLocaraCd; /* 책임지역코드 */
+    String rpbLocaraGrpCd; /* 책임지역그룹코드 */
+    String vstDowVal; /* 방문요일코드 */
+    String vstDowNm; /* 방문요일명 */
+    int mmtAvLdtm; /* 이동평균소요시간 */
+    String ogNm; /* 조직명 */
+    String ichrPrtnrNo; /* 담당파트너번호 */
+    String prtnrKnm; /* 파트너한글명 */
+    String locaraCenStruAdr; /* 지역중심건물주소 */
+    String chLocaraCd; /* 변경 책임지역코드 */
+    List<WsncRpbAreaCodeDvo> changeCodes; /* 책임지역변경코드 list(콤보박스생성용) */
 
 }
