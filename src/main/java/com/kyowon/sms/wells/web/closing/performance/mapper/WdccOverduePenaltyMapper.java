@@ -22,4 +22,8 @@ public interface WdccOverduePenaltyMapper {
     List<SearchOrderRes> selectAnticipationMemberships(SearchReq req);
 
     List<SearchOrderRes> selectAnticipationRegularShippings(SearchReq req);
+
+    List<SearchOrderRes> selectAnticipationRentals(SearchReq req);
+
+    List<SearchOrderRes> selectAnticipationLeases(SearchReq req);
 }

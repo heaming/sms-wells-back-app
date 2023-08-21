@@ -48,4 +48,12 @@ public class WdccOverduePenaltyService {
     public List<SearchOrderRes> getAnticipationRegularShippings(SearchReq req) {
         return mapper.selectAnticipationRegularShippings(req);
     }
+
+    public List<SearchOrderRes> getAnticipationRentals(SearchReq req) {
+        return mapper.selectAnticipationRentals(req);
+    }
+
+    public List<SearchOrderRes> getAnticipationLeases(SearchReq req) {
+        return mapper.selectAnticipationLeases(req);
+    }
 }
