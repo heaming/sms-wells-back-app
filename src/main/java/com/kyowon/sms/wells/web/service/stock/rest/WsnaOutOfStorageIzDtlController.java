@@ -59,7 +59,9 @@ public class WsnaOutOfStorageIzDtlController {
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07102157"),
         @ApiImplicitParam(name = "itmGdCd", value = "등급코드", paramType = "query", example = "A"),
-        @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y")
+        @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "strWareDtlDvCd", value = "입고창고상세구분코드", paramType = "query", example = "20"),
+        @ApiImplicitParam(name = "ostrWareDtlDvCd", value = "출고창고상세구분코드", paramType = "query", example = "10")
     })
     public PagingResult<SearchRes> getOutOfStorageIzDtlsPaging(@Valid
     SearchReq dto, @Valid
@@ -83,7 +85,9 @@ public class WsnaOutOfStorageIzDtlController {
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07102157"),
         @ApiImplicitParam(name = "itmGdCd", value = "등급코드", paramType = "query", example = "A"),
-        @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y")
+        @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "strWareDtlDvCd", value = "입고창고상세구분코드", paramType = "query", example = "20"),
+        @ApiImplicitParam(name = "ostrWareDtlDvCd", value = "출고창고상세구분코드", paramType = "query", example = "10")
     })
     public List<SearchRes> getOutOfStorageIzDtlsExcelDownload(@Valid
     SearchReq dto) {
