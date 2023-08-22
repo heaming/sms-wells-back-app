@@ -118,13 +118,13 @@ public class WsnbIndividualServicePsDto {
         String cralIdvTno,
         String bldNm,
         String bcNo,
-        String imgYn
-//        String istEnvrPhoPhDocId,
-//        String istKitPhoPhDocId,
-//        String istCelngPhoPhDocId,
-//        String istEnvrFileUid,
-//        String istKitFileUid,
-//        String istCelngFileUid
+        String imgYn,
+        String istEnvrPhoPhDocId,
+        String istKitPhoPhDocId,
+        String istCelngPhoPhDocId,
+        String istEnvrFileUid,
+        String istKitFileUid,
+        String istCelngFileUid
     ){
         public SearchStateRes{
             mexnoEncr = DbEncUtil.dec(mexnoEncr);
