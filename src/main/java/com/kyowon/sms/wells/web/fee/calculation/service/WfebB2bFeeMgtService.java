@@ -113,9 +113,11 @@ public class WfebB2bFeeMgtService {
                 dtlDvo.setFeeDdtnCrtCd("01"); // 수수료공제유형코드 : 공제-보증예치금
                 dtlDvo.setFeeCtrOgTpCd(session.getOgTpCd());
                 dtlDvo.setFeeCtrPrtnrNo(row.prtnrNo());
+                dtlDvo.setPrtnrNo(row.prtnrNo());
                 dtlDvo.setFeeDdctam(row.amt01());
                 dtlDvo.setFeeDdtnCnfmAmt(row.amt01());
                 dtlDvo.setFeeCtrRsonCn(row.amt01Cn());
+                dtlDvo.setDtaDlYn("N");
                 processCount += mapper.updateCalcDtlFee(dtlDvo);
             }
         }
