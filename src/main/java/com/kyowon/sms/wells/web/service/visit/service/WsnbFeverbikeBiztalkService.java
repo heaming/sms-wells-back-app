@@ -37,7 +37,7 @@ public class WsnbFeverbikeBiztalkService {
      * @return 변경 개수
      */
     @Transactional
-    public int sendFeverbikeBiztalk() throws Exception {
+    public int sendFeverbikeBiztalk(Map<String, Object> jobParam) throws Exception {
         final AtomicInteger updateCount = new AtomicInteger();
         final List<WsnbFeverbikeBiztalkDvo> rows = mapper.selectFeverbikeBiztalk();
         final Map<String, Object> paramMap = new HashMap<>();
