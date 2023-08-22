@@ -7,7 +7,6 @@ import org.mapstruct.Mapper;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaCodeMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaCodeMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 /**
  * <pre>
@@ -22,9 +21,5 @@ public interface WsncRpbAreaCodeMgtConverter {
 
     WsncRpbAreaCodeDvo mapSaveReqToWsncRpbAreaCodeDvo(SaveReq dto);
 
-    PagingResult<SearchRes> mapWsncRpbAreaCodeDvoToSearchRes(
-        List<WsncRpbAreaCodeDvo> selectAreaCodePages
-    );
-
-    List<SearchRes> mapDvoToSearchRes(List<WsncRpbAreaCodeDvo> selectAreaCodePages);
+    List<SearchRes> mapWsncRpbAreaCodeDvoToSearchRes(List<WsncRpbAreaCodeDvo> selectAreaCodePages);
 }

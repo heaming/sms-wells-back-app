@@ -8,11 +8,12 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsncRpbAreaCodeMgtMapper {
 
-    List<WsncRpbAreaCodeDvo> selectAreaCodePages(
+    PagingResult<WsncRpbAreaCodeDvo> selectAreaCodePages(
         SearchReq dto, PageInfo pageInfo
     );
 
