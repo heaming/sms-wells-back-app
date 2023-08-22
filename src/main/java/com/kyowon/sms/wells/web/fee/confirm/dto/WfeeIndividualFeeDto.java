@@ -92,6 +92,7 @@ public class WfeeIndividualFeeDto {
         String cntrwTpNm, /*상품구분*/
         String rcpdt, /*접수일자*/
         String slDt, /*매출일자*/
+        String canDt, /*취소일자*/
         String cntrNo, /*계약번호*/
         String pdNm, /*상품명*/
         String cstKnm, /*고객명*/
@@ -107,15 +108,17 @@ public class WfeeIndividualFeeDto {
         String prtnrKnm, /*성명*/
         String rcpdt, /*접수일자*/
         String slDt, /*매출일자*/
+        String canDt, /*취소일자*/
         String cntrNo, /*계약번호*/
         String pdNm, /*상품명*/
         String cstKnm, /*고객명*/
         String saleDiv, /*판매구분*/
         int pdAccCnt, /*인정건수*/
-        int perfRental, /*환경가전렌탈*/
+        int perfRental, /*가전기준가*/
         int perfSnglPmnt, /*환경가전일시불*/
         int perfFxam, /*환경가전정액*/
-        int perfBsPdAccCnt /*BS인정건수*/
+        int perfBsPdAccCnt, /*가전인정건수*/
+        int perfElhmExcpAckmt /*가전외인정실적*/
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstRes")
