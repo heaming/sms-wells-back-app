@@ -158,23 +158,26 @@
                                AND B1.HGR_WARE_NO  = #{strOjWareNo}
                                AND B1.WARE_DV_CD   = '2'
                                AND B1.WARE_DTL_DV_CD NOT IN ('20,30')
-                               /*AND B1.WARE_ICHR_NO != '000'*/
                              GROUP BY A1.ITM_PD_CD
                            ) T2
              ON B.SVPD_PD_CD = T2.ITM_PD_CD
-            LEFT OUTER JOIN (SELECT A2.ITM_PD_CD
-                                  , SUM(A2.USE_QTY) AS USE_QTY
-                              FROM TB_SVST_SV_WK_OSTR_IZ A2
-                             INNER JOIN TB_SVST_MCBY_WARE_IZ B2
-                                ON A2.WK_WARE_NO = B2.WARE_NO
-                             WHERE 1=1
-                               AND SUBSTR(A2.FNL_VST_FSH_DT,1,6) LIKE TO_CHAR(SYSDATE, 'YYYYMM')||'%'
-                               AND B2.APY_YM       = TO_CHAR(SYSDATE, 'YYYYMM')
-                               AND B2.HGR_WARE_NO  = #{strOjWareNo}
-                               AND B2.WARE_DV_CD   = '2'
-                             GROUP BY A2.ITM_PD_CD
-                           ) T3
-                     ON B.SVPD_PD_CD = T3.ITM_PD_CD
+            LEFT OUTER JOIN
+               (
+                 SELECT /*+ INDEX(A2 IX_SVST_SV_WK_OSTR_IZ_01) */
+                        A2.ITM_PD_CD
+                      , SUM(A2.USE_QTY) AS USE_QTY
+                   FROM TB_SVST_SV_WK_OSTR_IZ A2
+                  INNER JOIN TB_SVST_MCBY_WARE_IZ B2
+                     ON A2.WK_WARE_NO = B2.WARE_NO
+                  WHERE A2.DTA_DL_YN    = 'N'
+                    AND B2.DTA_DL_YN    = 'N'
+                    AND A2.FNL_VST_FSH_DT LIKE TO_CHAR(SYSDATE, 'YYYYMM') || '%'
+                    AND B2.APY_YM       = TO_CHAR(SYSDATE, 'YYYYMM')
+                    AND B2.WARE_DV_CD   = '2'
+                    AND B2.HGR_WARE_NO  = #{strOjWareNo}
+                  GROUP BY A2.ITM_PD_CD
+               ) T3
+              ON T3.ITM_PD_CD = B.SVPD_PD_CD
             LEFT OUTER JOIN TB_SVST_MCITM_BASE_SFT_STOC_IZ T4
               ON B.SVPD_PD_CD  = T4.PD_CD
              AND T4.APY_YM = TO_CHAR(SYSDATE,'YYYYMM')
