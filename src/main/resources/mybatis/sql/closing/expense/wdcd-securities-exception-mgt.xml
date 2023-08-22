@@ -4,72 +4,73 @@
     <select id="selectAdjustObject" resultType="com.kyowon.sms.wells.web.closing.expense.dvo.WdcdSecuritiesExceptionDvo">
         /* [WDCD] 운영비 등록 관리 - 유가증권 제외 TAB*/
         SELECT A.OPCS_CARD_USE_IZ_ID    /*운영비카드사용내역ID*/
-         , TO_CHAR(TO_DATE(A.APR_DT||A.APVTM_MS,'YYYYMMDDHH24MISS'),'YYYY-MM-DD AM HH24:MI') AS USE_DTM /*사용일시*/
-         , C.DGR1_LEVL_OG_ID        /*(hidden)조직명조직ID*/
-         , (CASE WHEN C.OG_LEVL_DV_CD = '1' THEN C.DGR1_LEVL_OG_ID
-                 WHEN C.OG_LEVL_DV_CD = '2' THEN C.DGR2_LEVL_OG_ID
-                 WHEN C.OG_LEVL_DV_CD = '3' THEN C.DGR3_LEVL_OG_ID
-            END) AS ADJ_OG_ID    /*정산조직ID*/
-         , (CASE WHEN C.OG_LEVL_DV_CD = '1' THEN C.DGR1_LEVL_OG_NM
-                 WHEN C.OG_LEVL_DV_CD = '2' THEN C.DGR2_LEVL_OG_NM
-                 WHEN C.OG_LEVL_DV_CD = '3' THEN C.DGR3_LEVL_OG_NM
-            END) AS DGR1_LEVL_OG_NM        /*조직명*/
-         , A.CRCDNO_ENCR            /*카드번호*/
-         , A.MRC_NM                 /*가맹점명*/
-         , A.MRC_TOBZ_NM            /*가맹점업종명*/
-         , A.MRC_ADR_CN             /*가맹점주소내용*/
-         , A.CARD_APRNO             /*카드승인번호*/
-         , SUM(CASE WHEN A.CARD_APR_STAT_CD ='0' THEN DOM_TRD_AMT*-1
-                    ELSE A.DOM_TRD_AMT END) OVER() AS DOM_TRD_SUM_AMT    /*(hidden)사용합계금액*/
-         , (CASE WHEN A.CARD_APR_STAT_CD ='0' THEN DOM_TRD_AMT*-1
-                 ELSE A.DOM_TRD_AMT END) AS DOM_TRD_AMT    /*사용금액*/
-         , (CASE WHEN A.OPCS_ADJ_EXCD_YN = 'Y' THEN '정산제외' ELSE '정산' END) AS OPCS_ADJ_EXCD_YN   /*운영비정산제외여부*/
-         , A.OPCS_ADJ_SMRY_DV_CD    /*운영비정산적요구분코드*/
-         , (SELECT CD_CNTN
-              FROM T_CMZ_CD_D S1
-             WHERE S1.TENANT_ID = 'TNT_WELLS'
-               AND S1.CD_ID = 'OPCS_ADJ_SMRY_DV_CD'
-               AND S1.CD_VLD_VAL = A.OPCS_ADJ_SMRY_DV_CD) AS OPCS_ADJ_SMRY_DV_NM    /*운영비정산적요구분명*/
-         , A.OJ_APY_CN              /*대상적용내용*/
-         , A.USR_SMRY_CN            /*사용자적요내용*/
-         , A.MRC_TOBZ_CD            /*(hidden)가맹점업종코드*/
-         , A.CDCO_CD                /*(hidden)카드사코드*/
-         , '원천세 정산' AS OPCS_ADJ_BTN       /*원천세정산버튼*/
-         , (CASE (SELECT COUNT(1) FROM TB_CBCL_OPCS_ADJ_USE_REL S1 WHERE S1.OPCS_CARD_USE_IZ_ID = A.OPCS_CARD_USE_IZ_ID)
-                 WHEN 0 THEN (CASE WHEN B.ADJ_YN = 'Y' THEN '완료' ELSE '' END)
-                 ELSE '완료' END) AS ADJ_CLS  /*정산여부*/
-         , (SELECT S1.OPCS_ADJ_NO
-              FROM TB_CBCL_OPCS_ADJ_USE_REL S1
-             WHERE S1.OPCS_CARD_USE_IZ_ID = A.OPCS_CARD_USE_IZ_ID) AS OPCS_ADJ_NO   /*(hidden)운영비정산번호*/
-         , B.ADJ_PRTNR_NO
-      FROM TB_CBCL_OPCS_CARD_USE_IZ A /*T:운영비카드사용내역*/
-     INNER JOIN TB_CBCL_OPCS_ADJ_CARD_IZ B /*T:운영비정산카드내역*/
-        ON B.CRCDNO_ENCR = A.ADJ_CRCDNO_ENCR
-       AND B.BASE_YM = A.BASE_YM
-     INNER JOIN TB_OGBS_MM_OG_IZ C /*T:월조직내역*/
-        ON C.BASE_YM = B.BASE_YM
-       AND C.OG_ID = B.ADJ_OG_ID
-     WHERE 1=1
-       AND A.DTA_DL_YN = 'N'
-       AND B.USE_YN = 'Y'
-       AND B.BASE_YM = #{baseYm}
-    <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
-       AND B.ADJ_OG_ID = #{dgr1LevlOgId} /*1레벨 조직ID*/
-    </if>
-    <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-       AND B.ADJ_OG_ID = #{dgr2LevlOgId} /*2레벨 조직ID*/
-    </if>
-    <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
-       AND B.ADJ_OG_ID = #{dgr3LevlOgId} /*3레벨 조직ID*/
-    </if>
-       AND A.MRC_TOBZ_NM NOT LIKE '%'||'상품권'||'%'
-       AND A.MRC_NM NOT LIKE '%'||'상품권'||'%'
-       AND A.MRC_NM NOT LIKE '%'||'기프트'||'%'
-       AND A.MRC_NM NOT LIKE '%'||'기프티'||'%'
-       AND A.MRC_NM NOT LIKE '%'||'카카오'||'%'||'선물'||'%'
-     ORDER BY A.CRCDNO_ENCR
-            , A.APR_DT
-            , A.APVTM_MS
+             , TO_CHAR(TO_DATE(A.APR_DT||A.APVTM_MS,'YYYYMMDDHH24MISS'),'YYYY-MM-DD AM HH24:MI') AS USE_DTM /*사용일시*/
+             , C.DGR1_LEVL_OG_ID        /*(hidden)조직명조직ID*/
+             , (CASE WHEN C.OG_LEVL_DV_CD = '1' THEN C.DGR1_LEVL_OG_ID
+                     WHEN C.OG_LEVL_DV_CD = '2' THEN C.DGR2_LEVL_OG_ID
+                     WHEN C.OG_LEVL_DV_CD = '3' THEN C.DGR3_LEVL_OG_ID
+                END) AS ADJ_OG_ID    /*정산조직ID*/
+             , (CASE WHEN C.OG_LEVL_DV_CD = '1' THEN C.DGR1_LEVL_OG_NM
+                     WHEN C.OG_LEVL_DV_CD = '2' THEN C.DGR2_LEVL_OG_NM
+                     WHEN C.OG_LEVL_DV_CD = '3' THEN C.DGR3_LEVL_OG_NM
+                END) AS DGR1_LEVL_OG_NM        /*조직명*/
+             , A.CRCDNO_ENCR            /*카드번호*/
+             , A.MRC_NM                 /*가맹점명*/
+             , A.MRC_TOBZ_NM            /*가맹점업종명*/
+             , A.MRC_ADR_CN             /*가맹점주소내용*/
+             , A.CARD_APRNO             /*카드승인번호*/
+             , SUM(CASE WHEN A.CARD_APR_STAT_CD ='0' THEN DOM_TRD_AMT*-1
+                        ELSE A.DOM_TRD_AMT END) OVER() AS DOM_TRD_SUM_AMT    /*(hidden)사용합계금액*/
+             , (CASE WHEN A.CARD_APR_STAT_CD ='0' THEN DOM_TRD_AMT*-1
+                     ELSE A.DOM_TRD_AMT END) AS DOM_TRD_AMT    /*사용금액*/
+             , (CASE WHEN A.OPCS_ADJ_EXCD_YN = 'Y' THEN '정산제외' ELSE '정산' END) AS OPCS_ADJ_EXCD_YN   /*운영비정산제외여부*/
+             , A.OPCS_ADJ_SMRY_DV_CD    /*운영비정산적요구분코드*/
+             , (SELECT CD_CNTN
+                  FROM T_CMZ_CD_D S1
+                 WHERE S1.TENANT_ID = 'TNT_WELLS'
+                   AND S1.CD_ID = 'OPCS_ADJ_SMRY_DV_CD'
+                   AND S1.CD_VLD_VAL = A.OPCS_ADJ_SMRY_DV_CD) AS OPCS_ADJ_SMRY_DV_NM    /*운영비정산적요구분명*/
+             , A.OJ_APY_CN              /*대상적용내용*/
+             , A.USR_SMRY_CN            /*사용자적요내용*/
+             , A.MRC_TOBZ_CD            /*(hidden)가맹점업종코드*/
+             , A.CDCO_CD                /*(hidden)카드사코드*/
+             , '원천세 정산' AS OPCS_ADJ_BTN       /*원천세정산버튼*/
+             , (CASE (SELECT COUNT(1) FROM TB_CBCL_OPCS_ADJ_USE_REL S1 WHERE S1.OPCS_CARD_USE_IZ_ID = A.OPCS_CARD_USE_IZ_ID)
+                     WHEN 0 THEN (CASE WHEN B.ADJ_YN = 'Y' THEN '완료' ELSE '' END)
+                     ELSE '완료' END) AS ADJ_CLS  /*정산여부*/
+             , (SELECT S1.OPCS_ADJ_NO
+                  FROM TB_CBCL_OPCS_ADJ_USE_REL S1
+                 WHERE S1.OPCS_CARD_USE_IZ_ID = A.OPCS_CARD_USE_IZ_ID) AS OPCS_ADJ_NO   /*(hidden)운영비정산번호*/
+             , B.ADJ_PRTNR_NO
+             , B.OG_TP_CD
+          FROM TB_CBCL_OPCS_CARD_USE_IZ A /*T:운영비카드사용내역*/
+         INNER JOIN TB_CBCL_OPCS_ADJ_CARD_IZ B /*T:운영비정산카드내역*/
+            ON B.CRCDNO_ENCR = A.ADJ_CRCDNO_ENCR
+           AND B.BASE_YM = A.BASE_YM
+         INNER JOIN TB_OGBS_MM_OG_IZ C /*T:월조직내역*/
+            ON C.BASE_YM = B.BASE_YM
+           AND C.OG_ID = B.ADJ_OG_ID
+         WHERE 1=1
+           AND A.DTA_DL_YN = 'N'
+           AND B.USE_YN = 'Y'
+           AND B.BASE_YM = #{baseYm}
+        <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+           AND B.ADJ_OG_ID = #{dgr1LevlOgId} /*1레벨 조직ID*/
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+           AND B.ADJ_OG_ID = #{dgr2LevlOgId} /*2레벨 조직ID*/
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+           AND B.ADJ_OG_ID = #{dgr3LevlOgId} /*3레벨 조직ID*/
+        </if>
+           AND A.MRC_TOBZ_NM NOT LIKE '%'||'상품권'||'%'
+           AND A.MRC_NM NOT LIKE '%'||'상품권'||'%'
+           AND A.MRC_NM NOT LIKE '%'||'기프트'||'%'
+           AND A.MRC_NM NOT LIKE '%'||'기프티'||'%'
+           AND A.MRC_NM NOT LIKE '%'||'카카오'||'%'||'선물'||'%'
+         ORDER BY A.CRCDNO_ENCR
+                , A.APR_DT
+                , A.APVTM_MS
     </select>
 
     <update id="editWithholdingTaxAdjust">
@@ -124,7 +125,10 @@
                </if>
              GROUP BY S4.DST_OJ_PRTNR_NO) AS CARD_APRNO     /*승인번호*/
       FROM (SELECT T2.DGR1_LEVL_OG_NM  /*총괄단*/
-                 , T2.DGR2_LEVL_OG_NM  /*지역단*/
+                 , (SELECT S1.DGR2_LEVL_OG_NM
+                      FROM TB_OGBS_MM_OG_IZ S1
+                     WHERE S1.BASE_YM = T2.BASE_YM
+                       AND S1.OG_ID = T3.OG_ID) AS DGR2_LEVL_OG_NM /*지역단*/
                  , T1.DST_OJPS_NM       /*성명*/
                  , T1.DST_OJ_PRTNR_NO   /*번호*/
                  , (SELECT CD_CNTN

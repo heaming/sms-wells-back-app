@@ -54,6 +54,7 @@
                           , PD_LCLSF_ID
                           , PD_DCLSF_ID
                           , CNTR_CNFM_DTM
+                          , CNTR_PD_STRTDT
                        FROM TB_SSCT_CNTR_DTL S1
                        JOIN TB_SSCT_CNTR_BAS S2
                          ON S2.CNTR_NO = S1.CNTR_NO
@@ -72,13 +73,9 @@
               JOIN WSMDBS.TB_PDBS_PD_BAS            		  T3 	/*상품기본*/
                 ON (    T3.PD_CD     		= T1.PD_CD
                     AND T3.DTA_DL_YN 		= 'N' )
-              LEFT OUTER JOIN LATERAL ( SELECT  SS1.OG_CD		/*소속*/
-                           , SS1.SELL_CHNL_DV_CD
-                           , SS1.PRTNR_NO
-                           , SS1.PRTNR_KNM
-                           , SS1.OG_TP_CD
-                        FROM TB_OGBS_PRTNR_BAS SS1
-                        JOIN ( SELECT S2.PRTNR_NO
+              LEFT OUTER JOIN LATERAL ( SELECT
+                                      S2.OG_CD
+                                    , S2.PRTNR_NO
                                     , S2.PRTNR_KNM
                                     , S2.OG_TP_CD
                                     , DGR1_LEVL_OG_ID
@@ -89,19 +86,20 @@
                                    ON S1.BASE_YM = S2.BASE_YM
                                   AND S1.OG_TP_CD = S2.OG_TP_CD
                                   AND S1.OG_ID = S2.OG_ID
-                                  AND S2.BASE_YM = substr(T3.CNTR_CNFM_DTM,1,6)
+                                  AND S2.BASE_YM = NVL(substr(T3.CNTR_CNFM_DTM,1,6), SUBSTR(T3.CNTR_PD_STRTDT, 1, 6))
                                 WHERE 1 = 1
                                   AND S1.DTA_DL_YN = 'N'
-                                  AND S1.BASE_YM = substr(T3.CNTR_CNFM_DTM,1,6)
-                                <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+<!--                                  AND S1.BASE_YM = substr(T3.CNTR_CNFM_DTM,1,6)-->
+                                  AND S1.BASE_YM = NVL(substr(T3.CNTR_CNFM_DTM,1,6), SUBSTR(T3.CNTR_PD_STRTDT, 1, 6))
+                                <!--<if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
                                   AND DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
                                 </if>
                                 <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
                                   AND DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
-                                </if>
-                               ) SS2
-                          ON SS2.OG_TP_CD = SS1.OG_TP_CD
-                         AND SS2.PRTNR_NO = SS1.PRTNR_NO ) T5
+                                </if>-->
+                               ) T5
+<!--                          ON SS2.OG_TP_CD = SS1.OG_TP_CD-->
+<!--                         AND SS2.PRTNR_NO = SS1.PRTNR_NO ) T5-->
                   ON (    T5.OG_TP_CD = T1.OG_TP_CD
                       AND T5.PRTNR_NO = T1.PRTNR_NO )
              WHERE 1 = 1

@@ -41,9 +41,9 @@ public class WsnbIndividualServicePsService {
         return mapper.selectIndividualDelinquent(dto);
     } // 연체정보 조회
     public PagingResult<SearchStateRes> getIndividualProcessState(SearchReq dto, PageInfo pageInfo){
-        List<WsnbIndividualServicePsDvo> dvos = mapper.selectIndividualProcessState(dto);
+        PagingResult<WsnbIndividualServicePsDvo> dvos = mapper.selectIndividualProcessState(dto, pageInfo);
 
-        for(WsnbIndividualServicePsDvo dvo : dvos){
+        for (WsnbIndividualServicePsDvo dvo : dvos.getList()) {
             if (ObjectUtils.isNotEmpty(dvo.getIstEnvrPhoPhDocId())){
                 List<AttachFileDvo> attachFileDvos = attachFileService.getAttachFiles(dvo.getIstEnvrPhoPhDocId());
                 if(ObjectUtils.isNotEmpty(attachFileDvos) && attachFileDvos.size() > 0)
@@ -61,7 +61,8 @@ public class WsnbIndividualServicePsService {
             }
         }
 
-        return converter.mapAllSearchStateToDvo(dvos,pageInfo);
+        return converter.mapAllSearchStateToDvo(dvos);
+//        return mapper.selectIndividualProcessState(dto, pageInfo);
     } // 처리내역 조회
     public PagingResult<SearchCounselRes> getIndividualCounsel(SearchReq dto, PageInfo pageInfo){
         return mapper.selectIndividualCounsel(dto, pageInfo);

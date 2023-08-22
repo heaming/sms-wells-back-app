@@ -56,9 +56,21 @@
               , T1.FST_RGST_USR_ID                                                          /* 번호-최초등록사용자ID */
               , (SELECT X.USR_NM
                    FROM T_CMP_USR_ACO_M X
-                  WHERE X.EPNO = T7.CLCTAM_PRTNR_NO
+                  WHERE X.EPNO = (SELECT MAX(A1.CLCTAM_PRTNR_NO)
+                                    FROM TB_CBBO_BND_CNTR_BAS A1
+                                   WHERE A1.DTA_DL_YN = 'N'
+                                     AND A1.BASE_YM = SUBSTR(T1.DP_DT,0, 6)
+                                     AND A1.CNTR_NO = T1.CNTR_NO
+                                     AND A1.CNTR_SN = T1.CNTR_SN
+                                 )
                     AND X.DEL_YN = 'N')                                     AS CLCTAM_PRTNR_NM /* 집금담당자 */
-              , T7.CLCTAM_PRTNR_NO                                                             /* 번호 */
+              , (SELECT MAX(A1.CLCTAM_PRTNR_NO)
+                   FROM TB_CBBO_BND_CNTR_BAS A1
+                  WHERE A1.DTA_DL_YN = 'N'
+                    AND A1.BASE_YM = SUBSTR(T1.DP_DT,0, 6)
+                    AND A1.CNTR_NO = T1.CNTR_NO
+                    AND A1.CNTR_SN = T1.CNTR_SN
+                ) CLCTAM_PRTNR_NO                                                             /* 번호 */
           FROM TB_RVDW_RVE_DTL T1       /* 수납상세 */
                INNER JOIN TB_SSCT_CNTR_DTL T2 /* 계약상세 */
                        ON (    T2.CNTR_NO   = T1.CNTR_NO
@@ -79,10 +91,10 @@
                 LEFT OUTER JOIN TB_CUBS_CST_BAS T6         /* 고객기본 */
                              ON (    T6.CST_NO    = T5.CST_NO
                                  AND T6.DTA_DL_YN = 'N')
-                LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T7    /* 채권계약기본 */
+        <!--        LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T7    /* 채권계약기본 */
                              ON (    T7.CNTR_NO   = T2.CNTR_NO
                                  AND T7.CNTR_SN   = T2.CNTR_SN
-                                 AND T7.DTA_DL_YN = 'N')
+                                 AND T7.DTA_DL_YN = 'N')                            -->
         <!--        LEFT OUTER JOIN TB_RVDW_CARD_STLM_DP_IZ T8 /* 카드결제입금내역 */
                              ON (    T8.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
                                  AND T8.ITG_DP_NO    = T1.ITG_DP_NO
@@ -128,7 +140,9 @@
            AND T9.VNCO_DV_CD = #{vncoDvCd} /* VAN사구분코드 */
          </if>
          <if test='@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)'>
-           AND SUBSTR(T1.DP_DT,0,8) BETWEEN #{startDt} AND #{endDt} /*입금일자*/
+<!--           AND SUBSTR(T1.DP_DT,0,8) BETWEEN #{startDt} AND #{endDt} /*입금일자*/-->
+           AND T1.DP_DT >= #{startDt}
+           AND T1.DP_DT <![CDATA[<]]> TO_CHAR(TO_DATE(#{endDt}, 'YYYYMMDD') + 1, 'YYYYMMDD')
          </if>
          <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
            AND T1.OG_TP_CD IN
@@ -143,8 +157,16 @@
            AND T1.CNTR_SN = #{cntrSn}/*계약일련번호*/
          </if>
          <if test="@MybatisUtils@isNotEmpty(stClctamPrtnrNo) and @MybatisUtils@isNotEmpty(enClctamPrtnrNo)">
-           AND (T7.CLCTAM_PRTNR_NO <![CDATA[>=]]> #{stClctamPrtnrNo}
-                AND T7.CLCTAM_PRTNR_NO <![CDATA[<=]]> #{enClctamPrtnrNo}) /* 집금담당자사번 */
+           AND EXISTS (
+                       SELECT 'X'
+                         FROM TB_CBBO_BND_CNTR_BAS A1
+                        WHERE A1.DTA_DL_YN = 'N'
+                          AND A1.BASE_YM = SUBSTR(T1.DP_DT,0, 6)
+                          AND A1.CNTR_NO = T1.CNTR_NO
+                          AND A1.CNTR_SN = T1.CNTR_SN
+                          AND A1.CLCTAM_PRTNR_NO <![CDATA[>=]]> #{stClctamPrtnrNo}
+                          AND A1.CLCTAM_PRTNR_NO <![CDATA[<=]]> #{enClctamPrtnrNo}
+                      ) /* 집금담당자사번 */
          </if>
          <if test="@MybatisUtils@isNotEmpty(stFstRgstUsrId) and @MybatisUtils@isNotEmpty(enFstRgstUsrId)">
            AND (T1.FST_RGST_USR_ID <![CDATA[>=]]> #{stFstRgstUsrId}

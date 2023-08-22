@@ -110,7 +110,7 @@ public class WsnaIndividualWareOstrController {
     })
     public List<WsnaIndividualWareOstrDvo> getIndividualWareOstrsExcelDownload(@Valid
     SearchReq dto) {
-        return this.service.getIndividualWareOstrsExcelDownload(dto);
+        return this.service.getIndividualWareOstrs(dto);
     }
 
     @PostMapping

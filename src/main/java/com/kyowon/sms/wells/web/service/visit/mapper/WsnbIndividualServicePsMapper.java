@@ -18,7 +18,7 @@ public interface WsnbIndividualServicePsMapper {
     List<SearchFarmRes> selectIndividualFarm(SearchReq dto);
     List<SearchDelinquentRes> selectIndividualDelinquent(SearchReq dto);
 //    PagingResult<SearchStateRes> selectIndividualProcessState(SearchReq dto, PageInfo pageInfo);
-    List<WsnbIndividualServicePsDvo> selectIndividualProcessState(SearchReq dto);
+    PagingResult<WsnbIndividualServicePsDvo> selectIndividualProcessState(SearchReq dto, PageInfo pageInfo);
 //    List<WsnbIndividualServicePsDvo> selectProcessStatePhoto(String cstSvAsnNo);
 
     PagingResult<SearchCounselRes> selectIndividualCounsel(SearchReq dto, PageInfo pageInfo);

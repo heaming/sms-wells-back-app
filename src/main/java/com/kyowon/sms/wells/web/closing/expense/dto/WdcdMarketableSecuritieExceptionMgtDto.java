@@ -74,6 +74,7 @@ public class WdcdMarketableSecuritieExceptionMgtDto {
         String erntx,               /*(hidden)배분소득세*/
         String rsdntx,              /*(hidden)배분주민세*/
         String cardUseAmt,   /*(hidden)카드사용금액*/
+        String opcsAdjNo,   /*(hidden)운영비정산번호*/
         String adjFshDstAmt,  /*(hidden)정산완료배분합계금액*/
         String adjYn,  /*(hidden)정산여부*/
         String bldCd,  /* 빌딩코드 */

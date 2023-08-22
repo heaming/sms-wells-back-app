@@ -32,6 +32,7 @@
              , 0 AS ERNTX               /*(hidden)배분소득세*/
              , 0 AS RSDNTX              /*(hidden)배분주민세*/
              , T3.CARD_USE_AMT          /*(hidden)카드사용금액*/
+             , T3.OPCS_ADJ_NO          /*(hidden)카드사용금액*/
              , NVL((SELECT SUM(S1.DST_AMT)
                   FROM TB_CBCL_OPCS_ADJ_DTL S1 /*T:운영비정산상세*/
                  WHERE S1.OPCS_ADJ_NO = T3.OPCS_ADJ_NO
@@ -59,6 +60,7 @@
                                       , S1.PRTNR_NO
                             ),0) AS PERF_VAL    /*실적값*/
                           , C.CARD_USE_AMT      /*카드사용금액*/
+                          , C.ADJ_OG_ID
                       FROM TB_OGBS_MM_PRTNR_IZ A /*T:월파트너내역*/
                      INNER JOIN TB_OGBS_MM_OG_IZ B /*T:월조직내역*/
                         ON B.BASE_YM = A.BASE_YM
@@ -250,7 +252,7 @@
                      , A.ADJ_OG_NM      /*정산조직명*/
                      , A.ADJ_PRTNR_NO   /*정산파트너번호*/
                      , A.ADJ_USR_NM     /*정산사용자명*/
-                     , A.OPCS_ADJ_NO    /*운영비정산번호*/
+                     , D.OPCS_ADJ_NO    /*운영비정산번호*/
                      , A.ADJ_YN         /*정산여부*/
                      , (CASE WHEN SUBSTR(#{baseYm},5,2) != '01' THEN (SELECT S1.CARD_LIM_AMT
                                                                         FROM TB_CBCL_OPCS_ADJ_CARD_IZ S1
@@ -281,15 +283,19 @@
                     ON B.BASE_YM = A.BASE_YM
                    AND B.OG_TP_CD = A.OG_TP_CD
                    AND B.PRTNR_NO = A.ADJ_PRTNR_NO
+                 INNER JOIN TB_CBCL_OPCS_CARD_USE_IZ C /*T:운영비카드사용내역*/
+                    ON C.ADJ_CRCDNO_ENCR = A.CRCDNO_ENCR
+                   AND C.BASE_YM = A.BASE_YM
+                  LEFT JOIN TB_CBCL_OPCS_ADJ_USE_REL D /*운영비정산사용관계*/
+                    ON D.OPCS_CARD_USE_IZ_ID = C.OPCS_CARD_USE_IZ_ID
+                   AND D.BASE_YM = C.BASE_YM
                  WHERE 1=1
                    AND A.DTA_DL_YN = 'N'
                    AND A.USE_YN = 'Y'
                    AND A.BASE_YM = #{baseYm}            /*부모화면에서 리턴 받은 기준년월*/
                    AND A.OG_TP_CD = #{ogTpCd}           /*팝업화면 상단 조회 결과로 리턴받은 조직유형코드*/
                    AND A.ADJ_PRTNR_NO = #{adjPrtnrNo}   /*팝업화면 상단 조회 결과로 리턴받은 파트너번호*/
-               <if test="@MybatisUtils@isNotEmpty(opcsAdjNo)">
-                   AND A.OPCS_ADJ_NO = #{opcsAdjNo}     /*부모화면에서 리턴 받은 운영비정산번호*/
-               </if>
+                   AND D.OPCS_ADJ_NO = #{opcsAdjNo}     /*부모화면에서 리턴 받은 운영비정산번호*/
                ) T1
         WHERE 1=1
         GROUP BY T1.BASE_YM

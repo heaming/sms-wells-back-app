@@ -91,7 +91,8 @@
              )
              , WARE AS
              (
-               SELECT WARE_NO
+               SELECT /*+ INLINE INDEX(TB_SVST_MCBY_WARE_IZ PK_SVST_MCBY_WARE_IZ) */
+                      WARE_NO
                     , APY_YM
                  FROM TB_SVST_MCBY_WARE_IZ
                 WHERE DTA_DL_YN  = 'N'
@@ -165,7 +166,8 @@
                     , SUM(T.OSTR_CTR_QTY)       AS OSTR_CTR_QTY         /* 등급조정(출고) 수량 */
                  FROM
                     (
-                      SELECT D1.ITM_PD_CD               /* 품목상품코드 */
+                      SELECT /*+ LEADING(D1) INDEX(D1 IX_SVST_MCITM_STOC_IZ_01) */
+                             D1.ITM_PD_CD               /* 품목상품코드 */
                            , CASE WHEN #{itmGdCd} IS NULL
                                     OR #{itmGdCd} = 'A' THEN D1.BTD_STOC_A_GD_QTY
                                   ELSE 0
@@ -189,11 +191,9 @@
                            , 0 AS USE_QTY               /* 사용수량 */
                            , 0 AS OSTR_CTR_QTY          /* 등급조정(출고) 수량 */
                         FROM TB_SVST_MCITM_STOC_IZ D1   /* 월별품목재고내역 */
-                       INNER JOIN PD D2                 /* WITH절 상품 */
-                          ON D2.PD_CD = D1.ITM_PD_CD
-                       INNER JOIN WARE D3               /* WITH절 창고 */
-                          ON D3.APY_YM  = D1.BASE_YM
-                         AND D3.WARE_NO = D1.WARE_NO
+                       INNER JOIN WARE D2               /* WITH절 창고 */
+                          ON D2.APY_YM  = D1.BASE_YM
+                         AND D2.WARE_NO = D1.WARE_NO
                        WHERE D1.DTA_DL_YN = 'N'
                          AND D1.BASE_YM   = SUBSTR(#{stFromYmd}, 1, 6)
                        UNION ALL
@@ -209,10 +209,8 @@
                            , 0               AS USE_QTY
                            , 0               AS OSTR_CTR_QTY
                         FROM TB_SVST_ITM_STR_IZ D1   /* 품목입고내역 */
-                       INNER JOIN PD D2              /* WITH절 상품 */
-                          ON D2.PD_CD = D1.ITM_PD_CD
-                       INNER JOIN WARE D3            /* WITH절 창고 */
-                          ON D3.WARE_NO = D1.STR_WARE_NO
+                       INNER JOIN WARE D2            /* WITH절 창고 */
+                          ON D2.WARE_NO = D1.STR_WARE_NO
                        WHERE D1.DTA_DL_YN = 'N'
                          AND D1.STR_RGST_DT <![CDATA[>=]]> SUBSTR(#{stFromYmd}, 1, 6) || '01'
                          AND D1.STR_RGST_DT <![CDATA[<]]> #{stFromYmd}
@@ -221,7 +219,8 @@
                     </if>
                        GROUP BY D1.ITM_PD_CD
                        UNION ALL
-                      SELECT D1.ITM_PD_CD
+                      SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+                             D1.ITM_PD_CD
                            , 0        AS BTD_STOC_A_GD_QTY
                            , 0        AS BTD_STOC_B_GD_QTY
                            , 0        AS BTD_STOC_E_GD_QTY
@@ -237,10 +236,8 @@
                                  END) AS USE_QTY
                            , 0        AS OSTR_CTR_QTY
                         FROM TB_SVST_SV_WK_OSTR_IZ D1   /* 서비스작업출고내역 */
-                       INNER JOIN PD D2                 /* WITH절 상품 */
-                          ON D2.PD_CD = D1.ITM_PD_CD
-                       INNER JOIN WARE D3               /* WITH절 창고 */
-                          ON D3.WARE_NO = D1.WK_WARE_NO
+                       INNER JOIN WARE D2               /* WITH절 창고 */
+                          ON D2.WARE_NO = D1.WK_WARE_NO
                        WHERE D1.DTA_DL_YN        = 'N'
                          AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4', '6')
                          AND D1.FNL_VST_FSH_DT <![CDATA[>=]]> SUBSTR(#{stFromYmd}, 1, 6) || '01'
@@ -268,10 +265,8 @@
                                       ELSE 0
                                  END) AS OSTR_CTR_QTY
                         FROM TB_SVST_ITM_GD_CTR_IZ D1   /* 품목등급조정내역 */
-                       INNER JOIN PD D2                 /* WITH절 상품 */
-                          ON D2.PD_CD = D1.PD_CD
-                       INNER JOIN WARE D3               /* WITH절 창고 */
-                          ON D3.WARE_NO = D1.WARE_NO
+                       INNER JOIN WARE D2               /* WITH절 창고 */
+                          ON D2.WARE_NO = D1.WARE_NO
                        WHERE D1.DTA_DL_YN = 'N'
                          AND D1.STAT_CTR_APY_DT <![CDATA[>=]]> SUBSTR(#{stFromYmd}, 1, 6) || '01'
                          AND D1.STAT_CTR_APY_DT <![CDATA[<]]> #{stFromYmd}
@@ -289,10 +284,8 @@
                            , 0                AS USE_QTY
                            , 0                AS OSTR_CTR_QTY
                         FROM TB_SVST_ITM_OSTR_IZ D1   /* 품목출고내역 */
-                       INNER JOIN PD D2               /* WITH절 상품 */
-                          ON D2.PD_CD = D1.ITM_PD_CD
-                       INNER JOIN WARE D3             /* WITH절 창고 */
-                          ON D3.WARE_NO = D1.OSTR_WARE_NO
+                       INNER JOIN WARE D2             /* WITH절 창고 */
+                          ON D2.WARE_NO = D1.OSTR_WARE_NO
                        WHERE D1.DTA_DL_YN = 'N'
                          AND D1.OSTR_DT <![CDATA[>=]]> SUBSTR(#{stFromYmd}, 1, 6) || '01'
                          AND D1.OSTR_DT <![CDATA[<]]> #{stFromYmd}
@@ -316,10 +309,8 @@
                     , SUM(CASE WHEN D1.STR_TP_CD = '162' THEN D1.STR_QTY END) AS RTNGD_STR_OTSD_QTY   /* 반품입고외부 수량 */
                     , SUM(CASE WHEN D1.STR_TP_CD = '117' THEN D1.STR_QTY END) AS ETC_STR_QTY          /* 기타입고 수량 */
                  FROM TB_SVST_ITM_STR_IZ D1   /* 품목입고내역 */
-                INNER JOIN PD D2              /* WITH절 상품 */
-                   ON D2.PD_CD = D1.ITM_PD_CD
-                INNER JOIN WARE D3            /* WITH절 창고 */
-                   ON D3.WARE_NO = D1.STR_WARE_NO
+                INNER JOIN WARE D2            /* WITH절 창고 */
+                   ON D2.WARE_NO = D1.STR_WARE_NO
                 WHERE D1.DTA_DL_YN = 'N'
                   AND D1.STR_RGST_DT BETWEEN #{stFromYmd} AND #{edToYmd}
             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
@@ -352,10 +343,8 @@
                                 AND D1.OSTR_QTY <![CDATA[>]]> 0 THEN D1.OSTR_QTY
                           END)                                                 AS MMT_STOC_QTY           /* 이동재고 수량 */
                  FROM TB_SVST_ITM_OSTR_IZ D1   /* 품목출고내역 */
-                INNER JOIN PD D2               /* WITH절 상품 */
-                   ON D2.PD_CD = D1.ITM_PD_CD
-                INNER JOIN WARE D3             /* WITH절 창고 */
-                   ON D3.WARE_NO = D1.OSTR_WARE_NO
+                INNER JOIN WARE D2             /* WITH절 창고 */
+                   ON D2.WARE_NO = D1.OSTR_WARE_NO
                 WHERE D1.DTA_DL_YN = 'N'
                   AND D1.OSTR_DT BETWEEN #{stFromYmd} AND #{edToYmd}
             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
@@ -366,15 +355,14 @@
             ON T4.ITM_PD_CD = T1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT D1.PD_CD                       AS ITM_PD_CD
+               SELECT /*+ LEADING(D1) */
+                      D1.PD_CD                       AS ITM_PD_CD
                     , SUM(D1.CNFM_PITM_STR_GAP_QTY)  AS CNFM_PITM_STR_GAP_QTY
                     , SUM(D1.CNFM_PITM_OSTR_GAP_QTY) AS CNFM_PITM_OSTR_GAP_QTY
                  FROM TB_SVST_MCBY_STOC_ACINSP_IZ D1   /* 월별재고실사내역 */
-                INNER JOIN PD D2                       /* WITH절 상품 */
-                   ON D2.PD_CD = D1.PD_CD
-                INNER JOIN WARE D3                     /* WITH절 창고 */
-                   ON D3.APY_YM  = D1.BASE_YM
-                  AND D3.WARE_NO = D1.WARE_NO
+                INNER JOIN WARE D2                     /* WITH절 창고 */
+                   ON D2.APY_YM  = D1.BASE_YM
+                  AND D2.WARE_NO = D1.WARE_NO
                 WHERE D1.DTA_DL_YN = 'N'
                   AND D1.IOST_RFDT BETWEEN #{stFromYmd} AND #{edToYmd}
             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
@@ -385,14 +373,13 @@
             ON T5.ITM_PD_CD = T1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT D1.ITM_PD_CD
+               SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+                      D1.ITM_PD_CD
                     , SUM(CASE WHEN D1.SV_BIZ_HCLSF_CD = '6' THEN D1.USE_QTY END)                   AS RTNGD_STR_OTSD_QTY
                     , SUM(CASE WHEN D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4') THEN D1.USE_QTY END) AS USE_QTY
                  FROM TB_SVST_SV_WK_OSTR_IZ D1   /* 서비스작업출고내역 */
-                INNER JOIN PD D2                 /* WITH절 상품 */
-                   ON D2.PD_CD = D1.ITM_PD_CD
-                INNER JOIN WARE D3               /* WITH절 창고 */
-                   ON D3.WARE_NO = D1.WK_WARE_NO
+                INNER JOIN WARE D2               /* WITH절 창고 */
+                   ON D2.WARE_NO = D1.WK_WARE_NO
                 WHERE D1.DTA_DL_YN        = 'N'
                   AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4', '6')
                   AND D1.FNL_VST_FSH_DT BETWEEN #{stFromYmd} AND #{edToYmd}
@@ -404,7 +391,8 @@
             ON T6.ITM_PD_CD = T1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT D1.ITM_PD_CD
+               SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+                      D1.ITM_PD_CD
                     , SUM(D1.USE_QTY) AS YEAR_IN_USE_QTY
                  FROM TB_SVST_SV_WK_OSTR_IZ D1         /* 서비스작업출고내역 */
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
@@ -416,7 +404,7 @@
                   AND D2.DTA_DL_YN        = 'N'
                   AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4')
                   AND D1.FNL_VST_FSH_DT BETWEEN #{stFromYmd} AND #{edToYmd}
-                  AND D1.FNL_VST_FSH_DT <![CDATA[<]]> ADD_MONTHS( NVL(D2.IST_DT, TO_CHAR(SYSDATE, 'YYYYMMDD') ), 12)   /* 설치후 1년 전 */
+                  AND D1.FNL_VST_FSH_DT <![CDATA[<]]> TO_CHAR(ADD_MONTHS( NVL(TO_DATE(D2.IST_DT, 'YYYYMMDD'), SYSDATE ), 12), 'YYYYMMDD')   /* 설치후 1년 전 */
             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                   AND D1.FNL_ITM_GD_CD    = #{itmGdCd}
             </if>
@@ -425,7 +413,8 @@
             ON T7.ITM_PD_CD = T1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT D1.ITM_PD_CD
+               SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+                      D1.ITM_PD_CD
                     , SUM(D1.USE_QTY) AS YEAR_OUT_USE_QTY
                  FROM TB_SVST_SV_WK_OSTR_IZ D1         /* 서비스작업출고내역 */
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
@@ -437,7 +426,7 @@
                   AND D2.DTA_DL_YN = 'N'
                   AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4')
                   AND D1.FNL_VST_FSH_DT BETWEEN #{stFromYmd} AND #{edToYmd}
-                  AND D1.FNL_VST_FSH_DT <![CDATA[>=]]> ADD_MONTHS( NVL(D2.IST_DT, TO_CHAR(SYSDATE, 'YYYYMMDD') ), 12)   /* 설치후 1년 이후 */
+                  AND D1.FNL_VST_FSH_DT <![CDATA[>=]]> TO_CHAR(ADD_MONTHS( NVL(TO_DATE(D2.IST_DT, 'YYYYMMDD'), SYSDATE ), 12), 'YYYYMMDD')   /* 설치후 1년 이후 */
             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                   AND D1.FNL_ITM_GD_CD = #{itmGdCd}
             </if>
@@ -454,10 +443,8 @@
                                WHEN D1.BFCT_ITM_GD_CD = #{itmGdCd} THEN D1.CTR_QTY
                           END) AS OSTR_CTR_QTY
                  FROM TB_SVST_ITM_GD_CTR_IZ D1   /* 품목등급조정내역 */
-                INNER JOIN PD D2                 /* WITH절 상품 */
-                   ON D2.PD_CD = D1.PD_CD
-                INNER JOIN WARE D3               /* WITH절 창고 */
-                   ON D3.WARE_NO = D1.WARE_NO
+                INNER JOIN WARE D2               /* WITH절 창고 */
+                   ON D2.WARE_NO = D1.WARE_NO
                 WHERE D1.DTA_DL_YN = 'N'
                   AND D1.STAT_CTR_APY_DT BETWEEN #{stFromYmd} AND #{edToYmd}
                 GROUP BY D1.PD_CD

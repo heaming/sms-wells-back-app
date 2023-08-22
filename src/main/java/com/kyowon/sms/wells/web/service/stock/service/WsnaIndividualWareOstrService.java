@@ -107,20 +107,6 @@ public class WsnaIndividualWareOstrService {
     }
 
     /**
-     * 개인창고 출고 관리 엑셀 다운로드
-     * @param dto
-     * @return
-     */
-    public List<WsnaIndividualWareOstrDvo> getIndividualWareOstrsExcelDownload(SearchReq dto) {
-
-        List<WsnaIndividualWareOstrDvo> dvos = this.mapper.selectIndividualWareOstrs(dto);
-        // 실시간 물류재고 조회 호출
-        this.getRealTimeLogisticStockQtys(dvos);
-
-        return dvos;
-    }
-
-    /**
      * 실시간 물류 센터 재고 조회
      * @param dvos
      */

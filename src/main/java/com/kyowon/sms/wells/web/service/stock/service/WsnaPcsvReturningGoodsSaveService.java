@@ -105,11 +105,11 @@ public class WsnaPcsvReturningGoodsSaveService {
         StringBuffer cnslCn = new StringBuffer();
 
         // 1. dvo와 ivo 매핑 처리
-        reqIvo.setCstNo(dvo.getCntrCstNo()); //계약고객번호
-        reqIvo.setSellTpCd(dvo.getSellTpCd()); //판매유형코드
-        reqIvo.setCntrNo(dvo.getCntrNo()); //계약번호
-        reqIvo.setCntrSn(dvo.getCntrSn()); //계약일련번호
-        reqIvo.setCstNm(dvo.getRcgvpKnm()); //고객명
+        reqIvo.setCST_NO(dvo.getCntrCstNo()); //계약고객번호
+        reqIvo.setSELL_TP_CD(dvo.getSellTpCd()); //판매유형코드
+        reqIvo.setCNTR_NO(dvo.getCntrNo()); //계약번호
+        reqIvo.setCNTR_SN(dvo.getCntrSn()); //계약일련번호
+        reqIvo.setCST_NM(dvo.getRcgvpKnm()); //고객명
         //상담내용
         cnslCn.append("@ 상담내용 ||");
         cnslCn.append("1. 매출일자 : ");
@@ -138,9 +138,9 @@ public class WsnaPcsvReturningGoodsSaveService {
         cnslCn.append(dvo.getSppProcsBzsNm() + "/");
         cnslCn.append(dvo.getRtngdNm());
 
-        reqIvo.setCnslCn(cnslCn.toString()); //상담내용
+        reqIvo.setCNSL_CN(cnslCn.toString()); //상담내용
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
-        reqIvo.setRegUserId(session.getUserId()); //입력사용자 ID
+        reqIvo.setREG_USER_ID(session.getUserId()); //입력사용자 ID
 
         return reqIvo;
     }

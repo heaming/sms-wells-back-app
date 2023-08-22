@@ -73,13 +73,13 @@
                     , D2.WARE_DTL_DV_CD
                     , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
                            ELSE D2.HGR_WARE_NO
-                      END AS WARE_NO
-                    , CASE #{itmGdCd} WHEN 'A' THEN NVL(D1.PITM_STOC_A_GD_QTY, 0)
-                                      WHEN 'B' THEN NVL(D1.PITM_STOC_B_GD_QTY, 0)
-                                      WHEN 'E' THEN NVL(D1.PITM_STOC_E_GD_QTY, 0)
-                                      WHEN 'R' THEN NVL(D1.PITM_STOC_R_GD_QTY, 0)
-                                      ELSE NVL(D1.PITM_STOC_A_GD_QTY, 0) + NVL(D1.PITM_STOC_B_GD_QTY, 0) + NVL(D1.PITM_STOC_E_GD_QTY, 0) + NVL(D1.PITM_STOC_R_GD_QTY, 0)
-                      END AS QTY   /* 기초재고수량 */
+                      END        AS WARE_NO
+                    , SUM( CASE #{itmGdCd} WHEN 'A' THEN D1.PITM_STOC_A_GD_QTY
+                                           WHEN 'B' THEN D1.PITM_STOC_B_GD_QTY
+                                           WHEN 'E' THEN D1.PITM_STOC_E_GD_QTY
+                                           WHEN 'R' THEN D1.PITM_STOC_R_GD_QTY
+                                           ELSE NVL(D1.PITM_STOC_A_GD_QTY, 0) + NVL(D1.PITM_STOC_B_GD_QTY, 0) + NVL(D1.PITM_STOC_E_GD_QTY, 0) + NVL(D1.PITM_STOC_R_GD_QTY, 0)
+                           END ) AS QTY   /* 기초재고수량 */
                  FROM TB_SVST_MCITM_STOC_IZ D1       /* 월별품목재고내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
                    ON D2.APY_YM  = D1.BASE_YM
@@ -96,19 +96,23 @@
             <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                   AND D1.ITM_PD_CD = #{itmPdCd}
             </if>
+                GROUP BY D1.ITM_PD_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
                 UNION ALL
                SELECT D1.ITM_PD_CD
                     , D2.WARE_DTL_DV_CD
                     , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
                            ELSE D2.HGR_WARE_NO
-                      END AS WARE_NO
-                    , CASE #{itmGdCd} WHEN 'A' THEN NVL(D1.STOC_ACINSP_STR_A_GD_QTY, 0) - NVL(D1.STOC_ACINSP_OSTR_A_GD_QTY, 0)
-                                      WHEN 'B' THEN NVL(D1.STOC_ACINSP_STR_B_GD_QTY, 0) - NVL(D1.STOC_ACINSP_OSTR_B_GD_QTY, 0)
-                                      WHEN 'E' THEN NVL(D1.STOC_ACINSP_STR_E_GD_QTY, 0) - NVL(D1.STOC_ACINSP_OSTR_E_GD_QTY, 0)
-                                      WHEN 'R' THEN NVL(D1.STOC_ACINSP_STR_R_GD_QTY, 0) - NVL(D1.STOC_ACINSP_OSTR_R_GD_QTY, 0)
-                                      ELSE ( NVL(D1.STOC_ACINSP_STR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_R_GD_QTY, 0) )
-                                           - ( NVL(D1.STOC_ACINSP_OSTR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_R_GD_QTY, 0) )
-                      END AS QTY   /* 재고실사수량 */
+                      END        AS WARE_NO
+                    , SUM( CASE #{itmGdCd} WHEN 'A' THEN NVL(D1.STOC_ACINSP_STR_A_GD_QTY, 0) - NVL(D1.STOC_ACINSP_OSTR_A_GD_QTY, 0)
+                                           WHEN 'B' THEN NVL(D1.STOC_ACINSP_STR_B_GD_QTY, 0) - NVL(D1.STOC_ACINSP_OSTR_B_GD_QTY, 0)
+                                           WHEN 'E' THEN NVL(D1.STOC_ACINSP_STR_E_GD_QTY, 0) - NVL(D1.STOC_ACINSP_OSTR_E_GD_QTY, 0)
+                                           WHEN 'R' THEN NVL(D1.STOC_ACINSP_STR_R_GD_QTY, 0) - NVL(D1.STOC_ACINSP_OSTR_R_GD_QTY, 0)
+                                           ELSE ( NVL(D1.STOC_ACINSP_STR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_R_GD_QTY, 0) )
+                                                  - ( NVL(D1.STOC_ACINSP_OSTR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_R_GD_QTY, 0) )
+                           END ) AS QTY   /* 재고실사수량 */
                  FROM TB_SVST_MCITM_STOC_IZ D1       /* 월별품목재고내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
                    ON D2.APY_YM  = D1.BASE_YM
@@ -125,19 +129,23 @@
             <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                   AND D1.ITM_PD_CD = #{itmPdCd}
             </if>
+                GROUP BY D1.ITM_PD_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
                 UNION ALL
                SELECT D1.ITM_PD_CD
                     , D2.WARE_DTL_DV_CD
                     , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.STR_WARE_NO
                            ELSE D2.HGR_WARE_NO
-                      END                AS WARE_NO
-                    , NVL(D1.STR_QTY, 0) AS QTY   /* 입고수량 */
+                      END             AS WARE_NO
+                    , SUM(D1.STR_QTY) AS QTY   /* 입고수량 */
                  FROM TB_SVST_ITM_STR_IZ D1          /* 품목입고내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
-                   ON D2.APY_YM  = SUBSTR(D1.STR_RGST_DT, 1, 6)
-                  AND D2.WARE_NO = D1.STR_WARE_NO
+                   ON D2.WARE_NO = D1.STR_WARE_NO
                 WHERE D1.DTA_DL_YN = 'N'
                   AND D2.DTA_DL_YN = 'N'
+                  AND D2.APY_YM    = SUBSTR(#{baseDt}, 1, 6)
                   AND D1.STR_RGST_DT BETWEEN SUBSTR(#{baseDt}, 1, 6) || '01' AND #{baseDt}
             <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
                   AND D1.ITM_PD_CD IN
@@ -151,23 +159,28 @@
             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                   AND D1.ITM_GD_CD = #{itmGdCd}
             </if>
+                GROUP BY D1.ITM_PD_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.STR_WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
                 UNION ALL
-               SELECT D1.ITM_PD_CD
+               SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+                      D1.ITM_PD_CD
                     , D2.WARE_DTL_DV_CD
                     , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WK_WARE_NO
                            ELSE D2.HGR_WARE_NO
-                      END AS WARE_NO
-                    , CASE WHEN D1.SV_BIZ_HCLSF_CD = '6' THEN NVL(D1.USE_QTY, 0)
-                           ELSE NVL(D1.USE_QTY, 0) * -1
-                      END AS QTY   /* 작업수량 */
+                      END        AS WARE_NO
+                    , SUM( CASE WHEN D1.SV_BIZ_HCLSF_CD = '6' THEN D1.USE_QTY
+                                ELSE D1.USE_QTY * -1
+                           END ) AS QTY   /* 작업수량 */
                  FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
-                   ON D2.APY_YM  = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
-                  AND D2.WARE_NO = D1.WK_WARE_NO
+                   ON D2.WARE_NO = D1.WK_WARE_NO
                 WHERE D1.DTA_DL_YN       = 'N'
-                  AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '6')
+                  AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4', '6')
                   AND D1.FNL_ITM_GD_CD <![CDATA[<>]]> 'X'
                   AND D2.DTA_DL_YN       = 'N'
+                  AND D2.APY_YM          = SUBSTR(#{baseDt}, 1, 6)
                   AND D1.FNL_VST_FSH_DT BETWEEN SUBSTR(#{baseDt}, 1, 6) || '01' AND #{baseDt}
             <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
                   AND D1.ITM_PD_CD IN
@@ -181,19 +194,23 @@
             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                   AND D1.FNL_ITM_GD_CD   = #{itmGdCd}
             </if>
+                GROUP BY D1.ITM_PD_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WK_WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
                 UNION ALL
-               SELECT D1.PD_CD           AS ITM_PD_CD
+               SELECT D1.PD_CD        AS ITM_PD_CD
                     , D2.WARE_DTL_DV_CD
                     , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
                            ELSE D2.HGR_WARE_NO
-                      END                AS WARE_NO
-                    , NVL(D1.CTR_QTY, 0) AS QTY   /* 등급조정수량 */
+                      END             AS WARE_NO
+                    , SUM(D1.CTR_QTY) AS QTY   /* 등급조정수량 */
                  FROM TB_SVST_ITM_GD_CTR_IZ D1       /* 품목등급조정내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
-                   ON D2.APY_YM  = SUBSTR(D1.STAT_CTR_APY_DT, 1, 6)
-                  AND D2.WARE_NO = D1.WARE_NO
+                   ON D2.WARE_NO = D1.WARE_NO
                 WHERE D1.DTA_DL_YN      = 'N'
                   AND D2.DTA_DL_YN      = 'N'
+                  AND D2.APY_YM         = SUBSTR(#{baseDt}, 1, 6)
                   AND D1.STAT_CTR_APY_DT BETWEEN SUBSTR(#{baseDt}, 1, 6) || '01' AND #{baseDt}
             <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
                   AND D1.PD_CD IN
@@ -207,20 +224,24 @@
             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                   AND D1.AFCT_ITM_GD_CD = #{itmGdCd}
             </if>
+                GROUP BY D1.PD_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
                 UNION ALL
                SELECT D1.ITM_PD_CD
                     , D2.WARE_DTL_DV_CD
                     , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.OSTR_WARE_NO
                            ELSE D2.HGR_WARE_NO
-                      END                 AS WARE_NO
-                    , NVL(D1.OSTR_QTY, 0) AS QTY   /* 출고수량 */
+                      END              AS WARE_NO
+                    , SUM(D1.OSTR_QTY) AS QTY   /* 출고수량 */
                  FROM TB_SVST_ITM_OSTR_IZ D1   /* 품목출고내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
-                   ON D2.APY_YM  = SUBSTR(D1.OSTR_DT, 1, 6)
-                  AND D2.WARE_NO = D1.OSTR_WARE_NO
+                   ON D2.WARE_NO = D1.OSTR_WARE_NO
                 WHERE D1.DTA_DL_YN = 'N'
                   AND D1.ITM_GD_CD <![CDATA[<>]]> 'X'
                   AND D2.DTA_DL_YN = 'N'
+                  AND D2.APY_YM    = SUBSTR(#{baseDt}, 1, 6)
                   AND D1.OSTR_DT BETWEEN SUBSTR(#{baseDt}, 1, 6) || '01' AND #{baseDt}
             <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
                   AND D1.ITM_PD_CD IN
@@ -234,19 +255,23 @@
             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                   AND D1.ITM_GD_CD = #{itmGdCd}
             </if>
+                GROUP BY D1.ITM_PD_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.OSTR_WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
                 UNION ALL
-               SELECT D1.PD_CD                AS ITM_PD_CD
+               SELECT D1.PD_CD             AS ITM_PD_CD
                     , D2.WARE_DTL_DV_CD
                     , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
                            ELSE D2.HGR_WARE_NO
-                      END                     AS WARE_NO
-                    , NVL(D1.CTR_QTY, 0) * -1 AS QTY   /* 등급조정수량 */
+                      END                  AS WARE_NO
+                    , SUM(D1.CTR_QTY) * -1 AS QTY   /* 등급조정수량 */
                  FROM TB_SVST_ITM_GD_CTR_IZ D1       /* 품목등급조정내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
-                   ON D2.APY_YM  = SUBSTR(D1.STAT_CTR_APY_DT, 1, 6)
-                  AND D2.WARE_NO = D1.WARE_NO
+                   ON D2.WARE_NO = D1.WARE_NO
                 WHERE D1.DTA_DL_YN      = 'N'
                   AND D2.DTA_DL_YN      = 'N'
+                  AND D2.APY_YM         = SUBSTR(#{baseDt}, 1, 6)
                   AND D1.STAT_CTR_APY_DT BETWEEN SUBSTR(#{baseDt}, 1, 6) || '01' AND #{baseDt}
             <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
                   AND D1.PD_CD IN
@@ -260,6 +285,10 @@
             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                   AND D1.BFCT_ITM_GD_CD = #{itmGdCd}
             </if>
+                GROUP BY D1.PD_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
              )
         SELECT T1.SAP_MAT_CD     /* SAP코드 */
              , T1.PD_CD          /* 품목코드 */

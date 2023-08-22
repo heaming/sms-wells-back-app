@@ -13,12 +13,12 @@
 
     <select id="selectServiceProcessings" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcessingDvo">
         SELECT <if test='@MybatisUtils@equals(inquiryBase, "1")'>
-               /*+ USE_NL(S2 S1 S3 S4 S5 S6 S7 C1 C2 C3 C4 O11 O12 O2 O3 P1) LEADING(S2 S1 S4 C3)
-                   NO_MERGE(S7) PUSH_PRED(S7) NO_MERGE(S6) PUSH_PRED(S6) */
+               /*+ USE_NL(S2 S1 S3 S4 S5 S6 S7 C1 C2 C3 C4 O11 O12 O2 O3 P1) LEADING(S2 S1 S4 C3 O2)
+                   NO_MERGE(S7) PUSH_PRED(S7) NO_MERGE(S6) PUSH_PRED(S6) INDEX(S2 IX_SVPD_CST_SVAS_IST_OJ_IZ_01) */
                </if>
                <if test='@MybatisUtils@equals(inquiryBase, "2") or @MybatisUtils@equals(inquiryBase, "3") or @MybatisUtils@equals(inquiryBase, "4")'>
-               /*+ USE_NL(S1 S2 S3 S4 S5 S6 S7 C1 C2 C3 C4 O11 O12 O2 O3 P1) LEADING(S1 S4 C3)
-                   NO_MERGE(S7) PUSH_PRED(S7) NO_MERGE(S6) PUSH_PRED(S6) */
+               /*+ USE_NL(S1 S2 S3 S4 S5 S6 S7 C1 C2 C3 C4 O11 O12 O2 O3 P1) LEADING(S1 S4 C3 O2)
+                   NO_MERGE(S7) PUSH_PRED(S7) NO_MERGE(S6) PUSH_PRED(S6) INDEX(S1 IX_SVPD_CST_SVAS_IST_ASN_IZ_01) */
                </if>
                S1.CNTR_NO /* 계약번호 */
              , S1.CNTR_SN /* 계약일련번호 */
@@ -61,7 +61,7 @@
              , O11.PRTNR_KNM /* 접수자표시 */
              , S2.CNSL_MO_CN /* 접수내역 */
              , S3.IST_DT /* 설치일자 */
-             , CASE WHEN S3.IST_DT IS NOT NULL THEN CEIL(MONTHS_BETWEEN(S1.WK_EXCN_DT, S3.IST_DT)) ELSE 0 END USE_MCN /* 사용개월 */
+             , CASE WHEN S3.IST_DT IS NOT NULL THEN CEIL(MONTHS_BETWEEN(TO_DATE(S1.WK_EXCN_DT, 'YYYYMMDD'), TO_DATE(S3.IST_DT, 'YYYYMMDD'))) ELSE 0 END USE_MCN /* 사용개월 */
              , F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_HCLSF_CD', S1.SV_BIZ_HCLSF_CD) AS SV_BIZ_HCLSF_NM /* 서비스유형명 */
              , F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', S1.SV_BIZ_DCLSF_CD) AS SV_BIZ_DCLSF_NM /* 서비스유형상세명 */
              , S1.CNTR_CST_NO /* 상대고객번호 */
@@ -108,7 +108,7 @@
              , S1.VST_CNFM_HH AS PROM_HH /* 약속시간 */
              , S5.ARV_DTM /* 작업시간(도착) */
              , S5.VST_FSH_DTM /* 작업시간(완료) */
-             , (CASE WHEN S4.VST_FSH_DT IS NOT NULL THEN TO_DATE(S4.VST_FSH_DT) - TO_DATE(S1.VST_DUEDT) ELSE 0 END) IST_DELAY /* 설치지연일 */
+             , (CASE WHEN S4.VST_FSH_DT IS NOT NULL THEN TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.VST_DUEDT, 'YYYYMMDD') ELSE 0 END) IST_DELAY /* 설치지연일 */
              , S5.WK_LDTM /* 소요시간 */
              , F_CMZ_CD_NM(#{session.tenantId}, 'WK_PRGS_STAT_CD', S1.WK_PRGS_STAT_CD) AS WK_PRGS_STAT_NM /* 작업상태 */
              , F_CMZ_CD_NM(#{session.tenantId}, 'SV_WK_CAN_RSON_CD', S1.WK_CAN_RSON_CD) AS WK_CAN_RSON_NM /* 취소사유 */
@@ -162,7 +162,6 @@
            AND S1.CNTR_SN = S3.CNTR_SN
           LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S4
             ON S4.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
-           AND S4.DTA_DL_YN = 'N'
           LEFT JOIN TB_SVPD_QLTY_MNGT_AS_DTL_IZ S5
             ON S5.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
           LEFT JOIN (SELECT X1.CST_SV_ASN_NO
@@ -303,7 +302,12 @@
         <if test='@MybatisUtils@equals(installBase, "1")'>
             AND S3.IST_DT <![CDATA[>=]]> TO_CHAR(ADD_MONTHS(CASE WHEN LENGTH(S2.FNL_RCPDT) = 8 THEN TO_DATE(S2.FNL_RCPDT) ELSE SYSDATE END, -12), 'YYYYMMDD') /* 설치기준 '1년 이내' */
         </if>
+        <if test='@MybatisUtils@equals(inquiryBase, "1")'>
+          ORDER BY S2.CNTR_NO
+        </if>
+        <if test='@MybatisUtils@equals(inquiryBase, "2") or @MybatisUtils@equals(inquiryBase, "3") or @MybatisUtils@equals(inquiryBase, "4")'>
           ORDER BY S1.CNTR_NO
+        </if>
     </select>
 
 </mapper>

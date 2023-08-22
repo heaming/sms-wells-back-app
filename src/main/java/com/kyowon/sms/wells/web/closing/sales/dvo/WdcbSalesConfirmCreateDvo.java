@@ -99,4 +99,5 @@ public class WdcbSalesConfirmCreateDvo {
     private String rtngdYn;
     private String frisuYn;
     private String fgptYn;
+    private String rvpyYn; /*수불여부*/
 }
