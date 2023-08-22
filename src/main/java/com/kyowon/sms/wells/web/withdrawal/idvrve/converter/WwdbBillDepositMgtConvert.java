@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.converter;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto;
 import org.apache.commons.lang.StringUtils;
 import org.mapstruct.Mapper;
 
@@ -13,5 +14,8 @@ public interface WwdbBillDepositMgtConvert {
     WwdbBillDepositMgtDvo mapSaveWwdbRegistrationListDvo(SaveMainReq dto);
 
     WwdbBillDepositMgtSubDvo mapSaveWwdbRegistrationSubListDvo(SaveMainDtlReq dto);
+
+    WwdbBillDepositMgtDvo mapSaveDepositSlipDvo(WwdbBillDepositMgtDto.SaveDepositSlip dto);
+
 
 }

@@ -54,4 +54,7 @@ public interface WwdbBillDepositMgtMapper {
     int insertSlipProcessings(WwdbBillDepositSlipProcessingDvo dvo);
 
     List<WwdbBillDepositSlipProcessingDvo> selectReplacementSlipProcessing(WwdbBillDepositMgtDto.SearchSlipReq dto);
+
+    //전표 등록 업데이트
+    int updateSlipRegistration(WwdbBillDepositMgtDvo dvo) throws Exception;
 }

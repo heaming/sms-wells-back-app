@@ -30,7 +30,8 @@ public class WwdbBillDepositMgtDto {
         String billExprDt, /* 만기일자 */
         String cntrCount, /* 계약수 */
         String itgDpNo, /* 통합입금번호 */
-        /* 입금전표번호 */
+        String billDpSapSlpno,
+        String billRplcSapSlpno,/* 입금전표번호 */
         /* 대체전표번호 */
         String sellBzsBzrno,
         String pblBzsBzrno
@@ -111,7 +112,7 @@ public class WwdbBillDepositMgtDto {
     ) {
 
     }
-    
+
     public record SearchElectronicRes(
         String itgDpNo, /* 통합입금번호 */
         String rveCd, /* 수납구분 */
@@ -147,7 +148,7 @@ public class WwdbBillDepositMgtDto {
         String cntrSn,
         String billDpAmt,
         String cntrCstNo,
-
+        String billBndNo,
         String sort
 
     ) {

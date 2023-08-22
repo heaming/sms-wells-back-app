@@ -287,6 +287,10 @@ public class WwdbBillDepositMgtService {
 
 //        String dpCprcnfDtm = zwdzWithdrawalReceiveAskDvo.getReceiveAskDate();
 
+        WwdbBillDepositMgtDvo wwdbBillDepositMgtDvo = convert.mapSaveDepositSlipDvo(dto.get(0));
+        wwdbBillDepositMgtDvo.setBillDpSapSlpno(zzsnum);
+
+        processCount += mapper.updateSlipRegistration(wwdbBillDepositMgtDvo);
 
         WwdbBillDepositMgtDto.SearchSlipReq slipReq = new WwdbBillDepositMgtDto.SearchSlipReq(zzsnum, Integer.toString(sumResult), dto.get(0).itgDpNo());
 
@@ -336,6 +340,11 @@ public class WwdbBillDepositMgtService {
         for (WwdbBillDepositSlipProcessingDvo list : slipProcessingDvo) {
             processCount += mapper.insertSlipProcessings(list);
         }
+
+        WwdbBillDepositMgtDvo wwdbBillDepositMgtDvo = convert.mapSaveDepositSlipDvo(dto.get(0));
+        wwdbBillDepositMgtDvo.setBillRplcSapSlpno(zzsnum);
+
+        processCount += mapper.updateSlipRegistration(wwdbBillDepositMgtDvo);
 
 
         return processCount;

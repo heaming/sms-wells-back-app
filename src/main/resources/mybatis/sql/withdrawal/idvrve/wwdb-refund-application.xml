@@ -27,9 +27,9 @@
          INNER JOIN TB_RVDW_RFND_AK_DTL RRAD -- 환불요청상세
             ON RRAD.RFND_AK_NO = RRAB.RFND_AK_NO
            AND RRAD.DTA_DL_YN = 'N'
-         INNER JOIN TB_RVDW_RFND_AK_CNTR_DTL RRACD -- 환불요청계약상세
-            ON RRACD.RFND_AK_NO = RRAD.RFND_AK_NO
-           AND RRACD.DTA_DL_YN = 'N'
+<!--         INNER JOIN TB_RVDW_RFND_AK_CNTR_DTL RRACD &#45;&#45; 환불요청계약상세-->
+<!--            ON RRACD.RFND_AK_NO = RRAD.RFND_AK_NO-->
+<!--           AND RRACD.DTA_DL_YN = 'N'-->
           LEFT JOIN ( SELECT
                              RRD.CNTR_NO
                            , RRD.CNTR_SN
@@ -55,7 +55,7 @@
                         LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS CBCB /*채권계약기본*/
                          ON CBCB.CNTR_NO = SCD.CNTR_NO
                         AND CBCB.CNTR_SN = SCD.CNTR_SN
-                        AND CBCB.BASE_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM')
+                        AND CBCB.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
                         AND CBCB.DTA_DL_YN = 'N'
                       WHERE 1 = 1
                         AND RRD.DTA_DL_YN = 'N'
@@ -65,8 +65,8 @@
            AND RRAD.RVE_NO = T1.RVE_NO
            AND RRAD.RVE_SN = T1.RVE_SN
           LEFT JOIN TB_RVDW_RFND_RCP_BAS RRRB -- 환불접수기본
-            ON RRRB.CNTR_NO = RRACD.CNTR_NO
-           AND RRRB.CNTR_SN = RRACD.CNTR_SN
+            ON RRRB.CNTR_NO = RRAD.CNTR_NO
+           AND RRRB.CNTR_SN = RRAD.CNTR_SN
            AND RRRB.DTA_DL_YN = 'N'
           LEFT JOIN TB_RVDW_RFND_RCP_DTL RRRD -- 환불접수상세 /* 요청 Main, 접수 Sub 이므로 LEFT JOIN*/
             ON RRRD.RFND_RCP_NO = RRRB.RFND_RCP_NO
@@ -94,13 +94,13 @@
            AND RRAB.RFND_PROCS_DV_CD = #{rfndDsbDvCdCshBltf}
         </if>
         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
-           AND RRACD.CNTR_NO = #{cntrNo}
+           AND RRAD.CNTR_NO = #{cntrNo}
         </if>
         <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
-           AND RRACD.CNTR_SN = #{cntrSn}
+           AND RRAD.CNTR_SN = #{cntrSn}
         </if>
         <if test='@MybatisUtils@isNotEmpty(cstNo)'>
-           AND RRACD.CST_NO = #{cstNo}
+           AND RRAD.CST_NO = #{cstNo}
         </if>
         ORDER BY RRAB.RFND_AK_DTM, RRAB.RFND_AK_NO
     </select>
@@ -165,6 +165,7 @@
                              AND RRAD.DTA_DL_YN = 'N'
                            INNER JOIN TB_SSCT_CNTR_DTL SCD /*계약상세*/
                               ON SCD.CNTR_NO = RRD.CNTR_NO
+                             AND SCD.CNTR_SN = RRD.CNTR_SN
                              AND SCD.DTA_DL_YN = 'N'
                            INNER JOIN TB_SSCT_CNTR_BAS SCB /*계약기본*/
                               ON SCB.CNTR_NO = SCD.CNTR_NO
@@ -185,8 +186,16 @@
                            INNER JOIN TB_CUBS_CST_BAS CCB /*고객기본*/
                               ON CCB.CST_NO = SCB.CNTR_CST_NO
                              AND CCB.DTA_DL_YN = 'N'
+                        <if test="@MybatisUtils@isNotEmpty(rfndAkNo)">
+                           INNER JOIN TB_RVDW_RFND_AK_CNTR_DTL RRACD
+                              ON RRACD.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD
+                             AND RRACD.CNTR_NO      = RRD.CNTR_NO
+                             AND RRACD.CNTR_SN      = RRD.CNTR_SN
+                             AND RRACD.DTA_DL_YN    = 'N'
+                             AND RRACD.RFND_AK_NO   = #{rfndAkNo}
                            WHERE 1 = 1
                              AND RRD.DTA_DL_YN ='N'
+                        </if>
                          ) T1
                   WHERE 1 = 1
                     <!--           AND RRD.DP_DV_CD IN ('2','4') /* 입금구분코드 2.환불 , 4.전금환불 */-->
@@ -271,6 +280,8 @@
                 , 0 AS CRDCD_FEE_AMT
                 , 0 AS RFND_BLTF_AK_AMT
                 , NULL AS RFND_AK_NO
+                , FNIT_CD
+                , NVL(CRDCD_FER , 0) AS CRDCD_FER
              FROM ( SELECT RRD.RVE_NO      /* 수납번호 */
                          , RRD.RVE_SN      /* 수납일련번호 */
                          , RRD.CNTR_NO     /* 계약번호*/
@@ -279,6 +290,8 @@
                          , RRD.DP_DT               /* 입금일 */
                          , RRD.DP_MES_CD           /* 입금수단 */
                          , RRD.RVE_DV_CD            /* 입금유형 -> 수납유형(사양서, 설계서결과에 맞게 수정) */
+                         , RRAD.FNIT_CD
+                         , RFFB.CRDCD_FER
                          , (SELECT
                                    NVL(MAX(S9.SV_AMT),0)
                               FROM TB_CBCL_WELLS_SL_MM_CL_IZ S9
@@ -294,6 +307,11 @@
 <!--                         , NVL(RRAD.CRDCD_FER, 0) AS CRDCD_FER   /* 카드수수료율 */-->
                          , '전금행추가' AS BLTF_ADD  /* 전금행추가 - 컬럼 */
                       FROM TB_RVDW_RVE_DTL RRD /* 수납상세 */
+                     INNER JOIN TB_RVDW_RVE_AK_DTL RRAD
+                        ON RRAD.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD
+                       AND RRAD.RVE_AK_NO = RRD.RVE_AK_NO
+                       AND RRAD.RVE_AK_SN = RRD.RVE_AK_SN
+                       AND RRAD.DTA_DL_YN = 'N'
                      INNER JOIN TB_SSCT_CNTR_DTL SCD /* 계약상세 */
                         ON SCD.CNTR_NO = RRD.CNTR_NO
                        AND SCD.CNTR_SN = RRD.CNTR_SN
@@ -304,8 +322,15 @@
                       LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS CBCB /*채권계약기본*/
                         ON CBCB.CNTR_NO = SCD.CNTR_NO
                        AND CBCB.CNTR_SN = SCD.CNTR_SN
-                       AND CBCB.BASE_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM')
+                       AND CBCB.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
                        AND CBCB.DTA_DL_YN = 'N'
+                      LEFT OUTER JOIN TB_RVDW_FNIT_FEE_BAS RFFB
+                        ON RFFB.KW_GRP_CO_CD = RRAD.KW_GRP_CO_CD
+                       AND RFFB.FNIT_CD = RRAD.FNIT_CD
+                       AND RFFB.FNIT_FEE_TP_CD = '2'
+                       AND RFFB.DTA_DL_YN = 'N'
+                       AND RFFB.VL_STRTDT  <![CDATA[<=]]> RRD.RVE_DT
+                       AND RFFB.VL_ENDDT   >=   RRD.RVE_DT
                      WHERE 1 = 1
                        AND RRD.DTA_DL_YN = 'N'
                        AND RRD.CNTR_NO = #{cntrNo}
@@ -340,6 +365,8 @@
                 , T1.CRDCD_FEE_AMT
                 , T1.RFND_BLTF_AK_AMT
                 , T1.RFND_AK_NO
+                , T1.FNIT_CD
+                , NVL(T1.CRDCD_FER , 0) AS CRDCD_FER
              FROM ( SELECT RRD.RVE_NO      /* 수납번호 */
                          , RRD.RVE_SN      /* 수납일련번호 */
                          , RRAD.CNTR_NO     /* 계약번호*/
@@ -367,6 +394,8 @@
                          , NVL(RRAD.CRDCD_FEE_AMT, 0) AS CRDCD_FEE_AMT
                          , NVL(RRAD.RFND_BLTF_AK_AMT, 0) AS RFND_BLTF_AK_AMT
                          , RRAD.RFND_AK_NO
+                         , RRKD.FNIT_CD
+                         , RFFB.CRDCD_FER
                       FROM TB_RVDW_RFND_AK_DTL RRAD /* 환불요청상세 */
                      INNER JOIN TB_RVDW_RVE_DTL RRD /* 수납상세 */
                         ON RRD.CNTR_NO = RRAD.CNTR_NO
@@ -374,6 +403,11 @@
                        AND RRD.RVE_NO = RRAD.RVE_NO
                        AND RRD.RVE_SN = RRAD.RVE_SN
                        AND RRAD.DTA_DL_YN = 'N'
+                     INNER JOIN TB_RVDW_RVE_AK_DTL RRKD
+                        ON RRKD.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD
+                       AND RRKD.RVE_AK_NO = RRD.RVE_AK_NO
+                       AND RRKD.RVE_AK_SN = RRD.RVE_AK_SN
+                       AND RRKD.DTA_DL_YN = 'N'
                      INNER JOIN TB_SSCT_CNTR_DTL SCD /* 계약상세 */
                         ON SCD.CNTR_NO = RRD.CNTR_NO
                        AND SCD.CNTR_SN = RRD.CNTR_SN
@@ -381,13 +415,24 @@
                       LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS CBCB /*채권계약기본*/
                         ON CBCB.CNTR_NO = SCD.CNTR_NO
                        AND CBCB.CNTR_SN = SCD.CNTR_SN
-                       AND CBCB.BASE_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM')
+                       AND CBCB.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
                        AND CBCB.DTA_DL_YN = 'N'
+                      LEFT OUTER JOIN TB_RVDW_FNIT_FEE_BAS RFFB
+                        ON RFFB.KW_GRP_CO_CD = RRKD.KW_GRP_CO_CD
+                       AND RFFB.FNIT_CD = RRKD.FNIT_CD
+                       AND RFFB.FNIT_FEE_TP_CD = '2'
+                       AND RFFB.DTA_DL_YN = 'N'
+                       AND RFFB.VL_STRTDT  <![CDATA[<=]]> RRD.RVE_DT
+                       AND RFFB.VL_ENDDT   >=   RRD.RVE_DT
                      WHERE 1 = 1
                        AND RRD.DTA_DL_YN = 'N'
                        AND RRAD.RFND_AK_NO = #{rfndAkNo}
+                      <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
                        AND RRAD.CNTR_NO = #{cntrNo}
+                      </if>
+                      <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
                        AND RRAD.CNTR_SN = #{cntrSn}
+                      </if>
                   ) T1
     </select>
 
@@ -424,8 +469,12 @@
                WHERE 1 = 1
                  AND RRABD.DTA_DL_YN = 'N'
                  AND RRABD.RFND_AK_NO = #{rfndAkNo}
+                <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
                  AND RRABD.CNTR_NO = #{cntrNo}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
                  AND RRABD.CNTR_SN = #{cntrSn}
+                </if>
     </select>
 
 
