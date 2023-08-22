@@ -39,7 +39,7 @@ public class WfeeFeeSpecificationService {
         // 수수료계산단위유형코드 (101 : P추진단 플래너, 102 : P추진단 지국장, 201 : M추진단-일반(15등급), 202 : M추진단- 지점장(7등급)
         switch (dto.ogTpCd()) {
             case "W01" -> { //P 추진단
-                if ("1".equals(rsbDvCd)) { // 플래너
+                if ("W0105".equals(rsbDvCd)) { // 플래너
                     feeCdMap = getFeeCdLists(dto.perfDt(), "101");
                     if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
                         resList = mapper.selectPPlannerFeeSpecifications(
@@ -49,7 +49,7 @@ public class WfeeFeeSpecificationService {
                             String.valueOf(feeCdMap.get("feeCdInStr"))
                         );
 
-                } else if ("2".equals(rsbDvCd)) { //지점장
+                } else if ("W0104".equals(rsbDvCd)) { //지점장
                     feeCdMap = getFeeCdLists(dto.perfDt(), "102");
                     if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
                         resList = mapper.selectPManagerFeeSpecifications(
@@ -61,7 +61,7 @@ public class WfeeFeeSpecificationService {
                 }
             }
             case "W02" -> { //M 추진단
-                if ("1".equals(rsbDvCd)) { //플래너
+                if ("W0205".equals(rsbDvCd)) { //플래너
                     feeCdMap = getFeeCdLists(dto.perfDt(), "201");
                     if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
                         resList = mapper.selectMPlannerFeeSpecifications(
@@ -70,7 +70,7 @@ public class WfeeFeeSpecificationService {
                             String.valueOf(feeCdMap.get("feeSumField")),
                             String.valueOf(feeCdMap.get("feeCdInStr"))
                         );
-                } else if ("2".equals(rsbDvCd)) { //지점장
+                } else if ("W0204".equals(rsbDvCd)) { //지점장
                     feeCdMap = getFeeCdLists(dto.perfDt(), "202");
                     if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
                         resList = mapper.selectMManagerFeeSpecifications(
@@ -82,7 +82,7 @@ public class WfeeFeeSpecificationService {
                 }
             }
             case "W03" -> { //홈마스터
-                if ("1".equals(rsbDvCd)) { // 플래너
+                if ("W0302".equals(rsbDvCd)) { // 플래너
                     feeCdMap = getFeeCdLists(dto.perfDt(), "301");
                     if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
                         resList = mapper.selectHPlannerFeeSpecifications(
@@ -92,7 +92,7 @@ public class WfeeFeeSpecificationService {
                             String.valueOf(feeCdMap.get("feeCdInStr"))
                         );
 
-                } else if ("2".equals(rsbDvCd)) { //지점장
+                } else if ("W0301".equals(rsbDvCd)) { //지점장
                     feeCdMap = getFeeCdLists(dto.perfDt(), "302");
                     if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
                         resList = mapper.selectHManagerFeeSpecifications(
