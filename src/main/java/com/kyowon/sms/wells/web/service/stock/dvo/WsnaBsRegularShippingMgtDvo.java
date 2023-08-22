@@ -117,5 +117,5 @@ public class WsnaBsRegularShippingMgtDvo {
     String tno;
     String mpno;
     String pdGroupCd;
-
+    String mpacNo; // 합포장번호
 }
