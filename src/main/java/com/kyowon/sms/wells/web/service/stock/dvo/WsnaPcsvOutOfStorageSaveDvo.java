@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -73,4 +75,5 @@ public class WsnaPcsvOutOfStorageSaveDvo {
 
     String wareMngtPrtnrOgTpCd;
 
+    List<WsnaPcsvOutOfStorageSaveProductDvo> products;
 }

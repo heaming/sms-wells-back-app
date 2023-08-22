@@ -3,15 +3,15 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaPcsvOutOfStorageSaveConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvOutOfStorageMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvSendDtlDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.*;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvOutOfStorageSaveMapper;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvSendDtlMapper;
 import com.sds.sflex.common.utils.DateUtil;
@@ -32,7 +32,11 @@ public class WsnaPcsvOutOfStorageSaveService {
 
     private final MessageResourceService messageResourceService;
 
+    private final WsnaItemStockItemizationService itemStockService;
+
     private final WctaInstallationReqdDtInService installationReqdDtInService;
+
+    private final WsnaLogisticsOutStorageAskService logisticsOutStorageAskService;
 
     private final WsnaPcsvSendDtlMapper sendDtlMapper;
 
@@ -79,42 +83,6 @@ public class WsnaPcsvOutOfStorageSaveService {
                     mapper.updateSvpdCstSvExcnIz(dvo);
                 }
                 //TODO 수불처리
-                //
-                //                /* 수불처리 */
-                //                //작업엔지니어 정보를 구한다.
-                //                WsnaPcsvOutOfStorageSaveDvo engineerDvo = mapper.selectEngineerOgbsMmPrtnrIz(dvo);
-                //                if (engineerDvo != null) {
-                //                    dvo.setMngrDvCd(engineerDvo.getMngrDvCd());
-                //                    dvo.setDgr1LevlOgId(engineerDvo.getDgr1LevlOgId());
-                //                    dvo.setDgr3LevlOgId(engineerDvo.getDgr3LevlOgId());
-                //                    dvo.setBrchOgId(engineerDvo.getBrchOgId());
-                //                }
-                //
-                //                // 수불 오류 방지를 위해서 재고 수량 체크
-                //                int itmStocIzQty = 0;
-                //                WsnaPcsvOutOfStorageSaveDvo qtyDvo = mapper.selectQtySvstCstSvItmStocIz(dvo);
-                //                if (qtyDvo != null) {
-                //                    if ("A".equals(dvo.getPdGdCd())) {
-                //                        itmStocIzQty = qtyDvo.getAQty();
-                //                    } else if ("B".equals(dvo.getPdGdCd())) {
-                //                        itmStocIzQty = qtyDvo.getBQty();
-                //                    } else if ("E".equals(dvo.getPdGdCd())) {
-                //                        itmStocIzQty = qtyDvo.getEQty();
-                //                    } else if ("R".equals(dvo.getPdGdCd())) {
-                //                        itmStocIzQty = qtyDvo.getRQty();
-                //                    }
-                //                }
-                //                BizAssert.isFalse(itmStocIzQty < 0, "MSG_ALT_MAT_QTY_ERR", new String[] {""}); //자재 수량이 부족합니다.보유 자재를 확인해주세요!
-                //            WsnaItemStockItemizationReqDvo itemDvo = setPcsvOstrWsnaItemStockItemizationDtoSaveReq(dvo);
-                //            log.info("itemDvo qty---> {} ", itemDvo.getQty());
-                //            log.info("itemDvo itemPdCd---> {} ", itemDvo.getItmPdCd());
-                //            log.info("itemDvo WareNo ---> {} ", itemDvo.getWareNo());
-                //            log.info("itemDvo WareMngtPrtnrNo---> {} ", itemDvo.getWareMngtPrtnrNo());
-                //            try {
-                //                itemStockservice.createStock(itemDvo);
-                //            } catch (ParseException e) {
-                //                throw new RuntimeException(e);
-                //            }
 
                 // throw new BizException("정상출고 에러!");
 
@@ -164,7 +132,6 @@ public class WsnaPcsvOutOfStorageSaveService {
 
             }
 
-            // logisticDvos.add(converter.mapPcsvOutOfStorageDvoToLogisticDvo(dvo));
             processCount += 1;
         }
 
@@ -173,7 +140,7 @@ public class WsnaPcsvOutOfStorageSaveService {
     }
 
     @Transactional
-    public int savePcsvOutOfStorage2(List<SaveReq> dtos) {
+    public int savePcsvOutOfStorageTest(List<SaveReq> dtos) {
         int processCount = 0;
 
         // 물류인터페이스 호출용 dvo
@@ -182,45 +149,70 @@ public class WsnaPcsvOutOfStorageSaveService {
         List<WsnaPcsvOutOfStorageSaveDvo> dvos = converter.mapSaveReqToPcsvOutOfStorageDvo(dtos);
         for (WsnaPcsvOutOfStorageSaveDvo dvo : dvos) {
             if ("1112".equals(dvo.getSvBizDclsfCd())) {
-                //1. 택배 송신 상세 정보 저장
-                WsnaPcsvSendDtlDvo sendDtlDvo = this.setWsnaPcsvSendDtlDvo(dvo);
-                sendDtlMapper.insertPcsvSendDtl(sendDtlDvo);
 
-                // 물류 연동시 전화번호,휴대폰 번호 복호화 전송
-                sendDtlDvo.setAdrsCphonNoVal(dvo.getCralIdvTno());
-                sendDtlDvo.setAdrsTnoVal(dvo.getIdvTno());
-                // throw new BizException("테스트 에러!");
+                String idvTno = dvo.getIdvTno();
+                String cralIdvTno = dvo.getCralIdvTno();
+
+                List<WsnaPcsvSendDtlDvo> pcsvSendDtlDvos = this.setWsnaPcsvSendDtlDvo(dvo);
+
+                for (WsnaPcsvSendDtlDvo pcsvSendDtlDvo : pcsvSendDtlDvos) {
+                    // 1.택배 발송정보 저장 (TB_SVPD_OSTR_AK_PCSV_SEND_DTL)
+                    sendDtlMapper.insertPcsvSendDtl(pcsvSendDtlDvo);
+
+                    // dvo.setPdCd(pcsvSendDtlDvo.getItmPdCd());
+                    // dvo.setUseQty(pcsvSendDtlDvo.getOstrAkQty());
+
+                    // 2.작업출고내역 등록 (TB_SVST_SV_WK_OSTR_IZ)
+                    // mapper.insertSvstSvWkOstrIz(dvo);
+
+                    // 3.재고변경 (TB_SVST_CST_SV_ITM_STOC_IZ)
+                    // WsnaItemStockItemizationReqDvo itemDvo = setWsnaItemStockItemizationReqDvo(dvo);
+                    // itemStockService.createStock(itemDvo);
+
+                    // 물류 연동시 전화번호,휴대폰 번호 복호화 전송
+                    pcsvSendDtlDvo.setAdrsTnoVal(idvTno);
+                    pcsvSendDtlDvo.setAdrsCphonNoVal(cralIdvTno);
+
+                    // 4. 택배정보 물류 연동을위한 매핑 저장 (TB_SVPD_OSTR_AK_PCSV_SEND_DTL) >  W-SV-S-0088 물류 출고요청
+                    logisticDvos.add(converter.mapPcsvOutOfStorageDvoToLogisticDvo(pcsvSendDtlDvo));
+                }
+                // 5 .작업결과 IU
             }
+        }
+
+        // 5.물류 인터페이스 연동
+        if (ObjectUtils.isNotEmpty(logisticDvos)) {
+            //물류인터페이스 호출
+            // logisticsOutStorageAskService.createSelfFilterOutOfStorageAsks(logisticDvos);
         }
         return processCount;
     }
 
-    private WsnaPcsvSendDtlDvo setWsnaPcsvSendDtlDvo(
+    private List<WsnaPcsvSendDtlDvo> setWsnaPcsvSendDtlDvo(
         WsnaPcsvOutOfStorageSaveDvo vo
     ) {
+        List<WsnaPcsvSendDtlDvo> sendDtlDvos = new ArrayList<>();
         // 출고요청 번호 생성
         WsnaPcsvSendDtlDvo sendDtlDvo = new WsnaPcsvSendDtlDvo();
         String now = DateUtil.getNowString();
         sendDtlDvo.setOstrAkNo(sendDtlMapper.selectOstAkNo());
+
         // 고정 셋팅
         sendDtlDvo.setOstrAkTpCd("400");
         sendDtlDvo.setSppDvCd("1");
         sendDtlDvo.setOstrAkRgstDt(now.substring(0, 8));
         sendDtlDvo.setOstrHopDt(now.substring(0, 8));
+        sendDtlDvo.setAsnOjYm(now.substring(0, 6));
         sendDtlDvo.setIostAkDvCd("WE");
         sendDtlDvo.setLgstSppMthdCd("2");
         sendDtlDvo.setOstrOjWareNo("100002");
-
-        // 파라미터(변수 셋팅)
-        sendDtlDvo.setOstrAkSn(1);
-        sendDtlDvo.setLgstWkMthdCd("WE01");
-        sendDtlDvo.setMpacSn(0);
         sendDtlDvo.setItmGdCd("A");
 
         // 고객정보 파라미터 세팅
-        sendDtlDvo.setCstNo(vo.getCntrCstNo());
         sendDtlDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
         sendDtlDvo.setWareMngtPrtnrOgTpCd(vo.getWareMngtPrtnrOgTpCd());
+        sendDtlDvo.setCstSvAsnNo(vo.getCstSvAsnNo());
+        sendDtlDvo.setCstNo(vo.getCntrCstNo());
         sendDtlDvo.setCstNm(vo.getRcgvpKnm());
         sendDtlDvo.setCntrNo(vo.getCntrNo());
         sendDtlDvo.setCntrSn(vo.getCntrSn());
@@ -228,11 +220,7 @@ public class WsnaPcsvOutOfStorageSaveService {
         sendDtlDvo.setAdrsCphonNoVal(vo.getCralIdvTno());
         sendDtlDvo.setBasAdr(vo.getRnadr());
         sendDtlDvo.setDtlAdr(vo.getRdadr());
-        sendDtlDvo.setCstSvAsnNo(vo.getCstSvAsnNo());
         sendDtlDvo.setZip(vo.getNewAdrZip());
-        sendDtlDvo.setItmPdCd(vo.getPdCd());
-        sendDtlDvo.setOstrAkQty(Integer.parseInt(vo.getUseQty()));
-        sendDtlDvo.setPdCn(vo.getPdNm() + "(" + vo.getPdCd() + ")" + ": " + vo.getUseQty());
 
         // null대신 X값 세팅. (물류인터페이스요청)
         sendDtlDvo.setSvCnrCd("X");
@@ -242,26 +230,46 @@ public class WsnaPcsvOutOfStorageSaveService {
         sendDtlDvo.setSvCnrAdr("X");
         sendDtlDvo.setOvivTpCd("X");
 
-        return sendDtlDvo;
+        // 파라미터(변수 셋팅)
+        sendDtlDvo.setLgstWkMthdCd("WE01"); //TODO 명확하지않으니 추후 진행
+        sendDtlDvo.setMpacSn(0); //TODO 명확하지않으니 추후 진행, (계약번호를 매핑)
+
+        List<WsnaPcsvOutOfStorageSaveProductDvo> products = vo.getProducts();
+        if (CollectionUtils.isNotEmpty(products)) {
+            int cnt = 1;
+            for (WsnaPcsvOutOfStorageSaveProductDvo pdDvo : products) {
+                WsnaPcsvSendDtlDvo sendDtlProductDvo = converter.mapPcsvSendDtlToPcsvSendDtl(sendDtlDvo);
+                //상품 기준으로 출고요청일련번호 생성
+                sendDtlProductDvo.setOstrAkSn(cnt);
+                sendDtlProductDvo.setItmPdCd(pdDvo.getPdCd());
+                sendDtlProductDvo.setOstrAkQty(Integer.parseInt(pdDvo.getUseQty()));
+                sendDtlProductDvo.setPdCn(pdDvo.getPdNm() + "(" + pdDvo.getPdCd() + ")" + ": " + pdDvo.getUseQty());
+                sendDtlDvos.add(sendDtlProductDvo);
+                cnt++;
+            }
+        }
+        return sendDtlDvos;
     }
-    //    private WsnaItemStockItemizationReqDvo setPcsvOstrWsnaItemStockItemizationDtoSaveReq(
-    //        WsnaPcsvOutOfStorageSaveDvo vo
-    //    ) {
-    //        String nowDay = DateUtil.getNowDayString();
-    //
-    //        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
-    //        reqDvo.setProcsYm(nowDay.substring(0, 6));
-    //        reqDvo.setProcsDt(nowDay);
-    //        reqDvo.setWareDv(vo.getWkWareNo().substring(0, 1)); /*창고구분*/
-    //        reqDvo.setWareNo(vo.getWkWareNo());
-    //        reqDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo()); //파트너번호
-    //        reqDvo.setItmPdCd(vo.getPdCd());
-    //        reqDvo.setQty(vo.getUseQty());
-    //        reqDvo.setIostTp("213");
-    //        reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
-    //        reqDvo.setMngtUnit("1");
-    //        reqDvo.setItemGd("A");
-    //        return reqDvo;
-    //    }
+
+    /* 재고변경 */
+    private WsnaItemStockItemizationReqDvo setWsnaItemStockItemizationReqDvo(WsnaPcsvOutOfStorageSaveDvo vo) {
+        String nowDay = DateUtil.getNowDayString();
+
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(nowDay.substring(0, 6));
+        reqDvo.setProcsDt(nowDay);
+        reqDvo.setWareDv(vo.getWkWareNo().substring(0, 1)); /*창고구분*/
+        reqDvo.setWareNo(vo.getWkWareNo());
+        reqDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo()); //파트너번호
+        reqDvo.setItmPdCd(vo.getPdCd());
+        reqDvo.setQty(vo.getUseQty());
+        reqDvo.setIostTp("213");
+        reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
+        reqDvo.setMngtUnit("1");
+        reqDvo.setItemGd("A");
+
+        return reqDvo;
+
+    }
 
 }

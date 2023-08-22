@@ -1,7 +1,10 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveProductDvo;
 import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
@@ -227,7 +230,9 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String pdNm, // 상품 명
 
-        String wareMngtPrtnrOgTpCd // 창고관리파트너조직유형코드
+        String wareMngtPrtnrOgTpCd, // 창고관리파트너조직유형코드
+
+        List<WsnaPcsvOutOfStorageSaveProductDvo> products //상품 목록
     ) {}
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-FindLogisticsCentersRes")
