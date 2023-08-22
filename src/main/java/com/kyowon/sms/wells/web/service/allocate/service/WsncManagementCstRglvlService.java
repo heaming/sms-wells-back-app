@@ -1,23 +1,23 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SavePartnerReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.OrganizationRes;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncManagementCstRglvlConverter;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.OrganizationRes;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SavePartnerReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncManagementCstRglvlBsAssignInfoDvo;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncManagementCstRglvlExchangeInfoDvo;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncSvpdAsnRsTfIzDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncManagementCstRglvlMapper;
 import com.kyowon.sms.wells.web.service.common.service.WsnzHistoryService;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,11 +27,10 @@ public class WsncManagementCstRglvlService {
     private final WsncManagementCstRglvlConverter converter;
     private final WsnzHistoryService wsnzHistoryService;
 
-    public PagingResult<SearchRes> getManagementCustomerRglvls(
-        SearchReq dto,
-        PageInfo pageInfo
+    public List<SearchRes> getManagementCustomerRglvls(
+        SearchReq dto
     ) {
-        return mapper.selectManagementCustomerRglvls(dto, pageInfo);
+        return mapper.selectManagementCustomerRglvls(dto);
     }
 
     public List<SearchRes> getManagementCustomerRglvlsForExcelDownload(
