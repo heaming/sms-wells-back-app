@@ -816,7 +816,7 @@
                       AND D.OG_TP_CD = A.SELL_OG_TP_CD
                       AND D.PRTNR_NO = A.SELL_PRTNR_NO
                      LEFT JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
-                       ON F.BASE_YM = C.SL_CL_YM
+                       ON F.BASE_YM = T.BASE_YM
                       AND F.CNTR_NO = T.CNTR_NO
                       AND F.CNTR_SN = T.CNTR_SN
                      LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
@@ -925,10 +925,10 @@
                         , NVL(C.BTD_ATAM,0)         AS COL07    /*선수기초금액*/
                         , NVL(C.OVR_CTR_DP_AMT,0)   AS COL08    /*초과조정입금금액*/
                         , NVL(C.THM_UC_BLAM,0)      AS COL09    /*당월미수잔액*/
-                        , NVL(T1.TOT_NPD_AMT,0)       AS COL10    /*총미납금액:렌탈*/
-                        , NVL(I.PD_RVE_AMT,0)       AS COL12    /*입금금액:기기*/
-                        , NVL(I.RFND_RVE_AMT,0)     AS COL13    /*환불금액:기기*/
-                        , NVL(T1.TOT_NPD_AMT,0) - (NVL(I.PD_RVE_AMT,0) - NVL(I.RFND_RVE_AMT,0)) AS COL14
+                        , NVL(T1.TOT_NPD_AMT,0)     AS COL10    /*총미납금액:렌탈*/
+                        , NVL(J.PD_RVE_AMT,0)       AS COL12    /*입금금액:기기*/
+                        , NVL(J.RFND_RVE_AMT,0)     AS COL13    /*환불금액:기기*/
+                        , NVL(T.TOT_NPD_AMT,0) - (NVL(I.PD_RVE_AMT,0) - NVL(I.RFND_RVE_AMT,0)) AS COL14
                         , NVL(T1.TOT_NPD_AMT,0) - (NVL(C.BTD_ATAM,0) + NVL(J.PD_RVE_AMT,0) - NVL(J.RFND_RVE_AMT,0)) AS COL15
                         , T.BASE_YM                 AS COL16    /*기준년월*/
                         , NVL(K.UC_AMT,0) - (NVL(I.PD_RVE_AMT,0) - NVL(I.RFND_RVE_AMT,0)) AS COL17
@@ -955,6 +955,7 @@
                       AND D.PRTNR_NO = A.SELL_PRTNR_NO
                      LEFT JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
                        ON F.BASE_YM = T.BASE_YM
+        --               ON TO_CHAR(ADD_MONTHS(TO_DATE(F.BASE_YM,'YYYYMM'),-1),'YYYYMM') = T.BASE_YM
                       AND F.CNTR_NO = T.CNTR_NO
                       AND F.CNTR_SN = T.CNTR_SN
                      LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
@@ -1001,6 +1002,16 @@
                       AND T.DTA_DL_YN = 'N'
                       AND T.BASE_YM = SUBSTR(#{baseDt},1,6)    /*실적년월*/
                       AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
+        --              AND (B.CNTR_PD_ENDDT IS NULL
+        --               OR (B.CNTR_PD_ENDDT IS NOT NULL AND LC325.LCETC3 = 'KF' /*추심제외대상 테이블의*/))  /*TODO : 추심제외대상 테이블 생성되면 변경 필요*/
+        --              /* TODO : 추심제외대상 테이블(LCLIB.LC5870P) 생성되면 NOT EXISTS 조건으로 추가 필요 */
+        --              AND NOT EXISTS (SELECT 1
+        --                                FROM TB_CBBO_WELLS_AUTH_RSG_IZ /*T:WELLS직권해지내역*/
+        --                               WHERE 1 = 1
+        --                                 AND AUTH_RSG_EXCD_RQR_PRTNR_NO IS NOT NULL    /*직권해지제외요청자파트너번호*/
+        --                                 AND CNTR_NO = C.CNTR_NO
+        --                                 AND CNTR_SN = C.CNTR_SN
+        --                                 AND BASE_YM = SUBSTR(#{baseDt},1,6))
                   ) X2
                ON (     X2.COL04 = X1.CNTR_NO
                     AND X2.COL16 = X1.BASE_YM
