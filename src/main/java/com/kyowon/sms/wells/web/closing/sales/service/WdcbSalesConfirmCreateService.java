@@ -76,7 +76,12 @@ public class WdcbSalesConfirmCreateService {
         int slAmt = dvo.getNomSlAmt() + dvo.getSpmtSlAmt() - dvo.getNomDscAmt() - dvo.getSpmtDscAmt()
             - dvo.getSlCtrAmt(); // 정상매출금액 + 추가매출금액- 정상할인금액 - 추가할인금액 - 매출조정금액
         /* 9. 부가가치세(VAT) */
-        int vat = (int)Math.floor(slAmt * 0.0909);
+        int vat = 0;
+        String vatTpCd = mapper.selectVatTpCd(dvo.getPdCd());
+        if (StringUtils.isNotEmpty(vatTpCd) && "10".equals(vatTpCd)) {
+            vat = (int)Math.floor(slAmt * 0.0909);
+        }
+
         /* 10. CO주문유형 */
         String ctrlOrdTpCd = StringUtils
             .isNotEmpty(mapper.selectCtrlOrdTpCd(sapPdDvCd, dvo.getSellInflwChnlDtlCd(), dvo.getOgTpCd()))
@@ -99,14 +104,14 @@ public class WdcbSalesConfirmCreateService {
         String lgstSppMthdCd = "";
         String sapPlntCd = "";
         String sapSaveLctCd = "";
-        String rvpyYn = "";
-        WdcbSalesConfirmReceivingAndPayingDvo wdcbSalesConfirmReceivingAndPayingDvo = mapper
-            .selectReceivingAndPaying(dvo);
-        if (!ObjectUtils.isEmpty(wdcbSalesConfirmReceivingAndPayingDvo)) {
-            lgstSppMthdCd = wdcbSalesConfirmReceivingAndPayingDvo.getSppMthdTpCd();
-            sapPlntCd = wdcbSalesConfirmReceivingAndPayingDvo.getSapPlntCd();
-            sapSaveLctCd = wdcbSalesConfirmReceivingAndPayingDvo.getSapSaveLctCd();
-            rvpyYn = wdcbSalesConfirmReceivingAndPayingDvo.getCnt() > 0 ? "Y" : "N";
+        if (StringUtils.isNotEmpty(dvo.getRvpyYn()) && "Y".equals(dvo.getRvpyYn())) {
+            WdcbSalesConfirmReceivingAndPayingDvo wdcbSalesConfirmReceivingAndPayingDvo = mapper
+                .selectReceivingAndPaying(dvo);
+            if (!ObjectUtils.isEmpty(wdcbSalesConfirmReceivingAndPayingDvo)) {
+                lgstSppMthdCd = wdcbSalesConfirmReceivingAndPayingDvo.getSppMthdTpCd();
+                sapPlntCd = wdcbSalesConfirmReceivingAndPayingDvo.getSapPlntCd();
+                sapSaveLctCd = wdcbSalesConfirmReceivingAndPayingDvo.getSapSaveLctCd();
+            }
         }
 
         /* 15. SAP매출유형코드 */
@@ -148,7 +153,7 @@ public class WdcbSalesConfirmCreateService {
             && "E".equals(dvo.getLgstItmGdCd()) || "R".equals(dvo.getLgstItmGdCd())) {
             addCondition = "2";
         } else if ((StringUtils.isNotEmpty(dvo.getSellTpCd()) && "6".equals(dvo.getSellTpCd()))
-            && (StringUtils.isNotEmpty(rvpyYn) && "Y".equals(rvpyYn))) {
+            && (StringUtils.isNotEmpty(dvo.getRvpyYn()) && "Y".equals(dvo.getRvpyYn()))) {
             addCondition = "3";
         } else {
             addCondition = "0";
@@ -260,7 +265,7 @@ public class WdcbSalesConfirmCreateService {
         inputDvo.setFgptYn(dvo.getFgptYn());
         inputDvo.setSapTxnDtfrCd(sapTxnDtfrCd);
         inputDvo.setSapTxinvPblBaseCd(sapTxinvPblBaseCd);
-        inputDvo.setRvpyYn(rvpyYn);
+        inputDvo.setRvpyYn(dvo.getRvpyYn());
         inputDvo.setSaveGdsYn(saveGdsYn);
         inputDvo.setSapPlntCd(sapPlntCd);
         inputDvo.setSapSaveLctVal(sapSaveLctCd);
