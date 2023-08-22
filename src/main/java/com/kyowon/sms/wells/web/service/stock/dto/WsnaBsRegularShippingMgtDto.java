@@ -142,7 +142,7 @@ public class WsnaBsRegularShippingMgtDto {
         String partNmQty10,
         String cstNo,
         String pdGroupCd,
-        String mpacNo
+        String mpacSn
     ) {
         public SearchRes {
             if (StringUtil.isNotBlank(locaraTno) && StringUtil.isNotBlank(exnoEncr)
