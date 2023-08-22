@@ -26,7 +26,7 @@ public class WsnbInstallationHpcallFwController {
     @PostMapping
     public SaveResponse sendInstallationHpcallFws() throws Exception {
         return SaveResponse.builder()
-            .processCount(service.sendInstallationHpcallFws())
+            .processCount(service.sendInstallationHpcallFws(null))
             .build();
     }
 }

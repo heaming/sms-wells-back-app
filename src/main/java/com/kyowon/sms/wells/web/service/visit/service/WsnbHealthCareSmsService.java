@@ -42,7 +42,7 @@ public class WsnbHealthCareSmsService {
      * @see 'SP_INSERT_HEALTHCARE_BIZTALK_SEND'
      * @return 변경 개수
      */
-    public int sendHealthCareSms() throws Exception {
+    public int sendHealthCareSms(Map<String, Object> jobParam) throws Exception {
         final AtomicInteger updateCount = new AtomicInteger();
         List<WsnbHealthCareSmsDvo> rows = mapper.selectHealthCareSms();
         final Map<String, Object> paramMap = new HashMap<>();
