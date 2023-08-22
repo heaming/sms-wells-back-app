@@ -3,19 +3,19 @@
 
     <select id='selectB2bPerformance' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebB2bFeeMgtDto$Performance">
         SELECT T1.BASE_YM
-             , NVL(C0.CD_CNTN, T1.CO_CD) CO_CD_NM                     /* 소속 - T1.CO_CD   */
+             , O1.HOO_PRTNR_NM AS CO_CD_NM                     /* 소속 - T1.CO_CD   */
              , T2.PRTNR_KNM                                           /* 핀매자            */
              , T1.PRTNR_NO                                            /* 번호              */
              , T1.CNTR_NO                                             /* 계약상세번호      */
              , T4.CST_KNM                                             /* 고객성명          */
              , T5.BASE_PD_CD                                          /* 상품코드          */
              , T6.PD_NM                                               /* 상품명            */
-             , NVL(C1.CD_CNTN, T7.SELL_DSC_DV_CD) SELL_DSC_DV_CD_NM   /* 할인구분 - T7.DSC_DV_CD  => SELL_DSC_DV_CD ??? */
+             , NVL(C1.CD_CNTN, T7.SELL_DSC_DV_CD) SELL_DSC_DV_CD_NM   /* 할인구분 - T7.DSC_DV_CD   SELL_DSC_DV_CD  */
              , CASE WHEN T7.SELL_DSC_DV_CD = '5'
                     THEN NVL(C2.CD_CNTN, T7.SELL_DSCR_CD) --판매할인율코드
                     ELSE TO_CHAR(T7.RECAP_DUTY_PTRM_N)    --유상의무기간수
-                     END SELL_DSCR_CD_NM                              /* 할인유형 - T7.DSC_TP_CD  => SELL_DSCR_CD RECAP_DUTY_PTRM_N ??? */
-             , NVL(C3.CD_CNTN, T7.SELL_DSC_TP_CD) SELL_DSC_TP_CD_NM   /* 할인제도 - T7.PMOT_CD    => SELL_DSC_TP_CD ???       */
+                     END SELL_DSCR_CD_NM                              /* 할인유형 - T7.DSC_TP_CD   SELL_DSCR_CD RECAP_DUTY_PTRM_N  */
+             , NVL(C3.CD_CNTN, T7.SELL_DSC_TP_CD) SELL_DSC_TP_CD_NM   /* 할인제도 - T7.PMOT_CD     SELL_DSC_TP_CD        */
              , (SELECT MAX('1')
                   FROM TB_SSCT_CNTR_REL X
                  WHERE X.BASE_CNTR_NO    = T1.CNTR_NO
@@ -23,11 +23,11 @@
                    AND X.CNTR_REL_TP_CD  = '20'  -- 연계상품
                    AND X.CNTR_REL_DTL_CD = '214' -- 원주문-정기배송
                ) AS REL_PD_CD_NM                                      /* 결합구분          */
-             , NVL(C5.CD_CNTN, T7.PMOT_USWY_DV_CD) PMOT_USWY_DV_CD_NM /* 용도구분 - T7.PMOT_USWY_DV_CD ???       */
+             , NVL(C5.CD_CNTN, T7.PMOT_USWY_DV_CD) PMOT_USWY_DV_CD_NM /* 용도구분 - T7.PMOT_USWY_DV_CD        */
              , CASE WHEN T7.PMOT_USWY_DV_CD = '1' THEN '1-일반'
                     WHEN T7.PMOT_USWY_DV_CD = '2' THEN '2-업소'
                     ELSE ''
-                    END MG_NM                                         /* 관리유형 - ???    */
+                    END MG_NM                                         /* 관리유형 -     */
              , NVL(C4.CD_CNTN, T7.BFSVC_PRD_CD) BFSVC_PRD_CD_NM       /* 방문주기 - T7.BFSVC_PRD_CD */
              , T7.RCPDT                                               /* 접수일자          */
              , T7.SL_DT                                               /* 매출일자          */
@@ -35,12 +35,16 @@
              , T1.PERF_VAL                                            /* 수수료 - 실적항목코드(W04P00001-기본수수료금액)의 금액 */
              , CASE WHEN T7.ACKMT_PERF_CT IS NULL AND T7.ACKMT_PERF_AMT > 0 THEN 1
                     ELSE T7.ACKMT_PERF_CT
-                     END ACKMT_PERF_CT                                 /* 신규건수 -> 인정건수(Null인 경우 인정실적이 있으면 1로 치환) */
+                     END ACKMT_PERF_CT                                 /* 신규건수  인정건수(Null인 경우 인정실적이 있으면 1로 치환) */
           FROM TB_FEAM_NTORP_CNTR_MM_CL T1      /* 순주문파트너계약월마감 */
          INNER JOIN TB_OGBS_MM_PRTNR_IZ      T2      /* 월파트너               */
             ON T2.BASE_YM        = T1.BASE_YM
            AND T2.OG_TP_CD       = T1.OG_TP_CD         /* 2023.05.02 조건 추가 */
            AND T2.PRTNR_NO       = T1.PRTNR_NO
+         INNER JOIN TB_OGBS_MM_OG_IZ O1 /* 2023.08.22 조인 추가 */
+            ON T2.BASE_YM = O1.BASE_YM
+           AND T2.OG_ID = O1.OG_ID
+           AND T2.OG_TP_CD = O1.OG_TP_CD
          INNER JOIN TB_SSCT_CNTR_BAS         T3      /* 계약기본               */
             ON T3.CNTR_NO        = T1.CNTR_NO
          INNER JOIN TB_CUBS_CST_BAS          T4      /* 고객기본               */
@@ -92,11 +96,11 @@
             <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
              AND T1.FEE_TCNT_DV_CD      = #{feeTcntDvCd}
             </if>
-            AND T1.PERF_AGRG_CRT_DV_CD = '401'               /* 실적집계생성구분코드 : ???-B2B수수료실적생성   */
-            AND T1.OG_TP_CD            = 'W04'               /* 조직유형코드         : W04-온라인B2B           */
-            AND T1.PERF_ATC_CD         = 'W04P00001'         /* 실적항목코드         : W04P00001-기본수수료금액 */
-            AND T1.PERF_DV_CD          = '0'                 /* 실적구분코드         : 0-개인판매               */
-            AND T1.CNTR_PERF_CRT_DV_CD = '01'                /* 계약실적생성구분코드 : 01-순주문집계            */
+            AND T1.PERF_AGRG_CRT_DV_CD = '401'               /* 실적집계생성구분코드  -B2B수수료실적생성   */
+            AND T1.OG_TP_CD            = 'W04'               /* 조직유형코드          W04-온라인B2B           */
+            AND T1.PERF_ATC_CD         = 'W04P00001'         /* 실적항목코드          W04P00001-기본수수료금액 */
+            AND T1.PERF_DV_CD          = '0'                 /* 실적구분코드          0-개인판매               */
+            AND T1.CNTR_PERF_CRT_DV_CD = '01'                /* 계약실적생성구분코드  01-순주문집계            */
             AND T1.DTA_DL_YN           = 'N'
     </select>
 
@@ -104,7 +108,7 @@
         SELECT T1.BASE_YM
              , T1.FEE_TCNT_DV_CD
 	         , T1.CO_CD                             /* 업체코드          */
-             , NVL(C0.CD_CNTN, T1.CO_CD) CO_CD_NM   /* 업체명   - T1.CO_CD */
+             , O1.HOO_PRTNR_NM AS CO_CD_NM   /* 업체명   - T1.CO_CD */
              , T3.OG_CD
              , T3.PRTNR_KNM                         /* 판매자            */
              , T1.PRTNR_NO                          /* 번호              */
@@ -127,6 +131,10 @@
             ON T3.BASE_YM    = T1.BASE_YM
            AND T3.OG_TP_CD   = T1.OG_TP_CD
            AND T3.PRTNR_NO   = T1.PRTNR_NO
+         INNER JOIN TB_OGBS_MM_OG_IZ O1 /* 2023.08.22 조인 추가 */
+            ON T3.BASE_YM = O1.BASE_YM
+           AND T3.OG_ID = O1.OG_ID
+           AND T3.OG_TP_CD = O1.OG_TP_CD
           LEFT OUTER JOIN T_CMZ_CD_D    C0         /* 공통코드 - 업체명 */
             ON C0.TENANT_ID  = #{session.tenantId}
            AND C0.CD_ID      = 'CO_CD'    /* 업체명 */
@@ -150,7 +158,7 @@
            AND T1.OG_TP_CD       = 'W04'
            AND T1.DTA_DL_YN      = 'N'
            AND T1.FEE_CALC_TP_CD = '01' /* 수수료계산 (2023.04.26 추가) */
-         GROUP BY T1.BASE_YM, T1.FEE_TCNT_DV_CD, T1.CO_CD, NVL(C0.CD_CNTN, T1.CO_CD), T3.OG_CD, T3.PRTNR_KNM, T1.PRTNR_NO
+         GROUP BY T1.BASE_YM, T1.FEE_TCNT_DV_CD, T1.CO_CD, O1.HOO_PRTNR_NM, T3.OG_CD, T3.PRTNR_KNM, T1.PRTNR_NO
     </select>
 
 
