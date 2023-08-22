@@ -33,4 +33,6 @@ public interface WdcbSalesConfirmCreateMapper {
     String selectSlpMapngCdv(String sellTpDtlCd, String clssVal, String slTpDvCd, String addCondition);
 
     int insertSalesConfirm(WdcbSlCnfmBasDvo inputDvo);
+
+    String selectVatTpCd(String pdCd);
 }
