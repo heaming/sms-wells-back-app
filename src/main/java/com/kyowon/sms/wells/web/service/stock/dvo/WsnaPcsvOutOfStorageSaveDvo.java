@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,7 +30,7 @@ public class WsnaPcsvOutOfStorageSaveDvo {
 
     /* 사용제품 내역등록 ,수불처리 */
     String pdGdCd;
-    String useQty;
+    int useQty;
     String wkWareNo;
     String pdCd;
     String svBizHclsfCd;
@@ -48,12 +50,6 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     String dgr3LevlOgId;
     String brchOgId;
 
-    /*수불 재고 수량 조회 */
-    int aQty;
-    int bQty;
-    int eQty;
-    int rQty;
-
     /* 물류 인터페이스 필수 */
     String rcgvpKnm;
 
@@ -61,4 +57,20 @@ public class WsnaPcsvOutOfStorageSaveDvo {
 
     String idvTno;
 
+    String newAdrZip; // 우편번호
+
+    String rnadr; // 기본 주소
+
+    String rdadr; // 상세 주소
+
+    String cntrCstNo; // 계약자 고객번호
+
+    String pdNm; // 상품 명
+
+    String wareMngtPrtnrOgTpCd;
+
+    int mpacSn; // 합포장 일련번호
+
+    String lgstWkMthdCd; //물류작업방식코드
+    List<WsnaPcsvOutOfStorageSaveProductDvo> products;
 }
