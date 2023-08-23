@@ -19,6 +19,8 @@ import lombok.Setter;
 public class WsnaItemByStockAggregationDvo {
 
     private String baseDt;
+
+    private String wareDvCd;
     private String mgtTypCd;
     private String itmKndCd;
     private List<String> itmPdCds;

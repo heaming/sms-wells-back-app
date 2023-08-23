@@ -37,13 +37,14 @@ public class WsnaItemByStockAggregationService {
 
     /**
      * 창고 조회 (PIVOT Header 용)
-     * @param baseDt
+     * @param baseDt    (필수) 기준일자
+     * @param wareDvCd  (필수) 창고구분코드
      * @return
      */
-    public List<SearchWareRes> getWareHouses(String baseDt) {
+    public List<SearchWareRes> getWareHouses(String baseDt, String wareDvCd) {
         ValidAssert.hasText(baseDt);
 
-        return this.mapper.selectItemByStockWareHouses(baseDt);
+        return this.mapper.selectItemByStockWareHouses(baseDt, wareDvCd);
     }
 
     /**
@@ -55,10 +56,13 @@ public class WsnaItemByStockAggregationService {
     public PagingResult<HashMap<String, Object>> getItemByStockAggsPaging(SearchReq dto, PageInfo pageInfo) {
 
         WsnaItemByStockAggregationDvo dvo = this.converter.mapSearchReqToWsnaItemByStockAggregationDvo(dto);
+        // 기준일자
         String baseDt = dvo.getBaseDt();
+        // 창고구분
+        String wareDvCd = dvo.getWareDvCd();
 
         // 창고 리스트 조회
-        List<SearchWareRes> wares = this.mapper.selectItemByStockWareHouses(baseDt);
+        List<SearchWareRes> wares = this.mapper.selectItemByStockWareHouses(baseDt, wareDvCd);
 
         // PIVOT 창고 조건 변환
         String wareNoInStr = wares.stream()
@@ -117,10 +121,13 @@ public class WsnaItemByStockAggregationService {
     public List<HashMap<String, Object>> getItemByStockAggsExcelDownload(SearchReq dto) {
 
         WsnaItemByStockAggregationDvo dvo = this.converter.mapSearchReqToWsnaItemByStockAggregationDvo(dto);
+        // 기준일자
         String baseDt = dvo.getBaseDt();
+        // 창고구분
+        String wareDvCd = dvo.getWareDvCd();
 
         // 창고 리스트 조회
-        List<SearchWareRes> wares = this.mapper.selectItemByStockWareHouses(baseDt);
+        List<SearchWareRes> wares = this.mapper.selectItemByStockWareHouses(baseDt, wareDvCd);
 
         // PIVOT 창고 조건 변환
         String wareNoInStr = wares.stream()
