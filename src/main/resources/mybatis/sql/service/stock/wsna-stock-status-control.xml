@@ -63,6 +63,7 @@
          , T1.PD_CD AS ITM_PD_CD /*품목코드*/
          , T3.SVPD_NM_ABBR1 AS ITM_PD_NM /*품목명*/
          , T3.SVPD_MGT_UNT AS MGT_UNIT
+         , T1.ITM_GD_CTR_TP_CD
     <!--     , CASE WHEN ST173_ITEM_KND = '4'
                 THEN GET_COMMONCODE('MA55',ST173_CONT_TYP)
            ELSE GET_COMMONCODE('MA56',ST173_CONT_TYP)
@@ -78,6 +79,7 @@
          , T1.AFCT_ITM_GD_CD /*조정후품목등급코드*/
          , NVL(T1.CTR_QTY, 0) AS CTR_QTY/*조정수량*/
          , F_CMZ_CD_NM('TNT_WELLS', 'CTR_RSON_CD', T1.ITM_GD_CTR_RSON_CD, 'ko') AS ITM_GD_CTR_RSON_NM /*조정사유명*/
+         , T1.ITM_GD_CTR_RSON_CD
          , T1.CTR_SN /*조정일련번호*/
          , T1.RMK_CN /*비고*/
       FROM TB_SVST_ITM_GD_CTR_IZ T1
@@ -103,7 +105,7 @@
    <if test='@MybatisUtils@isNotEmpty(itmGdCtrRsonCd)'>
        AND T1.ITM_GD_CTR_RSON_CD = #{itmGdCtrRsonCd}
    </if>
-
+       AND T1.DTA_DL_YN = 'N'
 
 </select>
 
@@ -221,10 +223,14 @@
                 , DTA_DL_YN              /* 데이터삭제여부 */
                 <include refid="COMMON.insertSystemField" />)
             VALUES (
-                  #{itmGdCtrTpCd}
+                  #{itmGdCtrTpNm}
                 , #{wareNo}
                 , TO_CHAR(SYSDATE, 'YYYYMMDD')
-                , #{ctrSn}
+                , ( SELECT LPAD(NVL(MAX(CTR_SN)+1,1),5,0)
+                      FROM TB_SVST_ITM_GD_CTR_IZ
+                     WHERE ITM_GD_CTR_TP_CD = #{itmGdCtrTpNm} /*상태조정유형*/
+                       AND CTR_WK_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+                       AND WARE_NO = #{wareNo} )
                 , #{statCtrApyDt}
                 , (SELECT T3.OG_ID
                      FROM TB_SVST_MCBY_WARE_IZ T1 /* 월별창고내역 */
@@ -265,7 +271,7 @@
                 , #{bfctItmGdCd}
                 , #{afctItmGdCd}
                 , #{ctrQty}
-                , #{itmGdCtrRsonCd}
+                , #{itmGdCtrRsonNm}
                 , #{rmkCn}
                 , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
@@ -275,7 +281,7 @@
     <update id="updateStockStatusControlsForRemove">
         UPDATE TB_SVST_ITM_GD_CTR_IZ
            SET DTA_DL_YN = 'Y'
-         WHERE ITM_GD_CTR_TP_CD = #{itmGdCtrRsonNm}
+         WHERE ITM_GD_CTR_TP_CD = #{itmGdCtrTpCd}
            AND WARE_NO = #{wareNo}
            AND CTR_WK_DT = #{ctrWkDt}
            AND CTR_SN = #{ctrSn}
