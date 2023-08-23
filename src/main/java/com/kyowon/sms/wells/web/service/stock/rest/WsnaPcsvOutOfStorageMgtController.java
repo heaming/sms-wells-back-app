@@ -45,22 +45,6 @@ public class WsnaPcsvOutOfStorageMgtController {
         return service.getPcsvOutOfStorages(dto);
     }
 
-    @ApiOperation(value = "택배설치상품 출고관리 엑셀다운로드", notes = "조회조건에 일치하는 택배설치상품 출고관리 정보를 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "selCnt", value = "조회제한건수", paramType = "query"),
-        @ApiImplicitParam(name = "startDt", value = "계약시작일자", paramType = "query"),
-        @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query"),
-        @ApiImplicitParam(name = "vstFshDt", value = "출고확정일자", paramType = "query"),
-        @ApiImplicitParam(name = "ivcPrntSn", value = "출고확정순번", paramType = "query"),
-        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "svBizDclsfCd", value = "출고구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "findGb", value = "조회구분", paramType = "query", required = true),
-    })
-    @GetMapping("/excel-download")
-    public List<SearchRes> excelDownload(SearchReq dto) {
-        return service.getPcsvOutOfStoragesExcelDownload(dto);
-    }
-
     @ApiOperation(value = "택배설치상품 출고관리 재고수량 조회", notes = "조회조건에 일치하는 택배설치상품 출고관리 재고 수량 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "wkWareNo", value = "창고코드", paramType = "query", required = true),

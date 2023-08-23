@@ -37,11 +37,12 @@ public class WsniSidingServiceChangesService {
 
         mapper.insertSdingAsAkHist(req);
 
+        /*취소일 경우 삭제 */
         if ("3".equals(req.mtrProcsStatCd()))
-
             mapper.deleteSdingAskAk(req);
-
         else {
+
+            /*주기변경 처리를 위한 고객의 정보 확인*/
 
             if (mapper.selectSidingAkCount(req).intValue() > 0)
                 mapper.updateSidingAk(req);
@@ -72,7 +73,7 @@ public class WsniSidingServiceChangesService {
                 /*고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/
                 service2.removeRglrBfsvcDl(
                     new WsnbCustomerRglrBfsvcDlDto.SaveReq(
-                        "",//row.getCstSvAsnNo(),
+                        "", //row.getCstSvAsnNo(),
                         ""//row.getAsnOjYm()
                     )
                 );
@@ -80,8 +81,8 @@ public class WsniSidingServiceChangesService {
                 /*고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)*/
                 service3.processRegularBfsvcAsn(
                     new WsncRegularBfsvcAsnDto.SaveProcessReq(
-                        "",//row.getAsnOjYm(),
-                        "",//SFLEXContextHolder.getContext().getUserSession().getUserId(),
+                        "", //row.getAsnOjYm(),
+                        "", //SFLEXContextHolder.getContext().getUserSession().getUserId(),
                         req.cntrNo(),
                         req.cntrSn()
                     )

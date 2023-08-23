@@ -36,7 +36,8 @@ public class WsnyAsVisitCostMgtDto {
         String apyEnddt,
         String rmkCn,
         String sapMatCd,
-        String pdNm
+        String pdNm,
+        String isLast
     ) {}
 
     @Builder

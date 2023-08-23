@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,8 @@ import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsRegularShippingMgtMap
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
@@ -55,7 +58,21 @@ public class WsnaBsRegularShippingMgtService {
      */
     public List<SearchRes> getShippingItems(SearchReq dto) {
         List<WsnaBsRegularShippingMgtDvo> dvos = mapper.selectShippingItems(dto);
-        return converter.mapWsnaShippingManagementDvoToSearchRes(dvos);
+        return converter.mapDvoListoSearchResList(dvos);
+    }
+
+    /**
+     * (자가필터,건식상품) 목록 조회(페이징)
+     * @param dto, pageInfo
+     * @return
+     */
+    public PagingResult<SearchRes> getShippingItemPages(SearchReq dto, PageInfo pageInfo) {
+        PagingResult<WsnaBsRegularShippingMgtDvo> dvos = mapper.selectShippingItems(dto, pageInfo);
+        PagingResult<SearchRes> pagingResult = converter.mapWsnaShippingManagementDvoToSearchRes(
+            dvos
+        );
+        pagingResult.setPageInfo(pageInfo);
+        return pagingResult;
     }
 
     /**
@@ -95,34 +112,32 @@ public class WsnaBsRegularShippingMgtService {
                 mapper.insertOutOfStorage(materialDvo);
                 materialDvo.setAdrsTnoVal(tno);
                 materialDvo.setAdrsCphonNoVal(mpno);
-                // 3.재고정보변경(모종제품제외)
+                // 3.재고정보변경, 물류인터페이스 dvo list(모종제품제외)
                 if (!StringUtils.equals(dvo.getPdGroupCd(), "11")) {
                     this.putStockItems(materialDvo);
+                    // 물류인터페이스 dvo list에 추가
+                    materialDvo.setAdrsTnoVal(tno);
+                    materialDvo.setAdrsCphonNoVal(mpno);
+                    logisticDvos.add(converter.mapMaterialDvoToLogisticDvo(materialDvo));
                 }
 
-                // 물류인터페이스 dvo list에 추가
-                materialDvo.setAdrsTnoVal(tno);
-                materialDvo.setAdrsCphonNoVal(mpno);
-                logisticDvos.add(converter.mapMaterialDvoToLogisticDvo(materialDvo));
             }
             // 4.작업결과 저장
             // 고객서비스정기BS주기내역(TB_SVPD_CST_SV_RGBSPR_IZ) update
             mapper.updateBsPeriod(dvo);
             // 고객서비스BS배정내역(TB_SVPD_CST_SV_BSFVC_ASN_IZ) update
             mapper.updateBsAssign(dvo);
-            // 0차월 상품이면, 고객서비스수행내역(TB_SBPD_CST_SV_EXCN_IZ ) update
-            if (StringUtils.equals(dvo.getSppThmYn(), "Y")) {
-                mapper.updateExecution(dvo);
-            }
+
             // 작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) 저장
             dvo.setMexnoEncr(mexnoEncr);
             dvo.setExnoEncr(exnoEnncr);
             mapper.insertWorkResult(dvo);
             processCount += 1;
         }
-
-        //물류인터페이스 호출
-        logisticsOutStorageAskService.createSelfFilterOutOfStorageAsks(logisticDvos);
+        if (ObjectUtils.isNotEmpty(logisticDvos)) {
+            //물류인터페이스 호출
+            logisticsOutStorageAskService.createSelfFilterOutOfStorageAsks(logisticDvos);
+        }
         return processCount;
     }
 
@@ -273,4 +288,5 @@ public class WsnaBsRegularShippingMgtService {
         //재고변경 service 호출
         itemStockService.createStock(stockItem);
     }
+
 }

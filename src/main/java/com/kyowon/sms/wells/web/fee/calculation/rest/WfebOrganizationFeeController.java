@@ -80,6 +80,25 @@ public class WfebOrganizationFeeController {
         return this.service.getManagerFees(dto);
     }
 
+    @ApiOperation(value = "M조직 수수료 생성관리 2023년 4월 이전 목록 조회", notes = "조회조건에 따른 M조직 수수료 생성관리 2023년 4월 이전 목록 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rsbTpCd", value = "직책유형", paramType = "query", required = true),
+        @ApiImplicitParam(name = "feeTcntDvCd", value = "회차", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogLevl1Id", value = "조직레벨1", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl2Id", value = "조직레벨2", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevl3Id", value = "조직레벨3", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", example = "1673419"),
+    })
+
+    @GetMapping("/mngers-bf")
+    public List<SearchMngerBfRes> getManagerBeforeFees(
+        @Valid
+        SearchMngerReq dto
+    ) {
+        return this.service.getManagerBeforeFees(dto);
+    }
+
     @ApiOperation(value = "M조직 수수료 생성관리 지점장 목록 조회", notes = "조회조건에 따른 M조직 수수료 생성관리 지점장 목록 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),

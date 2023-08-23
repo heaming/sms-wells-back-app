@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.expense.mapper.WdcdMarketableSecuritieExceptionMgtMapper">
-    <select id="selectSubject" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieExceptionMgttDto$SearchSubjectRes">
+    <select id="selectSubject" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieExceptionMgtDto$SearchSubjectRes">
         /*원천세정산(유가증권 제외) popup*/
         SELECT T1.BASE_YM               /*(hidden)기준월*/
              , T2.DGR1_LEVL_OG_NM       /*1차레벨조직명-총괄단*/
@@ -32,6 +32,7 @@
              , 0 AS ERNTX               /*(hidden)배분소득세*/
              , 0 AS RSDNTX              /*(hidden)배분주민세*/
              , T3.CARD_USE_AMT          /*(hidden)카드사용금액*/
+             , T3.OPCS_ADJ_NO          /*(hidden)카드사용금액*/
              , NVL((SELECT SUM(S1.DST_AMT)
                   FROM TB_CBCL_OPCS_ADJ_DTL S1 /*T:운영비정산상세*/
                  WHERE S1.OPCS_ADJ_NO = T3.OPCS_ADJ_NO
@@ -115,7 +116,7 @@
            AND T2.BLD_CD = #{bldCd} /*빌팅 콤보박스에서 리턴 값*/
         </if>
     </select>
-    <select id="selectBuilDingCd" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieExceptionMgttDto$FindCodeRes">
+    <select id="selectBuilDingCd" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieExceptionMgtDto$FindCodeRes">
         /* 빌딩코드 조회 */
         SELECT DGR2_LEVL_OG_ID  /*2차레벨조직ID*/
              , DGR2_LEVL_OG_NM  /*2차레벨조직명*/
@@ -129,7 +130,7 @@
            AND OG_LEVL_DV_CD = '2'                  /*조직레벨구분코드-지역단*/
            AND DGR1_LEVL_OG_ID = #{dgr1LevlOgId}    /*총괄단조직ID-부모화면의 정산대상 grid에서 DGR1_LEVL_OG_ID 값*/
     </select>
-    <select id="selectFinalWithholdingTaxSettlement" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieExceptionMgttDto$SearchFinalSettlementRes">
+    <select id="selectFinalWithholdingTaxSettlement" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieExceptionMgtDto$SearchFinalSettlementRes">
         SELECT T1.BASE_YM               /*(hidden)기준월*/
              , T3.OPCS_ADJ_NO           /*(hidden)운영비정산번호*/
              , T3.ADJ_OG_ID             /*(hidden)정산조직ID*/
@@ -223,7 +224,7 @@
            AND A.MSCR_YN = 'N'
     </select>
 
-    <select id="selectAccCardInfoDetail" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieExceptionMgttDto$AccCardInfoDetailRes">
+    <select id="selectAccCardInfoDetail" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieExceptionMgtDto$AccCardInfoDetailRes">
         SELECT T1.BASE_YM       /*기준년월*/
              , T1.PSTN_DV_CD    /*직급구분코드*/
              , T1.RSB_DV_CD     /*직책코드*/
@@ -254,7 +255,7 @@
                      , A.ADJ_OG_NM      /*정산조직명*/
                      , A.ADJ_PRTNR_NO   /*정산파트너번호*/
                      , A.ADJ_USR_NM     /*정산사용자명*/
-                     , A.OPCS_ADJ_NO    /*운영비정산번호*/
+                     , D.OPCS_ADJ_NO    /*운영비정산번호*/
                      , A.ADJ_YN         /*정산여부*/
                      , (CASE WHEN SUBSTR(#{baseYm},5,2) != '01' THEN (SELECT S1.CARD_LIM_AMT
                                                                         FROM TB_CBCL_OPCS_ADJ_CARD_IZ S1
@@ -285,13 +286,19 @@
                     ON B.BASE_YM = A.BASE_YM
                    AND B.OG_TP_CD = A.OG_TP_CD
                    AND B.PRTNR_NO = A.ADJ_PRTNR_NO
+                 INNER JOIN TB_CBCL_OPCS_CARD_USE_IZ C /*T:운영비카드사용내역*/
+                    ON C.ADJ_CRCDNO_ENCR = A.CRCDNO_ENCR
+                   AND C.BASE_YM = A.BASE_YM
+                  LEFT JOIN TB_CBCL_OPCS_ADJ_USE_REL D /*운영비정산사용관계*/
+                    ON D.OPCS_CARD_USE_IZ_ID = C.OPCS_CARD_USE_IZ_ID
+                   AND D.BASE_YM = C.BASE_YM
                  WHERE 1=1
                    AND A.DTA_DL_YN = 'N'
                    AND A.USE_YN = 'Y'
                    AND A.BASE_YM = #{baseYm}            /*부모화면에서 리턴 받은 기준년월*/
                    AND A.OG_TP_CD = #{ogTpCd}           /*팝업화면 상단 조회 결과로 리턴받은 조직유형코드*/
                    AND A.ADJ_PRTNR_NO = #{adjPrtnrNo}   /*팝업화면 상단 조회 결과로 리턴받은 파트너번호*/
-                   AND A.OPCS_ADJ_NO = #{opcsAdjNo}     /*부모화면에서 리턴 받은 운영비정산번호*/
+                   AND D.OPCS_ADJ_NO = #{opcsAdjNo}     /*부모화면에서 리턴 받은 운영비정산번호*/
                ) T1
         WHERE 1=1
         GROUP BY T1.BASE_YM

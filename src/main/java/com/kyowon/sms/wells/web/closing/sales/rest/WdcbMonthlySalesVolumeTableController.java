@@ -28,28 +28,28 @@ import java.util.List;
 public class WdcbMonthlySalesVolumeTableController {
     private final WdcbMonthlySalesVolumeTableService service;
 
-    @ApiOperation(value = "월매출량수량 집계표", notes = "월 매출수량 집계내역 조회")
+    @ApiOperation(value = "월매출량수량 집계표 - 렌탈", notes = "월 매출수량 집계내역 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "sellTpCd", value = "업무구분", paramType = "query"),
         @ApiImplicitParam(name = "slStartDt", value = "매출일자From", paramType = "query"),
-        @ApiImplicitParam(name = "slEmdDt", value = "매출일자To", paramType = "query"),
+        @ApiImplicitParam(name = "slEndDt", value = "매출일자To", paramType = "query"),
         @ApiImplicitParam(name = "sppMthdTpCd", value = "배달구분", paramType = "query"),
         @ApiImplicitParam(name = "sellInflwChnlDtlCd", value = "판매채널", paramType = "query"),
-        @ApiImplicitParam(name = "copnDvCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "copnDvCd", value = "개인법인구분", paramType = "query"),
     })
     @GetMapping("/rental")
     public List<SearchRentalRes> getRentalMonthSalesQuantity(@Valid SearchReq req) {
         return service.getRentalMonthSalesQuantity(req);
     }
 
-    @ApiOperation(value = "월매출량수량 집계표", notes = "월 매출수량 집계내역 조회")
+    @ApiOperation(value = "월매출량수량 집계표 - 일시불/할부", notes = "월 매출수량 집계내역 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "sellTpCd", value = "업무구분", paramType = "query"),
         @ApiImplicitParam(name = "slStartDt", value = "매출일자From", paramType = "query"),
-        @ApiImplicitParam(name = "slEmdDt", value = "매출일자To", paramType = "query"),
+        @ApiImplicitParam(name = "slEndDt", value = "매출일자To", paramType = "query"),
         @ApiImplicitParam(name = "sppMthdTpCd", value = "배달구분", paramType = "query"),
         @ApiImplicitParam(name = "sellInflwChnlDtlCd", value = "판매채널", paramType = "query"),
-        @ApiImplicitParam(name = "copnDvCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "copnDvCd", value = "개인법인구분", paramType = "query"),
     })
     @GetMapping("/payment")
     public List<SearchPaymentRes> getPaymentMonthSalesQuantity(@Valid SearchReq req) {

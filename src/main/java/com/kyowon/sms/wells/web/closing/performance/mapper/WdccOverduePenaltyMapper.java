@@ -15,11 +15,15 @@ public interface WdccOverduePenaltyMapper {
 
     List<SearchPointOrderRes> selectPointOrders(SearchReq req);
 
-    List<SearchAggregateDateRes> selectRegularShippingAggregates(SearchReq req);
+    List<SearchAggregateDateRes> selectAnticipationDates(SearchReq req);
 
-    List<SearchOrderRes> selectRegularShippingOrders(SearchReq req);
+    List<SearchOrderRes> selectAnticipationSinglePayments(SearchReq req);
 
-    List<SearchAggregateDateRes> selectRegularShippingExceptAggregates(SearchReq req);
+    List<SearchOrderRes> selectAnticipationMemberships(SearchReq req);
 
-    List<SearchOrderRes> selectRegularShippingExceptOrders(SearchReq req);
+    List<SearchOrderRes> selectAnticipationRegularShippings(SearchReq req);
+
+    List<SearchOrderRes> selectAnticipationRentals(SearchReq req);
+
+    List<SearchOrderRes> selectAnticipationLeases(SearchReq req);
 }

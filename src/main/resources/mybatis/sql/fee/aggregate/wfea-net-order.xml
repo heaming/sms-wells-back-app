@@ -5,7 +5,7 @@
 
     <select id='selectNetOrders' resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaNetOrderDto$SearchRes">
         SELECT T1.OG_TP_CD AS SELL_OG
-             , T1.OG_ID AS BLG
+             , T1.OG_CD AS BLG
              , T1.PRTNR_NO
              , T1.PRTNR_KNM
              , T2.SELL_TP_CD
@@ -74,19 +74,21 @@
                         </if>
                     </if>
                     <if test='@MybatisUtils@equals(divCd, "01") or @MybatisUtils@equals(divCd, "02")'>
-                        LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC   /*T WELLS매출확정기본 T*/
+                        LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC   /*T WELLS매출확정기본 T*/
                           ON CD.CNTR_NO = SC.CNTR_NO
                          AND CD.CNTR_SN = SC.CNTR_SN
                          AND CB.SELL_OG_TP_CD = SC.OG_TP_CD
+                         AND SC.SL_CL_YM = SUBSTR(#{strtDt},0,6)
                        WHERE 1 = 1
                          AND CB.CNTR_CNFM_DTM BETWEEN #{strtDt} AND  #{endDt} /* 계약 확정일자*/
                     </if>
                     <if test='@MybatisUtils@equals(divCd, "03")'>   /* 매출 */
-                       INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC   /*T WELLS매출확정기본 T*/
+                       INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC   /*T WELLS매출확정기본 T*/
                           ON CD.CNTR_NO = SC.CNTR_NO
                          AND CD.CNTR_SN = SC.CNTR_SN
                          AND CB.SELL_OG_TP_CD = SC.OG_TP_CD
                          AND SC.SL_RCOG_DT BETWEEN #{strtDt} AND #{endDt}  /* 매출 확정일자 */
+                         AND SC.SL_CL_YM = SUBSTR(#{strtDt},0,6)
                        WHERE 1=1
                     </if>
                     <if test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
@@ -142,17 +144,19 @@
                          </if>
                          <if test='@MybatisUtils@equals(divCd, "01") or @MybatisUtils@equals(divCd, "02")'>
                          AND RI.STPL_STRTDT BETWEEN #{strtDt} AND  #{endDt} /* 약정 시작일자*/
-                        LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC   /*T WELLS매출확정기본 T*/
+                        LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC   /*T WELLS매출확정기본 T*/
                           ON CD.CNTR_NO = SC.CNTR_NO
                          AND CD.CNTR_SN = SC.CNTR_SN
                          AND CB.SELL_OG_TP_CD = SC.OG_TP_CD
+                         AND SC.SL_CL_YM = SUBSTR(#{strtDt},0,6)
                        WHERE 1 = 1
                          </if>
                          <if test='@MybatisUtils@equals(divCd, "03")'>    /* 매출 */
-                       INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC   /*T WELLS매출확정기본 T*/
+                       INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC   /*T WELLS매출확정기본 T*/
                           ON CD.CNTR_NO = SC.CNTR_NO
                          AND CD.CNTR_SN = SC.CNTR_SN
                          AND CB.SELL_OG_TP_CD = SC.OG_TP_CD
+                         AND SC.SL_CL_YM = SUBSTR(#{strtDt},0,6)
                          AND SC.SL_RCOG_DT BETWEEN #{strtDt} AND #{endDt}  /* 매출 확정일자 */
                        WHERE 1=1
                          </if>
@@ -209,12 +213,12 @@
 
     <select id='selectAggreateNetOrders' resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaNetOrderDto$SearchRes">
         SELECT T4.CD_CNTN AS SELL_OG
-             , T2.OG_ID AS BLG
+             , T2.OG_CD AS BLG
              , T1.PRTNR_NO
              , T2.PRTNR_KNM
              , T1.SELL_TP_CD
-             , CASE WHEN T1.OG_TP_CD = 'W01' AND NVL(T5.FEE_PDCT_TP_CD2,'0')!= '0' THEN T7.FEE_PDCT_TP_CD2
-                    WHEN NVL(T5.FEE_PDCT_TP_CD2,'0') = '0' THEN '등록되지 않은 제품유형'
+             , CASE WHEN T1.OG_TP_CD = 'W01' AND NVL(T7.FEE_PDCT_TP_CD2,'0')!= '0' THEN T7.FEE_PDCT_TP_CD2
+                    WHEN NVL(T7.FEE_PDCT_TP_CD2,'0') = '0' THEN '등록되지 않은 제품유형'
                     ELSE T7.FEE_PDCT_TP_CD1
                END AS PDCT_TP /* 제품유형 !!!*/
              , T1.CNTR_NO AS CNTR_DTL_NO
@@ -283,6 +287,7 @@
              , NVL(M.HOME_CARE_CNT,0) AS HOME_CARE
              , NVL(M.CSMB_CNT,0) AS CSMB
              , NVL(M.ACSR_CNT,0) AS ACSR
+             , NVL(M.NOPD_CNT,0) AS NOPD
            FROM T_CMZ_CD_D T3
            LEFT OUTER JOIN ( SELECT T.OG_TP_CD
                                   , SUM(T.RENT_CNT) AS RENT_CNT
@@ -297,6 +302,7 @@
                                   , SUM(T.HOME_CARE_CNT) AS HOME_CARE_CNT
                                   , SUM(T.CSMB_CNT) AS CSMB_CNT
                                   , SUM(T.ACSR_CNT) AS ACSR_CNT
+                                  , SUM(T.NOPD_CNT) AS NOPD_CNT
                                FROM ( SELECT CASE WHEN ( T1.OG_TP_CD = 'W01' OR T1.OG_TP_CD = 'W02'
                                                             OR T1.OG_TP_CD = 'W03' OR T1.OG_TP_CD = 'W04'
                                                             OR T1.OG_TP_CD = 'W05' ) /* 기타코드가 따로 없음 W06으로 임시처리 */
@@ -331,8 +337,9 @@
                                            , CASE WHEN T1.OG_TP_CD = 'W01' AND T2.FEE_PDCT_TP_CD2 = 'G' THEN 1
                                                   WHEN T1.OG_TP_CD != 'W01' AND T2.FEE_PDCT_TP_CD1 = 'G' THEN 1
                                              END AS ACSR_CNT
+                                           , CASE WHEN T2.FEE_PDCT_TP_CD1 IS NULL AND T2.FEE_PDCT_TP_CD2 IS NULL THEN 1 END AS NOPD_CNT
                                         FROM TB_FEAM_WELS_NRCTR_MM_CL T1
-                                       INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS T2
+                                        LEFT OUTER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS T2
                                           ON T1.PD_CD = T2.BASE_PD_CD
                                          AND #{perfYm} BETWEEN T2.APY_STRT_YM AND T2.APY_END_YM
                                         LEFT OUTER JOIN TB_SSCT_RENTAL_RSTL_IZ T3
@@ -494,9 +501,10 @@
                     AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
                     AND DTL.BASE_PD_CD NOT IN ( 'WP07110297', 'WP07110298', 'WM07100678', 'WM07100680', 'WM07100681', 'WP07110295' ) /*상품코드 스태킹키트 제외*/
-                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                   WHERE BAS.SELL_OG_TP_CD = 'W02'
                     AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
                   UNION ALL
@@ -525,9 +533,10 @@
                     AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                     AND DTL.BASE_PD_CD NOT IN ( 'WP07110297', 'WP07110298', 'WM07100678', 'WM07100680', 'WM07100681', 'WP07110295' ) /*상품코드 스태킹키트 제외*/
-                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                  INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                     AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
                     AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
                   WHERE BAS.SELL_OG_TP_CD = 'W02'
@@ -557,9 +566,10 @@
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
-                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND DTL.SL_CL_YM = #{perfYm}
                   WHERE BAS.SELL_OG_TP_CD = 'W02'
                     AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
                   UNION ALL
@@ -588,9 +598,10 @@
                     AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                     AND NOT EXISTS (SELECT 1 FROM TB_SSCT_RENTAL_RSTL_IZ X WHERE DTL.CNTR_NO = X.CNTR_NO AND DTL.CNTR_SN = X.CNTR_SN)
-                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                  INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                     AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
                     AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
                   WHERE BAS.SELL_OG_TP_CD = 'W02'
@@ -620,9 +631,10 @@
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
-                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                     AND DTL.STPL_PTRM >= 6
                   WHERE BAS.SELL_OG_TP_CD = 'W02'
                     AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
@@ -651,9 +663,10 @@
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
-                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                  INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                     AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
                     AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
                     AND DTL.STPL_PTRM >= 6
@@ -684,9 +697,10 @@
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '3'  /* 멤버십 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
-                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                     AND DTL.STPL_PTRM >= 6
                   WHERE BAS.SELL_OG_TP_CD = 'W02'
                     AND SUBSTR(BAS.CNTR_CNFM_DTM,0,6) = #{perfYm}  /* 계약년월 */
@@ -722,9 +736,10 @@
                   INNER JOIN TB_SSCT_CNTR_BAS BAS /* T계약기본T */
                      ON RI.CNTR_NO = BAS.CNTR_NO
                     AND BAS.SELL_OG_TP_CD = 'W02'
-                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                   WHERE SUBSTR(RI.STPL_STRTDT,0,6) = #{perfYm}  /* 약정시작년월 */
                     AND SUBSTR(RI.STPL_STRTDT,0,6) != SUBSTR(RI.STPL_CAN_DTM,0,6)  /* 당월취소 제외 */
                ) A
@@ -821,9 +836,10 @@
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
                      AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
-                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
+                     AND SC.SL_CL_YM = #{perfYm}
                    WHERE BAS.SELL_OG_TP_CD = 'W01'
                      AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
                    UNION ALL
@@ -851,9 +867,10 @@
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
                      AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
-                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                   INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
+                     AND SC.SL_CL_YM = #{perfYm}
                      AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
                      AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
                    WHERE BAS.SELL_OG_TP_CD = 'W01'
@@ -883,9 +900,10 @@
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
                      AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
-                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
+                     AND SC.SL_CL_YM = #{perfYm}
                    WHERE BAS.SELL_OG_TP_CD = 'W01'
                      AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
                    UNION ALL
@@ -913,9 +931,10 @@
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
                      AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
-                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                   INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
+                     AND SC.SL_CL_YM = #{perfYm}
                      AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
                      AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
                    WHERE BAS.SELL_OG_TP_CD = 'W01'
@@ -944,9 +963,10 @@
                    INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '3'  /* 멤버십 */
-                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
+                     AND SC.SL_CL_YM = #{perfYm}
                    WHERE BAS.SELL_OG_TP_CD = 'W01'
                      AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
                      AND BAS.CNTR_CNFM_DTM != BAS.CNTR_CAN_DTM /* 설치일자 != 취소년월 */
@@ -976,9 +996,10 @@
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
                      AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
-                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
+                     AND SC.SL_CL_YM = #{perfYm}
                      AND DTL.STPL_PTRM >= 6
                    WHERE BAS.SELL_OG_TP_CD = 'W01'
                      AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
@@ -1007,9 +1028,10 @@
                       ON BAS.CNTR_NO = DTL.CNTR_NO
                      AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
                      AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
-                   INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                   INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                       ON DTL.CNTR_NO = SC.CNTR_NO
                      AND DTL.CNTR_SN = SC.CNTR_SN
+                     AND SC.SL_CL_YM = #{perfYm}
                      AND DTL.STPL_PTRM >= 6
                      AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
                      AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
@@ -1107,9 +1129,10 @@
                     AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
                     AND DTL.BASE_PD_CD NOT IN ( 'WP07110297', 'WP07110298', 'WM07100678', 'WM07100680', 'WM07100681', 'WP07110295' ) /*상품코드 스태킹키트 제외*/
-                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                   WHERE BAS.SELL_OG_TP_CD = 'W03'
                     AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
                   UNION ALL
@@ -1138,9 +1161,10 @@
                     AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
                     AND DTL.BASE_PD_CD NOT IN ( 'WP07110297', 'WP07110298', 'WM07100678', 'WM07100680', 'WM07100681', 'WP07110295' ) /*상품코드 스태킹키트 제외*/
-                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                  INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                     AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
                     AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
                   WHERE BAS.SELL_OG_TP_CD = 'W03'
@@ -1170,9 +1194,10 @@
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
-                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                   WHERE BAS.SELL_OG_TP_CD = 'W03'
                     AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
                   UNION ALL
@@ -1200,9 +1225,10 @@
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
-                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                  INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                     AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
                     AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
                   WHERE BAS.SELL_OG_TP_CD = 'W03'
@@ -1232,9 +1258,10 @@
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) = '2'   /* 예약판매 = Y  */
-                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                     AND DTL.STPL_PTRM >= 6
                   WHERE BAS.SELL_OG_TP_CD = 'W03'
                     AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
@@ -1263,9 +1290,10 @@
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
-                  INNER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                  INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
+                    AND SC.SL_CL_YM = #{perfYm}
                     AND SUBSTR(SC.SL_RCOG_DT,0,6) = #{perfYm}  /* 설치일자(매출년월) */
                     AND SUBSTR(SC.SL_RCOG_DT,0,6) != BAS.CNTR_CAN_DTM /* 설치일자(매출년월) != 취소년월 */
                     AND DTL.STPL_PTRM >= 6
@@ -1296,10 +1324,11 @@
                      ON BAS.CNTR_NO = DTL.CNTR_NO
                     AND DTL.SELL_TP_CD = '3'  /* 멤버십 */
                     AND NVL(DTL.BOO_SELL_TP_CD,0) != '2'   /* 예약판매 = N  */
-                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS SC /*T WELLS매출확정기본 T*/
+                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SC /*T WELLS매출확정기본 T*/
                      ON DTL.CNTR_NO = SC.CNTR_NO
                     AND DTL.CNTR_SN = SC.CNTR_SN
                     AND DTL.STPL_PTRM >= 6
+                    AND SC.SL_CL_YM = #{perfYm}
                   WHERE BAS.SELL_OG_TP_CD = 'W03'
                     AND BAS.CNTR_CNFM_DTM = #{perfYm}  /* 계약년월 */
                     AND BAS.CNTR_CNFM_DTM != BAS.CNTR_CAN_DTM /*당월가입_당월취소는 제외*/

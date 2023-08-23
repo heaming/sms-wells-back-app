@@ -35,8 +35,10 @@ public class WsncRpbAreaChargeMgtDto {
     public record SearchRes(
         String zipList, // 우편번호 리스트
         String hemdList, // 행정동 리스트
+        /* 조회 속도 이슈로 미사용
         String mgtCnt, // 지역별 서비스 계정 수
         String wrkCnt, // 월별 수임 건수 (조회월 이전 3개월 평균)
+        */
         String rpbLocaraCd, // 책임지역코드
         String wkGrpCd, // 작업그룹코드
         Integer izSn, // 내역일련번호

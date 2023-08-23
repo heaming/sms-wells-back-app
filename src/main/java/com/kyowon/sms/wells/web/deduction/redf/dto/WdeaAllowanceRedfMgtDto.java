@@ -73,7 +73,7 @@ public class WdeaAllowanceRedfMgtDto {
         String feeAckmtBaseAmt, /*수수료 인정기준금액 - wells M용*/
         String ackmtPerfAmt, /*인정실적금액 - wells P 용*/
         String booYn, /*예약여부*/
-        String ogId, /*지점*/
+        String ogCd, /*지점*/
         String cntrPdStrtdt, /*설치일자*/
         String canDt, /*취소일자*/
         String cpsnRedfYn /*강제되물림여부*/

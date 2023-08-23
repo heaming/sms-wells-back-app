@@ -23,7 +23,7 @@ public class WsnbInstallConfirmBiztalkController {
     @PostMapping
     public SaveResponse sendInstallConfirmBiztalks() throws Exception {
         return SaveResponse.builder()
-            .processCount(this.service.sendInstallConfirmBiztalks())
+            .processCount(this.service.sendInstallConfirmBiztalks(null))
             .build();
     }
 

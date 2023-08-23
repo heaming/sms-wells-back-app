@@ -50,7 +50,7 @@ public class WdcbSalesPerformanceDetailController {
     @ApiOperation(value = "매출 실적 현황 - 리스매출 상세내역", notes = "조회조건에 따른 리스매출 상세내역을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrDtlNo", value = "계약번호", paramType = "query"),
-        @ApiImplicitParam(name = "slDt", value = "매출년월", paramType = "query"),
+        @ApiImplicitParam(name = "slClYm", value = "매출년월", paramType = "query"),
     })
     @GetMapping("/lease-sales-detail")
     public SearchLeaseRes getLeaseSalesDetail(

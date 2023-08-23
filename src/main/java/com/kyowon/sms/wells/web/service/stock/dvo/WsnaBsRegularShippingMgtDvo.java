@@ -39,8 +39,8 @@ public class WsnaBsRegularShippingMgtDvo {
     String svBizDclsfNm; // 작업구분명
     String istNmnN; //설치차월
     String vstNmnN; //방문차월
-    String pVstPrgsStatCd;
-    String pVstPrgsStatNm;
+    String ppVstPrgsStatCd;
+    String ppVstPrgsStatNm;
     String vstDuedt; //방문예정일자
     String wkExcnDt; // 작업수행일자(작업완료일자)
     String vstOjLocaraCd; // 방문대상지역코드
@@ -94,7 +94,6 @@ public class WsnaBsRegularShippingMgtDvo {
     String bfsvcBzsDvCd;
     String sppDvCd;
     String sppPdCd;
-    String sppThmYn;
     String cstNo; // 계약고객번호
     String wareIchrNo;
     String wareMngtPrtnrno;
@@ -118,5 +117,5 @@ public class WsnaBsRegularShippingMgtDvo {
     String tno;
     String mpno;
     String pdGroupCd;
-
+    int mpacSn; // 합포장번호
 }

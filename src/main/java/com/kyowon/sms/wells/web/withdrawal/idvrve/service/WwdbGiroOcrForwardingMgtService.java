@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,7 +62,16 @@ public class WwdbGiroOcrForwardingMgtService {
      */
     @Transactional
     public List<SearchObjectRes> getGiroOcrForwardingObjects(String cntr) {
-        return mapper.selectGiroOcrForwardingObjects(cntr);
+        WwdbGiroOcrForwardingMgtDto.SearchCntrReq req;
+        if (!"no".equals(cntr)) {
+            String cntrNo = cntr.substring(0, 12);
+            String cntrSn = cntr.substring(12);
+            req = new WwdbGiroOcrForwardingMgtDto.SearchCntrReq(cntrNo, cntrSn, cntr);
+        } else {
+            req = new WwdbGiroOcrForwardingMgtDto.SearchCntrReq("", "", cntr);
+        }
+
+        return mapper.selectGiroOcrForwardingObjects(req);
     }
 
     @Transactional

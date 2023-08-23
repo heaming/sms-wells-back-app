@@ -3,8 +3,10 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyPaidAsCostMgtMapper">
     <select id="selectPaidAsCostMgts" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyPaidAsCostMgtDto$SearchRes">
         SELECT P1.SAP_MAT_CD /*SAP코드*/
-             , T1.USE_MAT_PD_CD /*품목코드*/
-             , (SELECT X.PD_NM FROM TB_PDBS_PD_BAS X WHERE X.PD_CD = T1.USE_MAT_PD_CD) AS PD_NM/*품목명*/
+             , NVL(T1.USE_MAT_PD_CD, P1.PD_CD )AS USE_MAT_PD_CD /*품목코드*/
+             , NVL(P1.PD_NM, (SELECT X.PD_NM
+                                FROM TB_PDBS_PD_BAS X
+                               WHERE X.PD_CD = P1.PD_CD)) AS PD_NM/*품목명*/
              , T1.APY_STRTDT /*적용시작일*/
              , T1.APY_ENDDT /*적용종료일*/
              , NVL(T1.CSMR_UPRC_AMT,0) AS CSMR_UPRC_AMT /*소비자가*/
@@ -14,13 +16,13 @@
              , NVL(T1.CSMR_UPRC_AMT + T1.TCFEE_AMT,0) AS SUM_AMT /*합계(소비자가+기술료)*/
              , NVL(T1.IZ_SN, 0) AS IZ_SN /* 내역일련번호 */
              , T1.PDCT_PD_CD /* 기준상품코드 */
-          FROM TB_SVPD_RCAS_ITM_PRC_IZ T1
-          LEFT OUTER JOIN TB_PDBS_PD_BAS P1
-            ON T1.PDCT_PD_CD = P1.PD_CD
+          FROM TB_PDBS_PD_BAS P1
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2
             ON P1.PD_CD = P2.PD_CD
            AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
            AND P2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_RCAS_ITM_PRC_IZ T1
+            ON P1.PD_CD = NVL(T1.USE_MAT_PD_CD, T1.PDCT_PD_CD)
            /* 현재적용자료 체크시 */
            <if test='@MybatisUtils@isNotEmpty(apyMtrChk) and @MybatisUtils@equals(apyMtrChk,"Y")'>
            AND TO_CHAR( SYSDATE, 'YYYYMMDD') BETWEEN T1.APY_STRTDT AND T1.APY_ENDDT
@@ -34,7 +36,7 @@
                </if>
                <if test="@MybatisUtils@isNotEmpty(pdCd)">
                 /* 상품명 선택 시 조회 */
-                AND P1.PD_CD = #{pdCd}
+                AND T1.PDCT_PD_CD = #{pdCd}
                </if>
                 AND P1.PD_CD != '0000000000'
            </if>
@@ -47,7 +49,7 @@
                        </if>
                    )
                   <if test="@MybatisUtils@isNotEmpty(pdCd)">
-                  OR P1.PD_CD = #{pdCd}
+                  OR T1.PDCT_PD_CD = #{pdCd}
                   </if>
                   )
                 AND P1.PD_CD != '0000000000'

@@ -33,7 +33,7 @@
             AND A.PRTNR_NO = #{prtnrNo}
         </if>
         <if test="emplNm != null and emplNm != ''">
-            AND A.PRTNR_KNM LIKE '%#{emplNm}%'
+            AND A.PRTNR_KNM LIKE '%' || #{emplNm} || '%'
         </if>
         )C
         LEFT OUTER JOIN
@@ -162,8 +162,9 @@
     <insert id="mergeHomeMasterPoint">
         MERGE INTO TB_FEAM_HMST_GD_IZ A
         USING DUAL
-            ON(A.PRTNR_NO = #{prtnrNo}
-           AND A.MNGT_YM = #{mngtYm})
+            ON ( A.PRTNR_NO = #{prtnrNo}
+             AND A.MNGT_YM = #{mngtYm}
+               )
           WHEN MATCHED THEN
         UPDATE SET A.SELL_P_VAL = NVL(#{sellPVal},0)
              , A.SV_P_VAL = NVL(#{svPVal},0)
@@ -177,59 +178,59 @@
              , A.FNL_MDFC_PRG_ID = 'KSS_WELLS'
              , A.FNL_MDFC_DEPT_ID = #{session.ogId}
           WHEN NOT MATCHED THEN
-        INSERT(A.PRTNR_NO
-             , A.MNGT_YM
-             , A.SELL_P_VAL
-             , A.SV_P_VAL
-             , A.EDUC_P_VAL
-             , A.ETC_P_VAL1
-             , A.ETC_P_VAL2
-             , A.ETC_P_VAL3
-             , A.CL_DV_CD
-             , A.FST_RGST_DTM
-             , A.FST_RGST_USR_ID
-             , A.FST_RGST_PRG_ID
-             , A.FST_RGST_DEPT_ID
-             , A.FNL_MDFC_DTM
-             , A.FNL_MDFC_USR_ID
-             , A.FNL_MDFC_PRG_ID
-             , A.FNL_MDFC_DEPT_ID
-        )
-        VALUES (#{prtnrNo}
-             , #{mngtYm}
-             , NVL(#{sellPVal},0)
-             , NVL(#{svPVal},0)
-             , NVL(#{educPVal},0)
-             , NVL(#{etcPVal1},0)
-             , NVL(#{etcPVal2},0)
-             , NVL(#{etcPVal3},0)
-            , #{clDvCd}
-        <include refid="COMMON.insertSystemFieldValue"/>
-        )
+        INSERT ( A.PRTNR_NO
+               , A.MNGT_YM
+               , A.SELL_P_VAL
+               , A.SV_P_VAL
+               , A.EDUC_P_VAL
+               , A.ETC_P_VAL1
+               , A.ETC_P_VAL2
+               , A.ETC_P_VAL3
+               , A.CL_DV_CD
+               , A.FST_RGST_DTM
+               , A.FST_RGST_USR_ID
+               , A.FST_RGST_PRG_ID
+               , A.FST_RGST_DEPT_ID
+               , A.FNL_MDFC_DTM
+               , A.FNL_MDFC_USR_ID
+               , A.FNL_MDFC_PRG_ID
+               , A.FNL_MDFC_DEPT_ID
+               )
+        VALUES ( #{prtnrNo}
+               , #{mngtYm}
+               , NVL(#{sellPVal},0)
+               , NVL(#{svPVal},0)
+               , NVL(#{educPVal},0)
+               , NVL(#{etcPVal1},0)
+               , NVL(#{etcPVal2},0)
+               , NVL(#{etcPVal3},0)
+               , #{clDvCd}
+                <include refid="COMMON.insertSystemFieldValue"/>
+               )
     </insert>
 
 
     <delete id="deletegeHomeMasterGrades">
         DELETE
-         FROM TB_FEAM_HMST_GD_BAS
-        WHERE 1 = 1
-          AND MNGT_YM = #{mngtYm}
+          FROM TB_FEAM_HMST_GD_BAS
+         WHERE 1 = 1
+           AND MNGT_YM = #{mngtYm}
     </delete>
 
     <insert id="insertHomeMasterGradeTransfers">
         INSERT INTO TB_FEAM_HMST_GD_BAS
-        ( MNGT_YM
-        , PRTNR_NO
-        , HMST_GD_VAL
-        , FST_RGST_DTM
-        , FST_RGST_USR_ID
-        , FST_RGST_PRG_ID
-        , FST_RGST_DEPT_ID
-        , FNL_MDFC_DTM
-        , FNL_MDFC_USR_ID
-        , FNL_MDFC_PRG_ID
-        , FNL_MDFC_DEPT_ID
-        )
+               ( MNGT_YM
+               , PRTNR_NO
+               , HMST_GD_VAL
+               , FST_RGST_DTM
+               , FST_RGST_USR_ID
+               , FST_RGST_PRG_ID
+               , FST_RGST_DEPT_ID
+               , FNL_MDFC_DTM
+               , FNL_MDFC_USR_ID
+               , FNL_MDFC_PRG_ID
+               , FNL_MDFC_DEPT_ID
+               )
         SELECT A.BASE_YM AS MNGT_YM
              , A.PRTNR_NO AS PRTNR_NO
              , NVL(B.HMST_GD_VAL,'2') AS HMST_GD_VAL
@@ -241,30 +242,29 @@
              , #{session.userId} AS FNL_MDFC_USR_ID
              , 'KSS_WELLS' AS FNL_MDFC_PRG_ID
              , #{session.ogId} AS FNL_MDFC_DEPT_ID
-        FROM
-        (SELECT A.BASE_YM	/*관리년월*/
-              , A.PRTNR_NO	/*번호*/
-           FROM TB_OGBS_MM_PRTNR_IZ A
-          WHERE A.BASE_YM = #{mngtYm}
-            AND A.OG_TP_CD = 'W03' /*홈마스터*/
-            AND (A.PSTN_DV_CD = 15 OR (A.PSTN_DV_CD = 7 AND RSB_DV_CD = 'W0301'))
-            AND A.OG_CD LIKE 'V%'
-        )A
-        LEFT OUTER JOIN
-        (SELECT PRTNR_NO
-              , HMST_GD_VAL
-           FROM TB_FEAM_HMST_GD_BAS
-          WHERE 1 = 1
-            AND MNGT_YM = TO_CHAR(ADD_MONTHS( #{mngtYm}||'01', '-1' ),'YYYYMM' )
-        )B ON (A.PRTNR_NO = B.PRTNR_NO)
+          FROM ( SELECT A.BASE_YM	/*관리년월*/
+                      , A.PRTNR_NO	/*번호*/
+                   FROM TB_OGBS_MM_PRTNR_IZ A
+                  WHERE A.BASE_YM = TO_CHAR(ADD_MONTHS( #{mngtYm}||'01', '1' ),'YYYYMM' )
+                    AND A.OG_TP_CD = 'W03' /*홈마스터*/
+                    AND (A.PSTN_DV_CD = 15 OR (A.PSTN_DV_CD = 7 AND RSB_DV_CD = 'W0301'))
+                    AND A.OG_CD LIKE 'V%'
+               )A
+          LEFT OUTER JOIN ( SELECT PRTNR_NO
+                                 , HMST_GD_VAL
+                              FROM TB_FEAM_HMST_GD_BAS
+                             WHERE 1 = 1
+                               AND MNGT_YM = #{mngtYm}
+                          )B
+            ON A.PRTNR_NO = B.PRTNR_NO
     </insert>
 
     <delete id="deleteHomeMasterPoint">
         DELETE
-         FROM TB_FEAM_HMST_GD_IZ
-        WHERE 1 = 1
-          AND MNGT_YM = #{mngtYm}
-          AND PRTNR_NO = #{prtnrNo}
+          FROM TB_FEAM_HMST_GD_IZ
+         WHERE 1 = 1
+           AND MNGT_YM = #{mngtYm}
+           AND PRTNR_NO = #{prtnrNo}
     </delete>
 
 </mapper>

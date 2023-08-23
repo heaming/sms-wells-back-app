@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.bond.credit.converter.WbndRentalCbMgtObjectConverter;
+import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SaveReq;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchPaymentRes;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchRes;
@@ -43,16 +44,19 @@ public class WbndRentalCbMgtObjectService {
     }
 
     @Transactional
-    public int saveRentalCbMgtObjects(SearchReq dto) {
+    public int saveRentalCbMgtObjects(List<SaveReq> dtos) {
         int processCount = 0;
 
-        int resultYn = this.mapper.updateMessageObjectYn(dto);
-        BizAssert.isTrue(resultYn > 0, "MSG_ALT_SVE_ERR");
-        processCount += resultYn;
+        for (SaveReq dto : dtos) {
+            WbndRentalCbDelinquentIzDvo dvo = this.converter.mapSaveReqToRentalCbDlqIzDvo(dto);
+            int resultYn = this.mapper.updateMessageObjectYn(dvo);
+            BizAssert.isTrue(resultYn > 0, "MSG_ALT_SVE_ERR");
+            processCount += resultYn;
 
-        int resultHist = this.mapper.insertMessageObjectHist(dto);
-        BizAssert.isTrue(resultHist > 0, "MSG_ALT_SVE_ERR");
-        processCount += resultHist;
+            int resultHist = this.mapper.insertMessageObjectHist(dvo);
+            BizAssert.isTrue(resultHist > 0, "MSG_ALT_SVE_ERR");
+            processCount += resultHist;
+        }
 
         return processCount;
     }

@@ -100,7 +100,7 @@ public class WsnaIndependenceWareOstrController {
     })
     public List<WsnaIndependenceWareOstrDvo> getIndependenceWareOstrsExcelDownload(@Valid
     SearchReq dto) {
-        return this.service.getIndependenceWareOstrsExcelDownload(dto);
+        return this.service.getIndependenceWareOstrs(dto);
     }
 
     @PostMapping

@@ -25,7 +25,4 @@ public interface WsnyAsCodeMgtMapper {
 
     int saveAsCode(WsnyAsCodeMgtDvo dvo);
 
-//    List<WsnyAsCodeSiteAwDsbBaseDvo> selectSiteAwDsbBase(String pdGrpCd, String svTpCd, String siteAwAtcCd);
-//    int updateSiteAwDsbBase(String pdGrpCd, String svTpCd, String siteAwAtcCd, int dsbBaseSn);
-//    int insertSiteAwDsbBase(WsnyAsCodeSiteAwDsbBaseDvo dvo);
 }

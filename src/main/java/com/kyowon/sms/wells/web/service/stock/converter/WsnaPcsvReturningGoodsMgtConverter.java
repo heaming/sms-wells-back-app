@@ -18,6 +18,6 @@ public interface WsnaPcsvReturningGoodsMgtConverter {
 
     WsnaPcsvReturningGoodsDvo mapSearchResToWsnaPcsvReturningGoodsDvo(WsnaPcsvReturningGoodsMgtDto.SearchRes res);
 
-    WsnaPcsvReturningGoodsSaveDvo mapSaveReqToPcsvReturningGoodsDvo(SaveReq dto);
+    List<WsnaPcsvReturningGoodsSaveDvo> mapSaveReqToPcsvReturningGoodsDvo(List<SaveReq> dto);
 
 }

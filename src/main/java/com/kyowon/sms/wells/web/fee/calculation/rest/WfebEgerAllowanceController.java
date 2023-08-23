@@ -92,6 +92,18 @@ public class WfebEgerAllowanceController {
             .build();
     }
 
+    @ApiOperation(value = "엔지니어 수수료 일정 조회", notes = "조회조건에 일치하는 수수료 일정을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
+        @ApiImplicitParam(name = "rsbDvCd", value = "직책유형", paramType = "query", example = "엔지니어", required = true),
+    })
+    @GetMapping("/upload-check")
+    public WfebEgerAllowanceDto.SearchSchdRes getEngineerSchedule(
+        WfebEgerAllowanceDto.SearchReq dto
+    ) {
+        return this.service.getEngineerSchedule(dto);
+    }
+
     @ApiOperation(value = "엔지니어 수당 생성", notes = "해당 실적년월의 엔지니어 수당를 생성한다.")
     @PostMapping
     public SaveResponse saveEgerAllowances(

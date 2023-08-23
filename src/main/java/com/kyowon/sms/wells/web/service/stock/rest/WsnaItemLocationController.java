@@ -62,9 +62,11 @@ public class WsnaItemLocationController {
     }
 
     @GetMapping("/locations/paging")
-    public PagingResult<SearchLocationRes> getStockItemLocations(@Valid
-    SearchLocationReq dto, @Valid
-    PageInfo pageInfo) {
+    public PagingResult<SearchLocationRes> getStockItemLocations(
+        SearchLocationReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
         return service.getStockItemLocations(dto, pageInfo);
     }
 

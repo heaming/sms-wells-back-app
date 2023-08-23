@@ -22,7 +22,8 @@ public class WsnaBsRegularShippingMgtDto {
         String pdName, // 상품명
         String pgGb, /*G :배송상품그룹매핑, P:미매핑상품*/
         String pdGroupCd, // 상품그룹(콤보박스)
-        String sppThmYn // 배송0차월여부
+        String lgstWkMthdCd,
+        int cntLgstWkMthdCd
     ) {}
 
     @ApiModel("WsnaAsConsumablesStoreDto-SearchReq")
@@ -34,7 +35,6 @@ public class WsnaBsRegularShippingMgtDto {
         @NotBlank
         String pdCd, // 상품코드
         String pgGb,
-        String sppThmYn, // 배송0차월여부
         String procsDvCd, // 처리구분
         String rownum // 조회제한건수
     ) {}
@@ -93,8 +93,8 @@ public class WsnaBsRegularShippingMgtDto {
         String svBizDclsfCd, // 작업구분코드
         String svBizDclsfNm, // 작업구분명
         String vstDuedt, //방문예정일자
-        String pVstPrgsStatCd,
-        String pVstPrgsStatNm,
+        String ppVstPrgsStatCd,
+        String ppVstPrgsStatNm,
         String vstPrgsStatCd,
         String vstPrgsStatNm, //방문진행상태명
         String wkExcnDt, // 작업수행일자(작업완료일자)
@@ -140,9 +140,9 @@ public class WsnaBsRegularShippingMgtDto {
         String partNmQty08,
         String partNmQty09,
         String partNmQty10,
-        String sppThmYn,
         String cstNo,
-        String pdGroupCd
+        String pdGroupCd,
+        String mpacSn
     ) {
         public SearchRes {
             if (StringUtil.isNotBlank(locaraTno) && StringUtil.isNotBlank(exnoEncr)
@@ -152,7 +152,6 @@ public class WsnaBsRegularShippingMgtDto {
                 tno = locaraTno + "-" + idvTno;
             }
             mpno = cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno;
-            pdGroupCd = null;
         }
     }
 
@@ -260,8 +259,9 @@ public class WsnaBsRegularShippingMgtDto {
         String partNmQty08,
         String partNmQty09,
         String partNmQty10,
-        String sppThmYn,
         String cstNo,
-        String pdGroupCd
+        String pdGroupCd,
+        String mpacNo,
+        String lgstWkMthdCd
     ) {}
 }
