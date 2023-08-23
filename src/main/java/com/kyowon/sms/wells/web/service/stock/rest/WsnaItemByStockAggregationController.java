@@ -47,14 +47,16 @@ public class WsnaItemByStockAggregationController {
     @GetMapping("/ware-houses")
     @ApiOperation(value = "품목별 재고 집계 창고 조회", notes = "품목별 재고 집계 창고를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "baseDt", value = "기준일자", paramType = "query", example = "20230808", required = true)
+        @ApiImplicitParam(name = "baseDt", value = "기준일자", paramType = "query", example = "20230808", required = true),
+        @ApiImplicitParam(name = "wareDvCd", value = "창고구분", paramType = "query", example = "2", required = true)
     })
     public List<SearchWareRes> getWareHouseNames(
         @RequestParam(name = "baseDt")
         @ValidDate
-        String baseDt
+        String baseDt, @RequestParam(name = "wareDvCd")
+        String wareDvCd
     ) {
-        return this.service.getWareHouses(baseDt);
+        return this.service.getWareHouses(baseDt, wareDvCd);
     }
 
     @GetMapping("/paging")
@@ -64,9 +66,11 @@ public class WsnaItemByStockAggregationController {
         @ApiImplicitParam(name = "mgtTypCd", value = "재고유형", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
         @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]"),
+        @ApiImplicitParam(name = "wareDvCd", value = "창고구분", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "wareTpCd", value = "창고유형", paramType = "query", example = "CORP"),
         @ApiImplicitParam(name = "itmGdCd", value = "등급코드", paramType = "query", example = "A"),
-        @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01"),
+        @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07104077"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
@@ -85,9 +89,11 @@ public class WsnaItemByStockAggregationController {
         @ApiImplicitParam(name = "mgtTypCd", value = "재고유형", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
         @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]"),
+        @ApiImplicitParam(name = "wareDvCd", value = "창고구분", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "wareTpCd", value = "창고유형", paramType = "query", example = "CORP"),
         @ApiImplicitParam(name = "itmGdCd", value = "등급코드", paramType = "query", example = "A"),
-        @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01"),
+        @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07104077"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
