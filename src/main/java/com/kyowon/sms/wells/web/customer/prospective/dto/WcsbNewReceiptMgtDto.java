@@ -156,6 +156,7 @@ public class WcsbNewReceiptMgtDto {
         String ogTpCd,
         String prtnrNo,
         String pspcCstCnslId
+
     ) {}
 
     @ApiModel(value = "WcsbNewReceiptMgtDto-SearchDtlRes")

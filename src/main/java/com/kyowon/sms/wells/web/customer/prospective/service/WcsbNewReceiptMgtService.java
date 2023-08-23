@@ -70,7 +70,7 @@ public class WcsbNewReceiptMgtService {
     }
 
     /**
-     * 담당자 수동배정 저장
+     * 담당자 수동배정   저장
      * @param dto
      * @return
      */
