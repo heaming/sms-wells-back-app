@@ -121,8 +121,11 @@ public class WsnaIndependenceWareOstrService {
         if (CollectionUtils.isNotEmpty(dvos)) {
             String asnOjYm = dvos.get(0).getAsnOjYm();
 
+            String[] text = new String[1];
+            text[0] = asnOjYm;
+
             // 비고 - 직배창고 물량배정 물류to센터
-            String rmkCn = this.messageService.getMessage("MSG_TXT_DIDY_WARE_QOM_ASN_LGST_CNR", new String[] {asnOjYm});
+            String rmkCn = this.messageService.getMessage("MSG_TXT_DIDY_WARE_QOM_ASN_LGST_CNR", text);
 
             int size = dvos.size();
             int sliceSize = Math.floorDiv(size, SLICE_SIZE) + (Math.floorMod(size, SLICE_SIZE) > 0 ? 1 : 0);

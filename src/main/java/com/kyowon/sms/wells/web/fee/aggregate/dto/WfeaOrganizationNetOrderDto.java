@@ -231,9 +231,7 @@ public class WfeaOrganizationNetOrderDto {
     ) {}
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerSellFeeRes")
     public record SearchMngerSellFeeRes(
-        String og1Lv,
-        String og2Lv,
-        String og3Lv,
+        String ogCd,
         String prtnrNo,
         String prtnrKnm,
         String cntrDtlNo,

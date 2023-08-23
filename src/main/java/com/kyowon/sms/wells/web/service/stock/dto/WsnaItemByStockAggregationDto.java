@@ -34,6 +34,9 @@ public class WsnaItemByStockAggregationDto {
         @NotBlank
         @ValidDate
         String baseDt,
+
+        @NotBlank
+        String wareDvCd,
         String mgtTypCd,
         String itmKndCd,
         List<String> itmPdCds,

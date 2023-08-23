@@ -12,7 +12,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemByStockAggregationDvo;
 @Mapper
 public interface WsnaItemByStockAggregationMapper {
 
-    List<SearchWareRes> selectItemByStockWareHouses(String baseDt);
+    List<SearchWareRes> selectItemByStockWareHouses(String baseDt, String wareDvCd);
 
     long selectItemByStockAggCount(WsnaItemByStockAggregationDvo dvo);
 

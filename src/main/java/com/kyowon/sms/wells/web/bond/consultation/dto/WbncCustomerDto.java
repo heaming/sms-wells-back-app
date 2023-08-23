@@ -191,7 +191,8 @@ public class WbncCustomerDto {
         String authRsgExcd, /* 직권해지 제외 */
         String slStp, /* 매출중지 */
         String bndClnPsblDvCd, /* 회수가능성 */
-        String bndClnPrcsDvCd /* 회수절차 */
+        String bndClnPrcsDvCd, /* 회수절차 */
+        String bndBizDvCd /* 채권업무구분코드 */
     ) {
         public FindRes {
             cntrExnoEncr = StringUtils.isNotEmpty(cntrExnoEncr) ? DbEncUtil.dec(cntrExnoEncr) : cntrExnoEncr;
