@@ -131,13 +131,15 @@ public class WsnaStockStatusControlService {
 
             int result = this.mapper.updateStockStatusControlsForRemove(dvo);
 
-            // 품목재고내역 등록 - 출고창고
-            WsnaItemStockItemizationReqDvo ostrStockDvo = this.convertRemoveStockItemizationRemoveReq(dvo);
-            this.stockService.removeStock(ostrStockDvo);
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
             //품목재고내역 삭제
             WsnaItemStockItemizationReqDvo strStockDvo = this.convertRemoveStrSotckItemizationRemoveReq(dvo);
             this.stockService.removeStock(strStockDvo);
+
+            // 품목재고내역 등록 - 출고창고
+            WsnaItemStockItemizationReqDvo ostrStockDvo = this.convertRemoveStockItemizationRemoveReq(dvo);
+            this.stockService.removeStock(ostrStockDvo);
 
             processCount += result;
 
@@ -201,7 +203,7 @@ public class WsnaStockStatusControlService {
         reqDvo.setWareDv(dvo.getWareDvCd());
         reqDvo.setWareNo(dvo.getWareNo());
         reqDvo.setWareMngtPrtnrNo(dvo.getWareMngtPrtnrNo());
-        reqDvo.setIostTp(OSTR_IOST_TP_CD);
+        reqDvo.setIostTp(STR_IOST_TP_CD);
         reqDvo.setWorkDiv(WORK_DIV_D);
         reqDvo.setItmPdCd(dvo.getItmPdCd());
         reqDvo.setMngtUnit(dvo.getMgtUnit());
@@ -220,13 +222,12 @@ public class WsnaStockStatusControlService {
         reqDvo.setWareDv(dvo.getWareDvCd());
         reqDvo.setWareNo(dvo.getWareNo());
         reqDvo.setWareMngtPrtnrNo(dvo.getWareMngtPrtnrNo());
-        reqDvo.setIostTp(STR_IOST_TP_CD);
+        reqDvo.setIostTp(OSTR_IOST_TP_CD);
         reqDvo.setWorkDiv(WORK_DIV_D);
         reqDvo.setItmPdCd(dvo.getItmPdCd());
         reqDvo.setMngtUnit(dvo.getMgtUnit());
-        reqDvo.setItemGd(dvo.getAfctItmGdCd());
+        reqDvo.setItemGd(dvo.getBfctItmGdCd());
         reqDvo.setQty(String.valueOf(dvo.getCtrQty()));
         return reqDvo;
     }
-
 }
