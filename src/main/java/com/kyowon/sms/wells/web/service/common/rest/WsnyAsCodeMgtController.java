@@ -4,7 +4,7 @@ import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.common.service.WsnyAsCodeMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.common.common.dto.ExcelUploadDto;
+import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import io.swagger.annotations.Api;
@@ -66,7 +66,7 @@ public class WsnyAsCodeMgtController {
     }
 
     @PostMapping("/excel-upload")
-    public ExcelUploadDto.UploadRes uploadExcel(
+    public UploadRes uploadExcel(
         @RequestParam("file")
         MultipartFile file
     ) throws Exception {

@@ -1,9 +1,10 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
-
-import javax.validation.constraints.NotBlank;
 
 public class WsnaStockStatusControlDto {
     // *********************************************************
@@ -37,6 +38,7 @@ public class WsnaStockStatusControlDto {
         String statCtrApyDt,
         String itmPdCd,
         String itmGdCtrTpNm,
+        String itmGdCtrTpCd,
         String itmPdNm,
         String mgtUnit,
         int bfctNomStocAGdQty,
@@ -45,6 +47,7 @@ public class WsnaStockStatusControlDto {
         String bfctItmGdCd,
         String afctItmGdCd,
         int ctrQty,
+        String itmGdCtrRsonCd,
         String itmGdCtrRsonNm,
         String ctrSn,
         String rmkCn
@@ -141,7 +144,7 @@ public class WsnaStockStatusControlDto {
         int bfctNomStocRGdQty,
         String bfctItmGdCd,
         String afctItmGdCd,
-        @NotBlank
+        @Positive
         int ctrQty,
         String itmGdCtrRsonNm,
         String ctrSn,
@@ -161,6 +164,7 @@ public class WsnaStockStatusControlDto {
         String ctrWkDt,
         String statCtrApyDt,
         String itmPdCd,
+        String itmGdCtrTpCd,
         String itmGdCtrTpNm,
         String itmPdNm,
         String mgtUnit,
@@ -169,8 +173,9 @@ public class WsnaStockStatusControlDto {
         int bfctNomStocRGdQty,
         String bfctItmGdCd,
         String afctItmGdCd,
-        @NotBlank
+        @Positive
         int ctrQty,
+        String itmGdCtrRsonCd,
         String itmGdCtrRsonNm,
         String ctrSn,
         String rmkCn

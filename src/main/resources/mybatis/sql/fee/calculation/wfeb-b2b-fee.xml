@@ -118,15 +118,36 @@
              , SUM(CASE WHEN T1.FEE_CD = 'W040004' THEN T1.FEE_CTR_CNFM_AMT ELSE 0 END) AS AMT_W040004  /* 수수료-프로모션   */
              , SUM(CASE WHEN T1.FEE_CD = 'W040020' THEN T1.FEE_CTR_CNFM_AMT ELSE 0 END) AS AMT_W040020  /* 수수료-재지급     */
              , SUM(CASE WHEN T1.FEE_CD = 'W040003' THEN T1.FEE_CTR_CNFM_AMT ELSE 0 END) AS AMT_W040003  /* 수수료-인센티브   */
-             , SUM(CASE WHEN T2.FEE_DDTN_TP_CD = '01' THEN T2.FEE_DDTN_CNFM_AMT ELSE 0 END)  AS AMT_01  /* 공제-보증예치금   */
-             , MAX(CASE WHEN T2.FEE_DDTN_TP_CD = '01' THEN T2.FEE_CTR_RSON_CN ELSE '' END)  AS AMT_01_CN /* 공제-보증예치금 조정사유내용 */
-             , SUM(CASE WHEN T2.FEE_DDTN_TP_CD = '08' THEN T2.FEE_DDTN_CNFM_AMT ELSE 0 END)  AS AMT_08  /* 공제-환수되물림   */
+        	 /* 20230823 수정 */
+             -- , SUM(CASE WHEN T2.FEE_DDTN_TP_CD = '01' THEN T2.FEE_DDTN_CNFM_AMT ELSE 0 END)  AS AMT_01  /* 공제-보증예치금   */
+             -- , MAX(CASE WHEN T2.FEE_DDTN_TP_CD = '01' THEN T2.FEE_CTR_RSON_CN ELSE '' END)  AS AMT_01_CN /* 공제-보증예치금 조정사유내용 */
+             -- , SUM(CASE WHEN T2.FEE_DDTN_TP_CD = '08' THEN T2.FEE_DDTN_CNFM_AMT ELSE 0 END)  AS AMT_08  /* 공제-환수되물림   */
+             , MAX(NVL(T2.SUM_01, 0)) AMT_01 /* 공제-보증예치금 */
+             , MAX(NVL(T2.RSON_01, ''))  AMT_01_CN /* 공제-보증예치금 조정사유내용 */
+             , MAX(NVL(T2.SUM_08, 0)) AMT_08 /* 공제-환수되물림 */
           FROM TB_FEAM_FEE_CALC_BAS T1         /* 수수료계산기본    */
-          LEFT OUTER JOIN TB_FEAM_FEE_DDTN_IZ  T2         /* 수수료공제내역    */
-            ON T2.DDTN_YM    = T1.BASE_YM
-           AND T2.CO_CD      = T1.CO_CD
-           AND T2.OG_TP_CD   = T1.OG_TP_CD
-           AND T2.PRTNR_NO   = T1.PRTNR_NO
+          /* 20230823 수정 */
+          LEFT OUTER JOIN ( SELECT DDTN_YM
+                                , CO_CD
+                                , OG_TP_CD
+                                , PRTNR_NO
+                                , FEE_TCNT_DV_CD
+                                , SUM(CASE WHEN FEE_DDTN_TP_CD = '01' THEN FEE_DDTN_CNFM_AMT ELSE 0 END) SUM_01
+                                , MAX(CASE WHEN FEE_DDTN_TP_CD = '01' THEN FEE_CTR_RSON_CN ELSE '' END) RSON_01
+                                , SUM(CASE WHEN FEE_DDTN_TP_CD = '08' THEN FEE_DDTN_CNFM_AMT ELSE 0 END) SUM_08
+                             FROM TB_FEAM_FEE_DDTN_IZ /* 수수료공제내역 */
+                            WHERE DDTN_YM        = #{perfYm}
+                              <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
+                              AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                              </if>
+                              AND OG_TP_CD       = 'W04'
+                              AND DTA_DL_YN      = 'N'
+                            GROUP BY DDTN_YM, CO_CD, OG_TP_CD, PRTNR_NO, FEE_TCNT_DV_CD ) T2
+            ON T2.DDTN_YM         = T1.BASE_YM
+           AND T2.CO_CD           = T1.CO_CD
+           AND T2.OG_TP_CD        = T1.OG_TP_CD
+           AND T2.PRTNR_NO        = T1.PRTNR_NO
+           AND T2.FEE_TCNT_DV_CD  = T1.FEE_TCNT_DV_CD
          INNER JOIN TB_OGBS_MM_PRTNR_IZ  T3         /* 월파트너          */
             ON T3.BASE_YM    = T1.BASE_YM
            AND T3.OG_TP_CD   = T1.OG_TP_CD
@@ -139,18 +160,22 @@
             ON C0.TENANT_ID  = #{session.tenantId}
            AND C0.CD_ID      = 'CO_CD'    /* 업체명 */
            AND C0.CD_VLD_VAL = T1.CO_CD
-          LEFT OUTER JOIN  (SELECT BASE_YM, CO_CD, OG_TP_CD, PRTNR_NO, 'W040001' FEE_CD, COUNT(1) CNT
-                              FROM TB_FEAM_FEE_CALC_CNTR_DTL_IZ /* 수수료계산계약상세내역 */
-                             WHERE BASE_YM        = #{perfYm}
-                               AND OG_TP_CD       = 'W04'
-                               AND FEE_CALC_TP_CD = '01' /* 수수료계산 (2023.04.26 추가) */
-                               AND DTA_DL_YN      = 'N'
-                             GROUP BY BASE_YM, CO_CD, OG_TP_CD, PRTNR_NO) T9 /* 계약건수(판매자)  */
-            ON T9.BASE_YM    = T1.BASE_YM
-           AND T9.CO_CD      = T1.CO_CD
-           AND T9.OG_TP_CD   = T1.OG_TP_CD
-           AND T9.PRTNR_NO   = T1.PRTNR_NO
-           AND T9.FEE_CD     = T1.FEE_CD
+         /* 20230823 수정 */
+          LEFT OUTER JOIN (SELECT BASE_YM, CO_CD, OG_TP_CD, PRTNR_NO, COUNT(1) CNT
+                             FROM TB_FEAM_FEE_CALC_CNTR_DTL_IZ /* 수수료계산계약상세내역 */
+                            WHERE BASE_YM        = #{perfYm}
+                              <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
+                              AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                              </if>
+                              AND OG_TP_CD       = 'W04'     --W05:총판
+                              AND FEE_CALC_TP_CD = '01'      --수수료계산 (2023.04.26 추가)
+                              AND FEE_CD         = 'W040001' --W050001:기본수수료
+                              AND DTA_DL_YN      = 'N'
+                            GROUP BY BASE_YM, CO_CD, OG_TP_CD, PRTNR_NO) T9 /* 계약건수(판매자) */
+            ON T9.BASE_YM        = T1.BASE_YM
+           AND T9.CO_CD          = T1.CO_CD
+           AND T9.OG_TP_CD       = T1.OG_TP_CD
+           AND T9.PRTNR_NO       = T1.PRTNR_NO
          WHERE T1.BASE_YM        = #{perfYm}
            <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
            AND T1.FEE_TCNT_DV_CD      = #{feeTcntDvCd}

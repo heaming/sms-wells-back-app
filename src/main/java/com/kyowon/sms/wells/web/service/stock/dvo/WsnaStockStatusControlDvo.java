@@ -16,6 +16,7 @@ public class WsnaStockStatusControlDvo {
     String ctrWkDt;
     String statCtrApyDt;
     String itmPdCd;
+    String itmGdCtrTpCd;
     String itmGdCtrTpNm;
     String itmPdNm;
     String mgtUnit;
@@ -25,6 +26,7 @@ public class WsnaStockStatusControlDvo {
     String bfctItmGdCd;
     String afctItmGdCd;
     int ctrQty;
+    String itmGdCtrRsonCd;
     String itmGdCtrRsonNm;
     String ctrSn;
     String rmkCn;

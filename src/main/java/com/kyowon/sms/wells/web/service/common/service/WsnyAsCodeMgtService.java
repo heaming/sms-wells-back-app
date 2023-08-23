@@ -257,10 +257,10 @@ public class WsnyAsCodeMgtService {
             }
             row++;
         }
-
         return ExcelUploadDto.UploadRes.builder()
             .status(errorDvos.isEmpty() ? "S" : "E")
             .errorInfo(errorDvos)
+            .excelData(list)
             .build();
     }
 
