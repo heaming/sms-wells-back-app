@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.rest;
 
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.SalesControlItemizationDto;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferPossibleDateInterfaceDto;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdcSalesControlItemizationDto;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.service.WwdbSalesControlItemizationService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
@@ -33,13 +32,13 @@ public class WwdbSalesControlItemizationController {
     public EaiWrapper getSalesControlItemizations(
         @Valid
         @RequestBody
-        EaiWrapper<SalesControlItemizationDto.SearchReq> reqWrapper
+        EaiWrapper<WwdcSalesControlItemizationDto.SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<SalesControlItemizationDto.SearchRes>> resWrapper = reqWrapper
+        EaiWrapper<List<WwdcSalesControlItemizationDto.SearchRes>> resWrapper = reqWrapper
             .newResInstance();
         // 서비스 메소드 호출
-        List<SalesControlItemizationDto.SearchRes> res = service
+        List<WwdcSalesControlItemizationDto.SearchRes> res = service
             .getSalesControlItemizations(reqWrapper.getBody());
 
         // Response Body 세팅
