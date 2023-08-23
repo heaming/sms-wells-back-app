@@ -1,17 +1,5 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.stereotype.Service;
-
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.dvo.SmsSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
@@ -22,7 +10,14 @@ import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.core.service.ConfigurationService;
 
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <pre>
@@ -33,6 +28,7 @@ import lombok.RequiredArgsConstructor;
  * @since 2023.01.26
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class WsnbInstallationHpcallFwService {
 
@@ -41,7 +37,8 @@ public class WsnbInstallationHpcallFwService {
     private final WsnbInstallationHpcallFwMapper mapper;
     private final ConfigurationService configurationService;
 
-    public int sendInstallationHpcallFws() throws Exception {
+    @Transactional
+    public int sendInstallationHpcallFws(Map<String, String> map) throws Exception {
 
         int processCount = 0;
         String callbackValue = configurationService.getConfigurationValue("CFG_SNB_WELLS_CST_CNR_TNO");
