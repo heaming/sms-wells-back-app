@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.stock.converter;
 import java.util.List;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvOutOfStorageMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
@@ -16,5 +17,6 @@ public interface WsnaPcsvOutOfStorageSaveConverter {
 
     WsnaPcsvSendDtlDvo mapPcsvSendDtlToPcsvSendDtl(WsnaPcsvSendDtlDvo dvo);
 
+    @Mapping(source = "ostrHopDt", target = "strHopDt")
     WsnaLogisticsOutStorageAskReqDvo mapPcsvOutOfStorageDvoToLogisticDvo(WsnaPcsvSendDtlDvo dvo);
 }

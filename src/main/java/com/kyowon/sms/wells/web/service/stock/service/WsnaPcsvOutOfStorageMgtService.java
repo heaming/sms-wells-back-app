@@ -45,7 +45,10 @@ public class WsnaPcsvOutOfStorageMgtService {
     }
 
     public int savePcsvOutOfStorage(List<SaveReq> dtos) {
-        return service.savePcsvOutOfStorageTest(dtos);
+        return service.savePcsvOutOfStorage(dtos);
     }
 
+    public int savePcsvOutOfStorageTest(List<SaveReq> dtos) {
+        return service.savePcsvOutOfStorageTest(dtos);
+    }
 }

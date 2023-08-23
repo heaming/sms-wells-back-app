@@ -159,15 +159,15 @@ public class WsnaPcsvOutOfStorageSaveService {
                     // 1.택배 발송정보 저장 (TB_SVPD_OSTR_AK_PCSV_SEND_DTL)
                     sendDtlMapper.insertPcsvSendDtl(pcsvSendDtlDvo);
 
-                    // dvo.setPdCd(pcsvSendDtlDvo.getItmPdCd());
-                    // dvo.setUseQty(pcsvSendDtlDvo.getOstrAkQty());
+                    dvo.setPdCd(pcsvSendDtlDvo.getItmPdCd());
+                    dvo.setUseQty(String.valueOf(pcsvSendDtlDvo.getOstrAkQty()));
 
                     // 2.작업출고내역 등록 (TB_SVST_SV_WK_OSTR_IZ)
-                    // mapper.insertSvstSvWkOstrIz(dvo);
+                    mapper.insertSvstSvWkOstrIz(dvo);
 
                     // 3.재고변경 (TB_SVST_CST_SV_ITM_STOC_IZ)
-                    // WsnaItemStockItemizationReqDvo itemDvo = setWsnaItemStockItemizationReqDvo(dvo);
-                    // itemStockService.createStock(itemDvo);
+                    WsnaItemStockItemizationReqDvo itemDvo = setWsnaItemStockItemizationReqDvo(dvo);
+                    itemStockService.createStock(itemDvo);
 
                     // 물류 연동시 전화번호,휴대폰 번호 복호화 전송
                     pcsvSendDtlDvo.setAdrsTnoVal(idvTno);
@@ -182,8 +182,8 @@ public class WsnaPcsvOutOfStorageSaveService {
 
         // 5.물류 인터페이스 연동
         if (ObjectUtils.isNotEmpty(logisticDvos)) {
-            //물류인터페이스 호출
-            // logisticsOutStorageAskService.createSelfFilterOutOfStorageAsks(logisticDvos);
+            // 물류인터페이스 호출
+            logisticsOutStorageAskService.createSelfFilterOutOfStorageAsks(logisticDvos);
         }
         return processCount;
     }
@@ -232,7 +232,7 @@ public class WsnaPcsvOutOfStorageSaveService {
 
         // 파라미터(변수 셋팅)
         sendDtlDvo.setLgstWkMthdCd("WE01"); //TODO 명확하지않으니 추후 진행
-        sendDtlDvo.setMpacSn(0); //TODO 명확하지않으니 추후 진행, (계약번호를 매핑)
+        sendDtlDvo.setMpacSn(1); //TODO 명확하지않으니 추후 진행, (계약번호를 매핑)
 
         List<WsnaPcsvOutOfStorageSaveProductDvo> products = vo.getProducts();
         if (CollectionUtils.isNotEmpty(products)) {
@@ -265,7 +265,7 @@ public class WsnaPcsvOutOfStorageSaveService {
         reqDvo.setQty(vo.getUseQty());
         reqDvo.setIostTp("213");
         reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
-        reqDvo.setMngtUnit("1");
+        reqDvo.setMngtUnit("10");
         reqDvo.setItemGd("A");
 
         return reqDvo;
