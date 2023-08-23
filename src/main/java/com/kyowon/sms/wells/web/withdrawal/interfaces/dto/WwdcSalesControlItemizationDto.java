@@ -5,7 +5,7 @@ import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
 
-public class SalesControlItemizationDto {
+public class WwdcSalesControlItemizationDto {
     @ApiModel("SalesControlItemizationDto-SearchReq")
     public record SearchReq(
         @NotBlank
