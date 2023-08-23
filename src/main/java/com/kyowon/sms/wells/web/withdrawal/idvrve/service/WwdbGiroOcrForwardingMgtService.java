@@ -182,4 +182,17 @@ public class WwdbGiroOcrForwardingMgtService {
 
         return processCount;
     }
+
+    @Transactional
+    public int saveGiroPrintDate(WwdbGiroOcrForwardingMgtDto.saveGiroPrintReq dto) throws Exception {
+        int processCount = 0;
+
+
+        WwdbGiroOcrForwardingPrintDvo dvo = convert.mapSaveGiroPrintDvo(dto);
+        
+        processCount += mapper.updateGiroPrintDate(dvo);
+
+
+        return processCount;
+    }
 }
