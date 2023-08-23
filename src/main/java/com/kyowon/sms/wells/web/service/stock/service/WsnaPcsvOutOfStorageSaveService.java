@@ -52,9 +52,17 @@ public class WsnaPcsvOutOfStorageSaveService {
         for (WsnaPcsvOutOfStorageSaveDvo dvo : dvos) {
             if ("1112".equals(dvo.getSvBizDclsfCd())) {
                 /* 정상출고 */
-                //동일 키값으로 결과가 저장되었는지 체크한다.
-                int existCnt = mapper.selectExistSvpdCstSvWkRsIz(dvo);
-                BizAssert.isTrue(existCnt == 0, "MSG_ALT_EXIST_FSH_WK_LIST_RTRY_CONF");
+
+                //                //작업엔지니어 정보를 구한다.
+                //                WsnaPcsvOutOfStorageSaveDvo engineerDvo = mapper.selectEngineerOgbsMmPrtnrIz(dvo);
+                //                if (engineerDvo != null) {
+                //                    dvo.setMngrDvCd(engineerDvo.getMngrDvCd());
+                //                    dvo.setDgr1LevlOgId(engineerDvo.getDgr1LevlOgId());
+                //                    dvo.setDgr3LevlOgId(engineerDvo.getDgr3LevlOgId());
+                //                    dvo.setBrchOgId(engineerDvo.getBrchOgId());
+                //                }
+                // 작업출고내역 등록 (TB_SVST_SV_WK_OSTR_IZ)
+                mapper.insertSvstSvWkOstrIz(dvo);
 
                 // 배정테이블 업데이트
                 mapper.updateSvpdCstSvasIstAsnIz(dvo);
@@ -70,9 +78,6 @@ public class WsnaPcsvOutOfStorageSaveService {
                 //23.06.03 백현아 파트장님요청, 일시불 판매코드 4572건은 무조건 웰컴 BS 생성
                 //mapper.deleteSvpdCstSvRgbsprIz(dvo);
                 //mapper.insertSvpdCstSvRgbsprIz(dvo);
-
-                //사용내역 IU
-                mapper.insertSvstSvWkOstrIz(dvo);
 
                 //출고 확정시 일자(설치일자,배송예정일자) 현재날짜 지정 (판매시스템 연계)
                 String istDt = DateUtil.getNowDayString();
@@ -160,27 +165,23 @@ public class WsnaPcsvOutOfStorageSaveService {
                     sendDtlMapper.insertPcsvSendDtl(pcsvSendDtlDvo);
 
                     dvo.setPdCd(pcsvSendDtlDvo.getItmPdCd());
-                    dvo.setUseQty(String.valueOf(pcsvSendDtlDvo.getOstrAkQty()));
-
+                    dvo.setUseQty(pcsvSendDtlDvo.getOstrAkQty());
                     // 2.작업출고내역 등록 (TB_SVST_SV_WK_OSTR_IZ)
                     mapper.insertSvstSvWkOstrIz(dvo);
 
                     // 3.재고변경 (TB_SVST_CST_SV_ITM_STOC_IZ)
-                    WsnaItemStockItemizationReqDvo itemDvo = setWsnaItemStockItemizationReqDvo(dvo);
-                    itemStockService.createStock(itemDvo);
+                    itemStockService.createStock(setWsnaItemStockItemizationReqDvo(pcsvSendDtlDvo));
 
-                    // 물류 연동시 전화번호,휴대폰 번호 복호화 전송
+                    // 4. 택배정보 물류 연동을위한 매핑 저장 (TB_SVPD_OSTR_AK_PCSV_SEND_DTL)  (물류 연동시 전화번호,휴대폰 번호 복호화 전송)
                     pcsvSendDtlDvo.setAdrsTnoVal(idvTno);
                     pcsvSendDtlDvo.setAdrsCphonNoVal(cralIdvTno);
-
-                    // 4. 택배정보 물류 연동을위한 매핑 저장 (TB_SVPD_OSTR_AK_PCSV_SEND_DTL) >  W-SV-S-0088 물류 출고요청
                     logisticDvos.add(converter.mapPcsvOutOfStorageDvoToLogisticDvo(pcsvSendDtlDvo));
                 }
-                // 5 .작업결과 IU
+
             }
         }
 
-        // 5.물류 인터페이스 연동
+        // 7.물류 인터페이스 연동
         if (ObjectUtils.isNotEmpty(logisticDvos)) {
             // 물류인터페이스 호출
             logisticsOutStorageAskService.createSelfFilterOutOfStorageAsks(logisticDvos);
@@ -222,6 +223,10 @@ public class WsnaPcsvOutOfStorageSaveService {
         sendDtlDvo.setDtlAdr(vo.getRdadr());
         sendDtlDvo.setZip(vo.getNewAdrZip());
 
+        // 파라미터(물류작업방식코드,합포장일련번호)
+        sendDtlDvo.setLgstWkMthdCd(vo.getLgstWkMthdCd());
+        sendDtlDvo.setMpacSn(vo.getMpacSn());
+
         // null대신 X값 세팅. (물류인터페이스요청)
         sendDtlDvo.setSvCnrCd("X");
         sendDtlDvo.setSvCnrNm("X");
@@ -230,10 +235,7 @@ public class WsnaPcsvOutOfStorageSaveService {
         sendDtlDvo.setSvCnrAdr("X");
         sendDtlDvo.setOvivTpCd("X");
 
-        // 파라미터(변수 셋팅)
-        sendDtlDvo.setLgstWkMthdCd("WE01"); //TODO 명확하지않으니 추후 진행
-        sendDtlDvo.setMpacSn(1); //TODO 명확하지않으니 추후 진행, (계약번호를 매핑)
-
+        //상품 정보 세팅
         List<WsnaPcsvOutOfStorageSaveProductDvo> products = vo.getProducts();
         if (CollectionUtils.isNotEmpty(products)) {
             int cnt = 1;
@@ -242,7 +244,7 @@ public class WsnaPcsvOutOfStorageSaveService {
                 //상품 기준으로 출고요청일련번호 생성
                 sendDtlProductDvo.setOstrAkSn(cnt);
                 sendDtlProductDvo.setItmPdCd(pdDvo.getPdCd());
-                sendDtlProductDvo.setOstrAkQty(Integer.parseInt(pdDvo.getUseQty()));
+                sendDtlProductDvo.setOstrAkQty(pdDvo.getUseQty());
                 sendDtlProductDvo.setPdCn(pdDvo.getPdNm() + "(" + pdDvo.getPdCd() + ")" + ": " + pdDvo.getUseQty());
                 sendDtlDvos.add(sendDtlProductDvo);
                 cnt++;
@@ -252,17 +254,17 @@ public class WsnaPcsvOutOfStorageSaveService {
     }
 
     /* 재고변경 */
-    private WsnaItemStockItemizationReqDvo setWsnaItemStockItemizationReqDvo(WsnaPcsvOutOfStorageSaveDvo vo) {
+    private WsnaItemStockItemizationReqDvo setWsnaItemStockItemizationReqDvo(WsnaPcsvSendDtlDvo vo) {
         String nowDay = DateUtil.getNowDayString();
 
         WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
         reqDvo.setProcsYm(nowDay.substring(0, 6));
         reqDvo.setProcsDt(nowDay);
-        reqDvo.setWareDv(vo.getWkWareNo().substring(0, 1)); /*창고구분*/
-        reqDvo.setWareNo(vo.getWkWareNo());
+        reqDvo.setWareDv(vo.getOstrOjWareNo().substring(0, 1)); /*창고구분*/
+        reqDvo.setWareNo(vo.getOstrOjWareNo());
         reqDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo()); //파트너번호
-        reqDvo.setItmPdCd(vo.getPdCd());
-        reqDvo.setQty(vo.getUseQty());
+        reqDvo.setItmPdCd(vo.getItmPdCd());
+        reqDvo.setQty(String.valueOf(vo.getOstrAkQty()));
         reqDvo.setIostTp("213");
         reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
         reqDvo.setMngtUnit("10");

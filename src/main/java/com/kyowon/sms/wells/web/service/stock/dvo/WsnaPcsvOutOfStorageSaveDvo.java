@@ -30,7 +30,7 @@ public class WsnaPcsvOutOfStorageSaveDvo {
 
     /* 사용제품 내역등록 ,수불처리 */
     String pdGdCd;
-    String useQty;
+    int useQty;
     String wkWareNo;
     String pdCd;
     String svBizHclsfCd;
@@ -49,12 +49,6 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     String dgr1LevlOgId;
     String dgr3LevlOgId;
     String brchOgId;
-
-    /*수불 재고 수량 조회 */
-    int aQty;
-    int bQty;
-    int eQty;
-    int rQty;
 
     /* 물류 인터페이스 필수 */
     String rcgvpKnm;
@@ -75,5 +69,8 @@ public class WsnaPcsvOutOfStorageSaveDvo {
 
     String wareMngtPrtnrOgTpCd;
 
+    int mpacSn; // 합포장 일련번호
+
+    String lgstWkMthdCd; //물류작업방식코드
     List<WsnaPcsvOutOfStorageSaveProductDvo> products;
 }

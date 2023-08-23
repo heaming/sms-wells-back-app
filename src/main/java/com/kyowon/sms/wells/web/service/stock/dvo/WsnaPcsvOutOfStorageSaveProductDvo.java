@@ -9,5 +9,5 @@ public class WsnaPcsvOutOfStorageSaveProductDvo {
 
     String pdCd;
     String pdNm;
-    String useQty;
+    int useQty;
 }

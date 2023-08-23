@@ -232,6 +232,10 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String wareMngtPrtnrOgTpCd, // 창고관리파트너조직유형코드
 
+        String lgstWkMthdCd, //물류작업방식코드
+
+        int mpacSn, // 합포장 일련번호
+
         List<WsnaPcsvOutOfStorageSaveProductDvo> products //상품 목록
     ) {}
 
