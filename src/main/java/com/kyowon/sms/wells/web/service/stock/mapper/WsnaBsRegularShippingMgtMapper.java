@@ -39,4 +39,5 @@ public interface WsnaBsRegularShippingMgtMapper {
 
     int updateExecution(WsnaBsRegularShippingMgtDvo dvo);
 
+    String selectNewLgstOstrAkNo();
 }

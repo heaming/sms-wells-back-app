@@ -3,8 +3,9 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsRegularShippingMgtMapper">
 
     <select id="selectProducts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto$SearchProductRes">
-        SELECT PD_CODE, PD_NAME, PG_GB, MIN(PD_GROUP_CD) AS PD_GROUP_CD
-             , MIN(LGST_WK_MTHD_CD) AS LGST_WK_MTHD_CD
+        SELECT LGST_WK_MTHD_CD
+             , PG_GB
+             , MAX(CD_CNTN) AS PD_NAME
              , COUNT(DISTINCT LGST_WK_MTHD_CD) AS CNT_LGST_WK_MTHD_CD
         FROM (
                SELECT /*+ USE_NL(TA TN TC TK CO PB) LEADING(TA) */
@@ -12,7 +13,7 @@
                     , NVL2(TN.PD_CD, CO.CD_CNTN, PB.PD_NM) AS PD_NAME         /*상품명*/
                     , NVL2(TN.SPP_PD_CD, 'G', 'P') AS PG_GB                      /*G :배송상품그룹매핑, P:미매핑상품*/
                     , TK.PD_PRP_VAL20   AS PD_GROUP_CD                            /* 상품속성값 사용*/
-                    , CO.USER_DFN_06 AS LGST_WK_MTHD_CD /*물류작업방식코드*/
+                    , NVL2(TN.SPP_PD_CD, CO.USER_DFN_06, 'WE99') AS LGST_WK_MTHD_CD /*물류작업방식코드*/
                  FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ TA
                  LEFT JOIN TB_SVPD_PCSV_PD_IZ TN
                    ON TN.PD_CD = TA.PDCT_PD_CD
@@ -27,6 +28,7 @@
                    ON CO.TENANT_ID = 'TNT_WELLS'
                   AND CO.CD_ID = 'SPP_PD_CD'
                   AND CO.CD_VLD_VAL = TN.SPP_PD_CD
+                  AND CO.DEL_YN = 'N'
                 INNER JOIN TB_PDBS_PD_BAS  PB
                    ON PB.PD_CD = TA.PDCT_PD_CD
                  WHERE 1=1
@@ -34,14 +36,18 @@
                    AND NVL(TN.SPP_EXCD_YN,'N') != 'Y' /*씨앗제외*/
                    AND TA.VST_DV_CD = '20' /*20:택배*/
                 <if test='@MybatisUtils@equals(sppDvCd,"A1")'>
-                   AND TK.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '11', '91', '92', '93', '94', '95', '96') /*자가필터*/
+                   AND TK.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '91', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
                 </if>
                 <if test='@MybatisUtils@equals(sppDvCd,"A2")'>
-                   AND TK.PD_PRP_VAL20 NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '11', '91', '92', '93', '94', '95', '96') /*자가필터*/
+                   AND TK.PD_PRP_VAL20 NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '91', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
                 </if>
-            )
-        GROUP BY PD_CODE, PD_NAME, PG_GB
-        ORDER BY TO_NUMBER(PD_GROUP_CD), PD_CODE, PD_NAME
+            ) A
+             LEFT JOIN T_CMZ_CD_D C
+                 ON  C.CD_ID = 'LGST_WK_MTHD_CD'
+                 AND C.TENANT_ID = 'TNT_WELLS'
+                 AND C.CD_VLD_VAL = A.LGST_WK_MTHD_CD
+        GROUP BY LGST_WK_MTHD_CD, PG_GB
+        ORDER BY LGST_WK_MTHD_CD, PG_GB
     </select>
     <select id="selectShippingItems" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMgtDvo">
 
@@ -206,18 +212,18 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                          ELSE V1.P_VST_PRGS_STAT_CD
                     END)   AS VST_PRGS_STAT_CD
                  , #{procsDvCd} AS PROCS_DV_CD
-                 , (CASE WHEN #{pdCd} = 'WM01106494'
-                         THEN '[BH]' ||SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 ' || ( CASE WHEN V1.PDCT_PD_CD = 'WM03106507' THEN '백수오+EGF'
-                                                                                    ELSE F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', V1.SITE_AW_PD_GRP_CD, #{session.langId})
-                                                                               END ) || '0차월'
-                         WHEN #{pdCd} IN ('WM01106498', 'WM03106502', 'WM03106505', 'WM03106506', 'WM03106507', 'WM03106508')
-                         THEN '[BH]' ||SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 ' || ( CASE WHEN V1.PDCT_PD_CD = 'WM03106507' THEN '백수오+EGF'
-                                                                                    ELSE F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', V1.SITE_AW_PD_GRP_CD, #{session.langId})
-                                                                               END ) || '정기배송'
-                         WHEN #{pdCd} IN ('WM05100736')
-                         THEN '[아웃소싱]' ||SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 ' || '커피원두 정기배송'
-                         ELSE SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 자가관리필터_' || F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', V1.SITE_AW_PD_GRP_CD, #{session.langId})
-                    END )  AS SPP_PD_NM
+<!--                 , (CASE WHEN #{pdCd} = 'WM01106494'-->
+<!--                         THEN '[BH]' ||SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 ' || ( CASE WHEN V1.PDCT_PD_CD = 'WM03106507' THEN '백수오+EGF'-->
+<!--                                                                                    ELSE F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', V1.SITE_AW_PD_GRP_CD, #{session.langId})-->
+<!--                                                                               END ) || '0차월'-->
+<!--                         WHEN #{pdCd} IN ('WM01106498', 'WM03106502', 'WM03106505', 'WM03106506', 'WM03106507', 'WM03106508')-->
+<!--                         THEN '[BH]' ||SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 ' || ( CASE WHEN V1.PDCT_PD_CD = 'WM03106507' THEN '백수오+EGF'-->
+<!--                                                                                    ELSE F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', V1.SITE_AW_PD_GRP_CD, #{session.langId})-->
+<!--                                                                               END ) || '정기배송'-->
+<!--                         WHEN #{pdCd} IN ('WM05100736')-->
+<!--                         THEN '[아웃소싱]' ||SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 ' || '커피원두 정기배송'-->
+<!--                         ELSE SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 자가관리필터_' || F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', V1.SITE_AW_PD_GRP_CD, #{session.langId})-->
+<!--                    END )  AS SPP_PD_NM-->
                  , NVL2(PL.PART_NM_01, PL.PART_NM_01 || '(' || PL.PART_CD_01 || '): ' || PL.PART_QTY_01, '') AS PART_NM_QTY_01
                  , NVL2(PL.PART_NM_02, PL.PART_NM_02 || '(' || PL.PART_CD_02 || '): ' || PL.PART_QTY_02, '') AS PART_NM_QTY_02
                  , NVL2(PL.PART_NM_03, PL.PART_NM_03 || '(' || PL.PART_CD_03 || '): ' || PL.PART_QTY_03, '') AS PART_NM_QTY_03
@@ -311,6 +317,11 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                       LEFT JOIN TB_SVPD_PCSV_PD_IZ TN /*택배상품내역*/
                         ON TN.PD_CD     = TA.PDCT_PD_CD
                        AND TN.SPP_DV_CD = #{sppDvCd}
+                      LEFT OUTER JOIN T_CMZ_CD_D CO
+	                    ON CO.TENANT_ID = 'TNT_WELLS'
+	                   AND CO.CD_ID = 'SPP_PD_CD'
+	                   AND CO.CD_VLD_VAL = TN.SPP_PD_CD
+	                   AND CO.DEL_YN = 'N'
                      INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ TB /*고객서비스BS배정내역*/
                         ON TB.CST_SV_ASN_NO = TA.CST_SV_ASN_NO
                      INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TC
@@ -359,16 +370,16 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                        AND NVL(TN.SPP_EXCD_YN,'N') != 'Y' /*씨앗제외*/
                        AND TA.VST_DV_CD = '20' /*20:택배*/
                     <if test='@MybatisUtils@equals(sppDvCd,"A1")'>
-                       AND TK.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '11', '91', '92', '93', '94', '95', '96') /*자가필터*/
+                       AND TK.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '91', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
                     </if>
                     <if test='@MybatisUtils@equals(sppDvCd,"A2")'>
-                       AND TK.PD_PRP_VAL20 NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '11', '91', '92', '93', '94', '95', '96') /*자가필터*/
+                       AND TK.PD_PRP_VAL20 NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '91', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
                     </if>
                     <if test='@MybatisUtils@equals(pgGb,"P")'>
-                       AND TA.PDCT_PD_CD = #{pdCd}
+                       AND TN.SPP_PD_CD IS NULL
                     </if>
                     <if test='@MybatisUtils@equals(pgGb,"G")'>
-                       AND TN.SPP_PD_CD = #{pdCd}
+                       AND CO.USER_DFN_06 = #{lgstWkMthdCd}
                     </if>
                      ) V1
               LEFT OUTER JOIN PART_LIST_TB PL
@@ -857,4 +868,8 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
            AND CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
     </update>
+    <select id="selectNewLgstOstrAkNo" resultType="String">
+        SELECT 'ORWE' || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_IFIN_ITM_OSTR_AK_SEND_ETXT$LGST_OSTR_AK_NO.NEXTVAL, 4, '0') AS LGST_OSTR_AK_NO
+          FROM DUAL
+    </select>
 </mapper>

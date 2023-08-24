@@ -18,10 +18,8 @@ public class WsnaBsRegularShippingMgtDto {
 
     @ApiModel("WsnaAsConsumablesStoreDto-SearchProductRes")
     public record SearchProductRes(
-        String pdCode, // 상품코드
         String pdName, // 상품명
         String pgGb, /*G :배송상품그룹매핑, P:미매핑상품*/
-        String pdGroupCd, // 상품그룹(콤보박스)
         String lgstWkMthdCd,
         int cntLgstWkMthdCd
     ) {}
@@ -33,7 +31,7 @@ public class WsnaBsRegularShippingMgtDto {
         @NotBlank
         String sppDvCd, // 프로그램ID
         @NotBlank
-        String pdCd, // 상품코드
+        String lgstWkMthdCd, // 물류요청작업방식코드
         String pgGb,
         String procsDvCd, // 처리구분
         String rownum // 조회제한건수
@@ -129,7 +127,7 @@ public class WsnaBsRegularShippingMgtDto {
         String sppDvCd,
         String sppPdCd,
         String procsDvCd,
-        String sppPdNm,
+        //        String sppPdNm,
         String partNmQty01,
         String partNmQty02,
         String partNmQty03,
@@ -248,7 +246,7 @@ public class WsnaBsRegularShippingMgtDto {
         String sppDvCd,
         String sppPdCd,
         String procsDvCd,
-        String sppPdNm,
+        //        String sppPdNm,
         String partNmQty01,
         String partNmQty02,
         String partNmQty03,
@@ -261,7 +259,7 @@ public class WsnaBsRegularShippingMgtDto {
         String partNmQty10,
         String cstNo,
         String pdGroupCd,
-        String mpacNo,
+        String mpacSn, /* 합포장번호 */
         String lgstWkMthdCd
     ) {}
 }
