@@ -10,6 +10,8 @@ import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.*
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodCustomerTfCreateDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsPeriodCustomerTfMgtMapper;
 import com.kyowon.sms.wells.web.service.common.service.WsnzHistoryService;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
@@ -111,9 +113,14 @@ public class WsncBsPeriodCustomerTfMgtService {
             String asnTfDvCd = mapper.selectAsnTfDvCd(baseYm, bfchIchrBrchOgId, afchIchrBrchOgId);
             BizAssert.notNull(asnTfDvCd, "MSG_ALT_SLCT_FAIL_ASN_TF_DV_CD"); // 배정이관구분코드를 조회할 수 없습니다.
 
-//            if(("311".equals(asnTfDvCd) || "316".equals(asnTfDvCd)) && ("00".equals(dto.tfStatCd()))){
-//                createTransfer(dto);
-//            }
+            //유성진 매니저(36682) = 화성서비스센터 소속
+            //이호성 매니저(36613) = 광주서비스센터 소속
+            //정태진 매니저(36610) = 대구서비스센터 소속
+            UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+            if("36682".equals(session.getEmployeeIDNumber()) || "36613".equals(session.getEmployeeIDNumber()) || "36610".equals(session.getEmployeeIDNumber())){
+                asnTfDvCd = "316";
+            }
+
             if("00".equals(dto.tfStatCd())){
                 if("311".equals(asnTfDvCd) || "316".equals(asnTfDvCd)){
                     createTransfer(dto);
