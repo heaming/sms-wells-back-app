@@ -4,8 +4,8 @@
     <select id="selectSubject" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieMgtDto$SearchSubjectRes">
         /*원천세정산(유가증권) popup*/
         SELECT T1.BASE_YM               /*(hidden)기준월*/
-             , T3.DGR1_LEVL_OG_NM       /*1차레벨조직명-총괄단*/
-             , T3.DGR2_LEVL_OG_NM       /*2차레벨조직명-지역단*/
+             , T2.DGR1_LEVL_OG_NM       /*1차레벨조직명-총괄단*/
+             , T2.DGR2_LEVL_OG_NM       /*2차레벨조직명-지역단*/
              <if test="@MybatisUtils@isNotEmpty(mainDgr1LevlOgId)">
              , T2.DGR1_LEVL_OG_ID       AS DGR2_LEVL_OG_ID          /*(hidden)1차레벨조직ID-총괄단*/
              , T2.DGR1_LEVL_DG_PRTNR_NO AS DGR2_LEVL_DG_PRTNR_NO    /*(hidden)1차레벨대표파트너번호-총괄단*/
@@ -40,17 +40,13 @@
              , T3.ADJ_YN                /*(hidden)정산여부*/
              , T2.BLD_CD /* 빌딩코드 */
              , T2.BLD_NM /*빌딩명 */
-          FROM TB_OGBS_MM_PRTNR_IZ T1 /*T:월파트너내역*/
+          FROM TB_OGBS_MM_PRTNR_IZ T1 /*T:배분대상월파트너내역*/
          INNER JOIN TB_OGBS_MM_OG_IZ T2 /*T:월조직내역*/
             ON T2.BASE_YM = T1.BASE_YM
            AND T2.OG_ID = T1.OG_ID
          INNER JOIN (SELECT A.BASE_YM           /*기준월*/
                           , A.OG_TP_CD          /*조직유형코드*/
                           , A.PRTNR_NO          /*파트너번호*/
-                          , A.PSTN_DV_CD        /*직급구분코드*/
-                          , A.RSB_DV_CD         /*직책구분코드*/
-                          , B.DGR1_LEVL_OG_NM   /*1차레벨조직명-총괄단*/
-                          , B.DGR2_LEVL_OG_NM   /*2차레벨조직명-지역단*/
                           , C.OPCS_ADJ_NO       /*운영비정산번호*/
                           , C.ADJ_YN            /*정산여부*/
                           , NVL((SELECT SUM(S1.PERF_VAL)
@@ -65,7 +61,7 @@
                             ),0) AS PERF_VAL    /*실적값*/
                           , C.CARD_USE_AMT      /*카드사용금액*/
                           , C.ADJ_OG_ID
-                      FROM TB_OGBS_MM_PRTNR_IZ A /*T:월파트너내역*/
+                      FROM TB_OGBS_MM_PRTNR_IZ A /*T:월파트너내역(정산파트너)*/
                      INNER JOIN TB_OGBS_MM_OG_IZ B /*T:월조직내역*/
                         ON B.BASE_YM = A.BASE_YM
                        AND B.OG_ID = A.OG_ID
@@ -91,9 +87,9 @@
                        AND C.ADJ_PRTNR_NO = A.PRTNR_NO
                      WHERE 1=1
                     ) T3
-            ON T3.BASE_YM = T1.BASE_YM
-           AND T3.OG_TP_CD = T1.OG_TP_CD
-           AND T3.PRTNR_NO = T1.ADJ_PRTNR_NO
+            ON T3.BASE_YM = T2.BASE_YM
+           AND T3.OG_TP_CD = T2.HOO_OG_TP_CD
+           AND T3.PRTNR_NO = T2.HOO_PRTNR_NO
          WHERE 1=1
            AND T1.BASE_YM = #{baseYm}       /*기준월*/
            AND T1.RSB_DV_CD = #{rsbDvCd}    /*직책코드*/
@@ -181,6 +177,8 @@
                          ON B.OPCS_ADJ_NO = A.OPCS_ADJ_NO
                       INNER JOIN TB_OGBS_MM_PRTNR_IZ D /*T:월파트너내역(정산파트너)*/
                          ON D.BASE_YM = A.BASE_YM
+                        AND D.OG_TP_CD = A.OG_TP_CD
+                        AND D.PRTNR_NO = A.ADJ_PRTNR_NO
                         AND D.OG_ID = A.ADJ_OG_ID
                       INNER JOIN TB_OGBS_MM_PRTNR_IZ D2 /*T:월파트너내역(배분대상자)*/
                          ON D2.BASE_YM = A.BASE_YM
@@ -198,14 +196,14 @@
                           , A.ADJ_OG_ID                 /*정산조직코드*/
                           , A.OG_TP_CD                  /*조직유형코드*/
                           , A.ADJ_PRTNR_NO              /*정산파트너번호*/
+                          , E.DGR1_LEVL_OG_NM           /*정산대상자1차레벨조직명*/
+                          , E.DGR2_LEVL_OG_NM           /*정산대상자2차레벨조직명*/
                           , D2.PSTN_DV_CD                /*직급구분코드*/
                           , D2.RSB_DV_CD                /*직책구분코드*/
                           , B.DST_OJ_OG_TP_CD           /*배분대상조직유형코드*/
                           , B.DST_OJ_PRTNR_NO           /*배분대상파트너번호*/
                           , B.DST_OJPS_NM               /*배분대상자명*/
                           , A.MSCR_YN                   /*유가증권여부*/
-                          , E.DGR1_LEVL_OG_NM           /*정산대상자1차레벨조직명*/
-                          , E.DGR2_LEVL_OG_NM           /*정산대상자2차레벨조직명*/
                     ) T3
             ON T3.BASE_YM = T1.BASE_YM
            AND T3.OG_TP_CD = T1.OG_TP_CD
