@@ -40,6 +40,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 현황 목록 ( 메인 )
+     *
      * @param pageInfo
      * @param SearchRefundApplicationReq
      * @return PagingResult<SearchRefundApplicationRes>
@@ -53,6 +54,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 현황 목록 엑셀 다운로드 ( 메인 )
+     *
      * @param List
      * @param SearchRefundApplicationReq
      * @return List<SearchRefundApplicationRes>
@@ -66,6 +68,7 @@ public class WwdbRefundApplicationService {
     /*******************************************************************/
     /**
      * 환불 신청 현황 P01. 신청 조회 ( 팝업조회 - 신규 )
+     *
      * @param List
      * @param SearchRefundContractDetailReq
      * @return PagingResult<SearchRefundContractDetailRes>
@@ -79,6 +82,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 현황 P01. 신청 조회 엑셀다운로드 ( 팝업조회 - 신규 )
+     *
      * @param List
      * @param SearchRefundContractDetailReq
      * @return PagingResult<SearchRefundContractDetailRes>
@@ -91,6 +95,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 현황 P01. 환불정보 검색 ( 팝업- 조회 )
+     *
      * @param req
      * @return res
      */
@@ -103,6 +108,7 @@ public class WwdbRefundApplicationService {
     /** TODO: 메인그리드에서 팝업조회시 **/
     /**
      * 환불 신청 현황 P01. 신청조회 - 계약상세 ( 팝업조회 - 신규 )
+     *
      * @param List
      * @param
      * @return
@@ -114,8 +120,10 @@ public class WwdbRefundApplicationService {
     }
 
     /* TODO: 환불상세 조회 */
+
     /**
      * 환불 신청 현황 P01. 신청조회 - 환불상세 ( 팝업조회 - 신규/ 등록조회 )
+     *
      * @param List
      * @param
      * @return
@@ -135,6 +143,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 현황 P01. 신청조회 - 전금상세 (
+     *
      * @param SearchRefundBalanceTransferReq
      * @return PagingResult<SearchRefundBalanceTransferRes>
      */
@@ -201,6 +210,9 @@ public class WwdbRefundApplicationService {
                 case CommConst.ROW_STATE_CREATED -> {
                     processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세
                 }
+                case CommConst.ROW_STATE_UPDATED -> {
+                    processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세 수정
+                }
                 case CommConst.ROW_STATE_DELETED -> {
                     processCount += mapper.deleteBalanceTempSaveDetail(bltfDvo);
                 }
@@ -211,6 +223,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 은행계좌유효성체크
+     *
      * @param dto
      * @return
      */
@@ -278,8 +291,10 @@ public class WwdbRefundApplicationService {
     /* TODO: 메인그리드에서 조회 종료*/
 
     /* ===== TODO: 컨텍 이력사항 ===== */
+
     /**
      * 환불 신청 컨텍 이력 사항
+     *
      * @param List
      * @param SearchRefundApplicationConnectHistoryReq
      * @return PagingResult<SearchRefundApplicationConnectHistoryRes>
@@ -295,6 +310,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 컨텍 이력 사항
+     *
      * @param List
      * @param SearchRefundApplicationConnectHistoryReq
      * @return PagingResult<SearchRefundApplicationConnectHistoryRes>

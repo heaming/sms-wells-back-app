@@ -109,6 +109,7 @@ public class WwdbRefundApplicationDto {
         String rfndBltfAkAmt,
         String rfndAkNo,
         String fnitCd,
+        String cstNo,
         String crdcdFer
     ) {
     }
