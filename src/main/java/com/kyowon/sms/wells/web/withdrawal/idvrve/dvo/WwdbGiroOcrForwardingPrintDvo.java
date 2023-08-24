@@ -11,4 +11,5 @@ public class WwdbGiroOcrForwardingPrintDvo {
     private String giroOcrPblOjStrtdt;
     private int giroOcrPblTotQty;
     private String wkDt;
+    
 }

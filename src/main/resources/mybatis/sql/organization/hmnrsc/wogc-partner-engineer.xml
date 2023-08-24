@@ -6,8 +6,8 @@
              , B.OG_NM /* 조직명 */
              , A.PRTNR_NO /* 파트너번호 */
              , A.PRTNR_KNM /* 파트너명 */
-             , A.ROL_DV_CD /* 직무구분코드 */
-             , F.MLNG_CNTN AS ROL_DV_NM /* 직무구분코드명 */ /* , A.RSB_DV_CD /* 직책구분코드 */ /* , F_CMZ_CD_NM ( 'TNT_WELLS' , 'RSB_DV_CD' , A.RSB_DV_CD ) AS RSB_DV_NM /* 직책구분코드명 */
+             , F.PSTN_DV_NM /* 직무 */
+             , F_CMZ_CD_NM ( 'TNT_WELLS' , 'RSB_DV_CD' , A.RSB_DV_CD ) AS RSB_DV_NM /* 직책 */
              , A.WK_GRP_CD /* 작업그룹코드 */
              , A.WK_GRP_NM
              , CASE WHEN BIZ_AGNT_PRTNR_NO IS NULL THEN 'N'
@@ -46,19 +46,20 @@
            AND #{baseDt} BETWEEN D.VCN_STRT_DT AND VCN_END_DT
           LEFT OUTER JOIN TB_SVPD_SV_CLND_BAS E /* 서비스달력기본 */
             ON #{baseDt} = E.BASE_Y || E.BASE_MM || E.BASE_D
-          LEFT OUTER JOIN
-               (SELECT T1.CD_VLD_VAL
-                     , T1.ARYL_ORD
-                     , T2.MLNG_CNTN
-                  FROM T_CMZ_CD_D T1
-                  LEFT OUTER JOIN T_CMZ_MLNG_D T2
-                    ON T1.TENANT_ID = T2.TENANT_ID
-                   AND T1.CD_DTL_MLNG_ID = T2.MLNG_ID
-                   AND T2.LNG_ID = 'ko'
-                 WHERE 1 = 1
-                   AND(T1.TENANT_ID = 'TNT_BASE' OR T1.TENANT_ID = 'TNT_WELLS')
-                   AND T1.CD_ID = 'ROL_DV_CD'
-               ) F ON F.CD_VLD_VAL = A.ROL_DV_CD
+          LEFT OUTER JOIN (
+                            SELECT CASE WHEN PSTN_DV_CD IN ('86', '87', '88') THEN F_CMZ_CD_NM('TNT_WELLS', 'SAP_PSTN_DV_CD', A.PSTN_DV_CD)
+                                                                              ELSE F_CMZ_CD_NM('TNT_WELLS', 'HIR_FOM_CD', A.HIR_FOM_CD)
+                                   END AS PSTN_DV_NM
+                                 , OG_TP_CD
+                                 , PRTNR_NO
+                                 , BASE_YM
+                              FROM TB_OGBS_MM_PRTNR_IZ A
+                             WHERE A.OG_TP_CD ='W06'
+                               AND A.BASE_YM = SUBSTR(#{baseDt},1,6)
+             ) F
+            ON F.OG_TP_CD = A.OG_TP_CD
+           AND F.BASE_YM = A.BASE_YM
+           AND F.PRTNR_NO = A.PRTNR_NO
           LEFT OUTER JOIN TB_OGBS_PRTNR_BAS G /* 파트너기본 ( 업무대행파트너 ) */
             ON G.OG_TP_CD = A.OG_TP_CD
            AND G.PRTNR_NO = D.BIZ_AGNT_PRTNR_NO
@@ -76,10 +77,7 @@
            <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
            AND B.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
            </if>
-           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
-           AND B.DGR2_LEVL_OG_ID = #{ogLevlDvCd2}
-           </if>
-         ORDER BY A.OG_CD, F.ARYL_ORD, A.PRTNR_NO
+         ORDER BY A.OG_CD, A.PRTNR_NO
     </select>
 
      <!--엔지니어 출근 관리 목록 저장 -->

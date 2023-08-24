@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.converter;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto;
 import org.apache.commons.lang.StringUtils;
 import org.mapstruct.Mapper;
 
@@ -18,6 +19,8 @@ public interface WwdbGiroOcrForwardingMgtConverter {
     WwdbGiroOcrForwardingMgtDvo mapRemoveGiroOcrForwardingDvo(RemoveReq dto);
 
     WwdbGiroOcrForwardingPrintDvo mapSaveGiroOcrForwardingPrintDvo(SavePrintReq dto);
+
+    WwdbGiroOcrForwardingPrintDvo mapSaveGiroPrintDvo(WwdbGiroOcrForwardingMgtDto.saveGiroPrintReq dto);
 
     WwdbGiroOcrForwardingPrintDeleteDvo mapDeleteGiroOcrForwardingPrintDvo(removePrintReq dto);
 }

@@ -139,6 +139,12 @@ public class WwdbGiroOcrForwardingMgtDto {
     ) {
     }
 
+    public record saveGiroPrintReq(
+        String giroOcrPblDtm,
+        String giroOcrPblSeqn
+    ) {
+    }
+
     public record SearchCntrReq(
 
         String cntrNo,
