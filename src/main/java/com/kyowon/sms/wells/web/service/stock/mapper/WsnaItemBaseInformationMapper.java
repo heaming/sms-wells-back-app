@@ -9,17 +9,23 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationReturnDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationSearchDvo;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsnaItemBaseInformationMapper {
 
-    List<WsnaItemBaseInformationReturnDvo> selectItemBaseInformations(WsnaItemBaseInformationSearchDvo searchDvo);
+    PagingResult<WsnaItemBaseInformationReturnDvo> selectItemBaseInformations(
+        WsnaItemBaseInformationSearchDvo searchDvo, PageInfo pageInfo
+    );
 
     List<SearchAplcRes> selectItemBaseInformationAplcLists(SearchAplcReq dto);
 
     List<SearchWareRes> selectItemBaseInformationWareDvCds(SearchReq dto);
 
-    List<WsnaItemBaseInformationDvo> selectItemBaseInformationsOutOf(WsnaItemBaseInformationSearchDvo searchDvo);
+    PagingResult<WsnaItemBaseInformationDvo> selectItemBaseInformationsOutOf(
+        WsnaItemBaseInformationSearchDvo searchDvo, PageInfo pageInfo
+    );
 
     String selectOstrWareDvCd(SearchReq dto);
 }
