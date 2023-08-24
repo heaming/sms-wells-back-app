@@ -317,6 +317,7 @@ public class WfeeIndividualFeeDto {
         String qlfDvCd,
         String fnitCd,
         String acNo,
+        String pstnDvCd,
         int intbsSum,
         int ddtnSum,
         int aclDsbAmt,
