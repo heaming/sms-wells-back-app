@@ -16,7 +16,7 @@ public class WfeaFeeBaseAmountDto {
         //실적년월
         String perfYm,
         //조직유형
-        String ogTp
+        String ogTpCd
     ) {}
 
     // *********************************************************
@@ -46,7 +46,7 @@ public class WfeaFeeBaseAmountDto {
         String imonIuse,
         String lcflg4,
         String lcetc7,
-        String lccbu1,
+        String lccgu1,
         String lcflag,
         String lcrate,
         String lccod1,

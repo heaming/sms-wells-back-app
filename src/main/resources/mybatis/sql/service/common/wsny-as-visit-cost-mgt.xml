@@ -4,6 +4,7 @@
 
     <!--유상 AS 출장비 관리 조회(페이징)-->
     <select id="selectAsVisitCostPages" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyAsVisitCostMgtDvo">
+    <![CDATA[
     SELECT T1.PD_CD /* 상품코드 */
          , IZ_SN
          , BSTR_CS_AMT
@@ -13,6 +14,13 @@
          , '' AS FLAG
          , P1.SAP_MAT_CD /* SAP자재코드 */
          , P1.PD_NM /* 상품명 */
+         , CASE WHEN (SELECT MAX(IZ_SN)
+                        FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ T
+                       WHERE T.DTA_DL_YN = 'N' AND T.PD_CD = T1.PD_CD) = T1.IZ_SN
+                THEN 'Y'
+                ELSE 'N'
+           END AS IS_LAST
+     ]]>
       FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ T1 /* 유상AS출장비기준내역 */
      INNER JOIN TB_PDBS_PD_BAS P1 /* 상품기본 */
         ON P1.PD_CD = T1.PD_CD
@@ -22,8 +30,14 @@
        AND P1.PD_CD = #{pdCd}
        </if>
        <if test='@MybatisUtils@isNotEmpty(apyMtrChk) and @MybatisUtils@equals(apyMtrChk,"Y")'>
-       AND TO_CHAR( SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
+       AND CASE WHEN (SELECT MAX(IZ_SN)
+                        FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ T
+                       WHERE T.PD_CD = T1.PD_CD) = T1.IZ_SN
+                THEN 'Y'
+                ELSE 'N'
+           END = 'Y'
        </if>
+       ORDER BY T1.PD_CD, IZ_SN DESC
     </select>
 
     <!--삭제-->
@@ -99,6 +113,13 @@
      WHERE PD_CD = #{pdCd}
     </select>
 
+    <select id="selectCurrentMaxIzSn" resultType="java.lang.String">
+    SELECT TO_CHAR(MAX(IZ_SN))
+      FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ T
+     WHERE T.DTA_DL_YN = 'N'
+       AND T.PD_CD = #{pdCd}
+    </select>
+
     <!-- 신규 출장비 등록 -->
     <insert id="insertRecapAsBstrCost">
     INSERT INTO TB_SVPD_RCAS_BSTR_COST_BASE_IZ (
@@ -121,4 +142,38 @@
          <include refid="COMMON.insertSystemFieldValue" />
     )
     </insert>
+
+    <!--<update id="mergeRecapAsBstrCost">
+        MERGE INTO TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+        USING TB_SVPD_RCAS_BSTR_COST_BASE_IZ TBL
+           ON (PD_CD = #{pdCd} AND IZ_SN = #{izSn})
+        WHEN MATCHED THEN
+          UPDATE SET
+                 BSTR_CS_AMT = #{bstrCsAmt}
+               , APY_STRTDT = #{apyStrtdt}
+               , APY_ENDDT = #{apyEnddt}
+               , RMK_CN = #{rmkCn}
+               <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+          INSERT (
+                 PD_CD
+               , IZ_SN
+               , BSTR_CS_AMT
+               , APY_STRTDT
+               , APY_ENDDT
+               , RMK_CN
+               , DTA_DL_YN
+               <include refid="COMMON.insertSystemField" /> )
+          ) VALUES (
+                 #{pdCd}
+               , #{izSn}
+               , #{bstrCsAmt}
+               , #{apyStrtdt}
+               , #{apyEnddt}
+               , #{rmkCn}
+               , 'N'
+               <include refid="COMMON.insertSystemFieldValue" />
+          )
+    </update>-->
+
 </mapper>

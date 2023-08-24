@@ -10,7 +10,6 @@ import com.kyowon.sms.wells.web.closing.expense.converter.WdcdMarketableSecuriti
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieMgtDto.*;
 import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdMarketableSecuritieDvo;
 import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdMarketableSecuritieMgtMapper;
-import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,13 +36,11 @@ public class WdcdMarketableSecuritieMgtService {
     public int saveSettlementWithholdingTax(List<SaveReq> reqs) {
         int count = 0;
         //1. 해당월 확정완료 여부 체크
-        String cnfmYn = mapper.selectCheckWhetherMonthFinalized(reqs.get(0));
-
-        //2. 1번에서 CNFM_YN 결과값이 'Y'이면 alert 띄운다.
-        if ("Y".equals(cnfmYn)) {
-            BizAssert.isTrue(false, "해당 월은 등록/수정 불가합니다."); // TODO 메세지 처리
-        }
-
+//        String cnfmYn = mapper.selectCheckWhetherMonthFinalized(reqs.get(0));
+//        //2. 1번에서 CNFM_YN 결과값이 'Y'이면 alert 띄운다.
+//        if ("Y".equals(cnfmYn)) {
+//            BizAssert.isTrue(false, "해당 월은 등록/수정 불가합니다."); // TODO 메세지 처리
+//        }
         //3. 카드 정보/금액 조회 (ASIS : getAccCardInfoDetail)
         AccCardInfoDetailRes res = mapper.selectAccCardInfoDetail(reqs.get(0));
         WdcdMarketableSecuritieDvo masterDvo = converter.mapAccCardInfoDetailResToWdcdMarketableSecuritieDvo(res);
@@ -56,7 +53,7 @@ public class WdcdMarketableSecuritieMgtService {
         }
         masterDvo.setDstAmt(dstAmtTotal.toString());
 
-        if (!StringUtils.isEmpty(res.opcsAdjNo())) { //4. 3번에서 OPCS_ADJ_NO(운영비정산번호)가 값이 있으면 원천세 정산 수정 진행
+        if (!StringUtils.isEmpty(reqs.get(0).opcsAdjNo())) { //4. 3번에서 OPCS_ADJ_NO(운영비정산번호)가 값이 있으면 원천세 정산 수정 진행
             count += mapper.deleteAccDetail(masterDvo);
             count += mapper.updateAccMst(masterDvo);
         } else { // 5. 3번에서 OPCS_ADJ_NO(운영비정산번호)가 값이 없으면 원천세 정산 신규 등록 진행

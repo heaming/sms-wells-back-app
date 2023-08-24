@@ -1,7 +1,10 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveProductDvo;
 import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
@@ -51,6 +54,7 @@ public class WsnaPcsvOutOfStorageMgtDto {
         String cntrSn,
 
         String rcgvpKnm,
+
         String pdCd,
 
         String pdNm,
@@ -127,7 +131,11 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String asCausCd, //AS원인코드 (작업결과용)
 
-        String wareMngtPrtnrNo //창고관리파트너번호
+        String wareMngtPrtnrNo, //창고관리파트너번호
+
+        String wareMngtPrtnrOgTpCd, // 창고관리파트너조직유형코드
+
+        String cntrCstNo
     ) {
         public SearchRes {
             exnoEncr = DbEncUtil.dec(exnoEncr);
@@ -203,8 +211,32 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String ivcPrntSn,
 
-        String istDt
+        String istDt,
 
+        /* 물류 인터페이스 필수 */
+        String rcgvpKnm,
+
+        String cralIdvTno,
+
+        String idvTno,
+
+        String newAdrZip, // 우편번호
+
+        String rnadr, // 기본 주소
+
+        String rdadr, // 상세 주소
+
+        String cntrCstNo, // 계약자 고객번호
+
+        String pdNm, // 상품 명
+
+        String wareMngtPrtnrOgTpCd, // 창고관리파트너조직유형코드
+
+        String lgstWkMthdCd, //물류작업방식코드
+
+        int mpacSn, // 합포장 일련번호
+
+        List<WsnaPcsvOutOfStorageSaveProductDvo> products //상품 목록
     ) {}
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-FindLogisticsCentersRes")

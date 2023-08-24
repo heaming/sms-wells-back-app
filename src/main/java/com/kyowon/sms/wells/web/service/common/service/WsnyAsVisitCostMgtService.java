@@ -72,6 +72,14 @@ public class WsnyAsVisitCostMgtService {
         for (WsnyAsVisitCostMgtDto.SaveReq row : rowData) {
             if (CommConst.ROW_STATE_DELETED.equals(row.rowState())) {
                 updateCount.addAndGet(mapper.deleteRecapAsBstrCost(row));
+
+                // 삭제시 항상 마지막 데이터는 9999-12-31로 변경
+                mapper.updatePrevIsZnEndDtm(
+                    new WsnyAsVisitCostMgtDvo(
+                        row.pdCd(), mapper.selectCurrentMaxIzSn(row.pdCd()), row.apyStrtdt(), "99991231"
+                    )
+                );
+
             }
         }
         WsnyAsVisitCostMgtDvo target = null;

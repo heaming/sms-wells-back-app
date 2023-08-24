@@ -104,8 +104,6 @@
                                       THEN NVL(D1.PITM_STOC_A_GD_QTY, 0) + NVL(D1.PITM_STOC_B_GD_QTY, 0) + NVL(D1.PITM_STOC_E_GD_QTY, 0) + NVL(D1.PITM_STOC_R_GD_QTY, 0)
                                  END) AS SV_CNR_QTY        /* 서비스센터 */
                         FROM TB_SVST_MCITM_STOC_IZ D1       /* 월별품목재고내역 */
-                       INNER JOIN PD D2                     /* WITH절 상품 */
-                          ON D2.PD_CD = D1.ITM_PD_CD
                        INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
                           ON D3.WARE_NO = D1.WARE_NO
                          AND D3.APY_YM  = TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), -1),'YYYYMM')
@@ -138,8 +136,6 @@
                                            - ( NVL(D1.STOC_ACINSP_OSTR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_R_GD_QTY, 0) )
                                  END) AS SV_CNR_QTY        /* 서비스센터 */
                         FROM TB_SVST_MCITM_STOC_IZ D1   /* 월별품목재고내역 */
-                       INNER JOIN PD D2                 /* WITH절 상품 */
-                          ON D2.PD_CD = D1.ITM_PD_CD
                        INNER JOIN WARE D3               /* WITH절 창고 */
                           ON D3.WARE_NO = D1.WARE_NO
                        WHERE D1.DTA_DL_YN = 'N'
@@ -162,12 +158,10 @@
                                  END)                                                    AS BZNS_INDV_QTY     /* 영업개인 */
                            , SUM(CASE WHEN D3.WARE_DV_CD = '2' THEN D1.STR_QTY END)      AS SV_CNR_QTY        /* 서비스센터 */
                         FROM TB_SVST_ITM_STR_IZ D1   /* 품목입고내역 */
-                       INNER JOIN PD D2              /* WITH절 상품 */
-                          ON D2.PD_CD = D1.ITM_PD_CD
                        INNER JOIN WARE D3            /* WITH절 창고 */
                           ON D3.WARE_NO = D1.STR_WARE_NO
                        WHERE D1.DTA_DL_YN = 'N'
-                         AND D1.STR_RGST_DT BETWEEN #{inqrYm} || '01' AND TO_CHAR(LAST_DAY(TO_DATE(#{inqrYm}, 'YYYYMM')), 'YYYYMMDD')
+                         AND D1.STR_RGST_DT BETWEEN #{inqrYm} || '01' AND #{inqrYm} || '31'
                     <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                          AND D1.ITM_PD_CD = #{itmPdCd}
                     </if>
@@ -179,7 +173,8 @@
                     </if>
                        GROUP BY D1.ITM_PD_CD
                        UNION ALL
-                      SELECT D1.ITM_PD_CD
+                      SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+                             D1.ITM_PD_CD
                            , SUM(CASE WHEN D3.WARE_DTL_DV_CD = '30'
                                       THEN CASE WHEN D1.SV_BIZ_HCLSF_CD = '6' THEN D1.USE_QTY
                                                 ELSE D1.USE_QTY * -1
@@ -196,15 +191,13 @@
                                            END
                                  END) AS SV_QTY            /* 서비스 */
                         FROM TB_SVST_SV_WK_OSTR_IZ D1   /* 서비스작업출고내역 */
-                       INNER JOIN PD D2                 /* WITH절 상품 */
-                          ON D2.PD_CD = D1.ITM_PD_CD
                        INNER JOIN WARE D3               /* WITH절 창고 */
                           ON D3.WARE_NO = D1.WK_WARE_NO
                        WHERE D1.DTA_DL_YN = 'N'
                          AND D1.FNL_ITM_GD_CD <![CDATA[<>]]> 'X'
                          AND D1.USE_QTY <![CDATA[>]]> 0
-                         AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '6')   /*  */
-                         AND D1.FNL_VST_FSH_DT BETWEEN #{inqrYm} || '01' AND TO_CHAR(LAST_DAY(TO_DATE(#{inqrYm}, 'YYYYMM')), 'YYYYMMDD')
+                         AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4', '6')
+                         AND D1.FNL_VST_FSH_DT BETWEEN #{inqrYm} || '01' AND #{inqrYm} || '31'
                     <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                          AND D1.ITM_PD_CD = #{itmPdCd}
                     </if>
@@ -223,13 +216,11 @@
                                  END)                                                          AS BZNS_INDV_QTY     /* 영업개인 */
                            , SUM(CASE WHEN D3.WARE_DV_CD = '2' THEN D1.OSTR_QTY * -1 END)      AS SV_CNR_QTY        /* 서비스 */
                         FROM TB_SVST_ITM_OSTR_IZ D1   /* 품목출고내역 */
-                       INNER JOIN PD D2
-                          ON D2.PD_CD = D1.ITM_PD_CD
                        INNER JOIN WARE D3
                           ON D3.WARE_NO = D1.OSTR_WARE_NO
                        WHERE D1.DTA_DL_YN = 'N'
                          AND D1.ITM_GD_CD <![CDATA[<>]]> 'X'
-                         AND D1.OSTR_DT BETWEEN #{inqrYm} || '01' AND TO_CHAR(LAST_DAY(TO_DATE(#{inqrYm}, 'YYYYMM')), 'YYYYMMDD')
+                         AND D1.OSTR_DT BETWEEN #{inqrYm} || '01' AND #{inqrYm} || '31'
                     <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                          AND D1.ITM_PD_CD = #{itmPdCd}
                     </if>
@@ -260,8 +251,8 @@
                   AND D2.CPS_DT IS NULL
                   AND D2.CHNG_DT IS NULL
                   AND D2.IST_DT IS NOT NULL
-                  AND D1.VST_DUEDT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 1), 'MM'), 'YYYYMMDD')
-                                       AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 1)), 'YYYYMMDD')
+                  AND D1.VST_DUEDT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 1), 'YYYYMM') || '01'
+                                       AND TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 1), 'YYYYMM') || '31'
              <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                   AND D1.PART_PD_CD = #{itmPdCd}
              </if>
@@ -290,8 +281,8 @@
                   AND D2.CPS_DT IS NULL
                   AND D2.CHNG_DT IS NULL
                   AND D2.IST_DT IS NOT NULL
-                  AND D1.VST_DUEDT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 2), 'MM'), 'YYYYMMDD')
-                                       AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 2)), 'YYYYMMDD')
+                  AND D1.VST_DUEDT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 2), 'YYYYMM') || '01'
+                                       AND TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 2), 'YYYYMM') || '31'
              <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                   AND D1.PART_PD_CD = #{itmPdCd}
              </if>
@@ -320,8 +311,8 @@
                   AND D2.CPS_DT IS NULL
                   AND D2.CHNG_DT IS NULL
                   AND D2.IST_DT IS NOT NULL
-                  AND D1.VST_DUEDT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 3), 'MM'), 'YYYYMMDD')
-                                       AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 3)), 'YYYYMMDD')
+                  AND D1.VST_DUEDT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 3), 'YYYYMM') || '01'
+                                       AND TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 3), 'YYYYMM') || '31'
              <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                   AND D1.PART_PD_CD = #{itmPdCd}
              </if>
@@ -350,8 +341,8 @@
                   AND D2.CPS_DT IS NULL
                   AND D2.CHNG_DT IS NULL
                   AND D2.IST_DT IS NOT NULL
-                  AND D1.VST_DUEDT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 4), 'MM'), 'YYYYMMDD')
-                                       AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 4)), 'YYYYMMDD')
+                  AND D1.VST_DUEDT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 4), 'YYYYMM') || '01'
+                                       AND TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 4), 'YYYYMM') || '31'
              <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                   AND D1.PART_PD_CD = #{itmPdCd}
              </if>
@@ -380,8 +371,8 @@
                   AND D2.CPS_DT IS NULL
                   AND D2.CHNG_DT IS NULL
                   AND D2.IST_DT IS NOT NULL
-                  AND D1.VST_DUEDT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 5), 'MM'), 'YYYYMMDD')
-                                       AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 5)), 'YYYYMMDD')
+                  AND D1.VST_DUEDT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 5), 'YYYYMM') || '01'
+                                       AND TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), 5), 'YYYYMM') || '31'
              <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                   AND D1.PART_PD_CD = #{itmPdCd}
              </if>

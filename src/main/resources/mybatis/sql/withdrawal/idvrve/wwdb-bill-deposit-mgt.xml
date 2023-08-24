@@ -9,14 +9,15 @@
              , MAX(BILL_RMK_CN) AS BILL_RMK_CN                  /* 어음구분 */
              , SUM(T2.BILL_DP_AMT) AS BILL_DP_AMT               /* 입금액 */
              , T1.BILL_RCP_DT                                   /* 접수일자 */
+             , T3.CNTR_CST_NO
              , MAX(T4.BZRNO) AS BZRNO                           /* 사업자등록번호 */
              , T1.BILL_BND_NO                                   /* 채권번호 */
              , T1.BILL_BND_AMT                                  /* 채권금액 */
              , T1.BILL_EXPR_DT                                  /* 만기일자 */
              , COUNT(T2.CNTR_SN) AS CNTR_COUNT                  /* 계약수 */
              , T1.ITG_DP_NO                                     /* 통합입금번호 */
-             /* 입금전표번호 */
-             /* 대체전표번호 */
+             , MAX(T1.BILL_DP_SAP_SLPNO) AS BILL_DP_SAP_SLPNO     /* 입금전표번호 */
+             , MAX(T1.BILL_RPLC_SAP_SLPNO) AS BILL_RPLC_SAP_SLPNO /* 대체전표번호 */
              , MAX(SELL_BZS_BZRNO) AS SELL_BZS_BZRNO            /* 판매업체사업자등록번호 */
              , MAX(PBL_BZS_BZRNO) AS PBL_BZS_BZRNO              /* 발행업체사업자등록번호 */
           FROM TB_RVDW_BILL_DP_IZ T1                            /* 어음입금내역 */
@@ -49,11 +50,12 @@
               </choose>
           </if>
          <if test='@MybatisUtils@isNotEmpty(cntr)'>
-           AND T2.CNTR_NO||T2.CNTR_SN LIKE '%'||#{cntr}
+           AND T2.CNTR_NO||T2.CNTR_SN LIKE '%'||#{cntr}||'%'
          </if>
          GROUP BY T1.ITG_DP_NO /* 통합입금번호 */
                 , T2.CNTR_NO /* 계약번호*/
                 , T2.CNTR_SN /* 계약일련번호 */
+                , T3.CNTR_CST_NO
                 , T1.BILL_RCP_DT /* 접수일자 */
                 , T1.BILL_BND_NO /* 채권번호 */
                 , T1.BILL_BND_AMT /* 채권금액 */
@@ -141,6 +143,23 @@
            AND ITG_DP_NO = #{itgDpNo}
     </update>
 
+    <update id="updateSlipRegistration">
+        UPDATE TB_RVDW_BILL_DP_IZ
+            <choose>
+                <when test="@MybatisUtils@isNotEmpty(billDpSapSlpno)">
+           SET BILL_DP_SAP_SLPNO = #{billDpSapSlpno} /* 어음입금SAP전표번호 */
+                </when>
+                <otherwise>
+           SET BILL_RPLC_SAP_SLPNO = #{billRplcSapSlpno} /* 어음대체SAP전표번호 */
+                </otherwise>
+            </choose>
+             <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ITG_DP_NO = #{itgDpNo}
+           AND BILL_BND_NO = #{billBndNo}
+           AND DTA_DL_YN = 'N'
+    </update>
+
     <delete id="deleteRegistrationSubElectronics">
         DELETE
           FROM TB_RVDW_BILL_DP_CNTR_REL_IZ
@@ -191,6 +210,9 @@
           LEFT JOIN TB_RVDW_BILL_DP_IZ T2
             ON T2.ITG_DP_NO  = T1.ITG_DP_NO
            AND T2.DTA_DL_YN = 'N'
+         <!--<if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND T1.CNTR_NO = #{cntrNo}
+         </if>-->
           LEFT JOIN TB_RVDW_ITG_DP_BAS T3
             ON T2.ITG_DP_NO = T3.ITG_DP_NO
            AND T3.DTA_DL_YN = 'N'
@@ -198,18 +220,611 @@
          <if test='@MybatisUtils@isNotEmpty(itgDpNo)'>
            AND T1.ITG_DP_NO = #{itgDpNo}
          </if>
+         <if test='@MybatisUtils@isNotEmpty(billBndNo)'>
+           AND T2.BILL_BND_NO = #{billBndNo}
+         </if>
          <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
            AND T1.CNTR_NO = #{cntrNo}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND T1.CNTR_SN = #{cntrSn}
          </if>
          ORDER BY T1.CNTR_NO , T1.CNTR_SN
     </select>
 
 
-    <select id="selectRegistrationPk" resultType="String">
+    <select id="selectRegistrationPk" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto$SearchItgNoRes">
         SELECT #{session.companyCode}||TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SQ_RVDW_ITG_DP_BAS$ITG_DP_NO.NEXTVAL,8,0) AS ITG_DP_NO FROM DUAL
     </select>
 
+    <insert id="insertBillDepositContracts">
+        INSERT INTO TB_RVDW_RVE_AK_DTL (
+         	    KW_GRP_CO_CD
+         	  , RVE_AK_NO
+         	  , RVE_AK_SN
+         	  , DP_DV_CD
+         	  , DP_MES_CD
+         	  , DP_TP_CD
+         	  , RVE_DV_CD
+         	  , RVE_BIZ_DV_CD
+         	  , RVE_CD
+         	  , OG_ID
+         	  , OG_TP_CD
+         	  , PRTNR_NO
+         	  , CNTR_NO
+         	  , CNTR_SN
+         	  , PD_CD
+         	  , RVE_AK_AMT
+         	  , RVE_AMT
+         	  , RVE_STAT_CD
+         	  , BILL_BND_NO
+         	  , RVE_CO_CD
+         	  , INCMDC_YN
+              <include refid="COMMON.insertSystemField"/>
+         )
+         SELECT T2.KW_GRP_CO_CD	/*교원그룹회사코드*/
+        	  , #{rveAkNo} AS RVE_AK_NO	/*수납요청번호*/
+              , ROWNUM AS RVE_AK_SN
+        	  <!--, (SELECT NVL(MAX(RVE_AK_SN))+1
+        	       FROM TB_RVDW_RVE_DTL
+        	      WHERE 1 = 1
+        	        AND RVE_AK_NO = #{rveAkNo}) AS RVE_AK_SN	/*수납요청일련번호*/-->
+        	  , T2.DP_DV_CD	/*입금구분코드*/
+        	  , T2.DP_MES_CD	/*입금수단코드*/
+        	  , T2.DP_TP_CD	/*입금유형코드*/
+        	  , '03' AS RVE_DV_CD	/*수납구분코드*/
+        	  , #{rveBizDvCd} AS RVE_BIZ_DV_CD	/*수납업무구분코드*/
+        	  , T2.RVE_CD	/*수납코드*/
+        	  , T2.OG_ID	/*조직ID*/
+        	  , T2.OG_TP_CD	/*조직유형코드*/
+        	  , T2.PRTNR_NO	/*파트너번호*/
+        	  , T1.CNTR_NO	/*계약번호*/
+        	  , T1.CNTR_SN	/*계약일련번호*/
+        	  , T3.BASE_PD_CD 	/*상품코드*/
+        	  , T1.BILL_DP_AMT AS RVE_AK_AMT	/*수납요청금액*/
+        	  , T1.BILL_DP_AMT AS RVE_AMT	/*수납금액*/
+        	  , '02' AS RVE_STAT_CD	/*수납상태코드*/
+        	  , T1.BILL_BND_NO	/*어음채권번호*/
+        	  , T2.KW_GRP_CO_CD AS RVE_CO_CD	/*수납회사코드*/
+        	  , NVL(T4.PD_PRP_VAL01,'N') AS INCMDC_YN	 /*N 비소득 , Y소득 소득공제여부*/
+              <include refid="COMMON.insertSystemFieldValue" />
+           FROM ( SELECT S1.CNTR_NO
+                       , S1.CNTR_SN
+                       , S1.BILL_DP_AMT
+                       , S2.BILL_BND_NO
+                       , S1.ITG_DP_NO
+                    FROM TB_RVDW_BILL_DP_CNTR_REL_IZ S1
+                    JOIN TB_RVDW_BILL_DP_IZ S2
+                      ON (    S2.ITG_DP_NO = S1.ITG_DP_NO
+                          AND S2.DTA_DL_YN = 'N' )
+                   WHERE 1 = 1
+                     AND S1.DTA_DL_YN = 'N' ) T1
+           JOIN TB_RVDW_ITG_DP_BAS T2
+             ON (    T2.ITG_DP_NO = T1.ITG_DP_NO
+                 AND T2.DTA_DL_YN = 'N' )
+           JOIN TB_SSCT_CNTR_DTL T3
+             ON (    T3.CNTR_NO = T1.CNTR_NO
+                 AND T3.CNTR_SN = T1.CNTR_SN
+                 AND T3.DTA_DL_YN = 'N')
+           LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T4
+             ON T4.PD_CD = T3.BASE_PD_CD
+            AND T4.PD_EXTS_PRP_GRP_CD  ='STLM'
+            AND T4.DTA_DL_YN  = 'N'
+          WHERE 1 = 1
+            AND T1.ITG_DP_NO = #{itgDpNo}
+            AND T1.CNTR_NO = #{cntrNo}
+            AND T1.CNTR_SN = #{cntrSn}
+        ORDER BY T1.CNTR_NO , T1.CNTR_SN
+        </insert>
+
+
+        <select id="selectSlipProcessings" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositSlipProcessingDvo">
+            SELECT ZZSNUM
+            	  ,ZKEY
+            	  ,ROW_NUMBER() OVER(ORDER BY SHKZG DESC, KUNNR)  AS LINESEQ /*전표라인번호*/
+            	  ,IFNUM
+            	  ,ZZAVFLG
+            	  ,BLART
+            	  ,BUKRS
+            	  ,ZZUSER
+            	  ,BUDAT
+            	  ,BLDAT
+            	  ,BKTXT
+            	  ,SHKZG
+            	  ,LIFNR
+            	  ,KUNNR
+            	  ,WRBTR
+            	  ,UMSKZ
+            	  ,HKONT
+            	  ,EMPFB
+            	  ,BVTYP
+            	  ,WMWST
+            	  ,MWSKZ
+            	  ,BRANCH
+            	  ,WTQSSHH
+            	  ,INCOMAMT
+            	  ,INHABAMT
+            	  ,WITHCD
+            	  ,SECCO
+            	  ,GSBER
+            	  ,SGTXT
+            	  ,ZFBDT
+            	  ,KOSTL
+            	  ,POSID
+            	  ,XREF1
+            	  ,XREF2
+            	  ,XREF3
+            	  ,ZZPRDHA
+            	  ,PRCTR
+            	  ,AUGBL
+            	  ,BELNR
+            	  ,STBLG
+            	  ,FUND
+            	  ,KOINH
+            	  ,BANKK
+            	  ,BANKN
+            	  ,MESSGE
+            	  ,TRDAT
+            	  ,REDAT
+            	  ,ZFCGUB
+            	  ,ZFIDPT
+            	  ,ZFIMAN
+            	  ,ZFSYMD
+            	  ,ZFRYMD
+            	  ,ZFETC1
+            	  ,ZFETC2
+            	  ,ZFETC3
+            	  ,FIEYMD
+            	  ,FIEHMS
+            	  ,FIMYMD
+            	  ,FIMHMS
+              FROM (
+            		SELECT #{zzsnum} AS ZZSNUM	/*전송번호*/
+            			 , LPAD('1' , 6 , '0') AS ZKEY	    /*전표번호*/
+            			 , '' AS IFNUM	/*IF정보*/
+            			 , '5' AS ZZAVFLG	/*증빙구분*/
+            			 , 'ZA' AS BLART	/*전표유형*/
+            			 , '2000' AS BUKRS	/*회사코드*/
+            			 , LPAD(#{session.employeeIDNumber}, 6, '0') AS ZZUSER	/*입력자사번*/
+            			 , TO_CHAR(SYSDATE , 'YYYYMMDD') AS BUDAT	/*전기일 - 대사일*/
+            			 , TO_CHAR(SYSDATE , 'YYYYMMDD') AS BLDAT	/*증빙일 - 대사일*/
+            			 , '외담대매출채권 렌탈입금' AS BKTXT	/*전표적요*/
+            			 , 'D' AS SHKZG	/*차대구분 - 차변*/
+            			 , '1000000010' AS LIFNR	/*구매처*/
+            			 , '1000000010' AS KUNNR	/*고객*/
+            			 , #{wrbtr} AS WRBTR	/*금액*/
+            			 , '' AS UMSKZ	/*특별지시자*/
+            			 , '1112414' AS  HKONT	/*GL계정*/
+            			 , '' AS EMPFB	/*대체지급인*/
+            			 , '' AS BVTYP	/*지급계좌키*/
+            			 , 0 AS WMWST	/*부가세금액*/
+            			 , '' AS MWSKZ	/*부가세코드*/
+            			 , '' AS BRANCH	/*부가세사업장*/
+            			 , 0 AS WTQSSHH	/*원천세표준액*/
+            			 , 0 AS INCOMAMT	/*소득세금액*/
+            			 , 0 AS INHABAMT	/*주민세금액*/
+            			 , '' AS WITHCD	/*원천세코드*/
+            			 , '' AS SECCO	/*섹션코드*/
+            			 , '1210' AS GSBER	/*사업영역*/
+            			 , T1.BILL_DLPNR_NM ||' 외담대매출채권 렌탈입금' AS SGTXT	/*항목적요*/
+            			 , T1.BILL_EXPR_DT AS ZFBDT	/*지급기산일*/
+            			 , '200385' AS KOSTL	/*코스트센터*/
+            			 , '' AS POSID	/*WBS*/
+            			 , '' AS XREF1	/*참조1*/
+            			 , '' AS XREF2	/*참조2*/
+            			 , '' AS XREF3	/*참조3*/
+            			 , '' AS ZZPRDHA	/*제품계층구조*/
+            			 , '' AS PRCTR	/*손익센터*/
+            			 , '' AS AUGBL	/*반제원전표번*/
+            			 , '' AS BELNR	/*SAP전표번호*/
+            			 , '' AS STBLG	/*SAP역분개전표*/
+                         , NVL((SELECT MAX(SAP_BZ_CAPAM_CD) FROM TB_CBCL_DG_CST_ID_BAS WHERE DG_CST_ID = '1000000010' ),'203') AS FUND /*자금*/
+            			 , '' AS KOINH	/*예금주*/
+            			 , '' AS BANKK	/*은행코드*/
+            			 , '' AS BANKN	/*계좌번호*/
+            			 , '' AS MESSGE	/*SAP전표메시지*/
+            			 , '' AS TRDAT	/*전송일*/
+            			 , '' AS REDAT	/*반영일자*/
+            			 , '' AS ZFCGUB	/*취소여부*/
+            			 , '' AS ZFIDPT	/*작성부서*/
+            			 , '' AS ZFIMAN	/*작성담당*/
+            			 , TO_CHAR(SYSDATE,'YYYYMMDD') AS ZFSYMD /*전송일자*/
+            			 , '' AS ZFRYMD	/*수신일자*/
+            			 , '' AS ZFETC1	/*기타1*/
+            			 , '' AS ZFETC2	/*기타2*/
+            			 , '' AS ZFETC3	/*기타3*/
+            			 , TO_CHAR(SYSDATE,'YYYYMMDD') AS FIEYMD /*입력일자*/
+            		     , TO_CHAR(SYSDATE,'HH24MISS') AS FIEHMS /*입력시간*/
+            		     , TO_CHAR(SYSDATE,'YYYYMMDD') AS FIMYMD /*수정일자*/
+            		     , TO_CHAR(SYSDATE,'HH24MISS') AS FIMHMS /*수정시간*/
+            		  FROM TB_RVDW_BILL_DP_IZ T1
+            		 WHERE 1 = 1
+            		   AND T1.ITG_DP_NO = #{itgDpNo}
+            		   AND T1.DTA_DL_YN = 'N'
+
+            		 UNION ALL
+
+            		 SELECT #{zzsnum} AS ZZSNUM	/*전송번호*/
+            			 , LPAD('1' , 6 , '0') AS ZKEY	    /*전표번호*/
+            			 , '' AS IFNUM	/*IF정보*/
+            			 , '5' AS ZZAVFLG	/*증빙구분*/
+            			 , 'ZA' AS BLART	/*전표유형*/
+            			 , '2000' AS BUKRS	/*회사코드*/
+            			 , LPAD(#{session.employeeIDNumber}, 6, '0') AS ZZUSER	/*입력자사번*/
+            			 , TO_CHAR(SYSDATE , 'YYYYMMDD') AS BUDAT	/*전기일 - 대사일*/
+            			 , TO_CHAR(SYSDATE , 'YYYYMMDD') AS BLDAT	/*증빙일 - 대사일*/
+                         , '외담대매출채권 렌탈입금' AS BKTXT	/*전표적요*/
+            			 , 'C' AS SHKZG	/*차대구분 - 차변*/
+            			 , '1000000010' AS LIFNR	/*구매처*/
+            			 , '1000000010' AS KUNNR	/*고객*/
+            			 , #{wrbtr} AS WRBTR	/*금액*/
+            			 , '' AS UMSKZ	/*특별지시자*/
+            			 , '2100501' AS  HKONT	/*GL계정*/
+            			 , '' AS EMPFB	/*대체지급인*/
+            			 , '' AS BVTYP	/*지급계좌키*/
+            			 , 0 AS WMWST	/*부가세금액*/
+            			 , '' AS MWSKZ	/*부가세코드*/
+            			 , '' AS BRANCH	/*부가세사업장*/
+            			 , 0 AS WTQSSHH	/*원천세표준액*/
+            			 , 0 AS INCOMAMT	/*소득세금액*/
+            			 , 0 AS INHABAMT	/*주민세금액*/
+            			 , '' AS WITHCD	/*원천세코드*/
+            			 , '' AS SECCO	/*섹션코드*/
+            			 , '1210' AS GSBER	/*사업영역*/
+            			 , T1.BILL_DLPNR_NM ||' 외담대매출채권 렌탈입금' AS SGTXT	/*항목적요*/
+            			 , T1.BILL_EXPR_DT AS ZFBDT	/*지급기산일*/
+            			 , '200385' AS KOSTL	/*코스트센터*/
+            			 , '' AS POSID	/*WBS*/
+            			 , '' AS XREF1	/*참조1*/
+            			 , '' AS XREF2	/*참조2*/
+            			 , '' AS XREF3	/*참조3*/
+            			 , '' AS ZZPRDHA	/*제품계층구조*/
+            			 , '' AS PRCTR	/*손익센터*/
+            			 , '' AS AUGBL	/*반제원전표번*/
+            			 , '' AS BELNR	/*SAP전표번호*/
+            			 , '' AS STBLG	/*SAP역분개전표*/
+                         , NVL((SELECT MAX(SAP_BZ_CAPAM_CD) FROM TB_CBCL_DG_CST_ID_BAS WHERE DG_CST_ID = '1000000010' ),'203') AS FUND /*자금*/
+            			 , '' AS KOINH	/*예금주*/
+            			 , '' AS BANKK	/*은행코드*/
+            			 , '' AS BANKN	/*계좌번호*/
+            			 , '' AS MESSGE	/*SAP전표메시지*/
+            			 , '' AS TRDAT	/*전송일*/
+            			 , '' AS REDAT	/*반영일자*/
+            			 , '' AS ZFCGUB	/*취소여부*/
+            			 , '' AS ZFIDPT	/*작성부서*/
+            			 , '' AS ZFIMAN	/*작성담당*/
+            			 , TO_CHAR(SYSDATE,'YYYYMMDD') AS ZFSYMD /*전송일자*/
+            			 , '' AS ZFRYMD	/*수신일자*/
+            			 , '' AS ZFETC1	/*기타1*/
+            			 , '' AS ZFETC2	/*기타2*/
+            			 , '' AS ZFETC3	/*기타3*/
+            			 , TO_CHAR(SYSDATE,'YYYYMMDD') AS FIEYMD /*입력일자*/
+            		     , TO_CHAR(SYSDATE,'HH24MISS') AS FIEHMS /*입력시간*/
+            		     , TO_CHAR(SYSDATE,'YYYYMMDD') AS FIMYMD /*수정일자*/
+            		     , TO_CHAR(SYSDATE,'HH24MISS') AS FIMHMS /*수정시간*/
+            		  FROM TB_RVDW_BILL_DP_IZ T1
+            		 WHERE 1 = 1
+            		   AND T1.ITG_DP_NO = #{itgDpNo}
+            		   AND T1.DTA_DL_YN = 'N'
+              )
+        </select>
+
+        <insert id="insertSlipProcessings">
+            INSERT INTO TB_IFIN_DP_SLIP_BAS (
+            	   ZZSNUM
+            	 , ZKEY
+            	 , LINESEQ
+            	 , IFNUM
+            	 , ZZAVFLG
+            	 , BLART
+            	 , BUKRS
+            	 , ZZUSER
+            	 , BUDAT
+            	 , BLDAT
+            	 , BKTXT
+            	 , SHKZG
+            	 , LIFNR
+            	 , KUNNR
+            	 , WRBTR
+            	 , UMSKZ
+            	 , HKONT
+            	 , EMPFB
+            	 , BVTYP
+            	 , WMWST
+            	 , MWSKZ
+            	 , BRANCH
+            	 , WTQSSHH
+            	 , INCOMAMT
+            	 , INHABAMT
+            	 , WITHCD
+            	 , SECCO
+            	 , GSBER
+            	 , SGTXT
+            	 , ZFBDT
+            	 , KOSTL
+            	 , POSID
+            	 , XREF1
+            	 , XREF2
+            	 , XREF3
+            	 , ZZPRDHA
+            	 , PRCTR
+            	 , AUGBL
+            	 , BELNR
+            	 , STBLG
+            	 , FUND
+            	 , KOINH
+            	 , BANKK
+            	 , BANKN
+            	 , MESSGE
+            	 , TRDAT
+            	 , REDAT
+            	 , ZFCGUB
+            	 , ZFIDPT
+            	 , ZFIMAN
+            	 , ZFSYMD
+            	 , ZFRYMD
+            	 , ZFETC1
+            	 , ZFETC2
+            	 , ZFETC3
+            	 , FIEYMD
+            	 , FIEHMS
+            	 , FIMYMD
+            	 , FIMHMS
+            ) VALUES (
+            	   #{zzsnum}
+            	 , #{zkey}
+            	 , #{lineseq}
+            	 , #{ifnum}
+            	 , #{zzavflg}
+            	 , #{blart}
+            	 , #{bukrs}
+            	 , #{zzuser}
+            	 , #{budat}
+            	 , #{bldat}
+            	 , #{bktxt}
+            	 , #{shkzg}
+            	 , #{lifnr}
+            	 , #{kunnr}
+            	 , #{wrbtr}
+            	 , #{umskz}
+            	 , #{hkont}
+            	 , #{empfb}
+            	 , #{bvtyp}
+            	 , #{wmwst}
+            	 , #{mwskz}
+            	 , #{branch}
+            	 , #{wtqsshh}
+            	 , #{incomamt}
+            	 , #{inhabamt}
+            	 , #{withcd}
+            	 , #{secco}
+            	 , #{gsber}
+            	 , #{sgtxt}
+            	 , #{zfbdt}
+            	 , #{kostl}
+            	 , #{posid}
+            	 , #{xref1}
+            	 , #{xref2}
+            	 , #{xref3}
+            	 , #{zzprdha}
+            	 , #{prctr}
+            	 , #{augbl}
+            	 , #{belnr}
+            	 , #{stblg}
+            	 , #{fund}
+            	 , #{koinh}
+            	 , #{bankk}
+            	 , #{bankn}
+            	 , #{messge}
+            	 , #{trdat}
+            	 , #{redat}
+            	 , #{zfcgub}
+            	 , #{zfidpt}
+            	 , #{zfiman}
+            	 , #{zfsymd}
+            	 , #{zfrymd}
+            	 , #{zfetc1}
+            	 , #{zfetc2}
+            	 , #{zfetc3}
+            	 , #{fieymd}
+            	 , #{fiehms}
+            	 , #{fimymd}
+            	 , #{fimhms}
+            )
+        </insert>
+
+        <select id="selectReplacementSlipProcessing" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositSlipProcessingDvo">
+            SELECT ZZSNUM
+                 , ZKEY
+                 , ROW_NUMBER() OVER(ORDER BY SHKZG DESC, KUNNR)  AS LINESEQ /*전표라인번호*/
+                 , IFNUM
+                 , ZZAVFLG
+                 , BLART
+                 , BUKRS
+                 , ZZUSER
+                 , BUDAT
+                 , BLDAT
+                 , BKTXT
+                 , SHKZG
+                 , LIFNR
+                 , KUNNR
+                 , WRBTR
+                 , UMSKZ
+                 , HKONT
+                 , EMPFB
+                 , BVTYP
+                 , WMWST
+                 , MWSKZ
+                 , BRANCH
+                 , WTQSSHH
+                 , INCOMAMT
+                 , INHABAMT
+                 , WITHCD
+                 , SECCO
+                 , GSBER
+                 , SGTXT
+                 , ZFBDT
+                 , KOSTL
+                 , POSID
+                 , XREF1
+                 , XREF2
+                 , XREF3
+                 , ZZPRDHA
+                 , PRCTR
+                 , AUGBL
+                 , BELNR
+                 , STBLG
+                 , FUND
+                 , KOINH
+                 , BANKK
+                 , BANKN
+                 , MESSGE
+                 , TRDAT
+                 , REDAT
+                 , ZFCGUB
+                 , ZFIDPT
+                 , ZFIMAN
+                 , ZFSYMD
+                 , ZFRYMD
+                 , ZFETC1
+                 , ZFETC2
+                 , ZFETC3
+                 , FIEYMD
+                 , FIEHMS
+                 , FIMYMD
+                 , FIMHMS
+              FROM (
+                    SELECT #{zzsnum} AS ZZSNUM	/*전송번호*/
+                         , LPAD('1' , 6 , '0') AS ZKEY	    /*전표번호*/
+                         , '' AS IFNUM	/*IF정보*/
+                         , '5' AS ZZAVFLG	/*증빙구분*/
+                         , 'S3' AS BLART	/*전표유형*/
+                         , '2000' AS BUKRS	/*회사코드*/
+                         , LPAD(#{session.employeeIDNumber}, 6, '0') AS ZZUSER	/*입력자사번*/
+                         , TO_CHAR(LAST_DAY(TO_DATE(BILL_EXPR_DT,'YYYYMMDD')),'YYYYMMDD') AS BUDAT/*전기일-12월31일*/
+                         , TO_CHAR(LAST_DAY(TO_DATE(BILL_EXPR_DT,'YYYYMMDD')),'YYYYMMDD') AS BLDAT/*증빙일-12월31일*/
+                         , '렌탈 어음발행 만기입금' AS BKTXT	/*전표적요*/
+                         , 'D' AS SHKZG	/*차대구분 - 차변*/
+                         , '9110303' AS LIFNR	/*구매처*/
+                         , '9110303' AS KUNNR	/*고객*/
+                         , #{wrbtr} AS WRBTR	/*금액*/
+                         , '' AS UMSKZ	/*특별지시자*/
+                         , '9110303' AS  HKONT	/*GL계정*/
+                         , '' AS EMPFB	/*대체지급인*/
+                         , '' AS BVTYP	/*지급계좌키*/
+                         , 0 AS WMWST	/*부가세금액*/
+                         , '' AS MWSKZ	/*부가세코드*/
+                         , '' AS BRANCH	/*부가세사업장*/
+                         , 0 AS WTQSSHH	/*원천세표준액*/
+                         , 0 AS INCOMAMT	/*소득세금액*/
+                         , 0 AS INHABAMT	/*주민세금액*/
+                         , '' AS WITHCD	/*원천세코드*/
+                         , '' AS SECCO	/*섹션코드*/
+                         , '1210' AS GSBER	/*사업영역*/
+                         , T1.BILL_DLPNR_NM ||' 렌탈 어음발행 만기입금' AS SGTXT	/*항목적요*/
+                         , TO_CHAR(LAST_DAY(TO_DATE(BILL_EXPR_DT,'YYYYMMDD')),'YYYYMMDD') AS ZFBDT /*지급기산일-12월31일*/
+                         , '200092' AS KOSTL	/*코스트센터*/
+                         , '' AS POSID	/*WBS*/
+                         , '' AS XREF1	/*참조1*/
+                         , '' AS XREF2	/*참조2*/
+                         , '' AS XREF3	/*참조3*/
+                         , '' AS ZZPRDHA	/*제품계층구조*/
+                         , '' AS PRCTR	/*손익센터*/
+                         , '' AS AUGBL	/*반제원전표번*/
+                         , '' AS BELNR	/*SAP전표번호*/
+                         , '' AS STBLG	/*SAP역분개전표*/
+                         , NVL((SELECT MAX(SAP_BZ_CAPAM_CD) FROM TB_CBCL_DG_CST_ID_BAS WHERE DG_CST_ID = '9110303' ),'203') AS FUND /*자금*/
+                         , '' AS KOINH	/*예금주*/
+                         , '' AS BANKK	/*은행코드*/
+                         , '' AS BANKN	/*계좌번호*/
+                         , '' AS MESSGE	/*SAP전표메시지*/
+                         , '' AS TRDAT	/*전송일*/
+                         , '' AS REDAT	/*반영일자*/
+                         , '' AS ZFCGUB	/*취소여부*/
+                         , '' AS ZFIDPT	/*작성부서*/
+                         , '' AS ZFIMAN	/*작성담당*/
+                         , TO_CHAR(SYSDATE,'YYYYMMDD') AS ZFSYMD /*전송일자*/
+                         , '' AS ZFRYMD	/*수신일자*/
+                         , '' AS ZFETC1	/*기타1*/
+                         , '' AS ZFETC2	/*기타2*/
+                         , '' AS ZFETC3	/*기타3*/
+                         , TO_CHAR(SYSDATE,'YYYYMMDD') AS FIEYMD /*입력일자*/
+                         , TO_CHAR(SYSDATE,'HH24MISS') AS FIEHMS /*입력시간*/
+                         , TO_CHAR(SYSDATE,'YYYYMMDD') AS FIMYMD /*수정일자*/
+                         , TO_CHAR(SYSDATE,'HH24MISS') AS FIMHMS /*수정시간*/
+                      FROM TB_RVDW_BILL_DP_IZ T1
+                     WHERE 1 = 1
+                       AND T1.ITG_DP_NO = #{itgDpNo}
+                       AND T1.DTA_DL_YN = 'N'
+
+                     UNION ALL
 
 
 
+
+                    SELECT #{zzsnum} AS ZZSNUM	/*전송번호*/
+                         , LPAD('1' , 6 , '0') AS ZKEY	    /*전표번호*/
+                         , '' AS IFNUM	/*IF정보*/
+                         , '5' AS ZZAVFLG	/*증빙구분*/
+                         , 'S3' AS BLART	/*전표유형*/
+                         , '2000' AS BUKRS	/*회사코드*/
+                         , LPAD(#{session.employeeIDNumber}, 6, '0') AS ZZUSER	/*입력자사번*/
+                         , TO_CHAR(LAST_DAY(TO_DATE(BILL_EXPR_DT,'YYYYMMDD')),'YYYYMMDD') AS BUDAT/*전기일-12월31일*/
+                         , TO_CHAR(LAST_DAY(TO_DATE(BILL_EXPR_DT,'YYYYMMDD')),'YYYYMMDD') AS BLDAT/*증빙일-12월31일*/
+                         , '렌탈 어음발행 만기입금' AS BKTXT	/*전표적요*/
+                         , 'C' AS SHKZG	/*차대구분 - 차변*/
+                         , '1000000010' AS LIFNR	/*구매처*/
+                         , '1000000010' AS KUNNR	/*고객*/
+                         , #{wrbtr} AS WRBTR	/*금액*/
+                         , '' AS UMSKZ	/*특별지시자*/
+                         , '2100501' AS  HKONT	/*GL계정*/
+                         , '' AS EMPFB	/*대체지급인*/
+                         , '' AS BVTYP	/*지급계좌키*/
+                         , 0 AS WMWST	/*부가세금액*/
+                         , '' AS MWSKZ	/*부가세코드*/
+                         , '' AS BRANCH	/*부가세사업장*/
+                         , 0 AS WTQSSHH	/*원천세표준액*/
+                         , 0 AS INCOMAMT	/*소득세금액*/
+                         , 0 AS INHABAMT	/*주민세금액*/
+                         , '' AS WITHCD	/*원천세코드*/
+                         , '' AS SECCO	/*섹션코드*/
+                         , '1210' AS GSBER	/*사업영역*/
+                         , T1.BILL_DLPNR_NM ||' 렌탈 어음발행 만기입금' AS SGTXT	/*항목적요*/
+                         , TO_CHAR(LAST_DAY(TO_DATE(BILL_EXPR_DT,'YYYYMMDD')),'YYYYMMDD') AS ZFBDT /*지급기산일-12월31일*/
+                         , '200092' AS KOSTL	/*코스트센터*/
+                         , '' AS POSID	/*WBS*/
+                         , '' AS XREF1	/*참조1*/
+                         , '' AS XREF2	/*참조2*/
+                         , '' AS XREF3	/*참조3*/
+                         , '' AS ZZPRDHA	/*제품계층구조*/
+                         , '' AS PRCTR	/*손익센터*/
+                         , '' AS AUGBL	/*반제원전표번*/
+                         , '' AS BELNR	/*SAP전표번호*/
+                         , '' AS STBLG	/*SAP역분개전표*/
+                         , NVL((SELECT MAX(SAP_BZ_CAPAM_CD) FROM TB_CBCL_DG_CST_ID_BAS WHERE DG_CST_ID = '1000000010' ),'203') AS FUND /*자금*/
+                         , '' AS KOINH	/*예금주*/
+                         , '' AS BANKK	/*은행코드*/
+                         , '' AS BANKN	/*계좌번호*/
+                         , '' AS MESSGE	/*SAP전표메시지*/
+                         , '' AS TRDAT	/*전송일*/
+                         , '' AS REDAT	/*반영일자*/
+                         , '' AS ZFCGUB	/*취소여부*/
+                         , '' AS ZFIDPT	/*작성부서*/
+                         , '' AS ZFIMAN	/*작성담당*/
+                         , TO_CHAR(SYSDATE,'YYYYMMDD') AS ZFSYMD /*전송일자*/
+                         , '' AS ZFRYMD	/*수신일자*/
+                         , '' AS ZFETC1	/*기타1*/
+                         , '' AS ZFETC2	/*기타2*/
+                         , '' AS ZFETC3	/*기타3*/
+                         , TO_CHAR(SYSDATE,'YYYYMMDD') AS FIEYMD /*입력일자*/
+                         , TO_CHAR(SYSDATE,'HH24MISS') AS FIEHMS /*입력시간*/
+                         , TO_CHAR(SYSDATE,'YYYYMMDD') AS FIMYMD /*수정일자*/
+                         , TO_CHAR(SYSDATE,'HH24MISS') AS FIMHMS /*수정시간*/
+                      FROM TB_RVDW_BILL_DP_IZ T1
+                     WHERE 1 = 1
+                       AND T1.ITG_DP_NO = #{itgDpNo}
+                       AND T1.DTA_DL_YN = 'N'
+              )
+
+        </select>
 </mapper>

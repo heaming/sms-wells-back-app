@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaStockContinueMonthAgrgStateDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockContinueMonthAgrgStateWareDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaStockContinueMonthAgrgStateService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 
@@ -36,10 +37,10 @@ public class WsnaStockContinueMonthAgrgStateController {
         @ApiImplicitParam(name = "itmGdCd", value = "등급", paramType = "query"),
         @ApiImplicitParam(name = "stockTpCd", value = "재고유형", paramType = "query"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query"),
-        @ApiImplicitParam(name = "itmKindCd", value = "품목구분", paramType = "query"),
+        @ApiImplicitParam(name = "itmKndCd", value = "품목구분", paramType = "query"),
     })
     @GetMapping
-    public List<HashMap<String, String>> getStockContinueMonthAgrgStatePages(
+    public List<HashMap<String, String>> getStockContinueMonthAgrgState(
         @Valid
         SearchReq dto
     ) {
@@ -52,12 +53,19 @@ public class WsnaStockContinueMonthAgrgStateController {
         @ApiImplicitParam(name = "itmGdCd", value = "등급", paramType = "query"),
         @ApiImplicitParam(name = "stockTpCd", value = "재고유형", paramType = "query"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query"),
-        @ApiImplicitParam(name = "itmKindCd", value = "품목구분", paramType = "query"),
+        @ApiImplicitParam(name = "itmKndCd", value = "품목구분", paramType = "query"),
     })
     @GetMapping("/excel-download")
     public List<HashMap<String, String>> excelDownload(SearchReq dto) {
 
         return service.getStockContinueMonthAgrgState(dto);
+    }
+
+    @GetMapping("/ware-houses")
+    @ApiOperation(value = "창고 조회", notes = "창고를 조회한다.")
+    public List<WsnaStockContinueMonthAgrgStateWareDvo> getWareHouseNames(String baseYm) {
+
+        return this.service.getWareHouses(baseYm);
     }
 
 }

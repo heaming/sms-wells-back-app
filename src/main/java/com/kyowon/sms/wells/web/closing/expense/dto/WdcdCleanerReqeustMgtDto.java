@@ -1,12 +1,15 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
 import com.sds.sflex.system.config.masking.MaskRequired;
 import com.sds.sflex.system.config.masking.MaskingType;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
-
-import java.util.List;
 
 public class WdcdCleanerReqeustMgtDto {
 
@@ -105,7 +108,6 @@ public class WdcdCleanerReqeustMgtDto {
         //@MaskRequired(type = MaskingType.ALL)
         String dtlAdr,
         String bnkCd,
-        //@MaskRequired(type = MaskingType.ACCOUNT)
         String acnoEncr,    // 계좌번호
         String idfApnFileId,
         String bnkbApnFileId,
@@ -113,8 +115,10 @@ public class WdcdCleanerReqeustMgtDto {
         String cntrLroreApnFileId
     ) {
         public FindRes {
-            frontRrnoEncr = rrnoEncr.substring(0, 6);
-            backRrnoEncr = rrnoEncr.substring(6, rrnoEncr.length());
+            if(StringUtils.isNotEmpty(rrnoEncr) && rrnoEncr.length() == 13) {
+                frontRrnoEncr = rrnoEncr.substring(0, 6);
+                backRrnoEncr = rrnoEncr.substring(6, rrnoEncr.length());
+            }
         }
     }
 }

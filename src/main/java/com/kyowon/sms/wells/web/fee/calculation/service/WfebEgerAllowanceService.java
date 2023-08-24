@@ -82,6 +82,9 @@ public class WfebEgerAllowanceService {
                 searchSchdRes != null && "START".equals(searchSchdRes.feeSchdLvCd()), "MSG_ALT_NO_WK_PTRM"
             ); // 작업 가능한 기간이 아닙니다.
 
+            int cnt = mapper.selectConfirmYnCheck(dvo);
+            BizAssert.isTrue(cnt == 0, "MSG_ALT_BF_CNFM_CONF"); // 이미 확정되었습니다.
+
             // mapper.insertEgerAllowanceHist(dvo);
             processCnt = mapper.updateEgerAllowanceControl(dvo);
         }
@@ -126,18 +129,11 @@ public class WfebEgerAllowanceService {
                         searchSchdRes != null && "START".equals(searchSchdRes.feeSchdLvCd()), "MSG_ALT_NO_WK_PTRM"
                     ); // 작업 가능한 기간이 아닙니다.
 
-                    int cnt = mapper.selectConfirmYnCheck(dvo);
-                    BizAssert.isTrue(cnt == 0, "MSG_ALT_BF_CNFM_CONF"); // 이미 확정되었습니다.
-
                     processCnt = mapper.insertEgerAllowanceConfirm(dvo);
                     BizAssert.isTrue(processCnt > 0, "MSG_ALT_CNFM_FAIL");
                 }
                 case "H" -> { // 본사
                     dvo.setHdof("Y");
-                    /*
-                    int cnt = mapper.selectConfirmYnCheck(dvo);
-                    BizAssert.isTrue(cnt == 0, "MSG_ALT_BF_CNFM_CONF"); // 이미 확정되었습니다.
-                     */
 
                     if ("Y".equals(dto.confirm())) { // 확정
                         processCnt = mapper.updateEgerAllowanceConfirm(dvo);
@@ -152,6 +148,19 @@ public class WfebEgerAllowanceService {
         }
 
         return processCnt;
+    }
+
+    /**
+     * 엔지니어 수수료 일정
+     * @param dto : {
+     * schPerfYm : 실적년월,
+     * schRsbTp : 직책유형 }
+     * @return 조회결과
+     */
+    public WfebEgerAllowanceDto.SearchSchdRes getEngineerSchedule(
+        WfebEgerAllowanceDto.SearchReq dto
+    ) {
+        return this.mapper.selectEngineerSchedule(dto);
     }
 
     /**

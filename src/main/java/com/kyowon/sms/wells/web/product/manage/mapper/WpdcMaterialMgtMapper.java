@@ -21,6 +21,9 @@ public interface WpdcMaterialMgtMapper {
     PagingResult<SearchSapRes> selectMaterialSapPages(@Param("dto")
     SearchSapReq dto, PageInfo pageInfo);
 
+    List<SearchSapRes> selectMaterialSapPages(@Param("dto")
+    SearchSapReq dto);
+
     int deleteTbPdbsPdRel(@Param("pdCd")
     String pdCd,
         @Param("info")
@@ -41,7 +44,7 @@ public interface WpdcMaterialMgtMapper {
 
     ZpdcGbcoSapMatDvo selectMaterialSap(String sapMatCd);
 
-    List<ZpdcGbcoSapMatDvo> selectMaterialSaps(String sapMatCd);
+    List<ZpdcGbcoSapMatDvo> selectMaterialSaps(String sapMatCd, String sapPlntVal);
 
     /**
      * 유효성 체크 조회

@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -25,6 +27,7 @@ public class WwdeaMutualAidFeeMgtDto {
         String sellDvCd, /*구분(판매구분코드) TODO: 컬럼 확인 필요*/
         String ogCd, /*소속(조직코드)*/
         String prtnrNo, /*파트너번호*/
+        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, /*판매자명(파트너한글명)*/
         String rsbDvCd, /*직급(직책구분코드)*/
         String brmgrPrtnrNo, /*지점장(지점장파트너번호)*/
@@ -60,6 +63,7 @@ public class WwdeaMutualAidFeeMgtDto {
         BigDecimal ackmtPerfAmt, /*금액(인정실적금액)*/
         String ogCd, /*소속(조직코드)*/
         String prtnrNo, /*파트너번호*/
+        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, /*판매자명(파트너한글명)*/
         String rsbDvCd /*직급(직책구분코드)*/
     ) {}

@@ -28,7 +28,8 @@ public class WsnaSeedingSowPlanDto {
         @NotBlank
         @ValidDate
         String endDt,
-        String cntrDtlNo
+        String cntrNo,
+        Integer cntrSn
     ) {}
 
     @Builder

@@ -29,7 +29,7 @@ public class WwdbSinglePaymentPerformanceInfoInterfaceDto {
         String dpTpNm, // 유형(지로/간이/은행/은행이체/가상계좌/카드이체/영업부/수당/RDS/전금/수수료/대손/앱할인)
         @JsonProperty("DP_AMT")
         String dpAmt, // 입금금액(환불인 경우 음수로 표시)
-        @JsonProperty("PERF_DT")
+        @JsonProperty("PERF_YM")
         String perfYm // 실적년월
     ) {}
 }

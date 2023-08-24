@@ -38,4 +38,6 @@ public class WfeaLifeSaleCancelFeenterfaceDvo {
     private String fnlMdfcUsrId; /* 최종수정사용자ID */
     private String fnlMdfcPrgId; /* 최종수정프로그램ID */
     private String fnlMdfcDeptId; /* 최종수정부서ID */
+    private String ogTpCd; /* 조직유형코드 */
+
 }

@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.deduction.redf.dto;
 
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
+
 import io.swagger.annotations.ApiModel;
 
 public class WdeaSoleDistributorMgtDto {
@@ -61,11 +64,13 @@ public class WdeaSoleDistributorMgtDto {
     public record SearchSoleDistributorContractRes(
         String ogCd, /*지점코드*/
         String ogNm, /*지점명*/
+        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, /*판매자(파트너성명)*/
         String prtnrNo, /*판매자번호(파트너번호)*/
         String cntrNo, /*계약번호*/
         String cntrSn, /*계약일련번호*/
         String cntrNoSn, /*계약상세번호*/
+        @MaskRequired(type = MaskingType.NAME)
         String cstKnm, /*고객성명*/
         String pdCd, /*상품코드*/
         String pdClsfNm, /*상품명*/

@@ -7,9 +7,9 @@
              , CD.CD_CNTN AS RSB /* 직책 */
              , FLOOR(MONTHS_BETWEEN (#{perfYm}||'01',OG.CNTR_DT)) +1 AS AKDCHA    /* 차월 */
              , NVL(OG.PRTNR_GD_CD,0) AS PRTNR_GD_CD /* 급수 */
-             , '' AS ATCNT1 /* 집합교육참여일수 */
-             , '' AS ATCNT2 /* 동행교육참여일수 */
-             , OG.CNTR_DT AS AKDSYM /* 업무등록월 */
+             , NVL(EDU.EDU124,0) AS ATCNT1 /* 집합교육참여일수 */
+             , NVL(EDU.EDU125,0) AS ATCNT2 /* 동행교육참여일수 */
+             , TO_CHAR(TO_DATE(OG.CNTR_DT,'YYYYMMDD'),'YYYY-MM') AS AKDSYM /* 업무등록월 */
              , AK17.AKDEQ0 AS AKDEQ0 /* 총판매건수 */
              , AK17.SERCNT /* 서비스건수 */
              , AK17.SERRYL /* 서비스처리율 */
@@ -23,8 +23,8 @@
              , FEE.ACL_DSB_AMT /* 실지급액 */
         FROM TB_OGBS_MM_PRTNR_IZ OG
         LEFT OUTER JOIN T_CMZ_CD_D CD
-          ON OG.QLF_DV_CD = CD.CD_ID
-         AND CD.CD_ID = 'QLF_DV_CD'
+          ON OG.RSB_DV_CD = CD.CD_VLD_VAL
+         AND CD.CD_ID = 'RSB_DV_CD'
          AND CD.TENANT_ID = #{session.tenantId}
         LEFT OUTER JOIN ( SELECT E.PRTNR_NO
                                , E.OG_TP_CD
@@ -67,6 +67,22 @@
                            GROUP BY M.PRTNR_NO
                         ) AK17
           ON OG.PRTNR_NO = AK17.PRTNR_NO
+        LEFT OUTER JOIN ( SELECT PRTNR_NO
+                               , SUM(EDU124) AS EDU124
+                               , SUM(EDU125) AS EDU125
+                            FROM ( SELECT PRTNR_NO
+                                        , CASE WHEN EDUC_CRSE_NO = '124' THEN EDUC_PRSC_DC ELSE 0 END EDU124
+                                        , CASE WHEN EDUC_CRSE_NO = '125' THEN EDUC_PRSC_DC ELSE 0 END EDU125
+                                     FROM TB_PSCA_MCPTN_EDUC_IZ
+                                    WHERE EDUC_CRSE_NO IN ('124','125')
+                                      AND EDUC_CPC_ACKMT_YN = 'Y'
+                                      AND EDUC_CRSE_CRT_BASE_YM &lt;= #{perfYm}
+                                      AND OG_TP_CD = 'W03'
+                                      AND PRTNR_NO = #{no}
+                                 )
+                           GROUP BY PRTNR_NO
+                        ) EDU
+          ON OG.PRTNR_NO = EDU.PRTNR_NO
        WHERE OG.BASE_YM = #{perfYm}
          AND OG.OG_TP_CD = 'W03'
          AND OG.PRTNR_NO = #{no}
@@ -483,14 +499,16 @@
              , NVL(MAX(AMT05),0) AS HIR_INSR
              , NVL(MAX(AMT07),0) AS BU_DDTN
              , NVL(MAX(AMT04),0) AS PNPYAM
+             , NVL(MAX(AMT06),0) AS INDD_INSR
           FROM ( SELECT NVL(CASE WHEN FEE_DDTN_TP_CD = '01' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT01
                       , NVL(CASE WHEN FEE_DDTN_TP_CD = '02' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT02
                       , NVL(CASE WHEN FEE_DDTN_TP_CD = '03' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT03
                       , NVL(CASE WHEN FEE_DDTN_TP_CD = '05' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT05
+                      , NVL(CASE WHEN FEE_DDTN_TP_CD = '06' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT06
                       , NVL(CASE WHEN FEE_DDTN_TP_CD = '07' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT07
                       , NVL(CASE WHEN FEE_DDTN_TP_CD = '04' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT04
                    FROM TB_FEAM_FEE_DDTN_IZ A
-                  WHERE A.FEE_DDTN_TP_CD IN ('01','02','03','04','05','07')
+                  WHERE A.FEE_DDTN_TP_CD IN ('01','02','03','04','05','06','07')
                     AND A.DDTN_YM = #{perfYm} /*년월*/
                     AND A.PRTNR_NO = #{no}    /*사번*/
                     AND A.OG_TP_CD = 'W01'    /*P조직*/
@@ -566,9 +584,11 @@
                     ELSE MONTHS_BETWEEN(T3.ENDDT, TO_DATE(T3.CV_DT, 'YYYY-MM-DD'))
                END AS OPNG_NMM                                  /* 개시차월 = 해약일자 - 전환일자 */
              , NVL(SUBSTR(T3.ENDDT,0,6),0) AS MNG_CLTN_MM      /* 매니저 해약월 */
-             , NVL(T4.MGT_CNT,0) AS MGT_CNT /* BS 총 관리건수 */
+             , NVL(T4.MGT_CNT,0)-NVL(T6.CAN_CNT,0) AS MGT_CNT /* BS 총 관리건수 = 관리건수 - 취소건수*/
              , NVL(T4.VST_CNT,0) AS VST_CNT /* BS 총 방문건수 */
-             , NVL(T4.PROCS_RT,0) AS PROCS_RT /* BS 방문율 */
+             , CASE WHEN NVL(T4.MGT_CNT,0) = 0 THEN 0
+                    ELSE ROUND(NVL(T4.VST_CNT,0)/(NVL(T4.MGT_CNT,0)-NVL(T6.CAN_CNT,0))*100, 2)
+               END AS PROCS_RT
              , NVL(T5.INTBS_AMT,0) AS INTBS_SUM
              , NVL(T5.DDCTAM,0) AS DDTN_SUM
              , NVL(T5.DSB_OJ_AMT,0) AS ACL_DSB_AMT
@@ -595,7 +615,7 @@
                                  , ROUND(NVL(SUM(T.COL2),0)/NVL(SUM(T.COL1),0)*100, 2) AS PROCS_RT
                               FROM ( SELECT BS.PRTNR_NO
                                           , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN BS.PERF_VAL END AS COL1
-                                          , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '02' THEN BS.PERF_VAL END AS COL2
+                                          , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 IN ('02','03') THEN BS.PERF_VAL END AS COL2
                                        FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
                                       INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD GI
                                          ON BS.PRTNR_SV_PERF_ATC_CD = GI.PRTNR_SV_PERF_ATC_CD
@@ -609,7 +629,7 @@
                                       UNION ALL
                                      SELECT BS.PRTNR_NO
                                           , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN BS.PERF_VAL END AS COL1
-                                          , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '02' THEN BS.PERF_VAL END AS COL2
+                                          , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 IN ('02','03') THEN BS.PERF_VAL END AS COL2
                                        FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
                                       INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD GI
                                          ON BS.PRTNR_SV_PERF_ATC_CD = GI.PRTNR_SV_PERF_ATC_CD
@@ -624,24 +644,35 @@
                              GROUP BY T.PRTNR_NO
                           )T4
             ON T1.PRTNR_NO = T4.PRTNR_NO
-        LEFT OUTER JOIN TB_FEAM_FEE_DSB_IZ T5
-          ON T1.BASE_YM = T5.DSB_YM
-         AND T1.OG_TP_CD = T5.OG_TP_CD
-         AND T1.PRTNR_NO = T5.PRTNR_NO
-         AND T5.CO_CD = #{session.companyCode}
-         AND T5.FEE_TCNT_DV_CD = '02'
-         AND T5.SPMT_DSB_DV_CD = '01'
-        LEFT OUTER JOIN T_CMZ_CD_D CD1
-          ON T1.RSB_DV_CD = CD1.CD_VLD_VAL
-         AND CD1.CD_ID = 'RSB_DV_CD'
-         AND CD1.TENANT_ID = 'TNT_WELLS'
-        LEFT OUTER JOIN T_CMZ_CD_D CD2
-          ON T1.QLF_DV_CD = CD2.CD_VLD_VAL
-         AND CD2.CD_ID = 'QLF_DV_CD'
-         AND CD2.TENANT_ID = 'TNT_WELLS'
-       WHERE T1.BASE_YM = #{perfYm}
-         AND T1.OG_TP_CD = 'W02'     /* M 조직 */
-         AND T1.PRTNR_NO = #{no}
+          LEFT OUTER JOIN TB_FEAM_FEE_DSB_IZ T5
+            ON T1.BASE_YM = T5.DSB_YM
+           AND T1.OG_TP_CD = T5.OG_TP_CD
+           AND T1.PRTNR_NO = T5.PRTNR_NO
+           AND T5.CO_CD = #{session.companyCode}
+           AND T5.FEE_TCNT_DV_CD = '02'
+           AND T5.SPMT_DSB_DV_CD = '01'
+          LEFT OUTER JOIN ( SELECT PRTNR_NO
+                                 , COUNT(WK_CAN_RSON_CD) AS CAN_CNT
+                              FROM TB_FEAM_WELS_SV_PERF_IZ
+                             WHERE BASE_YM = #{perfYm}
+                               AND OG_TP_CD = 'W02'
+                               AND PRTNR_NO = #{no}
+                               AND CL_DV_CD = '02'
+                               AND WK_CAN_RSON_CD IS NOT NULL
+                             GROUP BY PRTNR_NO
+                          )T6
+            ON T1.PRTNR_NO = T6.PRTNR_NO
+          LEFT OUTER JOIN T_CMZ_CD_D CD1
+            ON T1.RSB_DV_CD = CD1.CD_VLD_VAL
+           AND CD1.CD_ID = 'RSB_DV_CD'
+           AND CD1.TENANT_ID = 'TNT_WELLS'
+          LEFT OUTER JOIN T_CMZ_CD_D CD2
+            ON T1.QLF_DV_CD = CD2.CD_VLD_VAL
+           AND CD2.CD_ID = 'QLF_DV_CD'
+           AND CD2.TENANT_ID = 'TNT_WELLS'
+         WHERE T1.BASE_YM = #{perfYm}
+           AND T1.OG_TP_CD = 'W02'     /* M 조직 */
+           AND T1.PRTNR_NO = #{no}
     </select>
 
     <select id='selectMngerBaseInfo'
@@ -794,7 +825,7 @@
                                , PRTNR_PERF_DTLP_ATC_CDV1||PRTNR_PERF_DTLP_ATC_CDV2 AS SV_CD
                                , PRTNR_PERF_DTLP_ATC_CDV2 AS SV_CD2
                                , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN BS.PERF_VAL END AS COL1
-                               , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '02' THEN BS.PERF_VAL END AS COL2
+                               , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 IN  ('02','03') THEN BS.PERF_VAL END AS COL2
                                , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '04' THEN BS.PERF_VAL END AS COL3
                             FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
                            INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD GI
@@ -823,7 +854,7 @@
                                , PRTNR_PERF_DTLP_ATC_CDV2 AS SV_CD2
                                , BS.BASE_YM
                                , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN BS.PERF_VAL END AS COL1
-                               , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '02' THEN BS.PERF_VAL END AS COL2
+                               , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 IN  ('02','03') THEN BS.PERF_VAL END AS COL2
                                , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '04' THEN BS.PERF_VAL END AS COL3
                             FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
                            INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD GI

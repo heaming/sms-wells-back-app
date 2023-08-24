@@ -1,9 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.math.BigDecimal;
+
 import lombok.Getter;
 import lombok.Setter;
-
-import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -14,10 +14,10 @@ public class WsnaItemBaseInformationReturnDvo {
     String itmPdNm; /*품목상품명*/
     String itmPdAbbr1; /*품목상품명1*/
     BigDecimal lgstQty; /*물류수량*/
-    String centerQty; /*센터A등급재고*/
-    String myCenterQty; /*조직창고 수량*/
-    String indiStckQty; /*개인창고수량*/
-    String lQty;
+    BigDecimal centerQty; /*센터A등급재고*/
+    BigDecimal myCenterQty; /*조직창고 수량*/
+    BigDecimal indiStckQty; /*개인창고수량*/
+    BigDecimal lQty;
     String itmKnd; /*품목종류*/
     String itmKndNm; /*품목종류명*/
     String delUnt; /*출고단위*/

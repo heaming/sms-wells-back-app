@@ -38,7 +38,7 @@ public class WpdySeedlingPriceMgtService {
         int cnt = 0;
         List<WpdySeedlingPriceBaseDvo> bases = converter.mapAllSeedlingPriceBaseDtoToSeedlingPriceBaseDvo(dto.bases());
         for (WpdySeedlingPriceBaseDvo base : bases) {
-            base = getSeedlingPrice(base, true);
+            setSeedlingPrice(base, true);
             if (StringUtil.isEmpty(base.getRglrSppSdingPrcId())) {
                 cnt += mapper.insertSeedlingPriceBase(base);
             } else {
@@ -54,7 +54,7 @@ public class WpdySeedlingPriceMgtService {
         int cnt = 0;
         List<WpdySeedlingPriceBaseDvo> bases = converter.mapAllSeedlingPriceBaseDtoToSeedlingPriceBaseDvo(dtos);
         for (WpdySeedlingPriceBaseDvo base : bases) {
-            base = getSeedlingPrice(base, false);
+            setSeedlingPrice(base, false);
             cnt += mapper.deleteSeedlingPriceBase(base);
             mapper.insertSeedlingPriceHistory(base);
             mapper.updateSeedlingPricePrevHistory(base);
@@ -62,7 +62,7 @@ public class WpdySeedlingPriceMgtService {
         return cnt;
     }
 
-    private WpdySeedlingPriceBaseDvo getSeedlingPrice(WpdySeedlingPriceBaseDvo base, boolean isSave) {
+    private void setSeedlingPrice(WpdySeedlingPriceBaseDvo base, boolean isSave) {
         String histStrtDtm = DateUtil.getDate(new Date());
         String histEndDtm = PdProductConst.END_DATE_STR;
         base.setHistStrtDtm(histStrtDtm);
@@ -78,7 +78,6 @@ public class WpdySeedlingPriceMgtService {
                 }
             }
         }
-        return base;
     }
 
     public String checkDuplication(List<WpdySeedlingPriceMgtDto.SeedlingPriceBase> dtos) {

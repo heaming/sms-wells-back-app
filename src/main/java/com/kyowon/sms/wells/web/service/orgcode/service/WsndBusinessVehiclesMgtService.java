@@ -27,7 +27,12 @@ public class WsndBusinessVehiclesMgtService {
     }
 
     public PagingResult<SearchRes> getBusinessVehiclesPages(SearchReq dto, PageInfo pageInfo) {
-        return mapper.selectBusinessVehicles(dto, pageInfo);
+        List<WsndBusinessVehiclesMgtDvo> dvos = mapper.selectBusinessVehicles(dto, pageInfo);
+
+        PagingResult<SearchRes> dtos = converter.mapAllBusinessVehiclesMgtDvoToSearchRes(dvos);
+        dtos.setPageInfo(((PagingResult)dvos).getPageInfo());
+
+        return dtos;
     }
 
     public FindRes getBusinessVehicle(String vhcMngtNo, String vhcMngtSn) {

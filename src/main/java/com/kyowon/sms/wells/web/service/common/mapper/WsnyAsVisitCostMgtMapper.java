@@ -84,4 +84,6 @@ public interface WsnyAsVisitCostMgtMapper {
      */
     int insertRecapAsBstrCost(WsnyAsVisitCostMgtDvo dvo);
 
+    String selectCurrentMaxIzSn(String pdCd);
+
 }

@@ -75,7 +75,6 @@ public class WdcdOperatingCostMgtDto {
     @ApiModel(value = "WwdcdOperatingCostMgtDto-SearchSummaryRes")
     public record SearchSummaryRes(
         String opcsCardId,
-        String opcsAdjNo,
         String opcsAdjCnt,
         String opcsSmryNCnt,
         String opcsWhtxCfdcApnFileId
@@ -127,6 +126,19 @@ public class WdcdOperatingCostMgtDto {
     public record EditReq(
         String opcsCardId,
         List<AttachFileDto.AttachFile> attachOpcsWhtxCfdcApnFileId
+    ) {
+    }
+
+    @ApiModel(value = "WwdcdOperatingCostMgtDto-FindOrganizationLevelRes")
+    public record FindOrganizationLevelRes(
+        String dgr1LevlOgId,
+        String dgr1LevlOgNm,
+        String dgr2LevlOgId,
+        String dgr2LevlOgNm,
+        String dgr3LevlOgId,
+        String dgr3LevlOgNm,
+        String dgr4LevlOgId,
+        String dgr4LevlOgNm
     ) {
     }
 }

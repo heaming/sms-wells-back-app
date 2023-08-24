@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.closing.sales.dto;
 
-import io.swagger.annotations.ApiModel;
-
 import javax.validation.constraints.NotBlank;
+
+import io.swagger.annotations.ApiModel;
 
 public class WdcbMonthlySalesVolumeTableDto {
     // *********************************************************
@@ -15,11 +15,10 @@ public class WdcbMonthlySalesVolumeTableDto {
         String sellTpCd,
         String slStartDt,
         String slEndDt,
-        String sppmthdtpcd,
-        String sellinflwchnldtlcd,
-        String copndvcd
-    ) {
-    }
+        String sppMthdTpCd,
+        String sellInflwChnlDtlCd,
+        String copnDvCd
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -28,12 +27,12 @@ public class WdcbMonthlySalesVolumeTableDto {
     @ApiModel("WdcbMonthlySalesVolumeTableDto-SearchRes")
     public record SearchRentalRes(
         String sapMatCd,
-        String basePdCd,
+        String matPdCd,
         String pdCd,
         String pdNm,
-        String sellPrpChval
-    ) {
-    }
+        String svPdTpCd,
+        String cnt
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -41,11 +40,13 @@ public class WdcbMonthlySalesVolumeTableDto {
     // 월 매출수량 집계표 Search Dto
     @ApiModel("WdcbMonthlySalesVolumeTableDto-SearchRes")
     public record SearchPaymentRes(
-        String sapMatCd,     /* SAP상품코드 */
-        String basePdCd,     /* 수불코드 */
-        String pdcd,      /* 상품코드 */
-        String pdnm      /* 상품명 */
-    ) {
-    }
+        String sapMatCd,
+        String matPdCd,
+        String basePdCd,
+        String pdNm,
+        String stlmTpCd1,
+        String stlmTpCd2,
+        String tot
+    ) {}
 
 }

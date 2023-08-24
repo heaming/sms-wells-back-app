@@ -4,12 +4,14 @@ import io.swagger.annotations.ApiModel;
 
 public class WwdcSalesConfirmDto {
 
-    // 선납예상금 데이터 
+    // 선납예상금 데이터
     @ApiModel("WwdcSalesConfirmDto-SearchSalesConfirmReq")
     public record SearchSalesConfirmReq(
         String cntrNo,
         String cntrSn,
         String cellTpCd, // 판매유형코드
+        String startDate,
+        String endDate,
         String ogTpCd, /* 조직코드 */
         String dgr1LevlOgId, // 조직레벨 1
         String dgr2LevlOgId, // 조직레벨 2
@@ -17,7 +19,8 @@ public class WwdcSalesConfirmDto {
         String dtTo, // 매출인식일To
         String sellChnl, // 판매채널
         String slRcogDv // 판매인식
-    ) {}
+    ) {
+    }
 
     @ApiModel("WwdcSalesConfirmDto-SearchSalesConfirmRes")
     public record SearchSalesConfirmRes(
@@ -38,7 +41,7 @@ public class WwdcSalesConfirmDto {
         String pvdaAmt, /* 현할차금액*/
         String useDt, /* 렌탈일수 */
         //        String rentalDc, /* 월마감: 렌탈일수 */
-        String crtErrCn, /* 오류내역 */
+//        String crtErrCn, /* 오류내역 */
         String slRcogPrdCd, /* 매출인식기준 */
         String slRcogPrdDvCd, /* 매출인식주기*/
         String ostrDtm, /* 출고일자 */
@@ -48,7 +51,8 @@ public class WwdcSalesConfirmDto {
         String slRcogDt, /* 매출인식일자 */
         String fnlMdfcDtm, /* 변경일자 */
         String fnlMdfcUsrId/* 변경자 */
-    ) {}
+    ) {
+    }
 
     @ApiModel("WwdcSalesConfirmDto-SaveSalesConfirmReq")
     public record SaveSalesConfirmReq(
@@ -80,6 +84,7 @@ public class WwdcSalesConfirmDto {
         String fnlMdfcDtm, /* 변경일자 */
         String fnlMdfcUsrId, /* 변경자 */
         String state // 임시 상태값 컬럼 추가
-    ) {}
+    ) {
+    }
 
 }

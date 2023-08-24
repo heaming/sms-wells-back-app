@@ -39,7 +39,6 @@ public class WsnyAsCodeMgtDto {
         String siteAwAtcDsnDt,
         String svAnaHclsfCd,
         String siteAwAtcCd,
-        String fuleyAwAmt,
         String svAnaMclsfCd,
         String svAnaLclsfCd,
         String svAnaDsnDt,

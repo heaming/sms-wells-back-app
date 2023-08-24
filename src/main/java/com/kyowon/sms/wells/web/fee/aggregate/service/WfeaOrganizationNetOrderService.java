@@ -67,6 +67,10 @@ public class WfeaOrganizationNetOrderService {
                 "MSG_ALT_ALREADY_TCNT_ORD_AGRG_CNFM_BYO_AGRG_PSB"
             ); // 이미 해당 차수의 조직별 집계가 확정되어 실적 생성이 불가합니다.
 
+        // 순주문 제품유형 체크(순주문월마감)
+        int cnt = mapper.selectFeeNetOrderPdCnt(dto);
+        BizAssert.isTrue(cnt == 0, "MSG_ALT_NO_PD_CD"); //유효하지 않은 제품유형이 포함되어 있습니다.
+
         // 배치 dvo 생성
         BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
 
@@ -95,17 +99,15 @@ public class WfeaOrganizationNetOrderService {
     public int editOrganizationAggregates(WfeaOrganizationNetOrderDto.SaveOgNetOrderReq dto) {
         int processCnt = 0;
 
-        // 조직별집계 생성 체크
-        SearchRes netOrderStat = zfezFeeNetOrderStatusService
-            .getFeeNetOrderStat(dto.perfYm(), dto.feeTcntDvCd(), dto.perfAgrgCrtDvCd(), "01");
-        BizAssert.isTrue(netOrderStat != null, "MSG_ALT_OG_CNFM_AFT_AGRG"); // 해당 차수의 조직별 집계 후 진행해주세요.
-
         WfeaOrganizationNetOrderDvo dvo = converter.mapSaveOgNetOrderReqToWfeaOrganizationNetOrderDvo(dto);
         if ("CO".equals(dvo.getDv())) { // 확정
+            SearchRes netOrderStat = zfezFeeNetOrderStatusService
+                .getFeeNetOrderStat(dto.perfYm(), dto.feeTcntDvCd(), dto.perfAgrgCrtDvCd(), "02");
             BizAssert
                 .isTrue(
-                    netOrderStat != null && "01".equals(netOrderStat.ntorCnfmStatCd()), "MSG_ALT_BF_CNFM_CONF"
+                    !(netOrderStat != null && "02".equals(netOrderStat.ntorCnfmStatCd())), "MSG_ALT_BF_CNFM_CONF"
                 ); // 이미 확정되었습니다.
+
             processCnt = mapper.updateNtorMmClConfirm(dvo);
         } else if ("CC".equals(dvo.getDv())) { // 확정취소
             processCnt = mapper.updateNtorMmClCancel(dvo);

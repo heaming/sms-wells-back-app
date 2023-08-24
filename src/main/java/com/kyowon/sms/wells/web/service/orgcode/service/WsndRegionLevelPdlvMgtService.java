@@ -107,7 +107,7 @@ public class WsndRegionLevelPdlvMgtService {
                         return processCount;
                     } else if (StringUtils.equals(res.getDataDlYn(), "Y")) {
                         String apyStrtdt = mapper.selectStrtdtByPk(dto.pdlvNo());
-                        if (Integer.parseInt(apyStrtdt) > Integer.parseInt(dvo.getApyStrtdt())) {
+                        if (Integer.parseInt(apyStrtdt) >= Integer.parseInt(dvo.getApyStrtdt())) {
                             processCount = -1;
                             return processCount;
                         } else {

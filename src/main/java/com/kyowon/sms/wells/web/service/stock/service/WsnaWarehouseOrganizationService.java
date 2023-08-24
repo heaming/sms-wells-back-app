@@ -69,6 +69,7 @@ public class WsnaWarehouseOrganizationService {
         return this.mapper.selectWareCarriedCounter(dto);
     }
 
+    @Transactional
     public int createWareCarried(CreateReq dto) {
 
         int processCount = 0;
@@ -105,7 +106,7 @@ public class WsnaWarehouseOrganizationService {
         return this.mapper.selectWarehouseByPk(apyYmWareNo).orElseThrow();
     }
 
-    @Transactional
+    @Transactional(timeout = 300)
     public int saveWarehouseOg(SaveReq dto) {
         int processCount = 0;
 

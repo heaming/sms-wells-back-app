@@ -220,23 +220,18 @@ public class WsnaNormalOutOfStorageService {
                     String stockPdCd = stock.getItmPdCd();
 
                     if (pdCd.equals(stockPdCd)) {
-                        BigDecimal aGdQty = stock.getLgstAGdQty();
-                        BigDecimal bGdQty = stock.getLgstBGdQty();
-                        BigDecimal eGdQty = stock.getLgstEGdQty();
-                        BigDecimal rGdQty = stock.getLgstRGdQty();
-
                         switch (itmGdCd) {
                             case "A":
-                                lgstQty = aGdQty;
+                                lgstQty = stock.getLgstAGdQty();
                                 break;
                             case "B":
-                                lgstQty = bGdQty;
+                                lgstQty = stock.getLgstBGdQty();
                                 break;
                             case "E":
-                                lgstQty = eGdQty;
+                                lgstQty = stock.getLgstEGdQty();
                                 break;
                             case "R":
-                                lgstQty = rGdQty;
+                                lgstQty = stock.getLgstRGdQty();
                                 break;
                         }
 

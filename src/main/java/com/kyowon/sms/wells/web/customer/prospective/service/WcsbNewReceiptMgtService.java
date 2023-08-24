@@ -70,15 +70,24 @@ public class WcsbNewReceiptMgtService {
     }
 
     /**
-     * 담당자 수동배정 저장
+     * 담당자 수동배정   저장
      * @param dto
      * @return
      */
     @Transactional
     public int editPspcCstCnslAssign(AssignReq dto) {
         int processCount = 0;
-        processCount = mapper.updatePspcCstCnslAssign(dto);
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+
+        for (String pspcCstCnslId : dto.pspcCstCnslIds()) {
+            processCount += mapper.updatePspcCstCnslAssign(
+                AssignReq.builder()
+                    .pspcCstCnslId(pspcCstCnslId)
+                    .ogTpCd(dto.ogTpCd())
+                    .prtnrNo(dto.prtnrNo())
+                    .build()
+            );
+        }
+        BizAssert.isTrue(processCount == dto.pspcCstCnslIds().length, "MSG_ALT_SVE_ERR");
         return processCount;
     }
 
@@ -104,7 +113,7 @@ public class WcsbNewReceiptMgtService {
     }
 
     /*
-     * 배정조회 (TAB)   - Assign 
+     * 배정조회 (TAB)   - Assign
      */
 
     /**

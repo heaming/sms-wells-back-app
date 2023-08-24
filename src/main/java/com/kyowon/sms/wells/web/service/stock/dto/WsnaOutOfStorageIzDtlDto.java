@@ -48,7 +48,11 @@ public class WsnaOutOfStorageIzDtlDto {
         String itmPdCd,
         String itmGdCd,
         String itmKndCd,
-        String useYn
+        String useYn,
+
+        String strWareDtlDvCd,
+
+        String ostrWareDtlDvCd
     ) {}
 
     @ApiModel(value = "WsnaOutOfStorageIzDtlDto-SearchRes")

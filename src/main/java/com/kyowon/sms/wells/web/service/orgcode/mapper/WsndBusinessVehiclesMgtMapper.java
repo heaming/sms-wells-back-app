@@ -17,7 +17,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WsndBusinessVehiclesMgtMapper {
     List<SearchRes> selectBusinessVehicles(SearchReq dto);
 
-    PagingResult<SearchRes> selectBusinessVehicles(SearchReq dto, PageInfo pageInfo);
+    // PagingResult<SearchRes> selectBusinessVehicles(SearchReq dto, PageInfo pageInfo);
+    PagingResult<WsndBusinessVehiclesMgtDvo> selectBusinessVehicles(SearchReq dto, PageInfo pageInfo);
 
     Optional<FindRes> selectBusinessVehicle(String vhcMngtNo, String vhcMngtSn);
 

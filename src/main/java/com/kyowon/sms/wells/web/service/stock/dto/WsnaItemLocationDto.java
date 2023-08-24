@@ -59,10 +59,8 @@ public class WsnaItemLocationDto {
 
     @ApiModel("WsnaItemLocationDto-SearchLocationReq")
     public record SearchLocationReq(
-        String itmCdFrom,
-        String itmCdTo,
+        String itmPdCd,
         String itmKnd,
-        @NotBlank
         String wareNo
 
     ) {}

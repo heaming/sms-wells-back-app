@@ -54,6 +54,7 @@ public class WfeaWelsMngerSettlementAwController {
         @ApiImplicitParam(name = "prtnrKnm", value = "이름", paramType = "query", required = false),
         @ApiImplicitParam(name = "divCd", value = "구분", paramType = "query", required = false),
         @ApiImplicitParam(name = "rsbDvCd", value = "직급구분", paramType = "query", required = false),
+
     })
 
     @GetMapping("etc")

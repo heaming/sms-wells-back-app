@@ -19,25 +19,21 @@ public class WdcaMembershipCheckService {
 
     /**
     * 멤버십확정 체크리스트 - 체크리스트(전) - 조회
-    * @param deptGubun 조직선택
     * @param pageInfo 페이징 처리 정보
     * @return
     */
     public PagingResult<SearchRes> getBeforePages(
-        String deptGubun, PageInfo pageInfo
+        PageInfo pageInfo
     ) {
-        return mapper.selectBeforePages(deptGubun, pageInfo);
+        return mapper.selectBeforePages(pageInfo);
     }
 
     /**
     * 멤버십확정 체크리스트 - 체크리스트(전) - 엑셀다운로드
-    * @param deptGubun 조직선택
     * @return
     */
-    public List<SearchRes> getBeforeForExcelDownload(
-        String deptGubun
-    ) {
-        return mapper.selectBeforePages(deptGubun);
+    public List<SearchRes> getBeforeForExcelDownload() {
+        return mapper.selectBeforePages();
     }
 
     /**

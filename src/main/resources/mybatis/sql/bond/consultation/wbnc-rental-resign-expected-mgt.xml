@@ -816,7 +816,7 @@
                       AND D.OG_TP_CD = A.SELL_OG_TP_CD
                       AND D.PRTNR_NO = A.SELL_PRTNR_NO
                      LEFT JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
-                       ON TO_CHAR(ADD_MONTHS(TO_DATE(F.BASE_YM,'YYYYMM'),-1),'YYYYMM') = C.SL_CL_YM
+                       ON F.BASE_YM = T.BASE_YM
                       AND F.CNTR_NO = T.CNTR_NO
                       AND F.CNTR_SN = T.CNTR_SN
                      LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
@@ -840,7 +840,7 @@
                        ON 1 = 1
                     WHERE 1 = 1
                       AND T.DTA_DL_YN = 'N'
-                      AND C.SL_CL_YM = SUBSTR(#{baseDt},1,6)    /*실적년월*/
+                      AND T.BASE_YM = SUBSTR(#{baseDt},1,6)    /*기준년월*/
                       AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
                   ) X2
                ON (     X2.COL05 = X1.CNTR_NO
@@ -879,6 +879,7 @@
                 , X1.AUTH_RSG_EXP_RGST_PRTNR_NO = #{session.employeeIDNumber}   /*직권해지예정등록파트너번호*/
                 , X1.CLCTAM_DV_CD = X2.COL09        /*집금구분코드*/
                 , X1.CLCTAM_PRTNR_NO = X2.COL10     /*집금파트너번호*/
+            <include refid="COMMON.updateSystemField"/>
         </if>
         <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
            UPDATE
@@ -906,6 +907,7 @@
                 , X1.RSG_MM_UC_AMT = X2.COL08       /*해지월미수금액*/
                 , X1.CLCTAM_DV_CD = X2.COL09        /*집금구분코드*/
                 , X1.CLCTAM_PRTNR_NO = X2.COL10     /*집금파트너번호*/
+            <include refid="COMMON.updateSystemField"/>
         </if>
 
     </update>
@@ -923,10 +925,10 @@
                         , NVL(C.BTD_ATAM,0)         AS COL07    /*선수기초금액*/
                         , NVL(C.OVR_CTR_DP_AMT,0)   AS COL08    /*초과조정입금금액*/
                         , NVL(C.THM_UC_BLAM,0)      AS COL09    /*당월미수잔액*/
-                        , NVL(T1.TOT_NPD_AMT,0)       AS COL10    /*총미납금액:렌탈*/
-                        , NVL(I.PD_RVE_AMT,0)       AS COL12    /*입금금액:기기*/
-                        , NVL(I.RFND_RVE_AMT,0)     AS COL13    /*환불금액:기기*/
-                        , NVL(T1.TOT_NPD_AMT,0) - (NVL(I.PD_RVE_AMT,0) - NVL(I.RFND_RVE_AMT,0)) AS COL14
+                        , NVL(T1.TOT_NPD_AMT,0)     AS COL10    /*총미납금액:렌탈*/
+                        , NVL(J.PD_RVE_AMT,0)       AS COL12    /*입금금액:기기*/
+                        , NVL(J.RFND_RVE_AMT,0)     AS COL13    /*환불금액:기기*/
+                        , NVL(T.TOT_NPD_AMT,0) - (NVL(I.PD_RVE_AMT,0) - NVL(I.RFND_RVE_AMT,0)) AS COL14
                         , NVL(T1.TOT_NPD_AMT,0) - (NVL(C.BTD_ATAM,0) + NVL(J.PD_RVE_AMT,0) - NVL(J.RFND_RVE_AMT,0)) AS COL15
                         , T.BASE_YM                 AS COL16    /*기준년월*/
                         , NVL(K.UC_AMT,0) - (NVL(I.PD_RVE_AMT,0) - NVL(I.RFND_RVE_AMT,0)) AS COL17
@@ -952,7 +954,7 @@
                       AND D.OG_TP_CD = A.SELL_OG_TP_CD
                       AND D.PRTNR_NO = A.SELL_PRTNR_NO
                      LEFT JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
-                       ON TO_CHAR(ADD_MONTHS(TO_DATE(F.BASE_YM,'YYYYMM'),-1),'YYYYMM') = C.SL_CL_YM
+                       ON F.BASE_YM = T.BASE_YM
                       AND F.CNTR_NO = T.CNTR_NO
                       AND F.CNTR_SN = T.CNTR_SN
                      LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
@@ -997,15 +999,15 @@
                        ON 1 = 1
                     WHERE 1 = 1
                       AND T.DTA_DL_YN = 'N'
-                      AND C.SL_CL_YM = SUBSTR(#{baseDt},1,6)    /*실적년월*/
+                      AND T.BASE_YM = SUBSTR(#{baseDt},1,6)    /*실적년월*/
                       AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
                   ) X2
-               ON (     X2.COL05 = X1.CNTR_NO
-                    AND X2.COL07 = X1.BASE_YM
+               ON (     X2.COL04 = X1.CNTR_NO
+                    AND X2.COL16 = X1.BASE_YM
                     AND X1.BASE_YM = SUBSTR(#{baseDt},1,6)
                     AND X1.SELL_TP_CD = '6'  /*판매유형코드->6:정기배송*/
                     AND X1.AUTH_RSG_EXCD_RQR_PRTNR_NO IS NULL    /*직권해지제외요청자파트너번호*/
-                    AND ((X2.COL06 != '62' AND X2.COL14 > 0) OR (X2.COL06  = '62' AND X2.COL15 > 0)) /*모종이 아닐경우 총미납금이 0이 아닌, 모종일 경우 결합기기 총미납금이 0이 아닌경우*/
+<!--                    AND (CASE WHEN X2.COL06 = '62' THEN NVL(X2.COL15,0) ELSE NVL(X2.COL14,0) END) > 0 모종이 아닐경우 총미납금이 0이 아닌, 모종일 경우 결합기기 총미납금이 0이 아닌경우-->
                 <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
                     AND X1.AUTH_RSG_EXP_YN = 'Y'   /*직권해지예정여부*/
                 </if>

@@ -102,7 +102,8 @@ public class WfeaNetOrderDto {
         String capsl,
         String homeCare,
         String csmb,
-        String acsr
+        String acsr,
+        String nopd
     ) {}
 
     @ApiModel(value = "WfeaNetOrderDto-SearchConfirmRes")

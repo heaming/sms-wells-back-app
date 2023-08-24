@@ -50,7 +50,8 @@ public class WdcdSecuritiesMgtDto {
         String opcsAdjNo, /*운영비정산번호*/
         String domTrdAmt,               /*사용금액*/
         String domTrdAmt1,               /*사용금액*/
-        String domTrdSumAmt               /*사용금액 합*/
+        String domTrdSumAmt,               /*사용금액 합*/
+        String ogTpCd
     ) {
         public SearchAdjustObjectRes {
 

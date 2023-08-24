@@ -1,13 +1,17 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import org.apache.commons.lang3.StringUtils;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.common.web.service.stock.ivo.EAI_WSVO1003.request.WellsCounselReqIvo;
-import com.kyowon.sms.common.web.service.stock.ivo.EAI_WSVO1003.response.WellsCounselResIvo;
+import com.kyowon.sms.common.web.service.stock.ivo.EAI_WSVO1009.request.WellsCounselReqIvo;
+import com.kyowon.sms.common.web.service.stock.ivo.EAI_WSVO1009.response.WellsCounselResIvo;
 import com.kyowon.sms.common.web.service.stock.service.ZsnaWellsCounselSevice;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
+import com.kyowon.sms.wells.web.service.stock.converter.WsnaPcsvReturningGoodsMgtConverter;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvReturningGoodsSaveMapper;
@@ -25,58 +29,67 @@ import lombok.extern.slf4j.Slf4j;
 public class WsnaPcsvReturningGoodsSaveService {
 
     private final WsnaPcsvReturningGoodsSaveMapper mapper;
+    private final WsnaPcsvReturningGoodsMgtConverter converter;
     private final ZsnaWellsCounselSevice counselService;
     private final WsnaItemStockItemizationService itemStockservice;
     private final WctaInstallationReqdDtInService reqdDtService;
 
     @Transactional
-    public void savePcsvReturningGoods(WsnaPcsvReturningGoodsSaveDvo dvo) {
+    public int savePcsvReturningGoods(List<WsnaPcsvReturningGoodsMgtDto.SaveReq> dtos) {
 
-        WellsCounselResIvo counselRes = null;
+        WellsCounselResIvo counselRes;
+        int processCount = 0;
+        List<WsnaPcsvReturningGoodsSaveDvo> dvos = converter.mapSaveReqToPcsvReturningGoodsDvo(dtos);
+        for (WsnaPcsvReturningGoodsSaveDvo dvo : dvos) {
+            if ("11".equals(dvo.getFindGb()) && "10".equals(dvo.getWkPrgsStatCd())
+                && !StringUtils.isEmpty(dvo.getReqdDt())) {
+                /*
+                  취소완료 처리 StringUtils.isEmpty(dvo.getReqdDt())
+                  조건 - 처리구분(11), 서비스상태코드(10), 철거일(Not Null)
+                */
 
-        if ("11".equals(dvo.getFindGb()) && "10".equals(dvo.getWkPrgsStatCd())
-            && !StringUtils.isEmpty(dvo.getReqdDt())) {
-            /*
-              취소완료 처리 StringUtils.isEmpty(dvo.getReqdDt())
-              조건 - 처리구분(11), 서비스상태코드(10), 철거일(Not Null)
-            */
-
-            // 1. 동일 키값으로 작업결과 조회
-            selectExistSvpdCstSvWkRsIz(dvo);
-            // 2. 고객서비스설치배정내역 업데이트
-            mapper.updateSvpdCstSvasIstAsnIz(dvo);
-            // 3. 작업결과 저장
-            mapper.insertSvpdCstSvWkRsIz(dvo);
-            // 4. 철거일자 업데이트
-            mapper.updateSvpdCstSvExcnIz(dvo);
-            // 5. 미완료 웰컴BS 취소 처리 업데이트 TB_SVPD_CST_SV_BFSVC_ASN_IZ
-            mapper.updateSvpdCstSvBfsvcAsnIz(dvo);
-            // 6. 철거일자 업데이트(서비스모바일 > 설치완료 > 철거일자 판매시스템 연계)
-            String reqdDt = DateUtil.getNowDayString();
-            // 7. 판매시스템 철거일자 업데이트 TODO : 판매시스템 변경 중, 연계  추후 작업
-            // reqdDtService.saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), "", reqdDt.substring(0, 8));
-            log.debug("[판매시스템 철거일자 업데이트] => {}", reqdDt);
-            // 7. 작업엔지니어 조회 추가 작업 필요
-            WsnaPcsvReturningGoodsSaveDvo engineerDvo = mapper.selectEngineerOgbsMmPrtnrIz(dvo); //작업엔지니어 정보를 구한다.
-            // 8. 서비스작업출고내역 저장
-            mapper.insertSvstSvWkOstrIz(dvo);
-            // 9. 수불처리 저장 // TODO : 판매시스템 변경 중, 연계  추후 작업
-            //itemStockservice.createStock(setPcsvReturnGoodsWsnaItemStockItemizationDtoSaveReq(dvo));
-            log.debug("[수불처리 저장] => {}", setPcsvReturnGoodsWsnaItemStockItemizationDtoSaveReq(dvo));
-
-        } else {
-            /*
-              반품요청, 반품등록 처리
-            */
-            // 1. 고객서비스AS설치배정내역 업데이트
-            mapper.updateSvpdCstSvasAsIstAsnIz(dvo);
-            log.debug("[고객서비스AS설치배정내역 업데이트] => {}", dvo);
-
-            // 2. KWCC(고객센터) 상담정보 EAI 인터페이스 호출 TODO : 고객센터 작업 중, 연계  추후 작업
-            //counselRes = counselService.saveWellsCounsel(setPcsvReturnGoodsWellsCounselReqIvoSaveReq(dvo));
-            log.debug("[고객센터 상담정보 연계 처리결과 조회] => {}", counselRes);
+                // 1. 동일 키값으로 작업결과 조회
+                selectExistSvpdCstSvWkRsIz(dvo);
+                // 2. 고객서비스설치배정내역 업데이트
+                mapper.updateSvpdCstSvasIstAsnIz(dvo);
+                // 3. 작업결과 저장
+                mapper.insertSvpdCstSvWkRsIz(dvo);
+                // 4. 철거일자 업데이트(고객서비스수행내역)
+                mapper.updateSvpdCstSvExcnIz(dvo);
+                // 5. 미완료 웰컴BS 취소 처리 업데이트 TB_SVPD_CST_SV_BFSVC_ASN_IZ
+                mapper.updateSvpdCstSvBfsvcAsnIz(dvo);
+                // 6. 철거일자 업데이트(서비스모바일 > 설치완료 > 철거일자 판매시스템 연계)
+                String reqdDt = DateUtil.getNowDayString();
+                // 7. 판매시스템 철거일자 업데이트 TODO : 판매시스템 변경 중, 연계  추후 작업
+                reqdDtService.saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), "", reqdDt.substring(0, 8), "");
+                log.debug("[판매시스템 철거일자 업데이트] => {}", reqdDt);
+                // 7. 작업엔지니어 조회 추가 작업 필요
+                WsnaPcsvReturningGoodsSaveDvo engineerDvo = mapper.selectEngineerOgbsMmPrtnrIz(dvo); //작업엔지니어 정보를 구한다.
+                // 8. 서비스작업출고내역 저장
+                mapper.insertSvstSvWkOstrIz(dvo);
+                // 9. 수불처리 저장 // TODO : 판매시스템 변경 중, 연계  추후 작업
+                //itemStockservice.createStock(setPcsvReturnGoodsWsnaItemStockItemizationDtoSaveReq(dvo));
+                log.debug("[수불처리 저장] => {}", setPcsvReturnGoodsWsnaItemStockItemizationDtoSaveReq(dvo));
+            } else {
+                /*
+                  반품요청, 반품등록 처리
+                */
+                // 1. 고객서비스AS설치배정내역 업데이트
+                counselRes = new WellsCounselResIvo();
+                counselRes = counselService.saveWellsCounsel(setPcsvReturnGoodsWellsCounselReqIvoSaveReq(dvo));
+                log.debug("[고객센터 상담정보 연계 처리결과 조회] => {}", counselRes);
+                // 성공 시, 다음 단계 진행
+                if ("S".equals(counselRes.getResultCode())) {
+                    // 2. 고객서비스AS설치배정내역 업데이트
+                    mapper.updateSvpdCstSvasAsIstAsnIz(dvo);
+                    log.debug("[고객서비스AS설치배정내역 업데이트] => {}", dvo);
+                } else {
+                    log.debug("[고객센터 상담정보 연계 실패] => {}", counselRes);
+                }
+            }
+            processCount += 1;
         }
-
+        return processCount;
     }
 
     private void selectExistSvpdCstSvWkRsIz(
@@ -92,11 +105,11 @@ public class WsnaPcsvReturningGoodsSaveService {
         StringBuffer cnslCn = new StringBuffer();
 
         // 1. dvo와 ivo 매핑 처리
-        reqIvo.setCstNo(dvo.getCntrCstNo()); //계약고객번호
-        reqIvo.setSellTpCd(dvo.getSellTpCd()); //판매유형코드
-        reqIvo.setCntrNo(dvo.getCntrNo()); //계약번호
-        reqIvo.setCntrSn(dvo.getCntrSn()); //계약일련번호
-        reqIvo.setCstNm(dvo.getRcgvpKnm()); //고객명
+        reqIvo.setCST_NO(dvo.getCntrCstNo()); //계약고객번호
+        reqIvo.setSELL_TP_CD(dvo.getSellTpCd()); //판매유형코드
+        reqIvo.setCNTR_NO(dvo.getCntrNo()); //계약번호
+        reqIvo.setCNTR_SN(dvo.getCntrSn()); //계약일련번호
+        reqIvo.setCST_NM(dvo.getRcgvpKnm()); //고객명
         //상담내용
         cnslCn.append("@ 상담내용 ||");
         cnslCn.append("1. 매출일자 : ");
@@ -123,11 +136,11 @@ public class WsnaPcsvReturningGoodsSaveService {
         cnslCn.append(dvo.getSppIvcNo() + "||");
         cnslCn.append("9. 택배사/반품자 : ");
         cnslCn.append(dvo.getSppProcsBzsNm() + "/");
-        cnslCn.append(dvo.getRtngdNm() + "||");
+        cnslCn.append(dvo.getRtngdNm());
 
-        reqIvo.setCnslCn(cnslCn.toString()); //상담내용
+        reqIvo.setCNSL_CN(cnslCn.toString()); //상담내용
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
-        reqIvo.setRegUserId(session.getUserId()); //입력사용자 ID
+        reqIvo.setREG_USER_ID(session.getUserId()); //입력사용자 ID
 
         return reqIvo;
     }

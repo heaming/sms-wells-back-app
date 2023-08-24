@@ -16,12 +16,11 @@
              , CLING_COST_DV_CD
              , F_CMZ_CD_NM('TNT_BASE', 'CLING_COST_DV_CD', CLING_COST_DV_CD) AS CLING_COST_DV_NM
              , BLD_CD
+             , (SELECT S1.BLD_NM
+                  FROM TB_OGBS_BLD_BAS S1
+                 WHERE S1.BLD_CD = T1.BLD_CD
+                   AND S1.OG_TP_CD = T1.OG_TP_CD) AS BLD_NM
              , CLAIM_NM
-             , (SELECT T2.BLD_NM
-                  FROM TB_OGBS_MM_OG_IZ T2
-                 WHERE T2.BASE_YM BETWEEN #{aplcStartDt} AND #{aplcEndDt}
-                   AND T2.BLD_CD = T1.BLD_CD
-                   AND ROWNUM = 1) AS BLD_NM
              , TO_CHAR(TO_DATE(APLC_DT, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS APLC_DT
              , BIL_AMT
              , CLING_COST_SRCP_APN_FILE_ID
@@ -34,10 +33,13 @@
                             FROM TB_OGBS_MM_OG_IZ A /*월조직내역*/
                            WHERE 1=1
                              AND A.BLD_NM LIKE '%'||#{bldNm}||'%'
-                             AND A.BASE_YM BETWEEN #{aplcStartDt} AND #{aplcEndDt}
+                             AND A.BASE_YM BETWEEN #{aplcStartDt} AND    #{aplcEndDt}
                           )
         </if>
-        ORDER BY APLC_DT DESC, FST_RGST_DTM DESC
+        <if test='!@MybatisUtils@equals(session.ogTpCd, "HR1")'>
+            AND T1.CLAIM_PRTNR_NO = #{session.employeeIDNumber}
+        </if>
+        ORDER BY T1.APLC_DT DESC, T1.FST_RGST_DTM DESC
     </select>
 
     <update id="removeCleaningCost">

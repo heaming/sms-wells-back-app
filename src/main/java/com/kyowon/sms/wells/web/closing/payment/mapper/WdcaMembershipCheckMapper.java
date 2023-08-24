@@ -20,12 +20,10 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WdcaMembershipCheckMapper {
     PagingResult<SearchRes> selectBeforePages(
-        String deptGubun, PageInfo pageInfo
+        PageInfo pageInfo
     );
 
-    List<SearchRes> selectBeforePages(
-        String deptGubun
-    );
+    List<SearchRes> selectBeforePages();
 
     PagingResult<SearchAfterRes> selectAfterPages(
         String deptGubun, PageInfo pageInfo
