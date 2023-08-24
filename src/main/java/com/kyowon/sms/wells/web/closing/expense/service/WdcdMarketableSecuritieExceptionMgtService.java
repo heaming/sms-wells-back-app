@@ -10,6 +10,7 @@ import com.kyowon.sms.wells.web.closing.expense.converter.WdcdMarketableSecuriti
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdMarketableSecuritieExceptionMgtDto.*;
 import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdMarketableSecuritieExceptionDvo;
 import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdMarketableSecuritieExceptionMgtMapper;
+import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,6 +45,7 @@ public class WdcdMarketableSecuritieExceptionMgtService {
 //        }
         //3. 카드 정보/금액 조회 (ASIS : getAccCardInfoDetail)
         AccCardInfoDetailRes res = mapper.selectAccCardInfoDetail(firstReq);
+        if(res == null) { throw new BizException("data error : selectAccCardInfoDetail"); }
         WdcdMarketableSecuritieExceptionDvo masterDvo = converter.mapAccCardInfoDetailResToWdcdMarketableSecuritieExceptionDvo(res);
         masterDvo.setAdjOgId(res.ogId());
         masterDvo.setOgTpCd(firstReq.ogTpCd());

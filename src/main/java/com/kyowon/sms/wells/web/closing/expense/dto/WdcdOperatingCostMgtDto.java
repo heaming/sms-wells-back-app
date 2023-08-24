@@ -16,8 +16,8 @@ public class WdcdOperatingCostMgtDto {
     // *********************************************************
     // 운영비 등록관리 / 운영비 금액 현황
     @Builder
-    @ApiModel(value = "WwdcdOperatingCostMgtDto-SearchReq")
-    public record SearchReq(
+    @ApiModel(value = "WwdcdOperatingCostMgtDto-SearchAmountReq")
+    public record SearchAmountReq(
         @NotBlank
         String baseYm,
         String entrpDvCd,
@@ -57,15 +57,16 @@ public class WdcdOperatingCostMgtDto {
     // Request Dto
     // *********************************************************
     // 운영비 등록관리 / 운영비 금액 현황
+    @Builder
     @ApiModel(value = "WwdcdOperatingCostMgtDto-SearchSummaryReq")
     public record SearchSummaryReq(
         @NotBlank
         String baseYm,
+        String entrpDvCd,
         String dgr1LevlOgId,
         String dgr2LevlOgId,
         String dgr3LevlOgId
     ) {
-
     }
 
     // *********************************************************
