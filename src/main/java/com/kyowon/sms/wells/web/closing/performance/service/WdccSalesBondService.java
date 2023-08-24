@@ -87,6 +87,8 @@ public class WdccSalesBondService {
             return mapper.selectAccountsReceivableMembership(param);
         } else if (StringUtils.equals(param.get("sellTpCd").toString(), "6")) { //정기배송
             return mapper.selectTradeReceivablesPeriodicDelivery(param);
+        } else if (StringUtils.equals(param.get("sellTpCd").toString(), "10")) { //리스/할부
+            return mapper.selectAccountsReceivableLease(param);
         }
         return null;
     }

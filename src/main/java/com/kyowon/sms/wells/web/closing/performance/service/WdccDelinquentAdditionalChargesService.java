@@ -1,70 +1,40 @@
 package com.kyowon.sms.wells.web.closing.performance.service;
 
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccDelinquentAdditionalChargesDto.SearchAggregateRes;
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccDelinquentAdditionalChargesDto.SearchOrderUnitRes;
+import com.kyowon.sms.wells.web.closing.performance.converter.WdccDelinquentAdditionalChargesConverter;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccDelinquentAdditionalChargesDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccDelinquentAdditionalChargesDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.performance.mapper.WdccDelinquentAdditionalChargesMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class WdccDelinquentAdditionalChargesService {
-
+    private final WdccDelinquentAdditionalChargesConverter converter;
     private final WdccDelinquentAdditionalChargesMapper mapper;
 
-    public List<SearchAggregateRes> getDelinquentAdditionalChargesAggregate(
+    public List<SearchRes> getDelinquentAdditionalCharges(
         SearchReq req
     ) {
-
-        List<SearchAggregateRes> res = new ArrayList<SearchAggregateRes>();
-
-        if ("2".equals(req.sellTpCd()) && ("21".equals(req.sellTpDtlCd()) || "23".equals(req.sellTpDtlCd()))) {
-
-            res = mapper.selectRentalAggregate(req);
-
-        } else if ("2".equals(req.sellTpCd()) && ("22".equals(req.sellTpDtlCd()) || "24".equals(req.sellTpDtlCd()))) {
-
-            res = mapper.selectLeaseAggregate(req);
-
-        } else if ("3".equals(req.sellTpCd())) {
-
-            res = mapper.selectMemberShipAggregate(req);
-
-        } else if ("6".equals(req.sellTpCd())) {
-
-            // 정기배송 집계
-            res = mapper.selectRegularDeliveryAggregate(req);
+        Map<String, Object> param = new HashMap<>();
+        param.put("slClYm", req.slClYm());
+        param.put("agrgDv", req.agrgDv());
+        param.put("sellTpCd", req.sellTpCd());
+        param.put("sellTpDtlCd", req.sellTpDtlCd());
+        param.put("sapPdDvCd", req.sapPdDvCd());
+        param.put("rentalYn", "Y");
+        if (StringUtils.equals(req.sellTpCd(), "10")) {
+            param.put("sellTpCd", "2"); // 리스/할부의 경우 렌탈로 조회
+            param.put("rentalYn", "N"); // 리스/할부의 경우 ('22', '24', '25', '26')
         }
-
-        return res;
-    }
-
-    public List<SearchOrderUnitRes> getDelinquentAdditionalCharges(
-        SearchReq req
-    ) {
-
-        List<SearchOrderUnitRes> res = new ArrayList<SearchOrderUnitRes>();
-
-        if ("2".equals(req.sellTpCd()) && ("21".equals(req.sellTpDtlCd()) || "23".equals(req.sellTpDtlCd()))) {
-
-            res = mapper.selectRentalOrderUnit(req);
-        } else if ("2".equals(req.sellTpCd()) && ("22".equals(req.sellTpDtlCd()) || "24".equals(req.sellTpDtlCd()))) {
-
-            res = mapper.selectLeaseOrderUnit(req);
-        } else if ("3".equals(req.sellTpCd())) {
-
-            res = mapper.selectMemberShipOrderUnit(req);
-        } else if ("6".equals(req.sellTpCd())) {
-            
-            res = mapper.selectRegularDeliveryOrderUnit(req);
-        }
-
-        return res;
+        return converter
+            .mapAllWdccDelinquentAdditionalChargesDvoToSearchRes(mapper.selectDelinquentAdditionalCharges(param));
     }
 }
