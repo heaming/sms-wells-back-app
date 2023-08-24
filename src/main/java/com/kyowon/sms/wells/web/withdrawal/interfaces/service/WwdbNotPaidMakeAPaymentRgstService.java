@@ -1,10 +1,12 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.service;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.kyowon.sms.wells.web.withdrawal.interfaces.converter.WwdbNotPaidMakeAPaymentRgstConverter;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbNotPaidMakeAPaymentRgstDto;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymentContractDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymentOgPrtnrDvo;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymentRgstReqDvo;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymentRgstResDvo;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdbNotPaidMakeAPaymentRgstMapper;
@@ -206,7 +208,7 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         String sysDate = DateUtil.getNowString();
         String sysDateYmd = DateUtil.getNowDayString();
 
-        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession(); //세션정보 불러오기
+        WwdbNotPaidMakeAPaymentOgPrtnrDvo ogPrtnrDvo = mapper.selectOgPrtnrInquiry(dvo); //조직파트너정보 불러오기
 
         String iaDvCd = null;
         //        - IA_DV_CD(입금항목구분코드) : 입력파라미터 판매유형코드(SELL_TP_CD)가 2(렌탈)인 경우 11(렌탈), 3(멤버십)인 경우 12, 6(정기배송)인 경우 14(정기배송) 셋팅
@@ -223,20 +225,19 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         }
 
         //수납요청 데이터 생성
-        String receiveAskNumber = receiveAskRgst(dvo, contractDvo, sysDateYmd, session);
+        String receiveAskNumber = receiveAskRgst(dvo, contractDvo, sysDateYmd, ogPrtnrDvo);
 
         //수납요청상세 데이터 생성
-        receiveAskDtlRgst(dvo, contractDvo, session, receiveAskNumber);
+        receiveAskDtlRgst(dvo, contractDvo, ogPrtnrDvo, receiveAskNumber);
 
         //입금대사 데이터 생성
-        String depositPk = depositRgst(dvo, contractDvo, sysDate, sysDateYmd, session, iaDvCd);
+        String depositPk = depositRgst(dvo, contractDvo, sysDate, sysDateYmd, iaDvCd);
 
         //수납기본 데이터 생성
-        String rveNo = receiveBase(dvo, contractDvo, sysDateYmd, session, receiveAskNumber);
+        String rveNo = receiveBase(dvo, contractDvo, sysDateYmd, receiveAskNumber);
 
         //수납상세 데이터 생성
-
-        receiveDtl(dvo, contractDvo, sysDateYmd, session, depositPk, rveNo);
+        receiveDtl(dvo, contractDvo, sysDateYmd, ogPrtnrDvo, depositPk, rveNo, receiveAskNumber);
 
         resultDvo.setProcsRs("Y");
         resultDvo.setErrMsg("정상 처리 되었습니다.");
@@ -246,11 +247,11 @@ public class WwdbNotPaidMakeAPaymentRgstService {
 
     private void receiveDtl(
         WwdbNotPaidMakeAPaymentRgstReqDvo dvo, WwdbNotPaidMakeAPaymentContractDvo contractDvo, String sysDateYmd,
-        UserSessionDvo session, String depositPk, String rveNo
+        WwdbNotPaidMakeAPaymentOgPrtnrDvo ogPrtnrDvo, String depositPk, String rveNo, String receiveAskNumber
     ) {
         /*수납상세 인설트 데이터 입력*/
         ZwdzWithdrawalReceiveDvo zwdzWithdrawalReceiveDvo = new ZwdzWithdrawalReceiveDvo();
-        zwdzWithdrawalReceiveDvo.setKwGrpCoCd(session.getCompanyCode());//            KW_GRP_CO_CD	교원그룹회사코드
+        zwdzWithdrawalReceiveDvo.setKwGrpCoCd("2000");//            KW_GRP_CO_CD	교원그룹회사코드
         zwdzWithdrawalReceiveDvo.setRveNo(rveNo);//       RVE_NO 수납번호
         zwdzWithdrawalReceiveDvo.setRveSn(Integer.toString(1));//                        RVE_SN	수납일련번호
         zwdzWithdrawalReceiveDvo.setDpDvCd(dvo.getDpDvCd());//            DP_DV_CD	입금구분코드(1 입금)
@@ -258,9 +259,11 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         zwdzWithdrawalReceiveDvo.setDpTpCd(dvo.getDpTpCd());//            DP_TP_CD	입금유형코드( )
         //        zwdzWithdrawalReceiveDvo.setRveDvCd("");//            RVE_DV_CD	수납구분코드
         //            RVE_BIZ_DV_CD	수납업무구분코드
+        if (!Objects.isNull(ogPrtnrDvo)) {
+            zwdzWithdrawalReceiveDvo.setOgTpCd(ogPrtnrDvo.getOgTpCd()); //            OG_TP_CD	조직유형코드
+            zwdzWithdrawalReceiveDvo.setPrtnrNo(ogPrtnrDvo.getPrtnrNo()); //            PRTNR_NO	파트너번호
+        }
 
-        zwdzWithdrawalReceiveDvo.setOgTpCd(session.getOgTpCd());//            OG_TP_CD	조직유형코드
-        zwdzWithdrawalReceiveDvo.setPrtnrNo(session.getEmployeeIDNumber());//            PRTNR_NO	파트너번호
         zwdzWithdrawalReceiveDvo.setProcsDvCd("1");//            PROCS_DV_CD	처리구분코드(1 정상)
         zwdzWithdrawalReceiveDvo.setDpDt(sysDateYmd);//            DP_DT	입금일자
         zwdzWithdrawalReceiveDvo.setDpAmt(Long.toString(dvo.getDpAmt()));//            DP_AMT	입금금액
@@ -268,7 +271,7 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         zwdzWithdrawalReceiveDvo.setRveAmt(Long.toString(dvo.getDpAmt()));//            RVE_AMT	수납금액
         zwdzWithdrawalReceiveDvo.setRveProcsYn("Y");//            RVE_PROCS_YN	수납처리여부
         zwdzWithdrawalReceiveDvo.setPerfDt(sysDateYmd);//            PERF_DT	실적일자
-        //            RVE_AK_NO	수납요청번호
+        zwdzWithdrawalReceiveDvo.setRveAkNo(receiveAskNumber);
         zwdzWithdrawalReceiveDvo.setRveAkSn(Integer.toString(1));//            RVE_AK_SN	수납요청일련번호
         zwdzWithdrawalReceiveDvo.setDpCprcnfNo(depositPk);//            DP_CPRCNF_NO	입금대사번호
         zwdzWithdrawalReceiveDvo.setCntrNo(contractDvo.getCntrNo());//            CNTR_NO	계약번호
@@ -277,7 +280,7 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         zwdzWithdrawalReceiveDvo.setRveOjDrmNo2(contractDvo.getCntrNo());//            RVE_OJ_DRM_NO1	수납대상식별번호1
         zwdzWithdrawalReceiveDvo.setRveOjDrmNo2(contractDvo.getCntrSn());//            RVE_OJ_DRM_NO2	수납대상식별번호2
         zwdzWithdrawalReceiveDvo.setIncmdcYn("N");//            INCMDC_YN	소득공제여부
-        zwdzWithdrawalReceiveDvo.setRveCoCd(session.getCompanyCode());//            RVE_CO_CD	수납회사코드
+        zwdzWithdrawalReceiveDvo.setRveCoCd("2000");//            RVE_CO_CD	수납회사코드
 
         //수납상세 데이터 생성
         zwdzWithdrawalService.createReceiveDetail(zwdzWithdrawalReceiveDvo);
@@ -286,11 +289,11 @@ public class WwdbNotPaidMakeAPaymentRgstService {
 
     private String receiveBase(
         WwdbNotPaidMakeAPaymentRgstReqDvo dvo, WwdbNotPaidMakeAPaymentContractDvo contractDvo, String sysDateYmd,
-        UserSessionDvo session, String receiveAskNumber
+        String receiveAskNumber
     ) {
         /*수납기본 데이터 입력*/
         ZwdzWithdrawalReceiveDvo zwdzWithdrawalReceiveDvo = new ZwdzWithdrawalReceiveDvo();
-        zwdzWithdrawalReceiveDvo.setKwGrpCoCd(session.getCompanyCode()); //        KW_GRP_CO_CD	교원그룹회사코드
+        zwdzWithdrawalReceiveDvo.setKwGrpCoCd("2000"); //        KW_GRP_CO_CD	교원그룹회사코드
         zwdzWithdrawalReceiveDvo.setCstNo(contractDvo.getCntrCstNo()); //        CST_NO	고객번호
         zwdzWithdrawalReceiveDvo.setRveAkNo(receiveAskNumber); //        RVE_AK_NO	수납요청번호
         zwdzWithdrawalReceiveDvo.setRvePhCd("01"); //        RVE_PH_CD	수납경로코드
@@ -303,13 +306,13 @@ public class WwdbNotPaidMakeAPaymentRgstService {
 
     private String depositRgst(
         WwdbNotPaidMakeAPaymentRgstReqDvo dvo, WwdbNotPaidMakeAPaymentContractDvo contractDvo, String sysDate,
-        String sysDateYmd, UserSessionDvo session, String iaDvCd
+        String sysDateYmd, String iaDvCd
     ) {
         /*입금대사 인설트 데이터 생성*/
         ZwdzWithdrawalDepositCprDvo depositCprDvo = new ZwdzWithdrawalDepositCprDvo();
 
-        depositCprDvo.setKwGrpCoCd(session.getCompanyCode()); /*교원그룹회사코드*/ // KW_GRP_CO_CD	교원그룹회사코드
-        depositCprDvo.setRveCoCd(session.getCompanyCode()); /*수납회사코드*/ // RVE_CO_CD	수납회사코드
+        depositCprDvo.setKwGrpCoCd("2000"); /*교원그룹회사코드*/ // KW_GRP_CO_CD	교원그룹회사코드
+        depositCprDvo.setRveCoCd("2000"); /*수납회사코드*/ // RVE_CO_CD	수납회사코드
         depositCprDvo.setProcsDvCd("1"); /*처리구분코드*/ // PROCS_DV_CD	처리구분코드(1 정상)
         depositCprDvo.setDpDvCd(dvo.getDpDvCd()); /*입금구분코드*/ // DP_DV_CD	입금구분코드(2 환불)
         depositCprDvo.setDpMesCd(dvo.getDpTpCd() == "0103" ? "01" : "02"); /*입금수단코드*/ // DP_MES_CD	입금수단코드(01 현금)
@@ -343,14 +346,15 @@ public class WwdbNotPaidMakeAPaymentRgstService {
     }
 
     private int receiveAskDtlRgst(
-        WwdbNotPaidMakeAPaymentRgstReqDvo dvo, WwdbNotPaidMakeAPaymentContractDvo contractDvo, UserSessionDvo session,
+        WwdbNotPaidMakeAPaymentRgstReqDvo dvo, WwdbNotPaidMakeAPaymentContractDvo contractDvo,
+        WwdbNotPaidMakeAPaymentOgPrtnrDvo ogPrtnrDvo,
         String receiveAskNumber
     ) {
         int processCount = 0;
 
         /*수납요청상세 데이터 입력*/
         ZwdzWithdrawalReceiveAskDvo zwdzWithdrawalReceiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
-        zwdzWithdrawalReceiveAskDvo.setKyowonGroupCompanyCd(session.getCompanyCode()); //KW_GRP_CO_CD	교원그룹회사코드
+        zwdzWithdrawalReceiveAskDvo.setKyowonGroupCompanyCd("2000"); //KW_GRP_CO_CD	교원그룹회사코드
         zwdzWithdrawalReceiveAskDvo.setReceiveAskNumber(receiveAskNumber); //수납요청번호
 
         zwdzWithdrawalReceiveAskDvo.setDepositDivideCode(dvo.getDpDvCd());//입금구분코드
@@ -358,9 +362,11 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         zwdzWithdrawalReceiveAskDvo.setDepositTypeCode(dvo.getDpTpCd());//입금유형코드
         //        zwdzWithdrawalReceiveAskDvo.setReceiveDivideCode();//수납구분코드
         //                        zwdzWithdrawalReceiveAskDvo.set//수납업무구분코드
-        zwdzWithdrawalReceiveAskDvo.setOrganizationId(session.getOgId());//조직ID
-        zwdzWithdrawalReceiveAskDvo.setOrganizationTypeCode(session.getOgTpCd());//조직유형코드
-        zwdzWithdrawalReceiveAskDvo.setPartnerNumber(session.getEmployeeIDNumber());//파트너번호
+        if (!Objects.isNull(ogPrtnrDvo)) {
+            zwdzWithdrawalReceiveAskDvo.setOrganizationId(ogPrtnrDvo.getOgId());//조직ID
+            zwdzWithdrawalReceiveAskDvo.setOrganizationTypeCode(ogPrtnrDvo.getOgTpCd());//조직유형코드
+            zwdzWithdrawalReceiveAskDvo.setPartnerNumber(ogPrtnrDvo.getPrtnrNo());//파트너번호
+        }
         zwdzWithdrawalReceiveAskDvo.setContractNumber(contractDvo.getCntrNo());//계약번호
         zwdzWithdrawalReceiveAskDvo.setContractSerialNumber(contractDvo.getCntrSn()); //계약일련번호
         zwdzWithdrawalReceiveAskDvo.setProductCode(contractDvo.getBasePdCd());//상품코드
@@ -382,21 +388,25 @@ public class WwdbNotPaidMakeAPaymentRgstService {
 
     private String receiveAskRgst(
         WwdbNotPaidMakeAPaymentRgstReqDvo dvo, WwdbNotPaidMakeAPaymentContractDvo contractDvo, String sysDateYmd,
-        UserSessionDvo session
+        WwdbNotPaidMakeAPaymentOgPrtnrDvo ogPrtnrDvo
     ) {
 
         /*수납요청기본 데이터 입력*/
         ZwdzWithdrawalReceiveAskDvo zwdzWithdrawalReceiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
-        zwdzWithdrawalReceiveAskDvo.setKyowonGroupCompanyCd(session.getCompanyCode()); //KW_GRP_CO_CD	교원그룹회사코드
+        zwdzWithdrawalReceiveAskDvo.setKyowonGroupCompanyCd("2000"); //KW_GRP_CO_CD	교원그룹회사코드
         zwdzWithdrawalReceiveAskDvo.setCustomNumber(contractDvo.getCntrCstNo()); //CST_NO	고객번호
         zwdzWithdrawalReceiveAskDvo.setRveAkMthdCd("02"); //RVE_AK_MTHD_CD	수납요청방식코드 비대면(02)
         zwdzWithdrawalReceiveAskDvo.setRveAkPhCd("01"); //RVE_AK_PH_CD	수납요청경로코드 판매(01)
-        zwdzWithdrawalReceiveAskDvo.setRvePrtnrOgTpCd(session.getOgTpCd()); //RVE_AK_PRTNR_OG_TP_CD	수납요청파트너조직유형코드
-        zwdzWithdrawalReceiveAskDvo.setRvePrtnrNo(session.getEmployeeIDNumber()); //RVE_AK_PRTNR_NO	수납요청파트너번호
+
+        if (!Objects.isNull(ogPrtnrDvo)) {
+            zwdzWithdrawalReceiveAskDvo.setRvePrtnrOgTpCd(ogPrtnrDvo.getOgTpCd()); //RVE_AK_PRTNR_OG_TP_CD	수납요청파트너조직유형코드
+            zwdzWithdrawalReceiveAskDvo.setRvePrtnrNo(ogPrtnrDvo.getPrtnrNo()); //RVE_AK_PRTNR_NO	수납요청파트너번호
+        }
+
         zwdzWithdrawalReceiveAskDvo.setReceiveAskAmount(Long.toString(dvo.getDpAmt())); //RVE_AK_AMT	수납요청금액
         zwdzWithdrawalReceiveAskDvo.setReceiveAskDate(sysDateYmd); //RVE_RQDT	수납요청일자
         zwdzWithdrawalReceiveAskDvo.setReceiveAskStatusCode("03"); //RVE_AK_STAT_CD	수납요청상태코드 03(처리완료)
-        zwdzWithdrawalReceiveAskDvo.setReceiveCompanyCode(session.getCompanyCode()); //RVE_CO_CD	수납회사코드
+        zwdzWithdrawalReceiveAskDvo.setReceiveCompanyCode("2000"); //RVE_CO_CD	수납회사코드
 
         /*수납요청기본 데이터 생성*/
         String receiveAskNumber = zwdzWithdrawalService.createReceiveAskBase(zwdzWithdrawalReceiveAskDvo);
