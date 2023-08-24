@@ -282,6 +282,7 @@
                 , NULL AS RFND_AK_NO
                 , FNIT_CD
                 , NVL(CRDCD_FER , 0) AS CRDCD_FER
+                , CST_NO
              FROM ( SELECT RRD.RVE_NO      /* 수납번호 */
                          , RRD.RVE_SN      /* 수납일련번호 */
                          , RRD.CNTR_NO     /* 계약번호*/
@@ -304,6 +305,7 @@
                          , NVL(CBCB.DLQ_ADD_AMT,0) AS DLQ_ADD_AMT  /* 연체가산금 */
                          , NVL(SCD.MM_ISTM_AMT,0) AS MM_ISTM_AMT /* 월 납부금(월 납입금) */
                          , NVL(CBCB.RSG_BOR_AMT,0) AS BOR_AMT /* 위약금 */
+                         , SCB.CNTR_CST_NO AS CST_NO
 <!--                         , NVL(RRAD.CRDCD_FER, 0) AS CRDCD_FER   /* 카드수수료율 */-->
                          , '전금행추가' AS BLTF_ADD  /* 전금행추가 - 컬럼 */
                       FROM TB_RVDW_RVE_DTL RRD /* 수납상세 */
@@ -344,6 +346,7 @@
                       <if test="@MybatisUtils@isNotEmpty(dpDt)">
                        AND RRD.DP_DT = #{dpDt}
                       </if>
+                     ORDER BY RRD.CNTR_NO , RRD.CNTR_SN ,RRD.RVE_DT
                  ) T1
     </select>
 
@@ -367,6 +370,7 @@
                 , T1.RFND_AK_NO
                 , T1.FNIT_CD
                 , NVL(T1.CRDCD_FER , 0) AS CRDCD_FER
+                , CST_NO
              FROM ( SELECT RRD.RVE_NO      /* 수납번호 */
                          , RRD.RVE_SN      /* 수납일련번호 */
                          , RRAD.CNTR_NO     /* 계약번호*/
@@ -396,6 +400,7 @@
                          , RRAD.RFND_AK_NO
                          , RRKD.FNIT_CD
                          , RFFB.CRDCD_FER
+                         , SCB.CNTR_CST_NO AS CST_NO
                       FROM TB_RVDW_RFND_AK_DTL RRAD /* 환불요청상세 */
                      INNER JOIN TB_RVDW_RVE_DTL RRD /* 수납상세 */
                         ON RRD.CNTR_NO = RRAD.CNTR_NO
@@ -412,6 +417,9 @@
                         ON SCD.CNTR_NO = RRD.CNTR_NO
                        AND SCD.CNTR_SN = RRD.CNTR_SN
                        AND SCD.DTA_DL_YN = 'N'
+                     INNER JOIN TB_SSCT_CNTR_BAS SCB /* 계약기본 */
+                        ON SCB.CNTR_NO = SCD.CNTR_NO
+                       AND SCB.DTA_DL_YN = 'N'
                       LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS CBCB /*채권계약기본*/
                         ON CBCB.CNTR_NO = SCD.CNTR_NO
                        AND CBCB.CNTR_SN = SCD.CNTR_SN
