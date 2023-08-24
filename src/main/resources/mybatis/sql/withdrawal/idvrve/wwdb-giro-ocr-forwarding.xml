@@ -582,12 +582,60 @@
 
     <update id="updateGiroPrintDate">
         UPDATE TB_RVDW_GIRO_OCR_PBL_BAS
-           SET GIRO_OCR_PRNT_DT = TO_CHAR(SYSDATE , 'YYYYMMDD')
+           SET GIRO_OCR_PRNT_DT = #{giroOcrPrntDt}
            <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
            AND GIRO_OCR_PBL_DTM = #{giroOcrPblDtm}
            AND GIRO_OCR_PBL_SEQN = #{giroOcrPblSeqn}
            AND DTA_DL_YN = 'N'
     </update>
+
+    <insert id="insertGiroPrintDate">
+            INSERT INTO TB_RVDW_GIRO_OCR_PRNT_IZ (
+                        GIRO_OCR_PRNT_DT	/*지로OCR출력일자*/
+                      , PRNT_WK_SN	/*출력작업일련번호*/
+                      , PRNT_SN	/*출력일련번호*/
+                      , CNTR_NO	/*계약번호*/
+                      , CNTR_SN	/*계약일련번호*/
+                      , CST_FNM	/*고객성명*/
+                      , GIRO_BIZ_DV_CD	/*지로업무구분코드*/
+                      , GIRO_BIZ_TP_CD	/*지로업무유형코드*/
+                      , GIRO_AMT	/*지로금액*/
+                      , MPY_TN_YM	/*납부회차년월*/
+                      , PY_TMLM_DT	/*납입기한일자*/
+                      , PY_TN_NM	/*납입회차명*/
+                      , GIRO_INQNO	/*지로조회번호*/
+                      , ELC_MPY_NO	/*전자납부번호*/
+                      , GIRO_PLRCV_ADR_ID	/*지로수신처주소ID*/
+                    <include refid="COMMON.insertSystemField"/>
+            ) SELECT
+                     #{giroOcrPrntDt} AS GIRO_OCR_PRNT_DT	/*지로OCR출력일자*/
+                   , GIRO_OCR_PBL_SN AS PRNT_WK_SN	/*출력작업일련번호*/
+                   , (SELECT NVL(MAX(PRNT_SN ), 0)+1
+                        FROM TB_RVDW_GIRO_OCR_PRNT_IZ
+                       WHERE 1 = 1
+                         AND GIRO_OCR_PRNT_DT = #{giroOcrPrntDt} ) AS PRNT_SN	/*출력일련번호*/
+                   , T2.CNTR_NO	/*계약번호*/
+                   , T2.CNTR_SN	/*계약일련번호*/
+                   , T2.CST_FNM	/*고객성명*/
+                   , T2.GIRO_BIZ_DV_CD	/*지로업무구분코드*/
+                   , T2.GIRO_BIZ_TP_CD	/*지로업무유형코드*/
+                   , T2.PY_AMT AS  GIRO_AMT	/*지로금액*/
+                   , T2.GIRO_PY_YM  AS MPY_TN_YM	/*납부회차년월*/
+                   , SL_DT AS PY_TMLM_DT	/*납입기한일자*/
+                   , T2.GIRO_TN_CN AS PY_TN_NM	/*납입회차명*/
+                   , GIRO_NO AS GIRO_INQNO	/*지로조회번호*/
+                   , T2.ELC_MPY_NO	/*전자납부번호*/
+                   , T2.GIRO_PLRCV_ADR_ID	/*지로수신처주소ID*/
+                  <include refid="COMMON.insertSystemFieldValue" />
+                FROM TB_RVDW_GIRO_OCR_PBL_BAS T1
+               INNER JOIN TB_RVDW_GIRO_OCR_PBL_DTL T2
+                  ON T2.GIRO_OCR_PBL_DTM = T1.GIRO_OCR_PBL_DTM
+                 AND T2.GIRO_OCR_PBL_SEQN = T1.GIRO_OCR_PBL_SEQN
+                 AND T2.DTA_DL_YN = 'N'
+               WHERE 1 = 1
+                 AND T1.GIRO_OCR_PBL_DTM = #{giroOcrPblDtm}
+                 AND T1.GIRO_OCR_PBL_SEQN = #{giroOcrPblSeqn}
+        </insert>
 
 </mapper>
