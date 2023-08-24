@@ -86,7 +86,9 @@ public class WsnaBsRegularShippingMgtService {
         List<WsnaBsRegularShippingMgtDvo> dvos = converter.mapSaveReqToWsnaShippingManagementDvo(dtos);
         // 물류인터페이스 호출용 dvo
         List<WsnaLogisticsOutStorageAskReqDvo> logisticDvos = new ArrayList<>();
-
+        String lgstWkMthdCd = dtos.get(0).lgstWkMthdCd();
+        // 물류요청번호 생성
+        String lgstOstrAkNo = mapper.selectNewLgstOstrAkNo();
         //저장
         for (WsnaBsRegularShippingMgtDvo dvo : dvos) {
             // 암호화 이전 값 따로 세팅.
@@ -94,8 +96,10 @@ public class WsnaBsRegularShippingMgtService {
             String exnoEnncr = dvo.getExnoEncr();
             // 출고요청 번호 생성
             dvo.setOstrAkNo(mapper.selectOstAkNo(dvo));
-            // 출고요청 일련번호 초기화
-
+            // 물류요청구분코드
+            dvo.setLgstWkMthdCd(lgstWkMthdCd);
+            // 물류요청번호추가
+            dvo.setLgstOstrAkNo(lgstOstrAkNo);
             // 저장 전 부품자재들 dvos로 변환 1,2,4 저장필요.
             List<WsnaBsRegularShippingMaterialDvo> materialDvos = this.transferShippingMaterials(dvo);
 
@@ -151,9 +155,9 @@ public class WsnaBsRegularShippingMgtService {
         materialDvo.setOstrAkTpCd("400");
         materialDvo.setOstrAkRgstDt(now.substring(0, 8));
         materialDvo.setIostAkDvCd("WE");
-        materialDvo.setMpacSn(0);
+        //        materialDvo.setMpacSn(0);
         materialDvo.setLgstSppMthdCd("2");
-        materialDvo.setLgstWkMthdCd("WE01");
+        //        materialDvo.setLgstWkMthdCd("WE01");
         materialDvo.setAdrsTnoVal(dvo.getTno());
         materialDvo.setAdrsCphonNoVal(dvo.getMpno());
         materialDvo.setWareMngtPrtnrNo("71321");
