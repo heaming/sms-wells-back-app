@@ -274,29 +274,23 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "feeDsbYn", value = "수수료지급여부", paramType = "query", required = false),
     })
-    @GetMapping("/manager-planers")
+    @GetMapping("/feeLists")
     public List<SearchFeeRes> getFees(
         SearchFeeReq dto
     ) {
         return this.service.getFees(dto);
     }
 
-    @ApiOperation(value = "수수료 조회(홈마스터)", notes = "조회조건에 해당하는 홈마스터의 개인별 수수료 내역을 조회한다.")
+    @ApiOperation(value = "수수료 조회 사용자 고용정보 조회", notes = "로그인한 사용자의 고용정보를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "ogTp", value = "조직유형", paramType = "query", required = true),
-        @ApiImplicitParam(name = "rsbTp", value = "직책유형", paramType = "query", required = true),
-        @ApiImplicitParam(name = "ogLevl1", value = "조직레벨1", paramType = "query", required = false),
-        @ApiImplicitParam(name = "ogLevl2", value = "조직레벨2", paramType = "query", required = false),
-        @ApiImplicitParam(name = "ogLevl3", value = "조직레벨3", paramType = "query", required = false),
-        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
-        @ApiImplicitParam(name = "feeDsbYn", value = "수수료지급여부", paramType = "query", required = false),
+        @ApiImplicitParam(name = "userEmpID", value = "사용자ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = false),
     })
-    @GetMapping("/home-masters")
-    public List<SearchFeeHmstRes> getFeeHmsts(
-        SearchFeeHmstReq dto
+    @GetMapping("/userInfo")
+    public SearchUserInfoRes getUserInfo(
+        SearchFeeReq dto
     ) {
-        return this.service.getFeeHmsts(dto);
+        return this.service.getUserInfo(dto);
     }
 
 }
