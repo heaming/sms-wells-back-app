@@ -3,9 +3,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -227,8 +225,6 @@ public class WsnaOutOfStorageAskMngtService {
     @Transactional
     public int saveOutOfStorageAskItems(List<SaveReq> dtos) {
         int processCount = 0;
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-        Calendar calendar = Calendar.getInstance();
         String strOstrAkNo = null;
 
         List<WsnaOutOfStorageAskMngtDvo> insertListDvo = new ArrayList<>();
