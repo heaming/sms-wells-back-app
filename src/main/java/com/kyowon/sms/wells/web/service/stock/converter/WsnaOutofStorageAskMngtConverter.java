@@ -39,4 +39,6 @@ public interface WsnaOutofStorageAskMngtConverter {
 
     WsnaOutOfStorageAskMngtSearchDvo mapAllSearchReqToOutOfStorageAskMngtDvo(SearchReq dto);
 
+    WsnaOutOfStorageAskMngtSearchDvo mapAllSearchReqToExcelOutOfStorageAskMngtDvo(SearchReq dto);
+
 }

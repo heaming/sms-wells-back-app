@@ -1,41 +1,40 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsStoreDto.*;
+
 import java.text.ParseException;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.kyowon.sms.wells.web.service.stock.converter.WsnaReturningGoodsStoreConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsStoreDvo;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaReturningGoodsStoreMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-
-import com.kyowon.sms.wells.web.service.stock.converter.WsnaReturningGoodsStoreConverter;
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaReturningGoodsStoreMapper;
-
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsStoreDto.*;
-
-import lombok.extern.slf4j.Slf4j;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class WsnaReturningGoodsStoreService {
 
-    final String RETURN_INSIDE = "261"; // 반품출고(내부)
-    final String RETURN_RETURN = "218"; // 리퍼완료출고
+    private static final String RETURN_INSIDE = "261"; // 반품출고(내부)
+    private static final String RETURN_RETURN = "218"; // 리퍼완료출고
 
-    final String RETURN_DISUSE = "212"; //폐기출고
+    private static final String RETURN_DISUSE = "212"; //폐기출고
 
-    final String RETURN_QUANTITY = "223"; //물량이동
+    private static final String RETURN_QUANTITY = "223"; //물량이동
 
-    final String RETURN_OSTR = "320"; //물량이동
+    private static final String RETURN_OSTR = "320"; //물량이동
 
-    final String RETURN_STR_QUANTITY = "123"; // 물량이동
+    private static final String RETURN_STR_QUANTITY = "123"; // 물량이동
     private final WsnaReturningGoodsStoreMapper mapper;
     private final WsnaReturningGoodsStoreConverter converter;
 
@@ -67,17 +66,11 @@ public class WsnaReturningGoodsStoreService {
         String disuseOstrTpCd = RETURN_DISUSE; //----> 212
 
         itmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(ostrTpCd, ostrDt));
-        log.info("itmOstrNo ------------------>" + itmOstrNo);
         itmStrNo = this.mapper.selectNextItmStrNo(new FindItmStrNoReq(ostrTpCd, ostrDt));
-        log.info("itmStrNo ------------------>" + itmStrNo);
         ostrAkNo = this.mapper.selectNextOstrAkNo(new FindOstrAkNoReq(ostrAkTpCd, ostrDt));
-        log.info("ostrAkNo ------------------>" + ostrAkNo);
         disuseItmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(disuseOstrTpCd, ostrDt));
-        log.info("disuseItmOstrNo ------------------>" + disuseItmOstrNo);
         strQuantityItmStrNo = this.mapper.selectNextItmStrNo(new FindItmStrNoReq(ostrTpCd, ostrDt));
-        log.info("strQuantityItmStrNo ------------------>" + strQuantityItmStrNo);
         quantityItmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(ostrTpCd, ostrDt));
-        log.info("quantityItmOstrNo ------------------>" + quantityItmOstrNo);
         for (SaveReq dto : dtos) {
             serialNumber += 1;
             int result = 0;
@@ -95,9 +88,7 @@ public class WsnaReturningGoodsStoreService {
             dvo.setOstrAkSn(String.valueOf(serialNumber));
             dvo.setDisuseOstrTpCd(disuseOstrTpCd);
             dvo.setOstrTpCd(ostrTpCd);
-            //            dvo.setQuantityOstrTpCd(quantityOstrTpCd);
             dvo.setOstrAkTpCd(ostrAkTpCd);
-            //            dvo.setStrQuantityStrTpCd(quantityOstrTpCd);
             dvo.setCfrmDt(cfrmDt);
 
             String strHgrWareNo = this.mapper.selectHgrWareNo(dvo);
