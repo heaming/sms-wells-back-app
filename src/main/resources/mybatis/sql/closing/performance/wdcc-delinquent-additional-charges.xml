@@ -11,12 +11,12 @@
                          , A.CNTR_NO AS CNTR_NO /* 계약번호 */
                          , A.CNTR_SN AS CNTR_SN /* 계약일련번호 */
                          , C.CNTR_CST_NO AS CST_NO /* 고객번호 */
-                         , A.BTD_DLQ_ADD_AMT AS BTD_DLQ_ADD_AMT /* 전기이월 */
-                         , A.THM_OC_DLQ_ADD_AMT AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
-                         , A.THM_CTR_DLQ_ADD_AMT AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
-                         , A.THM_DLQ_ADD_DP_SUM_AMT AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
-                         , A.THM_DLQ_ADD_RFND_SUM_AMT AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
-                         , A.EOT_DLQ_ADD_AMT AS EOT_DLQ_ADD_AMT /* 기말잔액 */
+                         , NVL(A.BTD_DLQ_ADD_AMT, 0) AS BTD_DLQ_ADD_AMT /* 전기이월 */
+                         , NVL(A.THM_OC_DLQ_ADD_AMT, 0) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+                         , NVL(A.THM_CTR_DLQ_ADD_AMT, 0) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+                         , NVL(A.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+                         , NVL(A.THM_DLQ_ADD_RFND_SUM_AMT, 0) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+                         , NVL(A.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT /* 기말잔액 */
                       FROM TB_CBCL_DLQ_BAS A /* 연체기본 */
                       LEFT OUTER JOIN TB_SSCT_CNTR_DTL B /* 계약상세 */
                         ON B.CNTR_NO = A.CNTR_NO
@@ -62,12 +62,12 @@
                          , A.CNTR_NO AS CNTR_NO /* 계약번호 */
                          , A.CNTR_SN AS CNTR_SN /* 계약일련번호 */
                          , C.CNTR_CST_NO AS CST_NO /* 고객번호 */
-                         , A.BTD_DLQ_ADD_AMT AS BTD_DLQ_ADD_AMT /* 전기이월 */
-                         , A.THM_OC_DLQ_ADD_AMT AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
-                         , A.THM_CTR_DLQ_ADD_AMT AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
-                         , A.THM_DLQ_ADD_DP_SUM_AMT AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
-                         , A.THM_DLQ_ADD_RFND_SUM_AMT AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
-                         , A.EOT_DLQ_ADD_AMT AS EOT_DLQ_ADD_AMT /* 기말잔액 */
+                         , NVL(A.BTD_DLQ_ADD_AMT, 0) AS BTD_DLQ_ADD_AMT /* 전기이월 */
+                         , NVL(A.THM_OC_DLQ_ADD_AMT, 0) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+                         , NVL(A.THM_CTR_DLQ_ADD_AMT, 0) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+                         , NVL(A.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+                         , NVL(A.THM_DLQ_ADD_RFND_SUM_AMT, 0) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+                         , NVL(A.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT /* 기말잔액 */
                       FROM TB_CBCL_DLQ_BAS A /* 연체기본 */
                       LEFT OUTER JOIN TB_SSCT_CNTR_DTL B /* 계약상세 */
                         ON A.CNTR_NO = B.CNTR_NO
@@ -93,12 +93,15 @@
                        </if>
                      </if>
         )
-       SELECT CASE WHEN GROUPING(PERF_YM)  = 1 THEN '총      계'
-                   ELSE SUBSTR(PERF_YM,1,4) || '-' || SUBSTR(PERF_YM,5,2) || ( /* 전기이월 + 당월발생 - 당월공제 - 당월입금 + 당월환불 */
-                        CASE WHEN SUM(EOT_DLQ_ADD_AMT) != SUM(BTD_DLQ_ADD_AMT) + SUM(THM_OC_DLQ_ADD_AMT) - SUM(THM_CTR_DLQ_ADD_AMT) - SUM(THM_DLQ_ADD_DP_SUM_AMT) + SUM(THM_DLQ_ADD_RFND_SUM_AMT) THEN ' *'
-                             ELSE ''
-                         END)
-               END AS PERF_YM /* 실적년월 */
+       SELECT <if test="@MybatisUtils@equals(agrgDv, '1')">
+              SUBSTR(PERF_YM,1,4) || '-' || SUBSTR(PERF_YM,5,2) || ( /* 전기이월 + 당월발생 - 당월공제 - 당월입금 + 당월환불 */
+                  CASE WHEN SUM(EOT_DLQ_ADD_AMT) != SUM(BTD_DLQ_ADD_AMT) + SUM(THM_OC_DLQ_ADD_AMT) - SUM(THM_CTR_DLQ_ADD_AMT) - SUM(THM_DLQ_ADD_DP_SUM_AMT) + SUM(THM_DLQ_ADD_RFND_SUM_AMT) THEN ' *'
+                       ELSE ''
+                  END) AS PERF_YM /* 실적년월 */
+              </if>
+              <if test="@MybatisUtils@equals(agrgDv, '3')">
+              SUBSTR(PERF_YM,1,4) || '-' || SUBSTR(PERF_YM,5,2) AS PERF_YM /* 실적년월 */
+              </if>
             , SELL_TP_CD /* 판매유형 */
             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', SELL_TP_CD) AS SELL_TP_CD_NM
             , SELL_TP_DTL_CD /* 판매유형상세코드 */
@@ -112,24 +115,30 @@
             , CNTR_NO || '-' || CNTR_SN AS CNTR_NO /* 계약번호 */
             , ( SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO AND DTA_DL_YN = 'N' ) AS CST_KNM /* 고객명 */
             </if>
-            , SUM(NVL(BTD_DLQ_ADD_AMT, 0)) AS BTD_DLQ_ADD_AMT /* 전기이월 */
-            , SUM(NVL(THM_OC_DLQ_ADD_AMT, 0)) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
-            , SUM(NVL(THM_CTR_DLQ_ADD_AMT, 0)) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
-            , SUM(NVL(THM_DLQ_ADD_DP_SUM_AMT, 0)) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
-            , SUM(NVL(THM_DLQ_ADD_RFND_SUM_AMT, 0)) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
-            , SUM(NVL(EOT_DLQ_ADD_AMT, 0)) AS EOT_DLQ_ADD_AMT /* 기말잔액 */
+            <if test="@MybatisUtils@equals(agrgDv, '1')">
+            , SUM(BTD_DLQ_ADD_AMT) AS BTD_DLQ_ADD_AMT /* 전기이월 */
+            , SUM(THM_OC_DLQ_ADD_AMT) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+            , SUM(THM_CTR_DLQ_ADD_AMT) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+            , SUM(THM_DLQ_ADD_DP_SUM_AMT) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+            , SUM(THM_DLQ_ADD_RFND_SUM_AMT) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+            , SUM(EOT_DLQ_ADD_AMT) AS EOT_DLQ_ADD_AMT /* 기말잔액 */
+            </if>
+            <if test="@MybatisUtils@equals(agrgDv, '3')">
+            , BTD_DLQ_ADD_AMT AS BTD_DLQ_ADD_AMT /* 전기이월 */
+            , THM_OC_DLQ_ADD_AMT AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+            , THM_CTR_DLQ_ADD_AMT AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+            , THM_DLQ_ADD_DP_SUM_AMT AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+            , THM_DLQ_ADD_RFND_SUM_AMT AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+            , EOT_DLQ_ADD_AMT AS EOT_DLQ_ADD_AMT /* 기말잔액 */
+            </if>
          FROM T1
         WHERE 1=1
           <if test="@MybatisUtils@isNotEmpty(sapPdDvCd)">
           AND SAP_PD_DV_CD = #{sapPdDvCd}
           </if>
         <if test="@MybatisUtils@equals(agrgDv, '1')">
-        GROUP BY ROLLUP( (PERF_YM, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD) )
-        ORDER BY PERF_YM DESC, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
-        </if>
-        <if test="@MybatisUtils@equals(agrgDv, '3')">
-        GROUP BY ROLLUP( (PERF_YM, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO) )
-        ORDER BY PERF_YM DESC, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO
+        GROUP BY PERF_YM, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
+        ORDER BY PERF_YM, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
         </if>
     </select>
 </mapper>
