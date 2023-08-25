@@ -3,7 +3,8 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaFilterNeedsPsMapper">
 
     <select id="selectFilterNeedsState" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaFilterNeedsPsDvo">
-        SELECT T2.SAP_MAT_CD                                        /* SAP코드 */
+        SELECT /*+ INDEX(T2 PK_PDBS_PD_BAS) */
+               T2.SAP_MAT_CD                                        /* SAP코드 */
              , T1.PD_CD                                             /* 품목코드 */
              , T2.PD_NM                                             /* 품목명 */
              , V_CNT01                                              /* 1월 소요 */
@@ -65,7 +66,8 @@
                     , SUM(CASE WHEN S1.VST_GB = '2' AND S1.VST_YM = '12' THEN S1.QTY ELSE 0 END) AS P_CNT12
                  FROM
                     (
-                      SELECT SUBSTR(D1.VST_DUEDT, 5, 2) AS VST_YM
+                      SELECT /*+ INDEX(D2 PK_SVPD_CST_SV_EXCN_IZ) */
+                             SUBSTR(D1.VST_DUEDT, 5, 2) AS VST_YM
                            , '1'                        AS VST_GB
                            , CASE WHEN D2.PDCT_PD_CD IN ( 'WM01100062', 'WM01100063', 'WM01100293', 'WM01100294', 'WM01100298', 'WM01100138', 'WM01100302', 'WM01100327', 'WM01100328', 'WM01100322', 'WM01100325'
                                                         , 'WM01100137', 'WM01100336', 'WM01100186', 'WM01100136', 'WM01100303', 'WM01100073', 'WM01100277', 'WM01100275', 'WM01100276', 'WM01100074', 'WM01100088'
@@ -97,7 +99,7 @@
                       SELECT SUBSTR(ASN_OJ_YM, 5, 2) AS VST_YM
                            , '2'                     AS VST_GB
                            , PU_PART_PD_CD           AS PD_CD
-                           , PU_QTY                  AS QTY
+                           , SUM(PU_QTY)             AS QTY
                         FROM TB_SVPD_RGBS_PU_ITM_IZ   /* 정기BS투입품목내역 */
                        WHERE DTA_DL_YN     = 'N'
                          AND ITM_KND_CD    = #{itmKndCd}
@@ -105,6 +107,7 @@
                     <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                          AND PU_PART_PD_CD = #{itmPdCd}
                     </if>
+                       GROUP BY SUBSTR(ASN_OJ_YM, 5, 2), PU_PART_PD_CD
                     ) S1
                 GROUP BY S1.PD_CD
              ) T1
@@ -125,7 +128,8 @@
     </select>
 
     <select id="selectFilterNeedsStateForB2B" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaFilterNeedsPsDvo">
-        SELECT T2.SAP_MAT_CD                                                              /* SAP코드 */
+        SELECT /*+ INDEX(T2 PK_PDBS_PD_BAS) */
+               T2.SAP_MAT_CD                                                              /* SAP코드 */
              , T1.PD_CD                                                                   /* 품목코드 */
              , T2.PD_NM                                                                   /* 품목명 */
              , T1.V_CNT01_W                                                               /* 1월 소요 A09 */
@@ -275,7 +279,8 @@
                          AND D1.ASN_OJ_YM BETWEEN SUBSTR(#{strtDt}, 1, 6) AND SUBSTR(#{endDt}, 1, 6)
                 </if>
                 <if test='@MybatisUtils@equals(b2bMngtCd, "A")'>
-                      SELECT SUBSTR(D1.VST_DUEDT, 5, 2) AS VST_YM
+                      SELECT /*+ INDEX(D2 PK_SVPD_CST_SV_EXCN_IZ) */
+                             SUBSTR(D1.VST_DUEDT, 5, 2) AS VST_YM
                            , '1'                        AS VST_GB
                            , CASE WHEN D2.PDCT_PD_CD IN ('WM02100197', 'WM02100143')               THEN 'W'
                                   WHEN D2.PDCT_PD_CD IN ('WM02100040', 'WM02100042', 'WM02100144') THEN 'F'
