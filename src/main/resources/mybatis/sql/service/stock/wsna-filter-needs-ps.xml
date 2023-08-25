@@ -3,8 +3,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaFilterNeedsPsMapper">
 
     <select id="selectFilterNeedsState" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaFilterNeedsPsDvo">
-        SELECT /*+ INDEX(T2 PK_PDBS_PD_BAS) */
-               T2.SAP_MAT_CD                                        /* SAP코드 */
+        SELECT T2.SAP_MAT_CD                                        /* SAP코드 */
              , T1.PD_CD                                             /* 품목코드 */
              , T2.PD_NM                                             /* 품목명 */
              , V_CNT01                                              /* 1월 소요 */
@@ -66,8 +65,7 @@
                     , SUM(CASE WHEN S1.VST_GB = '2' AND S1.VST_YM = '12' THEN S1.QTY ELSE 0 END) AS P_CNT12
                  FROM
                     (
-                      SELECT /*+ INDEX(D2 PK_SVPD_CST_SV_EXCN_IZ) */
-                             SUBSTR(D1.VST_DUEDT, 5, 2) AS VST_YM
+                      SELECT SUBSTR(D1.VST_DUEDT, 5, 2) AS VST_YM
                            , '1'                        AS VST_GB
                            , CASE WHEN D2.PDCT_PD_CD IN ( 'WM01100062', 'WM01100063', 'WM01100293', 'WM01100294', 'WM01100298', 'WM01100138', 'WM01100302', 'WM01100327', 'WM01100328', 'WM01100322', 'WM01100325'
                                                         , 'WM01100137', 'WM01100336', 'WM01100186', 'WM01100136', 'WM01100303', 'WM01100073', 'WM01100277', 'WM01100275', 'WM01100276', 'WM01100074', 'WM01100088'
@@ -79,7 +77,7 @@
                                    AND D1.VST_DUEDT <![CDATA[>]]> '20201100' AND D1.PART_PD_CD = 'WM07100422' THEN 'WM07106901'
                                   ELSE D1.PART_PD_CD
                              END                        AS PD_CD
-                           , D1.PART_USE_QTY            AS QTY
+                           , SUM(D1.PART_USE_QTY)       AS QTY
                         FROM TB_SVPD_CST_SV_RGBSPR_IZ D1      /* 고객서비스정기BS주기내역 */
                        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
                           ON D2.CNTR_NO = D1.CNTR_NO
@@ -95,6 +93,17 @@
                     <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                          AND D1.PART_PD_CD = #{itmPdCd}
                     </if>
+                       GROUP BY SUBSTR(D1.VST_DUEDT, 5, 2)
+                           , CASE WHEN D2.PDCT_PD_CD IN ( 'WM01100062', 'WM01100063', 'WM01100293', 'WM01100294', 'WM01100298', 'WM01100138', 'WM01100302', 'WM01100327', 'WM01100328', 'WM01100322', 'WM01100325'
+                                                        , 'WM01100137', 'WM01100336', 'WM01100186', 'WM01100136', 'WM01100303', 'WM01100073', 'WM01100277', 'WM01100275', 'WM01100276', 'WM01100074', 'WM01100088'
+                                                        , 'WM01100309', 'WM01100307', 'WM01100308', 'WM01100038', 'WM01100037', 'WM01100057', 'WM01100093', 'WM01100111', 'WM01100210', 'WM01100215', 'WM01100227'
+                                                        , 'WM01100234', 'WM01100222', 'WM01100235', 'WM01100239', 'WM01100241', 'WM01100283', 'WM01100315', 'WM01103461', 'WM01103428' )
+                                   AND D1.VST_DUEDT <![CDATA[>]]> '20201100' AND D1.PART_PD_CD = 'WM07100413' THEN 'WM07100651'
+                                  WHEN D2.PDCT_PD_CD IN ( 'WM01100083', 'WM01100290', 'WM01100050', 'WM01100280', 'WM01100107', 'WM01100108', 'WM01100288', 'WM01100301'
+                                                        , 'WM01100316', 'WM01100323', 'WM01100154', 'WM01100103', 'WM01100312', 'WM01100036', 'WM01100039', 'WM01100041', 'WM01100070' )
+                                   AND D1.VST_DUEDT <![CDATA[>]]> '20201100' AND D1.PART_PD_CD = 'WM07100422' THEN 'WM07106901'
+                                  ELSE D1.PART_PD_CD
+                             END
                        UNION ALL
                       SELECT SUBSTR(ASN_OJ_YM, 5, 2) AS VST_YM
                            , '2'                     AS VST_GB
@@ -128,8 +137,7 @@
     </select>
 
     <select id="selectFilterNeedsStateForB2B" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaFilterNeedsPsDvo">
-        SELECT /*+ INDEX(T2 PK_PDBS_PD_BAS) */
-               T2.SAP_MAT_CD                                                              /* SAP코드 */
+        SELECT T2.SAP_MAT_CD                                                              /* SAP코드 */
              , T1.PD_CD                                                                   /* 품목코드 */
              , T2.PD_NM                                                                   /* 품목명 */
              , T1.V_CNT01_W                                                               /* 1월 소요 A09 */
@@ -252,7 +260,7 @@
                                   ELSE 'W'
                              END                        AS ICDE
                            , D1.PART_PD_CD              AS PD_CD
-                           , D1.PART_USE_QTY            AS QTY
+                           , SUM(D1.PART_USE_QTY)       AS QTY
                         FROM TB_SVPD_CST_SV_RGBSPR_IZ D1      /* 고객서비스정기BS주기내역 */
                         LEFT OUTER JOIN TB_SSCT_CNTR_DTL D2   /* 계약상세 */
                           ON D2.CNTR_NO   = D1.CNTR_NO
@@ -261,6 +269,10 @@
                        WHERE D1.DTA_DL_YN   = 'N'
                          AND D1.PART_PD_CD IN ('WM07100488', 'WM07100489', 'WM07100490')
                          AND D1.VST_DUEDT BETWEEN #{strtDt} AND #{endDt}
+                       GROUP BY SUBSTR(D1.VST_DUEDT, 5, 2), D1.PART_PD_CD
+                           , CASE WHEN D2.BASE_PD_CD IN ('WP01120008', 'WP01110022') THEN 'F'
+                                  ELSE 'W'
+                             END
                        UNION ALL
                       SELECT SUBSTR(D1.ASN_OJ_YM, 5, 2) AS VST_YM
                            , '2'                        AS VST_GB
@@ -268,7 +280,7 @@
                                   ELSE 'W'
                              END                        AS ICDE
                            , D1.PU_PART_PD_CD           AS PD_CD
-                           , D1.PU_QTY                  AS QTY
+                           , SUM(D1.PU_QTY)             AS QTY
                         FROM TB_SVPD_RGBS_PU_ITM_IZ D1        /* 정기BS투입품목내역 */
                         LEFT OUTER JOIN TB_SSCT_CNTR_DTL D2   /* 계약상세 */
                           ON D2.CNTR_NO   = D1.CNTR_NO
@@ -277,16 +289,19 @@
                        WHERE D1.DTA_DL_YN      = 'N'
                          AND D1.PU_PART_PD_CD IN ('WM07100488', 'WM07100489', 'WM07100490')
                          AND D1.ASN_OJ_YM BETWEEN SUBSTR(#{strtDt}, 1, 6) AND SUBSTR(#{endDt}, 1, 6)
+                       GROUP BY SUBSTR(D1.ASN_OJ_YM, 5, 2), D1.PU_PART_PD_CD
+                           , CASE WHEN D2.BASE_PD_CD IN ('WP01120008', 'WP01110022') THEN 'F'
+                                  ELSE 'W'
+                             END
                 </if>
                 <if test='@MybatisUtils@equals(b2bMngtCd, "A")'>
-                      SELECT /*+ INDEX(D2 PK_SVPD_CST_SV_EXCN_IZ) */
-                             SUBSTR(D1.VST_DUEDT, 5, 2) AS VST_YM
+                      SELECT SUBSTR(D1.VST_DUEDT, 5, 2) AS VST_YM
                            , '1'                        AS VST_GB
                            , CASE WHEN D2.PDCT_PD_CD IN ('WM02100197', 'WM02100143')               THEN 'W'
                                   WHEN D2.PDCT_PD_CD IN ('WM02100040', 'WM02100042', 'WM02100144') THEN 'F'
                              END                        AS ICDE
                            , D1.PART_PD_CD              AS PD_CD
-                           , D1.PART_USE_QTY            AS QTY
+                           , SUM(D1.PART_USE_QTY)       AS QTY
                         FROM TB_SVPD_CST_SV_RGBSPR_IZ D1      /* 고객서비스정기BS주기내역 */
                        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
                           ON D2.CNTR_NO = D1.CNTR_NO
@@ -295,6 +310,10 @@
                          AND D2.DTA_DL_YN = 'N'
                          AND D1.PART_PD_CD IN ('WM07100486', 'WM07104625')
                          AND D1.VST_DUEDT BETWEEN #{strtDt} AND #{endDt}
+                       GROUP BY SUBSTR(D1.VST_DUEDT, 5, 2), D1.PART_PD_CD
+                           , CASE WHEN D2.PDCT_PD_CD IN ('WM02100197', 'WM02100143')               THEN 'W'
+                                  WHEN D2.PDCT_PD_CD IN ('WM02100040', 'WM02100042', 'WM02100144') THEN 'F'
+                             END
                        UNION ALL
                       SELECT SUBSTR(ASN_OJ_YM, 5, 2) AS VST_YM
                            , '2'                     AS VST_GB
@@ -302,14 +321,18 @@
                                   WHEN PDCT_PD_CD IN ('WM02100040', 'WM02100042', 'WM02100144') THEN 'F'
                              END                     AS ICDE
                            , PU_PART_PD_CD           AS PD_CD
-                           , PU_QTY                  AS QTY
+                           , SUM(PU_QTY)             AS QTY
                         FROM TB_SVPD_RGBS_PU_ITM_IZ   /* 정기BS투입품목내역 */
                        WHERE DTA_DL_YN = 'N'
                          AND PU_PART_PD_CD IN ('WM07100486', 'WM07104625')
                          AND ASN_OJ_YM BETWEEN SUBSTR(#{strtDt}, 1, 6) AND SUBSTR(#{endDt}, 1, 6)
+                       GROUP BY SUBSTR(ASN_OJ_YM, 5, 2), PU_PART_PD_CD
+                           , CASE WHEN PDCT_PD_CD IN ('WM02100197', 'WM02100143')               THEN 'W'
+                                  WHEN PDCT_PD_CD IN ('WM02100040', 'WM02100042', 'WM02100144') THEN 'F'
+                             END
                 </if>
                     ) S1
-                GROUP BY S1.PD_CD
+                GORUP BY S1.PD_CD
              ) T1
          INNER JOIN TB_PDBS_PD_BAS T2   /* 상품기본 */
             ON T2.PD_CD = T1.PD_CD
