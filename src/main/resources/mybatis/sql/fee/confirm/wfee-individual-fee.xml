@@ -1058,7 +1058,7 @@
              , T1.DGR1_LEVL_OG_ID AS OG_LV1_ID
              , T1.DGR2_LEVL_OG_ID AS OG_LV2_ID
              , T1.DGR3_LEVL_OG_ID AS OG_LV3_ID
-             , NVL(T1.RSB_YN, 'N') AS RSB_YN
+             , T1.RSB_DV_CD
              , T1.PSTN_DV_CD
           FROM ( SELECT  A.BASE_YM
                        , A.PRTNR_KNM
@@ -1075,9 +1075,6 @@
                        , B.DGR1_LEVL_OG_ID
                        , B.DGR2_LEVL_OG_ID
                        , B.DGR3_LEVL_OG_ID
-                       , CASE WHEN A.RSB_DV_CD = 'W0204' THEN 'Y'
-                              ELSE 'N'
-                         END AS RSB_YN
                     FROM TB_OGBS_MM_PRTNR_IZ A
                    INNER JOIN TB_OGBS_MM_OG_IZ B
                       ON A.BASE_YM = B.BASE_YM
@@ -1587,9 +1584,9 @@
              , NVL(FEE.INTBS_SUM,0) AS INTBS_SUM	   /*과표계*/
              , NVL(FEE.DDTN_SUM,0) AS DDTN_SUM		   /*공제계*/
              , NVL(FEE.ACL_DSB_AMT,0) AS ACL_DSB_AMT   /*실지급액*/
-             , '0' AS AWB_INTBS_SUM		           /*시상과표계 현재 시상DB 미정*/
-             , '0' AS AWB_DDTN_SUM		           /*시상공제계 현재 시상DB 미정*/
-             , '0' AS AWB_ACL_DSB_AMT	           /*시상실지급액 현재 시상DB 미정*/
+             , NVL(AWD.AWD_INTBS_AMT,0) AS AWB_INTBS_SUM		    /*시상과표계 현재 시상DB 미정*/
+             , NVL(AWD.AWD_ERN_WHTX,0) AS AWB_DDTN_SUM	    /*시상공제계 현재 시상DB 미정*/
+             , NVL(AWD.AWD_INTBS_TOT_AMT,0) AS AWB_ACL_DSB_AMT	/*시상실지급액 현재 시상DB 미정*/
              , OG.PSTN_DV_CD
         FROM (  SELECT  B.DGR1_LEVL_OG_NM
                       , B.DGR2_LEVL_OG_NM
@@ -1642,12 +1639,18 @@
                         )FEE
           ON OG.PRTNR_NO = FEE.PRTNR_NO
          AND OG.OG_TP_CD = FEE.OG_TP_CD
-    <if test='@MybatisUtils@equals(feeDsbYn, "1")'>
-         AND ( FEE.INTBS_SUM > 0 /*지급여부가 Y 이면 과표계, 공제계,실지급액,시상지급액 이 0원 이상인것으로 (※향후 DB정해지면 시상지급액 추가)*/
-                OR FEE.DDTN_SUM > 0
-                OR FEE.ACL_DSB_AMT > 0
-             )
-    </if>
+        LEFT OUTER JOIN ( SELECT PRTNR_NO
+                               , OG_TP_CD
+                               , SUM(AWD_INTBS_AMT) AS AWD_INTBS_AMT
+                               , SUM(AWD_ERN_WHTX) AS AWD_ERN_WHTX
+                               , SUM(AWD_INTBS_AMT) - SUM(AWD_ERN_WHTX) AS AWD_INTBS_TOT_AMT
+                            FROM TB_PSEV_AWD_ERN_WHTX_IZ
+                           WHERE PERF_YM = #{perfYm}
+                             AND OG_TP_CD = #{ogTpCd}
+                           GROUP BY PRTNR_NO, OG_TP_CD
+                        )AWD
+          ON OG.PRTNR_NO = AWD.PRTNR_NO
+         AND OG.OG_TP_CD = AWD.OG_TP_CD
        WHERE 1=1
     <if test='@MybatisUtils@isNotEmpty(userSpptRsbDvCd)'>
         <if test='@MybatisUtils@equals(userSpptRsbDvCd, "W0106") or @MybatisUtils@equals(userSpptRsbDvCd, "W0206") or @MybatisUtils@equals(userSpptRsbDvCd, "W0107") or @MybatisUtils@equals(userSpptRsbDvCd, "W0207")'>
@@ -1692,7 +1695,21 @@
                             )
          </if>
     </if>
-       ORDER BY OG.PSTN_DV_CD, OG.OG_ID, OG.PRTNR_NO  /*직급, 본부, 사번 순으로 정렬한다.*/
+    <if test='@MybatisUtils@equals(feeDsbYn, "1")'>
+         AND ( NVL(FEE.INTBS_SUM,0) &gt; 0          /*지급여부가 Y 이면 과표계, 공제계,실지급액,시상지급액 이 0원 초과*/
+               OR NVL(FEE.DDTN_SUM,0) &gt; 0
+               OR NVL(FEE.ACL_DSB_AMT,0) &gt; 0
+               OR NVL(AWD.AWD_INTBS_AMT,0) &gt; 0
+               OR NVL(AWD.AWD_ERN_WHTX,0) &gt; 0
+               OR NVL(AWD.AWD_INTBS_TOT_AMT,0) &gt; 0
+             )
+    </if>
+    <if test='@MybatisUtils@equals(feeDsbYn, "2")'>
+         AND ( NVL(FEE.ACL_DSB_AMT,0) &lt;= 0        /*지급여부가 N 실지급액,시상지급액 이 0원 이하*/
+               AND NVL(AWD.AWD_INTBS_TOT_AMT,0) &lt;= 0
+             )
+    </if>
+        ORDER BY OG.PSTN_DV_CD, OG.OG_ID, OG.PRTNR_NO  /*직급, 본부, 사번 순으로 정렬한다.*/
     </select>
 
     <select id='selectUserInfo'

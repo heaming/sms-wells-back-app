@@ -189,7 +189,7 @@ public class WfeeIndividualFeeDto {
         String mgtCnt,
         String vstCnt,
         String procsRt,
-        String rsbYn,
+        String rsbDvCd,
         String pstnDvCd
     ) {}
 
