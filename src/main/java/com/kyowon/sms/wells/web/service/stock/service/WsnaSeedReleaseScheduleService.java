@@ -158,7 +158,7 @@ public class WsnaSeedReleaseScheduleService {
                 int cntrSn = dvo.getCntrSn();
 
                 // 고객서비스AS설치배정내역 저장
-                this.maaper.updateCstSvasIstAsnIzForInstl(cntrNo);
+                this.maaper.updateCstSvasIstAsnIzForInstl(cntrNo, cntrSn);
 
                 // 수행내역에 설치일자 저장
                 this.maaper.updateCstSvExcnIzForInstl(cntrNo, cntrSn);
