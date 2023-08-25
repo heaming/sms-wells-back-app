@@ -161,6 +161,7 @@ public class WsnbIndividualServicePsDto {
         String cnslTpMcsfCd,
         String cnslTpLcsfCd,
         String modUserId,
+        String cselRstCd,
         String custResp,
         String cstNm,
         String cnslCn
