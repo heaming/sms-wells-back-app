@@ -1,28 +1,26 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import java.util.ArrayList;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto.*;
+
 import java.util.List;
 
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
+import com.kyowon.sms.wells.web.service.stock.converter.WsnaStockAcinspRgstMngtConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaStockAcinspRgstMngtMapper;
 import com.sds.sflex.common.common.dvo.ExcelFieldDvo;
 import com.sds.sflex.common.common.service.ExcelDownloadService;
 import com.sds.sflex.system.config.constant.CommConst;
-import com.sds.sflex.system.config.validation.BizAssert;
-import com.sds.sflex.system.config.validation.ValidAssert;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.stereotype.Service;
-
-import com.kyowon.sms.wells.web.service.stock.converter.WsnaStockAcinspRgstMngtConverter;
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaStockAcinspRgstMngtMapper;
-
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto.*;
-
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.validation.BizAssert;
+import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -124,7 +122,7 @@ public class WsnaStockAcinspRgstMngtService {
     public int saveStockAcinspRgstStocApy(List<SaveReq> dtos) {
         ValidAssert.notEmpty(dtos);
 
-        List<WsnaStockAcinspRgstMngtDvo> stocApyDvoList = new ArrayList<>();
+        List<WsnaStockAcinspRgstMngtDvo> stocApyDvoList;
 
         List<WsnaStockAcinspRgstMngtDvo> dvos = this.converter.mapAllSaveReqToWsnaStockAcinspRgstMngtDvo(dtos);
 
