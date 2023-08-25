@@ -190,7 +190,10 @@ public class WfeeIndividualFeeDto {
         String vstCnt,
         String procsRt,
         String rsbDvCd,
-        String pstnDvCd
+        String pstnDvCd,
+        String ogLv1Id,
+        String ogLv2Id,
+        String ogLv3Id
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerEtcRes")

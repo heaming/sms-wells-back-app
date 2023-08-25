@@ -466,9 +466,9 @@
              , T1.PRTNR_KNM /*성명*/
              , T1.RSB_DV_CD /*직책*/
              , SUBSTR(T1.FST_CNTR_DT,1,6) AS BIZ_RGST1_ARTC /*업무등록-최초업무등록월*/
-             , NVL(SUBSTR(T1.RCNTR_DT,1,6),0) AS BIZ_RGST2_ARTC /*업무등록-재등록월*/
-             , NVL(SUBSTR(T1.FNL_CLTN_DT,1,6),0) AS BIZ_RGST4_ARTC /*업무등록-최종해약월*/
-             , NVL(SUBSTR(T1.CLTN_DT,1,6),0) AS BIZ_RGST4_ARTC /*업무등록-업무해약월*/
+             , NVL(SUBSTR(T1.RCNTR_DT,1,6),'-') AS BIZ_RGST2_ARTC /*업무등록-재등록월*/
+             , NVL(SUBSTR(T1.FNL_CLTN_DT,1,6),'-') AS BIZ_RGST3_ARTC /*업무등록-최종해약월*/
+             , NVL(SUBSTR(T1.CLTN_DT,1,6),'-') AS BIZ_RGST4_ARTC /*업무등록-업무해약월*/
              , NVL(T3.PERF_VAL,0) AS METG_DC /*미팅일수*/
              , T1.QLF_DV_CD AS QLF1_ATC  /*자격-수수료월*/
              , CASE WHEN T4.PSTN_DV_CD = 7 AND T4.RSB_DV_CD = 'W0204' THEN '매니저지점장'
@@ -477,8 +477,8 @@
                     WHEN T5.PRTNR_NO IS NOT NULL THEN 'M->P'
                     WHEN T4.PRTNR_NO IS NULL AND T5.PRTNR_NO IS NULL THEN '해약'
                END AS QLF2_ATC /*자격-M+1*/
-             , NVL(T9.EDU1_ATC,'0') AS EDU1_ATC /*교육-스타트업 */
-             , NVL(T9.EDU2_ATC,'0') AS EDU2_ATC /*교육-Pre스타트업 */
+             , NVL(T9.EDU1_ATC,'-') AS EDU1_ATC /*교육-스타트업 */
+             , NVL(T9.EDU2_ATC,'-') AS EDU2_ATC /*교육-Pre스타트업 */
              , T10.EDU3_ATC AS EDU3_ATC /*교육-보수 */
              , T10.EDU4_ATC AS EDU4_ATC /*교육-정착1 */
              , T10.EDU5_ATC AS EDU5_ATC /*교육-정착2 */
@@ -490,15 +490,15 @@
                     WHEN T10.EDU11_ATC = 'Y' THEN '5'
                     ELSE ''
                 END AS EDU7_ATC /*교육-Pre누적교육 */
-             , NVL(T9.EDU8_ATC,'0') AS EDU8_ATC /*교육-수석정착*/
+             , NVL(T9.EDU8_ATC,'-') AS EDU8_ATC /*교육-수석정착*/
              , CASE WHEN T9.EDU8_ATC != NULL
                          THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(T9.EDU8_ATC,'YYYYMM')) + 1
                          ELSE 0
                      END AS EDU9_ATC /*교육-수석차월*/
-             , NVL(SUBSTR(T6.FST_OPNG,1,6),'0') AS MNGR1_ATC /*매니저개시-최초개시월*/
-             , NVL(SUBSTR(T6.RE_OPNG,1,6),'0') AS MNGR2_ATC /*매니저개시-재개시월*/
-             , NVL(SUBSTR(T7.FST_CV_DT,1,6),'0') AS MNGR3_ATC /*매니저개시-최종해약월*/
-             , NVL(SUBSTR(T7.CV_DT,1,6),'0') AS MNGR4_ATC /*매니저개시-업무해약월*/
+             , NVL(SUBSTR(T6.FST_OPNG,1,6),'-') AS MNGR1_ATC /*매니저개시-최초개시월*/
+             , NVL(SUBSTR(T6.RE_OPNG,1,6),'-') AS MNGR2_ATC /*매니저개시-재개시월*/
+             , NVL(SUBSTR(T7.FST_CV_DT,1,6),'-') AS MNGR3_ATC /*매니저개시-최종해약월*/
+             , NVL(SUBSTR(T7.CV_DT,1,6),'-') AS MNGR4_ATC /*매니저개시-업무해약월*/
              , CASE WHEN NVL(T7.CV_DT,'0') != '0'
                          AND MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T7.CV_DT,1,6),'YYYYMM')) &gt;= 0
                          THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T7.CV_DT,1,6),'YYYYMM')) + 1
@@ -509,9 +509,14 @@
              , NVL(T8.MNGT_CNT,0) AS INDV1_BS_ATC /*개인BS-배정건수*/
              , NVL(T8.VST_CNT,0) AS INDV2_BS_ATC /*개인BS-완료건수*/
              , CASE WHEN NVL(T8.VST_CNT,0) = 0 OR NVL(T8.MNGT_CNT,0) = 0 THEN 0
-                    ELSE ROUND(NVL(T8.VST_CNT,0) / NVL(T8.MNGT_CNT,1) * 100, 2)
+                    ELSE TRUNC((T8.VST_CNT / (T8.MNGT_CNT - T8.CAN_CNT))*100.00,2)
                END AS INDV3_BS_ATC /*개인BS-처리율*/
-             , NVL(T8.MD_RT,0) AS INDV4_BS_ATC /*개인BS-지급률*/
+             , CASE WHEN NVL(T8.VST_CNT,0) = 0 OR NVL(T8.MNGT_CNT,0) = 0 THEN 0
+                    ELSE ( CASE WHEN TRUNC((T8.VST_CNT / (T8.MNGT_CNT - T8.CAN_CNT))*100.00,2) &gt;= 90 THEN 100
+                                ELSE 80
+                           END
+                         )
+               END AS INDV4_BS_ATC /*개인BS-지급률*/
              , NVL(T8.W1_CNT,0) AS INDV5_BS_ATC /*개인BS-W1건수*/
              , NVL(T8.W2_CNT,0) AS INDV6_BS_ATC /*개인BS-W2건수*/
              , NVL(T11.INDV1_PERF,0) AS INDV1_PERF /*개인실적-가정인정건수 */
@@ -620,41 +625,89 @@
           LEFT OUTER JOIN ( SELECT PRTNR_NO
                                  , NVL(MAX(W1_CNT),0) AS W1_CNT
                                  , NVL(MAX(W2_CNT),0) AS W2_CNT
-                                 , NVL(MAX(MD_RT),0) AS MD_RT
                                  , NVL(MAX(MNGT_CNT),0) AS MNGT_CNT
                                  , NVL(MAX(VST_CNT),0) AS VST_CNT
+                                 , NVL(MAX(CAN_CNT),0) AS CAN_CNT
                               FROM ( SELECT PRTNR_NO
                                           , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010101' THEN PERF_VAL END AS W1_CNT
                                           , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010101' THEN PERF_VAL END AS W2_CNT
-                                          , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL END AS MD_RT
                                           , 0 AS MNGT_CNT
                                           , 0 AS VST_CNT
+                                          , 0 AS CAN_CNT
                                        FROM TB_FEAM_WPTN_SV_PERF_AGRG
                                       WHERE BASE_YM = #{perfYm}
                                         AND CL_DV_CD = #{feeTcntDvCd}
                                         AND OG_TP_CD = 'W02'
-                                        AND PRTNR_SV_PERF_ATC_CD IN ('SV06010101','SV06010102','SV01999910')
+                                        AND PRTNR_SV_PERF_ATC_CD IN ('SV06010101','SV06010102')
                                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                                         AND PRTNR_NO = #{prtnrNo}
                                    </if>
                                       UNION ALL
-                                     SELECT PRTNR_NO
+                                     SELECT A.PRTNR_NO
                                           , 0 AS W1_CNT
                                           , 0 AS W2_CNT
-                                          , 0 AS MD_RT
-                                          , CASE WHEN SUBSTR(PRTNR_SV_PERF_ATC_CD,9,2) = '01' THEN SUM(PERF_VAL) ELSE 0 END AS MNGT_CNT
-                                          , CASE WHEN SUBSTR(PRTNR_SV_PERF_ATC_CD,9,2) = '02' THEN SUM(PERF_VAL) ELSE 0 END AS VST_CNT
-                                       FROM TB_FEAM_WPTN_SV_PERF_AGRG
-                                      WHERE BASE_YM = #{perfYm}
-                                        AND CL_DV_CD = #{feeTcntDvCd}
-                                        AND OG_TP_CD = 'W02'
-                                        AND SUBSTR(PRTNR_SV_PERF_ATC_CD,3,2) = CASE WHEN BASE_YM &lt; '202207' THEN '01' ELSE '08' END /*202207년 이후는 구분코드 08*/
-                                        AND SUBSTR(PRTNR_SV_PERF_ATC_CD,9,2) IN ('01', '02')
-                                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                        AND PRTNR_NO = #{prtnrNo}
+                                          , NVL(SUM(A.MNGT_CNT),0) AS MNGT_CNT
+                                          , NVL(SUM(A.VST_CNT),0) AS VST_CNT
+                                          , NVL(SUM(A.CAN_CNT),0) AS CAN_CNT
+                                       FROM ( SELECT PRTNR_NO
+                                                   , MNGT_CNT AS MNGT_CNT
+                                                   , VST_CNT1 + VST_CNT2 AS VST_CNT
+                                                   , CAN_CNT
+                                                FROM ( SELECT Z.PRTNR_NO
+                                                            , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
+                                                                        AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01'
+                                                                        THEN SUM(Z.PERF_VAL)
+                                                                        ELSE 0
+                                                              END AS MNGT_CNT
+                                                            , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
+                                                                        AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '02'
+                                                                        THEN SUM(Z.PERF_VAL)
+                                                                   ELSE 0
+                                                              END AS VST_CNT1
+                                                            , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
+                                                                        AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '03'
+                                                                        THEN SUM(Z.PERF_VAL)
+                                                                   ELSE 0
+                                                              END AS VST_CNT2
+                                                            , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '90'
+                                                                        AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01'
+                                                                        THEN SUM(Z.PERF_VAL)
+                                                                   ELSE 0
+                                                              END AS CAN_CNT
+                                                             FROM TB_FEAM_WPTN_SV_PERF_AGRG Z
+                                                            INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD X
+                                                               ON Z.PRTNR_SV_PERF_ATC_CD = X.PRTNR_SV_PERF_ATC_CD
+                                                              AND X.PRTNR_PERF_DTLP_ATC_CDV1 = '01'
+                                                              AND X.PRTNR_PERF_DTLP_ATC_CDV2 IN ('99','90')
+                                                              AND X.PRTNR_PERF_DTLP_ATC_CDV3 IN ('99','90')
+                                                            WHERE Z.BASE_YM = '202306'
+                                                              AND Z.CL_DV_CD = '02'
+                                                              AND Z.OG_TP_CD = 'W02'
+                                                         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                                              AND Z.PRTNR_NO = #{prtnrNo}
+                                                         </if>
+                                                            GROUP BY Z.PRTNR_NO, X.PRTNR_PERF_DTLP_ATC_CDV2, X.PRTNR_PERF_DTLP_ATC_CDV4
+                                                     )
+                                            )A
+                                      INNER JOIN TB_OGBS_MM_PRTNR_IZ B
+                                         ON A.PRTNR_NO = B.PRTNR_NO
+                                        AND B.BASE_YM = #{perfYm}
+                                        AND B.OG_TP_CD = 'W02'
+                                      INNER JOIN TB_OGBS_MM_OG_IZ C
+                                         ON B.BASE_YM = C.BASE_YM
+                                        AND B.OG_ID = C.OG_ID
+                                   <if test='@MybatisUtils@isNotEmpty(ogLevl1Id)'>
+                                        AND C.DGR1_LEVL_OG_ID = #{ogLevl1Id}
                                    </if>
-                                      GROUP BY PRTNR_NO, SUBSTR(PRTNR_SV_PERF_ATC_CD,9,2)
-                                   )GROUP BY PRTNR_NO
+                                   <if test='@MybatisUtils@isNotEmpty(ogLevl2Id)'>
+                                        AND C.DGR2_LEVL_OG_ID = #{ogLevl2Id}
+                                   </if>
+                                   <if test='@MybatisUtils@isNotEmpty(ogLevl3Id)'>
+                                        AND C.DGR3_LEVL_OG_ID = #{ogLevl3Id}
+                                   </if>
+                                      GROUP BY A.PRTNR_NO
+                                   )
+                             GROUP BY PRTNR_NO
                           )T8
             ON T1.PRTNR_NO = T8.PRTNR_NO
           LEFT OUTER JOIN ( SELECT PRTNR_NO
@@ -840,10 +893,10 @@
              , T1.PRTNR_KNM /*성명*/
              , T1.RSB_DV_CD /*직책*/
              , SUBSTR(T1.FST_CNTR_DT,1,6) AS BIZ_RGST1_ARTC /*업무등록-최초업무등록월*/
-             , NVL(SUBSTR(T1.RCNTR_DT,1,6),0) AS BIZ_RGST2_ARTC /*업무등록-재등록월*/
-             , NVL(SUBSTR(T1.FNL_CLTN_DT,1,6),0) AS BIZ_RGST4_ARTC /*업무등록-최종해약월*/
-             , NVL(SUBSTR(T1.CLTN_DT,1,6),0) AS BIZ_RGST4_ARTC /*업무등록-업무해약월*/
-             , NVL(SUBSTR(T3.CV_DT,1,6),'0') AS PRFMT_MM /*승진월*/
+             , NVL(SUBSTR(T1.RCNTR_DT,1,6),'-') AS BIZ_RGST2_ARTC /*업무등록-재등록월*/
+             , NVL(SUBSTR(T1.FNL_CLTN_DT,1,6),'-') AS BIZ_RGST3_ARTC /*업무등록-최종해약월*/
+             , NVL(SUBSTR(T1.CLTN_DT,1,6),'-') AS BIZ_RGST4_ARTC /*업무등록-업무해약월*/
+             , NVL(SUBSTR(T3.CV_DT,1,6),'-') AS PRFMT_MM /*승진월*/
              , CASE WHEN NVL(T3.CV_DT,'0') != '0'
                          AND MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T3.CV_DT,1,6),'YYYYMM')) &gt;= 0
                          THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T3.CV_DT,1,6),'YYYYMM')) + 1
@@ -861,9 +914,14 @@
              , NVL(T6.MNGT_CNT,0) AS INDV1_BS_ATC /*개인BS-배정건수*/
              , NVL(T6.VST_CNT,0) AS INDV2_BS_ATC /*개인BS-완료건수*/
              , CASE WHEN NVL(T6.VST_CNT,0) = 0 OR NVL(T6.MNGT_CNT,0) = 0 THEN 0
-                    ELSE ROUND(NVL(T6.VST_CNT,0) / NVL(T6.MNGT_CNT,1) * 100, 2)
+                    ELSE TRUNC((T6.VST_CNT / (T6.MNGT_CNT - T6.CAN_CNT))*100.00,2)
                END AS INDV3_BS_ATC /*개인BS-처리율*/
-             , NVL(T6.MD_RT,0) AS INDV4_BS_ATC /*개인BS-지급률*/
+             , CASE WHEN NVL(T6.VST_CNT,0) = 0 OR NVL(T6.MNGT_CNT,0) = 0 THEN 0
+                    ELSE ( CASE WHEN TRUNC((T6.VST_CNT / (T6.MNGT_CNT - T6.CAN_CNT))*100.00,2) &gt;= 90 THEN 100
+                                ELSE 80
+                           END
+                         )
+               END AS INDV4_BS_ATC /*개인BS-지급률*/
              , NVL(T6.W1_CNT,0) AS INDV5_BS_ATC /*개인BS-W1건수*/
              , NVL(T6.W2_CNT,0) AS INDV6_BS_ATC /*개인BS-W2건수*/
              , NVL(T7.MNGT_CNT,0) AS OG1_BS_ATC /*조직BS-배정건수 */
@@ -871,7 +929,12 @@
              , CASE WHEN NVL(T7.VST_CNT,0) = 0 OR NVL(T7.MNGT_CNT,0) = 0 THEN 0
                     ELSE TRUNC((T7.VST_CNT / (T7.MNGT_CNT - T7.CAN_CNT))*100.00,2)
                END AS OG3_BS_ATC /*조직BS-처리율 */
-             , NVL(TRUNC(T7.MD_RT,2),0) AS OG4_BS_ATC /*조직BS-지급률 */
+             , CASE WHEN NVL(T7.VST_CNT,0) = 0 OR NVL(T7.MNGT_CNT,0) = 0 THEN 0
+                    ELSE ( CASE WHEN TRUNC((T7.VST_CNT / (T7.MNGT_CNT - T7.CAN_CNT))*100.00,2) &gt;= 90 THEN 100
+                                ELSE 80
+                           END
+                         )
+               END AS OG4_BS_ATC /*조직BS-지급률 */
              , NVL(T9.INDV1_PERF,0) AS INDV1_PERF /*개인실적-가정인정건수 */
              , NVL(T9.INDV2_PERF,0) AS INDV2_PERF /*개인실적-렌탈기준가 */
              , NVL(T9.INDV3_PERF,0) AS INDV3_PERF /*개인실적-일시불기준가 */
@@ -964,50 +1027,12 @@
          LEFT OUTER JOIN ( SELECT PRTNR_NO
                                 , NVL(MAX(W1_CNT),0) AS W1_CNT
                                 , NVL(MAX(W2_CNT),0) AS W2_CNT
-                                , NVL(MAX(MD_RT),0) AS MD_RT
                                 , NVL(MAX(MNGT_CNT),0) AS MNGT_CNT
                                 , NVL(MAX(VST_CNT),0) AS VST_CNT
+                                , NVL(MAX(CAN_CNT),0) AS CAN_CNT
                              FROM ( SELECT PRTNR_NO
                                          , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010101' THEN PERF_VAL END AS W1_CNT
                                          , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010101' THEN PERF_VAL END AS W2_CNT
-                                         , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL END AS MD_RT
-                                         , 0 AS MNGT_CNT
-                                         , 0 AS VST_CNT
-                                      FROM TB_FEAM_WPTN_SV_PERF_AGRG
-                                     WHERE BASE_YM = #{perfYm}
-                                       AND CL_DV_CD = #{feeTcntDvCd}
-                                       AND OG_TP_CD = 'W02'
-                                       AND PRTNR_SV_PERF_ATC_CD IN ('SV06010101','SV06010102','SV01999910')
-                                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                       AND PRTNR_NO = #{prtnrNo}
-                                  </if>
-                                     UNION ALL
-                                    SELECT PRTNR_NO
-                                         , 0 AS W1_CNT
-                                         , 0 AS W2_CNT
-                                         , 0 AS MD_RT
-                                         , CASE WHEN SUBSTR(PRTNR_SV_PERF_ATC_CD,9,2) = '01' THEN SUM(PERF_VAL) ELSE 0 END AS MNGT_CNT
-                                         , CASE WHEN SUBSTR(PRTNR_SV_PERF_ATC_CD,9,2) = '02' THEN SUM(PERF_VAL) ELSE 0 END AS VST_CNT
-                                      FROM TB_FEAM_WPTN_SV_PERF_AGRG
-                                     WHERE BASE_YM = #{perfYm}
-                                       AND CL_DV_CD = #{feeTcntDvCd}
-                                       AND OG_TP_CD = 'W02'
-                                       AND SUBSTR(PRTNR_SV_PERF_ATC_CD,3,2) = CASE WHEN BASE_YM &lt; '202207' THEN '01' ELSE '08' END /*202207년 이후는 구분코드 08*/
-                                       AND SUBSTR(PRTNR_SV_PERF_ATC_CD,9,2) IN ('01', '02')
-                                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                       AND PRTNR_NO = #{prtnrNo}
-                                  </if>
-                                     GROUP BY PRTNR_NO, SUBSTR(PRTNR_SV_PERF_ATC_CD,9,2)
-                                  )GROUP BY PRTNR_NO
-                         )T6
-           ON T1.PRTNR_NO = T6.PRTNR_NO
-         LEFT OUTER JOIN ( SELECT C.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
-                                , NVL(SUM(A.MD_RT),0) AS MD_RT
-                                , NVL(SUM(A.MNGT_CNT),0) AS MNGT_CNT
-                                , NVL(SUM(A.VST_CNT),0) AS VST_CNT
-                                , NVL(SUM(A.CAN_CNT),0) AS CAN_CNT
-                             FROM ( SELECT PRTNR_NO
-                                         , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL END AS MD_RT
                                          , 0 AS MNGT_CNT
                                          , 0 AS VST_CNT
                                          , 0 AS CAN_CNT
@@ -1015,10 +1040,83 @@
                                      WHERE BASE_YM = #{perfYm}
                                        AND CL_DV_CD = #{feeTcntDvCd}
                                        AND OG_TP_CD = 'W02'
-                                       AND PRTNR_SV_PERF_ATC_CD = 'SV01999910'
+                                       AND PRTNR_SV_PERF_ATC_CD IN ('SV06010101','SV06010102')
+                                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                       AND PRTNR_NO = #{prtnrNo}
+                                  </if>
                                      UNION ALL
-                                    SELECT PRTNR_NO
-                                         , 0 AS MD_RT
+                                    SELECT A.PRTNR_NO
+                                         , 0 AS W1_CNT
+                                         , 0 AS W2_CNT
+                                         , NVL(SUM(A.MNGT_CNT),0) AS MNGT_CNT
+                                         , NVL(SUM(A.VST_CNT),0) AS VST_CNT
+                                         , NVL(SUM(A.CAN_CNT),0) AS CAN_CNT
+                                      FROM ( SELECT PRTNR_NO
+                                                  , MNGT_CNT AS MNGT_CNT
+                                                  , VST_CNT1 + VST_CNT2 AS VST_CNT
+                                                  , CAN_CNT
+                                               FROM ( SELECT Z.PRTNR_NO
+                                                           , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
+                                                                       AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01'
+                                                                       THEN SUM(Z.PERF_VAL)
+                                                                  ELSE 0
+                                                             END AS MNGT_CNT
+                                                           , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
+                                                                       AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '02'
+                                                                       THEN SUM(Z.PERF_VAL)
+                                                                  ELSE 0
+                                                             END AS VST_CNT1
+                                                           , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
+                                                                       AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '03'
+                                                                       THEN SUM(Z.PERF_VAL)
+                                                                  ELSE 0
+                                                             END AS VST_CNT2
+                                                           , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '90'
+                                                                       AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01'
+                                                                       THEN SUM(Z.PERF_VAL)
+                                                                  ELSE 0
+                                                             END AS CAN_CNT
+                                                        FROM TB_FEAM_WPTN_SV_PERF_AGRG Z
+                                                       INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD X
+                                                          ON Z.PRTNR_SV_PERF_ATC_CD = X.PRTNR_SV_PERF_ATC_CD
+                                                         AND X.PRTNR_PERF_DTLP_ATC_CDV1 = '01'
+                                                         AND X.PRTNR_PERF_DTLP_ATC_CDV2 IN ('99','90')
+                                                         AND X.PRTNR_PERF_DTLP_ATC_CDV3 IN ('99','90')
+                                                       WHERE Z.BASE_YM = '202306'
+                                                         AND Z.CL_DV_CD = '02'
+                                                         AND Z.OG_TP_CD = 'W02'
+                                                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                                         AND Z.PRTNR_NO = #{prtnrNo}
+                                                    </if>
+                                                    GROUP BY Z.PRTNR_NO, X.PRTNR_PERF_DTLP_ATC_CDV2, X.PRTNR_PERF_DTLP_ATC_CDV4
+                                                    )
+                                           )A
+                                     INNER JOIN TB_OGBS_MM_PRTNR_IZ B
+                                        ON A.PRTNR_NO = B.PRTNR_NO
+                                       AND B.BASE_YM = #{perfYm}
+                                       AND B.OG_TP_CD = 'W02'
+                                     INNER JOIN TB_OGBS_MM_OG_IZ C
+                                        ON B.BASE_YM = C.BASE_YM
+                                       AND B.OG_ID = C.OG_ID
+                                  <if test='@MybatisUtils@isNotEmpty(ogLevl1Id)'>
+                                       AND C.DGR1_LEVL_OG_ID = #{ogLevl1Id}
+                                  </if>
+                                  <if test='@MybatisUtils@isNotEmpty(ogLevl2Id)'>
+                                       AND C.DGR2_LEVL_OG_ID = #{ogLevl2Id}
+                                  </if>
+                                  <if test='@MybatisUtils@isNotEmpty(ogLevl3Id)'>
+                                       AND C.DGR3_LEVL_OG_ID = #{ogLevl3Id}
+                                  </if>
+                                     GROUP BY A.PRTNR_NO
+                                  )
+                            GROUP BY PRTNR_NO
+                         )T6
+           ON T1.PRTNR_NO = T6.PRTNR_NO
+         LEFT OUTER JOIN ( SELECT C.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                                , NVL(SUM(A.MNGT_CNT),0) AS MNGT_CNT
+                                , NVL(SUM(A.VST_CNT),0) AS VST_CNT
+                                , NVL(SUM(A.CAN_CNT),0) AS CAN_CNT
+                             FROM ( SELECT PRTNR_NO
                                          , MNGT_CNT AS MNGT_CNT
                                          , VST_CNT1 + VST_CNT2 AS VST_CNT
                                          , CAN_CNT
@@ -2132,10 +2230,10 @@
              , T1.PRTNR_KNM /*성명*/
              , T1.RSB_DV_CD /*직책*/
              , SUBSTR(T1.FST_CNTR_DT,1,6) AS BIZ_RGST1_ARTC /*업무등록-최초업무등록월*/
-             , NVL(SUBSTR(T1.RCNTR_DT,1,6),0) AS BIZ_RGST2_ARTC /*업무등록-재등록월*/
-             , NVL(SUBSTR(T1.FNL_CLTN_DT,1,6),0) AS BIZ_RGST4_ARTC /*업무등록-최종해약월*/
-             , NVL(SUBSTR(T1.CLTN_DT,1,6),0) AS BIZ_RGST4_ARTC /*업무등록-업무해약월*/
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(SUBSTR(T15.CV_DT,1,6),'0') END AS PRFMT_MM /*승진월*/
+             , NVL(SUBSTR(T1.RCNTR_DT,1,6),'-') AS BIZ_RGST2_ARTC /*업무등록-재등록월*/
+             , NVL(SUBSTR(T1.FNL_CLTN_DT,1,6),'-') AS BIZ_RGST3_ARTC /*업무등록-최종해약월*/
+             , NVL(SUBSTR(T1.CLTN_DT,1,6),'-') AS BIZ_RGST4_ARTC /*업무등록-업무해약월*/
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(SUBSTR(T15.CV_DT,1,6),'-') END AS PRFMT_MM /*승진월*/
              , CASE WHEN T1.PSTN_DV_CD = 15
                          AND NVL(T15.CV_DT,'0') != '0'
                          AND MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T15.CV_DT,1,6),'YYYYMM')) &gt;= 0
@@ -2150,8 +2248,8 @@
                     WHEN T5.PRTNR_NO IS NOT NULL THEN 'M->P'
                     WHEN T4.PRTNR_NO IS NULL AND T5.PRTNR_NO IS NULL THEN '해약'
                END AS QLF2_ATC /*자격-M+1*/
-             , NVL(T9.EDU1_ATC,'0') AS EDU1_ATC /*교육-스타트업 */
-             , NVL(T9.EDU2_ATC,'0') AS EDU2_ATC /*교육-Pre스타트업 */
+             , NVL(T9.EDU1_ATC,'-') AS EDU1_ATC /*교육-스타트업 */
+             , NVL(T9.EDU2_ATC,'-') AS EDU2_ATC /*교육-Pre스타트업 */
              , T10.EDU3_ATC AS EDU3_ATC /*교육-보수 */
              , T10.EDU4_ATC AS EDU4_ATC /*교육-정착1 */
              , T10.EDU5_ATC AS EDU5_ATC /*교육-정착2 */
@@ -2164,15 +2262,15 @@
                     WHEN T10.EDU11_ATC = 'Y' THEN '5'
                     ELSE ''
                END AS EDU7_ATC /*교육-Pre누적교육 */
-             , NVL(T9.EDU8_ATC,'0') AS EDU8_ATC /*교육-수석정착*/
+             , NVL(T9.EDU8_ATC,'-') AS EDU8_ATC /*교육-수석정착*/
              , CASE WHEN T9.EDU8_ATC != NULL
                          THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(T9.EDU8_ATC,'YYYYMM')) + 1
                     ELSE 0
                END AS EDU9_ATC /*교육-수석차월*/
-             , NVL(SUBSTR(T6.FST_OPNG,1,6),'0') AS MNGR1_ATC /*매니저개시-최초개시월*/
-             , NVL(SUBSTR(T6.RE_OPNG,1,6),'0') AS MNGR2_ATC /*매니저개시-재개시월*/
-             , NVL(SUBSTR(T7.FST_CV_DT,1,6),'0') AS MNGR3_ATC /*매니저개시-최종해약월*/
-             , NVL(SUBSTR(T7.CV_DT,1,6),'0') AS MNGR4_ATC /*매니저개시-업무해약월*/
+             , NVL(SUBSTR(T6.FST_OPNG,1,6),'-') AS MNGR1_ATC /*매니저개시-최초개시월*/
+             , NVL(SUBSTR(T6.RE_OPNG,1,6),'-') AS MNGR2_ATC /*매니저개시-재개시월*/
+             , NVL(SUBSTR(T7.FST_CV_DT,1,6),'-') AS MNGR3_ATC /*매니저개시-최종해약월*/
+             , NVL(SUBSTR(T7.CV_DT,1,6),'-') AS MNGR4_ATC /*매니저개시-업무해약월*/
              , CASE WHEN NVL(T7.CV_DT,'0') != '0'
                          AND MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T7.CV_DT,1,6),'YYYYMM')) &gt;= 0
                          THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T7.CV_DT,1,6),'YYYYMM')) + 1
@@ -2183,9 +2281,14 @@
              , NVL(T8.MNGT_CNT,0) AS INDV1_BS_ATC /*개인BS-배정건수*/
              , NVL(T8.VST_CNT,0) AS INDV2_BS_ATC /*개인BS-완료건수*/
              , CASE WHEN NVL(T8.VST_CNT,0) = 0 OR NVL(T8.MNGT_CNT,0) = 0 THEN 0
-                     ELSE ROUND(NVL(T8.VST_CNT,0) / NVL(T8.MNGT_CNT,1) * 100, 2)
+                     ELSE TRUNC((T8.VST_CNT / (T8.MNGT_CNT - T8.CAN_CNT))*100.00,2)
                END AS INDV3_BS_ATC /*개인BS-처리율*/
-             , NVL(T8.MD_RT,0) AS INDV4_BS_ATC /*개인BS-지급률*/
+             , CASE WHEN NVL(T8.VST_CNT,0) = 0 OR NVL(T8.MNGT_CNT,0) = 0 THEN 0
+                    ELSE ( CASE WHEN TRUNC((T8.VST_CNT / (T8.MNGT_CNT - T8.CAN_CNT))*100.00,2) &gt;= 90 THEN 100
+                                ELSE 80
+                           END
+                         )
+               END AS INDV4_BS_ATC /*개인BS-지급률*/
              , NVL(T8.W1_CNT,0) AS INDV5_BS_ATC /*개인BS-W1건수*/
              , NVL(T8.W2_CNT,0) AS INDV6_BS_ATC /*개인BS-W2건수*/
              , NVL(T16.MNGT_CNT,0) AS OG1_BS_ATC /*조직BS-배정건수 */
@@ -2193,7 +2296,12 @@
              , CASE WHEN NVL(T16.VST_CNT,0) = 0 OR NVL(T16.MNGT_CNT,0) = 0 THEN 0
                     ELSE TRUNC((T16.VST_CNT / (T16.MNGT_CNT - T16.CAN_CNT))*100.00,2)
                END AS OG3_BS_ATC /*조직BS-처리율 */
-             , NVL(TRUNC(T16.MD_RT,2),0) AS OG4_BS_ATC /*조직BS-지급률 */
+             , CASE WHEN NVL(T16.VST_CNT,0) = 0 OR NVL(T16.MNGT_CNT,0) = 0 THEN 0
+                    ELSE ( CASE WHEN TRUNC((T16.VST_CNT / (T16.MNGT_CNT - T16.CAN_CNT))*100.00,2) &gt;= 90 THEN 100
+                                ELSE 80
+                           END
+                         )
+               END AS OG4_BS_ATC /*조직BS-지급률 */
              , NVL(T11.INDV1_PERF,0) AS INDV1_PERF /*개인실적-가정인정건수 */
              , NVL(T11.INDV2_PERF,0) AS INDV2_PERF /*개인실적-렌탈기준가 */
              , NVL(T11.INDV3_PERF,0) AS INDV3_PERF /*개인실적-일시불기준가 */
@@ -2354,41 +2462,89 @@
           LEFT OUTER JOIN ( SELECT PRTNR_NO
                                  , NVL(MAX(W1_CNT),0) AS W1_CNT
                                  , NVL(MAX(W2_CNT),0) AS W2_CNT
-                                 , NVL(MAX(MD_RT),0) AS MD_RT
                                  , NVL(MAX(MNGT_CNT),0) AS MNGT_CNT
                                  , NVL(MAX(VST_CNT),0) AS VST_CNT
+                                 , NVL(MAX(CAN_CNT),0) AS CAN_CNT
                               FROM ( SELECT PRTNR_NO
                                           , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010101' THEN PERF_VAL END AS W1_CNT
                                           , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010101' THEN PERF_VAL END AS W2_CNT
-                                          , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL END AS MD_RT
                                           , 0 AS MNGT_CNT
                                           , 0 AS VST_CNT
+                                          , 0 AS CAN_CNT
                                        FROM TB_FEAM_WPTN_SV_PERF_AGRG
                                       WHERE BASE_YM = #{perfYm}
                                         AND CL_DV_CD = #{feeTcntDvCd}
                                         AND OG_TP_CD = 'W02'
-                                        AND PRTNR_SV_PERF_ATC_CD IN ('SV06010101','SV06010102','SV01999910')
+                                        AND PRTNR_SV_PERF_ATC_CD IN ('SV06010101','SV06010102')
                                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                                         AND PRTNR_NO = #{prtnrNo}
                                    </if>
                                       UNION ALL
-                                     SELECT PRTNR_NO
+                                     SELECT A.PRTNR_NO
                                           , 0 AS W1_CNT
                                           , 0 AS W2_CNT
-                                          , 0 AS MD_RT
-                                          , CASE WHEN SUBSTR(PRTNR_SV_PERF_ATC_CD,9,2) = '01' THEN SUM(PERF_VAL) ELSE 0 END AS MNGT_CNT
-                                          , CASE WHEN SUBSTR(PRTNR_SV_PERF_ATC_CD,9,2) = '02' THEN SUM(PERF_VAL) ELSE 0 END AS VST_CNT
-                                       FROM TB_FEAM_WPTN_SV_PERF_AGRG
-                                      WHERE BASE_YM = #{perfYm}
-                                        AND CL_DV_CD = #{feeTcntDvCd}
-                                        AND OG_TP_CD = 'W02'
-                                        AND SUBSTR(PRTNR_SV_PERF_ATC_CD,3,2) = CASE WHEN BASE_YM &lt; '202207' THEN '01' ELSE '08' END /*202207년 이후는 구분코드 08*/
-                                        AND SUBSTR(PRTNR_SV_PERF_ATC_CD,9,2) IN ('01', '02')
-                                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                        AND PRTNR_NO = #{prtnrNo}
+                                          , NVL(SUM(A.MNGT_CNT),0) AS MNGT_CNT
+                                          , NVL(SUM(A.VST_CNT),0) AS VST_CNT
+                                          , NVL(SUM(A.CAN_CNT),0) AS CAN_CNT
+                                       FROM ( SELECT PRTNR_NO
+                                                   , MNGT_CNT AS MNGT_CNT
+                                                   , VST_CNT1 + VST_CNT2 AS VST_CNT
+                                                   , CAN_CNT
+                                                FROM ( SELECT Z.PRTNR_NO
+                                                            , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
+                                                                        AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01'
+                                                                        THEN SUM(Z.PERF_VAL)
+                                                                   ELSE 0
+                                                              END AS MNGT_CNT
+                                                            , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
+                                                                        AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '02'
+                                                                        THEN SUM(Z.PERF_VAL)
+                                                                   ELSE 0
+                                                              END AS VST_CNT1
+                                                            , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
+                                                                        AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '03'
+                                                                        THEN SUM(Z.PERF_VAL)
+                                                                   ELSE 0
+                                                              END AS VST_CNT2
+                                                            , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '90'
+                                                                        AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01'
+                                                                        THEN SUM(Z.PERF_VAL)
+                                                                   ELSE 0
+                                                              END AS CAN_CNT
+                                                              FROM TB_FEAM_WPTN_SV_PERF_AGRG Z
+                                                             INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD X
+                                                                ON Z.PRTNR_SV_PERF_ATC_CD = X.PRTNR_SV_PERF_ATC_CD
+                                                               AND X.PRTNR_PERF_DTLP_ATC_CDV1 = '01'
+                                                               AND X.PRTNR_PERF_DTLP_ATC_CDV2 IN ('99','90')
+                                                               AND X.PRTNR_PERF_DTLP_ATC_CDV3 IN ('99','90')
+                                                             WHERE Z.BASE_YM = '202306'
+                                                               AND Z.CL_DV_CD = '02'
+                                                               AND Z.OG_TP_CD = 'W02'
+                                                          <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                                               AND Z.PRTNR_NO = #{prtnrNo}
+                                                          </if>
+                                                             GROUP BY Z.PRTNR_NO, X.PRTNR_PERF_DTLP_ATC_CDV2, X.PRTNR_PERF_DTLP_ATC_CDV4
+                                                     )
+                                            )A
+                                      INNER JOIN TB_OGBS_MM_PRTNR_IZ B
+                                         ON A.PRTNR_NO = B.PRTNR_NO
+                                        AND B.BASE_YM = #{perfYm}
+                                        AND B.OG_TP_CD = 'W02'
+                                      INNER JOIN TB_OGBS_MM_OG_IZ C
+                                         ON B.BASE_YM = C.BASE_YM
+                                        AND B.OG_ID = C.OG_ID
+                                   <if test='@MybatisUtils@isNotEmpty(ogLevl1Id)'>
+                                        AND C.DGR1_LEVL_OG_ID = #{ogLevl1Id}
                                    </if>
-                                      GROUP BY PRTNR_NO, SUBSTR(PRTNR_SV_PERF_ATC_CD,9,2)
-                                   )GROUP BY PRTNR_NO
+                                   <if test='@MybatisUtils@isNotEmpty(ogLevl2Id)'>
+                                        AND C.DGR2_LEVL_OG_ID = #{ogLevl2Id}
+                                   </if>
+                                   <if test='@MybatisUtils@isNotEmpty(ogLevl3Id)'>
+                                        AND C.DGR3_LEVL_OG_ID = #{ogLevl3Id}
+                                   </if>
+                                      GROUP BY A.PRTNR_NO
+                                   )
+                             GROUP BY PRTNR_NO
                           )T8
              ON T1.PRTNR_NO = T8.PRTNR_NO
            LEFT OUTER JOIN ( SELECT PRTNR_NO
@@ -2668,23 +2824,10 @@
                            )T15
              ON T1.PRTNR_NO = T15.PRTNR_NO
            LEFT OUTER JOIN ( SELECT C.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
-                                  , NVL(SUM(A.MD_RT),0) AS MD_RT
                                   , NVL(SUM(A.MNGT_CNT),0) AS MNGT_CNT
                                   , NVL(SUM(A.VST_CNT),0) AS VST_CNT
                                   , NVL(SUM(A.CAN_CNT),0) AS CAN_CNT
                                FROM ( SELECT PRTNR_NO
-                                           , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL END AS MD_RT
-                                           , 0 AS MNGT_CNT
-                                           , 0 AS VST_CNT
-                                           , 0 AS CAN_CNT
-                                        FROM TB_FEAM_WPTN_SV_PERF_AGRG
-                                       WHERE BASE_YM = #{perfYm}
-                                         AND CL_DV_CD = #{feeTcntDvCd}
-                                         AND OG_TP_CD = 'W02'
-                                         AND PRTNR_SV_PERF_ATC_CD = 'SV01999910'
-                                       UNION ALL
-                                      SELECT PRTNR_NO
-                                           , 0 AS MD_RT
                                            , MNGT_CNT AS MNGT_CNT
                                            , VST_CNT1 + VST_CNT2 AS VST_CNT
                                            , CAN_CNT
