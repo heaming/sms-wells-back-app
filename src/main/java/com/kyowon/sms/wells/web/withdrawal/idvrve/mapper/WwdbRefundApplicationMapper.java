@@ -90,4 +90,31 @@ public interface WwdbRefundApplicationMapper {
         String cntrNo
     );
 
+    /* TODO: 승인(현금) - 환불접수기본*/
+    int insertRefundReceiptBaseCash(WwdbRefundDtlDvo dvo);
+
+    /* TODO: 승인(카드) - 환불접수기본*/
+    int insertRefundReceiptBaseCard(WwdbRefundDtlDvo dvo);
+
+    /* TODO: 승인(전금) - 환불접수기본*/
+    int insertRefundReceiptBaseBltf(WwdbRefundDtlDvo dvo);
+
+    /* TODO: 승인(현금) - 환불접수상세*/
+    int insertRefundReceiptDtlCash(WwdbRefundDtlDvo dvo);
+
+    /* TODO: 승인(카드) - 환불접수상세*/
+    int insertRefundReceiptDtlCard(WwdbRefundDtlDvo dvo);
+
+    /* TODO: 승인(전문) - 환불접수상세*/
+    /* TODO: 환불접수기본 상태값 변경*/
+
+    int updateRefundStatus(WwdbRefundBaseDvo dvo);
+
+    int insertRefundReceiptDtlBltf(WwdbRefundDtlDvo dvo);
+
+    /* TODO: 승인 - 환불접수기본 이력*/
+    int insertRefundReceiptBaseHistory(WwdbRefundDtlDvo dvo);
+
+    /* TODO: 승인 - 환불접수상세 이력*/
+    int insertRefundReceiptDtlHistory(WwdbRefundDtlDvo dvo);
 }

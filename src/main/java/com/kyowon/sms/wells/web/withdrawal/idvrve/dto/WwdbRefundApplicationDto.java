@@ -281,7 +281,15 @@ public class WwdbRefundApplicationDto {
         String rfndBltfAkAmt, /* 관련 전금요청금액 총 합계 */
         String rfndRsonCd,
         String rfndRsonCn,
-        String dtaDlYn
+        String dtaDlYn,
+
+        String rfndRcpNo, /*환불접수번호*/
+        String rfndRcpPhCd, /*환불접수경로코드*/
+        String rfndRveDt, /*환불수납일자*/
+        String rfndPerfDt, /*환불실적일자*/
+        String rfndDsbDt,/*환불지급일자*/
+        String rfndProcsCn /*환불처리내용*/
+
 
     ) {
 
@@ -534,5 +542,14 @@ public class WwdbRefundApplicationDto {
         String cttMoCn // 상담내용
 
     ) {
+    }
+
+    @ApiModel(value = "WwdbRefundApplicationDto-SaveApprovalReq")
+    public record SaveApprovalReq(
+        SaveBaseReq saveBaseReq,
+        List<SaveDtlReq> saveDtlReqs,
+        List<SaveBltfReq> saveBltfReqs
+    ) {
+
     }
 }
