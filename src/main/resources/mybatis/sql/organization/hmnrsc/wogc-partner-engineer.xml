@@ -542,6 +542,8 @@
            , A.DGR5_LEVL_OG_NM  -- 5단계명
            , B.PRTNR_NO 		-- 사번 PK
            , B.PRTNR_KNM 		-- 성명
+           , D.RSB_DV_CD
+           , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', D.RSB_DV_CD ) AS RSB_DV_CD_NM
            , B.ROL_DV_CD
            , F_CMZ_CD_NM(#{session.tenantId}, 'EGER_ROL_CD', B.ROL_DV_CD) AS ROL_DV_CD_NM
            , CASE WHEN B.PSTN_DV_CD IN ('86', '87', '88') THEN F_CMZ_CD_NM(#{session.tenantId}, 'SAP_PSTN_DV_CD', B.PSTN_DV_CD)
@@ -563,6 +565,9 @@
        LEFT OUTER JOIN EGER_GD_RGST_IZ C
          ON B.OG_TP_CD = C.OG_TP_CD
         AND B.PRTNR_NO = C.PRTNR_NO
+       LEFT OUTER JOIN TB_OGBS_PRTNR_DTL D
+         ON B.OG_TP_CD = D.OG_TP_CD
+        AND B.PRTNR_NO = D.PRTNR_NO
       WHERE 1=1
         AND A.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
         AND A.OG_TP_CD = 'W06'
@@ -573,19 +578,18 @@
         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
         AND A.DGR2_LEVL_OG_ID = #{ogLevlDvCd2} 						-- 조직레벨 (여기서 추가 처리 필요함)
         </if>
-        <if test='@MybatisUtils@isNotEmpty(rolDvCd)'>
-        AND B.ROL_DV_CD = #{rolDvCd}
+        <if test='@MybatisUtils@isNotEmpty(rsbDvCd)'>
+        AND D.RSB_DV_CD = #{rsbDvCd}
         </if>
         AND A.DTA_DL_YN = 'N'
         AND B.DTA_DL_YN = 'N'
+        AND D.CLTN_DT IS NULL
         <if test="@MybatisUtils@equals(chk, 'Y')">
         AND C.PRTNR_GD_CD IS NULL
         </if>
-        <if test="@MybatisUtils@isNotEmpty(session.baseRleCd) and (!@MybatisUtils@equals(session.baseRleCd, 'E1010') and !@MybatisUtils@equals(session.baseRleCd, 'W1010'))">
         AND A.OG_ID IN (
             <include refid="com.kyowon.sms.common.web.organization.common.mapper.ZogzOrganizationSearchMapper.sqlSessionOrganization" />
             )
-        </if>
       ORDER BY B.PRTNR_NO DESC
     </select>
 
