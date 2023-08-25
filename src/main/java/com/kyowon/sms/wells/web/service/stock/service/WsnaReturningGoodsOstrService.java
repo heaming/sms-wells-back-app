@@ -31,11 +31,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WsnaReturningGoodsOstrService {
 
-    final String RETURN_INSIDE = "261"; // 반품출고(내부)
-    final String RETURN_OUTSIDE = "262"; // 반품출고(외부)
-    final String WARE_DV_CD_LOGISTICS_CENTER = "1"; // 창고구분코드 = 물류센터
+    private static final String RETURN_INSIDE = "261"; // 반품출고(내부)
+    private static final String RETURN_OUTSIDE = "262"; // 반품출고(외부)
+    private static final String WARE_DV_CD_LOGISTICS_CENTER = "1"; // 창고구분코드 = 물류센터
 
-    final String RETURN_DISUSE = "212"; //폐기출고
+    private static final String RETURN_DISUSE = "212"; //폐기출고
 
     private final WsnaReturningGoodsOstrMapper mapper;
 
