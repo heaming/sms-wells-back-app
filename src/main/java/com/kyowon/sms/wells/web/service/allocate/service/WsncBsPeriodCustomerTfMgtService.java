@@ -117,14 +117,16 @@ public class WsncBsPeriodCustomerTfMgtService {
             //이호성 매니저(36613) = 광주서비스센터 소속
             //정태진 매니저(36610) = 대구서비스센터 소속
             UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+            boolean isEtc = false;
             if("36682".equals(session.getEmployeeIDNumber()) || "36613".equals(session.getEmployeeIDNumber()) || "36610".equals(session.getEmployeeIDNumber())){
-                asnTfDvCd = "316";
+//                asnTfDvCd = "316";
+                isEtc = true;
             }
 
             if("00".equals(dto.tfStatCd())){
                 if("311".equals(asnTfDvCd) || "316".equals(asnTfDvCd)){
                     createTransfer(dto);
-                } else {
+                } else if(!isEtc) {
                     throw new BizException("MSG_ALT_NOT_INNER_TRANSFER"); //내부이관 건만 이관요청 없이 확정이 가능합니다.
                 }
             }
