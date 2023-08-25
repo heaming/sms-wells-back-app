@@ -99,6 +99,7 @@ public class WbncUnpaidGuideUrgentDto {
     @ApiModel("WbncUnpaidGuideUrgentDto-CheckRes")
     public record CheckRes(
         String cnfmYn, /*확정여부*/
+        int ojTotalCount, /*자료 데이터 수*/
         int totalCount /*데이터 수*/
     ) {}
     @Builder
