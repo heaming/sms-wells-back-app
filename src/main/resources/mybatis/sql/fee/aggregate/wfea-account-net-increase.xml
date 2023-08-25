@@ -5,10 +5,10 @@
       <choose>
         <when test='@MybatisUtils@equals(cnclTpCd, "01")'> /* 렌탈 */
           SELECT /*+ LEADING(C2) USE_NL(C1 C2 C3 G1 G2 P1 P2 S3 S4 S5) INDEX(C2 (CNTR_PD_ENDDT)) */
-                 '렌탈' AS inqrDvCd
+                 '01' AS inqrDvCd
                , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
-               , P2.PD_CLSF_NM
-               , P2.PD_CLSF_ID
+               , P1.PD_NM AS PD_CLSF_NM
+               , P1.PD_CD AS PD_CLSF_ID
                , G2.HOO_PRTNR_NM AS ICHR_MNGER_NM /* 담당매니저 */
                , G2.HOO_PRTNR_NO AS ICHR_MNGER_NO
                , G2.DGR3_LEVL_DG_PRTNR_NM AS ICHR_BRMGR_NM /* 담당지점장 */
@@ -55,11 +55,12 @@
              ON G1.BASE_YM = G2.BASE_YM
             AND G1.OG_ID = G2.OG_ID
             AND G2.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+           INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
              ON C2.BASE_PD_CD = P1.PD_CD
             AND P1.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
-             ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+          INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS P2
+             ON P1.PD_CD = P2.BASE_PD_CD
+            AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN P2.APY_STRT_YM AND P2.APY_END_YM
             AND P2.DTA_DL_YN = 'N'
            LEFT OUTER JOIN TB_SSOP_PSPC_CST_BAS S3 /* 가망고객기본 */
              ON C1.PSPC_CST_ID = S3.PSPC_CST_ID
@@ -81,7 +82,7 @@
                                      AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '31'
             AND G1.PSTN_DV_CD = '15' /* 매니저 */
             AND G1.OG_TP_CD = #{ogTpCd}
-            AND P2.REF_PD_CLSF_VAL NOT LIKE '05001003%' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
+            AND P2.FEE_PDCT_TP_CD1 != 'B' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
           <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
             AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
           </if>
@@ -99,10 +100,10 @@
         <when test='@MybatisUtils@equals(cnclTpCd, "02")'> /* 리스/할부 */
 
           SELECT /*+ LEADING(C2) USE_NL(C1 C2 C3 G1 G2 P1 P2 S3 S4 S5) INDEX(C2 (CNTR_PD_ENDDT)) */
-                 '리스/할부' AS inqrDvCd
+                 '02' AS inqrDvCd
                , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
-               , P2.PD_CLSF_NM
-               , P2.PD_CLSF_ID
+               , P1.PD_NM AS PD_CLSF_NM
+               , P1.PD_CD AS PD_CLSF_ID
                , G2.HOO_PRTNR_NM AS ICHR_MNGER_NM /* 담당매니저 */
                , G2.HOO_PRTNR_NO AS ICHR_MNGER_NO
                , G2.DGR3_LEVL_DG_PRTNR_NM AS ICHR_BRMGR_NM /* 담당지점장 */
@@ -149,11 +150,12 @@
              ON G1.BASE_YM = G2.BASE_YM
             AND G1.OG_ID = G2.OG_ID
             AND G2.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+           INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
              ON C2.BASE_PD_CD = P1.PD_CD
             AND P1.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
-             ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+          INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS P2
+             ON P1.PD_CD = P2.BASE_PD_CD
+            AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN P2.APY_STRT_YM AND P2.APY_END_YM
             AND P2.DTA_DL_YN = 'N'
            LEFT OUTER JOIN TB_SSOP_PSPC_CST_BAS S3 /* 가망고객기본 */
              ON C1.PSPC_CST_ID = S3.PSPC_CST_ID
@@ -174,7 +176,7 @@
             AND C2.CNTR_PD_ENDDT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '01' AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '31'
             AND G1.PSTN_DV_CD = '15' /* 매니저 */
             AND G1.OG_TP_CD = #{ogTpCd}
-            AND P2.REF_PD_CLSF_VAL NOT LIKE '05001003%' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
+            AND P2.FEE_PDCT_TP_CD1 != 'B' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
             <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
             AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
             </if>
@@ -192,10 +194,10 @@
         <when test='@MybatisUtils@equals(cnclTpCd, "03")'> /* 멤버십이탈 */
 
       SELECT /*+ LEADING(C2) USE_NL(C1 C2 C3 G1 G2 P1 P2 S3 S4 S5) INDEX(C2 (CNTR_PD_ENDDT)) */
-             '멤버십이탈' AS inqrDvCd
+             '03' AS inqrDvCd
            , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
-           , P2.PD_CLSF_NM
-           , P2.PD_CLSF_ID
+           , P1.PD_NM AS PD_CLSF_NM
+           , P1.PD_CD AS PD_CLSF_ID
            , G2.HOO_PRTNR_NM AS ICHR_MNGER_NM /* 담당매니저 */
            , G2.HOO_PRTNR_NO AS ICHR_MNGER_NO
            , G2.DGR3_LEVL_DG_PRTNR_NM AS ICHR_BRMGR_NM /* 담당지점장 */
@@ -242,11 +244,12 @@
          ON G1.BASE_YM = G2.BASE_YM
         AND G1.OG_ID = G2.OG_ID
         AND G2.DTA_DL_YN = 'N'
-       LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+      INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
          ON C2.BASE_PD_CD = P1.PD_CD
         AND P1.DTA_DL_YN = 'N'
-       LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
-         ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+      INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS P2
+         ON P1.PD_CD = P2.BASE_PD_CD
+        AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN P2.APY_STRT_YM AND P2.APY_END_YM
         AND P2.DTA_DL_YN = 'N'
        LEFT OUTER JOIN TB_SSOP_PSPC_CST_BAS S3 /* 가망고객기본 */
          ON C1.PSPC_CST_ID = S3.PSPC_CST_ID
@@ -266,6 +269,7 @@
         AND C2.CNTR_PD_ENDDT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '01' AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '31'
         AND G1.PSTN_DV_CD = '15' /* 매니저 */
         AND G1.OG_TP_CD = #{ogTpCd}
+        AND P2.FEE_PDCT_TP_CD1 != 'B'
         <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
         AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
         </if>
@@ -282,10 +286,10 @@
 
         <when test='@MybatisUtils@equals(cnclTpCd, "04")'> /* 렌탈만료 */
           SELECT /*+ LEADING(C2) USE_NL(C1 C2 C3 G1 G2 P1 P2 S3 S4 S5) INDEX(C2 (CNTR_PD_ENDDT)) */
-			     '렌탈만료' AS inqrDvCd
+			     '04' AS inqrDvCd
                , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
-               , P2.PD_CLSF_NM
-               , P2.PD_CLSF_ID
+               , P1.PD_NM AS PD_CLSF_NM
+               , P1.PD_CD AS PD_CLSF_ID
                , G2.HOO_PRTNR_NM AS ICHR_MNGER_NM /* 담당매니저 */
                , G2.HOO_PRTNR_NO AS ICHR_MNGER_NO
                , G2.DGR3_LEVL_DG_PRTNR_NM AS ICHR_BRMGR_NM /* 담당지점장 */
@@ -332,11 +336,12 @@
              ON G1.BASE_YM = G2.BASE_YM
             AND G1.OG_ID = G2.OG_ID
             AND G2.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+           INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
              ON C2.BASE_PD_CD = P1.PD_CD
             AND P1.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
-             ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+          INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS P2
+             ON P1.PD_CD = P2.BASE_PD_CD
+            AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN P2.APY_STRT_YM AND P2.APY_END_YM
             AND P2.DTA_DL_YN = 'N'
            LEFT OUTER JOIN TB_SSOP_PSPC_CST_BAS S3 /* 가망고객기본 */
              ON C1.PSPC_CST_ID = S3.PSPC_CST_ID
@@ -357,7 +362,7 @@
             AND C2.CNTR_PD_ENDDT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '01' AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '31'
             AND G1.PSTN_DV_CD = '15' /* 매니저 */
             AND G1.OG_TP_CD = #{ogTpCd}
-            AND P2.REF_PD_CLSF_VAL NOT LIKE '05001003%' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
+            AND P2.FEE_PDCT_TP_CD1 != 'B' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
             <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
             AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
             </if>
@@ -375,10 +380,10 @@
         <otherwise>
 
           SELECT /*+ LEADING(C2) USE_NL(C1 C2 C3 G1 G2 P1 P2 S3 S4 S5) INDEX(C2 (CNTR_PD_ENDDT)) */
-                 '렌탈' AS inqrDvCd
+                 '01' AS inqrDvCd
                , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
-               , P2.PD_CLSF_NM
-               , P2.PD_CLSF_ID
+               , P1.PD_NM AS PD_CLSF_NM
+               , P1.PD_CD AS PD_CLSF_ID
                , G2.HOO_PRTNR_NM AS ICHR_MNGER_NM /* 담당매니저 */
                , G2.HOO_PRTNR_NO AS ICHR_MNGER_NO
                , G2.DGR3_LEVL_DG_PRTNR_NM AS ICHR_BRMGR_NM /* 담당지점장 */
@@ -425,11 +430,12 @@
              ON G1.BASE_YM = G2.BASE_YM
             AND G1.OG_ID = G2.OG_ID
             AND G2.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+          INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
              ON C2.BASE_PD_CD = P1.PD_CD
             AND P1.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
-             ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+          INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS P2
+             ON P1.PD_CD = P2.BASE_PD_CD
+            AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN P2.APY_STRT_YM AND P2.APY_END_YM
             AND P2.DTA_DL_YN = 'N'
            LEFT OUTER JOIN TB_SSOP_PSPC_CST_BAS S3 /* 가망고객기본 */
              ON C1.PSPC_CST_ID = S3.PSPC_CST_ID
@@ -451,7 +457,7 @@
                                      AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '31'
             AND G1.PSTN_DV_CD = '15' /* 매니저 */
             AND G1.OG_TP_CD = #{ogTpCd}
-            AND P2.REF_PD_CLSF_VAL NOT LIKE '05001003%' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
+            AND P2.FEE_PDCT_TP_CD1 != 'B' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
           <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
             AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
           </if>
@@ -467,10 +473,10 @@
           UNION
 
          SELECT /*+ LEADING(C2) USE_NL(C1 C2 C3 G1 G2 P1 P2 S3 S4 S5) INDEX(C2 (CNTR_PD_ENDDT)) */
-                 '리스/할부' AS inqrDvCd
+                 '02' AS inqrDvCd
                , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
-               , P2.PD_CLSF_NM
-               , P2.PD_CLSF_ID
+               , P1.PD_NM AS PD_CLSF_NM
+               , P1.PD_CD AS PD_CLSF_ID
                , G2.HOO_PRTNR_NM AS ICHR_MNGER_NM /* 담당매니저 */
                , G2.HOO_PRTNR_NO AS ICHR_MNGER_NO
                , G2.DGR3_LEVL_DG_PRTNR_NM AS ICHR_BRMGR_NM /* 담당지점장 */
@@ -517,11 +523,12 @@
              ON G1.BASE_YM = G2.BASE_YM
             AND G1.OG_ID = G2.OG_ID
             AND G2.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+          INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
              ON C2.BASE_PD_CD = P1.PD_CD
             AND P1.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
-             ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+          INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS P2
+             ON P1.PD_CD = P2.BASE_PD_CD
+            AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN P2.APY_STRT_YM AND P2.APY_END_YM
             AND P2.DTA_DL_YN = 'N'
            LEFT OUTER JOIN TB_SSOP_PSPC_CST_BAS S3 /* 가망고객기본 */
              ON C1.PSPC_CST_ID = S3.PSPC_CST_ID
@@ -542,7 +549,7 @@
             AND C2.CNTR_PD_ENDDT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '01' AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '31'
             AND G1.PSTN_DV_CD = '15' /* 매니저 */
             AND G1.OG_TP_CD = #{ogTpCd}
-            AND P2.REF_PD_CLSF_VAL NOT LIKE '05001003%' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
+            AND P2.FEE_PDCT_TP_CD1 != 'B' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
             <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
             AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
             </if>
@@ -557,10 +564,10 @@
             </if>
           UNION
          SELECT /*+ LEADING(C2) USE_NL(C1 C2 C3 G1 G2 P1 P2 S3 S4 S5) INDEX(C2 (CNTR_PD_ENDDT)) */
-                '멤버십이탈' AS inqrDvCd
+                '03' AS inqrDvCd
                , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
-               , P2.PD_CLSF_NM
-               , P2.PD_CLSF_ID
+               , P1.PD_NM AS PD_CLSF_NM
+               , P1.PD_CD AS PD_CLSF_ID
                , G2.HOO_PRTNR_NM AS ICHR_MNGER_NM /* 담당매니저 */
                , G2.HOO_PRTNR_NO AS ICHR_MNGER_NO
                , G2.DGR3_LEVL_DG_PRTNR_NM AS ICHR_BRMGR_NM /* 담당지점장 */
@@ -607,11 +614,12 @@
              ON G1.BASE_YM = G2.BASE_YM
             AND G1.OG_ID = G2.OG_ID
             AND G2.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+          INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
              ON C2.BASE_PD_CD = P1.PD_CD
             AND P1.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
-             ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+          INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS P2
+             ON P1.PD_CD = P2.BASE_PD_CD
+            AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN P2.APY_STRT_YM AND P2.APY_END_YM
             AND P2.DTA_DL_YN = 'N'
            LEFT OUTER JOIN TB_SSOP_PSPC_CST_BAS S3 /* 가망고객기본 */
              ON C1.PSPC_CST_ID = S3.PSPC_CST_ID
@@ -631,6 +639,7 @@
             AND C2.CNTR_PD_ENDDT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '01' AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '31'
             AND G1.PSTN_DV_CD = '15' /* 매니저 */
             AND G1.OG_TP_CD = #{ogTpCd}
+            AND P2.FEE_PDCT_TP_CD1 != 'B'
             <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
             AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
             </if>
@@ -646,10 +655,10 @@
           UNION
 
          SELECT /*+ LEADING(C2) USE_NL(C1 C2 C3 G1 G2 P1 P2 S3 S4 S5) INDEX(C2 (CNTR_PD_ENDDT)) */
-			     '렌탈만료' AS inqrDvCd
+			     '04' AS inqrDvCd
                , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
-               , P2.PD_CLSF_NM
-               , P2.PD_CLSF_ID
+               , P1.PD_NM AS PD_CLSF_NM
+               , P1.PD_CD AS PD_CLSF_ID
                , G2.HOO_PRTNR_NM AS ICHR_MNGER_NM /* 담당매니저 */
                , G2.HOO_PRTNR_NO AS ICHR_MNGER_NO
                , G2.DGR3_LEVL_DG_PRTNR_NM AS ICHR_BRMGR_NM /* 담당지점장 */
@@ -696,11 +705,12 @@
              ON G1.BASE_YM = G2.BASE_YM
             AND G1.OG_ID = G2.OG_ID
             AND G2.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+          INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
              ON C2.BASE_PD_CD = P1.PD_CD
             AND P1.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
-             ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+          INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS P2
+             ON P1.PD_CD = P2.BASE_PD_CD
+            AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN P2.APY_STRT_YM AND P2.APY_END_YM
             AND P2.DTA_DL_YN = 'N'
            LEFT OUTER JOIN TB_SSOP_PSPC_CST_BAS S3 /* 가망고객기본 */
              ON C1.PSPC_CST_ID = S3.PSPC_CST_ID
@@ -721,7 +731,7 @@
             AND C2.CNTR_PD_ENDDT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '01' AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') || '31'
             AND G1.PSTN_DV_CD = '15' /* 매니저 */
             AND G1.OG_TP_CD = #{ogTpCd}
-            AND P2.REF_PD_CLSF_VAL NOT LIKE '05001003%' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
+            AND P2.FEE_PDCT_TP_CD1 != 'B' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
             <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
             AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
             </if>
@@ -744,11 +754,11 @@
       <choose>
         <when test='@MybatisUtils@equals(sellTpCd, "01")'> /* 렌탈 */
 
-      SELECT /*+ USE_NL(W1 W2 C1 C2 C3 G1 G2 P1 P2 S4) LEADING(W1 C1 C2) INDEX(C2 PK_SSCT_CNTR_DTL) */
-            '렌탈' AS inqrDvCd /* 유형 */
+      SELECT /*+ USE_NL(W1 W2 C1 C2 C3 G1 G2 P1 S4) LEADING(W1 C1 C2) INDEX(C2 PK_SSCT_CNTR_DTL) */
+            '01' AS inqrDvCd /* 유형 */
            , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
-           , P2.PD_CLSF_NM /* 상품명 */
-           , P2.PD_CLSF_ID /* 상품코드 */
+           , P1.PD_NM AS PD_CLSF_NM /* 상품명 */
+           , P1.PD_CD AS PD_CLSF_ID /* 상품코드 */
            , C1.CNTR_CNFM_DTM /* 계약일 */
            , C3.IST_DT /* 설치일 */
            , C1.CNTR_CAN_DTM /* 취소일 */
@@ -792,12 +802,9 @@
          ON G1.BASE_YM = G2.BASE_YM
         AND G1.OG_ID = G2.OG_ID
         AND G2.DTA_DL_YN = 'N'
-       LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+      INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
          ON C2.BASE_PD_CD = P1.PD_CD
         AND P1.DTA_DL_YN = 'N'
-       LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
-         ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
-        AND P2.DTA_DL_YN = 'N'
        LEFT OUTER JOIN TB_FEDD_FEE_PERF_EXCD_OJ_BAS S4 /* 수수료실적제외대상기본 */
          ON C2.CNTR_NO = S4.CNTR_NO
         AND C2.CNTR_SN = S4.CNTR_SN
@@ -828,11 +835,11 @@
         </when>
         <when test='@MybatisUtils@equals(sellTpCd, "02")'> /* 리스/할부 */
 
-     SELECT /*+ USE_NL(W1 W2 C1 C2 C3 G1 G2 P1 P2 S4) LEADING(W1 C1 C2) INDEX(C2 PK_SSCT_CNTR_DTL) */
-		    '리스/할부' AS inqrDvCd /* 유형 */
+     SELECT /*+ USE_NL(W1 W2 C1 C2 C3 G1 G2 P1 S4) LEADING(W1 C1 C2) INDEX(C2 PK_SSCT_CNTR_DTL) */
+		    '02' AS inqrDvCd /* 유형 */
 		  , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
-          , P2.PD_CLSF_NM /* 상품명 */
-          , P2.PD_CLSF_ID /* 상품코드 */
+          , P1.PD_NM AS PD_CLSF_NM /* 상품명 */
+          , P1.PD_CD AS PD_CLSF_ID /* 상품코드 */
           , C1.CNTR_CNFM_DTM /* 계약일 */
           , C3.IST_DT /* 설치일 */
           , C1.CNTR_CAN_DTM /* 취소일 */
@@ -876,12 +883,9 @@
          ON G1.BASE_YM = G2.BASE_YM
         AND G1.OG_ID = G2.OG_ID
         AND G2.DTA_DL_YN = 'N'
-       LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+      INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
          ON C2.BASE_PD_CD = P1.PD_CD
         AND P1.DTA_DL_YN = 'N'
-       LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
-         ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
-        AND P2.DTA_DL_YN = 'N'
        LEFT OUTER JOIN TB_FEDD_FEE_PERF_EXCD_OJ_BAS S4 /* 수수료실적제외대상기본 */
          ON C2.CNTR_NO = S4.CNTR_NO
         AND C2.CNTR_SN = S4.CNTR_SN
@@ -911,12 +915,12 @@
       </if>
         </when>
         <otherwise>
-     SELECT /*+ USE_NL(W1 W2 C1 C2 C3 G1 G2 P1 P2 S4) LEADING(W1)
+     SELECT /*+ USE_NL(W1 W2 C1 C2 C3 G1 G2 P1 S4) LEADING(W1)
                 INDEX(C2 (CNTR_NO, SELL_TP_CD, SELL_TP_DTL_CD, CNTR_PD_ENDDT)) */
-            '렌탈' AS inqrDvCd /* 유형 */
+            '01' AS inqrDvCd /* 유형 */
            , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
-           , P2.PD_CLSF_NM /* 상품명 */
-           , P2.PD_CLSF_ID /* 상품코드 */
+           , P1.PD_NM AS PD_CLSF_NM /* 상품명 */
+           , P1.PD_CD AS PD_CLSF_ID /* 상품코드 */
            , C1.CNTR_CNFM_DTM /* 계약일 */
            , C3.IST_DT /* 설치일 */
            , C1.CNTR_CAN_DTM /* 취소일 */
@@ -960,12 +964,9 @@
          ON G1.BASE_YM = G2.BASE_YM
         AND G1.OG_ID = G2.OG_ID
         AND G2.DTA_DL_YN = 'N'
-       LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+      INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
          ON C2.BASE_PD_CD = P1.PD_CD
         AND P1.DTA_DL_YN = 'N'
-       LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
-         ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
-        AND P2.DTA_DL_YN = 'N'
        LEFT OUTER JOIN TB_FEDD_FEE_PERF_EXCD_OJ_BAS S4 /* 수수료실적제외대상기본 */
          ON C2.CNTR_NO = S4.CNTR_NO
         AND C2.CNTR_SN = S4.CNTR_SN
@@ -994,11 +995,11 @@
         AND C1.SELL_PRTNR_NO = #{prtnrNo}
       </if>
      UNION
-    SELECT /*+ USE_NL(W1 W2 C1 C2 C3 G1 G2 P1 P2 S4) LEADING(W1 C1 C2) INDEX(C2 PK_SSCT_CNTR_DTL) */
-		   '리스/할부' AS inqrDvCd /* 유형 */
+    SELECT /*+ USE_NL(W1 W2 C1 C2 C3 G1 G2 P1 S4) LEADING(W1 C1 C2) INDEX(C2 PK_SSCT_CNTR_DTL) */
+		   '02' AS inqrDvCd /* 유형 */
 		 , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
-         , P2.PD_CLSF_NM /* 상품명 */
-         , P2.PD_CLSF_ID /* 상품코드 */
+         , P1.PD_NM AS PD_CLSF_NM /* 상품명 */
+         , P1.PD_CD AS PD_CLSF_ID /* 상품코드 */
          , C1.CNTR_CNFM_DTM /* 계약일 */
          , C3.IST_DT /* 설치일 */
          , C1.CNTR_CAN_DTM /* 취소일 */
@@ -1042,12 +1043,9 @@
         ON G1.BASE_YM = G2.BASE_YM
        AND G1.OG_ID = G2.OG_ID
        AND G2.DTA_DL_YN = 'N'
-      LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+     INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
         ON C2.BASE_PD_CD = P1.PD_CD
        AND P1.DTA_DL_YN = 'N'
-      LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류기본*/
-        ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
-       AND P2.DTA_DL_YN = 'N'
       LEFT OUTER JOIN TB_FEDD_FEE_PERF_EXCD_OJ_BAS S4 /* 수수료실적제외대상기본 */
         ON C2.CNTR_NO = S4.CNTR_NO
        AND C2.CNTR_SN = S4.CNTR_SN
