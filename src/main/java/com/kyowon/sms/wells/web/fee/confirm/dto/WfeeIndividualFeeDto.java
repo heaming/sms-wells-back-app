@@ -236,7 +236,8 @@ public class WfeeIndividualFeeDto {
         String rsdntx,
         String hirInsr,
         String buDdtn,
-        String pnpyam
+        String pnpyam,
+        String inddInsr
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerPnpyamRes")
