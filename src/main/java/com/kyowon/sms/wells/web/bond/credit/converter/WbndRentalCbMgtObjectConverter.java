@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.mapstruct.Mapper;
 
+import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SaveReq;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchPaymentRes;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchRes;
@@ -14,6 +15,8 @@ public interface WbndRentalCbMgtObjectConverter {
     WbndRentalCbDelinquentIzDvo mapSearchReqToRentalCbDlqIzDvo(SearchReq req);
 
     List<SearchRes> listRentalCbDlqIzDvoToSearchRes(List<WbndRentalCbDelinquentIzDvo> dvos);
+
+    WbndRentalCbDelinquentIzDvo mapSaveReqToRentalCbDlqIzDvo(SaveReq req);
 
     List<SearchPaymentRes> listRentalCbDlqIzDvoToSearchPaymentRes(List<WbndRentalCbDelinquentIzDvo> dvos);
 }

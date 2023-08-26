@@ -45,6 +45,8 @@ public interface WpdcRoutineBsWorkMgtMapper {
     int updateRoutineBsWorkDetail(@Param("info")
     WpdcRoutineBsWorkDetailDvo info);
 
+    int updateRoutineBsWorkDetailFilterYn(String svPdCd, String pdctPdCd, String partPdCd);
+
     int mergeLifeCustomFilterBase(WpdcLifeCustomFilterBaseDvo info);
 
     int deleteRoutineBsWorkBase(String svPdCd, String pdctPdCd);

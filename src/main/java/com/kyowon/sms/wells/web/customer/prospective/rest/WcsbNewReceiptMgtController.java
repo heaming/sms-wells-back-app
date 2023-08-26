@@ -39,7 +39,7 @@ public class WcsbNewReceiptMgtController {
     /*
      * ---------------------------------------
      *       접수조회 (TAB)   - Receipt
-     * --------------------------------------- 
+     * ---------------------------------------
      */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "assignDtFrom", value = "접수기간시작일", paramType = "query", required = true, example = "20220501"),
@@ -88,7 +88,7 @@ public class WcsbNewReceiptMgtController {
         return service.getPartnerInfoByPrtnrNo(prtnrNo);
     }
 
-    @ApiOperation(value = "담당자 수동배정 저장", notes = "담당자 수동배정에서 변경된 담당자로 수정한다.")
+    @ApiOperation(value = "담당자 수동배정 저장", notes = "담당자 수동배정에서 변경된 담당자로 수정한다.  ")
     @PutMapping("/assign")
     public SaveResponse editPspcCstCnslAssign(
         @Valid
@@ -114,7 +114,7 @@ public class WcsbNewReceiptMgtController {
 
     /*
      * ---------------------------------------
-     *       배정조회 (TAB)   - Assign 
+     *       배정조회 (TAB)   - Assign
      * ---------------------------------------
      */
     @ApiImplicitParams(value = {
@@ -142,7 +142,7 @@ public class WcsbNewReceiptMgtController {
     /*
      * ---------------------------------------
      *       집계 (TAB) - Summaries
-     * ---------------------------------------       
+     * ---------------------------------------
      */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "assignDtFrom", value = "접수기간시작일", paramType = "query", required = true, example = "20220501"),

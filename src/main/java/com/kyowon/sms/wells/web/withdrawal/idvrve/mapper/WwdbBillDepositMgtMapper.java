@@ -2,6 +2,10 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.mapper;
 
 import java.util.List;
 
+import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositContractDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositSlipProcessingDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchDetailReq;
@@ -36,10 +40,21 @@ public interface WwdbBillDepositMgtMapper {
 
     int deleteRegistrationSubElectronics(WwdbBillDepositMgtDvo dvo);
 
-    String selectRegistrationPk();
+    WwdbBillDepositMgtDto.SearchItgNoRes selectRegistrationPk();
 
     PagingResult<SearchElectronicRes> selectRegistrationElectronicDetails(SearchElectronicReq dto, PageInfo pageInfo);
 
     List<SearchElectronicRes> selectRegistrationElectronicDetails(SearchElectronicReq dto);
 
+    //어음입금 계약 조회
+    int insertBillDepositContracts(WwdbBillDepositContractDvo dvo) throws Exception;
+
+    List<WwdbBillDepositSlipProcessingDvo> selectSlipProcessings(WwdbBillDepositMgtDto.SearchSlipReq dto);
+
+    int insertSlipProcessings(WwdbBillDepositSlipProcessingDvo dvo);
+
+    List<WwdbBillDepositSlipProcessingDvo> selectReplacementSlipProcessing(WwdbBillDepositMgtDto.SearchSlipReq dto);
+
+    //전표 등록 업데이트
+    int updateSlipRegistration(WwdbBillDepositMgtDvo dvo) throws Exception;
 }

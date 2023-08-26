@@ -5,7 +5,6 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto.*;
-import com.kyowon.sms.wells.web.fee.confirm.dvo.WfeeIndividualFeeDvo;
 
 /**
  * <pre>
@@ -94,10 +93,10 @@ public interface WfeeIndividualFeeMapper {
     );
 
     List<SearchFeeRes> selectFees(
-        WfeeIndividualFeeDvo dvo
+        SearchFeeReq dto
     );
 
-    List<SearchFeeHmstRes> selectFeeHmsts(
-        WfeeIndividualFeeDvo dvo
+    SearchUserInfoRes selectUserInfo(
+        SearchFeeReq dto
     );
 }

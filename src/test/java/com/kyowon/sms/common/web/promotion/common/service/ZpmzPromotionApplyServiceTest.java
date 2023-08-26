@@ -1,5 +1,6 @@
 package com.kyowon.sms.common.web.promotion.common.service;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -129,7 +130,7 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
 
     @Test
     @DisplayName("조건별 프로모션 정보 조회 - 데이터 존재")
-    void getPromotionsByConditionsNormal() throws NoSuchFieldException, IllegalAccessException {
+    void getPromotionsByConditionsNormal() throws NoSuchFieldException, IllegalAccessException, ParseException {
 
         // given - 프로모션 조건 중 기준상품코드(basePdCd), 기준상품판매가(basePdUprc)가 포함된 프로모션 발췌하여 입력값으로 사용
         List<ZpmzPromotionAtcDvo> paramDvos = getTestData(new String[]{"basePdCd", "basePdUprc"});
@@ -152,7 +153,7 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
 
     @Test
     @DisplayName("조건별 프로모션 정보 조회 - 데이터 미존재 - 가격조건 불일치")
-    void getPromotionsByConditionsPriceError() throws NoSuchFieldException, IllegalAccessException {
+    void getPromotionsByConditionsPriceError() throws NoSuchFieldException, IllegalAccessException, ParseException {
 
         // given - 프로모션 조건 중 기준상품코드(basePdCd), 기준상품판매가(basePdUprc)가 포함된 프로모션 발췌하여 입력값으로 사용
         List<ZpmzPromotionAtcDvo> paramDvos = getTestData(new String[]{"basePdCd", "basePdUprc"});
@@ -176,7 +177,7 @@ class ZpmzPromotionApplyServiceTest extends SpringTestSupport {
 
     @Test
     @DisplayName("조건별 프로모션 정보 조회 - 데이터 미존재 - 일자조건 불일치")
-    void getPromotionsByConditionsDateError() throws NoSuchFieldException, IllegalAccessException {
+    void getPromotionsByConditionsDateError() throws NoSuchFieldException, IllegalAccessException, ParseException {
 
         // given - 프로모션 조건 중 기준상품코드(basePdCd), 연계상품접수일(lkOrdRcpdt)가 포함된 프로모션 발췌하여 입력값으로 사용
         List<ZpmzPromotionAtcDvo> paramDvos = getTestData(new String[]{"basePdCd", "lkOrdRcpdt"});

@@ -17,7 +17,7 @@ public class WwdbNotPaidMakeAPaymentRgstDto {
         @JsonProperty("ORD_TP_CD")
         String ordTpCd, //주문유형코드
         @JsonProperty("SELL_DV_CD")
-        Integer sellDvCd, //판매자구분
+        Integer sellTpCd, //판매자구분
         @JsonProperty("PRTNR_NO")
         Integer prtnrNo, //파트너번호
         @JsonProperty("DP_TP_NM")

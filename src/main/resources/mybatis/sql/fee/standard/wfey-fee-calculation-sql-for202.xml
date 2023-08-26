@@ -146,16 +146,15 @@
                      , '01'                      AS FEE_CALC_TP_CD -- 01 / 수수료계산
                      , NVL(B.PERF_VAL, 0)        AS CNT_DEQ00      -- 인정건수
                      , NVL(C.OG_EJT_GD_CD, '99') AS OG_EJT_GD_CD
-                     , CASE
-                           WHEN NVL(C.EJT_NMN_N, 99) = 1 AND NVL(B.PERF_VAL, 0) >= 30 THEN 700000 -- 1차월
-                           WHEN NVL(C.EJT_NMN_N, 99) = 1 AND NVL(B.PERF_VAL, 0) >= 20 THEN 600000
-                           WHEN NVL(C.EJT_NMN_N, 99) = 2 AND NVL(B.PERF_VAL, 0) >= 30 THEN 600000 -- 2차월
-                           WHEN NVL(C.EJT_NMN_N, 99) = 2 AND NVL(B.PERF_VAL, 0) >= 20 THEN 500000
-                           WHEN NVL(C.EJT_NMN_N, 99) = 3 AND NVL(B.PERF_VAL, 0) >= 30 THEN 500000 -- 3차월
-                           WHEN NVL(C.EJT_NMN_N, 99) = 3 AND NVL(B.PERF_VAL, 0) >= 20 THEN 400000
-                           WHEN NVL(C.EJT_NMN_N, 99) IN (4, 5, 6) AND NVL(B.PERF_VAL, 0) >= 30 THEN 400000 -- 4,5,6차월
-                           WHEN NVL(C.EJT_NMN_N, 99) IN (4, 5, 6) AND NVL(B.PERF_VAL, 0) >= 20 THEN 300000
-                           ELSE 0 END            AS FEE_CALC_AMT
+                     ,CASE WHEN  MONTHS_BETWEEN(TO_DATE(A.BASE_YM,'YYYYMM'),TO_DATE(NVL(C.EJT_YM,'109912'),'YYYYMM')  ) + 1  = 1 AND NVL(B.PERF_VAL,0) >= 30 THEN  700000        -- 1차월
+                           WHEN  MONTHS_BETWEEN(TO_DATE(A.BASE_YM,'YYYYMM'),TO_DATE(NVL(C.EJT_YM,'109912'),'YYYYMM')  ) + 1  = 1 AND NVL(B.PERF_VAL,0) >= 20 THEN  600000
+                           WHEN  MONTHS_BETWEEN(TO_DATE(A.BASE_YM,'YYYYMM'),TO_DATE(NVL(C.EJT_YM,'109912'),'YYYYMM')  ) + 1  = 2 AND NVL(B.PERF_VAL,0) >= 30 THEN  600000        -- 2차월
+                           WHEN  MONTHS_BETWEEN(TO_DATE(A.BASE_YM,'YYYYMM'),TO_DATE(NVL(C.EJT_YM,'109912'),'YYYYMM')  ) + 1  = 2 AND NVL(B.PERF_VAL,0) >= 20 THEN  500000
+                           WHEN  MONTHS_BETWEEN(TO_DATE(A.BASE_YM,'YYYYMM'),TO_DATE(NVL(C.EJT_YM,'109912'),'YYYYMM')  ) + 1  = 3 AND NVL(B.PERF_VAL,0) >= 30 THEN  500000        -- 3차월
+                           WHEN  MONTHS_BETWEEN(TO_DATE(A.BASE_YM,'YYYYMM'),TO_DATE(NVL(C.EJT_YM,'109912'),'YYYYMM')  ) + 1  = 3 AND NVL(B.PERF_VAL,0) >= 20 THEN  400000
+                           WHEN  MONTHS_BETWEEN(TO_DATE(A.BASE_YM,'YYYYMM'),TO_DATE(NVL(C.EJT_YM,'109912'),'YYYYMM')  ) + 1  IN (4,5,6) AND NVL(B.PERF_VAL,0) >= 30 THEN  400000        -- 4,5,6차월
+                           WHEN  MONTHS_BETWEEN(TO_DATE(A.BASE_YM,'YYYYMM'),TO_DATE(NVL(C.EJT_YM,'109912'),'YYYYMM')  ) + 1  IN (4,5,6) AND NVL(B.PERF_VAL,0) >= 20 THEN  300000
+                           ELSE 0 END               AS FEE_CALC_AMT
                      , #{fnlFeeYn} AS FNL_FEE_YN
                   FROM TB_OGBS_MM_PRTNR_IZ A -- 파트너
                        LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B -- 순주문실적
@@ -201,7 +200,7 @@
         SELECT ZZZ.BASE_YM               AS BASE_YM
               ,ZZZ.BASE_YM               AS PERF_YM
               ,ZZZ.BASE_YM               AS OJ_DSB_YM
-              ,#{ogTpCd}                    AS CO_CD
+              ,#{coCd}                    AS CO_CD
               ,ZZZ.OG_TP_CD              AS OG_TP_CD
               ,ZZZ.PRTNR_NO              AS PRTNR_NO
               ,#{feeCd}                 AS FEE_CD
@@ -325,7 +324,7 @@
                     AND N.PSTN_DV_CD IN ('7','15')
                  WHERE 1 = 1
                    AND L.BASE_YM    = #{baseYm}                       -- 변수
-                   AND L.OG_TP_CD   = #{feeTcntDvCd}                          -- 변수
+                   AND L.OG_TP_CD   = #{ogTpCd}                          -- 변수
                 GROUP BY M.BASE_YM, M.OG_TP_CD, M.PRTNR_NO
                   ) BB
                   ON  AA.BASE_YM   = BB.BASE_YM
@@ -393,8 +392,7 @@
                              , NVL(D.PERF_VAL, 0)                                                                            AS CNT_BS         -- BS건수
                              , NVL(E.PERF_VAL, 0)                                                                            AS CNT_PAN        -- 가전(판매)건수
                              , MONTHS_BETWEEN(TO_DATE(A.BASE_YM || '01', 'YYYYMMDD'),
-                                              TO_DATE(SUBSTR(NVL(A.RCNTR_DT, A.FST_CNTR_DT), 1, 6) || '01', 'YYYYMMDD')) +
-                               1                                                                                             AS CNT_MON
+                                              TO_DATE(NVL(F.STRTDT,A.BASE_YM||'01'), 'YYYYMMDD')) + 1                        AS CNT_MON
                              , CASE
                                    WHEN NVL(D.PERF_VAL, 0) >= 250 THEN 250
                                    ELSE NVL(D.PERF_VAL, 0) END                                                               AS CNT_BS_UNDER
@@ -402,27 +400,25 @@
                                    WHEN NVL(D.PERF_VAL, 0) >= 250 THEN NVL(D.PERF_VAL, 0) - 250
                                    ELSE 0 END                                                                                AS CNT_BS_OVER
                              , CASE
-                                   WHEN NVL(E.PERF_VAL, 0) >= 20 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'A' -- 20건 이상
-                                   WHEN NVL(E.PERF_VAL, 0) >= 20 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'B' -- 한칸 하위
-                                   WHEN NVL(E.PERF_VAL, 0) >= 15 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'B' -- 15건 이상
-                                   WHEN NVL(E.PERF_VAL, 0) >= 15 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'C' -- 한칸 하위
-                                   WHEN NVL(E.PERF_VAL, 0) >= 12 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'C' -- 12건 이상
-                                   WHEN NVL(E.PERF_VAL, 0) >= 12 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'D' -- 한칸 하위
-                                   WHEN NVL(E.PERF_VAL, 0) >= 10 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'D' -- 10건 이상
-                                   WHEN NVL(E.PERF_VAL, 0) >= 10 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'E' -- 한칸 하위
-                                   WHEN NVL(E.PERF_VAL, 0) >= 8 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'E' -- 8건 이상
-                                   WHEN NVL(E.PERF_VAL, 0) >= 8 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'F' -- 한칸 하위
-                                   WHEN NVL(E.PERF_VAL, 0) >= 6 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'F' -- 6건 이상
-                                   WHEN NVL(E.PERF_VAL, 0) >= 6 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'G' -- 한칸 하위
-                                   WHEN NVL(E.PERF_VAL, 0) >= 4 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'G' -- 4건 이상
-                                   WHEN NVL(E.PERF_VAL, 0) >= 4 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'H' -- 한칸 하위
-                                   WHEN NVL(E.PERF_VAL, 0) >= 2 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 2 THEN 'H' -- 2건 이상
-                                   WHEN NVL(E.PERF_VAL, 0) >= 2 AND NVL(C.PERF_VAL, 0) >= 2 THEN 'I' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 20 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 1 THEN 'A' -- 20건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 20 AND NVL(C.PERF_VAL, 0) >= 1 THEN 'B' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 15 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 1 THEN 'B' -- 15건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 15 AND NVL(C.PERF_VAL, 0) >= 1 THEN 'C' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 12 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 1 THEN 'C' -- 12건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 12 AND NVL(C.PERF_VAL, 0) >= 1 THEN 'D' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 10 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 1 THEN 'D' -- 10건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 10 AND NVL(C.PERF_VAL, 0) >= 1 THEN 'E' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 8 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 1 THEN 'E' -- 8건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 8 AND NVL(C.PERF_VAL, 0) >= 1 THEN 'F' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 6 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 1 THEN 'F' -- 6건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 6 AND NVL(C.PERF_VAL, 0) >= 1 THEN 'G' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 4 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 1 THEN 'G' -- 4건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 4 AND NVL(C.PERF_VAL, 0) >= 1 THEN 'H' -- 한칸 하위
+                                   WHEN NVL(E.PERF_VAL, 0) >= 2 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 1 THEN 'H' -- 2건 이상
+                                   WHEN NVL(E.PERF_VAL, 0) >= 2 AND NVL(C.PERF_VAL, 0) >= 1 THEN 'I' -- 한칸 하위
                                    ELSE 'I' END                                                                              AS TXT_BIGO
                              , CASE
-                                   WHEN MONTHS_BETWEEN(TO_DATE(A.BASE_YM || '01', 'YYYYMMDD'),
-                                                       TO_DATE(SUBSTR(NVL(A.RCNTR_DT, A.FST_CNTR_DT), 1, 6) || '01',
-                                                               'YYYYMMDD')) + 1 <![CDATA[<=]]> 6 THEN 1
+                                   WHEN MONTHS_BETWEEN(TO_DATE(A.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(NVL(F.STRTDT, A.BASE_YM||'01'),'YYYYMMDD')) + 1 <![CDATA[<=]]> 6 THEN  1
                                    ELSE (CASE
                                              WHEN NVL(B.PERF_VAL, 0) >= 2 THEN 1.1
                                              WHEN NVL(B.PERF_VAL, 0) >= 0 THEN 1
@@ -465,10 +461,26 @@
                                                    AND A.PRTNR_NO = E.PRTNR_NO
                                                    AND 'W02P00002' = E.PERF_ATC_CD -- 고정 판매건수
                                                    AND '0' = E.PERF_DV_CD -- 고정 개인실적
+                               LEFT OUTER JOIN (SELECT A.og_tp_Cd
+                                                     , A.prtnr_no
+                                                     , NVL(B.STRTDT, A.STRTDT)  AS STRTDT
+                                                  FROM WSMDBS.TB_OGPS_PLAR_QLF_CH_IZ A
+                                                  LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ B
+                                                    ON  A.og_tp_Cd  = B.og_tp_Cd
+                                                   AND  A.prtnr_no  = B.prtnr_no
+                                                   AND  A.QLF_DV_CD = 3           /* BS프리매니저에서 웰스플래너로 바뀐 분들  */
+                                                   AND  B.QLF_DV_CD = 6
+                                                   AND  TO_CHAR(ADD_MONTHS( TO_DATE(A.STRTDT,'YYYYMMDD'),-1),'YYYYMM') = SUBSTR(B.ENDDT,1,6)
+                                                 WHERE 1 = 1
+                                                   AND A.og_tp_Cd = #{ogTpCd}                               -- 변수
+                                                   AND #{baseYm}||'01'  BETWEEN A.STRTDT AND A.ENDDT     -- 변수  기준년월 BASE_YM  = 202305
+                                               ) F
+                                               ON  A.OG_TP_CD = F.OG_TP_CD AND  A.PRTNR_NO = F.PRTNR_NO
                          WHERE 1 = 1
                            AND A.BASE_YM = #{baseYm} -- 변수
                            AND A.OG_TP_CD = #{ogTpCd}   -- 변수
-                           AND A.PSTN_DV_CD = '7') AA) AAA
+                           AND A.PSTN_DV_CD = '7'
+                           AND A.PERF_EXCD_OJ_YN = 'N') AA) AAA
          WHERE AAA.FEE_CALC_AMT > 0
     </insert>
 </mapper>

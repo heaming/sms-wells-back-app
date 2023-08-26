@@ -1,15 +1,17 @@
 package com.kyowon.sms.wells.web.service.visit.mapper;
 
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
+import java.util.List;
+import java.util.Optional;
+
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.SearchRes;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.HistoryReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.HistoryRes;
-
-import java.util.List;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.SearchReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.SearchRes;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWellsServiceCfdcDvo;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsnbWellsServiceCfdcMapper {
@@ -24,4 +26,6 @@ public interface WsnbWellsServiceCfdcMapper {
     PagingResult<HistoryRes> selectWellsServiceConfirmationHistoriesForEmail(
         HistoryReq dto, PageInfo pageInfo
     );
+
+    Optional<WsnbWellsServiceCfdcDvo> selectCustomer(String cstSvAsnNo);
 }

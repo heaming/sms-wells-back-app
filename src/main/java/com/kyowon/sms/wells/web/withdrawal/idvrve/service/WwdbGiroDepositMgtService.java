@@ -3,45 +3,36 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+
+import com.kyowon.sms.common.web.closing.payment.dvo.ZdcaBusinessAnticipationAmtWellsDvo;
+import com.kyowon.sms.common.web.closing.payment.service.ZdcaBusinessAnticipationAmtWellsService;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalDepositCprDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaBusinessAnticipationAmtDvo;
-import com.kyowon.sms.wells.web.closing.payment.service.WdcaBusinessAnticipationAmtService;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto;
-import com.sds.sflex.common.utils.DateUtil;
-import com.sds.sflex.common.utils.StringUtil;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbGiroDepositMgtConverter;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveIntegrationReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveErrosReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchDtlStateRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchErrosRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchSumRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.*;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositDeleteInfoDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositErrorSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveInfoDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbGiroDepositMgtMapper;
+import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.constant.CommConst;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
@@ -53,7 +44,7 @@ public class WwdbGiroDepositMgtService {
 
     private final ZwdzWithdrawalService zwdzWithdrawalService;
 
-    private final WdcaBusinessAnticipationAmtService wdcaBusinessAnticipationAmtService;
+    private final ZdcaBusinessAnticipationAmtWellsService wdcaBusinessAnticipationAmtService;
 
     /**
      * 지로입금 목록조회
@@ -177,7 +168,7 @@ public class WwdbGiroDepositMgtService {
         List<SearchRes> insertList = mapper.selectGiroDepositMgt(giroDto);
 
         //영업선수금 DVO
-        List<WdcaBusinessAnticipationAmtDvo> wdcaBusinessAnticipationAmtDvos = new ArrayList<WdcaBusinessAnticipationAmtDvo>();
+        List<ZdcaBusinessAnticipationAmtWellsDvo> wdcaBusinessAnticipationAmtDvos = new ArrayList<ZdcaBusinessAnticipationAmtWellsDvo>();
 
         /*입금등록 해야하는 데이터 조회 후 생성*/
         for (SearchRes list : insertList) {
@@ -417,7 +408,7 @@ public class WwdbGiroDepositMgtService {
                     processCount += mapper.updateIntegrationItemization(list.itgDpNo());
 
                     //영업선수금
-                    WdcaBusinessAnticipationAmtDvo edcaBusinessAnticipationAmtDvo = new WdcaBusinessAnticipationAmtDvo();
+                    ZdcaBusinessAnticipationAmtWellsDvo edcaBusinessAnticipationAmtDvo = new ZdcaBusinessAnticipationAmtWellsDvo();
                     // 영업선수금 데이터 생성
                     edcaBusinessAnticipationAmtDvo.setInputGubun("1"); //입력구분-입출금
                     edcaBusinessAnticipationAmtDvo.setRveNo(zwdzWithdrawalReceiveDvo.getRveNo()); //수납번호

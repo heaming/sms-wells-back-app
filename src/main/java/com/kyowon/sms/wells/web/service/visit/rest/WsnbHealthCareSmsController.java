@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/healthcare-sms")
-@Api(tags = "[WSNC] 건강케어 알림톡 발송 , 설치 후 다음날 발송 안마의자, 웰스팜, 매트리스 RESET API")
+@Api(tags = "[WSNC]  W-SV-S-0038 건강케어 알림톡 발송 , 설치 후 다음날 발송 안마의자, 웰스팜, 매트리스 RESET API")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
@@ -23,7 +23,7 @@ public class WsnbHealthCareSmsController {
     @ApiOperation(value = "안마의자, 웰스팜, 매트리스 등 설치 후 건강케어 고객에게 알림톡으로 발송한다.")
     @PostMapping
     public SaveResponse saveHealthCareNotakFws() throws Exception {
-        return SaveResponse.builder().processCount(service.sendHealthCareSms()).build();
+        return SaveResponse.builder().processCount(service.sendHealthCareSms(null)).build();
     }
 
 }

@@ -12,5 +12,6 @@ public class WfeaWelsMngerSettlementAwDvo {
     String tcntDvCd;
     String opngCd;
     String cnfmStatYn;
+    String reCrtYn;
 
 }

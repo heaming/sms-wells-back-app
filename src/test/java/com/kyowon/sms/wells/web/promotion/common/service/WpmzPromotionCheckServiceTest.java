@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.promotion.common.service;
 
 import java.lang.reflect.Field;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +49,7 @@ class WpmzPromotionCheckServiceTest extends SpringTestSupport {
 
     @Test
     @DisplayName("적용 프로모션 조회 - 데이터 존재")
-    void getAppliedPromotions() throws NoSuchFieldException, IllegalAccessException {
+    void getAppliedPromotions() throws NoSuchFieldException, IllegalAccessException, ParseException {
 
         // given
         WpmzPromotionInputDvo paramDvo = getTestData(new String[]{"basePdPrcDtlCd"}, true);
@@ -70,7 +71,7 @@ class WpmzPromotionCheckServiceTest extends SpringTestSupport {
 
     @Test
     @DisplayName("적용 프로모션 조회 - 데이터 미존재")
-    void getAppliedPromotionsNoData() throws NoSuchFieldException, IllegalAccessException {
+    void getAppliedPromotionsNoData() throws NoSuchFieldException, IllegalAccessException, ParseException {
 
         // given
         WpmzPromotionInputDvo paramDvo = new WpmzPromotionInputDvo();

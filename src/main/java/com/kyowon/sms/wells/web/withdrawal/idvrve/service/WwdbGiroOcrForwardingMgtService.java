@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto;
+import com.sds.sflex.common.utils.DateUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,7 +63,16 @@ public class WwdbGiroOcrForwardingMgtService {
      */
     @Transactional
     public List<SearchObjectRes> getGiroOcrForwardingObjects(String cntr) {
-        return mapper.selectGiroOcrForwardingObjects(cntr);
+        WwdbGiroOcrForwardingMgtDto.SearchCntrReq req;
+        if (!"no".equals(cntr)) {
+            String cntrNo = cntr.substring(0, 12);
+            String cntrSn = cntr.substring(12);
+            req = new WwdbGiroOcrForwardingMgtDto.SearchCntrReq(cntrNo, cntrSn, cntr);
+        } else {
+            req = new WwdbGiroOcrForwardingMgtDto.SearchCntrReq("", "", cntr);
+        }
+
+        return mapper.selectGiroOcrForwardingObjects(req);
     }
 
     @Transactional
@@ -169,6 +180,26 @@ public class WwdbGiroOcrForwardingMgtService {
             log.info("================");
             processCount += mapper.deleteGiroOcrForwardingPrints(dvo);
         }
+
+        return processCount;
+    }
+
+    @Transactional
+    public int saveGiroPrintDate(WwdbGiroOcrForwardingMgtDto.saveGiroPrintReq dto) throws Exception {
+        int processCount = 0;
+
+
+        WwdbGiroOcrForwardingPrintDvo dvo = convert.mapSaveGiroPrintDvo(dto);
+
+        String sysDate = DateUtil.getNowString();
+        String sysDateYmd = sysDate.substring(0, 8);
+        
+        dvo.setGiroOcrPrntDt(sysDateYmd);
+
+        processCount += mapper.updateGiroPrintDate(dvo);
+
+        processCount += mapper.insertGiroPrintDate(dvo);
+
 
         return processCount;
     }

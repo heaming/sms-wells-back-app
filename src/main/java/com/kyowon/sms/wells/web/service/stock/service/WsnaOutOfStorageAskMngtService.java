@@ -3,9 +3,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -53,7 +51,7 @@ public class WsnaOutOfStorageAskMngtService {
     private static final String SAP_SAVE_LCT_CD = "21082082";
     private static final int SLICE_SIZE = 999;
 
-    final String WARE_DV_CD_LOGISTICS_CENTER = "1"; // 창고구분코드 = 물류센터
+    private static final String WARE_DV_CD_LOGISTICS_CENTER = "1"; // 창고구분코드 = 물류센터
 
     private final WsnaLogisticsOutStorageAskService logisticsservice;
 
@@ -92,7 +90,6 @@ public class WsnaOutOfStorageAskMngtService {
     public List<WsnaOutOfStorageAskMngtDvo> getOutOfStorageItemPages(
         SearchReq dto
     ) {
-        // TODO: 물류창고 조회 로직 추가 필요.
         WsnaOutOfStorageAskMngtSearchDvo searchDvo = this.converter.mapAllSearchReqToOutOfStorageAskMngtDvo(dto);
 
         String ostrWareDvCd = this.mapper.selectOstrWareDvCd(dto);
@@ -109,13 +106,13 @@ public class WsnaOutOfStorageAskMngtService {
 
     public List<WsnaOutOfStorageAskMngtDvo> getOutOfStorageItemExcelDownload(SearchReq dto) {
 
-        WsnaOutOfStorageAskMngtSearchDvo searchDvo = this.converter.mapAllSearchReqToOutOfStorageAskMngtDvo(dto);
-        //        return mapper.selectOutOfStorageItms(searchDvo);
+        WsnaOutOfStorageAskMngtSearchDvo searchExcelDvo = this.converter
+            .mapAllSearchReqToExcelOutOfStorageAskMngtDvo(dto);
 
         String ostrWareDvCd = this.mapper.selectOstrWareDvCd(dto);
-        searchDvo.setOstrWareDvCd(ostrWareDvCd);
+        searchExcelDvo.setOstrWareDvCd(ostrWareDvCd);
 
-        List<WsnaOutOfStorageAskMngtDvo> outOfDvo = this.mapper.selectOutOfStorageItms(searchDvo);
+        List<WsnaOutOfStorageAskMngtDvo> outOfDvo = this.mapper.selectOutOfStorageItms(searchExcelDvo);
 
         if (WARE_DV_CD_LOGISTICS_CENTER.equals(ostrWareDvCd)) {
             this.getRealTimeLogisticStockQtys(outOfDvo);
@@ -228,9 +225,6 @@ public class WsnaOutOfStorageAskMngtService {
     @Transactional
     public int saveOutOfStorageAskItems(List<SaveReq> dtos) {
         int processCount = 0;
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-        Calendar calendar = Calendar.getInstance();
-        String strToday = dateFormat.format(calendar.getTime());
         String strOstrAkNo = null;
 
         List<WsnaOutOfStorageAskMngtDvo> insertListDvo = new ArrayList<>();

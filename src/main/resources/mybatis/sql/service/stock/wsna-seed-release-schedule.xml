@@ -293,7 +293,11 @@
                          WHERE T.RN = 5 )        AS SDING_INFO5    /* 모종5 정보 */
                  FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
                 INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ D2      /* 고객서비스AS설치대상내역 */
-                   ON D2.AS_IST_OJ_NO = D1.SDING_SPP_NO
+                   ON D2.CNTR_NO         = D1.CNTR_NO
+                  AND D2.CNTR_SN         = D1.CNTR_SN
+                  AND D2.SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                  AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                  AND D2.CST_SV_ASN_NO   = D1.SDING_SPP_NO
                 INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ D3     /* 고객서비스AS설치배정내역 */
                    ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
                 INNER JOIN TB_OGBS_MM_PRTNR_IZ D4             /* 월파트너내역 */
@@ -573,8 +577,7 @@
                    ON D2.CNTR_NO         = D1.CNTR_NO
                   AND D2.CNTR_SN         = D1.CNTR_SN
                   AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
-                  AND D1.SV_BIZ_HCLSF_CD = '2'
-                  AND D1.SDING_SPP_NO    = '2' || D2.VST_DUEDT || LPAD(D2.IST_NMN_N, 8, '0')
+                  AND D2.CST_SV_ASN_NO   = D1.SDING_SPP_NO
                 INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3     /* 고객서비스BS배정내역 */
                    ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
                  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D4       /* 월파트너내역 */
@@ -588,6 +591,7 @@
                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
                    ON D6.PD_CD = D2.PDCT_PD_CD
                 WHERE D1.DTA_DL_YN          = 'N'
+                  AND D1.SV_BIZ_HCLSF_CD    = '2'
                   AND D2.DTA_DL_YN          = 'N'
                   AND D3.DTA_DL_YN          = 'N'
                   AND D5.DTA_DL_YN          = 'N'
@@ -831,8 +835,24 @@
            AND SV_BIZ_HCLSF_CD = '1'
            AND WK_PRGS_STAT_CD NOT IN ('20', '71', '72')   /* 작업완료, 대기취소, 진행취소 */
            AND WK_EXCN_DT IS NULL
-           AND CNTR_NO         = #{sdingMcnrCntrNo}
+           AND CNTR_NO         = #{cntrNo}
+           AND CNTR_SN         = #{cntrSn}
     </update>
+
+    <update id="updateCstSvExcnIzForInstl">
+        UPDATE TB_SVPD_CST_SV_EXCN_IZ   /* 고객서비스수행내역 */
+           SET IST_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+        <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+
+    <select id="selectCstSvExcnIstDt" resultType="java.lang.String">
+        SELECT IST_DT
+          FROM TB_SVPD_CST_SV_EXCN_IZ
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
 
     <update id="updateSdingSppPlanIzForCnfm">
         UPDATE TB_SVPD_SDING_SPP_PLAN_IZ   /* 모종배송계획내역 */

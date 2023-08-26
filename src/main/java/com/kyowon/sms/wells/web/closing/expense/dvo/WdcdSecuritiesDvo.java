@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.closing.expense.dvo;
 
 import com.sds.sflex.system.config.annotation.DBDecField;
 import com.sds.sflex.system.config.annotation.DBEncField;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -36,4 +37,5 @@ public class WdcdSecuritiesDvo {
     private String adjOgId;
     private String opcsAdjNo; /*운영비정산번호*/
     private String adjPrtnrNo; /*정산파트너번호*/
+    private String ogTpCd;
 }

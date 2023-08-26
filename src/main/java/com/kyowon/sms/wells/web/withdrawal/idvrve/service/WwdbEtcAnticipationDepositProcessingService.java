@@ -1,5 +1,15 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+
+import com.kyowon.sms.common.web.closing.payment.dvo.ZdcaBusinessAnticipationAmtWellsDvo;
+import com.kyowon.sms.common.web.closing.payment.dvo.ZdcaEtcAnticipationAmtWellsDvo;
+import com.kyowon.sms.common.web.closing.payment.service.ZdcaBusinessAnticipationAmtWellsService;
+import com.kyowon.sms.common.web.closing.payment.service.ZdcaEtcAnticipationAmtWellsService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.converter.ZwdbEtcAnticipationDpProcsConvert;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCorporationDepositDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbEtcAnticipationDpProcsDto;
@@ -10,20 +20,12 @@ import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalDepositCpr
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaBusinessAnticipationAmtDvo;
-import com.kyowon.sms.wells.web.closing.payment.dvo.WdcaEtcAnticipationAmtDvo;
-import com.kyowon.sms.wells.web.closing.payment.service.WdcaBusinessAnticipationAmtService;
-import com.kyowon.sms.wells.web.closing.payment.service.WdcaEtcAnticipationAmtService;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.exception.BizException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -36,9 +38,9 @@ public class WwdbEtcAnticipationDepositProcessingService {
 
     private final ZwdzWithdrawalService zwdzWithdrawalService;
 
-    private final WdcaBusinessAnticipationAmtService wdcaBusinessAnticipationAmtService;
+    private final ZdcaBusinessAnticipationAmtWellsService wdcaBusinessAnticipationAmtService;
 
-    private final WdcaEtcAnticipationAmtService edcaEtcAnticipationAmtService;
+    private final ZdcaEtcAnticipationAmtWellsService edcaEtcAnticipationAmtService;
 
     public static String rveCd = "70440";
 
@@ -66,10 +68,10 @@ public class WwdbEtcAnticipationDepositProcessingService {
             .selectIntegrationDepositInfo(mainDvo.getItgDpNo());
 
         //영업선수금 DVO
-        List<WdcaBusinessAnticipationAmtDvo> wdcaBusinessAnticipationAmtDvos = new ArrayList<WdcaBusinessAnticipationAmtDvo>();
+        List<ZdcaBusinessAnticipationAmtWellsDvo> wdcaBusinessAnticipationAmtDvos = new ArrayList<ZdcaBusinessAnticipationAmtWellsDvo>();
 
         //기타선수금 DVO
-        List<WdcaEtcAnticipationAmtDvo> wdcaEtcAnticipationAmtDvos = new ArrayList<WdcaEtcAnticipationAmtDvo>();
+        List<ZdcaEtcAnticipationAmtWellsDvo> wdcaEtcAnticipationAmtDvos = new ArrayList<ZdcaEtcAnticipationAmtWellsDvo>();
 
         for (ZwdbEtcAnticipationDpProcsDto.SaveDepositProcessingSubReq list : subReqs) {
             //계약 번호 셋팅
@@ -108,7 +110,7 @@ public class WwdbEtcAnticipationDepositProcessingService {
             );
 
             //영업선수금
-            WdcaBusinessAnticipationAmtDvo edcaBusinessAnticipationAmtDvo = new WdcaBusinessAnticipationAmtDvo();
+            ZdcaBusinessAnticipationAmtWellsDvo edcaBusinessAnticipationAmtDvo = new ZdcaBusinessAnticipationAmtWellsDvo();
 
             //만약 당일입금이 아닌경우 기타선수금 데이터 생성
             if ("2".equals(mainReq.processingDivide())) {

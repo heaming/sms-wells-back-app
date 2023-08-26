@@ -21,6 +21,90 @@ public class WsncBsManagerScheduleDto {
         String baseDateTo
     ) {}
 
+    @ApiModel(value = "WsncBsManagerScheduleDto-WeekReq")
+    public record Weekreq(
+        @NotBlank
+        String managementYear
+    ) {}
+
+    @ApiModel(value = "WsncBsManagerScheduleDto-WeekRes")
+    public record Weekres(
+
+        String weekNum,
+        String codeId,
+        String codeName,
+
+        String dayS1,
+
+        String dayS2,
+
+        String dayS3,
+
+        String dayS4,
+
+        String dayS5,
+
+        String dayS6,
+
+        String dayS7,
+
+        String dayC1,
+
+        String dayC2,
+
+        String dayC3,
+
+        String dayC4,
+
+        String dayC5,
+
+        String dayC6,
+
+        String dayC7
+
+    ) {}
+
+    @ApiModel(value = "WsncBsManagerScheduleDto-DetailRes")
+    public record Detailres(
+
+        String weekGubun,
+
+        String bsWeekDay1,
+
+        String bsWeekDay2,
+
+        String bsWeekDay3,
+
+        String bsWeekDay4,
+
+        String bsWeekDay5,
+
+        String bsWeekDay6,
+
+        String bsWeekDay7
+    ) {}
+
+    @ApiModel(value = "WsncBsManagerScheduleDto-DetailReq")
+    public record Detailreq(
+        @NotBlank
+        String fxnPrtnrNo,
+        @NotBlank
+        String weekDay1,
+
+        String weekDay2,
+
+        String weekDay3,
+
+        String weekDay4,
+
+        String weekDay5,
+
+        String weekDay6,
+
+        String weekDay7
+
+    ) {}
+
     @ApiModel(value = "WsncBsManagerScheduleDto-Aggregates")
     public record Aggregates(
 

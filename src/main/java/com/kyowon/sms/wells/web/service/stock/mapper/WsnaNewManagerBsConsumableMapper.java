@@ -28,4 +28,12 @@ public interface WsnaNewManagerBsConsumableMapper {
     int mergeNewManagerBsConsumableAplcClose(WsnaNewManagerBsConsumableDvo dvo);
 
     int mergeNewManagerBsConsumables(List<WsnaNewManagerBsConsumableDvo> dvos);
+
+    List<WsnaNewManagerBsConsumableDvo> selectBfsvcCsmbDdlvIzByMngtYm(String mngtYm);
+
+    String selectNewOstrAkNo(String ostrAkTpCd, String ostrAkRgstDt);
+
+    int updateBfsvcCsmbDdlvIzOstrAkNoSn(WsnaNewManagerBsConsumableDvo dvo);
+
+    int updateBfsvcCsmbDdlvIzDdlvStatCd(WsnaNewManagerBsConsumableDvo dvo);
 }

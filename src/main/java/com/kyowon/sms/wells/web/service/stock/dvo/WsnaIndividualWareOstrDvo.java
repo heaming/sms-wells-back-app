@@ -18,6 +18,8 @@ import lombok.Setter;
 public class WsnaIndividualWareOstrDvo {
 
     private String lgstTrsYn;
+
+    private String chk;
     private String wareNm;
     private String sapMatCd;
     private String itmPdCd;

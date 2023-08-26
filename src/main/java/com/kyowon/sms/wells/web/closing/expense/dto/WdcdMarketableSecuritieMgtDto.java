@@ -38,7 +38,6 @@ public class WdcdMarketableSecuritieMgtDto {
     public record SearchSubjectReq(
         String baseYm, // 사용년월
         String rsbDvCd, // 직책유형코드
-        String mainOgId, // 정산조직ID
         String dgr2LevlOgId, // 2차레벨조직명 - 총괄단(에듀 웰스 같음)
         String bldCd, // 빌딩 코드
         String subOgTpCd, // 배분대상조직유형코드
@@ -75,6 +74,7 @@ public class WdcdMarketableSecuritieMgtDto {
         String erntx,               /*(hidden)배분소득세*/
         String rsdntx,              /*(hidden)배분주민세*/
         String cardUseAmt,   /*(hidden)카드사용금액*/
+        String opcsAdjNo,   /*(hidden)운영비정산번호*/
         String adjFshDstAmt,  /*(hidden)정산완료배분합계금액*/
         String adjYn,  /*(hidden)정산여부*/
         String bldCd,  /* 빌딩코드 */

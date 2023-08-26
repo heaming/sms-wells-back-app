@@ -59,6 +59,16 @@ public class WfebOrganizationFeeService {
     }
 
     /**
+     * WELLS M조직 수수료 생성관리 2023년4월 이전 목록 조회
+     * @param 'SearchMngerReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+
+    public List<SearchMngerBfRes> getManagerBeforeFees(SearchMngerReq dto) {
+        return this.mapper.selectManagerBeforeFees(dto);
+    }
+
+    /**
      * WELLS M조직 수수료 생성관리 지점장 목록 조회
      * @param 'SearchMngerReq' 검색조건 정보
      * @return 조회된 데이터

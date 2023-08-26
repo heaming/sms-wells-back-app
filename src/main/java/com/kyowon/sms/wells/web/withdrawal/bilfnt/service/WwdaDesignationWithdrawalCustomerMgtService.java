@@ -104,7 +104,7 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
                     int checkCount = mapper.selectAcFntDsnWdrwBasByPk(dvo); // 기존 데이터가 삭제된 것인지 조회
                     if (checkCount > 0) {
                         processCount += mapper.updateAcFntDsnWdrwBasByPk(dvo); // 계좌이체지정출금기본 삭제된 데이터 'N'으로 변경 후 처리
-                        processCount += mapper.updateAutoFntDsnWdrwRelByPk(dvo); // 계좌이체지정출금관계 삭제된 데이터 'N'으로 변경 후 처리
+                        //                        processCount += mapper.updateAutoFntDsnWdrwRelByPk(dvo); // 계좌이체지정출금관계 삭제된 데이터 'N'으로 변경 후 처리
                     } else {
                         int count = mapper.selectAcFntDsnWdrwBasCt(dvo); // 계좌 이체 지정 출금 기본 건수 조회
                         BizAssert.isFalse(count > 0, "MSG_ALT_LINE_ALREADY_RGST_CST", index);
@@ -113,7 +113,7 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
                         if ("1".equals(dto.fntYn())) { // 신규이면서 이체구분이 '이체' 이면
                             CheckBillingFundTransferAsk check = mapper.selectBilFntAkCt(dvo); // 청구이체요청상세 , 청구이체요청기본 데이터 존재 여부
                             if (ObjectUtils.isNotEmpty(check)) {
-                                processCount += mapper.insertAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 저장
+                                //                                processCount += mapper.insertAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 저장
                             }
                         }
                     }
@@ -157,7 +157,7 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
                 dvo.setBilDtlSn(bilVo.getBilDtlSn());
             }
             result += mapper.deleteAutoFntDsnWdrwCst(dvo); // 계좌이체지정출금기본 삭제
-            result += mapper.deleteAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 삭제
+            //            result += mapper.deleteAutoFntDsnWdrwRel(dvo); // 계좌이체지정출금관계 삭제
             result += mapper.deleteAutoFntDsnWdrwCstHist(dvo); // 계좌이체지정출금이력 추가
             BizAssert.isTrue(result > 0, "MSG_ALT_SVE_ERR");
             processCount += result;

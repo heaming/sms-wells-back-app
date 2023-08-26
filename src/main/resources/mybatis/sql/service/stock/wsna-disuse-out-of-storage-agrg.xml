@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaDisuseOutOfStorageAgrgMapper">
+    <select id="selectDisuseOutOfStorageAgrgs" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaDisuseOutOfStorageAgrgDto$SearchRes">
+       WITH PART_INF AS
+       ( /* 품목정보 */
+            SELECT P1.PD_CD
+                 , P2.SAP_MAT_CD    /*SAP자재코드*/
+                 , P2.PD_NM         /*품목명*/
+                 , P1.PD_PRP_VAL06 AS AS_LDTM /*리드타임, AS_LDTM*/
+                 , P1.PD_PRP_VAL17 AS AS_MAT_MNG_TP_CD /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD*/
+                 , P1.PD_PRP_VAL21 AS AS_MAT_CMN_CLSF_CD /*AS자재 공통분류, AS_MAT_CMN_CLSF_CD, CMN_PART_DV_CD*/
+                 , P1.PD_PRP_VAL30 AS TRNOVR_RT_OJ_YN /*회전율 대상여부, TRNOVR_RT_OJ_YN*/
+                 , P1.PD_PRP_VAL07 AS MIN_GO_QTY /*최소발주량, MIN_GO_QTY*/
+                 , (CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END) AS AS_MAT_ITM_GRP_CD /*PD_GRP_CD	AS자재 품목그룹*/
+                 , P1.PD_PRP_VAL26 AS AS_SPL_UNIT_AMT /*물류의 공급단가(물류 매각시 사용단가)*/
+                 , P1.PD_PRP_VAL01 || P1.PD_PRP_VAL31 AS KIWI_PD_CD
+            FROM WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P1  /*상품각사속성상세*/
+            INNER JOIN TB_PDBS_PD_BAS P2
+             ON P1.PD_CD = P2.PD_CD
+             AND P2.PD_TP_CD = 'M'    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
+             AND P2.DTA_DL_YN = 'N'
+            WHERE 1=1
+             AND P1.DTA_DL_YN = 'N'
+             AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+             /* 품목구분 */
+             AND (P1.PD_PRP_VAL19 = #{itmKndCd}    /*AS자재 품목종류, AS_MAT_ITM_KND_CD, ITM_KND_CD*/
+                  OR P2.SAP_MAT_CD IN ('000000000300002336'	/*KW-P06R1리페어 */
+                                     , '000000000300002337'	/* KW-P16R1리페어 */
+                                     , '000000000300002683'	/* 특별자재-P15W1 */
+                                     , '000000000300001153'	/* 발주X 특별자재 */
+                                     , '000000000300002681'	/* 특별자재-B01W4 */
+                                     , '000000000300002686'	/* 특별자재-P25W1 */
+                                     , '000000000300002682'	/* 특별자재-B03W1 */
+                                     , '000000000300002684'	/* 특별자재-P20W2 */
+                                     , '000000000300002688'	/* 특별자재-P17W1 */
+                                     , '000000000300005637'	/* 특별자재 tt 냉정W-P27,P57,WL652NW */
+                                     , '000000000300005638'	/* 특별자재 tt 냉온W-P37,P67,WL672NW */
+                                     , '000000000300002687'	/* 특별자재-PN5W1 */
+                                     , '000000000300002685'	/* 특별자재-P22W3 */
+                                     , '000000000300005640'	/* 특별자재 tt 냉온R-WK670,WL672NG */
+                                     , '000000000300001152'	/* 발주X 특별자재-W51*/
+                                     , '000000000300005639'	/* 특별자재 tt 냉정R-WK650,WL652NG */
+                                     )
+                  )
+             <if test="@MybatisUtils@isNotEmpty(itmCdFrom)">
+             /* 품목코드 */
+             AND P1.PD_CD BETWEEN #{itmCdFrom}  AND #{itmCdTo}
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(useYn)">
+             /* 사용여부(전체, 사용, 미사용) */
+             AND P1.PD_PRP_VAL32 = #{useYn}
+             </if>
+             /*23.07.20 이정민파트장님 확인 그룹*/
+             /* ST101_ITEM_GR.PD_GRP_CD -
+                   1 비데, 2 정수기, 3 공기청정기, 4 연수기, 5 마사지기, 6 음식물처리기
+                 , 7 제습기, 8 제빙기, 9 아웃소싱, 10 홈케어, 11 웰스팜모종, 12 홈카페캡슐, 13 활력홍삼, 14 화장품, 15 슬림쏙
+                 ,16 백수오, 91 전기레인지, 92 웰스팜, 93 안마의자, 94 삼성제품, 95 매트리스, 96 커피머신
+               */
+             AND (
+                   P1.PD_PRP_VAL20 IS NULL
+                   OR P1.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '91', '92', '93', '95', '96')
+                 )
+             AND P2.SAP_MAT_CD IS NOT NULL
+             /* AND P1.PD_PRP_VAL01 || P1.PD_PRP_VAL31 = '44990000000' */
+       )
+       , WARE_IF AS
+       ( /* 서비스 센터 및 창고 */
+            SELECT O1.BASE_YM
+                 , O1.OG_ID
+                 , O1.OG_TP_CD
+                 , O1.OG_CD
+                 , O1.OG_NM
+                 , O1.HGR_OG_ID
+                 , S1.WARE_NO
+                 , S1.WARE_NM
+                 , S1.WARE_USE_YN
+                 , S1.WARE_MNGT_PRTNR_NO
+                 , S1.WARE_DTL_DV_CD
+                 , S1.HGR_WARE_NO
+            FROM WSMDBS.TB_OGBS_MM_OG_IZ O1  /*월조직내역*/
+            LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ S1 /*월별창고내역*/
+             ON O1.BASE_YM = S1.APY_YM
+             AND O1.OG_TP_CD = S1.OG_TP_CD
+             AND O1.OG_ID = S1.OG_ID
+             /* AND S1.WARE_DTL_DV_CD = '20' */
+             /* AND S1.WARE_USE_YN = 'Y' */  /*미사용창고에서 반품 되는 경우도 있기 때문에*/
+             AND S1.DTA_DL_YN = 'N'
+            WHERE 1 = 1
+             AND O1.BASE_YM = SUBSTR(#{startDt},1,6)
+             AND O1.OG_TP_CD IN ('W03','W06')
+             AND O1.CLO_DT IS NULL
+             AND O1.DTA_DL_YN = 'N'
+
+             <if test="@MybatisUtils@isNotEmpty(ogId)">
+             /* 조직정보가 있을 경우 */
+             AND O1.OG_ID = #{ogId}   /* 조직ID */
+             </if>
+            ORDER BY O1.BASE_YM, O1.OG_CD
+       )
+       , DSU_OSTR_SUM AS (
+            /* 폐기 출고 합계 */
+            SELECT ITM_PD_CD
+                 , SUM(ITEM_GD_A_SUM) AS ITEM_GD_A_SUM
+                 , SUM(ITEM_GD_B_SUM) AS ITEM_GD_B_SUM
+                 , SUM(ITEM_GD_E_SUM) AS ITEM_GD_E_SUM
+                 , SUM(ITEM_GD_R_SUM) AS ITEM_GD_R_SUM
+                 , SUM(ITEM_GD_X_SUM) AS ITEM_GD_X_SUM
+                 , SUM(ETC_INST_SUM) AS ETC_INST_SUM
+                 , SUM(LEASE_SUM) AS LEASE_SUM
+                 , SUM(ETC_LEASE_SUM) AS ETC_LEASE_SUM
+            FROM (
+                    SELECT /*+ INDEX(S1 IX_SVST_SV_WK_OSTR_IZ_06) */ /* 23.08.16 김아련 프로님 튜닝 */
+                           ITM_PD_CD
+                         , SUM(CASE WHEN FNL_ITM_GD_CD = 'A' THEN 1 END) AS ITEM_GD_A_SUM
+                         , SUM(CASE WHEN FNL_ITM_GD_CD = 'B' THEN 1 END) AS ITEM_GD_B_SUM
+                         , SUM(CASE WHEN FNL_ITM_GD_CD = 'E' THEN 1 END) AS ITEM_GD_E_SUM
+                         , SUM(CASE WHEN FNL_ITM_GD_CD = 'R' THEN 1 END) AS ITEM_GD_R_SUM
+                         , SUM(CASE WHEN FNL_ITM_GD_CD = 'X' THEN 1 END) AS ITEM_GD_X_SUM
+                         , SUM(CASE WHEN FST_SELL_TP_CD = '4' THEN 1 END) AS ETC_INST_SUM
+                         , SUM(CASE WHEN SELL_TP_DTL_CD IN ('22', '24', '25', '26') AND FST_SELL_TP_CD = '4' THEN 1 ELSE 0 END) AS ETC_LEASE_SUM
+                         , SUM(CASE WHEN SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN 1 ELSE 0 END) AS LEASE_SUM
+                         /* 23.08.07 조운용파트장님, 조우섭프로님 확인, 22 리스, 24 환경리스,25 장기할부,26 환경할부 */
+                    FROM WSMDBS.TB_SVST_SV_WK_OSTR_IZ	S1  /* 서비스작업출고내역, ST163TB */
+                    INNER JOIN WARE_IF W1                   /* 창고정보*/
+                     ON S1.WK_WARE_NO = W1.WARE_NO
+                    INNER JOIN WSMDBS.TB_SSCT_CNTR_DTL C1   /* 계약상세 */
+                     ON S1.CNTR_NO = C1.CNTR_NO
+                     AND S1.CNTR_SN = C1.CNTR_SN
+                     AND C1.DTA_DL_YN = 'N'
+                    WHERE 1=1
+                     AND S1.OSTR_CONF_DT BETWEEN #{startDt} AND #{endDt}
+                     AND S1.SV_BIZ_HCLSF_CD = '6'
+                     AND S1.USE_QTY > 0
+                     <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                     AND S1.FNL_ITM_GD_CD = #{itmGdCd}  /* 등급 */
+                     </if>
+                     <if test="@MybatisUtils@isNotEmpty(rtngdProcsTpCd)">
+                     AND S1.RTNGD_PROCS_TP_CD = #{rtngdProcsTpCd}  /* 반품처리유형 */
+                     </if>
+                     AND S1.DTA_DL_YN = 'N'
+                     AND S1.FST_VST_FSH_DT IS NOT NULL
+                     AND S1.RTNGD_PROCS_TP_CD IS NOT NULL
+                    GROUP BY ITM_PD_CD
+                 )
+            GROUP BY ITM_PD_CD
+       )
+       SELECT P1.AS_MAT_ITM_GRP_CD
+            , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', P1.AS_MAT_ITM_GRP_CD, 'ko') AS AS_MAT_ITM_GRP_NM
+            , P1.PD_CD
+            , P1.PD_NM
+            , P1.SAP_MAT_CD
+            , P1.AS_SPL_UNIT_AMT
+            , D1.ITEM_GD_E_SUM
+            , D1.ITEM_GD_E_SUM * P1.AS_SPL_UNIT_AMT AS ITEM_GD_E_COST_SUM
+            , D1.ITEM_GD_R_SUM
+            , D1.ITEM_GD_R_SUM * P1.AS_SPL_UNIT_AMT AS ITEM_GD_R_COST_SUM
+            , D1.ITEM_GD_X_SUM
+            , D1.ITEM_GD_X_SUM * P1.AS_SPL_UNIT_AMT AS ITEM_GD_X_COST_SUM
+            , D1.ETC_INST_SUM
+            , D1.LEASE_SUM
+            , D1.ETC_LEASE_SUM
+            , NVL(D1.ITEM_GD_E_SUM,0) + NVL(ITEM_GD_R_SUM,0) + NVL(ITEM_GD_X_SUM,0) AS ITEM_GD_SUM
+            , (  NVL(D1.ITEM_GD_E_SUM * P1.AS_SPL_UNIT_AMT,0)
+               + NVL(D1.ITEM_GD_R_SUM * P1.AS_SPL_UNIT_AMT,0)
+               + NVL(D1.ITEM_GD_X_SUM * P1.AS_SPL_UNIT_AMT,0)
+              ) AS ITEM_GD_COST_SUM
+       FROM PART_INF P1
+       LEFT OUTER JOIN DSU_OSTR_SUM D1
+        ON P1.PD_CD = D1.ITM_PD_CD
+       ORDER BY P1.AS_MAT_ITM_GRP_CD, P1.PD_CD
+    </select>
+</mapper>

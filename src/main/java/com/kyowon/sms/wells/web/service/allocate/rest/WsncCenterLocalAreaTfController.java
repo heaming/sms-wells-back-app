@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncCenterLocalAreaTfDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncCenterLocalAreaTfService;
 import com.sds.sflex.system.config.constant.CommConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -38,12 +36,11 @@ public class WsncCenterLocalAreaTfController {
         @ApiImplicitParam(name = "zipTo", value = "우편번호(To)", paramType = "query", required = false),
         @ApiImplicitParam(name = "rsonCd", value = "이관사유", paramType = "query", required = false),
     })
-    @GetMapping("/paging")
-    public PagingResult<WsncCenterLocalAreaTfDto.SearchRes> getCenterAreas(
-        WsncCenterLocalAreaTfDto.SearchReq dto, @Valid
-        PageInfo pageInfo
+    @GetMapping
+    public List<WsncCenterLocalAreaTfDto.SearchRes> getCenterAreas(
+        WsncCenterLocalAreaTfDto.SearchReq dto
     ) {
-        return wsncCenterLocalAreaTfService.getCenterAreas(dto, pageInfo);
+        return wsncCenterLocalAreaTfService.getCenterAreas(dto);
     }
 
     @GetMapping("/excel-download")

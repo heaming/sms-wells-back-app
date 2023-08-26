@@ -102,12 +102,6 @@
                            <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
 						   AND M.PRTNR_NO = #{prtnrNo} /*PARAM: 파트너번호*/
                            </if>
-                           <if test='@MybatisUtils@isNotEmpty(cltnYn) and cltnYn != "ALL" and @MybatisUtils@equals(cltnYn, "5")'>
-                           AND B.BZ_STAT_CD = '2' /*PARAM: 해약여부, 1:사업 3:휴업, 2: 해약*/
-                           </if>
-                           <if test='@MybatisUtils@isNotEmpty(cltnYn) and cltnYn != "ALL" and @MybatisUtils@equals(cltnYn, "6")'>
-                           AND B.BZ_STAT_CD IN ('1', '3') /*PARAM: 해약여부, 1:사업 3:휴업, 2: 해약*/
-                           </if>
                            <if test='@MybatisUtils@isNotEmpty(pstnDvCd)'>
                            AND M.PERF_DV_CD = (CASE WHEN #{pstnDvCd} = '15' THEN '0'
                                                     WHEN #{pstnDvCd} = '10' THEN '1'
@@ -141,10 +135,17 @@
 						    INNER JOIN TB_SSCT_CNTR_DTL A2 /*계약상세*/
 							   ON M.CNTR_NO = A2.CNTR_NO
 							  AND M.CNTR_SN = A2.CNTR_SN
-						     LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ B
+						     LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ B /*월파트너내역*/
 						       ON M.PERF_YM = B.BASE_YM
 						      AND M.PRTNR_NO = B.PRTNR_NO
 						      AND M.OG_TP_CD = B.OG_TP_CD
+                            WHERE 1 = 1
+                              <if test='@MybatisUtils@isNotEmpty(cltnYn) and cltnYn != "ALL" and @MybatisUtils@equals(cltnYn, "5")'>
+                              AND B.BZ_STAT_CD = '2' /*PARAM: 해약여부, 1:사업 3:휴업, 2: 해약*/
+                              </if>
+                              <if test='@MybatisUtils@isNotEmpty(cltnYn) and cltnYn != "ALL" and @MybatisUtils@equals(cltnYn, "6")'>
+                              AND B.BZ_STAT_CD IN ('1', '3') /*PARAM: 해약여부, 1:사업 3:휴업, 2: 해약*/
+                              </if>
 			)
 			, BRCH_ADSB AS (
 			      			SELECT NVL(SUM(CASE WHEN M.PERF_DV_CD = '2' THEN NVL(CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NOT NULL THEN NVL(M.REDF_ADSB_CTR_CNFM_AMT, 0)
@@ -158,7 +159,7 @@
                   			    , M.REDF_ADSB_OC_YM
                   			    , M.PERF_YM
 						     FROM TB_FEDD_FEE_REDF_ADSB_DTL M /*수수료되물림재지급상세*/
-						     LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ A
+						     LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ A /*월파트너내역*/
 						       ON M.REDF_ADSB_OC_YM = A.BASE_YM
 						      AND M.PRTNR_NO = A.PRTNR_NO
 						      AND M.OG_TP_CD = A.OG_TP_CD
@@ -197,7 +198,7 @@
 	         , S1.BRCH_PRTNR_KNM
 	         , NVL(S1.BRCH_ADSB_AMT, 0) AS BRCH_ADSB_AMT
 		  FROM SELL_ADSB S
-		 INNER JOIN BRCH_ADSB S1
+		  LEFT OUTER JOIN BRCH_ADSB S1
 		    ON S.OG_ID = S1.OG_ID
 		   AND S.OG_CD = S1.OG_CD
 		   AND S.OG_TP_CD = S1.OG_TP_CD

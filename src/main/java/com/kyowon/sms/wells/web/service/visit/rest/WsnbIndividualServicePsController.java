@@ -40,7 +40,7 @@ public class WsnbIndividualServicePsController {
         return service.getIndividualServicePs(dto);
     }
 
-    @ApiOperation(value = "개인별 서비스 현황", notes = "가구화정보 조회")
+    @ApiOperation(value = "가구화정보", notes = "가구화정보 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
@@ -50,7 +50,7 @@ public class WsnbIndividualServicePsController {
         return service.getIndividualServiceHousehold(dto);
     }
 
-    @ApiOperation(value = "개인별 서비스 현황", notes = "컨택현황 조회")
+    @ApiOperation(value = "컨택현황", notes = "컨택현황 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
@@ -60,7 +60,7 @@ public class WsnbIndividualServicePsController {
         return service.getIndividualServiceContact(dto);
     }
 
-    @ApiOperation(value = "개인별 서비스 현황", notes = "연계코드 조회")
+    @ApiOperation(value = "연계코드", notes = "연계코드 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
@@ -70,7 +70,7 @@ public class WsnbIndividualServicePsController {
         return service.getIndividualServiceFarm(dto);
     }
 
-    @ApiOperation(value = "개인별 서비스 현황", notes = "연체정보 조회")
+    @ApiOperation(value = "연체정보", notes = "연체정보 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
@@ -80,7 +80,7 @@ public class WsnbIndividualServicePsController {
         return service.getIndividualDelinquent(dto);
     }
 
-    @ApiOperation(value = "개인별 서비스 현황", notes = "처리내역 조회")
+    @ApiOperation(value = "처리내역", notes = "처리내역 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
@@ -90,7 +90,7 @@ public class WsnbIndividualServicePsController {
         return service.getIndividualProcessState(dto, pageInfo);
     }
 
-    @ApiOperation(value = "개인별 서비스 현황", notes = "상담내역 조회")
+    @ApiOperation(value = "상담내역", notes = "상담내역 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
@@ -100,7 +100,7 @@ public class WsnbIndividualServicePsController {
         return service.getIndividualCounsel(dto, pageInfo);
     }
 
-    @ApiOperation(value = "개인별 서비스 현황", notes = "고객특이사항 저장")
+    @ApiOperation(value = "고객특이사항", notes = "고객특이사항 저장")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),

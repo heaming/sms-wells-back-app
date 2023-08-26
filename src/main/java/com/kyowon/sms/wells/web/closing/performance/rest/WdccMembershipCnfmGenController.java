@@ -40,7 +40,6 @@ public class WdccMembershipCnfmGenController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형 (판매유형코드)", paramType = "query"),
-        @ApiImplicitParam(name = "sellTpDtlCd", value = "멤버십구분 (판매유형상세코드)", paramType = "query"),
     })
     @GetMapping("/paging")
     public PagingResult<SearchRes> getMembershipConfirmGenPages(

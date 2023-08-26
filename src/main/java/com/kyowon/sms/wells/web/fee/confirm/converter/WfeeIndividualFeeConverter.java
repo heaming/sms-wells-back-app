@@ -7,8 +7,5 @@ import com.kyowon.sms.wells.web.fee.confirm.dvo.WfeeIndividualFeeDvo;
 
 @Mapper(componentModel = "spring")
 public interface WfeeIndividualFeeConverter {
-    WfeeIndividualFeeDvo mapSearchFeeReqToWfeeIndividualFeeDvo(SearchFeeReq dto);
-
-    WfeeIndividualFeeDvo mapSearchFeeHmstReqToWfeeIndividualFeeDvo(SearchFeeHmstReq dto);
 
 }

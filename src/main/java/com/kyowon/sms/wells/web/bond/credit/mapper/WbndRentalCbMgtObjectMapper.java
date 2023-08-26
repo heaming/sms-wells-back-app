@@ -5,7 +5,6 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbDelinquentIzDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -22,14 +21,15 @@ public interface WbndRentalCbMgtObjectMapper {
     );
 
     int updateMessageObjectYn(
-        SearchReq dto
+        WbndRentalCbDelinquentIzDvo dto
     );
 
     int insertMessageObjectHist(
-        SearchReq dto
+        WbndRentalCbDelinquentIzDvo dto
     );
 
-    PagingResult<WbndRentalCbDelinquentIzDvo> selectRentalCbMgtPaymentInfos(String cstNo, PageInfo pageInfo);
+    PagingResult<WbndRentalCbDelinquentIzDvo> selectRentalCbMgtPaymentInfos(@Param("cstNo")
+    String cstNo, PageInfo pageInfo);
 
     List<WbndRentalCbDelinquentIzDvo> selectRentalCbMgtPaymentInfos(@Param("cstNo")
     String cstNo);

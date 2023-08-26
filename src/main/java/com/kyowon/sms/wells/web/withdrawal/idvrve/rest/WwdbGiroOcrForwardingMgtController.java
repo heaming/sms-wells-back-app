@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -140,6 +141,22 @@ public class WwdbGiroOcrForwardingMgtController {
 
         return SaveResponse.builder()
             .processCount(service.removeGiroOcrForwardingPrints(dto))
+            .build();
+    }
+
+    @ApiOperation(value = "지로 출력 업데이트", notes = "지로 출력 업데이트")
+    @PostMapping("/print/date")
+    public SaveResponse updateGiroPrintDate(
+        @RequestBody
+        @Valid
+        WwdbGiroOcrForwardingMgtDto.saveGiroPrintReq dto
+    ) throws Exception {
+        log.info("=======cont=========");
+        log.info(dto.toString());
+        log.info("================");
+
+        return SaveResponse.builder()
+            .processCount(service.saveGiroPrintDate(dto))
             .build();
     }
 }

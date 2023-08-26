@@ -219,23 +219,34 @@ public class WpdcAsPartsMgtService {
             ZpdcProductDvo dvo = objectMapper.convertValue(masterMap, ZpdcProductDvo.class);
 
             // 230303 자재코드가 들어오면 UI와 동일하게 자동으로 Fill-In
+            boolean isResetSapMaterial = false;
             if (StringUtil.isNotEmpty(dvo.getSapMatCd())) {
-                // TODO 조회쿼리 한방 날리고 값들 채우고!!! 여기부터 시작!!!!
-                ZpdcGbcoSapMatDvo sapMatVo = wMapper.selectMaterialSap(dvo.getSapMatCd());
 
-                //                dvo.setModelNo(sapMatVo.getModelNo());
-                dvo.setSapPdctSclsrtStrcVal(sapMatVo.getSapPdctSclsrtStrcVal());
-                dvo.setSapPlntCd(sapMatVo.getSapPlntVal());
-                dvo.setSapMatEvlClssVal(sapMatVo.getSapMatEvlClssVal());
-                dvo.setSapMatGrpVal(sapMatVo.getSapMatGrpVal());
-                dvo.setSapMatTpVal(sapMatVo.getSapMatTpVal());
+                //                ZpdcGbcoSapMatDvo sapMatVo = wMapper.selectMaterialSap(dvo.getSapMatCd());
+                String sapPlntVal = this.getExcelValue(dvo.getSapPlntCd());
+                List<ZpdcGbcoSapMatDvo> sapMatVoList = wMapper.selectMaterialSaps(dvo.getSapMatCd(), sapPlntVal);
+
+                if (sapMatVoList.size() == 1) {
+                    //                dvo.setModelNo(sapMatVo.getModelNo());
+                    dvo.setSapPdctSclsrtStrcVal(sapMatVoList.get(0).getSapPdctSclsrtStrcVal());
+                    dvo.setSapPlntCd(sapMatVoList.get(0).getSapPlntVal());
+                    dvo.setSapMatEvlClssVal(sapMatVoList.get(0).getSapMatEvlClssVal());
+                    dvo.setSapMatGrpVal(sapMatVoList.get(0).getSapMatGrpVal());
+                    dvo.setSapMatTpVal(sapMatVoList.get(0).getSapMatTpVal());
+                } else {
+                    isResetSapMaterial = true;
+                }
             } else {
+                isResetSapMaterial = true;
+            }
+
+            if (isResetSapMaterial) {
                 //                dvo.setModelNo(null);
                 dvo.setSapPdctSclsrtStrcVal(null);
                 dvo.setSapPlntCd(null);
                 dvo.setSapMatEvlClssVal(null);
                 dvo.setSapMatGrpVal(null);
-                dvo.setSapMatTpVal(null); // 자재유형값
+                dvo.setSapMatTpVal(null);
             }
 
             // #1. 상품 마스터 INSERT
@@ -308,5 +319,13 @@ public class WpdcAsPartsMgtService {
      */
     public String checkValidation(ValidationReq dto) {
         return this.mapper.selectValidation(dto);
+    }
+
+    public String getExcelValue(Object obj) {
+        String compareValue = StringUtil.nvl2(obj.toString(), "");
+        if (compareValue.split("\\|").length > 1) {
+            compareValue = compareValue.split("\\|")[1].trim();
+        }
+        return compareValue;
     }
 }

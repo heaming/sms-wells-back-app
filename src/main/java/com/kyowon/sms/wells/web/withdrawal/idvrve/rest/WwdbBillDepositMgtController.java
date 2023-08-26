@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +18,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.Sear
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchElectronicRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveDepositSlip;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbBillDepositMgtService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -85,8 +87,11 @@ public class WwdbBillDepositMgtController {
     }
 
     @GetMapping("/electronic")
-    public String getRegistrationPk() {
-        return service.getRegistrationPk();
+    public WwdbBillDepositMgtDto.SearchItgNoRes getRegistrationPk() {
+        log.info("============");
+        WwdbBillDepositMgtDto.SearchItgNoRes pk = service.getRegistrationPk();
+        log.info("============");
+        return pk;
     }
 
     @PostMapping("/electronic")
@@ -127,6 +132,26 @@ public class WwdbBillDepositMgtController {
     ) {
 
         return service.getRegistrationElectronicDetailExcels(dto);
+    }
+
+    @PostMapping("/deposit-processing")
+    public SaveResponse saveRegistrationElectronicDepositSlip(
+        @RequestBody
+        @Valid
+        List<SaveDepositSlip> dto
+    ) throws Exception {
+
+        //입금전표
+        if ("deposit".equals(dto.get(0).sort())) {
+            return SaveResponse.builder()
+                .processCount(service.saveRegistrationElectronicDepositSlip(dto))
+                .build();
+        }
+        //대체전표
+        return SaveResponse.builder()
+            .processCount(service.saveReplacementSlipProcessing(dto))
+            .build();
+
     }
 
 }

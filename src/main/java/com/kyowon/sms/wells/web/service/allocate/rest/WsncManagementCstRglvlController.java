@@ -1,24 +1,25 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SavePartnerReq;
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.OrganizationRes;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SavePartnerReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncManagementCstRglvlService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.util.List;
 
 @Api(tags = "[WSNC] 관리고객 급지관리")
 @RequiredArgsConstructor
@@ -39,13 +40,12 @@ public class WsncManagementCstRglvlController {
         @ApiImplicitParam(name = "branchOfficeCd", value = "지점", paramType = "query", example = "ALL"),
         @ApiImplicitParam(name = "partnerNo", value = "매니저", paramType = "query", example = "ALL"),
     })
-    @GetMapping("/paging")
-    public PagingResult<SearchRes> getManagementCustomerRglvls(
+    @GetMapping
+    public List<SearchRes> getManagementCustomerRglvls(
         @Valid
-        SearchReq dto,
-        PageInfo pageInfo
+        SearchReq dto
     ) {
-        return service.getManagementCustomerRglvls(dto, pageInfo);
+        return service.getManagementCustomerRglvls(dto);
     }
 
     @ApiOperation(value = "관리고객 급지 및 배정담당자 조회 (엑셀 다운로드)", notes = "관리고객 급지 및 배정담당자를 조회한다.")

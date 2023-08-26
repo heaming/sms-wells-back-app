@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.dvo;
 
+import java.util.Objects;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,4 +22,18 @@ public class WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo {
     private String reslCd; /*(결과코드)(E : 에러, F : 실패, S : 정상)*/
     private String pcsRsltCn; /*처리결과내용*/
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo that = (WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo)o;
+        return Objects.equals(dgCntrNo, that.dgCntrNo) && Objects.equals(dgCntrSn, that.dgCntrSn);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(dgCntrNo, dgCntrSn);
+    }
 }

@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.fee.aggregate.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaEgerAllowanceDvo;
+import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaEgerAllowanceDto;
 
 /**
  * <pre>
@@ -15,8 +15,6 @@ import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaEgerAllowanceDvo;
 @Mapper
 public interface WfeaEgerAllowanceMapper {
 
-    int deleteEgerPerformances(WfeaEgerAllowanceDvo dvo);
-
-    int insertEgerPerformances(WfeaEgerAllowanceDvo dvo);
+    int selectEngineerPerformanceCount(WfeaEgerAllowanceDto.SaveReq dto);
 
 }

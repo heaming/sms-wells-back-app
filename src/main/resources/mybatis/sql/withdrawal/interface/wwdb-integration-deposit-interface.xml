@@ -14,6 +14,9 @@
          WHERE A1.DEL_YN = 'N'
            AND A1.CD_ID = 'KW_GRP_CO_CD'
            AND A1.TENANT_ID = 'TNT_WELLS'
+          <if test='@MybatisUtils@isNotEmpty(kwGrpCoCd)'>
+           AND A1.CD_VLD_VAL = #{kwGrpCoCd}
+          </if>
     </select>
 
     <select id="selectIntegrationDepositDepoCode" resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbIntegrationDepositInterfaceDto$SearchDepoCodeRes">
@@ -28,86 +31,121 @@
          WHERE A1.DEL_YN = 'N'
            AND A1.CD_ID = 'DP_TP_CD'
            AND A1.TENANT_ID = 'TNT_WELLS'
+          <if test='@MybatisUtils@isNotEmpty(dpTpCd)'>
+           AND A1.CD_VLD_VAL = #{dpTpCd}
+          </if>
     </select>
 
     <select id="selectIntegrationDepositDetailTrades" resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbIntegrationDepositInterfaceDto$SearchDetailTradeRes">
-        SELECT SUBSTR(A.DP_DTM, 1, 8) AS DP_DT
-             , SUBSTR(A.DP_DTM, 9, 6) AS DP_HMS
-             , A.DP_DV_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'DP_DV_CD', A.DP_DV_CD) AS DP_DV_NM
+        SELECT F_CMZ_CD_NM('TNT_WELLS', 'KW_GRP_CO_CD', A.KW_GRP_CO_CD) AS KW_GRP_CO_CD_NM /*교원 그룹 회사 코드명*/
+             , SUBSTR(A.DP_DTM, 1, 8) AS TRD_DT /*거래일자*/
+             , SUBSTR(A.DP_DTM, 9, 6) AS TRD_HH /*거래시간*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'DP_DV_CD', A.DP_DV_CD) AS DP_DV_CD_NM /*입금구분명*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'DP_MES_CD', A.DP_MES_CD) AS DP_MES_CD_NM /*입금수단명*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', A.DP_TP_CD) AS DP_TP_CD_NM /*입금유형명*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'RVE_DV_CD', B.RVE_DV_CD) AS RVE_DV_CD_NM /*수납구분명*/
              , A.CRDCD_ISTM_MCN as ISTM_MCN
              , B.CNTR_NO
-             , B.CNTR_NO || B.CNTR_SN AS CNTR_DTL_NO
-             , D.CST_KNM AS CST_NM
-             , A.DP_AMT
-             , A.DP_CPRCNF_AMT
-             , A.CAN_AMT
-             , A.RFND_AMT
-          FROM TB_RVDW_ITG_DP_BAS A
-          LEFT OUTER JOIN TB_RVDW_DP_CPRCNF_BAS B
-            ON B.ITG_DP_NO = A.ITG_DP_NO
-          LEFT OUTER JOIN TB_SSCT_CNTR_CST_REL C
-            ON C.DTL_CNTR_NO = B.CNTR_NO
-           AND C.DTL_CNTR_SN = B.CNTR_SN
-          LEFT OUTER JOIN TB_CUBS_CST_BAS D
-            ON D.CST_NO = C.CST_NO
+             , B.CNTR_SN
+             , A.CST_NO AS CNTR_CST_NO /*계약고객번호*/
+             , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = A.CST_NO) AS CST_KNM /*계약자명*/
+             , A.DP_AMT /*입금금액*/
+             , A.DP_CPRCNF_AMT /*대사금액*/
+             , A.CAN_AMT /*취소금액*/
+             , A.RFND_AMT /*환불금액*/
+          FROM TB_RVDW_ITG_DP_BAS A /*통합입금기본*/
+          LEFT OUTER JOIN TB_RVDW_RVE_DTL B
+            ON B.RVE_CD = A.RVE_CD
          WHERE A.ITG_DP_NO = #{itgDpNo}
     </select>
 
     <select id="selectIntegrationDepositItemizations" resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbIntegrationDepositInterfaceDto$SearchItemizationRes">
-        SELECT M.*
+        SELECT M.DP_DT
+             , M.DP_HH
+             , M.DP_TP_CD_NM
+             , M.CRCD_AC_NO
+             , M.FNIT_CD_NM
+             , M.APR_NO
+             , M.ISTM_MCN
+             , M.AC_CRCDONR_NM
+             , M.DP_AMT
+             , M.CPRCNF_AMT
+             , M.CAN_AMT
+             , M.RFND_AMT
+             , M.BLAM_AMT
+             , M.OVR_AMT
+             , M.ITG_DP_NO
+             , M.RVE_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'RVEPLC_DV_CD', M.RVEPLC_DV_CD) AS RVE_CO_CD_NM
+             , M.PRTNR_NO
+             , M.PRTNR_NM
+             , M.KW_GRP_CO_CD
+             , M.KW_GRP_CO_CD_NM
           FROM (
-                SELECT SUBSTR(A.DP_DTM, 1, 8) AS DP_DT
-                     , SUBSTR(A.DP_DTM, 9, 6) AS DP_HMS
-                     , A.DP_TP_CD
-                     , CASE WHEN #{cnoTp} = '1' THEN A.ACNO_ENCR
-                            WHEN #{cnoTp} = '2' THEN A.CRCDNO_ENCR
-                            ELSE ''
-                        END AS CNO
-                     , A.FNIT_CD
-                     , B.FNIT_NM
-                     , A.CRDCD_APRNO AS CARD_APRNO
-                     , A.CRDCD_ISTM_MCN AS ISTM_MCN
-                     , A.DPR_NM
-                     , A.DP_AMT
-                     , A.DP_CPRCNF_AMT
-                     , A.CAN_AMT
-                     , A.RFND_AMT
-                     , A.DP_BLAM
-                     , A.DP_AMT - DP_CPRCNF_AMT AS OVR_AMT
-                     , A.ITG_DP_NO
-                     , A.RVE_CD
-                     , D.RVE_NM
-                     , A.PRTNR_NO
-                     , C.PRTNR_KNM AS PRTNR_NM
-                     , A.KW_GRP_CO_CD
-                     , F_CMZ_CD_NM('TNT_WELLS', 'KW_GRP_CO_CD', A.KW_GRP_CO_CD) AS KW_GRP_CO_NM
-                  FROM TB_RVDW_ITG_DP_BAS A
-                  LEFT OUTER JOIN TB_RVDW_FNIT_CD B
-                    ON B.FNIT_CD = A.FNIT_CD
-                   AND A.DTA_DL_YN = 'N'
-                  LEFT OUTER JOIN TB_OGBS_PRTNR_BAS C
-                    ON C.OG_TP_CD = A.OG_TP_CD
-                   AND C.PRTNR_NO = A.PRTNR_NO
-                  LEFT OUTER JOIN TB_RVDW_RVE_CD D
-                    ON D.KW_GRP_CO_CD = A.KW_GRP_CO_CD
-                   AND D.RVE_CD = A.RVE_CD
+            SELECT SUBSTR(A.DP_DTM, 1, 8) AS DP_DT
+                 , SUBSTR(A.DP_DTM, 9, 6) AS DP_HH
+                 , A.DP_TP_CD
+                 , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', A.DP_TP_CD) AS DP_TP_CD_NM
+                 , A.DP_MES_CD
+                 , CASE WHEN A.DP_MES_CD IN ('01', '03') THEN A.ACNO_ENCR
+                        WHEN A.DP_MES_CD = '02' THEN A.CRCDNO_ENCR
+                        ELSE ''
+                    END AS CRCD_AC_NO
+                 , (CASE WHEN A.DP_MES_CD IN ('01', '03')
+                         THEN ( SELECT FNIT_NM
+                                  FROM TB_RVDW_FNIT_CD
+                                 WHERE FNIT_DV_CD = '1'
+                                   AND DTA_DL_YN = 'N'
+                                   AND FNIT_CD = A.FNIT_CD)  /*현금일때 은행코드*/
+                         WHEN A.DP_MES_CD = '02'
+                         THEN ( SELECT FNIT_NM
+                                  FROM TB_RVDW_FNIT_CD
+                                 WHERE FNIT_DV_CD = '2'
+                                   AND DTA_DL_YN = 'N'
+                                   AND FNIT_CD = A.CRDCD_FNIT_CD )  /*카드일때 카드사코드*/
+                         ELSE '' END ) AS FNIT_CD_NM   /*입금,수납처*/
+                 , A.CRDCD_APRNO AS APR_NO
+                 , A.CRDCD_ISTM_MCN AS ISTM_MCN
+                 , CASE WHEN A.DP_MES_CD IN ('01', '03') THEN A.DPR_NM
+                        WHEN A.DP_MES_CD = '02' THEN A.CRCDONR_NM
+                        ELSE ''
+                    END AS AC_CRCDONR_NM
+                 , A.DP_AMT
+                 , A.DP_CPRCNF_AMT AS CPRCNF_AMT
+                 , A.CAN_AMT
+                 , A.RFND_AMT
+                 , A.DP_BLAM AS BLAM_AMT
+                 , A.DP_AMT - DP_CPRCNF_AMT AS OVR_AMT
+                 , A.ITG_DP_NO
+                 , A.RVE_CD
+                 , (SELECT RVEPLC_DV_CD FROM TB_RVDW_RVE_CD WHERE RVE_CD = A.RVE_CD) AS RVEPLC_DV_CD
+                 , A.PRTNR_NO
+                 , (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS WHERE OG_TP_CD = A.OG_TP_CD AND PRTNR_NO = A.PRTNR_NO) AS PRTNR_NM
+                 , A.KW_GRP_CO_CD
+                 , F_CMZ_CD_NM('TNT_WELLS', 'KW_GRP_CO_CD', A.KW_GRP_CO_CD) AS KW_GRP_CO_CD_NM
+              FROM TB_RVDW_ITG_DP_BAS A /*통합입금기본*/
+              LEFT OUTER JOIN TB_RVDW_FNIT_CD B
+                ON B.FNIT_CD = A.FNIT_CD
+               AND A.DTA_DL_YN = 'N'
           ) M
          WHERE 1 = 1
-           <if test='@MybatisUtils@isNotEmpty(cno)'>
-           AND M.CNO = #{cno}
+           <if test='@MybatisUtils@isNotEmpty(dpMesCd)'>
+           AND M.DP_MES_CD = #{dpMesCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cardNo)'>
+           AND M.CRCD_AC_NO = #{cardNo}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(aprNo)'>
+           AND M.APR_NO = #{aprNo}
            </if>
            <if test='@MybatisUtils@isNotEmpty(rveCd)'>
            AND M.RVE_CD = #{rveCd}
            </if>
-           <if test='@MybatisUtils@isNotEmpty(kwGrpCoCd)'>
-           AND M.KW_GRP_CO_CD = #{kwGrpCoCd}
+           <if test='@MybatisUtils@isNotEmpty(blamYn) and @MybatisUtils@equals(blamYn, "Y")'>
+           AND M.BLAM_AMT > 0
            </if>
-           <if test='@MybatisUtils@isNotEmpty(dpBlamYn) and @MybatisUtils@equals(dpBlamYn, "Y")'>
-           AND M.DP_BLAM > 0
-           </if>
-           <if test='@MybatisUtils@isNotEmpty(dpDtSt) and @MybatisUtils@isNotEmpty(dpDtEd)'>
-           AND (M.DP_DT BETWEEN #{dpDtSt} AND #{dpDtEd})
+           <if test='@MybatisUtils@isNotEmpty(dpStrtdt) and @MybatisUtils@isNotEmpty(dpEnddt)'>
+           AND (M.DP_DT BETWEEN #{dpStrtdt} AND #{dpEnddt})
            </if>
            <if test='@MybatisUtils@isNotEmpty(dpTpCd)'>
            AND M.DP_TP_CD = #{dpTpCd}

@@ -125,8 +125,6 @@ public class WsnaQomAsnService {
     public int createQomAsnIndependenceWares(CreateReq dto) {
         WsnaQomAsnCreateDvo dvo = this.converter.mapCreateReqToWsnaQomAsnCreateDvo(dto);
 
-        // 기준년월
-        String apyYm = dto.apyYm();
         // 배정년월
         String asnOjYm = dto.asnOjYm();
         // 창고세부구분코드
@@ -139,7 +137,7 @@ public class WsnaQomAsnService {
     }
 
     /**
-     * 물량배정 데이터 삭제 
+     * 물량배정 데이터 삭제
      * @param dto
      * @return
      */

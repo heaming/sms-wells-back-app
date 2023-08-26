@@ -7,6 +7,7 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.stock.service.WsnaItemLocationService;
@@ -20,6 +21,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @Api(tags = "[WSNA] 품목위치관리 REST API")
+@Validated
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/item-locations")
@@ -60,9 +62,11 @@ public class WsnaItemLocationController {
     }
 
     @GetMapping("/locations/paging")
-    public PagingResult<SearchLocationRes> getStockItemLocations(@Valid
-    SearchLocationReq dto, @Valid
-    PageInfo pageInfo) {
+    public PagingResult<SearchLocationRes> getStockItemLocations(
+        SearchLocationReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
         return service.getStockItemLocations(dto, pageInfo);
     }
 

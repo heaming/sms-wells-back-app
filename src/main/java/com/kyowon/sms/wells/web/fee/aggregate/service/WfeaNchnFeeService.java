@@ -30,7 +30,7 @@ public class WfeaNchnFeeService {
     private final WfeaNchnFeeConverter converter;
 
     /**
-     * 엔지니어 실적 집계
+     * 신채널 실적 집계
      * @param dto : {}
      * @return 처리결과
      */

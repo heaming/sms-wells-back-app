@@ -55,6 +55,10 @@
         SELECT CASE WHEN T.LGST_OSTR_AK_NO IS NOT NULL THEN 'Y'
                     ELSE 'N'
                END                                 AS LGST_TRS_YN   /* 물류전송여부 */
+             , CASE WHEN T.OUT_QTY <![CDATA[>]]> 0
+                     AND T.LGST_OSTR_AK_NO IS NULL THEN 'Y'
+                    ELSE 'N'
+               END                                 AS CHK           /* Row 체크여부 */
              , T.WARE_NM                                            /* 입고창고 */
              , T.SAP_MAT_CD                                         /* SAP코드 */
              , T.ITM_PD_CD                                          /* 품목코드 */
@@ -291,7 +295,7 @@
                     , ( SELECT NVL(MAX(OSTR_AK_SN), 0) + 1
                           FROM TB_SVST_ITM_OSTR_AK_IZ
                          WHERE OSTR_AK_NO = #{ostrAkNo} ) AS NEW_OSTR_AK_SN                  /* 신규출고요청일련번호 */
-                    , #{strWareNo}                        AS STR_WRAE_NO                     /* 입고창고번호 */
+                    , #{strWareNo}                        AS STR_WARE_NO                     /* 입고창고번호 */
                     , #{ostrWareNo}                       AS OSTR_WARE_NO                    /* 출고대상창고번호 */
                     , #{ostrDt}                           AS OSTR_DT                         /* 출고요청등록일자 */
                     , #{wareDvCd}                         AS WARE_DV_CD                      /* 출고요청창고구분코드 */
@@ -355,7 +359,7 @@
                TB_SRC.OSTR_AK_NO                      /* 출고요청번호 */
              , TB_SRC.NEW_OSTR_AK_SN                  /* 출고요청일련번호 */
              , '360'                                  /* 출고요청유형코드 */
-             , TB_SRC.STR_WRAE_NO                     /* 입고창고번호 */
+             , TB_SRC.STR_WARE_NO                     /* 입고창고번호 */
              , TB_SRC.OSTR_WARE_NO                    /* 출고대상창고번호 */
              , TO_CHAR(SYSDATE, 'YYYYMMDD')           /* 출고요청등록일자 */
              , TB_SRC.OSTR_DT                         /* 입고희망일자 */
@@ -403,9 +407,7 @@
              , 0                      AS MPAC_SN            /* 합포장일련번호 */
              , 'WE'                   AS IOST_AK_DV_CD      /* 입출고요청구분코드 */
              , '6'                    AS LGST_SPP_MTHD_CD   /* 물류배송방식코드 */
-             , CASE WHEN D4.PD_PRP_VAL19 = '5' THEN 'WE09'
-                    ELSE 'WE10'
-               END                    AS LGST_WK_MTHD_CD    /* 물류작업방식코드 */
+             , 'WE09'                 AS LGST_WK_MTHD_CD    /* 물류작업방식코드 */
              , D2.ITM_PD_CD                                 /* 품목상품코드 */
              , D2.OSTR_AK_QTY                               /* 출고요청수량 */
              , NVL(D2.ITM_GD_CD, 'A') AS ITM_GD_CD          /* 품목등급코드 */
@@ -420,12 +422,8 @@
             ON D3.REL_NO    = D2.OSTR_AK_NO
            AND D3.REL_SN    = D2.OSTR_AK_SN
            AND D3.DTA_DL_YN = 'N'
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D4               /* 상품각사속성상세 */
-            ON D4.PD_CD = D2.ITM_PD_CD
          WHERE D1.DTA_DL_YN          = 'N'
            AND D2.DTA_DL_YN          = 'N'
-           AND D4.PD_EXTS_PRP_GRP_CD = 'PART'
-           AND D4.DTA_DL_YN          = 'N'
            AND D1.ASN_OJ_YM          = #{asnOjYm}
            AND D1.ASN_TN_N           = #{cnt}
            AND D1.OSTR_WARE_NO       = #{ostrWareNo}

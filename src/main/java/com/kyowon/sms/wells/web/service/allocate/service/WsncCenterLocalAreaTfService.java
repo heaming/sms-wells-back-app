@@ -9,8 +9,6 @@ import com.kyowon.sms.wells.web.service.allocate.converter.WsncCenterLocalAreaTf
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncCenterLocalAreaTfDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncCenterLocalAreaTfDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncCenterLocalAreaTfMapper;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,10 +19,10 @@ public class WsncCenterLocalAreaTfService {
 
     private final WsncCenterLocalAreaTfConverter wsncCenterLocalAreaTfConverter;
 
-    public PagingResult<WsncCenterLocalAreaTfDto.SearchRes> getCenterAreas(
-        WsncCenterLocalAreaTfDto.SearchReq dto, PageInfo pageInfo
+    public List<WsncCenterLocalAreaTfDto.SearchRes> getCenterAreas(
+        WsncCenterLocalAreaTfDto.SearchReq dto
     ) {
-        return wsncCenterLocalAreaTfMapper.selectCenterAreas(dto, pageInfo);
+        return wsncCenterLocalAreaTfMapper.selectCenterAreas(dto);
     }
 
     public List<WsncCenterLocalAreaTfDto.SearchRes> getCenterAreasExcelDownload(

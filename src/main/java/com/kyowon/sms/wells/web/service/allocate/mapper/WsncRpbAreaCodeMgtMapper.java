@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.mapper;
 
 import static com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaCodeMgtDto.SearchReq;
-import static com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaCodeMgtDto.SearchRes;
 
 import java.util.List;
 
@@ -14,11 +13,11 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsncRpbAreaCodeMgtMapper {
 
-    PagingResult<SearchRes> selectAreaCodePages(
+    PagingResult<WsncRpbAreaCodeDvo> selectAreaCodePages(
         SearchReq dto, PageInfo pageInfo
     );
 
-    List<SearchRes> selectAreaCodePages(
+    List<WsncRpbAreaCodeDvo> selectAreaCodePages(
         SearchReq dto
     );
 

@@ -1,20 +1,22 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaItemBaseInformationDto.*;
+
 import java.util.List;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationReturnDvo;
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaItemBaseInformationDto.*;
-
 import com.kyowon.sms.wells.web.service.stock.service.WsnaItemBaseInformationService;
-import com.sds.sflex.system.config.response.SaveResponse;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -35,19 +37,23 @@ public class WsnaItemBaseInformationController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
-    @GetMapping
-    public List<WsnaItemBaseInformationReturnDvo> getItemBaseInformations(
+    @GetMapping("/paging")
+    public PagingResult<WsnaItemBaseInformationReturnDvo> getItemBaseInformations(
         @Valid
-        SearchReq dto
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
     ) {
-        return service.getItemBaseInformations(dto);
+        return service.getItemBaseInformations(dto, pageInfo);
     }
 
-    @GetMapping("/out-of")
-    public List<WsnaItemBaseInformationDvo> getItemBaseInformationsOutOf(
-        SearchReq dto
+    @GetMapping("/out-of/paging")
+    public PagingResult<WsnaItemBaseInformationDvo> getItemBaseInformationsOutOf(
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
     ) {
-        return service.getItemBaseInformationsOutOf(dto);
+        return service.getItemBaseInformationsOutOf(dto, pageInfo);
     }
 
     @GetMapping("/aplclists")

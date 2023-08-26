@@ -39,7 +39,7 @@ public class WsncBsManagerScheduleController {
         return service.getBsScheduleDateAgrg(dto);
     }
 
-    @ApiOperation(value = "BS관리일정 조회 화면(일자별) - 상세 조회", notes = "조회조건에 따른 BS관리일정(일자별) 상세 조회")
+    @ApiOperation(value = "BS관리일정 조회 화면(일자별) - 리스트 조회 페이징", notes = "조회조건에 따른 BS관리일정(일자별) 리스트 페이징")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "fxnPrtnrNo", value = "파트너사번", paramType = "query", required = false),
         @ApiImplicitParam(name = "baseDateFrom", value = "관리년월From", paramType = "query", required = true),
@@ -52,4 +52,34 @@ public class WsncBsManagerScheduleController {
     ) {
         return service.getBsScheduleDatePages(dto, pageInfo);
     }
+
+    @ApiOperation(value = "BS관리일정 조회 화면(주차별) - 주차 리스트 조회", notes = "주차별 날짜 리스트 공통코드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "managementYear", value = "관리년월", paramType = "query", required = true),
+    })
+    @GetMapping("/weeks-items")
+    public List<WsncBsManagerScheduleDto.Weekres> getWeeksCodesLists(
+        WsncBsManagerScheduleDto.Weekreq dto
+    ) {
+        return service.getWeeksCodes(dto);
+    }
+
+    @ApiOperation(value = "BS관리일정 조회 화면(주차별) - 상세 조회", notes = "조회조건에 따른 BS관리일정(일자별) 상세 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "fxnPrtnrNo", value = "파트너사번", paramType = "query", required = true),
+        @ApiImplicitParam(name = "weekDay1", value = "선택주차첫날", paramType = "query", required = true),
+        @ApiImplicitParam(name = "weekDay2", value = "선택주차둘째날", paramType = "query", required = false),
+        @ApiImplicitParam(name = "weekDay3", value = "선택주차셋째날", paramType = "query", required = false),
+        @ApiImplicitParam(name = "weekDay4", value = "선택주차넷째날", paramType = "query", required = false),
+        @ApiImplicitParam(name = "weekDay5", value = "선택주차다섯째날", paramType = "query", required = false),
+        @ApiImplicitParam(name = "weekDay6", value = "선택주차여섯째날", paramType = "query", required = false),
+        @ApiImplicitParam(name = "weekDay7", value = "선택주차일곱째날", paramType = "query", required = false),
+    })
+    @GetMapping("/details")
+    public List<WsncBsManagerScheduleDto.Detailres> getBsScheduleDateDetail(
+        WsncBsManagerScheduleDto.Detailreq dto
+    ) {
+        return service.getBsScheduleDateDetail(dto);
+    }
+
 }

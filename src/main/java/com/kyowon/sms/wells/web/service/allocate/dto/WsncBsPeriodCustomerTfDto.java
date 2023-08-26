@@ -125,4 +125,9 @@ public class WsncBsPeriodCustomerTfDto {
         String afchIchrPrtnrNo,
         String mngerRglvlDvCd
     ) {}
+
+    @ApiModel(value = "WsncBsPeriodCustomerTfDto-SearchAuthRes")
+    public record SearchAuthRes(
+        String managerAuthYn
+    ) {}
 }
