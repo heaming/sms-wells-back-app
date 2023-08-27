@@ -41,7 +41,7 @@ public class WfefFeeDeductionPresentStateDto {
         String prtnrNo,
         String rsbDvNm,
         String dsbOjAmt,
-        String ddtnAft,
+        String intbsAmt,
         String ddctam,
         String rdsTax,
         String einsr,
