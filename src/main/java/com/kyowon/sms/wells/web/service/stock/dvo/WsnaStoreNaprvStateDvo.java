@@ -15,8 +15,12 @@ import lombok.Setter;
 @Setter
 public class WsnaStoreNaprvStateDvo {
     String strWareNo;
-    String wareNm;
+    String strWareNm;
     String itmPdCd;
     String pdNm;
     String naprvQty;
+    String strRgstDt;
+    String ostrWareNo;
+    String ostrWareNm;
+    String strTpCd;
 }
