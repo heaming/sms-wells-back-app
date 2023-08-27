@@ -212,7 +212,7 @@ public class WogcPartnerEngineerDto {
     public record FindEngineerGradeReq(
         String ogLevlDvCd1,
         String ogLevlDvCd2,
-        String rolDvCd,
+        String rsbDvCd,
         String chk
     ) {}
 
@@ -232,6 +232,8 @@ public class WogcPartnerEngineerDto {
 
         String prtnrNo,
         String prtnrKnm,
+        String rsbDvCd,
+        String rsbDvCdNm,
         String rolDvCd,
         String rolDvCdNm,
         String pstnDvNm,
