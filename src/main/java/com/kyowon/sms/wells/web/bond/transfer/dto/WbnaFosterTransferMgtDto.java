@@ -90,7 +90,8 @@ public class WbnaFosterTransferMgtDto {
     @ApiModel("WbnaFosterTransferMgtDto-SearchDetailRes")
     public record SearchDetailRes(
         String fstrCoNm, /* 위탁사명 */
-        String clctnOjPrtnrNo, /* 담당자명 */
+        String clctamPrtnrNo, /* 담당자번호 */
+        String clctamPrtnrNm, /* 담당자명 */
         String clctamDvd, /* 직전담당집금구분 */
         String prtnrKnm, /* 직전담당자 */
         String cntrNo, /* 계약번호 */
