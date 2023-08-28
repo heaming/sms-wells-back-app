@@ -483,4 +483,196 @@
                            AND A.PERF_EXCD_OJ_YN = 'N') AA) AAA
          WHERE AAA.FEE_CALC_AMT > 0
     </insert>
+
+    <insert id="insertUniformFeesForBrmgr">
+        /****
+        * 유니폼 재지급 대상 기준 : 수수료 기준년월 23년 2월 ( 23년 3월 집계 및 지급 ) 인 경우
+          CASE 1.
+                - 유니폼 신청일자가 22년8월1일 ~ 22년8월31일 이며, 최종 확정된 경우
+                - 22년9월 ~ 23년2월까지 6개월간 매월 BS 실적 건수가 50계정 이상인 경우
+                - 유니폼 신청 당시 활동물품 금액의 50% 수수료 생성
+                - 수수료 기준년월 퇴직(예정)자 제외
+          CASE 2.
+                - 유니폼 신청일자가 22년2월1일 ~ 22년2월28일 이며, 최종 확정된 경우
+                - 22년3월 ~ 23년2월까지 12개월간 매월 BS 실적 건수가 50계정 이상인 경우
+                - 유니폼 신청 당시 활동물품 금액의 50% 수수료 생성
+                - 수수료 기준년월 퇴직(예정)자 제외
+        ****/
+        INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산계약상세내역 */
+                                                  BASE_YM            /* 기준년월 */
+                                                , PERF_YM            /* 실적년월 */
+                                                , OJ_DSB_YM          /* 대상지급년월 */
+                                                , CO_CD              /* 회사코드 */
+                                                , OG_TP_CD           /* 조직유형코드 */
+                                                , PRTNR_NO           /* 파트너번호 */
+                                                , FEE_CD             /* 수수료코드 */
+                                                , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+                                                , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+                                                , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+                                                , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+                                                , FEE_CALC_AMT       /* 수수료계산금액 */
+                                                , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+                                                , FNL_FEE_YN         /* 최종수수료여부 */
+                                                <include refid="COMMON.insertSystemField" />)
+        SELECT MST.BASE_YM      AS BASE_YM
+             , MST.BASE_YM      AS PERF_YM
+             , MST.BASE_YM      AS OJ_DSB_YM
+             , #{coCd}            AS CO_CD
+             , MST.OG_TP_CD     AS OG_TP_CD
+             , MST.PRTNR_NO     AS PRTNR_NO
+             , #{feeCd}           AS FEE_CD
+             , #{dtaCrtfeeCd}     AS DTA_CRT_FEE_CD
+             , #{feeTcntDvCd}     AS FEE_TCNT_DV_CD -- 변수 FEE_TCNT_DV_CD
+             , '01'             AS SPMT_DSB_DV_CD
+             , '01'             AS FEE_CALC_TP_CD
+             , SUM(MST.FEE_AMT) AS FEE_CALC_AMT
+             , SUM(MST.FEE_AMT) AS FEE_CTR_CNFM_AMT
+             , #{fnlFeeYn}      AS FNL_FEE_YN
+            <include refid="COMMON.insertSystemFieldValue" />
+          FROM ( --CASE 1. 6개월
+              SELECT AAA.BASE_YM
+                   , AAA.OG_TP_CD
+                   , AAA.PRTNR_NO
+                   , BBB.ACTI_GDS_APLC_ID
+                   , BBB.FEE_AMT
+                FROM (SELECT BB.BASE_YM
+                           , AA.OG_TP_CD
+                           , AA.PRTNR_NO
+                           , BB.CLTN_DT
+                           , SUM(CASE WHEN AA.PERF_VAL >= 50 THEN 1 ELSE 0 END) AS CNT_BS
+                        FROM (SELECT A.BASE_YM, A.OG_TP_CD, A.PRTNR_NO, A.PERF_VAL
+                                FROM TB_FEAM_NTORP_PERF_MM_CL A
+                               WHERE 1 = 1
+                                 AND A.BASE_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -5), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') -- 지난 5개월   변수 BASE_YM
+                                 AND A.FEE_TCNT_DV_CD = '02'                                                                                                                             -- 고정 지난 5개월은 2차수로 고정
+                                 AND A.PERF_AGRG_CRT_DV_CD = '201'                                                                                                                       -- 수수료 집계
+                                 AND A.PERF_ATC_CD = 'W02P00085'                                                                                                                         -- BS건수
+                                 AND A.PERF_DV_CD = '0'                                                                                                                                  -- 개인
+                               UNION ALL
+                              SELECT A.BASE_YM, A.OG_TP_CD, A.PRTNR_NO, A.PERF_VAL
+                                FROM TB_FEAM_NTORP_PERF_MM_CL A
+                               WHERE 1 = 1
+                                 AND A.BASE_YM = #{baseYm}          -- 당월   변수 BASE_YM
+                                 AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}       -- 변수 FEE_TCNT_DV_CD
+                                 AND A.PERF_AGRG_CRT_DV_CD = '201' -- 수수료 집계
+                                 AND A.PERF_ATC_CD = 'W02P00085'   -- BS건수
+                                 AND A.PERF_DV_CD = '0' -- 개인
+                        ) AA
+                             INNER JOIN TB_OGBS_MM_PRTNR_IZ BB
+                                        ON BB.BASE_YM = #{baseYm} -- 당월   변수 BASE_YM
+                                            AND BB.OG_TP_CD = 'W02'
+                                            AND AA.OG_TP_CD = BB.OG_TP_CD
+                                            AND AA.PRTNR_NO = BB.PRTNR_NO
+                                            AND BB.PSTN_DV_CD = '7'
+                       WHERE 1 = 1
+                         AND BB.CLTN_DT IS NULL --퇴직자 제외
+                       GROUP BY BB.BASE_YM, AA.OG_TP_CD, AA.PRTNR_NO, BB.CLTN_DT
+                      HAVING SUM(CASE WHEN AA.PERF_VAL >= 50 THEN 1 ELSE 0 END) = 6 --6개월간 매월 bs 50건 이상
+                ) AAA -- 6개월 BS 활동 만족
+                   , (SELECT A.ACTI_GDS_APLC_ID -- 신청번호
+                           , A.OG_TP_CD
+                           , A.PRTNR_NO
+                           , A.ACTI_GDS_CD
+                           , A.ACTI_GDS_SN
+                           , TRUNC(B.ACTI_GDS_AMT * A.APLC_QTY * 0.5) AS FEE_AMT
+                        FROM TB_PSGA_ACTI_GDS_APLC_IZ A -- 활동물품신청내역
+                             INNER JOIN TB_PSGA_ACTI_GDS_BAS B
+                                        ON A.OG_TP_CD = B.OG_TP_CD
+                                            AND A.ACTI_GDS_CD = B.ACTI_GDS_CD
+                                            AND A.ACTI_GDS_SN = B.ACTI_GDS_SN
+                       WHERE 1 = 1
+                         AND A.ACTI_GDS_APLC_ID IN (SELECT DISTINCT AA.ACTI_GDS_APLC_ID
+                                                      FROM (SELECT A.ACTI_GDS_APLC_ID
+                                                                 , MAX(A.APLC_DT)               AS APLC_DT
+                                                                 , MAX(A.ACTI_GDS_APLC_STAT_CD) AS ACTI_GDS_APLC_STAT_CD
+                                                              FROM TB_PSGA_ACTI_GDS_APLC_STAT_IZ A
+                                                             WHERE 1 = 1
+                                                             GROUP BY A.ACTI_GDS_APLC_ID
+                                                            HAVING MAX(A.ACTI_GDS_APLC_STAT_CD) = '01') AA
+                                                           INNER JOIN (SELECT DISTINCT ACTI_GDS_APLC_ID FROM TB_PSGA_ACTI_GDS_DDTN_IZ) BB -- 공제 이력 존재
+                                                                      ON AA.ACTI_GDS_APLC_ID = BB.ACTI_GDS_APLC_ID
+                                                     WHERE 1 = 1
+                                                       AND AA.APLC_DT LIKE
+                                                           TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -6), 'YYYYMM') ||
+                                                           '%' -- 당월   변수 BASE_YM
+                       ) /* 6개월전 신청  */
+                ) BBB -- 6개월전 유니폼 신청
+               WHERE 1 = 1
+                 AND AAA.OG_TP_CD = BBB.OG_TP_CD
+                 AND AAA.PRTNR_NO = BBB.PRTNR_NO
+               UNION ALL
+              SELECT AAA.BASE_YM --CASE 2. 12개월
+                   , AAA.OG_TP_CD
+                   , AAA.PRTNR_NO
+                   , BBB.ACTI_GDS_APLC_ID
+                   , BBB.FEE_AMT
+                FROM (SELECT BB.BASE_YM
+                           , AA.OG_TP_CD
+                           , AA.PRTNR_NO
+                           , BB.CLTN_DT
+                           , SUM(CASE WHEN AA.PERF_VAL >= 50 THEN 1 ELSE 0 END) AS CNT_BS
+                        FROM (SELECT A.BASE_YM, A.OG_TP_CD, A.PRTNR_NO, A.PERF_VAL
+                                FROM TB_FEAM_NTORP_PERF_MM_CL A
+                               WHERE 1 = 1
+                                 AND A.BASE_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -11), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') -- 지난 11개월   변수 BASE_YM
+                                 AND A.FEE_TCNT_DV_CD = '02'                                                                                                                              -- 고정 지난 5개월은 2차수로 고정
+                                 AND A.PERF_AGRG_CRT_DV_CD = '201'                                                                                                                        -- 수수료 집계
+                                 AND A.PERF_ATC_CD = 'W02P00085'                                                                                                                          -- BS건수
+                                 AND A.PERF_DV_CD = '0'                                                                                                                                   -- 개인
+                               UNION ALL
+                              SELECT A.BASE_YM, A.OG_TP_CD, A.PRTNR_NO, A.PERF_VAL
+                                FROM TB_FEAM_NTORP_PERF_MM_CL A
+                               WHERE 1 = 1
+                                 AND A.BASE_YM = #{baseYm}          -- 당월   변수 BASE_YM
+                                 AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}       -- 변수 FEE_TCNT_DV_CD
+                                 AND A.PERF_AGRG_CRT_DV_CD = '201' -- 수수료 집계
+                                 AND A.PERF_ATC_CD = 'W02P00085'   -- BS건수
+                                 AND A.PERF_DV_CD = '0' -- 개인
+                        ) AA
+                             INNER JOIN TB_OGBS_MM_PRTNR_IZ BB
+                                        ON BB.BASE_YM = #{baseYm} -- 당월   변수 BASE_YM
+                                            AND BB.OG_TP_CD = 'W02'
+                                            AND AA.OG_TP_CD = BB.OG_TP_CD
+                                            AND AA.PRTNR_NO = BB.PRTNR_NO
+                                            AND BB.PSTN_DV_CD = '7'
+                       WHERE 1 = 1
+                         AND BB.CLTN_DT IS NULL --퇴직자 제외
+                       GROUP BY BB.BASE_YM, AA.OG_TP_CD, AA.PRTNR_NO, BB.CLTN_DT
+                      HAVING SUM(CASE WHEN AA.PERF_VAL >= 50 THEN 1 ELSE 0 END) = 12 --6개월간 매월 bs 50건 이상
+                ) AAA -- 12개월 BS 활동 만족
+                   , (SELECT A.ACTI_GDS_APLC_ID -- 신청번호
+                           , A.OG_TP_CD
+                           , A.PRTNR_NO
+                           , A.ACTI_GDS_CD
+                           , A.ACTI_GDS_SN
+                           ,
+                        (B.ACTI_GDS_AMT * A.APLC_QTY) - TRUNC(B.ACTI_GDS_AMT * A.APLC_QTY * 0.5) AS FEE_AMT /* 12개월차는 잔액  */
+                        FROM TB_PSGA_ACTI_GDS_APLC_IZ A -- 활동물품신청내역
+                             INNER JOIN TB_PSGA_ACTI_GDS_BAS B
+                                        ON A.OG_TP_CD = B.OG_TP_CD
+                                            AND A.ACTI_GDS_CD = B.ACTI_GDS_CD
+                                            AND A.ACTI_GDS_SN = B.ACTI_GDS_SN
+                       WHERE 1 = 1
+                         AND A.ACTI_GDS_APLC_ID IN (SELECT DISTINCT AA.ACTI_GDS_APLC_ID
+                                                      FROM (SELECT A.ACTI_GDS_APLC_ID
+                                                                 , MAX(A.APLC_DT)               AS APLC_DT
+                                                                 , MAX(A.ACTI_GDS_APLC_STAT_CD) AS ACTI_GDS_APLC_STAT_CD
+                                                              FROM TB_PSGA_ACTI_GDS_APLC_STAT_IZ A
+                                                             WHERE 1 = 1
+                                                             GROUP BY A.ACTI_GDS_APLC_ID
+                                                            HAVING MAX(A.ACTI_GDS_APLC_STAT_CD) = '01') AA
+                                                           INNER JOIN (SELECT DISTINCT ACTI_GDS_APLC_ID FROM TB_PSGA_ACTI_GDS_DDTN_IZ) BB -- 공제 이력 존재
+                                                                      ON AA.ACTI_GDS_APLC_ID = BB.ACTI_GDS_APLC_ID
+                                                     WHERE 1 = 1
+                                                       AND AA.APLC_DT LIKE
+                                                           TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -12), 'YYYYMM') ||
+                                                           '%' -- 당월   변수 BASE_YM
+                       ) /* 12개월전 신청  */
+                ) BBB -- 12개월전 유니폼 신청
+               WHERE 1 = 1
+                 AND AAA.OG_TP_CD = BBB.OG_TP_CD
+                 AND AAA.PRTNR_NO = BBB.PRTNR_NO) MST
+         WHERE 1 = 1
+         GROUP BY MST.BASE_YM, MST.OG_TP_CD, MST.PRTNR_NO
+    </insert>
 </mapper>
