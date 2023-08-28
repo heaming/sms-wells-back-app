@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import com.sds.sflex.system.config.validation.validator.ValidDate;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -26,7 +24,9 @@ public class WsnaItemBaseInformationDto {
         String wareNo,
         String ostrWareNo,
         String wareDvCd,
-        String wareDtlDvCd
+        String wareDtlDvCd,
+        String strtSapCd,
+        String endSapCd
     ) {}
 
     @ApiModel("WsnaItemBaseInformationDto-SearchRes")
