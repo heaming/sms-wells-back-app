@@ -122,7 +122,7 @@ public class WbndRentalCbMgtMessageExcludeService {
                     excelUploadErrorDvos.add(errorDvo);
                 }
                 // 적용시작년월 적용종료년월 check
-                if (key.equals("apyEnddt") && StringUtil.isBlank(headerTitleValidation.get(key))) {
+                if (key.equals("apyEnddt") && StringUtil.isNotBlank(headerTitleValidation.get(key))) {
                     String date = headerTitleValidation.get(key).replaceAll("[^0-9]", "");
                     if (!DateUtil.isValid(date, "yyyyMM")) {
                         ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
@@ -136,7 +136,7 @@ public class WbndRentalCbMgtMessageExcludeService {
                         excelUploadErrorDvos.add(errorDvo);
                     }
                 }
-                if (key.equals("apyStrtdt") && StringUtil.isBlank(headerTitleValidation.get(key))) {
+                if (key.equals("apyStrtdt") && StringUtil.isNotBlank(headerTitleValidation.get(key))) {
                     String date = headerTitleValidation.get(key).replaceAll("[^0-9]", "");
                     if (!DateUtil.isValid(date, "yyyyMM")) {
                         ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
