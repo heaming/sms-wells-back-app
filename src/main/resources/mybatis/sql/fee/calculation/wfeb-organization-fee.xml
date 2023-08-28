@@ -504,7 +504,7 @@
                          THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T7.CV_DT,1,6),'YYYYMM')) + 1
                     ELSE 0
                      END AS MNGR5_ATC /*매니저개시-개시차월*/
-             , NVL(T6.OPNG_CD,'') AS MNGR6_ATC /*매니저개시-정착지급유형*/
+             , NVL(T6.OPNG_CD,'999') AS MNGR6_ATC /*매니저개시-정착지급유형*/
              , '0' AS MNGR7_ATC /*매니저개시-5일배정수 추후 재확인 필요*/
              , NVL(T8.MNGT_CNT,0) AS INDV1_BS_ATC /*개인BS-배정건수*/
              , NVL(T8.VST_CNT,0) AS INDV2_BS_ATC /*개인BS-완료건수*/
@@ -1414,7 +1414,7 @@
              , T.EDU106      /*수석플래너교육정착*/
              , T.AKDCHA		 /*수석플래너 교육 차월*/
              , T.EDU017      /*수석플래너교육실전*/
-             , '0' AS OJT_CNT /*OJT일수 AB2610P 알수없음 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
+             , T.OJTCNT      /*OJT일수 */
              , T.AKDSYM		 /*등록기준월*/
              , T.AKDENM		 /*최초업무등록월*/
              , T.AKDJEM		 /*재등록월*/
@@ -1502,6 +1502,7 @@
                       , CASE WHEN G.EDUC_CRSE_NO = '112' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU112
                       , CASE WHEN G.EDUC_CRSE_NO = '113' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU113
                       , CASE WHEN G.EDUC_CRSE_NO = '129' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU129
+                      , CASE WHEN G.EDUC_CRSE_NO = '98' THEN 1 END AS OJTCNT
                       , NVL(H.EDUC_CRSE_CRT_BASE_YM,'') AS EDU106
                       , CASE WHEN NVL(H.EDUC_CRSE_CRT_BASE_YM,'0') != '0'
                                   THEN TO_CHAR(ADD_MONTHS(TO_DATE(H.EDUC_CRSE_CRT_BASE_YM, 'YYYYMM'), 1),'YYYYMM' )
@@ -1775,7 +1776,7 @@
                      ON A.BASE_YM = G.EDUC_CRSE_CRT_BASE_YM
                     AND A.PRTNR_NO = G.PRTNR_NO
                     AND A.OG_TP_CD = G.OG_TP_CD
-                    AND G.EDUC_CRSE_NO IN ('11','17','96','97','112','113','129')
+                    AND G.EDUC_CRSE_NO IN ('11','17','96','97','112','113','129','98')
                     AND G.EDUC_CPC_ACKMT_YN = 'Y'
                    LEFT OUTER JOIN ( SELECT PRTNR_NO
                                           , MAX(EDUC_CRSE_CRT_BASE_YM) AS EDUC_CRSE_CRT_BASE_YM
@@ -1826,7 +1827,7 @@
                )T
     </select>
 
-    <select id='selectManagerBranchBfManagerFees'
+    <select id='selectManagerBranchManagerBeforeFees'
             resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto$SearchMngerBrmgrBfRes">
         SELECT T.OG_CD AS OG_NM /*소속*/
              , T.PRTNR_NO  /*번호*/
@@ -1835,15 +1836,8 @@
              , T.AKCUIL     /*미팅일수*/
              , T.AKDMI3 		/*  자격 수수료월    */
              , T.AKDMI32      /*  자격M+1    */
-             , CASE WHEN SUBSTR(T.OG_ID,0,1) != 'P' THEN CASE WHEN T.EDU096 != '' AND T.EDU097 != '' THEN T.EDU097 ELSE '' END
-                    WHEN SUBSTR(T.OG_ID,0,1) = 'P'  THEN CASE WHEN T.EDU112 != '' AND T.EDU113 != '' THEN T.EDU113 ELSE '' END
-                    ELSE ''
-               END EDUSTR /* 스타트업 매니저 */
-             , T.EDU011
-             , T.EDU129
              , T.EDU106
              , T.AKDCHA		/*수석플래너 교육 차월   AK0600P AKDCHA 데이터 미정으로 임시처리*/
-             , T.EDU017
              , T.EDU135
              , T.AKDSYM		/*등록기준월*/
              , T.AKDENM		/*최초업무등록월*/
@@ -1929,16 +1923,9 @@
                              WHEN C.PRTNR_NO IS NOT NULL THEN 'M->P'
                              WHEN B.PRTNR_NO IS NULL AND C.PRTNR_NO IS NULL THEN '해약'
                         END AS AKDMI32
-                      , CASE WHEN G.EDUC_CRSE_NO = '11' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU011
-                      , CASE WHEN G.EDUC_CRSE_NO = '129' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU129
                       , CASE WHEN G.EDUC_CRSE_NO IN ('100','106') THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU106
                       , '' AS AKDCHA		/*수석플래너 교육 차월   AK0600P AKDCHA 데이터 미정으로 임시처리*/
-                      , CASE WHEN G.EDUC_CRSE_NO = '17' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU017
                       , CASE WHEN G.EDUC_CRSE_NO = '135' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU135
-                      , CASE WHEN G.EDUC_CRSE_NO = '96' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU096
-                      , CASE WHEN G.EDUC_CRSE_NO = '97' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU097
-                      , CASE WHEN G.EDUC_CRSE_NO = '112' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU112
-                      , CASE WHEN G.EDUC_CRSE_NO = '113' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU113
                       , TO_CHAR(TO_DATE(A.CNTR_DT),'YYYY-MM') AS AKDSYM
                       , TO_CHAR(TO_DATE(A.FST_CNTR_DT),'YYYY-MM') AS AKDENM
                       , TO_CHAR(TO_DATE(A.RCNTR_DT),'YYYY-MM') AS AKDJEM
@@ -2212,7 +2199,7 @@
                  ON A.BASE_YM = G.EDUC_CRSE_CRT_BASE_YM
                 AND A.PRTNR_NO = G.PRTNR_NO
                 AND A.OG_TP_CD = G.OG_TP_CD
-                AND G.EDUC_CRSE_NO IN ('11','129','100','106','17','135','96','97','112','113')
+                AND G.EDUC_CRSE_NO IN ('100','106','135')
                 AND G.EDUC_CPC_ACKMT_YN = 'Y'
               WHERE A.BASE_YM = #{perfYm}
                 AND A.OG_TP_CD = 'W02'
@@ -2276,7 +2263,7 @@
                          THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T7.CV_DT,1,6),'YYYYMM')) + 1
                     ELSE 0
                END AS MNGR5_ATC /*매니저개시-개시차월*/
-             , NVL(T6.OPNG_CD,'') AS MNGR6_ATC /*매니저개시-정착지급유형*/
+             , NVL(T6.OPNG_CD,'999') AS MNGR6_ATC /*매니저개시-정착지급유형*/
              , '0' AS MNGR7_ATC /*매니저개시-5일배정수 추후 재확인 필요*/
              , NVL(T8.MNGT_CNT,0) AS INDV1_BS_ATC /*개인BS-배정건수*/
              , NVL(T8.VST_CNT,0) AS INDV2_BS_ATC /*개인BS-완료건수*/
@@ -2919,8 +2906,8 @@
        </if>
     </select>
 
-    <select id='selectManagerBfTotalFees'
-            resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto$SearchMngerBfTotalRes">
+    <select id='selectManagerTotalBeforeFees'
+            resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto$SearchMngerTotalBfRes">
         SELECT T.OG_CD AS OG_NM /*소속*/
              , T.PRTNR_NO  /*번호*/
              , T.PRTNR_KNM  /*성명*/
@@ -3322,7 +3309,7 @@
               <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                   AND A.PRTNR_NO = #{prtnrNo}
               </if>
-                  AND ( A.PSTN_DV_CD = 7 OR A.PSTN_DV_CD = 15 )
+                  AND A.PSTN_DV_CD IN ('7', '15')
                )T
     </select>
 
