@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbGoodsChangeAcceptingStateMapper">
+    <select id="selectGoodsChangeAcceptingState" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbGoodsChangeAcceptingStateDto$SearchRes">
+        SELECT * FROM
+            (SELECT
+                   VS115.CNTR_NO
+                 , VS115.CNTR_SN
+                 , VS115.APR_AK_STAT_CD  AS APR_AK_STAT_CD                   /*승인상태*/
+                 , VS115.APR_AK_CONF_YN AS TP_CH_YN                          /*유형변경여부*/
+                 , VS115.CNTR_NO||'-'||VS115.CNTR_SN AS CNTR_DTL_NO          /*계약상세번호*/
+                 , T4.RCGVP_KNM AS CUST_NM                                   /*고객명*/
+                 , (CASE WHEN T1.SELL_TP_CD IN ('1', '2', '4')               /*판매유형코드 : 1 일시불, 2 렌탈/리스, 3 멤버십, 4 회사설치, 5 유지관리, 6 정기배송, 9 필터*/
+                                      AND T1.CNTR_DTL_STAT_CD = '401'        /*계약상세상태코드 : 101 정상, 201 고객요청정지, 202 연체정지, 203 해약접수정지, 301 고객요청해약, 302 연체해약, 303 계약취소, 401 최종종료, 402 계약기간종료*/
+                                      AND T3.BASE_DTL_CNTR_NO IS NULL
+                                     THEN '9'
+                                     WHEN T3.BASE_DTL_CNTR_NO IS NOT NULL
+                                     THEN '3'
+                                     ELSE T1.SELL_TP_CD
+                                END) AS CUST_DIV                             /*고객구분*/
+                 , PD_BAS.SAP_MAT_CD AS SAP_MAT_CD                           /*SAP코드*/
+                 , PD_BAS.PD_CD AS PD_CD                                     /*품목코드*/
+                 , PD_BAS.PD_NM AS PD_NM                                     /*품목명*/
+                 , AC201.IST_DT AS IST_DT                                    /*설치일자*/
+                 , VS115.CHNG_RQDT AS CHANGE_RQST_DT                         /*교체요청일자*/
+                 , (CASE WHEN VS106.VST_FSH_DT - AC201.IST_DT <![CDATA[<]]> 14 THEN '14일 이내' ELSE '14일 이후' END) AS USE_DT /*사용일수*/
+                 , F_CMZ_CD_NM('TNT_WELLS', 'PDCT_CHNG_AK_RSON_CD', PDCT_CHNG_AK_RSON_CD, 'ko') AS  PDCT_CHNG_AK_RSON_CD /*교체요청사유*/
+                 , T5.VST_RQDT AS SCHD_DT                                           /*예정일자*/
+                 , VS106.REFRI_DV_CD AS RECAP_OR_FREE_YN                            /*유무상구분코드*/
+                 , F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', AS_LCT_CD, 'ko') AS LOC    /*위치*/
+                 , F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', AS_PHN_CD, 'ko') AS PHN    /*현상*/
+                 , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', AS_CAUS_CD, 'ko') AS CAUS /*원인*/
+                 , VS115.EGER_MO_CN AS EGER_OPINION                                 /*엔지니어 소견*/
+                 , SUBSTR(VS115.FST_RGST_DTM, 1, 14) AS DRAT_DTM                    /*작성일시*/
+                 , MM_PRTNR.OG_NM AS DOC_CRTR_BLG                                   /*작성자소속*/
+                 , MM_PRTNR.PRTNR_NO AS DOC_CRTR_SBN                                /*작성자사번*/
+                 , MM_PRTNR.PRTNR_KNM AS DOC_CRTR_NM                                /*작성자*/
+                 , VS115.CNRLD_OPN_CN AS ADMIN_OPINION                              /*관리자소견*/
+                 , VS115.CNFM_RQDT||VS115.CNFM_AK_HH AS OPINION_DRAT_DTM            /*관리자소견작성일시*/
+                 , VS115.CNFM_AK_PRTNR_NO AS ADMIN_SBN                              /*관리자사번*/
+                 , AM_PRTNR.PRTNR_KNM AS ADMIN_NM                                   /*관리자명*/
+                 , VS106.SV_PROCS_CN AS PROCS_RS                                    /*처리결과*/
+                 , VS106.ASN_DT AS VST_CNFM_DT                                      /*방문확정일*/
+                 , VS106.VST_FSH_DT AS PROCS_DT                                     /*처리일자*/
+                 , PM_PRTNR.OG_NM AS PROCSR_BLG                                     /*처리자부서*/
+                 , VS106.PRTNR_NO AS PROCSR_SBN                                     /*처리자사번*/
+                 , PM_PRTNR.PRTNR_KNM AS PROCSR_NM                                  /*처리자*/
+                 , F_CMZ_CD_NM('TNT_WELLS', 'ROL_DV_CD', MM_PRTNR.ROL_DV_CD, 'ko')  AS AC021_JMCD
+                 , RANK() OVER(PARTITION BY VS115.CNTR_NO, VS115.CNTR_SN ORDER BY ADR_REL.ADRPC_TP_CD DESC ) RN
+                 , T1.CNTR_PD_STRTDT
+                 , V1.COMP_DT || ' ' || V1.POSIT || ' ' || V1.PHNM AS PROC_TXT
+                 , VS115.CST_SV_ASN_NO AS CST_SV_ASN_NO
+                 , VS115.BFCH_SV_BIZ_DCLSF_CD AS OLD_SV_BIZ_DCLSF_CD
+                 , VS115.AFCH_SV_BIZ_DCLSF_CD AS NEW_SV_BIZ_DCLSF_CD
+              FROM  WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ VS106
+        INNER JOIN WSMDBS.TB_SVPD_PD_CHNG_APR_AK_IZ VS115 /** 상품교체 승인요청내역 **/
+                ON VS115.CNTR_NO = VS106.CNTR_NO
+               AND VS115.CNTR_SN = VS106.CNTR_SN
+               AND VS115.CST_SV_ASN_NO = VS106.CST_SV_ASN_NO
+        INNER JOIN  WSMDBS.TB_SSCT_CNTR_DTL T1
+                ON  T1.CNTR_NO = VS106.CNTR_NO
+               AND  T1.CNTR_SN = VS106.CNTR_SN
+        LEFT OUTER JOIN WSMDBS.TB_SSCT_CNTR_REL T3   /*계약관계*/
+                ON T3.OJ_DTL_CNTR_NO = T1.CNTR_NO   /*멤버십이외원코드*/
+               AND T3.OJ_DTL_CNTR_SN = T1.CNTR_SN
+               AND T3.CNTR_REL_DTL_CD = '212'   /*계약관계상세코드 : 108 무료체험교체, 211 필터 - 정수기, 212 멤버십 - 원주문, 213 정수기 - 부가서비스, 214 정기배송 - 원주문, 215 1+1연계, 216 모종결합, 217 소개추천, 218 에어컨결합, 219 홈케어, 221 홈케어멤버십, 22L 플래너상조제휴, 22M 다건, 22P 패키지(대수할인), 22W 패키지상품*/
+               AND T3.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')    /*유효시작일시*/
+               AND T3.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')   /*유효종료일시*/
+               AND T3.DTA_DL_YN = 'N'
+        INNER JOIN WSMDBS.TB_SVPD_CST_SVAS_IST_OJ_IZ T5
+                ON T5.CNTR_NO = VS106.CNTR_NO
+               AND T5.CNTR_SN = VS106.CNTR_SN
+               AND T5.CST_SV_ASN_NO = VS106.CST_SV_ASN_NO
+        INNER JOIN TB_OGBS_MM_PRTNR_IZ MM_PRTNR /*작성자 - 검색조건에 센터, 조직 들어감*/
+                ON VS115.CHNG_AK_PRTNR_OG_TP_CD = MM_PRTNR.OG_TP_CD
+               AND VS115.CHNG_AK_PRTNR_NO = MM_PRTNR.PRTNR_NO
+           <if test="@MybatisUtils@isNotEmpty(ogId)">
+               AND MM_PRTNR.OG_ID = #{ogId}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+               AND MM_PRTNR.PRTNR_NO = #{prtnrNo}
+           </if>
+               AND MM_PRTNR.BASE_YM = SUBSTR(#{startDt},1,6)
+        LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ AM_PRTNR /*관리자*/
+                ON VS115.CNFM_AK_PRTNR_OG_TP_CD = AM_PRTNR.OG_TP_CD
+               AND VS115.CNFM_AK_PRTNR_NO = AM_PRTNR.PRTNR_NO
+               AND AM_PRTNR.BASE_YM = SUBSTR(#{startDt},1,6)
+        LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ PM_PRTNR /*처리자*/
+                ON VS106.OG_TP_CD = PM_PRTNR.OG_TP_CD
+               AND VS106.PRTNR_NO = PM_PRTNR.PRTNR_NO
+               AND PM_PRTNR.BASE_YM = SUBSTR(#{startDt},1,6)
+        INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL ADR_REL /*계약주소관계*/
+                ON VS106.CNTR_NO = ADR_REL.DTL_CNTR_NO
+               AND VS106.CNTR_SN = ADR_REL.DTL_CNTR_SN
+               AND ADR_REL.ADRPC_TP_CD = '3'    /*1 계약주소, 2 배달주소,3 설치주소*/
+               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN ADR_REL.VL_STRT_DTM AND ADR_REL.VL_END_DTM
+        INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS T4 /*계약주소지기본*/
+                ON ADR_REL.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID
+        INNER JOIN TB_PDBS_PD_BAS PD_BAS
+                ON VS106.PDCT_PD_CD = PD_BAS.PD_CD
+        INNER JOIN WSMDBS.TB_SVPD_CST_SV_EXCN_IZ AC201
+                ON AC201.CNTR_NO = VS106.CNTR_NO
+               AND AC201.CNTR_SN = VS106.CNTR_SN
+        LEFT OUTER JOIN (SELECT *
+                              FROM (SELECT RANK() OVER (PARTITION BY VS106.CNTR_NO ,  VS106.CNTR_SN ORDER BY VS106.VST_FSH_DT DESC, VS106.VST_FSH_HH DESC) AS RANK
+                                         , VS106.VST_FSH_DT AS COMP_DT
+                                         , VS106.CNTR_NO
+                                         , VS106.CNTR_SN
+                                         , F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', VS106.AS_LCT_CD, 'ko') AS POSIT
+                                         , F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', VS106.AS_PHN_CD, 'ko') AS PHNM
+                                      FROM WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ VS106
+                                INNER JOIN WSMDBS.TB_SVPD_PD_CHNG_APR_AK_IZ VS115 /** 상품교체 승인요청내역 **/
+                                        ON VS115.CNTR_NO = VS106.CNTR_NO
+                                       AND VS115.CNTR_SN = VS106.CNTR_SN
+                                     WHERE VS106.SV_BIZ_HCLSF_CD = '3'
+                                       AND VS115.CST_SV_ASN_NO != VS106.CST_SV_ASN_NO)
+                             WHERE RANK = 1) V1
+                         ON VS115.CNTR_NO = V1.CNTR_NO
+                        AND VS115.CNTR_SN = V1.CNTR_SN
+                        )
+            WHERE RN = 1
+              <choose>
+              <when test='@MybatisUtils@equals(inqrBaseCd, "vstCnfmDt")'>
+                  AND VST_CNFM_DT BETWEEN #{startDt} AND #{endDt} /*방문확정일*/
+              </when>
+              <when test='@MybatisUtils@equals(inqrBaseCd, "wrteDt")'>
+                  AND SUBSTR(DRAT_DTM, 1, 8) BETWEEN #{startDt} AND #{endDt} /*작성일자*/
+              </when>
+              <when test='@MybatisUtils@equals(inqrBaseCd, "schdDt")'>
+                  AND SCHD_DT BETWEEN #{startDt} AND #{endDt} /*예정일자*/
+              </when>
+              <when test='@MybatisUtils@equals(inqrBaseCd, "prcsDt")'>
+                  AND PROCS_DT BETWEEN #{startDt} AND #{endDt} /*처리일자*/
+              </when>
+              </choose>
+              <if test="@MybatisUtils@isNotEmpty(aprAkStatCd) and !@MybatisUtils@equals(aprAkStatCd, 'ALL')">
+                  AND APR_AK_STAT_CD = #{aprAkStatCd}
+              </if>
+              <if test="@MybatisUtils@isNotEmpty(tpChYn) and !@MybatisUtils@equals(tpChYn, 'ALL')">
+                  AND TP_CH_YN = #{tpChYn}
+              </if>
+         ORDER BY DRAT_DTM
+    </select>
+    <update id="updateSvpdPdChngAprAkIz" parameterType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbGoodsChangeAcceptingStateDvo">
+        /* 상품교체승인요청내역(반려/승인) 업데이트 */
+        UPDATE WSMDBS.TB_SVPD_PD_CHNG_APR_AK_IZ
+           SET APR_AK_STAT_CD = #{aprAkStatCd}
+           <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+    <update id="updateCstSvasIstOjIz">
+        UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ T1
+           SET SV_BIZ_HCLSF_CD = SUBSTR(#{newSvBizDclsfCd}, 1, 1)
+             , SV_BIZ_DCLSF_CD = #{newSvBizDclsfCd}
+             , RCP_SV_BIZ_DCLSF_CD = CASE WHEN (SELECT RCP_SV_BIZ_DCLSF_CD
+                                                  FROM TB_SVPD_CST_SVAS_IST_OJ_IZ
+                                                 WHERE AS_IST_OJ_NO = T1.AS_IST_OJ_NO
+                                                   AND DTA_DL_YN = 'N') IS NULL
+                                          THEN #{oldSvBizDclsfCd}
+                                          ELSE (SELECT RCP_SV_BIZ_DCLSF_CD
+                                                  FROM TB_SVPD_CST_SVAS_IST_OJ_IZ
+                                                 WHERE AS_IST_OJ_NO = T1.AS_IST_OJ_NO
+                                                   AND DTA_DL_YN = 'N')
+                                     END
+            <include refid="COMMON.updateSystemField"/>
+         WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND DTA_DL_YN = 'N'
+    </update>
+    <insert id="insertCstSvasIstOjHist">
+        <include refid="com.kyowon.sms.wells.web.service.common.mapper.WsnzHistoryMapper.insertCstSvasIstOjHist" />
+        AND CST_SV_ASN_NO = #{cstSvAsnNo}
+        AND DTA_DL_YN = 'N'
+    </insert>
+    <update id="updateCstSvAsIstAsnIz">
+        UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ
+           SET SV_BIZ_HCLSF_CD = SUBSTR(#{newSvBizDclsfCd}, 1, 1)
+             , SV_BIZ_DCLSF_CD = #{newSvBizDclsfCd}
+            <include refid="COMMON.updateSystemField"/>
+         WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND DTA_DL_YN = 'N'
+    </update>
+    <insert id="insertSvWkDchIz">
+        INSERT INTO TB_SVPD_SV_WK_DCH_IZ (
+               CST_SV_ASN_NO
+             , CH_SN
+             , WK_PRTNR_OG_TP_CD
+             , WK_PRTNR_NO
+             , AFCH_SV_BIZ_DCLSF_CD
+             , BFCH_SV_BIZ_DCLSF_CD
+             , DTA_DL_YN
+            <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+               #{cstSvAsnNo}
+             , NVL((SELECT MAX(CH_SN)
+                      FROM TB_SVPD_SV_WK_DCH_IZ
+                     WHERE CST_SV_ASN_NO = #{cstSvAsnNo}), 0) + 1
+             , NVL(#{session.ogTpCd}, 'NULL') <!-- FIXME: 조직유형코드 들어간뒤 수정 필요 -->
+             , #{session.employeeIDNumber}
+             , #{newSvBizDclsfCd}
+             , #{oldSvBizDclsfCd}
+             , 'N'
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+</mapper>
