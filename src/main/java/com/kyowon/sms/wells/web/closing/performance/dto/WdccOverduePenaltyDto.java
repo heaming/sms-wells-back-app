@@ -36,7 +36,7 @@ public class WdccOverduePenaltyDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    // 매출채권/선수금 현황 - 영업선수금 mainGrid
+    // 매출채권/선수금 현황 - 연체가산금(포인트/집계) ThirdGrid
     @ApiModel(value = "WdccOverdueQenaltyDto-SearchPointAggregateRes")
     public record SearchPointAggregateRes(
         String slClYm,
@@ -57,7 +57,7 @@ public class WdccOverduePenaltyDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    // 매출채권/선수금 현황 - 영업선수금 subGrid
+    // 매출채권/선수금 현황 - 연체가산금(포인트/주문별) FourthGrid
     @ApiModel(value = "WdccOverdueQenaltyDto-SearchPointOrderRes")
     public record SearchPointOrderRes(
         String slClYm,
@@ -85,7 +85,7 @@ public class WdccOverduePenaltyDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
-    // 매출채권/선수금 현황 - 영업선수금 SearchFourthGridRes
+    // 매출채권/선수금 현황 - 선수금 일자별 MainGridRes
     @ApiModel(value = "WdccOverdueQenaltyDto-SearchAggregateDateRes")
     public record SearchAggregateDateRes(
         String slClYm,

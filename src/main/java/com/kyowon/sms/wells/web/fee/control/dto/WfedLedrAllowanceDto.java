@@ -48,7 +48,7 @@ public class WfedLedrAllowanceDto {
         Integer fxnAwSumAmt, /*고정수당합계금액*/
         Integer trgCt, /*실적목표건수*/
         Integer perfCt, /*실적건수*/
-        Integer perfAchvRat, /*실적달성비율*/
+        Double perfAchvRat, /*실적달성비율*/
         Integer trgAchvAwAmt, /*목표달성수당금액*/
         Integer brchAvPerfCt, /*지점평균실적건수(2021년02월이전)*/
         Integer encrgAwAmt, /*장려수당금액(2021년02월이후)*/
@@ -90,7 +90,7 @@ public class WfedLedrAllowanceDto {
         Integer fxnAwSumAmt, /*고정수당합계금액*/
         Integer trgCt, /*실적목표건수*/
         Integer perfCt, /*실적건수*/
-        Integer perfAchvRat, /*실적달성비율*/
+        Double perfAchvRat, /*실적달성비율*/
         Integer trgAchvAwAmt, /*목표달성수당금액*/
         Integer brchAvPerfCt, /*지점평균실적건수(2021년02월이전)*/
         Integer encrgAwAmt, /*장려수당금액(2021년02월이후)*/
