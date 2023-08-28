@@ -3,6 +3,12 @@ package com.kyowon.sms.wells.web.closing.sales.dto;
 import io.swagger.annotations.ApiModel;
 
 public class WdcbSalesDetailDto {
+    @ApiModel(value = "WdcbSalesDetailDto-SearchReq")
+    public record SearchReq(
+        String cntrNo,
+        String cntrSn,
+        String slRcogDt
+    ) {}
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -10,25 +16,25 @@ public class WdcbSalesDetailDto {
     @ApiModel("WdcbSalesDetailDto-SearchRentalRes")
     public record SearchRentalRes(
         String rentalRgstCost,
+        String dscAmt,
+        String cntrTam,
+        String sellTpDtlCd,
+        String ojDtlCntr1,
+        String ojDtlCntr2,
         String rentalAmt,
-        String col1,
-        String reqdDtm,
-        String col2,
         String rentalDscAmt,
-        String col3,
-        String col4,
-        String istmAmt,
         String rentalPtrm,
-        String col5,
-        String col6,
         String rentalAmt2,
-        String col7,
-        String col8,
         String rentalDscAmt2,
-        String col9,
-        String col10,
         String rentalPtrm2,
-        String slDt
+        String dutyUseMcn,
+        String sellDscDvCd,
+        String sellDscTpCd,
+        String svPrd,
+        String ojDtlCntr3,
+        String slRcogDt,
+        String reqdDtm,
+        String canDt
     ) {}
 
     // *********************************************************
@@ -38,15 +44,15 @@ public class WdcbSalesDetailDto {
     @ApiModel("WdcbSalesDetailDto-SearchMembershipRes")
     public record SearchMembershipRes(
         String sellAmt,
-        String col1,
-        String col2,
-        String col3,
-        String istmMcn,
+        String stplPtrm,
+        String svPrd1,
+        String sellDscTpCd,
         String dscAmt,
-        String col4,
-        String col5,
-        String col6,
-        String col7
+        String jDt,
+        String mshWdwalDt,
+        String sppDuedt,
+        String vstNmnN,
+        String svPrd2
     ) {}
 
     // *********************************************************
@@ -55,15 +61,15 @@ public class WdcbSalesDetailDto {
     // 매출 상세정보 Search Result Dto
     @ApiModel("WdcbSalesDetailDto-SearchSingleRes")
     public record SearchSingleRes(
-        String frisuYn,
+        String frisuBfsvcPtrmN,
+        String frisuAsPtrmN1,
+        String frisuAsPtrmN2,
         String sellAmt,
-        String tkAmt,
-        String istmMcn,
-        String col1,
-        String cntrTam,
-        String istmAmt,
-        String col2,
-        String subscAmt,
-        String mmIstmAmt
+        String fnlAmt,
+        String cntrAmt1,
+        String cntrAmt2,
+        String istmPcamAmt,
+        String mmIstmAmt,
+        String istmMcn
     ) {}
 }
