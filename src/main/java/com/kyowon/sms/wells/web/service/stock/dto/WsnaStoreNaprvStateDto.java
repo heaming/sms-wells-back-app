@@ -17,7 +17,8 @@ public class WsnaStoreNaprvStateDto {
     public record SearchReq(
         String strWareDvCd,
         String strWareNoM,
-        String strWareNoD
+        String strWareNoD,
+        String wareDtlDvCd
     ) {}
 
     @ApiModel(value = "WsnaStoreNaprvStateDto-SearchRes")
