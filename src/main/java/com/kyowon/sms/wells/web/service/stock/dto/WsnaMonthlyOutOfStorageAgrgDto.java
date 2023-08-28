@@ -16,10 +16,19 @@ public class WsnaMonthlyOutOfStorageAgrgDto {
     public record SearchReq(
         String startDt,
         String endDt,
+        String wareNo,
         String wareDvCd,
+        String wareDtlDvCd,
+        String wareUseYn,
         String itmGdCd,
         String itmKndCd,
         String itmPdCd,
         String useYn
+    ) {}
+
+    @ApiModel(value = "WsnaMonthlyOutOfStorageAgrgDto-FindWarehouseRes")
+    public record FindWarehouseRes(
+        String codeId,
+        String codeName
     ) {}
 }
