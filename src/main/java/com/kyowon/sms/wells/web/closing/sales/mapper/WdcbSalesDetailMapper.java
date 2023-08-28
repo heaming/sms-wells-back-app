@@ -4,14 +4,15 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchMembershipRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchRentalRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchSingleRes;
 
 @Mapper
 public interface WdcbSalesDetailMapper {
 
-    SearchRentalRes selectSalesDetailRental(String cntrDtlNo);
+    SearchRentalRes selectSalesDetailRental(SearchReq dto);
 
-    SearchMembershipRes selectSalesDetailMembership(String cntrDtlNo);
+    SearchMembershipRes selectSalesDetailMembership(SearchReq dto);
 
-    SearchSingleRes selectSalesDetailSinglePayment(String cntrDtlNo);
+    SearchSingleRes selectSalesDetailSinglePayment(SearchReq dto);
 }
