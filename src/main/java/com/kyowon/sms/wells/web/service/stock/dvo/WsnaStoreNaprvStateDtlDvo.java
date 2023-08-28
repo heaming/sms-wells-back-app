@@ -27,4 +27,5 @@ public class WsnaStoreNaprvStateDtlDvo {
     String itmGdCd;
     String userId;
     String strWareNo;
+    String pdNm;
 }
