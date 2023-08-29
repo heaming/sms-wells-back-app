@@ -12,4 +12,8 @@ public interface WpdcAsPartCommonUseMgtMapper {
     List<SearchPartRes> selectAsParts(SearchPartReq dto);
 
     List<SearchProductRes> selectProductsByPart(String partPdCd);
+
+    List<SearchPartRes> selectAsPartsByProduct(String pdCd);
+
+    List<SearchProductRes> selectProducts(SearchPartReq dto);
 }
