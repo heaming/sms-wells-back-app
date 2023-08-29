@@ -24,6 +24,10 @@ public class WsnaMonthlyOutOfStorageAgrgDvo {
     String startDt;
     String endDt;
     String wareDvCd;
+    String wareDtlDvCd;
+    String wareNoM;
+    String wareNoD;
+    String wareUseYn;
     String itmGdCd;
     String itmKndCd;
     String itmPdCd;

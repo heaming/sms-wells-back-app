@@ -1,23 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMonthlyOutOfStorageAgrgMapper">
-    <select id="selectWareHouses" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMonthlyOutOfStorageAgrgDto$FindWarehouseRes">
-        SELECT D1.WARE_NO AS CODE_ID   /* 창고번호 */
-             , D1.WARE_NM AS CODE_NAME  /* 창고명 */
-        FROM TB_SVST_MCBY_WARE_IZ D1        /* 월별창고내역 */
-        INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
-         ON D2.APY_YM  = D1.APY_YM
-         AND D2.WARE_NO = D1.HGR_WARE_NO
-        WHERE D1.DTA_DL_YN      = 'N'
-         AND D2.DTA_DL_YN      = 'N'
-         AND D1.WARE_USE_YN    = 'Y'
-         AND D1.APY_YM         = SUBSTR(#{startDt},1,6)
-         AND D1.WARE_DV_CD     = #{wareDvCd}
-       <if test='@MybatisUtils@isNotEmpty(wareDtlDvCd)'>
-         AND D1.WARE_DTL_DV_CD = #{wareDtlDvCd}
-       </if>
-        ORDER BY D1.WARE_USE_YN DESC, D1.WARE_NM ASC, D1.WARE_NO ASC
-    </select>
     <select id="selectMonthlys" resultType="String">
         SELECT TO_CHAR(ADD_MONTHS(FROM_DT , (LEVEL-1)), 'YYYYMM') AS DT
         FROM
@@ -61,7 +44,7 @@
              <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
               AND P1.PD_CD = #{itmPdCd}  /* 품목종류 */
              </if>
-             /* AND P1.PD_CD = 'WM01100103' */
+             AND P1.PD_CD = 'WM01100103'
              /* AND P1.PD_PRP_VAL01 || P1.PD_PRP_VAL31= '40000812020' */
         )
         , WARE_INF AS
@@ -79,31 +62,28 @@
             WHERE 1 = 1
               AND S1.DTA_DL_YN = 'N'
               /* 확인일자 */
-              AND S1.APY_YM = SUBSTR('20230511',1,6)
-
+              AND S1.APY_YM = SUBSTR(#{startDt},1,6)
               <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
-              AND S1.WARE_DV_CD = #{wareDvCd}   /* 창고구분*/
-              </if>
-              <if test="@MybatisUtils@isNotEmpty(wareNo)">
-              AND S1.WARE_NO = #{wareNo}   /* 창고번호*/
+              AND S1.WARE_DV_CD = #{wareDvCd}  /* 창고구분*/
               </if>
               <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
-                <if test='@MybatisUtils@equals(wareDtlDvCd, "all")'>
-                /* 조직창고 선택 후 창고 창고상세구분에 전체일 경우 */
-                AND (S1.WARE_NO = '201551' OR  S1.HGR_WARE_NO = '201551')
-                </if>
-                <if test='@MybatisUtils@equals(wareDtlDvCd, "CORP")'>
-                /* 조직창고 선택 후 창고 창고상세구분에 조직일 경우 */
-                AND S1.WARE_DTL_DV_CD LIKE '%0'
-                </if>
-                <if test='@MybatisUtils@equals(wareDtlDvCd, "INDI")'>
-                /* 조직창고 선택 후 창고 창고상세구분에 개인일 경우 */
-                AND (S1.WARE_NO = '201551' OR  S1.HGR_WARE_NO = '201551')
-                AND S1.WARE_DTL_DV_CD LIKE '%1'
-                </if>
+              AND S1.WARE_DTL_DV_CD = #{wareDtlDvCd} /* 창고상세구분 */
+                  <if test="@MybatisUtils@isNotEmpty(wareNoM)">
+                      <choose>
+                        <when test='@MybatisUtils@equals(wareDtlDvCd, "10") or @MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "30")'>
+                        AND S1.WARE_NO = #{wareNoM} /* 조직창고 */
+                        </when>
+                        <otherwise>
+                        AND (S1.HGR_WARE_NO = #{wareNoM} OR S1.WARE_NO = #{wareNoM})  /* 개인창고 */
+                        </otherwise>
+                      </choose>
+                  </if>
+              </if>
+              <if test="@MybatisUtils@isNotEmpty(wareNoD)">
+              AND S1.WARE_NO = #{wareNoD}  /* 개인창고 */
               </if>
               <if test="@MybatisUtils@isNotEmpty(wareUseYn)">
-              AND S1.WARE_USE_YN = #{wareUseYn}   /* 창고번호*/
+              AND S1.WARE_USE_YN = #{wareUseYn}   /* 창고사용여부*/
               </if>
         )
         , OSTR_GD_QTY AS

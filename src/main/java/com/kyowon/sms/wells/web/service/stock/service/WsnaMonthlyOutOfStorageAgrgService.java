@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaMonthlyOutOfStorageAgrgConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMonthlyOutOfStorageAgrgDto.FindWarehouseRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMonthlyOutOfStorageAgrgDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyOutOfStorageAgrgDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaMonthlyOutOfStorageAgrgMapper;
@@ -23,10 +22,6 @@ public class WsnaMonthlyOutOfStorageAgrgService {
     private final WsnaMonthlyOutOfStorageAgrgMapper mapper;
 
     private final WsnaMonthlyOutOfStorageAgrgConverter converter;
-
-    public List<FindWarehouseRes> getWareHouses(SearchReq dto) {
-        return this.mapper.selectWareHouses(dto);
-    }
 
     public List<HashMap<String, String>> getMonthlyOutOfStorageAgrgs(SearchReq dto) {
         WsnaMonthlyOutOfStorageAgrgDvo dvo = convertPivotMonthlyOutOfStorageAgrgDvo(
