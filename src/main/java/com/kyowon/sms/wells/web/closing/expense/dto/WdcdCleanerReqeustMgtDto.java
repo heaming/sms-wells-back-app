@@ -20,6 +20,7 @@ public class WdcdCleanerReqeustMgtDto {
     @Builder
     @ApiModel(value = "WdcdCleanerReqeustMgtDto-FindCodeReq")
     public record FindCodeReq(
+        String registYearMonth,
         String ogTpCd,
         String prtnrNo
     ) {

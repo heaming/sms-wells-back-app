@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncIntergratedQrProcsListSearchMapper">
+    <select id="selectByOgList"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncIntergratedQrProcsListSearchDvo">
+    WITH TB_PRTNR AS (
+                    SELECT T1.PRTNR_NO
+                         , T1.PRTNR_KNM
+                         , T1.OG_NM||'('||T1.OG_CD||')' OG_NM
+                         , T2.BLD_NM
+                         , T1.OG_CD
+                         , T2.DGR1_LEVL_OG_NM||'('||T2.DGR1_LEVL_OG_CD||')' DGR1_LEVL_OG_NM
+                         , T2.DGR2_LEVL_OG_NM||'('||T2.DGR2_LEVL_OG_CD||')' DGR2_LEVL_OG_NM
+                         , T2.DGR2_LEVL_DG_PRTNR_NM
+                         , T2.DGR1_LEVL_OG_CD
+                         , T2.DGR2_LEVL_OG_CD
+                         , (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS T4 WHERE T4.PRTNR_NO = T2.BIZ_SPPT_PRTNR_NO)||'('||T2.BIZ_SPPT_PRTNR_NO||')' BM_NM
+                      FROM TB_OGBS_MM_PRTNR_IZ T1
+                         , TB_OGBS_MM_OG_IZ T2
+                     WHERE T1.BASE_YM = SUBSTR(#{baseDateFrom}, 1, 6)
+                       AND T2.BASE_YM = SUBSTR(#{baseDateFrom}, 1, 6)
+                       AND T1.OG_ID = T2.OG_ID
+                       <if test="@MybatisUtils@equals(mngrDvCd, '1')">
+                       AND T1.OG_TP_CD IN ('W02', 'ALC')
+                           <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+                           AND T2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+                               <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                               AND T2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+                               </if>
+                           </if>
+                       </if>
+                       <if test="@MybatisUtils@equals(mngrDvCd, '2')">
+                       AND T1.OG_TP_CD IN ('W03', 'W06')
+                           <if test="@MybatisUtils@isNotEmpty(svOgId)">
+                           AND T2.OG_ID = #{svOgId}
+                           </if>
+                       </if>
+                       AND T1.DTA_DL_YN = 'N'
+                      )
+       , TB_SV1 AS (
+                    SELECT *
+                      FROM TB_SVPD_CST_SV_WK_RS_IZ
+                     WHERE SV_BIZ_HCLSF_CD = '2'
+                       AND VST_FSH_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                       AND WK_PRGS_STAT_CD = '20'
+                    )
+       , TB_PD AS (
+                    SELECT T1.PD_CD
+                         , PD_PRP_VAL40
+                      FROM TB_PDBS_PD_BAS T1
+                         , TB_PDBS_PD_ECOM_PRP_DTL T2
+                     WHERE 1=1
+                       AND T1.PD_CD = T2.PD_CD
+                       AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                   )
+
+    SELECT DGR1_LEVL_OG_NM
+         , DGR2_LEVL_OG_NM
+         , DGR2_LEVL_DG_PRTNR_NM
+         , BM_NM
+         , SUM(1) BS_CMPLTD
+         , SUM(CASE WHEN PD_PRP_VAL40 = '2' THEN 1 ELSE 0 END) ITG_QR_TRGT
+         , SUM(CASE WHEN PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y' THEN 1 ELSE 0 END) ITG_QR_CMPLTD
+         , SUM(CASE WHEN PD_PRP_VAL40 = '1' THEN 1 ELSE 0 END) NRM_QR_TRGT
+         , SUM(CASE WHEN PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y' THEN 1 ELSE 0 END) NRM_QR_CMPLTD
+         , SUM(CASE WHEN (PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y') OR (PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y') THEN 1 ELSE 0 END) QR_CMPLTD
+         , SUM(1) QR_TRGT
+         , (CASE WHEN SUM(CASE WHEN (PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y') OR (PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y') THEN 1 ELSE 0 END) = 0 THEN 0 ELSE ROUND((SUM(CASE WHEN (PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y') OR (PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y') THEN 1 ELSE 0 END) / SUM(1)) * 100, 2) END) ATTACH_RATE
+      FROM (
+            SELECT PD1.PD_PRP_VAL40
+                 , CASE WHEN SV1.ITG_QRS_BC_NO IS NOT NULL THEN 'Y'
+                        ELSE 'N'
+                    END ITG_QRS_BC_NO_YN
+                 , CASE WHEN SV1.BC_NO IS NOT NULL THEN 'Y'
+                        ELSE 'N'
+                    END BC_NO_YN
+                 , PRT1.PRTNR_KNM
+                 , SV1.PRTNR_NO
+                 , PRT1.DGR1_LEVL_OG_NM DGR1_LEVL_OG_NM
+                 , PRT1.DGR2_LEVL_OG_NM DGR2_LEVL_OG_NM
+                 , PRT1.DGR2_LEVL_DG_PRTNR_NM
+                 , PRT1.BM_NM
+
+                 , PRT1.DGR1_LEVL_OG_CD
+                 , PRT1.DGR2_LEVL_OG_CD
+              FROM TB_SV1 SV1
+                 , TB_PRTNR PRT1
+                 , TB_PD PD1
+             WHERE 1=1
+               AND SV1.PRTNR_NO = PRT1.PRTNR_NO
+               AND SV1.PDCT_PD_CD = PD1.PD_CD(+)
+            )
+     GROUP
+        BY DGR1_LEVL_OG_NM, DGR2_LEVL_OG_NM, DGR2_LEVL_DG_PRTNR_NM, BM_NM, DGR1_LEVL_OG_CD, DGR2_LEVL_OG_CD
+     ORDER
+        BY DGR1_LEVL_OG_CD, DGR2_LEVL_OG_CD
+    </select>
+
+    <select id="selectOgDetailList"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncIntergratedQrProcsListSearchDvo">
+    WITH TB_PRTNR AS (
+                    SELECT T1.PRTNR_NO
+                         , T1.PRTNR_KNM
+                         , T1.OG_NM||'('||T1.OG_CD||')' OG_NM
+                         , T2.BLD_NM
+                         , T1.OG_CD
+                      FROM TB_OGBS_MM_PRTNR_IZ T1
+                         , TB_OGBS_MM_OG_IZ T2
+                     WHERE T1.BASE_YM = SUBSTR(#{baseDateFrom}, 1, 6)
+                       AND T2.BASE_YM = SUBSTR(#{baseDateFrom}, 1, 6)
+                       AND T1.OG_ID = T2.OG_ID
+                       <if test="@MybatisUtils@equals(mngrDvCd, '1')">
+                       AND T1.OG_TP_CD IN ('W02', 'ALC')
+                           <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+                           AND T2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+                               <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                               AND T2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+                               </if>
+                           </if>
+                       </if>
+                       <if test="@MybatisUtils@equals(mngrDvCd, '2')">
+                       AND T1.OG_TP_CD IN ('W03', 'W06')
+                           <if test="@MybatisUtils@isNotEmpty(svOgId)">
+                           AND T2.OG_ID = #{svOgId}
+                           </if>
+                       </if>
+                       AND T1.DTA_DL_YN = 'N'
+                      )
+       , TB_SV1 AS (
+                    SELECT *
+                      FROM TB_SVPD_CST_SV_WK_RS_IZ
+                     WHERE SV_BIZ_HCLSF_CD = '2'
+                       AND VST_FSH_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                       AND WK_PRGS_STAT_CD = '20'
+                    )
+       , TB_PD AS (
+                    SELECT T1.PD_CD
+                         , PD_PRP_VAL40
+                      FROM TB_PDBS_PD_BAS T1
+                         , TB_PDBS_PD_ECOM_PRP_DTL T2
+                     WHERE 1=1
+                       AND T1.PD_CD = T2.PD_CD
+                       AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                   )
+
+    SELECT OG_NM
+         , PRTNR_NO
+         , PRTNR_KNM PRTNR_NM
+         , BLD_NM
+         , SUM(1) BS_CMPLTD
+         , SUM(CASE WHEN PD_PRP_VAL40 = '2' THEN 1 ELSE 0 END) ITG_QR_TRGT
+         , SUM(CASE WHEN PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y' THEN 1 ELSE 0 END) ITG_QR_CMPLTD
+         , SUM(CASE WHEN PD_PRP_VAL40 = '1' THEN 1 ELSE 0 END) NRM_QR_TRGT
+         , SUM(CASE WHEN PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y' THEN 1 ELSE 0 END) NRM_QR_CMPLTD
+         , SUM(CASE WHEN (PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y') OR (PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y') THEN 1 ELSE 0 END) QR_CMPLTD
+         , SUM(1) QR_TRGT
+         , (CASE WHEN SUM(CASE WHEN (PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y') OR (PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y') THEN 1 ELSE 0 END) = 0 THEN 0 ELSE ROUND((SUM(CASE WHEN (PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y') OR (PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y') THEN 1 ELSE 0 END) / SUM(1)) * 100, 2) END) ATTACH_RATE
+      FROM (
+            SELECT PD1.PD_PRP_VAL40
+                 , CASE WHEN SV1.ITG_QRS_BC_NO IS NOT NULL THEN 'Y'
+                        ELSE 'N'
+                    END ITG_QRS_BC_NO_YN
+                 , CASE WHEN SV1.BC_NO IS NOT NULL THEN 'Y'
+                        ELSE 'N'
+                    END BC_NO_YN
+                 , PRT1.PRTNR_KNM
+                 , SV1.PRTNR_NO
+                 , PRT1.OG_NM
+                 , PRT1.BLD_NM
+                 , PRT1.OG_CD
+              FROM TB_SV1 SV1
+                 , TB_PRTNR PRT1
+                 , TB_PD PD1
+             WHERE 1=1
+               AND SV1.PRTNR_NO = PRT1.PRTNR_NO
+               AND SV1.PDCT_PD_CD = PD1.PD_CD(+)
+            )
+     GROUP
+        BY PRTNR_NO, PRTNR_KNM, OG_CD, OG_NM, BLD_NM
+     ORDER
+        BY OG_CD, PRTNR_NO
+    </select>
+</mapper>

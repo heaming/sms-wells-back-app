@@ -23,7 +23,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Api(tags = "[WDCB] 상품별 매출 현황")
+@Api(tags = "[WDCB] 상품별 매출현황-매출상세조회 (W-CL-U-0028M04)")
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -32,16 +32,18 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbProductSalesDetailController {
     private final WdcbProductSalesDetailService service;
 
-    @ApiOperation(value = "매출상세조회", notes = "조회조건에 따른 매출상세를 조회")
+    @ApiOperation(value = "매출상세조회(일시불,금융리스,정기구매)", notes = "조회조건에 따른 매출상세를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDtmnFrom", value = "매출시작일자", paramType = "query"),
         @ApiImplicitParam(name = "baseDtmnTo", value = "매출종료일자", paramType = "query"),
-        @ApiImplicitParam(name = "taskDiv", value = "업무구분", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
-        @ApiImplicitParam(name = "sellDv", value = "판매구분", paramType = "query"),
-        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
+        @ApiImplicitParam(name = "sellChnlDtl", value = "판매채널", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "sapSlpno", value = "SAP전표번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
     })
     @GetMapping("/single-payment")
     public List<SearchSingleRes> getProductSalesSinglePaymentDetails(
@@ -51,16 +53,18 @@ public class WdcbProductSalesDetailController {
         return service.getProductSalesSinglePaymentDetails(dto);
     }
 
-    @ApiOperation(value = "매출상세조회", notes = "조회조건에 따른 매출상세를 조회")
+    @ApiOperation(value = "매출상세조회(렌탈)", notes = "조회조건에 따른 매출상세를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDtmnFrom", value = "매출시작일자", paramType = "query"),
         @ApiImplicitParam(name = "baseDtmnTo", value = "매출종료일자", paramType = "query"),
-        @ApiImplicitParam(name = "taskDiv", value = "업무구분", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
-        @ApiImplicitParam(name = "sellDv", value = "판매구분", paramType = "query"),
-        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
+        @ApiImplicitParam(name = "sellChnlDtl", value = "판매채널", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "sapSlpno", value = "SAP전표번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
     })
     @GetMapping("/rental")
     public List<SearchRentalRes> getProductSalesRentalDetails(
@@ -70,16 +74,18 @@ public class WdcbProductSalesDetailController {
         return service.getProductSalesRentalDetails(dto);
     }
 
-    @ApiOperation(value = "매출상세조회", notes = "조회조건에 따른 매출상세를 조회")
+    @ApiOperation(value = "매출상세조회(멤버십)", notes = "조회조건에 따른 매출상세를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDtmnFrom", value = "매출시작일자", paramType = "query"),
         @ApiImplicitParam(name = "baseDtmnTo", value = "매출종료일자", paramType = "query"),
-        @ApiImplicitParam(name = "taskDiv", value = "업무구분", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
-        @ApiImplicitParam(name = "sellDv", value = "판매구분", paramType = "query"),
-        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
+        @ApiImplicitParam(name = "sellChnlDtl", value = "판매채널", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "sapSlpno", value = "SAP전표번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
     })
     @GetMapping("/membership")
     public List<SearchMembershipRes> getProductSalesMembershipDetails(
@@ -93,12 +99,14 @@ public class WdcbProductSalesDetailController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDtmnFrom", value = "매출시작일자", paramType = "query"),
         @ApiImplicitParam(name = "baseDtmnTo", value = "매출종료일자", paramType = "query"),
-        @ApiImplicitParam(name = "taskDiv", value = "업무구분", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
-        @ApiImplicitParam(name = "sellDv", value = "판매구분", paramType = "query"),
-        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
+        @ApiImplicitParam(name = "sellChnlDtl", value = "판매채널", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "sapSlpno", value = "SAP전표번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
     })
     @GetMapping("/single-payment/excel-download")
     public List<SearchSingleRes> getProductSalesSinglePaymentDetailsExcelDownload(
@@ -112,12 +120,14 @@ public class WdcbProductSalesDetailController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDtmnFrom", value = "매출시작일자", paramType = "query"),
         @ApiImplicitParam(name = "baseDtmnTo", value = "매출종료일자", paramType = "query"),
-        @ApiImplicitParam(name = "taskDiv", value = "업무구분", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
-        @ApiImplicitParam(name = "sellDv", value = "판매구분", paramType = "query"),
-        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
+        @ApiImplicitParam(name = "sellChnlDtl", value = "판매채널", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "sapSlpno", value = "SAP전표번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
     })
     @GetMapping("/rental/excel-download")
     public List<SearchRentalRes> getProductSalesRentalDetailsExcelDownload(
@@ -131,12 +141,14 @@ public class WdcbProductSalesDetailController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDtmnFrom", value = "매출시작일자", paramType = "query"),
         @ApiImplicitParam(name = "baseDtmnTo", value = "매출종료일자", paramType = "query"),
-        @ApiImplicitParam(name = "taskDiv", value = "업무구분", paramType = "query"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
-        @ApiImplicitParam(name = "sellDv", value = "판매구분", paramType = "query"),
-        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
+        @ApiImplicitParam(name = "sellChnlDtl", value = "판매채널", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "sapSlpno", value = "SAP전표번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
     })
     @GetMapping("/membership/excel-download")
     public List<SearchMembershipRes> getProductSalesMembershipDetailsExcelDownload(

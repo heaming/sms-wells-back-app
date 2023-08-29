@@ -9,7 +9,7 @@ import static com.kyowon.sms.wells.web.fee.confirm.dto.WfeeFeeSpecificationDto.*
 
 @Mapper
 public interface WfeeFeeSpecificationMapper {
-    List<SearchFeeCdRes> selectFeeCodes(String perfDt, String feeCalcUnitTpCd);
+    List<SearchFeeCdRes> selectFeeCodes(SearchReq dto);
 
     //M추진단 /플래너
     List<HashMap<String, Object>> selectMPlannerFeeSpecifications(

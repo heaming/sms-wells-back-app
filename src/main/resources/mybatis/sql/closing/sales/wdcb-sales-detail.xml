@@ -2,64 +2,97 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesDetailMapper">
     <select id="selectSalesDetailRental" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto$SearchRentalRes">
-        SELECT T1.RENTAL_RGST_COST
-             , T1.RENTAL_AMT
-             , 0 AS COL1
-             , T1.REQD_DTM
-             , 0 AS COL2
-             , T1.RENTAL_DSC_AMT
-             , 0 AS COL3
-             , 0 AS COL4
-             , T1.ISTM_AMT
-             , T1.RENTAL_PTRM
-             , '' AS COL5
-             , '' AS COL6
-             , T1.RENTAL_AMT2
-             , '' AS COL7
-             , '' AS COL8
-             , T1.RENTAL_DSC_AMT2
-             , '' AS COL9
-             , '' AS COL10
-             , T1.RENTAL_PTRM2
-             , T1.SL_DT
+        SELECT T1.RENTAL_RGST_COST --등록비용
+             , T1.DSC_AMT --등록비할인
+             , T1.CNTR_TAM  --렌탈총액
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD --리스구분
+             , T3.OJ_DTL_CNTR_NO||'-'||T3.OJ_DTL_CNTR_SN AS OJ_DTL_CNTR1 --1+1연계계약
+             , T4.OJ_DTL_CNTR_NO||'-'||T4.OJ_DTL_CNTR_SN AS OJ_DTL_CNTR2 --제휴연계계약
+             , T1.RENTAL_AMT --렌탈료1월요금
+             , T1.RENTAL_DSC_AMT  --렌탈료1할인
+             , T1.RENTAL_PTRM  --렌탈료1개월
+             , T1.RENTAL_AMT2  --렌탈료2월요금
+             , T1.RENTAL_DSC_AMT2  --렌탈료2할인
+             , T1.RENTAL_PTRM2  --렌탈료2개월
+             , T5.DUTY_USE_MCN  --의무기간(일)
+             , F_CMZ_CD_NM('TNT_WELLS', 'RENTAL_DSC_DV_CD', T2.SELL_DSC_DV_CD) AS SELL_DSC_DV_CD --할인구분
+             , F_CMZ_CD_NM('TNT_WELLS', 'RENTAL_DSC_TP_CD ', T2.SELL_DSC_TP_CD) AS SELL_DSC_TP_CD --할인유형
+             , T2.SV_PRD --관리주기(개월)
+             , T6.OJ_DTL_CNTR_NO||'-'||T6.OJ_DTL_CNTR_SN AS OJ_DTL_CNTR3 --모종계약
+             , T1.SL_RCOG_DT --매출일자
+             , T1.REQD_DTM --철거요청일자
+             , T1.CAN_DT --취소일자
           FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         WHERE 1=1
-           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-    </select>
-    
-    <select id="selectSalesDetailMembership" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto$SearchMembershipRes">
-        SELECT T1.SELL_AMT
-             , '' AS COL1
-             , '' AS COL2
-             , 0 AS COL3
-             , T1.ISTM_MCN
-             , T1.DSC_AMT
-             , '' AS COL4
-             , 0 AS COL5
-             , '' AS COL6
-             , 0 AS COL7
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         WHERE 1=1
-           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-    </select>
-    
-    <select id="selectSalesDetailSinglePayment" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto$SearchSingleRes">
-        SELECT T2.FRISU_YN
-             , T1.SELL_AMT
-             , T1.TK_AMT
-             , T1.ISTM_MCN
-             , 0 AS COL1
-             , T1.CNTR_TAM
-             , T1.ISTM_AMT
-             , 0 AS COL2
-             , T1.SUBSC_AMT
-             , T1.MM_ISTM_AMT
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         INNER JOIN TB_CBCL_SL_CNFM_BAS T2
+         INNER JOIN TB_SSCT_CNTR_DTL T2 --계약상세
             ON T1.CNTR_NO = T2.CNTR_NO
            AND T1.CNTR_SN = T2.CNTR_SN
-         WHERE 1=1
-           AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
+          LEFT JOIN TB_SSCT_CNTR_REL T3  --계약관계
+            ON T3.BASE_DTL_CNTR_NO = T1.CNTR_NO
+           AND T3.BASE_DTL_CNTR_SN = T1.CNTR_SN
+           AND T3.CNTR_UNIT_TP_CD = '020' /*계약단위 - 계약상세*/
+           AND T3.CNTR_REL_DTL_CD = '215' /*계약관계 - 1+1연계*/
+          LEFT JOIN TB_SSCT_CNTR_REL T4  --계약관계
+            ON T4.BASE_DTL_CNTR_NO = T1.CNTR_NO
+           AND T4.BASE_DTL_CNTR_SN = T1.CNTR_SN
+           AND T4.CNTR_UNIT_TP_CD = '020' /*계약단위 - 계약상세*/
+           AND T4.CNTR_REL_DTL_CD = '22L' /*계약관계 - 플래너상조제휴*/
+          LEFT JOIN TB_SSCT_RENTAL_ADN_SV_IZ T5 --렌탈부가서비스내역
+            ON T5.CNTR_NO = T1.CNTR_NO
+           AND T5.CNTR_SN = T1.CNTR_SN
+          LEFT JOIN TB_SSCT_CNTR_REL T6  --계약관계
+            ON T6.BASE_DTL_CNTR_NO = T1.CNTR_NO
+           AND T6.BASE_DTL_CNTR_SN = T1.CNTR_SN
+           AND T6.CNTR_UNIT_TP_CD = '020' /*계약단위 - 계약상세*/
+           AND T6.CNTR_REL_DTL_CD = '216' /*계약관계 - 모종결합*/
+         WHERE T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.SL_CL_YM = SUBSTR(#{slRcogDt},1,6)
     </select>
 
+    <select id="selectSalesDetailMembership" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto$SearchMembershipRes">
+        SELECT T2.SELL_AMT --월회비
+             , T2.STPL_PTRM --약정개월
+             , T2.SV_PRD AS SV_PRD1 --관리주기
+             , F_CMZ_CD_NM('TNT_WELLS', 'RENTAL_DSC_TP_CD ', T2.SELL_DSC_TP_CD) AS SELL_DSC_TP_CD --할인유형
+             , T2.DSC_AMT --할인금액
+             , T1.J_DT --가입일자
+             , T1.MSH_WDWAL_DT --탈퇴일자
+             , T2.SPP_DUEDT --방문일자
+             , T3.VST_NMN_N --방문차월
+             , T2.SV_PRD AS SV_PRD2 --방문주기
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2 --계약상세
+            ON T1.CNTR_NO = T2.CNTR_NO
+           AND T1.CNTR_SN = T2.CNTR_SN
+          LEFT JOIN (SELECT ROW_NUMBER() OVER(PARTITION BY ST.CNTR_NO,ST.CNTR_SN ORDER BY ST.WK_SN DESC) AS RN
+                          , ST.CNTR_NO
+                          , ST.CNTR_SN
+                          , ST.VST_NMN_N
+                       FROM TB_SVPD_CST_SV_RGBSPR_IZ ST) T3  --고객서비스정기BS주기내역
+            ON T3.CNTR_NO = T1.CNTR_NO
+           AND T3.CNTR_SN = T1.CNTR_SN
+           AND T3.RN = 1
+         WHERE T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.SL_CL_YM = SUBSTR(#{slRcogDt},1,6)
+    </select>
+
+    <select id="selectSalesDetailSinglePayment" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto$SearchSingleRes">
+        SELECT T2.FRISU_BFSVC_PTRM_N --무상멤버십
+             , T2.FRISU_AS_PTRM_N AS FRISU_AS_PTRM_N1 --무상A/S
+             , T2.FRISU_AS_PTRM_N AS FRISU_AS_PTRM_N2 --유상멤버십
+             , T1.SELL_AMT --판매금액
+             , T1.FNL_AMT --계약총액
+             , T1.CNTR_AMT AS CNTR_AMT1 --청약금
+             , T1.CNTR_AMT AS CNTR_AMT2 --인수금
+             , T1.ISTM_PCAM_AMT  --할부금액
+             , T1.MM_ISTM_AMT --월할부금
+             , T1.ISTM_MCN --할부개월
+          FROM TB_SSCT_CNTR_DTL T1 --계약상세
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL T2 --계약WELLS상세
+            ON T1.CNTR_NO = T2.CNTR_NO
+           AND T1.CNTR_SN = T2.CNTR_SN
+         WHERE T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+    </select>
 </mapper>

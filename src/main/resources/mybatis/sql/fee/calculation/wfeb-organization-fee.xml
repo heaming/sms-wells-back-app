@@ -504,7 +504,7 @@
                          THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T7.CV_DT,1,6),'YYYYMM')) + 1
                     ELSE 0
                      END AS MNGR5_ATC /*매니저개시-개시차월*/
-             , NVL(T6.OPNG_CD,'') AS MNGR6_ATC /*매니저개시-정착지급유형*/
+             , NVL(T6.OPNG_CD,'999') AS MNGR6_ATC /*매니저개시-정착지급유형*/
              , '0' AS MNGR7_ATC /*매니저개시-5일배정수 추후 재확인 필요*/
              , NVL(T8.MNGT_CNT,0) AS INDV1_BS_ATC /*개인BS-배정건수*/
              , NVL(T8.VST_CNT,0) AS INDV2_BS_ATC /*개인BS-완료건수*/
@@ -578,14 +578,14 @@
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4 /*+1 month M조직 여부*/
             ON T1.PRTNR_NO = T4.PRTNR_NO
            AND T1.OG_TP_CD = T4.OG_TP_CD
-           AND T4.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+           AND T4.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
            AND T4.PRTNR_NO = #{prtnrNo}
        </if>
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T5  /*+1 month P조직 이동*/
             ON T1.PRTNR_NO = T5.PRTNR_NO
            AND T5.OG_TP_CD = 'W01'
-           AND T5.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+           AND T5.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
            AND T5.PRTNR_NO = #{prtnrNo}
        </if>
@@ -1013,14 +1013,14 @@
          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4 /*+1 month M조직 여부*/
            ON T1.PRTNR_NO = T4.PRTNR_NO
           AND T1.OG_TP_CD = T4.OG_TP_CD
-          AND T4.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+          AND T4.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
      <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
           AND T4.PRTNR_NO = #{prtnrNo}
      </if>
          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T5  /*+1 month P조직 이동*/
            ON T1.PRTNR_NO = T5.PRTNR_NO
           AND T5.OG_TP_CD = 'W01'
-          AND T5.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+          AND T5.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
      <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
           AND T5.PRTNR_NO = #{prtnrNo}
      </if>
@@ -1414,7 +1414,7 @@
              , T.EDU106      /*수석플래너교육정착*/
              , T.AKDCHA		 /*수석플래너 교육 차월*/
              , T.EDU017      /*수석플래너교육실전*/
-             , '0' AS OJT_CNT /*OJT일수 AB2610P 알수없음 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
+             , T.OJTCNT      /*OJT일수 */
              , T.AKDSYM		 /*등록기준월*/
              , T.AKDENM		 /*최초업무등록월*/
              , T.AKDJEM		 /*재등록월*/
@@ -1502,9 +1502,10 @@
                       , CASE WHEN G.EDUC_CRSE_NO = '112' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU112
                       , CASE WHEN G.EDUC_CRSE_NO = '113' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU113
                       , CASE WHEN G.EDUC_CRSE_NO = '129' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU129
+                      , CASE WHEN G.EDUC_CRSE_NO = '98' THEN 1 END AS OJTCNT
                       , NVL(H.EDUC_CRSE_CRT_BASE_YM,'') AS EDU106
                       , CASE WHEN NVL(H.EDUC_CRSE_CRT_BASE_YM,'0') != '0'
-                                  THEN TO_CHAR(ADD_MONTHS(H.EDUC_CRSE_CRT_BASE_YM||'01', '1' ),'YYYYMM' )
+                                  THEN TO_CHAR(ADD_MONTHS(TO_DATE(H.EDUC_CRSE_CRT_BASE_YM, 'YYYYMM'), 1),'YYYYMM' )
                         END AS AKDCHA		/*수석플래너 교육 차월*/
                       , TO_CHAR(TO_DATE(A.CNTR_DT),'YYYY-MM') AS AKDSYM
                       , TO_CHAR(TO_DATE(A.FST_CNTR_DT),'YYYY-MM') AS AKDENM
@@ -1588,11 +1589,11 @@
                    LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ B /*+1 month M조직 여부*/
                      ON A.PRTNR_NO = B.PRTNR_NO
                     AND A.OG_TP_CD = B.OG_TP_CD
-                    AND B.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+                    AND B.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
                    LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ C  /*+1 month P조직 이동*/
                      ON A.PRTNR_NO = C.PRTNR_NO
                     AND C.OG_TP_CD = 'W01'
-                    AND C.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+                    AND C.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
                    LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL PM
                      ON A.PRTNR_NO = PM.PRTNR_NO
                     AND A.OG_TP_CD = PM.OG_TP_CD
@@ -1775,7 +1776,7 @@
                      ON A.BASE_YM = G.EDUC_CRSE_CRT_BASE_YM
                     AND A.PRTNR_NO = G.PRTNR_NO
                     AND A.OG_TP_CD = G.OG_TP_CD
-                    AND G.EDUC_CRSE_NO IN ('11','17','96','97','112','113','129')
+                    AND G.EDUC_CRSE_NO IN ('11','17','96','97','112','113','129','98')
                     AND G.EDUC_CPC_ACKMT_YN = 'Y'
                    LEFT OUTER JOIN ( SELECT PRTNR_NO
                                           , MAX(EDUC_CRSE_CRT_BASE_YM) AS EDUC_CRSE_CRT_BASE_YM
@@ -1826,7 +1827,7 @@
                )T
     </select>
 
-    <select id='selectManagerBranchBfManagerFees'
+    <select id='selectManagerBranchManagerBeforeFees'
             resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto$SearchMngerBrmgrBfRes">
         SELECT T.OG_CD AS OG_NM /*소속*/
              , T.PRTNR_NO  /*번호*/
@@ -1835,15 +1836,8 @@
              , T.AKCUIL     /*미팅일수*/
              , T.AKDMI3 		/*  자격 수수료월    */
              , T.AKDMI32      /*  자격M+1    */
-             , CASE WHEN SUBSTR(T.OG_ID,0,1) != 'P' THEN CASE WHEN T.EDU096 != '' AND T.EDU097 != '' THEN T.EDU097 ELSE '' END
-                    WHEN SUBSTR(T.OG_ID,0,1) = 'P'  THEN CASE WHEN T.EDU112 != '' AND T.EDU113 != '' THEN T.EDU113 ELSE '' END
-                    ELSE ''
-               END EDUSTR /* 스타트업 매니저 */
-             , T.EDU011
-             , T.EDU129
              , T.EDU106
              , T.AKDCHA		/*수석플래너 교육 차월   AK0600P AKDCHA 데이터 미정으로 임시처리*/
-             , T.EDU017
              , T.EDU135
              , T.AKDSYM		/*등록기준월*/
              , T.AKDENM		/*최초업무등록월*/
@@ -1929,16 +1923,9 @@
                              WHEN C.PRTNR_NO IS NOT NULL THEN 'M->P'
                              WHEN B.PRTNR_NO IS NULL AND C.PRTNR_NO IS NULL THEN '해약'
                         END AS AKDMI32
-                      , CASE WHEN G.EDUC_CRSE_NO = '11' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU011
-                      , CASE WHEN G.EDUC_CRSE_NO = '129' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU129
                       , CASE WHEN G.EDUC_CRSE_NO IN ('100','106') THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU106
                       , '' AS AKDCHA		/*수석플래너 교육 차월   AK0600P AKDCHA 데이터 미정으로 임시처리*/
-                      , CASE WHEN G.EDUC_CRSE_NO = '17' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU017
                       , CASE WHEN G.EDUC_CRSE_NO = '135' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU135
-                      , CASE WHEN G.EDUC_CRSE_NO = '96' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU096
-                      , CASE WHEN G.EDUC_CRSE_NO = '97' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU097
-                      , CASE WHEN G.EDUC_CRSE_NO = '112' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU112
-                      , CASE WHEN G.EDUC_CRSE_NO = '113' THEN G.EDUC_CRSE_CRT_BASE_YM END AS EDU113
                       , TO_CHAR(TO_DATE(A.CNTR_DT),'YYYY-MM') AS AKDSYM
                       , TO_CHAR(TO_DATE(A.FST_CNTR_DT),'YYYY-MM') AS AKDENM
                       , TO_CHAR(TO_DATE(A.RCNTR_DT),'YYYY-MM') AS AKDJEM
@@ -2024,11 +2011,11 @@
                LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ B /*+1 month M조직 여부*/
                  ON A.PRTNR_NO = B.PRTNR_NO
                 AND A.OG_TP_CD = B.OG_TP_CD
-                AND B.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+                AND B.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
                LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ C  /*+1 month P조직 이동*/
                  ON A.PRTNR_NO = C.PRTNR_NO
                 AND C.OG_TP_CD = 'W01'
-                AND C.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+                AND C.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
                LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL PM
                  ON A.PRTNR_NO = PM.PRTNR_NO
                 AND A.OG_TP_CD = PM.OG_TP_CD
@@ -2212,7 +2199,7 @@
                  ON A.BASE_YM = G.EDUC_CRSE_CRT_BASE_YM
                 AND A.PRTNR_NO = G.PRTNR_NO
                 AND A.OG_TP_CD = G.OG_TP_CD
-                AND G.EDUC_CRSE_NO IN ('11','129','100','106','17','135','96','97','112','113')
+                AND G.EDUC_CRSE_NO IN ('100','106','135')
                 AND G.EDUC_CPC_ACKMT_YN = 'Y'
               WHERE A.BASE_YM = #{perfYm}
                 AND A.OG_TP_CD = 'W02'
@@ -2276,7 +2263,7 @@
                          THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T7.CV_DT,1,6),'YYYYMM')) + 1
                     ELSE 0
                END AS MNGR5_ATC /*매니저개시-개시차월*/
-             , NVL(T6.OPNG_CD,'') AS MNGR6_ATC /*매니저개시-정착지급유형*/
+             , NVL(T6.OPNG_CD,'999') AS MNGR6_ATC /*매니저개시-정착지급유형*/
              , '0' AS MNGR7_ATC /*매니저개시-5일배정수 추후 재확인 필요*/
              , NVL(T8.MNGT_CNT,0) AS INDV1_BS_ATC /*개인BS-배정건수*/
              , NVL(T8.VST_CNT,0) AS INDV2_BS_ATC /*개인BS-완료건수*/
@@ -2415,14 +2402,14 @@
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4 /*+1 month M조직 여부*/
             ON T1.PRTNR_NO = T4.PRTNR_NO
            AND T1.OG_TP_CD = T4.OG_TP_CD
-           AND T4.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+           AND T4.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
       <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
            AND T4.PRTNR_NO = #{prtnrNo}
       </if>
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T5  /*+1 month P조직 이동*/
             ON T1.PRTNR_NO = T5.PRTNR_NO
            AND T5.OG_TP_CD = 'W01'
-           AND T5.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+           AND T5.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
       <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
            AND T5.PRTNR_NO = #{prtnrNo}
       </if>
@@ -2919,8 +2906,8 @@
        </if>
     </select>
 
-    <select id='selectManagerBfTotalFees'
-            resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto$SearchMngerBfTotalRes">
+    <select id='selectManagerTotalBeforeFees'
+            resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto$SearchMngerTotalBfRes">
         SELECT T.OG_CD AS OG_NM /*소속*/
              , T.PRTNR_NO  /*번호*/
              , T.PRTNR_KNM  /*성명*/
@@ -3127,11 +3114,11 @@
                  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ B /*+1 month M조직 여부*/
                    ON A.PRTNR_NO = B.PRTNR_NO
                   AND A.OG_TP_CD = B.OG_TP_CD
-                  AND B.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+                  AND B.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
                  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ C  /*+1 month P조직 이동*/
                    ON A.PRTNR_NO = C.PRTNR_NO
                   AND C.OG_TP_CD = 'W01'
-                  AND C.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+                  AND C.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
                  LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL PM
                    ON A.PRTNR_NO = PM.PRTNR_NO
                   AND A.OG_TP_CD = PM.OG_TP_CD
@@ -3322,7 +3309,7 @@
               <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                   AND A.PRTNR_NO = #{prtnrNo}
               </if>
-                  AND ( A.PSTN_DV_CD = 7 OR A.PSTN_DV_CD = 15 )
+                  AND A.PSTN_DV_CD IN ('7', '15')
                )T
     </select>
 
@@ -3353,7 +3340,7 @@
              , SUBSTR(A.CLTN_DT,1,6) AS CLTN_DT /*업무해약월*/
              , SUBSTR(A.PRFMT_DT,1,6) AS AKSTYM  /*승진월*/
              , A.FST_CNTR_DT AS LCECAYMD /*웰스매니저 개시일 LC1700P 정리되지 않아 임시처리 */
-             , '0' AS B_AKSD05 /* MM.B_AKSD05 임시처리 정착수수료 = 이전 정착수수료*/
+             , MM.B_AKSD05 /* 정착수수료 = 이전 정착수수료*/
              , NVL(TRUNC(B.AKCDA0,-1),0) AS AKCDA0  /* 가전    */
              , NVL(TRUNC(B.AKCDA1,-1),0) AS AKCDA1  /* 가전외    */
              , NVL(TRUNC(B.AKCDA2,-1),0) AS AKCDA2  /* 기변    */
@@ -3517,7 +3504,7 @@
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ F
             ON A.PRTNR_NO = F.PRTNR_NO
            AND A.OG_TP_CD = F.OG_TP_CD
-           AND F.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+           AND F.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
           LEFT OUTER JOIN ( SELECT PRTNR_NO
                                  , MAX(IS11EDU) AS IS11EDU
                                  , MAX(IS17EDU) AS IS17EDU
@@ -3533,6 +3520,36 @@
                              GROUP BY PRTNR_NO
                           )G
             ON A.PRTNR_NO = G.PRTNR_NO
+          LEFT OUTER JOIN ( SELECT PRTNR_NO
+                                 , NVL(SUM(B_AKSD05),0) AS B_AKSD05
+                              FROM ( SELECT PRTNR_NO
+                                          , SUM(FEE_ATC_VAL) AS B_AKSD05  /* P조직 기준일 이전수수료 */
+                                       FROM TB_FEAM_FEE_DSB_DTL_IZ
+                                      WHERE DSB_YM &lt; #{perfYm}
+                                        AND OG_TP_CD = 'W01' /*P조직*/
+                                        AND FEE_TCNT_DV_CD = '02'  /*차수구분*/
+                                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                        AND PRTNR_NO = #{prtnrNo}
+                                   </if>
+                                        AND FEE_CD IN ('W010005', 'W010105')
+                                      GROUP BY PRTNR_NO
+                                      UNION ALL
+                                     SELECT PRTNR_NO
+                                          , SUM(FEE_ATC_VAL) AS B_AKSD05  /* M조직 기준일 이전수수료 */
+                                       FROM TB_FEAM_FEE_DSB_DTL_IZ
+                                      WHERE DSB_YM &lt; #{perfYm}
+                                        AND DSB_YM &gt;= '201904'
+                                        AND OG_TP_CD = 'W02' /*M조직*/
+                                        AND FEE_TCNT_DV_CD = '02'  /*차수구분*/
+                                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                        AND PRTNR_NO = #{prtnrNo}
+                                   </if>
+                                        AND FEE_CD IN ('W020080', 'W020081', 'W020082')
+                                      GROUP BY PRTNR_NO
+                                   )
+                             GROUP BY PRTNR_NO
+                          )MM
+            ON A.PRTNR_NO = MM.PRTNR_NO
          WHERE A.BASE_YM = #{perfYm}
            AND A.OG_TP_CD = 'W01' /*P조직*/
        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
@@ -3816,7 +3833,7 @@
         LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ F
           ON A.PRTNR_NO = F.PRTNR_NO
          AND A.OG_TP_CD = F.OG_TP_CD
-         AND F.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+         AND F.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
         LEFT OUTER JOIN TB_PSCA_MCPTN_EDUC_IZ G
           ON A.BASE_YM = G.EDUC_CRSE_CRT_BASE_YM
          AND A.PRTNR_NO = G.PRTNR_NO
@@ -4087,7 +4104,7 @@
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ F
             ON A.PRTNR_NO = F.PRTNR_NO
            AND A.OG_TP_CD = F.OG_TP_CD
-           AND F.BASE_YM = TO_CHAR(ADD_MONTHS(#{perfYm}||'01', '1' ),'YYYYMM' )
+           AND F.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
           LEFT OUTER JOIN ( SELECT M.PRTNR_NO
                                  , SUM(RUNCNT) AS RUNCNT
                                  , SUM(GADCNT) AS GADCNT
