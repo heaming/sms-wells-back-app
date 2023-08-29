@@ -40,6 +40,8 @@ public class WsnbInstallationHpcallFwService {
     @Transactional
     public int sendInstallationHpcallFws(Map<String, String> map) throws Exception {
 
+        log.debug("############### sendInstallationHpcallFws ###############");
+
         int processCount = 0;
         String callbackValue = configurationService.getConfigurationValue("CFG_SNB_WELLS_CST_CNR_TNO");
         String nowDate = DateUtil.getNowDayString();
