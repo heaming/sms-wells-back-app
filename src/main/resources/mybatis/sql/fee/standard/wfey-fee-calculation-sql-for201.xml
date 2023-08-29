@@ -81,7 +81,7 @@
                                    WHEN NVL(E.PERF_VAL, 0) >= 2 AND NVL(C.PERF_VAL, 0) <![CDATA[<]]> 1 THEN 'H' -- 2건 이상
                                    WHEN NVL(E.PERF_VAL, 0) >= 2 AND NVL(C.PERF_VAL, 0) >= 1 THEN 'I' -- 한칸 하위
                                    ELSE 'I' END                                                                              AS TXT_BIGO
-                             , CASE WHEN MONTHS_BETWEEN(TO_DATE(A.BASE_YM||'01','YYYYMMDD'),TO_DATE(NVL(F.STRTDT,A.BASE_YM||'01'),'YYYYMMDD')) + 1 <![CDATA[<= 6]]> THEN  1
+                             , CASE WHEN CEIL(MONTHS_BETWEEN(TO_DATE(A.BASE_YM||'01','YYYYMMDD'),TO_DATE(NVL(F.STRTDT,A.BASE_YM||'01'),'YYYYMMDD'))) + 1 <![CDATA[<= 6]]> THEN  1
                                    ELSE (CASE
                                              WHEN NVL(B.PERF_VAL, 0) >= 2 THEN 1.1
                                              WHEN NVL(B.PERF_VAL, 0) >= 0 THEN 1
@@ -121,23 +121,25 @@
                                                    AND A.PRTNR_NO = E.PRTNR_NO
                                                    AND 'W02P00002' = E.PERF_ATC_CD -- 고정 판매건수
                                                    AND '0' = E.PERF_DV_CD -- 고정 개인실적
-                                LEFT OUTER JOIN (SELECT A.og_tp_Cd,A.prtnr_no ,NVL(B.STRTDT,A.STRTDT)  AS STRTDT
+                                LEFT OUTER JOIN (SELECT A.og_tp_Cd,A.prtnr_no ,CASE WHEN A.CV_DT IS NOT NULL THEN NVL(B.STRTDT,A.STRTDT) ELSE A.STRTDT END  AS STRTDT
                                                    FROM WSMDBS.TB_OGPS_PLAR_QLF_CH_IZ A
                                                    LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ B
                                                                 ON  A.og_tp_Cd  = B.og_tp_Cd
                                                                AND  A.prtnr_no  = B.prtnr_no
                                                                AND  A.QLF_DV_CD = 3           /* BS프리매니저에서 웰스플래너로 바뀐 분들  */
                                                                AND  B.QLF_DV_CD = 6
-                                                               AND  TO_CHAR(ADD_MONTHS( TO_DATE(A.STRTDT,'YYYYMMDD'),-1),'YYYYMM') = SUBSTR(B.ENDDT,1,6)
+                                                               AND  A.STRTDT = TO_CHAR(TO_DATE(B.ENDDT,'YYYYMMDD') + 1,'YYYYMMDD')
+                                                               AND  B.ENDDT != '99991231'
                                                   WHERE 1 = 1
                                                    AND A.og_tp_Cd = #{ogTpCd}                               -- 변수
                                                    AND #{baseYm}||'01'  BETWEEN A.STRTDT AND A.ENDDT     -- 변수  기준년월 BASE_YM  = 202305
-                                                ) F
+                                                   ) F
 					                            ON  A.OG_TP_CD = F.OG_TP_CD AND  A.PRTNR_NO = F.PRTNR_NO
                          WHERE 1 = 1
                            AND A.BASE_YM = #{baseYm} -- 변수
                            AND A.OG_TP_CD = #{ogTpCd} -- 변수
-                           AND A.PSTN_DV_CD = '15') AA) AAA
+                           AND A.PSTN_DV_CD = '15'
+                           AND A.PERF_EXCD_OJ_YN = 'N') AA) AAA
          WHERE AAA.FEE_CALC_AMT > 0
     </insert>
 
