@@ -51,7 +51,9 @@
                            , CD.ISTM_MCN AS ISTM
                            , CB.CNTR_CNFM_DTM AS CNTR_DATE
                            , TO_CHAR(TO_DATE(CD.CNTR_PD_STRTDT),'YYYYMM') AS SL_DT
-                           , CB.CNTR_CAN_DTM AS CAN_DT
+                           , CASE WHEN CD.CNTR_DTL_STAT_CD IN ('301','303') THEN CD.CNTR_PD_ENDDT
+                                  ELSE '-'
+                             END AS CAN_DT AS CAN_DT
                            , CASE WHEN CD.SELL_TP_CD = '2' THEN CD.SELL_AMT END AS RTLFE  /* 계약유형이 렌탈일때만 렌탈료 */
                            , 'N' AS RSTL_YN
                            , CD.STPL_PTRM
@@ -80,12 +82,6 @@
                     <if test='@MybatisUtils@equals(divCd, "03")'>   /* 매출 */
                          AND CD.CNTR_PD_STRTDT BETWEEN #{strtDt} AND #{endDt}  /* 매출 확정일자 */
                        WHERE 1=1
-                    </if>
-                    <if test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
-                         AND CB.CNTR_CAN_DTM &gt;= #{cancStrtDt}                /* 계약취소 시작일자 */
-                    </if>
-                    <if test='@MybatisUtils@isNotEmpty(cancEndDt)'>
-                         AND CB.CNTR_CAN_DTM &lt;= #{cancEndDt}  /* 계약취소 종료일자 */
                     </if>
                     <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                          AND CB.SELL_PRTNR_NO  = #{prtnrNo}
@@ -126,12 +122,6 @@
                        INNER JOIN TB_SSCT_RENTAL_RSTL_IZ RI /* 재약정내역 테이블 */
                           ON CD.CNTR_NO = RI.CNTR_NO
                          AND CD.CNTR_SN = RI.CNTR_SN
-                         <if test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
-                         AND RI.STPL_CAN_DTM &gt;= #{cancStrtDt}                /* 약정취소 시작일자 */
-                         </if>
-                         <if test='@MybatisUtils@isNotEmpty(cancEndDt)'>
-                         AND RI.STPL_CAN_DTM &lt;= #{cancEndDt}  /* 약정취소 종료일자 */
-                         </if>
                          <if test='@MybatisUtils@equals(divCd, "01") or @MybatisUtils@equals(divCd, "02")'>
                          AND RI.STPL_STRTDT BETWEEN #{strtDt} AND  #{endDt} /* 약정 시작일자*/
                        WHERE 1 = 1
@@ -157,8 +147,14 @@
            AND T1.OG_TP_CD = T2.OG_TP_CD
          INNER JOIN TB_PDBS_PD_BAS T3
             ON T2.PRDT_CD = T3.PD_CD
+      <if test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
+           AND T2.CAN_DT &gt;= #{cancStrtDt}                /* 약정취소 시작일자 */
+      </if>
+      <if test='@MybatisUtils@isNotEmpty(cancEndDt)'>
+           AND T2.CAN_DT &lt;= #{cancEndDt}  /* 약정취소 종료일자 */
+      </if>
       <if test='@MybatisUtils@isNotEmpty(pdStrtCd)'>
-           AND T3.PD_CD &gt;= #{pdStrtCd}
+          AND T3.PD_CD &gt;= #{pdStrtCd}
       </if>
       <if test='@MybatisUtils@isNotEmpty(pdEndCd)'>
            AND T3.PD_CD &lt;= #{pdEndCd}
@@ -192,7 +188,9 @@
     </select>
 
     <select id='selectAggreateNetOrders' resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaNetOrderDto$SearchRes">
-        SELECT T4.CD_CNTN AS SELL_OG
+        SELECT CASE WHEN T1.OG_TP_CD IN ('W01', 'W02', 'W03', 'W04', 'W05') THEN T8.CD_CNTN
+                    ELSE '기타'
+               END AS SELL_OG
              , T2.OG_CD AS BLG
              , T1.PRTNR_NO
              , T2.PRTNR_KNM
@@ -210,7 +208,9 @@
              , T1.STPL_PTRM_MCN AS STPL_MCNT
              , SUBSTR(T4.CNTR_CNFM_DTM,0,6) AS CNTR_DATE
              , T1.SL_DT
-             , T1.CAN_DT
+             , CASE WHEN T5.CNTR_DTL_STAT_CD IN ('301','303') THEN T5.CNTR_PD_ENDDT
+                    ELSE '-'
+               END AS CAN_DT
              , T6.REQD_DT AS DEM_DT
              , CASE WHEN T1.SELL_TP_CD = '2' THEN T5.SELL_AMT END AS RTLFE  /*계약유형이 렌탈일때만 렌탈료*/
           FROM TB_FEAM_WELS_NRCTR_MM_CL T1
@@ -231,14 +231,10 @@
           LEFT OUTER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS T7
             ON T1.PD_CD = T7.BASE_PD_CD
            AND #{perfYm} BETWEEN T7.APY_STRT_YM AND T7.APY_END_YM
-          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3
-            ON T3.CNTR_NO = T1.CNTR_NO
-           AND T3.CNTR_SN = T1.CNTR_SN
-           AND T3.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN T_CMZ_CD_D T4
-            ON T1.OG_TP_CD = T4.CD_VLD_VAL
-           AND T4.CD_ID = 'OG_TP_CD'
-           AND T4.TENANT_ID = #{session.tenantId}
+          LEFT OUTER JOIN T_CMZ_CD_D T8
+            ON T1.OG_TP_CD = T8.CD_VLD_VAL
+           AND T8.CD_ID = 'OG_TP_CD'
+           AND T8.TENANT_ID = #{session.tenantId}
          WHERE T1.BASE_YM = #{perfYm} /* 기준년월 */
            AND T1.FEE_TCNT_DV_CD = #{tcntDvCd} /* 차수 */
            AND T1.CNTR_PERF_CRT_DV_CD = '01' /* 순주문 */
@@ -319,12 +315,21 @@
                                              END AS ACSR_CNT
                                            , CASE WHEN T2.FEE_PDCT_TP_CD1 IS NULL AND T2.FEE_PDCT_TP_CD2 IS NULL THEN 1 END AS NOPD_CNT
                                         FROM TB_FEAM_WELS_NRCTR_MM_CL T1
+                                       INNER JOIN TB_OGBS_MM_PRTNR_IZ T4 /* 월파트너 */
+                                          ON T1.BASE_YM = T4.BASE_YM
+                                         AND T1.PRTNR_NO = T4.PRTNR_NO
+                                         AND T1.OG_TP_CD = T4.OG_TP_CD
                                         LEFT OUTER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS T2
                                           ON T1.PD_CD = T2.BASE_PD_CD
                                          AND #{perfYm} BETWEEN T2.APY_STRT_YM AND T2.APY_END_YM
-                                        LEFT OUTER JOIN TB_SSCT_RENTAL_RSTL_IZ T3
-                                          ON T1.CNTR_NO = T3.CNTR_NO
-                                         AND T1.CNTR_SN = T3.CNTR_SN
+                                        LEFT OUTER JOIN LATERAL ( SELECT A.CNTR_NO
+                                                                       , RANK() OVER (PARTITION BY (A.CNTR_NO) ORDER BY A.STPL_TN DESC) AS RK_NUM
+                                                                    FROM TB_SSCT_RENTAL_RSTL_IZ A
+                                                                   WHERE A.CNTR_NO = T1.CNTR_NO
+                                                                     AND A.CNTR_SN = T1.CNTR_SN
+                                                                )T3
+                                          ON 1=1
+                                         AND T3.RK_NUM = 1
                                        WHERE T1.BASE_YM = #{perfYm} /* 기준년월 */
                                          AND T1.FEE_TCNT_DV_CD = #{tcntDvCd} /* 차수 */
                                          AND T1.CNTR_PERF_CRT_DV_CD = '01' /* 순주문 */
