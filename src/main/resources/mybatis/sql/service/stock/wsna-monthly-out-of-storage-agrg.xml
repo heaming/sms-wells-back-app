@@ -44,12 +44,11 @@
              <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
               AND P1.PD_CD = #{itmPdCd}  /* 품목종류 */
              </if>
-             AND P1.PD_CD = 'WM01100103'
-             /* AND P1.PD_PRP_VAL01 || P1.PD_PRP_VAL31= '40000812020' */
+             /* AND P1.PD_CD = 'WM01100103' */
+             /* AND P1.PD_PRP_VAL01 || P1.PD_PRP_VAL31= '49220300025' */
         )
         , WARE_INF AS
-        (
-            /* 창고 */
+        (   /* 창고 */
             SELECT S1.APY_YM
                  , S1.WARE_NO
                  , S1.WARE_NM
@@ -60,31 +59,30 @@
                  , S1.STD_WARE_USE_YN    --표준창고사용여부
             FROM WSMDBS.TB_SVST_MCBY_WARE_IZ S1 /*월별창고내역*/
             WHERE 1 = 1
-              AND S1.DTA_DL_YN = 'N'
-              /* 확인일자 */
-              AND S1.APY_YM = SUBSTR(#{startDt},1,6)
-              <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
-              AND S1.WARE_DV_CD = #{wareDvCd}  /* 창고구분*/
-              </if>
-              <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
-              AND S1.WARE_DTL_DV_CD = #{wareDtlDvCd} /* 창고상세구분 */
-                  <if test="@MybatisUtils@isNotEmpty(wareNoM)">
-                      <choose>
-                        <when test='@MybatisUtils@equals(wareDtlDvCd, "10") or @MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "30")'>
-                        AND S1.WARE_NO = #{wareNoM} /* 조직창고 */
-                        </when>
-                        <otherwise>
-                        AND (S1.HGR_WARE_NO = #{wareNoM} OR S1.WARE_NO = #{wareNoM})  /* 개인창고 */
-                        </otherwise>
-                      </choose>
-                  </if>
-              </if>
-              <if test="@MybatisUtils@isNotEmpty(wareNoD)">
-              AND S1.WARE_NO = #{wareNoD}  /* 개인창고 */
-              </if>
-              <if test="@MybatisUtils@isNotEmpty(wareUseYn)">
-              AND S1.WARE_USE_YN = #{wareUseYn}   /* 창고사용여부*/
-              </if>
+             AND S1.DTA_DL_YN = 'N'
+             AND S1.APY_YM = SUBSTR(#{startDt},1,6)
+             <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
+             AND S1.WARE_DV_CD = #{wareDvCd}  /* 창고구분*/
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
+             AND S1.WARE_DTL_DV_CD = #{wareDtlDvCd} /* 창고상세구분 */
+               <if test="@MybatisUtils@isNotEmpty(wareNoM)">
+                 <choose>
+                  <when test='@MybatisUtils@equals(wareDtlDvCd, "10") or @MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "30")'>
+                  AND S1.WARE_NO = #{wareNoM} /* 조직창고 */
+                  </when>
+                  <otherwise>
+                  AND (S1.HGR_WARE_NO = #{wareNoM} OR S1.WARE_NO = #{wareNoM})  /* 개인창고 */
+                  </otherwise>
+                 </choose>
+               </if>
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(wareNoD)">
+             AND S1.WARE_NO = #{wareNoD}  /* 개인창고 */
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(wareUseYn)">
+             AND S1.WARE_USE_YN = #{wareUseYn}   /* 창고사용여부*/
+             </if>
         )
         , OSTR_GD_QTY AS
         (   /*작업출고+기타출고*/
@@ -95,18 +93,18 @@
                  , V2.FRISU_AS_QTY
                  , V2.RECAP_AS_QTY
                  , V2.BFSVC_QTY
+                 , V2.AS_QTY
                  , V2.ETC_QTY
 				 , (
-                    CASE WHEN #{itmKndCd} IN ('4') /* 상품(4) */
+                    CASE WHEN #{itmKndCd} IN ('4') /* 상품(4) : 매출 + 교체(AS)+ 기타(회사설치) */
                          THEN NVL(V2.IST_QTY,0) +
-                              NVL(V2.BFSVC_QTY,0) +
+                              NVL(V2.AS_QTY,0) +
                               NVL(V2.CO_IST_QTY,0)
-                         WHEN #{itmKndCd} IN ('5','9')  /* 필터(5), 판매사은품(9) */
+                         WHEN #{itmKndCd} IN ('5','9')  /* 필터(5), 판매사은품(9) : 매출 + BS+ AS  */
                          THEN NVL(V2.IST_QTY,0) +
                               NVL(V2.BFSVC_QTY,0) +
-                              NVL(V2.FRISU_AS_QTY,0) +
-                              NVL(V2.RECAP_AS_QTY,0)
-                         WHEN #{itmKndCd} IN ('6','7')  /* A/S자재(6), A/S 소모품(7)*/
+                              NVL(V2.AS_QTY,0)
+                         WHEN #{itmKndCd} IN ('6','7')  /* A/S자재(6), A/S 소모품(7): 매출 + BS+AS(유상)+AS(무상)+기타 */
                          THEN NVL(V2.IST_QTY,0) +
                               NVL(V2.BFSVC_QTY,0) +
                               NVL(V2.FRISU_AS_QTY,0) +
@@ -120,8 +118,9 @@
                  , SUM(V2.FRISU_AS_QTY) OVER(PARTITION BY V2.ITM_PD_CD ORDER BY V2.ITM_PD_CD) AS TOT_FRISU_AS_QTY
                  , SUM(V2.RECAP_AS_QTY) OVER(PARTITION BY V2.ITM_PD_CD ORDER BY V2.ITM_PD_CD) AS TOT_RECAP_AS_QTY
                  , SUM(V2.BFSVC_QTY) OVER(PARTITION BY V2.ITM_PD_CD ORDER BY V2.ITM_PD_CD) AS TOT_BFSVC_QTY
+                 , SUM(V2.AS_QTY) OVER(PARTITION BY V2.ITM_PD_CD ORDER BY V2.ITM_PD_CD) AS TOT_AS_QTY
                  , SUM(V2.ETC_QTY) OVER(PARTITION BY V2.ITM_PD_CD ORDER BY V2.ITM_PD_CD) AS TOT_ETC_QTY
-              FROM (
+            FROM (
                     SELECT V1.ITM_PD_CD
                          , V1.FNL_VST_FSH_YM
                          , NVL(SUM(V1.IST_QTY), 0) AS IST_QTY
@@ -129,17 +128,19 @@
                          , NVL(SUM(V1.FRISU_AS_QTY), 0) AS FRISU_AS_QTY
                          , NVL(SUM(V1.RECAP_AS_QTY), 0) AS RECAP_AS_QTY
                          , NVL(SUM(V1.BFSVC_QTY), 0) AS BFSVC_QTY
+                         , NVL(SUM(V1.AS_QTY), 0) AS AS_QTY
                          , NVL(SUM(V1.ETC_QTY), 0) AS ETC_QTY
-                      FROM ( /* 작업출고 */
+                    FROM ( /* 작업출고 */
                             SELECT /*+ INDEX(S1 IX_SVST_SV_WK_OSTR_IZ_01) */
                                    S1.WK_WARE_NO
                                  , S1.ITM_PD_CD
                                  , SUBSTR(S1.FNL_VST_FSH_DT,1,6) AS FNL_VST_FSH_YM
                                  , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '1' AND S1.FNL_SELL_TP_CD != '4' THEN S1.USE_QTY ELSE 0 END) AS IST_QTY      /*일반설치*/
                                  , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '1' AND S1.FNL_SELL_TP_CD = '4' THEN S1.USE_QTY ELSE 0 END) AS CO_IST_QTY    /*회사설치*/
-                                 , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '2' AND S1.REFRI_DV_CD = '1' THEN S1.USE_QTY ELSE 0 END) AS FRISU_AS_QTY     /*무상AS*/
-                                 , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '2' AND S1.REFRI_DV_CD = '2' THEN S1.USE_QTY ELSE 0 END) AS RECAP_AS_QTY     /*유상AS*/
-                                 , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '3' THEN S1.USE_QTY ELSE 0 END) AS BFSVC_QTY  /*BS수량*/
+                                 , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '3' AND S1.REFRI_DV_CD = '1' THEN S1.USE_QTY ELSE 0 END) AS FRISU_AS_QTY     /*무상AS*/
+                                 , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '3' AND S1.REFRI_DV_CD = '2' THEN S1.USE_QTY ELSE 0 END) AS RECAP_AS_QTY     /*유상AS*/
+                                 , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '3' THEN S1.USE_QTY ELSE 0 END) AS AS_QTY     /*AS수량 */
+                                 , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '2' THEN S1.USE_QTY ELSE 0 END) AS BFSVC_QTY  /*BS수량*/
                                  , 0 AS ETC_QTY
                             FROM WSMDBS.TB_SVST_SV_WK_OSTR_IZ S1  /*서비스작업출고내역, ST163TB*/
                             INNER JOIN WARE_INF W1
@@ -163,6 +164,7 @@
                                  , 0 AS CO_IST_QTY
                                  , 0 AS FRISU_AS_QTY
                                  , 0 AS RECAP_AS_QTY
+                                 , 0 AS AS_QTY
                                  , 0 AS BFSVC_QTY
                                  , S1.OSTR_QTY AS ETC_QTY
                             FROM WSMDBS.TB_SVST_ITM_OSTR_IZ S1    /*품목출고내역, ST161TB*/
@@ -179,9 +181,9 @@
                              AND S1.ITM_GD_CD = #{itmGdCd}   /* 등급코드*/
                              </if>
                            ) V1
-                     GROUP BY ITM_PD_CD, FNL_VST_FSH_YM
+                    GROUP BY ITM_PD_CD, FNL_VST_FSH_YM
                    ) V2
-             WHERE 1=1
+            WHERE 1=1
         )
         SELECT *
         FROM (
@@ -201,28 +203,27 @@
                   , Q1.TOT_RECAP_AS_QTY
                   , Q1.TOT_BFSVC_QTY
                   , Q1.TOT_ETC_QTY
-                  , Q1.TOT_BFSVC_QTY AS TOT_CHNG_QTY
-                  , Q1.TOT_FRISU_AS_QTY + Q1.TOT_RECAP_AS_QTY AS TOT_AS_QTY
-                  , Q1.TOT_BFSVC_QTY AS CHNG_QTY                /* 품목 : 상품 (교체) 컬럼 */
-                  , Q1.FRISU_AS_QTY+ Q1.RECAP_AS_QTY AS AS_QTY  /* 품목 : 필터 (AS) 컬럼 */
+                  , Q1.TOT_AS_QTY
+                  , Q1.TOT_AS_QTY AS TOT_CHNG_QTY
                   , Q1.IST_QTY
                   , Q1.CO_IST_QTY
                   , Q1.FRISU_AS_QTY
                   , Q1.RECAP_AS_QTY
                   , Q1.BFSVC_QTY
+                  , Q1.AS_QTY
                   , Q1.ETC_QTY
+                  , Q1.AS_QTY AS CHNG_QTY
                   , Q1.SUM_QTY /* 월별 합계*/
                   , (
-                     CASE WHEN #{itmKndCd} IN ('4')
+                     CASE WHEN #{itmKndCd} IN ('4')     /* 상품(4) : 매출 + 교체(AS)+ 기타(회사설치) */
                           THEN NVL(Q1.TOT_IST_QTY,0) +
-                               NVL(Q1.TOT_BFSVC_QTY,0) +
+                               NVL(Q1.TOT_AS_QTY,0) +
                                NVL(Q1.TOT_CO_IST_QTY,0)
-						  WHEN #{itmKndCd} IN ('5','9')  /* 필터(5), 판매사은품(9) : 매출/BS/AS */
+						  WHEN #{itmKndCd} IN ('5','9')  /* 필터(5), 판매사은품(9) : 매출 + BS+ AS  */
                           THEN NVL(Q1.TOT_IST_QTY,0) +
                                NVL(Q1.TOT_BFSVC_QTY,0) +
-                               NVL(Q1.TOT_FRISU_AS_QTY,0) +
-                               NVL(Q1.TOT_RECAP_AS_QTY,0)
-						  WHEN #{itmKndCd} IN ('6','7')  /* 필터(5), 판매사은품(9) : 매출/BS/AS */
+                               NVL(Q1.TOT_AS_QTY,0)
+						  WHEN #{itmKndCd} IN ('6','7')  /* A/S자재(6), A/S 소모품(7): 매출 + BS+AS(유상)+AS(무상)+기타 */
                           THEN NVL(Q1.TOT_IST_QTY,0) +
                                NVL(Q1.TOT_BFSVC_QTY,0) +
                                NVL(Q1.TOT_FRISU_AS_QTY,0) +
@@ -248,9 +249,8 @@
            , SUM(CHNG_QTY) AS CHNG_QTY
            , SUM(AS_QTY)  AS AS_QTY
            , SUM(SUM_QTY) AS SUM_QTY
-            FOR
-            FNL_VST_FSH_YM IN (${fnlVstFshYmStr})
+             FOR FNL_VST_FSH_YM IN (${fnlVstFshYmStr})
         )
-         ORDER BY SAP_MAT_CD, PD_CD
+        ORDER BY SAP_MAT_CD, PD_CD
     </select>
 </mapper>
