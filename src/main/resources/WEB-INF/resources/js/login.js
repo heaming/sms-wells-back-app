@@ -9,7 +9,7 @@
     let URL_POPUP = home + "/kkosync/v1/kakao_oauth_popup";
     let URL_QR = home + "/sync.html";
 
-    Kakao.init('0bf25f02b51700ab71ec806d131c6757');
+    Kakao.init('f700e57981e83536bd690379a8e5da6c');
 
     function kakaoLoginHandlerP() {
         Kakao.Auth.login({
