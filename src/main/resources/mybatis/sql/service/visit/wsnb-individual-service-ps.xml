@@ -198,28 +198,27 @@
              , NVL2(SA2.CRAL_LOCARA_TNO, SA2.MEXNO_ENCR, '')   AS MEXNO_ENCR /*휴대전화번호(휴대전화국번호암호화)*/
              , NVL2(SA2.CRAL_LOCARA_TNO, SA2.CRAL_IDV_TNO, '') AS CRAL_IDV_TNO /*휴대전화번호(휴대개별전화번호)*/
           FROM TB_SVPD_CST_SV_EXCN_IZ SV1/*서비스수행내역*/
-         INNER JOIN TB_SSCT_CNTR_CST_REL SC1 /*계약고객관계 - 계약자*/
+         INNER JOIN TB_SSCT_CNTR_CST_REL SC1 /*계약고객관계*/
             ON SC1.DTL_CNTR_NO = SV1.CNTR_NO
            AND SC1.DTL_CNTR_SN = SV1.CNTR_SN
            AND SC1.CNTR_CST_REL_TP_CD = '10'
-         INNER JOIN TB_CUBS_CST_BAS CST /*고객기본*/
-            ON CST.CST_NO = SC1.CST_NO
-         INNER JOIN TB_SSCT_CNTR_ADR_REL SA1 /*계약주소관계 - 배달주소,설치주소*/
-            ON SA1.DTL_CNTR_NO = SC1.DTL_CNTR_NO
-           AND SA1.DTL_CNTR_SN = SC1.DTL_CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_ADR_REL SA1 /*계약주소관계*/
+            ON SC1.DTL_CNTR_NO = SA1.DTL_CNTR_NO
+           AND SC1.DTL_CNTR_SN = SA1.DTL_CNTR_SN
+           AND SC1.VL_STRT_DTM = SA1.VL_STRT_DTM
+           AND SC1.VL_END_DTM = SA1.VL_END_DTM
            AND SA1.ADRPC_TP_CD IN ('2','3')
-           AND SA1.VL_STRT_DTM = SC1.VL_STRT_DTM
-           AND SA1.VL_END_DTM = SC1.VL_END_DTM
+           AND SA1.DTA_DL_YN = 'N'
          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS SA2 /*계약주소지기본*/
-            ON SA2.CNTR_ADRPC_ID = SA1.CNTR_ADRPC_ID
-         INNER JOIN TB_SSCT_CNTR_DTL SC3 /*계약상세*/
-            ON SC1.DTL_CNTR_NO = SC3.CNTR_NO
-           AND SC1.DTL_CNTR_SN = SC3.CNTR_SN
+            ON SA1.CNTR_ADRPC_ID = SA2.CNTR_ADRPC_ID
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL SC3 /*계약상세*/
+            ON SV1.CNTR_NO = SC3.CNTR_NO
+           AND SV1.CNTR_SN = SC3.CNTR_SN
            AND SC3.SELL_TP_CD IN ('1','2')  /* 1:일시불, 2:렌탈/리스 */
            AND SC3.DTA_DL_YN = 'N'
-         LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST SC4 /* 계약상세상태변경이력 */
-            ON SC1.DTL_CNTR_NO = SC4.CNTR_NO
-           AND SC1.DTL_CNTR_SN = SC4.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST SC4 /* 계약상세상태변경이력 */
+            ON SC3.CNTR_NO = SC4.CNTR_NO
+           AND SC3.CNTR_SN = SC4.CNTR_SN
            AND SUBSTR(SC4.HIST_END_DTM,1,8) = '99991231'
            AND SC4.DTA_DL_YN = 'N'
          WHERE SV1.SV_HSHD_NO = (SELECT X.SV_HSHD_NO
@@ -255,7 +254,7 @@
                                                            , '3', '고객이관'
                                                            , '') AS ABSNC_RSON_KIND /*컨택그룹*/
                        , F_CMZ_CD_NM('TNT_WELLS', 'ABSNC_RSON_CD', NVL(S1.ABSNC_RSON_CD,0)) AS ABSNC_RSON /*컨택구분*/
-                       , (SELECT X.OG_NM
+                       , (SELECT X.OG_ID
                             FROM TB_OGBS_MM_OG_IZ X
                            WHERE X.BASE_YM = P1.BASE_YM
                              AND X.OG_ID = P1.OG_ID) AS OG_TP_CD /*소속*/
@@ -292,7 +291,7 @@
                                                             , '3', '고객이관'
                                                             , '') AS ABSNC_RSON_KIND /*컨택그룹*/
                         , F_CMZ_CD_NM('TNT_WELLS', 'ABSNC_RSON_CD', NVL(S1.ABSNC_RSON_CD,0)) AS ABSNC_RSON /*컨택구분*/
-                        , (SELECT X.OG_NM
+                        , (SELECT X.OG_ID
                              FROM TB_OGBS_MM_OG_IZ X
                             WHERE X.BASE_YM = P1.BASE_YM
                               AND X.OG_ID = P1.OG_ID) AS OG_TP_CD /*소속*/
@@ -359,7 +358,7 @@
              , CNTR_SN
           FROM (
                 (/*A/S작업완료 건*/
-                 SELECT /*+ LEADING(S1) USE_NL(S1 S2 S4 P1) INDEX(S4 IX_SVPD_MCBY_CST_SV_OJ_IZ_05) */
+                 SELECT /*+ LEADING(S1) USE_NL(S1 S2 S4 P1) INDEX(S4 PK_SVPD_MCBY_CST_SV_OJ_IZ) */
                        'AD' GUBUN
                      , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', DECODE(S1.SV_BIZ_HCLSF_CD,'9',1,S1.SV_BIZ_HCLSF_CD)) AS SV_TP /*유형*/
                      , S2.ASN_DT ||'000000' AS RCP_DT /*접수(배정)일자*/
@@ -374,7 +373,7 @@
                           FROM TB_GBCO_ADR_BAS X
                          WHERE X.ADR_ID = S4.ADR_ID) AS ZIP_NO /*우편번호*/
                      , F_CMZ_CD_NM('TNT_WELLS', 'OG_TP_CD', S1.OG_TP_CD) AS OG_TP /*구분(담당자)*/
-                     , (SELECT X.OG_NM
+                     , (SELECT X.OG_ID
                           FROM TB_OGBS_MM_OG_IZ X
                          WHERE X.OG_TP_CD = P1.OG_TP_CD
                            AND X.OG_CD = P1.OG_CD
@@ -412,7 +411,7 @@
                   LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S4 /*월별고객서비스대상내역*/
                     ON S1.CNTR_NO = S4.CNTR_NO
                    AND S1.CNTR_SN = S4.CNTR_SN
-                   AND S1.VST_FSH_DT LIKE S4.MNGT_YM || '%'
+                   AND SUBSTR(S1.VST_FSH_DT, 1, 6) =  S4.MNGT_YM
                   LEFT OUTER JOIN TB_OGBS_PRTNR_BAS P1
                     ON P1.PRTNR_NO = S2.WK_PRTNR_NO
                    AND P1.OG_TP_CD = S2.WK_PRTNR_OG_TP_CD
@@ -426,7 +425,7 @@
                 )
             UNION ALL
             (/*B/S작업완료 건*/
-            SELECT /*+ LEADING(S1) USE_NL(S1 S2 S4 P1) INDEX(S4 IX_SVPD_MCBY_CST_SV_OJ_IZ_05) */
+            SELECT /*+ LEADING(S1) USE_NL(S1 S2 S4 P1) INDEX(S4 PK_SVPD_MCBY_CST_SV_OJ_IZ) */
                    'BD' GUBUN
                    , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', S1.SV_BIZ_HCLSF_CD) AS SV_TP /*유형*/
                    , S2.CNFM_PSIC_ASN_DT || S2.CNFM_PSIC_ASN_HH AS RCP_DT /*접수(배정)일자*/
@@ -441,7 +440,7 @@
                         FROM TB_GBCO_ADR_BAS X
                        WHERE X.ADR_ID = S4.ADR_ID) AS ZIP_NO /*우편번호*/
                    , F_CMZ_CD_NM('TNT_WELLS', 'OG_TP_CD', S2.CNFM_PSIC_PRTNR_OG_TP_CD) AS OG_TP /*구분(담당자)*/
-                   , (SELECT X.OG_NM
+                   , (SELECT X.OG_ID
                         FROM TB_OGBS_MM_OG_IZ X
                        WHERE X.OG_TP_CD = P1.OG_TP_CD
                          AND X.OG_CD = P1.OG_CD
@@ -483,7 +482,7 @@
                 LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S4 /*월별고객서비스대상내역*/
                   ON S1.CNTR_NO = S4.CNTR_NO
                  AND S1.CNTR_SN = S4.CNTR_SN
-                 AND S1.VST_FSH_DT LIKE S4.MNGT_YM || '%'
+                 AND SUBSTR(S1.VST_FSH_DT, 1, 6) =  S4.MNGT_YM
                 LEFT OUTER JOIN TB_OGBS_PRTNR_BAS P1
                   ON P1.PRTNR_NO = S2.CNFM_PSIC_PRTNR_NO
                  AND P1.OG_TP_CD = S2.CNFM_PSIC_PRTNR_OG_TP_CD
@@ -492,7 +491,7 @@
               )
           UNION ALL
           (/*A/S작업 미완료 건*/
-          SELECT /*+ LEADING(S2) USE_NL(S2 S4 P1) INDEX(S4 IX_SVPD_MCBY_CST_SV_OJ_IZ_05) */
+          SELECT /*+ LEADING(S2) USE_NL(S2 S4 P1) INDEX(S4 IX_SVPD_CST_SVAS_IST_OJ_IZ_02) */
                  'AY' GUBUN
                 , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', S2.SV_BIZ_HCLSF_CD) AS SV_TP /*유형*/
                 , S2.ASN_DT ||'000000' AS RCP_DT /*접수(배정)일자*/
@@ -513,7 +512,7 @@
                      FROM TB_GBCO_ADR_BAS X
                     WHERE X.ADR_ID = S4.ADR_ID) AS ZIP_NO /*우편번호*/
                 , F_CMZ_CD_NM('TNT_WELLS', 'OG_TP_CD', DECODE(S2.WK_PRGS_STAT_CD, '20', S2.WK_PRTNR_NO, S2.ICHR_PRTNR_NO)) AS OG_TP /*구분(담당자)*/
-                , (SELECT X.OG_NM
+                , (SELECT X.OG_ID
                      FROM TB_OGBS_MM_OG_IZ X
                     WHERE X.OG_TP_CD = P1.OG_TP_CD
                       AND X.OG_CD = P1.OG_CD
@@ -557,7 +556,7 @@
              )
              UNION ALL
              (/*B/S작업 미완료 건*/
-              SELECT /*+ LEADING(S2) USE_NL(S2 S4 P1) INDEX(S4 IX_SVPD_MCBY_CST_SV_OJ_IZ_05) */
+              SELECT /*+ LEADING(S2) USE_NL(S2 S4 P1) INDEX(S4 PK_SVPD_MCBY_CST_SV_OJ_IZ) */
                     'BY' GUBUN
                    , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD',SUBSTR(S2.CST_SV_ASN_NO, 0,1)) AS SV_TP /*유형*/
                    , S2.CNFM_PSIC_ASN_DT || S2.CNFM_PSIC_ASN_HH AS RCP_DT /*접수(배정)일자*/
@@ -572,7 +571,7 @@
                         FROM TB_GBCO_ADR_BAS X
                        WHERE X.ADR_ID = S4.ADR_ID) AS ZIP_NO /*우편번호*/
                    , F_CMZ_CD_NM('TNT_WELLS', 'OG_TP_CD', S2.CNFM_PSIC_PRTNR_OG_TP_CD) AS OG_TP /*구분(담당자)*/
-                   , (SELECT X.OG_NM
+                   , (SELECT X.OG_ID
                         FROM TB_OGBS_MM_OG_IZ X
                        WHERE X.OG_TP_CD = P1.OG_TP_CD
                          AND X.OG_CD = P1.OG_CD
@@ -607,7 +606,7 @@
                 LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S4 /*월별고객서비스대상내역*/
                   ON S2.CNTR_NO = S4.CNTR_NO
                  AND S2.CNTR_SN = S4.CNTR_SN
-                 AND S2.ARV_DT LIKE S4.MNGT_YM || '%'
+                 AND SUBSTR(S2.ARV_DT, 1, 6) =  S4.MNGT_YM
                 LEFT OUTER JOIN TB_OGBS_PRTNR_BAS P1
                   ON P1.PRTNR_NO = S2.CNFM_PSIC_PRTNR_NO
                  AND P1.OG_TP_CD = S2.CNFM_PSIC_PRTNR_OG_TP_CD
@@ -1393,7 +1392,10 @@
                    AND X.CNSL_TP_MCSF_CD = CC.CNSL_TP_MCSF_CD
                    AND X.CNSL_TP_LCSF_CD = CC.CNSL_TP_LCSF_CD
                    AND X.JOB_CD = CC.JOB_CD ) AS CNSL_TP_LCSF_CD /*상담분류(소)*/
-             , MOD_USER_ID /*처리자*/
+             , (SELECT X.PRTNR_KNM
+                  FROM TB_OGBS_MM_PRTNR_IZ X
+                 WHERE X.PRTNR_NO = CC.MOD_USER_ID
+                   AND CC.CNSL_ED_DT LIKE X.BASE_YM || '%') AS MOD_USER_ID /*처리자*/
              , (SELECT X.CD_VAL_NM
                   FROM CCSDBS.TB_CODE X
                  WHERE X.CDSET_ID='CSEL_RST_CD'

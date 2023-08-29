@@ -398,12 +398,8 @@ public class WfebOrganizationFeeDto {
         String akcuil, /*미팅일수*/
         String akdmi3, /*자격수수료월*/
         String akdmi32, /*자격M+1*/
-        String edustr, /*스타트업매니저*/
-        String edu011, /*스타트업플래너*/
-        String edu129, /*보수교육*/
         String edu106, /*수석플래너교육정착*/
         String akdcha, /*수석플래너교육차월*/
-        String edu017, /*수석플래너교육실전*/
         String edu135, /*지점장온라인*/
         String akdsym, /*등록기준월*/
         String akdenm, /*최초업무등록월*/
@@ -569,8 +565,8 @@ public class WfebOrganizationFeeDto {
         String aclDsbAmt /*실지급액*/
     ) {}
 
-    @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerBfTotalRes")
-    public record SearchMngerBfTotalRes(
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerTotalBfRes")
+    public record SearchMngerTotalBfRes(
         String ogNm, /*소속*/
         String prtnrNo, /*번호*/
         String prtnrKnm, /*성명*/
@@ -596,7 +592,6 @@ public class WfebOrganizationFeeDto {
         String suscym, /*수석플래너해약월*/
         String lccoym, /*WM개시*/
         String lcccym, /*WM해약*/
-        String dalsyn, /*실활동달성*/
         String bondalsyn, /*최소기준달성*/
         String sungnm, /*전월대비구분*/
         String wpscnt, /*WP*/
@@ -628,9 +623,6 @@ public class WfebOrganizationFeeDto {
         String aksd43, /*라이브팩*/
         String aksd26, /*가전비례*/
         String aksd29, /*가전외비례*/
-        String sd26m1, /*가전미팅*/
-        String sd26m2, /*일시불미팅*/
-        String sd26mt, /*가전외미팅*/
         String aksd17, /*판매장려*/
         String aksd50, /*교육*/
         String aksd48, /*정착*/

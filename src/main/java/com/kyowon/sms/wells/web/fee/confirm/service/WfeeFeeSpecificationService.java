@@ -25,99 +25,80 @@ public class WfeeFeeSpecificationService {
     private final WfeeFeeSpecificationMapper mapper;
 
     public List<SearchFeeCdRes> getFeeCodes(SearchReq dto) {
-        return mapper.selectFeeCodes(dto.perfDt(), "");
+        return mapper.selectFeeCodes(dto);
     }
 
     //M추진단 / 플래너
     public List<?> getFeeSpecifications(SearchReq dto) {
         List<?> resList = new ArrayList<>();
-        String rsbDvCd = dto.rsbDvCd();
 
-        Map<String, Object> feeCdMap = new HashMap<>();
+        Map<String, Object> feeCdMap = getFeeCdLists(dto);
+        if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr")))) {
+            switch (dto.rsbDvCd()) {
+                case "W0105": // P 플래너
+                    resList = mapper.selectPPlannerFeeSpecifications(
+                        dto, String.valueOf(feeCdMap.get("feeCdInStr")),
+                        String.valueOf(feeCdMap.get("feeCdFields")),
+                        String.valueOf(feeCdMap.get("feeSumField")),
+                        String.valueOf(feeCdMap.get("feeCdInStr"))
+                    );
+                    break;
+                case "W0104": // P 지점장
+                    resList = mapper.selectPManagerFeeSpecifications(
+                        dto, String.valueOf(feeCdMap.get("feeCdInStr")),
+                        String.valueOf(feeCdMap.get("feeCdFields")),
+                        String.valueOf(feeCdMap.get("feeSumField")),
+                        String.valueOf(feeCdMap.get("feeCdInStr"))
+                    );
+                    break;
+                case "W0205": // M 플래너
+                    resList = mapper.selectMPlannerFeeSpecifications(
+                        dto, String.valueOf(feeCdMap.get("feeCdInStr")),
+                        String.valueOf(feeCdMap.get("feeCdFields")),
+                        String.valueOf(feeCdMap.get("feeSumField")),
+                        String.valueOf(feeCdMap.get("feeCdInStr"))
+                    );
+                    break;
+                case "W0204": // M 지점장
+                    resList = mapper.selectMManagerFeeSpecifications(
+                        dto, String.valueOf(feeCdMap.get("feeCdInStr")),
+                        String.valueOf(feeCdMap.get("feeCdFields")),
+                        String.valueOf(feeCdMap.get("feeSumField")),
+                        String.valueOf(feeCdMap.get("feeCdInStr"))
+                    );
+                    break;
+                case "W0302": // 홈마스터 - 홈마스터
+                    resList = mapper.selectHPlannerFeeSpecifications(
+                        dto, String.valueOf(feeCdMap.get("feeCdInStr")),
+                        String.valueOf(feeCdMap.get("feeCdFields")),
+                        String.valueOf(feeCdMap.get("feeSumField")),
+                        String.valueOf(feeCdMap.get("feeCdInStr"))
+                    );
+                    break;
+                case "W0301": // 홈마스터 - 지점장
+                    resList = mapper.selectHManagerFeeSpecifications(
+                        dto, String.valueOf(feeCdMap.get("feeCdInStr")),
+                        String.valueOf(feeCdMap.get("feeCdFields")),
+                        String.valueOf(feeCdMap.get("feeSumField")),
+                        String.valueOf(feeCdMap.get("feeCdInStr"))
+                    );
+                    break;
 
-        // feeCalcUnitTpCd, // 수수료 계산단위 유형코드
-        // 수수료계산단위유형코드 (101 : P추진단 플래너, 102 : P추진단 지국장, 201 : M추진단-일반(15등급), 202 : M추진단- 지점장(7등급)
-        switch (dto.ogTpCd()) {
-            case "W01" -> { //P 추진단
-                if ("W0105".equals(rsbDvCd)) { // 플래너
-                    feeCdMap = getFeeCdLists(dto.perfDt(), "101");
-                    if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
-                        resList = mapper.selectPPlannerFeeSpecifications(
-                            dto, String.valueOf(feeCdMap.get("feeCdInStr")),
-                            String.valueOf(feeCdMap.get("feeCdFields")),
-                            String.valueOf(feeCdMap.get("feeSumField")),
-                            String.valueOf(feeCdMap.get("feeCdInStr"))
-                        );
-
-                } else if ("W0104".equals(rsbDvCd)) { //지점장
-                    feeCdMap = getFeeCdLists(dto.perfDt(), "102");
-                    if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
-                        resList = mapper.selectPManagerFeeSpecifications(
-                            dto, String.valueOf(feeCdMap.get("feeCdInStr")),
-                            String.valueOf(feeCdMap.get("feeCdFields")),
-                            String.valueOf(feeCdMap.get("feeSumField")),
-                            String.valueOf(feeCdMap.get("feeCdInStr"))
-                        );
-                }
-            }
-            case "W02" -> { //M 추진단
-                if ("W0205".equals(rsbDvCd)) { //플래너
-                    feeCdMap = getFeeCdLists(dto.perfDt(), "201");
-                    if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
-                        resList = mapper.selectMPlannerFeeSpecifications(
-                            dto, String.valueOf(feeCdMap.get("feeCdInStr")),
-                            String.valueOf(feeCdMap.get("feeCdFields")),
-                            String.valueOf(feeCdMap.get("feeSumField")),
-                            String.valueOf(feeCdMap.get("feeCdInStr"))
-                        );
-                } else if ("W0204".equals(rsbDvCd)) { //지점장
-                    feeCdMap = getFeeCdLists(dto.perfDt(), "202");
-                    if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
-                        resList = mapper.selectMManagerFeeSpecifications(
-                            dto, String.valueOf(feeCdMap.get("feeCdInStr")),
-                            String.valueOf(feeCdMap.get("feeCdFields")),
-                            String.valueOf(feeCdMap.get("feeSumField")),
-                            String.valueOf(feeCdMap.get("feeCdInStr"))
-                        );
-                }
-            }
-            case "W03" -> { //홈마스터
-                if ("W0302".equals(rsbDvCd)) { // 플래너
-                    feeCdMap = getFeeCdLists(dto.perfDt(), "301");
-                    if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
-                        resList = mapper.selectHPlannerFeeSpecifications(
-                            dto, String.valueOf(feeCdMap.get("feeCdInStr")),
-                            String.valueOf(feeCdMap.get("feeCdFields")),
-                            String.valueOf(feeCdMap.get("feeSumField")),
-                            String.valueOf(feeCdMap.get("feeCdInStr"))
-                        );
-
-                } else if ("W0301".equals(rsbDvCd)) { //지점장
-                    feeCdMap = getFeeCdLists(dto.perfDt(), "302");
-                    if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdInStr"))))
-                        resList = mapper.selectHManagerFeeSpecifications(
-                            dto, String.valueOf(feeCdMap.get("feeCdInStr")),
-                            String.valueOf(feeCdMap.get("feeCdFields")),
-                            String.valueOf(feeCdMap.get("feeSumField")),
-                            String.valueOf(feeCdMap.get("feeCdInStr"))
-                        );
-                }
             }
         }
-
         return resList;
     }
 
-    public Map<String, Object> getFeeCdLists(String perfDt, String feeCalcUnitTpCd) {
+    public Map<String, Object> getFeeCdLists(SearchReq dto) {
 
-        List<SearchFeeCdRes> feeLists = mapper.selectFeeCodes(perfDt, feeCalcUnitTpCd);
+        List<SearchFeeCdRes> feeLists = mapper.selectFeeCodes(dto);
 
         String feeCdInStr = feeLists.stream()
-            .map(item -> "'" + item.feeNm() + "' as " + item.feeNm())
+            .map(item -> "'" + item.feeCd() + "' as " + item.feeCd())
             .collect(Collectors.joining(","));
-        String feeCdFields = feeLists.stream().map(item -> " NVL(" + item.feeNm() + ",0) AS " + item.feeNm())
+        String feeCdFields = feeLists.stream().map(item -> " NVL(" + item.feeCd() + ",0) AS " + item.feeCd())
             .collect(Collectors.joining(","));
-        String feeSumField = feeLists.stream().map(item -> " NVL(" + item.feeNm() + ",0) ")
+        String feeSumField = feeLists.stream().map(item -> " NVL(" + item.feeCd() + ",0) ")
             .collect(Collectors.joining("+")) + " AS FEE_SUM ";
         Map<String, Object> returnMap = new HashMap<String, Object>();
         returnMap.put("feeCdInStr", feeCdInStr);

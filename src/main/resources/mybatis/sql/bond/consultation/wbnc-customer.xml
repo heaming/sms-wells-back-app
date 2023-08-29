@@ -588,94 +588,145 @@
     </select>
     
     <select id="selectCustomerDetails" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto$FindCustomerDetailRes">
-        SELECT T2.MPY_BSDT /* 이체 */
-             , T4.SELL_TP_CD /* 업무구분 */
-             , (CASE WHEN #{session.tenantId} = 'TNT_EDU' 
-                     THEN (CASE WHEN T4.SELL_TP_CD = '1' THEN '전집' ELSE '학습지' END)
-                     WHEN #{session.tenantId} = 'TNT_WELLS' 
-                     THEN (SELECT CD_CNTN
-                             FROM T_CMZ_CD_D
-                            WHERE 1=1
-                              AND TENANT_ID = #{session.tenantId}
-                              AND CD_ID = 'SELL_TP_CD'
-                              AND CD_VLD_VAL = T4.SELL_TP_CD) END) AS SELL_TP_NM   /*상품구분*/
-             , '' AS PRDF /* 제품군 */
-             , T5.PD_NM /* 상품명 */
-             , T1.CNTR_NO /* 계약번호 */
-             , T1.CNTR_SN /* 계약일련번호 */
-             , T1.CST_NO /* 고객번호 */
-             , T6.CST_KNM /* 고객명 */
-             , T7.DLQ_MCN /* 연체개월 */
-             , '' AS CNTR_RSG_DT /* 직권해지일자 */
-             , NVL(0, 0) AS OJ_AMT /* 대상금액 */ 
-             , NVL(0, 0) AS OJ_DP /* 대상입금 */ 
-             , NVL(0, 0) - NVL(0, 0) AS OJ_BLAM /* 대상금액 - 대상입금 = 대상잔액 */ 
-             , T7.DLQ_AMT + T7.DLQ_ADD_AMT AS TOT_DLQ_AMT /* 연체금액 + 연체가산금 = 총연체금 */
-             , T7.DLQ_DP_AMT + T7.DLQ_ADD_DP_AMT AS TOT_DLQ_DP /* 연체입금금액 + 연체가산금입금금액 = 총연체입금 */
-             , (T7.DLQ_AMT + T7.DLQ_ADD_AMT) - (T7.DLQ_DP_AMT + T7.DLQ_ADD_DP_AMT) AS TOT_DLQ_BLAM /* 총연체금 - 총연체입금 = 총연체잔액 */
-             , T7.THM_CHRAM_AMT AS MM_CHRAM_AMT /* 월요금액 */      
-             , T7.THM_CHRAM_DP_AMT AS MM_CHRAM_DP /* 월요금입금 */       
-             , T7.THM_CHRAM_AMT - T7.THM_CHRAM_DP_AMT AS MM_CHRAM_BLAM /* 당월요금금액 - 당월요금입금금액 = 월요금잔액 */      
-             , T7.DLQ_ADD_AMT AS DLQ_ADD_AMT /* 연체가산금액 */       
-             , T7.DLQ_ADD_DP_AMT AS DLQ_ADD_DP /* 연체가산입금 */     
-             , T7.DLQ_ADD_AMT - T7.DLQ_ADD_DP_AMT AS DLQ_ADAMT_BLAM /* 연체가산금액 - 연체가산금입금금액 = 연체가산금잔액 */ 
-             , 0 AS SV_CS /* 서비스비용 */
-             , 0 AS SV_DP /* 서비스입금 */
-             , 0 AS SV_BLAM /* 서비스잔액 */
-             , T7.UC_AMT AS UC_AMT /* 미수금액 */       
-             , 0 AS UC_DP /* 미수입금 */  
-             , 0 AS UC_BLAM /* 미수금 - 총입금액 = 미수잔액 */ 
-             , 0 AS TOT_DP_AMT /* 연체입금금액 + 연체가산입금금액 + 해지위약금입금금액 + 당월요금입금금액 = 총입금액 */ 
-             , 0 AS SPMT_SL /* 추가매출 */  
-             , 0 AS LS_RNTF /* 분실손료 */ 
-             , '' AS VT_AC_DV /* 가상계좌구분 */  
-             , T9.VAC_BNK_CD AS VT_AC_BNK /* 가상계좌은행 */ 
-             , T9.VAC_NO AS VT_AC_NO /* 가상계좌번호 */ 
-             , 0 AS CCAM /* 위약금 */ 
-             , 0 AS LSFE /* 분실료 */ 
-             , 0 AS RTLFE1 /* 렌탈료1 */        
-             , 0 AS RTLFE_ISTM1 /* 렌탈료1할 */       
-             , 0 AS RTLFE2 /* 렌탈료2 */        
-             , 0 AS RTLFE_ISTM2 /* 렌탈료2할 */  
-             , T8.DPR_NM /* 입금자 */  
-             , T1.CLCTAM_PRTNR_NO /* 집금번호 */
-             , ( SELECT PRTNR_KNM
-                   FROM TB_OGBS_PRTNR_BAS
-                  WHERE PRTNR_NO = T1.CLCTAM_PRTNR_NO
-               ) AS CLCTAM_ICHR   /* 집급담당 */
-             , T1.BND_TF_DT AS TF_DT /* 이관일자 */
-             , T6.SFK_VAL AS SFK /* 세이프키 */
-             , T1.BND_BIZ_DV_CD /* 채권업무구분코드 */
-          FROM TB_CBBO_BND_CNSL_BAS_IZ T1 /* 채권상담기본내역 */ 
-         LEFT OUTER JOIN (
-                            SELECT CST_NO
-                                 , MPY_BSDT
-                              FROM TB_SSCT_CNTR_STLM_BAS/* 계약결제기본 */
-                             WHERE ROWNUM = 1
-                          ) T2  
-            ON T1.CST_NO = T2.CST_NO  
-         LEFT OUTER JOIN TB_SSCT_CNTR_DTL T4 /* 계약상세 */
-            ON T1.CNTR_NO = T4.CNTR_NO
-           AND T1.CNTR_SN = T4.CNTR_SN   
-         LEFT OUTER JOIN TB_PDBS_PD_BAS T5 /* 상품기본 */
-            ON T4.BASE_PD_CD = T5.PD_CD
-         INNER JOIN TB_CUBS_CST_BAS T6 /* 고객기본 */
-            ON T1.CST_NO = T6.CST_NO
-         INNER JOIN TB_CBBO_BND_CNTR_BAS T7 /* 채권계약기본 */
-            ON T1.CNTR_NO = T7.CNTR_NO
-           AND T1.CNTR_SN = T7.CNTR_SN
-         LEFT OUTER JOIN (
-                           SELECT CST_NO
-                                , DPR_NM
-                             FROM TB_CBBO_BND_TEL_CNSL_IZ  /* 채권전화상담내역 */
-                            WHERE ROWNUM= 1
-                            ORDER BY FST_RGST_DTM DESC 
-                         ) T8
-            ON T1.CST_NO = T8.CST_NO
-         LEFT OUTER JOIN TB_RVDW_VAC_IS_IZ T9 /* 가상계좌발급내역 */
-            ON T1.CST_NO = T9.VAC_IS_CST_NO
-         WHERE 1=1
-           AND T1.CST_NO = #{schCstNo}   
+        SELECT MAX(MPY_BSDT) AS MPY_BSDT /* 이체 */
+		     , MAX(SELL_TP_CD) AS SELL_TP_CD /* 업무구분 */
+		     , MAX(SELL_TP_NM) AS SELL_TP_NM   /*상품구분*/
+		     , MAX(PRDF) AS PRDF /* 제품군 */
+		     , MAX(PD_NM) AS PD_NM /* 상품명 */
+		     , MAX(CNTR_NO) AS CNTR_NO /* 계약번호 */
+		     , MAX(CNTR_SN) AS CNTR_SN /* 계약일련번호 */
+		     , CST_NO /* 고객번호 */
+		     , MAX(CST_KNM) AS CST_KNM /* 고객명 */
+		     , MAX(DLQ_MCN) AS DLQ_MCN /* 연체개월 */
+		     , MAX(CNTR_RSG_DT) AS CNTR_RSG_DT /* 직권해지일자 */
+		     , MAX(OJ_AMT) AS OJ_AMT /* 대상금액 */ 
+		     , MAX(OJ_DP) AS OJ_DP /* 대상입금 */ 
+		     , MAX(OJ_BLAM) AS OJ_BLAM /* 대상금액 - 대상입금 = 대상잔액 */ 
+		     , MAX(TOT_DLQ_AMT) AS TOT_DLQ_AMT /* 연체금액 + 연체가산금 = 총연체금 */
+		     , MAX(TOT_DLQ_DP) AS TOT_DLQ_DP /* 연체입금금액 + 연체가산금입금금액 = 총연체입금 */
+		     , MAX(TOT_DLQ_BLAM) AS TOT_DLQ_BLAM /* 총연체금 - 총연체입금 = 총연체잔액 */
+		     , MAX(MM_CHRAM_AMT) AS TOT_DLQ_BLAM /* 월요금액 */      
+		     , MAX(MM_CHRAM_DP) AS TOT_DLQ_BLAM /* 월요금입금 */       
+		     , MAX(MM_CHRAM_BLAM ) AS MM_CHRAM_BLAM/* 당월요금금액 - 당월요금입금금액 = 월요금잔액 */      
+		     , MAX(DLQ_ADD_AMT) AS DLQ_ADD_AMT /* 연체가산금액 */       
+		     , MAX(DLQ_ADD_DP) AS DLQ_ADD_DP /* 연체가산입금 */     
+		     , MAX(DLQ_ADAMT_BLAM) AS  DLQ_ADAMT_BLAM/* 연체가산금액 - 연체가산금입금금액 = 연체가산금잔액 */ 
+		     , MAX(SV_CS) AS SV_CS /* 서비스비용 */
+		     , MAX(SV_DP) AS SV_DP /* 서비스입금 */
+		     , MAX(SV_BLAM) AS SV_BLAM /* 서비스잔액 */
+		     , MAX(UC_AMT) AS UC_AMT /* 미수금액 */       
+		     , MAX(UC_DP) AS UC_DP /* 미수입금 */  
+		     , MAX(UC_BLAM) AS UC_BLAM /* 미수금 - 총입금액 = 미수잔액 */ 
+		     , MAX(TOT_DP_AMT) AS TOT_DP_AMT /* 연체입금금액 + 연체가산입금금액 + 해지위약금입금금액 + 당월요금입금금액 = 총입금액 */ 
+		     , MAX(SPMT_SL) AS SPMT_SL /* 추가매출 */  
+		     , MAX(LS_RNTF) AS LS_RNTF /* 분실손료 */ 
+		     , MAX(VT_AC_DV) AS VT_AC_DV /* 가상계좌구분 */  
+		     , MAX(VT_AC_BNK) AS VT_AC_BNK /* 가상계좌은행 */ 
+		     , MAX(VT_AC_NO) AS VT_AC_NO /* 가상계좌번호 */ 
+		     , MAX(CCAM) AS CCAM /* 위약금 */ 
+		     , MAX(LSFE) AS LSFE /* 분실료 */ 
+		     , MAX(RTLFE1) AS RTLFE1 /* 렌탈료1 */        
+		     , MAX(RTLFE_ISTM1) AS RTLFE_ISTM1 /* 렌탈료1할 */       
+		     , MAX(RTLFE2) AS RTLFE2   /* 렌탈료2 */        
+		     , MAX(RTLFE_ISTM2) AS RTLFE_ISTM2 /* 렌탈료2할 */  
+		     , MAX(DPR_NM) AS DPR_NM /* 입금자 */  
+		     , MAX(CLCTAM_PRTNR_NO) AS CLCTAM_PRTNR_NO /* 집금번호 */
+		     , MAX(CLCTAM_ICHR) AS CLCTAM_ICHR   /* 집급담당 */
+		     , MAX(TF_DT) AS TF_DT /* 이관일자 */
+		     , MAX(SFK) AS SFK /* 세이프키 */
+		     , MAX(BND_BIZ_DV_CD) AS BND_BIZ_DV_CD /* 채권업무구분코드 */
+		  FROM(
+		        SELECT T2.MPY_BSDT /* 이체 */
+		             , T4.SELL_TP_CD /* 업무구분 */
+		             , (CASE WHEN 'TNT_WELLS' = 'TNT_EDU' 
+		                     THEN (CASE WHEN T4.SELL_TP_CD = '1' THEN '전집' ELSE '학습지' END)
+		                     WHEN 'TNT_WELLS' = 'TNT_WELLS' 
+		                     THEN (SELECT CD_CNTN
+		                             FROM T_CMZ_CD_D
+		                            WHERE 1=1
+		                              AND TENANT_ID = 'TNT_WELLS'
+		                              AND CD_ID = 'SELL_TP_CD'
+		                              AND CD_VLD_VAL = T4.SELL_TP_CD) END) AS SELL_TP_NM   /*상품구분*/
+		             , '' AS PRDF /* 제품군 */
+		             , T5.PD_NM /* 상품명 */
+		             , T1.CNTR_NO /* 계약번호 */
+		             , T1.CNTR_SN /* 계약일련번호 */
+		             , T1.CST_NO /* 고객번호 */
+		             , T6.CST_KNM /* 고객명 */
+		             , T7.DLQ_MCN /* 연체개월 */
+		             , '' AS CNTR_RSG_DT /* 직권해지일자 */
+		             , NVL(0, 0) AS OJ_AMT /* 대상금액 */ 
+		             , NVL(0, 0) AS OJ_DP /* 대상입금 */ 
+		             , NVL(0, 0) - NVL(0, 0) AS OJ_BLAM /* 대상금액 - 대상입금 = 대상잔액 */ 
+		             , T7.DLQ_AMT + T7.DLQ_ADD_AMT AS TOT_DLQ_AMT /* 연체금액 + 연체가산금 = 총연체금 */
+		             , T7.DLQ_DP_AMT + T7.DLQ_ADD_DP_AMT AS TOT_DLQ_DP /* 연체입금금액 + 연체가산금입금금액 = 총연체입금 */
+		             , (T7.DLQ_AMT + T7.DLQ_ADD_AMT) - (T7.DLQ_DP_AMT + T7.DLQ_ADD_DP_AMT) AS TOT_DLQ_BLAM /* 총연체금 - 총연체입금 = 총연체잔액 */
+		             , T7.THM_CHRAM_AMT AS MM_CHRAM_AMT /* 월요금액 */      
+		             , T7.THM_CHRAM_DP_AMT AS MM_CHRAM_DP /* 월요금입금 */       
+		             , T7.THM_CHRAM_AMT - T7.THM_CHRAM_DP_AMT AS MM_CHRAM_BLAM /* 당월요금금액 - 당월요금입금금액 = 월요금잔액 */      
+		             , T7.DLQ_ADD_AMT AS DLQ_ADD_AMT /* 연체가산금액 */       
+		             , T7.DLQ_ADD_DP_AMT AS DLQ_ADD_DP /* 연체가산입금 */     
+		             , T7.DLQ_ADD_AMT - T7.DLQ_ADD_DP_AMT AS DLQ_ADAMT_BLAM /* 연체가산금액 - 연체가산금입금금액 = 연체가산금잔액 */ 
+		             , 0 AS SV_CS /* 서비스비용 */
+		             , 0 AS SV_DP /* 서비스입금 */
+		             , 0 AS SV_BLAM /* 서비스잔액 */
+		             , T7.UC_AMT AS UC_AMT /* 미수금액 */       
+		             , 0 AS UC_DP /* 미수입금 */  
+		             , 0 AS UC_BLAM /* 미수금 - 총입금액 = 미수잔액 */ 
+		             , 0 AS TOT_DP_AMT /* 연체입금금액 + 연체가산입금금액 + 해지위약금입금금액 + 당월요금입금금액 = 총입금액 */ 
+		             , 0 AS SPMT_SL /* 추가매출 */  
+		             , 0 AS LS_RNTF /* 분실손료 */ 
+		             , '' AS VT_AC_DV /* 가상계좌구분 */  
+		             , T9.VAC_BNK_CD AS VT_AC_BNK /* 가상계좌은행 */ 
+		             , T9.VAC_NO AS VT_AC_NO /* 가상계좌번호 */ 
+		             , 0 AS CCAM /* 위약금 */ 
+		             , 0 AS LSFE /* 분실료 */ 
+		             , 0 AS RTLFE1 /* 렌탈료1 */        
+		             , 0 AS RTLFE_ISTM1 /* 렌탈료1할 */       
+		             , 0 AS RTLFE2 /* 렌탈료2 */        
+		             , 0 AS RTLFE_ISTM2 /* 렌탈료2할 */  
+		             , T8.DPR_NM /* 입금자 */  
+		             , T1.CLCTAM_PRTNR_NO /* 집금번호 */
+		             , ( SELECT PRTNR_KNM
+		                   FROM TB_OGBS_PRTNR_BAS
+		                  WHERE PRTNR_NO = T1.CLCTAM_PRTNR_NO
+		               ) AS CLCTAM_ICHR   /* 집급담당 */
+		             , T1.BND_TF_DT AS TF_DT /* 이관일자 */
+		             , T6.SFK_VAL AS SFK /* 세이프키 */
+		             , T1.BND_BIZ_DV_CD /* 채권업무구분코드 */
+		          FROM TB_CBBO_BND_CNSL_BAS_IZ T1 /* 채권상담기본내역 */ 
+		         LEFT OUTER JOIN (
+		                            SELECT CST_NO
+		                                 , MPY_BSDT
+		                              FROM TB_SSCT_CNTR_STLM_BAS/* 계약결제기본 */
+		                             WHERE ROWNUM = 1
+		                          ) T2  
+		            ON T1.CST_NO = T2.CST_NO  
+		         LEFT OUTER JOIN TB_SSCT_CNTR_DTL T4 /* 계약상세 */
+		            ON T1.CNTR_NO = T4.CNTR_NO
+		           AND T1.CNTR_SN = T4.CNTR_SN   
+		         LEFT OUTER JOIN TB_PDBS_PD_BAS T5 /* 상품기본 */
+		            ON T4.BASE_PD_CD = T5.PD_CD
+		         INNER JOIN TB_CUBS_CST_BAS T6 /* 고객기본 */
+		            ON T1.CST_NO = T6.CST_NO
+		         INNER JOIN TB_CBBO_BND_CNTR_BAS T7 /* 채권계약기본 */
+		            ON T1.CNTR_NO = T7.CNTR_NO
+		           AND T1.CNTR_SN = T7.CNTR_SN
+		         LEFT OUTER JOIN (
+		                           SELECT CST_NO
+		                                , DPR_NM
+		                             FROM TB_CBBO_BND_TEL_CNSL_IZ  /* 채권전화상담내역 */
+		                            WHERE ROWNUM= 1
+		                            ORDER BY FST_RGST_DTM DESC 
+		                         ) T8
+		            ON T1.CST_NO = T8.CST_NO
+		         LEFT OUTER JOIN TB_RVDW_VAC_IS_IZ T9 /* 가상계좌발급내역 */
+		            ON T1.CST_NO = T9.VAC_IS_CST_NO
+		         WHERE 1=1
+		           AND T1.CST_NO = #{schCstNo}
+		      ) 
+		 WHERE 1=1
+		 GROUP BY CST_NO
     </select>
     
     <select id="selectUnusualArticles" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto$FindUnusualArticlesRes">
