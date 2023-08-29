@@ -84,7 +84,16 @@ public class WfeaBsFeeMgtService {
         String runId = batchCallService.runJob(batchCallReqDvo);
         BizAssert.isTrue(StringUtils.isNotEmpty(runId), "MSG_ALT_SVE_ERR");
 
-        return StringUtils.isNotBlank(runId) ? "S" : "E";
+        String jobStatus;
+        while (true) {
+            jobStatus = batchCallService.getLastestJobStatus(runId);
+            if (StringUtils.equals(jobStatus, "Ended OK") || StringUtils.equals(jobStatus, "Ended Not OK")) {
+                break;
+            }
+
+        }
+
+        return jobStatus;
     }
 
 }
