@@ -134,7 +134,7 @@ public class KakaoWcsbProspecCustomerMgtDto {
     ) {
         public SaveReq {
 
-            final String key = "KYOWN-biztalk_12";
+            final String key = "D8V0Rrqx6LQ7sYsn";
             try {
                 AES256Util aes256 = new AES256Util(key);
                 nickname = aes256.decrypt(StringUtil.nvl(nickname));            //프로필정보-닉네임
