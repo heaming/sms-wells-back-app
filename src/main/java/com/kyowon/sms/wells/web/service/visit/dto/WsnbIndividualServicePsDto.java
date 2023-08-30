@@ -64,7 +64,8 @@ public class WsnbIndividualServicePsDto {
         String qrsRdmNo, /*맞춤가이드*/
         String ssPdctBcNo, /*삼성제조번호*/
         String ivcNo, /*송장번호*/
-        String vstPrdNm /*방문주기*/
+        String vstPrdNm, /*방문주기1*/
+        String prdNm /* 방문주기2 */
     ){
         public SearchRes{
             exnoEncr = DbEncUtil.dec(exnoEncr);
