@@ -360,9 +360,18 @@
                      , DECODE(P1.OG_TP_CD, 'W06', P1.OG_NM, P1.OG_CD) AS OG_NM /*소속(담당자)*/
                      , NVL(P1.PRTNR_NO, S1.PRTNR_NO) AS PRTNR_NO/*사번(담당자)*/
                      , P1.PRTNR_KNM AS PRTNR_NM /*성명(담당자)*/
-                     , P1.CRAL_LOCARA_TNO AS CRAL_LOCARA_TNO /*휴대지역전화번호(담당자)*/
-                     , P1.MEXNO_ENCR AS MEXNO_ENCR /*휴대전화국번호암호화(담당자)*/
-                     , P1.CRAL_IDV_TNO  AS CRAL_IDV_TNO /*휴대개별전화번호(담당자)*/
+                     , (SELECT X.CRAL_LOCARA_TNO
+                          FROM TB_OGBS_PRTNR_BAS X
+                         WHERE X.OG_TP_CD = P1.OG_TP_CD
+                           AND X.PRTNR_NO = P1.PRTNR_NO) AS CRAL_LOCARA_TNO /*휴대지역전화번호(담당자)*/
+                     , (SELECT X.MEXNO_ENCR
+                          FROM TB_OGBS_PRTNR_BAS X
+                         WHERE X.OG_TP_CD = P1.OG_TP_CD
+                           AND X.PRTNR_NO = P1.PRTNR_NO)  AS MEXNO_ENCR /*휴대전화국번호암호화(담당자)*/
+                     , (SELECT X.CRAL_IDV_TNO
+                          FROM TB_OGBS_PRTNR_BAS X
+                         WHERE X.OG_TP_CD = P1.OG_TP_CD
+                           AND X.PRTNR_NO = P1.PRTNR_NO)  AS CRAL_IDV_TNO /*휴대개별전화번호(담당자)*/
                      , '' AS BLD_NM /*소속빌딩(담당자)*/
                      , S1.BC_NO /*작업시바코드*/
                      , (CASE WHEN S1.IST_ENVR_PHO_PH_DOC_ID IS NOT NULL
@@ -392,9 +401,10 @@
                     ON S1.CNTR_NO = S4.CNTR_NO
                    AND S1.CNTR_SN = S4.CNTR_SN
                    AND SUBSTR(S1.VST_FSH_DT, 1, 6) =  S4.MNGT_YM
-                  LEFT OUTER JOIN TB_OGBS_PRTNR_BAS P1
+                  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ P1
                     ON P1.PRTNR_NO = S2.WK_PRTNR_NO
                    AND P1.OG_TP_CD = S2.WK_PRTNR_OG_TP_CD
+                   AND P1.BASE_YM = SUBSTR(S1.CST_SV_ASN_NO,2,6)
                  WHERE 1=1
                    AND (CASE WHEN S1.SV_BIZ_HCLSF_CD = '9' THEN '1'
                              ELSE S1.SV_BIZ_HCLSF_CD
@@ -516,7 +526,7 @@
                 , (SELECT X.BLD_NM
                      FROM TB_OGBS_MM_OG_IZ X
                     WHERE X.OG_ID = P1.OG_ID
-                      AND X.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM') /*SUBSTR(S2.CST_SV_ASN_NO,1,6)*/) AS BLD_NM /*소속빌딩(담당자)*/
+                      AND X.BASE_YM = SUBSTR(S2.CST_SV_ASN_NO,2,6)) AS BLD_NM /*소속빌딩(담당자)*/
                 , '' AS BC_NO /*작업시바코드*/
                 , 'N' AS IMG_YN /*사진*/
                 , '' AS IST_ENVR_PHO_PH_DOC_ID /*설치환경사진경로*/
@@ -539,7 +549,7 @@
              LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ P1
                ON P1.PRTNR_NO = DECODE(S2.WK_PRGS_STAT_CD, '20', S2.WK_PRTNR_NO, S2.ICHR_PRTNR_NO)
               AND P1.OG_TP_CD = DECODE(S2.WK_PRGS_STAT_CD, '20', S2.WK_PRTNR_OG_TP_CD, S2.ICHR_OG_TP_CD)
-              AND P1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM') --SUBSTR(S2.CST_SV_ASN_NO,2,6)
+              AND P1.BASE_YM = SUBSTR(S2.CST_SV_ASN_NO,2,6)
             WHERE 1=1
               AND S2.WK_PRGS_STAT_CD != '20'
               AND S2.DTA_DL_YN = 'N'
@@ -579,7 +589,7 @@
                    , (SELECT X.BLD_NM
                         FROM TB_OGBS_MM_OG_IZ X
                        WHERE X.OG_ID = P1.OG_ID
-                         AND X.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM') /*S2.ASN_OJ_YM*/ ) AS BLD_NM /*소속빌딩(담당자)*/
+                         AND X.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')) AS BLD_NM /*소속빌딩(담당자)*/
                    , '' AS BC_NO /*작업시바코드*/
                    , 'N' AS IMG_YN /*사진*/
                    , '' AS IST_ENVR_PHO_PH_DOC_ID /*설치환경사진경로*/
@@ -604,7 +614,7 @@
                 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ P1
                   ON P1.PRTNR_NO = S2.CNFM_PSIC_PRTNR_NO
                  AND P1.OG_TP_CD = S2.CNFM_PSIC_PRTNR_OG_TP_CD
-                 AND P1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM') --S2.ASN_OJ_YM
+                 AND P1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
                 WHERE 1=1
                   AND S2.VST_PRGS_STAT_CD != '20'
                   AND S2.DTA_DL_YN = 'N'
