@@ -122,14 +122,14 @@ public class KakaoWcsbProspecCustomerMgtDto {
             String gender, /* 성별구분코드 */
             String birthyear, /* 출생년도 */
             String birthday, /* 생일 */
-            String phone_number, /* 전화번호 */
+            String phoneNumber, /* 전화번호 */
             String zipcode, /* 우편번호 */
-            String base_address, /* 기본주소 (ADR_ID로 통합)*/
-            String detail_address, /* 상세주소 (ADR_ID로 통합)*/
+            String baseAddress, /* 기본주소 (ADR_ID로 통합)*/
+            String detailAddress, /* 상세주소 (ADR_ID로 통합)*/
             String employee_id, /* 추천인 사번 */
-            String marketing_yn, /* 마케팅 목적 처리 동의서 */
+            String term3Yn, /* 마케팅 목적 처리 동의서 */
             String akdcde, /* 파트너번호 */
-            String channel_yn, /* 외부채널추가여부 */
+            String channelYn, /* 외부채널추가여부 */
             String auid /* 외부연계식별값 */
     ) {
         public SaveReq {
@@ -142,13 +142,13 @@ public class KakaoWcsbProspecCustomerMgtDto {
                 gender = aes256.decrypt(StringUtil.nvl(gender));                //성별
                 birthyear = aes256.decrypt(StringUtil.nvl(birthyear));          //출생년도
                 birthday = aes256.decrypt(StringUtil.nvl(birthday));            //생일
-                phone_number = aes256.decrypt(StringUtil.nvl(phone_number));    //휴대전화번호
+                phoneNumber = aes256.decrypt(StringUtil.nvl(phoneNumber));    //휴대전화번호
                 zipcode = aes256.decrypt(StringUtil.nvl(zipcode));              //우편번호
-                base_address = aes256.decrypt(StringUtil.nvl(base_address));    //기본주소
-                detail_address = aes256.decrypt(StringUtil.nvl(detail_address)); //상세주소
-                channel_yn = aes256.decrypt(StringUtil.nvl(channel_yn));        //카카오톡 채널 추가 상태 및 내역
+                baseAddress = aes256.decrypt(StringUtil.nvl(baseAddress));    //기본주소
+                detailAddress = aes256.decrypt(StringUtil.nvl(detailAddress)); //상세주소
+                channelYn = aes256.decrypt(StringUtil.nvl(channelYn));        //카카오톡 채널 추가 상태 및 내역
                 auid = aes256.decrypt(StringUtil.nvl(auid));                    //AUID
-                marketing_yn = aes256.decrypt(StringUtil.nvl(marketing_yn));    //마케팅 목적 처리 동의서
+                term3Yn = aes256.decrypt(StringUtil.nvl(term3Yn));    //마케팅 목적 처리 동의서
                 employee_id = aes256.decrypt(StringUtil.nvl(employee_id));      //추천인 사번
                 akdcde = StringUtil.nvl(akdcde);                                //파트너 번호
             } catch (UnsupportedEncodingException e) {
