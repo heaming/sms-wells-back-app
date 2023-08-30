@@ -277,12 +277,12 @@ public class WsnaSeedingOstrQtyService {
             String headerTit = headerTitle.get("limQty");
 
             // qty < 1
-            if (qty.compareTo(BigDecimal.ONE) < 0) {
+            if (qty.compareTo(BigDecimal.ZERO) < 0) {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(headerTit);
-                // 값이 0이거나 마이너스입니다.
-                errorDvo.setErrorData(this.messageService.getMessage("MSG_ALT_MINUS_ZR_VAL_INC"));
+                // 값이 마이너스입니다.
+                errorDvo.setErrorData(this.messageService.getMessage("MSG_ALT_MINUS_VAL_INC"));
                 errorDvos.add(errorDvo);
                 // qty > 999,999,999,999
             } else if (qty.compareTo(BigDecimal.valueOf(MAX_VALUE)) > 0) {
