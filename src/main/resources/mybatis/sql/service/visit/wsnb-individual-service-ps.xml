@@ -99,8 +99,16 @@
                  END) AS BS_EXPR_DT /*BS만기*/
              , SV1.CPS_DT /*기변일자 - 보상일자*/
              , SV1.REQD_DT /*철거일자*/
-             , CASE WHEN SC2.SELL_TP_CD = '3' THEN SC2.CNTR_PD_STRTDT ELSE '' END AS MSH_J_DT /*멤버십시작일*/
-             , CASE WHEN SC2.SELL_TP_CD = '3' THEN SUBSTR(SC5.HIST_STRT_DTM,1,8) ELSE '' END AS MSH_WDWAL_DT /*멤버십종료일*/
+             , (SELECT T1.MSH_J_DT
+                  FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                 WHERE T1.CNTR_NO = SC2.CNTR_NO
+                   AND T1.CNTR_SN = SC2.CNTR_SN
+                   AND T1.MNGT_YM = TO_CHAR(SYSDATE,'YYYYMM')) AS MSH_J_DT /*멤버십시작일*/
+             , (SELECT T1.MSH_WDWAL_DT
+                  FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                 WHERE T1.CNTR_NO = SC2.CNTR_NO
+                   AND T1.CNTR_SN = SC2.CNTR_SN
+                   AND T1.MNGT_YM = TO_CHAR(SYSDATE,'YYYYMM')) AS MSH_WDWAL_DT /*멤버십종료일*/
              , SV1.BC_NO /*바코드*/
              , SV2.BC_NO AS PBL_BC_NO /*발행바코드*/
              , SV1.QRS_RDM_NO /*맞춤가이드 - 랜덤QR번호*/
@@ -114,7 +122,12 @@
                   FROM TB_PDBS_PD_ECOM_PRP_DTL X
                  WHERE X.PD_CD = SV1.SV_PD_CD
                    AND X.PD_EXTS_PRP_GRP_CD = 'SCHD'
-                   AND X.DTA_DL_YN = 'N') AS VST_PRD_NM /* 방문주기 */
+                   AND X.DTA_DL_YN = 'N') AS VST_PRD_NM /* 방문주기1 */
+             , (SELECT  F_CMZ_CD_NM('TNT_WELL', 'SV_VST_PRD_CD',X.PD_PRP_VAL03)
+                  FROM TB_PDBS_PD_ECOM_PRP_DTL X
+                 WHERE X.PD_CD = SV1.SV_PD_CD
+                   AND X.PD_EXTS_PRP_GRP_CD = 'SCHD'
+                   AND X.DTA_DL_YN = 'N') AS PRD_NM /* 방문주기2 */
           FROM TB_SVPD_CST_SV_EXCN_IZ SV1 /*고객서비스 수행내역*/
           LEFT OUTER JOIN TB_SVPD_PD_BC_RPBL_CST_IZ SV2 /*상품바코드재발행고객내역*/
             ON SV2.CNTR_NO = SV1.CNTR_NO
