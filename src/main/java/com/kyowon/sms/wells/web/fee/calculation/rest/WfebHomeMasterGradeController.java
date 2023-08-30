@@ -115,11 +115,9 @@ public class WfebHomeMasterGradeController {
     public SaveResponse removeHomeMasterPoint(
         @RequestBody
         @Valid
-        RemoveReq dto
-    ) throws Exception {
-        return SaveResponse.builder()
-            .processCount(service.removeHomeMasterPoint(dto))
-            .build();
+        List<RemoveReq> info
+    ) {
+        return SaveResponse.builder().processCount(service.removeHomeMasterPoint(info)).build();
     }
 
 }

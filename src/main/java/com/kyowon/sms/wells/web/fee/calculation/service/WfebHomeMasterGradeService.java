@@ -156,11 +156,15 @@ public class WfebHomeMasterGradeService {
      */
 
     @Transactional
-    public int removeHomeMasterPoint(RemoveReq dto) throws Exception {
-        int processCount = 0;
-        WfebHomeMasterGradeDvo dvo = converter.mapRemoveReqToWfebHomeMasterGradeTransferDvo(dto);
-        processCount = mapper.deleteHomeMasterPoint(dvo);
-        BizAssert.isTrue(processCount > 0, "MSG_ALT_DEL_ERR");
-        return processCount;
+    public int removeHomeMasterPoint(List<RemoveReq> info) {
+        AtomicInteger processCount = new AtomicInteger();
+        info.forEach(data -> {
+            WfebHomeMasterGradeDvo dvo = this.converter.mapRemoveReqToWfebHomeMasterGradeTransferDvo(data);
+            processCount.addAndGet(this.mapper.deleteHomeMasterPoint(dvo));
+        });
+        BizAssert.isTrue(processCount.get() > 0, "MSG_ALT_CRT_FAIL");
+
+        return processCount.get();
     }
+
 }
