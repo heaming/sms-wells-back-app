@@ -68,7 +68,6 @@ public class WsnaIndividualWareOstrDto {
         String itmKndCd,
         List<String> itmPdCds,
 
-        @Positive
         @Max(999999999999L)
         BigDecimal totOutQty,
 
