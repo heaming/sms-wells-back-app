@@ -3,7 +3,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbGoodsChangeAcceptingStateMapper">
     <select id="selectGoodsChangeAcceptingState" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbGoodsChangeAcceptingStateDto$SearchRes">
         SELECT * FROM
-            (SELECT
+            (SELECT /*+ LEADING(T5) USE_NL(VS106 VS115 T1 T3 T5 MM_PRTNR AM_PRTNR PM_PRTNR ADR_REL T4 PD_BAS AC201 V1) NO_MERGE(V1) */
                    VS115.CNTR_NO
                  , VS115.CNTR_SN
                  , VS115.APR_AK_STAT_CD  AS APR_AK_STAT_CD                   /*승인상태*/
@@ -117,28 +117,28 @@
                              WHERE RANK = 1) V1
                          ON VS115.CNTR_NO = V1.CNTR_NO
                         AND VS115.CNTR_SN = V1.CNTR_SN
+                      <choose>
+                          <when test='@MybatisUtils@equals(inqrBaseCd, "vstCnfmDt")'>
+                              AND VS106.ASN_DT BETWEEN #{startDt} AND #{endDt} /*방문확정일*/
+                          </when>
+                          <when test='@MybatisUtils@equals(inqrBaseCd, "wrteDt")'>
+                              AND SUBSTR(VS115.FST_RGST_DTM, 1, 14) BETWEEN #{startDt} AND #{endDt} /*작성일자*/
+                          </when>
+                          <when test='@MybatisUtils@equals(inqrBaseCd, "schdDt")'>
+                              AND T5.VST_RQDT BETWEEN #{startDt} AND #{endDt} /*예정일자*/
+                          </when>
+                          <when test='@MybatisUtils@equals(inqrBaseCd, "prcsDt")'>
+                              AND VS106.VST_FSH_DT BETWEEN #{startDt} AND #{endDt} /*처리일자*/
+                          </when>
+                      </choose>
+                      <if test="@MybatisUtils@isNotEmpty(aprAkStatCd) and !@MybatisUtils@equals(aprAkStatCd, 'ALL')">
+                          AND VS115.APR_AK_STAT_CD = #{aprAkStatCd}
+                      </if>
+                      <if test="@MybatisUtils@isNotEmpty(tpChYn) and !@MybatisUtils@equals(tpChYn, 'ALL')">
+                          AND VS115.APR_AK_CONF_YN = #{tpChYn}
+                      </if>
                         )
             WHERE RN = 1
-              <choose>
-              <when test='@MybatisUtils@equals(inqrBaseCd, "vstCnfmDt")'>
-                  AND VST_CNFM_DT BETWEEN #{startDt} AND #{endDt} /*방문확정일*/
-              </when>
-              <when test='@MybatisUtils@equals(inqrBaseCd, "wrteDt")'>
-                  AND SUBSTR(DRAT_DTM, 1, 8) BETWEEN #{startDt} AND #{endDt} /*작성일자*/
-              </when>
-              <when test='@MybatisUtils@equals(inqrBaseCd, "schdDt")'>
-                  AND SCHD_DT BETWEEN #{startDt} AND #{endDt} /*예정일자*/
-              </when>
-              <when test='@MybatisUtils@equals(inqrBaseCd, "prcsDt")'>
-                  AND PROCS_DT BETWEEN #{startDt} AND #{endDt} /*처리일자*/
-              </when>
-              </choose>
-              <if test="@MybatisUtils@isNotEmpty(aprAkStatCd) and !@MybatisUtils@equals(aprAkStatCd, 'ALL')">
-                  AND APR_AK_STAT_CD = #{aprAkStatCd}
-              </if>
-              <if test="@MybatisUtils@isNotEmpty(tpChYn) and !@MybatisUtils@equals(tpChYn, 'ALL')">
-                  AND TP_CH_YN = #{tpChYn}
-              </if>
          ORDER BY DRAT_DTM
     </select>
     <update id="updateSvpdPdChngAprAkIz" parameterType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbGoodsChangeAcceptingStateDvo">
