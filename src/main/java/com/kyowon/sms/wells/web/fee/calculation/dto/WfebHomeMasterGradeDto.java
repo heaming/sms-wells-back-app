@@ -73,7 +73,14 @@ public class WfebHomeMasterGradeDto {
         @NotBlank
         String prtnrNo,
         @NotBlank
-        String mngtYm
+        String mngtYm,
+        String sellPVal,
+        String svPVal,
+        String educPVal,
+        String etcPVal1,
+        String etcPVal2,
+        String etcPVal3,
+        String clDvCd
     ) {}
 
     // *********************************************************
