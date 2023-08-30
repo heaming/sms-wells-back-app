@@ -32,6 +32,8 @@ public class WsnbInstallConfirmBiztalkService {
 
     public int sendInstallConfirmBiztalks(Map<String, Object> jobParam) throws Exception {
 
+        log.debug("######################### sendInstallConfirmBiztalks begin #########################");
+
         List<WsnbInstallConfirmDvo> dvos = mapper.selectInstallConfirms();
 
         int processCount = 0;
@@ -62,7 +64,7 @@ public class WsnbInstallConfirmBiztalkService {
 
             processCount += kakaoMessageService.sendMessage(kakaoSendReqDvo);
         }
-
+        log.debug("######################### sendInstallConfirmBiztalks end #########################");
         return processCount;
     }
 }
