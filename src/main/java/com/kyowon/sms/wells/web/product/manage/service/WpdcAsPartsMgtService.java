@@ -1,10 +1,6 @@
 package com.kyowon.sms.wells.web.product.manage.service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -32,7 +28,6 @@ import com.sds.sflex.common.common.service.CodeService;
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
 import com.sds.sflex.common.docs.service.AttachFileService;
 import com.sds.sflex.common.utils.DateUtil;
-//import org.eclipse.jetty.util.StringUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -301,7 +296,8 @@ public class WpdcAsPartsMgtService {
                 propertyVo.setPdCd(dvo.getPdCd());
                 if (null != propertyVo.getPdExtsPrpGrpCd()) {
                     productService.saveEachCompanyPropDtl(propertyVo);
-                    propertyMap = new HashMap<String, Object>();
+                    // sonarQube 대응. 불필요한 변수 초기화
+                    // propertyMap = new HashMap<String, Object>();
                 }
 
             }
