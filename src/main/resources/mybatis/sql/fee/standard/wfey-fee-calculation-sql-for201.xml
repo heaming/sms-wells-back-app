@@ -333,4 +333,88 @@
          WHERE 1 = 1
          GROUP BY MST.BASE_YM, MST.OG_TP_CD, MST.PRTNR_NO
     </insert>
+
+    <insert id="insertSupplementaryEncrgFeeForPlanner">
+        /**
+         * 추가장려(플래너)    :   W020124
+         * 소스 : AB80C00
+         * 컬럼 : AKSD06
+         **/
+        INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산기본 */
+                                                  BASE_YM            /* 기준년월 */
+                                                , PERF_YM            /* 실적년월 */
+                                                , OJ_DSB_YM          /* 대상지급년월 */
+                                                , CO_CD              /* 회사코드 */
+                                                , OG_TP_CD           /* 조직유형코드 */
+                                                , PRTNR_NO           /* 파트너번호 */
+                                                , FEE_CD             /* 수수료코드 */
+                                                , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+                                                , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+                                                , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+                                                , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+                                                , FEE_CALC_AMT       /* 수수료계산금액 */
+                                                , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+                                                , FNL_FEE_YN         /* 최종수수료여부 */
+                                                <include refid="COMMON.insertSystemField" />)
+        SELECT #{baseYm} AS BASE_YM /* 기준년월 */                     -- 변수 {BASE_YM}
+             , #{baseYm} AS PERF_YM /* 실적년월 */                     -- 변수 {BASE_YM}
+             , #{baseYm} AS OJ_DSB_YM /* 대상지급년월 */                -- 변수 {BASE_YM}
+             , #{coCd} AS CO_CD /* 회사코드 */
+             , OG_TP_CD
+             , PRTNR_NO
+             , #{feeCd} AS FEE_CD /* 수수료코드 */
+             , #{dtaCrtFeeCd} AS DTA_CRT_FEE_CD /* 데이터생성수수료코드 */
+             , #{feeTcntDvCd} AS FEE_TCNT_DV_CD /* 수수료차수구분코드 */           -- 변수 {FEE_TCNT_DV_CD}
+             , '01' AS SPMT_DSB_DV_CD /* 추가지급구분코드 */
+             , '01' AS FEE_CALC_TP_CD /* 수수료계산유형코드 */
+             , FEE_CALC_AMT
+             , FEE_CALC_AMT AS FEE_CTR_CNFM_AMT
+             , #{fnlFeeYn} AS FNL_FEE_YN /* 최종수수료여부 */
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM (SELECT T01.OG_TP_CD /* 조직유형코드 */
+                     , T01.PRTNR_NO /* 파트너번호 */
+                     , CASE WHEN NVL(T44.QLF_DV_CD,'2') = '1' THEN --  23년 4월 수석플래너
+                                                                   CASE WHEN T20.PERF_VAL >= 20 THEN ( T20.PERF_VAL * 28000 ) + ( T10.PERF_VAL * 0.1 )
+                                                                        WHEN T20.PERF_VAL >= 15 THEN 450000 + ( T10.PERF_VAL * 0.1 )
+                                                                        WHEN T20.PERF_VAL >= 7 THEN 250000 + ( T10.PERF_VAL * 0.09 )
+                                                                        WHEN T20.PERF_VAL >= 3 THEN 80000 + ( T10.PERF_VAL * 0.07 )
+                                                                        ELSE 0 END
+                            WHEN NVL(T44.QLF_DV_CD,'2') = '2' THEN  -- 23년 4월 일반 플래너(프리매니저)
+                                                               CASE WHEN T20.PERF_VAL >= 20 THEN ( T20.PERF_VAL * 28000 ) + ( T10.PERF_VAL * 0.1 )
+                                                                    WHEN T20.PERF_VAL >= 15 THEN 450000 + ( T10.PERF_VAL * 0.1 )
+                                                                    WHEN T20.PERF_VAL >= 7 THEN 250000 + ( T10.PERF_VAL * 0.09 )
+                                                                    ELSE 0 END
+                            ELSE 0 END  AS FEE_CALC_AMT /* 수수료계산금액 */
+                  FROM TB_OGBS_MM_PRTNR_IZ T01 /* 월파트너내역 */
+                  LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T10
+                    ON (    T01.BASE_YM = T10.PERF_YM
+                        AND T01.BASE_YM = T10.BASE_YM
+                        AND T01.OG_TP_CD = T10.OG_TP_CD
+                        AND T01.PRTNR_NO = T10.PRTNR_NO
+                        AND T10.PERF_ATC_CD = 'W02P00112'
+                        AND T10.PERF_DV_CD = '0'
+                        AND T10.FEE_TCNT_DV_CD = #{feeTcntDvCd}                      -- 변수 {FEE_TCNT_DV_CD}
+                        AND T10.CO_CD = #{coCd})
+                  LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T20
+                    ON (    T01.BASE_YM = T20.PERF_YM
+                        AND T01.BASE_YM = T20.BASE_YM
+                        AND T01.OG_TP_CD = T20.OG_TP_CD
+                        AND T01.PRTNR_NO = T20.PRTNR_NO
+                        AND T20.PERF_ATC_CD = 'W02P00002'
+                        AND T20.PERF_DV_CD = '0'
+                        AND T20.FEE_TCNT_DV_CD = #{feeTcntDvCd}                       -- 변수 {FEE_TCNT_DV_CD}
+                        AND T20.CO_CD = #{coCd})
+                  LEFT OUTER JOIN  TB_OGBS_MM_PRTNR_IZ T44
+                    ON (    T44.BASE_YM = '202304'                          -- '202304' 고정   23년4월 자격이 수석 플래너인지 확인용
+                        AND T01.OG_TP_CD = T44.OG_TP_CD
+                        AND T01.PRTNR_NO = T44.PRTNR_NO     )
+                 WHERE T01.BASE_YM = #{baseYm}                               -- 변수 {BASE_YM}
+                   AND T01.OG_TP_CD = 'W02'
+                   AND T01.PSTN_DV_CD = '15'
+                   AND T01.QLF_DV_CD IN ('1','2')
+                   AND T01.PERF_EXCD_OJ_YN = 'N'
+                   AND SUBSTR(T01.CNTR_DT,1,6) <![CDATA[<=]]> '202303'                   -- 3월 포함 이전 계약자만 대상임.  '202303' 고정
+             ) RESULT
+        WHERE RESULT.FEE_CALC_AMT > 0
+    </insert>
 </mapper>
