@@ -58,7 +58,7 @@ public class KakaoWcsbProspecCustomerMgtService {
         if (partnerVo.getOgId() != null) {
             String akdhpno = AES256Util
                 .castString(partnerVo.getEpMpNo1() + DbEncUtil.dec(partnerVo.getEpMpNo2()) + partnerVo.getEpMpNo3());
-            BizAssert.isFalse(dto.phone_number().equals(akdhpno), "담당EP 휴대전화 번호와  동일한 번호는 등록할 수 없습니다.");
+            BizAssert.isFalse(dto.phoneNumber().equals(akdhpno), "담당EP 휴대전화 번호와  동일한 번호는 등록할 수 없습니다.");
         }
 
         WcsbTbSsopPspcCstDdlvHistDvo teacherVo = converter
@@ -93,8 +93,10 @@ public class KakaoWcsbProspecCustomerMgtService {
          * #0. 카카오싱크 기본 ()
          */
 
-        String clphNo = dto.phone_number().replace("-", "");
+        String clphNo = dto.phoneNumber().replace("-", "");
         String clphNo1, clphNo2, clphNo3;
+
+        log.info(clphNo);
 
         if (clphNo.length() == 10) {
             clphNo1 = clphNo.substring(0, 3);
@@ -110,7 +112,7 @@ public class KakaoWcsbProspecCustomerMgtService {
 
         // 카카오 Dvo 상수값 Setting
         defaultdvo.setInPath("J");
-        defaultdvo.setAkdGub("1");
+        defaultdvo.setAkdGub("7");
         defaultdvo.setCustWcde(dto.employee_id());
         defaultdvo.setCustUcde(dto.employee_id());
         defaultdvo.setCustHnO1(clphNo1);
@@ -127,10 +129,10 @@ public class KakaoWcsbProspecCustomerMgtService {
          * #1. 가망고객기본
          */
 
-        dvo.setBasAdr(dto.base_address());
-        dvo.setDtlAdr(dto.detail_address());
+        dvo.setBasAdr(dto.baseAddress());
+        dvo.setDtlAdr(dto.detailAddress());
         dvo.setIchrPrtnrNo(dto.employee_id());
-        dvo.setBryyMmdd((dto.birthyear() + dto.birthday()).replace(" ", ""));
+        dvo.setBryyMmdd((dto.birthyear() + dto.birthday()).replace("-", ""));
         dvo.setCralLocaraTno(clphNo1);
         dvo.setMexnoEncr(clphNo2);
         dvo.setCralIdvTno(clphNo3);
@@ -141,18 +143,15 @@ public class KakaoWcsbProspecCustomerMgtService {
         dvo.setFreDgnsTpCd(defaultdvo.getFrdnsrNo());
         dvo.setHgrFreDgnsTpCd(defaultdvo.getPrensrNo());
         dvo.setPspcCstDivDvCd(defaultdvo.getAkdGub());
-        dvo.setOtsdChnlSpmtYn(dto.channel_yn());
+        dvo.setOtsdChnlSpmtYn(dto.channelYn());
         dvo.setOtsdLkDrmVal(dto.auid());
-        dvo.setIchrOgTpCd("E01");
+        dvo.setIchrOgTpCd("W01");
         dvo.setNatCd("KR");
         dvo.setCopnDvCd("1");
         dvo.setPspcCstTpCd("20");
         dvo.setPspcCstFtfYn("N");
         dvo.setOgAsnStatCd("3");
         processCount = saveSmplJoinCust(dvo, defaultdvo, startDtm);
-
-        log.info("dvo.BasAdr : " + dvo.getBasAdr());
-        log.info("dvo.DtlAdr : " + dvo.getDtlAdr());
 
         /**
          * #2. 교사정보 (배부정보)
@@ -163,7 +162,7 @@ public class KakaoWcsbProspecCustomerMgtService {
         teacherVo.setPspcCstTpCd(dvo.getPspcCstTpCd());
         teacherVo.setAsnFshDtm(DateUtil.getDate(new Date())); // 배정완료일시
         teacherVo.setOgAsnStatCd("1");
-        teacherVo.setOgTpCd("E01");
+        teacherVo.setOgTpCd("W01");
 
         // 센터장 (상위직급자)
         teacherVo.setOgAsnStatCd("1");
@@ -188,8 +187,6 @@ public class KakaoWcsbProspecCustomerMgtService {
 
         // 사용자 입력 주소-데이터 저장.
         String address = dvo.getBasAdr() + dvo.getDtlAdr();
-
-        log.info("saveSmplJoinCust.address : " + address);
 
         FormatAddressDvo addrDvo = addressService
             .getFormattedAddress(address, CmSujiewonConst.FORMAT_TYPE_ROAD_ADDRESS);
