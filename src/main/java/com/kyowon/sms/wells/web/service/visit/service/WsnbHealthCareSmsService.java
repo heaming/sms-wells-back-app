@@ -52,7 +52,7 @@ public class WsnbHealthCareSmsService {
         for (WsnbHealthCareSmsDvo row : rows) {
             String yn = StringUtil.nvl2(row.getPifThpOfrAgYn(), "N");
             paramMap.clear();
-            paramMap.put("cstFnm", row.getCstFnm());
+            paramMap.put("cstFnm", row.getAgpNm());
             paramMap.put("cntrNo", row.getCntrNo());
             paramMap.put("callback", callback);
 
@@ -64,7 +64,7 @@ public class WsnbHealthCareSmsService {
                 SmsSendReqDvo.withTemplateId()
                     .templateId(templateId)
                     .templateParamMap(paramMap)
-                    .destInfo(row.getCstNm().concat("^").concat(row.getCphonIdvTno()))
+                    .destInfo(row.getAgpNm().concat("^").concat(row.getCralLocaraTno() + row.getMexnoEncr() + row+ row.getCralIdvTno()))
                     .build()
             );
 
@@ -99,7 +99,7 @@ public class WsnbHealthCareSmsService {
                     KakaoSendReqDvo.withTemplateCode()
                         .templateCode(templateCode)
                         .templateParamMap(paramMap)
-                        .destInfo(row.getCstNm().concat("^").concat(row.getCphonIdvTno()))
+                        .destInfo(row.getAgpNm().concat("^").concat(row.getCralLocaraTno() + row.getMexnoEncr() + row+ row.getCralIdvTno()))
                         .callback(callback)
                         .userId("admin")
                         .build()
