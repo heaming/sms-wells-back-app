@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto;
+import com.sds.sflex.common.utils.DateUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -179,6 +180,26 @@ public class WwdbGiroOcrForwardingMgtService {
             log.info("================");
             processCount += mapper.deleteGiroOcrForwardingPrints(dvo);
         }
+
+        return processCount;
+    }
+
+    @Transactional
+    public int saveGiroPrintDate(WwdbGiroOcrForwardingMgtDto.saveGiroPrintReq dto) throws Exception {
+        int processCount = 0;
+
+
+        WwdbGiroOcrForwardingPrintDvo dvo = convert.mapSaveGiroPrintDvo(dto);
+
+        String sysDate = DateUtil.getNowString();
+        String sysDateYmd = sysDate.substring(0, 8);
+        
+        dvo.setGiroOcrPrntDt(sysDateYmd);
+
+        processCount += mapper.updateGiroPrintDate(dvo);
+
+        processCount += mapper.insertGiroPrintDate(dvo);
+
 
         return processCount;
     }

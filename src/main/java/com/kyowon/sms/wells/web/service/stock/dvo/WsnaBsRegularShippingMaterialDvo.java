@@ -46,6 +46,7 @@ public class WsnaBsRegularShippingMaterialDvo {
     int mpacSn; // 합포장일련번호
     String lgstSppMthdCd; // 물류배송방식코드
     String lgstWkMthdCd; // 물류작업방식코드
+    String lgstOstrAkNo; /* 물류요청번호 */
     @DBEncField
     @DBDecField
     String adrsTnoVal; // 수취인전화번호

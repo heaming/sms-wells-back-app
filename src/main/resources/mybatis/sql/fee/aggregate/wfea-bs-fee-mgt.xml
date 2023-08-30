@@ -57,9 +57,19 @@
                 * => 정기배송 패키지 상품(모종)이고 결합 계약인 것을 제외함
                 * */
                 SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1 C3) USE_NL(C1 C2 C3) */
-                    NULL AS HCR_DV_CD
+                      C1.CNTR_SN AS SEQ
+             	    , C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
+                    , C1.CNTR_PD_ENDDT	AS CNTR_CAN_DTM	/*계약취소일시*/
+                    , NULL AS REQD_DT	/*철거일자*/
+                    , NULL AS SL_STP_YN	/*매출중지여부*/
+                    , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
+                    , NULL AS HCR_DV_CD	/*홈케어구분코드*/
+                    , C2.CNTR_CST_NO	/*계약고객번호*/
                     , 'N' AS COMBI_YN	/*결합제외여부*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
+                INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
+                   ON C1.CNTR_NO = C2.CNTR_NO
+                  AND C2.DTA_DL_YN = 'N'
                  LEFT OUTER JOIN TB_SSCT_CNTR_REL C3	/*계약관계*/
                    ON C3.OJ_DTL_CNTR_NO = C1.CNTR_NO
                   AND C3.OJ_DTL_CNTR_SN = C1.CNTR_SN
@@ -72,12 +82,22 @@
                 UNION ALL
                  /*멤버십*/
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) USE_NL(C1 C2 C3) */
-                    C2.HCR_DV_CD
-                    , 'N' AS COMBI_YN	/*결합여부*/
+                      C1.CNTR_SN AS SEQ
+                    , C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
+                    , C1.CNTR_PD_ENDDT AS CNTR_CAN_DTM	/*멤버십종료일시*/
+                    , NULL AS REQD_DT	/*철거일자*/
+                    , NULL AS SL_STP_YN	/*매출중지여부*/
+                    , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
+                    , C3.HCR_DV_CD
+                    , C2.CNTR_CST_NO	/*계약고객번호*/
+                    , 'N' AS COMBI_YN	/*결합제외여부*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
-                INNER JOIN TB_SSCT_CNTR_WELLS_DTL C2
+                INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
                    ON C1.CNTR_NO = C2.CNTR_NO
-                  AND C1.CNTR_SN = C2.CNTR_SN
+                  AND C2.DTA_DL_YN = 'N'
+                INNER JOIN TB_SSCT_CNTR_WELLS_DTL C3
+                   ON C1.CNTR_NO = C3.CNTR_NO
+                  AND C1.CNTR_SN = C3.CNTR_SN
                 WHERE C1.CNTR_NO = T1.CNTR_NO
                   AND C1.CNTR_SN = T1.CNTR_SN
                   AND C1.SELL_TP_CD = '3'	/*멤버십*/
@@ -88,17 +108,33 @@
                   * 웰스팜 기기이고 결합이 아니면 제외
                   * */
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1) USE_NL(C1 C2 C3 C4) */
-                    NULL AS HCR_DV_CD
+                      0 AS SEQ
+                 	, C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
+                    , C1.CNTR_PD_ENDDT AS CNTR_CAN_DTM	/*계약취소일시*/
+                    , C4.REQD_DT AS REQD_DT	/*철거일자(만료철거일자)*/
+                    , D1.SL_STP_YN	/*매출중지여부*/
+                    , C2.CNTR_CAN_RSON_CD	/*계약취소사유코드*/
+                    , NULL AS HCR_DV_CD
+                    , C2.CNTR_CST_NO	/*계약고객번호*/
                     , CASE WHEN T2.REF_PD_CLSF_VAL LIKE '05001003%' AND C3.CNTR_REL_DTL_CD != '216' THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
+                INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
+                   ON C1.CNTR_NO = C2.CNTR_NO
+                  AND C2.DTA_DL_YN = 'N'
                  LEFT OUTER JOIN TB_SSCT_CNTR_REL C3	/*계약관계*/
                    ON C3.BASE_DTL_CNTR_NO = C1.CNTR_NO
                   AND C3.BASE_DTL_CNTR_SN = C1.CNTR_SN
+                  AND C3.OJ_DTL_CNTR_NO IS NOT NULL
                   AND C3.DTA_DL_YN = 'N'
                 INNER JOIN TB_SSCT_CNTR_WELLS_DTL C4	/*계약WELLS상세*/
                    ON C4.CNTR_NO = C1.CNTR_NO
                   AND C4.CNTR_SN = C1.CNTR_SN
                   AND C4.DTA_DL_YN = 'N'
+                INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ D1	/*WELLS매출월마감내역*/
+                   ON D1.CNTR_NO = T1.CNTR_NO
+                  AND D1.CNTR_SN = T1.CNTR_SN
+                  AND D1.SL_CL_YM = T1.BASE_YM
+                  AND D1.DTA_DL_YN = 'N'
                 WHERE C1.DTA_DL_YN = 'N'
                   AND C1.CNTR_NO = T1.CNTR_NO
                   AND C1.CNTR_SN = T1.CNTR_SN
@@ -109,21 +145,54 @@
                   * 웰스팜 기기이고 결합이 아니면 제외
                   * */
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1) USE_NL(C1 C2 C3 C4) */
-                    C4.HCR_DV_CD
+                      0 AS SEQ
+                    , C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
+                    , C1.CNTR_PD_ENDDT AS CNTR_CAN_DTM	/*계약취소일시*/
+                    , C4.CPS_DT AS REQD_DT	/*철거일자(보상일자)*/
+                    , NULL AS SL_STP_YN	/*매출중지여부*/
+                    , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
+                    , C4.HCR_DV_CD
+                    , C2.CNTR_CST_NO	/*계약고객번호*/
                     , CASE WHEN T2.REF_PD_CLSF_VAL LIKE '05001003%' AND C3.CNTR_REL_DTL_CD != '216' THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
-                FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
-                LEFT OUTER JOIN TB_SSCT_CNTR_REL C3	/*계약관계*/
-                  ON C3.BASE_DTL_CNTR_NO = C1.CNTR_NO
-                 AND C3.BASE_DTL_CNTR_SN = C1.CNTR_SN
-                 AND C3.DTA_DL_YN = 'N'
-               INNER JOIN TB_SSCT_CNTR_WELLS_DTL C4	/*계약WELLS상세*/
-                  ON C4.CNTR_NO = C1.CNTR_NO
-                 AND C4.CNTR_SN = C1.CNTR_SN
-                 AND C4.DTA_DL_YN = 'N'
-               WHERE C1.DTA_DL_YN = 'N'
-                 AND C1.CNTR_NO = T1.CNTR_NO
-                 AND C1.CNTR_SN = T1.CNTR_SN
-                 AND C1.SELL_TP_CD = '1'	/*일시불*/
+                 FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
+                INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
+                   ON C1.CNTR_NO = C2.CNTR_NO
+                  AND C2.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_SSCT_CNTR_REL C3	/*계약관계*/
+                   ON C3.BASE_DTL_CNTR_NO = C1.CNTR_NO
+                  AND C3.BASE_DTL_CNTR_SN = C1.CNTR_SN
+                  AND C3.OJ_DTL_CNTR_NO IS NOT NULL
+                  AND C3.DTA_DL_YN = 'N'
+                INNER JOIN TB_SSCT_CNTR_WELLS_DTL C4	/*계약WELLS상세*/
+                   ON C4.CNTR_NO = C1.CNTR_NO
+                  AND C4.CNTR_SN = C1.CNTR_SN
+                  AND C4.DTA_DL_YN = 'N'
+                WHERE C1.DTA_DL_YN = 'N'
+                  AND C1.CNTR_NO = T1.CNTR_NO
+                  AND C1.CNTR_SN = T1.CNTR_SN
+                  AND C1.SELL_TP_CD = '1'	/*일시불*/
+                UNION ALL
+                /*회사설치*/
+               SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1) USE_NL(C1 C2 C3 C4) */
+                      0 AS SEQ
+                    , C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
+                    , NULL AS CNTR_CAN_DTM	/*계약취소일시*/
+                    , C1.CNTR_PD_ENDDT	AS REQD_DT	/*철거일자(반품일자)*/
+                    , NULL AS SL_STP_YN	/*매출중지여부*/
+                    , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
+                    , NULL AS HCR_DV_CD
+                    , C2.CNTR_CST_NO	/*계약고객번호*/
+                    , CASE WHEN T2.REF_PD_CLSF_VAL LIKE '05001003%' THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
+                 FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
+                INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
+                   ON C1.CNTR_NO = C2.CNTR_NO
+                  AND C2.DTA_DL_YN = 'N'
+                WHERE C1.DTA_DL_YN = 'N'
+                  AND C1.CNTR_NO = T1.CNTR_NO
+                  AND C1.CNTR_SN = T1.CNTR_SN
+                  AND C1.SELL_TP_CD = '4'	/*회사설치*/
+                ORDER BY SEQ DESC
+                FETCH FIRST ROW ONLY
             ) T3 ON 1=1
          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4 /* 월파트너내역 */
            ON T1.BASE_YM = T4.BASE_YM
@@ -182,6 +251,9 @@
         </if>
         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
           AND T1.PRTNR_NO = #{prtnrNo}
+        </if>
+        <if test='@MybatisUtils@equals(ogTpCd, "W03")'>
+          AND T1.SV_BIZ_DCLSF_CD != '4330'  /*홈마스터 방문부재건 제외 결함수정건*/
         </if>
         ORDER BY T1.PRTNR_NO, T1.CNTR_NO
     </select>

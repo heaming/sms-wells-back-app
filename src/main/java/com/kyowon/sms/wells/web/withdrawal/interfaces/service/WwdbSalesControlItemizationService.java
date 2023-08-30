@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.service;
 
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.SalesControlItemizationDto;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdcSalesControlItemizationDto;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdbSalesControlItemizationMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,8 +17,8 @@ public class WwdbSalesControlItemizationService {
      * @param dto
      * @return
      */
-    public List<SalesControlItemizationDto.SearchRes> getSalesControlItemizations(
-        SalesControlItemizationDto.SearchReq dto
+    public List<WwdcSalesControlItemizationDto.SearchRes> getSalesControlItemizations(
+        WwdcSalesControlItemizationDto.SearchReq dto
     ) {
         return mapper.selectSalesControlItemizations(dto);
     }

@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.performance.mapper.WdccPrepaymentExpirationMapper">
+
+    <select id="selectObjectPresentState" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccPrepaymentExpirationDto$SearchRes">
+        SELECT T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_NO /*계약상세번호*/
+		     , T1.CST_NO AS CST_NO /*고객번호*/
+		     , T14.CST_KNM AS CST_KNM /*고객명*/
+		     , T4_2.RCGVP_KNM AS RCGVP_KNM /*설치자명*/
+		     , T3.BASE_PD_CD AS PD_CD /*상품코드*/
+		     , T16.PD_NM AS PD_NM /*상품명*/
+		     , T1.RENTAL_TN AS RENTAL_TN /*렐탈차월*/
+		     , T6.MPY_BSDT AS MPY_BSDT /*이체일자 @TO-DO ASIS의 경우 매출상세팝업의 이체일자와 다르게 나옴*/
+		     , (CASE WHEN T1.SELL_TP_CD IN ('6', '9') THEN SUBSTR(T1.SPP_DTM, 1, 8)
+		            ELSE SUBSTR(T1.IST_DTM, 1, 8)
+		        END) AS LCSLE_DT /*매출일자*/
+		     , SUBSTR(T2.CNTR_CAN_DTM, 1, 8) AS CNTR_CAN_DT /*취소일자*/
+		     , T1.PRM_MCN AS PRM_MCN /*선납개월*/
+		     , T1.PRM_DSCR AS PRM_DSCR /*할인율*/
+		     , (CASE WHEN T1.PRM_STRT_Y > 0 THEN T1.PRM_END_Y || LPAD(T1.PRM_END_MM , 2 , '0' ) ELSE '000000' END) AS PRM_END_YM /*선납종료년월*/
+		     , (CASE WHEN T1.PRM_STRT_Y IS NOT NULL
+		            THEN T1.PRM_STRT_Y || '-' || LPAD(T1.PRM_STRT_MM , 2 , '0')  || '~'  || T1.PRM_END_Y || '-' ||  LPAD(T1.PRM_END_MM , 2 , '0' )
+		            ELSE ''
+		        END) AS PRM_PERIOD /*선납시작/종료*/
+		     , T1.TOT_PRM_AMT AS TOT_PRM_AMT /*선납총액*/
+		     , '' AS PRM_EXCPT /*선납제외*/
+		     , (SELECT CASE WHEN CAST(PRM_STRT_Y AS INT) > 0 THEN 'Y' ELSE 'N' END
+		          FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+		         WHERE CNTR_NO = T1.CNTR_NO
+		           AND CNTR_SN = T1.CNTR_SN
+		           AND CAST(PRM_STRT_Y AS INT) = CAST(SUBSTR(TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm},'YYYYMM'), 1), 'YYYYMM'), 1, 4) AS INT)
+		           AND CAST(PRM_STRT_MM AS INT) = CAST(SUBSTR(TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm},'YYYYMM'), 1), 'YYYYMM'), 5, 2) AS INT)
+		           AND ROWNUM = 1
+		       ) AS PRM_RE_APLC_YN /*선납재신청*/
+		     , T15.LOCARA_TNO AS CNTR_LOCAL_TNO1 /* 계약자전화번호1*/
+		     , T15.EXNO_ENCR AS CNTR_LOCAL_TNO2 /* 계약자전화번호2*/
+		     , T15.IDV_TNO AS CNTR_LOCAL_TNO3 /* 계약자전화번호3*/
+		     , T14.CRAL_LOCARA_TNO AS CNTR_CRAL_TNO1 /* 계약자휴대전화번호1*/
+		     , T14.MEXNO_ENCR AS CNTR_CRAL_TNO2 /* 계약자휴대전화번호2*/
+		     , T14.CRAL_IDV_TNO AS CNTR_CRAL_TNO3 /* 계약자휴대전화번호3*/
+		     , T4_2.LOCARA_TNO AS RCGVP_LOCAL_TNO1 /* 설치자전화번호1*/
+		     , T4_2.EXNO_ENCR AS RCGVP_LOCAL_TNO2 /* 설치자전화번호2*/
+		     , T4_2.IDV_TNO AS RCGVP_LOCAL_TNO3 /* 설치자전화번호3*/
+		     , T4_2.LOCARA_TNO AS RCGVP_CRAL_TNO1 /* 설치자휴대전화번호1*/
+		     , T4_2.EXNO_ENCR AS RCGVP_CRAL_TNO2 /* 설치자휴대전화번호2*/
+		     , T4_2.IDV_TNO AS RCGVP_CRAL_TNO3 /* 설치자휴대전화번호3*/
+		     , T7.DP_CL_DT /* 입금일자*/
+		     , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'DP_TP_CD' AND CD_VLD_VAL = T7.DP_TP_CD) AS DP_TP_CD_NM /* 입금유형*/
+		     , T7.DP_AMT AS DP_AMT /* 입금액*/
+		     , T2.SELL_OG_TP_CD AS SELL_OG_TP_CD /* 판매조직유형코드*/
+		     , T8.OG_CD AS OG_CD /* 조직코드*/
+		     , T8.OG_ID AS OG_ID /* 조직ID*/
+		     , T8.OG_NM AS OG_NM /* 조직명*/
+		     , T8.PRTNR_KNM /* 성명*/
+		     , T2.SELL_PRTNR_NO AS SELL_PRTNR_NO /* 판매파트너번호*/
+		     , T9.CLTN_DT AS CLTN_DT /* 업무해약일*/
+		     , T8.LOCARA_TNO AS PRTNR_LOCAL_TNO1 /* 판매자전화번호1*/
+		     , T8.EXNO_ENCR AS PRTNR_LOCAL_TNO2 /* 판매자전화번호2*/
+		     , T8.IDV_TNO AS PRTNR_LOCAL_TNO3 /* 판매자전화번호3*/
+		     , T8.CRAL_LOCARA_TNO AS PRTNR_CRAL_TNO1 /* 판매자휴대전화번호1*/
+		     , T8.MEXNO_ENCR AS PRTNR_CRAL_TNO2 /* 판매자휴대전화번호2*/
+		     , T8.CRAL_IDV_TNO AS PRTNR_CRAL_TNO3 /* 판매자휴대전화번호3*/
+		     , T10.HOO_PRTNR_NM AS HOO_PRTNR_NM /* 성명*/
+		     , T10.HOO_PRTNR_NO AS HOO_PRTNR_NO /* 번호*/
+		     , T12.CLTN_DT AS HOO_PRTNR_CLTN_DT /* 지점장해약일*/
+		     , T13.LOCARA_TNO AS OG_LOCAL_TNO1 /* 지점전화번호1*/
+		     , T13.EXNO_ENCR AS OG_LOCAL_TNO2 /* 지점전화번호2*/
+		     , T13.IDV_TNO AS OG_LOCAL_TNO3 /* 지점전화번호3*/
+		     , T11.CRAL_LOCARA_TNO AS HOO_PRTNR_CRAL_TNO1 /* 지점장휴대전화번호1*/
+		     , T11.MEXNO_ENCR AS HOO_PRTNR_CRAL_TNO2 /* 지점장휴대전화번호2*/
+		     , T11.CRAL_IDV_TNO AS HOO_PRTNR_CRAL_TNO3 /* 지점장휴대전화번호3*/
+		     , T3.PD_HCLSF_ID /* 상품대분류ID*/
+		     , T3.PD_MCLSF_ID /* 상품중분류ID*/
+		     , T3.BASE_PD_CD /* 기준상품코드*/
+		     , T10.DGR1_LEVL_OG_CD /* 1차레벨조직코드*/
+		     , T10.DGR2_LEVL_OG_CD /* 2차레벨조직코드*/
+		     , T10.DGR3_LEVL_OG_CD /* 3차레벨조직코드*/
+		     , T14.BZRNO /* 사업자등록번호*/
+		  FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+		 INNER JOIN TB_SSCT_CNTR_BAS T2 /* 계약기본*/
+		    ON T1.CNTR_NO = T2.CNTR_NO
+		 INNER JOIN TB_SSCT_CNTR_DTL T3 /* 계약상세*/
+		    ON T3.CNTR_NO = T1.CNTR_NO
+		   AND T3.CNTR_SN = T1.CNTR_SN
+		  LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T4_1 /* 계약주소관계*/
+		    ON T4_1.DTL_CNTR_NO = T1.CNTR_NO
+		   AND T4_1.DTL_CNTR_SN = T1.CNTR_SN
+		   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T4_1.VL_STRT_DTM AND T4_1.VL_END_DTM
+		   AND T4_1.ADRPC_TP_CD = '3' /* 설치주소*/
+		  LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T4_2 /* 계약주소지기본*/
+		    ON T4_2.CNTR_ADRPC_ID = T4_1.CNTR_ADRPC_ID
+		  LEFT OUTER JOIN TB_SSCT_CNTR_STLM_REL T5 /*계약결재관계*/
+		    ON T5.DTL_CNTR_NO = T1.CNTR_NO
+		   AND T5.DTL_CNTR_SN = T1.CNTR_SN
+		   AND T5.DTA_DL_YN = 'N'
+		   AND SUBSTR(T5.VL_STRT_DTM, 1, 6) <![CDATA[<=]]> T1.SL_CL_YM
+		   AND SUBSTR(T5.VL_END_DTM, 1, 6) >= T1.SL_CL_YM
+		   AND ROWNUM = 1
+		  LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T6 /* 계약결제기본*/
+		    ON T6.CNTR_STLM_ID = T5.CNTR_STLM_ID
+		  LEFT OUTER JOIN LATERAL (SELECT *
+		                             FROM (SELECT CNTR_NO
+		                                        , CNTR_SN
+		                                        , DP_CL_DT
+		                                        , DP_TP_CD
+		                                        , SUM(CASE WHEN DP_DV_CD = '1' THEN RVE_AMT ELSE RVE_AMT * -1 END) OVER (ORDER BY CNTR_NO, CNTR_SN) AS DP_AMT
+		                                     FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수기본*/
+		                                    WHERE CNTR_NO = T1.CNTR_NO
+		                                      AND CNTR_SN = T1.CNTR_SN
+		                                      AND TO_DATE(DP_CL_DT, 'YYYYMMDD') BETWEEN TO_DATE(#{dpStDt}||'01', 'YYYYMMDD') AND TO_DATE(#{dpEdDt}||'01', 'YYYYMMDD')
+		                                    ORDER BY DP_CL_DT DESC
+		                                  )
+		                            WHERE ROWNUM = 1
+		     ) T7
+		    ON 1=1
+		  LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T8 /* 파트너기본*/
+		    ON T8.OG_TP_CD = T2.SELL_OG_TP_CD
+		   AND T8.PRTNR_NO = T2.SELL_PRTNR_NO
+		  LEFT OUTER JOIN TB_OGBS_PRTNR_DTL T9 /* 파트너상세*/
+		    ON T9.OG_TP_CD = T8.OG_TP_CD
+		   AND T9.PRTNR_NO = T8.PRTNR_NO
+		  LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T10 /* 월조직내역*/
+		    ON T10.BASE_YM = T1.SL_CL_YM
+		   AND T10.OG_ID = T8.OG_ID
+		  LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T11 /* 파트너기본*/
+		    ON T11.OG_TP_CD = T2.SELL_OG_TP_CD
+		   AND T11.PRTNR_NO = T10.HOO_PRTNR_NO
+		  LEFT OUTER JOIN TB_OGBS_PRTNR_DTL T12 /* 파트너상세*/
+		    ON T12.OG_TP_CD = T11.OG_TP_CD
+		   AND T12.PRTNR_NO = T10.HOO_PRTNR_NO
+		  LEFT OUTER JOIN TB_OGBS_OG_BAS T13 /* 조직기본*/
+		    ON T13.OG_ID = T8.OG_ID
+		  LEFT OUTER JOIN TB_CUBS_CST_BAS T14 /* 고객기본*/
+		    ON T14.CST_NO = T1.CST_NO
+		   AND T14.DTA_DL_YN = 'N'
+		  LEFT OUTER JOIN LATERAL (SELECT LOCARA_TNO
+		                                , EXNO_ENCR
+		                                , IDV_TNO
+		                             FROM TB_CUBS_CST_CTPLC_BAS /* 고객연락처기본*/
+		                            WHERE OWR_CST_NO = T1.CST_NO
+		                              AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+		                              AND CST_CTPLC_OJ_DV_CD = '01' /* 고객*/
+		                              AND CTPLC_TP_CD = '04' /* 자택전화*/
+		                              AND DTA_DL_YN = 'N'
+		                              AND ROWNUM = 1
+		     ) T15
+		    ON 1=1
+		  LEFT OUTER JOIN TB_PDBS_PD_BAS T16 /* 상품기본*/
+		    ON T16.PD_CD = T3.BASE_PD_CD
+		 WHERE T1.SL_CL_YM = #{slClYm}
+		 <if test="@MybatisUtils@isNotEmpty(pdHclsfId)"> /* 상품군 대분류*/
+		   AND T3.PD_HCLSF_ID = #{pdHclsfId}
+		 </if>
+		 <if test="@MybatisUtils@isNotEmpty(pdMclsfId)"> /* 상품군 중분류*/
+		   AND T3.PD_MCLSF_ID = #{pdMclsfId}
+		 </if>
+		 <if test="@MybatisUtils@isNotEmpty(pdCd)"> /* 상품코드*/
+		   AND T3.BASE_PD_CD = #{pdCd}
+		 </if>
+		 <if test="@MybatisUtils@isNotEmpty(pdNm)"> /* 상품명*/
+		   AND T16.PD_NM LIKE '%' || #{pdNm} || '%'
+		  </if>
+		  <if test="@MybatisUtils@isNotEmpty(ogcd1)"> /* 조직레벨(총괄단)*/
+		   AND T10.DGR1_LEVL_OG_CD = #{ogcd1}
+		  </if>
+		  <if test="@MybatisUtils@isNotEmpty(ogcd2)"> /* 조직레벨(지역단)*/
+		   AND T10.DGR2_LEVL_OG_CD = #{ogcd2}
+		  </if>
+		  <if test="@MybatisUtils@isNotEmpty(ogcd3)"> /* 조직레벨(지점)*/
+		   AND T10.DGR3_LEVL_OG_CD = #{ogcd3}
+		  </if>
+		  <if test="@MybatisUtils@isNotEmpty(bzrNo)"> /* 사업자등록번호*/
+		   AND T14.BZRNO LIKE #{bzrNo} || '%'
+		  </if>
+		  <if test="@MybatisUtils@equals(dpYn, 'Y')"> /* 입금여부 'Y'*/
+		   AND NVL(T7.DP_AMT, 0) != 0
+		  </if>
+		  <if test="@MybatisUtils@equals(dpYn, 'N')"> /* 입금여부 'N'*/
+		   AND NVL(T7.DP_AMT, 0) = 0
+		  </if>
+		  <if test="@MybatisUtils@equals(canYn, 'Y')"> /* 취소여부 'Y'*/
+		   AND (T2.CNTR_CAN_DTM IS NOT NULL OR T2.CNTR_CAN_DTM <![CDATA[<>]]> '')
+		  </if>
+		  <if test="@MybatisUtils@equals(canYn, 'N')"> /* 취소여부 'N'*/
+		   AND (T2.CNTR_CAN_DTM IS NULL OR T2.CNTR_CAN_DTM = '')
+		  </if>
+		  <if test="@MybatisUtils@isNotEmpty(rentalStn)"> /* 렌탈회차-FROM*/
+		   AND T1.RENTAL_TN >= #{rentalStn}
+		  </if>
+		  <if test="@MybatisUtils@isNotEmpty(rentalEtn)"> /* 렌탈회차-TO*/
+		   AND T1.RENTAL_TN <![CDATA[<=]]> #{rentalEtn}
+		  </if>
+		  <if test="@MybatisUtils@isNotEmpty(upNo)"> /* 업무담당 사번일 경우 관리년월의 조건으로 해당월의 판매자 조직의 업무담당 관할 건만 조회*/
+		   AND T8.OG_ID IN ( SELECT OG_ID
+		                       FROM TB_OGBS_SPPT_OG_IZ
+		                      WHERE PRTNR_NO = #{upNo}
+		                        AND BZNS_SPPT_RSB_DV_CD IN ('W0106', 'W0206')
+		                        AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN MNGT_STRT_DT AND MNGT_END_DT
+		                   )
+		  </if>
+		  <if test="@MybatisUtils@equals(upYn, 'N')"> /* 조회구분*/
+		   AND (T8.OG_CD IS NULL OR T8.OG_CD = '')
+		  </if>
+    </select>
+    <select id="selectCharacterFwUld" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccPrepaymentExpirationDto$SearchCharacterFwUldRes">
+        SELECT MAST.CNTR_CRAL_TNO1 AS CNTR_CRAL_TNO1
+		     , MAST.CNTR_CRAL_TNO2 AS CNTR_CRAL_TNO2
+		     , MAST.CNTR_CRAL_TNO3 AS CNTR_CRAL_TNO3
+		     , MAX(MAST.CST_NO) AS CST_NO
+		     , MAX(MAST.PD_NM) || '/외'||(CASE WHEN COUNT(*) >= 1 THEN (COUNT(*)-1) || '건' ELSE '0건' END) AS CNTR_INFO
+		     , MAX(MAST.PRM_END_YM) AS PRM_END_YM -- 선납종료년월
+		     , TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(MAX(MAST.PRM_END_YM), 1, 6), 'YYYYMM'), 1),'YYYYMM') AS MMPM_YM -- 선납종료익월년월
+		     , MAX(MAST.PRM_RE_APLC_YN) AS PRM_RE_APLC_YN -- 선납재신청
+		     /* 발송서식 전달 param */
+		     , MAX(MAST.CST_KNM) AS CST_KNM /* 고객명 */
+		     , TO_CHAR(ADD_MONTHS(TO_DATE(MAX(MAST.PRM_END_YM),'YYYYMM'),+0),'MM') AS PRM_END_MM /* 선납종료월 */
+		     , MAX(MAST.CNTR_NO) AS CNTR_NO /* 계약번호 */
+		     , MAX(MAST.CNTR_SN) AS CNTR_SN /* 계약d일련번호 */
+		     , MAX(MAST.CNTR_NO) || '-' || MAX(MAST.CNTR_SN) AS CNTR_DTL_NO /* 계약상세번호 */
+		     , TRIM(REGEXP_REPLACE(TRIM(BOTH ' ' FROM MAX(MAST.PD_NM)), '[ ]*$', '')) AS PD_NM /* 상품명 */
+		     , CASE WHEN COUNT(*) >= 1 THEN (COUNT(*)-1) ELSE 0 END AS CNT /* 건수 */
+		     , TO_CHAR(ADD_MONTHS(TO_DATE(MAX(MAST.PRM_END_YM),'YYYYMM'),+1),'MM') AS CURR_MM /* 당월 */
+		     , TO_CHAR(ADD_MONTHS(TO_DATE(MAX(MAST.PRM_END_YM),'YYYYMM'),+2),'YYYY') AS POST_YY /* 익월년도 */
+		     , TO_CHAR(ADD_MONTHS(TO_DATE(MAX(MAST.PRM_END_YM),'YYYYMM'),+2),'MM') AS POST_MM /* 익월 */
+          FROM (
+                 SELECT T1.CNTR_NO /*계약번호*/
+                      , T1.CNTR_SN /*계약일련번호*/
+                      , T1.CST_NO AS CST_NO /* 고객번호*/
+                      , T14.CST_KNM AS CST_KNM /* 고객명*/
+                      , T4_2.RCGVP_KNM AS RCGVP_KNM /* 설치자명*/
+                      , T3.BASE_PD_CD AS PD_CD /* 상품코드*/
+                      , T16.PD_NM AS PD_NM /* 상품명*/
+                      , T1.RENTAL_TN AS RENTAL_TN/* 렐탈차월*/
+                      , T6.MPY_BSDT AS MPY_BSDT /* 이체일자 @TO-DO ASIS의 경우 매출상세팝업의 이체일자와 다르게 나옴*/
+                      , (CASE WHEN T1.SELL_TP_CD IN ('6', '9') THEN SUBSTR(T1.SPP_DTM, 1, 8)
+                             ELSE SUBSTR(T1.IST_DTM, 1, 8)
+                         END) AS LCSLE_DT /* 매출일자*/
+                      , SUBSTR(T2.CNTR_CAN_DTM, 1, 8) AS CNTR_CAN_DT/* 취소일자*/
+                      , T1.PRM_MCN AS PRM_MCN/* 선납개월*/
+                      , T1.PRM_DSCR AS PRM_DSCR /* 할인율*/
+                      , (CASE WHEN T1.PRM_STRT_Y > 0 THEN T1.PRM_END_Y || LPAD(T1.PRM_END_MM , 2 , '0' ) ELSE '000000' END) AS PRM_END_YM /* 선납종료년월*/
+                      , (CASE WHEN T1.PRM_STRT_Y IS NOT NULL
+                             THEN T1.PRM_STRT_Y || '-' || LPAD(T1.PRM_STRT_MM , 2 , '0')  || '~'  || T1.PRM_END_Y || '-' ||  LPAD(T1.PRM_END_MM , 2 , '0' )
+                             ELSE ''
+                         END) AS PRM_PERIOD /* 선납시작/종료*/
+                      , T1.TOT_PRM_AMT AS TOT_PRM_AMT /* 선납총액*/
+                      , '' AS PRM_EXCPT /* 선납제외*/
+                      , (SELECT CASE WHEN CAST(PRM_STRT_Y AS INT) > 0 THEN 'Y' ELSE 'N' END
+                           FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                          WHERE CNTR_NO = T1.CNTR_NO
+                            AND CNTR_SN = T1.CNTR_SN
+                            AND CAST(PRM_STRT_Y AS INT) = CAST(SUBSTR(TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm},'YYYYMM'), 1), 'YYYYMM'), 1, 4) AS INT)
+                            AND CAST(PRM_STRT_MM AS INT) = CAST(SUBSTR(TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm},'YYYYMM'), 1), 'YYYYMM'), 5, 2) AS INT)
+                            AND ROWNUM = 1
+                        ) AS PRM_RE_APLC_YN /* 선납재신청*/
+                      , T15.LOCARA_TNO AS CNTR_LOCAL_TNO1 /* 계약자전화번호1*/
+                      , T15.EXNO_ENCR AS CNTR_LOCAL_TNO2 /* 계약자전화번호2*/
+                      , T15.IDV_TNO AS CNTR_LOCAL_TNO3 /* 계약자전화번호3*/
+                      , T14.CRAL_LOCARA_TNO AS CNTR_CRAL_TNO1 /* 계약자휴대전화번호1*/
+                      , T14.MEXNO_ENCR AS CNTR_CRAL_TNO2 /* 계약자휴대전화번호2*/
+                      , T14.CRAL_IDV_TNO AS CNTR_CRAL_TNO3 /* 계약자휴대전화번호3*/
+                      , T4_2.LOCARA_TNO AS RCGVP_LOCAL_TNO1 /* 설치자전화번호1*/
+                      , T4_2.EXNO_ENCR AS RCGVP_LOCAL_TNO2 /* 설치자전화번호2*/
+                      , T4_2.IDV_TNO AS RCGVP_LOCAL_TNO3 /* 설치자전화번호3*/
+                      , T4_2.LOCARA_TNO AS RCGVP_CRAL_TNO1 /* 설치자휴대전화번호1*/
+                      , T4_2.EXNO_ENCR AS RCGVP_CRAL_TNO2 /* 설치자휴대전화번호2*/
+                      , T4_2.IDV_TNO AS RCGVP_CRAL_TNO3 /* 설치자휴대전화번호3*/
+                      , T7.DP_CL_DT /* 입금일자*/
+                      , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'DP_TP_CD' AND CD_VLD_VAL = T7.DP_TP_CD) AS DP_TP_CD_NM /* 입금유형*/
+                      , T7.DP_AMT AS DP_AMT /* 입금액*/
+                      , T2.SELL_OG_TP_CD AS SELL_OG_TP_CD /* 판매조직유형코드*/
+                      , T8.OG_CD AS OG_CD /* 조직코드*/
+                      , T8.OG_ID AS OG_ID /* 조직ID*/
+                      , T8.OG_NM AS OG_NM /* 조직명*/
+                      , T8.PRTNR_KNM /* 성명*/
+                      , T2.SELL_PRTNR_NO AS SELL_PRTNR_NO /* 판매파트너번호*/
+                      , T9.CLTN_DT AS CLTN_DT /* 업무해약일*/
+                      , T8.LOCARA_TNO AS PRTNR_LOCAL_TNO1 /* 판매자전화번호1*/
+                      , T8.EXNO_ENCR AS PRTNR_LOCAL_TNO2 /* 판매자전화번호2*/
+                      , T8.IDV_TNO AS PRTNR_LOCAL_TNO3 /* 판매자전화번호3*/
+                      , T8.CRAL_LOCARA_TNO AS PRTNR_CRAL_TNO1 /* 판매자휴대전화번호1*/
+                      , T8.MEXNO_ENCR AS PRTNR_CRAL_TNO2 /* 판매자휴대전화번호2*/
+                      , T8.CRAL_IDV_TNO AS PRTNR_CRAL_TNO3 /* 판매자휴대전화번호3*/
+                      , T10.HOO_PRTNR_NM AS HOO_PRTNR_NM /* 성명*/
+                      , T10.HOO_PRTNR_NO AS HOO_PRTNR_NO /* 번호*/
+                      , T12.CLTN_DT AS HOO_PRTNR_CLTN_DT /* 지점장해약일*/
+                      , T13.LOCARA_TNO AS OG_LOCAL_TNO1 /* 지점전화번호1*/
+                      , T13.EXNO_ENCR AS OG_LOCAL_TNO2 /* 지점전화번호2*/
+                      , T13.IDV_TNO AS OG_LOCAL_TNO3 /* 지점전화번호3*/
+                      , T11.CRAL_LOCARA_TNO AS HOO_PRTNR_CRAL_TNO1 /* 지점장휴대전화번호1*/
+                      , T11.MEXNO_ENCR AS HOO_PRTNR_CRAL_TNO2 /* 지점장휴대전화번호2*/
+                      , T11.CRAL_IDV_TNO AS HOO_PRTNR_CRAL_TNO3 /* 지점장휴대전화번호3*/
+                      , T3.PD_HCLSF_ID /* 상품대분류ID*/
+                      , T3.PD_MCLSF_ID /* 상품중분류ID*/
+                      , T3.BASE_PD_CD /* 기준상품코드*/
+                      , T10.DGR1_LEVL_OG_CD /* 1차레벨조직코드*/
+                      , T10.DGR2_LEVL_OG_CD /* 2차레벨조직코드*/
+                      , T10.DGR3_LEVL_OG_CD /* 3차레벨조직코드*/
+                      , T14.BZRNO /* 사업자등록번호*/
+                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+                  INNER JOIN TB_SSCT_CNTR_BAS T2 /* 계약기본*/
+                     ON T1.CNTR_NO = T2.CNTR_NO
+                  INNER JOIN TB_SSCT_CNTR_DTL T3 /* 계약상세*/
+                     ON T3.CNTR_NO = T1.CNTR_NO
+                    AND T3.CNTR_SN = T1.CNTR_SN
+                   LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T4_1 /* 계약주소관계*/
+                     ON T4_1.DTL_CNTR_NO = T1.CNTR_NO
+                    AND T4_1.DTL_CNTR_SN = T1.CNTR_SN
+                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T4_1.VL_STRT_DTM AND T4_1.VL_END_DTM
+                    AND T4_1.ADRPC_TP_CD = '3' /* 설치주소*/
+                   LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T4_2 /* 계약주소지기본*/
+                     ON T4_2.CNTR_ADRPC_ID = T4_1.CNTR_ADRPC_ID
+                   LEFT OUTER JOIN TB_SSCT_CNTR_STLM_REL T5 /*계약결재관계*/
+                     ON T5.DTL_CNTR_NO = T1.CNTR_NO
+                    AND T5.DTL_CNTR_SN = T1.CNTR_SN
+                    AND T5.DTA_DL_YN = 'N'
+                    AND SUBSTR(T5.VL_STRT_DTM, 1, 6) <![CDATA[<=]]> T1.SL_CL_YM
+                    AND SUBSTR(T5.VL_END_DTM, 1, 6) >= T1.SL_CL_YM
+                    AND ROWNUM = 1
+                   LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T6 /* 계약결제기본*/
+                     ON T6.CNTR_STLM_ID = T5.CNTR_STLM_ID
+                   LEFT OUTER JOIN LATERAL (SELECT *
+                                              FROM (SELECT CNTR_NO
+                                                         , CNTR_SN
+                                                         , DP_CL_DT
+                                                         , DP_TP_CD
+                                                         , SUM(CASE WHEN DP_DV_CD = '1' THEN RVE_AMT ELSE RVE_AMT * -1 END) OVER (ORDER BY CNTR_NO, CNTR_SN) AS DP_AMT
+                                                      FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수기본*/
+                                                     WHERE CNTR_NO = T1.CNTR_NO
+                                                       AND CNTR_SN = T1.CNTR_SN
+                                                       AND TO_DATE(DP_CL_DT, 'YYYYMMDD') BETWEEN TO_DATE(#{dpStDt}||'01', 'YYYYMMDD') AND TO_DATE(#{dpEdDt}||'01', 'YYYYMMDD')
+                                                     ORDER BY DP_CL_DT DESC
+                                                   )
+                                             WHERE ROWNUM = 1
+                      ) T7
+                     ON 1=1
+                   LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T8 /* 파트너기본*/
+                     ON T8.OG_TP_CD = T2.SELL_OG_TP_CD
+                    AND T8.PRTNR_NO = T2.SELL_PRTNR_NO
+                   LEFT OUTER JOIN TB_OGBS_PRTNR_DTL T9 /* 파트너상세*/
+                     ON T9.OG_TP_CD = T8.OG_TP_CD
+                    AND T9.PRTNR_NO = T8.PRTNR_NO
+                   LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T10 /* 월조직내역*/
+                     ON T10.BASE_YM = T1.SL_CL_YM
+                    AND T10.OG_ID = T8.OG_ID
+                   LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T11 /* 파트너기본*/
+                     ON T11.OG_TP_CD = T2.SELL_OG_TP_CD
+                    AND T11.PRTNR_NO = T10.HOO_PRTNR_NO
+                   LEFT OUTER JOIN TB_OGBS_PRTNR_DTL T12 /* 파트너상세*/
+                     ON T12.OG_TP_CD = T11.OG_TP_CD
+                    AND T12.PRTNR_NO = T10.HOO_PRTNR_NO
+                   LEFT OUTER JOIN TB_OGBS_OG_BAS T13 /* 조직기본*/
+                     ON T13.OG_ID = T8.OG_ID
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS T14 /* 고객기본*/
+                     ON T14.CST_NO = T1.CST_NO
+                    AND T14.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN LATERAL (SELECT LOCARA_TNO
+                                                 , EXNO_ENCR
+                                                 , IDV_TNO
+                                              FROM TB_CUBS_CST_CTPLC_BAS /* 고객연락처기본*/
+                                             WHERE OWR_CST_NO = T1.CST_NO
+                                               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                                               AND CST_CTPLC_OJ_DV_CD = '01' /* 고객*/
+                                               AND CTPLC_TP_CD = '04' /* 자택전화*/
+                                               AND DTA_DL_YN = 'N'
+                                               AND ROWNUM = 1
+                      ) T15
+                     ON 1=1
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS T16 /* 상품기본*/
+                     ON T16.PD_CD = T3.BASE_PD_CD
+                  WHERE T1.SL_CL_YM = #{slClYm}
+                  <if test="@MybatisUtils@isNotEmpty(pdHclsfId)"> /* 상품군 대분류*/
+                    AND T3.PD_HCLSF_ID = #{pdHclsfId}
+                  </if>
+                  <if test="@MybatisUtils@isNotEmpty(pdMclsfId)"> /* 상품군 중분류*/
+                    AND T3.PD_MCLSF_ID = #{pdMclsfId}
+                  </if>
+                  <if test="@MybatisUtils@isNotEmpty(pdCd)"> /* 상품코드*/
+                    AND T3.BASE_PD_CD = #{pdCd}
+                  </if>
+                  <if test="@MybatisUtils@isNotEmpty(pdNm)"> /* 상품명*/
+                    AND T16.PD_NM LIKE '%' || #{pdNm} || '%'
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(ogcd1)"> /* 조직레벨(총괄단)*/
+                    AND T10.DGR1_LEVL_OG_CD = #{ogcd1}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(ogcd2)"> /* 조직레벨(지역단)*/
+                    AND T10.DGR2_LEVL_OG_CD = #{ogcd2}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(ogcd3)"> /* 조직레벨(지점)*/
+                    AND T10.DGR3_LEVL_OG_CD = #{ogcd3}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(bzrNo)"> /* 사업자등록번호*/
+                    AND T14.BZRNO LIKE #{bzrNo} || '%'
+                   </if>
+                   <if test="@MybatisUtils@equals(dpYn, 'Y')"> /* 입금여부 'Y'*/
+                    AND NVL(T7.DP_AMT, 0) != 0
+                   </if>
+                   <if test="@MybatisUtils@equals(dpYn, 'N')"> /* 입금여부 'N'*/
+                    AND NVL(T7.DP_AMT, 0) = 0
+                   </if>
+                   <if test="@MybatisUtils@equals(canYn, 'Y')"> /* 취소여부 'Y'*/
+                    AND (T2.CNTR_CAN_DTM IS NOT NULL OR T2.CNTR_CAN_DTM <![CDATA[<>]]> '')
+                   </if>
+                   <if test="@MybatisUtils@equals(canYn, 'N')"> /* 취소여부 'N'*/
+                    AND (T2.CNTR_CAN_DTM IS NULL OR T2.CNTR_CAN_DTM = '')
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(rentalStn)"> /* 렌탈회차-FROM*/
+                    AND T1.RENTAL_TN >= #{rentalStn}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(rentalEtn)"> /* 렌탈회차-TO*/
+                    AND T1.RENTAL_TN <![CDATA[<=]]> #{rentalEtn}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(upNo)"> /* 업무담당 사번일 경우 관리년월의 조건으로 해당월의 판매자 조직의 업무담당 관할 건만 조회*/
+                    AND T8.OG_ID IN ( SELECT OG_ID
+                                        FROM TB_OGBS_SPPT_OG_IZ
+                                       WHERE PRTNR_NO = #{upNo}
+                                         AND BZNS_SPPT_RSB_DV_CD IN ('W0106', 'W0206')
+                                         AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN MNGT_STRT_DT AND MNGT_END_DT
+                                    )
+                   </if>
+                   <if test="@MybatisUtils@equals(upYn, 'N')"> /* 조회구분*/
+                    AND (T8.OG_CD IS NULL OR T8.OG_CD = '')
+                   </if>
+            ) MAST
+            GROUP BY MAST.CNTR_CRAL_TNO1, MAST.CNTR_CRAL_TNO2, MAST.CNTR_CRAL_TNO3
+            HAVING MAX(MAST.PRM_END_YM) != '000000'
+    </select>
+    
+    <select id="selectCharacterFwIz" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccPrepaymentExpirationDto$SearchCharacterFwIzRes">
+        SELECT T1.BND_MSG_RELY_ID AS BND_MSG_RELY_ID /* 채권메시지중계ID(삭제시 KEY)*/
+		     , T2.DATE_CLIENT_REQ AS DATE_CLIENT_REQ /* 예약발송일시*/
+		     , T1.CST_NO AS CST_NO /* 고객번호*/
+		     , T1.CST_NM AS CST_NM /* 고객명*/
+		     , T2.RECIPIENT_NUM AS RECIPIENT_NUM /* 전화번호*/
+		     , T1.CNTR_NO AS CNTR_NO /* 계약번호*/
+		     , T1.CNTR_SN AS CNTR_SN /* 일련번호*/
+		     , T1.BND_MSG_TP_VAL1 AS BND_MSG_TP_VAL1 /* templateCode(삭제시 KEY)*/
+		     , T1.BND_MSG_TP_VAL2 AS BND_MSG_TP_VAL2 /* 선납만료년월(삭제시 KEY)*/
+		     , T1.BND_MSG_TP_VAL3 AS BND_MSG_TP_VAL3 /* 공란(삭제시 KEY)*/
+		     , T1.BND_MSG_TP_VAL4 AS BND_MSG_TP_VAL4 /* 상품정보*/
+		     , T3.MSG_STATUS AS MSG_STATUS/* 메시지 상태(1-전송대기, 2-결과대기, 3-완료)*/
+		     , CASE WHEN T3.MSG_STATUS = '1' THEN '전송대기'
+		            WHEN T3.MSG_STATUS = '2' THEN '결과대기'
+		            ELSE CASE WHEN T3.RESULT = '1000' THEN 'Y'
+		                 ELSE 'N'
+		             END
+		        END AS SUC_YN/* 성공여부*/
+		     , T1.FNL_MDFC_DTM AS FNL_MDFC_DTM /* 입력일시*/
+		     , T4.USR_NM AS USR_NM /* 입력자명*/
+		     , T4.EPNO AS EPNO /* 사번*/
+		     , T1.FW_BIZ_NM AS FW_BIZ_NM /* 발송업무명*/
+		  FROM TB_CBBO_BND_MSG_RELY_IZ T1
+		  LEFT OUTER JOIN ATA_MMT_TRAN T2
+		    ON T2.RESERVED2 = T1.BND_MSG_RELY_ID 
+		  LEFT OUTER JOIN ATA_MMT_LOG T3
+		    ON T3.RESERVED2 = T1.BND_MSG_RELY_ID 
+		  LEFT OUTER JOIN T_CMP_USR_ACO_M T4
+		    ON T4.USR_ID = T1.FNL_MDFC_USR_ID
+		 WHERE T1.FW_BIZ_NM = 'BN_KAKAO_MESSAGE'
+           AND T1.BND_MSG_TP_VAL1 = 'Wells18038'
+           AND T1.DTA_DL_YN ='N'
+		 <if test="@MybatisUtils@isNotEmpty(sndgDt)"> /* 발송일*/
+		   AND T1.FWBOO_DTM >= #{sndgDt} || '000000'
+		   AND T1.FWBOO_DTM <![CDATA[<=]]> #{sndgDt} || '235959'
+		 </if>
+		 <if test="@MybatisUtils@isNotEmpty(cellNo)"> /* 전화번호*/
+		   AND T2.RECIPIENT_NUM LIKE '%'||#{cellNo}||'%'
+		 </if>
+		 <if test="@MybatisUtils@equals(scsYn, 'Y')"> /* 성공여부*/
+		   AND T3.RESULT = '1000'
+		 </if>
+		 <if test="@MybatisUtils@equals(scsYn, 'N')"> /* 성공여부*/
+		   AND T3.RESULT <![CDATA[<>]]> '1000'
+		 </if>
+    </select>
+</mapper>

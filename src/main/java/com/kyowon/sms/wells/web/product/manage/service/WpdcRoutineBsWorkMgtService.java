@@ -76,6 +76,7 @@ public class WpdcRoutineBsWorkMgtService {
         for (WpdcLifeCustomFilterBaseDvo filter : filters) {
             cnt += mapper.mergeLifeCustomFilterBase(filter);
         }
+        mapper.updateRoutineBsWorkDetailFilterYn(dto.svPdCd(), dto.pdctPdCd(), dto.partPdCd());
         return cnt;
     }
 
@@ -91,9 +92,18 @@ public class WpdcRoutineBsWorkMgtService {
     public int removeLifeFilters(List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> dtos) {
         int cnt = 0;
         List<WpdcLifeCustomFilterBaseDvo> filters = converter.mapAllRemoveLifeFltBaseDtoToLifeFltBaseDvo(dtos);
+        String svPdCd = null;
+        String pdctPdCd = null;
+        String partPdCd = null;
         for (WpdcLifeCustomFilterBaseDvo filter : filters) {
             cnt += mapper.deleteLifeCustomFilterStd(filter);
+            if (svPdCd == null) {
+                svPdCd = filter.getSvPdCd();
+                pdctPdCd = filter.getPdctPdCd();
+                partPdCd = filter.getPartPdCd();
+            }
         }
+        mapper.updateRoutineBsWorkDetailFilterYn(svPdCd, pdctPdCd, partPdCd);
         return cnt;
     }
 

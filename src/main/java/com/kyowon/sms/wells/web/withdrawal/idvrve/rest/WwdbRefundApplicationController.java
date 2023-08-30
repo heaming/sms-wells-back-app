@@ -355,4 +355,20 @@ public class WwdbRefundApplicationController {
         return service.getBankEffectivenessCheck(dto);
     }
 
+    /* TODO: 환불 승인 저장 */
+    @ApiOperation(value = "환불 신청 승인 저장", notes = "환불 신청 팝업 승인 및 반려 처리를 한다.")
+    @PostMapping("/reg/approval")
+    public SaveResponse getRefundApprovalSave(
+        @RequestBody
+        @Valid
+        SaveApprovalReq req
+    ) throws Exception {
+        System.out.println("=========================1===================");
+        System.out.println("=========================1===================");
+        return SaveResponse
+            .builder()
+            .processCount(service.getRefundApprovalSave(req))
+            .build();
+    }
+
 }

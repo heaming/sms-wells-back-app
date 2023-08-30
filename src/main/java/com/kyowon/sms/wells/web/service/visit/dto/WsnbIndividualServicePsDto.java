@@ -156,11 +156,12 @@ public class WsnbIndividualServicePsDto {
     public record SearchCounselRes(
         String cselSts,
         String cnslDt,
-        String tktPcsSchDtm,
+        String cnslEdDt,
         String cnslTpHcsfCd,
         String cnslTpMcsfCd,
         String cnslTpLcsfCd,
         String modUserId,
+        String cselRstCd,
         String custResp,
         String cstNm,
         String cnslCn

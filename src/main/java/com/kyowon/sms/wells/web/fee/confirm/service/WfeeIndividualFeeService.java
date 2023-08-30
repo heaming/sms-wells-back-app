@@ -4,9 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.fee.confirm.converter.WfeeIndividualFeeConverter;
 import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto.*;
-import com.kyowon.sms.wells.web.fee.confirm.dvo.WfeeIndividualFeeDvo;
 import com.kyowon.sms.wells.web.fee.confirm.mapper.WfeeIndividualFeeMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -23,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WfeeIndividualFeeService {
     private final WfeeIndividualFeeMapper mapper;
-    private final WfeeIndividualFeeConverter converter;
 
     /**
      * 수수료 개인별 실적 상세 조회(P조직)
@@ -276,36 +273,21 @@ public class WfeeIndividualFeeService {
     public List<SearchFeeRes> getFees(
         SearchFeeReq dto
     ) {
-        WfeeIndividualFeeDvo dvo = this.converter.mapSearchFeeReqToWfeeIndividualFeeDvo(dto);
-        String rsbDvCd = "W0206"; /*직책구분코드 ※테스트를 위한 임시값 업무담당*/
-        String hirFomCd = "1"; /*고용형태코드 ※테스트를 위한 임시값 사업자*/
-        dvo.setRsbDvCd(rsbDvCd);
-        dvo.setHirFomCd(hirFomCd);
-        return this.mapper.selectFees(dvo);
+        System.out.println("###############################################=" + dto.toString());
+        return this.mapper.selectFees(dto);
     }
 
     /**
-     * 홈마스터 수수료 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * ogTp : 조직유형,
-     * rsbTp : 직책유형,
-     * ogLevl1 : 조직레벨1,
-     * ogLevl2 : 조직레벨2,
-     * ogLevl3 : 조직레벨3,
-     * no : 번호,
+     * 사용자 고용정보 형태 조회
+     *  @param dto : {
+     * userEmpId : 사용자ID,
      * feeDsbYn : 수수료지급여부}
      * @return 조회결과
      */
-    public List<SearchFeeHmstRes> getFeeHmsts(
-        SearchFeeHmstReq dto
+    public SearchUserInfoRes getUserInfo(
+        SearchFeeReq dto
     ) {
-        WfeeIndividualFeeDvo dvo = this.converter.mapSearchFeeHmstReqToWfeeIndividualFeeDvo(dto);
-        String rsbDvCd = "W0206"; /*직책구분코드 ※테스트를 위한 임시값 업무담당*/
-        String hirFomCd = "1"; /*고용형태코드 ※테스트를 위한 임시값 사업자*/
-        dvo.setRsbDvCd(rsbDvCd);
-        dvo.setHirFomCd(hirFomCd);
-        return this.mapper.selectFeeHmsts(dvo);
+        return this.mapper.selectUserInfo(dto);
     }
 
 }

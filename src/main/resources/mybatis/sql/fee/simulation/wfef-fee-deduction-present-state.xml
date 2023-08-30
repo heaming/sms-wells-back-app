@@ -7,7 +7,7 @@
              , T.RSB_DV_CD	--직책구분코드
              , NVL(T.DSB_OJ_AMT, 0) AS DSB_OJ_AMT 	--지급 대상금액
              , NVL(T.DDCTAM, 0) AS DDCTAM 		--공제금액
-             , NVL(T.DSB_OJ_AMT - T.DDCTAM, 0) AS DDTN_AFT
+             , NVL(T.INTBS_AMT, 0) AS INTBS_AMT
              , NVL(T.RDS_TAX, 0) AS RDS_TAX	--RDS/TAX
              , NVL(T.TEL_PC, 0) AS TEL_PC	--전화료/PC
              , NVL(T.REDF, 0) AS REDF	--되물림
@@ -17,19 +17,19 @@
              , NVL(T.PNPYAM, 0) AS PNPYAM		--가지급금
              , NVL(T.BU_DDTN, 0) AS BU_DDTN		--부담공제
              , NVL(T.INDD_INSR, 0) AS INDD_INSR		--산재보험
-             , (SELECT SUM(CASE WHEN RDS.RDS_RV_USE_TP_CD BETWEEN '10' AND '19' THEN RDS.RDS_AMT
+             , NVL((SELECT SUM(CASE WHEN RDS.RDS_RV_USE_TP_CD BETWEEN '10' AND '19' THEN RDS.RDS_AMT
                                 WHEN RDS.RDS_RV_USE_TP_CD BETWEEN '20' AND '29' THEN -1 * RDS.RDS_AMT
                                 END) AS RDS_RM_AMT --RDS잔액
                   FROM VW_GBS_FEDD_RDS_RV_USE_BAS_01 RDS
                  WHERE 1 = 1
                    AND RDS.PRTNR_NO = T.PRTNR_NO --파트너번호
-                   AND RDS.OG_TP_CD = T.OG_TP_CD) AS RDS_BLAM	--RDS잔액
-             , (SELECT NVL(SUM(PNPYAM_BLAM), 0)
+                   AND RDS.OG_TP_CD = T.OG_TP_CD), 0) AS RDS_BLAM	--RDS잔액
+             , NVL((SELECT NVL(SUM(PNPYAM_BLAM), 0)
                   FROM TB_FEDD_PNPY_OC_BAS
                  WHERE 1=1
                    AND PRTNR_NO =  T.PRTNR_NO
                    AND OG_TP_CD =  T.OG_TP_CD
-                 GROUP BY PRTNR_NO, OG_TP_CD) AS PNPYAM_BLAM	--가지급금 잔액
+                 GROUP BY PRTNR_NO, OG_TP_CD), 0) AS PNPYAM_BLAM	--가지급금 잔액
              , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', T.RSB_DV_CD) RSB_DV_NM
              , REGEXP_SUBSTR(T.OG_NM,'[^/]+', 1, 1) LEVEL2_NM
              , REGEXP_SUBSTR(T.OG_NM,'[^/]+', 1, 2) LEVEL3_NM
@@ -40,6 +40,7 @@
                      , OMPI.OG_TP_CD
                      , EFDI.DSB_OJ_AMT 	--지급 대상금액
                      , EFDI.DDCTAM 		--공제금액
+                     , EFDI.INTBS_AMT    --소득과표금액
                      , FFDI.RDS + FFDI.ERNTX + FFDI.RSDNTX AS RDS_TAX	--RDS/TAX
                      , FFDI.TEL + FFDI.PC AS TEL_PC	--전화료/PC
                      , FFDI.REDF	--되물림
@@ -63,13 +64,17 @@
                   JOIN TB_OGBS_MM_OG_IZ OMOI
                     ON OMPI.OG_ID = OMOI.OG_ID
                    AND OMPI.BASE_YM = OMOI.BASE_YM
-                  LEFT OUTER JOIN TB_FEAM_FEE_DSB_IZ EFDI /*수수료지급내역*/
+                  LEFT OUTER JOIN ( SELECT PRTNR_NO
+                                         , SUM(INTBS_AMT) AS INTBS_AMT
+                                         , SUM(DDCTAM) AS DDCTAM
+                                         , SUM(DSB_OJ_AMT) AS DSB_OJ_AMT
+                                      FROM TB_FEAM_FEE_DSB_IZ
+                                     WHERE DSB_YM = #{perfYm}
+                                       AND OG_TP_CD = #{ogTpCd}
+                                     GROUP BY PRTNR_NO) EFDI /*수수료지급내역*/
                     ON OMPI.PRTNR_NO = EFDI.PRTNR_NO
-                   AND OMPI.BASE_YM = EFDI.DSB_YM
-                   AND OMPI.OG_TP_CD = EFDI.OG_TP_CD
                   LEFT OUTER JOIN (SELECT AFDI.DDTN_YM
                                         , AFDI.PRTNR_NO
-                                        , AFDI.CO_CD
                                         , AFDI.OG_TP_CD
                                         , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '05', AFDI.FEE_DDTN_CNFM_AMT, 0)) EINSR
                                         , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '04', AFDI.FEE_DDTN_CNFM_AMT, 0)) PNPYAM
@@ -94,7 +99,7 @@
                                       AND AFDI.SPMT_DSB_DV_CD = FDDI.SPMT_DSB_DV_CD
                                       AND AFDI.FEE_DDTN_CRT_CD = FDDI.FEE_DDTN_CRT_CD
                                     WHERE 1=1
-                                    GROUP BY AFDI.DDTN_YM, AFDI.PRTNR_NO, AFDI.CO_CD, AFDI.OG_TP_CD
+                                    GROUP BY AFDI.DDTN_YM, AFDI.PRTNR_NO, AFDI.OG_TP_CD
                                   ) FFDI
                     ON OMPI.PRTNR_NO = FFDI.PRTNR_NO
                    AND OMPI.BASE_YM = FFDI.DDTN_YM

@@ -13,7 +13,8 @@
              , T1.OG_NM
              , T1.HGR_OG_CD
              , T1.OG_CD
-             , T1.OG_LEVL_DV_NM || '장' AS RSB_DV_NM
+             , CASE WHEN INSTR(T1.OG_LEVL_DV_NM ,'장') <![CDATA[<]]> 1 THEN T1.OG_LEVL_DV_NM||'장'
+               ELSE T1.OG_LEVL_DV_NM END AS RSB_DV_NM
              , T1.PRTNR_KNM
              , NVL(T1.BRCH_CT, 0) AS BRCH_CT
              , NVL(T1.BAS_AW_AMT, 0) AS BAS_AW_AMT	/*기본수당금액*/
@@ -57,11 +58,6 @@
            AND T2.DTA_DL_YN = 'N'
          WHERE T1.DTA_DL_YN = 'N'
            AND T1.DSB_YM = #{perfYm}
-           /*로그인한 사용자의 권한에 따라 하위 조직만 조회*/
-           AND EXISTS (SELECT 1
-                 FROM OBJ_ORG X1
-                WHERE X1.OG_TP_CD = T2.OG_TP_CD
-                  AND X1.OG_ID = T2.OG_ID)
         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
            AND T1.HMNRSC_EMPNO = #{prtnrNo}
         </if>
@@ -80,6 +76,19 @@
            /*P조직은 조직코드가 Q000000 부터 Q999999까지*/
            AND T1.OG_CD BETWEEN 'Q000000' AND 'Q999999'
            AND T1.HGR_OG_CD != T1.OG_CD
+        </if>
+        <if test='@MybatisUtils@equals(session.ogTpCd, "HR1")'>
+            /*로그인한 사용자의 권한에 따라 하위 조직만 조회*/
+           AND EXISTS (SELECT 1
+                 FROM OBJ_ORG X1
+                WHERE X1.OG_TP_CD = T2.OG_TP_CD
+                  AND X1.OG_ID = T2.OG_ID)
+        </if>
+        <if test='!@MybatisUtils@equals(session.ogTpCd, "HR1")'>
+            /*로그인한 사용자의 권한에 따라 하위 조직만 조회*/
+           AND EXISTS (SELECT 1
+                 FROM OBJ_ORG X1
+                WHERE X1.OG_CD = T1.OG_CD)
         </if>
         ORDER BY T1.HGR_OG_CD, T1.OG_CD
     </select>

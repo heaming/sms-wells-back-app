@@ -18,11 +18,13 @@
              , NVL(RRAD.RFND_BLTF_AK_AMT, 0) AS RFND_BLTF_AK_AMT /* 전금금액 */
              , F_CMZ_USR_NM(RRAD.FNL_MDFC_USR_ID) AS FNL_MDFC_USR_NM /* 신청자 */
              , RRAD.FNL_MDFC_USR_ID /* 번호 */
-             , RRRB.RFND_FSH_DT /* 승인일자 */
-             , RRRB.RFND_PROCS_CN /* 처리내용 */
+             , CASE WHEN RRAB.RFND_PROCS_DV_CD = '03'
+                    THEN RFND_RVE_DT
+                     END AS RFND_FSH_DT/* 승인일자 */
+             , RRAB.RFND_PROCS_CN /* 처리내용 */
              , RRAD.RFND_RSON_CD /* 환불사유 */
              , RRAD.RFND_RSON_CN /* 환불내용 */
-             , RRRD.RFND_EVID_MTR_FILE_ID /* 첨부파일:환불증빙자료파일 */
+             , '' AS RFND_EVID_MTR_FILE_ID /* 첨부파일:환불증빙자료파일 */
           FROM TB_RVDW_RFND_AK_BAS RRAB -- 환불요청기본
          INNER JOIN TB_RVDW_RFND_AK_DTL RRAD -- 환불요청상세
             ON RRAD.RFND_AK_NO = RRAB.RFND_AK_NO
@@ -64,13 +66,6 @@
            AND RRAD.CNTR_SN = T1.CNTR_SN
            AND RRAD.RVE_NO = T1.RVE_NO
            AND RRAD.RVE_SN = T1.RVE_SN
-          LEFT JOIN TB_RVDW_RFND_RCP_BAS RRRB -- 환불접수기본
-            ON RRRB.CNTR_NO = RRAD.CNTR_NO
-           AND RRRB.CNTR_SN = RRAD.CNTR_SN
-           AND RRRB.DTA_DL_YN = 'N'
-          LEFT JOIN TB_RVDW_RFND_RCP_DTL RRRD -- 환불접수상세 /* 요청 Main, 접수 Sub 이므로 LEFT JOIN*/
-            ON RRRD.RFND_RCP_NO = RRRB.RFND_RCP_NO
-           AND RRRD.DTA_DL_YN = 'N'
          WHERE 1=1
            AND RRAB.DTA_DL_YN = 'N' /* 삭제시 visible 처리 */
         <choose>
@@ -282,6 +277,7 @@
                 , NULL AS RFND_AK_NO
                 , FNIT_CD
                 , NVL(CRDCD_FER , 0) AS CRDCD_FER
+                , CST_NO
              FROM ( SELECT RRD.RVE_NO      /* 수납번호 */
                          , RRD.RVE_SN      /* 수납일련번호 */
                          , RRD.CNTR_NO     /* 계약번호*/
@@ -304,6 +300,7 @@
                          , NVL(CBCB.DLQ_ADD_AMT,0) AS DLQ_ADD_AMT  /* 연체가산금 */
                          , NVL(SCD.MM_ISTM_AMT,0) AS MM_ISTM_AMT /* 월 납부금(월 납입금) */
                          , NVL(CBCB.RSG_BOR_AMT,0) AS BOR_AMT /* 위약금 */
+                         , SCB.CNTR_CST_NO AS CST_NO
 <!--                         , NVL(RRAD.CRDCD_FER, 0) AS CRDCD_FER   /* 카드수수료율 */-->
                          , '전금행추가' AS BLTF_ADD  /* 전금행추가 - 컬럼 */
                       FROM TB_RVDW_RVE_DTL RRD /* 수납상세 */
@@ -344,6 +341,7 @@
                       <if test="@MybatisUtils@isNotEmpty(dpDt)">
                        AND RRD.DP_DT = #{dpDt}
                       </if>
+                     ORDER BY RRD.CNTR_NO , RRD.CNTR_SN ,RRD.RVE_DT
                  ) T1
     </select>
 
@@ -367,6 +365,7 @@
                 , T1.RFND_AK_NO
                 , T1.FNIT_CD
                 , NVL(T1.CRDCD_FER , 0) AS CRDCD_FER
+                , CST_NO
              FROM ( SELECT RRD.RVE_NO      /* 수납번호 */
                          , RRD.RVE_SN      /* 수납일련번호 */
                          , RRAD.CNTR_NO     /* 계약번호*/
@@ -396,6 +395,7 @@
                          , RRAD.RFND_AK_NO
                          , RRKD.FNIT_CD
                          , RFFB.CRDCD_FER
+                         , SCB.CNTR_CST_NO AS CST_NO
                       FROM TB_RVDW_RFND_AK_DTL RRAD /* 환불요청상세 */
                      INNER JOIN TB_RVDW_RVE_DTL RRD /* 수납상세 */
                         ON RRD.CNTR_NO = RRAD.CNTR_NO
@@ -412,6 +412,9 @@
                         ON SCD.CNTR_NO = RRD.CNTR_NO
                        AND SCD.CNTR_SN = RRD.CNTR_SN
                        AND SCD.DTA_DL_YN = 'N'
+                     INNER JOIN TB_SSCT_CNTR_BAS SCB /* 계약기본 */
+                        ON SCB.CNTR_NO = SCD.CNTR_NO
+                       AND SCB.DTA_DL_YN = 'N'
                       LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS CBCB /*채권계약기본*/
                         ON CBCB.CNTR_NO = SCD.CNTR_NO
                        AND CBCB.CNTR_SN = SCD.CNTR_SN
@@ -673,12 +676,14 @@
             AND T1.CNTR_SN = #{cntrSn}
             AND T1.RVE_NO = #{rveNo}
             AND T1.RVE_SN = #{rveSn}
+            AND T1.BLTF_OJ_CNTR_NO = #{bltfOjCntrNo}
+            AND T1.BLTF_OJ_CNTR_SN = #{bltfOjCntrSn}
               )
          WHEN MATCHED THEN
        UPDATE
           SET T1.RFND_BLTF_AK_AMT = #{rfndBltfAkAmt}
-            , T1.BLTF_OJ_CNTR_NO = #{bltfOjCntrNo}
-            , T1.BLTF_OJ_CNTR_SN = #{bltfOjCntrSn}
+<!--            , T1.BLTF_OJ_CNTR_NO = #{bltfOjCntrNo}-->
+<!--            , T1.BLTF_OJ_CNTR_SN = #{bltfOjCntrSn}-->
             , T1.BLTF_RFND_MB_DV_CD = #{bltfRfndMbDvCd}
             , T1.RFND_EVID_MTR_FILE_ID = #{rfndEvidMtrFileId}
             , T1.DTA_DL_YN = 'N' /* 조건없으면 수정하더라도 삭제하면 데이터가 안보임.*/
@@ -781,4 +786,978 @@
           FROM TB_SSOP_CTT_BAS          /* 컨택기본 */
          WHERE CNTR_NO = #{cntrNo}      /* 계약번호*/
     </select>
+
+    <insert id="insertRefundReceiptBaseCash"> <!--현금-->
+        INSERT INTO TB_RVDW_RFND_RCP_BAS (
+               KW_GRP_CO_CD	/*교원그룹회사코드*/
+        	 , RFND_RCP_NO	/*환불접수번호*/
+        	 , RVE_CO_CD	/*수납회사코드*/
+        	 , CST_NO	/*고객번호*/
+        	 , CNTR_NO	/*계약번호*/
+        	 , CNTR_SN	/*계약일련번호*/
+        	 , CNTR_CH_RCP_ID	/*계약변경접수ID*/
+        	 , CNTR_CH_SN	/*계약변경일련번호*/
+        	 , RFND_RCP_OG_TP_CD	/*환불접수조직유형코드*/
+        	 , RFND_RCP_PRTNR_NO	/*환불접수파트너번호*/
+        	 , RFND_RCP_PH_CD	/*환불접수경로코드*/
+        	 , RFND_RQDT	/*환불요청일자*/
+        	 , RFND_FSH_DT	/*환불완료일자*/
+        	 , RTNGD_FSH_DT	/*반품완료일자*/
+        	 , CST_SV_ASN_NO	/*고객서비스배정번호*/
+        	 , RFND_CSH_AMT	/*환불현금금액*/
+        	 , RFND_CARD_AMT	/*환불카드금액*/
+        	 , RFND_BLTF_AMT	/*환불전금금액*/
+        	 , RFND_DDTN_AMT	/*환불공제금액*/
+        	 , RFND_FEE_AMT	/*환불수수료금액*/
+        	 , RFND_PSB_RES_AMT	/*환불가능잔여금액*/
+        	 , TOT_RFND_ET_AMT	/*총환불예상금액*/
+        	 , EX_RFND_RSON_CN	/*예외환불사유내용*/
+        	 , RFND_STAT_CD	/*환불상태코드*/
+        	 , RFND_RVE_DT	/*환불수납일자*/
+        	 , RFND_PERF_DT	/*환불실적일자*/
+        	 , RFND_DSB_DT	/*환불지급일자*/
+        	 , RFND_PROCS_CN	/*환불처리내용*/
+        	 , RFND_PSIC_OPN_CN	/*환불담당자의견내용*/
+        	 , RFND_PSIC_RJ_RSON_CN	/*환불담당자반려사유내용*/
+        	 , RFND_PROCS_USR_ID	/*환불처리사용자ID*/
+             <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT T1.KW_GRP_CO_CD												    /*교원그룹회사코드*/
+             , #{rfndRcpNo}                          AS RFND_RCP_NO	            /*환불접수번호*/
+             , T1.RVE_CO_CD	                                                    /*수납회사코드*/
+             , T2.CST_NO	                                                    /*고객번호*/
+             , T2.CNTR_NO	                                                    /*계약번호*/
+             , T2.CNTR_SN	                                                    /*계약일련번호*/
+             , T3.CNTR_CH_RCP_ID                     AS CNTR_CH_RCP_ID	        /*계약변경접수ID*/
+             , T3.CNTR_CH_SN                         AS CNTR_CH_SN	            /*계약변경일련번호*/
+             , T1.RFND_AK_PRTNR_OG_TP_CD             AS RFND_RCP_OG_TP_CD	    /*환불접수조직유형코드*/
+             , T1.RFND_AK_PRTNR_NO                   AS RFND_RCP_PRTNR_NO	    /*환불접수파트너번호*/
+             , #{rfndRcpPhCd}                        AS RFND_RCP_PH_CD	        /*환불접수경로코드*/
+             , SUBSTR(T1.RFND_AK_DTM , 0 , 8)        AS RFND_RQDT	            /*환불요청일자*/
+             , #{rfndDsbDuedt}                       AS RFND_FSH_DT	            /*환불완료일자*/
+             , NULL                                  AS RTNGD_FSH_DT	        /*반품완료일자*/
+             , NULL                                  AS CST_SV_ASN_NO	        /*고객서비스배정번호*/
+             , T2.RFND_CSH_AK_AMT                    AS RFND_CSH_AMT	        /*환불현금금액*/
+             , 0                                     AS RFND_CARD_AMT	        /*환불카드금액*/
+             , 0                                     AS RFND_BLTF_AMT	        /*환불전금금액*/
+             , 0                                     AS RFND_DDTN_AMT	        /*환불공제금액*/
+             , T2.CRDCD_FEE_AMT                      AS RFND_FEE_AMT	        /*환불수수료금액*/
+             , 0                                     AS RFND_PSB_RES_AMT	    /*환불가능잔여금액*/
+             , T2.RFND_CSH_AK_AMT                    AS TOT_RFND_ET_AMT	        /*총환불예상금액*/
+             , NULL                                  AS EX_RFND_RSON_CN	        /*예외환불사유내용*/
+             , '01'                                  AS RFND_STAT_CD	        /*환불상태코드*/
+             , #{rfndRveDt}                          AS RFND_RVE_DT	            /*환불수납일자*/
+             , #{rfndPerfDt}                         AS RFND_PERF_DT	        /*환불실적일자*/
+             , #{rfndDsbDt}                          AS RFND_DSB_DT	            /*환불지급일자*/
+             , #{rfndProcsCn}                        AS RFND_PROCS_CN	        /*환불처리내용*/
+             , NULL                                  AS RFND_PSIC_OPN_CN	    /*환불담당자의견내용*/
+             , NULL                                  AS RFND_PSIC_RJ_RSON_CN	/*환불담당자반려사유내용*/
+             , #{session.userId}                     AS RFND_PROCS_USR_ID	    /*환불처리사용자ID*/
+             <include refid="COMMON.insertSystemFieldValue"/>
+           FROM WSMDBS.TB_RVDW_RFND_AK_BAS     T1
+                INNER JOIN TB_RVDW_RFND_AK_DTL T2
+                        ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                            AND T2.RFND_AK_NO   = T1.RFND_AK_NO
+                            AND T2.DTA_DL_YN    = 'N')
+                INNER JOIN TB_SSCT_CNTR_DTL    T3
+                        ON (    T3.CNTR_NO      = T2.CNTR_NO
+                            AND T3.CNTR_SN      = T2.CNTR_SN
+                            AND T3.DTA_DL_YN    = 'N')
+          WHERE 1 = 1
+            AND T1.KW_GRP_CO_CD          = #{session.companyCode}
+            AND T1.RFND_AK_NO            = #{rfndAkNo}
+            AND T2.RFND_CSH_AK_AMT       >  0
+            AND T1.DTA_DL_YN             = 'N'
+            AND T2.CNTR_NO               = #{cntrNo}
+            AND T2.CNTR_SN               = #{cntrSn}
+            AND T2.RVE_NO                = #{rveNo}
+            AND T2.RVE_SN                = #{rveSn}
+    </insert>
+
+    <insert id="insertRefundReceiptBaseCard"> <!--신용카드-->
+        INSERT INTO TB_RVDW_RFND_RCP_BAS (
+               KW_GRP_CO_CD	/*교원그룹회사코드*/
+        	 , RFND_RCP_NO	/*환불접수번호*/
+        	 , RVE_CO_CD	/*수납회사코드*/
+        	 , CST_NO	/*고객번호*/
+        	 , CNTR_NO	/*계약번호*/
+        	 , CNTR_SN	/*계약일련번호*/
+        	 , CNTR_CH_RCP_ID	/*계약변경접수ID*/
+        	 , CNTR_CH_SN	/*계약변경일련번호*/
+        	 , RFND_RCP_OG_TP_CD	/*환불접수조직유형코드*/
+        	 , RFND_RCP_PRTNR_NO	/*환불접수파트너번호*/
+        	 , RFND_RCP_PH_CD	/*환불접수경로코드*/
+        	 , RFND_RQDT	/*환불요청일자*/
+        	 , RFND_FSH_DT	/*환불완료일자*/
+        	 , RTNGD_FSH_DT	/*반품완료일자*/
+        	 , CST_SV_ASN_NO	/*고객서비스배정번호*/
+        	 , RFND_CSH_AMT	/*환불현금금액*/
+        	 , RFND_CARD_AMT	/*환불카드금액*/
+        	 , RFND_BLTF_AMT	/*환불전금금액*/
+        	 , RFND_DDTN_AMT	/*환불공제금액*/
+        	 , RFND_FEE_AMT	/*환불수수료금액*/
+        	 , RFND_PSB_RES_AMT	/*환불가능잔여금액*/
+        	 , TOT_RFND_ET_AMT	/*총환불예상금액*/
+        	 , EX_RFND_RSON_CN	/*예외환불사유내용*/
+        	 , RFND_STAT_CD	/*환불상태코드*/
+        	 , RFND_RVE_DT	/*환불수납일자*/
+        	 , RFND_PERF_DT	/*환불실적일자*/
+        	 , RFND_DSB_DT	/*환불지급일자*/
+        	 , RFND_PROCS_CN	/*환불처리내용*/
+        	 , RFND_PSIC_OPN_CN	/*환불담당자의견내용*/
+        	 , RFND_PSIC_RJ_RSON_CN	/*환불담당자반려사유내용*/
+        	 , RFND_PROCS_USR_ID	/*환불처리사용자ID*/
+             <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT T1.KW_GRP_CO_CD												    /*교원그룹회사코드*/
+             , #{rfndRcpNo}                          AS RFND_RCP_NO	            /*환불접수번호*/
+             , T1.RVE_CO_CD	                                                    /*수납회사코드*/
+             , T2.CST_NO	                                                    /*고객번호*/
+             , T2.CNTR_NO	                                                    /*계약번호*/
+             , T2.CNTR_SN	                                                    /*계약일련번호*/
+             , T3.CNTR_CH_RCP_ID                      AS CNTR_CH_RCP_ID	        /*계약변경접수ID*/
+             , T3.CNTR_CH_SN                          AS CNTR_CH_SN	            /*계약변경일련번호*/
+             , T1.RFND_AK_PRTNR_OG_TP_CD              AS RFND_RCP_OG_TP_CD	    /*환불접수조직유형코드*/
+             , T1.RFND_AK_PRTNR_NO                    AS RFND_RCP_PRTNR_NO	    /*환불접수파트너번호*/
+             , #{rfndRcpPhCd}                         AS RFND_RCP_PH_CD	        /*환불접수경로코드*/
+             , SUBSTR(T1.RFND_AK_DTM , 0 , 8)         AS RFND_RQDT	            /*환불요청일자*/
+             , #{rfndDsbDuedt}                        AS RFND_FSH_DT	        /*환불완료일자*/
+             , NULL                                   AS RTNGD_FSH_DT	        /*반품완료일자*/
+             , NULL                                   AS CST_SV_ASN_NO	        /*고객서비스배정번호*/
+             , 0                                      AS RFND_CSH_AMT	        /*환불현금금액*/
+             , T2.RFND_CARD_AK_AMT                    AS RFND_CARD_AMT	        /*환불카드금액*/
+             , 0                                      AS RFND_BLTF_AMT	        /*환불전금금액*/
+             , 0                                      AS RFND_DDTN_AMT	        /*환불공제금액*/
+             , 0                                      AS RFND_FEE_AMT	        /*환불수수료금액*/
+             , 0                                      AS RFND_PSB_RES_AMT	    /*환불가능잔여금액*/
+             , T2.RFND_CARD_AK_AMT                    AS TOT_RFND_ET_AMT	    /*총환불예상금액*/
+             , NULL                                   AS EX_RFND_RSON_CN	    /*예외환불사유내용*/
+             , '01'                                   AS RFND_STAT_CD	        /*환불상태코드*/
+             , #{rfndRveDt}                          AS RFND_RVE_DT	            /*환불수납일자*/
+             , #{rfndPerfDt}                         AS RFND_PERF_DT	        /*환불실적일자*/
+             , #{rfndDsbDt}                          AS RFND_DSB_DT	            /*환불지급일자*/
+             , #{rfndProcsCn}                        AS RFND_PROCS_CN	        /*환불처리내용*/
+             , NULL                                  AS RFND_PSIC_OPN_CN	    /*환불담당자의견내용*/
+             , NULL                                  AS RFND_PSIC_RJ_RSON_CN	/*환불담당자반려사유내용*/
+             , #{session.userId}                     AS RFND_PROCS_USR_ID	    /*환불처리사용자ID*/
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM WSMDBS.TB_RVDW_RFND_AK_BAS T1
+               INNER JOIN TB_RVDW_RFND_AK_DTL T2
+                       ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                           AND T2.RFND_AK_NO   = T1.RFND_AK_NO
+                           AND T2.DTA_DL_YN    = 'N')
+               INNER JOIN TB_SSCT_CNTR_DTL    T3
+                       ON (    T3.CNTR_NO      = T2.CNTR_NO
+                           AND T3.CNTR_SN      = T2.CNTR_SN
+                           AND T3.DTA_DL_YN    = 'N')
+         WHERE 1 = 1
+           AND T1.KW_GRP_CO_CD          = #{session.companyCode}
+           AND T1.RFND_AK_NO            = #{rfndAkNo}
+           AND T1.DTA_DL_YN             = 'N'
+           AND T2.RFND_CARD_AK_AMT      > 0
+           AND T2.CNTR_NO               = #{cntrNo}
+           AND T2.CNTR_SN               = #{cntrSn}
+           AND T2.RVE_NO                = #{rveNo}
+           AND T2.RVE_SN                = #{rveSn}
+    </insert>
+
+    <insert id="insertRefundReceiptBaseBltf"> <!--전금-->
+        INSERT INTO TB_RVDW_RFND_RCP_BAS (
+               KW_GRP_CO_CD	/*교원그룹회사코드*/
+        	 , RFND_RCP_NO	/*환불접수번호*/
+        	 , RVE_CO_CD	/*수납회사코드*/
+        	 , CST_NO	/*고객번호*/
+        	 , CNTR_NO	/*계약번호*/
+        	 , CNTR_SN	/*계약일련번호*/
+        	 , CNTR_CH_RCP_ID	/*계약변경접수ID*/
+        	 , CNTR_CH_SN	/*계약변경일련번호*/
+        	 , RFND_RCP_OG_TP_CD	/*환불접수조직유형코드*/
+        	 , RFND_RCP_PRTNR_NO	/*환불접수파트너번호*/
+        	 , RFND_RCP_PH_CD	/*환불접수경로코드*/
+        	 , RFND_RQDT	/*환불요청일자*/
+        	 , RFND_FSH_DT	/*환불완료일자*/
+        	 , RTNGD_FSH_DT	/*반품완료일자*/
+        	 , CST_SV_ASN_NO	/*고객서비스배정번호*/
+        	 , RFND_CSH_AMT	/*환불현금금액*/
+        	 , RFND_CARD_AMT	/*환불카드금액*/
+        	 , RFND_BLTF_AMT	/*환불전금금액*/
+        	 , RFND_DDTN_AMT	/*환불공제금액*/
+        	 , RFND_FEE_AMT	/*환불수수료금액*/
+        	 , RFND_PSB_RES_AMT	/*환불가능잔여금액*/
+        	 , TOT_RFND_ET_AMT	/*총환불예상금액*/
+        	 , EX_RFND_RSON_CN	/*예외환불사유내용*/
+        	 , RFND_STAT_CD	/*환불상태코드*/
+        	 , RFND_RVE_DT	/*환불수납일자*/
+        	 , RFND_PERF_DT	/*환불실적일자*/
+        	 , RFND_DSB_DT	/*환불지급일자*/
+        	 , RFND_PROCS_CN	/*환불처리내용*/
+        	 , RFND_PSIC_OPN_CN	/*환불담당자의견내용*/
+        	 , RFND_PSIC_RJ_RSON_CN	/*환불담당자반려사유내용*/
+        	 , RFND_PROCS_USR_ID	/*환불처리사용자ID*/
+             <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT T1.KW_GRP_CO_CD												    /*교원그룹회사코드*/
+             , #{rfndRcpNo}                           AS RFND_RCP_NO	            /*환불접수번호*/
+             , T1.RVE_CO_CD	                                                    /*수납회사코드*/
+             , T2.CST_NO	                                                    /*고객번호*/
+             , T2.CNTR_NO	                                                    /*계약번호*/
+             , T2.CNTR_SN	                                                    /*계약일련번호*/
+             , T3.CNTR_CH_RCP_ID                      AS CNTR_CH_RCP_ID	        /*계약변경접수ID*/
+             , T3.CNTR_CH_SN                          AS CNTR_CH_SN	            /*계약변경일련번호*/
+             , T1.RFND_AK_PRTNR_OG_TP_CD              AS RFND_RCP_OG_TP_CD	    /*환불접수조직유형코드*/
+             , T1.RFND_AK_PRTNR_NO                    AS RFND_RCP_PRTNR_NO	    /*환불접수파트너번호*/
+             , NULL                                   AS RFND_RCP_PH_CD	        /*환불접수경로코드*/
+             , SUBSTR(T1.RFND_AK_DTM , 0 , 8)         AS RFND_RQDT	            /*환불요청일자*/
+             , #{rfndDsbDt}                           AS RFND_FSH_DT	        /*환불완료일자*/
+             , NULL                                   AS RTNGD_FSH_DT	        /*반품완료일자*/
+             , NULL                                   AS CST_SV_ASN_NO	        /*고객서비스배정번호*/
+             , 0                                      AS RFND_CSH_AMT	        /*환불현금금액*/
+             , 0                                      AS RFND_CARD_AMT	        /*환불카드금액*/
+             , T2.RFND_BLTF_AK_AMT                    AS RFND_BLTF_AMT	        /*환불전금금액*/
+             , 0                                      AS RFND_DDTN_AMT	        /*환불공제금액*/
+             , 0                                      AS RFND_FEE_AMT	        /*환불수수료금액*/
+             , 0                                      AS RFND_PSB_RES_AMT	    /*환불가능잔여금액*/
+             , T2.RFND_BLTF_AK_AMT                    AS TOT_RFND_ET_AMT	    /*총환불예상금액*/
+             , NULL                                   AS EX_RFND_RSON_CN	    /*예외환불사유내용*/
+             , '01'                                   AS RFND_STAT_CD	        /*환불상태코드*/
+             , #{rfndRveDt}                           AS RFND_RVE_DT	        /*환불수납일자*/
+             , #{rfndPerfDt}                          AS RFND_PERF_DT	        /*환불실적일자*/
+             , #{rfndDsbDt}                           AS RFND_DSB_DT	        /*환불지급일자*/
+             , #{rfndProcsCn}                         AS RFND_PROCS_CN	        /*환불처리내용*/
+             , NULL                                   AS RFND_PSIC_OPN_CN	    /*환불담당자의견내용*/
+             , NULL                                   AS RFND_PSIC_RJ_RSON_CN	/*환불담당자반려사유내용*/
+             , #{session.userId}                      AS RFND_PROCS_USR_ID	    /*환불처리사용자ID*/
+             <include refid="COMMON.insertSystemFieldValue"/>
+           FROM WSMDBS.TB_RVDW_RFND_AK_BAS T1
+                INNER JOIN TB_RVDW_RFND_AK_DTL T2
+                        ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                            AND T2.RFND_AK_NO   = T1.RFND_AK_NO
+                            AND T2.DTA_DL_YN    = 'N')
+                INNER JOIN TB_SSCT_CNTR_DTL    T3
+                        ON (    T3.CNTR_NO      = T2.CNTR_NO
+                            AND T3.CNTR_SN      = T2.CNTR_SN
+                            AND T3.DTA_DL_YN    = 'N')
+          WHERE 1 = 1
+           AND T1.KW_GRP_CO_CD          = #{session.companyCode}
+           AND T1.RFND_AK_NO            = #{rfndAkNo}
+           AND T1.DTA_DL_YN             = 'N'
+           AND T2.RFND_BLTF_AK_AMT      > 0
+           AND T2.CNTR_NO               = #{cntrNo}
+           AND T2.CNTR_SN               = #{cntrSn}
+           AND T2.RVE_NO                = #{rveNo}
+           AND T2.RVE_SN                = #{rveSn}
+    </insert>
+
+    <insert id="insertRefundReceiptDtlCash">
+        INSERT INTO TB_RVDW_RFND_RCP_DTL ( <!--현금-->
+        	   KW_GRP_CO_CD					/*교원그룹회사코드*/
+        	 , RFND_RCP_NO	/*환불접수번호*/
+        	 , RFND_RCP_DTL_SN	/*환불접수상세일련번호*/
+        	 , RFND_TP_CD	/*환불유형코드*/
+        	 , RFND_DV_CD	/*환불구분코드*/
+        	 , RFND_DP_KND_CD	/*환불입금종류코드*/
+        	 , RFND_DSB_DV_CD	/*환불지급구분코드*/
+        	 , CSH_RFND_DV_CD	/*현금환불구분코드*/
+        	 , RFND_AC_DV_CD	/*환불계좌구분코드*/
+        	 , RFND_RNTF_EXST_YN	/*환불손료존재여부*/
+        	 , CSH_RFND_FNIT_CD	/*현금환불금융기관코드*/
+        	 , CSH_RFND_ACNO_ENCR	/*현금환불계좌번호암호화*/
+        	 , CSH_RFND_ACOWN_NM	/*현금환불계좌주명*/
+        	 , CSH_RFND_ADRS_DV_CD	/*현금환불수취인구분코드*/
+        	 , CSH_RFND_DLGPS_NM	/*현금환불대표자명*/
+        	 , CARD_RFND_FNIT_CD	/*카드환불금융기관코드*/
+        	 , CARD_RFND_CRDCD_APR_STRT_DT	/*카드환불신용카드승인시작일자*/
+        	 , CARD_RFND_CRDCD_APR_END_DT	/*카드환불신용카드승인종료일자*/
+        	 , CARD_RFND_CRCDNO_ENCR	/*카드환불신용카드번호암호화*/
+        	 , CARD_RFND_CRDCD_ISTM_MCN	/*카드환불신용카드할부개월수*/
+        	 , CARD_RFND_CRCDONR_NM	/*카드환불신용카드주명*/
+        	 , CARD_RFND_CRDCD_APRNO	/*카드환불신용카드승인번호*/
+        	 , CARD_RFND_CRDCD_APR_AMT	/*카드환불신용카드승인금액*/
+        	 , CARD_RFND_FEE	/*카드환불수수료*/
+        	 , CARD_RFND_FER	/*카드환불수수료율*/
+        	 , BLTF_RFND_DV_CD	/*전금환불구분코드*/
+        	 , BLTF_RFND_TP_CD	/*전금환불유형코드*/
+        	 , BLTF_RFND_MB_DV_CD	/*전금환불회원구분코드*/
+        	 , BLTF_OJ_CNTR_NO	/*전금대상계약번호*/
+        	 , BLTF_OJ_CNTR_SN	/*전금대상계약일련번호*/
+        	 , BLTF_BF_VAC_NO_ENCR	/*전금이전가상계좌번호암호화*/
+        	 , BLTF_AF_VAC_NO_ENCR	/*전금이후가상계좌번호암호화*/
+        	 , KMBRSP_RFND_AK_AMT   /*K멤버스포인트환불요청금액*/
+        	 , KMBRSM_RFND_AK_AMT	/*K멤버스머니환불요청금액*/
+        	 , KMBRSC_RFND_AK_AMT	/*K멤버스캐시환불요청금액*/
+        	 , SMTML_RFND_AK_AMT	/*스마트마일리지환불요청금액*/
+        	 , ACTML_RFND_AK_AMT	/*활동마일리지환불요청금액*/
+        	 , ETC_RFND_TP_CD	/*기타환불유형코드*/
+        	 , ETC_RFND_RQR_NM	/*기타환불요청자명*/
+        	 , RFND_AK_AMT	/*환불요청금액*/
+        	 , RFND_DDTN_AMT	/*환불공제금액*/
+        	 , RFND_RSON_CD	/*환불사유코드*/
+        	 , RFND_RSON_CN	/*환불사유내용*/
+        	 , RFND_EXP_AMT	/*환불예정금액*/
+        	 , RFND_FSH_DT	/*환불완료일자*/
+        	 , RFND_DSB_AMT	/*환불지급금액*/
+        	 , RFND_DSB_DUEDT	/*환불지급예정일자*/
+        	 , RFND_PSP_DC	/*환불지연일수*/
+        	 , RFND_DSB_PSP_INT	/*환불지급지연이자*/
+        	 , RFND_SLIP_CRT_DT	/*환불전표생성일자*/
+        	 , RFND_SLPNO	/*환불전표번호*/
+        	 , MLG_TP_CD	/*마일리지유형코드*/
+        	 , MLG_RV_NO	/*마일리지적립번호*/
+        	 , ITG_DP_NO	/*통합입금번호*/
+        	 , RVE_NO	/*수납번호*/
+        	 , PY_AMT	/*납입금액*/
+        	 , DLQ_AMT	/*연체금액*/
+        	 , BOR_AMT	/*위약금액*/
+        	 , RFND_EVID_MTR_FILE_ID	/*환불증빙자료파일ID*/
+        	 , DPRCP_MTR_FILE_ID	/*입금증자료파일ID*/
+        	 , POFAT_MTR_FILE_ID	/*위임장자료파일ID*/
+        	 , IDF_MTR_FILE_ID	/*신분증자료파일ID*/
+        	 , FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
+             <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT T1.KW_GRP_CO_CD					                                /*교원그룹회사코드*/
+        	 , #{rfndRcpNo}                           AS RFND_RCP_NO	        /*환불접수번호*/
+        	 , (SELECT NVL(MAX(RFND_RCP_DTL_SN) , 0) + 1
+        	         	      FROM TB_RVDW_RFND_RCP_DTL
+        	         	     WHERE KW_GRP_CO_CD = #{kwGrpCoCd}
+        	         		   AND RFND_RCP_NO  = #{rfndRcpNo})	AS RFND_RCP_DTL_SN /*환불접수상세일련번호*/
+        	 , '01'                                   AS RFND_TP_CD             /*환불유형코드*/
+        	 , '02'                                   AS RFND_DV_CD	            /*환불구분코드*/
+        	 , ''                                     AS RFND_DP_KND_CD	        /*환불입금종류코드*/
+        	 , '01'                                   AS RFND_DSB_DV_CD	        /*환불지급구분코드*/
+        	 , '03'                                   AS CSH_RFND_DV_CD	        /*현금환불구분코드*/
+        	 , '02'                                   AS RFND_AC_DV_CD	        /*환불계좌구분코드*/
+        	 , NULL                                   AS RFND_RNTF_EXST_YN	    /*환불손료존재여부*/
+        	 , T4.FNIT_CD                             AS CSH_RFND_FNIT_CD	    /*현금환불금융기관코드*/
+        	 , T1.CSH_RFND_ACNO_ENCR                  AS CSH_RFND_ACNO_ENCR	    /*현금환불계좌번호암호화*/
+        	 , T1.CSH_RFND_ACOWN_NM                   AS CSH_RFND_ACOWN_NM	    /*현금환불계좌주명*/
+        	 , '01'                                   AS CSH_RFND_ADRS_DV_CD	/*현금환불수취인구분코드*/
+        	 , NULL                                   AS CSH_RFND_DLGPS_NM	    /*현금환불대표자명*/
+        	 , NULL                                   AS CARD_RFND_FNIT_CD	/*카드환불금융기관코드*/
+        	 , NULL                                   AS CARD_RFND_CRDCD_APR_STRT_DT	/*카드환불신용카드승인시작일자*/
+        	 , NULL                                   AS CARD_RFND_CRDCD_APR_END_DT	/*카드환불신용카드승인종료일자*/
+        	 , NULL                                   AS CARD_RFND_CRCDNO_ENCR	/*카드환불신용카드번호암호화*/
+        	 , NULL                                   AS CARD_RFND_CRDCD_ISTM_MCN	/*카드환불신용카드할부개월수*/
+        	 , NULL                                   AS CARD_RFND_CRCDONR_NM	/*카드환불신용카드주명*/
+        	 , NULL                                   AS CARD_RFND_CRDCD_APRNO	/*카드환불신용카드승인번호*/
+        	 , NULL                                   AS CARD_RFND_CRDCD_APR_AMT	/*카드환불신용카드승인금액*/
+        	 , T2.CRDCD_FEE_AMT                       AS CARD_RFND_FEE	/*카드환불수수료*/
+        	 , T2.CRDCD_FER                           AS CARD_RFND_FER	/*카드환불수수료율*/
+        	 , NULL                                   AS BLTF_RFND_DV_CD	/*전금환불구분코드*/
+        	 , NULL                                   AS BLTF_RFND_TP_CD	/*전금환불유형코드*/
+        	 , NULL                                   AS BLTF_RFND_MB_DV_CD	/*전금환불회원구분코드*/
+        	 , NULL                                   AS BLTF_OJ_CNTR_NO	/*전금대상계약번호*/
+        	 , NULL                                   AS BLTF_OJ_CNTR_SN	/*전금대상계약일련번호*/
+        	 , NULL                                   AS BLTF_BF_VAC_NO_ENCR	/*전금이전가상계좌번호암호화*/
+        	 , NULL                                   AS BLTF_AF_VAC_NO_ENCR	/*전금이후가상계좌번호암호화*/
+        	 , NULL                                   AS KMBRSP_RFND_AK_AMT   /*K멤버스포인트환불요청금액*/
+        	 , NULL                                   AS KMBRSM_RFND_AK_AMT	/*K멤버스머니환불요청금액*/
+        	 , NULL                                   AS KMBRSC_RFND_AK_AMT	/*K멤버스캐시환불요청금액*/
+        	 , NULL                                   AS SMTML_RFND_AK_AMT	/*스마트마일리지환불요청금액*/
+        	 , NULL                                   AS ACTML_RFND_AK_AMT	/*활동마일리지환불요청금액*/
+        	 , NULL                                   AS ETC_RFND_TP_CD	/*기타환불유형코드*/
+        	 , NULL                                   AS ETC_RFND_RQR_NM	/*기타환불요청자명*/
+        	 , T2.RFND_CSH_AK_AMT                     AS RFND_AK_AMT	/*환불요청금액*/
+        	 , NULL                                   AS RFND_DDTN_AMT	/*환불공제금액*/
+        	 , T2.RFND_RSON_CD                        AS RFND_RSON_CD	/*환불사유코드*/
+        	 , T2.RFND_RSON_CN                        AS RFND_RSON_CN	/*환불사유내용*/
+        	 , T2.RFND_CSH_AK_AMT                     AS RFND_EXP_AMT	/*환불예정금액*/
+        	 , #{rfndDsbDuedt}                        AS RFND_FSH_DT	/*환불완료일자*/
+        	 , T2.RFND_CSH_AK_AMT                     AS RFND_DSB_AMT	/*환불지급금액*/
+        	 , #{rfndDsbDuedt}                        AS RFND_DSB_DUEDT	/*환불지급예정일자*/
+        	 , NULL                                   AS RFND_PSP_DC	/*환불지연일수*/
+        	 , NULL                                   AS RFND_DSB_PSP_INT	/*환불지급지연이자*/
+        	 , NULL                                   AS RFND_SLIP_CRT_DT	/*환불전표생성일자*/
+        	 , NULL                                   AS RFND_SLPNO	/*환불전표번호*/
+        	 , NULL                                   AS MLG_TP_CD	/*마일리지유형코드*/
+        	 , NULL                                   AS MLG_RV_NO	/*마일리지적립번호*/
+        	 , T3.ITG_DP_NO                           AS ITG_DP_NO	/*통합입금번호*/
+        	 , T3.RVE_NO                              AS RVE_NO	/*수납번호*/
+        	 , NULL                                   AS PY_AMT	/*납입금액*/
+        	 , NULL                                   AS DLQ_AMT	/*연체금액*/
+        	 , NULL                                   AS BOR_AMT	/*위약금액*/
+        	 , NULL                                   AS RFND_EVID_MTR_FILE_ID	/*환불증빙자료파일ID*/
+        	 , NULL                                   AS DPRCP_MTR_FILE_ID	/*입금증자료파일ID*/
+        	 , NULL                                   AS POFAT_MTR_FILE_ID	/*위임장자료파일ID*/
+        	 , NULL                                   AS IDF_MTR_FILE_ID	/*신분증자료파일ID*/
+        	 , NULL                                   AS FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM WSMDBS.TB_RVDW_RFND_AK_BAS          T1
+               INNER JOIN TB_RVDW_RFND_AK_DTL      T2
+                       ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                           AND T2.RFND_AK_NO   = T1.RFND_AK_NO
+                           AND T2.DTA_DL_YN    = 'N')
+               INNER JOIN TB_RVDW_RVE_DTL          T3
+                       ON (    T3.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
+                           AND T3.RVE_NO       = T2.RVE_NO
+                           AND T3.RVE_SN       = T2.RVE_SN
+                           AND T3.CNTR_NO      = T2.CNTR_NO
+                           AND T3.CNTR_SN      = T2.CNTR_SN
+                           AND T3.DTA_DL_YN    = 'N')
+               INNER JOIN TB_RVDW_RVE_AK_DTL       T4
+                       ON (    T4.KW_GRP_CO_CD = T3.KW_GRP_CO_CD
+                           AND T4.RVE_AK_NO    = T3.RVE_AK_NO
+                           AND T4.RVE_AK_SN    = T3.RVE_AK_SN
+                           AND T4.DTA_DL_YN    = 'N')
+         WHERE 1 = 1
+           AND T1.KW_GRP_CO_CD          = #{session.companyCode}
+           AND T1.RFND_AK_NO            = #{rfndAkNo}
+           AND T2.RFND_CSH_AK_AMT       >  0
+           AND T2.CNTR_NO               = #{cntrNo}
+           AND T2.CNTR_SN               = #{cntrSn}
+           AND T2.RVE_NO                = #{rveNo}
+           AND T2.RVE_SN                = #{rveSn}
+           AND T1.DTA_DL_YN             = 'N'
+    </insert>
+
+    <insert id="insertRefundReceiptDtlCard">
+        INSERT INTO TB_RVDW_RFND_RCP_DTL ( <!--카드-->
+        	   KW_GRP_CO_CD					/*교원그룹회사코드*/
+        	 , RFND_RCP_NO	/*환불접수번호*/
+        	 , RFND_RCP_DTL_SN	/*환불접수상세일련번호*/
+        	 , RFND_TP_CD	/*환불유형코드*/
+        	 , RFND_DV_CD	/*환불구분코드*/
+        	 , RFND_DP_KND_CD	/*환불입금종류코드*/
+        	 , RFND_DSB_DV_CD	/*환불지급구분코드*/
+        	 , CSH_RFND_DV_CD	/*현금환불구분코드*/
+        	 , RFND_AC_DV_CD	/*환불계좌구분코드*/
+        	 , RFND_RNTF_EXST_YN	/*환불손료존재여부*/
+        	 , CSH_RFND_FNIT_CD	/*현금환불금융기관코드*/
+        	 , CSH_RFND_ACNO_ENCR	/*현금환불계좌번호암호화*/
+        	 , CSH_RFND_ACOWN_NM	/*현금환불계좌주명*/
+        	 , CSH_RFND_ADRS_DV_CD	/*현금환불수취인구분코드*/
+        	 , CSH_RFND_DLGPS_NM	/*현금환불대표자명*/
+        	 , CARD_RFND_FNIT_CD	/*카드환불금융기관코드*/
+        	 , CARD_RFND_CRDCD_APR_STRT_DT	/*카드환불신용카드승인시작일자*/
+        	 , CARD_RFND_CRDCD_APR_END_DT	/*카드환불신용카드승인종료일자*/
+        	 , CARD_RFND_CRCDNO_ENCR	/*카드환불신용카드번호암호화*/
+        	 , CARD_RFND_CRDCD_ISTM_MCN	/*카드환불신용카드할부개월수*/
+        	 , CARD_RFND_CRCDONR_NM	/*카드환불신용카드주명*/
+        	 , CARD_RFND_CRDCD_APRNO	/*카드환불신용카드승인번호*/
+        	 , CARD_RFND_CRDCD_APR_AMT	/*카드환불신용카드승인금액*/
+        	 , CARD_RFND_FEE	/*카드환불수수료*/
+        	 , CARD_RFND_FER	/*카드환불수수료율*/
+        	 , BLTF_RFND_DV_CD	/*전금환불구분코드*/
+        	 , BLTF_RFND_TP_CD	/*전금환불유형코드*/
+        	 , BLTF_RFND_MB_DV_CD	/*전금환불회원구분코드*/
+        	 , BLTF_OJ_CNTR_NO	/*전금대상계약번호*/
+        	 , BLTF_OJ_CNTR_SN	/*전금대상계약일련번호*/
+        	 , BLTF_BF_VAC_NO_ENCR	/*전금이전가상계좌번호암호화*/
+        	 , BLTF_AF_VAC_NO_ENCR	/*전금이후가상계좌번호암호화*/
+        	 , KMBRSP_RFND_AK_AMT   /*K멤버스포인트환불요청금액*/
+        	 , KMBRSM_RFND_AK_AMT	/*K멤버스머니환불요청금액*/
+        	 , KMBRSC_RFND_AK_AMT	/*K멤버스캐시환불요청금액*/
+        	 , SMTML_RFND_AK_AMT	/*스마트마일리지환불요청금액*/
+        	 , ACTML_RFND_AK_AMT	/*활동마일리지환불요청금액*/
+        	 , ETC_RFND_TP_CD	/*기타환불유형코드*/
+        	 , ETC_RFND_RQR_NM	/*기타환불요청자명*/
+        	 , RFND_AK_AMT	/*환불요청금액*/
+        	 , RFND_DDTN_AMT	/*환불공제금액*/
+        	 , RFND_RSON_CD	/*환불사유코드*/
+        	 , RFND_RSON_CN	/*환불사유내용*/
+        	 , RFND_EXP_AMT	/*환불예정금액*/
+        	 , RFND_FSH_DT	/*환불완료일자*/
+        	 , RFND_DSB_AMT	/*환불지급금액*/
+        	 , RFND_DSB_DUEDT	/*환불지급예정일자*/
+        	 , RFND_PSP_DC	/*환불지연일수*/
+        	 , RFND_DSB_PSP_INT	/*환불지급지연이자*/
+        	 , RFND_SLIP_CRT_DT	/*환불전표생성일자*/
+        	 , RFND_SLPNO	/*환불전표번호*/
+        	 , MLG_TP_CD	/*마일리지유형코드*/
+        	 , MLG_RV_NO	/*마일리지적립번호*/
+        	 , ITG_DP_NO	/*통합입금번호*/
+        	 , RVE_NO	/*수납번호*/
+        	 , PY_AMT	/*납입금액*/
+        	 , DLQ_AMT	/*연체금액*/
+        	 , BOR_AMT	/*위약금액*/
+        	 , RFND_EVID_MTR_FILE_ID	/*환불증빙자료파일ID*/
+        	 , DPRCP_MTR_FILE_ID	/*입금증자료파일ID*/
+        	 , POFAT_MTR_FILE_ID	/*위임장자료파일ID*/
+        	 , IDF_MTR_FILE_ID	/*신분증자료파일ID*/
+        	 , FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
+             <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT T1.KW_GRP_CO_CD					                                /*교원그룹회사코드*/
+        	 , #{rfndRcpNo}                           AS RFND_RCP_NO	        /*환불접수번호*/
+        	 , (SELECT NVL(MAX(RFND_RCP_DTL_SN) , 0) + 1
+        	         	      FROM TB_RVDW_RFND_RCP_DTL
+        	         	     WHERE KW_GRP_CO_CD = #{kwGrpCoCd}
+        	         		   AND RFND_RCP_NO  = #{rfndRcpNo})	/*환불접수상세일련번호*/
+        	 , '01'                                   AS RFND_TP_CD 	        /*환불유형코드*/
+        	 , '02'                                   AS RFND_DV_CD	            /*환불구분코드*/
+        	 , ''                                     AS RFND_DP_KND_CD	        /*환불입금종류코드*/
+        	 , '02'                                   AS RFND_DSB_DV_CD	        /*환불지급구분코드*/
+        	 , '03'                                   AS CSH_RFND_DV_CD	        /*현금환불구분코드*/
+        	 , '02'                                   AS RFND_AC_DV_CD	        /*환불계좌구분코드*/
+        	 , NULL                                   AS RFND_RNTF_EXST_YN	    /*환불손료존재여부*/
+        	 , NULL                                   AS CSH_RFND_FNIT_CD	    /*현금환불금융기관코드*/
+        	 , NULL                                   AS CSH_RFND_ACNO_ENCR	    /*현금환불계좌번호암호화*/
+        	 , NULL                                   AS CSH_RFND_ACOWN_NM	    /*현금환불계좌주명*/
+        	 , '01'                                   AS CSH_RFND_ADRS_DV_CD	/*현금환불수취인구분코드*/
+        	 , NULL                                   AS CSH_RFND_DLGPS_NM	    /*현금환불대표자명*/
+        	 , T4.CRDCD_FNIT_CD                       AS CARD_RFND_FNIT_CD	/*카드환불금융기관코드*/
+        	 , T5.APR_DTM                             AS CARD_RFND_CRDCD_APR_STRT_DT	/*카드환불신용카드승인시작일자*/
+        	 , T5.RCV_DTM                             AS CARD_RFND_CRDCD_APR_END_DT	/*카드환불신용카드승인종료일자*/
+        	 , T4.CRCDNO_ENCR                         AS CARD_RFND_CRCDNO_ENCR	/*카드환불신용카드번호암호화*/
+        	 , T4.CRDCD_ISTM_MCN                      AS CARD_RFND_CRDCD_ISTM_MCN	/*카드환불신용카드할부개월수*/
+        	 , T4.CRCDONR_NM                          AS CARD_RFND_CRCDONR_NM	/*카드환불신용카드주명*/
+        	 , T4.CRDCD_APR_DTM                       AS CARD_RFND_CRDCD_APRNO	/*카드환불신용카드승인번호*/
+        	 , T2.RFND_CARD_AK_AMT                    AS CARD_RFND_CRDCD_APR_AMT	/*카드환불신용카드승인금액*/
+        	 , T2.CRDCD_FEE_AMT                       AS CARD_RFND_FEE	/*카드환불수수료*/
+        	 , T2.CRDCD_FER                           AS CARD_RFND_FER	/*카드환불수수료율*/
+        	 , NULL                                   AS BLTF_RFND_DV_CD	/*전금환불구분코드*/
+        	 , NULL                                   AS BLTF_RFND_TP_CD	/*전금환불유형코드*/
+        	 , NULL                                   AS BLTF_RFND_MB_DV_CD	/*전금환불회원구분코드*/
+        	 , NULL                                   AS BLTF_OJ_CNTR_NO	/*전금대상계약번호*/
+        	 , NULL                                   AS BLTF_OJ_CNTR_SN	/*전금대상계약일련번호*/
+        	 , NULL                                   AS BLTF_BF_VAC_NO_ENCR	/*전금이전가상계좌번호암호화*/
+        	 , NULL                                   AS BLTF_AF_VAC_NO_ENCR	/*전금이후가상계좌번호암호화*/
+        	 , NULL                                   AS KMBRSP_RFND_AK_AMT   /*K멤버스포인트환불요청금액*/
+        	 , NULL                                   AS KMBRSM_RFND_AK_AMT	/*K멤버스머니환불요청금액*/
+        	 , NULL                                   AS KMBRSC_RFND_AK_AMT	/*K멤버스캐시환불요청금액*/
+        	 , NULL                                   AS SMTML_RFND_AK_AMT	/*스마트마일리지환불요청금액*/
+        	 , NULL                                   AS ACTML_RFND_AK_AMT	/*활동마일리지환불요청금액*/
+        	 , NULL                                   AS ETC_RFND_TP_CD	/*기타환불유형코드*/
+        	 , NULL                                   AS ETC_RFND_RQR_NM	/*기타환불요청자명*/
+        	 , T2.RFND_CARD_AK_AMT                    AS RFND_AK_AMT	/*환불요청금액*/
+        	 , NULL                                   AS RFND_DDTN_AMT	/*환불공제금액*/
+        	 , T2.RFND_RSON_CD                        AS RFND_RSON_CD	/*환불사유코드*/
+        	 , T2.RFND_RSON_CN                        AS RFND_RSON_CN	/*환불사유내용*/
+        	 , T2.RFND_CARD_AK_AMT                    AS RFND_EXP_AMT	/*환불예정금액*/
+        	 , #{rfndDsbDuedt}                        AS RFND_FSH_DT	/*환불완료일자*/
+        	 , T2.RFND_CARD_AK_AMT                    AS RFND_DSB_AMT	/*환불지급금액*/
+        	 , #{rfndDsbDuedt}                        AS RFND_DSB_DUEDT	/*환불지급예정일자*/
+        	 , NULL                                   AS RFND_PSP_DC	/*환불지연일수*/
+        	 , NULL                                   AS RFND_DSB_PSP_INT	/*환불지급지연이자*/
+        	 , NULL                                   AS RFND_SLIP_CRT_DT	/*환불전표생성일자*/
+        	 , NULL                                   AS RFND_SLPNO	/*환불전표번호*/
+        	 , NULL                                   AS MLG_TP_CD	/*마일리지유형코드*/
+        	 , NULL                                   AS MLG_RV_NO	/*마일리지적립번호*/
+        	 , T3.ITG_DP_NO                           AS ITG_DP_NO	/*통합입금번호*/
+        	 , T3.RVE_NO                              AS RVE_NO	/*수납번호*/
+        	 , NULL                                   AS PY_AMT	/*납입금액*/
+        	 , NULL                                   AS DLQ_AMT	/*연체금액*/
+        	 , NULL                                   AS BOR_AMT	/*위약금액*/
+        	 , NULL                                   AS RFND_EVID_MTR_FILE_ID	/*환불증빙자료파일ID*/
+        	 , NULL                                   AS DPRCP_MTR_FILE_ID	/*입금증자료파일ID*/
+        	 , NULL                                   AS POFAT_MTR_FILE_ID	/*위임장자료파일ID*/
+        	 , NULL                                   AS IDF_MTR_FILE_ID	/*신분증자료파일ID*/
+        	 , NULL                                   AS FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
+            <include refid="COMMON.insertSystemFieldValue"/>
+          FROM WSMDBS.TB_RVDW_RFND_AK_BAS                T1
+               INNER JOIN TB_RVDW_RFND_AK_DTL            T2
+                       ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                           AND T2.RFND_AK_NO   = T1.RFND_AK_NO
+                           AND T2.DTA_DL_YN    = 'N')
+               INNER JOIN TB_RVDW_RVE_DTL                T3
+                       ON (    T3.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
+                           AND T3.RVE_NO       = T2.RVE_NO
+                           AND T3.RVE_SN       = T2.RVE_SN
+                           AND T3.CNTR_NO      = T2.CNTR_NO
+                           AND T3.CNTR_SN      = T2.CNTR_SN
+                           AND T3.DTA_DL_YN    = 'N')
+               INNER JOIN TB_RVDW_ITG_DP_BAS             T4
+                       ON (    T4.ITG_DP_NO    = T3.ITG_DP_NO
+                           AND T4.DTA_DL_YN    = 'N')
+                LEFT OUTER JOIN TB_RVDW_CRDCD_RTM_TRD_IZ T5
+                       ON (    T5.CARD_APRNO   =   T4.CARD_KND_CD
+                           AND T5.CRCDNO_ENCR  =   T4.CRCDNO_ENCR
+                           AND T5.DTA_DL_YN    = 'N')
+         WHERE 1 = 1
+           AND T1.KW_GRP_CO_CD          = #{session.companyCode}
+           AND T1.RFND_AK_NO            = #{rfndAkNo}
+           AND T2.RFND_CSH_AK_AMT       >  0
+           AND T2.CNTR_NO               = #{cntrNo}
+           AND T2.CNTR_SN               = #{cntrSn}
+           AND T2.RVE_NO                = #{rveNo}
+           AND T2.RVE_SN                = #{rveSn}
+           AND T1.DTA_DL_YN             = 'N'
+    </insert>
+
+    <insert id="insertRefundReceiptDtlBltf">
+        INSERT INTO TB_RVDW_RFND_RCP_DTL ( <!--전금-->
+        	   KW_GRP_CO_CD					/*교원그룹회사코드*/
+        	 , RFND_RCP_NO	/*환불접수번호*/
+        	 , RFND_RCP_DTL_SN	/*환불접수상세일련번호*/
+        	 , RFND_TP_CD	/*환불유형코드*/
+        	 , RFND_DV_CD	/*환불구분코드*/
+        	 , RFND_DP_KND_CD	/*환불입금종류코드*/
+        	 , RFND_DSB_DV_CD	/*환불지급구분코드*/
+        	 , CSH_RFND_DV_CD	/*현금환불구분코드*/
+        	 , RFND_AC_DV_CD	/*환불계좌구분코드*/
+        	 , RFND_RNTF_EXST_YN	/*환불손료존재여부*/
+        	 , CSH_RFND_FNIT_CD	/*현금환불금융기관코드*/
+        	 , CSH_RFND_ACNO_ENCR	/*현금환불계좌번호암호화*/
+        	 , CSH_RFND_ACOWN_NM	/*현금환불계좌주명*/
+        	 , CSH_RFND_ADRS_DV_CD	/*현금환불수취인구분코드*/
+        	 , CSH_RFND_DLGPS_NM	/*현금환불대표자명*/
+        	 , CARD_RFND_FNIT_CD	/*카드환불금융기관코드*/
+        	 , CARD_RFND_CRDCD_APR_STRT_DT	/*카드환불신용카드승인시작일자*/
+        	 , CARD_RFND_CRDCD_APR_END_DT	/*카드환불신용카드승인종료일자*/
+        	 , CARD_RFND_CRCDNO_ENCR	/*카드환불신용카드번호암호화*/
+        	 , CARD_RFND_CRDCD_ISTM_MCN	/*카드환불신용카드할부개월수*/
+        	 , CARD_RFND_CRCDONR_NM	/*카드환불신용카드주명*/
+        	 , CARD_RFND_CRDCD_APRNO	/*카드환불신용카드승인번호*/
+        	 , CARD_RFND_CRDCD_APR_AMT	/*카드환불신용카드승인금액*/
+        	 , CARD_RFND_FEE	/*카드환불수수료*/
+        	 , CARD_RFND_FER	/*카드환불수수료율*/
+        	 , BLTF_RFND_DV_CD	/*전금환불구분코드*/
+        	 , BLTF_RFND_TP_CD	/*전금환불유형코드*/
+        	 , BLTF_RFND_MB_DV_CD	/*전금환불회원구분코드*/
+        	 , BLTF_OJ_CNTR_NO	/*전금대상계약번호*/
+        	 , BLTF_OJ_CNTR_SN	/*전금대상계약일련번호*/
+        	 , BLTF_BF_VAC_NO_ENCR	/*전금이전가상계좌번호암호화*/
+        	 , BLTF_AF_VAC_NO_ENCR	/*전금이후가상계좌번호암호화*/
+        	 , KMBRSP_RFND_AK_AMT   /*K멤버스포인트환불요청금액*/
+        	 , KMBRSM_RFND_AK_AMT	/*K멤버스머니환불요청금액*/
+        	 , KMBRSC_RFND_AK_AMT	/*K멤버스캐시환불요청금액*/
+        	 , SMTML_RFND_AK_AMT	/*스마트마일리지환불요청금액*/
+        	 , ACTML_RFND_AK_AMT	/*활동마일리지환불요청금액*/
+        	 , ETC_RFND_TP_CD	/*기타환불유형코드*/
+        	 , ETC_RFND_RQR_NM	/*기타환불요청자명*/
+        	 , RFND_AK_AMT	/*환불요청금액*/
+        	 , RFND_DDTN_AMT	/*환불공제금액*/
+        	 , RFND_RSON_CD	/*환불사유코드*/
+        	 , RFND_RSON_CN	/*환불사유내용*/
+        	 , RFND_EXP_AMT	/*환불예정금액*/
+        	 , RFND_FSH_DT	/*환불완료일자*/
+        	 , RFND_DSB_AMT	/*환불지급금액*/
+        	 , RFND_DSB_DUEDT	/*환불지급예정일자*/
+        	 , RFND_PSP_DC	/*환불지연일수*/
+        	 , RFND_DSB_PSP_INT	/*환불지급지연이자*/
+        	 , RFND_SLIP_CRT_DT	/*환불전표생성일자*/
+        	 , RFND_SLPNO	/*환불전표번호*/
+        	 , MLG_TP_CD	/*마일리지유형코드*/
+        	 , MLG_RV_NO	/*마일리지적립번호*/
+        	 , ITG_DP_NO	/*통합입금번호*/
+        	 , RVE_NO	/*수납번호*/
+        	 , PY_AMT	/*납입금액*/
+        	 , DLQ_AMT	/*연체금액*/
+        	 , BOR_AMT	/*위약금액*/
+        	 , RFND_EVID_MTR_FILE_ID	/*환불증빙자료파일ID*/
+        	 , DPRCP_MTR_FILE_ID	/*입금증자료파일ID*/
+        	 , POFAT_MTR_FILE_ID	/*위임장자료파일ID*/
+        	 , IDF_MTR_FILE_ID	/*신분증자료파일ID*/
+        	 , FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
+             <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT T1.KW_GRP_CO_CD					                                /*교원그룹회사코드*/
+        	 , #{rfndRcpNo}                           AS RFND_RCP_NO	        /*환불접수번호*/
+        	 , ROWNUM                                 AS RFND_RCP_DTL_SN	/*환불접수상세일련번호*/
+        	 , '01'                                   AS RFND_TP_CD 	        /*환불유형코드*/
+        	 , '02'                                   AS RFND_DV_CD	            /*환불구분코드*/
+        	 , ''                                     AS RFND_DP_KND_CD	        /*환불입금종류코드*/
+        	 , '03'                                   AS RFND_DSB_DV_CD	        /*환불지급구분코드*/
+        	 , '03'                                   AS CSH_RFND_DV_CD	        /*현금환불구분코드*/
+        	 , '02'                                   AS RFND_AC_DV_CD	        /*환불계좌구분코드*/
+        	 , 'N'                                    AS RFND_RNTF_EXST_YN	    /*환불손료존재여부*/
+        	 , NULL                                   AS CSH_RFND_FNIT_CD	    /*현금환불금융기관코드*/
+        	 , NULL                                   AS CSH_RFND_ACNO_ENCR	    /*현금환불계좌번호암호화*/
+        	 , NULL                                   AS CSH_RFND_ACOWN_NM	    /*현금환불계좌주명*/
+        	 , NULL                                   AS CSH_RFND_ADRS_DV_CD	/*현금환불수취인구분코드*/
+        	 , NULL                                   AS CSH_RFND_DLGPS_NM	    /*현금환불대표자명*/
+        	 , NULL                                   AS CARD_RFND_FNIT_CD	/*카드환불금융기관코드*/
+        	 , NULL                                   AS CARD_RFND_CRDCD_APR_STRT_DT	/*카드환불신용카드승인시작일자*/
+        	 , NULL                                   AS CARD_RFND_CRDCD_APR_END_DT	/*카드환불신용카드승인종료일자*/
+        	 , NULL                                   AS CARD_RFND_CRCDNO_ENCR	/*카드환불신용카드번호암호화*/
+        	 , NULL                                   AS CARD_RFND_CRDCD_ISTM_MCN	/*카드환불신용카드할부개월수*/
+        	 , NULL                                   AS CARD_RFND_CRCDONR_NM	/*카드환불신용카드주명*/
+        	 , NULL                                   AS CARD_RFND_CRDCD_APRNO	/*카드환불신용카드승인번호*/
+        	 , NULL                                   AS CARD_RFND_CRDCD_APR_AMT	/*카드환불신용카드승인금액*/
+        	 , NULL                                   AS CARD_RFND_FEE	/*카드환불수수료*/
+        	 , NULL                                   AS CARD_RFND_FER	/*카드환불수수료율*/
+        	 , T4.BLTF_RFND_DV_CD                     AS BLTF_RFND_DV_CD	/*전금환불구분코드*/
+        	 , T4.BLTF_RFND_TP_CD                     AS BLTF_RFND_TP_CD	/*전금환불유형코드*/
+        	 , T4.BLTF_RFND_MB_DV_CD                  AS BLTF_RFND_MB_DV_CD	/*전금환불회원구분코드*/
+        	 , T4.BLTF_OJ_CNTR_NO                     AS BLTF_OJ_CNTR_NO	/*전금대상계약번호*/
+        	 , T4.BLTF_OJ_CNTR_SN                     AS BLTF_OJ_CNTR_SN	/*전금대상계약일련번호*/
+        	 , NULL                                   AS BLTF_BF_VAC_NO_ENCR	/*전금이전가상계좌번호암호화*/
+        	 , T1.CSH_RFND_ACNO_ENCR                  AS BLTF_AF_VAC_NO_ENCR	/*전금이후가상계좌번호암호화*/
+        	 , NULL                                   AS KMBRSP_RFND_AK_AMT   /*K멤버스포인트환불요청금액*/
+        	 , NULL                                   AS KMBRSM_RFND_AK_AMT	/*K멤버스머니환불요청금액*/
+        	 , NULL                                   AS KMBRSC_RFND_AK_AMT	/*K멤버스캐시환불요청금액*/
+        	 , NULL                                   AS SMTML_RFND_AK_AMT	/*스마트마일리지환불요청금액*/
+        	 , NULL                                   AS ACTML_RFND_AK_AMT	/*활동마일리지환불요청금액*/
+        	 , NULL                                   AS ETC_RFND_TP_CD	/*기타환불유형코드*/
+        	 , NULL                                   AS ETC_RFND_RQR_NM	/*기타환불요청자명*/
+        	 , T4.RFND_BLTF_AK_AMT                    AS RFND_AK_AMT	/*환불요청금액*/
+        	 , NULL                                   AS RFND_DDTN_AMT	/*환불공제금액*/
+        	 , T2.RFND_RSON_CD                        AS RFND_RSON_CD	/*환불사유코드*/
+        	 , T2.RFND_RSON_CN                        AS RFND_RSON_CN	/*환불사유내용*/
+        	 , T4.RFND_BLTF_AK_AMT                    AS RFND_EXP_AMT	/*환불예정금액*/
+        	 , #{rfndDsbDuedt}                        AS RFND_FSH_DT	/*환불완료일자*/
+        	 , T4.RFND_BLTF_AK_AMT                    AS RFND_DSB_AMT	/*환불지급금액*/
+         	 , #{rfndDsbDuedt}                        AS RFND_DSB_DUEDT	/*환불지급예정일자*/
+        	 , NULL                                   AS RFND_PSP_DC	/*환불지연일수*/
+        	 , NULL                                   AS RFND_DSB_PSP_INT	/*환불지급지연이자*/
+        	 , NULL                                   AS RFND_SLIP_CRT_DT	/*환불전표생성일자*/
+        	 , NULL                                   AS RFND_SLPNO	/*환불전표번호*/
+        	 , NULL                                   AS MLG_TP_CD	/*마일리지유형코드*/
+        	 , NULL                                   AS MLG_RV_NO	/*마일리지적립번호*/
+        	 , T3.ITG_DP_NO                           AS ITG_DP_NO	/*통합입금번호*/
+        	 , T3.RVE_NO                              AS RVE_NO	/*수납번호*/
+        	 , NULL                                   AS PY_AMT	/*납입금액*/
+        	 , NULL                                   AS DLQ_AMT	/*연체금액*/
+        	 , NULL                                   AS BOR_AMT	/*위약금액*/
+        	 , T4.RFND_EVID_MTR_FILE_ID               AS RFND_EVID_MTR_FILE_ID	/*환불증빙자료파일ID*/
+        	 , NULL                                   AS DPRCP_MTR_FILE_ID	/*입금증자료파일ID*/
+        	 , NULL                                   AS POFAT_MTR_FILE_ID	/*위임장자료파일ID*/
+        	 , NULL                                   AS IDF_MTR_FILE_ID	/*신분증자료파일ID*/
+        	 , NULL                                   AS FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
+            <include refid="COMMON.insertSystemFieldValue"/>
+          FROM WSMDBS.TB_RVDW_RFND_AK_BAS                T1
+               INNER JOIN TB_RVDW_RFND_AK_DTL            T2
+                       ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                           AND T2.RFND_AK_NO   = T1.RFND_AK_NO
+                           AND T2.DTA_DL_YN    = 'N')
+               INNER JOIN TB_RVDW_RVE_DTL                T3
+                       ON (    T3.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
+                           AND T3.RVE_NO       = T2.RVE_NO
+                           AND T3.RVE_SN       = T2.RVE_SN
+                           AND T3.CNTR_NO      = T2.CNTR_NO
+                           AND T3.CNTR_SN      = T2.CNTR_SN
+                           AND T3.DTA_DL_YN    = 'N')
+               INNER JOIN TB_RVDW_RFND_AK_BLTF_DTL       T4
+                       ON (    T4.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
+                           AND T4.RFND_AK_NO   = T2.RFND_AK_NO
+                           AND T4.CNTR_NO      = T2.CNTR_NO
+                           AND T4.CNTR_SN      = T2.CNTR_SN
+                           AND T4.RVE_NO       = T2.RVE_NO
+                           AND T4.RVE_SN       = T2.RVE_SN )
+         WHERE 1 = 1
+           AND T1.KW_GRP_CO_CD          = #{session.companyCode}
+           AND T1.RFND_AK_NO            = #{rfndAkNo}
+           AND T2.RFND_BLTF_AK_AMT      >  0
+           AND T2.CNTR_NO               = #{cntrNo}
+           AND T2.CNTR_SN               = #{cntrSn}
+           AND T2.RVE_NO                = #{rveNo}
+           AND T2.RVE_SN                = #{rveSn}
+           AND T1.DTA_DL_YN             = 'N'
+    </insert>
+
+    <update id="updateRefundStatus">
+        UPDATE TB_RVDW_RFND_AK_BAS
+               SET RFND_AK_STAT_CD  = #{procsDv}
+                 , RFND_PROCS_DV_CD = #{procsDv}
+               <include refid="COMMON.updateSystemField" />
+         WHERE 1 = 1
+           AND KW_GRP_CO_CD = #{session.companyCode}
+           AND RFND_AK_NO   = #{rfndAkNo}
+           AND DTA_DL_YN    = 'N'
+    </update>
+
+    <insert id="insertRefundReceiptBaseHistory">
+        INSERT INTO TB_RVDW_RFND_RCP_BAS_HIST (
+        	   KW_GRP_CO_CD	/*교원그룹회사코드*/
+        	 , RFND_RCP_NO	/*환불접수번호*/
+        	 , HIST_CH_DTM
+        	 , RVE_CO_CD	/*수납회사코드*/
+        	 , CST_NO	/*고객번호*/
+        	 , CNTR_NO	/*계약번호*/
+        	 , CNTR_SN	/*계약일련번호*/
+        	 , CNTR_CH_RCP_ID	/*계약변경접수ID*/
+        	 , CNTR_CH_SN	/*계약변경일련번호*/
+        	 , RFND_RCP_OG_TP_CD	/*환불접수조직유형코드*/
+        	 , RFND_RCP_PRTNR_NO	/*환불접수파트너번호*/
+        	 , RFND_RCP_PH_CD	/*환불접수경로코드*/
+        	 , RFND_RQDT	/*환불요청일자*/
+        	 , RFND_FSH_DT	/*환불완료일자*/
+        	 , RTNGD_FSH_DT	/*반품완료일자*/
+        	 , CST_SV_ASN_NO	/*고객서비스배정번호*/
+        	 , RFND_CSH_AMT	/*환불현금금액*/
+        	 , RFND_CARD_AMT	/*환불카드금액*/
+        	 , RFND_BLTF_AMT	/*환불전금금액*/
+        	 , RFND_DDTN_AMT	/*환불공제금액*/
+        	 , RFND_FEE_AMT	/*환불수수료금액*/
+        	 , RFND_PSB_RES_AMT	/*환불가능잔여금액*/
+        	 , TOT_RFND_ET_AMT	/*총환불예상금액*/
+        	 , EX_RFND_RSON_CN	/*예외환불사유내용*/
+        	 , RFND_STAT_CD	/*환불상태코드*/
+        	 , RFND_RVE_DT	/*환불수납일자*/
+        	 , RFND_PERF_DT	/*환불실적일자*/
+        	 , RFND_DSB_DT	/*환불지급일자*/
+        	 , RFND_PROCS_CN	/*환불처리내용*/
+        	 , RFND_PSIC_OPN_CN	/*환불담당자의견내용*/
+        	 , RFND_PSIC_RJ_RSON_CN	/*환불담당자반려사유내용*/
+        	 , RFND_PROCS_USR_ID	/*환불처리사용자ID*/
+             <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT KW_GRP_CO_CD	/*교원그룹회사코드*/
+        	 , RFND_RCP_NO	/*환불접수번호*/
+        	 , TO_CHAR(SYSDATE , 'YYYYMMDDHH24MISS') AS HIST_CH_DTM
+        	 , RVE_CO_CD	/*수납회사코드*/
+        	 , CST_NO	/*고객번호*/
+        	 , CNTR_NO	/*계약번호*/
+        	 , CNTR_SN	/*계약일련번호*/
+        	 , CNTR_CH_RCP_ID	/*계약변경접수ID*/
+        	 , CNTR_CH_SN	/*계약변경일련번호*/
+        	 , RFND_RCP_OG_TP_CD	/*환불접수조직유형코드*/
+        	 , RFND_RCP_PRTNR_NO	/*환불접수파트너번호*/
+        	 , RFND_RCP_PH_CD	/*환불접수경로코드*/
+        	 , RFND_RQDT	/*환불요청일자*/
+        	 , RFND_FSH_DT	/*환불완료일자*/
+        	 , RTNGD_FSH_DT	/*반품완료일자*/
+        	 , CST_SV_ASN_NO	/*고객서비스배정번호*/
+        	 , RFND_CSH_AMT	/*환불현금금액*/
+        	 , RFND_CARD_AMT	/*환불카드금액*/
+        	 , RFND_BLTF_AMT	/*환불전금금액*/
+        	 , RFND_DDTN_AMT	/*환불공제금액*/
+        	 , RFND_FEE_AMT	/*환불수수료금액*/
+        	 , RFND_PSB_RES_AMT	/*환불가능잔여금액*/
+        	 , TOT_RFND_ET_AMT	/*총환불예상금액*/
+        	 , EX_RFND_RSON_CN	/*예외환불사유내용*/
+        	 , RFND_STAT_CD	/*환불상태코드*/
+        	 , RFND_RVE_DT	/*환불수납일자*/
+        	 , RFND_PERF_DT	/*환불실적일자*/
+        	 , RFND_DSB_DT	/*환불지급일자*/
+        	 , RFND_PROCS_CN	/*환불처리내용*/
+        	 , RFND_PSIC_OPN_CN	/*환불담당자의견내용*/
+        	 , RFND_PSIC_RJ_RSON_CN	/*환불담당자반려사유내용*/
+        	 , RFND_PROCS_USR_ID	/*환불처리사용자ID*/
+            <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_RVDW_RFND_RCP_BAS
+         WHERE 1 = 1
+           AND KW_GRP_CO_CD = #{kwGrpCoCd}
+           AND RFND_RCP_NO = #{rfndRcpNo}
+    </insert>
+
+    <insert id="insertRefundReceiptDtlHistory">
+        INSERT INTO TB_RVDW_RFND_RCP_DTL_HIST (
+         	   KW_GRP_CO_CD					/*교원그룹회사코드*/
+        	 , RFND_RCP_NO	/*환불접수번호*/
+        	 , RFND_RCP_DTL_SN	/*환불접수상세일련번호*/
+        	 , HIST_CH_DTM
+        	 , RFND_TP_CD	/*환불유형코드*/
+        	 , RFND_DV_CD	/*환불구분코드*/
+        	 , RFND_DP_KND_CD	/*환불입금종류코드*/
+        	 , RFND_DSB_DV_CD	/*환불지급구분코드*/
+        	 , CSH_RFND_DV_CD	/*현금환불구분코드*/
+        	 , RFND_AC_DV_CD	/*환불계좌구분코드*/
+        	 , RFND_RNTF_EXST_YN	/*환불손료존재여부*/
+        	 , CSH_RFND_FNIT_CD	/*현금환불금융기관코드*/
+        	 , CSH_RFND_ACNO_ENCR	/*현금환불계좌번호암호화*/
+        	 , CSH_RFND_ACOWN_NM	/*현금환불계좌주명*/
+        	 , CSH_RFND_ADRS_DV_CD	/*현금환불수취인구분코드*/
+        	 , CSH_RFND_DLGPS_NM	/*현금환불대표자명*/
+        	 , CARD_RFND_FNIT_CD	/*카드환불금융기관코드*/
+        	 , CARD_RFND_CRDCD_APR_STRT_DT	/*카드환불신용카드승인시작일자*/
+        	 , CARD_RFND_CRDCD_APR_END_DT	/*카드환불신용카드승인종료일자*/
+        	 , CARD_RFND_CRCDNO_ENCR	/*카드환불신용카드번호암호화*/
+        	 , CARD_RFND_CRDCD_ISTM_MCN	/*카드환불신용카드할부개월수*/
+        	 , CARD_RFND_CRCDONR_NM	/*카드환불신용카드주명*/
+        	 , CARD_RFND_CRDCD_APRNO	/*카드환불신용카드승인번호*/
+        	 , CARD_RFND_CRDCD_APR_AMT	/*카드환불신용카드승인금액*/
+        	 , CARD_RFND_FEE	/*카드환불수수료*/
+        	 , CARD_RFND_FER	/*카드환불수수료율*/
+        	 , BLTF_RFND_DV_CD	/*전금환불구분코드*/
+        	 , BLTF_RFND_TP_CD	/*전금환불유형코드*/
+        	 , BLTF_RFND_MB_DV_CD	/*전금환불회원구분코드*/
+        	 , BLTF_OJ_CNTR_NO	/*전금대상계약번호*/
+        	 , BLTF_OJ_CNTR_SN	/*전금대상계약일련번호*/
+        	 , BLTF_BF_VAC_NO_ENCR	/*전금이전가상계좌번호암호화*/
+        	 , BLTF_AF_VAC_NO_ENCR	/*전금이후가상계좌번호암호화*/
+        	 , KMBRSP_RFND_AK_AMT   /*K멤버스포인트환불요청금액*/
+        	 , KMBRSM_RFND_AK_AMT	/*K멤버스머니환불요청금액*/
+        	 , KMBRSC_RFND_AK_AMT	/*K멤버스캐시환불요청금액*/
+        	 , SMTML_RFND_AK_AMT	/*스마트마일리지환불요청금액*/
+        	 , ACTML_RFND_AK_AMT	/*활동마일리지환불요청금액*/
+        	 , ETC_RFND_TP_CD	/*기타환불유형코드*/
+        	 , ETC_RFND_RQR_NM	/*기타환불요청자명*/
+        	 , RFND_AK_AMT	/*환불요청금액*/
+        	 , RFND_DDTN_AMT	/*환불공제금액*/
+        	 , RFND_RSON_CD	/*환불사유코드*/
+        	 , RFND_RSON_CN	/*환불사유내용*/
+        	 , RFND_EXP_AMT	/*환불예정금액*/
+        	 , RFND_FSH_DT	/*환불완료일자*/
+        	 , RFND_DSB_AMT	/*환불지급금액*/
+        	 , RFND_DSB_DUEDT	/*환불지급예정일자*/
+        	 , RFND_PSP_DC	/*환불지연일수*/
+        	 , RFND_DSB_PSP_INT	/*환불지급지연이자*/
+        	 , RFND_SLIP_CRT_DT	/*환불전표생성일자*/
+        	 , RFND_SLPNO	/*환불전표번호*/
+        	 , MLG_TP_CD	/*마일리지유형코드*/
+        	 , MLG_RV_NO	/*마일리지적립번호*/
+        	 , ITG_DP_NO	/*통합입금번호*/
+        	 , RVE_NO	/*수납번호*/
+        	 , PY_AMT	/*납입금액*/
+        	 , DLQ_AMT	/*연체금액*/
+        	 , BOR_AMT	/*위약금액*/
+        	 , RFND_EVID_MTR_FILE_ID	/*환불증빙자료파일ID*/
+        	 , DPRCP_MTR_FILE_ID	/*입금증자료파일ID*/
+        	 , POFAT_MTR_FILE_ID	/*위임장자료파일ID*/
+        	 , IDF_MTR_FILE_ID	/*신분증자료파일ID*/
+        	 , FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
+             <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT KW_GRP_CO_CD					/*교원그룹회사코드*/
+        	 , RFND_RCP_NO	/*환불접수번호*/
+        	 , RFND_RCP_DTL_SN	/*환불접수상세일련번호*/
+        	 , TO_CHAR(SYSDATE , 'YYYYMMDDHH24MISS') AS HIST_CH_DTM
+        	 , RFND_TP_CD	/*환불유형코드*/
+        	 , RFND_DV_CD	/*환불구분코드*/
+        	 , RFND_DP_KND_CD	/*환불입금종류코드*/
+        	 , RFND_DSB_DV_CD	/*환불지급구분코드*/
+        	 , CSH_RFND_DV_CD	/*현금환불구분코드*/
+        	 , RFND_AC_DV_CD	/*환불계좌구분코드*/
+        	 , RFND_RNTF_EXST_YN	/*환불손료존재여부*/
+        	 , CSH_RFND_FNIT_CD	/*현금환불금융기관코드*/
+        	 , CSH_RFND_ACNO_ENCR	/*현금환불계좌번호암호화*/
+        	 , CSH_RFND_ACOWN_NM	/*현금환불계좌주명*/
+        	 , CSH_RFND_ADRS_DV_CD	/*현금환불수취인구분코드*/
+        	 , CSH_RFND_DLGPS_NM	/*현금환불대표자명*/
+        	 , CARD_RFND_FNIT_CD	/*카드환불금융기관코드*/
+        	 , CARD_RFND_CRDCD_APR_STRT_DT	/*카드환불신용카드승인시작일자*/
+        	 , CARD_RFND_CRDCD_APR_END_DT	/*카드환불신용카드승인종료일자*/
+        	 , CARD_RFND_CRCDNO_ENCR	/*카드환불신용카드번호암호화*/
+        	 , CARD_RFND_CRDCD_ISTM_MCN	/*카드환불신용카드할부개월수*/
+        	 , CARD_RFND_CRCDONR_NM	/*카드환불신용카드주명*/
+        	 , CARD_RFND_CRDCD_APRNO	/*카드환불신용카드승인번호*/
+        	 , CARD_RFND_CRDCD_APR_AMT	/*카드환불신용카드승인금액*/
+        	 , CARD_RFND_FEE	/*카드환불수수료*/
+        	 , CARD_RFND_FER	/*카드환불수수료율*/
+        	 , BLTF_RFND_DV_CD	/*전금환불구분코드*/
+        	 , BLTF_RFND_TP_CD	/*전금환불유형코드*/
+        	 , BLTF_RFND_MB_DV_CD	/*전금환불회원구분코드*/
+        	 , BLTF_OJ_CNTR_NO	/*전금대상계약번호*/
+        	 , BLTF_OJ_CNTR_SN	/*전금대상계약일련번호*/
+        	 , BLTF_BF_VAC_NO_ENCR	/*전금이전가상계좌번호암호화*/
+        	 , BLTF_AF_VAC_NO_ENCR	/*전금이후가상계좌번호암호화*/
+        	 , KMBRSP_RFND_AK_AMT   /*K멤버스포인트환불요청금액*/
+        	 , KMBRSM_RFND_AK_AMT	/*K멤버스머니환불요청금액*/
+        	 , KMBRSC_RFND_AK_AMT	/*K멤버스캐시환불요청금액*/
+        	 , SMTML_RFND_AK_AMT	/*스마트마일리지환불요청금액*/
+        	 , ACTML_RFND_AK_AMT	/*활동마일리지환불요청금액*/
+        	 , ETC_RFND_TP_CD	/*기타환불유형코드*/
+        	 , ETC_RFND_RQR_NM	/*기타환불요청자명*/
+        	 , RFND_AK_AMT	/*환불요청금액*/
+        	 , RFND_DDTN_AMT	/*환불공제금액*/
+        	 , RFND_RSON_CD	/*환불사유코드*/
+        	 , RFND_RSON_CN	/*환불사유내용*/
+        	 , RFND_EXP_AMT	/*환불예정금액*/
+        	 , RFND_FSH_DT	/*환불완료일자*/
+        	 , RFND_DSB_AMT	/*환불지급금액*/
+        	 , RFND_DSB_DUEDT	/*환불지급예정일자*/
+        	 , RFND_PSP_DC	/*환불지연일수*/
+        	 , RFND_DSB_PSP_INT	/*환불지급지연이자*/
+        	 , RFND_SLIP_CRT_DT	/*환불전표생성일자*/
+        	 , RFND_SLPNO	/*환불전표번호*/
+        	 , MLG_TP_CD	/*마일리지유형코드*/
+        	 , MLG_RV_NO	/*마일리지적립번호*/
+        	 , ITG_DP_NO	/*통합입금번호*/
+        	 , RVE_NO	/*수납번호*/
+        	 , PY_AMT	/*납입금액*/
+        	 , DLQ_AMT	/*연체금액*/
+        	 , BOR_AMT	/*위약금액*/
+        	 , RFND_EVID_MTR_FILE_ID	/*환불증빙자료파일ID*/
+        	 , DPRCP_MTR_FILE_ID	/*입금증자료파일ID*/
+        	 , POFAT_MTR_FILE_ID	/*위임장자료파일ID*/
+        	 , IDF_MTR_FILE_ID	/*신분증자료파일ID*/
+        	 , FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
+            <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_RVDW_RFND_RCP_DTL
+         WHERE 1 = 1
+           AND KW_GRP_CO_CD = #{kwGrpCoCd}
+           AND RFND_RCP_NO = #{rfndRcpNo}
+    </insert>
+
 </mapper>

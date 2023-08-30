@@ -41,7 +41,8 @@ public class WsnaStoreNaprvStateDtlDto {
         String ostrWareNm, // 출고창고이름
         Integer strQty, // 입고수량
         String itmGdCd, // 품목등급코드
-        String itmPdCd // 품목상품코드
+        String itmPdCd, // 품목상품코드
+        String pdNm
     ) {}
 
     @ApiModel(value = "WsanStoreNaprvStateDtlDto-SaveReq")

@@ -580,7 +580,8 @@
              , T1.CLTN_DT AS BIZ_CLTN_MON          /* 업무해약월 */
              , CD2.CD_CNTN AS QLF                  /* 자격 */
              , SUBSTR(T3.CV_DT,0,6) AS OPNG_MM     /* 개시월 = 웰스매니저 승급 전환월 */
-             , CASE WHEN NVL(T3.ENDDT,0) = 0 THEN MONTHS_BETWEEN(SYSDATE, TO_DATE(T3.CV_DT, 'YYYY-MM-DD'))
+             , CASE WHEN NVL(T3.CV_DT,0) = 0 THEN 0
+                    WHEN NVL(T3.ENDDT,0) = 0 THEN MONTHS_BETWEEN(SYSDATE, TO_DATE(T3.CV_DT, 'YYYY-MM-DD'))
                     ELSE MONTHS_BETWEEN(T3.ENDDT, TO_DATE(T3.CV_DT, 'YYYY-MM-DD'))
                END AS OPNG_NMM                                  /* 개시차월 = 해약일자 - 전환일자 */
              , NVL(SUBSTR(T3.ENDDT,0,6),0) AS MNG_CLTN_MM      /* 매니저 해약월 */
@@ -763,7 +764,7 @@
                     AND T3.PERF_AGRG_CRT_DV_CD = '201'  /* M조직 순주문실적 생성 */
                    LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T4   /*T 순주문 파트너 실적 월마감 T*/
                      ON T1.OG_TP_CD = T3.OG_TP_CD
-                    AND SUBSTR(T2.NW_CDV,1,9) = T3.PERF_ATC_CD
+                    AND SUBSTR(T2.NW_CDV,1,9) = T4.PERF_ATC_CD
                     AND T4.FEE_TCNT_DV_CD = '02' /* 차수 */
                     AND T4.BASE_YM = #{perfYm}
                     AND T4.PERF_DV_CD = 2        /* 조직판매 */
@@ -995,14 +996,16 @@
              , NVL(MAX(AMT05),0) AS HIR_INSR
              , NVL(MAX(AMT07),0) AS BU_DDTN
              , NVL(MAX(AMT04),0) AS PNPYAM
+             , NVL(MAX(AMT06),0) AS INDD_INSR
         FROM ( SELECT NVL(CASE WHEN FEE_DDTN_TP_CD = '01' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT01
                     , NVL(CASE WHEN FEE_DDTN_TP_CD = '02' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT02
                     , NVL(CASE WHEN FEE_DDTN_TP_CD = '03' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT03
                     , NVL(CASE WHEN FEE_DDTN_TP_CD = '05' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT05
                     , NVL(CASE WHEN FEE_DDTN_TP_CD = '07' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT07
                     , NVL(CASE WHEN FEE_DDTN_TP_CD = '04' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT04
+                    , NVL(CASE WHEN FEE_DDTN_TP_CD = '06' THEN SUM(A.FEE_DDTN_CNFM_AMT) END,0) AS AMT06
                  FROM TB_FEAM_FEE_DDTN_IZ A
-                WHERE A.FEE_DDTN_TP_CD IN ('01','02','03','04','05','07')
+                WHERE A.FEE_DDTN_TP_CD IN ('01','02','03','04','05','07','06')
                   AND A.DDTN_YM = #{perfYm}  /*년월*/
                   AND A.CO_CD = '2000'
                   AND A.OG_TP_CD = 'W02'   /*M조직*/

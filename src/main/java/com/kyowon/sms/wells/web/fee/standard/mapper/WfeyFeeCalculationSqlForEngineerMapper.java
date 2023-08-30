@@ -1,9 +1,11 @@
 package com.kyowon.sms.wells.web.fee.standard.mapper;
 
+import com.kyowon.sms.common.web.fee.standard.annotation.SqlMapperInfo;
 import com.kyowon.sms.common.web.fee.standard.annotation.SqlMethodInfo;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
+@SqlMapperInfo(organizationTypeCode = "W06")
 public interface WfeyFeeCalculationSqlForEngineerMapper {
 
     /**

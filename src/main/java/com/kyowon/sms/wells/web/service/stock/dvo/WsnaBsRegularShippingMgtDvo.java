@@ -99,7 +99,7 @@ public class WsnaBsRegularShippingMgtDvo {
     String wareMngtPrtnrno;
     String vstPrgsStatCd;
     String procsDvCd;
-    String sppPdNm;
+    //    String sppPdNm;
     String partNmQty01;
     String partNmQty02;
     String partNmQty03;
@@ -118,4 +118,6 @@ public class WsnaBsRegularShippingMgtDvo {
     String mpno;
     String pdGroupCd;
     int mpacSn; // 합포장번호
+    String lgstWkMthdCd; /* 물류작업방식코드 */
+    String lgstOstrAkNo; /* 물류요청번호 */
 }

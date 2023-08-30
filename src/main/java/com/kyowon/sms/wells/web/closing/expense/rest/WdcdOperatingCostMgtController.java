@@ -33,7 +33,7 @@ public class WdcdOperatingCostMgtController {
         @ApiImplicitParam(name = "dgr3LevlOgId", value = "지점", paramType = "query"),
     })
     @GetMapping("/amount")
-    public SearchAmountRes getAmount(@Valid SearchReq req) {
+    public SearchAmountRes getAmount(@Valid SearchAmountReq req) {
         return service.getAmount(req);
     }
 
@@ -46,7 +46,7 @@ public class WdcdOperatingCostMgtController {
         @ApiImplicitParam(name = "dgr3LevlOgId", value = "지점", paramType = "query"),
     })
     @GetMapping("/summary")
-    public SearchSummaryRes getSummary(@Valid SearchReq req) {
+    public SearchSummaryRes getSummary(@Valid SearchSummaryReq req) {
         return service.getSummary(req);
     }
 

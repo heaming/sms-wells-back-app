@@ -5,6 +5,8 @@ import com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto.*;
 import com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesBondDvo;
 import com.kyowon.sms.wells.web.closing.performance.mapper.WdccSalesBondMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WdccSalesBondService {
@@ -47,14 +50,9 @@ public class WdccSalesBondService {
             param.put("slClSYm", slClSYmDate.format(formatterType));
             param.put("agrgDv", "1"); // 일자별의 경우 조회 시에는 1(집계)로 변경
             dvos = getAccountsReceivable(param); // 월별 집계 쿼리 결과 중 조회월 이전의 데이터
-            // 집계 데이터 중간에 일자별 정보를 넣어 줘야 하기 때문에 해당 위치 찾는 작업 진행
-            int addIndex = 0;
-            for (WdccSalesBondDvo dvo : dvos) {
-                if (StringUtils.equals(dvo.getSlClYm(), req.slClYm())) {
-                    break;
-                }
-                addIndex += 1;
-            }
+
+            // 집계 데이터 중간에 일자별 정보를 넣어 줘야 하기 때문에 해당 위치 정의
+            int addIndex = (CollectionUtils.isNotEmpty(dvos) && dvos.size() > 1) ? 2 : 0;
             dvos.addAll(addIndex, mapper.selectAccountsReceivableByDate(param)); // 일자별 쿼리 조회 결과
         } else {
             // 화면에 선택한 월의 -1개월
@@ -89,6 +87,8 @@ public class WdccSalesBondService {
             return mapper.selectAccountsReceivableMembership(param);
         } else if (StringUtils.equals(param.get("sellTpCd").toString(), "6")) { //정기배송
             return mapper.selectTradeReceivablesPeriodicDelivery(param);
+        } else if (StringUtils.equals(param.get("sellTpCd").toString(), "10")) { //리스/할부
+            return mapper.selectAccountsReceivableLease(param);
         }
         return null;
     }

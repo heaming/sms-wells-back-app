@@ -59,4 +59,10 @@ public interface WwdbGiroOcrForwardingMgtMapper {
     /* 지로OCR발송관리 출력 삭제 */
     public int deleteGiroOcrForwardingPrints(WwdbGiroOcrForwardingPrintDeleteDvo dvo) throws Exception;
 
+    /* 지로OCR출력관리 출력일자 생성 */
+    public int updateGiroPrintDate(WwdbGiroOcrForwardingPrintDvo dvo) throws Exception;
+
+    /* 지로OCR출력관리 출력내역 생성 */
+    public int insertGiroPrintDate(WwdbGiroOcrForwardingPrintDvo dvo) throws Exception;
+
 }
