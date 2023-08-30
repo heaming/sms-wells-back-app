@@ -36,7 +36,7 @@ public class WsnaFilterOutOfStorageAgrgController {
 
     })
     @GetMapping
-    public List<HashMap<String, String>> getDisuseOutOfStorageAgrgs(
+    public List<HashMap<String, String>> getFilterOutOfStorageAgrgs(
         @Valid
         SearchReq dto
     ) {
