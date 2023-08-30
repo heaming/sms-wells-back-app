@@ -18,6 +18,9 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+* W-SV-I-0008 Cubig CC 방문중지 등록(팝업)
+* */
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1)
 @RequiredArgsConstructor
 @InterfaceController

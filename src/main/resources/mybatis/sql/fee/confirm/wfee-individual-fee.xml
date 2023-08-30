@@ -26,7 +26,7 @@
 		            , F_CMZ_CD_NM('TNT_WELLS', 'CNTRW_TP_CD', A2.CNTRW_TP_CD ) AS CNTRW_TP_NM	/*상품구분*/
 		            , A1.RCPDT	/*접수일자*/
                     , A1.SL_DT	/*매출일자*/
-                    , A1.CAN_DT	/*취소일자*/
+                    , A2.CNTR_PD_ENDDT AS CAN_DT	/*취소일자*/
                     , A1.CNTR_NO
                     , (SELECT C.PD_NM FROM TB_PDBS_PD_BAS C WHERE C.DTA_DL_YN = 'N' AND C.PD_CD = A1.PD_CD) AS PD_NM
                     , (SELECT C.CST_KNM FROM TB_CUBS_CST_BAS C WHERE C.DTA_DL_YN = 'N' AND C.CST_NO = A2.CNTR_CST_NO ) AS CST_KNM
@@ -66,11 +66,13 @@
                          AND B1.OG_TP_CD = 'W01'	/*P조직*/
                          AND B1.PRTNR_NO = #{no}
                          AND B1.PERF_ATC_CD IN ('W01P00001', 'W01P00002', 'W01P00004')	/*가전,기변,가전외실적*/
+                         AND B2.SL_DT BETWEEN #{perfYm}||'01' AND #{perfYm}||'31'   /*매출일자가 당월인 것만 조회함. 1566 결함수정*/
 	                ) A1
 	             LEFT OUTER JOIN
 		            ( SELECT B1.CNTR_NO
                            , B1.CNTR_CST_NO
                            , B2.CNTRW_TP_CD
+                           , CASE WHEN B2.CNTR_DTL_STAT_CD IN ('301','303') THEN B2.CNTR_PD_ENDDT END CNTR_PD_ENDDT
                         FROM TB_SSCT_CNTR_BAS B1	/*계약기본*/
                        INNER JOIN TB_SSCT_CNTR_DTL B2 	/*계약상세*/
                           ON B1.CNTR_NO = B2.CNTR_NO
@@ -111,7 +113,7 @@
                     , (SELECT C.PRTNR_KNM FROM TB_OGBS_MM_PRTNR_IZ C WHERE C.BASE_YM = #{perfYm} AND C.OG_TP_CD = 'W02' AND C.PRTNR_NO = A1.PRTNR_NO AND C.DTA_DL_YN = 'N') AS PRTNR_KNM
                     , A1.RCPDT	/*접수일자*/
                     , A1.SL_DT	/*매출일자*/
-                    , A1.CAN_DT	/*취소일자*/
+                    , A2.CNTR_PD_ENDDT AS CAN_DT	/*취소일자*/
                     , A1.CNTR_NO
                     , (SELECT C.PD_NM FROM TB_PDBS_PD_BAS C WHERE C.DTA_DL_YN = 'N' AND C.PD_CD = A1.PD_CD) AS PD_NM
                     , (SELECT C.CST_KNM FROM TB_CUBS_CST_BAS C WHERE C.DTA_DL_YN = 'N' AND C.CST_NO = A2.CNTR_CST_NO ) AS CST_KNM
@@ -178,11 +180,13 @@
                          AND B1.CNTR_SN = B2.CNTR_SN
                          AND B2.CNTR_PERF_CRT_DV_CD ='01'
                          AND B2.DTA_DL_YN = 'N'
+                       WHERE B2.SL_DT BETWEEN #{perfYm}||'01' AND #{perfYm}||'31'   /*매출일자가 당월인 것만 조회함. 1566 결함수정*/
 	               ) A1
                 LEFT OUTER JOIN
                    ( SELECT B1.CNTR_NO
                           , B1.CNTR_CST_NO
                           , B2.CNTRW_TP_CD
+                          , CASE WHEN B2.CNTR_DTL_STAT_CD IN ('301','303') THEN B2.CNTR_PD_ENDDT END CNTR_PD_ENDDT
                        FROM TB_SSCT_CNTR_BAS B1	/*계약기본*/
                       INNER JOIN TB_SSCT_CNTR_DTL B2 	/*계약상세*/
                          ON B1.CNTR_NO = B2.CNTR_NO
@@ -307,6 +311,7 @@
                          AND B1.CNTR_SN = B2.CNTR_SN
                          AND B2.CNTR_PERF_CRT_DV_CD ='01'
                          AND B2.DTA_DL_YN = 'N'
+                       WHERE B2.SL_DT BETWEEN #{perfYm}||'01' AND #{perfYm}||'31'   /*매출일자가 당월인 것만 조회함. 1566 결함수정*/
 	               ) A1
 	            LEFT OUTER JOIN
 		           ( SELECT B1.CNTR_NO
@@ -362,11 +367,20 @@
                       ON A.BASE_YM = B.BASE_YM
                      AND A.OG_ID = B.OG_ID
                      AND A.OG_TP_CD = B.OG_TP_CD
-                    LEFT OUTER JOIN TB_OGBS_PRTNR_AC_BAS D
+                    LEFT OUTER JOIN ( SELECT PRTNR_NO
+                                           , OG_TP_CD
+                                           , ACNO_ENCR
+                                           , FNIT_CD
+                                           , RANK() OVER (PARTITION BY (PRTNR_NO) ORDER BY VL_END_DTM DESC) AS RK_NUM
+                                        FROM TB_OGBS_PRTNR_AC_BAS
+                                       WHERE PRTNR_NO = #{no}
+                                         AND OG_TP_CD = 'W03'
+                                         AND PRTNR_AC_USWY_CD = '1'
+                                         AND TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(VL_END_DTM,1,6),'YYYYMM'), 1),'YYYYMM' ) &gt;= #{perfYm}
+                                    )D
                       ON A.PRTNR_NO = D.PRTNR_NO
                      AND A.OG_TP_CD = D.OG_TP_CD
-                     AND D.PRTNR_AC_USWY_CD = '1'
-                     AND D.VL_END_DTM LIKE '9999'||'%'
+                     AND D.RK_NUM = 1
                     LEFT OUTER JOIN T_CMZ_CD_D E
                       ON D.FNIT_CD = E.CD_VLD_VAL
                      AND E.CD_ID = 'BNK_CD'
@@ -739,11 +753,20 @@
                     ON A.BASE_YM = B.BASE_YM
                    AND A.OG_ID = B.OG_ID
                    AND A.OG_TP_CD = B.OG_TP_CD
-                  LEFT OUTER JOIN TB_OGBS_PRTNR_AC_BAS D
+                  LEFT OUTER JOIN ( SELECT PRTNR_NO
+                                         , OG_TP_CD
+                                         , ACNO_ENCR
+                                         , FNIT_CD
+                                         , RANK() OVER (PARTITION BY (PRTNR_NO) ORDER BY VL_END_DTM DESC) AS RK_NUM
+                                      FROM TB_OGBS_PRTNR_AC_BAS
+                                     WHERE PRTNR_NO = #{no}
+                                       AND OG_TP_CD = 'W01'
+                                       AND PRTNR_AC_USWY_CD = '1'
+                                       AND TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(VL_END_DTM,1,6),'YYYYMM'), 1),'YYYYMM' ) &gt;= #{perfYm}
+                                  )D
                     ON A.PRTNR_NO = D.PRTNR_NO
                    AND A.OG_TP_CD = D.OG_TP_CD
-                   AND D.PRTNR_AC_USWY_CD = '1'
-                   AND D.VL_END_DTM LIKE '9999'||'%'
+                   AND D.RK_NUM = 1
                   LEFT OUTER JOIN T_CMZ_CD_D E
                     ON D.FNIT_CD = E.CD_VLD_VAL
                    AND E.CD_ID = 'BNK_CD'
@@ -1080,11 +1103,20 @@
                       ON A.BASE_YM = B.BASE_YM
                      AND A.OG_ID = B.OG_ID
                      AND A.OG_TP_CD = B.OG_TP_CD
-                    LEFT OUTER JOIN TB_OGBS_PRTNR_AC_BAS C
+                    LEFT OUTER JOIN ( SELECT PRTNR_NO
+                                           , OG_TP_CD
+                                           , ACNO_ENCR
+                                           , FNIT_CD
+                                           , RANK() OVER (PARTITION BY (PRTNR_NO) ORDER BY VL_END_DTM DESC) AS RK_NUM
+                                        FROM TB_OGBS_PRTNR_AC_BAS
+                                       WHERE PRTNR_NO = #{no}
+                                         AND OG_TP_CD = 'W02'
+                                         AND PRTNR_AC_USWY_CD = '1'
+                                         AND TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(VL_END_DTM,1,6),'YYYYMM'), 1),'YYYYMM' ) &gt;= #{perfYm}
+                                    )C
                       ON A.PRTNR_NO = C.PRTNR_NO
                      AND A.OG_TP_CD = C.OG_TP_CD
-                     AND C.PRTNR_AC_USWY_CD = '1'
-                     AND C.VL_END_DTM LIKE '9999'||'%'
+                     AND C.RK_NUM = 1
                     LEFT OUTER JOIN T_CMZ_CD_D D
                       ON C.FNIT_CD = D.CD_VLD_VAL
                      AND D.CD_ID = 'BNK_CD'
@@ -1617,15 +1649,23 @@
                <if test='@MybatisUtils@isNotEmpty(ogLevl3)'>
                     AND B.DGR3_LEVL_OG_ID = #{ogLevl3Id}
                </if>
-                   LEFT OUTER JOIN TB_OGBS_PRTNR_AC_BAS D
+                   LEFT OUTER JOIN ( SELECT PRTNR_NO
+                                           , OG_TP_CD
+                                           , ACNO_ENCR
+                                           , FNIT_CD
+                                           , RANK() OVER (PARTITION BY (PRTNR_NO) ORDER BY VL_END_DTM DESC) AS RK_NUM
+                                        FROM TB_OGBS_PRTNR_AC_BAS
+                                       WHERE PRTNR_NO = #{no}
+                                         AND OG_TP_CD = #{ogTpCd}
+                                         AND PRTNR_AC_USWY_CD = '1'
+                                         AND TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(VL_END_DTM,1,6),'YYYYMM'), 1),'YYYYMM' ) &gt;= #{perfYm}
+                                   )D
                      ON A.PRTNR_NO = D.PRTNR_NO
                     AND A.OG_TP_CD = D.OG_TP_CD
-                    AND D.PRTNR_AC_USWY_CD = '1'
-                    AND D.VL_END_DTM LIKE '9999'||'%'
+                    AND D.RK_NUM = 1
                   WHERE A.BASE_YM = #{perfYm}
                     AND A.OG_TP_CD = #{ogTpCd} /*W01~03 P,M,홈마스터*/
                     AND A.RSB_DV_CD = #{rsbDvCd}
-
                <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                     AND A.PRTNR_NO = #{prtnrNo}
                </if>

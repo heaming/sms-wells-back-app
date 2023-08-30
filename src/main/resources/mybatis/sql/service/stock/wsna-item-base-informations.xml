@@ -39,15 +39,24 @@
                     , S1.SVPD_LT          AS LEAD_TIME       /* 리드타임 */
                  FROM ( <include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/> ) S1
             <where>
-                <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+               <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
                   AND S1.SVPD_ITEM_KND = #{itmKndCd}
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(itmPdNm)">
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(itmPdNm)">
                   AND S1.SVPD_NM_KOR LIKE '%' || #{itmPdNm} || '%'
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                   AND S1.SVPD_PD_CD LIKE #{itmPdCd}||'%'
-                </if>
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(strtSapCd)">
+                  AND S1.SVPD_SAP_CD <![CDATA[>=]]> LPAD(#{strtSapCd}, 18, '0')
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(endSapCd)">
+                  AND S1.SVPD_SAP_CD <![CDATA[<=]]>  LPAD(#{endSapCd}, 18, '0')
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)">
+                  AND S1.SVPD_SAP_CD IS NOT NULL
+               </if>
             </where>
              ) T1   /* 상품 */
           LEFT OUTER JOIN
@@ -127,7 +136,7 @@
             ON D3.ITM_PD_CD = D1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT /*+ LEADING(D2 D1) */
+               SELECT /*+ INDEX(D2 (APY_YM, WARE_DV_CD, WARE_USE_YN, HGR_WARE_NO)) */
                       D1.ITM_PD_CD
                     , SUM(D1.PITM_STOC_A_GD_QTY) AS INDI_QTY
                     , SUM(D1.PITM_STOC_B_GD_QTY) AS INDI_B_QTY
@@ -144,7 +153,7 @@
             ON D4.ITM_PD_CD = D1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT /*+ LEADING(D2 D1) INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+               SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
                       D1.ITM_PD_CD
                     , SUM(D1.USE_QTY) AS USE_QTY
                  FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
@@ -161,7 +170,7 @@
             ON D5.ITM_PD_CD = D1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT /*+ LEADING(D2 D1) INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+               SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) INDEX(D2 (APY_YM, WARE_DV_CD, WARE_USE_YN, HGR_WARE_NO)) */
                       D1.ITM_PD_CD
                     , SUM(D1.USE_QTY) AS USE_QTY
                  FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
@@ -178,7 +187,7 @@
             ON D6.ITM_PD_CD = D1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT /*+ LEADING(D2 D1) INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+               SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) INDEX(D2 (APY_YM, WARE_DV_CD, WARE_USE_YN, HGR_WARE_NO)) */
                       D1.ITM_PD_CD
                     , SUM(D1.USE_QTY) AS USE_QTY
                  FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
@@ -195,7 +204,8 @@
             ON D7.ITM_PD_CD = D1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT D1.ITM_PD_CD
+               SELECT /*+ USE_NL(D1 D2) INDEX(D2 PK_SVST_MCBY_WARE_IZ) */
+                      D1.ITM_PD_CD
                     , SUM(D1.PITM_STOC_A_GD_QTY) AS TOTAL_QTY
                  FROM TB_SVST_CST_SV_ITM_STOC_IZ D1   /* 고객서비스품목재고내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2    /* 월별창고내역 */
@@ -233,6 +243,15 @@
         </if>
         <if test="@MybatisUtils@isNotEmpty(itmPdNm)">
            AND D1.PD_NM LIKE '%' || #{itmPdNm} || '%'
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(strtSapCd)">
+           AND D1.SAP_MAT_CD <![CDATA[>=]]> LPAD(#{strtSapCd}, 18, '0')
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(endSapCd)">
+           AND D1.SAP_MAT_CD <![CDATA[<=]]>  LPAD(#{endSapCd}, 18, '0')
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)">
+           AND D1.SAP_MAT_CD IS NOT NULL
         </if>
          ORDER BY D1.PD_CD
     </select>

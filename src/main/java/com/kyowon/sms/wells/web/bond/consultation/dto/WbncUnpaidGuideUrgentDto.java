@@ -48,6 +48,8 @@ public class WbncUnpaidGuideUrgentDto {
         String cntrNo, /* 계약번호 */
         int cntrSn, /* 계약일련번호 */
         String cntrNoSn, /* 계약상세일련번호 */
+        String copnDvCd, /* 법인격구분코드 */
+        String copnDvNm, /* 법인격구분코드명 */
         String cntrTpCd, /* 계약유형 */
         String cntrTpNm, /* 계약유형명 */
         String cstKnm, /* 계약자성명 */

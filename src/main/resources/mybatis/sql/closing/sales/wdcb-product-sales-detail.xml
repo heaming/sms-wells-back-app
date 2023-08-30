@@ -2,306 +2,203 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbProductSalesDetailMapper">
     <select id="selectProductSalesSinglePaymentDetails" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto$SearchSingleRes">
-    SELECT #{taskDiv} AS TASK_DIV
-         , T1.SELL_TP_CD
-         , T1.PD_DTL_CD
-         , #{sellDv} AS SELL_DV
-         , T1.SL_DT
-         , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
-         , T1.CST_NO
-         , T2.CST_KNM
-         , T1.SELL_QTY AS NORMAL_SELL_QTY
-         , CASE #{taskDiv} WHEN '1' THEN T1.CNTRAM_DP_AMT + T1.THM_INTAM_DP_AMT 
-             WHEN '3' THEN T1.THM_ATAM_DP_AMT
-             WHEN '5' THEN T1.SL_BND_ALRPY_AMT END AS NORMAL_MPY_AMT
-         , T4.MM_ISTM_PCAM_AMT AS NORMAL_MM_ISTM_PCAM_AMT
-         , 0 AS NORMAL_VAT
-         , T1.NOM_SL_AMT - 0 AS NORMAL_PUR_SL_AMT
-         , T1.SELL_QTY AS CHG_SELL_QTY
-         , CASE #{taskDiv} WHEN '1' THEN T1.CNTRAM_DP_AMT + T1.THM_INTAM_DP_AMT 
-             WHEN '3' THEN T1.THM_ATAM_DP_AMT
-             WHEN '5' THEN T1.SL_BND_ALRPY_AMT END AS CHG_MPY_AMT
-         , T4.MM_ISTM_PCAM_AMT AS CHG_MM_ISTM_PCAM_AMT
-         , 0 AS CHG_VAT
-         , T1.SL_CTR_AMT - 0 AS CHG_PUR_SL_AMT
-         , T1.SELL_QTY AS CAN_SELL_QTY
-         , CASE #{taskDiv} WHEN '1' THEN T1.CNTRAM_DP_AMT + T1.THM_INTAM_DP_AMT 
-             WHEN '3' THEN T1.THM_ATAM_DP_AMT
-             WHEN '5' THEN T1.SL_BND_ALRPY_AMT END AS CAN_MPY_AMT
-         , T4.MM_ISTM_PCAM_AMT AS CAN_MM_ISTM_PCAM_AMT
-         , 0 AS CAN_VAT
-         , T1.SL_CAN_AMT - 0 AS CAN_PUR_SL_AMT
-         , T1.SELL_QTY AS SUM_SELL_QTY
-         , CASE #{taskDiv} WHEN '1' THEN T1.CNTRAM_DP_AMT + T1.THM_INTAM_DP_AMT 
-             WHEN '3' THEN T1.THM_ATAM_DP_AMT
-             WHEN '5' THEN T1.SL_BND_ALRPY_AMT END AS SUM_MPY_AMT
-         , T4.MM_ISTM_PCAM_AMT AS SUM_MM_ISTM_PCAM_AMT
-         , T1.SL_SUM_VAT AS SUM_VAT
-         , T1.THM_SL_SUM_AMT - SL_SUM_VAT AS SUM_PUR_SL_AMT
-      FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-     INNER JOIN TB_CUBS_CST_BAS T2
-        ON T1.CST_NO = T2.CST_NO
-      LEFT OUTER JOIN TB_RVDW_PVDA_PLAN_BAS T3
-        ON T1.CNTR_NO = T3.CNTR_NO
-       AND T1.CNTR_SN = T3.CNTR_SN
-     INNER JOIN TB_RVDW_PVDA_PLAN_DTL T4
-        ON T3.PVDA_PLAN_NO = T4.PVDA_PLAN_NO
-      LEFT OUTER JOIN TB_CBCL_SL_CNFM_BAS T5
-        ON T1.CNTR_NO = T5.CNTR_NO
-       AND T1.CNTR_SN = T5.CNTR_SN
-     WHERE 1=1
-       AND T1.SL_DT BETWEEN #{baseDtmnFrom} AND #{baseDtmnTo}
-       <if test='@MybatisUtils@equals(taskDiv, "3") or @MybatisUtils@equals(taskDiv, "4") or @MybatisUtils@equals(taskDiv, "5")'>
-       /* TODO : 업무구분 조건 추가할 것 */
-           <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
+        ----------------------------------WELLS 상품별매출현황 상세 (일시불,금융리스,정기구매) ------------------------------------------------------------------------
+        SELECT F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_CD --판매유형
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD --판매유형상세코드
+             , T1.PD_CD --상품코드
+             , T2.PD_NM --상품명
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_CHNL_DTL_CD', T1.SELL_INFLW_CHNL_DTL_CD) AS SELL_INFLW_CHNL_DTL_CD --판매유입채널상세
+             , T1.SL_RCOG_DT --매출인식일자
+             , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_DTL_NO /*계약번호*/
+             , T1.CNTR_NO /*계약번호*/
+             , T1.CNTR_SN
+             , T3.CST_KNM --고객명
+             , T1.SAP_PD_DV_CD --SAP상품구분코드
+             , SUM(NVL(T1.SELL_QTY,0)) AS SELL_QTY --판매수량-정상매출
+             , SUM(NVL(T1.SELL_AMT,0)) AS SELL_AMT  --매출금액-정상매출
+             , SUM(NVL(T1.SELL_SPL_AMT,0)) AS SELL_SPL_AMT  --공급가액-정상매출
+             , SUM(NVL(T1.SELL_AMT_VAT,0)) AS SELL_AMT_VAT --부가세-정상매출
+             , SUM(NVL(T1.PVDA_AMT,0)) AS PVDA_AMT --현할차-정상매출
+             , SUM(NVL(T1.CH_QTY,0)) AS CH_QTY --판매수량-매출변경
+             , SUM(NVL(T1.SL_CH_AMT,0)) AS SL_CH_AMT --매출금액-매출변경
+             , SUM(NVL(T1.SL_CH_AMT,0)) - SUM(NVL(T1.CH_VAT,0)) AS CH_SPL_AMT --공급가액-매출변경
+             , SUM(NVL(T1.CH_VAT,0)) AS CH_VAT --부가세-매출변경
+             , SUM(NVL(T1.CH_PVDA_AMT,0)) AS CH_PVDA_AMT --현할차-매출변경
+             , SUM(NVL(T1.CAN_QTY,0)) AS CAN_QTY --판매수량-매출취소
+             , SUM(NVL(T1.SL_CAN_AMT,0)) AS SL_CAN_AMT --매출금액-매출취소
+             , SUM(NVL(T1.SL_CAN_AMT,0)) - SUM(NVL(T1.CAN_VAT,0)) AS CAN_SPL_AMT --공급가액-매출취소
+             , SUM(NVL(T1.CAN_VAT,0)) AS CAN_VAT --부가세-매출취소
+             , SUM(NVL(T1.CAN_PVDA_AMT,0)) AS CAN_PVDA_AMT --현할차-매출취소
+             , SUM(NVL(T1.SELL_QTY,0)) + SUM(NVL(T1.CH_QTY,0)) + SUM(NVL(T1.CAN_QTY,0)) AS TOT_QTY--판매수량-매출합계
+             , SUM(NVL(T1.SELL_AMT,0)) + SUM(NVL(T1.SL_CH_AMT,0)) + SUM(NVL(T1.SL_CAN_AMT,0)) AS TOT_AMT--매출금액-매출합계
+             , (SUM(NVL(T1.SELL_AMT,0)) + SUM(NVL(T1.SL_CH_AMT,0)) + SUM(NVL(T1.SL_CAN_AMT,0))) - (SUM(NVL(T1.SELL_AMT_VAT,0)) + SUM(NVL(T1.CAN_VAT,0)) + SUM(NVL(T1.CAN_VAT,0))) AS TOT_SPL_AMT--공급가액-매출합계
+             , SUM(NVL(T1.SELL_AMT_VAT,0)) + SUM(NVL(T1.CAN_VAT,0)) + SUM(NVL(T1.CAN_VAT,0)) AS TOT_VAT --부가세-매출합계
+             , SUM(NVL(T1.PVDA_AMT,0)) + SUM(NVL(T1.CH_PVDA_AMT,0)) + SUM(NVL(T1.CAN_PVDA_AMT,0)) AS TOT_PVDA_AMT --현할차-매출합계
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+         INNER JOIN TB_PDBS_PD_BAS T2
+            ON T1.PD_CD = T2.PD_CD
+          LEFT OUTER JOIN TB_CUBS_CST_BAS  T3 --고객기본
+            ON T1.CST_NO = T3.CST_NO
+           AND T3.NUSD_RSON_CD IS NULL
+           AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS T4 --WELLS매출확정기본
+            ON T1.CNTR_NO = T4.CNTR_NO
+           AND T1.CNTR_SN = T4.CNTR_SN
+           AND T1.SL_RCOG_DT = T4.SL_RCOG_DT
+         WHERE T1.SL_RCOG_DT BETWEEN #{baseDtmnFrom} AND #{baseDtmnTo}
+           AND T1.SELL_TP_CD <![CDATA[ <> ]]> '3'
+           AND T1.SELL_TP_DTL_CD NOT IN  ('21', '23')
+           AND SUBSTR(T1.SL_RCOG_DT,1,6) = T1.SL_CL_YM
            AND T1.SELL_TP_CD = #{sellTpCd}
+           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+           AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
            </if>
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(cntrDtlNo)'>
-       AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(cstNo)'>
-       AND T1.CST_NO = #{cstNo}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(sapSlpno)'>
-       AND T5.SAP_SLPNO = #{sapSlpno}
-       </if>
-    </select>
-    
-    <select id="selectProductSalesLeaseDetails" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto$SearchSingleRes">
-    SELECT #{taskDiv} AS TASK_DIV
-         , T1.SELL_TP_CD
-         , T1.PD_DTL_CD
-         , #{sellDv} AS SELL_DV
-         , T1.SL_DT
-         , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
-         , T1.CST_NO
-         , T2.CST_KNM
-         , T1.SELL_QTY AS NORMAL_SELL_QTY
-         , CASE #{taskDiv} WHEN '1' THEN T1.CNTRAM_DP_AMT + T1.THM_INTAM_DP_AMT 
-             WHEN '3' THEN T1.THM_ATAM_DP_AMT
-             WHEN '5' THEN T1.SL_BND_ALRPY_AMT END AS NORMAL_MPY_AMT
-         , T4.MM_ISTM_PCAM_AMT AS NORMAL_MM_ISTM_PCAM_AMT
-         , 0 AS NORMAL_VAT
-         , T1.NOM_SL_AMT - 0 AS NORMAL_PUR_SL_AMT
-         , T1.SELL_QTY AS CHG_SELL_QTY
-         , CASE #{taskDiv} WHEN '1' THEN T1.CNTRAM_DP_AMT + T1.THM_INTAM_DP_AMT 
-             WHEN '3' THEN T1.THM_ATAM_DP_AMT
-             WHEN '5' THEN T1.SL_BND_ALRPY_AMT END AS CHG_MPY_AMT
-         , T4.MM_ISTM_PCAM_AMT AS CHG_MM_ISTM_PCAM_AMT
-         , 0 AS CHG_VAT
-         , T1.SL_CTR_AMT - 0 AS CHG_PUR_SL_AMT
-         , T1.SELL_QTY AS CAN_SELL_QTY
-         , CASE #{taskDiv} WHEN '1' THEN T1.CNTRAM_DP_AMT + T1.THM_INTAM_DP_AMT 
-             WHEN '3' THEN T1.THM_ATAM_DP_AMT
-             WHEN '5' THEN T1.SL_BND_ALRPY_AMT END AS CAN_MPY_AMT
-         , T4.MM_ISTM_PCAM_AMT AS CAN_MM_ISTM_PCAM_AMT
-         , 0 AS CAN_VAT
-         , T1.SL_CAN_AMT - 0 AS CAN_PUR_SL_AMT
-         , T1.SELL_QTY AS SUM_SELL_QTY
-         , CASE #{taskDiv} WHEN '1' THEN T1.CNTRAM_DP_AMT + T1.THM_INTAM_DP_AMT 
-             WHEN '3' THEN T1.THM_ATAM_DP_AMT
-             WHEN '5' THEN T1.SL_BND_ALRPY_AMT END AS SUM_MPY_AMT
-         , T4.MM_ISTM_PCAM_AMT AS SUM_MM_ISTM_PCAM_AMT
-         , T1.SL_SUM_VAT AS SUM_VAT
-         , T1.THM_SL_SUM_AMT - SL_SUM_VAT AS SUM_PUR_SL_AMT
-      FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-     INNER JOIN TB_CUBS_CST_BAS T2
-        ON T1.CST_NO = T2.CST_NO
-      LEFT OUTER JOIN TB_RVDW_PVDA_PLAN_BAS T3
-        ON T1.CNTR_NO = T3.CNTR_NO
-       AND T1.CNTR_SN = T3.CNTR_SN
-     INNER JOIN TB_RVDW_PVDA_PLAN_DTL T4
-        ON T3.PVDA_PLAN_NO = T4.PVDA_PLAN_NO
-      LEFT OUTER JOIN TB_CBCL_SL_CNFM_BAS T5
-        ON T1.CNTR_NO = T5.CNTR_NO
-       AND T1.CNTR_SN = T5.CNTR_SN
-     WHERE 1=1
-       AND T1.SL_DT BETWEEN #{baseDtmnFrom} AND #{baseDtmnTo}
-       <if test='@MybatisUtils@equals(taskDiv, "3") or @MybatisUtils@equals(taskDiv, "4") or @MybatisUtils@equals(taskDiv, "5")'>
-       /* TODO : 업무구분 조건 추가할 것 */
-           <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
-           AND T1.SELL_TP_CD = #{sellTpCd}
+           <if test="@MybatisUtils@isNotEmpty(sellChnlDtl) and !@MybatisUtils@equals(sellChnlDtl, 'ALL')">
+           AND SUBSTR(T1.SELL_INFLW_CHNL_DTL_CD,1,2) = #{sellChnlDtl}
            </if>
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(cntrDtlNo)'>
-       AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(cstNo)'>
-       AND T1.CST_NO = #{cstNo}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(sapSlpno)'>
-       AND T5.SAP_SLPNO = #{sapSlpno}
-       </if>
-    </select>
-    
-    <select id="selectProductSalesFarmSaleDetails" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto$SearchSingleRes">
-    SELECT #{taskDiv} AS TASK_DIV
-         , T1.SELL_TP_CD
-         , T1.PD_DTL_CD
-         , #{sellDv} AS SELL_DV
-         , T1.SL_DT
-         , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
-         , T1.CST_NO
-         , T2.CST_KNM
-         , T1.SELL_QTY AS NORMAL_SELL_QTY
-         , CASE #{taskDiv} WHEN '1' THEN T1.CNTRAM_DP_AMT + T1.THM_INTAM_DP_AMT 
-             WHEN '3' THEN T1.THM_ATAM_DP_AMT
-             WHEN '5' THEN T1.SL_BND_ALRPY_AMT END AS NORMAL_MPY_AMT
-         , T4.MM_ISTM_PCAM_AMT AS NORMAL_MM_ISTM_PCAM_AMT
-         , 0 AS NORMAL_VAT
-         , T1.NOM_SL_AMT - 0 AS NORMAL_PUR_SL_AMT
-         , T1.SELL_QTY AS CHG_SELL_QTY
-         , CASE #{taskDiv} WHEN '1' THEN T1.CNTRAM_DP_AMT + T1.THM_INTAM_DP_AMT 
-             WHEN '3' THEN T1.THM_ATAM_DP_AMT
-             WHEN '5' THEN T1.SL_BND_ALRPY_AMT END AS CHG_MPY_AMT
-         , T4.MM_ISTM_PCAM_AMT AS CHG_MM_ISTM_PCAM_AMT
-         , 0 AS CHG_VAT
-         , T1.SL_CTR_AMT - 0 AS CHG_PUR_SL_AMT
-         , T1.SELL_QTY AS CAN_SELL_QTY
-         , CASE #{taskDiv} WHEN '1' THEN T1.CNTRAM_DP_AMT + T1.THM_INTAM_DP_AMT 
-             WHEN '3' THEN T1.THM_ATAM_DP_AMT
-             WHEN '5' THEN T1.SL_BND_ALRPY_AMT END AS CAN_MPY_AMT
-         , T4.MM_ISTM_PCAM_AMT AS CAN_MM_ISTM_PCAM_AMT
-         , 0 AS CAN_VAT
-         , T1.SL_CAN_AMT - 0 AS CAN_PUR_SL_AMT
-         , T1.SELL_QTY AS SUM_SELL_QTY
-         , CASE #{taskDiv} WHEN '1' THEN T1.CNTRAM_DP_AMT + T1.THM_INTAM_DP_AMT 
-             WHEN '3' THEN T1.THM_ATAM_DP_AMT
-             WHEN '5' THEN T1.SL_BND_ALRPY_AMT END AS SUM_MPY_AMT
-         , T4.MM_ISTM_PCAM_AMT AS SUM_MM_ISTM_PCAM_AMT
-         , T1.SL_SUM_VAT AS SUM_VAT
-         , T1.THM_SL_SUM_AMT - SL_SUM_VAT AS SUM_PUR_SL_AMT
-      FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-     INNER JOIN TB_CUBS_CST_BAS T2
-        ON T1.CST_NO = T2.CST_NO
-      LEFT OUTER JOIN TB_RVDW_PVDA_PLAN_BAS T3
-        ON T1.CNTR_NO = T3.CNTR_NO
-       AND T1.CNTR_SN = T3.CNTR_SN
-     INNER JOIN TB_RVDW_PVDA_PLAN_DTL T4
-        ON T3.PVDA_PLAN_NO = T4.PVDA_PLAN_NO
-      LEFT OUTER JOIN TB_CBCL_SL_CNFM_BAS T5
-        ON T1.CNTR_NO = T5.CNTR_NO
-       AND T1.CNTR_SN = T5.CNTR_SN
-     WHERE 1=1
-       AND T1.SL_DT BETWEEN #{baseDtmnFrom} AND #{baseDtmnTo}
-       <if test='@MybatisUtils@equals(taskDiv, "3") or @MybatisUtils@equals(taskDiv, "4") or @MybatisUtils@equals(taskDiv, "5")'>
-       /* TODO : 업무구분 조건 추가할 것 */
-           <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
-           AND T1.SELL_TP_CD = #{sellTpCd}
+           <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND T1.CNTR_NO = #{cntrNo}
            </if>
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(cntrDtlNo)'>
-       AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(cstNo)'>
-       AND T1.CST_NO = #{cstNo}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(sapSlpno)'>
-       AND T5.SAP_SLPNO = #{sapSlpno}
-       </if>
+           <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND T1.CNTR_SN = #{cntrSn}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cstNo)'>
+           AND T1.CST_NO = #{cstNo}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(sapSlpno)'>
+           AND T4.SAP_SLPNO = #{sapSlpno}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(sapPdDvCd)'>
+           AND T1.SAP_PD_DV_CD = #{sapPdDvCd}
+           </if>
+         GROUP BY T1.SL_RCOG_DT, T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.PD_CD, T2.PD_NM, T1.SAP_PD_DV_CD, T1.SELL_INFLW_CHNL_DTL_CD,T1.CNTR_NO,T1.CNTR_SN,T3.CST_KNM
     </select>
-    
+
     <select id="selectProductSalesRentalDetails" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto$SearchRentalRes">
-    SELECT #{taskDiv} AS TASK_DIV
-         , T1.SELL_TP_CD
-         , T1.PD_DTL_CD
-         , #{sellDv} AS SELL_DV
-         , T1.SL_DT
-         , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
-         , T1.CST_NO
-         , T2.CST_KNM
-         , 0 AS RGST_QTY
-         , T1.RENTAL_RGST_COST - T1.DSC_AMT AS RGST_MPY_AMT
-         , T1.RENTAL_RGST_COST_VAT AS RGST_VAT
-         , T1.RENTAL_RGST_COST - T1.DSC_AMT AS RGST_PUR_SL_AMT
-         , 0 AS RENTAL_QTY
-         , T1.SL_BND_ALRPY_AMT AS RENTAL_MPY_AMT
-         , 100 AS RENTAL_VAT
-         , T1.THM_SL_SUM_AMT AS RENTAL_PUR_SL_AMT
-         , 0 AS SUM_QTY
-         , T1.RENTAL_RGST_COST + T1.SL_BND_ALRPY_AMT AS SUM_MPY_AMT
-         , 100 AS SUM_VAT
-         , T1.RENTAL_RGST_COST - T1.DSC_AMT + T1.THM_SL_SUM_AMT AS SUM_PUR_SL_AMT
-      FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-     INNER JOIN TB_CUBS_CST_BAS T2
-        ON T1.CST_NO = T2.CST_NO
-      LEFT OUTER JOIN TB_CBCL_SL_CNFM_BAS T3
-        ON T1.CNTR_NO = T3.CNTR_NO
-       AND T1.CNTR_SN = T3.CNTR_SN
-     WHERE 1=1
-       AND T1.SL_DT BETWEEN #{baseDtmnFrom} AND #{baseDtmnTo}
-       <if test='@MybatisUtils@equals(taskDiv, "2")'>
-       /* TODO : 업무구분 조건 추가할 것 */
-       AND #{taskDiv} = #{taskDiv}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
-       AND T1.SELL_TP_CD = #{sellTpCd}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(sellDv) and !@MybatisUtils@equals(sellDv, 'ALL')">
-       /* TODO : 판매구분 조건 추가할 것 */
-       AND #{sellDv} = #{sellDv}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(cntrDtlNo)'>
-       AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(cstNo)'>
-       AND T1.CST_NO = #{cstNo}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(sapSlpno)'>
-       AND T3.SAP_SLPNO = #{sapSlpno}
-       </if>
+         ----------------------------------WELLS 상품별매출현황 상세 (렌탈) ------------------------------------------------------------------------
+        SELECT F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_CD --판매유형
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD --판매유형상세코드
+             , T1.PD_CD --상품코드
+             , T2.PD_NM --상품명
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_CHNL_DTL_CD', T1.SELL_INFLW_CHNL_DTL_CD) AS SELL_INFLW_CHNL_DTL_CD --판매유입채널상세
+             , T1.SL_RCOG_DT --매출인식일자
+             , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_DTL_NO /*계약번호*/
+             , T1.CNTR_NO /*계약번호*/
+             , T1.CNTR_SN
+             , T3.CST_KNM --고객명
+             , T1.SAP_PD_DV_CD --SAP상품구분코드
+             , SUM(DECODE(NVL(T1.RENTAL_RGST_COST,0),0,0,1)) AS RENTAL_RGST_COST_CNT --계정수량-등록비
+             , SUM(NVL(T1.RENTAL_RGST_COST,0)) AS RENTAL_RGST_COST --매출금액-등록비
+             , SUM(NVL(T1.RENTAL_RGST_COST,0)) - SUM(NVL(T1.RENTAL_RGST_COST_VAT,0)) AS RENTAL_RGST_COST_SPL --공급가액-등록비
+             , SUM(NVL(T1.RENTAL_RGST_COST_VAT,0)) AS RENTAL_RGST_COST_VAT --부가세-등록비
+             , SUM(NVL(T1.SL_QTY,0)) AS SL_QTY --계정수량-렌탈료
+             , SUM(NVL(T1.NOM_SL_AMT,0)) AS NOM_SL_AMT  --매출금액-렌탈료
+             , SUM(NVL(T1.NOM_SL_AMT,0)) - SUM(NVL(T1.VAT,0)) AS SPL_AMT --공급가액-렌탈료
+             , SUM(NVL(T1.VAT,0)) AS VAT --부가세-렌탈료
+             , SUM(DECODE(NVL(T1.RENTAL_RGST_COST,0),0,0,T1.RENTAL_RGST_COST)) + SUM(NVL(T1.SL_QTY,0)) AS TOT_QTY --계정수량-매출합계
+             , SUM(NVL(T1.RENTAL_RGST_COST,0)) + SUM(NVL(T1.NOM_SL_AMT,0)) AS TOT_SL_AMT --매출금액-매출합계
+             , (SUM(NVL(T1.RENTAL_RGST_COST,0)) - SUM(NVL(T1.RENTAL_RGST_COST_VAT,0))) + (SUM(NVL(T1.NOM_SL_AMT,0)) - SUM(NVL(T1.VAT,0))) AS TOT_VAT --공급가액-매출합계
+             , SUM(NVL(T1.RENTAL_RGST_COST_VAT,0)) + SUM(NVL(T1.VAT,0)) AS TOT_VAT --부가세-매출합계
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+         INNER JOIN TB_PDBS_PD_BAS T2
+            ON T1.PD_CD = T2.PD_CD
+          LEFT OUTER JOIN TB_CUBS_CST_BAS  T3 --고객기본
+            ON T1.CST_NO = T3.CST_NO
+           AND T3.NUSD_RSON_CD IS NULL
+           AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS T4 --WELLS매출확정기본
+            ON T1.CNTR_NO = T4.CNTR_NO
+           AND T1.CNTR_SN = T4.CNTR_SN
+           AND T1.SL_RCOG_DT = T4.SL_RCOG_DT
+         WHERE T1.SL_RCOG_DT BETWEEN #{baseDtmnFrom} AND #{baseDtmnTo}
+           AND T1.SELL_TP_CD = '2'
+           AND SUBSTR(T1.SL_RCOG_DT,1,6) = T1.SL_CL_YM
+           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+           AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(sellChnlDtl) and !@MybatisUtils@equals(sellChnlDtl, 'ALL')">
+           AND SUBSTR(T1.SELL_INFLW_CHNL_DTL_CD,1,2) = #{sellChnlDtl}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND T1.CNTR_NO = #{cntrNo}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND T1.CNTR_SN = #{cntrSn}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cstNo)'>
+           AND T1.CST_NO = #{cstNo}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(sapSlpno)'>
+           AND T4.SAP_SLPNO = #{sapSlpno}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(sapPdDvCd)'>
+           AND T1.SAP_PD_DV_CD = #{sapPdDvCd}
+           </if>
+         GROUP BY T1.SL_RCOG_DT, T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.PD_CD, T2.PD_NM, T1.SAP_PD_DV_CD, T1.SELL_INFLW_CHNL_DTL_CD,T1.CNTR_NO,T1.CNTR_SN,T3.CST_KNM
+
     </select>
-    
+
     <select id="selectProductSalesMembershipDetails" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto$SearchMembershipRes">
-    SELECT #{taskDiv} AS TASK_DIV
-         , T1.SELL_TP_CD
-         , T1.PD_DTL_CD
-         , #{sellDv} AS SELL_DV
-         , T1.SL_DT
-         , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO
-         , T1.CST_NO
-         , T2.CST_KNM
-         , 0 AS SSPCS_QTY
-         , T1.SL_BND_ALRPY_AMT AS SSPCS_MPY_AMT
-         , T1.SL_SUM_VAT AS SSPCS_VAT
-         , T1.THM_SL_SUM_AMT - T1.SL_SUM_VAT AS SSPCS_PUR_SL_AMT
-         , 0 AS FILT_QTY
-         , 0 AS FILT_MPY_AMT
-         , 0 AS FILT_VAT
-         , 0 AS FILT_PUR_SL_AMT
-         , 0 AS SUM_QTY
-         , T1.SL_BND_ALRPY_AMT AS SUM_MPY_AMT
-         , T1.SL_SUM_VAT AS SUM_VAT
-         , T1.THM_SL_SUM_AMT - T1.SL_SUM_VAT AS SUM_PUR_SL_AMT
-      FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-     INNER JOIN TB_CUBS_CST_BAS T2
-        ON T1.CST_NO = T2.CST_NO
-      LEFT OUTER JOIN TB_CBCL_SL_CNFM_BAS T3
-        ON T1.CNTR_NO = T3.CNTR_NO
-       AND T1.CNTR_SN = T3.CNTR_SN
-     WHERE 1=1
-       AND T1.SL_DT BETWEEN #{baseDtmnFrom} AND #{baseDtmnTo}
-       <if test='@MybatisUtils@equals(taskDiv, "4")'>
-       /* TODO : 업무구분 조건 추가할 것 */
-       AND #{taskDiv} = #{taskDiv}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
-       AND T1.SELL_TP_CD = #{sellTpCd}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(sellDv) and !@MybatisUtils@equals(sellDv, 'ALL')">
-       /* TODO : 판매구분 조건 추가할 것 */
-       AND #{sellDv} = #{sellDv}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(cntrDtlNo)'>
-       AND T1.CNTR_NO || T1.CNTR_SN = #{cntrDtlNo}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(cstNo)'>
-       AND T1.CST_NO = #{cstNo}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(sapSlpno)'>
-       AND T3.SAP_SLPNO = #{sapSlpno}
-       </if>
+        ----------------------------------WELLS 상품별매출현황 상세 (멤버십) ------------------------------------------------------------------------
+        SELECT F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_CD --판매유형
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD --판매유형상세코드
+             , T1.PD_CD --상품코드
+             , T2.PD_NM --상품명
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_CHNL_DTL_CD', T1.SELL_INFLW_CHNL_DTL_CD) AS SELL_INFLW_CHNL_DTL_CD --판매유입채널상세
+             , T1.SL_RCOG_DT --매출인식일자
+             , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_DTL_NO /*계약번호*/
+             , T1.CNTR_NO /*계약번호*/
+             , T1.CNTR_SN
+             , T3.CST_KNM --고객명
+             , T1.SAP_PD_DV_CD --SAP상품구분코드
+             , SUM(DECODE(T1.SELL_TP_CD,'3',T1.SELL_QTY,0)) AS SELL_QTY--계정수량-회비
+             , SUM(DECODE(T1.SELL_TP_CD,'3',T1.SELL_AMT,0)) AS SELL_AMT --매출금액-회비
+             , SUM(DECODE(T1.SELL_TP_CD,'3',T1.SELL_SPL_AMT,0)) AS SELL_SPL_AMT --공급가액-회비
+             , SUM(DECODE(T1.SELL_TP_CD,'3',T1.SELL_AMT_VAT,0)) AS SELL_AMT_VAT --부가세-회비
+             , SUM(DECODE(T1.SELL_TP_CD,'9',T1.SELL_QTY,0)) AS FIL_SELL_QTY--계정수량-필터
+             , SUM(DECODE(T1.SELL_TP_CD,'9',T1.SELL_AMT,0)) AS FIL_SELL_AMT --매출금액-필터
+             , SUM(DECODE(T1.SELL_TP_CD,'9',T1.SELL_SPL_AMT,0)) AS FIL_SELL_SPL_AMT --공급가액-필터
+             , SUM(DECODE(T1.SELL_TP_CD,'9',T1.SELL_AMT_VAT,0)) AS FIL_SELL_AMT_VAT --부가세-필터
+             , SUM(T1.SELL_QTY) AS TOT_SEL_QTY--계정수량-매출합계
+             , SUM(T1.SELL_AMT) AS TOT_SELL_AMT --매출금액-매출합계
+             , SUM(T1.SELL_SPL_AMT) AS TOT_SELL_SPL_AMT --공급가액-매출합계
+             , SUM(T1.SELL_AMT_VAT) AS TOT_SELL_AMT_VAT --부가세-매출합계
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
+         INNER JOIN TB_PDBS_PD_BAS T2
+            ON T1.PD_CD = T2.PD_CD
+          LEFT OUTER JOIN TB_CUBS_CST_BAS  T3 --고객기본
+            ON T1.CST_NO = T3.CST_NO
+           AND T3.NUSD_RSON_CD IS NULL
+           AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS T4 --WELLS매출확정기본
+            ON T1.CNTR_NO = T4.CNTR_NO
+           AND T1.CNTR_SN = T4.CNTR_SN
+           AND T1.SL_RCOG_DT = T4.SL_RCOG_DT
+         WHERE T1.SL_RCOG_DT BETWEEN #{baseDtmnFrom} AND #{baseDtmnTo}
+           AND T1.SELL_TP_CD = '3'  --멤버십
+           AND SUBSTR(T1.SL_RCOG_DT,1,6) = T1.SL_CL_YM
+           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+           AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(sellChnlDtl) and !@MybatisUtils@equals(sellChnlDtl, 'ALL')">
+           AND SUBSTR(T1.SELL_INFLW_CHNL_DTL_CD,1,2) = #{sellChnlDtl}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND T1.CNTR_NO = #{cntrNo}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND T1.CNTR_SN = #{cntrSn}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cstNo)'>
+           AND T1.CST_NO = #{cstNo}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(sapSlpno)'>
+           AND T4.SAP_SLPNO = #{sapSlpno}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(sapPdDvCd)'>
+           AND T1.SAP_PD_DV_CD = #{sapPdDvCd}
+           </if>
+         GROUP BY T1.SL_RCOG_DT, T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.PD_CD, T2.PD_NM, T1.SAP_PD_DV_CD, T1.SELL_INFLW_CHNL_DTL_CD,T1.CNTR_NO,T1.CNTR_SN,T3.CST_KNM
     </select>
 
 </mapper>

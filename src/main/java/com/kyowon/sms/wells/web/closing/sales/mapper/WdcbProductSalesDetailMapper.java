@@ -14,10 +14,6 @@ public interface WdcbProductSalesDetailMapper {
 
     List<SearchSingleRes> selectProductSalesSinglePaymentDetails(SearchReq dto);
 
-    List<SearchSingleRes> selectProductSalesLeaseDetails(SearchReq dto);
-
-    List<SearchSingleRes> selectProductSalesFarmSaleDetails(SearchReq dto);
-
     List<SearchRentalRes> selectProductSalesRentalDetails(SearchReq dto);
 
     List<SearchMembershipRes> selectProductSalesMembershipDetails(SearchReq dto);

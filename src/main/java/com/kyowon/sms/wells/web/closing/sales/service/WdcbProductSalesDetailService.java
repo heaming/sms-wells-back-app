@@ -22,13 +22,7 @@ public class WdcbProductSalesDetailService {
 
     public List<SearchSingleRes> getProductSalesSinglePaymentDetails(SearchReq dto) {
         List<SearchSingleRes> result = new ArrayList<SearchSingleRes>();
-        if ("1".equals(dto.taskDiv())) {
-            result = mapper.selectProductSalesSinglePaymentDetails(dto);
-        } else if ("3".equals(dto.taskDiv())) {
-            result = mapper.selectProductSalesLeaseDetails(dto);
-        } else if ("5".equals(dto.taskDiv())) {
-            result = mapper.selectProductSalesFarmSaleDetails(dto);
-        }
+        result = mapper.selectProductSalesSinglePaymentDetails(dto);
         return result;
     }
 
