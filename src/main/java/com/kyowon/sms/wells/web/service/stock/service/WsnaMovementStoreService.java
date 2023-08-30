@@ -44,8 +44,8 @@ public class WsnaMovementStoreService {
      *
      * @return 조회결과
      */
-    public List<SearchRes> getMovementStores(SearchReq dto) {
-        return mapper.selectMovementStores(dto);
+    public PagingResult<SearchRes> getMovementStores(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectMovementStores(dto, pageInfo);
     }
 
     /**
