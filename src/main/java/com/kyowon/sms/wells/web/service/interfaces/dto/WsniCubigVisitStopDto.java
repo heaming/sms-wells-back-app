@@ -3,9 +3,11 @@ package com.kyowon.sms.wells.web.service.interfaces.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 public class WsniCubigVisitStopDto {
 
+    @Builder
     @ApiModel(value = "WsniCubigVisitStopDto-CreateReq")
     public record CreateReq(
         @JsonProperty("CNTR_NO")

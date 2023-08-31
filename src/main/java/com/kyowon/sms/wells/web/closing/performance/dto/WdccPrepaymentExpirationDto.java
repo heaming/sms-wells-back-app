@@ -1,5 +1,9 @@
 package com.kyowon.sms.wells.web.closing.performance.dto;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.sds.sflex.common.utils.DbEncUtil;
+
 import io.swagger.annotations.ApiModel;
 
 public class WdccPrepaymentExpirationDto {
@@ -28,7 +32,6 @@ public class WdccPrepaymentExpirationDto {
     @ApiModel(value = "WdccPrepaymentExpirationDto-SearchRes")
     public record SearchRes(
         String cntrNo, /*계약번호*/
-        String cntrSn, /*계약일련번호*/
         String cstNo, /* 고객번호*/
         String cstKnm, /* 고객명*/
         String rcgvpKnm, /* 설치자명*/
@@ -89,7 +92,19 @@ public class WdccPrepaymentExpirationDto {
         String dgr2LevlOgCd, /* 2차레벨조직코드*/
         String dgr3LevlOgCd, /* 3차레벨조직코드*/
         String bzrno /* 사업자등록번호*/
-    ) {}
+    ) {
+        public SearchRes {
+            cntrLocalTno2 = StringUtils.isNotEmpty(cntrLocalTno2) ? DbEncUtil.dec(cntrLocalTno2) : cntrLocalTno2;
+            cntrCralTno2 = StringUtils.isNotEmpty(cntrCralTno2) ? DbEncUtil.dec(cntrCralTno2) : cntrCralTno2;
+            rcgvpLocalTno2 = StringUtils.isNotEmpty(rcgvpLocalTno2) ? DbEncUtil.dec(rcgvpLocalTno2) : rcgvpLocalTno2;
+            rcgvpCralTno2 = StringUtils.isNotEmpty(rcgvpCralTno2) ? DbEncUtil.dec(rcgvpCralTno2) : rcgvpCralTno2;
+            prtnrLocalTno2 = StringUtils.isNotEmpty(prtnrLocalTno2) ? DbEncUtil.dec(prtnrLocalTno2) : prtnrLocalTno2;
+            prtnrCralTno2 = StringUtils.isNotEmpty(prtnrCralTno2) ? DbEncUtil.dec(prtnrCralTno2) : prtnrCralTno2;
+            ogLocalTno2 = StringUtils.isNotEmpty(ogLocalTno2) ? DbEncUtil.dec(ogLocalTno2) : ogLocalTno2;
+            hooPrtnrCralTno2 = StringUtils.isNotEmpty(hooPrtnrCralTno2) ? DbEncUtil.dec(hooPrtnrCralTno2)
+                : hooPrtnrCralTno2;
+        }
+    }
 
     @ApiModel(value = "WdccPrepaymentExpirationDto-SearchCharacterFwUldReq")
     public record SearchCharacterFwUldReq(
@@ -120,11 +135,23 @@ public class WdccPrepaymentExpirationDto {
         String cstKnm, /*고객명*/
         String cstNo, /*고객번호*/
         String cntrNo, /*계약번호*/
+        String cntrSn, /*계약번호*/
+        String cntrDtlNo, /*계약상세번호*/
         String cntrInfo, /*상품정보*/
         String prmEndYm, /*선납종료년월*/
         String mmpmYm, /*선납종료익월년월*/
-        String prmReAplcYn /*선납재신청*/
-    ) {}
+        String prmReAplcYn, /*선납재신청*/
+        String prmEndMm, /* 선납종료월 */
+        String pdNm, /* 상품명 */
+        String cnt, /* 건수 */
+        String currMm, /* 당월 */
+        String postYy, /* 익월년도 */
+        String postMm /* 익월 */
+    ) {
+        public SearchCharacterFwUldRes {
+            cntrCralTno2 = StringUtils.isNotEmpty(cntrCralTno2) ? DbEncUtil.dec(cntrCralTno2) : cntrCralTno2;
+        }
+    }
 
     @ApiModel(value = "WdccPrepaymentExpirationDto-SearchCharacterFwIzReq")
     public record SearchCharacterFwIzReq(
@@ -152,6 +179,28 @@ public class WdccPrepaymentExpirationDto {
         String usrNm, /*입력자명*/
         String epno, /*사번*/
         String fwBizNm /*발송업무명*/
+    ) {}
+
+    @ApiModel("WbndRentalCbMgtDelinquentHistoryDto-SendReq")
+    public record SendReq(
+        String cntrCralTno, /*계약자휴대전화번호*/
+        String cstKnm, /*고객명*/
+        String cstNo, /*고객번호*/
+        String cntrNo, /*계약번호*/
+        String cntrSn, /*계약번호*/
+        String cntrDtlNo, /*계약상세번호*/
+        String cntrInfo, /*상품정보*/
+        String prmEndYm, /*선납종료년월*/
+        String mmpmYm, /*선납종료익월년월*/
+        String prmReAplcYn, /*선납재신청*/
+        String prmEndMm, /* 선납종료월 */
+        String pdNm, /* 상품명 */
+        String cnt, /* 건수 */
+        String currMm, /* 당월 */
+        String postYy, /* 익월년도 */
+        String postMm, /* 익월 */
+        String fwbooDate, /*발송예약일*/
+        String fwbooTime/*발송예약시간*/
     ) {}
 
 }

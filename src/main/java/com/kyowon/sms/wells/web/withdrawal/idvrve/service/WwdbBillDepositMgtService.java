@@ -10,6 +10,7 @@ import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwwdbEtcDepositProcessing
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbCorporationDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbIntegrationDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwwdbEtcDepositMapper;
+import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbDepositComparisonComfirmationService;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalDepositCprDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
@@ -43,6 +44,7 @@ import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thymeleaf.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +64,8 @@ public class WwdbBillDepositMgtService {
     private final ZwwdbEtcDepositMapper etcDepositMapper;
 
     private final ZdcaNumberingSlpnoService slpnoService;
+
+    private final ZwdbDepositComparisonComfirmationService depositComparisonComfirmationService;
 
     @Transactional
     public PagingResult<SearchRes> getRegistrationPages(SearchReq dto, PageInfo pageInfo) {
@@ -204,6 +208,9 @@ public class WwdbBillDepositMgtService {
         String year = sysDateYmd.substring(0, 4);
         String month = sysDateYmd.substring(4, 6);
 
+//        int count = 0;
+//        String useYn = "N";
+
         //전표 PK
         String zzsnum = slpnoService.getNumberingSlpno("FE", Integer.parseInt(year), Integer.parseInt(month));
 
@@ -234,52 +241,66 @@ public class WwdbBillDepositMgtService {
 
             processCount += mapper.insertBillDepositContracts(contractDvo);
 
+
+
+
             /*수납기본*/
-            ZwdbWithdrawalReceiveAskReqDvo reqDvo = new ZwdbWithdrawalReceiveAskReqDvo();
-            reqDvo.setRveAkNo(receiveAskNumber);
+//            ZwdbWithdrawalReceiveAskReqDvo reqDvo = new ZwdbWithdrawalReceiveAskReqDvo();
+//            reqDvo.setRveAkNo(receiveAskNumber);
+//
+//            ZwdzWithdrawalReceiveDvo zwdzWithdrawalReceiveDvo = etcDepositMapper.selectReceiveBaseInfo(reqDvo);
+//
+//            String rveNo = zwdzWithdrawalService.createReceive(zwdzWithdrawalReceiveDvo);
+//            zwdzWithdrawalReceiveDvo.setRveNo(rveNo);
 
-            ZwdzWithdrawalReceiveDvo zwdzWithdrawalReceiveDvo = etcDepositMapper.selectReceiveBaseInfo(reqDvo);
-
-            String rveNo = zwdzWithdrawalService.createReceive(zwdzWithdrawalReceiveDvo);
-            zwdzWithdrawalReceiveDvo.setRveNo(rveNo);
-
-            /*입금대사기본*/
-            reqDvo.setRveNo(rveNo); /*수납번호*/
-            reqDvo.setProcsDvCd("1"); /*처리구분코드*/
-            reqDvo.setIaDvCd("05"); /*입금항목구분코드*/
-            //            reqDvo.setDpCprcnfBizDvCd(); /*입금대사업무구분코드*/
-            reqDvo.setDpCprcnfBizCd("03"); /*입금대사업무코드*/
-
-            ZwdzWithdrawalDepositCprDvo cprDvo = etcDepositMapper.selectDepositComparisonComfirmationInfo(reqDvo);
-
-            String depositComparisonPk = zwdzWithdrawalService.createDepositComparison(cprDvo);
-
-            /*수납상세*/
-            reqDvo.setDpDt(integrationDepositRes.dpDtm()); /*입금일자*/
-            reqDvo.setDpCprcnfNo(depositComparisonPk); /*대사번호*/
-            reqDvo.setItgDpNo(dto.get(0).itgDpNo()); //통합입금번호
-
-            zwdzWithdrawalReceiveDvo = etcDepositMapper.selectReceiveDetailInfo(reqDvo);
-
-            //수납상세 데이터 생성
-            processCount += zwdzWithdrawalService.createReceiveDetail(zwdzWithdrawalReceiveDvo);
+//            /*입금대사기본*/
+//            reqDvo.setRveNo(rveNo); /*수납번호*/
+//            reqDvo.setProcsDvCd("1"); /*처리구분코드*/
+//            reqDvo.setIaDvCd("05"); /*입금항목구분코드*/
+//            //            reqDvo.setDpCprcnfBizDvCd(); /*입금대사업무구분코드*/
+//            reqDvo.setDpCprcnfBizCd("03"); /*입금대사업무코드*/
+//
+//            ZwdzWithdrawalDepositCprDvo cprDvo = etcDepositMapper.selectDepositComparisonComfirmationInfo(reqDvo);
+//
+//            String depositComparisonPk = zwdzWithdrawalService.createDepositComparison(cprDvo);
+//
+//            /*수납상세*/
+//            reqDvo.setDpDt(integrationDepositRes.dpDtm()); /*입금일자*/
+//            reqDvo.setDpCprcnfNo(depositComparisonPk); /*대사번호*/
+//            reqDvo.setItgDpNo(dto.get(0).itgDpNo()); //통합입금번호
+//
+//            zwdzWithdrawalReceiveDvo = etcDepositMapper.selectReceiveDetailInfo(reqDvo);
+//
+//            //수납상세 데이터 생성
+//            processCount += zwdzWithdrawalService.createReceiveDetail(zwdzWithdrawalReceiveDvo);
 
             //통합입금 업데이트
             ZwwdbEtcDepositProcessingDvo itgDvo = new ZwwdbEtcDepositProcessingDvo();
 
             itgDvo.setItgDpNo(dto.get(0).itgDpNo());//통합입금번호
-            itgDvo.setDpCprcnfAmt(list.billDpAmt()); //대사금액
+//            itgDvo.setDpCprcnfAmt(list.billDpAmt()); //대사금액
             itgDvo.setRveAkNo(receiveAskNumber); //수납요청번호
 
             processCount += etcDepositMapper.updateIntegrationDeposit(itgDvo);
 
             //통합입금 이력
-            ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
-            depoDvo.setItgDpNo(integrationDepositRes.itgDpNo());
-            zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
-
+//            ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
+//            depoDvo.setItgDpNo(integrationDepositRes.itgDpNo());
+//            zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
 
             sumResult += Integer.parseInt(list.billDpAmt());
+
+//            count++;
+
+            if (!StringUtils.isEmpty(dto.get(0).itgDpNo())) {
+//                if (count == dto.size()) {
+//                    useYn = null;
+//                }
+
+                //입금대사 서비스 호출
+                depositComparisonComfirmationService.createDepositComparisonComfirmation(dto.get(0).itgDpNo(), null);
+
+            }
         }
 
 

@@ -28,6 +28,7 @@ public class WbncCustomerDto {
         String schIstCralIdvTno, /* 설치휴대전화번호3 */
         String schDlqMcntStrt,
         String schDlqMcntEnd,
+        String schFntDv,
         String schFntDtStrt,
         String schFntDtEnd,
         String schOjBlamStrt,

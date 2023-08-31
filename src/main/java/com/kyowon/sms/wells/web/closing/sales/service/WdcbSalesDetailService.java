@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchMembershipRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchRentalRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto.SearchSingleRes;
 import com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesDetailMapper;
 
@@ -16,16 +17,16 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbSalesDetailService {
     private final WdcbSalesDetailMapper mapper;
 
-    public SearchRentalRes getSalesDetailRental(String cntrDtlNo) {
-        return mapper.selectSalesDetailRental(cntrDtlNo);
+    public SearchRentalRes getSalesDetailRental(SearchReq dto) {
+        return mapper.selectSalesDetailRental(dto);
     }
 
-    public SearchMembershipRes getSalesDetailMembership(String cntrDtlNo) {
-        return mapper.selectSalesDetailMembership(cntrDtlNo);
+    public SearchMembershipRes getSalesDetailMembership(SearchReq dto) {
+        return mapper.selectSalesDetailMembership(dto);
     }
 
-    public SearchSingleRes getSalesDetailSinglePayment(String cntrDtlNo) {
-        return mapper.selectSalesDetailSinglePayment(cntrDtlNo);
+    public SearchSingleRes getSalesDetailSinglePayment(SearchReq dto) {
+        return mapper.selectSalesDetailSinglePayment(dto);
     }
 
 }

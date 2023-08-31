@@ -25,12 +25,9 @@ public class WsnfAsEnrgMatMngtDto {
         String cntrCstNo,
         String cntrNo,
         String istllKnm,
-        String cstSvAsnNo,
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
-        String pdCd,
-        String pdNm,
         String adrId,
         String zip,
         String adr,
@@ -44,16 +41,23 @@ public class WsnfAsEnrgMatMngtDto {
         String arvDt,
         String vstCnfmdt,
         String adrDvCd,
-        String itmRcmdRnk,
         String itmPdCd,
         String pdAbbrNm,
         String svBizHclsfNm,
-        String ogNm,
         String prtnrNm,
-        String tel
+        String ogNm,
+        String cstSvAsnNo,
+        String sapMatCd,
+        String pdCd,
+        String pdNm,
+        String itmPdNm,
+        String cnslTpLcsfCdNm,
+        String cnslCn,
+        String itmRcmdRnk,
+        String itmRcmdQty
     ) {
-        public SearchRes {
-            tel = cralLocaraTno + "-" + DbEncUtil.dec(mexnoEncr) + "-" + cralIdvTno;
-        }
+//        public SearchRes {
+//            tel = cralLocaraTno + "-" + DbEncUtil.dec(mexnoEncr) + "-" + cralIdvTno;
+//        }
     }
 }
