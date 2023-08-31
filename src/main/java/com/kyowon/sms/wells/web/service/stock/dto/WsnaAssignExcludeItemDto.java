@@ -19,7 +19,13 @@ public class WsnaAssignExcludeItemDto {
         @NotBlank
         String asnExcdDvCd,
         String itmKndCd,
-        String wareNo
+        String wareNo,
+
+        String itmPdCd,
+
+        String strtSapCd,
+
+        String endSapCd
     ) {}
 
     @ApiModel(value = "WsnaAssignExcludeItemDto-SearchRes")

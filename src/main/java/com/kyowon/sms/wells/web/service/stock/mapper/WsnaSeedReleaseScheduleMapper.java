@@ -25,8 +25,6 @@ public interface WsnaSeedReleaseScheduleMapper {
 
     int updateCstSvasIstAsnIzForCnfm(String cstSvAsnNo);
 
-    int updateCstSvasIstAsnIzForInstl(String cntrNo, int cntrSn);
-
     int updateCstSvExcnIzForInstl(String cntrNo, int cntrSn);
 
     String selectCstSvExcnIstDt(String cntrNo, int cntrSn);
@@ -44,5 +42,7 @@ public interface WsnaSeedReleaseScheduleMapper {
     int insertCstSvWkRsIz(WsnaSeedReleaseScheduleWkRsDvo dvo);
 
     int updateSdingSppPlanIzForPcsv(WsnaSeedReleaseScheduleCnfmDvo dvo);
+
+    List<WsnaSeedReleaseScheduleAggDvo> selectSeedReleaseAggregations(SearchReq dto);
 
 }
