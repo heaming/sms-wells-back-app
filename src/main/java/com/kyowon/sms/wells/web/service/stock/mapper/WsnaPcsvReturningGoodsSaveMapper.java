@@ -22,4 +22,5 @@ public interface WsnaPcsvReturningGoodsSaveMapper {
     void updateSvpdCstSvBfsvcAsnIz(WsnaPcsvReturningGoodsSaveDvo vo);
 
     void insertSvstSvWkOstrIz(WsnaPcsvReturningGoodsSaveDvo vo);
+
 }
