@@ -41,11 +41,10 @@ public class WsnbGoodsChangeAcceptingStateController {
         @ApiImplicitParam(name = "statCd", value = "상태코드", paramType = "query"),
         @ApiImplicitParam(name = "tpChYn", value = "유현변경여부", paramType = "query"),
     })
-    @GetMapping
+    @GetMapping("/paging")
     public PagingResult<SearchRes> getGoodsChangeAcceptingStates(
         @Valid
         SearchReq dto,
-        @Valid
         PageInfo pageInfo
     ) {
         return service.getGoodsChangeAcceptingStatePages(dto, pageInfo);
@@ -65,7 +64,6 @@ public class WsnbGoodsChangeAcceptingStateController {
     public PagingResult<SearchRes> getGoodsChangeAcceptingStatesExcelDownload(
         @Valid
         SearchReq dto,
-        @Valid
         PageInfo pageInfo
     ) {
         return service.getGoodsChangeAcceptingStatePages(dto, pageInfo);
