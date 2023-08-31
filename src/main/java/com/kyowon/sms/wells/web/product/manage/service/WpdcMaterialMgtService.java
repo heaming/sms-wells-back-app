@@ -320,10 +320,8 @@ public class WpdcMaterialMgtService {
                 if (!"".equals(compareValue)) {
                     // 넘어온 자재코드 값이 I/F 테이블에 존재하는지 확인.
                     //                    ZpdcGbcoSapMatDvo sapMatVo = mapper.selectMaterialSap(compareValue);
-
                     //                    String sapPlntVal = getExcelValue2(excelDataMap, metaVo, PdProductConst.SAP_PLNT_VAL);
-
-                    System.out.println("optionValoptionValoptionValoptionVal : " + optionVal);
+                    //                    System.out.println("optionValoptionValoptionValoptionVal : " + optionVal);
                     List<ZpdcGbcoSapMatDvo> sapMatVos = mapper.selectMaterialSaps(compareValue, optionVal);
 
                     if (sapMatVos.isEmpty()) {
@@ -393,7 +391,7 @@ public class WpdcMaterialMgtService {
             && metaVo.getDtaLnth().intValue() < compareValue.length()) {
             String[] lengthMsgStrArr = new String[2];
             lengthMsgStrArr[0] = metaVo.getDtaLnth().toString();
-            lengthMsgStrArr[1] = compareValue.toString();
+            lengthMsgStrArr[1] = compareValue;
 
             ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
             errorVo.setHeaderName(metaVo.getPrpNm());
@@ -561,7 +559,8 @@ public class WpdcMaterialMgtService {
                 propertyVo.setPdCd(dvo.getPdCd());
                 if (null != propertyVo.getPdExtsPrpGrpCd()) {
                     productService.saveEachCompanyPropDtl(propertyVo);
-                    propertyMap = new HashMap<String, Object>();
+                    // 소나큐브 대응. 불필요한 초기화 제거
+                    //                    propertyMap = new HashMap<String, Object>();
                 }
 
             }
