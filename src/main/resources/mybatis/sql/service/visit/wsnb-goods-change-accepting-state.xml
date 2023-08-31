@@ -3,7 +3,22 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbGoodsChangeAcceptingStateMapper">
     <select id="selectGoodsChangeAcceptingState" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbGoodsChangeAcceptingStateDto$SearchRes">
         SELECT * FROM
-            (SELECT /*+ LEADING(T5) USE_NL(VS106 VS115 T1 T3 T5 MM_PRTNR AM_PRTNR PM_PRTNR ADR_REL T4 PD_BAS AC201 V1) NO_MERGE(V1) */
+            (SELECT
+             /*조회조건에 따른 힌트 추가*/
+              <choose>
+                  <when test='@MybatisUtils@equals(inqrBaseCd, "vstCnfmDt")'>
+                      /*+ LEADING(VS106) USE_NL(VS106 VS115 T1 T3 T5 MM_PRTNR ADR_REL T4 PD_BAS AC201 V1) NO_MERGE(V1) */
+                  </when>
+                  <when test='@MybatisUtils@equals(inqrBaseCd, "wrteDt")'>
+                      /*+ LEADING(VS115) USE_NL(VS106 VS115 T1 T3 T5 MM_PRTNR ADR_REL T4 PD_BAS AC201 V1) NO_MERGE(V1) */
+                  </when>
+                  <when test='@MybatisUtils@equals(inqrBaseCd, "schdDt")'>
+                      /*+ LEADING(T5) USE_NL(VS106 VS115 T1 T3 T5 MM_PRTNR ADR_REL T4 PD_BAS AC201 V1) NO_MERGE(V1) */
+                  </when>
+                  <when test='@MybatisUtils@equals(inqrBaseCd, "prcsDt")'>
+                      /*+ LEADING(VS106) USE_NL(VS106 VS115 T1 T3 T5 MM_PRTNR ADR_REL T4 PD_BAS AC201 V1) NO_MERGE(V1) */
+                  </when>
+              </choose>
                    VS115.CNTR_NO
                  , VS115.CNTR_SN
                  , VS115.APR_AK_STAT_CD  AS APR_AK_STAT_CD                   /*승인상태*/
@@ -38,13 +53,34 @@
                  , VS115.CNRLD_OPN_CN AS ADMIN_OPINION                              /*관리자소견*/
                  , VS115.CNFM_RQDT||VS115.CNFM_AK_HH AS OPINION_DRAT_DTM            /*관리자소견작성일시*/
                  , VS115.CNFM_AK_PRTNR_NO AS ADMIN_SBN                              /*관리자사번*/
-                 , AM_PRTNR.PRTNR_KNM AS ADMIN_NM                                   /*관리자명*/
+                 , (
+					 SELECT P1.PRTNR_KNM
+					   FROM TB_OGBS_MM_PRTNR_IZ P1
+					  WHERE 1 = 1
+					    AND VS115.CNFM_AK_PRTNR_OG_TP_CD = P1.OG_TP_CD
+				        AND VS115.CNFM_AK_PRTNR_NO = P1.PRTNR_NO
+				        AND P1.BASE_YM = SUBSTR(#{startDt},1,6)
+					) AS ADMIN_NM                                                   /*관리자명*/
                  , VS106.SV_PROCS_CN AS PROCS_RS                                    /*처리결과*/
                  , VS106.ASN_DT AS VST_CNFM_DT                                      /*방문확정일*/
                  , VS106.VST_FSH_DT AS PROCS_DT                                     /*처리일자*/
-                 , PM_PRTNR.OG_NM AS PROCSR_BLG                                     /*처리자부서*/
+                 , (
+					 SELECT P2.OG_NM
+					   FROM TB_OGBS_MM_PRTNR_IZ P2
+					  WHERE 1 = 1
+					    AND VS106.OG_TP_CD = P2.OG_TP_CD
+				        AND VS106.PRTNR_NO = P2.PRTNR_NO
+				        AND P2.BASE_YM = SUBSTR(#{startDt},1,6)
+					) AS PROCSR_BLG                                                 /*처리자부서*/
                  , VS106.PRTNR_NO AS PROCSR_SBN                                     /*처리자사번*/
-                 , PM_PRTNR.PRTNR_KNM AS PROCSR_NM                                  /*처리자*/
+                 , (
+					 SELECT P3.PRTNR_KNM
+					   FROM TB_OGBS_MM_PRTNR_IZ P3
+					  WHERE 1 = 1
+					    AND VS106.OG_TP_CD = P3.OG_TP_CD
+				        AND VS106.PRTNR_NO = P3.PRTNR_NO
+				        AND P3.BASE_YM = SUBSTR(#{startDt},1,6)
+					) AS PROCSR_NM                                                 /*처리자명*/
                  , F_CMZ_CD_NM('TNT_WELLS', 'ROL_DV_CD', MM_PRTNR.ROL_DV_CD, 'ko')  AS AC021_JMCD
                  , RANK() OVER(PARTITION BY VS115.CNTR_NO, VS115.CNTR_SN ORDER BY ADR_REL.ADRPC_TP_CD DESC ) RN
                  , T1.CNTR_PD_STRTDT
@@ -57,6 +93,21 @@
                 ON VS115.CNTR_NO = VS106.CNTR_NO
                AND VS115.CNTR_SN = VS106.CNTR_SN
                AND VS115.CST_SV_ASN_NO = VS106.CST_SV_ASN_NO
+           <if test="@MybatisUtils@isNotEmpty(aprAkStatCd) and !@MybatisUtils@equals(aprAkStatCd, 'ALL')">
+               AND VS115.APR_AK_STAT_CD = #{aprAkStatCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(tpChYn) and !@MybatisUtils@equals(tpChYn, 'ALL')">
+               AND VS115.APR_AK_CONF_YN = #{tpChYn}
+           </if>
+           <if test='@MybatisUtils@equals(inqrBaseCd, "wrteDt")'>
+               AND SUBSTR(VS115.FST_RGST_DTM, 1, 8) BETWEEN #{startDt} AND #{endDt} /*작성일자*/
+           </if>
+           <if test='@MybatisUtils@equals(inqrBaseCd, "vstCnfmDt")'>
+               AND VS106.ASN_DT BETWEEN #{startDt} AND #{endDt} /*방문확정일*/
+           </if>
+           <if test='@MybatisUtils@equals(inqrBaseCd, "prcsDt")'>
+               AND VS106.VST_FSH_DT BETWEEN #{startDt} AND #{endDt} /*처리일자*/
+           </if>
         INNER JOIN  WSMDBS.TB_SSCT_CNTR_DTL T1
                 ON  T1.CNTR_NO = VS106.CNTR_NO
                AND  T1.CNTR_SN = VS106.CNTR_SN
@@ -71,24 +122,20 @@
                 ON T5.CNTR_NO = VS106.CNTR_NO
                AND T5.CNTR_SN = VS106.CNTR_SN
                AND T5.CST_SV_ASN_NO = VS106.CST_SV_ASN_NO
+           <if test='@MybatisUtils@equals(inqrBaseCd, "schdDt")'>
+               AND T5.VST_RQDT BETWEEN #{startDt} AND #{endDt} /*예정일자*/
+           </if>
         INNER JOIN TB_OGBS_MM_PRTNR_IZ MM_PRTNR /*작성자 - 검색조건에 센터, 조직 들어감*/
-                ON VS115.CHNG_AK_PRTNR_OG_TP_CD = MM_PRTNR.OG_TP_CD
-               AND VS115.CHNG_AK_PRTNR_NO = MM_PRTNR.PRTNR_NO
+                ON 1 = 1
            <if test="@MybatisUtils@isNotEmpty(ogId)">
-               AND MM_PRTNR.OG_ID = #{ogId}
+               AND VS115.CHNG_AK_PRTNR_OG_TP_CD = #{ogId}
            </if>
            <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
-               AND MM_PRTNR.PRTNR_NO = #{prtnrNo}
+               AND VS115.CHNG_AK_PRTNR_NO = #{prtnrNo}
            </if>
+               AND VS115.CHNG_AK_PRTNR_OG_TP_CD = MM_PRTNR.OG_TP_CD
+               AND VS115.CHNG_AK_PRTNR_NO = MM_PRTNR.PRTNR_NO
                AND MM_PRTNR.BASE_YM = SUBSTR(#{startDt},1,6)
-        LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ AM_PRTNR /*관리자*/
-                ON VS115.CNFM_AK_PRTNR_OG_TP_CD = AM_PRTNR.OG_TP_CD
-               AND VS115.CNFM_AK_PRTNR_NO = AM_PRTNR.PRTNR_NO
-               AND AM_PRTNR.BASE_YM = SUBSTR(#{startDt},1,6)
-        LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ PM_PRTNR /*처리자*/
-                ON VS106.OG_TP_CD = PM_PRTNR.OG_TP_CD
-               AND VS106.PRTNR_NO = PM_PRTNR.PRTNR_NO
-               AND PM_PRTNR.BASE_YM = SUBSTR(#{startDt},1,6)
         INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL ADR_REL /*계약주소관계*/
                 ON VS106.CNTR_NO = ADR_REL.DTL_CNTR_NO
                AND VS106.CNTR_SN = ADR_REL.DTL_CNTR_SN
@@ -117,26 +164,6 @@
                              WHERE RANK = 1) V1
                          ON VS115.CNTR_NO = V1.CNTR_NO
                         AND VS115.CNTR_SN = V1.CNTR_SN
-                      <choose>
-                          <when test='@MybatisUtils@equals(inqrBaseCd, "vstCnfmDt")'>
-                              AND VS106.ASN_DT BETWEEN #{startDt} AND #{endDt} /*방문확정일*/
-                          </when>
-                          <when test='@MybatisUtils@equals(inqrBaseCd, "wrteDt")'>
-                              AND SUBSTR(VS115.FST_RGST_DTM, 1, 14) BETWEEN #{startDt} AND #{endDt} /*작성일자*/
-                          </when>
-                          <when test='@MybatisUtils@equals(inqrBaseCd, "schdDt")'>
-                              AND T5.VST_RQDT BETWEEN #{startDt} AND #{endDt} /*예정일자*/
-                          </when>
-                          <when test='@MybatisUtils@equals(inqrBaseCd, "prcsDt")'>
-                              AND VS106.VST_FSH_DT BETWEEN #{startDt} AND #{endDt} /*처리일자*/
-                          </when>
-                      </choose>
-                      <if test="@MybatisUtils@isNotEmpty(aprAkStatCd) and !@MybatisUtils@equals(aprAkStatCd, 'ALL')">
-                          AND VS115.APR_AK_STAT_CD = #{aprAkStatCd}
-                      </if>
-                      <if test="@MybatisUtils@isNotEmpty(tpChYn) and !@MybatisUtils@equals(tpChYn, 'ALL')">
-                          AND VS115.APR_AK_CONF_YN = #{tpChYn}
-                      </if>
                         )
             WHERE RN = 1
          ORDER BY DRAT_DTM
@@ -145,6 +172,11 @@
         /* 상품교체승인요청내역(반려/승인) 업데이트 */
         UPDATE WSMDBS.TB_SVPD_PD_CHNG_APR_AK_IZ
            SET APR_AK_STAT_CD = #{aprAkStatCd}
+             , CNRLD_OPN_CN = #{adminOpinion}                          /*관리자소견*/
+             , CNFM_RQDT = TO_CHAR(SYSDATE, 'YYYYMMDD')                /*확정요청일자*/
+             , CNFM_AK_HH = TO_CHAR(SYSDATE, 'hhmmss')                 /*확정요청시간*/
+             , CNFM_AK_PRTNR_OG_TP_CD = #{session.ogTpCd}              /*관리자조직코드*/
+             , CNFM_AK_PRTNR_NO = #{session.employeeIDNumber}          /*관리자번호*/
            <include refid="COMMON.updateSystemField"/>
          WHERE 1=1
            AND CST_SV_ASN_NO = #{cstSvAsnNo}
