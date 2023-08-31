@@ -90,6 +90,16 @@ public class WsnbIndividualServicePsController {
         return service.getIndividualProcessState(dto, pageInfo);
     }
 
+    @ApiOperation(value = "처리내역 엑셀다운로드", notes = "처리내역 조회목록을 엑셀 다운로드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
+    @GetMapping("/process-state/excel-download")
+    public List<SearchStateRes>getIndividualProcessStateExcelDownload(SearchReq dto) throws Exception{
+        return this.service.getIndividualProcessStateExcelDownload(dto);
+    }
+
     @ApiOperation(value = "상담내역", notes = "상담내역 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
