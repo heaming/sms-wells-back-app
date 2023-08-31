@@ -91,6 +91,15 @@ public class WsnaSeedReleaseScheduleService {
     }
 
     /**
+     * 모종 출고 예정 리스트 집계표 조회
+     * @param dto
+     * @return
+     */
+    public List<WsnaSeedReleaseScheduleAggDvo> getSeedReleaseAggregations(SearchReq dto) {
+        return this.maaper.selectSeedReleaseAggregations(dto);
+    }
+
+    /**
      * 모종 출고 예정 리스트 저장
      * @param dtos
      * @return
@@ -156,9 +165,6 @@ public class WsnaSeedReleaseScheduleService {
 
                 String cntrNo = dvo.getCntrNo();
                 int cntrSn = dvo.getCntrSn();
-
-                // 고객서비스AS설치배정내역 저장
-                this.maaper.updateCstSvasIstAsnIzForInstl(cntrNo, cntrSn);
 
                 // 수행내역에 설치일자 저장
                 this.maaper.updateCstSvExcnIzForInstl(cntrNo, cntrSn);
