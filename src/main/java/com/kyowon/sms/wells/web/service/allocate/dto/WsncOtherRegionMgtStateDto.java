@@ -37,7 +37,8 @@ public class WsncOtherRegionMgtStateDto {
     // *********************************************************
     @ApiModel(value = "WsncOtherRegionMgtStateDto-SearchRes")
     public record SearchRes(
-        String rgnlGrp,
+        String mngtRgnlGrpNm,
+        String brchOgId,
         String cntrNo,
         String cstKnm,
         String newAdrZip,
@@ -46,7 +47,11 @@ public class WsncOtherRegionMgtStateDto {
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
-        String hgrOgNm,
+        String vstGnlrGrpOgId,
+        String vstRgnlGrpOgId,
+        String vstRgnlGrpOgnm,
+        String ogId,
+        String ogCd,
         String ogNm,
         String mngtPrtnrNo,
         String prtnrKnm,

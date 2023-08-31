@@ -19,7 +19,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WsncOtherRegionMgtStateDvo {
-    String rgnlGrp;
+    String mngtRgnlGrpNm;
+    String brchOgId;
     String cntrNo;
     String cstKnm;
     String newAdrZip;
@@ -30,7 +31,11 @@ public class WsncOtherRegionMgtStateDvo {
     @DBDecField
     String mexnoEncr;
     String cralIdvTno;
-    String hgrOgNm;
+    String vstGnlrGrpOgId;
+    String vstRgnlGrpOgId;
+    String vstRgnlGrpOgnm;
+    String ogId;
+    String ogCd;
     String ogNm;
     String mngtPrtnrNo;
     String prtnrKnm;
