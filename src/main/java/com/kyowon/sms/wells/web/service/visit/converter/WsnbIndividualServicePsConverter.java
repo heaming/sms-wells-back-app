@@ -15,4 +15,5 @@ public interface WsnbIndividualServicePsConverter {
     WsnbIndividualServicePsDvo mapWsnbIndividualServicePsDvoToSaveReq(SaveReq dto);
     List<SearchHouseholdRes> mapSearchHouseholdToDvo(List<WsnbIndividualServicePsDvo> dvos);
     PagingResult<SearchStateRes> mapAllSearchStateToDvo(List<WsnbIndividualServicePsDvo> dvos);
+    List<SearchStateRes> mapAllSearchStateResToDvo(List<WsnbIndividualServicePsDvo> dvos);
 }
