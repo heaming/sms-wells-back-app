@@ -183,7 +183,9 @@ public class WdccPrepaymentExpirationDto {
 
     @ApiModel("WbndRentalCbMgtDelinquentHistoryDto-SendReq")
     public record SendReq(
-        String cntrCralTno, /*계약자휴대전화번호*/
+        String cntrCralTno1, /*계약자휴대전화번호1*/
+        String cntrCralTno2, /*계약자휴대전화번호2*/
+        String cntrCralTno3, /*계약자휴대전화번호3*/
         String cstKnm, /*고객명*/
         String cstNo, /*고객번호*/
         String cntrNo, /*계약번호*/
@@ -201,6 +203,11 @@ public class WdccPrepaymentExpirationDto {
         String postMm, /* 익월 */
         String fwbooDate, /*발송예약일*/
         String fwbooTime/*발송예약시간*/
-    ) {}
+    ) {
+        public SendReq {
+            cntrCralTno2 = StringUtils.isNotEmpty(cntrCralTno2) ? DbEncUtil.enc(cntrCralTno2) : cntrCralTno2;
+        }
+
+    }
 
 }

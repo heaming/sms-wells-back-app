@@ -121,88 +121,75 @@ public class WbncCustomerDto {
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
         String dtlCntrNo, /* 상세계약번호 */
-        String cstNo, /* 고객번호 */
         String cstNm, /* 고객명 */
         String sexDvCd, /* 성별코드 */
-        String sexDvNm, /* 성별 */
+        String sexDvNm, /* 성별코드명 */
         String bryyMmdd, /* 생년월일 */
-        String mbNm, /* 회원명 */
-        String sfk, /* 세이프키 */
-        String insiPrchEmpno, /* 내부구입사번 */
-        String cntrSppZip, /* 계약처우편번호 */
-        String cntrSppAdr, /* 계약처기본주소 */
-        String cntrSppDtlAdr, /* 계약처상세주소 */
-        String cntrLocaraTno, /* 계약처지역전화번호 */
-        String cntrExnoEncr, /* 계약처전화국번호암호화 */
-        String cntrIdvTno, /* 계약처휴대개별전화번호 */
         String cntrCralLocaraTno, /* 계약처휴대지역전화번호 */
         String cntrMexnoEncr, /* 계약처휴대전화국번호암호화 */
         String cntrCralIdvTno, /* 계약처휴대전화번호3 */
+        String cstNo, /* 고객번호 */
+        String sfk, /* 세이프키 */
+        String buNotiTpCd, /* 부담유형 */
         String rcgvpKnm, /* 설치자명 */
-        String istSppZip, /* 설치처우편번호 */
-        String istSppAdr, /* 설치처기본주소 */
-        String istSppDtlAdr, /* 설치처상세주소 */
         String istLocaraTno, /* 설치처지역전화번호 */
         String istExnoEncr, /* 설치처전화국번호암호화 */
         String istIdvTno, /* 설치처개별전화번호 */
         String istCralLocaraTno, /* 설치처휴대지역전화번호 */
         String istMexnoEncr, /* 설치처휴대전화국번호암호화 */
         String istCralIdvTno, /* 설치처휴대개별전화번호 */
-        String cntrDtlStatCd, /* 현재회원상태 */
+        String cntrSppZip, /* 계약처우편번호 */
+        String cntrSppAdr, /* 계약처기본주소 */
+        String cntrSppDtlAdr, /* 계약처상세주소 */
+        String istSppZip, /* 설치처우편번호 */
+        String istSppAdr, /* 설치처기본주소 */
+        String istSppDtlAdr, /* 설치처상세주소 */
         String pdNm, /* 상품명 */
-        String mpyMthdTpCd, /* 납부방식유형코드 */
-        String bnk, /* 은행/카드사 */
-        String vtAc, /* 자동이체 */
-        String fntDt, /* 이체일자 */
-        String plar, /* 플래너 */
-        String plarCralLocaraTno,
-        String plarMexnoEncr,
-        String plarCralIdvTno, /* 플래너 휴대전화번호 */
-        String cltnDt, /* 해약일 */
-        String dsmn, /* 지국장 */
-        String dsmnCralLocaraTno,
-        String dsmnMexnoEncr,
-        String dsmnCralIdvTno, /* 지국장 휴대전화번호 */
-        String dsmnLocaraTno,
-        String dsmnExnoEncr,
-        String dsmnIdvTno, /* 지국장 전화번호 */
-        String bldCd, /* 소속빌딩코드 */
-        String bldNm, /* 소속빌딩명 */
-        String dtrcTno, /* 지국 전화번호 */
-        String vacNo, /* 가상계좌번호 */
-        String tfDt, /* 이관일자 */
-        String prtnrNo, /* 집금담당번호 */
-        String prtnrNm, /* 집금담당 */
-        String dfltDt, /* 채무불이행 */
-        String lwmMoCn, /* 법조치 */
-        String lwscBilAmt, /* 소송비 청구금액 */
-        String lwmDpAmt, /* 소송비 입금액 */
-        String lwscBlam, /* 소송비 잔액 */
-        String ucAmt, /* 미수금합산 */
+        String cntrDtlStatCd, /* 현재회원상태 */
+        String cntrDtlStatNm, /* 현재회원상태명 */
         String rcpDt, /* 접수일 */
         String istDt, /* 설치일 */
         String canDt, /* 취소일 */
         String reqdDt, /* 철거일 */
-        String buNotiTpCd, /* 부담통보유형코드 */
-        String storeTno, /* 판매처 전화번호 */
+        String vtAc, /* 자동이체 */
+        String fntDt, /* 이체일자 */
+        String mpyMthdTpCd, /* 이체상태 */
+        String mpyMthdTpNm, /* 이체상태 */
+        String plar, /* 판매자 */
+        String plarCralLocaraTno,
+        String plarMexnoEncr,
+        String plarCralIdvTno, /* 판매자 휴대전화번호 */
+        String cltnDt, /* 판매자 해약일 */
+        String dsmn, /* 지국장 */
+        String dsmnCralLocaraTno,
+        String dsmnMexnoEncr,
+        String dsmnCralIdvTno, /* 지국장 휴대전화번호 */
+        String dsmnCltnDt, /* 지국장 해약일 */
+        String bldCd, /* 소속빌딩코드 */
+        String bldNm, /* 소속빌딩명 */
         String alncCd, /* 제휴코드 */
         String alncNm, /* 제휴명 */
         String alncStat, /* 제휴상태 */
-        String authRsg, /* 직권해지 */
-        String authRsgExcd, /* 직권해지 제외 */
+        String vacNo, /* 가상계좌번호 */
+        String tfDt, /* 이관일자 */
+        String prtnrNo, /* 집금담당번호 */
+        String prtnrNm, /*집금담당명*/
+        String dfltDt, /* 채무불이행 */
+        String lwmMoCn, /* 법조치 */
         String slStp, /* 매출중지 */
         String bndClnPsblDvCd, /* 회수가능성 */
         String bndClnPrcsDvCd, /* 회수절차 */
-        String bndBizDvCd /* 채권업무구분코드 */
+        String lwscBilAmt, /* 소송비 청구금액 */
+        String lwmDpAmt, /* 소송비 입금액 */
+        String lwscBlam, /* 소송비 잔액 */
+        String ucAmt /* 미수금합산 */
     ) {
         public FindRes {
-            cntrExnoEncr = StringUtils.isNotEmpty(cntrExnoEncr) ? DbEncUtil.dec(cntrExnoEncr) : cntrExnoEncr;
             cntrMexnoEncr = StringUtils.isNotEmpty(cntrMexnoEncr) ? DbEncUtil.dec(cntrMexnoEncr) : cntrMexnoEncr;
             istExnoEncr = StringUtils.isNotEmpty(istExnoEncr) ? DbEncUtil.dec(istExnoEncr) : istExnoEncr;
             istMexnoEncr = StringUtils.isNotEmpty(istMexnoEncr) ? DbEncUtil.dec(istMexnoEncr) : istMexnoEncr;
-            dsmnMexnoEncr = StringUtils.isNotEmpty(dsmnMexnoEncr) ? DbEncUtil.dec(dsmnMexnoEncr) : dsmnMexnoEncr;
-            dsmnExnoEncr = StringUtils.isNotEmpty(dsmnExnoEncr) ? DbEncUtil.dec(dsmnExnoEncr) : dsmnExnoEncr;
             plarMexnoEncr = StringUtils.isNotEmpty(plarMexnoEncr) ? DbEncUtil.dec(plarMexnoEncr) : plarMexnoEncr;
+            dsmnMexnoEncr = StringUtils.isNotEmpty(dsmnMexnoEncr) ? DbEncUtil.dec(dsmnMexnoEncr) : dsmnMexnoEncr;
         }
 
     }
