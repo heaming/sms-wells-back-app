@@ -227,4 +227,27 @@ public class WsnaStockAcinspRgstMngtService {
         return processCount;
 
     }
+
+    /**
+     * 신청취소버튼 클릭 이벤트
+     * @param dtos
+     * @return
+     */
+    public int removeManagerStockControl(List<RemoveReq> dtos) {
+        ValidAssert.notEmpty(dtos);
+
+        int processCount = 0;
+
+        List<WsnaStockAcinspRgstMngtDvo> dvos = this.converter
+            .mapAllDeleteApplAcinspReqToWsnaStockAcinspRgstMngtDvo(dtos);
+        for (WsnaStockAcinspRgstMngtDvo dvo : dvos) {
+
+            int chkCount = this.mapper.deleteApplAcinsp(dvo);
+            //저장에 실패하였습니다.
+            BizAssert.isTrue(chkCount > 0, "MSG_ALT_SVE_ERR");
+
+            processCount++;
+        }
+        return processCount;
+    }
 }

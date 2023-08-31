@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import com.sds.sflex.system.config.validation.validator.ValidDate;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -174,5 +172,14 @@ public class WsnaStockAcinspRgstMngtDto {
         String wareDtlDvCd,
         String searchWareNo,
         String useYn
+    ) {}
+
+    @ApiModel("WsnaStockAcinspRgstMngtDto-RemoveReq")
+    public record RemoveReq(
+        @NotBlank
+        String apyYm,
+        @NotBlank
+        String wareNo,
+        String itmPdCd
     ) {}
 }
