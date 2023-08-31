@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.mapper;
 
+import static com.kyowon.sms.wells.web.service.allocate.dto.WsncIntergratedQrProcsListSearchDto.SearchAggrReq;
 import static com.kyowon.sms.wells.web.service.allocate.dto.WsncIntergratedQrProcsListSearchDto.SearchReq;
 
 import java.util.List;
@@ -28,4 +29,6 @@ public interface WsncIntergratedQrProcsListSearchMapper {
     List<WsncIntergratedQrProcsListSearchDvo> selectByOgList(SearchReq searchReq);
 
     List<WsncIntergratedQrProcsListSearchDvo> selectOgDetailList(SearchReq searchReq);
+
+    List<WsncIntergratedQrProcsListSearchDvo> selectAggrList(SearchAggrReq searchReq);
 }
