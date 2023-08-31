@@ -34,4 +34,8 @@ public class WsncIntergratedQrProcsListSearchService {
     public List<SearchOgDetailRes> getOgDetailProcsList(SearchReq dto) {
         return converter.mapSearchOgDetailResDvo(mapper.selectOgDetailList(dto));
     }
+
+    public List<SearchAggrRes> getAggrList(SearchAggrReq dto) {
+        return converter.mapSearchAggrResDvo(mapper.selectAggrList(dto));
+    }
 }

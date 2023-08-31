@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.converter;
 
-import static com.kyowon.sms.wells.web.service.allocate.dto.WsncIntergratedQrProcsListSearchDto.SearchByOgRes;
-import static com.kyowon.sms.wells.web.service.allocate.dto.WsncIntergratedQrProcsListSearchDto.SearchOgDetailRes;
+import static com.kyowon.sms.wells.web.service.allocate.dto.WsncIntergratedQrProcsListSearchDto.*;
 
 import java.util.List;
 
@@ -25,6 +24,10 @@ public interface WsncIntergratedQrProcsListSearchConverter {
     );
 
     List<SearchOgDetailRes> mapSearchOgDetailResDvo(
+        List<WsncIntergratedQrProcsListSearchDvo> dvos
+    );
+
+    List<SearchAggrRes> mapSearchAggrResDvo(
         List<WsncIntergratedQrProcsListSearchDvo> dvos
     );
 }
