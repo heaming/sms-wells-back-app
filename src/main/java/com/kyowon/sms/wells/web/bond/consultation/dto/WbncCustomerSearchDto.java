@@ -46,7 +46,6 @@ public class WbncCustomerSearchDto {
         String clctamPrtnrNo,
         String prtnrKnm,
         String cstNo,
-        String bndCntrTpCd,
         String sppZip,
         String sppAdr,
         String sppDtlAdr,
