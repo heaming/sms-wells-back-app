@@ -15,7 +15,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class WsnbInstallLocationDvo {
-
+    String chk;
     String cntrNo; /* 계약번호 */
     String cntrSn; /* 계약일련번호 */
     String dtlSn; /* 상세일련번호 */
