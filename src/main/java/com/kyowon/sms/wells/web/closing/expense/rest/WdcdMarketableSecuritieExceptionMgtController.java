@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.closing.expense.rest;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 
@@ -58,8 +59,10 @@ public class WdcdMarketableSecuritieExceptionMgtController {
 
     @PostMapping
     public SaveResponse saveSettlementWithholdingTax(@RequestBody List<SaveReq> req) throws Exception {
+        Map<String, Object> resultMap = service.saveSettlementWithholdingTax(req);
         return SaveResponse.builder()
-            .processCount(service.saveSettlementWithholdingTax(req))
+            .data(resultMap.get("opcsAdjNo"))
+            .processCount(Integer.valueOf(resultMap.get("count").toString()))
             .build();
     }
 }

@@ -1,6 +1,8 @@
 package com.kyowon.sms.wells.web.closing.expense.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -34,7 +36,7 @@ public class WdcdMarketableSecuritieMgtService {
     }
 
     @Transactional
-    public int saveSettlementWithholdingTax(List<SaveReq> reqs) {
+    public Map<String, Object> saveSettlementWithholdingTax(List<SaveReq> reqs) {
         int count = 0;
         SaveReq firstReq = reqs.get(0);
         //1. 해당월 확정완료 여부 체크
@@ -77,6 +79,10 @@ public class WdcdMarketableSecuritieMgtService {
         mapper.updateOpcsCard(masterDvo); // 6. 카드정보 업데이트 (ASIS : updateOpcsCard). 운영비 정산카드내역
         masterDvo.setOpcsCardUseIzId(firstReq.opcsCardUseIzId());
         mapper.insertAccMap(masterDvo); //7. 매핑정보 등록 (ASIS : insertAccMap). 정산번호와 운영비사용카드내역 아이디를 매핑
-        return count;
+
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("opcsAdjNo", masterDvo.getOpcsAdjNo()); //운영비정산번호
+        resultMap.put("count", count);
+        return resultMap;
     }
 }
