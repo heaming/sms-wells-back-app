@@ -320,5 +320,4 @@ public class WpsfActivityGoodsMgtController {
             .processCount(service.removeActivityActivityGoodsSizeDetail(dtos))
             .build();
     }
-
 }
