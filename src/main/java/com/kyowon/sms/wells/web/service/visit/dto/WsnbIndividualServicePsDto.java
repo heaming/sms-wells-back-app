@@ -156,15 +156,15 @@ public class WsnbIndividualServicePsDto {
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchCounselRes")
     public record SearchCounselRes(
         String cselSts,
-        String cnslDt,
+        String cnslStDt,
         String cnslEdDt,
         String cnslTpHcsfCd,
         String cnslTpMcsfCd,
         String cnslTpLcsfCd,
-        String modUserId,
+        String pcpNm,
         String cselRstCd,
         String custResp,
-        String cstNm,
+        String clntDvNm,
         String cnslCn
     ){}
 
