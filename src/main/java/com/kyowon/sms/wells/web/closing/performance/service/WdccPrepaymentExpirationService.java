@@ -72,14 +72,16 @@ public class WdccPrepaymentExpirationService {
             sendDvo.setCntrSn(dto.cntrSn()); // 계약일련번호
             sendDvo.setDsptrTno("1588-4113"); // 발신자번호
             String tno = dto.cntrCralTno1() + dto.cntrCralTno2() + dto.cntrCralTno3();
-            sendDvo.setRcvrTno("01011112222"); // 수신자번호
             sendDvo.setMsgTit("[웰스] 선납만료 안내");
             sendDvo.setMsgCn(templateContent);
             sendDvo.setBndMsgTpVal1("Wells18038");// 채권메시지유형값1
             sendDvo.setBndMsgTpVal2(dto.prmEndYm());// 채권메시지유형값2
-            sendDvo.setBndMsgTpVal4("웰스 상품");// 채권메시지유형값4
+            sendDvo.setBndMsgTpVal2(dto.cstNo());// 채권메시지유형값3
+            sendDvo.setBndMsgTpVal4(dto.pdCd());// 채권메시지유형값4
+            sendDvo.setBndMsgTpVal4(dto.cnt());// 채권메시지유형값4
             sendDvo.setReserved8("N");
             if (dto.cntrCralTno1() != null) {
+                sendDvo.setRcvrTno(tno); // 수신자번호
                 int result = messageMgtService.createMessage(sendDvo, "Wells18038", paramMap);
                 BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 

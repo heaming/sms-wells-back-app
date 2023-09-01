@@ -232,77 +232,81 @@
     </select>
     
     <select id="selectCharacterFwUld" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccPrepaymentExpirationDto$SearchCharacterFwUldRes">
-        SELECT MAST.CNTR_CRAL_TNO1 AS CNTR_CRAL_TNO1
-		     , MAST.CNTR_CRAL_TNO2 AS CNTR_CRAL_TNO2
-		     , MAST.CNTR_CRAL_TNO3 AS CNTR_CRAL_TNO3
-		     , MAX(MAST.CST_NO) AS CST_NO
-		     , MAX(MAST.PD_NM) || '/외'||(CASE WHEN COUNT(*) >= 1 THEN (COUNT(*)-1) || '건' ELSE '0건' END) AS CNTR_INFO
-		     , MAX(MAST.PRM_END_YM) AS PRM_END_YM -- 선납종료년월
-		     , TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(MAX(MAST.PRM_END_YM), '-', ''), 'YYYYMM'), 1),'YYYY-MM') AS MMPM_YM -- 선납종료익월년월
-		     , MAX(MAST.PRM_RE_APLC_YN) AS PRM_RE_APLC_YN -- 선납재신청
-		     /* 발송서식 전달 param */
-		     , MAX(MAST.CST_KNM) AS CST_KNM /* 고객명 */
-		     , TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(MAX(MAST.PRM_END_YM), '-', ''), 'YYYYMM'), +0),'MM') AS PRM_END_MM /* 선납종료월 */
-		     , MAX(MAST.CNTR_NO) AS CNTR_NO /* 계약번호 */
-		     , MAX(MAST.CNTR_SN) AS CNTR_SN /* 계약d일련번호 */
-		     , MAX(MAST.CNTR_NO) || '-' || MAX(MAST.CNTR_SN) AS CNTR_DTL_NO /* 계약상세번호 */
-		     , TRIM(REGEXP_REPLACE(TRIM(BOTH ' ' FROM MAX(MAST.PD_NM)), '[ ]*$', '')) AS PD_NM /* 상품명 */
-		     , CASE WHEN COUNT(*) >= 1 THEN (COUNT(*)-1) ELSE 0 END AS CNT /* 건수 */
-		     , TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(MAX(MAST.PRM_END_YM), '-', ''), 'YYYYMM'), +1),'MM') AS CURR_MM /* 당월 */
-		     , TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(MAX(MAST.PRM_END_YM), '-', ''), 'YYYYMM'), +2),'YYYY') AS POST_YY /* 익월년도 */
-		     , TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(MAX(MAST.PRM_END_YM), '-', ''), 'YYYYMM'), +2),'MM') AS POST_MM /* 익월 */
+        SELECT B.*
+             , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = B.PD_CD) || '/외'||B.CNT || '건' AS CNTR_INFO
           FROM (
-                <include refid="objectPresentStateSql" />
-            ) MAST
-            GROUP BY MAST.CNTR_CRAL_TNO1, MAST.CNTR_CRAL_TNO2, MAST.CNTR_CRAL_TNO3
-            HAVING MAX(MAST.PRM_END_YM) != '0000-00'
+                SELECT A.CNTR_CRAL_TNO1 AS CNTR_CRAL_TNO1
+                     , A.CNTR_CRAL_TNO2 AS CNTR_CRAL_TNO2
+                     , A.CNTR_CRAL_TNO3 AS CNTR_CRAL_TNO3
+                     , MAX(A.CST_NO) AS CST_NO
+                     , MAX(A.PD_CD) AS PD_CD
+                     , MAX(A.PRM_END_YM) AS PRM_END_YM -- 선납종료년월
+                     , TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(MAX(A.PRM_END_YM), '-', ''), 'YYYYMM'), 1),'YYYY-MM') AS MMPM_YM -- 선납종료익월년월
+                     , MAX(A.PRM_RE_APLC_YN) AS PRM_RE_APLC_Yn -- 선납재신청
+                     /* 발송서식 전달 param */
+                     , MAX(A.CST_KNM) AS CST_KNM /* 고객명 */
+                     , TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(MAX(A.PRM_END_YM), '-', ''), 'YYYYMM'), +0),'MM') AS PRM_END_MM /* 선납종료월 */
+                     , MAX(A.CNTR_NO) AS CNTR_NO /* 계약번호 */
+                     , MAX(A.CNTR_SN) AS CNTR_SN /* 계약d일련번호 */
+                     , MAX(A.CNTR_NO) || '-' || MAX(A.CNTR_SN) AS CNTR_DTL_NO /* 계약상세번호 */
+                     , TRIM(REGEXP_REPLACE(TRIM(BOTH ' ' FROM MAX(A.PD_NM)), '[ ]*$', '')) AS PD_NM /* 상품명 */
+                     , CASE WHEN COUNT(*) >= 1 THEN (COUNT(*)-1) ELSE 0 END AS CNT /* 건수 */
+                     , TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(MAX(A.PRM_END_YM), '-', ''), 'YYYYMM'), +1),'MM') AS CURR_MM /* 당월 */
+                     , TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(MAX(A.PRM_END_YM), '-', ''), 'YYYYMM'), +2),'YYYY') AS POST_YY /* 익월년도 */
+                     , TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(MAX(A.PRM_END_YM), '-', ''), 'YYYYMM'), +2),'MM') AS POST_MM /* 익월 */
+                  FROM (
+                        <include refid="objectPresentStateSql" />
+                     ) A
+                 GROUP BY A.CNTR_CRAL_TNO1, A.CNTR_CRAL_TNO2, A.CNTR_CRAL_TNO3
+                HAVING MAX(A.PRM_END_YM) != '0000-00'
+             ) B
     </select>
     
     <select id="selectCharacterFwIz" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccPrepaymentExpirationDto$SearchCharacterFwIzRes">
         SELECT T1.BND_MSG_RELY_ID AS BND_MSG_RELY_ID /* 채권메시지중계ID(삭제시 KEY)*/
-		     , T2.DATE_CLIENT_REQ AS DATE_CLIENT_REQ /* 예약발송일시*/
-		     , T1.CST_NO AS CST_NO /* 고객번호*/
-		     , T1.CST_NM AS CST_NM /* 고객명*/
-		     , T2.RECIPIENT_NUM AS RECIPIENT_NUM /* 전화번호*/
-		     , T1.CNTR_NO AS CNTR_NO /* 계약번호*/
-		     , T1.CNTR_SN AS CNTR_SN /* 일련번호*/
-		     , T1.BND_MSG_TP_VAL1 AS BND_MSG_TP_VAL1 /* templateCode(삭제시 KEY)*/
-		     , T1.BND_MSG_TP_VAL2 AS BND_MSG_TP_VAL2 /* 선납만료년월(삭제시 KEY)*/
-		     , T1.BND_MSG_TP_VAL3 AS BND_MSG_TP_VAL3 /* 공란(삭제시 KEY)*/
-		     , T1.BND_MSG_TP_VAL4 AS BND_MSG_TP_VAL4 /* 상품정보*/
-		     , T3.MSG_STATUS AS MSG_STATUS/* 메시지 상태(1-전송대기, 2-결과대기, 3-완료)*/
-		     , CASE WHEN T3.MSG_STATUS = '1' THEN '전송대기'
-		            WHEN T3.MSG_STATUS = '2' THEN '결과대기'
-		            ELSE CASE WHEN T3.RESULT = '1000' THEN 'Y'
-		                 ELSE 'N'
-		             END
-		        END AS SUC_YN/* 성공여부*/
-		     , T1.FNL_MDFC_DTM AS FNL_MDFC_DTM /* 입력일시*/
-		     , T4.USR_NM AS USR_NM /* 입력자명*/
-		     , T4.EPNO AS EPNO /* 사번*/
-		     , T1.FW_BIZ_NM AS FW_BIZ_NM /* 발송업무명*/
-		  FROM TB_CBBO_BND_MSG_RELY_IZ T1
-		  LEFT OUTER JOIN ATA_MMT_TRAN T2
-		    ON T2.RESERVED2 = T1.BND_MSG_RELY_ID 
-		  LEFT OUTER JOIN ATA_MMT_LOG T3
-		    ON T3.RESERVED2 = T1.BND_MSG_RELY_ID 
-		  LEFT OUTER JOIN T_CMP_USR_ACO_M T4
-		    ON T4.USR_ID = T1.FNL_MDFC_USR_ID
-		 WHERE T1.FW_BIZ_NM = 'BN_KAKAO_MESSAGE'
+             , T2.DATE_CLIENT_REQ AS DATE_CLIENT_REQ /* 예약발송일시*/
+             , T1.CST_NO AS CST_NO /* 고객번호*/
+             , T1.CST_NM AS CST_NM /* 고객명*/
+             , T2.RECIPIENT_NUM AS RECIPIENT_NUM /* 전화번호*/
+             , T1.CNTR_NO AS CNTR_NO /* 계약번호*/
+             , T1.CNTR_SN AS CNTR_SN /* 일련번호*/
+             , T1.BND_MSG_TP_VAL1 AS BND_MSG_TP_VAL1 /* templateCode(삭제시 KEY)*/
+             , T1.BND_MSG_TP_VAL2 AS BND_MSG_TP_VAL2 /* 선납만료년월(삭제시 KEY)*/
+             , T1.BND_MSG_TP_VAL3 AS BND_MSG_TP_VAL3 /* 공란(삭제시 KEY)*/
+             , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.BND_MSG_TP_VAL4) || '/외'|| T1.BND_MSG_TP_VAL5 || '건' AS BND_MSG_TP_VAL4 /* 상품정보*/
+             , T3.MSG_STATUS AS MSG_STATUS/* 메시지 상태(1-전송대기, 2-결과대기, 3-완료)*/
+             , CASE WHEN T3.MSG_STATUS = '1' THEN '전송대기'
+                    WHEN T3.MSG_STATUS = '2' THEN '결과대기'
+                    ELSE CASE WHEN T3.RESULT = '1000' THEN 'Y'
+                         ELSE 'N'
+                     END
+                END AS SUC_YN/* 성공여부*/
+             , T1.FNL_MDFC_DTM AS FNL_MDFC_DTM /* 입력일시*/
+             , T4.USR_NM AS USR_NM /* 입력자명*/
+             , T4.EPNO AS EPNO /* 사번*/
+             , T1.FW_BIZ_NM AS FW_BIZ_NM /* 발송업무명*/
+          FROM TB_CBBO_BND_MSG_RELY_IZ T1
+          LEFT OUTER JOIN ATA_MMT_TRAN T2
+            ON T2.RESERVED2 = T1.BND_MSG_RELY_ID 
+          LEFT OUTER JOIN ATA_MMT_LOG T3
+            ON T3.RESERVED2 = T1.BND_MSG_RELY_ID 
+          LEFT OUTER JOIN T_CMP_USR_ACO_M T4
+            ON T4.USR_ID = T1.FNL_MDFC_USR_ID
+         WHERE T1.FW_BIZ_NM = 'BN_KAKAO_MESSAGE'
            AND T1.BND_MSG_TP_VAL1 = 'Wells18038'
            AND T1.DTA_DL_YN ='N'
-		 <if test="@MybatisUtils@isNotEmpty(sndgDt)"> /* 발송일*/
-		   AND T1.FWBOO_DTM >= #{sndgDt} || '000000'
-		   AND T1.FWBOO_DTM <![CDATA[<=]]> #{sndgDt} || '235959'
-		 </if>
-		 <if test="@MybatisUtils@isNotEmpty(cellNo)"> /* 전화번호*/
-		   AND T2.RECIPIENT_NUM LIKE '%'||#{cellNo}||'%'
-		 </if>
-		 <if test="@MybatisUtils@equals(scsYn, 'Y')"> /* 성공여부*/
-		   AND T3.RESULT = '1000'
-		 </if>
-		 <if test="@MybatisUtils@equals(scsYn, 'N')"> /* 성공여부*/
-		   AND T3.RESULT <![CDATA[<>]]> '1000'
-		 </if>
+         <if test="@MybatisUtils@isNotEmpty(sndgDt)"> /* 발송일*/
+           AND T1.FWBOO_DTM >= #{sndgDt} || '000000'
+           AND T1.FWBOO_DTM <![CDATA[<=]]> #{sndgDt} || '235959'
+         </if>
+         <if test="@MybatisUtils@isNotEmpty(cellNo)"> /* 전화번호*/
+           AND T2.RECIPIENT_NUM LIKE '%'||#{cellNo}||'%'
+         </if>
+         <if test="@MybatisUtils@equals(scsYn, 'Y')"> /* 성공여부*/
+           AND T3.RESULT = '1000'
+         </if>
+         <if test="@MybatisUtils@equals(scsYn, 'N')"> /* 성공여부*/
+           AND T3.RESULT <![CDATA[<>]]> '1000'
+         </if>
     </select>
 </mapper>
