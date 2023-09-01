@@ -142,6 +142,7 @@ public class WdccPrepaymentExpirationDto {
         String mmpmYm, /*선납종료익월년월*/
         String prmReAplcYn, /*선납재신청*/
         String prmEndMm, /* 선납종료월 */
+        String pdCd, /*상품코드*/
         String pdNm, /* 상품명 */
         String cnt, /* 건수 */
         String currMm, /* 당월 */
@@ -189,13 +190,13 @@ public class WdccPrepaymentExpirationDto {
         String cstKnm, /*고객명*/
         String cstNo, /*고객번호*/
         String cntrNo, /*계약번호*/
-        String cntrSn, /*계약번호*/
+        String cntrSn, /*계약일련번호*/
         String cntrDtlNo, /*계약상세번호*/
         String cntrInfo, /*상품정보*/
         String prmEndYm, /*선납종료년월*/
         String mmpmYm, /*선납종료익월년월*/
-        String prmReAplcYn, /*선납재신청*/
         String prmEndMm, /* 선납종료월 */
+        String pdCd, /*상품코드*/
         String pdNm, /* 상품명 */
         String cnt, /* 건수 */
         String currMm, /* 당월 */
@@ -203,11 +204,6 @@ public class WdccPrepaymentExpirationDto {
         String postMm, /* 익월 */
         String fwbooDate, /*발송예약일*/
         String fwbooTime/*발송예약시간*/
-    ) {
-        public SendReq {
-            cntrCralTno2 = StringUtils.isNotEmpty(cntrCralTno2) ? DbEncUtil.enc(cntrCralTno2) : cntrCralTno2;
-        }
-
-    }
+    ) {}
 
 }
