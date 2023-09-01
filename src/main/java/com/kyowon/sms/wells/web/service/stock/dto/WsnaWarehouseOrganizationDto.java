@@ -158,7 +158,8 @@ public class WsnaWarehouseOrganizationDto {
     public record SearchWarehouseRes(
         String codeId,
         String codeName,
-        String sortDvVal // 정렬구분값
+        String sortDvVal, // 정렬구분값
+        String isSameOg // 동일조직여부
     ) {}
 
     @ApiModel(value = "WsnaWarehouseOrganizationDto-SearchBuildingReq")
