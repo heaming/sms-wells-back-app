@@ -13,37 +13,37 @@ public interface WfeeFeeSpecificationMapper {
 
     //M추진단 /플래너
     List<HashMap<String, Object>> selectMPlannerFeeSpecifications(
-        SearchReq dto, String feeCdStr // 수수료 계산단위 유형코드
-        , String feeCdFields, String feeSumField, String feeCdInStr
+        SearchReq dto, String feeCdCase // 수수료 계산단위 유형코드
+        , String feeCdFields, String feeSumField
     );
 
     //P추진단 /플래너
     List<HashMap<String, Object>> selectPPlannerFeeSpecifications(
-        SearchReq dto, String feeCdStr // 수수료 계산단위 유형코드
-        , String feeCdFields, String feeSumField, String feeCdInStr
+        SearchReq dto, String feeCdCase // 수수료 계산단위 유형코드
+        , String feeCdFields, String feeSumField
     );
 
     //M추진단  / 지점장
     List<HashMap<String, Object>> selectMManagerFeeSpecifications(
-        SearchReq dto, String feeCdStr // 수수료 계산단위 유형코드
-        , String feeCdFields, String feeSumField, String feeCdInStr
+        SearchReq dto, String feeCdCase // 수수료 계산단위 유형코드
+        , String feeCdFields, String feeSumField
     );
 
     //P추진단 / 지점장
     List<HashMap<String, Object>> selectPManagerFeeSpecifications(
-        SearchReq dto, String feeCdStr // 수수료 계산단위 유형코드
-        , String feeCdFields, String feeSumField, String feeCdInStr
+        SearchReq dto, String feeCdCase // 수수료 계산단위 유형코드
+        , String feeCdFields, String feeSumField
     );
 
     //홈마스터 / 플래너
     List<HashMap<String, Object>> selectHPlannerFeeSpecifications(
-        SearchReq dto, String feeCdStr // 수수료 계산단위 유형코드
-        , String feeCdFields, String feeSumField, String feeCdInStr
+        SearchReq dto, String feeCdCase // 수수료 계산단위 유형코드
+        , String feeCdFields, String feeSumField
     );
 
     //홈마스터 / 지점장
     List<HashMap<String, Object>> selectHManagerFeeSpecifications(
-        SearchReq dto, String feeCdStr // 수수료 계산단위 유형코드
-        , String feeCdFields, String feeSumField, String feeCdInStr
+        SearchReq dto, String feeCdCase // 수수료 계산단위 유형코드
+        , String feeCdFields, String feeSumField
     );
 }
