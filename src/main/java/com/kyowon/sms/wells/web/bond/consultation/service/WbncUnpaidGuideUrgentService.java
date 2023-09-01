@@ -17,9 +17,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class WbncUnpaidGuideUrgentService {
-
     private final WbncUnpaidGuideUrgentMapper mapper;
-    //    private final WbncUnpaidGuideUrgentConverter converter;
 
     public PagingResult<SearchRes> getUnpaidGuideUrgentPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectUnpaidGuideUrgentPages(dto, pageInfo);
@@ -31,7 +29,7 @@ public class WbncUnpaidGuideUrgentService {
 
     public CheckRes checkUnpaidGuideUrgentObjects(CheckReq dto) {
         String cnfmYn = "N";
-        int ojTotalCount = 0;
+        int ojTotalCount;
 
         List<WbncUncollectedAdviceNoteOjIzDvo> dvos = this.mapper.selectCheckUnpaidGuideUrgentObjects(dto);
         ojTotalCount = dvos.size();
