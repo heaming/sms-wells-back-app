@@ -1621,7 +1621,9 @@
              , OG.PRTNR_KNM AS EMPL_NM	               /*성명*/
              , OG.PRTNR_NO			                   /*파트너번호*/
              , OG.RSB_DV_CD                            /*직책*/
-             , OG.QLF_DV_CD	                           /*자격*/
+             , CASE WHEN OG.OG_TP_CD = 'W01' THEN CMZ.CD_CNTN
+                    ELSE OG.QLF_DV_CD
+               END AS QLF_DV_CD                        /*자격*/
              , OG.FNIT_CD		                       /*은행*/
              , OG.ACNO_ENCR AS AC_NO	               /*계좌번호*/
              , NVL(FEE.INTBS_SUM,0) AS INTBS_SUM	   /*과표계*/
@@ -1664,7 +1666,10 @@
                                            , FNIT_CD
                                            , RANK() OVER (PARTITION BY (PRTNR_NO) ORDER BY VL_END_DTM DESC) AS RK_NUM
                                         FROM TB_OGBS_PRTNR_AC_BAS
-                                       WHERE PRTNR_NO = #{no}
+                                       WHERE 1=1
+                                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                         AND PRTNR_NO = #{prtnrNo}
+                                    </if>
                                          AND OG_TP_CD = #{ogTpCd}
                                          AND PRTNR_AC_USWY_CD = '1'
                                          AND #{perfYm} &lt;= ( CASE WHEN TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(VL_END_DTM,1,6),'YYYYMM'), 1),'YYYYMM' ) = '000000' THEN '999912'
@@ -1705,6 +1710,10 @@
                         )AWD
           ON OG.PRTNR_NO = AWD.PRTNR_NO
          AND OG.OG_TP_CD = AWD.OG_TP_CD
+        LEFT OUTER JOIN T_CMZ_CD_D CMZ
+          ON OG.QLF_DV_CD = CMZ.CD_VLD_VAL
+        AND CMZ.CD_ID = 'PQLF_DV_CD'
+        AND CMZ.TENANT_ID = 'TNT_WELLS'
        WHERE 1=1
     <if test='@MybatisUtils@isNotEmpty(userSpptRsbDvCd)'>
         <if test='@MybatisUtils@equals(userSpptRsbDvCd, "W0106") or @MybatisUtils@equals(userSpptRsbDvCd, "W0206") or @MybatisUtils@equals(userSpptRsbDvCd, "W0107") or @MybatisUtils@equals(userSpptRsbDvCd, "W0207")'>
@@ -1749,7 +1758,7 @@
                             )
          </if>
     </if>
-    <if test='@MybatisUtils@equals(feeDsbYn, "1")'>
+    <if test='@MybatisUtils@equals(feeDsbYn, "Y")'>
          AND ( NVL(FEE.INTBS_SUM,0) &gt; 0          /*지급여부가 Y 이면 과표계, 공제계,실지급액,시상지급액 이 0원 초과*/
                OR NVL(FEE.DDTN_SUM,0) &gt; 0
                OR NVL(FEE.ACL_DSB_AMT,0) &gt; 0
@@ -1758,7 +1767,7 @@
                OR NVL(AWD.AWD_INTBS_TOT_AMT,0) &gt; 0
              )
     </if>
-    <if test='@MybatisUtils@equals(feeDsbYn, "2")'>
+    <if test='@MybatisUtils@equals(feeDsbYn, "N")'>
          AND ( NVL(FEE.ACL_DSB_AMT,0) &lt;= 0        /*지급여부가 N 실지급액,시상지급액 이 0원 이하*/
                AND NVL(AWD.AWD_INTBS_TOT_AMT,0) &lt;= 0
              )
