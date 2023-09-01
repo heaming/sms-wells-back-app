@@ -1,16 +1,16 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto.*;
+
 import java.util.List;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import org.springframework.web.bind.annotation.*;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto.*;
-
 import com.kyowon.sms.wells.web.service.stock.service.WsnaEtcOutOfStorageService;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -81,5 +81,14 @@ public class WsnaEtcOutOfStorageController {
         return SaveResponse.builder()
             .processCount(this.service.saveEtcOutOfStoragess(dtos))
             .build();
+    }
+
+    @ApiOperation(value = "기타출고 영업센터 조직창고 조회", notes = "기타출고 영업센터인경우 영업센터조직창고 조회")
+    @GetMapping("/wells-business/{apyYm}")
+    public List<SearchCodeRes> getWellsCenterWarehouse(
+        @PathVariable
+        String apyYm
+    ) {
+        return this.service.getWellsCenterWarehouse(apyYm);
     }
 }
