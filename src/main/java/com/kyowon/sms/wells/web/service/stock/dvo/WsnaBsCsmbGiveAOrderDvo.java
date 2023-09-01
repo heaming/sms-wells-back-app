@@ -24,7 +24,7 @@ public class WsnaBsCsmbGiveAOrderDvo {
     int pajuLgstCnrStocQty;
     int sgsuLgstCnrStocQty;
     int woStocQty;
-    int stocPersMmN;
+    float stocPersMmN;
     String etExsDt;
     int goUprc;
     int ncstQty;
