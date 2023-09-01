@@ -204,41 +204,44 @@ public class WbncCustomerDto {
 
     @ApiModel(value = "WbncCustomerDto-FindCustomerDetailRes")
     public static record FindCustomerDetailRes(
-        String mpyBsdt, /* 이체 */
-        String sellTpCd, /* 업무구분코드 */
-        String sellTpNm, /* 업무구분명 */
-        String prdf, /* 제품군 */
-        String pdNm, /* 상품명 */
+        String ctt, /* 이체 */
+        String bndBizDvCd, /* 업무구분 */
+        String bndBizDvNm, /* 업무구분명 */
+        String pdClsfNm, /* 제품군 */
+        String pdNm, /* 제품명 */
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
-        String cstNo, /* 고객번호 */
         String cstKnm, /* 고객명 */
         String dlqMcn, /* 연체개월 */
-        String cntrRsgDt, /* 직권해지일자 */
+        String authRsgCnfmdt, /* 직권해지일자 */
         String ojAmt, /* 대상금액 */
         String ojDp, /* 대상입금 */
         String ojBlam, /* 대상금액 - 대상입금 = 대상잔액 */
         String totDlqAmt, /* 연체금액 + 연체가산금 = 총연체금 */
         String totDlqDp, /* 연체입금금액 + 연체가산금입금금액 = 총연체입금 */
         String totDlqBlam, /* 총연체금 - 총연체입금 = 총연체잔액 */
+        String dlqAmt, /* 연체금액 */
+        String dlqDp, /* 연체입금 */
+        String dlqBlam, /* 연체금액 - 연체입금 = 연체잔액 */
         String mmChramAmt, /* 월요금액 */
         String mmChramDp, /* 월요금입금 */
         String mmChramBlam, /* 당월요금금액 - 당월요금입금금액 = 월요금잔액 */
         String dlqAddAmt, /* 연체가산금액 */
         String dlqAddDp, /* 연체가산입금 */
         String dlqAdamtBlam, /* 연체가산금액 - 연체가산금입금금액 = 연체가산금잔액 */
-        String svCs, /* 서비스비용 */
-        String svDp, /* 서비스입금 */
-        String svBlam, /* 서비스잔액 */
+        String svCs, /*서비스비용*/
+        String svDp, /*서비스입금*/
+        String svBlam, /*서비스잔액*/
         String ucAmt, /* 미수금액 */
+        String rsgBorDpAmt, /* 해지위약입금금액 */
         String ucDp, /* 미수입금 */
         String ucBlam, /* 미수금 - 총입금액 = 미수잔액 */
         String totDpAmt, /* 연체입금금액 + 연체가산입금금액 + 해지위약금입금금액 + 당월요금입금금액 = 총입금액 */
         String spmtSl, /* 추가매출 */
         String lsRntf, /* 분실손료 */
-        String vtAcDv, /* 가상계좌구분 */
-        String vtAcBnk, /* 가상계좌은행 */
-        String vtAcNo, /* 가상계좌번호 */
+        String vacVncoDvCd, /*가상계좌구분*/
+        String bnkNm, /* 가상계좌은행 */
+        String vacNo, /* 가상계좌번호 */
         String ccam, /* 위약금 */
         String lsfe, /* 분실료 */
         String rtlfe1, /* 렌탈료1 */
@@ -246,11 +249,11 @@ public class WbncCustomerDto {
         String rtlfe2, /* 렌탈료2 */
         String rtlfeIstm2, /* 렌탈료2할 */
         String dprNm, /* 입금자 */
-        String clctamPrtnrNo, /* 집금번호 */
-        String clctamIchr, /* 집급담당 */
-        String tfDt, /* 이관일자 */
-        String sfk, /* 세이프키 */
-        String bndBizDvCd
+        String prtnrNo, /* 집금담당번호 */
+        String prtnrNm, /*집금담당명*/
+        String bndTfDt, /* 이관일자 */
+        String sfkVal, /* 세이프키*/
+        String cstNo /* 세이프키*/
     ) {}
 
     @ApiModel(value = "WbncCustomertDetailDto-FindUnusualArticlesReq")
