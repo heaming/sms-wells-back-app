@@ -17,9 +17,7 @@ public class WbncUnpaidGuideUrgentDto {
         String ucAmtFwTpCd, /* 미수금액발송유형코드 */
         @NotBlank
         String stateDvCd, /* 진행상태 */
-        @NotBlank
         String copnDvCd, /* 법인격구분코드 */
-        @NotBlank
         String bndBizDvCd, /* 채권업무구분코드 */
         @NotBlank
         String fromDlqMcn, /* 시작연체개월 */
@@ -56,7 +54,7 @@ public class WbncUnpaidGuideUrgentDto {
         String cstY, /* 고객년도 */
         String cstCd, /* 고객코드 */
         int agrgCt, /* 건수 */
-        int agrgMinusCt, /* 나머지건수 */
+        String agrgMinusCt, /* 나머지건수 */
         String cntrBasAdr, /* 주소1 */
         String cntrDtlAdr, /* 주소2 */
         String cntrRefAdr, /* 주소3 */
