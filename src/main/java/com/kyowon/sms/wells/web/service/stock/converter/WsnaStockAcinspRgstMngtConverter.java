@@ -19,6 +19,8 @@ public interface WsnaStockAcinspRgstMngtConverter {
 
     List<WsnaStockAcinspRgstMngtDvo> mapAllDeleteAcinspReqToWsnaStockAcinspRgstMngtDvo(List<SaveCancelReq> dtos);
 
+    List<WsnaStockAcinspRgstMngtDvo> mapAllDeleteApplAcinspReqToWsnaStockAcinspRgstMngtDvo(List<RemoveReq> dtos);
+
     //    List<WsnaStockAcinspRgstMngtDvo> mapAllSaveAcinspCnfmReReqToWsnaStockAcinspRgstMngtDvo(
     //        List<WsnaStockAcinspRgstMngtDvo> reSearchDvo
     //    );
