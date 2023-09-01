@@ -83,24 +83,23 @@ public class WsnaManagerBsConsumableService {
                     new String[] {mngtYear, mngtMonth}
                 );
 
-                if (CollectionUtils.isEmpty(itemInfos)) {
-                    for (WsnaManagerBsConsumableDvo itemInfo : itemInfos) {
-                        switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
-                            case "1" -> {
-                                fxnItemQtys.add(itemInfo.getFxnDdlvUnitQty());
-                            }
+                for (WsnaManagerBsConsumableDvo itemInfo : itemInfos) {
+                    switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
+                        case "1" -> {
+                            fxnItemQtys.add(itemInfo.getFxnDdlvUnitQty());
+                        }
 
-                            case "2" -> {
-                                aplcItemQtys.add(itemInfo.getAplcDdlvUnitQty());
-                            }
+                        case "2" -> {
+                            aplcItemQtys.add(itemInfo.getAplcDdlvUnitQty());
                         }
                     }
-
-                    aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
-                    aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
-                    aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
-                    bldAndItemsInfos.add(aftBldInfo);
                 }
+
+                aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
+                aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
+                aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
+                bldAndItemsInfos.add(aftBldInfo);
+
             } else {
                 for (WsnaManagerBsConsumableDvo itemInfo : itemInfos) {
                     switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
