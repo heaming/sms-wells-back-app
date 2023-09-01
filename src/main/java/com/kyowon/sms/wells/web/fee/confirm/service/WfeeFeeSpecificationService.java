@@ -90,7 +90,8 @@ public class WfeeFeeSpecificationService {
 
         String feeCdCase = feeLists.stream()
             .map(
-                item -> " CASE WHEN DI.FEE_CD = '" + item.feeCd() + "' THEN SUM(DI.FEE_ATC_VAL) END AS " + item.feeCd()
+                item -> " SUM(CASE WHEN DI.FEE_CD = '" + item.feeCd() + "' THEN DI.FEE_ATC_VAL ELSE 0 END ) AS "
+                    + item.feeCd()
             )
             .collect(Collectors.joining(","));
         String feeCdFields = feeLists.stream().map(item -> " NVL(" + item.feeCd() + ",0) AS " + item.feeCd())
