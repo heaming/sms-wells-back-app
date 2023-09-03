@@ -1,5 +1,13 @@
 package com.kyowon.sms.wells.web.closing.expense.service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kyowon.sms.wells.web.closing.expense.converter.WdcdCleanerReqeustMgtConverter;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanerReqeustMgtDto.FindCodeReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanerReqeustMgtDto.FindCodeRes;
@@ -10,14 +18,8 @@ import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdCleanerReqeustMgtMapp
 import com.sds.sflex.common.docs.service.AttachFileService;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.validation.BizAssert;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +48,7 @@ public class WdcdCleanerReqeustMgtService {
             String fileId = groupId + "_BAS" + clinrRgno;
             dvo.setDtaDlYn("N");
 
-            
+
             int byteCount = String.valueOf(dvo.getAplcnsNm()).getBytes("UTF-8").length;
             BizAssert.isFalse(byteCount > 50, "MSG_ALT_MANY_CLEANERS_NAME");
 
@@ -148,6 +150,8 @@ public class WdcdCleanerReqeustMgtService {
 
         WdcdCleanerReqeustDvo dvo = mapper.selectCleanerReqeust(clinrRgno);
         FindRes findRes = converter.mapFindResToWdcdCleanerReqeustDvo(dvo);
+
+
         return findRes;
     }
 }

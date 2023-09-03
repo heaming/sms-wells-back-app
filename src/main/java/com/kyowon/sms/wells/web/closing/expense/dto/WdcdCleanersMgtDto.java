@@ -54,6 +54,7 @@ public class WdcdCleanersMgtDto {
         String wrkStrtdt, /*근무시작일자*/
         String wrkEnddt, /*근무종료일자*/
         String workStatus, /*근무여부*/
+        String bryyMmdd, /*생년월일*/
         @MaskRequired(type = MaskingType.RRN)
         String rrnoEncr, /*주민등록번호*/
         String locaraTno,
@@ -68,6 +69,7 @@ public class WdcdCleanersMgtDto {
         String acnoEncr /*계좌번호*/
     ) {
         public SearchRes {
+            rrnoEncr = bryyMmdd + "-" + rrnoEncr;
             telNum = locaraTno + '-' + exnoEncr + '-' + idvTno;
         }
     }

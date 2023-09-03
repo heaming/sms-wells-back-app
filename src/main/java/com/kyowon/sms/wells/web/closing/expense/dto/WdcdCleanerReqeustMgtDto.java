@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.closing.expense.dto;
 
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
 import com.sds.sflex.system.config.masking.MaskRequired;
 import com.sds.sflex.system.config.masking.MaskingType;
@@ -55,7 +53,8 @@ public class WdcdCleanerReqeustMgtDto {
         String clinrNm, // 청소원 명
         String wrkStrtdt, // 근무시작일자
         String wrkEnddt, // 근무종료일자
-        String rrnoEncr,
+        String bryyMmdd, // 생년월일
+        String rrnoEncr, //주민번호 뒷자리
         String locaraTno, // 지역번호
         String exnoEncr, // 전화국별
         String idvTno, // 개별전화번호
@@ -95,13 +94,10 @@ public class WdcdCleanerReqeustMgtDto {
         String clinrNm, /*청소원*/
         String wrkStrtdt,
         String wrkEnddt,
-        String bryyMmdd,
-        String frontRrnoEncr, // 주민번호 앞자리
-        String backRrnoEncr, // 주민번호 뒷자리
-        @MaskRequired(type = MaskingType.RRN)
+        String bryyMmdd, // 생년월일
+        @MaskRequired(type = MaskingType.ALL)
         String rrnoEncr, // 주민등록번호
         String locaraTno,
-        //@MaskRequired(type = MaskingType.ALL)
         String exnoEncr,
         String idvTno,
         String zip,
@@ -115,11 +111,5 @@ public class WdcdCleanerReqeustMgtDto {
         String cntrwApnFileId,
         String cntrLroreApnFileId
     ) {
-        public FindRes {
-            if(StringUtils.isNotEmpty(rrnoEncr) && rrnoEncr.length() == 13) {
-                frontRrnoEncr = rrnoEncr.substring(0, 6);
-                backRrnoEncr = rrnoEncr.substring(6, rrnoEncr.length());
-            }
-        }
     }
 }
