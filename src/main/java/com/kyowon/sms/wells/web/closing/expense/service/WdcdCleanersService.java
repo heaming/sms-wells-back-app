@@ -38,6 +38,7 @@ public class WdcdCleanersService {
         List<SearchRes> serchResList = new ArrayList<>();
         for (WdcdCleanersDvo dvo : dvos.getList()) {
             serchResList.add(converter.mapSearchResToWdcdCleanersDvo(dvo));
+
         }
 
 
