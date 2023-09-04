@@ -18,6 +18,7 @@ public class WdcdCleanersDvo {
     String bldNm;
     String aplcDt;
     String aplcnsNm;
+    String aplcPrtnrNo;
     String cntrwApnFileId;
     String cntrLroreApnFileId;
     String idfApnFileId;
