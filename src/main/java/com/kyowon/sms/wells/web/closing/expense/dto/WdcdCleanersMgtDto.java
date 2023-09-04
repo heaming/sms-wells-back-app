@@ -43,6 +43,7 @@ public class WdcdCleanersMgtDto {
         String aplcDt, /*신청일*/
         //@MaskRequired(type = MaskingType.NAME)
         String aplcnsNm, /*신청자*/
+        String aplcPrtnrNo, /*신청자 사번*/
         String cntrwApnFileId, /*계약서*/
         String cntrLroreApnFileId, /*계약해지원*/
         String idfApnFileId, /*신분증사본*/
