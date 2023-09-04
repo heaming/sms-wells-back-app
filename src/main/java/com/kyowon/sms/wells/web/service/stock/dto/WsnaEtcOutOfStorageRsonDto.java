@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import io.swagger.annotations.ApiModel;
 
+import java.math.BigDecimal;
+
 /**
  * <pre>
  * W-SV-U-0274M01 기타출고 사유내역
@@ -16,11 +18,13 @@ public class WsnaEtcOutOfStorageRsonDto {
         String stOstrDt,
         String edOstrDt,
         String bilRsonCd,
+        String wareDvCd,
+        String wareNoM,
+        String wareNoD,
         String pdGdCd,
         String itmKndCd,
         String startItemCd,
-        String endItemCd,
-        String ostrWareNo
+        String endItemCd
 
     ) {}
     @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-SearchRes")
@@ -33,11 +37,11 @@ public class WsnaEtcOutOfStorageRsonDto {
         String itmGdCd, /*등큽코드*/
         String ostrDt, /*출고일자*/
         String ostrRsonCd, /*청구사유*/
-        String ostrQty, /*수량*/
-        String csmrUprcAmt, /*소비자가*/
-        String totalAmt, /*총금액*/
-        //        String deptNm
+        int ostrQty, /*수량*/
+        BigDecimal csmrUprcAmt, /*소비자가*/
+        BigDecimal totalAmt, /*총금액*/
         String sortDvVal,
+        String deptNm,
         String rmkCn /*비고*/
     ) {}
 

@@ -42,12 +42,14 @@ public class WsnaMovementStoreController {
         @ApiImplicitParam(name = "ostrWareNoD", value = "출고창고번호디테일", paramType = "query"),
 
     })
-    @GetMapping
-    public List<SearchRes> getMovementStores(
+    @GetMapping("/paging")
+    public PagingResult<SearchRes> getMovementStores(
         @Valid
-        SearchReq dto
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
     ) {
-        return service.getMovementStores(dto);
+        return service.getMovementStores(dto, pageInfo);
     }
 
     @ApiOperation(value = "이동입고현황 엑셀 다운로드", notes = "조회조건에 해당하는 이동입고 현황을 엑셀다운로드 한다.")

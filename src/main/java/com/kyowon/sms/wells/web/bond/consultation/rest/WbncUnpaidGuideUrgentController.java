@@ -33,8 +33,8 @@ public class WbncUnpaidGuideUrgentController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ucAmtFwTpCd", value = "미수금액발송유형코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "stateDvCd", value = "진행상태", paramType = "query", required = true),
-        @ApiImplicitParam(name = "copnDvCd", value = "법인격구분코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "bndBizDvCd", value = "채권업무구분코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "copnDvCd", value = "법인격구분코드", paramType = "query"),
+        @ApiImplicitParam(name = "bndBizDvCd", value = "채권업무구분코드", paramType = "query"),
         @ApiImplicitParam(name = "fromDlqMcn", value = "시작연체개월", paramType = "query", required = true),
         @ApiImplicitParam(name = "toDlqMcn", value = "종료연체개월", paramType = "query", required = true),
         @ApiImplicitParam(name = "clctamDvCd", value = "집금구분", paramType = "query", required = true),

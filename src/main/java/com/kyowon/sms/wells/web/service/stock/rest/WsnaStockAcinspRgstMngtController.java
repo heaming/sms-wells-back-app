@@ -143,4 +143,13 @@ public class WsnaStockAcinspRgstMngtController {
 
     }
 
+    @ApiOperation(value = "웰스매니저 재고조정등록 화면 조회 취소", notes = "재고조정등록 화면에서 차이수량 및 실사완료 처리를 취소한다.")
+    @DeleteMapping
+    public SaveResponse removeManagerStockControl(
+        @RequestBody
+        List<RemoveReq> dtos
+    ) {
+        return SaveResponse.builder().processCount(service.removeManagerStockControl(dtos)).build();
+    }
+
 }

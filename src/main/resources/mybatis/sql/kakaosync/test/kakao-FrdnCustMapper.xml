@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.kyowon.sms.wells.web.kakaosync.common.mapper.KakaoFrdnCustMapper" >
+
+    <!-- 전화번호 존재여부 확인(고객구분:기존/신규) -->
+    <select id="selectCusthnoExsn" parameterType="hashMap" resultType="int">
+        SELECT COUNT(1) AS CNT
+        FROM TB_SSOP_PSPC_CST_BAS
+        WHERE CRAL_LOCARA_TNO = #{custHnO1} /* 휴대전화지역 */
+        AND MEXNO_ENCR = #{custHnO2}
+        AND CRAL_IDV_TNO = #{custHnO3} /* 휴대전화번호 */
+        <if test="AKDGUB != null and AKDGUB != ''">
+        AND PSPC_CST_DIV_DV_CD = #{akdGub}
+        </if>
+    </select>
+
+    <!-- 고객상세 파일 교원키 조회 -->
+    <select id="selectKwkey" resultType="string">
+        /* 가망고객 전화번호 기준 고객 번호 조회 */
+        SELECT CST_NO
+          FROM TB_CUBS_CST_BAS /* 고객기본 */
+         WHERE 1 = 1
+           AND COPN_DV_CD = '1' /* 고객유형(개인) */
+           AND DTA_DL_YN = 'N'
+           AND CRAL_LOCARA_TNO = #{cralLocaraTno}
+           AND MEXNO_ENCR = #{mexnoEncr}
+           AND CRAL_IDV_TNO = #{cralIdvTno}
+         ORDER BY FST_RGST_DTM DESC
+         FETCH FIRST 1 ROWS ONLY
+    </select>
+
+    <!-- 기본정보 -->
+    <insert id="insertProspectCustomer" parameterType="com.kyowon.sms.wells.web.customer.prospective.dvo.WcsbProspecCustomerDvo">
+        <selectKey keyProperty="dvo.pspcCstId" resultType="java.lang.String" order="BEFORE">
+              SELECT TO_CHAR(SYSDATE, 'YYYY') || LPAD(  NVL(MAX(SUBSTR(PSPC_CST_ID,5)), 0)+1 ,11,'0')
+                FROM TB_SSOP_PSPC_CST_BAS
+               WHERE PSPC_CST_ID LIKE TO_CHAR(SYSDATE, 'YYYY') || '%'
+        </selectKey>
+        INSERT INTO TB_SSOP_PSPC_CST_BAS (  /* 가망고객기본 */
+            <include refid="com.kyowon.sms.wells.web.customer.prospective.mapper.WcszProspectCustomerRegMapper.tbSsopPcpcCstBasCols"/>
+            <include refid="COMMON.insertSystemField" />
+        )
+        VALUES (
+              #{dvo.pspcCstId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDD') /* pspcCstInflwDt 가망고객유입일자 */
+            , #{dvo.pspcCstKnm}
+            , #{dvo.pspcCstEnm}
+            , #{dvo.copnDvCd}
+            , #{dvo.bzrno}
+            , #{dvo.crpSpmtDrmNm}
+            , (
+            SELECT CST_NO   /* cstNo 대응 */
+              FROM TB_CUBS_CST_BAS /* 고객기본 */
+             WHERE 1 = 1
+               AND COPN_DV_CD = '1' /* 고객유형(개인) */
+               AND DTA_DL_YN = 'N'
+               AND CRAL_LOCARA_TNO = #{dvo.cralLocaraTno}
+               AND MEXNO_ENCR = #{dvo.mexnoEncr}
+               AND CRAL_IDV_TNO = #{dvo.cralIdvTno}
+             ORDER BY FST_RGST_DTM DESC
+              FETCH FIRST 1 ROWS ONLY
+            )
+            , #{dvo.idkKndCd}
+            , #{dvo.idkVal}
+            , #{dvo.idkIsDtm}
+            , #{dvo.pspcCstTpCd}
+            , #{dvo.natCd}
+            , #{dvo.adrId}
+            , #{dvo.ctpvNm}
+            , #{dvo.sexDvCd}
+            , #{dvo.bryyMmdd}
+            , #{dvo.cralLocaraTno}
+            , #{dvo.mexnoEncr}
+            , #{dvo.cralIdvTno}
+            , #{dvo.locaraTno}
+            , #{dvo.exnoEncr}
+            , #{dvo.idvTno}
+            , #{dvo.emadr}
+            , (
+            SELECT DECODE(COUNT(1), 0, 'Y', 'N') AS DUP_FLAG /* dvo.nwInflwCstYn 대응 */
+              FROM TB_SSOP_PSPC_CST_BAS /* 가망고객기본 */
+             WHERE 1 = 1
+               /* 검색조건 1 : 업무구분 - 필수 */
+               AND PSPC_CST_DIV_DV_CD = #{dvo.pspcCstDivDvCd}   /* 가망고객사업부구분코드 1 : wells / 4: TM  UI에서는 4 값 고정할당.*/
+               /* 검색조건 2 : 휴대전화번호 - 필수 */
+               AND CRAL_LOCARA_TNO = #{dvo.cralLocaraTno}
+               AND MEXNO_ENCR = #{dvo.mexnoEncr}
+               AND CRAL_IDV_TNO = #{dvo.cralIdvTno}
+            )
+            , #{dvo.aplcDvcDvCd}
+            , #{dvo.pspcCstInflwPhCd}
+            , #{dvo.freDgnsTpCd}
+            , #{dvo.hgrFreDgnsTpCd}
+            , #{dvo.ptlCstDbDvCd}
+            , #{dvo.pspcCstFtfYn}
+            , #{dvo.mgntTpCd}
+            , #{dvo.pspcCstRcpCn}
+            , #{dvo.evnNm}
+            , #{dvo.rcmdrPrtnrNo}
+            , #{dvo.ogAsnStatCd}
+            , #{dvo.reasnCt}
+            , #{dvo.ichrOgTpCd}
+            , #{dvo.ichrPrtnrNo}
+            , #{dvo.prtnrMoCn}
+            , #{dvo.prPrtnrNwInflwCstYn}
+            , #{dvo.prPrtnrAsnDtm}
+            , #{dvo.otsdChnlSpmtYn}
+            , #{dvo.otsdLkDrmVal}
+            <!-- pspcCstDstcBaseDtm -->
+            <!-- TODO 아직 명확히 경우의수가 나오진 않아 재확인필요. -->
+<!--            <choose>-->
+<!--                <when test="@MybatisUtils@isNotEmpty( pspcCstInflwPhCd )">-->
+<!--                    <if test="pspcCstInflwPhCd == 'E'.toString()-->
+<!--                           or pspcCstInflwPhCd == 'P'.toString()-->
+<!--                           or pspcCstInflwPhCd == 'Q'.toString()-->
+<!--                           or pspcCstInflwPhCd == 'R'.toString() ">-->
+<!--                    , (SELECT TO_CHAR( ADD_MONTHS( SYSDATE, 1 ), 'YYYYMMDDHH24MISS') FROM DUAL) /* 가망고객파기기준일시(pspcCstDstcBaseDtm) */-->
+<!--                    </if>-->
+<!--                </when>-->
+<!--                <otherwise>-->
+                    , (SELECT TO_CHAR( ADD_MONTHS( SYSDATE, 12 ), 'YYYYMMDDHH24MISS') FROM DUAL) /* 가망고객파기기준일시(pspcCstDstcBaseDtm) */
+<!--                </otherwise>-->
+<!--            </choose>-->
+            , #{dvo.mvsDstcRcvryDvCd}
+            , #{dvo.mvsDstcRcvryDtm}
+            , NVL(#{dvo.dtaDlYn},'N')
+            , #{dvo.pspcCstDivDvCd}
+            <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+    <!-- 기본정보 이력저장-->
+    <insert id="insertProspectCustomerHistory">
+        INSERT INTO TB_SSOP_PSPC_CST_CH_HIST
+            (   HIST_STRT_DTM
+              , HIST_END_DTM
+              ,
+                <include refid="com.kyowon.sms.wells.web.customer.prospective.mapper.WcszProspectCustomerRegMapper.tbSsopPcpcCstBasCols"/>
+                <include refid="COMMON.insertSystemField" />
+            )
+        SELECT #{startDtm}      AS HIST_STRT_DTM
+             , '99991231235959' AS HIST_END_DTM
+             ,
+               <include refid="com.kyowon.sms.wells.web.customer.prospective.mapper.WcszProspectCustomerRegMapper.tbSsopPcpcCstBasCols"/>
+               <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SSOP_PSPC_CST_BAS B1
+         WHERE B1.PSPC_CST_ID = #{pspcCstId}
+    </insert>
+
+    <!-- 교사정보 -->
+    <insert id="insertPspcCstDdlvHist">
+        INSERT INTO TB_SSOP_PSPC_CST_DDLV_HIST (  /* 가망고객배부이력 */
+              PSPC_CST_ID      /* 가망고객ID */
+            , PSPC_CST_TP_CD   /* 가망고객유형코드 */
+            , OG_ASN_STAT_CD   /* 조직배정상태코드 */
+            , HIST_STRT_DTM    /* 이력시작일시 */
+            , HIST_END_DTM     /* 이력종료일시 */
+            , OG_ID            /* 조직ID */
+            , OG_TP_CD         /* 조직유형코드 */
+            , PRTNR_NO         /* 파트너번호 */
+            , ASN_FSH_DTM      /* 배정완료일시 */
+            , DTA_DL_YN        /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />
+        )
+        VALUES (
+              #{pspcCstId}
+            , #{pspcCstTpCd}
+            , #{ogAsnStatCd}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , '99991231235959'
+            /* , ogId */
+            <choose>
+               <when test='@MybatisUtils@isNotEmpty( ogId )'>
+               /*  조직 ID 존재 시 */
+            , #{ogId}          /* 조직ID */
+               </when>
+               <otherwise>
+                /*  조직 ID 미 존재 시 */
+            , (SELECT
+                    OG_ID
+                FROM TB_OGBS_MM_PRTNR_IZ
+               WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                 AND OG_TP_CD = #{ogTpCd}
+                 AND PRTNR_NO = NVL(#{prtnrNo}, #{epNo})
+              )
+               </otherwise>
+           </choose>
+            , #{ogTpCd}
+            , #{prtnrNo}
+            , #{asnFshDtm}
+            , NVL(#{dtaDlYn},'N')
+            <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+</mapper>

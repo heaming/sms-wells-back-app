@@ -192,8 +192,7 @@
         <include refid="COMMON.insertSystemFieldValue" />
           FROM
              (
-               SELECT /*+ LEADING(QOM S1) */
-                      QOM.STR_WARE_NO
+               SELECT QOM.STR_WARE_NO
                     , QOM.ITM_PD_CD
                     , QOM.SPP_DV_CD
                     , QOM.WARE_MNGT_PRTNR_NO
@@ -212,7 +211,7 @@
                       END + QOM.CRP_ASN_QOM_CT AS ETN_WTCF_APY_QTY
                  FROM
                     (
-                      SELECT /*+ LEADING(D3 D2 D1) USE_NL(D1 D2 D3 D4 D5 D6 D7 D8 D9) */
+                      SELECT /*+ LEADING(D1 D3) USE_NL(D1 D2 D3 D4 D5 D6 D7 D8 D9) INDEX(D3 PK_SVPD_MCBY_CST_SV_OJ_IZ) */
                              D7.WARE_NO             AS STR_WARE_NO
                            , D1.PART_PD_CD          AS ITM_PD_CD
                            , D7.DIDY_DV_CD          AS SPP_DV_CD
@@ -235,8 +234,8 @@
                           ON D2.CNTR_NO = D1.CNTR_NO
                          AND D2.CNTR_SN = D1.CNTR_SN
                        INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ D3    /* 월별고객서비스대상내역 */
-                          ON D3.CNTR_NO = D2.CNTR_NO
-                         AND D3.CNTR_SN = D2.CNTR_SN
+                          ON D3.CNTR_NO = D1.CNTR_NO
+                         AND D3.CNTR_SN = D1.CNTR_SN
                        INNER JOIN TB_SSCT_CNTR_CST_REL D4         /* 계약고객관계 */
                           ON D4.DTL_CNTR_NO = D1.CNTR_NO
                          AND D4.DTL_CNTR_SN = D1.CNTR_SN
@@ -283,13 +282,14 @@
                          AND D7.WARE_DV_CD         = #{wareDvCd}
                          AND D7.WARE_DTL_DV_CD     = #{wareDtlDvCd}
                          AND D1.VST_DUEDT LIKE #{asnOjYm} || '%'
-                         AND NOT EXISTS ( SELECT 1
+                         AND NOT EXISTS ( SELECT /*+ NO_UNNEST */ 1
                                             FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ S1   /* 자가관리배송중지요청내역 */
                                            WHERE S1.CNTR_NO       = D1.CNTR_NO
                                              AND S1.CNTR_SN       = D1.CNTR_SN
                                              AND S1.DTA_DL_YN     = 'N'
                                              AND S1.SPP_STP_DV_CD = 'B'
-                                             AND S1.AK_SN         = ( SELECT MAX(AK_SN)
+                                             AND S1.AK_SN         = ( SELECT /*+ NL_SJ */
+                                                                             MAX(AK_SN)
                                                                         FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ
                                                                        WHERE CNTR_NO   = S1.CNTR_NO
                                                                          AND CNTR_SN   = S1.CNTR_SN
@@ -303,7 +303,7 @@
                                AND (    ( ASN_EXCD_DV_CD = '0' AND STR_WARE_NO = '300000' )
                                      OR ( ASN_EXCD_DV_CD = '3' AND STR_WARE_NO = T1.STR_WARE_NO )
                                    ) )
-           AND NOT EXISTS ( SELECT /*+ NL_AJ */ 1
+           AND NOT EXISTS ( SELECT /*+ NO_UNNEST */ 1
                               FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ S1   /* 물량배정파트너적용내역 */
                              WHERE S1.PRTNR_NO       = T1.WARE_MNGT_PRTNR_NO
                                AND S1.OG_TP_CD       = T1.OG_TP_CD
@@ -561,7 +561,7 @@
                       END                      AS BFSVC_FSH_CT
                  FROM
                     (
-                      SELECT /*+ NO_MERGE USE_NL(D2 D3 D4 D5 D6 D7 D8 D9 D10) LEADING(D1) */
+                      SELECT /*+ NO_MERGE LEADING(D1) USE_NL(D3 D4 D5 D6 D7 D8 D9 D10) INDEX(D2 PK_SVPD_CST_SV_BFSVC_OJ_IZ) */
                              D8.WARE_NO                  AS STR_WARE_NO
                            , D1.PU_PART_PD_CD            AS ITM_PD_CD
                            , D8.DIDY_DV_CD               AS SPP_DV_CD
@@ -649,7 +649,7 @@
                                AND (    ( ASN_EXCD_DV_CD = '0' AND STR_WARE_NO = '300000' )
                                      OR ( ASN_EXCD_DV_CD = '3' AND STR_WARE_NO = T1.STR_WARE_NO )
                                    ) )
-           AND NOT EXISTS ( SELECT /*+ NL_AJ INDEX(S1) */ 1
+           AND NOT EXISTS ( SELECT /*+ NO_UNNEST */ 1
                               FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ S1   /* 물량배정파트너적용내역 */
                              WHERE S1.PRTNR_NO       = T1.WARE_MNGT_PRTNR_NO
                                AND S1.OG_TP_CD       = T1.OG_TP_CD
@@ -940,7 +940,7 @@
     </insert>
 
     <select id="selectQomAsnsForIndividual" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnIndividualSearchDvo">
-        SELECT D2.SAP_MAT_CD                            AS SAP_CD       /* SAP코드 */
+        SELECT TO_CHAR(TO_NUMBER(D2.SAP_MAT_CD))        AS SAP_CD       /* SAP코드 */
              , D1.ITM_PD_CD                                             /* 품목코드 */
              , D2.PD_ABBR_NM                            AS ITM_PD_NM    /* 품목이름 */
              , D1.STR_WARE_NO                           AS WARE_NO      /* 창고번호 */
@@ -1027,7 +1027,7 @@
              , D1.WARE_MNGT_PRTNR_NO                                                        AS PRTNR_NO         /* 파트너번호 */
              , D6.PRTNR_KNM                                                                 AS PRTNR_NM         /* 파트너명 */
              , D4.WARE_NM                                                                                       /* 창고명 */
-             , D2.SAP_MAT_CD                                                                AS SAP_CD           /* SAP코드 */
+             , TO_CHAR(TO_NUMBER(D2.SAP_MAT_CD))                                            AS SAP_CD           /* SAP코드 */
              , D1.ITM_PD_CD                                                                                     /* 품목코드 */
              , D2.PD_ABBR_NM                                                                AS ITM_PD_NM        /* 품목이름 */
              , F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', D3.PD_PRP_VAL05, #{session.langId}) AS MNGT_UNIT        /* 관리단위 */

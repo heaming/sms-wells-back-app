@@ -119,4 +119,14 @@ public class WfeaNetOrderService {
 
         return processCount;
     }
+
+    /**
+     * WELLS 월순주문 집계 미등록 유형 상품 데이터 조회
+     * @param 'SearchReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+
+    public List<SearchProductRes> getNetAggregateProducts(SearchReq dto) {
+        return this.mapper.selectNetAggregateProducts(dto);
+    }
 }

@@ -3,15 +3,20 @@
 <mapper namespace="com.kyowon.sms.wells.web.closing.performance.mapper.WdccSalesBondMapper">
     <select id="selectAccountsReceivableByDate" resultType="com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesBondDvo">
         WITH W1 AS (SELECT SUBSTR(SL_CL_DT, 1, 6) AS SL_CL_YM
-                    , SL_CL_DT AS SL_CL_DT
-                    , ROWNUM AS ROW_NUM
-                    , RANK() OVER (ORDER BY SL_CL_DT DESC) AS RANK_NUM
-                    FROM (SELECT TO_CHAR(TO_DATE(#{slClYm}||'01','YYYYMMDD') + (LEVEL-1), 'YYYYMMDD') AS SL_CL_DT
-                            FROM DUAL
-                         CONNECT BY LEVEL <![CDATA[<=]]> (SELECT LAST_DAY((SELECT TO_DATE(#{slClYm}||'01', 'YYYYMMDD') FROM DUAL)) FROM DUAL) - TO_DATE(#{slClYm}||'01','YYYYMMDD') + 1)
-                   WHERE SL_CL_DT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
-                   ORDER BY SL_CL_DT)
-           , W3 AS (SELECT SL_CL_YM AS SL_CL_YM /* 실적년월 */
+			              , SL_CL_DT AS SL_CL_DT
+			              , ROWNUM AS ROW_NUM
+			              , RANK() OVER (ORDER BY SL_CL_DT DESC) AS RANK_NUM
+			          FROM (SELECT TO_CHAR(TO_DATE(#{slClYm}||'02','YYYYMMDD') + (LEVEL-1), 'YYYYMMDD') AS SL_CL_DT
+			                  FROM DUAL
+			               CONNECT BY LEVEL <![CDATA[<=]]> (CASE WHEN #{slClYm} <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')
+			                                                       THEN (SELECT LAST_DAY((SELECT TO_DATE(#{slClYm}||'01', 'YYYYMMDD') FROM DUAL)) FROM DUAL) - TO_DATE(#{slClYm}||'02','YYYYMMDD')
+			                                                       ELSE (SELECT TO_DATE(SYSDATE-1) FROM DUAL) - TO_DATE(#{slClYm}||'02','YYYYMMDD')
+			                                                        END))
+			         WHERE SL_CL_DT <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+			           AND SL_CL_DT <![CDATA[<=]]> (SELECT LAST_DAY((SELECT TO_DATE(#{slClYm}||'02', 'YYYYMMDD') FROM DUAL)) FROM DUAL)
+			         ORDER BY SL_CL_DT
+			        )
+           , W2 AS (SELECT SL_CL_YM AS SL_CL_YM /* 실적년월 */
                          , SL_CL_DT AS SL_CL_DT /* 실적일자 */
                          , SELL_TP_CD AS SELL_TP_CD /* 판매유형코드 */
                          , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세코드 */
@@ -225,8 +230,149 @@
                              GROUP BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
                              ORDER BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
                  )
-        SELECT TO_CHAR(TO_DATE(W1.SL_CL_YM, 'YYYYMM'), 'YYYY-MM') AS SL_CL_YM
+        , W3 AS (
+                <choose>
+                    <when test="@MybatisUtils@equals(sellTpCd, '1')">
+                        <include refid="lumpSumOfAccountsReceivable" />
+                    </when>
+                    <when test="@MybatisUtils@equals(sellTpCd, '2')">
+                        <include refid="accountsReceivableRental" />
+                    </when>
+                    <when test="@MybatisUtils@equals(sellTpCd, '3')">
+                        <include refid="accountsReceivableMembership" />
+                    </when>
+                    <when test="@MybatisUtils@equals(sellTpCd, '6')">
+                        <include refid="tradeReceivablesPeriodicDelivery" />
+                    </when>
+                    <when test="@MybatisUtils@equals(sellTpCd, '10')">
+                        <include refid="accountsReceivableLease" />
+                    </when>
+                </choose>
+        	    )
+        /*--------------------------------------------------------------*/
+        /* 1일자 조회 */
+        /*--------------------------------------------------------------*/
+        SELECT TO_CHAR(TO_DATE(#{slClYm}, 'YYYYMM'), 'YYYY-MM') AS SL_CL_YM
+             , TO_CHAR(TO_DATE(#{slClYm}||'01', 'YYYYMMDD'), 'YYYY-MM-DD') AS SL_CL_DT
+             , W3.SELL_TP_CD AS SELL_TP_CD
+             , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = W3.SELL_TP_CD) AS SELL_TP_CD_NM /* 판매유형코드명 */
+             , W3.SELL_TP_DTL_CD AS SELL_TP_DTL_CD
+             , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = W3.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD_NM /* 판매유형상세코드명 */
+             , W3.SAP_PD_DV_CD AS SAP_PD_DV_CD
+             , (SELECT MAX(SAP_PD_ATC_NM)
+                 FROM TB_CBCL_SAP_PD_DV_CD
+                WHERE SAP_BZ_TERY_CD = '1210' /* SAP_BZ_TERY_CD : WELLS면 1210, EDU면 1110 */
+                  AND SAP_PD_DV_CD = W3.SAP_PD_DV_CD) AS SAP_PD_ATC_NM /* SAP상품코드명 */
+             , W3.PRE_TOT_UC_AMT AS PRE_TOT_UC_AMT /* 전기이월 */
+             ------------------------------------
+             -- 매출 영역
+             ------------------------------------
+             , W2.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
+             , W2.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
+             , W2.FEE_SL_AMT AS FEE_SL_AMT /* 수수료매출 */
+             , W2.BOUT_NOR_SL_AMT AS BOUT_NOR_SL_AMT /* 상품권정상 */
+             , W2.BOUT_CAN_SL_AMT AS BOUT_CAN_SL_AMT /* 상품권취소 */
+             , W2.ORI_SL_AMT AS ORI_SL_AMT /* 원금매출 */
+             , W2.ITR_SL_AMT AS ITR_SL_AMT /* 이자매출 */
+             , W2.SVC_SL_AMT AS SVC_SL_AMT /* 서비스매출 */
+             , CASE WHEN W2.SELL_TP_CD = '1'
+                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT + W2.FEE_SL_AMT
+                    WHEN W2.SELL_TP_CD = '2' AND W2.SELL_TP_DTL_CD IN ('21', '23')
+                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT
+                    WHEN W2.SELL_TP_CD = '2' AND W2.SELL_TP_DTL_CD NOT IN ('21', '23')
+                         THEN W2.ORI_SL_AMT + W2.ITR_SL_AMT + W2.SVC_SL_AMT
+                    WHEN W2.SELL_TP_CD = '3'
+                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT
+                    WHEN W2.SELL_TP_CD = '6' THEN W2.NOM_SL_AMT
+                    ELSE 0
+               END AS TOT_SL_AMT /* 매출합계 */
+             ------------------------------------
+             -- 매출대사(미조회)
+             ------------------------------------
+             , W2.CNTR_DP_AMT AS CNTR_DP_AMT /* 계약금 */
+             , W2.INST_DP_AMT AS INST_DP_AMT /* 할부금 */
+             , W2.TOT_DP_AMT AS TOT_DP_AMT /* 매출대사합계 */
+             , W2.SL_ADJ_AMT AS SL_ADJ_AMT /* 매출조정
+             ------------------------------------ */
+             -- 기타 영역
+             ------------------------------------
+             , W2.DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
+             , W2.CRP_UC_AMT AS CRP_UC_AMT /* 법인미수 */
+             , W2.BOUT_DP_AMT AS BOUT_DP_AMT /* 상품권입금 */
+             , W2.ETC_DP_AMT AS ETC_DP_AMT /* 기타선수대체 */
+             , W2.INTER_CONT_NOM_SL_AMT AS INTER_CONT_NOM_SL_AMT /* 사간거래정상 */
+             , W2.INTER_CONT_CAN_SL_AMT AS INTER_CONT_CAN_SL_AMT /* 사간거래취소 */
+             , W2.INTER_CONT_DP_AMT AS INTER_CONT_DP_AMT /* 사간거래입금 */
+             , 0 AS TOT_UC_BLAM /* 기말미수 */
+          FROM W3
+          LEFT OUTER JOIN W2
+            ON 1=1
+           AND W2.SL_CL_DT = #{slClYm}||'01'
+        UNION ALL
+        /*--------------------------------------------------------------*/
+        /* 일자별 조회 */
+        /*--------------------------------------------------------------*/
+        SELECT TO_CHAR(TO_DATE(#{slClYm}, 'YYYYMM'), 'YYYY-MM') AS SL_CL_YM
              , TO_CHAR(TO_DATE(W1.SL_CL_DT, 'YYYYMMDD'), 'YYYY-MM-DD') AS SL_CL_DT
+             , W2.SELL_TP_CD AS SELL_TP_CD
+             , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = W2.SELL_TP_CD) AS SELL_TP_CD_NM /* 판매유형코드명 */
+             , W2.SELL_TP_DTL_CD AS SELL_TP_DTL_CD
+             , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = W2.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD_NM /* 판매유형상세코드명 */
+             , W2.SAP_PD_DV_CD AS SAP_PD_DV_CD
+             , (SELECT MAX(SAP_PD_ATC_NM)
+                 FROM TB_CBCL_SAP_PD_DV_CD
+                WHERE SAP_BZ_TERY_CD = '1210' /* SAP_BZ_TERY_CD : WELLS면 1210, EDU면 1110 */
+                  AND SAP_PD_DV_CD = W2.SAP_PD_DV_CD) AS SAP_PD_ATC_NM /* SAP상품코드명 */
+             , 0 AS PRE_TOT_UC_AMT /* 전기이월 */
+             ------------------------------------
+             -- 매출 영역
+             ------------------------------------
+             , W2.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
+             , W2.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
+             , W2.FEE_SL_AMT AS FEE_SL_AMT /* 수수료매출 */
+             , W2.BOUT_NOR_SL_AMT AS BOUT_NOR_SL_AMT /* 상품권정상 */
+             , W2.BOUT_CAN_SL_AMT AS BOUT_CAN_SL_AMT /* 상품권취소 */
+             , W2.ORI_SL_AMT AS ORI_SL_AMT /* 원금매출 */
+             , W2.ITR_SL_AMT AS ITR_SL_AMT /* 이자매출 */
+             , W2.SVC_SL_AMT AS SVC_SL_AMT /* 서비스매출 */
+             , CASE WHEN W2.SELL_TP_CD = '1'
+                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT + W2.FEE_SL_AMT
+                    WHEN W2.SELL_TP_CD = '2' AND W2.SELL_TP_DTL_CD IN ('21', '23')
+                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT
+                    WHEN W2.SELL_TP_CD = '2' AND W2.SELL_TP_DTL_CD NOT IN ('21', '23')
+                         THEN W2.ORI_SL_AMT + W2.ITR_SL_AMT + W2.SVC_SL_AMT
+                    WHEN W2.SELL_TP_CD = '3'
+                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT
+                    WHEN W2.SELL_TP_CD = '6' THEN W2.NOM_SL_AMT
+                    ELSE 0
+               END AS TOT_SL_AMT /* 매출합계 */
+             ------------------------------------
+             -- 매출대사(미조회)
+             ------------------------------------
+             , W2.CNTR_DP_AMT AS CNTR_DP_AMT /* 계약금 */
+             , W2.INST_DP_AMT AS INST_DP_AMT /* 할부금 */
+             , W2.TOT_DP_AMT AS TOT_DP_AMT /* 매출대사합계 */
+             , W2.SL_ADJ_AMT AS SL_ADJ_AMT /* 매출조정
+             ------------------------------------ */
+             -- 기타 영역
+             ------------------------------------
+             , W2.DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
+             , W2.CRP_UC_AMT AS CRP_UC_AMT /* 법인미수 */
+             , W2.BOUT_DP_AMT AS BOUT_DP_AMT /* 상품권입금 */
+             , W2.ETC_DP_AMT AS ETC_DP_AMT /* 기타선수대체 */
+             , W2.INTER_CONT_NOM_SL_AMT AS INTER_CONT_NOM_SL_AMT /* 사간거래정상 */
+             , W2.INTER_CONT_CAN_SL_AMT AS INTER_CONT_CAN_SL_AMT /* 사간거래취소 */
+             , W2.INTER_CONT_DP_AMT AS INTER_CONT_DP_AMT /* 사간거래입금 */
+             , 0 AS TOT_UC_BLAM /* 기말미수 */
+          FROM W1
+          LEFT OUTER JOIN W2
+            ON W2.SL_CL_DT = W1.SL_CL_DT
+        UNION ALL
+        /*--------------------------------------------------------------*/
+        /* 마지막일자 조회(전일자) */
+        /*--------------------------------------------------------------*/
+        SELECT TO_CHAR(TO_DATE(#{slClYm}, 'YYYYMM'), 'YYYY-MM') AS SL_CL_YM
+             , (SELECT TO_CHAR(TO_DATE(SL_CL_DT, 'YYYYMMDD')+1, 'YYYY-MM-DD') FROM W1 WHERE RANK_NUM = 1) AS SL_CL_DT
              , W3.SELL_TP_CD AS SELL_TP_CD
              , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = W3.SELL_TP_CD) AS SELL_TP_CD_NM /* 판매유형코드명 */
              , W3.SELL_TP_DTL_CD AS SELL_TP_DTL_CD
@@ -240,494 +386,370 @@
              ------------------------------------
              -- 매출 영역
              ------------------------------------
-             , W3.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
-             , W3.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
-             , W3.FEE_SL_AMT AS FEE_SL_AMT /* 수수료매출 */
-             , W3.BOUT_NOR_SL_AMT AS BOUT_NOR_SL_AMT /* 상품권정상 */
-             , W3.BOUT_CAN_SL_AMT AS BOUT_CAN_SL_AMT /* 상품권취소 */
-             , W3.ORI_SL_AMT AS ORI_SL_AMT /* 원금매출 */
-             , W3.ITR_SL_AMT AS ITR_SL_AMT /* 이자매출 */
-             , W3.SVC_SL_AMT AS SVC_SL_AMT /* 서비스매출 */
-             , CASE WHEN W3.SELL_TP_CD = '1'
-                         THEN W3.NOM_SL_AMT + W3.CAN_SL_AMT + W3.FEE_SL_AMT
-                    WHEN W3.SELL_TP_CD = '2' AND W3.SELL_TP_DTL_CD IN ('21', '23')
-                         THEN W3.NOM_SL_AMT + W3.CAN_SL_AMT
-                    WHEN W3.SELL_TP_CD = '2' AND W3.SELL_TP_DTL_CD NOT IN ('21', '23')
-                         THEN W3.ORI_SL_AMT + W3.ITR_SL_AMT + W3.SVC_SL_AMT
-                    WHEN W3.SELL_TP_CD = '3'
-                         THEN W3.NOM_SL_AMT + W3.CAN_SL_AMT
-                    WHEN W3.SELL_TP_CD = '6' THEN W3.NOM_SL_AMT
+             , W2.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
+             , W2.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
+             , W2.FEE_SL_AMT AS FEE_SL_AMT /* 수수료매출 */
+             , W2.BOUT_NOR_SL_AMT AS BOUT_NOR_SL_AMT /* 상품권정상 */
+             , W2.BOUT_CAN_SL_AMT AS BOUT_CAN_SL_AMT /* 상품권취소 */
+             , W2.ORI_SL_AMT AS ORI_SL_AMT /* 원금매출 */
+             , W2.ITR_SL_AMT AS ITR_SL_AMT /* 이자매출 */
+             , W2.SVC_SL_AMT AS SVC_SL_AMT /* 서비스매출 */
+             , CASE WHEN W2.SELL_TP_CD = '1'
+                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT + W2.FEE_SL_AMT
+                    WHEN W2.SELL_TP_CD = '2' AND W2.SELL_TP_DTL_CD IN ('21', '23')
+                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT
+                    WHEN W2.SELL_TP_CD = '2' AND W2.SELL_TP_DTL_CD NOT IN ('21', '23')
+                         THEN W2.ORI_SL_AMT + W2.ITR_SL_AMT + W2.SVC_SL_AMT
+                    WHEN W2.SELL_TP_CD = '3'
+                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT
+                    WHEN W2.SELL_TP_CD = '6' THEN W2.NOM_SL_AMT
                     ELSE 0
                END AS TOT_SL_AMT /* 매출합계 */
              ------------------------------------
              -- 매출대사(미조회)
              ------------------------------------
-             , W3.CNTR_DP_AMT AS CNTR_DP_AMT /* 계약금 */
-             , W3.INST_DP_AMT AS INST_DP_AMT /* 할부금 */
-             , W3.TOT_DP_AMT AS TOT_DP_AMT /* 매출대사합계 */
-             , W3.SL_ADJ_AMT AS SL_ADJ_AMT /* 매출조정
+             , W2.CNTR_DP_AMT AS CNTR_DP_AMT /* 계약금 */
+             , W2.INST_DP_AMT AS INST_DP_AMT /* 할부금 */
+             , W2.TOT_DP_AMT AS TOT_DP_AMT /* 매출대사합계 */
+             , W2.SL_ADJ_AMT AS SL_ADJ_AMT /* 매출조정
              ------------------------------------ */
              -- 기타 영역
              ------------------------------------
-             , W3.DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
-             , W3.CRP_UC_AMT AS CRP_UC_AMT /* 법인미수 */
-             , W3.BOUT_DP_AMT AS BOUT_DP_AMT /* 상품권입금 */
-             , W3.ETC_DP_AMT AS ETC_DP_AMT /* 기타선수대체 */
-             , W3.INTER_CONT_NOM_SL_AMT AS INTER_CONT_NOM_SL_AMT /* 사간거래정상 */
-             , W3.INTER_CONT_CAN_SL_AMT AS INTER_CONT_CAN_SL_AMT /* 사간거래취소 */
-             , W3.INTER_CONT_DP_AMT AS INTER_CONT_DP_AMT /* 사간거래입금 */
-             , 0 AS EOT_UC_AMT /* 기말미수 */
-          FROM W1
-          LEFT OUTER JOIN W3
-            ON W3.SL_CL_DT = W1.SL_CL_DT
-         ORDER BY W1.SL_CL_YM, W1.SL_CL_DT, W3.SELL_TP_CD, W3.SELL_TP_DTL_CD, W3.SAP_PD_DV_CD
+             , W2.DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
+             , W2.CRP_UC_AMT AS CRP_UC_AMT /* 법인미수 */
+             , W2.BOUT_DP_AMT AS BOUT_DP_AMT /* 상품권입금 */
+             , W2.ETC_DP_AMT AS ETC_DP_AMT /* 기타선수대체 */
+             , W2.INTER_CONT_NOM_SL_AMT AS INTER_CONT_NOM_SL_AMT /* 사간거래정상 */
+             , W2.INTER_CONT_CAN_SL_AMT AS INTER_CONT_CAN_SL_AMT /* 사간거래취소 */
+             , W2.INTER_CONT_DP_AMT AS INTER_CONT_DP_AMT /* 사간거래입금 */
+             , W3.TOT_UC_BLAM AS TOT_UC_BLAM /* 기말미수 */
+          FROM W3
+          LEFT OUTER JOIN W2
+            ON 1=1
+           AND W2.SL_CL_DT = (SELECT TO_CHAR(TO_DATE(SL_CL_DT, 'YYYYMMDD')+1, 'YYYY-MM-DD') FROM W1 WHERE RANK_NUM = 1)
+         ORDER BY SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
     </select>
     <select id="selectAccountsReceivableRental" resultType="com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesBondDvo">
-        WITH T1 AS (SELECT SL_CL_YM AS SL_CL_YM /* 실적년월 */
-                         , BF_SL_CL_YM AS BF_SL_CL_YM /* 이전 실적전월 */
-                         , SL_CL_DT AS SL_CL_DT /* 실적일자 */
-                         , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
-                         , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
-                         , SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-                         <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-                         , CNTR_NO AS CNTR_NO /* 계약번호 */
-                         , CNTR_SN AS CNTR_SN /* 일련번호 */
-                         , CST_NO AS CST_NO /* 고객번호 */
-                         , PD_CD AS PD_CD/* 상품코드 */
-                         , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
-                         </if>
-                         , SUM(W1_AM01_1) AS W1_AM01_1 /* LC505.LCMAMT */
-                         , SUM(W1_AM01_2) AS W1_AM01_2 /* 기말연체가산금 */
-                         --------------------------------------------------------------------------------------
-                         -- 매출
-                         --------------------------------------------------------------------------------------
-                         , SUM(NOM_SL_AMT_1) - SUM(NOM_SL_AMT_2) - SUM(NOM_SL_AMT_3) + SUM(NOM_SL_AMT_4) + SUM(NOM_SL_AMT_5) + SUM(NOM_SL_AMT_6) AS NOM_SL_AMT /* 정상매출 */
-                         , SUM(NOM_SL_AMT_1) AS NOM_SL_AMT_1 /* 렌탈등록비 LC505.LCTAMT */
-                         , SUM(NOM_SL_AMT_2) AS NOM_SL_AMT_2 /* 렌탈할인 LC505.LCRAMT */
-                         , SUM(NOM_SL_AMT_3) AS NOM_SL_AMT_3 /* 렌탈등록비차액 LC505.LCTCHA */
-                         , SUM(NOM_SL_AMT_4) AS NOM_SL_AMT_4 /* 등록환불 LC505.LCAM43 */
-                         , SUM(NOM_SL_AMT_5) AS NOM_SL_AMT_5 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
-                         , SUM(NOM_SL_AMT_6) AS NOM_SL_AMT_6 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
-                         , SUM(SL_CAN_AMT) AS SL_CAN_AMT /* 매출취소 LC505.LCAM56 */
-                         , SUM(NOM_SL_AMT_1) - SUM(NOM_SL_AMT_2) - SUM(NOM_SL_AMT_3) + SUM(NOM_SL_AMT_4) + SUM(NOM_SL_AMT_5) + SUM(NOM_SL_AMT_6) + SUM(SL_CAN_AMT) AS TOT_SL_AMT /* 매출합계 */
-                         --------------------------------------------------------------------------------------
-                         --선수금
-                         --------------------------------------------------------------------------------------
-                         , SUM(NOM_SL_AMT_1) - SUM(NOM_SL_AMT_2) - SUM(NOM_SL_AMT_3) + SUM(NOM_SL_AMT_4) + SUM(SL_BND_ALRPY_AMT) AS TOT_DP_AMT
-                         , SUM(SL_BND_ALRPY_AMT) AS SL_BND_ALRPY_AMT /* 렌탈입금 */
-                         -------------------------------------------------------------------------------------
-                         -- 위약잔여
-                         -------------------------------------------------------------------------------------
-                         , SUM(BOR_REM_AMT_1) - SUM(BOR_REM_AMT_1) AS BOR_REM_AMT /* 위약잔여 */
-                         , SUM(BOR_REM_AMT_1) AS BOR_REM_AMT_1 /* 위약발생 LC505.LCA102 */
-                         , SUM(BOR_REM_AMT_2) AS BOR_REM_AMT_2 /* 위약입금 LC505.LCA103 */
-                         -------------------------------------------------------------------------------------
-                         -- 위약조정
-                         -------------------------------------------------------------------------------------
-                         , SUM(BOR_ADJ_AMT_1) - SUM(BOR_ADJ_AMT_2) + SUM(BOR_ADJ_AMT_3) AS BOR_ADJ_AMT /* 위약조정 */
-                         , SUM(BOR_ADJ_AMT_1) AS BOR_ADJ_AMT_1 /* 위약미수_조정 LC505.LCA104  */
-                         , SUM(BOR_ADJ_AMT_2) AS BOR_ADJ_AMT_2 /* 위약미수_추가 LC505.LCA105  */
-                         , SUM(BOR_ADJ_AMT_3) AS BOR_ADJ_AMT_3 /* 위약미수_추가조정 LC505.LCA107 */
-                         -----------------------------------------------------------
-                         -- 선수대체/대손
-                         -----------------------------------------------------------
-                         , SUM(DP_CNG_AMT_1) + SUM(BOR_ADJ_AMT_3) AS DP_CNG_AMT /* 선수대체금액 */
-                         , SUM(DP_CNG_AMT_1) AS DP_CNG_AMT_1 /* 선수대체입금 LC505.LCCM34 */
-                         , SUM(DFA_PROCS_AMT) AS DFA_PROCS_AMT /* 손료 */
-                         -----------------------------------------------------------
-                         -- 연체가산금 영역
-                         -----------------------------------------------------------
-                         , SUM(BTD_DLQ_ADD_AMT) AS BTD_DLQ_ADD_AMT /* 전기이월 */
-                         , SUM(THM_OC_DLQ_ADD_AMT) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
-                         , SUM(THM_CTR_DLQ_ADD_AMT) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
-                         , SUM(THM_DLQ_ADD_DP_SUM_AMT) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
-                         , SUM(THM_DLQ_ADD_RFND_SUM_AMT) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
-                         , SUM(EOT_DLQ_ADD_AMT) AS EOT_DLQ_ADD_AMT /* 기말연체가산금 */
-                      FROM (SELECT /*+ USE_NL(A B C D E F G) LEADING(F) */
-                                   A.SL_CL_YM AS SL_CL_YM /* 실적년월 */
-                                 , TO_CHAR((SELECT ADD_MONTHS(TO_DATE(A.SL_CL_YM, 'YYYYMM'), -1) FROM DUAL), 'YYYYMM') AS BF_SL_CL_YM /* 이전 실적전월 */
-                                 , A.SL_CL_DT AS SL_CL_DT /* 실적일자 */
-                                 , A.SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
-                                 , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
-                                 , A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-                                 , A.CNTR_NO AS CNTR_NO /* 계약번호 */
-                                 , A.CNTR_SN AS CNTR_SN /* 일련번호 */
-                                 , A.CST_NO AS CST_NO /* 고객번호 */
-                                 , A.PD_CD AS PD_CD/* 상품코드 */
-                                 , A.SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
-                                 , NVL(A.THM_UC_BLAM, 0) AS W1_AM01_1 /* 전월미수 LC505.LCMAMT */
-                                 , NVL(D.EOT_DLQ_ADD_AMT, 0) AS W1_AM01_2 /* 기말연체가산금 */
-                                 --------------------------------------------------------------------------------------
-                                 -- 원금매출
-                                 --------------------------------------------------------------------------------------
-                                 , NVL(A.RENTAL_RGST_COST, 0) AS NOM_SL_AMT_1 /* 렌탈등록비 LC505.LCTAMT */
-                                 , NVL(A.DSC_AMT, 0) AS NOM_SL_AMT_2 /* 렌탈할인 LC505.LCRAMT */
-                                 , NVL(A.RENTAL_RGST_COST_DFAM, 0) AS NOM_SL_AMT_3 /* 렌탈등록비차액 LC505.LCTCHA */
-                                 , NVL((SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT, 0) ELSE NVL(RVE_AMT*-1, 0) END)
-                                          FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수 */
-                                         WHERE CNTR_NO = A.CNTR_NO
-                                           AND CNTR_SN = A.CNTR_SN
-                                           AND SUBSTR(RVE_DT, 1, 6) = A.SL_CL_YM
-                                           AND RVE_DV_CD = '01' /* 계약금 */
-                                           AND DP_DV_CD = '2'), 0) AS NOM_SL_AMT_4 /* 등록환불 LC505.LCAM43 */
-                                 --------------------------------------------------------------------------------------
-                                 -- 렌탈료매출
-                                 --------------------------------------------------------------------------------------
-                                 , (CASE WHEN A.RENTAL_TN = 0 THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS NOM_SL_AMT_5 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
-                                 , (CASE WHEN A.RENTAL_TN > 0 THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS NOM_SL_AMT_6 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
-                                 , (CASE WHEN A.RENTAL_TN > 0 AND (A.CAN_DT IS NOT NULL OR A.CAN_DT <![CDATA[<>]]> '') THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS SL_CAN_AMT /* 매출취소 LC505.LCAM56 */
-                                 --------------------------------------------------------------------------------------
-                                 --선수금
-                                 --------------------------------------------------------------------------------------
-                                 , NVL(A.SL_BND_ALRPY_AMT, 0)AS SL_BND_ALRPY_AMT /* 렌탈입금 LC505.LCAM38 */
-                                 -------------------------------------------------------------------------------------
-                                 -- 위약잔여
-                                 -------------------------------------------------------------------------------------
-                                 , NVL(E.OC_BOR_AMT, 0) AS BOR_REM_AMT_1 /* 위약발생 LC505.LCA102 */
-                                 , NVL(E.DP_CCAM_SUM_AMT, 0) AS BOR_REM_AMT_2 /* 위약입금 LC505.LCA103 */
-                                 -------------------------------------------------------------------------------------
-                                 -- 위약조정
-                                 -------------------------------------------------------------------------------------
-                                 , (CASE WHEN F.AUTH_RSG_CNFM_YN = 'Y' THEN NVL(E.CTR_CCAM_SUM_AMT, 0) ELSE 0 END) AS BOR_ADJ_AMT_1 /* 위약미수_조정 LC505.LCA104  */
-                                 , (CASE WHEN F.AUTH_RSG_CNFM_YN = 'Y' THEN NVL(E.SPMT_CCAM_SUM_AMT, 0) ELSE 0 END) AS BOR_ADJ_AMT_2 /* 위약미수_추가 LC505.LCA105  */
-                                 , 0 AS BOR_ADJ_AMT_3 /* 위약미수_초과조정 LC505.LCA107 @TODO ASIS로직 반영 필요 */
-                                 , NVL((SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT, 0) ELSE NVL(RVE_AMT*-1, 0) END)
-                                          FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수 */
-                                         WHERE CNTR_NO = A.CNTR_NO
-                                           AND CNTR_SN = A.CNTR_SN
-                                           AND SUBSTR(RVE_DT, 1, 6) = A.SL_CL_YM
-                                           AND RVE_DV_CD = '10'), 0) AS DFA_PROCS_AMT /* 손료 LC505.LCAM46 */
-                                 , NVL(OVR_CTR_DP_AMT, 0) AS DP_CNG_AMT_1 /* 선수대체입금 LC505.LCCM34 */
-                                 -----------------------------------------------------------
-                                 -- 연체가산금 영역
-                                 -----------------------------------------------------------
-                                 , NVL(D.BTD_DLQ_ADD_AMT, 0) AS BTD_DLQ_ADD_AMT /* 전기이월 */
-                                 , NVL(D.THM_OC_DLQ_ADD_AMT, 0) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
-                                 , NVL(D.THM_CTR_DLQ_ADD_AMT, 0) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
-                                 , NVL(D.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
-                                 , NVL(D.THM_DLQ_ADD_RFND_SUM_AMT, 0) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
-                                 , NVL(D.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT /* 기말연체가산금 */
-                              FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
-                             INNER JOIN TB_SSCT_CNTR_BAS B /* 계약기본 */
-                                ON B.CNTR_NO = A.CNTR_NO
-                               AND B.DTA_DL_YN = 'N'
-                              LEFT OUTER JOIN TB_SSCT_CNTR_DTL C /* 계약상세 */
-                                ON C.CNTR_NO = A.CNTR_NO
-                               AND C.CNTR_SN = A.CNTR_SN
-                               AND C.DTA_DL_YN = 'N'
-                              LEFT OUTER JOIN TB_CBCL_DLQ_BAS D /* 연체기본 */
-                                ON D.PERF_YM = A.SL_CL_YM
-                               AND D.CNTR_NO = A.CNTR_NO
-                               AND D.CNTR_SN = A.CNTR_SN
-                               AND D.DTA_DL_YN = 'N'
-                              LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS E /* 위약기본 */
-                                ON E.PERF_YM = A.SL_CL_YM
-                               AND E.CNTR_NO = A.CNTR_NO
-                               AND E.CNTR_SN = A.CNTR_SN
-                               AND E.DTA_DL_YN = 'N'
-                              LEFT OUTER JOIN TB_CBBO_WELLS_AUTH_RSG_IZ F /* WELLS직권해지 */
-                                ON F.BASE_YM = A.SL_CL_YM
-                               AND F.CNTR_NO = A.CNTR_NO
-                               AND F.CNTR_SN = A.CNTR_SN
-                               AND F.AUTH_RSG_CNFM_YN = 'Y'
-                             WHERE A.SL_CL_YM BETWEEN #{slClSYm} AND #{slClEYm}
-                               AND A.SELL_TP_CD = '2'
-                               AND A.SELL_TP_DTL_CD IN ('21', '23')
-                               AND NOT EXISTS ( SELECT /*+ UNNEST */ 1
-                                                  FROM TB_SSCT_CNTR_DTL AA
-                                                 INNER JOIN TB_PDBS_PD_CLSF_BAS BB /* 상품분류기본-소분류[AS-IS:KA1100P] */
-                                                    ON BB.PD_CLSF_ID = AA.PD_LCLSF_ID /* 상품분류ID = 상품세분류ID */
-                                                   AND BB.DTA_DL_YN = 'N'
-                                                   AND BB.USE_YN = 'Y'
-                                                   AND BB.REF_PD_CLSF_VAL = '05003002' /* [Cooking+커피머신+원두] */
-                                                 WHERE AA.CNTR_NO = A.CNTR_NO
-                                                   AND AA.CNTR_SN = A.CNTR_SN )
-                               <if test="@MybatisUtils@isNotEmpty(sapPdDvCd)">
-                               AND A.SAP_PD_DV_CD = #{sapPdDvCd}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-                               AND A.CNTR_NO = #{cntrNo}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(cntrSn)">
-                               AND A.CNTR_SN = #{cntrSn}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(sellChnlDtl)">
-                               AND B.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDtl}
-                               </if>
-                            )
-                     <if test="@MybatisUtils@equals(agrgDv, '1')"> /* 집계 */
-                     GROUP BY SL_CL_YM, BF_SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
-                     </if>
-                     <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-                     GROUP BY SL_CL_YM, BF_SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT
-                     </if>
-                )
-      SELECT (CASE WHEN GROUPING(SL_CL_YM)  = 1 THEN '총      계'
-                   ELSE SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || (
-                        CASE WHEN SUM(W1_AM12) != SUM(W1_AM01) + SUM(TOT_SL_AMT) - SUM(TOT_DP_AMT) + SUM(DP_CNG_AMT) + SUM(BOR_REM_AMT) - SUM(BOR_ADJ_AMT)  THEN ' *'
-                             ELSE ''
-                         END)
-              END) AS SL_CL_YM /* ★★★실적년월 */
-           , SL_CL_DT AS SL_CL_DT /* 실적일자 */
-           , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
-           , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = T4.SELL_TP_CD) AS SELL_TP_CD_NM /* 판매유형코드명 */
-           , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
-         , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = T4.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD_NM /* 판매유형상세코드명 */
-         , SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-         , (SELECT MAX(SAP_PD_ATC_NM)
-              FROM TB_CBCL_SAP_PD_DV_CD
-             WHERE SAP_BZ_TERY_CD = '1210' /* SAP_BZ_TERY_CD : WELLS면 1210, EDU면 1110 */
-               AND SAP_PD_DV_CD = T4.SAP_PD_DV_CD ) AS SAP_PD_ATC_NM /* SAP상품코드명 */
-         <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-         , CNTR_NO || '-' || CNTR_SN AS CNTR_NO /* 계약번호 */
-         , CST_NO AS CST_NO /* 고객번호 */
-         , ( SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T4.CST_NO AND DTA_DL_YN = 'N' ) AS CST_KNM /* 고객명 */
-         , PD_CD AS PD_CD/* 상품코드 */
-         , ( SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T4.PD_CD) AS PD_NM /* 상품명 */
-         , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
-         </if>
-         , SUM(W1_AM01) AS PRE_TOT_UC_AMT /* 전기이월 */
-         , SUM(BF_W1_AM01_1) AS PRE_UC_AMT_1
-         , SUM(BF_W1_AM01_2) AS PRE_UC_AMT_2
-         , SUM(NOM_SL_AMT) AS NOM_SL_AMT /* 정상매출 */
-         , SUM(NOM_SL_AMT_1) AS NOM_SL_AMT_1 /* 렌탈등록비 LC505.LCTAMT */
-         , SUM(NOM_SL_AMT_2) AS NOM_SL_AMT_2 /* 렌탈할인 LC505.LCRAMT */
-         , SUM(NOM_SL_AMT_3) AS NOM_SL_AMT_3 /* 렌탈등록비차액 LC505.LCTCHA */
-         , SUM(NOM_SL_AMT_4) AS NOM_SL_AMT_4 /* 등록환불 LC505.LCAM43 */
-         , SUM(NOM_SL_AMT_5) AS NOM_SL_AMT_5 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
-         , SUM(NOM_SL_AMT_6) AS NOM_SL_AMT_6 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
-         , SUM(SL_CAN_AMT) AS SL_CAN_AMT /* 매출취소 LC505.LCAM56 */
-         , SUM(TOT_SL_AMT) AS TOT_SL_AMT /* 매출합계 */
-         --------------------------------------------------------------------------------------
-         --선수금
-         --------------------------------------------------------------------------------------
-         , SUM(TOT_DP_AMT) AS TOT_DP_AMT
-         , SUM(SL_BND_ALRPY_AMT) AS SL_BND_ALRPY_AMT /* 렌탈입금 */
-         --------------------------------------------------------------------------------------
-         --기타항목
-         --------------------------------------------------------------------------------------
-         , SUM(W1_AM12) AS TOT_UC_BLAM  /* 기말미수 */
-         , SUM(W1_AM01_1) AS UC_BLAM_1
-         , SUM(W1_AM01_2) AS UC_BLAM_2
-         , SUM(BOR_REM_AMT) AS BOR_REM_AMT /* 위약잔여 */
-         , SUM(BOR_REM_AMT_1) AS BOR_REM_AMT_1
-         , SUM(BOR_REM_AMT_2) AS BOR_REM_AMT_2
-         , SUM(BOR_ADJ_AMT) AS BOR_ADJ_AMT /* 위약조정 */
-         , SUM(BOR_ADJ_AMT_1) AS BOR_ADJ_AMT_1
-         , SUM(BOR_ADJ_AMT_2) AS BOR_ADJ_AMT_2
-         , SUM(BOR_ADJ_AMT_3) AS BOR_ADJ_AMT_3
-         , SUM(DP_CNG_AMT) AS DP_CNG_AMT /* 선수대체 */
-         , SUM(DP_CNG_AMT_1) AS DP_CNG_AMT_1 /* 선수대체입금 */
-         , SUM(DFA_PROCS_AMT) AS DFA_PROCS_AMT /* 대손금액 */
-         -----------------------------------------------------------
-         -- 연체가산금 영역
-         -----------------------------------------------------------
-         , (CASE WHEN GROUPING(SL_CL_YM)  = 1 THEN '총      계'
-                 ELSE SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) ||( /* 전기이월 + 당월발생 - 당월공제 - 당월입금 + 당월환불 */
-                      CASE WHEN SUM(EOT_DLQ_ADD_AMT) != SUM(BTD_DLQ_ADD_AMT) + SUM(THM_OC_DLQ_ADD_AMT) - SUM(THM_CTR_DLQ_ADD_AMT) - SUM(THM_DLQ_ADD_DP_SUM_AMT) + SUM(THM_DLQ_ADD_RFND_SUM_AMT) THEN ' *'
-                           ELSE ''
-                       END)
-             END) AS SL_CL_YM2
-         , SUM(BTD_DLQ_ADD_AMT) AS BTD_DLQ_ADD_AMT /* 전기이월 */
-         , SUM(THM_OC_DLQ_ADD_AMT) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
-         , SUM(THM_CTR_DLQ_ADD_AMT) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
-         , SUM(THM_DLQ_ADD_DP_SUM_AMT) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
-         , SUM(THM_DLQ_ADD_RFND_SUM_AMT) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
-         , SUM(EOT_DLQ_ADD_AMT) AS EOT_DLQ_ADD_AMT /* 기말잔액 */
-      FROM (SELECT T3.*
-                 , (CASE WHEN W1_AM12 != W1_AM01 + TOT_SL_AMT - TOT_DP_AMT + DP_CNG_AMT + BOR_REM_AMT - BOR_ADJ_AMT THEN 'Y' ELSE 'N' END) AS ERROR_YN /* 가로계산식 오류건 */
-              FROM (SELECT T1.*
-                         , T2.W1_AM01_1 - T2.W1_AM01_2 AS W1_AM01 /* 전월미수금액 */
-                         , T2.W1_AM01_1 AS BF_W1_AM01_1
-                         , T2.W1_AM01_2 AS BF_W1_AM01_2
-                         , T1.W1_AM01_1 - T1.W1_AM01_2 AS W1_AM12 /* 당월미수금액 */
-                      FROM T1
-                      LEFT OUTER JOIN (SELECT * FROM T1) T2
-                        ON T2.SL_CL_YM = T1.BF_SL_CL_YM /* 전월 조회 */
-                       AND T2.SELL_TP_CD = T1.SELL_TP_CD
-                       AND T2.SELL_TP_DTL_CD = T1.SELL_TP_DTL_CD
-                       <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')">
-                       AND T2.CNTR_NO = T1.CNTR_NO
-                       AND T2.CNTR_SN = T1.CNTR_SN
-                       </if>) T3 ) T4
-     WHERE SL_CL_YM > #{slClSYm}
-       <if test="@MybatisUtils@equals(agrgDv, '4')"> /* 가로계산식 틀린 회원 */
-       AND ERROR_YN = 'Y'
-       </if>
-     <if test="@MybatisUtils@equals(agrgDv, '1')"> /* 집계 */
-     GROUP BY ROLLUP( (SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD) )
-     ORDER BY SL_CL_YM DESC, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
-     </if>
-     <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-     GROUP BY ROLLUP( (SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT) )
-     ORDER BY SL_CL_YM DESC, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT
-     </if>
+        <include refid="accountsReceivableRental" />
     </select>
+    <sql id="accountsReceivableRental">
+		SELECT SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || (
+                CASE WHEN TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - TOT_DP_AMT + DP_CNG_AMT + BOR_REM_AMT - BOR_ADJ_AMT  THEN ' *'
+                     ELSE ''
+                 END) AS SL_CL_YM /* ★★★실적년월 */
+	         , SL_CL_DT AS SL_CL_DT /* 실적일자 */
+	         , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
+	         , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = T3.SELL_TP_CD) AS SELL_TP_CD_NM /* 판매유형코드명 */
+	         , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
+	         , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = T3.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD_NM /* 판매유형상세코드명 */
+	         , SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
+	         , (SELECT MAX(SAP_PD_ATC_NM)
+	              FROM TB_CBCL_SAP_PD_DV_CD
+	             WHERE SAP_BZ_TERY_CD = '1210' /* SAP_BZ_TERY_CD : WELLS면 1210, EDU면 1110 */
+	               AND SAP_PD_DV_CD = T3.SAP_PD_DV_CD ) AS SAP_PD_ATC_NM /* SAP상품코드명 */
+	         <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
+	         , CNTR_NO || '-' || CNTR_SN AS CNTR_NO /* 계약번호 */
+	         , CST_NO AS CST_NO /* 고객번호 */
+	         , ( SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T3.CST_NO AND DTA_DL_YN = 'N' ) AS CST_KNM /* 고객명 */
+	         , PD_CD AS PD_CD/* 상품코드 */
+	         , ( SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T3.PD_CD) AS PD_NM /* 상품명 */
+	         , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
+	         </if>
+	         , PRE_TOT_UC_AMT AS PRE_TOT_UC_AMT /* 전기이월 */
+	         , BF_THM_UC_BLAM AS BF_THM_UC_BLAM
+	         , BF_EOT_DLQ_ADD_AMT AS BF_EOT_DLQ_ADD_AMT
+	         , NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
+	         , NOM_SL_AMT_1 AS NOM_SL_AMT_1 /* 렌탈등록비 LC505.LCTAMT */
+	         , NOM_SL_AMT_2 AS NOM_SL_AMT_2 /* 렌탈할인 LC505.LCRAMT */
+	         , NOM_SL_AMT_3 AS NOM_SL_AMT_3 /* 렌탈등록비차액 LC505.LCTCHA */
+	         , NOM_SL_AMT_4 AS NOM_SL_AMT_4 /* 등록환불 LC505.LCAM43 */
+	         , NOM_SL_AMT_5 AS NOM_SL_AMT_5 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
+	         , NOM_SL_AMT_6 AS NOM_SL_AMT_6 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
+	         , SL_CAN_AMT AS SL_CAN_AMT /* 매출취소 LC505.LCAM56 */
+	         , TOT_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+	         --------------------------------------------------------------------------------------
+	         --선수금
+	         --------------------------------------------------------------------------------------
+	         , TOT_DP_AMT AS TOT_DP_AMT
+	         , SL_BND_ALRPY_AMT AS SL_BND_ALRPY_AMT /* 렌탈입금 */
+	         --------------------------------------------------------------------------------------
+	         --기타항목
+	         --------------------------------------------------------------------------------------
+	         , TOT_UC_BLAM AS TOT_UC_BLAM  /* 기말미수 */
+	         , THM_UC_BLAM AS THM_UC_BLAM
+	         , EOT_DLQ_ADD_AMT AS EOT_DLQ_ADD_AMT
+	         , BOR_REM_AMT AS BOR_REM_AMT /* 위약잔여 */
+	         , BOR_REM_AMT_1 AS BOR_REM_AMT_1
+	         , BOR_REM_AMT_2 AS BOR_REM_AMT_2
+	         , BOR_ADJ_AMT AS BOR_ADJ_AMT /* 위약조정 */
+	         , BOR_ADJ_AMT_1 AS BOR_ADJ_AMT_1
+	         , BOR_ADJ_AMT_2 AS BOR_ADJ_AMT_2
+	         , BOR_ADJ_AMT_3 AS BOR_ADJ_AMT_3
+	         , DP_CNG_AMT AS DP_CNG_AMT /* 선수대체 */
+	         , DP_CNG_AMT_1 AS DP_CNG_AMT_1 /* 선수대체입금 */
+	         , DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손금액 */
+	         -----------------------------------------------------------
+	         -- 연체가산금 영역
+	         -----------------------------------------------------------
+	         , SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) ||( /* 전기이월 + 당월발생 - 당월공제 - 당월입금 + 당월환불 */
+	              CASE WHEN EOT_DLQ_ADD_AMT != BTD_DLQ_ADD_AMT + THM_OC_DLQ_ADD_AMT - THM_CTR_DLQ_ADD_AMT - THM_DLQ_ADD_DP_SUM_AMT + THM_DLQ_ADD_RFND_SUM_AMT THEN ' *'
+	                   ELSE ''
+	               END) AS SL_CL_YM2
+	         , BTD_DLQ_ADD_AMT AS BTD_DLQ_ADD_AMT /* 전기이월 */
+	         , THM_OC_DLQ_ADD_AMT AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+	         , THM_CTR_DLQ_ADD_AMT AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+	         , THM_DLQ_ADD_DP_SUM_AMT AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+	         , THM_DLQ_ADD_RFND_SUM_AMT AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+	      FROM (SELECT T2.*
+	                 , (CASE WHEN TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - TOT_DP_AMT + DP_CNG_AMT + BOR_REM_AMT - BOR_ADJ_AMT THEN 'Y' ELSE 'N' END) AS ERROR_YN /* 가로계산식 오류건 */
+	              FROM (SELECT SL_CL_YM AS SL_CL_YM /* 실적년월 */
+	                         , SL_CL_DT AS SL_CL_DT /* 실적일자 */
+	                         , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
+	                         , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
+	                         , SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
+	                         <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
+	                         , CNTR_NO AS CNTR_NO /* 계약번호 */
+	                         , CNTR_SN AS CNTR_SN /* 일련번호 */
+	                         , CST_NO AS CST_NO /* 고객번호 */
+	                         , PD_CD AS PD_CD/* 상품코드 */
+	                         , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
+	                         </if>
+	                         <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계, 일자별*/
+	                         , LAG(SUM(THM_UC_BLAM - EOT_DLQ_ADD_AMT)) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS PRE_TOT_UC_AMT /* 미수금액 */
+	                         , LAG(SUM(THM_UC_BLAM)) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS BF_THM_UC_BLAM /* 전월미수 */
+	                         , LAG(SUM(EOT_DLQ_ADD_AMT)) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS BF_EOT_DLQ_ADD_AMT /* 전월연체가산금 */
+	                         , SUM(THM_UC_BLAM - EOT_DLQ_ADD_AMT) AS TOT_UC_BLAM /* 미수금액 */
+	                         , SUM(THM_UC_BLAM) AS THM_UC_BLAM /* LC505.LCMAMT */
+	                         , SUM(EOT_DLQ_ADD_AMT) AS EOT_DLQ_ADD_AMT /* 기말연체가산금 */
+	                         --------------------------------------------------------------------------------------
+	                         -- 매출
+	                         --------------------------------------------------------------------------------------
+	                         , SUM(NOM_SL_AMT_1) - SUM(NOM_SL_AMT_2) - SUM(NOM_SL_AMT_3) + SUM(NOM_SL_AMT_4) + SUM(NOM_SL_AMT_5) + SUM(NOM_SL_AMT_6) AS NOM_SL_AMT /* 정상매출 */
+	                         , SUM(NOM_SL_AMT_1) AS NOM_SL_AMT_1 /* 렌탈등록비 LC505.LCTAMT */
+	                         , SUM(NOM_SL_AMT_2) AS NOM_SL_AMT_2 /* 렌탈할인 LC505.LCRAMT */
+	                         , SUM(NOM_SL_AMT_3) AS NOM_SL_AMT_3 /* 렌탈등록비차액 LC505.LCTCHA */
+	                         , SUM(NOM_SL_AMT_4) AS NOM_SL_AMT_4 /* 등록환불 LC505.LCAM43 */
+	                         , SUM(NOM_SL_AMT_5) AS NOM_SL_AMT_5 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
+	                         , SUM(NOM_SL_AMT_6) AS NOM_SL_AMT_6 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
+	                         , SUM(SL_CAN_AMT) AS SL_CAN_AMT /* 매출취소 LC505.LCAM56 */
+	                         , SUM(NOM_SL_AMT_1) - SUM(NOM_SL_AMT_2) - SUM(NOM_SL_AMT_3) + SUM(NOM_SL_AMT_4) + SUM(NOM_SL_AMT_5) + SUM(NOM_SL_AMT_6) + SUM(SL_CAN_AMT) AS TOT_SL_AMT /* 매출합계 */
+	                         --------------------------------------------------------------------------------------
+	                         --선수금
+	                         --------------------------------------------------------------------------------------
+	                         , SUM(NOM_SL_AMT_1) - SUM(NOM_SL_AMT_2) - SUM(NOM_SL_AMT_3) + SUM(NOM_SL_AMT_4) + SUM(SL_BND_ALRPY_AMT) AS TOT_DP_AMT
+	                         , SUM(SL_BND_ALRPY_AMT) AS SL_BND_ALRPY_AMT /* 렌탈입금 */
+	                         -------------------------------------------------------------------------------------
+	                         -- 위약잔여
+	                         -------------------------------------------------------------------------------------
+	                         , SUM(BOR_REM_AMT_1) - SUM(BOR_REM_AMT_1) AS BOR_REM_AMT /* 위약잔여 */
+	                         , SUM(BOR_REM_AMT_1) AS BOR_REM_AMT_1 /* 위약발생 LC505.LCA102 */
+	                         , SUM(BOR_REM_AMT_2) AS BOR_REM_AMT_2 /* 위약입금 LC505.LCA103 */
+	                         -------------------------------------------------------------------------------------
+	                         -- 위약조정
+	                         -------------------------------------------------------------------------------------
+	                         , SUM(BOR_ADJ_AMT_1) - SUM(BOR_ADJ_AMT_2) + SUM(BOR_ADJ_AMT_3) AS BOR_ADJ_AMT /* 위약조정 */
+	                         , SUM(BOR_ADJ_AMT_1) AS BOR_ADJ_AMT_1 /* 위약미수_조정 LC505.LCA104  */
+	                         , SUM(BOR_ADJ_AMT_2) AS BOR_ADJ_AMT_2 /* 위약미수_추가 LC505.LCA105  */
+	                         , SUM(BOR_ADJ_AMT_3) AS BOR_ADJ_AMT_3 /* 위약미수_추가조정 LC505.LCA107 */
+	                         -----------------------------------------------------------
+	                         -- 선수대체/대손
+	                         -----------------------------------------------------------
+	                         , SUM(DP_CNG_AMT_1) + SUM(BOR_ADJ_AMT_3) AS DP_CNG_AMT /* 선수대체금액 */
+	                         , SUM(DP_CNG_AMT_1) AS DP_CNG_AMT_1 /* 선수대체입금 LC505.LCCM34 */
+	                         , SUM(DFA_PROCS_AMT) AS DFA_PROCS_AMT /* 손료 */
+	                         -----------------------------------------------------------
+	                         -- 연체가산금 영역
+	                         -----------------------------------------------------------
+	                         , SUM(BTD_DLQ_ADD_AMT) AS BTD_DLQ_ADD_AMT /* 전기이월 */
+	                         , SUM(THM_OC_DLQ_ADD_AMT) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+	                         , SUM(THM_CTR_DLQ_ADD_AMT) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+	                         , SUM(THM_DLQ_ADD_DP_SUM_AMT) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+	                         , SUM(THM_DLQ_ADD_RFND_SUM_AMT) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+	                         </if>
+	                         <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 집계, 일자별*/
+	                         , LAG(THM_UC_BLAM - EOT_DLQ_ADD_AMT) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS PRE_TOT_UC_AMT /* 미수금액 */
+	                         , LAG(THM_UC_BLAM) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS BF_THM_UC_BLAM /* 전월미수 */
+	                         , LAG(EOT_DLQ_ADD_AMT) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS BF_EOT_DLQ_ADD_AMT /* 전월연체가산금 */
+	                         , THM_UC_BLAM - EOT_DLQ_ADD_AMT AS TOT_UC_BLAM /* 미수금액 */
+	                         , THM_UC_BLAM AS THM_UC_BLAM /* LC505.LCMAMT */
+	                         , EOT_DLQ_ADD_AMT AS EOT_DLQ_ADD_AMT /* 기말연체가산금 */
+	                         --------------------------------------------------------------------------------------
+	                         -- 매출
+	                         --------------------------------------------------------------------------------------
+	                         , NOM_SL_AMT_1 - NOM_SL_AMT_2 - NOM_SL_AMT_3 + NOM_SL_AMT_4 + NOM_SL_AMT_5 + NOM_SL_AMT_6 AS NOM_SL_AMT /* 정상매출 */
+	                         , NOM_SL_AMT_1 AS NOM_SL_AMT_1 /* 렌탈등록비 LC505.LCTAMT */
+	                         , NOM_SL_AMT_2 AS NOM_SL_AMT_2 /* 렌탈할인 LC505.LCRAMT */
+	                         , NOM_SL_AMT_3 AS NOM_SL_AMT_3 /* 렌탈등록비차액 LC505.LCTCHA */
+	                         , NOM_SL_AMT_4 AS NOM_SL_AMT_4 /* 등록환불 LC505.LCAM43 */
+	                         , NOM_SL_AMT_5 AS NOM_SL_AMT_5 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
+	                         , NOM_SL_AMT_6 AS NOM_SL_AMT_6 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
+	                         , SL_CAN_AMT AS SL_CAN_AMT /* 매출취소 LC505.LCAM56 */
+	                         , NOM_SL_AMT_1 - NOM_SL_AMT_2 - NOM_SL_AMT_3 + NOM_SL_AMT_4 + NOM_SL_AMT_5 + NOM_SL_AMT_6 + SL_CAN_AMT AS TOT_SL_AMT /* 매출합계 */
+	                         --------------------------------------------------------------------------------------
+	                         --선수금
+	                         --------------------------------------------------------------------------------------
+	                         , NOM_SL_AMT_1 - NOM_SL_AMT_2 - NOM_SL_AMT_3 + NOM_SL_AMT_4 + SL_BND_ALRPY_AMT AS TOT_DP_AMT
+	                         , SL_BND_ALRPY_AMT AS SL_BND_ALRPY_AMT /* 렌탈입금 */
+	                         -------------------------------------------------------------------------------------
+	                         -- 위약잔여
+	                         -------------------------------------------------------------------------------------
+	                         , BOR_REM_AMT_1 - BOR_REM_AMT_1 AS BOR_REM_AMT /* 위약잔여 */
+	                         , BOR_REM_AMT_1 AS BOR_REM_AMT_1 /* 위약발생 LC505.LCA102 */
+	                         , BOR_REM_AMT_2 AS BOR_REM_AMT_2 /* 위약입금 LC505.LCA103 */
+	                         -------------------------------------------------------------------------------------
+	                         -- 위약조정
+	                         -------------------------------------------------------------------------------------
+	                         , BOR_ADJ_AMT_1 - BOR_ADJ_AMT_2 + BOR_ADJ_AMT_3 AS BOR_ADJ_AMT /* 위약조정 */
+	                         , BOR_ADJ_AMT_1 AS BOR_ADJ_AMT_1 /* 위약미수_조정 LC505.LCA104  */
+	                         , BOR_ADJ_AMT_2 AS BOR_ADJ_AMT_2 /* 위약미수_추가 LC505.LCA105  */
+	                         , BOR_ADJ_AMT_3 AS BOR_ADJ_AMT_3 /* 위약미수_추가조정 LC505.LCA107 */
+	                         -----------------------------------------------------------
+	                         -- 선수대체/대손
+	                         -----------------------------------------------------------
+	                         , DP_CNG_AMT_1 + BOR_ADJ_AMT_3 AS DP_CNG_AMT /* 선수대체금액 */
+	                         , DP_CNG_AMT_1 AS DP_CNG_AMT_1 /* 선수대체입금 LC505.LCCM34 */
+	                         , DFA_PROCS_AMT AS DFA_PROCS_AMT /* 손료 */
+	                         -----------------------------------------------------------
+	                         -- 연체가산금 영역
+	                         -----------------------------------------------------------
+	                         , BTD_DLQ_ADD_AMT AS BTD_DLQ_ADD_AMT /* 전기이월 */
+	                         , THM_OC_DLQ_ADD_AMT AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+	                         , THM_CTR_DLQ_ADD_AMT AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+	                         , THM_DLQ_ADD_DP_SUM_AMT AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+	                         , THM_DLQ_ADD_RFND_SUM_AMT AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+	                         </if>
+	                      FROM (SELECT /*+ USE_NL(A B C D E F G) LEADING(F) */
+	                                   A.SL_CL_YM AS SL_CL_YM /* 실적년월 */
+	                                 , A.SL_CL_DT AS SL_CL_DT /* 실적일자 */
+	                                 , A.SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
+	                                 , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
+	                                 , A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
+	                                 , A.CNTR_NO AS CNTR_NO /* 계약번호 */
+	                                 , A.CNTR_SN AS CNTR_SN /* 일련번호 */
+	                                 , A.CST_NO AS CST_NO /* 고객번호 */
+	                                 , A.PD_CD AS PD_CD/* 상품코드 */
+	                                 , A.SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
+	                                 , NVL(A.THM_UC_BLAM, 0) AS THM_UC_BLAM /* 전월미수 LC505.LCMAMT */
+	                                 , NVL(D.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT /* 기말연체가산금 */
+	                                 --------------------------------------------------------------------------------------
+	                                 -- 원금매출
+	                                 --------------------------------------------------------------------------------------
+	                                 , NVL(A.RENTAL_RGST_COST, 0) AS NOM_SL_AMT_1 /* 렌탈등록비 LC505.LCTAMT */
+	                                 , NVL(A.DSC_AMT, 0) AS NOM_SL_AMT_2 /* 렌탈할인 LC505.LCRAMT */
+	                                 , NVL(A.RENTAL_RGST_COST_DFAM, 0) AS NOM_SL_AMT_3 /* 렌탈등록비차액 LC505.LCTCHA */
+	                                 , NVL((SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT, 0) ELSE NVL(RVE_AMT*-1, 0) END)
+	                                          FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수 */
+	                                         WHERE CNTR_NO = A.CNTR_NO
+	                                           AND CNTR_SN = A.CNTR_SN
+	                                           AND SUBSTR(RVE_DT, 1, 6) = A.SL_CL_YM
+	                                           AND RVE_DV_CD = '01' /* 계약금 */
+	                                           AND DP_DV_CD = '2'), 0) AS NOM_SL_AMT_4 /* 등록환불 LC505.LCAM43 */
+	                                 --------------------------------------------------------------------------------------
+	                                 -- 렌탈료매출
+	                                 --------------------------------------------------------------------------------------
+	                                 , (CASE WHEN A.RENTAL_TN = 0 THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS NOM_SL_AMT_5 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
+	                                 , (CASE WHEN A.RENTAL_TN > 0 THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS NOM_SL_AMT_6 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
+	                                 , (CASE WHEN A.RENTAL_TN > 0 AND (A.CAN_DT IS NOT NULL OR A.CAN_DT <![CDATA[<>]]> '') THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS SL_CAN_AMT /* 매출취소 LC505.LCAM56 */
+	                                 --------------------------------------------------------------------------------------
+	                                 --선수금
+	                                 --------------------------------------------------------------------------------------
+	                                 , NVL(A.SL_BND_ALRPY_AMT, 0)AS SL_BND_ALRPY_AMT /* 렌탈입금 LC505.LCAM38 */
+	                                 -------------------------------------------------------------------------------------
+	                                 -- 위약잔여
+	                                 -------------------------------------------------------------------------------------
+	                                 , NVL(E.OC_BOR_AMT, 0) AS BOR_REM_AMT_1 /* 위약발생 LC505.LCA102 */
+	                                 , NVL(E.DP_CCAM_SUM_AMT, 0) AS BOR_REM_AMT_2 /* 위약입금 LC505.LCA103 */
+	                                 -------------------------------------------------------------------------------------
+	                                 -- 위약조정
+	                                 -------------------------------------------------------------------------------------
+	                                 , (CASE WHEN F.AUTH_RSG_CNFM_YN = 'Y' THEN NVL(E.CTR_CCAM_SUM_AMT, 0) ELSE 0 END) AS BOR_ADJ_AMT_1 /* 위약미수_조정 LC505.LCA104  */
+	                                 , (CASE WHEN F.AUTH_RSG_CNFM_YN = 'Y' THEN NVL(E.SPMT_CCAM_SUM_AMT, 0) ELSE 0 END) AS BOR_ADJ_AMT_2 /* 위약미수_추가 LC505.LCA105  */
+	                                 , 0 AS BOR_ADJ_AMT_3 /* 위약미수_초과조정 LC505.LCA107 @TODO ASIS로직 반영 필요 */
+	                                 , NVL((SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT, 0) ELSE NVL(RVE_AMT*-1, 0) END)
+	                                          FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수 */
+	                                         WHERE CNTR_NO = A.CNTR_NO
+	                                           AND CNTR_SN = A.CNTR_SN
+	                                           AND SUBSTR(RVE_DT, 1, 6) = A.SL_CL_YM
+	                                           AND RVE_DV_CD = '10'), 0) AS DFA_PROCS_AMT /* 손료 LC505.LCAM46 */
+	                                 , NVL(OVR_CTR_DP_AMT, 0) AS DP_CNG_AMT_1 /* 선수대체입금 LC505.LCCM34 */
+	                                 -----------------------------------------------------------
+	                                 -- 연체가산금 영역
+	                                 -----------------------------------------------------------
+	                                 , NVL(D.BTD_DLQ_ADD_AMT, 0) AS BTD_DLQ_ADD_AMT /* 전기이월 */
+	                                 , NVL(D.THM_OC_DLQ_ADD_AMT, 0) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+	                                 , NVL(D.THM_CTR_DLQ_ADD_AMT, 0) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+	                                 , NVL(D.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+	                                 , NVL(D.THM_DLQ_ADD_RFND_SUM_AMT, 0) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+	                              FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+	                             INNER JOIN TB_SSCT_CNTR_BAS B /* 계약기본 */
+	                                ON B.CNTR_NO = A.CNTR_NO
+	                               AND B.DTA_DL_YN = 'N'
+	                              LEFT OUTER JOIN TB_SSCT_CNTR_DTL C /* 계약상세 */
+	                                ON C.CNTR_NO = A.CNTR_NO
+	                               AND C.CNTR_SN = A.CNTR_SN
+	                               AND C.DTA_DL_YN = 'N'
+	                              LEFT OUTER JOIN TB_CBCL_DLQ_BAS D /* 연체기본 */
+	                                ON D.PERF_YM = A.SL_CL_YM
+	                               AND D.CNTR_NO = A.CNTR_NO
+	                               AND D.CNTR_SN = A.CNTR_SN
+	                               AND D.DTA_DL_YN = 'N'
+	                              LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS E /* 위약기본 */
+	                                ON E.PERF_YM = A.SL_CL_YM
+	                               AND E.CNTR_NO = A.CNTR_NO
+	                               AND E.CNTR_SN = A.CNTR_SN
+	                               AND E.DTA_DL_YN = 'N'
+	                              LEFT OUTER JOIN TB_CBBO_WELLS_AUTH_RSG_IZ F /* WELLS직권해지 */
+	                                ON F.BASE_YM = A.SL_CL_YM
+	                               AND F.CNTR_NO = A.CNTR_NO
+	                               AND F.CNTR_SN = A.CNTR_SN
+	                               AND F.AUTH_RSG_CNFM_YN = 'Y'
+	                             WHERE A.SL_CL_YM BETWEEN #{slClSYm} AND #{slClEYm}
+	                               AND A.SELL_TP_CD = '2'
+	                               AND A.SELL_TP_DTL_CD IN ('21', '23')
+	                               AND NOT EXISTS ( SELECT /*+ UNNEST */ 1
+	                                                  FROM TB_SSCT_CNTR_DTL AA
+	                                                 INNER JOIN TB_PDBS_PD_CLSF_BAS BB /* 상품분류기본-소분류[AS-IS:KA1100P] */
+	                                                    ON BB.PD_CLSF_ID = AA.PD_LCLSF_ID /* 상품분류ID = 상품세분류ID */
+	                                                   AND BB.DTA_DL_YN = 'N'
+	                                                   AND BB.USE_YN = 'Y'
+	                                                   AND BB.REF_PD_CLSF_VAL = '05003002' /* [Cooking+커피머신+원두] */
+	                                                 WHERE AA.CNTR_NO = A.CNTR_NO
+	                                                   AND AA.CNTR_SN = A.CNTR_SN )
+	                               <if test="@MybatisUtils@isNotEmpty(sapPdDvCd)">
+	                               AND A.SAP_PD_DV_CD = #{sapPdDvCd}
+	                               </if>
+	                               <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+	                               AND A.CNTR_NO = #{cntrNo}
+	                               </if>
+	                               <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+	                               AND A.CNTR_SN = #{cntrSn}
+	                               </if>
+	                               <if test="@MybatisUtils@isNotEmpty(sellChnlDtl)">
+	                               AND B.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDtl}
+	                               </if>
+	                            ) T1
+	                     <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계 */
+	                     GROUP BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
+			             ORDER BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
+	                     </if>
+	                     <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
+	                     ORDER BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN
+	                     </if>
+	                ) T2
+	           ) T3
+	     WHERE SL_CL_YM > #{slClSYm}
+	       <if test="@MybatisUtils@equals(agrgDv, '4')"> /* 가로계산식 틀린 회원 */
+	       AND ERROR_YN = 'Y'
+       		</if>
+    </sql>
     <select id="selectAccountsReceivableLease" resultType="com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesBondDvo">
-        WITH T1 AS (SELECT SL_CL_YM AS SL_CL_YM /* 실적년월 */
-                         , BF_SL_CL_YM AS BF_SL_CL_YM /* 이전 실적전월 */
-                         , SL_CL_DT AS SL_CL_DT /* 실적일자 */
-                         , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
-                         , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
-                         , SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-                         <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-                         , CNTR_NO AS CNTR_NO /* 계약번호 */
-                         , CNTR_SN AS CNTR_SN /* 일련번호 */
-                         , CST_NO AS CST_NO /* 고객번호 */
-                         , PD_CD AS PD_CD/* 상품코드 */
-                         , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
-                         </if>
-                         --------------------------------------------------------------------------------------
-                         -- 원금매출
-                         --------------------------------------------------------------------------------------
-                         , SUM(W1_AM04) AS W1_AM04
-                         , SUM(W1_AM04_1) AS W1_AM04_1 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
-                         , SUM(W1_AM04_2) AS W1_AM04_2 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
-                         --------------------------------------------------------------------------------------
-                         -- 이자매출
-                         --------------------------------------------------------------------------------------
-                         , SUM(W1_AM07) AS W1_AM07 /* 이자매출 LC505.LCCM16 */
-                         --------------------------------------------------------------------------------------
-                         -- 서비스 매출
-                         --------------------------------------------------------------------------------------
-                         , SUM(W1_AM58) AS W1_AM58 /* 서비스매출 LC505.LCSAM7 */
-                         --------------------------------------------------------------------------------------
-                         --  매출합계（매출조정　항목으로　대체　표시）
-                         --------------------------------------------------------------------------------------
-                         , SUM(W1_AM08) AS W1_AM08
-                         , SUM(W1_AM08_1) AS W1_AM08_1 /* 매출조정 LC505.LCAM91 */
-                         , SUM(W1_AM08_2) AS W1_AM08_2 /* 매출취소 LC505.LCAM92 */
-                         --------------------------------------------------------------------------------------
-                         -- 선수금（원금입금／이자입금／서비스입금/합계）
-                         --------------------------------------------------------------------------------------
-                         , SUM(W1_AM09) AS W1_AM09 /* 매출입금 LC505.LCAM38 */
-                         , SUM(W1_AM10) AS W1_AM10 /* 이자입금 LC505.LCCM38 */
-                         , SUM(W1_AM50) AS W1_AM50 /* 서비스입금 LC505.LCSM38 */
-                         , SUM(W1_AM11) AS W1_AM11
-                         --------------------------------------------------------------------------------------
-                         -- 대손
-                         --------------------------------------------------------------------------------------
-                         , SUM(DFA_PROCS_AMT) AS DFA_PROCS_AMT /* 대손금액 */
-                         --------------------------------------------------------------------------------------
-                         -- 미수금액（원금총미수＋이자총미수 + 서비스미수기말）
-                         --------------------------------------------------------------------------------------
-                         , SUM(W1_AM12) AS W1_AM12 /* 전기이월 */
-                         , SUM(W1_AM12_1) AS W1_AM12_1 /* 원금총미수 LC505.LCMMAM */
-                         , SUM(W1_AM12_2) AS W1_AM12_2 /* 이자총미수 LC505.LCCMAM */
-                         , SUM(W1_AM12_3) AS W1_AM12_3 /* 서비스미수기말 LC505.LCSAM6 */
-                         -----------------------------------------------------------
-                         -- 연체가산금 영역
-                         -----------------------------------------------------------
-                         , SUM(BTD_DLQ_ADD_AMT) AS BTD_DLQ_ADD_AMT /* 전기이월 */
-                         , SUM(THM_OC_DLQ_ADD_AMT) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
-                         , SUM(THM_CTR_DLQ_ADD_AMT) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
-                         , SUM(THM_DLQ_ADD_DP_SUM_AMT) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
-                         , SUM(THM_DLQ_ADD_RFND_SUM_AMT) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
-                         , SUM(EOT_DLQ_ADD_AMT) AS EOT_DLQ_ADD_AMT /* 기말연체가산금 */
-                      FROM (SELECT /*+ USE_NL(D) */
-                                   A.SL_CL_YM AS SL_CL_YM /* 실적년월 */
-                                 , TO_CHAR((SELECT ADD_MONTHS(TO_DATE(A.SL_CL_YM, 'YYYYMM'), -1) FROM DUAL), 'YYYYMM') AS BF_SL_CL_YM /* 이전 실적전월 */
-                                 , A.SL_CL_DT AS SL_CL_DT /* 실적일자 */
-                                 , A.SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
-                                 , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
-                                 , A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-                                 , A.CNTR_NO AS CNTR_NO /* 계약번호 */
-                                 , A.CNTR_SN AS CNTR_SN /* 일련번호 */
-                                 , A.CST_NO AS CST_NO /* 고객번호 */
-                                 , A.PD_CD AS PD_CD/* 상품코드 */
-                                 , A.SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
-                                 --------------------------------------------------------------------------------------
-                                 -- 원금매출
-                                 --------------------------------------------------------------------------------------
-                                 , NVL(A.THM_SL_SUM_AMT, 0) AS W1_AM04
-                                 , (CASE WHEN A.RENTAL_TN = 0 THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS W1_AM04_1 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
-                                 , (CASE WHEN A.RENTAL_TN > 0 THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS W1_AM04_2 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
-                                 --------------------------------------------------------------------------------------
-                                 -- 이자매출
-                                 --------------------------------------------------------------------------------------
-                                 , NVL(A.INT_SUM_AMT, 0) AS W1_AM07 /* 이자매출 LC505.LCCM16 */
-                                 --------------------------------------------------------------------------------------
-                                 -- 서비스 매출
-                                 --------------------------------------------------------------------------------------
-                                 , NVL(A.THM_OC_SV_SL_AMT, 0) AS W1_AM58 /* 서비스매출 LC505.LCSAM7 */
-                                 --------------------------------------------------------------------------------------
-                                 --  매출합계（매출조정　항목으로　대체　표시）
-                                 --------------------------------------------------------------------------------------
-                                 , NVL(A.LEASE_SL_CTR_AMT, 0) + NVL(A.LEASE_SL_CAN_AMT, 0) AS W1_AM08
-                                 , NVL(A.LEASE_SL_CTR_AMT, 0) AS W1_AM08_1 /* 매출조정 LC505.LCAM91 */
-                                 , NVL(A.LEASE_SL_CAN_AMT, 0) AS W1_AM08_2 /* 매출취소 LC505.LCAM92 */
-                                 --------------------------------------------------------------------------------------
-                                 --선수금（원금입금／이자입금／서비스입금/합계）
-                                 --------------------------------------------------------------------------------------
-                                 , NVL(A.SL_BND_ALRPY_AMT, 0) AS W1_AM09 /* 매출입금 LC505.LCAM38 */
-                                 , NVL(A.INT_DP_AMT, 0) AS W1_AM10 /* 이자입금 LC505.LCCM38 */
-                                 , NVL(A.SV_DP_AMT, 0) AS W1_AM50 /* 서비스입금 LC505.LCSM38 */
-                                 , NVL(A.SL_BND_ALRPY_AMT, 0) + NVL(A.INT_DP_AMT, 0) + NVL(A.SV_DP_AMT, 0) AS W1_AM11
-                                 --------------------------------------------------------------------------------------
-                                 -- 대손
-                                 --------------------------------------------------------------------------------------
-                                 , NVL(A.DFA_PROCS_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
-                                 --------------------------------------------------------------------------------------
-                                 -- 미수금액（원금총미수 ＋ 이자총미수 + 서비스미수기말）
-                                 --------------------------------------------------------------------------------------
-                                 , NVL(A.TOT_PCAM_UC_AMT, 0) + NVL(A.TOT_INT_UC_AMT, 0) + NVL(A.EOT_SV_AMT, 0) AS W1_AM12 /* 전기이월 */
-                                 , NVL(A.TOT_PCAM_UC_AMT, 0) AS W1_AM12_1 /* 원금총미수 LC505.LCMMAM */
-                                 , NVL(A.TOT_INT_UC_AMT, 0) AS W1_AM12_2 /* 이자총미수 LC505.LCCMAM */
-                                 , NVL(A.EOT_SV_AMT, 0) AS W1_AM12_3 /* 서비스미수기말 LC505.LCSAM6 */
-                                 -----------------------------------------------------------
-                                 -- 연체가산금 영역
-                                 -----------------------------------------------------------
-                                 , NVL(D.BTD_DLQ_ADD_AMT, 0) AS BTD_DLQ_ADD_AMT /* 전기이월 */
-                                 , NVL(D.THM_OC_DLQ_ADD_AMT, 0) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
-                                 , NVL(D.THM_CTR_DLQ_ADD_AMT, 0) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
-                                 , NVL(D.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
-                                 , NVL(D.THM_DLQ_ADD_RFND_SUM_AMT, 0) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
-                                 , NVL(D.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT /* 기말연체가산금 */
-                              FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
-                             INNER JOIN TB_SSCT_CNTR_BAS B /* 계약기본 */
-                                ON B.CNTR_NO = A.CNTR_NO
-                               AND B.DTA_DL_YN = 'N'
-                             INNER JOIN TB_SSCT_CNTR_DTL C /* 계약상세 */
-                                ON C.CNTR_NO = A.CNTR_NO
-                               AND C.CNTR_SN = A.CNTR_SN
-                               AND C.DTA_DL_YN = 'N'
-                              LEFT OUTER JOIN TB_CBCL_DLQ_BAS D /* 연체기본 */
-                                ON D.PERF_YM = A.SL_CL_YM
-                               AND D.CNTR_NO = A.CNTR_NO
-                               AND D.CNTR_SN = A.CNTR_SN
-                               AND D.DTA_DL_YN = 'N'
-                             WHERE A.SL_CL_YM BETWEEN #{slClSYm} AND #{slClEYm}
-                               AND A.SELL_TP_CD = '2'
-                               AND A.SELL_TP_DTL_CD NOT IN ('21', '23')
-                               <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
-                               AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(sapPdDvCd)">
-                               AND A.SAP_PD_DV_CD = #{sapPdDvCd}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-                               AND A.CNTR_NO = #{cntrNo}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(cntrSn)">
-                               AND A.CNTR_SN = #{cntrSn}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(sellChnlDtl)">
-                               AND B.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDtl}
-                               </if>
-                             )
-                    <if test="@MybatisUtils@equals(agrgDv, '1')"> /* 집계 */
-                    GROUP BY SL_CL_YM, BF_SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
-                    </if>
-                    <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-                    GROUP BY SL_CL_YM, BF_SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT
-                    </if>
-                )
-       SELECT CASE WHEN GROUPING(SL_CL_YM)  = 1 THEN '총      계'
-                   ELSE SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || (
-                        CASE WHEN SUM(W1_AM12) != SUM(W1_AM01) + SUM(W1_AM04) + SUM(W1_AM07) + SUM(W1_AM58) - SUM(W1_AM08) - SUM(W1_AM11) THEN ' *'
-                             ELSE ''
-                         END)
-               END AS SL_CL_YM /* 실적년월 */
+        <include refid="accountsReceivableLease" />
+    </select>
+    <sql id="accountsReceivableLease">
+               SELECT SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || (
+                CASE WHEN W1_AM12 != W1_AM01 + W1_AM04 + W1_AM07 + W1_AM58 - W1_AM08 - W1_AM11 THEN ' *'
+                     ELSE ''
+                 END) AS SL_CL_YM /* 실적년월 */
             , SL_CL_DT AS SL_CL_DT /* 실적일자 */
             , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
             , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = T3.SELL_TP_CD) AS SELL_TP_CD_NM /* 판매유형코드명 */
@@ -746,375 +768,650 @@
             , ( SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T3.PD_CD) AS PD_NM /* 상품명 */
             , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
             </if>
-            , SUM(W1_AM01) AS PRE_TOT_UC_AMT  /* 전기이월 */
-            , SUM(W1_AM01_1) AS W1_AM01_1
-            , SUM(W1_AM01_2) AS W1_AM01_2
-            , SUM(W1_AM01_3) AS W1_AM01_3
-            , SUM(W1_AM04) AS ORI_SL_AMT /* 원금매출 */
-            , SUM(W1_AM07) AS ITR_SL_AMT /* 이자매출 */
-            , SUM(W1_AM58) AS SVC_SL_AMT /* 서비스매출 */
-            , SUM(W1_AM04)+ SUM(W1_AM07) + SUM(W1_AM58) AS TOT_SL_AMT /* 매출합계 */
-            , SUM(W1_AM08) AS SL_ADJ_AMT /* 매출조정 */
-            , SUM(W1_AM08_1) AS W1_AM08_1 /* 매출조정 */
-            , SUM(W1_AM08_2) AS W1_AM08_2 /* 매출취소 */
-            , SUM(W1_AM11) AS TOT_DP_AMT /* 매출대사 */
-            , SUM(W1_AM09) AS W1_AM09
-            , SUM(W1_AM10) AS W1_AM10
-            , SUM(W1_AM50) AS W1_AM50
-            , SUM(W1_AM12) AS TOT_UC_BLAM  /* ★★★기말미수 */
-            , SUM(W1_AM12_1) AS W1_AM12_1
-            , SUM(W1_AM12_2) AS W1_AM12_2
-            , SUM(W1_AM12_3) AS W1_AM12_3
-            , SUM(DFA_PROCS_AMT) AS DFA_PROCS_AMT /* 대손금액 */
-            , (CASE WHEN GROUPING(SL_CL_YM)  = 1 THEN '총      계'
-                    ELSE SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || ( /* 전기이월 + 당월발생 - 당월공제 - 당월입금 + 당월환불 */
-                         CASE WHEN SUM(EOT_DLQ_ADD_AMT) != SUM(BTD_DLQ_ADD_AMT) + SUM(THM_OC_DLQ_ADD_AMT) - SUM(THM_CTR_DLQ_ADD_AMT) - SUM(THM_DLQ_ADD_DP_SUM_AMT) + SUM(THM_DLQ_ADD_RFND_SUM_AMT) THEN ' *'
-                              ELSE '' END)
-                END) AS SL_CL_YM2
-            , SUM(BTD_DLQ_ADD_AMT) AS BTD_DLQ_ADD_AMT /* 전기이월 */
-            , SUM(THM_OC_DLQ_ADD_AMT) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
-            , SUM(THM_CTR_DLQ_ADD_AMT) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
-            , SUM(THM_DLQ_ADD_DP_SUM_AMT) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
-            , SUM(THM_DLQ_ADD_RFND_SUM_AMT) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
-            , SUM(EOT_DLQ_ADD_AMT) AS EOT_DLQ_ADD_AMT /* 기말잔액 */
+            , W1_AM01 AS PRE_TOT_UC_AMT  /* 전기이월 */
+            , W1_AM01_1 AS W1_AM01_1
+            , W1_AM01_2 AS W1_AM01_2
+            , W1_AM01_3 AS W1_AM01_3
+            , W1_AM04 AS ORI_SL_AMT /* 원금매출 */
+            , W1_AM07 AS ITR_SL_AMT /* 이자매출 */
+            , W1_AM58 AS SVC_SL_AMT /* 서비스매출 */
+            , W1_AM04+ W1_AM07 + W1_AM58 AS TOT_SL_AMT /* 매출합계 */
+            , W1_AM08 AS SL_ADJ_AMT /* 매출조정 */
+            , W1_AM08_1 AS W1_AM08_1 /* 매출조정 */
+            , W1_AM08_2 AS W1_AM08_2 /* 매출취소 */
+            , W1_AM11 AS TOT_DP_AMT /* 매출대사 */
+            , W1_AM09 AS W1_AM09
+            , W1_AM10 AS W1_AM10
+            , W1_AM50 AS W1_AM50
+            , W1_AM12 AS TOT_UC_BLAM  /* ★★★기말미수 */
+            , W1_AM12_1 AS W1_AM12_1
+            , W1_AM12_2 AS W1_AM12_2
+            , W1_AM12_3 AS W1_AM12_3
+            , DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손금액 */
+            , SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || ( /* 전기이월 + 당월발생 - 당월공제 - 당월입금 + 당월환불 */
+                 CASE WHEN EOT_DLQ_ADD_AMT != BTD_DLQ_ADD_AMT + THM_OC_DLQ_ADD_AMT - THM_CTR_DLQ_ADD_AMT - THM_DLQ_ADD_DP_SUM_AMT + THM_DLQ_ADD_RFND_SUM_AMT THEN ' *'
+                      ELSE '' END) AS SL_CL_YM2
+            , BTD_DLQ_ADD_AMT AS BTD_DLQ_ADD_AMT /* 전기이월 */
+            , THM_OC_DLQ_ADD_AMT AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+            , THM_CTR_DLQ_ADD_AMT AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+            , THM_DLQ_ADD_DP_SUM_AMT AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+            , THM_DLQ_ADD_RFND_SUM_AMT AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+            , EOT_DLQ_ADD_AMT AS EOT_DLQ_ADD_AMT /* 기말잔액 */
          FROM (SELECT T1.*
-                    , T2.W1_AM12 AS W1_AM01 /* 전월미수금액 */
-                    , T2.W1_AM12_1 AS W1_AM01_1 /* 전월원금미수 */
-                    , T2.W1_AM12_2 AS W1_AM01_2 /* 전월이자미수 */
-                    , T2.W1_AM12_3 AS W1_AM01_3 /* 전월서비스미수 */
-                    , (CASE WHEN T1.W1_AM12 != T2.W1_AM12 + T1.W1_AM04 + T1.W1_AM07 + T1.W1_AM58 - T1.W1_AM08 - T1.W1_AM11
+                    , (CASE WHEN T1.W1_AM12 != T1.W1_AM01 + T1.W1_AM04 + T1.W1_AM07 + T1.W1_AM58 - T1.W1_AM08 - T1.W1_AM11
                             THEN 'Y' ELSE 'N'
                         END) AS ERROR_YN /* 가로계산식 오류건 */
-                 FROM T1
-                 LEFT OUTER JOIN (SELECT * FROM T1) T2
-                   ON T2.SL_CL_YM = T1.BF_SL_CL_YM /* 전월 조회 */
-                  AND T2.SELL_TP_CD = T1.SELL_TP_CD
-                  AND T2.SELL_TP_DTL_CD = T1.SELL_TP_DTL_CD
-                  <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')">
-                  AND T2.CNTR_NO = T1.CNTR_NO
-                  AND T2.CNTR_SN = T1.CNTR_SN
-                  </if>) T3
+                 FROM (SELECT SL_CL_YM AS SL_CL_YM /* 실적년월 */
+	                         , SL_CL_DT AS SL_CL_DT /* 실적일자 */
+	                         , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
+	                         , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
+	                         , SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
+	                         <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
+	                         , CNTR_NO AS CNTR_NO /* 계약번호 */
+	                         , CNTR_SN AS CNTR_SN /* 일련번호 */
+	                         , CST_NO AS CST_NO /* 고객번호 */
+	                         , PD_CD AS PD_CD/* 상품코드 */
+	                         , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
+	                         </if>
+	                         <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계, 일자별*/
+	                         --------------------------------------------------------------------------------------
+	                         -- 원금매출
+	                         --------------------------------------------------------------------------------------
+	                         , SUM(W1_AM04) AS W1_AM04
+	                         , SUM(W1_AM04_1) AS W1_AM04_1 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
+	                         , SUM(W1_AM04_2) AS W1_AM04_2 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
+	                         --------------------------------------------------------------------------------------
+	                         -- 이자매출
+	                         --------------------------------------------------------------------------------------
+	                         , SUM(W1_AM07) AS W1_AM07 /* 이자매출 LC505.LCCM16 */
+	                         --------------------------------------------------------------------------------------
+	                         -- 서비스 매출
+	                         --------------------------------------------------------------------------------------
+	                         , SUM(W1_AM58) AS W1_AM58 /* 서비스매출 LC505.LCSAM7 */
+	                         --------------------------------------------------------------------------------------
+	                         --  매출합계（매출조정　항목으로　대체　표시）
+	                         --------------------------------------------------------------------------------------
+	                         , SUM(W1_AM08) AS W1_AM08
+	                         , SUM(W1_AM08_1) AS W1_AM08_1 /* 매출조정 LC505.LCAM91 */
+	                         , SUM(W1_AM08_2) AS W1_AM08_2 /* 매출취소 LC505.LCAM92 */
+	                         --------------------------------------------------------------------------------------
+	                         -- 선수금（원금입금／이자입금／서비스입금/합계）
+	                         --------------------------------------------------------------------------------------
+	                         , SUM(W1_AM09) AS W1_AM09 /* 매출입금 LC505.LCAM38 */
+	                         , SUM(W1_AM10) AS W1_AM10 /* 이자입금 LC505.LCCM38 */
+	                         , SUM(W1_AM50) AS W1_AM50 /* 서비스입금 LC505.LCSM38 */
+	                         , SUM(W1_AM11) AS W1_AM11
+	                         --------------------------------------------------------------------------------------
+	                         -- 대손
+	                         --------------------------------------------------------------------------------------
+	                         , SUM(DFA_PROCS_AMT) AS DFA_PROCS_AMT /* 대손금액 */
+	                         --------------------------------------------------------------------------------------
+	                         -- 미수금액（원금총미수＋이자총미수 + 서비스미수기말）
+	                         --------------------------------------------------------------------------------------
+	                         , LAG(SUM(W1_AM12)) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS W1_AM01 /* 전기이월 */
+	                         , LAG(SUM(W1_AM12_1)) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS W1_AM01_1 /* 원금총미수 LC505.LCMMAM */
+	                         , LAG(SUM(W1_AM12_2)) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS W1_AM01_2 /* 이자총미수 LC505.LCCMAM */
+	                         , LAG(SUM(W1_AM12_3)) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS W1_AM01_3 /* 서비스미수기말 LC505.LCSAM6 */
+	                         , SUM(W1_AM12) AS W1_AM12 /* 전기이월 */
+	                         , SUM(W1_AM12_1) AS W1_AM12_1 /* 원금총미수 LC505.LCMMAM */
+	                         , SUM(W1_AM12_2) AS W1_AM12_2 /* 이자총미수 LC505.LCCMAM */
+	                         , SUM(W1_AM12_3) AS W1_AM12_3 /* 서비스미수기말 LC505.LCSAM6 */
+	                         -----------------------------------------------------------
+	                         -- 연체가산금 영역
+	                         -----------------------------------------------------------
+	                         , SUM(BTD_DLQ_ADD_AMT) AS BTD_DLQ_ADD_AMT /* 전기이월 */
+	                         , SUM(THM_OC_DLQ_ADD_AMT) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+	                         , SUM(THM_CTR_DLQ_ADD_AMT) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+	                         , SUM(THM_DLQ_ADD_DP_SUM_AMT) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+	                         , SUM(THM_DLQ_ADD_RFND_SUM_AMT) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+	                         , SUM(EOT_DLQ_ADD_AMT) AS EOT_DLQ_ADD_AMT /* 기말연체가산금 */
+	                         </if>
+	                         <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')">
+	                         --------------------------------------------------------------------------------------
+	                         -- 원금매출
+	                         --------------------------------------------------------------------------------------
+	                         , W1_AM04 AS W1_AM04
+	                         , W1_AM04_1 AS W1_AM04_1 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
+	                         , W1_AM04_2 AS W1_AM04_2 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
+	                         --------------------------------------------------------------------------------------
+	                         -- 이자매출
+	                         --------------------------------------------------------------------------------------
+	                         , W1_AM07 AS W1_AM07 /* 이자매출 LC505.LCCM16 */
+	                         --------------------------------------------------------------------------------------
+	                         -- 서비스 매출
+	                         --------------------------------------------------------------------------------------
+	                         , W1_AM58 AS W1_AM58 /* 서비스매출 LC505.LCSAM7 */
+	                         --------------------------------------------------------------------------------------
+	                         --  매출합계（매출조정　항목으로　대체　표시）
+	                         --------------------------------------------------------------------------------------
+	                         , W1_AM08 AS W1_AM08
+	                         , W1_AM08_1 AS W1_AM08_1 /* 매출조정 LC505.LCAM91 */
+	                         , W1_AM08_2 AS W1_AM08_2 /* 매출취소 LC505.LCAM92 */
+	                         --------------------------------------------------------------------------------------
+	                         -- 선수금（원금입금／이자입금／서비스입금/합계）
+	                         --------------------------------------------------------------------------------------
+	                         , W1_AM09 AS W1_AM09 /* 매출입금 LC505.LCAM38 */
+	                         , W1_AM10 AS W1_AM10 /* 이자입금 LC505.LCCM38 */
+	                         , W1_AM50 AS W1_AM50 /* 서비스입금 LC505.LCSM38 */
+	                         , W1_AM11 AS W1_AM11
+	                         --------------------------------------------------------------------------------------
+	                         -- 대손
+	                         --------------------------------------------------------------------------------------
+	                         , DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손금액 */
+	                         --------------------------------------------------------------------------------------
+	                         -- 미수금액（원금총미수＋이자총미수 + 서비스미수기말）
+	                         --------------------------------------------------------------------------------------
+	                         , LAG(W1_AM12) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS W1_AM01 /* 전기이월 */
+	                         , LAG(W1_AM12_1) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS W1_AM01_1 /* 원금총미수 LC505.LCMMAM */
+	                         , LAG(W1_AM12_2) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS W1_AM01_2 /* 이자총미수 LC505.LCCMAM */
+	                         , LAG(W1_AM12_3) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS W1_AM01_3 /* 서비스미수기말 LC505.LCSAM6 */
+	                         , W1_AM12 AS W1_AM12 /* 전기이월 */
+	                         , W1_AM12_1 AS W1_AM12_1 /* 원금총미수 LC505.LCMMAM */
+	                         , W1_AM12_2 AS W1_AM12_2 /* 이자총미수 LC505.LCCMAM */
+	                         , W1_AM12_3 AS W1_AM12_3 /* 서비스미수기말 LC505.LCSAM6 */
+	                         -----------------------------------------------------------
+	                         -- 연체가산금 영역
+	                         -----------------------------------------------------------
+	                         , BTD_DLQ_ADD_AMT AS BTD_DLQ_ADD_AMT /* 전기이월 */
+	                         , THM_OC_DLQ_ADD_AMT AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+	                         , THM_CTR_DLQ_ADD_AMT AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+	                         , THM_DLQ_ADD_DP_SUM_AMT AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+	                         , THM_DLQ_ADD_RFND_SUM_AMT AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+	                         , EOT_DLQ_ADD_AMT AS EOT_DLQ_ADD_AMT /* 기말연체가산금 */
+	                         </if>
+	                      FROM (SELECT /*+ USE_NL(D) */
+	                                   A.SL_CL_YM AS SL_CL_YM /* 실적년월 */
+	                                 , A.SL_CL_DT AS SL_CL_DT /* 실적일자 */
+	                                 , A.SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
+	                                 , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
+	                                 , A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
+	                                 , A.CNTR_NO AS CNTR_NO /* 계약번호 */
+	                                 , A.CNTR_SN AS CNTR_SN /* 일련번호 */
+	                                 , A.CST_NO AS CST_NO /* 고객번호 */
+	                                 , A.PD_CD AS PD_CD/* 상품코드 */
+	                                 , A.SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
+	                                 --------------------------------------------------------------------------------------
+	                                 -- 원금매출
+	                                 --------------------------------------------------------------------------------------
+	                                 , NVL(A.THM_SL_SUM_AMT, 0) AS W1_AM04
+	                                 , (CASE WHEN A.RENTAL_TN = 0 THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS W1_AM04_1 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
+	                                 , (CASE WHEN A.RENTAL_TN > 0 THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS W1_AM04_2 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
+	                                 --------------------------------------------------------------------------------------
+	                                 -- 이자매출
+	                                 --------------------------------------------------------------------------------------
+	                                 , NVL(A.INT_SUM_AMT, 0) AS W1_AM07 /* 이자매출 LC505.LCCM16 */
+	                                 --------------------------------------------------------------------------------------
+	                                 -- 서비스 매출
+	                                 --------------------------------------------------------------------------------------
+	                                 , NVL(A.THM_OC_SV_SL_AMT, 0) AS W1_AM58 /* 서비스매출 LC505.LCSAM7 */
+	                                 --------------------------------------------------------------------------------------
+	                                 --  매출합계（매출조정　항목으로　대체　표시）
+	                                 --------------------------------------------------------------------------------------
+	                                 , NVL(A.LEASE_SL_CTR_AMT, 0) + NVL(A.LEASE_SL_CAN_AMT, 0) AS W1_AM08
+	                                 , NVL(A.LEASE_SL_CTR_AMT, 0) AS W1_AM08_1 /* 매출조정 LC505.LCAM91 */
+	                                 , NVL(A.LEASE_SL_CAN_AMT, 0) AS W1_AM08_2 /* 매출취소 LC505.LCAM92 */
+	                                 --------------------------------------------------------------------------------------
+	                                 --선수금（원금입금／이자입금／서비스입금/합계）
+	                                 --------------------------------------------------------------------------------------
+	                                 , NVL(A.SL_BND_ALRPY_AMT, 0) AS W1_AM09 /* 매출입금 LC505.LCAM38 */
+	                                 , NVL(A.INT_DP_AMT, 0) AS W1_AM10 /* 이자입금 LC505.LCCM38 */
+	                                 , NVL(A.SV_DP_AMT, 0) AS W1_AM50 /* 서비스입금 LC505.LCSM38 */
+	                                 , NVL(A.SL_BND_ALRPY_AMT, 0) + NVL(A.INT_DP_AMT, 0) + NVL(A.SV_DP_AMT, 0) AS W1_AM11
+	                                 --------------------------------------------------------------------------------------
+	                                 -- 대손
+	                                 --------------------------------------------------------------------------------------
+	                                 , NVL(A.DFA_PROCS_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
+	                                 --------------------------------------------------------------------------------------
+	                                 -- 미수금액（원금총미수 ＋ 이자총미수 + 서비스미수기말）
+	                                 --------------------------------------------------------------------------------------
+	                                 , NVL(A.TOT_PCAM_UC_AMT, 0) + NVL(A.TOT_INT_UC_AMT, 0) + NVL(A.EOT_SV_AMT, 0) AS W1_AM12 /* 전기이월 */
+	                                 , NVL(A.TOT_PCAM_UC_AMT, 0) AS W1_AM12_1 /* 원금총미수 LC505.LCMMAM */
+	                                 , NVL(A.TOT_INT_UC_AMT, 0) AS W1_AM12_2 /* 이자총미수 LC505.LCCMAM */
+	                                 , NVL(A.EOT_SV_AMT, 0) AS W1_AM12_3 /* 서비스미수기말 LC505.LCSAM6 */
+	                                 -----------------------------------------------------------
+	                                 -- 연체가산금 영역
+	                                 -----------------------------------------------------------
+	                                 , NVL(D.BTD_DLQ_ADD_AMT, 0) AS BTD_DLQ_ADD_AMT /* 전기이월 */
+	                                 , NVL(D.THM_OC_DLQ_ADD_AMT, 0) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+	                                 , NVL(D.THM_CTR_DLQ_ADD_AMT, 0) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+	                                 , NVL(D.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+	                                 , NVL(D.THM_DLQ_ADD_RFND_SUM_AMT, 0) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+	                                 , NVL(D.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT /* 기말연체가산금 */
+	                              FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+	                             INNER JOIN TB_SSCT_CNTR_BAS B /* 계약기본 */
+	                                ON B.CNTR_NO = A.CNTR_NO
+	                               AND B.DTA_DL_YN = 'N'
+	                             INNER JOIN TB_SSCT_CNTR_DTL C /* 계약상세 */
+	                                ON C.CNTR_NO = A.CNTR_NO
+	                               AND C.CNTR_SN = A.CNTR_SN
+	                               AND C.DTA_DL_YN = 'N'
+	                              LEFT OUTER JOIN TB_CBCL_DLQ_BAS D /* 연체기본 */
+	                                ON D.PERF_YM = A.SL_CL_YM
+	                               AND D.CNTR_NO = A.CNTR_NO
+	                               AND D.CNTR_SN = A.CNTR_SN
+	                               AND D.DTA_DL_YN = 'N'
+	                             WHERE A.SL_CL_YM BETWEEN #{slClSYm} AND #{slClEYm}
+	                               AND A.SELL_TP_CD = '2'
+	                               AND A.SELL_TP_DTL_CD NOT IN ('21', '23')
+	                               <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
+	                               AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
+	                               </if>
+	                               <if test="@MybatisUtils@isNotEmpty(sapPdDvCd)">
+	                               AND A.SAP_PD_DV_CD = #{sapPdDvCd}
+	                               </if>
+	                               <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+	                               AND A.CNTR_NO = #{cntrNo}
+	                               </if>
+	                               <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+	                               AND A.CNTR_SN = #{cntrSn}
+	                               </if>
+	                               <if test="@MybatisUtils@isNotEmpty(sellChnlDtl)">
+	                               AND B.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDtl}
+	                               </if>
+	                             )
+	                    <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계 */
+	                     GROUP BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
+			             ORDER BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
+	                     </if>
+	                     <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
+	                     ORDER BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN
+	                     </if>
+	                ) T1
+             ) T3
         WHERE SL_CL_YM > #{slClSYm}
         <if test="@MybatisUtils@equals(agrgDv, '4')"> /* 가로계산식 틀린 회원 */
           AND ERROR_YN = 'Y'
         </if>
-        <if test="@MybatisUtils@equals(agrgDv, '1')"> /* 집계 */
-        GROUP BY ROLLUP( (SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD) )
-        ORDER BY SL_CL_YM DESC, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
-        </if>
-        <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-        GROUP BY ROLLUP( (SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT) )
-        ORDER BY SL_CL_YM DESC, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT
-        </if>
-    </select>
+    </sql>
     <select id="selectAccountsReceivableMembership" resultType="com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesBondDvo">
-        WITH T1 AS (SELECT SL_CL_YM AS SL_CL_YM /* 실적년월 */
-                         , BF_SL_CL_YM AS BF_SL_CL_YM /* 이전 실적전월 */
-                         , SL_CL_DT AS SL_CL_DT /* 실적일자 */
-                         , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
-                         , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
-                         , SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-                         <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-                         , CNTR_NO AS CNTR_NO /* 계약번호 */
-                         , CNTR_SN AS CNTR_SN /* 일련번호 */
-                         , CST_NO AS CST_NO /* 고객번호 */
-                         , PD_CD AS PD_CD/* 상품코드 */
-                         , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
+        <include refid="accountsReceivableMembership" />
+    </select>
+    <sql id="accountsReceivableMembership">
+        SELECT SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) ||
+				(
+					CASE WHEN TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - TOT_DP_AMT  THEN ' *'
+						 ELSE ''
+					END
+				) AS SL_CL_YM /* 실적년월 */
+			, SL_CL_DT AS SL_CL_DT /* 실적일자*/
+			, SELL_TP_CD AS SELL_TP_CD /* 판매유형*/
+			, (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = T2.SELL_TP_CD) AS SELL_TP_CD_NM /* 판매유형코드명*/
+			, SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세*/
+			, (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = T2.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD_NM /* 판매유형상세코드명*/
+			, SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드*/
+			, ( SELECT MAX(SAP_PD_ATC_NM)
+			    FROM TB_CBCL_SAP_PD_DV_CD
+			    WHERE SAP_BZ_TERY_CD = '1210'
+			      AND SAP_PD_DV_CD = T2.SAP_PD_DV_CD ) AS SAP_PD_ATC_NM /* SAP상품코드명*/
+			<if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
+			, CNTR_NO || '-' || CNTR_SN AS CNTR_NO /* 계약번호*/
+			, CST_NO AS CST_NO /* 고객번호 */
+			, (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T2.CST_NO AND DTA_DL_YN = 'N') AS CST_KNM /* 고객명 */
+			, PD_CD AS PD_CD /* 상품코드 */
+			, (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T2.PD_CD) AS PD_NM /* 상품명 */
+			, SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
+			</if>
+			, PRE_TOT_UC_AMT AS PRE_TOT_UC_AMT /* 전기이월 */
+			, BF_THM_UC_BLAM AS W1_AM01_1
+			, BF_DSC_UC_AMT AS W1_AM01_2
+			, BF_EOT_DLQ_ADD_AMT AS W1_AM01_3
+			, THM_SL_SUM_AMT - THM_CAN_SL_SUM_AMT + DSC_SL_AMT AS NOM_SL_AMT /* 정상매출 */
+			, THM_CAN_SL_SUM_AMT AS CAN_SL_AMT /* 취소매출 */
+			, DSC_SL_AMT AS W1_AM05
+			, TOT_SL_AMT AS TOT_SL_AMT
+			, SL_BND_ALRPY_AMT AS W1_AM07
+			, DSC_DP_AMT AS W1_AM08
+			, TOT_DP_AMT AS TOT_DP_AMT /* 매출대사 */
+			, DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
+			, TOT_UC_BLAM AS TOT_UC_BLAM /* 기말미수 */
+			, SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) ||
+			    (
+			       CASE WHEN
+					    	EOT_DLQ_ADD_AMT != BTD_DLQ_ADD_AMT
+						 					 + THM_OC_DLQ_ADD_AMT
+											 - THM_CTR_DLQ_ADD_AMT
+											 - THM_DLQ_ADD_DP_SUM_AMT
+											 + THM_DLQ_ADD_RFND_SUM_AMT THEN ' *'
+						ELSE ''
+				   END
+			    ) AS SL_CL_YM2
+			, BTD_DLQ_ADD_AMT AS BTD_DLQ_ADD_AMT /* 연체 기초 */
+			, THM_OC_DLQ_ADD_AMT AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+			, THM_CTR_DLQ_ADD_AMT AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+			, THM_DLQ_ADD_DP_SUM_AMT AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+			, THM_DLQ_ADD_RFND_SUM_AMT AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+			, EOT_DLQ_ADD_AMT AS EOT_DLQ_ADD_AMT
+		FROM
+		(
+			SELECT
+			  T1.*
+			, (CASE WHEN T1.TOT_UC_BLAM != T1.PRE_TOT_UC_AMT + T1.TOT_SL_AMT - T1.TOT_DP_AMT
+				    THEN 'Y' ELSE 'N'
+			   END) AS ERROR_YN /* 가로계산식 오류건 */
+			FROM (
+					SELECT
+					  A.SL_CL_YM AS SL_CL_YM /* 실적년월 */
+					, A.SL_CL_DT AS SL_CL_DT /* 실적일자 */
+					, A.SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
+					, A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
+					, A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
+				  <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')">
+					, A.CNTR_NO AS CNTR_NO /* 계약번호 */
+					, A.CNTR_SN AS CNTR_SN /* 일련번호 */
+					, A.CST_NO AS CST_NO /* 고객번호 */
+					, A.PD_CD AS PD_CD /* 상품코드 */
+					, A.SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
+				  </if>
+					<if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계, 일자별*/
+					, SUM(NVL(A.THM_SL_SUM_AMT, 0)) AS THM_SL_SUM_AMT /* 당월매출금액 LCAM16 */
+					, SUM(NVL(CASE WHEN SUBSTR(A.MSH_WDWAL_DT, 1, 6) =  A.SL_CL_YM THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END, 0)) AS THM_CAN_SL_SUM_AMT /* 매출취소금액 LCAM96 */
+					, SUM(NVL(A.DSC_SL_AMT, 0)) AS DSC_SL_AMT /* 할인매출 LCAM51 */
+					, SUM(NVL(A.THM_SL_SUM_AMT, 0) + NVL(A.DSC_SL_AMT, 0)) AS TOT_SL_AMT /* 매출총합계 */
+					, SUM(NVL(A.SL_BND_ALRPY_AMT, 0)) AS SL_BND_ALRPY_AMT /* 매출입금 LCAM38 */
+					, SUM(NVL(A.DSC_DP_AMT, 0)) AS DSC_DP_AMT /* 할인입금 LCAM53 */
+					, SUM(NVL(A.SL_BND_ALRPY_AMT, 0) + NVL(A.DSC_DP_AMT, 0)) AS TOT_DP_AMT /* 입금총합계 */
+					, SUM(NVL(A.THM_UC_BLAM, 0)) AS THM_UC_BLAM /* 당월미수 LCMAMT */
+					, SUM(NVL(A.DSC_UC_AMT, 0)) AS DSC_UC_AMT /* 할인미수 LCAM55 */
+					, SUM(NVL(D.EOT_DLQ_ADD_AMT, 0)) AS EOT_DLQ_ADD_AMT /* 연체가산금 LCAM84 */
+					, SUM(NVL(A.DFA_PROCS_AMT, 0)) AS DFA_PROCS_AMT /* 대손금액 */
+					, SUM(NVL(A.THM_UC_BLAM, 0) + NVL(A.DSC_UC_AMT, 0) - NVL(D.EOT_DLQ_ADD_AMT, 0)) AS TOT_UC_BLAM
+					-----------------------------------------------------------
+					-- 전월
+					-----------------------------------------------------------
+					, LAG(SUM(NVL(A.THM_UC_BLAM, 0))) OVER (PARTITION BY A.SELL_TP_CD, A.SELL_TP_DTL_CD, A.SAP_PD_DV_CD ORDER BY A.SL_CL_YM) AS BF_THM_UC_BLAM /* 전월미수 LCMAMT */
+					, LAG(SUM(NVL(A.DSC_UC_AMT, 0))) OVER (PARTITION BY A.SELL_TP_CD, A.SELL_TP_DTL_CD, A.SAP_PD_DV_CD ORDER BY A.SL_CL_YM) AS BF_DSC_UC_AMT /* 전월미수 LCAM55 */
+					, LAG(SUM(NVL(D.EOT_DLQ_ADD_AMT, 0))) OVER (PARTITION BY A.SELL_TP_CD, A.SELL_TP_DTL_CD, A.SAP_PD_DV_CD ORDER BY A.SL_CL_YM) AS BF_EOT_DLQ_ADD_AMT /* 전월연체가산금 LCAM84 */
+					, LAG(SUM(NVL(A.THM_UC_BLAM, 0) + NVL(A.DSC_UC_AMT, 0) - NVL(D.EOT_DLQ_ADD_AMT, 0))) OVER (PARTITION BY A.SELL_TP_CD, A.SELL_TP_DTL_CD, A.SAP_PD_DV_CD ORDER BY A.SL_CL_YM) AS PRE_TOT_UC_AMT
+					-----------------------------------------------------------
+					-- 연체가산금
+					-----------------------------------------------------------
+					, SUM(NVL(D.BTD_DLQ_ADD_AMT, 0)) AS BTD_DLQ_ADD_AMT /* 전기이월*/
+					, SUM(NVL(D.THM_OC_DLQ_ADD_AMT, 0)) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+					, SUM(NVL(D.THM_CTR_DLQ_ADD_AMT, 0)) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+					, SUM(NVL(D.THM_DLQ_ADD_DP_SUM_AMT, 0)) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+					, SUM(NVL(D.THM_DLQ_ADD_RFND_SUM_AMT, 0)) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불*/
+					</if>
+					<if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
+					, NVL(A.THM_SL_SUM_AMT, 0) AS THM_SL_SUM_AMT /* 당월매출금액 LCAM16 */
+					, NVL(CASE WHEN SUBSTR(A.MSH_WDWAL_DT, 1, 6) =  A.SL_CL_YM THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END, 0) AS THM_CAN_SL_SUM_AMT /* 매출취소금액 LCAM96 */
+					, NVL(A.DSC_SL_AMT, 0) AS DSC_SL_AMT /* 할인매출 LCAM51 */
+					, NVL(A.THM_SL_SUM_AMT, 0) + NVL(A.DSC_SL_AMT, 0) AS TOT_SL_AMT /* 매출총합계 */
+					, NVL(A.SL_BND_ALRPY_AMT, 0) AS SL_BND_ALRPY_AMT /* 매출입금 LCAM38 */
+					, NVL(A.DSC_DP_AMT, 0) AS DSC_DP_AMT /* 할인입금 LCAM53 */
+					, NVL(A.SL_BND_ALRPY_AMT, 0) + NVL(A.DSC_DP_AMT, 0) AS TOT_DP_AMT /* 입금총합계 */
+					, NVL(A.THM_UC_BLAM, 0) AS THM_UC_BLAM /* 당월미수 LCMAMT */
+					, NVL(A.DSC_UC_AMT, 0) AS DSC_UC_AMT /* 할인미수 LCAM55 */
+					, NVL(D.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT /* 연체가산금 LCAM84 */
+					, NVL(A.DFA_PROCS_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
+					, NVL(A.THM_UC_BLAM, 0) + NVL(A.DSC_UC_AMT, 0) - NVL(D.EOT_DLQ_ADD_AMT, 0) AS TOT_UC_BLAM
+					-----------------------------------------------------------
+					-- 전월
+					-----------------------------------------------------------
+					, LAG(NVL(A.THM_UC_BLAM, 0)) OVER (PARTITION BY A.CNTR_NO, A.CNTR_SN ORDER BY A.SL_CL_YM) AS BF_THM_UC_BLAM /* 전월미수 LCMAMT */
+					, LAG(NVL(A.DSC_UC_AMT, 0)) OVER (PARTITION BY A.CNTR_NO, A.CNTR_SN ORDER BY A.SL_CL_YM) AS BF_DSC_UC_AMT /* 전월미수 LCAM55 */
+					, LAG(NVL(D.EOT_DLQ_ADD_AMT, 0)) OVER (PARTITION BY A.CNTR_NO, A.CNTR_SN ORDER BY A.SL_CL_YM) AS BF_EOT_DLQ_ADD_AMT /* 전월연체가산금 LCAM84 */
+					, LAG(NVL(A.THM_UC_BLAM, 0) + NVL(A.DSC_UC_AMT, 0) - NVL(D.EOT_DLQ_ADD_AMT, 0)) OVER (PARTITION BY A.CNTR_NO, A.CNTR_SN ORDER BY A.SL_CL_YM) AS PRE_TOT_UC_AMT
+					-----------------------------------------------------------
+					-- 연체가산금
+					-----------------------------------------------------------
+					, NVL(D.BTD_DLQ_ADD_AMT, 0) AS BTD_DLQ_ADD_AMT /* 전기이월 */
+					, NVL(D.THM_OC_DLQ_ADD_AMT, 0) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+					, NVL(D.THM_CTR_DLQ_ADD_AMT, 0) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+					, NVL(D.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+					, NVL(D.THM_DLQ_ADD_RFND_SUM_AMT, 0) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+					</if>
+					FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+					INNER JOIN TB_SSCT_CNTR_BAS B /* 계약기본 */
+					   ON B.CNTR_NO = A.CNTR_NO
+					  AND B.DTA_DL_YN = 'N'
+					 LEFT OUTER JOIN TB_CBCL_DLQ_BAS D /* 연체기본 */
+					   ON D.PERF_YM = A.SL_CL_YM
+				      AND D.CNTR_NO = A.CNTR_NO
+				      AND D.CNTR_SN = A.CNTR_SN
+				      AND D.DTA_DL_YN = 'N'
+				    WHERE A.SL_CL_YM BETWEEN #{slClSYm} AND #{slClEYm}
+		         AND A.SELL_TP_CD = '3'
+		         <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
+		         AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
+		         </if>
+		         <if test="@MybatisUtils@isNotEmpty(sapPdDvCd)">
+		         AND A.SAP_PD_DV_CD = #{sapPdDvCd}
+		         </if>
+		         <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+		         AND A.CNTR_NO = #{cntrNo}
+		         </if>
+		         <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+		         AND A.CNTR_SN = #{cntrSn}
+		         </if>
+		         <if test="@MybatisUtils@isNotEmpty(sellChnlDtl)">
+		         AND B.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDtl}
+		         </if>
+				<if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계 */
+				GROUP BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
+				ORDER BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
+				</if>
+				<if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
+				ORDER BY A.SL_CL_YM, A.SL_CL_DT, A.SELL_TP_CD, A.SELL_TP_DTL_CD, A.SAP_PD_DV_CD, A.CNTR_NO, A.CNTR_SN
+				</if>
+			) T1
+		) T2
+		WHERE SL_CL_YM > #{slClSYm}
+		<if test="@MybatisUtils@equals(agrgDv, '4')"> /* 가로계산식 틀린 회원 */
+		AND ERROR_YN = 'Y'
+		</if>
+    </sql>
+    <select id="selectLumpSumOfAccountsReceivable" resultType="com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesBondDvo">
+        <include refid="lumpSumOfAccountsReceivable" />
+    </select>
+    <sql id="lumpSumOfAccountsReceivable">
+    	SELECT SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) ||( /* 기말미수 = 전기이월 + 정상매출 - 취소매출 + 수수료매출 - 계약금입금 - 할부금입금  */
+               		CASE WHEN EOT_UC_AMT != PRE_TOT_UC_AMT + NOM_SL_AMT - SL_CAN_AMT + THM_OC_FEE_AMT - CNTRAM_DP_AMT - THM_INTAM_DP_AMT  THEN ' *'
+                		 ELSE ''
+             		END) AS SL_CL_YM /* 실적년월 */
+			, SL_CL_DT AS SL_CL_DT /* 실적일자 */
+			, SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
+			, (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = T3.SELL_TP_CD) AS SELL_TP_CD_NM /* 판매유형코드명 */
+			, SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
+			, (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = T3.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD_NM /* 판매유형상세코드명 */
+			, SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
+			, (SELECT MAX(SAP_PD_ATC_NM)
+			     FROM TB_CBCL_SAP_PD_DV_CD
+			    WHERE SAP_BZ_TERY_CD = '1210' /* SAP_BZ_TERY_CD : WELLS면 1210, EDU면 1110 */
+			      AND SAP_PD_DV_CD = T3.SAP_PD_DV_CD ) AS SAP_PD_ATC_NM /* SAP상품코드명 */
+			<if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
+			, CNTR_NO || '-' || CNTR_SN AS CNTR_NO /* 계약번호 */
+			, CST_NO AS CST_NO /* 고객번호 */
+			, ( SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T3.CST_NO AND DTA_DL_YN = 'N' ) AS CST_KNM /* 고객명 */
+			, PD_CD AS PD_CD /* 상품코드 */
+			, ( SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T3.PD_CD) AS PD_NM /* 상품명 */
+			, SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
+			</if>
+			, PRE_TOT_UC_AMT AS PRE_TOT_UC_AMT /* 전기이월 */
+			, NOM_SL_AMT AS NOM_SL_AMT /* 정상매출금액 */
+			, SL_CAN_AMT AS CAN_SL_AMT /* 취소매출금액 */
+			, THM_OC_FEE_AMT AS FEE_SL_AMT /* 수수료매출금액 */
+			, BOUT_NOR_SL_AMT AS BOUT_NOR_SL_AMT /* 상품권_정상매출 */
+			, BOUT_CAN_SL_AMT AS BOUT_CAN_SL_AMT /* 상품권_취소/만료매출 */
+			, NOM_SL_AMT + SL_CAN_AMT + THM_OC_FEE_AMT AS TOT_SL_AMT /* 매출합계 ※취소매출은 -금액으로 발생 */
+			, CNTRAM_DP_AMT AS CNTR_DP_AMT /* 계약금입금 */
+			, THM_INTAM_DP_AMT AS INST_DP_AMT /* 할부금입금 */
+			, CNTRAM_DP_AMT + THM_INTAM_DP_AMT AS TOT_DP_AMT /* 입금합계 */
+			, EOT_UC_AMT AS TOT_UC_BLAM /* 기말미수잔액 */
+			, CRP_UC_AMT AS CRP_UC_AMT /* 법인미수금 */
+			, BOUT_DP_AMT AS BOUT_DP_AMT /* 상품권입금 */
+			, ETC_DP_AMT AS ETC_DP_AMT /* 기타선수대체 */
+			, INTER_CONT_NOM_SL_AMT AS INTER_CONT_NOM_SL_AMT /* 사간거래_정상매출금액 */
+			, INTER_CONT_CAN_SL_AMT AS INTER_CONT_CAN_SL_AMT /* 사간거래_취소매출금액 */
+			, INTER_CONT_CNT_DP_AMT + INTER_CONT_INT_DP_AMT AS INTER_CONT_DP_AMT /* 사간거래입금 */
+			, INTER_CONT_CNT_DP_AMT AS INTER_CONT_DP_AMT_1
+			, INTER_CONT_INT_DP_AMT AS INTER_CONT_DP_AMT_2
+			, DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손금액 */
+         FROM (SELECT T2.*
+                    , (CASE WHEN T2.EOT_UC_AMT != T2.PRE_TOT_UC_AMT + T2.NOM_SL_AMT - T2.SL_CAN_AMT + T2.THM_OC_FEE_AMT - T2.CNTRAM_DP_AMT - T2.THM_INTAM_DP_AMT
+                        THEN 'Y' ELSE 'N'
+                       END) AS ERROR_YN /* 가로계산식 오류건 */
+                 FROM (SELECT SL_CL_YM AS SL_CL_YM /* 실적년월 */
+                             , SL_CL_DT AS SL_CL_DT /* 실적일자 */
+                             , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
+                             , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
+                             , SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
+                             <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
+                             , CNTR_NO AS CNTR_NO /* 계약번호 */
+                             , CNTR_SN AS CNTR_SN /* 일련번호 */
+                             , CST_NO AS CST_NO /* 고객번호 */
+                             , PD_CD AS PD_CD/* 상품코드 */
+                             , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
+                             </if>
+                             <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')">
+                             , SUM(NOM_SL_AMT) AS NOM_SL_AMT /* 정상매출금액 */
+                             , SUM(SL_CAN_AMT) AS SL_CAN_AMT /* 취소매출금액 */
+                             , SUM(THM_OC_FEE_AMT) AS THM_OC_FEE_AMT /* 수수료매출금액 */
+                             , SUM(BOUT_NOR_SL_AMT) AS BOUT_NOR_SL_AMT /* 상품권_정상매출 -> ASIS 쿼리에 0 */
+                             , SUM(BOUT_CAN_SL_AMT) AS BOUT_CAN_SL_AMT /* 상품권_취소/만료매출 ※ 통합입금취소사유코드(ITG_DP_CAN_RSON_CD)가 21이면 만료건, 아니면 취소건 */
+                             , SUM(INTER_CONT_NOM_SL_AMT) AS INTER_CONT_NOM_SL_AMT /* 사간거래_정상매출금액 */
+                             , SUM(INTER_CONT_CAN_SL_AMT) AS INTER_CONT_CAN_SL_AMT /* 사간거래_취소매출금액 */
+                             , SUM(CNTRAM_DP_AMT) AS CNTRAM_DP_AMT/* 계약금입금 */
+                             , SUM(THM_INTAM_DP_AMT) AS THM_INTAM_DP_AMT/* 할부금입금 */
+                             , SUM(CRP_UC_AMT) AS CRP_UC_AMT/* 법인미수금 ASIS는 법인미수입금이었으나, TOBE는 법인미수금입금을 계약금에 포함 → 계약의 법인미수금 항목을 보여주기로 협의함 */
+                             , SUM(BOUT_DP_AMT) AS BOUT_DP_AMT /* 상품권입금 */
+                             , SUM(ETC_DP_AMT) AS ETC_DP_AMT /* 기타선수대체  */
+                             , SUM(INTER_CONT_CNT_DP_AMT) AS INTER_CONT_CNT_DP_AMT /* 사간거래_계약금입금 */
+                             , SUM(INTER_CONT_INT_DP_AMT) AS INTER_CONT_INT_DP_AMT /* 사간거래_할부금입금 */
+                             , SUM(DFA_PROCS_AMT) AS DFA_PROCS_AMT /* 대손금액 */
+                             , SUM(EOT_UC_AMT) AS EOT_UC_AMT /* 기말미수잔액 */
+                             , LAG(SUM(EOT_UC_AMT)) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS PRE_TOT_UC_AMT /* 전월미수잔액 */
+                             </if>
+                             <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')">
+                             , NOM_SL_AMT AS NOM_SL_AMT /* 정상매출금액 */
+                             , SL_CAN_AMT AS SL_CAN_AMT /* 취소매출금액 */
+                             , THM_OC_FEE_AMT AS THM_OC_FEE_AMT /* 수수료매출금액 */
+                             , BOUT_NOR_SL_AMT AS BOUT_NOR_SL_AMT /* 상품권_정상매출 -> ASIS 쿼리에 0 */
+                             , BOUT_CAN_SL_AMT AS BOUT_CAN_SL_AMT /* 상품권_취소/만료매출 ※ 통합입금취소사유코드(ITG_DP_CAN_RSON_CD)가 21이면 만료건, 아니면 취소건 */
+                             , INTER_CONT_NOM_SL_AMT AS INTER_CONT_NOM_SL_AMT /* 사간거래_정상매출금액 */
+                             , INTER_CONT_CAN_SL_AMT AS INTER_CONT_CAN_SL_AMT /* 사간거래_취소매출금액 */
+                             , CNTRAM_DP_AMT AS CNTRAM_DP_AMT/* 계약금입금 */
+                             , THM_INTAM_DP_AMT AS THM_INTAM_DP_AMT/* 할부금입금 */
+                             , CRP_UC_AMT AS CRP_UC_AMT/* 법인미수금 ASIS는 법인미수입금이었으나, TOBE는 법인미수금입금을 계약금에 포함 → 계약의 법인미수금 항목을 보여주기로 협의함 */
+                             , BOUT_DP_AMT AS BOUT_DP_AMT /* 상품권입금 */
+                             , ETC_DP_AMT AS ETC_DP_AMT /* 기타선수대체  */
+                             , INTER_CONT_CNT_DP_AMT AS INTER_CONT_CNT_DP_AMT /* 사간거래_계약금입금 */
+                             , INTER_CONT_INT_DP_AMT AS INTER_CONT_INT_DP_AMT /* 사간거래_할부금입금 */
+                             , DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손금액 */
+                             , EOT_UC_AMT AS EOT_UC_AMT /* 기말미수잔액 */
+                             , LAG(EOT_UC_AMT) OVER (PARTITION BY CNTR_NO, CNTR_SN ORDER BY SL_CL_YM) AS PRE_TOT_UC_AMT /* 전월미수잔액 */
+                             </if>
+                          FROM (SELECT A.SL_CL_YM AS SL_CL_YM /* 실적년월 */
+                                     , A.CNTR_NO AS CNTR_NO /* 계약번호 */
+                                     , A.CNTR_SN AS CNTR_SN /* 일련번호 */
+                                     , A.SL_CL_DT AS SL_CL_DT /* 실적일자 */
+                                     , A.SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
+                                     , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
+                                     , A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
+                                     , A.CST_NO AS CST_NO /* 고객번호 */
+                                     , A.PD_CD AS PD_CD/* 상품코드 */
+                                     , A.SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
+                                     , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.NOM_SL_AMT, 0) END AS NOM_SL_AMT /* 정상매출금액 CW49.CWWA11 */
+                                     , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.SL_CAN_AMT, 0) END AS SL_CAN_AMT /* 취소매출금액 CW49.CWWA12 */
+                                     , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.THM_OC_FEE_AMT, 0) END AS THM_OC_FEE_AMT /* 수수료매출금액 CW49.CWWA14 */
+                                     , 0 AS BOUT_NOR_SL_AMT /* 상품권_정상매출 -> ASIS 쿼리에 0 */
+                                     ------------------------------------------------------------------------------------
+                                     -- 상품권 취소/만료 금액
+                                     -- ASIS에서는 통합입금을 조회하였으나, TOBE는 영업선수에 온라인으로 데이터 쌓이고, 계약단위 조회를 위해 영업선수테이블 조회로 변경함
+                                     ------------------------------------------------------------------------------------
+                                     , NVL((SELECT SUM(NVL(RVE_AMT, 0))
+                                              FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수기본 */
+                                             WHERE DP_CL_DT BETWEEN TO_CHAR(A.SL_CL_YM) || '01' AND TO_CHAR(A.SL_CL_YM) || '31'
+                                               AND CNTR_NO = A.CNTR_NO
+                                               AND CNTR_SN = A.CNTR_SN
+                                               AND DP_TP_CD = '0802' /* K머니 */
+                                               AND DP_DV_CD = '2' /* 환불 */
+                                              ), 0) AS BOUT_CAN_SL_AMT /* 상품권_취소/만료매출 ※ 통합입금취소사유코드(ITG_DP_CAN_RSON_CD)가 21이면 만료건, 아니면 취소건 (DP30.DPCCAM+DP30.DPCCAM) */
+                                     , (CASE WHEN C.ALNCMP_CD = '51' THEN NVL(A.NOM_SL_AMT, 0) ELSE 0 END) AS INTER_CONT_NOM_SL_AMT /* 사간거래_정상매출금액 CWWA11 */
+                                     , (CASE WHEN C.ALNCMP_CD = '51' THEN NVL(A.SL_CAN_AMT, 0) ELSE 0 END) AS INTER_CONT_CAN_SL_AMT /* 사간거래_취소매출금액 CWWA12 */
+                                     , (CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.CNTRAM_DP_AMT, 0) END) AS CNTRAM_DP_AMT/* 계약금입금 CW49.CWWA16 */
+                                     , (CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.THM_INTAM_DP_AMT, 0) END) AS THM_INTAM_DP_AMT/* 할부금입금 CW49.CWWA18 */
+                                     , NVL(C.CRP_UC_AMT, 0) AS CRP_UC_AMT/* 법인미수금 ASIS는 법인미수입금이었으나(CWWA20), TOBE는 법인미수금입금을 계약금에 포함 → 계약의 법인미수금 항목을 보여주기로 협의함  */
+                                     , NVL((SELECT SUM(NVL(RVE_AMT, 0))
+                                              FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수기본 */
+                                             WHERE DP_CL_DT BETWEEN TO_CHAR(A.SL_CL_YM) || '01' AND TO_CHAR(A.SL_CL_YM) || '31'
+                                               AND CNTR_NO = A.CNTR_NO
+                                               AND CNTR_SN = A.CNTR_SN
+                                               AND PD_CD IN ('WP07110882', 'WP07110883') /* AS-IS LC30.LCIC01 IN ('7001','7002') K머니(54만), W머니(54만) */
+                                               AND RVE_DV_CD IN ('03', '07') /* 상품권입금 CWIJUB NOT IN ('2', '3', '5') 매변, 손료, 연체가산금 */
+                                               AND NOT (PROCS_DV_CD = '2' AND RVE_DV_CD = '06' AND DP_DV_CD = '3') /* 처리구분 정상, 수납구분 매변, 입금구분 전금 */
+                                               AND RVE_DV_CD NOT IN ('09', '17') /* CWIFLG NOT IN (8, 9) 수수료, 대손 */
+                                              ), 0) AS BOUT_DP_AMT /* 상품권입금 CW51.CWAMT1 */
+                                     , NVL((SELECT SUM(NVL(RVE_AMT, 0))
+                                              FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수기본 */
+                                             WHERE DP_CL_DT BETWEEN TO_CHAR(A.SL_CL_YM) || '01' AND TO_CHAR(A.SL_CL_YM) || '31'
+                                               AND CNTR_NO = A.CNTR_NO
+                                               AND CNTR_SN = A.CNTR_SN
+                                               AND PD_CD NOT IN ('WP07110882', 'WP07110883') /* AS-IS LC30.LCIC01 IN ('7001','7002') K머니(54만), W머니(54만) */
+                                               AND RVE_DV_CD IN ('02', '06') /* 매변, 가산금 */
+                                               AND DP_DV_CD = '3' /* ASIS CW5200P(기타선수)는 TOBE 전금입금형태로 영업선수에서 관리함 */
+                                              ), 0) AS ETC_DP_AMT /* 기타선수대체 CW52.CWAMT1 */
+                                     , (CASE WHEN C.ALNCMP_CD = '51' THEN NVL(A.CNTRAM_DP_AMT, 0) ELSE 0 END) AS INTER_CONT_CNT_DP_AMT /* 사간거래_계약금입금 CW49.CWWA16 */
+                                     , (CASE WHEN C.ALNCMP_CD = '51' THEN NVL(A.THM_INTAM_DP_AMT, 0) ELSE 0 END) AS INTER_CONT_INT_DP_AMT /* 사간거래_할부금입금 CW49.CWWA18 */
+                                     , NVL(A.DFA_PROCS_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
+                                     , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.EOT_UC_AMT, 0) END AS EOT_UC_AMT /* 기말미수잔액 CW49.CWPROP */
+                                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+                                 INNER JOIN TB_SSCT_CNTR_BAS B /* 계약기본 */
+                                    ON B.CNTR_NO = A.CNTR_NO
+                                   AND B.DTA_DL_YN = 'N'
+                                 INNER JOIN TB_SSCT_CNTR_DTL C /* 계약상세 */
+                                    ON C.CNTR_NO = A.CNTR_NO
+                                   AND C.CNTR_SN = A.CNTR_SN
+                                   AND C.DTA_DL_YN = 'N'
+                                 WHERE A.SL_CL_YM BETWEEN #{slClSYm} AND #{slClEYm}
+                                   AND A.SELL_TP_CD = '1'
+                                   <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
+                                   AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                                   </if>
+                                   <if test="@MybatisUtils@isNotEmpty(sapPdDvCd)">
+                                   AND A.SAP_PD_DV_CD = #{sapPdDvCd}
+                                   </if>
+                                   <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+                                   AND A.CNTR_NO = #{cntrNo}
+                                   </if>
+                                   <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+                                   AND A.CNTR_SN = #{cntrSn}
+                                   </if>
+                                   <if test="@MybatisUtils@isNotEmpty(sellChnlDtl)">
+                                   AND B.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDtl}
+                                   </if>
+                         		) T1
+                         <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계 */
+                         GROUP BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
+			             ORDER BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
                          </if>
-                         , SUM(THM_SL_SUM_AMT) AS THM_SL_SUM_AMT /* 당월매출금액 LCAM16 */
-                         , SUM(THM_CAN_SL_SUM_AMT) AS THM_CAN_SL_SUM_AMT /* 매출취소금액 LCAM96 */
-                         , SUM(DSC_SL_AMT) AS DSC_SL_AMT /* 할인매출 LCAM51 */
-                         , SUM(THM_SL_SUM_AMT + DSC_SL_AMT) AS W1_AM06 /* 매출총합계 */
-                         , SUM(SL_BND_ALRPY_AMT) AS SL_BND_ALRPY_AMT /* 매출입금 LCAM38 */
-                         , SUM(DSC_DP_AMT) AS DSC_DP_AMT /* 할인입금 LCAM53 */
-                         , SUM(SL_BND_ALRPY_AMT + DSC_DP_AMT) AS W1_AM09 /* 입금총합계 */
-                         , SUM(THM_UC_BLAM) AS THM_UC_BLAM /* 당월미수 LCMAMT */
-                         , SUM(DSC_UC_AMT) AS DSC_UC_AMT /* 할인미수 LCAM55 */
-                         , SUM(EOT_DLQ_ADD_AMT) AS EOT_DLQ_ADD_AMT /* 연체가산금 LCAM84 */
-                         , SUM(DFA_PROCS_AMT) AS DFA_PROCS_AMT /* 대손금액 */
-                         , SUM(THM_UC_BLAM + DSC_UC_AMT - EOT_DLQ_ADD_AMT) AS W1_AM12
-                         -----------------------------------------------------------
-                         -- 연체가산금 영역
-                         -----------------------------------------------------------
-                         , SUM(BTD_DLQ_ADD_AMT) AS BTD_DLQ_ADD_AMT /* 전기이월 */
-                         , SUM(THM_OC_DLQ_ADD_AMT) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
-                         , SUM(THM_CTR_DLQ_ADD_AMT) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
-                         , SUM(THM_DLQ_ADD_DP_SUM_AMT) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
-                         , SUM(THM_DLQ_ADD_RFND_SUM_AMT) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
-                      FROM (SELECT A.SL_CL_YM
-                                 , A.CNTR_NO
-                                 , A.CNTR_SN
-                                 , TO_CHAR((SELECT ADD_MONTHS(TO_DATE(A.SL_CL_YM, 'YYYYMM'), -1) FROM DUAL), 'YYYYMM') AS BF_SL_CL_YM /* 이전 실적전월 */
-                                 , A.SL_CL_DT
-                                 , A.SELL_TP_CD
-                                 , A.SELL_TP_DTL_CD
-                                 , A.SAP_PD_DV_CD
-                                 , A.CST_NO
-                                 , A.PD_CD
-                                 , A.SL_RCOG_DT
-                                 , NVL(A.THM_SL_SUM_AMT, 0) AS THM_SL_SUM_AMT /* 당월매출금액 LCAM16 */
-                                 , CASE WHEN SUBSTR(A.MSH_WDWAL_DT, 1, 6) =  A.SL_CL_YM THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END AS THM_CAN_SL_SUM_AMT /* 매출취소금액 LCAM96 */
-                                 , NVL(A.DSC_SL_AMT, 0) AS DSC_SL_AMT /* 할인매출 LCAM51 */
-                                 , NVL(A.SL_BND_ALRPY_AMT, 0) AS SL_BND_ALRPY_AMT /* 매출입금 LCAM38 */
-                                 , NVL(A.DSC_DP_AMT, 0) AS DSC_DP_AMT /* 할인입금 LCAM53 */
-                                 , NVL(A.THM_UC_BLAM, 0) AS THM_UC_BLAM /* 당월미수 LCMAMT */
-                                 , NVL(D.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT /* 연체가산금 LCAM84 */
-                                 , NVL(A.DSC_UC_AMT, 0) AS DSC_UC_AMT /* 할인미수 LCAM55 */
-                                 , NVL(A.DFA_PROCS_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
-                                 -----------------------------------------------------------
-                                 -- 연체가산금 영역
-                                 -----------------------------------------------------------
-                                 , NVL(D.BTD_DLQ_ADD_AMT, 0) AS BTD_DLQ_ADD_AMT /* 전기이월 */
-                                 , NVL(D.THM_OC_DLQ_ADD_AMT, 0) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
-                                 , NVL(D.THM_CTR_DLQ_ADD_AMT, 0) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
-                                 , NVL(D.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
-                                 , NVL(D.THM_DLQ_ADD_RFND_SUM_AMT, 0) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
-                              FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
-                             INNER JOIN TB_SSCT_CNTR_BAS B /* 계약기본 */
-                                ON B.CNTR_NO = A.CNTR_NO
-                               AND B.DTA_DL_YN = 'N'
-                              LEFT OUTER JOIN TB_CBCL_DLQ_BAS D /* 연체기본 */
-                                ON D.PERF_YM = A.SL_CL_YM
-                               AND D.CNTR_NO = A.CNTR_NO
-                               AND D.CNTR_SN = A.CNTR_SN
-                               AND D.DTA_DL_YN = 'N'
-                             WHERE A.SL_CL_YM BETWEEN #{slClSYm} AND #{slClEYm}
-                               AND A.SELL_TP_CD = '3'
-                               <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
-                               AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(sapPdDvCd)">
-                               AND A.SAP_PD_DV_CD = #{sapPdDvCd}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-                               AND A.CNTR_NO = #{cntrNo}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(cntrSn)">
-                               AND A.CNTR_SN = #{cntrSn}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(sellChnlDtl)">
-                               AND B.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDtl}
-                               </if>
-                             ORDER BY CNTR_NO, CNTR_SN, SL_CL_YM )
-                     <if test="@MybatisUtils@equals(agrgDv, '1')"> /* 집계 */
-                     GROUP BY SL_CL_YM, BF_SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
-                     </if>
-                     <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-                     GROUP BY SL_CL_YM, BF_SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT
-                     </if> )
-       SELECT CASE WHEN GROUPING(SL_CL_YM)  = 1 THEN '총      계'
-                   ELSE SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || (
-                                CASE WHEN SUM(W1_AM12) != SUM(W1_AM01) + SUM(W1_AM06) - SUM(W1_AM09)  THEN ' *'
-                                     ELSE ''
-                                 END)
-               END AS SL_CL_YM /* 실적년월 */
-            , SL_CL_DT AS SL_CL_DT /* 실적일자 */
-            , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
-            , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = T3.SELL_TP_CD) AS SELL_TP_CD_NM /* 판매유형코드명 */
-            , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
-            , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = T3.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD_NM /* 판매유형상세코드명 */
-            , SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-            , (SELECT MAX(SAP_PD_ATC_NM)
-                 FROM TB_CBCL_SAP_PD_DV_CD
-                WHERE SAP_BZ_TERY_CD = '1210' /* SAP_BZ_TERY_CD : WELLS면 1210, EDU면 1110 */
-                  AND SAP_PD_DV_CD = T3.SAP_PD_DV_CD ) AS SAP_PD_ATC_NM /* SAP상품코드명 */
-            <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-            , CNTR_NO || '-' || CNTR_SN AS CNTR_NO /* 계약번호 */
-            , CST_NO AS CST_NO /* 고객번호 */
-            , ( SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T3.CST_NO AND DTA_DL_YN = 'N' ) AS CST_KNM /* 고객명 */
-            , PD_CD AS PD_CD/* 상품코드 */
-            , ( SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T3.PD_CD) AS PD_NM /* 상품명 */
-            , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
-            </if>
-            , SUM(W1_AM01) AS PRE_TOT_UC_AMT /* 전기이월 */
-            , SUM(BF_THM_UC_BLAM) AS W1_AM01_1
-            , SUM(BF_DSC_UC_AMT) AS W1_AM01_2
-            , SUM(BF_EOT_DLQ_ADD_AMT) AS W1_AM01_3
-            , SUM(THM_SL_SUM_AMT - THM_CAN_SL_SUM_AMT + DSC_SL_AMT) AS NOM_SL_AMT /* 정상매출 */
-            , SUM(THM_CAN_SL_SUM_AMT) AS CAN_SL_AMT /* 취소매출 */
-            , SUM(DSC_SL_AMT) AS W1_AM05
-            , SUM(W1_AM06) AS TOT_SL_AMT
-            , SUM(SL_BND_ALRPY_AMT) AS W1_AM07
-            , SUM(DSC_DP_AMT) AS W1_AM08
-            , SUM(SL_BND_ALRPY_AMT + DSC_DP_AMT) AS TOT_DP_AMT /* 매출대사 */
-            , SUM(DFA_PROCS_AMT) AS DFA_PROCS_AMT /* 대손 */
-            , SUM(W1_AM12) AS TOT_UC_BLAM /* 기말미수 */
-            , CASE WHEN GROUPING(SL_CL_YM)  = 1 THEN '총      계'
-                   ELSE SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || ( /* 전기이월 + 당월발생 - 당월공제 - 당월입금 + 당월환불 */
-                        CASE WHEN SUM(EOT_DLQ_ADD_AMT) != SUM(BTD_DLQ_ADD_AMT) + SUM(THM_OC_DLQ_ADD_AMT) - SUM(THM_CTR_DLQ_ADD_AMT) - SUM(THM_DLQ_ADD_DP_SUM_AMT) + SUM(THM_DLQ_ADD_RFND_SUM_AMT) THEN ' *'
-                             ELSE ''
-                         END)
-               END AS SL_CL_YM2
-            , SUM(BTD_DLQ_ADD_AMT) AS BTD_DLQ_ADD_AMT /* 연체 기초 */
-            , SUM(THM_OC_DLQ_ADD_AMT) AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
-            , SUM(THM_CTR_DLQ_ADD_AMT) AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
-            , SUM(THM_DLQ_ADD_DP_SUM_AMT) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
-            , SUM(THM_DLQ_ADD_RFND_SUM_AMT) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
-            , SUM(EOT_DLQ_ADD_AMT) AS EOT_DLQ_ADD_AMT
-         FROM (SELECT T1.*
-                    , T2.W1_AM12 AS W1_AM01 /* 전원기말미수 */
-                    , T2.THM_UC_BLAM AS BF_THM_UC_BLAM /* 전월미수금 */
-                    , T2.DSC_UC_AMT AS BF_DSC_UC_AMT /* 전월할인미수 */
-                    , T2.EOT_DLQ_ADD_AMT AS BF_EOT_DLQ_ADD_AMT /* 전월연체가산 */
-                    , T1.W1_AM12 AS TOT_UC_BLAM /* 기말미수 */
-                    , (CASE WHEN T1.W1_AM12 != T2.W1_AM12 + T1.W1_AM06 - T1.W1_AM09
-                            THEN 'Y' ELSE 'N'
-                        END) AS ERROR_YN /* 가로계산식 오류건 */
-                 FROM T1
-                 LEFT OUTER JOIN (SELECT * FROM T1) T2
-                   ON T2.SL_CL_YM = T1.BF_SL_CL_YM /* 전월 조회 */
-                  AND T2.SELL_TP_CD = T1.SELL_TP_CD
-                  AND T2.SELL_TP_DTL_CD = T1.SELL_TP_DTL_CD
-                  <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')">
-                  AND T2.CNTR_NO = T1.CNTR_NO
-                  AND T2.CNTR_SN = T1.CNTR_SN
-                  </if> ) T3
+                         <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
+                         ORDER BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN
+                         </if>
+                    ) T2
+              ) T3
         WHERE SL_CL_YM > #{slClSYm}
           <if test="@MybatisUtils@equals(agrgDv, '4')"> /* 가로계산식 틀린 회원 */
           AND ERROR_YN = 'Y'
           </if>
-        <if test="@MybatisUtils@equals(agrgDv, '1')"> /* 집계 */
-        GROUP BY ROLLUP( (SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD) )
-        ORDER BY SL_CL_YM DESC, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
-        </if>
-        <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-        GROUP BY ROLLUP( (SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT) )
-        ORDER BY SL_CL_YM DESC, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT
-        </if>
+    </sql>
+    <select id="selectTradeReceivablesPeriodicDelivery" resultType="com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesBondDvo">
+        <include refid="tradeReceivablesPeriodicDelivery" />
     </select>
-    <select id="selectLumpSumOfAccountsReceivable" resultType="com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesBondDvo">
-        WITH T1 AS (SELECT SL_CL_YM AS SL_CL_YM /* 실적년월 */
-                         , BF_SL_CL_YM AS BF_SL_CL_YM /* 이전 실적전월 */
-                         , SL_CL_DT AS SL_CL_DT /* 실적일자 */
-                         , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
-                         , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
-                         , SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-                         <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-                         , CNTR_NO AS CNTR_NO /* 계약번호 */
-                         , CNTR_SN AS CNTR_SN /* 일련번호 */
-                         , CST_NO AS CST_NO /* 고객번호 */
-                         , PD_CD AS PD_CD/* 상품코드 */
-                         , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
-                         </if>
-                         , SUM(NOM_SL_AMT) AS NOM_SL_AMT /* 정상매출금액 */
-                         , SUM(SL_CAN_AMT) AS SL_CAN_AMT /* 취소매출금액 */
-                         , SUM(THM_OC_FEE_AMT) AS THM_OC_FEE_AMT /* 수수료매출금액 */
-                         , SUM(BOUT_NOR_SL_AMT) AS BOUT_NOR_SL_AMT /* 상품권_정상매출 -> ASIS 쿼리에 0 */
-                         , SUM(BOUT_CAN_SL_AMT) AS BOUT_CAN_SL_AMT /* 상품권_취소/만료매출 ※ 통합입금취소사유코드(ITG_DP_CAN_RSON_CD)가 21이면 만료건, 아니면 취소건 */
-                         , SUM(INTER_CONT_NOM_SL_AMT) AS INTER_CONT_NOM_SL_AMT /* 사간거래_정상매출금액 */
-                         , SUM(INTER_CONT_CAN_SL_AMT) AS INTER_CONT_CAN_SL_AMT /* 사간거래_취소매출금액 */
-                         , SUM(CNTRAM_DP_AMT) AS CNTRAM_DP_AMT/* 계약금입금 */
-                         , SUM(THM_INTAM_DP_AMT) AS THM_INTAM_DP_AMT/* 할부금입금 */
-                         , SUM(CRP_UC_AMT) AS CRP_UC_AMT/* 법인미수금 ASIS는 법인미수입금이었으나, TOBE는 법인미수금입금을 계약금에 포함 → 계약의 법인미수금 항목을 보여주기로 협의함 */
-                         , SUM(BOUT_DP_AMT) AS BOUT_DP_AMT /* 상품권입금 */
-                         , SUM(ETC_DP_AMT) AS ETC_DP_AMT /* 기타선수대체  */
-                         , SUM(INTER_CONT_CNT_DP_AMT) AS INTER_CONT_CNT_DP_AMT /* 사간거래_계약금입금 */
-                         , SUM(INTER_CONT_INT_DP_AMT) AS INTER_CONT_INT_DP_AMT /* 사간거래_할부금입금 */
-                         , SUM(DFA_PROCS_AMT) AS DFA_PROCS_AMT /* 대손금액 */
-                         , SUM(EOT_UC_AMT) AS EOT_UC_AMT /* 기말미수잔액 */
-                      FROM (SELECT A.SL_CL_YM AS SL_CL_YM /* 실적년월 */
-                                 , A.CNTR_NO AS CNTR_NO /* 계약번호 */
-                                 , A.CNTR_SN AS CNTR_SN /* 일련번호 */
-                                 , TO_CHAR((SELECT ADD_MONTHS(TO_DATE(A.SL_CL_YM, 'YYYYMM'), -1) FROM DUAL), 'YYYYMM') AS BF_SL_CL_YM /* 이전 실적전월 */
-                                 , A.SL_CL_DT AS SL_CL_DT /* 실적일자 */
-                                 , A.SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
-                                 , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
-                                 , A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-                                 , A.CST_NO AS CST_NO /* 고객번호 */
-                                 , A.PD_CD AS PD_CD/* 상품코드 */
-                                 , A.SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
-                                 , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.NOM_SL_AMT, 0) END AS NOM_SL_AMT /* 정상매출금액 CW49.CWWA11 */
-                                 , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.SL_CAN_AMT, 0) END AS SL_CAN_AMT /* 취소매출금액 CW49.CWWA12 */
-                                 , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.THM_OC_FEE_AMT, 0) END AS THM_OC_FEE_AMT /* 수수료매출금액 CW49.CWWA14 */
-                                 , 0 AS BOUT_NOR_SL_AMT /* 상품권_정상매출 -> ASIS 쿼리에 0 */
-                                 ------------------------------------------------------------------------------------
-                                 -- 상품권 취소/만료 금액
-                                 -- ASIS에서는 통합입금을 조회하였으나, TOBE는 영업선수에 온라인으로 데이터 쌓이고, 계약단위 조회를 위해 영업선수테이블 조회로 변경함
-                                 ------------------------------------------------------------------------------------
-                                 , NVL((SELECT SUM(NVL(RVE_AMT, 0))
-                                          FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수기본 */
-                                         WHERE DP_CL_DT BETWEEN TO_CHAR(A.SL_CL_YM) || '01' AND TO_CHAR(A.SL_CL_YM) || '31'
-                                           AND CNTR_NO = A.CNTR_NO
-                                           AND CNTR_SN = A.CNTR_SN
-                                           AND DP_TP_CD = '0802' /* K머니 */
-                                           AND DP_DV_CD = '2' /* 환불 */
-                                          ), 0) AS BOUT_CAN_SL_AMT /* 상품권_취소/만료매출 ※ 통합입금취소사유코드(ITG_DP_CAN_RSON_CD)가 21이면 만료건, 아니면 취소건 (DP30.DPCCAM+DP30.DPCCAM) */
-                                 , (CASE WHEN C.ALNCMP_CD = '51' THEN NVL(A.NOM_SL_AMT, 0) ELSE 0 END) AS INTER_CONT_NOM_SL_AMT /* 사간거래_정상매출금액 CWWA11 */
-                                 , (CASE WHEN C.ALNCMP_CD = '51' THEN NVL(A.SL_CAN_AMT, 0) ELSE 0 END) AS INTER_CONT_CAN_SL_AMT /* 사간거래_취소매출금액 CWWA12 */
-                                 , (CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.CNTRAM_DP_AMT, 0) END) AS CNTRAM_DP_AMT/* 계약금입금 CW49.CWWA16 */
-                                 , (CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.THM_INTAM_DP_AMT, 0) END) AS THM_INTAM_DP_AMT/* 할부금입금 CW49.CWWA18 */
-                                 , NVL(C.CRP_UC_AMT, 0) AS CRP_UC_AMT/* 법인미수금 ASIS는 법인미수입금이었으나(CWWA20), TOBE는 법인미수금입금을 계약금에 포함 → 계약의 법인미수금 항목을 보여주기로 협의함  */
-                                 , NVL((SELECT SUM(NVL(RVE_AMT, 0))
-                                          FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수기본 */
-                                         WHERE DP_CL_DT BETWEEN TO_CHAR(A.SL_CL_YM) || '01' AND TO_CHAR(A.SL_CL_YM) || '31'
-                                           AND CNTR_NO = A.CNTR_NO
-                                           AND CNTR_SN = A.CNTR_SN
-                                           AND PD_CD IN ('WP07110882', 'WP07110883') /* AS-IS LC30.LCIC01 IN ('7001','7002') K머니(54만), W머니(54만) */
-                                           AND RVE_DV_CD IN ('03', '07') /* 상품권입금 CWIJUB NOT IN ('2', '3', '5') 매변, 손료, 연체가산금 */
-                                           AND NOT (PROCS_DV_CD = '2' AND RVE_DV_CD = '06' AND DP_DV_CD = '3') /* 처리구분 정상, 수납구분 매변, 입금구분 전금 */
-                                           AND RVE_DV_CD NOT IN ('09', '17') /* CWIFLG NOT IN (8, 9) 수수료, 대손 */
-                                          ), 0) AS BOUT_DP_AMT /* 상품권입금 CW51.CWAMT1 */
-                                 , NVL((SELECT SUM(NVL(RVE_AMT, 0))
-                                          FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수기본 */
-                                         WHERE DP_CL_DT BETWEEN TO_CHAR(A.SL_CL_YM) || '01' AND TO_CHAR(A.SL_CL_YM) || '31'
-                                           AND CNTR_NO = A.CNTR_NO
-                                           AND CNTR_SN = A.CNTR_SN
-                                           AND PD_CD NOT IN ('WP07110882', 'WP07110883') /* AS-IS LC30.LCIC01 IN ('7001','7002') K머니(54만), W머니(54만) */
-                                           AND RVE_DV_CD IN ('02', '06') /* 매변, 가산금 */
-                                           AND DP_DV_CD = '3' /* ASIS CW5200P(기타선수)는 TOBE 전금입금형태로 영업선수에서 관리함 */
-                                          ), 0) AS ETC_DP_AMT /* 기타선수대체 CW52.CWAMT1 */
-                                 , (CASE WHEN C.ALNCMP_CD = '51' THEN NVL(A.CNTRAM_DP_AMT, 0) ELSE 0 END) AS INTER_CONT_CNT_DP_AMT /* 사간거래_계약금입금 CW49.CWWA16 */
-                                 , (CASE WHEN C.ALNCMP_CD = '51' THEN NVL(A.THM_INTAM_DP_AMT, 0) ELSE 0 END) AS INTER_CONT_INT_DP_AMT /* 사간거래_할부금입금 CW49.CWWA18 */
-                                 , NVL(A.DFA_PROCS_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
-                                 , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.EOT_UC_AMT, 0) END AS EOT_UC_AMT /* 기말미수잔액 CW49.CWPROP */
-                              FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
-                             INNER JOIN TB_SSCT_CNTR_BAS B /* 계약기본 */
-                                ON B.CNTR_NO = A.CNTR_NO
-                               AND B.DTA_DL_YN = 'N'
-                             INNER JOIN TB_SSCT_CNTR_DTL C /* 계약상세 */
-                                ON C.CNTR_NO = A.CNTR_NO
-                               AND C.CNTR_SN = A.CNTR_SN
-                               AND C.DTA_DL_YN = 'N'
-                             WHERE A.SL_CL_YM BETWEEN #{slClSYm} AND #{slClEYm}
-                               AND A.SELL_TP_CD = '1'
-                               <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
-                               AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(sapPdDvCd)">
-                               AND A.SAP_PD_DV_CD = #{sapPdDvCd}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-                               AND A.CNTR_NO = #{cntrNo}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(cntrSn)">
-                               AND A.CNTR_SN = #{cntrSn}
-                               </if>
-                               <if test="@MybatisUtils@isNotEmpty(sellChnlDtl)">
-                               AND B.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDtl}
-                               </if> )
-                     <if test="@MybatisUtils@equals(agrgDv, '1')"> /* 집계 */
-                     GROUP BY SL_CL_YM, BF_SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
-                     </if>
-                     <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-                     GROUP BY SL_CL_YM, BF_SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT
-                     </if>
-                )
-       SELECT CASE WHEN GROUPING(SL_CL_YM)  = 1 THEN '총      계'
-                   ELSE SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) ||( /* 기말미수 = 전기이월 + 정상매출 - 취소매출 + 수수료매출 - 계약금입금 - 할부금입금  */
-                        CASE WHEN SUM(EOT_UC_AMT) != SUM(PRE_TOT_UC_AMT) + SUM(NOM_SL_AMT) - SUM(SL_CAN_AMT) + SUM(THM_OC_FEE_AMT) - SUM(CNTRAM_DP_AMT) - SUM(THM_INTAM_DP_AMT)  THEN ' *'
-                             ELSE ''
-                         END)
-               END SL_CL_YM /* 실적년월 */
+    <sql id="tradeReceivablesPeriodicDelivery">
+       SELECT SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || ( /* 전기이월 +  (정상매출 + 추가배송비) - 매출입금 */
+                 CASE WHEN TOT_UC_BLAM != PRE_TOT_UC_AMT + W1_AM19 - W1_AM21  THEN ' *'
+                      ELSE ''
+                  END) AS SL_CL_YM /* 실적년월 */
             , SL_CL_DT AS SL_CL_DT /* 실적일자 */
             , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
             , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = T3.SELL_TP_CD) AS SELL_TP_CD_NM /* 판매유형코드명 */
             , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
             , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = T3.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD_NM /* 판매유형상세코드명 */
             , SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-            , (SELECT MAX(SAP_PD_ATC_NM)
-                 FROM TB_CBCL_SAP_PD_DV_CD
-                WHERE SAP_BZ_TERY_CD = '1210' /* SAP_BZ_TERY_CD : WELLS면 1210, EDU면 1110 */
-                  AND SAP_PD_DV_CD = T3.SAP_PD_DV_CD ) AS SAP_PD_ATC_NM /* SAP상품코드명 */
+            , ( SELECT MAX(SAP_PD_ATC_NM)
+                  FROM TB_CBCL_SAP_PD_DV_CD
+                 WHERE SAP_BZ_TERY_CD = '1210' /* SAP_BZ_TERY_CD : WELLS면 1210, EDU면 1110 */
+                   AND SAP_PD_DV_CD = T3.SAP_PD_DV_CD ) AS SAP_PD_ATC_NM /* SAP상품코드명 */
             <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
             , CNTR_NO || '-' || CNTR_SN AS CNTR_NO /* 계약번호 */
             , CST_NO AS CST_NO /* 고객번호 */
@@ -1123,56 +1420,39 @@
             , ( SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T3.PD_CD) AS PD_NM /* 상품명 */
             , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
             </if>
-            , SUM(PRE_TOT_UC_AMT) AS PRE_TOT_UC_AMT /* 전기이월 */
-            , SUM(NOM_SL_AMT) AS NOM_SL_AMT /* 정상매출금액 */
-            , SUM(SL_CAN_AMT) AS CAN_SL_AMT /* 취소매출금액 */
-            , SUM(THM_OC_FEE_AMT) AS FEE_SL_AMT /* 수수료매출금액 */
-            , SUM(BOUT_NOR_SL_AMT) AS BOUT_NOR_SL_AMT /* 상품권_정상매출 */
-            , SUM(BOUT_CAN_SL_AMT) AS BOUT_CAN_SL_AMT /* 상품권_취소/만료매출 */
-            , SUM(NOM_SL_AMT) + SUM(SL_CAN_AMT) + SUM(THM_OC_FEE_AMT) AS TOT_SL_AMT /* 매출합계 ※취소매출은 -금액으로 발생 */
-            , SUM(CNTRAM_DP_AMT) AS CNTR_DP_AMT /* 계약금입금 */
-            , SUM(THM_INTAM_DP_AMT) AS INST_DP_AMT /* 할부금입금 */
-            , SUM(CNTRAM_DP_AMT) + SUM(THM_INTAM_DP_AMT) AS TOT_DP_AMT /* 입금합계 */
-            , SUM(EOT_UC_AMT) AS EOT_UC_AMT /* 기말미수잔액 */
-            , SUM(CRP_UC_AMT) AS CRP_UC_AMT /* 법인미수금 */
-            , SUM(BOUT_DP_AMT) AS BOUT_DP_AMT /* 상품권입금 */
-            , SUM(ETC_DP_AMT) AS ETC_DP_AMT /* 기타선수대체 */
-            , SUM(INTER_CONT_NOM_SL_AMT) AS INTER_CONT_NOM_SL_AMT /* 사간거래_정상매출금액 */
-            , SUM(INTER_CONT_CAN_SL_AMT) AS INTER_CONT_CAN_SL_AMT /* 사간거래_취소매출금액 */
-            , SUM(INTER_CONT_CNT_DP_AMT) +  SUM(INTER_CONT_INT_DP_AMT) AS INTER_CONT_DP_AMT /* 사간거래입금 */
-            , SUM(INTER_CONT_CNT_DP_AMT) AS INTER_CONT_DP_AMT_1
-            , SUM(INTER_CONT_INT_DP_AMT) AS INTER_CONT_DP_AMT_2
-            , SUM(DFA_PROCS_AMT) AS DFA_PROCS_AMT /* 대손금액 */
-         FROM (SELECT T1.*
-                    , T2.EOT_UC_AMT AS PRE_TOT_UC_AMT /* 전기이월 */
-                    , (CASE WHEN T1.EOT_UC_AMT != T2.EOT_UC_AMT + T1.NOM_SL_AMT - T1.SL_CAN_AMT + T1.THM_OC_FEE_AMT - T1.CNTRAM_DP_AMT - T1.THM_INTAM_DP_AMT
-                        THEN 'Y' ELSE 'N'
-                       END) AS ERROR_YN /* 가로계산식 오류건 */
-                 FROM T1
-                 LEFT OUTER JOIN (SELECT * FROM T1) T2
-                   ON T2.SL_CL_YM = T1.BF_SL_CL_YM /* 전월 조회 */
-                  AND T2.SELL_TP_CD = T1.SELL_TP_CD
-                  AND T2.SELL_TP_DTL_CD = T1.SELL_TP_DTL_CD
-                  <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')">
-                  AND T2.CNTR_NO = T1.CNTR_NO
-                  AND T2.CNTR_SN = T1.CNTR_SN
-                  </if> ) T3
-        WHERE SL_CL_YM > #{slClSYm}
-          <if test="@MybatisUtils@equals(agrgDv, '4')"> /* 가로계산식 틀린 회원 */
-          AND ERROR_YN = 'Y'
-          </if>
-        <if test="@MybatisUtils@equals(agrgDv, '1')"> /* 집계 */
-        GROUP BY ROLLUP( (SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD) )
-        ORDER BY SL_CL_YM DESC, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
-        </if>
-        <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-        GROUP BY ROLLUP( (SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT) )
-        ORDER BY SL_CL_YM DESC, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT
-        </if>
-    </select>
-    <select id="selectTradeReceivablesPeriodicDelivery" resultType="com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesBondDvo">
-        WITH T1 AS (SELECT SL_CL_YM AS SL_CL_YM /* 실적년월 */
-                         , BF_SL_CL_YM AS BF_SL_CL_YM /* 이전 실적전월 */
+            , PRE_TOT_UC_AMT AS PRE_TOT_UC_AMT  /* ★★★ 전기이월 */
+            , BF_THM_UC_BLAM AS BF_THM_UC_BLAM /* 전월미수금 */
+            , BF_EOT_DLQ_ADD_AMT AS BF_EOT_DLQ_ADD_AMT /* 전월연체가산 */
+            , BF_EOT_BOR_AMT AS BF_EOT_BOR_AMT /* 전월위약금 */
+            , W1_AM19 AS TOT_SL_AMT  /* ★★★매출합계 */
+            , W1_AM19_1 AS W1_AM19_1 /* 검증용 */
+            , W1_AM19_2 AS W1_AM19_2 /* 검증용 */
+            , W1_AM19_3 AS W1_AM19_3 /* 검증용 */
+            , W1_AM19_4 AS W1_AM19_4 /* 검증용 */
+            , W1_AM19_5 AS W1_AM19_5 /* 검증용 */
+            , W1_AM19_6 AS W1_AM19_6 /* 검증용 */
+            , W1_AM21 AS TOT_DP_AMT /* ★★★매출채권반제금액 */
+            , TOT_UC_BLAM AS TOT_UC_BLAM  /* ★★★기말미수 */
+            , THM_UC_BLAM AS THM_UC_BLAM /* 당월미수금 */
+            , EOT_BOR_AMT AS EOT_BOR_AMT /* 당월위약금 */
+            , DFA_PROCS_AMT AS DFA_PROCS_AMT /* ★★★대손금액 */
+            , SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || ( /* 전기이월 + 당월발생 - 당월공제 - 당월입금 + 당월환불 */
+                 CASE WHEN EOT_DLQ_ADD_AMT != BTD_DLQ_ADD_AMT + THM_OC_DLQ_ADD_AMT - THM_CTR_DLQ_ADD_AMT - THM_DLQ_ADD_DP_SUM_AMT + THM_DLQ_ADD_RFND_SUM_AMT THEN ' *'
+                      ELSE ''
+                  END) AS SL_CL_YM2
+            , BTD_DLQ_ADD_AMT AS BTD_DLQ_ADD_AMT /* ★★★전기이월 */
+            , THM_OC_DLQ_ADD_AMT AS THM_OC_DLQ_ADD_AMT /* ★★★당월발생 */
+            , THM_CTR_DLQ_ADD_AMT AS THM_CTR_DLQ_ADD_AMT /* ★★★당월공제 */
+            , THM_DLQ_ADD_DP_SUM_AMT AS THM_DLQ_ADD_DP_SUM_AMT /* ★★★당월입금 */
+            , THM_DLQ_ADD_RFND_SUM_AMT AS THM_DLQ_ADD_RFND_SUM_AMT /* ★★★당월환불 */
+            , EOT_DLQ_ADD_AMT AS EOT_DLQ_ADD_AMT /* ★★★기말잔액 */
+         FROM (SELECT T2.*
+                    , T2.BF_THM_UC_BLAM - T2.BF_EOT_DLQ_ADD_AMT - T2.BF_EOT_BOR_AMT AS PRE_TOT_UC_AMT /* 전원기말미수 */
+                    , T2.THM_UC_BLAM - T2.EOT_DLQ_ADD_AMT - T2.EOT_BOR_AMT AS TOT_UC_BLAM /* 기말미수 */
+                    , (CASE WHEN T2.BF_THM_UC_BLAM - T2.BF_EOT_DLQ_ADD_AMT - T2.BF_EOT_BOR_AMT != T2.THM_UC_BLAM - T2.EOT_DLQ_ADD_AMT - T2.EOT_BOR_AMT + T2.W1_AM19 - T2.W1_AM21
+                            THEN 'Y' ELSE 'N'
+                        END) AS ERROR_YN /* 가로계산식 오류건 */
+                 FROM (SELECT SL_CL_YM AS SL_CL_YM /* 실적년월 */
                          , SL_CL_DT AS SL_CL_DT /* 실적일자 */
                          , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
                          , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
@@ -1184,8 +1464,11 @@
                          , PD_CD AS PD_CD/* 상품코드 */
                          , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
                          </if>
+                         <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계, 일자별*/
                          , SUM(THM_UC_BLAM) AS THM_UC_BLAM /* LD505.LCMAMT 기말미수금 */
                          , SUM(EOT_BOR_AMT) AS EOT_BOR_AMT /* LD505.LCA106 위약잔여 */
+                         , LAG(SUM(THM_UC_BLAM)) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS BF_THM_UC_BLAM /* LD505.LCMAMT 기말미수금 */
+                         , LAG(SUM(EOT_BOR_AMT)) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS BF_EOT_BOR_AMT /* LD505.LCA106 위약잔여 */
                          , SUM(W1_AM19) AS W1_AM19 /* LD505.LCAM16 매출합계 */
                          , SUM(W1_AM19_1) AS W1_AM19_1
                          , SUM(W1_AM19_2) AS W1_AM19_2
@@ -1204,9 +1487,35 @@
                          , SUM(THM_DLQ_ADD_DP_SUM_AMT) AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
                          , SUM(THM_DLQ_ADD_RFND_SUM_AMT) AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
                          , SUM(EOT_DLQ_ADD_AMT) AS EOT_DLQ_ADD_AMT /* 기말잔액 */
+                         , LAG(SUM(EOT_DLQ_ADD_AMT)) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS BF_EOT_DLQ_ADD_AMT /* 기말잔액 */
+                         </if>
+                         <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 집계, 일자별*/
+                         , THM_UC_BLAM AS THM_UC_BLAM /* LD505.LCMAMT 기말미수금 */
+                         , EOT_BOR_AMT AS EOT_BOR_AMT /* LD505.LCA106 위약잔여 */
+                         , LAG(THM_UC_BLAM) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS BF_THM_UC_BLAM /* LD505.LCMAMT 기말미수금 */
+                         , LAG(EOT_BOR_AMT) OVER (PARTITION BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD ORDER BY SL_CL_YM) AS BF_EOT_BOR_AMT /* LD505.LCA106 위약잔여 */
+                         , W1_AM19 AS W1_AM19 /* LD505.LCAM16 매출합계 */
+                         , W1_AM19_1 AS W1_AM19_1
+                         , W1_AM19_2 AS W1_AM19_2
+                         , W1_AM19_3 AS W1_AM19_3
+                         , W1_AM19_4 AS W1_AM19_4
+                         , W1_AM19_5 AS W1_AM19_5
+                         , W1_AM19_6 AS W1_AM19_6
+                         , W1_AM21 AS W1_AM21 /* 매출채권반제금액 */
+                         , DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손금액 */
+                         -----------------------------------------------------------
+                         -- 연체가산금 영역
+                         -----------------------------------------------------------
+                         , BTD_DLQ_ADD_AMT AS BTD_DLQ_ADD_AMT /* 전기이월 */
+                         , THM_OC_DLQ_ADD_AMT AS THM_OC_DLQ_ADD_AMT /* 당월발생 */
+                         , THM_CTR_DLQ_ADD_AMT AS THM_CTR_DLQ_ADD_AMT /* 당월공제 */
+                         , THM_DLQ_ADD_DP_SUM_AMT AS THM_DLQ_ADD_DP_SUM_AMT /* 당월입금 */
+                         , THM_DLQ_ADD_RFND_SUM_AMT AS THM_DLQ_ADD_RFND_SUM_AMT /* 당월환불 */
+                         , EOT_DLQ_ADD_AMT AS EOT_DLQ_ADD_AMT /* 기말잔액 */
+                         , LAG(EOT_DLQ_ADD_AMT) OVER (PARTITION BY CNTR_NO, CNTR_SN ORDER BY SL_CL_YM) AS BF_EOT_DLQ_ADD_AMT /* 기말잔액 */
+                         </if>
                       FROM (SELECT /*+ USE_NL(D) */
                                    A.SL_CL_YM AS SL_CL_YM /* 실적년월 */
-                                 , TO_CHAR((SELECT ADD_MONTHS(TO_DATE(A.SL_CL_YM, 'YYYYMM'), -1) FROM DUAL), 'YYYYMM') AS BF_SL_CL_YM /* 이전 실적전월 */
                                  , A.SL_CL_DT AS SL_CL_DT /* 실적일자 */
                                  , A.SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
                                  , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
@@ -1275,7 +1584,6 @@
                              UNION ALL
                             SELECT /*+ USE_NL(A B C D E F) LEADING(F) */
                                    A.SL_CL_YM AS SL_CL_YM /* 실적년월 */
-                                 , TO_CHAR((SELECT ADD_MONTHS(TO_DATE(A.SL_CL_YM, 'YYYYMM'), -1) FROM DUAL), 'YYYYMM') AS BF_SL_CL_YM /* 이전 실적전월 */
                                  , A.SL_CL_DT AS SL_CL_DT /* 실적일자 */
                                  , A.SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
                                  , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
@@ -1362,95 +1670,19 @@
                                AND B.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDtl}
                                </if>
                              </if>
-                            )
-                     <if test="@MybatisUtils@equals(agrgDv, '1')"> /* 집계 */
-                     GROUP BY SL_CL_YM, BF_SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
+                            ) T1
+                     <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계 */
+                     GROUP BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
+		             ORDER BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
                      </if>
                      <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-                     GROUP BY SL_CL_YM, BF_SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT
-                     </if> )
-       SELECT (CASE WHEN GROUPING(SL_CL_YM)  = 1 THEN '총      계'
-                    ELSE SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || ( /* 전기이월 +  (정상매출 + 추가배송비) - 매출입금 */
-                         CASE WHEN SUM(TOT_UC_BLAM) != SUM(PRE_TOT_UC_AMT) + SUM(W1_AM19) - SUM(W1_AM21)  THEN ' *'
-                              ELSE ''
-                          END)
-                     END) AS SL_CL_YM /* 실적년월 */
-            , SL_CL_DT AS SL_CL_DT /* 실적일자 */
-            , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
-            , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = T3.SELL_TP_CD) AS SELL_TP_CD_NM /* 판매유형코드명 */
-            , SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
-            , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = T3.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD_NM /* 판매유형상세코드명 */
-            , SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-            , ( SELECT MAX(SAP_PD_ATC_NM)
-                  FROM TB_CBCL_SAP_PD_DV_CD
-                 WHERE SAP_BZ_TERY_CD = '1210' /* SAP_BZ_TERY_CD : WELLS면 1210, EDU면 1110 */
-                   AND SAP_PD_DV_CD = T3.SAP_PD_DV_CD ) AS SAP_PD_ATC_NM /* SAP상품코드명 */
-            <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-            , CNTR_NO || '-' || CNTR_SN AS CNTR_NO /* 계약번호 */
-            , CST_NO AS CST_NO /* 고객번호 */
-            , ( SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T3.CST_NO AND DTA_DL_YN = 'N' ) AS CST_KNM /* 고객명 */
-            , PD_CD AS PD_CD /* 상품코드 */
-            , ( SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T3.PD_CD) AS PD_NM /* 상품명 */
-            , SL_RCOG_DT AS SL_RCOG_DT /* 매출일자 */
-            </if>
-            , SUM(PRE_TOT_UC_AMT) AS PRE_TOT_UC_AMT  /* ★★★ 전기이월 */
-            , SUM(BF_THM_UC_BLAM) AS BF_THM_UC_BLAM /* 전월미수금 */
-            , SUM(BF_EOT_DLQ_ADD_AMT) AS BF_EOT_DLQ_ADD_AMT /* 전월연체가산 */
-            , SUM(BF_EOT_BOR_AMT) AS BF_EOT_BOR_AMT /* 전월위약금 */
-            , SUM(W1_AM19) AS TOT_SL_AMT  /* ★★★매출합계 */
-            , SUM(W1_AM19_1) AS W1_AM19_1 /* 검증용 */
-            , SUM(W1_AM19_2) AS W1_AM19_2 /* 검증용 */
-            , SUM(W1_AM19_3) AS W1_AM19_3 /* 검증용 */
-            , SUM(W1_AM19_4) AS W1_AM19_4 /* 검증용 */
-            , SUM(W1_AM19_5) AS W1_AM19_5 /* 검증용 */
-            , SUM(W1_AM19_6) AS W1_AM19_6 /* 검증용 */
-            , SUM(W1_AM21) AS TOT_DP_AMT /* ★★★매출채권반제금액 */
-            , SUM(TOT_UC_BLAM) AS TOT_UC_BLAM  /* ★★★기말미수 */
-            , SUM(THM_UC_BLAM) AS THM_UC_BLAM /* 당월미수금 */
-            , SUM(EOT_BOR_AMT) AS EOT_BOR_AMT /* 당월위약금 */
-            , SUM(DFA_PROCS_AMT) AS DFA_PROCS_AMT /* ★★★대손금액 */
-            , (CASE WHEN GROUPING(SL_CL_YM)  = 1 THEN '총      계'
-                    ELSE SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || ( /* 전기이월 + 당월발생 - 당월공제 - 당월입금 + 당월환불 */
-                         CASE WHEN SUM(EOT_DLQ_ADD_AMT) != SUM(BTD_DLQ_ADD_AMT) + SUM(THM_OC_DLQ_ADD_AMT) - SUM(THM_CTR_DLQ_ADD_AMT) - SUM(THM_DLQ_ADD_DP_SUM_AMT) + SUM(THM_DLQ_ADD_RFND_SUM_AMT) THEN ' *'
-                              ELSE ''
-                          END)
-                END) AS SL_CL_YM2
-            , SUM(BTD_DLQ_ADD_AMT) AS BTD_DLQ_ADD_AMT /* ★★★전기이월 */
-            , SUM(THM_OC_DLQ_ADD_AMT) AS THM_OC_DLQ_ADD_AMT /* ★★★당월발생 */
-            , SUM(THM_CTR_DLQ_ADD_AMT) AS THM_CTR_DLQ_ADD_AMT /* ★★★당월공제 */
-            , SUM(THM_DLQ_ADD_DP_SUM_AMT) AS THM_DLQ_ADD_DP_SUM_AMT /* ★★★당월입금 */
-            , SUM(THM_DLQ_ADD_RFND_SUM_AMT) AS THM_DLQ_ADD_RFND_SUM_AMT /* ★★★당월환불 */
-            , SUM(EOT_DLQ_ADD_AMT) AS EOT_DLQ_ADD_AMT /* ★★★기말잔액 */
-         FROM (SELECT T1.*
-                    , T2.THM_UC_BLAM - T2.EOT_DLQ_ADD_AMT - T2.EOT_BOR_AMT AS PRE_TOT_UC_AMT /* 전원기말미수 */
-                    , T2.THM_UC_BLAM AS BF_THM_UC_BLAM /* 전월미수금 */
-                    , T2.EOT_DLQ_ADD_AMT AS BF_EOT_DLQ_ADD_AMT /* 전월연체가산 */
-                    , T2.EOT_BOR_AMT AS BF_EOT_BOR_AMT /* 전월위약금 */
-                    , T1.THM_UC_BLAM - T1.EOT_DLQ_ADD_AMT - T1.EOT_BOR_AMT AS TOT_UC_BLAM /* 기말미수 */
-                    , (CASE WHEN T1.THM_UC_BLAM - T1.EOT_DLQ_ADD_AMT - T1.EOT_BOR_AMT != T2.THM_UC_BLAM - T2.EOT_DLQ_ADD_AMT - T2.EOT_BOR_AMT + T1.W1_AM19 - T1.W1_AM21
-                            THEN 'Y' ELSE 'N'
-                        END) AS ERROR_YN /* 가로계산식 오류건 */
-                 FROM T1
-                 LEFT OUTER JOIN (SELECT * FROM T1) T2
-                   ON T2.SL_CL_YM = T1.BF_SL_CL_YM /* 전월 조회 */
-                  AND T2.SELL_TP_CD = T1.SELL_TP_CD
-                  AND T2.SELL_TP_DTL_CD = T1.SELL_TP_DTL_CD
-                  <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')">
-                  AND T2.CNTR_NO = T1.CNTR_NO
-                  AND T2.CNTR_SN = T1.CNTR_SN
-                  </if>
+                     ORDER BY SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN
+                     </if>
+ 	                ) T2
                 ) T3
         WHERE SL_CL_YM > #{slClSYm}
           <if test="@MybatisUtils@equals(agrgDv, '4')"> /* 가로계산식 틀린 회원 */
           AND ERROR_YN = 'Y'
           </if>
-        <if test="@MybatisUtils@equals(agrgDv, '1')"> /* 집계 */
-        GROUP BY ROLLUP( (SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD) )
-        ORDER BY SL_CL_YM DESC, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
-        </if>
-        <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 주문별, 가로계산식 틀린 회원 */
-        GROUP BY ROLLUP( (SL_CL_YM, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT) )
-        ORDER BY SL_CL_YM DESC, SL_CL_DT, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD, CNTR_NO, CNTR_SN, CST_NO, PD_CD, SL_RCOG_DT
-        </if>
-    </select>
+    </sql>
 </mapper>

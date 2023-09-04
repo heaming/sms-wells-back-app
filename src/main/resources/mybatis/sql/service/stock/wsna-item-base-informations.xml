@@ -39,15 +39,24 @@
                     , S1.SVPD_LT          AS LEAD_TIME       /* 리드타임 */
                  FROM ( <include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/> ) S1
             <where>
-                <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+               <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
                   AND S1.SVPD_ITEM_KND = #{itmKndCd}
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(itmPdNm)">
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(itmPdNm)">
                   AND S1.SVPD_NM_KOR LIKE '%' || #{itmPdNm} || '%'
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                   AND S1.SVPD_PD_CD LIKE #{itmPdCd}||'%'
-                </if>
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(strtSapCd)">
+                  AND S1.SVPD_SAP_CD <![CDATA[>=]]> LPAD(#{strtSapCd}, 18, '0')
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(endSapCd)">
+                  AND S1.SVPD_SAP_CD <![CDATA[<=]]>  LPAD(#{endSapCd}, 18, '0')
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)">
+                  AND S1.SVPD_SAP_CD IS NOT NULL
+               </if>
             </where>
              ) T1   /* 상품 */
           LEFT OUTER JOIN
@@ -91,7 +100,7 @@
              , D1.SAP_MAT_CD                                           AS SAP_CD          /* SAP코드 */
              , D1.PD_NM                                                AS ITM_PD_NM       /* 품목상품명 */
              , D1.PD_ABBR_NM                                           AS ITM_PD_NM1      /* 품목상품약어명 */
-             , D9.FILE_UID                                             AS IMG_URL         /* 이미지URL */
+             , D8.FILE_UID                                             AS IMG_URL         /* 이미지URL */
              , D2.PD_PRP_VAL19                                         AS ITEM_KND        /* 품목종류 */
              , D2.PD_PRP_VAL12                                         AS BOX_UNIT_QTY    /* 박스단위수량 */
              , D2.PD_PRP_VAL05                                         AS MNGT_UNIT_CD    /* 관리단위코드 */
@@ -104,7 +113,18 @@
              , NVL(D6.USE_QTY, 0)                                      AS USE_QTY_P       /* 전월사용수량 */
              , NVL(D7.USE_QTY, 0)                                      AS USE_QTY_Y       /* 전년도사용수량 */
              , GREATEST(NVL(D5.USE_QTY, 0) - NVL(D3.CENTER_QTY, 0), 0) AS SHORT_SUPPLY    /* 신청 예상수량 (전월 - 센터) */
-             , NVL(D8.TOTAL_QTY, 0)                                    AS TOTAL_QTY       /* 총재고 */
+             , ( SELECT /*+ USE_NL(S1 S2) INDEX(S2 PK_SVST_MCBY_WARE_IZ) */
+                        NVL(SUM(S1.PITM_STOC_A_GD_QTY), 0)
+                   FROM TB_SVST_CST_SV_ITM_STOC_IZ S1   /* 고객서비스품목재고내역 */
+                  INNER JOIN TB_SVST_MCBY_WARE_IZ S2    /* 월별창고내역 */
+                     ON S2.WARE_NO = S1.WARE_NO
+                  WHERE S1.ITM_PD_CD      = D1.PD_CD
+                    AND S1.DTA_DL_YN      = 'N'
+                    AND S2.DTA_DL_YN      = 'N'
+                    AND S2.APY_YM         = TO_CHAR(SYSDATE, 'YYYYMM')
+                    AND S2.WARE_DV_CD     = '2'
+                    AND S2.WARE_DTL_DV_CD = '20'
+                  )                                                AS TOTAL_QTY       /* 총재고 */
           FROM TB_PDBS_PD_BAS D1                 /* 상품기본 */
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
             ON D2.PD_CD = D1.PD_CD
@@ -127,7 +147,7 @@
             ON D3.ITM_PD_CD = D1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT /*+ LEADING(D2 D1) */
+               SELECT /*+ INDEX(D2 (APY_YM, WARE_DV_CD, HGR_WARE_NO)) */
                       D1.ITM_PD_CD
                     , SUM(D1.PITM_STOC_A_GD_QTY) AS INDI_QTY
                     , SUM(D1.PITM_STOC_B_GD_QTY) AS INDI_B_QTY
@@ -144,7 +164,7 @@
             ON D4.ITM_PD_CD = D1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT /*+ LEADING(D2 D1) INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+               SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
                       D1.ITM_PD_CD
                     , SUM(D1.USE_QTY) AS USE_QTY
                  FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
@@ -161,7 +181,7 @@
             ON D5.ITM_PD_CD = D1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT /*+ LEADING(D2 D1) INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+               SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) INDEX(D2 (APY_YM, WARE_DV_CD, HGR_WARE_NO)) */
                       D1.ITM_PD_CD
                     , SUM(D1.USE_QTY) AS USE_QTY
                  FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
@@ -178,7 +198,7 @@
             ON D6.ITM_PD_CD = D1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT /*+ LEADING(D2 D1) INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+               SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) INDEX(D2 (APY_YM, WARE_DV_CD, HGR_WARE_NO)) */
                       D1.ITM_PD_CD
                     , SUM(D1.USE_QTY) AS USE_QTY
                  FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
@@ -193,34 +213,10 @@
                 GROUP BY D1.ITM_PD_CD
              ) D7
             ON D7.ITM_PD_CD = D1.PD_CD
-          LEFT OUTER JOIN
-             (
-               SELECT D1.ITM_PD_CD
-                    , SUM(D1.PITM_STOC_A_GD_QTY) AS TOTAL_QTY
-                 FROM TB_SVST_CST_SV_ITM_STOC_IZ D1   /* 고객서비스품목재고내역 */
-                INNER JOIN TB_SVST_MCBY_WARE_IZ D2    /* 월별창고내역 */
-                   ON D2.WARE_NO = D1.WARE_NO
-                WHERE D1.DTA_DL_YN      = 'N'
-                  AND D2.DTA_DL_YN      = 'N'
-                  AND D2.APY_YM         = TO_CHAR(SYSDATE, 'YYYYMM')
-                  AND D2.WARE_DV_CD     = #{wareDvCd}
-        <if test='@MybatisUtils@isNotEmpty(wareDvCd)'>
-          <choose>
-              <when test='@MybatisUtils@equals(wareDvCd, "2")'>
-                  AND D2.WARE_DTL_DV_CD = #{wareDtlDvCd}
-              </when>
-              <when test='@MybatisUtils@equals(wareDvCd, "3")'>
-                  AND D2.WARE_DTL_DV_CD IN ('31', '32')
-              </when>
-          </choose>
-        </if>
-                GROUP BY D1.ITM_PD_CD
-             ) D8
-            ON D8.ITM_PD_CD = D1.PD_CD
-          LEFT OUTER JOIN T_CMD_ATTH_FILE_D D9
-            ON D9.ATTH_DOC_ID = D1.IMG_APN_FILE_ID
-           AND D9.DEL_YN      = 'N'
-           AND D9.TENANT_ID   = 'TNT_WELLS'
+          LEFT OUTER JOIN T_CMD_ATTH_FILE_D D8
+            ON D8.ATTH_DOC_ID = D1.IMG_APN_FILE_ID
+           AND D8.DEL_YN      = 'N'
+           AND D8.TENANT_ID   = 'TNT_WELLS'
          WHERE D1.DTA_DL_YN          = 'N'
            AND D1.PD_TP_CD           = 'M'
            AND D2.DTA_DL_YN          = 'N'
@@ -233,6 +229,15 @@
         </if>
         <if test="@MybatisUtils@isNotEmpty(itmPdNm)">
            AND D1.PD_NM LIKE '%' || #{itmPdNm} || '%'
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(strtSapCd)">
+           AND D1.SAP_MAT_CD <![CDATA[>=]]> LPAD(#{strtSapCd}, 18, '0')
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(endSapCd)">
+           AND D1.SAP_MAT_CD <![CDATA[<=]]>  LPAD(#{endSapCd}, 18, '0')
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)">
+           AND D1.SAP_MAT_CD IS NOT NULL
         </if>
          ORDER BY D1.PD_CD
     </select>

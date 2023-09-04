@@ -92,7 +92,7 @@ public class WsnaQomAsnService {
      * @param dto
      * @return
      */
-    @Transactional(timeout = 600)
+    @Transactional(timeout = 900)
     public int createQomAsnIndividualWares(CreateReq dto) {
         WsnaQomAsnCreateDvo dvo = this.converter.mapCreateReqToWsnaQomAsnCreateDvo(dto);
 

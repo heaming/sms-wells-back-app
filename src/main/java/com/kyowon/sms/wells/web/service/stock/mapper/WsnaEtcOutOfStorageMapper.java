@@ -1,11 +1,12 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto.*;
+
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaEtcOutOfStorageDvo;
 import org.apache.ibatis.annotations.Mapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto.*;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaEtcOutOfStorageDvo;
 
 @Mapper
 public interface WsnaEtcOutOfStorageMapper {
@@ -21,4 +22,6 @@ public interface WsnaEtcOutOfStorageMapper {
     int insertEtcOutOfStorageOstrIz(WsnaEtcOutOfStorageDvo dvo);
 
     String selectWareMngtPrtnrNo(FindWareMngtPrtnrNoReq findWareMngtPrtnrNoReq);
+
+    List<SearchCodeRes> selectWellsCenterWarehouse(String apyYm);
 }

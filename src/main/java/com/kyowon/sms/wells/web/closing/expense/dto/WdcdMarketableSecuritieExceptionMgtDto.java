@@ -11,7 +11,7 @@ public class WdcdMarketableSecuritieExceptionMgtDto {
     @ApiModel(value = "WdcdMarketableSecuritieExceptionMgtDto-FindCodeReq")
     public record FindCodeReq(
         String baseYm,
-        String dgr1LevlOgId
+        String dgr2LevlOgId
     ) {
     }
 

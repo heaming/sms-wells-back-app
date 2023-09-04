@@ -23,4 +23,12 @@ public class WpdcAsPartCommonUseMgtService {
     public List<SearchProductRes> getProductsByPart(String partPdCd) {
         return mapper.selectProductsByPart(partPdCd);
     }
+
+    public List<SearchProductRes> selectProducts(SearchPartReq dto) {
+        return mapper.selectProducts(dto);
+    }
+
+    public List<SearchPartRes> selectAsPartsByProduct(String pdCd) {
+        return mapper.selectAsPartsByProduct(pdCd);
+    }
 }

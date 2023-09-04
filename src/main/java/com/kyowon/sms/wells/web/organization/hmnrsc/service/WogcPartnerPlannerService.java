@@ -2,29 +2,21 @@ package com.kyowon.sms.wells.web.organization.hmnrsc.service;
 
 import java.util.List;
 
-import com.kyowon.sms.common.web.organization.organization.dto.ZogaBuildingDto;
-import com.kyowon.sms.common.web.organization.organization.dvo.ZogaBuildingDvo;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kyowon.sms.wells.web.organization.hmnrsc.converter.WogcPartnerPlannerConverter;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerDvo;
-import com.sds.sflex.common.utils.StringUtil;
-import com.sds.sflex.system.config.response.SaveResponse;
-import com.sds.sflex.system.config.validation.BizAssert;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.stereotype.Service;
-
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseDetailRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerDvo;
 import com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerPlannerMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
-import javax.validation.Valid;
 
 /**
  *
@@ -149,4 +141,7 @@ public class WogcPartnerPlannerService {
         return mapper.selectPlannerLicensePages(dto);
     }
 
+    public PagingResult<SearchLicenseDetailRes> getPlannerLicenseDetailPages(String prtnrNo, PageInfo pageinfo) {
+        return mapper.selectPlannerLicenseDetailPages(prtnrNo, pageinfo);
+    }
 }

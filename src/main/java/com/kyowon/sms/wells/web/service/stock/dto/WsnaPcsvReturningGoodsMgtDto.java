@@ -116,7 +116,11 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String pdDclsfId, // 상품세분류ID
         String dtmChRsonCd, //개봉여부코드
         String editYn, //수정여부
-        String wellsReqdDt //wells철거일자
+        String wellsReqdDt, //wells철거일자
+
+        // 물류수불처리 추가
+        String ostrTpCd, // 출고유형코드
+        String ostrDt // 출고일자
 
     ) {
         public SearchRes {
@@ -212,7 +216,11 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String pdMclsfId, // 상품중분류ID
         String pdLclsfId, // 상품소분류ID
         String pdDclsfId, // 상품세분류ID
-        String dtmChRsonCd //개봉여부코드
+        String dtmChRsonCd, //개봉여부코드
+
+        // 물류수불처리 추가
+        String ostrTpCd, // 출고유형코드
+        String ostrDt // 출고일자
     ) {}
 
     @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-FindLogisticsCentersRes")
@@ -231,6 +239,19 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String pdCd,
         String pdNm,
         String pdGrpCd
+    ) {}
+
+    @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-FindItmOstrNoReq")
+    public record FindItmOstrNoReq(
+        String ostrTpCd, // 출고유형코드
+        String ostrDt // 출고일자
+    ) {}
+
+    @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-FindItmStrNoReq")
+    public record FindItmStrNoReq(
+        String ostrTpCd, // 출고유형코드
+        String ostrDt, // 출고일자
+        String strWareNo // strWareNo
     ) {}
 
 }

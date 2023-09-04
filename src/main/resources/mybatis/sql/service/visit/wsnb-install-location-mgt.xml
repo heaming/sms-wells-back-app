@@ -3,116 +3,94 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallLocationMgtMapper">
 
     <select id="selectInstallLocationPages" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallLocationDvo">
-        SELECT I1.CNTR_NO
-             , I1.CNTR_SN
-             , I1.IST_DT
-             , B1.CUST_NM AS CUST_NM
-        	 , F_CMZ_CD_NM(#{session.tenantId}, 'PRD_MNGT_TP_CD', D1.SELL_TP_CD, #{session.langId}) AS SELL_TP_NM
-             , I1.PDCT_PD_CD
-             , (SELECT SAP_MAT_CD
-                  FROM TB_PDBS_PD_BAS
-                 WHERE 1=1
-                   AND DTA_DL_YN = 'N'
-                   AND PD_CD = I1.PDCT_PD_CD
-               ) AS SAP_MAP_CD
-             , (SELECT PD_NM
-                  FROM TB_PDBS_PD_BAS
-                 WHERE 1=1
-                   AND DTA_DL_YN = 'N'
-                   AND PD_CD = I1.PDCT_PD_CD
-               ) AS PD_NM
-             , B1.LOCARA_TNO /* 지역전화번호 */
-             , B1.EXNO_ENCR /* 전화국번호암호화 (복호화필요) */
-             , B1.IDV_TNO  /* 개별전화번호 */
-             , B1.CRAL_LOCARA_TNO /* 휴대지역전화번호 */
-             , B1.MEXNO_ENCR  /* 휴대전화국번호암호화 */
-             , B1.CRAL_IDV_TNO  /* 휴대개별전화번호 */
-             , B2.NEW_ADR_ZIP AS ZIP
-             , B2.RNADR || ' ' || B2.RDADR AS ADR
-             , D4.IST_LCT_DTL_CN
-             , P1.OG_NM
-             , D4.WK_PRTNR_NO /* 작업파트너번호 */
-             , P1.PRTNR_KNM
-             , TO_CHAR(TO_DATE(D4.FST_RGST_DTM, 'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS REG_DTM
-             FROM TB_SVPD_CST_SV_EXCN_IZ I1
-            INNER JOIN (SELECT T1.DTL_CNTR_NO
-                             , T1.DTL_CNTR_SN
-                             , TRIM(T2.RCGVP_KNM) AS CUST_NM
-                             , T2.ADR_ID
-                             , T2.LOCARA_TNO
-                             , T2.EXNO_ENCR
-                             , T2.IDV_TNO
-                             , T2.CRAL_LOCARA_TNO
-                             , T2.MEXNO_ENCR
-                             , T2.CRAL_IDV_TNO
-                         FROM TB_SSCT_CNTR_ADR_REL T1
-                        INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2
-                           ON T2.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID
-                          AND T2.DTA_DL_YN = 'N'
-                        WHERE 1=1
-                          AND T1.DTA_DL_YN = 'N'
-                          AND T1.ADRPC_TP_CD IN ('2', '3')        /* 설치처 */
-                          AND T1.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-                          AND T1.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-                       ) B1
-               ON I1.CNTR_NO = B1.DTL_CNTR_NO
-              AND I1.CNTR_SN = B1.DTL_CNTR_SN
-            INNER JOIN TB_SSCT_CNTR_DTL D1
-               ON I1.CNTR_NO = D1.CNTR_NO
-              AND I1.CNTR_SN = D1.CNTR_SN
-              AND D1.DTA_DL_YN = 'N'
-            INNER JOIN TB_GBCO_ADR_BAS B2
-               ON B1.ADR_ID = B2.ADR_ID
-              AND B2.DTA_DL_YN     = 'N'
-             LEFT OUTER JOIN (SELECT D3.CNTR_NO AS CNTR_NO
-                                   , D3.CNTR_SN AS CNTR_SN
-                                   , D3.IST_LCT_DTL_CN AS IST_LCT_DTL_CN
-                                   , D3.WK_PRTNR_NO AS WK_PRTNR_NO
-                                   , D3.FST_RGST_DTM
-                                FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL D3
-                               WHERE D3.DTL_SN = (SELECT MAX(DTL_SN)
-                                                    FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL
-                                                   WHERE D3.CNTR_NO = CNTR_NO
-                                                     AND DTA_DL_YN = 'N'
-                                                 )
-                             ) D4
-               ON I1.CNTR_NO = D4.CNTR_NO
-            INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
-               ON P1.DTA_DL_YN = 'N'
-              AND P1.BASE_YM   = TO_CHAR(SYSDATE, 'YYYYMM')
-              AND P1.OG_TP_CD  = I1.MNGT_PRTNR_OG_TP_CD
-              AND P1.PRTNR_NO  = I1.MNGT_PRTNR_NO
-              AND P1.OG_TP_CD IN ('W03','W06')
-             LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PD1
-               ON PD1.PD_CD = I1.PDCT_PD_CD
-              AND PD1.PD_EXTS_PRP_GRP_CD = 'PART'
-              AND PD1.DTA_DL_YN = 'N'
-            WHERE I1.IST_DT IS NOT NULL
-              AND I1.DTA_DL_YN = 'N'
+         SELECT '' AS CHK
+              , T1.CNTR_NO
+              , T1.CNTR_SN
+              , T1.IST_DT
+              , D2.CNTR_CST_NO -- 고객번호
+              , AD2.RCGVP_KNM AS CUST_NM -- 설치자고객명
+              , F_CMZ_CD_NM('TNT_WELLS', 'PRD_MNGT_TP_CD', D1.SELL_TP_CD, 'ko') AS SELL_TP_NM
+              , T1.PDCT_PD_CD
+              , PD1.SAP_MAT_CD
+              , PD1.PD_NM
+              , AD2.LOCARA_TNO /* 지역전화번호 */
+              , AD2.EXNO_ENCR /* 전화국번호암호화 (복호화필요) */
+              , AD2.IDV_TNO  /* 개별전화번호 */
+              , AD2.CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+              , AD2.MEXNO_ENCR  /* 휴대전화국번호암호화 */
+              , AD2.CRAL_IDV_TNO  /* 휴대개별전화번호 */
+              , AD3.NEW_ADR_ZIP AS ZIP
+              , AD3.RNADR || ' ' || AD3.RDADR AS ADR
+              , LD1.IST_LCT_DTL_CN
+              , P1.OG_NM
+              , P1.PRTNR_KNM
+              , LD1.WK_PRTNR_NO /* 작업파트너번호 */
+              , TO_CHAR(TO_DATE(LD1.FST_RGST_DTM, 'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS REG_DTM
+           FROM TB_SVPD_CST_SV_EXCN_IZ T1           /* 고객서비스수행내역 */
+          INNER JOIN TB_SSCT_CNTR_ADR_REL AD1       /* 계약주소관계 */
+             ON T1.CNTR_NO = AD1.DTL_CNTR_NO
+            AND T1.CNTR_SN = AD1.DTL_CNTR_SN
+            AND AD1.ADRPC_TP_CD IN ('2', '3')
+            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN AD1.VL_STRT_DTM AND AD1.VL_END_DTM
+          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS AD2     /* 계약주소지기본 */
+             ON AD1.CNTR_ADRPC_ID = AD2.CNTR_ADRPC_ID
+            AND AD2.DTA_DL_YN = 'N'
+          INNER JOIN TB_GBCO_ADR_BAS AD3            /* 주소기본 */
+             ON AD3.ADR_ID = AD2.ADR_ID
+          INNER JOIN TB_SSCT_CNTR_DTL D1            /* 계약상세 */
+             ON T1.CNTR_NO = D1.CNTR_NO
+            AND T1.CNTR_SN = D1.CNTR_SN
+            AND D1.DTA_DL_YN = 'N'
+          INNER JOIN TB_SSCT_CNTR_BAS D2            /* 계약기본 */
+             ON D2.CNTR_NO = D1.CNTR_NO
+            AND D2.DTA_DL_YN = 'N'
+           LEFT OUTER JOIN TB_PDBS_PD_BAS PD1       /* 상품기본 */
+             ON T1.PDCT_PD_CD = PD1.PD_CD
+           LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PD2 /* 상품각사속성상세 */
+             ON PD2.PD_CD = PD1.PD_CD
+            AND PD2.PD_EXTS_PRP_GRP_CD = 'PART'
+            AND PD2.DTA_DL_YN = 'N'
+           LEFT OUTER JOIN TB_SVPD_CNTR_PDCT_IST_LCT_DTL LD1    /* 계약제품설치위치상세 */
+             ON T1.CNTR_NO = LD1.CNTR_NO
+            AND T1.CNTR_SN = LD1.CNTR_SN
+            AND LD1.DTL_SN = (SELECT MAX(DTL_SN)
+                                FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL
+                               WHERE CNTR_NO = T1.CNTR_NO
+                                 AND CNTR_SN = T1.CNTR_SN
+                             )
+          INNER JOIN TB_OGBS_MM_PRTNR_IZ P1 /* 월파트너내역 */
+             ON P1.DTA_DL_YN = 'N'
+            AND P1.BASE_YM   = SUBSTR(LD1.FNL_MDFC_DTM,1,6)
+            AND P1.OG_TP_CD  = LD1.OG_TP_CD
+            AND P1.PRTNR_NO  = LD1.WK_PRTNR_NO
+            AND P1.OG_TP_CD IN ('W03','W06')  /* 엔지니어만 */
+          WHERE 1 = 1
+            AND T1.IST_DT IS NOT NULL
+            AND T1.DTA_DL_YN = 'N'
          <if test="@MybatisUtils@isNotEmpty(ogId)">
-              AND P1.OG_ID = #{ogId}
+            AND P1.OG_ID = #{ogId}
          </if>
          <if test="@MybatisUtils@isNotEmpty(egerId)">
-              AND P1.PRTNR_NO = #{egerId}
+            AND P1.PRTNR_NO = #{egerId}
          </if>
          <if test="@MybatisUtils@isNotEmpty(istDtFrom)">
-              AND I1.IST_DT <![CDATA[>=]]> #{istDtFrom}
+            AND T1.IST_DT <![CDATA[>=]]> #{istDtFrom}
          </if>
          <if test="@MybatisUtils@isNotEmpty(istDtTo)">
-              AND I1.IST_DT <![CDATA[<=]]> #{istDtTo}
+            AND T1.IST_DT <![CDATA[<=]]> #{istDtTo}
          </if>
          <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
-              AND PD1.PD_PRP_VAL20 = #{pdGrpCd}
+            AND PD2.PD_PRP_VAL20 = #{pdGrpCd}
          </if>
          <if test="@MybatisUtils@isNotEmpty(pdCd)">
-              AND I1.PDCT_PD_CD = #{pdCd}
+            AND T1.PDCT_PD_CD = #{pdCd}
          </if>
          <if test="@MybatisUtils@isNotEmpty(cstNm)">
-              AND B1.CUST_NM = #{cstNm}
+            AND AD2.RCGVP_KNM = #{cstNm}
          </if>
          <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
-              AND I1.CNTR_NO = #{cntrNo}
-              AND I1.CNTR_SN = #{cntrSn}
+            AND T1.CNTR_NO = #{cntrNo}
+            AND T1.CNTR_SN = #{cntrSn}
          </if>
     </select>
 

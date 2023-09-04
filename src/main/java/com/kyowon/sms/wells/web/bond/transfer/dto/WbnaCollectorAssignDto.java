@@ -120,7 +120,10 @@ public class WbnaCollectorAssignDto {
         String lwmDtlTpCd, /* 법조치상세       */
         String lwmDt, /* 법조치일자       */
         String dfltDt, /* 채불등록일자      */
-        String addr /* 주소           */
+        String addr, /* 주소           */
+        String cujCd,
+        String cujNm,
+        String indno
     ) {}
 
     @ApiModel("WbnaCollectorAssignDto-SearchSummaryRes")

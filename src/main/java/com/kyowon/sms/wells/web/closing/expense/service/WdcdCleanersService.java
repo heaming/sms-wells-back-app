@@ -1,5 +1,10 @@
 package com.kyowon.sms.wells.web.closing.expense.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.kyowon.sms.wells.web.closing.expense.converter.WdcdCleanersConverter;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanersMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdCleanersMgtDto.SearchRes;
@@ -9,11 +14,8 @@ import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -27,9 +29,7 @@ public class WdcdCleanersService {
         PagingResult<WdcdCleanersDvo> dvos = new PagingResult<>();
         UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
 
-        // TODO. 본사 영업담당자, 본사 담당자 구분 해야함
-        if ("".equals(req.flag())) {
-
+        if (!"W1580".equals(userSession.getBaseRleCd())) {
             dvos = mapper.selectCleanersBusinessManager(req, pageInfo);
         } else {
             dvos = mapper.selectCleanersPersonInCharge(req, pageInfo);
@@ -39,7 +39,6 @@ public class WdcdCleanersService {
         for (WdcdCleanersDvo dvo : dvos.getList()) {
             serchResList.add(converter.mapSearchResToWdcdCleanersDvo(dvo));
         }
-
 
         PagingResult<SearchRes> res = new PagingResult<>();
         res.setList(serchResList);
@@ -52,7 +51,7 @@ public class WdcdCleanersService {
 
         List<WdcdCleanersDvo> dvos = new PagingResult<>();
         List<SearchRes> res = new PagingResult<SearchRes>();
-        
+
         // TODO. 본사 영업담당자, 본사 담당자 구분 해야함
         if ("".equals(req.flag())) {
             dvos = mapper.selectCleanersBusinessManager(req);

@@ -34,8 +34,6 @@ public class WpscLectureSpptApplicationDto {
         String lectrYm,              /* 강의년월 */
         Integer lectrTCnt,           /* 강의차수 */
         Integer lectrSpptLectCd,     /* 강의지원강사코드 */
-        String dgr1LevlOgNm,
-        String dgr2LevlOgNm,
         String LectNm,
         Integer lectrSpptLectrCd,    /* 강의지원강의코드 */
         String lectrNm,

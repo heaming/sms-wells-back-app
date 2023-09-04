@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbRefundApplicationReqDvo;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwwdbEtcDepositMapper;
+import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbRefundApplicationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +40,7 @@ public class WwdbRefundApplicationService {
     private final MessageResourceService messageService;
 
     private final ZwdaAutoTransferRealTimeAccountService acService;
+    private final ZwdbRefundApplicationService zwdbRefundApplicationService;
 
     private final ZwwdbEtcDepositMapper etcDepositMapper;
 
@@ -351,58 +354,20 @@ public class WwdbRefundApplicationService {
 
                 WwdbRefundDtlDvo dtlDvo = converter.mapTempSaveWwdbRefundDtlDvo(list);
 
-                //환불접수기본 채번
-                String pk = null;
+                ZwdbRefundApplicationReqDvo reqDvo = new ZwdbRefundApplicationReqDvo();
+                reqDvo.setSort("1");
+                reqDvo.setKwGrpCoCd(session.getCompanyCode());
+                reqDvo.setRfndCshAkAmt(dtlDvo.getRfndCshAkAmt()); //현금
+                reqDvo.setRfndCardAkAmt(dtlDvo.getRfndCardAkAmt()); //카드
+                reqDvo.setRfndBltfAkAmt(dtlDvo.getRfndBltfAkAmt()); //전금
+                reqDvo.setRveDt(dvo.getRveDt()); /*환불수납일자*/
+                reqDvo.setPerfDt(dvo.getPerfDt()); /*환불실적일자*/
+                reqDvo.setDsbDt(dvo.getDsbDt()); /*환불지급일자*/
+                reqDvo.setProcsCn(dvo.getRfndProcsCn()); /*환불처리내용*/
+                reqDvo.setDsbDt(dvo.getDsbDt()); /*환불예정일자*/
 
-                dtlDvo.setRfndRveDt(dvo.getRveDt()); /*환불수납일자*/
-                dtlDvo.setRfndPerfDt(dvo.getPerfDt()); /*환불실적일자*/
-                dtlDvo.setRfndDsbDt(dvo.getDsbDt()); /*환불지급일자*/
-                dtlDvo.setRfndProcsCn(dvo.getRfndProcsCn()); /*환불처리내용*/
-                dtlDvo.setRfndDsbDuedt(dvo.getDsbDt()); /*환불예정일자*/
+                zwdbRefundApplicationService.createRefundApplication(reqDvo);
 
-
-                int cash = Integer.parseInt(dtlDvo.getRfndCshAkAmt()); //현금
-                int card = Integer.parseInt(dtlDvo.getRfndCardAkAmt()); //카드
-                int bltf = Integer.parseInt(dtlDvo.getRfndBltfAkAmt()); //전금
-
-                //현금이 있을 경우
-                if (cash > 0) {
-                    //채번
-                    pk = etcDepositMapper.selectEtcDepositRefundPk();
-                    dtlDvo.setRfndRcpNo(pk);
-
-                    processCount += mapper.insertRefundReceiptBaseCash(dtlDvo); //환불접수기본
-                    processCount += mapper.insertRefundReceiptBaseHistory(dtlDvo); //환불접수기본 이력
-
-                    processCount += mapper.insertRefundReceiptDtlCash(dtlDvo); //환불접수상세
-                    processCount += mapper.insertRefundReceiptDtlHistory(dtlDvo); //환불접수상세 이력
-
-                }
-
-                //카드금액이 있을 경우
-                if (card > 0) {
-                    //채번
-                    pk = etcDepositMapper.selectEtcDepositRefundPk();
-                    dtlDvo.setRfndRcpNo(pk);
-
-                    processCount += mapper.insertRefundReceiptBaseCard(dtlDvo);//환불접수기본
-                    processCount += mapper.insertRefundReceiptBaseHistory(dtlDvo); //환불접수기본 이력
-
-                    processCount += mapper.insertRefundReceiptDtlCard(dtlDvo);//환불접수상세
-                    processCount += mapper.insertRefundReceiptDtlHistory(dtlDvo); //환불접수상세 이력
-                }
-                //
-                //전금금액이 있을경우
-                if (bltf > 0) {
-                    pk = etcDepositMapper.selectEtcDepositRefundPk();
-                    dtlDvo.setRfndRcpNo(pk);
-
-                    processCount += mapper.insertRefundReceiptBaseBltf(dtlDvo);
-                    processCount += mapper.insertRefundReceiptBaseHistory(dtlDvo); //환불접수기본 이력
-
-                    processCount += mapper.insertRefundReceiptDtlBltf(dtlDvo);//환불접수상세
-                    processCount += mapper.insertRefundReceiptDtlHistory(dtlDvo); //환불접수상세 이력
-                }
             }
         }
 

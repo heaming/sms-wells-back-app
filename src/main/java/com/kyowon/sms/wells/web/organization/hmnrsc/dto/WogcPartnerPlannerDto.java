@@ -1,5 +1,9 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.dto;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.sds.sflex.common.utils.DbEncUtil;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -7,26 +11,48 @@ public class WogcPartnerPlannerDto {
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchLicenseReq")
     public record SearchLicenseReq(
-        String ogTpCd,
         String prtnrKnm,
         String prtnrNo,
-        String olfDvCd
+        String qlfDvCd
     ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchLicenseRes")
     public record SearchLicenseRes(
-        String level2Nm,
-        String level3Nm,
-        String level4Nm,
+        String dgr1LevlOgNm,
+        String dgr2LevlOgNm,
         String ogCd,
         String bldNm,
-        String prntrNo,
-        String prntrKnm,
-        String telno,
-        String rrnoFrpsnVal,
-        String a,
-        String b,
-        String ogId
+        String prtnrNo,
+        String prtnrKnm,
+        String rsbDvCd,
+        String rsbDvNm,
+        String bizUseIdvTno,
+        String bizUseExnoEncr,
+        String bizUseLocaraTno,
+        String bryyMmdd,
+        String rcrtWrteDt,
+        String fnlCltnDt,
+        String edu143,
+        String edu96,
+        String qlfDvCd,
+        String qlfDvNm
+    ) {
+        public SearchLicenseRes {
+            bizUseExnoEncr = StringUtils.isNotEmpty(bizUseExnoEncr) ? DbEncUtil.enc(bizUseExnoEncr) : bizUseExnoEncr;
+        }
+    }
+
+    @ApiModel(value = "WogcPartnerPlannerDto-SearchLicenseDetailRes")
+    public record SearchLicenseDetailRes(
+        String qlfDvCd,
+        String qlfDvNm,
+        String qlfAplcDvCd,
+        String qlfAplcDvNm,
+        String strtdt,
+        String cvDt,
+        String enddt,
+        String pymdt,
+        String dsbAmt
     ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchReq")
@@ -38,26 +64,44 @@ public class WogcPartnerPlannerDto {
         String mOgYn,
         String mngtYm,
         String ogId,
+        String ogLevlDvCd1,
+        String ogLevlDvCd2,
+        String ogLevlDvCd3,
+        String ogLevlDvCd4,
         String olfDvCd
     ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchRes")
     public record SearchRes(
-        String dgr1LevlOgCd,
         String dgr1LevlOgNm,
-        String dgr2LevlOgCd,
         String dgr2LevlOgNm,
-        String dgr3LevlOgCd,
-        String dgr3LevlOgNm,
         String ogCd,
-        String mpiPrtnrKnm,
+        String prtnrKnm,
         String prtnrNo,
         String qlfDvCd,
+        String qlfDvNm,
+        String rcmdrPrtnrNm,
         String rcmdrPrtnrNo,
-        String pbPrtnrKnm,
         String cntrDt,
         String fnlCltnDt,
-        String rcntrDt
+        String rcntrDt,
+        String edu14,
+        String twoSum,
+        String curSum,
+        String mTotSum,
+        String curBs,
+        String totSum,
+        String prfmtDt,
+        String dmtnDt,
+        String dmtnCurBs,
+        String dmtnTotSum,
+        String strtdt,
+        String fnlEnddt,
+        String cvDt,
+        String enddt,
+        String mQlfDvCd,
+        String mQlfDvNm,
+        String mTotCnt
     ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-DeleteReq")

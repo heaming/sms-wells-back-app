@@ -51,7 +51,7 @@ public class WsnaSeedReleaseScheduleSearchDvo {
     private String dpDt;
     private String ostrCnfmDt;
     private String sdingRcgWareNm;
-    private String vstCeter;
+    private String vstCenter;
     private String vstIchr;
 
     private String ichrCralLocaraTno;

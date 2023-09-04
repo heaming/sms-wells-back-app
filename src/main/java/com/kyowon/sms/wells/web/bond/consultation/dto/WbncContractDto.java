@@ -131,7 +131,6 @@ public class WbncContractDto {
         String vstDt, /* 방문일자*/
         String sfk, /* 세이프키*/
         String unuitm, /* 특이사항*/
-        String bndBizDvCd, /* 업무구분 */
         String cntrTpCd, /* 고객구분*/
         String bilDt, /* 이체일자 */
         String bilTpCd /* 납부방식유형코드*/

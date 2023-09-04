@@ -36,6 +36,7 @@ public class WsnbIndividualVisitPrdInqrDto {
         String mngerRglvlDvCd,
         String svHshdNo,
         String ogTpCd,
+        String ogCd,
         String vstPrdNm
     ) {}
 }

@@ -3,9 +3,12 @@ package com.kyowon.sms.wells.web.closing.performance.rest;
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,10 +18,10 @@ import com.kyowon.sms.wells.web.closing.performance.dto.WdccPrepaymentExpiration
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccPrepaymentExpirationDto.SearchCharacterFwUldRes;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccPrepaymentExpirationDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccPrepaymentExpirationDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccPrepaymentExpirationDto.SendReq;
 import com.kyowon.sms.wells.web.closing.performance.service.WdccPrepaymentExpirationService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -63,16 +66,7 @@ public class WdccPrepaymentExpirationController {
         @ApiImplicitParam(name = "upYn", value = "조회구분", paramType = "query"),
         @ApiImplicitParam(name = "upNo", value = "업무담당 사번", paramType = "query"),
     })
-    @GetMapping("/object-present-state/paging")
-    public PagingResult<SearchRes> getObjectPresentState(
-        SearchReq dto,
-        PageInfo pageInfo
-    ) {
-        return service.getObjectPresentState(dto, pageInfo);
-    }
-
-    @ApiOperation(value = "선납만료 고객현황 - 대상현황 대상건 엑셀 다운로드", notes = "엑셀 다운로드")
-    @GetMapping("/object-present-state/excel-download")
+    @GetMapping("/object-present-state")
     public List<SearchRes> getObjectPresentState(
         @Valid
         SearchReq dto
@@ -100,16 +94,7 @@ public class WdccPrepaymentExpirationController {
         @ApiImplicitParam(name = "upYn", value = "조회구분", paramType = "query"),
         @ApiImplicitParam(name = "upNo", value = "업무담당 사번", paramType = "query"),
     })
-    @GetMapping("/character-fw-uld/paging")
-    public PagingResult<SearchCharacterFwUldRes> getCharacterFwUld(
-        SearchCharacterFwUldReq dto,
-        PageInfo pageInfo
-    ) {
-        return service.getCharacterFwUld(dto, pageInfo);
-    }
-
-    @ApiOperation(value = "선납만료 고객현황 - 문자발송업로드현황 대상건 엑셀 다운로드", notes = "엑셀 다운로드")
-    @GetMapping("/character-fw-uld/excel-download")
+    @GetMapping("/character-fw-uld")
     public List<SearchCharacterFwUldRes> getCharacterFwUld(
         @Valid
         SearchCharacterFwUldReq dto
@@ -123,16 +108,7 @@ public class WdccPrepaymentExpirationController {
         @ApiImplicitParam(name = "cellNo", value = "전화번호", paramType = "query"),
         @ApiImplicitParam(name = "scsYn", value = "성공여부", paramType = "query"),
     })
-    @GetMapping("/character-fw-iz/paging")
-    public PagingResult<SearchCharacterFwIzRes> getCharacterFwIz(
-        SearchCharacterFwIzReq dto,
-        PageInfo pageInfo
-    ) {
-        return service.getCharacterFwIz(dto, pageInfo);
-    }
-
-    @ApiOperation(value = "선납만료 고객현황 - 문자발송내역 대상건 엑셀 다운로드", notes = "엑셀 다운로드")
-    @GetMapping("/character-fw-iz/excel-download")
+    @GetMapping("/character-fw-iz")
     public List<SearchCharacterFwIzRes> getCharacterFwIz(
         @Valid
         SearchCharacterFwIzReq dto
@@ -140,4 +116,36 @@ public class WdccPrepaymentExpirationController {
         return service.getCharacterFwIz(dto);
     }
 
+    @ApiOperation(value = "선납만료 고객현황이력 문자발송", notes = "선납만료 고객현황이력 문자발송한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrCralTno1", value = "계약자휴대전화번호1", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCralTno2", value = "계약자휴대전화번호2", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCralTno3", value = "계약자휴대전화번호3", paramType = "query"),
+        @ApiImplicitParam(name = "cstKnm", value = "고객명", paramType = "query"),
+        @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrInfo", value = "상품정보", paramType = "query"),
+        @ApiImplicitParam(name = "prmEndYm", value = "선납종료년월", paramType = "query"),
+        @ApiImplicitParam(name = "mmpmYm", value = "선납종료익월년월", paramType = "query"),
+        @ApiImplicitParam(name = "prmEndMm", value = "선납종료월", paramType = "query"),
+        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query"),
+        @ApiImplicitParam(name = "pdNm", value = "상품명", paramType = "query"),
+        @ApiImplicitParam(name = "cnt", value = "건수", paramType = "query"),
+        @ApiImplicitParam(name = "currMm", value = "당월", paramType = "query"),
+        @ApiImplicitParam(name = "postYy", value = "익월년도", paramType = "query"),
+        @ApiImplicitParam(name = "postMm", value = "익월", paramType = "query"),
+        @ApiImplicitParam(name = "fwbooDate", value = "발송예약일", paramType = "query"),
+        @ApiImplicitParam(name = "fwbooTime", value = "발송예약시간", paramType = "query"),
+    })
+    @PostMapping
+    public SaveResponse sendPrepaymentExpirationHistorys(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<SendReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder().processCount(this.service.sendPrepaymentExpirationHistorys(dtos)).build();
+    }
 }

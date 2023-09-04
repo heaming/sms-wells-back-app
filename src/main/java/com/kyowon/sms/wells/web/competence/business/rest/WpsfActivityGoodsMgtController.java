@@ -47,6 +47,7 @@ public class WpsfActivityGoodsMgtController {
 
     @ApiOperation(value = "활동물품신청내역 조회 - 페이징 조회", notes = "")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", required = true),
         @ApiImplicitParam(name = "aplcDt", value = "신청년월"),
         @ApiImplicitParam(name = "aplcStatCd", value = "조회구분", defaultValue = "40"),
         @ApiImplicitParam(name = "prtnrNo", value = "번호"),
@@ -66,9 +67,13 @@ public class WpsfActivityGoodsMgtController {
 
     @ApiOperation(value = "활동물품신청내역 조회 - 엑셀 다운로드", notes = "")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", required = true),
         @ApiImplicitParam(name = "aplcDt", value = "신청년월"),
         @ApiImplicitParam(name = "aplcStatCd", value = "조회구분", defaultValue = "40"),
         @ApiImplicitParam(name = "prtnrNo", value = "번호"),
+        @ApiImplicitParam(name = "actiGdsSn", value = "활동물품일련번호"),
+        @ApiImplicitParam(name = "actiGdsStddCd", value = "활동물품규격코드"),
+        @ApiImplicitParam(name = "aplcQty", value = "신청수량"),
     })
     @GetMapping("/excel-download")
     public List<WpsfActivityGoodsMgtDto.SearchStatRes> getActivityGoodsApplicationIzExcelDownload(
@@ -315,5 +320,4 @@ public class WpsfActivityGoodsMgtController {
             .processCount(service.removeActivityActivityGoodsSizeDetail(dtos))
             .build();
     }
-
 }

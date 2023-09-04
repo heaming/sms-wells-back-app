@@ -73,7 +73,7 @@ public class WsnaSeedingOstrQtyDto {
         @Positive
         int limSn,
         // 한도수량
-        @Positive
+
         @Max(999999999999L)
         BigDecimal limQty
     ) {}
