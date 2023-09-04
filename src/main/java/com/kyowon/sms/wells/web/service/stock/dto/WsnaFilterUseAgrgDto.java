@@ -54,7 +54,7 @@ public class WsnaFilterUseAgrgDto {
 
         String wareNo,
 
-        String wareNm,
+        String bldNm,
 
         String pdCds // 상품 목록
     ) {}
