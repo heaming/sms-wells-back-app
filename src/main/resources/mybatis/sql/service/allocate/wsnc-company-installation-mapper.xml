@@ -157,7 +157,7 @@
                                 FROM WSMDBS.TB_PDBS_PD_BAS T1 /* 상품기본 */
                      LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T2  /* 상품각사속성상세 */
                                   ON T1.PD_CD = T2.PD_CD
-                                  /* AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT') */ /*상품확장속성그룹코드 CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
+                                 AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT') /*상품확장속성그룹코드 CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
                                WHERE 1=1
                                  AND (T1.PD_CD IN (SELECT PDCT_PD_CD FROM CNTR_INF) OR T1.PD_CD IN (SELECT SV_PD_CD FROM CNTR_INF) OR T1.PD_CD IN (SELECT BASE_PD_CD FROM CNTR_INF))
                                  )
@@ -181,13 +181,13 @@
                           INNER JOIN WSMDBS.TB_OGBS_OG_BAS T3 /* 조직기본 */
                                   ON T1.OG_ID = T3.OG_ID
                                  AND T3.DTA_DL_YN = 'N'
-                     LEFT OUTER JOIN TB_OGBS_DEPT_BAS TD1 /* INNER JOIN 부서기본 */
+                     LEFT OUTER JOIN GBSDBS.TB_GBCO_DEPT_BAS TD1 /* INNER JOIN 부서기본 */
                                   ON T1.HMNRSC_DEPT_CD = TD1.DEPT_CD
                                WHERE 1=1
                                  AND T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
                               /* AND (T1.PRTNR_NO IN (SELECT ICHR_PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT FST_RGST_USR_ID FROM TEMP1)) */
-        --                         AND T1.OG_TP_CD IN ('HR1','W02', 'W03','W06') /* 조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
-                             /* AND T1.BZ_STAT_CD IN ('1','2','3') */ /*1 사업, 2 해약, 3 휴업 */
+                                 AND T1.OG_TP_CD IN ('HR1','W02', 'W03','W06') /* 조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
+                              /* AND T1.BZ_STAT_CD IN ('1','2','3') */ /*1 사업, 2 해약, 3 휴업 */
                                  AND T1.DTA_DL_YN = 'N'
                 )
                 , SVC_INF AS ( SELECT S1.CST_SV_ASN_NO
@@ -203,16 +203,19 @@
                                     , S1.ICHR_PRTNR_NO /* 담당자(작업담당자 */
                                     , S2.PDCT_PD_CD
                                  FROM TB_SVST_SV_WK_OSTR_IZ S1 /* ST163 서비스작업출고내역 */
-                      LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ S2 /* inner join 해야함 -- AC251 고객서비스BS대상내역 */
+                           INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ S2 /* inner join 해야함 -- AC251 고객서비스BS대상내역 */
                                    ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
-                        /* INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ S3 */ /* INNER JOIN 해야되데 데이터 없음 AC252 정기BS투입품목내역 */
-                        /* ON S1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO */
-                        /* AND S1.ITM_PD_CD = S3.PU_PART_PD_CD */
-                      LEFT OUTER JOIN TB_SVPD_RGBS_PU_ITM_IZ S3 /* 삭제 예정 */
-                                   ON S1.CNTR_NO = S3.CNTR_NO
-                                  AND S1.CNTR_SN = S3.CNTR_SN
-                                  AND S1.SV_BIZ_DCLSF_CD = S3.SV_BIZ_DCLSF_CD
-                                  AND SUBSTR(S1.FNL_VST_FSH_DT,1,6) = S3.ASN_OJ_YM
+                                  AND S2.ASN_OJ_YM = SUBSTR(S1.FNL_VST_FSH_DT,1,6)
+                           INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ S3 /* INNER JOIN 해야되데 데이터 없음 AC252 정기BS투입품목내역 */
+                        	       ON S1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO
+                        	      AND S2.ASN_OJ_YM = S3.ASN_OJ_YM
+                        	      AND S2.CNTR_NO = S3.CNTR_NO
+                        	      AND S2.CNTR_SN = S3.CNTR_SN
+                        	      AND S2.SV_BIZ_MCLSF_CD = S3.SV_BIZ_MCLSF_CD
+                        	      AND S2.SV_BIZ_DCLSF_CD = S3.SV_BIZ_DCLSF_CD
+                        	      AND S2.SV_BIZ_DCLSF_CD = S3.SV_BIZ_DCLSF_CD
+                        	      AND S2.WK_SN = S3.WK_SN
+                                  AND S1.ITM_PD_CD = S3.PU_PART_PD_CD
                       LEFT OUTER JOIN TB_SVPD_RCAS_ITM_PRC_IZ P1 /* CO230 유상AS품목가격내역 */
                                    ON S1.ITM_PD_CD = P1.USE_MAT_PD_CD
                                   AND S1.FNL_VST_FSH_DT BETWEEN P1.APY_STRTDT AND P1.APY_ENDDT
@@ -237,7 +240,7 @@
                      , T3.PD_NM AS BASE_PD_NM /* 상품명 */
                      , SVC_INF.SV_BIZ_HCLSF_CD /* 작업유형 */
                      , SVC_INF.SV_BIZ_DCLSF_CD /* 작업유형상세 */
-                     , T3.SAP_MAT_CD /* SAP코드 */
+                     , T8.SAP_MAT_CD /* SAP코드 */
                      , T2.BASE_PD_CD /* 상품코드 */
                       ,SVC_INF.PDCT_PD_CD
                      , SVC_INF.ITM_PD_CD /* 부품코드 */
@@ -447,7 +450,7 @@
                         FROM WSMDBS.TB_PDBS_PD_BAS T1 /* 상품기본 */
              LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T2  /* 상품각사속성상세 */
                           ON T1.PD_CD = T2.PD_CD
-                          /* AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT') */ /*상품확장속성그룹코드 CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
+                         AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT') /*상품확장속성그룹코드 CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
                        WHERE 1=1
                          AND (T1.PD_CD IN (SELECT PDCT_PD_CD FROM CNTR_INF) OR T1.PD_CD IN (SELECT SV_PD_CD FROM CNTR_INF) OR T1.PD_CD IN (SELECT BASE_PD_CD FROM CNTR_INF))
         )
@@ -547,7 +550,7 @@
              , T2.IDV_TNO /* 개별전화번호 */
              , T2.OG_TP_CD /* 조직유형코드 */
              , T2.PRTNR_NO /* 파트너번호 CNTR_PRTNR_REL_ID = '010' 판매자 */
-             , T2.OG_ID /* 조직ID */
+             , T6.OG_ID /* 조직ID */
              , T6.OG_NM /* 조직명 */
              , T6.HGR_OG_ID /* 상위조직ID */
              , T6.OG_NM AS HGR_OG_NM /* 상위조직명 */
@@ -568,8 +571,8 @@ LEFT OUTER JOIN PD_INF T5 /* 상품정보 - 원래는 inner join 으로 해야 �
            ON T2.SV_PD_CD = T5.PD_CD
           AND T5.PD_TP_CD = 'S' /* 상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품 */
           AND T5.PD_EXTS_PRP_GRP_CD = 'SCHD'
-LEFT OUTER JOIN OG_INF T6 /*조직정보*/
-           ON T2.OG_ID = T6.OG_ID
+LEFT OUTER JOIN OG_INF_PRTNR T6 /*조직정보*/
+           ON T2.PRTNR_NO = T6.PRTNR_NO
      ORDER BY T1.CNTR_NO, T1.CNTR_SN
     </select>
     <select id="selectCompanyInstallationFltrOrSubMat"
@@ -737,7 +740,7 @@ LEFT OUTER JOIN OG_INF T6 /*조직정보*/
                                 FROM WSMDBS.TB_PDBS_PD_BAS T1 /* 상품기본 */
                      LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T2  /* 상품각사속성상세 */
                                   ON T1.PD_CD = T2.PD_CD
-                                  /* AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT') */ /*상품확장속성그룹코드 CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
+                                 AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT') /*상품확장속성그룹코드 CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
                                WHERE 1=1
                                  AND (T1.PD_CD IN (SELECT PDCT_PD_CD FROM CNTR_INF) OR T1.PD_CD IN (SELECT SV_PD_CD FROM CNTR_INF) OR T1.PD_CD IN (SELECT BASE_PD_CD FROM CNTR_INF))
                                  )
@@ -761,12 +764,12 @@ LEFT OUTER JOIN OG_INF T6 /*조직정보*/
                           INNER JOIN WSMDBS.TB_OGBS_OG_BAS T3 /* 조직기본 */
                                   ON T1.OG_ID = T3.OG_ID
                                  AND T3.DTA_DL_YN = 'N'
-                     LEFT OUTER JOIN TB_OGBS_DEPT_BAS TD1 /* INNER JOIN 부서기본 */
+                     LEFT OUTER JOIN GBSDBS.TB_GBCO_DEPT_BAS TD1 /* INNER JOIN 부서기본 */
                                   ON T1.HMNRSC_DEPT_CD = TD1.DEPT_CD
                                WHERE 1=1
                                  AND T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
                               /* AND (T1.PRTNR_NO IN (SELECT ICHR_PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT FST_RGST_USR_ID FROM TEMP1)) */
-        --                         AND T1.OG_TP_CD IN ('HR1','W02', 'W03','W06') /* 조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
+                                AND T1.OG_TP_CD IN ('HR1','W02', 'W03','W06') /* 조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
                              /* AND T1.BZ_STAT_CD IN ('1','2','3') */ /*1 사업, 2 해약, 3 휴업 */
                                  AND T1.DTA_DL_YN = 'N'
                 )
@@ -784,16 +787,19 @@ LEFT OUTER JOIN OG_INF T6 /*조직정보*/
                                     , S2.PDCT_PD_CD
                                     , S3.ITM_KND_CD
                                  FROM TB_SVST_SV_WK_OSTR_IZ S1 /* ST163 서비스작업출고내역 */
-                      LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ S2 /* inner join 해야함 -- AC251 고객서비스BS대상내역 */
+                           INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ S2 /* inner join 해야함 -- AC251 고객서비스BS대상내역 */
                                    ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
-                        /* INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ S3 */ /* INNER JOIN 해야되데 데이터 없음 AC252 정기BS투입품목내역 */
-                        /* ON S1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO */
-                        /* AND S1.ITM_PD_CD = S3.PU_PART_PD_CD */
-                      LEFT OUTER JOIN TB_SVPD_RGBS_PU_ITM_IZ S3 /* 삭제 예정 */
-                                   ON S1.CNTR_NO = S3.CNTR_NO
-                                  AND S1.CNTR_SN = S3.CNTR_SN
-                                  AND S1.SV_BIZ_DCLSF_CD = S3.SV_BIZ_DCLSF_CD
-                                  AND SUBSTR(S1.FNL_VST_FSH_DT,1,6) = S3.ASN_OJ_YM
+                                  AND S2.ASN_OJ_YM = SUBSTR(S1.FNL_VST_FSH_DT,1,6)
+                           INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ S3 /* INNER JOIN 해야되데 데이터 없음 AC252 정기BS투입품목내역 */
+                        	       ON S1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO
+                        	      AND S2.ASN_OJ_YM = S3.ASN_OJ_YM
+                        	      AND S2.CNTR_NO = S3.CNTR_NO
+                        	      AND S2.CNTR_SN = S3.CNTR_SN
+                        	      AND S2.SV_BIZ_MCLSF_CD = S3.SV_BIZ_MCLSF_CD
+                        	      AND S2.SV_BIZ_DCLSF_CD = S3.SV_BIZ_DCLSF_CD
+                        	      AND S2.SV_BIZ_DCLSF_CD = S3.SV_BIZ_DCLSF_CD
+                        	      AND S2.WK_SN = S3.WK_SN
+                                  AND S1.ITM_PD_CD = S3.PU_PART_PD_CD
                       LEFT OUTER JOIN TB_SVPD_RCAS_ITM_PRC_IZ P1 /* CO230 유상AS품목가격내역 */
                                    ON S1.ITM_PD_CD = P1.USE_MAT_PD_CD
                                   AND S1.FNL_VST_FSH_DT BETWEEN P1.APY_STRTDT AND P1.APY_ENDDT
@@ -807,7 +813,7 @@ LEFT OUTER JOIN OG_INF T6 /*조직정보*/
                                   	#{itmKnd}
                                   </foreach>
                                   )
-                                  AND S1.FNL_VST_FSH_DT LIKE #{mgtYm}||'%'
+                                  AND S1.FNL_VST_FSH_DT LIKE #{mgtYnm}||'%'
                 )
                 SELECT T1.CNTR_NO
                      , T1.CNTR_SN
@@ -822,7 +828,7 @@ LEFT OUTER JOIN OG_INF T6 /*조직정보*/
                      , T3.PD_NM AS BASE_PD_NM /* 상품명 */
                      , SVC_INF.SV_BIZ_HCLSF_CD /* 작업유형 */
                      , SVC_INF.SV_BIZ_DCLSF_CD /* 작업유형상세 */
-                     , T3.SAP_MAT_CD /* SAP코드 */
+                     , T8.SAP_MAT_CD /* SAP코드 */
                      , T2.BASE_PD_CD /* 상품코드 */
                       ,SVC_INF.PDCT_PD_CD
                      , SVC_INF.ITM_PD_CD /* 부품코드 */
@@ -846,7 +852,7 @@ LEFT OUTER JOIN OG_INF T6 /*조직정보*/
             INNER JOIN SVC_INF /* INNER JOIN 써야함 */
                     ON T1.CNTR_NO = SVC_INF.CNTR_NO
                    AND T1.CNTR_SN = SVC_INF.CNTR_SN
-                    /* AND T2.BASE_PD_CD = SVC_INF.PDCT_PD_CD */
+                   AND T2.PDCT_PD_CD = SVC_INF.PDCT_PD_CD
       LEFT OUTER  JOIN PD_INF T3 /* 상품정보 - 원래는 inner join 으로 해야 하는데 데이타 이행이 제대로 안돼서 */
                     ON T2.BASE_PD_CD = T3.PD_CD
                    AND T3.PD_TP_CD = 'P' /* 상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품 */
