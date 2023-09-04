@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 
+import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.common.utils.StringUtil;
 import io.swagger.annotations.ApiModel;
 
 public class WwdbRentalExpirationExcessiveAmountDto {
@@ -10,7 +12,8 @@ public class WwdbRentalExpirationExcessiveAmountDto {
         String copnDvCd, /* 계약구분코드 */
         String cntrPdEnddt, /* 만료취소년월 */
         String cntrDtlStatCd /* 종료구분코드 */
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRentalExpirationExcessiveAmountDto-SearchRes")
     public record SearchRes(
@@ -25,5 +28,14 @@ public class WwdbRentalExpirationExcessiveAmountDto {
         String nmn, /* 차월 */
         String cntrPdEnddt, /* 만료취소년월 */
         String cntrDtlStatCd /* 종료구분 */
-    ) {}
+    ) {
+        public SearchRes {
+            if (!StringUtil.isEmpty(acnoEncr)) {
+                acnoEncr = DbEncUtil.dec(acnoEncr);
+            }
+        }
+
+    }
+
+
 }

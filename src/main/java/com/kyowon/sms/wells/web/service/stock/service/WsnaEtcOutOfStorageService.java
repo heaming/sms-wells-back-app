@@ -4,19 +4,17 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto.
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
-import com.sds.sflex.system.config.validation.BizAssert;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaEtcOutOfStorageConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaEtcOutOfStorageDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaEtcOutOfStorageMapper;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <pre>
@@ -166,4 +164,8 @@ public class WsnaEtcOutOfStorageService {
         return removeDvo;
     }
 
+    public List<SearchCodeRes> getWellsCenterWarehouse(String apyYm) {
+        return this.mapper.selectWellsCenterWarehouse(apyYm);
+
+    }
 }

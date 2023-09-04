@@ -142,6 +142,7 @@ public class WdccPrepaymentExpirationDto {
         String mmpmYm, /*선납종료익월년월*/
         String prmReAplcYn, /*선납재신청*/
         String prmEndMm, /* 선납종료월 */
+        String pdCd, /*상품코드*/
         String pdNm, /* 상품명 */
         String cnt, /* 건수 */
         String currMm, /* 당월 */
@@ -183,17 +184,19 @@ public class WdccPrepaymentExpirationDto {
 
     @ApiModel("WbndRentalCbMgtDelinquentHistoryDto-SendReq")
     public record SendReq(
-        String cntrCralTno, /*계약자휴대전화번호*/
+        String cntrCralTno1, /*계약자휴대전화번호1*/
+        String cntrCralTno2, /*계약자휴대전화번호2*/
+        String cntrCralTno3, /*계약자휴대전화번호3*/
         String cstKnm, /*고객명*/
         String cstNo, /*고객번호*/
         String cntrNo, /*계약번호*/
-        String cntrSn, /*계약번호*/
+        String cntrSn, /*계약일련번호*/
         String cntrDtlNo, /*계약상세번호*/
         String cntrInfo, /*상품정보*/
         String prmEndYm, /*선납종료년월*/
         String mmpmYm, /*선납종료익월년월*/
-        String prmReAplcYn, /*선납재신청*/
         String prmEndMm, /* 선납종료월 */
+        String pdCd, /*상품코드*/
         String pdNm, /* 상품명 */
         String cnt, /* 건수 */
         String currMm, /* 당월 */

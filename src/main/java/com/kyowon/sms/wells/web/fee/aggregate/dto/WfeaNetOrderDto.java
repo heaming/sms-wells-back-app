@@ -110,4 +110,13 @@ public class WfeaNetOrderDto {
     public record SearchConfirmRes(
         String cnfmChk
     ) {}
+
+    @ApiModel(value = "WfeaNetOrderDto-SearchProductRes")
+    public record SearchProductRes(
+        String ogTpCd,
+        String pdCd,
+        String pdNm,
+        String pdCnt
+    ) {}
+
 }

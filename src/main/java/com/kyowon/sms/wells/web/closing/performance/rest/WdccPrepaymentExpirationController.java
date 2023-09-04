@@ -117,6 +117,28 @@ public class WdccPrepaymentExpirationController {
     }
 
     @ApiOperation(value = "선납만료 고객현황이력 문자발송", notes = "선납만료 고객현황이력 문자발송한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrCralTno1", value = "계약자휴대전화번호1", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCralTno2", value = "계약자휴대전화번호2", paramType = "query"),
+        @ApiImplicitParam(name = "cntrCralTno3", value = "계약자휴대전화번호3", paramType = "query"),
+        @ApiImplicitParam(name = "cstKnm", value = "고객명", paramType = "query"),
+        @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrInfo", value = "상품정보", paramType = "query"),
+        @ApiImplicitParam(name = "prmEndYm", value = "선납종료년월", paramType = "query"),
+        @ApiImplicitParam(name = "mmpmYm", value = "선납종료익월년월", paramType = "query"),
+        @ApiImplicitParam(name = "prmEndMm", value = "선납종료월", paramType = "query"),
+        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query"),
+        @ApiImplicitParam(name = "pdNm", value = "상품명", paramType = "query"),
+        @ApiImplicitParam(name = "cnt", value = "건수", paramType = "query"),
+        @ApiImplicitParam(name = "currMm", value = "당월", paramType = "query"),
+        @ApiImplicitParam(name = "postYy", value = "익월년도", paramType = "query"),
+        @ApiImplicitParam(name = "postMm", value = "익월", paramType = "query"),
+        @ApiImplicitParam(name = "fwbooDate", value = "발송예약일", paramType = "query"),
+        @ApiImplicitParam(name = "fwbooTime", value = "발송예약시간", paramType = "query"),
+    })
     @PostMapping
     public SaveResponse sendPrepaymentExpirationHistorys(
         @RequestBody

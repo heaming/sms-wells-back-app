@@ -46,6 +46,8 @@ public class WdccPrepaymentExpirationService {
     @Transactional
     public int sendPrepaymentExpirationHistorys(List<SendReq> dtos) throws Exception {
         int processCount = 0;
+        // 템플릿정보조회
+        SendTemplateDvo template = templateService.getTemplateByTemplateCode("Wells18038");
         for (SendReq dto : dtos) {
             Map<String, Object> paramMap = new HashMap<String, Object>();
 
@@ -58,12 +60,8 @@ public class WdccPrepaymentExpirationService {
             paramMap.put("postYy", dto.postYy());
             paramMap.put("postMm", dto.postMm());
             paramMap.put("dsphTelNo", "1588-4113");
-            // 템플릿정보조회
-            SendTemplateDvo template = templateService
-                .getTemplateByTemplateCode("Wells18038");
 
             String templateContent = templateService.getTemplateContent(template.getSendTemplateId(), paramMap);
-
             ZbnzMessageDvo sendDvo = new ZbnzMessageDvo();
             sendDvo.setFwBizNm("BN_KAKAO_MESSAGE"); // 발송업무명
             sendDvo.setFwbooDtm(dto.fwbooDate() + dto.fwbooTime() + "00"); // 발송예약일시
@@ -73,18 +71,22 @@ public class WdccPrepaymentExpirationService {
             sendDvo.setCntrNo(dto.cntrNo()); // 계약번호
             sendDvo.setCntrSn(dto.cntrSn()); // 계약일련번호
             sendDvo.setDsptrTno("1588-4113"); // 발신자번호
-            sendDvo.setRcvrTno(dto.cntrCralTno()); // 수신자번호
+            String tno = dto.cntrCralTno1() + dto.cntrCralTno2() + dto.cntrCralTno3();
             sendDvo.setMsgTit("[웰스] 선납만료 안내");
             sendDvo.setMsgCn(templateContent);
             sendDvo.setBndMsgTpVal1("Wells18038");// 채권메시지유형값1
             sendDvo.setBndMsgTpVal2(dto.prmEndYm());// 채권메시지유형값2
-            sendDvo.setBndMsgTpVal4(dto.cntrInfo());// 채권메시지유형값4
+            sendDvo.setBndMsgTpVal2(dto.cstNo());// 채권메시지유형값3
+            sendDvo.setBndMsgTpVal4(dto.pdCd());// 채권메시지유형값4
+            sendDvo.setBndMsgTpVal4(dto.cnt());// 채권메시지유형값4
             sendDvo.setReserved8("N");
+            if (dto.cntrCralTno1() != null) {
+                sendDvo.setRcvrTno(tno); // 수신자번호
+                int result = messageMgtService.createMessage(sendDvo, "Wells18038", paramMap);
+                BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
-            int result = messageMgtService.createMessage(sendDvo, "Wells18038", paramMap);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
-
-            processCount += result;
+                processCount += result;
+            }
         }
         return processCount;
     }

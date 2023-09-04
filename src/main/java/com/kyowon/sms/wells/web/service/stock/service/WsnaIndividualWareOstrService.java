@@ -162,23 +162,6 @@ public class WsnaIndividualWareOstrService {
             }
 
             dvo.setLogisticStocQty(lgstQty);
-
-            // 출고수량
-            BigDecimal outQty = dvo.getOutQty();
-            // 필터박스수량
-            BigDecimal filterBoxQty = dvo.getFilterBoxQty();
-
-            if (!BigDecimal.ZERO.equals(filterBoxQty) && !BigDecimal.ZERO.equals(outQty)) {
-                long ostrQty = outQty.longValue();
-                long filterQty = filterBoxQty.longValue();
-
-                long outBoxQty = Math.floorDiv(ostrQty, filterQty)
-                    + (Math.floorMod(ostrQty, filterQty) > 0 ? 1 : 0);
-
-                dvo.setOutBoxQty(BigDecimal.valueOf(outBoxQty));
-            } else {
-                dvo.setOutBoxQty(BigDecimal.ZERO);
-            }
         }
     }
 

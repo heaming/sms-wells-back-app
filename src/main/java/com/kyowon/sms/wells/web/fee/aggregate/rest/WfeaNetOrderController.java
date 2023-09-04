@@ -124,4 +124,19 @@ public class WfeaNetOrderController {
             .processCount(service.updateByNetOrders(dto))
             .build();
     }
+
+    @ApiOperation(value = "순주문 집계 미등록 유형 상품 목록 조회", notes = "순주문 집계 미등록 유형 상품의 목록 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "tcntDvCd", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogDvCd", value = "조직구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "perfYm", value = "번호", paramType = "query", required = true),
+    })
+
+    @GetMapping("product-list")
+    public List<SearchProductRes> getNetAggregateProducts(
+        @Valid
+        SearchReq dto
+    ) {
+        return this.service.getNetAggregateProducts(dto);
+    }
 }

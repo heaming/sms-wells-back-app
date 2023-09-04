@@ -2,13 +2,11 @@ package com.kyowon.sms.wells.web.organization.hmnrsc.mapper;
 
 import java.util.List;
 
-import com.kyowon.sms.common.web.organization.organization.dto.ZogaBuildingDto;
-import com.kyowon.sms.common.web.organization.organization.dto.ZogaBuildingSalesDto;
-import com.kyowon.sms.common.web.organization.organization.dvo.ZogaBuildingDvo;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerDvo;
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseDetailRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -56,5 +54,7 @@ public interface WogcPartnerPlannerMapper {
     int updateAdDtlPartner(WogcPartnerPlannerDvo planner);
 
     WogcPartnerPlannerDto.FindRes selectTopPlannerByPk(String bldCd, String gridOgTpCd);
+
+    PagingResult<SearchLicenseDetailRes> selectPlannerLicenseDetailPages(String prtnrNo, PageInfo pageinfo);
 
 }

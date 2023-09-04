@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.closing.expense.dvo;
 
 import com.sds.sflex.system.config.annotation.DBDecField;
 import com.sds.sflex.system.config.annotation.DBEncField;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,6 +29,7 @@ public class WdcdCleanersDvo {
     String wrkStrtdt;
     String wrkEnddt;
     String workStatus;
+    String bryyMmdd;
     @DBEncField
     @DBDecField
     String rrnoEncr;
