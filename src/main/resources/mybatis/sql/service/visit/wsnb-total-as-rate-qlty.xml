@@ -1,0 +1,254 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbTotalAsRateQltySearchMapper">
+
+    <select id="selectTotalAsRateQltyList" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbTotalAsRateQltySearchDvo">
+    WITH TB_PD AS (
+                    SELECT DISTINCT T1.PD_CD
+                         , T2.PD_PRP_VAL20
+                      FROM TB_PDBS_PD_BAS T1
+                         , TB_PDBS_PD_ECOM_PRP_DTL T2
+                     WHERE 1=1
+                       AND T1.PD_CD = T2.PD_CD
+                       AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                       <if test='@MybatisUtils@isEmpty(pdGrpCd)'>
+                       AND T2.PD_PRP_VAL20 IN ('5', '7', '8', '9', '91', '93', '95', '96')
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+                       AND T2.PD_PRP_VAL20 = #{pdGrpCd}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+                       AND T1.PD_CD = #{pdCd}
+                       </if>
+                    )
+       , TB_SV AS (
+                    SELECT SUBSTR(T1.VST_FSH_DT,5,2) FSH_MM
+                         , T1.PDCT_PD_CD
+                         , NVL((SELECT SUM(CASE WHEN SV_BIZ_HCLSF_CD = '3' THEN PDCT_UPRC
+                                                ELSE 0
+                                            END)
+                                  FROM TB_SVST_SV_WK_OSTR_IZ T2
+                                     , TB_PDBS_PD_BAS T3
+                                 WHERE T2.ITM_PD_CD = T3.PD_CD
+                                   AND T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO) , 0) AS PR
+                      FROM TB_SVPD_CST_SV_WK_RS_IZ T1
+                     WHERE 1=1
+                       AND T1.VST_FSH_DT LIKE #{baseYear}||'%'
+
+                       AND T1.SV_BIZ_HCLSF_CD = '3'
+                       <if test='@MybatisUtils@isEmpty(taskTypeCd)'>
+                       AND T1.SV_BIZ_DCLSF_CD IN ('3110', '3210')
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(taskTypeCd)'>
+                       AND T1.SV_BIZ_DCLSF_CD = #{taskTypeCd}
+                       </if>
+                       AND (T1.AS_LCT_CD NOT IN ('A841', 'A805') OR T1.AS_LCT_CD IS NULL)
+                       AND ((SUBSTR(T1.VST_FSH_DT, 1, 6) &lt; '201901' AND (T1.IMPTA_RSON_CD IN ('1','2','3','4','5','6') OR T1.IMPTA_RSON_CD IS NULL)) OR (SUBSTR(T1.VST_FSH_DT, 1, 6) >= '201901' AND (T1.BAD_DV_CD IN ('100R','300R','400R','700R') OR T1.BAD_DV_CD IS NULL)))
+                       <if test='@MybatisUtils@isNotEmpty(badDvCd)'>
+                       AND T1.BAD_DV_CD = #{badDvCd}
+                       </if>
+                    )
+       , TB_CST AS (
+                    SELECT SUBSTR(T1.MNGT_YM,5,2) MNGT_MM
+                         , T1.PDCT_PD_CD
+                      FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                         , TB_SSCT_CNTR_DTL T2
+                     WHERE 1=1
+                       AND T1.MNGT_YM LIKE #{baseYear}||'%'
+                       AND T1.CNTR_NO = T2.CNTR_NO
+                       AND T1.CNTR_SN = T2.CNTR_SN
+
+                       AND T1.IST_DT IS NOT NULL
+                       AND T1.REQD_DT IS NULL
+                       AND T1.CAN_DT IS NULL
+                       AND T1.CPS_DT IS NULL
+
+                       AND T2.SELL_TP_CD != '9'
+                    )
+
+    SELECT CASE WHEN GB_CD = '1' THEN 'A/S건'
+                WHEN GB_CD = '2' THEN '렌탈계정(수)'
+                WHEN GB_CD = '3' THEN 'A/S율(%)'
+                WHEN GB_CD = '4' THEN '엔지니어비용'
+                WHEN GB_CD = '5' THEN '부품비용'
+            END GB_NM
+         , TCNT TOTAL_CNT
+         , COL01
+         , COL02
+         , COL03
+         , COL04
+         , COL05
+         , COL06
+         , COL07
+         , COL08
+         , COL09
+         , COL10
+         , COL11
+         , COL12
+      FROM (
+            SELECT '1' GB_CD
+                 , NVL(SUM(CASE WHEN FSH_MM = '01' THEN 1 ELSE 0 END), 0) COL01
+                 , NVL(SUM(CASE WHEN FSH_MM = '02' THEN 1 ELSE 0 END), 0) COL02
+                 , NVL(SUM(CASE WHEN FSH_MM = '03' THEN 1 ELSE 0 END), 0) COL03
+                 , NVL(SUM(CASE WHEN FSH_MM = '04' THEN 1 ELSE 0 END), 0) COL04
+                 , NVL(SUM(CASE WHEN FSH_MM = '05' THEN 1 ELSE 0 END), 0) COL05
+                 , NVL(SUM(CASE WHEN FSH_MM = '06' THEN 1 ELSE 0 END), 0) COL06
+                 , NVL(SUM(CASE WHEN FSH_MM = '07' THEN 1 ELSE 0 END), 0) COL07
+                 , NVL(SUM(CASE WHEN FSH_MM = '08' THEN 1 ELSE 0 END), 0) COL08
+                 , NVL(SUM(CASE WHEN FSH_MM = '09' THEN 1 ELSE 0 END), 0) COL09
+                 , NVL(SUM(CASE WHEN FSH_MM = '10' THEN 1 ELSE 0 END), 0) COL10
+                 , NVL(SUM(CASE WHEN FSH_MM = '11' THEN 1 ELSE 0 END), 0) COL11
+                 , NVL(SUM(CASE WHEN FSH_MM = '12' THEN 1 ELSE 0 END), 0) COL12
+                 , NVL(COUNT(*),0) TCNT
+              FROM TB_SV SV1
+                 , TB_PD PD1
+             WHERE 1=1
+               AND SV1.PDCT_PD_CD = PD1.PD_CD
+
+             UNION ALL
+
+            SELECT '2' GB_CD
+                 , NVL(SUM(CASE WHEN MNGT_MM = '01' THEN 1 ELSE 0 END), 0) COL01
+                 , NVL(SUM(CASE WHEN MNGT_MM = '02' THEN 1 ELSE 0 END), 0) COL02
+                 , NVL(SUM(CASE WHEN MNGT_MM = '03' THEN 1 ELSE 0 END), 0) COL03
+                 , NVL(SUM(CASE WHEN MNGT_MM = '04' THEN 1 ELSE 0 END), 0) COL04
+                 , NVL(SUM(CASE WHEN MNGT_MM = '05' THEN 1 ELSE 0 END), 0) COL05
+                 , NVL(SUM(CASE WHEN MNGT_MM = '06' THEN 1 ELSE 0 END), 0) COL06
+                 , NVL(SUM(CASE WHEN MNGT_MM = '07' THEN 1 ELSE 0 END), 0) COL07
+                 , NVL(SUM(CASE WHEN MNGT_MM = '08' THEN 1 ELSE 0 END), 0) COL08
+                 , NVL(SUM(CASE WHEN MNGT_MM = '09' THEN 1 ELSE 0 END), 0) COL09
+                 , NVL(SUM(CASE WHEN MNGT_MM = '10' THEN 1 ELSE 0 END), 0) COL10
+                 , NVL(SUM(CASE WHEN MNGT_MM = '11' THEN 1 ELSE 0 END), 0) COL11
+                 , NVL(SUM(CASE WHEN MNGT_MM = '12' THEN 1 ELSE 0 END), 0) COL12
+                 , NVL(COUNT(*),0) TCNT
+              FROM TB_CST CST1
+                 , TB_PD PD1
+             WHERE 1=1
+               AND CST1.PDCT_PD_CD = PD1.PD_CD
+
+             UNION ALL
+
+            SELECT '3' GB_CD
+                 , 0 ACOL01
+                 , 0 ACOL02
+                 , 0 ACOL03
+                 , 0 ACOL04
+                 , 0 ACOL05
+                 , 0 ACOL06
+                 , 0 ACOL07
+                 , 0 ACOL08
+                 , 0 ACOL09
+                 , 0 ACOL10
+                 , 0 ACOL11
+                 , 0 ACOL12
+                 , 0 TCNT
+              FROM DUAL
+
+             UNION ALL
+
+            SELECT '4'
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN NVL(SUM(DECODE(FSH_MM, '01', 1)),0) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN NVL(SUM(DECODE(FSH_MM, '01', 1)),0) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(CASE WHEN (FSH_MM = '01') THEN 32277
+                                                              ELSE 0
+                                                          END),0)
+                          END) ACOL1
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN NVL(SUM(DECODE(FSH_MM, '02', 1)),0) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN NVL(SUM(DECODE(FSH_MM, '02', 1)),0) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(CASE WHEN (FSH_MM = '02') THEN 32277
+                                                              ELSE 0
+                                                          END),0)
+                          END) ACOL2
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN NVL(SUM(DECODE(FSH_MM, '03', 1)),0) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN NVL(SUM(DECODE(FSH_MM, '03', 1)),0) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(CASE WHEN (FSH_MM = '03') THEN 32277
+                                                              ELSE 0
+                                                          END),0)
+                          END) ACOL3
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN NVL(SUM(DECODE(FSH_MM, '04', 1)),0) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN NVL(SUM(DECODE(FSH_MM, '04', 1)),0) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(CASE WHEN (FSH_MM = '04') THEN 32277
+                                                              ELSE 0
+                                                          END),0)
+                          END) ACOL4
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN NVL(SUM(DECODE(FSH_MM, '05', 1)),0) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN NVL(SUM(DECODE(FSH_MM, '05', 1)),0) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(CASE WHEN (FSH_MM = '05') THEN 32277
+                                                              ELSE 0
+                                                          END),0)
+                          END) ACOL5
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN NVL(SUM(DECODE(FSH_MM, '06', 1)),0) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN NVL(SUM(DECODE(FSH_MM, '06', 1)),0) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(CASE WHEN (FSH_MM = '06') THEN 32277
+                                                              ELSE 0
+                                                          END),0)
+                          END) ACOL6
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN NVL(SUM(DECODE(FSH_MM, '07', 1)),0) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN NVL(SUM(DECODE(FSH_MM, '07', 1)),0) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(CASE WHEN (FSH_MM = '07') THEN 32277
+                                                              ELSE 0
+                                                          END),0)
+                          END) ACOL7
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN NVL(SUM(DECODE(FSH_MM, '08', 1)),0) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN NVL(SUM(DECODE(FSH_MM, '08', 1)),0) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(CASE WHEN (FSH_MM = '08') THEN 32277
+                                                              ELSE 0
+                                                          END),0)
+                          END) ACOL8
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN NVL(SUM(DECODE(FSH_MM, '09', 1)),0) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN NVL(SUM(DECODE(FSH_MM, '09', 1)),0) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(CASE WHEN (FSH_MM = '09') THEN 32277
+                                                              ELSE 0
+                                                          END),0)
+                          END) ACOL9
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN NVL(SUM(DECODE(FSH_MM, '10', 1)),0) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN NVL(SUM(DECODE(FSH_MM, '10', 1)),0) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(CASE WHEN (FSH_MM = '10') THEN 32277
+                                                              ELSE 0
+                                                          END),0)
+                          END) ACOL10
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN NVL(SUM(DECODE(FSH_MM, '11', 1)),0) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN NVL(SUM(DECODE(FSH_MM, '11', 1)),0) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(CASE WHEN (FSH_MM = '11') THEN 32277
+                                                              ELSE 0
+                                                          END),0)
+                          END) ACOL11
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN NVL(SUM(DECODE(FSH_MM, '12', 1)),0) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN NVL(SUM(DECODE(FSH_MM, '12', 1)),0) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(CASE WHEN (FSH_MM = '12') THEN 32277
+                                                              ELSE 0
+                                                          END),0)
+                          END) ACOL12
+                 , (CASE WHEN #{baseYear} &lt;= 2015 THEN COUNT(1) * 27995
+                         WHEN #{baseYear} >=2016 AND #{baseYear} &lt;= 2018 THEN COUNT(1) * 26654
+                         WHEN #{baseYear} >=2019 THEN NVL(SUM(32277),0)
+                          END) TCNT
+              FROM TB_SV SV1
+                 , TB_PD PD1
+             WHERE 1=1
+               AND SV1.PDCT_PD_CD = PD1.PD_CD
+
+             UNION ALL
+
+            SELECT '5' GB_CD
+                 , NVL(SUM(CASE WHEN FSH_MM = '01' THEN PR ELSE 0 END), 0) COL01
+                 , NVL(SUM(CASE WHEN FSH_MM = '02' THEN PR ELSE 0 END), 0) COL02
+                 , NVL(SUM(CASE WHEN FSH_MM = '03' THEN PR ELSE 0 END), 0) COL03
+                 , NVL(SUM(CASE WHEN FSH_MM = '04' THEN PR ELSE 0 END), 0) COL04
+                 , NVL(SUM(CASE WHEN FSH_MM = '05' THEN PR ELSE 0 END), 0) COL05
+                 , NVL(SUM(CASE WHEN FSH_MM = '06' THEN PR ELSE 0 END), 0) COL06
+                 , NVL(SUM(CASE WHEN FSH_MM = '07' THEN PR ELSE 0 END), 0) COL07
+                 , NVL(SUM(CASE WHEN FSH_MM = '08' THEN PR ELSE 0 END), 0) COL08
+                 , NVL(SUM(CASE WHEN FSH_MM = '09' THEN PR ELSE 0 END), 0) COL09
+                 , NVL(SUM(CASE WHEN FSH_MM = '10' THEN PR ELSE 0 END), 0) COL10
+                 , NVL(SUM(CASE WHEN FSH_MM = '11' THEN PR ELSE 0 END), 0) COL11
+                 , NVL(SUM(CASE WHEN FSH_MM = '12' THEN PR ELSE 0 END), 0) COL12
+                 , NVL(SUM(PR),0) TCNT
+              FROM TB_SV SV1
+                 , TB_PD PD1
+             WHERE 1=1
+               AND SV1.PDCT_PD_CD = PD1.PD_CD
+            )
+     ORDER
+        BY GB_CD
+    </select>
+</mapper>
