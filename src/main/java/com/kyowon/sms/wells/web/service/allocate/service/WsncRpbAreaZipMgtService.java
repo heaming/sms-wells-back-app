@@ -12,8 +12,6 @@ import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaZipMgtDto.Search
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaZipMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaZipNoDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbAreaZipMgtMapper;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,23 +34,12 @@ public class WsncRpbAreaZipMgtService {
     private final WsncRpbAreaZipMgtConverter converter;
 
     /**
-     * 책임지역 우편번호 관리 - 조회 (페이징)
-     *
-     * @param dto : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, applyDate: 적용일자 }
-     * @param pageInfo
-     * @return
-     */
-    public PagingResult<SearchRes> getZipNoPages(SearchReq dto, PageInfo pageInfo) {
-        return this.mapper.selectZipNos(dto, pageInfo);
-    }
-
-    /**
-     * 책임지역 우편번호 관리 - 엑셀 다운로드
+     * 책임지역 우편번호 관리 - 조회
      *
      * @param dto : { zipFrom: 우편번호From, zipTo: 우편번호To, ctpvNm: 시도명, ctctyNm: 시군구명, wkGrpCd: 작업그룹코드, applyDate: 적용일자 }
      * @return
      */
-    public List<SearchRes> getZipNosForExcelDownload(SearchReq dto) {
+    public List<SearchRes> getZipNos(SearchReq dto) {
         return this.mapper.selectZipNos(dto);
     }
 
