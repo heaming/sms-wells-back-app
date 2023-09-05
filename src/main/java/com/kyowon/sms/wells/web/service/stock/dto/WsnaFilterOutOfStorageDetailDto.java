@@ -26,16 +26,6 @@ public class WsnaFilterOutOfStorageDetailDto {
 
         String svBizHclsfCd,
 
-        String ogId,
-
-        String prtnrNo,
-
-        String dgr1LevlOgId,
-
-        String dgr2LevlOgId,
-
-        String dgr3LevlOgId,
-
         String pdGrpCd,
 
         String rgsnYn
