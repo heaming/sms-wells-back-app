@@ -1,23 +1,23 @@
 package com.kyowon.sms.wells.web.closing.performance.service;
 
-import com.kyowon.sms.wells.web.closing.performance.dvo.WdccContractDvo;
-import com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesPerformDvo;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
-import com.sds.sflex.system.config.validation.BizAssert;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
-
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesPerformDto.*;
-import com.kyowon.sms.wells.web.closing.performance.converter.WdccSalesPerformConverter;
-import com.kyowon.sms.wells.web.closing.performance.mapper.WdccSalesPerformMapper;
-
-import lombok.RequiredArgsConstructor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
-import java.util.Arrays;
-import java.util.List;
+import com.kyowon.sms.wells.web.closing.performance.converter.WdccSalesPerformConverter;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesPerformDto.*;
+import com.kyowon.sms.wells.web.closing.performance.dvo.WdccContractDvo;
+import com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesPerformDvo;
+import com.kyowon.sms.wells.web.closing.performance.mapper.WdccSalesPerformMapper;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.validation.BizAssert;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -63,5 +63,29 @@ public class WdccSalesPerformService {
             result = mapper.selectRegularShippingSalesPages(dto);
         }
         return CollectionUtils.isEmpty(result) ? null : converter.mapAllWdccSalesPerformDvoToSearchRes(result);
+    }
+
+    public SearchSinglePaymentBaseRes getSinglePaymentBaseInfo(SearchSinglePaymentReq dto) {
+        return mapper.selectSinglePaymentBaseInfo(dto);
+    }
+
+    public PagingResult<SearchSinglePaymentSalesRes> getSinglePaymentSalesPaging(
+        SearchSinglePaymentReq dto, PageInfo pageInfo
+    ) {
+        return mapper.selectSinglePaymentSales(dto, pageInfo);
+    }
+
+    public PagingResult<SearchSinglePaymentDepositsRes> getSinglePaymentDepositsPaging(
+        SearchSinglePaymentReq dto, PageInfo pageInfo
+    ) {
+        return mapper.selectSinglePaymentDeposits(dto, pageInfo);
+    }
+
+    public List<SearchSinglePaymentSalesRes> getSinglePaymentSalesExcelDownload(SearchSinglePaymentReq dto) {
+        return mapper.selectSinglePaymentSales(dto);
+    }
+
+    public List<SearchSinglePaymentDepositsRes> getSinglePaymentDepositsExcelDownload(SearchSinglePaymentReq dto) {
+        return mapper.selectSinglePaymentDeposits(dto);
     }
 }
