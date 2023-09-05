@@ -42,6 +42,11 @@ public class WsnaNewManagerBsConsumableController {
         return service.selectBuildings(mngtYm);
     }
 
+    @GetMapping
+    public List<SearchRes> getNewManagerBsConsumablePages(SearchReq dto) {
+        return service.getNewManagerBsConsumablePages(dto);
+    }
+
     @GetMapping("paging")
     public PagingResult<SearchRes> getNewManagerBsConsumablePages(SearchReq dto, PageInfo pageInfo) {
         return service.getNewManagerBsConsumablePages(dto, pageInfo);
