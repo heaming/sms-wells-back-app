@@ -41,11 +41,6 @@ public class WsnaFilterOutOfStorageDetailController {
         @ApiImplicitParam(name = "fnlSellTpCd", value = "고객유형", paramType = "query"),
         @ApiImplicitParam(name = "svBizHclsfCd", value = "서비스업무대분류코드", paramType = "query"),
         @ApiImplicitParam(name = "mngrDvCd", value = "관리자구분코드", paramType = "query"),
-        @ApiImplicitParam(name = "dgr1LevlOgId", value = "총괄단", paramType = "query"),
-        @ApiImplicitParam(name = "dgr2LevlOgId", value = "지역단", paramType = "query"),
-        @ApiImplicitParam(name = "dgr3LevlOgId", value = "지점", paramType = "query"),
-        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query"),
-        @ApiImplicitParam(name = "ogId", value = "서비스센터", paramType = "query"),
         @ApiImplicitParam(name = "rgsnYn", value = "퇴사자제외 여부", paramType = "query"),
     })
     @GetMapping("/paging")
@@ -70,11 +65,6 @@ public class WsnaFilterOutOfStorageDetailController {
         @ApiImplicitParam(name = "fnlSellTpCd", value = "고객유형", paramType = "query"),
         @ApiImplicitParam(name = "svBizHclsfCd", value = "서비스업무대분류코드", paramType = "query"),
         @ApiImplicitParam(name = "mngrDvCd", value = "관리자구분코드", paramType = "query"),
-        @ApiImplicitParam(name = "dgr1LevlOgId", value = "총괄단", paramType = "query"),
-        @ApiImplicitParam(name = "dgr2LevlOgId", value = "지역단", paramType = "query"),
-        @ApiImplicitParam(name = "dgr3LevlOgId", value = "지점", paramType = "query"),
-        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query"),
-        @ApiImplicitParam(name = "ogId", value = "서비스센터", paramType = "query"),
         @ApiImplicitParam(name = "rgsnYn", value = "퇴사자제외 여부", paramType = "query"),
     })
     @GetMapping("/excel-download")
