@@ -237,7 +237,7 @@
            AND T8.CD_ID = 'OG_TP_CD'
            AND T8.TENANT_ID = #{session.tenantId}
          WHERE T1.BASE_YM = #{perfYm} /* 기준년월 */
-           AND T1.FEE_TCNT_DV_CD = #{tcntDvCd} /* 차수 */
+           AND T1.FEE_TCNT_DV_CD = #{feeTcntDvCd} /* 차수 */
            AND T1.CNTR_PERF_CRT_DV_CD = '01' /* 순주문 */
            AND NVL(T1.ACC_NINC_YN,'N') = 'N'
         <if test='@MybatisUtils@isNotEmpty(ogDvCd)'>
@@ -332,7 +332,7 @@
                                           ON 1=1
                                          AND T3.RK_NUM = 1
                                        WHERE T1.BASE_YM = #{perfYm} /* 기준년월 */
-                                         AND T1.FEE_TCNT_DV_CD = #{tcntDvCd} /* 차수 */
+                                         AND T1.FEE_TCNT_DV_CD = #{feeTcntDvCd} /* 차수 */
                                          AND T1.CNTR_PERF_CRT_DV_CD = '01' /* 순주문 */
                                          AND NVL(T1.ACC_NINC_YN,'N') = 'N'
                                     <if test='@MybatisUtils@isNotEmpty(ogDvCd)'>
@@ -364,7 +364,7 @@
                END AS CNFM_CHK
           FROM TB_FEAM_NRCTR_MM_CL T1
          WHERE BASE_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
-           AND T1.FEE_TCNT_DV_CD =  #{tcntDvCd} /* 차수 */
+           AND T1.FEE_TCNT_DV_CD =  #{feeTcntDvCd} /* 차수 */
            AND T1.CNTR_PERF_CRT_DV_CD = '01' /* 순주문 */
     </select>
 
@@ -377,7 +377,7 @@
           LEFT OUTER JOIN TB_PDBS_PD_BAS T2
             ON T1.PD_CD = T2.PD_CD
          WHERE T1.BASE_YM = #{perfYm}
-           AND T1.FEE_TCNT_DV_CD = #{tcntDvCd}
+           AND T1.FEE_TCNT_DV_CD = #{feeTcntDvCd}
            AND T1.CNTR_PERF_CRT_DV_CD = '01' /* 순주문 */
            AND NVL(T1.ACC_NINC_YN,'N') = 'N'
            AND NOT EXISTS ( SELECT 1 FROM TB_FEAM_WELS_FEE_PDCT_TP_BAS X
@@ -388,11 +388,28 @@
          ORDER BY T1.OG_TP_CD, T2.PD_NM
     </select>
 
+    <select id='selectNetAggregateJobId' resultType="String">
+        SELECT T.FEE_BAT_PRTC_ID
+          FROM ( SELECT FEE_BAT_PRTC_ID /* 수수료배치실행ID */
+                      , RANK() OVER (PARTITION BY (FEE_BAT_PRTC_ID) ORDER BY BAT_WK_PRTC_DTM DESC) AS RK_NUM
+                   FROM TB_FEAM_FEE_BAT_STAT_IZ         /* T수수료배치상태내역T */
+                  WHERE BASE_YM = #{perfYm}             /* 기준년월 */
+                    AND FEE_TCNT_DV_CD = #{feeTcntDvCd}    /* 수수료차수구분코드 */
+                    AND OG_TP_CD = #{ogTpCd}            /* 조직유형코드 */
+                    AND FEE_BAT_TP_CD = '01'            /* 수수료배치유형코드= 01 : 주문별배치-생성 */
+                    AND FEE_BAT_WK_ID = #{feeBatWkId}   /* 수수료배치작업ID */
+                    AND FEE_BAT_STAT_CD = '01'          /* 수수료배치상태코드 = 01 : 시작 */
+                    AND BAT_WK_PRTC_DTM LIKE TO_CHAR(SYSDATE, 'YYYYMMDD')||'%' /* 배치작업실행일시 */
+                    AND DTA_DL_YN = 'N'
+               )T
+         WHERE T.RK_NUM = 1
+    </select>
+
     <update id="updateNetOrders">
         UPDATE TB_FEAM_NRCTR_MM_CL
            SET NTOR_CNFM_STAT_CD = '02' /* 확정 */
          WHERE BASE_YM = #{perfYm}
-           AND FEE_TCNT_DV_CD = #{tcntDvCd} /* 차수 */
+           AND FEE_TCNT_DV_CD = #{feeTcntDvCd} /* 차수 */
            AND CNTR_PERF_CRT_DV_CD = '01' /* 순주문 */
            AND NTOR_CNFM_STAT_CD = '01' /* 임시 */
     </update>
