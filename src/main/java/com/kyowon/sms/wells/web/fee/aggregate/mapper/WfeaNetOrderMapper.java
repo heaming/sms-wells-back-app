@@ -56,4 +56,8 @@ public interface WfeaNetOrderMapper {
     List<SearchProductRes> selectNetAggregateProducts(
         SearchReq dto
     );
+
+    String selectNetAggregateJobId(
+        SearchReq dto
+    );
 }
