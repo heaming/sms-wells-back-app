@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.service.common.service.WsnzHistoryService;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaBsRegularShippingMgtConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.*;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMaterialDvo;
@@ -41,6 +42,8 @@ public class WsnaBsRegularShippingMgtService {
     private final WsnaBsRegularShippingMgtConverter converter;
     private final WsnaItemStockItemizationService itemStockService;
     private final WsnaLogisticsOutStorageAskService logisticsOutStorageAskService;
+
+    private final WsnzHistoryService historyService;
 
     /**
      * (자가필터,건식상품) 배송관리 조회 조건(상품 목록) 조회
@@ -131,6 +134,8 @@ public class WsnaBsRegularShippingMgtService {
             mapper.updateBsPeriod(dvo);
             // 고객서비스BS배정내역(TB_SVPD_CST_SV_BSFVC_ASN_IZ) update
             mapper.updateBsAssign(dvo);
+            // history 생성
+            historyService.insertCstSvBfsvcAsnHistByPk(dvo.getCstSvAsnNo());
 
             // 작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) 저장
             dvo.setMexnoEncr(mexnoEncr);
