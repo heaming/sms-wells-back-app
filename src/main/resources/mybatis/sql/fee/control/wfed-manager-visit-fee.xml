@@ -61,13 +61,13 @@
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1 C3) USE_NL(C1 C2 C3) */
                       C1.CNTR_SN AS SEQ
              	    , C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
-                    , C1.CNTR_PD_ENDDT	AS CNTR_CAN_DTM	/*계약취소일시*/
+                    , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('301','303') THEN C1.CNTR_PD_ENDDT ELSE NULL END AS CNTR_CAN_DTM	/*계약취소일시*/
                     , NULL AS REQD_DT	/*철거일자*/
                     , NULL AS SL_STP_YN	/*매출중지여부*/
                     , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
                     , NULL AS HCR_DV_CD	/*홈케어구분코드*/
                     , C2.CNTR_CST_NO	/*계약고객번호*/
-                    , 'N' AS COMBI_YN	/*결합제외여부*/
+                    , CASE WHEN C3.CNTR_REL_DTL_CD = '216'	/*모종결합*/ THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
                 INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
                    ON C1.CNTR_NO = C2.CNTR_NO
@@ -80,13 +80,12 @@
                   AND C1.CNTR_NO = T1.CNTR_NO
                   AND C1.CNTR_SN = T1.CNTR_SN
                   AND C1.SELL_TP_CD = '6'	/*정기배송*/
-                  AND C3.CNTR_REL_DTL_CD <![CDATA[<>]]> '216'
                 UNION ALL
                  /*멤버십*/
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) USE_NL(C1 C2 C3) */
                       C1.CNTR_SN AS SEQ
                     , C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
-                    , C1.CNTR_PD_ENDDT AS CNTR_CAN_DTM	/*멤버십종료일시*/
+                    , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('301','303') THEN C1.CNTR_PD_ENDDT ELSE NULL END AS CNTR_CAN_DTM	/*멤버십종료일시*/
                     , NULL AS REQD_DT	/*철거일자*/
                     , NULL AS SL_STP_YN	/*매출중지여부*/
                     , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
@@ -112,7 +111,7 @@
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1) USE_NL(C1 C2 C3 C4) */
                       0 AS SEQ
                  	, C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
-                    , C1.CNTR_PD_ENDDT AS CNTR_CAN_DTM	/*계약취소일시*/
+                    , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('301','303') THEN C1.CNTR_PD_ENDDT ELSE NULL END AS CNTR_CAN_DTM	/*계약취소일시*/
                     , C4.REQD_DT AS REQD_DT	/*철거일자(만료철거일자)*/
                     , D1.SL_STP_YN	/*매출중지여부*/
                     , C2.CNTR_CAN_RSON_CD	/*계약취소사유코드*/
@@ -149,7 +148,7 @@
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1) USE_NL(C1 C2 C3 C4) */
                       0 AS SEQ
                     , C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
-                    , C1.CNTR_PD_ENDDT AS CNTR_CAN_DTM	/*계약취소일시*/
+                    , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('301','303') THEN C1.CNTR_PD_ENDDT ELSE NULL END AS CNTR_CAN_DTM	/*계약취소일시*/
                     , C4.CPS_DT AS REQD_DT	/*철거일자(보상일자)*/
                     , NULL AS SL_STP_YN	/*매출중지여부*/
                     , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
@@ -179,7 +178,7 @@
                       0 AS SEQ
                     , C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
                     , NULL AS CNTR_CAN_DTM	/*계약취소일시*/
-                    , C1.CNTR_PD_ENDDT	AS REQD_DT	/*철거일자(반품일자)*/
+                    , C4.REQD_DT AS REQD_DT	/*철거일자(반품일자)*/
                     , NULL AS SL_STP_YN	/*매출중지여부*/
                     , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
                     , NULL AS HCR_DV_CD
@@ -189,6 +188,10 @@
                 INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
                    ON C1.CNTR_NO = C2.CNTR_NO
                   AND C2.DTA_DL_YN = 'N'
+                INNER JOIN TB_SSCT_CNTR_WELLS_DTL C4	/*계약WELLS상세*/
+                   ON C4.CNTR_NO = C1.CNTR_NO
+                  AND C4.CNTR_SN = C1.CNTR_SN
+                  AND C4.DTA_DL_YN = 'N'
                 WHERE C1.DTA_DL_YN = 'N'
                   AND C1.CNTR_NO = T1.CNTR_NO
                   AND C1.CNTR_SN = T1.CNTR_SN
@@ -240,7 +243,7 @@
           AND T1.CL_DV_CD = '02'
           AND T1.OG_TP_CD IN ('W02', 'W03')	/*M조직, 홈마스터*/
           AND (T1.WK_EXCN_DT IS NOT NULL OR T1.WK_EXCN_DT != '0')	/*작업수행일자*/
-          AND T4.COMBI_YN != 'Y' /*모종이고 결합이면 제외, 기기이고 결합이 아니면 제외*/
+          AND NVL(T4.COMBI_YN, ' ') != 'Y' /*모종이고 결합이면 제외, 기기이고 결합이 아니면 제외*/
         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
           AND OG.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
         </if>
