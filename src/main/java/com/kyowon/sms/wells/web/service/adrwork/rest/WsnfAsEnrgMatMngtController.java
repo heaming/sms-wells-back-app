@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.adrwork.rest;
 
 import com.kyowon.sms.wells.web.service.adrwork.dto.WsnfAsEnrgMatMngtDto.*;
 import com.kyowon.sms.wells.web.service.adrwork.service.WsnfAsEnrgMatMngtService;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -23,7 +24,7 @@ import javax.validation.Valid;
 @Api(tags = "[WSNF] W-SV-U-0198M01 AS유형별 권장자재 관리")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/as-encourage-materials-mngt")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/as-encourage-materials-mngt")
 @Slf4j
 public class WsnfAsEnrgMatMngtController {
 
