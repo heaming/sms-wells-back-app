@@ -1,11 +1,11 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.math.BigDecimal;
+
 import com.sds.sflex.system.config.annotation.DBDecField;
-import com.sds.sflex.system.config.annotation.DBEncField;
+
 import lombok.Getter;
 import lombok.Setter;
-
-import java.math.BigDecimal;
 
 /**
  *
@@ -41,7 +41,7 @@ public class WsnaOutOfStorageAskMngtDvo {
     String ostrWareMngtPrtnrNo; /*출고창고관리파트너번호*/
     String ostrOjWareNo; /*출고대상창고번호*/
     String strOjWareNo; /*입고대상창고번호*/
-    String itmKnd; /*품목종류*/
+    String itemKnd; /*품목종류*/
     String itmKndNm; /*품목종류명*/
     String imgUrl; /*imgurl*/
     String ostrAkWareDvCd; /*출고요청창고구분코드*/

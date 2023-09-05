@@ -26,13 +26,15 @@ public interface WsnaOutOfStorageAskMngtMapper {
         SearchOstrObjectWarehouseReq dto
     );
 
+    String selectLogisticsNewOstrAkNo(WsnaOutOfStorageAskMngtDvo dvo);
+
     String selectNewOstrAkNo(FindOstrAkNoReq findOstrAkNoReq);
 
     int insertOutOfStorageAskItems(WsnaOutOfStorageAskMngtDvo dvo);
 
     int updateOutOfStorageAskItmes(WsnaOutOfStorageAskMngtDvo dvo);
 
-    List<WsnaOutOfStorageAskMngtDvo> selectLogisticsOutStorageAskInfo(String ostrAkNo);
+    List<WsnaOutOfStorageAskMngtDvo> selectLogisticsOutStorageAskInfo(List<String> ostrAkNos);
 
     int deleteOutOfStorageAskItems(WsnaOutOfStorageAskMngtDvo dvo);
 
@@ -40,4 +42,5 @@ public interface WsnaOutOfStorageAskMngtMapper {
 
     String selectOstrWareDvCd(SearchReq dto);
 
+    String selectLogisticsOstrDvCd(String ostrOjWareNo);
 }
