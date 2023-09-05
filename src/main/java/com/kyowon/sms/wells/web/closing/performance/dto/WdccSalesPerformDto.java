@@ -184,11 +184,13 @@ public class WdccSalesPerformDto {
     ) {}
     @ApiModel("WdccSalesPerformDto-SearchSinglePaymentDepositsRes")
     public record SearchSinglePaymentDepositsRes(
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
         String rveGubun, /* 입금구분 */
         String rveDt, /* 수납일자 */
         String perfDt, /* 실적일자 */
         String dpDvCd, /* 입금구분 */
-        String rveDvCd2, /* 수납구분 */
+        String rveDvCd, /* 수납구분 */
         String dpTpCd, /* 입금유형 */
         Long rveAmt /* 금액 */
     ) {}
