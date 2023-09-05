@@ -18,11 +18,7 @@
              , T1.OSTR_AK_TP_CD
              , T1.OSTR_OJ_WARE_NO
              , T1.STR_OJ_WARE_NO
-             , ( SELECT WARE_NM
-                   FROM TB_SVST_MCBY_WARE_IZ
-                  WHERE WARE_NO   = T1.STR_OJ_WARE_NO
-                    AND DTA_DL_YN = 'N'
-                    AND APY_YM    = SUBSTR(#{strHopDtStr}, 1, 6) ) AS STR_OJ_WARE_NM
+             , T1.STR_OJ_WARE_NM
              , T1.STR_HOP_DT
              , T1.OVIV_TP_CD
              , T1.RECT_OSTR_DT
@@ -51,19 +47,27 @@
                            ELSE CASE WHEN COUNT(*) = COUNT(D1.RECT_OSTR_DT) THEN '출고완료'
                                 END
                       END                  AS OSTR_DTRN_YN   /* 출고확정여부 */
+                    , D4.WARE_NM           AS STR_OJ_WARE_NM
                  FROM TB_SVST_ITM_OSTR_AK_IZ D1         /* 품목출고요청내역 */
-                INNER JOIN TB_SVST_MCBY_WARE_IZ D2      /* 월별창고내역 */
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D2      /* 월별창고내역(출고) */
                    ON D2.WARE_NO = D1.OSTR_OJ_WARE_NO
                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3   /* 상품각사속성상세 */
                    ON D3.PD_CD = D1.ITM_PD_CD
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D4      /* 월별창고내역(입고) */
+                   ON D4.WARE_NO = D1.STR_OJ_WARE_NO
                 WHERE D1.DTA_DL_YN          = 'N'
                   AND D2.DTA_DL_YN          = 'N'
                   AND D2.WARE_USE_YN        = 'Y'
                   AND D3.DTA_DL_YN          = 'N'
                   AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D4.DTA_DL_YN          = 'N'
+                  AND D4.WARE_USE_YN        = 'Y'
+                  AND D1.OSTR_AK_TP_CD     IN ('310', '320', '330')
+                  AND NOT( D1.OSTR_AK_TP_CD = '320' AND D4.WARE_DTL_DV_CD IN ('20', '30') )
                   AND D1.OSTR_OJ_WARE_NO    = #{ostrOjWareNo}
                   AND D1.STR_HOP_DT BETWEEN #{strHopDtStr} AND #{strHopDtEnd}
                   AND D2.APY_YM             = SUBSTR(#{strHopDtStr}, 1, 6)
+                  AND D4.APY_YM             = SUBSTR(#{strHopDtStr}, 1, 6)
                   AND D2.WARE_DV_CD         = #{wareDvCd}
             <if test="@MybatisUtils@isNotEmpty(ostrAkTpCd)">
                   AND D1.OSTR_AK_TP_CD      = #{ostrAkTpCd}
@@ -71,7 +75,7 @@
             <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
                   AND D3.PD_PRP_VAL19       = #{itmKndCd}
             </if>
-                GROUP BY D1.OSTR_AK_NO, D1.OSTR_AK_TP_CD, D1.OSTR_OJ_WARE_NO, D1.STR_OJ_WARE_NO, D1.STR_HOP_DT, D1.OVIV_TP_CD, D1.OSTR_AK_RGST_DT
+                GROUP BY D1.OSTR_AK_NO, D1.OSTR_AK_TP_CD, D1.OSTR_OJ_WARE_NO, D1.STR_OJ_WARE_NO, D1.STR_HOP_DT, D1.OVIV_TP_CD, D1.OSTR_AK_RGST_DT, D4.WARE_NM
             <if test='@MybatisUtils@equals(ostrCnfm, "Y")'>
                HAVING CASE WHEN D1.OSTR_AK_RGST_DT <![CDATA[>]]> '20190700' THEN CASE COUNT(CASE WHEN D1.OSTR_CNFM_QTY = D1.OSTR_AGG_QTY THEN 1 END) WHEN COUNT(1) THEN '1'
                                                                                                                                                      ELSE '0'
