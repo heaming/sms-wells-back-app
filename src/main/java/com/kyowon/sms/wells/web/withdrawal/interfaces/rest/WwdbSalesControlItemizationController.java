@@ -28,7 +28,7 @@ public class WwdbSalesControlItemizationController {
     private final WwdbSalesControlItemizationService service;
 
     @ApiOperation(value = "[EAI_WWDI1028] Wells 매출조정 내역 조회")
-    @PostMapping("/itemizations")
+    @PostMapping("/Itemizations")
     public EaiWrapper getSalesControlItemizations(
         @Valid
         @RequestBody

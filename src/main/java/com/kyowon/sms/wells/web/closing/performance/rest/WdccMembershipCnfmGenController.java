@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WdccMembershipCnfmGenController {
     private final WdccMembershipCnfmGenService service;
 
-    @ApiOperation(value = "멤버십 확정 대상건 조회", notes = "멤버십 확정 대상건 조회를 위한 조회 서비스 실행")
+    @ApiOperation(value = "멤버십 확정 대상건 페이징 조회", notes = "멤버십 확정 대상건 조회를 위한 조회 서비스 실행")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "sellInflwChnlDtlCd", value = "조직선택 (판매유입채널상세코드)", paramType = "query", required = true),
         @ApiImplicitParam(name = "fromCntrRcpFshDtm", value = "시작접수년월 (계약접수완료일시)", paramType = "query", required = true),

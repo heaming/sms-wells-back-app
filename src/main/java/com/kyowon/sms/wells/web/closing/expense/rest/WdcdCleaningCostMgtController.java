@@ -56,7 +56,6 @@ public class WdcdCleaningCostMgtController {
         return service.getCleaningCostExcelDownload(req);
     }
     @DeleteMapping
-
     public int removeCleanerCost(@RequestBody List<String> clingCostAdjRcpNos) {
         return service.removeCleaningCost(clingCostAdjRcpNos);
     }

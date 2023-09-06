@@ -18,20 +18,26 @@
              , T1.OSTR_AK_TP_CD
              , T1.OSTR_OJ_WARE_NO
              , T1.STR_OJ_WARE_NO
-             , ( SELECT WARE_NM
-                   FROM TB_SVST_MCBY_WARE_IZ
-                  WHERE WARE_NO   = T1.STR_OJ_WARE_NO
-                    AND DTA_DL_YN = 'N'
-                    AND APY_YM    = SUBSTR(#{strHopDtStr}, 1, 6) ) AS STR_OJ_WARE_NM
+             , T1.STR_OJ_WARE_NM
              , T1.STR_HOP_DT
              , T1.OVIV_TP_CD
              , T1.RECT_OSTR_DT
              , T1.ITM_PD_CD
              , T1.OSTR_AK_RGST_DT
-             , T1.OSTR_DTRN_YN
-             , T2.PD_NM || ' 외'                                   AS PD_NM
+             , ( SELECT MLNG_CNTN
+                   FROM T_CMZ_MLNG_D
+                  WHERE MLNG_ID   = T1.OSTR_DTRN_TXT
+                    AND TENANT_ID = 'TNT_BASE'
+                    AND LNG_ID    = #{session.langId} ) AS OSTR_DTRN_YN   /* 출고확정여부 */
+             , T2.PD_NM || CASE WHEN T1.CNT <![CDATA[>]]> 1 THEN ( SELECT ' ' || MLNG_CNTN || ' ' || TO_CHAR(T1.CNT -1)
+                                                                     FROM T_CMZ_MLNG_D
+                                                                    WHERE TENANT_ID = 'TNT_BASE'
+                                                                      AND MLNG_ID   = 'MSG_TXT_EXCP'
+                                                                      AND LNG_ID    = #{session.langId} )
+                                ELSE ''
+                           END                          AS PD_NM
              , T1.OSTR_AK_SN
-             , ' '                                                 AS RMK_CN
+             , ' '                                      AS RMK_CN
           FROM
              (
                SELECT D1.OSTR_AK_NO                          /* 출고요청번호 */
@@ -41,29 +47,35 @@
                     , D1.STR_HOP_DT                          /* 입고희망일자 */
                     , D1.OVIV_TP_CD                          /* 배차형태 */
                     , D1.OSTR_AK_RGST_DT
+                    , COUNT(1)             AS CNT            /* 건수 */
                     , MIN(D1.OSTR_AK_SN)   AS OSTR_AK_SN     /* 출고요청일련번호 */
                     , MAX(D1.RECT_OSTR_DT) AS RECT_OSTR_DT   /* 최근출고일자 */
                     , MIN(D1.ITM_PD_CD)    AS ITM_PD_CD      /* 품목상품코드 */
-                    , CASE WHEN D1.OSTR_AK_RGST_DT <![CDATA[>]]> '20190700' THEN CASE COUNT(CASE WHEN D1.OSTR_CNFM_QTY = D1.OSTR_AGG_QTY THEN 1 END) WHEN COUNT(1) THEN '출고완료'
-                                                                                                                                                     WHEN 0        THEN '출고대기'
-                                                                                                                                                     ELSE '일부출고'
-                                                                                 END
-                           ELSE CASE WHEN COUNT(*) = COUNT(D1.RECT_OSTR_DT) THEN '출고완료'
-                                END
-                      END                  AS OSTR_DTRN_YN   /* 출고확정여부 */
+                    , CASE COUNT(D1.RECT_OSTR_DT) WHEN COUNT(1) THEN 'MSG_TXT_OSTR_FSH'    /* 출고완료 */
+                                                  WHEN 0        THEN 'MSG_TXT_OSTR_STNB'   /* 출고대기 */
+                                                  ELSE 'MSG_TXT_PRTN_OSTR'                 /* 일부출고 */
+                      END                  AS OSTR_DTRN_TXT  /* 출고확정 텍스트 */
+                    , D4.WARE_NM           AS STR_OJ_WARE_NM
                  FROM TB_SVST_ITM_OSTR_AK_IZ D1         /* 품목출고요청내역 */
-                INNER JOIN TB_SVST_MCBY_WARE_IZ D2      /* 월별창고내역 */
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D2      /* 월별창고내역(출고) */
                    ON D2.WARE_NO = D1.OSTR_OJ_WARE_NO
                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3   /* 상품각사속성상세 */
                    ON D3.PD_CD = D1.ITM_PD_CD
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D4      /* 월별창고내역(입고) */
+                   ON D4.WARE_NO = D1.STR_OJ_WARE_NO
                 WHERE D1.DTA_DL_YN          = 'N'
                   AND D2.DTA_DL_YN          = 'N'
                   AND D2.WARE_USE_YN        = 'Y'
                   AND D3.DTA_DL_YN          = 'N'
                   AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D4.DTA_DL_YN          = 'N'
+                  AND D4.WARE_USE_YN        = 'Y'
+                  AND D1.OSTR_AK_TP_CD     IN ('310', '320', '330')
+                  AND NOT( D1.OSTR_AK_TP_CD = '320' AND D4.WARE_DTL_DV_CD IN ('20', '30') )
                   AND D1.OSTR_OJ_WARE_NO    = #{ostrOjWareNo}
                   AND D1.STR_HOP_DT BETWEEN #{strHopDtStr} AND #{strHopDtEnd}
                   AND D2.APY_YM             = SUBSTR(#{strHopDtStr}, 1, 6)
+                  AND D4.APY_YM             = SUBSTR(#{strHopDtStr}, 1, 6)
                   AND D2.WARE_DV_CD         = #{wareDvCd}
             <if test="@MybatisUtils@isNotEmpty(ostrAkTpCd)">
                   AND D1.OSTR_AK_TP_CD      = #{ostrAkTpCd}
@@ -71,24 +83,15 @@
             <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
                   AND D3.PD_PRP_VAL19       = #{itmKndCd}
             </if>
-                GROUP BY D1.OSTR_AK_NO, D1.OSTR_AK_TP_CD, D1.OSTR_OJ_WARE_NO, D1.STR_OJ_WARE_NO, D1.STR_HOP_DT, D1.OVIV_TP_CD, D1.OSTR_AK_RGST_DT
-            <if test='@MybatisUtils@equals(ostrCnfm, "Y")'>
-               HAVING CASE WHEN D1.OSTR_AK_RGST_DT <![CDATA[>]]> '20190700' THEN CASE COUNT(CASE WHEN D1.OSTR_CNFM_QTY = D1.OSTR_AGG_QTY THEN 1 END) WHEN COUNT(1) THEN '1'
-                                                                                                                                                     ELSE '0'
-                                                                                 END
-                           ELSE CASE WHEN COUNT(*) = COUNT(D1.RECT_OSTR_DT) THEN '1'
-                                     ELSE '0'
-                                END
-                      END = '1'   /* 출고확정 */
-            </if>
-            <if test='@MybatisUtils@equals(ostrCnfm, "N")'>
-               HAVING CASE WHEN D1.OSTR_AK_RGST_DT <![CDATA[>]]> '20190700' THEN CASE COUNT(CASE WHEN D1.OSTR_CNFM_QTY = D1.OSTR_AGG_QTY THEN 1 END) WHEN COUNT(1) THEN '1'
-                                                                                                                                                     ELSE '0'
-                                                                                 END
-                           ELSE CASE WHEN COUNT(*) = COUNT(D1.RECT_OSTR_DT) THEN '1'
-                                     ELSE '0'
-                                END
-                      END = '0'   /* 출고미확정 */
+                GROUP BY D1.OSTR_AK_NO, D1.OSTR_AK_TP_CD, D1.OSTR_OJ_WARE_NO, D1.STR_OJ_WARE_NO, D1.STR_HOP_DT, D1.OVIV_TP_CD, D1.OSTR_AK_RGST_DT, D4.WARE_NM
+            <if test="@MybatisUtils@isNotEmpty(ostrStts)">
+               HAVING CASE COUNT(D1.RECT_OSTR_DT) WHEN COUNT(1) THEN 'FSH'
+                                                  WHEN 0        THEN 'STNB'
+                                                  ELSE 'PRTN'
+                      END IN
+                        <foreach collection="ostrStts" item="item" open="(" close=")" separator=",">
+                               #{item}
+                        </foreach>
             </if>
               ) T1
           INNER JOIN TB_PDBS_PD_BAS T2
@@ -156,12 +159,8 @@
     </update>
 
     <select id="selectNormalOstrRgsts" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaNormalOutOfStorageDetailDvo">
-        SELECT CASE WHEN D1.OSTR_AK_RGST_DT <![CDATA[>]]> '20190700' THEN CASE WHEN D1.OSTR_CNFM_QTY = D1.OSTR_AGG_QTY THEN 'N'
-                                                                               ELSE 'Y'
-                                                                          END
-                    ELSE CASE WHEN D1.RECT_OSTR_DT IS NULL THEN 'Y'
-                              ELSE 'N'
-                         END
+        SELECT CASE WHEN D1.RECT_OSTR_DT IS NULL THEN 'Y'
+                    ELSE 'N'
                END                                                                            AS CHK                   /* Row 체크여부 */
              , D1.OSTR_AK_TP_CD                                                                                        /* 출고요청유형코드 */
              , CASE D1.OSTR_AK_TP_CD WHEN '310' THEN '221'

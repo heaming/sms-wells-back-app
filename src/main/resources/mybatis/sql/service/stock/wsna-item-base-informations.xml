@@ -52,7 +52,7 @@
                   AND S1.SVPD_SAP_CD <![CDATA[>=]]> LPAD(#{strtSapCd}, 18, '0')
                </if>
                <if test="@MybatisUtils@isNotEmpty(endSapCd)">
-                  AND S1.SVPD_SAP_CD <![CDATA[<=]]>  LPAD(#{endSapCd}, 18, '0')
+                  AND S1.SVPD_SAP_CD <![CDATA[<=]]> LPAD(#{endSapCd}, 18, '0')
                </if>
                <if test="@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)">
                   AND S1.SVPD_SAP_CD IS NOT NULL
@@ -63,13 +63,15 @@
              (
                SELECT D1.ITM_PD_CD
                     , SUM(CASE WHEN D1.WARE_NO <![CDATA[<>]]> '100002'
-                                AND D2.WARE_DV_CD     = '2'
-                                AND D2.WARE_DTL_DV_CD = '20'
+                                AND D2.WARE_DV_CD     = #{wareDvCd}
+                                AND D2.WARE_DTL_DV_CD = CASE #{wareDvCd} WHEN '2' THEN '20'
+                                                                         WHEN '3' THEN '30'
+                                                         END
                                THEN D1.PITM_STOC_A_GD_QTY
                           END)        AS CENTER_QTY
-                    , SUM(CASE WHEN D1.WARE_NO = D3.HGR_WARE_NO THEN D1.PITM_STOC_A_GD_QTY
+                    , SUM(CASE WHEN D1.WARE_NO = NVL(D3.HGR_WARE_NO, D4.HGR_WARE_NO) THEN D1.PITM_STOC_A_GD_QTY
                           END)        AS MY_CENTER_QTY
-                    , SUM(CASE WHEN D2.HGR_WARE_NO = D3.HGR_WARE_NO THEN D1.PITM_STOC_A_GD_QTY
+                    , SUM(CASE WHEN D2.HGR_WARE_NO = NVL(D3.HGR_WARE_NO, D4.HGR_WARE_NO) THEN D1.PITM_STOC_A_GD_QTY
                           END)        AS INDI_STCK_QTY
                  FROM TB_SVST_CST_SV_ITM_STOC_IZ D1   /* 고객서비스품목재고내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2    /* 월별창고내역 */
@@ -84,6 +86,18 @@
                          AND WARE_MNGT_PRTNR_NO = #{session.employeeIDNumber}
                          AND HGR_WARE_NO NOT LIKE '1%'
                     ) D3
+                   ON 1 = 1
+                 LEFT OUTER JOIN
+                    (
+                      SELECT CASE WHEN WARE_DTL_DV_CD IN ('20', '30') THEN WARE_NO
+                                  ELSE HGR_WARE_NO
+                             END AS HGR_WARE_NO
+                        FROM TB_SVST_MCBY_WARE_IZ
+                       WHERE DTA_DL_YN   = 'N'
+                         AND WARE_USE_YN = 'Y'
+                         AND APY_YM      = TO_CHAR(SYSDATE, 'YYYYMM')
+                         AND WARE_NO     = #{wareNo}
+                    ) D4
                    ON 1 = 1
                 WHERE D1.DTA_DL_YN   = 'N'
                   AND D2.DTA_DL_YN   = 'N'

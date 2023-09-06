@@ -100,6 +100,7 @@ public class WsnbIndividualServicePsDto {
 
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchStateRes")
     public record SearchStateRes(
+        String cstSvAsnNo,
         String svTp,
         String rcpDt,
         String svBizDclsf,

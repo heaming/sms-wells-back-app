@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaCodeMgtDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncRpbAreaCodeMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -28,21 +26,28 @@ public class WsncRpbAreaCodeMgtController {
 
     private final WsncRpbAreaCodeMgtService service;
 
-    @ApiOperation(value = "책임지역 지역코드 조회", notes = "조회조건에 일치하는 책임지역 지역코드 정보를 조회한다.")
-    @GetMapping("/paging")
-    public PagingResult<WsncRpbAreaCodeMgtDto.SearchRes> getAreaCodePages(
-        WsncRpbAreaCodeMgtDto.SearchReq dto, @Valid
-        PageInfo pageInfo
-    ) {
-        return service.getAreaCodePages(dto, pageInfo);
-    }
+    //    @ApiOperation(value = "책임지역 지역코드 조회", notes = "조회조건에 일치하는 책임지역 지역코드 정보를 조회한다.")
+    //    @GetMapping("/paging")
+    //    public PagingResult<WsncRpbAreaCodeMgtDto.SearchRes> getAreaCodePages(
+    //        WsncRpbAreaCodeMgtDto.SearchReq dto, @Valid
+    //        PageInfo pageInfo
+    //    ) {
+    //        return service.getAreaCodePages(dto, pageInfo);
+    //    }
 
-    @ApiOperation(value = "책임지역 지역코드 목록 엑셀 다운로드", notes = "검색조건을 입력 받아 엑셀 다운로드용 책임지역 지역코드 목록을 조회한다.")
-    @GetMapping("/excel-download")
-    public List<WsncRpbAreaCodeMgtDto.SearchRes> getLocalAreaCodePagesExcelDownload(
+    //    @ApiOperation(value = "책임지역 지역코드 목록 엑셀 다운로드", notes = "검색조건을 입력 받아 엑셀 다운로드용 책임지역 지역코드 목록을 조회한다.")
+    //    @GetMapping("/excel-download")
+    //    public List<WsncRpbAreaCodeMgtDto.SearchRes> getLocalAreaCodePagesExcelDownload(
+    //        WsncRpbAreaCodeMgtDto.SearchReq dto
+    //    ) {
+    //        return service.getAreaCodePagesExcelDownload(dto);
+    //    }
+    @ApiOperation(value = "책임지역 지역코드 목록 조회", notes = "조회조건에 일치하는 책임지역 지역코드 정보를 조회한다.")
+    @GetMapping
+    public List<WsncRpbAreaCodeMgtDto.SearchRes> getLocalAreaCodes(
         WsncRpbAreaCodeMgtDto.SearchReq dto
     ) {
-        return service.getAreaCodePagesExcelDownload(dto);
+        return service.getAreaCodes(dto);
     }
 
     @ApiOperation(value = "책임지역 지역코드 저장", notes = "책임지역 지역코드를 저장한다.")

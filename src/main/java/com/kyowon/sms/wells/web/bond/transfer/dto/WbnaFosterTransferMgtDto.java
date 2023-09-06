@@ -17,7 +17,8 @@ public class WbnaFosterTransferMgtDto {
         String baseYm, /* 기준년월 */
         @NotBlank
         String bzHdqDvCd, /* 사업부 구분 */
-        String clcoCd, /* 추심사코드 */
+        @NotBlank
+        String clctamDvCd, /* 집금구분코드 */
         String bndNwDvCd, /* 신규구분 */
         String cstNo, /* 고객번호 */
         String cstNm, /* 고객명 */

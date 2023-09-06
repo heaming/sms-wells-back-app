@@ -19,7 +19,7 @@
              , (SELECT S1.BLD_NM
                   FROM TB_OGBS_BLD_BAS S1
                  WHERE S1.BLD_CD = T1.BLD_CD
-                   AND S1.OG_TP_CD = T1.OG_TP_CD) AS BLD_NM
+                   AND ROWNUM = 1) AS BLD_NM
              , CLAIM_NM
              , TO_CHAR(TO_DATE(APLC_DT, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS APLC_DT
              , BIL_AMT
@@ -37,11 +37,18 @@
                           )
         </if>
         <if test='!@MybatisUtils@equals(session.baseRleCd, "W1580")'>
-            AND T1.CLAIM_NM IN (SELECT S1.HOO_PRTNR_NM
-                                  FROM TB_OGBS_MM_OG_IZ S1
-                                 WHERE S1.BIZ_SPPT_PRTNR_NO = #{session.employeeIDNumber}
-                                   AND S1.BASE_YM BETWEEN #{aplcStartDt} AND #{aplcEndDt}
-                                )
+           <choose>
+               <when test='!@MybatisUtils@equals(session.ogTpCd, "HR1")'>
+                   AND T1.CLAIM_NM = #{session.userName}
+               </when>
+               <otherwise>
+                   AND T1.CLAIM_NM IN (SELECT S1.HOO_PRTNR_NM
+                                         FROM TB_OGBS_MM_OG_IZ S1
+                                        WHERE S1.BIZ_SPPT_PRTNR_NO = #{session.employeeIDNumber}
+                                          AND S1.BASE_YM BETWEEN #{aplcStartDt} AND #{aplcEndDt}
+                                      )
+               </otherwise>
+           </choose>
         </if>
         ORDER BY T1.APLC_DT DESC, T1.FST_RGST_DTM DESC
     </select>

@@ -13,7 +13,7 @@
                               WHEN T2.SELL_TP_DTL_CD IN ('31', '32') THEN 'L31'				/* 일반멤버십 */
                               WHEN T2.SELL_TP_DTL_CD = '33' THEN 'L32'						/* 홈케어멤버십 */
                               WHEN T2.SELL_TP_DTL_CD IN ('61', '62', '63') THEN 'L60'		/* 정기배송 */
-                          END, T1.BND_BIZ_DV_CD) AS BND_BIZ_DV_CD		                    /* 채권업무구분코드 */
+                               END, T1.BND_BIZ_DV_CD) AS BND_BIZ_DV_CD		                /* 채권업무구분코드 */
                  , T1.CNTR_NO	                                                            /* 계약번호 */
                  , T1.CNTR_SN	                                                            /* 계약일련번호 */
                  , T1.CST_NO 	                                                            /* 고객번호 */
@@ -28,9 +28,13 @@
              WHERE 1 = 1
                AND T1.BASE_YM = #{baseYm}
                AND T1.BZ_HDQ_DV_CD = #{bzHdqDvCd}		/* 사업본부구분코드 : 20.WELLS */
-               AND T1.CLCTAM_DV_CD = '09'			    /* 집금구분코드 : 09.위탁 */
+               AND T1.CLCTAM_DV_CD = #{clctamDvCd}		/* 집금구분코드 : 09.위탁, 11.TF */
+        <if test="@MybatisUtils@equals(clctamDvCd,'09')">
                AND T1.BND_CLCTN_PRP_DV_CD = '03'	    /* 채권추심속성구분코드 : 03.위탁이관 */
-               AND T1.DTA_DL_YN = 'N'
+        </if>
+        <if test="@MybatisUtils@equals(clctamDvCd,'11')">
+               AND T1.BND_CLCTN_PRP_DV_CD = '08'	    /* 채권추심속성구분코드 : 08.TF */
+        </if>
         <if test="@MybatisUtils@isNotEmpty(bndNwDvCd)">
                AND T1.BND_NW_DV_CD = #{bndNwDvCd} /* 신규구분 */
         </if>
@@ -49,13 +53,13 @@
         <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
                AND T1.CRAL_IDV_TNO = #{cralIdvTno} /* 휴대개별전화번호 */
         </if>
-             )
+               AND T1.DTA_DL_YN = 'N')
         SELECT BASE_YM
              , BZ_HDQ_DV_CD
              , CLCO_CD
              , COUNT(DISTINCT CST_NO) AS WO_CST_CT		/* 전체 고객수 */
              , COUNT(CNTR_NO) AS WO_CNTR_CT				/* 전체 계약수 */
-             , SUM(DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) AS WO_OBJ_AMT	/* 전체 대상금액 */
+             , SUM(DLQ_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) AS WO_OBJ_AMT	/* 전체 대상금액 */
              , SUM(DLQ_AMT)	AS WO_DLQ_AMT				/* 전체 연체금액 */
              , SUM(THM_CHRAM_AMT) AS WO_THM_CHRAM_AMT	/* 전체 당월금액 */
              , SUM(DLQ_ADD_AMT)	AS WO_DLQ_ADD_AMT		/* 전체 연체가산금액 */
@@ -124,9 +128,13 @@
           FROM TB_CBBO_BND_CNTR_BAS T1
          WHERE T1.BASE_YM = #{baseYm}
            AND T1.BZ_HDQ_DV_CD = #{bzHdqDvCd}
-           AND T1.CLCTAM_DV_CD = '09'			                                        /* 집금구분코드 : 09.위탁 */
-           AND T1.BND_CLCTN_PRP_DV_CD = '03'	                                        /* 채권추심속성구분코드 : 03.위탁이관 */
-           AND T1.DTA_DL_YN = 'N'
+           AND T1.CLCTAM_DV_CD = #{clctamDvCd}		/* 집금구분코드 : 09.위탁, 11.TF */
+        <if test="@MybatisUtils@equals(clctamDvCd,'09')">
+           AND T1.BND_CLCTN_PRP_DV_CD = '03'	    /* 채권추심속성구분코드 : 03.위탁이관 */
+        </if>
+        <if test="@MybatisUtils@equals(clctamDvCd,'11')">
+           AND T1.BND_CLCTN_PRP_DV_CD = '08'	    /* 채권추심속성구분코드 : 08.TF */
+        </if>
         <if test="@MybatisUtils@isNotEmpty(bndNwDvCd)">
            AND T1.BND_NW_DV_CD = #{bndNwDvCd}                                               /* 신규구분 */
         </if>
@@ -145,27 +153,38 @@
         <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
            AND T1.CRAL_IDV_TNO = #{cralIdvTno}                                              /* 휴대개별전화번호 */
         </if>
+           AND T1.DTA_DL_YN = 'N'
          GROUP BY BZ_HDQ_DV_CD, BASE_YM, CLCO_CD
     </select>
 
     <select id="selectFosterTransferDetails" resultType="com.kyowon.sms.wells.web.bond.transfer.dto.WbnaFosterTransferMgtDto$SearchDetailRes">
         WITH BND_LWM_IZ AS (
-             SELECT T2.*
+             SELECT T1.*
                FROM ( SELECT BND_BIZ_DV_CD
                            , CNTR_NO
                            , CNTR_SN
-                           , MAX(LWM_DT) KEEP(DENSE_RANK LAST ORDER BY LWM_DT) AS LWM_DT
-                        FROM TB_CBBO_BND_LWM_IZ T2                  /* 채권법조치내역 Talbe */
-                       GROUP BY BND_BIZ_DV_CD, CNTR_NO, CNTR_SN ) T1
-             INNER JOIN TB_CBBO_BND_LWM_IZ T2                       /* 채권법조치내역 Talbe */
-                ON T2.CNTR_NO = T1.CNTR_NO
-               AND T2.CNTR_SN = T1.CNTR_SN
-               AND T2.LWM_DT = T1.LWM_DT
-            )
-        SELECT F_CMZ_CD_NM('TNT_EDU', 'CLCO_CD', T1.CLCO_CD) AS FSTR_CO_NM              /* 위탁사명 */
-             , T1.CLCTAM_PRTNR_NO 	                                                    /* 담당자번호 */
-             , T4.PRTNR_KNM AS CLCTAM_PRTNR_NM                                          /* 담당자명 */
-             , F_CMZ_CD_NM('TNT_EDU', 'CLCTAM_DV_CD', T4.CLCTAM_DV_CD) AS CLCTAM_DVD 	/* 직전담당집금 */
+                           , DFLT_DT
+                           , LWM_DT
+                           , LWM_DTL_TP_CD
+                           , LWM_TP_CD
+                           , RANK() OVER (PARTITION BY BND_BIZ_DV_CD, CNTR_NO, CNTR_SN ORDER BY LWM_ID DESC) AS RN
+                        FROM TB_CBBO_BND_LWM_IZ                  /* 채권법조치내역 Talbe */
+                       ) T1
+             WHERE T1.RN <![CDATA[<=]]> 1)
+        SELECT F_CMZ_CD_NM('TNT_WELLS', 'CLCO_CD', T1.CLCO_CD) AS FSTR_CO_NM            /* 위탁사명 */
+             , (SELECT PRTNR_NO	<!--현재는 추심사 집금담당자가 1명. 향후 추가될 경우 위탁건 배정업무처리규칙 협의 후 수정 필요-->
+	              FROM TB_CBBO_CLCTAM_PRTNR_DTL /* 집금파트너상세 */
+		         WHERE 1 = 1
+		           AND BZ_HDQ_DV_CD = #{bzHdqDvCd}
+		           AND CLCTAM_DV_CD = #{clctamDvCd}
+                   AND ROWNUM <![CDATA[<=]]> 1) AS CLCTAM_PRTNR_NO	                    /* 집금파트너번호 */
+             , (SELECT PRTNR_KNM
+	              FROM TB_CBBO_CLCTAM_PRTNR_DTL /* 집금파트너상세 */
+		         WHERE 1 = 1
+		           AND BZ_HDQ_DV_CD = #{bzHdqDvCd}
+		           AND CLCTAM_DV_CD = #{clctamDvCd}
+                   AND ROWNUM <![CDATA[<=]]> 1) AS CLCTAM_PRTNR_NM	                    /* 집금파트너명 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CLCTAM_DV_CD', T4.CLCTAM_DV_CD) AS CLCTAM_DVD 	/* 직전담당집금 */
              , T4.PRTNR_KNM 		                                                    /* 직전담당자 */
              , T1.CNTR_NO 				                                                /* 계약번호 */
              , T1.CNTR_SN 				                                                /* 계약일련번호 */
@@ -177,15 +196,15 @@
                          WHEN T3.SELL_TP_DTL_CD IN ('31', '32') THEN 'L31'				/* 일반멤버십 */
                          WHEN T3.SELL_TP_DTL_CD = '33' THEN 'L32'						/* 홈케어멤버십 */
                          WHEN T3.SELL_TP_DTL_CD IN ('61', '62', '63') THEN 'L60'		/* 정기배송 */
-                     END, T1.BND_BIZ_DV_CD) AS PD_NM                                    /* 상품구분=채권업무구분코드 */
+                          END, T1.BND_BIZ_DV_CD) AS PD_NM                               /* 상품구분=채권업무구분코드 */
              , T1.DLQ_MCN	                                                            /* 연체개월 */
              , NVL(T1.DLQ_AMT, 0) + NVL(DLQ_ADD_AMT, 0) + NVL(T1.THM_CHRAM_AMT, 0) + NVL(T1.RSG_BOR_AMT, 0) AS TRG_AMT	/* 대상금액(=연체금액 + 연체가산금액 + 당월요금 + 위약금액) */
-             , NVL(DLQ_AMT, 0) + NVL(DLQ_ADD_AMT, 0) AS DLQ_AMT		                   /* 연체금액(=연체금액 + 연체가산금액) */
-             , NVL(THM_CHRAM_AMT, 0) AS THM_CHRAM_AMT	                               /* 당월요금 */
-             , NVL(DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT		                               /* 연체가산금 */
-             , NVL(RSG_BOR_AMT, 0) AS RSG_BOR_AMT		                               /* 위약금액 */
-             , F_CMZ_CD_NM('TNT_EDU', 'LWM_TP_CD', T2.LWM_TP_CD) AS LWM_TP 		        /* 법조치유형 */
-             , F_CMZ_CD_NM('TNT_EDU', 'LWM_DTL_TP_CD', T2.LWM_DTL_TP_CD) AS LWM_DTL_TP_CD 	/* 법조치상세 */
+             , NVL(DLQ_AMT, 0) + NVL(DLQ_ADD_AMT, 0) AS DLQ_AMT		                    /* 연체금액(=연체금액 + 연체가산금액) */
+             , NVL(THM_CHRAM_AMT, 0) AS THM_CHRAM_AMT	                                /* 당월요금 */
+             , NVL(DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT		                                /* 연체가산금 */
+             , NVL(RSG_BOR_AMT, 0) AS RSG_BOR_AMT		                                /* 위약금액 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'LWM_TP_CD', T2.LWM_TP_CD) AS LWM_TP 		    /* 법조치유형 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'LWM_DTL_TP_CD', T2.LWM_DTL_TP_CD) AS LWM_DTL_TP_CD /* 법조치상세 */
              , T2.LWM_DT 			                                                    /* 법조치일자 */
              , T2.DFLT_DT 			                                                    /* 채불등록일자 */
              , (SELECT RNADR
@@ -198,16 +217,21 @@
           LEFT OUTER JOIN BND_LWM_IZ T2
             ON T2.CNTR_NO = T1.CNTR_NO
            AND T2.CNTR_SN = T1.CNTR_SN
+           AND T2.BND_BIZ_DV_CD = T1.BND_BIZ_DV_CD
           LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3	                                        /* 계약상세 TABLE */
             ON T3.CNTR_NO = T1.CNTR_NO
            AND T3.CNTR_SN = T1.CNTR_SN
           LEFT OUTER JOIN TB_CBBO_CLCTAM_PRTNR_DTL T4	                                /* 집금파트너상세 TABLE */
-            ON T4.PRTNR_NO = T1.CLCTAM_PRTNR_NO
+            ON T4.PRTNR_NO = T1.BF_CLCTAM_PRTNR_NO
          WHERE T1.BASE_YM = #{baseYm}
            AND T1.BZ_HDQ_DV_CD = #{bzHdqDvCd}
-           AND T1.CLCTAM_DV_CD = '09'			                                        /* 집금구분코드 : 09.위탁 */
-           AND T1.BND_CLCTN_PRP_DV_CD = '03'	                                        /* 채권추심속성구분코드 : 03.위탁이관 */
-           AND T1.DTA_DL_YN = 'N'
+           AND T1.CLCTAM_DV_CD = #{clctamDvCd}		/* 집금구분코드 : 09.위탁, 11.TF */
+           <if test="@MybatisUtils@equals(clctamDvCd,'09')">
+           AND T1.BND_CLCTN_PRP_DV_CD = '03'	    /* 채권추심속성구분코드 : 03.위탁이관 */
+           </if>
+           <if test="@MybatisUtils@equals(clctamDvCd,'11')">
+           AND T1.BND_CLCTN_PRP_DV_CD = '08'	    /* 채권추심속성구분코드 : 08.TF */
+           </if>
            <if test="@MybatisUtils@isNotEmpty(bndNwDvCd)">
            AND T1.BND_NW_DV_CD = #{bndNwDvCd}                    /* 신규구분 */
            </if>
@@ -226,5 +250,7 @@
            <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
            AND T1.CRAL_IDV_TNO = #{cralIdvTno}                   /* 휴대개별전화번호 */
            </if>
+           AND T1.DTA_DL_YN = 'N'
+         ORDER BY T1.FST_RGST_DTM DESC
     </select>
 </mapper>

@@ -29,7 +29,7 @@ public class WfeaNetOrderController {
     @ApiOperation(value = "월 순주문 집계 원천데이터 목록 조회", notes = "조회조건에 따른 월 순주문 집계 목록 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "dvCd", value = "조회구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "tcntDvCd", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "feeTcntDvCd", value = "차수", paramType = "query", required = true),
         @ApiImplicitParam(name = "ogDvCd", value = "조직구분", paramType = "query", required = false),
         @ApiImplicitParam(name = "divCd", value = "구분", paramType = "query", required = true),
         @ApiImplicitParam(name = "pdctTpCd", value = "제품유형", paramType = "query", required = false),
@@ -59,10 +59,10 @@ public class WfeaNetOrderController {
     @ApiOperation(value = "월 순주문 집계 목록 조회", notes = "조회조건에 따른 월 순주문 집계 목록 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "schDvCd", value = "조회구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "tcntDvCd", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "feeTcntDvCd", value = "차수", paramType = "query", required = true),
         @ApiImplicitParam(name = "ogDvCd", value = "조직구분", paramType = "query", required = false),
         @ApiImplicitParam(name = "schDv", value = "구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "perfYm", value = "번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
     })
 
     @GetMapping("aggreateOrders")
@@ -92,7 +92,7 @@ public class WfeaNetOrderController {
 
     @ApiOperation(value = "월 순주문 집계 확정여부 조회", notes = "전월 차수에 따른 월 순주문 집계 목록 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "tcntDvCd", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "feeTcntDvCd", value = "차수", paramType = "query", required = true),
     })
 
     @GetMapping("confirmChk")
@@ -127,9 +127,9 @@ public class WfeaNetOrderController {
 
     @ApiOperation(value = "순주문 집계 미등록 유형 상품 목록 조회", notes = "순주문 집계 미등록 유형 상품의 목록 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "tcntDvCd", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "feeTcntDvCd", value = "차수", paramType = "query", required = true),
         @ApiImplicitParam(name = "ogDvCd", value = "조직구분", paramType = "query", required = false),
-        @ApiImplicitParam(name = "perfYm", value = "번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
     })
 
     @GetMapping("product-list")
@@ -139,4 +139,20 @@ public class WfeaNetOrderController {
     ) {
         return this.service.getNetAggregateProducts(dto);
     }
+
+    @ApiOperation(value = "배치 확인", notes = "배치 현재 진행상태를 조회 한다.")
+    @GetMapping("/end-of-batch")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "feeTcntDvCd", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "feeBatWkId", value = "배치작업ID", paramType = "query", required = true),
+    })
+    public String getEndOfBatch(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getEndOfBatch(dto);
+    }
+
 }
