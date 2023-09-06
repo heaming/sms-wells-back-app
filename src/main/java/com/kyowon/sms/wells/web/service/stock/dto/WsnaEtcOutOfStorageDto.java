@@ -144,6 +144,7 @@ public class WsnaEtcOutOfStorageDto {
     @ApiModel("WsnaEtcOutOfStorageDto-SearchCodeRes")
     public record SearchCodeRes(
         String codeId,
-        String codeName
+        String codeName,
+        String wareDvCd
     ) {}
 }
