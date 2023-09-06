@@ -28,10 +28,10 @@ public class WsndServiceRegionLevelPsController {
 
     @ApiOperation(value = "서비스 급지현황 조회", notes = "조회조건에 일치하는 서비스 급지현황 정보를 조회한다.")
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getServiceRegionLevelPsPaging(
+    public PagingResult<SearchRes> getServiceRegionLevelPsPages(
         SearchReq dto, @Valid PageInfo pageInfo
     ) {
-        return service.getServiceRegionLevelPsPaging(dto, pageInfo);
+        return service.getServiceRegionLevelPsPages(dto, pageInfo);
     }
 
     @ApiOperation(value = "서비스 급지현황 목록 엑셀 다운로드", notes = "검색조건을 입력 받아 엑셀 다운로드용 서비스 급지현황 목록을 조회한다.")

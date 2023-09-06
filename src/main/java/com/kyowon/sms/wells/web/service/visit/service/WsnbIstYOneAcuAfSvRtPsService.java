@@ -11,8 +11,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WsnbIstYOneAcuAfSvRtPsService {
     private final WsnbIstYOneAcuAfSvRtPsMapper mapper;
-
     public List<WsnbIstYOneAcuAfSvRtPsDto.SearchRes> getIstYOneAcuAfSvRtPsList(WsnbIstYOneAcuAfSvRtPsDto.SearchReq dto){
-        return mapper.selectIstYOneAcuAfSvRtPsList(dto);
+        return mapper.selectIstYOneAcuAfSvRtPss(dto);
     }
 }

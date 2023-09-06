@@ -16,12 +16,12 @@ import java.util.List;
 public class WsndServiceRegionLevelPsService {
     private final WsndServiceRegionLevelPsMapper mapper;
 
-    public PagingResult<SearchRes> getServiceRegionLevelPsPaging(SearchReq dto, PageInfo pageInfo) {
-        PagingResult<SearchRes> dtos = this.mapper.selectServiceRegionLevelPs(dto, pageInfo);
+    public PagingResult<SearchRes> getServiceRegionLevelPsPages(SearchReq dto, PageInfo pageInfo) {
+        PagingResult<SearchRes> dtos = this.mapper.selectServiceRegionLevelPss(dto, pageInfo);
         return dtos;
     }
 
     public List<SearchRes> getServiceRegionLevelPsExcelDownload(SearchReq dto) {
-        return mapper.selectServiceRegionLevelPs(dto);
+        return mapper.selectServiceRegionLevelPss(dto);
     }
 }

@@ -10,6 +10,6 @@ import java.util.List;
 
 @Mapper
 public interface WsndServiceRegionLevelPsMapper {
-    PagingResult<SearchRes> selectServiceRegionLevelPs(SearchReq dto, PageInfo pageInfo);
-    List<SearchRes> selectServiceRegionLevelPs(SearchReq dto);
+    PagingResult<SearchRes> selectServiceRegionLevelPss(SearchReq dto, PageInfo pageInfo);
+    List<SearchRes> selectServiceRegionLevelPss(SearchReq dto);
 }

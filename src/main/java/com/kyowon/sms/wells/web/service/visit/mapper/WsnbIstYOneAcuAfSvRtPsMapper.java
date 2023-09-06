@@ -7,5 +7,5 @@ import java.util.List;
 
 @Mapper
 public interface WsnbIstYOneAcuAfSvRtPsMapper {
-    List<SearchRes> selectIstYOneAcuAfSvRtPsList(SearchReq searchReq);
+    List<SearchRes> selectIstYOneAcuAfSvRtPss(SearchReq searchReq);
 }

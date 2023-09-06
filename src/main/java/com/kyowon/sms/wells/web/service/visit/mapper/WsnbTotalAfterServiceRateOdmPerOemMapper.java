@@ -7,5 +7,5 @@ import java.util.List;
 
 @Mapper
 public interface WsnbTotalAfterServiceRateOdmPerOemMapper {
-    List<SearchRes> selectTotalAfterServiceRateOdmPerOemList(SearchReq searchReq);
+    List<SearchRes> selectTotalAfterServiceRateOdmPerOems(SearchReq searchReq);
 }

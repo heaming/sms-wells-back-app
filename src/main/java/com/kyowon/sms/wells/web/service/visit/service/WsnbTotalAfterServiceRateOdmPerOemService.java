@@ -13,6 +13,6 @@ public class WsnbTotalAfterServiceRateOdmPerOemService {
     private final WsnbTotalAfterServiceRateOdmPerOemMapper mapper;
 
     public List<SearchRes> getTotalAfterServiceRateOdmPerOemList(SearchReq dto){
-        return mapper.selectTotalAfterServiceRateOdmPerOemList(dto);
+        return mapper.selectTotalAfterServiceRateOdmPerOems(dto);
     }
 }
