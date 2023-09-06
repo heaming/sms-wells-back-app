@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -33,7 +35,7 @@ public class WsniSidingServiceChangesService {
      * @author gs.piit122
      * @since 2023.07.18
      */
-    public void SidingChange(SaveReq req) throws Exception {
+    public void AsReceiption(SaveReq req) throws Exception {
 
         mapper.insertSdingAsAkHist(req);
 
@@ -42,17 +44,25 @@ public class WsniSidingServiceChangesService {
             mapper.deleteSdingAskAk(req);
         else {
 
-            /*주기변경 처리를 위한 고객의 정보 확인*/
-
             if (mapper.selectSidingAkCount(req).intValue() > 0)
                 mapper.updateSidingAk(req);
             else
                 mapper.insertSidingAk(req);
         }
 
+        /***********************************************************
+        * 주기변경 처리를 위한 고객의 정보 확인
+        *
+        * SV_PRD       방문주기
+        * PD_PRP_VAL01 상품용도
+        * SELL_TP_CD   관리유형
+        * IST_DT       설치일자
+        * BS_MTHS      무상 BS 개월수
+        ***********************************************************/
         WsniSidingServiceChangesDvo dvo = mapper.selectCustomer(req);
 
-        //IF(P_REQ_GB = '1' AND P_DATA_STUS != '3') THEN
+        /*요청 구분에 따라 처리 - 1: 패키지변경, 4:다음회차 방문 중지*/
+        //IF(P_REQ_GB = '1' AND mtrProcsStatCd != '3') THEN
         if ("1".equals(req.asAkDvCd()) && !"3".equals(req.mtrProcsStatCd())) {
 
             /*방문주기 재생성(SP_LC_SERVICEVISIT_482_LST_I06)*/
@@ -74,7 +84,7 @@ public class WsniSidingServiceChangesService {
                 service2.removeRglrBfsvcDl(
                     new WsnbCustomerRglrBfsvcDlDto.SaveReq(
                         "", //row.getCstSvAsnNo(),
-                        ""//row.getAsnOjYm()
+                        ""//row.getAsnOjYm() 배정년월
                     )
                 );
 
@@ -90,7 +100,8 @@ public class WsniSidingServiceChangesService {
             }
         }
 
-        if ("1".equals(req.asAkDvCd())) {
+        /*요청 구분에 따라 처리 - 1: 패키지변경, 4:다음회차 방문 중지*/
+        if ("4".equals(req.asAkDvCd())) {
             //UPDATE TB_SVPD_CST_SV_RGBSPR_IZ -- 모종 주기표에 업데이트
             //UPDATE TB_SVPD_CST_SV_RGBSPR_IZ -- 디바이스 주기표에 업데이트
         }
@@ -106,69 +117,80 @@ public class WsniSidingServiceChangesService {
      * @since 2023.07.18
      */
     public SaveRes saveSidingProductChange(SaveReq req) throws Exception {
-        //   LC_ASREGN_API_I02_T
-        //   {
-        //       CALL PR_KIWI_FARM_CHANGE
-        SidingChange(req);
-        //
-        //   LC_ASREGN_API_I03_T
-        //   {
-        //       if (P_DATA_STUS.equals("3")) {
-        //
-        //           LC_ASREGN_API_I05
-        //           -- INSERT LD3300H(정기배송　주문변경　관리History)
-        //
-        //           LC_ASREGN_API_D01
-        //           -- DELETE LD3200P(정기배송　주문변경　관리)
-        //
-        //           return true;
-        //
-        //       } else {
-        //
-        //           int LD3200_CNT = LC_ASREGN_API_S09
-        //           -- COUNT(*) LD3200P(정기배송　주문변경　관리)
-        //
-        //           if (LD3200_CNT == 0) {
-        //
-        //               ArrayList chk1 = LC_ASREGN_API_S08
-        //               -- SELECT LC0200P(일련번호　채번（고객코드，일자，단순）)
-        //
-        //			if (chk1 != null) {
-        //
-        //			if (SEQ.equals("1")) {
-        //				LC_ASREGN_API_I03
-        //				-- INSERT LC0200P(일련번호　채번（고객코드，일자，단순）)
-        //			} else {
-        //				LC_ASREGN_API_U04
-        //				-- UPDATE LC0200P(일련번호　채번（고객코드，일자，단순）)
-        //			}
-        //
-        //			LC_ASREGN_API_I04
-        //			-- INSERT LD3200P(정기배송　주문변경　관리)
-        //
-        //			LC_ASREGN_API_I05
-        //			-- INSERT LD3300H(정기배송　주문변경　관리History)
-        //
-        //
-        //			return true;
-        //
-        //			} else {
-        //				throw new Exception(">> LC_ASREGN_API_I03_T : data insert failed <<");
-        //			}
-        //
-        //		} else {
-        //
-        //			LC_ASREGN_API_U05
-        //			-- UPDATE LD3200P(정기배송　주문변경　관리)
-        //
-        //			LC_ASREGN_API_I05
-        //			-- INSERT LD3300H(정기배송　주문변경　관리History)
-        //
-        //			return true;
-        //
-        //		}
-        //	}
-
+        AsReceiption(req);
+        sidingChange(req);
         return null;
+    }
+
+    public void sidingChange(SaveReq req) throws Exception {
+
+        // req.cntrNo
+        // req.cntrSn
+        // req.akSn
+        // req.asAkDvCd
+        // req.akChdt
+        // req.bfchPdCd
+        // req.afchPdCd
+        // req.mtrProcsStatCd
+        // req.userId
+
+        int LD3200_CNT = 0;
+        ArrayList chk1 = null;
+
+        if (req.mtrProcsStatCd().equals("3")) {
+            //
+            //           LC_ASREGN_API_I05
+            //           -- INSERT LD3300H(정기배송 주문변경 관리History)
+            //
+            //           LC_ASREGN_API_D01
+            //           -- DELETE LD3200P(정기배송 주문변경 관리)
+            //
+            //           return true;
+            //
+        } else {
+            //
+            //            int LD3200_CNT = LC_ASREGN_API_S09
+            //            -- COUNT(*) LD3200P(정기배송　주문변경　관리)
+            //
+            if (LD3200_CNT == 0) {
+                //
+                //                ArrayList chk1 = LC_ASREGN_API_S08
+                //                -- SELECT LC0200P(일련번호　채번（고객코드，일자，단순）)
+                //
+                if (chk1 != null) {
+                    //
+                    //	               		    if (SEQ.equals("1")) {
+                    //	               		    	LC_ASREGN_API_I03
+                    //	               		    	-- INSERT LC0200P(일련번호　채번（고객코드，일자，단순）)
+                    //	               		    } else {
+                    //	               		    	LC_ASREGN_API_U04
+                    //	               		    	-- UPDATE LC0200P(일련번호　채번（고객코드，일자，단순）)
+                    //	               		    }
+                    //
+                    //	               		    LC_ASREGN_API_I04
+                    //	               		    -- INSERT LD3200P(정기배송　주문변경　관리)
+                    //
+                    //	               		    LC_ASREGN_API_I05
+                    //	               		    -- INSERT LD3300H(정기배송　주문변경　관리History)
+                    //
+                    //
+                    //	               		    return true;
+                    //
+                } else {
+                    throw new Exception(">> LC_ASREGN_API_I03_T : data insert failed <<");
+                }
+                //
+            } else {
+                //
+                //	               		LC_ASREGN_API_U05
+                //	               		-- UPDATE LD3200P(정기배송　주문변경　관리)
+                //
+                //	               		LC_ASREGN_API_I05
+                //	               		-- INSERT LD3300H(정기배송　주문변경　관리History)
+                //
+                //	               		return true;
+            }
+            //
+        }
     }
 }
