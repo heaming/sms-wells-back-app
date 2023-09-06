@@ -28,10 +28,16 @@
                    FROM T_CMZ_MLNG_D
                   WHERE MLNG_ID   = T1.OSTR_DTRN_TXT
                     AND TENANT_ID = 'TNT_BASE'
-                    AND LNG_ID    = #{session.langId} )            AS OSTR_DTRN_YN   /* 출고확정여부 */
-             , T2.PD_NM || ' 외'                                   AS PD_NM
+                    AND LNG_ID    = #{session.langId} ) AS OSTR_DTRN_YN   /* 출고확정여부 */
+             , T2.PD_NM || CASE WHEN T1.CNT <![CDATA[>]]> 1 THEN ( SELECT ' ' || MLNG_CNTN || ' ' || TO_CHAR(T1.CNT -1)
+                                                                     FROM T_CMZ_MLNG_D
+                                                                    WHERE TENANT_ID = 'TNT_BASE'
+                                                                      AND MLNG_ID   = 'MSG_TXT_EXCP'
+                                                                      AND LNG_ID    = #{session.langId} )
+                                ELSE ''
+                           END                          AS PD_NM
              , T1.OSTR_AK_SN
-             , ' '                                                 AS RMK_CN
+             , ' '                                      AS RMK_CN
           FROM
              (
                SELECT D1.OSTR_AK_NO                          /* 출고요청번호 */
@@ -41,6 +47,7 @@
                     , D1.STR_HOP_DT                          /* 입고희망일자 */
                     , D1.OVIV_TP_CD                          /* 배차형태 */
                     , D1.OSTR_AK_RGST_DT
+                    , COUNT(1)             AS CNT            /* 건수 */
                     , MIN(D1.OSTR_AK_SN)   AS OSTR_AK_SN     /* 출고요청일련번호 */
                     , MAX(D1.RECT_OSTR_DT) AS RECT_OSTR_DT   /* 최근출고일자 */
                     , MIN(D1.ITM_PD_CD)    AS ITM_PD_CD      /* 품목상품코드 */
