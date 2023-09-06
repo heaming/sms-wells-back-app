@@ -159,30 +159,41 @@
          ON C0.TENANT_ID  = #{session.tenantId}
         AND C0.CD_ID      = 'CO_CD'    /* 업체명 */
         AND C0.CD_VLD_VAL = T1.CO_CD
-        /* 20230823 수정 */
-       LEFT OUTER JOIN (SELECT BASE_YM, CO_CD, OG_TP_CD, PRTNR_NO, COUNT(1) CNT
-                          FROM TB_FEAM_FEE_CALC_CNTR_DTL_IZ /* 수수료계산계약상세내역 */
-                         WHERE BASE_YM        = #{perfYm}
-                           <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
-                           AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
+        /* 20230905 수정 */
+       LEFT OUTER JOIN (SELECT A.BASE_YM
+       						 , A.CO_CD
+       						 , A.OG_TP_CD
+       						 , C.HOO_PRTNR_NO AS PRTNR_NO
+       						 , COUNT(1) AS CNT
+						  FROM TB_FEAM_FEE_CALC_CNTR_DTL_IZ A
+						  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ B
+							ON B.BASE_YM = A.BASE_YM
+						   AND B.PRTNR_NO = A.PRTNR_NO
+						   AND B.OG_TP_CD = A.OG_TP_CD
+						  LEFT OUTER JOIN TB_OGBS_MM_OG_IZ C
+							ON B.OG_TP_CD = C.OG_TP_CD
+						   AND B.OG_ID = C.OG_ID
+						 WHERE A.BASE_YM =  #{perfYm}
+						   <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
+                           AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
                            </if>
-                           AND OG_TP_CD       = 'W05'     --W05:총판
-                           AND FEE_CALC_TP_CD = '01'      --수수료계산 (2023.04.26 추가)
-                           AND FEE_CD         = 'W050001' --W050001:기본수수료
-                           AND DTA_DL_YN      = 'N'
-                         GROUP BY BASE_YM, CO_CD, OG_TP_CD, PRTNR_NO) T9 /* 계약건수(판매자) */
+					       AND A.OG_TP_CD = 'W05'
+						   AND A.FEE_CALC_TP_CD = '01'
+						   AND A.FEE_CD = 'W050001'
+						   AND A.DTA_DL_YN = 'N'
+						 GROUP BY A.BASE_YM, A.CO_CD, A.OG_TP_CD, C.HOO_PRTNR_NO ) T9 /* 계약건수(판매자) */
           ON T9.BASE_YM        = T1.BASE_YM
          AND T9.CO_CD          = T1.CO_CD
          AND T9.OG_TP_CD       = T1.OG_TP_CD
          AND T9.PRTNR_NO       = T1.PRTNR_NO
-      WHERE T1.BASE_YM    = #{perfYm}
-        <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
-        AND T1.FEE_TCNT_DV_CD      = #{feeTcntDvCd}
-        </if>
-        AND T1.OG_TP_CD   = 'W05'
-        AND T1.DTA_DL_YN  = 'N'
-        AND T1.FEE_CALC_TP_CD = '01' /* 수수료계산 (2023.04.26 추가) */
-      GROUP BY T1.BASE_YM, T1.FEE_TCNT_DV_CD, T1.CO_CD, O1.HOO_PRTNR_NM, T3.OG_CD, T1.PRTNR_NO
+       WHERE T1.BASE_YM        = #{perfYm}
+         <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
+         AND T1.FEE_TCNT_DV_CD      = #{feeTcntDvCd}
+         </if>
+         AND T1.OG_TP_CD   = 'W05'
+         AND T1.DTA_DL_YN  = 'N'
+         AND T1.FEE_CALC_TP_CD = '01' /* 수수료계산 (2023.04.26 추가) */
+       GROUP BY T1.BASE_YM, T1.FEE_TCNT_DV_CD, T1.CO_CD, O1.HOO_PRTNR_NM, T3.OG_CD, T1.PRTNR_NO
     </select>
 
 
