@@ -21,9 +21,12 @@ public class WsndServiceIndicatorDvo {
     String callYn;
     String msgYn;
     Integer cntcDtBf3;
-    String vstDueDt;
+    String vstDuedt;
     String vstExpHh;
     String bcInMthdCd;
+    String vstFshDt;
+    String vstFshHh;
+    String vstPrgsStatCd;
     String cnfmPsicPrtnrNo;
     String prtnrKnm;
     String ogNm;
