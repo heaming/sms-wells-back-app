@@ -155,18 +155,18 @@ public class WsnaBsRegularShippingMgtService {
         List<WsnaBsRegularShippingMaterialDvo> materialDvos = new ArrayList<>();
         UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
         WsnaBsRegularShippingMaterialDvo materialDvo = converter.mapShippingManagementDvoToShippingMaterialDvo(dvo);
+        // 창고담당자 조회
+        WareMngtRes wareMngtRes = mapper.selectWareMngtInfo("100002");
         String now = DateUtil.getNowString();
         // 물류인터페이스호출용 값 세팅
         materialDvo.setOstrAkTpCd("400");
         materialDvo.setOstrAkRgstDt(now.substring(0, 8));
         materialDvo.setIostAkDvCd("WE");
-        //        materialDvo.setMpacSn(0);
         materialDvo.setLgstSppMthdCd("2");
-        //        materialDvo.setLgstWkMthdCd("WE01");
         materialDvo.setAdrsTnoVal(dvo.getTno());
         materialDvo.setAdrsCphonNoVal(dvo.getMpno());
-        materialDvo.setWareMngtPrtnrNo("71321");
-        materialDvo.setWareMngtPrtnrOgTpCd("@7132");
+        materialDvo.setWareMngtPrtnrNo(wareMngtRes.wareMngtPrtnrNo());
+        materialDvo.setWareMngtPrtnrOgTpCd(wareMngtRes.wareMngtPrtnrOgTpCd());
         materialDvo.setOstrOjWareNo("100002");
         materialDvo.setItmGdCd("A");
         materialDvo.setCstNm(dvo.getCstKnm());
