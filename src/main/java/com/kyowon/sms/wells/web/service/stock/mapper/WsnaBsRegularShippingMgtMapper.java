@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.SearchProductReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.SearchProductRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.WareMngtRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMaterialDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMgtDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -40,4 +41,6 @@ public interface WsnaBsRegularShippingMgtMapper {
     int updateExecution(WsnaBsRegularShippingMgtDvo dvo);
 
     String selectNewLgstOstrAkNo();
+
+    WareMngtRes selectWareMngtInfo(String wareNo);
 }
