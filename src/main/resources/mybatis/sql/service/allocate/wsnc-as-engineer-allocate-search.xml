@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncAsEngineerAllocateSearchMapper">
+
+    <select id="selectAsEngineerAllocateSearchPages" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsEngineerAllocateSearchDvo">
+    WITH TB_FGPT AS (
+                    SELECT DISTINCT T1.CNTR_NO
+                         , LISTAGG(T2.PD_NM, ', ' ON OVERFLOW TRUNCATE) WITHIN GROUP(ORDER BY T2.PD_CD) OVER(PARTITION BY T1.CNTR_NO) FGPT_NM
+                      FROM TB_SSCT_FGPT_RCP_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE 1=1
+                       AND T1.FGPT_PD_CD = T2.PD_CD
+                     )
+
+    SELECT CST1.CNTR_NO
+         , CST1.CNTR_SN
+         , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', SSCT2.SELL_TP_CD) SELL_TP
+         , SV2.ISTLL_KNM
+         , F_CMZ_CD_NM('TNT_WELLS', 'CST_GD_CD', CST2.CST_GD_CD) CST_GD
+         , F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD_BK', SV1.SV_BIZ_HCLSF_CD) SV_TP
+         , ADR2.LOCARA_TNO
+         , ADR2.EXNO_ENCR
+         , ADR2.IDV_TNO
+         , ADR2.CRAL_LOCARA_TNO
+         , ADR2.MEXNO_ENCR
+         , ADR2.CRAL_IDV_TNO
+         , TO_CHAR(TO_DATE(SUBSTR(SSCT1.CNTR_CNFM_DTM, 1, 8), 'YYYYMMDD'), 'YYYY-MM-DD') CNTR_DT
+         , PD1.SAP_MAT_CD
+         , CST1.PDCT_PD_CD
+         , PD1.PD_NM
+         , FGPT1.FGPT_NM
+         , F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', SSCT2.ALNCMP_CD) ALNCMP_CD
+         , F_CMZ_CD_NM('TNT_WELLS', 'PD_USWY_CD', SV2.PD_USWY_CD) PD_USWY_CD
+         , SUBSTR(ADR3.NEW_ADR_ZIP, 1, 3)||'-'||SUBSTR(ADR3.NEW_ADR_ZIP, 4) NEW_ADR_ZIP
+         , ADR3.RNADR||' '||ADR3.RDADR ADR_DTL
+         , SV2.CNSL_MO_CN
+         , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', SV1.SV_BIZ_DCLSF_CD) SV_BIZ_DCLSF_CD
+         , DECODE(SV2.AS_REFRI_DV_CD, '1', '무상', '2', '유상') AS_REFRI_DV_CD
+         , DECODE(SV2.BFSVC_REFRI_DV_CD, '1', '무상', '2', '유상') BS_REFRI_DV_CD
+         , TO_CHAR(TO_DATE(CST1.IST_DT, 'YYYYMMDD'), 'YYYY-MM-DD') IST_DT
+         , CASE WHEN SV1.WK_EXCN_DT > ADD_MONTHS(TO_DATE(CST1.IST_DT, 'YYYYMMDD'), CST1.EXT_FRISU_AS_MCN) AND SUBSTR(SV1.WK_EXCN_DT,1,6) = SUBSTR(ADD_MONTHS(TO_DATE(CST1.IST_DT, 'YYYYMMDD'), CST1.EXT_FRISU_AS_MCN),1,6)
+                    THEN SV1.WK_EXCN_DT
+                ELSE NULL
+            END EXPIRE_DT
+         , TO_CHAR(TO_DATE(SV1.EGER_ASN_DT, 'YYYYMMDD'), 'YYYY-MM-DD') EGER_ASN_DT
+         , TO_CHAR(TO_DATE(SV1.VST_DUEDT, 'YYYYMMDD'), 'YYYY-MM-DD')||' '||TO_CHAR(TO_DATE(SV1.VST_EXP_HH, 'HH24MISS'), 'HH24:MI:SS') VST_DT
+         , (CASE WHEN SV1.DTM_CH_CAUS_CD IS NOT NULL THEN 'Y'
+                 ELSE ''
+             END) AS DT_CHANGE
+         , TO_CHAR(TO_DATE(SV1.VST_CNFMDT, 'YYYYMMDD'), 'YYYY-MM-DD')||' '||TO_CHAR(TO_DATE(SV1.VST_CNFM_HH, 'HH24MISS'), 'HH24:MI:SS') CFRM_DT
+         , F_CMZ_CD_NM('TNT_WELLS', 'WK_DTM_CH_RSON_CD', SV1.DTM_CH_RSON_CD) DTM_CH_RSON_CD
+         , SV1.DTM_CH_RSON_DTL_CN
+         , (SELECT PRTNR_KNM||'('||SV1.WK_PRTNR_NO||')' FROM TB_OGBS_PRTNR_BAS T1 WHERE T1.PRTNR_NO = SV1.WK_PRTNR_NO AND OG_TP_CD IN ('W03', 'W06')) PRTNR_NM
+         , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', SV1.WK_PRGS_STAT_CD) WK_PRGS_STAT_CD
+      FROM TB_SVPD_CST_SVAS_IST_ASN_IZ SV1
+         , TB_SVPD_CST_SVAS_IST_OJ_IZ SV2
+         , TB_SVPD_CST_SV_EXCN_IZ CST1
+         , TB_SSCT_CNTR_BAS SSCT1
+         , TB_SSCT_CNTR_DTL SSCT2
+         , TB_CUBS_CST_DTL CST2
+         , TB_SSCT_CNTR_ADR_REL ADR1
+         , TB_SSCT_CNTR_ADRPC_BAS ADR2
+         , TB_PDBS_PD_BAS PD1
+         , TB_GBCO_ADR_BAS ADR3
+         , TB_FGPT FGPT1
+     WHERE 1=1
+       AND SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
+       AND SV1.CNTR_NO = CST1.CNTR_NO
+       AND SV1.CNTR_SN = CST1.CNTR_SN
+       AND SV1.CNTR_NO = SSCT1.CNTR_NO
+       AND SV1.CNTR_NO = SSCT2.CNTR_NO
+       AND SV1.CNTR_SN = SSCT2.CNTR_SN
+       AND SV1.CNTR_CST_NO = CST2.CST_NO
+       AND SV1.CNTR_NO = ADR1.DTL_CNTR_NO
+       AND SV1.CNTR_SN = ADR1.DTL_CNTR_SN
+       AND ADR1.ADRPC_TP_CD = '3'
+       AND ADR1.CNTR_ADR_REL_ID = ADR2.CNTR_ADRPC_ID
+       AND CST1.PDCT_PD_CD = PD1.PD_CD
+       AND SV2.ADR_ID = ADR3.ADR_ID
+       AND SV1.CNTR_NO = FGPT1.CNTR_NO(+)
+       <if test="@MybatisUtils@equals(cfrmOnlyYn, 'N')">
+       AND SV1.EGER_ASN_DT >= #{baseDateFrom}
+       AND SV1.EGER_ASN_DT &lt;= #{baseDateTo}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(vstCfrmDt)'>
+       AND SV1.VST_CNFMDT = #{vstCfrmDt}
+       </if>
+       <if test="@MybatisUtils@equals(cfrmOnlyYn, 'Y')">
+       AND SV1.VST_CNFMDT = #{vstCfrmDt}
+       </if>
+
+       <if test='@MybatisUtils@isNotEmpty(ogId)'>
+       AND SV1.SV_CNR_OG_ID = #{ogId}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(engId)'>
+       AND SV1.WK_PRTNR_NO = #{engId}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(svDvCd)'>
+       AND SV1.SV_BIZ_HCLSF_CD = #{svDvCd}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(prgsDvCd)'>
+       AND SV1.WK_PRGS_STAT_CD = #{prgsDvCd}
+       </if>
+
+       <if test="@MybatisUtils@equals(sellTpCd, '1')">
+       AND SSCT2.SELL_TP_CD IN ('1', '9')
+       </if>
+       <if test="@MybatisUtils@equals(sellTpCd, '2')">
+       AND SSCT2.SELL_TP_CD = '2'
+       </if>
+
+       <if test="@MybatisUtils@equals(istConfCd, '1')">
+       AND CST1.IST_CFDC_PRNT_YN = '1'
+       </if>
+       <if test="@MybatisUtils@equals(istConfCd, '2')">
+       AND (CST1.IST_CFDC_PRNT_YN != '1' OR CST1.IST_CFDC_PRNT_YN IS NULL)
+       </if>
+    </select>
+</mapper>
