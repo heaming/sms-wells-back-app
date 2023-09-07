@@ -78,7 +78,7 @@ public class WdcdOperatingCostMgtDto {
         String opcsCardId,
         String opcsAdjCnt,
         String opcsSmryNCnt,
-        String opcsWhtxCfdcApnFileId
+        String mscrWhtxCfdcApnFileId
     ) {
 
     }
@@ -126,7 +126,7 @@ public class WdcdOperatingCostMgtDto {
     @ApiModel(value = "WwdcdOperatingCostMgtDto-FileReq")
     public record EditReq(
         String opcsCardId,
-        List<AttachFileDto.AttachFile> attachOpcsWhtxCfdcApnFileId
+        List<AttachFileDto.AttachFile> attachMscrWhtxCfdcApnFileId
     ) {
     }
 
