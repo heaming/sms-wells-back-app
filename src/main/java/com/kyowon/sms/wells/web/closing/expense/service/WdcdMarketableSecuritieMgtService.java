@@ -76,7 +76,6 @@ public class WdcdMarketableSecuritieMgtService {
             }
         }
 
-        mapper.updateOpcsCard(masterDvo); // 6. 카드정보 업데이트 (ASIS : updateOpcsCard). 운영비 정산카드내역
         masterDvo.setOpcsCardUseIzId(firstReq.opcsCardUseIzId());
         mapper.insertAccMap(masterDvo); //7. 매핑정보 등록 (ASIS : insertAccMap). 정산번호와 운영비사용카드내역 아이디를 매핑
 
