@@ -11,6 +11,16 @@
              , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'CST_GD_CD', NVL(X.CST_GD_CD,0))
                   FROM TB_CUBS_CST_DTL X
                  WHERE X.CST_NO = CST.CST_NO)                          AS CST_GD_NM /*고객등급*/
+             , (SELECT T1.PRTNR_KNM||'('||T1.PRTNR_NO||')'
+                  FROM TB_OGBS_MM_PRTNR_IZ T1
+                 INNER JOIN TB_SVPD_CNTR_FXN_PRTNR_IZ T2
+                    ON T2.CNTR_NO = SC2.CNTR_NO
+                   AND T2.CNTR_SN = SC2.CNTR_SN
+                   AND T2.CH_SN = (SELECT MAX(T3.CH_SN) FROM TB_SVPD_CNTR_FXN_PRTNR_IZ T3 WHERE T3.CNTR_NO = SC2.CNTR_NO AND T3.CNTR_SN = SC2.CNTR_SN)
+                 WHERE T1.BASE_YM = SUBSTR(T2.FST_RGST_DTM,1,6)
+                   AND T1.OG_TP_CD = T2.FXN_PRTNR_OG_TP_CD
+                   AND T1.PRTNR_NO = T2.FXN_PRTNR_NO
+                   AND T1.DTA_DL_YN = 'N') AS FXN_PRTNR_NM /*고정방문자명*/
              , NVL2(SA2.LOCARA_TNO, SA2.LOCARA_TNO, '') AS LOCARA_TNO /*전화번호(지역전화번호)*/
              , NVL2(SA2.LOCARA_TNO, SA2.EXNO_ENCR, '')         AS EXNO_ENCR /*전화번호(전화국번호암호화)*/
              , NVL2(SA2.LOCARA_TNO, SA2.IDV_TNO, '')           AS IDV_TNO /*전화번호(개별전화번호)*/
@@ -21,7 +31,7 @@
                   ||')' || NVL(ADR.RNADR, ADR.LTN_ADR)
                   || NVL(ADR.RDADR, ADR.LTN_DTL_ADR)AS ADDR  /*주소*/
              , SV3.CST_UNUITM_CN /*고객특이사항내용*/
-             , (SELECT X.PRTNR_KNM
+             , (SELECT X.PRTNR_KNM||'('||X.PRTNR_NO||')'
                   FROM TB_OGBS_MM_PRTNR_IZ X
                  WHERE X.BASE_YM = SUBSTR(SV3.FST_RGST_DTM,1,6)
                    AND X.OG_TP_CD = SV3.OG_TP_CD
@@ -48,7 +58,15 @@
              , NVL(SC4.FRISU_BFSVC_PTRM_N, 0) AS  FRISU_BFSVC_PTRM_N/*무상BS개월수*/
              , F_CMZ_CD_NM('TNT_WELLS', 'PD_USWY_CD', NVL(SV2.PD_USWY_CD,0)) AS PD_USWY  /*용도구분*/
              , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', NVL(SC2.SELL_TP_CD,0)) AS SELL_TP_NM  /*판매유형*/
-             , DECODE(SC2.CNTR_DTL_STAT_CD, '401', F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', NVL(SC2.SELL_TP_CD,0)), '') AS SV_TP_NM  /*서비스유형*/
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', NVL(T1.SELL_TP_CD,0))
+                  FROM TB_SSCT_CNTR_DTL T1
+                 INNER JOIN TB_SSCT_CNTR_REL T2
+                    ON T2.BASE_DTL_CNTR_NO = T1.CNTR_NO
+                   AND T2.BASE_DTL_CNTR_SN = T1.CNTR_SN
+                   AND T2.CNTR_REL_DTL_CD = '212'
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                 WHERE T2.OJ_DTL_CNTR_NO = SC2.CNTR_NO
+                   AND T2.OJ_DTL_CNTR_SN = SC2.CNTR_SN) AS SV_TP_NM  /*관리유형*/
              , SUBSTR(SC1.CNTR_CNFM_DTM,1,8) AS CNTR_DT /*계약일자*/
              , (SELECT NVL2(X.HOO_PRTNR_NO, X.OG_CD, '')
                   FROM TB_OGBS_MM_OG_IZ X
@@ -161,7 +179,6 @@
           LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL SA1 /*계약주소관계 - 계약주소*/
             ON SA1.DTL_CNTR_NO = SC2.CNTR_NO
            AND SA1.DTL_CNTR_SN = SC2.CNTR_SN
-<!--           AND SA1.ADRPC_TP_CD = '3'-->
            AND SA1.ADRPC_TP_CD IN ('2','3')
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SA1.VL_STRT_DTM AND SA1.VL_END_DTM
            AND SA1.DTA_DL_YN = 'N'
@@ -374,6 +391,10 @@
              , PROC_STUS /*작업진행상태*/
              , CNTR_NO
              , CNTR_SN
+             , SV_HSHD_NO
+             , SV_HSHD_NO_CNT
+             , SV_BIZ_HCLSF_CD
+             , SV_BIZ_DCLSF_CD
           FROM (
                 (/*A/S작업완료 건*/
                  SELECT /*+ LEADING(S1) USE_NL(S1 S2 S4 P1) INDEX(S4 PK_SVPD_MCBY_CST_SV_OJ_IZ) */
@@ -422,6 +443,40 @@
                      , '20' AS PROC_STUS /*작업진행상태*/
                      , S1.CNTR_NO
                      , S1.CNTR_SN
+                     , T4.SV_HSHD_NO
+                     , (SELECT COUNT(*)
+                          FROM TB_SVPD_CST_SV_EXCN_IZ z1 /*고객서비스수행내역*/
+                         INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ z2 /*고객서비스AS설치배정내역*/
+                            ON z1.CNTR_NO = z2.CNTR_NO
+                           AND z1.CNTR_SN = z2.CNTR_SN
+                         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ z3 /*고객서비스AS설치대상내역*/
+                            ON z2.CST_SV_ASN_NO = z3.CST_SV_ASN_NO
+                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL z4
+                            ON z1.PDCT_PD_CD = z4.PD_CD
+                           AND z4.PD_EXTS_PRP_GRP_CD = 'PART'
+                           AND z4.DTA_DL_YN = 'N'
+                         WHERE (WK_EXCN_DT IS NULL OR WK_EXCN_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD'))
+                           AND PD_PRP_VAL19 = '4'
+                           AND WK_PRGS_STAT_CD IN ('00', '10', '20')
+                           AND z1.SV_HSHD_NO = t4.SV_HSHD_NO)
+                     + (SELECT COUNT(*)
+                          FROM TB_SVPD_CST_SV_EXCN_IZ T1 /*고객서비스수행내역*/
+                         INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T2 /*고객서비스BS배정내역*/
+                            ON T1.CNTR_NO = T2.CNTR_NO
+                           AND T1.CNTR_SN = T2.CNTR_SN
+                         INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T3 /*고객서비스BS대상내역*/
+                            ON T2.CST_SV_ASN_NO = T3.CST_SV_ASN_NO
+                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL PDBS1
+                            ON T1.PDCT_PD_CD = PDBS1.PD_CD
+                           AND PDBS1.PD_EXTS_PRP_GRP_CD = 'PART'
+                           AND PDBS1.DTA_DL_YN = 'N'
+                         WHERE PD_PRP_VAL19 = '4'
+                           AND PD_PRP_VAL20 != '11'
+                           AND T3.ASN_OJ_YM || '01' > TO_CHAR(SYSDATE, 'YYYYMM') || '00'
+                           AND T1.REQD_DT IS NULL
+                           AND T1.SV_HSHD_NO = T4.SV_HSHD_NO) AS SV_HSHD_NO_CNT
+                     , S1.SV_BIZ_HCLSF_CD
+                     , S1.SV_BIZ_DCLSF_CD
                   FROM TB_SVPD_CST_SV_WK_RS_IZ S1/*고객서비스작업결과내역*/
                  INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2 /*고객서비스AS설치배정내역*/
                     ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
@@ -439,6 +494,9 @@
                     ON P1.PRTNR_NO = S2.WK_PRTNR_NO
                    AND P1.OG_TP_CD = S2.WK_PRTNR_OG_TP_CD
                    AND P1.BASE_YM = SUBSTR(S1.CST_SV_ASN_NO,2,6)
+                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4 /*고객서비스수행내역*/
+                    ON S1.CNTR_NO = T4.CNTR_NO
+                   AND S1.CNTR_SN = T4.CNTR_SN
                  WHERE 1=1
                    AND (CASE WHEN S1.SV_BIZ_HCLSF_CD = '9' THEN '1'
                              ELSE S1.SV_BIZ_HCLSF_CD
@@ -499,6 +557,40 @@
                    , S2.VST_PRGS_STAT_CD AS PROC_STUS /*작업진행상태*/
                    , S1.CNTR_NO
                    , S1.CNTR_SN
+                   , T4.SV_HSHD_NO
+                   , (SELECT COUNT(*)
+                        FROM TB_SVPD_CST_SV_EXCN_IZ z1 /*고객서비스수행내역*/
+                       INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ z2 /*고객서비스AS설치배정내역*/
+                          ON z1.CNTR_NO = z2.CNTR_NO
+                         AND z1.CNTR_SN = z2.CNTR_SN
+                       INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ z3 /*고객서비스AS설치대상내역*/
+                          ON z2.CST_SV_ASN_NO = z3.CST_SV_ASN_NO
+                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL z4
+                          ON z1.PDCT_PD_CD = z4.PD_CD
+                         AND z4.PD_EXTS_PRP_GRP_CD = 'PART'
+                         AND z4.DTA_DL_YN = 'N'
+                       WHERE (WK_EXCN_DT IS NULL OR WK_EXCN_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD'))
+                         AND PD_PRP_VAL19 = '4'
+                         AND WK_PRGS_STAT_CD IN ('00', '10', '20')
+                         AND z1.SV_HSHD_NO = t4.SV_HSHD_NO)
+                   + (SELECT COUNT(*)
+                        FROM TB_SVPD_CST_SV_EXCN_IZ T1 /*고객서비스수행내역*/
+                       INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T2 /*고객서비스BS배정내역*/
+                          ON T1.CNTR_NO = T2.CNTR_NO
+                         AND T1.CNTR_SN = T2.CNTR_SN
+                       INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T3 /*고객서비스BS대상내역*/
+                          ON T2.CST_SV_ASN_NO = T3.CST_SV_ASN_NO
+                        INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL PDBS1
+                           ON T1.PDCT_PD_CD = PDBS1.PD_CD
+                          AND PDBS1.PD_EXTS_PRP_GRP_CD = 'PART'
+                          AND PDBS1.DTA_DL_YN = 'N'
+                        WHERE PD_PRP_VAL19 = '4'
+                          AND PD_PRP_VAL20 != '11'
+                          AND T3.ASN_OJ_YM || '01' > TO_CHAR(SYSDATE, 'YYYYMM') || '00'
+                          AND T1.REQD_DT IS NULL
+                          AND T1.SV_HSHD_NO = T4.SV_HSHD_NO) AS SV_HSHD_NO_CNT
+                   , S1.SV_BIZ_HCLSF_CD
+                   , S1.SV_BIZ_DCLSF_CD
                 FROM TB_SVPD_CST_SV_WK_RS_IZ S1/*고객서비스작업결과내역*/
                INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ S2 /*고객서비스BS배정내역*/
                   ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
@@ -516,6 +608,9 @@
                   ON P1.PRTNR_NO = S2.CNFM_PSIC_PRTNR_NO
                  AND P1.OG_TP_CD = S2.CNFM_PSIC_PRTNR_OG_TP_CD
                  AND P1.BASE_YM = S2.ASN_OJ_YM
+               INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4 /*고객서비스수행내역*/
+                  ON S1.CNTR_NO = T4.CNTR_NO
+                 AND S1.CNTR_SN = T4.CNTR_SN
                WHERE 1=1
                  AND S1.DTA_DL_YN = 'N'
               )
@@ -571,6 +666,40 @@
                 , S2.WK_PRGS_STAT_CD AS PROC_STUS /*작업진행상태*/
                 , S2.CNTR_NO
                 , S2.CNTR_SN
+                , T4.SV_HSHD_NO
+                , (SELECT COUNT(*)
+                     FROM TB_SVPD_CST_SV_EXCN_IZ z1 /*고객서비스수행내역*/
+                    INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ z2 /*고객서비스AS설치배정내역*/
+                       ON z1.CNTR_NO = z2.CNTR_NO
+                      AND z1.CNTR_SN = z2.CNTR_SN
+                    INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ z3 /*고객서비스AS설치대상내역*/
+                       ON z2.CST_SV_ASN_NO = z3.CST_SV_ASN_NO
+                    INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL z4
+                       ON z1.PDCT_PD_CD = z4.PD_CD
+                      AND z4.PD_EXTS_PRP_GRP_CD = 'PART'
+                      AND z4.DTA_DL_YN = 'N'
+                    WHERE (WK_EXCN_DT IS NULL OR WK_EXCN_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD'))
+                      AND PD_PRP_VAL19 = '4'
+                      AND WK_PRGS_STAT_CD IN ('00', '10', '20')
+                      AND z1.SV_HSHD_NO = t4.SV_HSHD_NO)
+                + (SELECT COUNT(*)
+                     FROM TB_SVPD_CST_SV_EXCN_IZ T1 /*고객서비스수행내역*/
+                    INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T2 /*고객서비스BS배정내역*/
+                       ON T1.CNTR_NO = T2.CNTR_NO
+                      AND T1.CNTR_SN = T2.CNTR_SN
+                    INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T3 /*고객서비스BS대상내역*/
+                       ON T2.CST_SV_ASN_NO = T3.CST_SV_ASN_NO
+                    INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL PDBS1
+                       ON T1.PDCT_PD_CD = PDBS1.PD_CD
+                      AND PDBS1.PD_EXTS_PRP_GRP_CD = 'PART'
+                      AND PDBS1.DTA_DL_YN = 'N'
+                    WHERE PD_PRP_VAL19 = '4'
+                      AND PD_PRP_VAL20 != '11'
+                      AND T3.ASN_OJ_YM || '01' > TO_CHAR(SYSDATE, 'YYYYMM') || '00'
+                      AND T1.REQD_DT IS NULL
+                      AND T1.SV_HSHD_NO = T4.SV_HSHD_NO) AS SV_HSHD_NO_CNT
+                , S2.SV_BIZ_HCLSF_CD
+                , S2.SV_BIZ_DCLSF_CD
              FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S2 /*고객서비스AS배정내역*/
              LEFT OUTER JOIN TB_SVST_SV_WK_OSTR_IZ S3 /*서비스작업출고내역*/
                ON S2.CST_SV_ASN_NO = S3.CST_SV_ASN_NO
@@ -584,6 +713,9 @@
                ON P1.PRTNR_NO = DECODE(S2.WK_PRGS_STAT_CD, '20', S2.WK_PRTNR_NO, S2.ICHR_PRTNR_NO)
               AND P1.OG_TP_CD = DECODE(S2.WK_PRGS_STAT_CD, '20', S2.WK_PRTNR_OG_TP_CD, S2.ICHR_OG_TP_CD)
               AND P1.BASE_YM = SUBSTR(S2.CST_SV_ASN_NO,2,6)
+            INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4 /*고객서비스수행내역*/
+               ON S2.CNTR_NO = T4.CNTR_NO
+              AND S2.CNTR_SN = T4.CNTR_SN
             WHERE 1=1
               AND S2.WK_PRGS_STAT_CD != '20'
               AND S2.DTA_DL_YN = 'N'
@@ -634,6 +766,40 @@
                    , S2.VST_PRGS_STAT_CD AS PROC_STUS /*작업진행상태*/
                    , S2.CNTR_NO
                    , S2.CNTR_SN
+                   , T4.SV_HSHD_NO
+                   , (SELECT COUNT(*)
+                        FROM TB_SVPD_CST_SV_EXCN_IZ z1 /*고객서비스수행내역*/
+                       INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ z2 /*고객서비스AS설치배정내역*/
+                          ON z1.CNTR_NO = z2.CNTR_NO
+                         AND z1.CNTR_SN = z2.CNTR_SN
+                       INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ z3 /*고객서비스AS설치대상내역*/
+                          ON z2.CST_SV_ASN_NO = z3.CST_SV_ASN_NO
+                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL z4
+                          ON z1.PDCT_PD_CD = z4.PD_CD
+                         AND z4.PD_EXTS_PRP_GRP_CD = 'PART'
+                         AND z4.DTA_DL_YN = 'N'
+                       WHERE (WK_EXCN_DT IS NULL OR WK_EXCN_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD'))
+                         AND PD_PRP_VAL19 = '4'
+                         AND WK_PRGS_STAT_CD IN ('00', '10', '20')
+                         AND z1.SV_HSHD_NO = t4.SV_HSHD_NO)
+                   + (SELECT COUNT(*)
+                        FROM TB_SVPD_CST_SV_EXCN_IZ T1 /*고객서비스수행내역*/
+                       INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T2 /*고객서비스BS배정내역*/
+                          ON T1.CNTR_NO = T2.CNTR_NO
+                         AND T1.CNTR_SN = T2.CNTR_SN
+                       INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T3 /*고객서비스BS대상내역*/
+                          ON T2.CST_SV_ASN_NO = T3.CST_SV_ASN_NO
+                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL PDBS1
+                          ON T1.PDCT_PD_CD = PDBS1.PD_CD
+                         AND PDBS1.PD_EXTS_PRP_GRP_CD = 'PART'
+                         AND PDBS1.DTA_DL_YN = 'N'
+                       WHERE PD_PRP_VAL19 = '4'
+                         AND PD_PRP_VAL20 != '11'
+                         AND T3.ASN_OJ_YM || '01' > TO_CHAR(SYSDATE, 'YYYYMM') || '00'
+                         AND T1.REQD_DT IS NULL
+                         AND T1.SV_HSHD_NO = T4.SV_HSHD_NO) AS SV_HSHD_NO_CNT
+                   , SUBSTR(S2.CST_SV_ASN_NO, 0,1) AS SV_BIZ_HCLSF_CD
+                   , S2.SV_BIZ_DCLSF_CD
                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S2 /*고객서비스BS배정내역*/
                 LEFT OUTER JOIN TB_SVST_SV_WK_OSTR_IZ S3 /*서비스작업출고내역*/
                   ON S2.CST_SV_ASN_NO = S3.CST_SV_ASN_NO
@@ -649,6 +815,9 @@
                   ON P1.PRTNR_NO = S2.CNFM_PSIC_PRTNR_NO
                  AND P1.OG_TP_CD = S2.CNFM_PSIC_PRTNR_OG_TP_CD
                  AND P1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+               INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T4 /*고객서비스수행내역*/
+                  ON S2.CNTR_NO = T4.CNTR_NO
+                 AND S2.CNTR_SN = T4.CNTR_SN
                 WHERE 1=1
                   AND S2.VST_PRGS_STAT_CD != '20'
                   AND S2.DTA_DL_YN = 'N'

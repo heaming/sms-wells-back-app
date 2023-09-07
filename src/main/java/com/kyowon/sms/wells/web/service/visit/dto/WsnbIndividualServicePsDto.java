@@ -20,6 +20,7 @@ public class WsnbIndividualServicePsDto {
         String cntrNoDtl, /*계약상세번호*/
         String cstNm, /*고객성명*/
         String cstGdNm, /*고객등급*/
+        String fxnPrtnrNm, /*고정방문자명*/
         String locaraTno, /*전화번호(지역전화번호)*/
         String exnoEncr, /*전화번호(전화국번호암호화)*/
         String idvTno, /*전화번호(개별전화번호)*/
@@ -100,33 +101,42 @@ public class WsnbIndividualServicePsDto {
 
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchStateRes")
     public record SearchStateRes(
-        String cstSvAsnNo,
-        String svTp,
-        String rcpDt,
-        String svBizDclsf,
-        String reqDt,
-        String vstFshDt,
-        String wkPrgsStat,
-        String asCaus,
-        String rtngdProcsTp,
-        String fstVstFshDt,
-        String zipNo,
-        String ogTp,
-        String ogNm,
-        String prtnrNo,
-        String prtnrNm,
-        String cralLocaraTno,
-        String mexnoEncr,
-        String cralIdvTno,
-        String bldNm,
-        String bcNo,
-        String imgYn,
-        String istEnvrPhoPhDocId,
-        String istKitPhoPhDocId,
-        String istCelngPhoPhDocId,
-        String istEnvrFileUid,
-        String istKitFileUid,
-        String istCelngFileUid
+        String cstSvAsnNo, //
+        String svTp, // 유형
+        String rcpDt, // 접수(배정)일자
+        String svBizDclsf, //접수(배정)내역
+        String reqDt, //요청약속일자
+        String vstFshDt, // 처리일자
+        String wkPrgsStat, // 처리결과
+        String asCaus, // 처리내역
+        String rtngdProcsTp, // 반품처리정보
+        String fstVstFshDt, // 폐기일자: 출고확인일자
+        String zipNo, // 우편번호
+        String ogTp, // 구분(담당자)
+        String ogNm, // 소속(담당자)
+        String prtnrNo, // 사번(담당자)
+        String prtnrNm, // 성명(담당자)
+        String cralLocaraTno, // 휴대지역전화번호(담당자)
+        String mexnoEncr, // 휴대전화국번호암호화(담당자)
+        String cralIdvTno, // 휴대개별전화번호(담당자)
+        String bldNm, // 소속빌딩(담당자)
+        String bcNo, // 작업시바코드
+        String imgYn, // 사진
+        String istEnvrPhoPhDocId, // 설치환경사진경로
+        String istKitPhoPhDocId, // 설치키트사진경로
+        String istCelngPhoPhDocId, // 설치천장사진경로
+        String istEnvrFileUid, // 설치환경사진UID
+        String istKitFileUid, //설치키트사진UID
+        String istCelngFileUid, // 설치천장사진UID
+        String svHshdNo, // 가구화번호
+        String svHshdNoCnt, // 가구화번호CNT
+        String svBizHclsfCd, // 서비스대분류코드
+        String svBizDclsfCd, // 서비스소분류코드
+        String procStus, // 작업진행상태코드
+        String cntrNo, //계약번호
+        String cntrSn
+
+
     ){
         public SearchStateRes{
             mexnoEncr = DbEncUtil.dec(mexnoEncr);
