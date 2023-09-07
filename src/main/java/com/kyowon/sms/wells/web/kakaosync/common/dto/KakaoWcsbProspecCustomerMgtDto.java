@@ -136,24 +136,21 @@ public class KakaoWcsbProspecCustomerMgtDto {
 
             final String key = "D8V0Rrqx6LQ7sYsn";
             try {
-                AES256Util aes256 = new AES256Util(key);
-                nickname = aes256.decrypt(StringUtil.nvl(nickname));            //프로필정보-닉네임
-                email = aes256.decrypt(StringUtil.nvl(email));                  //이메일
-                gender = aes256.decrypt(StringUtil.nvl(gender));                //성별
-                birthyear = aes256.decrypt(StringUtil.nvl(birthyear));          //출생년도
-                birthday = aes256.decrypt(StringUtil.nvl(birthday));            //생일
-                phoneNumber = aes256.decrypt(StringUtil.nvl(phoneNumber));    //휴대전화번호
-                zipcode = aes256.decrypt(StringUtil.nvl(zipcode));              //우편번호
-                baseAddress = aes256.decrypt(StringUtil.nvl(baseAddress));    //기본주소
-                detailAddress = aes256.decrypt(StringUtil.nvl(detailAddress)); //상세주소
-                channelYn = aes256.decrypt(StringUtil.nvl(channelYn));        //카카오톡 채널 추가 상태 및 내역
-                auid = aes256.decrypt(StringUtil.nvl(auid));                    //AUID
-                term3Yn = aes256.decrypt(StringUtil.nvl(term3Yn));    //마케팅 목적 처리 동의서
-                employee_id = aes256.decrypt(StringUtil.nvl(employee_id));      //추천인 사번
+                nickname = AES256Util.decrypt(StringUtil.nvl(nickname));            //프로필정보-닉네임
+                email = AES256Util.decrypt(StringUtil.nvl(email));                  //이메일
+                gender = AES256Util.decrypt(StringUtil.nvl(gender));                //성별
+                birthyear = AES256Util.decrypt(StringUtil.nvl(birthyear));          //출생년도
+                birthday = AES256Util.decrypt(StringUtil.nvl(birthday));            //생일
+                phoneNumber = AES256Util.decrypt(StringUtil.nvl(phoneNumber));    //휴대전화번호
+                zipcode = AES256Util.decrypt(StringUtil.nvl(zipcode));              //우편번호
+                baseAddress = AES256Util.decrypt(StringUtil.nvl(baseAddress));    //기본주소
+                detailAddress = AES256Util.decrypt(StringUtil.nvl(detailAddress)); //상세주소
+                channelYn = AES256Util.decrypt(StringUtil.nvl(channelYn));        //카카오톡 채널 추가 상태 및 내역
+                auid = AES256Util.decrypt(StringUtil.nvl(auid));                    //AUID
+                term3Yn = AES256Util.decrypt(StringUtil.nvl(term3Yn));    //마케팅 목적 처리 동의서
+                employee_id = AES256Util.decrypt(StringUtil.nvl(employee_id));      //추천인 사번
                 akdcde = StringUtil.nvl(akdcde);                                //파트너 번호
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            } catch (GeneralSecurityException e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
