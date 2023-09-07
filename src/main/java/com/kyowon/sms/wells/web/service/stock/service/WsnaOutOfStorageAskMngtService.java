@@ -248,12 +248,13 @@ public class WsnaOutOfStorageAskMngtService {
         /* 출고대상창고가 물류창고인경우 */
         if ("1".equals(wareDvCd)) {
             if (createListDvos.size() > 0) {
-                List<String> itemKndCds = createListDvos.stream().map(WsnaOutOfStorageAskMngtDvo::getItemKnd).distinct()
+                List<String> lgstWkMthdCds = createListDvos.stream().map(WsnaOutOfStorageAskMngtDvo::getChkLgstWkMthdCd)
+                    .distinct()
                     .toList();
 
-                for (String itemKndCd : itemKndCds) {
+                for (String lgstWkMthdCd : lgstWkMthdCds) {
                     List<WsnaOutOfStorageAskMngtDvo> items = dvos.stream()
-                        .filter(dvo -> itemKndCd.equals(dvo.getItemKnd()))
+                        .filter(dvo -> lgstWkMthdCd.equals(dvo.getChkLgstWkMthdCd()))
                         .toList();
                     String newOstrAkNo = this.mapper.selectLogisticsNewOstrAkNo(items.get(0));
                     createOstrAkNos.add(newOstrAkNo);

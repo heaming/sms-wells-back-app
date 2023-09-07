@@ -166,7 +166,8 @@ public class WsnaOutOfStorageAskMngtDto {
         int centerQty, // 센터수량
         int indiQty, // 개인수량
         String imgUrl, // 이미지첨부파일ID
-        int cfrmCnt // 방문확정수량
+        int cfrmCnt, // 방문확정수량
+        String chkLgstWkMthdCd //체크용물류작업방식코드
 
     ) {}
 }

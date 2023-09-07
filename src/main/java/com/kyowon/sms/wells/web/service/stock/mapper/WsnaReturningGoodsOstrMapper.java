@@ -13,6 +13,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo;
  * </pre>
  *
  * @author hyewon.kim 김혜원
+ * @author SongTaeSung
  * @since 2023.02.14
  */
 @Mapper
@@ -38,7 +39,7 @@ public interface WsnaReturningGoodsOstrMapper {
 
     String selectNextItmStrNo(FindItmStrNoReq dto);
 
-    List<WsnaReturningGoodsDvo> selectLogisticsReturningGoodsAskInfo(String itmOstrNo, String ostrSn);
+    List<WsnaReturningGoodsDvo> selectLogisticsReturningGoodsAskInfo(String itmOstrNo, List<String> ostrSns);
 
-    List<WsnaReturningGoodsDvo> selectLogisticsRemoveReturn(WsnaReturningGoodsDvo dvo);
+    List<WsnaReturningGoodsDvo> selectLogisticsRemoveReturn(String itmOstrNo, List<String> deleteOstrSns);
 }
