@@ -266,4 +266,24 @@ public class WwdaAutoTransferInterfaceController {
 
         return resWrapper;
     }
+
+    @ApiOperation(value = "[EAI_WWDI1022] EDU 은행계좌유효성체크_SB - Z-WD-S-0027")
+    @PostMapping("/bank-effectiveness-check")
+    public EaiWrapper getBankEffectivenessCheck(
+        @Valid
+        @RequestBody
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SearchBankEffectivenessCheckReq> reqWrapper
+    ) throws Exception {
+        // Response용 EaiWrapper 생성
+        EaiWrapper<WwdaAutoTransferInterfaceDto.SearchBankEffectivenessCheckRes> resWrapper = reqWrapper
+            .newResInstance();
+        // 서비스 메소드 호출
+        WwdaAutoTransferInterfaceDto.SearchBankEffectivenessCheckRes res = service
+            .getBankEffectivenessCheck(reqWrapper.getBody());
+
+        // Response Body 세팅
+        resWrapper.setBody(res);
+
+        return resWrapper;
+    }
 }

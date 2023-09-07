@@ -11,8 +11,11 @@ public class WsnaItemBaseInformationSearchDvo {
     private String itmPdNm;
     private String wareNo;
     private String ostrWareNo;
+    private String ostrWareDvCd;
     private String wareDvCd;
     private String wareDtlDvCd;
+    private String strtSapCd;
+    private String endSapCd;
     // OFFSET
     private Integer offSet;
     // FETCH SIZE

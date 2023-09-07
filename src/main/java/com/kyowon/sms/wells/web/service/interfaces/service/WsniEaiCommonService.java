@@ -61,42 +61,43 @@ public class WsniEaiCommonService {
 
         } catch (ClassNotFoundException e) {
             log.error("[WsniEaiCommonService.doit] ClassNotFoundException ::: Method invoke error!");
-            map.put("RESULT_CODE", "E");
-            map.put("RESULT_MSG", "ClassNotFoundException");
-            map.put("RETURN_OBJECT", null);
+//            map.put("RESULT_CODE", "E");
+//            map.put("RESULT_MSG", "ClassNotFoundException");
+//            map.put("RETURN_OBJECT", null);
             e.printStackTrace();
-//            throw e;
+            throw e;
         } catch (NoSuchMethodException e) {
             log.error("[WsniEaiCommonService.doit] NoSuchMethodException ::: Method invoke error!");
-            map.put("RESULT_CODE", "E");
-            map.put("RESULT_MSG", "NoSuchMethodException");
-            map.put("RETURN_OBJECT", null);
+//            map.put("RESULT_CODE", "E");
+//            map.put("RESULT_MSG", "NoSuchMethodException");
+//            map.put("RETURN_OBJECT", null);
             e.printStackTrace();
-//            throw e;
+            throw e;
         } catch (IllegalAccessException e) {
             log.error("[WsniEaiCommonService.doit] IllegalAccessException ::: Method invoke error!");
-            map.put("RESULT_CODE", "E");
-            map.put("RESULT_MSG", "IllegalAccessException");
-            map.put("RETURN_OBJECT", null);
+//            map.put("RESULT_CODE", "E");
+//            map.put("RESULT_MSG", "IllegalAccessException");
+//            map.put("RETURN_OBJECT", null);
             e.printStackTrace();
-//            throw e;
+            throw e;
         } catch (InvocationTargetException e){
             log.error("[WsniEaiCommonService.doit] InvocationTargetException ::: Method invoke error!");
-            map.put("RESULT_CODE", "E");
-            map.put("RESULT_MSG", "InvocationTargetException");
-            map.put("RETURN_OBJECT", null);
+//            map.put("RESULT_CODE", "E");
+//            map.put("RESULT_MSG", "InvocationTargetException");
+//            map.put("RETURN_OBJECT", null);
             e.printStackTrace();
-//            throw e;
+            throw e;
         } catch (BizException e) {
             log.error("[WsniEaiCommonService.doit] BizException ::: Method invoke error!");
             e.printStackTrace();
+            throw e;
         } catch (Exception e) {
             log.error("[WsniEaiCommonService.doit] Method invoke error!");
-            map.put("RESULT_CODE", "E");
-            map.put("RESULT_MSG", e.getMessage());
-            map.put("RETURN_OBJECT", null);
+//            map.put("RESULT_CODE", "E");
+//            map.put("RESULT_MSG", e.getMessage());
+//            map.put("RETURN_OBJECT", null);
             e.printStackTrace();
-//            throw e;
+            throw e;
         }
         return map;
     }

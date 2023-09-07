@@ -11,6 +11,4 @@ public interface WfeaOrganizationNetOrderConverter {
     WfeaOrganizationNetOrderDvo mapSaveOgNetOrderReqToWfeaOrganizationNetOrderDvo(
         WfeaOrganizationNetOrderDto.SaveOgNetOrderReq dto
     );
-
-    WfeaOrganizationNetOrderDvo mapSaveBsReqToWfeaOrganizationNetOrderDvo(WfeaOrganizationNetOrderDto.SaveBsReq dto);
 }

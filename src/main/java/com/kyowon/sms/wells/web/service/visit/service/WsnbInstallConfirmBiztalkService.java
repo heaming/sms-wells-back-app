@@ -1,19 +1,18 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.stereotype.Service;
-
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallConfirmDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallConfirmBiztalkMapper;
 import com.sds.sflex.system.config.core.service.ConfigurationService;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 /**
  * <pre>
@@ -28,16 +27,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WsnbInstallConfirmBiztalkService {
     private final KakaoMessageService kakaoMessageService;
-    private WsnbInstallConfirmBiztalkMapper mapper;
+    private final WsnbInstallConfirmBiztalkMapper mapper;
     private final ConfigurationService configurationService;
 
-    public int sendInstallConfirmBiztalks() throws Exception {
+    public int sendInstallConfirmBiztalks(Map<String, Object> jobParam) throws Exception {
+
+        log.debug("######################### sendInstallConfirmBiztalks begin #########################");
+
         List<WsnbInstallConfirmDvo> dvos = mapper.selectInstallConfirms();
 
         int processCount = 0;
         String callbackValue = configurationService.getConfigurationValue("CFG_SNB_WELLS_CST_CNR_TNO");
 
         for (WsnbInstallConfirmDvo dvo : dvos) {
+
+            if (dvo == null)
+                break;
+
             Map<String, Object> paramMap = new HashMap<>();
             String hp = dvo.getCralLocaraTno() + dvo.getMexnoEncr() + dvo.getCralIdvTno();
 
@@ -58,7 +64,7 @@ public class WsnbInstallConfirmBiztalkService {
 
             processCount += kakaoMessageService.sendMessage(kakaoSendReqDvo);
         }
-
+        log.debug("######################### sendInstallConfirmBiztalks end #########################");
         return processCount;
     }
 }

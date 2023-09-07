@@ -1,12 +1,11 @@
 package com.kyowon.sms.wells.web.closing.performance.mapper;
 
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccEtcPerformanceInterfaceDto.FindReq;
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccEtcPerformanceInterfaceDto.FindRes;
 import org.apache.ibatis.annotations.Mapper;
 
-import java.util.List;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccEtcPerformanceInterfaceDto.FindReq;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccEtcPerformanceInterfaceDto.FindRes;
 
 @Mapper
 public interface WdccEtcPerformanceInterfaceMapper {
-    List<FindRes> selectOtherLumpSumPerformance(FindReq req);
+    FindRes selectOtherLumpSumPerformance(FindReq req);
 }

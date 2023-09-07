@@ -1,0 +1,701 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.business.mapper.WpsfActivityGoodsMgtMapper">
+
+    <select id="selectApplicationBase" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto$SearchRes">
+        SELECT OG_TP_CD         /* 조직유형코드 */
+             , APLC_PSB_STRT_D  /* 신청가능시작일 */
+             , APLC_PSB_END_D   /* 신청가능종료일 */
+             , RTNGD_PSB_STRT_D /* 반품가능시작일 */
+             , RTNGD_PSB_END_D  /* 반품가능종료일 */
+             , RTNGD_SHRN_EMADR /* 반품공유이메일주소 */
+             , CONF_ARTC_CN     /* 확인사항내용 */
+          FROM TB_PSGA_ACTI_GDS_APLC_BASE_BAS /* 활동물품신청기준기본 */
+         WHERE 1 = 1
+           AND OG_TP_CD         = #{ogTpCd}            /* 조직유형코드 */
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <update id="mergeApplicationBase">
+        MERGE INTO TB_PSGA_ACTI_GDS_APLC_BASE_BAS T1  /* 활동물품신청기준기본 */
+             USING ( SELECT #{ogTpCd} AS OG_TP_CD         /* 조직유형코드 */
+                          , #{aplcPsbStrtD} AS APLC_PSB_STRT_D  /* 신청가능시작일 */
+                          , #{aplcPsbEndD} AS APLC_PSB_END_D   /* 신청가능종료일 */
+                          , #{rtngdPsbStrtD} AS RTNGD_PSB_STRT_D /* 반품가능시작일 */
+                          , #{rtngdPsbEndD} AS RTNGD_PSB_END_D  /* 반품가능종료일 */
+                          , #{rtngdShrnEmadr} AS RTNGD_SHRN_EMADR /* 반품공유이메일주소 */
+                          , #{confArtcCn} AS CONF_ARTC_CN     /* 확인사항내용 */
+                          , #{dtaDlYn} AS DTA_DL_YN        /* 데이터삭제여부 */
+                       FROM DUAL  ) T2
+                ON (T1.OG_TP_CD = T2.OG_TP_CD         /* 조직유형코드 */
+                   )
+        WHEN MATCHED THEN
+          UPDATE SET APLC_PSB_STRT_D = T2.APLC_PSB_STRT_D
+                   , APLC_PSB_END_D = T2.APLC_PSB_END_D
+                   , RTNGD_PSB_STRT_D = T2.RTNGD_PSB_STRT_D
+                   , RTNGD_PSB_END_D = T2.RTNGD_PSB_END_D
+                   , RTNGD_SHRN_EMADR = T2.RTNGD_SHRN_EMADR
+                   , CONF_ARTC_CN = T2.CONF_ARTC_CN
+                   , DTA_DL_YN = T2.DTA_DL_YN
+                <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+          INSERT (
+                     OG_TP_CD
+                   , APLC_PSB_STRT_D
+                   , APLC_PSB_END_D
+                   , RTNGD_PSB_STRT_D
+                   , RTNGD_PSB_END_D
+                   , RTNGD_SHRN_EMADR
+                   , CONF_ARTC_CN
+                   , DTA_DL_YN
+                <include refid="COMMON.insertSystemField" />
+          ) VALUES (
+                     T2.OG_TP_CD
+                   , T2.APLC_PSB_STRT_D
+                   , T2.APLC_PSB_END_D
+                   , T2.RTNGD_PSB_STRT_D
+                   , T2.RTNGD_PSB_END_D
+                   , T2.RTNGD_SHRN_EMADR
+                   , T2.CONF_ARTC_CN
+                   , T2.DTA_DL_YN
+                <include refid="COMMON.insertSystemFieldValue" />  )
+    </update>
+
+    <select id="selectActivityGoodsBase" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto$SearchAcriGdsBasRes">
+        SELECT NVL(F_CMZ_CD_NM(#{session.tenantId}, 'OG_TP_CD', T1.OG_TP_CD, #{session.langId}), T1.OG_TP_CD) AS OG_TP_CD /*조직유형코드*/
+             , NVL(F_CMZ_CD_NM(#{session.tenantId}, 'ACTI_GDS_CD', T1.ACTI_GDS_CD, #{session.langId}), T1.ACTI_GDS_CD) AS ACTI_GDS_CD /*활동물품코드명*/
+             , T1.ACTI_GDS_SN         /* 활동물품일련번호 */
+             , T1.ACTI_GDS_NM         /* 활동물품명 */
+             , T1.ACTI_GDS_AMT        /* 활동물품금액 */
+             , T1.PAT_DDTN_MCN        /* 분할공제개월수 */
+             , T1.VL_STRTDT           /* 유효시작일자 */
+             , T1.VL_ENDDT            /* 유효종료일자 */
+             , T1.ACTI_GDS_STDD_DV_ID /* 활동물품규격구분ID */
+             , T1.USE_YN              /* 사용여부 */
+             , T1.FST_RGST_DTM        /* 최초등록일시 */
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FST_RGST_USR_ID AND DEL_YN = 'N') AS FST_RGST_USR_NM
+          FROM TB_PSGA_ACTI_GDS_BAS T1 /* 활동물품기본 */
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN  ='N'         /* 데이터삭제여부 */
+          <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
+           AND T1.OG_TP_CD         = #{ogTpCd}          /* 활동물품코드 */
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(actiGdsCd)'>
+           AND T1.ACTI_GDS_CD         = #{actiGdsCd}          /* 활동물품코드 */
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(actiGdsSn)'>
+           AND T1.ACTI_GDS_SN         = ${actiGdsSn}          /* 활동물품일련번호 */
+          </if>
+          ORDER BY T1.ACTI_GDS_SN DESC
+    </select>
+
+    <select id="selectMaxActivityGoodsBase" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto$SearchAcriGdsBasRes">
+        SELECT T1.OG_TP_CD            /* 조직유형코드 */
+             , T1.ACTI_GDS_CD         /* 활동물품코드 */
+             , T1.ACTI_GDS_SN         /* 활동물품일련번호 */
+             , T1.ACTI_GDS_NM         /* 활동물품명 */
+             , T1.ACTI_GDS_AMT        /* 활동물품금액 */
+             , T1.PAT_DDTN_MCN        /* 분할공제개월수 */
+             , T1.VL_STRTDT           /* 유효시작일자 */
+             , T1.VL_ENDDT            /* 유효종료일자 */
+             , T1.ACTI_GDS_STDD_DV_ID /* 활동물품규격구분ID */
+             , T1.USE_YN              /* 사용여부 */
+             , T1.FST_RGST_DTM        /* 최초등록일시 */
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FST_RGST_USR_ID AND DEL_YN = 'N') AS FST_RGST_USR_NM
+          FROM TB_PSGA_ACTI_GDS_BAS T1 INNER JOIN (
+                SELECT OG_TP_CD            /* 조직유형코드 */
+		             , ACTI_GDS_CD         /* 활동물품코드 */
+		             , MAX(ACTI_GDS_SN)   MAX_ACTI_GDS_SN       /* 활동물품일련번호 */
+		          FROM TB_PSGA_ACTI_GDS_BAS
+                 WHERE DTA_DL_YN  ='N'         /* 데이터삭제여부 */
+                 GROUP BY OG_TP_CD,ACTI_GDS_CD
+                ) T2
+             ON T1.OG_TP_CD=T2.OG_TP_CD
+            AND T1.ACTI_GDS_CD=T2.ACTI_GDS_CD
+            AND T1.ACTI_GDS_SN=T2.MAX_ACTI_GDS_SN
+          WHERE T1.DTA_DL_YN  ='N'         /* 데이터삭제여부 */
+          ORDER BY T1.OG_TP_CD, T1.ACTI_GDS_SN DESC
+    </select>
+
+    <select id="selectGdsBaseCodes" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto$SearchBaseCodeRes">
+        SELECT T1.ACTI_GDS_SN CODE_ID       /* 활동물품일련번호 */
+             , T1.ACTI_GDS_NM CODE_NAME        /* 활동물품명 */
+             , T1.ACTI_GDS_CD PRTS_CODE_ID
+             , T1.ACTI_GDS_STDD_DV_ID
+          FROM TB_PSGA_ACTI_GDS_BAS T1 INNER JOIN (
+                SELECT OG_TP_CD            /* 조직유형코드 */
+		             , ACTI_GDS_CD         /* 활동물품코드 */
+		             , MAX(ACTI_GDS_SN)   MAX_ACTI_GDS_SN       /* 활동물품일련번호 */
+		          FROM TB_PSGA_ACTI_GDS_BAS
+                 WHERE DTA_DL_YN  ='N'         /* 데이터삭제여부 */
+                <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
+                   AND OG_TP_CD         = #{ogTpCd}          /* 활동물품코드 */
+                </if>
+                   AND USE_YN = 'Y'
+                 GROUP BY OG_TP_CD,ACTI_GDS_CD
+                ) T2
+             ON T1.OG_TP_CD=T2.OG_TP_CD
+            AND T1.ACTI_GDS_CD=T2.ACTI_GDS_CD
+            AND T1.ACTI_GDS_SN=T2.MAX_ACTI_GDS_SN
+          WHERE T1.DTA_DL_YN  = 'N'         /* 데이터삭제여부 */
+            AND T1.USE_YN = 'Y'
+          ORDER BY T1.OG_TP_CD, T1.ACTI_GDS_SN DESC
+    </select>
+
+
+
+    <select id="selectMaxActiGdsSn" resultType="integer">
+        SELECT NVL(MAX(ACTI_GDS_SN),0)+1 FROM TB_PSGA_ACTI_GDS_BAS
+    </select>
+
+    <insert id="insertActivityGoodsBase">
+        INSERT INTO TB_PSGA_ACTI_GDS_BAS (  /* 활동물품기본 */
+               OG_TP_CD            /* 조직유형코드 */
+             , ACTI_GDS_CD         /* 활동물품코드 */
+             , ACTI_GDS_SN         /* 활동물품일련번호 */
+             , ACTI_GDS_NM         /* 활동물품명 */
+             , ACTI_GDS_AMT        /* 활동물품금액 */
+             , PAT_DDTN_MCN        /* 분할공제개월수 */
+             , VL_STRTDT           /* 유효시작일자 */
+             , VL_ENDDT            /* 유효종료일자 */
+             , ACTI_GDS_STDD_DV_ID /* 활동물품규격구분ID */
+             , USE_YN              /* 사용여부 */
+             , DTA_DL_YN           /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{ogTpCd}
+             , #{actiGdsCd}
+             , #{actiGdsSn}
+             , #{actiGdsNm}
+             , #{actiGdsAmt}
+             , #{patDdtnMcn}
+             , #{vlStrtdt}
+             , #{vlEnddt}
+             , #{actiGdsStddDvId}
+             , #{useYn}
+             , #{dtaDlYn}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateGoodsBase">
+        UPDATE TB_PSGA_ACTI_GDS_BAS /* 활동물품기본 */
+           SET DTA_DL_YN           = #{dtaDlYn}            /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OG_TP_CD            = #{ogTpCd}             /* 조직유형코드 */
+           AND ACTI_GDS_CD         = #{actiGdsCd}          /* 활동물품코드 */
+           AND ACTI_GDS_SN         = ${actiGdsSn}          /* 활동물품일련번호 */
+    </update>
+
+    <select id="selectActivityGoodsApplicationIzPages" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto$SearchStatRes">
+        WITH EXAMPLE1 AS (  /*활동물품공제내역*/
+            SELECT MAX(FEE_DDTN_OC_DT) MAX_FEE_DDTN_OC_DT
+                 , ACTI_GDS_APLC_ID
+                 , NVL(SUM(FEE_DDTN_DST_AMT),0) SUM_FEE_DDTN_DST_AMT
+                 , NVL(COUNT(FEE_DDTN_DST_AMT),0) COUNT_MCN
+                 , MAX(ACTI_GDS_DDTN_ID) ACTI_GDS_DDTN_ID
+              FROM TB_PSGA_ACTI_GDS_DDTN_IZ
+             WHERE DTA_DL_YN ='N'
+             GROUP BY ACTI_GDS_APLC_ID
+        )
+        SELECT T1.ACTI_GDS_APLC_ID /* 활동물품신청ID */
+             , T1.OG_TP_CD         /* 조직유형코드 */
+             , T1.ACTI_GDS_CD      /* 활동물품코드 */
+             , T1.ACTI_GDS_SN      /* 활동물품일련번호 */
+             , T1.APLC_QTY
+             , T6.ACTI_GDS_NM      /* 활동물품명 */
+             , (T6.ACTI_GDS_AMT * T1.APLC_QTY) ACTI_GDS_AMT
+	         , T6.PAT_DDTN_MCN
+             , CASE WHEN (T9.COUNT_MCN)+1 = T6.PAT_DDTN_MCN THEN ((T6.ACTI_GDS_AMT * T1.APLC_QTY ) -T9.SUM_FEE_DDTN_DST_AMT)
+               ELSE TRUNC((T6.ACTI_GDS_AMT * T1.APLC_QTY ) / T6.PAT_DDTN_MCN)
+               END AS PNPYAM_OC_AMT
+             , T9.MAX_FEE_DDTN_OC_DT
+             , NVL(T9.SUM_FEE_DDTN_DST_AMT,0) SUM_FEE_DDTN_DST_AMT
+             , NVL(T9.COUNT_MCN,0) COUNT_MCN
+             , T9.ACTI_GDS_DDTN_ID
+             , T1.ACTI_GDS_STDD_CD /* 활동물품규격코드 */
+             , T10.ACTI_GDS_STDD_NM
+             , T1.PRTNR_NO         /* 파트너번호 */
+             , T2.ACTI_GDS_APLC_SN /* 활동물품신청일련번호 */
+             , T2.ACTI_GDS_APLC_STAT_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'ACTI_GDS_APLC_STAT_CD', T2.ACTI_GDS_APLC_STAT_CD, #{session.langId}) AS ACTI_GDS_APLC_STAT_NM
+             , T2.APLC_DT          /* 최종 신청일자 */
+             , T2.APLC_RSON_CN     /* 최종 신청사유내용 */
+             , T2.SPP_DT           /* 최종 배송일자 */
+             , T2.SPP_BZS_CD       /* 최종 배송업체코드 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SPP_BZS_CD', T2.SPP_BZS_CD, #{session.langId}) AS SPP_BZS_NM
+             , T2.SPP_IVC_NO       /* 최종 배송송장번호 */
+
+             , T201.APLC_DT AS APLC_DT_S        /* 신청일자 */
+
+             , T5.PRTNR_KNM /* 성명 */
+             , T5.BLD_NM
+             , T5.CRAL_LOCARA_TNO
+             , T5.MEXNO_ENCR
+             , T5.CRAL_IDV_TNO
+             , T5.CLTN_DT  /* 해약일자 */
+             , T5.CNTR_DT  /* 계약일자 */
+             , CASE WHEN (
+                    SELECT COUNT(1)
+                      FROM TB_OGBS_MM_PRTNR_IZ
+                     WHERE OG_TP_CD = T1.OG_TP_CD
+                       AND PRTNR_NO = T1.PRTNR_NO
+                       AND BASE_YM <![CDATA[<=]]> SUBSTR(T1.FST_RGST_DTM, 1, 6)
+             )  <![CDATA[>]]>  0 THEN '추가' ELSE '신입'
+           END BASE_DV_NM
+            , TO_CHAR(ADD_MONTHS(TO_DATE(T3.CNTR_DT, 'YYYYMMDD'), 1), 'YYYY-MM') AS START_YRMN
+          FROM TB_PSGA_ACTI_GDS_APLC_IZ T1 LEFT JOIN TB_OGBS_PRTNR_DTL T3
+            ON T3.OG_TP_CD = T1.OG_TP_CD
+           AND T3.PRTNR_NO = T1.PRTNR_NO
+          LEFT JOIN TB_PSGA_ACTI_GDS_BAS T6
+            ON T1.ACTI_GDS_CD = T6.ACTI_GDS_CD
+           AND T1.ACTI_GDS_SN = T6.ACTI_GDS_SN
+          LEFT JOIN
+            (
+             SELECT A.ACTI_GDS_APLC_SN /* 활동물품신청일련번호 */
+                  , A.ACTI_GDS_APLC_ID
+                  , A.ACTI_GDS_APLC_STAT_CD
+                  , A.APLC_DT          /* 신청일자 */
+                  , A.APLC_RSON_CN     /* 신청사유내용 */
+                  , A.SPP_DT           /* 배송일자 */
+                  , A.SPP_BZS_CD       /* 배송업체코드 */
+                  , A.SPP_IVC_NO       /* 배송송장번호 */
+                  , A.DTA_DL_YN
+              FROM TB_PSGA_ACTI_GDS_APLC_STAT_IZ A INNER JOIN (
+                    SELECT ACTI_GDS_APLC_ID
+                         , MAX(ACTI_GDS_APLC_SN)   MAX_ACTI_GDS_APLC_SN      /* 활동물품일련번호 */
+                      FROM TB_PSGA_ACTI_GDS_APLC_STAT_IZ
+                     WHERE DTA_DL_YN  ='N'         /* 데이터삭제여부 */
+                     GROUP BY ACTI_GDS_APLC_ID
+                    ) B
+                    ON A.ACTI_GDS_APLC_ID = B.ACTI_GDS_APLC_ID
+                   AND A.ACTI_GDS_APLC_SN = B.MAX_ACTI_GDS_APLC_SN
+            ) T2 /* 활동물품신청내역,활동물품신청상태내역  */
+            ON T1.ACTI_GDS_APLC_ID = T2.ACTI_GDS_APLC_ID
+          LEFT JOIN TB_PSGA_ACTI_GDS_APLC_STAT_IZ T201
+            ON T1.ACTI_GDS_APLC_ID = T201.ACTI_GDS_APLC_ID
+           AND T201.ACTI_GDS_APLC_STAT_CD ='01'
+           AND T201.DTA_DL_YN = 'N'
+          LEFT JOIN (
+                SELECT IZ.PRTNR_KNM /* 성명 */
+                     , IZ.PRTNR_NO /* 번호 */
+                     , MZ.BLD_NM
+                     , PB.CRAL_LOCARA_TNO
+                     , PB.MEXNO_ENCR
+                     , PB.CRAL_IDV_TNO
+                     , IZ.OG_TP_CD
+                     , MZ.BASE_YM
+                     , IZ.BZ_STAT_CD
+                     , IZ.CLTN_DT  /* 해약일자 */
+                     , IZ.CNTR_DT  /* 계약일자 */
+                  FROM TB_OGBS_MM_OG_IZ MZ /* 월조직내역 */
+                 INNER JOIN TB_OGBS_MM_PRTNR_IZ IZ /* 월파트너내역 */
+                    ON IZ.BASE_YM = MZ.BASE_YM /* 기준년월 */
+                   AND IZ.OG_TP_CD = MZ.OG_TP_CD /* 조직유형코드 */
+                   AND IZ.OG_ID = MZ.OG_ID /* 조직ID */
+                   AND MZ.DTA_DL_YN = 'N'
+                 INNER JOIN TB_OGBS_PRTNR_BAS PB
+                    ON IZ.OG_TP_CD = PB.OG_TP_CD
+                   AND IZ.PRTNR_NO = PB.PRTNR_NO
+             ) T5
+            ON T5.PRTNR_NO = T1.PRTNR_NO
+           AND T5.OG_TP_CD = T1.OG_TP_CD
+           AND T5.BASE_YM = SUBSTR(T1.FST_RGST_DTM, 1, 6)
+          LEFT JOIN EXAMPLE1 T9
+            ON T1.ACTI_GDS_APLC_ID = T9.ACTI_GDS_APLC_ID
+          LEFT JOIN TB_PSGA_ACTI_GDS_STDD_DV_DTL T10
+            ON T10.ACTI_GDS_STDD_DV_ID = T6.ACTI_GDS_STDD_DV_ID
+           AND T10.ACTI_GDS_STDD_CD = T1.ACTI_GDS_STDD_CD
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN ='N'
+           AND T2.DTA_DL_YN ='N'
+          <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
+           AND T1.OG_TP_CD =#{ogTpCd}
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(bzStatCd)'>
+           AND T5.BZ_STAT_CD =#{bzStatCd}
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(aplcDt)'>
+           AND T201.APLC_DT BETWEEN TO_CHAR(TO_DATE(#{aplcDt}||'01', 'YYYYMMDD'), 'YYYYMMDD')
+           AND TO_CHAR(LAST_DAY(TO_DATE(#{aplcDt}, 'YYYYMM')), 'YYYYMMDD')  /* 신청일자 */
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(actiGdsAplcId)'>
+           AND T1.ACTI_GDS_APLC_ID = #{actiGdsAplcId}    /* 활동물품신청ID */
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(actiGdsSn)'>
+           AND T1.ACTI_GDS_SN  = #{actiGdsSn}     /* 활동물품일련번호 */
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(aplcQty)'>
+           AND T1.APLC_QTY      = #{aplcQty}    /* 신청수량 */
+          </if>
+          <if test='@MybatisUtils@isNotEmpty(actiGdsStddCd)'>
+           AND T1.ACTI_GDS_STDD_CD = #{actiGdsStddCd}    /* 활동물품규격코드 */
+          </if>
+        <choose>
+            <when test='@MybatisUtils@equals(session.baseRleCd, "W2010")'> <!-- 플래너 -->
+           AND T1.PRTNR_NO = #{session.employeeIDNumber}   /* 파트너번호 */
+            </when>
+            <otherwise>
+              <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND T1.PRTNR_NO = #{prtnrNo}    /* 파트너번호 */
+              </if>
+            </otherwise>
+        </choose>
+         ORDER BY T1.ACTI_GDS_APLC_ID DESC,T2.ACTI_GDS_APLC_SN DESC
+
+    </select>
+
+    <select id="selectActiGdsAplcId" resultType="String">
+        SELECT LPAD((NVl(MAX(ACTI_GDS_APLC_ID),0)+1),15,0)  FROM TB_PSGA_ACTI_GDS_APLC_IZ
+    </select>
+
+    <select id="selectGoodsBase" resultType="com.kyowon.sms.wells.web.competence.business.dvo.WpsfActivityGoodsBaseDvo">
+        SELECT T1.OG_TP_CD,T1.ACTI_GDS_CD,T1.ACTI_GDS_STDD_DV_ID,T1.ACTI_GDS_SN
+          FROM TB_PSGA_ACTI_GDS_BAS T1 INNER JOIN (
+                SELECT OG_TP_CD            /* 조직유형코드 */
+		             , ACTI_GDS_CD         /* 활동물품코드 */
+		             , MAX(ACTI_GDS_SN)   MAX_ACTI_GDS_SN       /* 활동물품일련번호 */
+		          FROM TB_PSGA_ACTI_GDS_BAS
+                 WHERE DTA_DL_YN  ='N'         /* 데이터삭제여부 */
+                 GROUP BY OG_TP_CD,ACTI_GDS_CD
+                ) T2
+             ON T1.OG_TP_CD=T2.OG_TP_CD
+            AND T1.ACTI_GDS_CD=T2.ACTI_GDS_CD
+            AND T1.ACTI_GDS_SN=T2.MAX_ACTI_GDS_SN
+          WHERE TRIM(T1.ACTI_GDS_CD) = TRIM(#{actiGdsCd})
+            AND T1.OG_TP_CD = #{ogTpCd}
+    </select>
+
+    <insert id="insertActiGdsAplcIz">
+        INSERT INTO TB_PSGA_ACTI_GDS_APLC_IZ (  /* 활동물품신청내역 */
+               ACTI_GDS_APLC_ID /* 활동물품신청ID */
+             , OG_TP_CD         /* 조직유형코드 */
+             , ACTI_GDS_CD      /* 활동물품코드 */
+             , ACTI_GDS_SN      /* 활동물품일련번호 */
+             , APLC_QTY         /* 신청수량 */
+             , ACTI_GDS_STDD_CD /* 활동물품규격코드 */
+             , PRTNR_NO         /* 파트너번호 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{actiGdsAplcId}
+             , #{ogTpCd}
+             , #{actiGdsCd}
+             , #{actiGdsSn}
+             , #{aplcQty}
+             , #{actiGdsStddCd}
+        <choose>
+            <when test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+             , #{prtnrNo}
+            </when>
+            <otherwise>
+             , #{session.employeeIDNumber}
+            </otherwise>
+        </choose>
+             , #{dtaDlYn}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateActiGdsAplcIz">
+        UPDATE TB_PSGA_ACTI_GDS_APLC_IZ /* 활동물품신청내역 */
+           SET OG_TP_CD         = #{ogTpCd}           /* 조직유형코드 */
+             , ACTI_GDS_CD      = #{actiGdsCd}        /* 활동물품코드 */
+             , ACTI_GDS_SN      = #{actiGdsSn}        /* 활동물품일련번호 */
+             , APLC_QTY         = #{aplcQty}          /* 신청수량 */
+             , ACTI_GDS_STDD_CD = #{actiGdsStddCd}    /* 활동물품규격코드 */
+             , PRTNR_NO         = #{prtnrNo}          /* 파트너번호 */
+             , DTA_DL_YN        = #{dtaDlYn}          /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ACTI_GDS_APLC_ID = #{actiGdsAplcId}    /* 활동물품신청ID */
+    </update>
+
+
+    <update id="updateActiGdsAplcIzSn">
+        UPDATE TB_PSGA_ACTI_GDS_APLC_IZ /* 활동물품신청내역 */
+           SET ACTI_GDS_SN      = #{newActiGdsSn}        /* 활동물품일련번호 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OG_TP_CD         = #{ogTpCd}           /* 조직유형코드 */
+           AND ACTI_GDS_CD      = #{actiGdsCd}        /* 활동물품코드 */
+           AND ACTI_GDS_SN      = #{actiGdsSn}        /* 활동물품일련번호 */
+    </update>
+
+    <select id="selectMaxActiGdsAplcSn" resultType="integer">
+        SELECT NVL(MAX(ACTI_GDS_APLC_SN),0)+1 FROM TB_PSGA_ACTI_GDS_APLC_STAT_IZ
+    </select>
+
+    <insert id="insertActiGdsAplcStatIz">
+        INSERT INTO TB_PSGA_ACTI_GDS_APLC_STAT_IZ (  /* 활동물품신청상태내역 */
+               ACTI_GDS_APLC_ID /* 활동물품신청ID */
+             , ACTI_GDS_APLC_SN /* 활동물품신청일련번호 */
+             , ACTI_GDS_APLC_STAT_CD     /* 활동물품신청상태코드 */
+             , APLC_DT          /* 신청일자 */
+             , APLC_RSON_CN     /* 신청사유내용 */
+             , SPP_DT           /* 배송일자 */
+             , SPP_BZS_CD       /* 배송업체코드 */
+             , SPP_IVC_NO       /* 배송송장번호 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{actiGdsAplcId}
+             , #{actiGdsAplcSn}
+             , #{actiGdsAplcStatCd}
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , #{aplcRsonCn}
+             , #{sppDt}
+             , #{sppBzsCd}
+             , #{sppIvcNo}
+             , #{dtaDlYn}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateActiGdsAplcStatIz">
+        UPDATE TB_PSGA_ACTI_GDS_APLC_STAT_IZ /* 활동물품신청상태내역 */
+           SET ACTI_GDS_APLC_STAT_CD = #{actiGdsAplcStatCd}    /* 활동물품신청상태코드 */
+             , APLC_DT               = #{aplcDt}               /* 신청일자 */
+             , APLC_RSON_CN          = #{aplcRsonCn}           /* 신청사유내용 */
+             , SPP_DT                = #{sppDt}                /* 배송일자 */
+             , SPP_BZS_CD            = #{sppBzsCd}             /* 배송업체코드 */
+             , SPP_IVC_NO            = #{sppIvcNo}             /* 배송송장번호 */
+             , DTA_DL_YN             = #{dtaDlYn}              /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ACTI_GDS_APLC_ID      = #{actiGdsAplcId}        /* 활동물품신청ID */
+           AND ACTI_GDS_APLC_SN      = #{actiGdsAplcSn}        /* 활동물품신청일련번호 */
+    </update>
+
+
+    <select id="selectStddBases" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto$SearchCodeRes">
+        SELECT ACTI_GDS_STDD_DV_ID CODE_ID /* 활동물품규격구분ID */
+             , ACTI_GDS_STDD_DV_NM CODE_NAME /* 활동물품규격구분명 */
+             , '' PRTS_CODE_ID
+          FROM TB_PSGA_ACTI_GDS_STDD_DV_BAS /* 활동물품규격구분기본 */
+         WHERE 1 = 1
+           AND DTA_DL_YN = 'N'
+           AND USE_YN = 'Y'
+         ORDER BY SORT_ODR
+    </select>
+
+    <select id="selectStddDtls" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto$SearchCodeRes">
+        SELECT T2.ACTI_GDS_STDD_CD CODE_ID   /* 활동물품규격코드 */
+             , T2.ACTI_GDS_STDD_NM CODE_NAME  /* 활동물품규격명 */
+             , T2.ACTI_GDS_STDD_DV_ID PRTS_CODE_ID
+          FROM TB_PSGA_ACTI_GDS_STDD_DV_DTL T2  /* 활동물품규격구분상세 */
+         WHERE 1 = 1
+           AND T2.DTA_DL_YN ='N'
+           AND T2.USE_YN = 'Y'
+           <if test='@MybatisUtils@isNotEmpty(actiGdsStddDvId)'>
+           AND T2.ACTI_GDS_STDD_DV_ID = #{actiGdsStddDvId}    /* 활동물품규격구분ID */
+           </if>
+
+         ORDER BY T2.SORT_ODR
+    </select>
+
+    <select id="selectActivityGoodsDeductionItemization" resultType = "com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto$SearchDeductionItemizationRes">
+        SELECT T1.FEE_DDTN_DST_AMT /* 수수료공제배분금액 */
+             , T1.FEE_DDTN_OC_DT   /* 수수료공제발생일자 */
+             , T1.PROCS_CN         /* 처리내용 */
+             , T4.APLC_DT
+             , T3.ACTI_GDS_NM
+             , T2.PRTNR_NO
+          FROM TB_PSGA_ACTI_GDS_DDTN_IZ T1 LEFT JOIN TB_PSGA_ACTI_GDS_APLC_IZ T2 /* 활동물품공제내역 */
+            ON T1.ACTI_GDS_APLC_ID = T2.ACTI_GDS_APLC_ID
+          LEFT JOIN TB_PSGA_ACTI_GDS_BAS T3
+            ON T2.OG_TP_CD = T3.OG_TP_CD
+           AND T2.ACTI_GDS_CD = T3.ACTI_GDS_CD
+           AND T2.ACTI_GDS_SN = T3.ACTI_GDS_SN
+          LEFT JOIN TB_PSGA_ACTI_GDS_APLC_STAT_IZ T4
+            ON T1.ACTI_GDS_APLC_ID = T4.ACTI_GDS_APLC_ID
+         WHERE 1 = 1
+           AND T1.PROCS_YN ='Y'
+           AND T1.DTA_DL_YN ='N'
+        <choose>
+            <when test='@MybatisUtils@equals(session.baseRleCd, "W2010")'> <!-- 플래너 -->
+           AND T2.PRTNR_NO = #{session.employeeIDNumber}   /* 파트너번호 */
+            </when>
+            <otherwise>
+              <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND T2.PRTNR_NO = #{prtnrNo}    /* 파트너번호 */
+              </if>
+            </otherwise>
+        </choose>
+           AND T2.OG_TP_CD = #{ogTpCd}
+
+         ORDER BY T1.FEE_DDTN_OC_DT DESC
+    </select>
+
+
+    <select id="selectCountactiGdsDdtnId" resultType="integer">
+        SELECT COUNT(ACTI_GDS_DDTN_ID)
+          FROM TB_PSGA_ACTI_GDS_DDTN_IZ
+         WHERE DTA_DL_YN ='N'
+           AND ACTI_GDS_APLC_ID = #{actiGdsAplcId}    /* 활동물품공제ID */
+    </select>
+
+
+    <select id="selectMaxactiGdsDdtnId" resultType="String">
+        SELECT LPAD((NVl(MAX(ACTI_GDS_DDTN_ID),0)+1),15,0)  FROM TB_PSGA_ACTI_GDS_DDTN_IZ
+    </select>
+    <insert id="insertActivityGoodsDeductionItemization">
+        INSERT INTO TB_PSGA_ACTI_GDS_DDTN_IZ (  /* 활동물품공제내역 */
+               ACTI_GDS_DDTN_ID /* 활동물품공제ID */
+             , ACTI_GDS_APLC_ID /* 활동물품신청ID */
+             , FEE_DDTN_DST_AMT /* 수수료공제배분금액 */
+             , FEE_DDTN_OC_DT   /* 수수료공제발생일자 */
+             , PROCS_YN         /* 처리여부 */
+             , PROCS_CN         /* 처리내용 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{actiGdsDdtnId}
+             , #{actiGdsAplcId}
+             , #{feeDdtnDstAmt}
+             , #{feeDdtnOcDt}
+             , #{procsYn}
+             , #{procsCn}
+             , #{dtaDlYn}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateActivityGoodsDeductionItemization">
+        UPDATE TB_PSGA_ACTI_GDS_DDTN_IZ /* 활동물품공제내역 */
+           SET PROCS_YN         = #{procsYn}          /* 처리여부 */
+             , PROCS_CN         = #{procsCn}          /* 처리내용 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ACTI_GDS_DDTN_ID = #{actiGdsDdtnId}    /* 활동물품공제ID */
+    </update>
+
+    <update id="updateActivityGoodsDeductionDtlYn">
+        UPDATE TB_PSGA_ACTI_GDS_DDTN_IZ /* 활동물품공제내역 */
+           SET DTA_DL_YN         = #{dtaDlYn}          /* 데이터삭제여부 */
+             , PROCS_YN         = 'N'
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ACTI_GDS_DDTN_ID = #{actiGdsDdtnId}    /* 활동물품공제ID */
+    </update>
+
+    <select id="selectActivityGoodsSize" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto$SearchSizeRes">
+        SELECT ACTI_GDS_STDD_DV_ID /* 활동물품규격구분ID */
+             , ACTI_GDS_STDD_DV_NM /* 활동물품규격구분명 */
+             , SORT_ODR            /* 정렬순서 */
+             , USE_YN              /* 사용여부 */
+          FROM TB_PSGA_ACTI_GDS_STDD_DV_BAS /* 활동물품규격구분기본 */
+         WHERE 1 = 1
+           AND DTA_DL_YN ='N'
+        <if test='@MybatisUtils@isNotEmpty(actiGdsStddDvId)'>
+           AND ACTI_GDS_STDD_DV_ID = #{actiGdsStddDvId}    /* 활동물품규격구분ID */
+        </if>
+         ORDER BY SORT_ODR
+    </select>
+
+    <select id="selectMaxActiGdsStddDvId" resultType="String">
+        SELECT LPAD((NVl(MAX(ACTI_GDS_STDD_DV_ID),0)+1),15,0)  FROM TB_PSGA_ACTI_GDS_STDD_DV_BAS
+    </select>
+
+    <insert id="insertActivityGoodsSize">
+        INSERT INTO TB_PSGA_ACTI_GDS_STDD_DV_BAS (  /* 활동물품규격구분기본 */
+               ACTI_GDS_STDD_DV_ID /* 활동물품규격구분ID */
+             , ACTI_GDS_STDD_DV_NM /* 활동물품규격구분명 */
+             , SORT_ODR            /* 정렬순서 */
+             , USE_YN              /* 사용여부 */
+             , DTA_DL_YN           /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{actiGdsStddDvId}
+             , #{actiGdsStddDvNm}
+             , #{sortOdr}
+             , #{useYn}
+             , #{dtaDlYn}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateActivityGoodsSize">
+        UPDATE TB_PSGA_ACTI_GDS_STDD_DV_BAS /* 활동물품규격구분기본 */
+           SET ACTI_GDS_STDD_DV_NM = #{actiGdsStddDvNm}    /* 활동물품규격구분명 */
+             , SORT_ODR            = #{sortOdr}            /* 정렬순서 */
+             , USE_YN              = #{useYn}              /* 사용여부 */
+             , DTA_DL_YN           = #{dtaDlYn}            /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ACTI_GDS_STDD_DV_ID = #{actiGdsStddDvId}    /* 활동물품규격구분ID */
+    </update>
+
+    <update id="updateActivityGoodsSizeDlayn">
+        UPDATE TB_PSGA_ACTI_GDS_STDD_DV_BAS /* 활동물품규격구분기본 */
+           SET DTA_DL_YN           = #{dtaDlYn}            /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ACTI_GDS_STDD_DV_ID = #{actiGdsStddDvId}    /* 활동물품규격구분ID */
+    </update>
+
+
+
+
+    <select id="selectActivityGoodsSizeDetail" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto$SearchSizeDetailRes">
+        SELECT ACTI_GDS_STDD_DV_ID /* 활동물품규격구분ID */
+             , ACTI_GDS_STDD_CD    /* 활동물품규격코드 */
+             , ACTI_GDS_STDD_NM    /* 활동물품규격명 */
+             , SORT_ODR            /* 정렬순서 */
+             , USE_YN
+          FROM TB_PSGA_ACTI_GDS_STDD_DV_DTL /* 활동물품규격구분상세 */
+         WHERE 1 = 1
+           AND DTA_DL_YN ='N'
+           AND ACTI_GDS_STDD_DV_ID = #{actiGdsStddDvId}    /* 활동물품규격구분ID */
+         ORDER BY SORT_ODR
+    </select>
+
+    <select id="selectCountactiGdsStddCd" resultType="integer">
+        SELECT COUNT(ACTI_GDS_STDD_CD)
+        FROM TB_PSGA_ACTI_GDS_STDD_DV_DTL
+       WHERE 1 = 1
+         AND DTA_DL_YN ='N'
+         AND ACTI_GDS_STDD_DV_ID = #{actiGdsStddDvId}    /* 활동물품규격구분ID */
+         AND ACTI_GDS_STDD_CD    = #{actiGdsStddCd}      /* 활동물품규격코드 */
+    </select>
+
+    <insert id="insertActivityGoodsSizeDetail">
+        INSERT INTO TB_PSGA_ACTI_GDS_STDD_DV_DTL (  /* 활동물품규격구분상세 */
+               ACTI_GDS_STDD_DV_ID /* 활동물품규격구분ID */
+             , ACTI_GDS_STDD_CD    /* 활동물품규격코드 */
+             , ACTI_GDS_STDD_NM    /* 활동물품규격명 */
+             , SORT_ODR            /* 정렬순서 */
+             , USE_YN              /* 사용여부 */
+             , DTA_DL_YN           /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{actiGdsStddDvId}
+             , #{actiGdsStddCd}
+             , #{actiGdsStddNm}
+             , #{sortOdr}
+             , #{useYn}
+             , #{dtaDlYn}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateActivityGoodsSizeDetail">
+        UPDATE TB_PSGA_ACTI_GDS_STDD_DV_DTL /* 활동물품규격구분상세 */
+           SET ACTI_GDS_STDD_NM    = #{actiGdsStddNm}      /* 활동물품규격명 */
+             , SORT_ODR            = #{sortOdr}            /* 정렬순서 */
+             , USE_YN              = #{useYn}              /* 사용여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ACTI_GDS_STDD_DV_ID = #{actiGdsStddDvId}    /* 활동물품규격구분ID */
+           AND ACTI_GDS_STDD_CD    = #{actiGdsStddCd}      /* 활동물품규격코드 */
+    </update>
+
+    <update id="updateActivityGoodsSizeDetailDlayn">
+        UPDATE TB_PSGA_ACTI_GDS_STDD_DV_DTL /* 활동물품규격구분기본 */
+           SET DTA_DL_YN           = #{dtaDlYn}            /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ACTI_GDS_STDD_DV_ID = #{actiGdsStddDvId}    /* 활동물품규격구분ID */
+        <if test='@MybatisUtils@isNotEmpty(actiGdsStddCd)'>
+           AND ACTI_GDS_STDD_CD    = #{actiGdsStddCd}      /* 활동물품규격코드 */
+        </if>
+    </update>
+
+
+
+</mapper>

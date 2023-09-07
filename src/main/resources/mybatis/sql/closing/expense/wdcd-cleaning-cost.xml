@@ -16,18 +16,17 @@
              , CLING_COST_DV_CD
              , F_CMZ_CD_NM('TNT_BASE', 'CLING_COST_DV_CD', CLING_COST_DV_CD) AS CLING_COST_DV_NM
              , BLD_CD
-             , CLAIM_NM
-             , (SELECT T2.BLD_NM
-                  FROM TB_OGBS_MM_OG_IZ T2
-                 WHERE T2.BASE_YM BETWEEN #{aplcStartDt} AND #{aplcEndDt}
-                   AND T2.BLD_CD = T1.BLD_CD
+             , (SELECT S1.BLD_NM
+                  FROM TB_OGBS_BLD_BAS S1
+                 WHERE S1.BLD_CD = T1.BLD_CD
                    AND ROWNUM = 1) AS BLD_NM
+             , CLAIM_NM
              , TO_CHAR(TO_DATE(APLC_DT, 'yyyymmddhh24miss'), 'yyyy-MM-dd') AS APLC_DT
              , BIL_AMT
              , CLING_COST_SRCP_APN_FILE_ID
           FROM TB_CBCL_CLING_COST_ADJ_IZ T1
          WHERE DTA_DL_YN = 'N'
-           AND SUBSTR(APLC_DT,1,6) BETWEEN #{aplcStartDt} AND #{aplcEndDt}
+           AND SUBSTR(APLC_DT, 1, 6) BETWEEN #{aplcStartDt} AND #{aplcEndDt}
            AND CLING_COST_DV_CD IN ('02')
         <if test="@MybatisUtils@isNotEmpty(bldNm)">
            AND BLD_CD IN (SELECT A.BLD_CD
@@ -37,7 +36,21 @@
                              AND A.BASE_YM BETWEEN #{aplcStartDt} AND #{aplcEndDt}
                           )
         </if>
-        ORDER BY APLC_DT DESC, FST_RGST_DTM DESC
+        <if test='!@MybatisUtils@equals(session.baseRleCd, "W1580")'>
+           <choose>
+               <when test='!@MybatisUtils@equals(session.ogTpCd, "HR1")'>
+                   AND T1.CLAIM_NM = #{session.userName}
+               </when>
+               <otherwise>
+                   AND T1.CLAIM_NM IN (SELECT S1.HOO_PRTNR_NM
+                                         FROM TB_OGBS_MM_OG_IZ S1
+                                        WHERE S1.BIZ_SPPT_PRTNR_NO = #{session.employeeIDNumber}
+                                          AND S1.BASE_YM BETWEEN #{aplcStartDt} AND #{aplcEndDt}
+                                      )
+               </otherwise>
+           </choose>
+        </if>
+        ORDER BY T1.APLC_DT DESC, T1.FST_RGST_DTM DESC
     </select>
 
     <update id="removeCleaningCost">

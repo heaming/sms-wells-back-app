@@ -10,6 +10,7 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleAggDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaSeedReleaseScheduleService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -69,6 +70,25 @@ public class WsnaSeedReleaseScheduleController {
     public List<SearchRes> getSeedReleaseSchedulesExcelDownload(@Valid
     SearchReq dto) {
         return this.service.getSeedReleaseSchedulesExcelDownload(dto);
+    }
+
+    @GetMapping("/aggregations")
+    @ApiOperation(value = "모종 출고 예정리스트 집계표 조회", notes = "모종 출고예정 리스트의 집계표를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "svBizHclsfCd", value = "조회구분", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "dtTpCd", value = "일자유형코드", paramType = "query", example = "1", required = true),
+        @ApiImplicitParam(name = "dayOfWeek", value = "요일코드", paramType = "query", example = "2"),
+        @ApiImplicitParam(name = "strtDt", value = "시작일자", paramType = "query", example = "20230703", required = true),
+        @ApiImplicitParam(name = "endDt", value = "종료일자", paramType = "query", example = "20230703", required = true),
+        @ApiImplicitParam(name = "refriDivCd", value = "유/무상구분코드", paramType = "query", example = "2"),
+        @ApiImplicitParam(name = "sppDvCd", value = "배송구분코드", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "fshProcsCd", value = "완료처리코드", paramType = "query", example = "00"),
+        @ApiImplicitParam(name = "pkgDvCd", value = "패키지구분코드", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "ostrYn", value = "출고여부", paramType = "query", example = "Y")
+    })
+    public List<WsnaSeedReleaseScheduleAggDvo> getSeedReleaseAggregations(@Valid
+    SearchReq dto) {
+        return this.service.getSeedReleaseAggregations(dto);
     }
 
     @PutMapping

@@ -8,6 +8,8 @@ import lombok.ToString;
 @Setter
 @ToString
 public class WdcaCancellationFeeComputationResultDvo {
+    private String cntrNo;
+    private int cntrSn;
     private int resRtlfeBorAmt; /* 잔여렌탈료위약금액 */
     private int rgstCostDscBorAmt; /* 등록비할인위약금액 */
     private int rentalDscBorAmt; /* 렌탈할인위약금액 */

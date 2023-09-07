@@ -20,6 +20,7 @@ public class WfeeFeeSpecificationDto {
         String ogTpCd, //조직유형
         String rsbDvCd, //직책유형
         String feeCalcUnitTpCd, // 수수료 계산단위 유형코드
+        String crtDvCd, // 실적집계생성구분코드
         String prtnrNo,
         String ogLevel1,
         String ogLevel2,
@@ -33,6 +34,7 @@ public class WfeeFeeSpecificationDto {
     @ApiModel("WfeeFeeSpecificationDto-SearchFeeCdRes")
     public record SearchFeeCdRes(
         String feeNm,
+        String feeCd,
         String feeCalcUnitTpCd
 
     ) {}

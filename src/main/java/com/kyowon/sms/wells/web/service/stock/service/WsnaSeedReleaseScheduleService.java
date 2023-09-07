@@ -1,21 +1,28 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedReleaseScheduleDto.*;
+import static com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto.SearchProcessReq;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
 import com.kyowon.sms.wells.web.service.common.mapper.WsnzHistoryMapper;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaSeedReleaseScheduleConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.*;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaSeedReleaseScheduleMapper;
+import com.kyowon.sms.wells.web.service.visit.service.WsnbIndividualVisitPrdService;
+import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
+import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -40,6 +47,12 @@ public class WsnaSeedReleaseScheduleService {
 
     // 메시지 서비스
     private final MessageResourceService messageService;
+
+    // BS주기표 서비스
+    private final WsnbIndividualVisitPrdService visitPrdService;
+
+    // 계약서비스
+    private final WctaInstallationReqdDtInService installationReqdDtInService;
 
     private static final String SV_BIZ_HCLSF_CD_INSTL = "1";
     private static final String SV_BIZ_HCLSF_CD_BS = "2";
@@ -78,6 +91,15 @@ public class WsnaSeedReleaseScheduleService {
     }
 
     /**
+     * 모종 출고 예정 리스트 집계표 조회
+     * @param dto
+     * @return
+     */
+    public List<WsnaSeedReleaseScheduleAggDvo> getSeedReleaseAggregations(SearchReq dto) {
+        return this.maaper.selectSeedReleaseAggregations(dto);
+    }
+
+    /**
      * 모종 출고 예정 리스트 저장
      * @param dtos
      * @return
@@ -106,7 +128,7 @@ public class WsnaSeedReleaseScheduleService {
      * @return
      */
     @Transactional
-    public int createSeedReleaseSchedulesForCnfm(List<CreateReq> dtos) {
+    public int createSeedReleaseSchedulesForCnfm(List<CreateReq> dtos) throws Exception {
 
         int count = 0;
 
@@ -138,10 +160,26 @@ public class WsnaSeedReleaseScheduleService {
 
             // 설치인 경우
             if (SV_BIZ_HCLSF_CD_INSTL.equals(svBizHclsfCd)) {
-                String sdingMcnrCntrNo = dvo.getSdingMcnrCntrNo();
+                // 현재일자
+                String curDt = DateUtil.getNowDayString();
 
-                // 고객서비스AS설치배정내역 저장
-                this.maaper.updateCstSvasIstAsnIzForInstl(sdingMcnrCntrNo);
+                String cntrNo = dvo.getCntrNo();
+                int cntrSn = dvo.getCntrSn();
+
+                // 수행내역에 설치일자 저장
+                this.maaper.updateCstSvExcnIzForInstl(cntrNo, cntrSn);
+
+                // 설치일자 조회
+                String istDt = this.maaper.selectCstSvExcnIstDt(cntrNo, cntrSn);
+                istDt = StringUtils.isEmpty(istDt) ? curDt : istDt;
+
+                // 계약정보 update
+                this.installationReqdDtInService
+                    .saveInstallReqdDt(cntrNo, String.valueOf(cntrSn), istDt, "", "");
+
+                // BS주기표 생성
+                SearchProcessReq visitDto = this.convertVisitPrdProcessReq(cntrNo, String.valueOf(cntrSn), istDt);
+                this.visitPrdService.processVisitPeriodRegen(visitDto);
             }
 
             // 모종 출고확정일 저장
@@ -200,7 +238,62 @@ public class WsnaSeedReleaseScheduleService {
         }
 
         return count;
+    }
 
+    /**
+     * BS주기표 생성 파라미터
+     * @param cntrNo
+     * @param cntrSn
+     * @param istDt
+     * @return
+     */
+    private SearchProcessReq convertVisitPrdProcessReq(String cntrNo, String cntrSn, String istDt) {
+        SearchProcessReq visitDto = new SearchProcessReq(
+            cntrNo,
+            cntrSn,
+            "",
+            "",
+            DateUtil.getNowDayString(),
+            istDt,
+            "",
+            ""
+        );
+        return visitDto;
+    }
+
+    /**
+     * 모종 설치 완료 처리 (배치에서 호출)
+     * @param map
+     * @throws Exception
+     */
+    @Transactional
+    public void saveSeedReleaseSchedulesForInstl(Map<String, String> map) throws Exception {
+
+        // 현재일자
+        String curDt = DateUtil.getNowDayString();
+
+        // 계약번호
+        String cntrNo = map.get("PARAM1");
+        // 계약일련번호
+        String cntrSn = map.get("PARAM2");
+
+        ValidAssert.hasText(cntrNo);
+        ValidAssert.hasText(cntrSn);
+
+        // 수행내역에 설치일자 저장
+        this.maaper.updateCstSvExcnIzForInstl(cntrNo, Integer.parseInt(cntrSn));
+
+        // 설치일자 조회
+        String istDt = this.maaper.selectCstSvExcnIstDt(cntrNo, Integer.parseInt(cntrSn));
+        istDt = StringUtils.isEmpty(istDt) ? curDt : istDt;
+
+        // 계약정보 update
+        this.installationReqdDtInService
+            .saveInstallReqdDt(cntrNo, cntrSn, istDt, "", "");
+
+        // BS주기표 생성
+        SearchProcessReq visitDto = this.convertVisitPrdProcessReq(cntrNo, cntrSn, istDt);
+        this.visitPrdService.processVisitPeriodRegen(visitDto);
     }
 
 }

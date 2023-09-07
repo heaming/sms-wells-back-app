@@ -3,27 +3,35 @@
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdbVirtualAccountInterfaceMapper">
 
     <select id="selectVirtualAccountIssues" resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbVirtualAccountInterfaceDto$SearchRes">
-        SELECT B.CNTR_NO /*계약번호*/
-             , B.CNTR_SN /*계약일련번호*/
-             , E.PD_NM /*과목*/
+        SELECT F_CMZ_CD_NM('TNT_WELLS', 'KW_GRP_CO_CD', A.KW_GRP_CO_CD) AS KW_GRP_CO_CD_NM /*교원 그룹 회사 코드명*/
+             , B.CNTR_NO AS RVE_AK_NO /*계약번호*/
+             , B.CNTR_SN AS RVE_AK_SN /*계약일련번호*/
              , ( SELECT F2.FNIT_NM FROM TB_RVDW_FNIT_CD F2 WHERE F2.FNIT_DV_CD = '1' AND F2.FNIT_CD = A.VAC_BNK_CD) AS VAC_BNK_NM /*은행명*/
              , A.VAC_NO /*가상계좌번호*/
-             , D.VAC_DPR_NM /*입금자명*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', C.SELL_TP_CD) AS SELL_TP_NM /*구분(할부/렌탈/멤버십/회사/정기배송/필터)*/
+             , A.VAC_ACOWN_NM AS VAC_DPR_NM /*입금자명*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'PD_TP_DTL_CD', E.PD_TP_DTL_CD) AS EDI_PD_DV_CD_NM /*EDI 상품구분코드명*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', C.SELL_TP_CD) AS SELL_TP_CD_NM /*구분(할부/렌탈/멤버십/회사/정기배송/필터)*/
           FROM TB_RVDW_VAC_IS_IZ A /*가상계좌발급내역*/
          INNER JOIN TB_RVDW_VAC_IS_DTL B /*가상계좌발급상세*/
-            ON B.KW_GRP_CO_CD = A.KW_GRP_CO_CD
+            ON B.DTA_DL_YN = 'N'
+           AND B.KW_GRP_CO_CD = A.KW_GRP_CO_CD
            AND B.VAC_IS_ID = A.VAC_IS_ID
          INNER JOIN TB_SSCT_CNTR_DTL C /*계약상세*/
-            ON C.CNTR_NO = B.CNTR_NO
+            ON C.DTA_DL_YN = 'N'
+           AND C.CNTR_NO = B.CNTR_NO
            AND C.CNTR_SN = B.CNTR_SN
-          LEFT OUTER JOIN TB_RVDW_VAC_DP_IZ D /*가상계좌입금내역*/
-            ON D.KW_GRP_CO_CD = A.KW_GRP_CO_CD
-           AND D.VAC_IS_ID = A.VAC_IS_ID
           LEFT OUTER JOIN TB_PDBS_PD_BAS E /*상품기본*/
             ON E.PD_CD = B.PD_CD
-         WHERE A.VAC_NO = #{vacNo}
+         WHERE A.DTA_DL_YN = 'N'
+           AND A.KW_GRP_CO_CD = #{kwGrpCoCd}
+           <if test='@MybatisUtils@isNotEmpty(vacNo)'>
+           AND A.VAC_NO = #{vacNo}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
            AND B.CNTR_NO = #{cntrNo}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
            AND B.CNTR_SN = #{cntrSn}
+           </if>
     </select>
 </mapper>

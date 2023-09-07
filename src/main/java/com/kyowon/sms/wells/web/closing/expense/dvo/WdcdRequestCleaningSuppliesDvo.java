@@ -1,13 +1,14 @@
 package com.kyowon.sms.wells.web.closing.expense.dvo;
 
+import java.util.List;
+
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
 import com.sds.sflex.system.config.annotation.DBDecField;
 import com.sds.sflex.system.config.annotation.DBEncField;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.List;
 
 @Getter
 @Setter
@@ -30,4 +31,5 @@ public class WdcdRequestCleaningSuppliesDvo {
     private String exnoEncr; // 전화국별
     private String idvTno; // 개별전화번호
     private String ogTpCd;
+    private String claimPrtnrNo;
 }

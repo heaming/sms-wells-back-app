@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.service.common.converter;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.*;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnyAsCodeMgtDvo;
 
 import java.util.List;
@@ -19,5 +19,7 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface WsnyAsCodeMgtConverter {
 
-    List<WsnyAsCodeMgtDto.SearchRes> mapAllSearchResToDvo(List<WsnyAsCodeMgtDvo> dvos);
+    List<SearchRes> mapAllSearchResToDvo(List<WsnyAsCodeMgtDvo> dvos);
+
+//    WsnyAsCodeSiteAwDsbBaseDvo mapBaseToAsCodeDvo(WsnyAsCodeMgtDvo dvo);
 }

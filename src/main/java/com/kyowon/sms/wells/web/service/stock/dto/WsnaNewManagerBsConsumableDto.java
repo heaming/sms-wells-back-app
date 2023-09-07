@@ -21,6 +21,7 @@ public class WsnaNewManagerBsConsumableDto {
         String prtnrNmNo,
         String prtnrNo,
         String reqYn,
+        String bfsvcCsmbDdlvStatCd,
         List<String> fxnQtys,
         List<String> aplcQtys
     ) {}

@@ -1,10 +1,13 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
+import java.util.List;
+
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
-
-import java.util.List;
 
 public class WdcdCleanerReqeustMgtDto {
 
@@ -15,6 +18,7 @@ public class WdcdCleanerReqeustMgtDto {
     @Builder
     @ApiModel(value = "WdcdCleanerReqeustMgtDto-FindCodeReq")
     public record FindCodeReq(
+        String registYearMonth,
         String ogTpCd,
         String prtnrNo
     ) {
@@ -49,7 +53,8 @@ public class WdcdCleanerReqeustMgtDto {
         String clinrNm, // 청소원 명
         String wrkStrtdt, // 근무시작일자
         String wrkEnddt, // 근무종료일자
-        String rrnoEncr,
+        String bryyMmdd, // 생년월일
+        String rrnoEncr, //주민번호 뒷자리
         String locaraTno, // 지역번호
         String exnoEncr, // 전화국별
         String idvTno, // 개별전화번호
@@ -89,13 +94,10 @@ public class WdcdCleanerReqeustMgtDto {
         String clinrNm, /*청소원*/
         String wrkStrtdt,
         String wrkEnddt,
-        String bryyMmdd,
-        String frontRrnoEncr, // 주민번호 앞자리
-        String backRrnoEncr, // 주민번호 뒷자리
-        //@MaskRequired(type = MaskingType.RRN)
+        String bryyMmdd, // 생년월일
+        @MaskRequired(type = MaskingType.ALL)
         String rrnoEncr, // 주민등록번호
         String locaraTno,
-        //@MaskRequired(type = MaskingType.ALL)
         String exnoEncr,
         String idvTno,
         String zip,
@@ -103,16 +105,11 @@ public class WdcdCleanerReqeustMgtDto {
         //@MaskRequired(type = MaskingType.ALL)
         String dtlAdr,
         String bnkCd,
-        //@MaskRequired(type = MaskingType.ACCOUNT)
         String acnoEncr,    // 계좌번호
         String idfApnFileId,
         String bnkbApnFileId,
         String cntrwApnFileId,
         String cntrLroreApnFileId
     ) {
-        public FindRes {
-            frontRrnoEncr = rrnoEncr.substring(0, 6);
-            backRrnoEncr = rrnoEncr.substring(6, rrnoEncr.length());
-        }
     }
 }

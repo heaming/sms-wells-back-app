@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.deduction.redf.dto;
 
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -9,6 +12,8 @@ public class WdeaAllowanceDelinquentRedemptionFeeDto {
     @ApiModel("WdeaAllowanceDelinquentRedemptionFeeDto-SearchReq")
     public record SearchReq(
         String prtnrNo,
+        String ogTpCd,
+
         String perfDvCd,
         String whtxRepDvCd
     ) {}
@@ -16,14 +21,14 @@ public class WdeaAllowanceDelinquentRedemptionFeeDto {
     @ApiModel("WdeaAllowanceDelinquentRedemptionFeeDto-SearchRes")
     public record SearchRes(
         String redfAdsbOcYm,
-        String feeRedfAdsbDtlId,
-        String feeCpsnRedfId,
         String perfDvCd,
         String perfDvNm,
         String whtxRepDvNm,
         String cntrNo,
         String prtnrNo,
+        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm,
+        @MaskRequired(type = MaskingType.NAME)
         String cstKnm,
         String ogTpCd,
         String coCd,

@@ -4,15 +4,18 @@ import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
 import com.kyowon.sflex.common.common.service.BatchCallService;
 import com.kyowon.sms.common.web.bond.standard.dto.ZbnyBondAssignRuleMgtDto;
 import com.kyowon.sms.common.web.bond.standard.service.ZbnyBondAssignRuleMgtService;
-import com.kyowon.sms.common.web.bond.transfer.dvo.ZbnaBondBatchStatusDetailsDvo;
 import com.kyowon.sms.common.web.bond.transfer.dvo.ZbnaBondTransferAssignDvo;
-import com.kyowon.sms.common.web.bond.transfer.service.ZbnaBondBatchStatusDetailsService;
 import com.kyowon.sms.common.web.bond.zcommon.constants.BnBondConst;
 import com.kyowon.sms.wells.web.bond.transfer.converter.WbnaCollectorAssingConverter;
 import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.*;
 import com.kyowon.sms.wells.web.bond.transfer.dvo.WbnaCollectorAssignDvo;
 import com.kyowon.sms.common.web.bond.transfer.service.ZbnaBondContractBasicHistService;
 import com.kyowon.sms.common.web.bond.transfer.service.ZbnaBondTransferAssignMgtService;
+import com.sds.sflex.common.common.dto.ExcelUploadDto;
+import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
+import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
+import com.sds.sflex.common.common.service.ExcelReadService;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -25,10 +28,9 @@ import com.kyowon.sms.wells.web.bond.transfer.mapper.WbnaCollectorAssignMapper;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -41,7 +43,8 @@ public class WbnaCollectorAssignService {
     private final ZbnaBondTransferAssignMgtService bondTransferAssignMgtService;
     private final ZbnyBondAssignRuleMgtService bondAssignRuleMgtService;
     private final BatchCallService batchCallService;
-    private final ZbnaBondBatchStatusDetailsService bondBatchStatusDetailsService;
+    private final MessageResourceService messageResourceService;
+    private final ExcelReadService excelReadService;
 
     public List<SearchRes> getCollectorAssigns(
         SearchReq dto
@@ -74,13 +77,6 @@ public class WbnaCollectorAssignService {
         // 배정 가능 여부 확인
         BizAssert.isTrue(mapper.selectCanCollectorAssign(dto) == 1, "MSG_ALT_ASN_DTA_EXST");
 
-        // 기존 배치 동작 여부 확인 (true:배치 동작 가능, false:배치 동작 불가)
-        BizAssert.isTrue(
-            bondBatchStatusDetailsService
-                .checkBondBatchOperationStatus(dto.baseYm(), dto.bzHdqDvCd(), dto.clctamDvCd()),
-            "MSG_ALT_RUN_ASN_BAT_EXST"
-        ); // TODO 메시지 변경 필요한 경우 해당 id의 내용만 변경
-
         /*
         * 1.균등배정 -> 배정 타입1(균등배정 -> 지역우선배정) 0103
         * 2.전월담당자배정 -> 배정 타입2(균등배정 -> 기존배정고려균등배정) 0104
@@ -109,20 +105,14 @@ public class WbnaCollectorAssignService {
         params.put("bndNwDvCd", BnBondConst.BndNwDvCd.OLD.getValue());
         dvo.setParams(params); // Job 실행시 필요한 파라미터
 
+        // TB_CBBO_BND_CNTR_BAS > CLCTAM_PRTNR_NO 정보 초기화
+        mapper.updateClctamPrtnrNoForCollectorAssing(dto.baseYm(), dto.bzHdqDvCd(), dto.clctamDvCd());
+        // TB_CBBO_BND_ASN_IZ > CLCTAM_PRTNR_NO 정보 초기화
+        mapper.updateClctamPrtnrNoForBondAssignItemization(dto.baseYm(), dto.bzHdqDvCd(), dto.clctamDvCd());
+
         //배치호출(try-catch대신, throw사용)
         String oldBondBatchJobRunId = batchCallService.runJob(dvo); //결과값으로 Control-M 에서 run-id를 받는다.
         BizAssert.isTrue(StringUtils.isNotEmpty(oldBondBatchJobRunId), "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
-
-        //배치 호출 후 호출 정보 저장(여기서 부터는 배치 호출 후기 때문에 에러가 나면 안됨)
-        ZbnaBondBatchStatusDetailsDvo bondBatchStatusDetailsDvo = new ZbnaBondBatchStatusDetailsDvo();
-        bondBatchStatusDetailsDvo.setBaseYm(dto.baseYm());
-        bondBatchStatusDetailsDvo.setBzHdqDvCd(dto.bzHdqDvCd());
-        bondBatchStatusDetailsDvo.setClctamDvCd(dto.clctamDvCd());
-        bondBatchStatusDetailsDvo.setBndBatWkId(oldBondBatchJobRunId);
-        bondBatchStatusDetailsDvo.setTfBizDvCd(BnBondConst.TfBizDvCd.COLLECTOR_ASSIGNMENT.getValue());
-        bondBatchStatusDetailsDvo.setBndNwDvCd(BnBondConst.BndNwDvCd.OLD.getValue());
-        bondBatchStatusDetailsDvo.setBndBatStatCd(BnBondConst.BndBatStatCd.START.getValue());
-        bondBatchStatusDetailsService.createBondBatchStatusDetails(bondBatchStatusDetailsDvo);
 
         return oldBondBatchJobRunId;
     }
@@ -150,6 +140,17 @@ public class WbnaCollectorAssignService {
 
             processCount += result;
         }
+        if (processCount > 0) {
+            // 집금자배정 개별 데이터 변경 시에도 TB_CBBO_BND_TF_ASN_EXCN_IZ 갱신 필요 해당 정보를 기준으로 파트이관,배정,배정확정 가능 여부를 판단
+            ZbnaBondTransferAssignDvo bondTransferAssignDvo = ZbnaBondTransferAssignDvo.builder()
+                .baseYm(dtos.get(0).baseYm())
+                .tfBizDvCd(BnBondConst.TfBizDvCd.COLLECTOR_ASSIGNMENT.getValue())
+                .bzHdqDvCd(dtos.get(0).bzHdqDvCd()).clctamDvCd(dtos.get(0).clctamDvCd()).build();
+            bondTransferAssignDvo.setExcnSn(bondTransferAssignMgtService.getExcnSn(bondTransferAssignDvo));
+
+            int result = bondTransferAssignMgtService.createBondTransferAssign(bondTransferAssignDvo);
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+        }
         return processCount;
     }
 
@@ -174,5 +175,56 @@ public class WbnaCollectorAssignService {
         processCount += result;
 
         return processCount;
+    }
+
+    @Transactional
+    public ExcelUploadDto.UploadRes createCollectorAssignsDetailsExcelUpload(
+        MultipartFile file, String baseYm
+    )
+        throws Exception {
+        Map<String, String> headerTitle = new LinkedHashMap<>();
+        headerTitle.put("cntrDtlNo", messageResourceService.getMessage("MSG_TXT_CNTR_DTL_NO")); //계약상세번호
+        headerTitle.put("oldClctamPrtnrNo", messageResourceService.getMessage("MSG_TXT_BFCH_CLCTAM_PSIC_NO")); //변경전 집금담당자사번
+        headerTitle.put("clctamPrtnrNo", messageResourceService.getMessage("MSG_TXT_AFCH_CLCTAM_PSIC_NO")); //변경후 집금담당자사번
+        // file dvo로 변경
+        List<WbnaCollectorAssignDvo> collectorAssignDvos = excelReadService
+            .readExcel(file, new ExcelMetaDvo(1, headerTitle), WbnaCollectorAssignDvo.class);
+        List<ExcelUploadErrorDvo> excelUploadErrorDvos = new ArrayList<>();
+
+        // 데이터 갱신 작업 진행
+        int result;
+        int loopNumber = 1;
+        for (WbnaCollectorAssignDvo dvo : collectorAssignDvos) {
+            loopNumber += 1;
+            if (StringUtils.isNotEmpty(dvo.getCntrDtlNo())) {
+                String cntrNo = dvo.getCntrDtlNo().split("-")[0];
+                String cntrSn = dvo.getCntrDtlNo().split("-")[1];
+                dvo.setCntrNo(cntrNo);
+                dvo.setCntrSn(cntrSn);
+                dvo.setBaseYm(baseYm);
+
+                result = bondContractBasicHistService
+                    .createBondContractHistoryWithCntrNo(dvo.getBaseYm(), cntrNo, cntrSn);
+                if (result == 0) { // 히스토리 만들지 못한 경우 추가 작업 없이 다음으로
+                    ExcelUploadErrorDvo excelUploadErrorDvo = new ExcelUploadErrorDvo();
+                    excelUploadErrorDvo.setErrorRow(loopNumber);
+                    excelUploadErrorDvo
+                        .setHeaderName(messageResourceService.getMessage("MSG_ALT_NO_CNTR_DTL_NO_FOUND"));
+                    excelUploadErrorDvo.setErrorData(
+                        messageResourceService.getMessage(
+                            "MSG_ALT_INVALID_UPLOAD_DATA", String.valueOf(loopNumber), "계약상세번호", dvo.getCntrDtlNo()
+                        )
+                    );
+                    excelUploadErrorDvos.add(excelUploadErrorDvo);
+                    continue;
+                }
+                mapper.updateCollectorAssingByCntr(dvo);
+                mapper.updateCollectorAssingForAnsIzByCntr(dvo);
+
+            }
+        }
+        return ExcelUploadDto.UploadRes.builder()
+            .status(excelUploadErrorDvos.isEmpty() ? "S" : "E").errorInfo(excelUploadErrorDvos)
+            .excelData(collectorAssignDvos).build();
     }
 }

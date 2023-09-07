@@ -166,7 +166,8 @@ public class WbnaBondPartTransferDto {
         String dlqAmt,
         String thmChramAmt,
         String dlqAddDpAmt,
-        String rsgBorAmt
+        String rsgBorAmt,
+        String ucAmt
     ) {}
 
     /**
@@ -175,6 +176,7 @@ public class WbnaBondPartTransferDto {
      * @param bzHdqDvCd 사업부구분코드
      * @param cntrNo 계약번호
      * @param clctamDvCd 집금구분코드
+     * @param originClctamDvCd 집금구분코드
      * @param bfPrtnrKnm 전월담당자
      * @param cntrSn 계약일련번호
      * @param cstNm 고객명
@@ -186,6 +188,7 @@ public class WbnaBondPartTransferDto {
      * @param thmChramAmt 당월금액
      * @param dlqAddDpAmt 연체가산금액
      * @param rsgBorAmt 위약금액
+     * @param ucAmt 미수금
      * @param lwmTpCd 법조치유형
      * @param lwmDtlTpCd 법조치상세
      * @param lwmDt 봅조치일자
@@ -198,6 +201,7 @@ public class WbnaBondPartTransferDto {
         String bzHdqDvCd,
         String cntrNo,
         String clctamDvCd,
+        String originClctamDvCd,
         String bfPrtnrKnm,
         String cntrSn,
         String cstNm,
@@ -209,6 +213,7 @@ public class WbnaBondPartTransferDto {
         String thmChramAmt,
         String dlqAddDpAmt,
         String rsgBorAmt,
+        String ucAmt,
         String lwmTpCd,
         String lwmDtlTpCd,
         String lwmDt,
@@ -239,6 +244,7 @@ public class WbnaBondPartTransferDto {
      * @param cntrSn 계약일련번호
      * @param cstNo 고객번호
      * @param clctamDvCd 집금구분코드
+     * @param originClctamDvCd 원본 집금구분코드
      */
     @ApiModel("WbnaBondPartTransferDto-EditReq")
     public record EditReq(
@@ -253,6 +259,7 @@ public class WbnaBondPartTransferDto {
         @NotBlank
         String cstNo,
         @NotBlank
-        String clctamDvCd
+        String clctamDvCd,
+        String originClctamDvCd
     ) {}
 }

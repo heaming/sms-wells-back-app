@@ -215,18 +215,22 @@ public class WsnaSeedingOstrQtyService {
             nullColumnName[3] = "limQty";
         }
 
+        String[] headerText = new String[1];
+        String[] texts = new String[2];
+
         if (StringUtils.isBlank(vstDt) || StringUtils.isBlank(svBizHclsfCd) || StringUtils.isBlank(sdingPkgGrpCd)
             || StringUtils.isBlank(limQty)) {
             for (String column : nullColumnName) {
                 if (StringUtil.isNotBlank(column)) {
                     String headerTit = headerTitle.get(column);
+                    headerText[0] = headerTit;
 
                     ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
                     errorDvo.setHeaderName(headerTit);
                     // {0} 은(는) 필수값 입니다.
                     errorDvo.setErrorData(
-                        this.messageService.getMessage("MSG_ALT_NCELL_REQUIRED_VAL", new String[] {headerTit})
+                        this.messageService.getMessage("MSG_ALT_NCELL_REQUIRED_VAL", headerText)
                     );
                     errorDvos.add(errorDvo);
                 }
@@ -236,11 +240,12 @@ public class WsnaSeedingOstrQtyService {
         // 방문일자 검증
         if (StringUtils.isNotBlank(vstDt) && !BnBondUtils.checkDate(vstDt)) {
             String headerTit = headerTitle.get("vstDt");
+            headerText[0] = headerTit;
             ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
             errorDvo.setErrorRow(row);
             errorDvo.setHeaderName(headerTit);
             // {0}이/가 올바르지 않은 날짜형식입니다.
-            errorDvo.setErrorData(this.messageService.getMessage("MSG_ALT_ERROR_DT", new String[] {headerTit}));
+            errorDvo.setErrorData(this.messageService.getMessage("MSG_ALT_ERROR_DT", headerText));
             errorDvos.add(errorDvo);
         }
 
@@ -272,22 +277,25 @@ public class WsnaSeedingOstrQtyService {
             String headerTit = headerTitle.get("limQty");
 
             // qty < 1
-            if (qty.compareTo(BigDecimal.ONE) < 0) {
+            if (qty.compareTo(BigDecimal.ZERO) < 0) {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(headerTit);
-                // 값이 0이거나 마이너스입니다.
-                errorDvo.setErrorData(this.messageService.getMessage("MSG_ALT_MINUS_ZR_VAL_INC"));
+                // 값이 마이너스입니다.
+                errorDvo.setErrorData(this.messageService.getMessage("MSG_ALT_MINUS_VAL_INC"));
                 errorDvos.add(errorDvo);
                 // qty > 999,999,999,999
             } else if (qty.compareTo(BigDecimal.valueOf(MAX_VALUE)) > 0) {
+                texts[0] = headerTit;
+                texts[1] = String.format("%,d", MAX_VALUE);
+
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(headerTit);
                 // {0} 항목의 값은 {1} 이하여야 합니다.
                 errorDvo.setErrorData(
                     this.messageService
-                        .getMessage("MSG_ALT_VALUE_OVER", new String[] {headerTit, String.format("%,d", MAX_VALUE)})
+                        .getMessage("MSG_ALT_VALUE_OVER", texts)
                 );
                 errorDvos.add(errorDvo);
             }

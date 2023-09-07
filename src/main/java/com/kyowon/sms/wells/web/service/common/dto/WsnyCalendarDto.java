@@ -40,7 +40,9 @@ public class WsnyCalendarDto {
         String baseD,
         String dfYn,
         String rmkCn,
-        String bndtWrkPsicNo
+//        String bndtWrkPsicNo,
+        String bndtWrkPsicNoPrtnrNo,
+        String bndtWrkPsicNoOgTpCd
     ) {}
 
     // *********************************************************
@@ -59,6 +61,7 @@ public class WsnyCalendarDto {
         String wrkEndHh,
         String restHh,
         String wrkHh,
+        String ogTpCd,
         String bndtWrkPsicNo,
         String bndtWrkPsicNm,
         String svCnrOgId,

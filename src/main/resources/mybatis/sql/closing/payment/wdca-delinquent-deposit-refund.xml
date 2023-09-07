@@ -14,12 +14,11 @@
                         THEN #{rveAmt}
                         ELSE 0
                     END, 0 ) AS THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
-             /*-----------------------------------------------------------------------------------------------------*/
-             /*환불 처리에 대해선 아직 입/출금에게 들은 이야기가 없기에 소설 씀                                        */
-             /*입금구분코드 = 환불 AND 수납구분코드 = 월납입금액 -> 당월연체입금합계금액과 :입력값_수납금액을 비교        */
-             /*:입력값_수납금액 >= 당월연체입금합계금액 => 당월연체환불합계금액 = 당월연체입금합계금액                   */
-             /*:입력값_수납금액 <![CDATA[<]]> 당월연체입금합계금액  => :입력값_수납금액                                             */
-             /*-----------------------------------------------------------------------------------------------------*/
+             , NVL( CASE WHEN #{dpDvCd} IN ('1', '3')  /*[1:입금, 3:전금입금]*/
+                          AND #{rveDvCd} = '07' /*[07:위약금]*/
+                    THEN #{rveAmt}
+                    ELSE 0
+                    END, 0 ) AS RSG_BOR_DP_AMT /*해지위약입금금액*/
              , NVL( CASE WHEN #{dpDvCd} IN ('2', '4')  /*[2:환불, 4:전금환불]*/ AND #{rveDvCd} = '03' /*[03:월납입액(할부금, 렌탈료)-연체금액은 월납입액으로 입금처리됨]*/
                          THEN (CASE WHEN THM_DLQ_RFND_SUM_AMT /*당월연체환불합계금액*/ + #{rveAmt} <![CDATA[>=]]> THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
                                THEN THM_DLQ_DP_SUM_AMT /*당월연체입금합계금액*/
@@ -27,11 +26,6 @@
                                     END)
                          ELSE 0
                     END, 0 ) AS THM_DLQ_RFND_SUM_AMT /*당월연체환불합계금액*/
-             /*-----------------------------------------------------------------------------------------------------*/
-             /*입금구분코드 = 입금 AND 수납구분코드 = 연체가산금 -> 당월연체가산입금합계금액과 :입력값_수납금액을 비교 */
-             /*:입력값_수납금액 <![CDATA[>=]]> 당월연체가산입금합계금액 => 당월연체가산환불합계금액 = 당월연체가산입금합계금액  */
-             /*:입력값_수납금액 <![CDATA[<]]> 당월연체가산입금합계금액  => :입력값_수납금액                                           */
-             /*-----------------------------------------------------------------------------------------------------*/
              , NVL( CASE WHEN #{dpDvCd} IN ('2', '4')  /*[2:환불, 4:전금환불]*/ AND #{rveDvCd} = '02' /*[02:연체가산금]*/
                                THEN (CASE WHEN THM_DLQ_RFND_SUM_AMT /*당월연체가산환불합계금액*/ + #{rveAmt} <![CDATA[>=]]> THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
                                    THEN THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
@@ -168,14 +162,25 @@
 
     <update id="updateBndCntrBas">
         UPDATE TB_CBBO_BND_CNTR_BAS /*채권계약기본*/
-           SET DLQ_DP_AMT       = CASE WHEN #{dpDvCd} IN ('1', '3')
-                                        AND #{rveDvCd} = '03'
-                                            THEN #{thmDlqDpSumAmt}
-                                       ELSE DLQ_DP_AMT END /*연체입금금액*/
+           SET DLQ_DP_AMT       = CASE WHEN #{dpDvCd} IN ('1', '3') AND #{rveDvCd} = '03'
+                                       THEN (
+                                              CASE WHEN #{eotDlqAmt} <![CDATA[>=]]> #{thmDlqDpSumAmt}
+                                              THEN #{thmDlqDpSumAmt}
+                                              ELSE #{eotDlqAmt} END
+                                            )
+                                  ELSE DLQ_DP_AMT END /*연체입금금액*/
              , DLQ_ADD_DP_AMT   = CASE WHEN #{dpDvCd} IN ('1', '3')
                                         AND #{rveDvCd} = '02'
-                                            THEN #{thmDlqAddDpSumAmt}
-                                       ELSE DLQ_ADD_DP_AMT END /*연체가산입금금액*/
+                                  THEN #{thmDlqAddDpSumAmt}
+                                  ELSE DLQ_ADD_DP_AMT END /*연체가산입금금액*/
+             , RSG_BOR_DP_AMT = CASE WHEN #{dpDvCd} IN ('1', '3') AND #{rveDvCd} = '07'
+                                THEN #{rsgBorDpAmt}
+                                ELSE RSG_BOR_DP_AMT END /*해지위약입금금액*/
+             , THM_CHRAM_DP_AMT = CASE WHEN #{dpDvCd} IN ('1', '3')
+                                       AND #{rveDvCd} = '03'
+                                       AND #{eotDlqAmt} <![CDATA[<]]> #{thmDlqDpSumAmt}
+                                  THEN #{thmDlqDpSumAmt} - #{eotDlqAmt}
+                                  ELSE THM_CHRAM_DP_AMT END /*당월요금입금금액*/
              <include refid="COMMON.updateSystemField"/>
          WHERE DTA_DL_YN = 'N'
            AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM') /*기준년월*/

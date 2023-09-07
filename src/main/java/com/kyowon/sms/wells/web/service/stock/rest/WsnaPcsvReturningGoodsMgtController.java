@@ -69,7 +69,7 @@ public class WsnaPcsvReturningGoodsMgtController {
     @GetMapping("/excel-download")
     public List<SearchRes> excelDownload(SearchReq dto) {
 
-        return service.getPcsvReturningGoodsExcelDownload(dto);
+        return service.getPcsvReturningGoods(dto);
     }
 
     @ApiOperation(value = "택배설치상품 반품 등록/취소/수불처리 저장", notes = "반품관리 반품 등록/취소/수불처리 정보를 저장한다.")

@@ -1,12 +1,13 @@
 package com.kyowon.sms.wells.web.closing.performances.service;
 
-import com.kyowon.sms.wells.web.closing.performances.dto.WdccPerformanceInterfaceDto;
-import com.kyowon.sms.wells.web.closing.performances.mapper.WdccPerformanceInterfaceMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.kyowon.sms.wells.web.closing.performances.dto.WdccPerformanceInterfaceDto.FindReq;
+import com.kyowon.sms.wells.web.closing.performances.dto.WdccPerformanceInterfaceDto.FindRes;
+import com.kyowon.sms.wells.web.closing.performances.mapper.WdccPerformanceInterfaceMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +22,7 @@ public class WdccPerformanceInterfaceService {
      * @return list
      * @programId WCLI0004
      */
-    public List<WdccPerformanceInterfaceDto.FindRes> getLumpSumPerformance(WdccPerformanceInterfaceDto.FindReq req) {
+    public FindRes getLumpSumPerformance(FindReq req) {
         return mapper.selectLumpSumPerformance(req);
     }
 }

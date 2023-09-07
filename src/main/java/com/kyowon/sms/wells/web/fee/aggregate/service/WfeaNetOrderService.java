@@ -1,13 +1,21 @@
 package com.kyowon.sms.wells.web.fee.aggregate.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
+import com.kyowon.sms.common.web.fee.common.dvo.ZfezFeeBatchStatusDetailsDvo;
+import com.kyowon.sms.common.web.fee.common.service.ZfezFeeBatchStatusDetailsService;
 import com.kyowon.sms.wells.web.fee.aggregate.converter.WfeaNetOrderConverter;
 import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaNetOrderDvo;
+import com.sds.sflex.system.config.validation.BizAssert;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaNetOrderDto.*;
 import com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaNetOrderMapper;
+import com.kyowon.sflex.common.common.service.BatchCallService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +34,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class WfeaNetOrderService {
     private final WfeaNetOrderMapper mapper;
     private final WfeaNetOrderConverter converter;;
+    private final BatchCallService batchCallService;
+
+    private final ZfezFeeBatchStatusDetailsService zfezFeeBatchStatusDetailsService;
 
     /**
      * WELLS 월순주문 집계 데이터 조회
@@ -78,22 +89,33 @@ public class WfeaNetOrderService {
      */
 
     @Transactional
-    public int saveByNetOrders(SaveReq dto) {
+    public String saveByNetOrders(SaveReq dto) throws Exception {
+        BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
 
-        int processCount = 0;
+        // 배치 parameter
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("perfYm", dto.perfYm());
+        params.put("tcntDvCd", dto.feeTcntDvCd());
 
-        WfeaNetOrderDvo dvo = converter.mapSaveReqToWfeaNetOrderDvo(dto);
+        batchCallReqDvo.setJobKey("WSM_FE_OA0005");
+        batchCallReqDvo.setParams(params);
 
-        mapper.deleteNetOrders(dvo);
-        mapper.deleteWelsNetOrders(dvo);
-        processCount += mapper.insertManagerNetOrders(dvo);
-        processCount += mapper.insertPlannerNetOrders(dvo);
-        processCount += mapper.insertHomeMasterNetOrders(dvo);
-        if (processCount > 0) {
-            mapper.insertNetOrder(dvo);
-        }
+        String runId = batchCallService.runJob(batchCallReqDvo);
+        BizAssert.isTrue(StringUtils.isNotEmpty(runId), "MSG_ALT_SVE_ERR");
 
-        return processCount;
+        /*수수료배치상태내역 저장*/
+        ZfezFeeBatchStatusDetailsDvo zfezFeeBatchStatusDetailsDvo = new ZfezFeeBatchStatusDetailsDvo();
+        zfezFeeBatchStatusDetailsDvo.setBaseYm(dto.perfYm());
+        zfezFeeBatchStatusDetailsDvo.setFeeTcntDvCd(dto.feeTcntDvCd());
+        zfezFeeBatchStatusDetailsDvo.setFeeBatWkId(batchCallReqDvo.getJobKey());
+        zfezFeeBatchStatusDetailsDvo.setFeeBatPrtcId(runId);
+        zfezFeeBatchStatusDetailsDvo.setOgTpCd("W01"); //전체주문별배치라 의미x
+        zfezFeeBatchStatusDetailsDvo.setFeeBatTpCd("01"); //수수료배치유형코드 = 01 : 주문별배치-생성
+        zfezFeeBatchStatusDetailsDvo.setFeeBatStatCd("01"); //수수료배치상태코드 = 01 : 시작
+
+        zfezFeeBatchStatusDetailsService.createFeeBatchStatusDetails(zfezFeeBatchStatusDetailsDvo);
+
+        return StringUtils.isNotBlank(runId) ? "S" : "E";
     }
 
     /**
@@ -112,5 +134,32 @@ public class WfeaNetOrderService {
         processCount = mapper.updateNetOrders(dvo);
 
         return processCount;
+    }
+
+    /**
+     * WELLS 월순주문 집계 미등록 유형 상품 데이터 조회
+     * @param 'SearchReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+
+    public List<SearchProductRes> getNetAggregateProducts(SearchReq dto) {
+        return this.mapper.selectNetAggregateProducts(dto);
+    }
+
+    /**
+     * WELLS 월순주문 집계 배치 진행상태 조회
+     * @param 'SearchReq' 검색조건 정보
+     * @return 조회된 데이터
+     */
+
+    public String getEndOfBatch(SearchReq dto) {
+        String jobStatus;
+        try {
+            String jobId = this.mapper.selectNetAggregateJobId(dto);
+            jobStatus = batchCallService.getLastestJobStatus(jobId);
+        } catch (Exception e) {
+            return "Fail";
+        }
+        return jobStatus;
     }
 }

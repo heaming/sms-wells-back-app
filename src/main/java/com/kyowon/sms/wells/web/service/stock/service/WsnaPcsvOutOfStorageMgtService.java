@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaPcsvOutOfStorageMgtConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvOutOfStorageMgtDto.*;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvOutOfStorageMgtMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -22,10 +21,6 @@ public class WsnaPcsvOutOfStorageMgtService {
     private final WsnaPcsvOutOfStorageSaveService service;
 
     public List<SearchRes> getPcsvOutOfStorages(SearchReq dto) {
-        return converter.mapAllDvoToSearchRes(mapper.selectPcsvOutOfStorages(dto));
-    }
-
-    public List<SearchRes> getPcsvOutOfStoragesExcelDownload(SearchReq dto) {
         return converter.mapAllDvoToSearchRes(mapper.selectPcsvOutOfStorages(dto));
     }
 
@@ -50,17 +45,10 @@ public class WsnaPcsvOutOfStorageMgtService {
     }
 
     public int savePcsvOutOfStorage(List<SaveReq> dtos) {
-        int processCount = 0;
-
-        for (SaveReq dto : dtos) {
-            WsnaPcsvOutOfStorageSaveDvo dvo = converter.mapSaveReqToPcsvOutOfStorageDvo(dto);
-
-            service.savePcsvOutOfStorage(dvo);
-
-            processCount += 1;
-        }
-
-        return processCount;
+        return service.savePcsvOutOfStorage(dtos);
     }
 
+    public int savePcsvOutOfStorageTest(List<SaveReq> dtos) {
+        return service.savePcsvOutOfStorageTest(dtos);
+    }
 }

@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.closing.expense.mapper;
 
+import com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesExceptionMgtDto.FindReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesExceptionMgtDto.SearchAdjustObjectReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesExceptionMgtDto.SearchWithholdingTaxAdjustReq;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdSecuritiesExceptionMgtDto.SearchWithholdingTaxAdjustRes;
@@ -16,4 +17,6 @@ public interface WdcdSecuritiesExceptionMgtMapper {
     List<SearchWithholdingTaxAdjustRes> selectWithholdingTaxAdjust(SearchWithholdingTaxAdjustReq req);
 
     int editWithholdingTaxAdjust(WdcdSecuritiesExceptionDvo req);
+
+    String selectWithholdingTax(FindReq req);
 }

@@ -52,4 +52,12 @@ public interface WfeaNetOrderMapper {
     int updateNetOrders(
         WfeaNetOrderDvo dvo
     );
+
+    List<SearchProductRes> selectNetAggregateProducts(
+        SearchReq dto
+    );
+
+    String selectNetAggregateJobId(
+        SearchReq dto
+    );
 }

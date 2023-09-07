@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.visit.service;
 
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +10,8 @@ import com.kyowon.sms.wells.web.service.visit.converter.WsnbIndividualServicePsC
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualServicePsDto.*;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbIndividualServicePsDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbIndividualServicePsMapper;
+import com.sds.sflex.common.docs.dvo.AttachFileDvo;
+import com.sds.sflex.common.docs.service.AttachFileService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -20,6 +23,7 @@ public class WsnbIndividualServicePsService {
 
     private final WsnbIndividualServicePsMapper mapper;
     private final WsnbIndividualServicePsConverter converter;
+    private final AttachFileService attachFileService;
 
     public SearchRes getIndividualServicePs(SearchReq dto){
         return mapper.selectIndividualServicePs(dto);
@@ -37,8 +41,34 @@ public class WsnbIndividualServicePsService {
         return mapper.selectIndividualDelinquent(dto);
     } // 연체정보 조회
     public PagingResult<SearchStateRes> getIndividualProcessState(SearchReq dto, PageInfo pageInfo){
-        return mapper.selectIndividualProcessState(dto,pageInfo);
+        PagingResult<WsnbIndividualServicePsDvo> dvos = mapper.selectIndividualProcessState(dto, pageInfo);
+
+        for (WsnbIndividualServicePsDvo dvo : dvos.getList()) {
+            if (ObjectUtils.isNotEmpty(dvo.getIstEnvrPhoPhDocId())){
+                List<AttachFileDvo> attachFileDvos = attachFileService.getAttachFiles(dvo.getIstEnvrPhoPhDocId());
+                if(ObjectUtils.isNotEmpty(attachFileDvos) && attachFileDvos.size() > 0)
+                    dvo.setIstEnvrFileUid(attachFileDvos.get(0).getFileUid());
+            }
+            if (ObjectUtils.isNotEmpty(dvo.getIstKitPhoPhDocId())){
+                List<AttachFileDvo> attachFileDvos = attachFileService.getAttachFiles(dvo.getIstKitPhoPhDocId());
+                if(ObjectUtils.isNotEmpty(attachFileDvos) && attachFileDvos.size() > 0)
+                    dvo.setIstKitFileUid(attachFileDvos.get(0).getFileUid());
+            }
+            if (ObjectUtils.isNotEmpty(dvo.getIstCelngPhoPhDocId())){
+                List<AttachFileDvo> attachFileDvos = attachFileService.getAttachFiles(dvo.getIstCelngPhoPhDocId());
+                if(ObjectUtils.isNotEmpty(attachFileDvos) && attachFileDvos.size() > 0)
+                    dvo.setIstCelngFileUid(attachFileDvos.get(0).getFileUid());
+            }
+        }
+
+        return converter.mapAllSearchStateToDvo(dvos);
+//        return mapper.selectIndividualProcessState(dto, pageInfo);
     } // 처리내역 조회
+
+    public List<SearchStateRes> getIndividualProcessStateExcelDownload(SearchReq dto)throws Exception{
+        List<WsnbIndividualServicePsDvo> dvos = mapper.selectIndividualProcessState(dto);
+        return converter.mapAllSearchStateResToDvo(dvos);
+    }
     public PagingResult<SearchCounselRes> getIndividualCounsel(SearchReq dto, PageInfo pageInfo){
         return mapper.selectIndividualCounsel(dto, pageInfo);
     } // 상담내역 조회

@@ -40,7 +40,7 @@
           FROM TB_PDBS_RGBS_WK_BASE_BAS T1 /* 정기BS작업기준기본 */
           LEFT OUTER JOIN TB_PDBS_PD_BAS PB
             ON T1.PART_PD_CD = PB.PD_CD
-           AND PB.DTA_DL_YN = 'N'
+           <!-- AND PB.DTA_DL_YN = 'N' -->
          WHERE T1.DTA_DL_YN = 'N'
     </sql>
 
@@ -90,7 +90,7 @@
           FROM TB_PDBS_RGBS_WK_BASE_DTL T1 /* 정기BS작업기준상세 */
           LEFT OUTER JOIN TB_PDBS_PD_BAS PB
             ON T1.PART_PD_CD = PB.PD_CD
-           AND PB.DTA_DL_YN = 'N'
+           <!-- AND PB.DTA_DL_YN = 'N' -->
          WHERE T1.DTA_DL_YN = 'N'
            AND T1.SV_PD_CD         = #{svPdCd}           /* 서비스상품코드 */
            AND T1.PDCT_PD_CD       = #{pdctPdCd}         /* 제품상품코드 */
@@ -121,7 +121,7 @@
           FROM TB_PDBS_LVLH_CSTMW_FILT_BAS T1 /* 생활맞춤형필터기준 */
           LEFT OUTER JOIN TB_PDBS_PD_BAS PB
             ON T1.CH_PDCT_PD_CD = PB.PD_CD
-           AND PB.DTA_DL_YN = 'N'
+           <!-- AND PB.DTA_DL_YN = 'N' -->
           LEFT OUTER JOIN T_CMZ_CD_D C1
             ON C1.CD_ID = 'VST_DV_CD'
            AND T1.VST_DV_CD = C1.CD_VLD_VAL
@@ -133,7 +133,7 @@
            AND T1.SV_PD_CD         = #{svPdCd}           /* 서비스상품코드 */
            AND T1.PDCT_PD_CD       = #{pdctPdCd}         /* 제품상품코드 */
            AND T1.PART_PD_CD       = #{partPdCd}         /* 부품상품코드 */
-         ORDER BY C1.CD_CNTN ASC, PRD_MM_VAL ASC, PB.PD_NM ASC
+         ORDER BY C1.ARYL_ORD ASC, PRD_MM_VAL ASC, PB.PD_NM ASC
     </select>
     
     <update id="isnertRoutineBsWorkBase">
@@ -220,7 +220,17 @@
                 , #{info.strtWkYVal}
                 , #{info.wkMm}
                 , #{info.totStplMcn}
-                , #{info.cstmwPdctYn}
+                , (
+                        SELECT DECODE(CNT, 0, 'N', 'Y')
+                          FROM (
+                                    SELECT COUNT(*) CNT
+                                      FROM TB_PDBS_LVLH_CSTMW_FILT_BAS
+                                     WHERE SV_PD_CD = #{info.svPdCd}
+                                       AND PDCT_PD_CD = #{info.pdctPdCd}
+                                       AND PART_PD_CD = #{info.partPdCd}
+                                       AND DTA_DL_YN  = 'N'
+                               )
+                  )
                 , NVL(#{info.dtaDlYn}, 'N')
                 <include refid="COMMON.insertSystemFieldValue" />
             )
@@ -243,6 +253,26 @@
            AND SV_PD_CD         = #{info.svPdCd}           /* 서비스상품코드 */
            AND PDCT_PD_CD       = #{info.pdctPdCd}         /* 제품상품코드 */
            AND DTL_SN           = #{info.dtlSn}            /* 상세일련번호 */
+    </update>
+    
+    <update id="updateRoutineBsWorkDetailFilterYn">
+         UPDATE TB_PDBS_RGBS_WK_BASE_DTL /* 정기BS작업기준상세 */
+            SET CSTMW_PDCT_YN =          /* 맞춤형제품여부 */
+            (
+                SELECT DECODE(CNT, 0, 'N', 'Y')
+                  FROM (
+                            SELECT COUNT(*) CNT
+                              FROM TB_PDBS_LVLH_CSTMW_FILT_BAS
+                             WHERE SV_PD_CD = #{svPdCd}
+                               AND PDCT_PD_CD = #{pdctPdCd}
+                               AND PART_PD_CD = #{partPdCd}
+                               AND DTA_DL_YN  = 'N'
+                       )
+            )
+          WHERE SV_PD_CD   = #{svPdCd}
+            AND PDCT_PD_CD = #{pdctPdCd}
+            AND PART_PD_CD = #{partPdCd}
+            AND DTA_DL_YN  = 'N'
     </update>
     
     <update id="mergeLifeCustomFilterBase">

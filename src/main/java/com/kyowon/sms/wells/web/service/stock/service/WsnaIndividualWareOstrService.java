@@ -4,6 +4,10 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndividualWareOstrD
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -13,10 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaIndividualWareOstrConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrLgstDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskResDvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndividualWareOstrMapper;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
@@ -44,6 +49,9 @@ public class WsnaIndividualWareOstrService {
 
     // 재고서비스
     private final WsnaItemStockItemizationService stockService;
+
+    // 물류 출고 서비스
+    private final WsnaLogisticsOutStorageAskService lgstService;
 
     // (주)교원프라퍼티파주물류(Wells)
     private static final String SAP_PLNT_CD = "2108";
@@ -83,33 +91,15 @@ public class WsnaIndividualWareOstrService {
     }
 
     /**
-     * 개인창고 출고 관리 페이징 조회
+     * 개인창고 출고 관리 조회
      * @param dto
-     * @param pageInfo
      * @return
      */
-    public PagingResult<WsnaIndividualWareOstrDvo> getIndividualWareOstrsPaging(SearchReq dto, PageInfo pageInfo) {
+    public List<WsnaIndividualWareOstrDvo> getIndividualWareOstrs(SearchReq dto) {
 
-        PagingResult<WsnaIndividualWareOstrDvo> results = this.mapper.selectIndividualWareOstrs(dto, pageInfo);
         // 개인창고 출고관리 데이터 리스트
-        List<WsnaIndividualWareOstrDvo> dvos = results.getList();
-
-        // 실시간 물류재고 조회 호출
-        this.getRealTimeLogisticStockQtys(dvos);
-
-        results.setList(dvos);
-
-        return results;
-    }
-
-    /**
-     * 개인창고 출고 관리 엑셀 다운로드
-     * @param dto
-     * @return
-     */
-    public List<WsnaIndividualWareOstrDvo> getIndividualWareOstrsExcelDownload(SearchReq dto) {
-
         List<WsnaIndividualWareOstrDvo> dvos = this.mapper.selectIndividualWareOstrs(dto);
+
         // 실시간 물류재고 조회 호출
         this.getRealTimeLogisticStockQtys(dvos);
 
@@ -167,30 +157,11 @@ public class WsnaIndividualWareOstrService {
 
                 if (itmPdCd.equals(stockPdCd)) {
                     lgstQty = stock.getLgstAGdQty();
-                    stockSize--;
-                    stocks.remove(stock);
                     break;
                 }
             }
 
             dvo.setLogisticStocQty(lgstQty);
-
-            // 출고수량
-            BigDecimal outQty = dvo.getOutQty();
-            // 필터박스수량
-            BigDecimal filterBoxQty = dvo.getFilterBoxQty();
-
-            if (!BigDecimal.ZERO.equals(filterBoxQty) && !BigDecimal.ZERO.equals(outQty)) {
-                long ostrQty = outQty.longValue();
-                long filterQty = filterBoxQty.longValue();
-
-                long outBoxQty = Math.floorDiv(ostrQty, filterQty)
-                    + (Math.floorMod(ostrQty, filterQty) > 0 ? 1 : 0);
-
-                dvo.setOutBoxQty(BigDecimal.valueOf(outBoxQty));
-            } else {
-                dvo.setOutBoxQty(BigDecimal.ZERO);
-            }
         }
     }
 
@@ -206,24 +177,68 @@ public class WsnaIndividualWareOstrService {
 
         List<WsnaIndividualWareOstrDvo> dvos = this.converter.mapAllSaveReqToWsnaIndividualWareOstrDvo(dtos);
 
-        String newOstrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
+        // 입고창고 필터링
+        List<WsnaIndividualWareOstrDvo> filterDvos = dvos.stream()
+            .filter(distinctByKey(dvo -> dvo.getStrWareNo())).toList();
 
-        for (WsnaIndividualWareOstrDvo dvo : dvos) {
-            // 출고요청 저장
-            String ostrAkNo = dvo.getOstrAkNo();
-            if (StringUtils.isEmpty(ostrAkNo)) {
-                dvo.setOstrAkNo(newOstrAkNo);
+        for (WsnaIndividualWareOstrDvo filterDvo : filterDvos) {
+            // 출고요청번호
+            String newOstrAkNo = this.mapper.selectOstrAkNoByQomAsn(filterDvo);
+            if (StringUtils.isEmpty(newOstrAkNo)) {
+                newOstrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
             }
 
-            count += this.mapper.mergeItmOstrAkIz(dvo);
+            // 입고창고번호
+            String strWareNo = filterDvo.getStrWareNo();
 
-            // 물량배정 출고수량 업데이트
-            int result = this.mapper.updateItmQomAsnIz(dvo);
-            // 저장에 실패 하였습니다.
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            // 입고창고에 해당하는 품목 리스트
+            List<WsnaIndividualWareOstrDvo> itms = dvos.stream().filter(dvo -> strWareNo.equals(dvo.getStrWareNo()))
+                .toList();
+            for (WsnaIndividualWareOstrDvo dvo : itms) {
+                String ostrAkNo = dvo.getOstrAkNo();
+                if (StringUtils.isEmpty(ostrAkNo)) {
+                    dvo.setOstrAkNo(newOstrAkNo);
+                }
+
+                // 출고요청 저장
+                count += this.mapper.mergeItmOstrAkIz(dvo);
+
+                // 물량배정 출고수량 업데이트
+                int result = this.mapper.updateItmQomAsnIz(dvo);
+                // 저장에 실패 하였습니다.
+                BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            }
         }
 
         return count;
+    }
+
+    /**
+     * distinct 함수
+     */
+    private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+        Map<Object, Boolean> map = new ConcurrentHashMap<>();
+        return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
+    /**
+     * 물류 전송
+     * @param dto
+     * @return
+     */
+    @Transactional(timeout = 900)
+    public int createIndividualLogisticsTransfer(CreateReq dto) {
+
+        WsnaIndividualWareOstrLgstDvo dvo = this.converter.mapCreateReqToWsnaIndividualWareOstrLgstDvo(dto);
+
+        List<WsnaLogisticsOutStorageAskReqDvo> dvos = this.mapper.selectIndividualLogisticsTransfer(dvo);
+        // 적용 대상 데이터가 없습니다.
+        BizAssert.isFalse(CollectionUtils.isEmpty(dvos), "MSG_ALT_NO_APPY_OBJ_DT");
+
+        // 물류 출고처리
+        WsnaLogisticsOutStorageAskResDvo resDvo = this.lgstService.createQomOutOfStorageAsks(dvos);
+
+        return resDvo.getAkCnt();
     }
 
 }

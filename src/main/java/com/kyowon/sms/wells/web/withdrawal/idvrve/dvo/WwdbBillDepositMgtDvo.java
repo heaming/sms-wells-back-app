@@ -24,4 +24,6 @@ public class WwdbBillDepositMgtDvo {
     String rveAkNo; /* 수납요청번호 */
     String dtaDlYn; /* 삭제여부 */
     String billDpAmt; /* 입금금액 */
+    String billDpSapSlpno; /*입금전표*/
+    String billRplcSapSlpno; /*대체전표*/
 }

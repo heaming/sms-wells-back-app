@@ -1,18 +1,20 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStockStatusControlDto.*;
+
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
-import com.kyowon.sms.wells.web.service.stock.service.WsnaStockStatusControlService;
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStockStatusControlDto.*;
-
+import com.kyowon.sms.wells.web.service.stock.service.WsnaStockStatusControlService;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -76,11 +78,49 @@ public class WsnaStockStatusControlController {
         return service.getStockStatusItmPdCd(dto);
     }
 
+    @ApiOperation(value = "재고상태조정 상품조회", notes = "재고상태조정 관리 품목종류에 해당하는 상품을 조회한다.")
+    @GetMapping("/status-product")
+    public List<SearchWarehouseItmPdCdRes> getStatusProductItmPdCd(
+        SearchStatusProductReq dto
+    ) {
+        return service.getStatusProductItmPdCd(dto);
+    }
+
+    @ApiOperation(value = "재고상태조정 상품에 대한 수량을 조회", notes = "재고상태조정 관리 품목종류와 상품코드에 해당하는 수량을 조회한다")
+    @GetMapping("/product-qty")
+    public SearchPdCdQtyRes getItmPdCdQty(
+        SearchPdCdQtyReq dto
+    ) {
+        return service.getItmPdCdQty(dto);
+    }
+
     @ApiOperation(value = "재고상태조정 관리 창고관련 상품조회.", notes = "재고상태조정 관리 품목종류에 해당하는 상품을 창고별로 조회한다.")
     @GetMapping("/product-warehouse")
     public List<SearchWarehouseItmPdCdRes> getStockStatusWarehouseItmPdCd(
         SearchWarehouseItmPdCdReq dto
     ) {
         return service.getStockStatusWarehouseItmPdCd(dto);
+    }
+
+    @ApiOperation(value = "재고상태 조정관리 저장", notes = "재고상태 조정관리 데이터를 저장한다.")
+    @PostMapping
+    public SaveResponse saveStockStatusControls(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<SaveReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder().processCount(this.service.saveStockStatusControls(dtos)).build();
+    }
+
+    @ApiOperation(value = "산출 제외품목 삭제", notes = "산출 제외품목 데이터를 삭제한다.")
+    @DeleteMapping
+    public SaveResponse removeStockStatusControls(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<RemoveReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder().processCount(this.service.updateStockStatusControlsForRemove(dtos)).build();
     }
 }

@@ -48,8 +48,8 @@ public class WsndRegionLevelAlwncMgtDto {
         String rglvlDvCd, // 급지구분코드
         Long mmtLdtm, // 이동소요시간
         String fstRgstDtm, // 최초등록일시
-        String fstRgstUsrId, // 최초등록사용자ID
-        String rgstNm, // 사용자명
+        String chEmpno, // 변경사번
+        String chNm, // 변경성명
         Integer izSn, // 내역일련번호
         Long mmtDstn, // 이동거리
         Integer minPerManho, // 분당공수

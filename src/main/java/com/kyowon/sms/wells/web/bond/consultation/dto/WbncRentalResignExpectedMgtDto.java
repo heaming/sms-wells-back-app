@@ -96,7 +96,10 @@ public class WbncRentalResignExpectedMgtDto {
         String authRsgExpRgstPrtnrNo, /* 직권해지예정등록파트너번호 */
         String authRsgCnfmYn, /* 직권해지확정여부 */
         String authRsgCnfmdt, /* 직권해지확정일자 */
-        String authRsgCnfmRgstPrtnrNo/* 직권해지확정등록파트너번호 */
+        String authRsgCnfmRgstPrtnrNo, /* 직권해지확정등록파트너번호 */
+        String bndClctnPrpDvCd, /* 채권추심속성구분코드 */
+        String bndClctnPrpRsonCd, /* 채권추심속성사유코드 */
+        String bndStrtYn/* 채권전략팀 여부 */
     ) {
         public SearchRes {
             if (StringUtil.isNotBlank(cralLocaraTno) && StringUtil.isNotBlank(mexnoEncr)

@@ -12,5 +12,7 @@ public class WsnyCalendarDvo {
     String baseD;
     String dfYn;
     String rmkCn;
-    String bndtWrkPsicNo;
+//    String bndtWrkPsicNo;
+    String bndtWrkPsicNoPrtnrNo;
+    String bndtWrkPsicNoOgTpCd;
 }

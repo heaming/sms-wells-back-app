@@ -9,7 +9,7 @@ public class WsnaItemLocationDvo {
 
     String wareNo;
     String itmPdCd;
-    String WareTpCd;
+    String wareTpCd;
     String itmLctAngleVal;
     String itmLctCofVal;
     String itmLctFlorNoVal;

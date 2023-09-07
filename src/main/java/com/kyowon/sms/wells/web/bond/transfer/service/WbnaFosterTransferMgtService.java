@@ -18,6 +18,7 @@ import com.kyowon.sms.wells.web.bond.transfer.mapper.WbnaFosterTransferMgtMapper
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -44,27 +45,35 @@ public class WbnaFosterTransferMgtService {
     }
 
     // TODO: 배치 호출 예정
-    public String sendFosterDataTransfer(SearchReq dto) throws Exception {
-        //배치 dvo 생성
-        BatchCallReqDvo batchDvo = new BatchCallReqDvo();
+    public SaveResponse sendFosterDataTransfer(SearchReq dto) throws Exception {
+        int processCount = 0;
+        String data = null;
 
-        Map<String, String> params = new HashMap<String, String>();
+        switch (dto.clctamDvCd()) {
+            case "09" -> {
+                //배치 dvo 생성
+                BatchCallReqDvo batchDvo = new BatchCallReqDvo();
 
-        batchDvo.setJobKey("WSM_BN_OA0001");
-        params.put("baseYm", dto.baseYm()); //기준년월
-        params.put("bzHdqDvCd", dto.bzHdqDvCd()); //사업부 구분
-        params.put("clcoCd", dto.clcoCd()); //추심사 코드
-        params.put("bndNwDvCd", dto.bndNwDvCd()); //사업부 구분
-        params.put("cstNm", dto.cstNm()); // 고객명
-        params.put("cstNo", dto.cstNo()); // 고객번호
-        params.put("cralLocaraTno", dto.cralLocaraTno());/* 휴대지역전화번호 */
-        params.put("mexnoEncr", dto.mexnoEncr());/* 휴대전화국번호암호화 */
-        params.put("cralIdvTno", dto.cralIdvTno());/* 휴대개별전화번호 */
-        batchDvo.setParams(params); // Job 실행시 필요한 파라미터
+                Map<String, String> params = new HashMap<String, String>();
 
-        String runId = batchCallService.runJob(batchDvo);
-        BizAssert.isTrue(StringUtils.isNotEmpty(runId), "MSG_ALT_SVE_ERR");
-        return StringUtil.isBlank(runId) ? "S" : "E";
+                batchDvo.setJobKey("WSM_BN_OA0001");
+                params.put("baseYm", dto.baseYm()); //기준년월
+                params.put("bzHdqDvCd", dto.bzHdqDvCd()); //사업부 구분
+                params.put("bndNwDvCd", dto.bndNwDvCd()); // 신규구분
+                params.put("cstNo", dto.cstNo()); // 고객번호
+                batchDvo.setParams(params); // Job 실행시 필요한 파라미터
+
+                String runId = batchCallService.runJob(batchDvo);
+                BizAssert.isTrue(StringUtils.isNotEmpty(runId), "MSG_ALT_SVE_ERR");
+
+                data = StringUtil.isBlank(runId) ? "S" : "E";
+            }
+            case "11" -> {
+
+            }
+        }
+
+        return SaveResponse.builder().data(data).processCount(processCount).build();
     }
 
     public List<SearchDetailRes> getFosterTransferDetailsExcelDownload(SearchReq dto) {

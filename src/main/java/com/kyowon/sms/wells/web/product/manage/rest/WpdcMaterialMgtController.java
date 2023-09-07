@@ -7,15 +7,7 @@ import java.util.Map;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto;
@@ -86,7 +78,8 @@ public class WpdcMaterialMgtController {
                         .pdCd(dto.pdCd())
                         .tbPdbsPdBas(dto.tbPdbsPdBas()) /* FRONT pdConst.js 동기화 */
                         .tbPdbsPdEcomPrpDtl(dto.tbPdbsPdEcomPrpDtl())
-                        .tbPdbsPdRel(dto.tbPdbsPdRel())
+                        .tbPdbsPdDtl(dto.tbPdbsPdDtl()) // 제품 상세
+                        .tbPdbsPdRel(dto.tbPdbsPdRel()) // 연결상품
                         .isModifiedProp(dto.isModifiedProp())
                         .isOnlyFileModified(dto.isOnlyFileModified())
                         .isModifiedRelation(dto.isModifiedRelation())
@@ -112,6 +105,7 @@ public class WpdcMaterialMgtController {
                         .pdCd(dto.pdCd())
                         .tbPdbsPdBas(dto.tbPdbsPdBas()) /* FRONT pdConst.js 동기화 */
                         .tbPdbsPdEcomPrpDtl(dto.tbPdbsPdEcomPrpDtl())
+                        .tbPdbsPdDtl(dto.tbPdbsPdDtl())
                         .tbPdbsPdRel(dto.tbPdbsPdRel())
                         .isModifiedProp(dto.isModifiedProp())
                         .isOnlyFileModified(dto.isOnlyFileModified())
@@ -150,6 +144,21 @@ public class WpdcMaterialMgtController {
         return service.getMaterialSapPages(dto, pageInfo);
     }
 
+    /**
+     * SAP 교재/자재 엑셀다운(팝업)
+     * @param dto
+     * @return
+     */
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "searchCond", value = "모델No 또는 자재코드", paramType = "query", required = false, example = ""),
+        @ApiImplicitParam(name = "searchWord", value = "모델No 또는 자재코드명", paramType = "query", required = false, example = ""),
+    })
+    @ApiOperation(value = "SAP 교재/자재 페이징 조회(팝업)", notes = "검색조건을 입력받아 교재/자재 목록을 조회한다.")
+    @GetMapping("/sap-material/excel-download")
+    public List<SearchSapRes> getMaterialSapForExcelDownload(SearchSapReq dto) {
+        return service.getMaterialSapForExcelDownload(dto);
+    }
+
     @ApiOperation(value = "교재/자재 엑셀 업로드를 통한 일괄등록")
     @PostMapping("/excel-upload")
     public UploadRes saveForDirectExcelUpload(
@@ -171,7 +180,7 @@ public class WpdcMaterialMgtController {
         List<ZpdcPropertyMetaDvo> mendatoryColumns = metaItems.stream()
             .filter(x -> PdProductConst.MNDT_Y.equals(x.getMndtYn())).toList();
         List<ExcelUploadErrorDvo> headerErrors = excelReadService
-            .checkHeaderValidation(file, mendatoryColumns);
+            .checkHeaderValidation(file, mendatoryColumns, true);
 
         // Excel Data Drm 해제 및 Data 파싱.
         List<Map<String, Object>> excelData = excelReadService.readExcel(file, true);
@@ -195,11 +204,13 @@ public class WpdcMaterialMgtController {
                 }
             }
 
-            // 대상 테이블별 추출대상 Column 선별. 
+            // 대상 테이블별 추출대상 Column 선별.
             List<ZpdcPropertyMetaDvo> tbPdbsPdBas = metaItems.stream()
                 .filter(x -> PdProductConst.TBL_TB_PDBS_PD_BAS.equals(x.getTblId())).toList();
             List<ZpdcPropertyMetaDvo> tbPdbsPdEcomPrpDtl = metaItems.stream()
                 .filter(x -> PdProductConst.TBL_TB_PDBS_PD_ECOM_PRP_DTL.equals(x.getTblId())).toList();
+            List<ZpdcPropertyMetaDvo> tbPdbsPdDtl = metaItems.stream()
+                .filter(x -> PdProductConst.TBL_TB_PDBS_PD_DTL.equals(x.getTblId())).toList();
 
             // 유효성 체크
             List<ExcelUploadErrorDvo> dataErrors = service
@@ -208,7 +219,7 @@ public class WpdcMaterialMgtController {
             if (dataErrors.size() > 0) {
                 uploadStatus = PdProductConst.EXCEL_UPLOAD_ERROR;
             } else {
-                service.saveExcelUpload(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl, prgGrpDves);
+                service.saveExcelUpload(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl, tbPdbsPdDtl, prgGrpDves);
             }
 
             return ExcelUploadDto.UploadRes.builder()
@@ -220,6 +231,12 @@ public class WpdcMaterialMgtController {
 
     }
 
+    /**
+     * 2023-07-26
+     * 미사용 Method로 1차 판별!!!
+     * @param dto
+     * @return
+     */
     @GetMapping("/check-validation")
     public String checkValidation(
         ValidationReq dto

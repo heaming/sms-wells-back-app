@@ -160,6 +160,9 @@ public class WbncAuthorityResignIzDvo {
     private String sellPrtnrNo; /* 판매자번호 */
     private String plarKnm; /* 플래너 */
     private String canRedfYn; /* 취소되물림여부 */
+    private String bndClctnPrpDvCd; /* 채권추심속성구분코드 */
+    private String bndClctnPrpRsonCd; /* 채권추심속성사유코드 */
+    private String bndStrtYn; /* 채권전략팀 여부 */
     private Long rtrnDbtTotAmt; /* 반환시총체납액 */
     private Long nrtrnDbtTotAmt; /* 미반환시총체납액 */
     private Long rentalAmt; /* 당월렌탈료 */

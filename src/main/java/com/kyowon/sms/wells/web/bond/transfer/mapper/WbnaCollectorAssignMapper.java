@@ -43,5 +43,13 @@ public interface WbnaCollectorAssignMapper {
 
     int updateCollectorAssing(WbnaCollectorAssignDvo dvo);
 
+    int updateCollectorAssingByCntr(WbnaCollectorAssignDvo dvo);
+
     int updateCollectorAssingForBondAssignItemization(WbnaCollectorAssignDvo dvo);
+
+    int updateClctamPrtnrNoForCollectorAssing(String baseYm, String bzHdqDvCd, String clctamDvCd);
+
+    int updateClctamPrtnrNoForBondAssignItemization(String baseYm, String bzHdqDvCd, String clctamDvCd);
+
+    int updateCollectorAssingForAnsIzByCntr(WbnaCollectorAssignDvo dvo);
 }

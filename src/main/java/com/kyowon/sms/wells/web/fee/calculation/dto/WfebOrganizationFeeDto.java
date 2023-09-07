@@ -60,8 +60,8 @@ public class WfebOrganizationFeeDto {
     // *********************************************************
     @ApiModel(value = "WfebOrganizationFeeDto-SearchHmstRes")
     public record SearchHmstRes(
-        String dgr1LevlOgNm, /*지역단*/
-        String dgr2LevlOgNm, /*지점*/
+        String dgr2LevlOgNm, /*지역단*/
+        String dgr3LevlOgNm, /*지점*/
         String prtnrNo, /*번호*/
         String prtnrKnm, /*성명*/
         String rsbDvCd, /*직책*/
@@ -104,8 +104,8 @@ public class WfebOrganizationFeeDto {
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchHmstBrmgrRes")
     public record SearchHmstBrmgrRes(
-        String dgr1LevlOgNm, /*지역단*/
-        String dgr2LevlOgNm, /*지점*/
+        String dgr2LevlOgNm, /*지역단*/
+        String dgr3LevlOgNm, /*지점*/
         String prtnrNo, /*번호*/
         String prtnrKnm, /*성명*/
         String rsbDvCd, /*직책*/
@@ -164,6 +164,76 @@ public class WfebOrganizationFeeDto {
         String prtnrNo, /*번호*/
         String prtnrKnm, /*성명*/
         String rsbDvCd, /*직책*/
+        String bizRgst1Artc, /*업무등록-최초업무등록월*/
+        String bizRgst2Artc, /*업무등록-재등록월*/
+        String bizRgst3Artc, /*업무등록-최종해약월*/
+        String bizRgst4Artc, /*업무등록-업무해약월*/
+        String metgDc, /*미팅일수*/
+        String qlf1Atc, /*자격-수수료월*/
+        String qlf2Atc, /*자격-M+1*/
+        String edu1Atc, /*교육-스타트업*/
+        String edu2Atc, /*교육-Pre스타트업*/
+        String edu3Atc, /*교육-보수*/
+        String edu4Atc, /*교육-정착1*/
+        String edu5Atc, /*교육-정착2*/
+        String edu6Atc, /*교육-정착3,4,5*/
+        String edu7Atc, /*교육-Pre누적교육*/
+        String edu8Atc, /*교육-수석정착*/
+        String edu9Atc, /*교육-수석차월*/
+        String mngr1Atc, /*매니저개시-최초개시월*/
+        String mngr2Atc, /*매니저개시-재개시월*/
+        String mngr3Atc, /*매니저개시-최종해약월*/
+        String mngr4Atc, /*매니저개시-업무해약월*/
+        String mngr5Atc, /*매니저개시-개시차월*/
+        String mngr6Atc, /*매니저개시-정착지급유형*/
+        String mngr7Atc, /*매니저개시-5일배정수*/
+        String indv1BsAtc, /*개인BS-배정건수*/
+        String indv2BsAtc, /*개인BS-완료건수*/
+        String indv3BsAtc, /*개인BS-처리율*/
+        String indv4BsAtc, /*개인BS-지급률*/
+        String indv5BsAtc, /*개인BS-W1건수*/
+        String indv6BsAtc, /*개인BS-W2건수*/
+        String indv1Perf, /*개인실적-가정인정건수*/
+        String indv2Perf, /*개인실적-렌탈기준가*/
+        String indv3Perf, /*개인실적-일시불기준가*/
+        String indv4Perf, /*개인실적-기변건수*/
+        String indv5Perf, /*개인실적-가전외인정실적*/
+        String indv1Sell, /*개인기타판매-정액건수*/
+        String indv2Sell, /*개인기타판매-라이브팩건수*/
+        String indv3Sell, /*개인기타판매-홈케어멤버십건수*/
+        String indvAcc1Ninc, /*개인계정순증-전월취소*/
+        String indvAcc2Ninc, /*개인계정순증-당월신규*/
+        String indvAcc3Ninc, /*개인계정순증-순증*/
+        String indv1Fee, /*개인수수료-가전비례*/
+        String indv2Fee, /*개인수수료-가전외비례*/
+        String indv3Fee, /*개인수수료-가전판매장려*/
+        String indv4Fee, /*개인수수료-미팅*/
+        String indv5Fee, /*개인수수료-교육*/
+        String indv6Fee, /*개인수수료-정착*/
+        String indv7Fee, /*개인수수료-기기변경*/
+        String indv8Fee, /*개인수수료-BS관리*/
+        String indv9Fee, /*개인수수료-BS장려*/
+        String indv10Fee, /*개인수수료-급지*/
+        String indv11Fee, /*개인수수료-WM통신*/
+        String indv12Fee, /*개인수수료-WM기타*/
+        String indv13Fee, /*개인수수료-사전방문*/
+        String indv14Fee, /*개인수수료-유니폼*/
+        String indv15Fee, /*개인수수료-자재실장*/
+        String indv16Fee, /*개인수수료-추가장려*/
+        String etc1Atc, /*기타-재지급*/
+        String etc2Atc, /*기타-멤버십*/
+        String etc3Atc, /*기타-기타지원*/
+        String intbsSum, /*과표합계*/
+        String ddtnSum, /*총공제액*/
+        String aclDsbAmt /*실지급액*/
+    ) {}
+
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerBfRes")
+    public record SearchMngerBfRes(
+        String ogCd, /*소속*/
+        String prtnrNo, /*번호*/
+        String prtnrKnm, /*성명*/
+        String rsbDvCd, /*직책*/
         String akcuil, /*미팅일수*/
         String akdmi3, /*자격수수료월*/
         String akdmi32, /*자격M+1*/
@@ -173,7 +243,7 @@ public class WfebOrganizationFeeDto {
         String edu106, /*수석플래너교육정착*/
         String akdcha, /*수석플래너교육차월*/
         String edu017, /*수석플래너교육실전*/
-        String ojtcnt, /*OJT일수*/
+        String ojtCnt, /*OJT일수*/
         String akdsym, /*등록기준월*/
         String akdenm, /*최초업무등록월*/
         String akdjem, /*재등록월*/
@@ -185,12 +255,6 @@ public class WfebOrganizationFeeDto {
         String lccoym, /*WM개시*/
         String lcccym, /*WM해약*/
         String dalsyn, /*실활동달성*/
-        String bondalsyn, /*최소기준달성*/
-        String sungnm, /*전월대비구분*/
-        String wpscnt, /*WP*/
-        String wmscnt, /*WM*/
-        String spscnt, /*SP*/
-        String dancnt, /*총인원*/
         String akcda17, /*인정실적렌탈*/
         String akcda18, /*인정실적일시불*/
         String akcda1, /*인정실적환경가전외*/
@@ -247,8 +311,86 @@ public class WfebOrganizationFeeDto {
         String ddtnSum, /*총공제액*/
         String aclDsbAmt /*실지급액*/
     ) {}
+
     @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerBrmgrRes")
     public record SearchMngerBrmgrRes(
+        String ogNm, /*소속*/
+        String prtnrNo, /*번호*/
+        String prtnrKnm, /*성명*/
+        String rsbDvCd, /*직책*/
+        String bizRgst1Artc, /*업무등록-최초업무등록월*/
+        String bizRgst2Artc, /*업무등록-재등록월*/
+        String bizRgst3Artc, /*업무등록-최종해약월*/
+        String bizRgst4Artc, /*업무등록-업무해약월*/
+        String prfmtMm, /*승진월*/
+        String prfmtNmn, /*승진차월*/
+        String metgDc, /*미팅일수*/
+        String qlf1Atc, /*자격-수수료월*/
+        String qlf2Atc, /*자격-M+1*/
+        String edu1Atc, /*교육-지점온라인*/
+        String indv1BsAtc, /*개인BS-배정건수*/
+        String indv2BsAtc, /*개인BS-완료건수*/
+        String indv3BsAtc, /*개인BS-처리율*/
+        String indv4BsAtc, /*개인BS-지급률*/
+        String indv5BsAtc, /*개인BS-W1건수*/
+        String indv6BsAtc, /*개인BS-W2건수*/
+        String og1BsAtc, /*조직BS-배정건수*/
+        String og2BsAtc, /*조직BS-완료건수*/
+        String og3BsAtc, /*조직BS-처리율*/
+        String og4BsAtc, /*조직BS-지급률*/
+        String indv1Perf, /*개인실적-가정인정건수*/
+        String indv2Perf, /*개인실적-렌탈기준가*/
+        String indv3Perf, /*개인실적-일시불기준가*/
+        String indv4Perf, /*개인실적-기변건수*/
+        String indv5Perf, /*개인실적-가전외인정실적*/
+        String indv1Sell, /*개인기타판매-정액건수*/
+        String indv2Sell, /*개인기타판매-라이브팩건수*/
+        String indv3Sell, /*개인기타판매-홈케어멤버십건수*/
+        String indvAcc1Ninc, /*개인계정순증-전월취소*/
+        String indvAcc2Ninc, /*개인계정순증-당월신규*/
+        String indvAcc3Ninc, /*개인계정순증-순증*/
+        String og1Perf, /*조직실적-가정인정건수*/
+        String og2Perf, /*조직실적-렌탈기준가*/
+        String og3Perf, /*조직실적-일시불기준가*/
+        String og4Perf, /*조직실적-기변건수*/
+        String ogPerfSum, /*조직실적-계*/
+        String ogAcc1Ninc, /*조직계정순증-전월취소*/
+        String ogAcc2Ninc, /*조직계정순증-당월신규*/
+        String ogAcc3Ninc, /*조직계정순증-순증*/
+        String indv1Fee, /*개인수수료-가전비례*/
+        String indv2Fee, /*개인수수료-가전외비례*/
+        String indv3Fee, /*개인수수료-가전판매장려*/
+        String indv4Fee, /*개인수수료-미팅*/
+        String indv5Fee, /*개인수수료-교육*/
+        String indv6Fee, /*개인수수료-정착*/
+        String indv7Fee, /*개인수수료-기기변경*/
+        String indv8Fee, /*개인수수료-BS관리*/
+        String indv9Fee, /*개인수수료-BS장려*/
+        String indv10Fee, /*개인수수료-급지*/
+        String indv11Fee, /*개인수수료-WM통신*/
+        String indv12Fee, /*개인수수료-WM기타*/
+        String indv13Fee, /*개인수수료-사전방문*/
+        String indv14Fee, /*개인수수료-유니폼*/
+        String indv15Fee, /*개인수수료-자재실장*/
+        String indv16Fee, /*개인수수료-추가장려*/
+        String og1Fee, /*조직수수료-가전조직비례*/
+        String og2Fee, /*조직수수료-가전외조직비례*/
+        String og3Fee, /*조직수수료-조직판매장려*/
+        String og4Fee, /*조직수수료-교육*/
+        String og5Fee, /*조직수수료-순증관리*/
+        String og6Fee, /*조직수수료-조직배출1*/
+        String og7Fee, /*조직수수료-조직배출2*/
+        String og8Fee, /*조직수수료-신설지점*/
+        String etc1Atc, /*기타-재지급*/
+        String etc2Atc, /*기타-멤버십*/
+        String etc3Atc, /*기타-기타지원*/
+        String intbsSum, /*과표합계*/
+        String ddtnSum, /*총공제액*/
+        String aclDsbAmt /*실지급액*/
+    ) {}
+
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerBrmgrBfRes")
+    public record SearchMngerBrmgrBfRes(
         String ogNm, /*소속*/
         String prtnrNo, /*번호*/
         String prtnrKnm, /*성명*/
@@ -256,12 +398,8 @@ public class WfebOrganizationFeeDto {
         String akcuil, /*미팅일수*/
         String akdmi3, /*자격수수료월*/
         String akdmi32, /*자격M+1*/
-        String edustr, /*스타트업매니저*/
-        String edu011, /*스타트업플래너*/
-        String edu129, /*보수교육*/
         String edu106, /*수석플래너교육정착*/
         String akdcha, /*수석플래너교육차월*/
-        String edu017, /*수석플래너교육실전*/
         String edu135, /*지점장온라인*/
         String akdsym, /*등록기준월*/
         String akdenm, /*최초업무등록월*/
@@ -332,11 +470,103 @@ public class WfebOrganizationFeeDto {
         String intbsSum, /*과표합계*/
         String ddtnSum, /*총공제액*/
         String aclDsbAmt /*실지급액*/
-    )
+    ) {}
 
-    {}
     @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerTotalRes")
     public record SearchMngerTotalRes(
+        String ogNm, /*소속*/
+        String prtnrNo, /*번호*/
+        String prtnrKnm, /*성명*/
+        String rsbDvCd, /*직책*/
+        String bizRgst1Artc, /*업무등록-최초업무등록월*/
+        String bizRgst2Artc, /*업무등록-재등록월*/
+        String bizRgst3Artc, /*업무등록-최종해약월*/
+        String bizRgst4Artc, /*업무등록-업무해약월*/
+        String prfmtMm, /*승진월*/
+        String prfmtNmn, /*승진차월*/
+        String metgDc, /*미팅일수*/
+        String qlf1Atc, /*자격-수수료월*/
+        String qlf2Atc, /*자격-M+1*/
+        String edu1Atc, /*교육-스타트업*/
+        String edu2Atc, /*교육-Pre스타트업*/
+        String edu3Atc, /*교육-보수*/
+        String edu4Atc, /*교육-정착1*/
+        String edu5Atc, /*교육-정착2*/
+        String edu6Atc, /*교육-정착3,4,5*/
+        String edu10Atc, /*교육-지점온라인*/
+        String edu7Atc, /*교육-Pre누적교육*/
+        String edu8Atc, /*교육-수석정착*/
+        String edu9Atc, /*교육-수석차월*/
+        String mngr1Atc, /*매니저개시-최초개시월*/
+        String mngr2Atc, /*매니저개시-재개시월*/
+        String mngr3Atc, /*매니저개시-최종해약월*/
+        String mngr4Atc, /*매니저개시-업무해약월*/
+        String mngr5Atc, /*매니저개시-개시차월*/
+        String mngr6Atc, /*매니저개시-정착지급유형*/
+        String mngr7Atc, /*매니저개시-5일배정수*/
+        String indv1BsAtc, /*개인BS-배정건수*/
+        String indv2BsAtc, /*개인BS-완료건수*/
+        String indv3BsAtc, /*개인BS-처리율*/
+        String indv4BsAtc, /*개인BS-지급률*/
+        String indv5BsAtc, /*개인BS-W1건수*/
+        String indv6BsAtc, /*개인BS-W2건수*/
+        String og1BsAtc, /*조직BS-배정건수*/
+        String og2BsAtc, /*조직BS-완료건수*/
+        String og3BsAtc, /*조직BS-처리율*/
+        String og4BsAtc, /*조직BS-지급률*/
+        String indv1Perf, /*개인실적-가정인정건수*/
+        String indv2Perf, /*개인실적-렌탈기준가*/
+        String indv3Perf, /*개인실적-일시불기준가*/
+        String indv4Perf, /*개인실적-기변건수*/
+        String indv5Perf, /*개인실적-가전외인정실적*/
+        String indv1Sell, /*개인기타판매-정액건수*/
+        String indv2Sell, /*개인기타판매-라이브팩건수*/
+        String indv3Sell, /*개인기타판매-홈케어멤버십건수*/
+        String indvAcc1Ninc, /*개인계정순증-전월취소*/
+        String indvAcc2Ninc, /*개인계정순증-당월신규*/
+        String indvAcc3Ninc, /*개인계정순증-순증*/
+        String og1Perf, /*조직실적-가정인정건수*/
+        String og2Perf, /*조직실적-렌탈기준가*/
+        String og3Perf, /*조직실적-일시불기준가*/
+        String og4Perf, /*조직실적-기변건수*/
+        String ogPerfSum, /*조직실적-계*/
+        String ogAcc1Ninc, /*조직계정순증-전월취소*/
+        String ogAcc2Ninc, /*조직계정순증-당월신규*/
+        String ogAcc3Ninc, /*조직계정순증-순증*/
+        String indv1Fee, /*개인수수료-가전비례*/
+        String indv2Fee, /*개인수수료-가전외비례*/
+        String indv3Fee, /*개인수수료-가전판매장려*/
+        String indv4Fee, /*개인수수료-미팅*/
+        String indv5Fee, /*개인수수료-교육*/
+        String indv6Fee, /*개인수수료-정착*/
+        String indv7Fee, /*개인수수료-기기변경*/
+        String indv8Fee, /*개인수수료-BS관리*/
+        String indv9Fee, /*개인수수료-BS장려*/
+        String indv10Fee, /*개인수수료-급지*/
+        String indv11Fee, /*개인수수료-WM통신*/
+        String indv12Fee, /*개인수수료-WM기타*/
+        String indv13Fee, /*개인수수료-사전방문*/
+        String indv14Fee, /*개인수수료-유니폼*/
+        String indv15Fee, /*개인수수료-자재실장*/
+        String indv16Fee, /*개인수수료-추가장려*/
+        String og1Fee, /*조직수수료-가전조직비례*/
+        String og2Fee, /*조직수수료-가전외조직비례*/
+        String og3Fee, /*조직수수료-조직판매장려*/
+        String og4Fee, /*조직수수료-교육*/
+        String og5Fee, /*조직수수료-순증관리*/
+        String og6Fee, /*조직수수료-조직배출1*/
+        String og7Fee, /*조직수수료-조직배출2*/
+        String og8Fee, /*조직수수료-신설지점*/
+        String etc1Atc, /*기타-재지급*/
+        String etc2Atc, /*기타-멤버십*/
+        String etc3Atc, /*기타-기타지원*/
+        String intbsSum, /*과표합계*/
+        String ddtnSum, /*총공제액*/
+        String aclDsbAmt /*실지급액*/
+    ) {}
+
+    @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerTotalBfRes")
+    public record SearchMngerTotalBfRes(
         String ogNm, /*소속*/
         String prtnrNo, /*번호*/
         String prtnrKnm, /*성명*/
@@ -362,7 +592,6 @@ public class WfebOrganizationFeeDto {
         String suscym, /*수석플래너해약월*/
         String lccoym, /*WM개시*/
         String lcccym, /*WM해약*/
-        String dalsyn, /*실활동달성*/
         String bondalsyn, /*최소기준달성*/
         String sungnm, /*전월대비구분*/
         String wpscnt, /*WP*/
@@ -394,9 +623,6 @@ public class WfebOrganizationFeeDto {
         String aksd43, /*라이브팩*/
         String aksd26, /*가전비례*/
         String aksd29, /*가전외비례*/
-        String sd26m1, /*가전미팅*/
-        String sd26m2, /*일시불미팅*/
-        String sd26mt, /*가전외미팅*/
         String aksd17, /*판매장려*/
         String aksd50, /*교육*/
         String aksd48, /*정착*/
@@ -555,6 +781,7 @@ public class WfebOrganizationFeeDto {
         String akdeq5,
         String ec5amt,
         String mproduct,
+        String aksd23,
         String aksd24,
         String aksd25,
         String aksd01,
@@ -570,6 +797,7 @@ public class WfebOrganizationFeeDto {
         String aksd16,
         String aksd17,
         String aksd15,
+        String aksd18,
         String aksd20,
         String aksd30,
         String aksd99,

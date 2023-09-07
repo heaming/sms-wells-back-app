@@ -33,8 +33,8 @@ public class WbncUnpaidGuideUrgentController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ucAmtFwTpCd", value = "미수금액발송유형코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "stateDvCd", value = "진행상태", paramType = "query", required = true),
-        @ApiImplicitParam(name = "copnDvCd", value = "법인격구분코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "bndBizDvCd", value = "채권업무구분코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "copnDvCd", value = "법인격구분코드", paramType = "query"),
+        @ApiImplicitParam(name = "bndBizDvCd", value = "채권업무구분코드", paramType = "query"),
         @ApiImplicitParam(name = "fromDlqMcn", value = "시작연체개월", paramType = "query", required = true),
         @ApiImplicitParam(name = "toDlqMcn", value = "종료연체개월", paramType = "query", required = true),
         @ApiImplicitParam(name = "clctamDvCd", value = "집금구분", paramType = "query", required = true),
@@ -64,7 +64,7 @@ public class WbncUnpaidGuideUrgentController {
         return service.getUnpaidGuideUrgentsForExcelDownload(dto);
     }
 
-    @ApiOperation(value = "자료생성 데이터 체크", notes = "자료생성 버튼 클릭 시 생성된 데이터 있는지 체크한다.")
+    @ApiOperation(value = "미납요금 안내/촉구 대상 자료생성 데이터 체크", notes = "자료생성 버튼 클릭 시 생성된 데이터 있는지 체크한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ucAmtFwTpCd", value = "미수금액발송유형코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "ojWkDt", value = "자료생성 작업일자", paramType = "query", required = true),
@@ -77,7 +77,7 @@ public class WbncUnpaidGuideUrgentController {
         return this.service.checkUnpaidGuideUrgentObjects(dto);
     }
 
-    @ApiOperation(value = "고객번호기준생성 데이터 체크", notes = "고객번호기준생성 버튼 클릭 시 생성된 데이터 있는지 체크한다.")
+    @ApiOperation(value = "미납요금 안내/촉구 대상 고객번호기준생성 데이터 체크", notes = "고객번호기준생성 버튼 클릭 시 생성된 데이터 있는지 체크한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ucAmtFwTpCd", value = "미수금액발송유형코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "ojWkDt", value = "자료생성 작업일자", paramType = "query", required = true),
@@ -91,7 +91,7 @@ public class WbncUnpaidGuideUrgentController {
         return this.service.checkUnpaidGuideUrgentCustomers(dto);
     }
 
-    @ApiOperation(value = "자료생성 확정여부 저장", notes = "저장 버튼 클릭 시 확정여부를 저장한다.")
+    @ApiOperation(value = "미납요금 안내/촉구 대상 자료생성 확정여부 저장", notes = "저장 버튼 클릭 시 확정여부를 저장한다.")
     @PostMapping
     public SaveResponse saveUnpaidGuideUrgentObjects(
         @RequestBody
@@ -101,7 +101,7 @@ public class WbncUnpaidGuideUrgentController {
         return SaveResponse.builder().processCount(this.service.saveUnpaidGuideUrgentObjects(dto)).build();
     }
 
-    @ApiOperation(value = "자료생성 데이터 생성", notes = "자료생성 버튼 클릭 시 생성된 데이터 있는지 체크 완료 후 SELECT INSERT 한다.")
+    @ApiOperation(value = "미납요금 안내/촉구 대상 자료생성 데이터 생성", notes = "자료생성 버튼 클릭 시 생성된 데이터 있는지 체크 완료 후 SELECT INSERT 한다.")
     @PostMapping("/object")
     public SaveResponse createUnpaidGuideUrgentObjects(
         @RequestBody
@@ -111,7 +111,7 @@ public class WbncUnpaidGuideUrgentController {
         return SaveResponse.builder().processCount(this.service.createUnpaidGuideUrgentObjects(dto)).build();
     }
 
-    @ApiOperation(value = "고객번호기준생성 데이터 생성", notes = "고객번호기준생성 버튼 클릭 시 생성된 데이터 있는지 체크 완료 후 SELECT INSERT 한다.")
+    @ApiOperation(value = "미납요금 안내/촉구 대상 고객번호기준생성 데이터 생성", notes = "고객번호기준생성 버튼 클릭 시 생성된 데이터 있는지 체크 완료 후 SELECT INSERT 한다.")
     @PostMapping("/customer")
     public SaveResponse createUnpaidGuideUrgentCustomers(
         @RequestBody

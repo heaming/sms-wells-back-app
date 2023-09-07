@@ -19,6 +19,7 @@
             resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$SearchRes">
         SELECT T1.STR_HOP_DT /*입고희망일*/
              , T1.STR_OJ_WARE_NO /*입고대상창고번호*/
+             , T3.LGST_OSTR_AK_NO /*물류출고요청번호*/
              , T1.OSTR_AK_NO /*출고요청번호*/
              , T1.OSTR_AK_RGST_DT /*출고요청등록일자*/
              , T1.OSTR_AK_TP_CD /*출고요청유형코드*/
@@ -29,6 +30,8 @@
           FROM TB_SVST_ITM_OSTR_AK_IZ T1
          INNER JOIN TB_SVST_MCBY_WARE_IZ T2
             ON T1.OSTR_OJ_WARE_NO = T2.WARE_NO
+         LEFT OUTER JOIN TB_IFIN_ITM_OSTR_AK_SEND_ETXT T3
+            ON T3.OSTR_AK_NO = T1.OSTR_AK_NO
          WHERE 1 = 1
            AND T1.STR_OJ_WARE_NO = #{strOjWareNo} /*입고대상창고번호*/
         <if test="@MybatisUtils@isEmpty(ostrAkTpCd)">
@@ -50,6 +53,7 @@
              , T1.STR_HOP_DT
              , T1.OSTR_OJ_WARE_NO
              , T2.WARE_NM
+             , T3.LGST_OSTR_AK_NO
       ORDER BY T1.OSTR_AK_TP_CD,T1.STR_OJ_WARE_NO,T1.OSTR_AK_RGST_DT,T1.OSTR_AK_NO ASC
     </select>
 
@@ -92,7 +96,7 @@
 
 
     <select id="selectOutOfStorageItms"
-            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto$OutOfRes">
+            resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo">
         SELECT B.SVPD_SAP_CD AS SAP_CD /*SAP코드*/
              , A.ITM_PD_CD AS ITM_PD_CD /*품목상품코드*/
              , B.SVPD_NM_KOR AS ITM_PD_NM /*품목상품명*/
@@ -127,7 +131,16 @@
          INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) B
             ON B.SVPD_PD_CD = A.ITM_PD_CD
           LEFT OUTER JOIN (SELECT ITM_PD_CD
+                               <if test="@MybatisUtils@isNotEmpty(ostrWareDvCd)">
+                               <choose>
+                               <when test='@MybatisUtils@equals(ostrWareDvCd, "1")'>
+                                , '0' AS WAREHOUSE_QTY
+                               </when>
+                               <when test='@MybatisUtils@equals(ostrWareDvCd, "2") or @MybatisUtils@equals(ostrWareDvCd, "3")'>
                                 , SUM(DECODE(WARE_NO, #{ostrOjWareNo}, PITM_STOC_A_GD_QTY)) AS WAREHOUSE_QTY
+                               </when>
+                               </choose>
+                               </if>
                                 , SUM(DECODE(WARE_NO, #{strOjWareNo}, PITM_STOC_A_GD_QTY)) AS CENTER_QTY
                              FROM TB_SVST_CST_SV_ITM_STOC_IZ
                             WHERE 1=1
@@ -145,23 +158,26 @@
                                AND B1.HGR_WARE_NO  = #{strOjWareNo}
                                AND B1.WARE_DV_CD   = '2'
                                AND B1.WARE_DTL_DV_CD NOT IN ('20,30')
-                               /*AND B1.WARE_ICHR_NO != '000'*/
                              GROUP BY A1.ITM_PD_CD
                            ) T2
              ON B.SVPD_PD_CD = T2.ITM_PD_CD
-            LEFT OUTER JOIN (SELECT A2.ITM_PD_CD
-                                  , SUM(A2.USE_QTY) AS USE_QTY
-                              FROM TB_SVST_SV_WK_OSTR_IZ A2
-                             INNER JOIN TB_SVST_MCBY_WARE_IZ B2
-                                ON A2.WK_WARE_NO = B2.WARE_NO
-                             WHERE 1=1
-                               AND SUBSTR(A2.FNL_VST_FSH_DT,1,6) LIKE TO_CHAR(SYSDATE, 'YYYYMM')||'%'
-                               AND B2.APY_YM       = TO_CHAR(SYSDATE, 'YYYYMM')
-                               AND B2.HGR_WARE_NO  = #{strOjWareNo}
-                               AND B2.WARE_DV_CD   = '2'
-                             GROUP BY A2.ITM_PD_CD
-                           ) T3
-                     ON B.SVPD_PD_CD = T3.ITM_PD_CD
+            LEFT OUTER JOIN
+               (
+                 SELECT /*+ INDEX(A2 IX_SVST_SV_WK_OSTR_IZ_01) */
+                        A2.ITM_PD_CD
+                      , SUM(A2.USE_QTY) AS USE_QTY
+                   FROM TB_SVST_SV_WK_OSTR_IZ A2
+                  INNER JOIN TB_SVST_MCBY_WARE_IZ B2
+                     ON A2.WK_WARE_NO = B2.WARE_NO
+                  WHERE A2.DTA_DL_YN    = 'N'
+                    AND B2.DTA_DL_YN    = 'N'
+                    AND A2.FNL_VST_FSH_DT LIKE TO_CHAR(SYSDATE, 'YYYYMM') || '%'
+                    AND B2.APY_YM       = TO_CHAR(SYSDATE, 'YYYYMM')
+                    AND B2.WARE_DV_CD   = '2'
+                    AND B2.HGR_WARE_NO  = #{strOjWareNo}
+                  GROUP BY A2.ITM_PD_CD
+               ) T3
+              ON T3.ITM_PD_CD = B.SVPD_PD_CD
             LEFT OUTER JOIN TB_SVST_MCITM_BASE_SFT_STOC_IZ T4
               ON B.SVPD_PD_CD  = T4.PD_CD
              AND T4.APY_YM = TO_CHAR(SYSDATE,'YYYYMM')
@@ -176,8 +192,9 @@
         SELECT WARE_NO AS CODE_ID
              , WARE_NM AS CODE_NAME
              , WARE_MNGT_PRTNR_NO
+             , WARE_DV_CD
           FROM TB_SVST_MCBY_WARE_IZ
-         WHERE 1=1
+         WHERE 1 = 1
            AND APY_YM = SUBSTR(#{apyYm},1,6)
            AND WARE_DV_CD = #{wareDvCd}
            AND WARE_ICHR_NO = #{wareIchrNo}
@@ -201,6 +218,12 @@
     <select id="selectNewOstrAkNo" resultType="java.lang.String">
         SELECT #{ostrAkTpCd} || #{ostrAkRgstDt} || LPAD(SQ_SVST_ITM_OSTR_AK_IZ$OSTR_AK_NO.NEXTVAL,7,'0') AS OSTR_AK_NO
           FROM DUAL
+    </select>
+
+    <select id="selectLogisticsNewOstrAkNo" resultType="java.lang.String">
+        SELECT #{ostrAkTpCd} || #{ostrAkRgstDt} || LPAD(SQ_SVST_ITM_OSTR_AK_IZ$OSTR_AK_NO.NEXTVAL,7,'0') AS OSTR_AK_NO
+          FROM DUAL
+
     </select>
 
     <insert id="insertOutOfStorageAskItems">
@@ -314,7 +337,14 @@
 	      , 'WE' AS IOST_AK_DV_CD /*입출고요청구분코드*/
 	      , '' AS SAP_IOST_TP_CD /*SAP입출고유형코드*/
 	      , '6' AS LGST_SPP_MTHD_CD /*물류배송방식코드*/
-	      , 'WE01' AS LGST_WK_MTHD_CD /*물류작업방식코드*/
+	      , (CASE WHEN A1.WARE_DV_CD = '2' AND T2.PD_PRP_VAL19 = '4' THEN 'WE01'
+ 	              WHEN A1.WARE_DV_CD = '2' AND T2.PD_PRP_VAL19 = '5' THEN 'WE03'
+	              WHEN A1.WARE_DV_CD = '2' AND T2.PD_PRP_VAL19 <![CDATA[<>]]> '4' AND T2.PD_PRP_VAL19 <![CDATA[<>]]> '5' THEN 'WE02'
+	              WHEN A1.WARE_DV_CD = '3' AND T2.PD_PRP_VAL19 = '4' THEN 'WE04'
+	              WHEN A1.WARE_DV_CD = '3' AND T2.PD_PRP_VAL19 = '5' THEN 'WE06'
+	              WHEN A1.WARE_DV_CD = '3' AND T2.PD_PRP_VAL19 <![CDATA[<>]]> '4' AND T2.PD_PRP_VAL19 <![CDATA[<>]]> '5' THEN 'WE05'
+	              ELSE ''
+	           END ) AS LGST_WK_MTHD_CD
  	      , '' AS MDLV_PRTNR_NO /*배달파트너번호*/
 	      , T1.ITM_PD_CD /*품목상품코드*/
 	      , T1.OSTR_AK_QTY
@@ -357,7 +387,21 @@
 							  WHERE T2.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
 					      ) A1
            ON A1.WARE_NO = T1.STR_OJ_WARE_NO
-          WHERE T1.OSTR_AK_NO = #{ostrAkNo}
+        INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+           ON T2.PD_CD = T1.ITM_PD_CD
+        WHERE T2.DTA_DL_YN = 'N'
+        <choose>
+            <when test="@MybatisUtils@isNotEmpty(ostrAkNo)">
+          AND T1.OSTR_AK_NO = #{ostrAkNo}
+            </when>
+            <otherwise>
+                AND T1.OSTR_AK_NO IN
+                <foreach collection="ostrAkNos" item="item" open="(" close=")" separator=",">
+                   #{item}
+                </foreach>
+            </otherwise>
+        </choose>
+          AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
     </select>
 
     <select id="selectDtaDlYnOstrAkNo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo">
@@ -370,5 +414,21 @@
            AND T1.OSTR_AK_NO = #{ostrAkNo}
            AND T1.DTA_DL_YN = 'Y'
 
+    </select>
+
+    <select id="selectOstrWareDvCd" resultType="java.lang.String">
+        SELECT T1.WARE_DV_CD
+          FROM TB_SVST_MCBY_WARE_IZ T1
+         WHERE 1 = 1
+           AND T1.WARE_NO = #{ostrOjWareNo}
+           AND T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+    </select>
+
+    <select id="selectLogisticsOstrDvCd" resultType="java.lang.String">
+        SELECT T1.WARE_DV_CD
+          FROM TB_SVST_MCBY_WARE_IZ T1
+         WHERE 1 = 1
+           AND T1.WARE_NO = #{ostrOjWareNo}
+           AND T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
     </select>
 </mapper>

@@ -19,7 +19,6 @@ public class WdccHomeCareBreachPromiseAmtInterfaceDto {
         @NotBlank
         @JsonProperty("CNTR_NO")
         String cntrNo,
-        @NotBlank
         @JsonProperty("CNTR_SN")
         int cntrSn
     ) {}

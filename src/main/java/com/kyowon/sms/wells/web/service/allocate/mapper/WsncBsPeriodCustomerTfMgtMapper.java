@@ -1,15 +1,13 @@
 package com.kyowon.sms.wells.web.service.allocate.mapper;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.SearchReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.BranchsAndServiceCentersRes;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.ManagersAndEngineersRes;
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.*;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodCustomerTfCreateDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-import org.apache.ibatis.annotations.Mapper;
-
-import java.util.List;
 
 @Mapper
 public interface WsncBsPeriodCustomerTfMgtMapper {
@@ -34,4 +32,8 @@ public interface WsncBsPeriodCustomerTfMgtMapper {
     int insertTransfer(WsncBsPeriodCustomerTfCreateDvo dvo);
 
     int mergeTransferConfirm(WsncBsPeriodCustomerTfCreateDvo dvo);
+
+    int updateCstSvBfsvcAsn(WsncBsPeriodCustomerTfCreateDvo dvo);
+
+    SearchAuthRes selectBsPeriodCustomersManagerAuthYn();
 }

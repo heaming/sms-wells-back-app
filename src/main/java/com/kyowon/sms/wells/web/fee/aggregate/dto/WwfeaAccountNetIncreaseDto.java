@@ -6,16 +6,16 @@ public class WwfeaAccountNetIncreaseDto {
 
     public record SearchReq(
         @NotBlank
-        String inqrDv,
+        String inqrDvCd,
         @NotBlank
         String feeTcntDvCd,
         @NotBlank
         String perfYm,
         @NotBlank
         String ogTpCd,
-        String cnclTp,
-        String sellTp,
-        String aggregateTp,
+        String cnclTpCd,
+        String sellTpCd,
+        String aggregateTpCd,
         String dgr1LevlOgId,
         String dgr2LevlOgId,
         String dgr3LevlOgId,
@@ -26,12 +26,13 @@ public class WwfeaAccountNetIncreaseDto {
         @NotBlank
         String perfYm,
         @NotBlank
-        String ogTpCd
+        String feeTcntDvCd
+
     ) {}
 
-    public record SearchRes(
+    public record SearchCancelRes(
 
-        String inqrDv, /* 유형 */
+        String inqrDvCd, /* 유형 */
         String cntrDtlNo, /* 계약상세번호 */
         String pdClsfNm,
         String pdClsfId,
@@ -43,7 +44,6 @@ public class WwfeaAccountNetIncreaseDto {
         String istDt, /* 설치일 */
         String cntrChRcpDtm, /* 취소요청일 */
         String cntrCanDtm, /* 취소일 */
-        String mchnChTpCd, /* 기변유형 */
         String cntrPdEnddt, /* 만료일 */
         String cntrPdStrtdt, /* 사용일 */
         String cntrRcpFshDtm, /* 멤버십접수일 */
@@ -54,9 +54,35 @@ public class WwfeaAccountNetIncreaseDto {
         String sellOgYn, /* 판매조직여부 */
         String sellPrtnrKnm, /* 판매자 */
         String sellPrtnrNo, /* 판매자번호 */
+        String perfExcdOjYn, /* 제외대상 여부 */
+        String apyOjYn /* 적용대상 여부 */
+
+    ) {}
+
+    public record SearchNewSellRes(
+
+        String inqrDvCd, /* 유형 */
+        String cntrDtlNo, /* 계약상세번호 */
+        String pdClsfNm,
+        String pdClsfId,
+        String cntrCnfmDtm, /* 계약일 */
+
+        String istDt, /* 설치일 */
+        String cntrCanDtm, /* 취소일 */
+        String mchnChTpCd, /* 기변유형 */
+        String sellOgYn, /* 판매조직여부 */
+        String sellPrtnrKnm, /* 판매자 */
+
+        String sellPrtnrNo, /* 판매자번호 */
         String booSellYn, /* 예약여부 */
         String perfExcdOjYn, /* 제외대상 여부 */
-        String apyOjYn, /* 적용대상 여부 */
+        String apyOjYn /* 적용대상 여부 */
+
+    ) {}
+
+    public record SearchCheckRes(
+
+        String inqrDvCd, /* 유형 */
         String prtnrKnm, /* 성명 */
         String prtnrNo, /* 번호 */
         int rentalCanCt, /* 렌탈취소건수 */

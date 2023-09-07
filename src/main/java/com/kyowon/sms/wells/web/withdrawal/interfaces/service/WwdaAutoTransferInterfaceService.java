@@ -1,13 +1,8 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.service;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -15,29 +10,18 @@ import org.springframework.util.ObjectUtils;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
-import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaAutoTransferRealTimeAccountCheckDvo;
-import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaBundleWithdrawalMgtDvo;
-import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaCardNumberEffectivenessCheckReqDvo;
-import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaCardNumberEffectivenessCheckResDvo;
-import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaIntegrationBillingIzDvo;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.*;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.mapper.ZwdaBundleWithdrawalMgtMapper;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaAutoTransferRealTimeAccountService;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaKiccReceiveProcessService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCreditcardDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbCreditcardMapper;
+import com.kyowon.sms.common.web.withdrawal.interfaces.dvo.ZwdaBillingDelegateSubordinationContractInfoInterfaceDvo;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.converter.WwdaAutoTransferConverter;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferCardEffectivenessCheckInterfaceDvo;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoBulkRegistrationReleasesInterfaceDvo;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoEvidenceInfoInterfaceDvo;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoInterfaceDvo;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferObjectItemizationInterfaceDvo;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferRealNameCertificationInterfaceDvo;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaBillingScheduleReceiveInterfaceDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.*;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdaAutoTransferInterfaceMapper;
 import com.sds.sflex.common.utils.DateUtil;
-import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 
 import lombok.RequiredArgsConstructor;
@@ -175,76 +159,179 @@ public class WwdaAutoTransferInterfaceService {
     public List<WwdaAutoTransferInterfaceDto.SaveBundleRegistrationReleaseRes> saveBundleRegistrationReleases(
         WwdaAutoTransferInterfaceDto.SaveReq dto
     ) {
+        List<WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo> results = new ArrayList<>();
 
-        List<WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo> results = new ArrayList<WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo>();
+        WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo result = new WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo();
 
         List<WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo> reqs = converter
             .mapWwdaAutoTransferDvoToSaveBundleRegistrationReleasesReq(dto.bundles());
 
-        String dgcntrNo = "";
-        String dgcntrSn = "";
+        List<WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo> streamDatas = new ArrayList<>();
 
-        for (WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo req : reqs) {
-            WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo result = new WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo();
+        // 대표계약번호로 중복제거한 계약번호 및 계약일련번호에 해당하는 묶음 데이터 삭제 처리
+        streamDatas = reqs.stream()
+            .distinct()
+            .collect(Collectors.toList());
 
+        for (WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo distinctData : streamDatas) {
             // 기 등록된 묶음 정보 삭제를 위한 공통 호출
             ZwdaIntegrationBillingIzDvo zwdaDvo = new ZwdaIntegrationBillingIzDvo();
+            zwdaDvo.setDgCntrNo(distinctData.getDgCntrNo());
+            zwdaDvo.setDgCntrSn(distinctData.getDgCntrSn());
+            // 통합청구대상기본 데이터 삭제 처리(DAT_DL_YN = 'Y' 처리)
+            zwdaBundleMapper.deleteItgBilOjAllUseDelegate(zwdaDvo);
+            // 통합청구대상기본이력 생성(대표계약번호, 대표계약일련번호)
+            zwdaBundleMapper.deleteItgBilOjUseDelegate(zwdaDvo);
+        }
+        streamDatas = reqs.stream()
+            .filter(data -> !StringUtils.isEmpty(data.getCntrNo()))
+            .sorted(
+                Comparator.comparing(WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo::getDgCntrNo)
+                    .thenComparing(WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo::getDgCntrNo)
+                    .thenComparing(WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo::getDgYn).reversed()
+            )
+            .collect(Collectors.toList());
 
-            String reslCd = "S";
-            String reslCntn = "";
+        String reslCd = "S";
+        String reslCntn = "";
 
-            zwdaDvo.setDgCntrNo(req.getDgCntrNo());
-            zwdaDvo.setDgCntrSn(req.getDgCntrSn());
-            // 대표계약번호, 대표계약일련번호 존재하고 계약번호와 계약일련번호가 존재하지 않는 경우 삭제만 처리
-            if (!StringUtils.isEmpty(req.getDgCntrNo()) && !StringUtils.isEmpty(req.getDgCntrSn())
-                && StringUtils.isEmpty(req.getCntrNo()) && StringUtils.isEmpty(req.getCntrSn())) {
-                try {
-                    // 통합청구대상기본 데이터 삭제 처리(DAT_DL_YN = 'Y' 처리)
-                    zwdaBundleMapper.deleteItgBilOjAllUseDelegate(zwdaDvo);
-                    // 통합청구대상기본이력 생성(대표계약번호, 대표계약일련번호)
-                    zwdaBundleMapper.deleteItgBilOjUseDelegate(zwdaDvo);
-                } catch (Exception e) {
+        for (WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo insertData : streamDatas) {
+            results = new ArrayList<>();
+            // 대표계약번호로 데이터가 1개만 들어온 경우 에러 체크
+            long dataCount = streamDatas.stream()
+                .filter(
+                    data -> insertData.getDgCntrNo().equals(data.getDgCntrNo())
+                        && insertData.getDgCntrSn().equals(data.getDgCntrSn())
+                )
+                .count();
+            if (dataCount < 2) {
+                reslCd = "E";
+                reslCntn = "대표계약번호 : " + insertData.getDgCntrNo()
+                    + " 대표계약일련번호 : " + insertData.getDgCntrSn()
+                    + " 묶음 등록 할 수 있는 데이터가 없습니다.";
+                result.setReslCd(reslCd);
+                result.setPcsRsltCn(reslCntn);
+                results.add(result);
+                break;
+            }
+
+            ZwdaIntegrationBillingIzDvo zwdaDvo = new ZwdaIntegrationBillingIzDvo();
+            zwdaDvo.setDgCntrNo(insertData.getDgCntrNo());
+            zwdaDvo.setDgCntrSn(insertData.getDgCntrSn());
+            zwdaDvo.setCntrNo(insertData.getCntrNo());
+            zwdaDvo.setCntrSn(insertData.getCntrSn());
+            // 대표인데 대표계약번호와 계약번호가 동일하지 않은 경우
+            if ("Y".equals(insertData.getDgYn()) &&
+                (!insertData.getDgCntrNo().equals(insertData.getCntrNo())
+                    || !insertData.getDgCntrSn().equals(insertData.getCntrSn()))) {
+                reslCd = "E";
+                reslCntn = "계약번호 : " + insertData.getDgCntrNo()
+                    + " 계약일련번호 : " + insertData.getDgCntrSn()
+                    + " 대표계약은 대표계약번호와 계약번호가 동일해야 합니다.";
+                result.setReslCd(reslCd);
+                result.setPcsRsltCn(reslCntn);
+                results.add(result);
+                break;
+            }
+            if ("Y".equals(insertData.getDgYn())) {
+                // 대표계약인데 다른 계약에 서브로 묶여 있는지 확인
+                zwdaDvo.setDgYn("N");
+                List<String> subordinationContracts = zwdaBundleMapper
+                    .selectFundTransferBundleSubordinationContracts(zwdaDvo);
+                if (!ObjectUtils.isEmpty(subordinationContracts)) {
                     reslCd = "E";
-                    reslCntn = messageResourceService.getMessage("MSG_ALT_ERR_BNDL_IF");
-                }
-            } else {
-                // 대표계약번호, 대표계약일련번호 존재하고 계약번호와 계약일련번호도 존재하는 경우
-                // 1. 중복되는 대표계약번호, 대표계약일련번호가 동일한 경우 삭제 하지 않음.
-                if (!StringUtils.equals(dgcntrNo, req.getDgCntrNo())
-                    || !StringUtils.equals(dgcntrSn, req.getDgCntrSn())) {
-                    try {
-                        // 통합청구대상기본 데이터 삭제 처리(DAT_DL_YN = 'Y' 처리)
-                        zwdaBundleMapper.deleteItgBilOjAllUseDelegate(zwdaDvo);
-                        // 통합청구대상기본이력 생성(대표계약번호, 대표계약일련번호)
-                        zwdaBundleMapper.deleteItgBilOjUseDelegate(zwdaDvo);
-                    } catch (Exception e) {
-                        reslCd = "E";
-                        reslCntn = messageResourceService.getMessage("MSG_ALT_ERR_BNDL_IF");
-                    }
-                    dgcntrNo = req.getDgCntrNo();
-                    dgcntrSn = req.getDgCntrSn();
-                }
-                if ("S".equals(reslCd)) {
-                    ZwdaBundleWithdrawalMgtDvo saveDvo = new ZwdaBundleWithdrawalMgtDvo();
-
-                    String ItgBilOjPk = zwdaBundleMapper.selectItgBilPk(); // 통합청구대상 SEQ SQ_RVCL_ITG_BIL_OJ_BAS$ITG_BIL_OJ_ID
-                    saveDvo.setItgBilOjId(ItgBilOjPk);
-                    saveDvo.setDgCntrNo(req.getDgCntrNo());
-                    saveDvo.setDgCntrSn(req.getDgCntrSn());
-                    saveDvo.setCntrNo(req.getCntrNo());
-                    saveDvo.setCntrSn(req.getCntrSn());
-                    saveDvo.setFntDvCd(req.getFntDvCd());
-                    saveDvo.setDgYn(req.getDgYn());
-                    try {
-
-                        zwdaBundleMapper.insertItgBilOj(saveDvo); // 통찹청구대상 저장
-                        zwdaBundleMapper.insertItgBilOjHist(saveDvo.getItgBilOjId()); // 통합청구대상이력 저장
-                    } catch (Exception e) {
-                        reslCd = "E";
-                        reslCntn = messageResourceService.getMessage("MSG_ALT_ERR_BNDL_IF");
-                    }
+                    reslCntn = "대표계약번호 : " + insertData.getDgCntrNo()
+                        + " 대표계약일련번호 : " + insertData.getDgCntrSn()
+                        + " 이미 다른 계약에 묶여 있습니다.";
+                    result.setReslCd(reslCd);
+                    result.setPcsRsltCn(reslCntn);
+                    results.add(result);
+                    break;
                 }
             }
+            if (!"Y".equals(insertData.getDgYn())) {
+                // 종속계약이 다른 계약 종속계약 혹은 대표계약에 존재하는지 확인
+                ZwdaIntegrationBillingIzDvo cntrDvo = new ZwdaIntegrationBillingIzDvo();
+                cntrDvo.setDgCntrNo(insertData.getCntrNo());
+                cntrDvo.setDgCntrSn(insertData.getCntrSn());
+                List<String> subordinationContracts = zwdaBundleMapper
+                    .selectFundTransferBundleSubordinationContracts(cntrDvo);
+                if (!ObjectUtils.isEmpty(subordinationContracts)) {
+                    reslCd = "E";
+                    reslCntn = "계약번호 : " + insertData.getCntrNo()
+                        + " 계약일련번호 : " + insertData.getCntrSn()
+                        + " 이미 다른 계약에 묶여 있습니다.";
+                    result.setReslCd(reslCd);
+                    result.setPcsRsltCn(reslCntn);
+                    results.add(result);
+                    break;
+                }
+            }
+
+            ZwdaBillingDelegateSubordinationContractInfoInterfaceDvo dgSubCntrInfo = zwdaBundleMapper
+                .selectDelegateSubordinationContractInfo(zwdaDvo);
+            if (ObjectUtils.isEmpty(dgSubCntrInfo)) {
+                reslCd = "E";
+                reslCntn = "계약정보 확인 불가 합니다.";
+                result.setReslCd(reslCd);
+                result.setPcsRsltCn(reslCntn);
+                results.add(result);
+                break;
+            } else {
+                // 대표계약번호와 계약번호의 자동이체 일자가 동일한지 체크
+                if (!"Y".equals(dgSubCntrInfo.getMpyBsdtYn())) {
+                    reslCd = "E";
+                    reslCntn = "납부일자가 달라 묶음 등록이 불가 합니다.";
+                    result.setReslCd(reslCd);
+                    result.setPcsRsltCn(reslCntn);
+                    results.add(result);
+                    break;
+                }
+
+                // 대표계약번호와 계약번호의 청구방식(카드, 계좌)이 동일한지 체크
+                if (!"Y".equals(dgSubCntrInfo.getDpTpCdYn())) {
+                    reslCd = "E";
+                    reslCntn = "입금방식이 달라 묶음 등록이 불가 합니다.";
+                    result.setReslCd(reslCd);
+                    result.setPcsRsltCn(reslCntn);
+                    results.add(result);
+                    break;
+                }
+
+                // 대표계약번호와 계약번호의 은행/카드사가 동일한지 체크
+                if (!"Y".equals(dgSubCntrInfo.getBnkCdYn()) || !"Y".equals(dgSubCntrInfo.getCdcoCdYn())) {
+                    reslCd = "E";
+                    reslCntn = "은행 또는 카드사가 달라 묶음 등록이 불가 합니다.";
+                    result.setReslCd(reslCd);
+                    result.setPcsRsltCn(reslCntn);
+                    results.add(result);
+                    break;
+                }
+
+                // 대표계약번호와 계약번호의 계좌번호/카드번호가 동일한지 체크
+                if (!"Y".equals(dgSubCntrInfo.getCrcdnoEncrYn()) || !"Y".equals(dgSubCntrInfo.getAcnoEncrYn())) {
+                    reslCd = "E";
+                    reslCntn = "계좌번호 또는 카드번호가 달라 묶음 등록이 불가 합니다.";
+                    result.setReslCd(reslCd);
+                    result.setPcsRsltCn(reslCntn);
+                    results.add(result);
+                    break;
+                }
+            }
+
+            ZwdaBundleWithdrawalMgtDvo saveDvo = new ZwdaBundleWithdrawalMgtDvo();
+
+            String ItgBilOjPk = zwdaBundleMapper.selectItgBilPk(); // 통합청구대상 SEQ SQ_RVCL_ITG_BIL_OJ_BAS$ITG_BIL_OJ_ID
+            saveDvo.setItgBilOjId(ItgBilOjPk);
+            saveDvo.setDgCntrNo(insertData.getDgCntrNo());
+            saveDvo.setDgCntrSn(insertData.getDgCntrSn());
+            saveDvo.setCntrNo(insertData.getCntrNo());
+            saveDvo.setCntrSn(insertData.getCntrSn());
+            saveDvo.setFntDvCd(insertData.getFntDvCd());
+            saveDvo.setDgYn(insertData.getDgYn());
+
+            zwdaBundleMapper.insertItgBilOj(saveDvo); // 통찹청구대상 저장
+            zwdaBundleMapper.insertItgBilOjHist(saveDvo.getItgBilOjId()); // 통합청구대상이력 저장
             result.setReslCd(reslCd);
             result.setPcsRsltCn(reslCntn);
             results.add(result);
@@ -708,6 +795,56 @@ public class WwdaAutoTransferInterfaceService {
         resultDtos.add(result);
 
         return converter.mapCardEffectivenessCheckDvoToWwdaAutoTransferRealNameCertificationRes(resultDtos);
+    }
+
+    /**
+     * 은행계좌유효성체크_SB
+     * @param dto
+     * @return
+     */
+    public WwdaAutoTransferInterfaceDto.SearchBankEffectivenessCheckRes getBankEffectivenessCheck(
+        WwdaAutoTransferInterfaceDto.SearchBankEffectivenessCheckReq dto
+    ) {
+
+        String systemDvCd = "2"; /*시스템구분코드 1 : EDU, 2: WELLS*/
+        Map<String, Object> reqParam = new HashMap<String, Object>();
+        reqParam.put("cntrNo", dto.cntrNo());
+        reqParam.put("cntrSn", dto.cntrSn());
+        reqParam.put("bnkCd", dto.bnkCd());
+        reqParam.put("acNo", dto.acno());
+        reqParam.put("copnDvCd", dto.copnDvCd());
+        reqParam.put("copnDvDrmVal", dto.copnDvDrmVal());
+        reqParam.put("achldrNm", dto.achldrNm());
+        reqParam.put("systemDvCd", systemDvCd);
+        reqParam.put("sysDvCd", dto.sysDvCd());
+        reqParam.put("psicId", dto.psicId());
+        reqParam.put("deptId", dto.deptId());
+
+        // 2. 은행계좌 유효성검사 서비스 호출(Z-WD-S-0027)
+        ZwdaAutoTransferRealTimeAccountCheckDvo resultDvo = realTimeAccountService.saveAftnAcEftnChecks(reqParam);
+
+        // 3. 수신결과 및 리턴 설정
+        // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
+        String acFntRsCd = resultDvo.getAcFntRsCd();
+        String acFntRsNm = "";
+
+        // 3.2 리턴받은 계좌이체불능코드에 해당하는 계좌이체결과코드 조회
+        if (!ObjectUtils.isEmpty(resultDvo.getBilCrtStatCd())) {
+            if ("1".equals(resultDvo.getBilCrtStatCd())) {
+                acFntRsNm = mapper.selectAutomaticTransferResultCodeName("VAC", acFntRsCd);
+            }
+            if ("2".equals(resultDvo.getBilCrtStatCd())) {
+                acFntRsNm = resultDvo.getErrCn();
+            }
+        }
+
+        return WwdaAutoTransferInterfaceDto.SearchBankEffectivenessCheckRes.builder()
+            .achldrNm(resultDvo.getAchldrNm())
+            .acFntImpsCd(acFntRsCd)
+            .acFntImpsCdNm(acFntRsNm)
+            .errCn(resultDvo.getErrCn())
+            .bilCrtStatCd(resultDvo.getBilCrtStatCd())
+            .build();
     }
 
 }

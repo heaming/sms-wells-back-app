@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.deduction.redf.dto;
 
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +16,7 @@ public class WdeaAllowanceRedfMgtDto {
     public record SearchReq(
         String redfAdsbOcYmFrom, // 발생년월(from)
         String redfAdsbOcYmTo, // 발생년월(to)
-        String slYmFrom, // 매출년월(from) 
+        String slYmFrom, // 매출년월(from)
         String slYmTo, // 매출년월(to)
         String ogTpCd, // 조직유형
         String sellTpCd, // 상품구분
@@ -38,12 +41,19 @@ public class WdeaAllowanceRedfMgtDto {
         String cntrNo, /*계약번호*/
         String cntrSn, /*계약일련번호*/
         String cntrNoSn, /*계약상세번호*/
+
+        @MaskRequired(type = MaskingType.NAME)
         String cstKnm, /*고객명*/
+        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, /*판매자성명*/
         String prtnrNo, /*파트너번호*/
+        @MaskRequired(type = MaskingType.NAME)
         String gnlrLedr, /*총괄단장, TODO: 조직쪽에서 정리되면 추가*/
+        @MaskRequired(type = MaskingType.NAME)
         String localAreaManager, /*지역단장, TODO: 조직쪽에서 정리되면 추가*/
+        @MaskRequired(type = MaskingType.NAME)
         String branchManager, /*지점장, TODO: 조직쪽에서 정리되면 추가*/
+        @MaskRequired(type = MaskingType.NAME)
         String dstrcManager, /*지구장, TODO: 조직쪽에서 정리되면 추가*/
         String perfTpCd, /*처리유형(실적유형코드) 01: 취소, 10: 연체*/
         String thmOcDlqAmt, /*연체금액, 당월발생연체금액*/
@@ -63,7 +73,7 @@ public class WdeaAllowanceRedfMgtDto {
         String feeAckmtBaseAmt, /*수수료 인정기준금액 - wells M용*/
         String ackmtPerfAmt, /*인정실적금액 - wells P 용*/
         String booYn, /*예약여부*/
-        String ogId, /*지점*/
+        String ogCd, /*지점*/
         String cntrPdStrtdt, /*설치일자*/
         String canDt, /*취소일자*/
         String cpsnRedfYn /*강제되물림여부*/
@@ -75,11 +85,13 @@ public class WdeaAllowanceRedfMgtDto {
         String slYm, /*매출년월*/
         String ogNm, /*업체명*/
         String ogCd, /*소속코드*/
+        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, /*판매자명*/
         String prtnrNo, /*파트너번호*/
         String cntrNo, /*계약번호*/
         String cntrSn, /*계약일련번호*/
         String cntrNoSn, /*계약상세번호*/
+        @MaskRequired(type = MaskingType.NAME)
         String cstKnm, /*고객명*/
         String pdCd, /*제품코드*/
         String pdClsfNm, /*제품명*/
@@ -101,7 +113,7 @@ public class WdeaAllowanceRedfMgtDto {
     public record SearchRedfBizdReq(
         String redfAdsbOcYmFrom, // 발생년월(from)
         String redfAdsbOcYmTo, // 발생년월(to)
-        String perfYmFrom, // 실적년월(from) 
+        String perfYmFrom, // 실적년월(from)
         String perfYmTo, // 실적년월(to)
         String ogTpCd, // 조직유형
         String ogCd, // 조직코드
@@ -113,9 +125,12 @@ public class WdeaAllowanceRedfMgtDto {
     @ApiModel("WdeaAllowanceRedfMgtDto-SearchRedfBizdRes")
     public record SearchRedfBizdRes(
         /*기본정보*/
+        String ogTpCd,
+        String ogTpNm,
         String perfYm, /*실적년월*/
         String baseYm, /*발생년월*/
         String ogCd, /*소속코드*/
+        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, /*성명*/
         String prtnrNo, /*파트너번호*/
         String pstnDvCd, /*직급*/

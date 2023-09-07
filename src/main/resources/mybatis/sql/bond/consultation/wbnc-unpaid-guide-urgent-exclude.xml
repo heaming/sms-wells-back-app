@@ -3,7 +3,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.bond.consultation.mapper.WbncUnpaidGuideUrgentExcludeMapper">
     <select id="selectUnpaidGuideUrgentExcludes" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncUnpaidGuideUrgentExcludeDto$SearchRes">
         SELECT T1.BND_CNTC_EXCD_OJ_ID /* 채권접촉제외대상ID */
-             , DECODE(T1.CTNT_EXCD_OJ_TP_CD,'03','안내서','04','촉구서') AS FW_DV_NM
+             , DECODE(T1.CTNT_EXCD_BND_BIZ_CD,'04','안내서','05','촉구서') AS FW_DV_NM
              , T1.CST_NO
              , SUBSTR(T1.APY_STRTDT,0,6) AS APY_STRTDT
              , SUBSTR(T1.APY_ENDDT,0,6) AS APY_ENDDT
@@ -12,7 +12,9 @@
           FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ T1
          WHERE 1 = 1
            AND #{baseYm} BETWEEN SUBSTR(T1.APY_STRTDT,0,6) AND SUBSTR(T1.APY_ENDDT,0,6)
-           AND T1.CTNT_EXCD_OJ_TP_CD = DECODE(#{schFwDv},'01','03','02','04')
+           AND T1.CTNT_EXCD_BND_BIZ_CD = DECODE(#{schFwDv},'01','04','02','05')
+           AND T1.CTNT_EXCD_MEDI_TP_CD = '04'
+           AND T1.CTNT_EXCD_OJ_TP_CD = '01'
            AND T1.DTA_DL_YN = 'N'
     </select>
 
@@ -26,13 +28,15 @@
 
     <update id="updateUnpaidGuideUrgentExcludeExcelUpload">
         MERGE INTO TB_CBBO_BND_CNTC_EXCD_OJ_IZ T1  /* 채권접촉제외대상내역 */
-             USING ( SELECT #{ctntExcdOjTpCd} AS CTNT_EXCD_OJ_TP_CD     /* 연락제외대상유형코드 */
+             USING ( SELECT #{ctntExcdBndBizCd} AS CTNT_EXCD_BND_BIZ_CD /* 연락제외채권업무코드 */
                           , #{cstNo} AS CST_NO                          /* 고객번호 */
                           , TO_CHAR(TRUNC(TO_DATE(#{apyStrtdt},'YYYYMM')),'YYYYMMDD') AS APY_STRTDT            /* 적용시작일자 */
                           , TO_CHAR(LAST_DAY(TO_DATE(#{apyEnddt},'YYYYMM')),'YYYYMMDD') AS APY_ENDDT           /* 적용종료일자 */
                        FROM DUAL  ) T2
                 ON (T1.CST_NO = T2.CST_NO                               /* 고객번호 */
-                AND T1.CTNT_EXCD_OJ_TP_CD = T2.CTNT_EXCD_OJ_TP_CD       /* 연락제외대상유형코드 */
+                AND T1.CTNT_EXCD_BND_BIZ_CD = T2.CTNT_EXCD_BND_BIZ_CD   /* 연락제외채권업무코드 */
+                AND T1.CTNT_EXCD_MEDI_TP_CD = '04'                      /* 연락제외매체유형코드 */
+                AND T1.CTNT_EXCD_OJ_TP_CD = '01'                        /* 연락제외대상유형코드 */
                 AND T1.DTA_DL_YN = 'N'
                    )
         WHEN MATCHED THEN
@@ -71,9 +75,9 @@
                  TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDhh24miss') || LPAD((SELECT COUNT(1)
                                                                    FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ
                                                                   WHERE SUBSTR(FST_RGST_DTM, 0,8) = TO_CHAR(SYSTIMESTAMP, 'YYYYMMDD'))+1, 6, '0')
-               , NULL
-               , T2.CTNT_EXCD_OJ_TP_CD
-               , NULL
+               , T2.CTNT_EXCD_BND_BIZ_CD
+               , '01'
+               , '04'
                , NULL
                , NULL
                , T2.CST_NO

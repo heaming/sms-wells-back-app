@@ -21,8 +21,10 @@ public class WfedLedrAllowanceDto {
     public record SearchReq(
         @NotBlank
         String perfYm,
+        @NotBlank
+        String ogTpCd,
         String rsbDvCd,
-        String no
+        String prtnrNo
     ) {}
 
     // *********************************************************
@@ -31,26 +33,28 @@ public class WfedLedrAllowanceDto {
     // 단장 수당 관리 Search Result Dto
     @ApiModel(value = "WfedLeaderAllowanceMgtDto-SearchIndividualRes")
     public record SearchIndividualRes(
-        String dsbYm, /*지급년월*/
-        String hmnrscEmpno, /*사번*/
-        String ogLevlDvNm, /*조직레벨구분명*/
-        String ogNm, /*조직명*/
-        String hgrOgCd, /*상위조직코드*/
-        String ogCd, /*조직코드*/
-        String prtnrKnm, /*성명*/
-        Integer brchCt, /*지점건수*/
+        String dsbYm,
+        String hmnrscEmpno,
+        String ogLevlDvNm,
+        String rsbDvNm,
+        String ogNm,
+        String hgrOgCd,
+        String ogCd,
+        String prtnrKnm,
+        Integer brchCt,
         Integer basAwAmt, /*기본수당금액*/
         Integer hhExcpAwAmt, /*시간외수당금액 */
         Integer rsbAwAmt, /*직책수당금액*/
         Integer fxnAwSumAmt, /*고정수당합계금액*/
         Integer trgCt, /*실적목표건수*/
         Integer perfCt, /*실적건수*/
-        Integer perfAchvRat, /*실적달성비율*/
+        Double perfAchvRat, /*실적달성비율*/
         Integer trgAchvAwAmt, /*목표달성수당금액*/
         Integer brchAvPerfCt, /*지점평균실적건수(2021년02월이전)*/
         Integer encrgAwAmt, /*장려수당금액(2021년02월이후)*/
         String mngrPerfGdCd, /*관리자실적등급코드(2021년02월이전)*/
         Integer ogAwAmt, /*조직수당금액(2021년02월이후)*/
+        Integer ejtAwAmt, /*배출수당금액*/
         Integer evlAwAmt, /*평가수당금액*/
         Integer perfAwSumAmt, /*실적수당합계금액*/
         Integer exclDivAwAmt, /*우수사업부수당금액*/
@@ -79,18 +83,21 @@ public class WfedLedrAllowanceDto {
         String dsbYm, /*지급년월*/
         String hmnrscEmpnoCnt, /*인원수*/
         String ogLevlDvNm, /*조직레벨구분명*/
+        String rsbDvNm,
         Integer basAwAmt, /*기본수당금액*/
         Integer hhExcpAwAmt, /*시간외수당금액 */
         Integer rsbAwAmt, /*직책수당금액*/
         Integer fxnAwSumAmt, /*고정수당합계금액*/
         Integer trgCt, /*실적목표건수*/
         Integer perfCt, /*실적건수*/
-        Integer perfAchvRat, /*실적달성비율*/
+        Double perfAchvRat, /*실적달성비율*/
         Integer trgAchvAwAmt, /*목표달성수당금액*/
         Integer brchAvPerfCt, /*지점평균실적건수(2021년02월이전)*/
         Integer encrgAwAmt, /*장려수당금액(2021년02월이후)*/
         String mngrPerfGdCd, /*관리자실적등급코드(2021년02월이전)*/
         Integer ogAwAmt, /*조직수당금액(2021년02월이후)*/
+
+        Integer ejtAwAmt, /*배출수당금액*/
         Integer evlAwAmt, /*평가수당금액*/
         Integer perfAwSumAmt, /*실적수당합계금액*/
         Integer exclDivAwAmt, /*우수사업부수당금액*/

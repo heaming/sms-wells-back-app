@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaStockContinueMonthMgtStateMapper">
+    <select id="selectStockContinueMonthMgtState" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockContinueMonthMgtStateDto$SearchRes">
+	    WITH PART_INF AS (
+            /*품목정보*/
+            SELECT P1.PD_CD
+                 , P2.SAP_MAT_CD    /*SAP자재코드*/
+                 , P2.PD_NM         /*품목명*/
+                 , P1.PD_PRP_VAL15  /*기초자재*/
+                 , P1.PD_PRP_VAL17  /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD*/
+                 , P1.PD_PRP_VAL21  /*중수리 - AS자재 공통분류, AS_MAT_CMN_CLSF_CD, CMN_PART_DV_CD*/
+                 , P1.PD_PRP_VAL30  /*회전율 대상여부, TRNOVR_RT_OJ_YN*/
+                 , P1.PD_PRP_VAL20
+              FROM WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P1  /*상품각사속성상세*/
+                   INNER JOIN TB_PDBS_PD_BAS P2
+                           ON P1.PD_CD = P2.PD_CD
+                          AND P2.PD_TP_CD = 'M'    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
+                          AND P2.DTA_DL_YN = 'N'
+             WHERE 1=1
+               AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+               /*품목구분(Default : 상품, - 전체 항목 : 상품, 홈카페캡슐, 필터, AS자재, 판매사은품, AS소모품, LP활동물품, 모종, 웰스팜AS자재, 공구)*/
+            <if test="@MybatisUtils@isNotEmpty(itmKindCd) and !@MybatisUtils@equals(itmKindCd, 'ALL')">
+               AND P1.PD_PRP_VAL19 = #{itmKindCd}    /*AS자재 품목종류, AS_MAT_ITM_KND_CD, ITM_KND_CD*/
+            </if>
+               /*사용여부(전체, 사용, 미사용)*/
+            <if test="@MybatisUtils@isNotEmpty(useYn) and !@MybatisUtils@equals(useYn, 'ALL')">
+               AND P1.PD_PRP_VAL32 = #{useYn}    /*화면노출여부, UI_EXPSR_YN*/
+            </if>
+               /*관리유형(전체, 기초1, 기초2, 기초3, 기초4, 기초5) 전체 : ALL*/
+            <if test="@MybatisUtils@isNotEmpty(stockTpCd) and !@MybatisUtils@equals(stockTpCd, 'ALL')">
+               AND P1.PD_PRP_VAL17 = #{stockTpCd}
+            </if>
+               AND (P1.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '91', '92', '93', '95', '96')
+                 OR P1.PD_PRP_VAL20 IS NULL)
+               AND P1.DTA_DL_YN = 'N'
+        )
+       , ACL_PRC_INF AS (
+            /*품목별실제원가정보*/
+            SELECT *
+              FROM (
+                    SELECT MTRL_CD
+                         , PLANT
+                         , SHEET_YM
+                         , STOCK_COST
+                         , PLANT_PRIORITY
+                         , RANK () OVER (PARTITION BY MTRL_CD ORDER BY PLANT_PRIORITY, SHEET_YM DESC) AS RN
+                      FROM (
+                            SELECT MTRL_CD
+                                 , PLANT
+                                 , MAX(SHEET_YM) AS SHEET_YM
+                                 /*22.06.17 김인수 파트장님 확인, 표준원가는 임시개념이라, 실제 원가를 쓰는게 맞다고 답변 받음*/
+                                 , NVL(STOCK_COST,0) AS STOCK_COST
+                                 , (CASE WHEN PLANT = '2106' THEN 1  /*2106 합병후 교원웰스본사*/
+                                         WHEN PLANT = '2108' THEN 2  /*2108 합병후 교원파주물류 */
+                                         WHEN PLANT = '1102' THEN 3  /*1102 합병전 교원웰스본사*/
+                                         WHEN PLANT = '1308' THEN 4  /*1308 합병전 교원파주물류 */
+                                         ELSE 5
+                                    END) AS PLANT_PRIORITY /*우선순위*/
+                              FROM WSMDBS.TB_IFIN_SAP_BI_WIP_PS_RCV_ETXT
+                             WHERE 1=1
+                               AND PLANT IN ('1102', '2106' , '1308', '2108')
+                               /*AND MTRL_CD LIKE '%000000000300001755'*/
+                               /*300000712, 300006924, 300002195*/
+                             GROUP BY MTRL_CD, PLANT, STOCK_COST
+                           )
+                     ORDER BY MTRL_CD
+                   )
+             WHERE 1=1
+               AND RN = '1'
+         )
+       , WARE_IF AS (
+            /*창고정보*/
+            SELECT *
+              FROM WSMDBS.TB_SVST_MCBY_WARE_IZ S1  /*월별창고내역 ST102TB*/
+             WHERE 1=1
+               /*조회기간 시작일자의 월 기준 창고 조회*/
+            <if test="@MybatisUtils@isNotEmpty(startDt)">
+               AND S1.APY_YM = SUBSTR(#{startDt}, 1,6)
+            </if>
+             <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
+               AND S1.WARE_DV_CD = #{wareDvCd}
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(wareNoM) and @MybatisUtils@isEmpty(wareNoD) and @MybatisUtils@isEmpty(wareDtlDvCd)">
+               AND S1.HGR_WARE_NO = #{wareNoM}
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(wareNoM) and @MybatisUtils@isNotEmpty(wareNoD) and @MybatisUtils@isEmpty(wareDtlDvCd)">
+               AND S1.HGR_WARE_NO = #{wareNoM}
+             </if>
+             <if test="@MybatisUtils@isEmpty(wareNoM) and @MybatisUtils@isEmpty(wareNoD) and @MybatisUtils@isNotEmpty(wareDtlDvCd)">
+               AND S1.WARE_DTL_DV_CD = #{wareDtlDvCd}
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(wareNoM) and @MybatisUtils@isEmpty(wareNoD) and @MybatisUtils@equals(wareDtlDvCd, "10") or @MybatisUtils@equals(wareDtlDvCd, "20")'>
+               AND S1.WARE_DTL_DV_CD = #{wareDtlDvCd}
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(wareNoM) and @MybatisUtils@isEmpty(wareNoD) and @MybatisUtils@equals(wareDtlDvCd, "21")'>
+               AND S1.WARE_DTL_DV_CD = #{wareDtlDvCd}
+               AND S1.HGR_WARE_NO = #{WareNoM}
+             </if>
+               AND S1.DTA_DL_YN = 'N'
+             ORDER BY S1.APY_YM, S1.WARE_NO
+         )
+       , BASE_QTY_INF AS (
+            /*창고별품목별 조회시작월 기준 기초재고*/
+            SELECT S1.ITM_PD_CD
+                 , (CASE WHEN 'A' = 'A' THEN SUM(S1.BTD_STOC_A_GD_QTY)
+                         WHEN 'A' = 'B' THEN SUM(S1.BTD_STOC_B_GD_QTY)
+                         WHEN 'A' = 'E' THEN SUM(S1.BTD_STOC_E_GD_QTY)
+                         WHEN 'A' = 'R' THEN SUM(S1.BTD_STOC_R_GD_QTY)
+                         ELSE SUM(S1.BTD_STOC_A_GD_QTY)
+                    END) AS BTD_STOC_GD_QTY
+              FROM WSMDBS.TB_SVST_MCITM_STOC_IZ S1  /*월별품목재고내역, ST122TB*/
+                   INNER JOIN WARE_IF W1
+                           ON S1.BASE_YM = W1.APY_YM
+                          AND S1.WARE_NO = W1.WARE_NO
+             WHERE 1=1
+               AND S1.BASE_YM = SUBSTR(#{startDt}, 1,6)
+               AND S1.DTA_DL_YN = 'N'
+             GROUP BY S1.ITM_PD_CD
+         )
+       , STR_QTY_INF AS (
+            /*품목별 조회기간 기준 구매입고, 정상입고*/
+            SELECT S1.ITM_PD_CD
+                 , SUM(S1.STR_QTY) AS STR_QTY
+              FROM WSMDBS.TB_SVST_ITM_STR_IZ S1 /*품목입고내역, ST141TB*/
+                   INNER JOIN WARE_IF W1
+                           ON S1.STR_WARE_NO = W1.WARE_NO
+             WHERE 1=1
+             <if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
+               AND S1.STR_RGST_DT BETWEEN  #{startDt} AND #{endDt}
+             </if>
+               /*물류센터 선택*/
+             <if test='@MybatisUtils@equals(wareDvCd, "1")'>
+               AND S1.STR_TP_CD IN ('110')   /*110 구매입고, 117 기타입고, 121 정상입고, 122 물량배정, 123 물량이동, 161 반품입고(내부), 162 반품입고(외부)*/
+             </if>
+               /*서비스센터, 영업센터 선택*/
+             <if test='@MybatisUtils@equals(wareDvCd, "2")'>
+               AND S1.STR_TP_CD IN ('121')   /*110 구매입고, 117 기타입고, 121 정상입고, 122 물량배정, 123 물량이동, 161 반품입고(내부), 162 반품입고(외부)*/
+             </if>
+               /*조직창고만*/
+             <if test='@MybatisUtils@equals(wareDvCd, "2") and @MybatisUtils@equals(wareDtlDvCd, "20")'>
+               AND W1.WARE_DTL_DV_CD LIKE '%0'
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+               AND S1.ITM_GD_CD = #{itmGdCd}  /*조회 등급*/
+             </if>
+               AND S1.DTA_DL_YN = 'N'
+             GROUP BY S1.ITM_PD_CD
+         )
+       , WK_OSTR_QTY_INF AS (
+            /*창고별품목별 조회기간 기준 작업출고*/
+            SELECT S1.ITM_PD_CD
+                 , SUM(S1.USE_QTY) AS USE_QTY
+              FROM WSMDBS.TB_SVST_SV_WK_OSTR_IZ S1  /*서비스작업출고내역, ST163TB*/
+                   INNER JOIN WARE_IF W1
+                           ON S1.WK_WARE_NO = W1.WARE_NO
+             WHERE 1=1
+             <if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
+               AND S1.FNL_VST_FSH_DT BETWEEN  #{startDt} AND #{endDt}
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+               AND S1.FNL_ITM_GD_CD = #{itmGdCd}  /*조회 등급*/
+             </if>
+               AND S1.SV_BIZ_HCLSF_CD != '6' /*반품제외*/
+               AND S1.DTA_DL_YN = 'N'
+             GROUP BY S1.ITM_PD_CD
+         )
+       , OSTR_QTY_INF AS (
+            /*창고별품목별 조회기간 기준 기타출고*/
+            SELECT S1.ITM_PD_CD
+                 , SUM(S1.OSTR_QTY) AS OSTR_QTY
+              FROM WSMDBS.TB_SVST_ITM_OSTR_IZ S1    /*품목출고내역, ST161TB*/
+                   INNER JOIN WARE_IF W1
+                           ON S1.OSTR_WARE_NO = W1.WARE_NO
+             WHERE 1=1
+             <if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
+               AND S1.OSTR_DT BETWEEN  #{startDt} AND #{endDt}
+             </if>
+               AND S1.OSTR_TP_CD = '217'
+             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+               AND S1.ITM_GD_CD = #{itmGdCd}  /*조회 등급*/
+             </if>
+               AND S1.DTA_DL_YN = 'N'
+             GROUP BY S1.ITM_PD_CD
+         )
+       , HGR_WARE_OSTR_QTY_INF AS (
+           /*상위창고 반품*/
+           SELECT S1.ITM_PD_CD
+                , NVL(SUM(S1.OSTR_QTY),0) AS HGR_WARE_OSTR_QTY
+             FROM WSMDBS.TB_SVST_ITM_OSTR_IZ S1    /*품목출고내역, ST161TB*/
+                  INNER JOIN WARE_IF W1
+                           ON S1.OSTR_WARE_NO = W1.WARE_NO
+            WHERE 1=1
+             <if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
+               AND S1.OSTR_DT BETWEEN  #{startDt} AND #{endDt}
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+               AND S1.ITM_GD_CD = #{itmGdCd}  /*조회 등급*/
+             </if>
+              AND S1.STR_WARE_NO LIKE '1%'
+              AND S1.OSTR_WARE_NO NOT LIKE '1%'
+            GROUP BY S1.ITM_PD_CD
+         )
+       , QOM_MMT_STR_INF AS (
+            /*물량이동입고*/
+            SELECT S1.ITM_PD_CD
+                 , SUM(S1.STR_QTY) AS STR_QTY
+              FROM WSMDBS.TB_SVST_ITM_STR_IZ S1 /*품목입고내역, ST141TB*/
+             WHERE 1=1
+             <if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
+               AND S1.OSTR_DT BETWEEN  #{startDt} AND #{endDt}
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+               AND S1.ITM_GD_CD = #{itmGdCd}  /*조회 등급*/
+             </if>
+               AND S1.STR_WARE_NO NOT LIKE '1%'  /*물류센터가 아니고 창고 지점 창고가 지정 되어 있다면 이동수량 아니면 0*/
+               AND S1.STR_TP_CD = '123'   /*110 구매입고, 117 기타입고, 121 정상입고, 122 물량배정, 123 물량이동, 161 반품입고(내부), 162 반품입고(외부)*/
+               /*조회조건에 창고 선택시*/
+             <if test='@MybatisUtils@equals(wareDvCd, "2") and @MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "21")'>
+               AND S1.STR_WARE_NO = '200001'
+               /*창고선택시에만 값을 추출하기 위해*/
+               AND (CASE WHEN '200001' IS NULL THEN '2' ELSE '1' END) = '1'
+             </if>
+             GROUP BY S1.ITM_PD_CD
+         )
+       , QOM_MMT_OSTR_INF AS (
+            /*물량이동출고*/
+            SELECT S1.ITM_PD_CD
+                 , NVL(SUM(S1.OSTR_QTY),0) AS OSTR_QTY
+              FROM WSMDBS.TB_SVST_ITM_OSTR_IZ S1    /*품목출고내역, ST161TB*/
+                   INNER JOIN WARE_IF W1
+                           ON S1.OSTR_WARE_NO = W1.WARE_NO
+             WHERE 1=1
+             <if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
+               AND S1.OSTR_DT BETWEEN  #{startDt} AND #{endDt}
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+               AND S1.ITM_GD_CD = #{itmGdCd}  /*조회 등급*/
+             </if>
+               AND S1.OSTR_WARE_NO NOT LIKE '1%'  /*물류센터가 아니고 창고 지점 창고가 지정 되어 있다면 이동수량 아니면 0*/
+               AND S1.OSTR_TP_CD = '223'
+               /*조회조건에 창고 선택시*/
+             <if test='@MybatisUtils@equals(wareDvCd, "2") and @MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "21")'>
+               AND S1.STR_WARE_NO = '200001'
+               /*창고선택시에만 값을 추출하기 위해*/
+               AND (CASE WHEN '200001' IS NULL THEN '2' ELSE '1' END) = '1'
+             </if>
+            GROUP BY S1.ITM_PD_CD
+         )
+        SELECT P1.SAP_MAT_CD                                        /*SAP자재코드*/
+             , P1.PD_CD
+             , P1.PD_NM                                             /*품목명*/
+             , P1.PD_PRP_VAL15 AS ORDNY_HV_MAT_YN                   /*기초자재 필터*/
+             , P1.PD_PRP_VAL17 AS AS_MAT_MNG_TP_CD                  /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD*/
+             , P1.PD_PRP_VAL21 AS CMN_PART_DV_CD                    /*중수리 필터*/
+             , P1.PD_PRP_VAL30 AS TRNOVR_RT_OJ_YN                   /*회전율 필터*/
+             , NVL(A1.STOCK_COST,0) AS STOCK_COST                   /*실제원가*/
+             , NVL(B1.BTD_STOC_GD_QTY,0) AS BTD_STOC_GD_QTY         /*기초재고*/
+             , NVL(B1.BTD_STOC_GD_QTY,0) * NVL(A1.STOCK_COST,0) AS BTD_STOC_GD_AMT  /*기초재고금액*/
+             , NVL(S1.STR_QTY,0) AS STR_QTY                         /*입고수량*/
+             , NVL(S1.STR_QTY,0) * NVL(A1.STOCK_COST,0) AS STR_AMT  /*입고금액*/
+             , NVL(W1.USE_QTY,0) AS WK_OSTR_GD_QTY                  /*작업출고수량*/
+             , NVL(W1.USE_QTY,0) * NVL(A1.STOCK_COST,0) AS WK_OSTR_GD_AMT   /*작업출고금액*/
+             , NVL(O1.OSTR_QTY,0) AS ETC_OSTR_GD_QTY                /*기타출고수량*/
+             , NVL(O1.OSTR_QTY,0) * NVL(A1.STOCK_COST,0) AS ETC_OSTR_GD_AMT /*기타출고금액*/
+             , NVL(Q1.STR_QTY,0) AS QOM_MMT_STR_QTY                 /*물량이동입고수량*/
+             , NVL(Q2.OSTR_QTY,0) AS QOM_MMT_OSTR_QTY               /*물량이동출고수량*/
+             , NVL(H1.HGR_WARE_OSTR_QTY,0) AS HGR_WARE_OSTR_QTY     /*상위창고반품수량*/
+             , (NVL(B1.BTD_STOC_GD_QTY,0) + NVL(S1.STR_QTY,0) + NVL(Q1.STR_QTY,0) - NVL(W1.USE_QTY,0) - NVL(O1.OSTR_QTY,0) - NVL(H1.HGR_WARE_OSTR_QTY,0) - NVL(Q2.OSTR_QTY,0)) AS ON_QTY  /* 기말재고수량*/
+             , (NVL(B1.BTD_STOC_GD_QTY,0) + NVL(S1.STR_QTY,0) + NVL(Q1.STR_QTY,0) - NVL(W1.USE_QTY,0) - NVL(O1.OSTR_QTY,0) - NVL(H1.HGR_WARE_OSTR_QTY,0) - NVL(Q2.OSTR_QTY,0)) * NVL(A1.STOCK_COST,0) AS ON_AMT  /* 기말재고금액*/
+             , (CASE WHEN NVL(W1.USE_QTY,0) != 0
+                     THEN ROUND((((NVL(B1.BTD_STOC_GD_QTY,0) + (NVL(B1.BTD_STOC_GD_QTY,0) + NVL(S1.STR_QTY,0) + NVL(Q1.STR_QTY,0) - NVL(W1.USE_QTY,0) - NVL(O1.OSTR_QTY,0) - NVL(H1.HGR_WARE_OSTR_QTY,0) - NVL(Q2.OSTR_QTY,0))) / 2)
+                               / (NVL(W1.USE_QTY,0) + NVL(O1.OSTR_QTY,0))
+                                )
+                             , 2)
+                     ELSE 0
+                END) AS KEPP_MM  /* 재고지속월 === round(((기초재고수량 + 기말재고수량) / 2) / 작업출고수량 + 기타출고수량), 2) */
+             , (CASE WHEN (NVL(B1.BTD_STOC_GD_QTY,0) + (NVL(B1.BTD_STOC_GD_QTY,0) + NVL(S1.STR_QTY,0) + NVL(Q1.STR_QTY,0) - NVL(W1.USE_QTY,0) - NVL(O1.OSTR_QTY,0) - NVL(H1.HGR_WARE_OSTR_QTY,0) - NVL(Q2.OSTR_QTY,0))) != 0
+                     THEN ROUND((NVL(W1.USE_QTY,0) + NVL(O1.OSTR_QTY,0))
+                              / ((NVL(B1.BTD_STOC_GD_QTY,0) + (NVL(B1.BTD_STOC_GD_QTY,0) + NVL(S1.STR_QTY,0) + NVL(Q1.STR_QTY,0) - NVL(W1.USE_QTY,0) - NVL(O1.OSTR_QTY,0) - NVL(H1.HGR_WARE_OSTR_QTY,0) - NVL(Q2.OSTR_QTY,0))) / 2)
+                              *100
+                              ,1)
+                     ELSE 0
+                END) AS TNOR_RT    /*재고회전율(일정기간 출고량과 재고량의 비율)  (작업출고량+기타출고량)/((기초재고+기말재고)/2)*/
+          FROM PART_INF P1
+               LEFT OUTER JOIN ACL_PRC_INF A1
+                            ON P1.SAP_MAT_CD = A1.MTRL_CD
+               LEFT OUTER JOIN BASE_QTY_INF B1
+                            ON P1.PD_CD = B1.ITM_PD_CD
+               LEFT OUTER JOIN STR_QTY_INF S1
+                            ON P1.PD_CD = S1.ITM_PD_CD
+               LEFT OUTER JOIN WK_OSTR_QTY_INF W1
+                            ON P1.PD_CD = W1.ITM_PD_CD
+               LEFT OUTER JOIN OSTR_QTY_INF O1
+                            ON P1.PD_CD = O1.ITM_PD_CD
+               LEFT OUTER JOIN HGR_WARE_OSTR_QTY_INF H1
+                            ON P1.PD_CD = H1.ITM_PD_CD
+               LEFT OUTER JOIN QOM_MMT_STR_INF Q1
+                            ON P1.PD_CD = Q1.ITM_PD_CD
+               LEFT OUTER JOIN QOM_MMT_OSTR_INF Q2
+                            ON P1.PD_CD = Q2.ITM_PD_CD
+          ORDER BY PD_CD
+    </select>
+</mapper>

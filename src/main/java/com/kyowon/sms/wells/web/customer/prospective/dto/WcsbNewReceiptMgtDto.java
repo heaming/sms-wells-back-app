@@ -54,10 +54,13 @@ public class WcsbNewReceiptMgtDto {
         String pspcCstCnslRsNm,
         String cnslMoCn,
 
-        // 가공 column 
+        // 가공 column
         String phNo, /* 고객 휴대전화 */
         String wireTelNo, /* 고객 유선전화 */
 
+        String fstRgstDtmCp,
+        String fstRgstDeptNm,
+        String fnlMdfcDeptNm,
         String fstRgstDtm,
         String fstRgstUsrNm,
         String fnlMdfcDtm,
@@ -146,11 +149,14 @@ public class WcsbNewReceiptMgtDto {
         }
     }
 
+    @Builder
     @ApiModel("WcsbNewReceiptMgtDto-AssignReq")
     public record AssignReq(
-        String pspcCstCnslId,
+        String[] pspcCstCnslIds,
         String ogTpCd,
-        String prtnrNo
+        String prtnrNo,
+        String pspcCstCnslId
+
     ) {}
 
     @ApiModel(value = "WcsbNewReceiptMgtDto-SearchDtlRes")
@@ -188,16 +194,20 @@ public class WcsbNewReceiptMgtDto {
         String cntrNo,
         String pdNm,
 
-        // 가공 column 
+        // 가공 column
         String phNo, /* 고객 휴대전화 */
         String wireTelNo, /* 고객 유선전화 */
 
+        String fstRgstDtmCp,
         String fstRgstDtm,
         String fstRgstUsrNm,
+        String fstRgstDeptNm,
+        String fnlMdfcDeptNm,
         String fnlMdfcDtm,
         String fnlMdfcUsrNm,
         String fstRgstUsrId,
         String fnlMdfcUsrId
+
     ) {
         public SearchDtlRes {
 
@@ -247,7 +257,7 @@ public class WcsbNewReceiptMgtDto {
     ) {}
 
     /*
-     * 배정조회 (TAB)   - Assign 
+     * 배정조회 (TAB)   - Assign
      */
     @ApiModel(value = "WcsbNewReceiptMgtDto-SearchAssignReq")
     public record SearchAssignReq(
@@ -261,7 +271,7 @@ public class WcsbNewReceiptMgtDto {
     /*
      * ---------------------------------------
      *       집계 (TAB) - Summaries
-     * ---------------------------------------       
+     * ---------------------------------------
      */
     @ApiModel(value = "EcsbSmartExperienceDeviceMgtDto-SearchSummariesReq")
     public record SearchSummariesReq(

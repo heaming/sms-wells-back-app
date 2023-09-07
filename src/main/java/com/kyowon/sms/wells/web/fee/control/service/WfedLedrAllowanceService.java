@@ -6,8 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.fee.control.dto.WfedLedrAllowanceDto;
 import com.kyowon.sms.wells.web.fee.control.mapper.WfedLedrAllowanceMapper;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +37,6 @@ public class WfedLedrAllowanceService {
     public List<WfedLedrAllowanceDto.SearchIndividualRes> getIndividualLeaderAllowances(
         WfedLedrAllowanceDto.SearchReq dto
     ) {
-        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
-        //TODO: 세션 정보 추가하면 파라미터 DVO로 수정
         return mapper.selectIndividualLeaderAllowances(dto);
     }
 

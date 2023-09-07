@@ -105,7 +105,7 @@ public class FeeCalculationMOrganizationModule extends FeeCalculationCommonModul
      * 웰스서비스실적내역 테이블에 급지수수료금액 업데이트
      *
      */
-    @FeeModuleMethodInfo(methodName = "WM급지(지점장)수수료(W020085) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 급지수수료금액 업데이트")
+    @FeeModuleMethodInfo(methodName = "WM급지(지점장)수수료(W020088) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 급지수수료금액 업데이트")
     public void runRegionLevelFeeForBrmgrPostProcess() {
         mOrganizationCalculationMapper.updateUnderPerf120RegionLevelFeeForBrmgr(baseYm, feeCd, feeTcntDvCd, basic.ogTpCd());
         mOrganizationCalculationMapper.updateOverPerf120RegionLevelFeeForBrmgr(baseYm, feeCd, feeTcntDvCd, basic.ogTpCd());

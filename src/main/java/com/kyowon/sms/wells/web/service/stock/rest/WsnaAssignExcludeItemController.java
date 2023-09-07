@@ -52,7 +52,10 @@ public class WsnaAssignExcludeItemController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "asnExcdDvCd", value = "제외유형", paramType = "query", example = "3", required = true),
         @ApiImplicitParam(name = "itmKndCd", value = "제외품목", paramType = "query", example = "4"),
-        @ApiImplicitParam(name = "wareNo", value = "영업센터", paramType = "query", example = "300001")
+        @ApiImplicitParam(name = "wareNo", value = "영업센터", paramType = "query", example = "300001"),
+        @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07104077"),
+        @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
+        @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
     })
     public PagingResult<SearchRes> getAssignExcludeItemsPaging(
         @Valid

@@ -1,12 +1,14 @@
 package com.kyowon.sms.wells.web.closing.performance.service;
 
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.*;
-import com.kyowon.sms.wells.web.closing.performance.mapper.WdccOverduePenaltyMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.*;
+import com.kyowon.sms.wells.web.closing.performance.mapper.WdccOverduePenaltyMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -19,33 +21,39 @@ public class WdccOverduePenaltyService {
         return mapper.selectCode();
     }
 
-    public List<SearchMainGridRes> getMainGridAggregate(
+    public List<SearchPointAggregateRes> getPointAggregates(
         SearchReq req
     ) {
-        return mapper.selectMainGridAggregate(req);
+        return mapper.selectPointAggregates(req);
     }
 
-    public List<SearchMainGridRes> getMainGridDates(
+    public List<SearchPointOrderRes> getPointOrders(
         SearchReq req
     ) {
-        return mapper.selectMainGridDates(req);
+        return mapper.selectPointOrders(req);
     }
 
-    public List<SearchSubGridRes> getSubGridOrder(
-        SearchReq req
-    ) {
-        return mapper.selectSubGridOrder(req);
+    public List<SearchAggregateDateRes> getAnticipationDates(SearchReq req) {
+        return mapper.selectAnticipationDates(req);
     }
 
-    public List<SearchThirdGridRes> getThirdGridAggregate(
-        SearchReq req
-    ) {
-        return mapper.selectThirdGridAggregate(req);
+    public List<SearchOrderRes> getAnticipationSinglePayments(SearchReq req) {
+        return mapper.selectAnticipationSinglePayments(req);
     }
 
-    public List<SearchFourthGridRes> getFourthGridOrder(
-        SearchReq req
-    ) {
-        return mapper.selectFourthGridOrder(req);
+    public List<SearchOrderRes> getAnticipationMemberships(SearchReq req) {
+        return mapper.selectAnticipationMemberships(req);
+    }
+
+    public List<SearchOrderRes> getAnticipationRegularShippings(SearchReq req) {
+        return mapper.selectAnticipationRegularShippings(req);
+    }
+
+    public List<SearchOrderRes> getAnticipationRentals(SearchReq req) {
+        return mapper.selectAnticipationRentals(req);
+    }
+
+    public List<SearchOrderRes> getAnticipationLeases(SearchReq req) {
+        return mapper.selectAnticipationLeases(req);
     }
 }

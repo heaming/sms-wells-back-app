@@ -5,6 +5,10 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.sds.sflex.common.utils.DbEncUtil;
+
 /**
  * <pre>
  * 수수료 개인 상세
@@ -51,33 +55,18 @@ public class WfeeIndividualFeeDto {
         @NotBlank
         String perfYm, /*실적년월*/
         @NotBlank
-        String ogTp, /*조직유형*/
+        String ogTpCd, /*조직유형*/
         @NotBlank
-        String rsbTp, /*직책유형*/
-        String ogLevl1, /*조직레벨1*/
-        String ogLevl2, /*조직레벨2*/
-        String ogLevl3, /*조직레벨3*/
+        String rsbDvCd, /*직책유형*/
+        String ogLevl1Id, /*조직레벨1*/
+        String ogLevl2Id, /*조직레벨2*/
+        String ogLevl3Id, /*조직레벨3*/
         String prtnrNo, /*파트너번호*/
         String feeDsbYn, /*수수료지급여부*/
-        String rsbDvCd, /*직책구분코드*/
-        String hirFomCd /*고용형태코드*/
-    ) {}
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeHmstReq")
-    public record SearchFeeHmstReq(
-        @NotBlank
-        String perfYm, /*실적년월*/
-        @NotBlank
-        String ogTp, /*조직유형*/
-        @NotBlank
-        String rsbTp, /*직책유형*/
-        String ogLevl1, /*조직레벨1*/
-        String ogLevl2, /*조직레벨2*/
-        String ogLevl3, /*조직레벨3*/
-        String prtnrNo, /*파트너번호*/
-        String feeDsbYn, /*수수료지급여부*/
-        String rsbDvCd, /*직책구분코드*/
-        String hirFomCd /*고용형태코드*/
+        String userRsbCd, /*직책구분코드*/
+        String userSpptRsbDvCd,
+        String hirFomCd, /*고용형태코드*/
+        String userEmpId /*로그인Id*/
     ) {}
 
     // *********************************************************
@@ -92,6 +81,7 @@ public class WfeeIndividualFeeDto {
         String cntrwTpNm, /*상품구분*/
         String rcpdt, /*접수일자*/
         String slDt, /*매출일자*/
+        String canDt, /*취소일자*/
         String cntrNo, /*계약번호*/
         String pdNm, /*상품명*/
         String cstKnm, /*고객명*/
@@ -107,15 +97,17 @@ public class WfeeIndividualFeeDto {
         String prtnrKnm, /*성명*/
         String rcpdt, /*접수일자*/
         String slDt, /*매출일자*/
+        String canDt, /*취소일자*/
         String cntrNo, /*계약번호*/
         String pdNm, /*상품명*/
         String cstKnm, /*고객명*/
         String saleDiv, /*판매구분*/
-        String pdAccCnt, /*인정건수*/
-        int perfRental, /*환경가전렌탈*/
+        int pdAccCnt, /*인정건수*/
+        int perfRental, /*가전기준가*/
         int perfSnglPmnt, /*환경가전일시불*/
         int perfFxam, /*환경가전정액*/
-        int perfBsPdAccCnt /*BS인정건수*/
+        int perfBsPdAccCnt, /*가전인정건수*/
+        int perfElhmExcpAckmt /*가전외인정실적*/
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstRes")
@@ -144,8 +136,13 @@ public class WfeeIndividualFeeDto {
         String ddtnSum, /*공제계*/
         String aclDsb, /*실지급*/
         String dsbBnk, /*지급은행*/
-        String dsbAc /*지급계좌*/
-    ) {}
+        String dsbAc, /*지급계좌*/
+        String pstnDvCd
+    ) {
+        public FindHmstRes {
+            dsbAc = StringUtils.isNotEmpty(dsbAc) ? DbEncUtil.dec(dsbAc) : dsbAc;
+        }
+    }
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstEtcRes")
     public record SearchHmstEtcRes(
@@ -200,8 +197,16 @@ public class WfeeIndividualFeeDto {
         String mgtCnt,
         String vstCnt,
         String procsRt,
-        String rsbYn
-    ) {}
+        String rsbDvCd,
+        String pstnDvCd,
+        String ogLv1Id,
+        String ogLv2Id,
+        String ogLv3Id
+    ) {
+        public FindMngerRes {
+            dsbAc = StringUtils.isNotEmpty(dsbAc) ? DbEncUtil.dec(dsbAc) : dsbAc;
+        }
+    }
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerEtcRes")
     public record SearchMngerEtcRes(
@@ -246,7 +251,8 @@ public class WfeeIndividualFeeDto {
         String rsdntx,
         String hirInsr,
         String buDdtn,
-        String pnpyam
+        String pnpyam,
+        String inddInsr
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerPnpyamRes")
@@ -270,8 +276,13 @@ public class WfeeIndividualFeeDto {
         String ddtnSum, /*공제계*/
         String aclDsb, /*실지급*/
         String dsbBnk, /*지급은행*/
-        String dsbAc/*지급계좌*/
-    ) {}
+        String dsbAc, /*지급계좌*/
+        String pstnDvCd
+    ) {
+        public FindPlarRes {
+            dsbAc = StringUtils.isNotEmpty(dsbAc) ? DbEncUtil.dec(dsbAc) : dsbAc;
+        }
+    }
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarEtcRes")
     public record SearchPlarEtcRes(
@@ -322,10 +333,11 @@ public class WfeeIndividualFeeDto {
         String branch,
         String emplNm,
         String prtnrNo,
-        String rsb,
-        String qlf,
-        String bnk,
+        String rsbDvCd,
+        String qlfDvCd,
+        String fnitCd,
         String acNo,
+        String pstnDvCd,
         int intbsSum,
         int ddtnSum,
         int aclDsbAmt,
@@ -334,21 +346,12 @@ public class WfeeIndividualFeeDto {
         int awbAclDsbAmt
     ) {}
 
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeHmstRes")
-    public record SearchFeeHmstRes(
-        String renlGrp,
-        String branch,
-        String emplNm,
-        String prtnrNo,
-        String rsb,
-        String qlf,
-        String bnk,
-        String acNo,
-        int intbsSum,
-        int ddtnSum,
-        int aclDsbAmt,
-        int awbIntbsSum,
-        int awbDdtnSum,
-        int awbAclDsbAmt
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchUserInfoRes")
+    public record SearchUserInfoRes(
+        String hirFomCD,
+        String bznsSpptRsbDvCd,
+        String rsbDvCd,
+        String pstnDvCd
     ) {}
+
 }

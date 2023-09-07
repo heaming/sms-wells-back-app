@@ -2,26 +2,28 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
 
-import java.text.SimpleDateFormat;
+import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaOutofStorageAskMngtConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
-import com.sds.sflex.system.config.constant.CommConst;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtSearchDvo;
+import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaOutOfStorageAskMngtMapper;
+import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  *
@@ -41,7 +43,16 @@ public class WsnaOutOfStorageAskMngtService {
 
     private final WsnaOutofStorageAskMngtConverter converter;
 
-    final String WARE_DV_CD_LOGISTICS_CENTER = "1"; // 창고구분코드 = 물류센터
+    // 재고서비스
+    private final WsnaItemStockItemizationService stockService;
+
+    // (주)교원프라퍼티파주물류(Wells)
+    private static final String SAP_PLNT_CD = "2108";
+    // 프라파주창고(Wells)
+    private static final String SAP_SAVE_LCT_CD = "21082082";
+    private static final int SLICE_SIZE = 999;
+
+    private static final String WARE_DV_CD_LOGISTICS_CENTER = "1"; // 창고구분코드 = 물류센터
 
     private final WsnaLogisticsOutStorageAskService logisticsservice;
 
@@ -52,6 +63,15 @@ public class WsnaOutOfStorageAskMngtService {
      */
     public PagingResult<SearchRes> getOutOfStorageAsks(SearchReq dto, PageInfo pageInfo) {
         return this.mapper.selectOutOfStorageAsks(dto, pageInfo);
+    }
+
+    /**
+     * 출고요청 관리- 엑셀다운로드
+     * @param dto
+     * @return
+     */
+    public List<SearchRes> getOutOfStorageAsksExcelDownload(SearchReq dto) {
+        return this.mapper.selectOutOfStorageAsks(dto);
     }
 
     /**
@@ -68,11 +88,101 @@ public class WsnaOutOfStorageAskMngtService {
      * @param dto : { session.userid : 사용자id , apyYm : 기준년월 }
      * @return 조회결과
      */
-    public List<OutOfRes> getOutOfStorageItemPages(
+    public List<WsnaOutOfStorageAskMngtDvo> getOutOfStorageItemPages(
         SearchReq dto
     ) {
-        // TODO: 물류창고 조회 로직 추가 필요.
-        return this.mapper.selectOutOfStorageItms(dto);
+        WsnaOutOfStorageAskMngtSearchDvo searchDvo = this.converter.mapAllSearchReqToOutOfStorageAskMngtDvo(dto);
+
+        String ostrWareDvCd = this.mapper.selectOstrWareDvCd(dto);
+        searchDvo.setOstrWareDvCd(ostrWareDvCd);
+
+        List<WsnaOutOfStorageAskMngtDvo> outOfDvo = this.mapper.selectOutOfStorageItms(searchDvo);
+
+        if (WARE_DV_CD_LOGISTICS_CENTER.equals(ostrWareDvCd)) {
+            this.getRealTimeLogisticStockQtys(outOfDvo);
+        }
+
+        return outOfDvo;
+    }
+
+    public List<WsnaOutOfStorageAskMngtDvo> getOutOfStorageItemExcelDownload(SearchReq dto) {
+
+        WsnaOutOfStorageAskMngtSearchDvo searchExcelDvo = this.converter
+            .mapAllSearchReqToExcelOutOfStorageAskMngtDvo(dto);
+
+        String ostrWareDvCd = this.mapper.selectOstrWareDvCd(dto);
+        searchExcelDvo.setOstrWareDvCd(ostrWareDvCd);
+
+        List<WsnaOutOfStorageAskMngtDvo> outOfDvo = this.mapper.selectOutOfStorageItms(searchExcelDvo);
+
+        if (WARE_DV_CD_LOGISTICS_CENTER.equals(ostrWareDvCd)) {
+            this.getRealTimeLogisticStockQtys(outOfDvo);
+        }
+
+        return outOfDvo;
+    }
+
+    /**
+     * 물류재고 조회(999건만 조회되도록 사이즈 조정)
+     * @param dvos
+     */
+    private void getRealTimeLogisticStockQtys(List<WsnaOutOfStorageAskMngtDvo> dvos) {
+        if (CollectionUtils.isNotEmpty(dvos)) {
+
+            int size = dvos.size();
+            int sliceSize = Math.floorDiv(size, SLICE_SIZE) + (Math.floorMod(size, SLICE_SIZE) > 0 ? 1 : 0);
+
+            for (int i = 0; i < sliceSize; i++) {
+                int startIndex = i * SLICE_SIZE;
+                int endIndex = (i + 1) * SLICE_SIZE > size ? size : (i + 1) * SLICE_SIZE;
+
+                List<WsnaOutOfStorageAskMngtDvo> sliceDvos = dvos.subList(startIndex, endIndex);
+                List<String> itmPds = sliceDvos.stream().map(WsnaOutOfStorageAskMngtDvo::getItmPdCd).toList();
+
+                //실시간 재고조회 서비스 조회호출
+                List<RealTimeGradeStockResIvo> stocks = this.stockService
+                    .getRealTimeGradeStocks(SAP_PLNT_CD, SAP_SAVE_LCT_CD, itmPds);
+
+                this.setTotalLogisticQty(stocks, sliceDvos);
+
+            }
+
+        }
+    }
+
+    /**
+     * 물류재고 조회
+     * @param stocks
+     * @param sliceDvos
+     */
+    private void setTotalLogisticQty(
+        List<RealTimeGradeStockResIvo> stocks, List<WsnaOutOfStorageAskMngtDvo> sliceDvos
+    ) {
+        if (CollectionUtils.isNotEmpty(stocks)) {
+            int stockSize = stocks.size();
+
+            for (WsnaOutOfStorageAskMngtDvo dvo : sliceDvos) {
+                String itmPdCd = dvo.getItmPdCd();
+                BigDecimal lgstQty = BigDecimal.ZERO;
+
+                for (int i = 0; i < stockSize; i++) {
+                    RealTimeGradeStockResIvo stock = stocks.get(i);
+
+                    String stockPdCd = stock.getItmPdCd();
+
+                    if (itmPdCd.equals(stockPdCd)) {
+
+                        lgstQty = stock.getLgstAGdQty();
+                        stockSize--;
+                        stocks.remove(stock);
+                        break;
+                    }
+
+                }
+                dvo.setWarehouseQty(lgstQty);
+            }
+
+        }
     }
 
     /**
@@ -116,78 +226,96 @@ public class WsnaOutOfStorageAskMngtService {
     @Transactional
     public int saveOutOfStorageAskItems(List<SaveReq> dtos) {
         int processCount = 0;
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-        Calendar calendar = Calendar.getInstance();
-        String strToday = dateFormat.format(calendar.getTime());
+        ValidAssert.notEmpty(dtos);
         String strOstrAkNo = null;
 
-        List<WsnaOutOfStorageAskMngtDvo> insertListDvo = new ArrayList<>();
-        List<WsnaOutOfStorageAskMngtDvo> updateListDvo = new ArrayList<>();
+        List<String> createOstrAkNos = new ArrayList<>();
 
         SaveReq saveReq = dtos.get(0);
 
-        log.info("saveReq --->>" + saveReq);
-        log.info("saveReq.ostrAkRgstDt ---->" + saveReq.ostrAkRgstDt());
+        List<WsnaOutOfStorageAskMngtDvo> dvos = this.converter.mapAllListSaveReqToOutOfStorageAskMngtDvo(dtos);
 
-        if (StringUtils.isEmpty(saveReq.ostrAkNo())) {
-            strOstrAkNo = this.mapper.selectNewOstrAkNo(
-                new FindOstrAkNoReq(saveReq.ostrAkRgstDt(), saveReq.ostrAkTpCd(), saveReq.strOjWareNo())
-            );
+        //상태가 신규인건
+        List<WsnaOutOfStorageAskMngtDvo> createListDvos = dvos.stream()
+            .filter(dvo -> CommConst.ROW_STATE_CREATED.equals(dvo.getRowState())).toList();
 
-        }
+        //상태가 업데이트인건
+        List<WsnaOutOfStorageAskMngtDvo> updateListDvos = dvos.stream()
+            .filter(dvo -> CommConst.ROW_STATE_UPDATED.equals(dvo.getRowState())).toList();
 
-        for (SaveReq dto : dtos) {
-            WsnaOutOfStorageAskMngtDvo dvo = this.converter.mapSaveReqToOutOfStorageAskMngtDvo(dto);
+        String wareDvCd = this.mapper.selectLogisticsOstrDvCd(saveReq.ostrOjWareNo());
 
-            switch (dto.rowState()) {
-                case CommConst.ROW_STATE_CREATED -> {
-                    if (!StringUtils.isEmpty(strOstrAkNo)) {
-                        dvo.setOstrAkNo(strOstrAkNo);
+        /* 출고대상창고가 물류창고인경우 */
+        if ("1".equals(wareDvCd)) {
+            if (createListDvos.size() > 0) {
+                List<String> itemKndCds = createListDvos.stream().map(WsnaOutOfStorageAskMngtDvo::getItemKnd).distinct()
+                    .toList();
+
+                for (String itemKndCd : itemKndCds) {
+                    List<WsnaOutOfStorageAskMngtDvo> items = dvos.stream()
+                        .filter(dvo -> itemKndCd.equals(dvo.getItemKnd()))
+                        .toList();
+                    String newOstrAkNo = this.mapper.selectLogisticsNewOstrAkNo(items.get(0));
+                    createOstrAkNos.add(newOstrAkNo);
+                    for (WsnaOutOfStorageAskMngtDvo item : items) {
+                        item.setOstrAkNo(newOstrAkNo);
+
+                        processCount += mapper.insertOutOfStorageAskItems(item);
+
                     }
-                    processCount += mapper.insertOutOfStorageAskItems(dvo);
-                    insertListDvo.add(dvo);
 
                 }
-                case CommConst.ROW_STATE_UPDATED -> {
-                    processCount += mapper.updateOutOfStorageAskItmes(dvo);
-                    updateListDvo.add(dvo);
-
+                //create가 있을경우
+                if (CollectionUtils.isNotEmpty(createListDvos)) {
+                    //create 물류 조회
+                    List<WsnaOutOfStorageAskMngtDvo> createLogisticsDvo = this.mapper
+                        .selectLogisticsOutStorageAskInfo(createOstrAkNos);
+                    List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
+                        .mapAllCreateOutOfStorageAsksDvo(createLogisticsDvo);
+                    logisticsservice.createOutOfStorageAsks(dvo);
                 }
             }
 
-        }
+            //update가 있을경우
+            if (updateListDvos.size() > 0) {
+                List<String> updateOstrAkNos = updateListDvos.stream().map(WsnaOutOfStorageAskMngtDvo::getOstrAkNo)
+                    .distinct()
+                    .toList();
+                for (WsnaOutOfStorageAskMngtDvo updatesDvo : updateListDvos) {
+                    processCount += mapper.updateOutOfStorageAskItmes(updatesDvo);
 
-        if (CollectionUtils.isNotEmpty(insertListDvo)) {
-            WsnaOutOfStorageAskMngtDvo insertDvo = insertListDvo.get(0);
-            String ostrAkNo = insertDvo.getOstrAkNo();
-            List<WsnaOutOfStorageAskMngtDvo> logisticsDvo = this.mapper.selectLogisticsOutStorageAskInfo(ostrAkNo);
-            //출고대상창고의 구분이 1(물류센터) 일경우
-            if (WARE_DV_CD_LOGISTICS_CENTER.equals(logisticsDvo.get(0).getOstrOjWareDvCd())) {
-                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter.mapCreateOutOfStorageAsksDvo(logisticsDvo);
-                logisticsservice.createOutOfStorageAsks(dvo);
-            }
-        }
+                }
 
-        if (CollectionUtils.isNotEmpty(updateListDvo)) {
-            WsnaOutOfStorageAskMngtDvo updateDvo = updateListDvo.get(0);
-            String updateOstrAkNo = updateDvo.getOstrAkNo();
-            List<WsnaOutOfStorageAskMngtDvo> logisticsDvo = this.mapper
-                .selectLogisticsOutStorageAskInfo(updateOstrAkNo);
-            //출고대상창고의 구분이 1(물류센터) 일경우
-            if (WARE_DV_CD_LOGISTICS_CENTER.equals(logisticsDvo.get(0).getOstrOjWareDvCd())) {
-
-                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter.mapCreateOutOfStorageAsksDvo(logisticsDvo);
+                List<WsnaOutOfStorageAskMngtDvo> updateLogisticsDvo = this.mapper
+                    .selectLogisticsOutStorageAskInfo(updateOstrAkNos);
+                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
+                    .mapAllCreateOutOfStorageAsksDvo(updateLogisticsDvo);
                 logisticsservice.editOutOfStorageAsks(dvo);
 
             }
+            //출고대상창고가 물류창고가 아닌경우
+        } else {
+
+            if (StringUtils.isEmpty(saveReq.ostrAkNo())) {
+                strOstrAkNo = this.mapper.selectNewOstrAkNo(
+                    new FindOstrAkNoReq(saveReq.ostrAkRgstDt(), saveReq.ostrAkTpCd(), saveReq.strOjWareNo())
+                );
+
+            }
+            for (WsnaOutOfStorageAskMngtDvo createDvo : createListDvos) {
+                if (!StringUtils.isEmpty(strOstrAkNo)) {
+                    createDvo.setOstrAkNo(strOstrAkNo);
+                }
+                processCount += mapper.insertOutOfStorageAskItems(createDvo);
+
+            }
+
+            for (WsnaOutOfStorageAskMngtDvo updateDvo : updateListDvos) {
+                processCount += mapper.updateOutOfStorageAskItmes(updateDvo);
+            }
 
         }
-
-        //TODO: 시쿼스 정의 및 인터페이스(W-SV-I-0027) 개발 후 로직추가.
         return processCount;
     }
 
-    public List<OutOfRes> getOutOfStorageItemExcelDownload(SearchReq dto) {
-        return mapper.selectOutOfStorageItms(dto);
-    }
 }

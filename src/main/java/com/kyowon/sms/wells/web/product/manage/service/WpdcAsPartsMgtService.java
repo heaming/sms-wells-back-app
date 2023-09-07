@@ -1,10 +1,6 @@
 package com.kyowon.sms.wells.web.product.manage.service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -32,7 +28,6 @@ import com.sds.sflex.common.common.service.CodeService;
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
 import com.sds.sflex.common.docs.service.AttachFileService;
 import com.sds.sflex.common.utils.DateUtil;
-//import org.eclipse.jetty.util.StringUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -88,10 +83,10 @@ public class WpdcAsPartsMgtService {
         int processCount = 0;
         ZpdcProductDvo dvo = productConverter.mapPdBasToProductDvo(dto.tbPdbsPdBas());
 
-        // #1. 분류체계 분류 계층값 FILL-IN(순서변경불가.) 
+        // #1. 분류체계 분류 계층값 FILL-IN(순서변경불가.)
         dvo = clsfService.getClassifcationHierarchy(dvo);
 
-        /* 
+        /*
          * #2. 상품 마스터 INSERT/UPDATE
          * 교재/자재 : PD_TP_DTL_M(제품) , AS부품: PD_TP_DTL_A (As)부품
          * 해당 값이 없으면 'AS-PART'에서 신규추가한 데이터이므로 INSERT
@@ -182,6 +177,7 @@ public class WpdcAsPartsMgtService {
      * @param metaItems
      * @param tbPdbsPdBas
      * @param tbPdbsPdEcomPrpDtl
+     * @param tbPdbsPdDtl
      * @param prgGrpDves
      * @throws Exception
      */
@@ -191,6 +187,7 @@ public class WpdcAsPartsMgtService {
         List<ZpdcPropertyMetaDvo> metaItems,
         List<ZpdcPropertyMetaDvo> tbPdbsPdBas,
         List<ZpdcPropertyMetaDvo> tbPdbsPdEcomPrpDtl,
+        List<ZpdcPropertyMetaDvo> tbPdbsPdDtl,
         ArrayList<String> prgGrpDves
     ) throws Exception {
 
@@ -217,15 +214,34 @@ public class WpdcAsPartsMgtService {
             ZpdcProductDvo dvo = objectMapper.convertValue(masterMap, ZpdcProductDvo.class);
 
             // 230303 자재코드가 들어오면 UI와 동일하게 자동으로 Fill-In
+            boolean isResetSapMaterial = false;
             if (StringUtil.isNotEmpty(dvo.getSapMatCd())) {
-                // TODO 조회쿼리 한방 날리고 값들 채우고!!! 여기부터 시작!!!!
-                ZpdcGbcoSapMatDvo sapMatVo = wMapper.selectMaterialSap(dvo.getSapMatCd());
 
-                dvo.setModelNo(sapMatVo.getModelNo());
-                dvo.setSapPdctSclsrtStrcVal(sapMatVo.getSapPdctSclsrtStrcVal());
-                dvo.setSapPlntCd(sapMatVo.getSapPlntVal());
-                dvo.setSapMatEvlClssVal(sapMatVo.getSapMatEvlClssVal());
-                dvo.setSapMatGrpVal(sapMatVo.getSapMatGrpVal());
+                //                ZpdcGbcoSapMatDvo sapMatVo = wMapper.selectMaterialSap(dvo.getSapMatCd());
+                String sapPlntVal = this.getExcelValue(dvo.getSapPlntCd());
+                List<ZpdcGbcoSapMatDvo> sapMatVoList = wMapper.selectMaterialSaps(dvo.getSapMatCd(), sapPlntVal);
+
+                if (sapMatVoList.size() == 1) {
+                    //                dvo.setModelNo(sapMatVo.getModelNo());
+                    dvo.setSapPdctSclsrtStrcVal(sapMatVoList.get(0).getSapPdctSclsrtStrcVal());
+                    dvo.setSapPlntCd(sapMatVoList.get(0).getSapPlntVal());
+                    dvo.setSapMatEvlClssVal(sapMatVoList.get(0).getSapMatEvlClssVal());
+                    dvo.setSapMatGrpVal(sapMatVoList.get(0).getSapMatGrpVal());
+                    dvo.setSapMatTpVal(sapMatVoList.get(0).getSapMatTpVal());
+                } else {
+                    isResetSapMaterial = true;
+                }
+            } else {
+                isResetSapMaterial = true;
+            }
+
+            if (isResetSapMaterial) {
+                //                dvo.setModelNo(null);
+                dvo.setSapPdctSclsrtStrcVal(null);
+                dvo.setSapPlntCd(null);
+                dvo.setSapMatEvlClssVal(null);
+                dvo.setSapMatGrpVal(null);
+                dvo.setSapMatTpVal(null);
             }
 
             // #1. 상품 마스터 INSERT
@@ -235,7 +251,7 @@ public class WpdcAsPartsMgtService {
             dvo = productService.saveProductBase(dvo, startDtm);
 
             /**
-             * 각사 속성의 경우 
+             * 각사 속성의 경우
              * TB_PDBS_PD_PRP_META_BAS.PD_PRP_GRP_DV_CD(=상품속성그룹구분코드) Lv INSERT
              */
             for (String pdPrpGrpDtlDvCd : prgGrpDves) {
@@ -252,7 +268,7 @@ public class WpdcAsPartsMgtService {
                                 String tempVal[] = entry.getValue().toString().split("\\|");
                                 propertyMap.put(metaVo.getColId(), tempVal[1].trim());
                             } else {
-                                // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스 
+                                // 단계그룹구분코드(LRNN_LV_GRP_CD) 예외케이스
                                 // 해당 값은 Text로 받아와 DB INSERT 할때 Code 값으로 치환.
                                 if (PdProductConst.PD_EXTS_PRP_GRP_CD_LRNN.equals(pdPrpGrpDtlDvCd)
                                     && PdProductConst.CARMEL_LRNN_LV_CD.equals(metaVo.getColNm())) {
@@ -280,7 +296,8 @@ public class WpdcAsPartsMgtService {
                 propertyVo.setPdCd(dvo.getPdCd());
                 if (null != propertyVo.getPdExtsPrpGrpCd()) {
                     productService.saveEachCompanyPropDtl(propertyVo);
-                    propertyMap = new HashMap<String, Object>();
+                    // sonarQube 대응. 불필요한 변수 초기화
+                    // propertyMap = new HashMap<String, Object>();
                 }
 
             }
@@ -298,5 +315,13 @@ public class WpdcAsPartsMgtService {
      */
     public String checkValidation(ValidationReq dto) {
         return this.mapper.selectValidation(dto);
+    }
+
+    public String getExcelValue(Object obj) {
+        String compareValue = StringUtil.nvl2(obj.toString(), "");
+        if (compareValue.split("\\|").length > 1) {
+            compareValue = compareValue.split("\\|")[1].trim();
+        }
+        return compareValue;
     }
 }

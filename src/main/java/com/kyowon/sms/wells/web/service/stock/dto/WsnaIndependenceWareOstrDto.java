@@ -72,7 +72,6 @@ public class WsnaIndependenceWareOstrDto {
     @ApiModel("WsnaIndependenceWareOstrDto-SaveReq")
     public record SaveReq(
 
-        String sapMatCd,
         @NotBlank
         String itmPdCd,
 
@@ -80,21 +79,14 @@ public class WsnaIndependenceWareOstrDto {
         String matGdCd,
 
         BigDecimal boxUnitQty,
-        BigDecimal crtlStocQty,
-        BigDecimal useQty,
-        BigDecimal cnfmQty,
-        BigDecimal cnfmBoxQty,
-        BigDecimal mcbyAcuOstrQty,
-        BigDecimal mcbyAcuOstrBoxQty,
 
-        BigDecimal filterBoxQty,
         @Positive
         @Max(999999999999L)
         BigDecimal outQty,
-        BigDecimal outBoxQty,
 
         @NotBlank
         String itmQomAsnNo,
+        @NotBlank
         String asnOjYm,
         @NotBlank
         String ostrWareNo,
@@ -104,7 +96,7 @@ public class WsnaIndependenceWareOstrDto {
         String wareMngtPrtnrNo,
         @NotBlank
         String ogTpCd,
-        String itmKndCd,
+
         @Size(max = 4000)
         String rmkCn,
         @Positive
@@ -117,6 +109,30 @@ public class WsnaIndependenceWareOstrDto {
         Integer ostrAkSn,
         @NotBlank
         @ValidDate
-        String ostrDt
+        String ostrDt,
+
+        String ostrWareDvCd,
+        String ostrPrtnrNo,
+        String ostrPrtnrOgTpCd
+    ) {}
+
+    @Builder
+    @ApiModel("WsnaIndependenceWareOstrDto-CreateReq")
+    public record CreateReq(
+
+        @NotBlank
+        String asnOjYm,
+        @Positive
+        @Max(999999999999L)
+        BigDecimal cnt,
+        @NotBlank
+        String ostrWareNo,
+
+        @NotBlank
+        String wareDvCd,
+
+        @NotBlank
+        String wareDtlDvCd
+
     ) {}
 }

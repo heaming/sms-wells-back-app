@@ -7,7 +7,7 @@ import lombok.Setter;
 
 /**
  * <pre>
- * W-SV-U-0192M01 개인창고출고관리
+ * W-SV-U-0192M01 개인창고출고관리 dvo
  * </pre>
  *
  * @author songTaeSung
@@ -17,19 +17,18 @@ import lombok.Setter;
 @Setter
 public class WsnaIndividualWareOstrDvo {
 
+    private String lgstTrsYn;
+
     private String chk;
     private String wareNm;
     private String sapMatCd;
     private String itmPdCd;
     private String pdAbbrNm;
 
-    private BigDecimal partUseQty;
-    private BigDecimal under20per;
     private BigDecimal hgrCrtlStocQty;
     private BigDecimal totOutQty;
 
     private String mngtUnit;
-    private String mngtUnitNm;
     private String matGdCd;
 
     // 물류 재고 관련
@@ -37,15 +36,10 @@ public class WsnaIndividualWareOstrDvo {
 
     private BigDecimal boxUnitQty;
     private BigDecimal crtlStocQty;
-    private BigDecimal useQty;
     private BigDecimal cnfmQty;
-    private BigDecimal cnfmBoxQty;
     private BigDecimal aclOstrQty;
-    private BigDecimal aclOstrBoxQty;
 
-    private BigDecimal filterBoxQty;
     private BigDecimal outQty;
-    private BigDecimal outBoxQty;
 
     private String itmQomAsnNo;
     private String asnOjYm;
@@ -62,4 +56,7 @@ public class WsnaIndividualWareOstrDvo {
     private String ostrAkNo;
     private Integer ostrAkSn;
     private String ostrDt;
+    private String ostrWareDvCd;
+    private String ostrPrtnrNo;
+    private String ostrPrtnrOgTpCd;
 }

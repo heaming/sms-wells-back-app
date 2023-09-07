@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.fee.aggregate.service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,23 +33,36 @@ public class WwfeaAccountNetIncreaseService {
     private final BatchCallService batchCallService;
 
     /**
-     * M조직 계정순증 관리 - 검색 조건 조회
+     * M조직 계정순증 관리 - 전월취소 검색 조건 조회
      * @param req
      * @return
      */
-    public List<WwfeaAccountNetIncreaseDto.SearchRes> getAccountNetIncrease(
+    public List<WwfeaAccountNetIncreaseDto.SearchCancelRes> getAccountNetIncreaseCancel(
         WwfeaAccountNetIncreaseDto.SearchReq dto
     ) {
-        List<WwfeaAccountNetIncreaseDto.SearchRes> result = new ArrayList<WwfeaAccountNetIncreaseDto.SearchRes>();
+        return mapper.selectLstmmCancels(dto);
+    }
 
-        if (dto.inqrDv().equals("01")) {
-            result = mapper.selectLstmmCancels(dto);
-        } else if (dto.inqrDv().equals("02")) {
-            result = mapper.selectNewSells(dto);
-        } else if (dto.inqrDv().equals("03")) {
-            result = mapper.selectAggregateChecks(dto);
-        }
-        return result;
+    /**
+     * M조직 계정순증 관리 - 신규판매 검색 조건 조회
+     * @param req
+     * @return
+     */
+    public List<WwfeaAccountNetIncreaseDto.SearchNewSellRes> getAccountNetIncreaseSell(
+        WwfeaAccountNetIncreaseDto.SearchReq dto
+    ) {
+        return mapper.selectNewSells(dto);
+    }
+
+    /**
+     * M조직 계정순증 관리 - 집계체크 검색 조건 조회
+     * @param req
+     * @return
+     */
+    public List<WwfeaAccountNetIncreaseDto.SearchCheckRes> getAccountNetIncreaseCheck(
+        WwfeaAccountNetIncreaseDto.SearchReq dto
+    ) {
+        return mapper.selectAggregateChecks(dto);
     }
 
     /**
@@ -66,9 +78,9 @@ public class WwfeaAccountNetIncreaseService {
         // 배치 parameter
         Map<String, String> params = new HashMap<String, String>();
         params.put("perfYm", dto.perfYm());
-        params.put("ogTpCd", dto.ogTpCd());
+        params.put("feeTcntDvCd", dto.feeTcntDvCd());
 
-        batchCallReqDvo.setJobKey("WSM_FE_OA0001");
+        batchCallReqDvo.setJobKey("WSM_FE_OA0004");
         batchCallReqDvo.setParams(params);
 
         String runId = batchCallService.runJob(batchCallReqDvo);

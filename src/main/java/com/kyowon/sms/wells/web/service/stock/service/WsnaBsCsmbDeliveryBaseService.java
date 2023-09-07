@@ -44,13 +44,17 @@ public class WsnaBsCsmbDeliveryBaseService {
 
             int result2 = mapper.insertDeliveryBaseDtlsNowMonth();
             processCount += result2;
-        } else { // 없을 경우 당월 이후 월에 계속하여 insert
-            int result1 = mapper.insertDeliveryBasesNextMonth();
-            processCount += result1;
-
-            int result2 = mapper.insertDeliveryBaseDtlsNextMonth();
-            processCount += result2;
+        } else {
+            throw new BizException("MSG_TXT_THM_DTA_EXST");
         }
+
+        // else { // 없을 경우 당월 이후 월에 계속하여 insert
+        //     int result1 = mapper.insertDeliveryBasesNextMonth();
+        //     processCount += result1;
+
+        //     int result2 = mapper.insertDeliveryBaseDtlsNextMonth();
+        //     processCount += result2;
+        // }
 
         return processCount;
     }

@@ -12,5 +12,11 @@ public interface WsniBarcodeProductInterfaceMapper {
         WsniBarcodeProductInterfaceDto.SearchReq dto
     );
 
-    List<WsniBarcodeProductInterfaceDto.SearchCustRes> selectBarcodeSearchCustomer(WsniBarcodeProductInterfaceDto.SearchCustReq dto);
+    WsniBarcodeProductInterfaceDto.SearchCustRes selectBarcodeSearchCustomer(
+        WsniBarcodeProductInterfaceDto.SearchCustReq dto
+    );
+
+    List<WsniBarcodeProductInterfaceDto.SearchCustServiceJsonRes> selectBarcodeSearchCustomerService(
+        WsniBarcodeProductInterfaceDto.SearchCustReq dto
+    );
 }

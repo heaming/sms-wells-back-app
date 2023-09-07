@@ -10,6 +10,7 @@ public class WdcdMarketableSecuritiesDvo {
     private String opcsAdjNo; // 운영비정산번호
     private String dstOjOgTpCd;
     private String ogTpCd;
+    private String ogId;         /*정산조직ID*/
     private String dstOjPrtnrNo;
     private String dstOjpsNm;
     private String dstOjpsPerfAmt;
@@ -24,5 +25,5 @@ public class WdcdMarketableSecuritiesDvo {
     private String baseYm;
     private String adjPrtnrNo;
     private String opcsCardUseIzId;
-    private String delete;
+    private String deleted;
 }

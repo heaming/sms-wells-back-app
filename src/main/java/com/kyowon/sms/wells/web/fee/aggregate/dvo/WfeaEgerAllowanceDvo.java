@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WfeaEgerAllowanceDvo {
-    String perfYm;
-    String rsbTp;
+    private String perfYm;
+    private String rsbTpCd;
 }

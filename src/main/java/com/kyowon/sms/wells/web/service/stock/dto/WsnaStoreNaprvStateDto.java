@@ -17,15 +17,20 @@ public class WsnaStoreNaprvStateDto {
     public record SearchReq(
         String strWareDvCd,
         String strWareNoM,
-        String strWareNoD
+        String strWareNoD,
+        String wareDtlDvCd
     ) {}
 
     @ApiModel(value = "WsnaStoreNaprvStateDto-SearchRes")
     public record SearchRes(
         String strWareNo,
-        String wareNm,
+        String strWareNm,
         String itmPdCd,
         String pdNm,
-        String naprvQty
+        String naprvQty,
+        String strRgstDt,
+        String ostrWareNo,
+        String ostrWareNm,
+        String strTpCd
     ) {}
 }

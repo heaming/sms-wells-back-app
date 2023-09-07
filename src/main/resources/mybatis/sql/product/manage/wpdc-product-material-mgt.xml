@@ -17,7 +17,7 @@
           FROM TB_GBCO_SAP_MAT_RCV_IZ M1   /* SAP자재수신내역 */
          WHERE M1.DTA_DL_YN = 'N'          /* 데이터삭제여부 */
            AND M1.USE_YN != 'X'
-           AND ( M1.SAP_PLNT_VAL BETWEEN '2015' AND '2016' 
+           AND ( M1.SAP_PLNT_VAL BETWEEN '2015' AND '2016'
              OR  M1.SAP_PLNT_VAL BETWEEN '2107' AND '2109' )
          <if test='@MybatisUtils@isNotEmpty(dto.searchCond) and @MybatisUtils@isNotEmpty(dto.searchKeyword)'>
             <if test="dto.searchCond == 'CODE' ">
@@ -27,8 +27,9 @@
             AND UPPER(M1.SAP_MAT_NM) LIKE '%' || UPPER(#{dto.searchKeyword}) || '%'   /* SAP자재명 */
             </if>
          </if>
+        ORDER BY M1.SAP_MAT_CD, M1.SAP_PLNT_VAL
     </select>
-    
+
     <update id="deleteTbPdbsPdRel">
         UPDATE TB_PDBS_PD_REL M1
            SET /* DTA_DL_YN = 'Y' */
@@ -40,7 +41,7 @@
                               FROM TB_PDBS_PD_REL M2
                              WHERE m1.pd_rel_id = m2.pd_rel_id
                                AND M2.DTA_DL_YN = 'N'
-                               AND m2.pd_rel_id  IN 
+                               AND m2.pd_rel_id  IN
                                <foreach item="item" index="index" collection="info" open="(" separator="," close=")">
                                     #{item.pdRelId}
                               </foreach>
@@ -55,7 +56,7 @@
            )
          </if>
     </update>
-    
+
     <update id="mergeEachTbPdbsPdRel">
         <selectKey keyProperty="pdRelId" resultType="java.lang.String" order="BEFORE">
           SELECT 'PDR' || LPAD(  SQ_PDBS_PD_REL$PD_REL_ID.NEXTVAL  , 12, 0) FROM DUAL
@@ -106,7 +107,7 @@
                , BASE_PD_CD
                , PD_REL_TP_CD
                , PD_REL_DTL_TP_CD
-               , OJ_PD_CD   
+               , OJ_PD_CD
                , SV_PD_CD
                , RLTG_PD_CD
                , STPL_PRD_CD
@@ -159,7 +160,7 @@
                 <include refid="COMMON.insertSystemFieldValue"/>
           )
     </update>
-    
+
     <update id="mergeEachTbPdbsPdRelByDto">
         <selectKey keyProperty="newPdRelId" resultType="java.lang.String" order="BEFORE">
           SELECT 'PDR' || LPAD(  SQ_PDBS_PD_REL$PD_REL_ID.NEXTVAL  , 12, 0) FROM DUAL
@@ -192,7 +193,7 @@
                           , #{pdRelPrpVal10} AS PD_REL_PRP_VAL10          /* 상품관계속성값10 */
                           , NVL(#{tempSaveYn},'Y') AS TEMP_SAVE_YN        /* 임시저장여부 */
                           , NVL(#{dtaDlYn},'N') AS DTA_DL_YN              /* 데이터삭제여부 */
-                       FROM DUAL  
+                       FROM DUAL
                        ) T2
                 ON (T1.PD_REL_ID = T2.PD_REL_ID        /* 상품관계ID */ )
         WHEN MATCHED THEN
@@ -210,7 +211,7 @@
                , BASE_PD_CD
                , PD_REL_TP_CD
                , PD_REL_DTL_TP_CD
-               , OJ_PD_CD   
+               , OJ_PD_CD
                , SV_PD_CD
                , RLTG_PD_CD
                , STPL_PRD_CD
@@ -263,14 +264,14 @@
                 <include refid="COMMON.insertSystemFieldValue"/>
           )
     </update>
-    
+
     <update id="deleteEachPdbsPdRels">
         UPDATE TB_PDBS_PD_REL
            SET DTA_DL_YN = 'Y'
            <include refid="COMMON.updateSystemField" />
          WHERE BASE_PD_CD = #{pdCd}
     </update>
-    
+
     <select id="selectMaterialSap" resultType="com.kyowon.sms.common.web.product.manage.dvo.ZpdcGbcoSapMatDvo">
         SELECT M1.SAP_PLNT_VAL             /* SAP플랜트값 */
              , M1.SAP_MAT_CD               /* SAP자재코드 */
@@ -283,22 +284,23 @@
              , M1.SAP_MAT_EVL_CLSS_VAL     /* SAP자재평가클래스값 */
           FROM TB_GBCO_SAP_MAT_RCV_IZ M1   /* SAP자재수신내역 */
           INNER JOIN T_CMZ_CD_D C1
-                  ON M1.SAP_PLNT_VAL  = C1.CD_VLD_VAL 
-                 AND C1.CD_ID = 'SAP_PLNT_CD' 
-                 AND C1.DEL_YN ='N' 
-                 AND C1.CD_USE_YN = 'Y' 
+                  ON M1.SAP_PLNT_VAL  = C1.CD_VLD_VAL
+                 AND C1.CD_ID = 'SAP_PLNT_CD'
+                 AND C1.DEL_YN ='N'
+                 AND C1.CD_USE_YN = 'Y'
                  AND C1.TENANT_ID  IN ('TNT_WELLS')
          WHERE M1.DTA_DL_YN = 'N'          /* 데이터삭제여부 */
            AND M1.USE_YN != 'X'
-           AND ( M1.SAP_PLNT_VAL BETWEEN '2015' AND '2016' 
+           AND ( M1.SAP_PLNT_VAL BETWEEN '2015' AND '2016'
              OR  M1.SAP_PLNT_VAL BETWEEN '2107' AND '2109' )
            AND UPPER(M1.SAP_MAT_CD) = UPPER(#{sapMatCd})  /* SAP자재코드 */
+
     </select>
-    
-    <!-- 
+
+    <!--
         유효성 체크 조회
         RETURN VAL : 중복 데이터 일때는 중복된 제품명
-                     중복 데이터 아닐시 'N' 
+                     중복 데이터 아닐시 'N'
     -->
     <select id="selectValidation" resultType="java.lang.String">
         WITH VIEW_TBL AS (
@@ -317,13 +319,13 @@
                    </choose>
                    AND ROWNUM = 1
         )
-        SELECT 
+        SELECT
             CASE WHEN CNT = 0 THEN 'N'
                  ELSE PD_NM
             END
         FROM VIEW_TBL
     </select>
-    
+
     <select id="selectMaterialSaps" resultType="com.kyowon.sms.common.web.product.manage.dvo.ZpdcGbcoSapMatDvo">
         SELECT M1.SAP_PLNT_VAL             /* SAP플랜트값 */
              , M1.SAP_MAT_CD               /* SAP자재코드 */
@@ -336,16 +338,20 @@
              , M1.SAP_MAT_EVL_CLSS_VAL     /* SAP자재평가클래스값 */
           FROM TB_GBCO_SAP_MAT_RCV_IZ M1   /* SAP자재수신내역 */
           INNER JOIN T_CMZ_CD_D C1
-                  ON M1.SAP_PLNT_VAL  = C1.CD_VLD_VAL 
-                 AND C1.CD_ID = 'SAP_PLNT_CD' 
-                 AND C1.DEL_YN ='N' 
-                 AND C1.CD_USE_YN = 'Y' 
+                  ON M1.SAP_PLNT_VAL  = C1.CD_VLD_VAL
+                 AND C1.CD_ID = 'SAP_PLNT_CD'
+                 AND C1.DEL_YN ='N'
+                 AND C1.CD_USE_YN = 'Y'
                  AND C1.TENANT_ID  IN ('TNT_WELLS')
          WHERE M1.DTA_DL_YN = 'N'          /* 데이터삭제여부 */
            AND M1.USE_YN != 'X'
-           AND ( M1.SAP_PLNT_VAL BETWEEN '2015' AND '2016' 
+           AND ( M1.SAP_PLNT_VAL BETWEEN '2015' AND '2016'
              OR  M1.SAP_PLNT_VAL BETWEEN '2107' AND '2109' )
            AND UPPER(M1.SAP_MAT_CD) = UPPER(#{sapMatCd})  /* SAP자재코드 */
+        <if test='@MybatisUtils@isNotEmpty( sapPlntVal )'>
+           AND UPPER(M1.SAP_PLNT_VAL) = UPPER(#{sapPlntVal})
+        </if>
+
     </select>
-    
+
 </mapper>

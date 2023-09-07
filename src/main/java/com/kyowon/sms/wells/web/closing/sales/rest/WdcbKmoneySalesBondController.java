@@ -59,25 +59,25 @@ public class WdcbKmoneySalesBondController {
 
     @ApiOperation(value = "월별 입금 상세내역", notes = "조회조건에 따른 월별 입금 상세내역을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "col1", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
     })
     @GetMapping("/deposit-detail")
     public List<SearchDepositRes> getDepositDetails(
         @RequestParam
-        String col1
+        String baseYm
     ) {
-        return service.getDepositDetails(col1);
+        return service.getDepositDetails(baseYm);
     }
 
     @ApiOperation(value = "월별 적립취소 상세내역", notes = "조회조건에 따른 월별 적립취소 상세내역을 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "col1", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
     })
     @GetMapping("/cancel-detail")
     public List<SearchCancelRes> getCancelDetails(
         @RequestParam
-        String col1
+        String baseYm
     ) {
-        return service.getCancelDetails(col1);
+        return service.getCancelDetails(baseYm);
     }
 }

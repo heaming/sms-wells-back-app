@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.lecture.mapper.WpscLectureSpptAplcPtrmMapper">
+
+    <insert id="insertLectureSpptApplicationHist">
+        INSERT INTO TB_PSCA_LECTR_APLC_BASE_HIST (  /* 강의신청기준이력 */
+               LECTR_SPPT_OG_TP_CD /* 강의지원조직유형코드 */
+             , LECTR_YM            /* 강의년월 */
+             , HIST_CH_DTM         /* 이력변경일시 */
+             , APLC_STRTDT         /* 신청시작일자 */
+             , APLC_STRT_HM        /* 신청시작시분 */
+             , APLC_ENDDT          /* 신청종료일자 */
+             , APLC_END_HM         /* 신청종료시분 */
+             , DTA_DL_YN           /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{lectrSpptOgTpCd}
+             , #{lectrYm}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , #{aplcStrtdt}
+             , #{aplcStrtHm}
+             , #{aplcEnddt}
+             , #{aplcEndHm}
+             , NVL(#{dtaDlYn}, 'N')
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertLectureSpptApplicationDeleteHist">
+        INSERT INTO TB_PSCA_LECTR_APLC_BASE_HIST (  /* 강의신청기준이력 */
+               LECTR_SPPT_OG_TP_CD /* 강의지원조직유형코드 */
+             , LECTR_YM            /* 강의년월 */
+             , HIST_CH_DTM         /* 이력변경일시 */
+             , APLC_STRTDT         /* 신청시작일자 */
+             , APLC_STRT_HM        /* 신청시작시분 */
+             , APLC_ENDDT          /* 신청종료일자 */
+             , APLC_END_HM         /* 신청종료시분 */
+             , DTA_DL_YN           /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        SELECT LECTR_SPPT_OG_TP_CD
+             , LECTR_YM
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , APLC_STRTDT
+             , APLC_STRT_HM
+             , APLC_ENDDT
+             , APLC_END_HM
+             , 'Y'
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_PSCA_LECTR_APLC_BASE_BAS /* 강의신청기준기본 */
+         WHERE 1 = 1
+           <if test='@MybatisUtils@isNotEmpty(lectrSpptOgTpCd)'>
+           AND LECTR_SPPT_OG_TP_CD = #{lectrSpptOgTpCd}    /* 강의지원조직유형코드 */
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(lectrYm)'>
+           AND LECTR_YM            = #{lectrYm}            /* 강의년월 */
+           </if>
+           AND DTA_DL_YN = 'N'
+    </insert>
+
+    <select id="selectLectureSpptAplcPtrm" resultType="com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptAplcPtrmDto$SearchRes">
+        SELECT LECTR_SPPT_OG_TP_CD /* 강의지원조직유형코드 */
+             , LECTR_YM            /* 강의년월 */
+             , APLC_STRTDT         /* 신청시작일자 */
+             , APLC_STRT_HM        /* 신청시작시분 */
+             , APLC_ENDDT          /* 신청종료일자 */
+             , APLC_END_HM         /* 신청종료시분 */
+             , DTA_DL_YN           /* 데이터삭제여부 */
+             , FST_RGST_DTM        /* 최초등록일시 */
+             , FST_RGST_USR_ID     /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID     /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID    /* 최초등록부서ID */
+             , FNL_MDFC_DTM        /* 최종수정일시 */
+             , FNL_MDFC_USR_ID     /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID     /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID    /* 최종수정부서ID */
+          FROM TB_PSCA_LECTR_APLC_BASE_BAS /* 강의신청기준기본 */
+         WHERE 1 = 1
+           <if test='@MybatisUtils@isNotEmpty(lectrSpptOgTpCd)'>
+           AND LECTR_SPPT_OG_TP_CD = #{lectrSpptOgTpCd}    /* 강의지원조직유형코드 */
+           </if>
+           AND LECTR_YM            = NVL(#{lectrYm}, TO_CHAR(SYSDATE, 'YYYYMM')) /* 강의년월 */
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <update id="updateLectureSpptAplcPtrm">
+        MERGE INTO TB_PSCA_LECTR_APLC_BASE_BAS T1  /* 강의신청기준기본 */
+        USING ( SELECT #{lectrSpptOgTpCd} AS LECTR_SPPT_OG_TP_CD /* 강의지원조직유형코드 */
+                     , #{lectrYm} AS LECTR_YM            /* 강의년월 */
+                     , #{aplcStrtdt} AS APLC_STRTDT         /* 신청시작일자 */
+                     , #{aplcStrtHm} AS APLC_STRT_HM        /* 신청시작시분 */
+                     , #{aplcEnddt} AS APLC_ENDDT          /* 신청종료일자 */
+                     , #{aplcEndHm} AS APLC_END_HM         /* 신청종료시분 */
+                     , 'N' AS DTA_DL_YN           /* 데이터삭제여부 */
+               FROM DUAL  ) T2
+           ON (T1.LECTR_SPPT_OG_TP_CD = T2.LECTR_SPPT_OG_TP_CD /* 강의지원조직유형코드 */
+          AND T1.LECTR_YM = T2.LECTR_YM )            /* 강의년월 */
+         WHEN MATCHED THEN
+       UPDATE SET APLC_STRTDT = T2.APLC_STRTDT
+            , APLC_STRT_HM = T2.APLC_STRT_HM
+            , APLC_ENDDT = T2.APLC_ENDDT
+            , APLC_END_HM = T2.APLC_END_HM
+            , DTA_DL_YN = T2.DTA_DL_YN
+            <include refid="COMMON.updateSystemField"/>
+         WHEN NOT MATCHED THEN
+       INSERT (
+              LECTR_SPPT_OG_TP_CD
+            , LECTR_YM
+            , APLC_STRTDT
+            , APLC_STRT_HM
+            , APLC_ENDDT
+            , APLC_END_HM
+            , DTA_DL_YN
+            <include refid="COMMON.insertSystemField" />
+            )
+       VALUES ( T2.LECTR_SPPT_OG_TP_CD
+            , T2.LECTR_YM
+            , T2.APLC_STRTDT
+            , T2.APLC_STRT_HM
+            , T2.APLC_ENDDT
+            , T2.APLC_END_HM
+            , T2.DTA_DL_YN
+            <include refid="COMMON.insertSystemFieldValue" />  )
+    </update>
+
+    <update id="updateLectureSpptAplcPtrmStatus">
+        UPDATE TB_PSCA_LECTR_APLC_BASE_BAS
+           SET DTA_DL_YN = 'Y'
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           <if test='@MybatisUtils@isNotEmpty(lectrSpptOgTpCd)'>
+           AND LECTR_SPPT_OG_TP_CD = #{lectrSpptOgTpCd}    /* 강의지원조직유형코드 */
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(lectrYm)'>
+           AND LECTR_YM            = #{lectrYm}            /* 강의년월 */
+           </if>
+    </update>
+</mapper>

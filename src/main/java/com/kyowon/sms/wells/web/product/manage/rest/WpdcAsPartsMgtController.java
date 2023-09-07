@@ -7,15 +7,7 @@ import java.util.Map;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
@@ -150,7 +142,7 @@ public class WpdcAsPartsMgtController {
         List<ZpdcPropertyMetaDvo> mendatoryColumns = metaItems.stream()
             .filter(x -> PdProductConst.MNDT_Y.equals(x.getMndtYn())).toList();
         List<ExcelUploadErrorDvo> headerErrors = excelReadService
-            .checkHeaderValidation(file, mendatoryColumns);
+            .checkHeaderValidation(file, mendatoryColumns, true);
 
         // Excel Data Drm 해제 및 Data 파싱.
         List<Map<String, Object>> excelData = excelReadService.readExcel(file, true);
@@ -174,7 +166,7 @@ public class WpdcAsPartsMgtController {
                 }
             }
 
-            // 대상 테이블별 추출대상 Column 선별. 
+            // 대상 테이블별 추출대상 Column 선별.
             List<ZpdcPropertyMetaDvo> tbPdbsPdBas = metaItems.stream()
                 .filter(x -> PdProductConst.TBL_TB_PDBS_PD_BAS.equals(x.getTblId())).toList();
             List<ZpdcPropertyMetaDvo> tbPdbsPdEcomPrpDtl = metaItems.stream()
@@ -187,7 +179,7 @@ public class WpdcAsPartsMgtController {
             if (dataErrors.size() > 0) {
                 uploadStatus = PdProductConst.EXCEL_UPLOAD_ERROR;
             } else {
-                service.saveExcelUpload(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl, prgGrpDves);
+                service.saveExcelUpload(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl, null, prgGrpDves);
             }
 
             return ExcelUploadDto.UploadRes.builder()

@@ -105,7 +105,7 @@ public class WsnaWarehouseOrganizationController {
 
     @ApiOperation(value = "창고 목록 조회(SelectBox)", notes = "창고조직 등록 시 필요한 상위창고 목록을 코드 형태로 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "ogId", value = "조직ID", paramType = "query", example = "OGO20230000098", required = true),
+        @ApiImplicitParam(name = "ogId", value = "조직ID", paramType = "query", example = "OGO20230000098"),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2", required = true),
         @ApiImplicitParam(name = "wareDtlDvCd", value = "창고상세구분코드", paramType = "query", example = "21", required = true)
     })

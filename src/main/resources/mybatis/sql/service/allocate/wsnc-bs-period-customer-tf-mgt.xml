@@ -177,7 +177,7 @@
         WHERE 1 = 1
     <if test='@MybatisUtils@isNotEmpty(emdName)'>
         <bind name="emdName" value="'%'+emdName+'%'" />
-          AND T.EMD_NM = #{emdName}
+          AND T.EMD_NM LIKE #{emdName}
     </if>
     <if test='@MybatisUtils@isNotEmpty(addressZip)'>
           AND T.NEW_ADR_ZIP = #{addressZip}
@@ -240,6 +240,30 @@
                    AND T2.DTA_DL_YN = 'N'
                    AND #{ogTpCd} IN ('W03', 'W06')
                    AND T2.OG_ID = #{ogId}
+                 UNION
+                SELECT T1.OG_ID
+                     , T1.OG_TP_CD
+                     , T1.OG_CD
+                     , T1.OG_NM
+                     , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
+                     , T1.HGR_OG_ID
+                  FROM TB_OGBS_MM_OG_IZ T1
+                 WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND T1.OG_TP_CD IN ('W02', 'ALC')
+                   AND T1.OG_LEVL_DV_CD = '3'
+                   AND T1.DTA_DL_YN = 'N'
+                   AND T1.DGR2_LEVL_OG_ID IN (SELECT TT1.OG_ID
+                                                FROM TB_OGBS_SPPT_OG_IZ TT1
+                                               INNER JOIN TB_OGBS_MM_OG_IZ TT2
+                                                  ON TT2.OG_ID = TT1.OG_ID
+                                               WHERE 1=1
+                                                 AND TT1.BZNS_SPPT_RSB_DV_CD = 'W0206' -- 업무담당자 코드
+                                                 AND TT1.OG_TP_CD = 'W02' -- M조직
+                                                 AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TT1.MNGT_STRT_DT AND TT1.MNGT_END_DT
+                                                 AND TT2.OG_ID = TT2.DGR2_LEVL_OG_ID -- 지역단만 가져옴
+                                                 AND TT2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                 AND TT1.PRTNR_NO = #{session.employeeIDNumber}
+                                                 AND TT1.DTA_DL_YN = 'N')
               ) T3
         ORDER BY T3.OG_CD
     </select>
@@ -381,8 +405,8 @@
 	   UPDATE
 		  SET TF_STAT_CD = '20'
 		    , TF_CNFMDT = TO_CHAR(SYSDATE,'YYYYMMDD')
-			, TF_CNFM_PRTNR_OG_TP_CD = #{tfAkPrtnrOgTpCd}
-			, TF_CNFM_PRTNR_NO = #{tfAkPrtnrNo}
+			, TF_CNFM_PRTNR_OG_TP_CD = #{afchIchrPrtnrOgTpCd}
+			, TF_CNFM_PRTNR_NO = #{afchIchrPrtnrNo}
 			<include refid="COMMON.updateSystemField" />
 	WHEN NOT MATCHED THEN
 	   INSERT (
@@ -433,13 +457,38 @@
 			, #{bfchMngrDvCd}
 			, #{bfchIchrPrtnrOgTpCd}
 			, #{bfchIchrPrtnrNo}
-			, #{tfAkPrtnrOgId}
-			, #{tfAkRsonCd}
-			, #{tfAkPrtnrOgTpCd}
-			, #{tfAkPrtnrNo}
+			, #{afchIchrBrchOgId}
+			, #{afchMngrDvCd}
+			, #{afchIchrPrtnrOgTpCd}
+			, #{afchIchrPrtnrNo}
 			, #{mngerRglvlDvCd}
 			<include refid="COMMON.insertSystemFieldValue" />
 		)
     </update>
+
+	<update id="updateCstSvBfsvcAsn">
+		UPDATE TB_SVPD_CST_SV_BFSVC_ASN_IZ
+		   SET CNFM_PSIC_MNGT_DV_CD = #{afchMngrDvCd}
+			 , CNFM_PSIC_ASN_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+			 , CNFM_PSIC_ASN_HH = TO_CHAR(SYSDATE, 'HH24MISS')
+			 , CNFM_PSIC_DV_CD = #{afchMngrDvCd}
+			 , CNFM_PSIC_PRTNR_OG_TP_CD = #{afchIchrPrtnrOgTpCd}
+			 , CNFM_PSIC_PRTNR_NO = #{afchIchrPrtnrNo}
+			 , ASN_TF_DV_CD = #{asnTfDvCd}
+			 , MNGER_RGLVL_DV_CD = #{mngerRglvlDvCd}
+		       <include refid="COMMON.updateSystemField" />
+		 WHERE 1=1
+		   AND CST_SV_ASN_NO = #{cstSvAsnNo}
+	</update>
+
+    <select id="selectBsPeriodCustomersManagerAuthYn" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto$SearchAuthRes">
+        SELECT DECODE(COUNT(t1.OG_ID), 0, 'N','Y') AS MANAGER_AUTH_YN        -- Y인 경우 업무담당자 or BM 으로 지정됨
+          FROM TB_OGBS_SPPT_OG_IZ t1
+         WHERE 1=1
+           AND t1.BZNS_SPPT_RSB_DV_CD IN ('W0206', 'W0207') -- 업무담당자, BM 지정 코드
+           AND t1.OG_TP_CD = 'W02'                -- M조직
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN t1.MNGT_STRT_DT AND t1.MNGT_END_DT
+           AND t1.PRTNR_NO = #{session.employeeIDNumber}             -- 세션의 파트너 사번
+    </select>
 
 </mapper>

@@ -30,4 +30,7 @@ public class WsnaNewManagerBsConsumableDvo {
     String bizEndHh;
     String bfsvcCsmbDdlvOjCd;
     String bfsvcCsmbDdlvStatCd;
+    String ostrAkNo;
+    int ostrAkSn;
+    String ogTpCd;
 }

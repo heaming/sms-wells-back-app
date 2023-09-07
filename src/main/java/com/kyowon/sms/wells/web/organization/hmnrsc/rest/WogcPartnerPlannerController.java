@@ -9,6 +9,7 @@ import com.sds.sflex.system.config.response.SaveResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseDetailRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.service.WogcPartnerPlannerService;
@@ -67,8 +68,7 @@ public class WogcPartnerPlannerController {
     @ApiOperation(value = "자격생성", notes = "자격생성을 통해 자격을 변경한다.")
     @PutMapping
     public SaveResponse saveTopPlanner(
-        @Valid
-        @RequestBody
+        @Valid @RequestBody
         WogcPartnerPlannerDto.SaveReq dto
     ) throws Exception {
         this.service.saveTopPlanner(dto);
@@ -86,20 +86,18 @@ public class WogcPartnerPlannerController {
     @ApiOperation(value = "자격조정", notes = "자격생성을 통해 자격을 변경한다.")
     @PutMapping("/{attOjsn}")
     public SaveResponse savePlanner(
-        @Valid
-        @RequestBody
+        @Valid @RequestBody
         WogcPartnerPlannerDto.EditReq dto
     ) throws Exception {
         this.service.saveBuilding(dto);
         return SaveResponse.builder().processCount(1).build();
     }
 
-    @ApiOperation(value = "플래너 자격관리 페이징 조회", notes = "조회 조건에 일치하는 플래너 자격관리를 페이징 조회한다.")
+    @ApiOperation(value = "매니저 자격관리 페이징 조회", notes = "조회 조건에 일치하는 매니저 자격관리를 페이징 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "ogTpCd", value = "", paramType = "query", required = true),
-        @ApiImplicitParam(name = "prntrNo", value = "", paramType = "query", required = false),
-        @ApiImplicitParam(name = "prntrKnm", value = "", paramType = "query", required = false),
-        @ApiImplicitParam(name = "olfDvCd", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrKnm", value = "성명", paramType = "query", required = false),
+        @ApiImplicitParam(name = "qlfDvCd", value = "자격구분코드", paramType = "query", required = false)
 
     })
     @GetMapping("/planner-license/paging")
@@ -113,7 +111,26 @@ public class WogcPartnerPlannerController {
 
     @ApiOperation(value = "플래너자격관리 엑셀다운로드", notes = "검색조건을 입력 받아 엑셀다운로드용 플래너 자격관리를 조회한다.")
     @GetMapping("/planner-license/excel-download")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrKnm", value = "성명", paramType = "query", required = false),
+        @ApiImplicitParam(name = "qlfDvCd", value = "자격구분코드", paramType = "query", required = false)
+
+    })
     public List<SearchLicenseRes> getPlannerLicenseForExcelDownload(SearchLicenseReq dto) {
         return service.getPlannerLicenseForExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "매니저 자격관리 상세현황 페이징 조회", notes = "조회 조건에 일치하는 매니저 자격관리 상세현황을 페이징 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "path", required = true)
+    })
+    @GetMapping("/planner-license/{prtnrNo}/paging")
+    public PagingResult<SearchLicenseDetailRes> getLicenseDetailPages(
+        @PathVariable
+        String prtnrNo,
+        PageInfo pageinfo
+    ) {
+        return service.getPlannerLicenseDetailPages(prtnrNo, pageinfo);
     }
 }

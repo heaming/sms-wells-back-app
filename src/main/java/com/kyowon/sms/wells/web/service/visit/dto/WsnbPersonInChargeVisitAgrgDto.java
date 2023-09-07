@@ -30,7 +30,6 @@ public class WsnbPersonInChargeVisitAgrgDto {
     @ApiModel(value = "WsnbPersonInChargeVisitAgrgDto-SearchRes")
     public record SearchRes(
         String ogNm,
-        String mngrDvCd,
         String mngtPrtnrOgTpCd,
         String mngtPrtnrNo,
         String prtnrKnm,

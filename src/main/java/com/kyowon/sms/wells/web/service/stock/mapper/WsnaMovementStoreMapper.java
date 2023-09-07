@@ -27,6 +27,22 @@ public interface WsnaMovementStoreMapper {
     *
     * @return 조회결과
     */
+    PagingResult<SearchRes> selectMovementStores(SearchReq dto, PageInfo pageInfo);
+
+    /**
+    * 이동입고현황 엑셀다운로드
+    *
+    * @param dto : {
+    *            stStrDt : 입고시작일자
+    *            edStrDt : 입고종료일자
+    *            strTpCd : 입고유형코드
+    *            ostrWareDvCd : 출고창고구분코드
+    *            ostrWareNoD : 출고창고디테일번호
+    *            ostrWareNoM : 출고창고마스터번호
+    *            }
+    *
+    * @return 조회결과
+    */
     List<SearchRes> selectMovementStores(SearchReq dto);
 
     /**
@@ -55,4 +71,10 @@ public interface WsnaMovementStoreMapper {
     int saveItemQtyConfirm(WsnaMovementStoreConfirmDvo dvo);
 
     int countStrWareMonthlyClosed(warehouseMonthlyReq dto);
+
+    int updateItmStrForRemove(WsnaMovementStoreConfirmDvo dvo);
+
+    int updateItmOstrForRemove(WsnaMovementStoreConfirmDvo dvo);
+
+    int updateCstSvItmStocForRemove(WsnaMovementStoreConfirmDvo dvo);
 }

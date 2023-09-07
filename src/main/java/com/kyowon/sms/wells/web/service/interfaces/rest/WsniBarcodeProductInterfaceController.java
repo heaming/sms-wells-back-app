@@ -48,7 +48,7 @@ public class WsniBarcodeProductInterfaceController {
         @RequestBody
         EaiWrapper<WsniBarcodeProductInterfaceDto.SearchCustReq> reqWrapper
     ) throws IOException, Exception {
-        EaiWrapper<List<WsniBarcodeProductInterfaceDto.SearchCustJsonRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<WsniBarcodeProductInterfaceDto.SearchCustJsonRes> resWrapper = reqWrapper.newResInstance();
         resWrapper.setBody(service.getBarcodeSearchCustomers(reqWrapper.getBody()));
         return resWrapper;
     }

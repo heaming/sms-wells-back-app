@@ -65,6 +65,8 @@ public class WogcPartnerEngineerDvo {
     String employeeIDNumber;
     String oriVcnStrtDt;
     String cnt;
+    String detail;
+    String pstnDvNm;
 
     PageInfo pageInfo;
 }

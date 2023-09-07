@@ -1,5 +1,10 @@
 package com.kyowon.sms.wells.web.closing.expense.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kyowon.sms.wells.web.closing.expense.converter.WdcdRequestCleaningSuppliesMgtConverter;
 import com.kyowon.sms.wells.web.closing.expense.dto.WdcdRequestCleaningSuppliesMgtDto.*;
 import com.kyowon.sms.wells.web.closing.expense.dvo.WdcdRequestCleaningSuppliesDvo;
@@ -7,11 +12,8 @@ import com.kyowon.sms.wells.web.closing.expense.mapper.WdcdRequestCleaningSuppli
 import com.sds.sflex.common.docs.service.AttachFileService;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.validation.BizAssert;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -75,7 +77,7 @@ public class WdcdRequestCleaningSuppliesMgtService {
             }
 
             attachFileService.saveAttachFiles(groupId, saveDvo.getClingCostAdjRcpNo(), saveDvo.getAttachFiles());
-            count += mapper.updateRequestCleaningSupplies(saveDvo);
+//            count += mapper.updateRequestCleaningSupplies(saveDvo);/* TODO 20230807 수정기능도 있는지 확인필요 */
             BizAssert.isTrue(count > 0, "MSG_ALT_SVE_ERR");
 
         }

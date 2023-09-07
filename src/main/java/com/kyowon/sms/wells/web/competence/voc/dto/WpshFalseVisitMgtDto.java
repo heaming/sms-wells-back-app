@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.competence.voc.dto;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -57,7 +58,7 @@ public class WpshFalseVisitMgtDto {
         String fsVstYm, /* 허위방문년월 */
         @NotBlank
         String cntrNo, /* 계약번호 */
-        @NotBlank
+        @NotNull
         Integer cntrSn, /* 계약일련번호 */
         String hooPrtnrNo, /* 조직장파트너번호 */
         String hooPrtnrNm, /* 조직장파트너명 */

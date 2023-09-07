@@ -21,7 +21,7 @@ public class WfedManagerVisitFeeDto {
         String ogLevlDvCd1,
         String ogLevlDvCd2,
         String ogLevlDvCd3,
-        String no
+        String prtnrNo
     ) {}
 
     // *********************************************************
@@ -37,10 +37,11 @@ public class WfedManagerVisitFeeDto {
         String prtnrNo,
         String prtnrKnm,
         String cntrNo, /*계약번호*/
+        String cntrCstNo, /*고객번호*/
+        String cstKnm, /*고객명*/
         String basePdCd, /*상품코드*/
         String pdNm, /*상품명*/
         String svFeePdDvCd, /*bs상품군*/
-        String svFeePdDvNm, /*bs상품군*/
         int svFeeBaseAmt, /*bs기본수수료*/
         int feeCalcAmt, /*방문수수료*/
         String vstRglvlGdCd, /*방문급지*/

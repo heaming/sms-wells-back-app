@@ -62,7 +62,8 @@ public class WdcdRequestCleaningSuppliesMgtDto {
         String locaraTno, // 지역번호
         String exnoEncr,
         String idvTno,
-        String ogTpCd
+        String ogTpCd,
+        String claimPrtnrNo
     ) {}
 
     // *********************************************************

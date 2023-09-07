@@ -99,8 +99,8 @@ public class WbncUnpaidGuideUrgentExcludeService {
             // 발송구분명 검증
             if (StringUtil.isNotBlank(dvo.getFwDvNm())) {
                 switch (dvo.getFwDvNm()) {
-                    case "안내서" -> dvo.setCtntExcdOjTpCd("03");
-                    case "촉구서" -> dvo.setCtntExcdOjTpCd("04");
+                    case "안내서" -> dvo.setCtntExcdBndBizCd("04");
+                    case "촉구서" -> dvo.setCtntExcdBndBizCd("05");
                     default -> {
                         ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                         errorDvo.setErrorRow(row);

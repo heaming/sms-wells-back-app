@@ -142,7 +142,8 @@ public class WfedIndividualFeeMgtDto {
         String rsdntx,
         String hirInsr,
         String buDdtn,
-        String pnpyam
+        String pnpyam,
+        String inddInsr
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-SearchPlarControlRes")
@@ -222,7 +223,8 @@ public class WfedIndividualFeeMgtDto {
         String rsdntx,
         String hirInsr,
         String buDdtn,
-        String pnpyam
+        String pnpyam,
+        String inddInsr
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-SearchMngerControlRes")

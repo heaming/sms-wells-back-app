@@ -4,43 +4,46 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaEtcOutOfStorageMapper">
 
     <select id="selectEtcOutOfStorages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto$SearchRes">
-        SELECT OSTR_IZ.ITM_OSTR_NO AS ITM_OSTR_NO
-             , OSTR_IZ.OSTR_TP_CD AS OSTR_TP_CD
-             , OSTR_IZ.OSTR_WARE_NO AS OSTR_WARE_NO
-             , WARE_IZ.WARE_NM AS WARE_NM
-             , WARE_IZ.WARE_MNGT_PRTNR_NO AS WARE_MNGT_PRTNR_NO
-             , OSTR_IZ.OSTR_DT AS OSTR_DT
-             , OSTR_IZ.OSTR_SN AS OSTR_SN
-             , OSTR_IZ.ITM_PD_CD /*품목상품코드*/ AS ITM_PD_CD
-             , PD_BAS.PD_NM /*품목명*/ AS ITM_NM
-             , PD_BAS.PD_ABBR_NM /*품목명약어*/ AS PD_ABBR_NM
-             , OSTR_IZ.ITM_KND_CD AS ITM_KND_CD
-             , OSTR_IZ.ITM_GD_CD /*품목등급코드*/ AS ITM_GD_CD
-             , OSTR_IZ.MNGT_UNIT_CD /*관리단위코드*/ AS MNGT_UNIT_CD
-             , OSTR_IZ.OSTR_RSON_CD /*출고사유코드*/ AS OSTR_RSON_CD
-             , (SELECT NVL((SELECT DECODE(OSTR_IZ.ITM_GD_CD, 'A', PITM_STOC_A_GD_QTY, 'B' , PITM_STOC_B_GD_QTY, 'E', PITM_STOC_E_GD_QTY, 'R', PITM_STOC_R_GD_QTY, 0)
-          			  			- DECODE(OSTR_IZ.ITM_GD_CD, 'A', MMT_STOC_A_GD_QTY, 'B', MMT_STOC_B_GD_QTY, 'E', MMT_STOC_E_GD_QTY,'R', MMT_STOC_R_GD_QTY, 0)
-	             FROM TB_SVST_CST_SV_ITM_STOC_IZ
-	            WHERE WARE_NO = OSTR_IZ.OSTR_WARE_NO
-	              AND ITM_PD_CD = OSTR_IZ.ITM_PD_CD), 0)
-	              FROM DUAL)  AS ON_QTY
-             , OSTR_IZ.OSTR_QTY /*출고수량*/ AS OSTR_QTY
-             , OSTR_IZ.RMK_CN /*비고*/ AS RMK_CN
-             , OSTR_IZ.OSTR_AK_SN /*출고요청일련번호*/ AS OSTR_AK_SN
-             , PD_BAS.SAP_MAT_CD /*SAP코드*/ AS SAP_MAT_CD
+        SELECT OSTR_IZ.ITM_OSTR_NO                             AS ITM_OSTR_NO
+             , OSTR_IZ.OSTR_TP_CD                              AS OSTR_TP_CD
+             , OSTR_IZ.OSTR_WARE_NO                            AS OSTR_WARE_NO
+             , WARE_IZ.WARE_NM                                 AS WARE_NM
+             , WARE_IZ.WARE_MNGT_PRTNR_NO                      AS WARE_MNGT_PRTNR_NO
+             , OSTR_IZ.OSTR_DT                                 AS OSTR_DT
+             , OSTR_IZ.OSTR_SN                                 AS OSTR_SN
+             , OSTR_IZ.ITM_PD_CD                               AS ITM_PD_CD      /* 품목상품코드 */
+             , PD_BAS.PD_NM                                    AS ITM_NM         /* 품목명 */
+             , PD_BAS.PD_ABBR_NM                               AS PD_ABBR_NM     /* 품목명약어 */
+             , OSTR_IZ.ITM_KND_CD                              AS ITM_KND_CD
+             , OSTR_IZ.ITM_GD_CD                               AS ITM_GD_CD      /* 품목등급코드 */
+             , OSTR_IZ.MNGT_UNIT_CD                            AS MNGT_UNIT_CD   /* 관리단위코드 */
+             , OSTR_IZ.OSTR_RSON_CD                            AS OSTR_RSON_CD   /* 출고사유코드 */
+             , NVL( (SELECT CASE OSTR_IZ.ITM_GD_CD WHEN 'A' THEN NVL(PITM_STOC_A_GD_QTY, 0) - NVL(MMT_STOC_A_GD_QTY, 0)
+                                                   WHEN 'B' THEN NVL(PITM_STOC_B_GD_QTY, 0) - NVL(MMT_STOC_B_GD_QTY, 0)
+                                                   WHEN 'E' THEN NVL(PITM_STOC_E_GD_QTY, 0) - NVL(MMT_STOC_E_GD_QTY, 0)
+                                                   WHEN 'R' THEN NVL(PITM_STOC_R_GD_QTY, 0) - NVL(MMT_STOC_R_GD_QTY, 0)
+                                                   ELSE 0
+                            END
+	                   FROM TB_SVST_CST_SV_ITM_STOC_IZ
+	                  WHERE WARE_NO = OSTR_IZ.OSTR_WARE_NO
+	                    AND ITM_PD_CD = OSTR_IZ.ITM_PD_CD), 0) AS ON_QTY
+             , OSTR_IZ.OSTR_QTY                                AS OSTR_QTY       /* 출고수량 */
+             , OSTR_IZ.RMK_CN                                  AS RMK_CN         /* 비고 */
+             , OSTR_IZ.OSTR_AK_SN                              AS OSTR_AK_SN     /* 출고요청일련번호 */
+             , PD_BAS.SAP_MAT_CD                               AS SAP_MAT_CD     /* SAP코드 */
           FROM TB_SVST_ITM_OSTR_IZ OSTR_IZ
          INNER JOIN TB_SVST_MCBY_WARE_IZ WARE_IZ
-            ON OSTR_IZ.OSTR_WARE_NO = WARE_IZ.WARE_NO
-           AND WARE_IZ.APY_YM = SUBSTR(OSTR_DT,1,6)
-         LEFT OUTER JOIN TB_PDBS_PD_BAS PD_BAS
+            ON WARE_IZ.WARE_NO = OSTR_IZ.OSTR_WARE_NO
+           AND WARE_IZ.APY_YM  = SUBSTR(OSTR_DT,1,6)
+          LEFT OUTER JOIN TB_PDBS_PD_BAS PD_BAS
             ON PD_BAS.PD_CD = OSTR_IZ.ITM_PD_CD
-         LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ STOC_IZ /*고객서비스품목재고내역*/
-            ON STOC_IZ.WARE_NO = OSTR_IZ.OSTR_WARE_NO
+          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ STOC_IZ /*고객서비스품목재고내역*/
+            ON STOC_IZ.WARE_NO   = OSTR_IZ.OSTR_WARE_NO
            AND STOC_IZ.ITM_PD_CD = OSTR_IZ.ITM_PD_CD
-         WHERE OSTR_IZ.ITM_OSTR_NO = #{itmOstrNo}
+         WHERE OSTR_IZ.ITM_OSTR_NO  = #{itmOstrNo}
            AND OSTR_IZ.OSTR_WARE_NO = #{ostrWareNo}
-           AND WARE_IZ.WARE_USE_YN = 'Y'
-           AND OSTR_IZ.DTA_DL_YN = 'N'
+           AND WARE_IZ.WARE_USE_YN  = 'Y'
+           AND OSTR_IZ.DTA_DL_YN    = 'N'
          ORDER BY OSTR_IZ.ITM_OSTR_NO
 
     </select>
@@ -98,7 +101,11 @@
                      , #{ostrDt}
                      , #{itmKndCd}
                      , #{itmPdCd}
-                     , '1'
+                     , (SELECT WARE_DV_CD
+                          FROM TB_SVST_MCBY_WARE_IZ
+                         WHERE 1 = 1
+                           AND APY_YM = SUBSTR(#{ostrDt}, 1, 6)
+                           AND WARE_NO = #{ostrWareNo})
                      , #{mngtUnitCd}
                      , 0
                      , #{itmGdCd}
@@ -111,7 +118,11 @@
                           AND T1.WARE_NO = #{ostrWareNo}
                           AND T1.WARE_MNGT_PRTNR_NO = #{wareMngtPrtnrNo})
                      , #{ostrRsonCd}
-                     , '2'
+                     , (SELECT WARE_DV_CD
+                          FROM TB_SVST_MCBY_WARE_IZ
+                         WHERE 1 = 1
+                           AND APY_YM = SUBSTR(#{ostrDt}, 1, 6)
+                           AND WARE_NO = #{ostrWareNo})
                      , #{bilDept}
                      , 'N'
                      , #{rmkCn}
@@ -126,7 +137,25 @@
          WHERE 1 = 1
            AND USE_YN = 'Y'
            AND DEPT_DV_VAL = '1'
-         ORDER BY DEPT_CD
+         ORDER BY DEPT_NM3, DEPT_CD
+    </select>
+
+    <select id ="selectWellsCenterWarehouse" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto$SearchCodeRes">
+        SELECT A.WARE_NO            AS CODE_ID                   /*창고번호*/
+             , A.WARE_NM            AS CODE_NAME                 /*창고명*/
+             , A.WARE_DV_CD         AS WARE_DV_CD                /*창고구분코드*/
+          FROM TB_SVST_MCBY_WARE_IZ A
+          LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ B
+            ON A.APY_YM = B.APY_YM
+           AND A.HGR_WARE_NO = B.WARE_NO
+         WHERE A.DTA_DL_YN      = 'N'
+           AND A.WARE_USE_YN    = 'Y'
+           AND A.APY_YM         = #{apyYm}
+           AND A.WARE_DV_CD     = '3'
+           AND A.WARE_DTL_DV_CD = '30'
+          ORDER BY A.SORT_DV_VAL , A.WARE_NO
+
+
     </select>
 
 

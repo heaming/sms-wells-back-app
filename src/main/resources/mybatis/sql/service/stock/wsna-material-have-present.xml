@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMaterialsHavePresentStateMapper">
+    <select id="selectMaterialsHavePresentState" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMaterialsHavePresentStateDto$SearchRes">
+        WITH ST101TB_BASE AS (
+                      SELECT   T1.PD_CD
+                             , T2.PD_PRP_VAL19 AS SVPD_ITEM_KND         /*AS자재 품목종류*/
+                             , T4.CD_CNTN AS SVPD_ITEM_KND_NM      /*AS자재 품목종류 명*/
+                             , T1.PD_NM
+                             , T2.PD_PRP_VAL20 AS SVPD_ITEM_GR          /*AS자재 품목그룹*/
+                             , T5.CD_CNTN AS SVPD_ITEM_GR_NM       /*AS자재 품목그룹 명*/
+                             , T2.PD_PRP_VAL15 AS SVPD_BASE_GB          /*상시보유자재여부*/
+                             , SAP_MAT_CD
+
+                        FROM WSMDBS.TB_PDBS_PD_BAS T1                    /*상품기본*/
+                  INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T2  /*상품각사속성상세*/
+                          ON T1.PD_CD = T2.PD_CD
+                         AND T2.PD_EXTS_PRP_GRP_CD IN ( 'PART')     /*상품확장속성그룹코드 CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
+             LEFT OUTER JOIN T_CMZ_CD_D T4         /*코드상세, ST101_ITEM_KND*/
+                          ON T2.PD_PRP_VAL19 = T4.CD_VLD_VAL
+                         AND T4.TENANT_ID = 'TNT_WELLS'
+                         AND T4.CD_ID = 'ITM_KND_CD'
+                         AND T4.DEL_YN = 'N'
+             LEFT OUTER JOIN T_CMZ_CD_D T5         /*코드상세, ST101_ITEM_GR*/
+                          ON T2.PD_PRP_VAL20 = T5.CD_VLD_VAL
+                         AND T5.TENANT_ID = 'TNT_WELLS'
+                         AND T5.CD_ID = 'PD_GRP_CD'
+                         AND T5.DEL_YN = 'N'
+             WHERE 1=1
+              <if test='@MybatisUtils@isNotEmpty(csmbPdCd)'>
+               AND T1.PD_CD = #{csmbPdCd}
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(itmKndCd)'>
+				AND T2.PD_PRP_VAL19 = #{itmKndCd}
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(itmGdCd)'>
+				AND T2.PD_PRP_VAL20 = #{itmGdCd}
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(useYn)'>
+                AND (CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD') >= NVL(T1.RVPY_STRTDT,'19000101') AND TO_CHAR(SYSDATE,'YYYYMMDD') <![CDATA[<=]]>  NVL(T1.RVPY_ENDDT,'99991231') THEN 'Y' ELSE 'N' END) = #{useYn}
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(csmbPdCdStrt) and @MybatisUtils@isNotEmpty(csmbPdCdEnd)'>
+                AND T1.PD_CD BETWEEN #{csmbPdCdStrt} AND #{csmbPdCdEnd}
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(sapMatCdStrt)  and @MybatisUtils@isNotEmpty(sapMatCdEnd)'>
+                AND SUBSTR(T1.SAP_MAT_CD,10,9) BETWEEN #{sapMatCdStrt} AND #{sapMatCdEnd}
+              </if>
+
+						                           )
+   , ST102TB_BASE AS (
+                         SELECT DISTINCT
+                               WARE_NO
+                             , WARE_NM
+                             , CASE WHEN SUBSTR(HGR_WARE_NO,1,1) = '1' THEN WARE_NO ELSE HGR_WARE_NO END AS HGR_WARE_NO
+                             , DECODE(SUBSTR(HGR_WARE_NO,1,1),'1',1,2) ORDER_NO
+                           FROM TB_SVST_MCBY_WARE_IZ
+                          WHERE APY_YM = SUBSTR(#{stFromYmd},1,6)
+                            AND WARE_USE_YN = 'Y'
+                           <if test='@MybatisUtils@isNotEmpty(wareDvCd)'>
+						    AND WARE_DV_CD = #{wareDvCd}
+						   </if>
+                            -- 1.조직, 2.개인 창고일 경우
+						    <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
+                                <choose>
+						    <when test='@MybatisUtils@equals(wareDtlDvCd, "10") or @MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "30")'>
+						   AND WARE_ICHR_NO = '000'
+						       <if test="@MybatisUtils@isNotEmpty(wareNo)">
+						   AND WARE_NO = #{wareNo}
+						      </if>
+						    </when>
+						    <when test='@MybatisUtils@equals(wareDtlDvCd, "21") or @MybatisUtils@equals(wareDtlDvCd, "31")'>
+						   AND WARE_ICHR_NO <![CDATA[<>]]> '000'
+						     <if test="@MybatisUtils@isNotEmpty(wareNo)">
+						   AND HGR_WARE_NO = #{wareNo}
+						      </if>
+						    </when>
+                                </choose>
+						   </if>
+						      -- 0.전체 경우
+                             <if test="@MybatisUtils@isEmpty(wareDtlDvCd)">
+                              <if test="@MybatisUtils@isNotEmpty(wareNo)">
+                              AND (WARE_NO = #{wareNo} OR HGR_WARE_NO = #{wareNo})
+                              </if>
+                             </if>
+                           ORDER BY HGR_WARE_NO
+
+                     )
+SELECT WARE_NO
+     , WARE_NM
+     , HGR_WARE_NO
+     , ORDER_NO
+     , NVL(SUM(CASE WHEN ON_QTY1 > 0 THEN 1 ELSE 0 END),0) ON_CNT1
+     , NVL(SUM(ON_QTY1),0) ON_QTY1
+     , NVL(SUM(CASE WHEN ON_QTY2 > 0 THEN 1 ELSE 0 END),0) ON_CNT2
+     , NVL(SUM(ON_QTY2),0) ON_QTY2
+     , NVL(SUM(CASE WHEN ON_QTY1 > 0 THEN 1 ELSE 0 END),0) + NVL(SUM(CASE WHEN ON_QTY2 > 0 THEN 1 ELSE 0 END),0) ON_CNT3
+     , NVL(SUM(ON_QTY1),0) + NVL(SUM(ON_QTY2),0) ON_QTY3
+  FROM (
+                SELECT WARE_NO
+                     , WARE_NM
+                     , HGR_WARE_NO
+                     , ORDER_NO
+                     , PD_CD
+                     , BASE_GB
+                     , DECODE(BASE_GB, 'Y',(
+                                               SUM(DECODE(ST_TYPE,'000',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'110',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'121',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'122',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'123',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'161',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'162',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'190',QTY,0)))
+                                             - (SUM(DECODE(ST_TYPE,'211',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'212',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'217',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'221',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'222',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'223',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'261',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'262',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'290',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'999',QTY,0)))
+                                           ) ON_QTY1
+                     , DECODE(BASE_GB, '' ,(
+                                               SUM(DECODE(ST_TYPE,'000',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'110',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'121',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'122',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'123',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'161',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'162',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'190',QTY,0)))
+                                             - (SUM(DECODE(ST_TYPE,'211',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'212',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'217',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'221',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'222',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'223',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'261',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'262',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'290',QTY,0))
+                                             + SUM(DECODE(ST_TYPE,'999',QTY,0)))
+                                           ) ON_QTY2
+                  FROM (
+                            SELECT WARE_NO
+                                 , WARE_NM
+                                 , HGR_WARE_NO
+                                 , ORDER_NO
+                                 , 'KICHO'        AS TYP
+                                 , PD_CD
+                                 , '000'          AS ST_TYPE
+                                 , CASE WHEN 'A' = 'A' THEN BASE_QTY_A + ST141_BUY_QTY + ST_163_QTY_E6 + ST173_QTY_DGRA - ST161_QTY - ST163_QTY_N6 - ST173_QTY_DGRB
+                                        WHEN 'A' = 'B' THEN BASE_QTY_B + ST141_BUY_QTY + ST_163_QTY_E6 + ST173_QTY_DGRA - ST161_QTY - ST163_QTY_N6 - ST173_QTY_DGRB
+                                        WHEN 'A' = 'E' THEN BASE_QTY_E + ST141_BUY_QTY + ST_163_QTY_E6 + ST173_QTY_DGRA - ST161_QTY - ST163_QTY_N6 - ST173_QTY_DGRB
+                                        WHEN 'A' = 'R' THEN BASE_QTY_R + ST141_BUY_QTY + ST_163_QTY_E6 + ST173_QTY_DGRA - ST161_QTY - ST163_QTY_N6 - ST173_QTY_DGRB
+                                        ELSE BASE_QTY_A + BASE_QTY_B + BASE_QTY_E+ BASE_QTY_R + ST141_BUY_QTY + ST_163_QTY_E6 - ST161_QTY - ST163_QTY_N6
+                                    END QTY
+                                 , ITEM_KND
+                                 ,BASE_GB
+                              FROM (
+                                        SELECT WARE_NO
+                                             , WARE_NM
+                                             , HGR_WARE_NO
+                                             , ORDER_NO
+                                             , PD_CD
+                                             , ITEM_KND              AS ITEM_KND
+                                             , BASE_GB
+                                             , NVL(BASE_QTY_A,0)     AS BASE_QTY_A
+                                             , NVL(BASE_QTY_B,0)     AS BASE_QTY_B
+                                             , NVL(BASE_QTY_E,0)     AS BASE_QTY_E
+                                             , NVL(BASE_QTY_R,0)     AS BASE_QTY_R
+                                             , NVL(ST141_STR_QTY,0)  AS ST141_BUY_QTY
+                                             , NVL(ST163_R_USE_QTY,0)  AS ST_163_QTY_E6
+                                             , NVL(ST173_CTR_AF_QTY,0) AS ST173_QTY_DGRA
+                                             , NVL(ST161_OSTR_QTY,0)      AS ST161_QTY
+                                             , NVL(ST163_A_USE_QTY,0)   AS ST163_QTY_N6
+                                             , NVL(ST173_CTR_BF_QTY,0) AS ST173_QTY_DGRB
+                                          FROM (
+                                                    SELECT C.WARE_NO
+                                                         , C.WARE_NM
+                                                         , C.HGR_WARE_NO
+                                                         , ORDER_NO
+                                                         , B.PD_CD                 AS PD_CD
+                                                         , B.SVPD_ITEM_KND         AS ITEM_KND
+                                                         , B.SVPD_BASE_GB          AS BASE_GB
+                                                         , BTD_STOC_A_GD_QTY        AS BASE_QTY_A
+                                                         , BTD_STOC_B_GD_QTY        AS BASE_QTY_B
+                                                         , BTD_STOC_E_GD_QTY        AS BASE_QTY_E
+                                                         , BTD_STOC_R_GD_QTY        AS BASE_QTY_R
+                                                         , 0                       AS ST141_STR_QTY
+                                                         , 0                       AS ST163_R_USE_QTY
+                                                         , 0                       AS ST173_CTR_AF_QTY
+                                                         , 0                       AS ST161_OSTR_QTY
+                                                         , 0                       AS ST163_A_USE_QTY
+                                                         , 0                       AS ST173_CTR_BF_QTY
+                                                      FROM TB_SVST_MCITM_STOC_IZ A  /** ST122TB **/
+                                                INNER JOIN ST101TB_BASE B
+                                                        ON A.ITM_PD_CD = B.PD_CD
+                                                INNER JOIN ST102TB_BASE C
+                                                        ON A.WARE_NO = C.WARE_NO
+                                                     WHERE A.BASE_YM = SUBSTR(#{stFromYmd},1,6)
+
+                                                 UNION ALL
+
+                                                    SELECT
+                                                           C.WARE_NO
+                                                         , C.WARE_NM
+                                                         , C.HGR_WARE_NO
+                                                         , ORDER_NO
+                                                         , B.PD_CD
+                                                         , B.SVPD_ITEM_KND         AS ITEM_KND
+                                                         , B.SVPD_BASE_GB          AS BASE_GB
+                                                         , 0, 0, 0, 0, STR_QTY, 0, 0, 0, 0, 0
+                                                      FROM TB_SVST_ITM_STR_IZ A   /** ST141 **/
+                                                INNER JOIN ST101TB_BASE B
+                                                        ON A.ITM_PD_CD  = B.PD_CD
+                                                INNER JOIN ST102TB_BASE C
+                                                        ON A.STR_WARE_NO = C.WARE_NO
+                                                     WHERE 1=1
+                                                     <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                                                       AND A.ITM_GD_CD = #{itmGdCd}
+                                                     </if>
+                                                       AND A.STR_RGST_DT >= SUBSTR(#{stFromYmd},1,6)|| '01'
+                                                       AND A.STR_RGST_DT <![CDATA[<]]> #{stFromYmd}
+
+                                                     UNION ALL
+
+                                                    SELECT /** ST163 **/
+                                                           C.WARE_NO
+                                                         , C.WARE_NM
+                                                         , C.HGR_WARE_NO
+                                                         , ORDER_NO
+                                                         , B.PD_CD
+                                                         , B.SVPD_ITEM_KND         AS ITEM_KND
+                                                         , B.SVPD_BASE_GB          AS BASE_GB
+                                                         , 0, 0, 0, 0, 0, USE_QTY, 0, 0, 0, 0
+                                                      FROM TB_SVST_SV_WK_OSTR_IZ A
+                                                INNER JOIN ST101TB_BASE B
+                                                        ON A.ITM_PD_CD  = B.PD_CD
+                                                INNER JOIN ST102TB_BASE C
+                                                        ON A.WK_WARE_NO = C.WARE_NO
+                                                     WHERE SV_BIZ_HCLSF_CD = '6'
+                                                       AND FNL_VST_FSH_DT >= SUBSTR(#{stFromYmd},1,6)|| '01'
+                                                       AND FNL_VST_FSH_DT <![CDATA[<]]> #{stFromYmd}
+                                                    <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                                                       AND FNL_ITM_GD_CD = #{itmGdCd}
+                                                    </if>
+
+                                                 UNION ALL
+
+                                                    SELECT /* ST173 */
+                                                           C.WARE_NO
+                                                         , C.WARE_NM
+                                                         , C.HGR_WARE_NO
+                                                         , ORDER_NO
+                                                         , B.PD_CD
+                                                         , B.SVPD_ITEM_KND         AS ITEM_KND
+                                                         , B.SVPD_BASE_GB          AS BASE_GB
+                                                         , 0, 0, 0, 0, 0, 0, CTR_QTY, 0, 0, 0
+                                                      FROM TB_SVST_ITM_GD_CTR_IZ A
+                                                INNER JOIN ST101TB_BASE B
+                                                        ON A.PD_CD  = B.PD_CD
+                                                INNER JOIN ST102TB_BASE C
+                                                        ON A.WARE_NO = C.WARE_NO
+                                                     WHERE CTR_WK_DT >= SUBSTR(#{stFromYmd},1,6)|| '01'
+                                                       AND CTR_WK_DT <![CDATA[<]]> #{stFromYmd}
+                                                    <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                                                       AND AFCT_ITM_GD_CD = #{itmGdCd}
+                                                    </if>
+
+                                                 UNION ALL
+
+                                                    SELECT
+                                                            C.WARE_NO
+                                                         , C.WARE_NM
+                                                         , C.HGR_WARE_NO
+                                                         , ORDER_NO
+                                                         , B.PD_CD
+                                                         , B.SVPD_ITEM_KND         AS ITEM_KND
+                                                         , B.SVPD_BASE_GB          AS BASE_GB
+                                                         , 0, 0, 0, 0, 0, 0, 0, OSTR_QTY, 0, 0
+                                                      FROM TB_SVST_ITM_OSTR_IZ A   /** ST161TB **/
+                                                INNER JOIN ST101TB_BASE B
+                                                        ON A.ITM_PD_CD  = B.PD_CD
+                                                INNER JOIN ST102TB_BASE C
+                                                        ON A.OSTR_WARE_NO = C.WARE_NO
+                                                     WHERE OSTR_DT >= SUBSTR(#{stFromYmd},1,6)|| '01'
+                                                       AND OSTR_DT <![CDATA[<]]> #{stFromYmd}
+                                                     <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                                                       AND ITM_GD_CD = #{itmGdCd}
+                                                     </if>
+
+                                                 UNION ALL
+
+                                                    SELECT C.WARE_NO
+                                                         , C.WARE_NM
+                                                         , C.HGR_WARE_NO
+                                                         , ORDER_NO
+                                                         , B.PD_CD
+                                                         , B.SVPD_ITEM_KND         AS ITEM_KND
+                                                         , B.SVPD_BASE_GB          AS BASE_GB
+                                                         , 0, 0, 0, 0, 0, 0, 0, 0, USE_QTY, 0
+                                                      FROM
+                                                           TB_SVST_SV_WK_OSTR_IZ A    /** ST163 **/
+                                                INNER JOIN ST101TB_BASE B
+                                                        ON A.ITM_PD_CD  = B.PD_CD
+                                                INNER JOIN ST102TB_BASE C
+                                                        ON WK_WARE_NO = C.WARE_NO
+                                                     WHERE SV_BIZ_HCLSF_CD != '6'
+                                                       AND FNL_VST_FSH_DT >= SUBSTR(#{stFromYmd},1,6)|| '01'
+                                                       AND FNL_VST_FSH_DT <![CDATA[<]]> #{stFromYmd}
+                                                    <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                                                       AND FNL_ITM_GD_CD = #{itmGdCd}
+                                                    </if>
+
+                                                     UNION ALL
+
+                                                    SELECT /* ST173TB */
+                                                            C.WARE_NO
+                                                         , C.WARE_NM
+                                                         , C.HGR_WARE_NO
+                                                         , ORDER_NO
+                                                         , B.PD_CD
+                                                         , B.SVPD_ITEM_KND         AS ITEM_KND
+                                                         , B.SVPD_BASE_GB          AS BASE_GB
+                                                         , 0, 0, 0, 0, 0, 0, 0, 0, 0, CTR_QTY
+                                                      FROM TB_SVST_ITM_GD_CTR_IZ A
+                                                INNER JOIN ST101TB_BASE B
+                                                        ON A.PD_CD  = B.PD_CD
+                                                INNER JOIN ST102TB_BASE C
+                                                        ON A.WARE_NO = C.WARE_NO
+                                                     WHERE A.CTR_WK_DT >= SUBSTR(#{stFromYmd},1,6)|| '01'
+                                                       AND A.CTR_WK_DT <![CDATA[<]]> #{stFromYmd}
+                                                     <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                                                       AND BFCT_ITM_GD_CD = #{itmGdCd}
+                                                     </if>
+                                               )
+                                )
+                                UNION ALL
+
+                                SELECT /* ST141TB */
+                                      B.WARE_NO
+                                    , B.WARE_NM
+                                    , B.HGR_WARE_NO
+                                    , ORDER_NO
+                                    , 'IN'               AS TYP
+                                    , C.PD_CD
+                                    , STR_TP_CD       AS ST_TYPE
+                                    , STR_QTY      AS QTY
+                                    , C.SVPD_ITEM_KND         AS ITEM_KND
+                                    , C.SVPD_BASE_GB          AS BASE_GB
+                                 FROM TB_SVST_ITM_STR_IZ A
+                           INNER JOIN ST102TB_BASE B
+                                   ON B.WARE_NO = A.STR_WARE_NO
+                           INNER JOIN ST101TB_BASE C
+                                   ON A.ITM_PD_CD = C.PD_CD
+                                WHERE A.STR_RGST_DT BETWEEN #{stFromYmd} AND #{edToYmd}
+                                  AND A.ITM_GD_CD = 'A'
+                                <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                                  AND A.ITM_GD_CD = #{itmGdCd}
+                                </if>
+
+                            UNION ALL
+
+                               SELECT /* ST161TB */
+                                      B.WARE_NO
+                                    , B.WARE_NM
+                                    , B.HGR_WARE_NO
+                                    , ORDER_NO
+                                    , 'OUT'
+                                    , C.PD_CD
+                                    , OSTR_TP_CD
+                                    , OSTR_QTY
+                                    , C.SVPD_ITEM_KND         AS ITEM_KND
+                                    , C.SVPD_BASE_GB          AS BASE_GB
+                                 FROM TB_SVST_ITM_OSTR_IZ A
+                           INNER JOIN ST102TB_BASE B
+                                   ON A.OSTR_WARE_NO = B.WARE_NO
+                           INNER JOIN ST101TB_BASE C
+                                   ON A.ITM_KND_CD = C.SVPD_ITEM_KND
+                                  AND A.ITM_PD_CD  = C.PD_CD
+                                WHERE A.OSTR_DT BETWEEN #{stFromYmd} AND #{edToYmd}
+                                <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                                  AND A.ITM_GD_CD = #{itmGdCd}
+                                </if>
+                            UNION ALL
+
+                                --외부반품
+                               SELECT /*  ST163TB */
+                                      B.WARE_NO
+                                    , B.WARE_NM
+                                    , B.HGR_WARE_NO
+                                    , ORDER_NO
+                                    , 'IN'
+                                    , C.PD_CD
+                                    , '162'
+                                    , USE_QTY
+                                     , C.SVPD_ITEM_KND         AS ITEM_KND
+                                     , C.SVPD_BASE_GB          AS BASE_GB
+                                 FROM TB_SVST_SV_WK_OSTR_IZ A
+                           INNER JOIN ST102TB_BASE B
+                                   ON B.WARE_NO  =  A.WK_WARE_NO
+                           INNER JOIN ST101TB_BASE C
+                                   ON A.ITM_PD_CD = C.PD_CD
+                                WHERE (SUBSTR(FNL_MDFC_USR_ID,1,4) != 'CONV' OR FNL_MDFC_USR_ID IS NULL )
+                                  AND SV_BIZ_HCLSF_CD = '6' --고정값
+                                  AND FNL_VST_FSH_DT BETWEEN #{stFromYmd} AND #{edToYmd}
+                                <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                                  AND FNL_ITM_GD_CD = #{itmGdCd}
+                                </if>
+
+                            UNION ALL
+
+                                --작업출고
+                               SELECT /* ST163TB */
+                                      B.WARE_NO
+                                    , B.WARE_NM
+                                    , B.HGR_WARE_NO
+                                    , ORDER_NO
+                                    , 'OUT'
+                                    , C.PD_CD
+                                    , '999'
+                                    , USE_QTY
+                                    , C.SVPD_ITEM_KND         AS ITEM_KND
+                                    , C.SVPD_BASE_GB          AS BASE_GB
+                                 FROM TB_SVST_SV_WK_OSTR_IZ A
+                           INNER JOIN ST102TB_BASE B
+                                   ON  B.WARE_NO  =  A.WK_WARE_NO
+                           INNER JOIN ST101TB_BASE C
+                                   ON A.ITM_PD_CD = C.PD_CD
+                                WHERE (SUBSTR(FNL_MDFC_USR_ID,1,4) != 'CONV' OR FNL_MDFC_USR_ID IS NULL )
+                                  AND SV_BIZ_HCLSF_CD IN ('1','2','3')
+                                  AND FNL_VST_FSH_DT BETWEEN #{stFromYmd} AND #{edToYmd}
+                                <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                                  AND FNL_ITM_GD_CD = #{itmGdCd}
+                                </if>
+
+                            UNION ALL
+
+                                --등급조정(입고) ST173
+                                SELECT /*+ INDEX(KWAS.LC_STOCK_ST173TB LC_STOCK_ST173TB_IDX01)*/
+                                       B.WARE_NO
+                                    , B.WARE_NM
+                                    , B.HGR_WARE_NO
+                                     , ORDER_NO
+                                     , 'IN'
+                                     , C.PD_CD
+                                     , '190'
+                                     , CTR_QTY
+                                     , C.SVPD_ITEM_KND   AS ITEM_KND
+                                     , C.SVPD_BASE_GB    AS BASE_GB
+                                  FROM TB_SVST_ITM_GD_CTR_IZ A
+                            INNER JOIN ST102TB_BASE B
+                                    ON A.WARE_NO = B.WARE_NO
+                            INNER JOIN ST101TB_BASE C
+                                    ON A.PD_CD  = C.PD_CD
+                                 WHERE CTR_WK_DT  BETWEEN #{stFromYmd} AND #{edToYmd}
+                                <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                                  AND BFCT_ITM_GD_CD = #{itmGdCd}
+                                </if>
+
+                             UNION ALL
+
+                                --등급조정(출고)
+                                SELECT /*+ INDEX(KWAS.LC_STOCK_ST173TB LC_STOCK_ST173TB_IDX01)*/
+                                       B.WARE_NO
+                                    , B.WARE_NM
+                                    , B.HGR_WARE_NO
+                                     , ORDER_NO
+                                     , 'OUT'
+                                     , C.PD_CD
+                                     , '290'
+                                     , CTR_QTY
+                                     , C.SVPD_ITEM_KND   AS ITEM_KND
+                                     , C.SVPD_BASE_GB    AS BASE_GB
+                                  FROM TB_SVST_ITM_GD_CTR_IZ A
+                            INNER JOIN ST102TB_BASE B
+                                    ON A.WARE_NO = B.WARE_NO
+                            INNER JOIN ST101TB_BASE C
+                                    ON A.PD_CD  = C.PD_CD
+                                   AND A.ITM_KND_CD = C.SVPD_ITEM_KND
+                                 WHERE CTR_WK_DT  BETWEEN #{stFromYmd} AND #{edToYmd}
+                                <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                                  AND AFCT_ITM_GD_CD = #{itmGdCd}
+                                </if>
+                                                           )
+                  GROUP BY WARE_NO
+                         , WARE_NM
+                         , HGR_WARE_NO
+                         , ORDER_NO
+                         , PD_CD
+                         , ITEM_KND
+                         , BASE_GB
+       ) A
+ GROUP BY WARE_NO
+        , WARE_NM
+        , HGR_WARE_NO
+        , ORDER_NO
+ ORDER BY HGR_WARE_NO, ORDER_NO
+
+    </select>
+
+
+    <select id="selectWareHouses" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo">
+        SELECT D1.WARE_NO   /* 창고번호 */
+             , D1.WARE_NM   /* 창고명 */
+          FROM TB_SVST_MCBY_WARE_IZ D1        /* 월별창고내역 */
+         INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
+            ON D2.APY_YM  = D1.APY_YM
+           AND D2.WARE_NO = D1.HGR_WARE_NO
+         WHERE D1.DTA_DL_YN      = 'N'
+           AND D2.DTA_DL_YN      = 'N'
+           AND D1.WARE_USE_YN    = 'Y'
+           AND D1.APY_YM         = #{baseYm}
+           AND D1.WARE_DV_CD     = #{wareDvCd}
+       <if test='@MybatisUtils@isNotEmpty(wareDtlDvCd)'>
+           AND D1.WARE_DTL_DV_CD = #{wareDtlDvCd}
+       </if>
+
+         ORDER BY D1.WARE_USE_YN DESC, D1.WARE_NM ASC, D1.WARE_NO ASC
+    </select>
+
+</mapper>

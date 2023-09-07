@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.converter;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndependenceWareOstrDto.CreateReq;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndependenceWareOstrDto.SaveReq;
 
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrLgstDvo;
 
 /**
  * <pre>
@@ -19,4 +21,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrDvo;
 @Mapper(componentModel = "spring")
 public interface WsnaIndependenceWareOstrConverter {
     List<WsnaIndependenceWareOstrDvo> mapAllSaveReqToWsnaIndependenceWareOstrDvo(List<SaveReq> dtos);
+
+    WsnaIndependenceWareOstrLgstDvo mapCreateReqToWsnaIndependenceWareOstrLgstDvo(CreateReq dto);
+
 }

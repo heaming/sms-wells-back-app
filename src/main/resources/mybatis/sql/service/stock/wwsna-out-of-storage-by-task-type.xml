@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaOutOfStorageByTaskTypeMapper">
+    <select id="selectOutOfStorageByTaskType"
+            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageByTaskTypeDto$SearchRes">
+        WITH PD_INF AS ( SELECT T1.PD_CD
+                              , T1.PD_NM
+                              , T2.PD_PRP_VAL19 AS ITM_KND_CD
+                              , T2.PD_PRP_VAL20 AS PD_GRP_CD
+                              , T2.PD_PRP_VAL04	AS LP_USE_YN
+                              , T2.PD_PRP_VAL17 AS MAT_MNGT_DV_CD
+                              , T2.PD_PRP_VAL30 AS TRNOVR_RT_OJ_YN
+                              , T1.PDCT_UPRC
+                              , T1.SAP_MAT_CD
+                              , T2.PD_PRP_VAL21 AS CMN_PART_DV_CD /* 중수리 01 */
+                              , T2.PD_PRP_VAL15 AS ORDNY_HV_MAT_YN /* 기초자재 Y 상시보유 */
+                              , T1.SELL_YN
+                           FROM WSMDBS.TB_PDBS_PD_BAS T1 /*상품기본*/
+                LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T2  /*상품각사속성상세*/
+                             ON T1.PD_CD = T2.PD_CD
+                         /* AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT') */    /*상품확장속성그룹코드 CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
+                         WHERE 1=1
+                           AND T2.PD_PRP_VAL19 IS NOT null
+                           <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+                           AND T2.PD_PRP_VAL19 = #{itmKndCd}
+                           </if>
+                           <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                           AND T1.PD_CD = #{itmPdCd}
+                           </if>
+                           <if test="@MybatisUtils@isNotEmpty(itmPdCdFrom)">
+                           AND T1.PD_CD BETWEEN #{itmPdCdFrom} AND #{itmPdCdTo}
+                           </if>
+                           <if test="@MybatisUtils@isNotEmpty(useSel)">
+                           AND T1.PD_CD BETWEEN #{itmPdCdFrom} AND #{itmPdCdTo}
+                           </if>
+                           <if test="@MybatisUtils@isNotEmpty(useSel)">
+                           AND T2.PD_PRP_VAL04 = #{useSel}
+                           </if>
+        )
+
+        SELECT ITM_PD_CD
+             , MAT_MNGT_DV_CD
+             , SAP_MAT_CD
+             , PD_NM
+             , ORDNY_HV_MAT_YN
+             , CMN_PART_DV_CD
+             , TRNOVR_RT_OJ_YN
+             <if test="@MybatisUtils@equals(dispTypeCd, '1')">
+             , SUM(DECODE(HGR_WARE_NO,'200001',USE_QTY)) TYP_200001
+             , SUM(DECODE(HGR_WARE_NO,'200002',USE_QTY)) TYP_200002
+             , SUM(DECODE(HGR_WARE_NO,'200465',USE_QTY)) TYP_200465
+             , SUM(DECODE(HGR_WARE_NO,'200009',USE_QTY)) TYP_200009
+             , SUM(DECODE(HGR_WARE_NO,'200006',USE_QTY)) TYP_200006
+             , SUM(DECODE(HGR_WARE_NO,'200024',USE_QTY)) TYP_200024
+             , SUM(DECODE(HGR_WARE_NO,'200017',USE_QTY)) TYP_200017
+             , SUM(DECODE(HGR_WARE_NO,'200005',USE_QTY)) TYP_200005
+             , SUM(DECODE(HGR_WARE_NO,'200003',USE_QTY)) TYP_200003
+             , SUM(DECODE(HGR_WARE_NO,'200010',USE_QTY)) TYP_200010
+             , SUM(DECODE(HGR_WARE_NO,'200012',USE_QTY)) TYP_200012
+             , SUM(DECODE(HGR_WARE_NO,'200466',USE_QTY)) TYP_200466
+             , SUM(DECODE(HGR_WARE_NO,'200014',USE_QTY)) TYP_200014
+             , SUM(DECODE(HGR_WARE_NO,'200013',USE_QTY)) TYP_200013
+             , SUM(DECODE(HGR_WARE_NO,'200609',USE_QTY)) TYP_200609
+             , SUM(DECODE(HGR_WARE_NO,'200127',USE_QTY)) TYP_200127
+             , SUM(DECODE(HGR_WARE_NO,'200467',USE_QTY)) TYP_200467
+             , SUM(DECODE(HGR_WARE_NO,'200007',USE_QTY)) TYP_200007
+             , SUM(DECODE(HGR_WARE_NO,'200371',USE_QTY)) TYP_200371
+             , SUM(DECODE(HGR_WARE_NO,'200008',USE_QTY)) TYP_200008
+             , SUM(DECODE(HGR_WARE_NO,'200015',USE_QTY)) TYP_200015
+             , SUM(DECODE(HGR_WARE_NO,'200608',USE_QTY)) TYP_200608
+             , SUM(DECODE(HGR_WARE_NO,'200926',USE_QTY)) TYP_200672
+             , SUM(DECODE(HGR_WARE_NO,'200934',USE_QTY)) TYP_200934
+             , SUM(DECODE(HGR_WARE_NO,'201064',USE_QTY)) TYP_201064
+             , SUM(USE_QTY) TYP_999999
+             </if>
+             <if test="@MybatisUtils@equals(dispTypeCd, '2')">
+             , SUM(DECODE(HGR_WARE_NO,'200001',PDCT_UPRC_SUM)) TYP_200001
+             , SUM(DECODE(HGR_WARE_NO,'200002',PDCT_UPRC_SUM)) TYP_200002
+             , SUM(DECODE(HGR_WARE_NO,'200465',PDCT_UPRC_SUM)) TYP_200465
+             , SUM(DECODE(HGR_WARE_NO,'200009',PDCT_UPRC_SUM)) TYP_200009
+             , SUM(DECODE(HGR_WARE_NO,'200006',PDCT_UPRC_SUM)) TYP_200006
+             , SUM(DECODE(HGR_WARE_NO,'200024',PDCT_UPRC_SUM)) TYP_200024
+             , SUM(DECODE(HGR_WARE_NO,'200017',PDCT_UPRC_SUM)) TYP_200017
+             , SUM(DECODE(HGR_WARE_NO,'200005',PDCT_UPRC_SUM)) TYP_200005
+             , SUM(DECODE(HGR_WARE_NO,'200003',PDCT_UPRC_SUM)) TYP_200003
+             , SUM(DECODE(HGR_WARE_NO,'200010',PDCT_UPRC_SUM)) TYP_200010
+             , SUM(DECODE(HGR_WARE_NO,'200012',PDCT_UPRC_SUM)) TYP_200012
+             , SUM(DECODE(HGR_WARE_NO,'200466',PDCT_UPRC_SUM)) TYP_200466
+             , SUM(DECODE(HGR_WARE_NO,'200014',PDCT_UPRC_SUM)) TYP_200014
+             , SUM(DECODE(HGR_WARE_NO,'200013',PDCT_UPRC_SUM)) TYP_200013
+             , SUM(DECODE(HGR_WARE_NO,'200609',PDCT_UPRC_SUM)) TYP_200609
+             , SUM(DECODE(HGR_WARE_NO,'200127',PDCT_UPRC_SUM)) TYP_200127
+             , SUM(DECODE(HGR_WARE_NO,'200467',PDCT_UPRC_SUM)) TYP_200467
+             , SUM(DECODE(HGR_WARE_NO,'200007',PDCT_UPRC_SUM)) TYP_200007
+             , SUM(DECODE(HGR_WARE_NO,'200371',PDCT_UPRC_SUM)) TYP_200371
+             , SUM(DECODE(HGR_WARE_NO,'200008',PDCT_UPRC_SUM)) TYP_200008
+             , SUM(DECODE(HGR_WARE_NO,'200015',PDCT_UPRC_SUM)) TYP_200015
+             , SUM(DECODE(HGR_WARE_NO,'200608',PDCT_UPRC_SUM)) TYP_200608
+             , SUM(DECODE(HGR_WARE_NO,'200926',PDCT_UPRC_SUM)) TYP_200672
+             , SUM(DECODE(HGR_WARE_NO,'200934',PDCT_UPRC_SUM)) TYP_200934
+             , SUM(DECODE(HGR_WARE_NO,'201064',PDCT_UPRC_SUM)) TYP_201064
+             , SUM(PDCT_UPRC_SUM) TYP_999999
+             </if>
+         FROM (	SELECT MAIN.*
+                     , (MAIN.PDCT_UPRC * USE_QTY) PDCT_UPRC_SUM
+                  FROM ( SELECT O1.ITM_PD_CD
+                              , O1.SV_BIZ_HCLSF_CD
+                              , O1.REFRI_DV_CD /* 유무상 구분 */
+                              , O1.USE_QTY
+                              , S1.HGR_WARE_NO
+                              , PD_INF.TRNOVR_RT_OJ_YN
+                              , PD_INF.PDCT_UPRC
+                              , PD_INF.PD_NM
+                              , PD_INF.SAP_MAT_CD
+                              , PD_INF.MAT_MNGT_DV_CD
+                              , PD_INF.CMN_PART_DV_CD
+                              , PD_INF.ORDNY_HV_MAT_YN
+                           FROM TB_SVST_SV_WK_OSTR_IZ O1 /* 서비스작업출고내역 ST163 */
+                     INNER JOIN ( SELECT CNTR_NO
+                                       , CNTR_CST_NO
+                                       , COPN_DV_CD
+                                    FROM TB_SSCT_CNTR_BAS
+                                ) TEMP
+                              ON O1.CNTR_NO = TEMP.CNTR_NO
+                      INNER JOIN TB_SVPD_CST_SV_EXCN_IZ C1 /* 고객서비스수행내역 AC201 */
+                              ON O1.CNTR_NO = C1.CNTR_NO
+                             AND O1.CNTR_SN = C1.CNTR_SN
+                            /* AND O1.CST_SV_ASN_NO
+                            AND O1.WK_OSTR_SN */
+                      INNER JOIN TB_SVST_MCBY_WARE_IZ S1 /* 월별창고내역 ST102 */
+                              ON SUBSTR(O1.FNL_VST_FSH_DT,1,6) = S1.APY_YM
+                             AND O1.WK_WARE_NO = S1.WARE_NO
+                      INNER JOIN PD_INF
+                              ON O1.ITM_PD_CD = PD_INF.PD_CD
+                           WHERE O1.SV_BIZ_HCLSF_CD != '6'
+                             AND S1.WARE_DV_CD = '2'
+                             AND FNL_VST_FSH_DT BETWEEN #{stOstrDt} AND #{edOstrDt}
+                             <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
+                             AND O1.FNL_ITM_GD_CD = #{pdGdCd}
+                             </if>
+                             <if test="@MybatisUtils@isNotEmpty(useSel)">
+                             AND PD_INF.SELL_YN = #{useSel}
+                             /* AND PD_INF.LP_USE_YN = #{} */
+                             </if>
+                             <if test="@MybatisUtils@isNotEmpty(stocTypeCd)">
+                               <if test="@MybatisUtils@equals(stocTypeCd, 'N')">
+                               AND (PD_INF.MAT_MNGT_DV_CD IS NULL OR PD_INF.MAT_MNGT_DV_CD = '')
+                               </if>
+                               <if test="!@MybatisUtils@equals(stocTypeCd, 'N')">
+                               AND PD_INF.MAT_MNGT_DV_CD = #{stocTypeCd}
+                               </if>
+                             </if>
+                             <if test="@MybatisUtils@isNotEmpty(cstDvCd)">
+                             AND TEMP.COPN_DV_CD = #{cstDvCd}
+                             </if>
+                       UNION ALL
+
+                          SELECT ITM_PD_CD
+                               , '0' AS SV_BIZ_HCLSF_CD
+                               , '' AS REFRI_DV_CD
+                               , O2.OSTR_QTY AS USE_QTY
+                               , S2.HGR_WARE_NO
+                               , PD_INF.TRNOVR_RT_OJ_YN
+                               , PD_INF.PDCT_UPRC
+                               , PD_INF.PD_NM
+                               , PD_INF.SAP_MAT_CD
+                               , PD_INF.MAT_MNGT_DV_CD
+                               , PD_INF.CMN_PART_DV_CD
+                               , PD_INF.ORDNY_HV_MAT_YN
+                            FROM TB_SVST_ITM_OSTR_IZ O2 /* 품목출고내역 ST161 */
+                      INNER JOIN TB_SVST_MCBY_WARE_IZ S2
+                              ON SUBSTR(O2.OSTR_DT,1,6) = S2.APY_YM
+                             AND O2.OSTR_WARE_NO = S2.WARE_NO
+                      INNER JOIN PD_INF
+                              ON O2.ITM_PD_CD = PD_INF.PD_CD
+                           WHERE O2.OSTR_TP_CD = '217' /* 기타출고 */
+                             AND S2.WARE_DV_CD = '2'
+                             AND O2.OSTR_DT BETWEEN #{stOstrDt} AND #{edOstrDt}
+                             <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
+                             AND O2.ITM_GD_CD = #{pdGdCd}
+                             </if>
+                             <if test="@MybatisUtils@isNotEmpty(useSel)">
+                             AND PD_INF.SELL_YN = #{useSel}
+                             /* AND PD_INF.LP_USE_YN = #{} */
+                             </if>
+                             <if test="@MybatisUtils@isNotEmpty(stocTypeCd)">
+                             AND PD_INF.MAT_MNGT_DV_CD = #{stocTypeCd}
+                             </if>
+            ) MAIN
+            WHERE 1=1
+            <if test="@MybatisUtils@isNotEmpty(taskTypeCd)">
+                <if test="@MybatisUtils@equals(taskTypeCd, '0')">
+                AND SV_BIZ_HCLSF_CD IN ('0', '1', '2', '3') /* 기타인경우 */
+                </if>
+                <if test="@MybatisUtils@equals(taskTypeCd, '1') or @MybatisUtils@equals(taskTypeCd, '2')">
+                AND SV_BIZ_HCLSF_CD IN (#{taskTypeCd}) /* 설치 BS */
+                </if>
+                <if test="@MybatisUtils@equals(taskTypeCd, '3')">
+                AND SV_BIZ_HCLSF_CD IN ('3') AND REFRI_DV_CD = '1' /* AS 무상 */
+                </if>
+                <if test="@MybatisUtils@equals(taskTypeCd, '4')">
+                AND SV_BIZ_HCLSF_CD IN ('3') AND REFRI_DV_CD = '2' /* AS 유상 */
+                </if>
+            </if>
+        ) MAIN2
+ GROUP BY ITM_PD_CD
+        , MAT_MNGT_DV_CD
+        , SAP_MAT_CD
+        , PD_NM
+        , ORDNY_HV_MAT_YN
+        , CMN_PART_DV_CD
+        , TRNOVR_RT_OJ_YN
+    </select>
+</mapper>

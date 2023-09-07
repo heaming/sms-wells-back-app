@@ -1,11 +1,13 @@
 package com.kyowon.sms.wells.web.closing.expense.dto;
 
-import com.sds.sflex.common.docs.dto.AttachFileDto;
-import io.swagger.annotations.ApiModel;
-import lombok.Builder;
+import java.util.List;
 
 import javax.validation.constraints.NotBlank;
-import java.util.List;
+
+import com.sds.sflex.common.docs.dto.AttachFileDto;
+
+import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 public class WdcdOperatingCostMgtDto {
 
@@ -14,14 +16,14 @@ public class WdcdOperatingCostMgtDto {
     // *********************************************************
     // 운영비 등록관리 / 운영비 금액 현황
     @Builder
-    @ApiModel(value = "WwdcdOperatingCostMgtDto-SearchReq")
-    public record SearchReq(
+    @ApiModel(value = "WwdcdOperatingCostMgtDto-SearchAmountReq")
+    public record SearchAmountReq(
         @NotBlank
         String baseYm,
         String entrpDvCd,
+        String dgr1LevlOgId,
         String dgr2LevlOgId,
-        String dgr3LevlOgId,
-        String dgr4LevlOgId
+        String dgr3LevlOgId
     ) {
     }
 
@@ -55,15 +57,16 @@ public class WdcdOperatingCostMgtDto {
     // Request Dto
     // *********************************************************
     // 운영비 등록관리 / 운영비 금액 현황
+    @Builder
     @ApiModel(value = "WwdcdOperatingCostMgtDto-SearchSummaryReq")
     public record SearchSummaryReq(
         @NotBlank
         String baseYm,
+        String entrpDvCd,
         String dgr1LevlOgId,
         String dgr2LevlOgId,
         String dgr3LevlOgId
     ) {
-
     }
 
     // *********************************************************
@@ -73,7 +76,6 @@ public class WdcdOperatingCostMgtDto {
     @ApiModel(value = "WwdcdOperatingCostMgtDto-SearchSummaryRes")
     public record SearchSummaryRes(
         String opcsCardId,
-        String opcsAdjNo,
         String opcsAdjCnt,
         String opcsSmryNCnt,
         String opcsWhtxCfdcApnFileId
@@ -125,6 +127,19 @@ public class WdcdOperatingCostMgtDto {
     public record EditReq(
         String opcsCardId,
         List<AttachFileDto.AttachFile> attachOpcsWhtxCfdcApnFileId
+    ) {
+    }
+
+    @ApiModel(value = "WwdcdOperatingCostMgtDto-FindOrganizationLevelRes")
+    public record FindOrganizationLevelRes(
+        String dgr1LevlOgId,
+        String dgr1LevlOgNm,
+        String dgr2LevlOgId,
+        String dgr2LevlOgNm,
+        String dgr3LevlOgId,
+        String dgr3LevlOgNm,
+        String dgr4LevlOgId,
+        String dgr4LevlOgNm
     ) {
     }
 }

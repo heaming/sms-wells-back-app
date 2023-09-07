@@ -17,9 +17,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class WbncUnpaidGuideUrgentService {
-
     private final WbncUnpaidGuideUrgentMapper mapper;
-    //    private final WbncUnpaidGuideUrgentConverter converter;
 
     public PagingResult<SearchRes> getUnpaidGuideUrgentPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectUnpaidGuideUrgentPages(dto, pageInfo);
@@ -31,10 +29,10 @@ public class WbncUnpaidGuideUrgentService {
 
     public CheckRes checkUnpaidGuideUrgentObjects(CheckReq dto) {
         String cnfmYn = "N";
-        int totalCount = 0;
+        int ojTotalCount;
 
         List<WbncUncollectedAdviceNoteOjIzDvo> dvos = this.mapper.selectCheckUnpaidGuideUrgentObjects(dto);
-        totalCount = dvos.size();
+        ojTotalCount = dvos.size();
 
         for (WbncUncollectedAdviceNoteOjIzDvo dvo : dvos) {
             if (dvo.getCnfmYn().equals("Y")) {
@@ -43,13 +41,13 @@ public class WbncUnpaidGuideUrgentService {
             }
         }
 
-        return CheckRes.builder().totalCount(totalCount).cnfmYn(cnfmYn).build();
+        return CheckRes.builder().ojTotalCount(ojTotalCount).cnfmYn(cnfmYn).build();
     }
 
     public CheckRes checkUnpaidGuideUrgentCustomers(CheckReq dto) {
         String cnfmYn = "N";
         int totalCount = 0;
-
+        int ojTotalCount = 0;
         CheckRes objectRes = this.checkUnpaidGuideUrgentObjects(dto);
         if (objectRes.cnfmYn().equals("N")) {
             return objectRes;
@@ -57,9 +55,10 @@ public class WbncUnpaidGuideUrgentService {
         if (objectRes.cnfmYn().equals("Y")) {
             cnfmYn = "Y";
             totalCount = this.mapper.selectCheckUnpaidGuideUrgentCustomers(dto);
+            ojTotalCount = objectRes.ojTotalCount();
         }
 
-        return CheckRes.builder().totalCount(totalCount).cnfmYn(cnfmYn).build();
+        return CheckRes.builder().ojTotalCount(ojTotalCount).totalCount(totalCount).cnfmYn(cnfmYn).build();
     }
 
     @Transactional
@@ -67,7 +66,7 @@ public class WbncUnpaidGuideUrgentService {
         CheckRes objectRes = this.checkUnpaidGuideUrgentObjects(
             CheckReq.builder().ucAmtFwTpCd(dto.ucAmtFwTpCd()).ojWkDt(dto.ojWkDt()).build()
         );
-        BizAssert.isFalse(objectRes.totalCount() == 0, "MSG_ALT_NO_DATA_PIZ_CREATE_DATE"); // 검색된 데이터가 없습니다. 자료생성 후 저장 버튼을 클릭해 주시기 바랍니다.
+        BizAssert.isFalse(objectRes.ojTotalCount() == 0, "MSG_ALT_NO_DATA_PIZ_CREATE_DATE"); // 검색된 데이터가 없습니다. 자료생성 후 저장 버튼을 클릭해 주시기 바랍니다.
         BizAssert.isFalse(objectRes.cnfmYn().equals("Y"), "MSG_ALT_DATA_ALREADY_CNFM");
 
         int processCount = this.mapper.updateUnpaidGuideUrgentObjects(dto);

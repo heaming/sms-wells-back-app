@@ -106,15 +106,38 @@ public class WsnaBsCsmbGiveAOrderService {
         });
 
         // 예상소진일자 set
-        String nowDay = DateUtil.getNowDayString();
+        //        String baseDay = "";
+        String nowMonth = DateUtil.getNowDayString().substring(0, 6);
 
-        dvos.forEach(dvo -> {
-            try {
-                dvo.setEtExsDt(DateUtil.addMonths(nowDay, dvo.getStocPersMmN()));
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        if (nowMonth.equals(dto.mngtYm())) {
+            String baseDay = DateUtil.getNowDayString();
+
+            dvos.forEach(dvo -> {
+                try {
+                    dvo.setEtExsDt(DateUtil.addMonths(baseDay, (int)dvo.getStocPersMmN()));
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } else {
+            String baseDay = dto.mngtYm() + "01";
+
+            dvos.forEach(dvo -> {
+                try {
+                    dvo.setEtExsDt(DateUtil.addMonths(baseDay, (int)dvo.getStocPersMmN()));
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+
+        //        dvos.forEach(dvo -> {
+        //            try {
+        //                dvo.setEtExsDt(DateUtil.addMonths(baseDay, dvo.getStocPersMmN()));
+        //            } catch (ParseException e) {
+        //                throw new RuntimeException(e);
+        //            }
+        //        });
 
         // 필요량 set
         dvos.forEach(dvo -> {
@@ -127,21 +150,26 @@ public class WsnaBsCsmbGiveAOrderService {
 
         // 발주수량 set
         dvos.forEach(dvo -> {
-            if (dvo.getMinOrdQty() == 0) {
+            if (dvo.getMinOrdQty() == 0 || dvo.getNcstQty() == 0) {
                 dvo.setGoQty(0);
             } else {
-                int i = 1;
+                if (dvo.getMinOrdQty() > dvo.getNcstQty()) {
+                    dvo.setGoQty(dvo.getMinOrdQty());
+                } else {
+                    int i = 1;
 
-                while (dvo.getMinOrdQty() > 0) {
-                    int goQty = dvo.getMinOrdQty() * i;
+                    while (dvo.getMinOrdQty() > 0) {
+                        int goQty = dvo.getMinOrdQty() * i;
 
-                    if (dvo.getNcstQty() >= goQty) {
-                        dvo.setGoQty(goQty);
-                        break;
+                        if (dvo.getNcstQty() >= goQty) {
+                            dvo.setGoQty(goQty);
+                            break;
+                        }
+
+                        i++;
                     }
-
-                    i++;
                 }
+
             }
         });
 

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.standard.mapper.WsnyBusinessTypeWorkHourMgtMapper">
+    <select id="selectBusinessTypeWorkHour" resultType="com.kyowon.sms.wells.web.service.standard.dto.WsnyBusinessTypeWorkHourMgtDto$SearchRes">
+	    /* 업무유형별작업시간 조회 */
+        WITH
+            INQRY_LIST0 AS (
+                /* 조회일자 기준 최종 적용 리스트 */
+                SELECT DISTINCT
+                       V1.PD_CD
+                     , V1.SV_BIZ_DCLSF_CD
+                  FROM (
+                        SELECT S1.*
+                             , RANK() OVER (PARTITION BY S1.PD_CD, S1.SV_BIZ_DCLSF_CD ORDER BY S1.IZ_SN DESC) AS RNK
+                          FROM WSMDBS.TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ S1  /*상품별업무유형별작업그룹내역, 147TB*/
+                         WHERE 1=1
+                           AND #{apyDt} BETWEEN S1.APY_STRTDT AND S1.APY_ENDDT
+
+                       ) V1
+                 WHERE 1=1
+                   AND RNK = '1'
+              )
+
+          , INQRY_LIST1 AS (
+                /* 등록된 리스트 */
+                SELECT DISTINCT
+                       V1.PD_CD
+                     , V1.SV_BIZ_DCLSF_CD
+                     , IZ_SN
+                     , APY_STRTDT
+                     , APY_ENDDT
+                     , WK_GRP_CD
+                     , LDTM
+                     , ACKMT_CT
+                     , IST_EGER_PSNO
+                  FROM (
+                        SELECT S1.*
+                             , RANK() OVER (PARTITION BY S1.PD_CD, S1.SV_BIZ_DCLSF_CD ORDER BY S1.IZ_SN DESC) AS RNK
+                          FROM WSMDBS.TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ S1  /*상품별업무유형별작업그룹내역, 147TB*/
+                         WHERE 1=1
+                           AND #{apyDt} BETWEEN S1.APY_STRTDT AND S1.APY_ENDDT
+
+                       ) V1
+                 WHERE 1=1
+                   AND RNK = '1'
+              )
+          , INQRY_LIST2 AS (
+                /* 설치, A/S 미등록건 */
+                SELECT DISTINCT
+                       S1.PD_CD
+                     , S1.SV_BIZ_DCLSF_CD
+                     , 1 AS IZ_SN
+                     , TO_CHAR(SYSDATE, 'YYYYMMDD') AS APY_STRTDT
+                     , '99991231' AS APY_ENDDT
+                     , '' AS WK_GRP_CD
+                     , 0 AS LDTM
+                     , 0 AS ACKMT_CT
+                     , 0 AS IST_EGER_PSNO
+                  FROM WSMDBS.TB_SVPD_CST_SVAS_IST_OJ_IZ S1 /*고객서비스AS설치대상내역, AC211TB*/
+                 WHERE 1=1
+                   AND S1.RCPDT > TO_CHAR(SYSDATE, 'YYYYMM') || '00'
+                   AND S1.PD_CD IS NOT NULL
+                   AND S1.DTA_DL_YN = 'N'
+                   AND (S1.PD_CD, S1.SV_BIZ_DCLSF_CD) NOT IN (SELECT PD_CD, SV_BIZ_DCLSF_CD FROM INQRY_LIST0)
+
+              )
+          , INQRY_LIST3 AS (
+                /* B/S 미등록건 */
+                SELECT DISTINCT
+                       S1.PDCT_PD_CD AS PD_CD
+                     , S1.SV_BIZ_DCLSF_CD
+                     , 1 AS IZ_SN
+                     , TO_CHAR(SYSDATE, 'YYYYMMDD') AS APY_STRTDT
+                     , '99991231' AS APY_ENDDT
+                     , '' AS WK_GRP_CD
+                     , 0 AS LDTM
+                     , 0 AS ACKMT_CT
+                     , 0 AS IST_EGER_PSNO
+                  FROM WSMDBS.TB_SVPD_CST_SV_BFSVC_OJ_IZ S1 /*고객서비스BS대상내역, AC251TB*/
+                 WHERE 1=1
+                   AND S1.ASN_OJ_YM > TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND S1.PDCT_PD_CD IS NOT NULL
+                   AND S1.DTA_DL_YN = 'N'
+                   AND (S1.PDCT_PD_CD, S1.SV_BIZ_DCLSF_CD) NOT IN (SELECT PD_CD, SV_BIZ_DCLSF_CD FROM INQRY_LIST0)
+              )
+
+          , INQRY_LIST4 AS (
+                /* TB_SVPD_AS_TP_CD 조회기준 3개월 전부터 등록된 미등록건 */
+                SELECT DISTINCT
+                       S1.PD_CD AS PD_CD
+                     , S1.SV_ANA_HCLSF_CD AS SV_BIZ_DCLSF_CD
+                     , 1 AS IZ_SN
+                     , TO_CHAR(SYSDATE, 'YYYYMMDD') AS APY_STRTDT
+                     , '99991231' AS APY_ENDDT
+                     , '' AS WK_GRP_CD
+                     , 0 AS LDTM
+                     , 0 AS ACKMT_CT
+                     , 0 AS IST_EGER_PSNO
+                  FROM WSMDBS.TB_SVPD_AS_TP_CD S1   /*AS유형코드, CO460TB*/
+                 WHERE 1=1
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN S1.APY_STRTDT AND S1.APY_ENDDT
+                   AND S1.SITE_AW_ATC_DSN_DT >= TO_CHAR(ADD_MONTHS(SYSDATE, -3), 'YYYYMM') || '00'
+                   AND S1.PD_CD IS NOT NULL
+                   AND S1.DTA_DL_YN = 'N'
+                   AND (S1.PD_CD, S1.SV_ANA_HCLSF_CD) NOT IN (SELECT PD_CD, SV_BIZ_DCLSF_CD FROM INQRY_LIST0)
+              )
+
+            SELECT V1.PD_CD
+                 , P1.SAP_MAT_CD
+                 , P1.PD_NM
+                 , V1.SV_BIZ_DCLSF_CD
+                 , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', V1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_NM
+                 , V1.IZ_SN
+                 , V1.APY_STRTDT
+                 , V1.APY_ENDDT
+                 , V1.WK_GRP_CD
+                 , F_CMZ_CD_NM('TNT_WELLS', 'WK_GRP_CD', V1.WK_GRP_CD) AS WK_GRP_CD_NM
+                 , V1.LDTM
+                 , V1.ACKMT_CT
+                 , V1.IST_EGER_PSNO
+              FROM (
+                    SELECT *
+                      FROM INQRY_LIST1
+                     UNION ALL
+                    SELECT *
+                      FROM INQRY_LIST2
+                     UNION ALL
+                    SELECT *
+                      FROM INQRY_LIST3
+                     UNION ALL
+                    SELECT *
+                      FROM INQRY_LIST4
+                   ) V1
+                   INNER JOIN WSMDBS.TB_PDBS_PD_BAS P1    /*상품기본*/
+                           ON V1.PD_CD = P1.PD_CD
+                          AND P1.PD_TP_CD = 'M'    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
+                          AND P1.DTA_DL_YN = 'N'
+                   INNER  JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P2  /*상품각사속성상세*/
+                           ON P1.PD_CD = P2.PD_CD
+                          AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
+                          AND P2.DTA_DL_YN = 'N'
+                          /* 제품그룹조회조건있을경우 */
+                          /* ST101_ITEM_GR. PD_GRP_CD - 1 비데, 2 정수기, 3 공기청정기, 4 연수기, 5 마사지기, 6 음식물처리기, 7 제습기
+                             , 8 제빙기, 9 아웃소싱, 10 홈케어, 11 웰스팜모종, 12 홈카페캡슐, 13 활력홍삼, 14 화장품, 15 슬림쏙, 16 백수오
+                             , 91 전기레인지, 92 웰스팜, 93 안마의자, 94 삼성제품, 95 매트리스, 96 커피머신
+                          */
+                       <if test="@MybatisUtils@isNotEmpty(pdGrpCd) and !@MybatisUtils@equals(pdGrpCd, 'ALL')">
+                          AND P2.PD_PRP_VAL20 = #{pdGrpCd}
+                       </if>
+                          /* 제품모델조회조건있을경우 */
+                       <if test="@MybatisUtils@isNotEmpty(pdCd) and !@MybatisUtils@equals(pdCd, 'ALL')">
+                          AND P2.PD_CD = #{pdCd}
+                       </if>
+             WHERE 1=1
+            <if test="@MybatisUtils@isNotEmpty(svBizDclsfCd) and !@MybatisUtils@equals(svBizDclsfCd, 'ALL')">
+               AND V1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+            </if>
+               AND V1.SV_BIZ_DCLSF_CD != '2240'    /* 20.12.15 최정문파트장님요청, 사전방문 제외요청 */
+               /* 서비스유형(SV_DV_CD) 전체, 설치:1. BS:2, AS:3, 홈케어:4 */
+            <if test="@MybatisUtils@isNotEmpty(svDvCd) and !@MybatisUtils@equals(svDvCd, 'ALL')">
+               AND V1.SV_BIZ_DCLSF_CD LIKE #{svDvCd}||'%'
+            </if>
+               /* 조회구분조회조건있을경우 */
+            <if test="@MybatisUtils@isNotEmpty(findGb) and !@MybatisUtils@equals(findGb, 'ALL')">
+               <choose>
+                   <when test="@MybatisUtils@equals(findGb, '1')">
+                       AND V1.WK_GRP_CD IS NOT NULL   /* 검색 조건 - 조회 구분 */
+                   </when>
+                   <when test="@MybatisUtils@equals(findGb, '2')">
+                       AND V1.WK_GRP_CD IS NULL   /* 검색 조건 - 조회 구분 */
+                   </when>
+               </choose>
+            </if>
+             ORDER BY V1.PD_CD, V1.SV_BIZ_DCLSF_CD
+    </select>
+</mapper>

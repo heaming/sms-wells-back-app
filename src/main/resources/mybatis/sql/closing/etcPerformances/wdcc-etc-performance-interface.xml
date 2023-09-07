@@ -2,7 +2,27 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.performance.mapper.WdccEtcPerformanceInterfaceMapper">
 
-	<select id="selectOtherLumpSumPerformance" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccEtcPerformanceInterfaceDto$FindRes">
+    <resultMap id="dataInfo" type="com.kyowon.sms.wells.web.closing.performance.dto.WdccEtcPerformanceInterfaceDto$FindRes">
+        <constructor>
+            <arg name="CNTR_NO"          javaType="java.lang.String" column="CNTR_NO"         />
+            <arg name="CNTR_SN"          javaType="java.lang.String" column="CNTR_SN"         />
+            <arg name="SL_CL_YM"         javaType="java.lang.String" column="SL_CL_YM"        />
+            <arg name="RENTAL_TN"         javaType="java.lang.String" column="RENTAL_TN"        />
+            <arg name="SL_STP_YN"    javaType="java.lang.String" column="SL_STP_YN"   />
+            <arg name="THM_SL_SUM_AMT" javaType="java.lang.String" column="THM_SL_SUM_AMT"/>
+            <arg name="SL_DP_AGG_AMT"          javaType="java.lang.String" column="SL_DP_AGG_AMT"         />
+            <arg name="ACU_OC_ATAM"      javaType="java.lang.String" column="ACU_OC_ATAM"     />
+            <arg name="EOT_ATAM"         javaType="java.lang.String" column="EOT_ATAM"        />
+            <arg name="EOT_DLQ_AMT"         javaType="java.lang.String" column="EOT_DLQ_AMT"        />
+            <arg name="EOT_DLQ_ADD_AMT"         javaType="java.lang.String" column="EOT_DLQ_ADD_AMT"        />
+            <arg name="CLCTAM_DV_CD"   javaType="java.lang.String" column="CLCTAM_DV_CD"  />
+            <arg name="CLCTAM_DV_CD_NM"      javaType="java.lang.String" column="CLCTAM_DV_CD_NM"     />
+            <arg name="PRTNR_NO"           javaType="java.lang.String" column="PRTNR_NO"          />
+            <arg name="PRTNR_FNM"            javaType="java.lang.String" column="PRTNR_FNM"  />
+        </constructor>
+    </resultMap>
+
+	<select id="selectOtherLumpSumPerformance" resultMap="dataInfo">
         SELECT A.CNTR_NO
              , A.CNTR_SN
              , C.SL_CL_YM                                               AS SL_CL_YM        /*매출마감년월[AS-IS:실적년월]*/
@@ -32,11 +52,11 @@
             ON A.CNTR_NO   = C.CNTR_NO /*계약번호*/
            AND A.CNTR_SN   = C.CNTR_SN /*계약일련번호*/
            AND C.DTA_DL_YN = 'N'       /*데이터삭제여부*/
-           AND C.SL_CL_YM BETWEEN #{slClYm1} AND #{slClYm2} /*매출마감년월*/
+           AND C.SL_CL_YM BETWEEN #{SL_CL_YM1} AND #{SL_CL_YM2} /*매출마감년월*/
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS G /*연체기본*/
             ON A.CNTR_NO   = G.CNTR_NO /*계약번호*/
            AND A.CNTR_SN   = G.CNTR_SN /*계약일련번호*/
-           AND G.PERF_YM BETWEEN #{slClYm1} AND #{slClYm2} /*실적년월*/
+           AND G.PERF_YM BETWEEN #{SL_CL_YM1} AND #{SL_CL_YM2} /*실적년월*/
            AND G.DTA_DL_YN = 'N'     /*데이터삭제여부*/
             /* --속도 문제 시 H절의 Where문에 계약번호+계약일련번호 추가*/
           LEFT OUTER JOIN (SELECT CNTR_NO
@@ -47,7 +67,7 @@
                                        ELSE TO_CHAR(ADD_MONTHS(TO_DATE(BASE_YM || '01'), -1), 'YYYYMM') END AS BASE_YM /*기준년월*/
                              FROM TB_CBBO_BND_CNTR_BAS /*채권계약기본*/
                             WHERE DTA_DL_YN = 'N' /*데이터삭제여부*/
-                              AND BASE_YM BETWEEN #{slClYm1} AND #{slClYm2} ) H
+                              AND BASE_YM BETWEEN #{SL_CL_YM1} AND #{SL_CL_YM2} ) H
             ON A.CNTR_NO  = H.CNTR_NO /*계약번호*/
            AND A.CNTR_SN  = H.CNTR_SN /*계약일련번호*/
            AND C.SL_CL_YM = H.BASE_YM
@@ -56,8 +76,8 @@
            AND H.BASE_YM     = I.BASE_YM     /*기준년월*/
            AND I.DTA_DL_YN   = 'N'            /*데이터삭제여부*/
          WHERE 1 = 1
-           AND A.CNTR_NO   = #{cntrNo}    /*계약번호*/
-           AND A.CNTR_SN   = #{cntrSn} /*계약일련번호*/
+           AND A.CNTR_NO   = #{CNTR_NO}    /*계약번호*/
+           AND A.CNTR_SN   = #{CNTR_SN} /*계약일련번호*/
            AND A.SELL_TP_CD  <![CDATA[<>]]> '1' /*판매유형코드[1:할부]*/
            AND A.DTA_DL_YN  = 'N'  /*데이터삭제여부*/
 	</select>

@@ -27,6 +27,9 @@ public class WpdcAsPartMgtDto {
         String asMatCd,
         String sapItemCdFrom, /* 품목코드 */
         String sapItemCdTo, /* 품목코드 */
+        String asMatItmKndCd, /* 각사속성상세 - AS자재 품목그룹 */
+        String asMatItmGrpCd, /* 각사속성상세 - AS자재 품목종류 */
+        String svMatGrpCd, /* 각사속성상세 - 자재그룹 */
         String modelNo
     ) {}
 
@@ -49,6 +52,9 @@ public class WpdcAsPartMgtDto {
         String asItmCd, /* 각사속성상세 - 품목코드 */
         String asMatCd, /* 각사속성상세 - AS지재번호 */
         String asMatEngNm, /* 각사속성상세 - 품목명 */
+        String asMatItmKndCd, /* 각사속성상세 - AS자재 품목그룹 */
+        String asMatItmGrpCd, /* 각사속성상세 - AS자재 품목종류 */
+        String svMatGrpCd, /* 각사속성상세 - 자재그룹 */
         String fstRgstDtm,
         String fstRgstUsrNm,
         String fnlMdfcDtm,

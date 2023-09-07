@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -14,15 +17,18 @@ public class WsnaOutOfStorageItemizationDto {
 
     @ApiModel(value = "WsnaOutOfStorageManagementDto-SearchReq")
     public record SearchReq(
+        @NotBlank
+        @Valid
         String stOstrDt, /*시작출고일자*/
+        @NotBlank
+        @Valid
         String edOstrDt, /*종료출고일자*/
         String ostrTpCd, /*출고유형코드*/
-        String wareDvCd, /*창고구분*/
+        @NotBlank
         String ostrWareNo, /*출고창고번호*/
-        String ostrWareDvCd, /*출고창고구분코드*/
-        String ostrWareNoM,
-        String ostrWareNoD,
-        String divide /*구분*/
+        String strWareDvCd, /*입고창고구분코드*/
+        String strWareNoM,
+        String strWareNoD
 
     ) {}
 

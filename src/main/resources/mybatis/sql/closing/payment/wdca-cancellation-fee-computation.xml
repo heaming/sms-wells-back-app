@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.payment.mapper.WdcaCancellationFeeComputationMapper">
+    <select id="selectSellType" resultType="com.kyowon.sms.wells.web.closing.payment.dvo.WdcaSellTypeDvo">
+        SELECT A1.CNTR_NO           /*계약번호*/
+             , A1.CNTR_SN           /*계약일련번호*/
+             , A1.SELL_TP_CD        /*판매유형코드*/
+             , A1.SELL_TP_DTL_CD    /*판매유형상세코드*/
+             , A1.CNTR_DTL_STAT_CD  /*계약상세상태코드*/
+          FROM TB_SSCT_CNTR_DTL A1
+         WHERE A1.DTA_DL_YN  = 'N' /*데이터삭제여부*/
+           AND A1.CNTR_NO    = #{cntrNo}
+           AND A1.CNTR_SN    = #{cntrSn}
+    </select>
     <select id="selectComputationObjectContract" resultType="com.kyowon.sms.wells.web.closing.payment.dvo.WdcaComputationObjectContractDvo">
         SELECT T.CNTR_NO                                                               /*계약번호*/
              , T.CNTR_SN                                                               /*계약일련번호*/
@@ -30,14 +41,14 @@
              , T.SPAY_RNTF                                                             /*일시불손료*/
              , T.RES_CCAM_RAT                                                          /*잔여위약금비율[AS-IS:LCAMT5]*/
              /*-------------------------------------------------------------------------*/
-             /*리스 잔여개월수 산출 -> MONTHS_BETWEEN(약정만료일자, #{rqdt})    */
+             /*리스 잔여개월수 산출 -> MONTHS_BETWEEN(약정만료일자, 입력값_요청일자)    */
              /* --> 사유 리스의 차월은 당월부터 증가                                    */
-             /*렌탈 잔여개월수 산출 -> MONTHS_BETWEEN(약정만료일자, #{rqdt}) - 1*/
+             /*렌탈 잔여개월수 산출 -> MONTHS_BETWEEN(약정만료일자, 입력값_요청일자) - 1*/
              /* --> 사유 렌탈의 차월은 익월부터 증가                                    */
              /*-------------------------------------------------------------------------*/
-             , CASE WHEN T.SELL_TP_CD = '2' AND T.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN MONTHS_BETWEEN(T.STPL_EXN_DT, #{rqdt})
-                    ELSE MONTHS_BETWEEN(T.STPL_EXN_DT, #{rqdt}) - 1 END AS RES_MCN /*잔여개월수*/
-             /*렌탈 잔여일수 산출 -> #{rqdt}의 말일 - #{rqdt}*/
+             , CASE WHEN T.SELL_TP_CD = '2' AND T.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN TRUNC(MONTHS_BETWEEN(T.STPL_EXN_DT, #{rqdt}))
+                    ELSE TRUNC(MONTHS_BETWEEN(T.STPL_EXN_DT, #{rqdt})) - 1 END AS RES_MCN /*잔여개월수*/
+             /*렌탈 잔여일수 산출 -> 입력값_요청일자의 말일 - 입력값_요청일자*/
              , CASE WHEN T.SELL_TP_CD = '2' AND T.SELL_TP_DTL_CD IN ('21', '23') THEN TO_DATE(TO_CHAR(LAST_DAY(#{rqdt}), 'YYYYMMDD'), 'YYYYMMDD') - TO_DATE(#{rqdt}, 'YYYYMMDD')
                     ELSE 0 END                                              AS RES_DC  /*잔여일수*/
              , T.PD_CLSF_ID1                                                           /*상품분류ID-세분류[AS-IS:LCICDE]*/
@@ -68,7 +79,7 @@
                              ELSE A2.KUMON_CST_IDK_VAL
                         END                                                                              AS KUMON_CST_IDK_VAL /*구몬고객식별키값[AS-IS:LC3490P.LCGKEY]*/
                       /*[기준]계약접수일자 >= '20200601' -> 고객등급코드 조회 이외 '' 처리*/
-                      , NVL(CASE WHEN SUBSTR(A3.CNTR_RCP_FSH_DTM, 1, 8) >= '20200601' THEN A7.CST_GD_CD
+                      , NVL(CASE WHEN SUBSTR(A3.CNTR_RCP_FSH_DTM, 1, 8) <![CDATA[>=]]> '20200601' THEN A7.CST_GD_CD
                                  ELSE '' END, '1')                                                       AS CST_GD_CD         /*고객등급코드[AS-IS:LCGRAD]->VIP코드가 없으면 1:일반으로 세팅*/
                       , TO_CHAR(ADD_MONTHS(A2.IST_DT, A1.STPL_PTRM - A2.FRISU_BFSVC_PTRM_N), 'YYYYMMDD') AS STPL_EXN_DT       /*약정만료일자=ADD_MONTHS(설치일자, 약정기간-무상BS기간수)*/
                       , TO_DATE(#{rqdt}, 'YYYYMMDD') - TO_DATE(A2.IST_DT, 'YYYYMMDD')             AS PASG_DC           /*경과일수(위약금산출요청일자 - 설치일자)*/
@@ -133,7 +144,7 @@
            AND CNTR_NO   = #{cntrNo}
            AND CNTR_SN   = #{cntrSn}
     </select>
-    
+
     <select id="selectWellsServicePerformanceCount" resultType="integer">
         -- 웰스서비스실적내역 Table 조회
         SELECT COUNT(*) /*처리건수*/
@@ -144,7 +155,7 @@
            AND CNTR_NO   = #{cntrNo}
            AND CNTR_SN   = #{cntrSn}
     </select>
-    
+
     <insert id="insertWellsBorAmtBas">
         INSERT INTO TB_CBCL_WELLS_BOR_AMT_BAS /*WELLS위약금액기본*/ (
                PERF_YM               /*실적년월*/
@@ -161,8 +172,15 @@
              , REQD_CS_BOR_AMT       /*철거비용위약금액*/
              , LS_RNTF               /*분실손료*/
              , BOR_AMT               /*위약금액*/
-             , CCAM_RES_AMT          /*위약금잔여금액*/
+             , BTD_BOR_AMT           /*기초위약금액*/
+             , OC_BOR_AMT            /*발생위약금액*/
+             , DP_CCAM_SUM_AMT       /*입금위약금합계금액*/
+             , RFND_CCAM_SUM_AMT     /*환불위약금합계금액*/
+             , CTR_CCAM_SUM_AMT      /*조정위약금합계금액*/
+             , SPMT_CCAM_SUM_AMT     /*추가위약금합계금액*/
+             , EOT_BOR_AMT           /*기말위약금액*/
              , DTA_DL_YN             /*데이터삭제여부*/
+             <include refid="COMMON.insertSystemField" />
         ) VALUES (
                TO_CHAR(SYSDATE, 'YYYYMM')           /*실적년월*/
              , #{cntrNo}                            /*계약번호*/
@@ -178,11 +196,18 @@
              , #{reqdCsBorAmt}                      /*철거비용위약금액*/
              , #{lsRntf}                            /*분실손료*/
              , #{borAmt}                            /*위약금액*/
-             , #{ccamResAmt}                        /*위약금잔여금액*/
+             , 0                                         /*기초위약금액*/
+             , #{borAmt} + #{lsRntf} + #{reqdCsBorAmt}   /*발생위약금액*/
+             , 0                                         /*입금위약금합계금액*/
+             , 0                                         /*환불위약금합계금액*/
+             , 0                                         /*조정위약금합계금액*/
+             , 0                                         /*추가위약금합계금액*/
+             , #{borAmt} + #{lsRntf} + #{reqdCsBorAmt}   /*기말위약금액*/
              , 'N'                                  /*데이터삭제여부*/
+             <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>
-    
+
     <insert id="insertWellsBorAmtBasHist">
         -- WELLS위약금액기본이력 Table 생성
         INSERT INTO TB_CBCL_WELLS_BOR_AMT_BAS_HIST /*WELLS위약금액기본이력*/ (
@@ -212,24 +237,30 @@
             , RVE_DT                /*수납일자*/
             , PERF_DT               /*실적일자*/
             , RVE_AMT               /*수납금액*/
-            , BOR_AMT               /*위약금액*/
-            , CCAM_RES_AMT          /*위약금잔여금액*/
+            , BTD_BOR_AMT           /*기초위약금액*/
+            , OC_BOR_AMT            /*발생위약금액*/
+            , DP_CCAM_SUM_AMT       /*입금위약금합계금액*/
+            , RFND_CCAM_SUM_AMT     /*환불위약금합계금액*/
+            , CTR_CCAM_SUM_AMT      /*조정위약금합계금액*/
+            , SPMT_CCAM_SUM_AMT     /*추가위약금합계금액*/
+            , EOT_BOR_AMT           /*기말위약금액*/
             , DTA_DL_YN             /*데이터삭제여부*/
+            <include refid="COMMON.insertSystemField" />
         ) VALUES (
               TO_CHAR(SYSDATE, 'YYYYMM')           /*실적년월*/
-            , #{cntrNo}                      /*계약번호*/
-            , #{cntrSn}                  /*계약일련번호*/
+            , #{cntrNo}                            /*계약번호*/
+            , #{cntrSn}                            /*계약일련번호*/
             , 1                                    /*위약금액일련번호*/
             , #{ccamCmptRqdt}                      /*위약금산출요청일자*/
-            , #{ccamCmptCltnDt}                      /*위약금산출해약일자*/
-            , #{resRtlfeBorAmt}          /*잔여렌탈료위약금액*/
-            , #{rgstCostDscBorAmt}          /*등록비할인위약금액*/
-            , #{rentalDscBorAmt}            /*렌탈할인위약금액*/
-            , #{csmbCostBorAmt}            /*소모품비위약금액*/
-            , #{rstlBorAmt}              /*재약정위약금액*/
-            , #{pBorAmt}              /*포인트위약금액*/
-            , #{reqdCsBorAmt}            /*철거비용위약금액*/
-            , #{lsRntf}                    /*분실손료*/
+            , #{ccamCmptCltnDt}                    /*위약금산출해약일자*/
+            , #{resRtlfeBorAmt}                    /*잔여렌탈료위약금액*/
+            , #{rgstCostDscBorAmt}                 /*등록비할인위약금액*/
+            , #{rentalDscBorAmt}                   /*렌탈할인위약금액*/
+            , #{csmbCostBorAmt}                    /*소모품비위약금액*/
+            , #{rstlBorAmt}                        /*재약정위약금액*/
+            , #{pBorAmt}                           /*포인트위약금액*/
+            , #{reqdCsBorAmt}                      /*철거비용위약금액*/
+            , #{lsRntf}                            /*분실손료*/
             , ''                                   /*철거일자*/
             , ''                                   /*교원그룹회사코드*/
             , ''                                   /*수납번호*/
@@ -242,12 +273,18 @@
             , ''                                   /*수납일자*/
             , ''                                   /*실적일자*/
             , ''                                   /*수납금액*/
-            , #{borAmt}                    /*위약금액*/
-            , #{ccamResAmt}                    /*위약금잔여금액*/
+            , 0                                    /*기초위약금액*/
+            , #{borAmt} + #{lsRntf} + #{reqdCsBorAmt}   /*발생위약금액*/
+            , 0                                         /*입금위약금합계금액*/
+            , 0                                         /*환불위약금합계금액*/
+            , 0                                         /*조정위약금합계금액*/
+            , 0                                         /*추가위약금합계금액*/
+            , #{borAmt} + #{lsRntf} + #{reqdCsBorAmt}   /*기말위약금액*/
             ,'N'                                   /*데이터삭제여부*/
+            <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>
-    
+
     <select id="selectRentalDc" resultType="integer">
         -- WELLS매출월마감내역 테이블 조회 (설치월의 렌탈일수 조회)
         SELECT NVL(RENTAL_DC, 0) AS RENTAL_DC /*설치월렌탈일수*/
@@ -258,7 +295,7 @@
            AND CNTR_NO   = #{cntrNo}
            AND CNTR_SN   = #{cntrSn}
     </select>
-    
+
     <select id="selectRentalFeeDiscountRstlCcam" resultType="com.kyowon.sms.wells.web.closing.payment.dvo.WdcaRentalFeeDiscountRstlCcamDvo">
         SELECT SUM(RENTAL_DSC_BOR_AMT) AS RENTAL_DSC_BOR_AMT
              , SUM(RSTL_BOR_AMT) AS RSTL_BOR_AMT
@@ -287,7 +324,7 @@
                 GROUP BY CNTR_NO, CNTR_SN
                )
     </select>
-    
+
     <select id="selectFreeGiftReceipt" resultType="integer">
         -- 사은품접수내역 테이블 조회 (특정 사은품 제공 여부를 확인하는 쿼리)
         SELECT COUNT(*) AS FGPT_DSB_CT /*사은품제공건수*/
@@ -297,6 +334,149 @@
            AND ( ( CNTR_UNIT_TP_CD = '010' AND CNTR_NO = #{cntrNo} )
                    OR ( CNTR_UNIT_TP_CD = '020' AND DTL_CNTR_NO = #{cntrNo} AND DTL_CNTR_SN = #{cntrSn} ) )
            AND FGPT_PD_CD = #{fgptPdCd} /*사은품상품코드*/
+    </select>
+
+    <select id="selectRegularShippingBreachOfPromiseAmount" resultType="com.kyowon.sms.wells.web.closing.payment.dvo.WdcaRegularShippingDvo">
+        SELECT T.CNTR_NO                                     /*계약번호*/
+             , T.CNTR_SN                                     /*계약일련번호*/
+             , CASE WHEN T.STPL_OVR_YN = 'Y' THEN T.RES_CHRAM_BOR_AMT
+                    ELSE 0
+               END                  AS RES_CHRAM_BOR_AMT     /*잔여요금위약금액*/
+             , CASE WHEN T.STPL_OVR_YN = 'Y' THEN CASE WHEN /*----------------------------------------------------------------*/
+                                                            /* 회차별변동 할인위약금액 산출                                   */
+                                                            /* (상품기준금액 * 배송회차) - ((판매금액 - 할인금액) * 배송회차) */
+                                                            /* 결국 할인금액을 산출하려는 산식임                              */
+                                                            /*----------------------------------------------------------------*/
+                                                            T.RGLR_SPP_PRC_DV_CD = '3' THEN ( T.PD_BASE_AMT * T.TN_CHG_DSC_SPP_TN ) - ( ( T.SELL_AMT - T.DSC_AMT ) * T.TN_CHG_DSC_SPP_TN )
+                                                       ELSE /*----------------------------------------------------------------*/
+                                                            /* 회차별변동 외 할인위약금액 산출                                */
+                                                            /* ( (상품기준금액 -(판매금액-할인금액)) / 상품수량 ) * 배송회차 */
+                                                            /* 결국 할인금액을 산출하려는 산식임                              */
+                                                            /*----------------------------------------------------------------*/
+                                                            ( ( T.PD_BASE_AMT - ( T.SELL_AMT - T.DSC_AMT ) ) / T.PD_QTY ) * T.SPP_TN
+                                                       END
+                    ELSE 0
+               END                  AS DSC_BOR_AMT           /*할인위약금액*/
+          FROM (
+                SELECT B.CNTR_NO                                        /*계약번호*/
+                     , B.CNTR_SN                                        /*계약일련번호*/
+                     , B.SELL_TP_DTL_CD                                 /*계약상세상태코드*/
+                     , B.SL_DT                                          /*매출일자*/
+                     , B.STPL_PTRM                                      /*약정기간*/
+                     , B.PD_BASE_AMT                                    /*상품기준금액*/
+                     , B.SELL_AMT                                       /*판매금액*/
+                     , B.DSC_AMT                                        /*할인금액*/
+                     , B.PD_QTY                                         /*상품수량*/
+                     , CASE WHEN #{rqdt} <![CDATA[>=]]> CASE WHEN B.SL_DT IS NOT NULL THEN TO_CHAR(ADD_MONTHS(B.SL_DT, B.STPL_PTRM), 'yyyyMMdd')
+                                                    ELSE ''
+                                                    END
+                            THEN 'Y'
+                            ELSE 'N'
+                       END                         AS STPL_OVR_YN       /*약정초과여부*/
+                     , CASE WHEN B.SL_DT IS NOT NULL THEN TO_DATE(B.SL_DT, 'YYYYMMDD') - TO_DATE(#{rqdt}, 'YYYYMMDD')
+                            ELSE 0
+                       END                         AS UES_DC            /*사용일수*/
+                     /*---------------------------------------------------*/
+                     /* 잔여요금 위약금액 산식 - 캡슐                     */
+                     /* ( 판매금액 - 할인금액 * ( 경과개월수 - 1 ) ) / 10 */
+                     /*---------------------------------------------------*/
+                     , TRUNC( ( B.SELL_AMT
+                              - B.DSC_AMT
+                              * ( CASE WHEN B.SL_DT IS NOT NULL
+                                            THEN CASE WHEN MONTHS_BETWEEN(B.SL_DT, #{rqdt}) > 0 THEN MONTHS_BETWEEN(B.SL_DT, #{rqdt}) - 1
+                                                      ELSE MONTHS_BETWEEN(B.SL_DT, #{rqdt})
+                                                 END
+                                      ELSE 0
+                                 END ) ) / 10, 1 ) AS RES_CHRAM_BOR_AMT /*잔여요금위약금액*/
+                     , B.RGLR_SPP_PRC_DV_CD                             /*정기배송 구성유형*/
+                     , B.RENTAL_TN                                      /*렌탈회차*/
+                     , B.SV_PRD                                         /*서비스주기*/
+                     /*----------------------------------------------------------------------------------------------------------------------------------*/
+                     /* 회차변동 배송회차 산출                                                                                                           */
+                     /* 1) 렌탈차월 = 0 -> 배송회차 = 0                                                                                                  */
+                     /* 2-1) 렌탈차월 - 1 / 배송주기(TO-BE 서비스주기)의 몫 = 0 AND 경과개월(취소일자와 매출일자) / 배송주기(TO-BE 서비스주기)의 몫 != 0 */
+                     /*    -> 렌탈차월 - 1 / 배송주기(TO-BE 서비스주기)                                                                                  */
+                     /* 2-2) 2-1이 아니면 -> 렌탈차월 - 1 / 배송주기(TO-BE 서비스주기) + 1                                                               */
+                     /* 결국 취소월의 배송여부를 판단하여 배송회차를 산출하는 로직임                                                                     */
+                     /*----------------------------------------------------------------------------------------------------------------------------------*/
+                     , CASE WHEN B.RENTAL_TN = 0 THEN 0
+                            ELSE CASE WHEN MOD(B.RENTAL_TN - 1, B.SV_PRD) = 0
+                                       AND MOD(CASE WHEN B.SL_DT IS NOT NULL THEN MONTHS_BETWEEN(#{duedt}, B.SL_DT)
+                                                    ELSE 0
+                                               END, B.SV_PRD) != 0
+                                           THEN ( B.RENTAL_TN - 1 ) / B.SV_PRD
+                                      ELSE ( ( B.RENTAL_TN - 1 ) / B.SV_PRD ) + 1
+                               END
+                       END                         AS TN_CHG_DSC_SPP_TN /*회차변동배송회차*/
+                     /*----------------------------------------------------------------------------------------------------------------------------------*/
+                     /* 회차변동 외 배송회차 산출                                                                                                        */
+                     /* 1) 렌탈차월 = 0 -> 배송회차 = 0                                                                                                  */
+                     /* 2-1) 렌탈차월 - 1 / 배송주기(TO-BE 서비스주기)의 몫 = 0 AND 경과개월(취소일자와 매출일자) / 배송주기(TO-BE 서비스주기)의 몫 != 0 */
+                     /*    -> ( 배송회차 * 상품수량 ) - 상품수량                                                                                         */
+                     /* 2-2) 2-1이 아니면 -> 배송회차 * 상품수량                                                                                         */
+                     /* 결국 취소월의 배송여부를 판단하여 배송회차를 산출하는 로직임                                                                     */
+                     /* 단 입력된 반품수량이 있다면 해당 수량만큼 배송회차에서 차감한다.                                                                 */
+                     /*----------------------------------------------------------------------------------------------------------------------------------*/
+                     , CASE WHEN #{rtngdQty} > 0 THEN CASE WHEN B.RENTAL_TN = 0 THEN 0
+                                                           ELSE CASE WHEN MOD(B.RENTAL_TN - 1, B.SV_PRD) = 0
+                                                                      AND MOD(CASE WHEN B.SL_DT IS NOT NULL THEN MONTHS_BETWEEN(#{duedt}, B.SL_DT)
+                                                                                   ELSE 0
+                                                                              END, B.SV_PRD) != 0
+                                                                          THEN ( B.SPP_CLN * B.PD_QTY ) - B.PD_QTY
+                                                                     ELSE B.SPP_CLN * B.PD_QTY
+                                                                END
+                                                      END - #{rtngdQty}
+                            ELSE CASE WHEN B.RENTAL_TN = 0 THEN 0
+                                      ELSE CASE WHEN MOD(B.RENTAL_TN - 1, B.SV_PRD) = 0
+                                                 AND MOD(CASE WHEN B.SL_DT IS NOT NULL THEN MONTHS_BETWEEN(#{duedt}, B.SL_DT)
+                                                              ELSE 0
+                                                         END, B.SV_PRD) != 0
+                                                THEN ( B.SPP_CLN * B.PD_QTY ) - B.PD_QTY
+                                                ELSE B.SPP_CLN * B.PD_QTY
+                                           END
+                                 END
+                      END                          AS SPP_TN            /*배송회차*/
+                  FROM (
+                        SELECT A1.CNTR_NO                                                     /*계약번호*/
+                             , A1.CNTR_SN                                                     /*계약일련번호*/
+                             , A1.SELL_TP_DTL_CD                                              /*판매유형상세코드[61:일반, 62:모종, 63:캡슐]*/
+                             , A1.CNTR_DTL_STAT_CD                                            /*계약상세상태코드*/
+                             , ( SELECT SUBSTR(MIN(IOST_DTM), 1, 8)
+                                   FROM TB_SSSO_SPP_ORD_DTL /*배송주문상세*/
+                                  WHERE DTA_DL_YN        = 'N' /*데이터삭제여부*/
+                                    AND SPP_PRGS_STAT_CD = '70' /*배송진행상태코드 [70:배송완료]*/
+                                    AND CNTR_NO          = A1.CNTR_NO
+                                    AND CNTR_SN          = A1.CNTR_SN ) AS SL_DT              /*매출일자*/
+                             , A1.STPL_PTRM                                                   /*약정기간*/
+                             , A1.PD_BASE_AMT                                                 /*상품기준금액*/
+                             , A1.SELL_AMT                                                    /*판매금액*/
+                             , A1.DSC_AMT                                                     /*할인금액*/
+                             , A1.PD_QTY                                                      /*상품수량*/
+                             , A1.SV_PRD                                                      /*서비스주기*/
+                             , ( SELECT COUNT(*)
+                                   FROM TB_SSSO_SPP_ORD_DTL /*배송주문상세*/
+                                  WHERE DTA_DL_YN        = 'N' /*데이터삭제여부*/
+                                    AND SPP_PRGS_STAT_CD = '70' /*배송진행상태코드 [70:배송완료]*/
+                                    AND CNTR_NO          = A1.CNTR_NO
+                                    AND CNTR_SN          = A1.CNTR_SN ) AS SPP_CLN            /*배송회수*/
+                             , A2.PD_PRP_VAL11                          AS RGLR_SPP_PRC_DV_CD /*정기배송 구성유형 [AS-IS:LD1010P의 LCPGB1]*/
+                             , A3.RENTAL_TN                                                   /*렌탈회차*/
+                          FROM TB_SSCT_CNTR_DTL A1
+                          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL A2 /*상품각사속성상세*/
+                            ON A2.DTA_DL_YN           = 'N'   /*데이터삭제여부*/
+                           AND A2.PD_CD               = A1.BASE_PD_CD
+                           AND A2.PD_EXTS_PRP_GRP_CD  ='CNTR' /*상품확장속성그룹코드 [CNTR:공통]*/
+                          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ A3 /*WELLS매출월마감내역*/
+                            ON A3.DTA_DL_YN = 'N' /*데이터삭제여부*/
+                           AND A3.CNTR_NO   = A1.CNTR_NO
+                           AND A3.CNTR_SN   = A1.CNTR_SN
+                           AND A3.SL_CL_YM  = SUBSTR(#{rqdt}, 1, 6)
+                         WHERE A1.DTA_DL_YN  = 'N' /*데이터삭제여부*/
+                           AND A1.SELL_TP_CD = '6' /*판매유형코드[6:정기배송]*/
+                           AND A1.CNTR_NO    = #{cntrNo}
+                           AND A1.CNTR_SN    = #{cntrSn}
+                       ) B
+               )T
     </select>
 
 </mapper>

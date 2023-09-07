@@ -7,7 +7,7 @@ import lombok.Setter;
 
 /**
  * <pre>
- * W-SV-U-0193M01 독립창고출고관리
+ * W-SV-U-0193M01 독립창고출고관리 dvo
  * </pre>
  *
  * @author inho.choi
@@ -16,6 +16,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WsnaIndependenceWareOstrDvo {
+
+    private String lgstTrsYn;
 
     private String chk;
     private String wareNm;
@@ -56,4 +58,7 @@ public class WsnaIndependenceWareOstrDvo {
     private String ostrAkNo;
     private Integer ostrAkSn;
     private String ostrDt;
+    private String ostrWareDvCd;
+    private String ostrPrtnrNo;
+    private String ostrPrtnrOgTpCd;
 }

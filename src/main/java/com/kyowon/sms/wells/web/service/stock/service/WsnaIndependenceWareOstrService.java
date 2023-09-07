@@ -4,6 +4,10 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndependenceWareOst
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -13,11 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaIndependenceWareOstrConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrLgstDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskResDvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndependenceWareOstrMapper;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
@@ -45,6 +50,9 @@ public class WsnaIndependenceWareOstrService {
 
     // 재고서비스
     private final WsnaItemStockItemizationService stockService;
+
+    // 물류 출고 서비스
+    private final WsnaLogisticsOutStorageAskService lgstService;
 
     // 메시지 서비스
     private final MessageResourceService messageService;
@@ -90,34 +98,14 @@ public class WsnaIndependenceWareOstrService {
     }
 
     /**
-     * 독립창고 출고 관리 페이징 조회
-     *
-     * @param dto
-     * @param pageInfo
-     * @return
-     */
-    public PagingResult<WsnaIndependenceWareOstrDvo> getIndependenceWareOstrsPaging(SearchReq dto, PageInfo pageInfo) {
-
-        PagingResult<WsnaIndependenceWareOstrDvo> result = this.mapper.selectIndependenceWareOstrs(dto, pageInfo);
-
-        List<WsnaIndependenceWareOstrDvo> dvos = result.getList();
-
-        // 실시간 물류재고 조회 호출
-        this.getRealTimeLogisticStockQtys(dvos);
-        result.setList(dvos);
-
-        return result;
-    }
-
-    /**
-     * 독립창고 출고 관리 엑셀 다운로드
-     *
+     * 독립창고 출고 관리 조회
      * @param dto
      * @return
      */
-    public List<WsnaIndependenceWareOstrDvo> getIndependenceWareOstrsExcelDownload(SearchReq dto) {
+    public List<WsnaIndependenceWareOstrDvo> getIndependenceWareOstrs(SearchReq dto) {
 
         List<WsnaIndependenceWareOstrDvo> dvos = this.mapper.selectIndependenceWareOstrs(dto);
+
         // 실시간 물류재고 조회 호출
         this.getRealTimeLogisticStockQtys(dvos);
 
@@ -133,8 +121,11 @@ public class WsnaIndependenceWareOstrService {
         if (CollectionUtils.isNotEmpty(dvos)) {
             String asnOjYm = dvos.get(0).getAsnOjYm();
 
+            String[] text = new String[1];
+            text[0] = asnOjYm;
+
             // 비고 - 직배창고 물량배정 물류to센터
-            String rmkCn = this.messageService.getMessage("MSG_TXT_DIDY_WARE_QOM_ASN_LGST_CNR", new String[] {asnOjYm});
+            String rmkCn = this.messageService.getMessage("MSG_TXT_DIDY_WARE_QOM_ASN_LGST_CNR", text);
 
             int size = dvos.size();
             int sliceSize = Math.floorDiv(size, SLICE_SIZE) + (Math.floorMod(size, SLICE_SIZE) > 0 ? 1 : 0);
@@ -183,8 +174,6 @@ public class WsnaIndependenceWareOstrService {
 
                 if (itmPdCd.equals(stockPdCd)) {
                     lgstQty = stock.getLgstAGdQty();
-                    stockSize--;
-                    stocks.remove(stock);
                     break;
                 }
             }
@@ -230,11 +219,18 @@ public class WsnaIndependenceWareOstrService {
         List<WsnaIndependenceWareOstrDvo> dvos = this.converter.mapAllSaveReqToWsnaIndependenceWareOstrDvo(dtos);
 
         // 입고창고 필터링
-        List<String> strWareNos = dvos.stream().map(WsnaIndependenceWareOstrDvo::getStrWareNo).distinct().toList();
+        List<WsnaIndependenceWareOstrDvo> filterDvos = dvos.stream()
+            .filter(distinctByKey(dvo -> dvo.getStrWareNo())).toList();
 
-        for (String strWareNo : strWareNos) {
+        for (WsnaIndependenceWareOstrDvo filterDvo : filterDvos) {
             // 출고요청번호
-            String newOstrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
+            String newOstrAkNo = this.mapper.selectOstrAkNoByQomAsn(filterDvo);
+            if (StringUtils.isEmpty(newOstrAkNo)) {
+                newOstrAkNo = this.mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_QOM_ASN);
+            }
+
+            // 입고창고번호
+            String strWareNo = filterDvo.getStrWareNo();
 
             // 입고창고에 해당하는 품목 리스트
             List<WsnaIndependenceWareOstrDvo> itms = dvos.stream().filter(dvo -> strWareNo.equals(dvo.getStrWareNo()))
@@ -257,4 +253,33 @@ public class WsnaIndependenceWareOstrService {
 
         return count;
     }
+
+    /**
+     * distinct 함수
+     */
+    private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+        Map<Object, Boolean> map = new ConcurrentHashMap<>();
+        return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
+    /**
+     * 물류 전송
+     * @param dto
+     * @return
+     */
+    @Transactional
+    public int createIndependenceLogisticsTransfer(CreateReq dto) {
+
+        WsnaIndependenceWareOstrLgstDvo dvo = this.converter.mapCreateReqToWsnaIndependenceWareOstrLgstDvo(dto);
+
+        List<WsnaLogisticsOutStorageAskReqDvo> dvos = this.mapper.selectIndependenceLogisticsTransfer(dvo);
+        // 적용 대상 데이터가 없습니다.
+        BizAssert.isFalse(CollectionUtils.isEmpty(dvos), "MSG_ALT_NO_APPY_OBJ_DT");
+
+        // 물류 출고처리
+        WsnaLogisticsOutStorageAskResDvo resDvo = this.lgstService.createQomOutOfStorageAsks(dvos);
+
+        return resDvo.getAkCnt();
+    }
+
 }

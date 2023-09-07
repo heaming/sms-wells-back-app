@@ -13,6 +13,7 @@ public class WpdcAsPartCommonUseMgtDto {
      * @param asMatItmGrpCd
      * @param svMatGrpCd
      * @param pdCd
+     * @param pdNm
      * @param sapMatCd
      * @param sapItemCdFrom
      * @param sapItemCdTo
@@ -26,6 +27,7 @@ public class WpdcAsPartCommonUseMgtDto {
         String asMatItmGrpCd,   /* 품목그룹코드 */
         String svMatGrpCd,      /* 자재그룹코드 */
         String pdCd,            /* 제품코드 */
+        String pdNm,            /* 제품명 */
         String sapMatCd,        /* 자재코드 */
         String sapItemCdFrom,   /* 시작품목코드 */
         String sapItemCdTo      /* 종료품목코드 */
@@ -36,6 +38,7 @@ public class WpdcAsPartCommonUseMgtDto {
      * AS부품 목록 Search Result Dto
      * @param partPdCd
      * @param partPdNm
+     * @param partPdAbbrNm
      * @param asMatMngTpCd
      * @param asMatMngTpNm
      * @param sapMatCd
@@ -55,6 +58,7 @@ public class WpdcAsPartCommonUseMgtDto {
     public record SearchPartRes(
         String partPdCd,            /* 부품코드 */
         String partPdNm,            /* 부품명 */
+        String partPdAbbrNm,        /* 부품약어명 */
         String asMatMngTpCd,        /* 관리유형코드 */
         String asMatMngTpNm,        /* 관리유형명 */
         String sapMatCd,            /* 자재코드 */
@@ -77,15 +81,25 @@ public class WpdcAsPartCommonUseMgtDto {
      * AS부품 관련 제품 목록 Search Result Dto
      * @param pdCd
      * @param pdNm
+     * @param pdAbbrNm
      * @param sapMatCd
      * @param asItemCd
+     * @param asMatItmKndCd
+     * @param asMatItmKndNm
+     * @param asMatItmGrpCd
+     * @param asMatItmGrpNm
      */
     @ApiModel("WpdcAsPartCommonUseMgtDto-SearchProductRes")
     public record SearchProductRes(
         String pdCd,                /* 제품코드 */
         String pdNm,                /* 제품명 */
+        String pdAbbrNm,            /* 제품약어명 */
         String sapMatCd,            /* 자재코드 */
-        String asItemCd             /* 품목코드 */
+        String asItemCd,            /* 품목코드 */
+        String asMatItmKndCd,       /* 품목종류 */
+        String asMatItmKndNm,       /* 품목종류명 */
+        String asMatItmGrpCd,       /* 품목그룹 */
+        String asMatItmGrpNm        /* 품목그룹명 */
     ) {
     }
 }

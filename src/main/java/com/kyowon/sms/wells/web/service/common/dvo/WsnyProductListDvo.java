@@ -11,4 +11,5 @@ public class WsnyProductListDvo {
     String codeId;
     String codeName;
     String itmKndCd;
+    String pdGrpCd;
 }

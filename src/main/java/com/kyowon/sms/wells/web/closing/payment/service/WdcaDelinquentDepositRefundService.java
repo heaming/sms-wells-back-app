@@ -43,8 +43,11 @@ public class WdcaDelinquentDepositRefundService {
         if (!Objects.isNull(searchDvo)) {
             inputDvo.setThmDlqDpSumAmt(searchDvo.getThmDlqAddDpSumAmt());
             inputDvo.setThmDlqAddDpSumAmt(searchDvo.getThmDlqAddDpSumAmt());
+            inputDvo.setRsgBorDpAmt(searchDvo.getRsgBorDpAmt());
             inputDvo.setThmDlqRfndSumAmt(searchDvo.getThmDlqRfndSumAmt());
             inputDvo.setThmDlqAddRfndSumAmt(searchDvo.getThmDlqAddRfndSumAmt());
+            inputDvo.setEotDlqAmt(searchDvo.getEotDlqAmt());
+            inputDvo.setEotDlqAddAmt(searchDvo.getEotDlqAddAmt());
 
             result = mapper.updateDlqBas(inputDvo); /*연체기본 Table 정보 수정*/
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");

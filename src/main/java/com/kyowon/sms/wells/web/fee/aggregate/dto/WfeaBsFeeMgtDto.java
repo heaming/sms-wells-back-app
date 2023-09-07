@@ -34,6 +34,18 @@ public class WfeaBsFeeMgtDto {
         String endVstDt
     ) {}
 
+    @ApiModel(value = "WfeaBsFeeMgtDto-SaveReq")
+    public record SaveReq(
+        @NotBlank
+        String perfYm,
+        @NotBlank
+        String ogTpCd,
+        @NotBlank
+        String feeTcntDvCd,
+        @NotBlank
+        String perfAgrgCrtDvCd
+    ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -46,7 +58,6 @@ public class WfeaBsFeeMgtDto {
         String basePdCd, /*상품코드*/
         String pdNm, /*상품명*/
         String svFeePdDvCd, /*bs상품군*/
-        String svFeePdDvNm, /*bs상품군명*/
         int svFeeBaseAmt, /*bs기본수수료*/
         int feeCalcAmt, /*방문수수료*/
         String svBizDclsfCd, /*작업유형코드*/

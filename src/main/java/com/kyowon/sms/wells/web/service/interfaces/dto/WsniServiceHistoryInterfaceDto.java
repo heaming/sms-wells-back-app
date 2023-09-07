@@ -342,6 +342,5 @@ public class WsniServiceHistoryInterfaceDto {
                 fsVstCnt
             );
         }
-
     }
 }

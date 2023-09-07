@@ -1,0 +1,161 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbCustomerPsByProductMapper">
+
+    <select id="selectCustomerPsByProduct" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerPsByProductDto$SearchRes">
+        WITH PD_INF AS ( SELECT T1.PD_CD
+                              , T1.PD_NM
+                              , T2.PD_PRP_VAL19 AS ITM_KND_CD
+                              , T2.PD_PRP_VAL20 AS PD_GRP_CD
+                              , T2.PD_PRP_VAL04	AS LP_USE_YN
+                              /* , T2.PD_PRP_VAL17 AS MAT_MNGT_DV_CD */
+                              , F_CMZ_CD_NM('TNT_WELLS', 'MAT_MNGT_DV_CD', T2.PD_PRP_VAL17, 'ko') AS MAT_MNGT_DV_CD
+                              , T1.PDCT_UPRC
+                              , T1.SAP_MAT_CD
+                              , T2.PD_PRP_VAL30 AS TRNOVR_RT_OJ_YN
+                              , T2.PD_PRP_VAL21 AS CMN_PART_DV_CD /* 중수리 01 */
+                              , T2.PD_PRP_VAL15 AS ORDNY_HV_MAT_YN /* 기초자재 Y 상시보유 */
+                           FROM WSMDBS.TB_PDBS_PD_BAS T1                    /*상품기본*/
+                LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T2  /*상품각사속성상세*/
+                             ON T1.PD_CD = T2.PD_CD
+                         /* AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT') */    /*상품확장속성그룹코드 CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
+                          WHERE 1=1
+                            AND T2.PD_PRP_VAL19 = '4'
+                            <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
+                            AND T2.PD_PRP_VAL20 = #{pdGrpCd} /* 상품그룹 */
+                            </if>
+                            <if test="@MybatisUtils@isNotEmpty(pdCd)">
+                            AND T1.PD_CD = #{pdCd} /* 상품코드 */
+                            </if>
+        )
+        , TEMP AS ( SELECT CNTR_NO
+                         , CNTR_SN
+                         , PRTNR_NO
+                     FROM (SELECT RANK() OVER (PARTITION BY T.CNTR_NO, T.CNTR_SN ORDER BY VST_FSH_DT DESC ) RN
+                                , CNTR_NO
+                                , CNTR_SN
+                                , PRTNR_NO
+                             FROM TB_SVPD_CST_SV_WK_RS_IZ T
+                            WHERE SV_BIZ_HCLSF_CD = '2'
+                        )
+                    WHERE RN = 1
+        )
+        , OG_INF_PRTNR AS ( SELECT T1.BASE_YM
+                                 , T1.PRTNR_NO
+                                 , T1.OG_TP_CD
+                                 , T1.PRTNR_KNM
+                                 , T1.OG_ID
+                                 , T1.OG_CD
+                                 , T1.OG_NM
+                                 , T1.HMNRSC_DEPT_CD   /*인사부서코드*/
+                                 , T3.HGR_OG_ID
+                                 , RANK() OVER(PARTITION BY T1.PRTNR_NO ORDER BY T3.HGR_OG_ID) AS RN
+                              FROM WSMDBS.TB_OGBS_MM_PRTNR_IZ T1 /*월파트너내역*/
+                        INNER JOIN WSMDBS.TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
+                                ON T1.PRTNR_NO = T2.PRTNR_NO
+                               AND T1.OG_TP_CD = T2.OG_TP_CD
+                               AND T2.DTA_DL_YN = 'N'
+                        INNER JOIN WSMDBS.TB_OGBS_MM_OG_IZ T3   /*월조직내역*/
+                                ON T1.OG_ID = T3.OG_ID
+                               AND T1.BASE_YM = T3.BASE_YM
+                               AND T3.DTA_DL_YN = 'N'
+                             WHERE 1=1
+                               AND T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                              /*AND (T1.PRTNR_NO IN (SELECT ICHR_PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT FST_RGST_USR_ID FROM TEMP1))*/
+                               AND T1.OG_TP_CD IN ('HR1', 'W02', 'W03','W06') /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
+                               AND T1.DTA_DL_YN = 'N'
+        )
+        SELECT C1.CNTR_NO
+             , C1.CNTR_SN
+             , PD_INF.SAP_MAT_CD
+             , PD_INF.PD_CD
+             , PD_INF.PD_NM
+             , A1.NEW_ADR_ZIP
+             , B1.BRCH_OG_ID
+             , (SELECT OG_CD
+                 FROM TB_OGBS_OG_BAS
+                WHERE B1.BRCH_OG_ID = OG_ID) AS BRCH_OG_CD /* 영업센터 */
+             , (SELECT OG_NM
+                  FROM TB_OGBS_OG_BAS
+                 WHERE B1.BRCH_OG_ID = OG_ID) AS BRCH_OG_NM /* 영업센터이름 (지역단) */
+             , OG_INF_PRTNR.OG_NM /* 서비스센터 */
+             , A1.RDADR||' '||A1.RDADR AS ADDR
+             , T4.CRAL_LOCARA_TNO
+             , T4.MEXNO_ENCR
+             , T4.CRAL_IDV_TNO
+             , T4.LOCARA_TNO
+             , T4.EXNO_ENCR
+             , T4.IDV_TNO
+             , C2.IST_DT
+             , C2.CAN_DT
+             , C2.REQD_DT
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', C3.SELL_TP_CD, 'ko') AS SELL_TP_NM
+             , F_CMZ_CD_NM('TNT_WELLS', 'PD_USWY_CD', C2.PD_USWY_CD, 'ko') AS PD_USWY_CD
+             , C1.BC_NO
+             , C2.SV_STP_DT
+             , C3.CNTR_PTRM
+             , C1.EXT_FRISU_AS_MCN
+             , C3.SV_PRD
+             , T4.RCGVP_KNM
+             , OG_INF_PRTNR.HMNRSC_DEPT_CD /* 웰스매니저 소속 */
+             , OG_INF_PRTNR.PRTNR_KNM /* 웰스매니저 */
+             , OG_INF_PRTNR.PRTNR_NO /* 웰스매니저 사번 */
+             , NVL((SELECT NVL(TO_CHAR(D1.DLQ_ACU_MCN), 'N')
+                      FROM TB_CBCL_DLQ_BAS D1
+                     WHERE C1.CNTR_NO = D1.CNTR_NO
+                       AND C1.CNTR_SN = D1.CNTR_SN
+                       AND EOT_DLQ_ADD_AMT > 0
+                       AND D1.PERF_YM = TO_CHAR(SYSDATE,'YYYYMM')),'0') AS DLQ_ACU_MCN /* 연체여부 */
+             , PD_INF.TRNOVR_RT_OJ_YN
+             , PD_INF.CMN_PART_DV_CD /* 중수리 01 */
+             , PD_INF.ORDNY_HV_MAT_YN /* 기초자재 Y 상시보유 */
+         FROM TB_SVPD_CST_SV_EXCN_IZ C1
+   INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ C2 /* AC202 월별고객서비스대상내역 */
+           ON C1.CNTR_NO = C2.CNTR_NO
+          AND C1.CNTR_SN = C2.CNTR_SN
+          AND C2.MNGT_YM = TO_CHAR(SYSDATE,'YYYYMM')
+   INNER JOIN WSMDBS.TB_SSCT_CNTR_DTL C3 /*계약상세*/
+           ON C1.CNTR_NO = C3.CNTR_NO
+          AND C3.DTA_DL_YN = 'N'
+LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS A1
+           ON C2.ADR_ID = A1.ADR_ID   /*이해욱이사님,이진성프로님과 협의 설치, AS는 배정시에 주소를 사용 해야 하기 때문에 TB_SVPD_CST_SVAS_IST_OJ_IZ 에 ADR_ID 를 추가 하기로 함. 테이블이 변경 되면, T4.ADR_ID 를 T1.ADR_ID 으로 수정 해야 함*/
+          AND A1.DTA_DL_YN = 'N'
+   INNER JOIN PD_INF
+           ON C1.PDCT_PD_CD = PD_INF.PD_CD
+   INNER JOIN TEMP
+           ON C1.CNTR_NO = TEMP.CNTR_NO
+          AND C1.CNTR_SN = TEMP.CNTR_SN
+   INNER JOIN OG_INF_PRTNR
+           ON TEMP.PRTNR_NO = OG_INF_PRTNR.PRTNR_NO
+          AND OG_INF_PRTNR.RN = 1
+   INNER JOIN TB_SSCT_CNTR_ADR_REL T3       /*계약주소관계*/
+           ON C1.CNTR_NO = T3.DTL_CNTR_NO
+          AND C1.CNTR_SN = T3.DTL_CNTR_SN
+          AND T3.ADRPC_TP_CD = '3'    /*1 계약주소, 2 배달주소, 3 설치주소*/
+          AND C2.MNGT_YM BETWEEN T3.VL_STRT_DTM AND T3.VL_END_DTM
+   INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4     /*계약주소지기본*/
+           ON T3.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID  /*계약주소지ID*/
+          AND C2.ADR_ID = T4.ADR_ID
+          AND T4.DTA_DL_YN = 'N'
+   INNER JOIN ( SELECT NEW_ADR_ZIP
+                     , BRCH_OG_ID
+                     , RANK() OVER(PARTITION BY NEW_ADR_ZIP ORDER BY CH_SN DESC) AS RN
+                  FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ
+        ) B1
+           ON A1.NEW_ADR_ZIP = B1.NEW_ADR_ZIP
+          AND B1.RN = 1
+        WHERE 1=1
+        <if test="@MybatisUtils@isNotEmpty(instOver)">
+        AND C2.IST_NMN_N = #{instOver} /* 설치차월 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
+        AND C3.SELL_TP_CD = #{sellTpCd} /* 판매유형 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(bfsvcPrdCd)">
+        AND C3.SV_PRD = #{bfsvcPrdCd} /* 주기 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cancelOrReqd)">
+        AND (C2.CAN_DT IS NOT NULL OR C2.REQD_DT IS NOT NULL)
+        </if>
+
+    </select>
+</mapper>

@@ -1,20 +1,21 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaItemBaseInformationDto.*;
+
 import java.math.BigDecimal;
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationReturnDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationSearchDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemOrderQuantityDvo;
-import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaItemBaseInformationConverter;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationReturnDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationSearchDvo;
+import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemBaseInformationMapper;
-
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaItemBaseInformationDto.*;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,31 +37,40 @@ public class WsnaItemBaseInformationService {
 
     private static final String LGST_DV_CD = "1";
 
-    public List<WsnaItemBaseInformationReturnDvo> getItemBaseInformations(SearchReq dto) {
+    public PagingResult<WsnaItemBaseInformationReturnDvo> getItemBaseInformations(SearchReq dto, PageInfo pageInfo) {
 
         WsnaItemBaseInformationSearchDvo searchDvo = this.converter.mapSearchReqToWsnaItemBaseInformationSearchDvo(dto);
 
-        List<WsnaItemBaseInformationReturnDvo> returnBaseDvo = this.mapper.selectItemBaseInformations(searchDvo);
+        PagingResult<WsnaItemBaseInformationReturnDvo> returnBaseDvo = this.mapper
+            .selectItemBaseInformations(searchDvo, pageInfo);
 
-        this.getRealTimeItemBaseLogisticStockQtys(returnBaseDvo);
+        List<WsnaItemBaseInformationReturnDvo> dvos = returnBaseDvo.getList();
+
+        this.getRealTimeItemBaseLogisticStockQtys(dvos);
+
+        returnBaseDvo.setList(dvos);
 
         return returnBaseDvo;
     }
 
-    public List<WsnaItemBaseInformationDvo> getItemBaseInformationsOutOf(SearchReq dto) {
+    public PagingResult<WsnaItemBaseInformationDvo> getItemBaseInformationsOutOf(SearchReq dto, PageInfo pageInfo) {
 
         WsnaItemBaseInformationSearchDvo searchDvo = this.converter.mapSearchReqToWsnaItemBaseInformationSearchDvo(dto);
 
-        List<WsnaItemBaseInformationDvo> itemBaseDvo = this.mapper.selectItemBaseInformationsOutOf(searchDvo);
-
         String ostrWareDvCd = this.mapper.selectOstrWareDvCd(dto);
 
-        //출고대상 창고가 물류센터일경우
-        if (LGST_DV_CD.equals(ostrWareDvCd)) {
-            // 실시간 물류 재고조회
-            this.getRealTimeLogisticStockQtys(itemBaseDvo);
-        }
+        searchDvo.setOstrWareDvCd(ostrWareDvCd);
 
+        PagingResult<WsnaItemBaseInformationDvo> itemBaseDvo = this.mapper
+            .selectItemBaseInformationsOutOf(searchDvo, pageInfo);
+
+        List<WsnaItemBaseInformationDvo> dvos = itemBaseDvo.getList();
+        //출고대상 창고가 물류센터일경우
+        if (LGST_DV_CD.equals(ostrWareDvCd) && CollectionUtils.isNotEmpty(dvos)) {
+            // 실시간 물류 재고조회
+            this.getRealTimeLogisticStockQtys(dvos);
+        }
+        itemBaseDvo.setList(dvos);
         return itemBaseDvo;
     }
 

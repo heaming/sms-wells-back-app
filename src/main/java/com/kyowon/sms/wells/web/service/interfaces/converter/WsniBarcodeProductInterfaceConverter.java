@@ -7,7 +7,16 @@ import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniBarcodeProductInterfa
 
 @Mapper(componentModel = "spring")
 public interface WsniBarcodeProductInterfaceConverter {
-    WsniBarcodeProductInterfaceDto.SearchJsonRes mapBarcodeProductInterfaceDvoToJsonRes(WsniBarcodeProductInterfaceDvo dvo);
+    WsniBarcodeProductInterfaceDto.SearchJsonRes mapBarcodeProductInterfaceDvoToJsonRes(
+        WsniBarcodeProductInterfaceDvo dvo
+    );
 
-    WsniBarcodeProductInterfaceDto.SearchCustJsonRes mapBarcodeProductCustDtoToJsonRes(WsniBarcodeProductInterfaceDto.SearchCustRes dto);
+    WsniBarcodeProductInterfaceDto.SearchCustJsonRes mapBarcodeProductCustDtoToJsonRes(
+        WsniBarcodeProductInterfaceDto.SearchCustRes dto
+    );
+
+    WsniBarcodeProductInterfaceDto.SearchCustServiceJsonRes mapBarcodeProductCustServiceDtoToJsonRes(
+        WsniBarcodeProductInterfaceDto.SearchCustRes dto
+    );
+
 }

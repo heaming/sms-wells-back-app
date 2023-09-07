@@ -1,12 +1,15 @@
 package com.kyowon.sms.wells.web.service.stock.converter;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAskMngtDto.*;
+
+import java.util.List;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import java.util.List;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtSearchDvo;
 
 /**
  * <pre>
@@ -19,15 +22,25 @@ import java.util.List;
 @Mapper(componentModel = "spring", imports = {org.apache.commons.lang3.StringUtils.class})
 public interface WsnaOutofStorageAskMngtConverter {
 
-    WsnaOutOfStorageAskMngtDvo mapSaveReqToOutOfStorageAskMngtDvo(WsnaOutOfStorageAskMngtDto.SaveReq dto);
+    WsnaOutOfStorageAskMngtDvo mapSaveReqToOutOfStorageAskMngtDvo(SaveReq dto);
 
-    @Mapping(target = "svCnrLkTnoEncr", expression = "java(StringUtils.defaultString(dvo.getLocaraTno()) + StringUtils.defaultString(dvo.getExnoEncr()) + StringUtils.defaultString(dvo.getIdvTno()))")
-    List<WsnaLogisticsOutStorageAskReqDvo> mapCreateOutOfStorageAsksDvo(List<WsnaOutOfStorageAskMngtDvo> logisticsDvo);
+    List<WsnaOutOfStorageAskMngtDvo> mapAllListSaveReqToOutOfStorageAskMngtDvo(List<SaveReq> dtos);
 
-    WsnaOutOfStorageAskMngtDvo mapDeleteReqToOutOfStorageAskMngtDvo(WsnaOutOfStorageAskMngtDto.RemoveReq dto);
+    @Mapping(target = "svCnrLkTnoEncr", expression = "java(StringUtils.defaultString(logisticsDvo.getLocaraTno()) + StringUtils.defaultString(logisticsDvo.getExnoEncr()) + StringUtils.defaultString(logisticsDvo.getIdvTno()))")
+    WsnaLogisticsOutStorageAskReqDvo mapCreateOutOfStorageAsksDvo(WsnaOutOfStorageAskMngtDvo logisticsDvo);
+
+    List<WsnaLogisticsOutStorageAskReqDvo> mapAllCreateOutOfStorageAsksDvo(
+        List<WsnaOutOfStorageAskMngtDvo> logisticsDvo
+    );
+
+    WsnaOutOfStorageAskMngtDvo mapDeleteReqToOutOfStorageAskMngtDvo(RemoveReq dto);
 
     List<WsnaLogisticsOutStorageAskReqDvo> mapWsnaLogisticsOutStorageAskReqDvoToRemoveOutOfStorageAsks(
         List<WsnaOutOfStorageAskMngtDvo> logisticsRemoveDvo
     );
+
+    WsnaOutOfStorageAskMngtSearchDvo mapAllSearchReqToOutOfStorageAskMngtDvo(SearchReq dto);
+
+    WsnaOutOfStorageAskMngtSearchDvo mapAllSearchReqToExcelOutOfStorageAskMngtDvo(SearchReq dto);
 
 }

@@ -1,16 +1,23 @@
 package com.kyowon.sms.wells.web.service.interfaces.rest;
 
+import javax.validation.Valid;
+
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCenterEngineerCancelFinishInterfaceDto.EditReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCenterEngineerCancelFinishInterfaceDto.EditRes;
 import com.kyowon.sms.wells.web.service.interfaces.service.WsniCenterEngineerCancelFinishService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
+import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
@@ -24,11 +31,17 @@ public class WsniCenterEngineerCancelFinishInterfaceController {
     private final WsniCenterEngineerCancelFinishService service;
 
     @ApiOperation(value = "고객센터 엔지니어 취소 완료처리")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "asIstOjNo", value = "계약번호", paramType = "query", required = true),
+    })
     @PostMapping
-    public String editCenterEngineerCancelFinish(
-        @RequestParam
-        String asIstOjNo
+    public EaiWrapper editCenterEngineerCancelFinish(
+        @Valid
+        @RequestBody
+        EaiWrapper<EditReq> reqWrapper
     ) {
-        return service.editCenterEngineerCancelFinish(asIstOjNo);
+        EaiWrapper<EditRes> resEaiWrapper = reqWrapper.newResInstance();
+        resEaiWrapper.setBody(service.editCenterEngineerCancelFinish(reqWrapper.getBody()));
+        return resEaiWrapper;
     }
 }

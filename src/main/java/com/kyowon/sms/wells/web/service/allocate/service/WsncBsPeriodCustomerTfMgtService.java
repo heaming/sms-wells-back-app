@@ -1,23 +1,24 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
-import com.kyowon.sms.wells.web.service.allocate.converter.WsncBsPeriodCustomerTfConverter;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.SearchReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.CreateTfReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.BranchsAndServiceCentersRes;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.ManagersAndEngineersRes;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodCustomerTfCreateDvo;
-import com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsPeriodCustomerTfMgtMapper;
-import com.kyowon.sms.wells.web.service.common.service.WsnzHistoryService;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
-import com.sds.sflex.system.config.validation.BizAssert;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.kyowon.sms.wells.web.service.allocate.converter.WsncBsPeriodCustomerTfConverter;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto.*;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodCustomerTfCreateDvo;
+import com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsPeriodCustomerTfMgtMapper;
+import com.kyowon.sms.wells.web.service.common.service.WsnzHistoryService;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -57,19 +58,34 @@ public class WsncBsPeriodCustomerTfMgtService {
     public int createTransfer(List<CreateTfReq> dtos) throws Exception {
         int cnt = 0;
         for (CreateTfReq dto : dtos) {
-            WsncBsPeriodCustomerTfCreateDvo dvo = converter.mapCreateTfReqToBsPeriodCustomerTfCreateDvo(dto);
-
-            String baseYm = dto.baseYm();
-            String bfchIchrBrchOgId = dto.bfchIchrBrchOgId();
-            String afchIchrBrchOgId = dto.tfAkPrtnrOgId();
-
-            String asnTfDvCd = mapper.selectAsnTfDvCd(baseYm, bfchIchrBrchOgId, afchIchrBrchOgId);
-            BizAssert.notNull(asnTfDvCd, "MSG_ALT_SLCT_FAIL_ASN_TF_DV_CD"); // 배정이관구분코드를 조회할 수 없습니다.
-
-            dvo.setAsnTfDvCd(asnTfDvCd);
-            cnt += mapper.insertTransfer(dvo);
+//            WsncBsPeriodCustomerTfCreateDvo dvo = converter.mapCreateTfReqToBsPeriodCustomerTfCreateDvo(dto);
+//
+//            String baseYm = dto.baseYm();
+//            String bfchIchrBrchOgId = dto.bfchIchrBrchOgId();
+//            String afchIchrBrchOgId = dto.tfAkPrtnrOgId();
+//
+//            String asnTfDvCd = mapper.selectAsnTfDvCd(baseYm, bfchIchrBrchOgId, afchIchrBrchOgId);
+//            BizAssert.notNull(asnTfDvCd, "MSG_ALT_SLCT_FAIL_ASN_TF_DV_CD"); // 배정이관구분코드를 조회할 수 없습니다.
+//
+//            dvo.setAsnTfDvCd(asnTfDvCd);
+//            cnt += mapper.insertTransfer(dvo);
+            cnt += createTransfer(dto);
         }
         return cnt;
+    }
+    @Transactional
+    public int createTransfer(CreateTfReq dto) throws Exception {
+        WsncBsPeriodCustomerTfCreateDvo dvo = converter.mapCreateTfReqToBsPeriodCustomerTfCreateDvo(dto);
+
+        String baseYm = dto.baseYm();
+        String bfchIchrBrchOgId = dto.bfchIchrBrchOgId();
+        String afchIchrBrchOgId = dto.tfAkPrtnrOgId();
+
+        String asnTfDvCd = mapper.selectAsnTfDvCd(baseYm, bfchIchrBrchOgId, afchIchrBrchOgId);
+        BizAssert.notNull(asnTfDvCd, "MSG_ALT_SLCT_FAIL_ASN_TF_DV_CD"); // 배정이관구분코드를 조회할 수 없습니다.
+
+        dvo.setAsnTfDvCd(asnTfDvCd);
+        return mapper.insertTransfer(dvo);
     }
 
     @Transactional
@@ -81,18 +97,55 @@ public class WsncBsPeriodCustomerTfMgtService {
             String baseYm = dto.baseYm();
             String bfchIchrBrchOgId = dto.bfchIchrBrchOgId();
 //            String afchIchrBrchOgId = dto.tfAkPrtnrOgId();
-            String afchIchrBrchOgId = dto.afchIchrBrchOgId();
+//            String afchIchrBrchOgId = dto.afchIchrBrchOgId();
+            String afchIchrBrchOgId = "";
+
+            if("00".equals(dto.tfStatCd())){
+                afchIchrBrchOgId = dto.tfAkPrtnrOgId();
+                dvo.setAfchIchrBrchOgId(dto.tfAkPrtnrOgId());
+                dvo.setAfchMngrDvCd(dto.tfAkRsonCd());
+                dvo.setAfchIchrPrtnrOgTpCd(dto.tfAkPrtnrOgTpCd());
+                dvo.setAfchIchrPrtnrNo(dto.tfAkPrtnrNo());
+            } else {
+                afchIchrBrchOgId = dto.afchIchrBrchOgId();
+            }
 
             String asnTfDvCd = mapper.selectAsnTfDvCd(baseYm, bfchIchrBrchOgId, afchIchrBrchOgId);
             BizAssert.notNull(asnTfDvCd, "MSG_ALT_SLCT_FAIL_ASN_TF_DV_CD"); // 배정이관구분코드를 조회할 수 없습니다.
 
+            //유성진 매니저(36682) = 화성서비스센터 소속
+            //이호성 매니저(36613) = 광주서비스센터 소속
+            //정태진 매니저(36610) = 대구서비스센터 소속
+            UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+            boolean isEtc = false;
+            if("36682".equals(session.getEmployeeIDNumber()) || "36613".equals(session.getEmployeeIDNumber()) || "36610".equals(session.getEmployeeIDNumber())){
+//                asnTfDvCd = "316";
+                isEtc = true;
+            }
+
+            if("00".equals(dto.tfStatCd())){
+                if("311".equals(asnTfDvCd) || "316".equals(asnTfDvCd)){
+                    createTransfer(dto);
+                } else if(!isEtc) {
+                    throw new BizException("MSG_ALT_NOT_INNER_TRANSFER"); //내부이관 건만 이관요청 없이 확정이 가능합니다.
+                }
+            }
+
             dvo.setAsnTfDvCd(asnTfDvCd);
             cnt += mapper.mergeTransferConfirm(dvo);
+
+            // TB_SVPD_CST_SV_BFSVC_ASN_IZ - 확정담당자 정보 update
+            dvo.setAfchIchrBrchOgId(afchIchrBrchOgId);
+            mapper.updateCstSvBfsvcAsn(dvo);
 
             // save history
             String cstSvAsnNo = dto.cstSvAsnNo();
             wsnzHistoryService.insertCstSvBfsvcAsnHistByPk(cstSvAsnNo);
         }
         return cnt;
+    }
+
+    public SearchAuthRes getBsPeriodCustomersManagerAuthYn() {
+        return mapper.selectBsPeriodCustomersManagerAuthYn();
     }
 }

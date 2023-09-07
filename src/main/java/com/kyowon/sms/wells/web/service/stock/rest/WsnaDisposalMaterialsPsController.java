@@ -53,7 +53,7 @@ public class WsnaDisposalMaterialsPsController {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "wareNo", value = "창고번호", paramType = "query", example = "200001")
     })
-    public List<WsnaDisposalMaterialsPsDvo> getAsMaterialsItemGradePsExcelDownload(@RequestParam(name = "baseYm")
+    public List<WsnaDisposalMaterialsPsDvo> getDisposalMaterials(@RequestParam(name = "baseYm")
     String baseYm, @RequestParam(name = "wareNo", required = false)
     String wareNo) {
 

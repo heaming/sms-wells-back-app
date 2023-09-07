@@ -4,16 +4,19 @@ import java.util.List;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SaveReq;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchPaymentRes;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchRes;
 import com.kyowon.sms.wells.web.bond.credit.service.WbndRentalCbMgtObjectService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -52,10 +55,12 @@ public class WbndRentalCbMgtObjectController {
     @PutMapping
     public SaveResponse saveRentalCbMgtObjects(
         @Valid
-        SearchReq dto
+        @RequestBody
+        @NotEmpty
+        List<SaveReq> dtos
     ) {
         return SaveResponse.builder()
-            .processCount(service.saveRentalCbMgtObjects(dto)).build();
+            .processCount(service.saveRentalCbMgtObjects(dtos)).build();
     }
 
     @ApiOperation(value = "렌탈CB 납입정보 팝업 조회", notes = "고객별 렌탈CB 대상 또는 기 등록된 고객의 납입 정보 조회")
@@ -63,7 +68,7 @@ public class WbndRentalCbMgtObjectController {
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query", required = true),
     })
     @GetMapping("/{cstNo}/paging")
-    public List<SearchPaymentRes> getRentalCbMgtPaymentInfos(
+    public PagingResult<SearchPaymentRes> getRentalCbMgtPaymentInfos(
         @PathVariable
         @Valid
         @NotBlank

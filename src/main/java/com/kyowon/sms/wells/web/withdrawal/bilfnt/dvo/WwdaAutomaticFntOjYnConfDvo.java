@@ -11,5 +11,7 @@ public class WwdaAutomaticFntOjYnConfDvo {
     private String fnitAprRsCd;
     private String bilNo;
     private String bilDtlSn;
+    private String cstKnm;
+    private String sellTpCd;
 
 }

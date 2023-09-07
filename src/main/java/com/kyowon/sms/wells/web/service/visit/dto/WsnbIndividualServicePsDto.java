@@ -28,7 +28,8 @@ public class WsnbIndividualServicePsDto {
         String cralIdvTno, /*휴대전화번호(휴대개별전화번호)*/
         String addr, /*주소*/
         String cstUnuitmCn, /*고객특이사항내용*/
-        String wkPrtnrNo, /*작성자*/
+        String wkPrtnrNm, /*작성자*/
+        String wkPrtnrNo, /*작성자사번*/
         String wkOgTpCd, /*작성자소속*/
         String wrteDt, /*작성일시*/
         String basePdNm, /*계약상품*/
@@ -36,15 +37,12 @@ public class WsnbIndividualServicePsDto {
         String frisuAsPtrmN, /*무상AS개월수*/
         String frisuBfsvcPtrmN, /*무상BS개월수*/
         String pdUswy, /*용도구분*/
-        String sellTpCd,
         String sellTpNm, /*판매유형*/
-        String svTpCd,
         String svTpNm, /*서비스유형*/
         String cntrDt, /*계약일자*/
         String ogCd, /*지점코드*/
         String brmgrPrtnrNo, /*지점장사번*/
         String brmgrPrtnrNm, /*지점장*/
-        String alncmpNm, /* 제휴사명 */
         String asnDt, /*배정일자*/
         String sellChnl, /*판매채널*/
         String prtnrNo, /*판매자사번*/
@@ -66,7 +64,8 @@ public class WsnbIndividualServicePsDto {
         String qrsRdmNo, /*맞춤가이드*/
         String ssPdctBcNo, /*삼성제조번호*/
         String ivcNo, /*송장번호*/
-        String vstPrdNm /*방문주기*/
+        String vstPrdNm, /*방문주기1*/
+        String prdNm /* 방문주기2 */
     ){
         public SearchRes{
             exnoEncr = DbEncUtil.dec(exnoEncr);
@@ -101,6 +100,7 @@ public class WsnbIndividualServicePsDto {
 
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchStateRes")
     public record SearchStateRes(
+        String cstSvAsnNo,
         String svTp,
         String rcpDt,
         String svBizDclsf,
@@ -110,9 +110,9 @@ public class WsnbIndividualServicePsDto {
         String asCaus,
         String rtngdProcsTp,
         String fstVstFshDt,
-        String adrId,
+        String zipNo,
         String ogTp,
-        String ogId,
+        String ogNm,
         String prtnrNo,
         String prtnrNm,
         String cralLocaraTno,
@@ -120,7 +120,13 @@ public class WsnbIndividualServicePsDto {
         String cralIdvTno,
         String bldNm,
         String bcNo,
-        String imgYn
+        String imgYn,
+        String istEnvrPhoPhDocId,
+        String istKitPhoPhDocId,
+        String istCelngPhoPhDocId,
+        String istEnvrFileUid,
+        String istKitFileUid,
+        String istCelngFileUid
     ){
         public SearchStateRes{
             mexnoEncr = DbEncUtil.dec(mexnoEncr);
@@ -133,7 +139,7 @@ public class WsnbIndividualServicePsDto {
         String cntrDtl,
         String cstNm,
         String pdNm,
-        String sidingCntrDtl,
+        String sdingCntrDtl,
         String adrZip,
         String locaraTno,
         String exnoEncr,
@@ -151,14 +157,15 @@ public class WsnbIndividualServicePsDto {
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchCounselRes")
     public record SearchCounselRes(
         String cselSts,
-        String cnslDt,
-        String tktPcsSchDtm,
+        String cnslStDt,
+        String cnslEdDt,
         String cnslTpHcsfCd,
         String cnslTpMcsfCd,
         String cnslTpLcsfCd,
-        String modUserId,
+        String pcpNm,
+        String cselRstCd,
         String custResp,
-        String cstNm,
+        String clntDvNm,
         String cnslCn
     ){}
 

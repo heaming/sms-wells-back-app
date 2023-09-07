@@ -1,7 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.math.BigDecimal;
+
 import com.sds.sflex.system.config.annotation.DBDecField;
-import com.sds.sflex.system.config.annotation.DBEncField;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -39,16 +41,17 @@ public class WsnaOutOfStorageAskMngtDvo {
     String ostrWareMngtPrtnrNo; /*출고창고관리파트너번호*/
     String ostrOjWareNo; /*출고대상창고번호*/
     String strOjWareNo; /*입고대상창고번호*/
-    String itmKnd; /*품목종류*/
+    String itemKnd; /*품목종류*/
     String itmKndNm; /*품목종류명*/
     String imgUrl; /*imgurl*/
     String ostrAkWareDvCd; /*출고요청창고구분코드*/
     String wareMngtPrtnrNo; /*창고관리파트너번호*/
-    String warehouseQty; /*출고창고수량*/
+    BigDecimal warehouseQty; /*출고창고수량*/
     String centerQty; /*센터수량*/
     String indiQty;/*개인수량*/
     String useQty; /*당월수량*/
     String baseStocQty; /*기본재고수량*/
+    int sftStocQty; /*안전재고수량*/
 
     //물류인터페이스 전송용 dvo
     String rowState;
@@ -74,4 +77,5 @@ public class WsnaOutOfStorageAskMngtDvo {
     String svCnrAdr; /*서비스센터 주소*/
     String hsmtrlClsfCd; /*학습지분류코드*/
     String hsmtrlClsfNm; /*학습지분류명*/
+
 }

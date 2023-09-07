@@ -74,24 +74,26 @@ public class WogcActivityDto {
      *
      * @param baseYm      관리년월
      * @param ogTpCd      조직유형
-     * @param rsbDvCd     직책구분
+     * @param qlfDvCd     자격구분
      * @param ogLevlDvCd1 1차레벨조직ID
      * @param ogLevlDvCd2 2차레벨조직ID
      * @param ogLevlDvCd3 3차레벨조직ID
-     * @param rolDvCd     직무구분
-     * @param perfCat     실적구분
+     * @param prtnrNo     파트너번호
+     * @param prtnrKnm     파트너이름
+     * @param perfCd     실적구분
      */
     @ApiModel(value = "WogcActivityDto-SearchAccureActivityReq")
     @Builder
     public record SearchAccureActivityReq(
         String baseYm, /* 관리년월 */
         String ogTpCd, /* 조직유형 */
-        String rsbDvCd, /* 직책구분 */
+        String qlfDvCd, /* 자격구분 */
         String ogLevlDvCd1,
         String ogLevlDvCd2,
         String ogLevlDvCd3,
-        String rolDvCd, /* 직무구분 */
-        String perfCat /* 실적구분 */
+        String prtnrNo, /* 파트너번호 */
+        String prtnrKnm, /* 파트너이름 */
+        String perfCd /* 실적구분 */
     ) {
     }
 

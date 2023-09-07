@@ -68,5 +68,7 @@ public interface WsnaReturningGoodsStoreMapper {
 
     List<WsnaReturningGoodsStoreDvo> selectLogisticsReturningGoodsAskInfo(String itmOstrNo, String ostrSn);
 
+    int updateReturningGoodsStrConfirm(WsnaReturningGoodsStoreDvo dvo);
+
     //    int insertItmOstrAkIz(WsnaReturningGoodsStoreDvo dvo);
 }

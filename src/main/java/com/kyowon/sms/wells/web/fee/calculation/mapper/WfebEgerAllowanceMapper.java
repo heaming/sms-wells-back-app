@@ -30,6 +30,8 @@ public interface WfebEgerAllowanceMapper {
 
     int selectConfirmYnCheck(WfebEgerAllowanceDvo dvo);
 
+    WfebEgerAllowanceDto.SearchSchdRes selectCurrentSchd(WfebEgerAllowanceDvo dvo);
+
     int insertEgerAllowanceConfirm(WfebEgerAllowanceDvo dvo);
 
     int updateEgerAllowanceConfirm(WfebEgerAllowanceDvo dvo);
@@ -41,5 +43,7 @@ public interface WfebEgerAllowanceMapper {
     int deleteEgerAllowances(WfebEgerAllowanceDvo dvo);
 
     int insertEgerAllowances(WfebEgerAllowanceDvo dvo);
+
+    WfebEgerAllowanceDto.SearchSchdRes selectEngineerSchedule(WfebEgerAllowanceDto.SearchReq dto);
 
 }

@@ -145,8 +145,7 @@ public class WogcPartnerEngineerController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
-        @ApiImplicitParam(name = "prtnrGdCd", value = "직무", paramType = "query", required = false),
-        @ApiImplicitParam(name = "searchYm", value = "관리년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "rsbDvCd", value = "직책", paramType = "query", required = false),
         @ApiImplicitParam(name = "chk", value = "미등록", paramType = "query", required = false),
     })
     @GetMapping("/engineer-grade/paging")
@@ -158,8 +157,7 @@ public class WogcPartnerEngineerController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ogLevlDvCd1", value = "1레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
-        @ApiImplicitParam(name = "prtnrGdCd", value = "직무", paramType = "query", required = false),
-        @ApiImplicitParam(name = "searchYm", value = "관리년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "rsbDvCd", value = "직책", paramType = "query", required = false),
         @ApiImplicitParam(name = "chk", value = "미등록", paramType = "query", required = false),
     })
     @GetMapping("/engineer-grade/excel-download")
