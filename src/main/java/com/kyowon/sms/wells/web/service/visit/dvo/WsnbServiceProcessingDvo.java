@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.dvo;
 
 import com.sds.sflex.system.config.annotation.DBDecField;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,6 +20,7 @@ public class WsnbServiceProcessingDvo {
     String cntrNo;
     String cntrSn;
     String cntrNoSn;
+    String cstSvAsnNo;
     String cstKnm;
     String copnDvNm;
     String cttIchr;
@@ -127,7 +129,12 @@ public class WsnbServiceProcessingDvo {
     String elcStlm;
     String adpBilAmt;
     String cstSignHsYn;
-    String istEnvrPhoPhDocId;
+    String istEnvrPhoPhDocId; // 설치환경사진 DOC_ID
+    String istKitPhoPhDocId; // 설치키트사진 DOC_ID
+    String istCelngPhoPhDocId; // 설치천장사진 DOC_ID
+    String istEnvrPhoPhFileUid; // 설치환경사진 FILE_UID
+    String istKitPhoPhFileUid; // 설치키트사진 FILE_UID
+    String istCelngPhoPhFileUid; // 설치천장사진 FILE_UID
     String acpnPrtnrKnm;
     String acpnPrtnrGdNm;
 

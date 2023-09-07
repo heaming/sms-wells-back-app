@@ -39,6 +39,7 @@ public class WsnbServiceProcessingDto {
         String cntrNo,
         String cntrSn,
         String cntrNoSn,
+        String cstSvAsnNo,
         String cstKnm,
         String copnDvNm,
         String cttIchr,
@@ -145,7 +146,9 @@ public class WsnbServiceProcessingDto {
         String elcStlm,
         String adpBilAmt,
         String cstSignHsYn,
-        String istEnvrPhoPhDocId,
+        String istEnvrPhoPhFileUid, // 설치환경사진 FILE_UID
+        String istKitPhoPhFileUid, // 설치키트사진 FILE_UID
+        String istCelngPhoPhFileUid, // 설치천장사진 FILE_UID
         String acpnPrtnrKnm,
         String acpnPrtnrGdNm
     ) {}
