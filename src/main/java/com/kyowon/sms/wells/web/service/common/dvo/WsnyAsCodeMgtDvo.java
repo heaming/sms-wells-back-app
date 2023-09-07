@@ -39,7 +39,8 @@ public class WsnyAsCodeMgtDvo {
     String siteAwAtcNm;
     String svAnaHclsfNm;
     String dtaDlYn;
-    String applyDate;
+    String applyDateStart;
+    String applyDateEnd;
     String chk;
     String asCode;
     String chkYn;
@@ -49,4 +50,5 @@ public class WsnyAsCodeMgtDvo {
     String cdNm;
     String pdNm;
     String pdGrpNm;
+    String fuleyAwAmt;
 }

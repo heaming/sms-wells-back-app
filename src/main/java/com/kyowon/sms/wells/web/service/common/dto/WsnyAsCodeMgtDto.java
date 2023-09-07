@@ -19,7 +19,8 @@ public class WsnyAsCodeMgtDto {
         String pdCd,
         String svTpCd,
         String asLctCd,
-        String applyDate,
+        String applyDateStart,
+        String applyDateEnd,
         String apyChk,
         String asPhnCd,
         String siteAwAtcCd
@@ -54,7 +55,8 @@ public class WsnyAsCodeMgtDto {
         String siteAwAtcNm,
         String svAnaHclsfNm,
         String dtaDlYn,
-        String applyDate,
+        String applyDateStart,
+        String applyDateEnd,
         String chk,
         String asCode,
         String chkYn,
@@ -63,7 +65,8 @@ public class WsnyAsCodeMgtDto {
         String cd,
         String cdNm,
         String pdNm,
-        String pdGrpNm
+        String pdGrpNm,
+        String fuleyAwAmt
     ) {
 
     }
