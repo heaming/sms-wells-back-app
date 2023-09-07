@@ -43,7 +43,6 @@ public class WsnaBsCsmbDeliveryAggregateDto {
     public record SearchQtysRes(
         String mngtYm,
         String csmbPdCd,
-        String strWareNo,
         String bfsvcCsmbDdlvQty,
         String bldCd,
         String bldNm
