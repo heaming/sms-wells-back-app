@@ -2,12 +2,12 @@ package com.kyowon.sms.wells.web.service.stock.converter;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskReqDvo;
 import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.RemoveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.ReturningGoods;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrDto.SaveReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo;
 
 /**
@@ -22,6 +22,8 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo;
 public interface WsnaReturningGoodsOstrConverter {
 
     List<ReturningGoods> mapAllReturningGoodsDvoToReturningGoods(List<WsnaReturningGoodsDvo> dvos);
+
+    List<WsnaReturningGoodsDvo> mapRemoveAllReturningGoodsDvoToReturningGoods(List<RemoveReq> dtos);
 
     WsnaReturningGoodsDvo mapSaveReqToReturningGoodsDvo(SaveReq dto);
 

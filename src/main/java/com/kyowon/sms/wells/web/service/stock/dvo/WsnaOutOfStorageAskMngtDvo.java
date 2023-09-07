@@ -52,6 +52,7 @@ public class WsnaOutOfStorageAskMngtDvo {
     String useQty; /*당월수량*/
     String baseStocQty; /*기본재고수량*/
     int sftStocQty; /*안전재고수량*/
+    String chkLgstWkMthdCd; //체크용물류작업방식코드
 
     //물류인터페이스 전송용 dvo
     String rowState;
