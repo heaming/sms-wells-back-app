@@ -306,7 +306,7 @@ public class WpdcMaterialMgtService {
         String optionVal
     ) {
         String[] msgStrArr = new String[1];
-        String compareValue = StringUtil.nvl2(entry.getValue().toString(), "");
+        String compareValue = StringUtil.nvl(entry.getValue(), "");
         if (compareValue.split("\\|").length > 1) {
             compareValue = compareValue.split("\\|")[1].trim();
         }
@@ -386,6 +386,16 @@ public class WpdcMaterialMgtService {
             dataErrors.add(errorVo);
         }
 
+        // TODO 20230907 날쪼포맷 체크 추가
+        if (PdProductConst.DTA_TP_DATE.equals(metaVo.getDtaTpCd())
+            && !compareValue.matches("^[\\d]{4}(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$")) {
+            ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
+            errorVo.setHeaderName(metaVo.getPrpNm());
+            errorVo.setErrorRow(rowIndex);
+            errorVo.setErrorData(messageResourceService.getMessage("MSG_ALT_CHK_DT"));
+            dataErrors.add(errorVo);
+        }
+
         // #3. Length Check - 입력 가능 길이를 초과하였습니다 (최대: {0}, 입력: {1})
         if (null != metaVo.getDtaLnth() && null != entry.getValue()
             && metaVo.getDtaLnth().intValue() < compareValue.length()) {
@@ -435,12 +445,12 @@ public class WpdcMaterialMgtService {
             for (Entry<String, Object> entry : excelDataMap.entrySet()) {
                 for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdBas) {
                     if (entry.getKey().equals(metaVo.getColNm())) {
-                        if (entry.getValue().toString().split("\\|").length > 1) {
+                        if (StringUtil.nvl(entry.getValue(), "").split("\\|").length > 1) {
                             String tempVal[] = entry.getValue().toString().split("\\|");
                             log.debug(metaVo.getColId() + " && " + tempVal[0].trim() + " && " + tempVal[1].trim());
                             masterMap.put(metaVo.getColId(), tempVal[1].trim());
                         } else {
-                            masterMap.put(metaVo.getColId(), entry.getValue().toString().trim());
+                            masterMap.put(metaVo.getColId(), StringUtil.nvl(entry.getValue(), "").trim());
                         }
                     }
                 }
@@ -490,12 +500,12 @@ public class WpdcMaterialMgtService {
             for (Entry<String, Object> entry : excelDataMap.entrySet()) {
                 for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdDtl) {
                     if (entry.getKey().equals(metaVo.getColNm())) {
-                        if (entry.getValue().toString().split("\\|").length > 1) {
+                        if (StringUtil.nvl(entry.getValue(), "").split("\\|").length > 1) {
                             String tempVal[] = entry.getValue().toString().split("\\|");
                             log.debug(metaVo.getColId() + " && " + tempVal[0].trim() + " && " + tempVal[1].trim());
                             masterMap2.put(metaVo.getColId(), tempVal[1].trim());
                         } else {
-                            masterMap2.put(metaVo.getColId(), entry.getValue().toString().trim());
+                            masterMap2.put(metaVo.getColId(), StringUtil.nvl(entry.getValue(), "").trim());
                         }
                     }
                 }
@@ -522,7 +532,7 @@ public class WpdcMaterialMgtService {
 
                         propertyMap.put("pdExtsPrpGrpCd", pdPrpGrpDtlDvCd);
                         if (entry.getKey().equals(metaVo.getColNm())) {
-                            if (entry.getValue().toString().split("\\|").length > 1) {
+                            if (StringUtil.nvl(entry.getValue(), "").split("\\|").length > 1) {
                                 String tempVal[] = entry.getValue().toString().split("\\|");
                                 propertyMap.put(metaVo.getColId(), tempVal[1].trim());
                                 colsSb.append(metaVo.getColId()).append(",");
