@@ -16,7 +16,8 @@ public class WsncManagementCstRglvlDto {
         @NotBlank
         String localGroupCd,
         String branchOfficeCd,
-        String partnerNo
+        String partnerNo,
+        String bizPsicSrnDvCd
     ) {}
 
     @ApiModel(value = "WsncManagementCstRglvlDto-SavePartnerReq")
