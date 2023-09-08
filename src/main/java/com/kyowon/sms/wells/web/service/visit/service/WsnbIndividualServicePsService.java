@@ -61,7 +61,11 @@ public class WsnbIndividualServicePsService {
             }
         }
 
-        return converter.mapAllSearchStateToDvo(dvos);
+        PagingResult<SearchStateRes> rtnDtos = converter.mapAllSearchStateToDvo(dvos);
+        rtnDtos.setPageInfo(dvos.getPageInfo());
+
+        return rtnDtos;
+        // return converter.mapAllSearchStateToDvo(dvos);
 //        return mapper.selectIndividualProcessState(dto, pageInfo);
     } // 처리내역 조회
 
