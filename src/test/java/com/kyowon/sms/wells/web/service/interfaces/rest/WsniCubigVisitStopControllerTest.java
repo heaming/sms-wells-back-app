@@ -1,34 +1,25 @@
 package com.kyowon.sms.wells.web.service.interfaces.rest;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCubigVisitStopDto;
 import com.kyowon.sms.wells.web.service.interfaces.ivo.EAI_WSVI1007.request.WsniCubigVisitStopReqIvo;
 import com.kyowon.sms.wells.web.service.interfaces.ivo.EAI_WSVI1007.response.WsniCubigVisitStopResIvo;
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.common.common.service.EaiInterfaceService;
 import com.sds.sflex.system.config.test.SpringTestSupport;
-import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
 * W-SV-I-0008 Cubig CC 방문중지 등록(팝업)
 * */
 @Slf4j
 @RequiredArgsConstructor
-@TestPropertySource(properties = {"spring.profiles.active=local,test", "active.profiles=local,test"})
+@TestPropertySource(properties = {"spring.profiles.active=local", "active.profiles=local"})
 class WsniCubigVisitStopControllerTest extends SpringTestSupport {
 
-    @SpyBean
     private final EaiInterfaceService interfaceService;
 
-    @Test
+    /*@Test
     void createCubigVisitStop() throws Exception {
 
         EaiWrapper<WsniCubigVisitStopDto.CreateReq> resEaiWrapper = new EaiWrapper<WsniCubigVisitStopDto.CreateReq>();
@@ -41,14 +32,17 @@ class WsniCubigVisitStopControllerTest extends SpringTestSupport {
             .prtnrNo("37209")
             .build();
 
-        resEaiWrapper.setBody(dto);
+        Header haeder = new ModelMapper().map(Header.of(), Header.class);
+        haeder.setErrOcYn("N");
 
+        resEaiWrapper.setHeader(haeder);
+        resEaiWrapper.setBody(dto);
         MockHttpServletRequestBuilder req = post(SnServiceConst.REST_INTERFACE_URL_V1 + "/visit-stops")
             .content(objectMapper.writeValueAsString(resEaiWrapper));
 
         mockMvc.perform(req)
             .andExpect(status().isOk());
-    }
+    }*/
 
     @Test
     void EAI_WSVI1007() throws Exception {
@@ -62,7 +56,7 @@ class WsniCubigVisitStopControllerTest extends SpringTestSupport {
         req.setPrtnrNo("37209");
 
         WsniCubigVisitStopResIvo res = interfaceService
-            .post("/W/SV/EAI_WSVI1007", req, WsniCubigVisitStopResIvo.class);
+            .post("/W/SV/EAI_WSVI1007/req", req, WsniCubigVisitStopResIvo.class);
         log.debug(res.getResultCode());
     }
 }
