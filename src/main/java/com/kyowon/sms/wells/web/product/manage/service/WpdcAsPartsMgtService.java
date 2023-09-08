@@ -201,11 +201,11 @@ public class WpdcAsPartsMgtService {
             for (Entry<String, Object> entry : excelDataMap.entrySet()) {
                 for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdBas) {
                     if (entry.getKey().equals(metaVo.getColNm())) {
-                        if (entry.getValue().toString().split("\\|").length > 1) {
+                        if (StringUtil.nvl(entry.getValue(), "").split("\\|").length > 1) {
                             String tempVal[] = entry.getValue().toString().split("\\|");
                             masterMap.put(metaVo.getColId(), tempVal[1].trim());
                         } else {
-                            masterMap.put(metaVo.getColId(), entry.getValue());
+                            masterMap.put(metaVo.getColId(), StringUtil.nvl(entry.getValue(), ""));
                         }
                     }
                 }
@@ -264,7 +264,7 @@ public class WpdcAsPartsMgtService {
 
                         propertyMap.put("pdExtsPrpGrpCd", pdPrpGrpDtlDvCd);
                         if (entry.getKey().equals(metaVo.getColNm())) {
-                            if (entry.getValue().toString().split("\\|").length > 1) {
+                            if (StringUtil.nvl(entry.getValue(), "").split("\\|").length > 1) {
                                 String tempVal[] = entry.getValue().toString().split("\\|");
                                 propertyMap.put(metaVo.getColId(), tempVal[1].trim());
                             } else {
@@ -274,13 +274,13 @@ public class WpdcAsPartsMgtService {
                                     && PdProductConst.CARMEL_LRNN_LV_CD.equals(metaVo.getColNm())) {
 
                                     for (CodeComponent codeVo : lrnnLvGrpDvCds) {
-                                        if (entry.getValue().equals(codeVo.codeName())) {
+                                        if (StringUtil.nvl(entry.getValue(), "").equals(codeVo.codeName())) {
                                             propertyMap.put(metaVo.getColId(), codeVo.codeId());
                                         }
                                     }
 
                                 } else {
-                                    propertyMap.put(metaVo.getColId(), entry.getValue());
+                                    propertyMap.put(metaVo.getColId(), StringUtil.nvl(entry.getValue(), ""));
                                 }
 
                             }
