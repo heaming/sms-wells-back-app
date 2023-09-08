@@ -66,7 +66,9 @@ public class WsnaPcsvOutOfStorageMgtController {
         @NotEmpty
         List<SaveReq> dtos
     ) throws Exception {
-        return null;
+        return SaveResponse.builder()
+            .processCount(service.savePcsvOutOfStorageTest(dtos))
+            .build();
     }
 
     @ApiOperation(value = "택배 물류센터 목록 조회", notes = "조회조건에 일치하는 정보를 조회한다.")

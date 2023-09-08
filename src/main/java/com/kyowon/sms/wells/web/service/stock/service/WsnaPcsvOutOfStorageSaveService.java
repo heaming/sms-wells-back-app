@@ -152,9 +152,11 @@ public class WsnaPcsvOutOfStorageSaveService {
         List<WsnaLogisticsOutStorageAskReqDvo> logisticDvos = new ArrayList<>();
 
         List<WsnaPcsvOutOfStorageSaveDvo> dvos = converter.mapSaveReqToPcsvOutOfStorageDvo(dtos);
+        // 물류요청번호 생성
+        String lgstOstrAkNo = mapper.selectNewLgstOstrAkNo();
         for (WsnaPcsvOutOfStorageSaveDvo dvo : dvos) {
             if ("1112".equals(dvo.getSvBizDclsfCd())) {
-
+                dvo.setLgstOstrAkNo(lgstOstrAkNo); // 물류요청번호
                 String idvTno = dvo.getIdvTno();
                 String cralIdvTno = dvo.getCralIdvTno();
 

@@ -67,7 +67,7 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String rdadr, //주소 상세
 
-        String cralLocaRaTno, //휴대지역전화번호(휴대폰번호)
+        String cralLocaraTno, //휴대지역전화번호(휴대폰번호)
 
         String mexnoEncr, //휴대전화국번호암호화(휴대폰번호)
 
