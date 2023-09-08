@@ -38,7 +38,7 @@ public class WsnaManagerBsConsumableService {
     private static final String OSTR_AK_TP_CD_BS = "380"; // 출고요청유형코드 : BS소모품배부
     private static final String IOST_AK_DV_CD_WELLS = "WE";
     private static final String LGST_SPP_MTHD_CD_CRGO = "6";
-    private static final String LGST_WK_MTHD_CD_BLD = "WE08";
+    private static final String LGST_WK_MTHD_CD_MNGER = "WE07";
     private static final String ITM_GD_CD_A = "A";
     private static final String OSTR_OJ_WARE_NO_PAJU = "100002";
     private static final String BFSVC_CSMB_DDLV_OJ_CD_MNGER = "2";
@@ -114,6 +114,7 @@ public class WsnaManagerBsConsumableService {
                 }
 
                 aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
+                aftBldInfo.setBfsvcCsmbDdlvStatCd(itemInfos.get(0).getBfsvcCsmbDdlvStatCd());
                 aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
                 aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
                 bldAndItemsInfos.add(aftBldInfo);
@@ -137,7 +138,7 @@ public class WsnaManagerBsConsumableService {
     }
 
     @Transactional
-    public int createBuildingBsConsumableAplcClose(CreateTmlmReq dto) {
+    public int createManagerBsConsumableAplcClose(CreateTmlmReq dto) {
         WsnaManagerBsConsumableDvo dvo = converter.mapCreateTmlmReqToNewManagerBsConsumable(dto);
 
         return mapper.mergeManagerBsConsumableAplcClose(dvo);
@@ -176,7 +177,7 @@ public class WsnaManagerBsConsumableService {
                 reqDvo.setWareMngtPrtnrNo(userSession.getEmployeeIDNumber());
                 reqDvo.setWareMngtPrtnrOgTpCd(userSession.getOgTpCd());
                 reqDvo.setLgstSppMthdCd(LGST_SPP_MTHD_CD_CRGO);
-                reqDvo.setLgstWkMthdCd(LGST_WK_MTHD_CD_BLD);
+                reqDvo.setLgstWkMthdCd(LGST_WK_MTHD_CD_MNGER);
                 reqDvo.setItmPdCd(dvo.getCsmbPdCd());
                 reqDvo.setItmGdCd(ITM_GD_CD_A);
                 reqDvo.setOstrOjWareNo(OSTR_OJ_WARE_NO_PAJU);
