@@ -1,19 +1,26 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreDetailItemizationDto.SearchReq;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreDetailItemizationDto.SearchRes;
+
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.kyowon.sms.wells.web.service.stock.service.WsnaStoreDetailItemizationService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreDetailItemizationDto.*;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/store-detail-itemizations")
@@ -34,11 +41,13 @@ public class WsnaStoreDetailItemizationController {
         @ApiImplicitParam(name = "itmKndCd", value = "품목상품코드", paramType = "query", example = "", required = true),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "", required = true),
     })
-    @GetMapping
-    public List<SearchRes> getStoreDetailItemizations(
-        SearchReq dto
+    @GetMapping("/paging")
+    public PagingResult<SearchRes> getStoreDetailItemizations(
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
     ) {
-        return this.service.getStoreDetailItemizations(dto);
+        return this.service.getStoreDetailItemizations(dto, pageInfo);
     }
 
     @ApiOperation(value = "입고상세내역조회 엑셀 다운로드", notes = "조회조건에 일치하는 엑셀 다운로드용 입고상세내역 정보를 조회한다.")

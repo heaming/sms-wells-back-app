@@ -56,18 +56,18 @@ public class WsnaManagerBsConsumableController {
     }
 
     @PostMapping("/period-term")
-    public SaveResponse createNewManagerBsConsumableAplcClose(
+    public SaveResponse createManagerBsConsumableAplcClose(
         @RequestBody
         @Valid
         CreateTmlmReq dto
     ) {
         return SaveResponse.builder()
-            .processCount(service.createBuildingBsConsumableAplcClose(dto))
+            .processCount(service.createManagerBsConsumableAplcClose(dto))
             .build();
     }
 
     @PostMapping
-    public SaveResponse createNewManagerBsConsumables(
+    public SaveResponse createManagerBsConsumables(
         @RequestBody
         @Valid
         List<CreateReq> dtos
