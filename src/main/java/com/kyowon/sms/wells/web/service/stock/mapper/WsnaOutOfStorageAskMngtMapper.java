@@ -43,4 +43,8 @@ public interface WsnaOutOfStorageAskMngtMapper {
     String selectOstrWareDvCd(SearchReq dto);
 
     String selectLogisticsOstrDvCd(String ostrOjWareNo);
+
+    String selectAkWareDvCd(String strOjWareNo);
+
+    List<WsnaOutOfStorageAskMngtDvo> selectBusinessLogisticsOutStorageAskInfo(List<String> ostrAkNos);
 }

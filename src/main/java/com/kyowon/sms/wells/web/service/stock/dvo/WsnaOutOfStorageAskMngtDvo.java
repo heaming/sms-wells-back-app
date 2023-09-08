@@ -79,4 +79,18 @@ public class WsnaOutOfStorageAskMngtDvo {
     String hsmtrlClsfCd; /*학습지분류코드*/
     String hsmtrlClsfNm; /*학습지분류명*/
 
+    //영업센터
+    String adrsTnoVal; // 수취인전화번호값
+    String adrsCphonNoVal; // 수취인휴대폰번호값
+    String cralLocaraTno; /*요청창고 담당매니저 휴대전화번호 앞자리*/
+
+    @DBDecField
+    String mexnoEncr; /*요청창고 담당매니저 휴대전화번호 중간*/
+    String cralIdvTno; /*요청창고 담당매니저 휴대전화번호 끝자리*/
+    String zip; // 우편번호
+    String basAdr; //기본주소
+    String dtlAdr; //상세주소
+    String ltnAdr; //지번주소
+    String pdCn; //상품내용
+
 }
