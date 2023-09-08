@@ -7,11 +7,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.organization.hmnrsc.converter.WogcPartnerPlannerConverter;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SaveQulificationReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseDetailRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerDvo;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerQualificationDvo;
 import com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerPlannerMapper;
+import com.kyowon.sms.wells.web.organization.zcommon.constants.OgConst.QlfAplcDvCd;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -143,5 +146,27 @@ public class WogcPartnerPlannerService {
 
     public PagingResult<SearchLicenseDetailRes> getPlannerLicenseDetailPages(String prtnrNo, PageInfo pageinfo) {
         return mapper.selectPlannerLicenseDetailPages(prtnrNo, pageinfo);
+    }
+
+    /**
+     * 매니저 자격관리 보류, 개시 저장
+     * @param dto
+     * @return
+     * @throws Exception
+     */
+    @Transactional
+    public int createPlannerQualificationChange(SaveQulificationReq dto) throws Exception {
+        WogcPartnerPlannerQualificationDvo qualificationDvo = converter
+            .mapSaveQulificationReqToPartnerPlannerQualificationDvo(dto);
+
+        int processCount = 0;
+        if (dto.qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_1.getCode())) {
+            processCount = mapper.insertPlannerQualificationChange(qualificationDvo);
+        } else if (dto.qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_3.getCode())) {
+            processCount = mapper.updatePlannerQualificationChange(qualificationDvo);
+        }
+        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+
+        return processCount;
     }
 }

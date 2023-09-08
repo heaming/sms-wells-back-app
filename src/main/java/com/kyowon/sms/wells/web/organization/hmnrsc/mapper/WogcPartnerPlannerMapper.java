@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerDvo;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerQualificationDvo;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseDetailRes;
@@ -56,5 +58,9 @@ public interface WogcPartnerPlannerMapper {
     WogcPartnerPlannerDto.FindRes selectTopPlannerByPk(String bldCd, String gridOgTpCd);
 
     PagingResult<SearchLicenseDetailRes> selectPlannerLicenseDetailPages(String prtnrNo, PageInfo pageinfo);
+
+    int insertPlannerQualificationChange(WogcPartnerPlannerQualificationDvo dvo);
+
+    int updatePlannerQualificationChange(WogcPartnerPlannerQualificationDvo dvo);
 
 }

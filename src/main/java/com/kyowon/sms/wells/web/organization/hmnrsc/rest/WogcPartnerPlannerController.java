@@ -4,11 +4,18 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto;
-import com.sds.sflex.system.config.response.SaveResponse;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SaveQulificationReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseDetailRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseRes;
@@ -16,6 +23,7 @@ import com.kyowon.sms.wells.web.organization.hmnrsc.service.WogcPartnerPlannerSe
 import com.kyowon.sms.wells.web.organization.zcommon.constants.OgConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -109,7 +117,7 @@ public class WogcPartnerPlannerController {
         return service.getPlannerLicensePages(dto, pageinfo);
     }
 
-    @ApiOperation(value = "플래너자격관리 엑셀다운로드", notes = "검색조건을 입력 받아 엑셀다운로드용 플래너 자격관리를 조회한다.")
+    @ApiOperation(value = "매니저 자격관리 엑셀다운로드", notes = "검색조건을 입력 받아 엑셀다운로드용 매니저 자격관리를 조회한다.")
     @GetMapping("/planner-license/excel-download")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = false),
@@ -132,5 +140,22 @@ public class WogcPartnerPlannerController {
         PageInfo pageinfo
     ) {
         return service.getPlannerLicenseDetailPages(prtnrNo, pageinfo);
+    }
+
+    @ApiOperation(value = "매니저 자격관리 보류, 개시 저장", notes = "매니저 자격정보를 보류, 개시 처리 한다.")
+    @PostMapping("/planner-qualification-change")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "body", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "body", required = true),
+        @ApiImplicitParam(name = "qlfDvCd", value = "자격구분코드", paramType = "body", required = true),
+        @ApiImplicitParam(name = "strtdt", value = "시작일자", paramType = "body", required = true),
+        @ApiImplicitParam(name = "cvDt", value = "전환일자", paramType = "body", required = false),
+        @ApiImplicitParam(name = "qlfAplcDvCd", value = "자격신청구분코", paramType = "body", required = false)
+    })
+    public SaveResponse createPlannerQualificationChange(
+        @Valid @RequestBody
+        SaveQulificationReq dto
+    ) throws Exception {
+        return SaveResponse.builder().processCount(service.createPlannerQualificationChange(dto)).build();
     }
 }
