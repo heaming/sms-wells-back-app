@@ -137,6 +137,9 @@ public class WsniSidingServiceChangesService {
         int LD3200_CNT = 0;
         ArrayList chk1 = null;
 
+        //TB_SVPD_SDING_AS_AK_IZ
+        //TB_SVPD_SDING_AS_AK_HIST
+
         if (req.mtrProcsStatCd().equals("3")) {
             //
             //           LC_ASREGN_API_I05
