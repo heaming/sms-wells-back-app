@@ -7,7 +7,6 @@ import lombok.Builder;
 
 public class WsniCubigVisitStopDto {
 
-    @Builder
     @ApiModel(value = "WsniCubigVisitStopDto-CreateReq")
     public record CreateReq(
         @JsonProperty("CNTR_NO")
