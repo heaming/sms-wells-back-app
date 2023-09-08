@@ -409,6 +409,7 @@
              , T1.OSTR_AK_SN
              , T1.DTA_DL_YN
              , T1.OSTR_OJ_WARE_DV_CD
+             , T1.OSTR_AK_WARE_DV_CD
           FROM TB_SVST_ITM_OSTR_AK_IZ T1
          WHERE 1 = 1
            AND T1.OSTR_AK_NO = #{ostrAkNo}
@@ -430,5 +431,105 @@
          WHERE 1 = 1
            AND T1.WARE_NO = #{ostrOjWareNo}
            AND T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+    </select>
+
+    <select id="selectAkWareDvCd" resultType="java.lang.String">
+        SELECT T1.WARE_DV_CD
+          FROM TB_SVST_MCBY_WARE_IZ T1
+         WHERE 1 = 1
+           AND T1.WARE_NO = #{strOjWareNo}
+           AND T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+    </select>
+
+<select id="selectBusinessLogisticsOutStorageAskInfo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAskMngtDvo">
+        SELECT T1.OSTR_AK_NO
+             , T1.OSTR_AK_SN
+             , T1.OSTR_AK_TP_CD
+             , T1.OSTR_AK_RGST_DT
+             , T1.OSTR_AK_WARE_DV_CD
+             , T1.OSTR_OJ_WARE_DV_CD
+             , T1.STR_HOP_DT                                                       AS OSTR_HOP_DT /*출고희망일자*/
+             , T1.WARE_MNGT_PRTNR_NO
+             , T1.WARE_MNGT_PRTNR_OG_TP_CD
+             , 1 																   AS MPAC_SN /*합포장일련번호*/
+             , 'WE' 															   AS IOST_AK_DV_CD /*입출고요청구분코드*/
+             , '' 																   AS SAP_IOST_TP_CD /*SAP입출고유형코드*/
+             , '2' 															       AS LGST_SPP_MTHD_CD /*물류배송방식코드*/
+             , (CASE WHEN A1.WARE_DV_CD = '3' AND T3.PD_PRP_VAL19 = '4' THEN 'WE04'
+                     WHEN A1.WARE_DV_CD = '3' AND T3.PD_PRP_VAL19 = '5' THEN 'WE06'
+                     WHEN A1.WARE_DV_CD = '3' AND T3.PD_PRP_VAL19 <![CDATA[<>]]> '4' AND T3.PD_PRP_VAL19 <![CDATA[<>]]> '5' THEN 'WE05'
+                     ELSE ''
+                  END ) 														   AS LGST_WK_MTHD_CD
+             , ''                                                                  AS MDLV_PRTNR_NO /*배달파트너번호*/
+             , T1.ITM_PD_CD /*품목상품코드*/
+             , T1.OSTR_AK_QTY
+             , 'A' 															       AS ITM_GD_CD /*물류품목등급코드*/
+             , T1.OSTR_OJ_WARE_NO
+             , A1.NEW_ADR_ZIP                                                      AS ZIP
+             , A1.RNADR                                                            AS BAS_ADR /*기본주소*/
+             , A1.RDADR                                                            AS DTL_ADR /*빌딩상세주소*/
+             , A1.LTN_ADR                                                          AS LTN_ADR /*지번*/
+             , NVL(A1.LOCARA_TNO, A1.CRAL_LOCARA_TNO) AS LOCARA_TNO 		                  /*요청창고 전화번호 앞*/
+             , NVL(A1.EXNO_ENCR, A1.MEXNO_ENCR) AS EXNO_ENCR   		                          /*요청창고 전화번호 중간*/
+             , NVL(A1.IDV_TNO, A1.CRAL_IDV_TNO) AS IDV_TNO    		                          /*요청창고 전화번호 끝*/
+             , A1.CRAL_LOCARA_TNO   /*요청창고 담당매니저 휴대전화번호 앞자리*/
+             , A1.MEXNO_ENCR        /*요청창고 담당매니저 휴대전화번호 중간*/
+             , A1.CRAL_IDV_TNO      /*요청창고 담당매니저 휴대전화번호 끝자리*/
+             , T2.PD_ABBR_NM || '('|| T1.ITM_PD_CD ||')' || ':' || T1.OSTR_AK_QTY  AS PD_CN
+             , T1.OVIV_TP_CD        /*배차유형코드*/
+             , T1.RMK_CN
+        FROM TB_SVST_ITM_OSTR_AK_IZ T1
+        INNER JOIN (
+				        SELECT T2.APY_YM /* 적용년월 */
+				             , T2.WARE_DV_CD /* 창고구분코드 */
+				             , T2.WARE_DTL_DV_CD /* 창고상세구분코드 */
+				             , T2.WARE_NO /* 창고번호 */
+				             , T2.WARE_NM /* 창고명 */
+				             , T6.NEW_ADR_ZIP /*우편번호*/
+				             , T6.RNADR /*빌딩기본주소*/
+				             , T6.RDADR /*빌딩상세주소*/
+				             , T6.LTN_ADR /*지번*/
+				             , T3.CRAL_LOCARA_TNO /*요청창고 담당매니저 휴대전화번호 앞자리*/
+				             , T3.MEXNO_ENCR /*요청창고 담당매니저 휴대전화번호 중간*/
+				             , T3.CRAL_IDV_TNO /*요청창고 담당매니저 휴대전화번호 끝자리*/
+				             , T4.LOCARA_TNO /*요청창고 전화번호 앞*/
+				             , T4.EXNO_ENCR  /*요청창고 전화번호 중간*/
+				             , T4.IDV_TNO    /*요청창고 전화번호 끝*/
+						  FROM TB_SVST_MCBY_WARE_IZ T2 /* 월별창고내역 */
+				          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T3 /* 파트너기본 */
+				            ON T3.OG_TP_CD = T2.OG_TP_CD
+				           AND T3.PRTNR_NO = T2.WARE_MNGT_PRTNR_NO
+				           AND T3.DTA_DL_YN = 'N'
+				          LEFT OUTER JOIN TB_OGBS_OG_BAS T4 /* 조직내역 */
+				            ON T4.OG_ID = T2.OG_ID
+				           AND T4.DTA_DL_YN = 'N'
+				          LEFT OUTER JOIN TB_OGBS_BLD_BAS T5 /*빌딩기본*/
+	                        ON T5.OG_TP_CD = T2.OG_TP_CD
+	                       AND T5.BLD_CD = T2.BLD_CD
+				          LEFT OUTER JOIN TB_GBCO_ADR_BAS T6 /* 주소기본 */
+				            ON T6.ADR_ID = NVL(T5.ADR_ID, T2.WARE_ADR_ID)
+			               AND T6.DTA_DL_YN = 'N'
+			             WHERE T2.APY_YM = TO_CHAR(SYSDATE , 'YYYYMM')
+						   AND T2.WARE_USE_YN = 'Y'
+                  ) A1
+           ON A1.WARE_NO = T1.STR_OJ_WARE_NO
+        INNER JOIN TB_PDBS_PD_BAS T2
+           ON T1.ITM_PD_CD = T2.PD_CD
+        INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3
+           ON T3.PD_CD = T2.PD_CD
+        WHERE T2.DTA_DL_YN = 'N'
+          AND T3.DTA_DL_YN = 'N'
+        <choose>
+            <when test="@MybatisUtils@isNotEmpty(ostrAkNo)">
+          AND T1.OSTR_AK_NO = #{ostrAkNo}
+            </when>
+            <otherwise>
+                AND T1.OSTR_AK_NO IN
+                <foreach collection="ostrAkNos" item="item" open="(" close=")" separator=",">
+                   #{item}
+                </foreach>
+            </otherwise>
+        </choose>
+          AND T3.PD_EXTS_PRP_GRP_CD = 'PART'
     </select>
 </mapper>
