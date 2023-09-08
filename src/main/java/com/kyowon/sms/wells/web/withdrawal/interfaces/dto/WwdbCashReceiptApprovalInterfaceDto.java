@@ -1,10 +1,11 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sds.sflex.system.config.annotation.DBDecField;
-import io.swagger.annotations.ApiModel;
+import org.apache.commons.lang.StringUtils;
 
-import javax.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sds.sflex.common.utils.DbEncUtil;
+
+import io.swagger.annotations.ApiModel;
 
 public class WwdbCashReceiptApprovalInterfaceDto {
 
@@ -40,7 +41,6 @@ public class WwdbCashReceiptApprovalInterfaceDto {
         @JsonProperty("CSSR_IS_DV_CD_NM")
         String cssrIsDvCdNm, // 신분확인구분(카드/사업자번호/휴대전화..)
         @JsonProperty("CSSR_IS_NO")
-        @DBDecField
         String cssrIsNo, // 신분확인(카드번호/사업자번호/휴대전화번호)
         @JsonProperty("CSSR_APRNO")
         String cssrAprno, // 승인번호
@@ -53,6 +53,10 @@ public class WwdbCashReceiptApprovalInterfaceDto {
         @JsonProperty("CSSR_APR_DV_CD_NM")
         String cssrAprDvCdNm // 구분(정상/오류)
 
-    ) {}
+    ) {
+        public SearchRes {
+            cssrIsNo = StringUtils.isNotEmpty(cssrIsNo) ? DbEncUtil.dec(cssrIsNo) : cssrIsNo;
+        }
+    }
 
 }
