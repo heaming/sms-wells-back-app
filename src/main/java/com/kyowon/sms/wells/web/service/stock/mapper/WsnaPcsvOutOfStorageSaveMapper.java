@@ -11,8 +11,6 @@ public interface WsnaPcsvOutOfStorageSaveMapper {
 
     WsnaPcsvOutOfStorageSaveDvo selectEngineerOgbsMmPrtnrIz(WsnaPcsvOutOfStorageSaveDvo vo);
 
-    WsnaPcsvOutOfStorageSaveDvo selectQtySvstCstSvItmStocIz(WsnaPcsvOutOfStorageSaveDvo vo);
-
     WsnaPcsvOutOfStorageSaveDvo selectAsCodeSvpdCstSvasIstOjIz(WsnaPcsvOutOfStorageSaveDvo vo);
 
     WsnaPcsvOutOfStorageSaveDvo selectReturningSvpdCstSvasIstOjIz(WsnaPcsvOutOfStorageSaveDvo vo);
