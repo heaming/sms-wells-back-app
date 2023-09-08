@@ -2,6 +2,9 @@ package com.kyowon.sms.wells.web.organization.hmnrsc.service;
 
 import java.util.List;
 
+import com.kyowon.sms.common.web.organization.common.dvo.ZogzPartnerDvo;
+import com.kyowon.sms.common.web.organization.common.service.ZogzPartnerService;
+import com.sds.sflex.common.utils.DateUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WogcPartnerPlannerService {
 
+    private final ZogzPartnerService ogzPartnerService;
     private final WogcPartnerPlannerMapper mapper;
     private final WogcPartnerPlannerConverter converter;
 
@@ -161,7 +165,21 @@ public class WogcPartnerPlannerService {
 
         int processCount = 0;
         if (dto.qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_1.getCode())) {
+            // 차월개시 일경우
             processCount = mapper.insertPlannerQualificationChange(qualificationDvo);
+
+            // 당월개시 일경우
+            if (DateUtil.getDays(DateUtil.getNowDayString(), qualificationDvo.getStrtdt()) == 0) {
+                ZogzPartnerDvo partnerDvo = new ZogzPartnerDvo();
+                partnerDvo.setOgTpCd(qualificationDvo.getOgTpCd());
+                partnerDvo.setPrtnrNo(qualificationDvo.getPrtnrNo());
+                partnerDvo.setQlfDvCd(qualificationDvo.getQlfDvCd());
+
+                // 월파트너 갱신
+                ogzPartnerService.updateQlfDvCdOfMonthPartner(partnerDvo);
+                // 파트너상세 갱신
+                ogzPartnerService.updateQlfDvCdOfPartnerDetail(partnerDvo);
+            }
         } else if (dto.qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_3.getCode())) {
             processCount = mapper.updatePlannerQualificationChange(qualificationDvo);
         }
