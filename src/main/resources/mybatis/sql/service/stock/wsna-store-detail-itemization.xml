@@ -3,125 +3,80 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaStoreDetailItemizationMapper">
 
     <select id="selectStoreDetailItemizations" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreDetailItemizationDto$SearchRes">
-
-        SELECT STR_IZ.STR_RGST_DT /*입고등록일자*/
-             , STR_IZ.ITM_PD_CD         /*품목상품코드*/
-              , PD_BAS.SAP_MAT_CD        /*품목SAP코드*/
-             , PD_BAS.PD_ABBR_NM         /*품목명*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'STR_TP_CD', STR_IZ.STR_TP_CD) AS STR_TP_NM /*입고코드명*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', STR_IZ.MNGT_UNIT_CD) AS MNGT_UNIT_NM /*관리단위코드명*/
-             , F_CMZ_CD_NM('TNT_WELLS', 'PD_GD_CD', STR_IZ.ITM_GD_CD) AS ITM_GD_NM /*품목등급코드명*/
-             , STR_IZ.STR_QTY /*입고수량*/
-             , STR_IZ.OSTR_DT /*출고일자*/
-             , STR_IZ.OSTR_WARE_NO /*출고창고번호*/
-             , STR_IZ.STR_WARE_NO
-             , STR_WARE_IZ.WARE_NM AS STR_WARE_NM /*입고창고명*/
-             , STR_IZ.ITM_STR_NO /*품목입고번호*/
-             , STR_IZ.ITM_OSTR_NO /*품목출고번호*/
-             , STR_WARE_IZ.HGR_WARE_NO AS STR_WARE_NO_UP  -- 입고창고의 상위 테이블 코드
-             , STR_WARE_IZ.WARE_DTL_DV_CD AS STR_WARE_DTL_DV_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'WARE_DTL_DV_CD', STR_WARE_IZ.WARE_DTL_DV_CD) AS STR_WARE_DTL_DV_NM /*입고창고상세구분명*/
-             , OSTR_WARE_IZ.WARE_NM AS OSTR_WARE_NM /*출고창고명*/
-             , OSTR_WARE_IZ.HGR_WARE_NO AS OSTR_WARE_NO_UP  -- 출고창고의 상위 테이블 코드
-             , OSTR_WARE_IZ.WARE_DTL_DV_CD AS OSTR_WARE_DTL_DV_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'WARE_DTL_DV_CD', OSTR_WARE_IZ.WARE_DTL_DV_CD) AS OSTR_WARE_DTL_DV_NM /*출고창고상세구분명*/
-        FROM TB_SVST_ITM_STR_IZ STR_IZ -- 입고테이블
-       INNER JOIN TB_PDBS_PD_BAS PD_BAS  -- 상품테이블
-          ON PD_BAS.PD_CD = STR_IZ.ITM_PD_CD
-         AND PD_BAS.PD_TP_CD = 'M'
-         AND PD_BAS.DTA_DL_YN = 'N'
-       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL PRP_DTL
-          ON PD_BAS.PD_CD 	= PRP_DTL.PD_CD
-         AND PRP_DTL.PD_EXTS_PRP_GRP_CD = 'PART'
-         AND PRP_DTL.DTA_DL_YN = 'N'
-       LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ STR_WARE_IZ
-          ON STR_WARE_IZ.APY_YM = SUBSTR(STR_IZ.STR_RGST_DT,1,6)
-         AND STR_WARE_IZ.WARE_NO = STR_IZ.STR_WARE_NO
-       LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ OSTR_WARE_IZ
-          ON OSTR_WARE_IZ.APY_YM = SUBSTR(STR_IZ.OSTR_DT,1,6)
-         AND OSTR_WARE_IZ.WARE_NO = STR_IZ.OSTR_WARE_NO
-       WHERE STR_IZ.STR_RGST_DT BETWEEN #{stStrDt} AND #{edStrDt}
+       SELECT D1.STR_RGST_DT 						                                                                /*입고등록일자*/
+            , D1.ITM_PD_CD         					                                                                /*품목상품코드*/
+            , D2.SVPD_SAP_CD   												                AS SAP_MAT_CD           /*품목SAP코드*/
+            , D2.SVPD_NM_ABBR1                                                              AS PD_ABBR_NM           /*품목명*/
+            , F_CMZ_CD_NM('TNT_WELLS', 'STR_TP_CD', D1.STR_TP_CD)                           AS STR_TP_NM            /*입고코드명*/
+            , F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', D1.MNGT_UNIT_CD)                     AS MNGT_UNIT_NM         /*관리단위코드명*/
+            , F_CMZ_CD_NM('TNT_WELLS', 'PD_GD_CD', D1.ITM_GD_CD)                            AS ITM_GD_NM            /*품목등급코드명*/
+			, D1.STR_QTY                                                                                            /*입고수량*/
+            , D1.OSTR_DT                                                                                            /*출고일자*/
+            , D1.OSTR_WARE_NO                                                                                       /*출고창고번호*/
+            , D1.STR_WARE_NO
+            , D3.WARE_NM 														            AS STR_WARE_NM          /*입고창고명*/
+            , D1.ITM_STR_NO                                                                                         /*품목입고번호*/
+            , D1.ITM_OSTR_NO                                                                                        /*품목출고번호*/
+            , D3.HGR_WARE_NO                                                                AS STR_WARE_NO_UP       /* 입고창고의 상위 테이블 코드*/
+            , D3.WARE_DTL_DV_CD                                                             AS STR_WARE_DTL_DV_CD
+            , F_CMZ_CD_NM('TNT_WELLS', 'WARE_DTL_DV_CD', D3.WARE_DTL_DV_CD)                 AS STR_WARE_DTL_DV_NM   /*입고창고상세구분명*/
+            , D4.WARE_NM                                                                    AS OSTR_WARE_NM         /*출고창고명*/
+            , D4.HGR_WARE_NO                                                                AS OSTR_WARE_NO_UP      /* 출고창고의 상위 테이블 코드*/
+            , D4.WARE_DTL_DV_CD                                                             AS OSTR_WARE_DTL_DV_CD
+            , F_CMZ_CD_NM('TNT_WELLS', 'WARE_DTL_DV_CD', D4.WARE_DTL_DV_CD)                 AS OSTR_WARE_DTL_DV_NM /*출고창고상세구분명*/
+         FROM TB_SVST_ITM_STR_IZ D1
+        INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2
+          ON D1.ITM_PD_CD        = D2.SVPD_PD_CD
+        LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ D3 /* 월별창고내역(입고) */
+          ON D3.APY_YM           = SUBSTR(D1.STR_RGST_DT,1,6)
+         AND D3.WARE_NO          = D1.STR_WARE_NO
+         AND D3.DTA_DL_YN        = 'N'
+        LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ D4 /* 월별창고내역(출고) */
+          ON D4.APY_YM           = SUBSTR(D1.OSTR_DT,1,6)
+         AND D4.WARE_NO          = D1.OSTR_WARE_NO
+         AND D4.DTA_DL_YN        = 'N'
+       WHERE D1.DTA_DL_YN        = 'N'
+         AND D1.STR_RGST_DT BETWEEN #{stStrDt} AND #{edStrDt}
+         AND D3.WARE_DV_CD       = #{strWareDvCd}
+         AND D4.WARE_DV_CD       = #{ostrWareDvCd}
+      <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
+         AND ( D3.HGR_WARE_NO = #{strWareNoM} OR D3.WARE_NO = #{strWareNoM} )
+      </if>
+      <if test="@MybatisUtils@isNotEmpty(strWareNoD)">
+         AND D3.WARE_NO          = #{strWareNoD}
+      </if>
+      <if test="@MybatisUtils@isNotEmpty(strWareDtlDvCd)">
+         AND D3.WARE_DTL_DV_CD   = #{strWareDtlDvCd}
+      </if>
+      <if test="@MybatisUtils@isNotEmpty(ostrWareNoM)">
+         AND ( D4.HGR_WARE_NO = #{ostrWareNoM} OR D4.WARE_NO = #{ostrWareNoM} )
+      </if>
+      <if test="@MybatisUtils@isNotEmpty(ostrWareNoD)">
+         AND D4.WARE_NO          = #{ostrWareNoD}
+      </if>
+      <if test="@MybatisUtils@isNotEmpty(ostrWareDtlDvCd)">
+         AND D4.WARE_DTL_DV_CD   = #{ostrWareDtlDvCd}
+      </if>
       <if test="@MybatisUtils@isNotEmpty(strTpCd)">
-	   	 --입고유형
-         AND STR_IZ.STR_TP_CD = #{strTpCd}
+         AND D1.STR_TP_CD        = #{strTpCd}
       </if>
-      <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
-	   	 --입고창고구분
-         AND STR_IZ.STR_WARE_NO LIKE #{strWareDvCd} || '%'
-      </if>
-      <if test="@MybatisUtils@isNotEmpty(ostrWareDvCd)">
-	   	 --출고창고구분
-         AND STR_IZ.OSTR_WARE_NO LIKE #{ostrWareDvCd} || '%'
-      </if>
-	   --품목구분
       <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
-         AND PRP_DTL.PD_PRP_VAL19 = #{itmKndCd}
+         AND D2.SVPD_ITEM_KND    = #{itmKndCd}
       </if>
-	   --품목코드
       <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
-         AND STR_IZ.ITM_PD_CD = #{itmPdCd}
+         AND D1.ITM_PD_CD        = #{itmPdCd}
       </if>
-	   --사용유무
+      <if test="@MybatisUtils@isNotEmpty(pgGdCd)">
+	     AND D1.ITM_GD_CD        = #{pgGdCd}
+      </if>
       <if test='@MybatisUtils@isNotEmpty(useYn) and @MybatisUtils@equals(useYn, "Y")'>
-         AND (PD_BAS.SV_ENDDT IS NULL
-         OR PD_BAS.SV_ENDDT > TO_CHAR(SYSDATE, 'YYYYMMDD') )
+         AND #{stStrDt} BETWEEN NVL(D2.SVPD_APLD_FR, '19000101') AND NVL(D2.SVPD_APLD_TO, '99991231')
       </if>
       <if test='@MybatisUtils@isNotEmpty(useYn) and @MybatisUtils@equals(useYn, "N")'>
-         AND PD_BAS.SV_ENDDT IS NOT NULL
-         AND PD_BAS.SV_ENDDT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+         AND #{stStrDt} NOT BETWEEN NVL(D2.SVPD_APLD_FR, '19000101') AND NVL(D2.SVPD_APLD_TO, '99991231')
       </if>
-	   --품목등급
-      <if test="@MybatisUtils@isNotEmpty(pgGdCd)">
-	     AND STR_IZ.ITM_GD_CD = #{pgGdCd}
-      </if>
-      <if test='@MybatisUtils@isNotEmpty(strWareNoM) and @MybatisUtils@isEmpty(strWareNoD) and @MybatisUtils@isEmpty(strWareDtlDvCd)'>
-         AND (STR_WARE_IZ.HGR_WARE_NO = #{strWareNoM} OR STR_IZ.STR_WARE_NO = #{strWareNoM})
-      </if>
-      <if test='@MybatisUtils@isEmpty(strWareNoM) and @MybatisUtils@isEmpty(strWareNoD) and @MybatisUtils@isNotEmpty(strWareDtlDvCd)'>
-         AND STR_WARE_IZ.WARE_DTL_DV_CD = #{strWareDtlDvCd}
-      </if>
-      <if test='@MybatisUtils@isNotEmpty(strWareNoM) and @MybatisUtils@isEmpty(strWareNoD) and @MybatisUtils@equals(strWareDtlDvCd, "20") or @MybatisUtils@equals(strWareDtlDvCd, "30")'>
-         AND STR_WARE_IZ.WARE_DTL_DV_CD = #{strWareDtlDvCd}
-         AND STR_IZ.STR_WARE_NO = #{strWareNoM}
-      </if>
-      <if test='@MybatisUtils@isNotEmpty(strWareNoM) and @MybatisUtils@isEmpty(strWareNoD) and @MybatisUtils@equals(strWareDtlDvCd, "21")'>
-         AND STR_WARE_IZ.WARE_DTL_DV_CD = #{strWareDtlDvCd}
-         AND STR_WARE_IZ.HGR_WARE_NO = #{strWareNoM}
-      </if>
-      <if test='@MybatisUtils@isNotEmpty(strWareNoM) and @MybatisUtils@isEmpty(strWareNoD) and @MybatisUtils@equals(strWareDtlDvCd, "31") or @MybatisUtils@equals(strWareDtlDvCd, "32")'>
-         AND STR_WARE_IZ.WARE_DTL_DV_CD = #{strWareDtlDvCd}
-         AND STR_WARE_IZ.HGR_WARE_NO = #{strWareNoM}
-      </if>
-      <if test='@MybatisUtils@isNotEmpty(strWareNoM) and @MybatisUtils@isNotEmpty(strWareNoD) and @MybatisUtils@isEmpty(strWareDtlDvCd)'>
-         AND STR_WARE_IZ.HGR_WARE_NO = #{strWareNoM}
-         AND STR_IZ.STR_WARE_NO = #{strWareNoD}
-      </if>
-      <if test='@MybatisUtils@isNotEmpty(ostrWareNoM) and @MybatisUtils@isEmpty(ostrWareNoD) and @MybatisUtils@isEmpty(ostrWareDtlDvCd)'>
-         AND (OSTR_WARE_IZ.HGR_WARE_NO = #{ostrWareNoM} OR STR_IZ.OSTR_WARE_NO = #{ostrWareNoM})
-      </if>
-      <if test='@MybatisUtils@isEmpty(ostrWareNoM) and @MybatisUtils@isEmpty(ostrWareNoD) and @MybatisUtils@isNotEmpty(ostrWareDtlDvCd)'>
-         AND OSTR_WARE_IZ.WARE_DTL_DV_CD = #{ostrWareDtlDvCd}
-      </if>
-      <if test='@MybatisUtils@isNotEmpty(ostrWareNoM) and @MybatisUtils@isEmpty(ostrWareNoD) and @MybatisUtils@equals(ostrWareDtlDvCd, "10") or @MybatisUtils@equals(ostrWareDtlDvCd, "20") or @MybatisUtils@equals(ostrWareDtlDvCd, "30")'>
-         AND OSTR_WARE_IZ.WARE_DTL_DV_CD = #{ostrWareDtlDvCd}
-         AND STR_IZ.OSTR_WARE_NO = #{ostrWareNoM}
-      </if>
-      <if test='@MybatisUtils@isNotEmpty(ostrWareNoM) and @MybatisUtils@isEmpty(ostrWareNoD) and @MybatisUtils@equals(ostrWareDtlDvCd, "21")'>
-         AND OSTR_WARE_IZ.WARE_DTL_DV_CD = #{ostrWareDtlDvCd}
-         AND OSTR_WARE_IZ.HGR_WARE_NO = #{strWareNoM}
-      </if>
-      <if test='@MybatisUtils@isNotEmpty(ostrWareNoM) and @MybatisUtils@isEmpty(ostrWareNoD) and @MybatisUtils@equals(ostrWareDtlDvCd, "31") or @MybatisUtils@equals(ostrWareDtlDvCd, "32")'>
-         AND OSTR_WARE_IZ.WARE_DTL_DV_CD = #{ostrWareDtlDvCd}
-         AND OSTR_WARE_IZ.HGR_WARE_NO = #{ostrWareNoM}
-      </if>
-      <if test='@MybatisUtils@isNotEmpty(ostrWareNoM) and @MybatisUtils@isNotEmpty(ostrWareNoD) and @MybatisUtils@isEmpty(ostrWareDtlDvCd)'>
-         AND OSTR_WARE_IZ.HGR_WARE_NO = #{ostrWareNoM}
-         AND STR_IZ.OSTR_WARE_NO = #{ostrWareNoD}
-      </if>
-         AND STR_WARE_IZ.DTA_DL_YN    = 'N'
-         AND OSTR_WARE_IZ.DTA_DL_YN   = 'N'
-         AND STR_IZ.DTA_DL_YN         = 'N'
-        ORDER BY STR_RGST_DT, ITM_PD_CD
+    ORDER BY D1.STR_RGST_DT, D1.ITM_PD_CD
+
 </select>
 
 </mapper>
