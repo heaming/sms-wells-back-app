@@ -1,11 +1,11 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
-import com.sds.sflex.system.config.constant.CommConst;
-import com.sds.sflex.system.config.exception.BizException;
-import com.sds.sflex.system.config.validation.BizAssert;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -15,14 +15,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kyowon.sms.wells.web.organization.hmnrsc.converter.WogcPartnerEngineerConverter;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SaveEngineerGradeReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SaveJoeManagementReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerRes;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementRes;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeRes;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SaveEngineerGradeReq;
-
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SaveJoeManagementReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo;
 import com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerEngineerMapper;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
@@ -30,9 +29,11 @@ import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
 import com.sds.sflex.common.common.service.ExcelReadService;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -258,7 +259,6 @@ public class WogcPartnerEngineerService {
         String pattern = "^[0-9]*$"; //숫자 정규식
         String status = "S";
         int row = 2;
-        List<Map<String, Object>> checks = new ArrayList<>();
         ExcelMetaDvo meta = new ExcelMetaDvo(1, headerTitle);
         List<WogcPartnerEngineerDvo> lists = excelReadService.readExcel(file, meta, WogcPartnerEngineerDvo.class);
         List<ExcelUploadErrorDvo> errorDvos = new ArrayList<>();
@@ -266,8 +266,6 @@ public class WogcPartnerEngineerService {
         for (WogcPartnerEngineerDvo list : lists) {
             ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
             int finalRow = row;
-            int differentRsbCnt = 0;
-            Map<String, Object> check = new HashMap<>();
             list.setOgTpCd("W06");
 
             if (StringUtils.isEmpty(list.getPrtnrNo())) { //파트너번호 유효성

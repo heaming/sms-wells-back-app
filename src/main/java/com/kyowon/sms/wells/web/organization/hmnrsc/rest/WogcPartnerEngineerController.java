@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.common.web.organization.attachment.dto.ZogeSeizureDto;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,8 +60,7 @@ public class WogcPartnerEngineerController {
     @ApiOperation(value = "엔지니어 출근 관리 목록 저장", notes = "CUD 변경 데이터를 List 형태로 받아 일괄 저장한다.")
     @PostMapping("/{prtnrNo}")
     public SaveResponse saveEngineerAttends(
-        @RequestBody
-        @Valid
+        @RequestBody @Valid
         List<WogcPartnerEngineerDto.SaveEngineerAttendReq> dtos,
         @PathVariable
         String prtnrNo
@@ -82,8 +80,7 @@ public class WogcPartnerEngineerController {
     @ApiOperation(value = "휴가상세 관리 목록 저장", notes = "CUD 변경 데이터를 List 형태로 받아 일괄 저장한다.")
     @PostMapping("/vacations")
     public SaveResponse saveVacations(
-        @RequestBody
-        @Valid
+        @RequestBody @Valid
         List<WogcPartnerEngineerDto.SaveReq> dtos
     ) throws Exception {
         return SaveResponse.builder().processCount(this.service.saveVacations(dtos)).build();
@@ -92,8 +89,7 @@ public class WogcPartnerEngineerController {
     @ApiOperation(value = "휴가상세 관리 목록 삭제", notes = "선택한 휴가상세 관리 목록을 일괄 삭제한다.")
     @PutMapping("/vacations")
     public SaveResponse removeVacations(
-        @RequestBody
-        @Valid
+        @RequestBody @Valid
         List<WogcPartnerEngineerDto.RemoveReq> dtos
     ) throws Exception {
         return SaveResponse.builder().processCount(this.service.removeVacations(dtos)).build();
@@ -132,8 +128,7 @@ public class WogcPartnerEngineerController {
     @ApiOperation(value = "서비스센터 조 저장", notes = "서비스센터 조 저장한다.")
     @PostMapping("/joe-management")
     public SaveResponse saveJoeManagement(
-        @Valid
-        @RequestBody
+        @Valid @RequestBody
         List<WogcPartnerEngineerDto.SaveJoeManagementReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
@@ -168,8 +163,7 @@ public class WogcPartnerEngineerController {
     @ApiOperation(value = "엔지니어 등급관리 저장", notes = "엔지니어 등급 관리 저장한다.")
     @PostMapping("/engineer-grade")
     public SaveResponse saveEngineerGrade(
-        @Valid
-        @RequestBody
+        @Valid @RequestBody
         List<WogcPartnerEngineerDto.SaveEngineerGradeReq> dtos
     ) throws Exception {
         return SaveResponse.builder()

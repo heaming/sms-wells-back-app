@@ -2,16 +2,22 @@ package com.kyowon.sms.wells.web.organization.hmnrsc.service;
 
 import java.util.List;
 
+import com.kyowon.sms.common.web.organization.common.dvo.ZogzPartnerDvo;
+import com.kyowon.sms.common.web.organization.common.service.ZogzPartnerService;
+import com.sds.sflex.common.utils.DateUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.organization.hmnrsc.converter.WogcPartnerPlannerConverter;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SaveQulificationReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseDetailRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerDvo;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerQualificationDvo;
 import com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerPlannerMapper;
+import com.kyowon.sms.wells.web.organization.zcommon.constants.OgConst.QlfAplcDvCd;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -31,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WogcPartnerPlannerService {
 
+    private final ZogzPartnerService ogzPartnerService;
     private final WogcPartnerPlannerMapper mapper;
     private final WogcPartnerPlannerConverter converter;
 
@@ -143,5 +150,41 @@ public class WogcPartnerPlannerService {
 
     public PagingResult<SearchLicenseDetailRes> getPlannerLicenseDetailPages(String prtnrNo, PageInfo pageinfo) {
         return mapper.selectPlannerLicenseDetailPages(prtnrNo, pageinfo);
+    }
+
+    /**
+     * 매니저 자격관리 보류, 개시 저장
+     * @param dto
+     * @return
+     * @throws Exception
+     */
+    @Transactional
+    public int createPlannerQualificationChange(SaveQulificationReq dto) throws Exception {
+        WogcPartnerPlannerQualificationDvo qualificationDvo = converter
+            .mapSaveQulificationReqToPartnerPlannerQualificationDvo(dto);
+
+        int processCount = 0;
+        if (dto.qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_1.getCode())) {
+            // 차월개시 일경우
+            processCount = mapper.insertPlannerQualificationChange(qualificationDvo);
+
+            // 당월개시 일경우
+            if (DateUtil.getDays(DateUtil.getNowDayString(), qualificationDvo.getStrtdt()) == 0) {
+                ZogzPartnerDvo partnerDvo = new ZogzPartnerDvo();
+                partnerDvo.setOgTpCd(qualificationDvo.getOgTpCd());
+                partnerDvo.setPrtnrNo(qualificationDvo.getPrtnrNo());
+                partnerDvo.setQlfDvCd(qualificationDvo.getQlfDvCd());
+
+                // 월파트너 갱신
+                ogzPartnerService.updateQlfDvCdOfMonthPartner(partnerDvo);
+                // 파트너상세 갱신
+                ogzPartnerService.updateQlfDvCdOfPartnerDetail(partnerDvo);
+            }
+        } else if (dto.qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_3.getCode())) {
+            processCount = mapper.updatePlannerQualificationChange(qualificationDvo);
+        }
+        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+
+        return processCount;
     }
 }
