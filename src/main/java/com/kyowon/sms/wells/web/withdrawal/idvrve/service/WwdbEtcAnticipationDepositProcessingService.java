@@ -42,7 +42,8 @@ public class WwdbEtcAnticipationDepositProcessingService {
 
     private final ZdcaEtcAnticipationAmtWellsService edcaEtcAnticipationAmtService;
 
-    public static String rveCd = "70440";
+    public static String rveCd = null;
+//    public static String rveCd = "70440";
 
     //경로 16
 
