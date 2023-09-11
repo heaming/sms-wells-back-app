@@ -53,9 +53,9 @@ public class WpdcAsPartsMgtService {
 
     /**
      * AS부품 목록 페이징 조회
-     * @param dto
-     * @param pageInfo
-     * @return
+     * @param dto 검색조건
+     * @param pageInfo 페이징정보
+     * @return AS부품 목록
      */
     public PagingResult<WpdcAsPartMgtDto.SearchRes> getAsPartPages(
         WpdcAsPartMgtDto.SearchReq dto, PageInfo pageInfo
@@ -65,8 +65,8 @@ public class WpdcAsPartsMgtService {
 
     /**
      * AS부품 목록 엑셀다운로드
-     * @param dto
-     * @return
+     * @param dto 검색조건
+     * @return AS부품 목록
      */
     public List<WpdcAsPartMgtDto.SearchRes> getAsPartsForExcelDownload(
         WpdcAsPartMgtDto.SearchReq dto
@@ -116,11 +116,7 @@ public class WpdcAsPartsMgtService {
         }
 
         // #4. 이력 INSERT
-        // TODO - 확인필요 POINT
-        // AS부품은 'CMM'과 'PART' 만 이력을 쌓는 게 맞으면 createAsPartHistory() 아니라면 createProductHistory
         if (!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
-
-            //  hisService.createAsPartHistory(dvo.getPdCd(), startDtm);
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
 
@@ -173,13 +169,13 @@ public class WpdcAsPartsMgtService {
     /**
      * Excel Data를 DB에 저장.
      * 코드값은 Excel Dropdown으로 'CODE_NM|CODE_CD'로 입력받는다는 대전제.
-     * @param excelData
-     * @param metaItems
-     * @param tbPdbsPdBas
-     * @param tbPdbsPdEcomPrpDtl
-     * @param tbPdbsPdDtl
-     * @param prgGrpDves
-     * @throws Exception
+     * @param excelData 엑셀데이터
+     * @param metaItems 상품 Meta 테이블정보
+     * @param tbPdbsPdBas 상품 Meta Master 정보
+     * @param tbPdbsPdEcomPrpDtl 상품 각사속성 정보
+     * @param tbPdbsPdDtl 상품 상세
+     * @param prgGrpDves 상품 Meta에 등록된 상품속성그룹구분코드
+     * @throws Exception 오류정보
      */
     @Transactional
     public void saveExcelUpload(
@@ -310,8 +306,8 @@ public class WpdcAsPartsMgtService {
 
     /**
      * 유효성 체크 조회
-     * @param dto
-     * @return
+     * @param dto 유효성 체크 대상정보
+     * @return 유효성 체크 결과
      */
     public String checkValidation(ValidationReq dto) {
         return this.mapper.selectValidation(dto);
