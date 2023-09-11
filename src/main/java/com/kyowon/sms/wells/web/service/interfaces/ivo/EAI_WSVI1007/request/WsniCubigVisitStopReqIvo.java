@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @Setter
 @Getter
-@JsonInclude(value = JsonInclude.Include.NON_NULL)
 public class WsniCubigVisitStopReqIvo {
     @JsonProperty(value = "CNTR_NO")
     String cntrNo;
