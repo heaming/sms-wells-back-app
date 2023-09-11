@@ -225,9 +225,10 @@ public class WsnaPcsvOutOfStorageSaveService {
         sendDtlDvo.setDtlAdr(vo.getRdadr());
         sendDtlDvo.setZip(vo.getNewAdrZip());
 
-        // 파라미터(물류작업방식코드,합포장일련번호)
+        // 파라미터(물류작업방식코드,합포장일련번호,물류요청번호)
         sendDtlDvo.setLgstWkMthdCd(vo.getLgstWkMthdCd());
         sendDtlDvo.setMpacSn(vo.getMpacSn());
+        sendDtlDvo.setLgstOstrAkNo(vo.getLgstOstrAkNo());
 
         // null대신 X값 세팅. (물류인터페이스요청)
         sendDtlDvo.setSvCnrCd("X");
