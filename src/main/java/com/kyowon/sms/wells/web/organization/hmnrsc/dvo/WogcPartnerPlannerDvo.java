@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.dvo;
 
-import com.sds.sflex.system.config.annotation.DBDecField;
-import com.sds.sflex.system.config.annotation.DBEncField;
 import com.sds.sflex.system.config.datasource.PageInfo;
 
 import lombok.Getter;

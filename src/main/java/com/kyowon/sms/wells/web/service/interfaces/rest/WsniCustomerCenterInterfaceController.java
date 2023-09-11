@@ -107,7 +107,7 @@ public class WsniCustomerCenterInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "필터 배송지 등록", notes = "고객센터에서 고객에게 배송할 필터 배송지 정보를 등록하는 인터페이스")
+    @ApiOperation(value = "EAI_WSVI1042 W-SV-I-0038 필터 배송지 등록", notes = "고객센터에서 고객에게 배송할 필터 배송지 정보를 등록하는 인터페이스")
     @PostMapping("/filter-shpadr-rgst")
     public EaiWrapper<CreateShpadrRes> createFilterShippingAddress(
         @Valid
@@ -120,7 +120,7 @@ public class WsniCustomerCenterInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "필터 배송지 수정", notes = "고객센터에서 고객에게 배송할 필터 배송지 정보를 수정하는 인터페이스")
+    @ApiOperation(value = "EAI_WSVI1058 W-SV-I-0038 필터 배송지 수정", notes = "고객센터에서 고객에게 배송할 필터 배송지 정보를 수정하는 인터페이스")
     @PostMapping("/filter-shpadr-mdfc")
     public EaiWrapper<EditShpadrRes> editFilterShippingAddress(
         @Valid

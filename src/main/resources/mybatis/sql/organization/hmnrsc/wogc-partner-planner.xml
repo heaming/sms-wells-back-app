@@ -7,6 +7,7 @@
              , T4.DGR2_LEVL_OG_NM                   /* 지역단 */
              , T4.OG_CD                             /* 소속 */
              , T4.BLD_NM                            /* 빌딩명 */
+             , T1.OG_TP_CD                          /* 조직유형코드 */
              , T1.PRTNR_NO                          /* 번호 */
              , T1.PRTNR_KNM                         /* 성명 */
              , T2.RSB_DV_CD                         /* 직책 */
@@ -65,7 +66,9 @@
     </select>
 
     <select id="selectPlannerLicenseDetailPages" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto$SearchLicenseDetailRes">
-        SELECT T1.QLF_DV_CD                          /* 자격 */
+        SELECT T1.OG_TP_CD
+             , T1.PRTNR_NO
+             , T1.QLF_DV_CD                          /* 자격 */
              , F_CMZ_CD_NM(#{session.tenantId}, 'QLF_DV_CD', T1.QLF_DV_CD) AS QLF_DV_NM                 /* 자격명 */
              , T1.QLF_APLC_DV_CD                     /* 자격변경(자격신청구분코드) - 1:승급, 2:자격해제 */
              , F_CMZ_CD_NM(#{session.tenantId}, 'QLF_APLC_DV_CD', T1.QLF_APLC_DV_CD) AS QLF_APLC_DV_NM  /* 자격변경명 */
@@ -422,4 +425,46 @@
             AND BLD_CD = #{bldCd}
             AND OG_TP_CD = #{gridOgTpCd}
     </update>
+
+    <insert id="insertPlannerQualificationChange">
+        INSERT INTO TB_OGPS_PLAR_QLF_CH_IZ
+             ( OG_TP_CD
+             , PRTNR_NO
+             , QLF_DV_CD
+             , STRTDT
+             , ENDDT
+             , CV_DT
+             , QLF_APLC_DV_CD
+             , PYMDT
+             , DSB_AMT
+             , CHDT
+             <include refid="COMMON.insertSystemField"/>)
+        VALUES
+             ( #{ogTpCd}
+             , #{prtnrNo}
+             , #{qlfDvCd}
+             , #{strtdt}
+             , #{enddt}
+             , #{cvDt}
+             , #{qlfAplcDvCd}
+             , #{pymdt}
+             , #{dsbAmt}
+             , #{chdt}
+             <include refid="COMMON.insertSystemFieldValue" />)
+    </insert>
+
+    <update id="updatePlannerQualificationChange">
+        UPDATE TB_OGPS_PLAR_QLF_CH_IZ
+           SET QLF_APLC_DV_CD = #{qlfAplcDvCd}
+             <if test="@MybatisUtils@isNotEmpty(cvDt)">
+             , CV_DT = #{cvDt}
+             </if>
+             <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND OG_TP_CD = #{ogTpCd}
+           AND PRTNR_NO = #{prtnrNo}
+           AND QLF_DV_CD = #{qlfDvCd}
+           AND STRTDT = #{strtdt}
+    </update>
+
 </mapper>

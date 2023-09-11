@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.dto;
 
-import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 

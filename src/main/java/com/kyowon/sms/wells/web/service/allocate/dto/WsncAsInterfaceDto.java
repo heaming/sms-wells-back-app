@@ -219,7 +219,9 @@ public class WsncAsInterfaceDto {
         String wkPrgsStat, /*작업진행상태*/
         String pextSding, /*기존모종*/
         String chSding, /*변경모종*/
-        String apyDt /*적용일자*/
+        String apyDt, /*적용일자*/
+        String rcpDtStart,
+        String rcpDtEnd
     ) {}
 
 }

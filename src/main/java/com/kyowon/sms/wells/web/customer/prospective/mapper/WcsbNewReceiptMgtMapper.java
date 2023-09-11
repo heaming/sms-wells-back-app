@@ -17,9 +17,9 @@ public interface WcsbNewReceiptMgtMapper {
 
     /**
      * 접수 목록 페이징 조회
-     * @param dto
-     * @param pageInfo
-     * @return
+     * @param dto 검색조건
+     * @param pageInfo 페이징 정보
+     * @return 접수 데이터 목록
      */
     PagingResult<WcsbNewReceiptMgtDto.SearchRes> selectReceiptPages(
         WcsbNewReceiptMgtDto.SearchReq dto, PageInfo pageInfo
@@ -27,37 +27,37 @@ public interface WcsbNewReceiptMgtMapper {
 
     /**
      * 접수 목록 엑셀다운로드
-     * @param dto
-     * @return
+     * @param dto 검색조건
+     * @return 접수 목록
      */
     List<WcsbNewReceiptMgtDto.SearchRes> selectReceiptPages(WcsbNewReceiptMgtDto.SearchReq dto);
 
     /**
      * 접수 (단건)상세 조회
-     * @param pspcCstCnslId
-     * @param cntrNo
-     * @return
+     * @param pspcCstCnslId 가망고객상담ID
+     * @param cntrNo 계약번호
+     * @return 접수 상세정보
      */
     WcsbNewReceiptMgtDto.SearchDtlRes selectPspcCstCnslAssign(String pspcCstCnslId, String cntrNo);
 
     /**
      * 담당자 수동배정 조회
-     * @param prtnrNo
-     * @return
+     * @param prtnrNo 파트너번호
+     * @return 파트너정보
      */
     PartnerRes selectPartnerInfoByPrtnrNo(String prtnrNo);
 
     /**
      * 담당자 수동배정 저장
-     * @param dto
-     * @return
+     * @param dto 수동배정할 담당자 정보
+     * @return 수행결과
      */
     int updatePspcCstCnslAssign(AssignReq dto);
 
     /**
      * 배정정보 수정
-     * @param vo
-     * @return
+     * @param vo 배정정보
+     * @return 수행결과
      */
     int updatePspcCstCnslContact(WcsbPspcCstCnslBasDvo vo);
 
@@ -67,9 +67,9 @@ public interface WcsbNewReceiptMgtMapper {
 
     /**
      * 접수 목록 조회 - 그리드 페이징용
-     * @param dto
-     * @param pageInfo
-     * @return
+     * @param dto 검색조건
+     * @param pageInfo 페이징 정보
+     * @return 접수 목록
      */
     PagingResult<WcsbNewReceiptMgtDto.SearchDtlRes> selectAssignPages(
         WcsbNewReceiptMgtDto.SearchAssignReq dto, PageInfo pageInfo
@@ -77,18 +77,18 @@ public interface WcsbNewReceiptMgtMapper {
 
     /**
      * 접수 목록 조회- 엑셀다운로드용
-     * @param dto
-     * @return
+     * @param dto 검색조건
+     * @return 접수 목록
      */
     List<WcsbNewReceiptMgtDto.SearchDtlRes> selectAssignPages(WcsbNewReceiptMgtDto.SearchAssignReq dto);
 
-    /**
+    /*
      * Summaries Tab
      */
     /**
      * 집계정보 조회
-     * @param dto
-     * @return
+     * @param dto 요약조회할 집계정보
+     * @return 집계 요약정보
      */
     public List<WcsbNewReceiptMgtDto.SearchSummariesRes> selectPspcCstCnslRecvSummaries(
         WcsbNewReceiptMgtDto.SearchSummariesReq dto
