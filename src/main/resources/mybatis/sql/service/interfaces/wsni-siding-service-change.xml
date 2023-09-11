@@ -130,4 +130,21 @@
        AND ASN_OJ_YM = #{asnOjYm}
     </select>
 
+    <update id="updateStopNextSiding">
+    UPDATE TB_SVPD_CST_SV_RGBSPR_IZ
+       SET MTR_CAN_DT = #{akChdt}-- 취소요청일자
+         , MTR_CAN_RSON_CD = '73'
+     WHERE CNTR_NO = #{cntrNo}-- 변경할 계약번호
+       AND CNTR_SN = #{cntrSn}-- 변경할 계약상세번호
+       AND VST_DUEDT = (SELECT VST_DUEDT
+                          FROM (SELECT DISTINCT VST_DUEDT
+                                  FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                                 WHERE CNTR_NO = #{cntrNo}-- 변경할 계약번호
+                                   AND CNTR_SN = #{cntrSn}-- 변경할 계약상세번호
+                                   /*해당월 이후의 방문예정일(당월배정건 제외)*/
+                                   AND VST_DUEDT <![CDATA[>=]]> TO_CHAR(ADD_MONTHS(to_date(#{akChdt}), 1), 'YYYYMMDD')
+                                 ORDER BY VST_DUEDT ASC)
+                         WHERE rownum = 1)
+    </update>
+
 </mapper>

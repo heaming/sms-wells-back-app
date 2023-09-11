@@ -84,7 +84,8 @@ public class WsniSidingServiceChangesService {
                 service2.removeRglrBfsvcDl(
                     new WsnbCustomerRglrBfsvcDlDto.SaveReq(
                         "", //row.getCstSvAsnNo(),
-                        ""//row.getAsnOjYm() 배정년월
+                        //""//row.getAsnOjYm() 배정년월
+                        req.akChdt()
                     )
                 );
 
@@ -102,8 +103,7 @@ public class WsniSidingServiceChangesService {
 
         /*요청 구분에 따라 처리 - 1: 패키지변경, 4:다음회차 방문 중지*/
         if ("4".equals(req.asAkDvCd())) {
-            //UPDATE TB_SVPD_CST_SV_RGBSPR_IZ -- 모종 주기표에 업데이트
-            //UPDATE TB_SVPD_CST_SV_RGBSPR_IZ -- 디바이스 주기표에 업데이트
+            mapper.updateStopNextSiding(req.cntrNo(), req.cntrSn(), req.akChdt());
         }
 
     }

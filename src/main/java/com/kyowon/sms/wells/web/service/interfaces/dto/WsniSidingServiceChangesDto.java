@@ -22,16 +22,9 @@ public class WsniSidingServiceChangesDto {
 
     @ApiModel(value = "WsniSidingServiceChangesDto-SaveRes")
     public record SaveRes(
-        //        String svPrd,
-        //        String pdPrpVal01,
-        //        String sellTpCd,
-        //        String istDt,
-        //        String bsMths,
-        //        String basePdCd,
-        //        String userId
         @NotBlank
-        String result,
-        String msg
+        String rsCd, // 결과코드(S:성공, F:실패)
+        String rsMsg
     ) {}
 
 }
