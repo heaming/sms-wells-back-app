@@ -179,7 +179,6 @@ public class WsnaPcsvOutOfStorageSaveService {
                     pcsvSendDtlDvo.setAdrsCphonNoVal(cralIdvTno);
                     logisticDvos.add(converter.mapPcsvOutOfStorageDvoToLogisticDvo(pcsvSendDtlDvo));
                 }
-
             }
         }
 
