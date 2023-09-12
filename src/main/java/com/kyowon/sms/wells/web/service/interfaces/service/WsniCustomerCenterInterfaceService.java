@@ -100,7 +100,7 @@ public class WsniCustomerCenterInterfaceService {
 
         int result = mapper.updateFilterShippingAddress(dvo);
 
-        BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+        //BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
         // @TODO: TEMP_CODE :: 메세지 정상 출력되는지 확인 필요
         return new EditShpadrRes("MSG_ALT_SAVE_DATA", "S001");

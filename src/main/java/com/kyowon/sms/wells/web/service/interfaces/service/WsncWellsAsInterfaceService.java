@@ -133,7 +133,7 @@ public class WsncWellsAsInterfaceService {
      *              String chSding, 변경모종
      *              String apyDt 적용일자
      */
-    public SearchAsSidingChangeRes getAsSidingChanges(SearchAsSidingChangeReq req) {
+    public List<SearchAsSidingChangeRes> getAsSidingChanges(SearchAsSidingChangeReq req) {
         return converter.mapAsSidingChangeDvoToRes(mapper.selectAsSidingChanges(req));
     }
 
