@@ -152,9 +152,11 @@ public class WsnaPcsvOutOfStorageSaveService {
         List<WsnaLogisticsOutStorageAskReqDvo> logisticDvos = new ArrayList<>();
 
         List<WsnaPcsvOutOfStorageSaveDvo> dvos = converter.mapSaveReqToPcsvOutOfStorageDvo(dtos);
+        // 물류요청번호 생성
+        String lgstOstrAkNo = mapper.selectNewLgstOstrAkNo();
         for (WsnaPcsvOutOfStorageSaveDvo dvo : dvos) {
             if ("1112".equals(dvo.getSvBizDclsfCd())) {
-
+                dvo.setLgstOstrAkNo(lgstOstrAkNo); // 물류요청번호
                 String idvTno = dvo.getIdvTno();
                 String cralIdvTno = dvo.getCralIdvTno();
 
@@ -177,7 +179,6 @@ public class WsnaPcsvOutOfStorageSaveService {
                     pcsvSendDtlDvo.setAdrsCphonNoVal(cralIdvTno);
                     logisticDvos.add(converter.mapPcsvOutOfStorageDvoToLogisticDvo(pcsvSendDtlDvo));
                 }
-
             }
         }
 
@@ -206,12 +207,14 @@ public class WsnaPcsvOutOfStorageSaveService {
         sendDtlDvo.setAsnOjYm(now.substring(0, 6));
         sendDtlDvo.setIostAkDvCd("WE");
         sendDtlDvo.setLgstSppMthdCd("2");
-        sendDtlDvo.setOstrOjWareNo("100002");
         sendDtlDvo.setItmGdCd("A");
 
-        // 고객정보 파라미터 세팅
+        // 창고정보 파라미터 세팅
+        sendDtlDvo.setOstrOjWareNo(vo.getWkWareNo());
         sendDtlDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
         sendDtlDvo.setWareMngtPrtnrOgTpCd(vo.getWareMngtPrtnrOgTpCd());
+
+        // 고객정보 파라미터 세팅
         sendDtlDvo.setCstSvAsnNo(vo.getCstSvAsnNo());
         sendDtlDvo.setCstNo(vo.getCntrCstNo());
         sendDtlDvo.setCstNm(vo.getRcgvpKnm());
@@ -223,9 +226,10 @@ public class WsnaPcsvOutOfStorageSaveService {
         sendDtlDvo.setDtlAdr(vo.getRdadr());
         sendDtlDvo.setZip(vo.getNewAdrZip());
 
-        // 파라미터(물류작업방식코드,합포장일련번호)
+        // 파라미터(물류작업방식코드,합포장일련번호,물류요청번호)
         sendDtlDvo.setLgstWkMthdCd(vo.getLgstWkMthdCd());
         sendDtlDvo.setMpacSn(vo.getMpacSn());
+        sendDtlDvo.setLgstOstrAkNo(vo.getLgstOstrAkNo());
 
         // null대신 X값 세팅. (물류인터페이스요청)
         sendDtlDvo.setSvCnrCd("X");
@@ -260,7 +264,7 @@ public class WsnaPcsvOutOfStorageSaveService {
         WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
         reqDvo.setProcsYm(nowDay.substring(0, 6));
         reqDvo.setProcsDt(nowDay);
-        reqDvo.setWareDv(vo.getOstrOjWareNo().substring(0, 1)); /*창고구분*/
+        reqDvo.setWareDv("1"); /*창고구분*/
         reqDvo.setWareNo(vo.getOstrOjWareNo());
         reqDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo()); //파트너번호
         reqDvo.setItmPdCd(vo.getItmPdCd());
