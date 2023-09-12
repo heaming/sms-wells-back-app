@@ -1,13 +1,15 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto.SearchRes;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto.SearchSeedAgg;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto.SearchSeedAgrgRes;
 
 import java.util.*;
 
 import org.springframework.stereotype.Service;
 
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto.SearchSeedTotalRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto.SearchTodayGgLct;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedingTruckArrangementMapGgLctDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedingTruckArrangementMapSeedDvo;
@@ -29,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class WsnaSeedingTruckArrangementMapService {
 
     private final WsnaSeedingTruckArrangementMapMapper mapper;
-    private final ArrayList<WsnaSeedingTruckArrangementMapSeedDvo> seedTotal;
+    //    private final ArrayList<WsnaSeedingTruckArrangementMapSeedDvo> seedTotal;
 
     /**
      * 모종 출고 센터 조회
@@ -43,24 +45,14 @@ public class WsnaSeedingTruckArrangementMapService {
     }
 
     /**
-     * 모종별 합계 조회
-     * @param
-     * @return
-     */
-    public List<WsnaSeedingTruckArrangementMapSeedDvo> getSeedTotal() {
-        return seedTotal;
-    }
-
-    /**
      * 모종 출하대차 MAP 조회
      * @param dto
      * @return
      */
-    public List<SearchRes> getSeedingTruckArragementMap(
+    public WsnaSeedingTruckArrangementMapDto.SearchRes getSeedingTruckArragementMap(
         SearchReq dto
     ) {
-        List<SearchRes> result = new ArrayList<>();
-
+        List<SearchSeedAgrgRes> result = new ArrayList<>();
         List<SearchSeedAgg> seedAggs = mapper.selectSeedAggregation(dto);
 
         Map<WsnaSeedingTruckArrangementMapGgLctDvo, Queue<WsnaSeedingTruckArrangementMapSeedDvo>> aggMap = new HashMap<>();
@@ -89,10 +81,40 @@ public class WsnaSeedingTruckArrangementMapService {
         }
 
         // 모종별 합계
-        for (String sdingPkgGrpCd : seedTotalMap.keySet()) {
-            int qty = seedTotalMap.get(sdingPkgGrpCd);
-            seedTotal.add(new WsnaSeedingTruckArrangementMapSeedDvo(sdingPkgGrpCd, sdingPkgGrpCd, qty));
-        }
+        //        for (String sdingPkgGrpCd : seedTotalMap.keySet()) {
+        //            int qty = seedTotalMap.get(sdingPkgGrpCd);
+        //            seedTotal.add(new WsnaSeedingTruckArrangementMapSeedDvo(sdingPkgGrpCd, sdingPkgGrpCd, qty));
+        //        }
+
+        // 모종별 합산
+        SearchSeedTotalRes seedTotalRes = new SearchSeedTotalRes(
+            seedTotalMap.getOrDefault("PAK01", 0),
+            seedTotalMap.getOrDefault("PAK02", 0),
+            seedTotalMap.getOrDefault("PAK03", 0),
+            seedTotalMap.getOrDefault("PAK04", 0),
+            seedTotalMap.getOrDefault("PAK05", 0),
+            seedTotalMap.getOrDefault("PAK13", 0),
+            seedTotalMap.getOrDefault("PAK23", 0),
+            seedTotalMap.getOrDefault("PAK50", 0),
+            seedTotalMap.getOrDefault("PAK08", 0),
+            seedTotalMap.getOrDefault("PAK09", 0),
+            seedTotalMap.getOrDefault("PAK12", 0),
+            seedTotalMap.getOrDefault("PAK51", 0),
+            seedTotalMap.getOrDefault("PAK52", 0),
+            seedTotalMap.getOrDefault("PAK53", 0),
+            seedTotalMap.getOrDefault("PAK54", 0),
+            seedTotalMap.getOrDefault("PAK55", 0),
+            seedTotalMap.getOrDefault("PAK56", 0),
+            seedTotalMap.getOrDefault("PAK57", 0),
+            seedTotalMap.getOrDefault("PAK58", 0),
+            seedTotalMap.getOrDefault("PAK59", 0),
+            seedTotalMap.getOrDefault("PAK60", 0),
+            seedTotalMap.getOrDefault("PAK24", 0),
+            seedTotalMap.getOrDefault("PAK28", 0),
+            seedTotalMap.getOrDefault("PAK29", 0),
+            seedTotalMap.getOrDefault("PAK30", 0),
+            seedTotalMap.getOrDefault("PAK31", 0)
+        );
 
         // 모종수량리스트 배차
         for (WsnaSeedingTruckArrangementMapGgLctDvo ggLct : aggMap.keySet()) {
@@ -207,42 +229,60 @@ public class WsnaSeedingTruckArrangementMapService {
                     }
 
                     sdQtyInTruck = 0;
-                    fb = fb.equals("F") ? "B" : "F";
-                    cart.clear();
-                    if (fb.equals("F")) {
+                    if (fb.equals("B") && !seedQtyQue.isEmpty()) {
                         truckNo++;
                     }
+                    fb = fb.equals("F") ? "B" : "F";
+                    cart.clear();
                 }
             }
 
-            SearchRes searchRes = new SearchRes(
+            SearchSeedAgrgRes searchSeedAgrgRes = new SearchSeedAgrgRes(
                 ggLct.getGgLctCd(),
                 ggLct.getGgLctNm(),
-                Math.round(truckNo / 2),
-                cart1F,
-                cart1B,
-                cart2F,
-                cart2B,
-                cart3F,
-                cart3B,
-                cart4F,
-                cart4B,
-                cart5F,
-                cart5B,
-                cart6F,
-                cart6B,
-                cart7F,
-                cart7B,
-                cart8F,
-                cart8B,
-                cart9F,
-                cart9B
+                (int)(Math.ceil((double)truckNo / 2)),
+                String.join("\n", cart1F),
+                String.join("\n", cart1B),
+                String.join("\n", cart2F),
+                String.join("\n", cart2B),
+                String.join("\n", cart3F),
+                String.join("\n", cart3B),
+                String.join("\n", cart4F),
+                String.join("\n", cart4B),
+                String.join("\n", cart5F),
+                String.join("\n", cart5B),
+                String.join("\n", cart6F),
+                String.join("\n", cart6B),
+                String.join("\n", cart7F),
+                String.join("\n", cart7B),
+                String.join("\n", cart8F),
+                String.join("\n", cart8B),
+                String.join("\n", cart9F),
+                String.join("\n", cart9B)
+                //                cart1F,
+                //                cart1B,
+                //                cart2F,
+                //                cart2B,
+                //                cart3F,
+                //                cart3B,
+                //                cart4F,
+                //                cart4B,
+                //                cart5F,
+                //                cart5B,
+                //                cart6F,
+                //                cart6B,
+                //                cart7F,
+                //                cart7B,
+                //                cart8F,
+                //                cart8B,
+                //                cart9F,
+                //                cart9B
             );
-            result.add(searchRes);
+            result.add(searchSeedAgrgRes);
 
         }
 
-        return result;
+        return new WsnaSeedingTruckArrangementMapDto.SearchRes(result, seedTotalRes);
     }
 
 }

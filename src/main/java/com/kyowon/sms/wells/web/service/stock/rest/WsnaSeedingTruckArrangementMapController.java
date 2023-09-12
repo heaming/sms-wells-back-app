@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedingTruckArrangementMapSeedDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaSeedingTruckArrangementMapService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 
@@ -36,15 +35,15 @@ public class WsnaSeedingTruckArrangementMapController {
 
     @ApiOperation(value = "모종 출하대차 MAP", notes = "검색 조건을 입력받아 데이터를 조회한다.")
     @GetMapping("/map")
-    public List<SearchRes> getSeedingTruckArragementMap(
+    public SearchRes getSeedingTruckArragementMap(
         SearchReq dto
     ) {
         return this.service.getSeedingTruckArragementMap(dto);
     }
 
-    @ApiOperation(value = "모종 출하대차 MAP", notes = "검색 조건을 입력받아 데이터를 조회한다.")
-    @GetMapping("/total")
-    public List<WsnaSeedingTruckArrangementMapSeedDvo> getSeedingTruckArragementMap() {
-        return this.service.getSeedTotal();
-    }
+    //    @ApiOperation(value = "모종 출하대차 MAP", notes = "검색 조건을 입력받아 데이터를 조회한다.")
+    //    @GetMapping("/total")
+    //    public List<WsnaSeedingTruckArrangementMapSeedDvo> getSeedingTruckArragementMap() {
+    //        return this.service.getSeedTotal();
+    //    }
 }
