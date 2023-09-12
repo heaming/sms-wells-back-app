@@ -89,6 +89,7 @@ public class WdccSalesPerformDto {
 
     @ApiModel("WdccSalesPerformDto-SearchSinglePaymentBaseRes")
     public record SearchSinglePaymentBaseRes(
+        /** 계약사항 */
         String cntrNo, /* 계약번호 */
         Integer cntrSn, /* 계약일련번호 */
         String cntrDtlNo, /* 계약상세번호 */
@@ -114,44 +115,38 @@ public class WdccSalesPerformDto {
         Long sellAmt, /* 판매가격 */
         Long alncFee, /* 제휴수수료(LC30.LCFAMT) */
         Long subscAmt, /* 청약금 @TO-BE는 청약금+인수금(CWSAMT+CWAAMT) 하나로 관리(인수금액은 TOBE 미관리) */
-        String tkAmt, /* @TO-DO 인수금액(CW50.CWAAMT) */
-        //        Long tkAmt, /* @TO-DO 인수금액(CW50.CWAAMT) */
         Long crpUcAmt, /* 법인미수금액(LC30.LCGAMT) */
         Long istmPcamAmt, /* 잔액(CW50.CWJAMT(할부원금) 값이 0이면, LC30.LCJAMT 값) */
         Integer istmMcn, /* 할부개월(CW50.CWMONT) */
         Long mmIstmAmt, /* 월할부금액(CW50.CWMAMT) */
         String istmInfo, /* 할부정보(CW50.CWMONT, CW50.CWMAMT) */
         Long istmFeeLvyAmt, /* 수수료금액(CW50.CWCAMT 값이 0이면, LC30.LCCAMT) */
+        /** 변경사항 */
         String fulpyDt, /* 완불일자 */
-        String fstFulpyDt, /* 최초완불일자(CW50.CWLSTY) -- @TO-DO TOBE는 관리하지 않음 */
         String cntrChnDt, /* 변동일자(CW50.CWCHGY) */
         String cwkgubnm, /* 계정구분(CW50.CWKGUB) CASE WHEN CW50.CWKGUB='2' THEN '대손' ELSE ' ' END AS CWKGUBNM */
         String pdChDt, /* 상변일자(LC30.LCCHGY) */
         String slChDt, /* 매변일자(LC30.LCMAEY) */
         String slChSn, /* @TO-DO 매변일련번호(CW45.CWSEQN) ※ TOBE 관리 필드 없음 */
+        /** 입금사항 */
         Long istmTotDpAmt, /* 할부입금액(CW50.CWPAMT) */
         Long subscTotDpAmt, /* 청약입금액(ASIS쿼리에는 조회하지 않음) */
         Long slChTotDpAmt, /* 매변입금액(CW45.CWPAMT) */
-        //        Long tkDpAmt, /* @TO-DO 인수입금액(CW50.CWAAMT) ※ 인수금액 TOBE 삭제 */
-        String tkDpAmt, /* @TO-DO 인수입금액(CW50.CWAAMT) ※ 인수금액 TOBE 삭제 */
-        //        Long crpDpAmt, /* @TO-DO 법인미수금액(CW50.CWGAMT) 수납쪽 입금구분에 법인미수금 코드가 있는데, TOBE에서는 계약금으로 합치는거로 되어있음 */
-        String crpDpAmt, /* @TO-DO 법인미수금액(CW50.CWGAMT) 수납쪽 입금구분에 법인미수금 코드가 있는데, TOBE에서는 계약금으로 합치는거로 되어있음 */
         Long totDpAmt, /* 입금총액(청약금액+인수금액+납입금액, CW50.CWSAMT+CW50.CWAAMT+CW50.CWPAMT) */
         String dpTpCd, /* 이체구분코드(LC31.LCCHK1) */
-        String dpTpCdNm, /* 이체구분코드명(LC31.LCCHK1) */
         Integer mpyBsdt, /* 이체일자 */
+        /** 연체사항 */
         Integer dlqMcn, /* 연체개월수(CW50.CWDCNT) */
         Long thmOcDlqAmt, /* 연체금액(CW50.CWDAMT) */
-        Long eotUcAmt, /* 연체금액(CW50.CWDAMT) */
         Long ucBlam, /* 미수금액(CW50.CWQAMT - (CW50.CWSAMT + CW50.CWAAMT + CW50.CWPAMT)) */
         String ucPrt, /* 미수출력(CW50.CWFLG2) */
+        /** 대손사항 */
         String acdbtDt, /* 대손일자(CW50.CWBDDT) */
         Long dfaAmt, /* 대손금액(CW50.CWAMT4) */
-        Long dfaBlam, /* 대손잔액(대손금액 - 대손입금액) */
         Long dfaDpAmt, /* 대손입금액(CW5400P.CWAMT1) */
+        Long dfaBlam, /* 대손잔액(대손금액 - 대손입금액) */
         String dfaRveDt, /* 대손납입일자(CW5400P.CWACTY) */
-        String dfaFnsAmt, /* @TO-DO 대손완불금액(ASIS 쿼리 이상함) */
-        //        Long dfaFnsAmt, /* @TO-DO 대손완불금액(ASIS 쿼리 이상함) */
+        /** 집금정보 */
         String bndAsnDt, /* 수임일자(CW50.CWPRTY) */
         String clctamDvCd, /* 집금구분(CW49.CWPGUB) */
         String clctamDvCdNm, /* 집금유형명 */
