@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaAgencyLocaraFilterGiveAOrderPsDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaAgencyLocaraFilterGiveAOrderPsService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -45,11 +48,26 @@ public class WsnaAgencyLocaraFilterGiveAOrderPsController {
         @ApiImplicitParam(name = "endDt", value = "기준년월 종료일자", paramType = "query", required = true),
     })
     @GetMapping("/paging")
-    public List getAgencyLocaraFilterGiveAOrderPss(
+    public PagingResult<HashMap<String, String>> getAgencyLocaraFilterGiveAOrderPss(
+        @Valid
+        SearchReq dto,
+        @Valid
+        PageInfo pageInfo
+    ) {
+        return service.getAgencyLocaraFilterGiveAOrderPsPages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "대리점지역별 필터발주현황 엑셀 다운로드", notes = "조회조건에 일치하는 대리점지역별 필터발주현황 엑셀 다운로드 데이터를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "startDt", value = "기준년월 시작일자", paramType = "query", required = true),
+        @ApiImplicitParam(name = "endDt", value = "기준년월 종료일자", paramType = "query", required = true),
+    })
+    @GetMapping("/excel-download")
+    public List getAgencyLocaraFilterGiveAOrderPssForExcelDownload(
         @Valid
         SearchReq dto
     ) {
-        return service.getAgencyLocaraFilterGiveAOrderPss(dto);
+        return service.getAgencyLocaraFilterGiveAOrderPssForExcelDownload(dto);
     }
 
 }
