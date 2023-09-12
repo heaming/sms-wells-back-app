@@ -16,6 +16,7 @@ import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvOutOfStorageSaveMap
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvSendDtlMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,10 @@ public class WsnaPcsvOutOfStorageSaveService {
         for (WsnaPcsvOutOfStorageSaveDvo dvo : dvos) {
             if ("1112".equals(dvo.getSvBizDclsfCd())) {
                 // --- 정상출고----
+
+                // 0.동일 키값으로 결과가 저장되었는지 체크한다.
+                int existCnt = mapper.selectExistSvpdCstSvWkRsIz(dvo);
+                BizAssert.isTrue(existCnt == 0, "MSG_ALT_EXIST_FSH_WK_LIST_RTRY_CONF");
 
                 // 1.배정테이블 업데이트
                 mapper.updateSvpdCstSvasIstAsnIz(dvo);
@@ -111,6 +116,10 @@ public class WsnaPcsvOutOfStorageSaveService {
 
             } else if ("1113".equals(dvo.getSvBizDclsfCd())) {
                 // --- 재배송 출고----
+
+                // 0.동일 키값으로 결과가 저장되었는지 체크한다.
+                int existCnt = mapper.selectExistSvpdCstSvWkRsIz(dvo);
+                BizAssert.isTrue(existCnt == 0, "MSG_ALT_EXIST_FSH_WK_LIST_RTRY_CONF");
 
                 // 1.배정테이블 업데이트
                 mapper.updateSvpdCstSvasIstAsnIz(dvo);
