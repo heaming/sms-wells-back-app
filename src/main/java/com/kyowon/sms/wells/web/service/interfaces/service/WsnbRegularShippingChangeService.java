@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 /**
  *
  *
@@ -27,6 +30,8 @@ public class WsnbRegularShippingChangeService {
      * 정기배송 변경처리
      *
      * @programId W-SV-I-0016
+     * @see 홈카페 캡슐 상품/서비스 변경 처리
+     *      environmentController.java > LC_ASREGN_API_005(HttpServletRequest request, HttpServletResponse response)
      */
     public SaveRes saveRegularShippingChange(SaveReq req) {
 
@@ -35,7 +40,8 @@ public class WsnbRegularShippingChangeService {
         String msg = "";
 
         //@TODO 이진성 프로 작업 예정
-        //String result = LC_ASREGN_API_I04_T; --> 이진성 프로 작업 예정
+        //홈카페 캡슐 패키지/서비스 변경 오라클
+        //String result = LC_ASREGN_API_I04_T;
         String result = "S001";
 
         if (result.length() > 0 && result.equals("S001"))
@@ -48,8 +54,8 @@ public class WsnbRegularShippingChangeService {
             String cntrSn = req.cntrSn();
             String reqGb = req.reqGb();
             String reqDt = req.reqDt();
-            String reqSaleCd = req.reqSaleCd(); // LCPKAG
-            String partList = req.partList();
+            String reqSaleCd = req.reqSaleCd(); // LCPKAG 변경판매코드
+            String partList = req.partList(); /*자유패키지 캡슐 구성 정보 > 판매코드,수량 | 판매코드, 수량 |~~~ */
             String dataStus = req.dataStus();
 
             SaveRegularShippingChangeHistReq historyReq = new SaveRegularShippingChangeHistReq(
@@ -97,6 +103,7 @@ public class WsnbRegularShippingChangeService {
 
                         //LC3220P 인서트
                         //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I06", params);
+                        //배송변경접수상세
                         mapper.insertRegularShippingChangeDtl(new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, reqGb, reqDt, seq));
                     }
 

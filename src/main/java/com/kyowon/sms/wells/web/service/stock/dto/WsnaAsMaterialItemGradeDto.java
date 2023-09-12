@@ -29,7 +29,14 @@ public class WsnaAsMaterialItemGradeDto {
         String wareDvCd,
 
         // 창고세부구분코드
-        String wareDtlDvCd
+        String wareDtlDvCd,
+
+        //창고담당번호 (ASIS : CHG_CD=000)
+        String wareIchrNo,
+
+
+        // 상위창고번호
+        String hgrWareNo
     ) {}
 
     @Builder

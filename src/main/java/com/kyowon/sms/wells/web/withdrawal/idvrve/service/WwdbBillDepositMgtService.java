@@ -194,14 +194,9 @@ public class WwdbBillDepositMgtService {
         int processCount = 0;
 
         //오늘 날짜
-        String sysDate = DateUtil.getNowString();
         String sysDateYmd = DateUtil.getNowDayString();
 
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession(); //세션정보
-
-        //통합입금기본 조회
-        ZwdbCorporationDepositDto.SearchIntegrationDepositRes integrationDepositRes = zwdbCorporationDepositMapper
-            .selectIntegrationDepositInfo(dto.get(0).itgDpNo());
 
         int sumResult = 0;
 
@@ -212,7 +207,8 @@ public class WwdbBillDepositMgtService {
 //        String useYn = "N";
 
         //전표 PK
-        String zzsnum = slpnoService.getNumberingSlpno("FE", Integer.parseInt(year), Integer.parseInt(month));
+        String zzsnum = slpnoService.getNumberingSlpno("KW", Integer.parseInt(year), Integer.parseInt(month)) + "FI";
+//        String zzsnum = slpnoService.getNumberingSlpno("KW", Integer.parseInt(year), Integer.parseInt(month)) + "FI";
 
         for (WwdbBillDepositMgtDto.SaveDepositSlip list : dto) {
             /*수납요청기본*/
@@ -339,10 +335,8 @@ public class WwdbBillDepositMgtService {
         int processCount = 0;
 
         //오늘 날짜
-        String sysDate = DateUtil.getNowString();
         String sysDateYmd = DateUtil.getNowDayString();
-
-        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession(); //세션정보
+        
         int sumResult = 0;
 
         for (WwdbBillDepositMgtDto.SaveDepositSlip list : dto) {

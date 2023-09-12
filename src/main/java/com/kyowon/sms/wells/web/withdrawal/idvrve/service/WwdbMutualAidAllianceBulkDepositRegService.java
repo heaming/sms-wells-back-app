@@ -113,9 +113,6 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         List<WwdbMutualAidAllianceBulkDepositRegDvo> dataDvo = new ArrayList<WwdbMutualAidAllianceBulkDepositRegDvo>();
 
         for (WwdbMutualAidAllianceBulkDepositRegDvo dvo : readExcel) {
-            log.info("===test");
-            System.out.println(!ObjectUtils.isEmpty(dvo.getLifCntrNo()));
-            log.info("===test");
             if (!ObjectUtils.isEmpty(dvo.getLifCntrNo())) {
                 log.info("===test2");
                 log.info(dvo.toString());

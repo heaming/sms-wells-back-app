@@ -26,6 +26,7 @@ public interface WsnbRegularShippingChangeMapper {
     int selectRegularShippingChangeMaxSn(String cntrNo);
 
     int insertRegularShippingChangeBase(SaveRegularShippingChangeBaseReq req);
+
     int insertRegularShippingChangeDtl(SaveRegularShippingChangeDtlReq req);
 
     int updateRegularShippingChangeBase(SaveRegularShippingChangeBaseReq req);

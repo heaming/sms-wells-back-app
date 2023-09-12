@@ -288,7 +288,7 @@ public class WpdcMaterialMgtController {
             /* -------------------------------------------------------------
                 실제 데이터 ROW Map의 KEY를 0번째에서 추출한 Camel 표기법으로 치환하여 신규 MAP return
              ------------------------------------------------------------- */
-            Map<String, Object> convertKeyMap = new HashMap<String, Object>();
+            Map<String, Object> convertKeyMap = null;
             for (int xx = 3; xx < xlsList.size(); xx++) {
                 Map<String, Object> dataMap = xlsList.get(xx);
                 convertKeyMap = new HashMap<String, Object>();

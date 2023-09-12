@@ -46,7 +46,7 @@ public class WwwdbDepositAggregateDtlServiceCenterController {
         return service.getDepositAggregateServiceCenterPages(req, pageInfo);
     }
 
-    @ApiOperation(value = "입금집계상세현황 서비스 조회", notes = "입금집계상세현황 서비스 조회")
+    @ApiOperation(value = "입금집계상세현황 서비스 조회 엑셀 다운로드", notes = "입금집계상세현황 서비스 조회")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "ogId", value = "센터코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "startDt", value = "청구시작일자", paramType = "query", required = true),

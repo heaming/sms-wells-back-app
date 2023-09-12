@@ -46,6 +46,7 @@ public class WsnaNormalOutOfStorageDto {
         String ostrAkNo,
         String ostrAkTpCd,
         String ostrOjWareNo,
+        String ostrOjWareNm,
         String strOjWareNo,
         String strOjWareNm,
 

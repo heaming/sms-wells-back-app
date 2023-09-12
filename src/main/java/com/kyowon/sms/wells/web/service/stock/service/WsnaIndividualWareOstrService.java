@@ -226,7 +226,7 @@ public class WsnaIndividualWareOstrService {
      * @param dto
      * @return
      */
-    @Transactional(timeout = 900)
+    @Transactional(timeout = 300)
     public int createIndividualLogisticsTransfer(CreateReq dto) {
 
         WsnaIndividualWareOstrLgstDvo dvo = this.converter.mapCreateReqToWsnaIndividualWareOstrLgstDvo(dto);

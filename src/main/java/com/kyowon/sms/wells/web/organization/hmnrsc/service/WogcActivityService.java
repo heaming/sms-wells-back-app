@@ -32,16 +32,11 @@ public class WogcActivityService {
      * @return SearchMonthlyActivityRes
      */
     public List<SearchMonthlyActivityRes> searchMonthlyActivities(SearchMonthlyActivityReq dto) {
-        switch (dto.rsbDvCd()){
-            case "S":
-                return wogcActivityMapper.searchMonthlyActivitiesS(dto);
-            case "E":
-                return wogcActivityMapper.searchMonthlyActivitiesE(dto);
-            case "A":
-                return wogcActivityMapper.searchMonthlyActivitiesA(dto);
-            default:
-                return null;
-        }
+        return switch (dto.rsbDvCd()) {
+            case "S" -> wogcActivityMapper.searchMonthlyActivitiesS(dto);
+            case "E" -> wogcActivityMapper.searchMonthlyActivitiesE(dto);
+            default -> wogcActivityMapper.searchMonthlyActivitiesA(dto);
+        };
     }
 
     /**
@@ -51,16 +46,11 @@ public class WogcActivityService {
      * @return SearchMonthlyActivityRes
      */
     public PagingResult<SearchMonthlyActivityRes> searchMonthlyActivitiesPages(SearchMonthlyActivityReq dto, PageInfo pageInfo) {
-        switch (dto.rsbDvCd()){
-            case "S":
-                return wogcActivityMapper.searchMonthlyActivitiesS(dto, pageInfo);
-            case "E":
-                return wogcActivityMapper.searchMonthlyActivitiesE(dto, pageInfo);
-            case "A":
-                return wogcActivityMapper.searchMonthlyActivitiesA(dto, pageInfo);
-            default:
-                return null;
-        }
+        return switch (dto.rsbDvCd()) {
+            case "S" -> wogcActivityMapper.searchMonthlyActivitiesS(dto, pageInfo);
+            case "E" -> wogcActivityMapper.searchMonthlyActivitiesE(dto, pageInfo);
+            default -> wogcActivityMapper.searchMonthlyActivitiesA(dto, pageInfo);
+        };
     }
 
     /**
@@ -69,13 +59,10 @@ public class WogcActivityService {
      * @return SearchAccureActivityRes
      */
     public List<SearchAccureActivityRes> searchAccureActivities(SearchAccureActivityReq dto) {
-        switch (dto.perfCd()){
-            case "A":
-                return wogcActivityMapper.searchAccureActivitiesA(dto);
-            case "I":
-                return wogcActivityMapper.searchAccureActivitiesI(dto);
-            default:
-                return null;
+        if("A".equals(dto.perfCd())){
+            return wogcActivityMapper.searchAccureActivitiesA(dto);
+        } else {
+            return wogcActivityMapper.searchAccureActivitiesI(dto);
         }
     }
 
@@ -86,16 +73,10 @@ public class WogcActivityService {
      * @return SearchMonthlyActivityRes
      */
     public PagingResult<SearchAccureActivityRes> searchAccureActivitiesPages(SearchAccureActivityReq dto, PageInfo pageInfo) {
-        return null;
-        /*
-        switch (dto.perfCd()){
-            case "A":
-                return wogcActivityMapper.searchAccureActivitiesA(dto, pageInfo);
-            case "I":
-                return wogcActivityMapper.searchAccureActivitiesI(dto, pageInfo);
-            default:
-                return null;
+        if("A".equals(dto.perfCd())){
+            return wogcActivityMapper.searchAccureActivitiesA(dto, pageInfo);
+        } else {
+            return wogcActivityMapper.searchAccureActivitiesI(dto, pageInfo);
         }
-        */
     }
 }
