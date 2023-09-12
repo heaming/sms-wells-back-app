@@ -1,10 +1,7 @@
-    // var akdcde = "<%=request.getAttribute("akdcde")%>";
     console.log("akdcde : " + akdcde);
-	// var profile = "<%=request.getAttribute("profileGubn")%>"
-	// profile = profile != null?profile:"";
-    // let home = 'http://10.1.64.71:8311';
-    // let home = 'http://kstagent.kyowon.co.kr:8311';
-    let home = 'https://kstagent.kyowon.co.kr:4311';
+    const home = document.querySelector("#home").getAttribute("data-contextPath");
+
+    console.log("home : " + home);
     let URL = home + "/kkosync/v1/kakao_oauth";
     let URL_POPUP = home + "/kkosync/v1/kakao_oauth_popup";
     let URL_QR = home + "/sync.html";
