@@ -240,7 +240,7 @@ public class WsnaSeedingTruckArrangementMapService {
             SearchSeedAgrgRes searchSeedAgrgRes = new SearchSeedAgrgRes(
                 ggLct.getGgLctCd(),
                 ggLct.getGgLctNm(),
-                (int)(Math.ceil((double)truckNo / 2)),
+                truckNo,
                 String.join("\n", cart1F),
                 String.join("\n", cart1B),
                 String.join("\n", cart2F),
@@ -281,6 +281,7 @@ public class WsnaSeedingTruckArrangementMapService {
             result.add(searchSeedAgrgRes);
 
         }
+        Collections.sort(result, Comparator.comparing(SearchSeedAgrgRes::dgLctCd));
 
         return new WsnaSeedingTruckArrangementMapDto.SearchRes(result, seedTotalRes);
     }
