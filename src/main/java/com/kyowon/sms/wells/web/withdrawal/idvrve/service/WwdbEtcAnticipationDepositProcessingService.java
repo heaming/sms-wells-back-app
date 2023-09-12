@@ -7,9 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import com.kyowon.sms.common.web.closing.payment.dvo.ZdcaBusinessAnticipationAmtWellsDvo;
-import com.kyowon.sms.common.web.closing.payment.dvo.ZdcaEtcAnticipationAmtWellsDvo;
 import com.kyowon.sms.common.web.closing.payment.service.ZdcaBusinessAnticipationAmtWellsService;
-import com.kyowon.sms.common.web.closing.payment.service.ZdcaEtcAnticipationAmtWellsService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.converter.ZwdbEtcAnticipationDpProcsConvert;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCorporationDepositDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbEtcAnticipationDpProcsDto;
@@ -40,10 +38,8 @@ public class WwdbEtcAnticipationDepositProcessingService {
 
     private final ZdcaBusinessAnticipationAmtWellsService wdcaBusinessAnticipationAmtService;
 
-    private final ZdcaEtcAnticipationAmtWellsService edcaEtcAnticipationAmtService;
-
     public static String rveCd = null;
-//    public static String rveCd = "70440";
+    //    public static String rveCd = "70440";
 
     //경로 16
 
@@ -113,7 +109,6 @@ public class WwdbEtcAnticipationDepositProcessingService {
             //만약 당일입금이 아닌경우 기타선수금 데이터 생성
 
             edcaBusinessAnticipationAmtDvo.setEtcAtamNo(mainDvo.getEtcAtamNo()); //   기타선수금번호
-
 
             // 영업선수금 데이터 생성
 
