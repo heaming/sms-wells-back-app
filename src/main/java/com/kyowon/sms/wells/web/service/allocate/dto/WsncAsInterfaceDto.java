@@ -197,8 +197,8 @@ public class WsncAsInterfaceDto {
 
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchAsSidingChangeReq")
     public record SearchAsSidingChangeReq(
-        String rcpdtStrt, // 접수일자시작
-        String rcpdtEnd, // 접수일자종료
+        String rcpDtStart, // 접수일자시작
+        String rcpDtEnd, // 접수일자종료
         String pdCd, // 상품코드
         String cntrNo, // 계약번호
         String bcNo // 바코드번호
