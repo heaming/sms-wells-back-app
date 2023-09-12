@@ -59,6 +59,8 @@ public interface WogcPartnerPlannerMapper {
 
     PagingResult<SearchLicenseDetailRes> selectPlannerLicenseDetailPages(String prtnrNo, PageInfo pageinfo);
 
+    List<SearchLicenseDetailRes> selectPlannerLicenseDetailPages(String prtnrNo);
+
     int insertPlannerQualificationChange(WogcPartnerPlannerQualificationDvo dvo);
 
     int updatePlannerQualificationChange(WogcPartnerPlannerQualificationDvo dvo);

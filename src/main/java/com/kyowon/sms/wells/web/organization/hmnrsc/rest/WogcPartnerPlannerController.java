@@ -150,12 +150,28 @@ public class WogcPartnerPlannerController {
         @ApiImplicitParam(name = "qlfDvCd", value = "자격구분코드", paramType = "body", required = true),
         @ApiImplicitParam(name = "strtdt", value = "시작일자", paramType = "body", required = true),
         @ApiImplicitParam(name = "cvDt", value = "전환일자", paramType = "body", required = false),
-        @ApiImplicitParam(name = "qlfAplcDvCd", value = "자격신청구분코", paramType = "body", required = false)
+        @ApiImplicitParam(name = "qlfAplcDvCd", value = "자격신청구분코드", paramType = "body", required = false)
     })
     public SaveResponse createPlannerQualificationChange(
         @Valid @RequestBody
         SaveQulificationReq dto
     ) throws Exception {
         return SaveResponse.builder().processCount(service.createPlannerQualificationChange(dto)).build();
+    }
+
+    @ApiOperation(value = "매니저 자격관리 해약 저장", notes = "매니저 자격정보를 해약 처리 한다.")
+    @PutMapping("/planner-qualification-cancel")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "body", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "body", required = true),
+        @ApiImplicitParam(name = "qlfDvCd", value = "자격구분코드", paramType = "body", required = true),
+        @ApiImplicitParam(name = "strtdt", value = "시작일자", paramType = "body", required = true),
+        @ApiImplicitParam(name = "enddt", value = "종료일자", paramType = "body", required = true)
+    })
+    public SaveResponse createPlannerQualificationCancel(
+        @Valid @RequestBody
+        SaveQulificationReq dto
+    ) throws Exception {
+        return SaveResponse.builder().processCount(service.updatePlannerQualificationCancel(dto)).build();
     }
 }
