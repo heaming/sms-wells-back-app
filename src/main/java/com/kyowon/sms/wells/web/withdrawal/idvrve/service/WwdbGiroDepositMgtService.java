@@ -138,9 +138,6 @@ public class WwdbGiroDepositMgtService {
 
         int processCount = 0;
 
-        WwdbGiroDepositSaveInfoDvo dvo = convert.mapSaveGiroDepositSaveDvo(dto);
-
-        String rveDt = dto.rveDt(); //입금일자
         String fntDt = dto.fntDt(); //실적일자
 
         String rveCd = "70550"; //수납코드
@@ -164,7 +161,6 @@ public class WwdbGiroDepositMgtService {
         long saveSamt = 0;
 
         //오늘 날짜
-        String sysDate = DateUtil.getNowString();
         String sysDateYmd = DateUtil.getNowDayString();
 
         //입금등록 할 데이터 조회
@@ -203,7 +199,7 @@ public class WwdbGiroDepositMgtService {
             regMap.put("fntDt", dto.fntDt()); //실적일자
             regMap.put("rveDt", dto.rveDt()); //수납일자
 
-            Map<String, Object> errorRegMap = new HashMap<String, Object>(); //오류건 처리 데이터 입력
+            Map<String, Object> errorRegMap; //오류건 처리 데이터 입력
 
             int selectGiroDepositCount = mapper.selectGiroDepositCount(regMap); //지로OCR묶음기본 대표고객 조회
 
@@ -337,7 +333,7 @@ public class WwdbGiroDepositMgtService {
 
                     count++;
                     if (!StringUtils.isEmpty(list.itgDpNo())) {
-                        
+
                         //입금대사 서비스 호출
                         depositComparisonComfirmationService.createDepositComparisonComfirmation(list.itgDpNo(), null);
 

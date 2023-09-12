@@ -16,7 +16,7 @@ import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaAutoTransferRealT
 import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaKiccReceiveProcessService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCreditcardDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbCreditcardMapper;
-import com.kyowon.sms.common.web.withdrawal.interfaces.dvo.ZwdaBillingDelegateSubordinationContractInfoInterfaceDvo;
+//import com.kyowon.sms.common.web.withdrawal.interfaces.dvo.ZwdaBillingDelegateSubordinationContractInfoInterfaceDvo;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.converter.WwdaAutoTransferConverter;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.*;
@@ -41,6 +41,7 @@ public class WwdaAutoTransferInterfaceService {
 
     /**
      * 자동이체 출금내역 조회
+     *
      * @param dto
      * @return
      */
@@ -51,10 +52,11 @@ public class WwdaAutoTransferInterfaceService {
     }
 
     /**
-    * 자동이체 변경내역 조회
-    * @param dto
-    * @return
-    */
+     * 자동이체 변경내역 조회
+     *
+     * @param dto
+     * @return
+     */
     public List<WwdaAutoTransferInterfaceDto.SearchChangeRes> getChangeItemizations(
         WwdaAutoTransferInterfaceDto.SearchReq dto
     ) {
@@ -62,10 +64,11 @@ public class WwdaAutoTransferInterfaceService {
     }
 
     /**
-    * 자동이체 대상목록 조회
-    * @param dto
-    * @return
-    */
+     * 자동이체 대상목록 조회
+     *
+     * @param dto
+     * @return
+     */
     public List<WwdaAutoTransferInterfaceDto.SearchObjectRes> getObjectItemizations(
         WwdaAutoTransferInterfaceDto.SearchObjectReq dto
     ) {
@@ -81,10 +84,11 @@ public class WwdaAutoTransferInterfaceService {
     }
 
     /**
-    * 자동이체 정보 조회
-    * @param dto
-    * @return
-    */
+     * 자동이체 정보 조회
+     *
+     * @param dto
+     * @return
+     */
     public List<WwdaAutoTransferInterfaceDto.SearchRes> getInfos(
         WwdaAutoTransferInterfaceDto.SearchReq dto
     ) {
@@ -101,6 +105,7 @@ public class WwdaAutoTransferInterfaceService {
 
     /**
      * 자동이체 구분(개인/법인) 조회
+     *
      * @param dto
      * @return
      */
@@ -112,6 +117,7 @@ public class WwdaAutoTransferInterfaceService {
 
     /**
      * 자동이체 은행 목록 조회
+     *
      * @param dto
      * @return
      */
@@ -123,6 +129,7 @@ public class WwdaAutoTransferInterfaceService {
 
     /**
      * 자동이체 묶음 등록 정보 조회
+     *
      * @param dto
      * @return
      */
@@ -134,6 +141,7 @@ public class WwdaAutoTransferInterfaceService {
 
     /**
      * 자동이체 증빙 정보 목록 조회
+     *
      * @param dto
      * @return
      */
@@ -153,6 +161,7 @@ public class WwdaAutoTransferInterfaceService {
 
     /**
      * 자동이체 일괄 묶음 등록/해제
+     *
      * @param dto
      * @return
      */
@@ -268,9 +277,9 @@ public class WwdaAutoTransferInterfaceService {
                 }
             }
 
-            ZwdaBillingDelegateSubordinationContractInfoInterfaceDvo dgSubCntrInfo = zwdaBundleMapper
-                .selectDelegateSubordinationContractInfo(zwdaDvo);
-            if (ObjectUtils.isEmpty(dgSubCntrInfo)) {
+//            ZwdaBillingDelegateSubordinationContractInfoInterfaceDvo dgSubCntrInfo = zwdaBundleMapper
+//                .selectDelegateSubordinationContractInfo(zwdaDvo);
+            if (ObjectUtils.isEmpty(null)) {
                 reslCd = "E";
                 reslCntn = "계약정보 확인 불가 합니다.";
                 result.setReslCd(reslCd);
@@ -279,7 +288,7 @@ public class WwdaAutoTransferInterfaceService {
                 break;
             } else {
                 // 대표계약번호와 계약번호의 자동이체 일자가 동일한지 체크
-                if (!"Y".equals(dgSubCntrInfo.getMpyBsdtYn())) {
+                if (!"Y".equals(null)) {
                     reslCd = "E";
                     reslCntn = "납부일자가 달라 묶음 등록이 불가 합니다.";
                     result.setReslCd(reslCd);
@@ -289,7 +298,7 @@ public class WwdaAutoTransferInterfaceService {
                 }
 
                 // 대표계약번호와 계약번호의 청구방식(카드, 계좌)이 동일한지 체크
-                if (!"Y".equals(dgSubCntrInfo.getDpTpCdYn())) {
+                if (!"Y".equals(null)) {
                     reslCd = "E";
                     reslCntn = "입금방식이 달라 묶음 등록이 불가 합니다.";
                     result.setReslCd(reslCd);
@@ -299,7 +308,7 @@ public class WwdaAutoTransferInterfaceService {
                 }
 
                 // 대표계약번호와 계약번호의 은행/카드사가 동일한지 체크
-                if (!"Y".equals(dgSubCntrInfo.getBnkCdYn()) || !"Y".equals(dgSubCntrInfo.getCdcoCdYn())) {
+                if (!"Y".equals(null) || !"Y".equals(null)) {
                     reslCd = "E";
                     reslCntn = "은행 또는 카드사가 달라 묶음 등록이 불가 합니다.";
                     result.setReslCd(reslCd);
@@ -309,7 +318,7 @@ public class WwdaAutoTransferInterfaceService {
                 }
 
                 // 대표계약번호와 계약번호의 계좌번호/카드번호가 동일한지 체크
-                if (!"Y".equals(dgSubCntrInfo.getCrcdnoEncrYn()) || !"Y".equals(dgSubCntrInfo.getAcnoEncrYn())) {
+                if (!"Y".equals(null) || !"Y".equals(null)) {
                     reslCd = "E";
                     reslCntn = "계좌번호 또는 카드번호가 달라 묶음 등록이 불가 합니다.";
                     result.setReslCd(reslCd);
@@ -341,6 +350,7 @@ public class WwdaAutoTransferInterfaceService {
 
     /**
      * 자동이체 일괄 등록/해제
+     *
      * @param dto
      * @return
      */
@@ -638,6 +648,7 @@ public class WwdaAutoTransferInterfaceService {
 
     /**
      * 자동이체 계좌 실명인증
+     *
      * @param dto
      * @return
      */
@@ -708,6 +719,7 @@ public class WwdaAutoTransferInterfaceService {
 
     /**
      * 자동이체 카드 유효성 체크
+     *
      * @param dto
      * @return
      */
@@ -799,6 +811,7 @@ public class WwdaAutoTransferInterfaceService {
 
     /**
      * 은행계좌유효성체크_SB
+     *
      * @param dto
      * @return
      */
