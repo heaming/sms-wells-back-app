@@ -38,7 +38,6 @@ public class WsnaMaterialsHavePresentStateService {
         ValidAssert.notNull(dto);
         ValidAssert.hasText(dto.baseYm());
         ValidAssert.hasText(dto.wareDvCd());
-
         return this.mapper.selectWareHouses(dto);
     }
 
