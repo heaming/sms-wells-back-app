@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.dto;
 
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
 import org.apache.commons.lang.StringUtils;
 
 import com.sds.sflex.common.utils.DbEncUtil;
@@ -14,8 +16,7 @@ public class WogcPartnerPlannerDto {
         String prtnrKnm,
         String prtnrNo,
         String qlfDvCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchLicenseRes")
     public record SearchLicenseRes(
@@ -57,8 +58,7 @@ public class WogcPartnerPlannerDto {
         String enddt,
         String pymdt,
         String dsbAmt
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchReq")
     @Builder
@@ -74,18 +74,19 @@ public class WogcPartnerPlannerDto {
         String ogLevlDvCd3,
         String ogLevlDvCd4,
         String olfDvCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchRes")
     public record SearchRes(
         String dgr1LevlOgNm,
         String dgr2LevlOgNm,
         String ogCd,
+        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm,
         String prtnrNo,
         String qlfDvCd,
         String qlfDvNm,
+        @MaskRequired(type = MaskingType.NAME)
         String rcmdrPrtnrNm,
         String rcmdrPrtnrNo,
         String cntrDt,
@@ -108,8 +109,7 @@ public class WogcPartnerPlannerDto {
         String mQlfDvCd,
         String mQlfDvNm,
         String mTotCnt
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-DeleteReq")
     @Builder
@@ -118,8 +118,7 @@ public class WogcPartnerPlannerDto {
         String prtnrKnm,
         String prtnrNo,
         String aplcSn
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SaveReq")
     @Builder
@@ -130,8 +129,7 @@ public class WogcPartnerPlannerDto {
         String prtnrNo,
 
         String qlfDvCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchCountMmPartnerReq")
     @Builder
@@ -140,8 +138,7 @@ public class WogcPartnerPlannerDto {
         String prtnrKnm,
         String prtnrNo,
         String olfDvCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchCountPlarPartnerReq")
     @Builder
@@ -150,8 +147,7 @@ public class WogcPartnerPlannerDto {
         String prtnrKnm,
         String prtnrNo,
         String olfDvCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-FindRes")
     public record FindRes(
@@ -170,8 +166,7 @@ public class WogcPartnerPlannerDto {
         String fnlMdfcUsrId,
         String pb3PrtnrNo,
         String pb3PrtnrKnm
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-EditReq")
     @Builder
@@ -180,8 +175,7 @@ public class WogcPartnerPlannerDto {
         String prtnrKnm,
         String prtnrNo,
         String olfDvCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SaveQulificationReq")
     @Builder
@@ -205,6 +199,5 @@ public class WogcPartnerPlannerDto {
         String fnlMdfcUsrId,
         String fnlMdfcPrgId,
         String fnlMdfcDeptId
-    ) {
-    }
+    ) {}
 }
