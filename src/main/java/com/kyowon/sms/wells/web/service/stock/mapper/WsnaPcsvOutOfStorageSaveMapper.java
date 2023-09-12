@@ -7,11 +7,11 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveDvo;
 @Mapper
 public interface WsnaPcsvOutOfStorageSaveMapper {
 
+    String selectNewLgstOstrAkNo();
+
     int selectExistSvpdCstSvWkRsIz(WsnaPcsvOutOfStorageSaveDvo vo);
 
     WsnaPcsvOutOfStorageSaveDvo selectEngineerOgbsMmPrtnrIz(WsnaPcsvOutOfStorageSaveDvo vo);
-
-    WsnaPcsvOutOfStorageSaveDvo selectQtySvstCstSvItmStocIz(WsnaPcsvOutOfStorageSaveDvo vo);
 
     WsnaPcsvOutOfStorageSaveDvo selectAsCodeSvpdCstSvasIstOjIz(WsnaPcsvOutOfStorageSaveDvo vo);
 

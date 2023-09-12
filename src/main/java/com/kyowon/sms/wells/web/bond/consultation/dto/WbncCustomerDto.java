@@ -335,4 +335,27 @@ public class WbncCustomerDto {
         String promFshYn
     ) {}
 
+    @ApiModel(value = "WbncCustomerDto-FindUserInfoReq")
+    public static record FindUserInfoReq(
+        String prtnrNo,
+        String ogTpCd
+    ) {}
+
+    @ApiModel(value = "WbncCustomerDto-FindUserInfoRes")
+    public static record FindUserInfoRes(
+        String tno1,
+        String tno2,
+        String tno3
+    ) {}
+
+    @ApiModel(value = "WbncCustomerDto-FindRecIdReq")
+    public static record FindRecIdReq(
+        String inlnNo
+    ) {}
+
+    @ApiModel(value = "WbncCustomerDto-FindRecIdRes")
+    public static record FindRecIdRes(
+        String recId
+    ) {}
+
 }

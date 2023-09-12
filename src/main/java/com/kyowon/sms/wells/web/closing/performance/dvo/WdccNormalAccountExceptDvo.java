@@ -14,6 +14,7 @@ public class WdccNormalAccountExceptDvo {
     private String pmotCd;
     private String cntrStrtdt;
     private String cntrEnddt;
+    private String cntrDtl;
     private String cntrNo;
     private String cntrSn;
     private String cntrExcdRsonCn;
