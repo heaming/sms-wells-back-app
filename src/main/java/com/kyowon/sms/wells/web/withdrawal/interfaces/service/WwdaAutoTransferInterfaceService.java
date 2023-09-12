@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.service;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -625,7 +624,7 @@ public class WwdaAutoTransferInterfaceService {
             // 카카오톡 발송
             int sendResult = kakaoMessageService.sendMessage(req);
             if (sendResult > 0) {
-                result.setReslCd("S");
+                result.setReslCd(reslCd);
                 results.add(result);
             }
         }

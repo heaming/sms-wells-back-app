@@ -38,7 +38,7 @@ public class WdecRdsAnAccountErrorMgtService {
     private final ZdecRdsAnAccountErrorMgtConverter converter;
 
     private final AttachFileService attachFileService;
-    private final String groupId = "ATG_DEC_BAI_DCMT_FILE";
+    private static final String groupId = "ATG_DEC_BAI_DCMT_FILE";
 
     //    private final EaiInterfaceService interfaceService;
 
@@ -56,19 +56,19 @@ public class WdecRdsAnAccountErrorMgtService {
         /*
         기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 X - 기존 계좌 오류 X = 처리 X
         기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 X - 기존 계좌 오류 O = 기존 계좌 오류정보 삭제처리
-        
+
         기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 O - 기존 계좌 오류 X = 입력 계좌 오류정보 저장
         기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 O - 기존 계좌 오류 O = 처리 X
-        
+
         기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 X - 기존 계좌 오류 X = 처리 X
         기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 X - 기존 계좌 오류 O = 처리 X
-        
+
         기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 O - 기존 계좌 오류 X = 기존 계좌정보 삭제처리, 입력 계좌정보 저장, 입력 계좌 오류정보 저장
         기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 O - 기존 계좌 오류 O = 기존 계좌정보 삭제처리, 기존 계좌 오류정보 삭제처리, 입력 계좌정보 저장, 입력 계좌 오류정보 저장
         */
         ZdecRdsAnAccountErrorMgtDvo errorInfo = converter.mapAnAccountChk(dto);
 
-        int proccCnt = 0;
+        //        int proccCnt = 0;
 
         // 계좌 신규 체크
         SearchRdsAnAccountErrorNewChkRes newChk = mapper.isRdsAnAccountNewChk(dto);
@@ -89,8 +89,8 @@ public class WdecRdsAnAccountErrorMgtService {
         // TODO: 계좌확인 서비스 만들어지면 리턴값 확인하고 set
         String errorYn = accountResult.get("acFntRsCd");
         ; // 임시------ N: 에러가아님, Y:에러
-        String rdsAcErrId = "EFEDD151133854700709"; // 임시
-        String acErrDvCd = "9";// 임시 RDS계좌오류구분코드, 확인필요
+          //        String rdsAcErrId = "EFEDD151133854700709"; // 임시
+          //        String acErrDvCd = "9";// 임시 RDS계좌오류구분코드, 확인필요
 
         /* errorInfo.setPrtnrErrAcId(newChk.prtnrAcId());   컬럼삭제로 인한 주석*/
         /*errorInfo.setPrtnrErrAcIdTmp(newChk.prtnrAcId()); 컬럼삭제로 인한 주석*/
@@ -156,7 +156,7 @@ public class WdecRdsAnAccountErrorMgtService {
                 String errRgstDt = dateFormat.format(time);
                 errorInfo.setErrRgstDt(errRgstDt);
 
-                proccCnt += mapper.insertRdsAnAccountError(errorInfo);
+                mapper.insertRdsAnAccountError(errorInfo);
                 mapper.insertRdsAnAccountErrorHist(errorInfo);
             }
 
@@ -174,7 +174,7 @@ public class WdecRdsAnAccountErrorMgtService {
                     errorInfo.setNomVlStrtDtm(errorInfo.getVlStrtDtm());
                     errorInfo.setDtaDlYn("N");
 
-                    proccCnt += mapper.updateRdsAnAccountError(errorInfo); //
+                    mapper.updateRdsAnAccountError(errorInfo); //
                     mapper.insertRdsAnAccountErrorHist(errorInfo);
 
                     // 삭제처리

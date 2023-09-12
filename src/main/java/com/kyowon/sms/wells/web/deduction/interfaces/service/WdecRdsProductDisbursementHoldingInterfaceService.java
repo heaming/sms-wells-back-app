@@ -58,7 +58,7 @@ public class WdecRdsProductDisbursementHoldingInterfaceService {
         BatchCallReqDvo batchDvo = new BatchCallReqDvo();
 
         //배치 실행횟수
-        String batchRunId = "";
+        //        String batchRunId = "";
 
         //현재날짜
         String wkPrtcDtmVal = DateUtil.getNowString();
@@ -74,7 +74,7 @@ public class WdecRdsProductDisbursementHoldingInterfaceService {
         batchDvo.setParams(params); // Job 실행시 필요한 파라미터
 
         //배치호출(try-catch대신, throw사용)
-        batchRunId = batchCallService.runJob(batchDvo); //배치실행횟수를 저장
+        batchCallService.runJob(batchDvo); //배치실행횟수를 저장
 
         //모든 경우가 성공하면 처리
         return new String[] {dto.rdsDsbDuedt(), "S", "데이터 등록이 성공하였습니다."}; //스트링배열로 리턴

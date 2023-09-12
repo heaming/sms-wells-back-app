@@ -21,5 +21,5 @@ public class WsniAsSidingChangeInterfaceDvo {
     String chSding; /*변경모종*/
     String apyDt; /*적용일자*/
     String rcpDtStart;
-    String rcpdtEnd;
+    String rcpDtEnd;
 }

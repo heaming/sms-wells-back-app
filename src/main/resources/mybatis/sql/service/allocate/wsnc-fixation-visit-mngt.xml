@@ -25,12 +25,12 @@
                 , TB_1.CH_RSON_CN AS CH_RSON_CN /* 변경사유내용 */
                 , TB_1.FNL_MDFC_DTM AS FNL_MDFC_DTM /* 최종수정일시 */
                 , TB_1.FNL_MDFC_USR_ID AS FNL_MDFC_USR_ID /* 최종수정사용자ID */
-                , (
+                , NVL((
                 	SELECT TEMP.USR_NM || '(' || TEMP.EPNO || ')' AS FNL_MDFC_USR_NM
                 	  FROM T_CMP_USR_ACO_M TEMP
                 	 WHERE 1=1
-                	   AND TEMP.USR_ID = TB_1.FNL_MDFC_USR_ID
-                  ) AS FNL_MDFC_USR_NM
+                	   AND TEMP.EPNO = TB_1.FNL_MDFC_USR_ID
+                  ), TB_1.FNL_MDFC_USR_ID) AS FNL_MDFC_USR_NM
                 , TB_9.SVPD_NM_ABBR1 AS PDCT_PD_NM
                 , (
                     SELECT PRTNR_KNM
@@ -115,6 +115,12 @@
             </if>
             <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
                 AND TB_6.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+                AND TB_1.CNTR_NO = #{cntrNo}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+                AND TB_1.CNTR_SN = #{cntrSn}
             </if>
         ) TB
         WHERE 1=1
@@ -275,19 +281,19 @@
         #{cntrNo}
         , #{cntrSn}
         , (
-        SELECT NVL(MAX(TEMP.CH_SN) + 1, 1) AS CH_SN
-        FROM TB_SVPD_CNTR_FXN_PRTNR_IZ TEMP
-        WHERE 1=1
-        AND TEMP.CNTR_NO = #{cntrNo}
-        AND TEMP.CNTR_SN = #{cntrSn}
-        )
+            SELECT NVL(MAX(TEMP.CH_SN) + 1, 1) AS CH_SN
+              FROM TB_SVPD_CNTR_FXN_PRTNR_IZ TEMP
+             WHERE 1=1
+               AND TEMP.CNTR_NO = #{cntrNo}
+               AND TEMP.CNTR_SN = #{cntrSn}
+          )
         , #{fxnPrtnrDvCd}
         , #{fxnPrtnrOgTpCd}
         , #{fxnPrtnrNo}
         , #{chMngrDvCd}
         , #{chRsonCn}
         , #{apyStrtYm}
-        , #{dtaDlYn}
+        , NVL(#{dtaDlYn}, 'N')
         <include refid="COMMON.insertSystemFieldValue"/>
         )
     </insert>
