@@ -76,17 +76,31 @@ public class WogcPartnerPlannerService {
     }
 
     /**
-     * 수석플래너 신청관리 삭제
+     * 순주문 체크
      * @param dto
      * @return
      */
-    @Transactional
-    public int removeTopPlanner(WogcPartnerPlannerDto.DeleteReq dto) {
-        WogcPartnerPlannerDvo planner = this.converter.mapDeleteReqToWogcPartnerPlannerDvo(dto);
-        int processCount = mapper.deleteTopPlanner(planner);
+    public int getOrderChecks(WogcPartnerPlannerDto.SearchCheckReq dto) {
+        int gradeCnt = 0;
 
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
-        return processCount;
+        gradeCnt = mapper.selectFeamOrderCnt(dto); // D-1월 순주문마감된 경우 진행 (CNT > 0 이면 순주문마감된 경우)
+
+        return gradeCnt;
+
+    }
+
+    /**
+     * 자격생성 체크
+     * @param dto
+     * @return
+     */
+    public int getCreatedChecks(WogcPartnerPlannerDto.SearchCheckReq dto) {
+        int gradeCnt = 0;
+
+        gradeCnt = mapper.selectQuaCreateCnt(dto); // D월 신청내역이 생성되지 않은 경우에 진행 (CNT = 0 이면 생성이 진행되지 않은 경우)
+
+        return gradeCnt;
+
     }
 
     /**
@@ -112,12 +126,6 @@ public class WogcPartnerPlannerService {
         int cnt3 = this.mapper.selectCountTopPlarPartner(planner);
         BizAssert.isTrue(cnt3 > 0, "MSG_ALT_SVE_ERR"); //저장에 실패했습니다
 
-        /*수석플래너신청내역 테이블에 있으면 삭제*/
-        if (cnt3 > 0) {
-            int cnt4 = this.mapper.deleteTopPlanner(planner);
-            BizAssert.isTrue(cnt4 > 0, "MSG_ALT_SVE_ERR"); //저장에 실패했습니다
-        }
-
         /*체크한 파트너에 대해 수석플래너신청내역 테이블에 등록*/
         processCount = this.mapper.insertTopPlanner(planner);
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
@@ -127,11 +135,13 @@ public class WogcPartnerPlannerService {
 
     /**
      * 수석플래너 신청관리 자격조정 팝업 조회
-     * @param bldCd
+     * @param ogTpCd
+     * @param prtnrNo
+     * @param mngtYm
      * @return
      */
-    public WogcPartnerPlannerDto.FindRes getTopPlanner(String bldCd, String gridOgTpCd) {
-        return mapper.selectTopPlannerByPk(bldCd, gridOgTpCd);
+    public WogcPartnerPlannerDto.FindRes getTopPlanner(String ogTpCd, String prtnrNo, String mngtYm) {
+        return mapper.selectTopPlannerByPk(ogTpCd, prtnrNo, mngtYm);
     }
 
     /**
@@ -141,10 +151,16 @@ public class WogcPartnerPlannerService {
      * @throws Exception
      */
     @Transactional
-    public int saveBuilding(WogcPartnerPlannerDto.EditReq dto) throws Exception {
+    public int saveTopPlanner(WogcPartnerPlannerDto.EditReq dto) throws Exception {
         WogcPartnerPlannerDvo planner = this.converter.mapEditReqToWogcPartnerPlannerDvo(dto);
 
-        int processCount = this.mapper.updateTopPlanner(planner);
+        int processCount = this.mapper.insertTopPlanner(planner); // 1. 수석플래너신청내역 테이블 INSERT
+        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+
+        processCount = this.mapper.updateAdMmPartner(planner); // 2. 월파트너내역 파트너등급 UPDATE
+        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+
+        processCount = this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
 
         return processCount;

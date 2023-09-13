@@ -98,6 +98,27 @@
          ORDER BY T1.STRTDT DESC
     </select>
 
+    <!--순주문 마감 체크-->
+    <select id="selectFeamOrderCnt" resultType="Integer">
+        SELECT COUNT(1) CNT
+          FROM TB_FEAM_NRCTR_MM_CL /* 순주문계약월마감 */
+         WHERE 1=1
+           AND BASE_YM             = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') /* 관리년월  */
+           AND FEE_TCNT_DV_CD      = '02'
+           AND CNTR_PERF_CRT_DV_CD = '01' --계약실적생성구분코드-01:순주문
+           AND NTOR_CNFM_STAT_CD   = '02' --순주문확정상태코드  -02:확정
+           AND DTA_DL_YN           = 'N'
+    </select>
+
+    <!--자격생성 체크-->
+    <select id="selectQuaCreateCnt" resultType="Integer">
+        SELECT COUNT(1) CNT
+          FROM TB_OGPS_TOPMR_PLAR_APLC_IZ T1  /* 수석플래너신청내역 */
+         WHERE T1.MNGT_YM         = #{mngtYm} /* 관리년월 */
+           AND T1.OG_TP_CD        = 'W01'     /* 조직유형코드 */
+           AND T1.DTA_DL_YN       = 'N'
+    </select>
+
     <!-- 수석플래너 신청관리 조회 -->
     <select id="selectTopPlannerPages" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto$SearchRes">
         		SELECT T4.DGR1_LEVL_OG_NM                     /* 총괄단                     */
@@ -105,30 +126,32 @@
                      , T4.OG_CD                               /* 소속                       */
                      , T1.PRTNR_KNM                           /* 성명                       */
                      , T1.PRTNR_NO                            /* 번호                       */
+                     , T1.OG_TP_CD                            /* 조직유형코드               */
                      , T3.QLF_DV_CD                           /* 당월자격구분코드            */
-                     , NVL(C1.CD_CNTN, '') QLF_DV_NM         /* 당월자격명                 */
+                     , NVL(C1.CD_CNTN, '') QLF_DV_NM          /* 당월자격명                 */
                      , T6.PRTNR_KNM RCMDR_PRTNR_NM            /* P조직 - 채용자성명         */
                      , T1.RCMDR_PRTNR_NO                      /* P조직 - 채용자번호         */
                      , T2.CNTR_DT                             /* P조직 - 업무등록월         */
-                     , NVL(T2.FNL_CLTN_DT, '') FNL_CLTN_DT   /* P조직 - 최종해약월         */
-                     , NVL(T2.RCNTR_DT, '') RCNTR_DT         /* P조직 - 재등록월           */
-                     , T5.EDU14                               /* P조직 - 스타트업수료월     */
-                     , (TP.CUR_SUM + TP.PRE_SUM) TWO_SUM      /* P조직 - 직전2개월누적실적  */
-                     , TP.CUR_SUM                             /* P조직 - 당월실적           */
+                     , NVL(T2.FNL_CLTN_DT, '') FNL_CLTN_DT    /* P조직 - 최종해약월         */
+                     , NVL(T2.RCNTR_DT, '') RCNTR_DT          /* P조직 - 재등록월           */
+                     , T5.EDU14                               /* P조직 - 스타트업수료월      */
+                     , (TP.CUR_SUM + TP.PRE_SUM) TWO_SUM      /* P조직 - 직전2개월누적실적   */
+                     , TP.CUR_SUM                             /* P조직 - 당월실적          */
                      , NVL(TP.TOT_CNT * 1000000, 0) M_TOT_SUM /* P조직 - M조직환산실적      */
                      , TP.CUR_BS                              /* P조직 - 관리상품건수 ???   */
-                     , NVL(TP.TOT_SUM, 0) TOT_SUM             /* P조직 - 누적실적           */
-                     , NVL(T3.PRFMT_DT, '') PRFMT_DT         /* P조직 - 수석승급월         */
-                     , NVL(T3.DMTN_DT, '') DMTN_DT           /* P조직 - 강등일자           */
-                     , NVL(TP.DMTN_CUR_BS, 0) DMTN_CUR_BS     /* P조직 - 강등후관리상품건수 */
+                     , NVL(TP.TOT_SUM, 0) TOT_SUM             /* P조직 - 누적실적          */
+                     , NVL(T3.PRFMT_DT, '') PRFMT_DT          /* P조직 - 수석승급월         */
+                     , NVL(T3.DMTN_DT, '') DMTN_DT            /* P조직 - 강등일자          */
+                     , NVL(TP.DMTN_CUR_BS, 0) DMTN_CUR_BS     /* P조직 - 강등후관리상품건수  */
                      , NVL(TP.DMTN_TOT_SUM, 0) DMTN_TOT_SUM   /* P조직 - 강등후누적실적     */
-                     , NVL(TX.STRTDT, '') STRTDT             /* M조직 - 업무등록월         */
-                     , NVL(TX.ENDDT , '') FNL_ENDDT          /* M조직 - 최종해약월         */
-                     , NVL(TX.CV_DT , '') CV_DT              /* M조직 - 재등록월           */
-                     , NVL(TX.ENDDT , '') ENDDT              /* M조직 - 해약월             */
-                     , NVL(TX.QLF_DV_CD, '') M_QLF_DV_CD     /* M조직 - 해약월자격         */
-                     , NVL(C2.CD_CNTN, '') M_QLF_DV_NM       /* M조직 - 해약월자격명       */
+                     , NVL(TX.STRTDT, '') STRTDT              /* M조직 - 업무등록월         */
+                     , NVL(TX.ENDDT , '') FNL_ENDDT           /* M조직 - 최종해약월         */
+                     , NVL(TX.CV_DT , '') CV_DT               /* M조직 - 재등록월          */
+                     , NVL(TX.ENDDT , '') ENDDT               /* M조직 - 해약월            */
+                     , NVL(TX.QLF_DV_CD, '') M_QLF_DV_CD      /* M조직 - 해약월자격         */
+                     , NVL(C2.CD_CNTN, '') M_QLF_DV_NM        /* M조직 - 해약월자격명       */
                      , NVL(TP.TOT_CNT, 0) M_TOT_CNT           /* M조직 - 누적인정건수       */
+                     , CASE WHEN T0.PRTNR_NO IS NULL THEN 'N' ELSE 'Y' END AS BTN_YN /* 자격생성여부 */
                   FROM /*************/ TB_OGBS_MM_PRTNR_IZ    T3  /* 월파트너내역        */
                  INNER JOIN      TB_OGBS_PRTNR_BAS      T1  /* 파트너기본          */
                     ON T1.OG_TP_CD    = T3.OG_TP_CD
@@ -139,6 +162,18 @@
                   LEFT OUTER JOIN TB_OGBS_MM_OG_IZ       T4  /* 월조직내역          */
                     ON T4.BASE_YM     = T3.BASE_YM
                    AND T4.OG_ID       = T3.OG_ID
+                  LEFT OUTER JOIN (SELECT MNGT_YM
+                                        , OG_TP_CD
+                                        , PRTNR_NO
+                                        , MAX(APLC_SN) AS APLC_SN
+                                     FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
+                                    WHERE 1=1
+                                      AND MNGT_YM = #{mngtYm}
+                                      AND OG_TP_CD = 'W01'
+                                      AND DTA_DL_YN = 'N'
+                                    GROUP BY MNGT_YM, OG_TP_CD, PRTNR_NO ) T0
+                    ON T0.MNGT_YM = T3.BASE_YM
+                   AND T0.PRTNR_NO = T3.PRTNR_NO
                   /* 월별파트너교육내역(P조직) */
                   LEFT OUTER JOIN (  SELECT PRTNR_NO
                                           , MAX(EDUC_CPC_ACKMT_DT) AS EDU14  /* 스타트업 */
@@ -229,18 +264,6 @@
               AND T3.PRR_BIZ_RGST_YN = 'N'   --사전업무등록여부 - N:기존영업부 Y:사전업무등록자
               AND T3.DTA_DL_YN       = 'N'
     </select>
-
-    <!--수석플래너 신청관리 삭제-->
-    <update id="deleteTopPlanner">
-        UPDATE TB_OGPS_TOPMR_PLAR_APLC_IZ
-           SET DTA_DL_YN = 'Y'  /* 데이터삭제여부 */
-           <include refid="COMMON.updateSystemField"/>
-         WHERE 1=1
-           AND MNGT_YM = #{mngtYm}
-           AND APLC_SN = #{aplcSn}
-           AND OG_TP_CD = 'W01'
-           AND PRTNR_NO = #{prtnrNo}
-    </update>
 
     <!-- 자격생성 시 월파트너내역에 파트너정보 존재하는지 확인 -->
     <select id="selectCountMmPartner" resultType="int">
