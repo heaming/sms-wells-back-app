@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.closing.payment.service;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,18 +74,7 @@ public class WdcaCancellationFeeComputationService {
                 WdcaComputationObjectContractDvo searchContractDvo = mapper.selectComputationObjectContract(inputDvo);
 
                 /* 위약금액 산출 */
-                if ("".equals(searchContractDvo.getIstDt()) || searchContractDvo.getIstDt() == null) {
-                    /* 설치일자 = '' OR 설치일자 = NULL 일 경우 출력값 항목을 모두 0으로 세팅하고 호출 프로그램으로 출력값을 전달 후 프로그램 종료 */
-                    resRtlfeBorAmt = 0;
-                    rgstCostDscBorAmt = 0;
-                    rentalDscBorAmt = 0;
-                    rstlBorAmt = 0;
-                    csmbCostBorAmt = 0;
-                    pBorAmt = 0;
-                    reqdCsBorAmt = 0;
-                    lsRntf = 0;
-                    borAmt = 0;
-                } else {
+                if (!"".equals(searchContractDvo.getIstDt()) && null != searchContractDvo.getIstDt()) {
                     /* 위약금 산출 대상 매출정보 조회 */
                     WdcaComputationObjectSalesDvo searchSalesDvo = mapper.selectComputationObjectSales(inputDvo);
                     if (!ObjectUtils.isEmpty(searchSalesDvo)) {
@@ -273,9 +261,7 @@ public class WdcaCancellationFeeComputationService {
                                     if (!ObjectUtils.isEmpty(rentalFeeDiscountRstlCcamDvo)) {
                                         if ("21".equals(sellTpDtlCd)
                                             || "23".equals(sellTpDtlCd)) { //[판매유형상세코드 21:일반렌탈, 23:공유렌탈]
-                                            Integer rentalDc = Objects.isNull(mapper.selectRentalDc(inputDvo)) == true
-                                                ? 0
-                                                : mapper.selectRentalDc(inputDvo); /* 설치월 렌탈일수 조회 */
+                                            Integer rentalDc = mapper.selectRentalDc(inputDvo); /* 설치월 렌탈일수 조회 */
                                             rentalDscBorAmt = rentalFeeDiscountRstlCcamDvo.getRentalDscBorAmt()
                                                 + (dscAmt * resMcn)
                                                 + ((dscAmt / 30 * rentalDc) / 10 * 10);
