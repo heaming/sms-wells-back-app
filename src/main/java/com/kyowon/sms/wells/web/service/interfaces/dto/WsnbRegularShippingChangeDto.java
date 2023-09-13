@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.interfaces.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
@@ -9,15 +10,25 @@ public class WsnbRegularShippingChangeDto {
     @ApiModel(value = "WsnbRegularShippingChDto-SaveReq")
     public record SaveReq(
         @NotBlank
+        @JsonProperty(value = "CNTR_NO")
         String cntrNo,
+        @JsonProperty(value = "CNTR_SN")
         String cntrSn,
+        @JsonProperty(value = "CSMR_SER")
         String csmrSer,
+        @JsonProperty(value = "REQ_GB")
         String reqGb,
+        @JsonProperty(value = "REQ_DT")
         String reqDt,
-        String saleCd,
-        String reqSaleCd,
+        @JsonProperty(value = "BASE_PD_CD")
+        String basePdCd,
+        @JsonProperty(value = "REQ_BASE_PD_CD")
+        String reqBasePdCd,
+        @JsonProperty(value = "PART_LIST")
         String partList,
-        String dataStus,
+        @JsonProperty(value = "MTR_PROCS_STAT_CD")
+        String mtrProcsStatCd,
+        @JsonProperty(value = "USER_ID")
         String userId
     ) {}
 

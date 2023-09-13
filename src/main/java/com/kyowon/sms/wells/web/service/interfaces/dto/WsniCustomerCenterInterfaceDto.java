@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.interfaces.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.system.config.annotation.DBDecField;
 import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
@@ -336,7 +337,7 @@ public class WsniCustomerCenterInterfaceDto {
         String sppDptuDt,
         @JsonProperty("SPP_FSH_DT")
         String sppFshDt,
-        @JsonProperty("")
+        @JsonProperty("USE_YN")
         String useYn
     ) {
         public CreateShpadrReq {
@@ -479,6 +480,7 @@ public class WsniCustomerCenterInterfaceDto {
         @JsonProperty("CRAL_LOCARA_TNO")
         String cralLocaraTno,
         @JsonProperty("MEXNO_ENCR")
+        @DBDecField
         String mexnoEncr,
         @JsonProperty("CRAL_IDV_TNO")
         String cralIdvTno,
