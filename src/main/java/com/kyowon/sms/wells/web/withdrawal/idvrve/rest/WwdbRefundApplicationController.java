@@ -106,8 +106,6 @@ public class WwdbRefundApplicationController {
         @RequestBody @Valid
         SaveReq req
     ) throws Exception {
-        System.out.println("=========================1===================");
-        System.out.println("=========================1===================");
         return SaveResponse
             .builder()
             .processCount(service.getRefundTempSave(req))
@@ -120,9 +118,6 @@ public class WwdbRefundApplicationController {
         @Valid
         removeReq req
     ) throws Exception {
-        System.out.println("============");
-        System.out.println(req.rfndAkNo());
-        System.out.println("============");
         return SaveResponse
             .builder()
             .processCount(service.getRefundDelete(req))
@@ -356,8 +351,6 @@ public class WwdbRefundApplicationController {
         @RequestBody @Valid
         SaveApprovalReq req
     ) throws Exception {
-        System.out.println("=========================1===================");
-        System.out.println("=========================1===================");
         return SaveResponse
             .builder()
             .processCount(service.getRefundApprovalSave(req))

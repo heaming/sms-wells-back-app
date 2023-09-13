@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaSeedingTruckArrangementMapMapper">
+    <select id="selectSeedAggregation" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto$SearchSeedAgg">
+        WITH BASE AS ( SELECT T8.PD_CD AS SHIP_PKG_ID
+                            , T8.PD_NM  AS SHIP_PKG /* 배송패키지 */
+                            , T1.RCPDT AS RECEIPT_DT /* 접수일자 */
+                            , T1.VST_CNFMDT AS VST_DT /* 방문일자 */
+                            , T1.OSTR_DUEDT AS OSTR_SCHE_DT /* 출고예정일자 */
+                            , T1.BS_FSH_DT /* B/S완료일자 */
+                            , T1.OSTR_CNFMDT AS OSTR_CNFM_DT /* 출고확정일자 */
+                            , T13.CNR_NM AS SDING_RCG_WARE_NM /* 모종수령창고 */
+                            , T1.OG_NM AS VST_CENTER /* 방문센터 */
+                            , T1.OG_ID AS VST_CENTER_ID
+                            , T1.OG_CD AS VST_CENTER_CD
+                            , T1.SV_BIZ_HCLSF_CD /* 서비스업무대분류코드 */
+                            , T1.SV_BIZ_DCLSF_CD /* 서비스업무세분류코드 */
+                            , T1.SDING_PKG_PD_CD /* 모종패키지상품코드 */
+                        FROM ( SELECT D1.CNTR_NO
+                                    , D1.CNTR_SN
+                                    , D1.SV_BIZ_HCLSF_CD
+                                    , D1.SV_BIZ_DCLSF_CD
+                                    , D1.SDING_SPP_NO
+                                    , D1.SDING_SPP_SN
+                                    , D1.REFRI_DV_CD
+                                    , D1.OSTR_CNFMDT
+                                    , D1.ITM_IOST_DV_CD
+                                    , D1.SDING_PKG_PD_CD
+                                    , D5.PDCT_PD_CD
+                                    , D5.REQD_DT
+                                    , D2.RCPDT
+                                    , D3.VST_CNFMDT
+                                    , D1.OSTR_DUEDT
+                                    , '' AS BS_FSH_DT
+                                    , D1.DP_DT
+                                    , D4.OG_CD
+                                    , D4.OG_ID
+                                    , D4.OG_NM
+                                    , D4.OG_TP_CD
+                                    , D4.PRTNR_NO
+                                    , D1.MNGR_DV_CD
+                                    , D1.DP_EPTT_NM
+                                    , D1.RECAP_CS_AMT
+                                    , D3.CST_SV_ASN_NO
+                                 FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
+                           INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ D2      /* 고객서비스AS설치대상내역 */
+                                   ON D2.CNTR_NO         = D1.CNTR_NO
+                                  AND D2.CNTR_SN         = D1.CNTR_SN
+                                  AND D2.SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                                  AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                  AND D2.CST_SV_ASN_NO   = D1.SDING_SPP_NO
+                           INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ D3     /* 고객서비스AS설치배정내역 */
+                                   ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                           INNER JOIN TB_OGBS_MM_PRTNR_IZ D4             /* 월파트너내역 */
+                                   ON D4.OG_TP_CD = D3.ICHR_OG_TP_CD
+                                  AND D4.PRTNR_NO = D3.ICHR_PRTNR_NO
+                                  AND D4.BASE_YM  = SUBSTR(#{baseDt}, 1, 6)
+                           INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5         /* 고객서비스수행내역 */
+                                   ON D5.CNTR_NO = D2.CNTR_NO
+                                  AND D5.CNTR_NO = D2.CNTR_NO
+                           INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
+                                   ON D6.PD_CD = D2.PD_CD
+                                WHERE D1.DTA_DL_YN          = 'N'
+                                  AND D2.DTA_DL_YN          = 'N'
+                                  AND D3.DTA_DL_YN          = 'N'
+                                  AND D4.DTA_DL_YN          = 'N'
+                                  AND D5.DTA_DL_YN          = 'N'
+                                  AND D5.CNTR_DTL_STAT_CD  IN ('101', '201', '202', '203')   /* 정상, 고객요청정지, 연체정지, 해약접수정지 */
+                                  AND D6.DTA_DL_YN          = 'N'
+                                  AND D6.PD_EXTS_PRP_GRP_CD = 'PART'
+                                  AND D1.CAN_DT IS NULL
+                                  AND D5.REQD_DT IS NULL
+                                  AND D6.PD_PRP_VAL01 LIKE '60%'
+                                  AND D1.OSTR_CNFMDT BETWEEN #{baseDt} AND #{baseDt}   /* 확정일자 */
+                                  AND D1.ITM_IOST_DV_CD = '1'
+                                  AND D3.WK_PRGS_STAT_CD IN ('00', '10')   /* 작업대기, 진행중 */
+                                  AND D6.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
+
+                            UNION ALL
+
+                      SELECT D1.CNTR_NO
+                           , D1.CNTR_SN
+                           , D1.SV_BIZ_HCLSF_CD
+                           , D1.SV_BIZ_DCLSF_CD
+                           , D1.SDING_SPP_NO
+                           , D1.SDING_SPP_SN
+                           , D1.REFRI_DV_CD
+                           , D1.OSTR_CNFMDT
+                           , D1.ITM_IOST_DV_CD
+                           , D1.SDING_PKG_PD_CD
+                           , D5.PDCT_PD_CD
+                           , D5.REQD_DT
+                           , SUBSTR(D2.FST_RGST_DTM, 1, 8) AS RCPDT
+                           , D3.VST_CNFMDT
+                           , D1.OSTR_DUEDT
+                           , D3.WK_EXCN_DT AS BS_FSH_DT
+                           , D1.DP_DT
+                           , D4.OG_CD
+                           , D4.OG_ID
+                           , D4.OG_NM
+                           , D4.OG_TP_CD
+                           , D4.PRTNR_NO
+                           , D1.MNGR_DV_CD
+                           , D1.DP_EPTT_NM
+                           , D1.RECAP_CS_AMT
+                           , D3.CST_SV_ASN_NO
+                        FROM TB_SVPD_SDING_SPP_PLAN_IZ D1
+                  INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2
+                          ON D2.CNTR_NO = D1.CNTR_NO
+                         AND D2.CNTR_SN         = D1.CNTR_SN
+                         AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                         AND D2.CST_SV_ASN_NO   = D1.SDING_SPP_NO
+                  INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3     /* 고객서비스BS배정내역 */
+                          ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+             LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D4       /* 월파트너내역 */
+                          ON D4.OG_TP_CD  = D3.CNFM_PSIC_PRTNR_OG_TP_CD
+                         AND D4.PRTNR_NO  = D3.CNFM_PSIC_PRTNR_NO
+                         AND D4.DTA_DL_YN = 'N'
+                         AND D4.BASE_YM   = SUBSTR(#{baseDt}, 1, 6)
+                  INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5          /* 고객서비스수행내역 */
+                          ON D5.CNTR_NO = D2.CNTR_NO
+                         AND D5.CNTR_SN = D2.CNTR_SN
+                  INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
+                          ON D6.PD_CD = D2.PDCT_PD_CD
+                       WHERE D1.DTA_DL_YN          = 'N'
+                         AND D1.SV_BIZ_HCLSF_CD    = '2'
+                         AND D2.DTA_DL_YN          = 'N'
+                         AND D3.DTA_DL_YN          = 'N'
+                         AND D5.DTA_DL_YN          = 'N'
+                         AND D5.CNTR_DTL_STAT_CD   = '101'   /* 정상 */
+                         AND D6.DTA_DL_YN          = 'N'
+                         AND D6.PD_EXTS_PRP_GRP_CD = 'PART'
+                         AND D1.CAN_DT IS NULL
+                         AND D5.REQD_DT IS NULL
+                         AND D6.PD_PRP_VAL01 LIKE '60%'
+                         AND D1.OSTR_CNFMDT BETWEEN #{baseDt} AND #{baseDt}                            /* 확정일자 */
+                         AND D1.ITM_IOST_DV_CD = '1'
+                         AND D3.VST_PRGS_STAT_CD IN ('00', '10')   /* 작업대기, 진행중 */
+                         AND D6.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
+                        ) T1
+               INNER JOIN TB_SSCT_CNTR_REL T2                /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
+                       ON T2.OJ_DTL_CNTR_NO = T1.CNTR_NO
+                      AND T2.OJ_DTL_CNTR_SN = T1.CNTR_SN
+               INNER JOIN TB_SSCT_CNTR_DTL T3                /* 계약상세-웰스팜 */
+                       ON T3.CNTR_NO = T2.BASE_DTL_CNTR_NO
+                      AND T3.CNTR_SN = T2.BASE_DTL_CNTR_SN
+               INNER JOIN TB_PDBS_PD_BAS T4                  /* 상품기본-웰스팜 */
+                       ON T4.PD_CD   = T3.BASE_PD_CD
+               INNER JOIN TB_SSCT_CNTR_CST_REL T5            /* 계약고객관계-웰스팜 */
+                       ON T5.DTL_CNTR_NO = T3.CNTR_NO
+                      AND T5.DTL_CNTR_SN = T3.CNTR_SN
+               INNER JOIN TB_CUBS_CST_BAS T6                 /* 고객기본-웰스팜 */
+                       ON T6.CST_NO = T5.CST_NO
+               INNER JOIN TB_PDBS_PD_BAS T7                  /* 상품기본-현재패키지 */
+                       ON T7.PD_CD     = T1.PDCT_PD_CD
+               INNER JOIN TB_PDBS_PD_BAS T8                  /* 상품기본-배송패키지 */
+                       ON T8.PD_CD     = T1.SDING_PKG_PD_CD
+               INNER JOIN TB_SSCT_CNTR_CST_REL T9            /* 계약고객관계-모종패키지 */
+                       ON T9.DTL_CNTR_NO = T1.CNTR_NO
+                      AND T9.DTL_CNTR_SN = T1.CNTR_SN
+               INNER JOIN TB_CUBS_CST_BAS T10                /* 고객기본-모종패키지 */
+                       ON T10.CST_NO = T9.CST_NO
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T11        /* 파트너기본 */
+                       ON T11.OG_TP_CD = T1.OG_TP_CD
+                      AND T11.PRTNR_NO = T1.PRTNR_NO
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS T12          /* 주소기본 */
+                       ON T12.ADR_ID = T10.ADR_ID
+          LEFT OUTER JOIN TB_SVPD_BYZIP_SHPADR_IZ T13  /* 우편번호별배송처내역 */
+                       ON T13.NEW_ADR_ZIP = T12.NEW_ADR_ZIP
+                    WHERE T2.DTA_DL_YN = 'N'
+                      AND T2.CNTR_REL_DTL_CD    = '216'   /* 모종결합(웰스팜+모종) */
+                      AND T3.DTA_DL_YN          = 'N'
+                      AND T3.CNTR_DTL_STAT_CD  !=  '303'   /* 계약취소 */
+                      AND T5.CNTR_CST_REL_TP_CD = '10'    /* 계약자 */
+                      AND T9.CNTR_CST_REL_TP_CD = '10'    /* 계약자 */
+        )
+        , LCT_INF AS ( SELECT DISTINCT
+                              DG_GG_LCT_CD
+                            , CNR_OG_CD
+                            , DG_GG_LCT_NM
+                         FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                        WHERE #{baseDt} BETWEEN APY_STRTDT AND APY_ENDDT
+        )
+        SELECT DG_GG_LCT_CD
+             , DG_GG_LCT_NM
+             , SDING_PKG_GRP_CD
+             , SDING_PKG_GRP_CD_NM
+             , SUM(QTY) SDING_QTY
+          FROM (SELECT DG_GG_LCT_CD
+                     , DG_GG_LCT_NM
+                     , SHIP_PKG_ID
+                     , P1.*
+                     , 1 * SDING_PKG_APY_WTCF AS QTY
+                  FROM BASE
+            INNER JOIN LCT_INF
+                    ON BASE.VST_CENTER_CD = LCT_INF.CNR_OG_CD
+            INNER JOIN TB_SVPD_SDING_PKG_ITM_IZ P1 /* 모종패키지품목내역  */
+                    ON BASE.SHIP_PKG_ID = P1.SDING_PD_CD) AGG
+      GROUP BY DG_GG_LCT_CD, DG_GG_LCT_NM, SDING_PKG_GRP_CD, SDING_PKG_GRP_CD_NM
+      ORDER BY SDING_PKG_GRP_CD
+
+    </select>
+
+    <select id="selectTodayGgLct" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto$SearchTodayGgLct">
+        SELECT DISTINCT
+               DG_GG_LCT_CD
+             , DG_GG_LCT_NM
+          FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+         WHERE TO_NUMBER(TO_CHAR(TO_DATE(#{baseDt}, 'YYYYMMDD'), 'd')) = TO_NUMBER(DOW_DV_CD)+1
+      ORDER BY DG_GG_LCT_CD
+    </select>
+</mapper>

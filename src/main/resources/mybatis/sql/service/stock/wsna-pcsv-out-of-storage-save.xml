@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvOutOfStorageSaveMapper">
+    <select id="selectNewLgstOstrAkNo" resultType="String">
+        SELECT 'ORWE' || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_IFIN_ITM_OSTR_AK_SEND_ETXT$LGST_OSTR_AK_NO.NEXTVAL, 4, '0') AS LGST_OSTR_AK_NO
+          FROM DUAL
+    </select>
     <select id="selectExistSvpdCstSvWkRsIz" resultType="int">
         SELECT COUNT(1)
         FROM TB_SVPD_CST_SV_WK_RS_IZ
@@ -49,16 +53,6 @@
         )
         WHERE  ROWNUM = 1
     </select>
-    <select id="selectQtySvstCstSvItmStocIz" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveDvo">
-        SELECT 	PITM_STOC_A_GD_QTY - NVL(#{useQty},0) AS A_QTY
-              , PITM_STOC_B_GD_QTY - NVL(#{useQty},0) AS B_QTY
-              , PITM_STOC_E_GD_QTY - NVL(#{useQty},0) AS E_QTY
-              , PITM_STOC_R_GD_QTY - NVL(#{useQty},0) AS R_QTY
-        FROM TB_SVST_CST_SV_ITM_STOC_IZ
-        WHERE 1=1
-         AND WARE_NO = #{wkWareNo}
-         AND ITM_PD_CD = #{pdCd}
-    </select>
     <select id="selectReturningSvpdCstSvasIstOjIz" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveDvo">
         SELECT T1.CST_SV_ASN_NO
              , T1.SV_BIZ_HCLSF_CD
@@ -79,7 +73,7 @@
              , SITE_AW_ATC_CD
         FROM TB_SVPD_AS_TP_CD
         WHERE 1=1
-         AND PD_CD = #{pdCd}
+         AND PD_CD = #{pdctPdCd}
          AND SV_ANA_HCLSF_CD = '3460'
          AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
     </select>
@@ -91,7 +85,7 @@
         , WK_PRTNR_NO = #{prtnrNo}
         , WK_PRTNR_OG_TP_CD = #{ogTpCd}
         , SITE_AW_PD_GRP_CD = #{pdGrpCd}
-        , SITE_AW_SV_TP_CD = #{svBizHclsfCd}
+        , SITE_AW_SV_TP_CD = #{siteAwSvTpCd}
         , SITE_AW_ATC_CD = #{siteAwAtcCd}
         <include refid="COMMON.updateSystemField"/>
         WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
@@ -168,7 +162,7 @@
         , SUBSTR(#{cstSvAsnNo}, 1, 1)                      /* VS106_DATA_GB */
         , SUBSTR(#{cstSvAsnNo}, 2, 8)                      /* VS106_ORD_DT */
         , #{svBizDclsfCd}                                  /* AC211_WRK_TYP_DTL */
-        , #{pdCd}                                          /* VS106_GDS_CD  */
+        , #{pdctPdCd}                                      /* VS106_GDS_CD  */
         , NVL('1', '1')                                    /* VS106_CHAG_GB */
         , 'N'                                               /* VS106_UGNT_YN */
         , ''                                               /* VS106_VST_AR */
@@ -193,7 +187,7 @@
         , ''                                               /* VS106_PHONE_NUMBER  휴대지역전화번호*/
         , ''                                               /* VS106_PHONE_NUMBER  휴대전화국번호암호화*/
         , ''                                               /* VS106_PHONE_NUMBER  휴대개별전화번호*/
-        , #{ivcPrntSn}                                     /* VS106_DELIVERY_SEQ  */
+        , ''                                               /* VS106_DELIVERY_SEQ  */
         , TRIM(#{wkCanMoCn})                               /* VS106_TRACKING_NO */
         , 'N'                                              /* VS106_AS_REQ_YN    A/S요청접수여부(방문내역) */
         , 'N'                                              /* VS106_INFO_REQ_YN  정보변경요청여부(방문내역) */
@@ -276,15 +270,15 @@
         , '1' /* ST163_CHAG_GB */
         , #{pdCd} /* ST163_GDS_CD_B */
         , '' /* ST163_BARCODE_B */
-        , #{filtSellTpCd} /* ST163_SALE_TYP_B */
+        , #{sellTpCd} /* ST163_SALE_TYP_B */
         , #{pdUswyCd} /* ST163_USGE_B */
-        , #{pdGdCd} /* ST163_DEG_B */
+        , 'A' /* ST163_DEG_B */
         , TO_CHAR(SYSDATE, 'YYYYMMDD') /* ST163_VST_COMP_DT_B */
         , #{pdCd} /* ST163_GDS_CD_A */
         , '' /* ST163_BARCODE_A */
-        , #{filtSellTpCd} /* ST163_SALE_TYP_A */
+        , #{sellTpCd} /* ST163_SALE_TYP_A */
         , #{pdUswyCd} /* ST163_USGE_A */
-        , #{pdGdCd} /* ST163_DEG_A */
+        , 'A' /* ST163_DEG_A */
         , TO_CHAR(SYSDATE, 'YYYYMMDD') /* ST163_VST_COMP_DT_A */
         , NVL(#{useQty},0) /* ST163_QTY */
         , 0 /* ST163_CSMR_PR */

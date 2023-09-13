@@ -17,8 +17,6 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsRegularShippingMgtMapper;
 import com.sds.sflex.common.utils.DateUtil;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -153,7 +151,6 @@ public class WsnaBsRegularShippingMgtService {
     public List<WsnaBsRegularShippingMaterialDvo> transferShippingMaterials(WsnaBsRegularShippingMgtDvo dvo) {
 
         List<WsnaBsRegularShippingMaterialDvo> materialDvos = new ArrayList<>();
-        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
         WsnaBsRegularShippingMaterialDvo materialDvo = converter.mapShippingManagementDvoToShippingMaterialDvo(dvo);
         // 창고담당자 조회
         WareMngtRes wareMngtRes = mapper.selectWareMngtInfo("100002");

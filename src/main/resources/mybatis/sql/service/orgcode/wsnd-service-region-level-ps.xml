@@ -1,15 +1,310 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndServiceRegionLevelPsMapper">
     <select id="selectServiceRegionLevelPss" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndServiceRegionLevelPsDto$SearchRes">
-        SELECT PD_CD
-             , HGR_PD_CD
-             , PD_TP_CD
-             , BZ_HDQ_DV_CD
-          FROM TB_PDBS_PD_BAS
-         WHERE 1=1
-        <if test="@MybatisUtils@isNotEmpty(pdCd)">
-           AND PD_CD = #{pdCd}
-        </if>
+        <![CDATA[
+        SELECT BSDT
+             , DGR1_LEVL_OG_NM
+             , DGR1_LEVL_OG_CD
+             , DGR1_LEVL_OG_ID
+             , OG_CD
+             , OG_NM
+             , OG_ID
+             , ICHR_PRTNR_NO
+             , RGLVL_SN
+             , PRTNR_KNM
+             , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_GD_CD', AC025_EMP_OR , 'ko')    AS AC025_EMP_OR
+             , OG_TP_CD
+             , CNTR_NO
+             , CNTR_SN
+             , CNTR_NO||'-'||CNTR_SN AS CUST_CD
+             , RCGVP_KNM
+             , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', PROC_STUS_CD , 'ko') AS PROC_STUS_NM
+             , NEW_ADR_ZIP
+             , CTPV_NM
+             , CTCTY_NM
+             , (CASE WHEN LAWC_EMD_NM LIKE '%동%' THEN '동'
+                    WHEN LAWC_EMD_NM LIKE '%읍%' THEN '읍'
+                    WHEN LAWC_EMD_NM LIKE '%면%' THEN '면'
+                    ELSE LAWC_EMD_NM
+                END) AS AC112_EMD_KOR_NM
+             , AMTD_NM
+             , F_CMZ_CD_NM('TNT_WELLS', 'SITE_AW_ATC_CD', AC221_ALW_CD , 'ko')  AS CO410_FEE_GB
+             , ITEM_NM
+             , TO_CHAR(TO_DATE(ARV_DT,'YYYYMMDD'),'YYYY-MM-DD') || ' ' || TO_CHAR(TO_DATE(ARV_HH,'HH24MISS'),'HH24:MI:SS') AS ARR_DTTM
+             , WK_FSH_DT
+             , WK_FSH_HH
+             , (CASE WHEN VST_FSH_HH IS NOT NULL AND SUBSTR(VST_FSH_HH,3,2) >= '30'
+                          THEN SUBSTR(VST_FSH_HH,1,2) || ':' || '30'
+                     WHEN VST_FSH_HH IS NOT NULL AND SUBSTR(VST_FSH_HH,3,2) < '30'
+                          THEN SUBSTR(VST_FSH_HH,1,2) || ':' ||  '00'
+                     ELSE '' END) AS TIME_STAND
+             , AL170_BASE_PDLV_NO
+             , DPTU_PDLV_NO
+             , ARV_PDLV_NO
+             , (CASE WHEN NVL(ROUND(MV_TIME/60, 0), 0) = 0 THEN 0 ELSE NVL(ROUND((NVL(ROUND(MV_TIME/1000, 1), 0))/(NVL(ROUND(MV_TIME/60, 0), 0)/60), 1),0) END )AS MV_SISOCK
+             , NVL(ROUND(MMT_DSTN_VAL/1000, 1), 0) AS AL170_MV_DISTANCE
+             , NVL(ROUND(S_UNIT_MMT_HH_VAL/60, 0), 0) AS AL170_MV_TIME
+             , NVL(MMT_CHRAM_AMT, 0) AS AL170_MV_FEE
+             , CASE WHEN AL170_BASE_PDLV_NO = AL150_BASE_PDLV_NO THEN ORG_SHP_NM ELSE (SELECT SM1.PDLV_NM
+                                                                                          FROM TB_SVPD_PDLV_BAS SM1
+                                                                                         WHERE SM1.PDLV_DV_CD = 'E'
+                                                                                           AND SM1.PDLV_NO = AL150_BASE_PDLV_NO
+                                                                                           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN SM1.APY_STRTDT AND SM1.APY_ENDDT
+                                                                                           ) END AS ORG_SHP_NM
+             , CASE WHEN AL170_BASE_PDLV_NO = AL150_BASE_PDLV_NO THEN ORG_SHP_ADD ELSE (SELECT SM1.PDLV_ADR
+                                                                                          FROM TB_SVPD_PDLV_BAS SM1
+                                                                                         WHERE SM1.PDLV_DV_CD = 'E'
+                                                                                           AND SM1.PDLV_NO = AL150_BASE_PDLV_NO
+                                                                                           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN SM1.APY_STRTDT AND SM1.APY_ENDDT
+                                                                                           ) END AS ORG_SHP_ADD
+             , CASE WHEN AL170_BASE_PDLV_NO != AL150_BASE_PDLV_NO THEN ORG_SHP_NM ELSE '' END AS CHULJANG_CD
+             , CASE WHEN AL170_BASE_PDLV_NO != AL150_BASE_PDLV_NO THEN ORG_SHP_ADD ELSE '' END AS CHULJANG_ADD
+             , STR_SHP_NM AS STR_SHP_NM
+             ,  STR_SHP_ADD
+             ,  END_SHP_NM
+             ,  END_SHP_ADD
+           --  , NVL(AC211_REG_ID,  AC251_REG_ID) AS  AC211_REG_ID
+             ,(CASE WHEN PROC_STUS_CD != '20' THEN 0 ELSE ROUND(MV_DISTANCE,1) END)AS MV_DISTANCE
+             ,(CASE WHEN PROC_STUS_CD != '20' THEN '0'
+                    WHEN ARV_DT != WK_FSH_DT THEN ''
+                    WHEN MV_DISTANCE > 300 THEN '24'
+                    ELSE NVL((SELECT T1.VST_RGLVL_GD_CD
+                             FROM TB_SVPD_RGLVL_AW_BASE_IZ T1
+                            WHERE T1.RGLVL_DV_CD = '1'
+                            AND T1.APY_ENDDT = '99991231'
+                            AND T1.IZ_SN = (SELECT MAX(T2.IZ_SN)
+                                               FROM TB_SVPD_RGLVL_AW_BASE_IZ T2
+                                              WHERE T2.RGLVL_DV_CD = T1.RGLVL_DV_CD
+                                               AND  T2.BIZ_RGLVL_CD = T1.BIZ_RGLVL_CD
+                                               AND T2.APY_ENDDT = '99991231' )
+                            AND MV_DISTANCE BETWEEN T1.MMT_DSTN AND (SELECT T3.MMT_DSTN
+                                                          FROM TB_SVPD_RGLVL_AW_BASE_IZ T3
+                                                         WHERE T3.RGLVL_DV_CD = '1'
+                                                         AND T3.BIZ_RGLVL_CD = T1.BIZ_RGLVL_CD+1
+                                                         AND T3.APY_ENDDT = '99991231'
+                                                         AND T3.IZ_SN = (SELECT MAX(T4.IZ_SN)
+                                                                           FROM TB_SVPD_RGLVL_AW_BASE_IZ T4
+                                                                          WHERE T4.RGLVL_DV_CD = T1.RGLVL_DV_CD
+                                                                           AND T4.BIZ_RGLVL_CD = T1.BIZ_RGLVL_CD+1
+                                                                           AND T4.APY_ENDDT = '99991231')
+                                                        )),0) END) AS MV_GRD
+             , (CASE  WHEN PROC_STUS_CD != '20' THEN 0
+                      WHEN ARV_DT != WK_FSH_DT THEN 0
+                      WHEN MV_DISTANCE > 300 THEN (SELECT RGLVL_AW_AMT
+                                                     FROM TB_SVPD_RGLVL_AW_BASE_IZ T1
+                                                    WHERE T1.RGLVL_DV_CD = '1'
+                                                      AND T1.BIZ_RGLVL_CD = '25' /* 업무급지와 급지등급 -1 차이 24등급*/
+                                                      AND T1.IZ_SN = (SELECT MAX(T2.IZ_SN)
+                                                                        FROM TB_SVPD_RGLVL_AW_BASE_IZ T2
+                                                                       WHERE T2.RGLVL_DV_CD = T1.RGLVL_DV_CD
+                                                                         AND  T2.BIZ_RGLVL_CD = T1.BIZ_RGLVL_CD))
+                      ELSE NVL((SELECT  RGLVL_AW_AMT
+                                 FROM TB_SVPD_RGLVL_AW_BASE_IZ T1
+                                WHERE T1.RGLVL_DV_CD = '1'
+                                AND T1.APY_ENDDT = '99991231'
+                                AND T1.IZ_SN = (SELECT MAX(T2.IZ_SN)
+                                                   FROM TB_SVPD_RGLVL_AW_BASE_IZ T2
+                                                  WHERE T2.RGLVL_DV_CD = T1.RGLVL_DV_CD
+                                                   AND  T2.BIZ_RGLVL_CD = T1.BIZ_RGLVL_CD
+                                                   AND T2.APY_ENDDT = '99991231')
+                                AND MV_DISTANCE BETWEEN T1.MMT_DSTN AND (SELECT T3.MMT_DSTN
+                                                                           FROM TB_SVPD_RGLVL_AW_BASE_IZ T3
+                                                                          WHERE T3.RGLVL_DV_CD = '1'
+                                                                            AND T3.BIZ_RGLVL_CD = T1.BIZ_RGLVL_CD+1
+                                                                            AND T3.APY_ENDDT = '99991231'
+                                                                            AND T3.IZ_SN = (SELECT MAX(T4.IZ_SN)
+                                                                                              FROM TB_SVPD_RGLVL_AW_BASE_IZ T4
+                                                                                             WHERE T4.RGLVL_DV_CD = T1.RGLVL_DV_CD
+                                                                                               AND T4.APY_ENDDT = '99991231'
+                                                                                               AND  T4.BIZ_RGLVL_CD = T1.BIZ_RGLVL_CD+1)
+                                                            ) ),0) END) AS MV_GRD_AMT
+             , MV_TIME
+             , (CASE WHEN PROC_STUS_CD != '20' THEN '0'
+                     WHEN ARV_DT != WK_FSH_DT THEN '' ELSE  NVL(WRK_GRD, 0) END) AS WRK_GRD
+             , (CASE WHEN PROC_STUS_CD != '20' THEN 0
+                     WHEN ARV_DT != WK_FSH_DT THEN 0 ELSE  NVL(WRK_GRD_AMT, 0) END)  AS  WRK_GRD_AMT
+             , (CASE WHEN STR_ISLAND_YN = '1' THEN '육지'
+                     WHEN STR_ISLAND_YN = '2' THEN '섬'
+                ELSE '' END) AS STR_ISLAND_YN
+             , (CASE WHEN END_ISLAND_YN = '1' THEN '육지'
+                     WHEN END_ISLAND_YN = '2' THEN '섬'
+                ELSE '' END) AS END_ISLAND_YN
+        ]]>
+         FROM (
+              SELECT AL170.BSDT
+             , OG_IZ.DGR1_LEVL_OG_CD
+             , OG_IZ.DGR1_LEVL_OG_NM
+             , OG_IZ.DGR1_LEVL_OG_ID
+             , AL170.RGLVL_SN
+             , OG_IZ.OG_CD
+             , OG_IZ.OG_NM
+             , OG_IZ.OG_ID
+             , AL170.ICHR_PRTNR_NO
+             , AC021.PRTNR_KNM
+             , AC025.PRTNR_GD_CD AS AC025_EMP_OR
+             , AL170.OG_TP_CD  /* 조직유형코드 */
+             , AL170.CNTR_NO
+             , AL170.CNTR_SN
+             , AL170.CST_SV_ASN_NO
+             , T4.RCGVP_KNM         /* 고객명 */
+             , T5.NEW_ADR_ZIP      /* 우편번호 */
+             , AC112.CTPV_NM             /* 시도명 */
+             , AC112.CTCTY_NM            /* 시군구명 */
+             , AC112.LAWC_EMD_NM         /* 법정읍면동명 */
+             , AC112.AMTD_NM             /* 행정동명 */
+             , NVL(AC221.SITE_AW_ATC_CD,  AC261.SITE_AW_ATC_CD) AS AC221_ALW_CD
+             , PD_BAS.PD_NM AS ITEM_NM
+             , NVL(AC221.WK_PRGS_STAT_CD, AC261.VST_PRGS_STAT_CD) AS PROC_STUS_CD
+             , AL170.ARV_DT
+             , AL170.ARV_HH
+             , AL170.WK_FSH_DT
+             , AL170.WK_FSH_HH
+             , AL170.BASE_PDLV_NO AS  AL170_BASE_PDLV_NO   /* 기본출고지번호 */
+             , ORG1.PDLV_NM AS ORG_SHP_NM
+             , ORG1.PDLV_ADR AS ORG_SHP_ADD
+             , AL170.DPTU_PDLV_NO   /* 출발출고지번호 */
+             , STR1.PDLV_NM AS STR_SHP_NM
+             , STR1.PDLV_ADR AS STR_SHP_ADD
+             , (SELECT SB1.ILD_YN FROM TB_SVPD_EGER_ASN_ADR_IZ SB1 WHERE SB1.NEW_ADR_ZIP = STR1.ZIP) AS STR_ISLAND_YN
+             , AL170.ARV_PDLV_NO    /* 도착출고지번호 */
+             , END1.PDLV_NM AS END_SHP_NM
+             , END1.PDLV_ADR AS END_SHP_ADD
+             , (SELECT SB1.ILD_YN FROM TB_SVPD_EGER_ASN_ADR_IZ SB1 WHERE SB1.NEW_ADR_ZIP = END1.ZIP) AS END_ISLAND_YN
+             , AL170.MMT_DSTN_VAL       /* 이동거리값 */
+             , AL170.S_UNIT_MMT_HH_VAL /* 초단위이동시간값 */
+             , AL170.MMT_CHRAM_AMT    /* 이동요금금액 */
+             , DECODE(AL170.RGLVL_SN , (MIN(AL170.RGLVL_SN) OVER(PARTITION BY AL170.BSDT, AL170.ICHR_PRTNR_NO)),(SUM(AL170.MMT_DSTN_VAL) OVER(PARTITION BY AL170.BSDT, AL170.ICHR_PRTNR_NO) / 1000), 0)  AS MV_DISTANCE
+             , ROUND((AL170.S_UNIT_MMT_HH_VAL/60), 0) AS MV_TIME
+             , (SELECT RGLVL_GD_CD
+                 FROM TB_SVPD_RGLVL_AW_BASE_IZ ALT1
+                WHERE ALT1.RGLVL_DV_CD = '2'
+                  AND ALT1.IZ_SN = (SELECT MAX(ALT2.IZ_SN)
+                                   FROM TB_SVPD_RGLVL_AW_BASE_IZ ALT2
+                                  WHERE ALT2.RGLVL_DV_CD = ALT1.RGLVL_DV_CD
+                                   AND ALT2.BIZ_RGLVL_CD = ALT1.BIZ_RGLVL_CD
+                                   AND ALT2.APY_ENDDT = '99991231'  )
+                  AND ALT1.APY_ENDDT = '99991231'
+                  AND ROUND((AL170.S_UNIT_MMT_HH_VAL/60), 0) BETWEEN ALT1.MMT_LDTM AND (SELECT ALT3.MMT_LDTM -1
+                                                                                          FROM TB_SVPD_RGLVL_AW_BASE_IZ ALT3
+                                                                                         WHERE ALT3.RGLVL_DV_CD = '2'
+                                                                                           AND ALT3.BIZ_RGLVL_CD = ALT1.BIZ_RGLVL_CD+1
+                                                                                           AND ALT3.APY_ENDDT = '99991231'
+                                                                                           AND ALT3.IZ_SN = (SELECT MAX(ALT4.IZ_SN)
+                                                                                                               FROM TB_SVPD_RGLVL_AW_BASE_IZ ALT4
+                                                                                                              WHERE ALT4.RGLVL_DV_CD = ALT1.RGLVL_DV_CD
+                                                                                                                AND ALT4.BIZ_RGLVL_CD = ALT1.BIZ_RGLVL_CD+1
+                                                                                                                AND ALT4.APY_ENDDT = '99991231'  )
+                                                                                )
+                ) AS WRK_GRD
+             , (SELECT RGLVL_AW_AMT
+                 FROM TB_SVPD_RGLVL_AW_BASE_IZ ALT1
+                WHERE ALT1.RGLVL_DV_CD = '2'
+                  AND ALT1.IZ_SN = (SELECT MAX(ALT2.IZ_SN)
+                                      FROM TB_SVPD_RGLVL_AW_BASE_IZ ALT2
+                                     WHERE ALT2.RGLVL_DV_CD = ALT1.RGLVL_DV_CD
+                                       AND  ALT2.BIZ_RGLVL_CD = ALT1.BIZ_RGLVL_CD
+                                       AND ALT2.APY_ENDDT = '99991231'  )
+                  AND ALT1.APY_ENDDT = '99991231'
+                  AND ROUND((AL170.S_UNIT_MMT_HH_VAL/60), 0) BETWEEN MMT_LDTM AND (SELECT ALT3.MMT_LDTM -1
+                                                                                     FROM TB_SVPD_RGLVL_AW_BASE_IZ ALT3
+                                                                                    WHERE ALT3.RGLVL_DV_CD = '2'
+                                                                                      AND ALT3.BIZ_RGLVL_CD = ALT1.BIZ_RGLVL_CD+1
+                                                                                      AND ALT3.APY_ENDDT = '99991231'
+                                                                                 AND ALT3.IZ_SN = (SELECT MAX(ALT4.IZ_SN)
+                                                                                                     FROM TB_SVPD_RGLVL_AW_BASE_IZ ALT4
+                                                                                                    WHERE ALT4.RGLVL_DV_CD = ALT1.RGLVL_DV_CD
+                                                                                                      AND  ALT4.BIZ_RGLVL_CD = ALT1.BIZ_RGLVL_CD+1
+                                                                                                      AND ALT4.APY_ENDDT = '99991231'  )
+                                                                                 )
+                ) AS WRK_GRD_AMT
+             , (CASE WHEN AL170.ARV_DT IS NOT NULL AND AL170.WK_FSH_DT IS NULL THEN '10'
+                     WHEN AL170.ARV_DT IS NOT NULL AND AL170.WK_FSH_DT IS NOT NULL THEN '20'
+                     ELSE '30'
+                 END) AS PROC_STUS
+             , CASE WHEN AC221.WK_PRGS_STAT_CD='20' THEN TO_CHAR(TO_DATE(VS106.VST_FSH_DT,'YYYYMMDD'),'YYYY-MM-DD') || ' ' || TO_CHAR(TO_DATE(VS106.VST_FSH_HH,'HH24MISS'),'HH24:MI:SS')
+                    WHEN AC261.VST_PRGS_STAT_CD='20' THEN TO_CHAR(TO_DATE(VS106.VST_FSH_DT,'YYYYMMDD'),'YYYY-MM-DD') || ' ' || TO_CHAR(TO_DATE(VS106.VST_FSH_HH,'HH24MISS'),'HH24:MI:SS')
+                    WHEN AC221.WK_PRGS_STAT_CD IN ('71','72') THEN '취소완료  ' ||TO_CHAR(TO_DATE(AC221.WK_EXCN_DT,'YYYYMMDD'),'YYYY-MM-DD') || ' ' || TO_CHAR(TO_DATE(AC221.WK_EXCN_HH,'HH24MISS'),'HH24:MI:SS')
+                    ELSE ''
+                    END AS WRK_DTTM
+              ,(SELECT TRUNC(NEEDSTM/60) ||'시간'|| TRUNC(NEEDSTM-(TRUNC(NEEDSTM/60)*60))||'분'
+                FROM (SELECT ((TO_DATE(AL170.ARV_DT,'YYYYMMDD') - TO_DATE(VS106.VST_FSH_DT,'YYYYMMDD'))*60*24
+                            +(TO_DATE(AL170.ARV_HH,'HH24:MI:SS') - TO_DATE(VS106.VST_FSH_HH,'HH24:MI:SS'))*60*24) AS NEEDSTM
+                        FROM DUAL
+                      )
+               ) AS WORK_TIME
+             , VS106.VST_FSH_HH
+             , CHULJANG.BASE_PDLV_NO AS AL150_BASE_PDLV_NO
+             , CHULJANG.BSTR_PDLV_NO
+                   FROM TB_SVPD_CST_SV_RGLVL_IZ AL170
+             INNER JOIN TB_OGBS_PRTNR_BAS AC021
+                     ON AL170.ICHR_PRTNR_NO = AC021.PRTNR_NO
+                    AND AL170.OG_TP_CD =  AC021.OG_TP_CD
+             INNER JOIN TB_OGBS_MM_OG_IZ OG_IZ
+                     ON OG_IZ.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                    AND OG_IZ.OG_ID = AC021.OG_ID
+                    AND OG_IZ.DTA_DL_YN = 'N'
+             INNER JOIN TB_SVPD_CST_SV_EXCN_IZ AC201
+                     ON AC201.CNTR_NO = AL170.CNTR_NO
+                    AND AC201.CNTR_SN = AL170.CNTR_SN
+             INNER JOIN TB_PDBS_PD_BAS PD_BAS
+                     ON PD_BAS.PD_CD = AC201.PDCT_PD_CD
+             INNER JOIN WSMDBS.TB_SSCT_CNTR_BAS T2 /*계약기본*/
+                     ON AL170.CNTR_NO = T2.CNTR_NO
+             INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL T3 /*계약주소관계*/
+                     ON AL170.CNTR_NO = T3.DTL_CNTR_NO
+                    AND AL170.CNTR_SN = T3.DTL_CNTR_SN
+                    AND T3.ADRPC_TP_CD = '3'    /*1 계약주소, 2 배달주소,3 설치주소*/
+                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T3.VL_STRT_DTM AND T3.VL_END_DTM
+             INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS T4 /*계약주소지기본*/
+                     ON T3.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID
+        LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS T5
+                     ON T4.ADR_ID = T5.ADR_ID
+             INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ AC112
+                     ON T5.NEW_ADR_ZIP = AC112.NEW_ADR_ZIP
+        LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ VS106
+                     ON VS106.CST_SV_ASN_NO = AL170.CST_SV_ASN_NO
+        LEFT OUTER JOIN (
+                        SELECT *
+                          FROM (SELECT AC025TB.*, RANK() OVER(PARTITION BY OG_TP_CD, PRTNR_NO ORDER BY APY_SEQN DESC) AS RN
+                                  FROM TB_OGPS_EGER_GD_RGST_IZ AC025TB
+                                 WHERE 1=1
+                                   AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
+                                )
+                         WHERE 1=1
+                           AND RN = 1
+                       ) AC025
+                     ON AL170.ICHR_PRTNR_NO = AC025.PRTNR_NO
+                    AND AL170.OG_TP_CD = AC025.OG_TP_CD
+        LEFT OUTER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ AC221
+                     ON AL170.CST_SV_ASN_NO = AC221.CST_SV_ASN_NO
+        LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+                     ON AL170.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
+        LEFT OUTER JOIN TB_SVPD_PDLV_BAS ORG1
+                     ON PDLV_DV_CD = 'E'
+                    AND ORG1.PDLV_NO = AL170.BASE_PDLV_NO
+                    AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN ORG1.APY_STRTDT AND ORG1.APY_ENDDT
+        LEFT OUTER JOIN TB_SVPD_PDLV_BAS STR1
+                     ON STR1.PDLV_DV_CD = 'E'
+                    AND STR1.PDLV_NO = AL170.DPTU_PDLV_NO
+                    AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN STR1.APY_STRTDT AND STR1.APY_ENDDT
+        LEFT OUTER JOIN TB_SVPD_PDLV_BAS END1
+                     ON END1.PDLV_DV_CD = 'E'
+                    AND END1.PDLV_NO = AL170.ARV_PDLV_NO
+                    AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN END1.APY_STRTDT AND END1.APY_ENDDT
+        LEFT OUTER JOIN (
+                            SELECT *
+                              FROM (SELECT ORG1.*, RANK() OVER(PARTITION BY EGER_PRTNR_OG_TP_CD, EGER_PRTNR_NO ORDER BY MNGT_SN DESC) AS RN
+                                      FROM TB_SVPD_EGER_PDLV_MNGT_IZ ORG1
+                                     WHERE 1=1
+                                       AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
+                                   )
+                             WHERE 1=1
+                               AND RN = 1
+                       ) CHULJANG
+                    ON AL170.ICHR_PRTNR_NO = CHULJANG.EGER_PRTNR_NO
+                   AND AL170.OG_TP_CD = CHULJANG.EGER_PRTNR_OG_TP_CD
+         WHERE AL170.BSDT BETWEEN '20230801' AND '20230831'
+              )
+          ORDER BY ICHR_PRTNR_NO DESC, WRK_DTTM ASC, ARR_DTTM DESC
     </select>
 </mapper>

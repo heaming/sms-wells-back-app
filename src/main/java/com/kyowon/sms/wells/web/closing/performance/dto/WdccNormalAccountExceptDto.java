@@ -68,6 +68,7 @@ public class WdccNormalAccountExceptDto {
         String pmotCd,
         String cntrStrtdt,
         String cntrEnddt,
+        String cntrDtl,
         String cntrNo,
         String cntrSn,
         String cntrExcdRsonCn,

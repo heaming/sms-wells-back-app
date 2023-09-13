@@ -8,7 +8,7 @@ public class WsnyPaidAsCostMgtDto {
 
     @ApiModel(value = "WsnyPaidAsCostMgtDto-SearchReq")
     public record SearchReq(
-        String hgrPdCd, // 상위상품코드
+        String pdGrpCd, // 상위상품코드
         String pdCd, //품목코드
         String cmnPartChk, //공통부품 체크 여부
         String apyMtrChk //현재적용자료 체크 여부

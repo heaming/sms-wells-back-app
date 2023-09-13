@@ -24,28 +24,16 @@ public class WsnaPcsvOutOfStorageMgtService {
         return converter.mapAllDvoToSearchRes(mapper.selectPcsvOutOfStorages(dto));
     }
 
-    public String getPcsvOutOfStorageStockQty(SearchReq dto) {
-        return mapper.selectPcsvOutOfStorageStockQty(dto);
-    }
-
     public List<FindLogisticsCentersRes> getPcsvLogisticsCenters() {
         return mapper.selectPcsvLogisticsCenters();
     }
 
-    public List<FindProductsRes> getPcsvProducts(FindProductsReq dto) {
-        return mapper.selectPcsvProducts(dto);
+    public List<FindProductsRes> getPcsvProducts() {
+        return mapper.selectPcsvProducts();
     }
 
-    public List<FindIvcPrntSnRes> getPcsvIvcPrntSns(SearchReq dto) {
-        return mapper.selectPcsvIvcPrntSns(dto);
-    }
-
-    public String getPcsvIvcPrntSn(SearchReq dto) {
-        return mapper.selectPcsvIvcPrntSn(dto);
-    }
-
-    public int savePcsvOutOfStorage(List<SaveReq> dtos) {
-        return service.savePcsvOutOfStorage(dtos);
+    public int savePcsvOutOfStorages(List<SaveReq> dtos) {
+        return service.savePcsvOutOfStorages(dtos);
     }
 
     public int savePcsvOutOfStorageTest(List<SaveReq> dtos) {

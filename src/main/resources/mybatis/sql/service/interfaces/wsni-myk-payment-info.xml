@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniMyKPaymentInfoMapper">
+
+<select id="selectWsniMyKPaymentInfo" resultType="com.kyowon.sms.wells.web.service.interfaces.dvo.WsniMyKPaymentInfoDvo">
+  SELECT
+          T.DP_TP_CD                                 /* 입금유형코드(납부방법) */
+        , (SELECT TEMP.CD_CNTN
+            FROM T_CMZ_CD_D TEMP
+           WHERE 1=1
+             AND TEMP.TENANT_ID = 'TNT_BASE'
+             AND TEMP.CD_ID = 'DP_TP_CD'
+             AND TEMP.DEL_YN = 'N'
+             AND TEMP.CD_VLD_VAL =T.DP_TP_CD) AS DP_TP_NM /* 입금유형명(납부방법) */
+        , T.CRCDNO_ENCR                             /* 카드자동이체 */
+        , T.ACNO_ENCR                               /* 계좌정보 */
+        , T.AFTN_OWR_KNM                            /* 계좌정보-예금／카드주명 (ACCNM) */
+        , T.MPY_BSDT                                /* 납부기준일자 */
+        , CASE WHEN T.DP_TP_CD = '0102' THEN
+                    (SELECT V1.FNIT_NM
+                       FROM TB_RVDW_FNIT_CD V1
+                      WHERE V1.FNIT_DV_CD = '1'
+                        AND V1.DTA_DL_YN = 'N'
+                        AND V1.FNIT_CD = T.BNK_CD)
+               WHEN T.DP_TP_CD = '0203' THEN
+                    (SELECT V1.FNIT_NM
+                       FROM TB_RVDW_FNIT_CD V1
+                      WHERE V1.FNIT_DV_CD = '2'
+                        AND V1.DTA_DL_YN = 'N'
+                        AND V1.FNIT_CD = T.CDCO_CD)
+               ELSE '' END
+            AS BANK_CARD_CO_NM /*은행_카드사명*/
+        , CASE WHEN T.CNTR_PD_STRTDT IS NULL THEN 0
+               WHEN T.CNTR_DTL_STAT_CD LIKE '3%' THEN T.DAMT_CUR
+               WHEN T.USE_PERD  <![CDATA[>]]>  T.CNTR_PTRM THEN T.DAMT_CUR
+               WHEN T.MPY_BSDT <![CDATA[>]]>  TO_CHAR(SYSDATE,'DD') THEN GREATEST(T.DAMT_BEF,0)       /*이체일 이전은 전월 연체금액*/
+               ELSE T.DAMT_CUR                                                          /*이체일 경과후 당월 연체금액*/
+               END  AS ASK_AMT                                                        /*실 청구금액 - 이체일이전=전월연체금액-당월입금액+당월환불액 / 이체일 이후=당월연체금액*/
+    FROM (
+      SELECT
+              T1.CNTR_NO
+            , T1.CNTR_SN
+            , T1.SELL_TP_CD
+            , T1.SELL_TP_DTL_CD
+            , T1.CNTR_PD_STRTDT
+            , T1.CNTR_DTL_STAT_CD
+            , CASE WHEN T1.CNTR_PD_STRTDT IS NULL THEN 0
+                  WHEN T1.SELL_TP_CD = '1' AND (T1.ISTM_PCAM_AMT = 0 OR T1.CNTR_DTL_STAT_CD LIKE '3%') THEN 0
+                  ELSE TRUNC(MONTHS_BETWEEN(SYSDATE, TO_DATE(SUBSTR(T1.CNTR_PD_STRTDT,1,6)||'01','YYYYMMDD')),0)
+                  END AS USE_PERD /*사용기간*/
+            , T1.CNTR_PTRM /*계약기간*/
+            , T7.DP_TP_CD  /* 입금유형코드(납부방법) */
+            , T7.ACNO_ENCR  /* 계좌정보 */
+            , T7.CRCDNO_ENCR  /* 카드자동이체 */
+            , T7.OWR_KNM AS AFTN_OWR_KNM                                                      /* 계좌정보-예금／카드주명 (ACCNM) */
+            , T7.BNK_CD
+            , T7.CDCO_CD
+            , T7.MPY_BSDT        /* 납부기준일자 */
+            , CASE WHEN T1.SELL_TP_CD = '1' AND (T1.CNTR_PD_STRTDT IS NULL OR T1.ISTM_PCAM_AMT = 0 OR T1.CNTR_DTL_STAT_CD LIKE '3%') THEN 0
+                   WHEN T1.SELL_TP_CD = '1' THEN
+                    CASE WHEN TRUNC(MONTHS_BETWEEN(SYSDATE, TO_DATE(SUBSTR(T1.CNTR_PD_STRTDT,1,6)||'01','YYYYMMDD')),0) - 1 <![CDATA[>]]> T1.CNTR_PTRM THEN T1.CNTR_PTRM
+                         ELSE TRUNC(MONTHS_BETWEEN(SYSDATE, TO_DATE(SUBSTR(T1.CNTR_PD_STRTDT,1,6)||'01','YYYYMMDD')),0) - 1
+                         END * T1.MM_ISTM_AMT - T15.SL_DP_AGG_AMT  /*당월 연체금액 = 매출일~당월 경과월수 X 월납입금 - 할부입금총액 + 할부환불총액*/
+                   ELSE /* 총연체금액(당월) = 연체기말(당월) + 연체가산기초(당월) - 연체가산조정(당월) + 위약금기말(당월) */
+                     NVL(T17.EOT_DLQ_AMT,0) + GREATEST(NVL(T17.BTD_DLQ_ADD_AMT,0) - NVL(T17.THM_CTR_DLQ_ADD_AMT,0) - NVL(T17.THM_DLQ_ADD_DP_SUM_AMT,0), 0) + NVL(T19.EOT_BOR_AMT,0)
+                   END AS DAMT_CUR
+            , CASE WHEN T1.SELL_TP_CD = '1' AND (T1.CNTR_PD_STRTDT IS NULL OR T1.ISTM_PCAM_AMT = 0 OR T1.CNTR_DTL_STAT_CD LIKE '3%') THEN 0
+                   WHEN T1.SELL_TP_CD = '1' THEN
+                    CASE WHEN TRUNC(MONTHS_BETWEEN(SYSDATE, TO_DATE(SUBSTR(T1.CNTR_PD_STRTDT,1,6)||'01','YYYYMMDD')),0) <![CDATA[>]]> T1.CNTR_PTRM THEN T1.CNTR_PTRM
+                         ELSE TRUNC(MONTHS_BETWEEN(SYSDATE, TO_DATE(SUBSTR(T1.CNTR_PD_STRTDT,1,6)||'01','YYYYMMDD')),0)
+                         END * T1.MM_ISTM_AMT - T15.SL_DP_AGG_AMT  /*전월 연체금액 = 매출일~전월 경과월수 X 월납입금 - 할부입금총액 + 할부환불총액*/
+                   ELSE /* 총연체금액(전월) = 연체기말(전월) + 연체가산기초(전월) - 연체가산조정(전월) + 위약금기말(전월) - (선수입금(당월) - 선수환불(당월) + 포인트입금(당월) - 포인트환불(당월)) */
+                    GREATEST(NVL(T16.EOT_DLQ_AMT,0) + GREATEST(NVL(T16.BTD_DLQ_ADD_AMT,0) - NVL(T16.THM_CTR_DLQ_ADD_AMT,0) - NVL(T16.THM_DLQ_ADD_DP_SUM_AMT,0), 0) + NVL(T18.EOT_BOR_AMT,0) - (NVL(T15.THM_ATAM_DP_AMT,0) - NVL(T15.THM_ATAM_RFND_AMT,0) + NVL(T15.MLG_DP_AMT,0) - NVL(T15.MLG_RFND_AMT,0)),0)
+                   END AS DAMT_BEF
+             , CASE WHEN T1.SELL_TP_CD = '1' THEN T1.ISTM_PCAM_AMT
+                    WHEN T1.SELL_TP_CD = '2' THEN NVL(T15.RENTAL_AMT,0) - NVL(T15.RENTAL_DSC_AMT,0) - NVL(T20.BIL_DSC_AMT,0) /*재약정할인*/
+                    ELSE NVL(T15.SELL_AMT,0) - NVL(T15.DSC_AMT,0)
+                    END AS MONTH_AMT                       /*월 납부금액*/
+        FROM TB_SSCT_CNTR_DTL T1                 /*계약상세*/
+       INNER JOIN TB_SSCT_CNTR_BAS T2            /*계약기본*/
+          ON T2.CNTR_NO = T1.CNTR_NO
+         AND T2.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_SSCT_CNTR_STLM_REL T6 /*계약결제관계*/
+          ON T6.DTL_CNTR_NO = T1.CNTR_NO
+         AND T6.DTL_CNTR_SN = T1.CNTR_SN
+         AND T6.VL_END_DTM = '99991231235959'
+         AND T6.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS T7 /*계약결제기본*/
+          ON T7.CNTR_STLM_ID = T6.CNTR_STLM_ID
+         AND T7.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T15 /*WELLS매출월마감내역(당월)*/
+          ON T15.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM')
+         AND T15.CNTR_NO = T1.CNTR_NO
+         AND T15.CNTR_SN = T1.CNTR_SN
+         AND T15.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_CBCL_DLQ_BAS T16 /*연체기본(전월)*/
+          ON T16.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1),'YYYYMM')
+         AND T16.CNTR_NO = T1.CNTR_NO
+         AND T16.CNTR_SN = T1.CNTR_SN
+         AND T16.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_CBCL_DLQ_BAS T17 /*연체기본(당월)*/
+          ON T17.PERF_YM = TO_CHAR(SYSDATE,'YYYYMM')
+         AND T17.CNTR_NO = T1.CNTR_NO
+         AND T17.CNTR_SN = T1.CNTR_SN
+         AND T17.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS T18 /*위약금기본(전월)*/
+          ON T18.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1),'YYYYMM')
+         AND T18.CNTR_NO = T1.CNTR_NO
+         AND T18.CNTR_SN = T1.CNTR_SN
+         AND T18.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS T19 /*위약금기본(당월)*/
+          ON T19.PERF_YM = TO_CHAR(SYSDATE,'YYYYMM')
+         AND T19.CNTR_NO = T1.CNTR_NO
+         AND T19.CNTR_SN = T1.CNTR_SN
+         AND T19.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_RVCL_MCBY_BIL_DSC_IZ T20 /*월별청구할인내역(재약정)*/
+          ON T20.APY_YM = TO_CHAR(SYSDATE,'YYYYMM')
+         AND T20.CNTR_NO = T1.CNTR_NO
+         AND T20.CNTR_SN = T1.CNTR_SN
+         AND T20.BIL_DSC_TP_ID = 'W00000000000004' --재약정할인
+         AND T20.APY_YN = 'Y'
+         AND T20.DTA_DL_YN = 'N'
+       WHERE T1.DTA_DL_YN = 'N'
+         AND T1.CNTR_NO = #{cntrNo}
+         AND T1.CNTR_SN = #{cntrSn}
+       ) T
+
+    </select>
+
+
+</mapper>
