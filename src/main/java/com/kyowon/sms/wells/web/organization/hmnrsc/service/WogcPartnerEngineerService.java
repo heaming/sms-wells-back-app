@@ -171,15 +171,6 @@ public class WogcPartnerEngineerService {
         List<WogcPartnerEngineerDto.FindJoeManagementRes> result = null;
         List<WogcPartnerEngineerDvo> dvos = this.mapper.selectJoeManagementForExcelDownload(dto);
 
-        /*
-        for (WogcPartnerEngineerDvo dvo : dvos) {
-            String cralLocaraTno = StringUtils.isNotEmpty(dvo.getCralLocaraTno()) ? dvo.getCralLocaraTno() : "";
-            String mexnoEncr = StringUtils.isNotEmpty(dvo.getMexnoEncr()) ? dvo.getMexnoEncr() : "";
-            String cralIdvTno = StringUtils.isNotEmpty(dvo.getCralIdvTno()) ? dvo.getCralIdvTno() : "";
-            dvo.setCralLocaraTno(cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno);
-        }
-        */
-
         if (CollectionUtils.isNotEmpty(dvos)) {
             dvos.forEach(
                 dvo -> {
@@ -237,18 +228,12 @@ public class WogcPartnerEngineerService {
                 .mapSaveEngineerGradeReqToWogcPartnerEngineerDvo(dto);
             dvo.setDtaDlYn("N");
             processCnt += this.mapper.insertEgerGdRgst(dvo);
-            /* 배치에서 해야 된다고
-            if (dvo.getApyStrtDt().substring(0, 6).equals(DateUtil.getNowDayString().substring(0, 6))) {
-                this.mapper.updateMonthPrtnrRolDvCd(dvo); //월파트너직무업데이트
-                this.mapper.updatePrtnrRolDvCd(dvo); //직무업데이트
-                this.mapper.insertPrtnrHist(dvo); //파트너상세이력인서트
-            }
-            */
+
         }
         return processCnt;
     }
 
-    public ExcelUploadDto.UploadRes saveEngineerGradeForDirectExcelUpload(MultipartFile file, String baseYm)
+    public ExcelUploadDto.UploadRes saveEngineerGradeForDirectExcelUpload(MultipartFile file)
         throws Exception {
         Map<String, String> headerTitle = new LinkedHashMap<>();
         headerTitle.put("prtnrNo", messageService.getMessage("MSG_TXT_PRTNR_NUM"));
@@ -334,13 +319,6 @@ public class WogcPartnerEngineerService {
             for (WogcPartnerEngineerDvo dvo : lists) {
                 dvo.setDtaDlYn("N");
                 this.mapper.insertEgerGdRgst(dvo);
-                /* 배치에서 해야 된다고
-                if (dvo.getApyStrtDt().substring(0, 6).equals(DateUtil.getNowDayString().substring(0, 6))) {
-                    this.mapper.updateMonthPrtnrRolDvCd(dvo); //월파트너직무업데이트
-                    this.mapper.updatePrtnrRolDvCd(dvo); //직무업데이트
-                    this.mapper.insertPrtnrHist(dvo); //파트너상세이력인서트
-                }
-                */
             }
         }
 
