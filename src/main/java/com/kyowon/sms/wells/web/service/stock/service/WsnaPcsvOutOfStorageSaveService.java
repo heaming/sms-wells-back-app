@@ -41,45 +41,66 @@ public class WsnaPcsvOutOfStorageSaveService {
     private final WsnaPcsvSendDtlMapper sendDtlMapper;
 
     @Transactional
-    public int savePcsvOutOfStorage(List<SaveReq> dtos) {
+    public int savePcsvOutOfStorages(List<SaveReq> dtos) {
         int processCount = 0;
 
-        // 물류인터페이스 호출용 dvo
         List<WsnaLogisticsOutStorageAskReqDvo> logisticDvos = new ArrayList<>();
 
-        // 1. 출고 정보 저장 (정상출고/재배송출고)
         List<WsnaPcsvOutOfStorageSaveDvo> dvos = converter.mapSaveReqToPcsvOutOfStorageDvo(dtos);
+        String lgstOstrAkNo = mapper.selectNewLgstOstrAkNo(); // 물류요청번호 생성
+
+        // 택배 출고 저장 - 정상출고[1112] / 재배송출고[1113]
         for (WsnaPcsvOutOfStorageSaveDvo dvo : dvos) {
             if ("1112".equals(dvo.getSvBizDclsfCd())) {
-                /* 정상출고 */
+                // --- 정상출고----
 
-                //                //작업엔지니어 정보를 구한다.
-                //                WsnaPcsvOutOfStorageSaveDvo engineerDvo = mapper.selectEngineerOgbsMmPrtnrIz(dvo);
-                //                if (engineerDvo != null) {
-                //                    dvo.setMngrDvCd(engineerDvo.getMngrDvCd());
-                //                    dvo.setDgr1LevlOgId(engineerDvo.getDgr1LevlOgId());
-                //                    dvo.setDgr3LevlOgId(engineerDvo.getDgr3LevlOgId());
-                //                    dvo.setBrchOgId(engineerDvo.getBrchOgId());
-                //                }
-                // 작업출고내역 등록 (TB_SVST_SV_WK_OSTR_IZ)
-                mapper.insertSvstSvWkOstrIz(dvo);
+                // 0.동일 키값으로 결과가 저장되었는지 체크한다.
+                int existCnt = mapper.selectExistSvpdCstSvWkRsIz(dvo);
+                BizAssert.isTrue(existCnt == 0, "MSG_ALT_EXIST_FSH_WK_LIST_RTRY_CONF");
 
-                // 배정테이블 업데이트
+                // 1.배정테이블 업데이트
                 mapper.updateSvpdCstSvasIstAsnIz(dvo);
                 dvo.setSvProcsCn(messageResourceService.getMessage("MSG_ALT_INST_PCSV_OSTR_FSH")); //설치택배상품 출고완료
 
-                // 작업결과 IU
+                // 2.작업결과 IU
                 mapper.insertSvpdCstSvWkRsIz(dvo);
 
-                //TODO TB_SVPD_CST_SVAS_IST_ASN_HIST 로그 저장
+                // 3.작업엔지니어 정보를 구한다.
+                WsnaPcsvOutOfStorageSaveDvo engineerDvo = mapper.selectEngineerOgbsMmPrtnrIz(dvo);
+                if (engineerDvo != null) {
+                    dvo.setMngrDvCd(engineerDvo.getMngrDvCd());
+                    dvo.setDgr1LevlOgId(engineerDvo.getDgr1LevlOgId());
+                    dvo.setDgr3LevlOgId(engineerDvo.getDgr3LevlOgId());
+                    dvo.setBrchOgId(engineerDvo.getBrchOgId());
+                }
 
-                //TODO 웰컴BS 생성
-                //23.03.14 이경호 파트장님요청, 렌탈건은 웰컴 BS 생성
-                //23.06.03 백현아 파트장님요청, 일시불 판매코드 4572건은 무조건 웰컴 BS 생성
-                //mapper.deleteSvpdCstSvRgbsprIz(dvo);
-                //mapper.insertSvpdCstSvRgbsprIz(dvo);
+                dvo.setLgstOstrAkNo(lgstOstrAkNo); // 물류요청번호
 
-                //출고 확정시 일자(설치일자,배송예정일자) 현재날짜 지정 (판매시스템 연계)
+                String idvTno = dvo.getIdvTno(); // 전화번호
+                String cralIdvTno = dvo.getCralIdvTno(); //휴대폰 번호
+
+                // 4.상품 내역 등록 및 수불 처리 (물류)
+                List<WsnaPcsvSendDtlDvo> pcsvSendDtlDvos = this.setWsnaPcsvSendDtlDvo(dvo);
+                for (WsnaPcsvSendDtlDvo pcsvSendDtlDvo : pcsvSendDtlDvos) {
+                    // 5.택배 발송정보 저장 (TB_SVPD_OSTR_AK_PCSV_SEND_DTL)
+                    sendDtlMapper.insertPcsvSendDtl(pcsvSendDtlDvo);
+
+                    dvo.setPdCd(pcsvSendDtlDvo.getItmPdCd());
+                    dvo.setUseQty(pcsvSendDtlDvo.getOstrAkQty());
+
+                    // 6.작업출고내역 등록 (TB_SVST_SV_WK_OSTR_IZ)
+                    mapper.insertSvstSvWkOstrIz(dvo);
+
+                    // 7.재고변경 (TB_SVST_CST_SV_ITM_STOC_IZ)
+                    itemStockService.createStock(setWsnaItemStockItemizationReqDvo(pcsvSendDtlDvo));
+
+                    // 8.택배정보 물류 연동을위한 매핑 저장 (물류 연동시 전화번호,휴대폰 번호 복호화 전송)
+                    pcsvSendDtlDvo.setAdrsTnoVal(idvTno);
+                    pcsvSendDtlDvo.setAdrsCphonNoVal(cralIdvTno);
+                    logisticDvos.add(converter.mapPcsvOutOfStorageDvoToLogisticDvo(pcsvSendDtlDvo));
+                }
+
+                // 9.출고 확정시 일자(설치일자,배송예정일자) 현재날짜 지정 (판매시스템 연계)
                 String istDt = DateUtil.getNowDayString();
                 String sppDueDt = DateUtil.getNowDayString();
                 int result = installationReqdDtInService
@@ -87,27 +108,27 @@ public class WsnaPcsvOutOfStorageSaveService {
                 if (result > 0) {
                     mapper.updateSvpdCstSvExcnIz(dvo);
                 }
-                //TODO 수불처리
 
-                // throw new BizException("정상출고 에러!");
+                // 10.물류 인터페이스 연동
+                if (ObjectUtils.isNotEmpty(logisticDvos)) {
+                    logisticsOutStorageAskService.createSelfFilterOutOfStorageAsks(logisticDvos);
+                }
 
             } else if ("1113".equals(dvo.getSvBizDclsfCd())) {
-                /* 재배송출고 */
+                // --- 재배송 출고----
 
-                //동일 키값으로 결과가 저장되었는지 체크한다.
+                // 0.동일 키값으로 결과가 저장되었는지 체크한다.
                 int existCnt = mapper.selectExistSvpdCstSvWkRsIz(dvo);
                 BizAssert.isTrue(existCnt == 0, "MSG_ALT_EXIST_FSH_WK_LIST_RTRY_CONF");
-                // 배정테이블 업데이트
+
+                // 1.배정테이블 업데이트
                 mapper.updateSvpdCstSvasIstAsnIz(dvo);
 
-                //작업결과 IU
-                dvo.setSvProcsCn(messageResourceService.getMessage("MSG_ALT_INST_PCSV_OSTR_RSHP_FSH")); //설치택배상품 재배송 출고완료
+                // 2.작업결과 IU - [설치택배상품 재배송 출고완료]
+                dvo.setSvProcsCn(messageResourceService.getMessage("MSG_ALT_INST_PCSV_OSTR_RSHP_FSH"));
                 mapper.insertSvpdCstSvWkRsIz(dvo);
 
-                //TODO TB_SVPD_CST_SVAS_IST_ASN_HIST 로그 저장
-
-                //반품요청오더가 미처리된게 있다면 수불 없이 완료 처리를 한다
-                //반품 요청 오더 (미처리) 정보가 존재하는경우
+                // 3.반품요청오더가 미처리된게 있다면 수불 없이 완료 처리를 한다
                 WsnaPcsvOutOfStorageSaveDvo returningDvo = mapper.selectReturningSvpdCstSvasIstOjIz(dvo);
                 if (returningDvo != null) {
                     //CST_SV_ASN_NO, SV_BIZ_HCLSF_CD, WK_CAN_MO_CN 정의
@@ -115,7 +136,7 @@ public class WsnaPcsvOutOfStorageSaveService {
                     dvo.setSvBizHclsfCd(returningDvo.getSvBizHclsfCd());
                     dvo.setWkCanMoCn(returningDvo.getWkCanMoCn());
 
-                    //위치현상원인수당조회
+                    // 위치현상원인수당조회
                     WsnaPcsvOutOfStorageSaveDvo asCodeDvo = mapper.selectAsCodeSvpdCstSvasIstOjIz(dvo);
                     if (asCodeDvo != null) {
                         //AS_LCT_CD, AS_PHN_CD, AS_CAUS_CD, SITE_AW_ATC_CD 정의
@@ -124,24 +145,18 @@ public class WsnaPcsvOutOfStorageSaveService {
                         dvo.setAsCausCd(asCodeDvo.getAsCausCd());
                         dvo.setSiteAwAtcCd(asCodeDvo.getSiteAwAtcCd());
                     }
+                    // 4. 반품 배정번호를 기준으로 배정테이블 업데이트
                     mapper.updateSvpdCstSvasIstAsnIz(dvo); // 배정테이블 업데이트
 
-                    //반품 배정번호를 기준으로 작업결과IU
-                    dvo.setSvProcsCn(messageResourceService.getMessage("MSG_ALT_INST_PCSV_OSTR_RSHP_RTNGD_FSH")); //설치택배상품 재배송으로 인한 반품완료 처리(재고X)
+                    // 5. 반품 배정번호를 기준으로 작업결과IU - [설치택배상품 재배송으로 인한 반품완료 처리(재고X)]
+                    dvo.setSvProcsCn(messageResourceService.getMessage("MSG_ALT_INST_PCSV_OSTR_RSHP_RTNGD_FSH"));
                     mapper.insertSvpdCstSvWkRsIz(dvo);
-
-                    //TODO TB_SVPD_CST_SVAS_IST_ASN_HIST 로그 저장(반품 오더기준)
                 }
-
-                //throw new BizException("재배송출고 에러!");
-
             }
-
             processCount += 1;
         }
 
         return processCount;
-
     }
 
     @Transactional
@@ -152,9 +167,11 @@ public class WsnaPcsvOutOfStorageSaveService {
         List<WsnaLogisticsOutStorageAskReqDvo> logisticDvos = new ArrayList<>();
 
         List<WsnaPcsvOutOfStorageSaveDvo> dvos = converter.mapSaveReqToPcsvOutOfStorageDvo(dtos);
+        // 물류요청번호 생성
+        String lgstOstrAkNo = mapper.selectNewLgstOstrAkNo();
         for (WsnaPcsvOutOfStorageSaveDvo dvo : dvos) {
             if ("1112".equals(dvo.getSvBizDclsfCd())) {
-
+                dvo.setLgstOstrAkNo(lgstOstrAkNo); // 물류요청번호
                 String idvTno = dvo.getIdvTno();
                 String cralIdvTno = dvo.getCralIdvTno();
 
@@ -177,7 +194,6 @@ public class WsnaPcsvOutOfStorageSaveService {
                     pcsvSendDtlDvo.setAdrsCphonNoVal(cralIdvTno);
                     logisticDvos.add(converter.mapPcsvOutOfStorageDvoToLogisticDvo(pcsvSendDtlDvo));
                 }
-
             }
         }
 
@@ -206,12 +222,14 @@ public class WsnaPcsvOutOfStorageSaveService {
         sendDtlDvo.setAsnOjYm(now.substring(0, 6));
         sendDtlDvo.setIostAkDvCd("WE");
         sendDtlDvo.setLgstSppMthdCd("2");
-        sendDtlDvo.setOstrOjWareNo("100002");
         sendDtlDvo.setItmGdCd("A");
 
-        // 고객정보 파라미터 세팅
+        // 창고정보 파라미터 세팅
+        sendDtlDvo.setOstrOjWareNo(vo.getWkWareNo());
         sendDtlDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
         sendDtlDvo.setWareMngtPrtnrOgTpCd(vo.getWareMngtPrtnrOgTpCd());
+
+        // 고객정보 파라미터 세팅
         sendDtlDvo.setCstSvAsnNo(vo.getCstSvAsnNo());
         sendDtlDvo.setCstNo(vo.getCntrCstNo());
         sendDtlDvo.setCstNm(vo.getRcgvpKnm());
@@ -223,9 +241,10 @@ public class WsnaPcsvOutOfStorageSaveService {
         sendDtlDvo.setDtlAdr(vo.getRdadr());
         sendDtlDvo.setZip(vo.getNewAdrZip());
 
-        // 파라미터(물류작업방식코드,합포장일련번호)
+        // 파라미터(물류작업방식코드,합포장일련번호,물류요청번호)
         sendDtlDvo.setLgstWkMthdCd(vo.getLgstWkMthdCd());
         sendDtlDvo.setMpacSn(vo.getMpacSn());
+        sendDtlDvo.setLgstOstrAkNo(vo.getLgstOstrAkNo());
 
         // null대신 X값 세팅. (물류인터페이스요청)
         sendDtlDvo.setSvCnrCd("X");
@@ -260,7 +279,7 @@ public class WsnaPcsvOutOfStorageSaveService {
         WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
         reqDvo.setProcsYm(nowDay.substring(0, 6));
         reqDvo.setProcsDt(nowDay);
-        reqDvo.setWareDv(vo.getOstrOjWareNo().substring(0, 1)); /*창고구분*/
+        reqDvo.setWareDv("1"); /*창고구분*/
         reqDvo.setWareNo(vo.getOstrOjWareNo());
         reqDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo()); //파트너번호
         reqDvo.setItmPdCd(vo.getItmPdCd());

@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.visit.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +16,8 @@ public class WsnbHealthCareSmsDvo {
     String svBizDclsfCd;
     String asnDt;
     String cstSvAsnNo;
-    String cphonIdvTno;
-    String cstFnm;
+    String cralLocaraTno;
+    @DBDecField
+    String mexnoEncr;
+    String cralIdvTno;
 }

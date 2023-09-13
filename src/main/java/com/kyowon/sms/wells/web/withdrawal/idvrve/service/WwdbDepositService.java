@@ -3,11 +3,11 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbEtcDepositMapper;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwwdbEtcDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositDto;
@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class WwdbDepositService {
 
     private final WwdbDepositMapper mapper;
-    private final ZwwdbEtcDepositMapper depositeMapper;
+    private final ZwdbEtcDepositMapper depositeMapper;
     private final MessageResourceService messageResourceService;
     private final ZwdzWithdrawalService zwdzWithdrawalService;
 
@@ -61,7 +61,7 @@ public class WwdbDepositService {
                 .getMessage("MSG_ALT_NCELL_REQUIRED_VAL", messageResourceService.getMessage("MSG_TXT_TASK_DIV"));
         }
 
-        if (StringUtils.isEmpty(resultCd)) {
+        if (StringUtils.isEmpty(resultCd) && StringUtils.isEmpty(resultCntn)) {
 
             // 판매유형코드가 렌탈/리스, 멤버십 인 경우
             List<WwdbIntegrationDepositInfoDvo> itgDeposits = mapper.selectIntegrationDepositInfos(
@@ -69,7 +69,7 @@ public class WwdbDepositService {
             );
 
             for (WwdbIntegrationDepositInfoDvo itgDeposit : itgDeposits) {
-                WwdbDepositProcessingResultDvo result = new WwdbDepositProcessingResultDvo();
+                // WwdbDepositProcessingResultDvo result = new WwdbDepositProcessingResultDvo();
                 WwdbDepositComparisonComfirmationDvo dpCrcnfDvo = new WwdbDepositComparisonComfirmationDvo();
                 // 조회된 통합입금 데이터의 입금금액 바탕으로 입금 대사처리
                 // TODO : 입금대사 기준 확립 후 금액 처리 필요
@@ -80,10 +80,10 @@ public class WwdbDepositService {
 
                 if (!ObjectUtils.isEmpty(rveAkDtls)) {
                     // 입금된 금액 추출
-                    Integer itgDpAmt = Integer.parseInt(itgDeposit.getDpAmt());
+                    // Integer itgDpAmt = Integer.parseInt(itgDeposit.getDpAmt());
                     // 조회된 수납요청상세 데이터의 수납요청금액에 따라 계산
                     for (WwdbIntegrationDepositInfoDvo rveAkDtl : rveAkDtls) {
-                        Integer rveAmt = Integer.parseInt(rveAkDtl.getRveAkAmt());
+                        // Integer rveAmt = Integer.parseInt(rveAkDtl.getRveAkAmt());
                         Integer dpCprcnfAmt = 0;
 
                         // TODO : 입금대사 기준 확립 후 금액 계산

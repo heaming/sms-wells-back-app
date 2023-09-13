@@ -15,6 +15,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WsnaNewManagerBsConsumableMapper {
     List<SearchItmRes> selectItems(String mngtYm);
 
+    List<WsnaNewManagerBsConsumableDvo> selectBuildings(SearchReq dto);
+
     PagingResult<WsnaNewManagerBsConsumableDvo> selectBuildings(SearchReq dto, PageInfo pageInfo);
 
     List<WsnaNewManagerBsConsumableDvo> selectItemQtys(String mngtYm, String prtnrNo);

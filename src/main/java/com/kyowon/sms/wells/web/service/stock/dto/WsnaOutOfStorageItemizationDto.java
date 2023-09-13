@@ -44,9 +44,8 @@ public class WsnaOutOfStorageItemizationDto {
         String strHopDt,
         String ostrDt,
         String wareNm,
-        String wareAdrId
-        //        String newAdrZip,
-        //        String txtNote
+        String wareAdrId,
+        String txtNote
 
     ) {}
 }

@@ -38,7 +38,7 @@ public class WsnaNewManagerBsConsumableService {
     private static final String OSTR_AK_TP_CD_BS = "380"; // 출고요청유형코드 : BS소모품배부
     private static final String IOST_AK_DV_CD_WELLS = "WE";
     private static final String LGST_SPP_MTHD_CD_CRGO = "6";
-    private static final String LGST_WK_MTHD_CD_BLD = "WE08";
+    private static final String LGST_WK_MTHD_CD_MNGER = "WE07";
     private static final String ITM_GD_CD_A = "A";
     private static final String OSTR_OJ_WARE_NO_PAJU = "100002";
     private static final String BFSVC_CSMB_DDLV_OJ_CD_NEW_MNGER = "1";
@@ -53,6 +53,80 @@ public class WsnaNewManagerBsConsumableService {
 
     public List<SearchRes> getNewManagerBsConsumables(SearchReq dto) {
         return null;
+    }
+
+    public List<SearchRes> getNewManagerBsConsumablePages(SearchReq dto) {
+        List<WsnaNewManagerBsConsumableDvo> bldInfos = mapper.selectBuildings(dto);
+        List<WsnaNewManagerBsConsumableDvo> bldAndItemsInfos = new ArrayList<>();
+        Iterator<WsnaNewManagerBsConsumableDvo> it = bldInfos.iterator();
+
+        while (it.hasNext()) {
+            WsnaNewManagerBsConsumableDvo bfBldInfo = it.next();
+            WsnaNewManagerBsConsumableDvo aftBldInfo = new WsnaNewManagerBsConsumableDvo();
+            List<WsnaNewManagerBsConsumableDvo> itemInfos = new ArrayList<>();
+
+            aftBldInfo = bfBldInfo;
+
+            List<String> fxnItemQtys = new ArrayList<>();
+            List<String> aplcItemQtys = new ArrayList<>();
+
+            // 매니저 별 기등록 품목 수량 조회
+            itemInfos = mapper.selectItemQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
+
+            if (CollectionUtils.isEmpty(itemInfos)) {
+                // 매니저 별 미등록 품목 계산 수량 조회
+                itemInfos = mapper.selectItemFirstQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
+
+                String mngtYear = dto.mngtYm().substring(0, 4);
+                String mngtMonth = "";
+                mngtMonth = dto.mngtYm().substring(4);
+                mngtMonth = mngtMonth.startsWith("0") ? " " + mngtMonth.substring(1) : mngtMonth;
+
+                BizAssert.isTrue(
+                    itemInfos.size() > 0, "MSG_ALT_BFSVC_CSMB_DDLV_BASE",
+                    new String[] {mngtYear, mngtMonth}
+                );
+
+                for (WsnaNewManagerBsConsumableDvo itemInfo : itemInfos) {
+                    switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
+                        case "1" -> {
+                            fxnItemQtys.add(itemInfo.getFxnDdlvUnitQty());
+                        }
+
+                        case "2" -> {
+                            aplcItemQtys.add(itemInfo.getAplcDdlvUnitQty());
+                        }
+                    }
+                }
+
+                aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
+                aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
+                aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
+                bldAndItemsInfos.add(aftBldInfo);
+            } else {
+                for (WsnaNewManagerBsConsumableDvo itemInfo : itemInfos) {
+                    switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
+                        case "1" -> {
+                            fxnItemQtys.add(itemInfo.getBfsvcCsmbDdlvQty());
+                        }
+
+                        case "2" -> {
+                            aplcItemQtys.add(itemInfo.getBfsvcCsmbDdlvQty());
+                        }
+                    }
+                }
+
+                aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
+                aftBldInfo.setBfsvcCsmbDdlvStatCd(itemInfos.get(0).getBfsvcCsmbDdlvStatCd());
+                aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
+                aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
+                bldAndItemsInfos.add(aftBldInfo);
+            }
+        }
+
+        List<SearchRes> rtnDto = converter.mapAllDvoToListSearchRes(bldAndItemsInfos);
+
+        return rtnDto;
     }
 
     public PagingResult<SearchRes> getNewManagerBsConsumablePages(SearchReq dto, PageInfo pageInfo) {
@@ -180,7 +254,7 @@ public class WsnaNewManagerBsConsumableService {
                 reqDvo.setWareMngtPrtnrNo(userSession.getEmployeeIDNumber());
                 reqDvo.setWareMngtPrtnrOgTpCd(userSession.getOgTpCd());
                 reqDvo.setLgstSppMthdCd(LGST_SPP_MTHD_CD_CRGO);
-                reqDvo.setLgstWkMthdCd(LGST_WK_MTHD_CD_BLD);
+                reqDvo.setLgstWkMthdCd(LGST_WK_MTHD_CD_MNGER);
                 reqDvo.setItmPdCd(dvo.getCsmbPdCd());
                 reqDvo.setItmGdCd(ITM_GD_CD_A);
                 reqDvo.setOstrOjWareNo(OSTR_OJ_WARE_NO_PAJU);

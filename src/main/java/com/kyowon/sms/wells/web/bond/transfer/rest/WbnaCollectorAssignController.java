@@ -5,6 +5,7 @@ import java.util.List;
 import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto.*;
 import com.kyowon.sms.wells.web.bond.transfer.service.WbnaCollectorAssignService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
+import com.sds.sflex.common.common.dto.ExcelUploadDto;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -17,6 +18,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -142,5 +144,19 @@ public class WbnaCollectorAssignController {
         return SaveResponse.builder()
             .processCount(service.editCollectorAssingsConfirm(reqDto))
             .build();
+    }
+
+    @ApiOperation(value = "집금자 배정 엑셀업로드", notes = "집금자 수정 정보를 엑셀로 업로드 한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true)
+    })
+    @PostMapping("/details/excel-upload")
+    public ExcelUploadDto.UploadRes createCollectorAssignsDetailsExcelUpload(
+        @RequestParam("file")
+        MultipartFile file,
+        @RequestParam
+        String baseYm
+    ) throws Exception {
+        return service.createCollectorAssignsDetailsExcelUpload(file, baseYm);
     }
 }

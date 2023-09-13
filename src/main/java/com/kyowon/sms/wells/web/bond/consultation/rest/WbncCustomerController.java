@@ -8,6 +8,7 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,10 +18,13 @@ import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounse
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselHistoryRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRecIdReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveCounselReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveUnuitmCnReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchReq;
@@ -155,4 +159,24 @@ public class WbncCustomerController {
             .build();
     }
 
+    @ApiOperation(value = "사용자 정보 조회", notes = "조회조건에 일치하는 사용자 정보를 조회한다.")
+    @GetMapping("/user-info")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = true),
+    })
+    public FindUserInfoRes getUserInfo(@Valid
+    FindUserInfoReq dto) {
+        return service.getUserInfo(dto);
+    }
+
+    @ApiOperation(value = "녹취Id 조회", notes = "조회조건에 일치하는 녹취Id 정보를 조회한다.")
+    @PutMapping("/rec-id")
+    public String getRecId(
+        @Valid
+        @RequestBody
+        FindRecIdReq dto
+    ) {
+        return service.getRecId(dto);
+    }
 }

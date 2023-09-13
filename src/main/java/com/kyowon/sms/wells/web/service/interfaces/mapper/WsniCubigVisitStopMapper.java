@@ -7,5 +7,5 @@ import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniCubigVisitStopDvo;
 
 @Mapper
 public interface WsniCubigVisitStopMapper {
-    CreateRes insertCubigVisitStop(WsniCubigVisitStopDvo dvo);
+    int insertCubigVisitStop(WsniCubigVisitStopDvo dvo);
 }

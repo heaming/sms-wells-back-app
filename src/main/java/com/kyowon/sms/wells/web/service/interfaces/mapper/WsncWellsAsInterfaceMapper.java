@@ -100,6 +100,6 @@ public interface WsncWellsAsInterfaceMapper {
      *              String chSding, 변경모종
      *              String apyDt 적용일자
      */
-    WsniAsSidingChangeInterfaceDvo selectAsSidingChanges(SearchAsSidingChangeReq req);
+    List<WsniAsSidingChangeInterfaceDvo> selectAsSidingChanges(SearchAsSidingChangeReq req);
 
 }

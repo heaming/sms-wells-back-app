@@ -18,6 +18,9 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+* W-SV-I-0008 Cubig CC 방문중지 등록(팝업)
+* */
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1)
 @RequiredArgsConstructor
 @InterfaceController
@@ -28,7 +31,7 @@ public class WsniCubigVisitStopController {
 
     @ApiOperation(value = "Cubig CC 방문중지 등록 인터페이스")
     @PostMapping
-    public EaiWrapper createCubigVisitStop(
+    public EaiWrapper<CreateRes> createCubigVisitStop(
         @RequestBody
         @Valid
         EaiWrapper<CreateReq> reqEaiWrapper

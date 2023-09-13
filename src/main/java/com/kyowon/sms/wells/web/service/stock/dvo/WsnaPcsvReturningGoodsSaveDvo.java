@@ -89,4 +89,31 @@ public class WsnaPcsvReturningGoodsSaveDvo {
     String dgr3LevlOgId;
     String brchOgId;
 
+    // 물류수불처리 추가
+    String ostrTpCd; // 출고유형코드
+    String ostrDt; // 출고일자
+    String itmOstrNo;
+    String ostrSn;
+    String itmStrNo;
+    String strSn;
+
+    // 물류에 전송하기 위한 데이터 dvo
+    private String ostrAkNo;
+    private String ostrAkSn;
+    private String ostrAkTpCd;
+    private String ostrAkRgstDt;
+    private String strHopDt;
+    private String lgstStrTpCd;
+    private String iostAkDvCd;
+    private String wareMngtPrtnrOgTpCd;
+    private String sapIostTpCd;
+    private String lgstSppMthdCd;
+    private String ostrAkQty;
+    private String ostrOjWareNo;
+    private String svCnrCd;
+    private String svCnrNm;
+    private String rmkCn;
+
+    //    List<WsnaPcsvReturningGoodsSaveProductDvo> products;
+
 }

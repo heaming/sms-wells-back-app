@@ -142,7 +142,7 @@ public class WsnaOutOfStorageAskMngtDto {
         String strHopDt, // 입고희망일자
         String ostrAkRgstDt, //출고요청등록일자
         String itmCd, // 품목코드
-        String itmKnd, // 품목종류
+        String itemKnd, // 품목종류
         String itmNm, // 상품약어명
         String ostrAkWareDvCd, // 출고요청창고구분코드
         String wareMngtPrtnrNo, // 창고관리파트너번호
@@ -166,7 +166,8 @@ public class WsnaOutOfStorageAskMngtDto {
         int centerQty, // 센터수량
         int indiQty, // 개인수량
         String imgUrl, // 이미지첨부파일ID
-        int cfrmCnt // 방문확정수량
+        int cfrmCnt, // 방문확정수량
+        String chkLgstWkMthdCd //체크용물류작업방식코드
 
     ) {}
 }

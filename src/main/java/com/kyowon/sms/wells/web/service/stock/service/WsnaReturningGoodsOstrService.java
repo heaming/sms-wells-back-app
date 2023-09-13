@@ -1,8 +1,10 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,6 +73,9 @@ public class WsnaReturningGoodsOstrService {
 
         SaveReq saveReq = dtos.get(0);
 
+        List<String> ostrSns = new ArrayList<>();
+        List<WsnaReturningGoodsDvo> dvos = new ArrayList<>();
+
         String itmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(saveReq.ostrTpCd(), saveReq.ostrDt()));
         String itmStrNo = null;
 
@@ -90,23 +95,12 @@ public class WsnaReturningGoodsOstrService {
 
             // 품목출고내역 insert
             int result = this.mapper.insertItemForwardingHistory(dvo);
+            dvos.add(dvo);
 
             result += this.mapper.insertItemReceivingHistory(dvo);
 
             if (isReturnToLogistics(dvo.getOstrTpCd(), dvo.getStrWareDvCd())) {
-                // TODO: 반품(내부)이고 입고 창고가 물류센터인 경우 - 반품요청 중계 테이블 Insert
-                // TODO: 품목재고내역관리 서비스(W-SV-S-0087)의 품목재고내역 등록 메소드(saveItemStockIzRgsts)를 호출 - 반품출고
-                String logisticsItmOstrNo = dvo.getItmOstrNo();
-                log.debug(logisticsItmOstrNo);
-                String ostrSn = dvo.getOstrSn();
-                List<WsnaReturningGoodsDvo> logisticsDvo = this.mapper
-                    .selectLogisticsReturningGoodsAskInfo(logisticsItmOstrNo, ostrSn);
-
-                List<WsnaLogisticsInStorageAskReqDvo> returnDvo = this.converter
-                    .mapAllReturningGoodsDvoToLogisticsInStorageAskReqDvo(logisticsDvo);
-
-                logisticsService.createInStorageAsks(returnDvo);
-
+                // 품목재고내역관리 서비스(W-SV-S-0087)의 품목재고내역 등록 메소드를 호출 - 반품출고
                 WsnaItemStockItemizationReqDvo returnOstrDvo = setReturningOstrWsnaItemStockItemizationDtoSaveReq(
                     dvo
                 );
@@ -123,8 +117,6 @@ public class WsnaReturningGoodsOstrService {
 
                 result += itemStockservice.createStock(returnStrDvo);
             } else if (isReturning(dvo.getOstrTpCd())) {
-                // 반품(내부/외부)이고 입고창고가 물류센터가 아닌 경우 - 품목입고내역 insert
-                //                result = this.mapper.insertItemReceivingHistory(dvo);
                 // TODO: 품목재고내역 등록 메소드(saveItemStockIzRgsts)를 호출 - 반품출고
 
                 WsnaItemStockItemizationReqDvo returnOstrDvo = setReturningOstrWsnaItemStockItemizationDtoSaveReq(
@@ -153,8 +145,28 @@ public class WsnaReturningGoodsOstrService {
                 result += itemStockservice.createStock(returnDisuseDvo);
             }
 
-            //            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
             processCount += result;
+        }
+
+        //09.06 물류요청일 경우에는 Transaction 이슈로 저장한 데이터 한번에 넘겨줘야 함
+        if (dvos.size() > 0 && CollectionUtils.isNotEmpty(dvos)) {
+            if (isReturnToLogistics(dvos.get(0).getOstrTpCd(), dvos.get(0).getStrWareDvCd())) {
+                List<String> sortOstrSns = dvos.stream().map(WsnaReturningGoodsDvo::getOstrSn).distinct()
+                    .toList();
+
+                for (String ostrSn : sortOstrSns) {
+                    ostrSns.add(ostrSn);
+                }
+                // 반품(내부)이고 입고 창고가 물류센터인 경우 - 반품요청 중계 테이블 Insert
+                List<WsnaReturningGoodsDvo> logisticsDvo = this.mapper
+                    .selectLogisticsReturningGoodsAskInfo(itmOstrNo, ostrSns);
+
+                List<WsnaLogisticsInStorageAskReqDvo> returnDvo = this.converter
+                    .mapAllReturningGoodsDvoToLogisticsInStorageAskReqDvo(logisticsDvo);
+
+                logisticsService.createInStorageAsks(returnDvo);
+
+            }
         }
 
         return processCount;
@@ -164,6 +176,13 @@ public class WsnaReturningGoodsOstrService {
     public int removeReturningGoodsOstrs(List<RemoveReq> dtos) throws ParseException {
         int processCount = 0;
 
+        List<WsnaReturningGoodsDvo> dvos = this.converter.mapRemoveAllReturningGoodsDvoToReturningGoods(dtos);
+
+        //삭제건들을 담기위한 listDvos
+        List<WsnaReturningGoodsDvo> deleteListDvos = new ArrayList<>();
+
+        List<String> deleteOstrSns = new ArrayList<>();
+
         for (RemoveReq dto : dtos) {
             WsnaReturningGoodsDvo dvo = this.converter.mapRemoveReqToReturningGoodsDvo(dto);
 
@@ -171,13 +190,6 @@ public class WsnaReturningGoodsOstrService {
             if (isReturning(dvo.getOstrTpCd())) {
                 // 입고창고가 물류센터인 경우
                 if (WARE_DV_CD_LOGISTICS_CENTER.equals(dvo.getStrWareDvCd())) {
-                    // TODO: 물류센터에 출고 요청 취소(삭제) Interface 를 위한 중계테이블에 Insert
-                    List<WsnaReturningGoodsDvo> returnListDvo = this.mapper.selectLogisticsRemoveReturn(dvo);
-
-                    List<WsnaLogisticsInStorageAskReqDvo> returnDvo = this.converter
-                        .mapAllRemoveReturningGoodsDvoToLogisticsInStorageAskReqDvo(returnListDvo);
-
-                    logisticsService.removeInStorageAsks(returnDvo);
 
                     // TODO: 품목재고내역 삭제 메소드(saveItemStockIzDls)를 호출 - 입고창고의 입고재고수량 삭제
                     WsnaItemStockItemizationReqDvo returnRemoveDvo = setReturningRemoveWsnaItemStockItemizationDtoSaveReq(
@@ -193,9 +205,9 @@ public class WsnaReturningGoodsOstrService {
                     );
 
                     itemStockservice.saveStockMovement(moveDvo);
-                    //                    BizAssert.isTrue(moveResult == 1, "MSG_ALT_DEL_ERR");
 
                     this.mapper.deleteItemReceivingHistory(dvo); // 품목입고내역삭제
+                    deleteListDvos.add(dvo);
 
                 } else {
                     // TODO: 품목재고내역 삭제 메소드(saveItemStockIzDls)를 호출 - 입고창고의 입고재고수량 삭제
@@ -204,7 +216,6 @@ public class WsnaReturningGoodsOstrService {
                     );
 
                     itemStockservice.removeStock(returnRemoveDvo);
-                    //                    BizAssert.isTrue(removeResult == 1, "MSG_ALT_DEL_ERR");
 
                     // TODO: 품목재고내역 이동 메소드(saveItemStockIzMmts)를 호출 - 입고창고의 이동재고수량 삭제
 
@@ -213,7 +224,6 @@ public class WsnaReturningGoodsOstrService {
                     );
 
                     itemStockservice.saveStockMovement(moveDvo);
-                    //                    BizAssert.isTrue(moveResult == 1, "MSG_ALT_DEL_ERR");
 
                     this.mapper.deleteItemReceivingHistory(dvo); // 품목입고내역삭제
                 }
@@ -225,12 +235,34 @@ public class WsnaReturningGoodsOstrService {
             );
 
             itemStockservice.removeStock(ostrRemoveDvo);
-            //            BizAssert.isTrue(ostrResult == 1, "MSG_ALT_DEL_ERR");
 
             int result = this.mapper.deleteItemForwardingHistory(dvo); // 품목출고내역삭제
 
             BizAssert.isTrue(result == 1, "MSG_ALT_DEL_ERR");
             processCount += result;
+        }
+
+        //09.07 물류요청건 삭제일 경우에는 Transaction 이슈로 저장한 데이터 한번에 넘겨줘야 함
+        if (deleteListDvos.size() > 0) {
+            if (isReturning(deleteListDvos.get(0).getOstrTpCd())
+                && WARE_DV_CD_LOGISTICS_CENTER.equals(deleteListDvos.get(0).getStrWareDvCd())) {
+
+                List<String> sortOstrSns = dvos.stream().map(WsnaReturningGoodsDvo::getOstrSn).distinct()
+                    .toList();
+
+                for (String ostrSn : sortOstrSns) {
+                    deleteOstrSns.add(ostrSn);
+                }
+
+                //물류에 전송하기위한 데이터 조회
+                List<WsnaReturningGoodsDvo> returnListDvo = this.mapper
+                    .selectLogisticsRemoveReturn(deleteListDvos.get(0).getItmOstrNo(), deleteOstrSns);
+                //물류센터에 출고 요청 취소(삭제) Interface 를 위한 중계테이블에 Insert
+                List<WsnaLogisticsInStorageAskReqDvo> returnDvo = this.converter
+                    .mapAllRemoveReturningGoodsDvoToLogisticsInStorageAskReqDvo(returnListDvo);
+
+                logisticsService.removeInStorageAsks(returnDvo);
+            }
         }
 
         return processCount;

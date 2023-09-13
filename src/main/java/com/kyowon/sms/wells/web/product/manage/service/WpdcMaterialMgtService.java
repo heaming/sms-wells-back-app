@@ -1,10 +1,6 @@
 package com.kyowon.sms.wells.web.product.manage.service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -12,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kyowon.sms.common.web.product.manage.dvo.ZpdcProductDetailDvo;
 import com.kyowon.sms.common.web.product.category.service.ZpdaClassificationMgtService;
 import com.kyowon.sms.common.web.product.manage.converter.ZpdcProductConverter;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto;
@@ -21,10 +16,7 @@ import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSap
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcRelationMgtDto;
-import com.kyowon.sms.common.web.product.manage.dvo.ZpdcEachCompanyPropDtlDvo;
-import com.kyowon.sms.common.web.product.manage.dvo.ZpdcGbcoSapMatDvo;
-import com.kyowon.sms.common.web.product.manage.dvo.ZpdcProductDvo;
-import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
+import com.kyowon.sms.common.web.product.manage.dvo.*;
 import com.kyowon.sms.common.web.product.manage.mapper.ZpdcProductMapper;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcHistoryMgtService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
@@ -245,6 +237,7 @@ public class WpdcMaterialMgtService {
         List<ZpdcPropertyMetaDvo> tbPdbsPdEcomPrpDtl
     ) throws Exception {
 
+        String[] msgStrArr = new String[1];
         List<ExcelUploadErrorDvo> dataErrors = new ArrayList<ExcelUploadErrorDvo>();
 
         int rowIndex = 1;
@@ -252,12 +245,13 @@ public class WpdcMaterialMgtService {
 
             // #1. 분류체계 유효성 체크
             String compareValue = this.getExcelValue(excelDataMap.get("pdClsfId"));
+            msgStrArr[0] = compareValue;
             if (null == clsfService.getClassification(compareValue)) {
                 ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
                 errorVo.setHeaderName("분류");
                 errorVo.setErrorRow(rowIndex);
                 errorVo.setErrorData(
-                    messageResourceService.getMessage("MSG_ALT_DELETED_CLSF_ID", new String[] {compareValue})
+                    messageResourceService.getMessage("MSG_ALT_DELETED_CLSF_ID", msgStrArr)
                 );
                 dataErrors.add(errorVo);
             }
@@ -311,11 +305,12 @@ public class WpdcMaterialMgtService {
         String validationTarget,
         String optionVal
     ) {
-
-        String compareValue = StringUtil.nvl2(entry.getValue().toString(), "");
+        String[] msgStrArr = new String[1];
+        String compareValue = StringUtil.nvl(entry.getValue(), "");
         if (compareValue.split("\\|").length > 1) {
             compareValue = compareValue.split("\\|")[1].trim();
         }
+        msgStrArr[0] = compareValue;
 
         if (PdProductConst.VALIDATION_TARGET_DB.equals(validationTarget)) {
 
@@ -325,10 +320,8 @@ public class WpdcMaterialMgtService {
                 if (!"".equals(compareValue)) {
                     // 넘어온 자재코드 값이 I/F 테이블에 존재하는지 확인.
                     //                    ZpdcGbcoSapMatDvo sapMatVo = mapper.selectMaterialSap(compareValue);
-
                     //                    String sapPlntVal = getExcelValue2(excelDataMap, metaVo, PdProductConst.SAP_PLNT_VAL);
-
-                    System.out.println("optionValoptionValoptionValoptionVal : " + optionVal);
+                    //                    System.out.println("optionValoptionValoptionValoptionVal : " + optionVal);
                     List<ZpdcGbcoSapMatDvo> sapMatVos = mapper.selectMaterialSaps(compareValue, optionVal);
 
                     if (sapMatVos.isEmpty()) {
@@ -337,20 +330,18 @@ public class WpdcMaterialMgtService {
                         errorVo.setErrorRow(rowIndex);
                         errorVo.setErrorData(
                             messageResourceService
-                                .getMessage("MSG_ALT_ABNORMAL_SAP_MAT_CD", new String[] {compareValue})
+                                .getMessage("MSG_ALT_ABNORMAL_SAP_MAT_CD", msgStrArr)
                         );
                         dataErrors.add(errorVo);
                     } else if (sapMatVos.size() > 1) {
+                        msgStrArr[0] = messageResourceService.getMessage("MSG_TXT_MATI_CD");
                         ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
                         errorVo.setHeaderName(metaVo.getPrpNm());
                         errorVo.setErrorRow(rowIndex);
                         errorVo.setErrorData(
                             // {0} 결과값이 2건 이상 존재합니다.
                             messageResourceService
-                                .getMessage(
-                                    "MSG_ALT_ABNORMAL_TO_MUCH_RESULT",
-                                    new String[] {messageResourceService.getMessage("MSG_TXT_MATI_CD")}
-                                )
+                                .getMessage("MSG_ALT_ABNORMAL_TO_MUCH_RESULT", msgStrArr)
                         );
                         dataErrors.add(errorVo);
                     }
@@ -364,11 +355,12 @@ public class WpdcMaterialMgtService {
                             .validationType(PdProductConst.SAP_MAT_CD).pdCd(null).sapMatCd(compareValue).build()
                     )
                 )) {
+                    msgStrArr[0] = compareValue;
                     ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
                     errorVo.setHeaderName(metaVo.getPrpNm());
                     errorVo.setErrorRow(rowIndex);
                     errorVo.setErrorData(
-                        messageResourceService.getMessage("MSG_ALT_EXIST_SAP_MAT_CD", new String[] {compareValue})
+                        messageResourceService.getMessage("MSG_ALT_EXIST_SAP_MAT_CD", msgStrArr)
                     );
                 }
             }
@@ -394,17 +386,28 @@ public class WpdcMaterialMgtService {
             dataErrors.add(errorVo);
         }
 
+        // TODO 20230907 날쪼포맷 체크 추가
+        if (PdProductConst.DTA_TP_DATE.equals(metaVo.getDtaTpCd())
+            && !compareValue.matches("^[\\d]{4}(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$")) {
+            ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
+            errorVo.setHeaderName(metaVo.getPrpNm());
+            errorVo.setErrorRow(rowIndex);
+            errorVo.setErrorData(messageResourceService.getMessage("MSG_ALT_CHK_DT"));
+            dataErrors.add(errorVo);
+        }
+
         // #3. Length Check - 입력 가능 길이를 초과하였습니다 (최대: {0}, 입력: {1})
         if (null != metaVo.getDtaLnth() && null != entry.getValue()
             && metaVo.getDtaLnth().intValue() < compareValue.length()) {
+            String[] lengthMsgStrArr = new String[2];
+            lengthMsgStrArr[0] = metaVo.getDtaLnth().toString();
+            lengthMsgStrArr[1] = compareValue;
+
             ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
             errorVo.setHeaderName(metaVo.getPrpNm());
             errorVo.setErrorRow(rowIndex);
             errorVo.setErrorData(
-                messageResourceService.getMessage(
-                    "MSG_ALT_INPUT_OVER_LEN",
-                    new String[] {metaVo.getDtaLnth() + "", compareValue.length() + ""}
-                )
+                messageResourceService.getMessage("MSG_ALT_INPUT_OVER_LEN", lengthMsgStrArr)
             );
             dataErrors.add(errorVo);
         }
@@ -442,12 +445,12 @@ public class WpdcMaterialMgtService {
             for (Entry<String, Object> entry : excelDataMap.entrySet()) {
                 for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdBas) {
                     if (entry.getKey().equals(metaVo.getColNm())) {
-                        if (entry.getValue().toString().split("\\|").length > 1) {
+                        if (StringUtil.nvl(entry.getValue(), "").split("\\|").length > 1) {
                             String tempVal[] = entry.getValue().toString().split("\\|");
                             log.debug(metaVo.getColId() + " && " + tempVal[0].trim() + " && " + tempVal[1].trim());
                             masterMap.put(metaVo.getColId(), tempVal[1].trim());
                         } else {
-                            masterMap.put(metaVo.getColId(), entry.getValue().toString().trim());
+                            masterMap.put(metaVo.getColId(), StringUtil.nvl(entry.getValue(), "").trim());
                         }
                     }
                 }
@@ -497,12 +500,12 @@ public class WpdcMaterialMgtService {
             for (Entry<String, Object> entry : excelDataMap.entrySet()) {
                 for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdDtl) {
                     if (entry.getKey().equals(metaVo.getColNm())) {
-                        if (entry.getValue().toString().split("\\|").length > 1) {
+                        if (StringUtil.nvl(entry.getValue(), "").split("\\|").length > 1) {
                             String tempVal[] = entry.getValue().toString().split("\\|");
                             log.debug(metaVo.getColId() + " && " + tempVal[0].trim() + " && " + tempVal[1].trim());
                             masterMap2.put(metaVo.getColId(), tempVal[1].trim());
                         } else {
-                            masterMap2.put(metaVo.getColId(), entry.getValue().toString().trim());
+                            masterMap2.put(metaVo.getColId(), StringUtil.nvl(entry.getValue(), "").trim());
                         }
                     }
                 }
@@ -529,7 +532,7 @@ public class WpdcMaterialMgtService {
 
                         propertyMap.put("pdExtsPrpGrpCd", pdPrpGrpDtlDvCd);
                         if (entry.getKey().equals(metaVo.getColNm())) {
-                            if (entry.getValue().toString().split("\\|").length > 1) {
+                            if (StringUtil.nvl(entry.getValue(), "").split("\\|").length > 1) {
                                 String tempVal[] = entry.getValue().toString().split("\\|");
                                 propertyMap.put(metaVo.getColId(), tempVal[1].trim());
                                 colsSb.append(metaVo.getColId()).append(",");
@@ -566,7 +569,8 @@ public class WpdcMaterialMgtService {
                 propertyVo.setPdCd(dvo.getPdCd());
                 if (null != propertyVo.getPdExtsPrpGrpCd()) {
                     productService.saveEachCompanyPropDtl(propertyVo);
-                    propertyMap = new HashMap<String, Object>();
+                    // 소나큐브 대응. 불필요한 초기화 제거
+                    //                    propertyMap = new HashMap<String, Object>();
                 }
 
             }

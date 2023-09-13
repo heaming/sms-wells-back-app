@@ -33,6 +33,6 @@ public interface WsncWellsAsInterfaceConverter {
 
     SearchCustomerInformationRes mapCustomerInformationDvoToRes(WsniCustomerInformationDvo dvo);
 
-    SearchAsSidingChangeRes mapAsSidingChangeDvoToRes(WsniAsSidingChangeInterfaceDvo dvo);
+    List<SearchAsSidingChangeRes> mapAsSidingChangeDvoToRes(List<WsniAsSidingChangeInterfaceDvo> dvos);
 
 }

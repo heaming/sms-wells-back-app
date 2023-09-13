@@ -14,5 +14,8 @@ public class WbnaCollectorAssignDvo {
     private String prtnrNo; /* 집금자 번호 */
     private String cntrNo; /* 계약번호 */
     private String cntrSn; /* 계약일련번호 */
+    private String cntrDtlNo; /* 계약상세번호 */
+    private String clctamPrtnrNo; /* 집금파트너번호 */
+    private String oldClctamPrtnrNo; /* 수정전집금파트너번호 */
 
 }

@@ -19,11 +19,18 @@ public class WsnfAsEnrgMatMngtService {
     private final WsnfAsEnrgMatMngtConverter converter;
 
     /**
-     * 배정정보 조회
+     * AS 유형별 필요자재관리
      * @param dto
      * @return 조회결과
      */
     public PagingResult<SearchRes> getAsEncourageMaterials(SearchReq dto, PageInfo pageInfo) {
+
+        log.debug(dto.pdCd());
+        log.debug(dto.pdGrpCd());
+        log.debug(dto.classA());
+        log.debug(dto.classB());
+        log.debug(dto.classC());
+
         PagingResult<SearchRes> pagingResult = converter.mapWsnfAsEnrgMatMngtDvoToSearchRes(
             mapper.selectAsEncourageMaterials(dto, pageInfo)
         );

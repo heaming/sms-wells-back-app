@@ -4,12 +4,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwwdbEtcDepositMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaAutoTransferRealTimeAccountCheckDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaAutoTransferRealTimeAccountService;
+import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbRefundApplicationReqDvo;
+import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbEtcDepositMapper;
+import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbRefundApplicationService;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbRefundApplicationConverter;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.*;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.*;
@@ -38,14 +40,14 @@ public class WwdbRefundApplicationService {
     private final MessageResourceService messageService;
 
     private final ZwdaAutoTransferRealTimeAccountService acService;
+    private final ZwdbRefundApplicationService zwdbRefundApplicationService;
 
-    private final ZwwdbEtcDepositMapper etcDepositMapper;
+    private final ZwdbEtcDepositMapper etcDepositMapper;
 
     /**
      * 환불 신청 현황 목록 ( 메인 )
      *
-     * @param pageInfo
-     * @param SearchRefundApplicationReq
+     * @param req
      * @return PagingResult<SearchRefundApplicationRes>
      */
     public PagingResult<SearchRefundApplicationRes> getRefundApplicationPages(
@@ -58,8 +60,7 @@ public class WwdbRefundApplicationService {
     /**
      * 환불 신청 현황 목록 엑셀 다운로드 ( 메인 )
      *
-     * @param List
-     * @param SearchRefundApplicationReq
+     * @param req
      * @return List<SearchRefundApplicationRes>
      */
     public List<SearchRefundApplicationRes> getRefundApplicationExcels(
@@ -72,12 +73,11 @@ public class WwdbRefundApplicationService {
     /**
      * 환불 신청 현황 P01. 신청 조회 ( 팝업조회 - 신규 )
      *
-     * @param List
-     * @param SearchRefundContractDetailReq
+     * @param req
+     * @param pageInfo
      * @return PagingResult<SearchRefundContractDetailRes>
      */
     public PagingResult<SearchRefundContractDetailRes> getRefundContractDetailPages(
-
         SearchRefundContractDetailReq req, PageInfo pageInfo
     ) {
         return mapper.selectRefundContractDetail(req, pageInfo);
@@ -86,8 +86,7 @@ public class WwdbRefundApplicationService {
     /**
      * 환불 신청 현황 P01. 신청 조회 엑셀다운로드 ( 팝업조회 - 신규 )
      *
-     * @param List
-     * @param SearchRefundContractDetailReq
+     * @param req
      * @return PagingResult<SearchRefundContractDetailRes>
      */
     public List<SearchRefundContractDetailRes> getRefundContractDetailExcels(
@@ -112,8 +111,8 @@ public class WwdbRefundApplicationService {
     /**
      * 환불 신청 현황 P01. 신청조회 - 계약상세 ( 팝업조회 - 신규 )
      *
-     * @param List
-     * @param
+     * @param req
+     * @param pageInfo
      * @return
      */
     public PagingResult<SearchRefundBaseRes> getRefundBasePages(
@@ -127,14 +126,14 @@ public class WwdbRefundApplicationService {
     /**
      * 환불 신청 현황 P01. 신청조회 - 환불상세 ( 팝업조회 - 신규/ 등록조회 )
      *
-     * @param List
-     * @param
-     * @return
+     * @param req
+     * @param pageInfo
+     * @return PagingResult
      */
     public PagingResult<SearchRefundDetailRes> getRefundDetailPages(
         SearchRefundDetailReq req, PageInfo pageInfo
     ) {
-        PagingResult<SearchRefundDetailRes> data = new PagingResult<>();
+        PagingResult<SearchRefundDetailRes> data;
 
         if (StringUtil.isNull(req.rfndAkNo()) || req.rfndAkNo() == null) {
             data = mapper.selectRefundDetail(req, pageInfo);
@@ -145,10 +144,11 @@ public class WwdbRefundApplicationService {
     }
 
     /**
-     * 환불 신청 현황 P01. 신청조회 - 전금상세 (
+     * 환불 신청 현황 P01. 신청조회 - 전금상세
      *
-     * @param SearchRefundBalanceTransferReq
-     * @return PagingResult<SearchRefundBalanceTransferRes>
+     * @param req
+     * @param pageInfo
+     * @return
      */
     public PagingResult<SearchRefundBalanceTransferRes> getRefundBalanceTransferPages(
         SearchRefundBalanceTransferReq req, PageInfo pageInfo
@@ -255,8 +255,6 @@ public class WwdbRefundApplicationService {
         // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
         String acFntRsCd = resultDvo.getAcFntRsCd();
         String acFntRsNm = "";
-        System.out.println("=-==-=-=-=-=-=-=-==");
-        System.out.println(resultDvo.getErrCn());
         // 3.2 리턴받은 계좌이체불능코드에 해당하는 계좌이체결과코드 조회
         //        if (!ObjectUtils.isEmpty(resultDvo.getBilCrtStatCd())) {
         //            if ("1".equals(resultDvo.getBilCrtStatCd())) {
@@ -298,14 +296,11 @@ public class WwdbRefundApplicationService {
     /**
      * 환불 신청 컨텍 이력 사항
      *
-     * @param List
-     * @param SearchRefundApplicationConnectHistoryReq
-     * @return PagingResult<SearchRefundApplicationConnectHistoryRes>
+     * @param cntrNo
+     * @param pageInfo
+     * @return
      */
     public PagingResult<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistoryPages(
-
-        //        SearchRefundApplicationConnectHistoryReq req, PageInfo pageInfo
-
         String cntrNo, PageInfo pageInfo
     ) {
         return mapper.selectRefundApplicationConnectHistory(cntrNo, pageInfo);
@@ -314,8 +309,7 @@ public class WwdbRefundApplicationService {
     /**
      * 환불 신청 컨텍 이력 사항
      *
-     * @param List
-     * @param SearchRefundApplicationConnectHistoryReq
+     * @param cntrNo
      * @return PagingResult<SearchRefundApplicationConnectHistoryRes>
      */
     public List<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistorysForExcelDownload(
@@ -323,7 +317,6 @@ public class WwdbRefundApplicationService {
     ) {
         return mapper.selectRefundApplicationConnectHistory(cntrNo);
     }
-
 
     /* TODO: 승인 서비스 */
     /*
@@ -345,64 +338,36 @@ public class WwdbRefundApplicationService {
         //환불요청기본
         WwdbRefundBaseDvo dvo = converter.mapTempSaveWwdbRefundBaseDvo(saveBaseReq);
 
-
         if ("03".equals(dvo.getProcsDv())) { //승인시
             for (SaveDtlReq list : saveDtlReqs) {
 
                 WwdbRefundDtlDvo dtlDvo = converter.mapTempSaveWwdbRefundDtlDvo(list);
 
-                //환불접수기본 채번
-                String pk = null;
+                ZwdbRefundApplicationReqDvo reqDvo = new ZwdbRefundApplicationReqDvo();
+                reqDvo.setRfndDv("1");
+                reqDvo.setKwGrpCoCd(session.getCompanyCode());
+                reqDvo.setRfndCshAkAmt(dtlDvo.getRfndCshAkAmt()); //현금
+                reqDvo.setRfndCardAkAmt(dtlDvo.getRfndCardAkAmt()); //카드
+                reqDvo.setRfndBltfAkAmt(dtlDvo.getRfndBltfAkAmt()); //전금
+                reqDvo.setRfndRveDt(dvo.getRveDt()); /*환불수납일자*/
+                reqDvo.setRfndPerfDt(dvo.getPerfDt()); /*환불실적일자*/
+                reqDvo.setRfndDsbDt(dvo.getDsbDt()); /*환불지급일자*/
+                reqDvo.setRfndProcsCn(dvo.getRfndProcsCn()); /*환불처리내용*/
+                reqDvo.setRfndDsbDt(dvo.getDsbDt()); /*환불예정일자*/
+                reqDvo.setRfndAkNo(dvo.getRfndAkNo());
+                reqDvo.setRfndRcpPhCd(dtlDvo.getRfndRcpPhCd()); // 환불접수경로코드
+                reqDvo.setRfndDsbDuedt(dvo.getDsbDt()); // 환불완료일자
+                reqDvo.setRfndRveDt(dvo.getRveDt()); // 환불접수일자
+                reqDvo.setRfndPerfDt(dvo.getPerfDt()); // 환불실적일자
+                reqDvo.setRfndDsbDt(dvo.getDsbDt()); // 환불지급일자
+                reqDvo.setRfndProcsCn(dvo.getRfndProcsCn()); // 환불처리내용
+                reqDvo.setCntrNo(dtlDvo.getCntrNo()); // 계약번호
+                reqDvo.setCntrSn(dtlDvo.getCntrSn()); // 계약일련번호
+                reqDvo.setRveNo(dtlDvo.getRveNo()); // 수납번호
+                reqDvo.setRveSn(dtlDvo.getRveSn()); // 수납일련번호
 
-                dtlDvo.setRfndRveDt(dvo.getRveDt()); /*환불수납일자*/
-                dtlDvo.setRfndPerfDt(dvo.getPerfDt()); /*환불실적일자*/
-                dtlDvo.setRfndDsbDt(dvo.getDsbDt()); /*환불지급일자*/
-                dtlDvo.setRfndProcsCn(dvo.getRfndProcsCn()); /*환불처리내용*/
-                dtlDvo.setRfndDsbDuedt(dvo.getDsbDt()); /*환불예정일자*/
+                zwdbRefundApplicationService.createRefundApplication(reqDvo);
 
-
-                int cash = Integer.parseInt(dtlDvo.getRfndCshAkAmt()); //현금
-                int card = Integer.parseInt(dtlDvo.getRfndCardAkAmt()); //카드
-                int bltf = Integer.parseInt(dtlDvo.getRfndBltfAkAmt()); //전금
-
-                //현금이 있을 경우
-                if (cash > 0) {
-                    //채번
-                    pk = etcDepositMapper.selectEtcDepositRefundPk();
-                    dtlDvo.setRfndRcpNo(pk);
-
-                    processCount += mapper.insertRefundReceiptBaseCash(dtlDvo); //환불접수기본
-                    processCount += mapper.insertRefundReceiptBaseHistory(dtlDvo); //환불접수기본 이력
-
-                    processCount += mapper.insertRefundReceiptDtlCash(dtlDvo); //환불접수상세
-                    processCount += mapper.insertRefundReceiptDtlHistory(dtlDvo); //환불접수상세 이력
-
-                }
-
-                //카드금액이 있을 경우
-                if (card > 0) {
-                    //채번
-                    pk = etcDepositMapper.selectEtcDepositRefundPk();
-                    dtlDvo.setRfndRcpNo(pk);
-
-                    processCount += mapper.insertRefundReceiptBaseCard(dtlDvo);//환불접수기본
-                    processCount += mapper.insertRefundReceiptBaseHistory(dtlDvo); //환불접수기본 이력
-
-                    processCount += mapper.insertRefundReceiptDtlCard(dtlDvo);//환불접수상세
-                    processCount += mapper.insertRefundReceiptDtlHistory(dtlDvo); //환불접수상세 이력
-                }
-                //
-                //전금금액이 있을경우
-                if (bltf > 0) {
-                    pk = etcDepositMapper.selectEtcDepositRefundPk();
-                    dtlDvo.setRfndRcpNo(pk);
-
-                    processCount += mapper.insertRefundReceiptBaseBltf(dtlDvo);
-                    processCount += mapper.insertRefundReceiptBaseHistory(dtlDvo); //환불접수기본 이력
-
-                    processCount += mapper.insertRefundReceiptDtlBltf(dtlDvo);//환불접수상세
-                    processCount += mapper.insertRefundReceiptDtlHistory(dtlDvo); //환불접수상세 이력
-                }
             }
         }
 
@@ -411,6 +376,5 @@ public class WwdbRefundApplicationService {
 
         return processCount;
     }
-
 
 }

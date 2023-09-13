@@ -1,13 +1,14 @@
 package com.kyowon.sms.wells.web.closing.expense.dvo;
 
+import java.util.List;
+
 import com.sds.sflex.common.docs.dto.AttachFileDto.AttachFile;
 import com.sds.sflex.system.config.annotation.DBDecField;
 import com.sds.sflex.system.config.annotation.DBEncField;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.List;
 
 @Getter
 @Setter
@@ -24,8 +25,7 @@ public class WdcdCleanerReqeustDvo {
     private String clinrNm; // 청소원 명
     private String wrkStrtdt; // 근무시작일자
     private String wrkEnddt; // 근무종료일자
-    private String frontRrnoEncr; // 주민등록번호 앞자리
-    private String backRrnoEncr; // 주민등록번호 앞자리
+    private String bryyMmdd; //생년월일
     @DBEncField
     @DBDecField
     private String rrnoEncr; // 주민등록번호 암호화

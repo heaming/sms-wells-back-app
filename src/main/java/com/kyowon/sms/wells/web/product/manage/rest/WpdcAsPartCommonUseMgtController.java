@@ -39,6 +39,7 @@ public class WpdcAsPartCommonUseMgtController {
         @ApiImplicitParam(name = "asMatItmGrpCd", value = "품목그룹코드", paramType = "query", required = false, example = ""),
         @ApiImplicitParam(name = "svMatGrpCd", value = "자재그룹코드", paramType = "query", required = false, example = ""),
         @ApiImplicitParam(name = "pdCd", value = "제품코드", paramType = "query", required = false, example = ""),
+        @ApiImplicitParam(name = "pdNm", value = "제품명", paramType = "query", required = false, example = ""),
         @ApiImplicitParam(name = "sapMatCd", value = "자재코드", paramType = "query", required = false, example = ""),
         @ApiImplicitParam(name = "sapItemCdFrom", value = "시작품목코드", paramType = "query", required = false, example = ""),
         @ApiImplicitParam(name = "sapItemCdTo", value = "종료품목코드", paramType = "query", required = false, example = ""),
@@ -50,11 +51,33 @@ public class WpdcAsPartCommonUseMgtController {
 
     @ApiOperation(value = "AS부품 관련 제품 목록 조회", notes = "AS부품과 연결된 제품 리스트를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "partPdCd", value = "부품코드", paramType = "query", required = false, example = ""),
+        @ApiImplicitParam(name = "partPdCd", value = "부품코드", paramType = "path", required = true, example = ""),
     })
-    @GetMapping("/products/{partPdCd}")
+    @GetMapping("/product/{partPdCd}")
     public List<SearchProductRes> getProductsByPart(@PathVariable String partPdCd) {
         return service.getProductsByPart(partPdCd);
     }
 
+    @ApiOperation(value = "제품 목록 조회", notes = "조회조건에 따라 제품 리스트를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "prdtCateHigh", value = "상품대분류ID", paramType = "query", required = false, example = ""),
+        @ApiImplicitParam(name = "prdtCateMid", value = "상품중분류ID", paramType = "query", required = false, example = ""),
+        @ApiImplicitParam(name = "prdtCateLow", value = "상품소분류ID", paramType = "query", required = false, example = ""),
+        @ApiImplicitParam(name = "svMatGrpCd", value = "자재그룹코드", paramType = "query", required = false, example = ""),
+        @ApiImplicitParam(name = "pdCd", value = "제품코드", paramType = "query", required = false, example = ""),
+        @ApiImplicitParam(name = "pdNm", value = "제품명", paramType = "query", required = false, example = ""),
+    })
+    @GetMapping("/products")
+    public List<SearchProductRes> selectProducts(@Valid SearchPartReq dto) {
+        return service.selectProducts(dto);
+    }
+
+    @ApiOperation(value = "제품 관련 AS부품 목록 조회", notes = "제품과 연결된 AS부품 리스트를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "partPdCd", value = "부품코드", paramType = "path", required = true, example = ""),
+    })
+    @GetMapping("/part/{pdCd}")
+    public List<SearchPartRes> selectAsPartsByProduct(@PathVariable String pdCd) {
+        return service.selectAsPartsByProduct(pdCd);
+    }
 }

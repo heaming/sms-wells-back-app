@@ -136,4 +136,15 @@ public class WsnaEtcOutOfStorageDto {
         String ostrDt,
         String strOjWareNo
     ) {}
+
+    @ApiModel("WsnaEtcOutOfStorageDto-SearchCodeReq")
+    public record SearchCodeReq(
+        String apyYm
+    ) {}
+    @ApiModel("WsnaEtcOutOfStorageDto-SearchCodeRes")
+    public record SearchCodeRes(
+        String codeId,
+        String codeName,
+        String wareDvCd
+    ) {}
 }

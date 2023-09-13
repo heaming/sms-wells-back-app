@@ -5,7 +5,7 @@
     <select id="selectProducts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto$SearchProductRes">
         SELECT LGST_WK_MTHD_CD
              , PG_GB
-             , MAX(CD_CNTN) AS PD_NAME
+             ,(CASE WHEN LGST_WK_MTHD_CD = 'MJ00' THEN MAX(OLD_PRNT_PD_NM) ELSE MAX(CD_CNTN) END) AS PD_NAME
              , COUNT(DISTINCT LGST_WK_MTHD_CD) AS CNT_LGST_WK_MTHD_CD
         FROM (
                SELECT /*+ USE_NL(TA TN TC TK CO PB) LEADING(TA) */
@@ -14,6 +14,7 @@
                     , NVL2(TN.SPP_PD_CD, 'G', 'P') AS PG_GB                      /*G :배송상품그룹매핑, P:미매핑상품*/
                     , TK.PD_PRP_VAL20   AS PD_GROUP_CD                            /* 상품속성값 사용*/
                     , NVL2(TN.SPP_PD_CD, CO.USER_DFN_06, 'WE99') AS LGST_WK_MTHD_CD /*물류작업방식코드*/
+                    , TN.OLD_SRN_PRNT_PD_NM AS OLD_PRNT_PD_NM  /* 구화면출력상품명(모종용) */
                  FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ TA
                  LEFT JOIN TB_SVPD_PCSV_PD_IZ TN
                    ON TN.PD_CD = TA.PDCT_PD_CD
@@ -39,15 +40,18 @@
                    AND TK.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '91', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
                 </if>
                 <if test='@MybatisUtils@equals(sppDvCd,"A2")'>
-                   AND TK.PD_PRP_VAL20 NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '91', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
+                   AND TK.PD_PRP_VAL20 NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '11', '91', '92', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
+                </if>
+                <if test='@MybatisUtils@equals(sppDvCd,"A3")'>
+                   AND TK.PD_PRP_VAL20 IN ('11', '92') /*모종(11,92)*/
                 </if>
             ) A
-             LEFT JOIN T_CMZ_CD_D C
-                 ON  C.CD_ID = 'LGST_WK_MTHD_CD'
-                 AND C.TENANT_ID = 'TNT_WELLS'
-                 AND C.CD_VLD_VAL = A.LGST_WK_MTHD_CD
-        GROUP BY LGST_WK_MTHD_CD, PG_GB
-        ORDER BY LGST_WK_MTHD_CD, PG_GB
+            LEFT JOIN T_CMZ_CD_D C
+              ON  C.CD_ID = 'LGST_WK_MTHD_CD'
+             AND C.TENANT_ID = 'TNT_WELLS'
+             AND C.CD_VLD_VAL = A.LGST_WK_MTHD_CD
+           GROUP BY LGST_WK_MTHD_CD, PG_GB
+           ORDER BY LGST_WK_MTHD_CD, PG_GB
     </select>
     <select id="selectShippingItems" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMgtDvo">
 
@@ -286,7 +290,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                          , F_CMZ_CD_NM(#{session.tenantId}, 'ADM_ZN_CLSF_CD', TB.VST_OJ_LOCARA_CD, #{session.langId}) AS VST_OJ_LOCARA_NM
                          , '100002'            AS WARE_NO
                          , '000' AS WARE_ICHR_NO
-                         , '71321' AS WARE_MNGT_PRTNRNO
+                         , '910022' AS WARE_MNGT_PRTNRNO  /* 가상사번 */
                          , TM.OG_CD AS OG_CD
                          , #{session.employeeIDNumber}       AS CNFM_PSIC_PRTNR_NO
                          , TB.SITE_AW_PD_GRP_CD AS SITE_AW_PD_GRP_CD
@@ -348,6 +352,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                      INNER JOIN TB_SSCT_CNTR_DTL TI /*계약상세*/
                         ON TI.CNTR_NO = TA.CNTR_NO
                        AND TI.CNTR_SN = TA.CNTR_SN
+                       AND TI.CNTR_DTL_STAT_CD != '202' /*연체정지*/
                      INNER JOIN TB_SSCT_CNTR_WELLS_DTL TH /*계약WELLS상세*/
                         ON TH.CNTR_NO = TA.CNTR_NO
                        AND TH.CNTR_SN = TA.CNTR_SN
@@ -355,12 +360,12 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                         ON PB.PD_CD = TA.PDCT_PD_CD
                      INNER JOIN TB_CUBS_CST_BAS CS /*고객기본*/
                         ON CS.CST_NO = C0.CNTR_CST_NO
-                      LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ TJ /*WELLS매출월마감내역*/
-                        ON TJ.CNTR_NO  = TA.CNTR_NO
-                       AND TJ.CNTR_SN  = TA.CNTR_SN
-                       AND TJ.SL_CL_YM = TA.ASN_OJ_YM
-                       AND TJ.KW_GRP_CO_CD = '1200' /*교원*/
-                       AND TJ.SL_STP_YN IS NULL
+<!--                      LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ TJ /*WELLS매출월마감내역*/-->
+<!--                        ON TJ.CNTR_NO  = TA.CNTR_NO-->
+<!--                       AND TJ.CNTR_SN  = TA.CNTR_SN-->
+<!--                       AND TJ.SL_CL_YM = TA.ASN_OJ_YM-->
+<!--                       AND TJ.KW_GRP_CO_CD = '2000' /*교원*/-->
+<!--                       AND TJ.SL_STP_YN IS NULL-->
                       LEFT OUTER JOIN TB_OGBS_PRTNR_BAS TM
                         ON TM.PRTNR_NO = TB.CNFM_PSIC_PRTNR_NO
                        AND TM.OG_CD = '71321' /* 택배담당 조직 '71321'(물류운영3팀) 대상 */
@@ -373,7 +378,10 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                        AND TK.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '91', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
                     </if>
                     <if test='@MybatisUtils@equals(sppDvCd,"A2")'>
-                       AND TK.PD_PRP_VAL20 NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '91', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
+                       AND TK.PD_PRP_VAL20 NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '11', '91', '92', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
+                    </if>
+                    <if test='@MybatisUtils@equals(sppDvCd,"A3")'>
+                       AND TK.PD_PRP_VAL20 IN ('11', '92') /*자가필터: 모종제외(11,92)*/
                     </if>
                     <if test='@MybatisUtils@equals(pgGb,"P")'>
                        AND TN.SPP_PD_CD IS NULL
@@ -871,5 +879,13 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
     <select id="selectNewLgstOstrAkNo" resultType="String">
         SELECT 'ORWE' || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_IFIN_ITM_OSTR_AK_SEND_ETXT$LGST_OSTR_AK_NO.NEXTVAL, 4, '0') AS LGST_OSTR_AK_NO
           FROM DUAL
+    </select>
+    <select id="selectWareMngtInfo" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto$WareMngtRes">
+        SELECT WARE_MNGT_PRTNR_NO
+             , OG_TP_CD AS WARE_MNGT_PRTNR_OG_TP_CD
+          FROM TB_SVST_MCBY_WARE_IZ
+         WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND WARE_NO = #{wareNo}
+           AND WARE_DTL_DV_CD = '10'
     </select>
 </mapper>

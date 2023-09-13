@@ -14,6 +14,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WsnaNewManagerBsConsumableConverter {
     PagingResult<SearchRes> mapDvoToSearchRes(List<WsnaNewManagerBsConsumableDvo> dvos);
 
+    List<SearchRes> mapAllDvoToListSearchRes(List<WsnaNewManagerBsConsumableDvo> dvos);
+
     WsnaNewManagerBsConsumableDvo mapCreateTmlmReqToNewManagerBsConsumable(CreateTmlmReq dto);
 
     List<WsnaNewManagerBsConsumableDvo> mapCreateReqToNewManagerBsConsumable(List<CreateReq> dtos);

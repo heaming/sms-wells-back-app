@@ -24,16 +24,28 @@ public interface WsnaOutofStorageAskMngtConverter {
 
     WsnaOutOfStorageAskMngtDvo mapSaveReqToOutOfStorageAskMngtDvo(SaveReq dto);
 
+    List<WsnaOutOfStorageAskMngtDvo> mapAllListSaveReqToOutOfStorageAskMngtDvo(List<SaveReq> dtos);
+
     @Mapping(target = "svCnrLkTnoEncr", expression = "java(StringUtils.defaultString(logisticsDvo.getLocaraTno()) + StringUtils.defaultString(logisticsDvo.getExnoEncr()) + StringUtils.defaultString(logisticsDvo.getIdvTno()))")
+    @Mapping(target = "adrsCphonNoVal", expression = "java(StringUtils.defaultString(logisticsDvo.getCralLocaraTno()) + StringUtils.defaultString(logisticsDvo.getMexnoEncr()) + StringUtils.defaultString(logisticsDvo.getCralIdvTno()))")
+    @Mapping(target = "adrsTnoVal", expression = "java(StringUtils.defaultString(logisticsDvo.getLocaraTno()) + StringUtils.defaultString(logisticsDvo.getExnoEncr()) + StringUtils.defaultString(logisticsDvo.getIdvTno()))")
     WsnaLogisticsOutStorageAskReqDvo mapCreateOutOfStorageAsksDvo(WsnaOutOfStorageAskMngtDvo logisticsDvo);
 
     List<WsnaLogisticsOutStorageAskReqDvo> mapAllCreateOutOfStorageAsksDvo(
         List<WsnaOutOfStorageAskMngtDvo> logisticsDvo
     );
 
+    List<WsnaLogisticsOutStorageAskReqDvo> mapAllbusinessCreateOutOfStorageAsksDvo(
+        List<WsnaOutOfStorageAskMngtDvo> logisticsDvo
+    );
+
     WsnaOutOfStorageAskMngtDvo mapDeleteReqToOutOfStorageAskMngtDvo(RemoveReq dto);
 
     List<WsnaLogisticsOutStorageAskReqDvo> mapWsnaLogisticsOutStorageAskReqDvoToRemoveOutOfStorageAsks(
+        List<WsnaOutOfStorageAskMngtDvo> logisticsRemoveDvo
+    );
+
+    List<WsnaLogisticsOutStorageAskReqDvo> mapBusinessWsnaLogisticsOutStorageAskReqDvoToRemoveOutOfStorageAsks(
         List<WsnaOutOfStorageAskMngtDvo> logisticsRemoveDvo
     );
 

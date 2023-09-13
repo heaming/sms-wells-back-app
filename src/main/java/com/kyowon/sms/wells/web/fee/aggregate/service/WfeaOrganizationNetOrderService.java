@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.kyowon.sms.common.web.fee.common.dvo.ZfezFeeBatchStatusDetailsDvo;
+import com.kyowon.sms.common.web.fee.common.service.ZfezFeeBatchStatusDetailsService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +41,8 @@ public class WfeaOrganizationNetOrderService {
     private final WfeaOrganizationNetOrderConverter converter;
 
     private final BatchCallService batchCallService;
+
+    private final ZfezFeeBatchStatusDetailsService zfezFeeBatchStatusDetailsService;
 
     /**
      * 조직별 실적 집계
@@ -86,6 +90,18 @@ public class WfeaOrganizationNetOrderService {
 
         String runId = batchCallService.runJob(batchCallReqDvo);
         BizAssert.isTrue(StringUtils.isNotEmpty(runId), "MSG_ALT_SVE_ERR");
+
+        /*수수료배치상태내역 저장*/
+        ZfezFeeBatchStatusDetailsDvo zfezFeeBatchStatusDetailsDvo = new ZfezFeeBatchStatusDetailsDvo();
+        zfezFeeBatchStatusDetailsDvo.setBaseYm(dto.perfYm());
+        zfezFeeBatchStatusDetailsDvo.setFeeTcntDvCd(dto.feeTcntDvCd());
+        zfezFeeBatchStatusDetailsDvo.setFeeBatWkId(batchCallReqDvo.getJobKey());
+        zfezFeeBatchStatusDetailsDvo.setFeeBatPrtcId(runId);
+        zfezFeeBatchStatusDetailsDvo.setOgTpCd(dto.ogTpCd()); //조직유형
+        zfezFeeBatchStatusDetailsDvo.setFeeBatTpCd("01"); //수수료배치유형코드 = 01 : 주문별배치-생성
+        zfezFeeBatchStatusDetailsDvo.setFeeBatStatCd("01"); //수수료배치상태코드 = 01 : 시작
+
+        zfezFeeBatchStatusDetailsService.createFeeBatchStatusDetails(zfezFeeBatchStatusDetailsDvo);
 
         return StringUtils.isNotBlank(runId) ? "S" : "E";
     }

@@ -1,14 +1,18 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto;
-import org.apache.ibatis.annotations.Mapper;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto.*;
 
 import java.util.List;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto.*;
+import org.apache.ibatis.annotations.Mapper;
+
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsnaEtcOutOfStorageRsonMapper {
+
+    PagingResult<SearchRes> selectEtcOutOfStorageRsons(SearchReq dto, PageInfo pageInfo);
 
     List<SearchRes> selectEtcOutOfStorageRsons(SearchReq dto);
 
@@ -17,4 +21,5 @@ public interface WsnaEtcOutOfStorageRsonMapper {
     List<BusinessRes> selectBusinessCenter(SearchReq dto);
 
     List<SearchRes> selectEtcOutOfStorageRsonBusiness(SearchReq dto);
+
 }

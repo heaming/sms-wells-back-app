@@ -76,7 +76,7 @@ public class WsnaSeedReleaseScheduleDto {
         String dpDt,
         String ostrCnfmDt,
         String sdingRcgWareNm,
-        String vstCeter,
+        String vstCenter,
         String vstIchr,
         String ichrCtnt,
         String cstCtnt,

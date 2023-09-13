@@ -21,85 +21,53 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-SearchReq")
     public record SearchReq(
-        String findGb,
-        String selCnt,
-        String svBizDclsfCd,
-        String wkPrgsStatCd,
-        String pdCd,
-        String wkWareNo,
         String startDt,
         String endDt,
+        String lgstWkMthdCd,
+        String svBizDclsfCd,
+        String wkWareNo,
         String vstFshDt,
-        String ivcPrntSn
+        String findGb,
+        String selCnt
     ) {}
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-SearchRes")
     public record SearchRes(
-
-        String cntrRcpFshDtm, //CONT_DT 계약일자
-        String svBizHclsfCd,
-
-        String svBizDclsfCd,
-
-        String svBizDclsfNm,
-
-        String wkPrgsStatCd,
-
-        String wkPrgsStatNm,
-
-        String vstFshDt,
-
         String cntrNo,
 
         String cntrSn,
 
+        String cntrCstNo, // 계약자 고객번호
+
+        String sellTpCd,
+
+        String sellTpNm,
+
+        String sellTpDtlCd,
+
+        String sellTpDtlNm,
+
+        String cntrDtlStatCd,
+
+        String cntrDtlStatNm,
+
         String rcgvpKnm,
 
-        String pdCd,
+        String basePdCd,
 
-        String pdNm,
+        String basePdNm,
 
-        String reqdDt,
+        String cntrRcpFshDtm, //CONT_DT 계약일자
 
-        String rsgFshDt, //CAN_DT 취소일자
+        String adrId,
 
-        String cstSvAsnNo,
-
-        String useQty,
-
-        String wkWareNo,
-
-        String prtnrNo,
-
-        String pdGdCd,
-
-        String istDt,
-
-        String urgtDvCd,
-
-        String rpbLocaraCd, //VST_LOCARA_CD 방문지역코드
-
-        String asRefriDvCd,
-
-        String bfsvcRefriDvCd,
-
-        String filtSellTpCd,
-
-        String pdSellTpCd,
-
-        String pdUswyCd,
-
-        String siteAwSvTpCd,
-
-        String siteAwAtcCd,
+        String newAdrZip,
 
         String rnadr, //주소
 
         String rdadr, //주소 상세
 
-        String newAdrZip, //우편번호
-
-        String cralLocaRaTno, //휴대지역전화번호(휴대폰번호)
+        String cralLocaraTno, //휴대지역전화번호(휴대폰번호)
 
         String mexnoEncr, //휴대전화국번호암호화(휴대폰번호)
 
@@ -113,34 +81,153 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String rsgAplcDt, //해지신청일자
 
-        String basePdCd, //기준상품코드
+        String rsgFshDt,
 
-        String basePdNm, //기준상품명
+        String cstSvAsnNo,
+
+        String pdctPdCd,
+
+        String pdctPdNm,
+
+        String svPdCd,
+
+        String svPdNm,
+
+        String pdGdCd,
+
+        String svBizHclsfCd,
+
+        String svBizDclsfCd,
+
+        String svBizDclsfNm,
+
+        String wkPrgsStatCd,
+
+        String wkPrgsStatNm,
+
+        String istDt,
+
+        String reqdDt,
 
         String ogId,
 
         String ogTpCd,
 
-        String ivcPrntSn, //송장출력번호
+        String prtnrNo,
 
         String prtnrKnm,
 
-        String asLctCd, //AS위치코드 (작업결과용)
+        String vstFshDt,
 
-        String asPhnCd, //AS현상코드 (작업결과용)
+        String wkWareNo,
 
-        String asCausCd, //AS원인코드 (작업결과용)
+        String wareMngtPrtnrNo,
 
-        String wareMngtPrtnrNo, //창고관리파트너번호
+        String wareMngtPrtnrOgTpCd,
 
-        String wareMngtPrtnrOgTpCd, // 창고관리파트너조직유형코드
+        String rpbLocaraCd, //VST_LOCARA_CD 방문지역코드
 
-        String cntrCstNo
+        String siteAwSvTpCd,
+
+        String siteAwAtcCd,
+
+        String pdUswyCd,
+
+        String asRefriDvCd,
+
+        String bfsvcRefriDvCd,
+
+        String urgtDvCd,
+
+        String ostrAkNo,
+
+        String lgstOstrAkNo,
+
+        String ostrNo,
+
+        /* 작업결과 필수 코드   */
+        String pdGrpCd, // 상품그룹코드
+
+        String asLctCd, //AS위치코드
+
+        String asPhnCd, //AS현상코드
+
+        String asCausCd, //AS원인코드
+
+        /* 물류인터페이스 필수 코드  */
+
+        String lgstWkMthdCd,
+
+        int mpacSn,
+
+        /* 상품 */
+
+        int partCnt,
+
+        String partCd1,
+
+        String partNm1,
+
+        String partQty1,
+
+        String partCd2,
+
+        String partNm2,
+
+        String partQty2,
+
+        String partCd3,
+
+        String partNm3,
+
+        String partQty3,
+
+        String partCd4,
+
+        String partNm4,
+
+        String partQty4,
+
+        String partCd5,
+
+        String partNm5,
+
+        String partQty5,
+
+        String partCd6,
+
+        String partNm6,
+
+        String partQty6,
+
+        String partCd7,
+
+        String partNm7,
+
+        String partQty7,
+
+        String partCd8,
+
+        String partNm8,
+
+        String partQty8,
+
+        String partCd9,
+
+        String partNm9,
+
+        String partQty9,
+
+        String partCd10,
+
+        String partNm10,
+
+        String partQty10
+
     ) {
         public SearchRes {
             exnoEncr = DbEncUtil.dec(exnoEncr);
             mexnoEncr = DbEncUtil.dec(mexnoEncr);
-
         }
     }
 
@@ -154,17 +241,12 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         @NotBlank
         String svBizHclsfCd,
+
         @NotBlank
         String cntrNo,
 
         @NotBlank
-        String pdGdCd,
-
-        @NotBlank
         String pdGrpCd,
-
-        @NotBlank
-        String pdCd,
 
         @NotBlank
         String prtnrNo,
@@ -181,6 +263,15 @@ public class WsnaPcsvOutOfStorageMgtDto {
         @NotBlank
         String ogId,
 
+        @NotBlank
+        String lgstWkMthdCd, //물류작업방식코드
+
+        int mpacSn, // 합포장 일련번호
+
+        String pdctPdCd,
+
+        String pdGdCd,
+
         String rpbLocaraCd,
 
         String asLctCd,
@@ -191,15 +282,11 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String pdUswyCd,
 
-        String filtSellTpCd,
-
-        String pdSellTpCd,
+        String sellTpCd,
 
         String asRefriDvCd,
 
         String bfsvcRefriDvCd,
-
-        String useQty,
 
         String wkWareNo,
 
@@ -208,8 +295,6 @@ public class WsnaPcsvOutOfStorageMgtDto {
         String siteAwSvTpCd,
 
         String siteAwAtcCd,
-
-        String ivcPrntSn,
 
         String istDt,
 
@@ -228,35 +313,19 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String cntrCstNo, // 계약자 고객번호
 
-        String pdNm, // 상품 명
-
         String wareMngtPrtnrOgTpCd, // 창고관리파트너조직유형코드
-
-        String lgstWkMthdCd, //물류작업방식코드
-
-        int mpacSn, // 합포장 일련번호
 
         List<WsnaPcsvOutOfStorageSaveProductDvo> products //상품 목록
     ) {}
 
-    @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-FindLogisticsCentersRes")
-    public record FindLogisticsCentersRes(
-        String codeId,
-        String codeName
-    ) {}
-
-    @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-FindProductsReq")
-    public record FindProductsReq(
-        String svBizDclsfCd
-    ) {}
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-FindProductsRes")
     public record FindProductsRes(
-        String pdCd,
-        String pdNm,
-        String pdGrpCd
+        String lgstWkMthdCd, // 물류작업코드
+        String lgstWkMthdPdNm // 물류작업코드 매핑 상품명
     ) {}
-    @ApiModel("WsnaPcsvOutOfStorageMgtDto-FindIvcPrntSnRes")
-    public record FindIvcPrntSnRes(
+
+    @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-FindLogisticsCentersRes")
+    public record FindLogisticsCentersRes(
         String codeId,
         String codeName
     ) {}

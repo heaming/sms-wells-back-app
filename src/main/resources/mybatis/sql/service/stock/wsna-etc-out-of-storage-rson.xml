@@ -4,65 +4,93 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaEtcOutOfStorageRsonMapper">
 
     <select id="selectEtcOutOfStorageRsons" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto$SearchRes">
-        SELECT PD_BAS.SAP_MAT_CD AS SAP_MAT_CD /*SAP코드*/
-             , OSTR_IZ.ITM_PD_CD AS ITM_PD_CD /*품목상품코드*/
-             , PD_BAS.PD_NM AS ITEM_NM /*품목명*/
-             , OSTR_IZ.OSTR_WARE_NO AS OSTR_WARE_NO /*출고창고번호*/
-             , WARE_IZ.WARE_NM AS WARE_NM /*창고명*/
-             , OSTR_IZ.ITM_GD_CD /*품목등급코드*/
-             , OSTR_IZ.OSTR_DT AS OSTR_DT /*출고일자*/
-             , F_CMZ_CD_NM(#{session.tenantId}, 'BIL_RSON_CD', OSTR_IZ.OSTR_RSON_CD) AS OSTR_RSON_CD /*청구사유*/
-             , SUM(OSTR_IZ.OSTR_QTY) AS OSTR_QTY /*수량*/
-             , SUM(PRC_IZ.CSMR_UPRC_AMT) AS CSMR_UPRC_AMT /*소비자가*/
-             , (SUM(OSTR_IZ.OSTR_QTY) * SUM(PRC_IZ.CSMR_UPRC_AMT)) AS TOTAL_AMT /*총금액*/
-             , WARE_IZ.SORT_DV_VAL
-             , OSTR_IZ.RMK_CN /*비고*/
-          FROM TB_SVST_ITM_OSTR_IZ OSTR_IZ
-         INNER JOIN TB_PDBS_PD_BAS PD_BAS
-            ON PD_BAS.PD_CD = OSTR_IZ.ITM_PD_CD
-           AND PD_BAS.PD_TP_CD = 'M'
-           AND PD_BAS.DTA_DL_YN = 'N'
-     	 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL PRP_DTL
-			ON PD_BAS.PD_CD = PRP_DTL.PD_CD
-		   AND PRP_DTL.PD_EXTS_PRP_GRP_CD = 'PART'
-         INNER JOIN TB_SVST_MCBY_WARE_IZ WARE_IZ
-            ON WARE_IZ.WARE_NO = OSTR_IZ.OSTR_WARE_NO
-           AND WARE_IZ.APY_YM = SUBSTR(OSTR_IZ.OSTR_DT,1,6)
-         LEFT OUTER JOIN TB_SVPD_RCAS_ITM_PRC_IZ PRC_IZ
-            ON PRC_IZ.USE_MAT_PD_CD = OSTR_IZ.ITM_PD_CD
-         WHERE OSTR_IZ.OSTR_TP_CD = '217'
-           AND OSTR_IZ.OSTR_DT BETWEEN #{stOstrDt} AND #{edOstrDt}
-           AND WARE_IZ.WARE_DV_CD='2'
-           AND WARE_IZ.WARE_DTL_DV_CD = '20'
-        <if test="@MybatisUtils@isNotEmpty(ostrWareNo)">
-           AND OSTR_IZ.OSTR_WARE_NO = #{ostrWareNo}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
-           AND OSTR_IZ.ITM_GD_CD = #{pdGdCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
-           AND PRP_DTL.PD_PRP_VAL19 = #{itmKndCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(startItemCd)">
-           AND OSTR_IZ.ITM_PD_CD <![CDATA[>=]]> #{startItemCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(endItemCd)">
-           AND OSTR_IZ.ITM_PD_CD <![CDATA[<=]]> #{endItemCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(bilRsonCd)">
-           AND OSTR_IZ.OSTR_RSON_CD = #{bilRsonCd}
-        </if>
-         GROUP BY WARE_IZ.SORT_DV_VAL
-                , OSTR_IZ.ITM_PD_CD
-                , PD_BAS.SAP_MAT_CD
-                , PD_BAS.PD_NM
-                , OSTR_IZ.OSTR_WARE_NO
-                , WARE_IZ.WARE_NM
-                , OSTR_IZ.ITM_GD_CD
-                , OSTR_IZ.OSTR_DT
-                , OSTR_IZ.OSTR_RSON_CD
-                , OSTR_IZ.RMK_CN
-         ORDER BY OSTR_IZ.ITM_PD_CD, OSTR_IZ.OSTR_DT, OSTR_IZ.ITM_GD_CD
+            SELECT D1.ITM_PD_CD                                                     AS ITM_PD_CD
+                 , D2.SVPD_SAP_CD                                                   AS SAP_MAT_CD
+                 , D2.SVPD_NM_KOR                                                   AS ITEM_NM
+                 , D1.OSTR_WARE_NO                                                  AS OSTR_WARE_NO
+                 , D3.WARE_NM                                                       AS WARE_NM
+                 , D1.ITM_GD_CD                                                     AS ITM_GD_CD
+                 , D1.OSTR_DT                                                       AS OSTR_DT
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'BIL_RSON_CD', D1.OSTR_RSON_CD) AS OSTR_RSON_CD
+                 , D3.SORT_DV_VAL                                                   AS SORT_DV_VAL
+              <if test="@MybatisUtils@equals(wareDvCd, '3')">
+                 , D1.OSTR_QTY                                                      AS OSTR_QTY
+                 , '0'                                                              AS CSMR_UPRC_AMT
+                 , '0'                                                              AS TOTAL_AMT
+              </if>
+              <if test="@MybatisUtils@equals(wareDvCd, '2')">
+                 , SUM(D1.OSTR_QTY)                                                 AS OSTR_QTY /*수량*/
+                 , SUM(D4.CSMR_UPRC_AMT)                                            AS CSMR_UPRC_AMT /*소비자가*/
+                 , (SUM(D1.OSTR_QTY) * SUM(D4.CSMR_UPRC_AMT))                       AS TOTAL_AMT /*총금액*/
+              </if>
+                 , D1.RMK_CN                                                        AS RMK_CN
+                 , D6.DEPT_NM2                                                      AS DEPT_NM
+              FROM TB_SVST_ITM_OSTR_IZ D1
+             INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2
+                ON D2.SVPD_PD_CD = D1.ITM_PD_CD
+             INNER JOIN TB_SVST_MCBY_WARE_IZ D3
+                ON D3.WARE_NO        = D1.OSTR_WARE_NO
+               AND D3.APY_YM         = SUBSTR(#{stOstrDt}, 1,6)
+           <if test="@MybatisUtils@equals(wareDvCd, '2')">
+              LEFT OUTER JOIN TB_SVPD_RCAS_ITM_PRC_IZ D4
+                ON D4.USE_MAT_PD_CD  = D1.ITM_PD_CD
+               AND D4.DTA_DL_YN      = 'N'
+           </if>
+              LEFT OUTER JOIN TB_GBCO_DEPT_BAS D6
+                ON D6.DEPT_CD = D1.STR_WARE_NO
+               AND D6.DTA_DL_YN      = 'N'
+             WHERE D1.OSTR_TP_CD     = '217'
+               AND D1.DTA_DL_YN      = 'N'
+               AND D3.DTA_DL_YN      = 'N'
+               AND D1.OSTR_DT BETWEEN #{stOstrDt} AND #{edOstrDt}
+               AND D3.WARE_DV_CD     = #{wareDvCd}
+           <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
+             <choose>
+                  <when test='@MybatisUtils@equals(wareDvCd, "2")'>
+                          AND D3.WARE_DTL_DV_CD = '20'
+                  </when>
+                  <when test='@MybatisUtils@equals(wareDvCd, "3")'>
+                          AND D3.WARE_DTL_DV_CD = '30'
+                  </when>
+             </choose>
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(wareNoM)">
+               AND ( D3.HGR_WARE_NO = #{wareNoM} OR D3.WARE_NO = #{wareNoM} )
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(wareNoD)">
+               AND D3.WARE_NO    = #{wareNoD}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
+               AND D1.ITM_GD_CD = #{pdGdCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+               AND D2.SVPD_ITEM_KND = #{itmKndCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(startItemCd)">
+               AND D1.ITM_PD_CD <![CDATA[>=]]> #{startItemCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(endItemCd)">
+               AND D1.ITM_PD_CD <![CDATA[<=]]> #{endItemCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(bilRsonCd)">
+               AND D1.OSTR_RSON_CD = #{bilRsonCd}
+           </if>
+           <if test="@MybatisUtils@equals(wareDvCd, '2')">
+               AND D6.DEPT_DV_VAL = '1'
+               AND D6.USE_YN = 'Y'
+             GROUP BY D3.SORT_DV_VAL
+                    , D1.ITM_PD_CD
+                    , D2.SVPD_SAP_CD
+                    , D2.SVPD_NM_KOR
+                    , D1.OSTR_WARE_NO
+                    , D3.WARE_NM
+                    , D1.ITM_GD_CD
+                    , D1.OSTR_DT
+                    , D1.OSTR_RSON_CD
+                    , D1.RMK_CN
+                    , D6.DEPT_NM2
+           </if>
+             ORDER BY D1.ITM_PD_CD, D1.OSTR_DT, D1.ITM_GD_CD
     </select>
 
     <select id="selectServiceCenters" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto$CenterRes">
@@ -92,6 +120,9 @@
     </select>
 
     <select id="selectEtcOutOfStorageRsonBusiness" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto$SearchRes">
+
+
+
         SELECT OSTR_IZ.ITM_PD_CD AS ITM_PD_CD
              , PD_BAS.PD_NM  AS ITEM_NM
              , OSTR_IZ.OSTR_WARE_NO AS OSTR_WARE_NO
@@ -118,21 +149,6 @@
           AND WARE_IZ.WARE_DTL_DV_CD = '30'
         <if test="@MybatisUtils@isNotEmpty(ostrWareNo)">
           AND OSTR_IZ.OSTR_WARE_NO = #{ostrWareNo}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(pdGdCd)">
-          AND OSTR_IZ.ITM_GD_CD = #{pdGdCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
-          AND PRP_DTL.PD_PRP_VAL19 = #{itmKndCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(startItemCd)">
-          AND OSTR_IZ.ITM_PD_CD <![CDATA[>=]]> #{startItemCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(endItemCd)">
-          AND OSTR_IZ.ITM_PD_CD <![CDATA[<=]]> #{endItemCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(bilRsonCd)">
-          AND OSTR_IZ.OSTR_RSON_CD = #{bilRsonCd}
         </if>
     </select>
 

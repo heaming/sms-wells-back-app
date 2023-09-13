@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -123,8 +124,7 @@ public class WdccNormalAccountExceptService {
             .put("cntrStrtdt", messageResourceService.getMessage("MSG_TXT_CNTRCT_DT" + "(" + "MSG_TXT_STRT" + ")"));
         headerTitle
             .put("cntrEnddt", messageResourceService.getMessage("MSG_TXT_CNTRCT_DT" + "(" + "MSG_TXT_SHUTDOWN" + ")"));
-        headerTitle.put("cntrNo", messageResourceService.getMessage("MSG_TXT_CNTR_NO"));
-        headerTitle.put("cntrSn", messageResourceService.getMessage("MSG_TXT_CNTR_SN"));
+        headerTitle.put("cntrDtl", messageResourceService.getMessage("MSG_TXT_CNTR_DTL_NO"));
         headerTitle.put("cntrExcdRsonCn", messageResourceService.getMessage("MSG_TXT_CNTN"));
         headerTitle.put("nomAccExcdRsonCn", messageResourceService.getMessage("MSG_TXT_EXCD_RSON"));
 
@@ -135,10 +135,20 @@ public class WdccNormalAccountExceptService {
             .readExcel(file, meta, WdccNormalAccountExceptDvo.class);
         List<ExcelUploadErrorDvo> excelUploadErrorDvos = new ArrayList<>();
 
-        int row = 1;
+        int row = 2;
         int processCount = 0;
 
         for (WdccNormalAccountExceptDvo dvo : dvos) {
+
+            if (StringUtils.isEmpty(dvo.getCntrDtl())) {} else {
+                String cntrArr[] = dvo.getCntrDtl().split("-");
+
+                dvo.setCntrNo(cntrArr[0]);
+                dvo.setCntrSn(cntrArr[1]);
+            }
+
+            row++;
+
             if (excelUploadErrorDvos.size() == 0) {
                 int result = mapper.insertExceptMng(dvo);
                 BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");

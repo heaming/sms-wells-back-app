@@ -18,7 +18,9 @@ public class WsncFixationVisitDto {
         String sellTpCd,
         String fxnPrtnrNo,
         String dgr1LevlOgId,
-        String dgr2LevlOgId
+        String dgr2LevlOgId,
+        String cntrNo,
+        String cntrSn
     ) {}
 
     @ApiModel(value = "WsncFixationVisitDto-SearchRegReq")

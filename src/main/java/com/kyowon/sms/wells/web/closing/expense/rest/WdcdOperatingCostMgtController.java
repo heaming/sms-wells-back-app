@@ -54,9 +54,4 @@ public class WdcdOperatingCostMgtController {
     public SaveResponse editFile(@RequestBody EditReq req) throws Exception {
         return SaveResponse.builder().processCount(service.editFile(req)).build();
     }
-
-    @GetMapping("/organization-level")
-    public FindOrganizationLevelRes getOrganizationLevel() {
-        return service.getOrganizationLevel();
-    }
 }

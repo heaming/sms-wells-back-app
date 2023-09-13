@@ -61,8 +61,8 @@
              , (SELECT COUNT(DISTINCT CST_NO)
                   FROM TB_CBBO_BND_CNTR_BAS
                  WHERE BASE_YM = #{baseYm}
-                   AND BZ_HDQ_DV_CD = T1.BZ_HDQ_DV_CD
-                   AND CLCTAM_DV_CD = T1.CLCTAM_DV_CD
+                   AND BZ_HDQ_DV_CD = T3.BZ_HDQ_DV_CD
+                   AND CLCTAM_DV_CD = T3.CLCTAM_DV_CD
                    AND BND_CLCTN_PRP_DV_CD = '02'
                    <if test="@MybatisUtils@isNotEmpty(clctamDvCd)">
                    AND CLCTAM_DV_CD = #{clctamDvCd} /* 집금구분 */
@@ -126,80 +126,82 @@
              , SUM(SPAY_DLQ_ADD_AMT) AS SPAY_DLQ_ADD_AMT
              , SUM(SPAY_RSG_BOR_AMT) AS SPAY_RSG_BOR_AMT
           FROM (
-                SELECT BZ_HDQ_DV_CD
-                     , CLCTAM_DV_CD
-                     , BND_BIZ_DV_CD
-                     , COUNT(DISTINCT CST_NO) as WO_CST_CT		/* 전체 고객수 			*/
-                     , COUNT(CNTR_NO) 	as WO_CNTR_CT		    /* 전체 계약수 			*/
-                     , SUM(DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) 	as WO_OBJ_AMT		/* 전체 대상금액 		*/
-                     , SUM(DLQ_AMT) 	as WO_DLQ_AMT		    /* 전체 연체금액 		*/
-                     , SUM(THM_CHRAM_AMT) 	as WO_THM_CHRAM_AMT	/* 전체 당월금액 	*/
-                     , SUM(DLQ_ADD_AMT)	as WO_DLQ_ADD_AMT	    /* 전체 연체가산금액 	*/
-                     , SUM(RSG_BOR_AMT) 	as WO_RSG_BOR_AMT	/* 전체 위약금액 */
+                SELECT T1.BZ_HDQ_DV_CD
+                     , T1.CLCTAM_DV_CD
+                     , T1.BND_BIZ_DV_CD
+                     , COUNT(DISTINCT T1.CST_NO) AS WO_CST_CT		/* 전체 고객수 			*/
+                     , COUNT(T1.CNTR_NO) 	AS WO_CNTR_CT		    /* 전체 계약수 			*/
+                     , SUM(T1.DLQ_AMT + T1.DLQ_ADD_AMT + T1.THM_CHRAM_AMT + T1.RSG_BOR_AMT) 	AS WO_OBJ_AMT		/* 전체 대상금액 		*/
+                     , SUM(T1.DLQ_AMT) 	AS WO_DLQ_AMT		    /* 전체 연체금액 		*/
+                     , SUM(T1.THM_CHRAM_AMT) 	AS WO_THM_CHRAM_AMT	/* 전체 당월금액 	*/
+                     , SUM(T1.DLQ_ADD_AMT)	AS WO_DLQ_ADD_AMT	    /* 전체 연체가산금액 	*/
+                     , SUM(T1.RSG_BOR_AMT) 	AS WO_RSG_BOR_AMT	/* 전체 위약금액 */
                      /*렌탈*/
-                     , COUNT(DISTINCT CASE WHEN BND_BIZ_DV_CD = 'L20' THEN CST_NO ELSE NULL END) AS RENTAL_CST_CT
-                     , COUNT(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN CNTR_NO ELSE NULL END) AS RENTAL_CNTR_CT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS RENTAL_OBJ_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN DLQ_AMT ELSE 0 END) AS RENTAL_DLQ_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN THM_CHRAM_AMT ELSE 0 END) AS RENTAL_THM_CHRAM_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN DLQ_ADD_AMT ELSE 0 END) AS RENTAL_DLQ_ADD_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN RSG_BOR_AMT ELSE 0 END) AS RENTAL_RSG_BOR_AMT
+                     , COUNT(DISTINCT CASE WHEN T1.BND_BIZ_DV_CD = 'L20' THEN T1.CST_NO ELSE NULL END) AS RENTAL_CST_CT
+                     , COUNT(CASE WHEN T1.BND_BIZ_DV_CD = 'L20' THEN T1.CNTR_NO ELSE NULL END) AS RENTAL_CNTR_CT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L20' THEN (T1.DLQ_AMT + T1.DLQ_ADD_AMT + T1.THM_CHRAM_AMT + T1.RSG_BOR_AMT) ELSE 0 END) AS RENTAL_OBJ_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L20' THEN T1.DLQ_AMT ELSE 0 END) AS RENTAL_DLQ_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L20' THEN T1.THM_CHRAM_AMT ELSE 0 END) AS RENTAL_THM_CHRAM_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L20' THEN T1.DLQ_ADD_AMT ELSE 0 END) AS RENTAL_DLQ_ADD_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L20' THEN T1.RSG_BOR_AMT ELSE 0 END) AS RENTAL_RSG_BOR_AMT
                      /*(금융)리스*/
-                     , COUNT(DISTINCT CASE WHEN BND_BIZ_DV_CD = 'L21' THEN CST_NO ELSE NULL END) AS LEASE_CST_CT
-                     , COUNT(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN CNTR_NO ELSE NULL END) AS LEASE_CNTR_CT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS LEASE_OBJ_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN DLQ_AMT ELSE 0 END) AS LEASE_DLQ_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN THM_CHRAM_AMT ELSE 0 END) AS LEASE_THM_CHRAM_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN DLQ_ADD_AMT ELSE 0 END) AS LEASE_DLQ_ADD_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN RSG_BOR_AMT ELSE 0 END) AS LEASE_RSG_BOR_AMT
-                     /*(일반)멥버십*/
-                     , COUNT(DISTINCT CASE WHEN BND_BIZ_DV_CD = 'L30' THEN CST_NO ELSE NULL END) AS MSH_CST_CT
-                     , COUNT(CASE WHEN BND_BIZ_DV_CD = 'L30' THEN CNTR_NO ELSE NULL END) AS MSH_CNTR_CT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L30' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS MSH_OBJ_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L30' THEN DLQ_AMT ELSE 0 END) AS MSH_DLQ_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L30' THEN THM_CHRAM_AMT ELSE 0 END) AS MSH_THM_CHRAM_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L30' THEN DLQ_ADD_AMT ELSE 0 END) AS MSH_DLQ_ADD_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L30' THEN RSG_BOR_AMT ELSE 0 END) AS MSH_RSG_BOR_AMT
+                     , COUNT(DISTINCT CASE WHEN T1.BND_BIZ_DV_CD = 'L21' THEN T1.CST_NO ELSE NULL END) AS LEASE_CST_CT
+                     , COUNT(CASE WHEN T1.BND_BIZ_DV_CD = 'L21' THEN T1.CNTR_NO ELSE NULL END) AS LEASE_CNTR_CT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L21' THEN (T1.DLQ_AMT + T1.DLQ_ADD_AMT + T1.THM_CHRAM_AMT + T1.RSG_BOR_AMT) ELSE 0 END) AS LEASE_OBJ_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L21' THEN T1.DLQ_AMT ELSE 0 END) AS LEASE_DLQ_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L21' THEN T1.THM_CHRAM_AMT ELSE 0 END) AS LEASE_THM_CHRAM_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L21' THEN T1.DLQ_ADD_AMT ELSE 0 END) AS LEASE_DLQ_ADD_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L21' THEN T1.RSG_BOR_AMT ELSE 0 END) AS LEASE_RSG_BOR_AMT
+                     /*(일반)멥버십 : 채권계약업무구분코드 L30.멤버십과 계약상세코드 판매유형상세코드 31,32 체크하여 일반멤버십으로 정의 */
+                     , COUNT(DISTINCT CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD IN ('31', '32') THEN T1.CST_NO ELSE NULL END) AS MSH_CST_CT
+                     , COUNT(CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD IN ('31', '32') THEN T1.CNTR_NO ELSE NULL END) AS MSH_CNTR_CT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD IN ('31', '32') THEN (T1.DLQ_AMT + T1.DLQ_ADD_AMT + T1.THM_CHRAM_AMT + T1.RSG_BOR_AMT) ELSE 0 END) AS MSH_OBJ_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD IN ('31', '32') THEN T1.DLQ_AMT ELSE 0 END) AS MSH_DLQ_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD IN ('31', '32') THEN T1.THM_CHRAM_AMT ELSE 0 END) AS MSH_THM_CHRAM_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD IN ('31', '32') THEN T1.DLQ_ADD_AMT ELSE 0 END) AS MSH_DLQ_ADD_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD IN ('31', '32') THEN T1.RSG_BOR_AMT ELSE 0 END) AS MSH_RSG_BOR_AMT
                      /*정기배송*/
-                     , COUNT(DISTINCT CASE WHEN BND_BIZ_DV_CD = 'L60' THEN CST_NO ELSE NULL END) AS RGLR_SPP_CST_CT
-                     , COUNT(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN CNTR_NO ELSE NULL END) AS RGLR_SPP_CNTR_CT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS RGLR_SPP_OBJ_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN DLQ_AMT ELSE 0 END) AS RGLR_SPP_DLQ_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN THM_CHRAM_AMT ELSE 0 END) AS RGLR_SPP_THM_CHRAM_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN DLQ_ADD_AMT ELSE 0 END) AS RGLR_SPP_DLQ_ADD_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN RSG_BOR_AMT ELSE 0 END) AS RGLR_SPP_RSG_BOR_AMT
-                     /*(홈케어)멥버십 - 없는 값 나중에 판매유형코드로 변경 될 수 있음*/
-                     , COUNT(DISTINCT CASE WHEN BND_BIZ_DV_CD = 'L30' THEN CST_NO ELSE NULL END) AS HCR_CST_CT
-                     , COUNT(CASE WHEN BND_BIZ_DV_CD = 'L30' THEN CNTR_NO ELSE NULL END) AS HCR_CNTR_CT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L30' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS HCR_OBJ_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L30' THEN DLQ_AMT ELSE 0 END) AS HCR_DLQ_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L30' THEN THM_CHRAM_AMT ELSE 0 END) AS HCR_THM_CHRAM_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L30' THEN DLQ_ADD_AMT ELSE 0 END) AS HCR_DLQ_ADD_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L30' THEN RSG_BOR_AMT ELSE 0 END) AS HCR_RSG_BOR_AMT
+                     , COUNT(DISTINCT CASE WHEN T1.BND_BIZ_DV_CD = 'L60' THEN T1.CST_NO ELSE NULL END) AS RGLR_SPP_CST_CT
+                     , COUNT(CASE WHEN T1.BND_BIZ_DV_CD = 'L60' THEN T1.CNTR_NO ELSE NULL END) AS RGLR_SPP_CNTR_CT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L60' THEN (T1.DLQ_AMT + T1.DLQ_ADD_AMT + T1.THM_CHRAM_AMT + T1.RSG_BOR_AMT) ELSE 0 END) AS RGLR_SPP_OBJ_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L60' THEN T1.DLQ_AMT ELSE 0 END) AS RGLR_SPP_DLQ_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L60' THEN T1.THM_CHRAM_AMT ELSE 0 END) AS RGLR_SPP_THM_CHRAM_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L60' THEN T1.DLQ_ADD_AMT ELSE 0 END) AS RGLR_SPP_DLQ_ADD_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L60' THEN T1.RSG_BOR_AMT ELSE 0 END) AS RGLR_SPP_RSG_BOR_AMT
+                     /*(홈케어)멥버십 -  채권계약업무구분코드 L30.멤버십과 계약상세코드 판매유형상세코드 33 체크하여 홈케어멤버십으로 정의*/
+                     , COUNT(DISTINCT CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD = '33' THEN T1.CST_NO ELSE NULL END) AS HCR_CST_CT
+                     , COUNT(CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD = '33' THEN T1.CNTR_NO ELSE NULL END) AS HCR_CNTR_CT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD = '33' THEN (T1.DLQ_AMT + T1.DLQ_ADD_AMT + T1.THM_CHRAM_AMT + T1.RSG_BOR_AMT) ELSE 0 END) AS HCR_OBJ_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD = '33' THEN T1.DLQ_AMT ELSE 0 END) AS HCR_DLQ_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD = '33' THEN T1.THM_CHRAM_AMT ELSE 0 END) AS HCR_THM_CHRAM_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD = '33' THEN T1.DLQ_ADD_AMT ELSE 0 END) AS HCR_DLQ_ADD_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L30' AND T2.SELL_TP_DTL_CD = '33' THEN T1.RSG_BOR_AMT ELSE 0 END) AS HCR_RSG_BOR_AMT
                      /*일시불 - 없는 값 나중에 판매유형코드로 변경 될 수 있음*/
-                     , COUNT(DISTINCT CASE WHEN BND_BIZ_DV_CD = 'L10' THEN CST_NO ELSE NULL END) AS SPAY_CST_CT
-                     , COUNT(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN CNTR_NO ELSE NULL END) AS SPAY_CNTR_CT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS SPAY_OBJ_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN DLQ_AMT ELSE 0 END) AS SPAY_DLQ_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN THM_CHRAM_AMT ELSE 0 END) AS SPAY_THM_CHRAM_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN DLQ_ADD_AMT ELSE 0 END) AS SPAY_DLQ_ADD_AMT
-                     , SUM(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN RSG_BOR_AMT ELSE 0 END) AS SPAY_RSG_BOR_AMT
-                  FROM TB_CBBO_BND_CNTR_BAS
+                     , COUNT(DISTINCT CASE WHEN T1.BND_BIZ_DV_CD = 'L10' THEN T1.CST_NO ELSE NULL END) AS SPAY_CST_CT
+                     , COUNT(CASE WHEN T1.BND_BIZ_DV_CD = 'L10' THEN T1.CNTR_NO ELSE NULL END) AS SPAY_CNTR_CT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L10' THEN (T1.DLQ_AMT + T1.DLQ_ADD_AMT + T1.THM_CHRAM_AMT + T1.RSG_BOR_AMT) ELSE 0 END) AS SPAY_OBJ_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L10' THEN T1.DLQ_AMT ELSE 0 END) AS SPAY_DLQ_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L10' THEN T1.THM_CHRAM_AMT ELSE 0 END) AS SPAY_THM_CHRAM_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L10' THEN T1.DLQ_ADD_AMT ELSE 0 END) AS SPAY_DLQ_ADD_AMT
+                     , SUM(CASE WHEN T1.BND_BIZ_DV_CD = 'L10' THEN T1.RSG_BOR_AMT ELSE 0 END) AS SPAY_RSG_BOR_AMT
+                  FROM TB_CBBO_BND_CNTR_BAS T1			--채권계약기본
+                  LEFT OUTER JOIN TB_SSCT_CNTR_DTL T2	--계약상세
+                    ON T2.CNTR_NO = T1.CNTR_NO
                  WHERE 1=1
-                   AND BASE_YM = #{baseYm} /* 기준년월 */
-                   AND BZ_HDQ_DV_CD = #{bzHdqDvCd} /* 사업부 구분 */
-                   AND BND_CLCTN_PRP_DV_CD = '02' /* 연체 상태의 채권만 대상 */
+                   AND T1.BASE_YM = #{baseYm} /* 기준년월 */
+                   AND T1.BZ_HDQ_DV_CD = #{bzHdqDvCd} /* 사업부 구분 */
+                   AND T1.BND_CLCTN_PRP_DV_CD = '02' /* 연체 상태의 채권만 대상 */
                  <if test="@MybatisUtils@isNotEmpty(clctamDvCd)">
-                   AND CLCTAM_DV_CD = #{clctamDvCd} /* 집금구분 */
+                   AND T1.CLCTAM_DV_CD = #{clctamDvCd} /* 집금구분 */
                  </if>
                  <if test="@MybatisUtils@isNotEmpty(bndNwDvCd)">
-                   AND BND_NW_DV_CD = #{bndNwDvCd} /* 신규구분 */
+                   AND T1.BND_NW_DV_CD = #{bndNwDvCd} /* 신규구분 */
                  </if>
                 <if test="@MybatisUtils@isNotEmpty(cstNo)">
-                   AND CST_NO = #{cstNo} /* 고객번호 */
+                   AND T1.CST_NO = #{cstNo} /* 고객번호 */
                  </if>
-                 GROUP BY BZ_HDQ_DV_CD, CLCTAM_DV_CD, BND_BIZ_DV_CD /* 사업본부구분코드, 집금구분코드, 채권업무구분코드 */
-            ) T1
+                 GROUP BY T1.BZ_HDQ_DV_CD, T1.CLCTAM_DV_CD, T1.BND_BIZ_DV_CD /* 사업본부구분코드, 집금구분코드, 채권업무구분코드 */
+            ) T3
        GROUP BY BZ_HDQ_DV_CD, CLCTAM_DV_CD
        ORDER BY CLCTAM_DV_CD
     </select>

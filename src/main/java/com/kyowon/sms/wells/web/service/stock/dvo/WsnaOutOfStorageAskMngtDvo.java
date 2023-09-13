@@ -1,11 +1,11 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.math.BigDecimal;
+
 import com.sds.sflex.system.config.annotation.DBDecField;
-import com.sds.sflex.system.config.annotation.DBEncField;
+
 import lombok.Getter;
 import lombok.Setter;
-
-import java.math.BigDecimal;
 
 /**
  *
@@ -41,7 +41,7 @@ public class WsnaOutOfStorageAskMngtDvo {
     String ostrWareMngtPrtnrNo; /*출고창고관리파트너번호*/
     String ostrOjWareNo; /*출고대상창고번호*/
     String strOjWareNo; /*입고대상창고번호*/
-    String itmKnd; /*품목종류*/
+    String itemKnd; /*품목종류*/
     String itmKndNm; /*품목종류명*/
     String imgUrl; /*imgurl*/
     String ostrAkWareDvCd; /*출고요청창고구분코드*/
@@ -52,6 +52,7 @@ public class WsnaOutOfStorageAskMngtDvo {
     String useQty; /*당월수량*/
     String baseStocQty; /*기본재고수량*/
     int sftStocQty; /*안전재고수량*/
+    String chkLgstWkMthdCd; //체크용물류작업방식코드
 
     //물류인터페이스 전송용 dvo
     String rowState;
@@ -77,5 +78,19 @@ public class WsnaOutOfStorageAskMngtDvo {
     String svCnrAdr; /*서비스센터 주소*/
     String hsmtrlClsfCd; /*학습지분류코드*/
     String hsmtrlClsfNm; /*학습지분류명*/
+
+    //영업센터
+    String adrsTnoVal; // 수취인전화번호값
+    String adrsCphonNoVal; // 수취인휴대폰번호값
+    String cralLocaraTno; /*요청창고 담당매니저 휴대전화번호 앞자리*/
+
+    @DBDecField
+    String mexnoEncr; /*요청창고 담당매니저 휴대전화번호 중간*/
+    String cralIdvTno; /*요청창고 담당매니저 휴대전화번호 끝자리*/
+    String zip; // 우편번호
+    String basAdr; //기본주소
+    String dtlAdr; //상세주소
+    String ltnAdr; //지번주소
+    String pdCn; //상품내용
 
 }

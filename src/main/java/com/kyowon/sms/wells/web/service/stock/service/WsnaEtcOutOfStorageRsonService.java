@@ -1,13 +1,16 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto;
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaEtcOutOfStorageRsonMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto.*;
 
 import java.util.List;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto.*;
+import org.springframework.stereotype.Service;
+
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaEtcOutOfStorageRsonMapper;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * <pre>
@@ -37,8 +40,8 @@ public class WsnaEtcOutOfStorageRsonService {
      *            ostrWareNo : 서비스센터 }
      * @return 조회결과
      */
-    public List<SearchRes> getEtcOutOfStorageRsons(SearchReq dto) {
-        return this.mapper.selectEtcOutOfStorageRsons(dto);
+    public PagingResult<SearchRes> getEtcOutOfStorageRsons(SearchReq dto, PageInfo pageInfo) {
+        return this.mapper.selectEtcOutOfStorageRsons(dto, pageInfo);
     }
 
     /**

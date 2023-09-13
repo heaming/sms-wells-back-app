@@ -62,8 +62,8 @@ public class WcsbNewReceiptMgtService {
 
     /**
      * 담당자 수동배정 조회
-     * @param prtnrNo
-     * @return
+     * @param prtnrNo 파트너번호
+     * @return 파트너 정보
      */
     public PartnerRes getPartnerInfoByPrtnrNo(String prtnrNo) {
         return mapper.selectPartnerInfoByPrtnrNo(prtnrNo);
@@ -71,8 +71,8 @@ public class WcsbNewReceiptMgtService {
 
     /**
      * 담당자 수동배정   저장
-     * @param dto
-     * @return
+     * @param dto 담당자 정보
+     * @return 수행결과
      */
     @Transactional
     public int editPspcCstCnslAssign(AssignReq dto) {
@@ -93,8 +93,8 @@ public class WcsbNewReceiptMgtService {
 
     /**
      * 배정정보 수정
-     * @param dto
-     * @return
+     * @param dto 배정정보
+     * @return 수행결과
      */
     @Transactional
     public int editPspcCstCnslContact(ContactReq dto) {
@@ -118,9 +118,9 @@ public class WcsbNewReceiptMgtService {
 
     /**
      * 접수 목록 조회 - 그리드 페이징용
-     * @param dto
-     * @param pageInfo
-     * @return
+     * @param dto 검색조건
+     * @param pageInfo 페이징 정보
+     * @return 접수정보 데이터 목록
      */
     public PagingResult<WcsbNewReceiptMgtDto.SearchDtlRes> getAssignPages(
         WcsbNewReceiptMgtDto.SearchAssignReq dto, PageInfo pageInfo
@@ -130,8 +130,8 @@ public class WcsbNewReceiptMgtService {
 
     /**
      * 접수 목록 조회- 엑셀다운로드용
-     * @param dto
-     * @return
+     * @param dto 검색조건
+     * @return 접수정보 데이터 목록
      */
     public List<WcsbNewReceiptMgtDto.SearchDtlRes> getAssignsForExcelDownload(
         WcsbNewReceiptMgtDto.SearchAssignReq dto
@@ -145,8 +145,8 @@ public class WcsbNewReceiptMgtService {
 
     /**
      * 집계정보 조회
-     * @param dto
-     * @return
+     * @param dto 검색조건
+     * @return 집계정보 데이터 목록
      */
     public List<WcsbNewReceiptMgtDto.SearchSummariesRes> getPspcCstCnslRecvSummaries(
         WcsbNewReceiptMgtDto.SearchSummariesReq dto

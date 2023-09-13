@@ -22,4 +22,6 @@ public interface WsniSidingServiceChangesMapper {
     int insertSidingAk(SaveReq req);
 
     Integer selectBsTarget(SaveReq req);
+
+    Integer updateStopNextSiding(String cntrNo, String cntrSn, String akChdt);
 }

@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.service;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,6 +37,9 @@ public class WwdaAutoTransferInterfaceService {
     private final WwdaAutoTransferConverter converter;
     private final ZwdaAutoTransferRealTimeAccountService realTimeAccountService;
     private final ZwdaKiccReceiveProcessService KiccReceiveService;
+
+    private static final String MSG_ALT_CHK_NCSR = "MSG_ALT_CHK_NCSR";
+    private static final String MSG_ALT_CHK_CONFIRM = "MSG_ALT_CHK_CONFIRM";
 
     /**
      * 자동이체 출금내역 조회
@@ -166,10 +168,8 @@ public class WwdaAutoTransferInterfaceService {
         List<WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo> reqs = converter
             .mapWwdaAutoTransferDvoToSaveBundleRegistrationReleasesReq(dto.bundles());
 
-        List<WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo> streamDatas = new ArrayList<>();
-
         // 대표계약번호로 중복제거한 계약번호 및 계약일련번호에 해당하는 묶음 데이터 삭제 처리
-        streamDatas = reqs.stream()
+        List<WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo> streamDatas = reqs.stream()
             .distinct()
             .collect(Collectors.toList());
 
@@ -183,7 +183,7 @@ public class WwdaAutoTransferInterfaceService {
             // 통합청구대상기본이력 생성(대표계약번호, 대표계약일련번호)
             zwdaBundleMapper.deleteItgBilOjUseDelegate(zwdaDvo);
         }
-        streamDatas = reqs.stream()
+        List<WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo> streamSortDatas = reqs.stream()
             .filter(data -> !StringUtils.isEmpty(data.getCntrNo()))
             .sorted(
                 Comparator.comparing(WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo::getDgCntrNo)
@@ -195,7 +195,7 @@ public class WwdaAutoTransferInterfaceService {
         String reslCd = "S";
         String reslCntn = "";
 
-        for (WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo insertData : streamDatas) {
+        for (WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo insertData : streamSortDatas) {
             results = new ArrayList<>();
             // 대표계약번호로 데이터가 1개만 들어온 경우 에러 체크
             long dataCount = streamDatas.stream()
@@ -369,7 +369,7 @@ public class WwdaAutoTransferInterfaceService {
             if (StringUtils.isEmpty(bulk.getCntrNo())) {
                 reslCd = "E";
                 reslCntn = messageResourceService
-                    .getMessage("MSG_ALT_CHK_NCSR", messageResourceService.getMessage("MSG_TXT_CNTR_NO")); // 계약번호을(를) 입력해주세요.
+                    .getMessage(MSG_ALT_CHK_NCSR, messageResourceService.getMessage("MSG_TXT_CNTR_NO")); // 계약번호을(를) 입력해주세요.
 
                 result.setReslCd(reslCd);
                 result.setPcsRsltCn(reslCntn);
@@ -379,7 +379,7 @@ public class WwdaAutoTransferInterfaceService {
             if (StringUtils.isEmpty(bulk.getCntrSn())) {
                 reslCd = "E";
                 reslCntn = messageResourceService
-                    .getMessage("MSG_ALT_CHK_NCSR", messageResourceService.getMessage("MSG_TXT_CNTR_SN")); // 계약일련번호을(를) 입력해주세요.
+                    .getMessage(MSG_ALT_CHK_NCSR, messageResourceService.getMessage("MSG_TXT_CNTR_SN")); // 계약일련번호을(를) 입력해주세요.
 
                 result.setReslCd(reslCd);
                 result.setPcsRsltCn(reslCntn);
@@ -394,7 +394,7 @@ public class WwdaAutoTransferInterfaceService {
                 if (fnits.isEmpty()) {
                     reslCd = "E";
                     reslCntn = messageResourceService
-                        .getMessage("MSG_ALT_CHK_CONFIRM", messageResourceService.getMessage("MSG_TXT_BNK_CD")); // 은행코드 을(를) 확인하세요.
+                        .getMessage(MSG_ALT_CHK_CONFIRM, messageResourceService.getMessage("MSG_TXT_BNK_CD")); // 은행코드 을(를) 확인하세요.
 
                     result.setReslCd(reslCd);
                     result.setPcsRsltCn(reslCntn);
@@ -405,7 +405,7 @@ public class WwdaAutoTransferInterfaceService {
                 if (StringUtils.isEmpty(bulk.getAcnoCdno())) {
                     reslCd = "E";
                     reslCntn = messageResourceService
-                        .getMessage("MSG_ALT_CHK_NCSR", messageResourceService.getMessage("MSG_TXT_AC_NO")); // 계좌번호 을(를) 입력해주세요.
+                        .getMessage(MSG_ALT_CHK_NCSR, messageResourceService.getMessage("MSG_TXT_AC_NO")); // 계좌번호 을(를) 입력해주세요.
 
                     result.setReslCd(reslCd);
                     result.setPcsRsltCn(reslCntn);
@@ -416,7 +416,7 @@ public class WwdaAutoTransferInterfaceService {
                     if (!StringUtils.isNumeric(bulk.getAcnoCdno().trim())) {
                         reslCd = "E";
                         reslCntn = messageResourceService
-                            .getMessage("MSG_ALT_CHK_CONFIRM", messageResourceService.getMessage("MSG_TXT_AC_NO")); // 계좌번호 을(를) 확인하세요.
+                            .getMessage(MSG_ALT_CHK_CONFIRM, messageResourceService.getMessage("MSG_TXT_AC_NO")); // 계좌번호 을(를) 확인하세요.
 
                         result.setReslCd(reslCd);
                         result.setPcsRsltCn(reslCntn);
@@ -432,7 +432,7 @@ public class WwdaAutoTransferInterfaceService {
                 if (StringUtils.isEmpty(bulk.getAcnoCdno())) {
                     reslCd = "E";
                     reslCntn = messageResourceService
-                        .getMessage("MSG_ALT_CHK_NCSR", messageResourceService.getMessage("MSG_TXT_CARD_NO")); // 카드번호 을(를) 입력해주세요.
+                        .getMessage(MSG_ALT_CHK_NCSR, messageResourceService.getMessage("MSG_TXT_CARD_NO")); // 카드번호 을(를) 입력해주세요.
 
                     result.setReslCd(reslCd);
                     result.setPcsRsltCn(reslCntn);
@@ -448,7 +448,7 @@ public class WwdaAutoTransferInterfaceService {
                     if (binInfos.isEmpty()) {
                         reslCd = "E";
                         reslCntn = messageResourceService
-                            .getMessage("MSG_ALT_CHK_CONFIRM", messageResourceService.getMessage("MSG_TXT_CARD_NO")); // 카드번호 을(를) 확인하세요.
+                            .getMessage(MSG_ALT_CHK_CONFIRM, messageResourceService.getMessage("MSG_TXT_CARD_NO")); // 카드번호 을(를) 확인하세요.
 
                         result.setReslCd(reslCd);
                         result.setPcsRsltCn(reslCntn);
@@ -486,7 +486,7 @@ public class WwdaAutoTransferInterfaceService {
                 if (StringUtils.isEmpty(bulk.getCardExpdtYm())) {
                     reslCd = "E";
                     reslCntn = messageResourceService
-                        .getMessage("MSG_ALT_CHK_NCSR", messageResourceService.getMessage("MSG_TXT_CARD_EXPDT")); // 카드유효기간 을(를) 입력하세요.
+                        .getMessage(MSG_ALT_CHK_NCSR, messageResourceService.getMessage("MSG_TXT_CARD_EXPDT")); // 카드유효기간 을(를) 입력하세요.
 
                     result.setReslCd(reslCd);
                     result.setPcsRsltCn(reslCntn);
@@ -494,10 +494,6 @@ public class WwdaAutoTransferInterfaceService {
                     continue;
                 } else {
                     // 1.3.6 카드유효기간이 현재월 이전 체크
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyMM", Locale.KOREAN);
-                    SimpleDateFormat sdf2 = new SimpleDateFormat("DD", Locale.KOREAN);
-                    Calendar cal = Calendar.getInstance();
-
                     String nowDate = DateUtil.getNowDayString();
                     Integer currentYymm = Integer.parseInt(nowDate.substring(2, 6));
                     Integer currentDd = Integer.parseInt(nowDate.substring(6, 8));
@@ -515,10 +511,10 @@ public class WwdaAutoTransferInterfaceService {
                     }
 
                     // 1.3.7 입력 카드유효기간년월 = 당월(현재일자, 'YYMM') AND 당일(현재일자, 'DD') >= '22')
-                    if (cardExpdtYm == currentYymm && currentDd >= 22) {
+                    if (cardExpdtYm.equals(currentYymm) && currentDd >= 22) {
                         reslCd = "E";
                         reslCntn = messageResourceService
-                            .getMessage("MSG_ALT_CHK_CONFIRM", messageResourceService.getMessage("MSG_TXT_CARD_EXPDT")); // 카드유효기간 을(를) 확인하세요.
+                            .getMessage(MSG_ALT_CHK_CONFIRM, messageResourceService.getMessage("MSG_TXT_CARD_EXPDT")); // 카드유효기간 을(를) 확인하세요.
 
                         result.setReslCd(reslCd);
                         result.setPcsRsltCn(reslCntn);
@@ -532,7 +528,7 @@ public class WwdaAutoTransferInterfaceService {
             if (StringUtils.isEmpty(bulk.getCopnDvCd())) {
                 reslCd = "E";
                 reslCntn = messageResourceService
-                    .getMessage("MSG_ALT_CHK_NCSR", messageResourceService.getMessage("MSG_TXT_COPN_DV_CD")); // 법인격구분코드 을(를) 입력하세요.
+                    .getMessage(MSG_ALT_CHK_NCSR, messageResourceService.getMessage("MSG_TXT_COPN_DV_CD")); // 법인격구분코드 을(를) 입력하세요.
 
                 result.setReslCd(reslCd);
                 result.setPcsRsltCn(reslCntn);
@@ -542,7 +538,7 @@ public class WwdaAutoTransferInterfaceService {
             if (!"1".equals(bulk.getCopnDvCd()) && !"2".equals(bulk.getCopnDvCd())) {
                 reslCd = "E";
                 reslCntn = messageResourceService
-                    .getMessage("MSG_ALT_CHK_CONFIRM", messageResourceService.getMessage("MSG_TXT_COPN_DV_CD")); // 법인격구분코드 을(를) 확인하세요.
+                    .getMessage(MSG_ALT_CHK_CONFIRM, messageResourceService.getMessage("MSG_TXT_COPN_DV_CD")); // 법인격구분코드 을(를) 확인하세요.
 
                 result.setReslCd(reslCd);
                 result.setPcsRsltCn(reslCntn);
@@ -555,7 +551,7 @@ public class WwdaAutoTransferInterfaceService {
             if (billingSchedules.isEmpty()) {
                 reslCd = "E";
                 reslCntn = messageResourceService
-                    .getMessage("MSG_ALT_CHK_CONFIRM", messageResourceService.getMessage("MSG_TXT_FNT_DT")); // 이체일자 을(를) 확인하세요.
+                    .getMessage(MSG_ALT_CHK_CONFIRM, messageResourceService.getMessage("MSG_TXT_FNT_DT")); // 이체일자 을(를) 확인하세요.
 
                 result.setReslCd(reslCd);
                 result.setPcsRsltCn(reslCntn);
@@ -582,7 +578,7 @@ public class WwdaAutoTransferInterfaceService {
             if (StringUtils.isEmpty(bulk.getOwrKnm())) {
                 reslCd = "E";
                 reslCntn = messageResourceService
-                    .getMessage("MSG_ALT_CHK_NCSR", messageResourceService.getMessage("MSG_TXT_OWK_KNM")); // 소유자한글명 을(를) 입력하세요.
+                    .getMessage(MSG_ALT_CHK_NCSR, messageResourceService.getMessage("MSG_TXT_OWK_KNM")); // 소유자한글명 을(를) 입력하세요.
 
                 result.setReslCd(reslCd);
                 result.setPcsRsltCn(reslCntn);
@@ -594,7 +590,7 @@ public class WwdaAutoTransferInterfaceService {
             if (StringUtils.isEmpty(bulk.getCrpSpmtDrmNm())) {
                 reslCd = "E";
                 reslCntn = messageResourceService
-                    .getMessage("MSG_ALT_CHK_NCSR", messageResourceService.getMessage("MSG_TXT_BRYY_MMDD_ENTRP_NO")); // 생년월일/사업자번호 을(를) 입력하세요.
+                    .getMessage(MSG_ALT_CHK_NCSR, messageResourceService.getMessage("MSG_TXT_BRYY_MMDD_ENTRP_NO")); // 생년월일/사업자번호 을(를) 입력하세요.
 
                 result.setReslCd(reslCd);
                 result.setPcsRsltCn(reslCntn);
@@ -628,7 +624,7 @@ public class WwdaAutoTransferInterfaceService {
             // 카카오톡 발송
             int sendResult = kakaoMessageService.sendMessage(req);
             if (sendResult > 0) {
-                result.setReslCd("S");
+                result.setReslCd(reslCd);
                 results.add(result);
             }
         }
@@ -723,9 +719,6 @@ public class WwdaAutoTransferInterfaceService {
         String vacCopnDvCd = "1"; /*법인격구분코드*/
         String bryyMm = dto.bryyMmdd(); /*법인격구분식별값 = BRYY_MMDD(생년월일)*/
         String tmlNo = ""; /*단말기번호*/
-        String trdAmt = "0"; /*거래금액*/
-        String istmMcnt = "0"; /*할부개월*/
-        String aprpsicNo = ""; /*승인담당자번호*/
         String systemDvCd = "E"; /*시스템구분코드*/
 
         // 2. 카드번호 유효성 검사 서비스 호출(Z-WD-S-0060)

@@ -61,9 +61,18 @@ public class WsnbIndividualServicePsService {
             }
         }
 
-        return converter.mapAllSearchStateToDvo(dvos);
+        PagingResult<SearchStateRes> rtnDtos = converter.mapAllSearchStateToDvo(dvos);
+        rtnDtos.setPageInfo(dvos.getPageInfo());
+
+        return rtnDtos;
+        // return converter.mapAllSearchStateToDvo(dvos);
 //        return mapper.selectIndividualProcessState(dto, pageInfo);
     } // 처리내역 조회
+
+    public List<SearchStateRes> getIndividualProcessStateExcelDownload(SearchReq dto)throws Exception{
+        List<WsnbIndividualServicePsDvo> dvos = mapper.selectIndividualProcessState(dto);
+        return converter.mapAllSearchStateResToDvo(dvos);
+    }
     public PagingResult<SearchCounselRes> getIndividualCounsel(SearchReq dto, PageInfo pageInfo){
         return mapper.selectIndividualCounsel(dto, pageInfo);
     } // 상담내역 조회

@@ -11,8 +11,10 @@
                      , LPAD(T1.CNTR_SN,2) AS CNTR_SN                                        /* 계약일련번호 */
                      , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_NO_SN                        /* 계약상세일련번호 */
                      , (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) AS CNTR_TP_CD       /* 계약유형 */
-                     , F_CMZ_CD_NM(#{session.tenantId}, 'UC_AMT_FW_TP_CD', (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) , #{session.langId}) AS CNTR_TP_NM /* 계약유형명 */
-                     , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO) AS CST_KNM                /* 계약자성명 */
+                     , T1.COPN_DV_CD                                                        /* 법인격구분코드 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'COPN_DV_CD', T1.COPN_DV_CD , #{session.langId}) AS COPN_DV_NM /* 법인격구분코드명 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_TP_CD', (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) , #{session.langId}) AS CNTR_TP_NM /* 계약유형명 */
+                     , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO) AS CST_KNM /* 계약자성명 */
                      , SUBSTR(T1.CNTR_NO,2,4) AS CST_Y                                      /* 고객년도 */
                      , SUBSTR(T1.CNTR_NO,6) AS CST_CD                                       /* 고객코드 */
                      , 0 AS AGRG_CT                                                         /* 건수 */
@@ -55,8 +57,12 @@
                    AND T2.BASE_YM = SUBSTR(T1.WK_DT,1,6)
                  WHERE 1 = 1
                    AND T1.UC_AMT_FW_TP_CD  = #{ucAmtFwTpCd}             /* 미수금액발송유형코드 */
+                <if test="@MybatisUtils@isNotEmpty(copnDvCd)">
                    AND T1.COPN_DV_CD       = #{copnDvCd}                /* 법인격구분코드 */
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(bndBizDvCd)">
                    AND T2.BND_BIZ_DV_CD    = #{bndBizDvCd}              /* 채권업무구분코드 */
+                </if>
                    AND T1.DLQ_MCN BETWEEN #{fromDlqMcn} AND #{toDlqMcn} /* 연체개월 */
                    AND T2.CLCTAM_DV_CD     = #{clctamDvCd}              /* 집금구분 */
                    AND T1.TOT_NPD_AMT BETWEEN #{fromTotNpdAmt} AND #{toTotNpdAmt} /* 총미납액 */
@@ -71,12 +77,14 @@
                      , LPAD(T1.CNTR_SN,2) AS CNTR_SN                                        /* 계약일련번호 */
                      , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_NO_SN                        /* 계약상세일련번호 */
                      , (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) AS CNTR_TP_CD       /* 계약유형 */
-                     , F_CMZ_CD_NM(#{session.tenantId}, 'UC_AMT_FW_TP_CD', (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) , #{session.langId}) AS CNTR_TP_NM /* 계약유형명 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_TP_CD', (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) , #{session.langId}) AS CNTR_TP_NM /* 계약유형명 */
+                     , T1.COPN_DV_CD                                                        /* 법인격구분코드 */
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'COPN_DV_CD', T1.COPN_DV_CD , #{session.langId}) AS COPN_DV_NM /* 법인격구분코드명 */
                      , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T1.CST_NO) AS CST_KNM                /* 계약자성명 */
                      , SUBSTR(T1.CNTR_NO,2,4) AS CST_Y                                      /* 고객년도 */
                      , SUBSTR(T1.CNTR_NO,6) AS CST_CD                                       /* 고객코드 */
                      , NVL(T1.AGRG_CT,0) AS AGRG_CT                                         /* 건수 */
-                     , NVL(AGRG_CT,0)-1 AS AGRG_MINUS_CT                                    /* 나머지건수 */
+                     , '외 ' || TO_CHAR(NVL(AGRG_CT,0)-1, 'FM999,999,999,999') || '건' AS AGRG_MINUS_CT /* 나머지건수 */
                      , T1.CNTR_BAS_ADR                                                      /* 계약기본주소 */
                      , T1.CNTR_DTL_ADR                                                      /* 계약상세주소 */
                      , T1.CNTR_REF_ADR                                                      /* 계약참조주소 */
@@ -115,8 +123,12 @@
                    AND T2.BASE_YM = SUBSTR(T1.WK_DT,1,6)
                  WHERE 1 = 1
                    AND T1.UC_AMT_FW_TP_CD  = #{ucAmtFwTpCd}             /* 미수금액발송유형코드 */
+                <if test="@MybatisUtils@isNotEmpty(copnDvCd)">
                    AND T1.COPN_DV_CD       = #{copnDvCd}                /* 법인격구분코드 */
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(bndBizDvCd)">
                    AND T2.BND_BIZ_DV_CD    = #{bndBizDvCd}              /* 채권업무구분코드 */
+                </if>
                    AND T1.DLQ_MCN BETWEEN #{fromDlqMcn} AND #{toDlqMcn} /* 연체개월 */
                    AND T2.CLCTAM_DV_CD     = #{clctamDvCd}              /* 집금구분 */
                    AND T1.TOT_NPD_AMT BETWEEN #{fromTotNpdAmt} AND #{toTotNpdAmt} /* 총미납액 */
@@ -242,9 +254,9 @@
              , (T2.DLQ_AMT + T2.DLQ_ADD_AMT) AS TOT_NPD_AMT -- 총연체금액(연체금+연체가산금)
              , (SELECT TT1.PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS TT1 WHERE TT1.PD_CLSF_ID = (SELECT TT2.PD_CLSF_ID FROM TB_PDBS_PD_BAS TT2 WHERE TT2.PD_CD = T8.BASE_PD_CD)) AS PDGRP_NM -- 제품군
              , (SELECT TT1.PD_NM FROM TB_PDBS_PD_BAS TT1 WHERE TT1.PD_CD = T8.BASE_PD_CD) AS PD_NM -- 제품명
-             , SUBSTR(T12.RVE_DT,1,4) AS FNL_PY_Y -- 최종납입년도
-             , SUBSTR(T12.RVE_DT,5,2) AS FNL_PY_MM -- 최종납입월
-             , SUBSTR(T12.RVE_DT,7,2) AS FNL_PY_D -- 최종납입일
+             , (SELECT SUBSTR(MAX(TT1.RVE_DT),1,4) FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DP_DV_CD = '1') AS FNL_PY_Y  --최근납입일
+			 , (SELECT SUBSTR(MAX(TT1.RVE_DT),5,2) FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DP_DV_CD = '1') AS FNL_PY_MM -- 최종납입월
+			 , (SELECT SUBSTR(MAX(TT1.RVE_DT),7,2) FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DP_DV_CD = '1') AS FNL_PY_D -- 최종납입일
              , T10.VAC_BNK_CD AS BNK_CD              -- 가상계좌은행
              , T10.VAC_NO AS VAC_NO                  -- 가상계좌번호
              , T10.VAC_ACOWN_NM AS ACHLDR_NM         -- 예금주
@@ -275,7 +287,6 @@
           LEFT JOIN TB_RVDW_VAC_IS_DTL T9 ON T9.CNTR_NO = T1.CNTR_NO AND T9.CNTR_SN = T1.CNTR_SN AND T9.CST_NO = T1.CST_NO AND T9.DTA_DL_YN = 'N' --AND T9.FNL_MDFC_DTM = (SELECT MAX(FNL_MDFC_DTM) FROM TB_RVDW_VAC_IS_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.CST_NO = T1.CST_NO AND TT1.DTA_DL_YN = 'N')
           LEFT JOIN TB_RVDW_VAC_IS_IZ T10 ON T9.VAC_IS_ID = T10.VAC_IS_ID AND T10.VAC_IS_DV_CD = '5' AND T10.DTA_DL_YN = 'N'
           LEFT JOIN TB_CBBO_CLCTAM_PRTNR_USTEL_DTL T11 ON T11.OG_TP_CD = T1.CLCTAM_OG_TP_CD AND T11.PRTNR_NO = T1.CLCTAM_PRTNR_NO AND T11.MPHON_YN = 'Y' AND T11.DTA_DL_YN = 'N'
-          LEFT JOIN TB_RVDW_RVE_DTL T12 ON T12.RVE_OJ_DRM_NO1 = T1.CNTR_NO AND T12.RVE_OJ_DRM_NO2 = T1.CNTR_SN AND T12.DTA_DL_YN = 'N'
          WHERE 1 = 1
            AND T1.BASE_YM = SUBSTR(#{ojWkDt},1,6)   -- 자료생성 작업일자 파라미터 기준으로 substr로 데이터 잘라서 세팅
            AND T3.COPN_DV_CD = #{copnDvCd}          -- 고객유형 개인 = '1' 법인 = '2'
@@ -444,9 +455,9 @@
                      , T2.CLCTAM_PRTNR_NM           -- 집금파트너명
                      , T2.OFRM_TNO_VAL              -- 사무실전화번호값
                      , T1.AGRG_CT                   -- 집계건수
-                  FROM (SELECT ROW_NUMBER() OVER(PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO ORDER BY TT1.CST_NO,TT1.CNTR_NO,TT1.CNTR_SN) AS RN --고객당 계약 한건 조회하기 위한 ROW_NUMBER 함수
-                             , SUM(NPD_AMT) OVER (PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS NPD_AMT
-                             , COUNT(1) OVER (PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS AGRG_CT
+                  FROM (SELECT ROW_NUMBER() OVER(PARTITION BY TT1.UC_AMT_FW_TP_CD,TT1.CST_NO ORDER BY TT1.CST_NO,TT1.CNTR_NO,TT1.CNTR_SN) AS RN --고객당 계약 한건 조회하기 위한 ROW_NUMBER 함수
+                             , SUM(NPD_AMT) OVER (PARTITION BY TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS NPD_AMT
+                             , COUNT(1) OVER (PARTITION BY TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS AGRG_CT
                              , CNTR_NO
                              , CNTR_SN
                              , WK_DT
@@ -462,6 +473,6 @@
                    AND T2.CNTR_SN = T1.CNTR_SN
                    AND T2.UC_AMT_FW_TP_CD = T1.UC_AMT_FW_TP_CD
                  WHERE 1 = 1
-                   AND RN = 1) FW
+                   AND T1.RN = 1) FW
     </insert>
 </mapper>

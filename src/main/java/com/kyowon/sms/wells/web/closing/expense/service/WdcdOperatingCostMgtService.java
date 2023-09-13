@@ -38,10 +38,10 @@ public class WdcdOperatingCostMgtService {
         WdcdOperatingCostDvo dvo = converter.mapEditReqToWdcdOperatingCostDvo(req);
         String fileId = groupId + dvo.getOpcsCardId();
 
-        if (CollectionUtils.isNotEmpty(dvo.getAttachOpcsWhtxCfdcApnFileId())) {
+        if (CollectionUtils.isNotEmpty(dvo.getAttachMscrWhtxCfdcApnFileId())) {
 
-            attachFileService.saveAttachFiles(groupId, fileId, dvo.getAttachOpcsWhtxCfdcApnFileId());
-            dvo.setOpcsWhtxCfdcApnFileId(fileId);
+            attachFileService.saveAttachFiles(groupId, fileId, dvo.getAttachMscrWhtxCfdcApnFileId());
+            dvo.setMscrWhtxCfdcApnFileId(fileId);
         }
 
         return mapper.updateFile(dvo);

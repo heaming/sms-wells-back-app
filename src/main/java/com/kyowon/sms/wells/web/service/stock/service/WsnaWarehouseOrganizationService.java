@@ -1,11 +1,16 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWarehouseOrganizationDto.*;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.WareDtlDvCd.BUSINESS_CENTER_ORGANIZATION;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.WareDtlDvCd.SERVICE_CENTER_ORGANIZATION;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.WareDtlDvCd.*;
 import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.WareDvCd.BUSINESS;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -180,6 +185,23 @@ public class WsnaWarehouseOrganizationService {
                 if (dtos.size() == 0) {
                     dtos = this.mapper.selectOrganizationWarehouses(dto); // 동일 조직의 조직창고 조회
                 }
+
+                // 영업센터인 경우, [창고조직 신규 등록] 시 창고구분코드에 해당하는 조직창고 조회
+                if (List.of(BUSINESS_CENTER_INDIVIDUAL.getCode(), BUSINESS_CENTER_INDEPENDENCE.getCode())
+                    .contains(dto.wareDtlDvCd())) {
+                    dtos.addAll(
+                        mapper.selectOrganizationWarehouses(
+                            new SearchWarehouseReq(null, dto.wareDvCd(), dto.wareDtlDvCd())
+                        )
+                    );
+
+                    Comparator<SearchWarehouseRes> comparator = Comparator
+                        .comparing(SearchWarehouseRes::sortDvVal, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(SearchWarehouseRes::codeName, Comparator.nullsLast(Comparator.naturalOrder()));
+
+                    dtos = dtos.stream().filter(distinctByKey(SearchWarehouseRes::codeId)).sorted(comparator)
+                        .collect(Collectors.toList());
+                }
             }
         } else { // ogId가 없는 경우 [창고조직 수정] 시 상위 창고 목록 조회
             if (isOrgWarehouse(dto.wareDtlDvCd())) {
@@ -200,4 +222,10 @@ public class WsnaWarehouseOrganizationService {
     public PagingResult<SearchBuildingRes> getBuildings(SearchBuildingReq dto, PageInfo pageInfo) {
         return this.mapper.selectBuildings(dto, pageInfo);
     }
+
+    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
+    }
+
 }

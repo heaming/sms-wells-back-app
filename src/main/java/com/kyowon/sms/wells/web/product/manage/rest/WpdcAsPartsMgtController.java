@@ -1,36 +1,34 @@
 package com.kyowon.sms.wells.web.product.manage.rest;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.common.base.CaseFormat;
+import com.google.common.collect.Maps;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
-import com.kyowon.sms.common.web.product.manage.service.PdExcelReadService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
 import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
+import com.kyowon.sms.common.web.product.zcommon.utils.PdProductUtils;
 import com.kyowon.sms.wells.web.product.manage.dto.WpdcAsPartMgtDto;
 import com.kyowon.sms.wells.web.product.manage.service.WpdcAsPartsMgtService;
 import com.kyowon.sms.wells.web.product.manage.service.WpdcMaterialMgtService;
 import com.kyowon.sms.wells.web.product.zcommon.constants.PdProductWellsConst;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
 import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
+import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
+import com.sds.sflex.common.common.service.ExcelReadService;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -50,10 +48,11 @@ public class WpdcAsPartsMgtController {
 
     private final ZpdcProductService cmnService;
     private final WpdcAsPartsMgtService service;
-    private final PdExcelReadService excelReadService;
+    private final ExcelReadService excelReadService;
 
     private final ZpdcProductService pdService;
     private final WpdcMaterialMgtService wAsservice;
+    private final MessageResourceService messageResourceService;
 
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "pdTpCd", value = "상품구분", paramType = "query", required = false, example = "S"),
@@ -136,7 +135,12 @@ public class WpdcAsPartsMgtController {
         MultipartFile file
     ) throws Exception {
 
-        // Excel Column들의 실제 Physical Table 및 column 정보들을 가진 객체.
+        // Excel 데이터
+        List<Map<String, Object>> convertXlsList = new ArrayList<Map<String, Object>>();
+
+        /* -------------------------------------------------------------
+            Excel Column들의 실제 Physical Table 및 column 정보들을 가진 객체 조회
+         ------------------------------------------------------------- */
         List<ZpdcPropertyMetaDvo> metaItems = cmnService
             .getPropertyMetas(
                 ZpdcProductDto.SearchPropMetaReq.builder()
@@ -146,24 +150,81 @@ public class WpdcAsPartsMgtController {
                 true
             );
 
-        // META DB에 반드시 들어가야할(=엑셀에서 반드시 입력받아야할) 입력필수 항목
+        /* -------------------------------------------------------------
+            META DB에 반드시 들어가야할(=엑셀에서 반드시 입력받아야할) 입력필수 항목
+         ------------------------------------------------------------- */
         List<ZpdcPropertyMetaDvo> mendatoryColumns = metaItems.stream()
             .filter(x -> PdProductConst.MNDT_Y.equals(x.getMndtYn())).toList();
-        List<ExcelUploadErrorDvo> headerErrors = excelReadService
-            .checkHeaderValidation(file, mendatoryColumns);
 
-        // Excel Data Drm 해제 및 Data 파싱.
-        List<Map<String, Object>> excelData = excelReadService.readExcel(file, true);
+        /* -------------------------------------------------------------
+            암호화된 물리적 엑셀 파일 복호화 및 List<Map)으로 치환.
+         ------------------------------------------------------------- */
+        Map<String, String> headerTitle = Maps.newLinkedHashMap();
+        List<Map<String, Object>> xlsList = excelReadService
+            .readExcel(file, new ExcelMetaDvo(0, headerTitle));
+
+        ArrayList<String> headerKeys = new ArrayList<String>();
+        if (xlsList.size() >= 4) {
+            /* -------------------------------------------------------------
+                0번째 row에서 물리적 DB 컬럼명을 Camel 표기법으로 KEY 추출
+             ------------------------------------------------------------- */
+            Map<String, Object> headerKeyMap = xlsList.get(0);
+            for (int ii = 0; ii < headerKeyMap.size(); ii++) {
+                String key = (String)headerKeyMap.get(Integer.toString(ii));
+                headerKeys.add(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, key.trim()));
+            }
+
+            /* -------------------------------------------------------------
+                실제 데이터 ROW Map의 KEY를 0번째에서 추출한 Camel 표기법으로 치환하여 신규 MAP return
+             ------------------------------------------------------------- */
+            Map<String, Object> convertKeyMap = null;
+            for (int xx = 3; xx < xlsList.size(); xx++) {
+                Map<String, Object> dataMap = xlsList.get(xx);
+                convertKeyMap = new HashMap<String, Object>();
+
+                for (int yy = 0; yy < headerKeys.size(); yy++) {
+                    convertKeyMap.put(headerKeys.get(yy), dataMap.get(Integer.toString(yy)));
+                }
+                convertXlsList.add(convertKeyMap);
+            }
+
+        } else {
+
+            List<ExcelUploadErrorDvo> headerErrors = new ArrayList<ExcelUploadErrorDvo>();
+            ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
+            errorVo.setHeaderName("");
+            errorVo.setErrorRow(0);
+            errorVo.setErrorData(messageResourceService.getMessage("MSG_ALT_NOT_FOUND_XLS_DATA"));
+            headerErrors.add(errorVo);
+
+            return ExcelUploadDto.UploadRes.builder()
+                .status(PdProductConst.EXCEL_UPLOAD_ERROR)
+                .excelData(convertXlsList)
+                .errorInfo(headerErrors)
+                .build();
+        }
+
+        /* -------------------------------------------------------------
+            필수입력받아야할 데이터 컬럼 존재유무 확인 및 없을시 바로 return
+         ------------------------------------------------------------- */
+        String validationMsg = messageResourceService.getMessage("MSG_ALT_NOT_EXIST_ESSENTIAL_COLUMN");
+        List<ExcelUploadErrorDvo> headerErrors = PdProductUtils
+            .checkHeaderValidation(mendatoryColumns, headerKeys, validationMsg);
 
         if (headerErrors.size() > 0) {
             // Not Null 컬럼 누락시 데이터 확인없이 Error Throw
             return ExcelUploadDto.UploadRes.builder()
                 .status(PdProductConst.EXCEL_UPLOAD_ERROR)
-                .excelData(excelData)
+                .excelData(convertXlsList)
                 .errorInfo(headerErrors)
                 .build();
         } else {
-            // 사용자 입력데이터들에 대한 유효성 체크 및 DB 저장처리.
+
+            /* -------------------------------------------------------------
+                1. 데이터에 대한 유효성 체크(Ex.데이터타입, 길이, 필수컬럼값 null 여부, etc...
+                    1-1) Pass : 실제 Excel Upload 수행
+                    1-2) Fail : 오류항목들 return
+             ------------------------------------------------------------ */
             String uploadStatus = PdProductConst.EXCEL_UPLOAD_SUCCESS;
 
             // 각사속성 그룹코드
@@ -174,7 +235,7 @@ public class WpdcAsPartsMgtController {
                 }
             }
 
-            // 대상 테이블별 추출대상 Column 선별.
+            // 대상(Target) 테이블별 추출대상 Column 선별.
             List<ZpdcPropertyMetaDvo> tbPdbsPdBas = metaItems.stream()
                 .filter(x -> PdProductConst.TBL_TB_PDBS_PD_BAS.equals(x.getTblId())).toList();
             List<ZpdcPropertyMetaDvo> tbPdbsPdEcomPrpDtl = metaItems.stream()
@@ -182,17 +243,17 @@ public class WpdcAsPartsMgtController {
 
             // 유효성 체크(현재는 '교재/자재'와 동일한 유효성 체크 이므로 함께 사용. (추후 분기 필요시 처리필요)
             List<ExcelUploadErrorDvo> dataErrors = wAsservice
-                .checkDataValidation(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl);
+                .checkDataValidation(convertXlsList, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl);
 
             if (dataErrors.size() > 0) {
                 uploadStatus = PdProductConst.EXCEL_UPLOAD_ERROR;
             } else {
-                service.saveExcelUpload(excelData, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl, null, prgGrpDves);
+                service.saveExcelUpload(convertXlsList, metaItems, tbPdbsPdBas, tbPdbsPdEcomPrpDtl, null, prgGrpDves);
             }
 
             return ExcelUploadDto.UploadRes.builder()
                 .status(uploadStatus)
-                .excelData(excelData)
+                .excelData(convertXlsList)
                 .errorInfo(dataErrors)
                 .build();
         }

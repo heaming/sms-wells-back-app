@@ -26,7 +26,14 @@ public class WsncTransferHistoryDto {
         String bfPrtnrKnm,
         String afOgNm,
         String afCnfmPsicPrtnrNo,
-        String afPrtnrKnm
+        String afPrtnrKnm,
+        String tfCnfmdt,
+        String tfAkRsonCd,
+        String tfOgNm,
+        String tfPrtnrKnm,
+        String tfOgTpCd,
+        String tfPrtnrNo,
+        String tfOgId
     ) {}
 
 }

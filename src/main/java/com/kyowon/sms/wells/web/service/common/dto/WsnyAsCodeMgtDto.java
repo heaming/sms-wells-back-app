@@ -63,7 +63,8 @@ public class WsnyAsCodeMgtDto {
         String cd,
         String cdNm,
         String pdNm,
-        String pdGrpNm
+        String pdGrpNm,
+        String fuleyAwAmt
     ) {
 
     }

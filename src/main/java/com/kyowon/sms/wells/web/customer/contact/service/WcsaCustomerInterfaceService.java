@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +31,8 @@ import com.kyowon.sms.wells.web.customer.contact.mapper.WcsaCustomerMapper;
 import com.kyowon.sms.wells.web.customer.zcommon.constants.CsCustomerConst;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.validation.BizAssert;
 
@@ -52,6 +52,8 @@ public class WcsaCustomerInterfaceService {
     private final ZcscTermsMapper zcscTermsMapper;
     private final ZcsaCustomerMapper zcsaCustomerMapper;
     private final ZcsaCustomersMapper zcsaCustomersMapper;
+
+    public static final String ERROR_MESSAGE = "MSG_ALT_SVE_ERR";
 
     /**
     * 고객번호 기준으로 고객정보를 조회 - 고객번호에 해당하는 고객 기본/상세 정보 조회
@@ -104,21 +106,6 @@ public class WcsaCustomerInterfaceService {
     public WcsaCustomerInterfaceDto.SearchCustomerInfoEditRes editCustomerByCc(
         WcsaCustomerInterfaceDto.SearchCustomerInfoEditReq dto
     ) {
-        log.info("dto.CALNG_DV_CD" + dto.CALNG_DV_CD());
-        log.info("dto.COPN_DV_CD" + dto.COPN_DV_CD());
-        log.info("dto.cstno" + dto.CST_NO());
-        log.info("dto.LOCARA_TNO" + dto.LOCARA_TNO());
-        log.info("dto.EXNO" + dto.EXNO());
-        log.info("dto.IDV_TNO" + dto.IDV_TNO());
-        log.info("dto.CRAL_LOCARA_TNO" + dto.CRAL_LOCARA_TNO());
-        log.info("dto.MEXNO" + dto.MEXNO());
-        log.info("dto.CRAL_IDV_TNO" + dto.CRAL_IDV_TNO());
-        log.info("dto.ADR_ID" + dto.ADR_ID());
-        log.info("dto.ADR_DV_CD" + dto.ADR_DV_CD());
-        log.info("dto.CH_LTRQ_CONF_YN" + dto.CH_LTRQ_CONF_YN());
-        log.info("dto.CH_LTRQ_CONF_DT" + dto.CH_LTRQ_CONF_DT());
-        log.info("dto.UNUITM_CN" + dto.UNUITM_CN());
-        log.info("dto.RGST_MDFC_USR_ID" + dto.RGST_MDFC_USR_ID());
 
         WcsaInterfaceResultDvo ifResDvo = new WcsaInterfaceResultDvo();
         ifResDvo.setCstNo("");
@@ -181,21 +168,6 @@ public class WcsaCustomerInterfaceService {
 
     public int editCustomerInfoByEcc(ZcsaCustomerInfoByEccDvo dvo) {
         //휴대폰 번호, 주소, 변경요청확인여부, 변경요청서 확인일자, 특이사항내용, 등록수정사용자ID
-        log.info("dto.CALNG_DV_CD" + dvo.getCalngDvCd());
-        log.info("dto.COPN_DV_CD" + dvo.getCopnDvCd());
-        log.info("dto.cstno" + dvo.getCstNo());
-        log.info("dto.LOCARA_TNO" + dvo.getLocaraTno());
-        log.info("dto.EXNO" + dvo.getExno());
-        log.info("dto.IDV_TNO" + dvo.getIdvTno());
-        log.info("dto.CRAL_LOCARA_TNO" + dvo.getCralLocaraTno());
-        log.info("dto.MEXNO" + dvo.getMexno());
-        log.info("dto.CRAL_IDV_TNO" + dvo.getCralIdvTno());
-        log.info("dto.ADR_ID" + dvo.getAdrId());
-        log.info("dto.ADR_DV_CD" + dvo.getAdrDvCd());
-        log.info("dto.CH_LTRQ_CONF_YN" + dvo.getChLtrqConfYn());
-        log.info("dto.CH_LTRQ_CONF_DT" + dvo.getChLtrqConfDt());
-        log.info("dto.UNUITM_CN" + dvo.getUnuitmCn());
-        log.info("dto.RGST_MDFC_USR_ID" + dvo.getRgstMdfcUsrId());
 
         String strDate = DateUtil.getDate(DateUtil.getNow());
         String endDate = DateUtil.getDate(DateUtil.getNow() - 1000);
@@ -206,12 +178,12 @@ public class WcsaCustomerInterfaceService {
         int result;
         // 고객정보변경
         result = mapper.updateIndvCstBasEai(dvo);
-        BizAssert.isTrue(result > 0, "MSG_ALT_SVE_ERR");
+        BizAssert.isTrue(result > 0, ERROR_MESSAGE);
         // 고객기본이력 업데이트
         result = zcsaCustomerMapper.updateLastIndvCstBasInfoHistory(cstNo, endDate, rgstMdfcUsrId); // 고객기본이력 업데이트
-        BizAssert.isTrue(result > 0, "MSG_ALT_SVE_ERR");
+        BizAssert.isTrue(result > 0, ERROR_MESSAGE);
         result = zcsaCustomerMapper.insertIndvCstBasInfoHistory(cstNo, strDate); // 고객정보변경이력 생성
-        BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+        BizAssert.isTrue(result == 1, ERROR_MESSAGE);
         // 연락처-주소
         if (StringUtils.isNotEmpty(dvo.getAdrId())) {
             zcsaCustomerMapper.updateLastIndvCstAdrInfo(cstNo, endDate, dtaDlYn, rgstMdfcUsrId);
@@ -225,7 +197,7 @@ public class WcsaCustomerInterfaceService {
                 indvCstAdrDvo.setCtplcTpCd("02");
             }
             result = zcsaCustomerMapper.insertIndvCstAdrInfo(indvCstAdrDvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(result == 1, ERROR_MESSAGE);
         }
         // 연락처-휴대폰
         if (StringUtils.isNotEmpty(dvo.getCralLocaraTno())
@@ -245,7 +217,7 @@ public class WcsaCustomerInterfaceService {
                 indvCstHpnoDvo.setCtplcTpCd("03");
             }
             result = zcsaCustomerMapper.insertIndvCstMpnoInfo(indvCstHpnoDvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(result == 1, ERROR_MESSAGE);
         }
         // 연락처-휴대폰-법인
         if (StringUtils.isNotEmpty(dvo.getLocaraTno())
@@ -263,7 +235,7 @@ public class WcsaCustomerInterfaceService {
             indvCrpHpnoDvo.setRgstMdfcUsrId(rgstMdfcUsrId);
 
             result = mapper.insertCrpCstMpnoInfo(indvCrpHpnoDvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(result == 1, ERROR_MESSAGE);
         }
         if ("1".equals(dvo.getCopnDvCd())) {
             itgCstNo = zcsaCustomersMapper.selectItgCstNo(cstNo);
@@ -271,16 +243,16 @@ public class WcsaCustomerInterfaceService {
             dvo.setItgCstNo(itgCstNo);
             if (StringUtil.isNotEmpty(itgCstNo)) {
                 int resultItg = mapper.updateItgCstBasEai(dvo);
-                BizAssert.isTrue(resultItg > 0, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(resultItg > 0, ERROR_MESSAGE);
                 int resultItgHis = zcscTermsMapper
                     .updateIntegratedCustomerInfoHistory(itgCstNo, endDate, rgstMdfcUsrId);
-                BizAssert.isTrue(resultItgHis > 0, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(resultItgHis > 0, ERROR_MESSAGE);
                 int resultInsItgHis = zcscTermsMapper.insertIntegratedCustomerInfoHistory(itgCstNo, strDate);
-                BizAssert.isTrue(resultInsItgHis > 0, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(resultInsItgHis > 0, ERROR_MESSAGE);
             }
         } else {
             int resultCrp = mapper.updateCrpCstBasEai(dvo);
-            BizAssert.isTrue(resultCrp > 0, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(resultCrp > 0, ERROR_MESSAGE);
         }
         return 1;
     }
@@ -301,8 +273,10 @@ public class WcsaCustomerInterfaceService {
 
         // 2. 고객 유효성 체크
         String isExistCustomer = mapper.selectCustomerExistYn(agreeDvo.getCstNo());
-        if (StringUtils.equals(Objects.toString(isExistCustomer, "N"), "N")) {  // 고객정보가 존재하지 않는 경우, return
-            WcsaCustomerAgreementResultDvo resultDvo = new WcsaCustomerAgreementResultDvo(false, CsCustomerConst.IF_RETURN_CODE_SUCCESS, messageService.getMessage("MSG_ALT_CST_INF_NOT_EXST"));
+        if (StringUtils.equals(Objects.toString(isExistCustomer, "N"), "N")) { // 고객정보가 존재하지 않는 경우, return
+            WcsaCustomerAgreementResultDvo resultDvo = new WcsaCustomerAgreementResultDvo(
+                false, CsCustomerConst.IF_RETURN_CODE_SUCCESS, messageService.getMessage("MSG_ALT_CST_INF_NOT_EXST")
+            );
             return converter.mapWcsaCustomerAgreementResultDvoToSaveCustomerAgreementRes(resultDvo);
         }
 
@@ -310,21 +284,24 @@ public class WcsaCustomerInterfaceService {
         String preCstAgId = mapper.selectCustomerRecentAgreement(agreeDvo.getCstNo());
 
         // 4. 고객동의내역 등록
-        Map<String, String> agAtcDvCdMap =  agreeDvo.getAgAtcDvCdMap();
+        Map<String, String> agAtcDvCdMap = agreeDvo.getAgAtcDvCdMap();
         if (agAtcDvCdMap != null && !agAtcDvCdMap.isEmpty()) {
             // 4.1. 고객동의내역 Insert
             mapper.insertCustomerAgreement(agreeDvo);
 
             // 4.2. 고객동의내역상세 Insert
             for (String agAtcDvCd : agAtcDvCdMap.keySet()) {
-                if (StringUtils.equals(agAtcDvCdMap.get(agAtcDvCd), "Y") || StringUtils.equals(agAtcDvCdMap.get(agAtcDvCd), "N")) {
+                if (StringUtils.equals(agAtcDvCdMap.get(agAtcDvCd), "Y")
+                    || StringUtils.equals(agAtcDvCdMap.get(agAtcDvCd), "N")) {
                     agreeDvo.setAgAtcDvCd(agAtcDvCd);
                     agreeDvo.setAgYn(agAtcDvCdMap.get(agAtcDvCd));
                     mapper.insertCustomerAgreementDetail(agreeDvo);
                 }
             }
         } else {
-            WcsaCustomerAgreementResultDvo resultDvo = new WcsaCustomerAgreementResultDvo(false, CsCustomerConst.IF_RETURN_CODE_SUCCESS, messageService.getMessage("MSG_ALT_AG_INF_NOT_EXST"));
+            WcsaCustomerAgreementResultDvo resultDvo = new WcsaCustomerAgreementResultDvo(
+                false, CsCustomerConst.IF_RETURN_CODE_SUCCESS, messageService.getMessage("MSG_ALT_AG_INF_NOT_EXST")
+            );
             return converter.mapWcsaCustomerAgreementResultDvoToSaveCustomerAgreementRes(resultDvo);
         }
 
@@ -338,7 +315,9 @@ public class WcsaCustomerInterfaceService {
         }
 
         // 6. 정상완료처리
-        WcsaCustomerAgreementResultDvo resultDvo = new WcsaCustomerAgreementResultDvo(true, CsCustomerConst.IF_RETURN_CODE_SUCCESS, messageService.getMessage("MSG_ALT_PRGS_OK"));
+        WcsaCustomerAgreementResultDvo resultDvo = new WcsaCustomerAgreementResultDvo(
+            true, CsCustomerConst.IF_RETURN_CODE_SUCCESS, messageService.getMessage("MSG_ALT_PRGS_OK")
+        );
         return converter.mapWcsaCustomerAgreementResultDvoToSaveCustomerAgreementRes(resultDvo);
 
     }

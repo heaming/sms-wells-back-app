@@ -31,7 +31,7 @@ public class WsnaNormalOutOfStorageDto {
         @NotBlank
         @ValidDate
         String strHopDtEnd,
-        String ostrCnfm,
+        List<String> ostrStts,
         String ostrAkTpCd,
         @NotBlank
         String ostrOjWareNo,
@@ -46,6 +46,7 @@ public class WsnaNormalOutOfStorageDto {
         String ostrAkNo,
         String ostrAkTpCd,
         String ostrOjWareNo,
+        String ostrOjWareNm,
         String strOjWareNo,
         String strOjWareNm,
 

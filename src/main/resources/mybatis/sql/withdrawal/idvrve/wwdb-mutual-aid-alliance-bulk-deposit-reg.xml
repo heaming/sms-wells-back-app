@@ -38,15 +38,15 @@
                      AND X.DEL_YN = 'N'
                   ) AS FST_RGST_USR_ID  /*입력담당자ID*/
             FROM TB_RVDW_LIF_RENTAL_SPPT_BAS T1 /*라이프렌탈지원기본*/
-            LEFT OUTER JOIN TB_RVDW_RVE_DTL T2 /*수납상세*/
-              ON T2.CNTR_NO = T1.WELS_CNTR_NO
-             AND T2.CNTR_SN = T1.WELS_CNTR_SN
-             AND T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
-             AND T2.DTA_DL_YN = 'N'
-             AND T2.DP_DV_CD = '1' /*입금*/
-             AND T2.DP_MES_CD = '06'/*입금수단코드 일단은 포인트로 넣어보자*/
-             AND T2.DP_TP_CD = '0604'/*입금유형코드 일단 웰스제휴로 넣어보자*/
-             AND SUBSTR(T2.RVE_DT,0,6) = TO_CHAR(ADD_MONTHS(TO_DATE(T1.LIF_SPPT_YM,'YYYYMM'),1),'YYYYMM')
+<!--            LEFT OUTER JOIN TB_RVDW_RVE_DTL T2 /*수납상세*/-->
+<!--              ON T2.CNTR_NO = T1.WELS_CNTR_NO-->
+<!--             AND T2.CNTR_SN = T1.WELS_CNTR_SN-->
+<!--             AND T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD-->
+<!--             AND T2.DTA_DL_YN = 'N'-->
+<!--             AND T2.DP_DV_CD = '1' /*입금*/-->
+<!--             AND T2.DP_MES_CD = '06'/*입금수단코드 일단은 포인트로 넣어보자*/-->
+<!--             AND T2.DP_TP_CD = '0604'/*입금유형코드 일단 웰스제휴로 넣어보자*/-->
+<!--             AND SUBSTR(T2.RVE_DT,0,6) = TO_CHAR(ADD_MONTHS(TO_DATE(T1.LIF_SPPT_YM,'YYYYMM'),1),'YYYYMM')-->
            WHERE 1 = 1
              AND T1.KW_GRP_CO_CD = #{session.companyCode}
            <if test='@MybatisUtils@isNotEmpty(lifSpptYm)'>
@@ -85,15 +85,27 @@
                 </otherwise>
               </choose>
             FROM TB_RVDW_LIF_RENTAL_SPPT_BAS T1 /*라이프렌탈지원기본*/
-            LEFT OUTER JOIN TB_RVDW_RVE_DTL T2 /*수납상세*/
-              ON T2.CNTR_NO = T1.WELS_CNTR_NO
-             AND T2.CNTR_SN = T1.WELS_CNTR_SN
-             AND T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
-             AND T2.DTA_DL_YN = 'N'
-             AND T2.DP_DV_CD = '1' /*입금*/
-             AND T2.DP_MES_CD = '06'/*입금수단코드 일단은  넣어보자*/
-             AND T2.DP_TP_CD = '0604'/*입금유형코드 일단  넣어보자*/
-             AND SUBSTR(T2.RVE_DT,0,6) = TO_CHAR(ADD_MONTHS(TO_DATE(T1.LIF_SPPT_YM,'YYYYMM'),1),'YYYYMM')
+            LEFT OUTER JOIN ( SELECT S1.CNTR_NO
+                                   , S1.CNTR_SN
+                                   , S1.KW_GRP_CO_CD
+                                   , S1.RVE_DT
+                                   , S1.RVE_AMT
+                                   , S1.DP_DT
+                                   , S1.DTA_DL_YN
+       				            FROM TB_RVDW_RVE_DTL S1
+       				           INNER JOIN TB_RVDW_RVE_BAS S2
+       				                 ON S2.KW_GRP_CO_CD = S1.KW_GRP_CO_CD
+       				                AND S2.RVE_NO       = S1.RVE_NO
+       				                AND S2.DTA_DL_YN    = 'N'
+       								AND S2.RVE_AK_PH_CD =  '12'
+       				   			  WHERE 1 = 1
+       								AND S1.RVE_DV_CD    = '03'
+       								AND S1.DP_DV_CD     = '1'
+                   ) T2
+                     ON T2.CNTR_NO = T1.WELS_CNTR_NO
+                    AND T2.CNTR_SN = T1.WELS_CNTR_SN
+                    AND T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                    AND SUBSTR(T2.RVE_DT,0,6) = TO_CHAR(ADD_MONTHS(TO_DATE(T1.LIF_SPPT_YM,'YYYYMM'),1),'YYYYMM')
            WHERE 1 = 1
              AND T1.KW_GRP_CO_CD = #{session.companyCode}
            <if test='@MybatisUtils@isNotEmpty(lifSpptYm)'>
@@ -244,4 +256,15 @@
            AND T1.ITG_DP_NO = #{itgDpNo}
            AND T1.DTA_DL_YN  = 'N'
     </select>
+
+    <update id="updateIntegrationDepositReceiveAskNumber">
+            UPDATE TB_RVDW_ITG_DP_BAS
+               SET RVE_AK_NO = #{rveAkNo}
+                 , RVE_CD = #{rveCd}
+                <include refid="COMMON.updateSystemField" />
+             WHERE 1 = 1
+               AND ITG_DP_NO = #{itgDpNo}
+    </update>
+
+
 </mapper>

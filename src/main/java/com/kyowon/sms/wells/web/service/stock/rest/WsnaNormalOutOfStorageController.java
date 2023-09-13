@@ -59,7 +59,7 @@ public class WsnaNormalOutOfStorageController {
         @ApiImplicitParam(name = "ostrAkTpCd", value = "출고요청유형", paramType = "query", example = "310"),
         @ApiImplicitParam(name = "strHopDtStr", value = "입고희망일 시작일", paramType = "query", example = "20230314", required = true),
         @ApiImplicitParam(name = "strHopDtEnd", value = "입고희망일 종료일", paramType = "query", example = "20230314", required = true),
-        @ApiImplicitParam(name = "ostrCnfm", value = "출고확정코드", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "ostrStts", value = "출고상태", paramType = "query", example = "['PRTN', 'STNB']"),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "1", required = true)
     })
     public PagingResult<SearchRes> getNormalOutOfStorage(@Valid
@@ -77,7 +77,7 @@ public class WsnaNormalOutOfStorageController {
         @ApiImplicitParam(name = "ostrAkTpCd", value = "출고요청유형", paramType = "query", example = "310"),
         @ApiImplicitParam(name = "strHopDtStr", value = "입고희망일 시작일", paramType = "query", example = "20230314", required = true),
         @ApiImplicitParam(name = "strHopDtEnd", value = "입고희망일 종료일", paramType = "query", example = "20230314", required = true),
-        @ApiImplicitParam(name = "ostrCnfm", value = "출고확정코드", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "ostrStts", value = "출고상태", paramType = "query", example = "['PRTN', 'STNB']"),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "1", required = true)
     })
     public List<SearchRes> excelDownload(@Valid

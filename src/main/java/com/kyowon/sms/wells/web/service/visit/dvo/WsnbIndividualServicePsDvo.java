@@ -91,4 +91,8 @@ public class WsnbIndividualServicePsDvo {
     String istEnvrFileUid;
     String istKitFileUid;
     String istCelngFileUid;
+    String svHshdNoCnt;
+    String svBizHclsfCd;
+    String svBizDclsfCd;
+
 }

@@ -4,13 +4,13 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemOrderQuantityMapper">
 
     <sql id="selectWithProduct">
-        SELECT /*+ LEADING(T1) INDEX(T1 PK_PDBS_PD_BAS) USE_NL(T1 T2 T3) INDEX(T3) */
-               T1.PD_CD
+        SELECT /*+ LEADING(T1) INDEX(T1 PK_PDBS_PD_BAS) INDEX(T3) */
+               DISTINCT T1.PD_CD
              , T1.PD_ABBR_NM   AS PD_NM
              , T1.SAP_MAT_CD   AS SAP_CD
              , T2.PD_PRP_VAL07 AS MOQ
              , T2.PD_PRP_VAL06 AS LEAD_TIME
-             , T2.PD_PRP_VAL21 AS COMM_GB
+             , T5.PD_PRP_VAL20 AS ITEM_GR
           FROM TB_PDBS_PD_BAS T1                        /* 상품기본 */
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2          /* 상품각사속성상세 */
             ON T1.PD_CD = T2.PD_CD
@@ -18,6 +18,15 @@
             ON T3.ITM_PD_CD = T1.PD_CD
            AND T3.DTA_DL_YN = 'N'
            AND T3.MNGT_YM   = #{inqrYm}
+          LEFT OUTER JOIN TB_PDBS_PD_REL T4
+            ON T4.OJ_PD_CD     = T1.PD_CD
+           AND T4.DTA_DL_YN    = 'N'
+           AND T4.PD_REL_TP_CD = '14'   /* AS부품 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T4.VL_STRT_DTM AND T4.VL_END_DTM
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T5
+            ON T5.PD_CD              = T4.BASE_PD_CD
+           AND T5.DTA_DL_YN          = 'N'
+           AND T5.PD_EXTS_PRP_GRP_CD = 'PART'
          WHERE T1.PD_TP_CD           = 'M'
            AND T1.DTA_DL_YN          = 'N'
            AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
@@ -42,7 +51,7 @@
            AND T1.SAP_MAT_CD <![CDATA[>=]]> LPAD(#{strtSapCd}, 18, '0')
         </if>
         <if test="@MybatisUtils@isNotEmpty(endSapCd)">
-           AND T1.SAP_MAT_CD <![CDATA[<=]]>  LPAD(#{endSapCd}, 18, '0')
+           AND T1.SAP_MAT_CD <![CDATA[<=]]> LPAD(#{endSapCd}, 18, '0')
         </if>
         <if test="@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)">
            AND T1.SAP_MAT_CD IS NOT NULL
@@ -56,8 +65,8 @@
 
     <select id="selectItemOrderQuantitiy" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemOrderQuantityDvo">
         SELECT /*+ LEADING(D1) NO_MERGE(D1) NO_MERGE(D2) NO_MERGE(D3) NO_MERGE(D4) NO_MERGE(D5) NO_MERGE(D6) NO_MERGE(D7) NO_MERGE(D8) USE_NL(D1 D2 D3 D4 D5 D6 D7 D8) */
-               F_CMZ_CD_NM('TNT_WELLS', 'CMN_PART_DV_CD', D1.COMM_GB, #{session.langId}) AS COMM_GB_NM        /* 제품군 */
-             , D1.SAP_CD                                                                                      /* SAP코드 */
+               F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', D1.ITEM_GR, #{session.langId})      AS COMM_GB_NM        /* 제품군 */
+             , TO_CHAR(TO_NUMBER(D1.SAP_CD))                                             AS SAP_CD            /* SAP코드 */
              , D1.PD_CD                                                                                       /* 품목코드 */
              , D1.PD_NM                                                                                       /* 품목명 */
              , NVL(D2.BZNS_OG_QTY, 0)                                                    AS BZNS_OG_QTY       /* 영업조직 */

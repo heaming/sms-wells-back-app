@@ -43,6 +43,7 @@ public class WdcdCleanersMgtDto {
         String aplcDt, /*신청일*/
         //@MaskRequired(type = MaskingType.NAME)
         String aplcnsNm, /*신청자*/
+        String aplcPrtnrNo, /*신청자 사번*/
         String cntrwApnFileId, /*계약서*/
         String cntrLroreApnFileId, /*계약해지원*/
         String idfApnFileId, /*신분증사본*/
@@ -54,6 +55,7 @@ public class WdcdCleanersMgtDto {
         String wrkStrtdt, /*근무시작일자*/
         String wrkEnddt, /*근무종료일자*/
         String workStatus, /*근무여부*/
+        String bryyMmdd, /*생년월일*/
         @MaskRequired(type = MaskingType.RRN)
         String rrnoEncr, /*주민등록번호*/
         String locaraTno,
@@ -68,6 +70,7 @@ public class WdcdCleanersMgtDto {
         String acnoEncr /*계좌번호*/
     ) {
         public SearchRes {
+            rrnoEncr = bryyMmdd + "-" + rrnoEncr;
             telNum = locaraTno + '-' + exnoEncr + '-' + idvTno;
         }
     }

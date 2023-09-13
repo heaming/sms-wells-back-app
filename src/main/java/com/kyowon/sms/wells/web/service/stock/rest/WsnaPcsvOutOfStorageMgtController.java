@@ -28,14 +28,14 @@ public class WsnaPcsvOutOfStorageMgtController {
 
     @ApiOperation(value = "택배설치상품 출고관리", notes = "조회조건에 일치하는 택배설치상품 출고관리 데이터를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "selCnt", value = "조회제한건수", paramType = "query"),
-        @ApiImplicitParam(name = "startDt", value = "계약시작일자", paramType = "query"),
-        @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query"),
-        @ApiImplicitParam(name = "vstFshDt", value = "출고확정일자", paramType = "query"),
-        @ApiImplicitParam(name = "ivcPrntSn", value = "출고확정순번", paramType = "query"),
-        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "startDt", value = "계약시작일자", paramType = "query", required = true),
+        @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query", required = true),
+        @ApiImplicitParam(name = "lgstWkMthdCd", value = "물류작업코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "svBizDclsfCd", value = "출고구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "wkWareNo", value = "창고번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "findGb", value = "조회구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "vstFshDt", value = "출고확정일자", paramType = "query"),
+        @ApiImplicitParam(name = "selCnt", value = "조회제한건수", paramType = "query"),
     })
     @GetMapping
     public List<SearchRes> getPcsvOutOfStorages(
@@ -45,26 +45,16 @@ public class WsnaPcsvOutOfStorageMgtController {
         return service.getPcsvOutOfStorages(dto);
     }
 
-    @ApiOperation(value = "택배설치상품 출고관리 재고수량 조회", notes = "조회조건에 일치하는 택배설치상품 출고관리 재고 수량 정보를 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "wkWareNo", value = "창고코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", required = true),
-    })
-    @GetMapping("/stock-qty")
-    public String getPcsvOutOfStorageStockQty(SearchReq dto) {
-        return service.getPcsvOutOfStorageStockQty(dto);
-    }
-
     @ApiOperation(value = "택배설치상품 출고관리 저장", notes = "출고관리 정보를 저장한다.")
     @PostMapping
-    public SaveResponse savePcsvOutOfStorage(
+    public SaveResponse savePcsvOutOfStorages(
         @Valid
         @RequestBody
         @NotEmpty
         List<SaveReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.savePcsvOutOfStorage(dtos))
+            .processCount(service.savePcsvOutOfStorages(dtos))
             .build();
     }
 
@@ -89,19 +79,8 @@ public class WsnaPcsvOutOfStorageMgtController {
 
     @ApiOperation(value = "택배 상품 목록 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
     @GetMapping("/products")
-    public List<FindProductsRes> getPcsvProducts(FindProductsReq dto) {
-        return service.getPcsvProducts(dto);
+    public List<FindProductsRes> getPcsvProducts() {
+        return service.getPcsvProducts();
     }
 
-    @ApiOperation(value = "택배 출고확정 순번 목록 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
-    @GetMapping("/ivc-prntsns")
-    public List<FindIvcPrntSnRes> getPcsvIvcPrntSns(SearchReq dto) {
-        return service.getPcsvIvcPrntSns(dto);
-    }
-
-    @ApiOperation(value = "택배 출고확정 순번 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
-    @GetMapping("/ivc-prntsn")
-    public String getPcsvIvcPrntSn(SearchReq dto) {
-        return service.getPcsvIvcPrntSn(dto);
-    }
 }

@@ -110,7 +110,7 @@ public class WsncWellsAsInterfaceController {
         @RequestBody
         EaiWrapper<SearchAsSidingChangeReq> reqWrapper
     ) {
-        EaiWrapper<SearchAsSidingChangeRes> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<SearchAsSidingChangeRes>> resWrapper = reqWrapper.newResInstance();
         resWrapper.setBody(service.getAsSidingChanges(reqWrapper.getBody()));
         return resWrapper;
     }

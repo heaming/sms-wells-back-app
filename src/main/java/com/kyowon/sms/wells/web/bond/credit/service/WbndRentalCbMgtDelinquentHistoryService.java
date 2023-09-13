@@ -64,7 +64,7 @@ public class WbndRentalCbMgtDelinquentHistoryService {
         String rgstSchDt = DateUtil.addDays(nowDate, 5); // 등록예정일자
 
         for (SendReq dto : dtos) {
-            Map<String, Object> paramMap = new HashMap<String, Object>();
+            Map<String, Object> paramMap = new HashMap<>();
             paramMap.put("cstKnm", dto.cstKnm());
             paramMap.put("ocBsdt", DateUtil.formatDateKR(ocBsdt));
             paramMap.put("rgstSchDt", DateUtil.formatDateKR(rgstSchDt));

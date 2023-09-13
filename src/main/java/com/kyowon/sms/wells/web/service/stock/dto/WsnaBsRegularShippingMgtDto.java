@@ -262,4 +262,10 @@ public class WsnaBsRegularShippingMgtDto {
         String mpacSn, /* 합포장번호 */
         String lgstWkMthdCd
     ) {}
+
+    @ApiModel("WsnaAsConsumablesStoreDto-WareMngtRes")
+    public record WareMngtRes(
+        String wareMngtPrtnrNo,
+        String wareMngtPrtnrOgTpCd
+    ) {}
 }

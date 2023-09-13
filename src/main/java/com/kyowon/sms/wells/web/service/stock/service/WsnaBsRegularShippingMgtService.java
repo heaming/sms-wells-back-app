@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.wells.web.service.common.service.WsnzHistoryService;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaBsRegularShippingMgtConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.*;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMaterialDvo;
@@ -16,8 +17,6 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsRegularShippingMgtMapper;
 import com.sds.sflex.common.utils.DateUtil;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -41,6 +40,8 @@ public class WsnaBsRegularShippingMgtService {
     private final WsnaBsRegularShippingMgtConverter converter;
     private final WsnaItemStockItemizationService itemStockService;
     private final WsnaLogisticsOutStorageAskService logisticsOutStorageAskService;
+
+    private final WsnzHistoryService historyService;
 
     /**
      * (자가필터,건식상품) 배송관리 조회 조건(상품 목록) 조회
@@ -83,12 +84,16 @@ public class WsnaBsRegularShippingMgtService {
     @Transactional
     public int createShippingItems(List<SaveReq> dtos) {
         int processCount = 0;
+        String lgstWkMthdCd = "";
+        String lgstOstrAkNo = "";
         List<WsnaBsRegularShippingMgtDvo> dvos = converter.mapSaveReqToWsnaShippingManagementDvo(dtos);
         // 물류인터페이스 호출용 dvo
         List<WsnaLogisticsOutStorageAskReqDvo> logisticDvos = new ArrayList<>();
-        String lgstWkMthdCd = dtos.get(0).lgstWkMthdCd();
-        // 물류요청번호 생성
-        String lgstOstrAkNo = mapper.selectNewLgstOstrAkNo();
+        if (!List.of("11", "92").contains(dvos.get(0).getPdGroupCd())) {
+            lgstWkMthdCd = dtos.get(0).lgstWkMthdCd();
+            // 물류요청번호 생성
+            lgstOstrAkNo = mapper.selectNewLgstOstrAkNo();
+        }
         //저장
         for (WsnaBsRegularShippingMgtDvo dvo : dvos) {
             // 암호화 이전 값 따로 세팅.
@@ -96,10 +101,12 @@ public class WsnaBsRegularShippingMgtService {
             String exnoEnncr = dvo.getExnoEncr();
             // 출고요청 번호 생성
             dvo.setOstrAkNo(mapper.selectOstAkNo(dvo));
-            // 물류요청구분코드
-            dvo.setLgstWkMthdCd(lgstWkMthdCd);
-            // 물류요청번호추가
-            dvo.setLgstOstrAkNo(lgstOstrAkNo);
+            if (!List.of("11", "92").contains(dvo.getPdGroupCd())) {
+                // 물류요청구분코드
+                dvo.setLgstWkMthdCd(lgstWkMthdCd);
+                // 물류요청번호추가
+                dvo.setLgstOstrAkNo(lgstOstrAkNo);
+            }
             // 저장 전 부품자재들 dvos로 변환 1,2,4 저장필요.
             List<WsnaBsRegularShippingMaterialDvo> materialDvos = this.transferShippingMaterials(dvo);
 
@@ -117,7 +124,7 @@ public class WsnaBsRegularShippingMgtService {
                 materialDvo.setAdrsTnoVal(tno);
                 materialDvo.setAdrsCphonNoVal(mpno);
                 // 3.재고정보변경, 물류인터페이스 dvo list(모종제품제외)
-                if (!StringUtils.equals(dvo.getPdGroupCd(), "11")) {
+                if (!List.of("11", "92").contains(dvo.getPdGroupCd())) {
                     this.putStockItems(materialDvo);
                     // 물류인터페이스 dvo list에 추가
                     materialDvo.setAdrsTnoVal(tno);
@@ -131,6 +138,8 @@ public class WsnaBsRegularShippingMgtService {
             mapper.updateBsPeriod(dvo);
             // 고객서비스BS배정내역(TB_SVPD_CST_SV_BSFVC_ASN_IZ) update
             mapper.updateBsAssign(dvo);
+            // history 생성
+            historyService.insertCstSvBfsvcAsnHistByPk(dvo.getCstSvAsnNo());
 
             // 작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) 저장
             dvo.setMexnoEncr(mexnoEncr);
@@ -138,6 +147,7 @@ public class WsnaBsRegularShippingMgtService {
             mapper.insertWorkResult(dvo);
             processCount += 1;
         }
+        // 모종제품은 제외.
         if (ObjectUtils.isNotEmpty(logisticDvos)) {
             //물류인터페이스 호출
             logisticsOutStorageAskService.createSelfFilterOutOfStorageAsks(logisticDvos);
@@ -148,20 +158,19 @@ public class WsnaBsRegularShippingMgtService {
     public List<WsnaBsRegularShippingMaterialDvo> transferShippingMaterials(WsnaBsRegularShippingMgtDvo dvo) {
 
         List<WsnaBsRegularShippingMaterialDvo> materialDvos = new ArrayList<>();
-        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
         WsnaBsRegularShippingMaterialDvo materialDvo = converter.mapShippingManagementDvoToShippingMaterialDvo(dvo);
+        // 창고담당자 조회
+        WareMngtRes wareMngtRes = mapper.selectWareMngtInfo("100002");
         String now = DateUtil.getNowString();
         // 물류인터페이스호출용 값 세팅
         materialDvo.setOstrAkTpCd("400");
         materialDvo.setOstrAkRgstDt(now.substring(0, 8));
         materialDvo.setIostAkDvCd("WE");
-        //        materialDvo.setMpacSn(0);
         materialDvo.setLgstSppMthdCd("2");
-        //        materialDvo.setLgstWkMthdCd("WE01");
         materialDvo.setAdrsTnoVal(dvo.getTno());
         materialDvo.setAdrsCphonNoVal(dvo.getMpno());
-        materialDvo.setWareMngtPrtnrNo("71321");
-        materialDvo.setWareMngtPrtnrOgTpCd("@7132");
+        materialDvo.setWareMngtPrtnrNo(wareMngtRes.wareMngtPrtnrNo());
+        materialDvo.setWareMngtPrtnrOgTpCd(wareMngtRes.wareMngtPrtnrOgTpCd());
         materialDvo.setOstrOjWareNo("100002");
         materialDvo.setItmGdCd("A");
         materialDvo.setCstNm(dvo.getCstKnm());

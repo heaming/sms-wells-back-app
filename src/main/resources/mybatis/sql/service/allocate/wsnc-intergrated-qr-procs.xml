@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncIntergratedQrProcsListSearchMapper">
+    <select id="selectByOgList"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncIntergratedQrProcsListSearchDvo">
+    WITH TB_PRTNR AS (
+                    SELECT T1.PRTNR_NO
+                         , T1.PRTNR_KNM
+                         , T1.OG_NM||'('||T1.OG_CD||')' OG_NM
+                         , T2.BLD_NM
+                         , T1.OG_CD
+                         , T2.DGR1_LEVL_OG_NM||'('||T2.DGR1_LEVL_OG_CD||')' DGR1_LEVL_OG_NM
+                         , T2.DGR2_LEVL_OG_NM||'('||T2.DGR2_LEVL_OG_CD||')' DGR2_LEVL_OG_NM
+                         , T2.DGR2_LEVL_DG_PRTNR_NM
+                         , T2.DGR1_LEVL_OG_CD
+                         , T2.DGR2_LEVL_OG_CD
+                         , (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS T4 WHERE T4.PRTNR_NO = T2.BIZ_SPPT_PRTNR_NO)||'('||T2.BIZ_SPPT_PRTNR_NO||')' BM_NM
+                      FROM TB_OGBS_MM_PRTNR_IZ T1
+                         , TB_OGBS_MM_OG_IZ T2
+                     WHERE T1.BASE_YM = SUBSTR(#{baseDateFrom}, 1, 6)
+                       AND T2.BASE_YM = SUBSTR(#{baseDateFrom}, 1, 6)
+                       AND T1.OG_ID = T2.OG_ID
+                       <if test="@MybatisUtils@equals(mngrDvCd, '1')">
+                       AND T1.OG_TP_CD IN ('W02', 'ALC')
+                           <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+                           AND T2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+                               <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                               AND T2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+                               </if>
+                           </if>
+                       </if>
+                       <if test="@MybatisUtils@equals(mngrDvCd, '2')">
+                       AND T1.OG_TP_CD IN ('W03', 'W06')
+                           <if test="@MybatisUtils@isNotEmpty(svOgId)">
+                           AND T2.OG_ID = #{svOgId}
+                           </if>
+                       </if>
+                       AND T1.DTA_DL_YN = 'N'
+                      )
+       , TB_SV1 AS (
+                    SELECT *
+                      FROM TB_SVPD_CST_SV_WK_RS_IZ
+                     WHERE SV_BIZ_HCLSF_CD = '2'
+                       AND VST_FSH_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                       AND WK_PRGS_STAT_CD = '20'
+                    )
+       , TB_PD AS (
+                    SELECT T1.PD_CD
+                         , PD_PRP_VAL40
+                      FROM TB_PDBS_PD_BAS T1
+                         , TB_PDBS_PD_ECOM_PRP_DTL T2
+                     WHERE 1=1
+                       AND T1.PD_CD = T2.PD_CD
+                       AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                   )
+
+    SELECT DGR1_LEVL_OG_NM
+         , DGR2_LEVL_OG_NM
+         , DGR2_LEVL_DG_PRTNR_NM
+         , BM_NM
+         , SUM(1) BS_CMPLTD
+         , SUM(CASE WHEN PD_PRP_VAL40 = '2' THEN 1 ELSE 0 END) ITG_QR_TRGT
+         , SUM(CASE WHEN PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y' THEN 1 ELSE 0 END) ITG_QR_CMPLTD
+         , SUM(CASE WHEN PD_PRP_VAL40 = '1' THEN 1 ELSE 0 END) NRM_QR_TRGT
+         , SUM(CASE WHEN PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y' THEN 1 ELSE 0 END) NRM_QR_CMPLTD
+         , SUM(CASE WHEN (PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y') OR (PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y') THEN 1 ELSE 0 END) QR_CMPLTD
+         , SUM(1) QR_TRGT
+         , (CASE WHEN SUM(CASE WHEN (PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y') OR (PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y') THEN 1 ELSE 0 END) = 0 THEN 0 ELSE ROUND((SUM(CASE WHEN (PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y') OR (PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y') THEN 1 ELSE 0 END) / SUM(1)) * 100, 2) END) ATTACH_RATE
+      FROM (
+            SELECT PD1.PD_PRP_VAL40
+                 , CASE WHEN SV1.ITG_QRS_BC_NO IS NOT NULL THEN 'Y'
+                        ELSE 'N'
+                    END ITG_QRS_BC_NO_YN
+                 , CASE WHEN SV1.BC_NO IS NOT NULL THEN 'Y'
+                        ELSE 'N'
+                    END BC_NO_YN
+                 , PRT1.PRTNR_KNM
+                 , SV1.PRTNR_NO
+                 , PRT1.DGR1_LEVL_OG_NM DGR1_LEVL_OG_NM
+                 , PRT1.DGR2_LEVL_OG_NM DGR2_LEVL_OG_NM
+                 , PRT1.DGR2_LEVL_DG_PRTNR_NM
+                 , PRT1.BM_NM
+
+                 , PRT1.DGR1_LEVL_OG_CD
+                 , PRT1.DGR2_LEVL_OG_CD
+              FROM TB_SV1 SV1
+                 , TB_PRTNR PRT1
+                 , TB_PD PD1
+             WHERE 1=1
+               AND SV1.PRTNR_NO = PRT1.PRTNR_NO
+               AND SV1.PDCT_PD_CD = PD1.PD_CD(+)
+            )
+     GROUP
+        BY DGR1_LEVL_OG_NM, DGR2_LEVL_OG_NM, DGR2_LEVL_DG_PRTNR_NM, BM_NM, DGR1_LEVL_OG_CD, DGR2_LEVL_OG_CD
+     ORDER
+        BY DGR1_LEVL_OG_CD, DGR2_LEVL_OG_CD
+    </select>
+
+    <select id="selectOgDetailList"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncIntergratedQrProcsListSearchDvo">
+    WITH TB_PRTNR AS (
+                    SELECT T1.PRTNR_NO
+                         , T1.PRTNR_KNM
+                         , T1.OG_NM||'('||T1.OG_CD||')' OG_NM
+                         , T2.BLD_NM
+                         , T1.OG_CD
+                      FROM TB_OGBS_MM_PRTNR_IZ T1
+                         , TB_OGBS_MM_OG_IZ T2
+                     WHERE T1.BASE_YM = SUBSTR(#{baseDateFrom}, 1, 6)
+                       AND T2.BASE_YM = SUBSTR(#{baseDateFrom}, 1, 6)
+                       AND T1.OG_ID = T2.OG_ID
+                       <if test="@MybatisUtils@equals(mngrDvCd, '1')">
+                       AND T1.OG_TP_CD IN ('W02', 'ALC')
+                           <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+                           AND T2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+                               <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                               AND T2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+                               </if>
+                           </if>
+                       </if>
+                       <if test="@MybatisUtils@equals(mngrDvCd, '2')">
+                       AND T1.OG_TP_CD IN ('W03', 'W06')
+                           <if test="@MybatisUtils@isNotEmpty(svOgId)">
+                           AND T2.OG_ID = #{svOgId}
+                           </if>
+                       </if>
+                       AND T1.DTA_DL_YN = 'N'
+                      )
+       , TB_SV1 AS (
+                    SELECT *
+                      FROM TB_SVPD_CST_SV_WK_RS_IZ
+                     WHERE SV_BIZ_HCLSF_CD = '2'
+                       AND VST_FSH_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                       AND WK_PRGS_STAT_CD = '20'
+                    )
+       , TB_PD AS (
+                    SELECT T1.PD_CD
+                         , PD_PRP_VAL40
+                      FROM TB_PDBS_PD_BAS T1
+                         , TB_PDBS_PD_ECOM_PRP_DTL T2
+                     WHERE 1=1
+                       AND T1.PD_CD = T2.PD_CD
+                       AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                   )
+
+    SELECT OG_NM
+         , PRTNR_NO
+         , PRTNR_KNM PRTNR_NM
+         , BLD_NM
+         , SUM(1) BS_CMPLTD
+         , SUM(CASE WHEN PD_PRP_VAL40 = '2' THEN 1 ELSE 0 END) ITG_QR_TRGT
+         , SUM(CASE WHEN PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y' THEN 1 ELSE 0 END) ITG_QR_CMPLTD
+         , SUM(CASE WHEN PD_PRP_VAL40 = '1' THEN 1 ELSE 0 END) NRM_QR_TRGT
+         , SUM(CASE WHEN PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y' THEN 1 ELSE 0 END) NRM_QR_CMPLTD
+         , SUM(CASE WHEN (PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y') OR (PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y') THEN 1 ELSE 0 END) QR_CMPLTD
+         , SUM(1) QR_TRGT
+         , (CASE WHEN SUM(CASE WHEN (PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y') OR (PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y') THEN 1 ELSE 0 END) = 0 THEN 0 ELSE ROUND((SUM(CASE WHEN (PD_PRP_VAL40 = '2' AND ITG_QRS_BC_NO_YN = 'Y') OR (PD_PRP_VAL40 = '1' AND BC_NO_YN = 'Y') THEN 1 ELSE 0 END) / SUM(1)) * 100, 2) END) ATTACH_RATE
+      FROM (
+            SELECT PD1.PD_PRP_VAL40
+                 , CASE WHEN SV1.ITG_QRS_BC_NO IS NOT NULL THEN 'Y'
+                        ELSE 'N'
+                    END ITG_QRS_BC_NO_YN
+                 , CASE WHEN SV1.BC_NO IS NOT NULL THEN 'Y'
+                        ELSE 'N'
+                    END BC_NO_YN
+                 , PRT1.PRTNR_KNM
+                 , SV1.PRTNR_NO
+                 , PRT1.OG_NM
+                 , PRT1.BLD_NM
+                 , PRT1.OG_CD
+              FROM TB_SV1 SV1
+                 , TB_PRTNR PRT1
+                 , TB_PD PD1
+             WHERE 1=1
+               AND SV1.PRTNR_NO = PRT1.PRTNR_NO
+               AND SV1.PDCT_PD_CD = PD1.PD_CD(+)
+            )
+     GROUP
+        BY PRTNR_NO, PRTNR_KNM, OG_CD, OG_NM, BLD_NM
+     ORDER
+        BY OG_CD, PRTNR_NO
+    </select>
+
+    <select id="selectAggrList"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncIntergratedQrProcsListSearchDvo">
+    WITH TB_PD AS (
+                    SELECT T1.PD_CD
+                         , PD_PRP_VAL20
+                      FROM TB_PDBS_PD_BAS T1
+                         , TB_PDBS_PD_ECOM_PRP_DTL T2
+                     WHERE 1=1
+                       AND T1.PD_CD = T2.PD_CD
+                       AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                       AND T2.PD_PRP_VAL19 = '4'
+                   )
+       , TB_CST01 AS (
+                        SELECT T2.PD_PRP_VAL20
+                             , COUNT(1) ACCOUNT_CNT
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                             , TB_PDBS_PD_ECOM_PRP_DTL T2
+                         WHERE 1=1
+                           AND T1.MNGT_YM = #{baseYear}||'01'
+                           AND T1.PDCT_PD_CD = T2.PD_CD
+                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                           AND T1.REQD_DT IS NULL
+                           AND T1.CAN_DT IS NULL
+                           AND T1.CPS_DT IS NULL
+                         GROUP
+                            BY T2.PD_PRP_VAL20
+                      )
+       , TB_CST02 AS (
+                        SELECT T2.PD_PRP_VAL20
+                             , COUNT(1) ACCOUNT_CNT
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                             , TB_PDBS_PD_ECOM_PRP_DTL T2
+                         WHERE 1=1
+                           AND T1.MNGT_YM = '202'||'302'
+                           AND T1.PDCT_PD_CD = T2.PD_CD
+                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                           AND T1.REQD_DT IS NULL
+                           AND T1.CAN_DT IS NULL
+                           AND T1.CPS_DT IS NULL
+                         GROUP
+                            BY T2.PD_PRP_VAL20
+                      )
+       , TB_CST03 AS (
+                        SELECT T2.PD_PRP_VAL20
+                             , COUNT(1) ACCOUNT_CNT
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                             , TB_PDBS_PD_ECOM_PRP_DTL T2
+                         WHERE 1=1
+                           AND T1.MNGT_YM = #{baseYear}||'03'
+                           AND T1.PDCT_PD_CD = T2.PD_CD
+                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                           AND T1.REQD_DT IS NULL
+                           AND T1.CAN_DT IS NULL
+                           AND T1.CPS_DT IS NULL
+                         GROUP
+                            BY T2.PD_PRP_VAL20
+                      )
+       , TB_CST04 AS (
+                        SELECT T2.PD_PRP_VAL20
+                             , COUNT(1) ACCOUNT_CNT
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                             , TB_PDBS_PD_ECOM_PRP_DTL T2
+                         WHERE 1=1
+                           AND T1.MNGT_YM = #{baseYear}||'04'
+                           AND T1.PDCT_PD_CD = T2.PD_CD
+                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                           AND T1.REQD_DT IS NULL
+                           AND T1.CAN_DT IS NULL
+                           AND T1.CPS_DT IS NULL
+                         GROUP
+                            BY T2.PD_PRP_VAL20
+                      )
+       , TB_CST05 AS (
+                        SELECT T2.PD_PRP_VAL20
+                             , COUNT(1) ACCOUNT_CNT
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                             , TB_PDBS_PD_ECOM_PRP_DTL T2
+                         WHERE 1=1
+                           AND T1.MNGT_YM = #{baseYear}||'05'
+                           AND T1.PDCT_PD_CD = T2.PD_CD
+                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                           AND T1.REQD_DT IS NULL
+                           AND T1.CAN_DT IS NULL
+                           AND T1.CPS_DT IS NULL
+                         GROUP
+                            BY T2.PD_PRP_VAL20
+                      )
+       , TB_CST06 AS (
+                        SELECT T2.PD_PRP_VAL20
+                             , COUNT(1) ACCOUNT_CNT
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                             , TB_PDBS_PD_ECOM_PRP_DTL T2
+                         WHERE 1=1
+                           AND T1.MNGT_YM = #{baseYear}||'06'
+                           AND T1.PDCT_PD_CD = T2.PD_CD
+                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                           AND T1.REQD_DT IS NULL
+                           AND T1.CAN_DT IS NULL
+                           AND T1.CPS_DT IS NULL
+                         GROUP
+                            BY T2.PD_PRP_VAL20
+                      )
+       , TB_CST07 AS (
+                        SELECT T2.PD_PRP_VAL20
+                             , COUNT(1) ACCOUNT_CNT
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                             , TB_PDBS_PD_ECOM_PRP_DTL T2
+                         WHERE 1=1
+                           AND T1.MNGT_YM = #{baseYear}||'07'
+                           AND T1.PDCT_PD_CD = T2.PD_CD
+                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                           AND T1.REQD_DT IS NULL
+                           AND T1.CAN_DT IS NULL
+                           AND T1.CPS_DT IS NULL
+                         GROUP
+                            BY T2.PD_PRP_VAL20
+                      )
+       , TB_CST08 AS (
+                        SELECT T2.PD_PRP_VAL20
+                             , COUNT(1) ACCOUNT_CNT
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                             , TB_PDBS_PD_ECOM_PRP_DTL T2
+                         WHERE 1=1
+                           AND T1.MNGT_YM = #{baseYear}||'08'
+                           AND T1.PDCT_PD_CD = T2.PD_CD
+                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                           AND T1.REQD_DT IS NULL
+                           AND T1.CAN_DT IS NULL
+                           AND T1.CPS_DT IS NULL
+                         GROUP
+                            BY T2.PD_PRP_VAL20
+                      )
+       , TB_CST09 AS (
+                        SELECT T2.PD_PRP_VAL20
+                             , COUNT(1) ACCOUNT_CNT
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                             , TB_PDBS_PD_ECOM_PRP_DTL T2
+                         WHERE 1=1
+                           AND T1.MNGT_YM = #{baseYear}||'09'
+                           AND T1.PDCT_PD_CD = T2.PD_CD
+                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                           AND T1.REQD_DT IS NULL
+                           AND T1.CAN_DT IS NULL
+                           AND T1.CPS_DT IS NULL
+                         GROUP
+                            BY T2.PD_PRP_VAL20
+                      )
+       , TB_CST10 AS (
+                        SELECT T2.PD_PRP_VAL20
+                             , COUNT(1) ACCOUNT_CNT
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                             , TB_PDBS_PD_ECOM_PRP_DTL T2
+                         WHERE 1=1
+                           AND T1.MNGT_YM = #{baseYear}||'10'
+                           AND T1.PDCT_PD_CD = T2.PD_CD
+                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                           AND T1.REQD_DT IS NULL
+                           AND T1.CAN_DT IS NULL
+                           AND T1.CPS_DT IS NULL
+                         GROUP
+                            BY T2.PD_PRP_VAL20
+                      )
+       , TB_CST11 AS (
+                        SELECT T2.PD_PRP_VAL20
+                             , COUNT(1) ACCOUNT_CNT
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                             , TB_PDBS_PD_ECOM_PRP_DTL T2
+                         WHERE 1=1
+                           AND T1.MNGT_YM = #{baseYear}||'11'
+                           AND T1.PDCT_PD_CD = T2.PD_CD
+                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                           AND T1.REQD_DT IS NULL
+                           AND T1.CAN_DT IS NULL
+                           AND T1.CPS_DT IS NULL
+                         GROUP
+                            BY T2.PD_PRP_VAL20
+                      )
+       , TB_CST12 AS (
+                        SELECT T2.PD_PRP_VAL20
+                             , COUNT(1) ACCOUNT_CNT
+                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                             , TB_PDBS_PD_ECOM_PRP_DTL T2
+                         WHERE 1=1
+                           AND T1.MNGT_YM = #{baseYear}||'12'
+                           AND T1.PDCT_PD_CD = T2.PD_CD
+                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                           AND T1.REQD_DT IS NULL
+                           AND T1.CAN_DT IS NULL
+                           AND T1.CPS_DT IS NULL
+                         GROUP
+                            BY T2.PD_PRP_VAL20
+                      )
+		SELECT GRP_NM
+			 , NEW_QR_01
+			 , SUM_QR_01
+			 , WELLS_ACCOUNT_01
+			 , (CASE WHEN WELLS_ACCOUNT_01 = 0 THEN 0 ELSE ROUND((SUM_QR_01 / WELLS_ACCOUNT_01) * 100 , 2) END) ACCOUNT_RATE_01
+			 , NEW_QR_02
+			 , SUM_QR_02
+			 , WELLS_ACCOUNT_02
+			 , (CASE WHEN WELLS_ACCOUNT_02 = 0 THEN 0 ELSE ROUND((SUM_QR_02 / WELLS_ACCOUNT_02) * 100 , 2) END) ACCOUNT_RATE_02
+			 , NEW_QR_03
+			 , SUM_QR_03
+			 , WELLS_ACCOUNT_03
+			 , (CASE WHEN WELLS_ACCOUNT_03 = 0 THEN 0 ELSE ROUND((SUM_QR_03 / WELLS_ACCOUNT_03) * 100 , 2) END) ACCOUNT_RATE_03
+			 , NEW_QR_04
+			 , SUM_QR_04
+			 , WELLS_ACCOUNT_04
+			 , (CASE WHEN WELLS_ACCOUNT_04 = 0 THEN 0 ELSE ROUND((SUM_QR_04 / WELLS_ACCOUNT_04) * 100 , 2) END) ACCOUNT_RATE_04
+			 , NEW_QR_05
+			 , SUM_QR_05
+			 , WELLS_ACCOUNT_05
+			 , (CASE WHEN WELLS_ACCOUNT_05 = 0 THEN 0 ELSE ROUND((SUM_QR_05 / WELLS_ACCOUNT_05) * 100 , 2) END) ACCOUNT_RATE_05
+			 , NEW_QR_06
+			 , SUM_QR_06
+			 , WELLS_ACCOUNT_06
+			 , (CASE WHEN WELLS_ACCOUNT_06 = 0 THEN 0 ELSE ROUND((SUM_QR_06 / WELLS_ACCOUNT_06) * 100 , 2) END) ACCOUNT_RATE_06
+			 , NEW_QR_07
+			 , SUM_QR_07
+			 , WELLS_ACCOUNT_07
+			 , (CASE WHEN WELLS_ACCOUNT_07 = 0 THEN 0 ELSE ROUND((SUM_QR_07 / WELLS_ACCOUNT_07) * 100 , 2) END) ACCOUNT_RATE_07
+			 , NEW_QR_08
+			 , SUM_QR_08
+			 , WELLS_ACCOUNT_08
+			 , (CASE WHEN WELLS_ACCOUNT_08 = 0 THEN 0 ELSE ROUND((SUM_QR_08 / WELLS_ACCOUNT_08) * 100 , 2) END) ACCOUNT_RATE_08
+			 , NEW_QR_09
+			 , SUM_QR_09
+			 , WELLS_ACCOUNT_09
+			 , (CASE WHEN WELLS_ACCOUNT_09 = 0 THEN 0 ELSE ROUND((SUM_QR_09 / WELLS_ACCOUNT_09) * 100 , 2) END) ACCOUNT_RATE_09
+			 , NEW_QR_10
+			 , SUM_QR_10
+			 , WELLS_ACCOUNT_10
+			 , (CASE WHEN WELLS_ACCOUNT_10 = 0 THEN 0 ELSE ROUND((SUM_QR_10 / WELLS_ACCOUNT_10) * 100 , 2) END) ACCOUNT_RATE_10
+			 , NEW_QR_11
+			 , SUM_QR_11
+			 , WELLS_ACCOUNT_11
+			 , (CASE WHEN WELLS_ACCOUNT_11 = 0 THEN 0 ELSE ROUND((SUM_QR_11 / WELLS_ACCOUNT_11) * 100 , 2) END) ACCOUNT_RATE_11
+			 , NEW_QR_12
+			 , SUM_QR_12
+			 , WELLS_ACCOUNT_12
+			 , (CASE WHEN WELLS_ACCOUNT_12 = 0 THEN 0 ELSE ROUND((SUM_QR_12 / WELLS_ACCOUNT_12) * 100 , 2) END) ACCOUNT_RATE_12
+		  FROM (
+	            SELECT F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', V1.PD_PRP_VAL20) GRP_NM
+	                 , SUM(CASE WHEN V1.VST_FSH_DT LIKE #{baseYear}||'01%' THEN 1 ELSE 0 END) NEW_QR_01
+	                 , SUM(CASE WHEN V1.VST_FSH_DT &lt;= #{baseYear}||'0131' AND (CST1.REQD_DT IS NULL OR CST1.REQD_DT > #{baseYear}||'0131') AND (CST1.CPS_DT IS NULL OR CST1.CPS_DT > #{baseYear}||'0131') THEN 1 ELSE 0 END) SUM_QR_01
+	                 , (SELECT ACCOUNT_CNT FROM TB_CST01 T1 WHERE T1.PD_PRP_VAL20 = V1.PD_PRP_VAL20) WELLS_ACCOUNT_01
+	                 , SUM(CASE WHEN V1.VST_FSH_DT LIKE #{baseYear}||'02%' THEN 1 ELSE 0 END) NEW_QR_02
+	                 , SUM(CASE WHEN V1.VST_FSH_DT &lt;= #{baseYear}||'0231' AND (CST1.REQD_DT IS NULL OR CST1.REQD_DT > #{baseYear}||'0231') AND (CST1.CPS_DT IS NULL OR CST1.CPS_DT > #{baseYear}||'0231') THEN 1 ELSE 0 END) SUM_QR_02
+	                 , (SELECT ACCOUNT_CNT FROM TB_CST02 T1 WHERE T1.PD_PRP_VAL20 = V1.PD_PRP_VAL20) WELLS_ACCOUNT_02
+	                 , SUM(CASE WHEN V1.VST_FSH_DT LIKE #{baseYear}||'03%' THEN 1 ELSE 0 END) NEW_QR_03
+	                 , SUM(CASE WHEN V1.VST_FSH_DT &lt;= #{baseYear}||'0331' AND (CST1.REQD_DT IS NULL OR CST1.REQD_DT > #{baseYear}||'0331') AND (CST1.CPS_DT IS NULL OR CST1.CPS_DT > #{baseYear}||'0331') THEN 1 ELSE 0 END) SUM_QR_03
+	                 , (SELECT ACCOUNT_CNT FROM TB_CST03 T1 WHERE T1.PD_PRP_VAL20 = V1.PD_PRP_VAL20) WELLS_ACCOUNT_03
+	                 , SUM(CASE WHEN V1.VST_FSH_DT LIKE #{baseYear}||'04%' THEN 1 ELSE 0 END) NEW_QR_04
+	                 , SUM(CASE WHEN V1.VST_FSH_DT &lt;= #{baseYear}||'0431' AND (CST1.REQD_DT IS NULL OR CST1.REQD_DT > #{baseYear}||'0431') AND (CST1.CPS_DT IS NULL OR CST1.CPS_DT > #{baseYear}||'0431') THEN 1 ELSE 0 END) SUM_QR_04
+	                 , (SELECT ACCOUNT_CNT FROM TB_CST04 T1 WHERE T1.PD_PRP_VAL20 = V1.PD_PRP_VAL20) WELLS_ACCOUNT_04
+	                 , SUM(CASE WHEN V1.VST_FSH_DT LIKE #{baseYear}||'05%' THEN 1 ELSE 0 END) NEW_QR_05
+	                 , SUM(CASE WHEN V1.VST_FSH_DT &lt;= #{baseYear}||'0531' AND (CST1.REQD_DT IS NULL OR CST1.REQD_DT > #{baseYear}||'0531') AND (CST1.CPS_DT IS NULL OR CST1.CPS_DT > #{baseYear}||'0531') THEN 1 ELSE 0 END) SUM_QR_05
+	                 , (SELECT ACCOUNT_CNT FROM TB_CST05 T1 WHERE T1.PD_PRP_VAL20 = V1.PD_PRP_VAL20) WELLS_ACCOUNT_05
+	                 , SUM(CASE WHEN V1.VST_FSH_DT LIKE #{baseYear}||'06%' THEN 1 ELSE 0 END) NEW_QR_06
+	                 , SUM(CASE WHEN V1.VST_FSH_DT &lt;= #{baseYear}||'0631' AND (CST1.REQD_DT IS NULL OR CST1.REQD_DT > #{baseYear}||'0631') AND (CST1.CPS_DT IS NULL OR CST1.CPS_DT > #{baseYear}||'0631') THEN 1 ELSE 0 END) SUM_QR_06
+	                 , (SELECT ACCOUNT_CNT FROM TB_CST06 T1 WHERE T1.PD_PRP_VAL20 = V1.PD_PRP_VAL20) WELLS_ACCOUNT_06
+	                 , SUM(CASE WHEN V1.VST_FSH_DT LIKE #{baseYear}||'07%' THEN 1 ELSE 0 END) NEW_QR_07
+	                 , SUM(CASE WHEN V1.VST_FSH_DT &lt;= #{baseYear}||'0731' AND (CST1.REQD_DT IS NULL OR CST1.REQD_DT > #{baseYear}||'0731') AND (CST1.CPS_DT IS NULL OR CST1.CPS_DT > #{baseYear}||'0731') THEN 1 ELSE 0 END) SUM_QR_07
+	                 , (SELECT ACCOUNT_CNT FROM TB_CST07 T1 WHERE T1.PD_PRP_VAL20 = V1.PD_PRP_VAL20) WELLS_ACCOUNT_07
+	                 , SUM(CASE WHEN V1.VST_FSH_DT LIKE #{baseYear}||'08%' THEN 1 ELSE 0 END) NEW_QR_08
+	                 , SUM(CASE WHEN V1.VST_FSH_DT &lt;= #{baseYear}||'0831' AND (CST1.REQD_DT IS NULL OR CST1.REQD_DT > #{baseYear}||'0831') AND (CST1.CPS_DT IS NULL OR CST1.CPS_DT > #{baseYear}||'0831') THEN 1 ELSE 0 END) SUM_QR_08
+	                 , (SELECT ACCOUNT_CNT FROM TB_CST08 T1 WHERE T1.PD_PRP_VAL20 = V1.PD_PRP_VAL20) WELLS_ACCOUNT_08
+	                 , SUM(CASE WHEN V1.VST_FSH_DT LIKE #{baseYear}||'09%' THEN 1 ELSE 0 END) NEW_QR_09
+	                 , SUM(CASE WHEN V1.VST_FSH_DT &lt;= #{baseYear}||'0931' AND (CST1.REQD_DT IS NULL OR CST1.REQD_DT > #{baseYear}||'0931') AND (CST1.CPS_DT IS NULL OR CST1.CPS_DT > #{baseYear}||'0931') THEN 1 ELSE 0 END) SUM_QR_09
+	                 , (SELECT ACCOUNT_CNT FROM TB_CST09 T1 WHERE T1.PD_PRP_VAL20 = V1.PD_PRP_VAL20) WELLS_ACCOUNT_09
+	                 , SUM(CASE WHEN V1.VST_FSH_DT LIKE #{baseYear}||'10%' THEN 1 ELSE 0 END) NEW_QR_10
+	                 , SUM(CASE WHEN V1.VST_FSH_DT &lt;= #{baseYear}||'1031' AND (CST1.REQD_DT IS NULL OR CST1.REQD_DT > #{baseYear}||'1031') AND (CST1.CPS_DT IS NULL OR CST1.CPS_DT > #{baseYear}||'1031') THEN 1 ELSE 0 END) SUM_QR_10
+	                 , (SELECT ACCOUNT_CNT FROM TB_CST10 T1 WHERE T1.PD_PRP_VAL20 = V1.PD_PRP_VAL20) WELLS_ACCOUNT_10
+	                 , SUM(CASE WHEN V1.VST_FSH_DT LIKE #{baseYear}||'11%' THEN 1 ELSE 0 END) NEW_QR_11
+	                 , SUM(CASE WHEN V1.VST_FSH_DT &lt;= #{baseYear}||'1131' AND (CST1.REQD_DT IS NULL OR CST1.REQD_DT > #{baseYear}||'1131') AND (CST1.CPS_DT IS NULL OR CST1.CPS_DT > #{baseYear}||'1131') THEN 1 ELSE 0 END) SUM_QR_11
+	                 , (SELECT ACCOUNT_CNT FROM TB_CST11 T1 WHERE T1.PD_PRP_VAL20 = V1.PD_PRP_VAL20) WELLS_ACCOUNT_11
+	                 , SUM(CASE WHEN V1.VST_FSH_DT LIKE #{baseYear}||'12%' THEN 1 ELSE 0 END) NEW_QR_12
+	                 , SUM(CASE WHEN V1.VST_FSH_DT &lt;= #{baseYear}||'1231' AND (CST1.REQD_DT IS NULL OR CST1.REQD_DT > #{baseYear}||'1231') AND (CST1.CPS_DT IS NULL OR CST1.CPS_DT > #{baseYear}||'1231') THEN 1 ELSE 0 END) SUM_QR_12
+	                 , (SELECT ACCOUNT_CNT FROM TB_CST12 T1 WHERE T1.PD_PRP_VAL20 = V1.PD_PRP_VAL20) WELLS_ACCOUNT_12
+	              FROM (
+	                    SELECT SV1.CNTR_NO
+	                         , SV1.CNTR_SN
+	                         , MIN(SV1.VST_FSH_DT) VST_FSH_DT
+	                         , PD1.PD_PRP_VAL20
+	                      FROM TB_SVPD_CST_SV_WK_RS_IZ SV1
+	                         , TB_PD PD1
+	                     WHERE 1=1
+	                       AND SV1.PDCT_PD_CD = PD1.PD_CD
+	                       AND SV1.ITG_QRS_BC_NO IS NOT NULL
+	                     GROUP
+	                        BY SV1.CNTR_NO, SV1.CNTR_SN, PD1.PD_PRP_VAL20
+	                     ORDER
+	                        BY SV1.CNTR_NO, SV1.CNTR_SN
+	                    ) V1
+	                 , TB_SVPD_CST_SV_EXCN_IZ CST1
+	             WHERE 1=1
+	               AND V1.CNTR_NO = CST1.CNTR_NO
+	               AND V1.CNTR_SN = CST1.CNTR_SN
+	             GROUP
+	                BY V1.PD_PRP_VAL20
+	             ORDER
+	                BY V1.PD_PRP_VAL20
+		  		)
+    </select>
+</mapper>

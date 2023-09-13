@@ -49,4 +49,5 @@ public class WsnyAsCodeMgtDvo {
     String cdNm;
     String pdNm;
     String pdGrpNm;
+    String fuleyAwAmt;
 }

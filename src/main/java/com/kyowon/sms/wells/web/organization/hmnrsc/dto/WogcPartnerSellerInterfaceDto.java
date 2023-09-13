@@ -1,10 +1,7 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
-import org.apache.commons.lang.StringUtils;
-import org.eclipse.jetty.util.StringUtil;
 
 import javax.validation.constraints.NotBlank;
 
@@ -25,7 +22,8 @@ public class WogcPartnerSellerInterfaceDto {
         @JsonProperty("BRYY_MMDD")
         String bryyMmdd
 
-    ) {}
+    ) {
+    }
 
     /**
      * 조직유형코드, 고객번호, 고객생년월일을 받아 판매자 정보를 조회 (서비스) Response Dto
@@ -53,7 +51,8 @@ public class WogcPartnerSellerInterfaceDto {
         String dgr3LevlOgCd,
         @JsonProperty("DGR3_LEVL_OG_NM")
         String dgr3LevlOgNm
-    ) {}
+    ) {
+    }
 
     /**
      * 조직유형코드, 고객번호을 받아 최근 계약 판매자를 조회 (서비스) Request Dto
@@ -62,14 +61,13 @@ public class WogcPartnerSellerInterfaceDto {
      */
     @ApiModel(value = "WogcPartnerSellerInterfaceDto-SearchRecentContractReq")
     public record SearchRecentContractReq(
-        @NotBlank
-        @JsonProperty("SELL_OG_TP_CD")
+        @NotBlank @JsonProperty("SELL_OG_TP_CD")
         String sellOgTpCd,
-        @NotBlank
-        @JsonProperty("CNTR_CST_NO")
+        @NotBlank @JsonProperty("CNTR_CST_NO")
         String cntrCstNo
 
-    ) {}
+    ) {
+    }
 
     /**
      * 조직유형코드, 고객번호을 받아 최근 계약 판매자를 조회 (서비스) Response Dto
@@ -97,6 +95,7 @@ public class WogcPartnerSellerInterfaceDto {
         String ogCd,
         @JsonProperty("DGR3_LEVL_OG_NM")
         String ogNm
-    ) {}
+    ) {
+    }
 
 }

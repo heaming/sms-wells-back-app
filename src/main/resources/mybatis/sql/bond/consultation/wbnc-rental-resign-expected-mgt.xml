@@ -39,14 +39,11 @@
                   FROM TB_CBBO_CLCTAM_PRTNR_DTL         /*T:집금파트너상세*/
                  WHERE CLCTAM_DV_CD = A.CLCTAM_DV_CD
                    AND PRTNR_NO = A.CLCTAM_PRTNR_NO
-                   AND ROWNUM = 1) AS PRTNR_KNM             /*집금담당자*/
+                   AND ROWNUM <![CDATA[<=]]> 1) AS PRTNR_KNM             /*집금담당자*/
              , (CASE WHEN A.CLCTAM_PRTNR_NO IS NULL THEN 'N' ELSE 'Y' END) AS CLCTAM_YN /*집금자여부*/
              , NVL(Y1.PD_RVE_AMT - Y1.RFND_RVE_AMT,0) AS RVE_AMT /*입금액*/
              , A.AUTH_RSG_EXCD_RQR_PRTNR_NO                 /*당월제외사번*/
-             , (SELECT MIN(BASE_YM)
-                  FROM TB_CBBO_WELLS_AUTH_RSG_IZ        /*T:WELLS직권해지내역*/
-                 WHERE CNTR_NO = A.CNTR_NO
-                   AND CNTR_SN = A.CNTR_SN) AS RQR_BASE_YM /*최초제외월*/
+             , MAX(A.BASE_YM) OVER(PARTITION BY A.CNTR_NO ,A.CNTR_SN) AS RQR_BASE_YM /* 최초제외월 */
              , NVL(Y2.PD_RVE_AMT - Y2.RFND_RVE_AMT,0) AS ACU_RVE_AMT        /*누적입금액*/
              , B.BRYY_MMDD                                  /*생년월일*/
              , C.CNTR_TP_CD                                 /*계약구분코드*/
@@ -62,17 +59,9 @@
              , B.CRAL_LOCARA_TNO                            /*계약자휴대지역전화번호*/
              , B.MEXNO_ENCR                                 /*계약자휴대전화국번호암호화*/
              , B.CRAL_IDV_TNO                               /*계약자휴대개별전화번호*/
-             , (SELECT OG_CD
-                  FROM TB_OGBS_MM_PRTNR_IZ              /*T:월파트너내역*/
-                 WHERE BASE_YM = A.BASE_YM
-                   AND OG_TP_CD = C.SELL_OG_TP_CD
-                   AND PRTNR_NO = C.SELL_PRTNR_NO) AS OG_CD /*판매자조직코드*/
+             , F.OG_CD
              , C.SELL_PRTNR_NO                              /*판매자번호*/
-             , (SELECT PRTNR_KNM
-                  FROM TB_OGBS_MM_PRTNR_IZ              /*T:월파트너내역*/
-                 WHERE BASE_YM = A.BASE_YM
-                   AND OG_TP_CD = C.SELL_OG_TP_CD
-                   AND PRTNR_NO = C.SELL_PRTNR_NO) AS PLAR_KNM /*플래너*/
+             , F.PRTNR_KNM AS PLAR_KNM                      /*플래너*/
              , (CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN MONTHS_BETWEEN(TO_DATE(A.RQDT,'YYYYMMDD'), TO_DATE(D.CNTR_PD_STRTDT)) >= 12
                                                              AND Y3.DP_AGG_AMT >= (NVL(D.PD_BASE_AMT,0) - NVL(D.SELL_DSC_CTR_AMT,0)) * 12 - NVL(E.DSC_AGG_AMT,0) THEN 'N'
                                                         ELSE 'Y' END)
@@ -94,7 +83,20 @@
              , A.AUTH_RSG_CNFM_YN                           /*직권해지확정여부*/
              , A.AUTH_RSG_CNFMDT                            /*직권해지확정일자*/
              , A.AUTH_RSG_CNFM_RGST_PRTNR_NO                /*직권해지확정등록파트너번호*/
+             , T1.BND_CLCTN_PRP_DV_CD                       /* 채권추심속성구분코드 */
+             , T1.BND_CLCTN_PRP_RSON_CD                     /* 채권추심속성사유코드 */
+             , (SELECT CASE WHEN COUNT(*) = 0 THEN 'N'
+                            ELSE 'Y' END
+                  FROM TB_OGBS_MM_PRTNR_IZ /*T:월파트너내역*/
+                 WHERE 1 = 1
+                   AND BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}), -1), 'YYYYMM')
+                   AND HMNRSC_DEPT_CD = '70202' /* 채권전략팀-70202 */
+                   AND PRTNR_NO = A.CLCTAM_PRTNR_NO ) AS BND_STRT_YN /* 채권전략팀 여부 */
           FROM TB_CBBO_WELLS_AUTH_RSG_IZ A              /*T:WELLS직권해지내역*/
+          LEFT JOIN TB_CBBO_BND_CNTR_BAS T1 /*T:채권계약기본*/
+            ON T1.BASE_YM = A.BASE_YM
+           AND T1.CNTR_NO = A.CNTR_NO
+           AND T1.CNTR_SN = A.CNTR_SN
          INNER JOIN TB_CUBS_CST_BAS B                   /*T:고객기본*/
             ON B.CST_NO = A.CST_NO
          INNER JOIN TB_SSCT_CNTR_BAS C                  /*T:계약기본*/
@@ -316,15 +318,12 @@
                    AND CNTR_NO = C.CNTR_NO
                    AND CNTR_SN = C.CNTR_SN)  AS BFSVC_PRD_CD                    /*BS주기코드*/
              , (SELECT CH_USWY_TP_CD
-                  FROM TB_SSCT_RTIST_PDCT_CH_IZ /*T:렌탈설치제품변경내역*/
+                  FROM TB_SSCT_RTIST_PDCT_CH_IZ
                  WHERE CNTR_NO = C.CNTR_NO
                    AND CNTR_SN = C.CNTR_SN
                    AND PROCS_FSH_YN = 'Y'
-                   AND CH_SN = (SELECT MAX(CH_SN)
-                                  FROM TB_SSCT_RTIST_PDCT_CH_IZ
-                                 WHERE CNTR_NO = C.CNTR_NO
-                                   AND CNTR_SN = C.CNTR_SN
-                                   AND PROCS_FSH_YN = 'Y')) AS USWY_TP_CD       /*용도유형코드*/
+                 GROUP BY CNTR_NO, CNTR_SN, CH_USWY_TP_CD, CH_SN
+                HAVING CH_SN = MAX(CH_SN)) AS USWY_TP_CD /*용도유형코드*/
              , NVL(C.RENTAL_RGST_COST,0)     AS RENTAL_RGST_COST                /*렌탈등록비*/
              , NVL(C.RENTAL_RGST_COST_VAT,0) AS RENTAL_RGST_COST_VAT            /*렌탈등록비부가가치세*/
              , NVL(C.RENTAL_AMT,0)           AS RENTAL_AMT1                     /*렌탈금액1*/
@@ -477,12 +476,13 @@
            AND B.ALNCMP_CD NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
            AND C.SL_CL_YM = SUBSTR(#{baseDt},1,6) /*실적년월*/
            AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
-           AND NOT EXISTS (SELECT 1
-                             FROM TB_CBBO_WELLS_AUTH_RSG_IZ /*T:WELLS직권해지내역*/
-                            WHERE 1 = 1
-                              AND BASE_YM = SUBSTR(#{baseDt},1,6)
-                              AND CNTR_NO = C.CNTR_NO
-                              AND CNTR_SN = C.CNTR_SN)
+           AND F.CLCTAM_PRTNR_NO NOT IN (SELECT PRTNR_NO
+                                           FROM TB_OGBS_MM_PRTNR_IZ /*T:월파트너내역*/
+                                          WHERE 1 = 1
+                                            AND BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}), -2), 'YYYYMM')
+                                            AND HMNRSC_DEPT_CD = '70202' /* 채권전략팀-70202 */
+                                            AND PRTNR_NO = F.CLCTAM_PRTNR_NO)
+
     </insert>
     <insert id="insertAuthorityResignRegularShippings">
         /* 직권해지 정기배송 [예정생성] - ASIS : insertOvrdAthrTrmtAdmnShpnList */
@@ -642,7 +642,7 @@
              , (SELECT BASE_DTL_CNTR_NO
                   FROM TB_SSCT_CNTR_REL /*T:계약관계*/
                  WHERE OJ_DTL_CNTR_NO = A.CNTR_NO
-                   AND ROWNUM = 1)           AS LK_CNTR_NO                      /*연계계약번호*/
+                   AND ROWNUM <![CDATA[<=]]> 1)           AS LK_CNTR_NO                      /*연계계약번호*/
              , C.SL_RCOG_DT                  AS SL_DT                           /*매출일자*/
              , NVL(C.RENTAL_TN,0)            AS RENTAL_NMN_N                    /*렌탈차월수*/
              , NVL(C.RENTAL_DC,0)            AS RENTAL_DC                       /*렌탈일수*/

@@ -17,7 +17,7 @@ public class WfeaNetOrderDto {
         //조회구분
         String dvCd,
         //차수
-        String tcntDvCd,
+        String feeTcntDvCd,
         //조직구분
         String ogDvCd,
         //구분
@@ -51,13 +51,15 @@ public class WfeaNetOrderDto {
         //번호
         String prtnrNo,
         //수수료년월
-        String perfYm
+        String perfYm,
+        String ogTpCd,
+        String feeBatWkId
 
     ) {}
 
     @ApiModel(value = "WfeaNetOrderDto-SaveReq")
     public record SaveReq(
-        String tcntDvCd,
+        String feeTcntDvCd,
         String perfYm
     ) {}
 
@@ -110,4 +112,13 @@ public class WfeaNetOrderDto {
     public record SearchConfirmRes(
         String cnfmChk
     ) {}
+
+    @ApiModel(value = "WfeaNetOrderDto-SearchProductRes")
+    public record SearchProductRes(
+        String ogTpCd,
+        String pdCd,
+        String pdNm,
+        String pdCnt
+    ) {}
+
 }

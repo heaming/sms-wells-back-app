@@ -12,8 +12,6 @@
              , T1.LECTR_SPPT_LECTR_CD /* 강의지원강의코드 */
              , T4.LECTR_NM
              , T1.LECTR_DT            /* 강의일자 */
-             , T2.DGR1_LEVL_OG_NM
-             , T2.DGR2_LEVL_OG_NM
              , T1.OG_ID               /* 조직ID */
              , T1.BLD_CD              /* 빌딩코드 */
              , T2.BLD_NM
@@ -28,39 +26,8 @@
              , T1.FNL_MDFC_PRG_ID     /* 최종수정프로그램ID */
              , T1.FNL_MDFC_DEPT_ID    /* 최종수정부서ID */
           FROM TB_PSCA_LECTR_APLC_IZ T1 /* 강의신청내역 */
-         INNER JOIN
-             ( SELECT S1.DGR1_LEVL_OG_ID
-		            , S1.DGR2_LEVL_OG_ID
-                    , S1.DGR1_LEVL_OG_NM
-                    , S1.DGR2_LEVL_OG_NM
-                    , S1.BASE_YM
-                    , S1.BLD_CD
-                    , S1.BLD_NM
-                 FROM TB_OGBS_MM_OG_IZ S1
-                WHERE 1=1
-                  <if test='@MybatisUtils@isNotEmpty(lectrYm)'>
-                  AND S1.BASE_YM = #{lectrYm}
-                  </if>
-                  <if test='@MybatisUtils@isNotEmpty(lectrSpptOgTpCd)'>
-                  AND S1.OG_TP_CD = #{lectrSpptOgTpCd}
-                  </if>
-                  <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
-                  AND S1.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
-                  </if>
-                  <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
-                  AND S1.DGR2_LEVL_OG_ID = #{ogLevlDvCd2}
-                  </if>
-                  AND DGR2_LEVL_OG_NM IS NOT NULL
-                GROUP BY S1.DGR1_LEVL_OG_ID
-                    , S1.DGR2_LEVL_OG_ID
-                    , S1.DGR1_LEVL_OG_NM
-                    , S1.DGR2_LEVL_OG_NM
-                    , S1.BLD_CD
-                    , S1.BLD_NM
-                    , S1.BASE_YM )T2
-            ON T1.OG_ID = T2.DGR2_LEVL_OG_ID
-           AND T1.BLD_CD = T2.BLD_CD
-           AND T1.LECTR_YM = T2.BASE_YM
+          LEFT OUTER JOIN TB_OGBS_BLD_BAS T2
+            ON T2.BLD_CD = T1.BLD_CD
          INNER JOIN TB_PSCA_LECT_MNGT_BAS T3
             ON T3.LECTR_SPPT_LECT_CD = T1.LECTR_SPPT_LECT_CD
            AND T3.LECTR_SPPT_OG_TP_CD = T1.LECTR_SPPT_OG_TP_CD
@@ -69,7 +36,7 @@
             ON T4.LECTR_SPPT_LECTR_CD = T1.LECTR_SPPT_LECTR_CD
            AND T4.LECTR_SPPT_OG_TP_CD = T1.LECTR_SPPT_OG_TP_CD
            AND T4.DTA_DL_YN = 'N'
-         WHERE 1 = 1
+         WHERE T1.DTA_DL_YN = 'N'
            <if test='@MybatisUtils@isNotEmpty(lectrSpptOgTpCd)'>
            AND T1.LECTR_SPPT_OG_TP_CD = #{lectrSpptOgTpCd}  /* 강의지원조직유형코드 */
            </if>
@@ -79,135 +46,107 @@
            <if test='@MybatisUtils@isNotEmpty(lectNm)'>
            AND T3.LECT_NM like '%'||#{lectNm}||'%'
            </if>
-           AND T1.DTA_DL_YN = 'N'
+           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1) or @MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+           AND EXISTS
+                    ( SELECT 1
+                        FROM TB_OGBS_MM_OG_IZ S1
+                       WHERE S1.DGR2_LEVL_OG_ID = T1.OG_ID
+                         <if test='@MybatisUtils@isNotEmpty(lectrYm)'>
+                         AND S1.BASE_YM =  #{lectrYm}
+                         </if>
+                         <if test='@MybatisUtils@isNotEmpty(lectrSpptOgTpCd)'>
+                         AND S1.OG_TP_CD = #{lectrSpptOgTpCd}
+                         </if>
+                         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+                         AND S1.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
+                         </if>
+                         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+                         AND S1.DGR2_LEVL_OG_ID = #{ogLevlDvCd2}
+                         </if>
+                    )
+            </if>
          ORDER BY T1.LECTR_SPPT_LECT_CD, T1.LECTR_DT, T1.LECTR_TCNT ASC
     </select>
 
     <select id="selectLectureSpptApplicationPagesForOgType" resultType="com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptApplicationDto$SearchOgTypeRes">
-        SELECT M.OG_ID
-             , M.LECTR_YM
-             , M.DGR1_LEVL_OG_NM
-             , M.DGR2_LEVL_OG_NM
-             , MAX(S10.BLD_NM) AS LECTR_TCNT1_BLD_NM
-             , MAX(M.LECTR_TCNT1_BLD_CD) AS LECTR_TCNT1_BLD_CD
-             , MAX(M.LECTR_TCNT1_LECT_CD) AS LECTR_TCNT1_LECT_CD
-             , MAX(S11.LECT_NM) AS LECTR_TCNT1_LECT_NM
-             , MAX(M.LECTR_TCNT1_LECTR_CD) AS LECTR_TCNT1_LECTR_CD
-             , MAX(S12.LECTR_NM) AS LECTR_TCNT1_LECTR_NM
-             , MAX(M.LECTR_TCNT1_LECTR_DT) AS LECTR_TCNT1_LECTR_DT
-
-             , MAX(S20.BLD_NM) AS LECTR_TCNT2_BLD_NM
-             , MAX(M.LECTR_TCNT2_BLD_CD) AS LECTR_TCNT2_BLD_CD
-             , MAX(M.LECTR_TCNT2_LECT_CD) AS LECTR_TCNT2_LECT_CD
-             , MAX(S21.LECT_NM) AS LECTR_TCNT2_LECT_NM
-             , MAX(M.LECTR_TCNT2_LECTR_CD) AS LECTR_TCNT2_LECTR_CD
-             , MAX(S22.LECTR_NM) AS LECTR_TCNT2_LECTR_NM
-             , MAX(M.LECTR_TCNT2_LECTR_DT) AS LECTR_TCNT2_LECTR_DT
-
-             , MAX(S30.BLD_NM) AS LECTR_TCNT3_BLD_NM
-             , MAX(M.LECTR_TCNT3_BLD_CD) AS LECTR_TCNT3_BLD_CD
-             , MAX(M.LECTR_TCNT3_LECT_CD) AS LECTR_TCNT3_LECT_CD
-             , MAX(S31.LECT_NM) AS LECTR_TCNT3_LECT_NM
-             , MAX(M.LECTR_TCNT3_LECTR_CD) AS LECTR_TCNT3_LECTR_CD
-             , MAX(S32.LECTR_NM) AS LECTR_TCNT3_LECTR_NM
-             , MAX(M.LECTR_TCNT3_LECTR_DT) AS LECTR_TCNT3_LECTR_DT
-        FROM
-           ( SELECT T1.OG_ID
-                  , T2.DGR1_LEVL_OG_NM
-                  , T2.DGR2_LEVL_OG_NM
-                  , T1.LECTR_YM
-                  , T1.LECTR_SPPT_OG_TP_CD
-                  , CASE WHEN T1.LECTR_TCNT = 1 THEN T1.BLD_CD ELSE NULL END AS LECTR_TCNT1_BLD_CD
-                  , CASE WHEN T1.LECTR_TCNT = 1 THEN T1.LECTR_SPPT_LECT_CD ELSE NULL END AS LECTR_TCNT1_LECT_CD
-                  , CASE WHEN T1.LECTR_TCNT = 1 THEN T1.LECTR_SPPT_LECTR_CD ELSE NULL END AS LECTR_TCNT1_LECTR_CD
-                  , CASE WHEN T1.LECTR_TCNT = 1 THEN T1.LECTR_DT ELSE NULL END AS LECTR_TCNT1_LECTR_DT
-                  , CASE WHEN T1.LECTR_TCNT = 2 THEN T1.BLD_CD ELSE NULL END AS LECTR_TCNT2_BLD_CD
-                  , CASE WHEN T1.LECTR_TCNT = 2 THEN T1.LECTR_SPPT_LECT_CD ELSE NULL END AS LECTR_TCNT2_LECT_CD
-                  , CASE WHEN T1.LECTR_TCNT = 2 THEN T1.LECTR_SPPT_LECTR_CD ELSE NULL END AS LECTR_TCNT2_LECTR_CD
-                  , CASE WHEN T1.LECTR_TCNT = 2 THEN T1.LECTR_DT ELSE NULL END AS LECTR_TCNT2_LECTR_DT
-                  , CASE WHEN T1.LECTR_TCNT = 3 THEN T1.BLD_CD ELSE NULL END AS LECTR_TCNT3_BLD_CD
-                  , CASE WHEN T1.LECTR_TCNT = 3 THEN T1.LECTR_SPPT_LECT_CD ELSE NULL END AS LECTR_TCNT3_LECT_CD
-                  , CASE WHEN T1.LECTR_TCNT = 3 THEN T1.LECTR_SPPT_LECTR_CD ELSE NULL END AS LECTR_TCNT3_LECTR_CD
-                  , CASE WHEN T1.LECTR_TCNT = 3 THEN T1.LECTR_DT ELSE NULL END AS LECTR_TCNT3_LECTR_DT
-               FROM	TB_PSCA_LECTR_APLC_IZ T1
-              INNER JOIN
-                  ( SELECT S1.DGR1_LEVL_OG_ID
-                         , S1.DGR2_LEVL_OG_ID
-                         , S1.DGR1_LEVL_OG_NM
-                         , S1.DGR2_LEVL_OG_NM
-                         , S1.BASE_YM
-                         , S1.BLD_CD
-                         , S1.BLD_NM
-                      FROM TB_OGBS_MM_OG_IZ S1
-                     WHERE 1=1
-                       AND DGR2_LEVL_OG_NM IS NOT NULL
-                       <if test='@MybatisUtils@isNotEmpty(lectrYm)'>
-                       AND S1.BASE_YM = #{lectrYm}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(lectrSpptOgTpCd)'>
-                       AND S1.OG_TP_CD = #{lectrSpptOgTpCd}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
-                       AND S1.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
-                       AND S1.DGR2_LEVL_OG_ID = #{ogLevlDvCd2}
-                       </if>
-                     GROUP BY S1.DGR1_LEVL_OG_ID
-                         , S1.DGR2_LEVL_OG_ID
-                         , S1.DGR1_LEVL_OG_NM
-                         , S1.DGR2_LEVL_OG_NM
-                         , S1.BLD_CD
-                         , S1.BLD_NM
-                         , S1.BASE_YM )T2
-                 ON T1.OG_ID = T2.DGR2_LEVL_OG_ID
-                AND T1.BLD_CD = T2.BLD_CD
-                AND T1.LECTR_YM = T2.BASE_YM ) M
-        LEFT OUTER JOIN TB_OGBS_MM_OG_IZ S10
-          ON S10.DGR2_LEVL_OG_ID = M.OG_ID
-         AND S10.BLD_CD = M.LECTR_TCNT1_BLD_CD
-         AND S10.BASE_YM = M.LECTR_YM
-
-        LEFT OUTER JOIN TB_PSCA_LECT_MNGT_BAS S11
-          ON S11.LECTR_SPPT_LECT_CD = M.LECTR_TCNT1_LECT_CD
-         AND S11.LECTR_SPPT_OG_TP_CD = M.LECTR_SPPT_OG_TP_CD
-         AND S11.DTA_DL_YN = 'N'
-        LEFT OUTER JOIN TB_PSCA_LECTR_MNGT_BAS S12
-          ON S12.LECTR_SPPT_LECTR_CD = M.LECTR_TCNT1_LECTR_CD
-         AND S12.LECTR_SPPT_OG_TP_CD = M.LECTR_SPPT_OG_TP_CD
-         AND S12.DTA_DL_YN = 'N'
-
-        LEFT OUTER JOIN TB_OGBS_MM_OG_IZ S20
-          ON S20.DGR2_LEVL_OG_ID = M.OG_ID
-         AND S20.BLD_CD = M.LECTR_TCNT2_BLD_CD
-         AND S20.BASE_YM = M.LECTR_YM
-        LEFT OUTER JOIN TB_PSCA_LECT_MNGT_BAS S21
-          ON S21.LECTR_SPPT_LECT_CD = M.LECTR_TCNT2_LECT_CD
-         AND S21.LECTR_SPPT_OG_TP_CD = M.LECTR_SPPT_OG_TP_CD
-         AND S21.DTA_DL_YN = 'N'
-        LEFT OUTER JOIN TB_PSCA_LECTR_MNGT_BAS S22
-          ON S22.LECTR_SPPT_LECTR_CD = M.LECTR_TCNT2_LECTR_CD
-         AND S22.LECTR_SPPT_OG_TP_CD = M.LECTR_SPPT_OG_TP_CD
-         AND S22.DTA_DL_YN = 'N'
-
-        LEFT OUTER JOIN TB_OGBS_MM_OG_IZ S30
-          ON S30.DGR2_LEVL_OG_ID = M.OG_ID
-         AND S30.BLD_CD = M.LECTR_TCNT3_BLD_CD
-         AND S30.BASE_YM = M.LECTR_YM
-        LEFT OUTER JOIN TB_PSCA_LECT_MNGT_BAS S31
-          ON S31.LECTR_SPPT_LECT_CD = M.LECTR_TCNT3_LECT_CD
-         AND S31.LECTR_SPPT_OG_TP_CD = M.LECTR_SPPT_OG_TP_CD
-         AND S31.DTA_DL_YN = 'N'
-        LEFT OUTER JOIN TB_PSCA_LECTR_MNGT_BAS S32
-          ON S32.LECTR_SPPT_LECTR_CD = M.LECTR_TCNT3_LECTR_CD
-         AND S32.LECTR_SPPT_OG_TP_CD = M.LECTR_SPPT_OG_TP_CD
-         AND S32.DTA_DL_YN = 'N'
-
-       GROUP BY M.OG_ID
-           , M.DGR1_LEVL_OG_NM
-           , M.DGR2_LEVL_OG_NM
-           , M.LECTR_YM
-           , M.LECTR_SPPT_OG_TP_CD
+        SELECT OG_ID
+            , LECTR_YM
+            , DGR1_LEVL_OG_NM
+            , DGR2_LEVL_OG_NM
+            , LECTR_TCNT1_BLD_NM
+            , LECTR_TCNT1_BLD_CD
+            , LECTR_TCNT1_LECT_CD
+            , LECTR_TCNT1_LECT_NM
+            , LECTR_TCNT1_LECTR_CD
+            , LECTR_TCNT1_LECTR_NM
+            , LECTR_TCNT1_LECTR_DT
+            , LECTR_TCNT2_BLD_NM
+            , LECTR_TCNT2_BLD_CD
+            , LECTR_TCNT2_LECT_CD
+            , LECTR_TCNT2_LECT_NM
+            , LECTR_TCNT2_LECTR_CD
+            , LECTR_TCNT2_LECTR_NM
+            , LECTR_TCNT2_LECTR_DT
+            , LECTR_TCNT3_BLD_NM
+            , LECTR_TCNT3_BLD_CD
+            , LECTR_TCNT3_LECT_CD
+            , LECTR_TCNT3_LECT_NM
+            , LECTR_TCNT3_LECTR_CD
+            , LECTR_TCNT3_LECTR_NM
+            , LECTR_TCNT3_LECTR_DT
+          FROM
+             ( SELECT T1.OG_ID
+                   , T1.LECTR_YM
+                   , T1.LECTR_SPPT_OG_TP_CD
+                   , OG.DGR1_LEVL_OG_NM
+                   , OG.DGR2_LEVL_OG_NM
+                   , OG.OG_NM
+                   , T1.LECTR_TCNT
+                   , T1.BLD_CD
+                   , BLD.BLD_NM
+                   , T1.LECTR_SPPT_LECT_CD
+                   , T1.LECTR_SPPT_LECTR_CD
+                   , LECT.LECT_NM
+                   , LECTR.LECTR_NM
+                   , T1.LECTR_DT
+                FROM TB_PSCA_LECTR_APLC_IZ T1
+                LEFT OUTER JOIN TB_OGBS_MM_OG_IZ OG
+                  ON OG.BASE_YM = T1.LECTR_YM
+                 AND OG.OG_ID = T1.OG_ID
+                LEFT OUTER JOIN TB_OGBS_BLD_BAS BLD
+                  ON BLD.OG_TP_CD = T1.LECTR_SPPT_OG_TP_CD
+                 AND BLD.BLD_CD = T1.BLD_CD
+                LEFT OUTER JOIN TB_PSCA_LECT_MNGT_BAS LECT
+                  ON LECT.LECTR_SPPT_OG_TP_CD = T1.LECTR_SPPT_OG_TP_CD
+                 AND LECT.LECTR_SPPT_LECT_CD = T1.LECTR_SPPT_LECT_CD
+                 AND LECT.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_PSCA_LECTR_MNGT_BAS LECTR
+                  ON LECTR.LECTR_SPPT_OG_TP_CD = T1.LECTR_SPPT_OG_TP_CD
+                 AND LECTR.LECTR_SPPT_LECTR_CD = T1.LECTR_SPPT_LECTR_CD
+                 AND LECTR.DTA_DL_YN = 'N'
+               WHERE T1.DTA_DL_YN = 'N'
+                 <if test='@MybatisUtils@isNotEmpty(lectrYm)'>
+                 AND T1.LECTR_YM = #{lectrYm}
+                 </if>
+                 <if test='@MybatisUtils@isNotEmpty(lectrSpptOgTpCd)'>
+                 AND OG.OG_TP_CD = #{lectrSpptOgTpCd}
+                 </if>
+                 <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+                 AND OG.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
+                 </if>
+                 <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+                 AND OG.DGR2_LEVL_OG_ID = #{ogLevlDvCd2}
+                 </if>
+             ) X
+         PIVOT
+             ( MAX(BLD_CD) AS BLD_CD
+             , MAX(BLD_NM) AS BLD_NM
+             , MAX(LECTR_SPPT_LECT_CD) AS LECT_CD
+             , MAX(LECTR_SPPT_LECTR_CD) AS LECTR_CD
+             , MAX(LECT_NM) AS LECT_NM
+             , MAX(LECTR_NM) AS LECTR_NM
+             , MAX(LECTR_DT) AS LECTR_DT
+             FOR LECTR_TCNT IN (1 AS LECTR_TCNT1,2 AS LECTR_TCNT2, 3 AS LECTR_TCNT3) )
     </select>
 
     <select id="selectOrganizationBuildingCode" resultType="com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptApplicationDto$SearchLevelRes">
@@ -222,7 +161,7 @@
            <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
            AND A.OG_TP_CD = #{ogTpCd}
            </if>
-           <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(baseYm)'>
            AND A.BASE_YM = #{baseYm}
            </if>
          START WITH (A.OG_ID = B.OG_ID OR A.HGR_OG_ID = B.OG_ID)

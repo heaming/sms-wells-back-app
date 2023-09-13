@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreDetailItemizationDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaStoreDetailItemizationMapper;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,8 +40,8 @@ public class WsnaStoreDetailItemizationService {
      * @param
      * @return
      */
-    public List<SearchRes> getStoreDetailItemizations(SearchReq dto) {
-        return this.mapper.selectStoreDetailItemizations(dto);
+    public PagingResult<SearchRes> getStoreDetailItemizations(SearchReq dto, PageInfo pageInfo) {
+        return this.mapper.selectStoreDetailItemizations(dto, pageInfo);
     }
 
     /**

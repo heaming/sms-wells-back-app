@@ -7,8 +7,9 @@ public class WdcbRentalNewRequidationAggregateDto {
     public record SearchReq(
         String startDt,
         String endDt,
+        String pdctDv,
         String adrpcTpCd,
-        String sppProcsBzsCd,
+        String prtnrBzsCd,
         String slYm
     ) {}
 
@@ -26,7 +27,8 @@ public class WdcbRentalNewRequidationAggregateDto {
         String startDt,
         String endDt,
         String adrpcTpCd,
-        String sppProcsBzsCd,
+        String pdctDv,
+        String prtnrBzsCd,
         String slYm,
         String divCd,
         String divDtlCd
@@ -43,6 +45,7 @@ public class WdcbRentalNewRequidationAggregateDto {
         String istDt,
         String cntrPdEnddt,
         String reqdDt,
-        String sppProcsBzsCd
+        String prtnrBzsCd,
+        String prtnrBzsNm
     ) {}
 }

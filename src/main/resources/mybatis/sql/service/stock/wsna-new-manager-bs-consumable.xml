@@ -135,6 +135,7 @@
              , T1.CSMB_PD_CD
              , T1.SAP_MAT_CD
              , T1.BFSVC_CSMB_DDLV_QTY
+             , T1.BFSVC_CSMB_DDLV_STAT_CD
              , (CASE WHEN T1.BFSVC_CSMB_DDLV_STAT_CD = '10' THEN '신청'
                      WHEN T1.BFSVC_CSMB_DDLV_STAT_CD = '20' THEN '신청확인'
                      WHEN T1.BFSVC_CSMB_DDLV_STAT_CD = '30' THEN '출고요청완료'
@@ -250,29 +251,30 @@
     </select>
 
     <select id="selectNewManagerBsConsumableAplcFirstClose" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto$FindTmlmRes">
-        SELECT MIN(STNRD_YR||TO_CHAR(TO_DATE(STNRD_MN,'MM'),'MM')||TO_CHAR(TO_DATE(STNRD_DY,'DD'),'DD')) AS BIZ_STRTDT
-             , MAX(STNRD_YR||TO_CHAR(TO_DATE(STNRD_MN,'MM'),'MM')||TO_CHAR(TO_DATE(STNRD_DY,'DD'),'DD')) AS BIZ_ENDDT
+        SELECT MIN(STNRD_YR||STNRD_MN||STNRD_DY) AS BIZ_STRTDT
+             , MAX(STNRD_YR||STNRD_MN||STNRD_DY) AS BIZ_ENDDT
              , '' AS BIZ_STRT_HH
              , '' AS BIZ_END_HH
           FROM T_CMY_CALR_M
-         WHERE TENANT_ID = 'TNT_BASE'
-           AND STNRD_YR = SUBSTR(#{mngtYm},1,4)
-           AND TO_CHAR(TO_DATE(STNRD_MN,'MM'),'MM') = SUBSTR(#{mngtYm},5,2)
-           AND STNRD_YR||TO_CHAR(TO_DATE(STNRD_MN,'MM'),'MM')||TO_CHAR(TO_DATE(STNRD_DY,'DD'),'DD') NOT IN (
-               WITH T AS
-               (SELECT TO_DATE(SUBSTR(HLDY_APPY_START_DTM,1,8)) AS START_DATE
-                     , TO_DATE(SUBSTR(HLDY_APPY_FINS_DTM,1,8)) AS END_DATE
-                  FROM T_CMZ_HLDY_M
-                 WHERE TENANT_ID = 'TNT_BASE'
-                   AND (SUBSTR(HLDY_APPY_START_DTM,1,6) = #{mngtYm} OR SUBSTR(HLDY_APPY_FINS_DTM,1,6) = #{mngtYm})
-               )
+         WHERE 1 = 1
+           AND TENANT_ID = 'TNT_WELLS'
+           AND STNRD_YR = SUBSTR(#{mngtYm}, 1, 4)
+           AND STNRD_MN = SUBSTR(#{mngtYm}, 5, 2)
+           AND STNRD_YR||STNRD_MN||STNRD_DY NOT IN
+             (
+              WITH T AS
+              (
+               SELECT TO_DATE(SUBSTR(HLDY_APPY_START_DTM,1,8)) AS START_DATE, TO_DATE(SUBSTR(HLDY_APPY_FINS_DTM,1,8)) AS END_DATE
+                 FROM T_CMZ_HLDY_M
+                WHERE 1 = 1
+                  AND TENANT_ID = 'TNT_WELLS'
+                  AND (SUBSTR(HLDY_APPY_START_DTM,1,6) = #{mngtYm} OR SUBSTR(HLDY_APPY_FINS_DTM,1,6) = #{mngtYm})
+              )
                SELECT TO_CHAR(START_DATE + LV - 1, 'YYYYMMDD') DT
                  FROM T
-                    , (SELECT LEVEL LV
-                         FROM DUAL
-                      CONNECT BY LEVEL <![CDATA[<=]]> 99)
+                    , (SELECT LEVEL LV FROM DUAL CONNECT BY LEVEL <![CDATA[<=]]> 99)
                 WHERE LV <![CDATA[<=]]> END_DATE - START_DATE + 1
-           )
+             )
     </select>
 
     <insert id="mergeNewManagerBsConsumableAplcClose">

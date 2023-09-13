@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.closing.performance.dto;
 
 import javax.validation.constraints.NotBlank;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.swagger.annotations.ApiModel;
 
 public class WdccEtcPerformanceInterfaceDto {
@@ -12,14 +14,19 @@ public class WdccEtcPerformanceInterfaceDto {
     // wells_일시불외_실적정보 Result Dto
     @ApiModel("WdccEtcPerformanceInterfaceDto-FindReq")
     public record FindReq(
+        @JsonProperty("CNTR_NO")
         @NotBlank
-        String CNTR_NO,
-        int CNTR_SN,
-        String CNTRT_NM,
+        String cntrNo,
+        @JsonProperty("CNTR_SN")
+        int cntrSn,
+        @JsonProperty("CNTRT_NM")
+        String cntrtNm,
+        @JsonProperty("SL_CL_YM1")
         @NotBlank
-        String SL_CL_YM1,
+        String slClYm1,
+        @JsonProperty("SL_CL_YM2")
         @NotBlank
-        String SL_CL_YM2
+        String slClYm2
     ) {}
 
     // *********************************************************
@@ -28,20 +35,35 @@ public class WdccEtcPerformanceInterfaceDto {
     // wells_일시불외_실적정보 Result Dto
     @ApiModel("WdccEtcPerformanceInterfaceDto-FindRes")
     public record FindRes(
-        String CNTR_NO,
-        String CNTR_SN,
-        String SL_CL_YM,
-        String RENTAL_TN,
-        String SL_STP_YN,
-        String THM_SL_SUM_AMT,
-        String SL_DP_AGG_AMT,
-        String ACU_OC_ATAM,
-        String EOT_ATAM,
-        String EOT_DLQ_AMT,
-        String EOT_DLQ_ADD_AMT,
-        String CLCTAM_DV_CD,
-        String CLCTAM_DV_CD_NM,
-        String PRTNR_NO,
-        String PRTNR_FNM
+        @JsonProperty("CNTR_NO")
+        String cntrNo,
+        @JsonProperty("CNTR_SN")
+        String cntrSn,
+        @JsonProperty("SL_CL_YM")
+        String slClYm,
+        @JsonProperty("RENTAL_TN")
+        String rentalTn,
+        @JsonProperty("SL_STP_YN")
+        String slStpYn,
+        @JsonProperty("THM_SL_SUM_AMT")
+        String thmSlSumAmt,
+        @JsonProperty("SL_DP_AGG_AMT")
+        String slDpAggAmt,
+        @JsonProperty("ACU_OC_ATAM")
+        String acuOcAtam,
+        @JsonProperty("EOT_ATAM")
+        String eotAtam,
+        @JsonProperty("EOT_DLQ_AMT")
+        String eotDlqAmt,
+        @JsonProperty("EOT_DLQ_ADD_AMT")
+        String eotDlqAddAmt,
+        @JsonProperty("CLCTAM_DV_CD")
+        String clctamDvCd,
+        @JsonProperty("CLCTAM_DV_CD_NM")
+        String clctamDvCdNm,
+        @JsonProperty("PRTNR_NO")
+        String prtnrNo,
+        @JsonProperty("PRTNR_FNM")
+        String prtnrFnm
     ) {}
 }

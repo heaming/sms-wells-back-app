@@ -3,132 +3,80 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsCsmbDeliveryAggregateMapper">
     <select id="selectDeliveryAggregate" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbDeliveryAggregateDvo">
         SELECT *
-          FROM (SELECT T1.CSMB_PD_CD
-                     , T1.STR_WARE_NO
-                     , T1.SAP_MAT_CD
-                     , CASE WHEN T1.STR_WARE_NO = T2.PRTNR_NO THEN T2.BLD_NM
-                            WHEN T1.STR_WARE_NO = T3.PRTNR_NO THEN T3.BLD_NM
-                            WHEN T1.STR_WARE_NO = T4.BLD_CD THEN T4.BLD_NM
-                        END BLD_NM
-                     , CASE WHEN T1.STR_WARE_NO = T2.PRTNR_NO THEN T2.BLD_CD
-                            WHEN T1.STR_WARE_NO = T3.PRTNR_NO THEN T3.BLD_CD
-                            WHEN T1.STR_WARE_NO = T4.BLD_CD THEN T4.BLD_CD
-                        END BLD_CD
-                     , CASE WHEN T1.STR_WARE_NO = T2.PRTNR_NO THEN T2.BLD_CD
-                            WHEN T1.STR_WARE_NO = T3.PRTNR_NO THEN T3.BLD_CD
-                            WHEN T1.STR_WARE_NO = T4.BLD_CD THEN T4.BLD_CD
-                        END ACL_BLD_CD
-                     , (SELECT DISTINCT X.ITM_KNM
-                          FROM TB_SVST_BFSVC_CSMB_BASE_BAS X
-                         WHERE X.CSMB_PD_CD = T1.CSMB_PD_CD
-                       ) PD_NM
-                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'BFSVC_CSMB_DDLV_TP_CD', X.BFSVC_CSMB_DDLV_TP_CD, 'ko') AS BFSVC_CSMB_DDLV_TP_NM
-                          FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
-                         WHERE X.CSMB_PD_CD = T1.CSMB_PD_CD
-                           AND X.BFSVC_CSMB_DDLV_OJ_CD = '1'
-                           AND X.MNGT_YM = T1.MNGT_YM
-                       ) NWCMR
-                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'BFSVC_CSMB_DDLV_TP_CD', X.BFSVC_CSMB_DDLV_TP_CD, 'ko') AS BFSVC_CSMB_DDLV_TP_NM
-                          FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
-                         WHERE X.CSMB_PD_CD = T1.CSMB_PD_CD
-                           AND X.BFSVC_CSMB_DDLV_OJ_CD = '2'
-                           AND X.MNGT_YM = T1.MNGT_YM
-                       ) INDV
-                     , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'BFSVC_CSMB_DDLV_TP_CD', X.BFSVC_CSMB_DDLV_TP_CD, 'ko') AS BFSVC_CSMB_DDLV_TP_NM
-                          FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
-                         WHERE X.CSMB_PD_CD = T1.CSMB_PD_CD
-                           AND X.BFSVC_CSMB_DDLV_OJ_CD = '3'
-                           AND X.MNGT_YM = T1.MNGT_YM
-                       ) BLD
-                     , SUM(NVL(T2.BFSVC_CSMB_DDLV_QTY, 0) + NVL(T3.BFSVC_CSMB_DDLV_QTY, 0) + NVL(T4.BFSVC_CSMB_DDLV_QTY, 0)) BFSVC_CSMB_DDLV_SUM
-                  FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
-                  LEFT OUTER JOIN (SELECT T1.MNGT_YM
-                                        , T1.STR_WARE_NO
-                                        , T1.BFSVC_CSMB_DDLV_OJ_CD
-                                        , T2.PRTNR_NO
-                                        , T3.BLD_CD
-                                        , T3.BLD_NM
-                                        , T1.CSMB_PD_CD
-                                        , SUM(T1.BFSVC_CSMB_DDLV_QTY) AS BFSVC_CSMB_DDLV_QTY
-                                     FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
-                                    INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
-                                       ON T1.MNGT_YM = T2.BASE_YM
-                                      AND T2.OG_TP_CD = 'W02'
-                                      AND T1.STR_WARE_NO = T2.PRTNR_NO
-                                    INNER JOIN TB_OGBS_MM_OG_IZ T3
-                                       ON T2.BASE_YM = T3.BASE_YM
-                                      AND T2.OG_ID = T3.OG_ID
-                                    WHERE T1.BFSVC_CSMB_DDLV_OJ_CD = '1'
-                                      AND T1.BFSVC_CSMB_DDLV_STAT_CD = '30'
-                                    GROUP BY T1.MNGT_YM, T1.STR_WARE_NO, T1.BFSVC_CSMB_DDLV_OJ_CD, T2.PRTNR_NO, T3.BLD_CD, T3.BLD_NM, T1.CSMB_PD_CD
-                                  ) T2
-                    ON T2.MNGT_YM = T1.MNGT_YM
-                   AND T2.STR_WARE_NO = T1.STR_WARE_NO
-                   AND T2.CSMB_PD_CD = T1.CSMB_PD_CD
-                   AND T2.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
-                   LEFT OUTER JOIN (SELECT T1.MNGT_YM
-                                         , T1.STR_WARE_NO
-                                         , T1.BFSVC_CSMB_DDLV_OJ_CD
-                                         , T2.PRTNR_NO
-                                         , T3.BLD_CD
-                                         , T3.BLD_NM
-                                         , T1.CSMB_PD_CD
-                                         , SUM(T1.BFSVC_CSMB_DDLV_QTY) AS BFSVC_CSMB_DDLV_QTY
-                                      FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
-                                     INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
-                                        ON T1.MNGT_YM = T2.BASE_YM
-                                       AND T2.OG_TP_CD = 'W02'
-                                       AND T1.STR_WARE_NO = T2.PRTNR_NO
-                                     INNER JOIN TB_OGBS_MM_OG_IZ T3
-                                        ON T2.BASE_YM = T3.BASE_YM
-                                       AND T2.OG_ID = T3.OG_ID
-                                     WHERE T1.BFSVC_CSMB_DDLV_OJ_CD = '2'
-                                       AND T1.BFSVC_CSMB_DDLV_STAT_CD = '30'
-                                     GROUP BY T1.MNGT_YM, T1.STR_WARE_NO, T1.BFSVC_CSMB_DDLV_OJ_CD, T2.PRTNR_NO, T3.BLD_CD, T3.BLD_NM, T1.CSMB_PD_CD
-                                   ) T3
-                    ON T3.MNGT_YM = T1.MNGT_YM
-                   AND T3.STR_WARE_NO = T1.STR_WARE_NO
-                   AND T3.CSMB_PD_CD = T1.CSMB_PD_CD
-                   AND T3.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
-                  LEFT OUTER JOIN (SELECT T1.MNGT_YM
-                                        , T1.STR_WARE_NO
-                                        , T1.BFSVC_CSMB_DDLV_OJ_CD
-                                        , T2.BLD_CD
-                                        , T2.BLD_NM
-                                        , T1.CSMB_PD_CD
-                                        , SUM(T1.BFSVC_CSMB_DDLV_QTY) AS BFSVC_CSMB_DDLV_QTY
-                                     FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
-                                    INNER JOIN TB_OGBS_BLD_BAS T2
-                                       ON T2.OG_TP_CD = 'W02'
-                                      AND T1.STR_WARE_NO = T2.BLD_CD
-                                    WHERE T1.BFSVC_CSMB_DDLV_OJ_CD = '3'
-                                      AND T1.BFSVC_CSMB_DDLV_STAT_CD = '30'
-                                    GROUP BY T1.MNGT_YM, T1.STR_WARE_NO, T1.BFSVC_CSMB_DDLV_OJ_CD, T2.BLD_CD, T2.BLD_NM, T1.CSMB_PD_CD
-                                  ) T4
-                    ON T4.MNGT_YM = T1.MNGT_YM
-                   AND T4.STR_WARE_NO = T1.STR_WARE_NO
-                   AND T4.CSMB_PD_CD = T1.CSMB_PD_CD
-                   AND T4.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
-                 WHERE 1=1
-                   AND T1.MNGT_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
-                 <if test='@MybatisUtils@isNotEmpty(bfsvcCsmbDdlvOjCd)'>
-                   AND T1.BFSVC_CSMB_DDLV_OJ_CD = #{bfsvcCsmbDdlvOjCd}
-                 </if>
-                 <if test='@MybatisUtils@isNotEmpty(itmCds)'>
-                   AND T1.CSMB_PD_CD IN (
-                                        <foreach collection="itmCds" item="itmCd" separator=", ">
-                                         #{itmCd}
-                                        </foreach>
-                                        )
-                 </if>
-                 <if test='@MybatisUtils@isNotEmpty(sapCdFrom)'>
-                   AND T1.SAP_MAT_CD <![CDATA[>=]]> #{sapCdFrom}
-                 </if>
-                 <if test='@MybatisUtils@isNotEmpty(sapCdTo)'>
-                   AND T1.SAP_MAT_CD <![CDATA[<=]]> #{sapCdTo}
-                 </if>
-                 GROUP BY T1.CSMB_PD_CD, T1.SAP_MAT_CD, T1.STR_WARE_NO, T2.PRTNR_NO, T1.MNGT_YM,
-                          T2.BLD_CD, T2.BLD_NM, T3.PRTNR_NO, T3.BLD_CD, T3.BLD_NM, T4.BLD_CD, T4.BLD_NM
+          FROM (SELECT M.CSMB_PD_CD
+                     , M.SAP_MAT_CD
+                     , M.BLD_NM
+                     , M.BLD_CD
+                     , M.BLD_CD AS ACL_BLD_CD
+                     , M.PD_NM
+                     , M.NWCMR
+                     , M.INDV
+                     , M.BLD
+                     , NVL(SUM(M.NWCMR_SUM + M.INDV_SUM + M.BLD_SUM), 0) AS BFSVC_CSMB_DDLV_SUM
+                  FROM (SELECT T1.CSMB_PD_CD
+                             , T1.SAP_MAT_CD
+                             , NVL(O2.BLD_NM, O3.BLD_NM) AS BLD_NM
+                             , NVL(O2.BLD_CD, O3.BLD_CD) AS BLD_CD
+                             , P1.PD_NM
+                             , F_CMZ_CD_NM('TNT_WELLS', 'BFSVC_CSMB_DDLV_TP_CD', T2.BFSVC_CSMB_DDLV_TP_CD, 'ko') AS NWCMR
+                             , F_CMZ_CD_NM('TNT_WELLS', 'BFSVC_CSMB_DDLV_TP_CD', T3.BFSVC_CSMB_DDLV_TP_CD, 'ko') AS INDV
+                             , F_CMZ_CD_NM('TNT_WELLS', 'BFSVC_CSMB_DDLV_TP_CD', T4.BFSVC_CSMB_DDLV_TP_CD, 'ko') AS BLD
+                             , NVL(SUM(CASE WHEN T1.BFSVC_CSMB_DDLV_OJ_CD = '1' THEN T1.BFSVC_CSMB_DDLV_QTY END), 0) AS NWCMR_SUM
+                             , NVL(SUM(CASE WHEN T1.BFSVC_CSMB_DDLV_OJ_CD = '2' THEN T1.BFSVC_CSMB_DDLV_QTY END), 0) AS INDV_SUM
+                             , NVL(SUM(CASE WHEN T1.BFSVC_CSMB_DDLV_OJ_CD = '3' THEN T1.BFSVC_CSMB_DDLV_QTY END), 0) AS BLD_SUM
+                          FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
+                          LEFT JOIN TB_SVST_BFSVC_CSMB_BASE_DTL T2
+                            ON T1.MNGT_YM = T2.MNGT_YM
+                           AND T1.CSMB_PD_CD = T2.CSMB_PD_CD
+                           AND T2.BFSVC_CSMB_DDLV_OJ_CD = '1'
+                           AND T2.BFSVC_CSMB_DDLV_ORT_YN = 'Y'
+                          LEFT JOIN TB_SVST_BFSVC_CSMB_BASE_DTL T3
+                            ON T1.MNGT_YM = T3.MNGT_YM
+                           AND T1.CSMB_PD_CD = T3.CSMB_PD_CD
+                           AND T3.BFSVC_CSMB_DDLV_OJ_CD = '2'
+                           AND T3.BFSVC_CSMB_DDLV_ORT_YN = 'Y'
+                          LEFT JOIN TB_SVST_BFSVC_CSMB_BASE_DTL T4
+                            ON T1.MNGT_YM = T4.MNGT_YM
+                           AND T1.CSMB_PD_CD = T4.CSMB_PD_CD
+                           AND T4.BFSVC_CSMB_DDLV_OJ_CD = '3'
+                           AND T4.BFSVC_CSMB_DDLV_ORT_YN = 'Y'
+                          LEFT JOIN TB_OGBS_MM_PRTNR_IZ O1
+                            ON T1.MNGT_YM = O1.BASE_YM
+                           AND T1.STR_WARE_NO = O1.PRTNR_NO
+                           AND O1.OG_TP_CD = 'W02'
+                          LEFT JOIN TB_OGBS_MM_OG_IZ O2
+                            ON T1.MNGT_YM = O2.BASE_YM
+                           AND O1.OG_TP_CD = O2.OG_TP_CD
+                           AND O1.OG_ID = O2.OG_ID
+                          LEFT JOIN TB_OGBS_BLD_BAS O3
+                            ON T1.STR_WARE_NO = O3.BLD_CD
+                           AND O3.OG_TP_CD = 'W02'
+                         INNER JOIN TB_PDBS_PD_BAS P1
+                            ON T1.CSMB_PD_CD = P1.PD_CD
+                         WHERE 1 = 1
+                           AND T1.MNGT_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
+                           AND T1.BFSVC_CSMB_DDLV_STAT_CD = '30'
+                         <if test='@MybatisUtils@isNotEmpty(bfsvcCsmbDdlvOjCd)'>
+                           AND T1.BFSVC_CSMB_DDLV_OJ_CD = #{bfsvcCsmbDdlvOjCd}
+                         </if>
+                         <if test='@MybatisUtils@isNotEmpty(itmCds)'>
+                           AND T1.CSMB_PD_CD IN (
+                                                <foreach collection="itmCds" item="itmCd" separator=", ">
+                                                 #{itmCd}
+                                                </foreach>
+                                                )
+                         </if>
+                         <if test='@MybatisUtils@isNotEmpty(sapCdFrom)'>
+                           AND T1.SAP_MAT_CD <![CDATA[>=]]> #{sapCdFrom}
+                         </if>
+                         <if test='@MybatisUtils@isNotEmpty(sapCdTo)'>
+                           AND T1.SAP_MAT_CD <![CDATA[<=]]> #{sapCdTo}
+                         </if>
+                         GROUP BY T1.CSMB_PD_CD, T1.SAP_MAT_CD, O2.BLD_NM, O3.BLD_NM, O2.BLD_CD, O3.BLD_CD, P1.PD_NM,
+                                  T2.BFSVC_CSMB_DDLV_TP_CD, T3.BFSVC_CSMB_DDLV_TP_CD, T4.BFSVC_CSMB_DDLV_TP_CD
+                       ) M
+                 WHERE 1 = 1
+                 GROUP BY M.CSMB_PD_CD, M.SAP_MAT_CD, M.BLD_NM, M.BLD_CD, M.PD_NM, M.NWCMR, M.INDV, M.BLD
                ) M1
          INNER JOIN (SELECT /*+ index (S1 IX_SVPD_CST_SV_BFSVC_ASN_IZ_08)*/
                             O2.BLD_CD
@@ -181,69 +129,79 @@
             ON M2.BLD_CD = M1.BLD_CD
          WHERE 1=1
          <if test='@MybatisUtils@isNotEmpty(bldCds)'>
-           AND M1.ACL_BLD_CD IN (
-                                <foreach collection="bldCds" item="bldCd" separator=", ">
-                                 #{bldCd}
-                                </foreach>
-                                )
+           AND M1.BLD_CD IN (
+                            <foreach collection="bldCds" item="bldCd" separator=", ">
+                             #{bldCd}
+                            </foreach>
+                            )
          </if>
          ORDER BY BLD_NM, CSMB_PD_CD
     </select>
 
     <select id="selectItemQtys" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryAggregateDto$SearchQtysRes">
-        SELECT T1.MNGT_YM
-             , T1.CSMB_PD_CD
-             , T1.STR_WARE_NO
-             , CASE WHEN T1.BFSVC_CSMB_DDLV_QTY = 0 THEN NULL
-                    ELSE T1.BFSVC_CSMB_DDLV_QTY
-                END BFSVC_CSMB_DDLV_QTY
-             , O3.BLD_CD
-             , O3.BLD_NM
-          FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
-         INNER JOIN TB_OGBS_PRTNR_BAS O1
-            ON O1.OG_TP_CD = 'W02'
-           AND O1.PRTNR_NO = T1.STR_WARE_NO
-         INNER JOIN TB_OGBS_OG_BAS O2
-            ON O2.OG_TP_CD = 'W02'
-           AND O2.OG_ID = O1.OG_ID
-         INNER JOIN TB_OGBS_BLD_BAS O3
-            ON O3.OG_TP_CD = 'W02'
-           AND O3.BLD_CD = O2.BLD_CD
+        SELECT M.MNGT_YM
+             , M.CSMB_PD_CD
+             , SUM(M.BFSVC_CSMB_DDLV_QTY) AS BFSVC_CSMB_DDLV_QTY
+             , M.BLD_CD
+             , M.BLD_NM
+          FROM (SELECT T1.MNGT_YM
+                     , P1.PD_CD AS CSMB_PD_CD
+                     , NVL(SUM(T1.BFSVC_CSMB_DDLV_QTY), 0) AS BFSVC_CSMB_DDLV_QTY
+                     , O3.BLD_CD
+                     , O3.BLD_NM
+                  FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
+                 INNER JOIN TB_OGBS_PRTNR_BAS O1
+                    ON O1.OG_TP_CD = 'W02'
+                   AND O1.PRTNR_NO = T1.STR_WARE_NO
+                 INNER JOIN TB_OGBS_OG_BAS O2
+                    ON O2.OG_TP_CD = 'W02'
+                   AND O2.OG_ID = O1.OG_ID
+                 INNER JOIN TB_OGBS_BLD_BAS O3
+                    ON O3.OG_TP_CD = 'W02'
+                   AND O3.BLD_CD = O2.BLD_CD
+                 INNER JOIN TB_PDBS_PD_BAS P1
+                    ON T1.CSMB_PD_CD = P1.PD_CD
+                 WHERE 1 = 1
+                   AND T1.MNGT_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
+                   AND TRIM(T1.BFSVC_CSMB_DDLV_OJ_CD) IN ('1','2')
+                   AND TRIM(T1.DTA_DL_YN) = 'N'
+                   AND T1.BFSVC_CSMB_DDLV_STAT_CD = '30'
+                 <if test='@MybatisUtils@isNotEmpty(bldCds)'>
+                   AND O3.BLD_CD IN (
+                                    <foreach collection="bldCds" item="bldCd" separator=", ">
+                                     #{bldCd}
+                                    </foreach>
+                                    )
+                 </if>
+                 GROUP BY T1.MNGT_YM, P1.PD_CD, O3.BLD_CD, O3.BLD_NM
+                 UNION ALL
+                SELECT T1.MNGT_YM
+                     , P1.PD_CD AS CSMB_PD_CD
+                     , NVL(SUM(T1.BFSVC_CSMB_DDLV_QTY), 0) AS BFSVC_CSMB_DDLV_QTY
+                     , O3.BLD_CD
+                     , O3.BLD_NM
+                  FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
+                 INNER JOIN TB_OGBS_BLD_BAS O3
+                    ON O3.OG_TP_CD = 'W02'
+                   AND O3.BLD_CD = T1.STR_WARE_NO
+                 INNER JOIN TB_PDBS_PD_BAS P1
+                    ON T1.CSMB_PD_CD = P1.PD_CD
+                 WHERE 1 = 1
+                   AND T1.MNGT_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
+                   AND TRIM(T1.BFSVC_CSMB_DDLV_OJ_CD) = '3'
+                   AND TRIM(T1.DTA_DL_YN) = 'N'
+                   AND T1.BFSVC_CSMB_DDLV_STAT_CD = '30'
+                 <if test='@MybatisUtils@isNotEmpty(bldCds)'>
+                   AND O3.BLD_CD IN (
+                                    <foreach collection="bldCds" item="bldCd" separator=", ">
+                                     #{bldCd}
+                                    </foreach>
+                                    )
+                 </if>
+                 GROUP BY T1.MNGT_YM, P1.PD_CD, O3.BLD_CD, O3.BLD_NM
+               ) M
          WHERE 1 = 1
-           AND T1.MNGT_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
-           AND TRIM(T1.BFSVC_CSMB_DDLV_OJ_CD) IN ('1','2')
-           AND TRIM(T1.DTA_DL_YN) = 'N'
-         <if test='@MybatisUtils@isNotEmpty(bldCds)'>
-           AND O3.BLD_CD IN (
-                            <foreach collection="bldCds" item="bldCd" separator=", ">
-                             #{bldCd}
-                            </foreach>
-                            )
-         </if>
-         UNION ALL
-        SELECT T1.MNGT_YM
-             , T1.CSMB_PD_CD
-             , T1.STR_WARE_NO
-             , CASE WHEN T1.BFSVC_CSMB_DDLV_QTY = 0 THEN NULL
-                    ELSE T1.BFSVC_CSMB_DDLV_QTY
-                END BFSVC_CSMB_DDLV_QTY
-             , O3.BLD_CD
-             , O3.BLD_NM
-          FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
-         INNER JOIN TB_OGBS_BLD_BAS O3
-            ON O3.OG_TP_CD = 'W02'
-           AND O3.BLD_CD = T1.STR_WARE_NO
-         WHERE 1 = 1
-           AND T1.MNGT_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
-           AND TRIM(T1.BFSVC_CSMB_DDLV_OJ_CD) = '3'
-           AND TRIM(T1.DTA_DL_YN) = 'N'
-         <if test='@MybatisUtils@isNotEmpty(bldCds)'>
-           AND O3.BLD_CD IN (
-                            <foreach collection="bldCds" item="bldCd" separator=", ">
-                             #{bldCd}
-                            </foreach>
-                            )
-         </if>
-         ORDER BY BLD_NM, CSMB_PD_CD
+         GROUP BY M.MNGT_YM, M.CSMB_PD_CD, M.BLD_CD, M.BLD_NM
+         ORDER BY M.BLD_NM, M.CSMB_PD_CD
     </select>
 </mapper>

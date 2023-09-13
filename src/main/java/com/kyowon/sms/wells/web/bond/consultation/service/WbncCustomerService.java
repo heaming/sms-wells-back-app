@@ -1,5 +1,9 @@
 package com.kyowon.sms.wells.web.bond.consultation.service;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,10 +16,13 @@ import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounse
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselHistoryRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRecIdReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveCounselReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveUnuitmCnReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchReq;
@@ -126,5 +133,48 @@ public class WbncCustomerService {
         BizAssert.isTrue(processCount > 0, "MSG_ALT_SVE_ERR");
 
         return processCount;
+    }
+
+    public FindUserInfoRes getUserInfo(FindUserInfoReq dto) {
+        return mapper.selectUserInfo(dto);
+    }
+
+    public String getRecId(FindRecIdReq dto) {
+        String result = "";
+        try {
+            String ext = dto.inlnNo();
+            String url = "http://10.1.73.14:8088?type=get&cmd=callkeyap&ext=" + ext; // 운영
+            System.out.println("url : " + url);
+
+            URL obj = new URL(url);
+            HttpURLConnection conn = (HttpURLConnection)obj.openConnection();
+
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+            conn.setRequestMethod("GET");
+
+            // 연결 타임아웃 설정 
+            conn.setConnectTimeout(30000); // 10초 
+
+            // 읽기 타임아웃 설정 
+            conn.setReadTimeout(30000); // 10초
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            result = response.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+        return result;
+
     }
 }

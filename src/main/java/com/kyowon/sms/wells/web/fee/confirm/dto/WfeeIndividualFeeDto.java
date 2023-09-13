@@ -5,6 +5,10 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.sds.sflex.common.utils.DbEncUtil;
+
 /**
  * <pre>
  * 수수료 개인 상세
@@ -134,7 +138,11 @@ public class WfeeIndividualFeeDto {
         String dsbBnk, /*지급은행*/
         String dsbAc, /*지급계좌*/
         String pstnDvCd
-    ) {}
+    ) {
+        public FindHmstRes {
+            dsbAc = StringUtils.isNotEmpty(dsbAc) ? DbEncUtil.dec(dsbAc) : dsbAc;
+        }
+    }
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstEtcRes")
     public record SearchHmstEtcRes(
@@ -194,7 +202,11 @@ public class WfeeIndividualFeeDto {
         String ogLv1Id,
         String ogLv2Id,
         String ogLv3Id
-    ) {}
+    ) {
+        public FindMngerRes {
+            dsbAc = StringUtils.isNotEmpty(dsbAc) ? DbEncUtil.dec(dsbAc) : dsbAc;
+        }
+    }
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerEtcRes")
     public record SearchMngerEtcRes(
@@ -266,7 +278,11 @@ public class WfeeIndividualFeeDto {
         String dsbBnk, /*지급은행*/
         String dsbAc, /*지급계좌*/
         String pstnDvCd
-    ) {}
+    ) {
+        public FindPlarRes {
+            dsbAc = StringUtils.isNotEmpty(dsbAc) ? DbEncUtil.dec(dsbAc) : dsbAc;
+        }
+    }
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarEtcRes")
     public record SearchPlarEtcRes(
