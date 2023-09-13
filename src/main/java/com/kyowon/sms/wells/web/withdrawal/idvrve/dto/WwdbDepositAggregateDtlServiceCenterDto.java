@@ -3,7 +3,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
 
-public class WwwdbDepositAggregateDtlServiceCenterDto {
+public class WwdbDepositAggregateDtlServiceCenterDto {
 
     @ApiModel(value = "WwwdbDepositAggregateDtlServiceCenterDto-SearchReq")
     public record SearchReq(

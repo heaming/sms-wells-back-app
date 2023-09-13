@@ -1,11 +1,10 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto.SearchReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto.SearchCodeRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto.SearchSumRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwwdbDepositAggregateDtlServiceCenterMapper;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositAggregateDtlServiceCenterDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositAggregateDtlServiceCenterDto.SearchReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositAggregateDtlServiceCenterDto.SearchCodeRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositAggregateDtlServiceCenterDto.SearchSumRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbDepositAggregateDtlServiceCenterMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +14,9 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class WwwdbDepositAggregateDtlServiceCenterService {
+public class WwdbDepositAggregateDtlServiceCenterService {
 
-    private final WwwdbDepositAggregateDtlServiceCenterMapper mapper;
+    private final WwdbDepositAggregateDtlServiceCenterMapper mapper;
 
     public PagingResult<SearchRes> getDepositAggregateServiceCenterPages(
         SearchReq req, PageInfo pageInfo

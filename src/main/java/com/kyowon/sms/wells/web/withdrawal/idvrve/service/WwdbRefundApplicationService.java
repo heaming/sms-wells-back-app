@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaAutoTransferRealTimeAccountCheckDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaAutoTransferRealTimeAccountService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbRefundApplicationReqDvo;
-import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwwdbEtcDepositMapper;
+import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbEtcDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbRefundApplicationService;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbRefundApplicationConverter;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.*;
@@ -42,7 +42,7 @@ public class WwdbRefundApplicationService {
     private final ZwdaAutoTransferRealTimeAccountService acService;
     private final ZwdbRefundApplicationService zwdbRefundApplicationService;
 
-    private final ZwwdbEtcDepositMapper etcDepositMapper;
+    private final ZwdbEtcDepositMapper etcDepositMapper;
 
     /**
      * 환불 신청 현황 목록 ( 메인 )
