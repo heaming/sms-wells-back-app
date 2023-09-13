@@ -4,13 +4,13 @@ package com.kyowon.sms.wells.web.fee.standard.module;
 import com.kyowon.sms.common.web.fee.standard.annotation.FeeModuleInfo;
 import com.kyowon.sms.common.web.fee.standard.annotation.FeeModuleMethodInfo;
 import com.kyowon.sms.common.web.fee.standard.context.ApplicationContextHolder;
-import com.kyowon.sms.common.web.fee.standard.module.FeeCalculationCommonModule;
+import com.kyowon.sms.common.web.fee.standard.module.ZfeyFeeCalculationCommonModule;
 import com.kyowon.sms.wells.web.fee.standard.mapper.WfeyEngineerCalculationMapper;
 
 import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.SYSTEM_PACKAGE_WELLS;
 
 @FeeModuleInfo(systemType = SYSTEM_PACKAGE_WELLS, moduleName = "엔지니어모듈", moduleExplanation = "엔지니어 특화수당계산 모듈")
-public class FeeCalculationEngineerModule extends FeeCalculationCommonModule {
+public class WfeyFeeCalculationEngineerModule extends ZfeyFeeCalculationCommonModule {
 
     protected WfeyEngineerCalculationMapper engineerCalculationMapper;
 
@@ -25,7 +25,7 @@ public class FeeCalculationEngineerModule extends FeeCalculationCommonModule {
      * @param perfAgrgCrtDvCd
      * @param cntrPerfCrtDvCd
      */
-    public FeeCalculationEngineerModule(String tenantId, String feeCd, String baseYm, String perfYm, String feeTcntDvCd, String perfAgrgCrtDvCd, String cntrPerfCrtDvCd) {
+    public WfeyFeeCalculationEngineerModule(String tenantId, String feeCd, String baseYm, String perfYm, String feeTcntDvCd, String perfAgrgCrtDvCd, String cntrPerfCrtDvCd) {
         super( tenantId, feeCd, baseYm, perfYm, feeTcntDvCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
         engineerCalculationMapper = ApplicationContextHolder.getBean(WfeyEngineerCalculationMapper.class);
     }
@@ -39,7 +39,7 @@ public class FeeCalculationEngineerModule extends FeeCalculationCommonModule {
      * @param perfAgrgCrtDvCd
      * @param cntrPerfCrtDvCd
      */
-    public FeeCalculationEngineerModule(String tenantId, String feeCd, String baseYm, String feeTcntDvCd, String perfAgrgCrtDvCd, String cntrPerfCrtDvCd) {
+    public WfeyFeeCalculationEngineerModule(String tenantId, String feeCd, String baseYm, String feeTcntDvCd, String perfAgrgCrtDvCd, String cntrPerfCrtDvCd) {
         this(tenantId, feeCd, baseYm, baseYm, feeTcntDvCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
     }
 
@@ -52,7 +52,7 @@ public class FeeCalculationEngineerModule extends FeeCalculationCommonModule {
      * @param feeTcntDvCd
      * @param perfAgrgCrtDvCd
      */
-    public FeeCalculationEngineerModule(String tenantId, String feeCd, String baseYm, String feeTcntDvCd, String perfAgrgCrtDvCd) {
+    public WfeyFeeCalculationEngineerModule(String tenantId, String feeCd, String baseYm, String feeTcntDvCd, String perfAgrgCrtDvCd) {
         this(tenantId, feeCd, baseYm, baseYm, feeTcntDvCd, perfAgrgCrtDvCd, null);
     }
 
