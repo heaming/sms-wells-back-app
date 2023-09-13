@@ -62,6 +62,9 @@
            <if test="@MybatisUtils@isNotEmpty(qlfDvCd)">
            AND T2.QLF_DV_CD = #{qlfDvCd}
            </if>
+           AND T1.OG_ID IN (
+               <include refid="com.kyowon.sms.common.web.organization.common.mapper.ZogzOrganizationSearchMapper.sqlSessionOrganization" />
+           )
          ORDER BY T4.OG_CD, T1.PRTNR_NO, T1.PRTNR_KNM
     </select>
 
@@ -77,14 +80,21 @@
              , T1.ENDDT                              /* 종료일자 */
              , T1.PYMDT                              /* 지급일자 */
              , T1.DSB_AMT                            /* 지급금액 */
+             , T3.CNTR_DT                            /* 계약일자 */
+             , T3.PRTNR_CNTR_TP_CD                   /* 파트너 계약유형코드 */
           FROM TB_OGPS_PLAR_QLF_CH_IZ T1
          INNER JOIN TB_OGBS_PRTNR_BAS T2
             ON T2.OG_TP_CD = T1.OG_TP_CD
            AND T2.PRTNR_NO = T1.PRTNR_NO
-          LEFT OUTER JOIN T_CMP_USR_ACO_M C3
-            ON C3.USR_ID = T1.FNL_MDFC_USR_ID
+          LEFT OUTER JOIN TB_OGPS_PRTNR_CNTR_BAS T3
+            ON T3.OG_TP_CD = T2.OG_TP_CD
+           AND T3.PRTNR_NO = T2.PRTNR_NO
+           AND T3.BASE_YM = SUBSTR(T1.STRTDT, 1, 6)
          WHERE T1.OG_TP_CD = 'W02'
            AND T1.PRTNR_NO = #{prtnrNo}
+           AND T2.OG_ID IN (
+               <include refid="com.kyowon.sms.common.web.organization.common.mapper.ZogzOrganizationSearchMapper.sqlSessionOrganization" />
+           )
          ORDER BY T1.STRTDT DESC
     </select>
 
@@ -455,16 +465,22 @@
 
     <update id="updatePlannerQualificationChange">
         UPDATE TB_OGPS_PLAR_QLF_CH_IZ
-           SET QLF_APLC_DV_CD = #{qlfAplcDvCd}
-             <if test="@MybatisUtils@isNotEmpty(cvDt)">
+        <set>
+        <if test="@MybatisUtils@isNotEmpty(qlfAplcDvCd)">
+             , QLF_APLC_DV_CD = #{qlfAplcDvCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cvDt)">
              , CV_DT = #{cvDt}
-             </if>
-             <include refid="COMMON.updateSystemField"/>
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(enddt)">
+             , ENDDT = #{enddt}
+        </if>
+        <include refid="COMMON.updateSystemField"/>
+        </set>
          WHERE 1=1
            AND OG_TP_CD = #{ogTpCd}
            AND PRTNR_NO = #{prtnrNo}
            AND QLF_DV_CD = #{qlfDvCd}
            AND STRTDT = #{strtdt}
     </update>
-
 </mapper>

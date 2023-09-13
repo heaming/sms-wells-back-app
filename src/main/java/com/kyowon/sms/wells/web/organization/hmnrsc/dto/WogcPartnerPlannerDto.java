@@ -5,6 +5,8 @@ import com.sds.sflex.system.config.masking.MaskingType;
 import org.apache.commons.lang.StringUtils;
 
 import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -26,6 +28,7 @@ public class WogcPartnerPlannerDto {
         String bldNm,
         String ogTpCd,
         String prtnrNo,
+        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm,
         String rsbDvCd,
         String rsbDvNm,
@@ -57,8 +60,11 @@ public class WogcPartnerPlannerDto {
         String cvDt,
         String enddt,
         String pymdt,
-        String dsbAmt
-    ) {}
+        String dsbAmt,
+        String cntrDt,
+        String prtnrCntrTpCd
+    ) {
+    }
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchReq")
     @Builder
