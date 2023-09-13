@@ -1,17 +1,15 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.rest;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto.SearchReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto.SearchSumRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwwdbDepositAggregateDtlServiceCenterDto.SearchCodeRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwwdbDepositAggregateDtlServiceCenterService;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositAggregateDtlServiceCenterDto.SearchReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositAggregateDtlServiceCenterDto.SearchRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositAggregateDtlServiceCenterDto.SearchSumRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositAggregateDtlServiceCenterDto.SearchCodeRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbDepositAggregateDtlServiceCenterService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbVirtualAccountDto;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -27,9 +25,9 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/deposit-aggregate-service")
-public class WwwdbDepositAggregateDtlServiceCenterController {
+public class WwdbDepositAggregateDtlServiceCenterController {
 
-    private final WwwdbDepositAggregateDtlServiceCenterService service;
+    private final WwdbDepositAggregateDtlServiceCenterService service;
 
     @ApiOperation(value = "입금집계상세현황 서비스 조회", notes = "입금집계상세현황 서비스 조회")
     @ApiImplicitParams({
