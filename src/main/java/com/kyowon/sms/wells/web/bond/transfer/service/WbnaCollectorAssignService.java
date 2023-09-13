@@ -87,7 +87,7 @@ public class WbnaCollectorAssignService {
             ZbnyBondAssignRuleMgtDto.SearchReq.builder().baseYm(dto.baseYm()).bzHdqDvCd(dto.bzHdqDvCd())
                 .clctamDvCd(dto.clctamDvCd()).build()
         );
-        BizAssert.isTrue(CollectionUtils.isNotEmpty(dtos), "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+        BizAssert.isTrue(CollectionUtils.isNotEmpty(dtos), BnBondConst.MSG_ALT_SVE_ERR); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
         ZbnyBondAssignRuleMgtDto.SearchRes bondAssignRuleMgtDto = dtos.get(0);
 
         // bndAsnMthCd을 기준으로 배치 동작
@@ -112,7 +112,7 @@ public class WbnaCollectorAssignService {
 
         //배치호출(try-catch대신, throw사용)
         String oldBondBatchJobRunId = batchCallService.runJob(dvo); //결과값으로 Control-M 에서 run-id를 받는다.
-        BizAssert.isTrue(StringUtils.isNotEmpty(oldBondBatchJobRunId), "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+        BizAssert.isTrue(StringUtils.isNotEmpty(oldBondBatchJobRunId), BnBondConst.MSG_ALT_SVE_ERR); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
 
         return oldBondBatchJobRunId;
     }
@@ -130,13 +130,13 @@ public class WbnaCollectorAssignService {
             // 2. updateCollectorAssing - TB_CBBO_BND_CNTR_BAS 정보 수정
             // 3. TB_CBBO_BND_CNTR_HIST 수정 이력 추가
             int result = mapper.updateCollectorAssingForBondAssignItemization(dvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+            BizAssert.isTrue(result == 1, BnBondConst.MSG_ALT_SVE_ERR); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
 
             result = mapper.updateCollectorAssing(dvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+            BizAssert.isTrue(result == 1, BnBondConst.MSG_ALT_SVE_ERR); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
 
             result = bondContractBasicHistService.createBondContractHistory(dvo.getBndCntrId());
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+            BizAssert.isTrue(result == 1, BnBondConst.MSG_ALT_SVE_ERR); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
 
             processCount += result;
         }
@@ -149,7 +149,7 @@ public class WbnaCollectorAssignService {
             bondTransferAssignDvo.setExcnSn(bondTransferAssignMgtService.getExcnSn(bondTransferAssignDvo));
 
             int result = bondTransferAssignMgtService.createBondTransferAssign(bondTransferAssignDvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+            BizAssert.isTrue(result == 1, BnBondConst.MSG_ALT_SVE_ERR); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
         }
         return processCount;
     }
@@ -164,13 +164,13 @@ public class WbnaCollectorAssignService {
         //1. updateCollectorAssingsConfirm TB_CBBO_BND_ASN_IZ 채권배정 내용 확정
         //2. TB_CBBO_BND_TF_ASN_EXCN_IZ 테이블 이력 저장
         int result = mapper.updateCollectorAssingsConfirm(dvo);
-        BizAssert.isTrue(result != 0, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+        BizAssert.isTrue(result != 0, BnBondConst.MSG_ALT_SVE_ERR); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
 
         ZbnaBondTransferAssignDvo bondTransferAssignDvo = converter.mapSearchReqToZbnaBondTransferAssignDvo(dto);
         bondTransferAssignDvo.setTfBizDvCd("03"); // 집금자배정확정
         bondTransferAssignDvo.setExcnSn(bondTransferAssignMgtService.getExcnSn(bondTransferAssignDvo));
         result = bondTransferAssignMgtService.createBondTransferAssign(bondTransferAssignDvo);
-        BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+        BizAssert.isTrue(result == 1, BnBondConst.MSG_ALT_SVE_ERR); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
 
         processCount += result;
 
