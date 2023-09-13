@@ -125,6 +125,7 @@ public class WbncCustomerDto {
         String sexDvCd, /* 성별코드 */
         String sexDvNm, /* 성별코드명 */
         String bryyMmdd, /* 생년월일 */
+        String copnDvCd, /* 고객구분 */
         String cntrCralLocaraTno, /* 계약처휴대지역전화번호 */
         String cntrMexnoEncr, /* 계약처휴대전화국번호암호화 */
         String cntrCralIdvTno, /* 계약처휴대전화번호3 */
@@ -182,7 +183,12 @@ public class WbncCustomerDto {
         String lwscBilAmt, /* 소송비 청구금액 */
         String lwmDpAmt, /* 소송비 입금액 */
         String lwscBlam, /* 소송비 잔액 */
-        String ucAmt /* 미수금합산 */
+        String ucAmt, /* 미수금합산 */
+        String bzrno, /* 사업자번호 */
+        String tnoCnt1,
+        String tnoCnt2,
+        String tnoCnt3,
+        String bndBizDvCd /* 채권업무구분코드 */
     ) {
         public FindRes {
             cntrMexnoEncr = StringUtils.isNotEmpty(cntrMexnoEncr) ? DbEncUtil.dec(cntrMexnoEncr) : cntrMexnoEncr;
@@ -190,6 +196,7 @@ public class WbncCustomerDto {
             istMexnoEncr = StringUtils.isNotEmpty(istMexnoEncr) ? DbEncUtil.dec(istMexnoEncr) : istMexnoEncr;
             plarMexnoEncr = StringUtils.isNotEmpty(plarMexnoEncr) ? DbEncUtil.dec(plarMexnoEncr) : plarMexnoEncr;
             dsmnMexnoEncr = StringUtils.isNotEmpty(dsmnMexnoEncr) ? DbEncUtil.dec(dsmnMexnoEncr) : dsmnMexnoEncr;
+            vtAc = StringUtils.isNotEmpty(vtAc) ? DbEncUtil.dec(vtAc) : vtAc;
         }
 
     }
