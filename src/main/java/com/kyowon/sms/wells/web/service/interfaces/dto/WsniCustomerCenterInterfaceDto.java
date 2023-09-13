@@ -348,10 +348,10 @@ public class WsniCustomerCenterInterfaceDto {
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-CreateShpadrRes")
     public record CreateShpadrRes(
-        @JsonProperty("MSG")
-        String msg,
-        @JsonProperty("RESULT")
-        String result
+        @JsonProperty("RESULT_MESSAGE")
+        String resultMessage,
+        @JsonProperty("RESULT_CODE")
+        String resultCode
     ) {}
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-EditShpadrReq")
