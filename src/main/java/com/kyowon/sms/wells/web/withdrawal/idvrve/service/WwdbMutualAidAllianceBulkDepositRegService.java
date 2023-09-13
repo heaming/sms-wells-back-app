@@ -2,14 +2,12 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
 import java.util.*;
 
-import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
 import com.kyowon.sflex.common.common.service.BatchCallService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCorporationDepositDto;
-import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbIntegrationDepositDvo;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbWithdrawalReceiveAskReqDvo;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbCorporationDepositMapper;
+import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbEtcDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbIntegrationDepositMapper;
-import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwwdbEtcDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbDepositComparisonComfirmationService;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
@@ -19,9 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalDepositCprDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
-import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbMutualAidAllianceBulkDepositRegConverter;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbMutualAidAllianceBulkDepositRegDto.SaveReq;
@@ -75,7 +71,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
     private final ZwdbCorporationDepositMapper corporationDepositMapper;
 
-    private final ZwwdbEtcDepositMapper etcDepositMapper;
+    private final ZwdbEtcDepositMapper etcDepositMapper;
 
     @Transactional
     public PagingResult<SearchRes> getMutualAidAllianceBulkDepositRegPages(SearchReq dto, PageInfo pageInfo) {

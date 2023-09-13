@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +91,6 @@ public class WdccSalesBondService {
         } else if (StringUtils.equals(param.get("sellTpCd").toString(), "10")) { //리스/할부
             return mapper.selectAccountsReceivableLease(param);
         }
-        return null;
+        return new ArrayList<>();
     }
 }

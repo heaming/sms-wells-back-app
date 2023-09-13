@@ -22,7 +22,8 @@ public class WsnaWareItemReceivingAndPayingStateDto {
         String wareNoD,
         String itmGdCd,
         String useYn,
-        String itmKndCd
+        String itmKndCd,
+        String pdCd
 
     ) {}
 

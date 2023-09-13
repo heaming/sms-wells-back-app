@@ -268,6 +268,8 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         int mpacSn, // 합포장 일련번호
 
+        String pdctPdCd,
+
         String pdGdCd,
 
         String rpbLocaraCd,
