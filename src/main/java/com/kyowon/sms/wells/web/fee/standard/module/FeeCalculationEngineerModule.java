@@ -4,13 +4,13 @@ package com.kyowon.sms.wells.web.fee.standard.module;
 import com.kyowon.sms.common.web.fee.standard.annotation.FeeModuleInfo;
 import com.kyowon.sms.common.web.fee.standard.annotation.FeeModuleMethodInfo;
 import com.kyowon.sms.common.web.fee.standard.context.ApplicationContextHolder;
-import com.kyowon.sms.common.web.fee.standard.module.FeeCalculationCommonModule;
+import com.kyowon.sms.common.web.fee.standard.module.ZfeyFeeCalculationCommonModule;
 import com.kyowon.sms.wells.web.fee.standard.mapper.WfeyEngineerCalculationMapper;
 
 import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.SYSTEM_PACKAGE_WELLS;
 
 @FeeModuleInfo(systemType = SYSTEM_PACKAGE_WELLS, moduleName = "엔지니어모듈", moduleExplanation = "엔지니어 특화수당계산 모듈")
-public class FeeCalculationEngineerModule extends FeeCalculationCommonModule {
+public class FeeCalculationEngineerModule extends ZfeyFeeCalculationCommonModule {
 
     protected WfeyEngineerCalculationMapper engineerCalculationMapper;
 

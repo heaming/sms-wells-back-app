@@ -4,14 +4,14 @@ package com.kyowon.sms.wells.web.fee.standard.module;
 import com.kyowon.sms.common.web.fee.standard.annotation.FeeModuleInfo;
 import com.kyowon.sms.common.web.fee.standard.annotation.FeeModuleMethodInfo;
 import com.kyowon.sms.common.web.fee.standard.context.ApplicationContextHolder;
-import com.kyowon.sms.common.web.fee.standard.module.FeeCalculationCommonModule;
+import com.kyowon.sms.common.web.fee.standard.module.ZfeyFeeCalculationCommonModule;
 import com.kyowon.sms.wells.web.fee.standard.mapper.WfeyHomeMasterCalculationMapper;
 
 import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.FeeCalculationTypeCode.FEE_CALCULATION;
 import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.SYSTEM_PACKAGE_WELLS;
 
 @FeeModuleInfo(systemType = SYSTEM_PACKAGE_WELLS, moduleName = "홈마스터모듈", moduleExplanation = "홈마스터 특화수수료계산 모듈")
-public class FeeCalculationHomeMasterModule extends FeeCalculationCommonModule {
+public class FeeCalculationHomeMasterModule extends ZfeyFeeCalculationCommonModule {
 
     protected WfeyHomeMasterCalculationMapper homeMasterCalculationMapper;
 
