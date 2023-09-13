@@ -26,6 +26,17 @@ public class WsniMyKPaymentInfoService {
 
             - 원장 조회되지 않으면 처리결과 N, 오류 메시지 "존재하지 않는 계약입니다."
             - 조회시 처리결과 Y, 오류 메시지 "".
+
+            TB_SSCT_CNTR_DTL		계약상세
+            TB_SSCT_CNTR_BAS		계약기본
+            TB_SSCT_CNTR_STLM_REL		계약결제관계
+            TB_SSCT_CNTR_STLM_BAS		계약결제기본
+            TB_CBCL_WELLS_SL_MM_CL_IZ		WELLS매출월마감내역(당월)
+            TB_CBCL_DLQ_BAS		연체기본(전월)
+            TB_CBCL_DLQ_BAS		연체기본(당월)
+            TB_CBCL_WELLS_BOR_AMT_BAS		위약금기본(전월)
+            TB_RVCL_MCBY_BIL_DSC_IZ		월별청구할인내역(재약정)
+
         */
 
         WsniMyKPaymentInfoDvo dvo = converter.mapFindReqToWsniMyKPaymentInfoDvo(req);
@@ -35,6 +46,7 @@ public class WsniMyKPaymentInfoService {
             myKPaymentInfo.setRsltCd("Y");
             myKPaymentInfo.setRsltMsg("");
         } else {
+            myKPaymentInfo = new WsniMyKPaymentInfoDvo();
             myKPaymentInfo.setRsltCd("N");
             myKPaymentInfo.setRsltMsg("존재하지 않는 계약입니다.");
         }
