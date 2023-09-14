@@ -8,6 +8,8 @@ public class WsnaAgencyLocaraFilterGiveAOrderPsDto {
     public record SearchReq(
         String startDt,
 
-        String endDt
+        String endDt,
+
+        String bfsvcBzsDvCd
     ) {}
 }

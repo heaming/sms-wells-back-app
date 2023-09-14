@@ -33,6 +33,7 @@ public class WsnaAgencyLocaraFilterGiveAOrderPsController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "startDt", value = "기준년월 시작일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "endDt", value = "기준년월 종료일자", paramType = "query", required = true),
+        @ApiImplicitParam(name = "bfsvcBzsDvCd", value = "BS업체구분코드", paramType = "query", required = true),
     })
     @GetMapping("/agrg")
     public List getAgencyLocaraFilterGiveAOrderPsAgrgs(
