@@ -67,15 +67,17 @@ public class WwdbGiroOcrForwardingMgtController {
     }
 
     @ApiOperation(value = "지로OCR발송관리 대상 조회", notes = "지로OCR발송관리 대상 목록을 조회한다.")
-    @GetMapping("/objects/{cntr}")
+    @GetMapping("/objects/{cntr}/{wkDt}")
     public List<SearchObjectRes> getGiroOcrForwardingObjects(
         @PathVariable("cntr")
-        String cntr
+        String cntr,
+        @PathVariable("wkDt")
+        String wkDt
     ) {
         log.info("==================");
         log.info(cntr);
         log.info("==================");
-        return service.getGiroOcrForwardingObjects(cntr);
+        return service.getGiroOcrForwardingObjects(cntr, wkDt);
     }
 
     @ApiOperation(value = "지로OCR발송관리 저장", notes = "지로OCR발송관리 등록 및 수정한다.")
