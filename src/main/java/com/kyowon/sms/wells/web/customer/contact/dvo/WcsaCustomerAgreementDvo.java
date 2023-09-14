@@ -19,4 +19,5 @@ public class WcsaCustomerAgreementDvo {
     private String cstAgId;                         /* 고객동의ID */
     private String agAtcDvCd;                       /* 동의항목구분코드 */
     private String agYn;                            /* 동의여부 */
+    private String prvDocId;                        /* 약관문서ID */
 }
