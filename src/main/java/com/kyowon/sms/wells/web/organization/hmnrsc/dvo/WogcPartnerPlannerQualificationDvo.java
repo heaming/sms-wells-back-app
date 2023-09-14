@@ -10,6 +10,7 @@ public class WogcPartnerPlannerQualificationDvo {
     String prtnrNo;
     String qlfDvCd;
     String strtdt;
+    String newStrtdt;
     String enddt;
     String cvDt;
     String qlfAplcDvCd;
