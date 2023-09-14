@@ -5,14 +5,7 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SaveQulificationReq;
@@ -63,20 +56,29 @@ public class WogcPartnerPlannerController {
         return service.getTopPlannerForExcelDownload(dto);
     }
 
-    @ApiOperation(value = "수석플래너 신청관리 삭제", notes = "수석플래너 신청관리를 삭제한다.")
-    @DeleteMapping
-    public SaveResponse removeTopPlanner(
-        @RequestBody
-        WogcPartnerPlannerDto.DeleteReq dto
+    @ApiOperation(value = "순주문 마감 체크", notes = "순주문이 마감 되어있는지 체크한다.")
+    @GetMapping("/order-cnt")
+    public int getOrderChecks(
+        @Valid
+        WogcPartnerPlannerDto.SearchCheckReq dto
     ) throws Exception {
-        this.service.removeTopPlanner(dto);
-        return SaveResponse.builder().processCount(1).build();
+        return this.service.getOrderChecks(dto);
+    }
+
+    @ApiOperation(value = "자격생성 체크", notes = "자격생성 이미 되어있는지 체크한다.")
+    @GetMapping("/created-cnt")
+    public int getCreatedChecks(
+        @Valid
+        WogcPartnerPlannerDto.SearchCheckReq dto
+    ) throws Exception {
+        return this.service.getCreatedChecks(dto);
     }
 
     @ApiOperation(value = "자격생성", notes = "자격생성을 통해 자격을 변경한다.")
     @PutMapping
     public SaveResponse saveTopPlanner(
-        @Valid @RequestBody
+        @Valid
+        @RequestBody
         WogcPartnerPlannerDto.SaveReq dto
     ) throws Exception {
         this.service.saveTopPlanner(dto);
@@ -84,20 +86,26 @@ public class WogcPartnerPlannerController {
     }
 
     @ApiOperation(value = "수석자격조정 팝업 조회", notes = "수석자격조정 팝업을 조회한다.")
-    @GetMapping("/{bldCd}/{gridOgTpCd}")
-    public WogcPartnerPlannerDto.FindRes getTopPlanner(@PathVariable
-    String bldCd, @PathVariable
-    String gridOgTpCd) {
-        return this.service.getTopPlanner(bldCd, gridOgTpCd);
+    @GetMapping("/{ogTpCd}/{prtnrNo}")
+    public WogcPartnerPlannerDto.FindRes getTopPlanner(
+        @PathVariable
+        String ogTpCd,
+        @PathVariable
+        String prtnrNo,
+        @RequestParam
+        String mngtYm
+    ) {
+        return this.service.getTopPlanner(ogTpCd, prtnrNo, mngtYm);
     }
 
     @ApiOperation(value = "자격조정", notes = "자격생성을 통해 자격을 변경한다.")
-    @PutMapping("/{attOjsn}")
-    public SaveResponse savePlanner(
-        @Valid @RequestBody
+    @PutMapping("/{ogTpCd}/{prtnrNo}")
+    public SaveResponse saveTopPlanner(
+        @Valid
+        @RequestBody
         WogcPartnerPlannerDto.EditReq dto
     ) throws Exception {
-        this.service.saveBuilding(dto);
+        this.service.saveTopPlanner(dto);
         return SaveResponse.builder().processCount(1).build();
     }
 
@@ -153,7 +161,8 @@ public class WogcPartnerPlannerController {
         @ApiImplicitParam(name = "qlfAplcDvCd", value = "자격신청구분코드", paramType = "body", required = false)
     })
     public SaveResponse createPlannerQualificationChange(
-        @Valid @RequestBody
+        @Valid
+        @RequestBody
         SaveQulificationReq dto
     ) throws Exception {
         return SaveResponse.builder().processCount(service.createPlannerQualificationChange(dto)).build();
