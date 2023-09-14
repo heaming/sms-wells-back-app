@@ -29,7 +29,7 @@ public class WsniCustomerCenterInterfaceController {
 
     private final WsniCustomerCenterInterfaceService service;
 
-    @ApiOperation(value = "엔지니어 컨택 현황 조회", notes = "고객센터에서 엔지니어의 컨택 현황을 조회하는 인터페이스")
+    @ApiOperation(value = "EAI_WSVI1047 W-SV-I-0043 엔지니어 컨택 현황 조회", notes = "고객센터에서 엔지니어의 컨택 현황을 조회하는 인터페이스")
     @PostMapping("/enginner-contact")
     public EaiWrapper getEngineerContactPs(
         @Valid
@@ -42,7 +42,7 @@ public class WsniCustomerCenterInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "엔지니어 약속변경 이력 조회", notes = "고객센터에서 엔지니어의 약속변경 이력 현황을 조회하는 인터페이스")
+    @ApiOperation(value = "EAI_WSVI1048 W-SV-I-0044 엔지니어 약속변경 이력 조회", notes = "고객센터에서 엔지니어의 약속변경 이력 현황을 조회하는 인터페이스")
     @PostMapping("/engineer-promise-change")
     public EaiWrapper getEngineerPromChHist(
         @RequestBody
@@ -94,7 +94,7 @@ public class WsniCustomerCenterInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "AS 업체정보 조회", notes = "고객센터에서 Wells AS 업체정보를 조회하는 인터페이스")
+    @ApiOperation(value = "EAI_WSVI1044 W-SV-I-0040 AS 업체정보 조회", notes = "고객센터에서 Wells AS 업체정보를 조회하는 인터페이스")
     @PostMapping("/as-business")
     public EaiWrapper getAfterServiceBusinessInf(
         @RequestBody

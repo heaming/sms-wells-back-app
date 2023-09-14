@@ -36,7 +36,9 @@ public class WsnaPcsvOutOfStorageSaveDvo {
 
     String ogTpCd;
 
-    String pdGrpCd;
+    String pdGrpCd; /* 상품그룹코드 */
+
+    String pdctPdCd; /* 제품코드 */
 
     String svProcsCn; /*서비스처리내용*/
 

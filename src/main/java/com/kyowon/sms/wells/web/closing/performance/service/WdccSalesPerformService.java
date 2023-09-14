@@ -33,7 +33,7 @@ public class WdccSalesPerformService {
         // 주문유형 2,3,6 아니면 에러
         BizAssert
             .isTrue(
-                Arrays.asList(new String[] {"2", "3", "6"}).contains(contractDvo.getSellTpCd()),
+                Arrays.asList("2", "3", "6").contains(contractDvo.getSellTpCd()),
                 "MSG_ALT_NOT_SPPT_ORD_TP"
             );
         PagingResult<WdccSalesPerformDvo> result = null;

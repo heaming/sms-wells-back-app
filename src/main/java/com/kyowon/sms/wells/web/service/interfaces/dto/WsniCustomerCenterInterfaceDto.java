@@ -1,26 +1,26 @@
 package com.kyowon.sms.wells.web.service.interfaces.dto;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sds.sflex.common.utils.DbEncUtil;
-
+import com.sds.sflex.system.config.annotation.DBDecField;
 import io.swagger.annotations.ApiModel;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 public class WsniCustomerCenterInterfaceDto {
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchReq")
     public record SearchReq(
-        @JsonProperty("CST_SV_ASN_NO")
-        String cstSvAsnNo,
+        //        @JsonProperty("CST_SV_ASN_NO")
+        //        String cstSvAsnNo,
         @JsonProperty("WK_PRTNR_NO")
         String wkPrtnrNo,
         @JsonProperty("WK_DT")
-        String wkDt,
-        @JsonProperty("CNTR_NO")
-        String cntrNo,
-        @JsonProperty("CNTR_SN")
-        String cntrSn
+        String wkDt
+    //        @JsonProperty("CNTR_NO")
+    //        String cntrNo,
+    //        @JsonProperty("CNTR_SN")
+    //        String cntrSn
     ) {}
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchContactRes")
@@ -337,7 +337,7 @@ public class WsniCustomerCenterInterfaceDto {
         String sppDptuDt,
         @JsonProperty("SPP_FSH_DT")
         String sppFshDt,
-        @JsonProperty("")
+        @JsonProperty("USE_YN")
         String useYn
     ) {
         public CreateShpadrReq {
@@ -348,10 +348,10 @@ public class WsniCustomerCenterInterfaceDto {
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-CreateShpadrRes")
     public record CreateShpadrRes(
-        @JsonProperty("MSG")
-        String msg,
-        @JsonProperty("RESULT")
-        String result
+        @JsonProperty("RESULT_MESSAGE")
+        String resultMessage,
+        @JsonProperty("RESULT_CODE")
+        String resultCode
     ) {}
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-EditShpadrReq")
@@ -429,48 +429,37 @@ public class WsniCustomerCenterInterfaceDto {
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchPkgChRes")
     public record SearchPkgChRes(
-        @JsonProperty("IST_LCT_DTL_CN")
-        String istLctDtlCn,
-        @JsonProperty("ALL_CLEAN_MSG")
-        String allCleanMsg,
-        @JsonProperty("ALL_CLEAN_YN")
-        String allCleanYn,
-        @JsonProperty("CHANGE_COUNT")
-        String changeCount,
-        @JsonProperty("DTL_CNTR_NO")
-        String dtlCntrNo,
-        @JsonProperty("DTL_CNTR_SN")
-        String dtlCntrSn,
-        @JsonProperty("CRAL_LOCARA_TNO")
-        String cralLocaraTno,
-        @JsonProperty("MEXNO_ENCR")
-        String mexnoEncr,
-        @JsonProperty("CRAL_IDV_TNO")
-        String cralIdvTno,
-        @JsonProperty("LOCARA_TNO")
-        String locaraTno,
-        @JsonProperty("EXNO_ENCR")
-        String exnoEncr,
-        @JsonProperty("IDV_TNO")
-        String idvTno,
-        @JsonProperty("NEW_ADR_ZIP")
-        String newAdrZip,
-        @JsonProperty("RNADR")
-        String rnadr,
-        @JsonProperty("RDADR")
-        String rdadr,
-        @JsonProperty("BS_STOP_YN")
-        String bsStopYn,
-        @JsonProperty("CHANGE_YN")
-        String changeYn,
-        @JsonProperty("CHANGE_POSSIBLE_YN")
-        String changePossibleYn
-    ) {
-        public SearchPkgChRes {
-            mexnoEncr = DbEncUtil.dec(mexnoEncr);
-            exnoEncr = DbEncUtil.dec(exnoEncr);
-        }
-    }
+        @JsonProperty("CNTR_NO")
+        String cntrNo,
+        @JsonProperty("CNTR_SN")
+        String cntrSn,
+        @JsonProperty("AK_SN")
+        String akSn,
+        @JsonProperty("RGST_DT")
+        String rgstDt,
+        @JsonProperty("AS_AK_DV_CD")
+        String asAkDvCd,
+        @JsonProperty("AS_AK_DV_NM")
+        String asAkDvNm,
+        @JsonProperty("AK_CHDT")
+        String akChdt,
+        @JsonProperty("BFCH_PD_CD")
+        String bfchPdCd,
+        @JsonProperty("BFCH_PD_NM")
+        String bfchPdNm,
+        @JsonProperty("AFCH_PD_CD")
+        String afchPdCd,
+        @JsonProperty("AFCH_PD_NM")
+        String afchPdNm,
+        @JsonProperty("PRTNR_KNM")
+        String prtnrKnm,
+        @JsonProperty("PART_INFO")
+        String partInfo,
+        @JsonProperty("MTR_PROCS_STAT_CD")
+        String mtrProcsStatCd,
+        @JsonProperty("MTR_PROCS_STAT_NM")
+        String mtrProcsStatNm
+    ) {}
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchfiltShpadrReq")
     public record SearchFiltShpadrReq(
@@ -491,6 +480,7 @@ public class WsniCustomerCenterInterfaceDto {
         @JsonProperty("CRAL_LOCARA_TNO")
         String cralLocaraTno,
         @JsonProperty("MEXNO_ENCR")
+        @DBDecField
         String mexnoEncr,
         @JsonProperty("CRAL_IDV_TNO")
         String cralIdvTno,

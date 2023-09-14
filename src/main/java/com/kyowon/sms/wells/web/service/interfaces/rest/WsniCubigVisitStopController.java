@@ -31,7 +31,7 @@ public class WsniCubigVisitStopController {
 
     @ApiOperation(value = "Cubig CC 방문중지 등록 인터페이스")
     @PostMapping
-    public EaiWrapper createCubigVisitStop(
+    public EaiWrapper<CreateRes> createCubigVisitStop(
         @RequestBody
         @Valid
         EaiWrapper<CreateReq> reqEaiWrapper

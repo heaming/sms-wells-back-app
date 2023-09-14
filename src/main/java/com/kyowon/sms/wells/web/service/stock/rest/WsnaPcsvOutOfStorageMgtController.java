@@ -47,14 +47,14 @@ public class WsnaPcsvOutOfStorageMgtController {
 
     @ApiOperation(value = "택배설치상품 출고관리 저장", notes = "출고관리 정보를 저장한다.")
     @PostMapping
-    public SaveResponse savePcsvOutOfStorage(
+    public SaveResponse savePcsvOutOfStorages(
         @Valid
         @RequestBody
         @NotEmpty
         List<SaveReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.savePcsvOutOfStorage(dtos))
+            .processCount(service.savePcsvOutOfStorages(dtos))
             .build();
     }
 

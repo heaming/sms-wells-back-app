@@ -98,7 +98,7 @@
                     , NVL(D1.BOX_UNIT_QTY, 0)                                            AS BOX_UNIT_QTY
                     , D1.CNFM_QTY
                     , NVL(D6.OSTR_AK_QTY, NVL(D1.CNFM_QTY, 0) - NVL(D1.ACL_OSTR_QTY, 0)) AS OUT_QTY
-                    , NVL(D1.ACL_OSTR_QTY, 0)                                            AS ACL_OSTR_QTY
+                    , NVL(D1.ACL_OSTR_QTY, 0) + NVL(D6.OSTR_AK_QTY, 0)                   AS ACL_OSTR_QTY
                     , D1.ASN_OJ_YM
                     , D1.OSTR_WARE_NO
                     , D1.STR_WARE_NO
@@ -119,29 +119,27 @@
                     , D7.WARE_MNGT_PRTNR_NO                                              AS OSTR_PRTNR_NO
                     , D7.OG_TP_CD                                                        AS OSTR_PRTNR_OG_TP_CD
                     , D8.LGST_OSTR_AK_NO
-                    , CASE WHEN D6.ITM_QOM_ASN_NO IS NULL
-                           THEN ( SELECT NVL(PITM_STOC_A_GD_QTY, 0) - NVL(MMT_STOC_A_GD_QTY, 0)
-                                    FROM TB_SVST_CST_SV_ITM_STOC_IZ
-                                   WHERE ITM_PD_CD = D1.ITM_PD_CD
-                                     AND WARE_NO   = D2.HGR_WARE_NO
-                                     AND DTA_DL_YN = 'N' )
-                           ELSE 0
-                      END                                                                AS HGR_CRTL_STOC_QTY
-                    , CASE WHEN D6.ITM_QOM_ASN_NO IS NULL
-                           THEN ( SELECT NVL(SUM(S1.CNFM_QTY), 0) - NVL(SUM(S1.ACL_OSTR_QTY), 0)
-                                    FROM TB_SVST_ITM_QOM_ASN_IZ S1
-                                   INNER JOIN TB_SVST_MCBY_WARE_IZ S2
-                                      ON S2.WARE_NO = S1.STR_WARE_NO
-                                   WHERE S1.ITM_PD_CD    = D1.ITM_PD_CD
-                                     AND S1.DTA_DL_YN    = 'N'
-                                     AND S2.DTA_DL_YN    = 'N'
-                                     AND S1.ASN_OJ_YM    = #{asnOjYm}
-                                     AND S1.ASN_TN_N     = #{cnt}
-                                     AND S1.OSTR_WARE_NO = #{ostrWareNo}
-                                     AND S2.APY_YM       = #{apyYm}
-                                     AND S2.HGR_WARE_NO  = #{hgrStrWareNo} )
-                           ELSE 0
-                      END                                                                AS TOT_OUT_QTY
+                    , ( SELECT NVL(PITM_STOC_A_GD_QTY, 0) - NVL(MMT_STOC_A_GD_QTY, 0)
+                          FROM TB_SVST_CST_SV_ITM_STOC_IZ
+                         WHERE ITM_PD_CD = D1.ITM_PD_CD
+                           AND WARE_NO   = D2.HGR_WARE_NO
+                           AND DTA_DL_YN = 'N' )                                         AS HGR_CRTL_STOC_QTY
+                    , ( SELECT NVL(SUM(S1.CNFM_QTY), 0) - NVL(SUM(S1.ACL_OSTR_QTY), 0) + NVL(SUM(S3.OSTR_AK_QTY), 0)
+                          FROM TB_SVST_ITM_QOM_ASN_IZ S1
+                         INNER JOIN TB_SVST_MCBY_WARE_IZ S2
+                            ON S2.WARE_NO = S1.STR_WARE_NO
+                          LEFT OUTER JOIN TB_SVST_ITM_OSTR_AK_IZ S3          /* 품목출고요청내역 */
+                            ON S3.ITM_QOM_ASN_NO = S1.ITM_QOM_ASN_NO
+                           AND S3.OSTR_AK_TP_CD  = '360'   /* 물량배정 */
+                           AND S3.DTA_DL_YN      = 'N'
+                         WHERE S1.ITM_PD_CD    = D1.ITM_PD_CD
+                           AND S1.DTA_DL_YN    = 'N'
+                           AND S2.DTA_DL_YN    = 'N'
+                           AND S1.ASN_OJ_YM    = #{asnOjYm}
+                           AND S1.ASN_TN_N     = #{cnt}
+                           AND S1.OSTR_WARE_NO = #{ostrWareNo}
+                           AND S2.APY_YM       = #{apyYm}
+                           AND S2.HGR_WARE_NO  = #{hgrStrWareNo} )                       AS TOT_OUT_QTY
                  FROM TB_SVST_ITM_QOM_ASN_IZ D1                     /* 품목물량배정내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2                  /* 월별창고내역 */
                    ON D2.WARE_NO = D1.STR_WARE_NO
@@ -331,7 +329,9 @@
     <update id="updateItmQomAsnIz">
         UPDATE TB_SVST_ITM_QOM_ASN_IZ   /* 품목물량배정내역 */
            SET RECT_OSTR_DUEDT = #{ostrDt}                          /* 최근출고예정일자 */
-             , ACL_OSTR_QTY    = NVL(ACL_OSTR_QTY, 0) + #{outQty}   /* 실제출고수량 */
+             , ACL_OSTR_QTY    = CASE WHEN RECT_OSTR_DT IS NOT NULL THEN #{outQty}
+                                      ELSE NVL(ACL_OSTR_QTY, 0) + #{outQty}
+                                 END                                /* 실제출고수량 */
              , RECT_OSTR_TP_CD = '222'                              /* 최근출고유형코드 - 물량배정 */
              , RECT_OSTR_DT    = TO_CHAR(SYSDATE, 'YYYYMMDD')       /* 최근출고일자 */
              , RECT_OSTR_QTY   = #{outQty}                          /* 최근출고수량 */
@@ -351,7 +351,7 @@
              , D2.WARE_MNGT_PRTNR_OG_TP_CD                  /* 창고관리파트너조직유형코드 */
              , 0                      AS MPAC_SN            /* 합포장일련번호 */
              , 'WE'                   AS IOST_AK_DV_CD      /* 입출고요청구분코드 */
-             , '6'                    AS LGST_SPP_MTHD_CD   /* 물류배송방식코드 */
+             , '1'                    AS LGST_SPP_MTHD_CD   /* 물류배송방식코드 - 직배 */
              , 'WE09'                 AS LGST_WK_MTHD_CD    /* 물류작업방식코드 */
              , D2.ITM_PD_CD                                 /* 품목상품코드 */
              , D2.OSTR_AK_QTY                               /* 출고요청수량 */

@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaAutoTransferRealTimeAccountCheckDvo;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaAutoTransferRealTimeAccountService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbRefundApplicationReqDvo;
-import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwwdbEtcDepositMapper;
+import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbEtcDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbRefundApplicationService;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbRefundApplicationConverter;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto.*;
@@ -42,10 +42,11 @@ public class WwdbRefundApplicationService {
     private final ZwdaAutoTransferRealTimeAccountService acService;
     private final ZwdbRefundApplicationService zwdbRefundApplicationService;
 
-    private final ZwwdbEtcDepositMapper etcDepositMapper;
+    private final ZwdbEtcDepositMapper etcDepositMapper;
 
     /**
      * 환불 신청 현황 목록 ( 메인 )
+     *
      * @param req
      * @return PagingResult<SearchRefundApplicationRes>
      */
@@ -58,6 +59,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 현황 목록 엑셀 다운로드 ( 메인 )
+     *
      * @param req
      * @return List<SearchRefundApplicationRes>
      */
@@ -70,6 +72,7 @@ public class WwdbRefundApplicationService {
     /*******************************************************************/
     /**
      * 환불 신청 현황 P01. 신청 조회 ( 팝업조회 - 신규 )
+     *
      * @param req
      * @param pageInfo
      * @return PagingResult<SearchRefundContractDetailRes>
@@ -82,6 +85,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 현황 P01. 신청 조회 엑셀다운로드 ( 팝업조회 - 신규 )
+     *
      * @param req
      * @return PagingResult<SearchRefundContractDetailRes>
      */
@@ -93,6 +97,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 현황 P01. 환불정보 검색 ( 팝업- 조회 )
+     *
      * @param req
      * @return res
      */
@@ -105,6 +110,7 @@ public class WwdbRefundApplicationService {
     /** TODO: 메인그리드에서 팝업조회시 **/
     /**
      * 환불 신청 현황 P01. 신청조회 - 계약상세 ( 팝업조회 - 신규 )
+     *
      * @param req
      * @param pageInfo
      * @return
@@ -119,6 +125,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 현황 P01. 신청조회 - 환불상세 ( 팝업조회 - 신규/ 등록조회 )
+     *
      * @param req
      * @param pageInfo
      * @return PagingResult
@@ -126,7 +133,7 @@ public class WwdbRefundApplicationService {
     public PagingResult<SearchRefundDetailRes> getRefundDetailPages(
         SearchRefundDetailReq req, PageInfo pageInfo
     ) {
-        PagingResult<SearchRefundDetailRes> data = new PagingResult<>();
+        PagingResult<SearchRefundDetailRes> data;
 
         if (StringUtil.isNull(req.rfndAkNo()) || req.rfndAkNo() == null) {
             data = mapper.selectRefundDetail(req, pageInfo);
@@ -138,6 +145,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 현황 P01. 신청조회 - 전금상세
+     *
      * @param req
      * @param pageInfo
      * @return
@@ -247,8 +255,6 @@ public class WwdbRefundApplicationService {
         // 3.1.1 리턴 받은 값이 없거나 Null 인 경우 "0000" 셋팅
         String acFntRsCd = resultDvo.getAcFntRsCd();
         String acFntRsNm = "";
-        System.out.println("=-==-=-=-=-=-=-=-==");
-        System.out.println(resultDvo.getErrCn());
         // 3.2 리턴받은 계좌이체불능코드에 해당하는 계좌이체결과코드 조회
         //        if (!ObjectUtils.isEmpty(resultDvo.getBilCrtStatCd())) {
         //            if ("1".equals(resultDvo.getBilCrtStatCd())) {
@@ -289,6 +295,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 컨텍 이력 사항
+     *
      * @param cntrNo
      * @param pageInfo
      * @return
@@ -301,6 +308,7 @@ public class WwdbRefundApplicationService {
 
     /**
      * 환불 신청 컨텍 이력 사항
+     *
      * @param cntrNo
      * @return PagingResult<SearchRefundApplicationConnectHistoryRes>
      */

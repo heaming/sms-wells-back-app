@@ -41,6 +41,14 @@ public class WwdcSalesControlService {
     private final MessageResourceService messageService;
     private final ExcelReadService excelReadService;
 
+    private final static String cntrDtlNo = "cntrDtlNo";
+    private final static String slCtrStrtYm = "slCtrStrtYm";
+    private final static String slCtrMtrDvCd = "slCtrMtrDvCd";
+    private final static String slCtrSellTpCd = "slCtrSellTpCd";
+    private final static String slCtrDvCd = "slCtrDvCd";
+    private final static String slCtrMtrTpCd = "slCtrMtrTpCd";
+    private final static String slCtrDscTpCd = "slCtrDscTpCd";
+
     /**
      * 매출조정관리
      *
@@ -143,17 +151,17 @@ public class WwdcSalesControlService {
     public ExcelUploadDto.UploadRes saveSalesControlExcelUpload(String exmpYn, MultipartFile file) throws Exception {
         if (exmpYn.equals("N")) { // 방학제외 미선택시
             Map<String, String> headerTitle = new LinkedHashMap<>();
-            headerTitle.put("cntrDtlNo", messageService.getMessage("MSG_TXT_CNTR_SN"));
+            headerTitle.put(cntrDtlNo, messageService.getMessage("MSG_TXT_CNTR_SN"));
             headerTitle.put("cstKnm", messageService.getMessage("MSG_TXT_CST_NM"));
-            headerTitle.put("slCtrStrtYm", messageService.getMessage("MSG_TXT_STRT_YM"));
+            headerTitle.put(slCtrStrtYm, messageService.getMessage("MSG_TXT_STRT_YM"));
             headerTitle.put("slCtrEndYm", messageService.getMessage("MSG_TXT_END_YM"));
-            headerTitle.put("slCtrMtrDvCd", messageService.getMessage("MSG_TXT_MTR_DV"));
-            headerTitle.put("slCtrSellTpCd", messageService.getMessage("MSG_TXT_SELL_TP_CD"));
+            headerTitle.put(slCtrMtrDvCd, messageService.getMessage("MSG_TXT_MTR_DV"));
+            headerTitle.put(slCtrSellTpCd, messageService.getMessage("MSG_TXT_SELL_TP_CD"));
             headerTitle.put("pdCd", messageService.getMessage("MSG_TXT_GOODS_NM"));
             headerTitle.put("pdNm", messageService.getMessage("MSG_TXT_PROD_CD"));
-            headerTitle.put("slCtrDvCd", messageService.getMessage("MSG_TXT_CTR_DV"));
-            headerTitle.put("slCtrMtrTpCd", messageService.getMessage("MSG_TXT_CTR_TP"));
-            headerTitle.put("slCtrDscTpCd", messageService.getMessage("MSG_TXT_DSC"));
+            headerTitle.put(slCtrDvCd, messageService.getMessage("MSG_TXT_CTR_DV"));
+            headerTitle.put(slCtrMtrTpCd, messageService.getMessage("MSG_TXT_CTR_TP"));
+            headerTitle.put(slCtrDscTpCd, messageService.getMessage("MSG_TXT_DSC"));
             headerTitle.put("canAfOjYn", messageService.getMessage("MSG_TXT_PD_AF_CAN"));
             headerTitle.put("slCtrAmt", messageService.getMessage("MSG_TXT_CTR_AMT"));
             headerTitle.put("slCtrWoExmpAmt", messageService.getMessage("MSG_TXT_CTR_EXMP_AMT"));
@@ -178,28 +186,28 @@ public class WwdcSalesControlService {
 
                 if (StringUtils.isEmpty(list.getCntrDtlNo())) { // 유효성
                     errorDvo.setErrorRow(finalRow);
-                    errorDvo.setHeaderName(headerTitle.get("cntrDtlNo"));
+                    errorDvo.setHeaderName(headerTitle.get(cntrDtlNo));
                     errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
                 } else {
                     if (!Pattern.matches(specialPattern, list.getCntrDtlNo())) {
                         errorDvo.setErrorRow(finalRow);
-                        errorDvo.setHeaderName(headerTitle.get("cntrDtlNo"));
+                        errorDvo.setHeaderName(headerTitle.get(cntrDtlNo));
                         errorDvo.setErrorData(messageService.getMessage("MSG_ALT_CHK_SPECL_CHAR")); // 특수 문자는 허용되지 않습니다.
                     } else {
                         if (list.getCntrDtlNo().length() != 12) {
                             errorDvo.setErrorRow(finalRow);
-                            errorDvo.setHeaderName(headerTitle.get("cntrDtlNo"));
+                            errorDvo.setHeaderName(headerTitle.get(cntrDtlNo));
                             errorDvo.setErrorData(messageService.getMessage("MSG_ALT_CNTR_DTL_NO_CONF")); // 올바른 계약상세번호로 조회 하세요.
                         }
                     }
                 }
 
-                validateExcelAttribute(list.getSlCtrStrtYm(), "slCtrStrtYm", errorDvo, headerTitle, 6);
-                validateExcelAttribute(list.getSlCtrMtrDvCd(), "slCtrMtrDvCd", errorDvo, headerTitle, 1);
-                validateExcelAttribute(list.getSlCtrSellTpCd(), "slCtrSellTpCd", errorDvo, headerTitle, 1);
-                validateExcelAttribute(list.getSlCtrDvCd(), "slCtrDvCd", errorDvo, headerTitle, 1);
-                validateExcelAttribute(list.getSlCtrMtrTpCd(), "slCtrMtrTpCd", errorDvo, headerTitle, 1);
-                validateExcelAttribute(list.getSlCtrDscTpCd(), "slCtrDscTpCd", errorDvo, headerTitle, 2);
+                validateExcelAttribute(list.getSlCtrStrtYm(), slCtrStrtYm, errorDvo, headerTitle, 6);
+                validateExcelAttribute(list.getSlCtrMtrDvCd(), slCtrMtrDvCd, errorDvo, headerTitle, 1);
+                validateExcelAttribute(list.getSlCtrSellTpCd(), slCtrSellTpCd, errorDvo, headerTitle, 1);
+                validateExcelAttribute(list.getSlCtrDvCd(), slCtrDvCd, errorDvo, headerTitle, 1);
+                validateExcelAttribute(list.getSlCtrMtrTpCd(), slCtrMtrTpCd, errorDvo, headerTitle, 1);
+                validateExcelAttribute(list.getSlCtrDscTpCd(), slCtrDscTpCd, errorDvo, headerTitle, 2);
 
                 if (StringUtils.isEmpty(list.getSlCtrRmkCn())) { // 유효성7 : 조정사유
                     errorDvo.setErrorRow(finalRow);
@@ -220,12 +228,12 @@ public class WwdcSalesControlService {
                         for (int i = 0; i < checks.size(); i++) {
                             if (checks.get(i).get("cntrNo").equals(list.getCntrNo())
                                 && checks.get(i).get("cntrSn").equals(list.getCntrSn())
-                                && checks.get(i).get("slCtrStrtYm").equals(list.getSlCtrStrtYm())
-                                && checks.get(i).get("slCtrMtrDvCd").equals(list.getSlCtrMtrDvCd())
-                                && checks.get(i).get("slCtrSellTpCd").equals(list.getSlCtrSellTpCd())
-                                && checks.get(i).get("slCtrDvCd").equals(list.getSlCtrDvCd())
-                                && checks.get(i).get("slCtrMtrTpCd").equals(list.getSlCtrMtrTpCd())
-                                && checks.get(i).get("slCtrDscTpCd").equals(list.getSlCtrDscTpCd())
+                                && checks.get(i).get(slCtrStrtYm).equals(list.getSlCtrStrtYm())
+                                && checks.get(i).get(slCtrMtrDvCd).equals(list.getSlCtrMtrDvCd())
+                                && checks.get(i).get(slCtrSellTpCd).equals(list.getSlCtrSellTpCd())
+                                && checks.get(i).get(slCtrDvCd).equals(list.getSlCtrDvCd())
+                                && checks.get(i).get(slCtrMtrTpCd).equals(list.getSlCtrMtrTpCd())
+                                && checks.get(i).get(slCtrDscTpCd).equals(list.getSlCtrDscTpCd())
                                 && checks.get(i).get("slCtrRmkCn").equals(list.getSlCtrRmkCn())) {
                                 errorDvo.setErrorRow(finalRow);
                                 errorDvo.setHeaderName(headerTitle.get("prtnrNo"));
@@ -241,17 +249,17 @@ public class WwdcSalesControlService {
                     }
                     check.put("cntrNo", list.getCntrNo());
                     check.put("cntrSn", list.getCntrSn());
-                    //                check.put("cntrDtlNo", list.getCntrDtlNo());
+                    //                check.put(cntrDtlNo, list.getCntrDtlNo());
                     check.put("cstKnm", list.getCstKnm());
-                    check.put("slCtrStrtYm", list.getSlCtrStrtYm());
+                    check.put(slCtrStrtYm, list.getSlCtrStrtYm());
                     check.put("slCtrEndYm", list.getSlCtrEndYm());
-                    check.put("slCtrMtrDvCd", list.getSlCtrMtrDvCd());
-                    check.put("slCtrSellTpCd", list.getSlCtrSellTpCd());
+                    check.put(slCtrMtrDvCd, list.getSlCtrMtrDvCd());
+                    check.put(slCtrSellTpCd, list.getSlCtrSellTpCd());
                     check.put("pdCd", list.getPdCd());
                     check.put("pdNm", list.getPdNm());
-                    check.put("slCtrDvCd", list.getSlCtrDvCd());
-                    check.put("slCtrMtrTpCd", list.getSlCtrMtrTpCd());
-                    check.put("slCtrDscTpCd", list.getSlCtrDscTpCd());
+                    check.put(slCtrDvCd, list.getSlCtrDvCd());
+                    check.put(slCtrMtrTpCd, list.getSlCtrMtrTpCd());
+                    check.put(slCtrDscTpCd, list.getSlCtrDscTpCd());
                     check.put("canAfOjYn", list.getCanAfOjYn());
                     check.put("slCtrAmt", list.getSlCtrAmt());
                     check.put("slCtrWoExmpAmt", list.getSlCtrWoExmpAmt());
@@ -284,9 +292,9 @@ public class WwdcSalesControlService {
             return result;
         } else { // 방학제외 선택시 (방학 할인)
             Map<String, String> headerTitle = new LinkedHashMap<>();
-            headerTitle.put("cntrDtlNo", messageService.getMessage("MSG_TXT_CNTR_SN"));
+            headerTitle.put(cntrDtlNo, messageService.getMessage("MSG_TXT_CNTR_SN"));
             headerTitle.put("cstKnm", messageService.getMessage("MSG_TXT_CST_NM"));
-            headerTitle.put("slCtrStrtYm", messageService.getMessage("MSG_TXT_STRT_YM"));
+            headerTitle.put(slCtrStrtYm, messageService.getMessage("MSG_TXT_STRT_YM"));
             headerTitle.put("slCtrEndYm", messageService.getMessage("MSG_TXT_END_YM"));
             headerTitle.put("canDt", messageService.getMessage("MSG_TXT_CANC_DT"));
             headerTitle.put("apyY", messageService.getMessage("MSG_TXT_APY_Y"));
@@ -294,13 +302,13 @@ public class WwdcSalesControlService {
             headerTitle.put("feb", messageService.getMessage("MSG_TXT_FEB"));
             headerTitle.put("jul", messageService.getMessage("MSG_TXT_JUL"));
             headerTitle.put("aug", messageService.getMessage("MSG_TXT_AUG"));
-            headerTitle.put("slCtrMtrDvCd", messageService.getMessage("MSG_TXT_MTR_DV"));
-            headerTitle.put("slCtrSellTpCd", messageService.getMessage("MSG_TXT_SELL_TP_CD"));
+            headerTitle.put(slCtrMtrDvCd, messageService.getMessage("MSG_TXT_MTR_DV"));
+            headerTitle.put(slCtrSellTpCd, messageService.getMessage("MSG_TXT_SELL_TP_CD"));
             headerTitle.put("sellTpDtlCd", messageService.getMessage("MSG_TXT_SELL_TP_DTL"));
             headerTitle.put("slCtrWoExmpAmt", messageService.getMessage("MSG_TXT_CTR_EXMP_AMT"));
-            headerTitle.put("slCtrDvCd", messageService.getMessage("MSG_TXT_CTR_DV"));
-            headerTitle.put("slCtrDscTpCd", messageService.getMessage("MSG_TXT_DSC"));
-            headerTitle.put("slCtrMtrTpCd", messageService.getMessage("MSG_TXT_CTR_TP"));
+            headerTitle.put(slCtrDvCd, messageService.getMessage("MSG_TXT_CTR_DV"));
+            headerTitle.put(slCtrDscTpCd, messageService.getMessage("MSG_TXT_DSC"));
+            headerTitle.put(slCtrMtrTpCd, messageService.getMessage("MSG_TXT_CTR_TP"));
 
             String specialPattern = "^[0-9a-zA-Zㄱ-ㅎ가-힣]*$"; //특수문자 정규식
             //            String pattern = "^[0-9]*$"; //숫자 정규식
@@ -320,28 +328,28 @@ public class WwdcSalesControlService {
 
                 if (StringUtils.isEmpty(list.getCntrDtlNo())) { // 유효성
                     errorDvo.setErrorRow(finalRow);
-                    errorDvo.setHeaderName(headerTitle.get("cntrDtlNo"));
+                    errorDvo.setHeaderName(headerTitle.get(cntrDtlNo));
                     errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
                 } else {
                     if (!Pattern.matches(specialPattern, list.getCntrDtlNo())) {
                         errorDvo.setErrorRow(finalRow);
-                        errorDvo.setHeaderName(headerTitle.get("cntrDtlNo"));
+                        errorDvo.setHeaderName(headerTitle.get(cntrDtlNo));
                         errorDvo.setErrorData(messageService.getMessage("MSG_ALT_CHK_SPECL_CHAR")); // 특수 문자는 허용되지 않습니다.
                     } else {
                         if (list.getCntrDtlNo().length() != 12) {
                             errorDvo.setErrorRow(finalRow);
-                            errorDvo.setHeaderName(headerTitle.get("cntrDtlNo"));
+                            errorDvo.setHeaderName(headerTitle.get(cntrDtlNo));
                             errorDvo.setErrorData(messageService.getMessage("MSG_ALT_CNTR_DTL_NO_CONF")); // 올바른 계약상세번호로 조회 하세요.
                         }
                     }
                 }
 
-                validateExcelAttribute(list.getSlCtrStrtYm(), "slCtrStrtYm", errorDvo, headerTitle, 6);
-                validateExcelAttribute(list.getSlCtrMtrDvCd(), "slCtrMtrDvCd", errorDvo, headerTitle, 1);
-                validateExcelAttribute(list.getSlCtrSellTpCd(), "slCtrSellTpCd", errorDvo, headerTitle, 1);
-                validateExcelAttribute(list.getSlCtrDvCd(), "slCtrDvCd", errorDvo, headerTitle, 1);
-                validateExcelAttribute(list.getSlCtrMtrTpCd(), "slCtrMtrTpCd", errorDvo, headerTitle, 1);
-                validateExcelAttribute(list.getSlCtrDscTpCd(), "slCtrDscTpCd", errorDvo, headerTitle, 2);
+                validateExcelAttribute(list.getSlCtrStrtYm(), slCtrStrtYm, errorDvo, headerTitle, 6);
+                validateExcelAttribute(list.getSlCtrMtrDvCd(), slCtrMtrDvCd, errorDvo, headerTitle, 1);
+                validateExcelAttribute(list.getSlCtrSellTpCd(), slCtrSellTpCd, errorDvo, headerTitle, 1);
+                validateExcelAttribute(list.getSlCtrDvCd(), slCtrDvCd, errorDvo, headerTitle, 1);
+                validateExcelAttribute(list.getSlCtrMtrTpCd(), slCtrMtrTpCd, errorDvo, headerTitle, 1);
+                validateExcelAttribute(list.getSlCtrDscTpCd(), slCtrDscTpCd, errorDvo, headerTitle, 2);
 
                 if (StringUtils.isNotEmpty(list.getCntrDtlNo())
                     && StringUtils.isNotEmpty(list.getSlCtrStrtYm())
@@ -353,12 +361,12 @@ public class WwdcSalesControlService {
                     if (CollectionUtils.isNotEmpty(checks)) { //중복데이터 체크
                         for (Map<String, Object> stringObjectMap : checks) {
                             if (stringObjectMap.get("cntrNo").equals(list.getCntrDtlNo())
-                                && stringObjectMap.get("slCtrStrtYm").equals(list.getSlCtrStrtYm())
-                                && stringObjectMap.get("slCtrMtrDvCd").equals(list.getSlCtrMtrDvCd())
-                                && stringObjectMap.get("slCtrSellTpCd").equals(list.getSlCtrSellTpCd())
-                                && stringObjectMap.get("slCtrDvCd").equals(list.getSlCtrDvCd())
-                                && stringObjectMap.get("slCtrMtrTpCd").equals(list.getSlCtrMtrTpCd())
-                                && stringObjectMap.get("slCtrDscTpCd").equals(list.getSlCtrDscTpCd())) {
+                                && stringObjectMap.get(slCtrStrtYm).equals(list.getSlCtrStrtYm())
+                                && stringObjectMap.get(slCtrMtrDvCd).equals(list.getSlCtrMtrDvCd())
+                                && stringObjectMap.get(slCtrSellTpCd).equals(list.getSlCtrSellTpCd())
+                                && stringObjectMap.get(slCtrDvCd).equals(list.getSlCtrDvCd())
+                                && stringObjectMap.get(slCtrMtrTpCd).equals(list.getSlCtrMtrTpCd())
+                                && stringObjectMap.get(slCtrDscTpCd).equals(list.getSlCtrDscTpCd())) {
                                 errorDvo.setErrorRow(finalRow);
                                 errorDvo.setHeaderName(headerTitle.get("prtnrNo"));
                                 errorDvo.setErrorData(messageService.getMessage("MSG_ALT_DUPLICATE_EXISTS")); //중복된 값이 존재합니다.
@@ -368,12 +376,12 @@ public class WwdcSalesControlService {
                     cntrExistCnt = mapper.selectSalesControlCount(list);
                     if (cntrExistCnt > 0) { //기존데이터 체크
                         errorDvo.setErrorRow(finalRow);
-                        errorDvo.setHeaderName(headerTitle.get("cntrDtlNo"));
+                        errorDvo.setHeaderName(headerTitle.get(cntrDtlNo));
                         errorDvo.setErrorData(messageService.getMessage("MSG_TXT_SMD_INF_EXST")); //동일한 정보가 존재합니다.
                     }
-                    check.put("cntrDtlNo", list.getCntrDtlNo());
+                    check.put(cntrDtlNo, list.getCntrDtlNo());
                     check.put("cstKnm", list.getCstKnm());
-                    check.put("slCtrStrtYm", list.getSlCtrStrtYm());
+                    check.put(slCtrStrtYm, list.getSlCtrStrtYm());
                     check.put("slCtrEndYm", list.getSlCtrEndYm());
                     check.put("canDt", list.getCanDt());
                     check.put("apyY", list.getApyY());
@@ -382,13 +390,13 @@ public class WwdcSalesControlService {
                     check.put("jul", list.getJul());
                     check.put("aug", list.getAug());
 
-                    check.put("slCtrMtrDvCd", list.getSlCtrMtrDvCd());
-                    check.put("slCtrSellTpCd", list.getSlCtrSellTpCd());
+                    check.put(slCtrMtrDvCd, list.getSlCtrMtrDvCd());
+                    check.put(slCtrSellTpCd, list.getSlCtrSellTpCd());
                     check.put("sellTpDtlCd", list.getSellTpDtlCd());
                     check.put("slCtrWoExmpAmt", list.getSlCtrWoExmpAmt());
-                    check.put("slCtrDvCd", list.getSlCtrDvCd());
-                    check.put("slCtrDscTpCd", list.getSlCtrDscTpCd());
-                    check.put("slCtrMtrTpCd", list.getSlCtrMtrTpCd());
+                    check.put(slCtrDvCd, list.getSlCtrDvCd());
+                    check.put(slCtrDscTpCd, list.getSlCtrDscTpCd());
+                    check.put(slCtrMtrTpCd, list.getSlCtrMtrTpCd());
 
                     checks.add(check);
 

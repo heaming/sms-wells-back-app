@@ -54,12 +54,12 @@ public class WsnbRegularShippingChangeService {
             String cntrSn = req.cntrSn();
             String reqGb = req.reqGb();
             String reqDt = req.reqDt();
-            String reqSaleCd = req.reqSaleCd(); // LCPKAG 변경판매코드
+            String reqSaleCd = req.reqBasePdCd(); // LCPKAG 변경판매코드
             String partList = req.partList(); /*자유패키지 캡슐 구성 정보 > 판매코드,수량 | 판매코드, 수량 |~~~ */
-            String dataStus = req.dataStus();
+            String mtrProcsStatCd = req.mtrProcsStatCd();
 
             SaveRegularShippingChangeHistReq historyReq = new SaveRegularShippingChangeHistReq(
-                cntrNo, cntrSn, dataStus, reqGb, reqDt
+                cntrNo, cntrSn, mtrProcsStatCd, reqGb, reqDt
             );
             SaveRegularShippingChangeBaseReq baseReq = new SaveRegularShippingChangeBaseReq(
                 cntrNo, cntrSn, reqGb, reqDt
@@ -68,7 +68,7 @@ public class WsnbRegularShippingChangeService {
 
             /*1.먼저 LCLIB.LD3200P 에 미처리 된 같은 요청이 존재하는지 체크*/
             //int LD3200_CNT = LC_ASREGN_API_S09(request, response);
-            if (StringUtil.nvl2(dataStus,"").equals("3")) {
+            if (StringUtil.nvl2(mtrProcsStatCd,"").equals("3")) {
 
                 //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I05", params);
                 mapper.insertRegularShippingChangeHist(historyReq);
