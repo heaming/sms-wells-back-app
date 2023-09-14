@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
-import javax.validation.constraints.NotBlank;
-
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.annotation.DBDecField;
 
@@ -117,10 +115,15 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String dtmChRsonCd, //개봉여부코드
         String editYn, //수정여부
         String wellsReqdDt, //wells철거일자
+        String mngrDvCd,
+        String dgr1LevlOgId,
+        String dgr3LevlOgId,
 
         // 물류수불처리 추가
         String ostrTpCd, // 출고유형코드
-        String ostrDt // 출고일자
+        String ostrDt, // 출고일자
+        String wareNm,
+        String rmkCn
 
     ) {
         public SearchRes {
@@ -132,31 +135,15 @@ public class WsnaPcsvReturningGoodsMgtDto {
     @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-SaveReq")
     public record SaveReq(
 
-        // DTD 정리해서 속성 추가 예정
-        @NotBlank
         String findGb,
-        @NotBlank
-        String cstSvAsnNo,
-        @NotBlank
-        String svBizDclsfCd,
-        @NotBlank
         String cntrNo,
-        @NotBlank
-        String basePdCd,
-        @NotBlank
-        String pdCd,
-        @NotBlank
-        String wkPrgsStatCd,
-        @NotBlank
-        String prtnrNo,
-        @NotBlank
-        String cntrCstNo,
         String cntrSn,
         String sellTpCd,
         String sellTpNm,
         String cntrDtlStatCd,
         String cntrDtlStatNm,
         String rcgvpKnm,
+        String basePdCd,
         String basePdNm,
         String cntrRcpFshDtm,
         String cntrPdStrtdt,
@@ -164,25 +151,28 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String rnadr,
         String rdadr,
         String cralLocaraTno, //휴대지역전화번호(휴대폰번호)
-
         @DBDecField
         String mexnoEncr, //휴대전화국번호암호화(휴대폰번호)
         String cralIdvTno, //휴대개별전화번호(휴대폰번호)
         String locaraTno, //지역전화번호 (전화번호)
-
         @DBDecField
         String exnoEncr, //전화국번호암호화(전화번호)
         String idvTno, //개별전화번호(전화번호)
         String rsgAplcDt,
         String rsgFshDt,
+        String cstSvAsnNo,
+        String pdCd,
         String pdNm,
         String pdGdCd,
+        String svBizDclsfCd,
         String svBizDclsfNm,
+        String wkPrgsStatCd,
         String wkPrgsStatNm,
         String istDt,
         String reqdDt,
         String ogId,
         String ogTpCd,
+        String prtnrNo,
         String vstFshDt,
         String useQty,
         String wareNo,
@@ -199,6 +189,7 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String rtngdNm,
         String fnlRtngdGd,
         String bcNo,
+        String cntrCstNo,
         String urgtDvCd,
         String asLctCd,
         String asPhnCd,
@@ -217,10 +208,20 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String pdLclsfId, // 상품소분류ID
         String pdDclsfId, // 상품세분류ID
         String dtmChRsonCd, //개봉여부코드
+        String editYn, //수정여부
+        String wellsReqdDt, //wells철거일자
+        String mngrDvCd,
+        String dgr1LevlOgId,
+        String dgr3LevlOgId,
 
         // 물류수불처리 추가
         String ostrTpCd, // 출고유형코드
-        String ostrDt // 출고일자
+        String ostrDt, // 출고일자
+        String itmOstrNo,
+        String ostrSn,
+        String wareNm,
+        String rmkCn
+
     ) {}
 
     @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-FindLogisticsCentersRes")

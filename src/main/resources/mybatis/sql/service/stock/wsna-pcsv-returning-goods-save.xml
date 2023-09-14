@@ -24,45 +24,6 @@
            AND CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
     </update>
-    <select id="selectEngineerOgbsMmPrtnrIz" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo">
-        /* 작업 조직 */
-        SELECT MNGR_DV_CD,DGR1_LEVL_OG_ID,DGR3_LEVL_OG_ID, BRCH_OG_ID
-        FROM (
-           SELECT
-           (CASE T1.OG_TP_CD
-             WHEN 'W02' THEN '1'     /* 매니저 */
-             WHEN 'W03' THEN '2'     /* 홈마스터 */
-             WHEN 'W06' THEN '2'     /* 엔지니어 */
-             WHEN 'HR1' THEN '3'     /* 임직원 */
-             ELSE ''
-           END) AS MNGR_DV_CD
-          ,(SELECT T2.DGR1_LEVL_OG_ID
-             FROM TB_OGBS_MM_OG_IZ T2
-             WHERE T2.BASE_YM = T1.BASE_YM
-              AND T2.OG_ID = T1.OG_ID
-             ) AS DGR1_LEVL_OG_ID     /* 총괄단 ST163_ADMIN_CD */
-          ,(SELECT T2.DGR2_LEVL_OG_ID
-             FROM TB_OGBS_MM_OG_IZ T2
-             WHERE T2.BASE_YM = T1.BASE_YM
-              AND T2.OG_ID = T1.OG_ID
-             ) AS DGR3_LEVL_OG_ID     /* 센터 ST163_BIZ_CD */
-          ,T1.OG_ID AS BRCH_OG_ID     /* 지점 ST163_BRNH_CD */
-          ,(CASE T1.OG_TP_CD
-             WHEN 'W06' THEN '1'
-             WHEN 'W03' THEN '2'
-             WHEN 'W02' THEN '3'
-             WHEN 'HR1' THEN '4'    /*  w06 > w03 > w02 > hr1   */
-             ELSE '5'
-           END) AS RNK
-          FROM TB_OGBS_MM_PRTNR_IZ T1
-          WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
-           AND T1.BZ_STAT_CD = '1'
-           AND T1.DTA_DL_YN = 'N'
-           AND T1.PRTNR_NO = #{prtnrNo}
-          ORDER BY rnk ASC
-        )
-        WHERE  ROWNUM = 1
-    </select>
     <update id="updateSvpdCstSvasIstAsnIz" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo">
         /* 고객서비스설치배정내역 업데이트 */
         UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ                  /* 고객서비스설치배정내역 */
@@ -298,8 +259,8 @@
         , #{cstSvAsnNo}                                 /* ST163_DATA_GB ,ST163_ORD_DT, ST163_ORD_SEQ */
         , #{mngrDvCd}                                   /* ST163_CHG_GB */
         , #{dgr1LevlOgId}                               /* ST163_ADMIN_CD */
-        , NVL(#{dgr3LevlOgId}, #{brchOgId})             /* ST163_BIZ_CD */
-        , ''                                            /* ST163_BRNH_CD */
+        , #{dgr3LevlOgId}                               /* ST163_BIZ_CD */
+        , #{ogId}                                       /* ST163_BRNH_CD */
         , #{prtnrNo}                                    /* ST163_EMP_ID */
         , #{wareNo}                                     /* ST163_WRK_STCK_CD */
         , #{ogTpCd}                                     /* OG_TP_CD */
@@ -309,7 +270,7 @@
         , 'N'
         , 'N'
         , #{ostrTpCd}                                   /* OSTR_TP_CD */
-        , TO_CHAR(SYSDATE, 'YYYYMMDD')                  /* OSTR_DT */
+        , #{ostrDt}                                     /* OSTR_DT */
         , #{itmOstrNo}                                  /* ITM_OSTR_NO */
         , #{ostrSn}                                     /* OSTR_SN */
         <include refid="COMMON.insertSystemFieldValue"/>
