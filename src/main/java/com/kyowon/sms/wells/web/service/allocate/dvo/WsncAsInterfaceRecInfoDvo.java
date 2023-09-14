@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,9 +21,11 @@ public class WsncAsInterfaceRecInfoDvo {
     String vstExpDt;
     String vstExpM;
     String cralLocaraTno;
+    @DBDecField
     String mexnoEncr;
     String cralIdvTno;
     String locaraTno;
+    @DBDecField
     String exnoEncr;
     String idvTno;
     String newAdrZip;
