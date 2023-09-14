@@ -255,6 +255,8 @@ public class WsnaOutOfStorageAskMngtService {
         String akWareDvCd = this.mapper.selectAkWareDvCd(saveReq.strOjWareNo());
         //요청한 창고구분코드 조회
         String wareDvCd = this.mapper.selectLogisticsOstrDvCd(saveReq.ostrOjWareNo());
+        //분기처리를 위한 배차유형코드
+        String ovivTpCd = saveReq.ovivTpCd();
 
         /* 출고대상창고가 물류창고인경우 */
         if ("1".equals(wareDvCd)) {
@@ -280,15 +282,21 @@ public class WsnaOutOfStorageAskMngtService {
                 //create가 있을경우
                 if (CollectionUtils.isNotEmpty(createListDvos)) {
 
-                    //서비스센터일경우
-                    if ("2".equals(akWareDvCd)) {
+                    //서비스센터이면서 배차유형코드가 01(배송)
+                    if ("2".equals(akWareDvCd) && "01".equals(ovivTpCd)) {
                         //create 물류 조회
+                        List<WsnaOutOfStorageAskMngtDvo> createDeliveryLogisticsDvo = this.mapper
+                            .selectDeliveryLogisticsOutStorageAskInfo(createOstrAkNos);
+                        List<WsnaLogisticsOutStorageAskReqDvo> deliveryDvo = this.converter
+                            .mapAlldeliveryCreateOutOfStorageAsksDvo(createDeliveryLogisticsDvo);
+                        logisticsservice.createOutOfStorageAsksWithPcsv(deliveryDvo);
+                        //서비스센터이면서 배차유형코드가 01(배송)이 아닌 건들
+                    } else if ("2".equals(akWareDvCd) && !"01".equals(ovivTpCd)) {
                         List<WsnaOutOfStorageAskMngtDvo> createLogisticsDvo = this.mapper
                             .selectLogisticsOutStorageAskInfo(createOstrAkNos);
                         List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
                             .mapAllCreateOutOfStorageAsksDvo(createLogisticsDvo);
                         logisticsservice.createOutOfStorageAsks(dvo);
-
                     } else {
                         //영업센터일경우
                         List<WsnaOutOfStorageAskMngtDvo> businessCreateLogisticsDvo = this.mapper
@@ -312,7 +320,14 @@ public class WsnaOutOfStorageAskMngtService {
                 }
 
                 //업데이트가 서비스센터일 경우
-                if ("2".equals(akWareDvCd)) {
+                if ("2".equals(akWareDvCd) && "01".equals(ovivTpCd)) {
+                    List<WsnaOutOfStorageAskMngtDvo> updateDeliveryLogisticsDvo = this.mapper
+                        .selectDeliveryLogisticsOutStorageAskInfo(updateOstrAkNos);
+                    List<WsnaLogisticsOutStorageAskReqDvo> deliveryDvo = this.converter
+                        .mapAlldeliveryCreateOutOfStorageAsksDvo(updateDeliveryLogisticsDvo);
+                    logisticsservice.editOutOfStorageAsksWithPcsv(deliveryDvo);
+
+                } else if ("2".equals(akWareDvCd) && !"01".equals(ovivTpCd)) {
                     List<WsnaOutOfStorageAskMngtDvo> updateLogisticsDvo = this.mapper
                         .selectLogisticsOutStorageAskInfo(updateOstrAkNos);
                     List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter

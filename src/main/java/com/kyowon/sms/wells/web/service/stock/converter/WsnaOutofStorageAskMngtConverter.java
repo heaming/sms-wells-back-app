@@ -39,6 +39,10 @@ public interface WsnaOutofStorageAskMngtConverter {
         List<WsnaOutOfStorageAskMngtDvo> logisticsDvo
     );
 
+    List<WsnaLogisticsOutStorageAskReqDvo> mapAlldeliveryCreateOutOfStorageAsksDvo(
+        List<WsnaOutOfStorageAskMngtDvo> logisticsDvo
+    );
+
     WsnaOutOfStorageAskMngtDvo mapDeleteReqToOutOfStorageAskMngtDvo(RemoveReq dto);
 
     List<WsnaLogisticsOutStorageAskReqDvo> mapWsnaLogisticsOutStorageAskReqDvoToRemoveOutOfStorageAsks(
