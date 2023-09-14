@@ -30,6 +30,12 @@ public class WdccProductSalesService {
         return mapper.selectBasic(dto);
     }
 
+    public SearchRes getBasicSummary(
+        SearchReq dto
+    ) {
+        return mapper.selectBasicSummary(dto);
+    }
+
     /**
      * 상품별 매출현황
      * @param dto 검색조건
@@ -41,6 +47,12 @@ public class WdccProductSalesService {
         return mapper.selectRental(dto);
     }
 
+    public SearchRentalRes getRentalSummary(
+        SearchReq dto
+    ) {
+        return mapper.selectRentalSummary(dto);
+    }
+
     /**
      * 상품별 매출현황
      * @param dto 검색조건
@@ -50,5 +62,11 @@ public class WdccProductSalesService {
         SearchReq dto
     ) {
         return mapper.selectMembership(dto);
+    }
+
+    public SearchMembershipRes getMembershipSummary(
+        SearchReq dto
+    ) {
+        return mapper.selectMembershipSummary(dto);
     }
 }
