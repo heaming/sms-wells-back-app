@@ -27,9 +27,7 @@ public interface WsndRegionLevelPdlvMgtMapper {
 
     int insertPlaceOfDeliveryHistory(WsndPlaceOfDeliveryDvo dvo);
 
-    WsndPlaceOfDeliveryDvo selectPlaceOfDeliveryByPk(String pdlvNo);
-
-    String selectStrtdtByPk(String pdlvNo);
+    WsndPlaceOfDeliveryDvo selectPlaceOfDeliveryByPk(String pdlvNo, String pdlvDvCd);
 
     int updatePlaceOfDelivery(WsndPlaceOfDeliveryDvo dvo);
 
