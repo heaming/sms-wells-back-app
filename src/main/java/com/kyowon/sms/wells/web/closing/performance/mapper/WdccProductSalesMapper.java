@@ -16,4 +16,10 @@ public interface WdccProductSalesMapper {
     List<SearchRentalRes> selectRental(SearchReq dto); //리스, 집계
 
     List<SearchMembershipRes> selectMembership(SearchReq dto); //정기배송, 집계
+
+    SearchRes selectBasicSummary(SearchReq dto); //일시불, 금융리스, 정기구매
+
+    SearchRentalRes selectRentalSummary(SearchReq dto); //리스, 집계
+
+    SearchMembershipRes selectMembershipSummary(SearchReq dto); //정기배송, 집계
 }
