@@ -1,19 +1,15 @@
 package com.kyowon.sms.wells.web.bond.consultation.dto;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.sds.sflex.common.utils.DbEncUtil;
-
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 public class WbncCustomerCenterHistoryDto {
+    @Builder
     @ApiModel(value = "WbncCustomerCenterHistoryDto-FindRes")
     public record FindRes(
-        String no,
+        String rownum,
         String cnslNo,
         String cnslDt,
-        String cnslStDt,
-        String cnslStTm,
         String cnslStDtTm,
         String cstNo,
         String jobCd,
@@ -21,28 +17,20 @@ public class WbncCustomerCenterHistoryDto {
         String centerCd,
         String centerNm,
         String sellTpCd,
-        String cntrNo,
-        String cntrSn,
-        String cntrNoSn,
+        String cntrDtlNo,
         String cnslCn,
         String cstNm,
-        String cstTnoa,
-        String cstTnob,
-        String cstTnoc,
+        String telNo,
         String cnslEdDt,
         String cnslEdTm,
         String callTpCd,
-        String callTpNm,
         String regDt,
         String regTm,
+        String regUserId,
         String regUserNm,
         String modDt,
         String modTm,
         String modUserId,
         String modUserNm
-    ) {
-        public FindRes {
-            cstTnob = StringUtils.isNotEmpty(cstTnob) ? DbEncUtil.dec(cstTnob) : cstTnob;
-        }
-    }
+    ) {}
 }
