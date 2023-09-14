@@ -46,8 +46,6 @@ public class WbndRentalCbInformationService {
     public List<WbndRentalCbInformationDvo> getContractPresentStates(SearchContractPresentStateReq dto)
         throws Exception {
 
-        Map<String, Object> resultMap = new HashMap<String, Object>(); //UI 전송 return Map
-
         Map<String, Object> ROWDATA_5 = new HashMap<String, Object>(); //렌탈CB연체(일반)세그먼트
         Map<String, Object> SUMMARYITEM_6 = new HashMap<String, Object>(); //일반 요약항목 세그먼트
         Map<String, Object> SUMMARYITEM_7 = new HashMap<String, Object>(); //기타 요약항목 세그먼트
@@ -85,8 +83,6 @@ public class WbndRentalCbInformationService {
             Map<String, Object> COMM = (Map<String, Object>)body.get("COMM");
 
             String rplyCd = COMM.get("rplyCd").toString();
-            //regCbSearchInfoMap.put("KSRCDE", rplyCd);
-            log.debug("응답코드 :  " + rplyCd);
             paramMap.put("rplyCd", rplyCd);
 
             /**
@@ -380,11 +376,9 @@ public class WbndRentalCbInformationService {
             }
         } catch (Exception e) {
             throw new Exception("내부 서버 오류.[" + e + "]");
-        } finally {
-
-            mapper.insertCBSearchTrans(paramMap);
         }
 
+        mapper.insertCBSearchTrans(paramMap);
         return res;
 
     }
@@ -439,7 +433,6 @@ public class WbndRentalCbInformationService {
             wr.flush();
             connection.connect();
             InputStream is = connection.getInputStream();
-            //apache util사용을 할경우 아래와 같이 출력 가능           
             body = IOUtils.toString(is);
         } catch (Exception e) {
             e.printStackTrace();

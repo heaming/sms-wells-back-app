@@ -143,7 +143,6 @@ public class WbncCustomerService {
         try {
             String ext = dto.inlnNo();
             String url = "http://10.1.73.14:8088?type=get&cmd=callkeyap&ext=" + ext; // 운영
-            System.out.println("url : " + url);
 
             URL obj = new URL(url);
             HttpURLConnection conn = (HttpURLConnection)obj.openConnection();
