@@ -24,7 +24,9 @@ public class WbnaFosterTransferMgtDto {
         String cstNm, /* 고객명 */
         String cralLocaraTno, /* 휴대지역전화번호 */
         String mexnoEncr, /* 휴대전화국번호암호화 */
-        String cralIdvTno /* 휴대개별전화번호 */
+        String cralIdvTno, /* 휴대개별전화번호 */
+        String pageId, /* 엑셀다운로드 이력용 pageId */
+        String clctamPrtnrNo /* 집금담당자번호 */
     ) {}
 
     // *********************************************************
@@ -36,7 +38,8 @@ public class WbnaFosterTransferMgtDto {
     public record SearchRes(
         String bzHdqDvCd,
         String baseYm,
-        String clcoCd,
+        String clctamPrtnrNm,
+        String clctamPrtnrNo,
         Double woCstCt,
         Double woCntrCt,
         Double woObjAmt,
@@ -110,7 +113,8 @@ public class WbnaFosterTransferMgtDto {
         String lwmDtlTpCd, /* 법조치상세 */
         String lwmDt, /* 법조치일자 */
         String dfltDt, /* 채불등록일자 */
-        String addr/* 고객 주소 */
+        String addr, /* 고객 주소 */
+        String fnlMdfcDtm/* 최종수정일시 */
     ) {}
 
     @ApiModel("WbnaFosterTransferMgtDto-SearchDetailSummaryRes")
@@ -120,5 +124,22 @@ public class WbnaFosterTransferMgtDto {
         String thmChramAmt, /*총 당월요금*/
         String dlqAddAmt, /*총 연체가산금액*/
         String rsgBorAmt /*총 위약금액*/
+    ) {}
+    @ApiModel("WbnaFosterTransferMgtDto-SaveReq")
+    public record SaveReq(
+        @NotBlank
+        String baseYm, /* 기준년월 */
+        @NotBlank
+        String clctamDvCd, /* 집금구분코드 */
+        @NotBlank
+        String cntrNo, /* 계약번호 */
+        @NotBlank
+        Integer cntrSn, /* 계약일련번호 */
+        @NotBlank
+        String clctamPrtnrNo, /* 집금파트너번호 */
+        @NotBlank
+        String rowState,
+        @NotBlank
+        String fnlMdfcDtm /* 최종수정일시 */
     ) {}
 }
