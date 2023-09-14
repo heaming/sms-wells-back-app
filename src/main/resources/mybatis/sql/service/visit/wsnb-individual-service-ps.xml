@@ -233,10 +233,6 @@
            AND SV1.CNTR_SN = #{cntrSn}
         </if>
         <if test="@MybatisUtils@isNotEmpty(bcNo)">
-<!--           AND SV1.CNTR_NO || SV1.CNTR_SN = (SELECT MAX(T1.CNTR_NO || T1.CNTR_SN)-->
-<!--                                               FROM TB_SVPD_CST_SV_EXCN_IZ T1-->
-<!--                                              WHERE T1.BC_NO = #{bcNo}-->
-<!--                                                AND T1.DTA_DL_YN = 'N')-->
           AND SV1.CNTR_NO = (SELECT MAX(T1.CNTR_NO)
                                FROM TB_SVPD_CST_SV_EXCN_IZ T1
                               WHERE T1.BC_NO = #{bcNo}
@@ -248,10 +244,6 @@
 
         </if>
         <if test="@MybatisUtils@isNotEmpty(sppIvcNo)">
-<!--           AND SV1.CNTR_NO || SV1.CNTR_SN = (SELECT MAX(T1.CNTR_NO || T1.CNTR_SN)-->
-<!--                                               FROM TB_SVPD_CST_SV_WK_RS_IZ T1-->
-<!--                                              WHERE T1.SPP_IVC_NO = #{sppIvcNo}-->
-<!--                                                AND T1.DTA_DL_YN = 'N')-->
           AND SV1.CNTR_NO = (SELECT MAX(T1.CNTR_NO)
                                FROM TB_SVPD_CST_SV_WK_RS_IZ T1
                               WHERE T1.BC_NO = #{sppIvcNo}
@@ -288,24 +280,18 @@
            AND SA1.DTA_DL_YN = 'N'
          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS SA2 /*계약주소지기본*/
             ON SA1.CNTR_ADRPC_ID = SA2.CNTR_ADRPC_ID
-          LEFT OUTER JOIN TB_SSCT_CNTR_DTL SC3 /*계약상세*/
-            ON SV1.CNTR_NO = SC3.CNTR_NO
-           AND SV1.CNTR_SN = SC3.CNTR_SN
-           AND SC3.SELL_TP_CD IN ('1','2')  /* 1:일시불, 2:렌탈/리스 */
-           AND SC3.DTA_DL_YN = 'N'
-         INNER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST SC4 /* 계약상세상태변경이력 */
-            ON SC3.CNTR_NO = SC4.CNTR_NO
-           AND SC3.CNTR_SN = SC4.CNTR_SN
-           AND SUBSTR(SC4.HIST_END_DTM,1,8) = '99991231'
-           AND SC4.DTA_DL_YN = 'N'
+         LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ SV2
+           ON SV1.CNTR_NO = SV2.CNTR_NO
+          AND SV1.CNTR_SN = SV2.CNTR_SN
+          AND SV2.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
          WHERE SV1.SV_HSHD_NO = (SELECT X.SV_HSHD_NO
                                    FROM TB_SVPD_CST_SV_EXCN_IZ X
                                   WHERE X.CNTR_NO = #{cntrNo}
                                     AND X.CNTR_SN = #{cntrSn})
            AND SV1.REQD_DT IS NULL
            AND SV1.CPS_DT IS NULL
-           AND (CASE WHEN SC4.CNTR_DTL_STAT_CD = '303' THEN SUBSTR(SC4.HIST_STRT_DTM,1,8) ELSE '' END) IS NULL  /*취소일자*/
-           AND (CASE WHEN SC3.SELL_TP_CD = '3' THEN SUBSTR(SC4.HIST_STRT_DTM,1,8) ELSE '' END) IS NULL /*멤버십종료일*/
+           AND SV2.MSH_WDWAL_DT IS NULL
+           AND SV2.CAN_DT IS NULL
            AND SV1.SV_HSHD_NO IS NOT NULL
          ORDER BY SV1.CNTR_NO, SV1.CNTR_SN
     </select>
