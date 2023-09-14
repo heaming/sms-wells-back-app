@@ -6,7 +6,6 @@ import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.SearchRes;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo;
 
@@ -16,9 +15,5 @@ public interface WsnaPcsvReturningGoodsMgtConverter {
     List<SearchRes> mapDvoToSearchRes(List<WsnaPcsvReturningGoodsDvo> dvos);
 
     List<WsnaPcsvReturningGoodsSaveDvo> mapSaveReqToPcsvReturningGoodsDvo(List<SaveReq> dto);
-
-    List<WsnaLogisticsInStorageAskReqDvo> mapAllReturningGoodsDvoToLogisticsInStorageAskReqDvo(
-        List<WsnaPcsvReturningGoodsSaveDvo> dvos
-    );
 
 }
