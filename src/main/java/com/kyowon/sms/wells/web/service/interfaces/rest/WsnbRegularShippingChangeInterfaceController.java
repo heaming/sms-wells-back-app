@@ -32,7 +32,7 @@ public class WsnbRegularShippingChangeInterfaceController {
         @RequestBody
         @Valid
         EaiWrapper<SaveReq> reqEaiWrapper
-    ) {
+    ) throws Exception {
         EaiWrapper<SaveRes> resEaiWrapper = reqEaiWrapper.newResInstance();
         resEaiWrapper.setBody(service.saveRegularShippingChange(reqEaiWrapper.getBody()));
         return resEaiWrapper;
