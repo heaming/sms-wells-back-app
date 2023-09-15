@@ -138,6 +138,7 @@ public class WsnaReturningGoodsOstrDto {
         @Positive
         BigDecimal ostrQty, // 출고수량
         String rmkCn, // 비고내용
+        String trnspnCd, //운송코드
 
         String wareMngtPrtnrNo, // 창고관리파트너번호
         String wareDvCd, // 출고창고구분코드

@@ -43,6 +43,7 @@ public class WsnaReturningGoodsDvo {
     String itmStrNo; // 품목입고번호
     String strSn; // 일련번호
     String strWareMngtPrtnrNo; // 입고창고관리파트너번호
+    String trnspnCd; //운송코드
 
     //물류에 전송하기 위한 데이터 dvo
     private String ostrAkNo;
