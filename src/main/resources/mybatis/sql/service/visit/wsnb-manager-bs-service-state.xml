@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbManagerBsServiceStateMapper">
+    <select id="selectManagerBsServiceState" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbManagerBsServiceStateDto$SearchRes">
+        WITH BASEYM_GROUP AS (
+            SELECT V1.ASN_OJ_YM
+                 , SUBSTR( V1.ASN_OJ_YM,1,4) AS YYYY
+                 , SUBSTR( V1.ASN_OJ_YM,5,2) AS MM
+                 , V1.CNTR_NO
+                 , V1.CNTR_SN
+                 , V1.SV_BIZ_MCLSF_CD
+                 , (CASE WHEN SUM(FILT_YN) > 0 THEN '필터교체'
+                         WHEN SUM(FILT_YN) = 0 AND SUM(NFILT_YN) > 0 THEN '부품교체'
+                         WHEN SUM(FILT_YN) = 0 AND SUM(NFILT_YN) = 0 AND SUM(RGLR_CHK_YN) > 0 THEN '정기점검'
+                         ELSE ''
+                    END) AS DG_BIZ_TP_NM
+              FROM (
+                    SELECT S1.ASN_OJ_YM
+                         , S1.CNTR_NO
+                         , S1.CNTR_SN
+                         , S1.SV_BIZ_MCLSF_CD
+                         , S3.PU_PART_PD_CD
+                         , P2.PD_PRP_VAL19
+                         , (CASE WHEN S3.PU_PART_PD_CD IS NOT NULL AND P2.PD_PRP_VAL19 = '5' THEN 1
+                                 ELSE 0
+                            END) AS FILT_YN
+                         , (CASE WHEN S3.PU_PART_PD_CD IS NOT NULL AND P2.PD_PRP_VAL19 != '5' THEN 1
+                                 ELSE 0
+                            END) AS NFILT_YN
+                         , (CASE WHEN S3.PU_PART_PD_CD IS NULL THEN 1
+                                 ELSE 0
+                            END) AS RGLR_CHK_YN
+                      FROM WSMDBS.TB_SVPD_CST_SV_BFSVC_OJ_IZ S1 /*고객서비스BS대상내역, AC251TB*/
+                           INNER JOIN WSMDBS.TB_SVPD_CST_SV_BFSVC_ASN_IZ S2 /*고객서비스수행배정내역, AC261TB*/
+                                   ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+                                  AND S2.CNTR_NO = S1.CNTR_NO
+                                  AND S2.CNTR_SN = S1.CNTR_SN
+                                  /*관리구분 검색 1:LP, 2:엔지니어*/
+                               <if test="@MybatisUtils@isNotEmpty(cnfmPsicDvCd) and !@MybatisUtils@equals(cnfmPsicDvCd, 'ALL')">
+                                  AND S2.CNFM_PSIC_DV_CD = #{cnfmPsicDvCd}
+                               </if>
+                                  /*작업구분 검색 배정:00, 완료:20*/
+                               <if test="@MybatisUtils@isNotEmpty(vstPrgsStatCd)">
+                                  AND S2.VST_PRGS_STAT_CD = #{vstPrgsStatCd}
+                               </if>
+                                  AND S2.DTA_DL_YN = 'N'
+                           LEFT OUTER JOIN WSMDBS.TB_SVPD_RGBS_PU_ITM_IZ S3 /*정기BS투입품목내역, AC252TB*/
+                                   ON S3.ASN_OJ_YM = S1.ASN_OJ_YM
+                                  AND S3.CNTR_NO = S1.CNTR_NO
+                                  AND S3.CNTR_SN = S1.CNTR_SN
+                                  AND S3.SV_BIZ_MCLSF_CD = S1.SV_BIZ_MCLSF_CD
+                                  AND S3.DTA_DL_YN = 'N'
+                           INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P1
+                                   ON P1.PD_CD = S1.PDCT_PD_CD
+                                  AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+                                  /*상품그룹 검색*/
+                               <if test="@MybatisUtils@isNotEmpty(pdGrpCd) and !@MybatisUtils@equals(pdGrpCd, 'ALL')">
+                                  AND (CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END)  = #{pdGrpCd}
+                               </if>
+                                  /*상품 검색*/
+                               <if test="@MybatisUtils@isNotEmpty(pdCd) and !@MybatisUtils@equals(pdCd, 'ALL')">
+                                  AND P1.PD_CD = #{pdCd}
+                               </if>
+                                  AND P1.DTA_DL_YN = 'N'
+                           LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P2
+                                   ON P2.PD_CD = S3.PU_PART_PD_CD
+                                  AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                  AND P2.DTA_DL_YN = 'N'
+                     WHERE 1=1
+                       AND S1.VST_DV_CD LIKE '1%'
+                       /*기준년도 검색*/
+                       AND S1.ASN_OJ_YM LIKE #{baseYy} ||'%'
+                     ORDER BY S1.ASN_OJ_YM
+                   ) V1
+             WHERE 1=1
+             GROUP BY V1.ASN_OJ_YM
+                    , V1.CNTR_NO
+                    , V1.CNTR_SN
+                    , V1.SV_BIZ_MCLSF_CD
+        )
+        SELECT   YYYY
+               , DG_BIZ_TP_NM
+               , SUM(DECODE(MM, '01', 1)) AS ACOL1
+               , SUM(DECODE(MM, '02', 1)) AS ACOL2
+               , SUM(DECODE(MM, '03', 1)) AS ACOL3
+               , SUM(DECODE(MM, '04', 1)) AS ACOL4
+               , SUM(DECODE(MM, '05', 1)) AS ACOL5
+               , SUM(DECODE(MM, '06', 1)) AS ACOL6
+               , SUM(DECODE(MM, '07', 1)) AS ACOL7
+               , SUM(DECODE(MM, '08', 1)) AS ACOL8
+               , SUM(DECODE(MM, '09', 1)) AS ACOL9
+               , SUM(DECODE(MM, '10', 1)) AS ACOL10
+               , SUM(DECODE(MM, '11', 1)) AS ACOL11
+               , SUM(DECODE(MM, '12', 1)) AS ACOL12
+               , COUNT(1) AS TCNT
+               , '' AS PER
+          FROM BASEYM_GROUP
+      GROUP BY YYYY, DG_BIZ_TP_NM
+      ORDER BY DG_BIZ_TP_NM
+    </select>
+</mapper>
