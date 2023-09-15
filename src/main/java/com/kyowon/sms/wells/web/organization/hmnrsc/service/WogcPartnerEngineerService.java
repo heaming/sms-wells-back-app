@@ -13,18 +13,22 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kyowon.sms.wells.web.organization.hmnrsc.converter.WogcPartnerEngineerConverter;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindEngineerGradeRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.FindJoeManagementRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.RemoveReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SaveEngineerAttendReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SaveEngineerGradeReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SaveJoeManagementReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SaveReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchVacationReq;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchVacationRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo;
 import com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerEngineerMapper;
-import com.sds.sflex.common.common.dto.ExcelUploadDto;
+import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
 import com.sds.sflex.common.common.service.ExcelReadService;
@@ -53,6 +57,11 @@ public class WogcPartnerEngineerService {
     private final MessageResourceService messageService;
     private final ExcelReadService excelReadService;
 
+    private final static String KEY_PRTNR_NO = "prtnrNo";
+
+    private final static String MSG_ALT_ONLY_NUMBER = "MSG_ALT_ONLY_NUMBER";
+    private final static String MSG_ALT_EMPTY_REQUIRED_VAL = "MSG_ALT_EMPTY_REQUIRED_VAL";
+
     public PagingResult<SearchEngineerRes> getEngineerAttends(SearchEngineerReq dto, PageInfo pageInfo) {
         return mapper.selectEngineerAttends(dto, pageInfo);
     }
@@ -68,10 +77,10 @@ public class WogcPartnerEngineerService {
      * @return
      */
     @Transactional
-    public int saveEngineerAttends(List<WogcPartnerEngineerDto.SaveEngineerAttendReq> dtos, String prtnrNo) {
+    public int saveEngineerAttends(List<SaveEngineerAttendReq> dtos, String prtnrNo) {
         int processCount = 0;
 
-        for (WogcPartnerEngineerDto.SaveEngineerAttendReq dto : dtos) {
+        for (SaveEngineerAttendReq dto : dtos) {
             WogcPartnerEngineerDvo engineer = this.wogcPartnerEngineerConverter
                 .mapSaveEngineerAttendReqToWogcPartnerEngineerDvo(dto);
             engineer.setDetail("N");
@@ -82,8 +91,8 @@ public class WogcPartnerEngineerService {
         return processCount;
     }
 
-    public PagingResult<WogcPartnerEngineerDto.SearchVacationRes> getVacations(
-        WogcPartnerEngineerDto.SearchVacationReq dto, PageInfo pageInfo
+    public PagingResult<SearchVacationRes> getVacations(
+        SearchVacationReq dto, PageInfo pageInfo
     ) {
         return mapper.selectVacations(dto, pageInfo);
     }
@@ -95,10 +104,10 @@ public class WogcPartnerEngineerService {
      * @return
      */
     @Transactional
-    public int saveVacations(List<WogcPartnerEngineerDto.SaveReq> dtos) {
+    public int saveVacations(List<SaveReq> dtos) {
         int processCount = 0;
 
-        for (WogcPartnerEngineerDto.SaveReq dto : dtos) {
+        for (SaveReq dto : dtos) {
             WogcPartnerEngineerDvo vacations = this.wogcPartnerEngineerConverter
                 .mapSaveReqToWogcPartnerEngineerDvo(dto);
             vacations.setDetail("Y");
@@ -126,10 +135,10 @@ public class WogcPartnerEngineerService {
      * @return
      */
     @Transactional
-    public int removeVacations(List<WogcPartnerEngineerDto.RemoveReq> dtos) {
+    public int removeVacations(List<RemoveReq> dtos) {
         int processCount = 0;
 
-        for (WogcPartnerEngineerDto.RemoveReq dto : dtos) {
+        for (RemoveReq dto : dtos) {
             WogcPartnerEngineerDvo vacations = this.wogcPartnerEngineerConverter
                 .mapRemoveReqToWogcPartnerEngineerDvo(dto);
 
@@ -168,7 +177,7 @@ public class WogcPartnerEngineerService {
     public List<FindJoeManagementRes> getJoeManagementForExcelDownload(
         FindJoeManagementReq dto
     ) {
-        List<WogcPartnerEngineerDto.FindJoeManagementRes> result = null;
+        List<FindJoeManagementRes> result = null;
         List<WogcPartnerEngineerDvo> dvos = this.mapper.selectJoeManagementForExcelDownload(dto);
 
         if (CollectionUtils.isNotEmpty(dvos)) {
@@ -233,10 +242,10 @@ public class WogcPartnerEngineerService {
         return processCnt;
     }
 
-    public ExcelUploadDto.UploadRes saveEngineerGradeForDirectExcelUpload(MultipartFile file)
+    public UploadRes saveEngineerGradeForDirectExcelUpload(MultipartFile file)
         throws Exception {
         Map<String, String> headerTitle = new LinkedHashMap<>();
-        headerTitle.put("prtnrNo", messageService.getMessage("MSG_TXT_PRTNR_NUM"));
+        headerTitle.put(KEY_PRTNR_NO, messageService.getMessage("MSG_TXT_PRTNR_NUM"));
         headerTitle.put("prtnrGdCd", messageService.getMessage("MSG_TXT_GRD_DV"));
         headerTitle.put("apyStrtDt", messageService.getMessage("MSG_TXT_APY_STRTDT"));
         headerTitle.put("apyEnddt", messageService.getMessage("MSG_TXT_APY_ENDDT"));
@@ -255,53 +264,53 @@ public class WogcPartnerEngineerService {
 
             if (StringUtils.isEmpty(list.getPrtnrNo())) { //파트너번호 유효성
                 errorDvo.setErrorRow(finalRow);
-                errorDvo.setHeaderName(headerTitle.get("prtnrNo"));
-                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+                errorDvo.setHeaderName(headerTitle.get(KEY_PRTNR_NO));
+                errorDvo.setErrorData(messageService.getMessage(MSG_ALT_EMPTY_REQUIRED_VAL)); //필수값이 누락되어 있습니다.
             } else {
                 if (!Pattern.matches(pattern, list.getPrtnrNo())) {
                     errorDvo.setErrorRow(finalRow);
-                    errorDvo.setHeaderName(headerTitle.get("prtnrNo"));
-                    errorDvo.setErrorData(messageService.getMessage("MSG_ALT_ONLY_NUMBER")); // 숫자만 입력 가능합니다
+                    errorDvo.setHeaderName(headerTitle.get(KEY_PRTNR_NO));
+                    errorDvo.setErrorData(messageService.getMessage(MSG_ALT_ONLY_NUMBER)); // 숫자만 입력 가능합니다
                 }
                 String prtnrKnm = this.mapper.selectEngineerPartner(list);
                 list.setPrtnrKnm(prtnrKnm);
                 if (StringUtils.isEmpty(prtnrKnm)) {
                     errorDvo.setErrorRow(finalRow);
-                    errorDvo.setHeaderName(headerTitle.get("prtnrNo"));
+                    errorDvo.setHeaderName(headerTitle.get(KEY_PRTNR_NO));
                     errorDvo.setErrorData(messageService.getMessage("MSG_ALT_CRSP_PRTNR_NO_INF_NEX"));// 해당 파트너번호에 대한 정보가 없습니다.
                 }
             }
             if (StringUtils.isEmpty(list.getPrtnrGdCd())) { //등급코드 유효성
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("prtnrGdCd"));
-                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+                errorDvo.setErrorData(messageService.getMessage(MSG_ALT_EMPTY_REQUIRED_VAL)); //필수값이 누락되어 있습니다.
             } else {
                 if (!Pattern.matches(pattern, list.getPrtnrGdCd())) {
                     errorDvo.setErrorRow(finalRow);
                     errorDvo.setHeaderName(headerTitle.get("prtnrGdCd"));
-                    errorDvo.setErrorData(messageService.getMessage("MSG_ALT_ONLY_NUMBER")); // 숫자만 입력 가능합니다
+                    errorDvo.setErrorData(messageService.getMessage(MSG_ALT_ONLY_NUMBER)); // 숫자만 입력 가능합니다
                 }
             }
             if (StringUtils.isEmpty(list.getApyStrtDt())) { //시작일자 유효성
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("apyStrtdt"));
-                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+                errorDvo.setErrorData(messageService.getMessage(MSG_ALT_EMPTY_REQUIRED_VAL)); //필수값이 누락되어 있습니다.
             } else {
                 if (!Pattern.matches(pattern, list.getApyStrtDt())) {
                     errorDvo.setErrorRow(finalRow);
                     errorDvo.setHeaderName(headerTitle.get("apyStrtdt"));
-                    errorDvo.setErrorData(messageService.getMessage("MSG_ALT_ONLY_NUMBER")); // 숫자만 입력 가능합니다
+                    errorDvo.setErrorData(messageService.getMessage(MSG_ALT_ONLY_NUMBER)); // 숫자만 입력 가능합니다
                 }
             }
             if (StringUtils.isEmpty(list.getApyEnddt())) { //종료일자 유효성
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("apyEnddt"));
-                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+                errorDvo.setErrorData(messageService.getMessage(MSG_ALT_EMPTY_REQUIRED_VAL)); //필수값이 누락되어 있습니다.
             } else {
                 if (!Pattern.matches(pattern, list.getApyEnddt())) {
                     errorDvo.setErrorRow(finalRow);
                     errorDvo.setHeaderName(headerTitle.get("apyEnddt"));
-                    errorDvo.setErrorData(messageService.getMessage("MSG_ALT_ONLY_NUMBER")); // 숫자만 입력 가능합니다
+                    errorDvo.setErrorData(messageService.getMessage(MSG_ALT_ONLY_NUMBER)); // 숫자만 입력 가능합니다
                 }
             }
 
@@ -322,7 +331,7 @@ public class WogcPartnerEngineerService {
             }
         }
 
-        ExcelUploadDto.UploadRes result = ExcelUploadDto.UploadRes.builder()
+        UploadRes result = UploadRes.builder()
             .status(status)
             .excelData(lists)
             .errorInfo(errorDvos)
