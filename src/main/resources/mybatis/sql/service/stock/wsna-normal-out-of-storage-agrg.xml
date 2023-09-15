@@ -14,44 +14,47 @@
     </select>
     <select id="selectWareHouses" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaOutOfStorageAgrgWareDvo">
         SELECT WARE_NO
-              , WARE_NM
+             , WARE_NM
         FROM (
-          SELECT
-                 APY_YM                 AS APY_YM
-               , WARE_NO                AS WARE_NO
-               , (CASE
-                      WHEN INSTR(WARE_NM,'서비스센터') > 0
-                      THEN SUBSTR(WARE_NM,0,INSTR(WARE_NM,'서비스센터')-1)
-                      WHEN INSTR(WARE_NM,'영업센터') > 0
-                      THEN SUBSTR(WARE_NM,0,INSTR(WARE_NM,'영업센터')-1)
-                      WHEN INSTR(WARE_NM,'창고') > 0
-                      THEN SUBSTR(WARE_NM,0,INSTR(WARE_NM,'창고')-1)
-                      ELSE  WARE_NM
-                   END
-                 ) AS WARE_NM
-               , 0                      AS SORT_DV_VAL
-          FROM TB_SVST_MCBY_WARE_IZ
-          WHERE  DTA_DL_YN = 'N'
-           AND WARE_USE_YN = 'Y'
-           AND WARE_DTL_DV_CD IN ('20', '30')
-          UNION ALL
-          (
-            SELECT
-                   APY_YM                AS APY_YM
-                 , WARE_NO               AS WARE_NO
-                 , WARE_NM               AS WARE_NM
-                 , 0                     AS SORT_DV_VAL
-            FROM TB_SVST_MCBY_WARE_IZ
-            WHERE DTA_DL_YN = 'N'
-             AND WARE_USE_YN = 'Y'
-             AND WARE_NO LIKE '1%'
-          )
-        )
+               SELECT  WARE_NO
+                      , (CASE
+                              WHEN INSTR(WARE_NM,'서비스센터') > 0
+                              THEN SUBSTR(WARE_NM,0,INSTR(WARE_NM,'서비스센터')-1)
+                              WHEN INSTR(WARE_NM,'영업센터') > 0
+                              THEN SUBSTR(WARE_NM,0,INSTR(WARE_NM,'영업센터')-1)
+                              WHEN INSTR(WARE_NM,'창고') > 0
+                              THEN SUBSTR(WARE_NM,0,INSTR(WARE_NM,'창고')-1)
+                              ELSE  WARE_NM
+                         END
+                       ) AS WARE_NM
+               FROM TB_OGBS_MM_OG_IZ O1  /*월조직내역*/
+               INNER JOIN TB_SVST_MCBY_WARE_IZ S1 /*월별창고내역*/
+                ON O1.BASE_YM = S1.APY_YM
+                AND O1.OG_TP_CD = S1.OG_TP_CD
+                AND O1.OG_ID = S1.OG_ID
+                AND S1.DTA_DL_YN = 'N'
+              WHERE 1 = 1
+               AND WARE_DTL_DV_CD IN ('20','30')
+               AND O1.BASE_YM = SUBSTR(#{startStrHopDt},1,6)
+               AND O1.DTA_DL_YN = 'N'
+               AND O1.CLO_DT IS NULL
+               AND O1.OG_TP_CD IN ('W02','W03','W06')
+              UNION ALL
+              (
+                SELECT WARE_NO
+                     , WARE_NM
+                FROM TB_SVST_MCBY_WARE_IZ
+                WHERE DTA_DL_YN = 'N'
+                 AND WARE_USE_YN = 'Y'
+                 AND WARE_NO = '100002'
+                 AND APY_YM = SUBSTR(#{startStrHopDt},1,6)
+              )
+            )
         WHERE 1=1
          AND WARE_NM IS NOT NULL
          AND WARE_NO LIKE #{wareDvCd} || '%'
-         AND APY_YM = SUBSTR(#{startStrHopDt}, 1,6)
-        ORDER BY SORT_DV_VAL ASC , WARE_NM ASC , WARE_NO ASC
+        ORDER BY WARE_NM ASC
+               , WARE_NO ASC
     </select>
     <select id="selectNormalOutOfStorageAgrgs" resultType="camelMap">
         WITH PART_INF AS
