@@ -416,9 +416,7 @@ public class WsnaNormalOutOfStorageService {
      * @return
      */
     @Transactional
-    public int saveNormalOstrRgsts(List<CreateReq> dtos) {
-
-        int cnt = 0;
+    public String saveNormalOstrRgsts(List<CreateReq> dtos) {
 
         List<WsnaNormalOutOfStorageDvo> dvos = this.converter.mapAllCreateReqToWsnaNormalOutOfStorageDvo(dtos);
         WsnaNormalOutOfStorageDvo dvoData = dvos.get(0);
@@ -459,10 +457,10 @@ public class WsnaNormalOutOfStorageService {
             this.itemStockservice.createStock(strStockReq);
 
             // 출고요청내역 UPDATE
-            cnt += this.mapper.updateItmOstrAkIz(dvo);
+            this.mapper.updateItmOstrAkIz(dvo);
         }
 
-        return cnt;
+        return newItmOstrNo;
     }
 
     /**
@@ -473,4 +471,5 @@ public class WsnaNormalOutOfStorageService {
     public int getOstrCnfmCount(CheckReq dto) {
         return this.mapper.selectOstrCnfmCount(dto);
     }
+
 }

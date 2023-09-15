@@ -251,7 +251,7 @@ public class WsnaNormalOutOfStorageController {
         List<CreateReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(this.service.saveNormalOstrRgsts(dtos))
+            .data(this.service.saveNormalOstrRgsts(dtos))
             .build();
     }
 
@@ -266,5 +266,4 @@ public class WsnaNormalOutOfStorageController {
     ) {
         return this.service.getOstrCnfmCount(dto);
     }
-
 }

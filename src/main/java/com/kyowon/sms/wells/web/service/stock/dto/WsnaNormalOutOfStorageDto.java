@@ -209,7 +209,12 @@ public class WsnaNormalOutOfStorageDto {
         String strOjWareNo,
         String strWareDvCd,
         String strPrtnrNo,
-        String strOgTpCd
+        String strOgTpCd,
+
+        @NotBlank
+        @ValidDate
+        String ostrDt,
+        String rmkCn
     ) {}
 
     @Builder
