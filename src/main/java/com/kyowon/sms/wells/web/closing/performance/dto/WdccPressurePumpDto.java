@@ -48,7 +48,8 @@ public class WdccPressurePumpDto {
         String fnlMdfcDtm, /*수정일자*/
         String fnlMdfcUsrId, /*수정자*/
         String adnSvStrtYm, /*부가서비스시작년월*/
-        String istDuedt /*설치예정일자*/
+        String istDuedt, /*설치예정일자*/
+        String svBizHclsfCd
     ) {}
 
     @ApiModel(value = "WdccPressurePumpDto-SearchSalesBaseReq")
@@ -86,7 +87,7 @@ public class WdccPressurePumpDto {
         String rcpdt,
         String istDuedt,
         String istDt,
-        String gubn
+        String svBizHclsfCd
     ) {}
 
     @ApiModel("WdccPressurePumpDto-RemoveReq")

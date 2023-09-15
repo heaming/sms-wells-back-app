@@ -65,4 +65,29 @@ public class WdccProductSalesController {
     ) {
         return service.getMembershipList(dto);
     }
+
+    // summary
+    @GetMapping("/basic/summary")
+    public SearchRes getBasicSummary(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getBasicSummary(dto);
+    }
+
+    @GetMapping("/rental/summary")
+    public SearchRentalRes getRentalSummary(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getRentalSummary(dto);
+    }
+
+    @GetMapping("/membership/summary")
+    public SearchMembershipRes getMembershipSummary(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getMembershipSummary(dto);
+    }
 }

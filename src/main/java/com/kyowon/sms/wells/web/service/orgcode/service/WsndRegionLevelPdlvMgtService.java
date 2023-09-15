@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.service.orgcode.service;
 
 import java.util.List;
+import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,7 +12,6 @@ import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMgtDto.Se
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndPlaceOfDeliveryDvo;
 import com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelPdlvMgtMapper;
-import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -94,30 +93,18 @@ public class WsndRegionLevelPdlvMgtService {
             WsndPlaceOfDeliveryDvo dvo = converter.mapSaveReqToWsndPlaceOfDeliveryDvo(dto);
             int result = 0;
 
-            switch (dto.rowState()) {
-                case CommConst.ROW_STATE_CREATED -> {
-                    WsndPlaceOfDeliveryDvo res = mapper.selectPlaceOfDeliveryByPk(dto.pdlvNo());
-                    if (res == null) {
-                        result += mapper.insertPlaceOfDelivery(dvo);
-                        mapper.insertPlaceOfDeliveryHistory(dvo);
-                    } else if (StringUtils.equals(res.getDataDlYn(), "N")
-                        && StringUtils.equals(res.getPdlvDvCd(), dto.pdlvDvCd())) {
-                        BizAssert.isTrue(res.getDataDlYn().equals("N"), "MSG_ALT_DUP_PDLV_DV");
-                        processCount = -2;
-                        return processCount;
-                    } else if (StringUtils.equals(res.getDataDlYn(), "Y")) {
-                        String apyStrtdt = mapper.selectStrtdtByPk(dto.pdlvNo());
-                        if (Integer.parseInt(apyStrtdt) >= Integer.parseInt(dvo.getApyStrtdt())) {
-                            processCount = -1;
-                            return processCount;
-                        } else {
-                            result += mapper.updatePlaceOfDeliveryHistory(dvo);
-                            mapper.updatePlaceOfDelivery(dvo);
-                            mapper.insertPlaceOfDeliveryHistory(dvo);
-                        }
-                    }
-                }
-                case CommConst.ROW_STATE_UPDATED -> {
+            // pk값으로 조회
+            WsndPlaceOfDeliveryDvo res = mapper.selectPlaceOfDeliveryByPk(dto.pdlvNo(), dto.pdlvDvCd());
+
+            // 중복값 없을때 신규등록
+            if (Objects.isNull(res)) {
+                result += mapper.insertPlaceOfDelivery(dvo);
+                mapper.insertPlaceOfDeliveryHistory(dvo);
+            } else {
+                if (Integer.parseInt(res.getApyStrtdt()) >= Integer.parseInt(dvo.getApyStrtdt())) {
+                    processCount = -1;
+                    return processCount;
+                } else {
                     result += mapper.updatePlaceOfDeliveryHistory(dvo);
                     mapper.updatePlaceOfDelivery(dvo);
                     mapper.insertPlaceOfDeliveryHistory(dvo);

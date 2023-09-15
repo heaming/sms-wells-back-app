@@ -11,16 +11,16 @@ import javax.validation.constraints.NotNull;
 public class WsniCustomerCenterInterfaceDto {
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchReq")
     public record SearchReq(
-        //        @JsonProperty("CST_SV_ASN_NO")
-        //        String cstSvAsnNo,
+        @JsonProperty("CST_SV_ASN_NO")
+        String cstSvAsnNo,
         @JsonProperty("WK_PRTNR_NO")
         String wkPrtnrNo,
         @JsonProperty("WK_DT")
-        String wkDt
-    //        @JsonProperty("CNTR_NO")
-    //        String cntrNo,
-    //        @JsonProperty("CNTR_SN")
-    //        String cntrSn
+        String wkDt,
+        @JsonProperty("CNTR_NO")
+        String cntrNo,
+        @JsonProperty("CNTR_SN")
+        String cntrSn
     ) {}
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchContactRes")

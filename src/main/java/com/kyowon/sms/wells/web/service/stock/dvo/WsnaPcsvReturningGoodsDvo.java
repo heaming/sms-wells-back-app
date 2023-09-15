@@ -89,8 +89,17 @@ public class WsnaPcsvReturningGoodsDvo {
     String cntrDtlNo; //계약상세번호
     String wellsReqdDt; //wells철거일자
 
+    /* 엔지니어 정보 조회 */
+    String mngrDvCd;
+    String dgr1LevlOgId;
+    String dgr3LevlOgId;
+
     // 물류수불처리 추가
     String ostrTpCd; // 출고유형코드
     String ostrDt; // 출고일자
+    String itmOstrNo;
+    String ostrSn;
+    String wareNm;
+    String rmkCn;
 
 }

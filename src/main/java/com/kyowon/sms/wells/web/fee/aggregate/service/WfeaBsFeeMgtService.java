@@ -86,6 +86,7 @@ public class WfeaBsFeeMgtService {
 
         String jobStatus;
         while (true) {
+            Thread.sleep(2000);
             jobStatus = batchCallService.getLastestJobStatus(runId);
             if (StringUtils.equals(jobStatus, "Ended OK") || StringUtils.equals(jobStatus, "Ended Not OK")) {
                 break;

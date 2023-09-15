@@ -14,16 +14,16 @@ public class WsnbRegularShippingChangeDto {
         String cntrNo,
         @JsonProperty(value = "CNTR_SN")
         String cntrSn,
-        @JsonProperty(value = "CSMR_SER")
-        String csmrSer,
-        @JsonProperty(value = "REQ_GB")
-        String reqGb,
-        @JsonProperty(value = "REQ_DT")
-        String reqDt,
-        @JsonProperty(value = "BASE_PD_CD")
-        String basePdCd,
-        @JsonProperty(value = "REQ_BASE_PD_CD")
-        String reqBasePdCd,
+        @JsonProperty(value = "AK_SN")
+        String akSn,
+        @JsonProperty(value = "AS_AK_DV_CD")
+        String asAkDvCd,
+        @JsonProperty(value = "AK_CHDT")
+        String akChdt,
+        @JsonProperty(value = "BFCH_PD_CD")
+        String bfchPdCd,
+        @JsonProperty(value = "AFCH_PD_CD")
+        String afchPdCd,
         @JsonProperty(value = "PART_LIST")
         String partList,
         @JsonProperty(value = "MTR_PROCS_STAT_CD")

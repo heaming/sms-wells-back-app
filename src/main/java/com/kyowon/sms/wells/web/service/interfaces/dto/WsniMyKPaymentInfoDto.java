@@ -13,7 +13,7 @@ import lombok.Builder;
 
 public class WsniMyKPaymentInfoDto {
     @Builder
-    @ApiModel(value = "WsniSidingServiceChangesDto-FindReq")
+    @ApiModel(value = "WsniMyKPaymentInfoDto-FindReq")
     public record FindReq(
         @NotBlank
         @JsonProperty("CNTR_NO")
@@ -24,7 +24,7 @@ public class WsniMyKPaymentInfoDto {
     ) {}
 
     @Builder
-    @ApiModel(value = "WsniSidingServiceChangesDto-FindRes")
+    @ApiModel(value = "WsniMyKPaymentInfoDto-FindRes")
     public record FindRes(
         @JsonProperty("RSLT_CD")
         String rsltCd, /*결과코드*/

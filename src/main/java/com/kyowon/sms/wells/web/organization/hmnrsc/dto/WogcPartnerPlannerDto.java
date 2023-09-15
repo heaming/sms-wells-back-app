@@ -11,6 +11,8 @@ import com.sds.sflex.system.config.masking.MaskingType;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
+import javax.validation.constraints.NotBlank;
+
 public class WogcPartnerPlannerDto {
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchLicenseReq")
@@ -82,11 +84,19 @@ public class WogcPartnerPlannerDto {
         String olfDvCd
     ) {}
 
+    @ApiModel(value = "WogcPartnerPlannerDto-SearchCheckReq")
+    @Builder
+    public record SearchCheckReq(
+        String mngtYm
+
+    ) {}
+
     @ApiModel(value = "WogcPartnerPlannerDto-SearchRes")
     public record SearchRes(
         String dgr1LevlOgNm,
         String dgr2LevlOgNm,
         String ogCd,
+        String ogTpCd,
         @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm,
         String prtnrNo,
@@ -114,6 +124,7 @@ public class WogcPartnerPlannerDto {
         String enddt,
         String mQlfDvCd,
         String mQlfDvNm,
+        String btnYn,
         String mTotCnt
     ) {}
 
@@ -140,10 +151,11 @@ public class WogcPartnerPlannerDto {
     @ApiModel(value = "WogcPartnerPlannerDto-SearchCountMmPartnerReq")
     @Builder
     public record SearchCountMmPartnerReq(
+        String mngtYm,
         String ogTpCd,
         String prtnrKnm,
         String prtnrNo,
-        String olfDvCd
+        String qlfDvCd
     ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchCountPlarPartnerReq")
@@ -164,23 +176,37 @@ public class WogcPartnerPlannerDto {
         String dmtnYm,
         String qlfDvCd,
         String rfdt,
+        String cntrDt,
+        String cltnDt,
+        String upgrDmtnDvCd,
+        String rcntrDt,
+        String upgrMcn,
         String fstRgstDtm,
         String fstRgstUsrId,
-        String pb2PrtnrNo,
-        String pb2PrtnrKnm,
+        String rgstPrtnrKnm,
         String fnlMdfcDtm,
         String fnlMdfcUsrId,
-        String pb3PrtnrNo,
-        String pb3PrtnrKnm
+        String mdfcPrtnrKnm
     ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-EditReq")
     @Builder
     public record EditReq(
+        @NotBlank
+        String mngtYm,
+        @NotBlank
         String ogTpCd,
-        String prtnrKnm,
+        @NotBlank
         String prtnrNo,
-        String olfDvCd
+        String qlfDvCd,
+        String rfdt,
+        String upgrDmtnDvCd,
+        String upgrYm,
+        String dmtnYm,
+        String cntrDt,
+        String cltnDt,
+        String rcntrDt,
+        String upgrMcn
     ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SaveQulificationReq")

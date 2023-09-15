@@ -152,6 +152,7 @@ public class WbncCustomerDto {
         String istDt, /* 설치일 */
         String canDt, /* 취소일 */
         String reqdDt, /* 철거일 */
+        String bnk, /* 은행/카드사 */
         String vtAc, /* 자동이체 */
         String fntDt, /* 이체일자 */
         String mpyMthdTpCd, /* 이체상태 */

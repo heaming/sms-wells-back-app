@@ -26,4 +26,11 @@ public class WogcPartnerPlannerDvo {
     String aplcSn;
     String mngtYm;
     PageInfo pageInfo;
+    String ogTpCd;
+    String rfdt;
+    String upgrDmtnDvCd;
+    String upgrYm;
+    String dmtnYm;
+    String cltnDt;
+    String upgrMcn;
 }

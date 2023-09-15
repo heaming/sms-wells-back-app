@@ -78,6 +78,8 @@ public class WsnaReturningGoodsOstrService {
 
         String itmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(saveReq.ostrTpCd(), saveReq.ostrDt()));
         String itmStrNo = null;
+        //물류에 전송할때 물류배송방식코드분기 처리를 위한 운송코드
+        String trnspnCd = saveReq.trnspnCd();
 
         if (isReturning(saveReq.ostrTpCd()) && StringUtil.isNotBlank(saveReq.strWareNo())) {
             itmStrNo = this.mapper
@@ -159,7 +161,7 @@ public class WsnaReturningGoodsOstrService {
                 }
                 // 반품(내부)이고 입고 창고가 물류센터인 경우 - 반품요청 중계 테이블 Insert
                 List<WsnaReturningGoodsDvo> logisticsDvo = this.mapper
-                    .selectLogisticsReturningGoodsAskInfo(itmOstrNo, ostrSns);
+                    .selectLogisticsReturningGoodsAskInfo(itmOstrNo, ostrSns, trnspnCd);
 
                 List<WsnaLogisticsInStorageAskReqDvo> returnDvo = this.converter
                     .mapAllReturningGoodsDvoToLogisticsInStorageAskReqDvo(logisticsDvo);

@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.bond.consultation.rest;
 
 import java.util.List;
-import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -92,7 +91,7 @@ public class WbncCustomerController {
         @ApiImplicitParam(name = "schCntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "schCntrSn", value = "계약일련번호", paramType = "query", required = true)
     })
-    public Optional<FindRes> getCustomerDetail(@Valid
+    public FindRes getCustomerDetail(@Valid
     FindReq dto)
         throws Exception {
         return service.getCustomerDetail(dto);

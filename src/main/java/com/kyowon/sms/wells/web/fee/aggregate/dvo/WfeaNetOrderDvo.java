@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WfeaNetOrderDvo {
-    String tcntDvCd;
+    String feeTcntDvCd;
     String perfYm;
 }

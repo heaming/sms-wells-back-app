@@ -9,8 +9,6 @@ public interface WsnaPcsvReturningGoodsSaveMapper {
 
     int selectExistSvpdCstSvWkRsIz(WsnaPcsvReturningGoodsSaveDvo vo);
 
-    WsnaPcsvReturningGoodsSaveDvo selectEngineerOgbsMmPrtnrIz(WsnaPcsvReturningGoodsSaveDvo vo);
-
     void updateSvpdCstSvasAsIstAsnIz(WsnaPcsvReturningGoodsSaveDvo vo);
 
     void updateSvpdCstSvasIstAsnIz(WsnaPcsvReturningGoodsSaveDvo vo);
