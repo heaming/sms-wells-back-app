@@ -76,9 +76,9 @@ public class WdccPrepaymentExpirationService {
             sendDvo.setMsgCn(templateContent);
             sendDvo.setBndMsgTpVal1("Wells18038");// 채권메시지유형값1
             sendDvo.setBndMsgTpVal2(dto.prmEndYm());// 채권메시지유형값2
-            sendDvo.setBndMsgTpVal2(dto.cstNo());// 채권메시지유형값3
+            sendDvo.setBndMsgTpVal3(dto.cstNo());// 채권메시지유형값3
             sendDvo.setBndMsgTpVal4(dto.pdCd());// 채권메시지유형값4
-            sendDvo.setBndMsgTpVal4(dto.cnt());// 채권메시지유형값4
+            sendDvo.setBndMsgTpVal5(dto.cnt());// 채권메시지유형값5
             sendDvo.setReserved8("N");
             if (dto.cntrCralTno1() != null) {
                 sendDvo.setRcvrTno(tno); // 수신자번호
