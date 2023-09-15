@@ -77,8 +77,7 @@ public class WogcPartnerPlannerController {
     @ApiOperation(value = "자격생성", notes = "자격생성을 통해 자격을 변경한다.")
     @PutMapping
     public SaveResponse saveTopPlanner(
-        @Valid
-        @RequestBody
+        @Valid @RequestBody
         WogcPartnerPlannerDto.SaveReq dto
     ) throws Exception {
         this.service.saveTopPlanner(dto);
@@ -101,8 +100,7 @@ public class WogcPartnerPlannerController {
     @ApiOperation(value = "자격조정", notes = "자격생성을 통해 자격을 변경한다.")
     @PutMapping("/{ogTpCd}/{prtnrNo}")
     public SaveResponse saveTopPlanner(
-        @Valid
-        @RequestBody
+        @Valid @RequestBody
         WogcPartnerPlannerDto.EditReq dto
     ) throws Exception {
         this.service.saveTopPlanner(dto);
@@ -114,7 +112,6 @@ public class WogcPartnerPlannerController {
         @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "prtnrKnm", value = "성명", paramType = "query", required = false),
         @ApiImplicitParam(name = "qlfDvCd", value = "자격구분코드", paramType = "query", required = false)
-
     })
     @GetMapping("/planner-license/paging")
     public PagingResult<SearchLicenseRes> getLicensePages(
@@ -161,8 +158,7 @@ public class WogcPartnerPlannerController {
         @ApiImplicitParam(name = "qlfAplcDvCd", value = "자격신청구분코드", paramType = "body", required = false)
     })
     public SaveResponse createPlannerQualificationChange(
-        @Valid
-        @RequestBody
+        @Valid @RequestBody
         SaveQulificationReq dto
     ) throws Exception {
         return SaveResponse.builder().processCount(service.createPlannerQualificationChange(dto)).build();
@@ -171,11 +167,13 @@ public class WogcPartnerPlannerController {
     @ApiOperation(value = "매니저 자격관리 해약 저장", notes = "매니저 자격정보를 해약 처리 한다.")
     @PutMapping("/planner-qualification-cancel")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogId", value = "조직ID", paramType = "body", required = true),
         @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "body", required = true),
         @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "body", required = true),
         @ApiImplicitParam(name = "qlfDvCd", value = "자격구분코드", paramType = "body", required = true),
         @ApiImplicitParam(name = "strtdt", value = "시작일자", paramType = "body", required = true),
-        @ApiImplicitParam(name = "enddt", value = "종료일자", paramType = "body", required = true)
+        @ApiImplicitParam(name = "enddt", value = "종료일자", paramType = "body", required = true),
+        @ApiImplicitParam(name = "qlfAplcDvCd", value = "자격신청구분코드", paramType = "body", required = false)
     })
     public SaveResponse createPlannerQualificationCancel(
         @Valid @RequestBody

@@ -51,6 +51,8 @@ public class WogcPartnerPlannerService {
     private final WogcPartnerPlannerMapper mapper;
     private final WogcPartnerPlannerConverter converter;
 
+    private final static String MSG_ALT_SVE_ERR = "MSG_ALT_SVE_ERR";
+
     public List<SearchLicenseRes> getPlannerLicenses(SearchLicenseReq dto) {
         return mapper.selectPlannerLicensePages(dto);
     }
@@ -116,19 +118,19 @@ public class WogcPartnerPlannerService {
 
         /*자격생성 시 월파트너내역에 파트너정보 존재하는지 확인*/
         int cnt = this.mapper.selectCountMmPartner(planner);
-        BizAssert.isTrue(cnt > 0, "MSG_ALT_SVE_ERR"); //저장에 실패했습니다
+        BizAssert.isTrue(cnt > 0, MSG_ALT_SVE_ERR); //저장에 실패했습니다
 
         /*자격생성 시 플래너자격변경내역(M조직)에 파트너정보 존재하는지 확인 (이미 웰스매니저라면 등록불가)*/
         int cnt2 = this.mapper.selectCountPlarPartner(planner);
-        BizAssert.isTrue(cnt2 > 0, "MSG_ALT_SVE_ERR"); //저장에 실패했습니다
+        BizAssert.isTrue(cnt2 > 0, MSG_ALT_SVE_ERR); //저장에 실패했습니다
 
         /*자격생성 시 수석플래너신청내역(P조직)에 파트너정보 존재하는지 확인 (수석플래너신청내역 테이블에 있으면 삭제 후 등록)*/
         int cnt3 = this.mapper.selectCountTopPlarPartner(planner);
-        BizAssert.isTrue(cnt3 > 0, "MSG_ALT_SVE_ERR"); //저장에 실패했습니다
+        BizAssert.isTrue(cnt3 > 0, MSG_ALT_SVE_ERR); //저장에 실패했습니다
 
         /*체크한 파트너에 대해 수석플래너신청내역 테이블에 등록*/
         processCount = this.mapper.insertTopPlanner(planner);
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        BizAssert.isTrue(processCount == 1, MSG_ALT_SVE_ERR);
 
         return processCount;
     }
@@ -155,13 +157,13 @@ public class WogcPartnerPlannerService {
         WogcPartnerPlannerDvo planner = this.converter.mapEditReqToWogcPartnerPlannerDvo(dto);
 
         int processCount = this.mapper.insertTopPlanner(planner); // 1. 수석플래너신청내역 테이블 INSERT
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        BizAssert.isTrue(processCount == 1, MSG_ALT_SVE_ERR);
 
         processCount = this.mapper.updateAdMmPartner(planner); // 2. 월파트너내역 파트너등급 UPDATE
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        BizAssert.isTrue(processCount == 1, MSG_ALT_SVE_ERR);
 
         processCount = this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        BizAssert.isTrue(processCount == 1, MSG_ALT_SVE_ERR);
 
         return processCount;
     }
@@ -199,28 +201,72 @@ public class WogcPartnerPlannerService {
 
         int processCount = 0;
         if (dto.qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_1.getCode())) {
-            // 차월개시 일경우
-            processCount = mapper.insertPlannerQualificationChange(qualificationDvo);
-
             // 당월개시 일경우
             if (DateUtil.getDays(DateUtil.getNowDayString(), qualificationDvo.getStrtdt()) == 0) {
-                // 이전 데이터 자격해제 처리
                 WogcPartnerPlannerQualificationDvo beforeQualificationDvo = new WogcPartnerPlannerQualificationDvo();
+
+                if (detailList.get(0).qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_3.getCode())) {
+                    // 보류 -> 승급
+                    String newStrtdt = DateUtil.getNowDayString();
+
+                    qualificationDvo.setStrtdt(detailList.get(0).strtdt());
+                    qualificationDvo.setQlfDvCd(detailList.get(0).qlfDvCd());
+                    qualificationDvo.setNewStrtdt(newStrtdt);
+                    mapper.updatePlannerQualificationChange(qualificationDvo);
+
+                    beforeQualificationDvo.setEnddt(DateUtil.addDays(newStrtdt, -1));
+                } else {
+                    // 승급
+                    mapper.insertPlannerQualificationChange(qualificationDvo);
+
+                    beforeQualificationDvo.setEnddt(DateUtil.addDays(detailList.get(0).strtdt(), -1));
+                }
+
+                // 이전 데이터 자격해제 처리
                 beforeQualificationDvo.setOgTpCd(detailList.get(1).ogTpCd());
                 beforeQualificationDvo.setPrtnrNo(detailList.get(1).prtnrNo());
                 beforeQualificationDvo.setQlfDvCd(detailList.get(1).qlfDvCd());
                 beforeQualificationDvo.setStrtdt(detailList.get(1).strtdt());
                 beforeQualificationDvo.setQlfAplcDvCd(OgConst.QlfAplcDvCd.QLF_APLC_DV_CD_2.getCode());
-                beforeQualificationDvo.setEnddt(DateUtil.addDays(detailList.get(0).strtdt(), -1));
                 processCount = mapper.updatePlannerQualificationChange(beforeQualificationDvo);
 
                 // 월파트너 갱신
                 ogzPartnerService.updateQlfDvCdOfMonthPartner(partnerDvo);
                 // 파트너상세 갱신
                 ogzPartnerService.updateQlfDvCdOfPartnerDetail(partnerDvo);
+            } else {
+                // 차월개시 일경우
+
+                WogcPartnerPlannerQualificationDvo beforeQualificationDvo = new WogcPartnerPlannerQualificationDvo();
+
+                if (detailList.get(0).qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_3.getCode())) {
+                    // 보류 -> 승급
+                    String now = DateUtil.addMonths(DateUtil.getNowDayString(), 1);
+                    String newStrtdt = now.substring(0, 6) + "01";
+
+                    qualificationDvo.setStrtdt(detailList.get(0).strtdt());
+                    qualificationDvo.setQlfDvCd(detailList.get(0).qlfDvCd());
+                    qualificationDvo.setNewStrtdt(newStrtdt);
+                    mapper.updatePlannerQualificationChange(qualificationDvo);
+
+                    beforeQualificationDvo.setEnddt(DateUtil.addDays(newStrtdt, -1));
+                } else {
+                    // 승급
+                    mapper.insertPlannerQualificationChange(qualificationDvo);
+
+                    beforeQualificationDvo.setEnddt(DateUtil.addDays(detailList.get(0).strtdt(), -1));
+                }
+
+                // 이전 데이터 종료일자 변경
+                beforeQualificationDvo.setOgTpCd(detailList.get(1).ogTpCd());
+                beforeQualificationDvo.setPrtnrNo(detailList.get(1).prtnrNo());
+                beforeQualificationDvo.setQlfDvCd(detailList.get(1).qlfDvCd());
+                beforeQualificationDvo.setStrtdt(detailList.get(1).strtdt());
+                processCount += mapper.updatePlannerQualificationChange(beforeQualificationDvo);
             }
         } else if (dto.qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_3.getCode())) {
-            processCount = mapper.updatePlannerQualificationChange(qualificationDvo);
+            // 보류
+            mapper.updatePlannerQualificationChange(qualificationDvo);
 
             // 이전 데이터 승급 처리
             WogcPartnerPlannerQualificationDvo beforeQualificationDvo = new WogcPartnerPlannerQualificationDvo();
@@ -228,10 +274,11 @@ public class WogcPartnerPlannerService {
             beforeQualificationDvo.setPrtnrNo(detailList.get(1).prtnrNo());
             beforeQualificationDvo.setQlfDvCd(detailList.get(1).qlfDvCd());
             beforeQualificationDvo.setStrtdt(detailList.get(1).strtdt());
+            beforeQualificationDvo.setEnddt("99991231");
             beforeQualificationDvo.setQlfAplcDvCd(OgConst.QlfAplcDvCd.QLF_APLC_DV_CD_1.getCode());
             processCount = mapper.updatePlannerQualificationChange(beforeQualificationDvo);
         }
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        BizAssert.isTrue(processCount == 1, MSG_ALT_SVE_ERR);
 
         return processCount;
     }
@@ -259,7 +306,7 @@ public class WogcPartnerPlannerService {
             if ("00".equals(result)) {
                 // 재고가 없을 때
                 processCount = mapper.updatePlannerQualificationChange(qualificationDvo);
-                BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(processCount == 1, MSG_ALT_SVE_ERR);
 
                 List<SaveAppointReq> transferDtos = new ArrayList<SaveAppointReq>();
                 SaveAppointReq transferDto = SaveAppointReq.builder()

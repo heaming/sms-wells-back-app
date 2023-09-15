@@ -6,10 +6,12 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WogcPartnerPlannerQualificationDvo {
+    String ogId;
     String ogTpCd;
     String prtnrNo;
     String qlfDvCd;
     String strtdt;
+    String newStrtdt;
     String enddt;
     String cvDt;
     String qlfAplcDvCd;
