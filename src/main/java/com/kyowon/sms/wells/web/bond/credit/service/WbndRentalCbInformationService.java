@@ -96,16 +96,16 @@ public class WbndRentalCbInformationService {
                 SUMMARYITEM_7 = (Map<String, Object>)body.get("SUMMARYITEM_7");
 
                 // 렌탈CB연체(일반)세그먼트>>>  0 or 1건 : {} ,  2건이상 : [{},{}] 처리
-                if (this.S2I(ROWDATA_5.get("respCnt5").toString()) == 1) {
+                if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) == 1) {
                     Map<String, Object> ROWDATA_5_REPEAT_tmp = new HashMap<String, Object>();
                     ROWDATA_5_REPEAT_tmp = (Map<String, Object>)body.get("ROWDATA_5_REPEAT");
                     ROWDATA_5_REPEAT.add(ROWDATA_5_REPEAT_tmp);
-                } else if (this.S2I(ROWDATA_5.get("respCnt5").toString()) > 1) {
+                } else if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 1) {
                     ROWDATA_5_REPEAT = (List<Map<String, Object>>)body.get("ROWDATA_5_REPEAT");
                 }
 
                 // 렌탈CB연체(일반)세그먼트 코드 매핑
-                if (this.S2I(ROWDATA_5.get("respCnt5").toString()) > 0) {
+                if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 0) {
                     Map<String, Object> params;
                     Map<String, Object> rst;
                     for (int i = 0; i < ROWDATA_5_REPEAT.size(); i++) {
@@ -135,14 +135,14 @@ public class WbndRentalCbInformationService {
                 }
 
                 // 일반 요약항목 세그먼트>>>  0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리  
-                if (this.S2I(SUMMARYITEM_6.get("respCnt6").toString()) == 1) {
+                if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) == 1) {
                     Map<String, Object> SUMMARYITEM_6_REPEAT_OBJ = new HashMap<String, Object>();
                     SUMMARYITEM_6_REPEAT_OBJ = (Map<String, Object>)body.get("SUMMARYITEM_6_REPEAT");
                     SUMMARYITEM_6_REPEAT.put(
                         SUMMARYITEM_6_REPEAT_OBJ.get("siCd6").toString(),
                         SUMMARYITEM_6_REPEAT_OBJ.get("siVal6").toString()
                     );
-                } else if (this.S2I(SUMMARYITEM_6.get("respCnt6").toString()) > 1) {
+                } else if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) > 1) {
                     List<Map<String, Object>> SUMMARYITEM_6_REPEAT_LIST = (List<Map<String, Object>>)body
                         .get("SUMMARYITEM_6_REPEAT");
                     for (int i = 0; i < SUMMARYITEM_6_REPEAT_LIST.size(); i++) {
@@ -154,7 +154,7 @@ public class WbndRentalCbInformationService {
                 }
 
                 //기타  요약항목 세그먼트>>> 0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리
-                if (this.S2I(SUMMARYITEM_7.get("respCnt7").toString()) == 1) {
+                if (Integer.parseInt(SUMMARYITEM_7.get("respCnt7").toString()) == 1) {
                     Map<String, Object> SUMMARYITEM_7_OBJ = new HashMap<String, Object>();
                     SUMMARYITEM_7_OBJ = (Map<String, Object>)body.get("SUMMARYITEM_7_REPEAT");
                     SUMMARYITEM_7_REPEAT
@@ -162,7 +162,7 @@ public class WbndRentalCbInformationService {
                             SUMMARYITEM_7_OBJ.get("etcItmCd7").toString(),
                             SUMMARYITEM_7_OBJ.get("etcItmVal7").toString()
                         );
-                } else if (this.S2I(SUMMARYITEM_7.get("respCnt7").toString()) > 1) {
+                } else if (Integer.parseInt(SUMMARYITEM_7.get("respCnt7").toString()) > 1) {
                     List<Map<String, Object>> SUMMARYITEM_7_LIST = (List<Map<String, Object>>)body
                         .get("SUMMARYITEM_7_REPEAT");
                     for (int i = 0; i < SUMMARYITEM_7_LIST.size(); i++) {
@@ -184,8 +184,8 @@ public class WbndRentalCbInformationService {
                     if (SUMMARYITEM_6_REPEAT.get("RT0100201") != null
                         && SUMMARYITEM_6_REPEAT.get("RT0100202") != null) {
                         try {
-                            int RT0100201 = this.S2I(SUMMARYITEM_6_REPEAT.get("RT0100201").toString());
-                            int RT0100202 = this.S2I(SUMMARYITEM_6_REPEAT.get("RT0100202").toString());
+                            int RT0100201 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0100201").toString());
+                            int RT0100202 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0100202").toString());
                             double CAL_PER_0 = 0;
                             if (RT0100201 > 0) {
                                 CAL_PER_0 = (double)RT0100202 / RT0100201 * 100;
@@ -202,8 +202,8 @@ public class WbndRentalCbInformationService {
                     if (SUMMARYITEM_6_REPEAT.get("RT0300203") != null
                         && SUMMARYITEM_6_REPEAT.get("RT0300204") != null) {
                         try {
-                            int RT0300203 = this.S2I(SUMMARYITEM_6_REPEAT.get("RT0300203").toString());
-                            int RT0300204 = this.S2I(SUMMARYITEM_6_REPEAT.get("RT0300204").toString());
+                            int RT0300203 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0300203").toString());
+                            int RT0300204 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0300204").toString());
 
                             double CAL_PER_3 = 0;
                             if (RT0300203 > 0) {
@@ -220,8 +220,8 @@ public class WbndRentalCbInformationService {
                     if (SUMMARYITEM_6_REPEAT.get("RT0600203") != null
                         && SUMMARYITEM_6_REPEAT.get("RT0600204") != null) {
                         try {
-                            int RT0600203 = this.S2I(SUMMARYITEM_6_REPEAT.get("RT0600203").toString());
-                            int RT0600204 = this.S2I(SUMMARYITEM_6_REPEAT.get("RT0600204").toString());
+                            int RT0600203 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0600203").toString());
+                            int RT0600204 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0600204").toString());
 
                             double CAL_PER_6 = 0;
                             if (RT0600203 > 0) {
@@ -238,8 +238,8 @@ public class WbndRentalCbInformationService {
                     if (SUMMARYITEM_6_REPEAT.get("RT1200203") != null
                         && SUMMARYITEM_6_REPEAT.get("RT1200204") != null) {
                         try {
-                            int RT1200203 = this.S2I(SUMMARYITEM_6_REPEAT.get("RT1200203").toString());
-                            int RT1200204 = this.S2I(SUMMARYITEM_6_REPEAT.get("RT1200204").toString());
+                            int RT1200203 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT1200203").toString());
+                            int RT1200204 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT1200204").toString());
 
                             double CAL_PER_12 = 0;
                             if (RT1200203 > 0) {
@@ -256,8 +256,8 @@ public class WbndRentalCbInformationService {
                     if (SUMMARYITEM_6_REPEAT.get("RT2400103") != null
                         && SUMMARYITEM_6_REPEAT.get("RT2400104") != null) {
                         try {
-                            int RT2400103 = this.S2I(SUMMARYITEM_6_REPEAT.get("RT2400103").toString());
-                            int RT2400104 = this.S2I(SUMMARYITEM_6_REPEAT.get("RT2400104").toString());
+                            int RT2400103 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT2400103").toString());
+                            int RT2400104 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT2400104").toString());
                             double CAL_PER_24 = 0;
                             if (RT2400103 > 0) {
                                 CAL_PER_24 = (double)RT2400104 / RT2400103 * 100;
@@ -273,8 +273,8 @@ public class WbndRentalCbInformationService {
                     if (SUMMARYITEM_6_REPEAT.get("RT3600103") != null
                         && SUMMARYITEM_6_REPEAT.get("RT3600104") != null) {
                         try {
-                            int RT3600103 = this.S2I(SUMMARYITEM_6_REPEAT.get("RT3600103").toString());
-                            int RT3600104 = this.S2I(SUMMARYITEM_6_REPEAT.get("RT3600104").toString());
+                            int RT3600103 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT3600103").toString());
+                            int RT3600104 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT3600104").toString());
                             double CAL_PER_36 = 0;
                             if (RT3600103 > 0) {
                                 CAL_PER_36 = (double)RT3600104 / RT3600103 * 100;
@@ -678,31 +678,4 @@ public class WbndRentalCbInformationService {
         }
         return String.valueOf(i);
     }
-
-    /**
-     * Convert a String to an int
-     * 
-     * @param data the thing to convert
-     * @return the converted data
-     */
-    public static int S2I(String data) {
-        try {
-            return Integer.parseInt(data);
-        } catch (NumberFormatException ex) {
-            return 0;
-        }
-    }
-
-    /**
-     * str 가 null or empty 이면 true 리턴
-     * @param str
-     * @return
-     */
-    public static boolean isEmpty(String str) {
-        if (str == null || str.trim().length() == 0) {
-            return true;
-        }
-        return false;
-    }
-
 }
