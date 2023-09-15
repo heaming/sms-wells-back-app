@@ -114,9 +114,7 @@ public class WsnaNormalOutOfStorageController {
         @ApiImplicitParam(name = "ostrAkTpCd", value = "출고요청유형", paramType = "query", example = "310", required = true),
         @ApiImplicitParam(name = "ostrAkNo", value = "출고요청번호", paramType = "query", example = "310200812300000009", required = true),
         @ApiImplicitParam(name = "strOjWareNo", value = "입고창고번호", paramType = "query", example = "200043", required = true),
-        @ApiImplicitParam(name = "ostrOjWareNo", value = "출고창고번호", paramType = "query", example = "200017", required = true),
-        @ApiImplicitParam(name = "stckStdGb", value = "표준창고 적용여부", paramType = "query", example = "Y", required = true),
-        @ApiImplicitParam(name = "rgstDt", value = "출고요청등록일자", paramType = "query", example = "20230314", required = true)
+        @ApiImplicitParam(name = "ostrOjWareNo", value = "출고창고번호", paramType = "query", example = "200017", required = true)
     })
     public PagingResult<WsnaNormalOutOfStorageDetailDvo> getNormalOstrRgsts(@Valid
     DetailReq dto,
@@ -132,9 +130,7 @@ public class WsnaNormalOutOfStorageController {
         @ApiImplicitParam(name = "ostrAkTpCd", value = "출고요청유형", paramType = "query", example = "310", required = true),
         @ApiImplicitParam(name = "ostrAkNo", value = "출고요청번호", paramType = "query", example = "310200812300000009", required = true),
         @ApiImplicitParam(name = "strOjWareNo", value = "입고창고번호", paramType = "query", example = "200043", required = true),
-        @ApiImplicitParam(name = "ostrOjWareNo", value = "출고창고번호", paramType = "query", example = "200017", required = true),
-        @ApiImplicitParam(name = "stckStdGb", value = "표준창고 적용여부", paramType = "query", example = "Y", required = true),
-        @ApiImplicitParam(name = "rgstDt", value = "출고요청등록일자", paramType = "query", example = "20230314", required = true)
+        @ApiImplicitParam(name = "ostrOjWareNo", value = "출고창고번호", paramType = "query", example = "200017", required = true)
     })
     public List<WsnaNormalOutOfStorageDetailDvo> getNormalOstrRgstsExcelDownload(@Valid
     DetailReq dto
@@ -148,9 +144,7 @@ public class WsnaNormalOutOfStorageController {
         @ApiImplicitParam(name = "ostrTpCd", value = "출고유형", paramType = "query", example = "222", required = true),
         @ApiImplicitParam(name = "itmOstrNo", value = "품목출고번호", paramType = "query", example = "222202210060000001", required = true),
         @ApiImplicitParam(name = "strOjWareNo", value = "입고창고번호", paramType = "query", example = "200043", required = true),
-        @ApiImplicitParam(name = "ostrOjWareNo", value = "출고창고번호", paramType = "query", example = "200017", required = true),
-        @ApiImplicitParam(name = "stckStdGb", value = "표준창고 적용여부", paramType = "query", example = "Y", required = true),
-        @ApiImplicitParam(name = "ostrDt", value = "출고일자", paramType = "query", example = "20230314", required = true)
+        @ApiImplicitParam(name = "ostrOjWareNo", value = "출고창고번호", paramType = "query", example = "200017", required = true)
     })
     public PagingResult<WsnaNormalOutOfStorageDetailDvo> getNormalOstrRgstsForRemove(
         @Valid
@@ -167,9 +161,7 @@ public class WsnaNormalOutOfStorageController {
         @ApiImplicitParam(name = "ostrTpCd", value = "출고유형", paramType = "query", example = "222", required = true),
         @ApiImplicitParam(name = "itmOstrNo", value = "품목출고번호", paramType = "query", example = "222202210060000001", required = true),
         @ApiImplicitParam(name = "strOjWareNo", value = "입고창고번호", paramType = "query", example = "200043", required = true),
-        @ApiImplicitParam(name = "ostrOjWareNo", value = "출고창고번호", paramType = "query", example = "200017", required = true),
-        @ApiImplicitParam(name = "stckStdGb", value = "표준창고 적용여부", paramType = "query", example = "Y", required = true),
-        @ApiImplicitParam(name = "ostrDt", value = "출고일자", paramType = "query", example = "20230314", required = true)
+        @ApiImplicitParam(name = "ostrOjWareNo", value = "출고창고번호", paramType = "query", example = "200017", required = true)
     })
     public List<WsnaNormalOutOfStorageDetailDvo> getNormalOstrRgstsExcelDownloadForRemove(
         @Valid

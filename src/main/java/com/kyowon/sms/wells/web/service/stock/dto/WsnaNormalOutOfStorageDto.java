@@ -117,10 +117,7 @@ public class WsnaNormalOutOfStorageDto {
         @NotBlank
         String strOjWareNo,
         @NotBlank
-        String ostrOjWareNo,
-        @NotBlank
-        @ValidDate
-        String rgstDt
+        String ostrOjWareNo
     ) {}
 
     @Builder
@@ -133,10 +130,7 @@ public class WsnaNormalOutOfStorageDto {
         @NotBlank
         String strOjWareNo,
         @NotBlank
-        String ostrOjWareNo,
-        @NotBlank
-        @ValidDate
-        String ostrDt
+        String ostrOjWareNo
     ) {}
 
     @Builder
