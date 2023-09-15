@@ -68,13 +68,13 @@ public class WsncWellsAsInterfaceController {
     }
 
     @ApiOperation(value = "EAI_WSVI1021 W-SV-I-0001 Wells 인터페이스 맞춤가이드 서비스 이력 조회")
-    @PostMapping("/service-historys/paging")
+    @PostMapping("/service-historys")
     public EaiWrapper getServiceHistoryPages(
         @Valid
         @RequestBody
         EaiWrapper<SearchServiceHistoryReq> reqWrapper
     ) {
-        EaiWrapper<PagingResult<SearchServiceHistoryRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<SearchServiceHistoryRes>> resWrapper = reqWrapper.newResInstance();
         resWrapper.setBody(service.getServiceHistoryPages(reqWrapper.getBody()));
         return resWrapper;
     }

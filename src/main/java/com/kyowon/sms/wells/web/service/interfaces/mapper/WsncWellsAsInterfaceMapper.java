@@ -55,7 +55,7 @@ public interface WsncWellsAsInterfaceMapper {
      * @param req : 조회파라메터
      * @return 조회결과
      */
-    List<WsncAsInterfaceServHistDvo> selectServiceHistorys(SearchServiceHistoryReq req, PageInfo pageInfo);
+    List<WsncAsInterfaceServHistDvo> selectServiceHistorys(SearchServiceHistoryReq req);
 
     /**
      * Wells 인터페이스 맞춤가이드 서비스 내용 조회
