@@ -33,6 +33,7 @@ public class WdccPrepaymentExpirationDto {
     public record SearchRes(
         String cntrNo, /*계약번호*/
         String cstNo, /* 고객번호*/
+        String cntrDtlNo, /*계약상세번호*/
         String cstKnm, /* 고객명*/
         String rcgvpKnm, /* 설치자명*/
         String pdCd, /* 상품코드*/
