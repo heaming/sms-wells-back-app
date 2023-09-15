@@ -3401,7 +3401,7 @@
              , SUBSTR(A.CLTN_DT,1,6) AS CLTN_DT /*업무해약월*/
              , SUBSTR(A.PRFMT_DT,1,6) AS AKSTYM  /*승진월*/
              , H.CV_DT AS LCECAYMD       /*웰스매니저 개시일 */
-             , MM.B_AKSD05               /* 정착수수료 = 이전 정착수수료*/
+             , NVL(MM.B_AKSD05,0) AS B_AKSD05             /* 정착수수료 = 이전 정착수수료*/
              , NVL(TRUNC(B.AKCDA0,-1),0) AS AKCDA0  /* 가전    */
              , NVL(TRUNC(B.AKCDA1,-1),0) AS AKCDA1  /* 가전외    */
              , NVL(TRUNC(B.AKCDA2,-1),0) AS AKCDA2  /* 기변    */
@@ -3621,17 +3621,19 @@
                                    </if>
                                         AND FEE_CD IN ('W020080', 'W020081', 'W020082')
                                    )T1
-                              INNER JOIN ( SELECT PRTNR_NO
-                                                , SUBSTR(MAX(CV_DT),1,6) AS CV_DT /*수석플래너 전환년월*/
-                                             FROM TB_OGPS_PLAR_QLF_CH_IZ /*플래너 자격 변경내역*/
-                                            WHERE OG_TP_CD = 'W01'
-                                              AND QLF_DV_CD = '1'  /* 수석플래너 */
-                                              AND QLF_APLC_DV_CD = '1'  /* 승급 */
-                                              AND DTA_DL_YN = 'N'
-                                            GROUP BY PRTNR_NO
+                              INNER JOIN ( SELECT A.PRTNR_NO
+                                                , MAX(UPGR_YM) AS UPGR_YM
+                                             FROM TB_OGPS_TOPMR_PLAR_APLC_IZ A  /* 수석플래너신청내역 */
+                                            WHERE A.OG_TP_CD = 'W01'
+                                              AND A.QLF_DV_CD = '1'  /* 수석플래너 */
+                                              AND A.UPGR_DMTN_DV_CD = '1' /* 승급 */
+                                         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                              AND A.PRTNR_NO = #{prtnrNo}
+                                         </if>
+                                            GROUP BY A.PRTNR_NO
                                          )T2
                                 ON T1.PRTNR_NO = T2.PRTNR_NO
-                             WHERE T1.DSB_YM &lt; NVL(T2.CV_DT,'000001')     /*수석플래너등록 이전*/
+                             WHERE T1.DSB_YM &lt; NVL(T2.UPGR_YM,'000001')     /*수석플래너등록 이전*/
                              GROUP BY T1.PRTNR_NO
                           )MM
             ON A.PRTNR_NO = MM.PRTNR_NO
@@ -3972,7 +3974,7 @@
                END AS AKDRIY                    /* 승진월     */
              , NVL(SUBSTR(A.PRFMT_DT,1,6),0) AS AKSTYM  /*수석승급일*/
              , H.CV_DT AS LCECAYMD       /*웰스매니저 개시일 */
-             , MM.B_AKSD05               /* 정착수수료 = 이전 정착수수료*/
+             , NVL(MM.B_AKSD05,0) AS B_AKSD05             /* 정착수수료 = 이전 정착수수료*/
              , NVL(TRUNC(B.AKCDA0,-1),0) AS AKCDA0        /* 가전    */
              , NVL(TRUNC(B.AKCDA1,-1),0) AS AKCDA1        /* 가전외    */
              , NVL(TRUNC(B.AKCDA2,-1),0) AS AKCDA2        /* 기변    */
@@ -4268,17 +4270,19 @@
                                    </if>
                                         AND FEE_CD IN ('W020080', 'W020081', 'W020082')
                                    )T1
-                              INNER JOIN ( SELECT PRTNR_NO
-                                                , SUBSTR(MAX(CV_DT),1,6) AS CV_DT /*수석플래너 전환년월*/
-                                             FROM TB_OGPS_PLAR_QLF_CH_IZ /*플래너 자격 변경내역*/
-                                            WHERE OG_TP_CD = 'W01'
-                                              AND QLF_DV_CD = '1'  /* 수석플래너 */
-                                              AND QLF_APLC_DV_CD = '1'  /* 승급 */
-                                              AND DTA_DL_YN = 'N'
-                                            GROUP BY PRTNR_NO
-                                         )T2
+                             INNER JOIN ( SELECT A.PRTNR_NO
+                                               , MAX(UPGR_YM) AS UPGR_YM
+                                            FROM TB_OGPS_TOPMR_PLAR_APLC_IZ A  /* 수석플래너신청내역 */
+                                           WHERE A.OG_TP_CD = 'W01'
+                                             AND A.QLF_DV_CD = '1'  /* 수석플래너 */
+                                             AND A.UPGR_DMTN_DV_CD = '1' /* 승급 */
+                                        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                             AND A.PRTNR_NO = #{prtnrNo}
+                                        </if>
+                                           GROUP BY A.PRTNR_NO
+                                        )T2
                                 ON T1.PRTNR_NO = T2.PRTNR_NO
-                             WHERE T1.DSB_YM &lt; NVL(T2.CV_DT,'000001')     /*수석플래너등록 이전*/
+                             WHERE T1.DSB_YM &lt; NVL(T2.UPGR_YM,'000001')     /*수석플래너등록 이전*/
                              GROUP BY T1.PRTNR_NO
                           )MM
             ON A.PRTNR_NO = MM.PRTNR_NO
