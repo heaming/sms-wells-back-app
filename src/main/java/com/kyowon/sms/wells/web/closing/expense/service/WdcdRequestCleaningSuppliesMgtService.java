@@ -22,7 +22,7 @@ public class WdcdRequestCleaningSuppliesMgtService {
     private final WdcdRequestCleaningSuppliesMgtMapper mapper;
     private final WdcdRequestCleaningSuppliesMgtConverter converter;
     private final AttachFileService attachFileService;
-    private final String groupId = "ATG_DCD_CLING_COST";
+    private String groupId = "ATG_DCD_CLING_COST";
 
     public SearchRsbDvCdRes getRsbDvCd(CodeReq req) {
         return mapper.selectRsbDvCd(req);
