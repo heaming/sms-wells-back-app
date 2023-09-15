@@ -27,24 +27,15 @@ public class WsnbNewPdctMThreeAcuAfSvRtDto {
 
     @ApiModel(value = "WsnbNewPdctMThreeAcuAfSvRtDto-SearchRes")
     public record SearchRes(
-        String atcNm,
-        String dYear,
-        String m01,
-        String m02,
-        String m03,
-        String m04,
-        String m05,
-        String m06,
-        String m07,
-        String m08,
-        String m09,
-        String m10,
-        String m11,
-        String m12,
-        String totalCnt,
-        String maxVal,
-        String minVal,
-        String avgVal
+        String chk,
+        String pdCd,    /* 상품코드 */
+        String code,    /* 상품코드 */
+        String codeName,/* 상품코드  + 상품명 */
+        String nmKor,   /* 상품명 */
+        String itmKndCd,/* 품목종류코드 */
+        String pdGrpCd, /* 상품그룹코드 */
+        String lncStrtdt,/* 출시시작일자 */
+        String lncExdt  /* 출시만기일자 */
     ) {}
 
     @ApiModel(value = "WsnbNewPdctMThreeAcuAfSvRtDto-PdListReq")
@@ -55,66 +46,17 @@ public class WsnbNewPdctMThreeAcuAfSvRtDto {
 
     @ApiModel(value = "WsnbNewPdctMThreeAcuAfSvRtDto-PdListRes")
     public record PdListRes(
-        String svpdPdCd,
-        String svpdItemCd,
-        String svpdPartCd,
-        String svpdNmKor,
-        String svpdNmAbbr1,
-        String svpdNmCust,
-        String svpdItemKnd,
-        String svpdItemKndNm,
-        String svpdItemGr,
-        String svpdItemGrNm,
-        String svpdClsfId,
-        String svpdHclsfId,
-        String svpdMclsfId,
-        String svpdLclsfId,
-        String svpdDclsfId,
-        String svpdSellTpCd,
-        String svpdUseYn,
-        String svpdApldFr,
-        String svpdApldTo,
-        String svpdSapCd,
-        String svpdSapGrp,
-        String svpdSapLevel,
-        String svpdSapClass,
-        String svpdPdctClssRsc,
-        String svpdStdPr,
-        String svpdImgUrl,
-        String svpdRmks,
-        String svpdCommGb,
-        String svpdCommGbNm,
-        String svpdLpGb,
-        String svpdMgtTyp,
-        String svpdMgtTypNm,
-        String svpdSftyQty,
-        String svpdSize,
-        String svpdMgtUnt,
-        String svpdMgtUntNm,
-        String svpdLt,
-        String svpdDelUnt,
-        String svpdDelUntNm,
-        String svpdBoxQty,
-        String svpdPltQty,
-        String svpdBarcodeYn,
-        String svpdBaseGb,
-        String svpdBaseColorGb,
-        String svpdRefurYn,
-        String svpdQtylmtYn,
-        String svpdDisposalCost,
-        String svpdTotWei,
-        String svpdMoq,
-        String svpdTurnoverTgt,
-        String svpdPdTpCd,
-        String svpdBarCd,
-        String svpdBarCd18,
-        String svpdPickQty,
-        String svpdServiceUseYn,
-        String svpdPartGr,
-        String svpdHmcrUseYn,
-        String svpdQrType,
-        String sellStrtdt,
-        String sellEnddt
+        String chk,
+        String pdCd,        /* 상품코드 */
+        String code,        /* 상품코드 */
+        String codeName,    /* 상품코드 + 상품명 */
+        String nmKor,       /* 상품명 */
+        String itmKndCd,    /* 품목종류코드 */
+        String pdGrpCd,     /* 상품그룹코드 */
+        String pdHclsfId,   /* 상품대분류 */
+        String pdTpCd,      /* 상품유형코드 */
+        String lncStrtdt,   /* 출시시작일자 */
+        String lncExdt      /* 출시만기일자 */
     ) {}
 
     @Builder
@@ -122,10 +64,23 @@ public class WsnbNewPdctMThreeAcuAfSvRtDto {
     public record SaveReq(
         @NotBlank
         String rowState, /* 상태 */
-        String svpdPdCd,
-        String svpdNmAbbr1,
-        String svpdNmKor,
-        String sellStrtdt,
-        String sellEnddt
+        @NotBlank
+        String pdCd, /* 상품코드 */
+        String nmKor,
+        String pdGrpCd,
+        @NotBlank
+        String lncStrtdt,
+        @NotBlank
+        String lncExdt,
+        String pdHclsfId,
+        String pdTpCd
     ) {}
+
+    @ApiModel(value = "WsnbNewPdctMThreeAcuAfSvRtDto-PdDtlListRes")
+    public record PdDtlListRes(
+        String cd,
+        String cdNm,
+        String svpdItemGr,
+        String pdHclsfId
+    ){}
 }

@@ -14,4 +14,5 @@ public interface WsnbNewPdctMThreeAcuAfSvRtMapper {
     int deleteNewPdctMThreeAcuAfSvRtInfo(String pdCd);
     int insertNewPdctMThreeAcuAfSvRtInfo(SaveReq saveReq);
     int updateNewPdctMThreeAcuAfSvRtInfo(SaveReq saveReq);
+    List<PdDtlListRes> selectPdDtls();
 }

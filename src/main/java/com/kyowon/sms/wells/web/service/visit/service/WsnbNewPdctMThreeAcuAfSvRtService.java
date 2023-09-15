@@ -64,4 +64,8 @@ public class WsnbNewPdctMThreeAcuAfSvRtService {
 
         return processCount;
     }
+
+    public List<PdDtlListRes> getPdDtlList(){
+        return mapper.selectPdDtls();
+    }
 }

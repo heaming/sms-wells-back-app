@@ -71,4 +71,10 @@ public class WsnbNewPdctMThreeAcuAfSvRtController {
             .processCount(this.service.saveNewPdctMThreeAcuAfSvRtInfos(dtos))
             .build();
     }
+
+    @ApiOperation(value = "M+3 출시일 등록 화면용 상품 리스트 조회", notes = "M+3 출시일 등록 화면용 상품 리스트를 조회한다.")
+    @GetMapping("/pd-dtl-list")
+    public List<PdDtlListRes> getPdDtlList(){
+        return service.getPdDtlList();
+    }
 }
