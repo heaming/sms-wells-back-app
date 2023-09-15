@@ -4,15 +4,19 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaAgencyLocaraFilterGiveAOrderPsDto.SearchAgrgRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaAgencyLocaraFilterGiveAOrderPsDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAgencyLocaraFilterGiveAOrderPsDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsnaAgencyLocaraFilterGiveAOrderPsMapper {
-    List selectAgencyLocaraFilterGiveAOrderPsAgrgs(SearchReq dto);
+    List<SearchAgrgRes> selectAgencyLocaraFilterGiveAOrderPsAgrgs(SearchReq dto);
 
-    PagingResult selectAgencyLocaraFilterGiveAOrderPss(SearchReq dto, PageInfo pageInfo);
+    PagingResult<WsnaAgencyLocaraFilterGiveAOrderPsDvo> selectAgencyLocaraFilterGiveAOrderPss(
+        SearchReq dto, PageInfo pageInfo
+    );
 
-    List selectAgencyLocaraFilterGiveAOrderPss(SearchReq dto);
+    List<WsnaAgencyLocaraFilterGiveAOrderPsDvo> selectAgencyLocaraFilterGiveAOrderPss(SearchReq dto);
 }

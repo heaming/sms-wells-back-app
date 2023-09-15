@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
-import java.util.HashMap;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -9,7 +8,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaAgencyLocaraFilterGiveAOrderPsDto.SearchAgrgRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaAgencyLocaraFilterGiveAOrderPsDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaAgencyLocaraFilterGiveAOrderPsDto.SearchRes;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaAgencyLocaraFilterGiveAOrderPsService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -36,7 +37,7 @@ public class WsnaAgencyLocaraFilterGiveAOrderPsController {
         @ApiImplicitParam(name = "bfsvcBzsDvCd", value = "BS업체구분코드", paramType = "query", required = true),
     })
     @GetMapping("/agrg")
-    public List getAgencyLocaraFilterGiveAOrderPsAgrgs(
+    public List<SearchAgrgRes> getAgencyLocaraFilterGiveAOrderPsAgrgs(
         @Valid
         SearchReq dto
     ) {
@@ -49,7 +50,7 @@ public class WsnaAgencyLocaraFilterGiveAOrderPsController {
         @ApiImplicitParam(name = "endDt", value = "기준년월 종료일자", paramType = "query", required = true),
     })
     @GetMapping("/paging")
-    public PagingResult<HashMap<String, String>> getAgencyLocaraFilterGiveAOrderPss(
+    public PagingResult<SearchRes> getAgencyLocaraFilterGiveAOrderPss(
         @Valid
         SearchReq dto,
         @Valid
@@ -64,7 +65,7 @@ public class WsnaAgencyLocaraFilterGiveAOrderPsController {
         @ApiImplicitParam(name = "endDt", value = "기준년월 종료일자", paramType = "query", required = true),
     })
     @GetMapping("/excel-download")
-    public List getAgencyLocaraFilterGiveAOrderPssForExcelDownload(
+    public List<SearchRes> getAgencyLocaraFilterGiveAOrderPssForExcelDownload(
         @Valid
         SearchReq dto
     ) {
