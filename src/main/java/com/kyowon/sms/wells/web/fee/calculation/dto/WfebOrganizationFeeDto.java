@@ -83,6 +83,8 @@ public class WfebOrganizationFeeDto {
         String rLccnt1, /* 실배정건 */
         String gdSercnt, /* 세탁기/에어컨/건조기 건수 */
         String elecnt, /* 가전 건수 */
+
+        String nelecnt, /* 가전외 건수 */
         String sercnt, /* 총 서비스건수 */
         String serryl, /* 처리율 */
         String aksd01, /* 비례 */
@@ -130,6 +132,7 @@ public class WfebOrganizationFeeDto {
         String rLccnt1, /* 실배정건 */
         String gdSercnt, /* 세탁기/에어컨/건조기 건수 */
         String elecnt, /* 가전 건수 */
+        String nelecnt, /* 가전외 건수 */
         String sercnt, /* 총 서비스건수 */
         String serryl, /* 처리율 */
         String aksd01, /* 비례 */
