@@ -110,7 +110,12 @@ public class WsniCustomerCenterInterfaceService {
         WsniCustomerCenterInterfaceDvo returnDvo = new WsniCustomerCenterInterfaceDvo();
         WsniCustomerCenterInterfaceDvo tempDvo = new WsniCustomerCenterInterfaceDvo();
 
-        tempDvo = mapper.selectAllCleanYn(dto);
+        System.out.println("--------------------------------");
+        System.out.println(dto.cntrNo());
+        System.out.println(dto.cntrSn());
+        System.out.println("--------------------------------");
+
+        tempDvo = mapper.selectAllCleanYn(dto.cntrNo(), dto.cntrSn());
 
         returnDvo = mapper.selectFilterShippingAddressInfo(dto);
         returnDvo.setIstLctDtlCn(mapper.selectIstLctDtlCn(dto));

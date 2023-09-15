@@ -375,10 +375,10 @@ public class WsniCustomerCenterInterfaceDto {
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-FindAdnInfReq")
     public record FindAdnInfReq(
         @NotBlank
-        @JsonProperty("CNTR_NO")
+        @JsonProperty(value = "CNTR_NO")
         String cntrNo,
         @NotNull
-        @JsonProperty("CNTR_SN")
+        @JsonProperty(value = "CNTR_SN")
         String cntrSn
     ) {}
 
