@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.closing.expense.service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -28,7 +27,7 @@ public class WdcdCleanerReqeustMgtService {
     private final WdcdCleanerReqeustMgtMapper mapper;
     private final WdcdCleanerReqeustMgtConverter converter;
     private final AttachFileService attachFileService;
-    private final String groupId = "ATG_DCD_CLING_COST";
+    private String groupId = "ATG_DCD_CLING_COST";
 
     public List<FindCodeRes> getBuilDingCd(FindCodeReq req) {
         return mapper.selectBuilDingCd(req);
@@ -83,7 +82,7 @@ public class WdcdCleanerReqeustMgtService {
             String clinrRgno = dvo.getClinrRgno();
             String fileId = groupId + "_BAS" + clinrRgno;
 
-            Map<String, Object> fileIdList = mapper.selectFileId(clinrRgno);
+//            Map<String, Object> fileIdList = mapper.selectFileId(clinrRgno);
 
             WdcdCleanerReqeustDvo saveDvo = mapper.selectCleanerReqeust(clinrRgno);
             FindRes res = converter.mapFindResToWdcdCleanerReqeustDvo(saveDvo);
