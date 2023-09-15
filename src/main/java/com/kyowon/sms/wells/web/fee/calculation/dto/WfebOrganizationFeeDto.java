@@ -99,6 +99,7 @@ public class WfebOrganizationFeeDto {
         String aksd11, /* 급지 */
         String aksd13, /* 기타지원 */
         String aksd14, /* 재지급 */
+        String aksd16, /* 유니폼 */
         String intbsSum, /*과표합계*/
         String ddtnSum, /*총공제액*/
         String aclDsbAmt /*실지급액*/
@@ -147,6 +148,7 @@ public class WfebOrganizationFeeDto {
         String aksd11, /* 급지 */
         String aksd13, /* 기타지원 */
         String aksd14, /* 재지급 */
+        String aksd16, /* 유니폼 */
         String gadcnt, /* 실활동인원 */
         String jAkdeq0, /* 인정건수 */
         String jSercnt, /* 서비스건수 */
