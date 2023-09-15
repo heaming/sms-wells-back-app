@@ -75,13 +75,13 @@ public class WogcPartnerPlannerController {
     }
 
     @ApiOperation(value = "자격생성", notes = "자격생성을 통해 자격을 변경한다.")
-    @PutMapping
-    public SaveResponse saveTopPlanner(
-        @Valid @RequestBody
+    @PostMapping
+    public SaveResponse createTopPlanner(
+        @Valid
+        @RequestBody
         WogcPartnerPlannerDto.SaveReq dto
     ) throws Exception {
-        this.service.saveTopPlanner(dto);
-        return SaveResponse.builder().processCount(1).build();
+        return SaveResponse.builder().processCount(this.service.createTopPlanner(dto)).build();
     }
 
     @ApiOperation(value = "수석자격조정 팝업 조회", notes = "수석자격조정 팝업을 조회한다.")
@@ -100,7 +100,8 @@ public class WogcPartnerPlannerController {
     @ApiOperation(value = "자격조정", notes = "자격생성을 통해 자격을 변경한다.")
     @PutMapping("/{ogTpCd}/{prtnrNo}")
     public SaveResponse saveTopPlanner(
-        @Valid @RequestBody
+        @Valid
+        @RequestBody
         WogcPartnerPlannerDto.EditReq dto
     ) throws Exception {
         this.service.saveTopPlanner(dto);
@@ -158,7 +159,8 @@ public class WogcPartnerPlannerController {
         @ApiImplicitParam(name = "qlfAplcDvCd", value = "자격신청구분코드", paramType = "body", required = false)
     })
     public SaveResponse createPlannerQualificationChange(
-        @Valid @RequestBody
+        @Valid
+        @RequestBody
         SaveQulificationReq dto
     ) throws Exception {
         return SaveResponse.builder().processCount(service.createPlannerQualificationChange(dto)).build();
@@ -176,7 +178,8 @@ public class WogcPartnerPlannerController {
         @ApiImplicitParam(name = "qlfAplcDvCd", value = "자격신청구분코드", paramType = "body", required = false)
     })
     public SaveResponse createPlannerQualificationCancel(
-        @Valid @RequestBody
+        @Valid
+        @RequestBody
         SaveQulificationReq dto
     ) throws Exception {
         return SaveResponse.builder().processCount(service.updatePlannerQualificationCancel(dto)).build();

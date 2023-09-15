@@ -35,17 +35,15 @@ public interface WogcPartnerPlannerMapper {
 
     List<WogcPartnerPlannerDto.SearchRes> selectTopPlannerPages(WogcPartnerPlannerDto.SearchReq dto);
 
-    int selectCountMmPartner(WogcPartnerPlannerDvo planner);
-
-    int selectCountPlarPartner(WogcPartnerPlannerDvo planner);
-
-    int selectCountTopPlarPartner(WogcPartnerPlannerDvo planner);
-
     int insertTopPlanner(WogcPartnerPlannerDvo planner);
+
+    int updateTopPlanner(WogcPartnerPlannerDvo planner);
 
     int updateMmPartner(WogcPartnerPlannerDvo planner);
 
     int updateDtlPartner(WogcPartnerPlannerDvo planner);
+
+    int insertAdTopPlanner(WogcPartnerPlannerDvo planner);
 
     int updateAdMmPartner(WogcPartnerPlannerDvo planner);
 
