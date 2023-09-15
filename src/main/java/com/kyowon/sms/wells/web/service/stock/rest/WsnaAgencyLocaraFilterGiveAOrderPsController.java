@@ -48,6 +48,7 @@ public class WsnaAgencyLocaraFilterGiveAOrderPsController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "startDt", value = "기준년월 시작일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "endDt", value = "기준년월 종료일자", paramType = "query", required = true),
+        @ApiImplicitParam(name = "bfsvcBzsDvCd", value = "BS업체구분코드", paramType = "query", required = true),
     })
     @GetMapping("/paging")
     public PagingResult<SearchRes> getAgencyLocaraFilterGiveAOrderPss(
@@ -63,6 +64,7 @@ public class WsnaAgencyLocaraFilterGiveAOrderPsController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "startDt", value = "기준년월 시작일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "endDt", value = "기준년월 종료일자", paramType = "query", required = true),
+        @ApiImplicitParam(name = "bfsvcBzsDvCd", value = "BS업체구분코드", paramType = "query", required = true),
     })
     @GetMapping("/excel-download")
     public List<SearchRes> getAgencyLocaraFilterGiveAOrderPssForExcelDownload(
