@@ -112,25 +112,22 @@ public class WogcPartnerPlannerService {
      * @throws Exception
      */
     @Transactional
-    public int saveTopPlanner(WogcPartnerPlannerDto.SaveReq dto) throws Exception {
+    public int createTopPlanner(WogcPartnerPlannerDto.SaveReq dto) throws Exception {
         int processCount = 0;
         WogcPartnerPlannerDvo planner = this.converter.mapSaveReqToWogcPartnerPlannerDvo(dto);
 
-        /*자격생성 시 월파트너내역에 파트너정보 존재하는지 확인*/
-        int cnt = this.mapper.selectCountMmPartner(planner);
-        BizAssert.isTrue(cnt > 0, MSG_ALT_SVE_ERR); //저장에 실패했습니다
-
-        /*자격생성 시 플래너자격변경내역(M조직)에 파트너정보 존재하는지 확인 (이미 웰스매니저라면 등록불가)*/
-        int cnt2 = this.mapper.selectCountPlarPartner(planner);
-        BizAssert.isTrue(cnt2 > 0, MSG_ALT_SVE_ERR); //저장에 실패했습니다
-
-        /*자격생성 시 수석플래너신청내역(P조직)에 파트너정보 존재하는지 확인 (수석플래너신청내역 테이블에 있으면 삭제 후 등록)*/
-        int cnt3 = this.mapper.selectCountTopPlarPartner(planner);
-        BizAssert.isTrue(cnt3 > 0, MSG_ALT_SVE_ERR); //저장에 실패했습니다
-
-        /*체크한 파트너에 대해 수석플래너신청내역 테이블에 등록*/
+        //  1/4. 수석플래너신청내역(TB_OGPS_TOPMR_PLAR_APLC_IZ) 생성 (전월 -> 당월)
         processCount = this.mapper.insertTopPlanner(planner);
-        BizAssert.isTrue(processCount == 1, MSG_ALT_SVE_ERR);
+
+        //  2/4. 수석플래너신청내역 - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신
+        processCount = this.mapper.updateTopPlanner(planner);
+
+        //  3/4. 월파트너내역(TB_OGBS_MM_PRTNR_IZ) - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신
+        //        processCount = this.mapper.updateMmPartner(planner);
+        //        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        //  4/4. 파트너상세(TB_OGBS_PRTNR_DTL) - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신
+        //        processCount = this.mapper.updateDtlPartner(planner);
+        //        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
 
         return processCount;
     }
@@ -156,14 +153,14 @@ public class WogcPartnerPlannerService {
     public int saveTopPlanner(WogcPartnerPlannerDto.EditReq dto) throws Exception {
         WogcPartnerPlannerDvo planner = this.converter.mapEditReqToWogcPartnerPlannerDvo(dto);
 
-        int processCount = this.mapper.insertTopPlanner(planner); // 1. 수석플래너신청내역 테이블 INSERT
-        BizAssert.isTrue(processCount == 1, MSG_ALT_SVE_ERR);
+        int processCount = this.mapper.insertAdTopPlanner(planner); // 1. 수석플래너신청내역 테이블 INSERT
+        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
 
-        processCount = this.mapper.updateAdMmPartner(planner); // 2. 월파트너내역 파트너등급 UPDATE
-        BizAssert.isTrue(processCount == 1, MSG_ALT_SVE_ERR);
+        //        processCount = this.mapper.updateAdMmPartner(planner); // 2. 월파트너내역 파트너등급 UPDATE
+        //        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
 
-        processCount = this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
-        BizAssert.isTrue(processCount == 1, MSG_ALT_SVE_ERR);
+        //        processCount = this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
+        //        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
 
         return processCount;
     }
