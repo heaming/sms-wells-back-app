@@ -3,7 +3,37 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniPointmallEgerAcptestatMapper">
 
     <select id="selectPointmallEgerAcptestats" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniPointmallEgerAcptestatDto$SearchRes">
-        SELECT 1 FROM DUAL
+        SELECT TD.IN_CHNL_DV_CD
+             , TD.AS_IST_OJ_NO
+             , NVL(TD.WK_ACPTE_STAT_CD, 'N') AS WK_ACPTE_STAT_CD
+             , NVL(TD.WK_ACPTE_DT, '00000000') AS WK_ACPTE_DT
+             , NVL(TD.WK_ACPTE_HH, '000000') AS WK_ACPTE_HH
+             , NVL(TD.VST_CNFMDT, '00000000') AS VST_CNFMDT
+             , NVL(TD.VST_CNFM_HH, '000000') AS VST_CNFM_HH
+             , TD.WK_PRGS_STAT_CD AS WK_PRGS_STAT_CD
+             , 'N' AS RTNGD_YN
+          FROM ( SELECT AC211.IN_CHNL_DV_CD
+                      , AC211.AS_IST_OJ_NO
+                      , AC221.CST_SV_ASN_NO       /*배정일자(접수관리)*/
+                      , AC211.CNTR_NO        /*고객년도*/
+                      , AC211.CNTR_SN        /*고객코드*/
+                      ,NVL(AC221.WK_ACPTE_STAT_CD,'N') AS WK_ACPTE_STAT_CD  /*작업수락상태(수락 'Y', 그외 '')*/
+                      ,AC221.WK_ACPTE_DT    /*작업수락일자 : 배송상품 수신 일시*/
+                      ,AC221.WK_ACPTE_HH    /*작업수락시간 : 배송상품 수신 일시*/
+                      ,AC221.VST_CNFMDT        /*방문확정일자(최초 고객센터 입력, 최종 변경 일자)*/
+                      ,AC221.VST_CNFM_HH  /*방문확정시간(최초 고객센터 입력, 최종 변경 시간)*/
+                      ,AC221.WK_PRGS_STAT_CD
+                      , RANK() OVER(ORDER BY  AS_IST_OJ_NO DESC ) AS RN
+                   FROM TB_SVPD_CST_SVAS_IST_OJ_IZ AC211
+                  INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ AC221
+                     ON AC211.CST_SV_ASN_NO = AC221.CST_SV_ASN_NO
+                  WHERE 1=1
+                    AND AC211.CNTR_NO = #{cntrNo}
+                    AND AC211.CNTR_SN = #{cntrSn}
+                    AND AC211.IN_CHNL_DV_CD IN ('1','9')
+                    AND AC211.SV_BIZ_DCLSF_CD LIKE '1%'
+                ) TD
+         WHERE RN = 1
     </select>
 
 </mapper>
