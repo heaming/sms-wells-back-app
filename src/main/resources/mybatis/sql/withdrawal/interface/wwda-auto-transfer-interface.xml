@@ -90,80 +90,155 @@
              , D1.SELL_TP_CD /*출력값-판매유형코드*/
              , F1.CST_KNM CNTRT_NM /*출력값-계약자명*/
              , B1.MPY_BSDT FNT_STPL_D /*출력값-이체약정일*/
-             , (
-                SELECT A2.FNIT_NM
-                  FROM TB_RVDW_FNIT_CD A2
-                 WHERE A2.FNIT_DV_CD = CASE WHEN #{fntDvCd} = '01' THEN '1'
-                                            WHEN #{fntDvCd} = '02' THEN '2'
-                                        END
-                   AND A2.FNIT_CD = CASE WHEN #{fntDvCd} = '01' THEN B1.BNK_CD
-                                         WHEN #{fntDvCd} = '02' THEN B1.CDCO_CD
-                                     END
-               ) FNIT_NM /*출력값-금융기관명*/
-              , B1.OWR_KNM /*출력값-소유자한글명*/
-               <if test='@MybatisUtils@equals(fntDvCd, "01")'>
-               , C1.AC_FNT_RS_CD AFTN_RS_CD /*출력값-자동이체결과코드*/
-               , C1.ACNO_ENCR ACNO_CDNO /*출력값-계좌카드번호*/
-               </if>
-               <if test='@MybatisUtils@equals(fntDvCd, "02")'>
-               , C1.CARD_FNT_RS_CD AFTN_RS_CD /*출력값-자동이체결과코드*/
-               , C1.CRCDNO_ENCR ACNO_CDNO /*출력값-계좌카드번호*/
-               </if>
-              , (
-                  SELECT B2.AFTN_RS_NM
-                    FROM TB_RVDW_AFTN_RS_CD B2 /*자동이체결과코드*/
-                   WHERE B2.AFTN_RS_DV_CD = CASE WHEN #{fntDvCd} = '01' THEN '1'
-                                                 WHEN #{fntDvCd} = '02' THEN '9'
-                                             END
-                    <if test='@MybatisUtils@equals(fntDvCd, "01")'>
-                     AND B2.AFTN_RS_CD = C1.AC_FNT_RS_CD
-                    </if>
-                    <if test='@MybatisUtils@equals(fntDvCd, "02")'>
-                     AND B2.AFTN_RS_CD = C1.CARD_FNT_RS_CD
-                    </if>
-               ) AFTN_RS_NM /*출력값-자동이체결과명*/
+             , B1.OWR_KNM /*출력값-소유자한글명*/
+            <choose>
+                <when test='@MybatisUtils@isEmpty(fntDvCd)'>
+                   , (
+                      SELECT A2.FNIT_NM
+                        FROM TB_RVDW_FNIT_CD A2
+                       WHERE A2.FNIT_DV_CD = CASE WHEN C1.FNT_DV = 'AC' THEN '1'
+                                                  WHEN C1.FNT_DV = 'CA' THEN '9'
+                                              END
+                         AND 1 = CASE WHEN C1.FNT_DV = 'AC' AND A2.FNIT_CD = B1.BNK_CD THEN 1
+                                      WHEN C1.FNT_DV = 'CA' AND A2.FNIT_CD = B1.CDCO_CD THEN 1
+                                  END
+                     ) FNIT_NM /*출력값-금융기관명*/
+                    , C1.FNT_RS_CD AFTN_RS_CD /*출력값-자동이체결과코드*/
+                    , C1.AC_CR_ENCR ACNO_CDNO /*출력값-계좌카드번호*/
+                    , (
+                        SELECT B2.AFTN_RS_NM
+                        FROM TB_RVDW_AFTN_RS_CD B2 /*자동이체결과코드*/
+                       WHERE B2.AFTN_RS_DV_CD = CASE WHEN C1.FNT_DV = 'AC' THEN '1'
+                                                     WHEN C1.FNT_DV = 'CA' THEN '9'
+                                                 END
+                         AND B2.AFTN_RS_CD = C1.FNT_RS_CD
+                      ) AFTN_RS_NM /*출력값-자동이체결과명*/
+                </when>
+                <otherwise>
+                   , (
+                      SELECT A2.FNIT_NM
+                        FROM TB_RVDW_FNIT_CD A2
+                       WHERE A2.FNIT_DV_CD = CASE WHEN #{fntDvCd} = '01' THEN '1'
+                                                  WHEN #{fntDvCd} = '02' THEN '2'
+                                              END
+                         AND A2.FNIT_CD = CASE WHEN #{fntDvCd} = '01' THEN B1.BNK_CD
+                                               WHEN #{fntDvCd} = '02' THEN B1.CDCO_CD
+                                           END
+                     ) FNIT_NM /*출력값-금융기관명*/
+                   <if test='@MybatisUtils@equals(fntDvCd, "01")'>
+                   , C1.AC_FNT_RS_CD AFTN_RS_CD /*출력값-자동이체결과코드*/
+                   , C1.ACNO_ENCR ACNO_CDNO /*출력값-계좌카드번호*/
+                   </if>
+                   <if test='@MybatisUtils@equals(fntDvCd, "02")'>
+                   , C1.CARD_FNT_RS_CD AFTN_RS_CD /*출력값-자동이체결과코드*/
+                   , C1.CRCDNO_ENCR ACNO_CDNO /*출력값-계좌카드번호*/
+                   </if>
+                  , (
+                      SELECT B2.AFTN_RS_NM
+                        FROM TB_RVDW_AFTN_RS_CD B2 /*자동이체결과코드*/
+                       WHERE B2.AFTN_RS_DV_CD = CASE WHEN #{fntDvCd} = '01' THEN '1'
+                                                     WHEN #{fntDvCd} = '02' THEN '9'
+                                                 END
+                        <if test='@MybatisUtils@equals(fntDvCd, "01")'>
+                         AND B2.AFTN_RS_CD = C1.AC_FNT_RS_CD
+                        </if>
+                        <if test='@MybatisUtils@equals(fntDvCd, "02")'>
+                         AND B2.AFTN_RS_CD = C1.CARD_FNT_RS_CD
+                        </if>
+                   ) AFTN_RS_NM /*출력값-자동이체결과명*/
+                </otherwise>
+            </choose>
           FROM TB_SSCT_CNTR_STLM_REL A1 /*계약결제관계*/
           JOIN TB_SSCT_CNTR_STLM_BAS B1 /*계약결제기본*/
             ON B1.DTA_DL_YN = 'N'
            AND B1.CNTR_STLM_ID = A1.CNTR_STLM_ID
-        <if test='@MybatisUtils@equals(fntDvCd, "01")'>
-          JOIN (
-                SELECT C2.CNTR_NO
-                     , C2.CNTR_SN
-                     , A2.AC_FNT_RS_CD
-                     , A2.ACNO_ENCR
-                  FROM TB_RVCL_AC_FNT_SEND_MTR_IZ A2
-                  JOIN TB_RVCL_BIL_FNT_AK_BAS B2
-                    ON B2.DTA_DL_YN = 'N'
-                   AND B2.BIL_NO = A2.BIL_NO
-                  JOIN TB_RVCL_BIL_FNT_AK_DTL C2
-                    ON C2.DTA_DL_YN = 'N'
-                   AND C2.BIL_NO = B2.BIL_NO
-                 WHERE A2.DTA_DL_YN = 'N'
-                   AND A2.ACNO_ENCR = #{acnoCdno} /*입력값-계좌카드번호*/
-               ) C1
-            ON C1.CNTR_NO = A1.DTL_CNTR_NO
-           AND C1.CNTR_SN = A1.DTL_CNTR_SN
-        </if>
-        <if test='@MybatisUtils@equals(fntDvCd, "02")'>
-          JOIN (
-                SELECT C2.CNTR_NO
-                     , C2.CNTR_SN
-                     , A2.CARD_FNT_RS_CD
-                     , A2.CRCDNO_ENCR
-                  FROM TB_RVCL_CARD_FNT_SEND_MTR_IZ A2
-                  JOIN TB_RVCL_BIL_FNT_AK_BAS B2
-                    ON B2.DTA_DL_YN = 'N'
-                   AND B2.BIL_NO = A2.BIL_NO
-                  JOIN TB_RVCL_BIL_FNT_AK_DTL C2
-                    ON C2.DTA_DL_YN = 'N'
-                   AND C2.BIL_NO = B2.BIL_NO
-                 WHERE A2.DTA_DL_YN = 'N'
-                   AND A2.CRCDNO_ENCR = #{acnoCdno} /*입력값-계좌카드번호*/
-               ) C1
-            ON C1.CNTR_NO = A1.DTL_CNTR_NO
-           AND C1.CNTR_SN = A1.DTL_CNTR_SN
-        </if>
+        <choose>
+            <when test='@MybatisUtils@isEmpty(fntDvCd)'>
+                  JOIN (
+                        SELECT C2.CNTR_NO
+                             , C2.CNTR_SN
+                             , A2.AC_FNT_RS_CD FNT_RS_CD
+                             , A2.ACNO_ENCR AC_CR_ENCR
+                             , 'AC' AS FNT_DV
+                          FROM TB_RVCL_AC_FNT_SEND_MTR_IZ A2
+                          JOIN TB_RVCL_BIL_FNT_AK_BAS B2
+                            ON B2.DTA_DL_YN = 'N'
+                           AND B2.BIL_NO = A2.BIL_NO
+                          JOIN TB_RVCL_BIL_FNT_AK_DTL C2
+                            ON C2.DTA_DL_YN = 'N'
+                           AND C2.BIL_NO = B2.BIL_NO
+                         WHERE A2.DTA_DL_YN = 'N'
+                           <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+                           AND C2.CNTR_NO = #{cntrNo} /*입력값-계약번호*/
+                           </if>
+                           <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+                           AND C2.CNTR_SN = #{cntrSn} /*입력값-계약번호*/
+                           </if>
+                        UNION ALL
+                        SELECT C2.CNTR_NO
+                             , C2.CNTR_SN
+                             , A2.CARD_FNT_RS_CD FNT_RS_CD
+                             , A2.CRCDNO_ENCR AC_CR_ENCR
+                             , 'CA' AS FNT_DV
+                          FROM TB_RVCL_CARD_FNT_SEND_MTR_IZ A2
+                          JOIN TB_RVCL_BIL_FNT_AK_BAS B2
+                            ON B2.DTA_DL_YN = 'N'
+                           AND B2.BIL_NO = A2.BIL_NO
+                          JOIN TB_RVCL_BIL_FNT_AK_DTL C2
+                            ON C2.DTA_DL_YN = 'N'
+                           AND C2.BIL_NO = B2.BIL_NO
+                         WHERE A2.DTA_DL_YN = 'N'
+                           <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+                           AND C2.CNTR_NO = #{cntrNo} /*입력값-계약번호*/
+                           </if>
+                           <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+                           AND C2.CNTR_SN = #{cntrSn} /*입력값-계약번호*/
+                           </if>
+                       ) C1
+                    ON C1.CNTR_NO = A1.DTL_CNTR_NO
+                   AND C1.CNTR_SN = A1.DTL_CNTR_SN
+            </when>
+            <otherwise>
+                <if test='@MybatisUtils@equals(fntDvCd, "01")'>
+                  JOIN (
+                        SELECT C2.CNTR_NO
+                             , C2.CNTR_SN
+                             , A2.AC_FNT_RS_CD
+                             , A2.ACNO_ENCR
+                          FROM TB_RVCL_AC_FNT_SEND_MTR_IZ A2
+                          JOIN TB_RVCL_BIL_FNT_AK_BAS B2
+                            ON B2.DTA_DL_YN = 'N'
+                           AND B2.BIL_NO = A2.BIL_NO
+                          JOIN TB_RVCL_BIL_FNT_AK_DTL C2
+                            ON C2.DTA_DL_YN = 'N'
+                           AND C2.BIL_NO = B2.BIL_NO
+                         WHERE A2.DTA_DL_YN = 'N'
+                           AND A2.ACNO_ENCR = #{acnoCdno} /*입력값-계좌카드번호*/
+                       ) C1
+                    ON C1.CNTR_NO = A1.DTL_CNTR_NO
+                   AND C1.CNTR_SN = A1.DTL_CNTR_SN
+                </if>
+                <if test='@MybatisUtils@equals(fntDvCd, "02")'>
+                  JOIN (
+                        SELECT C2.CNTR_NO
+                             , C2.CNTR_SN
+                             , A2.CARD_FNT_RS_CD
+                             , A2.CRCDNO_ENCR
+                          FROM TB_RVCL_CARD_FNT_SEND_MTR_IZ A2
+                          JOIN TB_RVCL_BIL_FNT_AK_BAS B2
+                            ON B2.DTA_DL_YN = 'N'
+                           AND B2.BIL_NO = A2.BIL_NO
+                          JOIN TB_RVCL_BIL_FNT_AK_DTL C2
+                            ON C2.DTA_DL_YN = 'N'
+                           AND C2.BIL_NO = B2.BIL_NO
+                         WHERE A2.DTA_DL_YN = 'N'
+                           AND A2.CRCDNO_ENCR = #{acnoCdno} /*입력값-계좌카드번호*/
+                       ) C1
+                    ON C1.CNTR_NO = A1.DTL_CNTR_NO
+                   AND C1.CNTR_SN = A1.DTL_CNTR_SN
+                </if>
+            </otherwise>
+        </choose>
           JOIN TB_SSCT_CNTR_DTL D1 /*계약상세*/
             ON D1.DTA_DL_YN = 'N'
            AND D1.CNTR_NO = A1.DTL_CNTR_NO
