@@ -78,7 +78,6 @@ public class WbndRentalCbInformationService {
             String rtnJson = Trans(paramMap);
             Map<String, Object> NcCbResultMap = new ObjectMapper().readValue(rtnJson, Map.class);
             Map<String, Object> cruzjson = (Map<String, Object>)NcCbResultMap.get("cruzjson"); // 최상위  KEY
-            Map<String, Object> header = (Map<String, Object>)cruzjson.get("header");
             Map<String, Object> body = (Map<String, Object>)cruzjson.get("body");
             Map<String, Object> COMM = (Map<String, Object>)body.get("COMM");
 
@@ -97,9 +96,7 @@ public class WbndRentalCbInformationService {
 
                 // 렌탈CB연체(일반)세그먼트>>>  0 or 1건 : {} ,  2건이상 : [{},{}] 처리
                 if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) == 1) {
-                    Map<String, Object> ROWDATA_5_REPEAT_tmp = new HashMap<String, Object>();
-                    ROWDATA_5_REPEAT_tmp = (Map<String, Object>)body.get("ROWDATA_5_REPEAT");
-                    ROWDATA_5_REPEAT.add(ROWDATA_5_REPEAT_tmp);
+                    ROWDATA_5_REPEAT.add((Map<String, Object>)body.get("ROWDATA_5_REPEAT"));
                 } else if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 1) {
                     ROWDATA_5_REPEAT = (List<Map<String, Object>>)body.get("ROWDATA_5_REPEAT");
                 }
@@ -111,7 +108,6 @@ public class WbndRentalCbInformationService {
                     for (int i = 0; i < ROWDATA_5_REPEAT.size(); i++) {
                         //렌탈 상품코드(소분류)
                         params = new HashMap<String, Object>();
-                        rst = new HashMap<String, Object>();
                         //params.put("LCGROP", "1000000212");
                         params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("rntlPrdtCdS5"));
 
@@ -122,7 +118,6 @@ public class WbndRentalCbInformationService {
 
                         //연체구분코드
                         params = new HashMap<String, Object>();
-                        rst = new HashMap<String, Object>();
                         //params.put("LCGROP", "1000000211");
                         params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("delyDivCd5"));
 
@@ -136,8 +131,8 @@ public class WbndRentalCbInformationService {
 
                 // 일반 요약항목 세그먼트>>>  0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리  
                 if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) == 1) {
-                    Map<String, Object> SUMMARYITEM_6_REPEAT_OBJ = new HashMap<String, Object>();
-                    SUMMARYITEM_6_REPEAT_OBJ = (Map<String, Object>)body.get("SUMMARYITEM_6_REPEAT");
+                    Map<String, Object> SUMMARYITEM_6_REPEAT_OBJ = (Map<String, Object>)body
+                        .get("SUMMARYITEM_6_REPEAT");
                     SUMMARYITEM_6_REPEAT.put(
                         SUMMARYITEM_6_REPEAT_OBJ.get("siCd6").toString(),
                         SUMMARYITEM_6_REPEAT_OBJ.get("siVal6").toString()
@@ -155,8 +150,7 @@ public class WbndRentalCbInformationService {
 
                 //기타  요약항목 세그먼트>>> 0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리
                 if (Integer.parseInt(SUMMARYITEM_7.get("respCnt7").toString()) == 1) {
-                    Map<String, Object> SUMMARYITEM_7_OBJ = new HashMap<String, Object>();
-                    SUMMARYITEM_7_OBJ = (Map<String, Object>)body.get("SUMMARYITEM_7_REPEAT");
+                    Map<String, Object> SUMMARYITEM_7_OBJ = (Map<String, Object>)body.get("SUMMARYITEM_7_REPEAT");
                     SUMMARYITEM_7_REPEAT
                         .put(
                             SUMMARYITEM_7_OBJ.get("etcItmCd7").toString(),
@@ -374,11 +368,10 @@ public class WbndRentalCbInformationService {
                     res.add(cbVo);
                 }
             }
+            mapper.insertCBSearchTrans(paramMap);
         } catch (Exception e) {
-            throw new Exception("내부 서버 오류.[" + e + "]");
+            log.debug(e.getMessage());
         }
-
-        mapper.insertCBSearchTrans(paramMap);
         return res;
 
     }
