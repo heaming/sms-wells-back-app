@@ -28,7 +28,7 @@ public class WogcPartnerSellerInterfaceController {
 
     @ApiOperation(value = "[EAI]웰스_WM 정보 조회", notes = "조회 조건에 일치하는 웰스 WM 정보 조회한다.")
     @PostMapping("/wm")
-    public EaiWrapper getWM(
+    public EaiWrapper<List<SearchWMRes>> getWM(
         @RequestBody
         EaiWrapper<SearchWMReq> reqWrapper
     ) {
@@ -44,7 +44,7 @@ public class WogcPartnerSellerInterfaceController {
 
     @ApiOperation(value = "[EAI]최근 계약 판매자 조회", notes = "조회 조건에 일치하는 최근 계약 판매자를 조회한다.")
     @PostMapping("/recent-contract")
-    public EaiWrapper getRecentContracts(
+    public EaiWrapper<List<SearchRecentContractRes>> getRecentContracts(
         @RequestBody
         EaiWrapper<SearchRecentContractReq> reqWrapper
     ) {

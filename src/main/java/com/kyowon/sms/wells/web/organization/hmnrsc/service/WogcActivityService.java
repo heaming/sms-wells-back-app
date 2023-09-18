@@ -20,7 +20,6 @@ import static com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcActivityDto.*
  * @author 유현웅
  * @since 2023-07-03
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WogcActivityService {
@@ -45,7 +44,9 @@ public class WogcActivityService {
      * @param pageInfo
      * @return SearchMonthlyActivityRes
      */
-    public PagingResult<SearchMonthlyActivityRes> searchMonthlyActivitiesPages(SearchMonthlyActivityReq dto, PageInfo pageInfo) {
+    public PagingResult<SearchMonthlyActivityRes> searchMonthlyActivitiesPages(
+        SearchMonthlyActivityReq dto, PageInfo pageInfo
+    ) {
         return switch (dto.rsbDvCd()) {
             case "S" -> wogcActivityMapper.searchMonthlyActivitiesS(dto, pageInfo);
             case "E" -> wogcActivityMapper.searchMonthlyActivitiesE(dto, pageInfo);
@@ -59,7 +60,7 @@ public class WogcActivityService {
      * @return SearchAccureActivityRes
      */
     public List<SearchAccureActivityRes> searchAccureActivities(SearchAccureActivityReq dto) {
-        if("A".equals(dto.perfCd())){
+        if ("A".equals(dto.perfCd())) {
             return wogcActivityMapper.searchAccureActivitiesA(dto);
         } else {
             return wogcActivityMapper.searchAccureActivitiesI(dto);
@@ -72,8 +73,10 @@ public class WogcActivityService {
      * @param pageInfo
      * @return SearchMonthlyActivityRes
      */
-    public PagingResult<SearchAccureActivityRes> searchAccureActivitiesPages(SearchAccureActivityReq dto, PageInfo pageInfo) {
-        if("A".equals(dto.perfCd())){
+    public PagingResult<SearchAccureActivityRes> searchAccureActivitiesPages(
+        SearchAccureActivityReq dto, PageInfo pageInfo
+    ) {
+        if ("A".equals(dto.perfCd())) {
             return wogcActivityMapper.searchAccureActivitiesA(dto, pageInfo);
         } else {
             return wogcActivityMapper.searchAccureActivitiesI(dto, pageInfo);

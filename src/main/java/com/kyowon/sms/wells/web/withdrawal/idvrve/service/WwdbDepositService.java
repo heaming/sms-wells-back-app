@@ -3,11 +3,11 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbEtcDepositMapper;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwwdbEtcDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositDto;
@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class WwdbDepositService {
 
     private final WwdbDepositMapper mapper;
-    private final ZwwdbEtcDepositMapper depositeMapper;
+    private final ZwdbEtcDepositMapper depositeMapper;
     private final MessageResourceService messageResourceService;
     private final ZwdzWithdrawalService zwdzWithdrawalService;
 

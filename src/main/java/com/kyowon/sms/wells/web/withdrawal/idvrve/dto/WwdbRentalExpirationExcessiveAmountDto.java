@@ -18,6 +18,8 @@ public class WwdbRentalExpirationExcessiveAmountDto {
     @ApiModel(value = "WwdbRentalExpirationExcessiveAmountDto-SearchRes")
     public record SearchRes(
         String cntrNo, /* 주문번호 */
+        String cntrSn,
+        String cntr,
         String cstKnm, /* 고객명-고객번호 */
         String pdNm, /* 제품명 */
         String dpAmt, /* 선수금 */

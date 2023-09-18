@@ -1,12 +1,7 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRegularDeliveryPackageDto;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.thymeleaf.util.StringUtils;
 
 import com.kyowon.sms.wells.web.service.interfaces.converter.WsniBarcodeProductInterfaceConverter;
@@ -43,6 +38,7 @@ public class WsniBarcodeProductInterfaceService {
                 dvo.setCode("1");
                 dvo.setMessage(messageService.getMessage("MSG_TXT_NOT_EXIST_QR")); //정보가 존재하지 않습니다
             } else {
+                dvo.setBcNo(res.bcNo());
                 dvo.setCode("0");
                 dvo.setMessage(messageService.getMessage("MSG_TXT_NOM")); //정상
                 dvo.setBasePdCd(res.basePdCd());

@@ -245,7 +245,13 @@
            AND DLQ_MCNT BETWEEN #{schDlqMcntStrt} AND #{schDlqMcntEnd}
          </if>
          <if test='@MybatisUtils@isNotEmpty(schFntDv)'>
-           AND DP_TP_CD = #{schFntDv}
+            <if test="schFntDv == '9999'">
+             AND DP_TP_CD <![CDATA[<>]]> '0203' 
+             AND DP_TP_CD <![CDATA[<>]]> '0102' 
+           </if>
+           <if test="schFntDv != '9999'">
+             AND DP_TP_CD = #{schFntDv}
+           </if>
          </if>  
          <if test='@MybatisUtils@isNotEmpty(schFntDtStrt) and @MybatisUtils@isNotEmpty(schFntDtEnd)'>
            AND BIL_DT BETWEEN #{schFntDtStrt} AND #{schFntDtEnd}
@@ -281,6 +287,7 @@
 		     , T2.SEX_DV_CD
 		     , F_CMZ_CD_NM('TNT_WELLS', 'SEX_DV_CD', T2.SEX_DV_CD) AS SEX_DV_NM 
 		     , T2.BRYY_MMDD
+		     , T2.COPN_DV_CD
 		     , T2.CRAL_LOCARA_TNO AS CNTR_CRAL_LOCARA_TNO  /* 계약처휴대지역전화번호 */
 		     , T2.MEXNO_ENCR  AS CNTR_MEXNO_ENCR           /* 계약처휴대전화국번호암호화 */
 		     , T2.CRAL_IDV_TNO  AS CNTR_CRAL_IDV_TNO       /* 계약처휴대전화번호3 */
@@ -307,7 +314,8 @@
 		     , TO_CHAR(TO_DATE(T9.IST_DT,'YYYYMMDD'),'YYYY-MM-DD') AS IST_DT /* 설치일 */
 		     , TO_CHAR(TO_DATE(T8.CNTR_CAN_DTM,'YYYYMMDD'),'YYYY-MM-DD') AS CAN_DT /* 취소일 */
 		     , TO_CHAR(TO_DATE(T9.REQD_DT,'YYYYMMDD'),'YYYY-MM-DD') AS REQD_DT /* 철거일 */
-		     , T10.BNK_NM || ' : ' || T10.AFTN_NO AS VT_AC /* 자동이체 */
+		     , T10.BNK_NM AS BNK/* 은행명 */
+		     , T10.AFTN_NO AS VT_AC /* 계좌번호 */
 		     , T11.MPY_BSDT AS FNT_DT /* 이체일자 */ 
 		     , T11.DP_TP_CD AS MPY_MTHD_TP_CD/* 입금유형코드 */
 		     , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T11.DP_TP_CD) AS MPY_MTHD_TP_NM /* 입금유형코드명 */
@@ -339,6 +347,35 @@
 		     , NVL(T18.LWM_DP_AMT,0) AS LWM_DP_AMT /* 소송비 입금액 */
 		     , NVL(T18.LWM_RCGN_AMT,0) + NVL(T18.LWM_DLVYFE,0) + NVL(T18.LWM_ENFORC_CS_AMT,0) + NVL(T18.LWM_PESU_PRCS_CS_AMT,0) - NVL(T18.LWM_DP_AMT, 0) AS LWSC_BLAM /* 소송비 잔액 */
 		     , NVL(T19.UC_AMT,0) AS UC_AMT /* 미수금합산 */
+		     , (SELECT COUNT(1)
+                  FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ TT1 
+                 WHERE TT1.CTNT_EXCD_BND_BIZ_CD = '01' 
+                   AND CTNT_EXCD_OJ_TP_CD = '02' 
+                   AND CTNT_EXCD_MEDI_TP_CD = '01' 
+                   AND (TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT)
+                   AND LOCARA_TNO = T2.CRAL_LOCARA_TNO
+                   AND EXNO_ENCR = T2.MEXNO_ENCR
+                   AND IDV_TNO = T2.CRAL_IDV_TNO) AS TNO_CNT1
+             , (SELECT COUNT(1)
+                  FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ TT1 
+                 WHERE TT1.CTNT_EXCD_BND_BIZ_CD = '01' 
+                   AND CTNT_EXCD_OJ_TP_CD = '02' 
+                   AND CTNT_EXCD_MEDI_TP_CD = '01' 
+                   AND (TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT)
+                   AND LOCARA_TNO = T4.LOCARA_TNO
+                   AND EXNO_ENCR = T4.EXNO_ENCR
+                   AND IDV_TNO = T4.IDV_TNO) AS TNO_CNT2
+             , (SELECT COUNT(1)
+                  FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ TT1 
+                 WHERE TT1.CTNT_EXCD_BND_BIZ_CD = '01' 
+                   AND CTNT_EXCD_OJ_TP_CD = '02' 
+                   AND CTNT_EXCD_MEDI_TP_CD = '01' 
+                   AND (TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT)
+                   AND LOCARA_TNO = T4.CRAL_LOCARA_TNO
+                   AND EXNO_ENCR = T4.MEXNO_ENCR
+                   AND IDV_TNO = T4.CRAL_IDV_TNO) AS TNO_CNT3
+             , T2.BZRNO /* 사업자번호 */
+             , T1.BND_BIZ_DV_CD /* 채권업무구분코드 */
 		  FROM TB_CBBO_BND_CNSL_BAS_IZ T1 /* 채권상담기본내역 */
 		  LEFT OUTER JOIN TB_CUBS_CST_BAS T2 /* 고객기본 */
 		    ON T1.CST_NO = T2.CST_NO
@@ -845,6 +882,7 @@
          WHERE T1.CST_NO = #{schCstNo}
            AND T1.CNTR_NO = #{schCntrNo} 
            AND T1.CNTR_SN = #{schCntrSn}
+         ORDER BY T1.FST_RGST_DTM DESC
     </select>
     
     <select id="selectUserInfo" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto$FindUserInfoRes">

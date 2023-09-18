@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsEngineerAllocateSearchMapper">
+    <resultMap id="cstSignCn" type="hashMap">
+        <result column="CST_SIGN_CN" jdbcType="BLOB" javaType="byte[]"></result>
+    </resultMap>
+    <select id="selectBsEngineerAllocateList"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsEngineerAllocateSearchDto$SearchRes">
+    WITH TB_CNTC AS (
+                        SELECT CNTC_DT
+                             , CST_SV_ASN_NO
+                             , ABSNC_RSON_CD
+                          FROM (SELECT ROW_NUMBER() OVER(PARTITION BY CST_SV_ASN_NO ORDER BY CNTC_DT, CNTC_HH DESC) RNUM
+                                     , CNTC_DT
+                                     , CST_SV_ASN_NO
+                                     , ABSNC_RSON_CD
+                                  FROM TB_SVPD_CST_SV_CNTC_IZ T1
+                                 WHERE 1=1
+                                   AND SUBSTR(CST_SV_ASN_NO, 1, 1) = 2
+                                   AND SUBSTR(CST_SV_ASN_NO, 2, 6) = #{baseYm})
+                         WHERE 1=1
+                           AND RNUM = 1
+                         )
+           , TB_MCBY_CST AS (
+                            SELECT *
+                              FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                                 , TB_CUBS_CST_BAS T2
+                             WHERE 1=1
+                               AND T1.MNGT_YM = #{baseYm}
+                               AND T1.CNTR_CST_NO = T2.CST_NO
+
+                             )
+           , TB_PD AS (
+                         SELECT T1.PD_CD
+                              , T1.PD_NM
+                              , T2.PD_PRP_VAL20
+                           FROM TB_PDBS_PD_BAS T1
+                              , TB_PDBS_PD_ECOM_PRP_DTL T2
+                          WHERE 1=1
+                            AND T1.PD_CD = T2.PD_CD
+                            AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                            AND T2.PD_PRP_VAL19 = '4'
+                            <if test='@MybatisUtils@isNotEmpty(pdGrpCds)'>
+                              AND T2.PD_PRP_VAL20 IN
+                                            <foreach collection="pdGrpCds" item="pdGrpCd" separator=", " open="(" close=")">
+                                               #{pdGrpCd}
+                                            </foreach>
+                            </if>
+                       )
+            , TB_OG AS (
+                        SELECT T2.OG_ID
+                             , T1.NEW_ADR_ZIP
+                             , OG_NM||'('||OG_CD||')' OG_NM
+                          FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ T1
+                             , TB_OGBS_MM_OG_IZ T2
+                         WHERE 1=1
+                           AND T2.BASE_YM = #{baseYm}
+                           AND T1.BRCH_OG_ID = T2.OG_ID
+                           AND T1.USE_YN = 'Y'
+                           AND T1.CH_SN = (SELECT MAX(CH_SN)
+                                             FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ T3
+                                            WHERE T1.NEW_ADR_ZIP = T3.NEW_ADR_ZIP
+                                              AND T3.USE_YN = 'Y')
+                        )
+            , TB_OG_ENG AS (
+                            SELECT T1.PRTNR_NO
+                                 , T1.PRTNR_KNM
+                                 , T1.OG_NM ENG_OG_NM
+                                 , CASE WHEN T1.HIR_FOM_CD = '3' AND T1.PSTN_DV_CD = '86' THEN '직무사원(1급)'
+                                        WHEN T1.HIR_FOM_CD = '3' AND T1.PSTN_DV_CD = '87' THEN '직무사원(2급)'
+                                        WHEN T1.HIR_FOM_CD = '3' AND T1.PSTN_DV_CD = '88' THEN '직무사원(3급)'
+                                        WHEN T1.HIR_FOM_CD = '3' THEN '정규직'
+                                        WHEN T1.HIR_FOM_CD = '2' THEN '계약직'
+                                        WHEN T1.HIR_FOM_CD = '1' THEN '개인사업'
+                                    END	HIR_FOM
+                                 , T2.PRTNR_GD_CD
+                                 , T1.HIR_FOM_CD
+                              FROM TB_OGBS_MM_PRTNR_IZ T1
+                                 , (SELECT *
+                                      FROM (SELECT ROW_NUMBER() OVER(PARTITION BY PRTNR_NO ORDER BY APY_SEQN DESC) RNUM
+                                                 , T1.*
+                                              FROM TB_OGPS_EGER_GD_RGST_IZ T1
+                                             WHERE TO_CHAR(SYSDATE, 'YYYYMMDD') >= APY_STRTDT
+                                               AND TO_CHAR(SYSDATE, 'YYYYMMDD') &lt;= APY_ENDDT)
+                                     WHERE RNUM = 1) T2
+                                 , TB_OGBS_PRTNR_DTL T3
+                             WHERE T1.BASE_YM = #{baseYm}
+                               AND T1.OG_TP_CD IN ('W03', 'W06')
+                               AND T1.PRTNR_NO = T2.PRTNR_NO(+)
+                               AND T1.PRTNR_NO = T3.PRTNR_NO(+)
+                               AND T3.OG_TP_CD = 'W06'
+                               <if test='@MybatisUtils@isNotEmpty(ogId)'>
+                               AND T1.OG_ID = #{ogId}
+                               </if>
+                               <if test='@MybatisUtils@isNotEmpty(engId)'>
+                               AND T1.PRTNR_NO = #{engId}
+                               </if>
+                             )
+
+        SELECT NVL((SELECT 'Y'
+                      FROM TB_SVPD_BC_RPBL_AK_CST_IZ T1
+                     WHERE T1.CNTR_NO = SV1.CNTR_NO
+                       AND T1.CNTR_SN = SV1.CNTR_SN
+                       AND (SUBSTR(FST_PBL_DT,1,6) = SUBSTR(SV1.CST_SV_ASN_NO,2,6) OR SUBSTR(FNL_PBL_DT,1,6) = SUBSTR(SV1.CST_SV_ASN_NO,2,6))
+                       AND ROWNUM = 1),'') BARCODE_ISSUE
+             , F_CMZ_CD_NM('TNT_WELLS', 'CST_GD_CD', CST2.CST_GD_CD) CST_GD
+             , CASE WHEN SV1.SPC_AS_TP_CD = '2139' THEN '온수코크작업 '
+                    ELSE ''
+                END SPC_AS_TP
+             , CASE WHEN CNTC1.CNTC_DT IS NOT NULL THEN 'Y' ELSE '' END CONT_YN
+             , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', SV1.VST_PRGS_STAT_CD) VST_PRGS_STAT
+             , CASE --철거 및 취소 유무에 따른 상태 표시
+                    WHEN (CST3.MSH_WDWAL_DT IS NOT NULL AND TO_CHAR(ADD_MONTHS(CST1.IST_DT,SSCT2.FRISU_BFSVC_PTRM_N),'YYYYMM') &lt; TO_CHAR(SYSDATE,'YYYYMM')) OR CST3.CAN_DT IS NOT NULL OR CST1.REQD_DT IS NOT NULL THEN '취소'
+                    -- 만료 유무 표시
+                    WHEN CST1.IST_DT IS NOT NULL AND ((ROUND(MONTHS_BETWEEN(TO_CHAR(SYSDATE,'YYYYMM')||'01' , SUBSTR(CST1.IST_DT,1,6)||'01'),0) BETWEEN '57' AND '60') AND SSCT3.SELL_TP_CD = '2') THEN '만료'
+                    -- 컨택 코드 값에 따른 상태 표시
+                    WHEN CNTC1.ABSNC_RSON_CD = '11' THEN '판매'
+                    WHEN CNTC1.ABSNC_RSON_CD = '12' THEN '안내'
+                    WHEN CNTC1.ABSNC_RSON_CD = '13' THEN '문자'
+                    WHEN CNTC1.ABSNC_RSON_CD = '21' THEN '취예'
+                    WHEN CNTC1.ABSNC_RSON_CD = '22' THEN '이사'
+                    WHEN CNTC1.ABSNC_RSON_CD = '23' THEN '연체'
+                    WHEN CNTC1.ABSNC_RSON_CD = '24' THEN '거부'
+                    WHEN CNTC1.ABSNC_RSON_CD = '25' THEN '두절'
+                    WHEN CNTC1.ABSNC_RSON_CD = '26' THEN '여행'
+                    WHEN CNTC1.ABSNC_RSON_CD = '27' THEN '익월'
+                    WHEN CNTC1.ABSNC_RSON_CD = '31' THEN '이관'
+                    WHEN CNTC1.ABSNC_RSON_CD = '32' THEN 'A/S'
+                    -- 방문예정일자 값에 따라 표시 (연수기가 아니면 '월초', '월중', '월말' 로 표시, 연수기 일반 이라면 '일상', '일하'로 표시, 연수기 특별이라면 '특상', '특하'로 표시)
+                    WHEN (PD1.PD_PRP_VAL20 != '4' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 00 AND SUBSTR(SV2.VST_DUEDT,7,8) &lt;= 10) THEN '월초'
+                    WHEN (PD1.PD_PRP_VAL20 != '4' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 11 AND SUBSTR(SV2.VST_DUEDT,7,8) &lt;= 20) THEN '월중'
+                    WHEN (PD1.PD_PRP_VAL20 != '4' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 21) THEN '월말'
+                    WHEN (PD1.PD_PRP_VAL20 = '4' AND CST3.PD_USWY_CD ='1' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 01 AND SUBSTR(SV2.VST_DUEDT,7,8) &lt;= 14) THEN '일상'
+                    WHEN (PD1.PD_PRP_VAL20 = '4' AND CST3.PD_USWY_CD ='1' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 15) THEN '일하'
+                    WHEN (PD1.PD_PRP_VAL20 = '4' AND CST3.PD_USWY_CD ='2' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 01 AND SUBSTR(SV2.VST_DUEDT,7,8) &lt;= 14) THEN '특상'
+                    WHEN (PD1.PD_PRP_VAL20 = '4' AND CST3.PD_USWY_CD ='2' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 15) THEN '특하'
+                    ELSE ' '
+                END STAT_NM_DTL
+             , SV1.CNTR_NO
+             , SV1.CNTR_SN
+             , ADR2.RCGVP_KNM CST_KNM
+             , ADR2.LOCARA_TNO
+             , ADR2.EXNO_ENCR
+             , ADR2.IDV_TNO
+             , ADR2.CRAL_LOCARA_TNO
+             , ADR2.MEXNO_ENCR
+             , ADR2.CRAL_IDV_TNO
+             , PD1.PD_NM
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', SSCT3.SELL_TP_CD) SELL_TP
+             , F_CMZ_CD_NM('TNT_WELLS', 'MNGER_RGLVL_DV_CD', CST3.MNGER_RGLVL_DV_CD) MNGER_RGLVL_DV
+             , SUBSTR(ADR3.NEW_ADR_ZIP, 1, 3)||'-'||SUBSTR(ADR3.NEW_ADR_ZIP, 4) NEW_ADR_ZIP
+             , ADR3.RNADR||' '||ADR3.RDADR ADR_DTL
+             , OG1.OG_NM
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', SV1.SV_BIZ_DCLSF_CD) SV_BIZ_DCLSF
+             , TO_CHAR(TO_DATE(SV2.BF_VST_DUEDT, 'YYYYMMDD'), 'YYYY-MM-DD') BF_VST_DUEDT
+             , TO_CHAR(TO_DATE(SV2.VST_DUEDT, 'YYYYMMDD'), 'YYYY-MM-DD') VST_DUEDT
+             , TO_CHAR(TO_DATE(SV1.VST_DUEDT, 'YYYYMMDD'), 'YYYY-MM-DD') VST_EXP_DUEDT
+             , TO_CHAR(TO_DATE(SV1.VST_EXP_HH, 'HH24MISS'), 'HH24:MI:SS') VST_EXP_HH
+             , TO_CHAR(TO_DATE(SV3.VST_FSH_DT, 'YYYYMMDD'), 'YYYY-MM-DD') VST_FSH_DT
+             , TO_CHAR(TO_DATE(SV3.VST_FSH_HH, 'HH24MISS'), 'HH24:MI:SS') VST_FSH_HH
+             , (SELECT CST_UNUITM_CN
+                  FROM (SELECT DISTINCT ROW_NUMBER() OVER(PARTITION BY CNTR_NO, CNTR_SN ORDER BY FST_RGST_DTM DESC) RNUM
+                             , CST_UNUITM_CN
+                          FROM TB_SVPD_CNTR_CST_UNUITM_DTL T1
+                         WHERE 1=1
+                           AND T1.CNTR_NO = SV1.CNTR_NO
+                           AND T1.CNTR_SN = SV1.CNTR_SN
+                           AND T1.DTA_DL_YN = 'N')
+                 WHERE RNUM = 1) CST_UNUITM_CN
+             , (SELECT TO_CHAR(TO_DATE(SUBSTR(FST_RGST_DTM, 1, 8), 'YYYYMMDD'), 'YYYY-MM-DD')
+                  FROM (SELECT DISTINCT ROW_NUMBER() OVER(PARTITION BY CNTR_NO, CNTR_SN ORDER BY FST_RGST_DTM DESC) RNUM
+                             , FST_RGST_DTM
+                          FROM TB_SVPD_CNTR_CST_UNUITM_DTL T1
+                         WHERE 1=1
+                           AND T1.CNTR_NO = SV1.CNTR_NO
+                           AND T1.CNTR_SN = SV1.CNTR_SN
+                           AND T1.DTA_DL_YN = 'N')
+                 WHERE RNUM = 1) FST_RGST_DT
+             , (SELECT TO_CHAR(TO_DATE(SUBSTR(FST_RGST_DTM, 9), 'HH24MISS'), 'HH24:MI:SS')
+                  FROM (SELECT DISTINCT ROW_NUMBER() OVER(PARTITION BY CNTR_NO, CNTR_SN ORDER BY FST_RGST_DTM DESC) RNUM
+                             , FST_RGST_DTM
+                          FROM TB_SVPD_CNTR_CST_UNUITM_DTL T1
+                         WHERE 1=1
+                           AND T1.CNTR_NO = SV1.CNTR_NO
+                           AND T1.CNTR_SN = SV1.CNTR_SN
+                           AND T1.DTA_DL_YN = 'N')
+                 WHERE RNUM = 1) FST_RGST_TM
+             , OG2.ENG_OG_NM
+             , OG2.PRTNR_KNM
+             , OG2.PRTNR_NO
+             , OG2.HIR_FOM
+             , F_CMZ_CD_NM('TNT_WELLS', 'SITE_AW_ATC_CD', SV1.SITE_AW_ATC_CD) SITE_AW_ATC_CD
+             , (SELECT CASE WHEN OG2.HIR_FOM_CD = '1' THEN INDV_ENTRP_AW_AMT
+                            WHEN OG2.HIR_FOM_CD = '2' THEN FULEY_AW_AMT
+                            WHEN OG2.PRTNR_GD_CD = '23' THEN FULEY_AW_AMT
+                            WHEN OG2.PRTNR_GD_CD = '15' THEN ROL_LYR1_TOPMR_AW_AMT
+                            WHEN OG2.PRTNR_GD_CD = '16' THEN ROL_LYR1_UPLR_AW_AMT
+                            WHEN OG2.PRTNR_GD_CD = '17' THEN ROL_LYR1_MDLYR_AW_AMT
+                            WHEN OG2.PRTNR_GD_CD = '18' THEN ROL_LYR1_LOLYR_AW_AMT
+                            WHEN OG2.PRTNR_GD_CD = '19' THEN ROL_L2_UPLR_AW_AMT
+                            WHEN OG2.PRTNR_GD_CD = '20' THEN ROL_L2_MDLYR_AW_AMT
+                            WHEN OG2.PRTNR_GD_CD = '21' THEN ROL_L2_LOLYR_AW_AMT
+                            WHEN OG2.PRTNR_GD_CD = '22' THEN ROL_L3_AW_AMT
+                            WHEN OG2.PRTNR_GD_CD = '24' THEN CRWK_AW_AMT
+                            ELSE 0
+                        END
+                  FROM TB_FEAM_SITE_AW_DSB_BASE_BAS T1
+                 WHERE T1.SITE_AW_ATC_CD = SV1.SITE_AW_ATC_CD
+                   AND T1.RGLVL_DV_CD = SV1.MNGER_RGLVL_DV_CD
+                   AND T1.PD_GRP_CD = PD1.PD_PRP_VAL20
+                   AND T1.SV_TP_CD = SUBSTR(SV1.SV_BIZ_MCLSF_CD, 1, 1)
+                   AND T1.APY_STRTDT &lt;= WK_EXCN_DT
+                   AND T1.APY_ENDDT >= WK_EXCN_DT) FEAM_SITE
+             , SV3.SV_PROCS_CN
+             , CST_SIGN_CN
+             , CASE WHEN (CST3.MSH_WDWAL_DT IS NOT NULL AND TO_CHAR(ADD_MONTHS(CST1.IST_DT,SSCT2.FRISU_BFSVC_PTRM_N),'YYYYMM') &lt; TO_CHAR(SYSDATE,'YYYYMM')) OR CST3.CAN_DT IS NOT NULL OR CST1.REQD_DT IS NOT NULL THEN '고객탈퇴'
+                    WHEN (SSCT3.SELL_TP_CD = '3' AND CST3.MSH_WDWAL_DT IS NOT NULL) THEN '고객탈퇴'
+                    WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') >= SSCT3.CNTR_PD_ENDDT THEN '방문중지'
+                    ELSE ''
+                END CHNGS
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SV1
+             , TB_SVPD_CST_SV_BFSVC_OJ_IZ SV2
+             , TB_SSCT_CNTR_BAS SSCT1
+             , TB_SVPD_CST_SV_EXCN_IZ CST1
+             , TB_CUBS_CST_DTL CST2
+             , TB_CNTC CNTC1
+             , TB_MCBY_CST CST3
+             , TB_SSCT_CNTR_WELLS_DTL SSCT2
+             , TB_SSCT_CNTR_DTL SSCT3
+             , TB_PD PD1
+             , TB_SSCT_CNTR_ADR_REL ADR1
+             , TB_SSCT_CNTR_ADRPC_BAS ADR2
+             , TB_GBCO_ADR_BAS ADR3
+             , (SELECT *
+                  FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ T1
+                 WHERE T1.USE_YN = 'Y'
+                   AND T1.CH_SN = (SELECT MAX(T2.CH_SN)
+                                     FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ T2
+                                    WHERE T1.NEW_ADR_ZIP = T2.NEW_ADR_ZIP
+                                      AND T2.USE_YN = 'Y'))OGMGR1
+             , TB_OG OG1
+             , TB_SVPD_CST_SV_WK_RS_IZ SV3
+             , TB_OG_ENG OG2
+         WHERE 1=1
+           AND SV1.ASN_OJ_YM = #{baseYm}
+           AND SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
+           AND SV1.CNTR_NO = CST1.CNTR_NO
+           AND SV1.CNTR_SN = CST1.CNTR_SN
+           AND SV1.CNTR_NO = SSCT1.CNTR_NO
+           AND SSCT1.CNTR_CST_NO = CST2.CST_NO
+           AND SV1.CST_SV_ASN_NO = CNTC1.CST_SV_ASN_NO(+)
+           AND SV1.CNTR_NO = CST3.CNTR_NO
+           AND SV1.CNTR_SN = CST3.CNTR_SN
+           AND SV1.CNTR_NO = SSCT2.CNTR_NO
+           AND SV1.CNTR_SN = SSCT2.CNTR_SN
+           AND SV1.CNTR_NO = SSCT3.CNTR_NO
+           AND SV1.CNTR_SN = SSCT3.CNTR_SN
+           AND CST1.PDCT_PD_CD = PD1.PD_CD
+           AND ADR1.ADRPC_TP_CD(+) = '3'
+           AND SV1.CNTR_NO = ADR1.DTL_CNTR_NO(+)
+           AND SV1.CNTR_SN = ADR1.DTL_CNTR_SN(+)
+           AND ADR1.CNTR_ADR_REL_ID = ADR2.CNTR_ADRPC_ID(+)
+           AND SV2.ADR_ID = ADR3.ADR_ID(+)
+           AND ADR3.NEW_ADR_ZIP = OGMGR1.NEW_ADR_ZIP(+)
+           AND ADR3.NEW_ADR_ZIP = OG1.NEW_ADR_ZIP(+)
+           AND SV1.CST_SV_ASN_NO = SV3.CST_SV_ASN_NO(+)
+           AND SV1.ASN_PSIC_PRTNR_NO = OG2.PRTNR_NO
+           <if test='@MybatisUtils@isNotEmpty(svBizDclsfCds)'>
+           AND SV1.SV_BIZ_DCLSF_CD IN
+                    <foreach collection="svBizDclsfCds" item="svBizDclsfCd" separator=", " open="(" close=")">
+                       #{svBizDclsfCd}
+                    </foreach>
+           </if>
+    </select>
+
+    <select id="selectBsEngineerAllocateAggregate"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsEngineerAllocateSearchDto$AggregateRes">
+    WITH TB_CNTC AS (
+                        SELECT CNTC_DT
+                             , CST_SV_ASN_NO
+                             , ABSNC_RSON_CD
+                          FROM (SELECT ROW_NUMBER() OVER(PARTITION BY CST_SV_ASN_NO ORDER BY CNTC_DT, CNTC_HH DESC) RNUM
+                                     , CNTC_DT
+                                     , CST_SV_ASN_NO
+                                     , ABSNC_RSON_CD
+                                  FROM TB_SVPD_CST_SV_CNTC_IZ T1
+                                 WHERE 1=1
+                                   AND SUBSTR(CST_SV_ASN_NO, 1, 1) = 2
+                                   AND SUBSTR(CST_SV_ASN_NO, 2, 6) = #{baseYm})
+                         WHERE 1=1
+                           AND RNUM = 1
+                         )
+           , TB_MCBY_CST AS (
+                            SELECT *
+                              FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                                 , TB_CUBS_CST_BAS T2
+                             WHERE 1=1
+                               AND T1.MNGT_YM = #{baseYm}
+                               AND T1.CNTR_CST_NO = T2.CST_NO
+
+                             )
+           , TB_PD AS (
+                         SELECT T1.PD_CD
+                              , T1.PD_NM
+                              , T2.PD_PRP_VAL20
+                           FROM TB_PDBS_PD_BAS T1
+                              , TB_PDBS_PD_ECOM_PRP_DTL T2
+                          WHERE 1=1
+                            AND T1.PD_CD = T2.PD_CD
+                            AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+
+                            AND T2.PD_PRP_VAL19 = '4'
+                            <if test='@MybatisUtils@isNotEmpty(pdGrpCds)'>
+                              AND T2.PD_PRP_VAL20 IN
+                                            <foreach collection="pdGrpCds" item="pdGrpCd" separator=", " open="(" close=")">
+                                               #{pdGrpCd}
+                                            </foreach>
+                            </if>
+                       )
+            , TB_OG AS (
+                        SELECT T2.OG_ID
+                             , T1.NEW_ADR_ZIP
+                             , OG_NM||'('||OG_CD||')' OG_NM
+                          FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ T1
+                             , TB_OGBS_MM_OG_IZ T2
+                         WHERE 1=1
+                           AND T2.BASE_YM = #{baseYm}
+                           AND T1.BRCH_OG_ID = T2.OG_ID
+                           AND T1.USE_YN = 'Y'
+                           AND T1.CH_SN = (SELECT MAX(CH_SN)
+                                             FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ T3
+                                            WHERE T1.NEW_ADR_ZIP = T3.NEW_ADR_ZIP
+                                              AND T3.USE_YN = 'Y')
+                        )
+            , TB_OG_ENG AS (
+                            SELECT T1.PRTNR_NO
+                                 , T1.PRTNR_KNM
+                                 , T1.OG_NM ENG_OG_NM
+                                 , CASE WHEN T1.HIR_FOM_CD = '3' AND T1.PSTN_DV_CD = '86' THEN '직무사원(1급)'
+                                        WHEN T1.HIR_FOM_CD = '3' AND T1.PSTN_DV_CD = '87' THEN '직무사원(2급)'
+                                        WHEN T1.HIR_FOM_CD = '3' AND T1.PSTN_DV_CD = '88' THEN '직무사원(3급)'
+                                        WHEN T1.HIR_FOM_CD = '3' THEN '정규직'
+                                        WHEN T1.HIR_FOM_CD = '2' THEN '계약직'
+                                        WHEN T1.HIR_FOM_CD = '1' THEN '개인사업'
+                                    END	HIR_FOM
+                                 , T2.PRTNR_GD_CD
+                                 , T1.HIR_FOM_CD
+                              FROM TB_OGBS_MM_PRTNR_IZ T1
+                                 , (SELECT *
+                                      FROM (SELECT ROW_NUMBER() OVER(PARTITION BY PRTNR_NO ORDER BY APY_SEQN DESC) RNUM
+                                                 , T1.*
+                                              FROM TB_OGPS_EGER_GD_RGST_IZ T1
+                                             WHERE TO_CHAR(SYSDATE, 'YYYYMMDD') >= APY_STRTDT
+                                               AND TO_CHAR(SYSDATE, 'YYYYMMDD') &lt;= APY_ENDDT)
+                                     WHERE RNUM = 1) T2
+                                 , TB_OGBS_PRTNR_DTL T3
+                             WHERE T1.BASE_YM = #{baseYm}
+                               AND T1.OG_TP_CD IN ('W03', 'W06')
+                               AND T1.PRTNR_NO = T2.PRTNR_NO(+)
+                               AND T1.PRTNR_NO = T3.PRTNR_NO(+)
+                               AND T3.OG_TP_CD = 'W06'
+                               <if test='@MybatisUtils@isNotEmpty(ogId)'>
+                               AND T1.OG_ID = #{ogId}
+                               </if>
+                               <if test='@MybatisUtils@isNotEmpty(engId)'>
+                               AND T1.PRTNR_NO = #{engId}
+                               </if>
+                             )
+
+        SELECT SV1.VST_PRGS_STAT_CD
+             , CASE --철거 및 취소 유무에 따른 상태 표시
+                    WHEN (CST3.MSH_WDWAL_DT IS NOT NULL AND TO_CHAR(ADD_MONTHS(CST1.IST_DT,SSCT2.FRISU_BFSVC_PTRM_N),'YYYYMM') &lt; TO_CHAR(SYSDATE,'YYYYMM')) OR CST3.CAN_DT IS NOT NULL OR CST1.REQD_DT IS NOT NULL THEN '취소'
+                    -- 만료 유무 표시
+                    WHEN CST1.IST_DT IS NOT NULL AND ((ROUND(MONTHS_BETWEEN(TO_CHAR(SYSDATE,'YYYYMM')||'01' , SUBSTR(CST1.IST_DT,1,6)||'01'),0) BETWEEN '57' AND '60') AND SSCT3.SELL_TP_CD = '2') THEN '만료'
+                    -- 컨택 코드 값에 따른 상태 표시
+                    WHEN CNTC1.ABSNC_RSON_CD = '11' THEN '판매'
+                    WHEN CNTC1.ABSNC_RSON_CD = '12' THEN '안내'
+                    WHEN CNTC1.ABSNC_RSON_CD = '13' THEN '문자'
+                    WHEN CNTC1.ABSNC_RSON_CD = '21' THEN '취예'
+                    WHEN CNTC1.ABSNC_RSON_CD = '22' THEN '이사'
+                    WHEN CNTC1.ABSNC_RSON_CD = '23' THEN '연체'
+                    WHEN CNTC1.ABSNC_RSON_CD = '24' THEN '거부'
+                    WHEN CNTC1.ABSNC_RSON_CD = '25' THEN '두절'
+                    WHEN CNTC1.ABSNC_RSON_CD = '26' THEN '여행'
+                    WHEN CNTC1.ABSNC_RSON_CD = '27' THEN '익월'
+                    WHEN CNTC1.ABSNC_RSON_CD = '31' THEN '이관'
+                    WHEN CNTC1.ABSNC_RSON_CD = '32' THEN 'A/S'
+                    -- 방문예정일자 값에 따라 표시 (연수기가 아니면 '월초', '월중', '월말' 로 표시, 연수기 일반 이라면 '일상', '일하'로 표시, 연수기 특별이라면 '특상', '특하'로 표시)
+                    WHEN (PD1.PD_PRP_VAL20 != '4' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 00 AND SUBSTR(SV2.VST_DUEDT,7,8) &lt;= 10) THEN '월초'
+                    WHEN (PD1.PD_PRP_VAL20 != '4' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 11 AND SUBSTR(SV2.VST_DUEDT,7,8) &lt;= 20) THEN '월중'
+                    WHEN (PD1.PD_PRP_VAL20 != '4' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 21) THEN '월말'
+                    WHEN (PD1.PD_PRP_VAL20 = '4' AND CST3.PD_USWY_CD ='1' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 01 AND SUBSTR(SV2.VST_DUEDT,7,8) &lt;= 14) THEN '일상'
+                    WHEN (PD1.PD_PRP_VAL20 = '4' AND CST3.PD_USWY_CD ='1' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 15) THEN '일하'
+                    WHEN (PD1.PD_PRP_VAL20 = '4' AND CST3.PD_USWY_CD ='2' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 01 AND SUBSTR(SV2.VST_DUEDT,7,8) &lt;= 14) THEN '특상'
+                    WHEN (PD1.PD_PRP_VAL20 = '4' AND CST3.PD_USWY_CD ='2' AND SUBSTR(SV2.VST_DUEDT,7,8) >= 15) THEN '특하'
+                    ELSE ' '
+                END STAT_NM_DTL
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SV1
+             , TB_SVPD_CST_SV_BFSVC_OJ_IZ SV2
+             , TB_SSCT_CNTR_BAS SSCT1
+             , TB_SVPD_CST_SV_EXCN_IZ CST1
+             , TB_CUBS_CST_DTL CST2
+             , TB_CNTC CNTC1
+             , TB_MCBY_CST CST3
+             , TB_SSCT_CNTR_WELLS_DTL SSCT2
+             , TB_SSCT_CNTR_DTL SSCT3
+             , TB_PD PD1
+             , TB_SSCT_CNTR_ADR_REL ADR1
+             , TB_SSCT_CNTR_ADRPC_BAS ADR2
+             , TB_GBCO_ADR_BAS ADR3
+             , TB_SVPD_CST_SV_WK_RS_IZ SV3
+             , TB_OG_ENG OG2
+         WHERE 1=1
+           AND SV1.ASN_OJ_YM = #{baseYm}
+           AND SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
+           AND SV1.CNTR_NO = CST1.CNTR_NO
+           AND SV1.CNTR_SN = CST1.CNTR_SN
+           AND SV1.CNTR_NO = SSCT1.CNTR_NO
+           AND SSCT1.CNTR_CST_NO = CST2.CST_NO
+           AND SV1.CST_SV_ASN_NO = CNTC1.CST_SV_ASN_NO(+)
+           AND SV1.CNTR_NO = CST3.CNTR_NO
+           AND SV1.CNTR_SN = CST3.CNTR_SN
+           AND SV1.CNTR_NO = SSCT2.CNTR_NO
+           AND SV1.CNTR_SN = SSCT2.CNTR_SN
+           AND SV1.CNTR_NO = SSCT3.CNTR_NO
+           AND SV1.CNTR_SN = SSCT3.CNTR_SN
+           AND CST1.PDCT_PD_CD = PD1.PD_CD
+           AND ADR1.ADRPC_TP_CD(+) = '3'
+           AND SV1.CNTR_NO = ADR1.DTL_CNTR_NO(+)
+           AND SV1.CNTR_SN = ADR1.DTL_CNTR_SN(+)
+           AND ADR1.CNTR_ADR_REL_ID = ADR2.CNTR_ADRPC_ID(+)
+           AND SV2.ADR_ID = ADR3.ADR_ID(+)
+           AND SV1.CST_SV_ASN_NO = SV3.CST_SV_ASN_NO(+)
+           AND SV1.ASN_PSIC_PRTNR_NO = OG2.PRTNR_NO
+           <if test='@MybatisUtils@isNotEmpty(svBizDclsfCds)'>
+           AND SV1.SV_BIZ_DCLSF_CD IN
+                    <foreach collection="svBizDclsfCds" item="svBizDclsfCd" separator=", " open="(" close=")">
+                       #{svBizDclsfCd}
+                    </foreach>
+           </if>
+    </select>
+</mapper>

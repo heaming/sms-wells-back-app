@@ -2,18 +2,25 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbProductInstallationPsAgrgMapper">
     <select id="selectProductInstallationPsAgrgs" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbProductInstallationPsAgrgDto$SearchRes">
-        WITH PD_INF AS
-        (/* 상품정보 */
-          SELECT T1.PD_CD
-               , T1.PD_NM
-               , T1.PD_ABBR_NM
-               , T2.PD_PRP_VAL20
-          FROM TB_PDBS_PD_BAS T1
-          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-           ON T1.PD_CD = T2.PD_CD
-          WHERE T1.DTA_DL_YN ='N'
-           AND T2.DTA_DL_YN  ='N'
-           AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
+        WITH PART_INF AS
+        ( /* 상품정보 */
+          SELECT P1.PD_CD
+               , P2.PD_NM
+               , P1.PD_PRP_VAL20
+          FROM TB_PDBS_PD_ECOM_PRP_DTL P1  /*상품각사속성상세*/
+          INNER JOIN TB_PDBS_PD_BAS P2
+           ON P1.PD_CD = P2.PD_CD
+           AND P2.PD_TP_CD = 'M'    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
+           AND P2.DTA_DL_YN = 'N'
+          WHERE 1=1
+           AND P1.DTA_DL_YN = 'N'
+           AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+           <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
+           AND (CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END)  = #{pdGrpCd}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(pdCd)">
+           AND P1.PD_CD = #{pdCd}
+           </if>
         )
         , BASE AS
         (
@@ -24,19 +31,13 @@
           FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
           INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2
            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-          INNER JOIN PD_INF T3
+          INNER JOIN PART_INF T3
            ON T2.PD_CD =  T3.PD_CD
           WHERE 1=1
+           AND T1.DTA_DL_YN = 'N'
            AND T1.WK_EXCN_DT LIKE #{baseYy} ||'%'
            AND T1.WK_PRGS_STAT_CD ='20'
            AND SUBSTR(T2.SV_BIZ_DCLSF_CD, 1, 2) IN ('11','32','34')
-
-           <if test="@MybatisUtils@isNotEmpty(pdCd)">
-           AND T2.PD_CD = #{pdCd}
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
-           AND T3.PD_PRP_VAL20  = #{pdGrpCd}
-           </if>
         )
         SELECT YYYY
              , SV_BIZ_MCLSF_CD

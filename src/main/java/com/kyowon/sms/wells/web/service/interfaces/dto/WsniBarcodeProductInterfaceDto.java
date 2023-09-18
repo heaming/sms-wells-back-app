@@ -33,6 +33,7 @@ public class WsniBarcodeProductInterfaceDto {
     // *********************************************************
     @ApiModel(value = "WsniBarcodeProductInterfaceDto-SearchRes")
     public record SearchRes(
+        String bcNo,
         String basePdCd,
         String uswyDvCd,
         String pdctPdCd,
@@ -76,42 +77,53 @@ public class WsniBarcodeProductInterfaceDto {
     // *********************************************************
     @ApiModel(value = "WsniBarcodeProductInterfaceDto-SearchJsonRes")
     public record SearchJsonRes(
-        String lcncde,
-        String lciuse,
-        String gdsCd,
+        @JsonProperty(value = "BC_NO")
+        String bcNo,
+        @JsonProperty(value = "CODE")
+        String code,
+        @JsonProperty(value = "MESSAGE")
+        String message,
+        @JsonProperty(value = "BASE_PD_CD")
+        String basePdCd,
+        @JsonProperty(value = "USWY_DV_CD")
+        String uswyDvCd,
+        @JsonProperty(value = "PDCT_PD_CD")
+        String pdctPdCd,
+        @JsonProperty(value = "FARM_YN")
         String farmYn,
+        @JsonProperty(value = "ITEM_NM")
         String itemNm,
-        String custCd,
+        @JsonProperty(value = "CNTR_NO")
+        String cntrNo,
+        @JsonProperty(value = "CNTR_SN")
+        String cntrSn,
+        @JsonProperty(value = "CUST_NM")
         String custNm,
+        @JsonProperty(value = "HNO_NO")
         String hnoNo,
-        String locaraTno,
-        String exnoEncr,
-        String idvTno,
-        String csmrYr,
-        String csmrCd,
+        @JsonProperty(value = "ADDR")
         String addr,
+        @JsonProperty(value = "ZIPNO")
         String zipno,
+        @JsonProperty(value = "EMP_ID")
         String empId,
+        @JsonProperty(value = "EMP_NM")
         String empNm,
+        @JsonProperty(value = "DEPT_NM")
         String deptNm,
+        @JsonProperty(value = "MNG_HP_NO")
         String mngHpNo,
-        String cralLocaraTno,
-        String mexnoEncr,
-        String cralIdvTno,
+        @JsonProperty(value = "VST_DT")
         String vstDt,
+        @JsonProperty(value = "MNG_TYP")
         String mngTyp,
+        @JsonProperty(value = "MNG_CYC")
         String mngCyc,
+        @JsonProperty(value = "DBLD_NM")
         String dbldNm,
-        String filterYn,
-        String rnk
-    ) {
-        public SearchJsonRes {
-            hnoNo = locaraTno + (StringUtils.isNotEmpty(exnoEncr) ? DbEncUtil.dec(exnoEncr) : exnoEncr)
-                + idvTno;
-            mngHpNo = cralLocaraTno + (StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr)
-                + cralIdvTno;
-        }
-    }
+        @JsonProperty(value = "FILTER_YN")
+        String filterYn
+    ) {}
 
     @ApiModel(value = "WsniBarcodeProductInterfaceDto-SearchCustRes")
     public record SearchCustRes(

@@ -19,7 +19,7 @@ public class WdcdOperatingCostMgtService {
     private final WdcdOperatingCostMgtConverter converter;
 
     private final AttachFileService attachFileService;
-    private final String groupId = "ATG_DCD_OPCS_WHTX_CFDC";
+    private String groupId = "ATG_DCD_OPCS_WHTX_CFDC";
 
     public SearchAmountRes getAmount(SearchAmountReq req) {
         //운영비 금액현황

@@ -149,7 +149,8 @@ public class WwdbGiroOcrForwardingMgtDto {
 
         String cntrNo,
         String cntrSn,
-        String cntr
+        String cntr,
+        String wkDt
     ) {
 
     }

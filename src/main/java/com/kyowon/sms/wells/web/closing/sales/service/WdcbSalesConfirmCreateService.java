@@ -66,8 +66,17 @@ public class WdcbSalesConfirmCreateService {
             sapMatEvlClssVal = edcbSapMatDvo.getSapMatEvlClssVal();
             sapMatCd = edcbSapMatDvo.getSapMatCd();
             /* 6-1.저장물품여부(SAVE_GDS_YN) */
-            saveGdsYn = StringUtils.isNotEmpty(sapMatEvlClssVal)
-                ? sapMatEvlClssVal.substring(0, 2).equals("Z7") ? "Y" : "N" : "";
+            /*saveGdsYn = StringUtils.isNotEmpty(sapMatEvlClssVal)
+                ? sapMatEvlClssVal.substring(0, 2).equals("Z7") ? "Y" : "N" : "";*/
+            if (StringUtils.isNotEmpty(sapMatEvlClssVal)) {
+                if (sapMatEvlClssVal.substring(0, 2).equals("Z7")) {
+                    saveGdsYn = "Y";
+                } else {
+                    saveGdsYn = "N";
+                }
+            } else {
+                saveGdsYn = "";
+            }
         }
 
         /* 7. SAP사업본부정보코드(SAP_BZ_HDQ_INF_CD) */
@@ -89,7 +98,17 @@ public class WdcbSalesConfirmCreateService {
         /* 11. 코스트센터코드, WBS코드, SAP목적자재코드 */
         /* ASIS의 ZS2200P 테이블에도 모든 값이 공백임. 공백 넣을것 */
         /* 12. SAP과세면세구분코드 */
-        String sapTxnDtfrCd = dvo.getPvdaAmt() > 0 ? "3" : vat > 0 ? "1" : "0";
+        //String sapTxnDtfrCd = dvo.getPvdaAmt() > 0 ? "3" : vat > 0 ? "1" : "0";
+        String sapTxnDtfrCd = "";
+        if (dvo.getPvdaAmt() > 0) {
+            sapTxnDtfrCd = "3";
+        } else {
+            if (vat > 0) {
+                sapTxnDtfrCd = "1";
+            } else {
+                sapTxnDtfrCd = "0";
+            }
+        }
         /* 13. SAP세금계산서발행기준코드 */
         String sapTxinvPblBaseCd = "";
         if (StringUtils.isNotEmpty(sapPdDvCd) && ("B1".equals(sapPdDvCd) || "B2".equals(sapPdDvCd))) {

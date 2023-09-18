@@ -1,27 +1,68 @@
 package com.kyowon.sms.wells.web.service.interfaces.mapper;
 
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsniSidingServiceChangesDto.*;
 import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniSidingServiceChangesDvo;
 import org.apache.ibatis.annotations.Mapper;
-
-import java.util.List;
 
 @Mapper
 public interface WsniSidingServiceChangesMapper {
 
-    int insertSdingAsAkHist(SaveReq req);
+    int insertSdingAsAkHist(
+        String cntrNo,
+        String cntrSn,
+        String akSn,
+        String histChDtm,
+        String asAkDvCd,
+        String akChdt,
+        String bfchPdCd,
+        String afchPdCd,
+        String mtrProcsStatCd,
+        String matNm,
+        String csmrUprcAmt
+    );
 
-    int deleteSdingAskAk(SaveReq req);
+    int deleteSdingAskAk(
+        String cntrNo,
+        String cntrSn,
+        String akSn,
+        String asAkDvCd,
+        String akChdt
+    );
 
-    WsniSidingServiceChangesDvo selectCustomer(SaveReq req);
+    WsniSidingServiceChangesDvo selectCustomer(String cntrNo, String cntrSn);
 
-    Integer selectSidingAkCount(SaveReq req);
+    Integer selectSidingAkCount(
+        String cntrNo,
+        String cntrSn,
+        String akSn,
+        String asAkDvCd,
+        String akChdt
+    );
 
-    int updateSidingAk(SaveReq req);
+    int updateSidingAk(
+        String akChdt,
+        String bfchPdCd,
+        String afchPdCd,
+        String mtrProcsStatCd,
+        String cntrNo,
+        String cntrSn,
+        String akSn,
+        String asAkDvCd
+    );
 
-    int insertSidingAk(SaveReq req);
+    int insertSidingAk(
+        String cntrNo,
+        String cntrSn,
+        String asAkDvCd,
+        String bfchPdCd,
+        String afchPdCd,
+        String mtrProcsStatCd
+    );
 
-    Integer selectBsTarget(SaveReq req);
+    Integer selectBsTarget(
+        String cntrNo,
+        String cntrSn,
+        String asnOjYm
+    );
 
     Integer updateStopNextSiding(String cntrNo, String cntrSn, String akChdt);
 }

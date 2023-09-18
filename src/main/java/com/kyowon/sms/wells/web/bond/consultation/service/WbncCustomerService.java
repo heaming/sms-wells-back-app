@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +70,7 @@ public class WbncCustomerService {
      * @param dto 검색 조건
      * @return 채권상담 고객상세 정보조회 결과
      */
-    public Optional<FindRes> getCustomerDetail(FindReq dto) {
+    public FindRes getCustomerDetail(FindReq dto) {
         return mapper.selectCustomerDetail(dto);
     }
 
@@ -144,7 +143,6 @@ public class WbncCustomerService {
         try {
             String ext = dto.inlnNo();
             String url = "http://10.1.73.14:8088?type=get&cmd=callkeyap&ext=" + ext; // 운영
-            System.out.println("url : " + url);
 
             URL obj = new URL(url);
             HttpURLConnection conn = (HttpURLConnection)obj.openConnection();

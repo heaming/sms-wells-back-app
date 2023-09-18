@@ -26,7 +26,7 @@ public class WdcdCleanersService {
 
     public PagingResult<SearchRes> getCleanerPages(SearchReq req, PageInfo pageInfo) {
 
-        PagingResult<WdcdCleanersDvo> dvos = new PagingResult<>();
+        PagingResult<WdcdCleanersDvo> dvos = null;
         UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
 
         if (!"W1580".equals(userSession.getBaseRleCd())) {
@@ -49,7 +49,7 @@ public class WdcdCleanersService {
 
     public List<SearchRes> getCleanersForExcelDownload(SearchReq req) {
 
-        List<WdcdCleanersDvo> dvos = new PagingResult<>();
+        List<WdcdCleanersDvo> dvos = null;
         List<SearchRes> res = new PagingResult<SearchRes>();
 
         // TODO. 본사 영업담당자, 본사 담당자 구분 해야함

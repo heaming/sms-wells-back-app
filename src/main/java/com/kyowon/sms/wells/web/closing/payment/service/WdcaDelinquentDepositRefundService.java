@@ -37,6 +37,7 @@ public class WdcaDelinquentDepositRefundService {
     @Transactional
     public int saveDelinquentDepositRefund(WdcaDelinquentDepositRefundDvo inputDvo) throws BizException {
         WdcaDepositRefundProcessingAmountDvo searchDvo = mapper.selectDepositRefundProcessingAmount(inputDvo);
+        String errMsg = "MSG_ALT_SVE_ERR";
 
         int processCount = 0;
         int result;
@@ -50,11 +51,11 @@ public class WdcaDelinquentDepositRefundService {
             inputDvo.setEotDlqAddAmt(searchDvo.getEotDlqAddAmt());
 
             result = mapper.updateDlqBas(inputDvo); /*연체기본 Table 정보 수정*/
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(result == 1, errMsg);
             result = mapper.insertDlqBasHist(inputDvo); /*연체기본이력 Table 이력정보 생성*/
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(result == 1, errMsg);
             result = mapper.updateBndCntrBas(inputDvo); /*채권계약기본 Table 정보 수정*/
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(result == 1, errMsg);
 
             String dpDvCd = inputDvo.getDpDvCd();
             String rveDvCd = inputDvo.getRveDvCd();
@@ -80,12 +81,12 @@ public class WdcaDelinquentDepositRefundService {
                 }
                 wdcaBznsAtamBasDvo.setBznsAtamBlam(bznsAtamBlam);
                 result = mapper.updateBznsAtamBas(wdcaBznsAtamBasDvo); /*영업선수금기본 Table 정보 수정*/
-                BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(result == 1, errMsg);
 
                 wdcaBznsAtamBasDvo.setBznsAtamProcsCd("1");
                 wdcaBznsAtamBasDvo.setBznsAtamProcsAmt(bznsAtamProcsAmt);
                 result = mapper.updatebznsAtamProcsIz(wdcaBznsAtamBasDvo); /*영업선수금처리내역 생성*/
-                BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(result == 1, errMsg);
             }
 
             /* 연체가산금 입금내역 영업선수금에 반영 */
@@ -100,12 +101,12 @@ public class WdcaDelinquentDepositRefundService {
                 }
                 wdcaBznsAtamBasDvo.setBznsAtamBlam(bznsAtamBlam);
                 result = mapper.updateBznsAtamBas(wdcaBznsAtamBasDvo); /*영업선수금기본 Table 정보 수정*/
-                BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(result == 1, errMsg);
 
                 wdcaBznsAtamBasDvo.setBznsAtamProcsCd("4");
                 wdcaBznsAtamBasDvo.setBznsAtamProcsAmt(bznsAtamProcsAmt);
                 result = mapper.updatebznsAtamProcsIz(wdcaBznsAtamBasDvo); /*영업선수금처리내역 생성*/
-                BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(result == 1, errMsg);
             }
 
             /*계약상세상태 변경*/
@@ -133,7 +134,7 @@ public class WdcaDelinquentDepositRefundService {
                     int dpAcuAmt = wdcaAgainDisbursementObjectDivideDvo.getDpAcuAmt();
                     if (cntrTam + eotDlqAmt <= dpAcuAmt + rveAmt) {
                         result = mapper.updateRedfAdsbBas(inputDvo, adsbRt, adsbAmt); /*재지급데이터 업데이트*/
-                        BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+                        BizAssert.isTrue(result == 1, errMsg);
                     }
                 }
                 if ("2".equals(sellTpCd)) {
@@ -162,15 +163,17 @@ public class WdcaDelinquentDepositRefundService {
                         adsbRt = 80;
                         if (ucAmt == 0
                             && (rentalTn < 24
-                                || (rentalTn == 12 && canDt.substring(7, 2).compareTo(istDt.substring(7, 2)) >= 1))
-                            || (rentalTn == 24 && canDt.substring(7, 2).compareTo(istDt.substring(7, 2)) <= 1)) {
+                                || (rentalTn == 12 && canDt.substring(canDt.length() - 1, 2)
+                                    .compareTo(istDt.substring(canDt.length() - 1, 2)) >= 1))
+                            || (rentalTn == 24 && canDt.substring(canDt.length() - 1, 2)
+                                .compareTo(istDt.substring(canDt.length() - 1, 2)) <= 1)) {
                             adsbAmt = ackmtPerfAmt * adsbRt;
                         } else {
                             adsbAmt = 0;
                         }
                     }
                     result = mapper.updateRedfAdsbBas(inputDvo, adsbRt, adsbAmt); /*재지급데이터 업데이트*/
-                    BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+                    BizAssert.isTrue(result == 1, errMsg);
                 }
 
             }

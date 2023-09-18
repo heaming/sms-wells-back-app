@@ -62,14 +62,14 @@ public class WwdbGiroOcrForwardingMgtService {
      * @return List<SearchRes>
      */
     @Transactional
-    public List<SearchObjectRes> getGiroOcrForwardingObjects(String cntr) {
+    public List<SearchObjectRes> getGiroOcrForwardingObjects(String cntr, String wkDt) {
         WwdbGiroOcrForwardingMgtDto.SearchCntrReq req;
         if (!"no".equals(cntr)) {
             String cntrNo = cntr.substring(0, 12);
             String cntrSn = cntr.substring(12);
-            req = new WwdbGiroOcrForwardingMgtDto.SearchCntrReq(cntrNo, cntrSn, cntr);
+            req = new WwdbGiroOcrForwardingMgtDto.SearchCntrReq(cntrNo, cntrSn, cntr, wkDt);
         } else {
-            req = new WwdbGiroOcrForwardingMgtDto.SearchCntrReq("", "", cntr);
+            req = new WwdbGiroOcrForwardingMgtDto.SearchCntrReq("", "", cntr, "");
         }
 
         return mapper.selectGiroOcrForwardingObjects(req);
@@ -193,7 +193,7 @@ public class WwdbGiroOcrForwardingMgtService {
 
         String sysDate = DateUtil.getNowString();
         String sysDateYmd = sysDate.substring(0, 8);
-        
+
         dvo.setGiroOcrPrntDt(sysDateYmd);
 
         processCount += mapper.updateGiroPrintDate(dvo);

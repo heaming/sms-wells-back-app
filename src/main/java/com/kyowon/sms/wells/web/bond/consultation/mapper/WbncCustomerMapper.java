@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.bond.consultation.mapper;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
 
@@ -35,7 +34,7 @@ public interface WbncCustomerMapper {
 
     List<SearchRes> selectCustomers(SearchReq dto);
 
-    Optional<FindRes> selectCustomerDetail(FindReq dto);
+    FindRes selectCustomerDetail(FindReq dto);
 
     List<FindCustomerDetailRes> selectCustomerDetails(FindCustomerDetailReq dto);
 

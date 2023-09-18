@@ -32,8 +32,8 @@ public class WsnaPcsvOutOfStorageMgtService {
         return mapper.selectPcsvProducts();
     }
 
-    public int savePcsvOutOfStorage(List<SaveReq> dtos) {
-        return service.savePcsvOutOfStorage(dtos);
+    public int savePcsvOutOfStorages(List<SaveReq> dtos) {
+        return service.savePcsvOutOfStorages(dtos);
     }
 
     public int savePcsvOutOfStorageTest(List<SaveReq> dtos) {

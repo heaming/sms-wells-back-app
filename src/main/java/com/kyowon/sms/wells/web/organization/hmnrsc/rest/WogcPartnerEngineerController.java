@@ -179,7 +179,7 @@ public class WogcPartnerEngineerController {
         @PathVariable(name = "baseYm")
         String baseYm
     ) throws Exception {
-        return service.saveEngineerGradeForDirectExcelUpload(file, baseYm);
+        return service.saveEngineerGradeForDirectExcelUpload(file);
     }
 
 }

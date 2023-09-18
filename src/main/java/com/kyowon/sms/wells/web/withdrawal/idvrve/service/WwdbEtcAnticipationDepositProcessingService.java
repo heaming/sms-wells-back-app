@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbEtcDepositMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -13,7 +14,6 @@ import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCorporationDepositDto
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbEtcAnticipationDpProcsDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbEtcAnticipationDpProcsDvo;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbCorporationDepositMapper;
-import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwwdbEtcDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalDepositCprDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class WwdbEtcAnticipationDepositProcessingService {
     private final ZwdbEtcAnticipationDpProcsConvert convert;
 
-    private final ZwwdbEtcDepositMapper etcDepositMapper;
+    private final ZwdbEtcDepositMapper etcDepositMapper;
 
     private final ZwdbCorporationDepositMapper zwdbCorporationDepositMapper;
 
