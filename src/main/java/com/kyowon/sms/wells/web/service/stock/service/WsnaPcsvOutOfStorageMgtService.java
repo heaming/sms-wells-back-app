@@ -32,7 +32,7 @@ public class WsnaPcsvOutOfStorageMgtService {
         return mapper.selectPcsvProducts();
     }
 
-    public int savePcsvOutOfStorages(List<SaveReq> dtos) {
+    public int savePcsvOutOfStorages(List<SaveReq> dtos) throws Exception {
         return service.savePcsvOutOfStorages(dtos);
     }
 
