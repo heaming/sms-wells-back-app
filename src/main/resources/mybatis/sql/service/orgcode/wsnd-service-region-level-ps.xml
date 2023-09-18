@@ -131,8 +131,8 @@
              , (CASE WHEN END_ISLAND_YN = '1' THEN '육지'
                      WHEN END_ISLAND_YN = '2' THEN '섬'
                 ELSE '' END) AS END_ISLAND_YN          /* 도착 섬구분 */
+        ]]>
          FROM (
-
         SELECT AL170.BSDT
              , OG_IZ.DGR1_LEVL_OG_CD
              , OG_IZ.DGR1_LEVL_OG_NM
@@ -307,10 +307,37 @@
                        ) CHULJANG
                     ON AL170.ICHR_PRTNR_NO = CHULJANG.EGER_PRTNR_NO
                    AND AL170.OG_TP_CD = CHULJANG.EGER_PRTNR_OG_TP_CD
-         WHERE AL170.BSDT BETWEEN '20230801' AND '20230831'
-
+         WHERE 1=1
+           AND AL170.BSDT BETWEEN #{fromDate} AND #{toDate}
+         /* 서비스유형*/
+         <if test='@MybatisUtils@isNotEmpty(svTpCd)'>
+            AND AL170.CST_SV_ASN_NO LIKE #{svTpCd}||'%'
+         </if>
+         /* 서비스센터 */
+         <if test='@MybatisUtils@isNotEmpty(ogCd)'>
+            AND OG_IZ.OG_CD = #{ogCd}
+         </if>
+         /* 담당자사번 */
+         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+            AND AL170.ICHR_PRTNR_NO=#{prtnrNo}
+         </if>
+         <if test='@MybatisUtils@equals(searchDateType, "01")'>
+             /* 접수일자 */
+             AND NVL(AC221.ASN_DT, CNFM_PSIC_ASN_DT) BETWEEN #{fromDate} AND #{toDate}
+         </if>
+         <if test='@MybatisUtils@equals(searchDateType, "02")'>
+             /* 예정일자 */
+             AND NVL(AC221.VST_DUEDT, AC261.VST_DUEDT) BETWEEN #{fromDate} AND #{toDate}
+         </if>
+         <if test='@MybatisUtils@equals(searchDateType, "03")'>
+             /* 처리일자 */
+             AND VS106.VST_FSH_DT BETWEEN #{fromDate} AND #{toDate}
+         </if>
+         <if test='@MybatisUtils@equals(searchDateType, "04")'>
+             /* 방문확정일자 */
+             AND NVL(AC221.VST_CNFMDT, AC261.VST_CNFMDT) BETWEEN #{fromDate} AND #{toDate}
+         </if>
               )
           ORDER BY ICHR_PRTNR_NO DESC, WRK_DTTM ASC, ARR_DTTM DESC
-        ]]>
     </select>
 </mapper>
