@@ -112,17 +112,15 @@ public class WsnaPcsvOutOfStorageSaveService {
                 String cntrSn = dvo.getCntrSn();
                 String istDt = dvo.getIstDt();
 
-                int result = installationReqdDtInService
-                    .saveInstallReqdDt(cntrNo, cntrSn, istDt, "", sppDueDt);
+                int result = installationReqdDtInService.saveInstallReqdDt(cntrNo, cntrSn, istDt, "", sppDueDt);
                 if (result > 0) {
                     mapper.updateSvpdCstSvExcnIz(dvo);
                 }
-                // BS주기표 생성
-                WsnbIndividualVisitPrdDto.SearchProcessReq visitDto = this
-                    .setWsnbVisitPrdProcessReq(cntrNo, cntrSn, istDt);
-                this.visitPrdService.processVisitPeriodRegen(visitDto);
 
-                // 10.물류 인터페이스 연동
+                // 10.BS주기표 생성
+                this.visitPrdService.processVisitPeriodRegen(this.setWsnbVisitPrdProcessReq(cntrNo, cntrSn, istDt));
+
+                // 11.물류 인터페이스 연동
                 if (ObjectUtils.isNotEmpty(logisticDvos)) {
                     logisticsOutStorageAskService.createSelfFilterOutOfStorageAsks(logisticDvos);
                 }
