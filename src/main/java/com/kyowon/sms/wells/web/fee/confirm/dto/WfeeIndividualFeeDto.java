@@ -344,7 +344,11 @@ public class WfeeIndividualFeeDto {
         int awbIntbsSum,
         int awbDdtnSum,
         int awbAclDsbAmt
-    ) {}
+    ) {
+        public SearchFeeRes {
+            acNo = StringUtils.isNotEmpty(acNo) ? DbEncUtil.dec(acNo) : acNo;
+        }
+    }
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchUserInfoRes")
     public record SearchUserInfoRes(
