@@ -1,10 +1,8 @@
 package com.kyowon.sms.wells.web.service.visit.dto;
 
-import com.sds.sflex.common.utils.DbEncUtil;
-import io.swagger.annotations.ApiModel;
-import org.apache.commons.lang.StringUtils;
-
 import javax.validation.constraints.NotBlank;
+
+import io.swagger.annotations.ApiModel;
 
 public class WsnbWellsManagerIchrExcdDto {
     @ApiModel(value = "WsnbWellsManagerIchrExcdDto-SearchReq")
@@ -23,46 +21,27 @@ public class WsnbWellsManagerIchrExcdDto {
 
     @ApiModel(value = "WsnbWellsManagerIchrExcdDto-SearchRes")
     public record SearchRes(
-        String baseYm,
+        String mngtYm,
         String dgr1LevlOgCd,
-        String ogCd,
-        String ogTpCd,
+        String dgr2LevlOgCd,
         String ogTp,
         String cntrNo,
-        Integer cntrSn,
+        String cntrSn,
         String cntr,
         String rcgvpKnm,
-        String cstGdCd,
         String svpdItemGrNm,
         String svpdNmAbbr1,
         String sellTpCd,
-        Integer vstNmnN,
-        Integer istNmnN,
         String vstDvCd,
         String vstPrgsStatCd,
-        String svHshdNo,
-        String svHshdNoCnt,
         String newAdrZip,
-        String locaraTno,
-        String exnoEncr,
-        String idvTno,
-        String cralLocaraTno,
-        String mexnoEncr,
-        String cralIdvTno,
         String adr,
         String emd,
-        String dgr2LevlOgCd,
-        String dgr3LevlOgCd,
+        String ogNm,
         String prtnrKnm,
-        String mngerRglvlDvCd,
         String clsfCdSrnPrntCn,
         String egerWk,
         String fix,
         String chRsonCn
-    ) {
-        public SearchRes {
-            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
-            exnoEncr = StringUtils.isNotEmpty(exnoEncr) ? DbEncUtil.dec(exnoEncr) : exnoEncr;
-        }
-    }
+    ) {}
 }
