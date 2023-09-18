@@ -4,6 +4,7 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrange
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto.SearchSeedAgrgRes;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -317,7 +318,6 @@ public class WsnaSeedingTruckArrangementMapService {
             aggMap.put(ggLct, seedQtyQue);
 
         }
-        // 센터 [샐러드 16, 야채 15]
 
         // 배차
         for (WsnaSeedingTruckArrangementMapGgLctDvo ggLct : aggMap.keySet()) {
@@ -339,12 +339,15 @@ public class WsnaSeedingTruckArrangementMapService {
                     seed = seedQtyQue.poll();
                     cart.add(seed.getSdingPkgGrpCdNm() + "\t(" + seed.getSdingPkgGrpqty() + ")");
                     sdQtyInTruck += seed.getSdingPkgGrpqty();
-                    continue;
                 } else if (sdQtyInTruck + seed.getSdingPkgGrpqty() > 16) {
                     int left = 16 - sdQtyInTruck;
-                    cart.add(seed.getSdingPkgGrpCdNm() + "\t(" + left + ")");
-                    seed.setSdingPkgGrpqty(seed.getSdingPkgGrpqty() - left);
-                    sdQtyInTruck += left;
+
+                    if (left > 0) {
+                        cart.add(seed.getSdingPkgGrpCdNm() + "\t(" + left + ")");
+                        seed.setSdingPkgGrpqty(seed.getSdingPkgGrpqty() - left);
+                        sdQtyInTruck += left;
+                    }
+
                 }
 
                 if (sdQtyInTruck >= 16 || seedQtyQue.isEmpty()) {
@@ -381,30 +384,30 @@ public class WsnaSeedingTruckArrangementMapService {
                     }
 
                     sdQtyInTruck = 0;
-                    System.out.println(seedQtyQue);
+
                     if (fb.equals("B") && !seedQtyQue.isEmpty()) {
                         truckNo++;
                     }
                     fb = fb.equals("F") ? "B" : "F";
                     cart.clear();
                 }
-
-                //                if (seedQtyQue.isEmpty()) {
-
-                //                }
             }
             int finalTruckNo = truckNo;
-            result.stream()
-                .filter(item -> item.dgLctNm().equals(ggLct.getGgLctNm())).map(
-                    item -> new SearchLabelRes(
-                        item.dgLctNm(),
-                        item.cartNo(),
-                        finalTruckNo,
-                        item.basedt(),
-                        item.cartF(),
-                        item.cartB()
-                    )
-                );
+            result = result.stream().map(
+                item -> {
+                    if (item.dgLctNm().equals(ggLct.getGgLctNm())) {
+                        item = new SearchLabelRes(
+                            item.dgLctNm(),
+                            item.cartNo(),
+                            finalTruckNo,
+                            item.basedt(),
+                            item.cartF(),
+                            item.cartB()
+                        );
+                    }
+                    return item;
+                }
+            ).collect(Collectors.toList());
         }
 
         return result;
