@@ -25,7 +25,7 @@ public class WsnbInstallLocationDvo {
     String custNm; /* 고객명 */
     String sellTpNm; /* 유형명 */
     String pdctPdCd; /* 상품코드 */
-    String sapMapCd; /* SAP코드 */
+    String sapMatCd; /* SAP코드 */
     String pdNm; /* 상품명 */
     String locaraTno; /* 전화번호1 */
     @DBDecField

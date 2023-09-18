@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.interfaces.service;
 
 import java.util.List;
 
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -21,6 +22,7 @@ public class WsniCustomerCenterInterfaceService {
     private final WsniCustomerCenterInterfaceMapper mapper;
 
     private final WsniCustomerCenterInterfaceConverter converter;
+    private final MessageResourceService messageService;
 
     public List<SearchContactRes> getEngineerContactPs(SearchReq dto) {
         //        List<SearchContactRes> searchRes = mapper.selectEngineerContactPs(dto);
@@ -88,10 +90,10 @@ public class WsniCustomerCenterInterfaceService {
 
         int result = mapper.insertFilterShippingAddress(dvo);
 
-        BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+        BizAssert.isTrue(result == 1, messageService.getMessage("MSG_ALT_SVE_ERR"));
 
         // @TODO: TEMP_CODE :: 메세지 정상 출력되는지 확인 필요
-        return new CreateShpadrRes("MSG_ALT_SAVE_DATA", "S001");
+        return new CreateShpadrRes(messageService.getMessage("MSG_ALT_SAVE_DATA"), "S001");
     }
 
     @Transactional

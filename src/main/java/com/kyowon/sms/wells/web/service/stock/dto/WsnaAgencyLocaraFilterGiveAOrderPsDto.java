@@ -90,6 +90,8 @@ public class WsnaAgencyLocaraFilterGiveAOrderPsDto {
 
         String yymm, // 기준년월
 
+        String locaraDvNm,
+
         String cstKnm,
 
         String partPdCd,

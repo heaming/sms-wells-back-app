@@ -27,7 +27,6 @@ public class WsniPointmallEgerAcptestatService {
     private final WsniPointmallEgerAcptestatMapper mapper;
 
     public List<SearchRes> getPointmallEgerAcptestats(SearchReq dto) {
-        /* db2 테이블 확인 된 후 로직 전체적으로 수정 예정 */
         return mapper.selectPointmallEgerAcptestats(dto);
     }
 
