@@ -23,6 +23,8 @@ public class WsndServiceIndicatorDvo {
     Integer cntcDtBf3;
     String vstDuedt;
     String vstExpHh;
+    String vstInTime;
+    String scnDtm;
     String bcInMthdCd;
     String vstFshDt;
     String vstFshHh;
