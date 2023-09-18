@@ -73,13 +73,23 @@
                  SELECT T1.PRTNR_NO
                       , 'W02P00093' AS PERF_ATC_CD   /* 미팅참석일수 */
                       , '' AS FEE_PERF_ATC_VAL
-                      , NVL(T2.METG_PRSC_DC,0) AS PERF_VAL
+                      , CASE WHEN T2.METG_PTCP_ACKMT_YN = 'Y'
+                                  AND T2.METG_PRSC_DC &lt; T3.METG_BASE_DC
+                                  THEN  NVL(T3.METG_BASE_DC,0)
+                             ELSE NVL(T2.METG_PRSC_DC,0)
+                        END AS PERF_VAL
                    FROM TB_OGBS_MM_PRTNR_IZ T1
                    LEFT OUTER JOIN TB_PSCA_MCPTN_METG_AGRG T2
                      ON T1.BASE_YM = T2.AGRG_YM
                     AND T1.OG_TP_CD = T2.OG_TP_CD
                     AND T1.PRTNR_NO = T2.PRTNR_NO
                     AND T2.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN TB_PSCA_PRTNR_METG_BASE_BAS T3/* 파트너미팅기준기본 */
+                     ON SUBSTR(T3.VL_STRTDT,1,6) &lt;= T1.BASE_YM
+                    AND SUBSTR(T3.VL_ENDDT,1,6) &gt;= T1.BASE_YM
+                    AND T3.OG_TP_CD= T1.OG_TP_CD
+                    AND T3.RSB_DV_CD = T1.RSB_DV_CD
+                    AND T3.QLF_DV_CD = T1.QLF_DV_CD
                   WHERE T1.OG_TP_CD ='W02'
                     AND T1.BASE_YM = #{perfYm}
                <if test='@MybatisUtils@equals(rsbTpCd, "W0205")'>
