@@ -12,13 +12,14 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
-
+@Slf4j
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/newpd-m-three-acu-af-sv-rt")
 @Api(tags = "[WSNB] 실적_신제품 M+3 누적 A/S율")
