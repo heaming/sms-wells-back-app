@@ -33,7 +33,7 @@ public class WsnaBsCsmbDeliveryAggregateService {
                     String bldCd = dvos.get(i).getBldCd();
 
                     for (int j = i + 1; j < dvos.size(); j++) {
-                        if (bldCd == dvos.get(j).getBldCd()) {
+                        if (bldCd.equals(dvos.get(j).getBldCd())) {
                             dvos.get(j).setBldCd(null);
                             dvos.get(j).setBldNm(null);
                             dvos.get(j).setVstAccSum(null);

@@ -62,7 +62,7 @@ public class WsnaBsCsmbGiveAOrderService {
 
             dvos.forEach(dvo -> {
                 pajuStocks.forEach(stock -> {
-                    if (dvo.getCsmbPdCd() == stock.getItmPdCd()) {
+                    if (dvo.getCsmbPdCd().equals(stock.getItmPdCd())) {
                         int pajuLgstCnrStocQty = stock.getLgstAGdQty().intValue() + stock.getLgstBGdQty().intValue()
                             + stock.getLgstCGdQty().intValue() + stock.getLgstEGdQty().intValue()
                             + stock.getLgstRGdQty().intValue();
@@ -79,7 +79,7 @@ public class WsnaBsCsmbGiveAOrderService {
 
                 dvos.forEach(dvo -> {
                     sgsuStocks.forEach(stock -> {
-                        if (dvo.getCsmbPdCd() == stock.getItmPdCd()) {
+                        if (dvo.getCsmbPdCd().equals(stock.getItmPdCd())) {
                             int sgsuLgstCnrStocQty = stock.getLgstAGdQty().intValue() + stock.getLgstBGdQty().intValue()
                                 + stock.getLgstCGdQty().intValue() + stock.getLgstEGdQty().intValue()
                                 + stock.getLgstRGdQty().intValue();
@@ -101,7 +101,9 @@ public class WsnaBsCsmbGiveAOrderService {
             if (dvo.getWoStocQty() == 0 || dvo.getMmAvDdlvQty() == 0) {
                 dvo.setStocPersMmN(0);
             } else {
-                dvo.setStocPersMmN(Math.round((dvo.getWoStocQty() / dvo.getMmAvDdlvQty()) * 10) / 10);
+                dvo.setStocPersMmN(
+                    (float)Math.round(((float)dvo.getWoStocQty() / (float)dvo.getMmAvDdlvQty()) * 10) / 10
+                );
             }
         });
 

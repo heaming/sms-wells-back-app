@@ -11,6 +11,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsnaBuildingBsConsumableMapper {
+    List<WsnaBuildingBsConsumableDvo> selectBuildings(SearchReq dto);
 
     PagingResult<WsnaBuildingBsConsumableDvo> selectBuildings(SearchReq dto, PageInfo pageInfo);
 

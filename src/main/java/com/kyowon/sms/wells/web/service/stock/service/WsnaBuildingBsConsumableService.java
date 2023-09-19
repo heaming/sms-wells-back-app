@@ -43,7 +43,85 @@ public class WsnaBuildingBsConsumableService {
     private static final String BFSVC_CSMB_DDLV_OJ_CD_BLD = "3";
 
     public List<SearchRes> getBuildingBsConsumables(SearchReq dto) {
-        return null;
+        // 빌딩정보 조회
+        List<WsnaBuildingBsConsumableDvo> bldInfos = mapper.selectBuildings(dto);
+
+        if (!ObjectUtils.isEmpty(bldInfos)) {
+            List<WsnaBuildingBsConsumableDvo> bldAndItemsInfos = new ArrayList<>();
+            Iterator<WsnaBuildingBsConsumableDvo> it = bldInfos.iterator();
+
+            while (it.hasNext()) {
+                WsnaBuildingBsConsumableDvo bftBldInfo = it.next();
+                WsnaBuildingBsConsumableDvo aftBldInfo;
+                List<WsnaBuildingBsConsumableDvo> itemInfos;
+
+                aftBldInfo = bftBldInfo;
+
+                List<String> fxnItemQtys = new ArrayList<>();
+                List<String> aplcItemQtys = new ArrayList<>();
+
+                // 빌딩 별 기등록 품목 수량 조회
+                itemInfos = mapper.selectItemQtys(dto.mngtYm(), bftBldInfo.getBldCd());
+
+                if (CollectionUtils.isEmpty(itemInfos)) {
+                    // 빌딩 별 미등록 품목 계산 수량 조회
+                    itemInfos = mapper.selectItemFirstQtys(dto.mngtYm(), bftBldInfo.getBldCd());
+
+                    String mngtYear = dto.mngtYm().substring(0, 4);
+                    String mngtMonth = "";
+                    mngtMonth = dto.mngtYm().substring(4);
+                    mngtMonth = mngtMonth.startsWith("0") ? " " + mngtMonth.substring(1) : mngtMonth;
+
+                    BizAssert.isTrue(
+                        itemInfos.size() > 0, "MSG_ALT_BFSVC_CSMB_DDLV_BASE",
+                        new String[] {mngtYear, mngtMonth}
+                    );
+
+                    for (WsnaBuildingBsConsumableDvo itemInfo : itemInfos) {
+                        switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
+                            case "1" -> {
+                                fxnItemQtys.add(itemInfo.getFxnDdlvUnitQty());
+                            }
+
+                            case "2" -> {
+                                aplcItemQtys.add(itemInfo.getAplcDdlvUnitQty());
+                            }
+                        }
+                    }
+
+                    aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
+                    aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
+                    aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
+                    bldAndItemsInfos.add(aftBldInfo);
+                } else {
+                    for (WsnaBuildingBsConsumableDvo itemInfo : itemInfos) {
+                        switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
+                            case "1" -> {
+                                fxnItemQtys.add(itemInfo.getBfsvcCsmbDdlvQty());
+                            }
+
+                            case "2" -> {
+                                aplcItemQtys.add(itemInfo.getBfsvcCsmbDdlvQty());
+                            }
+                        }
+                    }
+
+                    aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
+                    aftBldInfo.setBfsvcCsmbDdlvStatCd(itemInfos.get(0).getBfsvcCsmbDdlvStatCd());
+                    aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
+                    aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
+                    bldAndItemsInfos.add(aftBldInfo);
+                }
+            }
+
+            List<SearchRes> rtnDto = converter.mapAllDvoToSearchRes(bldAndItemsInfos);
+
+            return rtnDto;
+        }
+
+        List<SearchRes> rtnDto = converter.mapAllDvoToSearchRes(bldInfos);
+
+        return rtnDto;
     }
 
     public PagingResult<SearchRes> getBuildingBsConsumablePages(SearchReq dto, PageInfo pageInfo) {
