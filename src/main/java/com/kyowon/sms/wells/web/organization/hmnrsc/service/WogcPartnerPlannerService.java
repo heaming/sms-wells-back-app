@@ -117,17 +117,16 @@ public class WogcPartnerPlannerService {
         WogcPartnerPlannerDvo planner = this.converter.mapSaveReqToWogcPartnerPlannerDvo(dto);
 
         //  1/4. 수석플래너신청내역(TB_OGPS_TOPMR_PLAR_APLC_IZ) 생성 (전월 -> 당월)
-        processCount = this.mapper.insertTopPlanner(planner);
+        processCount = this.mapper.insertOneTopPlanner(planner);
 
         //  2/4. 수석플래너신청내역 - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신
-        processCount = this.mapper.updateTopPlanner(planner);
+        processCount = this.mapper.insertTwoTopPlanner(planner);
 
         //  3/4. 월파트너내역(TB_OGBS_MM_PRTNR_IZ) - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신
-        //        processCount = this.mapper.updateMmPartner(planner);
-        //        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        processCount = this.mapper.updateMmPartner(planner);
+
         //  4/4. 파트너상세(TB_OGBS_PRTNR_DTL) - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신
-        //        processCount = this.mapper.updateDtlPartner(planner);
-        //        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        processCount = this.mapper.updateDtlPartner(planner);
 
         return processCount;
     }
@@ -156,11 +155,11 @@ public class WogcPartnerPlannerService {
         int processCount = this.mapper.insertAdTopPlanner(planner); // 1. 수석플래너신청내역 테이블 INSERT
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
 
-        //        processCount = this.mapper.updateAdMmPartner(planner); // 2. 월파트너내역 파트너등급 UPDATE
-        //        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        processCount = this.mapper.updateAdMmPartner(planner); // 2. 월파트너내역 파트너등급 UPDATE
+        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
 
-        //        processCount = this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
-        //        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        processCount = this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
+        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
 
         return processCount;
     }
