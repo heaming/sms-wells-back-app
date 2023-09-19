@@ -142,6 +142,7 @@ public class WdccPrepaymentExpirationDto {
         String prmEndYm, /*선납종료년월*/
         String mmpmYm, /*선납종료익월년월*/
         String prmReAplcYn, /*선납재신청*/
+        String orgPrmReAplcYn, /*선납재신청*/
         String prmEndMm, /* 선납종료월 */
         String pdCd, /*상품코드*/
         String pdNm, /* 상품명 */
