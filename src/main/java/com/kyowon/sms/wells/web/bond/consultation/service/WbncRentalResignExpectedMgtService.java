@@ -61,7 +61,7 @@ public class WbncRentalResignExpectedMgtService {
         return processCount;
     }
 
-    public int checkRentalResignExpectedBaseYm(CheckReq dto) {
+    private int checkRentalResignExpectedBaseYm(CheckReq dto) {
         return this.mapper.selectcheckRentalResignExpectedByReq(dto);
     }
 
@@ -121,7 +121,7 @@ public class WbncRentalResignExpectedMgtService {
             .readExcel(file, new ExcelMetaDvo(1, headerTitle), WbncAuthorityResignIzDvo.class, true);
         List<ExcelUploadErrorDvo> excelUploadErrorDvos = new ArrayList<>();
 
-        int row = 2;
+        //        int row = 2;
         // 엑셀 데이터 검증 and 정규식
         for (WbncAuthorityResignIzDvo dvo : list) {
             // null check

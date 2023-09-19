@@ -23,7 +23,11 @@ public interface WbnaFosterTransferMgtMapper {
 
     List<SearchDetailRes> selectFosterTransferDetails(SearchReq dto);
 
-    int updateFosterTransferToBondContractBase(WbnaBondContractBaseDvo dvo);
+    int deleteBondCounselingBasics(WbnaBondContractBaseDvo dvo);
+
+    int updateBondContractBases(WbnaBondContractBaseDvo dvo);
+
+    int insertBondCounselingBasics(WbnaBondContractBaseDvo dvo);
 
     int insertBondTransferAssignExecutionIz(WbnaBondContractBaseDvo dvo);
 
