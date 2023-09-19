@@ -19,7 +19,7 @@ public interface WbnaFosterTransferMgtMapper {
 
     PagingResult<SearchDetailRes> selectFosterTransferDetails(SearchReq dto, PageInfo pageInfo);
 
-    SearchDetailSummaryRes selectPartTransferDetailsSummary(SearchReq dto);
+    SearchDetailSummaryRes selectFosterTransferDetailsSummary(SearchReq dto);
 
     List<SearchDetailRes> selectFosterTransferDetails(SearchReq dto);
 

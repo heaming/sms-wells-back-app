@@ -55,13 +55,13 @@ public class WbnaFosterTransferMgtController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "bzHdqDvCd", value = "사업부", paramType = "query", required = true),
-        @ApiImplicitParam(name = "clcoCd", value = "추심사코드", paramType = "query"),
+        @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "bndNwDvCd", value = "신규구분", paramType = "query"),
         @ApiImplicitParam(name = "cstNm", value = "고객명", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "cralLocaraTno", value = "휴대지역전화번호", paramType = "query"),
         @ApiImplicitParam(name = "mexnoEncr", value = "휴대전화국번호암호화", paramType = "query"),
-        @ApiImplicitParam(name = "clctamPrtnrNo", value = "집금담당자번호", paramType = "query"),
+        @ApiImplicitParam(name = "cralIdvTno", value = "휴대개별전화번호", paramType = "query"),
     })
     @GetMapping("/detail/paging")
     public PagingResult<SearchDetailRes> getFosterTransferDetails(
@@ -77,8 +77,8 @@ public class WbnaFosterTransferMgtController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "bzHdqDvCd", value = "사업부", paramType = "query", required = true),
+        @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "bndNwDvCd", value = "신규구분", paramType = "query"),
-        @ApiImplicitParam(name = "clcoCd", value = "추심사코드", paramType = "query"),
         @ApiImplicitParam(name = "cstNm", value = "고객명", paramType = "query"),
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
         @ApiImplicitParam(name = "cralLocaraTno", value = "휴대지역전화번호", paramType = "query"),
