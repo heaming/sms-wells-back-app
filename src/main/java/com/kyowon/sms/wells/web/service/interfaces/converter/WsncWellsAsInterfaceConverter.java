@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.interfaces.converter;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniAsSidingChangeInterfaceDvo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
@@ -33,6 +34,6 @@ public interface WsncWellsAsInterfaceConverter {
 
     SearchCustomerInformationRes mapCustomerInformationDvoToRes(WsniCustomerInformationDvo dvo);
 
-    List<SearchAsSidingChangeRes> mapAsSidingChangeDvoToRes(List<WsniAsSidingChangeInterfaceDvo> dvos);
+    //PagingResult<SearchAsSidingChangeRes> mapAsSidingChangeDvoToRes(List<WsniAsSidingChangeInterfaceDvo> dvos);
 
 }

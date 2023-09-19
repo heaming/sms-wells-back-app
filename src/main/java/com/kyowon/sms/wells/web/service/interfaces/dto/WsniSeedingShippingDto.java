@@ -19,7 +19,11 @@ public class WsniSeedingShippingDto {
         @JsonProperty("CNTR_NO")
         String cntrNo, /* 계약번호 */
         @JsonProperty("CNTR_SN")
-        String cntrSn /* 계약일련번호 */
+        String cntrSn, /* 계약일련번호 */
+        @JsonProperty("PAGE_INDEX")
+        int pageIndex,
+        @JsonProperty("PAGE_SIZE")
+        int pageSize
     ) {}
 
     @ApiModel(value = "WsniSeedingShippingDto-SearchRes")
