@@ -49,7 +49,7 @@ public class WbnaFosterTransferMgtService {
     public SearchDetailSummaryRes getPartTransferDetailsSummary(
         SearchReq dto
     ) {
-        return mapper.selectPartTransferDetailsSummary(dto);
+        return mapper.selectFosterTransferDetailsSummary(dto);
     }
 
     @Transactional
