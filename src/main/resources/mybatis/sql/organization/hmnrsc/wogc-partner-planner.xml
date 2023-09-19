@@ -269,52 +269,8 @@
               AND T3.DTA_DL_YN       = 'N'
     </select>
 
-    <!-- 1/4. 수석플래너신청내역(TB_OGPS_TOPMR_PLAR_APLC_IZ) 생성 (전월 -> 당월) -->
-    <insert id="insertTopPlanner">
-        INSERT INTO TB_OGPS_TOPMR_PLAR_APLC_IZ  /* 수석플래너신청내역 */
-        SELECT
-                #{mngtYm} MNGT_YM --관리년월  /* 파라미터 #############################  */
-               ,X1.APLC_SN          --신청일련번호
-               ,X1.OG_TP_CD         --조직유형코드
-               ,X1.PRTNR_NO         --파트너번호
-               ,X1.QLF_DV_CD        --자격구분코드     - 1:수석플래너, 2:웰스플래너
-               ,X1.RFDT             --반영일자
-               ,X1.UPGR_DMTN_DV_CD  --승급강등구분코드 - 1:승급, 2:강등
-               ,X1.UPGR_YM          --승급년월
-               ,X1.DMTN_YM          --강등년월
-               ,X1.CNTR_DT          --계약일자
-               ,X1.CLTN_DT          --해약일자
-               ,X1.RCNTR_DT         --재계약일자
-             --,CASE WHEN X1.UPGR_DMTN_DV_CD = '1' THEN (X1.UPGR_MCN + 1) ELSE X1.UPGR_MCN END UPGR_MCN --승급개월수
-               ,X1.UPGR_MCN + 1                      UPGR_MCN         --승급개월수
-               ,X1.DTA_DL_YN        --데이터삭제여부
-               ,X1.FST_RGST_DTM     --최초등록일시
-               ,X1.FST_RGST_USR_ID  --최초등록사용자ID
-               ,X1.FST_RGST_PRG_ID  --최초등록프로그램ID
-               ,X1.FST_RGST_DEPT_ID --최초등록부서ID
-               ,TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') FNL_MDFC_DTM     --최종수정일시
-               ,#{session.userId}  AS FNL_MDFC_USR_ID      --최종수정사용자ID
-               ,#{session.pageId}  AS FNL_MDFC_PRG_ID      --최종수정프로그램ID
-               ,NVL(#{session.ogId}, 'NULL') AS FNL_MDFC_DEPT_ID --최종수정부서ID
-        FROM /*************/ TB_OGPS_TOPMR_PLAR_APLC_IZ               X1 /* 수석플래너신청내역 */
-             INNER JOIN      ( SELECT   MNGT_YM
-                                      , MAX(APLC_SN) MAX_APLC_SN
-                                      , OG_TP_CD
-                                      , PRTNR_NO
-                               FROM TB_OGPS_TOPMR_PLAR_APLC_IZ /* 수석플래너신청내역 */
-                               WHERE MNGT_YM   = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') /* 파라미터 #############################  */
-                                 AND OG_TP_CD  = 'W01'
-                                 AND DTA_DL_YN = 'N'
-                               GROUP BY MNGT_YM, OG_TP_CD, PRTNR_NO ) X2 /* 수석플래너신청내역(MAX) */
-                ON X1.MNGT_YM  = X2.MNGT_YM
-               AND X1.APLC_SN  = X2.MAX_APLC_SN
-               AND X1.OG_TP_CD = X2.OG_TP_CD
-               AND X1.PRTNR_NO = X2.PRTNR_NO
-        WHERE 1=1
-    </insert>
-
-    <!-- 2/4. 수석플래너신청내역 - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신 -->
-    <update id="updateTopPlanner">
+    <!-- 1/4. 수석플래너신청내역 당월 생성 -->
+    <insert id="insertOneTopPlanner">
          MERGE INTO TB_OGPS_TOPMR_PLAR_APLC_IZ T1 /* 수석플래너신청내역 */
          USING (
             -- 당월재직 기준 P조직(W01) 자격 계산
@@ -470,90 +426,196 @@
                      ,'N'                                   --데이터삭제여부
                      <include refid="COMMON.insertSystemFieldValue" />
                      )
-    </update>
+    </insert>
+
+    <!-- 2/4. 수석플래너신청내역 당월 미 생성자 추가 생성 -->
+    <insert id="insertTwoTopPlanner">
+        MERGE INTO TB_OGPS_TOPMR_PLAR_APLC_IZ T1 /* 수석플래너신청내역 */
+        USING (
+               -- 수석플래너신청내역 당월 미생성자 최종 반영내역
+               SELECT   T1.BASE_YM
+                      , T1.OG_TP_CD
+                      , T1.PRTNR_NO
+                      , T1.QLF_DV_CD                --자격구분코드(당월) - 1:수석플래너, 2:웰스플래너
+                      , T1.CNTR_DT                  --계약일자
+                      , T1.CLTN_DT                  --해약일자
+                      , T1.RCNTR_DT                 --재계약일자
+                      , T3.QLF_DV_CD LAST_QLF_DV_CD --자격구분코드(신청최종) - 1:수석플래너, 2:웰스플래너
+                      , T3.RFDT                     --반영일자
+                      , T3.UPGR_DMTN_DV_CD          --승급강등구분코드 - 1:승급, 2:강등
+                      , T3.UPGR_YM                  --승급년월
+                      , T3.DMTN_YM                  --강등년월
+                      , T3.UPGR_MCN                 --승급개월수
+               FROM TB_OGBS_MM_PRTNR_IZ T1
+                    INNER JOIN      ( /* 수석플래너신청내역 당월 미생성자 필터링 */
+                                      SELECT PRTNR_NO
+                                      FROM TB_OGBS_MM_PRTNR_IZ
+                                      WHERE BASE_YM         = #{mngtYm} /* 파라미터 #############################  */
+                                        AND OG_TP_CD        = 'W01' --조직유형 - P조직
+                                        AND PSTN_DV_CD      = '15'  --직급구분 - 15직급
+                                        AND BZ_STAT_CD      = '1'   --사업상태코드     - 1:사업, 2:해약, 3:휴업
+                                        AND PRR_BIZ_RGST_YN = 'N'   --사전업무등록여부 - N:기존영업부 Y:사전업무등록자
+                                        AND DTA_DL_YN       = 'N'
+                                      MINUS
+                                      SELECT PRTNR_NO
+                                      FROM TB_OGPS_TOPMR_PLAR_APLC_IZ /* 수석플래너신청내역 */
+                                      WHERE MNGT_YM   = #{mngtYm} /* 파라미터 #############################  */
+                                        AND DTA_DL_YN = 'N'
+                                      GROUP BY MNGT_YM, OG_TP_CD, PRTNR_NO
+                                    )  T2
+                    ON T2.PRTNR_NO    = T1.PRTNR_NO
+                    LEFT OUTER JOIN ( /* 수석플래너신청내역 파트너별 최종 이력 */
+                                      SELECT  X9.MNGT_YM
+                                             ,X9.PRTNR_NO
+                                             ,X9.QLF_DV_CD        --자격구분코드 - 1:수석플래너, 2:웰스플래너
+                                             ,X9.RFDT             --반영일자
+                                             ,X9.UPGR_DMTN_DV_CD  --승급강등구분코드 - 1:승급, 2:강등
+                                             ,X9.UPGR_YM          --승급년월
+                                             ,X9.DMTN_YM          --강등년월
+                                             ,X9.UPGR_MCN         --승급개월수
+                                      FROM TB_OGPS_TOPMR_PLAR_APLC_IZ X9 /* 수석플래너신청내역 */
+                                           INNER JOIN (
+                                                        SELECT  X1.PRTNR_NO
+                                                               ,X2.OG_TP_CD
+                                                               ,X2.MAX_MNGT_YM
+                                                               ,MAX(X1.APLC_SN) MAX_APLC_SN
+                                                        FROM TB_OGPS_TOPMR_PLAR_APLC_IZ X1 /* 수석플래너신청내역 */
+                                                             INNER JOIN (
+                                                                         SELECT OG_TP_CD, PRTNR_NO, MAX(MNGT_YM) MAX_MNGT_YM
+                                                                         FROM TB_OGPS_TOPMR_PLAR_APLC_IZ /* 수석플래너신청내역 */
+                                                                         WHERE MNGT_YM   <![CDATA[<]]> #{mngtYm} /* 파라미터 #############################  */
+                                                                         AND RFDT       IS NOT NULL
+                                                                         GROUP BY OG_TP_CD, PRTNR_NO
+                                                                        ) X2
+                                                              ON X1.MNGT_YM  = X2.MAX_MNGT_YM
+                                                             AND X1.OG_TP_CD = X2.OG_TP_CD
+                                                             AND X1.PRTNR_NO = X2.PRTNR_NO
+                                                        GROUP BY X1.PRTNR_NO
+                                                                ,X2.OG_TP_CD
+                                                                ,X2.MAX_MNGT_YM
+                                                      ) X3
+                                            ON X9.MNGT_YM  = X3.MAX_MNGT_YM
+                                           AND X9.APLC_SN  = X3.MAX_APLC_SN
+                                           AND X9.OG_TP_CD = X3.OG_TP_CD
+                                           AND X9.PRTNR_NO = X3.PRTNR_NO
+                                    )  T3
+                    ON T3.PRTNR_NO    = T1.PRTNR_NO
+               WHERE T1.BASE_YM         = #{mngtYm} /* 파라미터 #############################  */
+                 AND T1.OG_TP_CD        = 'W01' --조직유형 - P조직
+                 AND T1.PSTN_DV_CD      = '15'  --직급구분 - 15직급
+                 AND T1.BZ_STAT_CD      = '1'   --사업상태코드     - 1:사업, 2:해약, 3:휴업
+                 AND T1.PRR_BIZ_RGST_YN = 'N'   --사전업무등록여부 - N:기존영업부 Y:사전업무등록자
+                 AND T1.DTA_DL_YN       = 'N'
+            ) QLF_DV
+            ON (
+                  T1.MNGT_YM   = #{mngtYm} /* 파라미터 #############################  */
+              AND T1.APLC_SN   = 1
+              AND T1.OG_TP_CD  = QLF_DV.OG_TP_CD  --조직유형코드
+              AND T1.PRTNR_NO  = QLF_DV.PRTNR_NO  --파트너번호
+              AND T1.DTA_DL_YN = 'N'
+            )
+            WHEN NOT MATCHED THEN
+               INSERT (  MNGT_YM          --관리년월
+                        ,APLC_SN          --신청일련번호
+                        ,OG_TP_CD         --조직유형코드
+                        ,PRTNR_NO         --파트너번호
+                        ,QLF_DV_CD        --자격구분코드     - 1:수석플래너, 2:웰스플래너
+                        ,RFDT             --반영일자
+                        ,UPGR_DMTN_DV_CD  --승급강등구분코드 - 1:승급, 2:강등
+                        ,UPGR_YM          --승급년월
+                        ,DMTN_YM          --강등년월
+                        ,CNTR_DT          --계약일자
+                        ,CLTN_DT          --해약일자
+                        ,RCNTR_DT         --재계약일자
+                        ,UPGR_MCN         --승급개월수
+                        ,DTA_DL_YN        --데이터삭제여부
+                        <include refid="COMMON.insertSystemField"/>
+                      )
+               VALUES (  #{mngtYm} /* 파라미터 #############################  */
+                        ,1                                     --신청일련번호
+                        ,QLF_DV.OG_TP_CD                       --조직유형코드
+                        ,QLF_DV.PRTNR_NO                       --파트너번호
+                        ,QLF_DV.QLF_DV_CD                      --자격구분코드(당월)
+                        ,QLF_DV.RFDT                           --반영일자
+                        ,CASE WHEN (QLF_DV.QLF_DV_CD = QLF_DV.LAST_QLF_DV_CD)
+                              THEN QLF_DV.UPGR_DMTN_DV_CD
+                              ELSE ''
+                         END                                   --승급강등구분코드 - 1:승급, 2:강등
+                        ,CASE WHEN (QLF_DV.QLF_DV_CD = QLF_DV.LAST_QLF_DV_CD)
+                              THEN QLF_DV.UPGR_YM
+                              ELSE ''
+                         END                                   --승급년월
+                        ,CASE WHEN (QLF_DV.QLF_DV_CD = QLF_DV.LAST_QLF_DV_CD)
+                              THEN QLF_DV.DMTN_YM
+                              ELSE ''
+                         END --강등년월
+                        ,QLF_DV.CNTR_DT                        --계약일자
+                        ,QLF_DV.CLTN_DT                        --해약일자
+                        ,QLF_DV.RCNTR_DT                       --재계약일자
+                        ,CASE WHEN (QLF_DV.QLF_DV_CD = QLF_DV.LAST_QLF_DV_CD) AND (QLF_DV.UPGR_DMTN_DV_CD = '1') AND (QLF_DV.UPGR_YM IS NOT NULL)
+                              THEN NVL(QLF_DV.UPGR_MCN, 0) + (MONTHS_BETWEEN(TO_DATE(#{mngtYm},'YYYYMM'), TO_DATE(QLF_DV.UPGR_YM,'YYYYMM')))
+                              ELSE 0
+                         END                                   --승급개월수
+                        ,'N'                                   --데이터삭제여부
+                        <include refid="COMMON.insertSystemFieldValue" />
+                       )
+
+    </insert>
 
     <!-- 3/4. 월파트너내역(TB_OGBS_MM_PRTNR_IZ) - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신 -->
     <update id="updateMmPartner">
-         UPDATE TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역 */
-         SET  T1.QLF_DV_CD        = ( SELECT T2.QLF_DV_CD
-                                      FROM ( SELECT X1.MNGT_YM, X1.OG_TP_CD, X1.PRTNR_NO, X1.QLF_DV_CD
-                                             FROM /*************/ TB_OGPS_TOPMR_PLAR_APLC_IZ               X1 /* 수석플래너신청내역 */
-                                                  INNER JOIN      ( SELECT MNGT_YM, MAX(APLC_SN) MAX_APLC_SN, OG_TP_CD, PRTNR_NO
-                                                                    FROM TB_OGPS_TOPMR_PLAR_APLC_IZ /* 수석플래너신청내역 */
-                                                                    WHERE MNGT_YM   = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') /* 파라미터 #############################  */
-                                                                      AND DTA_DL_YN = 'N'
-                                                                    GROUP BY MNGT_YM, OG_TP_CD, PRTNR_NO ) X2 /* 수석플래너신청내역(MAX) */
-                                                     ON X1.MNGT_YM  = X2.MNGT_YM
-                                                    AND X1.APLC_SN  = X2.MAX_APLC_SN
-                                                    AND X1.OG_TP_CD = X2.OG_TP_CD
-                                                    AND X1.PRTNR_NO = X2.PRTNR_NO
-                                             WHERE 1=1 ) T2
-                                      WHERE T2.MNGT_YM  = T1.BASE_YM
-                                        AND T2.OG_TP_CD = T1.OG_TP_CD
-                                        AND T2.PRTNR_NO = T1.PRTNR_NO  ) --자격구분코드
-             ,T1.FNL_MDFC_DTM     = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') --최종수정일시
-             ,T1.FNL_MDFC_USR_ID  = #{session.userId}                              --최종수정사용자ID
-             ,T1.FNL_MDFC_PRG_ID  = #{session.pageId}                          --최종수정프로그램ID
-             ,T1.FNL_MDFC_DEPT_ID = NVL(#{session.ogId}, 'NULL')                     --최종수정부서ID
-         WHERE T1.BASE_YM   = #{mngtYm} --관리년월  /* 파라미터 #############################  */
-           AND T1.OG_TP_CD  = 'W01'    --조직유형코드
-           AND T1.PRTNR_NO IN ( SELECT X1.PRTNR_NO
-                                FROM /*************/ TB_OGPS_TOPMR_PLAR_APLC_IZ               X1 /* 수석플래너신청내역 */
-                                     INNER JOIN      ( SELECT MNGT_YM, MAX(APLC_SN) MAX_APLC_SN, OG_TP_CD, PRTNR_NO
-                                                       FROM TB_OGPS_TOPMR_PLAR_APLC_IZ /* 수석플래너신청내역 */
-                                                       WHERE MNGT_YM   = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') /* 파라미터 #############################  */
-                                                         AND DTA_DL_YN = 'N'
-                                                       GROUP BY MNGT_YM, OG_TP_CD, PRTNR_NO ) X2 /* 수석플래너신청내역(MAX) */
-                                        ON X1.MNGT_YM  = X2.MNGT_YM
-                                       AND X1.APLC_SN  = X2.MAX_APLC_SN
-                                       AND X1.OG_TP_CD = X2.OG_TP_CD
-                                       AND X1.PRTNR_NO = X2.PRTNR_NO
-                                WHERE 1=1  )
+         MERGE INTO TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역 */
+         USING (
+            -- 수석플래너신청내역 당월 미생성자 최종 반영내역
+           SELECT MNGT_YM
+                , OG_TP_CD
+         	    , PRTNR_NO
+         		, QLF_DV_CD                --자격구분코드(당월) - 1:수석플래너, 2:웰스플래너
+            FROM TB_OGPS_TOPMR_PLAR_APLC_IZ /* 수석플래너신청내역 */
+            WHERE MNGT_YM    = #{mngtYm} /* 파라미터 #############################  */
+              AND OG_TP_CD   = 'W01' --조직유형 - P조직
+         	  AND RFDT       = TO_CHAR(SYSDATE, 'YYYYMMDD')
+         	  AND DTA_DL_YN  = 'N'
+         ) QLF_DV
+         ON (
+               T1.BASE_YM   = QLF_DV.MNGT_YM
+           AND T1.OG_TP_CD  = QLF_DV.OG_TP_CD  --조직유형코드
+           AND T1.PRTNR_NO  = QLF_DV.PRTNR_NO  --파트너번호
            AND T1.DTA_DL_YN = 'N'
+         )
+         WHEN MATCHED THEN
+            UPDATE SET  T1.QLF_DV_CD        = QLF_DV.QLF_DV_CD
+                       ,T1.FNL_MDFC_DTM     = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                       ,T1.FNL_MDFC_USR_ID  = #{session.userId}
+                       ,T1.FNL_MDFC_PRG_ID  = #{session.pageId}
+                       ,T1.FNL_MDFC_DEPT_ID = NVL(#{session.ogId}, 'NULL')
     </update>
 
     <!-- 4/4. 파트너상세(TB_OGBS_PRTNR_DTL) - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신 -->
     <update id="updateDtlPartner">
-         UPDATE TB_OGBS_PRTNR_DTL T1 /* 파트너상세 */
-         SET  T1.QLF_DV_CD      = ( SELECT T2.QLF_DV_CD
-                                      FROM ( SELECT X1.OG_TP_CD, X1.PRTNR_NO, X1.QLF_DV_CD
-                                             FROM /*************/ TB_OGPS_TOPMR_PLAR_APLC_IZ               X1 /* 수석플래너신청내역 */
-                                                  INNER JOIN      ( SELECT   MNGT_YM
-                                                                           , MAX(APLC_SN) MAX_APLC_SN
-                                                                           , OG_TP_CD
-                                                                           , PRTNR_NO
-                                                                    FROM TB_OGPS_TOPMR_PLAR_APLC_IZ /* 수석플래너신청내역 */
-                                                                    WHERE MNGT_YM   = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') /* 파라미터 #############################  */
-                                                                      AND DTA_DL_YN = 'N'
-                                                                    GROUP BY MNGT_YM, OG_TP_CD, PRTNR_NO ) X2 /* 수석플래너신청내역(MAX) */
-                                                     ON X1.MNGT_YM  = X2.MNGT_YM
-                                                    AND X1.APLC_SN  = X2.MAX_APLC_SN
-                                                    AND X1.OG_TP_CD = X2.OG_TP_CD
-                                                    AND X1.PRTNR_NO = X2.PRTNR_NO
-                                             WHERE 1=1 ) T2
-                                      WHERE T2.OG_TP_CD = T1.OG_TP_CD
-                                        AND T2.PRTNR_NO = T1.PRTNR_NO  ) --자격구분코드
-             ,T1.FNL_MDFC_DTM     = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') --최종수정일시
-             ,T1.FNL_MDFC_USR_ID  = #{session.userId}                          --최종수정사용자ID
-             ,T1.FNL_MDFC_PRG_ID  = #{session.pageId}                          --최종수정프로그램ID
-             ,T1.FNL_MDFC_DEPT_ID = NVL(#{session.ogId}, 'NULL')               --최종수정부서ID
-         WHERE T1.OG_TP_CD   = 'W01'    --조직유형코드
-           AND T1.PRTNR_NO  IN ( SELECT X1.PRTNR_NO
-                                 FROM /*************/ TB_OGPS_TOPMR_PLAR_APLC_IZ               X1 /* 수석플래너신청내역 */
-                                      INNER JOIN      ( SELECT   MNGT_YM
-                                                               , MAX(APLC_SN) MAX_APLC_SN
-                                                               , OG_TP_CD
-                                                               , PRTNR_NO
-                                                        FROM TB_OGPS_TOPMR_PLAR_APLC_IZ /* 수석플래너신청내역 */
-                                                        WHERE MNGT_YM   = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') /* 파라미터 #############################  */
-                                                          AND DTA_DL_YN = 'N'
-                                                        GROUP BY MNGT_YM, OG_TP_CD, PRTNR_NO ) X2 /* 수석플래너신청내역(MAX) */
-                                         ON X1.MNGT_YM  = X2.MNGT_YM
-                                        AND X1.APLC_SN  = X2.MAX_APLC_SN
-                                        AND X1.OG_TP_CD = X2.OG_TP_CD
-                                        AND X1.PRTNR_NO = X2.PRTNR_NO
-                                 WHERE 1=1  )
-           AND T1.DTA_DL_YN  = 'N'
+         MERGE INTO TB_OGBS_PRTNR_DTL T1 /* 파트너상세 */
+         USING (
+            -- 수석플래너신청내역 당월 미생성자 최종 반영내역
+            SELECT  OG_TP_CD
+         		  , PRTNR_NO
+         		  , QLF_DV_CD                --자격구분코드(당월) - 1:수석플래너, 2:웰스플래너
+            FROM TB_OGPS_TOPMR_PLAR_APLC_IZ /* 수석플래너신청내역 */
+            WHERE MNGT_YM    = #{mngtYm} /* 파라미터 #############################  */
+              AND OG_TP_CD   = 'W01' --조직유형 - P조직
+         	  AND RFDT       = TO_CHAR(SYSDATE, 'YYYYMMDD')
+         	  AND DTA_DL_YN  = 'N'
+         ) QLF_DV
+         ON (
+               T1.OG_TP_CD  = QLF_DV.OG_TP_CD  --조직유형코드
+           AND T1.PRTNR_NO  = QLF_DV.PRTNR_NO  --파트너번호
+           AND T1.DTA_DL_YN = 'N'
+         )
+         WHEN MATCHED THEN
+            UPDATE SET  T1.QLF_DV_CD        = QLF_DV.QLF_DV_CD
+                       ,T1.FNL_MDFC_DTM     = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                       ,T1.FNL_MDFC_USR_ID  = #{session.userId}
+                       ,T1.FNL_MDFC_PRG_ID  = #{session.pageId}
+                       ,T1.FNL_MDFC_DEPT_ID = NVL(#{session.ogId}, 'NULL')
     </update>
 
     <!--상세보기-->
@@ -626,7 +688,7 @@
                   , #{ogTpCd}
                   , #{prtnrNo}
                   , #{qlfDvCd}
-                  , #{rfdt}
+                  , TO_CHAR(SYSDATE, 'YYYYMMDD')
                   , #{upgrDmtnDvCd}
                   , #{upgrYm}
                   , #{dmtnYm}
