@@ -54,6 +54,7 @@ public class WogcPartnerPlannerDto {
     public record SearchLicenseDetailRes(
         String ogTpCd,
         String prtnrNo,
+        String ogId,
         String qlfDvCd,
         String qlfDvNm,
         String qlfAplcDvCd,
