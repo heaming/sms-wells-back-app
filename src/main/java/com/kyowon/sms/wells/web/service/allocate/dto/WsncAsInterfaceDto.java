@@ -276,7 +276,11 @@ public class WsncAsInterfaceDto {
         @JsonProperty(value = "SV_BIZ_DCLSF_CD")
         String svBizDclsfCd,
         @JsonProperty(value = "SV_BIZ_DCLSF_NM")
-        String svBizDclsfNm
+        String svBizDclsfNm,
+        @JsonProperty(value = "ITEM_NM")
+        String itemNm,
+        @JsonProperty(value = "ITEM_DESC")
+        String itemDesc
     ) {}
 
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchCustomerInformationReq")
