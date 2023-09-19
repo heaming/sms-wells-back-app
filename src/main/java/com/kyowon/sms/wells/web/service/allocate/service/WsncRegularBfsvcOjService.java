@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
 import com.kyowon.sflex.common.common.service.BatchCallService;
@@ -54,7 +53,7 @@ public class WsncRegularBfsvcOjService {
         return 1;
     }
 
-    @Transactional
+    @LongTransactional
     public int createRegularBfsvcOj(WsncRegularBfsvcOjDvo dvo) throws Exception {
 
         switch (dvo.getCreateTarget()) {
@@ -75,7 +74,6 @@ public class WsncRegularBfsvcOjService {
         return 1;
     }
 
-    @LongTransactional
     public int createRegularBfsvcOj(Map<String, Object> param) throws Exception {
         WsncRegularBfsvcOjDvo dvo = new WsncRegularBfsvcOjDvo();
         dvo.setAsnOjYm(StringUtil.nvl(param.get("PARAM1")));
