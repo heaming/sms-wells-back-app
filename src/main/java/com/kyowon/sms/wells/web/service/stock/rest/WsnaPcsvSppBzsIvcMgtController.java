@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/pcsv-spp-bzs-out-of-storage")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/pcsv-spp-bzs-ivc")
 public class WsnaPcsvSppBzsIvcMgtController {
 
     private final WsnaPcsvSppBzsIvcMgtService service;
