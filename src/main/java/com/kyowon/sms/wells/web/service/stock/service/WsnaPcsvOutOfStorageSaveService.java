@@ -14,6 +14,8 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvOutOfStorageMgtDto.Sav
 import com.kyowon.sms.wells.web.service.stock.dvo.*;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvOutOfStorageSaveMapper;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvSendDtlMapper;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto;
+import com.kyowon.sms.wells.web.service.visit.service.WsnbIndividualVisitPrdService;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -28,20 +30,22 @@ public class WsnaPcsvOutOfStorageSaveService {
 
     private final WsnaPcsvOutOfStorageSaveMapper mapper;
 
+    private final WsnaPcsvSendDtlMapper sendDtlMapper;
+
     private final WsnaPcsvOutOfStorageSaveConverter converter;
 
     private final MessageResourceService messageResourceService;
 
     private final WsnaItemStockItemizationService itemStockService;
 
-    private final WctaInstallationReqdDtInService installationReqdDtInService;
-
     private final WsnaLogisticsOutStorageAskService logisticsOutStorageAskService;
 
-    private final WsnaPcsvSendDtlMapper sendDtlMapper;
+    private final WctaInstallationReqdDtInService installationReqdDtInService;
+
+    private final WsnbIndividualVisitPrdService visitPrdService;
 
     @Transactional
-    public int savePcsvOutOfStorages(List<SaveReq> dtos) {
+    public int savePcsvOutOfStorages(List<SaveReq> dtos) throws Exception {
         int processCount = 0;
 
         List<WsnaLogisticsOutStorageAskReqDvo> logisticDvos = new ArrayList<>();
@@ -101,15 +105,22 @@ public class WsnaPcsvOutOfStorageSaveService {
                 }
 
                 // 9.출고 확정시 일자(설치일자,배송예정일자) 현재날짜 지정 (판매시스템 연계)
-                String istDt = DateUtil.getNowDayString();
-                String sppDueDt = DateUtil.getNowDayString();
-                int result = installationReqdDtInService
-                    .saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), istDt, "", sppDueDt);
+                String sppDueDt = DateUtil.getNowDayString(); // 배송예정일자
+                dvo.setIstDt(DateUtil.getNowDayString()); // 설치일자
+
+                String cntrNo = dvo.getCntrNo();
+                String cntrSn = dvo.getCntrSn();
+                String istDt = dvo.getIstDt();
+
+                int result = installationReqdDtInService.saveInstallReqdDt(cntrNo, cntrSn, istDt, "", sppDueDt);
                 if (result > 0) {
                     mapper.updateSvpdCstSvExcnIz(dvo);
                 }
 
-                // 10.물류 인터페이스 연동
+                // 10.BS주기표 생성
+                this.visitPrdService.processVisitPeriodRegen(this.setWsnbVisitPrdProcessReq(cntrNo, cntrSn, istDt));
+
+                // 11.물류 인터페이스 연동
                 if (ObjectUtils.isNotEmpty(logisticDvos)) {
                     logisticsOutStorageAskService.createSelfFilterOutOfStorageAsks(logisticDvos);
                 }
@@ -224,8 +235,8 @@ public class WsnaPcsvOutOfStorageSaveService {
         sendDtlDvo.setLgstSppMthdCd("2");
         sendDtlDvo.setItmGdCd("A");
 
-        // 창고정보 파라미터 세팅
-        sendDtlDvo.setOstrOjWareNo(vo.getWkWareNo());
+        // 창고정보  세팅
+        sendDtlDvo.setOstrOjWareNo("100002");
         sendDtlDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
         sendDtlDvo.setWareMngtPrtnrOgTpCd(vo.getWareMngtPrtnrOgTpCd());
 
@@ -291,6 +302,23 @@ public class WsnaPcsvOutOfStorageSaveService {
 
         return reqDvo;
 
+    }
+
+    /* BS 주기표  */
+    private WsnbIndividualVisitPrdDto.SearchProcessReq setWsnbVisitPrdProcessReq(
+        String cntrNo, String cntrSn, String istDt
+    ) {
+        WsnbIndividualVisitPrdDto.SearchProcessReq visitDto = new WsnbIndividualVisitPrdDto.SearchProcessReq(
+            cntrNo,
+            cntrSn,
+            "",
+            "",
+            DateUtil.getNowDayString(),
+            istDt,
+            "",
+            ""
+        );
+        return visitDto;
     }
 
 }

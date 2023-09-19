@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.kyowon.sms.common.web.bond.zcommon.constants.BnBondConst;
+import com.sds.sflex.common.docs.service.AttachFileService;
+import com.sds.sflex.system.config.core.util.IDGenUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 
 @Slf4j
 @Service
@@ -38,6 +42,7 @@ public class WwdbRefundApplicationService {
     private final WwdbRefundApplicationConverter converter;
     private final ExcelReadService excelReadService;
     private final MessageResourceService messageService;
+    private final AttachFileService attachFileService;
 
     private final ZwdaAutoTransferRealTimeAccountService acService;
     private final ZwdbRefundApplicationService zwdbRefundApplicationService;
@@ -210,16 +215,43 @@ public class WwdbRefundApplicationService {
             }
 
             switch (list.rowState()) {
-                case CommConst.ROW_STATE_CREATED -> {
+                case CommConst.ROW_STATE_CREATED:
+                case CommConst.ROW_STATE_UPDATED:
+
+
                     processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세
-                }
-                case CommConst.ROW_STATE_UPDATED -> {
-                    processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세 수정
-                }
-                case CommConst.ROW_STATE_DELETED -> {
+                    if (!CollectionUtils.isEmpty(list.attachFiles())) {
+                        String apnFileId = IDGenUtil.getUUID("WDB");
+                        bltfDvo.setRfndEvidMtrFileId(apnFileId);
+                        
+                        attachFileService
+                            .saveAttachFiles("ATG_WDB_RFND_FILE", apnFileId, list.attachFiles());
+                    }
+                    break;
+                case CommConst.ROW_STATE_DELETED:
                     processCount += mapper.deleteBalanceTempSaveDetail(bltfDvo);
-                }
+                    break;
             }
+
+
+//            switch (list.rowState()) {
+//                case CommConst.ROW_STATE_CREATED,
+//                    case CommConst.ROW_STATE_UPDATED-> {
+//                    //첨부파일 정보 저장
+//                    if (!CollectionUtils.isEmpty(list.attachFiles())) {
+//                        attachFileService
+//                            .saveAttachFiles(BnBondConst.ATTACH_GROUP_ID_PRP, bltfDvo.getRfndEvidMtrFileId(), list.attachFiles());
+//                    }
+//
+//                    processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세
+//                }
+//                case CommConst.ROW_STATE_UPDATED -> {
+//                    processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세 수정
+//                }
+//                case CommConst.ROW_STATE_DELETED -> {
+//                    processCount += mapper.deleteBalanceTempSaveDetail(bltfDvo);
+//                }
+//            }
         }
         return processCount;
     }
