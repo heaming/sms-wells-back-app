@@ -252,14 +252,29 @@
          ORDER BY T1.FST_RGST_DTM DESC
     </select>
 
-    <update id="updateFosterTransferToBondContractBase">
+    <delete id="deleteBondCounselingBasics">
+        DELETE
+          FROM TB_CBBO_BND_CNSL_BAS_IZ
+         WHERE 1 = 1
+           AND BASE_YM = #{baseYm}-1            /* 기준년월 - 1 */
+           AND BZ_HDQ_DV_CD = #{bzHdqDvCd}      /* 사업본부구분코드 */
+        <if test="@MybatisUtils@equals(clctamDvCd,'11')">
+           AND BND_CNTR_TP_CD = '04'	        /* 채권계약유형코드 : 04.TF */
+           AND CLCTAM_DV_CD = #{clctamDvCd}     /* 집금구분코드 : 11.TF */
+        </if>
+    </delete>
+    <update id="updateBondContractBases">
         UPDATE TB_CBBO_BND_CNTR_BAS T1
            SET CLCO_TF_DT = TO_CHAR(SYSDATE, 'YYYYMMDD') /* 추심사이관일자 = 현재일 */
              , BND_ASN_STAT_CD = '11'                    /* 채권배정상태코드 = TF */
-         WHERE T1.BASE_YM = #{baseYm}
+        <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND T1.BASE_YM = #{baseYm}
            AND T1.BZ_HDQ_DV_CD = #{bzHdqDvCd}
            AND T1.CLCTAM_DV_CD = #{clctamDvCd}		/* 집금구분코드 : 09.위탁, 11.TF */
+           <if test="@MybatisUtils@equals(clctamDvCd,'11')">
            AND T1.BND_CLCTN_PRP_DV_CD = '08'	    /* 채권추심속성구분코드 : 08.TF */
+           </if>
            <if test="@MybatisUtils@isNotEmpty(bndNwDvCd)">
            AND T1.BND_NW_DV_CD = #{bndNwDvCd}                    /* 신규구분 */
            </if>
@@ -276,6 +291,134 @@
            AND T1.CRAL_IDV_TNO = #{cralIdvTno}                   /* 휴대개별전화번호 */
            </if>
            AND T1.DTA_DL_YN = 'N'
+    </update>
+
+    <update id="insertBondCounselingBasics">
+        MERGE INTO TB_CBBO_BND_CNSL_BAS_IZ T1  /* 채권상담기본내역 */
+             USING ( SELECT (TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDhh24miss')||LPAD((ROWNUM), 6, '0')) AS BND_CNSL_BAS_ID
+                          , BASE_YM
+                          , CASE WHEN CLCTAM_DV_CD = '09' THEN '03'  /* 위탁 */
+                                 WHEN CLCTAM_DV_CD = '11' THEN '04'  /* TF */
+                                 ELSE '01'                           /* 연체 */
+                             END AS BND_CNTR_TP_CD
+                          , BND_BIZ_DV_CD
+                          , BZ_HDQ_DV_CD
+                          , CASE WHEN #{bzHdqDvCd} = '10'
+                                 THEN '1200'
+                                 WHEN #{bzHdqDvCd} = '20'
+                                 THEN '2000'
+                                  END AS KW_GRP_CO_CD /*교원그룹회사코드(교원-EDU,교원프라퍼티-WELLS)*/
+                          , BND_TF_DT
+                          , BND_ASN_DT
+                          , CLCTAM_DV_CD
+                          , (SELECT OG_TP_CD FROM TB_CBBO_CLCTAM_PRTNR_DTL WHERE PRTNR_NO = CLCTAM_PRTNR_NO AND DTA_DL_YN = 'N' ) AS CLCTAM_OG_TP_CD
+                          , CLCTAM_PRTNR_NO
+                          , CST_NO
+                          , CNTR_NO
+                          , CNTR_SN
+                          , (SELECT OG_TP_CD FROM TB_CBBO_CLCTAM_PRTNR_DTL WHERE PRTNR_NO = CLCTN_OJ_PRTNR_NO AND DTA_DL_YN = 'N' ) AS CLCTN_OJ_OG_TP_CD
+                          , CLCTN_OJ_PRTNR_NO
+                          , '01' AS CLCO_CD
+                          , #{trfDt} AS CLCO_TF_DT
+                          , 'N' AS CINF_AK_STAT_YN /*신용정보요청상태여부(초기값 N)*/
+                          , 'N' AS DTA_DL_YN
+                       FROM TB_CBBO_BND_CNTR_BAS
+                      WHERE 1 = 1
+                        AND BASE_YM = #{baseYm}
+                        AND BZ_HDQ_DV_CD = #{bzHdqDvCd}
+                        AND CLCTAM_DV_CD = #{clctamDvCd}		/* 집금구분코드 : 09.위탁, 11.TF */
+                        <if test="@MybatisUtils@equals(clctamDvCd,'09')">
+                        AND BND_CLCTN_PRP_DV_CD = '03'	    /* 채권추심속성구분코드 : 03.위탁이관 */
+                        </if>
+                        <if test="@MybatisUtils@equals(clctamDvCd,'11')">
+                        AND BND_CLCTN_PRP_DV_CD = '08'	    /* 채권추심속성구분코드 : 08.TF */
+                        </if>
+                        <if test="@MybatisUtils@isNotEmpty(bndNwDvCd)">
+                        AND BND_NW_DV_CD = #{bndNwDvCd}                    /* 신규구분 */
+                        </if>
+                        <if test="@MybatisUtils@isNotEmpty(cstNo)">
+                        AND CST_NO = #{cstNo}                              /* 고객번호 */
+                        </if>
+                        <if test="@MybatisUtils@isNotEmpty(cstNm)">
+                        AND CST_NM = #{cstNm}                              /* 고객명 */
+                        </if>
+                        <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
+                        AND CRAL_LOCARA_TNO = #{cralLocaraTno}             /* 휴대지역전화번호 */
+                        </if>
+                        <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
+                        AND MEXNO_ENCR = #{mexnoEncr}                      /* 휴대전화국번호암호화 */
+                        </if>
+                        <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
+                        AND CRAL_IDV_TNO = #{cralIdvTno}                   /* 휴대개별전화번호 */
+                        </if>
+                        AND DTA_DL_YN = 'N' ) T2
+                ON (T1.BASE_YM = T2.BASE_YM
+                AND T1.CNTR_NO = T2.CNTR_NO
+                AND T1.CNTR_SN = T2.CNTR_SN
+                   )
+        WHEN MATCHED THEN
+          UPDATE SET T1.BND_CNTR_TP_CD = T2.BND_CNTR_TP_CD
+                   , T1.BND_BIZ_DV_CD = T2.BND_BIZ_DV_CD
+                   , T1.BZ_HDQ_DV_CD = T2.BZ_HDQ_DV_CD
+                   , T1.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
+                   , T1.BND_TF_DT = T2.BND_TF_DT
+                   , T1.BND_ASN_DT = T2.BND_ASN_DT
+                   , T1.CLCTAM_DV_CD = T2.CLCTAM_DV_CD
+                   , T1.CLCTAM_OG_TP_CD = T2.CLCTAM_OG_TP_CD
+                   , T1.CLCTAM_PRTNR_NO = T2.CLCTAM_PRTNR_NO
+                   , T1.CST_NO = T2.CST_NO
+                   , T1.CLCTN_OJ_OG_TP_CD = T2.CLCTN_OJ_OG_TP_CD
+                   , T1.CLCTN_OJ_PRTNR_NO = T2.CLCTN_OJ_PRTNR_NO
+                   , T1.CLCO_CD = T2.CLCO_CD
+                   , T1.CLCO_TF_DT = T2.CLCO_TF_DT
+                   , T1.CINF_AK_STAT_YN = T2.CINF_AK_STAT_YN
+                   , T1.DTA_DL_YN = T2.DTA_DL_YN
+                <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+          INSERT (
+                     T1.BND_CNSL_BAS_ID
+                   , T1.BASE_YM
+                   , T1.BND_CNTR_TP_CD
+                   , T1.BND_BIZ_DV_CD
+                   , T1.BZ_HDQ_DV_CD
+                   , T1.KW_GRP_CO_CD
+                   , T1.BND_TF_DT
+                   , T1.BND_ASN_DT
+                   , T1.CLCTAM_DV_CD
+                   , T1.CLCTAM_OG_TP_CD
+                   , T1.CLCTAM_PRTNR_NO
+                   , T1.CST_NO
+                   , T1.CNTR_NO
+                   , T1.CNTR_SN
+                   , T1.CLCTN_OJ_OG_TP_CD
+                   , T1.CLCTN_OJ_PRTNR_NO
+                   , T1.CLCO_CD
+                   , T1.CLCO_TF_DT
+                   , T1.CINF_AK_STAT_YN
+                   , T1.DTA_DL_YN
+                <include refid="COMMON.insertSystemField" />
+          ) VALUES (
+                     T2.BND_CNSL_BAS_ID
+                   , T2.BASE_YM
+                   , T2.BND_CNTR_TP_CD
+                   , T2.BND_BIZ_DV_CD
+                   , T2.BZ_HDQ_DV_CD
+                   , T2.KW_GRP_CO_CD
+                   , T2.BND_TF_DT
+                   , T2.BND_ASN_DT
+                   , T2.CLCTAM_DV_CD
+                   , T2.CLCTAM_OG_TP_CD
+                   , T2.CLCTAM_PRTNR_NO
+                   , T2.CST_NO
+                   , T2.CNTR_NO
+                   , T2.CNTR_SN
+                   , T2.CLCTN_OJ_OG_TP_CD
+                   , T2.CLCTN_OJ_PRTNR_NO
+                   , T2.CLCO_CD
+                   , T2.CLCO_TF_DT
+                   , T2.CINF_AK_STAT_YN
+                   , T2.DTA_DL_YN
+                <include refid="COMMON.insertSystemFieldValue" />  )
     </update>
 
     <insert id="insertBondTransferAssignExecutionIz">
