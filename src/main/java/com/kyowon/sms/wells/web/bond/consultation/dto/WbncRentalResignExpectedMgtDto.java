@@ -119,7 +119,9 @@ public class WbncRentalResignExpectedMgtDto {
     @ApiModel("WbncRentalResignExpectedMgtDto-CheckReq")
     public record CheckReq(
         @NotBlank
-        String baseDt /* 직권해지일 */
+        String baseDt, /* 직권해지일 */
+        String cntrNo,
+        int cntrSn
     ) {}
 
     @Builder
@@ -149,5 +151,8 @@ public class WbncRentalResignExpectedMgtDto {
     ) {}
     @Builder
     @ApiModel("WbncRentalResignExpectedMgtDto-SaveCancelReq")
-    public record SaveCancelReq() {}
+    public record SaveCancelReq(
+        @NotBlank
+        String baseDt /* 직권해지일 */
+    ) {}
 }

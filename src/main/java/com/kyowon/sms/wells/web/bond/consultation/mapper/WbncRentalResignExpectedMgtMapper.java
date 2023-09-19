@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.CheckReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.SaveCancelReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.SaveConfirmReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncAuthorityResignIzDvo;
@@ -27,4 +28,6 @@ public interface WbncRentalResignExpectedMgtMapper {
     int updateAuthorityResignRentalCnfms(SaveConfirmReq dto);
 
     int updateAuthorityResignRegularShippingCnfms(SaveConfirmReq dto);
+
+    int insertRentalResignExpectedCancel(SaveCancelReq dto);
 }
