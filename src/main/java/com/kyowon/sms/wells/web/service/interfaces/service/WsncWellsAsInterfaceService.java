@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.interfaces.service;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
 import com.kyowon.sms.wells.web.service.interfaces.converter.WsncWellsAsInterfaceConverter;
 import com.kyowon.sms.wells.web.service.interfaces.mapper.WsncWellsAsInterfaceMapper;
+import com.sds.sflex.system.config.datasource.PageInfo;
 
 import java.util.List;
 
@@ -134,8 +135,13 @@ public class WsncWellsAsInterfaceService {
      *              String chSding, 변경모종
      *              String apyDt 적용일자
      */
-    public List<SearchAsSidingChangeRes> getAsSidingChanges(SearchAsSidingChangeReq req) {
-        return converter.mapAsSidingChangeDvoToRes(mapper.selectAsSidingChanges(req));
+    public List<SearchAsSidingChangeRes> getAsSidingChanges(SearchAsSidingChangeReq dto) {
+
+        PageInfo pageinfo = new PageInfo();
+        pageinfo.setPageIndex(dto.pageIndex());
+        pageinfo.setPageSize(dto.pageSize());
+
+        return mapper.selectAsSidingChanges(dto, pageinfo);
     }
 
 }

@@ -327,7 +327,11 @@ public class WsncAsInterfaceDto {
         @JsonProperty(value = "CNTR_NO")
         String cntrNo, // 계약번호
         @JsonProperty(value = "BC_NO")
-        String bcNo // 바코드번호
+        String bcNo, // 바코드번호
+        @JsonProperty("PAGE_INDEX")
+        int pageIndex,
+        @JsonProperty("PAGE_SIZE")
+        int pageSize
     ) {}
 
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchAsSidingChangeRes")
@@ -359,11 +363,11 @@ public class WsncAsInterfaceDto {
         @JsonProperty(value = "CH_SDING")
         String chSding, /*변경모종*/
         @JsonProperty(value = "APY_DT")
-        String apyDt, /*적용일자*/
-        @JsonProperty(value = "RCP_DT_START")
-        String rcpDtStart,
-        @JsonProperty(value = "RCP_DT_END")
-        String rcpDtEnd
+        String apyDt /*적용일자*/
+//        @JsonProperty(value = "RCP_DT_START")
+//        String rcpDtStart,
+//        @JsonProperty(value = "RCP_DT_END")
+//        String rcpDtEnd
     ) {}
 
 }
