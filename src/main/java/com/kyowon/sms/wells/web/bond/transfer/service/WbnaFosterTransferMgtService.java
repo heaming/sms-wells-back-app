@@ -49,7 +49,7 @@ public class WbnaFosterTransferMgtService {
     public SearchDetailSummaryRes getPartTransferDetailsSummary(
         SearchReq dto
     ) {
-        return mapper.selectPartTransferDetailsSummary(dto);
+        return mapper.selectFosterTransferDetailsSummary(dto);
     }
 
     @Transactional
@@ -84,10 +84,17 @@ public class WbnaFosterTransferMgtService {
             // 집금구분코드 = TF
             case "11" -> {
                 WbnaBondContractBaseDvo params = this.converter.mapSearchReqToBondContractBaseDvo(dto);
+                // 채권상담기본내역 전월 데이터 삭제
+                this.mapper.deleteBondCounselingBasics(params);
+
                 // 채권계약기본 Table update
-                int updateCount = this.mapper.updateFosterTransferToBondContractBase(params);
-                BizAssert.isTrue(updateCount >= 1, "MSG_ALT_SVE_ERR");
-                processCount += updateCount;
+                int updateContractCount = this.mapper.updateBondContractBases(params);
+                BizAssert.isTrue(updateContractCount >= 1, "MSG_ALT_SVE_ERR");
+                processCount += updateContractCount;
+
+                // 채권상담기본내역 계약별 MERGE
+                int mergeCounselingCount = this.mapper.insertBondCounselingBasics(params);
+                BizAssert.isTrue(mergeCounselingCount >= 1, "MSG_ALT_SVE_ERR");
 
                 // 채권이관배정수행내역 Table insert
                 int insertCount = this.mapper.insertBondTransferAssignExecutionIz(params);
@@ -107,7 +114,7 @@ public class WbnaFosterTransferMgtService {
             int insertResult = this.mapper.insertBondContractHistories(dvo);
             int updateResult = this.mapper.updateFosterTransfer(dvo);
 
-            BizAssert.isTrue(updateResult == 1, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(updateResult == 1 && insertResult == 1, "MSG_ALT_SVE_ERR");
             processCount += updateResult;
         }
         return processCount;

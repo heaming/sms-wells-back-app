@@ -125,10 +125,11 @@ public class WbncCustomerService {
     public int saveCounsel(SaveCounselReq dto) throws Exception {
         int processCount = 0;
         WbncCustomerDvo dvo = converter.mapSaveReqToWbncCounselDvo(dto);
+
         processCount = mapper.insertCounsel(dvo);
+        BizAssert.isTrue(processCount > 0, "MSG_ALT_SVE_ERR");
 
         processCount = mapper.insertPromise(dvo);
-
         BizAssert.isTrue(processCount > 0, "MSG_ALT_SVE_ERR");
 
         return processCount;

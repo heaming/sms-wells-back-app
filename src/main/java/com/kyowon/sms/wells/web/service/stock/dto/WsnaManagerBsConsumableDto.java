@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
+import com.sds.sflex.common.utils.StringUtil;
+
 import io.swagger.annotations.ApiModel;
 
 public class WsnaManagerBsConsumableDto {
@@ -88,9 +90,13 @@ public class WsnaManagerBsConsumableDto {
         String csmbPdCd,
         @NotBlank
         String sapMatCd,
-        @NotBlank
+        // @NotBlank
         String bfsvcCsmbDdlvQty,
         @NotBlank
         String bfsvcCsmbDdlvStatCd
-    ) {}
+    ) {
+        public CreateReq {
+            bfsvcCsmbDdlvQty = StringUtil.isEmpty(bfsvcCsmbDdlvQty) ? "0" : bfsvcCsmbDdlvQty;
+        }
+    }
 }

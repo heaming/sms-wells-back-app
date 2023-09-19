@@ -37,7 +37,7 @@ public class WsnaManagerBsConsumableService {
 
     private static final String OSTR_AK_TP_CD_BS = "380"; // 출고요청유형코드 : BS소모품배부
     private static final String IOST_AK_DV_CD_WELLS = "WE";
-    private static final String LGST_SPP_MTHD_CD_CRGO = "6";
+    private static final String LGST_SPP_MTHD_CD_CRGO = "8"; // 물류배송방식코드 6 -> 8로 변경(사업장배송)
     private static final String LGST_WK_MTHD_CD_MNGER = "WE07";
     private static final String ITM_GD_CD_A = "A";
     private static final String OSTR_OJ_WARE_NO_PAJU = "100002";

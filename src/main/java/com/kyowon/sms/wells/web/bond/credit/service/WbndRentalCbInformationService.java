@@ -58,320 +58,316 @@ public class WbndRentalCbInformationService {
 
         List<WbndRentalCbInformationDvo> res = new ArrayList<>();
 
-        try {
-            String insHpNo = dto.insHpNo1() + "" + dto.insHpNo2() + "" + dto.insHpNo3();
-            String insHomNo = dto.insHomNo1() + "" + dto.insHomNo2() + "" + dto.insHomNo3();
-            String insAdr = dto.insAdrWAD1() + "" + dto.insAdrWAD2() + "" + dto.insAdrWAD3();
+        String insHpNo = dto.insHpNo1() + "" + dto.insHpNo2() + "" + dto.insHpNo3();
+        String insHomNo = dto.insHomNo1() + "" + dto.insHomNo2() + "" + dto.insHomNo3();
+        String insAdr = dto.insAdrWAD1() + "" + dto.insAdrWAD2() + "" + dto.insAdrWAD3();
 
-            paramMap.put("keyDiv", dto.keyDiv());
-            paramMap.put("rsdnNo", dto.rsdnNo());
-            paramMap.put("cstNo", dto.cstNo());
-            paramMap.put("inqRsnCd", dto.inqRsnCd());
-            paramMap.put("inqwtcnRsnCd", dto.inqwtcnRsnCd());
-            paramMap.put("insHpNo", insHpNo);
-            paramMap.put("insHomNo", insHomNo);
-            paramMap.put("insAdr", insAdr);
+        paramMap.put("keyDiv", dto.keyDiv());
+        paramMap.put("rsdnNo", dto.rsdnNo());
+        paramMap.put("cstNo", dto.cstNo());
+        paramMap.put("inqRsnCd", dto.inqRsnCd());
+        paramMap.put("inqwtcnRsnCd", dto.inqwtcnRsnCd());
+        paramMap.put("insHpNo", insHpNo);
+        paramMap.put("insHomNo", insHomNo);
+        paramMap.put("insAdr", insAdr);
 
-            String TransSeq = mapper.selectTransSeq();
-            paramMap.put("TransSeq", TransSeq);
+        String TransSeq = mapper.selectTransSeq();
+        paramMap.put("TransSeq", TransSeq);
 
-            String rtnJson = Trans(paramMap);
-            Map<String, Object> NcCbResultMap = new ObjectMapper().readValue(rtnJson, Map.class);
-            Map<String, Object> cruzjson = (Map<String, Object>)NcCbResultMap.get("cruzjson"); // 최상위  KEY
-            Map<String, Object> body = (Map<String, Object>)cruzjson.get("body");
-            Map<String, Object> COMM = (Map<String, Object>)body.get("COMM");
+        String rtnJson = Trans(paramMap);
+        Map<String, Object> NcCbResultMap = new ObjectMapper().readValue(rtnJson, Map.class);
+        Map<String, Object> cruzjson = (Map<String, Object>)NcCbResultMap.get("cruzjson"); // 최상위  KEY
+        Map<String, Object> body = (Map<String, Object>)cruzjson.get("body");
+        Map<String, Object> COMM = (Map<String, Object>)body.get("COMM");
 
-            String rplyCd = COMM.get("rplyCd").toString();
-            paramMap.put("rplyCd", rplyCd);
+        String rplyCd = COMM.get("rplyCd").toString();
+        paramMap.put("rplyCd", rplyCd);
 
-            /**
-             *  P000        정상
-             */
+        /**
+         *  P000        정상
+         */
 
-            if (rplyCd.equals("P000") || rplyCd.equals("5857")) {
+        if (rplyCd.equals("P000") || rplyCd.equals("5857")) {
 
-                ROWDATA_5 = (Map<String, Object>)body.get("ROWDATA_5");
-                SUMMARYITEM_6 = (Map<String, Object>)body.get("SUMMARYITEM_6");
-                SUMMARYITEM_7 = (Map<String, Object>)body.get("SUMMARYITEM_7");
+            ROWDATA_5 = (Map<String, Object>)body.get("ROWDATA_5");
+            SUMMARYITEM_6 = (Map<String, Object>)body.get("SUMMARYITEM_6");
+            SUMMARYITEM_7 = (Map<String, Object>)body.get("SUMMARYITEM_7");
 
-                // 렌탈CB연체(일반)세그먼트>>>  0 or 1건 : {} ,  2건이상 : [{},{}] 처리
-                if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) == 1) {
-                    ROWDATA_5_REPEAT.add((Map<String, Object>)body.get("ROWDATA_5_REPEAT"));
-                } else if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 1) {
-                    ROWDATA_5_REPEAT = (List<Map<String, Object>>)body.get("ROWDATA_5_REPEAT");
-                }
+            // 렌탈CB연체(일반)세그먼트>>>  0 or 1건 : {} ,  2건이상 : [{},{}] 처리
+            if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) == 1) {
+                ROWDATA_5_REPEAT.add((Map<String, Object>)body.get("ROWDATA_5_REPEAT"));
+            } else if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 1) {
+                ROWDATA_5_REPEAT = (List<Map<String, Object>>)body.get("ROWDATA_5_REPEAT");
+            }
 
-                // 렌탈CB연체(일반)세그먼트 코드 매핑
-                if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 0) {
-                    Map<String, Object> params;
-                    Map<String, Object> rst;
-                    for (int i = 0; i < ROWDATA_5_REPEAT.size(); i++) {
-                        //렌탈 상품코드(소분류)
-                        params = new HashMap<String, Object>();
-                        //params.put("LCGROP", "1000000212");
-                        params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("rntlPrdtCdS5"));
+            // 렌탈CB연체(일반)세그먼트 코드 매핑
+            if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 0) {
+                Map<String, Object> params;
+                Map<String, Object> rst;
+                for (int i = 0; i < ROWDATA_5_REPEAT.size(); i++) {
+                    //렌탈 상품코드(소분류)
+                    params = new HashMap<String, Object>();
+                    //params.put("LCGROP", "1000000212");
+                    params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("rntlPrdtCdS5"));
 
-                        rst = mapper.selectTransCdMsg(params);
-                        if (rst != null) {
-                            ROWDATA_5_REPEAT.get(i).put("rntlPrdtNmS5", rst.get("LCTEXT"));
-                        }
-
-                        //연체구분코드
-                        params = new HashMap<String, Object>();
-                        //params.put("LCGROP", "1000000211");
-                        params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("delyDivCd5"));
-
-                        rst = mapper.selectTransCdMsg(params);
-                        if (rst != null) {
-                            ROWDATA_5_REPEAT.get(i).put("delyDivNm5", rst.get("LCTEXT"));
-                        }
-
+                    rst = mapper.selectTransCdMsg(params);
+                    if (rst != null) {
+                        ROWDATA_5_REPEAT.get(i).put("rntlPrdtNmS5", rst.get("LCTEXT"));
                     }
-                }
 
-                // 일반 요약항목 세그먼트>>>  0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리  
-                if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) == 1) {
-                    Map<String, Object> SUMMARYITEM_6_REPEAT_OBJ = (Map<String, Object>)body
-                        .get("SUMMARYITEM_6_REPEAT");
-                    SUMMARYITEM_6_REPEAT.put(
-                        SUMMARYITEM_6_REPEAT_OBJ.get("siCd6").toString(),
-                        SUMMARYITEM_6_REPEAT_OBJ.get("siVal6").toString()
-                    );
-                } else if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) > 1) {
-                    List<Map<String, Object>> SUMMARYITEM_6_REPEAT_LIST = (List<Map<String, Object>>)body
-                        .get("SUMMARYITEM_6_REPEAT");
-                    for (int i = 0; i < SUMMARYITEM_6_REPEAT_LIST.size(); i++) {
-                        SUMMARYITEM_6_REPEAT.put(
-                            SUMMARYITEM_6_REPEAT_LIST.get(i).get("siCd6").toString(),
-                            SUMMARYITEM_6_REPEAT_LIST.get(i).get("siVal6").toString()
-                        );
+                    //연체구분코드
+                    params = new HashMap<String, Object>();
+                    //params.put("LCGROP", "1000000211");
+                    params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("delyDivCd5"));
+
+                    rst = mapper.selectTransCdMsg(params);
+                    if (rst != null) {
+                        ROWDATA_5_REPEAT.get(i).put("delyDivNm5", rst.get("LCTEXT"));
                     }
-                }
 
-                //기타  요약항목 세그먼트>>> 0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리
-                if (Integer.parseInt(SUMMARYITEM_7.get("respCnt7").toString()) == 1) {
-                    Map<String, Object> SUMMARYITEM_7_OBJ = (Map<String, Object>)body.get("SUMMARYITEM_7_REPEAT");
-                    SUMMARYITEM_7_REPEAT
-                        .put(
-                            SUMMARYITEM_7_OBJ.get("etcItmCd7").toString(),
-                            SUMMARYITEM_7_OBJ.get("etcItmVal7").toString()
-                        );
-                } else if (Integer.parseInt(SUMMARYITEM_7.get("respCnt7").toString()) > 1) {
-                    List<Map<String, Object>> SUMMARYITEM_7_LIST = (List<Map<String, Object>>)body
-                        .get("SUMMARYITEM_7_REPEAT");
-                    for (int i = 0; i < SUMMARYITEM_7_LIST.size(); i++) {
-                        if ("999999802".equals(SUMMARYITEM_7_LIST.get(i).get("etcItmVal7").toString())
-                            || "999999801".equals(SUMMARYITEM_7_LIST.get(i).get("etcItmVal7").toString())) { // 조회 조건 불충 분시 999999802 코드 전송됨
-                            SUMMARYITEM_7_REPEAT.put(SUMMARYITEM_7_LIST.get(i).get("etcItmCd7").toString(), 0);
-                        } else {
-                            SUMMARYITEM_7_REPEAT.put(
-                                SUMMARYITEM_7_LIST.get(i).get("etcItmCd7").toString(),
-                                SUMMARYITEM_7_LIST.get(i).get("etcItmVal7").toString()
-                            );
-                        }
-                    }
-                }
-
-                //납입율 계산 
-                if (SUMMARYITEM_6_REPEAT != null) {
-                    //납입율 계산  >>> 약정납입액 && 실제납입액(현재 )
-                    if (SUMMARYITEM_6_REPEAT.get("RT0100201") != null
-                        && SUMMARYITEM_6_REPEAT.get("RT0100202") != null) {
-                        try {
-                            int RT0100201 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0100201").toString());
-                            int RT0100202 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0100202").toString());
-                            double CAL_PER_0 = 0;
-                            if (RT0100201 > 0) {
-                                CAL_PER_0 = (double)RT0100202 / RT0100201 * 100;
-                            }
-
-                            SUMMARYITEM_6_REPEAT.put("CAL_PER_0", String.format("%,.0f", CAL_PER_0));
-
-                        } catch (Exception e) {
-                            log.debug("납입율 계산 오류(0) :  " + e);
-                        }
-
-                    }
-                    //납입율 계산  >>> 약정납입액 && 실제납입액(3)
-                    if (SUMMARYITEM_6_REPEAT.get("RT0300203") != null
-                        && SUMMARYITEM_6_REPEAT.get("RT0300204") != null) {
-                        try {
-                            int RT0300203 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0300203").toString());
-                            int RT0300204 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0300204").toString());
-
-                            double CAL_PER_3 = 0;
-                            if (RT0300203 > 0) {
-                                CAL_PER_3 = (double)RT0300204 / RT0300203 * 100;
-                            }
-                            SUMMARYITEM_6_REPEAT.put("CAL_PER_3", String.format("%,.0f", CAL_PER_3));
-
-                        } catch (Exception e) {
-                            log.debug("납입율 계산 오류(3) :  " + e);
-                        }
-
-                    }
-                    //납입율 계산  >>> 약정납입액 && 실제납입액(6)
-                    if (SUMMARYITEM_6_REPEAT.get("RT0600203") != null
-                        && SUMMARYITEM_6_REPEAT.get("RT0600204") != null) {
-                        try {
-                            int RT0600203 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0600203").toString());
-                            int RT0600204 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0600204").toString());
-
-                            double CAL_PER_6 = 0;
-                            if (RT0600203 > 0) {
-                                CAL_PER_6 = (double)RT0600204 / RT0600203 * 100;
-                            }
-                            SUMMARYITEM_6_REPEAT.put("CAL_PER_6", String.format("%,.0f", CAL_PER_6));
-
-                        } catch (Exception e) {
-                            log.debug("납입율 계산 오류(6) :  " + e);
-                        }
-
-                    }
-                    //납입율 계산  >>> 약정납입액 && 실제납입액(12)
-                    if (SUMMARYITEM_6_REPEAT.get("RT1200203") != null
-                        && SUMMARYITEM_6_REPEAT.get("RT1200204") != null) {
-                        try {
-                            int RT1200203 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT1200203").toString());
-                            int RT1200204 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT1200204").toString());
-
-                            double CAL_PER_12 = 0;
-                            if (RT1200203 > 0) {
-                                CAL_PER_12 = (double)RT1200204 / RT1200203 * 100;
-                            }
-                            SUMMARYITEM_6_REPEAT.put("CAL_PER_12", String.format("%,.0f", CAL_PER_12));
-
-                        } catch (Exception e) {
-                            log.debug("납입율 계산 오류(12) :  " + e);
-                        }
-
-                    }
-                    //납입율 계산  >>> 약정납입액 && 실제납입액(24)
-                    if (SUMMARYITEM_6_REPEAT.get("RT2400103") != null
-                        && SUMMARYITEM_6_REPEAT.get("RT2400104") != null) {
-                        try {
-                            int RT2400103 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT2400103").toString());
-                            int RT2400104 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT2400104").toString());
-                            double CAL_PER_24 = 0;
-                            if (RT2400103 > 0) {
-                                CAL_PER_24 = (double)RT2400104 / RT2400103 * 100;
-                            }
-                            SUMMARYITEM_6_REPEAT.put("CAL_PER_24", String.format("%,.0f", CAL_PER_24));
-
-                        } catch (Exception e) {
-                            log.debug("납입율 계산 오류(24) :  " + e);
-                        }
-
-                    }
-                    //납입율 계산  >>> 약정납입액 && 실제납입액(36)
-                    if (SUMMARYITEM_6_REPEAT.get("RT3600103") != null
-                        && SUMMARYITEM_6_REPEAT.get("RT3600104") != null) {
-                        try {
-                            int RT3600103 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT3600103").toString());
-                            int RT3600104 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT3600104").toString());
-                            double CAL_PER_36 = 0;
-                            if (RT3600103 > 0) {
-                                CAL_PER_36 = (double)RT3600104 / RT3600103 * 100;
-                            }
-                            SUMMARYITEM_6_REPEAT.put("CAL_PER_36", String.format("%,.0f", CAL_PER_36));
-
-                        } catch (Exception e) {
-                            log.debug("납입율 계산 오류(36) :  " + e);
-                        }
-
-                    }
-                } else {
-                    log.debug("SUMMARYITEM_6_REPEAT IS NULL ");
-                }
-
-                String[] type = {"A", "A", "A", "B", "B", "B", "C", "C", "C"};
-                String[] baseNm = {"총건수", "기관수", "총약정액", "약정납입액", "실제납입액", "납입률", "계약건수", "계약총금액", "계약기관수"};
-                String[] crtlTot1 = {"RT0000001", "RT0000101", "RT0000201", "RT0100201", "RT0100202", "CAL_PER_0",
-                    "RT8000001",
-                    "RT8000201", "RT8000101"};
-                String[] crtlTot2 = {"RT0300001", "RT0300101", "RT0300201", "RT0300203", "RT0300204", "CAL_PER_3",
-                    "RT0100001",
-                    "RT0100205", "RT0100101"};
-                String[] crtlTot3 = {"RT0600001", "RT0600101", "RT0600201", "RT0600203", "RT0600204", "CAL_PER_6",
-                    "RT0200001",
-                    "RT0200201", "RT0200101"};
-                String[] crtlTot4 = {"RT1200001", "RT1200101", "RT1200201", "RT1200203", "RT1200204", "CAL_PER_12",
-                    "RT0300003",
-                    "RT0300207", "RT0300103"};
-                String[] crtlTot5 = {"RT2400101", "RT2400101", "RT2400201", "RT2400103", "RT2400104", "CAL_PER_24",
-                    "RT0600003",
-                    "RT0600207", "RT0600103"};
-                String[] crtlTot6 = {"RT3600001", "RT3600101", "RT3600201", "RT3600103", "RT3600104", "CAL_PER_36",
-                    "RT1200003",
-                    "RT1200207", "RT1200103"};
-                for (int i = 0; i < 8; i++) {
-                    WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
-                    cbVo.setType(type[i]);
-                    cbVo.setBaseNm(baseNm[i]);
-                    cbVo.setCrtlTot1(SUMMARYITEM_6_REPEAT.get(crtlTot1[i]).toString());
-                    cbVo.setCrtlTot2(SUMMARYITEM_6_REPEAT.get(crtlTot2[i]).toString());
-                    cbVo.setCrtlTot3(SUMMARYITEM_6_REPEAT.get(crtlTot3[i]).toString());
-                    cbVo.setCrtlTot4(SUMMARYITEM_6_REPEAT.get(crtlTot4[i]).toString());
-                    cbVo.setCrtlTot5(SUMMARYITEM_6_REPEAT.get(crtlTot5[i]).toString());
-                    cbVo.setCrtlTot6(SUMMARYITEM_6_REPEAT.get(crtlTot6[i]).toString());
-                    res.add(cbVo);
-                }
-
-                String[] type_D = {"D", "D", "D", "D", "D", "D", "D"};
-                String[] baseNm_D = {"휴대전화전화", "휴대전화전화", "휴대전화전화", "설치지주소", "설치지주소", "설치지주소", "자택번호"};
-                String[] ptrmPs_D = {"계약건수", "약정납입액", "실제납입액", "계약건수", "약정납입액", "실제납입액", "계약건수"};
-                String[] crtlTot_D1 = {"RENTB0001", "RENTB0002", "RENTB0003", "RENTB0004", "RENTB0005", "RENTB0006",
-                    "RENTB0007"};
-                String[] crtlTot_D2 = {"RENTB0008", "RENTB0009", "RENTB0010", "RENTB0011", "RENTB0012", "RENTB0013",
-                    "RENTB0014"};
-                String[] crtlTot_D3 = {"RENTB0015", "RENTB0016", "RENTB0017", "RENTB0018", "RENTB0019", "RENTB0020",
-                    "RENTB0021"};
-                String[] crtlTot_D4 = {"RENTB0022", "RENTB0023", "RENTB0024", "RENTB0025", "RENTB0026", "RENTB0027",
-                    "RENTB0028"};
-                String[] crtlTot_D5 = {"RENTB0029", "RENTB0030", "RENTB0031", "RENTB0032", "RENTB0033", "RENTB0034",
-                    "RENTB0035"};
-                String[] crtlTot_D6 = {"RENTB0036", "RENTB0037", "RENTB0038", "RENTB0039", "RENTB0040", "RENTB0041",
-                    "RENTB0042"};
-                for (int i = 0; i < 7; i++) {
-                    WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
-                    cbVo.setType(type_D[i]);
-                    cbVo.setBaseNm(baseNm_D[i]);
-                    cbVo.setPtrmPs(ptrmPs_D[i]);
-                    cbVo.setCrtlTot1(SUMMARYITEM_7_REPEAT.get(crtlTot_D1[i]).toString());
-                    cbVo.setCrtlTot2(SUMMARYITEM_7_REPEAT.get(crtlTot_D2[i]).toString());
-                    cbVo.setCrtlTot3(SUMMARYITEM_7_REPEAT.get(crtlTot_D3[i]).toString());
-                    cbVo.setCrtlTot4(SUMMARYITEM_7_REPEAT.get(crtlTot_D4[i]).toString());
-                    cbVo.setCrtlTot5(SUMMARYITEM_7_REPEAT.get(crtlTot_D5[i]).toString());
-                    cbVo.setCrtlTot6(SUMMARYITEM_7_REPEAT.get(crtlTot_D6[i]).toString());
-                    res.add(cbVo);
-                }
-
-                for (Map<String, Object> cbMap : ROWDATA_5_REPEAT) {
-                    WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
-                    cbVo.setType("F");
-
-                    if (cbMap.get("rntlPrdtNmS5") == null) {
-                        cbVo.setBaseNm("");
-                    } else {
-                        cbVo.setBaseNm(String.valueOf(cbMap.get("rntlPrdtNmS5")));
-                    }
-                    if (cbMap.get("delyDivNm5") == null) {
-                        cbVo.setCrtlTot1("");
-                    } else {
-                        cbVo.setCrtlTot1(String.valueOf(cbMap.get("delyDivNm5")));
-                    }
-                    cbVo.setCrtlTot2(String.valueOf(cbMap.get("ocuBmcNm5")));
-                    cbVo.setCrtlTot3(String.valueOf(cbMap.get("fistOcuDay5")));
-                    cbVo.setCrtlTot4(String.valueOf(cbMap.get("ocuRegtDay5")));
-                    cbVo.setCrtlTot5(String.valueOf(cbMap.get("delyAmt5")));
-                    cbVo.setCrtlTot6(String.valueOf(cbMap.get("fistDelyAmt5")));
-                    res.add(cbVo);
                 }
             }
-            mapper.insertCBSearchTrans(paramMap);
-        } catch (Exception e) {
-            log.debug(e.getMessage());
+
+            // 일반 요약항목 세그먼트>>>  0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리  
+            if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) == 1) {
+                Map<String, Object> SUMMARYITEM_6_REPEAT_OBJ = (Map<String, Object>)body
+                    .get("SUMMARYITEM_6_REPEAT");
+                SUMMARYITEM_6_REPEAT.put(
+                    SUMMARYITEM_6_REPEAT_OBJ.get("siCd6").toString(),
+                    SUMMARYITEM_6_REPEAT_OBJ.get("siVal6").toString()
+                );
+            } else if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) > 1) {
+                List<Map<String, Object>> SUMMARYITEM_6_REPEAT_LIST = (List<Map<String, Object>>)body
+                    .get("SUMMARYITEM_6_REPEAT");
+                for (int i = 0; i < SUMMARYITEM_6_REPEAT_LIST.size(); i++) {
+                    SUMMARYITEM_6_REPEAT.put(
+                        SUMMARYITEM_6_REPEAT_LIST.get(i).get("siCd6").toString(),
+                        SUMMARYITEM_6_REPEAT_LIST.get(i).get("siVal6").toString()
+                    );
+                }
+            }
+
+            //기타  요약항목 세그먼트>>> 0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리
+            if (Integer.parseInt(SUMMARYITEM_7.get("respCnt7").toString()) == 1) {
+                Map<String, Object> SUMMARYITEM_7_OBJ = (Map<String, Object>)body.get("SUMMARYITEM_7_REPEAT");
+                SUMMARYITEM_7_REPEAT
+                    .put(
+                        SUMMARYITEM_7_OBJ.get("etcItmCd7").toString(),
+                        SUMMARYITEM_7_OBJ.get("etcItmVal7").toString()
+                    );
+            } else if (Integer.parseInt(SUMMARYITEM_7.get("respCnt7").toString()) > 1) {
+                List<Map<String, Object>> SUMMARYITEM_7_LIST = (List<Map<String, Object>>)body
+                    .get("SUMMARYITEM_7_REPEAT");
+                for (int i = 0; i < SUMMARYITEM_7_LIST.size(); i++) {
+                    if ("999999802".equals(SUMMARYITEM_7_LIST.get(i).get("etcItmVal7").toString())
+                        || "999999801".equals(SUMMARYITEM_7_LIST.get(i).get("etcItmVal7").toString())) { // 조회 조건 불충 분시 999999802 코드 전송됨
+                        SUMMARYITEM_7_REPEAT.put(SUMMARYITEM_7_LIST.get(i).get("etcItmCd7").toString(), 0);
+                    } else {
+                        SUMMARYITEM_7_REPEAT.put(
+                            SUMMARYITEM_7_LIST.get(i).get("etcItmCd7").toString(),
+                            SUMMARYITEM_7_LIST.get(i).get("etcItmVal7").toString()
+                        );
+                    }
+                }
+            }
+
+            //납입율 계산 
+            if (SUMMARYITEM_6_REPEAT != null) {
+                //납입율 계산  >>> 약정납입액 && 실제납입액(현재 )
+                if (SUMMARYITEM_6_REPEAT.get("RT0100201") != null
+                    && SUMMARYITEM_6_REPEAT.get("RT0100202") != null) {
+                    try {
+                        int RT0100201 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0100201").toString());
+                        int RT0100202 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0100202").toString());
+                        double CAL_PER_0 = 0;
+                        if (RT0100201 > 0) {
+                            CAL_PER_0 = (double)RT0100202 / RT0100201 * 100;
+                        }
+
+                        SUMMARYITEM_6_REPEAT.put("CAL_PER_0", String.format("%,.0f", CAL_PER_0));
+
+                    } catch (Exception e) {
+                        log.debug("납입율 계산 오류(0) :  " + e);
+                    }
+
+                }
+                //납입율 계산  >>> 약정납입액 && 실제납입액(3)
+                if (SUMMARYITEM_6_REPEAT.get("RT0300203") != null
+                    && SUMMARYITEM_6_REPEAT.get("RT0300204") != null) {
+                    try {
+                        int RT0300203 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0300203").toString());
+                        int RT0300204 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0300204").toString());
+
+                        double CAL_PER_3 = 0;
+                        if (RT0300203 > 0) {
+                            CAL_PER_3 = (double)RT0300204 / RT0300203 * 100;
+                        }
+                        SUMMARYITEM_6_REPEAT.put("CAL_PER_3", String.format("%,.0f", CAL_PER_3));
+
+                    } catch (Exception e) {
+                        log.debug("납입율 계산 오류(3) :  " + e);
+                    }
+
+                }
+                //납입율 계산  >>> 약정납입액 && 실제납입액(6)
+                if (SUMMARYITEM_6_REPEAT.get("RT0600203") != null
+                    && SUMMARYITEM_6_REPEAT.get("RT0600204") != null) {
+                    try {
+                        int RT0600203 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0600203").toString());
+                        int RT0600204 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT0600204").toString());
+
+                        double CAL_PER_6 = 0;
+                        if (RT0600203 > 0) {
+                            CAL_PER_6 = (double)RT0600204 / RT0600203 * 100;
+                        }
+                        SUMMARYITEM_6_REPEAT.put("CAL_PER_6", String.format("%,.0f", CAL_PER_6));
+
+                    } catch (Exception e) {
+                        log.debug("납입율 계산 오류(6) :  " + e);
+                    }
+
+                }
+                //납입율 계산  >>> 약정납입액 && 실제납입액(12)
+                if (SUMMARYITEM_6_REPEAT.get("RT1200203") != null
+                    && SUMMARYITEM_6_REPEAT.get("RT1200204") != null) {
+                    try {
+                        int RT1200203 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT1200203").toString());
+                        int RT1200204 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT1200204").toString());
+
+                        double CAL_PER_12 = 0;
+                        if (RT1200203 > 0) {
+                            CAL_PER_12 = (double)RT1200204 / RT1200203 * 100;
+                        }
+                        SUMMARYITEM_6_REPEAT.put("CAL_PER_12", String.format("%,.0f", CAL_PER_12));
+
+                    } catch (Exception e) {
+                        log.debug("납입율 계산 오류(12) :  " + e);
+                    }
+
+                }
+                //납입율 계산  >>> 약정납입액 && 실제납입액(24)
+                if (SUMMARYITEM_6_REPEAT.get("RT2400103") != null
+                    && SUMMARYITEM_6_REPEAT.get("RT2400104") != null) {
+                    try {
+                        int RT2400103 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT2400103").toString());
+                        int RT2400104 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT2400104").toString());
+                        double CAL_PER_24 = 0;
+                        if (RT2400103 > 0) {
+                            CAL_PER_24 = (double)RT2400104 / RT2400103 * 100;
+                        }
+                        SUMMARYITEM_6_REPEAT.put("CAL_PER_24", String.format("%,.0f", CAL_PER_24));
+
+                    } catch (Exception e) {
+                        log.debug("납입율 계산 오류(24) :  " + e);
+                    }
+
+                }
+                //납입율 계산  >>> 약정납입액 && 실제납입액(36)
+                if (SUMMARYITEM_6_REPEAT.get("RT3600103") != null
+                    && SUMMARYITEM_6_REPEAT.get("RT3600104") != null) {
+                    try {
+                        int RT3600103 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT3600103").toString());
+                        int RT3600104 = Integer.parseInt(SUMMARYITEM_6_REPEAT.get("RT3600104").toString());
+                        double CAL_PER_36 = 0;
+                        if (RT3600103 > 0) {
+                            CAL_PER_36 = (double)RT3600104 / RT3600103 * 100;
+                        }
+                        SUMMARYITEM_6_REPEAT.put("CAL_PER_36", String.format("%,.0f", CAL_PER_36));
+
+                    } catch (Exception e) {
+                        log.debug("납입율 계산 오류(36) :  " + e);
+                    }
+
+                }
+            } else {
+                log.debug("SUMMARYITEM_6_REPEAT IS NULL ");
+            }
+
+            String[] type = {"A", "A", "A", "B", "B", "B", "C", "C", "C"};
+            String[] baseNm = {"총건수", "기관수", "총약정액", "약정납입액", "실제납입액", "납입률", "계약건수", "계약총금액", "계약기관수"};
+            String[] crtlTot1 = {"RT0000001", "RT0000101", "RT0000201", "RT0100201", "RT0100202", "CAL_PER_0",
+                "RT8000001",
+                "RT8000201", "RT8000101"};
+            String[] crtlTot2 = {"RT0300001", "RT0300101", "RT0300201", "RT0300203", "RT0300204", "CAL_PER_3",
+                "RT0100001",
+                "RT0100205", "RT0100101"};
+            String[] crtlTot3 = {"RT0600001", "RT0600101", "RT0600201", "RT0600203", "RT0600204", "CAL_PER_6",
+                "RT0200001",
+                "RT0200201", "RT0200101"};
+            String[] crtlTot4 = {"RT1200001", "RT1200101", "RT1200201", "RT1200203", "RT1200204", "CAL_PER_12",
+                "RT0300003",
+                "RT0300207", "RT0300103"};
+            String[] crtlTot5 = {"RT2400101", "RT2400101", "RT2400201", "RT2400103", "RT2400104", "CAL_PER_24",
+                "RT0600003",
+                "RT0600207", "RT0600103"};
+            String[] crtlTot6 = {"RT3600001", "RT3600101", "RT3600201", "RT3600103", "RT3600104", "CAL_PER_36",
+                "RT1200003",
+                "RT1200207", "RT1200103"};
+            for (int i = 0; i < 8; i++) {
+                WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
+                cbVo.setType(type[i]);
+                cbVo.setBaseNm(baseNm[i]);
+                cbVo.setCrtlTot1(SUMMARYITEM_6_REPEAT.get(crtlTot1[i]).toString());
+                cbVo.setCrtlTot2(SUMMARYITEM_6_REPEAT.get(crtlTot2[i]).toString());
+                cbVo.setCrtlTot3(SUMMARYITEM_6_REPEAT.get(crtlTot3[i]).toString());
+                cbVo.setCrtlTot4(SUMMARYITEM_6_REPEAT.get(crtlTot4[i]).toString());
+                cbVo.setCrtlTot5(SUMMARYITEM_6_REPEAT.get(crtlTot5[i]).toString());
+                cbVo.setCrtlTot6(SUMMARYITEM_6_REPEAT.get(crtlTot6[i]).toString());
+                res.add(cbVo);
+            }
+
+            String[] type_D = {"D", "D", "D", "D", "D", "D", "D"};
+            String[] baseNm_D = {"휴대전화전화", "휴대전화전화", "휴대전화전화", "설치지주소", "설치지주소", "설치지주소", "자택번호"};
+            String[] ptrmPs_D = {"계약건수", "약정납입액", "실제납입액", "계약건수", "약정납입액", "실제납입액", "계약건수"};
+            String[] crtlTot_D1 = {"RENTB0001", "RENTB0002", "RENTB0003", "RENTB0004", "RENTB0005", "RENTB0006",
+                "RENTB0007"};
+            String[] crtlTot_D2 = {"RENTB0008", "RENTB0009", "RENTB0010", "RENTB0011", "RENTB0012", "RENTB0013",
+                "RENTB0014"};
+            String[] crtlTot_D3 = {"RENTB0015", "RENTB0016", "RENTB0017", "RENTB0018", "RENTB0019", "RENTB0020",
+                "RENTB0021"};
+            String[] crtlTot_D4 = {"RENTB0022", "RENTB0023", "RENTB0024", "RENTB0025", "RENTB0026", "RENTB0027",
+                "RENTB0028"};
+            String[] crtlTot_D5 = {"RENTB0029", "RENTB0030", "RENTB0031", "RENTB0032", "RENTB0033", "RENTB0034",
+                "RENTB0035"};
+            String[] crtlTot_D6 = {"RENTB0036", "RENTB0037", "RENTB0038", "RENTB0039", "RENTB0040", "RENTB0041",
+                "RENTB0042"};
+            for (int i = 0; i < 7; i++) {
+                WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
+                cbVo.setType(type_D[i]);
+                cbVo.setBaseNm(baseNm_D[i]);
+                cbVo.setPtrmPs(ptrmPs_D[i]);
+                cbVo.setCrtlTot1(SUMMARYITEM_7_REPEAT.get(crtlTot_D1[i]).toString());
+                cbVo.setCrtlTot2(SUMMARYITEM_7_REPEAT.get(crtlTot_D2[i]).toString());
+                cbVo.setCrtlTot3(SUMMARYITEM_7_REPEAT.get(crtlTot_D3[i]).toString());
+                cbVo.setCrtlTot4(SUMMARYITEM_7_REPEAT.get(crtlTot_D4[i]).toString());
+                cbVo.setCrtlTot5(SUMMARYITEM_7_REPEAT.get(crtlTot_D5[i]).toString());
+                cbVo.setCrtlTot6(SUMMARYITEM_7_REPEAT.get(crtlTot_D6[i]).toString());
+                res.add(cbVo);
+            }
+
+            for (Map<String, Object> cbMap : ROWDATA_5_REPEAT) {
+                WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
+                cbVo.setType("F");
+
+                if (cbMap.get("rntlPrdtNmS5") == null) {
+                    cbVo.setBaseNm("");
+                } else {
+                    cbVo.setBaseNm(String.valueOf(cbMap.get("rntlPrdtNmS5")));
+                }
+                if (cbMap.get("delyDivNm5") == null) {
+                    cbVo.setCrtlTot1("");
+                } else {
+                    cbVo.setCrtlTot1(String.valueOf(cbMap.get("delyDivNm5")));
+                }
+                cbVo.setCrtlTot2(String.valueOf(cbMap.get("ocuBmcNm5")));
+                cbVo.setCrtlTot3(String.valueOf(cbMap.get("fistOcuDay5")));
+                cbVo.setCrtlTot4(String.valueOf(cbMap.get("ocuRegtDay5")));
+                cbVo.setCrtlTot5(String.valueOf(cbMap.get("delyAmt5")));
+                cbVo.setCrtlTot6(String.valueOf(cbMap.get("fistDelyAmt5")));
+                res.add(cbVo);
+            }
         }
+        mapper.insertCBSearchTrans(paramMap);
         return res;
 
     }

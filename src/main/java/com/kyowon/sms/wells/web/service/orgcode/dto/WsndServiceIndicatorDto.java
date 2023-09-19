@@ -10,8 +10,7 @@ public class WsndServiceIndicatorDto {
         String dgr2LevlOgId,
         String dgr3LevlOgId,
         String prtnrNo
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WsndServiceIndicatorDto-SearchRes")
     public record SearchRes(
@@ -32,6 +31,8 @@ public class WsndServiceIndicatorDto {
         Integer cntcDtBf3,
         String vstDuedt,
         String vstExpHh,
+        String vstInTime,
+        String scnDtm,
         String bcInMthdCd,
         String vstFshDt,
         String vstFshHh,
@@ -43,6 +44,5 @@ public class WsndServiceIndicatorDto {
         Integer hpcallStpcN,
         String npVstDt,
         Integer npVstMth
-    ) {
-    }
+    ) {}
 }

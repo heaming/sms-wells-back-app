@@ -21,8 +21,8 @@
              , T10.CST_KNM                                                                        AS CST_NM                 /* 고객명 */
              , T1.SDING_SPP_NO                                                                    AS SPP_ORD_NO             /* 배송번호 */
              , T4.PD_NM                                                                           AS MCHN_MODEL             /* 기기모델 */
-             , T2.BASE_DTL_CNTR_NO                                                                AS MCHN_CST_NO            /* 기기고객번호 */
-             , T2.BASE_DTL_CNTR_NO || '-' || T2.BASE_DTL_CNTR_SN                                  AS MCHN_CST_DTL_NO        /* 기기계약상세번호 */
+             , T2.OJ_DTL_CNTR_NO                                                                  AS MCHN_CST_NO            /* 기기고객번호 */
+             , T2.OJ_DTL_CNTR_NO || '-' || T2.OJ_DTL_CNTR_SN                                      AS MCHN_CST_DTL_NO        /* 기기계약상세번호 */
              , T6.CST_KNM                                                                         AS MCHN_CST_NM            /* 기기고객명 */
              , T7.PD_NM                                                                           AS CTRL_PKG               /* 현재패키지 */
              , T8.PD_NM                                                                           AS SHIP_PKG               /* 배송패키지 */
@@ -588,7 +588,7 @@
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5          /* 고객서비스수행내역 */
                    ON D5.CNTR_NO = D2.CNTR_NO
                   AND D5.CNTR_SN = D2.CNTR_SN
-                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6         /* 상품각사속성상세 */
                    ON D6.PD_CD = D2.PDCT_PD_CD
                 WHERE D1.DTA_DL_YN          = 'N'
                   AND D1.SV_BIZ_HCLSF_CD    = '2'
@@ -662,11 +662,11 @@
             </if>
              ) T1
          INNER JOIN TB_SSCT_CNTR_REL T2                /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
-            ON T2.OJ_DTL_CNTR_NO = T1.CNTR_NO
-           AND T2.OJ_DTL_CNTR_SN = T1.CNTR_SN
+            ON T2.BASE_DTL_CNTR_NO = T1.CNTR_NO
+           AND T2.BASE_DTL_CNTR_SN = T1.CNTR_SN
          INNER JOIN TB_SSCT_CNTR_DTL T3                /* 계약상세-웰스팜 */
-            ON T3.CNTR_NO = T2.BASE_DTL_CNTR_NO
-           AND T3.CNTR_SN = T2.BASE_DTL_CNTR_SN
+            ON T3.CNTR_NO = T2.OJ_DTL_CNTR_NO
+           AND T3.CNTR_SN = T2.OJ_DTL_CNTR_SN
          INNER JOIN TB_PDBS_PD_BAS T4                  /* 상품기본-웰스팜 */
             ON T4.PD_CD   = T3.BASE_PD_CD
          INNER JOIN TB_SSCT_CNTR_CST_REL T5            /* 계약고객관계-웰스팜 */
@@ -942,11 +942,11 @@
          INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ D3   /* 고객서비스AS설치배정내역 */
             ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
          INNER JOIN TB_SSCT_CNTR_REL D4              /* 계약관계 */
-            ON D4.OJ_DTL_CNTR_NO = D1.CNTR_NO
-           AND D4.OJ_DTL_CNTR_SN = D1.CNTR_SN
+            ON D4.BASE_DTL_CNTR_NO = D1.CNTR_NO
+           AND D4.BASE_DTL_CNTR_SN = D1.CNTR_SN
          INNER JOIN TB_SSCT_CNTR_DTL D5              /* 계약상세 */
-            ON D5.CNTR_NO = D4.BASE_DTL_CNTR_NO
-           AND D5.CNTR_SN = D4.BASE_DTL_CNTR_SN
+            ON D5.CNTR_NO = D4.OJ_DTL_CNTR_NO
+           AND D5.CNTR_SN = D4.OJ_DTL_CNTR_SN
          INNER JOIN TB_PDBS_PD_BAS D6                /* 상품기본 */
             ON D6.PD_CD = #{sdingPkgPdCd}
          WHERE D1.DTA_DL_YN       = 'N'
@@ -1155,11 +1155,11 @@
                                   , D4.OG_CD                                /* 조직코드 */
                                   , D2.PD_CD                                /* 상품코드 */
                                   , D1.SDING_PKG_PD_CD                      /* 모종패키지상품코드 */
-                                  , D7.BASE_DTL_CNTR_NO                     /* 기기계약번호 */
+                                  , D7.OJ_DTL_CNTR_NO                       /* 기기계약번호 */
                                   , ( SELECT REQD_DT
                                         FROM TB_SVPD_CST_SV_EXCN_IZ   /* 고객서비스수행내역 */
-                                       WHERE CNTR_NO   = D7.BASE_DTL_CNTR_NO
-                                         AND CNTR_SN   = D7.BASE_DTL_CNTR_SN
+                                       WHERE CNTR_NO   = D7.OJ_DTL_CNTR_NO
+                                         AND CNTR_SN   = D7.OJ_DTL_CNTR_SN
                                          AND DTA_DL_YN = 'N' ) AS REQD_DT   /* 철거일자 */
                                FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
                               INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ D2      /* 고객서비스AS설치대상내역 */
@@ -1180,8 +1180,8 @@
                               INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
                                  ON D6.PD_CD = D2.PD_CD
                               INNER JOIN TB_SSCT_CNTR_REL D7                /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
-                                 ON D7.OJ_DTL_CNTR_NO = D1.CNTR_NO
-                                AND D7.OJ_DTL_CNTR_SN = D1.CNTR_SN
+                                 ON D7.BASE_DTL_CNTR_NO = D1.CNTR_NO
+                                AND D7.BASE_DTL_CNTR_SN = D1.CNTR_SN
                               WHERE D1.DTA_DL_YN          = 'N'
                                 AND D2.DTA_DL_YN          = 'N'
                                 AND D3.DTA_DL_YN          = 'N'
@@ -1262,11 +1262,11 @@
                                   , D4.OG_CD                                /* 조직코드 */
                                   , D2.PDCT_PD_CD              AS PD_CD     /* 상품코드 */
                                   , D1.SDING_PKG_PD_CD                      /* 모종패키지상품코드 */
-                                  , D7.BASE_DTL_CNTR_NO                     /* 기기계약번호 */
+                                  , D7.OJ_DTL_CNTR_NO                       /* 기기계약번호 */
                                   , ( SELECT REQD_DT
                                         FROM TB_SVPD_CST_SV_EXCN_IZ   /* 고객서비스수행내역 */
-                                       WHERE CNTR_NO   = D7.BASE_DTL_CNTR_NO
-                                         AND CNTR_SN   = D7.BASE_DTL_CNTR_SN
+                                       WHERE CNTR_NO   = D7.OJ_DTL_CNTR_NO
+                                         AND CNTR_SN   = D7.OJ_DTL_CNTR_SN
                                          AND DTA_DL_YN = 'N' ) AS REQD_DT   /* 철거일자 */
                                FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
                               INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2      /* 고객서비스BS대상내역 */
@@ -1287,8 +1287,8 @@
                               INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
                                  ON D6.PD_CD = D2.PDCT_PD_CD
                               INNER JOIN TB_SSCT_CNTR_REL D7                /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
-                                 ON D7.OJ_DTL_CNTR_NO = D1.CNTR_NO
-                                AND D7.OJ_DTL_CNTR_SN = D1.CNTR_SN
+                                 ON D7.BASE_DTL_CNTR_NO = D1.CNTR_NO
+                                AND D7.BASE_DTL_CNTR_SN = D1.CNTR_SN
                               WHERE D1.DTA_DL_YN          = 'N'
                                 AND D1.SV_BIZ_HCLSF_CD    = '2'
                                 AND D2.DTA_DL_YN          = 'N'
@@ -1363,7 +1363,7 @@
                         </if>
                            ) S1
                        WHERE S1.REQD_DT IS NULL
-                         AND S1.BASE_DTL_CNTR_NO IS NOT NULL
+                         AND S1.OJ_DTL_CNTR_NO IS NOT NULL
                     ) T1
                 INNER JOIN
                     (
