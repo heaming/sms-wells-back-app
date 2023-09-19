@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.kyowon.sflex.common.common.service.BatchCallService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCorporationDepositDto;
+import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbIntegrationDepositDvo;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbWithdrawalReceiveAskReqDvo;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbCorporationDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbEtcDepositMapper;
@@ -396,6 +397,9 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             bulkDepositDvo.setRveCd(rveCd);
 
             processCount += mapper.updateIntegrationDepositReceiveAskNumber(bulkDepositDvo);
+            ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
+            depoDvo.setItgDpNo(dto.itgDpNo());
+            zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
 
 
             count++;

@@ -199,12 +199,11 @@ public class WwdbBillDepositMgtService {
         String year = sysDateYmd.substring(0, 4);
         String month = sysDateYmd.substring(4, 6);
 
-//        int count = 0;
-//        String useYn = "N";
+        int count = 0;
+        String useYn = "N";
 
         //전표 PK
-        String zzsnum = slpnoService.getNumberingSlpno("KW", Integer.parseInt(year), Integer.parseInt(month)) + "FI";
-//        String zzsnum = slpnoService.getNumberingSlpno("KW", Integer.parseInt(year), Integer.parseInt(month)) + "FI";
+        String zzsnum = slpnoService.getNumberingSlpno("FI", Integer.parseInt(year), Integer.parseInt(month));
 
         for (WwdbBillDepositMgtDto.SaveDepositSlip list : dto) {
             /*수납요청기본*/
@@ -224,10 +223,26 @@ public class WwdbBillDepositMgtService {
             String receiveAskNumber = zwdzWithdrawalService.createReceiveAskBase(zwdzWithdrawalReceiveAskDvo);
             zwdzWithdrawalReceiveAskDvo.setReceiveAskNumber(receiveAskNumber);
 
+            //통합입금 업데이트
+            ZwdbEtcDepositProcessingDvo itgDvo = new ZwdbEtcDepositProcessingDvo();
+
+            itgDvo.setItgDpNo(dto.get(0).itgDpNo());//통합입금번호
+            //            itgDvo.setDpCprcnfAmt(list.billDpAmt()); //대사금액
+            itgDvo.setRveAkNo(receiveAskNumber); //수납요청번호
+
+            processCount += etcDepositMapper.updateIntegrationDeposit(itgDvo);
+
+            ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
+            depoDvo.setItgDpNo(dto.get(0).itgDpNo());
+            zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
+
+
+
+
             /*수납요청상세*/
             WwdbBillDepositContractDvo contractDvo = new WwdbBillDepositContractDvo();
             contractDvo.setItgDpNo(dto.get(0).itgDpNo()); //통합입금번호
-            contractDvo.setRveAkNo(receiveAskNumber); //요청번호
+            contractDvo.setRveAkNo(receiveAskNumber); //요청번호1
             contractDvo.setCntrNo(list.cntrNo()); //계약번호
             contractDvo.setCntrSn(list.cntrSn()); //일련번호
 
@@ -266,14 +281,6 @@ public class WwdbBillDepositMgtService {
 //            //수납상세 데이터 생성
 //            processCount += zwdzWithdrawalService.createReceiveDetail(zwdzWithdrawalReceiveDvo);
 
-            //통합입금 업데이트
-            ZwdbEtcDepositProcessingDvo itgDvo = new ZwdbEtcDepositProcessingDvo();
-
-            itgDvo.setItgDpNo(dto.get(0).itgDpNo());//통합입금번호
-//            itgDvo.setDpCprcnfAmt(list.billDpAmt()); //대사금액
-            itgDvo.setRveAkNo(receiveAskNumber); //수납요청번호
-
-            processCount += etcDepositMapper.updateIntegrationDeposit(itgDvo);
 
             //통합입금 이력
 //            ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
@@ -282,15 +289,15 @@ public class WwdbBillDepositMgtService {
 
             sumResult += Integer.parseInt(list.billDpAmt());
 
-//            count++;
+            count++;
 
             if (!StringUtils.isEmpty(dto.get(0).itgDpNo())) {
-//                if (count == dto.size()) {
-//                    useYn = null;
-//                }
+                if (count == dto.size()) {
+                    useYn = null;
+                }
 
                 //입금대사 서비스 호출
-                depositComparisonComfirmationService.createDepositComparisonComfirmation(dto.get(0).itgDpNo(), null);
+                depositComparisonComfirmationService.createDepositComparisonComfirmation(dto.get(0).itgDpNo(), useYn);
 
             }
         }
