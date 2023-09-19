@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.service.interfaces.service;
 
 import java.util.List;
 
-import com.sds.sflex.system.config.core.service.MessageResourceService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -11,6 +10,7 @@ import com.kyowon.sms.wells.web.service.interfaces.converter.WsniCustomerCenterI
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCustomerCenterInterfaceDto.*;
 import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniCustomerCenterInterfaceDvo;
 import com.kyowon.sms.wells.web.service.interfaces.mapper.WsniCustomerCenterInterfaceMapper;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
@@ -100,22 +100,15 @@ public class WsniCustomerCenterInterfaceService {
     public EditShpadrRes editFilterShippingAddress(EditShpadrReq dto) {
         WsniCustomerCenterInterfaceDvo dvo = converter.mapEditShpadrResToCenterInterfaceDvo(dto);
 
-        int result = mapper.updateFilterShippingAddress(dvo);
-
-        //BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+        mapper.updateFilterShippingAddress(dvo);
 
         // @TODO: TEMP_CODE :: 메세지 정상 출력되는지 확인 필요
         return new EditShpadrRes("MSG_ALT_SAVE_DATA", "S001");
     }
 
     public FindAdnInfRes getAdditional(FindAdnInfReq dto) {
-        WsniCustomerCenterInterfaceDvo returnDvo = new WsniCustomerCenterInterfaceDvo();
-        WsniCustomerCenterInterfaceDvo tempDvo = new WsniCustomerCenterInterfaceDvo();
-
-        System.out.println("--------------------------------");
-        System.out.println(dto.cntrNo());
-        System.out.println(dto.cntrSn());
-        System.out.println("--------------------------------");
+        WsniCustomerCenterInterfaceDvo returnDvo;
+        WsniCustomerCenterInterfaceDvo tempDvo;
 
         tempDvo = mapper.selectAllCleanYn(dto.cntrNo(), dto.cntrSn());
 

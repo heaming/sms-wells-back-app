@@ -27,7 +27,7 @@ public class WsnaBuildingBsConsumableController {
 
     @GetMapping
     public List<SearchRes> getBuildingBsConsumables(SearchReq dto) {
-        return null;
+        return service.getBuildingBsConsumables(dto);
     }
 
     @GetMapping("/paging")

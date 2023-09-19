@@ -51,9 +51,9 @@ public class WsnaNewManagerBsConsumableService {
         return bldMapper.selectBuildingList(mngtYm);
     }
 
-    public List<SearchRes> getNewManagerBsConsumables(SearchReq dto) {
-        return null;
-    }
+    //public List<SearchRes> getNewManagerBsConsumables(SearchReq dto) {
+    //    return null;
+    //}
 
     public List<SearchRes> getNewManagerBsConsumablePages(SearchReq dto) {
         List<WsnaNewManagerBsConsumableDvo> bldInfos = mapper.selectBuildings(dto);
@@ -62,8 +62,8 @@ public class WsnaNewManagerBsConsumableService {
 
         while (it.hasNext()) {
             WsnaNewManagerBsConsumableDvo bfBldInfo = it.next();
-            WsnaNewManagerBsConsumableDvo aftBldInfo = new WsnaNewManagerBsConsumableDvo();
-            List<WsnaNewManagerBsConsumableDvo> itemInfos = new ArrayList<>();
+            WsnaNewManagerBsConsumableDvo aftBldInfo;
+            List<WsnaNewManagerBsConsumableDvo> itemInfos;
 
             aftBldInfo = bfBldInfo;
 
@@ -136,8 +136,8 @@ public class WsnaNewManagerBsConsumableService {
 
         while (it.hasNext()) {
             WsnaNewManagerBsConsumableDvo bfBldInfo = it.next();
-            WsnaNewManagerBsConsumableDvo aftBldInfo = new WsnaNewManagerBsConsumableDvo();
-            List<WsnaNewManagerBsConsumableDvo> itemInfos = new ArrayList<>();
+            WsnaNewManagerBsConsumableDvo aftBldInfo;
+            List<WsnaNewManagerBsConsumableDvo> itemInfos;
 
             aftBldInfo = bfBldInfo;
 

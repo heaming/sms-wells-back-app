@@ -58,8 +58,8 @@ public class WsnaManagerBsConsumableService {
 
         while (it.hasNext()) {
             WsnaManagerBsConsumableDvo bfBldInfo = it.next();
-            WsnaManagerBsConsumableDvo aftBldInfo = new WsnaManagerBsConsumableDvo();
-            List<WsnaManagerBsConsumableDvo> itemInfos = new ArrayList<>();
+            WsnaManagerBsConsumableDvo aftBldInfo;
+            List<WsnaManagerBsConsumableDvo> itemInfos;
 
             aftBldInfo = bfBldInfo;
 
