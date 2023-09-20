@@ -87,6 +87,7 @@ public class WdccPressurePumpDto {
         String rcpdt,
         String istDuedt,
         String istDt,
+        String fnlVstFshDt,
         String svBizHclsfCd
     ) {}
 
