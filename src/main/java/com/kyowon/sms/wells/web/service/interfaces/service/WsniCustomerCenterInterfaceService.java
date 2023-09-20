@@ -88,6 +88,9 @@ public class WsniCustomerCenterInterfaceService {
     public CreateShpadrRes createFilterShippingAddress(CreateShpadrReq dto) {
         WsniCustomerCenterInterfaceDvo dvo = converter.mapCreateShpadrResToCenterInterfaceDvo(dto);
 
+        // 이전 배송차수 종료일 UPDATE
+        mapper.updateFilterShippingAddress(dvo);
+
         int result = mapper.insertFilterShippingAddress(dvo);
 
         BizAssert.isTrue(result == 1, messageService.getMessage("MSG_ALT_SVE_ERR"));
