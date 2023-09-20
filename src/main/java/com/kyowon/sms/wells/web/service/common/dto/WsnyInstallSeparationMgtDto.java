@@ -1,9 +1,8 @@
 package com.kyowon.sms.wells.web.service.common.dto;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModel;
-
 import javax.validation.constraints.NotBlank;
+
+import io.swagger.annotations.ApiModel;
 
 public class WsnyInstallSeparationMgtDto {
     @ApiModel(value = "WsnyInstallSeparationMgtDto-SearchReq")
@@ -26,12 +25,6 @@ public class WsnyInstallSeparationMgtDto {
         String wkCsAmt, /*작업비용금액*/
         String recapSvYn, /*유상서비스여부*/
         String rmkCn /*비고내용*/
-    ){}
-
-    @ApiModel("WsnyInstallSeparationMgtDto-FindPdRes")
-    public record FindProductsRes(
-        String codeId,
-        String codeName
     ){}
 
     @ApiModel(value = "WsnyInstallSeparationMgtDto-SaveReq")
