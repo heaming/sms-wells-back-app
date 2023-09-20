@@ -3,6 +3,11 @@ package com.kyowon.sms.wells.web.withdrawal.pchssl.service;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import com.kyowon.sms.common.web.closing.sales.dvo.ZdcbSalesDiscountCancelDvo;
+import com.kyowon.sms.common.web.closing.sales.service.ZdcbSalesDiscountCancelService;
+import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -40,6 +45,7 @@ public class WwdcSalesControlService {
 
     private final MessageResourceService messageService;
     private final ExcelReadService excelReadService;
+    private final ZdcbSalesDiscountCancelService zdcbSalesDiscountCancelService;
 
     private final static String cntrDtlNo = "cntrDtlNo";
     private final static String slCtrStrtYm = "slCtrStrtYm";
@@ -85,13 +91,29 @@ public class WwdcSalesControlService {
     ) throws Exception {
         int processCount = 0;
 
+        ZdcbSalesDiscountCancelDvo zdcbSalesDiscountCancelDvo;
+        String sysDateYmd = DateUtil.getNowDayString();
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+
         for (SaveSalesControlReq dto : req) {
             WwdcSalesControlDvo dvo = convert.mapSaveWwdcSalesControlDvo(dto);
             switch (dto.rowState()) {
                 case CommConst.ROW_STATE_CREATED -> {
                     processCount += mapper.insertSalesControl(dvo); // 매출조정T 삽입
                     processCount += mapper.insertSalesControlHistory(dvo); // 매출조정이력T 삽입
-                    processCount += mapper.updateSalesConfirm(dvo); // 매출확정테이블 업데이트(조정금액)
+
+                    if ("1".equals(dvo.getSlCtrMtrDvCd())) {
+                        zdcbSalesDiscountCancelDvo = new ZdcbSalesDiscountCancelDvo();
+                        zdcbSalesDiscountCancelDvo.setCntrNo(dvo.getCntrNo()); //계약번호
+                        zdcbSalesDiscountCancelDvo.setCntrSn(Integer.parseInt(dvo.getCntrSn())); //계약일련번호
+                        zdcbSalesDiscountCancelDvo.setSlRcogDt(sysDateYmd); //매출인식일자
+                        zdcbSalesDiscountCancelDvo.setKwGrpCoCd(session.getCompanyCode()); //교원코드
+                        zdcbSalesDiscountCancelDvo.setSlRcogDvCd("04"); //매출인식구분코드
+                        zdcbSalesDiscountCancelDvo.setSlCtrAmt(Long.parseLong(dvo.getSlCtrAmt())); //조정금액
+
+                        zdcbSalesDiscountCancelService.createSalesDiscountCancelData(zdcbSalesDiscountCancelDvo);
+                    }
+//                    processCount += mapper.updateSalesConfirm(dvo); // 매출확정테이블 업데이트(조정금액)
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
                     processCount += mapper.updateSalesControl(dvo); // 매출조정T 수정
