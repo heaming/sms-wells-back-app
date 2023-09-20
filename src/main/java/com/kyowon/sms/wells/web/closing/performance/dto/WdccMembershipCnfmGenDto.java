@@ -41,19 +41,20 @@ public class WdccMembershipCnfmGenDto {
         String sellOgTpCd, /* 판매자조직유형코드*/
         String basePdCd, /* 기준상품코드*/
         String pdNm, /* 상품명*/
-        String uswy, /* 용도*/
+        String svPdTpNm, /* 용도구분*/
         String svPrd, /* 서비스주기*/
         String frisuYn, /* 무상여부*/
         String stplPtrm, /* 약정기간*/
         String hcrDvCd, /* 구분1(홈케어구분코드)*/
         String dv, /* 상품구분2*/
-        String fntDv, /* 이체구분*/
+        String dpTpCd, /* 이체구분코드*/
+        String dpTpNm, /* 이체구분*/
         String cntrCstNo, /* 계약고객번호*/
         String cntrRcpFshDtm, /* 계약접수완료일시*/
         String cntrPdStrtdt, /* 계약상품시작일자*/
         String istDt, /* 설치일자*/
         Long sellAmt, /* 판매금액*/
-        String stlmTpCd, /* 결제유형코드*/
+        String stlmTpNm, /* 결제유형코드*/
         Long dscAmt, /* 할인금액*/
         String cttRsCd, /* 컨택결과코드*/
         String cttRsNm, /* 컨택결과코드명*/
