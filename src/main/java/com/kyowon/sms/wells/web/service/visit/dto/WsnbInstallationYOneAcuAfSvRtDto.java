@@ -26,8 +26,7 @@ public class WsnbInstallationYOneAcuAfSvRtDto {
 
     @ApiModel(value = "WsnbInstallationYOneAcuAfSvRtDto-SearchRes")
     public record SearchRes(
-        String atcNm,
-        String dYear,
+        String nm,
         String m01,
         String m02,
         String m03,
@@ -40,7 +39,7 @@ public class WsnbInstallationYOneAcuAfSvRtDto {
         String m10,
         String m11,
         String m12,
-        String totalCnt,
+        String tcnt,
         String maxVal,
         String minVal,
         String avgVal
