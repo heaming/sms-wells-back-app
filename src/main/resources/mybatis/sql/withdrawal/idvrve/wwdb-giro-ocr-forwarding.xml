@@ -29,6 +29,12 @@
              , LTPAY_YN  /*후납여부*/
              , '2' AS GIRO_BIZ_DV_CD
              , '2' AS GIRO_BIZ_TP_CD
+             , SELL_TAM
+             , 0 AS SUBSC_AMT
+             , 0 AS TK_AMT
+             , 0 AS CSH_BLAM
+             , 0 AS GIRO_FEE_AMT
+             , CNTR_TAM
           FROM ( SELECT T1.CNTR_NO /*계약번호*/
                       , T1.CNTR_SN /*계약일련번호*/
                       , T1.CNTR_NO || T1.CNTR_SN AS CNTR /*계약상세번호*/
@@ -60,6 +66,13 @@
                       , TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(SUBSTR(T1.SL_RCOG_DT,0,6)||'01'), T2.FRISU_BFSVC_PTRM_N)),'DD') AS LST_DD
                       , T1.ISTM_MCN
                       , SUBSTR(T1.SL_RCOG_DT , -2) AS LCSLED
+                      , T1.CNTR_TAM
+                      , (SELECT NVL(CNTR_AMT,0)
+                           FROM TB_SSCT_CNTR_DTL
+                          WHERE 1 = 1
+                            AND CNTR_NO = T1.CNTR_NO
+                            AND CNTR_SN = T1.CNTR_SN
+                            AND DTA_DL_YN = 'N') AS SELL_TAM
                    FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1 /*월마감테이블*/
                    JOIN TB_SSCT_CNTR_WELLS_DTL T2 /*계약WELLS상세*/
                      ON T2.CNTR_NO = T1.CNTR_NO
@@ -170,10 +183,18 @@
         INSERT INTO TB_RVDW_GIRO_OCR_MNGT_BAS(
                WK_DT --작업일자
              , WK_SN  --작업일련번호
+             , GIRO_BIZ_DV_CD
+             , GIRO_BIZ_TP_CD
              , CNTR_NO
              , CNTR_SN
              , CST_FNM --고객명
              , SL_DT --매출일자
+             , SELL_TAM
+             , SUBSC_AMT
+             , TK_AMT
+             , CSH_BLAM
+             , GIRO_FEE_AMT
+             , CNTR_TAM
              , STRT_GIRO_TN --시작
              , END_GIRO_TN --종료
              , THM0_AMT --0차월
@@ -189,10 +210,18 @@
         )VALUES(
                #{wkDt} --작업일자
              , (SELECT NVL(MAX(WK_SN),0) FROM TB_RVDW_GIRO_OCR_MNGT_BAS WHERE WK_DT = #{wkDt}) + 1  --작업일련번호
+             , #{giroBizDvCd}
+             , #{giroBizTpCd}
              , #{cntrNo}
              , #{cntrSn}
              , #{cstFnm} --고객명
              , #{slDt} --매출일자
+             , #{sellTam     }
+             , #{subscAmt    }
+             , #{tkAmt       }
+             , #{cshBlam     }
+             , #{giroFeeAmt }
+             , #{cntrTam     }
              , #{strtGiroTn} --시작
              , #{endGiroTn} --종료
              , #{thm0Amt} --0차월
@@ -502,7 +531,7 @@
                                                             WHEN T2.HOECHA = T5.ISTM_MCN THEN T1.EXN_NMN_AMT /* ６０차월       */
                                                 --            WHEN T2.HOECHA = LC31.LCMON1 THEN CW55.CWAM12 /* １２차월       */
                                                             WHEN T2.HOECHA <![CDATA[ < ]]> T5.ISTM_MCN THEN T1.ISTM_AMT /* 할부／렌탈１   */
-                                                            ELSE T1.ISTM_DSC_AMT /* 월할부／렌탈２ */
+                                                            ELSE T1.PY_AMT /* 월할부／렌탈２ */
                                                              END AS CWQAM3 /* 납입액       */
                                                   FROM TB_RVDW_GIRO_OCR_MNGT_BAS T1  --OCR관리기본
                                                   LEFT OUTER JOIN (SELECT LEVEL AS HOECHA FROM DUAL CONNECT BY LEVEL<![CDATA[ <= ]]> 100) T2
