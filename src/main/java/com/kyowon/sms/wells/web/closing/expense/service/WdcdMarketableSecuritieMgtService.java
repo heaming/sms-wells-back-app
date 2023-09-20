@@ -60,8 +60,8 @@ public class WdcdMarketableSecuritieMgtService {
 
         if (!StringUtils.isEmpty(firstReq.opcsAdjNo())) { //4. 부모에서 전달받은 OPCS_ADJ_NO(운영비정산번호)가 값이 있으면 원천세 정산 수정 진행
             masterDvo.setOpcsAdjNo(firstReq.opcsAdjNo());
-            count += mapper.deleteAccDetail(masterDvo);
-            count += mapper.updateAccMst(masterDvo);
+            mapper.deleteAccDetail(masterDvo);
+            mapper.updateAccMst(masterDvo);
         } else { // 5. 3번에서 OPCS_ADJ_NO(운영비정산번호)가 값이 없으면 원천세 정산 신규 등록 진행
             masterDvo.setOpcsAdjNo(mapper.selectOpcsAdjNo(masterDvo));
             mapper.insertAccMst(masterDvo);
