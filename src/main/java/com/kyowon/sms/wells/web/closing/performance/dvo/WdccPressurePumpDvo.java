@@ -16,6 +16,7 @@ public class WdccPressurePumpDvo {
     private String rcpdt;
     private String istDuedt;
     private String istDt;
+    private String fnlVstFshDt;
     private String gubn;
     private String adnSvSn;
 }
