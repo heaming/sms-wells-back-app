@@ -42,9 +42,6 @@
                 <if test='@MybatisUtils@equals(sppDvCd,"A2")'>
                    AND TK.PD_PRP_VAL20 NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '11', '91', '92', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
                 </if>
-                <if test='@MybatisUtils@equals(sppDvCd,"A3")'>
-                   AND TK.PD_PRP_VAL20 IN ('11', '92') /*모종(11,92)*/
-                </if>
             ) A
             LEFT JOIN T_CMZ_CD_D C
               ON  C.CD_ID = 'LGST_WK_MTHD_CD'
@@ -380,9 +377,6 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                     <if test='@MybatisUtils@equals(sppDvCd,"A2")'>
                        AND TK.PD_PRP_VAL20 NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '11', '91', '92', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
                     </if>
-                    <if test='@MybatisUtils@equals(sppDvCd,"A3")'>
-                       AND TK.PD_PRP_VAL20 IN ('11', '92') /*자가필터: 모종제외(11,92)*/
-                    </if>
                     <if test='@MybatisUtils@equals(pgGb,"P")'>
                        AND TN.SPP_PD_CD IS NULL
                     </if>
@@ -643,7 +637,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
              , ''
              , ''
              , ''
-             , '100002' --파주물류센터
+             , #{wkWareNo}  /* 모종 : 100009(웰스팜개발생산팀), 그 외 : 100002(파주물류센터) */
              , 'N'
              , 'N'
              , ''
@@ -781,7 +775,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
              , #{cralLocaraTno}
              , #{mexnoEncr}
              , #{cralIdvTno}
-             , '' -- 여기서부터는 asis에서 INSERT 안하는 컬럼이라 비워둠
+             , '' /*여기서부터는 asis에서 INSERT 안하는 컬럼이라 비워둠*/
              , ''
              , ''
              , ''
@@ -887,5 +881,243 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
          WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND WARE_NO = #{wareNo}
            AND WARE_DTL_DV_CD = '10'
+    </select>
+    <insert id="insertSdingOutOfStorage">
+        INSERT INTO TB_SVST_SV_WK_OSTR_IZ (
+               CST_SV_ASN_NO
+             , WK_OSTR_SN
+             , CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_HCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , ITM_PD_CD
+             , AS_REFRI_DV_CD
+             , BFSVC_REFRI_DV_CD
+             , REFRI_DV_CD
+             , FST_PD_CD
+             , FST_BC_NO
+             , FST_SELL_TP_CD
+             , FST_PD_USWY_CD
+             , FST_ITM_GD_CD
+             , FST_VST_FSH_DT
+             , FNL_PD_CD
+             , FNL_BC_NO
+             , FNL_SELL_TP_CD
+             , FNL_PD_USWY_CD
+             , FNL_ITM_GD_CD
+             , FNL_VST_FSH_DT
+             , USE_QTY
+             , CSMR_UPRC_AMT
+             , FRE_EXPN_DC
+             , FRE_EXPN_IST_DT
+             , FRE_EXPN_STOC_CTR_DT
+             , ITM_BIL_AMT
+             , ITM_BIL_CTR_AMT
+             , ITM_BIL_CTR_RSON_CD
+             , SV_BIL_AMT
+             , SV_BIL_CTR_AMT
+             , SV_BIL_CTR_RSON_CD
+             , MNGR_DV_CD
+             , DGR1_LEVL_OG_ID
+             , DGR2_LEVL_OG_ID
+             , DGR3_LEVL_OG_ID
+             , DGR4_LEVL_OG_ID
+             , BRCH_OG_ID
+             , ICHR_PRTNR_NO
+             , OG_TP_CD
+             , OSTR_CONF_DT
+             , ITM_OSTR_NO
+             , OSTR_SN
+             , OSTR_TP_CD
+             , OSTR_WARE_NO
+             , OSTR_DT
+             , WK_WARE_NO
+             , STKR_PRNT_YN
+             , STKR_R_PRNT_YN
+             , BC_IN_MTHD_CD
+             , RTNGD_PROCS_TP_CD
+             , RTNGD_RVPY_PROCS_YN
+             , HDWR_IN_RSON_CD
+             , HDWR_IN_RSON_CN
+             , RTNGD_CONF_YN
+             , REFR_AS_RCP_YN
+             , RMK_CN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>)
+        SELECT D2.CST_SV_ASN_NO
+        	 , (SELECT NVL(MAX(WK_OSTR_SN), 0)
+                   FROM TB_SVST_SV_WK_OSTR_IZ
+                  WHERE CST_SV_ASN_NO = D2.CST_SV_ASN_NO )
+               + ROWNUM AS WK_OSTR_SN
+             , D1.CNTR_NO
+             , D1.CNTR_SN
+             , D1.SV_BIZ_HCLSF_CD
+             , D1.SV_BIZ_DCLSF_CD
+             , D1.SDING_PD_CD
+             , '1' AS AS_REFRI_DV_CD
+             , '1' AS BFSVC_REFRI_DV_CD
+             , '1' AS BFSVC_REFRI_DV_CD
+             , #{sdingPkgPdCd} AS FST_PD_CD
+             , '' AS FST_PD_CD
+             , D4.SELL_TP_CD AS FST_SELL_TP_CD
+             , '1' AS FST_PD_USWY_CD
+             , 'A' AS FST_ITM_GD_CD
+             , TO_CHAR(SYSDATE,'YYYYMMDD') AS FST_VST_FSH_DT
+             , #{sdingPkgPdCd} AS FNL_PD_CD
+             , '' AS FNL_BC_NO
+             , D4.SELL_TP_CD AS FNL_SELL_TP_CD
+             , '1' AS FNL_PD_USWY_CD
+             , 'A' AS FNL_ITM_GD_CD
+             , TO_CHAR(SYSDATE,'YYYYMMDD') AS FNL_VST_FSH_DT
+             , D1.SDING_QTY AS USE_QTY
+             , 0 AS CSMR_UPRC_AMT
+             , 0 AS FRE_EXPN_DC
+             , D5.IST_DT AS FRE_EXPN_IST_DT
+             , '' AS FRE_EXPN_STOC_CTR_DT
+             , 0 AS ITM_BIL_AMT
+             , 0 AS ITM_BIL_CTR_AMT
+             , '' AS ITM_BIL_CTR_RSON_CD
+             , 0 AS SV_BIL_AMT
+             , 0 AS SV_BIL_CTR_AMT
+             , '' AS SV_BIL_CTR_RSON_CD
+             , '2' AS MNGR_DV_CD
+             , '71314' AS DGR1_LEVL_OG_ID
+             , '99992' AS DGR2_LEVL_OG_ID
+             , '' AS DGR3_LEVL_OG_ID
+             , '' AS DGR4_LEVL_OG_ID
+             , '99992' AS BRCH_OG_ID
+             , #{session.employeeIDNumber} AS ICHR_PRTNR_NO
+             , #{session.ogTpCd} AS OG_TP_CD
+             , '' AS OSTR_CONF_DT
+             , '' AS ITM_OSTR_NO
+             , '' AS OSTR_SN
+             , '' AS OSTR_TP_CD
+             , '' AS OSTR_WARE_NO
+             , '' AS OSTR_DT
+             , '100009' AS WK_WARE_NO /* 웰스팜개발생산팀 */
+             , 'N' AS STKR_PRNT_YN
+             , 'N' AS STKR_R_PRNT_YN
+             , '' AS BC_IN_MTHD_CD
+             , '' AS RTNGD_PROCS_TP_CD
+             , 'N' AS RTNGD_RVPY_PROCS_YN
+             , '' AS HDWR_IN_RSON_CD
+             , '' AS HDWR_IN_RSON_CN
+             , 'N' AS RTNGD_CONF_YN
+             , 'N' AS REFR_AS_RCP_YN
+             , '' AS RMK_CN
+             , 'N' AS DTA_DL_YN
+            <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SVPD_SDING_SPP_EXP_IZ D1 /* 모종배송예정내역 */
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2 /* 고객서비스BS설치대상내역 */
+            ON D1.SDING_SPP_NO = D2.CST_SV_ASN_NO
+           AND D2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3 /*고객서비스BS배정내역*/
+            ON D2.CST_SV_ASN_NO = D3.CST_SV_ASN_NO
+         INNER JOIN TB_SSCT_CNTR_DTL D4 /* 계약상세 */
+            ON D1.CNTR_NO = D4.CNTR_NO
+           AND D1.CNTR_SN = D4.CNTR_SN
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5 /* 고객서비스수행내역 */
+            ON D1.CNTR_NO = D5.CNTR_NO
+           AND D1.CNTR_SN = D5.CNTR_SN
+         WHERE D1.DTA_DL_YN = 'N'
+           AND D1.CNTR_NO   = #{cntrNo}
+           AND D1.CNTR_SN   = #{cntrSn}
+           AND D1.SV_BIZ_HCLSF_CD = #{svBizHclsfCd}
+           AND D1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+           AND D1.SDING_SPP_NO    = #{sppOrdNo}
+           AND D1.SDING_SPP_SN    = #{sppPlanSn}
+    </insert>
+    <select id="selectSdingInfo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMgtDvo">
+        SELECT T1.CNTR_NO   /* 계약번호 */
+          	   , T1.CNTR_SN   /* 계약일련번호 */
+          	   , T1.VST_DUEDT /* 방문예정일자 */
+          	   , T3.PDCT_PD_CD /* 상품코드 */
+          	   , T1.CST_SV_ASN_NO /* 고객서비스배정번호 */
+          	   , T1.SV_BIZ_DCLSF_CD /* 서비스세분류코드 */
+          	   , T2.VST_OJ_LOCARA_CD /* 방문대상지역코드 */
+          	   , T1.IST_NMN_N /* 설치차월수 */
+          	   , T1.VST_NMN_N /* 방문차월수 */
+          	   , T4.AS_LCT_CD /* AS위치코드 */
+          	   , T4.AS_PHN_CD /* AS현상코드 */
+          	   , T4.AS_CAUS_CD /* AS원인코드 */
+          	   , T6.CRAL_LOCARA_TNO
+          	   , T6.MEXNO_ENCR
+          	   , T6.CRAL_IDV_TNO
+            FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ T1 /* 고객서비스BS설치대상내역 */
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T2 /*고객서비스BS배정내역*/
+           	  ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+           INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3
+              ON T1.CNTR_NO = T3.CNTR_NO
+             AND T1.CNTR_SN = T3.CNTR_SN
+            LEFT OUTER JOIN TB_SVPD_AS_TP_CD T4 /* AS유형코드 */
+              ON T3.PDCT_PD_CD = T4.PD_CD
+             AND T1.SV_BIZ_DCLSF_CD = T4.SV_ANA_HCLSF_CD
+             AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T4.APY_STRTDT AND T4.APY_ENDDT
+           INNER JOIN TB_SSCT_CNTR_ADR_REL T5 /*계약주소관계*/
+            ON T1.CNTR_NO = T5.DTL_CNTR_NO
+           AND T1.CNTR_SN = T5.DTL_CNTR_SN
+           AND T5.ADRPC_TP_CD IN ('2','3')
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T6 /*계약주소지기본*/
+            ON T5.CNTR_ADRPC_ID = T6.CNTR_ADRPC_ID
+         WHERE T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+           AND T1.CST_SV_ASN_NO   =  #{sppOrdNo}
+    </select>
+    <select id="selectWellsfarmMachine" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMgtDvo">
+        SELECT T1.CST_SV_ASN_NO
+             , T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.SV_BIZ_DCLSF_CD
+             , E1.PDCT_PD_CD AS ITEM_PD_CD
+             , T3.SELL_TP_CD
+             , E1.PDCT_PD_CD
+             , 1 AS OSTR_AK_QTY
+             , E1.IST_DT
+             , '99992' AS OG_CD
+             , '100009' AS WK_WARE_NO
+             , T1.VST_DUEDT
+             , T2.VST_OJ_LOCARA_CD
+             , T1.IST_NMN_N
+             , T1.VST_NMN_N
+             , T4.AS_LCT_CD
+             , T4.AS_PHN_CD
+             , T4.AS_CAUS_CD
+             , T6.CRAL_LOCARA_TNO
+             , T6.MEXNO_ENCR
+             , T6.CRAL_IDV_TNO
+          FROM TB_SSCT_CNTR_REL R1  /* 계약관계(모종 - 기기) */
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ R2
+            ON R2.CST_SV_ASN_NO = #{cstSvAsnNo}
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ E1
+            ON R1.OJ_DTL_CNTR_NO = E1.CNTR_NO
+           AND R1.OJ_DTL_CNTR_SN = E1.CNTR_SN
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T1
+            ON R1.OJ_DTL_CNTR_NO = T1.CNTR_NO
+           AND R1.OJ_DTL_CNTR_SN = T1.CNTR_SN
+           AND T1.ASN_OJ_YM = R2.ASN_OJ_YM
+           AND T1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T2
+            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+         INNER JOIN TB_SSCT_CNTR_DTL T3 /*계약상세*/
+            ON T1.CNTR_NO = T3.CNTR_NO
+           AND T1.CNTR_SN = T3.CNTR_SN
+           AND T3.CNTR_DTL_STAT_CD != '202' /*연체정지*/
+          LEFT OUTER JOIN TB_SVPD_AS_TP_CD T4 /* AS유형코드 */
+            ON E1.PDCT_PD_CD = T4.PD_CD
+           AND T1.SV_BIZ_DCLSF_CD = T4.SV_ANA_HCLSF_CD
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T4.APY_STRTDT AND T4.APY_ENDDT
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T5 /*계약주소관계*/
+            ON T1.CNTR_NO = T5.DTL_CNTR_NO
+           AND T1.CNTR_SN = T5.DTL_CNTR_SN
+           AND T5.ADRPC_TP_CD IN ('2','3')
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T6 /*계약주소지기본*/
+            ON T5.CNTR_ADRPC_ID = T6.CNTR_ADRPC_ID
+          WHERE 1=1
+           AND R1.BASE_DTL_CNTR_NO = #{cntrNo}
+           AND R1.BASE_DTL_CNTR_SN  = #{cntrSn}
+           AND R1.CNTR_REL_DTL_CD = '216'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN R1.VL_STRT_DTM AND R1.VL_END_DTM
+           AND E1.PDCT_PD_CD = 'WM05100045' /* 새싹재배기 */
     </select>
 </mapper>
