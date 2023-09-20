@@ -300,6 +300,7 @@ public class WsnaBsRegularShippingMgtService {
      * (택배)모종상품 배송처리
      * @param
      */
+    @Transactional
     public void createSdingShippingItems(WsnaSeedReleaseScheduleCnfmDvo seedDvo) {
         // BS + 택배 + 모종 조회
         // 모종패키지 상품 작업출고내역에 저장
