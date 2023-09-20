@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.dvo;
 
 import java.math.BigDecimal;
 
-import com.sds.sflex.system.config.annotation.DBEncField;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -66,7 +64,6 @@ public class WsnaSeedReleaseScheduleCnfmDvo {
     private String vstDuedt;
 
     private String cstCralLocaraTno;
-    @DBEncField
     private String cstMexnoEncr;
     private String cstCralIdvTno;
 }

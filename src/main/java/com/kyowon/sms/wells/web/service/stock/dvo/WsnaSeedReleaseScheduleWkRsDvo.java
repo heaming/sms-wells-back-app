@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import com.sds.sflex.system.config.annotation.DBEncField;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,4 +30,9 @@ public class WsnaSeedReleaseScheduleWkRsDvo {
     private String asCausCd;
     private String badDvCd;
     private String svProcsCn;
+
+    private String cstCralLocaraTno;
+    @DBEncField
+    private String cstMexnoEncr;
+    private String cstCralIdvTno;
 }

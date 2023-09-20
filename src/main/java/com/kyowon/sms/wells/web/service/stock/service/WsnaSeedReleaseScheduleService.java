@@ -381,6 +381,9 @@ public class WsnaSeedReleaseScheduleService {
                 wkRsDvo.setAsCausCd(asCausCd);
                 wkRsDvo.setBadDvCd(badDvCd);
                 wkRsDvo.setRefriDvCd("1");
+                wkRsDvo.setCstCralLocaraTno(dvo.getCstCralLocaraTno());
+                wkRsDvo.setCstMexnoEncr(dvo.getCstMexnoEncr());
+                wkRsDvo.setCstCralIdvTno(dvo.getCstCralIdvTno());
 
                 // 작업결과저장
                 this.maaper.insertCstSvWkRsIz(wkRsDvo);
