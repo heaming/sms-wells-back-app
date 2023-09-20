@@ -41,7 +41,7 @@ public class WdcbRentalNewRequidationAggregateDto {
         String matPdCd,
         String pdNm,
         String istDt,
-        String cntrPdEnddt,
+        String cntrCanDtm,
         String reqdDt,
         String prtnrBzsCd,
         String prtnrBzsNm
