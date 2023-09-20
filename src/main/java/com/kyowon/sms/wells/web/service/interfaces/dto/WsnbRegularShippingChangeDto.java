@@ -16,16 +16,16 @@ public class WsnbRegularShippingChangeDto {
         String cntrSn,
         @JsonProperty(value = "AK_SN")
         String akSn,
-        @JsonProperty(value = "AS_AK_DV_CD")
+        @JsonProperty(value = "AS_AK_DV_CD") // P_REQ_GB (변경구분 1:패키지변경, 4:차월 방문 중지)
         String asAkDvCd,
-        @JsonProperty(value = "AK_CHDT")
+        @JsonProperty(value = "AK_CHDT") // P_REQ_DT
         String akChdt,
         @JsonProperty(value = "BFCH_PD_CD")
         String bfchPdCd,
         @JsonProperty(value = "AFCH_PD_CD")
         String afchPdCd,
-        @JsonProperty(value = "PART_LIST")
-        String partList,
+        @JsonProperty(value = "CHO_CAPSL_CN") // P_PART_LIST
+        String choCapslCn,
         @JsonProperty(value = "MTR_PROCS_STAT_CD")
         String mtrProcsStatCd,
         @JsonProperty(value = "USER_ID")
