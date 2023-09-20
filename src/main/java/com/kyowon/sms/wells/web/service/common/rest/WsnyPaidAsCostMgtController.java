@@ -1,20 +1,25 @@
 package com.kyowon.sms.wells.web.service.common.rest;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnyPaidAsCostMgtDto.*;
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.web.bind.annotation.*;
+
+import com.kyowon.sms.wells.web.service.common.dto.WsnyPaidAsCostMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyPaidAsCostMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyPaidAsCostMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.common.service.WsnyPaidAsCostMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.util.List;
 
 @Api(tags = "[WSNY] 유상 A/S 서비스비용 관리")
 @RequiredArgsConstructor
@@ -35,12 +40,6 @@ public class WsnyPaidAsCostMgtController {
         SearchReq dto, PageInfo pageInfo
     ){
         return service.getPaidAsCostMgts(dto, pageInfo);
-    }
-
-    @ApiOperation(value = "유상 A/S 서비스비용 관리 상품 그룹 조회", notes = "조회조건인 상품그룹에 해당하는 상품을 조회.")
-    @GetMapping("filter-products")
-    public List<PdRes> getHgrPdCd(PdReq dto){
-        return service.getHgrPdCd(dto);
     }
 
     @ApiOperation(value ="유상 A/S 서비스비용 관리목록 엑셀 다운로드", notes = "검색조건을 입력받아 엑셀 다운로드용 유상 A/S 서비스비용 관리 목록을 조회.")

@@ -1,12 +1,14 @@
 package com.kyowon.sms.wells.web.service.common.mapper;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnyPaidAsCostMgtDto.*;
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import com.kyowon.sms.wells.web.service.common.dto.WsnyPaidAsCostMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyPaidAsCostMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnyPaidAsCostMgtDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-import org.apache.ibatis.annotations.Mapper;
-
-import java.util.List;
 
 /**
  * <pre>
@@ -21,7 +23,6 @@ public interface WsnyPaidAsCostMgtMapper {
 
     PagingResult<SearchRes> selectPaidAsCostMgts(SearchReq dto, PageInfo pageInfo);
 
-    List<PdRes> selectHgrPdCd(PdReq dto);
 
     List<SearchRes> selectPaidAsCostMgts(SearchReq dto);
 

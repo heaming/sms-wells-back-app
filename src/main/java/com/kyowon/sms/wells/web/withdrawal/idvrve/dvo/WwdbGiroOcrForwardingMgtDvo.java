@@ -26,4 +26,13 @@ public class WwdbGiroOcrForwardingMgtDvo {
     String ltpayYn; //--후납여부
     String giroRglrDvCd; //--후납여부
 
+    String sellTam;
+    String subscAmt;
+    String tkAmt;
+    String cshBlam;
+    String giroFeeAmt;
+    String cntrTam;
+    String giroBizDvCd;
+    String giroBizTpCd;
+
 }

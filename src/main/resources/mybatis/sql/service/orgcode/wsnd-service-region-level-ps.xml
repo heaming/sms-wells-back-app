@@ -3,6 +3,7 @@
     <select id="selectServiceRegionLevelPss" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndServiceRegionLevelPsDto$SearchRes">
         <![CDATA[
         SELECT BSDT    /* 기준일자 */
+             , SAP_MAT_CD  /* SAP */
              , DGR1_LEVL_OG_NM  /* 상위 조직명 */
              , DGR1_LEVL_OG_CD  /* 상위 조직코드 */
              , DGR1_LEVL_OG_ID  /* 상위 조직 ID  */
@@ -131,9 +132,12 @@
              , (CASE WHEN END_ISLAND_YN = '1' THEN '육지'
                      WHEN END_ISLAND_YN = '2' THEN '섬'
                 ELSE '' END) AS END_ISLAND_YN          /* 도착 섬구분 */
-        ]]>
+             , REG_NM
+             , REG_OG_NM
+             , REG_ID
          FROM (
         SELECT AL170.BSDT
+             , PD_BAS.SAP_MAT_CD
              , OG_IZ.DGR1_LEVL_OG_CD
              , OG_IZ.DGR1_LEVL_OG_NM
              , OG_IZ.DGR1_LEVL_OG_ID
@@ -237,6 +241,19 @@
              , VS106.VST_FSH_HH
              , CHULJANG.BASE_PDLV_NO AS AL150_BASE_PDLV_NO
              , CHULJANG.BSTR_PDLV_NO
+             , (SELECT PRTNR_KNM
+                  FROM TB_OGBS_PRTNR_BAS SB1 /*파트너기본*/
+                 WHERE SB1.PRTNR_NO = AC021.PRTNR_NO
+                   AND SB1.OG_TP_CD IN ('HR1','W02')
+                   AND ROWNUM = 1
+                   ) AS REG_NM
+             , (SELECT OG_NM
+                  FROM TB_OGBS_PRTNR_BAS SB1 /*파트너기본*/
+                 WHERE SB1.PRTNR_NO = AC021.PRTNR_NO
+                   AND SB1.OG_TP_CD IN ('HR1','W02')
+                   AND ROWNUM = 1
+                   ) AS REG_OG_NM
+             , NVL(AC221.FST_RGST_USR_ID, AC261.FST_RGST_USR_ID) AS REG_ID
                    FROM TB_SVPD_CST_SV_RGLVL_IZ AL170
              INNER JOIN TB_OGBS_PRTNR_BAS AC021
                      ON AL170.ICHR_PRTNR_NO = AC021.PRTNR_NO
@@ -307,6 +324,8 @@
                        ) CHULJANG
                     ON AL170.ICHR_PRTNR_NO = CHULJANG.EGER_PRTNR_NO
                    AND AL170.OG_TP_CD = CHULJANG.EGER_PRTNR_OG_TP_CD
+
+        ]]>
          WHERE 1=1
          /* 서비스유형*/
          <if test='@MybatisUtils@isNotEmpty(svTpCd)'>

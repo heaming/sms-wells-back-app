@@ -10,6 +10,7 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.Se
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.WareMngtRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMaterialDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMgtDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleCnfmDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -43,4 +44,10 @@ public interface WsnaBsRegularShippingMgtMapper {
     String selectNewLgstOstrAkNo();
 
     WareMngtRes selectWareMngtInfo(String wareNo);
+
+    int insertSdingOutOfStorage(WsnaSeedReleaseScheduleCnfmDvo seedDvo);
+
+    WsnaBsRegularShippingMgtDvo selectSdingInfo(WsnaSeedReleaseScheduleCnfmDvo seedDvo);
+
+    WsnaBsRegularShippingMgtDvo selectWellsfarmMachine(WsnaBsRegularShippingMgtDvo sdingDvo);
 }

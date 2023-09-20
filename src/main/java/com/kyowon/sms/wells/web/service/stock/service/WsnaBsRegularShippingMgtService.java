@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -11,10 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.wells.web.service.common.service.WsnzHistoryService;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaBsRegularShippingMgtConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.*;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMaterialDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMgtDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.*;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsRegularShippingMgtMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -89,11 +87,9 @@ public class WsnaBsRegularShippingMgtService {
         List<WsnaBsRegularShippingMgtDvo> dvos = converter.mapSaveReqToWsnaShippingManagementDvo(dtos);
         // 물류인터페이스 호출용 dvo
         List<WsnaLogisticsOutStorageAskReqDvo> logisticDvos = new ArrayList<>();
-        if (!List.of("11", "92").contains(dvos.get(0).getPdGroupCd())) {
-            lgstWkMthdCd = dtos.get(0).lgstWkMthdCd();
-            // 물류요청번호 생성
-            lgstOstrAkNo = mapper.selectNewLgstOstrAkNo();
-        }
+        lgstWkMthdCd = dtos.get(0).lgstWkMthdCd();
+        // 물류요청번호 생성
+        lgstOstrAkNo = mapper.selectNewLgstOstrAkNo();
         //저장
         for (WsnaBsRegularShippingMgtDvo dvo : dvos) {
             // 암호화 이전 값 따로 세팅.
@@ -101,12 +97,11 @@ public class WsnaBsRegularShippingMgtService {
             String exnoEnncr = dvo.getExnoEncr();
             // 출고요청 번호 생성
             dvo.setOstrAkNo(mapper.selectOstAkNo(dvo));
-            if (!List.of("11", "92").contains(dvo.getPdGroupCd())) {
-                // 물류요청구분코드
-                dvo.setLgstWkMthdCd(lgstWkMthdCd);
-                // 물류요청번호추가
-                dvo.setLgstOstrAkNo(lgstOstrAkNo);
-            }
+            // 물류요청구분코드
+            dvo.setLgstWkMthdCd(lgstWkMthdCd);
+            // 물류요청번호추가
+            dvo.setLgstOstrAkNo(lgstOstrAkNo);
+
             // 저장 전 부품자재들 dvos로 변환 1,2,4 저장필요.
             List<WsnaBsRegularShippingMaterialDvo> materialDvos = this.transferShippingMaterials(dvo);
 
@@ -115,6 +110,7 @@ public class WsnaBsRegularShippingMgtService {
             String mpno = materialDvos.get(0).getMpno();
 
             for (WsnaBsRegularShippingMaterialDvo materialDvo : materialDvos) {
+                materialDvo.setWkWareNo("100002"); /* 파주물류센터 */
                 // 1.택배 발송정보 저장 (TB_SVPD_OSTR_AK_PCSV_SEND_DTL)
                 mapper.insertParcelFwInformation(materialDvo);
                 materialDvo.setAdrsTnoVal(tno);
@@ -123,20 +119,18 @@ public class WsnaBsRegularShippingMgtService {
                 mapper.insertOutOfStorage(materialDvo);
                 materialDvo.setAdrsTnoVal(tno);
                 materialDvo.setAdrsCphonNoVal(mpno);
-                // 3.재고정보변경, 물류인터페이스 dvo list(모종제품제외)
-                if (!List.of("11", "92").contains(dvo.getPdGroupCd())) {
-                    this.putStockItems(materialDvo);
-                    // 물류인터페이스 dvo list에 추가
-                    materialDvo.setAdrsTnoVal(tno);
-                    materialDvo.setAdrsCphonNoVal(mpno);
-                    logisticDvos.add(converter.mapMaterialDvoToLogisticDvo(materialDvo));
-                }
+                // 3.재고정보변경, 물류인터페이스 dvo list
+                this.putStockItems(materialDvo);
+                // 물류인터페이스 dvo list에 추가
+                materialDvo.setAdrsTnoVal(tno);
+                materialDvo.setAdrsCphonNoVal(mpno);
+                logisticDvos.add(converter.mapMaterialDvoToLogisticDvo(materialDvo));
 
             }
             // 4.작업결과 저장
             // 고객서비스정기BS주기내역(TB_SVPD_CST_SV_RGBSPR_IZ) update
             mapper.updateBsPeriod(dvo);
-            // 고객서비스BS배정내역(TB_SVPD_CST_SV_BSFVC_ASN_IZ) update
+            // 고객서비스BS배정내역(TB_SVPD_CST_SV_BFSVC_ASN_IZ) update
             mapper.updateBsAssign(dvo);
             // history 생성
             historyService.insertCstSvBfsvcAsnHistByPk(dvo.getCstSvAsnNo());
@@ -302,4 +296,39 @@ public class WsnaBsRegularShippingMgtService {
         itemStockService.createStock(stockItem);
     }
 
+    /**
+     * (택배)모종상품 배송처리
+     * @param
+     */
+    @Transactional
+    public void createSdingShippingItems(WsnaSeedReleaseScheduleCnfmDvo seedDvo) {
+        // BS + 택배 + 모종 조회
+        // 모종패키지 상품 작업출고내역에 저장
+        mapper.insertSdingOutOfStorage(seedDvo);
+        WsnaBsRegularShippingMgtDvo sdingDvo = mapper.selectSdingInfo(seedDvo);
+        String mexnoEncr = sdingDvo.getMexnoEncr();
+        // 고객서비스정기BS주기내역(TB_SVPD_CST_SV_RGBSPR_IZ) update
+        mapper.updateBsPeriod(sdingDvo);
+        // 고객서비스BS배정내역(TB_SVPD_CST_SV_BFSVC_ASN_IZ) update
+        mapper.updateBsAssign(sdingDvo);
+        // history 생성
+        historyService.insertCstSvBfsvcAsnHistByPk(sdingDvo.getCstSvAsnNo());
+        // 작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) 저장
+        sdingDvo.setMexnoEncr(mexnoEncr);
+        mapper.insertWorkResult(sdingDvo);
+
+        // 새싹재배기+씨앗인지 조회 후 별도 처리
+        WsnaBsRegularShippingMgtDvo wellsfarmDvo = mapper.selectWellsfarmMachine(sdingDvo);
+        if (!Objects.isNull(wellsfarmDvo)) {
+            mapper.insertOutOfStorage(converter.mapShippingManagementDvoToShippingMaterialDvo(wellsfarmDvo));
+            // 고객서비스정기BS주기내역(TB_SVPD_CST_SV_RGBSPR_IZ) update
+            mapper.updateBsPeriod(wellsfarmDvo);
+            // 고객서비스BS배정내역(TB_SVPD_CST_SV_BSFVC_ASN_IZ) update
+            mapper.updateBsAssign(wellsfarmDvo);
+            // history 생성
+            historyService.insertCstSvBfsvcAsnHistByPk(wellsfarmDvo.getCstSvAsnNo());
+            // 작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) 저장
+            mapper.insertWorkResult(wellsfarmDvo);
+        }
+    }
 }

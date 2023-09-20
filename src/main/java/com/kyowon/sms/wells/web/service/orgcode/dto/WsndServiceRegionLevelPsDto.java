@@ -16,6 +16,10 @@ public class WsndServiceRegionLevelPsDto {
     @ApiModel("WsndServiceRegionLevelPsDto-SearchRes")
     public record SearchRes(
         String bsdt,            /* 기준일자 */
+        String sapMatCd,        /* SAP */
+        String regNm,           /* 접수자 */
+        String regOgNm,         /* 접수자소속 */
+        String regId,
         String dgr1LevlOgNm,    /* 상위 조직명 */
         String dgr1LevlOgCd,    /* 상위 조직코드 */
         String dgr1LevlOgId,    /* 상위 조직 ID  */

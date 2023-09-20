@@ -107,7 +107,7 @@
            AND T1.WK_PRTNR_NO = O2.PRTNR_NO
          WHERE 1 = 1
            AND T1.WK_PRTNR_NO = #{wkPrtnrNo}
-           AND I1.RCPDT = #{wkDt}
+           AND T2.RCPDT = #{wkDt}
     </select>
 
     <select id="selectEngineerCancels" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniCustomerCenterInterfaceDto$SearchCancelRes">
@@ -170,7 +170,7 @@
            AND T1.WK_PRTNR_NO = O2.PRTNR_NO
          WHERE 1 = 1
            AND T1.WK_PRTNR_NO = #{wkPrtnrNo}
-           AND I1.RCPDT = #{wkDt}
+           AND T2.RCPDT = #{wkDt}
     </select>
 
     <select id="selectSeedingRegularShippingPdct" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniCustomerCenterInterfaceDto$SearchSppPdctRes">
@@ -311,79 +311,59 @@
     </select>
 
     <insert id="insertFilterShippingAddress">
-        MERGE INTO TB_SVPD_CST_SV_SPP_ADR_IZ AA
-             USING (SELECT #{cntrNo}  AS CNTR_NO
-                         , #{cntrSn}  AS CNTR_SN
-                         , #{sppTcnt} AS SPP_TCNT
-                      FROM DUAL) BB
-                 ON (AA.CNTR_NO  = BB.CNTR_NO
-                AND AA.CNTR_SN  = BB.CNTR_SN
-                AND AA.SPP_TCNT = BB.SPP_TCNT)
-        WHEN MATCHED THEN
-             UPDATE
-                SET CRAL_LOCARA_TNO = #{cralLocaraTno}
-                  , MEXNO_ENCR      = #{mexnoEncr}
-                  , CRAL_IDV_TNO    = #{cralIdvTno}
-                  , LOCARA_TNO      = #{locaraTno}
-                  , EXNO_ENCR       = #{exnoEncr}
-                  , IDV_TNO         = #{idvTno}
-                  , SPP_ZIP         = #{sppZip}
-                  , SPP_BAS_ADR     = #{sppBasAdr}
-                  , SPP_DTL_ADR     = #{sppDtlAdr}
-                  , REF_ADR         = #{refAdr}
-                  , ADR_DV_CD       = #{adrDvCd}
-                  , SPP_DPTU_DT     = #{sppDptuDt}
-                  , SPP_FSH_DT      = #{sppFshDt}
-                  , USE_YN          = #{useYn}
-                  <include refid="COMMON.updateSystemField"/>
-        WHEN NOT MATCHED THEN
-             INSERT (
-                CNTR_NO
-              , CNTR_SN
-              , SPP_TCNT
-              , CRAL_LOCARA_TNO
-              , MEXNO_ENCR
-              , CRAL_IDV_TNO
-              , LOCARA_TNO
-              , EXNO_ENCR
-              , IDV_TNO
-              , SPP_ZIP
-              , SPP_BAS_ADR
-              , SPP_DTL_ADR
-              , REF_ADR
-              , ADR_DV_CD
-              , SPP_DPTU_DT
-              , SPP_FSH_DT
-              , USE_YN
-              , DTA_DL_YN
-              <include refid="COMMON.insertSystemField"/>
-             ) VALUES (
-                #{cntrNo}
-              , TO_NUMBER(#{cntrSn})
-              , #{sppTcnt}
-              , #{cralLocaraTno}
-              , #{mexnoEncr}
-              , #{cralIdvTno}
-              , #{locaraTno}
-              , #{exnoEncr}
-              , #{idvTno}
-              , #{sppZip}
-              , #{sppBasAdr}
-              , #{sppDtlAdr}
-              , #{refAdr}
-              , #{adrDvCd}
-              , #{sppDptuDt}
-              , #{sppFshDt}
-              , #{useYn}
-              , 'N'
-              <include refid="COMMON.insertSystemFieldValue"/>
+        INSERT INTO TB_SVPD_CST_SV_SPP_ADR_IZ
+             ( CNTR_NO
+             , CNTR_SN
+             , SPP_TCNT
+             , CRAL_LOCARA_TNO
+             , MEXNO_ENCR
+             , CRAL_IDV_TNO
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , SPP_ZIP
+             , SPP_BAS_ADR
+             , SPP_DTL_ADR
+             , REF_ADR
+             , ADR_DV_CD
+             , SPP_DPTU_DT
+             , SPP_FSH_DT
+             , USE_YN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             ( #{cntrNo}
+             , TO_NUMBER(#{cntrSn})
+             , (SELECT NVL(MAX(X.SPP_TCNT), 0) + 1
+                  FROM TB_SVPD_CST_SV_SPP_ADR_IZ X
+                 WHERE X.CNTR_NO = #{cntrNo}
+                   AND X.CNTR_SN = TO_NUMBER(#{cntrSn})
+               )
+             , #{cralLocaraTno}
+             , #{mexnoEncr}
+             , #{cralIdvTno}
+             , #{locaraTno}
+             , #{exnoEncr}
+             , #{idvTno}
+             , #{sppZip}
+             , #{sppBasAdr}
+             , #{sppDtlAdr}
+             , #{refAdr}
+             , #{adrDvCd}
+             , #{sppDptuDt}
+             , #{sppFshDt}
+             , #{useYn}
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue"/>
              )
     </insert>
 
     <update id="updateFilterShippingAddress">
         UPDATE TB_SVPD_CST_SV_SPP_ADR_IZ
-           SET SPP_FSH_DT = #{sppFshDt}
-            <include refid="COMMON.updateSystemField"/>
+           SET SPP_FSH_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , DTA_DL_YN = 'Y'
+             <include refid="COMMON.updateSystemField"/>
          WHERE CNTR_NO = #{cntrNo}
            AND CNTR_SN = TO_NUMBER(#{cntrSn})
     </update>
