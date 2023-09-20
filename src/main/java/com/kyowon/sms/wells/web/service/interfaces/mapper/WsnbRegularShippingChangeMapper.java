@@ -31,4 +31,18 @@ public interface WsnbRegularShippingChangeMapper {
 
     int updateRegularShippingChangeBase(SaveRegularShippingChangeBaseReq req);
 
+    //------------------------------------------------------------------//
+
+    int insertTbSvpdHcfAsAkHist(SaveReq req);
+
+    int deleteTbSvpdHcfAsAkIz(SaveReq req);
+
+    Integer countTbSvpdHcfAsAkIz(SaveReq req);
+
+    int updateTbSvpdHcfAsAkIz(SaveReq req);
+
+    int insertTbSvpdHcfAsAkIz(SaveReq req);
+
+    int updateStopNextSiding(SaveReq req);
+
 }

@@ -58,7 +58,7 @@ public interface WsniSidingServiceChangesMapper {
         String mtrProcsStatCd
     );
 
-    Integer selectBsTarget(
+    WsniSidingServiceChangesDvo selectBsTarget(
         String cntrNo,
         String cntrSn,
         String asnOjYm
