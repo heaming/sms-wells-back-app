@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaByDayMaterialInOutSearchMapper">
+
+    <select id="selectByDayMaterialInOutSearchPages" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaByDayMaterialInOutSearchDvo">
+    WITH TB_PD AS (
+                    SELECT T1.PD_CD
+                         , T1.PD_NM
+                         , T1.SAP_MAT_CD
+                      FROM TB_PDBS_PD_BAS T1
+                         , TB_PDBS_PD_ECOM_PRP_DTL T2
+                     WHERE 1=1
+                       AND T1.PD_CD = T2.PD_CD
+                       AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                       <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+                       AND T2.PD_PRP_VAL19 = #{itmKndCd}
+                       </if>
+                       <if test="@MybatisUtils@isEmpty(itmKndCd)">
+                       AND T2.PD_PRP_VAL19 IN ('4', '5', '6')
+                       </if>
+                       <if test="@MybatisUtils@isNotEmpty(itmPdCds)">
+                       AND T1.PD_CD = #{itmPdCds}
+                       </if>
+                    )
+
+    SELECT TO_CHAR(TO_DATE(AK1.STR_HOP_DT,'YYYYMMDD'),'YYYY-MM-DD') STR_HOP_DT
+         , F_CMZ_CD_NM('TNT_WELLS', 'OSTR_AK_TP_CD', AK1.OSTR_AK_TP_CD) OSTR_AK_TP_NM
+         , AK1.OSTR_AK_NO
+         , AK1.OSTR_AK_SN
+         , WR1.WARE_NM OSTR_WARE_NM
+         , WR2.WARE_NM STR_WARE_NM
+         , PD1.SAP_MAT_CD
+         , AK1.ITM_PD_CD PD_CD
+         , PD1.PD_NM
+         , NVL(ST1.PITM_STOC_A_GD_QTY, 0) OSTR_STCK_QTY
+         , NVL(ST2.PITM_STOC_A_GD_QTY, 0) STR_STCK_QTY
+         , (SELECT NVL(BTD_STOC_A_GD_QTY + STR_QTY + STR_USE_QTY + STR_CTR_QTY
+                     - OSTR_QTY - OSTR_USE_QTY - OSTR_CTR_QTY, 0) AS AGRG_QTY
+              FROM (
+                    /* 기초재고 */
+                    SELECT NVL(BTD_STOC_A_GD_QTY, 0) BTD_STOC_A_GD_QTY
+                      FROM TB_SVST_MCITM_STOC_IZ
+                     WHERE BASE_YM = SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)
+                       AND WARE_NO = AK1.OSTR_OJ_WARE_NO
+                       AND ITM_PD_CD = AK1.ITM_PD_CD
+                       AND DTA_DL_YN = 'N'
+                    )
+              LEFT OUTER JOIN (
+                    /* 입고 */
+                    SELECT NVL(SUM(STR_QTY), 0) STR_QTY
+                      FROM TB_SVST_ITM_STR_IZ
+                     WHERE STR_QTY > 0
+                       AND STR_RGST_DT >= SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)||'01'
+                       AND STR_RGST_DT &lt;= AK1.OSTR_AK_RGST_DT
+                       AND STR_WARE_NO = AK1.OSTR_OJ_WARE_NO
+                       AND ITM_PD_CD = AK1.ITM_PD_CD
+                       AND ITM_GD_CD = 'A'
+                       AND DTA_DL_YN = 'N'
+                                )
+                ON 1=1
+              LEFT OUTER JOIN (
+                    /* 출고 */
+                    SELECT NVL(SUM(OSTR_QTY), 0) OSTR_QTY
+                      FROM TB_SVST_ITM_OSTR_IZ
+                     WHERE OSTR_QTY > 0
+                       AND OSTR_DT >= SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)||'01'
+                       AND OSTR_DT &lt;= AK1.OSTR_AK_RGST_DT
+                       AND OSTR_WARE_NO = AK1.OSTR_OJ_WARE_NO
+                       AND ITM_PD_CD = AK1.ITM_PD_CD
+                       AND ITM_GD_CD = 'A'
+                       AND DTA_DL_YN = 'N'
+                                )
+                ON 1=1
+              LEFT OUTER JOIN (
+                    /* 외부반품입고(작업입고) */
+                    SELECT NVL(SUM(USE_QTY), 0) STR_USE_QTY
+                      FROM TB_SVST_SV_WK_OSTR_IZ
+                     WHERE USE_QTY > 0
+                       AND FNL_VST_FSH_DT >= SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)||'01'
+                       AND FNL_VST_FSH_DT &lt;= AK1.OSTR_AK_RGST_DT
+                       AND SV_BIZ_HCLSF_CD = '6'
+                       AND WK_WARE_NO = AK1.OSTR_OJ_WARE_NO
+                       AND ITM_PD_CD = AK1.ITM_PD_CD
+                       AND FNL_ITM_GD_CD = 'A'
+                       AND DTA_DL_YN = 'N'
+                                )
+                ON 1=1
+              LEFT OUTER JOIN (
+                    /* 외부반품입고(작업출고) */
+                    SELECT NVL(SUM(USE_QTY), 0) OSTR_USE_QTY
+                      FROM TB_SVST_SV_WK_OSTR_IZ
+                     WHERE USE_QTY > 0
+                       AND FNL_VST_FSH_DT >= SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)||'01'
+                       AND FNL_VST_FSH_DT &lt;= AK1.OSTR_AK_RGST_DT
+                       AND SV_BIZ_HCLSF_CD = '6'
+                       AND WK_WARE_NO = AK1.OSTR_OJ_WARE_NO
+                       AND ITM_PD_CD = AK1.ITM_PD_CD
+                       AND FNL_ITM_GD_CD = 'A'
+                       AND DTA_DL_YN = 'N'
+                                )
+                ON 1=1
+              LEFT OUTER JOIN (
+                    /* 등급조정수량입고 */
+                    SELECT NVL(SUM(CTR_QTY), 0) STR_CTR_QTY
+                      FROM TB_SVST_ITM_GD_CTR_IZ
+                     WHERE STAT_CTR_APY_DT >= SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)||'01'
+                       AND STAT_CTR_APY_DT &lt;= AK1.OSTR_AK_RGST_DT
+                       AND WARE_NO = AK1.OSTR_OJ_WARE_NO
+                       AND PD_CD = AK1.ITM_PD_CD
+                       AND AFCT_ITM_GD_CD = 'A'
+                       AND DTA_DL_YN = 'N'
+                                )
+                ON 1=1
+              LEFT OUTER JOIN (
+                    /* 등급조정수량출고 */
+                    SELECT NVL(SUM(CTR_QTY), 0) OSTR_CTR_QTY
+                      FROM TB_SVST_ITM_GD_CTR_IZ
+                     WHERE STAT_CTR_APY_DT >= SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)||'01'
+                       AND STAT_CTR_APY_DT &lt;= AK1.OSTR_AK_RGST_DT
+                       AND WARE_NO = AK1.OSTR_OJ_WARE_NO
+                       AND PD_CD = AK1.ITM_PD_CD
+                       AND BFCT_ITM_GD_CD = 'A'
+                       AND DTA_DL_YN = 'N'
+                                )
+                ON 1=1) RGST_DT_OSTR_STCK_QTY
+         , (SELECT NVL(BTD_STOC_A_GD_QTY + STR_QTY + STR_USE_QTY + STR_CTR_QTY
+                     - OSTR_QTY - OSTR_USE_QTY - OSTR_CTR_QTY, 0) AS AGRG_QTY
+              FROM (
+                    /* 기초재고 */
+                    SELECT NVL(BTD_STOC_A_GD_QTY, 0) BTD_STOC_A_GD_QTY
+                      FROM TB_SVST_MCITM_STOC_IZ
+                     WHERE BASE_YM = SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)
+                       AND WARE_NO = AK1.STR_OJ_WARE_NO
+                       AND ITM_PD_CD = AK1.ITM_PD_CD
+                       AND DTA_DL_YN = 'N'
+                    )
+              LEFT OUTER JOIN (
+                    /* 입고 */
+                    SELECT NVL(SUM(STR_QTY), 0) STR_QTY
+                      FROM TB_SVST_ITM_STR_IZ
+                     WHERE STR_QTY > 0
+                       AND STR_RGST_DT >= SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)||'01'
+                       AND STR_RGST_DT &lt;= AK1.OSTR_AK_RGST_DT
+                       AND STR_WARE_NO = AK1.STR_OJ_WARE_NO
+                       AND ITM_PD_CD = AK1.ITM_PD_CD
+                       AND ITM_GD_CD = 'A'
+                       AND DTA_DL_YN = 'N'
+                                )
+                ON 1=1
+              LEFT OUTER JOIN (
+                    /* 출고 */
+                    SELECT NVL(SUM(OSTR_QTY), 0) OSTR_QTY
+                      FROM TB_SVST_ITM_OSTR_IZ
+                     WHERE OSTR_QTY > 0
+                       AND OSTR_DT >= SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)||'01'
+                       AND OSTR_DT &lt;= AK1.OSTR_AK_RGST_DT
+                       AND OSTR_WARE_NO = AK1.STR_OJ_WARE_NO
+                       AND ITM_PD_CD = AK1.ITM_PD_CD
+                       AND ITM_GD_CD = 'A'
+                       AND DTA_DL_YN = 'N'
+                                )
+                ON 1=1
+              LEFT OUTER JOIN (
+                    /* 외부반품입고(작업입고) */
+                    SELECT NVL(SUM(USE_QTY), 0) STR_USE_QTY
+                      FROM TB_SVST_SV_WK_OSTR_IZ
+                     WHERE USE_QTY > 0
+                       AND FNL_VST_FSH_DT >= SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)||'01'
+                       AND FNL_VST_FSH_DT &lt;= AK1.OSTR_AK_RGST_DT
+                       AND SV_BIZ_HCLSF_CD = '6'
+                       AND WK_WARE_NO = AK1.STR_OJ_WARE_NO
+                       AND ITM_PD_CD = AK1.ITM_PD_CD
+                       AND FNL_ITM_GD_CD = 'A'
+                       AND DTA_DL_YN = 'N'
+                                )
+                ON 1=1
+              LEFT OUTER JOIN (
+                    /* 외부반품입고(작업출고) */
+                    SELECT NVL(SUM(USE_QTY), 0) OSTR_USE_QTY
+                      FROM TB_SVST_SV_WK_OSTR_IZ
+                     WHERE USE_QTY > 0
+                       AND FNL_VST_FSH_DT >= SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)||'01'
+                       AND FNL_VST_FSH_DT &lt;= AK1.OSTR_AK_RGST_DT
+                       AND SV_BIZ_HCLSF_CD = '6'
+                       AND WK_WARE_NO = AK1.STR_OJ_WARE_NO
+                       AND ITM_PD_CD = AK1.ITM_PD_CD
+                       AND FNL_ITM_GD_CD = 'A'
+                       AND DTA_DL_YN = 'N'
+                                )
+                ON 1=1
+              LEFT OUTER JOIN (
+                    /* 등급조정수량입고 */
+                    SELECT NVL(SUM(CTR_QTY), 0) STR_CTR_QTY
+                      FROM TB_SVST_ITM_GD_CTR_IZ
+                     WHERE STAT_CTR_APY_DT >= SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)||'01'
+                       AND STAT_CTR_APY_DT &lt;= AK1.OSTR_AK_RGST_DT
+                       AND WARE_NO = AK1.STR_OJ_WARE_NO
+                       AND PD_CD = AK1.ITM_PD_CD
+                       AND AFCT_ITM_GD_CD = 'A'
+                       AND DTA_DL_YN = 'N'
+                                )
+                ON 1=1
+              LEFT OUTER JOIN (
+                    /* 등급조정수량출고 */
+                    SELECT NVL(SUM(CTR_QTY), 0) OSTR_CTR_QTY
+                      FROM TB_SVST_ITM_GD_CTR_IZ
+                     WHERE STAT_CTR_APY_DT >= SUBSTR(AK1.OSTR_AK_RGST_DT, 1, 6)||'01'
+                       AND STAT_CTR_APY_DT &lt;= AK1.OSTR_AK_RGST_DT
+                       AND WARE_NO = AK1.STR_OJ_WARE_NO
+                       AND PD_CD = AK1.ITM_PD_CD
+                       AND BFCT_ITM_GD_CD = 'A'
+                       AND DTA_DL_YN = 'N'
+                                )
+                ON 1=1) RGST_DT_STR_STCK_QTY
+         , AK1.OSTR_AK_QTY
+         , (SELECT TO_CHAR(TO_DATE(OSTR_DT,'YYYYMMDD'),'YYYY-MM-DD') OSTR_DT
+              FROM (SELECT T1.OSTR_DT
+                         , RANK() OVER(ORDER BY T1.OSTR_DT, FST_RGST_DTM) RNK
+                      FROM TB_SVST_ITM_OSTR_IZ T1
+                     WHERE 1=1
+                       AND T1.OSTR_AK_NO = AK1.OSTR_AK_NO
+                       AND T1.OSTR_AK_SN = AK1.OSTR_AK_SN
+                    )
+             WHERE RNK = 1) OSTR_DT1
+         , (SELECT OSTR_QTY
+              FROM (SELECT T1.OSTR_QTY
+                         , RANK() OVER(ORDER BY T1.OSTR_DT, FST_RGST_DTM) RNK
+                      FROM TB_SVST_ITM_OSTR_IZ T1
+                     WHERE 1=1
+                       AND T1.OSTR_AK_NO = AK1.OSTR_AK_NO
+                       AND T1.OSTR_AK_SN = AK1.OSTR_AK_SN
+                    )
+             WHERE RNK = 1) OSTR_QTY1
+         , CASE WHEN AK1.OSTR_AGG_QTY = 0 OR AK1.OSTR_AGG_QTY IS NULL THEN '미완료'
+                WHEN AK1.OSTR_CNFM_QTY - AK1.OSTR_AGG_QTY = 0 THEN '출고완료'
+                WHEN AK1.OSTR_CNFM_QTY - AK1.OSTR_AGG_QTY > 0 THEN '일부출고'
+            END OUT_YN
+         , CASE WHEN AK1.OSTR_CNFM_QTY - AK1.OSTR_AGG_QTY = 0 THEN TO_CHAR((SELECT OSTR_DT
+                                                                              FROM (SELECT T1.OSTR_DT
+                                                                                         , RANK() OVER(ORDER BY T1.OSTR_DT, FST_RGST_DTM) RNK
+                                                                                      FROM TB_SVST_ITM_OSTR_IZ T1
+                                                                                      WHERE 1=1
+                                                                                       AND T1.OSTR_AK_NO = AK1.OSTR_AK_NO
+                                                                                       AND T1.OSTR_AK_SN = AK1.OSTR_AK_SN)
+                                                                             WHERE 1=1
+                                                                               AND RNK = 1) - AK1.STR_HOP_DT)
+                ELSE ''
+            END OUT_PERIOD
+
+         , TO_CHAR(SYSDATE, 'YYYYMMDD') SYS_DT
+         , TO_CHAR(ADD_MONTHS(SYSDATE, -3), 'YYYYMMDD') SYS_DT_AGO
+         , AK1.OSTR_AK_RGST_DT RGST_DT
+         , TO_CHAR(ADD_MONTHS(TO_DATE(AK1.OSTR_AK_RGST_DT, 'YYYYMMDD'), -3), 'YYYYMMDD') RGST_DT_AGO
+         , AK1.STR_OJ_WARE_NO
+         , AK1.OSTR_OJ_WARE_NO
+      FROM TB_SVST_ITM_OSTR_AK_IZ AK1
+     INNER JOIN TB_PD PD1
+        ON AK1.ITM_PD_CD = PD1.PD_CD
+     INNER JOIN TB_SVST_MCBY_WARE_IZ WR1
+        ON WR1.APY_YM = NVL(SUBSTR(AK1.STR_HOP_DT, 1, 6), TO_CHAR(SYSDATE, 'YYYYMM'))
+       AND WR1.WARE_NO = AK1.OSTR_OJ_WARE_NO
+     INNER JOIN TB_SVST_MCBY_WARE_IZ WR2
+        ON WR2.APY_YM = NVL(SUBSTR(AK1.STR_HOP_DT, 1, 6), TO_CHAR(SYSDATE, 'YYYYMM'))
+       AND WR2.WARE_NO = AK1.STR_OJ_WARE_NO
+     LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ ST1
+        ON AK1.OSTR_OJ_WARE_NO = ST1.WARE_NO
+       AND AK1.ITM_PD_CD = ST1.ITM_PD_CD
+     LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ ST2
+        ON AK1.STR_OJ_WARE_NO = ST2.WARE_NO
+       AND AK1.ITM_PD_CD = ST2.ITM_PD_CD
+     WHERE 1=1
+       AND AK1.STR_HOP_DT >= #{baseDateFrom}
+       AND AK1.STR_HOP_DT &lt;= #{baseDateTo}
+       AND AK1.DTA_DL_YN = 'N'
+       <if test="@MybatisUtils@isEmpty(wareDvCd)">
+       AND SUBSTR(AK1.OSTR_OJ_WARE_NO, 1, 1) IN ('1', '2')
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
+            <if test="@MybatisUtils@isEmpty(hgrWareNo)">
+            AND SUBSTR(AK1.OSTR_OJ_WARE_NO, 1, 1) = #{wareDvCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(hgrWareNo)">
+            AND AK1.OSTR_OJ_WARE_NO = #{hgrWareNo}
+            </if>
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(ostrAkTpCd)">
+       AND AK1.OSTR_AK_TP_CD = #{ostrAkTpCd}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(ostrDtrmYn)">
+            <if test='@MybatisUtils@equals(ostrDtrmYn, "1")'>
+            AND (AK1.OSTR_CNFM_QTY - AK1.OSTR_AGG_QTY) = 0
+            </if>
+            <if test='@MybatisUtils@equals(ostrDtrmYn, "2")'>
+            AND (AK1.OSTR_CNFM_QTY - AK1.OSTR_AGG_QTY) > 0
+            AND AK1.OSTR_AGG_QTY != 0
+            AND AK1.OSTR_AGG_QTY IS NOT NULL
+            </if>
+            <if test='@MybatisUtils@equals(ostrDtrmYn, "3")'>
+            AND (AK1.OSTR_AGG_QTY = 0 OR AK1.OSTR_AGG_QTY IS NULL)
+            </if>
+       </if>
+    </select>
+
+    <update id="deleteOutOfStorageAskItemization">
+        UPDATE TB_SVST_ITM_OSTR_AK_IZ
+           SET DTA_DL_YN = 'Y'
+               <include refid="COMMON.updateSystemField"/>
+         WHERE OSTR_AK_NO = #{ostrAkNo}
+           AND OSTR_AK_SN = #{ostrAkSn}
+    </update>
+</mapper>
