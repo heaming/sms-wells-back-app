@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.closing.performance.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccEtcPerformanceInterfaceDto.FindReq;
@@ -22,7 +24,7 @@ public class WdccEtcPerformanceInterfaceService {
      * @return list
      * @programId WCLI0004
      */
-    public FindRes getOtherLumpSumPerformance(FindReq req) {
+    public List<FindRes> getOtherLumpSumPerformance(FindReq req) {
         return mapper.selectOtherLumpSumPerformance(req);
     }
 }
