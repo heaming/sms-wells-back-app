@@ -99,10 +99,12 @@
              , T1.ITM_IOST_DV_CD                                                                  AS SPP_DV_CD              /* 배송구분코드 */
              , T1.CST_SV_ASN_NO                                                                                             /* 고객서비스배정번호 */
              , T4.PD_CD                                                                           AS SDING_MCNR_PD_CD       /* 모종기계상품코드 */
+             , T1.VST_DUEDT                                                                                                 /* 방문예정일자 */
           FROM
              (
             <if test='!@MybatisUtils@equals(svBizHclsfCd, "2") or @MybatisUtils@isEmpty(svBizHclsfCd)'>
-               SELECT D1.CNTR_NO                                    /* 계약번호 */
+               SELECT /*+ INDEX(D5 PK_SVPD_CST_SV_EXCN_IZ) */
+                      D1.CNTR_NO                                    /* 계약번호 */
                     , D1.CNTR_SN                                    /* 계약일련번호 */
                     , D1.SV_BIZ_HCLSF_CD                            /* 서비스업무대분류코드 */
                     , D1.SV_BIZ_DCLSF_CD                            /* 서비스업무세분류코드 */
@@ -136,6 +138,7 @@
                     , D1.DP_EPTT_NM                                 /* 입금예정자명 */
                     , D1.RECAP_CS_AMT                               /* 유상비용금액 */
                     , D3.CST_SV_ASN_NO                              /* 고객서비스배정번호 */
+                    , NULL                       AS VST_DUEDT       /* 방문예정일 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
                           FROM
                              (
@@ -383,7 +386,8 @@
                 UNION ALL
             </if>
             <if test='@MybatisUtils@equals(svBizHclsfCd, "2") or @MybatisUtils@isEmpty(svBizHclsfCd)'>
-               SELECT D1.CNTR_NO                                     /* 계약번호 */
+               SELECT /*+ INDEX(D6 PK_PDBS_PD_ECOM_PRP_DTL) */
+                      D1.CNTR_NO                                     /* 계약번호 */
                     , D1.CNTR_SN                                     /* 계약일련번호 */
                     , D1.SV_BIZ_HCLSF_CD                             /* 서비스업무대분류코드 */
                     , D1.SV_BIZ_DCLSF_CD                             /* 서비스업무세분류코드 */
@@ -417,6 +421,7 @@
                     , D1.DP_EPTT_NM                                  /* 입금예정자명 */
                     , D1.RECAP_CS_AMT                                /* 유상비용금액 */
                     , D3.CST_SV_ASN_NO                               /* 고객서비스배정번호 */
+                    , D2.VST_DUEDT                                   /* 방문예정일자 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
                           FROM
                              (
@@ -692,6 +697,7 @@
             ON T13.NEW_ADR_ZIP = T12.NEW_ADR_ZIP
          WHERE T2.DTA_DL_YN          = 'N'
            AND T2.CNTR_REL_DTL_CD    = '216'   /* 모종결합(웰스팜+모종) */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
            AND T3.DTA_DL_YN          = 'N'
            AND T3.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
            AND T5.CNTR_CST_REL_TP_CD = '10'    /* 계약자 */
@@ -855,7 +861,7 @@
            AND OSTR_CNFMDT IS NULL
     </update>
 
-    <insert id="insertSvWkOstrIzs">
+    <insert id="insertSvWkOstrIzsForAS">
         INSERT INTO TB_SVST_SV_WK_OSTR_IZ   /* 서비스작업출고내역 */
              (
                CST_SV_ASN_NO         /* 고객서비스배정번호 */
@@ -908,14 +914,14 @@
              , D1.SDING_PD_CD
              , #{refriDvCd}
              , #{sdingPkgPdCd}
-             , D5.SELL_TP_CD
-             , D6.SV_PD_TP_CD
-             , D5.PD_GD_CD
+             , D4.SELL_TP_CD
+             , D5.SV_PD_TP_CD
+             , D4.PD_GD_CD
              , TO_CHAR(SYSDATE, 'YYYYMMDD')
              , #{sdingPkgPdCd}
-             , D5.SELL_TP_CD
-             , D6.SV_PD_TP_CD
-             , D5.PD_GD_CD
+             , D4.SELL_TP_CD
+             , D5.SV_PD_TP_CD
+             , D4.PD_GD_CD
              , TO_CHAR(SYSDATE, 'YYYYMMDD')
              , D1.SDING_QTY
              , 0
@@ -938,31 +944,149 @@
         <include refid="COMMON.insertSystemFieldValue" />
           FROM TB_SVPD_SDING_SPP_EXP_IZ D1           /* 모종배송예정내역 */
          INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ D2    /* 고객서비스AS설치대상내역 */
-            ON D2.AS_IST_OJ_NO = D1.SDING_SPP_NO
+            ON D2.CNTR_NO         = D1.CNTR_NO
+           AND D2.CNTR_SN         = D1.CNTR_SN
+           AND D2.SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+           AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+           AND D2.CST_SV_ASN_NO   = D1.SDING_SPP_NO
          INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ D3   /* 고객서비스AS설치배정내역 */
             ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
-         INNER JOIN TB_SSCT_CNTR_REL D4              /* 계약관계 */
-            ON D4.BASE_DTL_CNTR_NO = D1.CNTR_NO
-           AND D4.BASE_DTL_CNTR_SN = D1.CNTR_SN
-         INNER JOIN TB_SSCT_CNTR_DTL D5              /* 계약상세 */
-            ON D5.CNTR_NO = D4.OJ_DTL_CNTR_NO
-           AND D5.CNTR_SN = D4.OJ_DTL_CNTR_SN
-         INNER JOIN TB_PDBS_PD_BAS D6                /* 상품기본 */
-            ON D6.PD_CD = #{sdingPkgPdCd}
+         INNER JOIN TB_SSCT_CNTR_DTL D4              /* 계약상세 */
+            ON D4.CNTR_NO = D1.CNTR_NO
+           AND D4.CNTR_SN = D1.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS D5                /* 상품기본 */
+            ON D5.PD_CD = #{sdingPkgPdCd}
          WHERE D1.DTA_DL_YN       = 'N'
            AND D2.DTA_DL_YN       = 'N'
            AND D3.DTA_DL_YN       = 'N'
            AND D4.DTA_DL_YN       = 'N'
-           AND D4.CNTR_REL_DTL_CD = '216'   /* 모종결합 */
-           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D4.VL_STRT_DTM AND D4.VL_END_DTM
-           AND D5.DTA_DL_YN       = 'N'
            AND D1.CNTR_NO         = #{cntrNo}
            AND D1.CNTR_SN         = #{cntrSn}
            AND D1.SV_BIZ_HCLSF_CD = #{svBizHclsfCd}
            AND D1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
            AND D1.SDING_SPP_NO    = #{sppOrdNo}
            AND D1.SDING_SPP_SN    = #{sppPlanSn}
+         ORDER BY D1.SDING_SN
     </insert>
+
+    <insert id="insertSvWkOstrIzsForBS">
+        INSERT INTO TB_SVST_SV_WK_OSTR_IZ   /* 서비스작업출고내역 */
+             (
+               CST_SV_ASN_NO         /* 고객서비스배정번호 */
+             , WK_OSTR_SN            /* 작업출고일련번호 */
+             , CNTR_NO               /* 계약번호 */
+             , CNTR_SN               /* 계약일련번호 */
+             , SV_BIZ_HCLSF_CD       /* 서비스업무대분류코드 */
+             , SV_BIZ_DCLSF_CD       /* 서비스업무세분류코드 */
+             , ITM_PD_CD             /* 품목상품코드 */
+             , REFRI_DV_CD           /* 유무상구분코드 */
+             , FST_PD_CD             /* 최초상품코드 */
+             , FST_SELL_TP_CD        /* 최초판매유형코드 */
+             , FST_PD_USWY_CD        /* 최초상품용도코드 */
+             , FST_ITM_GD_CD         /* 최초품목등급코드 */
+             , FST_VST_FSH_DT        /* 최초방문완료일자 */
+             , FNL_PD_CD             /* 최종상품코드 */
+             , FNL_SELL_TP_CD        /* 최종판매유형코드 */
+             , FNL_PD_USWY_CD        /* 최종상품용도코드 */
+             , FNL_ITM_GD_CD         /* 최종품목등급코드 */
+             , FNL_VST_FSH_DT        /* 최종방문완료일자 */
+             , USE_QTY               /* 사용수량 */
+             , CSMR_UPRC_AMT         /* 소비자단가금액 */
+             , FRE_EXPN_DC           /* 무료체험일수 */
+             , FRE_EXPN_IST_DT       /* 무료체험설치일자 */
+             , ITM_BIL_AMT           /* 품목청구금액 */
+             , SV_BIL_AMT            /* 서비스청구금액 */
+             , MNGR_DV_CD            /* 관리자구분코드 */
+             , DGR1_LEVL_OG_ID       /* 1차레벨조직ID */
+             , DGR2_LEVL_OG_ID       /* 2차레벨조직ID */
+             , BRCH_OG_ID            /* 지점조직ID */
+             , ICHR_PRTNR_NO         /* 담당파트너번호 */
+             , OG_TP_CD              /* 조직유형코드 */
+             , WK_WARE_NO            /* 작업창고번호 */
+             , STKR_PRNT_YN          /* 스티커출력여부 */
+             , RTNGD_RVPY_PROCS_YN   /* 반품수불처리여부 */
+             , RTNGD_CONF_YN         /* 반품확인여부 */
+             , REFR_AS_RCP_YN        /* 리퍼AS접수여부 */
+             , DTA_DL_YN             /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        SELECT D2.CST_SV_ASN_NO
+             , ( SELECT NVL(MAX(WK_OSTR_SN), 0)
+                   FROM TB_SVST_SV_WK_OSTR_IZ
+                  WHERE CST_SV_ASN_NO = D2.CST_SV_ASN_NO )
+               + ROWNUM
+             , D1.CNTR_NO
+             , D1.CNTR_SN
+             , D1.SV_BIZ_HCLSF_CD
+             , D1.SV_BIZ_DCLSF_CD
+             , D1.SDING_PD_CD
+             , #{refriDvCd}
+             , #{sdingPkgPdCd}
+             , D4.SELL_TP_CD
+             , D5.SV_PD_TP_CD
+             , D4.PD_GD_CD
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , #{sdingPkgPdCd}
+             , D4.SELL_TP_CD
+             , D5.SV_PD_TP_CD
+             , D4.PD_GD_CD
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , D1.SDING_QTY
+             , 0
+             , 2
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , 0
+             , 0
+             , #{mngrDvCd}
+             , '71314'
+             , '99992'
+             , '99992'
+             , #{session.employeeIDNumber}
+             , #{session.ogTpCd}
+             , '100009'
+             , 'N'
+             , 'N'
+             , 'N'
+             , 'N'
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SVPD_SDING_SPP_EXP_IZ D1           /* 모종배송예정내역 */
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2    /* 고객서비스BS대상내역 */
+            ON D2.CNTR_NO         = D1.CNTR_NO
+           AND D2.CNTR_SN         = D1.CNTR_SN
+           AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+           AND D2.CST_SV_ASN_NO   = D1.SDING_SPP_NO
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3   /* 고객서비스BS배정내역 */
+            ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+         INNER JOIN TB_SSCT_CNTR_DTL D4              /* 계약상세 */
+            ON D4.CNTR_NO = D1.CNTR_NO
+           AND D4.CNTR_SN = D1.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS D5                /* 상품기본 */
+            ON D5.PD_CD = #{sdingPkgPdCd}
+         WHERE D1.DTA_DL_YN       = 'N'
+           AND D2.DTA_DL_YN       = 'N'
+           AND D3.DTA_DL_YN       = 'N'
+           AND D4.DTA_DL_YN       = 'N'
+           AND D1.CNTR_NO         = #{cntrNo}
+           AND D1.CNTR_SN         = #{cntrSn}
+           AND D1.SV_BIZ_HCLSF_CD = #{svBizHclsfCd}
+           AND D1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+           AND D1.SDING_SPP_NO    = #{sppOrdNo}
+           AND D1.SDING_SPP_SN    = #{sppPlanSn}
+         ORDER BY D1.SDING_SN
+    </insert>
+
+    <update id="updateCstSvRgbsprIz">
+        UPDATE TB_SVPD_CST_SV_RGBSPR_IZ   /* 고객서비스정기BS주기내역 */
+           SET WK_DT            = TO_CHAR(SYSDATE,'YYYYMMDD')
+             , WK_PSIC_DV_CD	= '2'
+             , WK_PSIC_OG_TP_CD = #{session.ogTpCd}
+             , WK_PSIC_NO       = #{session.employeeIDNumber}
+        <include refid="COMMON.updateSystemField" />
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND VST_DUEDT BETWEEN SUBSTR(#{vstDuedt}, 1, 6) || '01' AND SUBSTR(#{vstDuedt}, 1, 6) || '31'
+    </update>
 
     <select id="selectCstSvWkRsIzCount" resultType="java.lang.Integer">
         SELECT 1
@@ -1018,6 +1142,47 @@
            AND CST_SV_ASN_NO = #{cstSvAsnNo}
     </update>
 
+    <select id="selectPdGrpAtcCdInfo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleAsTpDvo">
+        SELECT D2.AS_LCT_CD
+             , D2.AS_PHN_CD
+             , D2.AS_CAUS_CD
+             , D2.SITE_AW_ATC_CD
+             , CASE WHEN D1.PD_PRP_VAL01 || D1.PD_PRP_VAL31 IN ('60111000000','60112000000','60121000000','60122000000','60131000000','60132000000','60810000000') THEN '901R'
+                    WHEN D1.PD_PRP_VAL01 || D1.PD_PRP_VAL31 IN ('60113000000','60114000000','60123000000','60124000000','60133000000','60134000000','60810000000') THEN '902R'
+                    WHEN D1.PD_PRP_VAL01 || D1.PD_PRP_VAL31 IN ('60115000000','60116000000','60125000000','60126000000','60135000000','60136000000','60810000000') THEN '903R'
+                    WHEN D1.PD_PRP_VAL01 || D1.PD_PRP_VAL31 IN ('60117000000','60118000000','60127000000','60128000000','60137000000','60138000000','60810000000') THEN '904R'
+                    WHEN D1.PD_PRP_VAL01 || D1.PD_PRP_VAL31 IN ('60100000000') THEN '905R'
+               END             AS BAD_DV_CD
+          FROM TB_PDBS_PD_ECOM_PRP_DTL D1   /* 상품각사속성상세 */
+          LEFT OUTER JOIN TB_SVPD_AS_TP_CD D2   /* AS유형코드 */
+            ON D2.PD_CD           = D1.PD_CD
+           AND D2.PD_GRP_CD       = NVL(D1.PD_PRP_VAL20, '11')
+           AND D2.DTA_DL_YN       = 'N'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN D2.APY_STRTDT AND D2.APY_ENDDT
+           AND D2.SV_TP_CD        = '2'
+           AND D2.SV_ANA_HCLSF_CD = #{svBizDclsfCd}
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D1.DTA_DL_YN          = 'N'
+           AND D1.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D1.PD_CD              = #{pdCd}
+           AND ROWNUM                = 1
+    </select>
+
+    <update id="updateCstSvBfSvcAsnIz">
+        UPDATE TB_SVPD_CST_SV_BFSVC_ASN_IZ   /* 고객서비스BS배정내역 */
+           SET VST_PRGS_STAT_CD         = '20'
+             , WK_EXCN_DT               = TO_CHAR(SYSDATE,'YYYYMMDD')
+             , CNFM_PSIC_DV_CD          = '2'
+             , CNFM_PSIC_PRTNR_NO       = #{session.employeeIDNumber}
+             , CNFM_PSIC_PRTNR_OG_TP_CD = #{session.ogTpCd}
+             , SITE_AW_PD_GRP_CD        = '11'
+             , SITE_AW_SV_TP_CD         = #{svBizHclsfCd}
+             , SITE_AW_ATC_CD           = #{siteAwAtcCd}
+        <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN     = 'N'
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+    </update>
+
     <insert id="insertCstSvWkRsIz">
         INSERT INTO TB_SVPD_CST_SV_WK_RS_IZ   /* 고객서비스작업결과내역 */
              (
@@ -1040,7 +1205,10 @@
              , BAD_DV_CD                      /* 불량구분코드 */
              , SV_PROCS_FOM_CD                /* 서비스처리형태코드 */
              , SV_PROCS_CN                    /* 서비스처리내용 */
-             , URGT_YN                        /* 긴급여부 */
+             , CRAL_LOCARA_TNO                /* 휴대지역전화번호 */
+             , MEXNO_ENCR                     /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO                   /* 휴대개별전화번호 */
+             , URGT_DV_CD                     /* 긴급구분코드 */
              , CLN_YN                         /* 회수여부 */
              , AS_AK_RCP_YN                   /* AS요청접수여부 */
              , INF_CH_AK_YN                   /* 정보변경요청여부 */
@@ -1066,7 +1234,7 @@
              , '99992'
              , #{session.ogTpCd}
              , #{session.employeeIDNumber}
-             , #{sdingPkgPdCd}
+             , #{pdctPdCd}
              , #{svBizHclsfCd}
              , #{svBizDclsfCd}
              , TO_CHAR(SYSDATE, 'YYYYMMDD')
@@ -1078,8 +1246,11 @@
              , #{asCausCd}
              , #{badDvCd}
              , '906A'
-             , #{svProcCn}
-             , 'N'
+             , #{svProcsCn}
+             , #{cstCralLocaraTno}
+             , #{cstMexnoEncr}
+             , #{cstCralIdvTno}
+             , '0'   /* 정상설치 - 긴급여부에서 긴급구분코드로 변경함 */
              , 'N'
              , 'N'
              , 'N'
@@ -1113,6 +1284,136 @@
            AND SDING_SPP_NO    = #{sppOrdNo}
            AND SDING_SPP_SN    = #{sppPlanSn}
     </update>
+
+    <select id="selectSdingSproutInfo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleSproutDvo">
+        SELECT D4.CST_SV_ASN_NO
+             , D4.CNTR_NO
+             , D4.CNTR_SN
+             , D4.SV_BIZ_MCLSF_CD
+             , D4.SV_BIZ_DCLSF_CD
+             , D4.WK_SN
+             , D4.VST_DUEDT
+             , D2.PDCT_PD_CD AS PD_CD
+             , #{mngrDvCd}   AS MNGR_DV_CD
+          FROM TB_SSCT_CNTR_REL D1                   /* 계약관계 */
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2        /* 고객서비스수행내역 (기기) */
+            ON D2.CNTR_NO = D1.OJ_DTL_CNTR_NO
+           AND D2.CNTR_SN = D1.OJ_DTL_CNTR_SN
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3   /* 고객서비스BS배정내역 (모종) */
+            ON D3.CST_SV_ASN_NO = #{cstSvAsnNo}
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D4    /* 고객서비스BS대상내역 (기기) */
+            ON D4.CNTR_NO   = D2.CNTR_NO
+           AND D4.CNTR_SN   = D2.CNTR_SN
+           AND D4.ASN_OJ_YM = D3.ASN_OJ_YM
+         WHERE D1.DTA_DL_YN        = 'N'
+           AND D1.CNTR_REL_DTL_CD  = '216'          /* 모종결합 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D1.VL_STRT_DTM AND D1.VL_END_DTM
+           AND D2.DTA_DL_YN        = 'N'
+           AND D2.PDCT_PD_CD       = 'WM05100045'   /* 새싹재배기 */
+           AND D3.DTA_DL_YN        = 'N'
+           AND D4.DTA_DL_YN        = 'N'
+           AND D1.BASE_DTL_CNTR_NO = #{cntrNo}
+           AND D1.BASE_DTL_CNTR_SN = #{cntrSn}
+           AND ROWNUM              = 1
+    </select>
+
+     <insert id="insertSvWkOstrIzsForSprout">
+        INSERT INTO TB_SVST_SV_WK_OSTR_IZ   /* 서비스작업출고내역 */
+             (
+               CST_SV_ASN_NO         /* 고객서비스배정번호 */
+             , WK_OSTR_SN            /* 작업출고일련번호 */
+             , CNTR_NO               /* 계약번호 */
+             , CNTR_SN               /* 계약일련번호 */
+             , SV_BIZ_HCLSF_CD       /* 서비스업무대분류코드 */
+             , SV_BIZ_DCLSF_CD       /* 서비스업무세분류코드 */
+             , ITM_PD_CD             /* 품목상품코드 */
+             , REFRI_DV_CD           /* 유무상구분코드 */
+             , FST_PD_CD             /* 최초상품코드 */
+             , FST_SELL_TP_CD        /* 최초판매유형코드 */
+             , FST_PD_USWY_CD        /* 최초상품용도코드 */
+             , FST_ITM_GD_CD         /* 최초품목등급코드 */
+             , FST_VST_FSH_DT        /* 최초방문완료일자 */
+             , FNL_PD_CD             /* 최종상품코드 */
+             , FNL_SELL_TP_CD        /* 최종판매유형코드 */
+             , FNL_PD_USWY_CD        /* 최종상품용도코드 */
+             , FNL_ITM_GD_CD         /* 최종품목등급코드 */
+             , FNL_VST_FSH_DT        /* 최종방문완료일자 */
+             , USE_QTY               /* 사용수량 */
+             , CSMR_UPRC_AMT         /* 소비자단가금액 */
+             , FRE_EXPN_DC           /* 무료체험일수 */
+             , FRE_EXPN_IST_DT       /* 무료체험설치일자 */
+             , ITM_BIL_AMT           /* 품목청구금액 */
+             , SV_BIL_AMT            /* 서비스청구금액 */
+             , MNGR_DV_CD            /* 관리자구분코드 */
+             , DGR1_LEVL_OG_ID       /* 1차레벨조직ID */
+             , DGR2_LEVL_OG_ID       /* 2차레벨조직ID */
+             , BRCH_OG_ID            /* 지점조직ID */
+             , ICHR_PRTNR_NO         /* 담당파트너번호 */
+             , OG_TP_CD              /* 조직유형코드 */
+             , WK_WARE_NO            /* 작업창고번호 */
+             , STKR_PRNT_YN          /* 스티커출력여부 */
+             , RTNGD_RVPY_PROCS_YN   /* 반품수불처리여부 */
+             , RTNGD_CONF_YN         /* 반품확인여부 */
+             , REFR_AS_RCP_YN        /* 리퍼AS접수여부 */
+             , DTA_DL_YN             /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        SELECT D1.CST_SV_ASN_NO
+             , ( SELECT NVL(MAX(WK_OSTR_SN), 0)
+                   FROM TB_SVST_SV_WK_OSTR_IZ
+                  WHERE CST_SV_ASN_NO = D1.CST_SV_ASN_NO )
+               + ROWNUM
+             , D1.CNTR_NO
+             , D1.CNTR_SN
+             , '2'
+             , D1.SV_BIZ_DCLSF_CD
+             , 'WM05100045'   /* 새싹재배기 */
+             , '1'
+             , 'WM05100045'   /* 새싹재배기 */
+             , D2.SELL_TP_CD
+             , D3.SV_PD_TP_CD
+             , D2.PD_GD_CD
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , 'WM05100045'   /* 새싹재배기 */
+             , D2.SELL_TP_CD
+             , D3.SV_PD_TP_CD
+             , D2.PD_GD_CD
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , 1
+             , 0
+             , 2
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , 0
+             , 0
+             , #{mngrDvCd}
+             , '71314'
+             , '99992'
+             , '99992'
+             , #{session.employeeIDNumber}
+             , #{session.ogTpCd}
+             , '100009'
+             , 'N'
+             , 'N'
+             , 'N'
+             , 'N'
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ D1   /* 고객서비스BS대상내역 */
+         INNER JOIN TB_SSCT_CNTR_DTL D2        /* 계약상세 */
+            ON D2.CNTR_NO = D1.CNTR_NO
+           AND D2.CNTR_SN = D1.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS D3          /* 상품기본 */
+            ON D3.PD_CD = 'WM05100045'   /* 새싹재배기 */
+         WHERE D1.DTA_DL_YN       = 'N'
+           AND D2.DTA_DL_YN       = 'N'
+           AND D3.DTA_DL_YN       = 'N'
+           AND D1.CST_SV_ASN_NO   = #{cstSvAsnNo}
+           AND D1.CNTR_NO         = #{cntrNo}
+           AND D1.CNTR_SN         = #{cntrSn}
+           AND D1.SV_BIZ_MCLSF_CD = #{svBizMclsfCd}
+           AND D1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+           AND D1.WK_SN           = #{wkSn}
+    </insert>
 
     <select id="selectSeedReleaseAggregations" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleAggDvo">
           WITH TEMP_T AS
@@ -1151,7 +1452,8 @@
                         FROM
                            (
                         <if test='!@MybatisUtils@equals(svBizHclsfCd, "2") or @MybatisUtils@isEmpty(svBizHclsfCd)'>
-                             SELECT D1.SV_BIZ_HCLSF_CD                      /* 서비스업무대분류코드 */
+                             SELECT /*+ INDEX(D5 PK_SVPD_CST_SV_EXCN_IZ) */
+                                    D1.SV_BIZ_HCLSF_CD                      /* 서비스업무대분류코드 */
                                   , D4.OG_CD                                /* 조직코드 */
                                   , D2.PD_CD                                /* 상품코드 */
                                   , D1.SDING_PKG_PD_CD                      /* 모종패키지상품코드 */
@@ -1258,7 +1560,8 @@
                               UNION ALL
                         </if>
                         <if test='@MybatisUtils@equals(svBizHclsfCd, "2") or @MybatisUtils@isEmpty(svBizHclsfCd)'>
-                             SELECT D1.SV_BIZ_HCLSF_CD                      /* 서비스업무대분류코드 */
+                             SELECT /*+ INDEX(D6 PK_PDBS_PD_ECOM_PRP_DTL) */
+                                    D1.SV_BIZ_HCLSF_CD                      /* 서비스업무대분류코드 */
                                   , D4.OG_CD                                /* 조직코드 */
                                   , D2.PDCT_PD_CD              AS PD_CD     /* 상품코드 */
                                   , D1.SDING_PKG_PD_CD                      /* 모종패키지상품코드 */

@@ -7,10 +7,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleCnfmDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleSearchDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleWkRsDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.*;
 
 @Mapper(componentModel = "spring", imports = {org.apache.commons.lang3.StringUtils.class})
 public interface WsnaSeedReleaseScheduleConverter {
@@ -43,6 +40,11 @@ public interface WsnaSeedReleaseScheduleConverter {
     @Mapping(source = "sdingPkgPdCd", target = "pdctPdCd")
     WsnaSeedReleaseScheduleWkRsDvo mapWsnaSeedReleaseScheduleCnfmDvoToWsnaSeedReleaseScheduleWkRsDvo(
         WsnaSeedReleaseScheduleCnfmDvo dvo
+    );
+
+    @Mapping(source = "pdCd", target = "pdctPdCd")
+    WsnaSeedReleaseScheduleWkRsDvo mapWsnaSeedReleaseScheduleSproutDvoToWsnaSeedReleaseScheduleWkRsDvo(
+        WsnaSeedReleaseScheduleSproutDvo dvo
     );
 
 }

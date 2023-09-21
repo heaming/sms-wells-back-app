@@ -108,7 +108,12 @@ public class WsnaSeedReleaseScheduleDto {
         String sppDvCd,
         String cstSvAsnNo,
         String cntrDtlNo,
-        String mchnCstDtlNo
+        String mchnCstDtlNo,
+        String vstDuedt,
+
+        String cstCralLocaraTno,
+        String cstMexnoEncr,
+        String cstCralIdvTno
     ) {}
 
     @Builder
@@ -189,7 +194,13 @@ public class WsnaSeedReleaseScheduleDto {
         String dpEpttNm,
         String dpDt,
         String sppDvCd,
-        String cstSvAsnNo
+        String cstSvAsnNo,
+
+        @ValidDate
+        String vstDuedt,
+        String cstCralLocaraTno,
+        String cstMexnoEncr,
+        String cstCralIdvTno
     ) {}
 
 }
