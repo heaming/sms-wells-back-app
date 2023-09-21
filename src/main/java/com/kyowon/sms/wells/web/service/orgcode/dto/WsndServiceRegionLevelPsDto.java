@@ -17,6 +17,7 @@ public class WsndServiceRegionLevelPsDto {
     public record SearchRes(
         String bsdt,            /* 기준일자 */
         String sapMatCd,        /* SAP */
+        String pdCd,            /* 상품코드 */
         String regNm,           /* 접수자 */
         String regOgNm,         /* 접수자소속 */
         String regId,
