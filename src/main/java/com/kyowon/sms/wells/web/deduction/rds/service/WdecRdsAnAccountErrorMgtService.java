@@ -13,7 +13,8 @@ import com.kyowon.sms.common.web.deduction.rds.dto.ZdecRdsAnAccountErrorMgtDto.S
 import com.kyowon.sms.common.web.deduction.rds.dto.ZdecRdsAnAccountErrorMgtDto.SearchRdsAnAccountErrorNewChkRes;
 import com.kyowon.sms.common.web.deduction.rds.dvo.ZdecRdsAnAccountErrorMgtDvo;
 import com.kyowon.sms.common.web.deduction.rds.mapper.ZdecRdsAnAccountErrorMgtMapper;
-import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaAnAccountEffectivenessResDvo;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.ZwdaAutoTransferRealTimeAccountCheckDvo;
+import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaAutoTransferRealTimeAccountService;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaSettleBankSendAndReceiveService;
 import com.sds.sflex.common.common.service.ExcelDownloadService;
 import com.sds.sflex.common.docs.service.AttachFileService;
@@ -37,6 +38,8 @@ public class WdecRdsAnAccountErrorMgtService {
     private final ZdecRdsAnAccountErrorMgtMapper mapper;
     private final ZdecRdsAnAccountErrorMgtConverter converter;
 
+    private final ZwdaAutoTransferRealTimeAccountService acService;
+
     private final AttachFileService attachFileService;
     private static final String groupId = "ATG_DEC_BAI_DCMT_FILE";
 
@@ -56,13 +59,13 @@ public class WdecRdsAnAccountErrorMgtService {
         /*
         기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 X - 기존 계좌 오류 X = 처리 X
         기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 X - 기존 계좌 오류 O = 기존 계좌 오류정보 삭제처리
-
+        
         기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 O - 기존 계좌 오류 X = 입력 계좌 오류정보 저장
         기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 O - 기존 계좌 오류 O = 처리 X
-
+        
         기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 X - 기존 계좌 오류 X = 처리 X
         기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 X - 기존 계좌 오류 O = 처리 X
-
+        
         기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 O - 기존 계좌 오류 X = 기존 계좌정보 삭제처리, 입력 계좌정보 저장, 입력 계좌 오류정보 저장
         기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 O - 기존 계좌 오류 O = 기존 계좌정보 삭제처리, 기존 계좌 오류정보 삭제처리, 입력 계좌정보 저장, 입력 계좌 오류정보 저장
         */
@@ -203,44 +206,30 @@ public class WdecRdsAnAccountErrorMgtService {
      */
     public Map<String, String> accountRealNameService(ZdecRdsAnAccountErrorMgtDvo dvo) {
 
-        //        WwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq dto = new WwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq(
-        //            dvo.getFnitCd(), dvo.getAcnoEncr(), dvo.getPrtnrKnm(), dvo.getBryyMmdd()
-        //        );
-        //
-        //        List<WwdaAutoTransferInterfaceDto.SearchRealNameCertificationRes> res = wwdaAutoTransferInterfaceService
-        //            .getRealNameCertification(dto);
-        //
-        //        BizAssert.isTrue(null != res, "MSG_ALT_AC_CHECK_ERR", new String[] {""});
-        //
-        //        Map<String, String> accountResult = new HashMap<>();
-        //
-        //        if ("1".equals(res.get(0).acFntRsCd())) {
-        //            accountResult.put("acFntRsCd", "N");
-        //        } else {
-        //            accountResult.put("acFntRsCd", "Y");
-        //        }
-        //
-        //        accountResult.put("acFntRsCdNm", res.get(0).acFntRsCdNm());
-        //        accountResult.put("owrKnm", res.get(0).owrKnm());
-        //
-        //        return accountResult;
-
-        //        EwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq dto = new EwdaAutoTransferInterfaceDto.SearchRealNameCertificationReq(
-        //            dvo.getFnitCd(), dvo.getAcnoEncr(), dvo.getPrtnrKnm(), dvo.getBryyMmdd()
-        //        );
-
-        //        List<EwdaAutoTransferInterfaceDto.SearchRealNameCertificationRes> res = ewdaAutoTransferInterfaceService
-        //            .getRealNameCertification(dto);
-
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
 
-        Map<String, Object> reqParam = new HashMap<>();
-        reqParam.put("FNIT_CD", dvo.getFnitCd()); // 금융기관코드
-        reqParam.put("BANK_CD", dvo.getFnitCd()); // 은행코드
-        reqParam.put("ACC_NO", dvo.getAcnoEncr());//계좌번호
-        reqParam.put("SYS_DV_CD", session.getTenantCd());//시스템구분코드 EDU, WELLS
-        ZwdaAnAccountEffectivenessResDvo res = zwdaSettleBankSendAndReceiveService
-            .getAccountOwnerRnmConfInterface(reqParam);
+        // Z-WD-S-0027(은행계좌유효성체크_SB) 인터페이스 다이렉트 아닌것 용 param
+        Map<String, Object> reqParam2 = new HashMap<>();
+        reqParam2.put("bnkCd", dvo.getFnitCd()); // 은행코드
+        reqParam2.put("acNo", dvo.getAcnoEncr()); // 계좌번호
+        reqParam2.put("achldrNm", dvo.getPrtnrKnm()); // 예금주
+        reqParam2.put("sysDvCd", session.getTenantCd()); // 시스템구분코드 EDU, WELLS
+        reqParam2.put("copnDvDrmVal", "1"); // 법인격구분식별
+        reqParam2.put("copnDvCd", "1"); // 법인격구분코드 개인/법인 구분값
+
+        // Z-WD-S-0027(은행계좌유효성체크_SB) 인터페이스 다이렉트 아닌것 이력까지 같이
+        ZwdaAutoTransferRealTimeAccountCheckDvo res = acService.saveAftnAcEftnChecks(reqParam2);
+
+        // OSBN2_CDEO1001 (계좌유효성검사) 인터페이스 다이렉트 용 param
+        //        Map<String, Object> reqParam = new HashMap<>();
+        //        reqParam.put("FNIT_CD", dvo.getFnitCd()); // 금융기관코드
+        //        reqParam.put("BANK_CD", dvo.getFnitCd()); // 은행코드
+        //        reqParam.put("ACC_NO", dvo.getAcnoEncr());//계좌번호
+        //        reqParam.put("SYS_DV_CD", session.getTenantCd());//시스템구분코드 EDU, WELLS
+
+        // OSBN2_CDEO1001 (계좌유효성검사) 인터페이스 다이렉트
+        //        ZwdaAnAccountEffectivenessResDvo res = zwdaSettleBankSendAndReceiveService
+        //            .getAccountOwnerRnmConfInterface(reqParam);
 
         BizAssert.isTrue(null != res, "MSG_ALT_AC_CHECK_ERR", new String[] {""});
 
@@ -251,14 +240,22 @@ public class WdecRdsAnAccountErrorMgtService {
         //        rplyCd; // 응답코드
         //        depsPrsnNm; //예금주명
 
-        if ("0000".equals(res.getRplyCd())) {
+        // acFntRsCd N:정상계좌, Y:오류계좌
+        if ("0000".equals(res.getAcFntRsCd())) {
             accountResult.put("acFntRsCd", "N");
         } else {
             accountResult.put("acFntRsCd", "Y");
         }
 
-        //        accountResult.put("acFntRsCdNm", res.get(0).acFntRsCdNm());
-        accountResult.put("owrKnm", res.getDepsPrsnNm());
+        accountResult.put("owrKnm", res.getAchldrNm());
+
+        //        if ("0000".equals(res.getRplyCd())) {
+        //            accountResult.put("acFntRsCd", "N");
+        //        } else {
+        //            accountResult.put("acFntRsCd", "Y");
+        //        }
+
+        //        accountResult.put("owrKnm", res.getDepsPrsnNm());
 
         return accountResult;
     }
