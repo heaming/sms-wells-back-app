@@ -5,6 +5,7 @@ import javax.validation.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 public class WdccEtcPerformanceInterfaceDto {
 
@@ -12,6 +13,7 @@ public class WdccEtcPerformanceInterfaceDto {
     // Result Dto
     // *********************************************************
     // wells_일시불외_실적정보 Result Dto
+    @Builder
     @ApiModel("WdccEtcPerformanceInterfaceDto-FindReq")
     public record FindReq(
         @JsonProperty("CNTR_NO")
@@ -33,6 +35,7 @@ public class WdccEtcPerformanceInterfaceDto {
     // Result Dto
     // *********************************************************
     // wells_일시불외_실적정보 Result Dto
+    @Builder
     @ApiModel("WdccEtcPerformanceInterfaceDto-FindRes")
     public record FindRes(
         @JsonProperty("CNTR_NO")

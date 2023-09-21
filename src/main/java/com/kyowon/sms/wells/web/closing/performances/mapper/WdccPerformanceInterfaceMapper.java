@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.closing.performances.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.closing.performances.dto.WdccPerformanceInterfaceDto.FindReq;
@@ -7,5 +9,5 @@ import com.kyowon.sms.wells.web.closing.performances.dto.WdccPerformanceInterfac
 
 @Mapper
 public interface WdccPerformanceInterfaceMapper {
-    FindRes selectLumpSumPerformance(FindReq req);
+    List<FindRes> selectLumpSumPerformance(FindReq req);
 }

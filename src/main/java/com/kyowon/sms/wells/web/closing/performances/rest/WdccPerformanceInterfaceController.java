@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.closing.performances.rest;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
@@ -40,10 +42,10 @@ public class WdccPerformanceInterfaceController {
         EaiWrapper<FindReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<FindRes> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<List<FindRes>> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출
-        FindRes res = service.getLumpSumPerformance(reqWrapper.getBody());
+        List<FindRes> res = service.getLumpSumPerformance(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);
