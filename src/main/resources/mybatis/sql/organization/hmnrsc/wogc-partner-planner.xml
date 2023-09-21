@@ -38,18 +38,21 @@
            AND T4.OG_TP_CD = T1.OG_TP_CD
            AND T4.OG_ID = T1.OG_ID
            AND T4.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN (SELECT PRTNR_NO
-                                , MAX(CASE WHEN EDUC_CRSE_NO = '143' THEN EDUC_CPC_ACKMT_DT
-                                                                     ELSE '' END) AS EDU143 /* Pre스타트업 */
-                                , MAX(CASE WHEN EDUC_CRSE_NO = '96'  THEN EDUC_CPC_ACKMT_DT
-                                                                     ELSE '' END) AS EDU96  /* 스타트업 */
-                             FROM TB_PSCA_MCPTN_EDUC_IZ
-                            WHERE EDUC_CRSE_CRT_BASE_YM <![CDATA[ <= ]]> '202307'
-                              AND OG_TP_CD = 'W02'
-                              AND EDUC_CRSE_NO IN ('143', '96')
-                              AND EDUC_CPC_ACKMT_YN = 'Y'
-                              AND DTA_DL_YN = 'N'
-                            GROUP BY PRTNR_NO) T5
+          LEFT OUTER JOIN (SELECT X1.PRTNR_NO
+                                , MAX(CASE WHEN X1.EDUC_CRSE_NO = '143' THEN X1.EDUC_CPC_ACKMT_DT ELSE '' END) AS EDU143 /* Pre스타트업 */
+                                , MAX(CASE WHEN X1.EDUC_CRSE_NO = '96' THEN X1.EDUC_CPC_ACKMT_DT ELSE '' END) AS EDU96   /* 스타트업 */
+                             FROM TB_PSCA_MCPTN_EDUC_IZ  X1         /* 월별파트너교육내역 */
+						     LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ X2 /* 월파트너내역 */
+                               ON X2.BASE_YM  = X1.EDUC_CRSE_CRT_BASE_YM
+                              AND X2.OG_TP_CD = X1.OG_TP_CD
+                              AND X2.PRTNR_NO = X1.PRTNR_NO
+                            WHERE X1.EDUC_CRSE_CRT_BASE_YM <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                              AND X1.OG_TP_CD = 'W02'
+                              AND X1.EDUC_CRSE_NO IN ('143', '96')
+                              AND X1.EDUC_CPC_ACKMT_YN = 'Y'
+						      AND X1.EDUC_CPC_ACKMT_DT <![CDATA[ >= ]]> X2.CNTR_DT
+                              AND X1.DTA_DL_YN = 'N'
+                            GROUP BY X1.PRTNR_NO) T5
             ON T5.PRTNR_NO = T1.PRTNR_NO
          WHERE 1=1
            AND T1.DTA_DL_YN = 'N'
