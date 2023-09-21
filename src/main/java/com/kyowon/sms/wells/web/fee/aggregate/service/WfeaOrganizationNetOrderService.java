@@ -19,6 +19,8 @@ import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaOrganizationNetOrderDto;
 import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaOrganizationNetOrderDvo;
 import com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaOrganizationNetOrderMapper;
 import com.sds.sflex.system.config.validation.BizAssert;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
 
 import lombok.RequiredArgsConstructor;
 
@@ -51,6 +53,7 @@ public class WfeaOrganizationNetOrderService {
      */
     @Transactional
     public String saveOrganizationAggregates(WfeaOrganizationNetOrderDto.SaveOgNetOrderReq dto) throws Exception {
+        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
         // 주문별집계 확정 체크 추가
         SearchRes searchRes = zfezFeeNetOrderStatusService
             .getFeeNetOrderCntrStat(dto.perfYm(), dto.feeTcntDvCd(), "02");
@@ -84,6 +87,8 @@ public class WfeaOrganizationNetOrderService {
         params.put("ogTpCd", dto.ogTpCd());
         params.put("feeTcntDvCd", dto.feeTcntDvCd());
         params.put("perfAgrgCrtDvCd", dto.perfAgrgCrtDvCd());
+        params.put("userId", userSession.getEmployeeIDNumber());
+        params.put("deptId", userSession.getDepartmentId());
 
         batchCallReqDvo.setJobKey("WSM_FE_OA0003");
         batchCallReqDvo.setParams(params);

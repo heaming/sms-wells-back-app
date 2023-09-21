@@ -9,6 +9,7 @@ import com.kyowon.sms.common.web.fee.common.dvo.ZfezFeeBatchStatusDetailsDvo;
 import com.kyowon.sms.common.web.fee.common.service.ZfezFeeBatchStatusDetailsService;
 import com.kyowon.sms.wells.web.fee.aggregate.converter.WfeaNetOrderConverter;
 import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaNetOrderDvo;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.validation.BizAssert;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import com.kyowon.sflex.common.common.service.BatchCallService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 
 /**
  * <pre>
@@ -91,11 +93,14 @@ public class WfeaNetOrderService {
     @Transactional
     public String saveByNetOrders(SaveReq dto) throws Exception {
         BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
+        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
 
         // 배치 parameter
         Map<String, String> params = new HashMap<String, String>();
         params.put("perfYm", dto.perfYm());
         params.put("tcntDvCd", dto.feeTcntDvCd());
+        params.put("userId", userSession.getEmployeeIDNumber());
+        params.put("deptId", userSession.getDepartmentId());
 
         batchCallReqDvo.setJobKey("WSM_FE_OA0005");
         batchCallReqDvo.setParams(params);
