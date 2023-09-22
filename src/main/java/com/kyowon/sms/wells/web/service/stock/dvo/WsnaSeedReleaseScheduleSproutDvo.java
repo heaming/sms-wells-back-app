@@ -24,5 +24,6 @@ public class WsnaSeedReleaseScheduleSproutDvo {
     private int wkSn;
     private String vstDuedt;
     private String pdCd;
+    private String svPdCd;
     private String mngrDvCd;
 }
