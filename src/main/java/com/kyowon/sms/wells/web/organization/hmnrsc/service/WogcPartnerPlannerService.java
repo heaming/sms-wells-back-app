@@ -297,6 +297,67 @@ public class WogcPartnerPlannerService {
     }
 
     /**
+     * 매니저 자격관리 당일개시 저장
+     * @param dto
+     * @return
+     * @throws Exception
+     */
+    @Transactional
+    public int editDayOpeningPlannerQualification(SaveQulificationReq dto) throws Exception {
+        WogcPartnerPlannerQualificationDvo qualificationDvo = converter
+            .mapSaveQulificationReqToPartnerPlannerQualificationDvo(dto);
+
+        // 상세 조회
+        ZogzPartnerDvo partnerDvo = new ZogzPartnerDvo();
+        partnerDvo.setOgTpCd(qualificationDvo.getOgTpCd());
+        partnerDvo.setPrtnrNo(qualificationDvo.getPrtnrNo());
+        partnerDvo.setQlfDvCd(qualificationDvo.getQlfDvCd());
+        List<SearchLicenseDetailRes> detailList = mapper.selectPlannerLicenseDetailPages(qualificationDvo.getPrtnrNo());
+        int detailListCount = detailList.size();
+
+        // 승급
+        int processCount = mapper.insertPlannerQualificationChange(qualificationDvo);
+
+        String newStrtdt = DateUtil.getNowDayString();
+        if (detailList.get(0).qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_1.getCode())) {
+            if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) == 0) {
+                // 승급(현재)
+
+                // 종료처리
+                qualificationDvo.setQlfAplcDvCd(QlfAplcDvCd.QLF_APLC_DV_CD_2.getCode());
+                qualificationDvo.setQlfDvCd(detailList.get(0).qlfDvCd());
+                qualificationDvo.setStrtdt(detailList.get(0).strtdt());
+                qualificationDvo.setCvDt(null);
+                qualificationDvo.setEnddt(DateUtil.addDays(newStrtdt, -1));
+                mapper.updatePlannerQualificationChange(qualificationDvo);
+            } else {
+                // 승급(예정)
+
+                // 삭제처리
+                qualificationDvo.setQlfAplcDvCd(null);
+                qualificationDvo.setQlfDvCd(detailList.get(0).qlfDvCd());
+                qualificationDvo.setStrtdt(detailList.get(0).strtdt());
+                qualificationDvo.setEnddt(null);
+                qualificationDvo.setCvDt(null);
+                qualificationDvo.setDtaDlYn("Y");
+                mapper.updatePlannerQualificationChange(qualificationDvo);
+
+                // 종료처리
+                if (detailListCount > 2) {
+                    qualificationDvo.setQlfAplcDvCd(QlfAplcDvCd.QLF_APLC_DV_CD_2.getCode());
+                    qualificationDvo.setQlfDvCd(detailList.get(1).qlfDvCd());
+                    qualificationDvo.setStrtdt(detailList.get(1).strtdt());
+                    qualificationDvo.setCvDt(null);
+                    qualificationDvo.setEnddt(DateUtil.addDays(newStrtdt, -1));
+                    qualificationDvo.setDtaDlYn("N");
+                    mapper.updatePlannerQualificationChange(qualificationDvo);
+                }
+            }
+        }
+        return processCount;
+    }
+
+    /**
      * 매니저 자격관리 해약
      * @param dto
      * @return
