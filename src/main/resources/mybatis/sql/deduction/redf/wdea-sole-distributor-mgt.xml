@@ -219,7 +219,7 @@
 
     <select id="selectSoleDistributorContracts" resultType="com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto$SearchSoleDistributorContractRes">
         /*총판/B2B 되물림 생성 1번탭 조회기준 그리드 2번(계약별)*/
-        WITH T1 AS (
+        <!--WITH T1 AS (
          			SELECT X.BASE_YM
          				 , X.PERF_YM
          				 , X.FEE_TCNT_DV_CD
@@ -234,7 +234,7 @@
          			  FROM TB_FEAM_WELS_NRCTR_MM_CL X
          			 GROUP BY X.BASE_YM, X.PERF_YM, X.FEE_TCNT_DV_CD, X.CNTR_NO, X.CNTR_SN
          				 	, X.CNTR_PERF_CRT_DV_CD, X.CO_CD, X.OG_TP_CD, X.PRTNR_NO
-         )
+         )-->
         SELECT A.OG_CD /*지점코드(소속코드)*/
              , A.OG_NM
              , A.PRTNR_KNM /*파트너성명(판매자)*/
@@ -264,10 +264,10 @@
              , M.RCPDT /*접수일자*/
              , M.SL_DT /*매출일자*/
              , M.CAN_DT /*취소일자*/
-             , T1.REDF_ADSB_OJ_AMT AS ACKMT_PERF_AMT /*수수료(원), 컬럼명은 수수료(원)이지만 데이터는 대상의 되물림액*/
-             , T1.ACKMT_PERF_CT  /*인정실적건수*/
+             , M.REDF_ADSB_OJ_AMT AS ACKMT_PERF_AMT /*수수료(원), 컬럼명은 수수료(원)이지만 데이터는 대상의 되물림액*/
+             , M.ACKMT_PERF_CT  /*인정실적건수*/
           FROM TB_FEAM_WELS_NRCTR_MM_CL M /*웰스순주문계약월마감*/
-         INNER JOIN T1
+         <!--INNER JOIN T1
             ON T1.BASE_YM             = M.BASE_YM
 		   AND T1.PERF_YM             = M.PERF_YM
 		   AND T1.FEE_TCNT_DV_CD      = M.FEE_TCNT_DV_CD
@@ -276,7 +276,7 @@
 		   AND T1.CNTR_PERF_CRT_DV_CD = M.CNTR_PERF_CRT_DV_CD
 		   AND T1.CO_CD               = M.CO_CD
 		   AND T1.OG_TP_CD            = M.OG_TP_CD
-		   AND T1.PRTNR_NO            = M.PRTNR_NO
+		   AND T1.PRTNR_NO            = M.PRTNR_NO-->
           INNER JOIN TB_OGBS_MM_PRTNR_IZ A /*월파트너내역*/
             ON M.PERF_YM = A.BASE_YM
            AND M.PRTNR_NO = A.PRTNR_NO
@@ -328,6 +328,13 @@
            AND M.CNTR_SN = D.CNTR_SN
          WHERE M.DTA_DL_YN = 'N'
            AND M.OG_TP_CD = #{ogTpCd} /*조직유형*/
+           <if test='@MybatisUtils@equals(ogTpCd, "W04")'>
+           AND M.CNTR_PERF_CRT_DV_CD = '06' /*계약실적생성구분코드 - B2B 되물림*/
+           </if>
+           <if test='@MybatisUtils@equals(ogTpCd, "W05")'>
+           AND M.CNTR_PERF_CRT_DV_CD = '05' /*계약실적생성구분코드 - 총판 되물림*/
+           AND M.VTSEL_SODBT_CHNL_DV_CD = '2' /*방판총판채널구분코드 1방판 2총판 3홈마스터*/
+           </if>
            <if test='@MybatisUtils@isNotEmpty(redfAdsbOcYmFrom) and @MybatisUtils@isNotEmpty(redfAdsbOcYmTo)'>
            AND M.BASE_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo} /*발생년월*/
            </if>
@@ -335,7 +342,7 @@
            AND M.PERF_YM BETWEEN #{perfYmFrom} AND #{perfYmTo} /*실적년월*/
            </if>
            <if test='@MybatisUtils@isNotEmpty(ogCdFrom) and @MybatisUtils@isNotEmpty(ogCdTo)'>
-           AND A.OG_ID BETWEEN #{ogCdFrom} AND #{ogCdTo} /*지점코드(소속코드)*/
+           AND A.OG_CD BETWEEN #{ogCdFrom} AND #{ogCdTo} /*지점코드(소속코드)*/
            </if>
     </select>
 
