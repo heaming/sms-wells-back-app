@@ -92,7 +92,7 @@ public class WsniBarcodeProductInterfaceService {
                 .build();
              */
 
-            return resCust.builder()
+            return WsniBarcodeProductInterfaceDto.SearchCustJsonRes.builder()
                 .istDt(cust.istDt())
                 .useMonth(cust.useMonth())
                 .managerName(cust.managerName())
