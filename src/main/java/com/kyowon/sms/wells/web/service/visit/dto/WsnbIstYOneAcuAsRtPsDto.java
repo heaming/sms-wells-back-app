@@ -15,7 +15,6 @@ public class WsnbIstYOneAcuAsRtPsDto {
     @ApiModel(value = "WsnbIstYOneAcuAsRtPsDto-SearchRes")
     public record SearchRes(
         String atcNm,
-        String dYear,
         String m01,
         String m02,
         String m03,
@@ -28,9 +27,6 @@ public class WsnbIstYOneAcuAsRtPsDto {
         String m10,
         String m11,
         String m12,
-        String totalCnt,
-        String maxVal,
-        String minVal,
-        String avgVal
+        String totalCnt
     ){}
 }
