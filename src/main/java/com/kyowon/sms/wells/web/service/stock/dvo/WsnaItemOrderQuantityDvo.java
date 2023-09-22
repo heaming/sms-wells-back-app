@@ -49,7 +49,7 @@ public class WsnaItemOrderQuantityDvo {
     // 총 발주량
     private BigDecimal totGoQty;
     // MOQ
-    private String moq;
+    private BigDecimal moq;
     // 리드타임
     private BigDecimal leadTime;
     // 예상소요량 + 5개월
