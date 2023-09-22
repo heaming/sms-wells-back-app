@@ -134,8 +134,8 @@ public class WsnaBuildingBsConsumableService {
 
             while (it.hasNext()) {
                 WsnaBuildingBsConsumableDvo bftBldInfo = it.next();
-                WsnaBuildingBsConsumableDvo aftBldInfo = new WsnaBuildingBsConsumableDvo();
-                List<WsnaBuildingBsConsumableDvo> itemInfos = new ArrayList<>();
+                WsnaBuildingBsConsumableDvo aftBldInfo;
+                List<WsnaBuildingBsConsumableDvo> itemInfos;
 
                 aftBldInfo = bftBldInfo;
 
