@@ -76,7 +76,7 @@ public class WsniBarcodeProductInterfaceService {
     ) {
         log.info("[WsniBarcodeProductInterfaceService.getBarcodeSearchCustomers] BARCODE ::: " + dto.barcode());
         WsniBarcodeProductInterfaceDto.SearchCustRes cust;
-        WsniBarcodeProductInterfaceDto.SearchCustJsonRes resCust = null;
+//        WsniBarcodeProductInterfaceDto.SearchCustJsonRes resCust = null;
 
         try {
             cust = mapper.selectBarcodeSearchCustomer(dto);
