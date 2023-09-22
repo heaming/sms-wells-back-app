@@ -53,6 +53,10 @@ public interface WsnaOutofStorageAskMngtConverter {
         List<WsnaOutOfStorageAskMngtDvo> logisticsRemoveDvo
     );
 
+    List<WsnaLogisticsOutStorageAskReqDvo> mapDeliveryWsnaLogisticsOutStorageAskReqDvoToRemoveOutOfStorageAsks(
+        List<WsnaOutOfStorageAskMngtDvo> logisticsRemoveDvo
+    );
+
     WsnaOutOfStorageAskMngtSearchDvo mapAllSearchReqToOutOfStorageAskMngtDvo(SearchReq dto);
 
     WsnaOutOfStorageAskMngtSearchDvo mapAllSearchReqToExcelOutOfStorageAskMngtDvo(SearchReq dto);

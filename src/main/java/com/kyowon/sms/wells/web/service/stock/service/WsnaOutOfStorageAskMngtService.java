@@ -207,20 +207,35 @@ public class WsnaOutOfStorageAskMngtService {
             removeListDvo.add(dvo);
         }
 
+        //삭제한 데이터의 출고요청 순번만 리스트형태로 변형
+        List<String> removeOstrAkSns = removeListDvo.stream().map(WsnaOutOfStorageAskMngtDvo::getOstrAkSn).distinct()
+            .toList();
+
         if (CollectionUtils.isNotEmpty(removeListDvo)) {
             WsnaOutOfStorageAskMngtDvo removeDvo = removeListDvo.get(0);
             String deleteOstrAkNo = removeDvo.getOstrAkNo();
-            List<WsnaOutOfStorageAskMngtDvo> logisticsRemoveDvo = this.mapper.selectDtaDlYnOstrAkNo(deleteOstrAkNo);
-            //출고요청창고구분코드가 2(서비스센터)이면서 출고대상창고가 물류창고인경우
+            List<WsnaOutOfStorageAskMngtDvo> logisticsRemoveDvo = this.mapper
+                .selectDtaDlYnOstrAkNo(deleteOstrAkNo, removeOstrAkSns);
+            //출고요청창고구분코드가 2(서비스센터)이면서 출고대상창고가 물류창고인경우 택배가아닌경우
             if (WARE_DV_CD_LOGISTICS_CENTER.equals(logisticsRemoveDvo.get(0).getOstrOjWareDvCd())
-                && "2".equals(logisticsRemoveDvo.get(0).getOstrAkWareDvCd())) {
+                && "2".equals(logisticsRemoveDvo.get(0).getOstrAkWareDvCd())
+                && !"01".equals(logisticsRemoveDvo.get(0).getOvivTpCd())) {
                 List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
                     .mapWsnaLogisticsOutStorageAskReqDvoToRemoveOutOfStorageAsks(logisticsRemoveDvo);
                 logisticsservice.removeOutOfStorageAsks(dvo);
 
+                //출고요청창고구분코드가 2(서비스센터)이면서 출고대상창고가 물류창고이며 배차형태가 택배일경우
+            } else if (WARE_DV_CD_LOGISTICS_CENTER.equals(logisticsRemoveDvo.get(0).getOstrOjWareDvCd())
+                && "2".equals(logisticsRemoveDvo.get(0).getOstrAkWareDvCd())
+                && "01".equals(logisticsRemoveDvo.get(0).getOvivTpCd())) {
+
+                List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
+                    .mapDeliveryWsnaLogisticsOutStorageAskReqDvoToRemoveOutOfStorageAsks(logisticsRemoveDvo);
+                logisticsservice.removeOutOfStorageAsksWithPcsv(dvo);
+
             } else if (WARE_DV_CD_LOGISTICS_CENTER.equals(logisticsRemoveDvo.get(0).getOstrOjWareDvCd())
                 && "3".equals(logisticsRemoveDvo.get(0).getOstrAkWareDvCd())) {
-                //출고요청창고구분코드가 1(서비스센터)이면서 출고대상창고가 물류창고인경우
+                //출고요청창고구분코드가 3(영업센터)이면서 출고대상창고가 물류창고인경우
                 List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
                     .mapBusinessWsnaLogisticsOutStorageAskReqDvoToRemoveOutOfStorageAsks(logisticsRemoveDvo);
                 logisticsservice.removeOutOfStorageAsksWithPcsv(dvo);
