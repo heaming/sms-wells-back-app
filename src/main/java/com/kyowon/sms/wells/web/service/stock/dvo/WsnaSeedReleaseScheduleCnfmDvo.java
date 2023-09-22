@@ -66,4 +66,5 @@ public class WsnaSeedReleaseScheduleCnfmDvo {
     private String cstCralLocaraTno;
     private String cstMexnoEncr;
     private String cstCralIdvTno;
+    private String svPdCd;
 }
