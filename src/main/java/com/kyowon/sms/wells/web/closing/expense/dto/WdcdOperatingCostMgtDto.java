@@ -78,7 +78,8 @@ public class WdcdOperatingCostMgtDto {
         String opcsCardId,
         String opcsAdjCnt,
         String opcsSmryNCnt,
-        String mscrWhtxCfdcApnFileId
+        String atthDocId,
+        Integer atthDocIdNumberOfFiles
     ) {
 
     }

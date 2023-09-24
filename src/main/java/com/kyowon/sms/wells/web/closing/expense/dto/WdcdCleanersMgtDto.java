@@ -44,10 +44,14 @@ public class WdcdCleanersMgtDto {
         //@MaskRequired(type = MaskingType.NAME)
         String aplcnsNm, /*신청자*/
         String aplcPrtnrNo, /*신청자 사번*/
-        String cntrwApnFileId, /*계약서*/
-        String cntrLroreApnFileId, /*계약해지원*/
-        String idfApnFileId, /*신분증사본*/
-        String bnkbApnFileId, /*통장사본*/
+        String cntrwAtthDocId, /*계약서*/
+        Integer cntrwAtthDocIdNumberOfFiles,
+        String cntrLroreAtthDocId, /*계약해지원*/
+        Integer cntrLroreAtthDocIdNumberOfFiles,
+        String idfAtthDocId, /*신분증사본*/
+        Integer idfAtthDocIdNumberOfFiles,
+        String bnkbAtthDocId, /*통장사본*/
+        Integer bnkbAtthDocIdNumberOfFiles,
         String fmnCoSpptAmt, /*회사지원금*/
         String clinrFxnAmt, /*고정금*/
         String taxDdctam, /*세금공제*/

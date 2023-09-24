@@ -53,7 +53,8 @@ public class WdcdCleaningCostMgtDto {
         String claimNm,
         String aplcDt,
         String bilAmt,
-        String clingCostSrcpApnFileId
+        String atthDocId,
+        Integer atthDocIdNumberOfFiles
     ) {
     }
 }
