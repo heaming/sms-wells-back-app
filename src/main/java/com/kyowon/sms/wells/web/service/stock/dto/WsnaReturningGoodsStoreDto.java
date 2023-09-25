@@ -70,7 +70,6 @@ public class WsnaReturningGoodsStoreDto {
         String rtngdRvpyProcsYn,
         String wkWareNo,
         String wkOstrSn,
-
         String rmkCn,
         String cntrNoNew,
         String barCd,
@@ -83,8 +82,11 @@ public class WsnaReturningGoodsStoreDto {
         String rcpIchrPrtnrNo,
         String fstRgstUserNm,
         String cnslMoCn,
-        //        String col23,
         String prtnrKnm,
+
+        String ogNm,
+
+        String rcstDv,
         String itemKnd,
         String badDvNm,
         String mgtUnt,
