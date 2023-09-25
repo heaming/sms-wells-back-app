@@ -186,6 +186,10 @@ public class WsnaPcsvReturningGoodsSaveService {
             AskReqDvo.setSvCnrCd(dvo.getWkWareNo());
             AskReqDvo.setSvCnrNm(dvo.getWareNm());
             AskReqDvo.setRmkCn(dvo.getRmkCn());
+            // 물류 회수 송장번호 추가
+            AskReqDvo.setClnIvcNo(dvo.getClnSppIvcNo());
+            // 물류 계약고객번호 추가
+            AskReqDvo.setCstNo(dvo.getCntrCstNo());
 
             AskReqList.add(AskReqDvo);
         }
@@ -255,7 +259,7 @@ public class WsnaPcsvReturningGoodsSaveService {
             cnslCn.append("||");
         }
         cnslCn.append("8. 반품운송장 번호 : ");
-        cnslCn.append(dvo.getFwSppIvcNo() + "||");
+        cnslCn.append(dvo.getClnSppIvcNo() + "||");
         cnslCn.append("9. 비고(택배사/반품자) : ");
         cnslCn.append(dvo.getDtmChRsonDtlCn());
 
