@@ -173,7 +173,8 @@ public class WogcPartnerEngineerDto {
         String mexnoEncr,
         String cralIdvTno,
         String dtaDlYn,
-        String telNumber
+        String telNumber,
+        String ogCd
     ) {
 
     }
@@ -254,7 +255,8 @@ public class WogcPartnerEngineerDto {
         String cntrDt,
         String cltnDt,
         String apySeqn,
-        String dtaDlYn
+        String dtaDlYn,
+        String ogCd
     ) {
     }
 

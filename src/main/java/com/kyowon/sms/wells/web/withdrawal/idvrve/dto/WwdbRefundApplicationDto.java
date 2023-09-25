@@ -142,7 +142,8 @@ public class WwdbRefundApplicationDto {
         String bltfOjCntrDtlNo,
         String sellTpCd,
         String bltfRfndMbDvCd,
-        String rfndEvidMtrFileId,
+        String atthDocId,
+        Integer atthDocIdNumberOfFiles,
         String rfndEvidMtrFileNm,
         String rfndAkNo,
         String cstNo

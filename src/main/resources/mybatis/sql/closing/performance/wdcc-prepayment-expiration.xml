@@ -27,24 +27,27 @@
                       WHERE 1=1
                ) AS MPY_BSDT
              , TO_CHAR(TO_DATE(T3.CNTR_PD_STRTDT), 'YYYY-MM-DD') AS LCSLE_DT /*매출일자*/
-              , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CNTR_CAN_DT /*취소일자*/
+             , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CNTR_CAN_DT /*취소일자*/
              , T1.PRM_MCN AS PRM_MCN /*선납개월*/
              , T1.PRM_DSCR AS PRM_DSCR /*할인율*/
-             , (CASE WHEN T1.PRM_STRT_Y > 0 THEN T1.PRM_END_Y || '-' || LPAD(T1.PRM_END_MM , 2 , '0' ) ELSE '0000-00' END) AS PRM_END_YM /*선납종료년월*/
-             , (CASE WHEN (T1.PRM_STRT_Y IS NOT NULL AND T1.PRM_STRT_Y <![CDATA[<>]]> '0')
-                    THEN T1.PRM_STRT_Y || '-' || LPAD(T1.PRM_STRT_MM , 2 , '0')  || '~'  || T1.PRM_END_Y || '-' ||  LPAD(T1.PRM_END_MM , 2 , '0' )
-                    ELSE ''
+             /* @@@수정시작 */
+             , TO_CHAR(TO_DATE(NVL(T1.PRM_END_YM, ''), 'YYYYMM'), 'YYYY-MM') AS PRM_END_YM /*선납종료년월*/
+             , (CASE WHEN NVL(T1.PRM_STRT_YM, '') > ' '
+                            THEN TO_CHAR(TO_DATE(NVL(T1.PRM_STRT_YM, ''), 'YYYYMM'), 'YYYY-MM')  || '~' || TO_CHAR(TO_DATE(NVL(T1.PRM_END_YM, ''), 'YYYYMM'), 'YYYY-MM')
+                     ELSE ''
                 END) AS PRM_PERIOD /*선납시작/종료*/
+             /* @@@수정끝 */
              , T1.TOT_PRM_AMT AS TOT_PRM_AMT /*선납총액*/
              , (CASE WHEN T17.EXCD_END_YM = T1.SL_CL_YM THEN '선납제외'  ELSE '' END) AS PRM_EXCPT /*선납제외*/
-             , (SELECT CASE WHEN CAST(PRM_STRT_Y AS INT) > 0 THEN 'Y' ELSE 'N' END
+             /* @@@수정시작 */
+             , (SELECT CASE WHEN COUNT(1) > 0 THEN 'Y' ELSE '' END
                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ
                  WHERE CNTR_NO = T1.CNTR_NO
                    AND CNTR_SN = T1.CNTR_SN
-                   AND CAST(PRM_STRT_Y AS INT) = CAST(SUBSTR(TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm},'YYYYMM'), 1), 'YYYYMM'), 1, 4) AS INT)
-                   AND CAST(PRM_STRT_MM AS INT) = CAST(SUBSTR(TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm},'YYYYMM'), 1), 'YYYYMM'), 5, 2) AS INT)
+                   AND PRM_STRT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm},'YYYYMM'), 1), 'YYYYMM')
                    AND ROWNUM = 1
                ) AS PRM_RE_APLC_YN /*선납재신청*/
+             /* @@@수정끝 */
              , T15.LOCARA_TNO AS CNTR_LOCAL_TNO1 /* 계약자전화번호1*/
              , T15.EXNO_ENCR AS CNTR_LOCAL_TNO2 /* 계약자전화번호2*/
              , T15.IDV_TNO AS CNTR_LOCAL_TNO3 /* 계약자전화번호3*/
@@ -127,7 +130,7 @@
           LEFT OUTER JOIN TB_OGBS_PRTNR_DTL T9 /* 파트너상세*/
             ON T9.OG_TP_CD = T8.OG_TP_CD
            AND T9.PRTNR_NO = T8.PRTNR_NO
-           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T20 /* T.월파트너내역 - 판매자 */
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T20 /* T.월파트너내역 - 판매자 */
             ON T20.BASE_YM = SUBSTR(T2.CNTR_CNFM_DTM,1,6)
            AND T20.OG_TP_CD = T2.SELL_OG_TP_CD
            AND T20.PRTNR_NO = T2.SELL_PRTNR_NO
@@ -176,7 +179,9 @@
          WHERE T1.SL_CL_YM = #{slClYm}
        AND T1.SELL_TP_CD = '2'
        AND T1.SELL_TP_DTL_CD IN ('21', '23')
-       AND (T1.PRM_END_Y||LPAD(T1.PRM_END_MM,2,'0') = #{slClYm} OR T17.EXCD_END_YM = #{slClYm})
+       /* @@@수정시작 */
+       AND (T1.PRM_END_YM = #{slClYm} OR T17.EXCD_END_YM = #{slClYm})
+       /* @@@수정끝 */
          <if test="@MybatisUtils@isNotEmpty(pdHclsfId)"> /* 상품군 대분류*/
            AND T3.PD_HCLSF_ID = #{pdHclsfId}
          </if>
@@ -208,10 +213,10 @@
            AND NVL(T7.DP_AMT, 0) = 0
           </if>
           <if test="@MybatisUtils@equals(canYn, 'Y')"> /* 취소여부 'Y'*/
-           AND T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') --@@@
+           AND T3.CNTR_DTL_STAT_CD IN ('301', '302', '303')
           </if>
           <if test="@MybatisUtils@equals(canYn, 'N')"> /* 취소여부 'N'*/
-           AND T3.CNTR_DTL_STAT_CD NOT IN ('301', '302', '303') --@@@
+           AND T3.CNTR_DTL_STAT_CD NOT IN ('301', '302', '303')
           </if>
           <if test="@MybatisUtils@isNotEmpty(rentalStn)"> /* 렌탈회차-FROM*/
            AND T1.RENTAL_TN >= #{rentalStn}

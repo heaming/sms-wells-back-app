@@ -42,9 +42,9 @@ public class WsnbWellsServiceCfdcService {
         return mapper.selectWellsServiceConfirmations(dto);
     }
 
-    public int printWellsServiceConfirmationByReport(ReportReq dto) throws Exception {
-        return 0;
-    }
+//    public int printWellsServiceConfirmationByReport(ReportReq dto) throws Exception {
+//        return 0;
+//    }
 
     public int sendWellsServiceConfirmationByKakao(KakaoReq dto) throws Exception {
         Map<String, Object> paramMap = new HashMap<>();

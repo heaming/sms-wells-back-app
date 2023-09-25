@@ -3,6 +3,14 @@ package com.kyowon.sms.wells.web.withdrawal.interfaces.service;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+
+import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalDepositCprDvo;
+import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
+import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
+import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.converter.WwdbNotPaidMakeAPaymentRgstConverter;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbNotPaidMakeAPaymentRgstDto;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymentContractDvo;
@@ -10,18 +18,8 @@ import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymen
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymentRgstReqDvo;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbNotPaidMakeAPaymentRgstResDvo;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdbNotPaidMakeAPaymentRgstMapper;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
-
-import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalDepositCprDvo;
-import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
-import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
-import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.sds.sflex.common.utils.DateUtil;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.common.utils.StringUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -45,21 +43,21 @@ public class WwdbNotPaidMakeAPaymentRgstService {
             - MSG : '계약번호 을(를) 입력해주세요.'
             - MSG : '계약일련번호 을(를) 입력해주세요.'*/
 
-        if (StringUtils.isEmpty(dvo.getCntrNo())) {
+        if (StringUtil.isEmpty(dvo.getCntrNo())) {
             resultDvo.setProcsRs("N");
             resultDvo.setErrMsg("계약번호 을(를) 입력해주세요.");
 
             return resultDvo;
         }
 
-        if (StringUtils.isEmpty(dvo.getCntrSn())) {
+        if (StringUtil.isEmpty(dvo.getCntrSn())) {
             resultDvo.setProcsRs("N");
             resultDvo.setErrMsg("계약일련번호 을(를) 입력해주세요.");
 
             return resultDvo;
         }
 
-        if (StringUtils.isEmpty(dvo.getDpDvCd())) {
+        if (StringUtil.isEmpty(dvo.getDpDvCd())) {
             /*1.2 입금구분코드 미입력시 에러 리턴
             - MSG : '입금구분코드 을(를) 입력해주세요'*/
             resultDvo.setProcsRs("N");
@@ -77,7 +75,7 @@ public class WwdbNotPaidMakeAPaymentRgstService {
             return resultDvo;
         }
 
-        if (StringUtils.isEmpty(dvo.getSellTpCd())) {
+        if (StringUtil.isEmpty(dvo.getSellTpCd())) {
             /*1.4 판매유형코드 미입력시 에러 리턴
             - MSG : '판매유형코드 을(를) 입력해주세요'*/
             resultDvo.setProcsRs("N");
@@ -96,7 +94,7 @@ public class WwdbNotPaidMakeAPaymentRgstService {
             return resultDvo;
         }
 
-        if (StringUtils.isEmpty(dvo.getPrtnrNo())) {
+        if (StringUtil.isEmpty(dvo.getPrtnrNo())) {
             /* 1.6 파트너번호 미입력시 에러 리턴
             - MSG : '파트너번호 을(를) 입력해주세요'*/
             resultDvo.setProcsRs("N");
@@ -105,7 +103,7 @@ public class WwdbNotPaidMakeAPaymentRgstService {
             return resultDvo;
         }
 
-        if (StringUtils.isEmpty(dvo.getDpTpCd())) {
+        if (StringUtil.isEmpty(dvo.getDpTpCd())) {
             /*1.7 입금유형코드 미입력시 에러 리턴
             - MSG : '입금유형코드 을(를) 입력해주세요'*/
             resultDvo.setProcsRs("N");
@@ -123,7 +121,7 @@ public class WwdbNotPaidMakeAPaymentRgstService {
             return resultDvo;
         }
 
-        if (StringUtils.isEmpty(dvo.getDpAmt())) {
+        if (ObjectUtils.isEmpty(dvo.getDpAmt())) {
             /*1.9 입금금액 미입력시 에러 리턴
             - MSG : '입금금액 을(를) 입력해주세요'*/
 
@@ -170,7 +168,7 @@ public class WwdbNotPaidMakeAPaymentRgstService {
             return resultDvo;
         } else {
             //고객정보가 존재 하지만 계약확정일자가 Null인 경우
-            if (StringUtils.isEmpty(contractDvo.getCntrCnfmDtm())) {
+            if (StringUtil.isEmpty(contractDvo.getCntrCnfmDtm())) {
 
                 resultDvo.setProcsRs("N");
                 resultDvo.setErrMsg("등록불가! 멤버십 미확정 입니다.");
@@ -326,7 +324,6 @@ public class WwdbNotPaidMakeAPaymentRgstService {
             dpMesCd = "02";
         }
 
-
         depositCprDvo.setKwGrpCoCd("2000"); /*교원그룹회사코드*/ // KW_GRP_CO_CD	교원그룹회사코드
         depositCprDvo.setRveCoCd("2000"); /*수납회사코드*/ // RVE_CO_CD	수납회사코드
         depositCprDvo.setProcsDvCd("1"); /*처리구분코드*/ // PROCS_DV_CD	처리구분코드(1 정상)
@@ -375,7 +372,6 @@ public class WwdbNotPaidMakeAPaymentRgstService {
         } else {
             dpMesCd = "02";
         }
-
 
         /*수납요청상세 데이터 입력*/
         ZwdzWithdrawalReceiveAskDvo zwdzWithdrawalReceiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();

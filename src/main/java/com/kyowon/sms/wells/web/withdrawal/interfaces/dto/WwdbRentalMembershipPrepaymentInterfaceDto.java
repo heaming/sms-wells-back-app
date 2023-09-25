@@ -67,7 +67,7 @@ public class WwdbRentalMembershipPrepaymentInterfaceDto {
         @JsonProperty("CNTR_SN")
         String cntrSn, // 계약일련번호
         @NotBlank
-        @JsonProperty("SELL_TP_CD")
+        @JsonProperty("RVE_DV_CD")
         String sellTpCd, // 구분(일시불/렌탈/멤버십/회사/정기배송), 판매유형코드
         @NotBlank
         @JsonProperty("PRM_PTRM_STRTDT")

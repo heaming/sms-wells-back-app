@@ -5,19 +5,11 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SaveSlpnoReq;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SearchDetailRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SearchSapPdDvCdRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SearchSlpnoRes;
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SearchTotalRes;
+import com.kyowon.sms.common.web.closing.sales.dto.ZdchClearingSlipCreateDto;
+import com.kyowon.sms.common.web.closing.sales.service.ZdchClearingSlipCreateService;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.*;
 import com.kyowon.sms.wells.web.closing.sales.service.WdcbBusinessAtamAdjustMgtService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -37,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbBusinessAtamAdjustMgtController {
 
     private final WdcbBusinessAtamAdjustMgtService service;
+    private final ZdchClearingSlipCreateService zdchClearingSlipCreateService;
 
     @ApiOperation(value = "대표고객코드 조회", notes = "대표고객코드 정보를 조회")
     @GetMapping("/codes")
@@ -78,15 +71,15 @@ public class WdcbBusinessAtamAdjustMgtController {
         return service.getBusinessAtamDetails(dto);
     }
 
-    /* @ApiOperation(value = "반제전표 생성", notes = "반제전표 생성")
+    @ApiOperation(value = "반제전표 생성", notes = "반제전표 생성")
     @PostMapping
-    public SaveResponse saveSlipCreate(
+    public String saveSlipCreate(
         @RequestBody
         @Valid
-        List<SaveReq> dto
+        ZdchClearingSlipCreateDto.SaveReq dto
     ) throws Exception {
-        return SaveResponse.builder().processCount(slipCreateservice.saveSlipCreate(dto)).build();
-    }*/
+        return zdchClearingSlipCreateService.clearingSlipCreate(dto);
+    }
 
     @ApiOperation(value = "채권반제 조회", notes = "조회조건에 따른 채권반제 내역을 조회")
     @ApiImplicitParams(value = {

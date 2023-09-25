@@ -37,6 +37,7 @@ public class WbnaFosterTransferMgtService {
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
     private final ZbnaExcelHistoryMgtService zbnaExcelHistoryMgtService;
+    private static final String MSG_ALT_SVE_ERR_STR = "MSG_ALT_SVE_ERR";
 
     public List<SearchRes> getFosterTransfers(SearchReq dto) {
         return mapper.selectFosterTransfers(this.converter.mapSearchReqToBondContractBaseDvo(dto));
@@ -77,7 +78,7 @@ public class WbnaFosterTransferMgtService {
                 batchDvo.setParams(params); // Job 실행시 필요한 파라미터
 
                 String runId = batchCallService.runJob(batchDvo);
-                BizAssert.isTrue(StringUtils.isNotEmpty(runId), "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(StringUtils.isNotEmpty(runId), MSG_ALT_SVE_ERR_STR);
 
                 data = StringUtil.isBlank(runId) ? "S" : "E";
             }
@@ -89,16 +90,16 @@ public class WbnaFosterTransferMgtService {
 
                 // 채권계약기본 Table update
                 int updateContractCount = this.mapper.updateBondContractBases(params);
-                BizAssert.isTrue(updateContractCount >= 1, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(updateContractCount >= 1, MSG_ALT_SVE_ERR_STR);
                 processCount += updateContractCount;
 
                 // 채권상담기본내역 계약별 MERGE
                 int mergeCounselingCount = this.mapper.insertBondCounselingBasics(params);
-                BizAssert.isTrue(mergeCounselingCount >= 1, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(mergeCounselingCount >= 1, MSG_ALT_SVE_ERR_STR);
 
                 // 채권이관배정수행내역 Table insert
                 int insertCount = this.mapper.insertBondTransferAssignExecutionIz(params);
-                BizAssert.isTrue(insertCount == 1, "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(insertCount == 1, MSG_ALT_SVE_ERR_STR);
             }
         }
 
@@ -114,7 +115,7 @@ public class WbnaFosterTransferMgtService {
             int insertResult = this.mapper.insertBondContractHistories(dvo);
             int updateResult = this.mapper.updateFosterTransfer(dvo);
 
-            BizAssert.isTrue(updateResult == 1 && insertResult == 1, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(updateResult == 1 && insertResult == 1, MSG_ALT_SVE_ERR_STR);
             processCount += updateResult;
         }
         return processCount;
@@ -137,7 +138,7 @@ public class WbnaFosterTransferMgtService {
                 .build();
 
             int result = zbnaExcelHistoryMgtService.createBondDownloadIz(dvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(result == 1, MSG_ALT_SVE_ERR_STR);
         }
         return response;
     }
@@ -221,7 +222,7 @@ public class WbnaFosterTransferMgtService {
                     int insertResult = this.mapper.insertBondContractHistories(data);
                     int updateResult = this.mapper.updateFosterTransfer(data);
 
-                    BizAssert.isTrue(insertResult == 1 && updateResult == 1, "MSG_ALT_SVE_ERR");
+                    BizAssert.isTrue(insertResult == 1 && updateResult == 1, MSG_ALT_SVE_ERR_STR);
                 }
             }
 
@@ -233,7 +234,7 @@ public class WbnaFosterTransferMgtService {
             .baseYm(baseYm)
             .bzHdqDvCd(bzHdqDvCd)
             .excelUldCt(list.size())
-            .excelDldFileNm(file.getOriginalFilename().replaceAll("[^ㄱ-ㅎㅏ-ㅣ가-힣0-9]", ""))
+            .excelDldFileNm(Objects.requireNonNull(file.getOriginalFilename()).replaceAll("[^ㄱ-ㅎㅏ-ㅣ가-힣0-9]", ""))
             .excelDldSrnId(pageId)
             .excelUldErrTpCd(excelUploadErrorDvos.size() > 0 ? "06" : "")
             .build();

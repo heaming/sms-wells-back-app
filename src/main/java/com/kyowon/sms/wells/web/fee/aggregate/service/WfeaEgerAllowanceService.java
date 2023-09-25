@@ -9,9 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
 import com.kyowon.sflex.common.common.service.BatchCallService;
-import com.kyowon.sms.wells.web.fee.aggregate.converter.WfeaEgerAllowanceConverter;
 import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaEgerAllowanceDto;
-import com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaEgerAllowanceMapper;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -30,10 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WfeaEgerAllowanceService {
 
-    private final WfeaEgerAllowanceMapper mapper;
-
-    private final WfeaEgerAllowanceConverter converter;
-
     private final BatchCallService batchCallService;
 
     /**
@@ -51,8 +47,12 @@ public class WfeaEgerAllowanceService {
         BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
 
         // 배치 parameter
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         Map<String, String> params = new HashMap<String, String>();
         params.put("baseYm", dto.perfYm());
+        // 배치로그에 배치 실행한 사람의 정보를 넣음
+        params.put("departmentId", session.getDepartmentId());
+        params.put("userId", session.getEmployeeIDNumber());
 
         batchCallReqDvo.setJobKey("WSM_FE_OA0001");
         batchCallReqDvo.setParams(params);
@@ -60,7 +60,16 @@ public class WfeaEgerAllowanceService {
         String runId = batchCallService.runJob(batchCallReqDvo);
         BizAssert.isTrue(StringUtils.isNotEmpty(runId), "MSG_ALT_SVE_ERR");
 
-        return StringUtils.isNotBlank(runId) ? "S" : "E";
+        String jobStatus;
+        while (true) {
+            Thread.sleep(2000);
+            jobStatus = batchCallService.getLastestJobStatus(runId);
+            if (StringUtils.equals(jobStatus, "Ended OK") || StringUtils.equals(jobStatus, "Ended Not OK")) {
+                break;
+            }
+        }
+
+        return jobStatus;
     }
 
 }

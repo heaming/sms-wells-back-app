@@ -376,6 +376,7 @@ public class WsnaSeedReleaseScheduleService {
                 // 불량구분코드
                 String badDvCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getBadDvCd();
 
+                wkRsDvo.setSvBizHclsfCd(SV_BIZ_HCLSF_CD_BS);
                 wkRsDvo.setAcLctCd(asLctCd);
                 wkRsDvo.setAsPhnCd(asPhnCd);
                 wkRsDvo.setAsCausCd(asCausCd);

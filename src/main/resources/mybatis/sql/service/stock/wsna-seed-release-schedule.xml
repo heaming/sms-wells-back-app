@@ -100,6 +100,7 @@
              , T1.CST_SV_ASN_NO                                                                                             /* 고객서비스배정번호 */
              , T4.PD_CD                                                                           AS SDING_MCNR_PD_CD       /* 모종기계상품코드 */
              , T1.VST_DUEDT                                                                                                 /* 방문예정일자 */
+             , NVL(T1.SV_PD_CD, T1.SDING_PKG_PD_CD)                                               AS SV_PD_CD               /* 서비스상품코드 */
           FROM
              (
             <if test='!@MybatisUtils@equals(svBizHclsfCd, "2") or @MybatisUtils@isEmpty(svBizHclsfCd)'>
@@ -124,6 +125,7 @@
                     , D4.OG_NM                                      /* 방문센터 */
                     , D4.OG_TP_CD                                   /* 조직유형코드 */
                     , D4.PRTNR_NO                                   /* 파트너번호 */
+                    , D5.SV_PD_CD                                   /* 서비스상품코드 */
                     , ( SELECT S2.CNTR_ADRPC_ID
                           FROM TB_SSCT_CNTR_ADR_REL S1
                          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS S2
@@ -407,6 +409,7 @@
                     , D4.OG_NM                                       /* 방문센터 */
                     , D4.OG_TP_CD                                    /* 조직유형코드 */
                     , D4.PRTNR_NO                                    /* 파트너번호 */
+                    , D5.SV_PD_CD                                    /* 서비스상품코드 */
                     , ( SELECT S2.CNTR_ADRPC_ID
                           FROM TB_SSCT_CNTR_ADR_REL S1
                          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS S2
@@ -916,12 +919,12 @@
              , #{sdingPkgPdCd}
              , D4.SELL_TP_CD
              , D5.SV_PD_TP_CD
-             , D4.PD_GD_CD
+             , NVL(D4.PD_GD_CD, 'A')
              , TO_CHAR(SYSDATE, 'YYYYMMDD')
              , #{sdingPkgPdCd}
              , D4.SELL_TP_CD
              , D5.SV_PD_TP_CD
-             , D4.PD_GD_CD
+             , NVL(D4.PD_GD_CD, 'A')
              , TO_CHAR(SYSDATE, 'YYYYMMDD')
              , D1.SDING_QTY
              , 0
@@ -955,7 +958,7 @@
             ON D4.CNTR_NO = D1.CNTR_NO
            AND D4.CNTR_SN = D1.CNTR_SN
          INNER JOIN TB_PDBS_PD_BAS D5                /* 상품기본 */
-            ON D5.PD_CD = #{sdingPkgPdCd}
+            ON D5.PD_CD = #{svPdCd}
          WHERE D1.DTA_DL_YN       = 'N'
            AND D2.DTA_DL_YN       = 'N'
            AND D3.DTA_DL_YN       = 'N'
@@ -1024,12 +1027,12 @@
              , #{sdingPkgPdCd}
              , D4.SELL_TP_CD
              , D5.SV_PD_TP_CD
-             , D4.PD_GD_CD
+             , NVL(D4.PD_GD_CD, 'A')
              , TO_CHAR(SYSDATE, 'YYYYMMDD')
              , #{sdingPkgPdCd}
              , D4.SELL_TP_CD
              , D5.SV_PD_TP_CD
-             , D4.PD_GD_CD
+             , NVL(D4.PD_GD_CD, 'A')
              , TO_CHAR(SYSDATE, 'YYYYMMDD')
              , D1.SDING_QTY
              , 0
@@ -1062,7 +1065,7 @@
             ON D4.CNTR_NO = D1.CNTR_NO
            AND D4.CNTR_SN = D1.CNTR_SN
          INNER JOIN TB_PDBS_PD_BAS D5                /* 상품기본 */
-            ON D5.PD_CD = #{sdingPkgPdCd}
+            ON D5.PD_CD = #{svPdCd}
          WHERE D1.DTA_DL_YN       = 'N'
            AND D2.DTA_DL_YN       = 'N'
            AND D3.DTA_DL_YN       = 'N'
@@ -1162,7 +1165,6 @@
            AND D2.SV_TP_CD        = '2'
            AND D2.SV_ANA_HCLSF_CD = #{svBizDclsfCd}
          WHERE D1.DTA_DL_YN          = 'N'
-           AND D1.DTA_DL_YN          = 'N'
            AND D1.PD_EXTS_PRP_GRP_CD = 'PART'
            AND D1.PD_CD              = #{pdCd}
            AND ROWNUM                = 1
@@ -1293,8 +1295,9 @@
              , D4.SV_BIZ_DCLSF_CD
              , D4.WK_SN
              , D4.VST_DUEDT
-             , D2.PDCT_PD_CD AS PD_CD
-             , #{mngrDvCd}   AS MNGR_DV_CD
+             , D2.PDCT_PD_CD                   AS PD_CD
+             , NVL(D2.SV_PD_CD, D2.PDCT_PD_CD) AS SV_PD_CD
+             , #{mngrDvCd}                     AS MNGR_DV_CD
           FROM TB_SSCT_CNTR_REL D1                   /* 계약관계 */
          INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2        /* 고객서비스수행내역 (기기) */
             ON D2.CNTR_NO = D1.OJ_DTL_CNTR_NO
@@ -1305,6 +1308,9 @@
             ON D4.CNTR_NO   = D2.CNTR_NO
            AND D4.CNTR_SN   = D2.CNTR_SN
            AND D4.ASN_OJ_YM = D3.ASN_OJ_YM
+         INNER JOIN TB_SSCT_CNTR_DTL D5              /* 계약상세 */
+            ON D5.CNTR_NO = D2.CNTR_NO
+           AND D5.CNTR_SN = D2.CNTR_SN
          WHERE D1.DTA_DL_YN        = 'N'
            AND D1.CNTR_REL_DTL_CD  = '216'          /* 모종결합 */
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D1.VL_STRT_DTM AND D1.VL_END_DTM
@@ -1312,6 +1318,8 @@
            AND D2.PDCT_PD_CD       = 'WM05100045'   /* 새싹재배기 */
            AND D3.DTA_DL_YN        = 'N'
            AND D4.DTA_DL_YN        = 'N'
+           AND D5.DTA_DL_YN        = 'N'
+           AND D5.CNTR_DTL_STAT_CD NOT IN ('202', '303')   /* 연체정지, 계약취소 */
            AND D1.BASE_DTL_CNTR_NO = #{cntrNo}
            AND D1.BASE_DTL_CNTR_SN = #{cntrSn}
            AND ROWNUM              = 1
@@ -1367,17 +1375,17 @@
              , D1.CNTR_SN
              , '2'
              , D1.SV_BIZ_DCLSF_CD
-             , 'WM05100045'   /* 새싹재배기 */
+             , #{pdCd}   /* 새싹재배기 */
              , '1'
-             , 'WM05100045'   /* 새싹재배기 */
+             , #{pdCd}   /* 새싹재배기 */
              , D2.SELL_TP_CD
              , D3.SV_PD_TP_CD
-             , D2.PD_GD_CD
+             , NVL(D2.PD_GD_CD, 'A')
              , TO_CHAR(SYSDATE, 'YYYYMMDD')
-             , 'WM05100045'   /* 새싹재배기 */
+             , #{pdCd}   /* 새싹재배기 */
              , D2.SELL_TP_CD
              , D3.SV_PD_TP_CD
-             , D2.PD_GD_CD
+             , NVL(D2.PD_GD_CD, 'A')
              , TO_CHAR(SYSDATE, 'YYYYMMDD')
              , 1
              , 0
@@ -1403,7 +1411,7 @@
             ON D2.CNTR_NO = D1.CNTR_NO
            AND D2.CNTR_SN = D1.CNTR_SN
          INNER JOIN TB_PDBS_PD_BAS D3          /* 상품기본 */
-            ON D3.PD_CD = 'WM05100045'   /* 새싹재배기 */
+            ON D3.PD_CD = #{svPdCd}
          WHERE D1.DTA_DL_YN       = 'N'
            AND D2.DTA_DL_YN       = 'N'
            AND D3.DTA_DL_YN       = 'N'

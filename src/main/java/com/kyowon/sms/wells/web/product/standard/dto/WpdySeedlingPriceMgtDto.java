@@ -20,6 +20,10 @@ public class WpdySeedlingPriceMgtDto {
 
     @ApiModel(value = "WpdySeedlingPriceMgtDto-SearchRes")
     public record SearchRes(
+        String fstRgstUsrId,
+        String fnlMdfcUsrId,
+        String fstRgstDtm,
+        String fstRgstUsrNm,
         String fnlMdfcDtm,
         String fnlMdfcUsrNm,
         String pdctPdNm, /* 제품상품코드 */

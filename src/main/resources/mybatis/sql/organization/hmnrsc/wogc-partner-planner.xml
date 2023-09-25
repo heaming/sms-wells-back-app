@@ -38,18 +38,21 @@
            AND T4.OG_TP_CD = T1.OG_TP_CD
            AND T4.OG_ID = T1.OG_ID
            AND T4.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN (SELECT PRTNR_NO
-                                , MAX(CASE WHEN EDUC_CRSE_NO = '143' THEN EDUC_CPC_ACKMT_DT
-                                                                     ELSE '' END) AS EDU143 /* Pre스타트업 */
-                                , MAX(CASE WHEN EDUC_CRSE_NO = '96'  THEN EDUC_CPC_ACKMT_DT
-                                                                     ELSE '' END) AS EDU96  /* 스타트업 */
-                             FROM TB_PSCA_MCPTN_EDUC_IZ
-                            WHERE EDUC_CRSE_CRT_BASE_YM <![CDATA[ <= ]]> '202307'
-                              AND OG_TP_CD = 'W02'
-                              AND EDUC_CRSE_NO IN ('143', '96')
-                              AND EDUC_CPC_ACKMT_YN = 'Y'
-                              AND DTA_DL_YN = 'N'
-                            GROUP BY PRTNR_NO) T5
+          LEFT OUTER JOIN (SELECT X1.PRTNR_NO
+                                , MAX(CASE WHEN X1.EDUC_CRSE_NO = '143' THEN X1.EDUC_CPC_ACKMT_DT ELSE '' END) AS EDU143 /* Pre스타트업 */
+                                , MAX(CASE WHEN X1.EDUC_CRSE_NO = '96' THEN X1.EDUC_CPC_ACKMT_DT ELSE '' END) AS EDU96   /* 스타트업 */
+                             FROM TB_PSCA_MCPTN_EDUC_IZ  X1         /* 월별파트너교육내역 */
+						     LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ X2 /* 월파트너내역 */
+                               ON X2.BASE_YM  = X1.EDUC_CRSE_CRT_BASE_YM
+                              AND X2.OG_TP_CD = X1.OG_TP_CD
+                              AND X2.PRTNR_NO = X1.PRTNR_NO
+                            WHERE X1.EDUC_CRSE_CRT_BASE_YM <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                              AND X1.OG_TP_CD = 'W02'
+                              AND X1.EDUC_CRSE_NO IN ('143', '96')
+                              AND X1.EDUC_CPC_ACKMT_YN = 'Y'
+						      AND X1.EDUC_CPC_ACKMT_DT <![CDATA[ >= ]]> X2.CNTR_DT
+                              AND X1.DTA_DL_YN = 'N'
+                            GROUP BY X1.PRTNR_NO) T5
             ON T5.PRTNR_NO = T1.PRTNR_NO
          WHERE 1=1
            AND T1.DTA_DL_YN = 'N'
@@ -90,11 +93,14 @@
          INNER JOIN TB_OGBS_PRTNR_BAS T2
             ON T2.OG_TP_CD = T1.OG_TP_CD
            AND T2.PRTNR_NO = T1.PRTNR_NO
+           AND T2.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_OGPS_PRTNR_CNTR_BAS T3
             ON T3.OG_TP_CD = T2.OG_TP_CD
            AND T3.PRTNR_NO = T2.PRTNR_NO
            AND T3.BASE_YM = SUBSTR(T1.STRTDT, 1, 6)
+           AND T3.DTA_DL_YN = 'N'
          WHERE T1.OG_TP_CD = 'W02'
+           AND T1.DTA_DL_YN = 'N'
            AND T1.PRTNR_NO = #{prtnrNo}
            AND T2.OG_ID IN (
                <include refid="com.kyowon.sms.common.web.organization.common.mapper.ZogzOrganizationSearchMapper.sqlSessionOrganization" />
@@ -179,46 +185,51 @@
                     ON T0.MNGT_YM = T3.BASE_YM
                    AND T0.PRTNR_NO = T3.PRTNR_NO
                   /* 월별파트너교육내역(P조직) */
-                  LEFT OUTER JOIN (  SELECT PRTNR_NO
-                                          , MAX(EDUC_CPC_ACKMT_DT) AS EDU14  /* 스타트업 */
-                                     FROM TB_PSCA_MCPTN_EDUC_IZ /* 월별파트너교육내역 */
-                                    WHERE EDUC_CRSE_CRT_BASE_YM <![CDATA[<=]]> #{mngtYm} /* 파라미터 #############################  */
-                                      AND OG_TP_CD               = 'W01'
-                                      AND EDUC_CRSE_NO          IN ('14')  --교육코드 - 11:플래너스타트업, 14:플래너스타트업
-                                      AND EDUC_CPC_ACKMT_YN      = 'Y'     --교육수료인정여부
-                                      AND DTA_DL_YN              = 'N'
-                                    GROUP BY PRTNR_NO ) T5  /* 월별파트너교육내역  */
-                    ON T5.PRTNR_NO    = T3.PRTNR_NO
-                  LEFT OUTER JOIN  TB_OGBS_PRTNR_BAS     T6  /* 파트너기본 - 채용자 */
-                    ON T6.OG_TP_CD    = T1.OG_TP_CD
-                   AND T6.PRTNR_NO    = T1.RCMDR_PRTNR_NO
-                 /* 순주문(P조직, M조직) */
-                 LEFT OUTER JOIN  ( SELECT  X0.PRTNR_NO                   --파트너번호
-                                           ,SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM  = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) PRE_SUM      --P조직 전월 - 순주문실적금액
-                                           ,SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM  = #{mngtYm}   THEN X1.PERF_VAL ELSE 0 END) CUR_SUM      --P조직 당월 - 순주문실적금액
-                                           ,SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009'                              THEN X1.PERF_VAL ELSE 0 END) TOT_SUM      --P조직 누적 - 순주문실적금액
-                                           ,SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00018' AND X1.BASE_YM  = #{mngtYm}   THEN X1.PERF_VAL ELSE 0 END) CUR_BS       --P조직 당월 - BS관리상품 판매수
-                                           ,SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM >= X0.DMTN_DT THEN X1.PERF_VAL ELSE 0 END) DMTN_TOT_SUM --P조직 강등후누적 - 순주문실적금액
-                                           ,SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00018' AND X1.BASE_YM >= X0.DMTN_DT THEN X1.PERF_VAL ELSE 0 END) DMTN_CUR_BS  --P조직 강등후누적 - BS관리상품 판매수
-                                           ,SUM(CASE WHEN X1.OG_TP_CD = 'W02' AND X1.PERF_AGRG_CRT_DV_CD = '201' AND X1.PERF_ATC_CD = 'W02P00002'                              THEN X1.PERF_VAL ELSE 0 END) TOT_CNT      --M조직 누적 - 판매인정건수
-                                    FROM /*************/ TB_OGBS_MM_PRTNR_IZ      X0 /* 월파트너내역           */
-                                         LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL X1 /* 순주문파트너실적월마감 */
-                                                 ON X1.BASE_YM             <![CDATA[<=]]> X0.BASE_YM
-                                                AND X1.OG_TP_CD            IN ('W01', 'W02') --조직유형코드 - W01:P조직, W02:M조직
-                                                AND X1.PRTNR_NO             = X0.PRTNR_NO
-                                                AND X1.FEE_TCNT_DV_CD       = '02'           --수수료차수구분코드   - 02:2차
-                                                AND X1.PERF_AGRG_CRT_DV_CD IN ('101', '201') --실적집계생성구분코드 - 101:P추진단순주문실적생성, 201:M추진단순주문실적생성
-                                                AND X1.PERF_ATC_CD         IN ('W01P00009', 'W01P00018', 'W02P00002') --실적항목코드 - W01P00009:순주문실적금액, W01P00018:BS관리상품 판매수, W02P00002:판매인정건수
-                                                AND X1.PERF_DV_CD           = '0'            --실적구분코드 - 0:개인판매
-                                                AND X1.DTA_DL_YN            = 'N'
+                  LEFT OUTER JOIN (SELECT X1.PRTNR_NO
+                                        , MAX(X1.EDUC_CPC_ACKMT_DT) AS EDU14 /* 스타트업 */
+                                     FROM /*************/ TB_PSCA_MCPTN_EDUC_IZ X1 /* 월별파트너교육내역 */
+                                     LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ X2 /* 월파트너내역 */
+                                       ON X2.BASE_YM  = X1.EDUC_CRSE_CRT_BASE_YM
+                                      AND X2.OG_TP_CD = X1.OG_TP_CD
+                                      AND X2.PRTNR_NO = X1.PRTNR_NO
+                                    WHERE X1.EDUC_CRSE_CRT_BASE_YM <![CDATA[<=]]> #{mngtYm} /* 파라미터 #############################  */
+                                      AND X1.OG_TP_CD = 'W01'
+                                      AND X1.EDUC_CRSE_NO IN ('14') /* 교육코드 - 11:플래너스타트업, 14:플래너스타트업 */
+                                      AND X1.EDUC_CPC_ACKMT_YN = 'Y' /* 교육수료인정여부 */
+                                      AND X1.EDUC_CPC_ACKMT_DT >= X2.CNTR_DT /* 파트너 계약일자 */
+                                      AND X1.DTA_DL_YN = 'N'
+                                    GROUP BY X1.PRTNR_NO ) T5 /* 월별파트너교육내역 */
+                    ON T5.PRTNR_NO = T3.PRTNR_NO
+                  LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T6 /* 파트너기본 - 채용자 */
+                    ON T6.OG_TP_CD = T1.OG_TP_CD
+                   AND T6.PRTNR_NO = T1.RCMDR_PRTNR_NO
+                  /* 순주문(P조직, M조직) */
+                  LEFT OUTER JOIN  ( SELECT X0.PRTNR_NO -- 파트너번호
+                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM  = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) PRE_SUM /* P조직 전월 - 순주문실적금액 */
+                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM  = #{mngtYm}  THEN X1.PERF_VAL ELSE 0 END) CUR_SUM      /* P조직 당월 - 순주문실적금액 */
+                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009'                              THEN X1.PERF_VAL ELSE 0 END) TOT_SUM      /* P조직 누적 - 순주문실적금액 */
+                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00018' AND X1.BASE_YM  = #{mngtYm}  THEN X1.PERF_VAL ELSE 0 END) CUR_BS       /* P조직 당월 - BS관리상품 판매수 */
+                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM >= X0.DMTN_DT THEN X1.PERF_VAL ELSE 0 END) DMTN_TOT_SUM /* P조직 강등후누적 - 순주문실적금액 */
+                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00018' AND X1.BASE_YM >= X0.DMTN_DT THEN X1.PERF_VAL ELSE 0 END) DMTN_CUR_BS  /* P조직 강등후누적 - BS관리상품 판매수 */
+                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W02' AND X1.PERF_AGRG_CRT_DV_CD = '201' AND X1.PERF_ATC_CD = 'W02P00002'                              THEN X1.PERF_VAL ELSE 0 END) TOT_CNT      /* M조직 누적 - 판매인정건수 */
+                                       FROM /*************/ TB_OGBS_MM_PRTNR_IZ X0 /* 월파트너내역 */
+                                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL X1 /* 순주문파트너실적월마감 */
+                                         ON X1.BASE_YM <![CDATA[<=]]> X0.BASE_YM
+                 					    AND X1.BASE_YM >= SUBSTR(X0.CNTR_DT, 1, 6)
+                                        AND X1.OG_TP_CD IN ('W01', 'W02') /* 조직유형코드 - W01:P조직, W02:M조직 */
+                                        AND X1.PRTNR_NO = X0.PRTNR_NO
+                                        AND X1.FEE_TCNT_DV_CD = '02' /* 수수료차수구분코드 - 02:2차 */
+                                        AND X1.PERF_AGRG_CRT_DV_CD IN ('101', '201') /* 실적집계생성구분코드 - 101:P추진단순주문실적생성, 201:M추진단순주문실적생성 */
+                                        AND X1.PERF_ATC_CD IN ('W01P00009', 'W01P00018', 'W02P00002') /* 실적항목코드 - W01P00009:순주문실적금액, W01P00018:BS관리상품 판매수, W02P00002:판매인정건수 */
+                                        AND X1.PERF_DV_CD = '0' /* 실적구분코드 - 0:개인판매 */
+                                        AND X1.DTA_DL_YN = 'N'
                                     WHERE X0.BASE_YM          = #{mngtYm} /* 파라미터 #############################  */
-                                      AND X0.OG_TP_CD         = 'W01'           --조직유형코드 - W01:P조직
-                                      AND X0.PSTN_DV_CD = '15'
-                                      AND X0.BZ_STAT_CD       = '1'             --사업상태코드 - 1:사업, 2:해약, 3:휴업
-                                      AND X0.PRR_BIZ_RGST_YN  = 'N'             --사전업무등록여부 - N:기존영업부 Y:사전업무등록자
+                                      AND X0.OG_TP_CD         = 'W01' /* 조직유형코드 - W01:P조직 */
+                                      AND X0.BZ_STAT_CD       = '1'   /* 사업상태코드 - 1:사업, 2:해약, 3:휴업 */
+                                      AND X0.PRR_BIZ_RGST_YN  = 'N'   /* 사전업무등록여부 - N:기존영업부 Y:사전업무등록자 */
                                       AND X0.DTA_DL_YN        = 'N'
-                                    GROUP BY X0.PRTNR_NO                    ) TP /* 순주문파트너실적월마감 */
-                         ON TP.PRTNR_NO  = T3.PRTNR_NO
+                                    GROUP BY X0.PRTNR_NO) TP /* 순주문파트너실적월마감 */
+                    ON TP.PRTNR_NO = T3.PRTNR_NO
                  /* 플래너자격변경내역(M조직) */
                  LEFT OUTER JOIN  ( SELECT   X1.PRTNR_NO
                                            , X1.STRTDT      --자격시작일자
@@ -333,40 +344,46 @@
                                                  GROUP BY PRTNR_NO        )  T0  /* 월별파트너교육내역  */
                                 ON T0.PRTNR_NO    = T1.PRTNR_NO
                              /* 월별파트너교육내역(P조직) */
-                             LEFT OUTER JOIN (  SELECT  PRTNR_NO
-                                                       ,MAX(EDUC_CPC_ACKMT_DT) AS EDU14  /* 스타트업 */
-                                                FROM TB_PSCA_MCPTN_EDUC_IZ /* 월별파트너교육내역 */
-                                                WHERE EDUC_CRSE_CRT_BASE_YM <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') /* 파라미터 #############################  */
-                                                  AND OG_TP_CD               = 'W01'
-                                                  AND EDUC_CRSE_NO          IN ('14')  --교육코드 - 11:플래너스타트업, 14:플래너스타트업
-                                                  AND EDUC_CPC_ACKMT_YN      = 'Y'     --교육수료인정여부
-                                                  AND DTA_DL_YN              = 'N'
-                                                GROUP BY PRTNR_NO          ) T2  /* 월별파트너교육내역  */
-                                ON T2.PRTNR_NO    = T1.PRTNR_NO
+                             LEFT OUTER JOIN (SELECT X1.PRTNR_NO
+                                                   , MAX(X1.EDUC_CPC_ACKMT_DT) AS EDU14 /* 스타트업 */
+                                                FROM /*************/ TB_PSCA_MCPTN_EDUC_IZ X1 /* 월별파트너교육내역 */
+                                                LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ X2 /* 월파트너내역 */
+                                                  ON X2.BASE_YM  = X1.EDUC_CRSE_CRT_BASE_YM
+                                                 AND X2.OG_TP_CD = X1.OG_TP_CD
+                                                 AND X2.PRTNR_NO = X1.PRTNR_NO
+                                               WHERE X1.EDUC_CRSE_CRT_BASE_YM <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') /* 파라미터 #############################  */
+                                                 AND X1.OG_TP_CD = 'W01'
+                                                 AND X1.EDUC_CRSE_NO IN ('14') /* 교육코드 - 11:플래너스타트업, 14:플래너스타트업 */
+                                                 AND X1.EDUC_CPC_ACKMT_YN = 'Y' /* 교육수료인정여부 */
+                                                 AND X1.EDUC_CPC_ACKMT_DT >= X2.CNTR_DT /* 파트너 계약일자 */
+                                                 AND X1.DTA_DL_YN = 'N'
+                                               GROUP BY X1.PRTNR_NO) T2 /* 월별파트너교육내역 */
+                               ON T2.PRTNR_NO = T1.PRTNR_NO
                              /* 순주문(P조직) */
-                             LEFT OUTER JOIN  ( SELECT  X0.PRTNR_NO                   --파트너번호
-                                                       ,SUM(CASE WHEN X1.PERF_ATC_CD = 'W01P00009'                                                     THEN X1.PERF_VAL ELSE 0 END) TOT_SUM  --P조직 누적   - 순주문실적금액
-                                                       ,SUM(CASE WHEN X1.PERF_ATC_CD = 'W01P00009' AND
-                                                                      X1.BASE_YM    >= TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'),  -3), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) M3_SUM   --P조직 03개월 - 순주문실적금액    /* 파라미터 #############################  */
-                                                       ,SUM(CASE WHEN X1.PERF_ATC_CD = 'W01P00018' AND
-                                                                      X1.BASE_YM    >= TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -12), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) BS_SUM   --P조직 12개월 - BS관리상품 판매수 /* 파라미터 #############################  */
+                             LEFT OUTER JOIN (SELECT X0.PRTNR_NO                   --파트너번호
+                                                   , SUM(CASE WHEN X1.PERF_ATC_CD = 'W01P00009'                                                     THEN X1.PERF_VAL ELSE 0 END) TOT_SUM  --P조직 누적   - 순주문실적금액
+                                                   , SUM(CASE WHEN X1.PERF_ATC_CD = 'W01P00009' AND
+                                                                   X1.BASE_YM    >= TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'),  -3), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) M3_SUM   --P조직 03개월 - 순주문실적금액    /* 파라미터 #############################  */
+                                                   , SUM(CASE WHEN X1.PERF_ATC_CD = 'W01P00018' AND
+                                                                   X1.BASE_YM    >= TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -12), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) BS_SUM   --P조직 12개월 - BS관리상품 판매수 /* 파라미터 #############################  */
                                                 FROM /*************/ TB_OGBS_MM_PRTNR_IZ      X0 /* 월파트너내역           */
-                                                     LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL X1 /* 순주문파트너실적월마감 */
-                                                             ON X1.BASE_YM             <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') /* 파라미터 #############################  */
-                                                            AND X1.OG_TP_CD             = X0.OG_TP_CD
-                                                            AND X1.PRTNR_NO             = X0.PRTNR_NO
-                                                            AND X1.FEE_TCNT_DV_CD       = '02'                       --수수료차수구분코드   - 02:2차
-                                                            AND X1.PERF_AGRG_CRT_DV_CD  = '101'                      --실적집계생성구분코드 - 101:P추진단순주문실적생성
-                                                            AND X1.PERF_ATC_CD         IN ('W01P00009', 'W01P00018') --실적항목코드 - W01P00009:순주문실적금액, W01P00018:BS관리상품 판매수
-                                                            AND X1.PERF_DV_CD           = '0'                        --실적구분코드 - 0:개인판매
-                                                            AND X1.DTA_DL_YN            = 'N'
-                                                WHERE X0.BASE_YM          = #{mngtYm} /* 파라미터 #############################  */
-                                                  AND X0.OG_TP_CD         = 'W01'           --조직유형코드 - W01:P조직
-                                                  AND X0.BZ_STAT_CD       = '1'             --사업상태코드 - 1:사업, 2:해약, 3:휴업
-                                                  AND X0.PRR_BIZ_RGST_YN  = 'N'             --사전업무등록여부 - N:기존영업부 Y:사전업무등록자
-                                                  AND X0.DTA_DL_YN        = 'N'
-                                                GROUP BY X0.PRTNR_NO            ) TP /* 순주문파트너실적월마감 */
-                                     ON TP.PRTNR_NO  = T1.PRTNR_NO
+                                                LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL X1 /* 순주문파트너실적월마감 */
+                                                  ON X1.BASE_YM    <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') /* 파라미터 #############################  */
+                                                 AND X1.BASE_YM             >= SUBSTR(X0.CNTR_DT, 1, 6)
+                                                 AND X1.OG_TP_CD             = X0.OG_TP_CD
+                                                 AND X1.PRTNR_NO             = X0.PRTNR_NO
+                                                 AND X1.FEE_TCNT_DV_CD       = '02'                       --수수료차수구분코드   - 02:2차
+                                                 AND X1.PERF_AGRG_CRT_DV_CD  = '101'                      --실적집계생성구분코드 - 101:P추진단순주문실적생성
+                                                 AND X1.PERF_ATC_CD         IN ('W01P00009', 'W01P00018') --실적항목코드 - W01P00009:순주문실적금액, W01P00018:BS관리상품 판매수
+                                                 AND X1.PERF_DV_CD           = '0'                        --실적구분코드 - 0:개인판매
+                                                 AND X1.DTA_DL_YN            = 'N'
+                                               WHERE X0.BASE_YM          = #{mngtYm} /* 파라미터 #############################  */
+                                                  AND X0.OG_TP_CD        = 'W01'           --조직유형코드 - W01:P조직
+                                                  AND X0.BZ_STAT_CD      = '1'             --사업상태코드 - 1:사업, 2:해약, 3:휴업
+                                                  AND X0.PRR_BIZ_RGST_YN = 'N'             --사전업무등록여부 - N:기존영업부 Y:사전업무등록자
+                                                  AND X0.DTA_DL_YN       = 'N'
+                                                GROUP BY X0.PRTNR_NO) TP /* 순주문파트너실적월마감 */
+                               ON TP.PRTNR_NO  = T1.PRTNR_NO
                         WHERE T1.BASE_YM         = #{mngtYm} /* 파라미터 #############################  */
                           AND T1.OG_TP_CD        = 'W01' --조직유형코드 - W01:P조직
                           AND T1.BZ_STAT_CD      = '1'   --사업상태코드 - 1:사업, 2:해약, 3:휴업
@@ -694,9 +711,21 @@
                   , #{upgrDmtnDvCd}
                   , #{upgrYm}
                   , #{dmtnYm}
-                  , #{cntrDt}
-                  , #{cltnDt}
-                  , #{rcntrDt}
+                  , (SELECT CNTR_DT
+                       FROM TB_OGBS_MM_PRTNR_IZ
+                      WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                        AND OG_TP_CD = #{ogTpCd}
+                        AND PRTNR_NO = #{prtnrNo})
+                  , (SELECT CLTN_DT
+                       FROM TB_OGBS_MM_PRTNR_IZ
+                      WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                        AND OG_TP_CD = #{ogTpCd}
+                        AND PRTNR_NO = #{prtnrNo})
+                  , (SELECT RCNTR_DT
+                       FROM TB_OGBS_MM_PRTNR_IZ
+                      WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                        AND OG_TP_CD = #{ogTpCd}
+                        AND PRTNR_NO = #{prtnrNo})
                   , #{upgrMcn}
                   , 'N'
                   <include refid="COMMON.insertSystemFieldValue" />
@@ -765,6 +794,9 @@
         </if>
         <if test="@MybatisUtils@isNotEmpty(enddt)">
              , ENDDT = #{enddt}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dtaDlYn)">
+             , DTA_DL_YN = #{dtaDlYn}
         </if>
         <include refid="COMMON.updateSystemField"/>
         </set>

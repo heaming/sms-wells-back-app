@@ -19,10 +19,14 @@ public class WdcdCleanersDvo {
     String aplcDt;
     String aplcnsNm;
     String aplcPrtnrNo;
-    String cntrwApnFileId;
-    String cntrLroreApnFileId;
-    String idfApnFileId;
-    String bnkbApnFileId;
+    String cntrwAtthDocId;
+    Integer cntrwAtthDocIdNumberOfFiles;
+    String cntrLroreAtthDocId;
+    Integer cntrLroreAtthDocIdNumberOfFiles;
+    String idfAtthDocId;
+    Integer idfAtthDocIdNumberOfFiles;
+    String bnkbAtthDocId;
+    Integer bnkbAtthDocIdNumberOfFiles;
     String fmnCoSpptAmt;
     String clinrFxnAmt;
     String taxDdctam;
