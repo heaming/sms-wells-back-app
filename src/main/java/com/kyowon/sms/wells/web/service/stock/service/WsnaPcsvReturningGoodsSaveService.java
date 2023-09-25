@@ -70,8 +70,9 @@ public class WsnaPcsvReturningGoodsSaveService {
                 saveMapper.updateSvpdCstSvBfsvcAsnIz(dvo);
                 // 6. 판매시스템 철거일자 업데이트
                 String reqdDt = DateUtil.getNowDayString();
+                // 반품인 경우 설치일자 NULL, 철거일자 NOT NULL
                 reqdDtService
-                    .saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), dvo.getIstDt(), reqdDt.substring(0, 8), "");
+                    .saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), "", reqdDt.substring(0, 8), "");
                 log.info("[판매시스템 철거일자 업데이트] => {}", dvo.getRsgFshDt());
 
                 logisticsDvos.add(dvo);
