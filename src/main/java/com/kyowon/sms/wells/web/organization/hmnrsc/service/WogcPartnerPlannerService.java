@@ -353,6 +353,11 @@ public class WogcPartnerPlannerService {
                     mapper.updatePlannerQualificationChange(qualificationDvo);
                 }
             }
+
+            // 월파트너 갱신
+            ogzPartnerService.updateQlfDvCdOfMonthPartner(partnerDvo);
+            // 파트너상세 갱신
+            ogzPartnerService.updateQlfDvCdOfPartnerDetail(partnerDvo);
         }
         return processCount;
     }
