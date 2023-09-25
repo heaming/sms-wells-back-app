@@ -1,12 +1,13 @@
 package com.kyowon.sms.wells.web.service.interfaces.dto;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.annotation.DBDecField;
-import io.swagger.annotations.ApiModel;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import io.swagger.annotations.ApiModel;
 
 public class WsniCustomerCenterInterfaceDto {
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchReq")
@@ -20,7 +21,9 @@ public class WsniCustomerCenterInterfaceDto {
         @JsonProperty("CNTR_NO")
         String cntrNo,
         @JsonProperty("CNTR_SN")
-        String cntrSn
+        String cntrSn,
+        @JsonProperty("SV_BIZ_DCLSF_CD")
+        String svBizDclsfCd
     ) {}
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchContactRes")
@@ -289,18 +292,12 @@ public class WsniCustomerCenterInterfaceDto {
     public record SearchAsRes(
         @JsonProperty("CNTR_NO")
         String cntrNo,
+        @JsonProperty("CNTR_SN")
+        String cntrSn,
         @JsonProperty("WK_GRP_CD1")
         String wkGrpCd1,
         @JsonProperty("WK_GRP_NM1")
-        String wkGrpNm1,
-        @JsonProperty("WK_GRP_CD2")
-        String wkGrpCd2,
-        @JsonProperty("WK_GRP_NM2")
-        String wkGrpNm2,
-        @JsonProperty("WK_GRP_CD3")
-        String wkGrpCd3,
-        @JsonProperty("WK_GRP_NM3")
-        String wkGrpNm3
+        String wkGrpNm1
     ) {}
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-CreateShpadrReq")
