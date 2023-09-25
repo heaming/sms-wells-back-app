@@ -74,8 +74,8 @@ public class WfeySellProductTypeService {
                     processCount += mapper.insertSellProductType(dvo);
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
-                    int cntrExistCnt = mapper.selectDuplicateSellProductType(dvo);
-                    BizAssert.isFalse(cntrExistCnt > 0, "MSG_ALT_SAME_PD_DATE");
+                    // int cntrExistCnt = mapper.selectDuplicateSellProductType(dvo);
+                    // BizAssert.isFalse(cntrExistCnt > 0, "MSG_ALT_SAME_PD_DATE");
                     processCount += mapper.updateSellProductType(dvo);
                 }
                 case CommConst.ROW_STATE_DELETED -> {
