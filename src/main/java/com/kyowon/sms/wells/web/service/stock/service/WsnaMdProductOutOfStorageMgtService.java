@@ -38,7 +38,7 @@ public class WsnaMdProductOutOfStorageMgtService {
         return excelUploadService.validateMdProductOutOfStoragExcelUpload(dtos);
     }
 
-    public int saveMdProductOutOfStoragExcelUpload() {
-        return 0;
+    public int saveMdProductOutOfStoragExcelUpload(List<ValidateReq> dtos) {
+        return excelUploadService.saveMdProductOutOfStoragExcelUpload(dtos);
     }
 }

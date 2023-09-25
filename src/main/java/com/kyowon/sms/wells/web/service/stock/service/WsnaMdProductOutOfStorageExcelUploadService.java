@@ -8,12 +8,14 @@ import java.util.Map;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaMdProductOutOfStorageExcelUploadConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageExcelUploadDto.ValidateReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageExcelUploadDto.ValidateRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductOutOfStorageExcelUploadDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductOutOfStorageExcelUploadErrorDvo;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaMdProductOutOfStorageExcelUploadMapper;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,9 +26,17 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class WsnaMdProductOutOfStorageExcelUploadService {
 
-    private final MessageResourceService messageResourceService;
+    private final WsnaMdProductOutOfStorageExcelUploadMapper mapper;
 
+    private final MessageResourceService messageResourceService;
     private final WsnaMdProductOutOfStorageExcelUploadConverter converter;
+
+    @Transactional
+    public int saveMdProductOutOfStoragExcelUpload(List<ValidateReq> dtos) {
+        int processCount = 0;
+        // TODO 엑셀 업로드 타겟 테이블 저장 
+        return processCount;
+    }
 
     public ValidateRes validateMdProductOutOfStoragExcelUpload(
         List<ValidateReq> dtos

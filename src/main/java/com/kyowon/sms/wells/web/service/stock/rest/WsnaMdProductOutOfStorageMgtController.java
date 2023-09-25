@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/md-product--out-of-storage")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/md-product-out-of-storage")
 public class WsnaMdProductOutOfStorageMgtController {
 
     private final WsnaMdProductOutOfStorageMgtService service;
@@ -68,7 +68,12 @@ public class WsnaMdProductOutOfStorageMgtController {
 
     @ApiOperation(value = "MD 상품 출고관리 - 엑셀업로드 저장", notes = "MD 상품 출고관리 엑셀업로드 유효성체크 를 한다.")
     @PostMapping("/excel-upload")
-    public int saveMdProductOutOfStoragExcelUpload() {
-        return service.saveMdProductOutOfStoragExcelUpload();
+    public int saveMdProductOutOfStoragExcelUpload(
+        @Valid
+        @RequestBody
+        @NotEmpty
+        List<ValidateReq> dtos
+    ) {
+        return service.saveMdProductOutOfStoragExcelUpload(dtos);
     }
 }
