@@ -13,6 +13,8 @@ import com.kyowon.sms.wells.web.bond.consultation.converter.WbncCustomerConverte
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindBaseYmRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselHistoryReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselHistoryRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselRegistrationReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselRegistrationRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRecIdReq;
@@ -176,4 +178,14 @@ public class WbncCustomerService {
         return result;
 
     }
+
+    /**
+     * 고객상세 상담등록 조회
+     * @param dto 검색 조건
+     * @return 고객상세 상담등록 정보조회 결과
+     */
+    public FindCounselRegistrationRes getCounselRegistration(FindCounselRegistrationReq dto) {
+        return mapper.selectCounselRegistration(dto);
+    }
+
 }
