@@ -366,4 +366,22 @@ public class WbncCustomerDto {
         String recId
     ) {}
 
+    @ApiModel(value = "WbncCustomerDto-FindCounselRegistrationReq")
+    public static record FindCounselRegistrationReq(
+        String schCstNo,
+        String schCntrNo,
+        String schCntrSn
+    ) {}
+
+    @ApiModel(value = "WbncCustomerDto-FindCounselRegistrationRes")
+    public static record FindCounselRegistrationRes(
+        String cnslPh,
+        String crncyRs,
+        String cstPrp,
+        String dprNm,
+        String cnslTp,
+        String cstStat,
+        String clnPsbl,
+        String clnPrcs
+    ) {}
 }

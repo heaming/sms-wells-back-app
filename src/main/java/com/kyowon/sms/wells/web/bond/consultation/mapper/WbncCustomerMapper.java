@@ -7,6 +7,8 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindBaseYmRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselHistoryReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselHistoryRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselRegistrationReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselRegistrationRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindReq;
@@ -49,4 +51,6 @@ public interface WbncCustomerMapper {
     int insertPromise(WbncCustomerDvo dvo);
 
     FindUserInfoRes selectUserInfo(FindUserInfoReq dto);
+
+    FindCounselRegistrationRes selectCounselRegistration(FindCounselRegistrationReq dto);
 }
