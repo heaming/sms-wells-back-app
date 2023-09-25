@@ -86,6 +86,7 @@ public class WsnaPcsvReturningGoodsSaveDvo {
     String ogId;
     String ogTpCd;
     String prtnrNo;
+    String clnSppIvcNo;
 
     // 물류 수불처리
     String ostrTpCd;
