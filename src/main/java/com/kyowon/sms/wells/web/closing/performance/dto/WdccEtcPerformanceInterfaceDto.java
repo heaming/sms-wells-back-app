@@ -24,10 +24,8 @@ public class WdccEtcPerformanceInterfaceDto {
         @JsonProperty("CNTRT_NM")
         String cntrtNm,
         @JsonProperty("SL_CL_YM1")
-        @NotBlank
         String slClYm1,
         @JsonProperty("SL_CL_YM2")
-        @NotBlank
         String slClYm2
     ) {}
 
