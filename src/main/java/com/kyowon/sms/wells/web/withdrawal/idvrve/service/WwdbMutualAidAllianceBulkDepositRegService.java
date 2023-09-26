@@ -265,7 +265,8 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         //        com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbIntegrationDepositDto.SearchRes selectIntegrationDeposit = depositMapper
         //            .selectIntegrationDeposit(dto);
 
-        WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes searchIntegrationDepositRes = mapper
+
+        ZwdbCorporationDepositDto.SearchIntegrationDepositRes searchIntegrationDepositRes = corporationDepositMapper
             .selectIntegrationDepositInfo(dto.itgDpNo());
 
         //통합입금 조회 결과가 없을경우
@@ -329,11 +330,26 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
         String rveCd = "85044";
 
-        int count = 0;
-        String useYn = "N";
         /*통합입금번호로 해당 데이터 조회*/
-        //        WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes searchIntegrationDepositRes = mapper
-        //            .selectIntegrationDepositInfo(dto.itgDpNo());
+//                WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes searchIntegrationDepositRes = mapper
+//                    .selectIntegrationDepositInfo(dto.itgDpNo());
+//
+        /*수납요청기본 인설트 데이터 입력*/
+        ZwdzWithdrawalReceiveAskDvo zwdzWithdrawalReceiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
+        zwdzWithdrawalReceiveAskDvo.setKyowonGroupCompanyCd(session.getCompanyCode()); //KW_GRP_CO_CD	교원그룹회사코드
+        zwdzWithdrawalReceiveAskDvo.setRveAkMthdCd("01"); //RVE_AK_MTHD_CD	수납요청방식코드 대면(01)
+        zwdzWithdrawalReceiveAskDvo.setRveAkPhCd("12"); //RVE_AK_PH_CD	수납요청경로코드 영업부(05)
+        zwdzWithdrawalReceiveAskDvo.setRvePrtnrOgTpCd(session.getOgTpCd()); //RVE_AK_PRTNR_OG_TP_CD	수납요청파트너조직유형코드
+        zwdzWithdrawalReceiveAskDvo.setRvePrtnrNo(session.getEmployeeIDNumber()); //RVE_AK_PRTNR_NO	수납요청파트너번호
+        zwdzWithdrawalReceiveAskDvo.setReceiveAskAmount(dto.dpObjAmtSum()); //RVE_AK_AMT	수납요청금액
+        zwdzWithdrawalReceiveAskDvo.setReceiveAskDate(sysDateYmd); //RVE_RQDT	수납요청일자
+        zwdzWithdrawalReceiveAskDvo.setReceiveAskStatusCode("02"); //RVE_AK_STAT_CD	수납요청상태코드
+        zwdzWithdrawalReceiveAskDvo.setReceiveCompanyCode(session.getCompanyCode()); //RVE_CO_CD	수납회사코드
+
+        /*수납요청기본 데이터 생성 (수납요청번호 리턴)*/
+        String receiveAskNumber = zwdzWithdrawalService.createReceiveAskBase(zwdzWithdrawalReceiveAskDvo);
+        zwdzWithdrawalReceiveAskDvo.setReceiveAskNumber(receiveAskNumber);
+
 
         for (SearchRes searchRes : selectMutualAidAllianceBulkDepositRegs) {
 
@@ -345,24 +361,6 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             //계약조회
             ZwdbCorporationDepositDto.SearchDepositContractRes searchDepositContractRes = corporationDepositMapper
                 .selectDepositContracts(contractRes);
-
-            /*수납요청기본 인설트 데이터 입력*/
-            ZwdzWithdrawalReceiveAskDvo zwdzWithdrawalReceiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
-            zwdzWithdrawalReceiveAskDvo.setKyowonGroupCompanyCd(session.getCompanyCode()); //KW_GRP_CO_CD	교원그룹회사코드
-            zwdzWithdrawalReceiveAskDvo.setCustomNumber(searchDepositContractRes.cntrCstNo()); //CST_NO	고객번호
-            zwdzWithdrawalReceiveAskDvo.setRveAkMthdCd("01"); //RVE_AK_MTHD_CD	수납요청방식코드 대면(01)
-            zwdzWithdrawalReceiveAskDvo.setRveAkPhCd("12"); //RVE_AK_PH_CD	수납요청경로코드 영업부(05)
-            zwdzWithdrawalReceiveAskDvo.setRvePrtnrOgTpCd(session.getOgTpCd()); //RVE_AK_PRTNR_OG_TP_CD	수납요청파트너조직유형코드
-            zwdzWithdrawalReceiveAskDvo.setRvePrtnrNo(session.getEmployeeIDNumber()); //RVE_AK_PRTNR_NO	수납요청파트너번호
-            zwdzWithdrawalReceiveAskDvo.setReceiveAskAmount(searchRes.amt()); //RVE_AK_AMT	수납요청금액
-            zwdzWithdrawalReceiveAskDvo.setReceiveAskDate(sysDateYmd); //RVE_RQDT	수납요청일자
-            zwdzWithdrawalReceiveAskDvo.setReceiveAskStatusCode("03"); //RVE_AK_STAT_CD	수납요청상태코드
-            zwdzWithdrawalReceiveAskDvo.setReceiveCompanyCode(session.getCompanyCode()); //RVE_CO_CD	수납회사코드
-
-            /*수납요청기본 데이터 생성 (수납요청번호 리턴)*/
-            String receiveAskNumber = zwdzWithdrawalService.createReceiveAskBase(zwdzWithdrawalReceiveAskDvo);
-            zwdzWithdrawalReceiveAskDvo.setReceiveAskNumber(receiveAskNumber);
-
 
             ZwdbWithdrawalReceiveAskReqDvo reqDvo = new ZwdbWithdrawalReceiveAskReqDvo();
             reqDvo.setRveAkNo(receiveAskNumber); /*수납요청번호*/
@@ -380,6 +378,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             reqDvo.setRveAkAmt(searchRes.amt()); /*수납요청금액*/
             reqDvo.setRveAmt(searchRes.amt()); /*수납금액*/
             reqDvo.setItgDpNo(dto.itgDpNo()); /*통합입금번호*/
+
 
             zwdzWithdrawalReceiveAskDvo = etcDepositMapper.selectReceiveAskDetailInfo(reqDvo);
 
@@ -402,125 +401,21 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
 
 
-            count++;
-
-            if (!StringUtils.isEmpty(dto.itgDpNo())) {
-                if (count == selectMutualAidAllianceBulkDepositRegs.size()) {
-                    useYn = null;
-                }
-
-                //입금대사 서비스 호출
-                depositComparisonComfirmationService.createDepositComparisonComfirmation(bulkDepositDvo.getItgDpNo(), useYn);
-
-            }
-
-            //수납기본 인설트 데이터 입력
-//            ZwdzWithdrawalReceiveDvo zwdzWithdrawalReceiveDvo = etcDepositMapper.selectReceiveBaseInfo(reqDvo);
-//
-//            //수납기본 데이터 생성 (수납번호 리턴)
-//            String rveNo = zwdzWithdrawalService.createReceive(zwdzWithdrawalReceiveDvo);
-//            zwdzWithdrawalReceiveDvo.setRveNo(rveNo);
-
-//            int number = 1;
-//            /*입금대사 인설트 데이터 생성*/
-//            ZwdzWithdrawalDepositCprDvo depositCprDvo = new ZwdzWithdrawalDepositCprDvo();
-//
-//            depositCprDvo.setKwGrpCoCd(session.getCompanyCode());//KW_GRP_CO_CD	교원그룹회사코드
-//            depositCprDvo.setRveCoCd(session.getCompanyCode());//RVE_CO_CD	수납회사코드
-//            depositCprDvo.setRveCd(rveCd);//RVE_CD	수납코드
-//            depositCprDvo.setProcsDvCd("1");//PROCS_DV_CD	처리구분코드
-//            depositCprDvo.setDpDvCd("1"); //DP_DV_CD	입금구분코드
-//            depositCprDvo.setDpMesCd("06");//DP_MES_CD	입금수단코드
-//            depositCprDvo.setDpTpCd("0604"); //DP_TP_CD	입금유형코드
-//            depositCprDvo.setRveDvCd("03");//RVE_DV_CD	수납구분코드
-//            //RVE_BIZ_DV_CD	수납업무구분코드
-//            depositCprDvo.setIaDvCd("11");//IA_DV_CD	입금항목구분코드
-//            depositCprDvo.setDpCprcnfBizDvCd("01");//DP_CPRCNF_BIZ_DV_CD	입금대사업무구분코드
-//            depositCprDvo.setDpCprcnfBizCd("03");//DP_CPRCNF_BIZ_CD	입금대사업무코드
-//            //            depositCprDvo.setDpCprcnfPdClsfCd();////DP_CPRCNF_PD_CLSF_CD	입금대사상품분류코드
-//            //            depositCprDvo.setDpCprcnfPdClsfId();////DP_CPRCNF_PD_CLSF_ID	입금대사상품분류ID
-//            //            depositCprDvo.setDpCprcnfSellTpCd();////DP_CPRCNF_SELL_TP_CD	입금대사판매유형코드
-//            depositCprDvo.setDpCprcnfDtm(sysDate);//DP_CPRCNF_DTM	입금대사일시
-//            depositCprDvo.setDpCprcnfPerfDt(dto.perfDt());//DP_CPRCNF_PERF_DT	입금대사실적일자
-//            //            depositCprDvo.setOrdpCprcnfNo(); //ORDP_CPRCNF_NO	원입금대사번호
-//            depositCprDvo.setDpCprcnfCnfmYn("Y"); //DP_CPRCNF_CNFM_YN	입금대사확정여부
-//            depositCprDvo.setDpCprcnfCnfmDtm(sysDate); //DP_CPRCNF_CNFM_DTM	입금대사확정일시
-//            depositCprDvo.setDpCprcnfAmt(searchRes.amt()); //DP_CPRCNF_AMT	입금대사금액
-//            depositCprDvo.setDpCprcnfProcsAmt(searchRes.amt()); //DP_CPRCNF_PROCS_AMT	입금대사처리금액
-//            //            depositCprDvo.setDpCprcnfBlam(); //DP_CPRCNF_BLAM	입금대사잔액
-//            depositCprDvo.setDpCprcnfDstApyYn("N");////DP_CPRCNF_DST_APY_YN	입금대사배분적용여부
-//            depositCprDvo.setItgDpNo(dto.itgDpNo()); //ITG_DP_NO	통합입금번호
-//            depositCprDvo.setCntrNo(searchRes.welsCntrNo()); //CNTR_NO	계약번호
-//            depositCprDvo.setCntrSn(searchRes.welsCntrSn()); //CNTR_SN	계약일련번호
-//            depositCprDvo.setPdCd(searchRes.pdCd()); //PD_CD	상품코드
-//            depositCprDvo.setIncmdcYn(searchDepositContractRes.pdPrpVal01()); //INCMDC_YN	소득공제여부
-//            depositCprDvo.setDpCprcnfCanYn("N"); //입금대사취소여부
-//
-//            //입금대사 데이터 생성(리턴 입금대사번호)
-//            String depositComparisonPk = zwdzWithdrawalService.createDepositComparison(depositCprDvo);
-//
-//            reqDvo.setRveNo(rveNo); /*수납번호*/
-//            //            reqDvo.setProcsDvCd(); /*처리구분코드*/
-//            reqDvo.setDpDt(searchIntegrationDepositRes.dpDtm()); /*입금일자*/
-//            reqDvo.setDpAmt(searchRes.amt()); /*입금금액*/
-//            reqDvo.setRveDt(dto.rveDt()); /*수납일자*/
-//            reqDvo.setPerfDt(dto.perfDt()); /*실적일자*/
-//            reqDvo.setDpCprcnfNo(depositComparisonPk); /*실적일자*/
-//            reqDvo.setRveAkSn(Integer.toString(number)); /*일련번호*/
-//
-//            zwdzWithdrawalReceiveDvo = etcDepositMapper.selectReceiveDetailInfo(reqDvo);
-//
-//            //수납상세 데이터 생성
-//            processCount += zwdzWithdrawalService.createReceiveDetail(zwdzWithdrawalReceiveDvo);
-
-//            number++;
-
-//            //통합입금기본 데이터 수정
-//            WwdbMutualAidAllianceBulkDepositDvo bulkDepositDvo = new WwdbMutualAidAllianceBulkDepositDvo();
-////            bulkDepositDvo.setDpCprcnfAmt(searchRes.amt());
-//            bulkDepositDvo.setItgDpNo(dto.itgDpNo());
-//            bulkDepositDvo.setRveAkNo(receiveAskNumber);
-//            bulkDepositDvo.setRveCd(rveCd);
-//
-//            processCount += mapper.updateIntegrationDepositReceiveAskNumber(bulkDepositDvo);
-
-//            if (!StringUtils.isEmpty(dto.itgDpNo())) {
-//                // 입금 대사 처리
-//            /*
-//            HashMap<String, Object> dpCprcnfMap = depositComparisonComfirmationService
-//                .createDepositComparisonComfirmation(itgDpNo);
-//            */
-//                BatchCallReqDvo batchDvo = new BatchCallReqDvo();
-//
-//                batchDvo.setJobKey("SMS_WD_OZ0001"); // 기 등록된 잡 Key
-//
-//                Map<String, String> params = new HashMap<String, String>();
-//                params.put("itgDpNo", dto.itgDpNo());
-//                batchDvo.setParams(params); // Job 실행시 필요한 파라미터
-//
-//                try {
-//                    String resIvo = batchCallService.runJob(batchDvo);
-////                    while (true) {
-////                        Thread.sleep(2000);
-////                        String jobStatus = batchCallService.getLastestJobStatus(resIvo);
-////                        if ("Ended OK".equals(jobStatus) || "Ended Not OK".equals(jobStatus)) {
-////                            break;
-////                        }
-////                    }
-//                } catch (Exception e) {
-//                }
-//
-////                BizAssert.isTrue(org.apache.commons.lang.StringUtils.isNotEmpty(resIvo), "MSG_ALT_SVE_ERR");
-//            }
-
-//            processCount += mapper.updateIntegrationDeposit(bulkDepositDvo);
-
-            //통합입금기본 데이터 이력 생성
-//            ZwdbIntegrationDepositDvo zwdbIntegrationDepositDvo = new ZwdbIntegrationDepositDvo();
-//            zwdbIntegrationDepositDvo.setItgDpNo(dto.itgDpNo());
-//            zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(zwdbIntegrationDepositDvo);
         }
 
+        if (!StringUtils.isEmpty(dto.itgDpNo())) {
+            //입금대사 서비스 호출
+            HashMap<String, Object> depositComparisonComfirmation = depositComparisonComfirmationService.createDepositComparisonComfirmation(dto.itgDpNo(), null);
+
+            Object rveNo = depositComparisonComfirmation.get("RVE_NO");
+            WwdbMutualAidAllianceBulkDepositDvo bulkDepositDvo = new WwdbMutualAidAllianceBulkDepositDvo();
+
+            bulkDepositDvo.setPerfDt(dto.perfDt());
+            bulkDepositDvo.setRveDt(dto.rveDt());
+            bulkDepositDvo.setRveNo(rveNo.toString());
+
+            processCount += mapper.updateReceiveDateModify(bulkDepositDvo);
+        }
         return processCount;
     }
 }

@@ -199,35 +199,31 @@ public class WwdbBillDepositMgtService {
         String year = sysDateYmd.substring(0, 4);
         String month = sysDateYmd.substring(4, 6);
 
-        int count = 0;
-        String useYn = "N";
-
         //전표 PK
         String zzsnum = slpnoService.getNumberingSlpno("FI", Integer.parseInt(year), Integer.parseInt(month));
 
-        for (WwdbBillDepositMgtDto.SaveDepositSlip list : dto) {
-            /*수납요청기본*/
-            ZwdzWithdrawalReceiveAskDvo zwdzWithdrawalReceiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
-            zwdzWithdrawalReceiveAskDvo.setKyowonGroupCompanyCd(session.getCompanyCode()); //KW_GRP_CO_CD	교원그룹회사코드
-            zwdzWithdrawalReceiveAskDvo.setCustomNumber(list.cntrCstNo()); //CST_NO	고객번호
-            zwdzWithdrawalReceiveAskDvo.setRveAkMthdCd("01"); //RVE_AK_MTHD_CD	수납요청방식코드 대면(01)
-            zwdzWithdrawalReceiveAskDvo.setRveAkPhCd("20"); //RVE_AK_PH_CD	수납요청경로코드
-            zwdzWithdrawalReceiveAskDvo.setRvePrtnrOgTpCd(session.getOgTpCd()); //RVE_AK_PRTNR_OG_TP_CD	수납요청파트너조직유형코드
-            zwdzWithdrawalReceiveAskDvo.setRvePrtnrNo(session.getEmployeeIDNumber()); //RVE_AK_PRTNR_NO	수납요청파트너번호
-            zwdzWithdrawalReceiveAskDvo.setReceiveAskAmount(list.billDpAmt()); //RVE_AK_AMT	수납요청금액
-            zwdzWithdrawalReceiveAskDvo.setReceiveAskDate(sysDateYmd); //RVE_RQDT	수납요청일자
-            zwdzWithdrawalReceiveAskDvo.setReceiveAskStatusCode("03"); //RVE_AK_STAT_CD	수납요청상태코드
-            zwdzWithdrawalReceiveAskDvo.setReceiveCompanyCode(session.getCompanyCode()); //RVE_CO_CD	수납회사코드
+        /*수납요청기본*/
+        ZwdzWithdrawalReceiveAskDvo zwdzWithdrawalReceiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
+        zwdzWithdrawalReceiveAskDvo.setKyowonGroupCompanyCd(session.getCompanyCode()); //KW_GRP_CO_CD	교원그룹회사코드
+        zwdzWithdrawalReceiveAskDvo.setRveAkMthdCd("01"); //RVE_AK_MTHD_CD	수납요청방식코드 대면(01)
+        zwdzWithdrawalReceiveAskDvo.setRveAkPhCd("20"); //RVE_AK_PH_CD	수납요청경로코드
+        zwdzWithdrawalReceiveAskDvo.setRvePrtnrOgTpCd(session.getOgTpCd()); //RVE_AK_PRTNR_OG_TP_CD	수납요청파트너조직유형코드
+        zwdzWithdrawalReceiveAskDvo.setRvePrtnrNo(session.getEmployeeIDNumber()); //RVE_AK_PRTNR_NO	수납요청파트너번호
+//        zwdzWithdrawalReceiveAskDvo.setReceiveAskAmount(list.billDpAmt()); //RVE_AK_AMT	수납요청금액
+        zwdzWithdrawalReceiveAskDvo.setReceiveAskDate(sysDateYmd); //RVE_RQDT	수납요청일자
+        zwdzWithdrawalReceiveAskDvo.setReceiveAskStatusCode("03"); //RVE_AK_STAT_CD	수납요청상태코드
+        zwdzWithdrawalReceiveAskDvo.setReceiveCompanyCode(session.getCompanyCode()); //RVE_CO_CD	수납회사코드
 
-            /*수납요청기본 데이터 생성*/
-            String receiveAskNumber = zwdzWithdrawalService.createReceiveAskBase(zwdzWithdrawalReceiveAskDvo);
-            zwdzWithdrawalReceiveAskDvo.setReceiveAskNumber(receiveAskNumber);
+        /*수납요청기본 데이터 생성*/
+        String receiveAskNumber = zwdzWithdrawalService.createReceiveAskBase(zwdzWithdrawalReceiveAskDvo);
+        zwdzWithdrawalReceiveAskDvo.setReceiveAskNumber(receiveAskNumber);
+        for (WwdbBillDepositMgtDto.SaveDepositSlip list : dto) {
+
 
             //통합입금 업데이트
             ZwdbEtcDepositProcessingDvo itgDvo = new ZwdbEtcDepositProcessingDvo();
 
             itgDvo.setItgDpNo(dto.get(0).itgDpNo());//통합입금번호
-            //            itgDvo.setDpCprcnfAmt(list.billDpAmt()); //대사금액
             itgDvo.setRveAkNo(receiveAskNumber); //수납요청번호
 
             processCount += etcDepositMapper.updateIntegrationDeposit(itgDvo);
@@ -235,9 +231,6 @@ public class WwdbBillDepositMgtService {
             ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
             depoDvo.setItgDpNo(dto.get(0).itgDpNo());
             zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
-
-
-
 
             /*수납요청상세*/
             WwdbBillDepositContractDvo contractDvo = new WwdbBillDepositContractDvo();
@@ -248,58 +241,16 @@ public class WwdbBillDepositMgtService {
 
             processCount += mapper.insertBillDepositContracts(contractDvo);
 
-
-
-
-            /*수납기본*/
-//            ZwdbWithdrawalReceiveAskReqDvo reqDvo = new ZwdbWithdrawalReceiveAskReqDvo();
-//            reqDvo.setRveAkNo(receiveAskNumber);
-//
-//            ZwdzWithdrawalReceiveDvo zwdzWithdrawalReceiveDvo = etcDepositMapper.selectReceiveBaseInfo(reqDvo);
-//
-//            String rveNo = zwdzWithdrawalService.createReceive(zwdzWithdrawalReceiveDvo);
-//            zwdzWithdrawalReceiveDvo.setRveNo(rveNo);
-
-//            /*입금대사기본*/
-//            reqDvo.setRveNo(rveNo); /*수납번호*/
-//            reqDvo.setProcsDvCd("1"); /*처리구분코드*/
-//            reqDvo.setIaDvCd("05"); /*입금항목구분코드*/
-//            //            reqDvo.setDpCprcnfBizDvCd(); /*입금대사업무구분코드*/
-//            reqDvo.setDpCprcnfBizCd("03"); /*입금대사업무코드*/
-//
-//            ZwdzWithdrawalDepositCprDvo cprDvo = etcDepositMapper.selectDepositComparisonComfirmationInfo(reqDvo);
-//
-//            String depositComparisonPk = zwdzWithdrawalService.createDepositComparison(cprDvo);
-//
-//            /*수납상세*/
-//            reqDvo.setDpDt(integrationDepositRes.dpDtm()); /*입금일자*/
-//            reqDvo.setDpCprcnfNo(depositComparisonPk); /*대사번호*/
-//            reqDvo.setItgDpNo(dto.get(0).itgDpNo()); //통합입금번호
-//
-//            zwdzWithdrawalReceiveDvo = etcDepositMapper.selectReceiveDetailInfo(reqDvo);
-//
-//            //수납상세 데이터 생성
-//            processCount += zwdzWithdrawalService.createReceiveDetail(zwdzWithdrawalReceiveDvo);
-
-
-            //통합입금 이력
-//            ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
-//            depoDvo.setItgDpNo(integrationDepositRes.itgDpNo());
-//            zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
-
             sumResult += Integer.parseInt(list.billDpAmt());
 
-            count++;
 
-            if (!StringUtils.isEmpty(dto.get(0).itgDpNo())) {
-                if (count == dto.size()) {
-                    useYn = null;
-                }
+        }
 
-                //입금대사 서비스 호출
-                depositComparisonComfirmationService.createDepositComparisonComfirmation(dto.get(0).itgDpNo(), useYn);
+        if (!StringUtils.isEmpty(dto.get(0).itgDpNo())) {
 
-            }
+            //입금대사 서비스 호출
+            depositComparisonComfirmationService.createDepositComparisonComfirmation(dto.get(0).itgDpNo(), null);
+
         }
 
 

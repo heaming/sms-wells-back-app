@@ -34,4 +34,6 @@ public interface WwdbMutualAidAllianceBulkDepositRegMapper {
     ZwdzWithdrawalReceiveAskDvo selectIntegrationDeposit(ZwdzWithdrawalDepositCprDvo dvo);
 
     WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes selectIntegrationDepositInfo(String itgDpNo);
+
+    int updateReceiveDateModify(WwdbMutualAidAllianceBulkDepositDvo dvo);
 }
