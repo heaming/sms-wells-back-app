@@ -46,8 +46,10 @@ public class KakaoSyncViewController {
             mv.addObject("rcod", "1");
 
         } catch (Exception e) {
+            e.printStackTrace();
             mv.addObject("SaveReq", new KakaoWcsbProspecCustomerMgtDto.SaveReq(null,null,null,null,null,null,null,null,null,null,null,null,null,null));
             mv.addObject("rcod", "0");
+            mv.addObject("errorobject", e);
             return mv;
         }
 
