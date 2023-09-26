@@ -1,8 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sds.sflex.system.config.annotation.DBDecField;
-import com.sds.sflex.system.config.annotation.DBEncField;
+import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
@@ -25,8 +24,6 @@ public class WsncAsInterfaceDto {
         @JsonProperty("CRAL_LOCARA_TNO")
         String cralLocaraTno,
         @JsonProperty("MEXNO_ENCR")
-        @DBEncField
-        @DBDecField
         String mexnoEncr,
         @JsonProperty("CRAL_IDV_TNO")
         String cralIdvTno,
@@ -72,7 +69,7 @@ public class WsncAsInterfaceDto {
         String ltnAdr,
         @JsonProperty(value = "RCGVP_KNM")
         String rcgvpKnm,
-        @JsonProperty(value = "BRYY_MMDD")
+        @JsonProperty(value = "BRYY_FMMDD")
         String bryyMmdd,
         @JsonProperty(value = "SEX_DV_CD")
         String sexDvCd,
@@ -82,7 +79,12 @@ public class WsncAsInterfaceDto {
         String itemNm,
         @JsonProperty(value = "ITEM_DESC")
         String itemDesc
-    ) {}
+    ) {
+        public SearchCustInfoRes {
+            exnoEncr = DbEncUtil.dec(exnoEncr);
+            mexnoEncr = DbEncUtil.dec(mexnoEncr);
+        }
+    }
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchRecInfoReq")
     public record SearchRecInfoReq(
@@ -124,8 +126,6 @@ public class WsncAsInterfaceDto {
         @JsonProperty(value = "CRAL_LOCARA_TNO")
         String cralLocaraTno,
         @JsonProperty(value = "MEXNO_ENCR")
-        @DBEncField
-        @DBDecField
         String mexnoEncr,
         @JsonProperty(value = "CRAL_IDV_TNO")
         String cralIdvTno,
@@ -143,7 +143,12 @@ public class WsncAsInterfaceDto {
         String rdadr,
         @JsonProperty(value = "ADR_DV_CD")
         String adrDvCd
-    ) {}
+    ) {
+        public SearchRecInfoRes {
+            mexnoEncr = DbEncUtil.dec(mexnoEncr);
+            exnoEncr = DbEncUtil.dec(exnoEncr);
+        }
+    }
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchUsingProductReq")
     public record SearchUsingProductsReq(
@@ -179,8 +184,14 @@ public class WsncAsInterfaceDto {
         @JsonProperty(value = "ZIP")
         String zip,
         @JsonProperty(value = "ADR")
-        String adr
-    ) {}
+        String adr,
+        @JsonProperty(value = "BC_PBL_DV_CD")
+        String bcPblDvCd
+    ) {
+        public SearchUsingProductsRes {
+            mexnoEncr = DbEncUtil.dec(mexnoEncr);
+        }
+    }
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchServiceHistoryReq")
     public record SearchServiceHistoryReq(
@@ -359,10 +370,6 @@ public class WsncAsInterfaceDto {
         String chSding, /*변경모종*/
         @JsonProperty(value = "APY_DT")
         String apyDt /*적용일자*/
-//        @JsonProperty(value = "RCP_DT_START")
-//        String rcpDtStart,
-//        @JsonProperty(value = "RCP_DT_END")
-//        String rcpDtEnd
     ) {}
 
 }
