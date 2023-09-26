@@ -21,4 +21,5 @@ public class WsncAsInterfaceUsingPdutDvo {
     String cralIdvTno;
     String zip;
     String adr;
+    String bcPblDvCd;
 }
