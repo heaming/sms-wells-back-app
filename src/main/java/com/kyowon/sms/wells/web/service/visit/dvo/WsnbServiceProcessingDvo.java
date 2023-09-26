@@ -128,7 +128,8 @@ public class WsnbServiceProcessingDvo {
     String cardStlm;
     String elcStlm;
     String adpBilAmt;
-    String cstSignHsYn;
+    byte[] cstSignCnByte;
+    String cstSignCn;
     String istEnvrPhoPhDocId; // 설치환경사진 DOC_ID
     String istKitPhoPhDocId; // 설치키트사진 DOC_ID
     String istCelngPhoPhDocId; // 설치천장사진 DOC_ID
