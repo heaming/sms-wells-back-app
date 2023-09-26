@@ -136,7 +136,7 @@ public class WbncRentalResignExpectedMgtDto {
         @NotBlank
         String cntrNo, /* 계약번호 */
         @NotBlank
-        int cntrSn, /* 계약일련번호 */
+        String cntrSn, /* 계약일련번호 */
         @NotBlank
         String rowState /* 상태코드 */
     ) {}
