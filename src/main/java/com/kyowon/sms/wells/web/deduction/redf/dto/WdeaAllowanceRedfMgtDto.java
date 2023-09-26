@@ -138,7 +138,7 @@ public class WdeaAllowanceRedfMgtDto {
         String qlfDvNm1, /*자격(M+1)*/
         String dstrcGd, /*지구등급*/
         String atdcDc, /*기본정보.미팅*/
-        //        String perfDvCd, /*구분(0: 개인, 2: 지점)*/
+        String perfDvCd, /*구분(0: 개인, 2: 지점)*/
         //        String perfDvNm, /*실적구분(0: 개인, 2: 지점)*/
         String brchDec, /*지점순감*/
         String marchDstrcYn, /*3월지구장*/
