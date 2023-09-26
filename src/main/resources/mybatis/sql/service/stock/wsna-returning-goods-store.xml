@@ -45,6 +45,8 @@
              , A1.RCP_ICHR_PRTNR_NO
              , A1.FST_RGST_USER_NM
              , A1.CNSL_MO_CN
+             , A1.OG_NM
+             , A1.RCST_DV
              , A1.PRTNR_KNM
              , A1.BAD_DV_NM
              , A1.WK_OSTR_SN
@@ -145,8 +147,12 @@
                            AND A.OG_TP_CD IN ('W02','W06','HR1')
                            AND ROWNUM = 1) AS FST_RGST_USER_NM /*철거요청자명*/
                      , T2.CNSL_MO_CN /*접수내역*/
-                     /*접수자소속*/
+                     , D1.OG_NM      /*접수자소속*/
                      , T7.PRTNR_KNM /*접수자명*/
+                     , CASE WHEN SUBSTR(D2.DEPT_CD, 1, 1) BETWEEN 'A' AND 'H' THEN '빙판'
+                     			 WHEN SUBSTR(D2.DEPT_CD ,1, 1) BETWEEN 'Y' AND 'Z' OR D2.DEPT_CD = '75050' THEN '신규채널'
+                     	    ELSE '기타'
+                     	END AS RCST_DV /*접수자 구분*/
                      , F_CMZ_CD_NM('TNT_WELLS', 'BAD_DV_CD', T4.BAD_DV_CD) AS BAD_DV_NM /*불량구분*/
                      , T1.WK_OSTR_SN /*작업출고일련번호*/
                      , T1.SV_BIZ_HCLSF_CD /*서비스대분류코드*/
@@ -164,26 +170,26 @@
                    INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2 /*LC_ALLOCATE_AC211TB*/
                       ON T2.CST_SV_ASN_NO = DECODE(SUBSTR(T1.CST_SV_ASN_NO,1,1),'9', '1', T1.CST_SV_ASN_NO)
                    INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3 /*LC_ALLOCATE_AC201TB*/
-                      ON T3.CNTR_NO = T1.CNTR_NO
-                     AND T3.CNTR_SN = T1.CNTR_SN
+                      ON T3.CNTR_NO       = T1.CNTR_NO
+                     AND T3.CNTR_SN       = T1.CNTR_SN
                    INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ T4 /*LC_VISIT_VS106TB*/
                       ON T4.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
-                     AND T4.CNTR_NO = T1.CNTR_NO
-                     AND T4.CNTR_SN = T1.CNTR_SN
+                     AND T4.CNTR_NO       = T1.CNTR_NO
+                     AND T4.CNTR_SN       = T1.CNTR_SN
                    INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T5
-                      ON T5.SVPD_PD_CD = T1.ITM_PD_CD
+                      ON T5.SVPD_PD_CD    = T1.ITM_PD_CD
                    LEFT OUTER JOIN TB_SSCT_CNTR_BAS /*계약기본*/ X1
-                      ON X1.CNTR_NO = T3.CNTR_NO
-                     AND X1.DTA_DL_YN = 'N'
+                      ON X1.CNTR_NO       = T3.CNTR_NO
+                     AND X1.DTA_DL_YN     = 'N'
                    INNER JOIN TB_SSCT_CNTR_DTL /*계약상세*/ X2
-                      ON X2.CNTR_NO = X1.CNTR_NO
-                     AND X2.DTA_DL_YN = 'N'
+                      ON X2.CNTR_NO       = X1.CNTR_NO
+                     AND X2.DTA_DL_YN     = 'N'
                    INNER JOIN TB_SSCT_CNTR_ADR_REL X3
-                      ON X3.DTL_CNTR_NO = X2.CNTR_NO
-                     AND X3.DTL_CNTR_SN = X2.CNTR_SN
-                     AND X3.ADRPC_TP_CD = '3'
+                      ON X3.DTL_CNTR_NO   = X2.CNTR_NO
+                     AND X3.DTL_CNTR_SN   = X2.CNTR_SN
+                     AND X3.ADRPC_TP_CD   = '3'
                      AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN X3.VL_STRT_DTM AND X3.VL_END_DTM
-                     AND X3.DTA_DL_YN = 'N'
+                     AND X3.DTA_DL_YN     = 'N'
                    INNER JOIN TB_SSCT_CNTR_ADRPC_BAS X4
                       ON X4.CNTR_ADRPC_ID = X3.CNTR_ADRPC_ID
                    LEFT OUTER JOIN (SELECT A.*
@@ -194,15 +200,23 @@
                                        AND A.SV_BIZ_DCLSF_CD LIKE '11%'
                                        AND A.MTR_STAT_CD != '3'
                                        AND B.WK_PRGS_STAT_CD = '20'
-                                       AND A.DTA_DL_YN = 'N'
-                                       AND B.DTA_DL_YN = 'N'
-                                       AND ROWNUM = 1) T6
+                                       AND A.DTA_DL_YN    = 'N'
+                                       AND B.DTA_DL_YN    = 'N'
+                                       AND ROWNUM         = 1) T6
                       ON T6.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
                     LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
-                      ON T7.PRTNR_NO = T6.FST_RGST_USR_ID
-                     AND T7.BASE_YM = SUBSTR(T6.FST_RGST_DTM, 1, 6)
+                      ON T7.PRTNR_NO  = T6.FST_RGST_USR_ID
+                     AND T7.BASE_YM   = SUBSTR(T6.FST_RGST_DTM, 1, 6)
                      AND T7.OG_TP_CD IN ('W06', 'W02', 'HR1')
                      AND T7.DTA_DL_YN = 'N'
+  		            LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D1
+			          ON D1.BASE_YM   = T7.BASE_YM
+			         AND D1.OG_TP_CD  = T7.OG_TP_CD
+			         AND D1.OG_ID     = T7.OG_ID
+			         AND D1.DTA_DL_YN = 'N'
+			        LEFT OUTER JOIN TB_GBCO_DEPT_BAS D2
+			          ON D2.DEPT_CD   = D1.OG_CD
+			         AND D2.DTA_DL_YN = 'N'
                    INNER JOIN (SELECT WARE_NO
                                     , MAX(WARE_NM) AS WARE_NM
                                     , HGR_WARE_NO
@@ -213,12 +227,12 @@
                                 <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
                                   AND HGR_WARE_NO = #{strWareNoM}
                                 </if>
-                                  AND DTA_DL_YN = 'N'
+                                  AND DTA_DL_YN   = 'N'
                                 GROUP BY WARE_NO
                                        , HGR_WARE_NO
                                        , WARE_DV_CD
                                ) T8
-                      ON T8.WARE_NO = T1.WK_WARE_NO
+                      ON T8.WARE_NO   = T1.WK_WARE_NO
                    INNER JOIN (SELECT A.CST_SV_ASN_NO
                                     , (CASE WHEN B.IST_DT IS NULL THEN 0
                                             WHEN C.CNTR_RCP_FSH_DTM != '00000000' AND C.CNTR_RCP_FSH_DTM IS NOT NULL THEN TO_DATE(SUBSTR(C.CNTR_RCP_FSH_DTM, 0, 8), 'YYYYMMDD') - TO_DATE(B.IST_DT, 'YYYYMMDD')
@@ -236,7 +250,7 @@
                                   AND A.CNTR_SN = D.CNTR_SN
                                 ) T9
                             ON T1.CST_SV_ASN_NO = T9.CST_SV_ASN_NO
-                       WHERE T1.DTA_DL_YN = 'N'
+                       WHERE T1.DTA_DL_YN       = 'N'
                          AND T1.SV_BIZ_HCLSF_CD = '6'
                     <if test="@MybatisUtils@isNotEmpty(fnlItmGdCd)">
                          AND T1.FNL_ITM_GD_CD = #{fnlItmGdCd}

@@ -138,8 +138,8 @@ public class WdeaAllowanceRedfMgtDto {
         String qlfDvNm1, /*자격(M+1)*/
         String dstrcGd, /*지구등급*/
         String atdcDc, /*기본정보.미팅*/
-        String perfDvCd, /*구분(0: 개인, 2: 지점)*/
-        String perfDvNm, /*실적구분(0: 개인, 2: 지점)*/
+        //        String perfDvCd, /*구분(0: 개인, 2: 지점)*/
+        //        String perfDvNm, /*실적구분(0: 개인, 2: 지점)*/
         String brchDec, /*지점순감*/
         String marchDstrcYn, /*3월지구장*/
         String chYm, /*수석승급기준월*/
@@ -345,6 +345,7 @@ public class WdeaAllowanceRedfMgtDto {
         String wpEnvrExcpOgRedf, /*가전외 조직비례*/
         String wpOgSellEncrgRedf, /*조직 판매장려*/
         String dlqRedfAmt, /*연체되물림*/
+        String wpLifRedfAmt, /*상조되물림*/
 
         /*되물림 합계금액(그리드별)*/
         String sumPerfLast201903RedfDstrc, /*2019.03 이전 + 지구장이하 그리드 되물림 합계금액*/

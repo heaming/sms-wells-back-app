@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WsnaPcsvReturningGoodsSaveService {
 
-    private static final String RETURN_INSIDE = "261"; // 택배반품출고유형코드
+    private static final String RETURN_INSIDE = "262"; // 택배반품출고유형코드
     private final WsnaPcsvReturningGoodsSaveMapper saveMapper;
     private final WsnaPcsvReturningGoodsMgtMapper mapper;
     private final WsnaPcsvReturningGoodsMgtConverter converter;
@@ -70,8 +70,9 @@ public class WsnaPcsvReturningGoodsSaveService {
                 saveMapper.updateSvpdCstSvBfsvcAsnIz(dvo);
                 // 6. 판매시스템 철거일자 업데이트
                 String reqdDt = DateUtil.getNowDayString();
+                // 반품인 경우 설치일자 NULL, 철거일자 NOT NULL
                 reqdDtService
-                    .saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), dvo.getIstDt(), reqdDt.substring(0, 8), "");
+                    .saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), "", reqdDt.substring(0, 8), "");
                 log.info("[판매시스템 철거일자 업데이트] => {}", dvo.getRsgFshDt());
 
                 logisticsDvos.add(dvo);
@@ -177,7 +178,7 @@ public class WsnaPcsvReturningGoodsSaveService {
             AskReqDvo.setIostAkDvCd("WE");
             AskReqDvo.setWareMngtPrtnrNo(dvo.getWareMngtPrtnrNo());
             AskReqDvo.setWareMngtPrtnrOgTpCd(dvo.getWareMngtPrtnrOgTpCd());
-            AskReqDvo.setLgstSppMthdCd("6"); // 확인필요
+            AskReqDvo.setLgstSppMthdCd("2"); // 물류배송방식코드 택배(2)
             AskReqDvo.setItmPdCd(dvo.getLogisticsPdCd());
             AskReqDvo.setOstrAkQty(Integer.parseInt(dvo.getLogisticsPdQty()));
             AskReqDvo.setItmGdCd(dvo.getCmptGd()); //산출등급
@@ -185,7 +186,14 @@ public class WsnaPcsvReturningGoodsSaveService {
             AskReqDvo.setSvCnrCd(dvo.getWkWareNo());
             AskReqDvo.setSvCnrNm(dvo.getWareNm());
             AskReqDvo.setRmkCn(dvo.getRmkCn());
-
+            // 물류 회수 송장번호 추가
+            AskReqDvo.setClnIvcNo(dvo.getClnSppIvcNo());
+            // 물류 계약고객번호 추가
+            AskReqDvo.setCstNo(dvo.getCntrCstNo());
+            // 물류 계약번호 추가
+            AskReqDvo.setCntrNo(dvo.getCntrNo());
+            // 물류 계약일련번호 추가
+            AskReqDvo.setCntrSn(Integer.parseInt(dvo.getCntrSn()));
             AskReqList.add(AskReqDvo);
         }
 
@@ -254,7 +262,7 @@ public class WsnaPcsvReturningGoodsSaveService {
             cnslCn.append("||");
         }
         cnslCn.append("8. 반품운송장 번호 : ");
-        cnslCn.append(dvo.getFwSppIvcNo() + "||");
+        cnslCn.append(dvo.getClnSppIvcNo() + "||");
         cnslCn.append("9. 비고(택배사/반품자) : ");
         cnslCn.append(dvo.getDtmChRsonDtlCn());
 

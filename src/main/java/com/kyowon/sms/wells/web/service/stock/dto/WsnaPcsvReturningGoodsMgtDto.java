@@ -144,6 +144,7 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String ogId,
         String ogTpCd,
         String prtnrNo,
+        String clnSppIvcNo,
 
         // 물류 수불처리
         String ostrTpCd,
@@ -271,6 +272,7 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String ogId,
         String ogTpCd,
         String prtnrNo,
+        String clnSppIvcNo,
 
         // 물류 수불처리
         String ostrTpCd,

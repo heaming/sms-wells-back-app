@@ -12,17 +12,12 @@ public class WsncAsInterfaceDto {
 
     @ApiModel(value = "WsncAsInterfaceDto-SearchCustInfoReq")
     public record SearchCustInfoReq(
-        @NotBlank
         @JsonProperty("CNTR_NO")
         String cntrNo,
         @JsonProperty("CNTR_SN")
         String cntrSn,
         @JsonProperty("CST_KNM")
         String cstKnm,
-        //        @JsonProperty("HPNO")
-        //        String hpno,
-        //        @JsonProperty("NEW_ADR_ZIP")
-        //        String newAdrZip,
         @JsonProperty("PD_GRP_ID")
         String pdGrpId,
         @JsonProperty("CNTR_CST_NO")

@@ -132,7 +132,7 @@ public class WsnbServiceProcsIzQltyDto {
         String cashStlm,
         String cardStlm,
         String elcStlm,
-        String cstSignHsYn
+        String cstSignCn
     ) {}
 
 }

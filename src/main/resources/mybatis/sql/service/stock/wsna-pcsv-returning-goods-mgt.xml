@@ -111,19 +111,12 @@
                  , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 10) AS PART_QTY_10
                  , PL1.ARV_DT
                  , PL1.DTM_CH_RSON_CD
-                 , (SELECT P2.PSCOCD
-                  FROM WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ P1    /*고객서비스작업결과내역, VS106TB*/
-                 INNER JOIN GBSDBS.TB_GBCO_HQ_PCSV_IVC_STAT_CH_IZ P2
-                    ON P2.WBLNUM = P1.SPP_IVC_NO
-                   AND P2.JOBSTA = '30'
-                 WHERE 1=1
-                   AND P1.CNTR_NO = PL1.CNTR_NO
-                   AND P1.CNTR_SN = PL1.CNTR_SN
-                   AND P1.SV_BIZ_DCLSF_CD IN ('1112')) AS PSCOCD
+                 , '' AS PSCOCD
                  , PL1.DTM_CH_RSON_DTL_CN
                  , PL1.RMK_CN
                  , PL1.PART_CNT_TOTAL AS PART_CNT_TOTAL    /*투입부품모델수*/
 	             , PL1.PD_QTY
+                 , PL1.CLN_SPP_IVC_NO
               FROM (
                 SELECT DISTINCT
                        S1.AS_IST_OJ_NO  /*접수번호*/
@@ -194,6 +187,7 @@
                      , S2.DTM_CH_RSON_DTL_CN AS DTM_CH_RSON_DTL_CN          /*반품상세*/
                      , S4.RMK_CN AS RMK_CN                                  /*비고-물류사용*/
 		             , C2.PD_QTY                                            /*상품수량*/
+                     , S2.WK_CAN_MO_CN AS CLN_SPP_IVC_NO                    /*회수송장번호 임시사용*/
                   FROM WSMDBS.TB_SVPD_CST_SVAS_IST_OJ_IZ S1                 /*고객서비스AS설치대상내역, AC211TB*/
                        INNER JOIN WSMDBS.TB_SVPD_CST_SVAS_IST_ASN_IZ S2     /*고객서비스수행배정내역, AC221TB*/
                            ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
@@ -311,13 +305,12 @@
                      , C6.RSG_APLC_DT      /*해지신청일자*/
                      , C6.RSG_FSH_DT       /*해지완료일자*/
                      , C3.ADRPC_TP_CD      /*계약주소지ID : 1 계약주소, 2 배달주소, 3 설치주소*/
-                     , CS1.CST_NO
+                     , C2.CNTR_CST_NO
                      , CS1.CST_GD_CD
                      , C7.BASE_DTL_CNTR_NO
                      , C7.BASE_DTL_CNTR_SN
                      , C7.VL_STRT_DTM
                      , C7.VL_END_DTM
-                     , C2.CNTR_CST_NO
                      , ROW_NUMBER() OVER(PARTITION BY C3.DTL_CNTR_NO, C3.DTL_CNTR_SN ORDER BY C3.ADRPC_TP_CD DESC) AS ADRPC_TP_CD_RNK
                   FROM WSMDBS.TB_SSCT_CNTR_DTL C1                       /*계약상세*/
                        INNER JOIN WSMDBS.TB_SSCT_CNTR_BAS C2            /*계약기본*/
@@ -497,6 +490,7 @@
              , '' AS LOGISTICS_PD_CD
              , '' AS LOGISTICS_PD_NM
              , '' AS LOGISTICS_PD_QTY
+             , I1.CLN_SPP_IVC_NO
           FROM INQRY_LIST I1
                INNER JOIN CNTR_INF C1
                        ON C1.CNTR_NO = I1.CNTR_NO
@@ -519,35 +513,35 @@
             , '10'   AS   WK_PRGS_STAT_CD
             , '작업완료'   AS   WK_PRGS_STAT_NM
             , '취소완료'   AS   RE_WK_PRGS_STAT_NM
-            , 'AP3GAKD08Q41300053'   AS   BC_NO
-            , 'W20236210900'   AS   CNTR_NO
+            , 'AL4WAKD02Q70300051'   AS   BC_NO
+            , 'W20236183900'   AS   CNTR_NO
             , 1   AS   CNTR_SN
             , 'W20236210900-1'   AS   CNTR_DTL_NO
-            , '테스트'   AS   RCGVP_KNM
+            , '테스트용'   AS   RCGVP_KNM
             , '010'   AS   CRAL_LOCARA_TNO
             , 'SgBG9oaLr6l4CnWEAh1gBw=='   AS   MEXNO_ENCR
             , '3287'   AS   CRAL_IDV_TNO
-            , 'WP02120332'   AS   BASE_PD_CD
+            , 'WP02120618'   AS   BASE_PD_CD
             , 'AP107그레이/택배배송 렌탈 일반렌탈'   AS   BASE_PD_NM
             , 'WM02100269'   AS   PDCT_PD_CD
             , '20230802'   AS   CNTR_PD_STRTDT
-            , '530003512773'   AS   FW_SPP_IVC_NO
-            , '20230803'   AS   PCSV_RCGV_DT
-            , '20230809'   AS   RCPDT
+            , '530002881782'   AS   FW_SPP_IVC_NO
+            , '20230802'   AS   PCSV_RCGV_DT
+            , '20230804'   AS   RCPDT
             , 6   AS   PD_USE_DC
             , 'E'   AS   CMPT_GD
             , 'E'   AS   FNL_GB
             , 'HR1'   AS   RCP_OG_TP_CD
-            , '37948'   AS   RCP_ICHR_PRTNR_NO
+            , '37581'   AS   RCP_ICHR_PRTNR_NO
             , '테스트계정'   AS   PRTNR_KNM
             , '100002'   AS   WK_WARE_NO
             , '교원파주물류센터'   AS   WARE_NM
             , '71321'   AS   WARE_MNGT_PRTNR_NO
-            , '@9999'   AS   WARE_MNGT_PRTNR_OG_TP_CD
+            , 'W02'   AS   WARE_MNGT_PRTNR_OG_TP_CD
             , 'A806'   AS   AS_LCT_CD
             , 'B836'   AS   AS_PHN_CD
             , 'Z538'   AS   AS_CAUS_CD
-            , 'B039'   AS   RPB_LOCARA_CD
+            , 'D010'   AS   RPB_LOCARA_CD
             , '3'   AS   SITE_AW_SV_TP_CD
             , 'A160'   AS   SITE_AW_ATC_CD
             , '8'   AS   PD_USWY_CD
@@ -585,7 +579,7 @@
             , ''   AS   PART_CD_10
             , ''   AS   PART_NM_10
             , ''   AS   PART_QTY_10
-            , '041193146'   AS   CNTR_CST_NO
+            , '034261450'   AS   CNTR_CST_NO
             , '2'   AS   SELL_TP_CD
             , '렌탈/리스'   AS   SELL_TP_NM
             , '21'   AS   SELL_TP_DTL_CD
@@ -603,8 +597,8 @@
             , ''   AS   RSG_APLC_DT
             , '20230921'   AS   RSG_FSH_DT
             , '20230811'   AS   ARV_DT
-            , '92'   AS   DTM_CH_RSON_CD
-            , '003'   AS   PSCOCD
+            , '91'   AS   DTM_CH_RSON_CD
+            , ''   AS   PSCOCD
             , '대한통운/지수*'   AS   DTM_CH_RSON_DTL_CN
             , '20230816'   AS   REQD_DT
             , '2'   AS   MNGR_DV_CD
@@ -615,10 +609,10 @@
             , '3'   AS   SV_BIZ_HCLSF_CD
             , 1   AS   PD_QTY
             , '20230802'   AS   IST_DT
-            , '3202308090000850198'   AS   CST_SV_ASN_NO
-            , '@9999'   AS   OG_ID
-            , '@9999'   AS   OG_TP_CD
-            , '372'   AS   PRTNR_NO
+            , '3202308040000838218'   AS   CST_SV_ASN_NO
+            , 'OG00066166'   AS   OG_ID
+            , 'W02'   AS   OG_TP_CD
+            , '700559'   AS   PRTNR_NO
             , ''   AS   FIND_GB
             , ''   AS   OSTR_TP_CD
             , ''   AS   OSTR_DT
@@ -627,6 +621,7 @@
             , ''   AS   LOGISTICS_PD_CD
             , ''   AS   LOGISTICS_PD_NM
             , ''   AS   LOGISTICS_PD_QTY
+            , '843818808143'   AS   CLN_SPP_IVC_NO
         FROM DUAL
     </select>
     <select id="selectPcsvLogisticsCenters" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto$FindLogisticsCentersRes">

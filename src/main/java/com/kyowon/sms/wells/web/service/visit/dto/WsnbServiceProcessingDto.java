@@ -145,7 +145,7 @@ public class WsnbServiceProcessingDto {
         String cardStlm,
         String elcStlm,
         String adpBilAmt,
-        String cstSignHsYn,
+        String cstSignCn,
         String istEnvrPhoPhFileUid, // 설치환경사진 FILE_UID
         String istKitPhoPhFileUid, // 설치키트사진 FILE_UID
         String istCelngPhoPhFileUid, // 설치천장사진 FILE_UID

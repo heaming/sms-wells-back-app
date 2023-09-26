@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindBaseYmRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselHistoryReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselHistoryRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselRegistrationReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselRegistrationRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRecIdReq;
@@ -177,5 +179,17 @@ public class WbncCustomerController {
         FindRecIdReq dto
     ) {
         return service.getRecId(dto);
+    }
+
+    @ApiOperation(value = "고객상세 상담등록 조회", notes = "조회조건에 일치하는 고객상세 상담등록 정보를 조회한다.")
+    @GetMapping("/counsel_registration")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "schCstNo", value = "고객번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schCntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "schCntrSn", value = "계약일련번호", paramType = "query", required = true)
+    })
+    public FindCounselRegistrationRes getCounselRegistration(@Valid
+    FindCounselRegistrationReq dto) {
+        return service.getCounselRegistration(dto);
     }
 }

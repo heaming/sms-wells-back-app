@@ -119,6 +119,8 @@ public class WsnaPcsvReturningGoodsDvo {
     String ogId;
     String ogTpCd;
     String prtnrNo;
+    //회수송장번호
+    String clnSppIvcNo;
 
     // 물류 수불처리
     String ostrTpCd;
