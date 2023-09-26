@@ -34,16 +34,16 @@
                        AND S1.DP_DV_CD = '1'
                        AND S1.RVE_DT >= E.DLQ_RCK_DT),0) AS TOT_RVE_AMT /*입금누계-연체시작일자이후부터 입금된 총금액*/
              , (SELECT S1.PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS S1 /*T:파트너기본*/
-                 WHERE S1.OG_TP_CD = 'BND'
-                   AND S1.PRTNR_NO = E.CLCTAM_PRTNR_NO) AS CLCTAM_PRTNR_NM /*집금담당자명*/
+                  FROM TB_CBBO_CLCTAM_PRTNR_DTL S1 /*T:집금파트너상세*/
+                 WHERE 1 = 1
+                   AND S1.PRTNR_NO = E.CLCTAM_PRTNR_NO
+                   AND S1.ROWNUM <![CDATA[<=]]> 1) AS CLCTAM_PRTNR_NM /*집금담당자명*/
              , E.CLCTAM_PRTNR_NO                                        /*집금담당자번호*/
              , '' AS ERR_CN                                             /*에러내용*/
           FROM TB_CBBO_WELLS_AUTH_RSG_IZ A /*T:WELLS직권해지내역*/
          INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
             ON B.CNTR_NO = A.CNTR_NO
            AND B.CNTR_SN = A.CNTR_SN
-           AND SUBSTR(B.CNTR_PD_STRTDT,1,6) = A.BASE_YM
          INNER JOIN TB_SSCT_CNTR_BAS C /*T:계약기본*/
             ON C.CNTR_NO = B.CNTR_NO
           LEFT JOIN TB_OGBS_PRTNR_BAS D /*T:파트너기본*/
@@ -56,11 +56,9 @@
          WHERE 1 = 1
            AND A.DTA_DL_YN = 'N'
            AND A.SELL_TP_CD = '6'                           /*판매유형코드-정기배송만*/
-           AND (A.CAN_DT IS NULL OR A.CAN_DT = 0)           /*취소일자-null인것*/
            AND A.AUTH_RSG_EXP_YN = 'Y'                      /*직권해지예정일자-입력된것*/
            AND A.AUTH_RSG_EXCD_RSON_CD IS NULL              /*직권해지제외사유코드-null인것*/
-           AND (A.AUTH_RSG_DUEDT  LIKE #{authRsgDt}||'%'    /*직권해지예정일자*/
-            OR  A.AUTH_RSG_CNFMDT LIKE #{authRsgDt}||'%')   /*직권해지확정일자*/
+           AND A.BASE_YM = #{authRsgDt}
            AND NVL(A.DLQ_AMT,0) > NVL((SELECT SUM(S1.RVE_AMT)
                                          FROM TB_RVDW_RVE_DTL S1 /*T:수납상세*/
                                         WHERE S1.CNTR_NO = A.CNTR_NO
