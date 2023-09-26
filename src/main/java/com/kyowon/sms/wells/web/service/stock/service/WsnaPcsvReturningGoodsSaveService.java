@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WsnaPcsvReturningGoodsSaveService {
 
-    private static final String RETURN_INSIDE = "261"; // 택배반품출고유형코드
+    private static final String RETURN_INSIDE = "262"; // 택배반품출고유형코드
     private final WsnaPcsvReturningGoodsSaveMapper saveMapper;
     private final WsnaPcsvReturningGoodsMgtMapper mapper;
     private final WsnaPcsvReturningGoodsMgtConverter converter;
@@ -178,7 +178,7 @@ public class WsnaPcsvReturningGoodsSaveService {
             AskReqDvo.setIostAkDvCd("WE");
             AskReqDvo.setWareMngtPrtnrNo(dvo.getWareMngtPrtnrNo());
             AskReqDvo.setWareMngtPrtnrOgTpCd(dvo.getWareMngtPrtnrOgTpCd());
-            AskReqDvo.setLgstSppMthdCd("6"); // 확인필요
+            AskReqDvo.setLgstSppMthdCd("2"); // 물류배송방식코드 택배(2)
             AskReqDvo.setItmPdCd(dvo.getLogisticsPdCd());
             AskReqDvo.setOstrAkQty(Integer.parseInt(dvo.getLogisticsPdQty()));
             AskReqDvo.setItmGdCd(dvo.getCmptGd()); //산출등급
@@ -190,7 +190,10 @@ public class WsnaPcsvReturningGoodsSaveService {
             AskReqDvo.setClnIvcNo(dvo.getClnSppIvcNo());
             // 물류 계약고객번호 추가
             AskReqDvo.setCstNo(dvo.getCntrCstNo());
-
+            // 물류 계약번호 추가
+            AskReqDvo.setCntrNo(dvo.getCntrNo());
+            // 물류 계약일련번호 추가
+            AskReqDvo.setCntrSn(Integer.parseInt(dvo.getCntrSn()));
             AskReqList.add(AskReqDvo);
         }
 
