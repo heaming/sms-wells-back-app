@@ -209,9 +209,9 @@ public class WwdbBillDepositMgtService {
         zwdzWithdrawalReceiveAskDvo.setRveAkPhCd("20"); //RVE_AK_PH_CD	수납요청경로코드
         zwdzWithdrawalReceiveAskDvo.setRvePrtnrOgTpCd(session.getOgTpCd()); //RVE_AK_PRTNR_OG_TP_CD	수납요청파트너조직유형코드
         zwdzWithdrawalReceiveAskDvo.setRvePrtnrNo(session.getEmployeeIDNumber()); //RVE_AK_PRTNR_NO	수납요청파트너번호
-//        zwdzWithdrawalReceiveAskDvo.setReceiveAskAmount(list.billDpAmt()); //RVE_AK_AMT	수납요청금액
+        zwdzWithdrawalReceiveAskDvo.setReceiveAskAmount(dto.get(0).resultSum()); //RVE_AK_AMT	수납요청금액
         zwdzWithdrawalReceiveAskDvo.setReceiveAskDate(sysDateYmd); //RVE_RQDT	수납요청일자
-        zwdzWithdrawalReceiveAskDvo.setReceiveAskStatusCode("03"); //RVE_AK_STAT_CD	수납요청상태코드
+        zwdzWithdrawalReceiveAskDvo.setReceiveAskStatusCode("02"); //RVE_AK_STAT_CD	수납요청상태코드
         zwdzWithdrawalReceiveAskDvo.setReceiveCompanyCode(session.getCompanyCode()); //RVE_CO_CD	수납회사코드
 
         /*수납요청기본 데이터 생성*/
