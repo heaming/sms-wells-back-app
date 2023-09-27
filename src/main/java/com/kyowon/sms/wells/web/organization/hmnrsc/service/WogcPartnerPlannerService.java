@@ -320,7 +320,8 @@ public class WogcPartnerPlannerService {
 
         String newStrtdt = DateUtil.getNowDayString();
         if (detailList.get(0).qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_1.getCode())) {
-            if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) == 0) {
+            if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) >= 0
+                && DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).enddt()) <= 0) {
                 // 승급(현재)
 
                 // 종료처리
@@ -330,7 +331,8 @@ public class WogcPartnerPlannerService {
                 qualificationDvo.setCvDt(null);
                 qualificationDvo.setEnddt(DateUtil.addDays(newStrtdt, -1));
                 mapper.updatePlannerQualificationChange(qualificationDvo);
-            } else {
+            } else if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) <= 0
+                && DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).enddt()) <= 0) {
                 // 승급(예정)
 
                 // 삭제처리
@@ -343,7 +345,7 @@ public class WogcPartnerPlannerService {
                 mapper.updatePlannerQualificationChange(qualificationDvo);
 
                 // 종료처리
-                if (detailListCount > 2) {
+                if (detailListCount > 1) {
                     qualificationDvo.setQlfAplcDvCd(QlfAplcDvCd.QLF_APLC_DV_CD_2.getCode());
                     qualificationDvo.setQlfDvCd(detailList.get(1).qlfDvCd());
                     qualificationDvo.setStrtdt(detailList.get(1).strtdt());
