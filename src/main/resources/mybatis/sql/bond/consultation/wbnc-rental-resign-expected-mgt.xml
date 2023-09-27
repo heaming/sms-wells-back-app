@@ -20,11 +20,55 @@
              , NVL(A.TOT_NPD_AMT,0) AS TOT_NPD_AMT          /*총미납금액*/
              , 0 AS TOT_MCHN_NPD_AMT                        /*총미납금액(결합기기)*/
              , NVL(A.LSTMM_OCPT_CS,0) AS LSTMM_OCPT_CS      /*전월점유비*/
-             , NVL(A.THM_OCPT_CS,0) AS THM_OCPT_CS          /*당월점유비*/
+             , NVL(A.SL_SUM_AMT + A.THM_OCPT_CS,0) AS THM_OCPT_CS /*당월점유비*/
              , NVL(A.THM_ADN_SV_UC_AMT,0) AS THM_ADN_SV_UC_AMT /*당월가압펌프*/
-             , NVL(A.RTRN_DBT_FNL_AMT,0) AS RTRN_DBT_TOT_AMT /*반환시총체납액*/
-             , NVL(A.NRTRN_DBT_FNL_AMT,0) AS NRTRN_DBT_TOT_AMT /*미반환시총체납액*/
-             , NVL(A.RENTAL_AMT1 + A.RENTAL_AMT2,0) AS RENTAL_AMT /*당월렌탈료*/
+<!--             , NVL(A.RTRN_DBT_EXP_AMT,0) AS RTRN_DBT_TOT_AMT /*반환시총체납액*/-->
+<!--             , NVL(A.NRTRN_DBT_EXP_AMT,0) AS NRTRN_DBT_TOT_AMT /*미반환시총체납액*/-->
+             ,-(
+                    (
+                         NVL(E.BTD_ATAM, 0)
+                       + NVL(Y1.PD_RVE_AMT,0)    /*입금금액*/
+                       - NVL(Y1.RFND_RVE_AMT,0)    /*환불금액*/
+                       - NVL(E.ATAM_RPLC_PROCS_AMT, 0)    /* 선수금대체처리금액 */
+                       - NVL(E.THM_ATAM_RFND_AMT, 0)    /* 선수금대체처리금액 */
+                    )
+                  + A.ADAMT_DP_RPLC_AMT    /* 가산금입금대체금액 */
+                  - (
+                       A.RENTAL_RES_BOR_AMT    /* 렌탈잔여위약금액 */
+                     + A.RENTAL_RGST_COST_BOR_AMT    /* 렌탈등록비위약금액 */
+                     + A.DSC_CS_BOR_AMT    /* 할인비용위약금액 */
+                     + RSTL_BOR_AMT        /* 재약정위약금액 */
+                    )
+                  - A.CSMB_CS_BOR_AMT /* 소모품비용위약금액 */
+                  - A.LS_RNTF    /* 분실손료 */
+                  - A.LSTMM_UC_AMT    /* 전월미수금액 */
+                  - A.LSTMM_OCPT_CS    /* 전월점유비용 */
+                  - A.SL_SUM_AMT    /* 매출합계금액 */
+                  + A.P_SL_AMT    /* 포인트매출금액 */
+             ) AS NRTRN_DBT_TOT_AMT /*미반환시총체납액*/
+             ,-(
+                    (
+                         NVL(E.BTD_ATAM, 0)
+                       + NVL(Y1.PD_RVE_AMT,0)    /*입금금액*/
+                       - NVL(Y1.RFND_RVE_AMT,0)    /*환불금액*/
+                       - NVL(E.ATAM_RPLC_PROCS_AMT, 0)    /* 선수금대체처리금액 */
+                       - NVL(E.THM_ATAM_RFND_AMT, 0)    /* 선수금대체처리금액 */
+                    )
+                  + A.ADAMT_DP_RPLC_AMT    /* 가산금입금대체금액 */
+                  - (
+                       A.RENTAL_RES_BOR_AMT    /* 렌탈잔여위약금액 */
+                     + A.RENTAL_RGST_COST_BOR_AMT    /* 렌탈등록비위약금액 */
+                     + A.DSC_CS_BOR_AMT    /* 할인비용위약금액 */
+                     + RSTL_BOR_AMT        /* 재약정위약금액 */
+                    )
+                  - A.CSMB_CS_BOR_AMT /* 소모품비용위약금액 */
+                  - A.REQD_CS_BOR_AMT    /* 철거비용위약금액 LB325.LCA447 */
+                  - A.LSTMM_UC_AMT    /* 전월미수금액 LCPMMT */
+                  - A.LSTMM_OCPT_CS    /* 전월점유비용 LCSTM1 */
+                  - A.SL_SUM_AMT    /* 매출합계금액 */
+                  + A.P_SL_AMT    /* 포인트매출금액 */
+             ) AS RTRN_DBT_TOT_AMT /*반환시총체납액*/
+             , NVL(A.SL_SUM_AMT,0) AS RENTAL_AMT /*당월렌탈료*/
              , NVL(A.RENTAL_RES_BOR_AMT,0) AS RENTAL_RES_BOR_AMT /*위약렌탈잔여*/
              , NVL(A.RENTAL_RGST_COST_BOR_AMT,0) AS RENTAL_RGST_COST_BOR_AMT /*위약등록비*/
              , NVL(A.DSC_CS_BOR_AMT,0) AS DSC_CS_BOR_AMT    /*위약할인금액*/
@@ -37,7 +81,7 @@
              , A.CLCTAM_PRTNR_NO                            /*사번*/
              , (SELECT PRTNR_KNM
                   FROM TB_CBBO_CLCTAM_PRTNR_DTL         /*T:집금파트너상세*/
-                 WHERE CLCTAM_DV_CD = A.CLCTAM_DV_CD
+                 WHERE 1 = 1
                    AND PRTNR_NO = A.CLCTAM_PRTNR_NO
                    AND ROWNUM <![CDATA[<=]]> 1) AS PRTNR_KNM             /*집금담당자*/
              , (CASE WHEN A.CLCTAM_PRTNR_NO IS NULL THEN 'N' ELSE 'Y' END) AS CLCTAM_YN /*집금자여부*/
@@ -108,8 +152,8 @@
             ON E.SL_CL_YM = A.BASE_YM
            AND E.CNTR_NO = A.CNTR_NO
            AND E.CNTR_SN = A.CNTR_SN
-          LEFT JOIN TB_OGBS_MM_PRTNR_IZ F               /*T:월파트너내역*/
-            ON F.BASE_YM = A.BASE_YM
+          LEFT JOIN TB_OGBS_PRTNR_BAS F               /*T:파트너기본*/
+            ON 1 = 1
            AND F.OG_TP_CD = B.OG_TP_CD
            AND F.PRTNR_NO = B.PRTNR_NO
           LEFT JOIN LATERAL (SELECT SUM((CASE WHEN DP_DV_CD = '1' THEN NVL(RVE_AMT,0) ELSE 0 END)) AS PD_RVE_AMT    /*입금금액*/
@@ -149,8 +193,12 @@
            AND A.DTA_DL_YN = 'N'
            AND A.BASE_YM = SUBSTR(#{baseDt},1,6)
            AND A.RQDT = #{baseDt}                       /*요청일->직권해지일*/
-        <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
+        <if test='@MybatisUtils@equals(sellTpCd, "2")'>
            AND A.SELL_TP_CD = #{sellTpCd}              /*판매유형코드->상품유형*/
+        </if>
+        <if test='@MybatisUtils@equals(sellTpCd, "6")'>
+           AND A.SELL_TP_CD = #{sellTpCd}              /*판매유형코드->상품유형*/
+           AND D.SELL_TP_DTL_CD = '62'                 /*렌찰해지예정 상품유형-정기배송 (모종만)*/
         </if>
         <if test='@MybatisUtils@isNotEmpty(clctamDvCd)'>    -- "집금구분" 선택 시...
            AND A.CLCTAM_DV_CD = #{clctamDvCd}
@@ -167,8 +215,8 @@
         </if>
         <choose>
         <when test='@MybatisUtils@equals(authRsgCd, "01")'> -- "확정구분->미확정" 선택 시...(필수)
-           AND A.AUTH_RSG_EXP_YN = 'N'
-           AND A.AUTH_RSG_CNFM_YN = 'N'
+<!--           AND A.AUTH_RSG_EXP_YN = 'N'-->
+<!--           AND A.AUTH_RSG_CNFM_YN = 'N'-->
         </when>
         <when test='@MybatisUtils@equals(authRsgCd, "02")'> -- "확정구분->예정확정" 선택 시...(필수)
            AND A.AUTH_RSG_EXP_YN = 'Y'
@@ -185,6 +233,12 @@
           FROM TB_CBBO_WELLS_AUTH_RSG_IZ
          WHERE 1 = 1
            AND BASE_YM = SUBSTR(#{baseDt},1,6)
+        <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND AUTH_RSG_EXP_YN = 'N'
+           AND AUTH_RSG_CNFM_YN = 'N'
+        </if>
            AND DTA_DL_YN = 'N'
     </select>
 
@@ -473,7 +527,7 @@
            AND C.SL_STP_YN = 'Y'    /*매출중지여부*/
            AND NVL(C.RENTAL_TN,0)  <![CDATA[<]]> NVL(B.CNTR_PTRM,0)    /*렌탈회차<![CDATA[<]]>계약기간*/
            AND NOT (A.CNTR_TP_CD = '02' AND SUBSTR(D.HMNRSC_DEPT_CD,1,1) BETWEEN 'W' AND 'Z')   /*법인,신채널 제외*/
-           AND B.ALNCMP_CD NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
+           AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
            AND C.SL_CL_YM = SUBSTR(#{baseDt},1,6) /*실적년월*/
            AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
            AND F.CLCTAM_PRTNR_NO NOT IN (SELECT PRTNR_NO
@@ -764,7 +818,7 @@
            AND C.SL_STP_YN = 'Y'    /*매출중지여부*/
            AND NVL(C.RENTAL_TN,0) <![CDATA[<]]> NVL(B.CNTR_PTRM,0)    /*렌탈회차<![CDATA[<]]>계약기간*/
            AND NOT (A.CNTR_TP_CD = '02' AND SUBSTR(D.HMNRSC_DEPT_CD,1,1) BETWEEN 'W' AND 'Z')   /*법인,신채널 제외*/
-           AND B.ALNCMP_CD NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
+           AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
            AND C.SL_CL_YM = SUBSTR(#{baseDt},1,6)    /*실적년월*/
            AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
            AND NOT EXISTS (SELECT 1
@@ -858,7 +912,7 @@
            UPDATE
               SET X1.TOT_NPD_EXP_AMT = (CASE WHEN X1.TOT_NPD_AMT - (X2.COL01 + X2.COL02 - X2.COL03) <![CDATA[<]]> 0 THEN 0
                                              ELSE X1.TOT_NPD_AMT - (X2.COL01 + X2.COL02 - X2.COL03) END)    /*총미납예정금액*/
-                , X1.RTRN_DBT_EXP_AMT = NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
+                , X1.RTRN_DBT_EXP_AMT = -NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
                                              - (X1.RENTAL_RES_BOR_AMT + X1.RENTAL_RGST_COST_BOR_AMT + X1.DSC_CS_BOR_AMT + X1.RSTL_BOR_AMT)
                                              - X1.CSMB_CS_BOR_AMT   /*소모품비용위약금액*/
                                              - X1.REQD_CS_BOR_AMT   /*철거비용위약금액*/
@@ -866,7 +920,7 @@
                                              - X1.LSTMM_OCPT_CS     /*전월점유비용*/
                                              - X1.SL_SUM_AMT        /*매출합계금액*/
                                              + X1.P_SL_AMT),0)      /*포인트매출금액*/ /*반환채무예정금액*/
-                , X1.NRTRN_DBT_EXP_AMT = NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
+                , X1.NRTRN_DBT_EXP_AMT = -NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
                                              - (X1.RENTAL_RES_BOR_AMT + X1.RENTAL_RGST_COST_BOR_AMT + X1.DSC_CS_BOR_AMT + X1.RSTL_BOR_AMT)
                                              - X1.CSMB_CS_BOR_AMT   /*소모품비용위약금액*/
                                              - X1.LS_RNTF           /*분실손료*/
@@ -885,7 +939,7 @@
            UPDATE
               SET X1.TOT_NPD_FNL_AMT = (CASE WHEN X1.TOT_NPD_AMT - (X2.COL01 + X2.COL02 - X2.COL03) <![CDATA[<]]> 0 THEN 0
                                              ELSE X1.TOT_NPD_AMT - (X2.COL01 + X2.COL02 - X2.COL03) END)    /*총미납최종금액*/
-                , X1.RTRN_DBT_FNL_AMT = NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
+                , X1.RTRN_DBT_FNL_AMT = -NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
                                              - (X1.RENTAL_RES_BOR_AMT + X1.RENTAL_RGST_COST_BOR_AMT + X1.DSC_CS_BOR_AMT + X1.RSTL_BOR_AMT)
                                              - X1.CSMB_CS_BOR_AMT   /*소모품비용위약금액*/
                                              - X1.REQD_CS_BOR_AMT   /*철거비용위약금액*/
@@ -893,7 +947,7 @@
                                              - X1.LSTMM_OCPT_CS     /*전월점유비용*/
                                              - X1.SL_SUM_AMT        /*매출합계금액*/
                                              + X1.P_SL_AMT),0)      /*포인트매출금액*/ /*반환채무최종금액*/
-                , X1.NRTRN_DBT_FNL_AMT = NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
+                , X1.NRTRN_DBT_FNL_AMT = -NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
                                              - (X1.RENTAL_RES_BOR_AMT + X1.RENTAL_RGST_COST_BOR_AMT + X1.DSC_CS_BOR_AMT + X1.RSTL_BOR_AMT)
                                              - X1.CSMB_CS_BOR_AMT   /*소모품비용위약금액*/
                                              - X1.LS_RNTF           /*분실손료*/
@@ -1046,4 +1100,229 @@
         </if>
     </update>
 
+    <insert id="insertRentalResignExpectedCancel">
+    --------------------------------------------------------------
+    -- 직권해지 취소자료 등록
+    --------------------------------------------------------------
+        INSERT INTO TB_CBBO_WELLS_AUTH_RSG_CAN_IZ ( /* WELLS직권해지취소내역 */
+               CNTR_NO /* 계약번호 */
+             , CNTR_SN /* 계약일련번호 */
+             , CH_SN /* 변경일련번호 */
+             , CO_CD /* 회사코드 */
+             , RQDT /* 요청일자 */
+             , CAN_DT /* 취소일자 */
+             , SELL_TP_CD /* 판매유형코드 */
+             , PD_CD /* 상품코드 */
+             , SELL_QTY /* 판매수량 */
+             , SELL_AMT /* 판매금액 */
+             , SELL_AMT_VAT /* 판매금액부가가치세 */
+             , BFSVC_PRD_CD /* BS주기코드 */
+             , USWY_TP_CD /* 용도유형코드 */
+             , RENTAL_RGST_COST /* 렌탈등록비 */
+             , RENTAL_RGST_COST_VAT /* 렌탈등록비부가가치세 */
+             , RENTAL_AMT1 /* 렌탈금액1 */
+             , RENTAL_PTRM1 /* 렌탈기간1 */
+             , RENTAL_AMT2 /* 렌탈금액2 */
+             , RENTAL_PTRM2 /* 렌탈기간2 */
+             , TOT_RENTAL_AMT /* 총렌탈금액 */
+             , TOT_RENTAL_PTRM /* 총렌탈기간 */
+             , DSCR /* 할인율 */
+             , DSC_AMT /* 할인금액 */
+             , TOT_CNTR_AMT /* 총계약금액 */
+             , RENTAL_NMN_N /* 렌탈차월수 */
+             , RENTAL_DC /* 렌탈일수 */
+             , SL_DC /* 매출일수 */
+             , EXMPT_YN /* 면책여부 */
+             , CSMB_CS_EXMPT_YN /* 소모품비용면책여부 */
+             , REQD_CS_EXMPT_YN /* 철거비용면책여부 */
+             , REQD_RCVRY_AK_YN /* 철거복구요청여부 */
+             , PRGS_NMN_N /* 진행차월수 */
+             , SPP_NMN_N /* 배송차월수 */
+             , PD_USE_DC /* 상품사용일수 */
+             , PD_GD_CD /* 상품등급코드 */
+             , NOM_SL_AMT /* 정상매출금액 */
+             , SPMT_SL_AMT /* 추가매출금액 */
+             , NOM_DSC_AMT /* 정상할인금액 */
+             , SPMT_DSC_AMT /* 추가할인금액 */
+             , SL_CTR_AMT /* 매출조정금액 */
+             , CAN_CTR_AMT /* 취소조정금액 */
+             , SL_SUM_AMT /* 매출합계금액 */
+             , SL_SUM_VAT /* 매출합계부가가치세 */
+             , SL_AGG_AMT /* 매출누계금액 */
+             , SL_AGG_AMT_VAT /* 매출누계금액부가가치세 */
+             , DSC_AGG_AMT /* 할인누계금액 */
+             , CTR_AGG_AMT /* 조정누계금액 */
+             , PRM_BTD_AMT /* 선납기초금액 */
+             , PRPD_BTD_AMT /* 선수기초금액 */
+             , TOT_PRPD_AMT /* 총선수금액 */
+             , SL_DP_AMT /* 매출입금금액 */
+             , SL_DP_AGG_AMT /* 매출입금누계금액 */
+             , UC_AMT /* 미수금액 */
+             , DLQ_AMT /* 연체금액 */
+             , PRM_RFND_AMT /* 선납환불금액 */
+             , PRPD_RFND_AMT /* 선수환불금액 */
+             , RENTAL_RGST_COST_RFND_AMT /* 렌탈등록비환불금액 */
+             , RENTAL_RGST_COST_RFND_AMT_VAT /* 렌탈등록비환불금액부가가치세 */
+             , BOR_AMT /* 위약금액 */
+             , TOT_RFND_AMT /* 총환불금액 */
+             , LS_RNTF /* 분실손료 */
+             , P_BTD_AMT /* 포인트기초금액 */
+             , P_DP_AMT /* 포인트입금금액 */
+             , P_RFND_AMT /* 포인트환불금액 */
+             , P_SL_AMT /* 포인트매출금액 */
+             , P_EOT_AMT /* 포인트기말금액 */
+             , ADAMT_BTD_AMT /* 가산금기초금액 */
+             , ADAMT_THM_OC_AMT /* 가산금당월발생금액 */
+             , ADAMT_DP_RPLC_AMT /* 가산금입금대체금액 */
+             , ADAMT_EOT_AMT /* 가산금기말금액 */
+             , ADAMT_DDCTAM /* 가산금공제금액 */
+             , ADAMT_RFND_AMT /* 가산금환불금액 */
+             , ADAMT_THM_AMT /* 가산금당월금액 */
+             , RENTAL_RES_BOR_AMT /* 렌탈잔여위약금액 */
+             , RENTAL_RGST_COST_BOR_AMT /* 렌탈등록비위약금액 */
+             , DSC_CS_BOR_AMT /* 할인비용위약금액 */
+             , CSMB_CS_BOR_AMT /* 소모품비용위약금액 */
+             , RSTL_BOR_AMT /* 재약정위약금액 */
+             , P_BOR_AMT /* 포인트위약금액 */
+             , REQD_CS_BOR_AMT /* 철거비용위약금액 */
+             , ETC_BOR_AMT1 /* 기타위약금액1 */
+             , ETC_BOR_AMT2 /* 기타위약금액2 */
+             , THM_ADN_SV_UC_AMT /* 당월부가서비스미수금액 */
+             , ETC_CN1 /* 기타내용1 */
+             , ETC_CN2 /* 기타내용2 */
+             , ETC_CN3 /* 기타내용3 */
+             , AUTO_CRT_YN /* 자동생성여부 */
+             , SL_CTR_AK_PRTNR_NO /* 매출조정요청파트너번호 */
+             , SL_CTR_RSON_CN /* 매출조정사유내용 */
+             , RTNGD_QTY /* 반품수량 */
+             , DTA_DL_YN /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField"/>)
+        SELECT T1.CNTR_NO /* 계약번호 */
+             , T1.CNTR_SN /* 계약일련번호 */
+             , 1 AS CH_SN /* CH_SN-변경일련번호_NEW */
+             , '2000' AS CO_CD /* CO_CD-회사코드_NEW */
+             , T1.RQDT /* 요청일자 */
+             , T1.CAN_DT /* 취소일자 */
+             , T1.SELL_TP_CD /* 판매유형코드 */
+             , T1.PD_CD /* 상품코드 */
+             , T1.SELL_QTY /* 판매수량 */
+             , T1.SELL_AMT /* 판매금액 */
+             , T1.SELL_AMT_VAT /* 판매금액부가가치세 */
+             , T1.BFSVC_PRD_CD /* BS주기코드 */
+             , T1.USWY_TP_CD /* 용도유형코드 */
+             , T1.RENTAL_RGST_COST /* 렌탈등록비 */
+             , T1.RENTAL_RGST_COST_VAT /* 렌탈등록비부가가치세 */
+             , T1.RENTAL_AMT1 /* 렌탈금액1 */
+             , T1.RENTAL_PTRM1 /* 렌탈기간1 */
+             , T1.RENTAL_AMT2 /* 렌탈금액2 */
+             , T1.RENTAL_PTRM2 /* 렌탈기간2 */
+             , T1.TOT_RENTAL_AMT /* 총렌탈금액 */
+             , T1.TOT_RENTAL_PTRM /* 총렌탈기간 */
+             , T1.DSCR /* 할인율 */
+             , T1.DSC_AMT /* 할인금액 */
+             , T1.TOT_CNTR_AMT /* 총계약금액 */
+             , T1.RENTAL_NMN_N /* 렌탈차월수 */
+             , T1.RENTAL_DC /* 렌탈일수 */
+             , T1.SL_DC /* 매출일수 */
+             , T1.EXMPT_YN /* 면책여부 */
+             , T1.CSMB_CS_EXMPT_YN /* 소모품비용면책여부 */
+             , T1.REQD_CS_EXMPT_YN /* 철거비용면책여부 */
+             , T1.REQD_RCVRY_AK_YN /* 철거복구요청여부 */
+             , 0 AS PRGS_NMN_N /* PRGS_NMN_N-진행차월수_TO-BE */
+             , 0 AS SPP_NMN_N /* SPP_NMN_N-배송차월수_TO-BE */
+             , T1.PD_USE_DC /* 상품사용일수 */
+             , T1.PD_GD_CD /* 상품등급코드 */
+             , T1.NOM_SL_AMT /* 정상매출금액 */
+             , T1.SPMT_SL_AMT /* 추가매출금액 */
+             , T1.NOM_DSC_AMT /* 정상할인금액 */
+             , T1.SPMT_DSC_AMT /* 추가할인금액 */
+             , T1.SL_CTR_AMT /* 매출조정금액 */
+             , T1.CAN_CTR_AMT /* 취소조정금액 */
+             , T1.SL_SUM_AMT /* 매출합계금액 */
+             , T1.SL_SUM_VAT /* 매출합계부가가치세 */
+             , T1.SL_AGG_AMT /* 매출누계금액 */
+             , T1.SL_AGG_AMT_VAT /* 매출누계금액부가가치세 */
+             , T1.DSC_AGG_AMT /* 할인누계금액 */
+             , T1.CTR_AGG_AMT /* 조정누계금액 */
+             , T1.PRM_BTD_AMT /* 선납기초금액 */
+             , T1.PRPD_BTD_AMT /* 선수기초금액 */
+             , T1.TOT_PRPD_AMT /* 총선수금액 */
+             , T1.SL_DP_AMT /* 매출입금금액 */
+             , T1.SL_DP_AGG_AMT /* 매출입금누계금액 */
+             , T1.UC_AMT /* 미수금액 */
+             , T1.DLQ_AMT /* 연체금액 */
+             , T1.PRM_RFND_AMT /* 선납환불금액 */
+             , T1.PRPD_RFND_AMT /* 선수환불금액 */
+             , T1.RENTAL_RGST_COST_RFND_AMT /* 렌탈등록비환불금액 */
+             , T1.RENTAL_RGST_COST_RFND_AMT_VAT /* 렌탈등록비환불금액부가가치세 */
+             , T1.BOR_AMT /* 위약금액 */
+             , T1.TOT_RFND_AMT /* 총환불금액 */
+             , T1.LS_RNTF /* 분실손료 */
+             , T1.P_BTD_AMT /* 포인트기초금액 */
+             , T1.P_DP_AMT /* 포인트입금금액 */
+             , T1.P_RFND_AMT /* 포인트환불금액 */
+             , T1.P_SL_AMT /* 포인트매출금액 */
+             , T1.P_EOT_AMT /* 포인트기말금액 */
+             , T1.ADAMT_BTD_AMT /* 가산금기초금액 */
+             , T1.ADAMT_THM_OC_AMT /* 가산금당월발생금액 */
+             , T1.ADAMT_DP_RPLC_AMT /* 가산금입금대체금액 */
+             , T1.ADAMT_EOT_AMT /* 가산금기말금액 */
+             , T1.ADAMT_DDCTAM /* 가산금공제금액 */
+             , T1.ADAMT_RFND_AMT /* 가산금환불금액 */
+             , T1.ADAMT_THM_AMT /* 가산금당월금액 */
+             , T1.RENTAL_RES_BOR_AMT /* 렌탈잔여위약금액 */
+             , T1.RENTAL_RGST_COST_BOR_AMT /* 렌탈등록비위약금액 */
+             , T1.DSC_CS_BOR_AMT /* 할인비용위약금액 */
+             , T1.CSMB_CS_BOR_AMT /* 소모품비용위약금액 */
+             , T1.RSTL_BOR_AMT /* 재약정위약금액 */
+             , T1.P_BOR_AMT /* 포인트위약금액 */
+             , T1.REQD_CS_BOR_AMT /* 철거비용위약금액 */
+             , T1.ETC_BOR_AMT1 /* 기타위약금액1 */
+             , T1.ETC_BOR_AMT2 /* 기타위약금액2 */
+             , T1.THM_ADN_SV_UC_AMT /* 당월부가서비스미수금액 */
+             , 'U' AS ETC_CN1 /* ETC_CN1-기타내용1_NEW */
+             , '' AS ETC_CN2 /* ETC_CN2-기타내용2_NEW */
+             , 'KF' AS ETC_CN3 /* ETC_CN3-기타내용3_NEW */
+             , 'N' AS AUTO_CRT_YN /* AUTO_CRT_YN-자동생성여부_TO-BE */
+             , '' AS SL_CTR_AK_PRTNR_NO /* SL_CTR_AK_PRTNR_NO-매출조정요청파트너번호_NEW_조정 요청자 */
+             , '' AS SL_CTR_RSON_CN /* SL_CTR_RSON_CN_매출조정사유내용_NEW */
+             , 0 AS RTNGD_QTY /* RTNGD_QTY_반품수량_TO-BE */
+             , 'N' AS DTA_DL_YN /* DTA_DL_YN-데이터삭제여부 */
+            <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_CBBO_WELLS_AUTH_RSG_IZ T1
+        /* 계약기본-상세 */
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON 1 = 1
+           AND T1.CNTR_NO = T2.CNTR_NO
+           AND T1.CNTR_SN = T2.CNTR_SN
+        /* 매출실적 */
+          LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS T3
+            ON T3.PERF_YM = SUBSTR(#{baseDt}, 0, 6) /* 직권해지일자 */
+           AND T1.CNTR_NO = T3.CNTR_NO
+           AND T1.CNTR_SN = T3.CNTR_SN
+        /* 당월입금정보 */
+          LEFT OUTER JOIN LATERAL ( SELECT SUM(CASE WHEN DP_DV_CD = '1' THEN RVE_AMT ELSE 0 END) AS RVE_AMT
+                                         , SUM(CASE WHEN DP_DV_CD = '2' THEN RVE_AMT ELSE 0 END) AS RFND_AMT
+                                      FROM TB_RVDW_RVE_DTL J1 /* 수납상게 */
+                                     WHERE 1 = 1
+                                       AND J1.RVE_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}), -1),'YYYYMM') || '01' AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}), -1),'YYYYMM') || '31' /* 직권해지일자 */
+                                       AND J1.CNTR_NO = T1.CNTR_NO
+                                       AND J1.CNTR_SN = T1.CNTR_SN) T4
+            ON 1 = 1
+         WHERE 1 = 1
+           AND T1.SELL_TP_CD IN ('2','6') /* 판매유형코드 */
+           AND T1.AUTH_RSG_EXP_YN = 'Y' /* 직권해지예정여부 */
+           AND T1.AUTH_RSG_CNFM_YN != 'Y' /* 직권해지확정여부 */
+           AND T1.AUTH_RSG_EXCD_RQR_PRTNR_NO IS NOT NULL /* 직권해지제외요청자파트너번호 */
+        /* 기존에 등록된 대상 제외 */
+           AND NOT EXISTS (SELECT 1
+                             FROM TB_CBBO_WELLS_AUTH_RSG_CAN_IZ Z1 /* T:WELLS직권해지취소내역 */
+                            WHERE 1 = 1
+                              AND DTA_DL_YN = 'N'
+                              AND Z1.CNTR_NO = T1.CNTR_NO
+                              AND Z1.CNTR_SN = T1.CNTR_SN )
+        /* -- 총미납금 0원 제외 */
+           AND T1.TOT_NPD_AMT - (NVL(T1.PRPD_BTD_AMT,0) + NVL(RVE_AMT,0) - NVL(RFND_AMT,0) ) > 0
+           AND T1.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}), -1),'YYYYMM')
+    </insert>
 </mapper>

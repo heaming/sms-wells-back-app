@@ -41,6 +41,14 @@ public class WsnaSeedingTruckArrangementMapController {
         return this.service.getSeedingTruckArragementMap(dto);
     }
 
+    @ApiOperation(value = "모종 출하대차 MAP", notes = "검색 조건을 입력받아 데이터를 조회한다.")
+    @GetMapping("/label")
+    public List<SearchLabelRes> getSeedingTruckArrangementLabel(
+        SearchReq dto
+    ) {
+        return this.service.getSeedingTruckArrangementLabel(dto);
+    }
+
     //    @ApiOperation(value = "모종 출하대차 MAP", notes = "검색 조건을 입력받아 데이터를 조회한다.")
     //    @GetMapping("/total")
     //    public List<WsnaSeedingTruckArrangementMapSeedDvo> getSeedingTruckArragementMap() {

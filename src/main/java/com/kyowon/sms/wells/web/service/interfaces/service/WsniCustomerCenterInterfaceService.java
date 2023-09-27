@@ -10,6 +10,7 @@ import com.kyowon.sms.wells.web.service.interfaces.converter.WsniCustomerCenterI
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCustomerCenterInterfaceDto.*;
 import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniCustomerCenterInterfaceDvo;
 import com.kyowon.sms.wells.web.service.interfaces.mapper.WsniCustomerCenterInterfaceMapper;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
@@ -21,6 +22,7 @@ public class WsniCustomerCenterInterfaceService {
     private final WsniCustomerCenterInterfaceMapper mapper;
 
     private final WsniCustomerCenterInterfaceConverter converter;
+    private final MessageResourceService messageService;
 
     public List<SearchContactRes> getEngineerContactPs(SearchReq dto) {
         //        List<SearchContactRes> searchRes = mapper.selectEngineerContactPs(dto);
@@ -86,31 +88,32 @@ public class WsniCustomerCenterInterfaceService {
     public CreateShpadrRes createFilterShippingAddress(CreateShpadrReq dto) {
         WsniCustomerCenterInterfaceDvo dvo = converter.mapCreateShpadrResToCenterInterfaceDvo(dto);
 
+        // 이전 배송차수 종료일 UPDATE
+        mapper.updateFilterShippingAddress(dvo);
+
         int result = mapper.insertFilterShippingAddress(dvo);
 
-        BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+        BizAssert.isTrue(result == 1, messageService.getMessage("MSG_ALT_SVE_ERR"));
 
         // @TODO: TEMP_CODE :: 메세지 정상 출력되는지 확인 필요
-        return new CreateShpadrRes("MSG_ALT_SAVE_DATA", "S001");
+        return new CreateShpadrRes(messageService.getMessage("MSG_ALT_SAVE_DATA"), "S001");
     }
 
     @Transactional
     public EditShpadrRes editFilterShippingAddress(EditShpadrReq dto) {
         WsniCustomerCenterInterfaceDvo dvo = converter.mapEditShpadrResToCenterInterfaceDvo(dto);
 
-        int result = mapper.updateFilterShippingAddress(dvo);
-
-        //BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+        mapper.updateFilterShippingAddress(dvo);
 
         // @TODO: TEMP_CODE :: 메세지 정상 출력되는지 확인 필요
         return new EditShpadrRes("MSG_ALT_SAVE_DATA", "S001");
     }
 
     public FindAdnInfRes getAdditional(FindAdnInfReq dto) {
-        WsniCustomerCenterInterfaceDvo returnDvo = new WsniCustomerCenterInterfaceDvo();
-        WsniCustomerCenterInterfaceDvo tempDvo = new WsniCustomerCenterInterfaceDvo();
+        WsniCustomerCenterInterfaceDvo returnDvo;
+        WsniCustomerCenterInterfaceDvo tempDvo;
 
-        tempDvo = mapper.selectAllCleanYn(dto);
+        tempDvo = mapper.selectAllCleanYn(dto.cntrNo(), dto.cntrSn());
 
         returnDvo = mapper.selectFilterShippingAddressInfo(dto);
         returnDvo.setIstLctDtlCn(mapper.selectIstLctDtlCn(dto));

@@ -35,27 +35,21 @@ public interface WogcPartnerPlannerMapper {
 
     List<WogcPartnerPlannerDto.SearchRes> selectTopPlannerPages(WogcPartnerPlannerDto.SearchReq dto);
 
-    int deleteTopPlanner(WogcPartnerPlannerDvo planner);
+    int insertOneTopPlanner(WogcPartnerPlannerDvo planner);
 
-    int selectCountMmPartner(WogcPartnerPlannerDvo planner);
-
-    int selectCountPlarPartner(WogcPartnerPlannerDvo planner);
-
-    int selectCountTopPlarPartner(WogcPartnerPlannerDvo planner);
-
-    int insertTopPlanner(WogcPartnerPlannerDvo planner);
+    int insertTwoTopPlanner(WogcPartnerPlannerDvo planner);
 
     int updateMmPartner(WogcPartnerPlannerDvo planner);
 
     int updateDtlPartner(WogcPartnerPlannerDvo planner);
 
-    int updateTopPlanner(WogcPartnerPlannerDvo planner);
+    int insertAdTopPlanner(WogcPartnerPlannerDvo planner);
 
     int updateAdMmPartner(WogcPartnerPlannerDvo planner);
 
     int updateAdDtlPartner(WogcPartnerPlannerDvo planner);
 
-    WogcPartnerPlannerDto.FindRes selectTopPlannerByPk(String bldCd, String gridOgTpCd);
+    WogcPartnerPlannerDto.FindRes selectTopPlannerByPk(String ogTpCd, String prtnrNo, String mngtYm);
 
     PagingResult<SearchLicenseDetailRes> selectPlannerLicenseDetailPages(String prtnrNo, PageInfo pageinfo);
 
@@ -64,5 +58,9 @@ public interface WogcPartnerPlannerMapper {
     int insertPlannerQualificationChange(WogcPartnerPlannerQualificationDvo dvo);
 
     int updatePlannerQualificationChange(WogcPartnerPlannerQualificationDvo dvo);
+
+    int selectFeamOrderCnt(WogcPartnerPlannerDto.SearchCheckReq dto);
+
+    int selectQuaCreateCnt(WogcPartnerPlannerDto.SearchCheckReq dto);
 
 }

@@ -13,6 +13,7 @@ import com.kyowon.sms.wells.web.kakaosync.common.dto.KakaoWcsbProspecCustomerMgt
 import com.kyowon.sms.wells.web.kakaosync.common.dvo.KakaoWcsbSyncDefaultDvo;
 import com.kyowon.sms.wells.web.kakaosync.common.mapper.KakaoFrdnCustMapper;
 import com.kyowon.sms.wells.web.kakaosync.zcommon.kakaosyncutils.AES256Util;
+import com.sds.sflex.common.portal.service.PortalSessionService;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.exception.BizException;
@@ -34,6 +35,7 @@ public class KakaoWcsbProspecCustomerMgtService {
     private final WcszPartnerSearchService partnerSearchService;
     private final SujiewonService addressService;
     private final KakaoFrdnCustMapper kakaoFrdnCustMapper;
+    private final PortalSessionService portalSessionService;
 
     /**
      * 고객 DB 목록 저장(추가)
@@ -43,6 +45,10 @@ public class KakaoWcsbProspecCustomerMgtService {
      */
     @Transactional
     public int saveProspecCustomers(KakaoWcsbProspecCustomerMgtDto.SaveReq dto) throws Exception {
+
+        // 미인증 세션 처리
+        portalSessionService.makeAnonymousSession();
+
         int processCount = 0;
 
         WcszPartnerDvo partnerVo = partnerSearchService.getPartnerByPk(null, dto.employee_id());
@@ -61,33 +67,13 @@ public class KakaoWcsbProspecCustomerMgtService {
             BizAssert.isFalse(dto.phoneNumber().equals(akdhpno), "담당EP 휴대전화 번호와  동일한 번호는 등록할 수 없습니다.");
         }
 
-        WcsbTbSsopPspcCstDdlvHistDvo teacherVo = converter
-            .mapSaveReqToWcsbTbSsopPspcCstDdlvHistDvo(
-                new WcsbProspecCustomerMgtDto.TbSsopPspcCstDdlvHist(
-                    "",
-                    "", "", "", "", "",
-                    "", "", "", ""
-                )
-            );
+        WcsbTbSsopPspcCstDdlvHistDvo teacherVo = new WcsbTbSsopPspcCstDdlvHistDvo();
 
         //  카카오싱크 + default dvo
         KakaoWcsbSyncDefaultDvo defaultdvo = converter.mapSaveReqToKakaoWcsbSyncDefaultDvo(dto);
 
         //  가망고객기본 dvo
-        WcsbProspecCustomerDvo dvo = converter.mapSaveReqToWcsbProspecCustomerDvo(
-            new WcsbProspecCustomerMgtDto.TbSsopPspcCstBas(
-                "",
-                "", "", "", "", "", "", "", "", "",
-                "", "", "", "", "", "", "", "", "", "",
-                "", "", "", "", "", "", "", "",
-                "", "", "", "", "", "", "", "",
-                0, "", "", "", "", "", "",
-                "", "", "", "", "", "", "",
-                "", "", "", "", "", "", "",
-                "", "", "", "", "", "", "",
-                "", "", "", "", ""
-            )
-        );
+        WcsbProspecCustomerDvo dvo = new WcsbProspecCustomerDvo();
 
         /**
          * #0. 카카오싱크 기본 ()

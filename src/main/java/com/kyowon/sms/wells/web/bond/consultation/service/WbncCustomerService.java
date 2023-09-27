@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +13,8 @@ import com.kyowon.sms.wells.web.bond.consultation.converter.WbncCustomerConverte
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindBaseYmRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselHistoryReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselHistoryRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselRegistrationReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCounselRegistrationRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindCustomerDetailRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRecIdReq;
@@ -71,7 +72,7 @@ public class WbncCustomerService {
      * @param dto 검색 조건
      * @return 채권상담 고객상세 정보조회 결과
      */
-    public Optional<FindRes> getCustomerDetail(FindReq dto) {
+    public FindRes getCustomerDetail(FindReq dto) {
         return mapper.selectCustomerDetail(dto);
     }
 
@@ -126,10 +127,11 @@ public class WbncCustomerService {
     public int saveCounsel(SaveCounselReq dto) throws Exception {
         int processCount = 0;
         WbncCustomerDvo dvo = converter.mapSaveReqToWbncCounselDvo(dto);
+
         processCount = mapper.insertCounsel(dvo);
+        BizAssert.isTrue(processCount > 0, "MSG_ALT_SVE_ERR");
 
         processCount = mapper.insertPromise(dvo);
-
         BizAssert.isTrue(processCount > 0, "MSG_ALT_SVE_ERR");
 
         return processCount;
@@ -144,7 +146,6 @@ public class WbncCustomerService {
         try {
             String ext = dto.inlnNo();
             String url = "http://10.1.73.14:8088?type=get&cmd=callkeyap&ext=" + ext; // 운영
-            System.out.println("url : " + url);
 
             URL obj = new URL(url);
             HttpURLConnection conn = (HttpURLConnection)obj.openConnection();
@@ -177,4 +178,14 @@ public class WbncCustomerService {
         return result;
 
     }
+
+    /**
+     * 고객상세 상담등록 조회
+     * @param dto 검색 조건
+     * @return 고객상세 상담등록 정보조회 결과
+     */
+    public FindCounselRegistrationRes getCounselRegistration(FindCounselRegistrationReq dto) {
+        return mapper.selectCounselRegistration(dto);
+    }
+
 }

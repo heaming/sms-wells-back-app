@@ -24,7 +24,8 @@ public class WsnaReturningGoodsStoreDto {
         String svBizDclsfCd, /*서비스업무세분류코드*/
         String strConfYnCd, /*입고확인여부코드*/
         String stRtngdProcsTpCd, /*반품처리유형코드*/
-        String stOstrConfDt /*확인일자*/
+        String stOstrConfDt, /*확인일자*/
+        String chkErrorCheck
 
     ) {}
 
@@ -42,7 +43,7 @@ public class WsnaReturningGoodsStoreDto {
         String reqdDt, /*철거일자*/
         String vstFshDt, /*작업일자*/
         String rtngdConfYn, /*반품확인여부*/
-        //        String col8, /*사용일자 TODO*/
+        String useDay,
         String useMths, /*사용개월*/
         String refurbishYn, /*리퍼여부*/
         String fnlItmGdCd, /*최종상품등급코드*/
@@ -69,7 +70,6 @@ public class WsnaReturningGoodsStoreDto {
         String rtngdRvpyProcsYn,
         String wkWareNo,
         String wkOstrSn,
-
         String rmkCn,
         String cntrNoNew,
         String barCd,
@@ -82,11 +82,15 @@ public class WsnaReturningGoodsStoreDto {
         String rcpIchrPrtnrNo,
         String fstRgstUserNm,
         String cnslMoCn,
-        //        String col23,
         String prtnrKnm,
+
+        String ogNm,
+
+        String rcstDv,
         String itemKnd,
         String badDvNm,
-        String mgtUnt
+        String mgtUnt,
+        String errorCheck
 
     ) {}
 

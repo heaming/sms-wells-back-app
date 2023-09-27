@@ -342,22 +342,27 @@
                         AND T2.ITM_PD_CD = T1.ITM_PD_CD
                        LEFT OUTER JOIN
                           (
-                            SELECT /*+ INDEX(TB_SVST_SV_WK_OSTR_IZ IX_SVST_SV_WK_OSTR_IZ_01) */
-                                   SUBSTR(FNL_VST_FSH_DT, 1, 6) AS BASE_YM
-                                 , WK_WARE_NO                   AS WARE_NO
-                                 , ITM_PD_CD
-                                 , SUM(CASE WHEN FNL_ITM_GD_CD = 'A' THEN USE_QTY END) AS WK_STR_A_QTY
-                                 , SUM(CASE WHEN FNL_ITM_GD_CD = 'B' THEN USE_QTY END) AS WK_STR_B_QTY
-                                 , SUM(CASE WHEN FNL_ITM_GD_CD = 'E' THEN USE_QTY END) AS WK_STR_E_QTY
-                                 , SUM(CASE WHEN FNL_ITM_GD_CD = 'R' THEN USE_QTY END) AS WK_STR_R_QTY
-                              FROM TB_SVST_SV_WK_OSTR_IZ   /* 서비스작업출고내역 */
-                             WHERE DTA_DL_YN       = 'N'
-                               AND SV_BIZ_HCLSF_CD = '6'
-                               AND FNL_VST_FSH_DT BETWEEN #{mngtYm} || '01' AND #{mngtYm} || '31'
-                               AND WK_WARE_NO LIKE #{wareDvCd} || '%'
-                               AND ITM_PD_CD NOT IN ( 'WM07100982', 'WM07105746', 'WM07100987', 'WM07100988', 'WM07105749', 'WM07105750', 'WM07105751', 'WM07105752'
-                                                    , 'WM07100981', 'WM07100985', 'WM07100986', 'WM07105706', 'WM07105707', 'WM07105708', 'WM07105709' )
-                             GROUP BY SUBSTR(FNL_VST_FSH_DT, 1, 6), WK_WARE_NO, ITM_PD_CD
+                            SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+                                   SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)                           AS BASE_YM
+                                 , D1.WK_WARE_NO                                             AS WARE_NO
+                                 , D1.ITM_PD_CD
+                                 , SUM(CASE WHEN D1.FNL_ITM_GD_CD = 'A' THEN D1.USE_QTY END) AS WK_STR_A_QTY
+                                 , SUM(CASE WHEN D1.FNL_ITM_GD_CD = 'B' THEN D1.USE_QTY END) AS WK_STR_B_QTY
+                                 , SUM(CASE WHEN D1.FNL_ITM_GD_CD = 'E' THEN D1.USE_QTY END) AS WK_STR_E_QTY
+                                 , SUM(CASE WHEN D1.FNL_ITM_GD_CD = 'R' THEN D1.USE_QTY END) AS WK_STR_R_QTY
+                              FROM TB_SVST_SV_WK_OSTR_IZ D1          /* 서비스작업출고내역 */
+                             INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
+                                ON D2.PD_CD = D1.ITM_PD_CD
+                             WHERE D1.DTA_DL_YN          = 'N'
+                               AND D1.SV_BIZ_HCLSF_CD    = '6'
+                               AND D2.DTA_DL_YN          = 'N'
+                               AND D2.PD_EXTS_PRP_GRP_CD = 'PART'
+                               AND D2.PD_PRP_VAL01 NOT LIKE '60%'   /* 모종 제외 */
+                               AND D1.FNL_VST_FSH_DT BETWEEN #{mngtYm} || '01' AND #{mngtYm} || '31'
+                               AND D1.WK_WARE_NO LIKE #{wareDvCd} || '%'
+                               AND D1.ITM_PD_CD NOT IN ( 'WM07100982', 'WM07105746', 'WM07100987', 'WM07100988', 'WM07105749', 'WM07105750', 'WM07105751', 'WM07105752'
+                                                       , 'WM07100981', 'WM07100985', 'WM07100986', 'WM07105706', 'WM07105707', 'WM07105708', 'WM07105709' )
+                             GROUP BY SUBSTR(D1.FNL_VST_FSH_DT, 1, 6), D1.WK_WARE_NO, D1.ITM_PD_CD
                           ) T3   /* 작업출고 반품입고 */
                          ON T3.BASE_YM   = T1.BASE_YM
                         AND T3.WARE_NO   = T1.WARE_NO
@@ -430,21 +435,26 @@
                         AND T5.ITM_PD_CD = T1.ITM_PD_CD
                        LEFT OUTER JOIN
                           (
-                            SELECT /*+ INDEX(TB_SVST_SV_WK_OSTR_IZ IX_SVST_SV_WK_OSTR_IZ_01) */
-                                   SUBSTR(FNL_VST_FSH_DT, 1, 6) AS BASE_YM
-                                 , WK_WARE_NO                   AS WARE_NO
-                                 , ITM_PD_CD
-                                 , SUM(CASE WHEN FNL_ITM_GD_CD = 'A' THEN USE_QTY END) AS WK_OSTR_A_GD_QTY
-                                 , SUM(CASE WHEN FNL_ITM_GD_CD = 'B' THEN USE_QTY END) AS WK_OSTR_B_GD_QTY
-                                 , SUM(CASE WHEN FNL_ITM_GD_CD = 'E' THEN USE_QTY END) AS WK_OSTR_E_GD_QTY
-                                 , SUM(CASE WHEN FNL_ITM_GD_CD = 'R' THEN USE_QTY END) AS WK_OSTR_R_GD_QTY
-                              FROM TB_SVST_SV_WK_OSTR_IZ   /* 서비스작업출고내역 */
-                             WHERE DTA_DL_YN = 'N'
-                               AND SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4')
-                               AND FNL_VST_FSH_DT BETWEEN #{mngtYm} || '01' AND #{mngtYm} || '31'
-                               AND WK_WARE_NO LIKE #{wareDvCd} || '%'
-                               AND ITM_PD_CD NOT IN ( 'WM07100982', 'WM07105746', 'WM07100981' )
-                             GROUP BY SUBSTR(FNL_VST_FSH_DT, 1, 6), WK_WARE_NO, ITM_PD_CD
+                            SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
+                                   SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)                           AS BASE_YM
+                                 , D1.WK_WARE_NO                                             AS WARE_NO
+                                 , D1.ITM_PD_CD
+                                 , SUM(CASE WHEN D1.FNL_ITM_GD_CD = 'A' THEN D1.USE_QTY END) AS WK_OSTR_A_GD_QTY
+                                 , SUM(CASE WHEN D1.FNL_ITM_GD_CD = 'B' THEN D1.USE_QTY END) AS WK_OSTR_B_GD_QTY
+                                 , SUM(CASE WHEN D1.FNL_ITM_GD_CD = 'E' THEN D1.USE_QTY END) AS WK_OSTR_E_GD_QTY
+                                 , SUM(CASE WHEN D1.FNL_ITM_GD_CD = 'R' THEN D1.USE_QTY END) AS WK_OSTR_R_GD_QTY
+                              FROM TB_SVST_SV_WK_OSTR_IZ D1          /* 서비스작업출고내역 */
+                             INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
+                                ON D2.PD_CD = D1.ITM_PD_CD
+                             WHERE D1.DTA_DL_YN          = 'N'
+                               AND D1.SV_BIZ_HCLSF_CD   IN ('1', '2', '3', '4')
+                               AND D2.DTA_DL_YN          = 'N'
+                               AND D2.PD_EXTS_PRP_GRP_CD = 'PART'
+                               AND D2.PD_PRP_VAL01 NOT LIKE '60%'   /* 모종 제외 */
+                               AND D1.FNL_VST_FSH_DT BETWEEN #{mngtYm} || '01' AND #{mngtYm} || '31'
+                               AND D1.WK_WARE_NO LIKE #{wareDvCd} || '%'
+                               AND D1.ITM_PD_CD NOT IN ( 'WM07100982', 'WM07105746', 'WM07100981' )
+                             GROUP BY SUBSTR(D1.FNL_VST_FSH_DT, 1, 6), D1.WK_WARE_NO, D1.ITM_PD_CD
                           ) T6   /* 작업출고정보 */
                          ON T6.BASE_YM   = T1.BASE_YM
                         AND T6.WARE_NO   = T1.WARE_NO

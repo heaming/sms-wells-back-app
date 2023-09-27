@@ -44,15 +44,22 @@
                              , PL1.WARE_NO           /*창고번호*/
                              , PL1.WARE_NM           /*창고명*/
                              , PL1.WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
-                             , PL1.OG_TP_CD AS WARE_MNGT_PRTNR_OG_TP_CD
+                             , PL1.WARE_MNGT_PRTNR_OG_TP_CD AS WARE_MNGT_PRTNR_OG_TP_CD
                              , PL1.CNTR_CNFM_DTM    /*계약확정일*/
                              , PL1.LGST_WK_MTHD_CD_CNT
                              , (CASE WHEN PL1.LGST_WK_MTHD_CD = 'WE99' THEN 'WE99'
                                      WHEN PL1.LGST_WK_MTHD_CD_CNT > 1 THEN 'WE18'
                                      ELSE PL1.LGST_WK_MTHD_CD
-                                END) AS LGST_WK_MTHD_CD
+                                END
+                               ) AS LGST_WK_MTHD_CD
                              , PL1.OSTR_AK_NO        /*서비스출고요청번호*/
-                             , PL1.LGST_OSTR_AK_NO   /*물류출고요청번호*/
+                             , ( SELECT LGST_OSTR_AK_NO
+                                 FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT L2 /*출고요청상세송신전문*/
+                                 WHERE 1=1
+                                  AND L2.REL_NO = PL1.OSTR_AK_NO
+                                  AND L2.DTA_DL_YN = 'N'
+                                  AND ROWNUM = 1
+                               ) AS LGST_OSTR_AK_NO   /*물류출고요청번호*/
                              , PL1.OSTR_NO           /*물류출고번호*/
 			                 , PL1.PART_CNT_TOTAL AS PART_CNT_TOTAL    /*투입부품모델수*/
                              , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 1) AS PART_CD_01
@@ -124,11 +131,26 @@
                                      , S7.WARE_NO    /*창고번호*/
                                      , S7.WARE_NM    /*창고명*/
                                      , S7.WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
-                                     , S7.OG_TP_CD AS WARE_MNGT_PRTNR_OG_TP_CD
+                                     , (CASE WHEN S7.OG_TP_CD LIKE '@%' THEN 'W06' ELSE S7.OG_TP_CD END) AS WARE_MNGT_PRTNR_OG_TP_CD
                                      , C0.CNTR_CNFM_DTM     /*계약확정일*/
-                                     , L1.OSTR_AK_NO    /*서비스출고요청번호*/
-                                     , L2.LGST_OSTR_AK_NO   /*물류출고요청번호*/
-                                     , L1.OSTR_NO    /*물류출고번호*/
+                                     , ( SELECT OSTR_AK_NO
+                                         FROM TB_SVPD_OSTR_AK_PCSV_SEND_DTL L1 /*출고요청택배송신상세*/
+                                         WHERE 1=1
+                                          AND L1.CNTR_NO = S3.CNTR_NO
+                                          AND L1.CNTR_SN = S3.CNTR_SN
+                                          AND L1.OSTR_RQDT = S3.VST_FSH_DT
+                                          AND L1.DTA_DL_YN = 'N'
+                                          AND ROWNUM = 1
+                                        ) AS OSTR_AK_NO /*서비스출고요청번호*/
+                                     , ( SELECT OSTR_NO
+                                         FROM TB_SVPD_OSTR_AK_PCSV_SEND_DTL L1 /*출고요청택배송신상세*/
+                                         WHERE 1=1
+                                          AND L1.CNTR_NO = S3.CNTR_NO
+                                          AND L1.CNTR_SN = S3.CNTR_SN
+                                          AND L1.OSTR_RQDT = S3.VST_FSH_DT
+                                          AND L1.DTA_DL_YN = 'N'
+                                          AND ROWNUM = 1
+                                       ) AS OSTR_NO          /*물류출고번호*/
                                      , COUNT(1) OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
                                                           ORDER BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
                                                           RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS PART_CNT_TOTAL
@@ -179,7 +201,7 @@
                                  AND S4.DTA_DL_YN = 'N'
                                 LEFT OUTER JOIN TB_SVPD_AS_TP_CD S5           /*AS유형코드, CO460TB*/
                                  ON S5.PD_CD = S1.PD_CD
-                                 AND S5.SV_ANA_LCLSF_CD = S1.SV_BIZ_DCLSF_CD
+                                 AND S5.SV_ANA_HCLSF_CD = S1.SV_BIZ_DCLSF_CD
                                  AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN S5.APY_STRTDT AND S5.APY_ENDDT
                                  AND S5.DTA_DL_YN = 'N'
                                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S6          /*고객서비스수행내역*/
@@ -188,9 +210,8 @@
                                  AND S6.DTA_DL_YN = 'N'
                                 INNER JOIN TB_SVST_MCBY_WARE_IZ S7 /*월별창고내역, KWAS.LC_STOCK_ST102TB 창고조직기본정보*/
                                   /* TODO 변경사항  ON T9.WARE_MNGT_PRTNR_NO = NVL(T4.PRTNR_NO, T2.ICHR_PRTNR_NO) */
-                                 ON S7.WARE_MNGT_PRTNR_NO = (CASE WHEN NVL(S3.PRTNR_NO, S2.ICHR_PRTNR_NO) = '372' THEN '71321'
-                                                                   ELSE NVL(S3.PRTNR_NO, S2.ICHR_PRTNR_NO)
-                                                              END)
+                                 ON (CASE WHEN S7.WARE_MNGT_PRTNR_NO = '71321'
+                                     THEN '99992' ELSE S7.WARE_MNGT_PRTNR_NO END) = NVL(S3.PRTNR_NO, S2.ICHR_PRTNR_NO)
                                  AND S7.WARE_DTL_DV_CD = '10'  /*창고상세구분코드*/
                                  AND S7.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                                  AND S7.DTA_DL_YN = 'N'
@@ -205,6 +226,8 @@
                                 INNER JOIN TB_SSCT_CNTR_PD_REL C2             /*계약상품관계*/
                                  ON C2.CNTR_NO = S1.CNTR_NO
                                  AND C2.CNTR_SN = S1.CNTR_SN
+                                 AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C2.VL_STRT_DTM AND C2.VL_END_DTM
+                                 AND C2.DTA_DL_YN = 'N'
                                  AND C2.PD_REL_TP_CD = '05'
                                  /*01 복합-기준, 02 기준-기준, 03 기준-서비스, 04 서비스-서비스,
                                    05 기준-제품, 06 대체품(Substitution), 07 상품-필터, 08 패키지(Package),
@@ -212,7 +235,7 @@
                                    14 AS부품, 15 대체모종, 16 멤버십기준상품, 17 구매 불가상품, 18 정기배송 제품명(BS),
                                    19 동시구매선택상품, 20 동시구매선택번들상품, 21 패키지구성제품, 22 스마트체인지상품, 23 사은품,
                                    24 BS투입제품, 25 구성품*/
-                                 AND C2.DTA_DL_YN = 'N'
+
                                 LEFT OUTER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C3  /*계약해지처리내역*/
                                  ON C3.CNTR_NO = S1.CNTR_NO
                                  AND C3.CNTR_SN = S1.CNTR_SN
@@ -221,22 +244,12 @@
                                  ON P1.PD_CD = C2.OJ_PD_CD
                                  AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
                                  AND P1.DTA_DL_YN = 'N'
-                                LEFT OUTER JOIN TB_SVPD_OSTR_AK_PCSV_SEND_DTL L1 /*출고요청택배송신상세*/
-                                 ON L1.CNTR_NO = S3.CNTR_NO
-                                 AND L1.CNTR_SN = S3.CNTR_SN
-                                 AND L1.OSTR_RQDT = S3.VST_FSH_DT
-                                 AND L1.DTA_DL_YN = 'N'
-                                 AND ROWNUM = 1
-                                LEFT OUTER JOIN TB_IFIN_OSTR_AK_DTL_SEND_ETXT L2 /*출고요청상세송신전문*/
-                                 ON L2.REL_NO = L1.OSTR_AK_NO
-                                 AND L2.DTA_DL_YN = 'N'
-                                 AND ROWNUM = 1
                                WHERE 1=1
                                 /* 출고구분 */
                                 AND S1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}  /*서비스 업무 세분류 코드 : 1112 제품배송, 1113 제품재배송, 2250 웰컴BS, 3460 택배반품*/
                                 /* 0 :전체 1: 작업완료 2: 작업대기 */
                                 <if test="@MybatisUtils@equals(findGb, '0')">
-                                AND C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '000000'
+                                AND C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
                                 </if>
                                 <if test="@MybatisUtils@equals(findGb, '1')">
                                 AND S2.WK_PRGS_STAT_CD = '20'
@@ -246,7 +259,7 @@
                                 AND S2.WK_PRGS_STAT_CD IN ('00', '10')
                                 AND C3.RSG_FSH_DT IS NULL  /*해지완료일자*/
                                 AND C3.RSG_APLC_DT IS NULL /*해지신청일자*/
-                                AND C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '000000'
+                                AND C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
                                 </if>
                                 /*
                                 AND S1.CNTR_NO = 'W20234972331'
@@ -335,7 +348,7 @@
                , C7.VL_END_DTM
                , C2.CNTR_CST_NO
                , ROW_NUMBER() OVER(PARTITION BY C3.DTL_CNTR_NO, C3.DTL_CNTR_SN ORDER BY C3.ADRPC_TP_CD DESC) AS ADRPC_TP_CD_RNK
-          FROM TB_SSCT_CNTR_DTL C1                     /*계약상세*/
+          FROM TB_SSCT_CNTR_DTL C1                 /*계약상세*/
           INNER JOIN TB_SSCT_CNTR_BAS C2           /*계약기본*/
            ON C1.CNTR_NO = C2.CNTR_NO
            AND C2.DTA_DL_YN = 'N'
@@ -562,109 +575,13 @@
        ON O1.OG_TP_CD = NVL(I1.OG_TP_CD, I1.ICHR_OG_TP_CD)
        AND O1.PRTNR_NO = NVL(I1.PRTNR_NO, I1.ICHR_PRTNR_NO)
        WHERE 1=1
-       UNION ALL
-       SELECT
-         'W20232464603' AS CNTR_NO
-		, 1 AS CNTR_SN
-		,'028445472' AS CNTR_CST_NO
-		,'1' AS SELL_TP_CD
-		,'1' AS SELL_TP_NM
-		,'일시불' AS SELL_TP_DTL_CD
-		,'환경가전' AS SELL_TP_DTL_NM
-		,'1' AS CNTR_DTL_STAT_CD
-		,'1' AS CNTR_DTL_STAT_NM
-		,'프라퍼티_Q' AS RCGVP_KNM
-		,'WP02110193' AS BASE_PD_CD
-		,'AP107그레이/택배배송 일시불' AS BASE_PD_NM
-		,'20230315000000' AS CNTR_RCP_FSH_DTM
-		,'BnwJGtO0C6RO6Hg000000u4OO_00082' AS ADR_ID
-		,'04539' AS NEW_ADR_ZIP
-		,'서울 중구 을지로 51' AS RNADR
-		,'(을지로2가,내외빌딩)' AS RDADR
-		,'010' AS CRAL_LOCARA_TNO
-		,'mRYDEQ6AZPT1kFstwOQTRQ==' AS MEXNO_ENCR
-		,'5844' AS CRAL_IDV_TNO
-		,'055' AS LOCARA_TNO
-		,'f8+YJq4yyWkClN7pEXy1Aw==' AS EXNO_ENCR
-		,'8655' AS IDV_TNO
-		,'' AS RSG_APLC_DT
-		,'' AS RSG_FSH_DT
-		,'1202303310000489669' AS CST_SV_ASN_NO
-        ,'3' AS PD_GRP_CD
-		,'WM02100269' AS PDCT_PD_CD
-		,'AP107그레이/B2B전용' AS PDCT_PD_NM
-		,'' AS SV_PD_CD
-		,'' AS SV_PD_NM
-		,'A' AS PD_GD_CD
-		,'1' AS SV_BIZ_HCLSF_CD
-		,'1112' AS SV_BIZ_DCLSF_CD
-		,'제품배송' AS SV_BIZ_DCLSF_NM
-		,'10' AS WK_PRGS_STAT_CD
-		,'작업대기' AS WK_PRGS_STAT_NM
-		,'' AS IST_DT
-		,'' AS REQD_DT
-		,'71314' AS OG_ID
-		,'W06' AS OG_TP_CD
-		,'71321' AS PRTNR_NO
-		,'테스트계정' AS PRTNR_KNM
-		,'' AS VST_FSH_DT
-		,'100002' AS WK_WARE_NO
-		,'1003457' AS WARE_MNGT_PRTNR_NO
-		,'W02' AS WARE_MNGT_PRTNR_OG_TP_CD
-		,'107G' AS AS_LCT_CD
-		,'204P' AS AS_PHN_CD
-		,'438L' AS AS_CAUS_CD
-		,'A036' AS RPB_LOCARA_CD
-		,'3' AS SITE_AW_SV_TP_CD
-		,'A150' AS SITE_AW_ATC_CD
-		,'0' AS PD_USWY_CD
-		,'1' AS AS_REFRI_DV_CD
-		,'2' AS BFSVC_REFRI_DV_CD
-		,'' AS URGT_DV_CD
-		, 2  AS PART_CNT
-        ,'WM02100269' AS PART_CD_1
-		,'AL106FWA/택배배송 렌탈 일반렌탈' AS PART_NM_1
-		,'1'  AS PART_QTY_1
-		,'WM02100260' AS PART_CD_2
-		,'공기청정기AL106FWA' AS PART_NM_2
-		,'2' AS PART_QTY_2
-		,'' AS PART_CD_3
-		,'' AS PART_NM_3
-		,'' AS PART_QTY_3
-		,'' AS PART_CD_4
-		,'' AS PART_NM_4
-		,'' AS PART_QTY_4
-		,'' AS PART_CD_5
-		,'' AS PART_NM_5
-		,'' AS PART_QTY_5
-		,'' AS PART_CD_6
-		,'' AS PART_NM_6
-		,'' AS PART_QTY_6
-		,'' AS PART_CD_7
-		,'' AS PART_NM_7
-		,'' AS PART_QTY_7
-		,'' AS PART_CD_8
-		,'' AS PART_NM_8
-		,'' AS PART_QTY_8
-		,'' AS PART_CD_9
-		,'' AS PART_NM_9
-		,'' AS PART_QTY_9
-		,'' AS PART_CD_10
-		,'' AS PART_NM_10
-		,'' AS PART_QTY_10
-		,'WE99' AS LGST_WK_MTHD_CD
-		, 1 AS MPAC_SN
-		,'' AS OSTR_AK_NO
-		,'' AS LGST_OSTR_AK_NO
-		,'' AS OSTR_NO
-        FROM DUAL
     </select>
     <select id="selectPcsvLogisticsCenters" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvOutOfStorageMgtDto$FindLogisticsCentersRes">
       SELECT V1.WARE_NO AS CODE_ID
            , V1.WARE_NM AS CODE_NAME
       FROM TB_SVST_MCBY_WARE_IZ V1 /* 월별창고내역 */
       WHERE V1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-       AND V1.WARE_DV_CD = '1'
+       AND V1.WARE_NO = '100002'
        AND V1.WARE_USE_YN = 'Y'
        AND V1.DTA_DL_YN = 'N'
       ORDER BY CODE_ID

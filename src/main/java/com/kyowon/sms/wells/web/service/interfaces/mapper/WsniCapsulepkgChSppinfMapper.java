@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.interfaces.mapper;
 
 import java.util.List;
 
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto.SearchReq;
@@ -18,6 +20,6 @@ import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto
 @Mapper
 public interface WsniCapsulepkgChSppinfMapper {
 
-    List<SearchRes> selectCapsulepkgChSppinfs(SearchReq dto);
+    PagingResult<SearchRes> selectCapsulepkgChSppinfs(SearchReq dto, PageInfo pageInfo);
 
 }

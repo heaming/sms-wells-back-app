@@ -22,6 +22,7 @@ public class WbnaBondContractBaseDvo {
     private String baseYm; /* 기준년월 */
     private String cntrNo; /* 계약번호 */
     private Integer cntrSn; /* 계약일련번호 */
+    private String cntrDtlNo; /* 계약상세번호 */
     private String cntrDtlStatCd; /* 계약상세상태코드 */
     private String jbfCntrDtlStatCd; /* 직전계약상세상태코드 */
     private String coCd; /* 회사코드 */
@@ -77,4 +78,6 @@ public class WbnaBondContractBaseDvo {
     private String aprPsicNo; /* 승인담당자번호 */
     private String aprDtm; /* 승인일시 */
     private String dtaDlYn; /* 데이터삭제여부 */
+    private String fnlMdfcDtm; /* 최종수정일시 */
+    private String orglFnlMdfcDtm; // Dvo에 동시성처리용 컬럼 정의
 }

@@ -10,6 +10,10 @@ public interface WwdbNotPaidMakeAPaymentRgstMapper {
 
     WwdbNotPaidMakeAPaymentContractDvo selectContractInquiry(WwdbNotPaidMakeAPaymentRgstReqDvo dvo);
 
+    String selectReceiveCode(WwdbNotPaidMakeAPaymentRgstReqDvo dvo);
+
+    String selectPerformanceDay();
+
     int selectContractMonthCloseInquiry(WwdbNotPaidMakeAPaymentRgstReqDvo dvo);
 
     WwdbNotPaidMakeAPaymentOgPrtnrDvo selectOgPrtnrInquiry(WwdbNotPaidMakeAPaymentRgstReqDvo dvo);

@@ -10,11 +10,14 @@ import com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerRglrBfsvcDlDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbCustomerRglrBfsvcDlService;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbIndividualVisitPrdService;
+import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+
+import java.util.ArrayList;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -37,17 +40,52 @@ public class WsniSidingServiceChangesService {
      */
     public void AsReceiption(SaveReq req) throws Exception {
 
-        mapper.insertSdingAsAkHist(req);
+        mapper.insertSdingAsAkHist(
+            req.cntrNo(),
+            req.cntrSn(),
+            req.akSn(),
+            "",
+            req.asAkDvCd(),
+            req.akChdt(),
+            req.bfchPdCd(),
+            req.afchPdCd(),
+            req.mtrProcsStatCd(),
+            "",
+            ""
+        );
 
         /*취소일 경우 삭제 */
         if ("3".equals(req.mtrProcsStatCd()))
-            mapper.deleteSdingAskAk(req);
+            mapper.deleteSdingAskAk(
+                req.cntrNo(),
+                req.cntrSn(),
+                req.akSn(),
+                req.asAkDvCd(),
+                req.akChdt()
+            );
         else {
 
-            if (mapper.selectSidingAkCount(req).intValue() > 0)
-                mapper.updateSidingAk(req);
+            if (mapper.selectSidingAkCount(req.cntrNo(), req.cntrSn(), req.akSn(), req.asAkDvCd(), req.akChdt())
+                .intValue() > 0)
+                mapper.updateSidingAk(
+                    req.akChdt(),
+                    req.bfchPdCd(),
+                    req.afchPdCd(),
+                    req.mtrProcsStatCd(),
+                    req.cntrNo(),
+                    req.cntrSn(),
+                    req.akSn(),
+                    req.asAkDvCd()
+                );
             else
-                mapper.insertSidingAk(req);
+                mapper.insertSidingAk(
+                    req.cntrNo(),
+                    req.cntrSn(),
+                    req.asAkDvCd(),
+                    req.bfchPdCd(),
+                    req.afchPdCd(),
+                    req.mtrProcsStatCd()
+                );
         }
 
         /***********************************************************
@@ -59,7 +97,7 @@ public class WsniSidingServiceChangesService {
         * IST_DT       설치일자
         * BS_MTHS      무상 BS 개월수
         ***********************************************************/
-        WsniSidingServiceChangesDvo dvo = mapper.selectCustomer(req);
+        //WsniSidingServiceChangesDvo dvo = mapper.selectCustomer(req.cntrNo(), req.cntrSn());
 
         /*요청 구분에 따라 처리 - 1: 패키지변경, 4:다음회차 방문 중지*/
         //IF(P_REQ_GB = '1' AND mtrProcsStatCd != '3') THEN
@@ -70,30 +108,32 @@ public class WsniSidingServiceChangesService {
                 new WsnbIndividualVisitPrdDto.SearchProcessReq(
                     req.cntrNo(),
                     req.cntrSn(),
-                    req.akChdt(),
-                    "",
-                    "",
-                    "",
-                    "",
-                    ""
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
                 )
             );
 
-            if (mapper.selectBsTarget(req) > 0) {
+            WsniSidingServiceChangesDvo dvo = mapper.selectBsTarget(req.cntrNo(), req.cntrSn(),
+             req.akChdt().substring(0, 6));
+            if (StringUtil.isNotEmpty(dvo.getCstSvAsnNo())) {
                 /*고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/
                 service2.removeRglrBfsvcDl(
                     new WsnbCustomerRglrBfsvcDlDto.SaveReq(
-                        "", //row.getCstSvAsnNo(),
+                        dvo.getCstSvAsnNo(), //row.getCstSvAsnNo(),
                         //""//row.getAsnOjYm() 배정년월
-                        req.akChdt()
+                        req.akChdt().substring(0, 6)
                     )
                 );
 
                 /*고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)*/
                 service3.processRegularBfsvcAsn(
                     new WsncRegularBfsvcAsnDto.SaveProcessReq(
-                        "", //row.getAsnOjYm(),
-                        "", //SFLEXContextHolder.getContext().getUserSession().getUserId(),
+                        req.akChdt().substring(0, 6), //row.getAsnOjYm(),
+                        SFLEXContextHolder.getContext().getUserSession().getUserId(),
                         req.cntrNo(),
                         req.cntrSn()
                     )

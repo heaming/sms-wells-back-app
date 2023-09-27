@@ -1,83 +1,92 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerEngineerMapper">
+    <!--엔지니어 출근관리 조회-->
     <select id="selectEngineerAttends" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto$SearchEngineerRes">
-        SELECT B.OG_CD /* 조직코드 */
-             , B.OG_NM /* 조직명 */
-             , A.PRTNR_NO /* 파트너번호 */
-             , A.PRTNR_KNM /* 파트너명 */
-             , F.PSTN_DV_NM /* 직무 */
-             , F_CMZ_CD_NM ( 'TNT_WELLS' , 'RSB_DV_CD' , A.RSB_DV_CD ) AS RSB_DV_NM /* 직책 */
-             , A.WK_GRP_CD /* 작업그룹코드 */
-             , A.WK_GRP_NM
-             , CASE WHEN BIZ_AGNT_PRTNR_NO IS NULL THEN 'N'
-                                                   ELSE 'Y'
-               END AS BIZ_AGNT_YN /* 업무대행여부 */
-             , #{baseDt} AS WRK_DT /* 근무일자 */
-             , CASE WHEN E.PHLD_YN ='Y' THEN TO_CHAR(TO_DATE(E.BASE_Y||E.BASE_MM||E.BASE_D,'YYYY-MM-DD') ,'DY','NLS_DATE_LANGUAGE=KOREAN') ||'(공휴일)'
-                                       ELSE TO_CHAR(TO_DATE(E.BASE_Y||E.BASE_MM||E.BASE_D,'YYYY-MM-DD') ,'DY','NLS_DATE_LANGUAGE=KOREAN')
-               END AS DOW_DV /* 근무요일 */
-             , CASE WHEN D.EGER_WRK_STAT_CD IS NULL THEN '000'
-                                                    ELSE D.EGER_WRK_STAT_CD
-               END AS EGER_WRK_STAT_CD /* 엔지니어근무상태코드 */
-             , CASE WHEN D.EGER_WRK_STAT_CD <![CDATA[<>]]> '000' THEN F_CMZ_CD_NM('TNT_WELLS','EGER_WRK_STAT_CD',D.EGER_WRK_STAT_CD)
-                                                     ELSE F_CMZ_CD_NM('TNT_WELLS','EGER_WRK_STAT_CD','000')
-               END EGER_WRK_STAT_NM /* 엔지니어근무상태코드명 */
-             , C.RMK_CN /* 비고내용 */
-             , D.VCN_STRT_DT /* 휴가시작일자 */
-             , D.VCN_END_DT /* 휴가종료일자 */
-             , D.BIZ_AGNT_PRTNR_NO /* 업무대행파트너번호 */
-             , G.PRTNR_KNM AS BIZ_AGNT_NM /* 파트너명 */
-             , D.PCP_PRTNR_NO /* 처리자파트너번호 */
-             , H.PRTNR_KNM AS PCP_PRTNR_NM /* 파트너명 */
-             , D.PROCS_DTM /* 처리일시 */
-          FROM TB_OGBS_MM_PRTNR_IZ A /* 월파트너내역 */
-          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ B /* 월조직내역 */
-            ON B.OG_TP_CD = A.OG_TP_CD
-           AND B.BASE_YM = A.BASE_YM
-           AND B.OG_ID = A.OG_ID
-         INNER JOIN TB_OGPS_EGER_ATDC_IZ C /* 엔지니어출근내역 */
-            ON C.OG_TP_CD = A.OG_TP_CD
-           AND C.PRTNR_NO = A.PRTNR_NO
-           AND C.WRK_DT = #{baseDt}
-          LEFT OUTER JOIN TB_OGPS_EGER_VCN_IZ D /* 엔지니어휴가내역 */
-            ON D.OG_TP_CD = C.OG_TP_CD
-           AND D.PRTNR_NO = C.PRTNR_NO
-           AND #{baseDt} BETWEEN D.VCN_STRT_DT AND VCN_END_DT
-          LEFT OUTER JOIN TB_SVPD_SV_CLND_BAS E /* 서비스달력기본 */
-            ON #{baseDt} = E.BASE_Y || E.BASE_MM || E.BASE_D
-          LEFT OUTER JOIN (
-                            SELECT CASE WHEN PSTN_DV_CD IN ('86', '87', '88') THEN F_CMZ_CD_NM('TNT_WELLS', 'SAP_PSTN_DV_CD', A.PSTN_DV_CD)
-                                                                              ELSE F_CMZ_CD_NM('TNT_WELLS', 'HIR_FOM_CD', A.HIR_FOM_CD)
-                                   END AS PSTN_DV_NM
-                                 , OG_TP_CD
-                                 , PRTNR_NO
-                                 , BASE_YM
-                              FROM TB_OGBS_MM_PRTNR_IZ A
-                             WHERE A.OG_TP_CD ='W06'
-                               AND A.BASE_YM = SUBSTR(#{baseDt},1,6)
-             ) F
-            ON F.OG_TP_CD = A.OG_TP_CD
-           AND F.BASE_YM = A.BASE_YM
-           AND F.PRTNR_NO = A.PRTNR_NO
-          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS G    /* 파트너기본 ( 업무대행파트너 ) */
-            ON G.OG_TP_CD = A.OG_TP_CD
-           AND G.PRTNR_NO = D.BIZ_AGNT_PRTNR_NO
-          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS H    /* 파트너기본 (처리자) */
-            ON H.PRTNR_NO = D.PCP_PRTNR_NO
-           AND ROWNUM=1
-         WHERE 1=1
-           AND A.DTA_DL_YN = 'N'
-           AND A.OG_TP_CD = 'W06'
-           AND A.BZ_STAT_CD = 1
-           AND A.BASE_YM = SUBSTR(#{baseDt},1,6)
-           AND B.OG_ID IN (
-               <include refid="com.kyowon.sms.common.web.organization.common.mapper.ZogzOrganizationSearchMapper.sqlSessionOrganization" />
-               )
-           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
-           AND B.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
-           </if>
-         ORDER BY A.OG_CD, A.PRTNR_NO
+            SELECT B.OG_CD                      /* 조직코드 */
+                 , B.OG_NM                      /* 조직명 */
+                 , A.PRTNR_NO                   /* 파트너번호 */
+                 , A.PRTNR_KNM                  /* 파트너명 */
+                 , CASE WHEN PSTN_DV_CD IN ('86', '87', '88') THEN F_CMZ_CD_NM('TNT_WELLS', 'SAP_PSTN_DV_CD', A.PSTN_DV_CD)
+                                                              ELSE F_CMZ_CD_NM('TNT_WELLS', 'HIR_FOM_CD', A.HIR_FOM_CD)
+                   END AS PSTN_DV_NM              /* 직무명 */
+                 , F.MLNG_CNTN AS RSB_DV_NM     /* 직책구분코드명 */
+                 , A.WK_GRP_CD                  /* 작업그룹코드 */
+                 , A.WK_GRP_NM
+                 , CASE WHEN BIZ_AGNT_PRTNR_NO IS NULL THEN 'N'
+                                                       ELSE 'Y'
+                   END AS BIZ_AGNT_YN           /* 업무대행여부 */
+                 , C.WRK_DT AS WRK_DT           /* 근무일자 */
+                 , CASE WHEN E.PHLD_YN='Y' THEN TO_CHAR(TO_DATE(E.BASE_Y||E.BASE_MM||E.BASE_D, 'YYYY-MM-DD'), 'DY','NLS_DATE_LANGUAGE=KOREAN')  ||'(공휴일)'
+                                           ELSE TO_CHAR(TO_DATE(E.BASE_Y||E.BASE_MM||E.BASE_D, 'YYYY-MM-DD'), 'DY','NLS_DATE_LANGUAGE=KOREAN')
+                   END AS DOW_DV                /* 근무요일 */
+                 , CASE WHEN C.EGER_WRK_STAT_CD IS NULL THEN '000'
+                                                        ELSE C.EGER_WRK_STAT_CD
+                   END AS EGER_WRK_STAT_CD      /* 엔지니어근무상태코드 */
+                 , CASE WHEN C.EGER_WRK_STAT_CD <![CDATA[<>]]> '000' THEN F_CMZ_CD_NM('TNT_WELLS', 'EGER_WRK_STAT_CD', C.EGER_WRK_STAT_CD)
+                                                         ELSE F_CMZ_CD_NM('TNT_WELLS', 'EGER_WRK_STAT_CD', '000')
+                   END EGER_WRK_STAT_NM         /* 엔지니어근무상태코드명 */
+                 , C.RMK_CN                     /* 비고내용 */
+                 , D.VCN_STRT_DT                /* 휴가시작일자 */
+                 , D.VCN_END_DT                 /* 휴가종료일자 */
+                 , D.BIZ_AGNT_PRTNR_NO          /* 업무대행파트너번호 */
+                 , D.PRTNR_KNM AS BIZ_AGNT_NM   /* 파트너명 */
+                 , C.PCP_PRTNR_NO               /* 처리자파트너번호 */
+                 , H.PRTNR_KNM AS PCP_PRTNR_NM  /* 파트너명 */
+                 , C.PROCS_DTM                  /* 처리일시 */
+              FROM TB_OGBS_MM_PRTNR_IZ A                  /* --> 월파트너내역 */
+              LEFT OUTER JOIN TB_OGBS_MM_OG_IZ B          /* --> 월조직내역 */
+                ON B.OG_TP_CD = A.OG_TP_CD
+               AND B.BASE_YM = A.BASE_YM
+               AND B.OG_ID = A.OG_ID
+             INNER JOIN TB_OGPS_EGER_ATDC_IZ C           /* -->엔지니어출근내역 */
+                ON C.OG_TP_CD = A.OG_TP_CD
+               AND C.PRTNR_NO = A.PRTNR_NO
+               AND C.WRK_DT = #{baseDt}
+              LEFT OUTER JOIN (
+                                SELECT D1.*,  G.PRTNR_KNM
+                                  FROM TB_OGPS_EGER_VCN_IZ D1             /* --> 엔지니어휴가내역 */
+                                 INNER JOIN TB_OGBS_PRTNR_BAS G          /* --> 파트너기본(업무대행파트너) */
+                                    ON G.OG_TP_CD = D1.OG_TP_CD
+                                   AND G.PRTNR_NO = D1.BIZ_AGNT_PRTNR_NO
+                                 WHERE #{baseDt} BETWEEN D1.VCN_STRT_DT AND D1.VCN_END_DT
+              ) D
+                ON D.OG_TP_CD = A.OG_TP_CD
+               AND D.PRTNR_NO = A.PRTNR_NO
+              LEFT OUTER JOIN TB_SVPD_SV_CLND_BAS E       /* --> 서비스달력기본*/
+                ON #{baseDt} = E.BASE_Y || E.BASE_MM  || E.BASE_D
+              LEFT OUTER JOIN (
+                                SELECT T1.CD_VLD_VAL, T1.ARYL_ORD, T2.MLNG_CNTN --, T2.*
+                                  FROM T_CMZ_CD_D T1
+                                  LEFT OUTER JOIN T_CMZ_MLNG_D T2
+                                    ON T1.TENANT_ID = T2.TENANT_ID
+                                   AND T1.CD_DTL_MLNG_ID = T2.MLNG_ID
+                                   AND T2.LNG_ID = 'ko'
+                                 WHERE 1 = 1
+                                   AND (T1.TENANT_ID = 'TNT_BASE' OR T1.TENANT_ID = 'TNT_WELLS')
+                                   AND T1.CD_ID = 'RSB_DV_CD'
+              ) F
+                ON F.CD_VLD_VAL = A.RSB_DV_CD                      /* 직책명 및 직잭별 소트용*/
+              LEFT OUTER JOIN (
+                                SELECT H1.OG_TP_CD
+                                     , H1.PRTNR_NO
+                                     , H1.PRTNR_KNM
+                                     , RANK() OVER (PARTITION BY H1.PRTNR_NO ORDER BY PRTNR_NO, OG_TP_CD DESC) RANK_P
+                                  FROM TB_OGBS_PRTNR_BAS H1
+                                 WHERE H1.OG_TP_CD IN ('W06', 'HR1')
+              ) H
+               ON H.PRTNR_NO = C.PCP_PRTNR_NO
+              AND H.RANK_P = 1    /* 처리자명 */
+            WHERE A.OG_TP_CD = 'W06'
+              AND A.BZ_STAT_CD = 1
+              AND A.BASE_YM = SUBSTR(#{baseDt}, 1, 6)
+              AND B.OG_ID IN (
+                <include refid="com.kyowon.sms.common.web.organization.common.mapper.ZogzOrganizationSearchMapper.sqlSessionOrganization" />
+              )
+              <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+              AND B.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
+              </if>
+            ORDER BY A.OG_CD, F.ARYL_ORD DESC , A.PRTNR_NO
     </select>
 
      <!--엔지니어 출근 관리 목록 저장 -->
@@ -279,6 +288,7 @@
            , C.CRAL_LOCARA_TNO||C.MEXNO_ENCR||C.CRAL_IDV_TNO AS TEL_NUMBER
            , A.DTA_DL_YN
            , C.APY_SEQN
+           , D.OG_CD
         FROM TB_OGBS_PRTNR_BAS A
         LEFT OUTER JOIN TB_OGBS_PRTNR_DTL B
           ON A.OG_TP_CD = B.OG_TP_CD
@@ -396,6 +406,7 @@
              , A.DTA_DL_YN
              , C.APY_SEQN
              , C.DTA_DL_YN
+             , D.OG_CD
          FROM TB_OGBS_PRTNR_BAS A
          LEFT OUTER JOIN TB_OGBS_PRTNR_DTL B
            ON A.OG_TP_CD = B.OG_TP_CD
@@ -558,6 +569,7 @@
            , B.CLTN_DT
            , C.APY_SEQN
            , C.DTA_DL_YN
+           , A.OG_CD
        FROM TB_OGBS_MM_OG_IZ A    					-- [월 조직 스냅샷 테이블]
       INNER JOIN TB_OGBS_MM_PRTNR_IZ B		-- [월 파트너 스냅샷 테이블]
          ON A.BASE_YM = B.BASE_YM

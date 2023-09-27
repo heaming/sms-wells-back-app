@@ -19,8 +19,24 @@ public interface WbnaFosterTransferMgtMapper {
 
     PagingResult<SearchDetailRes> selectFosterTransferDetails(SearchReq dto, PageInfo pageInfo);
 
-    SearchDetailSummaryRes selectPartTransferDetailsSummary(SearchReq dto);
+    SearchDetailSummaryRes selectFosterTransferDetailsSummary(SearchReq dto);
 
     List<SearchDetailRes> selectFosterTransferDetails(SearchReq dto);
+
+    int deleteBondCounselingBasics(WbnaBondContractBaseDvo dvo);
+
+    int updateBondContractBases(WbnaBondContractBaseDvo dvo);
+
+    int insertBondCounselingBasics(WbnaBondContractBaseDvo dvo);
+
+    int insertBondTransferAssignExecutionIz(WbnaBondContractBaseDvo dvo);
+
+    int insertBondContractHistories(WbnaBondContractBaseDvo dvo);
+
+    int updateFosterTransfer(WbnaBondContractBaseDvo dvo);
+
+    List<String> selectAllCollector(String baseYm, String bzHdqDvCd, String clctamDvCd);
+
+    List<String> selectAllBondContract(String baseYm, String bzHdqDvCd, String clctamDvCd);
 
 }

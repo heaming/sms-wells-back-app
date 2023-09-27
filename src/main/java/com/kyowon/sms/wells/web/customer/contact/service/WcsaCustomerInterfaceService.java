@@ -295,6 +295,7 @@ public class WcsaCustomerInterfaceService {
                     || StringUtils.equals(agAtcDvCdMap.get(agAtcDvCd), "N")) {
                     agreeDvo.setAgAtcDvCd(agAtcDvCd);
                     agreeDvo.setAgYn(agAtcDvCdMap.get(agAtcDvCd));
+                    agreeDvo.setPrvDocId(agreeDvo.getPrvCn());
                     mapper.insertCustomerAgreementDetail(agreeDvo);
                 }
             }

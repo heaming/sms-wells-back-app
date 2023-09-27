@@ -294,4 +294,113 @@
            AND CH_APY_STRTDT = #{reqDt} /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
            --AND LCFIXY = 0
     </update>
+
+    <insert id="insertTbSvpdHcfAsAkHist">
+        -- 홈카페AS요청이력
+        INSERT INTO TB_SVPD_HCF_AS_AK_HIST (
+              CNTR_NO
+            , CNTR_SN
+            , AK_SN
+            , HIST_CH_DTM
+            , AS_AK_DV_CD
+            , RGST_DT
+            , AK_CHDT
+            , BFCH_PD_CD
+            , AFCH_PD_CD
+            , CHO_CAPSL_CN
+            , MTR_PROCS_STAT_CD
+            , CNFMDT
+            <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+              #{cntrNo}
+            , #{cntrSn}
+            , #{akSn}
+            , TO_CHAR (SYSDATE, 'YYYYMMDD')
+            , #{asAkDvCd}
+            , TO_CHAR (SYSDATE, 'YYYYMMDD')
+            , #{akChdt}
+            , #{bfchPdCd}
+            , #{afchPdCd}
+            , NULL
+            , #{mtrProcsStatCd}
+            , NULL
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+    <delete id="deleteTbSvpdHcfAsAkIz">
+        DELETE
+          FROM TB_SVPD_HCF_AS_AK_IZ
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND AK_SN = #{akSn}
+           AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
+           AND CNFMDT IS NULL
+    </delete>
+
+    <select id="countTbSvpdHcfAsAkIz" resultType="java.lang.Integer">
+    SELECT COUNT(*) AS COUNT
+      FROM TB_SVPD_HCF_AS_AK_IZ SVPD1 /*홈카페AS요청내역*/
+     WHERE SVPD1.CNTR_NO = #{cntrNo}
+       AND SVPD1.CNTR_SN = #{cntrSn}
+       AND AK_SN = #{akSn}
+       AND AS_AK_DV_CD = #{asAkDvCd}
+       AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
+       AND CNFMDT IS NULL
+    </select>
+
+    <update id="updateTbSvpdHcfAsAkIz">
+    UPDATE TB_SVPD_HCF_AS_AK_IZ
+       SET AK_CHDT = #{akChdt}
+         , BFCH_PD_CD = #{bfchPdCd}
+         , AFCH_PD_CD = #{afchPdCd}
+         , CHO_CAPSL_CN = #{choCapslCn}
+         , MTR_PROCS_STAT_CD = #{mtrProcsStatCd}
+         <include refid="COMMON.updateSystemField" />
+     WHERE CNTR_NO = #{cntrNo}
+       AND CNTR_SN = #{cntrSn}
+       AND AK_SN = #{akSn}
+       AND AS_AK_DV_CD = #{asAkDvCd}
+       AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
+       AND CNFMDT IS NULL
+    </update>
+
+    <insert id="insertTbSvpdHcfAsAkIz">
+    INSERT INTO TB_SVPD_HCF_AS_AK_IZ (
+           CNTR_NO
+         , CNTR_SN
+         , AK_SN
+         , AS_AK_DV_CD
+         , AK_CHDT
+         , BFCH_PD_CD
+         , AFCH_PD_CD
+         , CHO_CAPSL_CN
+         , MTR_PROCS_STAT_CD
+         <include refid="COMMON.insertSystemField" />
+    ) VALUES (
+           #{cntrNo}
+         , #{cntrSn}
+         , (SELECT LPAD(NVL(MAX(AK_SN), 0) + 1, 2, '0') AS MAX_AK_SN
+              FROM TB_SVPD_HCF_AS_AK_IZ
+             WHERE CNTR_NO = #{cntrNo}
+               AND CNTR_SN = #{cntrSn})
+         , #{asAkDvCd}
+         , TO_CHAR(SYSDATE, 'YYYYMMDD')
+         , #{bfchPdCd}
+         , #{afchPdCd}
+         , #{choCapslCn}
+         , #{mtrProcsStatCd}
+         <include refid="COMMON.insertSystemFieldValue" />
+    )
+    </insert>
+
+    <update id="updateStopNextSiding">
+    UPDATE TB_SVPD_CST_SV_RGBSPR_IZ
+       SET MTR_CAN_DT = (CASE WHEN #{mtrProcsStatCd} = '3' THEN '' ELSE #{akChdt} END)-- 취소요청일자
+         , MTR_CAN_RSON_CD = (CASE WHEN #{mtrProcsStatCd} = '3' THEN '' ELSE '10' /*고객요청*/ END)
+     WHERE CNTR_NO = #{cntrNo}
+       AND CNTR_SN = #{cntrSn}
+       AND SUBSTR (VST_DUEDT, 1, 6) = SUBSTR (#{akChdt}, 1, 6)
+    </update>
+
 </mapper>

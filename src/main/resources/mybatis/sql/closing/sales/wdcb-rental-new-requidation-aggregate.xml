@@ -47,7 +47,7 @@
                           SELECT /*+ LEADING(T2) USE_NL(T1 T2 T7 T8 T9) NO_MERGE(T7) PUSH_PRED(T7) */
                                  1 AS  DIV_DTL_CD
                                , NVL(SUM(CASE WHEN T2.SV_BIZ_HCLSF_CD = 1 THEN 1 ELSE 0 END),0) CNT11
-                               , NVL(SUM(CASE WHEN T2.SV_BIZ_HCLSF_CD = 6 AND SV_BIZ_DCLSF_CD = '3430' AND SUBSTR(T2.FNL_VST_FSH_DT,1,6) = SUBSTR(T2.FRE_EXPN_IST_DT,1,6) THEN 1 ELSE 0 END),0) CNT12
+                               , NVL(SUM(CASE WHEN T2.SV_BIZ_HCLSF_CD = 6 AND  SUBSTR(T2.FNL_VST_FSH_DT,1,6) = SUBSTR(T2.FRE_EXPN_IST_DT,1,6) THEN 1 ELSE 0 END),0) CNT12
                             FROM TB_SSCT_CNTR_DTL T1 --계약상세
                            INNER JOIN TB_SVST_SV_WK_OSTR_IZ T2
                               ON T1.CNTR_NO = T2.CNTR_NO
@@ -55,11 +55,7 @@
                             /*원두제외*/
                             LEFT JOIN (
                                        SELECT /*+ USE_NL(SA B C) */
-                                              SA.CNTR_NO
-                                            , SA.CNTR_SN
-                                            , B.PD_CD
-                                            , B.PD_NM
-                                            , C.REF_PD_CLSF_VAL
+                                              SA.CNTR_NO, SA.CNTR_SN, B.PD_CD, B.PD_NM, C.REF_PD_CLSF_VAL
                                          FROM TB_SSCT_CNTR_PD_REL SA    /*계약상품관계*/
                                             , TB_PDBS_PD_BAS B    /*상품기본*/
                                             , TB_PDBS_PD_CLSF_BAS C    /*상품분류기본*/
@@ -86,22 +82,26 @@
                                               ) T9--계약주소관계
                               ON 1=1
                            WHERE 1=1
-                            AND T1.FRISU_YN = 'Y'   --무료
-                            AND T1.SELL_TP_CD = '2'   --렌탈/리스
-                            AND T1.SELL_TP_DTL_CD != '22' --리스가 아닌것
-                            AND T1.DTA_DL_YN = 'N'
-                            AND T2.WK_OSTR_SN = '1'
-                            AND T2.FRE_EXPN_IST_DT BETWEEN #{startDt} AND #{endDt}   --매출년월 조건 들어가야함 20180501 20180510
-                            AND T7.CNTR_NO IS NULL
-                            AND T7.CNTR_SN IS NULL
-                            /*조회조건 시작*/
-                            <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
-                            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
-                            </if>
-                            <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
-                            AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
-                            </if>
-                            /*조회조건 종료*/
+                             AND T1.FRISU_YN = 'Y'   --무료
+                             AND T1.SELL_TP_CD = '2'   --렌탈/리스
+                             AND T1.SELL_TP_DTL_CD IN ('21','23') --일반렌탈, 공유렌탈
+                             AND T1.DTA_DL_YN = 'N'
+                             AND T2.WK_OSTR_SN = '1'
+                             AND T2.FRE_EXPN_IST_DT BETWEEN #{startDt} AND #{endDt}   --매출년월 조건 들어가야함 20180501 20180510
+                             AND T7.CNTR_NO IS NULL
+                             AND T7.CNTR_SN IS NULL
+                             /*조회조건 시작*/
+                             <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
+                             AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+                             AND T8.PD_PRP_VAL09 IS NULL
+                             </if>
+                             <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                             AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+                             </if>
+                             <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                             AND T8.PD_PRP_VAL09 IS NOT NULL --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+                             </if>
+                             /*조회조건 종료*/
                          )
                    UNPIVOT (VALUE FOR NAME IN (CNT11,CNT12))
                    ) A
@@ -132,7 +132,7 @@
                                   -- 무료체험건수
                                 , SUM(CASE WHEN A.FRISU_YN='Y' THEN 1 ELSE 0 END) CNT22
                                   -- 당월취소건수 (14 일내 , 무료체험외 )--
-                                , SUM(CASE WHEN SUBSTR(A.CNTR_PD_STRTDT,1,6) = SUBSTR(A.CNTR_PD_ENDDT,1,6) AND A.CNTR_DTL_STAT_CD ='303' AND A.FRISU_YN != 'Y' THEN 1
+                                , SUM(CASE WHEN SUBSTR(A.CNTR_PD_STRTDT,1,6) = SUBSTR(A.CNTR_PD_ENDDT,1,6) AND T10.PD_GD_CD = 'E' AND A.FRISU_YN != 'Y' THEN 1
                                            ELSE 0
                                       END) CNT23
                              FROM TB_SSCT_CNTR_DTL A
@@ -164,18 +164,25 @@
                                                  WHERE RN=1
                                                ) T9--계약주소관계
                                ON 1=1
+                             LEFT JOIN TB_SSCT_CNTR_RSG_PROCS_IZ T10
+                               ON A.CNTR_NO = T10.CNTR_NO
+                              AND A.CNTR_SN = T10.CNTR_SN
                             WHERE A.SELL_TP_CD = '2'   --렌탈/리스
-                              AND A.SELL_TP_DTL_CD != '22' --리스가 아닌것
+                              AND A.SELL_TP_DTL_CD IN ('21','23') --일반렌탈, 공유렌탈
                               AND A.DTA_DL_YN = 'N'
                               AND A.CNTR_PD_STRTDT BETWEEN #{startDt} AND #{endDt}
                               AND T2.CNTR_NO IS NULL
                               AND T2.CNTR_SN IS NULL
                               /*조회조건 시작*/
-                              <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+                              <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
                               AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+                              AND T7.PD_PRP_VAL09 IS NULL
                               </if>
-                              <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+                              <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
                               AND T7.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+                              </if>
+                              <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                              AND T7.PD_PRP_VAL09 IS NOT NULL
                               </if>
                               /*조회조건 종료*/
                           )
@@ -225,19 +232,22 @@
                                          ) T9--계약주소관계
                          ON 1=1
                       WHERE 1=1
-                        AND SELL_TP_CD = '2'   --렌탈/리스
-                        AND SELL_TP_DTL_CD != '22'
+                        AND SELL_TP_DTL_CD IN ('21','23')
                         AND A.PDCT_IST_DT BETWEEN #{startDt} AND #{endDt}
                         --AND B.CNTR_DTL_STAT_CD != '401'
                         AND SUBSTR(B.CNTR_PD_STRTDT, 1, 6) <![CDATA[ <> ]]> #{slYm}    /*당월설치건 제외*/
                         --AND (A.PDCT_REQD_DT IS NULL OR SUBSTR(A.PDCT_REQD_DT, 1, 6)  <![CDATA[ <> ]]> '201906')    /*당월철거건 제외*/
                         AND NOT (SUBSTR(B.CNTR_PD_ENDDT,1,6) = #{slYm} AND SUBSTR(B.CNTR_PD_ENDDT,1,6) = SUBSTR(A.PDCT_IST_DT,1,6)) /*당월철거건 제외*/
                         /*조회조건 시작*/
-                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+                        AND T8.PD_PRP_VAL09 IS NULL
                         </if>
-                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+                        </if>
+                        <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                        AND T8.PD_PRP_VAL09 IS NOT NULL
                         </if>
                         /*조회조건 종료*/
                       UNION ALL
@@ -249,6 +259,9 @@
                       INNER JOIN TB_SSCT_CNTR_DTL B
                          ON B.CNTR_NO = A.CNTR_NO
                         AND B.CNTR_SN = A.CNTR_SN
+                      INNER JOIN TB_SSCT_CNTR_WELLS_DTL T3
+                         ON B.CNTR_NO = T3.CNTR_NO
+                        AND B.CNTR_SN = T3.CNTR_SN
                        LEFT JOIN TB_PDBS_PD_ECOM_PRP_DTL T8--상품각사속성상세
                          ON T8.PD_CD = B.BASE_PD_CD
                         AND T8.PD_EXTS_PRP_GRP_CD = 'SPP'  --배송
@@ -267,16 +280,20 @@
                          ON 1=1
                       WHERE 1=1
                         AND SELL_TP_CD = '2'   --렌탈/리스
-                        AND SELL_TP_DTL_CD = '22'
+                        AND SELL_TP_DTL_CD NOT IN ('21','23')
                         AND A.PDCT_IST_DT BETWEEN #{startDt} AND #{endDt}
-                        AND B.CNTR_DTL_STAT_CD != '401'
-                        AND NOT SUBSTR(B.CNTR_PD_STRTDT,1,6) = SUBSTR(A.PDCT_IST_DT,1,6)
+                        AND B.CNTR_DTL_STAT_CD NOT IN ('401','402')
+                        AND T3.REQD_DT IS NULL
                         /*조회조건 시작*/
-                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+                        AND T8.PD_PRP_VAL09 IS NULL
                         </if>
-                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+                        </if>
+                        <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                        AND T8.PD_PRP_VAL09 IS NOT NULL
                         </if>
                         /*조회조건 종료*/
                       UNION ALL
@@ -305,18 +322,20 @@
                                          ) T9--계약주소관계
                          ON 1=1
                       WHERE 1=1
-                        AND SELL_TP_CD = '2'   --렌탈/리스
-                        AND SELL_TP_DTL_CD != '22'
+                        AND SELL_TP_DTL_CD IN ('21','23')
+                        AND A.PDCT_IST_DT BETWEEN #{startDt} AND #{endDt}
                         --         AND SUBSTR(B.CNTR_PD_ENDDT,1,6) = :bindYm
-                        AND A.PDCT_IST_DT >= #{slYm}
-                        AND A.PDCT_IST_DT <![CDATA[ < ]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{slYm}, 'YYYYMM'), 1), 'YYYYMM')
                         AND SUBSTR(B.CNTR_PD_ENDDT,1,6) = SUBSTR(A.PDCT_IST_DT,1,6)
                         /*조회조건 시작*/
-                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+                        AND T8.PD_PRP_VAL09 IS NULL
                         </if>
-                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+                        </if>
+                        <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                        AND T8.PD_PRP_VAL09 IS NOT NULL
                         </if>
                         /*조회조건 종료*/
                       UNION ALL
@@ -347,14 +366,19 @@
                          ON 1=1
                       WHERE 1=1
                         AND SELL_TP_CD = '2'   --렌탈/리스
-                        AND SELL_TP_DTL_CD = '22'
-                        AND A.PDCT_REQD_DT BETWEEN #{startDt} AND #{endDt}
+                        AND SELL_TP_DTL_CD NOT IN ('21','23')
+                        AND A.PDCT_IST_DT BETWEEN #{startDt} AND #{endDt}
+                        AND SUBSTR(B.CNTR_PD_ENDDT,1,6) = SUBSTR(A.PDCT_IST_DT,1,6)
                         /*조회조건 시작*/
-                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+                        AND T8.PD_PRP_VAL09 IS NULL
                         </if>
-                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+                        </if>
+                        <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                        AND T8.PD_PRP_VAL09 IS NOT NULL
                         </if>
                         /*조회조건 종료*/
                       UNION ALL
@@ -366,6 +390,10 @@
                       INNER JOIN TB_SSCT_CNTR_DTL B
                          ON B.CNTR_NO = A.CNTR_NO
                         AND B.CNTR_SN = A.CNTR_SN
+                      INNER JOIN TB_SSCT_CNTR_REL C  --계약관계
+                         ON CNTR_REL_DTL_CD = '108'  --무료체험교체
+                        AND A.CNTR_NO = C.BASE_DTL_CNTR_NO
+                        AND A.CNTR_SN = C.BASE_DTL_CNTR_SN
                        LEFT JOIN TB_PDBS_PD_ECOM_PRP_DTL T8--상품각사속성상세
                          ON T8.PD_CD = B.BASE_PD_CD
                         AND T8.PD_EXTS_PRP_GRP_CD = 'SPP'  --배송
@@ -385,13 +413,16 @@
                       WHERE 1=1
                         AND SELL_TP_CD = '2'   --렌탈/리스
                         AND A.PDCT_IST_DT BETWEEN #{startDt} AND #{endDt}
-                        AND B.FRISU_YN = 'Y'
                         /*조회조건 시작*/
-                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+                        AND T8.PD_PRP_VAL09 IS NULL
                         </if>
-                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+                        </if>
+                        <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                        AND T8.PD_PRP_VAL09 IS NOT NULL
                         </if>
                         /*조회조건 종료*/
                       UNION ALL
@@ -420,15 +451,19 @@
                                          ) T9--계약주소관계
                          ON 1=1
                       WHERE A.PDCT_IST_DT BETWEEN #{startDt} AND #{endDt}
-                        AND SELL_TP_CD = '2'   --렌탈/리스
-                        AND SELL_TP_DTL_CD!='22'
+                        AND SELL_TP_DTL_CD IN ('21','23')
                         AND SUBSTR(B.CNTR_PD_STRTDT,1,6) = SUBSTR(A.PDCT_IST_DT,1,6)
+                        AND SUBSTR(B.CNTR_PD_ENDDT,1,6) != SUBSTR(A.PDCT_IST_DT,1,6)
                         /*조회조건 시작*/
-                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+                        AND T8.PD_PRP_VAL09 IS NULL
                         </if>
-                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+                        </if>
+                        <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                        AND T8.PD_PRP_VAL09 IS NOT NULL
                         </if>
                         /*조회조건 종료*/
                     )
@@ -464,8 +499,8 @@
                           ) R
                        LEFT JOIN (
                                   SELECT /*+ USE_NL(A T8 T9) */
-                                         (CASE WHEN A.SELL_TP_DTL_CD != '22' THEN 1
-                                               WHEN A.SELL_TP_DTL_CD ='22' AND A.PRGS_NMN_N > 1 THEN 2
+                                         (CASE WHEN A.SELL_TP_DTL_CD ='21' THEN 1
+                                               ELSE 2
                                            END) SEQ
                                        , COUNT(1)  CNT
                                     FROM TB_SSCT_CNTR_RSG_PROCS_IZ A
@@ -491,18 +526,23 @@
                                    WHERE A.SELL_TP_CD = '2'
                                      AND A.PD_GD_CD = 'E'
                                      AND A.PRGS_NMN_N > 0
+                                     AND SUBSTR(B.CNTR_PD_STRTDT,1,6) <![CDATA[ <> ]]> SUBSTR(B.CNTR_PD_ENDDT,1,6)
                                      AND A.RSG_FSH_DT BETWEEN #{startDt} AND #{endDt}
                                      --   AND PRGS_NMN_N > 1
                                      /*조회조건 시작*/
-                                     <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+                                     <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
                                      AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+                                     AND T8.PD_PRP_VAL09 IS NULL
                                      </if>
-                                     <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+                                     <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
                                      AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
                                      </if>
+                                     <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                                     AND T8.PD_PRP_VAL09 IS NOT NULL
+                                     </if>
                                      /*조회조건 종료*/
-                                   GROUP BY (CASE WHEN A.SELL_TP_DTL_CD != '22'  THEN 1
-                                                  WHEN A.SELL_TP_DTL_CD = '22' AND A.PRGS_NMN_N > 1 THEN 2
+                                   GROUP BY (CASE WHEN A.SELL_TP_DTL_CD ='21' THEN 1
+                                                  ELSE 2
                                              END)
                           ) LCDP /* LC Drop 렌탈 철회 */
                          ON R.SEQ = LCDP.SEQ
@@ -539,11 +579,15 @@
                         AND A.DTA_DL_YN = 'N'
                         AND A.CNTR_PD_ENDDT BETWEEN #{startDt} AND #{endDt}
                         /*조회조건 시작*/
-                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+                        <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+                        AND T8.PD_PRP_VAL09 IS NULL
                         </if>
-                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+                        <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
                         AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+                        </if>
+                        <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                        AND T8.PD_PRP_VAL09 IS NOT NULL
                         </if>
                         /*조회조건 종료*/
                     ) A
@@ -571,10 +615,10 @@
                        FROM
                           (
                            SELECT /*+ USE_NL(T1 T2 T8 T9) */
-                                  NVL(SUM(CASE WHEN T1.SELL_TP_DTL_CD != '22' AND T2.LS_RNTF = 0 THEN 1 ELSE 0 END),0) CNT1
-                                , NVL(SUM(CASE WHEN T1.SELL_TP_DTL_CD = '22' AND T2.LS_RNTF = 0 THEN 1 ELSE 0 END),0) CNT2
-                                , NVL(SUM(CASE WHEN T1.SELL_TP_DTL_CD != '22' AND T2.LS_RNTF != 0 THEN 1 ELSE 0 END),0) CNT3
-                                , NVL(SUM(CASE WHEN T1.SELL_TP_DTL_CD = '22' AND T2.LS_RNTF != 0 THEN 1 ELSE 0 END),0) CNT4
+                                  NVL(SUM(CASE WHEN T1.SELL_TP_DTL_CD IN ('21','23') AND T2.LS_RNTF = 0 THEN 1 ELSE 0 END),0) CNT1
+                                , NVL(SUM(CASE WHEN T1.SELL_TP_DTL_CD NOT IN ('21','23') AND T2.LS_RNTF = 0 THEN 1 ELSE 0 END),0) CNT2
+                                , NVL(SUM(CASE WHEN T1.SELL_TP_DTL_CD IN ('21','23') AND T2.LS_RNTF != 0 THEN 1 ELSE 0 END),0) CNT3
+                                , NVL(SUM(CASE WHEN T1.SELL_TP_DTL_CD NOT IN ('21','23') AND T2.LS_RNTF != 0 THEN 1 ELSE 0 END),0) CNT4
                                 --            END) AS DIV_DTL_CD
                              FROM TB_SSCT_CNTR_DTL T1
                             INNER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ T2
@@ -597,19 +641,37 @@
                                                  WHERE RN=1
                                                ) T9--계약주소관계
                                ON 1=1
+                             /*원두제외*/
+                             LEFT JOIN (
+                                        SELECT SA.CNTR_NO, SA.CNTR_SN, B.PD_CD, B.PD_NM, C.REF_PD_CLSF_VAL
+                                          FROM TB_SSCT_CNTR_PD_REL SA    /*계약상품관계*/
+                                             , TB_PDBS_PD_BAS B    /*상품기본*/
+                                             , TB_PDBS_PD_CLSF_BAS C    /*상품분류기본*/
+                                         WHERE SA.BASE_PD_CD = B.PD_CD
+                                           AND B.PD_CLSF_ID = C.PD_CLSF_ID
+                                           AND C.REF_PD_CLSF_VAL IN ('05003002','0A003002')    /*참조상품분류값 = 상품대분류2자리||상품중분류3자리||상품소분류3자리||상품세분류3자리*/
+                                       )T10
+                               ON T1.CNTR_NO = T10.CNTR_NO
+                              AND T1.CNTR_SN = T10.CNTR_SN
                             WHERE T1.SELL_TP_CD = '2'   --렌탈/리스
                             --          AND T1.SELL_TP_DTL_CD != '22'
                             --AND T1.CNTR_DTL_STAT_CD = '303'  --계약취소
-                              AND T1.FRISU_YN = 'N'
-                              AND T1.CNTR_PD_ENDDT BETWEEN #{startDt} AND #{endDt}
+                              AND T2.RSG_FSH_DT BETWEEN #{startDt} AND #{endDt}
                               AND T2.PD_GD_CD != 'E'
+                              AND T2.PD_CD != 'WP01120158'  --청호제외
+                              AND T10.CNTR_NO IS NULL
+                              AND T10.CNTR_SN IS NULL
                             --AND SUBSTR(T1.CAN_DT,1,6) = T1.BASE_YM
                               /*조회조건 시작*/
-                              <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+                              <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
                               AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+                              AND T8.PD_PRP_VAL09 IS NULL
                               </if>
-                              <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+                              <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
                               AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+                              </if>
+                              <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                              AND T8.PD_PRP_VAL09 IS NOT NULL
                               </if>
                               /*조회조건 종료*/
                           )
@@ -634,6 +696,9 @@
                            SELECT 1 AS DIV_DTL_CD
                                 , COUNT(1) CNT
                              FROM TB_CBBO_WELLS_AUTH_RSG_IZ T1 --WELLS 직권해지내역
+                            INNER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ T2 --계약해지처리내역
+                               ON T1.CNTR_NO = T2.CNTR_NO
+                              AND T1.CNTR_SN = T2.CNTR_SN
                             INNER JOIN TB_SSCT_CNTR_DTL B
                                ON B.CNTR_NO = T1.CNTR_NO
                               AND B.CNTR_SN = T1.CNTR_SN
@@ -656,15 +721,21 @@
                             WHERE 1=1
                               AND T1.BASE_YM = #{slYm}
                               AND T1.SELL_TP_CD = '2'   --렌탈/리스
+                              AND T2.SELL_TP_DTL_CD IN ('21','23')    --렌탈건
+                              AND T2.CNTR_STAT_CH_RSON_CD = '78'  --직권해지
+                              AND T2.PD_CD != 'WP01120158'  --청호제외
                               AND SUBSTR(T1.CAN_DT,1,6) = T1.BASE_YM
-                              AND T1.CAN_DT BETWEEN #{startDt} AND #{endDt}
-                              AND T1.SL_DT > 0
+                              AND T2.RSG_FSH_DT BETWEEN #{startDt} AND #{endDt}
                               /*조회조건 시작*/
-                              <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+                              <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
                               AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+                              AND T8.PD_PRP_VAL09 IS NULL
                               </if>
-                              <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+                              <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
                               AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+                              </if>
+                              <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+                              AND T8.PD_PRP_VAL09 IS NOT NULL
                               </if>
                               /*조회조건 종료*/
                           )
@@ -688,7 +759,7 @@
              , T4.MAT_PD_CD --수불코드
              , T4.PD_NM  --제품명
              , T3.IST_DT  --설치일자
-             , T1.CNTR_PD_ENDDT  --취소일자
+             , DECODE(T1.CNTR_DTL_STAT_CD, '303', T1.CNTR_PD_ENDDT, '') AS CNTR_CAN_DTM --취소일자
              , T3.REQD_DT --철거일자
              , T8.PD_PRP_VAL09 AS PRTNR_BZS_CD --파트너업체코드
              , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', T8.PD_PRP_VAL09) AS PRTNR_BZS_NM
@@ -746,7 +817,7 @@
          WHERE 1=1
            AND T1.FRISU_YN = 'Y'   --무료
            AND T1.SELL_TP_CD = '2'   --렌탈/리스
-           AND T1.SELL_TP_DTL_CD != '22' --리스가 아닌것
+           AND T1.SELL_TP_DTL_CD IN ('21','23') --일반렌탈, 공유렌탈
            AND T1.DTA_DL_YN = 'N'
            AND T2.WK_OSTR_SN = '1'
            AND T2.FRE_EXPN_IST_DT BETWEEN #{startDt} AND #{endDt}  --매출년월 조건 들어가야함 20180501 20180510
@@ -758,13 +829,17 @@
            AND T2.SV_BIZ_HCLSF_CD = 1 --전체 무료체험 설치 건
            </if>
            <if test='@MybatisUtils@equals(divDtlCd, "2")'>
-           AND T2.SV_BIZ_HCLSF_CD = 6 AND SV_BIZ_DCLSF_CD = '3430' AND  SUBSTR(T2.FNL_VST_FSH_DT,1,6) = SUBSTR(T2.FRE_EXPN_IST_DT,1,6) --무료체험 당월취소
+           AND T2.SV_BIZ_HCLSF_CD = 6 AND SUBSTR(T2.FNL_VST_FSH_DT,1,6) = SUBSTR(T2.FRE_EXPN_IST_DT,1,6) --무료체험 당월취소
            </if>
-           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+           AND T8.PD_PRP_VAL09 IS NULL
            </if>
-           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+           </if>
+           <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+           AND T8.PD_PRP_VAL09 IS NOT NULL
            </if>
            /*조회조건 종료*/
     </select>
@@ -781,7 +856,7 @@
              , T6.MAT_PD_CD --수불코드
              , T6.PD_NM  --제품명
              , T5.IST_DT  --설치일자
-             , T1.CNTR_PD_ENDDT  --취소일자
+             , DECODE(T1.CNTR_DTL_STAT_CD, '303', T1.CNTR_PD_ENDDT, '') AS CNTR_CAN_DTM --취소일자
              , T5.REQD_DT --철거일자
              , T7.PD_PRP_VAL09 AS PRTNR_BZS_CD --파트너업체코드
              , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', T7.PD_PRP_VAL09) AS PRTNR_BZS_NM
@@ -804,39 +879,13 @@
             ON T1.CNTR_NO = T5.CNTR_NO
            AND T1.CNTR_SN = T5.CNTR_SN
          INNER JOIN (
-                     SELECT PD_CD,PD_NM, MAT_PD_CD, SAP_MAT_CD
-                       FROM
-                          (
-                           SELECT A.PD_CD, A.PD_NM
-                                , CASE WHEN A.CNT > 1 THEN '' ELSE B.MAT_PD_CD END AS MAT_PD_CD
-                                , CASE WHEN A.CNT > 1 THEN '' ELSE B.SAP_MAT_CD END AS SAP_MAT_CD
-                             FROM
-                                (
-                                 SELECT A.PD_CD /*상품코드*/, A.PD_NM/*상품명*/,COUNT(*) CNT
-                                   FROM
-                                      (
-                                       SELECT S1.PD_CD /*상품코드*/, S1.PD_NM/*상품명*/, S3.PD_CD  AS MAT_PD_CD /*자재코드*/
-                                         FROM TB_PDBS_PD_BAS S1
-                                        INNER JOIN TB_PDBS_PD_REL S2
-                                           ON S1.PD_CD =S2.BASE_PD_CD  AND S2.PD_REL_TP_CD  ='05' /* 기준상품  - 제품 */  AND S2.DTA_DL_YN  = 'N'
-                                        INNER JOIN TB_PDBS_PD_BAS S3
-                                           ON S2.OJ_PD_CD = S3.PD_CD  AND S3.DTA_DL_YN  = 'N'
-                                        GROUP BY S1.PD_CD /*상품코드*/, S1.PD_NM/*상품명*/, S3.PD_CD /*자재코드*/
-                                      ) A
-                                  GROUP BY A.PD_CD /*상품코드*/, A.PD_NM/*상품명*/
-                                ) A
-                                , (
-                                   SELECT S1.PD_CD /*상품코드*/, S1.PD_NM/*상품명*/, S3.PD_CD  AS MAT_PD_CD /*자재코드*/, S3.PD_NM AS MAT_PD_NM /*자재명*/, S3.SAP_MAT_CD /*SAP자재코드*/
-                                     FROM TB_PDBS_PD_BAS S1
-                                    INNER JOIN TB_PDBS_PD_REL S2
-                                       ON S1.PD_CD =S2.BASE_PD_CD  AND S2.PD_REL_TP_CD  ='05' /* 기준상품  - 제품 */  AND S2.DTA_DL_YN  = 'N'
-                                    INNER JOIN TB_PDBS_PD_BAS S3
-                                       ON S2.OJ_PD_CD = S3.PD_CD  AND S3.DTA_DL_YN  = 'N'
-                                    GROUP BY S1.PD_CD /*상품코드*/, S1.PD_NM/*상품명*/, S3.PD_CD /*자재코드*/, S3.PD_NM /*자재명*/, S3.SAP_MAT_CD /*SAP자재코드*/
-                                  ) B
-                            WHERE A.PD_CD = B.PD_CD
-                            GROUP BY A.PD_CD, A.PD_NM,A.CNT,B.MAT_PD_CD,B.SAP_MAT_CD
-                          ) GROUP BY PD_CD,PD_NM, MAT_PD_CD, SAP_MAT_CD
+                     SELECT S1.PD_CD /*상품코드*/, S1.PD_NM/*상품명*/, S3.PD_CD  AS MAT_PD_CD /*자재코드*/, S3.PD_NM AS MAT_PD_NM /*자재명*/, S3.SAP_MAT_CD /*SAP자재코드*/
+   		  	           FROM TB_PDBS_PD_BAS S1, TB_PDBS_PD_REL S2,TB_PDBS_PD_BAS S3
+ 	                  WHERE S1.PD_CD =S2.BASE_PD_CD
+                        AND S2.PD_REL_TP_CD  ='05' /* 기준상품  - 제품 */
+                        AND S2.DTA_DL_YN  = 'N'
+                        AND S2.OJ_PD_CD = S3.PD_CD
+                        AND S3.DTA_DL_YN  = 'N'
                     ) T6
             ON T1.BASE_PD_CD = T6.PD_CD
           LEFT JOIN TB_PDBS_PD_ECOM_PRP_DTL T7--배송주문상세
@@ -855,8 +904,11 @@
                               WHERE RN=1
                             ) T9--계약주소관계
             ON 1=1
+          LEFT JOIN TB_SSCT_CNTR_RSG_PROCS_IZ T10
+            ON T1.CNTR_NO = T10.CNTR_NO
+           AND T1.CNTR_SN = T10.CNTR_SN
          WHERE T1.SELL_TP_CD = '2'   --렌탈/리스
-           AND T1.SELL_TP_DTL_CD != '22' --리스가 아닌것
+           AND T1.SELL_TP_DTL_CD IN ('21','23') --일반렌탈, 공유렌탈
            AND T1.DTA_DL_YN = 'N'
            AND T1.CNTR_PD_STRTDT BETWEEN #{startDt} AND #{endDt}
            AND T2.CNTR_NO IS NULL
@@ -866,13 +918,17 @@
            AND T1.FRISU_YN = 'Y' --매출확정 중 무료체험검
            </if>
            <if test='@MybatisUtils@equals(divDtlCd, "3")'>
-           AND SUBSTR(T1.CNTR_PD_STRTDT,1,6) = SUBSTR(T1.CNTR_PD_ENDDT,1,6) AND T1.FRISU_YN != 'Y' -- 당월취소건수 (14 일내 , 무료체험외 )
+           AND SUBSTR(T1.CNTR_PD_STRTDT,1,6) = SUBSTR(T1.CNTR_PD_ENDDT,1,6) AND T1.FRISU_YN != 'Y' AND T10.PD_GD_CD = 'E'  -- 당월취소건수 (14 일내 , 무료체험외 )
            </if>
-           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+           AND T7.PD_PRP_VAL09 IS NULL
            </if>
-           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T7.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+           </if>
+           <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+           AND T7.PD_PRP_VAL09 IS NOT NULL
            </if>
            /*조회조건 종료*/
     </select>
@@ -888,7 +944,7 @@
              , T4.MAT_PD_CD --수불코드
              , T4.PD_NM  --제품명
              , T3.IST_DT  --설치일자
-             , B.CNTR_PD_ENDDT  --취소일자
+             , DECODE(B.CNTR_DTL_STAT_CD, '303', B.CNTR_PD_ENDDT, '') AS CNTR_CAN_DTM --취소일자
              , T3.REQD_DT --철거일자
              , T8.PD_PRP_VAL09 AS PRTNR_BZS_CD --파트너업체코드
              , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', T8.PD_PRP_VAL09) AS PRTNR_BZS_NM
@@ -929,22 +985,26 @@
                               WHERE RN=1
                             ) T9--계약주소관계
             ON 1=1
-         WHERE 1=1
            <if test='@MybatisUtils@equals(divDtlCd, "1")'>
            /*-------------------------------------------------------------------*/
            /* 3.제품교체 - ⑥당월교체(당월철거OR당월설치 제외)리스제외 START */
            /*-------------------------------------------------------------------*/
+         WHERE 1=1
            AND SELL_TP_CD = '2'   --렌탈
-           AND SELL_TP_DTL_CD != '22'
+           AND SELL_TP_DTL_CD IN ('21','23')
            AND A.PDCT_IST_DT BETWEEN #{startDt} AND #{endDt}
            AND SUBSTR(B.CNTR_PD_STRTDT, 1, 6) <![CDATA[ <> ]]> #{slYm}    /*당월설치건 제외*/
            AND NOT (SUBSTR(B.CNTR_PD_ENDDT,1,6) = #{slYm} AND SUBSTR(B.CNTR_PD_ENDDT,1,6) = SUBSTR(A.PDCT_IST_DT,1,6)) /*당월철거건 제외*/
            /*조회조건 시작*/
-           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+           AND T8.PD_PRP_VAL09 IS NULL
            </if>
-           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+           </if>
+           <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+           AND T8.PD_PRP_VAL09 IS NOT NULL
            </if>
            /*조회조건 종료*/
            /*-------------------------------------------------------------------*/
@@ -955,17 +1015,22 @@
            /*-------------------------------------------------------------------*/
            /* 3.제품교체 - 당월교체(만료제외)리스만 START */
            /*-------------------------------------------------------------------*/
+         WHERE 1=1
            AND SELL_TP_CD = '2'   --렌탈
-           AND SELL_TP_DTL_CD = '22'
+           AND SELL_TP_DTL_CD NOT IN ('21','23')
            AND A.PDCT_IST_DT BETWEEN #{startDt} AND #{endDt}
-           AND B.CNTR_DTL_STAT_CD != '401'
-           AND NOT  SUBSTR(B.CNTR_PD_STRTDT,1,6) = SUBSTR(A.PDCT_IST_DT,1,6)
+           AND B.CNTR_DTL_STAT_CD NOT IN ('401', '402')
+           AND T3.REQD_DT IS NULL
            /*조회조건 시작*/
-           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+           AND T8.PD_PRP_VAL09 IS NULL
            </if>
-           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+           </if>
+           <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+           AND T8.PD_PRP_VAL09 IS NOT NULL
            </if>
            /*조회조건 종료*/
            /*-------------------------------------------------------------------*/
@@ -976,16 +1041,21 @@
            /*-------------------------------------------------------------------*/
            /* 3.제품교체 - 당월교체/당월철거-리스제외 START*/
            /*-------------------------------------------------------------------*/
+         WHERE 1=1
            AND SELL_TP_CD = '2'   --렌탈
-           AND SELL_TP_DTL_CD != '22'
-           AND SUBSTR(B.CNTR_PD_ENDDT,1,6) = #{slYm}
+           AND SELL_TP_DTL_CD IN ('21','23')
+           AND A.PDCT_IST_DT BETWEEN #{startDt} AND #{endDt}
            AND SUBSTR(B.CNTR_PD_ENDDT,1,6) = SUBSTR(A.PDCT_IST_DT,1,6)
            /*조회조건 시작*/
-           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+           AND T8.PD_PRP_VAL09 IS NULL
            </if>
-           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+           </if>
+           <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+           AND T8.PD_PRP_VAL09 IS NOT NULL
            </if>
            /*조회조건 종료*/
            /*-------------------------------------------------------------------*/
@@ -996,15 +1066,21 @@
            /*-------------------------------------------------------------------*/
            /* 3.제품교체 - 당월교체/당월철거-리스만 START */
            /*-------------------------------------------------------------------*/
+         WHERE 1=1
            AND SELL_TP_CD = '2'   --렌탈
-           AND SELL_TP_DTL_CD = '22'
-           AND A.PDCT_REQD_DT BETWEEN #{startDt} AND #{endDt}
+           AND SELL_TP_DTL_CD NOT IN ('21','23')
+           AND A.PDCT_IST_DT BETWEEN #{startDt} AND #{endDt}
+           AND SUBSTR(B.CNTR_PD_ENDDT,1,6) = SUBSTR(A.PDCT_IST_DT,1,6)
            /*조회조건 시작*/
-           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+           AND T8.PD_PRP_VAL09 IS NULL
            </if>
-           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+           </if>
+           <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+           AND T8.PD_PRP_VAL09 IS NOT NULL
            </if>
            /*조회조건 종료*/
            /*-------------------------------------------------------------------*/
@@ -1015,15 +1091,23 @@
            /*-------------------------------------------------------------------*/
            /* 3.제품교체 - 무료체험기간내 교체건 START */
            /*-------------------------------------------------------------------*/
+         INNER JOIN TB_SSCT_CNTR_REL C  --계약관계
+            ON CNTR_REL_DTL_CD = '108'  --무료체험교체
+           AND A.CNTR_NO = C.BASE_DTL_CNTR_NO
+           AND A.CNTR_SN = C.BASE_DTL_CNTR_SN
+         WHERE 1=1
            AND SELL_TP_CD = '2'   --렌탈
            AND A.PDCT_IST_DT BETWEEN #{startDt} AND #{endDt}
-           AND B.FRISU_YN = 'Y'
            /*조회조건 시작*/
-           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+           AND T8.PD_PRP_VAL09 IS NULL
            </if>
-           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+           </if>
+           <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+           AND T8.PD_PRP_VAL09 IS NOT NULL
            </if>
            /*조회조건 종료*/
            /*-------------------------------------------------------------------*/
@@ -1034,16 +1118,22 @@
            /*-------------------------------------------------------------------*/
            /* 3.제품교체 - 당월교체(당월설치만)리스제외 START */
            /*-------------------------------------------------------------------*/
+          WHERE 1=1
            AND A.PDCT_IST_DT BETWEEN #{startDt} AND #{endDt}
            AND SELL_TP_CD = '2'   --렌탈
-           AND SELL_TP_DTL_CD != '22'
+           AND SELL_TP_DTL_CD IN ('21','23')
            AND SUBSTR(B.CNTR_PD_STRTDT,1,6) = SUBSTR(A.PDCT_IST_DT,1,6)
+           AND SUBSTR(B.CNTR_PD_ENDDT,1,6) != SUBSTR(A.PDCT_IST_DT,1,6)
            /*조회조건 시작*/
-           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+           AND T8.PD_PRP_VAL09 IS NULL
            </if>
-           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+           </if>
+           <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+           AND T8.PD_PRP_VAL09 IS NOT NULL
            </if>
            /*조회조건 종료*/
            /*-------------------------------------------------------------------*/
@@ -1063,7 +1153,7 @@
              , T4.MAT_PD_CD --수불코드
              , T4.PD_NM  --제품명
              , T3.IST_DT  --설치일자
-             , A.RSG_FSH_DT AS CNTR_PD_ENDDT
+             , A.RSG_FSH_DT AS CNTR_CAN_DTM --취소일자
              , T3.REQD_DT --철거일자
              , T8.PD_PRP_VAL09 AS PRTNR_BZS_CD --파트너업체코드
              , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', T8.PD_PRP_VAL09) AS PRTNR_BZS_NM
@@ -1134,22 +1224,27 @@
                               WHERE RN=1
                             ) T9--계약주소관계
             ON 1=1
-         WHERE 1=1
            <if test='@MybatisUtils@equals(divCd, "40")'>
            /*-------------------------------------------------------------------*/
            /* 4.렌탈철회 -리스제외 START */
            /*-------------------------------------------------------------------*/
+         WHERE 1=1
            AND A.SELL_TP_CD = '2'
-           AND A.SELL_TP_DTL_CD <![CDATA[ <> ]]> '22'
+           AND A.SELL_TP_DTL_CD = '21'
            AND A.PD_GD_CD = 'E'
            AND A.PRGS_NMN_N  > 0
+           AND SUBSTR(B.CNTR_PD_STRTDT,1,6) <![CDATA[ <> ]]> SUBSTR(B.CNTR_PD_ENDDT,1,6)
            AND A.RSG_FSH_DT BETWEEN #{startDt} AND #{endDt}
            /*조회조건 시작*/
-           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+           AND T8.PD_PRP_VAL09 IS NULL
            </if>
-           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+           </if>
+           <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+           AND T8.PD_PRP_VAL09 IS NOT NULL
            </if>
            /*조회조건 종료*/
            /*-------------------------------------------------------------------*/
@@ -1160,17 +1255,23 @@
            /*-------------------------------------------------------------------*/
            /* 4.렌탈철회 -리스만 START */
            /*-------------------------------------------------------------------*/
+         WHERE 1=1
            AND A.SELL_TP_CD = '2'
-           AND A.SELL_TP_DTL_CD = '22'
+           AND A.SELL_TP_DTL_CD != '21'
            AND A.PD_GD_CD = 'E'
-           AND A.PRGS_NMN_N  > 1
+           AND A.PRGS_NMN_N  > 0
+           AND SUBSTR(B.CNTR_PD_STRTDT,1,6) <![CDATA[ <> ]]> SUBSTR(B.CNTR_PD_ENDDT,1,6)
            AND A.RSG_FSH_DT BETWEEN #{startDt} AND #{endDt}
            /*조회조건 시작*/
-           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+           AND T8.PD_PRP_VAL09 IS NULL
            </if>
-           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+           </if>
+           <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+           AND T8.PD_PRP_VAL09 IS NOT NULL
            </if>
            /*조회조건 종료*/
            /*-------------------------------------------------------------------*/
@@ -1190,7 +1291,7 @@
              , T4.MAT_PD_CD --수불코드
              , T4.PD_NM  --제품명
              , T3.IST_DT  --설치일자
-             , A.CNTR_PD_ENDDT
+             , DECODE(A.CNTR_DTL_STAT_CD, '303', A.CNTR_PD_ENDDT, '') AS CNTR_CAN_DTM --취소일자
              , T3.REQD_DT --철거일자
              , T8.PD_PRP_VAL09 AS PRTNR_BZS_CD --파트너업체코드
              , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', T8.PD_PRP_VAL09) AS PRTNR_BZS_NM
@@ -1239,11 +1340,8 @@
             ON A.CNTR_NO = T5.CNTR_NO
          INNER JOIN TB_CUBS_CST_BAS T6 --고객기본
             ON T5.CNTR_CST_NO =  T6.CST_NO
-         INNER JOIN TB_SSCT_CNTR_DTL B
-            ON B.CNTR_NO = A.CNTR_NO
-           AND B.CNTR_SN = A.CNTR_SN
           LEFT JOIN TB_PDBS_PD_ECOM_PRP_DTL T8--상품각사속성상세
-            ON T8.PD_CD = B.BASE_PD_CD
+            ON T8.PD_CD = A.BASE_PD_CD
    	       AND T8.PD_EXTS_PRP_GRP_CD = 'SPP'  --배송
          INNER JOIN LATERAL (
                              SELECT CNTR_ADR_REL_ID,DTL_CNTR_NO,DTL_CNTR_SN, ADRPC_TP_CD
@@ -1266,11 +1364,15 @@
            AND A.DTA_DL_YN  = 'N'
            AND A.CNTR_PD_ENDDT BETWEEN #{startDt} AND #{endDt}
            /*조회조건 시작*/
-           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+           AND T8.PD_PRP_VAL09 IS NULL
            </if>
-           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+           </if>
+           <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+           AND T8.PD_PRP_VAL09 IS NOT NULL
            </if>
            /*조회조건 종료*/
     </select>
@@ -1286,7 +1388,7 @@
              , T4.MAT_PD_CD --수불코드
              , T4.PD_NM  --제품명
              , T3.IST_DT  --설치일자
-             , T1.CNTR_PD_ENDDT
+             , DECODE(T1.CNTR_DTL_STAT_CD, '303', T1.CNTR_PD_ENDDT, '') AS CNTR_CAN_DTM --취소일자
              , T3.REQD_DT --철거일자
              , T8.PD_PRP_VAL09 AS PRTNR_BZS_CD --파트너업체코드
              , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', T8.PD_PRP_VAL09) AS PRTNR_BZS_NM
@@ -1358,42 +1460,60 @@
                               WHERE RN=1
                             ) T9--계약주소관계
             ON 1=1
+          /*원두제외*/
+          LEFT JOIN (
+                     SELECT SA.CNTR_NO, SA.CNTR_SN, B.PD_CD, B.PD_NM, C.REF_PD_CLSF_VAL
+                       FROM TB_SSCT_CNTR_PD_REL SA    /*계약상품관계*/
+                          , TB_PDBS_PD_BAS B    /*상품기본*/
+                          , TB_PDBS_PD_CLSF_BAS C    /*상품분류기본*/
+                      WHERE SA.BASE_PD_CD = B.PD_CD
+                        AND B.PD_CLSF_ID = C.PD_CLSF_ID
+                        AND C.REF_PD_CLSF_VAL IN ('05003002','0A003002')    /*참조상품분류값 = 상품대분류2자리||상품중분류3자리||상품소분류3자리||상품세분류3자리*/
+                    ) T10
+            ON T1.CNTR_NO = T10.CNTR_NO
+           AND T1.CNTR_SN = T10.CNTR_SN
          WHERE T1.SELL_TP_CD = '2'   --렌탈/리스
          --					AND T1.SELL_TP_DTL_CD != '22'
          --AND T1.CNTR_DTL_STAT_CD = '303'  --계약취소
-         AND T1.FRISU_YN = 'N'
-         AND T1.CNTR_PD_ENDDT BETWEEN #{startDt} AND #{endDt}
+         AND T2.RSG_FSH_DT BETWEEN #{startDt} AND #{endDt}
          AND T2.PD_GD_CD != 'E'
+         AND T2.PD_CD != 'WP01120158' --청호제외
+         AND T10.CNTR_NO IS NULL
+         AND T10.CNTR_SN IS NULL
          /*조회조건 시작*/
-         <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+         <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
          AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+         AND T8.PD_PRP_VAL09 IS NULL
          </if>
-         <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+         <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
          AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+         </if>
+         <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+         AND T8.PD_PRP_VAL09 IS NOT NULL
          </if>
          <if test='@MybatisUtils@equals(divDtlCd, "1")'>
          /*-------------------------------------------------------------------*/
          /* 6. R급취소 - ⑫렌탈취소(R급)-분실제외-리스제외 */
          /*-------------------------------------------------------------------*/
-         AND T1.SELL_TP_DTL_CD !='22' AND T2.LS_RNTF = 0
+         AND T1.SELL_TP_DTL_CD IN ('21','23') AND T2.LS_RNTF = 0
          </if>
          <if test='@MybatisUtils@equals(divDtlCd, "2")'>
          /*-------------------------------------------------------------------*/
          /* 6. R급취소 - ⑬렌탈취소(R급)-분실제외-리스만 */
          /*-------------------------------------------------------------------*/
-         AND T1.SELL_TP_DTL_CD ='22' AND T2.LS_RNTF = 0
+         AND T1.SELL_TP_DTL_CD NOT IN ('21','23') AND T2.LS_RNTF = 0
          </if>
          <if test='@MybatisUtils@equals(divDtlCd, "3")'>
          /*-------------------------------------------------------------------*/
          /* 6. R급취소 - ⓐ렌탈취소(R급)-분실만-리스제외 */
          /*-------------------------------------------------------------------*/
-         AND T1.SELL_TP_DTL_CD !='22' AND T2.LS_RNTF != 0
+         AND T1.SELL_TP_DTL_CD IN ('21','23') AND T2.LS_RNTF != 0
          </if>
          <if test='@MybatisUtils@equals(divDtlCd, "4")'>
          /*-------------------------------------------------------------------*/
          /* 6. R급취소 - ⓑ렌탈취소(R급)-분실만-리스만 */
          /*-------------------------------------------------------------------*/
-         AND T1.SELL_TP_DTL_CD ='22' AND T2.LS_RNTF != 0
+         AND T1.SELL_TP_DTL_CD NOT IN ('21','23') AND T2.LS_RNTF != 0
          </if>
          /*조회조건 종료*/
     </select>
@@ -1409,11 +1529,14 @@
              , T4.MAT_PD_CD --수불코드
              , T4.PD_NM  --제품명
              , T3.IST_DT  --설치일자
-             , T1.CAN_DT AS CNTR_PD_ENDDT
+             , T2.RSG_FSH_DT AS CNTR_CAN_DTM --취소일자
              , T3.REQD_DT --철거일자
              , T8.PD_PRP_VAL09 AS PRTNR_BZS_CD --파트너업체코드
              , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', T8.PD_PRP_VAL09) AS PRTNR_BZS_NM
           FROM TB_CBBO_WELLS_AUTH_RSG_IZ T1 --WELLS 직권해지내역
+         INNER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ T2 --계약해지처리내역
+            ON T1.CNTR_NO = T2.CNTR_NO
+           AND T1.CNTR_SN = T2.CNTR_SN
          INNER JOIN TB_SSCT_CNTR_WELLS_DTL T3
             ON T1.CNTR_NO = T3.CNTR_NO
            AND T1.CNTR_SN = T3.CNTR_SN
@@ -1478,15 +1601,21 @@
          WHERE 1=1
            AND T1.BASE_YM = #{slYm}
            AND T1.SELL_TP_CD = '2'   --렌탈/리스
+           AND T2.SELL_TP_DTL_CD IN ('21','23')    --렌탈건
+           AND T2.CNTR_STAT_CH_RSON_CD = '78'  --직권해지
+           AND T2.PD_CD != 'WP01120158'  --청호제외
            AND SUBSTR(T1.CAN_DT,1,6) = T1.BASE_YM
-           AND T1.CAN_DT BETWEEN #{startDt} AND #{endDt}
-           AND T1.SL_DT > 0
+           AND T2.RSG_FSH_DT BETWEEN #{startDt} AND #{endDt}
            /*조회조건 시작*/
-           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd)'>
+           <if test='@MybatisUtils@isNotEmpty(adrpcTpCd) and !@MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T9.ADRPC_TP_CD = #{adrpcTpCd} --2:배송, 3:설치
+           AND T8.PD_PRP_VAL09 IS NULL
            </if>
-           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(pdctDv, "1")'>
+           <if test='@MybatisUtils@isNotEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
            AND T8.PD_PRP_VAL09 = #{prtnrBzsCd} --업체코드  -> 파트너업체코드  PRTNR_BZS_CD
+           </if>
+           <if test='@MybatisUtils@isEmpty(prtnrBzsCd) and @MybatisUtils@equals(adrpcTpCd, "1")'>
+           AND T8.PD_PRP_VAL09 IS NOT NULL
            </if>
            /*조회조건 종료*/
     </select>

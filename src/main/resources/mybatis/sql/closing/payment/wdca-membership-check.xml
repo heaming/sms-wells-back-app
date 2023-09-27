@@ -65,7 +65,7 @@
            AND D.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
          INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ E/*WELLS매출월마감내역*/
             ON E.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')/*전월기준*/
-           AND E.RENTAL_PTRM = E.RENTAL_TN/*렌탈기간 = 실적회차*/
+           AND E.CNTR_PTRM = E.RENTAL_TN/*렌탈기간 = 실적회차*/
          WHERE 1 = 1
            AND A.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
         UNION ALL
@@ -167,27 +167,25 @@
           AND A.CNTR_PD_STRTDT > TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(A.CNTR_PD_ENDDT), -12)), 'YYYYMMDD')
     </select>
 
-    <select id="selectAfterPages" resultType="com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto$SearchAfterRes">
-
+    <select id="selectAfterPages" parameterType="String" resultType="com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto$SearchAfterRes">
         -- 1.가입일자　누락건
         -- 확정일자 -> TO-BE 설치일자로 확인
         -- 가입일자 -> TO-BE 계약확정승인일시로 확인
-
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1/*계약상세일련번호*/
-              ,'1'                                  AS COL2/*체크구분코드*/
-              ,'가입일자누락건체크'                      AS COL3/*체크구분명*/
+              ,'1'                                   AS COL2/*체크구분코드*/
+              ,'가입일자누락건체크'                     AS COL3/*체크구분명*/
               ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약일자 - 계약상품시작일자*/
               ,SUBSTR(C.CNTR_CAN_DTM, 1, 8)          AS COL5 /*취소일자*/
-              ,E.CNTR_PD_ENDDT                      AS COL6 /*종료일자*/
-              ,F.REQD_DT                            AS COL7 /*철거일자 */
-              ,A.FNL_AMT                            AS COL8 /*멤버십회비 - 월할부금액*/
-              ,E.CNTR_PTRM                          AS COL9/*렌탈기간*/
-              ,NVL(G.RENTAL_TN, 0)                  AS COL10/*렌탈차월*/
+              ,E.CNTR_PD_ENDDT                       AS COL6 /*종료일자*/
+              ,F.REQD_DT                             AS COL7 /*철거일자 */
+              ,A.FNL_AMT                             AS COL8 /*멤버십회비 - 월할부금액*/
+              ,E.CNTR_PTRM                           AS COL9/*렌탈기간*/
+              ,NVL(G.RENTAL_TN, 0)                   AS COL10/*렌탈차월*/
               ,(SELECT PRTNR_KNM
                   FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
                  WHERE PRTNR_NO = A.FST_RGST_USR_ID
                    AND ROWNUM = 1)                   AS COL11/*입력담당자명*/
-              ,A.FST_RGST_USR_ID                    AS COL12 /*입력담당자ID*/
+              ,A.FST_RGST_USR_ID                     AS COL12 /*입력담당자ID*/
               ,NVL(H.DLQ_MCN, 0)                     AS COL13 /*연체개월수*/
               ,''                                    AS COL14/*구분02*/
               ,''                                    AS COL15/*비고*/
@@ -203,7 +201,7 @@
               </when>
               <otherwise>
               /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
-              AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+              AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010', #{deptGubun}) /*3010:아웃바운드(SalesTM), 4010:여행특판*/
               </otherwise>
         </choose>
         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
@@ -245,34 +243,33 @@
           AND C.CNTR_CAN_DTM IS NULL
           AND C.CNTR_CNFM_DTM IS NULL
           AND C.CNTR_RCP_FSH_DTM  IS NOT NULL /*계약접수승인일시*/
-          AND A.CNTR_PD_STRTDT IS NOT NULL/*확정유무 != N 조건 대체*/
-          AND H.DLQ_MCN <![CDATA[<]]> 2
+          AND SUBSTR(E.CNTR_PD_ENDDT, 1, 6) >= TO_CHAR(SYSDATE, 'YYYYMM')
+          AND NVL(H.DLQ_MCN, 0) <![CDATA[<]]> 2
           AND 1 = (CASE WHEN J.REF_PD_CLSF_VAL LIKE '05001003%' THEN (CASE WHEN G.EOT_UC_AMT > 0 AND G.RENTAL_TN > G.SPP_TN + 2 THEN 1
-               ELSE 0 END)
+                                                                           ELSE 0 END)
                         ELSE 1 END)
-
         UNION ALL
         -- 1-1.가입일자　누락건
         -- 확정일자 -> TO-BE 설치일자로 확인
         -- 가입일자 -> TO-BE 계약확정승인일시로 확인
-        SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1/*계약상세일련번호*/
-              ,'1-1'                                 AS COL2/*체크구분코드*/
-              ,'렌탈이전월정보없는가입일자누락건'          AS COL3/*체크구분명*/
+        SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1 /*계약상세일련번호*/
+              ,'1-1'                                 AS COL2 /*체크구분코드*/
+              ,'렌탈이전월정보없는가입일자누락건'          AS COL3 /*체크구분명*/
               ,SUBSTR(K.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약일자 - 계약상품시작일자*/
               ,SUBSTR(K.CNTR_CAN_DTM, 1, 8)          AS COL5 /*취소일자*/
               ,E.CNTR_PD_ENDDT                       AS COL6 /*종료일자*/
               ,F.REQD_DT                             AS COL7 /*철거일자 */
               ,A.FNL_AMT                             AS COL8 /*멤버십회비 - 월할부금액*/
-              ,E.CNTR_PTRM + E.RENTAL_PTRM2          AS COL9/*렌탈기간*/
+              ,E.CNTR_PTRM + E.RENTAL_PTRM2          AS COL9 /*렌탈기간*/
               ,NVL(G.RENTAL_TN, 0)                   AS COL10/*렌탈차월*/
               ,(SELECT PRTNR_KNM
                   FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
                  WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                   AS COL11/*입력담당자명*/
+                   AND ROWNUM = 1)                   AS COL11 /*입력담당자명*/
               ,A.FST_RGST_USR_ID                     AS COL12 /*입력담당자ID*/
               ,0                                     AS COL13 /*연체개월수*/
-              ,''                                    AS COL14/*구분02*/
-              ,''                                    AS COL15/*비고*/
+              ,''                                    AS COL14 /*구분02*/
+              ,''                                    AS COL15 /*비고*/
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3500P] -- 멤버십계약*/
         INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
            ON C.DTA_DL_YN = 'N'
@@ -335,14 +332,11 @@
           AND H.CNTR_NO IS NULL
 
         UNION ALL
-
         -- 2.60차월이전멤가입시가입일자들어가있는건
         -- 렌탈기간인데멤버십가입건있는지
         -- 확정일자 -> TO-BE 설치일자로 확인
-
         -- 가입일자 -> TO-BE 계약확정승인일시로 확인
         -- 홈케어  -> TO-BE 판매유형코드 5로 확인
-
         SELECT A.CNTR_NO || '-' || A.CNTR_SN            AS COL1
               ,'2'                                      AS COL2
               ,'60차월이전멤가입시가입일자들어가있는건'        AS COL3
@@ -387,14 +381,14 @@
            AND E.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
          INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
             ON F.DTA_DL_YN  = 'N'
-           AND F.CNTR_NO = E.CNTR_NO
-           AND F.CNTR_SN = E.CNTR_SN
+           AND F.CNTR_NO    = E.CNTR_NO
+           AND F.CNTR_SN    = E.CNTR_SN
          INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G /*WELLS매출월마감내역 [AS-IS:LC5000P]*/
-            ON G.DTA_DL_YN = 'N'
-           AND G.CNTR_NO   = E.CNTR_NO
-           AND G.CNTR_SN   = E.CNTR_SN
-           AND G.SL_CL_YM  = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
-           AND G.RENTAL_TN <![CDATA[<]]> E.CNTR_PTRM
+            ON G.DTA_DL_YN  = 'N'
+           AND G.CNTR_NO    = E.CNTR_NO
+           AND G.CNTR_SN    = E.CNTR_SN
+           AND G.SL_CL_YM   = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+           AND G.RENTAL_TN  <![CDATA[<]]> E.CNTR_PTRM
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS H /*연체기본[AS-IS:LC5000P]*/
             ON H.DTA_DL_YN  = 'N'
            AND H.PERF_YM    = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*실적년월*/
@@ -876,6 +870,7 @@
            AND A.CNTR_PD_STRTDT IS NULL /*확정유무 !=N 조건 대체*/
            AND NVL(H.DLQ_MCN, 0) <![CDATA[<]]> 2
            AND SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND I.PD_CLSF_ID NOT IN ('PDC000000000121')
 
         UNION ALL
 
@@ -1264,9 +1259,7 @@
            AND SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')
 
         UNION ALL
-
         -- 18.회사설치-가입일자누락건(4개월전계약건부터조회)
-
         SELECT A.CNTR_NO || '-' || A.CNTR_SN         AS COL1
               ,'18'                                  AS COL2
               ,'회사설치-가입일자누락건'                 AS COL3

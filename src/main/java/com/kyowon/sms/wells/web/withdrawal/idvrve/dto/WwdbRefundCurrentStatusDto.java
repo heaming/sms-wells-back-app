@@ -25,7 +25,8 @@ public class WwdbRefundCurrentStatusDto {
         String sellTpDtlCd, // 판매유형상세
         // String rveDvCd, // 대손구분
         String dpMesCd // 포인트구분
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundCurrentStatusDto-SearchRefundHistoryRes")
     public record SearchRefundHistoryRes(
@@ -45,7 +46,7 @@ public class WwdbRefundCurrentStatusDto {
         String cshRfndAcnoEncr, // 계좌번호
         String cardRfndCrcdnoEncr, // 카드번호
         String cshRfndAcownNm, // 예금주현금
-        String cardRfndCrdcdAprno, // 예금주카드
+//        String cardRfndCrdcdAprno, // 예금주카드
         String sellTpDtlCd, // 판매유형.알수없음으로작성되어있음.
         String rveDvCd, // 입금유형
         String cstNo, // 전금고객번호
@@ -78,7 +79,8 @@ public class WwdbRefundCurrentStatusDto {
         String sellTpDtlCd, // 판매유형상세 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
         String rveDvCd, // 대손구분
         String dpMesCd // 포인트구분
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundCurrentStatusDto-SearchCardRefundHistoryRes")
     public record SearchCardRefundHistoryRes(
@@ -96,7 +98,8 @@ public class WwdbRefundCurrentStatusDto {
         String sumRfndDsbDdtnAmt, // 환불총계
         String sumRfndDsbPspInt // 지연이자
 
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundCurrentStatusDto-SearchBalanceTransferRefundHistoryReq")
     public record SearchBalanceTransferRefundHistoryReq(
@@ -114,7 +117,8 @@ public class WwdbRefundCurrentStatusDto {
         String sellTpDtlCd, // 판매유형상세 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
         String rveDvCd, // 대손구분
         String dpMesCd // 포인트구분
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundCurrentStatusDto-SearchBalanceTransferRefundHistoryRes")
     public record SearchBalanceTransferRefundHistoryRes(
@@ -130,5 +134,6 @@ public class WwdbRefundCurrentStatusDto {
         String rgRfndDsbAmt, // 정기배송
         String sumRfndDsbAmt // 전금합계
 
-    ) {}
+    ) {
+    }
 }

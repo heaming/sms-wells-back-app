@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
-import com.kyowon.sms.wells.web.service.common.mapper.WsnzHistoryMapper;
+import com.kyowon.sms.wells.web.service.common.service.WsnzHistoryService;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaSeedReleaseScheduleConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.*;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaSeedReleaseScheduleMapper;
@@ -43,7 +43,7 @@ public class WsnaSeedReleaseScheduleService {
 
     private final WsnaSeedReleaseScheduleConverter converter;
 
-    private final WsnzHistoryMapper historyMapper;
+    private final WsnzHistoryService historyService;
 
     // 메시지 서비스
     private final MessageResourceService messageService;
@@ -188,46 +188,17 @@ public class WsnaSeedReleaseScheduleService {
             // 배송구분
             String sppDvCd = dvo.getSppDvCd();
             // 택배인 경우
-            if (!SV_BIZ_HCLSF_CD_BS.equals(svBizHclsfCd) && SPP_DV_CD_PCSV.equals(sppDvCd)) {
-                // 서비스작업출고내역 데이터 생성
-                this.maaper.insertSvWkOstrIzs(dvo);
+            if (SPP_DV_CD_PCSV.equals(sppDvCd)) {
 
-                // 작업결과 조회
-                dupCnt = this.maaper.selectCstSvWkRsIzCount(cstSvAsnNo);
-                // 이미 완료 처리 되었습니다.
-                BizAssert.isNull(dupCnt, "MSG_ALT_ALRDY_FSH_PROCS");
+                // B/S가 아닌 경우
+                if (!SV_BIZ_HCLSF_CD_BS.equals(svBizHclsfCd)) {
+                    // 택배발송 처리
+                    this.saveSeedReleasePcsvForAS(dvo, svProcCn);
 
-                // AS유형코드 조회
-                WsnaSeedReleaseScheduleAsTpDvo asTpDvo = this.maaper.selectAsTpCdInfo(dvo);
-                // 현장수당항목코드
-                String siteAwAtcCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getSiteAwAtcCd();
-
-                // 고객서비스AS설치배정내역 업데이트
-                this.maaper.updateCstSvasIstAsnIz(cstSvAsnNo, svBizHclsfCd, siteAwAtcCd);
-
-                // 로그 저장
-                this.historyMapper.insertCstSvasIstAsnHistByPk(cstSvAsnNo);
-
-                WsnaSeedReleaseScheduleWkRsDvo wkRsDvo = this.converter
-                    .mapWsnaSeedReleaseScheduleCnfmDvoToWsnaSeedReleaseScheduleWkRsDvo(dvo);
-
-                // AS위치코드
-                String asLctCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAcLctCd();
-                // AS현상코드
-                String asPhnCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAsPhnCd();
-                // AS원인코드
-                String asCausCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAsCausCd();
-                // 불량구분코드
-                String badDvCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getBadDvCd();
-
-                wkRsDvo.setAcLctCd(asLctCd);
-                wkRsDvo.setAsPhnCd(asPhnCd);
-                wkRsDvo.setAsCausCd(asCausCd);
-                wkRsDvo.setBadDvCd(badDvCd);
-                wkRsDvo.setSvProcsCn(svProcCn);
-
-                // 작업결과저장
-                this.maaper.insertCstSvWkRsIz(wkRsDvo);
+                    // B/S인 경우
+                } else {
+                    this.saveSeedReleasePcsvForBS(dvo, svProcCn);
+                }
 
                 // 배송 업데이트
                 this.maaper.updateSdingSppPlanIzForPcsv(dvo);
@@ -238,6 +209,187 @@ public class WsnaSeedReleaseScheduleService {
         }
 
         return count;
+    }
+
+    /**
+     * 설치/AS 택배발송 처리
+     * @param dvo
+     * @param svProcCn
+     */
+    @Transactional
+    public void saveSeedReleasePcsvForAS(WsnaSeedReleaseScheduleCnfmDvo dvo, String svProcCn) {
+        ValidAssert.notNull(dvo);
+
+        // 서비스업무대분류코드
+        String svBizHclsfCd = dvo.getSvBizHclsfCd();
+        // 고객서비스배정번호
+        String cstSvAsnNo = dvo.getCstSvAsnNo();
+
+        // 서비스작업출고내역 데이터 생성
+        this.maaper.insertSvWkOstrIzsForAS(dvo);
+
+        // AS유형코드 조회
+        WsnaSeedReleaseScheduleAsTpDvo asTpDvo = this.maaper.selectAsTpCdInfo(dvo);
+        // 현장수당항목코드
+        String siteAwAtcCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getSiteAwAtcCd();
+
+        // 고객서비스AS설치배정내역 업데이트
+        this.maaper.updateCstSvasIstAsnIz(cstSvAsnNo, svBizHclsfCd, siteAwAtcCd);
+
+        // 로그 저장
+        this.historyService.createCstSvasIstAsnHistByPk(cstSvAsnNo);
+
+        // 작업결과 조회
+        Integer dupCnt = this.maaper.selectCstSvWkRsIzCount(cstSvAsnNo);
+        if (dupCnt == null) {
+            WsnaSeedReleaseScheduleWkRsDvo wkRsDvo = this.converter
+                .mapWsnaSeedReleaseScheduleCnfmDvoToWsnaSeedReleaseScheduleWkRsDvo(dvo);
+
+            // AS위치코드
+            String asLctCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAcLctCd();
+            // AS현상코드
+            String asPhnCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAsPhnCd();
+            // AS원인코드
+            String asCausCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAsCausCd();
+            // 불량구분코드
+            String badDvCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getBadDvCd();
+
+            wkRsDvo.setAcLctCd(asLctCd);
+            wkRsDvo.setAsPhnCd(asPhnCd);
+            wkRsDvo.setAsCausCd(asCausCd);
+            wkRsDvo.setBadDvCd(badDvCd);
+            wkRsDvo.setSvProcsCn(svProcCn);
+
+            // 작업결과저장
+            this.maaper.insertCstSvWkRsIz(wkRsDvo);
+        }
+    }
+
+    /**
+     * BS 택배발송 처리
+     * @param dvo
+     * @param svProcCn
+     */
+    @Transactional
+    public void saveSeedReleasePcsvForBS(WsnaSeedReleaseScheduleCnfmDvo dvo, String svProcCn) {
+        ValidAssert.notNull(dvo);
+
+        // 서비스업무대분류코드
+        String svBizHclsfCd = dvo.getSvBizHclsfCd();
+        // 고객서비스배정번호
+        String cstSvAsnNo = dvo.getCstSvAsnNo();
+        // 계약번호
+        String cntrNo = dvo.getCntrNo();
+        // 계약일련번호
+        int cntrSn = dvo.getCntrSn();
+        // 방문예정일자
+        String vstDuedt = dvo.getVstDuedt();
+        // 모종1상품코드
+        String pdCd = dvo.getSdingPdCd1();
+        // 업무세분류코드
+        String svBizDclsfCd = dvo.getSvBizDclsfCd();
+
+        // 서비스작업출고내역 데이터 생성
+        this.maaper.insertSvWkOstrIzsForBS(dvo);
+
+        // 품목그룹코드, AS유형코드 조회
+        WsnaSeedReleaseScheduleAsTpDvo asTpDvo = this.maaper.selectPdGrpAtcCdInfo(pdCd, svBizDclsfCd);
+        // 현장수당항목코드
+        String siteAwAtcCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getSiteAwAtcCd();
+
+        // 고객서비스정기BS주기내역 업데이트
+        this.maaper.updateCstSvRgbsprIz(cntrNo, cntrSn, vstDuedt);
+
+        // 고객서비스BS배정내역 업데이트
+        this.maaper.updateCstSvBfSvcAsnIz(cstSvAsnNo, svBizHclsfCd, siteAwAtcCd);
+
+        // 로그 저장
+        this.historyService.insertCstSvBfsvcAsnHistByPk(cstSvAsnNo);
+
+        // 작업결과 조회
+        Integer dupCnt = this.maaper.selectCstSvWkRsIzCount(cstSvAsnNo);
+        if (dupCnt == null) {
+            WsnaSeedReleaseScheduleWkRsDvo wkRsDvo = this.converter
+                .mapWsnaSeedReleaseScheduleCnfmDvoToWsnaSeedReleaseScheduleWkRsDvo(dvo);
+
+            // AS위치코드
+            String asLctCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAcLctCd();
+            // AS현상코드
+            String asPhnCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAsPhnCd();
+            // AS원인코드
+            String asCausCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAsCausCd();
+            // 불량구분코드
+            String badDvCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getBadDvCd();
+
+            wkRsDvo.setAcLctCd(asLctCd);
+            wkRsDvo.setAsPhnCd(asPhnCd);
+            wkRsDvo.setAsCausCd(asCausCd);
+            wkRsDvo.setBadDvCd(badDvCd);
+            wkRsDvo.setSvProcsCn(svProcCn);
+
+            // 작업결과저장
+            this.maaper.insertCstSvWkRsIz(wkRsDvo);
+        }
+
+        // 씨앗재배기 + 씨앗의 경우 별도 처리
+        WsnaSeedReleaseScheduleSproutDvo sproutDvo = this.maaper.selectSdingSproutInfo(dvo);
+        if (ObjectUtils.isNotEmpty(sproutDvo)) {
+            // 서비스 작업출고내역 저장
+            this.maaper.insertSvWkOstrIzsForSprout(sproutDvo);
+
+            cstSvAsnNo = sproutDvo.getCstSvAsnNo();
+            cntrNo = sproutDvo.getCntrNo();
+            cntrSn = sproutDvo.getCntrSn();
+            vstDuedt = sproutDvo.getVstDuedt();
+
+            // 상품코드
+            pdCd = sproutDvo.getPdCd();
+            // 업무세분류코드
+            svBizDclsfCd = sproutDvo.getSvBizDclsfCd();
+
+            // 고객서비스정기BS주기내역 업데이트
+            this.maaper.updateCstSvRgbsprIz(cntrNo, cntrSn, vstDuedt);
+
+            // 품목그룹코드, AS유형코드 조회
+            asTpDvo = this.maaper.selectPdGrpAtcCdInfo(pdCd, svBizDclsfCd);
+            // 현장수당항목코드
+            siteAwAtcCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getSiteAwAtcCd();
+
+            // 고객서비스BS배정내역 업데이트
+            this.maaper.updateCstSvBfSvcAsnIz(cstSvAsnNo, svBizHclsfCd, siteAwAtcCd);
+
+            // 로그 저장
+            this.historyService.insertCstSvBfsvcAsnHistByPk(cstSvAsnNo);
+
+            // 작업결과 조회
+            dupCnt = this.maaper.selectCstSvWkRsIzCount(cstSvAsnNo);
+            if (dupCnt == null) {
+                WsnaSeedReleaseScheduleWkRsDvo wkRsDvo = this.converter
+                    .mapWsnaSeedReleaseScheduleSproutDvoToWsnaSeedReleaseScheduleWkRsDvo(sproutDvo);
+
+                // AS위치코드
+                String asLctCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAcLctCd();
+                // AS현상코드
+                String asPhnCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAsPhnCd();
+                // AS원인코드
+                String asCausCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getAsCausCd();
+                // 불량구분코드
+                String badDvCd = ObjectUtils.isEmpty(asTpDvo) ? "" : asTpDvo.getBadDvCd();
+
+                wkRsDvo.setSvBizHclsfCd(SV_BIZ_HCLSF_CD_BS);
+                wkRsDvo.setAcLctCd(asLctCd);
+                wkRsDvo.setAsPhnCd(asPhnCd);
+                wkRsDvo.setAsCausCd(asCausCd);
+                wkRsDvo.setBadDvCd(badDvCd);
+                wkRsDvo.setRefriDvCd("1");
+                wkRsDvo.setCstCralLocaraTno(dvo.getCstCralLocaraTno());
+                wkRsDvo.setCstMexnoEncr(dvo.getCstMexnoEncr());
+                wkRsDvo.setCstCralIdvTno(dvo.getCstCralIdvTno());
+
+                // 작업결과저장
+                this.maaper.insertCstSvWkRsIz(wkRsDvo);
+            }
+        }
     }
 
     /**

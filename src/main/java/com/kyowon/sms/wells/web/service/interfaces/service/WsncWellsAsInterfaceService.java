@@ -1,14 +1,15 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
-import com.kyowon.sms.wells.web.service.interfaces.converter.WsncWellsAsInterfaceConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
+import com.kyowon.sms.wells.web.service.interfaces.converter.WsncWellsAsInterfaceConverter;
 import com.kyowon.sms.wells.web.service.interfaces.mapper.WsncWellsAsInterfaceMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
+
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
 /**
  *
@@ -73,15 +74,16 @@ public class WsncWellsAsInterfaceService {
     * @param req : 조회파라메터
     * @return 조회결과
     */
-    public PagingResult<SearchServiceHistoryRes> getServiceHistoryPages(
+    public List<SearchServiceHistoryRes> getServiceHistoryPages(
         SearchServiceHistoryReq req
     ) {
-        PageInfo pageInfo = new PageInfo();
-        pageInfo.setPageIndex(req.pageIndex());
-        pageInfo.setPageSize(req.pageSize());
-        return new PagingResult<>(
-            converter.mapAllServiceHistoryDvoToRes(mapper.selectServiceHistorys(req, pageInfo)), pageInfo
-        );
+        //        PageInfo pageInfo = new PageInfo();
+        //        pageInfo.setPageIndex(req.pageIndex());
+        //        pageInfo.setPageSize(req.pageSize());
+        //        return new PagingResult<>(
+        //            converter.mapAllServiceHistoryDvoToRes(mapper.selectServiceHistorys(req, pageInfo)), pageInfo
+        //        );
+        return converter.mapAllServiceHistoryDvoToRes(mapper.selectServiceHistorys(req));
     }
 
     /**
@@ -133,8 +135,13 @@ public class WsncWellsAsInterfaceService {
      *              String chSding, 변경모종
      *              String apyDt 적용일자
      */
-    public List<SearchAsSidingChangeRes> getAsSidingChanges(SearchAsSidingChangeReq req) {
-        return converter.mapAsSidingChangeDvoToRes(mapper.selectAsSidingChanges(req));
+    public List<SearchAsSidingChangeRes> getAsSidingChanges(SearchAsSidingChangeReq dto) {
+
+        PageInfo pageinfo = new PageInfo();
+        pageinfo.setPageIndex(dto.pageIndex());
+        pageinfo.setPageSize(dto.pageSize());
+
+        return mapper.selectAsSidingChanges(dto, pageinfo);
     }
 
 }

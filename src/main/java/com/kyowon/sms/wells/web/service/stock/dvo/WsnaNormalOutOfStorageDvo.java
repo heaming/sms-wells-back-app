@@ -43,4 +43,7 @@ public class WsnaNormalOutOfStorageDvo {
     private String strWareDvCd;
     private String strPrtnrNo;
     private String strOgTpCd;
+
+    private String ostrDt;
+    private String rmkCn;
 }

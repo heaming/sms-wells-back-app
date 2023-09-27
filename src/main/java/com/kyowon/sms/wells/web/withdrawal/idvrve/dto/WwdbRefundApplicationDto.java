@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 
 import java.util.List;
 
+import com.sds.sflex.common.docs.dto.AttachFileDto;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.common.utils.StringUtil;
 
@@ -141,9 +142,11 @@ public class WwdbRefundApplicationDto {
         String bltfOjCntrDtlNo,
         String sellTpCd,
         String bltfRfndMbDvCd,
-        String rfndEvidMtrFileId,
+        String atthDocId,
+        Integer atthDocIdNumberOfFiles,
         String rfndEvidMtrFileNm,
-        String rfndAkNo
+        String rfndAkNo,
+        String cstNo
     ) {
     }
 
@@ -314,7 +317,8 @@ public class WwdbRefundApplicationDto {
         String bltfRfndTpCd,
         String bltfRfndMbDvCd,
         String rfndEvidMtrFileId,
-        String dtaDlYn
+        String dtaDlYn,
+        List<AttachFileDto.AttachFile> attachFiles
     ) {
 
     }

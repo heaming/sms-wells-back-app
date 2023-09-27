@@ -8,8 +8,8 @@
             SELECT T.OG_CD/*조직코드*/
                  , T.OG_NM/*조직명*/
                  <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                 , T.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                 , T.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                 , '' AS DGR1_LEVL_OG_CD/*1차레벨조직코드*/
+                 , '' AS DGR1_LEVL_OG_NM/*1차레벨조직명*/
                  , '' AS DGR2_LEVL_OG_CD/*2차레벨조직코드*/
                  , '' AS DGR2_LEVL_OG_NM/*2차레벨조직명*/
                  , '' AS DGR3_LEVL_OG_CD/*3차레벨조직코드*/
@@ -31,6 +31,8 @@
                  , T.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
                  , T.DGR3_LEVL_OG_NM/*3차레벨조직명*/
                  </if>
+                <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                </if>
                  , T.PRTNR_NO/*파트너번호*/
                  , T.PRTNR_KNM/*파트너명*/
                  , T.SELL_TP_CD                                                       AS SELL_TP_CD
@@ -58,19 +60,27 @@
                  , DECODE(SUM(T.BIL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT + T.DLQ_DP_AMT) / SUM(T.BIL_AMT)) * 100) AS DLQ_RT_SUM
               FROM (
                     /*당월 신규 : 계약기본T CNTR_CNFM_DTM 확정일시가 당월이고 CNTR_CAN_DTM 취소일시가 NULL인 것들이 대상*/
-                    SELECT E.OG_CD/*조직코드*/
-                         , E.OG_NM/*조직명*/
-                         <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                    SELECT <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                           CASE WHEN E.OG_TP_CD = 'HR1' THEN '기타(본사)' ELSE E.DGR1_LEVL_OG_CD END AS OG_CD/*조직코드*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE E.DGR1_LEVL_OG_NM END AS OG_NM/*조직명*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_NO END AS PRTNR_NO/*파트너번호*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_KNM END AS PRTNR_KNM/*파트너명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '2')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
                          , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '3')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
@@ -78,8 +88,6 @@
                          , E.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
                          , E.DGR3_LEVL_OG_NM/*3차레벨조직명*/
                          </if>
-                         , C.PRTNR_NO/*파트너번호*/
-                         , C.PRTNR_KNM/*파트너명*/
                          , A.SELL_TP_CD       /*판매유형코드*/
                          , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
                          , A.FNL_AMT AS THM_NW_UC_AMT
@@ -120,11 +128,23 @@
                        AND C.OG_TP_CD = E.OG_TP_CD
                        AND C.OG_ID = E.OG_ID
                        AND E.BASE_YM = C.BASE_YM
-                       AND E.OG_LEVL_DV_CD = #{inqrDv}
+                       <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                       AND E.OG_LEVL_DV_CD = (CASE WHEN #{cntrNo} IS NOT NULL THEN E.OG_LEVL_DV_CD ELSE '1' END)
+                       AND SUBSTR(E.OG_CD,2,6) = (CASE WHEN #{cntrNo} IS NOT NULL THEN SUBSTR(E.OG_CD,2,6)
+                                                       WHEN E.OG_TP_CD = 'HR1' THEN SUBSTR(E.OG_CD,2,6)
+                                                       ELSE '000000' END)
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "2")'>
+                       AND E.OG_LEVL_DV_CD = '2'
+                       AND SUBSTR(E.OG_CD, 4, 4) = '0000'
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "3")'>
+                       AND E.OG_LEVL_DV_CD = '3'
+                       </if>
                        AND A.CNTR_NO = D.CNTR_NO
                        AND A.CNTR_SN = D.CNTR_SN
                        AND D.DP_DV_CD = '1'/*입금구분코드 - 1:입금*/
-                       AND D.RVE_DV_CD = '01'/*수납구분코드 - 01:계약(청약)금*/
+                       AND D.RVE_DV_CD IN ('01', '03') /*수납구분코드 - 01:계약(청약)금*/
                        AND D.RVE_DT BETWEEN #{perfYm}||'01' AND #{perfYm}||'31'/*수납일자 - 당월*/
                        <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgCd)'>
                        AND E.DGR1_LEVL_OG_ID = #{dgr1LevlOgCd}
@@ -151,19 +171,27 @@
                        AND E.DTA_DL_YN = 'N'
                      UNION ALL
                     /*정상 전월마감*/
-                    SELECT E.OG_CD/*조직코드*/
-                         , E.OG_NM/*조직명*/
-                         <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                    SELECT <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                           CASE WHEN E.OG_TP_CD = 'HR1' THEN '기타(본사)' ELSE E.DGR1_LEVL_OG_CD END AS OG_CD/*조직코드*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE E.DGR1_LEVL_OG_NM END AS OG_NM/*조직명*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_NO END AS PRTNR_NO/*파트너번호*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_KNM END AS PRTNR_KNM/*파트너명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '2')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
                          , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '3')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
@@ -171,8 +199,6 @@
                          , E.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
                          , E.DGR3_LEVL_OG_NM/*3차레벨조직명*/
                          </if>
-                         , C.PRTNR_NO/*파트너번호*/
-                         , C.PRTNR_KNM/*파트너명*/
                          , A.SELL_TP_CD/*판매유형코드*/
                          , A.SELL_TP_DTL_CD /*판매유형상세코드*/
                          , 0 AS THM_NW_UC_AMT
@@ -211,7 +237,19 @@
                        AND C.OG_TP_CD = E.OG_TP_CD
                        AND C.OG_ID = E.OG_ID
                        AND E.BASE_YM = C.BASE_YM
-                       AND E.OG_LEVL_DV_CD = #{inqrDv}
+                       <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                       AND E.OG_LEVL_DV_CD = (CASE WHEN #{cntrNo} IS NOT NULL THEN E.OG_LEVL_DV_CD ELSE '1' END)
+                       AND SUBSTR(E.OG_CD,2,6) = (CASE WHEN #{cntrNo} IS NOT NULL THEN SUBSTR(E.OG_CD,2,6)
+                                                       WHEN E.OG_TP_CD = 'HR1' THEN SUBSTR(E.OG_CD,2,6)
+                                                       ELSE '000000' END)
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "2")'>
+                       AND E.OG_LEVL_DV_CD = '2'
+                       AND SUBSTR(E.OG_CD, 4, 4) = '0000'
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "3")'>
+                       AND E.OG_LEVL_DV_CD = '3'
+                       </if>
                        <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgCd)'>
                        AND E.DGR1_LEVL_OG_ID = #{dgr1LevlOgCd}
                        </if>
@@ -244,19 +282,27 @@
                        AND E.DTA_DL_YN = 'N'
                      UNION ALL
                      /*연체 전월마감*/
-                    SELECT E.OG_CD/*조직코드*/
-                         , E.OG_NM/*조직명*/
-                         <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                    SELECT <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                           CASE WHEN E.OG_TP_CD = 'HR1' THEN '기타(본사)' ELSE E.DGR1_LEVL_OG_CD END AS OG_CD/*조직코드*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE E.DGR1_LEVL_OG_NM END AS OG_NM/*조직명*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_NO END AS PRTNR_NO/*파트너번호*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_KNM END AS PRTNR_KNM/*파트너명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '2')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
                          , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '3')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
@@ -264,8 +310,6 @@
                          , E.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
                          , E.DGR3_LEVL_OG_NM/*3차레벨조직명*/
                          </if>
-                         , C.PRTNR_NO/*파트너번호*/
-                         , C.PRTNR_KNM/*파트너명*/
                          , A.SELL_TP_CD       /*판매유형코드*/
                          , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
                          , 0 AS THM_NW_UC_AMT
@@ -304,7 +348,19 @@
                        AND C.OG_TP_CD = E.OG_TP_CD
                        AND C.OG_ID = E.OG_ID
                        AND E.BASE_YM = C.BASE_YM
-                       AND E.OG_LEVL_DV_CD = #{inqrDv}
+                       <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                       AND E.OG_LEVL_DV_CD = (CASE WHEN #{cntrNo} IS NOT NULL THEN E.OG_LEVL_DV_CD ELSE '1' END)
+                       AND SUBSTR(E.OG_CD,2,6) = (CASE WHEN #{cntrNo} IS NOT NULL THEN SUBSTR(E.OG_CD,2,6)
+                                                       WHEN E.OG_TP_CD = 'HR1' THEN SUBSTR(E.OG_CD,2,6)
+                                                       ELSE '000000' END)
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "2")'>
+                       AND E.OG_LEVL_DV_CD = '2'
+                       AND SUBSTR(E.OG_CD, 4, 4) = '0000'
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "3")'>
+                       AND E.OG_LEVL_DV_CD = '3'
+                       </if>
                        AND A.CNTR_NO = D.CNTR_NO
                        AND A.CNTR_SN = D.CNTR_SN
                        AND D.DLQ_SN = 1
@@ -334,8 +390,8 @@
                        AND E.DTA_DL_YN = 'N'
                    ) T
              <if test='@MybatisUtils@equals(inqrDv, "1")'>
-             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.DGR1_LEVL_OG_CD, T.DGR1_LEVL_OG_NM, T.PRTNR_NO, T.PRTNR_KNM
-             ORDER BY T.OG_CD, T.DGR1_LEVL_OG_CD
+             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.PRTNR_NO, T.PRTNR_KNM
+             ORDER BY T.OG_CD
              </if>
              <if test="@MybatisUtils@equals(inqrDv, '2')">
              GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.DGR1_LEVL_OG_CD, T.DGR1_LEVL_OG_NM, T.DGR2_LEVL_OG_CD, T.DGR2_LEVL_OG_NM, T.PRTNR_NO, T.PRTNR_KNM
@@ -351,8 +407,8 @@
             SELECT T.OG_CD/*조직코드*/
                  , T.OG_NM/*조직명*/
                  <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                 , T.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                 , T.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                 , '' AS DGR1_LEVL_OG_CD/*1차레벨조직코드*/
+                 , '' AS DGR1_LEVL_OG_NM/*1차레벨조직명*/
                  , '' AS DGR2_LEVL_OG_CD/*2차레벨조직코드*/
                  , '' AS DGR2_LEVL_OG_NM/*2차레벨조직명*/
                  , '' AS DGR3_LEVL_OG_CD/*3차레벨조직코드*/
@@ -401,19 +457,27 @@
                  , DECODE(SUM(T.BIL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT + T.NOM_DP_AMT) / SUM(T.BIL_AMT)) * 100) AS DLQ_RT_SUM
               FROM (
                     /*당월 신규 : 계약기본T CNTR_CNFM_DTM 확정일시가 당월이고 CNTR_CAN_DTM 취소일시가 NULL인 것들이 대상*/
-                    SELECT E.OG_CD/*조직코드*/
-                         , E.OG_NM/*조직명*/
-                         <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                    SELECT <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                           CASE WHEN E.OG_TP_CD = 'HR1' THEN '기타(본사)' ELSE E.DGR1_LEVL_OG_CD END AS OG_CD/*조직코드*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE E.DGR1_LEVL_OG_NM END AS OG_NM/*조직명*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_NO END AS PRTNR_NO/*파트너번호*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_KNM END AS PRTNR_KNM/*파트너명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '2')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
                          , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '3')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
@@ -421,8 +485,6 @@
                          , E.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
                          , E.DGR3_LEVL_OG_NM/*3차레벨조직명*/
                          </if>
-                         , C.PRTNR_NO/*파트너번호*/
-                         , C.PRTNR_KNM/*파트너명*/
                          , A.SELL_TP_CD       /*판매유형코드*/
                          , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
                          , A.FNL_AMT AS THM_NW_UC_AMT
@@ -463,7 +525,19 @@
                        AND C.OG_TP_CD = E.OG_TP_CD
                        AND C.OG_ID = E.OG_ID
                        AND E.BASE_YM = C.BASE_YM
-                       AND E.OG_LEVL_DV_CD = #{inqrDv}
+                       <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                       AND E.OG_LEVL_DV_CD = (CASE WHEN #{cntrNo} IS NOT NULL THEN E.OG_LEVL_DV_CD ELSE '1' END)
+                       AND SUBSTR(E.OG_CD,2,6) = (CASE WHEN #{cntrNo} IS NOT NULL THEN SUBSTR(E.OG_CD,2,6)
+                                                       WHEN E.OG_TP_CD = 'HR1' THEN SUBSTR(E.OG_CD,2,6)
+                                                       ELSE '000000' END)
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "2")'>
+                       AND E.OG_LEVL_DV_CD = '2'
+                       AND SUBSTR(E.OG_CD, 4, 4) = '0000'
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "3")'>
+                       AND E.OG_LEVL_DV_CD = '3'
+                       </if>
                        AND A.CNTR_NO = D.CNTR_NO
                        AND A.CNTR_SN = D.CNTR_SN
                        AND D.DP_DV_CD = '1'/*입금구분코드 - 1:입금*/
@@ -494,19 +568,27 @@
                        AND E.DTA_DL_YN = 'N'
                      UNION ALL
                     /*정상 전월마감*/
-                    SELECT E.OG_CD/*조직코드*/
-                         , E.OG_NM/*조직명*/
-                         <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                    SELECT <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                           CASE WHEN E.OG_TP_CD = 'HR1' THEN '기타(본사)' ELSE E.DGR1_LEVL_OG_CD END AS OG_CD/*조직코드*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE E.DGR1_LEVL_OG_NM END AS OG_NM/*조직명*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_NO END AS PRTNR_NO/*파트너번호*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_KNM END AS PRTNR_KNM/*파트너명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '2')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
                          , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '3')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
@@ -514,8 +596,6 @@
                          , E.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
                          , E.DGR3_LEVL_OG_NM/*3차레벨조직명*/
                          </if>
-                         , C.PRTNR_NO/*파트너번호*/
-                         , C.PRTNR_KNM/*파트너명*/
                          , A.SELL_TP_CD/*판매유형코드*/
                          , A.SELL_TP_DTL_CD /*판매유형상세코드*/
                          , 0 AS THM_NW_UC_AMT
@@ -554,7 +634,19 @@
                        AND C.OG_TP_CD = E.OG_TP_CD
                        AND C.OG_ID = E.OG_ID
                        AND E.BASE_YM = C.BASE_YM
-                       AND E.OG_LEVL_DV_CD = #{inqrDv}
+                       <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                       AND E.OG_LEVL_DV_CD = (CASE WHEN #{cntrNo} IS NOT NULL THEN E.OG_LEVL_DV_CD ELSE '1' END)
+                       AND SUBSTR(E.OG_CD,2,6) = (CASE WHEN #{cntrNo} IS NOT NULL THEN SUBSTR(E.OG_CD,2,6)
+                                                       WHEN E.OG_TP_CD = 'HR1' THEN SUBSTR(E.OG_CD,2,6)
+                                                       ELSE '000000' END)
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "2")'>
+                       AND E.OG_LEVL_DV_CD = '2'
+                       AND SUBSTR(E.OG_CD, 4, 4) = '0000'
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "3")'>
+                       AND E.OG_LEVL_DV_CD = '3'
+                       </if>
                        <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgCd)'>
                        AND E.DGR1_LEVL_OG_ID = #{dgr1LevlOgCd}
                        </if>
@@ -586,8 +678,8 @@
                        AND E.DTA_DL_YN = 'N'
                    ) T
              <if test='@MybatisUtils@equals(inqrDv, "1")'>
-             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.DGR1_LEVL_OG_CD, T.DGR1_LEVL_OG_NM, T.PRTNR_NO, T.PRTNR_KNM
-             ORDER BY T.OG_CD, T.DGR1_LEVL_OG_CD
+             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.PRTNR_NO, T.PRTNR_KNM
+             ORDER BY T.OG_CD
              </if>
              <if test='@MybatisUtils@equals(inqrDv, "2")'>
              GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.DGR1_LEVL_OG_CD, T.DGR1_LEVL_OG_NM, T.DGR2_LEVL_OG_CD, T.DGR2_LEVL_OG_NM, T.PRTNR_NO, T.PRTNR_KNM
@@ -603,8 +695,8 @@
             SELECT T.OG_CD/*조직코드*/
                  , T.OG_NM/*조직명*/
                  <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                 , T.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                 , T.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                 , '' AS DGR1_LEVL_OG_CD/*1차레벨조직코드*/
+                 , '' AS DGR1_LEVL_OG_NM/*1차레벨조직명*/
                  , '' AS DGR2_LEVL_OG_CD/*2차레벨조직코드*/
                  , '' AS DGR2_LEVL_OG_NM/*2차레벨조직명*/
                  , '' AS DGR3_LEVL_OG_CD/*3차레벨조직코드*/
@@ -653,19 +745,27 @@
                  , DECODE(SUM(T.BIL_AMT), 0, 0, (SUM(T.THM_NW_DP_AMT + T.DLQ_DP_AMT) / SUM(T.BIL_AMT)) * 100) AS DLQ_RT_SUM
               FROM (
                     /*당월 신규 : 계약기본T CNTR_CNFM_DTM 확정일시가 당월이고 CNTR_CAN_DTM 취소일시가 NULL인 것들이 대상*/
-                    SELECT E.OG_CD/*조직코드*/
-                         , E.OG_NM/*조직명*/
-                         <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                    SELECT <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                           CASE WHEN E.OG_TP_CD = 'HR1' THEN '기타(본사)' ELSE E.DGR1_LEVL_OG_CD END AS OG_CD/*조직코드*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE E.DGR1_LEVL_OG_NM END AS OG_NM/*조직명*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_NO END AS PRTNR_NO/*파트너번호*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_KNM END AS PRTNR_KNM/*파트너명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '2')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
                          , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '3')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
@@ -673,8 +773,6 @@
                          , E.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
                          , E.DGR3_LEVL_OG_NM/*3차레벨조직명*/
                          </if>
-                         , C.PRTNR_NO/*파트너번호*/
-                         , C.PRTNR_KNM/*파트너명*/
                          , A.SELL_TP_CD       /*판매유형코드*/
                          , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
                          , A.FNL_AMT AS THM_NW_UC_AMT
@@ -715,7 +813,19 @@
                        AND C.OG_TP_CD = E.OG_TP_CD
                        AND C.OG_ID = E.OG_ID
                        AND E.BASE_YM = C.BASE_YM
-                       AND E.OG_LEVL_DV_CD = #{inqrDv}
+                       <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                       AND E.OG_LEVL_DV_CD = (CASE WHEN #{cntrNo} IS NOT NULL THEN E.OG_LEVL_DV_CD ELSE '1' END)
+                       AND SUBSTR(E.OG_CD,2,6) = (CASE WHEN #{cntrNo} IS NOT NULL THEN SUBSTR(E.OG_CD,2,6)
+                                                       WHEN E.OG_TP_CD = 'HR1' THEN SUBSTR(E.OG_CD,2,6)
+                                                       ELSE '000000' END)
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "2")'>
+                       AND E.OG_LEVL_DV_CD = '2'
+                       AND SUBSTR(E.OG_CD, 4, 4) = '0000'
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "3")'>
+                       AND E.OG_LEVL_DV_CD = '3'
+                       </if>
                        AND A.CNTR_NO = D.CNTR_NO
                        AND A.CNTR_SN = D.CNTR_SN
                        AND D.DP_DV_CD = '1'/*입금구분코드 - 1:입금*/
@@ -746,19 +856,27 @@
                        AND E.DTA_DL_YN = 'N'
                      UNION ALL
                     /*연체 전월마감*/
-                    SELECT E.OG_CD/*조직코드*/
-                         , E.OG_NM/*조직명*/
-                         <if test='@MybatisUtils@equals(inqrDv, "1")'>
-                         , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
-                         , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
+                    SELECT <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                           CASE WHEN E.OG_TP_CD = 'HR1' THEN '기타(본사)' ELSE E.DGR1_LEVL_OG_CD END AS OG_CD/*조직코드*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE E.DGR1_LEVL_OG_NM END AS OG_NM/*조직명*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_NO END AS PRTNR_NO/*파트너번호*/
+                         , CASE WHEN E.OG_TP_CD = 'HR1' THEN '' ELSE C.PRTNR_KNM END AS PRTNR_KNM/*파트너명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '2')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
                          , E.DGR2_LEVL_OG_NM/*2차레벨조직명*/
                          </if>
                          <if test="@MybatisUtils@equals(inqrDv, '3')">
+                           E.OG_CD/*조직코드*/
+                         , E.OG_NM/*조직명*/
+                         , C.PRTNR_NO/*파트너번호*/
+                         , C.PRTNR_KNM/*파트너명*/
                          , E.DGR1_LEVL_OG_CD/*1차레벨조직코드*/
                          , E.DGR1_LEVL_OG_NM/*1차레벨조직명*/
                          , E.DGR2_LEVL_OG_CD/*2차레벨조직코드*/
@@ -766,8 +884,6 @@
                          , E.DGR3_LEVL_OG_CD/*3차레벨조직코드*/
                          , E.DGR3_LEVL_OG_NM/*3차레벨조직명*/
                          </if>
-                         , C.PRTNR_NO/*파트너번호*/
-                         , C.PRTNR_KNM/*파트너명*/
                          , A.SELL_TP_CD       /*판매유형코드*/
                          , A.SELL_TP_DTL_CD   /*판매유형상세코드*/
                          , 0 AS THM_NW_UC_AMT
@@ -806,7 +922,19 @@
                        AND C.OG_TP_CD = E.OG_TP_CD
                        AND C.OG_ID = E.OG_ID
                        AND E.BASE_YM = C.BASE_YM
-                       AND E.OG_LEVL_DV_CD = #{inqrDv}
+                       <if test='@MybatisUtils@equals(inqrDv, "1")'>
+                       AND E.OG_LEVL_DV_CD = (CASE WHEN #{cntrNo} IS NOT NULL THEN E.OG_LEVL_DV_CD ELSE '1' END)
+                       AND SUBSTR(E.OG_CD,2,6) = (CASE WHEN #{cntrNo} IS NOT NULL THEN SUBSTR(E.OG_CD,2,6)
+                                                       WHEN E.OG_TP_CD = 'HR1' THEN SUBSTR(E.OG_CD,2,6)
+                                                       ELSE '000000' END)
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "2")'>
+                       AND E.OG_LEVL_DV_CD = '2'
+                       AND SUBSTR(E.OG_CD, 4, 4) = '0000'
+                       </if>
+                       <if test='@MybatisUtils@equals(inqrDv, "3")'>
+                       AND E.OG_LEVL_DV_CD = '3'
+                       </if>
                        AND A.CNTR_NO = D.CNTR_NO
                        AND A.CNTR_SN = D.CNTR_SN
                        AND D.DLQ_SN = 1
@@ -849,8 +977,8 @@
                        AND E.DTA_DL_YN = 'N'
                    ) T
              <if test='@MybatisUtils@equals(inqrDv, "1")'>
-             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.DGR1_LEVL_OG_CD, T.DGR1_LEVL_OG_NM, T.PRTNR_NO, T.PRTNR_KNM
-             ORDER BY T.OG_CD, T.DGR1_LEVL_OG_CD
+             GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.PRTNR_NO, T.PRTNR_KNM
+             ORDER BY T.OG_CD
              </if>
              <if test='@MybatisUtils@equals(inqrDv, "2")'>
              GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.OG_CD, T.OG_NM, T.DGR1_LEVL_OG_CD, T.DGR1_LEVL_OG_NM, T.DGR2_LEVL_OG_CD, T.DGR2_LEVL_OG_NM, T.PRTNR_NO, T.PRTNR_KNM
@@ -871,25 +999,25 @@
              , A1.CNTR_NO || '-' || A1.CNTR_SN                                       AS CNTR_DTL_NO       /*계약번호+계약일련번호*/
              , A2.CNTR_CST_NO                                                        AS CNTR_CST_NO       /*계약고객번호*/
              , A3.CST_KNM                                                            AS CST_KNM             /*고객한글명*/
-             , A6.SL_CL_DT                                                           AS SL_CL_DT           /*매출마감일자*/
+             , A1.CNTR_PD_STRTDT                                                     AS SL_CL_DT           /*매출마감일자*/
              , A1.BASE_PD_CD                                                         AS BASE_PD_CD           /*기준상품코드*/
              , A4.PD_NM                                                              AS PD_NM             /*상품명*/
              , NVL(A9.DLQ_MCN, 0)                                                    AS DLQ_MCN           /*연체개월수*/
              , NVL(A9.EOT_DLQ_AMT, 0)                                                AS EOT_DLQ_AMT           /*기말연체금액*/
-             , A6.SL_AGG_AMT                                                         AS BILLING_AMOUNT         /*매출누계금액*/
-             , 0                                                                     AS DEPOSIT_AMOUNT
-             , 0                                                                     AS UNCOLLECTED_AMOUNT
+             , A6.BND_ALRPY_AGG_AMT                                                  AS BILLING_AMOUNT         /*매출누계금액*/
+             , A6.RVE_AMT                                                            AS DEPOSIT_AMOUNT
+             , A6.UC_AMT                                                             AS UNCOLLECTED_AMOUNT
              , F_CMZ_CD_NM(#{session.tenantId}, 'DP_TP_CD', A5.DP_TP_CD)             AS DP_TP_CD           /*입금유형코드*/
              , A5.MPY_BSDT                                                           AS MPY_BSDT         /*납부기준일자*/
              , ''                                                                    AS APPROVE_CODE           /*입/출금에 문의*/
              , ''                                                                    AS NON_PAYMENT_REASON         /*입/출금에 문의*/
-             , A6.SL_AGG_AMT                                                         AS SL_AGG_AMT           /*매출누계금액*/
-             , 0                                                                     AS DEPOSIT_AGGREGATE
+             , A6.BND_ALRPY_AGG_AMT                                                  AS SL_AGG_AMT           /*매출누계금액*/
+             , A6.DP_ACU_AMT                                                         AS DEPOSIT_AGGREGATE
              , A7.PRTNR_KNM                                                          AS PRTNR_KNM           /*파트너한글명*/
              , A7.PRTNR_NO                                                           AS PRTNR_NO         /*파트너번호*/
              , A7.FST_CNTR_DT                                                        AS FST_CNTR_DT   /*최초계약일자*/
-             , A7.PSTN_DV_CD                                                         AS PSTN_DV_CD         /*직급구분코드*/
-             , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', A7.RSB_DV_CD)           AS RSB_DV_CD         /*직책구분코드*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'OJ_PSTN_CD', A7.PSTN_DV_CD)         AS PSTN_DV_CD         /*직급구분코드*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SAP_RSB_DV_CD', A7.RSB_DV_CD)       AS RSB_DV_CD         /*직책구분코드*/
              , A8.DGR3_LEVL_OG_CD                                                    AS DGR3_LEVL_OG_CD               /*3차레벨조직코드*/
              , A8.DGR3_LEVL_DG_PRTNR_NM                                              AS DGR3_LEVL_DG_PRTNR_NM           /*3차레벨대표파트너명*/
              , A8.BLD_NM                                                             AS BLD_NM             /*빌딩명*/
@@ -908,7 +1036,7 @@
              , A10.CLCTAM_PRTNR_NO                                                   AS CLCTAM_PRTNR_NO         /*집금파트너번호*/
              , A11.PRTNR_KNM                                                         AS CLCTAM_PRTNR_KNM         /*파트너한글명*/
              , A11.CRP_MPNO                                                          AS CRP_MPNO /*법인휴대전화번호*/
-             , A1.MM_ISTM_AMT                                                        AS MM_ISTM_AMT           /*월할부금액*/
+             , CASE WHEN A1.SELL_TP_CD = '1' THEN A1.MM_ISTM_AMT ELSE A1.FNL_AMT END AS MM_ISTM_AMT           /*월할부금액*/
           FROM TB_SSCT_CNTR_DTL A1 /*계약상세*/
          INNER JOIN TB_SSCT_CNTR_BAS A2 /*계약기본*/
             ON A2.DTA_DL_YN = 'N' /*데이터삭제여부*/
@@ -922,11 +1050,11 @@
          INNER JOIN TB_SSCT_CNTR_STLM_BAS A5 /*계약결제기본*/
             ON A5.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A5.CNTR_NO   = A1.CNTR_NO
-         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ A6 /*WELLS매출월마감내역*/
+         INNER JOIN TB_CBCL_SL_BND_ALRPY_BAS A6 /*WELLS매출월마감내역*/
             ON A6.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A6.CNTR_NO = A1.CNTR_NO
            AND A6.CNTR_SN = A1.CNTR_SN
-           AND A6.SL_CL_YM = #{perfYm}
+           AND A6.BASE_YM = #{perfYm}
          INNER JOIN TB_OGBS_MM_PRTNR_IZ A7 /*월파트너내역*/
             ON A7.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A7.BASE_YM   = #{perfYm}
@@ -938,7 +1066,7 @@
            AND A8.BASE_YM = #{perfYm}
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS_HIST A9 /*연체기본이력*/
             ON A9.DTA_DL_YN = 'N' /*데이터삭제여부*/
-           AND A9.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
+           AND A9.PERF_YM = #{perfYm}
            AND A9.CNTR_NO = A1.CNTR_NO
            AND A9.CNTR_SN = A1.CNTR_SN
            AND A9.DLQ_SN = 1 /*해당월의 연체책정된 값 출력*/
@@ -947,15 +1075,7 @@
            AND A10.BASE_YM = #{perfYm}
            AND A10.CNTR_NO = A1.CNTR_NO
            AND A10.CNTR_SN = A1.CNTR_SN
-          LEFT OUTER JOIN (SELECT PRTNR_NO
-                                , PRTNR_KNM /*파트너한글명*/
-                                , CRP_MPNO  /*법인휴대전화번호*/
-                             FROM TB_CBBO_CLCTAM_PRTNR_DTL /*집금파트너상세*/
-                            WHERE DTA_DL_YN = 'N' /*데이터삭제여부*/
-                              AND (SYSDATE BETWEEN BIZ_STRTDT AND BIZ_ENDDT)
-                              AND CLCTAM_MNGT_YN = 'Y'
-                              AND ROWNUM = 1
-                           ) A11
+          LEFT OUTER JOIN TB_CBBO_CLCTAM_PRTNR_DTL A11/*집금파트너상세*/
             ON A11.PRTNR_NO = A10.CLCTAM_PRTNR_NO
          WHERE 1=1
            AND A1.DTA_DL_YN  = 'N' /*데이터삭제여부*/

@@ -42,16 +42,13 @@ public class WdccPressurePumpService {
     public int saveConfirmManagement(List<SaveReq> dtos) throws Exception {
         int processCount = 0;
         int result = 0;
-        System.out.println(CollectionUtils.isNotEmpty(dtos));
         if (CollectionUtils.isNotEmpty(dtos)) {
             for (SaveReq dto : dtos) {
                 WdccPressurePumpDvo dvo = this.converter.mapSaveReqToWdccPressurePumpDvo(dto);
-                System.out.println(dto.gubn());
-                if ("사용".equals(dto.gubn())) {
-                    result = this.mapper.insertConfirmManagement(dvo);
-
-                } else if ("회수".equals(dto.gubn())) {
+                if ("6".equals(dto.svBizHclsfCd())) {
                     result = this.mapper.updateConfirmManagement(dvo);
+                } else {
+                    result = this.mapper.insertConfirmManagement(dvo);
                 }
 
                 processCount = result;

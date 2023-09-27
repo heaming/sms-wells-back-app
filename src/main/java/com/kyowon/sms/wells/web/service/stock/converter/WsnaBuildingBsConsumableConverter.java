@@ -12,6 +12,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper(componentModel = "spring")
 public interface WsnaBuildingBsConsumableConverter {
+    List<SearchRes> mapAllDvoToSearchRes(List<WsnaBuildingBsConsumableDvo> dvos);
+
     PagingResult<SearchRes> mapDvoToSearchRes(List<WsnaBuildingBsConsumableDvo> dvos);
 
     WsnaBuildingBsConsumableDvo mapCreateTmlmReqToCsmbDblv(CreateTmlmReq dto);

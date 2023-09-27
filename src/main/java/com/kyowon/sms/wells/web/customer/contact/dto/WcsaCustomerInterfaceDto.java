@@ -136,7 +136,12 @@ public class WcsaCustomerInterfaceDto {
         String CH_LTRQ_CONF_DT, /*변경요청서확인일자*/
         String UNUITM_CN, /*특이사항내용*/
         String RGST_MDFC_USR_ID /*등록수정사용자ID*/
-    ) {}
+    ) {
+        public SearchCustomerInfoEditReq {
+            EXNO = StringUtils.isNotEmpty(EXNO) ? DbEncUtil.enc(EXNO) : EXNO;
+            MEXNO = StringUtils.isNotEmpty(MEXNO) ? DbEncUtil.enc(MEXNO) : MEXNO;
+        }
+    }
 
     /**
      * 고객번호 기준으로 고객정보를 조회 (IF정보 : EAI_ECUI1038_EDU 고객정보 조회) Search Result Dto
@@ -162,24 +167,25 @@ public class WcsaCustomerInterfaceDto {
     public record SaveCustomerAgreementReq(
         @NotBlank
         @JsonProperty("WK_DV")
-        String wkDv,                        /* 작업구분 (01 : 약관동의변경, 02 : 회원탈퇴) */
+        String wkDv, /* 작업구분 (01 : 약관동의변경, 02 : 회원탈퇴) */
         @NotBlank
         @JsonProperty("CST_NO")
-        String cstNo,                       /* 고객번호 */
+        String cstNo, /* 고객번호 */
         @JsonProperty("AG_WDWAL_DTM")
-        String agWdwalDtm,                  /* 동의탈퇴일시 */
+        String agWdwalDtm, /* 동의탈퇴일시 */
         @NotBlank
         @JsonProperty("PRV_CN")
-        String prvCn,                       /* 약관내용 */
-        Map<String, String> agAtcDvCdMap    /* 동의항목구분코드 */
+        String prvCn, /* 약관내용 */
+        Map<String, String> agAtcDvCdMap /* 동의항목구분코드 */
     ) {
+
         // 동의항목구분코드 Info
         public static final String[] AG_ATC_DV_CD_ARRAY = new String[] {
-              "101"     // 이용약관
-            , "102"     // 개인정보 수집 및 이용 동의
-            , "103"     // 마케팅 목적 처리 동의서
-            , "105"     // 개인정보 제3자 제공 동의
-            , "107"     // 교원그룹 통합 마케팅 목적 수집 이용 및 광고성 정보 수신 동의
+            "101" // 이용약관
+            , "102" // 개인정보 수집 및 이용 동의
+            , "103" // 마케팅 목적 처리 동의서
+            , "105" // 개인정보 제3자 제공 동의
+            , "107" // 교원그룹 통합 마케팅 목적 수집 이용 및 광고성 정보 수신 동의
         };
 
         public SaveCustomerAgreementReq {
@@ -187,7 +193,8 @@ public class WcsaCustomerInterfaceDto {
             if (prvCnArray.length > 0) {
                 agAtcDvCdMap = new HashMap<>();
                 for (int i = 0; i < prvCnArray.length; i++) {
-                    if (i >= AG_ATC_DV_CD_ARRAY.length) break;
+                    if (i >= AG_ATC_DV_CD_ARRAY.length)
+                        break;
                     if (StringUtils.equals(prvCnArray[i], "Y") || StringUtils.equals(prvCnArray[i], "N")) {
                         agAtcDvCdMap.put(AG_ATC_DV_CD_ARRAY[i], prvCnArray[i]);
                     }
@@ -205,10 +212,10 @@ public class WcsaCustomerInterfaceDto {
     @ApiModel(value = "WcsaCustomerInterfaceDto-SaveCustomerAgreementRes")
     public record SaveCustomerAgreementRes(
         @JsonProperty("RS_STAT")
-        Boolean rsStat,                     /* 결과상태 (true/false) */
+        Boolean rsStat, /* 결과상태 (true/false) */
         @JsonProperty("RS_MSG")
-        String rsMsg,                       /* 결과메세지 (에러의 경우만 에러 메시지) */
+        String rsMsg, /* 결과메세지 (에러의 경우만 에러 메시지) */
         @JsonProperty("RS_CD")
-        String rsCd                         /* 결과코드 (0000 : 정상, 9999 : 시스템 오류) */
+        String rsCd /* 결과코드 (0000 : 정상, 9999 : 시스템 오류) */
     ) {}
 }

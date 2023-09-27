@@ -13,6 +13,8 @@ import com.kyowon.sms.common.web.fee.common.dto.ZfezFeeNetOrderStatusDto;
 import com.kyowon.sms.common.web.fee.common.service.ZfezFeeNetOrderStatusService;
 import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaBsFeeMgtDto;
 import com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaBsFeeMgtMapper;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -73,10 +75,14 @@ public class WfeaBsFeeMgtService {
         BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
 
         // 배치 parameter
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         Map<String, String> params = new HashMap<String, String>();
         params.put("perfYm", dto.perfYm());
         params.put("ogTpCd", dto.ogTpCd());
         params.put("clDvCd", dto.feeTcntDvCd());
+        // 배치로그에 배치 실행한 사람의 정보를 넣음
+        params.put("departmentId", session.getDepartmentId());
+        params.put("userId", session.getEmployeeIDNumber());
 
         batchCallReqDvo.setJobKey("WSM_FE_OA0002");
         batchCallReqDvo.setParams(params);
@@ -86,11 +92,11 @@ public class WfeaBsFeeMgtService {
 
         String jobStatus;
         while (true) {
+            Thread.sleep(2000);
             jobStatus = batchCallService.getLastestJobStatus(runId);
             if (StringUtils.equals(jobStatus, "Ended OK") || StringUtils.equals(jobStatus, "Ended Not OK")) {
                 break;
             }
-
         }
 
         return jobStatus;

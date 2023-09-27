@@ -56,7 +56,15 @@ public class WwdbGiroOcrForwardingMgtDto {
         String stplNmnAmt,
         String exnNmnAmt, //--만료차월
         String ltpayYn, //--후납여부
-        String giroRglrDvCd //--후납여부
+        String giroRglrDvCd, //--후납여부
+        String sellTam,
+        String subscAmt,
+        String tkAmt,
+        String cshBlam,
+        String giroFeeAmt,
+        String cntrTam,
+        String giroBizDvCd,
+        String giroBizTpCd
     ) {
 
     }
@@ -80,7 +88,13 @@ public class WwdbGiroOcrForwardingMgtDto {
         String exnNmnAmt,
         String ltpayYn,
         String giroBizDvCd,
-        String giroBizTpCd
+        String giroBizTpCd,
+        String sellTam,
+        String subscAmt,
+        String tkAmt,
+        String cshBlam,
+        String giroFeeAmt,
+        String cntrTam
     ) {
 
     }
@@ -149,7 +163,8 @@ public class WwdbGiroOcrForwardingMgtDto {
 
         String cntrNo,
         String cntrSn,
-        String cntr
+        String cntr,
+        String wkDt
     ) {
 
     }

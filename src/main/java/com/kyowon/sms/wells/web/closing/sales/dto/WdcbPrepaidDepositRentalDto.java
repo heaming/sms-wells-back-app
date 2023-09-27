@@ -12,7 +12,9 @@ public class WdcbPrepaidDepositRentalDto {
     @ApiModel("WdcbPrepaidDepositRentalDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String cntrDtlNo,
+        String cntrNo,
+        @NotBlank
+        String cntrSn,
         @NotBlank
         String slClYmFrom,
         @NotBlank

@@ -1,8 +1,11 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
+import java.util.Base64;
 import java.util.List;
 
+import com.sds.sflex.system.config.core.util.ObjectUtil;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbServiceProcessingConverter;
@@ -47,6 +50,10 @@ public class WsnbServiceProcessingService {
         PagingResult<WsnbServiceProcessingDvo> dvos = mapper.selectServiceProcessings(dto, pageInfo);
 
         for (WsnbServiceProcessingDvo dvo : dvos) {
+            if (ObjectUtils.isNotEmpty(dvo.getCstSignCnByte())) {
+                dvo.setCstSignCn(Base64.getEncoder().encodeToString(dvo.getCstSignCnByte()));
+            }
+
             /* "ATG_SNB_WK_IMG" */
             List<AttachFileDvo> attachFileDvos;
 

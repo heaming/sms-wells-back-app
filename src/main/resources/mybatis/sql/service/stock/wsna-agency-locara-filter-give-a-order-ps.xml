@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaAgencyLocaraFilterGiveAOrderPsMapper">
+    <sql id="selectAgencyLocaraFilterGiveAOrderPsSql">
+        SELECT DISTINCT
+              SUBSTR(S2.VST_DUEDT,1,4)  ||'-'||  SUBSTR(S2.VST_DUEDT,5,2) AS YYMM
+              /* , CS1.BZRNO */     /*사업자등록번호*/
+             , CS1.CST_KNM          /*고객명*/
+             , C1.CNTR_NO
+             , C1.CNTR_SN
+             , C5.RCGVP_KNM         /*설치고객명*/
+             , C3.BASE_PD_CD        /*기준상품코드*/
+             , NVL(P1.OJ_PD_CD, C6.OJ_PD_CD) AS PDCT_PC_CD  /*제품코드*/
+             , P2.SAP_MAT_CD
+             , P2.PD_NM             /*제품명*/
+             , C4.CNTR_ADRPC_ID     /*계약주소지ID*/
+             , C4.ADRPC_TP_CD       /*계약주소지ID : 1 계약주소, 2 배달주소, 3 설치주소*/
+             , C5.ADR_ID            /*주소ID*/
+             , C5.ADR_DV_CD         /*주소구분코드 : 1 도로명, 2 지번*/
+             , G1.NEW_ADR_ZIP       /*신주소우편번호*/
+             , G1.RNADR             /*도로명주소*/
+             , G1.RDADR             /*도로명상세주소*/
+             , C5.CRAL_LOCARA_TNO   /*휴대지역전화번호*/
+             , C5.MEXNO_ENCR        /*휴대전화국번호암호화*/
+             , C5.CRAL_IDV_TNO      /*휴대개별전화번호*/
+             , C5.LOCARA_TNO        /*지역전화번호*/
+             , C5.EXNO_ENCR         /*전화국번호암호화*/
+             , C5.IDV_TNO           /*개별전화번호*/
+             , S1.SPP_ZIP           /*배송우편번호*/
+             , S1.SPP_BAS_ADR       /*배송기본주소*/
+             , S1.SPP_DTL_ADR       /*배송상세주소*/
+             , S2.PART_PD_CD        /*부품상품코드*/
+             , P3.PD_PRP_VAL33 AS FILT_NM   /*부품상품명*/
+             , S2.PART_USE_QTY      /*부품사용수량*/
+             , REGEXP_SUBSTR(G1.RNADR,     '[^  ]+', 1, 1) AS LOCARA_DV_NM  /*지역구분명*/
+             , ROW_NUMBER() OVER(PARTITION BY C4.DTL_CNTR_NO, C4.DTL_CNTR_SN, S2.PART_PD_CD ORDER BY C4.ADRPC_TP_CD DESC) AS ADRPC_TP_CD_RNK
+             , ( SELECT V1.TN
+                 FROM (SELECT DISTINCT
+                              SS2.CNTR_NO
+                            , SS2.CNTR_SN
+                            , SS2.VST_DUEDT
+                            , DENSE_RANK() OVER (PARTITION BY SS2.CNTR_NO, SS2.CNTR_SN ORDER BY SS2.CNTR_NO, SS2.CNTR_SN, SS2.VST_DUEDT) AS TN
+                       FROM TB_SVPD_CST_SV_RGBSPR_IZ SS2  /*고객서비스정기BS주기내역, VS107TB*/
+                       WHERE 1=1
+                        AND SS2.CNTR_NO = S2.CNTR_NO
+                        AND SS2.CNTR_SN = S2.CNTR_SN
+                        AND SS2.DTA_DL_YN = 'N'
+                       ) V1
+                 WHERE 1=1
+                  AND V1.VST_DUEDT = S2.VST_DUEDT
+               ) AS TN   /*발주회차*/
+        FROM TB_SSCT_CNTR_WELLS_DTL C1         /*계약WELLS상세*/
+        INNER JOIN TB_SSCT_CNTR_BAS C2         /*계약기본*/
+         ON C2.CNTR_NO = C1.CNTR_NO
+         AND C2.DTA_DL_YN = 'N'
+        INNER JOIN TB_SSCT_CNTR_DTL C3         /*계약상세*/
+         ON C3.CNTR_NO = C1.CNTR_NO
+         AND C3.CNTR_SN = C1.CNTR_SN
+         AND C3.DTA_DL_YN = 'N'
+        INNER JOIN TB_SSCT_CNTR_ADR_REL C4     /*계약주소관계*/
+         ON C4.DTL_CNTR_NO = C1.CNTR_NO
+         AND C4.DTL_CNTR_SN = C1.CNTR_SN
+         /*AND C4.ADRPC_TP_CD = '1'*/    /*1 계약주소, 2 배달주소,3 설치주소*/
+         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C4.VL_STRT_DTM AND C4.VL_END_DTM
+         AND C4.DTA_DL_YN = 'N'
+        INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C5     /*계약주소지기본*/
+         ON C5.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
+         AND C5.DTA_DL_YN = 'N'
+        INNER JOIN TB_SSCT_CNTR_PD_REL C6     /*계약상품관계*/
+         ON C6.CNTR_NO = C1.CNTR_NO
+         AND C6.CNTR_SN = C1.CNTR_SN
+         AND C6.PD_REL_TP_CD = '05' /* 05 기준-제품 */
+         AND TO_CHAR(SYSDATE, 'YYYYMMDD') || '000000' BETWEEN C6.VL_STRT_DTM AND C6.VL_END_DTM
+         AND C6.DTA_DL_YN = 'N'
+         /*
+            (PD_REL_TP_CD)
+             01 복합-기준, 02 기준-기준, 03 기준-서비스, 04 서비스-서비스,
+             05 기준-제품, 06 대체품(Substitution), 07 상품-필터, 08 패키지(Package),
+             09 번들(Bundle), 10 프로모션상품-상품, 11 추가구매, 12 동시구매/기계약상품,
+             13 혼식불가, 14 AS부품, 15 대체모종, 16 멤버십기준상품, 17 구매 불가상품,
+             18 정기배송 제품명(BS), 19 동시구매선택상품, 20 동시구매선택번들상품,
+             21 패키지구성제품, 22 스마트체인지상품, 23 사은품, 24 BS투입제품, 25 구성품
+         */
+        INNER JOIN TB_CUBS_CST_BAS CS1    /*고객기본*/
+         ON CS1.CST_NO = C2.CNTR_CST_NO
+        AND CS1.DTA_DL_YN = 'N'
+        INNER JOIN TB_CUBS_CST_DTL CS2    /*고객상세*/
+         ON CS2.CST_NO = C2.CNTR_CST_NO
+        AND CS2.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_PDBS_PD_REL P1 /*상품관계*/
+         ON P1.BASE_PD_CD = C3.BASE_PD_CD
+        AND P1.PD_REL_TP_CD = '18'  /*  18 정기배송 제품명(BS) */
+        INNER JOIN TB_PDBS_PD_BAS P2    /*상품기본*/
+         ON P2.PD_CD = NVL(P1.OJ_PD_CD, C6.OJ_PD_CD)
+         /*
+            상품관계에서 패키지인지 확인하고 패키지라면,
+            패키지상품코드를 사용 하고 아니면 계약상품관계에 제품코드를 사용
+         */
+         AND P2.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS G1
+         ON G1.ADR_ID = C5.ADR_ID
+         /*
+           이해욱이사님,이진성프로님과 협의 설치, AS는 배정시에 주소를 사용 해야 하기 때문에
+           TB_SVPD_CST_SVAS_IST_OJ_IZ 에 ADR_ID 를 추가 하기로 함.
+           테이블이 변경 되면, C4.ADR_ID 를 C1.ADR_ID 으로 수정 해야 함
+         */
+         AND G1.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_SVPD_CST_SV_SPP_ADR_IZ S1  /*고객서비스배송주소내역, AC207TB*/
+         ON S1.CNTR_NO = C1.CNTR_NO
+         AND S1.CNTR_SN = C1.CNTR_SN
+         AND S1.USE_YN = 'Y'
+         AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN S1.SPP_DPTU_DT AND S1.SPP_FSH_DT
+         AND S1.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_SVPD_CST_SV_RGBSPR_IZ S2  /*고객서비스정기BS주기내역, VS107TB*/
+         ON S2.CNTR_NO = C1.CNTR_NO
+         AND S2.CNTR_SN = C1.CNTR_SN
+         AND S2.DTA_DL_YN = 'N'
+        INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P3  /*상품각사속성상세*/
+         ON P3.PD_CD = S2.PART_PD_CD
+         AND P3.PD_EXTS_PRP_GRP_CD = 'PART'
+         AND P3.DTA_DL_YN = 'N'
+        WHERE 1=1
+         AND C1.REQD_DT IS NULL   /*철거일자 없음 */
+         <if test="@MybatisUtils@isEmpty(bfsvcBzsDvCd)">
+         AND C1.BFSVC_BZS_DV_CD IN ('1', '2')     /*BS업체구분코드: 전체 */
+         </if>
+         <if test="@MybatisUtils@isNotEmpty(bfsvcBzsDvCd)">
+         AND C1.BFSVC_BZS_DV_CD = #{bfsvcBzsDvCd} /*BS업체구분코드, 1 업체배송, 2 배송없음(요청시배송)*/
+         </if>
+         AND S2.VST_DUEDT BETWEEN #{startDt}||'01' AND #{endDt}|| '99'
+         /* AND C1.CNTR_NO = 'W20226001611' */
+    </sql>
+    <select id="selectAgencyLocaraFilterGiveAOrderPsAgrgs" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaAgencyLocaraFilterGiveAOrderPsDto$SearchAgrgRes">
+        /* 필터발주 현황 집계 */
+        WITH INQRY_LIST AS
+        (
+            SELECT  YYMM
+                  , LOCARA_DV_NM
+                  , CST_KNM
+                  , PART_PD_CD
+                  , FILT_NM
+                  , PART_USE_QTY
+            FROM (
+                    <include refid="selectAgencyLocaraFilterGiveAOrderPsSql"/>
+                 )
+            WHERE 1=1
+             AND ADRPC_TP_CD_RNK = '1'
+        )
+        SELECT I1.YYMM
+             , I1.LOCARA_DV_NM
+             , I1.CST_KNM
+             , I1.PART_PD_CD
+             , I1.FILT_NM
+             , SUM(I1.PART_USE_QTY) AS SUM_PART_USE_QTY
+        FROM INQRY_LIST I1
+        GROUP BY I1.YYMM
+               , I1.LOCARA_DV_NM
+               , I1.CST_KNM
+               , I1.PART_PD_CD
+               , I1.FILT_NM
+        ORDER BY YYMM
+               , LOCARA_DV_NM
+               , CST_KNM
+               , FILT_NM
+    </select>
+    <select id="selectAgencyLocaraFilterGiveAOrderPss" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaAgencyLocaraFilterGiveAOrderPsDvo">
+        /* 필터발주 현황 상세 */
+        SELECT YYMM
+             , CST_KNM          /*고객명(업체명) */
+             , CNTR_NO
+             , CNTR_SN
+             , RCGVP_KNM         /*설치고객명*/
+             , BASE_PD_CD        /*기준상품코드*/
+             , PDCT_PC_CD        /*제품코드*/
+             , SAP_MAT_CD        /*SAP코드*/
+             , PD_NM             /*제품명*/
+             , CNTR_ADRPC_ID     /*계약주소지ID*/
+             , ADRPC_TP_CD       /*계약주소지ID : 1 계약주소, 2 배달주소, 3 설치주소*/
+             , ADR_ID            /*주소ID*/
+             , ADR_DV_CD         /*주소구분코드 : 1 도로명, 2 지번*/
+             , NEW_ADR_ZIP       /*신주소우편번호*/
+             , RNADR             /*도로명주소*/
+             , RDADR             /*도로명상세주소*/
+             , CRAL_LOCARA_TNO   /*휴대지역전화번호*/
+             , MEXNO_ENCR        /*휴대전화국번호암호화*/
+             , CRAL_IDV_TNO      /*휴대개별전화번호*/
+             , LOCARA_TNO        /*지역전화번호*/
+             , EXNO_ENCR         /*전화국번호암호화*/
+             , IDV_TNO           /*개별전화번호*/
+             , SPP_ZIP           /*배송우편번호*/
+             , SPP_BAS_ADR       /*배송기본주소*/
+             , SPP_DTL_ADR       /*배송상세주소*/
+             , PART_PD_CD        /*부품상품코드*/
+             , FILT_NM           /*부품상품명*/
+             , PART_USE_QTY      /*부품사용수량*/
+             , LOCARA_DV_NM      /*지역구분명*/
+             , ADRPC_TP_CD_RNK
+             , TN                /*발주회차*/
+        FROM (
+                <include refid="selectAgencyLocaraFilterGiveAOrderPsSql"/>
+             )
+        WHERE 1=1
+         AND ADRPC_TP_CD_RNK = '1'
+        ORDER BY YYMM, LOCARA_DV_NM, CST_KNM, FILT_NM
+    </select>
+</mapper>

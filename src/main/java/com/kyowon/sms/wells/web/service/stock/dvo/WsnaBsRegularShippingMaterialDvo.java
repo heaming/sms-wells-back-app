@@ -67,4 +67,5 @@ public class WsnaBsRegularShippingMaterialDvo {
     String wareNm;
     String itmGdCd;
     String cstNm;
+    String wkWareNo;
 }

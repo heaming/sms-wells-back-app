@@ -4,21 +4,18 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.*;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.FindItmOstrNoReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.FindLogisticsCentersRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsDvo;
 
 @Mapper
 public interface WsnaPcsvReturningGoodsMgtMapper {
 
-    List<SearchRes> selectPcsvReturningGoods(SearchReq dto);
+    List<WsnaPcsvReturningGoodsDvo> selectPcsvReturningGoods(SearchReq dto);
 
     List<FindLogisticsCentersRes> selectPcsvLogisticsCenters();
 
-    List<FindProductsRes> selectPcsvProducts(FindProductsReq dto);
-
     String selectNextItmOstrNo(FindItmOstrNoReq dto);
 
-    String selectNextItmStrNo(FindItmStrNoReq dto);
-
-    List<WsnaPcsvReturningGoodsSaveDvo> selectLogisticsPcsvReturningGoodsAskInfo(String itmOstrNo, String ostrSn);
 }

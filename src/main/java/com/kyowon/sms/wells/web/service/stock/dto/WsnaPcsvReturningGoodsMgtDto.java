@@ -1,9 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
-import javax.validation.constraints.NotBlank;
+import java.util.List;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveProductDvo;
 import com.sds.sflex.common.utils.DbEncUtil;
-import com.sds.sflex.system.config.annotation.DBDecField;
 
 import io.swagger.annotations.ApiModel;
 
@@ -19,16 +19,13 @@ public class WsnaPcsvReturningGoodsMgtDto {
 
     @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-SearchReq")
     public record SearchReq(
-        String findGb,
         String wareNo,
-        String pdCd,
-        String wkPrgsStatCd,
+        String findGb,
         String startDt,
         String endDt,
         String cntrDtlNo, // 계약상세번호
         String rcgvpKnm,
         String bcNo,
-        String svBizDclsfCd,
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno
@@ -43,84 +40,121 @@ public class WsnaPcsvReturningGoodsMgtDto {
     public record SearchRes(
 
         String findGb,
-        String cntrNo,
-        String cntrSn,
-        String sellTpCd,
-        String sellTpNm,
-        String cntrDtlStatCd,
-        String cntrDtlStatNm,
-        String rcgvpKnm,
-        String basePdCd,
-        String basePdNm,
-        String cntrRcpFshDtm,
-        String cntrPdStrtdt,
-        String newAdrZip,
-        String rnadr,
-        String rdadr,
-        String cralLocaraTno, //휴대지역전화번호(휴대폰번호)
-        @DBDecField
-        String mexnoEncr, //휴대전화국번호암호화(휴대폰번호)
-        String cralIdvTno, //휴대개별전화번호(휴대폰번호)
-        String locaraTno, //지역전화번호 (전화번호)
-        @DBDecField
-        String exnoEncr, //전화국번호암호화(전화번호)
-        String idvTno, //개별전화번호(전화번호)
-        String rsgAplcDt,
-        String rsgFshDt,
-        String cstSvAsnNo,
-        String pdCd,
-        String pdNm,
-        String pdGdCd,
         String svBizDclsfCd,
         String svBizDclsfNm,
         String wkPrgsStatCd,
         String wkPrgsStatNm,
-        String istDt,
-        String reqdDt,
-        String ogId,
-        String ogTpCd,
-        String prtnrNo,
-        String vstFshDt,
-        String useQty,
-        String wareNo,
-        String vstRqdt,
-        String ogNm,
-        String fstRgstUsrId,
-        String prtnrKnm,
-        String pdArvDt,
-        String pdUseDc,
-        String rtngdGd,
-        String arvDt,
-        String sppIvcNo,
-        String sppProcsBzsNm,
-        String rtngdNm,
-        String fnlRtngdGd,
+        String reWkPrgsStatNm,
         String bcNo,
-        String cntrCstNo,
-        String urgtDvCd,
+        String cntrNo,
+        String cntrSn,
+        String cntrDtlNo,
+        String rcgvpKnm,
+        String cralLocaraTno,
+        String mexnoEncr, //휴대전화국번호암호화(휴대폰번호)
+        String cralIdvTno, //휴대개별전화번호(휴대폰번호)
+        String locaraTno, //지역전화번호 (전화번호)
+        String exnoEncr, //전화국번호암호화(전화번호)
+        String idvTno, //개별전화번호(전화번호)
+        String basePdCd,
+        String basePdNm,
+        String pdctPdCd,
+        String cntrPdStrtdt,
+        String fwSppIvcNo,
+        String pcsvRcgvDt,
+        String rcpdt,
+        String pdUseDc,
+        String cmptGd,
+        String fnlGb,
+        String rcpOgTpCd,
+        String rcpIchrPrtnrNo,
+        String prtnrKnm,
+        String wkWareNo,
+        String wareNm,
+        String wareMngtPrtnrNo,
+        String wareMngtPrtnrOgTpCd,
         String asLctCd,
         String asPhnCd,
         String asCausCd,
+        String rpbLocaraCd,
+        String siteAwSvTpCd,
         String siteAwAtcCd,
+        String pdUswyCd,
+        String asRefriDvCd,
+        String bfsvcRefriDvCd,
+        String urgtDvCd,
+        int partCnt,
+        String partCd1,
+        String partNm1,
+        String partQty1,
+        String partCd2,
+        String partNm2,
+        String partQty2,
+        String partCd3,
+        String partNm3,
+        String partQty3,
+        String partCd4,
+        String partNm4,
+        String partQty4,
+        String partCd5,
+        String partNm5,
+        String partQty5,
+        String partCd6,
+        String partNm6,
+        String partQty6,
+        String partCd7,
+        String partNm7,
+        String partQty7,
+        String partCd8,
+        String partNm8,
+        String partQty8,
+        String partCd9,
+        String partNm9,
+        String partQty9,
+        String partCd10,
+        String partNm10,
+        String partQty10,
+        String cntrCstNo,
+        String sellTpCd,
+        String sellTpNm,
+        String sellTpDtlCd,
+        String sellTpDtlNm,
+        String cntrDtlStatCd,
+        String cntrDtlStatNm,
+        String cntrRcpFshDtm,
+        String adrId,
+        String newAdrZip,
+        String rnadr,
+        String rdadr,
+        String rsgAplcDt,
+        String rsgFshDt,
+        String arvDt,
+        String dtmChRsonCd,
+        String pscocd,
+        String dtmChRsonDtlCn,
+        String reqdDt,
+        String mngrDvCd,
+        String dgr1LevlOgId,
+        String dgr3LevlOgId,
+        String editYn,
+        String svBizHclsfCd,
+        String pdQty,
+        String istDt,
+        String cstSvAsnNo,
+        String ogId,
+        String ogTpCd,
+        String prtnrNo,
+        String clnSppIvcNo,
 
-        // 추가
-        String siteAwSvTpCd, // 현장수당서비스유형코드
-        String rpbLocaraCd, // 책임지역코드
-        String svBizHclsfCd, // 서비스업무대분류코드
-        String asRefriDvCd, // AS유무상구분코드
-        String bfsvcRefriDvCd, // BS유무상구분코드
-        String pdUswyCd, // 상품용도코드
-        String pdHclsfId, // 상품대분류ID
-        String pdMclsfId, // 상품중분류ID
-        String pdLclsfId, // 상품소분류ID
-        String pdDclsfId, // 상품세분류ID
-        String dtmChRsonCd, //개봉여부코드
-        String editYn, //수정여부
-        String wellsReqdDt, //wells철거일자
-
-        // 물류수불처리 추가
-        String ostrTpCd, // 출고유형코드
-        String ostrDt // 출고일자
+        // 물류 수불처리
+        String ostrTpCd,
+        String ostrDt,
+        String itmOstrNo,
+        String ostrSn,
+        String rmkCn,
+        String logisticsPdCd,
+        String logisticsPdNm,
+        String logisticsPdQty
 
     ) {
         public SearchRes {
@@ -132,95 +166,125 @@ public class WsnaPcsvReturningGoodsMgtDto {
     @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-SaveReq")
     public record SaveReq(
 
-        // DTD 정리해서 속성 추가 예정
-        @NotBlank
         String findGb,
-        @NotBlank
-        String cstSvAsnNo,
-        @NotBlank
         String svBizDclsfCd,
-        @NotBlank
-        String cntrNo,
-        @NotBlank
-        String basePdCd,
-        @NotBlank
-        String pdCd,
-        @NotBlank
+        String svBizDclsfNm,
         String wkPrgsStatCd,
-        @NotBlank
-        String prtnrNo,
-        @NotBlank
-        String cntrCstNo,
+        String wkPrgsStatNm,
+        String reWkPrgsStatNm,
+        String bcNo,
+        String cntrNo,
         String cntrSn,
-        String sellTpCd,
-        String sellTpNm,
-        String cntrDtlStatCd,
-        String cntrDtlStatNm,
+        String cntrDtlNo,
         String rcgvpKnm,
-        String basePdNm,
-        String cntrRcpFshDtm,
-        String cntrPdStrtdt,
-        String newAdrZip,
-        String rnadr,
-        String rdadr,
-        String cralLocaraTno, //휴대지역전화번호(휴대폰번호)
+        String cralLocaraTno,
 
-        @DBDecField
         String mexnoEncr, //휴대전화국번호암호화(휴대폰번호)
         String cralIdvTno, //휴대개별전화번호(휴대폰번호)
         String locaraTno, //지역전화번호 (전화번호)
-
-        @DBDecField
         String exnoEncr, //전화국번호암호화(전화번호)
         String idvTno, //개별전화번호(전화번호)
-        String rsgAplcDt,
-        String rsgFshDt,
-        String pdNm,
-        String pdGdCd,
-        String svBizDclsfNm,
-        String wkPrgsStatNm,
-        String istDt,
-        String reqdDt,
-        String ogId,
-        String ogTpCd,
-        String vstFshDt,
-        String useQty,
-        String wareNo,
-        String vstRqdt,
-        String ogNm,
-        String fstRgstUsrId,
-        String prtnrKnm,
-        String pdArvDt,
+        String basePdCd,
+        String basePdNm,
+        String pdctPdCd,
+        String cntrPdStrtdt,
+        String fwSppIvcNo,
+        String pcsvRcgvDt,
+        String rcpdt,
         String pdUseDc,
-        String rtngdGd,
-        String arvDt,
-        String sppIvcNo,
-        String sppProcsBzsNm,
-        String rtngdNm,
-        String fnlRtngdGd,
-        String bcNo,
-        String urgtDvCd,
+        String cmptGd,
+        String fnlGb,
+        String rcpOgTpCd,
+        String rcpIchrPrtnrNo,
+        String prtnrKnm,
+        String wkWareNo,
+        String wareNm,
+        String wareMngtPrtnrNo,
+        String wareMngtPrtnrOgTpCd,
         String asLctCd,
         String asPhnCd,
         String asCausCd,
+        String rpbLocaraCd,
+        String siteAwSvTpCd,
         String siteAwAtcCd,
+        String pdUswyCd,
+        String asRefriDvCd,
+        String bfsvcRefriDvCd,
+        String urgtDvCd,
+        int partCnt,
+        String partCd1,
+        String partNm1,
+        String partQty1,
+        String partCd2,
+        String partNm2,
+        String partQty2,
+        String partCd3,
+        String partNm3,
+        String partQty3,
+        String partCd4,
+        String partNm4,
+        String partQty4,
+        String partCd5,
+        String partNm5,
+        String partQty5,
+        String partCd6,
+        String partNm6,
+        String partQty6,
+        String partCd7,
+        String partNm7,
+        String partQty7,
+        String partCd8,
+        String partNm8,
+        String partQty8,
+        String partCd9,
+        String partNm9,
+        String partQty9,
+        String partCd10,
+        String partNm10,
+        String partQty10,
+        String cntrCstNo,
+        String sellTpCd,
+        String sellTpNm,
+        String sellTpDtlCd,
+        String sellTpDtlNm,
+        String cntrDtlStatCd,
+        String cntrDtlStatNm,
+        String cntrRcpFshDtm,
+        String adrId,
+        String newAdrZip,
+        String rnadr,
+        String rdadr,
+        String rsgAplcDt,
+        String rsgFshDt,
+        String arvDt,
+        String dtmChRsonCd,
+        String pscocd,
+        String dtmChRsonDtlCn,
+        String reqdDt,
+        String mngrDvCd,
+        String dgr1LevlOgId,
+        String dgr3LevlOgId,
+        String editYn,
+        String svBizHclsfCd,
+        String pdQty,
+        String istDt,
+        String cstSvAsnNo,
+        String ogId,
+        String ogTpCd,
+        String prtnrNo,
+        String clnSppIvcNo,
 
-        // 추가
-        String siteAwSvTpCd, // 현장수당서비스유형코드
-        String rpbLocaraCd, // 책임지역코드
-        String svBizHclsfCd, // 서비스업무대분류코드
-        String asRefriDvCd, // AS유무상구분코드
-        String bfsvcRefriDvCd, // BS유무상구분코드
-        String pdUswyCd, // 상품용도코드
-        String pdHclsfId, // 상품대분류ID
-        String pdMclsfId, // 상품중분류ID
-        String pdLclsfId, // 상품소분류ID
-        String pdDclsfId, // 상품세분류ID
-        String dtmChRsonCd, //개봉여부코드
+        // 물류 수불처리
+        String ostrTpCd,
+        String ostrDt,
+        String itmOstrNo,
+        String ostrSn,
+        String rmkCn,
+        String logisticsPdCd,
+        String logisticsPdNm,
+        String logisticsPdQty,
+        List<WsnaPcsvReturningGoodsSaveProductDvo> products //상품 목록
 
-        // 물류수불처리 추가
-        String ostrTpCd, // 출고유형코드
-        String ostrDt // 출고일자
     ) {}
 
     @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-FindLogisticsCentersRes")
@@ -229,29 +293,10 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String codeName
     ) {}
 
-    @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-FindProductsReq")
-    public record FindProductsReq(
-        String svBizDclsfCd
-    ) {}
-
-    @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-FindProductsRes")
-    public record FindProductsRes(
-        String pdCd,
-        String pdNm,
-        String pdGrpCd
-    ) {}
-
     @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-FindItmOstrNoReq")
     public record FindItmOstrNoReq(
         String ostrTpCd, // 출고유형코드
         String ostrDt // 출고일자
-    ) {}
-
-    @ApiModel(value = "WsnaPcsvReturningGoodsMgtDto-FindItmStrNoReq")
-    public record FindItmStrNoReq(
-        String ostrTpCd, // 출고유형코드
-        String ostrDt, // 출고일자
-        String strWareNo // strWareNo
     ) {}
 
 }

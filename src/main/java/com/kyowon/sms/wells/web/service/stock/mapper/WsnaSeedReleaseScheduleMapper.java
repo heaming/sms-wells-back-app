@@ -31,15 +31,27 @@ public interface WsnaSeedReleaseScheduleMapper {
 
     int updateSdingSppPlanIzForCnfm(WsnaSeedReleaseScheduleCnfmDvo dvo);
 
-    int insertSvWkOstrIzs(WsnaSeedReleaseScheduleCnfmDvo dvo);
+    int insertSvWkOstrIzsForAS(WsnaSeedReleaseScheduleCnfmDvo dvo);
+
+    int insertSvWkOstrIzsForBS(WsnaSeedReleaseScheduleCnfmDvo dvo);
 
     Integer selectCstSvWkRsIzCount(String cstSvAsnNo);
+
+    int updateCstSvRgbsprIz(String cntrNo, int cntrSn, String vstDuedt);
 
     WsnaSeedReleaseScheduleAsTpDvo selectAsTpCdInfo(WsnaSeedReleaseScheduleCnfmDvo dvo);
 
     int updateCstSvasIstAsnIz(String cstSvAsnNo, String svBizHclsfCd, String siteAwAtcCd);
 
+    WsnaSeedReleaseScheduleAsTpDvo selectPdGrpAtcCdInfo(String pdCd, String svBizDclsfCd);
+
+    int updateCstSvBfSvcAsnIz(String cstSvAsnNo, String svBizHclsfCd, String siteAwAtcCd);
+
     int insertCstSvWkRsIz(WsnaSeedReleaseScheduleWkRsDvo dvo);
+
+    WsnaSeedReleaseScheduleSproutDvo selectSdingSproutInfo(WsnaSeedReleaseScheduleCnfmDvo dvo);
+
+    int insertSvWkOstrIzsForSprout(WsnaSeedReleaseScheduleSproutDvo dvo);
 
     int updateSdingSppPlanIzForPcsv(WsnaSeedReleaseScheduleCnfmDvo dvo);
 

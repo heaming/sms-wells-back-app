@@ -12,13 +12,14 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
-
+@Slf4j
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/newpd-m-three-acu-af-sv-rt")
 @Api(tags = "[WSNB] 실적_신제품 M+3 누적 A/S율")
@@ -70,5 +71,11 @@ public class WsnbNewPdctMThreeAcuAfSvRtController {
         return SaveResponse.builder()
             .processCount(this.service.saveNewPdctMThreeAcuAfSvRtInfos(dtos))
             .build();
+    }
+
+    @ApiOperation(value = "M+3 출시일 등록 화면용 상품 리스트 조회", notes = "M+3 출시일 등록 화면용 상품 리스트를 조회한다.")
+    @GetMapping("/pd-dtl-list")
+    public List<PdDtlListRes> getPdDtlList(){
+        return service.getPdDtlList();
     }
 }

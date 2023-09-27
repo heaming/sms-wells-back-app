@@ -87,7 +87,7 @@ public class AES256Util {
     public static String decrypt(String str) throws NoSuchAlgorithmException,
         GeneralSecurityException, UnsupportedEncodingException {
 
-        String key = "KYOWN-biztalk_12";
+        String key = "D8V0Rrqx6LQ7sYsn";
         AES256Util.iv = key.substring(0, 16);
         byte[] keyBytes = new byte[16];
         byte[] b = key.getBytes("UTF-8");

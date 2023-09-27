@@ -121,6 +121,7 @@ public class WsnbServiceProcsIzQltyDvo {
     String cashStlm;
     String cardStlm;
     String elcStlm;
-    String cstSignHsYn;
+    byte[] cstSignCnByte;
+    String cstSignCn;
 
 }

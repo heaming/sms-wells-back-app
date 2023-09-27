@@ -14,8 +14,8 @@
         UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ                               /* 고객서비스AS설치배정내역 */
            SET WK_PRGS_STAT_CD = #{wkPrgsStatCd}                         /* 작업진행상태코드 */
              , DTM_CH_RSON_CD = #{dtmChRsonCd}                           /* 일시변경사유코드 - 임시 개봉여부 사용 */
-             , DTM_CH_RSON_DTL_CN = #{sppProcsBzsNm}||'/'||#{rtngdNm}    /* 일시변경사유상세내용 - 임시 택배사 */
-             , WK_CAN_MO_CN = #{sppIvcNo}                                /* 작업취소메모내용 - 임시 송장번호 */
+             , DTM_CH_RSON_DTL_CN = #{dtmChRsonDtlCn}                    /* 일시변경사유상세내용 - 임시 택배사 */
+             , WK_CAN_MO_CN = #{fwSppIvcNo}                              /* 작업취소메모내용에 회수송장번호 저장 - 임시 */
              , ARV_DT = #{arvDt}                                         /* 도착일자 */
              , ARV_HH = TO_CHAR(SYSDATE,'HH24MISS')                      /* 도착시간 */
              <include refid="COMMON.updateSystemField"/>
@@ -24,45 +24,6 @@
            AND CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
     </update>
-    <select id="selectEngineerOgbsMmPrtnrIz" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo">
-        /* 작업 조직 */
-        SELECT MNGR_DV_CD,DGR1_LEVL_OG_ID,DGR3_LEVL_OG_ID, BRCH_OG_ID
-        FROM (
-           SELECT
-           (CASE T1.OG_TP_CD
-             WHEN 'W02' THEN '1'     /* 매니저 */
-             WHEN 'W03' THEN '2'     /* 홈마스터 */
-             WHEN 'W06' THEN '2'     /* 엔지니어 */
-             WHEN 'HR1' THEN '3'     /* 임직원 */
-             ELSE ''
-           END) AS MNGR_DV_CD
-          ,(SELECT T2.DGR1_LEVL_OG_ID
-             FROM TB_OGBS_MM_OG_IZ T2
-             WHERE T2.BASE_YM = T1.BASE_YM
-              AND T2.OG_ID = T1.OG_ID
-             ) AS DGR1_LEVL_OG_ID     /* 총괄단 ST163_ADMIN_CD */
-          ,(SELECT T2.DGR2_LEVL_OG_ID
-             FROM TB_OGBS_MM_OG_IZ T2
-             WHERE T2.BASE_YM = T1.BASE_YM
-              AND T2.OG_ID = T1.OG_ID
-             ) AS DGR3_LEVL_OG_ID     /* 센터 ST163_BIZ_CD */
-          ,T1.OG_ID AS BRCH_OG_ID     /* 지점 ST163_BRNH_CD */
-          ,(CASE T1.OG_TP_CD
-             WHEN 'W06' THEN '1'
-             WHEN 'W03' THEN '2'
-             WHEN 'W02' THEN '3'
-             WHEN 'HR1' THEN '4'    /*  w06 > w03 > w02 > hr1   */
-             ELSE '5'
-           END) AS RNK
-          FROM TB_OGBS_MM_PRTNR_IZ T1
-          WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
-           AND T1.BZ_STAT_CD = '1'
-           AND T1.DTA_DL_YN = 'N'
-           AND T1.PRTNR_NO = #{prtnrNo}
-          ORDER BY rnk ASC
-        )
-        WHERE  ROWNUM = 1
-    </select>
     <update id="updateSvpdCstSvasIstAsnIz" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo">
         /* 고객서비스설치배정내역 업데이트 */
         UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ                  /* 고객서비스설치배정내역 */
@@ -88,9 +49,13 @@
           CNTR_NO                        /* VS106_CSMR_YR, VS106_CSMR_CD */
         , CNTR_SN                        /* VS106_CSMR_SEQ */
         , CST_SV_ASN_NO                  /* VS106_DATA_GB, VS106_ORD_DT, VS106_ORD_SEQ */
+        , OG_ID
+        , OG_TP_CD
+        , SV_BIZ_HCLSF_CD
+        , SV_BIZ_DCLSF_CD
         , PDCT_PD_CD                     /* VS106_GDS_CD  */
         , REFRI_DV_CD                    /* VS106_CHAG_GB */
-        , URGT_DV_CD                        /* VS106_UGNT_YN */
+        , URGT_DV_CD                     /* VS106_UGNT_YN */
         , VST_LOCARA_CD                  /* VS106_VST_AR */
         , CLN_YN                         /* VS106_RET_YN */
                                          /* VS106_SVC_CD 컬럼없음 OG_ID */
@@ -135,7 +100,11 @@
           #{cntrNo}
         , #{cntrSn}
         , #{cstSvAsnNo}
-        , #{pdCd}           /* VS106_GDS_CD  */
+        , #{ogId}
+        , #{ogTpCd}
+        , #{svBizHclsfCd}
+        , #{svBizDclsfCd}
+        , #{basePdCd}           /* VS106_GDS_CD  */
         , NVL('1', '1')
         , #{urgtDvCd}
         , '' /* 추후 작업 rpbLocaraCd(조회 4자리), VST_LOCARA_CD(저장 2자리) */
@@ -152,20 +121,20 @@
         , ''                /* 없음 imptaRsonCd */
         , '설치택배상품 반품완료' || CHR(10) ||
           '1. 매출일자 : ' || TO_CHAR(TO_DATE(#{cntrPdStrtdt}), 'YYYY-MM-DD') || CHR(10) ||
-          '2. 제품수령일자 : ' || TO_CHAR(TO_DATE(#{pdArvDt}), 'YYYY-MM-DD') || CHR(10) ||
-          '3. 반품상담접수일자 : ' || TO_CHAR(TO_DATE(#{vstRqdt}), 'YYYY-MM-DD') || CHR(10) ||
+          '2. 제품수령일자 : ' || TO_CHAR(TO_DATE(#{pcsvRcgvDt}), 'YYYY-MM-DD') || CHR(10) ||
+          '3. 반품상담접수일자 : ' || TO_CHAR(TO_DATE(#{rcpdt}), 'YYYY-MM-DD') || CHR(10) ||
           '4. 현물입고일자 : ' || TO_CHAR(TO_DATE(#{arvDt}), 'YYYY-MM-DD') || CHR(10) ||
           '5. 경과일수 : ' || #{pdUseDc} || CHR(10) ||
-          '6. 산정등급 : ' || #{rtngdGd} || CHR(10) ||
-          '7. 개봉여부 :' || (CASE WHEN #{dtmChRsonCd} = '91' THEN '개봉'
+          '6. 산정등급 : ' || #{cmptGd} || CHR(10) ||
+          '7. 개봉여부 : ' || (CASE WHEN #{dtmChRsonCd} = '91' THEN '개봉'
                    WHEN #{dtmChRsonCd} = '92' THEN '미개봉'
                    ELSE ''
                    END) || CHR(10) ||
-          '8. 반품운송장 번호 :'|| #{sppIvcNo} || CHR(10) ||
-          '9. 택배사/반품자 :' || #{sppProcsBzsNm} || '/' || #{rtngdNm} || CHR(10) ||
-          '10. 취소일자 :' || TO_CHAR(TO_DATE(#{rsgAplcDt}), 'YYYY-MM-DD') || CHR(10) ||
-          '11. 철거요청일자 :' || TO_CHAR(TO_DATE(#{reqdDt}), 'YYYY-MM-DD') || CHR(10) ||
-          '12. 최종등급 :' || #{fnlRtngdGd} || CHR(10)
+          '8. 반품운송장 번호 : '|| #{fwSppIvcNo} || CHR(10) ||
+          '9. 비고(택배사/반품자) : ' || #{dtmChRsonDtlCn} ||
+          '10. 취소일자 : ' || TO_CHAR(TO_DATE(#{rsgFshDt}), 'YYYY-MM-DD') || CHR(10) ||
+          '11. 철거요청일자 : ' || TO_CHAR(SYSDATE, 'YYYYMMDD') || CHR(10) ||
+          '12. 최종등급 : ' || #{fnlGb} || CHR(10)
         , #{bcNo}
         , ''                /* 없음 BC_IN_MTHD_CD */
         , ''                /* 없음 CST_SIGN_CN */
@@ -174,7 +143,7 @@
         , #{mexnoEncr}      /* 휴대폰번호 */
         , #{cralIdvTno}     /* 휴대폰번호 */
         , ''                /* VS106_DELIVERY_SEQ */
-        , #{sppIvcNo}       /* VS106_TRACKING_NO */
+        , #{fwSppIvcNo}       /* VS106_TRACKING_NO */
         , 'N'
         , 'N'
         , 'N'
@@ -272,25 +241,25 @@
             FROM TB_SVST_SV_WK_OSTR_IZ
             WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
         )
-        , #{pdCd}                                       /* ST163_ITEM_CD */
+        , #{logisticsPdCd}                              /* ST163_ITEM_CD */
         , #{svBizHclsfCd}                               /* ST163_WRK_TYP */
         , #{svBizDclsfCd}                               /* ST163_WRK_TYP_DTL */
         , #{asRefRiDvCd}                                /* ST163_CHAG_CSMR_AS */
         , #{bfsvcRefRiDvCd}                             /* ST163_CHAG_CSMR_BS */
         , '1'                                           /* ST163_CHAG_GB */
-        , #{pdCd}                                       /* ST163_GDS_CD_B */
+        , #{logisticsPdCd}                              /* ST163_GDS_CD_B */
         , #{bcNo}                                       /* ST163_BARCODE_B */
         , #{sellTpCd}                                   /* ST163_SALE_TYP_B */
         , #{pdUswyCd}                                   /* ST163_USGE_B */
-        , #{pdGdCd}                                     /* ST163_DEG_B */
+        , #{cmptGd}                                     /* ST163_DEG_B */
         , TO_CHAR(SYSDATE, 'YYYYMMDD')                  /* ST163_VST_COMP_DT_B */
-        , #{pdCd}                                       /* ST163_GDS_CD_A */
+        , #{logisticsPdCd}                              /* ST163_GDS_CD_A */
         , ''                                            /* ST163_BARCODE_A */
-        , #{filtSellTpCd}                               /* ST163_SALE_TYP_A */
+        , #{sellTpCd}                                   /* ST163_SALE_TYP_A */
         , #{pdUswyCd}                                   /* ST163_USGE_A */
-        , #{fnlRtngdGd}                                 /* ST163_DEG_A */
+        , #{fnlGb}                                      /* ST163_DEG_A */
         , TO_CHAR(SYSDATE, 'YYYYMMDD')                  /* ST163_VST_COMP_DT_A */
-        , NVL(#{useQty},0)                              /* ST163_QTY */
+        , NVL(#{logisticsPdQty},0)                      /* ST163_QTY */
         , 0                                             /* ST163_CSMR_PR */
         , 0                                             /* ST163_REQ_AMT */
         , 0	                                            /* ST163_EXPR_DAYS */
@@ -298,18 +267,18 @@
         , #{cstSvAsnNo}                                 /* ST163_DATA_GB ,ST163_ORD_DT, ST163_ORD_SEQ */
         , #{mngrDvCd}                                   /* ST163_CHG_GB */
         , #{dgr1LevlOgId}                               /* ST163_ADMIN_CD */
-        , NVL(#{dgr3LevlOgId}, #{brchOgId})             /* ST163_BIZ_CD */
-        , ''                                            /* ST163_BRNH_CD */
+        , #{dgr3LevlOgId}                               /* ST163_BIZ_CD */
+        , #{ogId}                                       /* ST163_BRNH_CD */
         , #{prtnrNo}                                    /* ST163_EMP_ID */
-        , #{wareNo}                                     /* ST163_WRK_STCK_CD */
+        , #{wkWareNo}                                   /* ST163_WRK_STCK_CD */
         , #{ogTpCd}                                     /* OG_TP_CD */
         , 'N'
-        , 'N'                                           /* 수불처리여부 */
-        , 'Y'                                           /* 반품수불처리여부-물류 */
+        , 'Y'                                           /* 수불처리여부 */
+        , 'N'                                           /* 반품수불처리여부-물류 */
         , 'N'
         , 'N'
         , #{ostrTpCd}                                   /* OSTR_TP_CD */
-        , TO_CHAR(SYSDATE, 'YYYYMMDD')                  /* OSTR_DT */
+        , #{ostrDt}                                     /* OSTR_DT */
         , #{itmOstrNo}                                  /* ITM_OSTR_NO */
         , #{ostrSn}                                     /* OSTR_SN */
         <include refid="COMMON.insertSystemFieldValue"/>

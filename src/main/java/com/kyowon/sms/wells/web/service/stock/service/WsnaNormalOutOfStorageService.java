@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -324,6 +325,8 @@ public class WsnaNormalOutOfStorageService {
         ValidAssert.hasText(workDiv);
 
         String nowDay = DateUtil.getNowDayString();
+        String ostrDt = dvo.getOstrDt();
+        String procDt = StringUtils.isEmpty(ostrDt) ? nowDay : ostrDt;
 
         String wareDv = GUBUN_OSTR.equals(iostGb) ? dvo.getOstrWareDvCd() : dvo.getStrWareDvCd();
         String wareNo = GUBUN_OSTR.equals(iostGb) ? dvo.getOstrOjWareNo() : dvo.getStrOjWareNo();
@@ -331,8 +334,8 @@ public class WsnaNormalOutOfStorageService {
         String iostTp = GUBUN_OSTR.equals(iostGb) ? dvo.getOstrTpCd() : dvo.getStrTpCd();
 
         WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
-        reqDvo.setProcsYm(nowDay.substring(0, 6));
-        reqDvo.setProcsDt(nowDay);
+        reqDvo.setProcsYm(procDt.substring(0, 6));
+        reqDvo.setProcsDt(procDt);
         reqDvo.setWareDv(wareDv);
         reqDvo.setWareNo(wareNo);
         reqDvo.setWareMngtPrtnrNo(wareMngtPrtnrNo);
@@ -360,9 +363,12 @@ public class WsnaNormalOutOfStorageService {
         ValidAssert.hasText(workDiv);
 
         String nowDay = DateUtil.getNowDayString();
+        String ostrDt = dvo.getOstrDt();
+        String procDt = StringUtils.isEmpty(ostrDt) ? nowDay : ostrDt;
+
         WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
-        reqDvo.setProcsYm(nowDay.substring(0, 6));
-        reqDvo.setProcsDt(nowDay);
+        reqDvo.setProcsYm(procDt.substring(0, 6));
+        reqDvo.setProcsDt(procDt);
         reqDvo.setWareDv(dvo.getStrWareDvCd());
         reqDvo.setWareNo(dvo.getStrOjWareNo());
         reqDvo.setWareMngtPrtnrNo(dvo.getStrPrtnrNo());
@@ -416,9 +422,7 @@ public class WsnaNormalOutOfStorageService {
      * @return
      */
     @Transactional
-    public int saveNormalOstrRgsts(List<CreateReq> dtos) {
-
-        int cnt = 0;
+    public String saveNormalOstrRgsts(List<CreateReq> dtos) {
 
         List<WsnaNormalOutOfStorageDvo> dvos = this.converter.mapAllCreateReqToWsnaNormalOutOfStorageDvo(dtos);
         WsnaNormalOutOfStorageDvo dvoData = dvos.get(0);
@@ -459,10 +463,10 @@ public class WsnaNormalOutOfStorageService {
             this.itemStockservice.createStock(strStockReq);
 
             // 출고요청내역 UPDATE
-            cnt += this.mapper.updateItmOstrAkIz(dvo);
+            this.mapper.updateItmOstrAkIz(dvo);
         }
 
-        return cnt;
+        return newItmOstrNo;
     }
 
     /**
@@ -473,4 +477,5 @@ public class WsnaNormalOutOfStorageService {
     public int getOstrCnfmCount(CheckReq dto) {
         return this.mapper.selectOstrCnfmCount(dto);
     }
+
 }

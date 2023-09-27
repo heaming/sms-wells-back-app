@@ -44,6 +44,7 @@ public class WsnaReturningGoodsStoreDvo {
     String itmStrNo;
     String rtngdRvpyProcsYn;
     String cfrmDt;
+    String vstFshDt;
 
     String hgrWareNo;
     String upHgrWareNo;

@@ -28,7 +28,7 @@ public interface WsniCustomerCenterInterfaceMapper {
 
     String selectIstLctDtlCn(FindAdnInfReq dto);
 
-    WsniCustomerCenterInterfaceDvo selectAllCleanYn(FindAdnInfReq dto);
+    WsniCustomerCenterInterfaceDvo selectAllCleanYn(String cntrNo, String cntrSn);
 
     int selectTotalMaterialUseYn(FindAdnInfReq dto);
 

@@ -4,10 +4,12 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrange
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto.SearchSeedAgrgRes;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto.SearchLabelRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto.SearchSeedTotalRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto.SearchTodayGgLct;
@@ -286,4 +288,128 @@ public class WsnaSeedingTruckArrangementMapService {
         return new WsnaSeedingTruckArrangementMapDto.SearchRes(result, seedTotalRes);
     }
 
+    /**
+     * 모종 출하대차 MAP 조회
+     * @param dto
+     * @return
+     */
+    public List<SearchLabelRes> getSeedingTruckArrangementLabel(
+        SearchReq dto
+    ) {
+        List<SearchLabelRes> result = new ArrayList<>();
+
+        List<SearchSeedAgg> seedAggs = mapper.selectSeedAggregation(dto);
+        Map<WsnaSeedingTruckArrangementMapGgLctDvo, Queue<WsnaSeedingTruckArrangementMapSeedDvo>> aggMap = new HashMap<>();
+
+        // 센터별 모종수량 리스트
+        for (int i = 0; i < seedAggs.size(); i++) {
+            SearchSeedAgg seedAgg = seedAggs.get(i);
+            WsnaSeedingTruckArrangementMapGgLctDvo ggLct = new WsnaSeedingTruckArrangementMapGgLctDvo(
+                seedAgg.dgGgLctCd(), seedAgg.dgGgLctNm()
+            );
+
+            Queue<WsnaSeedingTruckArrangementMapSeedDvo> seedQtyQue = aggMap.getOrDefault(ggLct, new LinkedList<>());
+            seedQtyQue.offer(
+                new WsnaSeedingTruckArrangementMapSeedDvo(
+                    seedAgg.sdingPkgGrpCd(), seedAgg.sdingPkgGrpCdNm(), seedAgg.sdingQty()
+                )
+            );
+
+            aggMap.put(ggLct, seedQtyQue);
+
+        }
+
+        // 배차
+        for (WsnaSeedingTruckArrangementMapGgLctDvo ggLct : aggMap.keySet()) {
+
+            Queue<WsnaSeedingTruckArrangementMapSeedDvo> seedQtyQue = aggMap.get(ggLct); // [샐러드 16, 야채 15]
+
+            List<String> cartF = new ArrayList<>();
+            List<String> cartB = new ArrayList<>();
+            List<String> cart = new ArrayList<>(); // temp
+            int truckNo = 1;
+            String fb = "F";
+            int sdQtyInTruck = 0; // 16개 되는지 확인
+
+            // 차 앞||뒤 16개 채우기
+            while (!seedQtyQue.isEmpty()) {
+                WsnaSeedingTruckArrangementMapSeedDvo seed = seedQtyQue.peek();
+
+                if (sdQtyInTruck + seed.getSdingPkgGrpqty() <= 16) {
+                    seed = seedQtyQue.poll();
+                    cart.add(seed.getSdingPkgGrpCdNm() + "\t(" + seed.getSdingPkgGrpqty() + ")");
+                    sdQtyInTruck += seed.getSdingPkgGrpqty();
+                } else if (sdQtyInTruck + seed.getSdingPkgGrpqty() > 16) {
+                    int left = 16 - sdQtyInTruck;
+
+                    if (left > 0) {
+                        cart.add(seed.getSdingPkgGrpCdNm() + "\t(" + left + ")");
+                        seed.setSdingPkgGrpqty(seed.getSdingPkgGrpqty() - left);
+                        sdQtyInTruck += left;
+                    }
+
+                }
+
+                if (sdQtyInTruck >= 16 || seedQtyQue.isEmpty()) {
+                    if (fb.equals("F")) {
+                        cartF.addAll(cart);
+
+                        if (seedQtyQue.isEmpty()) {
+                            SearchLabelRes labelRes = new SearchLabelRes(
+                                ggLct.getGgLctNm(),
+                                truckNo,
+                                0,
+                                dto.baseDt(),
+                                String.join("\n", cartF),
+                                ""
+                            );
+                            result.add(labelRes);
+                            cartF.clear();
+                            cartB.clear();
+                        }
+                    } else {
+                        cartB.addAll(cart);
+
+                        SearchLabelRes labelRes = new SearchLabelRes(
+                            ggLct.getGgLctNm(),
+                            truckNo,
+                            0,
+                            dto.baseDt(),
+                            String.join("\n", cartF),
+                            String.join("\n", cartB)
+                        );
+                        result.add(labelRes);
+                        cartF.clear();
+                        cartB.clear();
+                    }
+
+                    sdQtyInTruck = 0;
+
+                    if (fb.equals("B") && !seedQtyQue.isEmpty()) {
+                        truckNo++;
+                    }
+                    fb = fb.equals("F") ? "B" : "F";
+                    cart.clear();
+                }
+            }
+            int finalTruckNo = truckNo;
+            result = result.stream().map(
+                item -> {
+                    if (item.dgLctNm().equals(ggLct.getGgLctNm())) {
+                        item = new SearchLabelRes(
+                            item.dgLctNm(),
+                            item.cartNo(),
+                            finalTruckNo,
+                            item.basedt(),
+                            item.cartF(),
+                            item.cartB()
+                        );
+                    }
+                    return item;
+                }
+            ).collect(Collectors.toList());
+        }
+
+        return result;
+    }
 }

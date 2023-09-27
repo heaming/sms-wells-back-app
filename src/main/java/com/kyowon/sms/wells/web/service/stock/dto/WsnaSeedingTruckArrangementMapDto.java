@@ -83,29 +83,22 @@ public class WsnaSeedingTruckArrangementMapDto {
     ) {}
 
     @Builder
+    @ApiModel("WsnaSeedingTruckArrangementMapDto-SearchLabelRes")
+    public record SearchLabelRes(
+        String dgLctNm,
+        Integer cartNo,
+        Integer truckNo,
+        String basedt,
+        String cartF,
+        String cartB
+    ) {}
+
+    @Builder
     @ApiModel("WsnaSeedingTruckArrangementMapDto-SearchSeedAgrgRes")
     public record SearchSeedAgrgRes(
         String dgLctCd,
         String dgLctNm,
         Integer truckNo,
-        //        List<String> cart1F,
-        //        List<String> cart1B,
-        //        List<String> cart2F,
-        //        List<String> cart2B,
-        //        List<String> cart3F,
-        //        List<String> cart3B,
-        //        List<String> cart4F,
-        //        List<String> cart4B,
-        //        List<String> cart5F,
-        //        List<String> cart5B,
-        //        List<String> cart6F,
-        //        List<String> cart6B,
-        //        List<String> cart7F,
-        //        List<String> cart7B,
-        //        List<String> cart8F,
-        //        List<String> cart8B,
-        //        List<String> cart9F,
-        //        List<String> cart9B
         String cart1F,
         String cart1B,
         String cart2F,

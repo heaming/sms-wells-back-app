@@ -49,10 +49,11 @@
                     ELSE NULL END             AS CRCDONR_NM                  /* 신용카드주명 */
               , T1.DP_CPRCNF_NO                                              /* 대사번호 */
               , T3.CNTR_CAN_DTM AS CNTR_CAN_DTM /* 취소일자 */
-              , (SELECT X.USR_NM
-                   FROM T_CMP_USR_ACO_M X                                                   /* 사용자계정기본 */
-                  WHERE X.EPNO = T1.FST_RGST_USR_ID
-                    AND X.DEL_YN = 'N' )                                    AS RGST_KNM     /* 입력담당자 */
+              , F_CMZ_USR_NM(T1.FST_RGST_USR_ID) AS RGST_KNM
+<!--              , (SELECT X.USR_NM-->
+<!--                   FROM T_CMP_USR_ACO_M X                                                   /* 사용자계정기본 */-->
+<!--                  WHERE X.EPNO = T1.FST_RGST_USR_ID-->
+<!--                    AND X.DEL_YN = 'N' )                                    AS RGST_KNM     /* 입력담당자 */-->
               , T1.FST_RGST_USR_ID                                                          /* 번호-최초등록사용자ID */
               , (SELECT X.USR_NM
                    FROM T_CMP_USR_ACO_M X
@@ -89,7 +90,7 @@
                                  AND T5.RVE_NO       = T1.RVE_NO
                                  AND T5.DTA_DL_YN    = 'N')
                 LEFT OUTER JOIN TB_CUBS_CST_BAS T6         /* 고객기본 */
-                             ON (    T6.CST_NO    = T5.CST_NO
+                             ON (    T6.CST_NO    = T1.CST_NO
                                  AND T6.DTA_DL_YN = 'N')
         <!--        LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS T7    /* 채권계약기본 */
                              ON (    T7.CNTR_NO   = T2.CNTR_NO
@@ -113,11 +114,14 @@
            </otherwise>
          </choose>
          <choose>
-           <when test='@MybatisUtils@isNotEmpty(dpDvCd)'>
-           AND T1.DP_DV_CD =  #{dpDvCd} /* 입금구분 */
+           <when test='@MybatisUtils@equals(dpDvCd, "1")'>
+            AND T1.DP_DV_CD  IN ('1','3') /* 입금구분 */
+           </when>
+           <when test='@MybatisUtils@equals(dpDvCd, "2")'>
+            AND T1.DP_DV_CD  IN ('2','4') /* 입금구분 */
            </when>
            <otherwise>
-           AND T1.DP_DV_CD IN ('1','2') /* 입금구분 */
+           AND T1.DP_DV_CD IN ('1','2','3','4') /* 입금구분 */
            </otherwise>
          </choose>
          <choose>

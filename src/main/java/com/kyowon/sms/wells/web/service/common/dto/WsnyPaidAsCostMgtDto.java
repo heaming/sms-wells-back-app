@@ -29,17 +29,6 @@ public class WsnyPaidAsCostMgtDto {
         String pdctPdCd
     ){}
 
-    @ApiModel(value = "WsnyPaidAsCostMgtDto-PdReq")
-    public record PdReq(
-        String hgrPdCd
-    ){}
-
-    @ApiModel(value = "WsnyPaidAsCostMgtDto-PdRes")
-    public record PdRes(
-        String codeId,
-        String codeName
-    ){}
-
     @ApiModel(value = "WsnyPaidAsCostMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank

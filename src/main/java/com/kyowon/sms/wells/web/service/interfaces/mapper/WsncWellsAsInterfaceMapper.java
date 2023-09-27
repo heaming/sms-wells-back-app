@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.interfaces.mapper;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniAsSidingChangeInterfaceDvo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsInterfaceDto.*;
@@ -55,7 +56,7 @@ public interface WsncWellsAsInterfaceMapper {
      * @param req : 조회파라메터
      * @return 조회결과
      */
-    List<WsncAsInterfaceServHistDvo> selectServiceHistorys(SearchServiceHistoryReq req, PageInfo pageInfo);
+    List<WsncAsInterfaceServHistDvo> selectServiceHistorys(SearchServiceHistoryReq req);
 
     /**
      * Wells 인터페이스 맞춤가이드 서비스 내용 조회
@@ -100,6 +101,6 @@ public interface WsncWellsAsInterfaceMapper {
      *              String chSding, 변경모종
      *              String apyDt 적용일자
      */
-    List<WsniAsSidingChangeInterfaceDvo> selectAsSidingChanges(SearchAsSidingChangeReq req);
+    PagingResult<SearchAsSidingChangeRes> selectAsSidingChanges(SearchAsSidingChangeReq req, PageInfo pageinfo);
 
 }

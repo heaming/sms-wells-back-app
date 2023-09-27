@@ -13,4 +13,15 @@ public class WsniSidingServiceChangesDvo {
     String bsMths;
     String basePdCd;
     String userId;
+
+    String cntrNo;
+    String cntrSn;
+    String cstSvAsnNo;
+    String asnOjYm;
+    String adrId;
+    String cntrCstNo;
+    String rcgvpKnm;
+    String cralLocaraTno;
+    String mexnoEncr;
+    String cralIdvTno;
 }

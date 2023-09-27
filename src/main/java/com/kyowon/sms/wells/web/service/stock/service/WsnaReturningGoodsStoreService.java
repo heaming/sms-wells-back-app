@@ -93,17 +93,13 @@ public class WsnaReturningGoodsStoreService {
 
             String strHgrWareNo = this.mapper.selectHgrWareNo(dvo);
             dvo.setHgrWareNo(strHgrWareNo);
-            log.info("strHgrWareNo -------> ", strHgrWareNo);
             String strUpHgrWareNo = this.mapper.selectUpHgrWareNo(dvo);
             dvo.setUpHgrWareNo(strUpHgrWareNo);
-            log.info("strUpHgrWareNo -------> ", strUpHgrWareNo);
 
             String strHgrWareMngtPrtnrNo = this.mapper.selectHgrWarePrtnrNo(dvo);
             String strUpHgrWareMngtPrtnrNo = this.mapper.selectUpHgrWarePrtnrNo(dvo);
             dvo.setHgrWarePrtnrNo(strHgrWareMngtPrtnrNo);
-            log.info("strHgrWareMngtPrtnrNo -------> ", strHgrWareMngtPrtnrNo);
             dvo.setUpHgrWarePrtnrNo(strUpHgrWareMngtPrtnrNo);
-            log.info("strUpHgrWareMngtPrtnrNo -------> ", strUpHgrWareMngtPrtnrNo);
 
             if (StringUtils.isNotEmpty(
                 dvo.getOstrConfDt()

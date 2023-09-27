@@ -85,8 +85,8 @@
 		                    ELSE 'Ｘ'
 		                END AS CTT /* 컨택 */
 		             , T3.BND_BIZ_DV_CD AS BIZ_DV/* 업무구분 */
-		             , T4.PD_CLSF_NM AS PRDF /* 제품군 */
-		             , T4.PD_NM AS PDCT_NM /* 제품명 */
+		             , T19.PD_CLSF_NM AS PRDF /* 제품군 */
+		             , T19.PD_NM AS PDCT_NM /* 제품명 */
 		             , T1.CNTR_NO AS CNTR_NO /* 계약번호 */
 		             , T1.CNTR_SN AS CNTR_SN /* 계약일련번호 */
 		             , T5.CST_KNM AS CST_NM /* 고객명 */
@@ -212,17 +212,6 @@
 		            ON T1.CNTR_NO = T3.CNTR_NO
 		           AND T1.CNTR_SN = T3.CNTR_SN
 		           AND T1.BASE_YM = T3.BASE_YM
-		          LEFT OUTER JOIN (
-		                           SELECT T3.PD_CLSF_NM
-		                                , T1.CNTR_NO 
-		                                , T1.CNTR_SN
-		                                , T2.PD_NM
-		                             FROM TB_SSCT_CNTR_DTL T1
-		                            INNER JOIN TB_PDBS_PD_BAS T2 ON T2.PD_CD = T1.BASE_PD_CD
-		                            INNER JOIN TB_PDBS_PD_CLSF_BAS T3 ON T3.PD_CLSF_ID = T2.PD_MCLSF_ID
-		             ) T4
-		            ON T4.CNTR_NO = T1.CNTR_NO 
-		           AND T4.CNTR_SN = T1.CNTR_SN
 		          LEFT OUTER JOIN TB_CUBS_CST_BAS T5 /* 고객기본 */
 		            ON T1.CST_NO = T5.CST_NO
 		          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T6 /* WELLS매출월마감내역 */
@@ -330,6 +319,27 @@
 		           AND T1.CST_NO = T16.CST_NO 
 		         INNER JOIN TB_SSCT_CNTR_BAS T17 /* 계약기본 */
 		            ON T1.CNTR_NO = T17.CNTR_NO
+		          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T18 /* 계약상세 */
+		            ON T1.CNTR_NO = T18.CNTR_NO
+		           AND T1.CNTR_SN = T18.CNTR_SN
+		          LEFT OUTER JOIN (
+			                       SELECT NVL2(C2.PD_CLSF_NM, C2.PD_CLSF_NM, '')
+			                              || NVL2(C3.PD_CLSF_NM, '>' || C3.PD_CLSF_NM, '')
+			                              || NVL2(C4.PD_CLSF_NM, '>' || C4.PD_CLSF_NM, '') AS PD_CLSF_NM  /* 상품분류 */
+			                            , PB.PD_CD                                  /* 상품코드 */
+			                            , PB.PD_NM                                   /* 상품명 */
+			                         FROM TB_PDBS_PD_BAS PB
+			                         LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS C1          /* 분류 대 */
+			                           ON PB.PD_HCLSF_ID  = C1.PD_CLSF_ID
+			                         LEFT OUTER  JOIN TB_PDBS_PD_CLSF_BAS C2         /* 분류 중 */
+			                           ON PB.PD_MCLSF_ID  = C2.PD_CLSF_ID
+			                         LEFT OUTER  JOIN TB_PDBS_PD_CLSF_BAS C3         /* 분류 소 */
+			                           ON PB.PD_LCLSF_ID  = C3.PD_CLSF_ID
+			                         LEFT OUTER  JOIN TB_PDBS_PD_CLSF_BAS C4         /* 분류 세 */
+			                           ON PB.PD_DCLSF_ID  = C4.PD_CLSF_ID
+			                        WHERE PB.DTA_DL_YN = 'N'
+			                      ) T19
+		            ON T19.PD_CD = T18.BASE_PD_CD
 		     ) 
 		 WHERE 1=1
            AND CLCTAM_PRTNR_NO = #{schClctamNo}
@@ -377,8 +387,16 @@
          <if test='@MybatisUtils@isNotEmpty(schTfDtStrt) and @MybatisUtils@isNotEmpty(schTfDtEnd)'>
            AND TF_DT BETWEEN #{schTfDtStrt} AND #{schTfDtEnd}
          </if>
+         <if test='@MybatisUtils@isNotEmpty(schFntDv)'>
+            <if test="schFntDv == '9999'">
+             AND BIL_TP_CD <![CDATA[<>]]> '0203' 
+             AND BIL_TP_CD <![CDATA[<>]]> '0102' 
+           </if>
+           <if test="schFntDv != '9999'">
+             AND BIL_TP_CD = #{schFntDv}
+           </if>
+         </if>  
          <if test='@MybatisUtils@isNotEmpty(schFntDtStrt) and @MybatisUtils@isNotEmpty(schFntDtEnd)'>
-           AND DP_TP_CD = #{schFntDv}
            AND BIL_DT BETWEEN #{schFntDtStrt} AND #{schFntDtEnd}
          </if>
          <if test='@MybatisUtils@isNotEmpty(schBilDv)'>

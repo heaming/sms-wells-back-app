@@ -11,6 +11,7 @@ public class WwdbMutualAidAllianceBulkDepositDvo {
     private String itgDpNo;
     private String dpDtm;
     private String perfDt;
-
+    private String rveDt;
     private String rveCd;
+    private String rveNo;
 }

@@ -79,6 +79,15 @@ public class WbncRentalResignExpectedMgtController {
         return SaveResponse.builder().processCount(this.service.saveRentalResignExpectedCnfms(dto)).build();
     }
 
+    @ApiOperation(value = "직권해지관리 - 렌탈 해지예정 엑셀 업로드", notes = "예정확정된 대상을 기준으로 제외 대상을 엑셀파일로 업로드 한다.")
+    @PostMapping("/excel-upload")
+    public UploadRes saveRentalResignExpectedExcelUpload(
+        @RequestParam("file")
+        MultipartFile file
+    ) throws Exception {
+        return service.saveRentalResignExpectedExcelUpload(file);
+    }
+
     @ApiOperation(value = "직권해지관리 - 렌탈 해지예정 취소자료등록", notes = "취소자료등록 버튼 클릭 시 등록된 직권해지 대상을 취소처리 한다.")
     @PutMapping("/cancel")
     public SaveResponse saveRentalResignExpectedCancels(
@@ -87,14 +96,5 @@ public class WbncRentalResignExpectedMgtController {
         SaveCancelReq dto
     ) throws Exception {
         return SaveResponse.builder().processCount(this.service.saveRentalResignExpectedCancels(dto)).build();
-    }
-
-    @ApiOperation(value = "직권해지관리 - 렌탈 해지예정 엑셀 업로드", notes = "예정확정된 대상을 기준으로 제외 대상을 엑셀파일로 업로드 한다.")
-    @PostMapping("/excel-upload")
-    public UploadRes saveRentalResignExpectedExcelUpload(
-        @RequestParam("file")
-        MultipartFile file
-    ) throws Exception {
-        return service.saveRentalResignExpectedExcelUpload(file);
     }
 }
