@@ -15,9 +15,9 @@ public class WsnaMdProductOutOfStorageExcelUploadDto {
 
         String cstSvAsnNo, // 배정번호
 
-        String cntrSn, // 계약번호
+        String cntrNo, // 계약번호
 
-        String cntrNo, // 계약일련번호
+        String cntrSn, // 계약일련번호
 
         String sppIvcNo, // 송장번호
 

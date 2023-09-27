@@ -34,7 +34,7 @@ public class WsnaMdProductOutOfStorageExcelUploadService {
     @Transactional
     public int saveMdProductOutOfStoragExcelUpload(List<ValidateReq> dtos) {
         int processCount = 0;
-        // TODO 엑셀 업로드 타겟 테이블 저장 
+        // TODO 엑셀 업로드 타겟 테이블 저장
         return processCount;
     }
 
@@ -60,10 +60,9 @@ public class WsnaMdProductOutOfStorageExcelUploadService {
         // 엑셀업로드 헤더 설정
         Map<String, String> headerTitle = new LinkedHashMap<>();
         headerTitle.put("cstSvAsnNo", messageResourceService.getMessage("MSG_TXT_ASGN_NO")); // 배정번호
-        headerTitle.put("cntrNo", messageResourceService.getMessage("MSG_TXT_CNTR_NO")); // 계약번호
-        headerTitle.put("cntrSn", messageResourceService.getMessage("MSG_TXT_CNTR_SN")); //계약일련번호
+        headerTitle.put("cntrNo", messageResourceService.getMessage("MSG_TXT_CNTR_DTL_NO")); // 계약상세번호
         headerTitle.put("pcsvCompDv", messageResourceService.getMessage("MSG_TXT_PCSV_CO")); // 택배사
-        headerTitle.put("sppIvcNo", messageResourceService.getMessage("'MSG_TXT_IVC_NO")); // 송장번호
+        headerTitle.put("sppIvcNo", messageResourceService.getMessage("MSG_TXT_IVC_NO")); // 송장번호
         headerTitle.put("sppBzsPdId", messageResourceService.getMessage("MSG_TXT_SR_NO")); // SR번호
 
         List<WsnaMdProductOutOfStorageExcelUploadErrorDvo> excelUploadDvos = new ArrayList<>();
@@ -78,65 +77,19 @@ public class WsnaMdProductOutOfStorageExcelUploadService {
                 // Error 목록
                 List<String> errors = new ArrayList<>();
 
-                // 데이터 존재 하지않는 목록
-                List<String> emptyColumnNames = new ArrayList();
-
-                String cstSvAsnNo = dvo.getCstSvAsnNo();
-                String cntrNo = dvo.getCntrNo();
-                String cntrSn = dvo.getCntrSn();
                 String sppIvcNo = dvo.getSppIvcNo();
-                String sppBzsPdId = dvo.getSppBzsPdId();
-                String pcsvCompDv = dvo.getPcsvCompDv();
-
-                // 배정번호
-                if (StringUtils.isEmpty(cstSvAsnNo)) {
-                    emptyColumnNames.add("cstSvAsnNo");
-                }
-                // 계약번호
-                if (StringUtils.isEmpty(cntrNo)) {
-                    emptyColumnNames.add("cntrNo");
-                }
-                // 계약일련번호
-                if (StringUtils.isEmpty(cntrSn)) {
-                    emptyColumnNames.add("cntrSn");
-                }
-                // 송장번호
-                if (StringUtils.isEmpty(sppIvcNo)) {
-                    emptyColumnNames.add("sppIvcNo");
-                }
-                // SR번호
-                if (StringUtils.isEmpty(sppBzsPdId)) {
-                    emptyColumnNames.add("sppBzsPdId");
-                }
-                // 택배사 구분
-                if (StringUtils.isEmpty(pcsvCompDv)) {
-                    emptyColumnNames.add("pcsvCompDv");
-                }
-
-                if (CollectionUtils.isNotEmpty(emptyColumnNames)) {
-                    //  데이터 존재 체크 [유효하지 않은 항목이 있습니다.]
-                    for (String column : emptyColumnNames) {
+                // 송장번호 중복체크
+                if (StringUtils.isNotEmpty(sppIvcNo)) {
+                    int result = mapper.selectExistSppIvcNo(dvo);
+                    if (result > 0) {
+                        String header = headerTitle.get("sppIvcNo");
                         errors.add(
                             setErrorMsg(
-                                headerTitle.get(column),
-                                messageResourceService.getMessage("MSG_ALT_EXIST_INVALID_ITEM")
+                                header,
+                                messageResourceService.getMessage("MSG_ALT_DUPLICATE_VALUE_EXISTS", sppIvcNo)
                             )
                         );
                     }
-                }
-
-                // 데이터 존재하는경우에만 유효성 체크
-
-                // 송장번호 숫자 체크 [숫자만 입력 가능합니다.]
-                if (StringUtils.isNotEmpty(sppIvcNo) && !isNumeric(sppIvcNo)) {
-
-                    String header = headerTitle.get("sppIvcNo");
-                    errors.add(
-                        setErrorMsg(
-                            header,
-                            messageResourceService.getMessage("MSG_ALT_ONLY_NUMBER")
-                        )
-                    );
                 }
                 // 에러가 존재하는 데이터인경우 Dvos 저장
                 if (CollectionUtils.isNotEmpty(errors)) {
@@ -148,13 +101,6 @@ public class WsnaMdProductOutOfStorageExcelUploadService {
             }
         }
         return excelUploadDvos;
-    }
-
-    /**
-     * 숫자 체크 (정규식)
-     */
-    private boolean isNumeric(String s) {
-        return s.matches("[0-9]+");
     }
 
     /**
