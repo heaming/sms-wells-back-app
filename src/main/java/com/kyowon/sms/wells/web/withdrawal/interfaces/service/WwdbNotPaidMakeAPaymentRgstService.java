@@ -7,7 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import com.kyowon.sms.common.web.closing.payment.service.ZdcaBusinessAnticipationAmtWellsService;
+import com.kyowon.sms.common.web.closing.payment.service.ZdcaEtcAnticipationAmtWellsService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbIntegrationDepositDvo;
+import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbDepositComparisonComfirmationMapper;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbIntegrationDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalDepositCprDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
@@ -32,10 +35,13 @@ public class WwdbNotPaidMakeAPaymentRgstService {
     private final WwdbNotPaidMakeAPaymentRgstMapper mapper;
 
     private final ZwdbIntegrationDepositMapper integrationDepositMapper;
-
-    private final ZwdzWithdrawalService zwdzWithdrawalService;
+    private final ZwdbDepositComparisonComfirmationMapper depositComparisonComfirmationMapper;
 
     private final WwdbNotPaidMakeAPaymentRgstConverter converter;
+
+    private final ZwdzWithdrawalService zwdzWithdrawalService;
+    private final ZdcaBusinessAnticipationAmtWellsService businessAnticipationAmtWellsService;
+    private final ZdcaEtcAnticipationAmtWellsService etcAnticipationAmtWellsService;
 
     @Transactional
     public WwdbNotPaidMakeAPaymentRgstResDvo saveDepositRegistration(WwdbNotPaidMakeAPaymentRgstDto.SaveReq dto)
@@ -246,6 +252,17 @@ public class WwdbNotPaidMakeAPaymentRgstService {
 
         //수납상세 데이터 생성
         receiveDtl(dvo, contractDvo, sysDateYmd, ogPrtnrDvo, depositPk, rveNo, receiveAskNumber);
+
+        businessAnticipationAmtWellsService
+            .createBusinessAnticipationAmt(
+                depositComparisonComfirmationMapper
+                    .selectWellsDepositBusinessAnticipationInfo(dvo.getItgDpNo())
+            );
+        etcAnticipationAmtWellsService
+            .createEtcAnticipationAmt(
+                depositComparisonComfirmationMapper
+                    .selectWellsDepositEtcAnticipationInfo(dvo.getItgDpNo())
+            );
 
         resultDvo.setProcsRs("Y");
         resultDvo.setErrMsg("정상 처리 되었습니다.");
