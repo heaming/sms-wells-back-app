@@ -4,6 +4,7 @@ package com.kyowon.sms.wells.web.fee.standard.module;
 import com.kyowon.sms.common.web.fee.standard.annotation.FeeModuleInfo;
 import com.kyowon.sms.common.web.fee.standard.annotation.FeeModuleMethodInfo;
 import com.kyowon.sms.common.web.fee.standard.context.ApplicationContextHolder;
+import com.kyowon.sms.common.web.fee.standard.dto.ZfeyFeeStandardDto;
 import com.kyowon.sms.common.web.fee.standard.module.ZfeyFeeCalculationCommonModule;
 import com.kyowon.sms.wells.web.fee.standard.mapper.WfeyHomeMasterCalculationMapper;
 
@@ -18,6 +19,7 @@ public class WfeyFeeCalculationHomeMasterModule extends ZfeyFeeCalculationCommon
     /**
      * 생성자
      *
+     * @param feeStandardDetail
      * @param tenantId
      * @param feeCd
      * @param baseYm
@@ -26,13 +28,14 @@ public class WfeyFeeCalculationHomeMasterModule extends ZfeyFeeCalculationCommon
      * @param perfAgrgCrtDvCd
      * @param cntrPerfCrtDvCd
      */
-    public WfeyFeeCalculationHomeMasterModule(String tenantId, String feeCd, String baseYm, String perfYm, String feeTcntDvCd, String perfAgrgCrtDvCd, String cntrPerfCrtDvCd) {
-        super( tenantId, feeCd, baseYm, perfYm, feeTcntDvCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
+    public WfeyFeeCalculationHomeMasterModule(ZfeyFeeStandardDto.SearchFeeStandardDetailRes feeStandardDetail, String tenantId, String feeCd, String baseYm, String perfYm, String feeTcntDvCd, String perfAgrgCrtDvCd, String cntrPerfCrtDvCd) {
+        super(feeStandardDetail, tenantId, feeCd, baseYm, perfYm, feeTcntDvCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
         homeMasterCalculationMapper = ApplicationContextHolder.getBean(WfeyHomeMasterCalculationMapper.class);
     }
         /**
      * 생성자
      *
+     * @param feeStandardDetail
      * @param tenantId
      * @param feeCd
      * @param baseYm
@@ -40,21 +43,22 @@ public class WfeyFeeCalculationHomeMasterModule extends ZfeyFeeCalculationCommon
      * @param perfAgrgCrtDvCd
      * @param cntrPerfCrtDvCd
      */
-    public WfeyFeeCalculationHomeMasterModule(String tenantId, String feeCd, String baseYm, String feeTcntDvCd, String perfAgrgCrtDvCd, String cntrPerfCrtDvCd) {
-        this(tenantId, feeCd, baseYm, baseYm, feeTcntDvCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
+    public WfeyFeeCalculationHomeMasterModule(ZfeyFeeStandardDto.SearchFeeStandardDetailRes feeStandardDetail, String tenantId, String feeCd, String baseYm, String feeTcntDvCd, String perfAgrgCrtDvCd, String cntrPerfCrtDvCd) {
+        this(feeStandardDetail, tenantId, feeCd, baseYm, baseYm, feeTcntDvCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
     }
 
         /**
      * 생성자
      *
+     * @param feeStandardDetail
      * @param tenantId
      * @param feeCd
      * @param baseYm
      * @param feeTcntDvCd
      * @param perfAgrgCrtDvCd
      */
-    public WfeyFeeCalculationHomeMasterModule(String tenantId, String feeCd, String baseYm, String feeTcntDvCd, String perfAgrgCrtDvCd) {
-        this(tenantId, feeCd, baseYm, baseYm, feeTcntDvCd, perfAgrgCrtDvCd, null);
+    public WfeyFeeCalculationHomeMasterModule(ZfeyFeeStandardDto.SearchFeeStandardDetailRes feeStandardDetail, String tenantId, String feeCd, String baseYm, String feeTcntDvCd, String perfAgrgCrtDvCd) {
+        this(feeStandardDetail, tenantId, feeCd, baseYm, baseYm, feeTcntDvCd, perfAgrgCrtDvCd, null);
     }
 
     /**
