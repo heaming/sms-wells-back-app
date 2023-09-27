@@ -11,8 +11,8 @@
              , NVL(EDU.EDU125,0) AS ATCNT2 /* 동행교육참여일수 */
              , TO_CHAR(TO_DATE(OG.CNTR_DT,'YYYYMMDD'),'YYYY-MM') AS AKDSYM /* 업무등록월 */
              , AK17.AKDEQ0 AS AKDEQ0 /* 총판매건수 */
-             , AK17.SERCNT /* 서비스건수 */
-             , AK17.SERRYL /* 서비스처리율 */
+             , C.SERCNT /* 서비스건수 */
+             , C.SERRYL /* 서비스처리율 */
              , AK17.AKCDA19 AS AKCDA19 /* 홈케어멤버십 */
              , AK17.AKCDA10 AS AKCDA10 /* 매트리스 렌탈료 */
              , AK17.AKCDA12 AS AKCDA12 /* 매트리스 외 렌탈료 */
@@ -47,17 +47,13 @@
                                , SUM(AKCDA12) AS AKCDA12
                                , SUM(AKCDA13) AS AKCDA13
                                , SUM(AKCDA15) AS AKCDA15
-                               , SUM(SERCNT) AS SERCNT
-                               , SUM(SERRYL) AS SERRYL
                             FROM ( SELECT AK17.PRTNR_NO
                                         , CASE WHEN AK17.PERF_ATC_CD = 'W03P00002' THEN PERF_VAL ELSE 0 END AS AKDEQ0
                                         , CASE WHEN AK17.PERF_ATC_CD = 'W03P00123' THEN PERF_VAL ELSE 0 END AS AKCDA19
-                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00122' THEN PERF_VAL ELSE 0 END AS AKCDA10
-                                        , CASE WHEN AK17.PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS AKCDA12
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W00P00031' THEN PERF_VAL ELSE 0 END AS AKCDA10
+                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00122' THEN PERF_VAL ELSE 0 END AS AKCDA12
                                         , CASE WHEN AK17.PERF_ATC_CD = 'W00P00004' THEN PERF_VAL ELSE 0 END AS AKCDA13
                                         , CASE WHEN AK17.PERF_ATC_CD = 'W00P00006' THEN PERF_VAL ELSE 0 END AS AKCDA15
-                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00085' THEN PERF_VAL ELSE 0 END AS SERCNT
-                                        , CASE WHEN AK17.PERF_ATC_CD = 'W03P00095' THEN PERF_VAL ELSE 0 END AS SERRYL
                                      FROM TB_FEAM_NTORP_PERF_MM_CL AK17   /*순주문 파트너 실적 월마감*/
                                     WHERE AK17.FEE_TCNT_DV_CD = '01'
                                       AND AK17.BASE_YM = #{perfYm}
@@ -84,6 +80,25 @@
                            GROUP BY PRTNR_NO
                         ) EDU
           ON OG.PRTNR_NO = EDU.PRTNR_NO
+        LEFT OUTER JOIN ( SELECT PRTNR_NO
+                               , SUM(LCCNT2) + SUM(LCCNT3) AS SERCNT
+                               , SUM(LCRAT1) AS SERRYL
+                            FROM ( SELECT Z.PRTNR_NO
+                                        , CASE WHEN Z.PRTNR_SV_PERF_ATC_CD = 'HM01999902' THEN Z.PERF_VAL END AS LCCNT2
+                                        , CASE WHEN Z.PRTNR_SV_PERF_ATC_CD = 'HM01999903' THEN Z.PERF_VAL END AS LCCNT3
+                                        , CASE WHEN Z.PRTNR_SV_PERF_ATC_CD = 'HM01999909' THEN Z.PERF_VAL END AS LCRAT1
+                                     FROM TB_FEAM_WPTN_SV_PERF_AGRG Z
+                                    INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD X
+                                       ON Z.PRTNR_SV_PERF_ATC_CD = X.PRTNR_SV_PERF_ATC_CD
+                                      AND SUBSTR(X.PRTNR_SV_PERF_ATC_CD,1,2) = 'HM'
+                                    WHERE Z.BASE_YM = #{perfYm}
+                                      AND Z.PRTNR_NO = #{no}
+                                      AND Z.CL_DV_CD = '02'
+                                      AND Z.OG_TP_CD = 'W03'
+                                 )
+                           GROUP BY PRTNR_NO
+                        )C
+          ON OG.PRTNR_NO = C.PRTNR_NO
         LEFT OUTER JOIN TB_FEAM_HMST_GD_BAS H
           ON OG.BASE_YM = H.MNGT_YM
          AND OG.PRTNR_NO = H.PRTNR_NO
