@@ -20,6 +20,47 @@
            AND T2.DTA_DL_YN = 'N'
     </select>
 
+    <select id="selectReceiveCode" resultType="string">
+        SELECT CASE WHEN (SELECT CNTR_TP_CD FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = #{cntrNo}) = '03' THEN '70160'
+                    ELSE
+                         CASE WHEN T2.OG_TP_CD IN ('HR1','W06') THEN T2.RVE_CD
+                              ELSE T3.RVE_CD
+                          END
+                END AS RVE_CD
+          FROM T_CMP_USR_ACO_M T1 --(공통)사용자계정기본T
+    INNER JOIN T_CMY_USR_M T2 --(공통)사용자기본T
+            ON T2.USR_ID = T1.USR_ID
+           AND T2.TENANT_ID = 'TNT_WELLS' -- 예시 : 'TNT_EDU'
+    INNER JOIN TB_OGBS_MM_OG_IZ T3
+            ON T3.OG_TP_CD = T2.OG_TP_CD
+           AND T3.OG_ID = T2.OG_ID
+           AND BASE_YM = TO_CHAR(SYSDATE,'YYYYMM') /* 당월 기준 */
+         WHERE 1=1
+           AND T1.EPNO = #{prtnrNo}
+           AND ROWNUM <![CDATA[<=]]> 1
+    </select>
+
+    <select id="selectPerformanceDay" resultType="string">
+        SELECT CASE WHEN TO_CHAR(SYSDATE, 'DD') <![CDATA[ <= ]]>  (SELECT MIN(A2.BASE_D)
+                                                                     FROM TB_SVPD_SV_CLND_BAS A2
+                                                                    WHERE A2.DTA_DL_YN = 'N'
+                                                                      AND NVL(A2.DF_YN, 'N')   <![CDATA[ <> ]]> 'Y'
+                                                                      AND NVL(A2.PHLD_YN, 'N') <![CDATA[ <> ]]> 'Y'
+                                                                      AND A2.BASE_Y  = TO_CHAR(SYSDATE, 'YYYY')
+                                                                      AND A2.BASE_MM = TO_CHAR(SYSDATE, 'MM')
+                                                                      AND A2.DOW_DV_CD NOT IN ('1', '7')
+                                                                  )
+                    THEN (SELECT A2.BASE_Y || A2.BASE_MM || MAX(A2.BASE_D)
+                           FROM TB_SVPD_SV_CLND_BAS A2
+                          WHERE A2.DTA_DL_YN = 'N'
+                            AND A2.BASE_Y  = TO_CHAR(ADD_MONTHS(TO_CHAR(SYSDATE, 'YYYYMMDD'), -1), 'YYYY')
+                            AND A2.BASE_MM = TO_CHAR(ADD_MONTHS(TO_CHAR(SYSDATE, 'YYYYMMDD'), -1), 'MM')
+                            GROUP BY A2.BASE_Y, A2.BASE_MM
+                            )
+                    ELSE TO_CHAR(SYSDATE, 'YYYYMMDD') END
+          FROM DUAL
+    </select>
+
     <select id="selectContractMonthCloseInquiry" resultType="int">
         SELECT COUNT(*)
           FROM TB_CBCL_WELLS_SL_MM_CL_IZ
