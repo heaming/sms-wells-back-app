@@ -12,5 +12,8 @@ public class WwdbNotPaidMakeAPaymentRgstReqDvo {
     String sellTpCd;//판매유형코드
     String prtnrNo;//파트너번호
     String dpTpCd;//입금유형코드
+    String rveCd; // 수납코드
+    String perfDt; // 실적일자
+    String itgDpNo; // 통합입금번호
     long dpAmt;//입금금액
 }
