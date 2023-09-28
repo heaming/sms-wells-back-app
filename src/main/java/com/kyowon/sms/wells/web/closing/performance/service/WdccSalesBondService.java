@@ -6,7 +6,6 @@ import com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesBondDvo;
 import com.kyowon.sms.wells.web.closing.performance.mapper.WdccSalesBondMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -50,11 +49,7 @@ public class WdccSalesBondService {
             LocalDate slClSYmDate = slClEYmDate.minusMonths(2);
             param.put("slClSYm", slClSYmDate.format(formatterType));
             param.put("agrgDv", "1"); // 일자별의 경우 조회 시에는 1(집계)로 변경
-            dvos = getAccountsReceivable(param); // 월별 집계 쿼리 결과 중 조회월 이전의 데이터
-
-            // 집계 데이터 중간에 일자별 정보를 넣어 줘야 하기 때문에 해당 위치 정의
-            int addIndex = (CollectionUtils.isNotEmpty(dvos) && dvos.size() > 1) ? 2 : 0;
-            dvos.addAll(addIndex, mapper.selectAccountsReceivableByDate(param)); // 일자별 쿼리 조회 결과
+            dvos = mapper.selectAccountsReceivableByDate(param); // 일자별 쿼리 조회 결과
         } else {
             // 화면에 선택한 월의 -1개월
             LocalDate slClSYmDate = slClEYmDate.minusMonths(1);

@@ -13,6 +13,7 @@ import com.kyowon.sms.wells.web.kakaosync.common.dto.KakaoWcsbProspecCustomerMgt
 import com.kyowon.sms.wells.web.kakaosync.common.dvo.KakaoWcsbSyncDefaultDvo;
 import com.kyowon.sms.wells.web.kakaosync.common.mapper.KakaoFrdnCustMapper;
 import com.kyowon.sms.wells.web.kakaosync.zcommon.kakaosyncutils.AES256Util;
+import com.sds.sflex.common.portal.service.PortalSessionService;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.system.config.exception.BizException;
@@ -34,6 +35,7 @@ public class KakaoWcsbProspecCustomerMgtService {
     private final WcszPartnerSearchService partnerSearchService;
     private final SujiewonService addressService;
     private final KakaoFrdnCustMapper kakaoFrdnCustMapper;
+    private final PortalSessionService portalSessionService;
 
     /**
      * 고객 DB 목록 저장(추가)
@@ -43,6 +45,10 @@ public class KakaoWcsbProspecCustomerMgtService {
      */
     @Transactional
     public int saveProspecCustomers(KakaoWcsbProspecCustomerMgtDto.SaveReq dto) throws Exception {
+
+        // 미인증 세션 처리
+        portalSessionService.makeAnonymousSession();
+
         int processCount = 0;
 
         WcszPartnerDvo partnerVo = partnerSearchService.getPartnerByPk(null, dto.employee_id());

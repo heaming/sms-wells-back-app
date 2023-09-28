@@ -53,13 +53,13 @@
        AND CUBS1.CST_KNM = #{cstKnm}
        </if>
        <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
-       AND CUBS1.CRAL_LOCARA_TNO = #{cralLocaraTno}
+       AND SSCT3.CRAL_LOCARA_TNO = #{cralLocaraTno}
        </if>
        <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
-       AND CUBS1.MEXNO_ENCR = #{mexnoEncr}
+       AND SSCT3.MEXNO_ENCR = #{mexnoEncr}
        </if>
        <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
-       AND CUBS1.CRAL_IDV_TNO = #{cralIdvTno}
+       AND SSCT3.CRAL_IDV_TNO = #{cralIdvTno}
        </if>
        <if test="@MybatisUtils@isNotEmpty(pdGrpId)">
        AND PDBS2.PD_GRP_ID = #{pdGrpId}
@@ -135,6 +135,7 @@
              , CASE WHEN SSCT3.ADR_DV_CD = '1' THEN GBCO1.RNADR || ' ' || GBCO1.RDADR
                     WHEN SSCT3.ADR_DV_CD = '2' THEN GBCO1.LTN_ADR || ' ' || GBCO1.LTN_DTL_ADR
                END ADR
+             , NVL(B2.BC_PBL_DV_CD, '1') AS BC_PBL_DV_CD -- ITG_QRS_OJ_DV_CD (1: 일반QR, 2: 통합QR)
           FROM TB_SSCT_CNTR_DTL                  SSCT1 /*계약상세*/
          INNER JOIN TB_SVPD_CST_SV_EXCN_IZ SVPD1 /*고객서비스수행내역*/
             ON SSCT1.CNTR_NO = SVPD1.CNTR_NO
@@ -148,10 +149,14 @@
             ON SSCT2.CNTR_ADRPC_ID = SSCT3.CNTR_ADRPC_ID
          INNER JOIN TB_GBCO_ADR_BAS        GBCO1 /*주소기본*/
             ON SSCT3.ADR_ID = GBCO1.ADR_ID
-         WHERE 1=1
-           AND 'N' IN (SSCT1.DTA_DL_YN, SVPD1.DTA_DL_YN, SSCT2.DTA_DL_YN, SSCT3.DTA_DL_YN, GBCO1.DTA_DL_YN)
+          LEFT OUTER JOIN TB_SVPD_PD_BC_RPBL_CST_IZ B2 /*상품바코드재발행고객내역*/
+            ON NVL(SVPD1.BC_NO, SVPD1.QRS_RDM_NO) = B2.BC_NO
+           AND B2.ITM_KND_CD = '4'
+         WHERE 'N' IN (SSCT1.DTA_DL_YN, SVPD1.DTA_DL_YN, SSCT2.DTA_DL_YN, SSCT3.DTA_DL_YN, GBCO1.DTA_DL_YN)
            AND SSCT1.CNTR_NO = #{cntrNo}
+        ----------------------------------------------------------------------------------------------------------------
         UNION ALL
+        ----------------------------------------------------------------------------------------------------------------
         SELECT SSCT1.CNTR_NO
              , SSCT3.CNTR_CST_NO
              , SSCT3.RCGVP_KNM
@@ -169,6 +174,7 @@
              , CASE WHEN SSCT3.ADR_DV_CD = '1' THEN GBCO1.RNADR || ' ' || GBCO1.RDADR
                     WHEN SSCT3.ADR_DV_CD = '2' THEN GBCO1.LTN_ADR || ' ' || GBCO1.LTN_DTL_ADR
                END ADR
+             , NVL(B2.BC_PBL_DV_CD, '1') AS BC_PBL_DV_CD -- ITG_QRS_OJ_DV_CD (1: 일반QR, 2: 통합QR)
           FROM TB_SSCT_CNTR_DTL SSCT1 /*계약상세*/
          INNER JOIN TB_SVPD_CST_SV_EXCN_IZ SVPD1 /*고객서비스수행내역*/
             ON SVPD1.CNTR_NO = SSCT1.CNTR_NO
@@ -186,7 +192,9 @@
          INNER JOIN TB_GBCO_ADR_BAS GBCO1 /*주소기본*/
             ON GBCO1.DTA_DL_YN = 'N'
            AND SSCT3.ADR_ID = GBCO1.ADR_ID
-         WHERE 'N' IN (SSCT1.DTA_DL_YN, SVPD1.DTA_DL_YN, SSCT2.DTA_DL_YN, SSCT3.DTA_DL_YN, GBCO1.DTA_DL_YN, SSCT4.DTA_DL_YN)
+          LEFT OUTER JOIN TB_SVPD_PD_BC_RPBL_CST_IZ B2 /*상품바코드재발행고객내역*/
+            ON NVL(SVPD1.BC_NO, SVPD1.QRS_RDM_NO) = B2.BC_NO
+         WHERE 'N' IN (SSCT1.DTA_DL_YN, SVPD1.DTA_DL_YN, SSCT2.DTA_DL_YN, SSCT3.DTA_DL_YN, GBCO1.DTA_DL_YN,SSCT4.DTA_DL_YN)
            AND SSCT1.CNTR_NO = #{cntrNo}
            AND SVPD1.REQD_DT IS NULL -- 철거일자
            AND SVPD1.IST_DT IS NOT NULL -- 설치일자
