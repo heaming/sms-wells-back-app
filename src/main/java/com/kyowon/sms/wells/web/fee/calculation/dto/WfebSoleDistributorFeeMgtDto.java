@@ -25,13 +25,13 @@ public class WfebSoleDistributorFeeMgtDto {
         String cstKnm, // 고객성명
         String basePdCd, // 상품코드
         String pdNm, // 상품명
-        String sellDscDvCdNm, // 할인구분
-        String sellDscrCdNm, // 할인유형
-        String sellDscTpCdNm, // 할인제도
-        String relPdCdNm, // 결합구분
-        String pmotUswyDvCdNm, // 용도구분
-        String mgNm, // 관리유형
-        String bfsvcPrdCdNm, // 방문주기
+        String sellDscDvCd,
+        String sellDscrCd,
+        String sellDscTpCd,
+        String relPdCd,
+        String pmotUswyDvCd,
+        String mgNm,
+        String bfsvcPrdCd,
         String rcpdt, // 접수일자
         String slDt, // 매출일자
         String canDt, // 취소일자
