@@ -32,16 +32,16 @@ class WfeaFeeMeetingAttendanceControllerTest extends SpringTestSupport {
         mockMvc.perform(request1)
             .andExpect(status().isOk());
 
-        //        // given
-        //        SaveReq dto2 = new SaveReq("W01", "202308", "W0105", "02");
-        //
-        //        // when & then
-        //        MockHttpServletRequestBuilder request2 = post(BASE_URL)
-        //            .contentType(MediaType.APPLICATION_JSON)
-        //            .content(objectMapper.writeValueAsString(dto2));
-        //
-        //        mockMvc.perform(request2)
-        //            .andExpect(status().isOk());
+        // given
+        SaveReq dto2 = new SaveReq("W01", "202308", "W0105", "02");
+
+        // when & then
+        MockHttpServletRequestBuilder request2 = post(BASE_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto2));
+
+        mockMvc.perform(request2)
+            .andExpect(status().isOk());
     }
 
     @Commit
@@ -76,7 +76,7 @@ class WfeaFeeMeetingAttendanceControllerTest extends SpringTestSupport {
     @DisplayName("[홈마스터] 미팅참석자 실적 생성")
     void saveWellsFeeMeetingAttendancesForHomemaster() throws Exception {
         // given
-        SaveReq dto1 = new SaveReq("W03", "202308", "", "02");
+        SaveReq dto1 = new SaveReq("W03", "202308", "W0302", "02");
 
         // when & then
         MockHttpServletRequestBuilder request1 = post(BASE_URL)
@@ -84,6 +84,17 @@ class WfeaFeeMeetingAttendanceControllerTest extends SpringTestSupport {
             .content(objectMapper.writeValueAsString(dto1));
 
         mockMvc.perform(request1)
+            .andExpect(status().isOk());
+
+        // given
+        SaveReq dto2 = new SaveReq("W03", "202308", "W0301", "02");
+
+        // when & then
+        MockHttpServletRequestBuilder request2 = post(BASE_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto2));
+
+        mockMvc.perform(request2)
             .andExpect(status().isOk());
     }
 }
