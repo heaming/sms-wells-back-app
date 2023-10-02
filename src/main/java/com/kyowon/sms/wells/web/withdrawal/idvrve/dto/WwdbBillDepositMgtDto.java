@@ -149,7 +149,8 @@ public class WwdbBillDepositMgtDto {
         String billDpAmt,
         String cntrCstNo,
         String billBndNo,
-        String sort
+        String sort,
+        String resultSum
 
     ) {
 

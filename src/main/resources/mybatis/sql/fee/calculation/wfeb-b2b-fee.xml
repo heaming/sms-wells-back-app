@@ -10,33 +10,45 @@
              , T4.CST_KNM                                             /* 고객성명          */
              , T5.BASE_PD_CD                                          /* 상품코드          */
              , T6.PD_NM                                               /* 상품명            */
-             , NVL(C1.CD_CNTN, T7.SELL_DSC_DV_CD) SELL_DSC_DV_CD_NM   /* 할인구분 - T7.DSC_DV_CD   SELL_DSC_DV_CD  */
-             , CASE WHEN T7.SELL_DSC_DV_CD = '5'
-                    THEN NVL(C2.CD_CNTN, T7.SELL_DSCR_CD) --판매할인율코드
-                    ELSE TO_CHAR(T7.RECAP_DUTY_PTRM_N)    --유상의무기간수
-                     END SELL_DSCR_CD_NM                              /* 할인유형 - T7.DSC_TP_CD   SELL_DSCR_CD RECAP_DUTY_PTRM_N  */
-             , NVL(C3.CD_CNTN, T7.SELL_DSC_TP_CD) SELL_DSC_TP_CD_NM   /* 할인제도 - T7.PMOT_CD     SELL_DSC_TP_CD        */
+             , T1.SELL_DSC_DV_CD  /* 할인구분 - T1.DSC_DV_CD   SELL_DSC_DV_CD  */
+             , CASE WHEN T1.SELL_DSC_DV_CD = '5'
+                    THEN T1.SELL_DSCR_CD  --판매할인율코드
+                    ELSE TO_CHAR(T1.RECAP_DUTY_PTRM_N)    --유상의무기간수
+                     END SELL_DSCR_CD                              /* 할인유형 - T1.DSC_TP_CD   SELL_DSCR_CD RECAP_DUTY_PTRM_N  */
+             , T1.SELL_DSC_TP_CD   /* 할인제도 - T1.PMOT_CD     SELL_DSC_TP_CD        */
              , (SELECT MAX('1')
                   FROM TB_SSCT_CNTR_REL X
                  WHERE X.BASE_CNTR_NO    = T1.CNTR_NO
                    AND X.CNTR_UNIT_TP_CD = '10'  -- 계약
                    AND X.CNTR_REL_TP_CD  = '20'  -- 연계상품
                    AND X.CNTR_REL_DTL_CD = '214' -- 원주문-정기배송
-               ) AS REL_PD_CD_NM                                      /* 결합구분          */
-             , NVL(C5.CD_CNTN, T7.PMOT_USWY_DV_CD) PMOT_USWY_DV_CD_NM /* 용도구분 - T7.PMOT_USWY_DV_CD        */
-             , CASE WHEN T7.PMOT_USWY_DV_CD = '1' THEN '1-일반'
-                    WHEN T7.PMOT_USWY_DV_CD = '2' THEN '2-업소'
+               ) AS REL_PD_CD                                     /* 결합구분          */
+             , T1.PMOT_USWY_DV_CD /* 용도구분 - T1.PMOT_USWY_DV_CD        */
+             , CASE WHEN T1.PMOT_USWY_DV_CD = '1' THEN '1-일반'
+                    WHEN T1.PMOT_USWY_DV_CD = '2' THEN '2-업소'
                     ELSE ''
                     END MG_NM                                         /* 관리유형 -     */
-             , NVL(C4.CD_CNTN, T7.BFSVC_PRD_CD) BFSVC_PRD_CD_NM       /* 방문주기 - T7.BFSVC_PRD_CD */
-             , T7.RCPDT                                               /* 접수일자          */
-             , T7.SL_DT                                               /* 매출일자          */
-             , T7.CAN_DT                                              /* 취소일자          */
-             , T1.PERF_VAL                                            /* 수수료 - 실적항목코드(W04P00001-기본수수료금액)의 금액 */
-             , CASE WHEN T7.ACKMT_PERF_CT IS NULL AND T7.ACKMT_PERF_AMT > 0 THEN 1
-                    ELSE T7.ACKMT_PERF_CT
+             , T1.BFSVC_PRD_CD       /* 방문주기 - T1.BFSVC_PRD_CD */
+             , T1.RCPDT                                               /* 접수일자          */
+             , T1.SL_DT                                               /* 매출일자          */
+             , T1.CAN_DT                                              /* 취소일자          */
+             , (SELECT SUM(X.PERF_VAL)
+           	    FROM TB_FEAM_NTORP_CNTR_MM_CL X
+           	   WHERE X.BASE_YM        = T1.BASE_YM
+		         AND X.PERF_YM        = T1.PERF_YM
+		         AND X.FEE_TCNT_DV_CD = T1.FEE_TCNT_DV_CD
+		         AND X.CNTR_NO        = T1.CNTR_NO
+		         AND X.CNTR_SN        = T1.CNTR_SN
+		         AND X.CNTR_PERF_CRT_DV_CD = T1.CNTR_PERF_CRT_DV_CD
+		         AND X.PERF_AGRG_CRT_DV_CD = '401'               /* 실적집계생성구분코드 501-총판수수료실적생성   */
+			     AND X.PERF_ATC_CD         = 'W04P00001'         /* 실적항목코드       W05P00001-기본수수료금액 */
+			     AND X.PERF_DV_CD          = '0'                 /* 실적구분코드       0-개인판매               */
+			     AND X.DTA_DL_YN           = 'N'
+	         ) AS PERF_VAL
+             , CASE WHEN T1.ACKMT_PERF_CT IS NULL AND T1.ACKMT_PERF_AMT > 0 THEN 1
+                    ELSE T1.ACKMT_PERF_CT
                      END ACKMT_PERF_CT                                 /* 신규건수  인정건수(Null인 경우 인정실적이 있으면 1로 치환) */
-          FROM TB_FEAM_NTORP_CNTR_MM_CL T1      /* 순주문파트너계약월마감 */
+          FROM TB_FEAM_WELS_NRCTR_MM_CL T1      /* 순주문파트너계약월마감 */
          INNER JOIN TB_OGBS_MM_PRTNR_IZ      T2      /* 월파트너               */
             ON T2.BASE_YM        = T1.BASE_YM
            AND T2.OG_TP_CD       = T1.OG_TP_CD         /* 2023.05.02 조건 추가 */
@@ -54,54 +66,20 @@
            AND T5.CNTR_SN        = T1.CNTR_SN
          INNER JOIN TB_PDBS_PD_BAS           T6      /* 상품기본               */
             ON T6.PD_CD          = T5.BASE_PD_CD
-          LEFT OUTER JOIN TB_FEAM_WELS_NRCTR_MM_CL T7      /* 웰스순주문계약월마감   */
-            ON T7.BASE_YM        = T1.BASE_YM
-           AND T7.PERF_YM        = T1.PERF_YM
-           AND T7.FEE_TCNT_DV_CD = T1.FEE_TCNT_DV_CD
-           AND T7.CNTR_NO        = T1.CNTR_NO
-           AND T7.CNTR_SN        = T1.CNTR_SN
-           AND T7.CNTR_PERF_CRT_DV_CD = T1.CNTR_PERF_CRT_DV_CD
-          <if test='@MybatisUtils@isNotEmpty(strtYm) and @MybatisUtils@isNotEmpty(endYm)'>
-           AND SUBSTR(T7.RCPDT,0,6) BETWEEN #{strtYm} AND #{endYm}
-          </if>
-          <if test='@MybatisUtils@isNotEmpty(cancelStrtYm) and @MybatisUtils@isNotEmpty(cancelEndYm)'>
-           AND SUBSTR(T7.CAN_DT,0,6) BETWEEN #{cancelStrtYm} AND #{cancelEndYm}
-          </if>
-          LEFT OUTER JOIN T_CMZ_CD_D        C0      /* 공통코드 - 업체명      */
-            ON C0.TENANT_ID      = #{session.tenantId}            --웰스
-           AND C0.CD_ID          = 'CO_CD'                --업체명
-           AND C0.CD_VLD_VAL     = T1.CO_CD
-          LEFT OUTER JOIN T_CMZ_CD_D        C1      /* 공통코드 - 할인구분    */
-            ON C1.TENANT_ID      = #{session.tenantId}            --웰스
-           AND C1.CD_ID          = 'SELL_DSC_DV_CD'       --할인구분
-           AND C1.CD_VLD_VAL     = T7.SELL_DSC_DV_CD
-          LEFT OUTER JOIN T_CMZ_CD_D        C2      /* 공통코드 - 할인유형    */
-            ON C2.TENANT_ID      = #{session.tenantId}            --웰스
-           AND C2.CD_ID          = 'SELL_DSCR_CD'         --할인유형
-           AND C2.CD_VLD_VAL     = T7.SELL_DSCR_CD
-          LEFT OUTER JOIN T_CMZ_CD_D        C3      /* 공통코드 - 할인제도    */
-            ON C3.TENANT_ID      = #{session.tenantId}            --웰스
-           AND C3.CD_ID          = 'SELL_DSC_TP_CD'       --할인제도
-           AND C3.CD_VLD_VAL     = T7.SELL_DSC_TP_CD
-           LEFT OUTER JOIN T_CMZ_CD_D        C4      /* 공통코드 - 방문주기    */
-             ON C4.TENANT_ID      = #{session.tenantId}            --웰스
-            AND C4.CD_ID          = 'BFSVC_PRD_CD'         --방문주기
-            AND C4.CD_VLD_VAL     = T7.BFSVC_PRD_CD
-           LEFT OUTER JOIN T_CMZ_CD_D        C5      /* 공통코드 - 용도구분    */
-             ON C5.TENANT_ID      = #{session.tenantId}            --웰스
-            AND C5.CD_ID          = 'PMOT_USWY_DV_CD'      --용도구분
-            AND C5.CD_VLD_VAL     = T7.PMOT_USWY_DV_CD
-          WHERE 1=1
-            AND T1.BASE_YM             = #{perfYm}
-            <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
-             AND T1.FEE_TCNT_DV_CD      = #{feeTcntDvCd}
-            </if>
-            AND T1.PERF_AGRG_CRT_DV_CD = '401'               /* 실적집계생성구분코드  -B2B수수료실적생성   */
-            AND T1.OG_TP_CD            = 'W04'               /* 조직유형코드          W04-온라인B2B           */
-            AND T1.PERF_ATC_CD         = 'W04P00001'         /* 실적항목코드          W04P00001-기본수수료금액 */
-            AND T1.PERF_DV_CD          = '0'                 /* 실적구분코드          0-개인판매               */
-            AND T1.CNTR_PERF_CRT_DV_CD = '01'                /* 계약실적생성구분코드  01-순주문집계            */
-            AND T1.DTA_DL_YN           = 'N'
+         WHERE 1=1
+           AND T1.BASE_YM             = #{perfYm}
+           AND T2.OG_TP_CD            = 'W04'               /* 조직유형코드          W04-온라인B2B           */
+           AND T1.CNTR_PERF_CRT_DV_CD = '01'                /* 계약실적생성구분코드 01-순주문집계            */
+           AND T1.DTA_DL_YN           = 'N'
+           <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
+           AND T1.FEE_TCNT_DV_CD      = #{feeTcntDvCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(strtYm) and @MybatisUtils@isNotEmpty(endYm)'>
+           AND SUBSTR(T1.RCPDT,0,6) BETWEEN SUBSTR(#{strtYm},0,6) AND SUBSTR(#{endYm},0,6)
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(cancelStrtYm) and @MybatisUtils@isNotEmpty(cancelEndYm)'>
+           AND SUBSTR(T1.CAN_DT,0,6) BETWEEN SUBSTR(#{cancelStrtYm},0,6) AND SUBSTR(#{cancelEndYm},0,6)
+           </if>
     </select>
 
     <select id='selectB2bFee' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebB2bFeeMgtDto$Fee">
