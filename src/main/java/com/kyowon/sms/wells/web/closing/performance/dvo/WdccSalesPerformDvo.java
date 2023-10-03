@@ -19,8 +19,8 @@ public class WdccSalesPerformDvo {
     private String sumBorAmt; //위약금
     private String dpAmt; //입금금액
     private String eotAtam; //선수금액
-    private String thmUcBlam; //미수금액
-    private String thmOcDlqAmt; //연체금액
+    private String eotUcAmt; //미수금액
+    private String eotDlqAmt; //연체금액
     private String dlqMcn; //연체개월수
     private String btdDlqAddAmt; //가산금기초
     private String thmOcDlqAddAmt; //가산금발생
