@@ -477,7 +477,7 @@
                      , SUM(NOM_SL_AMT_4) AS NOM_SL_AMT_4 /* 등록환불 LC505.LCAM43 */
                      , SUM(NOM_SL_AMT_5) AS NOM_SL_AMT_5 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
                      , SUM(NOM_SL_AMT_6) AS NOM_SL_AMT_6 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
-                     , SUM(SL_CAN_AMT) AS SL_CAN_AMT /* 매출취소 LC505.LCAM56 */
+                     , SUM(CAN_SL_AMT) AS CAN_SL_AMT /* 매출취소 LC505.LCAM56 */
                      , SUM(TOT_SL_AMT) AS TOT_SL_AMT /* 매출합계 */
                      --------------------------------------------------------------------------------------
                      --선수금
@@ -521,7 +521,7 @@
                      , NOM_SL_AMT_4 AS NOM_SL_AMT_4 /* 등록환불 LC505.LCAM43 */
                      , NOM_SL_AMT_5 AS NOM_SL_AMT_5 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
                      , NOM_SL_AMT_6 AS NOM_SL_AMT_6 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
-                     , SL_CAN_AMT AS SL_CAN_AMT /* 매출취소 LC505.LCAM56 */
+                     , CAN_SL_AMT AS CAN_SL_AMT /* 매출취소 LC505.LCAM56 */
                      , TOT_SL_AMT AS TOT_SL_AMT /* 매출합계 */
                      --------------------------------------------------------------------------------------
                      --선수금
@@ -566,14 +566,14 @@
                              --------------------------------------------------------------------------------------
                              -- 매출
                              --------------------------------------------------------------------------------------
-                             , NOM_SL_AMT_1 - NOM_SL_AMT_2 + NOM_SL_AMT_3 - NOM_SL_AMT_4 + NOM_SL_AMT_5 + NOM_SL_AMT_6 - SL_CAN_AMT AS NOM_SL_AMT /* 정상매출 */
+                             , NOM_SL_AMT_1 - NOM_SL_AMT_2 + NOM_SL_AMT_3 - NOM_SL_AMT_4 + NOM_SL_AMT_5 + NOM_SL_AMT_6 - CAN_SL_AMT AS NOM_SL_AMT /* 정상매출 */
                              , NOM_SL_AMT_1 AS NOM_SL_AMT_1 /* 렌탈등록비 LC505.LCTAMT */
                              , NOM_SL_AMT_2 AS NOM_SL_AMT_2 /* 렌탈할인 LC505.LCRAMT */
                              , NOM_SL_AMT_3 AS NOM_SL_AMT_3 /* 렌탈등록비차액 LC505.LCTCHA */
                              , NOM_SL_AMT_4 AS NOM_SL_AMT_4 /* 등록환불 LC505.LCAM43 */
                              , NOM_SL_AMT_5 AS NOM_SL_AMT_5 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
                              , NOM_SL_AMT_6 AS NOM_SL_AMT_6 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
-                             , SL_CAN_AMT AS SL_CAN_AMT /* 매출취소 LC505.LCAM56 */
+                             , CAN_SL_AMT AS CAN_SL_AMT /* 매출취소 LC505.LCAM56 */
                              , NOM_SL_AMT_1 - NOM_SL_AMT_2 + NOM_SL_AMT_3 - NOM_SL_AMT_4 + NOM_SL_AMT_5 + NOM_SL_AMT_6 AS TOT_SL_AMT /* 매출합계 */
                              --------------------------------------------------------------------------------------
                              --선수금
@@ -631,7 +631,7 @@
                                      --------------------------------------------------------------------------------------
                                      , (CASE WHEN A.RENTAL_TN = 0 THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS NOM_SL_AMT_5 /* 원금매출 LC505.LCAM06(0차월일때 LCAM16 금액) */
                                      , (CASE WHEN A.RENTAL_TN <![CDATA[>]]> 0 THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS NOM_SL_AMT_6 /* 원금매출 LC505.LCAM16(1차월 이후일때 LCAM16 금액) */
-                                     , (CASE WHEN A.RENTAL_TN <![CDATA[>]]> 0 AND C.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(C.CNTR_PD_ENDDT, 1, 6) = A.SL_CL_YM THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS SL_CAN_AMT /* 매출취소 LC505.LCAM56 */
+                                     , (CASE WHEN A.RENTAL_TN <![CDATA[>]]> 0 AND C.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(C.CNTR_PD_ENDDT, 1, 6) = A.SL_CL_YM THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS CAN_SL_AMT /* 매출취소 LC505.LCAM56 */
                                      --------------------------------------------------------------------------------------
                                      --선수금
                                      --------------------------------------------------------------------------------------
@@ -1019,10 +1019,10 @@
     <sql id="lumpSumOfAccountsReceivable">
     	SELECT SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) ||( /* 기말미수 = 전기이월 + 정상매출 - 취소매출 + 수수료매출 - 계약금입금 - 할부금입금  */
            		  <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')">
-          			CASE WHEN SUM(EOT_UC_AMT) != SUM(PRE_TOT_UC_AMT + NOM_SL_AMT + SL_CAN_AMT + THM_OC_FEE_AMT - CNTRAM_DP_AMT - THM_INTAM_DP_AMT)  THEN ' *'
+          			CASE WHEN SUM(EOT_UC_AMT) != SUM(PRE_TOT_UC_AMT + NOM_SL_AMT + CAN_SL_AMT + THM_OC_FEE_AMT - CNTRAM_DP_AMT - THM_INTAM_DP_AMT)  THEN ' *'
           			</if>
           			<if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')">
-          			CASE WHEN EOT_UC_AMT != PRE_TOT_UC_AMT + NOM_SL_AMT + SL_CAN_AMT + THM_OC_FEE_AMT - CNTRAM_DP_AMT - THM_INTAM_DP_AMT  THEN ' *'
+          			CASE WHEN EOT_UC_AMT != PRE_TOT_UC_AMT + NOM_SL_AMT + CAN_SL_AMT + THM_OC_FEE_AMT - CNTRAM_DP_AMT - THM_INTAM_DP_AMT  THEN ' *'
           			</if>
                   		 ELSE ''
            	   	END) AS SL_CL_YM /* 실적년월 */
@@ -1048,11 +1048,11 @@
       	   <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')">
       	   , SUM(PRE_TOT_UC_AMT) AS PRE_TOT_UC_AMT /* 전기이월 */
       	   , SUM(NOM_SL_AMT) AS NOM_SL_AMT /* 정상매출금액 */
-      	   , SUM(SL_CAN_AMT) AS CAN_SL_AMT /* 취소매출금액 */
+      	   , SUM(CAN_SL_AMT) AS CAN_SL_AMT /* 취소매출금액 */
       	   , SUM(THM_OC_FEE_AMT) AS FEE_SL_AMT /* 수수료매출금액 */
       	   , SUM(BOUT_NOR_SL_AMT) AS BOUT_NOR_SL_AMT /* 상품권_정상매출 */
       	   , SUM(BOUT_CAN_SL_AMT) AS BOUT_CAN_SL_AMT /* 상품권_취소/만료매출 */
-      	   , SUM(NOM_SL_AMT + SL_CAN_AMT + THM_OC_FEE_AMT) AS TOT_SL_AMT /* 매출합계 ※취소매출은 -금액으로 발생 */
+      	   , SUM(NOM_SL_AMT + CAN_SL_AMT + THM_OC_FEE_AMT) AS TOT_SL_AMT /* 매출합계 ※취소매출은 -금액으로 발생 */
       	   , SUM(CNTRAM_DP_AMT) AS CNTR_DP_AMT /* 계약금입금 */
       	   , SUM(THM_INTAM_DP_AMT) AS INST_DP_AMT /* 할부금입금 */
       	   , SUM(CNTRAM_DP_AMT + THM_INTAM_DP_AMT) AS TOT_DP_AMT /* 입금합계 */
@@ -1070,11 +1070,11 @@
       	   <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')">
       	   , PRE_TOT_UC_AMT AS PRE_TOT_UC_AMT /* 전기이월 */
       	   , NOM_SL_AMT AS NOM_SL_AMT /* 정상매출금액 */
-      	   , SL_CAN_AMT AS CAN_SL_AMT /* 취소매출금액 */
+      	   , CAN_SL_AMT AS CAN_SL_AMT /* 취소매출금액 */
       	   , THM_OC_FEE_AMT AS FEE_SL_AMT /* 수수료매출금액 */
       	   , BOUT_NOR_SL_AMT AS BOUT_NOR_SL_AMT /* 상품권_정상매출 */
       	   , BOUT_CAN_SL_AMT AS BOUT_CAN_SL_AMT /* 상품권_취소/만료매출 */
-      	   , NOM_SL_AMT + SL_CAN_AMT + THM_OC_FEE_AMT AS TOT_SL_AMT /* 매출합계 ※취소매출은 -금액으로 발생 */
+      	   , NOM_SL_AMT + CAN_SL_AMT + THM_OC_FEE_AMT AS TOT_SL_AMT /* 매출합계 ※취소매출은 -금액으로 발생 */
       	   , CNTRAM_DP_AMT AS CNTR_DP_AMT /* 계약금입금 */
       	   , THM_INTAM_DP_AMT AS INST_DP_AMT /* 할부금입금 */
       	   , CNTRAM_DP_AMT + THM_INTAM_DP_AMT AS TOT_DP_AMT /* 입금합계 */
@@ -1099,7 +1099,7 @@
       	                , A.PD_CD AS PD_CD/* 상품코드 */
       	                , TO_CHAR(TO_DATE(C.CNTR_PD_STRTDT), 'YYYY-MM-DD') AS SL_RCOG_DT /* 매출일자 */
       	                , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.NOM_SL_AMT, 0) END AS NOM_SL_AMT /* 정상매출금액 CW49.CWWA11 */
-      	                , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.SL_CAN_AMT, 0) END AS SL_CAN_AMT /* 취소매출금액 CW49.CWWA12 */
+      	                , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.SL_CAN_AMT, 0) END AS CAN_SL_AMT /* 취소매출금액 CW49.CWWA12 */
       	                , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.THM_OC_FEE_AMT, 0) END AS THM_OC_FEE_AMT /* 수수료매출금액 CW49.CWWA14 */
       	                , 0 AS BOUT_NOR_SL_AMT /* 상품권_정상매출 -> ASIS 쿼리에 0 */
       	                ------------------------------------------------------------------------------------
@@ -1180,7 +1180,7 @@
       	          ) T1
        WHERE 1=1
          <if test="@MybatisUtils@equals(agrgDv, '4')"> /* 가로계산식 틀린 회원 */
-         AND EOT_UC_AMT != PRE_TOT_UC_AMT + NOM_SL_AMT + SL_CAN_AMT + THM_OC_FEE_AMT - CNTRAM_DP_AMT - THM_INTAM_DP_AMT
+         AND EOT_UC_AMT != PRE_TOT_UC_AMT + NOM_SL_AMT + CAN_SL_AMT + THM_OC_FEE_AMT - CNTRAM_DP_AMT - THM_INTAM_DP_AMT
          </if>
        <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계 */
        GROUP BY SL_CL_YM, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
