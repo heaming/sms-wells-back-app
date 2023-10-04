@@ -107,7 +107,7 @@ public class WsncQuickResponseRpblDto {
                 vstFshHh,
                 bcInMthdCd,
                 useMpno,
-                Base64.getEncoder().encodeToString(cstSignCn),
+                cstSignCn==null?null:Base64.getEncoder().encodeToString(cstSignCn),
                 dnldPrtnrKnm,
                 publishInfo,
                 rnk
