@@ -10,6 +10,5 @@ import java.util.List;
 @Mapper
 public interface WsncManagerAccountEnrlPsInqrMapper {
     List<SearchGnrdvAgrgRes> selectManagerAccountEnrlPss(SearchReq searchReq);
-    PagingResult<SearchMngerAccEnrlPsRes> selectMngerAccEnrlPss(SearchReq searchReq, PageInfo pageInfo);
     List<SearchMngerAccEnrlPsRes> selectMngerAccEnrlPss(SearchReq searchReq);
 }

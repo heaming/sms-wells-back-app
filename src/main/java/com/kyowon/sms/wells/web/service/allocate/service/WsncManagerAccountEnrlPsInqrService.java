@@ -29,12 +29,7 @@ public class WsncManagerAccountEnrlPsInqrService {
         return mapper.selectManagerAccountEnrlPss(searchReq);
     }
 
-    public PagingResult<SearchMngerAccEnrlPsRes> getMngerAccEnrlPss(SearchReq searchReq, PageInfo pageInfo){
-        PagingResult<SearchMngerAccEnrlPsRes> dtos = mapper.selectMngerAccEnrlPss(searchReq, pageInfo);
-        return dtos;
-    }
-
-    public List<SearchMngerAccEnrlPsRes> getMngerAccEnrlPsExcelDownload(SearchReq searchReq){
+    public List<SearchMngerAccEnrlPsRes> getMngerAccEnrlPss(SearchReq searchReq){
         return mapper.selectMngerAccEnrlPss(searchReq);
     }
 }

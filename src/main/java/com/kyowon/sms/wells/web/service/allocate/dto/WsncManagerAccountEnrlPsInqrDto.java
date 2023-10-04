@@ -11,34 +11,37 @@ public class WsncManagerAccountEnrlPsInqrDto {
     // 총괄단 집계
     @ApiModel(value = "WsncManagerAccountEnrlPsInqrDto-SearchGnrdvAgrgRes")
     public record SearchGnrdvAgrgRes(
-        String cntrNo,
-        String cntrSn,
-        String pdctPdCd,
-        String svPdCd,
-        String istDt,
-        String reqdDt,
-        String cpsDt,
-        String cntrNmnN,
-        String updtPsicDvCd,
-        String bcNo,
-        String wkPsicDvCd,
-        String mngtPrtnrOgTpCd,
-        String mngtPrtnrNo
+        String dgr1LevlOgCd,
+        String dgr2LevlCnt,
+        String hooPrtnrNm,
+        String mngCnt,
+        String realActMngCnt,
+        String realActJijumCnt,
+        String actMngCnt,
+        String noActMngCnt,
+        String cntAverage,
+        String recruitCnt,
+        String allVisitCnt,
+        String visitCompleteCnt,
+        String avgAge
     ){}
 
     // 매니저 계정 및 재적 현황
     @ApiModel(value = "WsncManagerAccountEnrlPsInqrDto-SearchMngerAccEnrlPsRes")
     public record SearchMngerAccEnrlPsRes(
-        String asIstOjNo,
-        String cntrNo,
-        String cntrSn,
-        String cntrCstNo,
-        String inChnlDvCd,
-        String svBizHclsfCd,
-        String svBizDclsfCd,
-        String rcpOgTpCd,
-        String rcpIchrPrtnrNo,
-        String rcpdt,
-        String fnlRcpdt
+        String dgr1LevlOgCd,
+        String dgr2LevlOgCd,
+        String hooPrtnrNm,
+        String bldNm,
+        String mngCnt,
+        String realActMngCnt,
+        String realActJijumCnt,
+        String actMngCnt,
+        String noActMngCnt,
+        String cntAverage,
+        String recruitCnt,
+        String allVisitCnt,
+        String visitCompleteCnt,
+        String avgAge
     ){}
 }
