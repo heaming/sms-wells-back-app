@@ -79,7 +79,6 @@ public class WwdbRefundApplicationService {
      * 환불 신청 현황 P01. 신청 조회 ( 팝업조회 - 신규 )
      *
      * @param req
-     * @param pageInfo
      * @return PagingResult<SearchRefundContractDetailRes>
      */
     public List<SearchRefundContractDetailRes> getRefundContractDetailPages(
@@ -132,7 +131,6 @@ public class WwdbRefundApplicationService {
      * 환불 신청 현황 P01. 신청조회 - 환불상세 ( 팝업조회 - 신규/ 등록조회 )
      *
      * @param req
-     * @param pageInfo
      * @return PagingResult
      */
     public List<SearchRefundDetailRes> getRefundDetailPages(
@@ -152,7 +150,6 @@ public class WwdbRefundApplicationService {
      * 환불 신청 현황 P01. 신청조회 - 전금상세
      *
      * @param req
-     * @param pageInfo
      * @return
      */
     public List<SearchRefundBalanceTransferRes> getRefundBalanceTransferPages(
