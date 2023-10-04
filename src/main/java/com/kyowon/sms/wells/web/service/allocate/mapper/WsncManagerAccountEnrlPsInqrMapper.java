@@ -11,6 +11,7 @@ import java.util.List;
 public interface WsncManagerAccountEnrlPsInqrMapper {
     // 총괄단 집계
     List<SearchGnrdvAgrgRes> selectManagerAccountEnrlPss(SearchReq searchReq);
+
     // 매니저 계정 및 재적 현황
     List<SearchMngerAccEnrlPsRes> selectMngerAccEnrlPss(SearchReq searchReq);
 }

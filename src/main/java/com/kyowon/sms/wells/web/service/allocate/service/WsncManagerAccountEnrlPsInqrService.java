@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- *
  * <pre>
  * [K-W-SV-U-0300M01] 매니저 계정 및 재적현황 조회
  * </pre>
