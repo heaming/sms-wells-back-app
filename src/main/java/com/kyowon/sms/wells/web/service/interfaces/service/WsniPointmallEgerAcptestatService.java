@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniPointmallEgerAcptestatDto.SearchReq;
@@ -26,7 +24,7 @@ public class WsniPointmallEgerAcptestatService {
 
     private final WsniPointmallEgerAcptestatMapper mapper;
 
-    public List<SearchRes> getPointmallEgerAcptestats(SearchReq dto) {
+    public SearchRes getPointmallEgerAcptestats(SearchReq dto) {
         return mapper.selectPointmallEgerAcptestats(dto);
     }
 

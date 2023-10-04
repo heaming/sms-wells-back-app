@@ -32,7 +32,8 @@ public class WwdbRefundApplicationController {
     @ApiOperation(value = "환불 신청 현황 목록", notes = "환불 신청 현황 목록 조회")
     @GetMapping("/paging")
     public PagingResult<SearchRefundApplicationRes> getRefundApplicationPages(
-        @ApiParam @Valid
+        @ApiParam
+        @Valid
         SearchRefundApplicationReq req,
         @Valid
         PageInfo pageInfo
@@ -59,13 +60,12 @@ public class WwdbRefundApplicationController {
     /* 환불상세 */
     @ApiOperation(value = "환불상세 목록 조회", notes = "환불상세 목록 조회")
     @GetMapping("/reg/refund-detail")
-    public PagingResult<SearchRefundDetailRes> getRefundDetailPages(
-        @ApiParam @Valid
-        SearchRefundDetailReq req,
+    public List<SearchRefundDetailRes> getRefundDetailPages(
+        @ApiParam
         @Valid
-        PageInfo pageInfo
+        SearchRefundDetailReq req
     ) {
-        return service.getRefundDetailPages(req, pageInfo);
+        return service.getRefundDetailPages(req);
     }
 
     //-------- 환불신청현황 화면
@@ -81,13 +81,12 @@ public class WwdbRefundApplicationController {
 
     @ApiOperation(value = "환불 신청 팝업 (계약상세)", notes = "환불 신청 팝업 (계약상세) 목록 조회")
     @GetMapping("/reg/paging")
-    public PagingResult<SearchRefundContractDetailRes> getRefundContractDetailPages(
-        @ApiParam @Valid
-        SearchRefundContractDetailReq req,
+    public List<SearchRefundContractDetailRes> getRefundContractDetailPages(
+        @ApiParam
         @Valid
-        PageInfo pageInfo
+        SearchRefundContractDetailReq req
     ) {
-        return service.getRefundContractDetailPages(req, pageInfo);
+        return service.getRefundContractDetailPages(req);
     }
 
     @ApiOperation(value = "환불 신청 팝업 (계약상세) 목록 엑셀 다운로드", notes = "환불 신청 팝업 (계약상세) 목록 엑셀 다운로드")
@@ -103,7 +102,8 @@ public class WwdbRefundApplicationController {
     @ApiOperation(value = "환불 신청 팝업 저장", notes = "환불 신청 팝업 저장")
     @PostMapping("/reg/save")
     public SaveResponse getRefundTempSave(
-        @RequestBody @Valid
+        @RequestBody
+        @Valid
         SaveReq req
     ) throws Exception {
         return SaveResponse
@@ -131,7 +131,8 @@ public class WwdbRefundApplicationController {
     @ApiOperation(value = "환불 신청 팝업 (계약상세)", notes = "환불 신청 팝업 (계약상세) 목록 조회")
     @GetMapping("/reg/base-paging")
     public PagingResult<SearchRefundBaseRes> getRefundBasePages(
-        @ApiParam @Valid
+        @ApiParam
+        @Valid
         SearchRefundBaseReq req,
         @Valid
         PageInfo pageInfo
@@ -155,13 +156,12 @@ public class WwdbRefundApplicationController {
     /* TODO: 환불신청팝업 - 전금상세(메인에서조회) */
     @ApiOperation(value = "환불 신청 팝업 (전금상세)", notes = "환불 신청 팝업 (전금상세) 목록 조회")
     @GetMapping("/reg/balance-transfer")
-    public PagingResult<SearchRefundBalanceTransferRes> getRefundBalanceTransferPages(
-        @ApiParam @Valid
-        SearchRefundBalanceTransferReq req,
+    public List<SearchRefundBalanceTransferRes> getRefundBalanceTransferPages(
+        @ApiParam
         @Valid
-        PageInfo pageInfo
+        SearchRefundBalanceTransferReq req
     ) {
-        return service.getRefundBalanceTransferPages(req, pageInfo);
+        return service.getRefundBalanceTransferPages(req);
     }
 
     // TODO: 미사용데이터 //////////////////////////////////////
@@ -348,7 +348,8 @@ public class WwdbRefundApplicationController {
     @ApiOperation(value = "환불 신청 승인 저장", notes = "환불 신청 팝업 승인 및 반려 처리를 한다.")
     @PostMapping("/reg/approval")
     public SaveResponse getRefundApprovalSave(
-        @RequestBody @Valid
+        @RequestBody
+        @Valid
         SaveApprovalReq req
     ) throws Exception {
         return SaveResponse

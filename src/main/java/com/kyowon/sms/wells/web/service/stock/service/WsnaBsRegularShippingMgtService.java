@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
@@ -17,6 +18,7 @@ import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsRegularShippingMgtMap
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -281,8 +283,8 @@ public class WsnaBsRegularShippingMgtService {
         // 자재 관리단위 조회
         String mngtUnit = mapper.selectMngtUnit(materialDvo.getItmPdCd());
         // 재고 dvo 값 세팅
-        stockItem.setProcsYm(now.substring(0, 8));
-        stockItem.setProcsDt(now.substring(8));
+        stockItem.setProcsYm(now.substring(0, 6));
+        stockItem.setProcsDt(now.substring(0, 8));
         stockItem.setWareDv("1");
         stockItem.setWareNo("100002"); // 파주 물류센터
         stockItem.setWareMngtPrtnrNo("71321");
@@ -330,5 +332,38 @@ public class WsnaBsRegularShippingMgtService {
             // 작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) 저장
             mapper.insertWorkResult(wellsfarmDvo);
         }
+    }
+
+    /**
+     * (자가필터,건식상품) 물류 확정 취소 처리
+     * @param map (취소대상) 출고요청번호
+     */
+    @Transactional
+    public void saveLogisticsConfirmCancel(Map<String, String> map) {
+        // 출고요청번호
+        String ostrAkNo = map.get("PARAM1");
+        // 물류확정일자
+        String lgstCnfmDt = map.get("PARAM2");
+        ValidAssert.hasText(ostrAkNo);
+        ValidAssert.hasText(lgstCnfmDt);
+        // 재고취소용 정보 조회
+        List<WsnaItemStockItemizationReqDvo> cancelDvos = mapper.selectCancelItem(ostrAkNo);
+        // 배정번호 조회
+        String cstSvAsnNo = mapper.selectAssignNo(ostrAkNo, lgstCnfmDt);
+        // 택배발송정보(TB_SVPD_OSTR_AK_PCSV_SEND_DTL) DTA_DL_YN = 'Y'
+        mapper.deleteParcelSend(ostrAkNo);
+        // 작업출고내역(TB_SVST_SV_WK_OSTR_IZ) DTA_DL_YN = 'Y'
+        mapper.deleteWorkOstrItemization(cstSvAsnNo);
+        // 재고 취소
+        for (WsnaItemStockItemizationReqDvo cancelDvo : cancelDvos) {
+            itemStockService.removeStock(cancelDvo);
+        }
+
+        // 고객서비스정기BS주기내역(TB_SVPD_CST_SV_RGBSPR_IZ) update값 복구
+        mapper.mergeBsPeriodCancel(ostrAkNo, lgstCnfmDt);
+        // 고객서비스BS배정내역(TB_SVPD_CST_SV_BFSVC_ASN_IZ) update값 복구
+        mapper.updateBsAssignCancel(cstSvAsnNo);
+        // 고객서비스작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) DELETE
+        mapper.deleteWorkResult(cstSvAsnNo);
     }
 }

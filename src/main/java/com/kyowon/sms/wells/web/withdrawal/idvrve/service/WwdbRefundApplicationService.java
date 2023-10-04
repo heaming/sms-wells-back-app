@@ -79,13 +79,12 @@ public class WwdbRefundApplicationService {
      * 환불 신청 현황 P01. 신청 조회 ( 팝업조회 - 신규 )
      *
      * @param req
-     * @param pageInfo
      * @return PagingResult<SearchRefundContractDetailRes>
      */
-    public PagingResult<SearchRefundContractDetailRes> getRefundContractDetailPages(
-        SearchRefundContractDetailReq req, PageInfo pageInfo
+    public List<SearchRefundContractDetailRes> getRefundContractDetailPages(
+        SearchRefundContractDetailReq req
     ) {
-        return mapper.selectRefundContractDetail(req, pageInfo);
+        return mapper.selectRefundContractDetail(req);
     }
 
     /**
@@ -132,18 +131,17 @@ public class WwdbRefundApplicationService {
      * 환불 신청 현황 P01. 신청조회 - 환불상세 ( 팝업조회 - 신규/ 등록조회 )
      *
      * @param req
-     * @param pageInfo
      * @return PagingResult
      */
-    public PagingResult<SearchRefundDetailRes> getRefundDetailPages(
-        SearchRefundDetailReq req, PageInfo pageInfo
+    public List<SearchRefundDetailRes> getRefundDetailPages(
+        SearchRefundDetailReq req
     ) {
-        PagingResult<SearchRefundDetailRes> data;
+        List<SearchRefundDetailRes> data;
 
         if (StringUtil.isNull(req.rfndAkNo()) || req.rfndAkNo() == null) {
-            data = mapper.selectRefundDetail(req, pageInfo);
+            data = mapper.selectRefundDetail(req);
         } else {
-            data = mapper.selectRefundDetailPage(req, pageInfo);
+            data = mapper.selectRefundDetailPage(req);
         }
         return data;
     }
@@ -152,13 +150,12 @@ public class WwdbRefundApplicationService {
      * 환불 신청 현황 P01. 신청조회 - 전금상세
      *
      * @param req
-     * @param pageInfo
      * @return
      */
-    public PagingResult<SearchRefundBalanceTransferRes> getRefundBalanceTransferPages(
-        SearchRefundBalanceTransferReq req, PageInfo pageInfo
+    public List<SearchRefundBalanceTransferRes> getRefundBalanceTransferPages(
+        SearchRefundBalanceTransferReq req
     ) {
-        return mapper.selectRefundBalanceTransfer(req, pageInfo);
+        return mapper.selectRefundBalanceTransfer(req);
     }
 
     /* TODO: 저장용 서비스 */
@@ -218,40 +215,38 @@ public class WwdbRefundApplicationService {
                 case CommConst.ROW_STATE_CREATED:
                 case CommConst.ROW_STATE_UPDATED:
 
-
-                    processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세
                     if (!CollectionUtils.isEmpty(list.attachFiles())) {
                         String apnFileId = IDGenUtil.getUUID("WDB");
                         bltfDvo.setRfndEvidMtrFileId(apnFileId);
-                        
+
                         attachFileService
                             .saveAttachFiles("ATG_WDB_RFND_FILE", apnFileId, list.attachFiles());
                     }
+                    processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세
                     break;
                 case CommConst.ROW_STATE_DELETED:
                     processCount += mapper.deleteBalanceTempSaveDetail(bltfDvo);
                     break;
             }
 
-
-//            switch (list.rowState()) {
-//                case CommConst.ROW_STATE_CREATED,
-//                    case CommConst.ROW_STATE_UPDATED-> {
-//                    //첨부파일 정보 저장
-//                    if (!CollectionUtils.isEmpty(list.attachFiles())) {
-//                        attachFileService
-//                            .saveAttachFiles(BnBondConst.ATTACH_GROUP_ID_PRP, bltfDvo.getRfndEvidMtrFileId(), list.attachFiles());
-//                    }
-//
-//                    processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세
-//                }
-//                case CommConst.ROW_STATE_UPDATED -> {
-//                    processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세 수정
-//                }
-//                case CommConst.ROW_STATE_DELETED -> {
-//                    processCount += mapper.deleteBalanceTempSaveDetail(bltfDvo);
-//                }
-//            }
+            //            switch (list.rowState()) {
+            //                case CommConst.ROW_STATE_CREATED,
+            //                    case CommConst.ROW_STATE_UPDATED-> {
+            //                    //첨부파일 정보 저장
+            //                    if (!CollectionUtils.isEmpty(list.attachFiles())) {
+            //                        attachFileService
+            //                            .saveAttachFiles(BnBondConst.ATTACH_GROUP_ID_PRP, bltfDvo.getRfndEvidMtrFileId(), list.attachFiles());
+            //                    }
+            //
+            //                    processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세
+            //                }
+            //                case CommConst.ROW_STATE_UPDATED -> {
+            //                    processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세 수정
+            //                }
+            //                case CommConst.ROW_STATE_DELETED -> {
+            //                    processCount += mapper.deleteBalanceTempSaveDetail(bltfDvo);
+            //                }
+            //            }
         }
         return processCount;
     }

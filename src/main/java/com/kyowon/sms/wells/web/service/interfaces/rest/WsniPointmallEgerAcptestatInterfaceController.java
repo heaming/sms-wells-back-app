@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.interfaces.rest;
 
-import java.util.List;
-
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
@@ -36,7 +34,7 @@ public class WsniPointmallEgerAcptestatInterfaceController {
         @RequestBody
         EaiWrapper<SearchReq> reqEaiWrapper
     ) {
-        EaiWrapper<List<SearchRes>> resEaiWrapper = reqEaiWrapper.newResInstance();
+        EaiWrapper<SearchRes> resEaiWrapper = reqEaiWrapper.newResInstance();
         resEaiWrapper.setBody(service.getPointmallEgerAcptestats(reqEaiWrapper.getBody()));
         return resEaiWrapper;
     }
