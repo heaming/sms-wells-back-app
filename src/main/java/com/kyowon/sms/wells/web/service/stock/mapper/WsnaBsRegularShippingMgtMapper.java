@@ -10,6 +10,7 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.Se
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto.WareMngtRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMaterialDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMgtDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleCnfmDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -50,4 +51,18 @@ public interface WsnaBsRegularShippingMgtMapper {
     WsnaBsRegularShippingMgtDvo selectSdingInfo(WsnaSeedReleaseScheduleCnfmDvo seedDvo);
 
     WsnaBsRegularShippingMgtDvo selectWellsfarmMachine(WsnaBsRegularShippingMgtDvo sdingDvo);
+
+    List<WsnaItemStockItemizationReqDvo> selectCancelItem(String ostrAkNo);
+
+    int deleteParcelSend(String ostrAkNo);
+
+    int deleteWorkOstrItemization(String cstSvAsnNo);
+
+    int mergeBsPeriodCancel(String ostrAkNo, String lgstCnfmDt);
+
+    int updateBsAssignCancel(String cstSvAsnNo);
+
+    int deleteWorkResult(String cstSvAsnNo);
+
+    String selectAssignNo(String ostrAkNo, String lgstCnfmDt);
 }
