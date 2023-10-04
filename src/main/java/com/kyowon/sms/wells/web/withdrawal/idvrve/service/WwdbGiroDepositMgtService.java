@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbEtcDepositProcessingDvo;
+import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbEtcDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbDepositComparisonComfirmationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +51,8 @@ public class WwdbGiroDepositMgtService {
     private final ZdcaBusinessAnticipationAmtWellsService wdcaBusinessAnticipationAmtService;
 
     private final ZwdbDepositComparisonComfirmationService depositComparisonComfirmationService;
+
+    private final ZwdbEtcDepositMapper etcDepositMapper;
 
     /**
      * 지로입금 목록조회
@@ -335,8 +339,13 @@ public class WwdbGiroDepositMgtService {
                     if (!StringUtils.isEmpty(list.itgDpNo())) {
 
                         //입금대사 서비스 호출
-                        depositComparisonComfirmationService.createDepositComparisonComfirmation(list.itgDpNo(), null);
+                        HashMap<String, Object> comfirmation = depositComparisonComfirmationService.createDepositComparisonComfirmation(list.itgDpNo(), null);
 
+                        ZwdbEtcDepositProcessingDvo processingDvo = new ZwdbEtcDepositProcessingDvo();
+                        processingDvo.setRveNo(comfirmation.get("RVE_NO").toString());
+                        processingDvo.setRveDt(dto.rveDt());
+                        processingDvo.setPerfDt(dto.fntDt());
+                        etcDepositMapper.updateReceiveDateModify(processingDvo);
                     }
 
 

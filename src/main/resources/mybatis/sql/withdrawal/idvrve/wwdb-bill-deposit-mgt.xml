@@ -70,7 +70,7 @@
              , T4.CNTR_NO
              , T4.CNTR_NO || T4.CNTR_SN AS CNTR /* 계약상세번호 */
              , T4.CNTR_SN /* 일련번호 */
-             , T4.SELL_AMT /* 금액 */
+             , NVL(T4.SELL_AMT , 0) AS SELL_AMT /* 금액 */
           FROM TB_SSCT_CNTR_BAS T1
          INNER JOIN TB_CUBS_CST_BAS T2
             ON T2.CST_NO = T1.CNTR_CST_NO
@@ -242,6 +242,7 @@
          	    KW_GRP_CO_CD
          	  , RVE_AK_NO
          	  , RVE_AK_SN
+              , CST_NO
          	  , DP_DV_CD
          	  , DP_MES_CD
          	  , DP_TP_CD
@@ -264,11 +265,15 @@
          )
          SELECT T2.KW_GRP_CO_CD	/*교원그룹회사코드*/
         	  , #{rveAkNo} AS RVE_AK_NO	/*수납요청번호*/
-              , ROWNUM AS RVE_AK_SN
-        	  <!--, (SELECT NVL(MAX(RVE_AK_SN))+1
-        	       FROM TB_RVDW_RVE_DTL
-        	      WHERE 1 = 1
-        	        AND RVE_AK_NO = #{rveAkNo}) AS RVE_AK_SN	/*수납요청일련번호*/-->
+              , (SELECT NVL(MAX(RVE_AK_SN),0)+1
+                   FROM TB_RVDW_RVE_AK_DTL
+                  WHERE 1 = 1
+                    AND RVE_AK_NO = #{rveAkNo}) AS RVE_AK_SN
+              , (SELECT CNTR_CST_NO
+                   FROM TB_SSCT_CNTR_BAS
+                  WHERE 1 = 1
+                    AND CNTR_NO = T1.CNTR_NO
+                    AND DTA_DL_YN = 'N' ) AS CST_NO
         	  , T2.DP_DV_CD	/*입금구분코드*/
         	  , T2.DP_MES_CD	/*입금수단코드*/
         	  , T2.DP_TP_CD	/*입금유형코드*/
@@ -286,7 +291,10 @@
         	  , '02' AS RVE_STAT_CD	/*수납상태코드*/
         	  , T1.BILL_BND_NO	/*어음채권번호*/
         	  , T2.KW_GRP_CO_CD AS RVE_CO_CD	/*수납회사코드*/
-        	  , NVL(T4.PD_PRP_VAL01,'N') AS INCMDC_YN	 /*N 비소득 , Y소득 소득공제여부*/
+        	  , CASE WHEN #{session.companyCode} = '1200'
+                     THEN NVL(T4.PD_PRP_VAL01,'N')
+                     ELSE 'N'
+                      END AS INCMDC_YN	 /*N 비소득 , Y소득 소득공제여부*/
               <include refid="COMMON.insertSystemFieldValue" />
            FROM ( SELECT S1.CNTR_NO
                        , S1.CNTR_SN

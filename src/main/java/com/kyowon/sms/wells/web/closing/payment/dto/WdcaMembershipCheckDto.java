@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.closing.payment.dto;
 
 import io.swagger.annotations.ApiModel;
 
-// TODO: 테이블 미정의
 public class WdcaMembershipCheckDto {
     @ApiModel(value = "WdcaMembershipCheckDto-SearchRes")
     public record SearchRes(

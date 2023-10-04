@@ -815,7 +815,9 @@
                                  --------------------------------------------------------------------------------------
                                  -- 대손
                                  --------------------------------------------------------------------------------------
-                                 , NVL(A.DFA_PROCS_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
+
+                                 , NVL(G.DFA_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
+
                                  --------------------------------------------------------------------------------------
                                  -- 기말(TOBE 합산 관리 원금총미수 ＋ 이자총미수 + 서비스미수) : LC505.LCMMAM + LC505.LCCMAM + LC505.LCSAM6
                                  --------------------------------------------------------------------------------------
@@ -828,6 +830,13 @@
                                 ON C.CNTR_NO = A.CNTR_NO
                                AND C.CNTR_SN = A.CNTR_SN
                                AND C.DTA_DL_YN = 'N'
+
+                              LEFT OUTER JOIN TB_CBBO_DFA_IZ G
+                                ON G.CNTR_NO = A.CNTR_NO
+                               AND G.CNTR_SN = A.CNTR_SN
+                               AND G.DFA_PROCS_YN = 'Y'
+                               AND SUBSTR(G.ACDBT_DT, 1, 6) = A.SL_CL_YM
+
                              WHERE A.SL_CL_YM = #{slClYm}
                                AND A.SELL_TP_CD = '2'
                                AND A.SELL_TP_DTL_CD NOT IN ('21', '23')
@@ -924,7 +933,9 @@
                 		, SUM(CASE WHEN C.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(C.CNTR_PD_ENDDT, 1, 6) = A.SL_CL_YM THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS THM_CAN_SL_SUM_AMT /* 매출취소금액 LCAM96 */
                 		, SUM(NVL(A.SL_BND_ALRPY_AMT, 0)) AS SL_BND_ALRPY_AMT /* 매출입금 LCAM38 */
                 		, SUM(NVL(A.SL_BND_ALRPY_AMT, 0)) AS TOT_DP_AMT /* 입금총합계 */
-                		, SUM(NVL(A.DFA_PROCS_AMT, 0)) AS DFA_PROCS_AMT /* 대손금액 */
+
+                		, SUM(NVL(G.DFA_AMT, 0)) AS DFA_PROCS_AMT /* 대손금액 */
+
                 		-----------------------------------------------------------
                 		-- 기말(할인미수(LCAM55) 제외 : TOBE 위약에 포함하여 관리)
                 		-----------------------------------------------------------
@@ -946,7 +957,9 @@
                 		, (CASE WHEN C.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(C.CNTR_PD_ENDDT, 1, 6) = A.SL_CL_YM THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS THM_CAN_SL_SUM_AMT /* 매출취소금액 LCAM96 */
                 		, NVL(A.SL_BND_ALRPY_AMT, 0) AS SL_BND_ALRPY_AMT /* 매출입금 LCAM38 */
                 		, NVL(A.SL_BND_ALRPY_AMT, 0) AS TOT_DP_AMT /* 입금총합계 */
-                		, NVL(A.DFA_PROCS_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
+
+                		, NVL(G.DFA_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
+
                 		-----------------------------------------------------------
                 		-- 기말(할인미수(LCAM55) 제외 : TOBE 위약에 포함하여 관리)
                 		-----------------------------------------------------------
@@ -966,6 +979,13 @@
                 	    AND D.CNTR_NO = A.CNTR_NO
                 	    AND D.CNTR_SN = A.CNTR_SN
                 	    AND D.DTA_DL_YN = 'N'
+
+                     LEFT OUTER JOIN TB_CBBO_DFA_IZ G
+                       ON G.CNTR_NO = A.CNTR_NO
+                      AND G.CNTR_SN = A.CNTR_SN
+                      AND G.DFA_PROCS_YN = 'Y'
+                      AND SUBSTR(G.ACDBT_DT, 1, 6) = A.SL_CL_YM
+
                 	  WHERE A.SL_CL_YM = #{slClYm}
                       AND A.SELL_TP_CD = '3'
                       <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
@@ -1120,7 +1140,9 @@
       	                         ), 0) AS ETC_DP_AMT /* 기타선수대체 CW52.CWAMT1 */
       	                , (CASE WHEN C.ALNCMP_CD = '51' THEN NVL(A.CNTRAM_DP_AMT, 0) ELSE 0 END) AS INTER_CONT_CNT_DP_AMT /* 사간거래_계약금입금 CW49.CWWA16 */
       	                , (CASE WHEN C.ALNCMP_CD = '51' THEN NVL(A.THM_INTAM_DP_AMT, 0) ELSE 0 END) AS INTER_CONT_INT_DP_AMT /* 사간거래_할부금입금 CW49.CWWA18 */
-      	                , NVL(A.DFA_PROCS_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
+
+      	                , NVL(G.DFA_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
+
       	                , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.BTD_UC_AMT, 0) END AS PRE_TOT_UC_AMT /* 기초미수잔액 CW49.CWPROP */
       	                , CASE WHEN C.ALNCMP_CD = '51' THEN 0 ELSE NVL(A.EOT_UC_AMT, 0) END AS EOT_UC_AMT /* 기말미수잔액 CW49.CWPROP */
       	             FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
@@ -1131,6 +1153,13 @@
       	               ON C.CNTR_NO = A.CNTR_NO
       	              AND C.CNTR_SN = A.CNTR_SN
       	              AND C.DTA_DL_YN = 'N'
+
+                     LEFT OUTER JOIN TB_CBBO_DFA_IZ G
+                       ON G.CNTR_NO = A.CNTR_NO
+                      AND G.CNTR_SN = A.CNTR_SN
+                      AND G.DFA_PROCS_YN = 'Y'
+                      AND SUBSTR(G.ACDBT_DT, 1, 6) = A.SL_CL_YM
+
       	            WHERE A.SL_CL_YM = #{slClYm}
       	              AND A.SELL_TP_CD = '1'
       	              <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
@@ -1164,13 +1193,13 @@
     <sql id="tradeReceivablesPeriodicDelivery">
        SELECT SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || (
               <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계, 일자별*/
-              CASE WHEN SUM(TOT_UC_BLAM) != SUM(PRE_TOT_UC_AMT) + SUM(TOT_SL_AMT) - SUM(TOT_DP_AMT) - SUM(DFA_PROCS_AMT) THEN ' *'
-              </if>
-              <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 집계, 일자별*/
-              CASE WHEN TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - TOT_DP_AMT - DFA_PROCS_AMT THEN ' *'
-              </if>
-                   ELSE ''
-              END) AS SL_CL_YM /* 실적년월 */
+        		  CASE WHEN SUM(TOT_UC_BLAM) != SUM(PRE_TOT_UC_AMT) + SUM(TOT_SL_AMT) - SUM(TOT_DP_AMT) - SUM(DFA_PROCS_AMT) THEN ' *'
+        		  </if>
+        		  <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 집계, 일자별*/
+        		  CASE WHEN TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - TOT_DP_AMT - DFA_PROCS_AMT THEN ' *'
+        		  </if>
+                       ELSE ''
+                  END) AS SL_CL_YM /* 실적년월 */
             , (CASE WHEN #{slClYm} = TO_CHAR(SYSDATE, 'YYYYMM') THEN TO_CHAR(TO_DATE(SYSDATE-1), 'YYYY-MM-DD')
         		         ELSE TO_CHAR((SELECT LAST_DAY(TO_DATE(#{slClYm}||'01')) FROM DUAL), 'YYYY-MM-DD') END) AS SL_CL_DT /* 실적일자 */
             , SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
@@ -1287,10 +1316,10 @@
                            , 0 AS THM_SL_SUM_AMT_1
                            , 0 AS THM_SL_SUM_AMT_2
                            , NVL(A.SL_BND_ALRPY_AMT, 0) AS SL_BND_ALRPY_AMT /* 매출채권반제금액 */
-                           , NVL(A.DFA_PROCS_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
+                           , NVL(G.DFA_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
                            -----------------------------------------------------------
-                  				 -- 기말
-                  				 -----------------------------------------------------------
+                           -- 기말
+                           -----------------------------------------------------------
                            , NVL(A.EOT_UC_AMT, 0) AS EOT_UC_AMT /* LD505.LCMAMT 기말미수금 */
                            , NVL(D.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT /* 기말연체가산금 */
                            , NVL(E.EOT_BOR_AMT, 0) AS EOT_BOR_AMT /* LD505.LCA106 기말위약잔여 */
@@ -1312,6 +1341,11 @@
                          AND E.CNTR_NO = A.CNTR_NO
                          AND E.CNTR_SN = A.CNTR_SN
                          AND E.DTA_DL_YN = 'N'
+                        LEFT OUTER JOIN TB_CBBO_DFA_IZ G
+            	            ON G.CNTR_NO = A.CNTR_NO
+            	           AND G.CNTR_SN = A.CNTR_SN
+            	           AND G.DFA_PROCS_YN = 'Y'
+            	           AND SUBSTR(G.ACDBT_DT, 1, 6) = A.SL_CL_YM
                        WHERE A.SL_CL_YM = #{slClYm}
                          AND A.SELL_TP_CD = '6'
                          <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
@@ -1331,7 +1365,8 @@
                          </if>
                      <if test="@MybatisUtils@isEmpty(sellTpDtlCd) or @MybatisUtils@equals(sellTpDtlCd, '63')"> /* 판매유형상세코드가 전체 또는 캡슐(63)인 경우는 렌탈의 원두 상품도 포함 */
                        UNION ALL
-                      SELECT A.SL_CL_YM AS SL_CL_YM /* 실적년월 */
+                      SELECT /*+ USE_NL(A B C D E F) LEADING(F) */
+                             A.SL_CL_YM AS SL_CL_YM /* 실적년월 */
                            , A.SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
                            , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
                            , A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
@@ -1363,7 +1398,7 @@
                            , (CASE WHEN A.RENTAL_TN = 0 THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS THM_SL_SUM_AMT_1 /* 매출합계 LC505.LCAM06 (집계 테이블 생성시 0회차인 경우만 LCAM16 값을 LCAM06으로 집계) */
                            , (CASE WHEN A.RENTAL_TN <![CDATA[>]]> 0 THEN NVL(A.THM_SL_SUM_AMT, 0) ELSE 0 END) AS THM_SL_SUM_AMT_2 /* 매출합계 LC505.LCAM16 */
                            , NVL(A.SL_BND_ALRPY_AMT, 0) AS SL_BND_ALRPY_AMT /* 선수매출 LC505.LCAM38 */
-                           , NVL(A.DFA_PROCS_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
+                           , NVL(G.DFA_AMT, 0) AS DFA_PROCS_AMT /* 대손금액 */
                            -----------------------------------------------------------
                   				 -- 기말
                   				 -----------------------------------------------------------
@@ -1393,6 +1428,11 @@
                          AND F.DTA_DL_YN = 'N' /* 데이터삭제여부 */
                          AND F.USE_YN = 'Y' /* 사용여부 */
                          AND F.REF_PD_CLSF_VAL = '05003002' /* [Cooking+커피머신+원두] */
+                        LEFT OUTER JOIN TB_CBBO_DFA_IZ G
+            	            ON G.CNTR_NO = A.CNTR_NO
+            	           AND G.CNTR_SN = A.CNTR_SN
+            	           AND G.DFA_PROCS_YN = 'Y'
+            	           AND SUBSTR(G.ACDBT_DT, 1, 6) = A.SL_CL_YM
                        WHERE A.SL_CL_YM = #{slClYm}
                          AND A.SELL_TP_CD = '2'
                          AND A.SELL_TP_DTL_CD IN ('21', '23')

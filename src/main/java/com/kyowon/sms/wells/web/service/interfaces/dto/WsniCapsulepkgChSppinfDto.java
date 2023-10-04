@@ -28,17 +28,23 @@ public class WsniCapsulepkgChSppinfDto {
     @ApiModel(value = "WsnbCapsulepkgChSppinfDto-SearchRes")
     public record SearchRes(
         @JsonProperty("SPP_DUEDT")
-        String sppDuedt, /* 배송예정일자 */
+        String sppDuedt,
         @JsonProperty("PD_CD")
-        String pdCd, /* 상품코드 */
+        String pdCd,
+        @JsonProperty("PD_NM")
+        String pdNm,
         @JsonProperty("AFCH_PD_CD")
-        String afchPdCd, /* 변경후상품코드 */
+        String afchPdCd,
+        @JsonProperty("AFCH_PD_NM")
+        String afchPdNm,
+        @JsonProperty("DT_INFO")
+        String dtInfo,
         @JsonProperty("SELL_AMT")
-        String sellAmt, /* 판매금액 */
+        String sellAmt,
         @JsonProperty("SPP_PRGS_STAT_CD")
-        String sppPrgsStatCd, /* 배송진행상태코드 */
+        String sppPrgsStatCd,
         @JsonProperty("IST_ADDR")
-        String istAddr /* 설치주소 */
+        String istAddr
     ) {}
 
 }
