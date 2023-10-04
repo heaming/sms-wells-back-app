@@ -524,7 +524,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
              <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
     <select id="selectOstAkNo" resultType="String">
-        SELECT '400' || TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SQ_SVPD_OSTR_AK_PCSV_SEND_DTL$OSTR_AK_NO.NEXTVAL,4,'0') AS OSTR_AK_NO
+        SELECT '400' || TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SQ_SVPD_OSTR_AK_PCSV_SEND_DTL$OSTR_AK_NO.NEXTVAL,7,'0') AS OSTR_AK_NO
           FROM DUAL
     </select>
     <insert id="insertOutOfStorage">
@@ -591,7 +591,10 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
              <include refid="COMMON.insertSystemField"/>)
         VALUES (
                #{cstSvAsnNo}
-             , ${ostrAkSn}
+             , (SELECT MAX(NVL(WK_OSTR_SN, 0)) + 1
+                  FROM TB_SVST_SV_WK_OSTR_IZ
+                 WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+               )
              , #{cntrNo}
              , #{cntrSn}
              , '2'
@@ -859,8 +862,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                                         AND TA.APY_ENDDT   <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
                                         AND TA.SV_TP_CD     = '2'
                                         AND TA.SV_ANA_HCLSF_CD = #{svBizDclsfCd})
-             , FNL_MDFC_DTM      = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
-             , FNL_MDFC_USR_ID   = #{session.employeeIDNumber}
+             <include refid="COMMON.updateSystemField" />
          WHERE CST_SV_ASN_NO     = #{cstSvAsnNo}
     </update>
     <update id="updateExecution">
@@ -1120,4 +1122,89 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN R1.VL_STRT_DTM AND R1.VL_END_DTM
            AND E1.PDCT_PD_CD = 'WM05100045' /* 새싹재배기 */
     </select>
+
+    <select id="selectCancelItem" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo">
+       SELECT '1' AS WARE_DV
+            , '100002' AS WARE_NO
+            , '71321' AS WARE_MNGT_PRTNR_NO
+            , '213' AS IOST_TP
+            , 'D' AS WORK_DIV
+            , T1.ITM_PD_CD
+            , T2.PD_PRP_VAL05 AS MNGT_UNIT
+            , 'A' AS ITEM_GD
+            , T1.OSTR_AK_QTY AS QTY
+         FROM TB_SVPD_OSTR_AK_PCSV_SEND_DTL T1
+        INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+           ON T1.ITM_PD_CD = T2.PD_CD
+          AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+        WHERE T1.OSTR_AK_NO = #{ostrAkNo}
+    </select>
+    <select id="selectAssignNo" resultType="String">
+        SELECT DISTINCT T2.CST_SV_ASN_NO
+         FROM TB_SVPD_OSTR_AK_PCSV_SEND_DTL T1
+        INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+           ON T1.CNTR_NO   = T2.CNTR_NO
+          AND T1.CNTR_SN   = T2.CNTR_SN
+          AND T2.DTA_DL_YN = 'N'
+          AND T2.ASN_OJ_YM = #{lgstCnfmDt}
+          AND (T2.SPC_AS_TP_CD != '99' OR T2.SPC_AS_TP_CD IS NULL)
+          AND T2.VST_DV_CD = '20'
+        WHERE T1.OSTR_AK_NO = #{ostrAkNo}
+    </select>
+    <update id="deleteParcelSend">
+        UPDATE TB_SVPD_OSTR_AK_PCSV_SEND_DTL
+           SET DTA_DL_YN = 'Y'
+            <include refid="COMMON.updateSystemField" />
+         WHERE OSTR_AK_NO = #{ostrAkNo}
+    </update>
+    <update id="deleteWorkOstrItemization">
+        UPDATE TB_SVST_SV_WK_OSTR_IZ
+           SET DTA_DL_YN = 'Y'
+            <include refid="COMMON.updateSystemField" />
+  	     WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+    </update>
+    <update id="mergeBsPeriodCancel">
+        MERGE INTO TB_SVPD_CST_SV_RGBSPR_IZ S1
+        USING (SELECT DISTINCT T2.CNTR_NO
+   		     	    , T2.CNTR_SN
+                 FROM TB_SVPD_OSTR_AK_PCSV_SEND_DTL T1
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+                   ON T1.CNTR_NO   = T2.CNTR_NO
+                  AND T1.CNTR_SN   = T2.CNTR_SN
+                  AND T2.DTA_DL_YN = 'N'
+                  AND T2.ASN_OJ_YM = #{lgstCnfmDt}
+                  AND (T2.SPC_AS_TP_CD != '99' OR T2.SPC_AS_TP_CD IS NULL)
+                  AND T2.VST_DV_CD = '20'
+                INNER JOIN TB_SVPD_CST_SV_RGBSPR_IZ T3
+                   ON T3.CNTR_NO = T2.CNTR_NO
+                  AND T3.CNTR_SN = T2.CNTR_SN
+                  AND T3.VST_DUEDT BETWEEN SUBSTR(T2.VST_DUEDT , 1, 6)||'01' AND SUBSTR(T2.VST_DUEDT , 1, 6)||'31'
+                WHERE T1.OSTR_AK_NO = #{ostrAkNo}
+              ) S2
+           ON S1.CNTR_NO = S2.CNTR_NO
+          AND S1.CNTR_SN = S2.CNTR_SN
+         WHEN MATCHED THEN
+       UPDATE
+          SET WK_DT = NULL
+    		, WK_PSIC_DV_CD	= '2'
+            , WK_PSIC_OG_TP_CD = NULL
+            , WK_PSIC_NO       = NULL
+          <include refid="COMMON.updateSystemField" />
+    </update>
+    <update id="updateBsAssignCancel">
+        UPDATE TB_SVPD_CST_SV_BFSVC_ASN_IZ
+           SET VST_PRGS_STAT_CD         = '00'
+    		 , WK_EXCN_DT               = NULL
+             , CNFM_PSIC_DV_CD          = NULL
+             , CNFM_PSIC_PRTNR_NO       = NULL
+             , CNFM_PSIC_PRTNR_OG_TP_CD = NULL
+             , SITE_AW_PD_GRP_CD        = NULL
+             , SITE_AW_SV_TP_CD         = NULL
+             , SITE_AW_ATC_CD           = NULL
+           <include refid="COMMON.updateSystemField" />
+         WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+    </update>
+    <delete id="deleteWorkResult">
+        DELETE FROM TB_SVPD_CST_SV_WK_RS_IZ WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+    </delete>
 </mapper>
