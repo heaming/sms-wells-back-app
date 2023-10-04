@@ -25,10 +25,12 @@ import java.util.List;
 public class WsncManagerAccountEnrlPsInqrService {
     private final WsncManagerAccountEnrlPsInqrMapper mapper;
 
+    // 총괄단 집계
     public List<SearchGnrdvAgrgRes> getManagerAccountEnrlPss(SearchReq searchReq){
         return mapper.selectManagerAccountEnrlPss(searchReq);
     }
 
+    // 매니저 계정 및 재적 현황
     public List<SearchMngerAccEnrlPsRes> getMngerAccEnrlPss(SearchReq searchReq){
         return mapper.selectMngerAccEnrlPss(searchReq);
     }

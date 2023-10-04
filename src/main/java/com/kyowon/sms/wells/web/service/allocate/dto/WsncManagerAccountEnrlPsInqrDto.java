@@ -44,4 +44,5 @@ public class WsncManagerAccountEnrlPsInqrDto {
         String visitCompleteCnt,
         String avgAge
     ){}
+
 }
