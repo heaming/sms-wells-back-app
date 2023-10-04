@@ -102,24 +102,6 @@ public class WsnaPcsvReturningGoodsSaveService {
     }
 
     @Transactional
-    // 물류 수불처리 테스트
-    public int savePcsvReturningGoodsTest(List<SaveReq> dtos) {
-
-        List<WsnaPcsvReturningGoodsSaveDvo> dvos = converter.mapSaveReqToPcsvReturningGoodsDvo(dtos);
-        List<WsnaPcsvReturningGoodsSaveProductDvo> pdvos = new ArrayList<>();
-
-        for (WsnaPcsvReturningGoodsSaveDvo dvo : dvos) {
-            pdvos = dvo.getProducts();
-            int productSize = pdvos.size();
-            log.info(" pdvos.size() : " + productSize);
-        }
-
-        int saveCount = savePcsvReturningGoodsOstrs(dvos);
-
-        return saveCount;
-    }
-
-    @Transactional
     public int savePcsvReturningGoodsOstrs(List<WsnaPcsvReturningGoodsSaveDvo> dvos) {
 
         int processCount = 1;
@@ -152,9 +134,10 @@ public class WsnaPcsvReturningGoodsSaveService {
                 logisticsVo.add(dvo);
                 // 10. 반품요청 연계(물류서비스) DVO 변환 및 호출
                 logisticsService.createInStorageAsks(setLogisticsInStorageAskReqDvo(logisticsVo));
-                // 11. 품목 재고 변경 내용 저장
+                // 11. 품목 재고 변경 내용 저장 => 물류 연계 배치 처리 후, 품목 재고 변경
+                /*
                 itemStockService.createStock(setPcsvReturnGoodsWsnaItemStockItemizationDtoSaveReq(dvo));
-
+                */
                 ostrSn += 1;
             }
             processCount += 1;
@@ -181,7 +164,7 @@ public class WsnaPcsvReturningGoodsSaveService {
             AskReqDvo.setLgstSppMthdCd("2"); // 물류배송방식코드 택배(2)
             AskReqDvo.setItmPdCd(dvo.getLogisticsPdCd());
             AskReqDvo.setOstrAkQty(Integer.parseInt(dvo.getLogisticsPdQty()));
-            AskReqDvo.setItmGdCd(dvo.getCmptGd()); //산출등급
+            AskReqDvo.setItmGdCd(dvo.getFnlGb()); //최종산정등급
             AskReqDvo.setOstrOjWareNo(dvo.getWkWareNo());
             AskReqDvo.setSvCnrCd(dvo.getWkWareNo());
             AskReqDvo.setSvCnrNm(dvo.getWareNm());
@@ -215,7 +198,7 @@ public class WsnaPcsvReturningGoodsSaveService {
         reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
         reqDvo.setItmPdCd(dvo.getLogisticsPdCd());
         reqDvo.setMngtUnit("1");
-        reqDvo.setItemGd(dvo.getCmptGd()); //상품등급
+        reqDvo.setItemGd(dvo.getFnlGb()); //최종산정등급
         reqDvo.setQty(dvo.getLogisticsPdQty());
 
         return reqDvo;
@@ -252,7 +235,7 @@ public class WsnaPcsvReturningGoodsSaveService {
         cnslCn.append("5. 경과일수 : ");
         cnslCn.append(dvo.getPdUseDc() + "||");
         cnslCn.append("6. 산정등급 : ");
-        cnslCn.append(dvo.getCmptGd() + "||");
+        cnslCn.append(dvo.getFnlGb() + "||");
         cnslCn.append("7. 개봉여부 : ");
         if ("91".equals(dvo.getDtmChRsonCd())) {
             cnslCn.append("개봉" + "||");
