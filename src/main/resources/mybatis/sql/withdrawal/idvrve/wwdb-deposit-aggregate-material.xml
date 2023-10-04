@@ -75,26 +75,28 @@
                      , SUM(CASE WHEN A.SELL_TP_CD = '9' THEN A.SELL_AMT ELSE 0 END) AS FILT_AMT   /* 필터 */
                      , SUM(A.SELL_AMT) AS TOT_AMT
                      , SUM(A.SELL_AMT) * 100  / FIRST_VALUE (SUM(A.SELL_AMT) ) OVER (ORDER BY GROUPING(A.SELL_TP_CD)  DESC) AS TOT_RAT
-                  FROM (
-                         SELECT SCD.SELL_TP_CD /* 판매유형코드 */
-                              , RRD.DP_TP_CD /* 입금유형코드 */
-                              , SCD.SELL_AMT /* 판매금액 */
-                           FROM TB_SSCT_CNTR_DTL SCD /* 계약상세 */
-                         INNER JOIN TB_RVDW_RVE_DTL RRD /* 수납 상세 */
-                             ON RRD.CNTR_NO = SCD.CNTR_NO
-                            AND RRD.CNTR_SN = SCD.CNTR_SN
-                            AND RRD.DTA_DL_YN = 'N'
-                          WHERE 1 = 1
-                            /* 코드값에 따라 일자가 변화 */
-                            AND SCD.DTA_DL_YN = 'N'
-                           <if test="@MybatisUtils@equals(dvCd, '1')">
-                            AND RRD.DP_DT LIKE #{searchDt} || '%'
-                           </if>
-                           <if test="@MybatisUtils@equals(dvCd, '2')">
-                            AND RRD.PERF_DT LIKE #{searchDt} || '%'
-                           </if>
+                  FROM (  SELECT SCD.SELL_TP_CD /* 판매유형코드 */
+                               , RRD.DP_TP_CD /* 입금유형코드 */
+                               , RRD.RVE_AMT AS SELL_AMT /* 판매금액 */
+                            FROM TB_RVDW_RVE_DTL RRD
+                           INNER JOIN TB_SSCT_CNTR_DTL SCD
+                              ON (    SCD.CNTR_NO = RRD.CNTR_NO
+                                  AND SCD.CNTR_SN = RRD.CNTR_SN
+                                  AND SCD.DTA_DL_YN = 'N')
+                           WHERE 1 = 1
+                             AND RRD.KW_GRP_CO_CD = '2000'
+                            <if test="@MybatisUtils@equals(dvCd, '1')">
+                             AND RRD.DP_DT >= #{searchDt}||'01'
+                             AND RRD.DP_DT <![CDATA[<=]]>  #{searchDt}||'31'
+                            </if>
+                            <if test="@MybatisUtils@equals(dvCd, '2')">
+                             AND RRD.PERF_DT >= #{searchDt}||'01'
+                             AND RRD.PERF_DT <![CDATA[<=]]>  #{searchDt}||'31'
+                            </if>
+                             AND RRD.DP_DV_CD IN ('1' , '3')
+                             AND RRD.DTA_DL_YN = 'N'
                            <if test="@MybatisUtils@isNotEmpty(dpTpCd) and dpTpCd != 'ALL' and dpTpCd != 'all'">
-                            AND RRD.DP_TP_CD = #{dpTpCd}
+                             AND RRD.DP_TP_CD = #{dpTpCd}
                            </if>
                        ) A
                  GROUP BY A.SELL_TP_CD, A.DP_TP_CD
