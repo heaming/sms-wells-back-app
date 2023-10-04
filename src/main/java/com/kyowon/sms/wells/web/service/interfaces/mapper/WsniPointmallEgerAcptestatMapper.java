@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.interfaces.mapper;
 
-import java.util.List;
-
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniPointmallEgerAcptestatDto.SearchReq;
@@ -18,6 +16,6 @@ import com.kyowon.sms.wells.web.service.interfaces.dto.WsniPointmallEgerAcptesta
 @Mapper
 public interface WsniPointmallEgerAcptestatMapper {
 
-    List<SearchRes> selectPointmallEgerAcptestats(SearchReq dto);
+    SearchRes selectPointmallEgerAcptestats(SearchReq dto);
 
 }
