@@ -1,45 +1,363 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncManagerAccountEnrlPsInqrMapper">
-    <select id="selectManagerAccountEnrlPss"
-        resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncManagerAccountEnrlPsInqrDto$SearchGnrdvAgrgRes">
+    <select id="selectManagerAccountEnrlPss" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncManagerAccountEnrlPsInqrDto$SearchGnrdvAgrgRes">
+        /* 총괄단 집계 */
+        WITH TB_PD AS (
+                      SELECT DISTINCT T1.PD_CD
+                           , T2.PD_PRP_VAL20
+                           , T2.PD_PRP_VAL01
+                        FROM TB_PDBS_PD_BAS T1
+                           , TB_PDBS_PD_ECOM_PRP_DTL T2
+                       WHERE 1=1
+                         AND T1.PD_CD = T2.PD_CD
+                         AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                         AND T2.PD_PRP_VAL19 = '4'
+                         AND T2.DTA_DL_YN = 'N'
+                      )
+        , TB_CST AS (
+                    SELECT T1.CNTR_NO
+                         , T1.CNTR_SN
+                         , T1.REQD_DT
+                         , T1.CAN_DT
+                         , T1.CPS_DT
+                         , T1.MSH_WDWAL_DT
+                      FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+                     WHERE T1.MNGT_YM = #{metgStartDt}
+                    )
+        , TB_PRTNR AS (
+                        SELECT T1.PRTNR_NO
+                             , T2.OG_ID
+                             , T2.OG_CD
+                             , T3.OG_NM
+                             , CASE WHEN T1.RRNO_FRPSN_VAL IS NOT NULL THEN TO_CHAR(TO_NUMBER(TO_CHAR(SYSDATE, 'YYYY'))
+                                                                             - TO_NUMBER(DECODE(SUBSTR(LPAD(TRIM(SUBSTR(T1.RRNO_FRPSN_VAL, 1, 6)), 6, '0'), 1, 1), '0', '20', '19')||SUBSTR(LPAD(TRIM(SUBSTR(T1.RRNO_FRPSN_VAL, 1, 6)), 6, '0'), 1, 2))
+                                                                             + 1)
+                                    ELSE ''
+                                END PRTNR_AGE
+                             , CASE WHEN T2.PSTN_DV_CD = '15' THEN 'M'
+                                    WHEN T2.PSTN_DV_CD = '7' THEN 'J'
+                                    WHEN T2.PSTN_DV_CD = '2' THEN 'C'
+                                    ELSE ''
+                                END PSTN_DV
+                             , T3.DGR1_LEVL_OG_ID
+                             , T3.DGR1_LEVL_OG_CD
+                             , T3.DGR1_LEVL_OG_NM
+                             , T3.DGR1_LEVL_DG_PRTNR_NM
+                             , T3.DGR2_LEVL_OG_ID
+                             , T3.DGR2_LEVL_OG_CD
+                             , T3.DGR2_LEVL_OG_NM
+                             , T3.DGR2_LEVL_DG_PRTNR_NM
+                          FROM TB_OGBS_PRTNR_BAS T1
+                         INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
+                            ON T2.BASE_YM = #{metgStartDt}
+                           AND T1.PRTNR_NO = T2.PRTNR_NO
+                           AND T2.DTA_DL_YN = 'N'
+                           AND FNL_CLTN_DT IS NULL
+                         INNER JOIN TB_OGBS_MM_OG_IZ T3
+                            ON T3.BASE_YM = #{metgStartDt}
+                           AND T3.CLO_DT IS NULL
+                           AND T2.OG_ID = T3.OG_ID
+                           AND T3.DTA_DL_YN = 'N'
+                         WHERE 1=1
+                           AND T1.OG_TP_CD IN ('W02')
+                           AND T1.OG_CD NOT LIKE '7%'
+                           AND T1.DTA_DL_YN = 'N'
+                        )
+        SELECT DGR1_LEVL_OG_CD
+             , CASE WHEN DGR1_LEVL_OG_CD IS NOT NULL THEN DGR2_LEVL_CNT
+                    ELSE '총 계'
+                END DGR2_LEVL_CNT
+             , HOO_PRTNR_NM
+             , MNG_CNT
+             , REAL_ACT_MNG_CNT
+             , REAL_ACT_JIJUM_CNT
+             , ACT_MNG_CNT
+             , NO_ACT_MNG_CNT
+             , CNT_AVERAGE
+             , RECRUIT_CNT
+             , ALL_VISIT_CNT
+             , VISIT_COMPLETE_CNT
+             , AVG_AGE
+          FROM (
+                SELECT V2.DGR1_LEVL_OG_CD
+                     , (SELECT TO_CHAR(COUNT(*))
+                          FROM TB_OGBS_MM_OG_IZ T1
+                         WHERE T1.BASE_YM = #{metgStartDt}
+                           AND T1.OG_TP_CD = 'W02'
+                           AND T1.OG_LEVL_DV_CD = '2'
+                           AND T1.DGR1_LEVL_OG_CD = V2.DGR1_LEVL_OG_CD) DGR2_LEVL_CNT
+                     , (SELECT HOO_PRTNR_NM
+                          FROM TB_OGBS_MM_OG_IZ T1
+                         WHERE T1.BASE_YM = #{metgStartDt}
+                           AND T1.OG_TP_CD = 'W02'
+                           AND T1.OG_LEVL_DV_CD = '1'
+                           AND T1.OG_CD = V2.DGR1_LEVL_OG_CD) HOO_PRTNR_NM
+                     , COUNT(CASE WHEN V2.PSTN_DV IS NOT NULL THEN 1 END) MNG_CNT
         <![CDATA[
-        SELECT CNTR_NO
-             , CNTR_SN
-             , PDCT_PD_CD
-             , SV_PD_CD
-             , IST_DT
-             , REQD_DT
-             , CPS_DT
-             , CNTR_NMN_N
-             , UPDT_PSIC_DV_CD
-             , BC_NO
-             , WK_PSIC_DV_CD
-             , MNGT_PRTNR_OG_TP_CD
-             , MNGT_PRTNR_NO
-          FROM TB_SVPD_CST_SV_EXCN_IZ
-         WHERE 1=1
-           AND rownum<=41
+                     , SUM(CASE WHEN V2.PSTN_DV = 'M' AND VISIT_COMPLETE >= CASE WHEN #{metgStartDt} <= '202206' THEN 20
+                                                                                 ELSE 50 END THEN 1
+                                ELSE 0
+                            END) REAL_ACT_MNG_CNT
+                     , SUM(CASE WHEN V2.PSTN_DV = 'J' AND VISIT_COMPLETE >= CASE WHEN #{metgStartDt} <= '202206' THEN 20
+                                                                                 ELSE 50 END THEN 1
+                                ELSE 0
+                            END) REAL_ACT_JIJUM_CNT
+                     , SUM(CASE WHEN VISIT_COMPLETE != 0 AND V2.PSTN_DV = 'M' AND VISIT_COMPLETE < CASE WHEN #{metgStartDt} <= '202206' THEN 20
+                                                                                                        ELSE 50 END THEN 1
+                                ELSE 0
+                            END) ACT_MNG_CNT
+                     , SUM(CASE WHEN VISIT_COMPLETE = 0 OR VISIT_COMPLETE IS NULL THEN 1 ELSE 0 END) NO_ACT_MNG_CNT
+                     , CASE WHEN SUM(CASE WHEN VISIT_COMPLETE >= CASE WHEN #{metgStartDt} <= '202206' THEN 20
+                                                                      ELSE 50 END THEN 1
+                                          ELSE 0
+                                      END) = 0 THEN 0
+                            ELSE TRUNC(SUM(CASE WHEN VISIT_COMPLETE >= CASE WHEN #{metgStartDt} <= '202206' THEN 20
+                                                                            ELSE 50 END THEN VISIT_CSTM
+                                                ELSE 0
+                                            END) / SUM(CASE WHEN VISIT_COMPLETE >= CASE WHEN #{metgStartDt} <= '202206' THEN 20
+                                                                                        ELSE 50 END THEN 1
+                                                            ELSE 0
+                                                        END))
+                        END CNT_AVERAGE
+                     , CEIL(SUM(VISIT_CSTM)/150 - SUM(CASE WHEN V2.PSTN_DV = 'M' AND VISIT_COMPLETE >= CASE WHEN #{metgStartDt} <= '202206' THEN 20
+                                                                                                            ELSE 50 END THEN 1
+                                                           ELSE 0
+                                                       END)) RECRUIT_CNT
         ]]>
+                     , SUM(VISIT_CSTM) ALL_VISIT_CNT
+                     , SUM(VISIT_COMPLETE) VISIT_COMPLETE_CNT
+                     , TRUNC(AVG(V2.PRTNR_AGE)) AVG_AGE
+                  FROM (
+                        SELECT V1.CNFM_PSIC_PRTNR_NO PRTNR_NO
+                             , PRT1.OG_ID
+                             , PRT1.PRTNR_AGE
+                             , V1.VISIT_CSTM
+                             , V1.VISIT_COMPLETE
+                             , PRT1.PSTN_DV
+                             , PRT1.DGR1_LEVL_OG_CD
+                             , PRT1.DGR1_LEVL_OG_ID
+                          FROM (
+                                SELECT SV1.CNFM_PSIC_PRTNR_NO
+                                     , COUNT(1) VISIT_CSTM
+                                     , SUM(CASE WHEN SV1.VST_PRGS_STAT_CD = '20' THEN 1 ELSE 0 END) VISIT_COMPLETE
+                                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SV1
+                                     , TB_SVPD_CST_SV_BFSVC_OJ_IZ SV2
+                                     , TB_PD PD1
+                                     , TB_CST CST1
+                                 WHERE 1=1
+                                   AND SV1.CNFM_PSIC_DV_CD = '1'
+                                   AND SV1.CNFM_PSIC_PRTNR_NO IS NOT NULL
+                                   AND SV1.SV_BIZ_MCLSF_CD LIKE '2%'
+                                   AND SV1.ASN_OJ_YM = #{metgStartDt}
+                                   AND SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
+                                   AND SV2.PDCT_PD_CD = PD1.PD_CD
+                                   AND PD1.PD_PRP_VAL20 != '11'
+                                   AND SV1.CNTR_NO = CST1.CNTR_NO
+                                   AND SV1.CNTR_SN = CST1.CNTR_SN
+                                   AND (SV1.SV_BIZ_DCLSF_CD NOT IN ('2110','2140','2164')
+                                     OR (CASE WHEN SV2.PDCT_PD_CD IN ('WM05106251', 'WM05106364', 'WM05106365', 'WM05106366', 'WM05106367', 'WM05106368', 'WM05106369', 'WM05106370', 'WM05106371') THEN '2120'
+                                              ELSE SV1.SV_BIZ_DCLSF_CD
+                                          END) = '2120')
+                                   AND (SV1.VST_PRGS_STAT_CD = '20'
+                                    OR (SV1.VST_PRGS_STAT_CD = '00'
+                                    AND CST1.REQD_DT IS NULL
+                                    AND CST1.CAN_DT IS NULL
+                                    AND CST1.CPS_DT IS NULL
+                                    AND (CST1.MSH_WDWAL_DT IS NULL
+                                     OR CST1.MSH_WDWAL_DT NOT LIKE #{metgStartDt}||'%')))
+                                 GROUP
+                                    BY SV1.CNFM_PSIC_PRTNR_NO
+                                ) V1
+                             , TB_PRTNR PRT1
+                         WHERE 1=1
+                           AND V1.CNFM_PSIC_PRTNR_NO = PRT1.PRTNR_NO
+                        ) V2
+                 GROUP
+                    BY ROLLUP(DGR1_LEVL_OG_CD)
+                 ORDER
+                    BY DGR1_LEVL_OG_CD
+                )
     </select>
 
-    <select id="selectMngerAccEnrlPss"
-        resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncManagerAccountEnrlPsInqrDto$SearchMngerAccEnrlPsRes">
+
+    <select id="selectMngerAccEnrlPss" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncManagerAccountEnrlPsInqrDto$SearchMngerAccEnrlPsRes">
+        /* 매니저 계정 및 재적 현황 */
+        WITH TB_PD AS (
+                SELECT DISTINCT T1.PD_CD
+                     , T2.PD_PRP_VAL20
+                     , T2.PD_PRP_VAL01
+                  FROM TB_PDBS_PD_BAS T1
+                     , TB_PDBS_PD_ECOM_PRP_DTL T2
+                 WHERE 1=1
+                   AND T1.PD_CD = T2.PD_CD
+                   AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                   AND T2.PD_PRP_VAL19 = '4'
+                   AND T2.DTA_DL_YN = 'N'
+               )
+        , TB_CST AS (
+   				SELECT T1.CNTR_NO
+   					 , T1.CNTR_SN
+   					 , T1.REQD_DT
+   					 , T1.CAN_DT
+   					 , T1.CPS_DT
+   					 , T1.MSH_WDWAL_DT
+   				  FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+   				 WHERE T1.MNGT_YM = #{metgStartDt}
+   				)
+        , TB_PRTNR AS (
+   					SELECT T1.PRTNR_NO
+   						 , T2.OG_ID
+   						 , T2.OG_CD
+   						 , T3.OG_NM
+   						 , CASE WHEN T1.RRNO_FRPSN_VAL IS NOT NULL THEN TO_CHAR(TO_NUMBER(TO_CHAR(SYSDATE, 'YYYY'))
+		                                                                 - TO_NUMBER(DECODE(SUBSTR(LPAD(TRIM(SUBSTR(T1.RRNO_FRPSN_VAL, 1, 6)), 6, '0'), 1, 1), '0', '20', '19')||SUBSTR(LPAD(TRIM(SUBSTR(T1.RRNO_FRPSN_VAL, 1, 6)), 6, '0'), 1, 2))
+ 		                                                                 + 1)
+			                    ELSE ''
+			                END PRTNR_AGE
+   						 , CASE WHEN T2.PSTN_DV_CD = '15' THEN 'M'
+			                    WHEN T2.PSTN_DV_CD = '7' THEN 'J'
+			                    WHEN T2.PSTN_DV_CD = '2' THEN 'C'
+			                    ELSE ''
+			                END PSTN_DV
+			             , T3.DGR1_LEVL_OG_ID
+			             , T3.DGR1_LEVL_OG_CD
+			             , T3.DGR1_LEVL_OG_NM
+			             , T3.DGR1_LEVL_DG_PRTNR_NM
+			             , T3.DGR2_LEVL_OG_ID
+						 , T3.DGR2_LEVL_OG_CD
+						 , T3.DGR2_LEVL_OG_NM
+						 , T3.DGR2_LEVL_DG_PRTNR_NM
+						 , T3.BLD_NM
+   					  FROM TB_OGBS_PRTNR_BAS T1
+   					 INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
+   					 	ON T2.BASE_YM = #{metgStartDt}
+   					   AND T1.PRTNR_NO = T2.PRTNR_NO
+   					   AND T2.DTA_DL_YN = 'N'
+   					   AND FNL_CLTN_DT IS NULL
+   					 INNER JOIN TB_OGBS_MM_OG_IZ T3
+   					 	ON T3.BASE_YM = #{metgStartDt}
+   					   AND T3.CLO_DT IS NULL
+   					   AND T2.OG_ID = T3.OG_ID
+   					   AND T3.DTA_DL_YN = 'N'
+   					 WHERE 1=1
+   					   AND T1.OG_TP_CD IN ('W02')
+   					   AND T1.OG_CD NOT LIKE '7%'
+   					   AND T1.DTA_DL_YN = 'N'
+   					)
+		SELECT CASE WHEN DGR1_LEVL_OG_CD IS NOT NULL AND DGR2_LEVL_OG_CD IS NULL THEN DGR1_LEVL_OG_CD||' 계'
+					WHEN DGR1_LEVL_OG_CD IS NOT NULL AND DGR2_LEVL_OG_CD IS NOT NULL THEN DGR1_LEVL_OG_CD
+					WHEN DGR1_LEVL_OG_CD IS NULL AND DGR2_LEVL_OG_CD IS NULL THEN '총 계'
+				END DGR1_LEVL_OG_CD
+			 , DGR2_LEVL_OG_CD
+			 , HOO_PRTNR_NM
+			 , BLD_NM
+			 , MNG_CNT
+			 , REAL_ACT_MNG_CNT
+			 , REAL_ACT_JIJUM_CNT
+			 , ACT_MNG_CNT
+			 , NO_ACT_MNG_CNT
+			 , CNT_AVERAGE
+			 , RECRUIT_CNT
+			 , ALL_VISIT_CNT
+			 , VISIT_COMPLETE_CNT
+			 , AVG_AGE
+		  FROM (
         <![CDATA[
-        SELECT AS_IST_OJ_NO
-             , CNTR_NO
-             , CNTR_SN
-             , CNTR_CST_NO
-             , IN_CHNL_DV_CD
-             , SV_BIZ_HCLSF_CD
-             , SV_BIZ_DCLSF_CD
-             , RCP_OG_TP_CD
-             , RCP_ICHR_PRTNR_NO
-             , RCPDT
-             , FNL_RCPDT
-          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ
-         WHERE 1=1
-           AND rownum<=41
+				SELECT V2.DGR1_LEVL_OG_CD
+					 , V2.DGR2_LEVL_OG_CD
+					 , (SELECT T1.HOO_PRTNR_NM
+					 	  FROM TB_OGBS_MM_OG_IZ T1
+					 	 WHERE T1.BASE_YM = #{metgStartDt}
+					 	   AND T1.OG_CD = V2.DGR2_LEVL_OG_CD) HOO_PRTNR_NM
+					 , (SELECT T1.BLD_NM
+					 	  FROM TB_OGBS_MM_OG_IZ T1
+					 	 WHERE T1.BASE_YM = #{metgStartDt}
+					 	   AND T1.OG_CD = V2.DGR2_LEVL_OG_CD) BLD_NM
+					 , COUNT(CASE WHEN V2.PSTN_DV IS NOT NULL THEN 1 END) MNG_CNT
+					 , SUM(CASE WHEN V2.PSTN_DV = 'M' AND VISIT_COMPLETE >= CASE WHEN #{metgStartDt} <= '202206' THEN 20
+						                                                         ELSE 50 END THEN 1
+				                ELSE 0
+				            END) REAL_ACT_MNG_CNT
+					 , SUM(CASE WHEN V2.PSTN_DV = 'J' AND VISIT_COMPLETE >= CASE WHEN #{metgStartDt} <= '202206' THEN 20
+						                                                         ELSE 50 END THEN 1
+				                ELSE 0
+				            END) REAL_ACT_JIJUM_CNT
+				     , SUM(CASE WHEN VISIT_COMPLETE != 0 AND V2.PSTN_DV = 'M' AND VISIT_COMPLETE < CASE WHEN #{metgStartDt} <= '202206' THEN 20
+				                                                                                		ELSE 50 END THEN 1
+				                ELSE 0
+				            END) ACT_MNG_CNT
+				     , SUM(CASE WHEN VISIT_COMPLETE = 0 OR VISIT_COMPLETE IS NULL THEN 1 ELSE 0 END) NO_ACT_MNG_CNT
+				     , CASE WHEN SUM(CASE WHEN VISIT_COMPLETE >= CASE WHEN #{metgStartDt} <= '202206' THEN 20
+				                                                      ELSE 50 END THEN 1
+				                          ELSE 0
+				                      END) = 0 THEN 0
+				            ELSE TRUNC(SUM(CASE WHEN VISIT_COMPLETE >= CASE WHEN #{metgStartDt} <= '202206' THEN 20
+				                                                            ELSE 50 END THEN VISIT_CSTM
+				                                ELSE 0
+				                            END) / SUM(CASE WHEN VISIT_COMPLETE >= CASE WHEN #{metgStartDt} <= '202206' THEN 20
+				                                                                        ELSE 50 END THEN 1
+				                                            ELSE 0
+				                                        END))
+				        END CNT_AVERAGE
+				     , CEIL(SUM(VISIT_CSTM)/150 - SUM(CASE WHEN V2.PSTN_DV = 'M' AND VISIT_COMPLETE >= CASE WHEN #{metgStartDt} <= '202206' THEN 20
+						                                                                                    ELSE 50 END THEN 1
+				                                           ELSE 0
+				                                       END)) RECRUIT_CNT
+				     , SUM(VISIT_CSTM) ALL_VISIT_CNT
+				     , SUM(VISIT_COMPLETE) VISIT_COMPLETE_CNT
+				     , TRUNC(AVG(V2.PRTNR_AGE)) AVG_AGE
         ]]>
+				  FROM (
+						SELECT V1.CNFM_PSIC_PRTNR_NO PRTNR_NO
+							 , PRT1.OG_ID
+							 , PRT1.PRTNR_AGE
+							 , V1.VISIT_CSTM
+							 , V1.VISIT_COMPLETE
+							 , PRT1.PSTN_DV
+							 , PRT1.DGR2_LEVL_OG_CD
+							 , PRT1.DGR2_LEVL_OG_ID
+							 , PRT1.DGR1_LEVL_OG_CD
+						  FROM (
+								SELECT SV1.CNFM_PSIC_PRTNR_NO
+									 , COUNT(1) VISIT_CSTM
+									 , SUM(CASE WHEN SV1.VST_PRGS_STAT_CD = '20' THEN 1 ELSE 0 END) VISIT_COMPLETE
+								  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SV1
+								  	 , TB_SVPD_CST_SV_BFSVC_OJ_IZ SV2
+								  	 , TB_PD PD1
+								  	 , TB_CST CST1
+								 WHERE 1=1
+								   AND SV1.CNFM_PSIC_DV_CD = '1'
+								   AND SV1.CNFM_PSIC_PRTNR_NO IS NOT NULL
+								   AND SV1.SV_BIZ_MCLSF_CD LIKE '2%'
+								   AND SV1.ASN_OJ_YM = #{metgStartDt}
+								   AND SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
+								   AND SV2.PDCT_PD_CD = PD1.PD_CD
+								   AND PD1.PD_PRP_VAL20 != '11'
+								   AND SV1.CNTR_NO = CST1.CNTR_NO
+								   AND SV1.CNTR_SN = CST1.CNTR_SN
+								   AND (SV1.SV_BIZ_DCLSF_CD NOT IN ('2110','2140','2164')
+								   	 OR (CASE WHEN SV2.PDCT_PD_CD IN ('WM05106251', 'WM05106364', 'WM05106365', 'WM05106366', 'WM05106367', 'WM05106368', 'WM05106369', 'WM05106370', 'WM05106371') THEN '2120'
+								   	 		  ELSE SV1.SV_BIZ_DCLSF_CD
+								   	 	  END) = '2120')
+								   AND (SV1.VST_PRGS_STAT_CD = '20'
+									OR (SV1.VST_PRGS_STAT_CD = '00'
+									AND CST1.REQD_DT IS NULL
+									AND CST1.CAN_DT IS NULL
+									AND CST1.CPS_DT IS NULL
+									AND (CST1.MSH_WDWAL_DT IS NULL
+									 OR CST1.MSH_WDWAL_DT NOT LIKE #{metgStartDt}||'%')))
+								 GROUP
+								 	BY SV1.CNFM_PSIC_PRTNR_NO
+						  		) V1
+						  	 , TB_PRTNR PRT1
+						 WHERE 1=1
+						   AND V1.CNFM_PSIC_PRTNR_NO = PRT1.PRTNR_NO
+				  		) V2
+				 GROUP
+				 	BY ROLLUP(DGR1_LEVL_OG_CD, DGR2_LEVL_OG_CD)
+				 ORDER
+				 	BY DGR1_LEVL_OG_CD, DGR2_LEVL_OG_CD
+		  		)
     </select>
 </mapper>

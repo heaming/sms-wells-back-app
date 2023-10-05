@@ -50,17 +50,8 @@ public class WsncManagerAccountEnrlPsInqrController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "metgStartDt", value = "관리년월", paramType = "query", example = "202309"),
     })
-    @GetMapping("/manager-account-enrl-ps/paging")
-    public PagingResult<SearchMngerAccEnrlPsRes> getMngerAccEnrlPss(SearchReq dto, @Valid PageInfo pageInfo){
-        return service.getMngerAccEnrlPss(dto, pageInfo);
-    }
-
-    @ApiOperation(value = "매니저 계정 및 재적 현황 엑셀 다운로드")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "metgStartDt", value = "관리년월", paramType = "query", example = "202309"),
-    })
-    @GetMapping("/manager-account-enrl-ps/excel-download")
+    @GetMapping("/manager-account-enrl-ps")
     public List<SearchMngerAccEnrlPsRes> getMngerAccEnrlPss(SearchReq dto){
-        return service.getMngerAccEnrlPsExcelDownload(dto);
+        return service.getMngerAccEnrlPss(dto);
     }
 }
