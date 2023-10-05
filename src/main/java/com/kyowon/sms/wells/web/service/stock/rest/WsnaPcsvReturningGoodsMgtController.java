@@ -68,20 +68,6 @@ public class WsnaPcsvReturningGoodsMgtController {
             .build();
     }
 
-    @ApiOperation(value = "택배설치상품 반품 등록/취소/수불처리 저장", notes = "반품관리 반품 등록/취소/수불처리 정보를 저장한다.")
-    @PostMapping("/test")
-    public SaveResponse savePcsvReturningGoodsTest(
-        @Valid
-        @RequestBody
-        @NotEmpty
-        List<SaveReq> dtos
-    ) throws Exception {
-
-        return SaveResponse.builder()
-            .processCount(service.savePcsvReturningGoodsTest(dtos))
-            .build();
-    }
-
     @ApiOperation(value = "택배 물류센터 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
     @GetMapping("/logistics-centers")
     public List<WsnaPcsvReturningGoodsMgtDto.FindLogisticsCentersRes> getPcsvLogisticsCenters() {
