@@ -363,6 +363,8 @@ public class WsnaBsRegularShippingMgtService {
         mapper.mergeBsPeriodCancel(ostrAkNo, lgstCnfmDt);
         // 고객서비스BS배정내역(TB_SVPD_CST_SV_BFSVC_ASN_IZ) update값 복구
         mapper.updateBsAssignCancel(cstSvAsnNo);
+        // history 생성
+        historyService.insertCstSvBfsvcAsnHistByPk(cstSvAsnNo);
         // 고객서비스작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) DELETE
         mapper.deleteWorkResult(cstSvAsnNo);
     }
