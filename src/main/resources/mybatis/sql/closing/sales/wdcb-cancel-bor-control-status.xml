@@ -21,12 +21,12 @@
         SELECT T.PERF_YM                                                                 AS PERF_YM            /*실적년월*/
              , A.CNTR_NO || '-' || A.CNTR_SN                                           AS CNTR_DTL_SN        /*계약상세번호*/
              , DECODE(H.HIST_STRT_DTM, NULL, '', TO_CHAR(TO_DATE(H.HIST_STRT_DTM, 'YYYYMMDDHH24MISS'), 'YYYYMMDD')) AS CAN_DTM            /*취소일자*/
-             , A.LEASE_SL_CTR_AMT /*매출조정금액*/
-             , A.LEASE_SL_CAN_AMT /*매출취소금액 - 취소조정(취소 잔여 매출액포함)*/
-             , A.LEASE_SL_CTR_AMT 		/*매출조정금액 - 원금*/
-             , A.LEASE_SL_CAN_AMT 		/*매출취소금액 - 원금*/
-             , 0 AS CTR_PVDA_AMT 			/*매출조정금액 - 이자*/
-             , 0 AS CAN_PVDA_AMT 			/*매출취소금액 - 이자*/
+             , A.LEASE_SL_CTR_AMT AS SL_CTR_AMT /*매출조정금액*/
+             , A.LEASE_SL_CAN_AMT AS SL_CAN_AMT /*매출취소금액 - 취소조정(취소 잔여 매출액포함)*/
+             , NVL(I.MM_ISTM_PCAM_AMT, A.LEASE_SL_CTR_AMT) AS LEASE_SL_CTR_AMT/*매출조정금액 - 원금*/
+             , DECODE(I.MM_ISTM_PCAM_AMT, NULL, A.LEASE_SL_CAN_AMT, ROUND(A.LEASE_SL_CAN_AMT * (I.MM_ISTM_PCAM_AMT/I.MM_MPY_AMT), 0)) AS LEASE_SL_CAN_AMT/*매출취소금액 - 원금*/
+             , NVL(I.MM_ISTM_INT_AMT, 0) AS CTR_PVDA_AMT  /*매출조정금액 - 이자*/
+             , DECODE(I.MM_ISTM_PCAM_AMT, NULL, 0, A.LEASE_SL_CAN_AMT - ROUND(A.LEASE_SL_CAN_AMT * (I.MM_ISTM_PCAM_AMT/I.MM_MPY_AMT), 0)) AS CAN_PVDA_AMT
              , F_CMZ_CD_NM(#{session.tenantId}, 'SL_CTR_DSC_TP_CD', B.SL_CTR_DSC_TP_CD)        AS CTR_TP             /*조정유형*/
              , B.SL_CTR_RMK_CN                                                                               /*취소조정사유*/
              , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = D.BASE_PD_CD)           AS PD_NM              /*상품명*/
@@ -57,6 +57,19 @@
 		   AND H.CNTR_DTL_STAT_CD IN ('301', '302', '303', '304', '305')
 		   AND H.HIST_END_DTM = '99991231235959'
 		   AND H.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL
+          (SELECT Y.MM_MPY_AMT, Y.MM_ISTM_PCAM_AMT, Y.MM_ISTM_INT_AMT
+   		    FROM TB_RVDW_PVDA_PLAN_BAS X/*현재가치할인차금계획기본*/
+      		            ,TB_RVDW_PVDA_PLAN_DTL Y/*현재가치할인차금계획상세*/
+    		  WHERE X.CNTR_NO = F.CNTR_NO
+ 		      AND X.CNTR_SN = F.CNTR_SN
+    		      AND X.PVDA_PLAN_NO = Y.PVDA_PLAN_NO
+    		      AND Y.ISTM_TN = A.RENTAL_TN
+    		      AND Y.MM_MPY_AMT = D.MM_ISTM_AMT
+    		      AND X.DTA_DL_YN = 'N'
+    		      AND Y.DTA_DL_YN = 'N'
+ 		  ) I
+            ON 1=1
          WHERE F.CNTR_NO = T.CNTR_NO
            AND F.CNTR_SN = T.CNTR_SN
            AND F.PERF_YM = T.PERF_YM
