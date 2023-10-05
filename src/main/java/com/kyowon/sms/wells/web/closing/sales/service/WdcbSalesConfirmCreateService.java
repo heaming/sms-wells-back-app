@@ -38,6 +38,9 @@ public class WdcbSalesConfirmCreateService {
      */
     @Transactional
     public int createSalesConfirm(WdcbSalesConfirmCreateDvo dvo) throws BizException {
+        if (StringUtils.isEmpty(dvo.getSlRcogClsfCd())) {
+            throw new BizException("매출인식분류코드가 존재하지 않습니다.");
+        }
         int processCount = 0;
 
         WdcbSlCnfmBasDvo inputDvo = new WdcbSlCnfmBasDvo();
