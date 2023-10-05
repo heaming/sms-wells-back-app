@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.closing.sales.service;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchLeaseRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchMembershipRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchRegularRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchRentalRes;
@@ -22,15 +21,12 @@ public class WdcbSalesPerformanceDetailService {
         return mapper.selectMembershipSalesDetail(cntrNo, cntrSn, slClYm);
     }
 
-    public SearchLeaseRes getLeaseSalesDetail(String cntrDtlNo, String slClYm) {
-        return mapper.selectLeaseSalesDetail(cntrDtlNo, slClYm);
+    public SearchRentalRes getRentalSalesDetail(String cntrNo, int cntrSn, String slClYm) {
+        return mapper.selectRentalSalesDetail(cntrNo, cntrSn, slClYm)
+            .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
     }
 
-    public SearchRentalRes getRentalSalesDetail(String cntrDtlNo, String slClYm) {
-        return mapper.selectRentalSalesDetail(cntrDtlNo, slClYm).orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
-    }
-
-    public SearchRegularRes getRegularShippingDetail(String cntrDtlNo, String slClYm) {
-        return mapper.selectRegularShippingDetail(cntrDtlNo, slClYm);
+    public SearchRegularRes getRegularShippingDetail(String cntrNo, int cntrSn, String slClYm) {
+        return mapper.selectRegularShippingDetail(cntrNo, cntrSn, slClYm);
     }
 }
