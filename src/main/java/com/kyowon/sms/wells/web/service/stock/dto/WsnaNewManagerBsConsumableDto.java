@@ -79,4 +79,12 @@ public class WsnaNewManagerBsConsumableDto {
         @NotBlank
         String bfsvcCsmbDdlvStatCd
     ) {}
+
+    @ApiModel(value = "WsnaNewManagerBsConsumableDto-CreateOstrReq")
+    public record CreateOstrReq(
+        @NotBlank
+        String mngtYm,
+        @NotBlank
+        String strWareNo
+    ) {}
 }
