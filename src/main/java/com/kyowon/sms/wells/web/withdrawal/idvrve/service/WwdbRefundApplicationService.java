@@ -216,11 +216,12 @@ public class WwdbRefundApplicationService {
                 case CommConst.ROW_STATE_UPDATED:
 
                     if (!CollectionUtils.isEmpty(list.attachFiles())) {
-                        String apnFileId = IDGenUtil.getUUID("WDB");
-                        bltfDvo.setRfndEvidMtrFileId(apnFileId);
-
+                        if (StringUtil.isEmpty(bltfDvo.getRfndEvidMtrFileId())) {
+                            String apnFileId = IDGenUtil.getUUID("WDB");
+                            bltfDvo.setRfndEvidMtrFileId(apnFileId);
+                        }
                         attachFileService
-                            .saveAttachFiles("ATG_WDB_RFND_FILE", apnFileId, list.attachFiles());
+                            .saveAttachFiles("ATG_WDB_RFND_FILE", bltfDvo.getRfndEvidMtrFileId(), list.attachFiles());
                     }
                     processCount += mapper.insertBalanceTempSaveDetail(bltfDvo); //TODO:그리드3-환불전금요청상세
                     break;
