@@ -399,29 +399,91 @@
              , T1.FEE_TCNT_DV_CD
              , '401'                    AS PERF_AGRG_CRT_DV_CD
              , 'W04P00001'              AS PERF_ATC_CD
-             , NVL(T3.CO_CD, '2000')    AS CO_CD
+             , '2000'    AS CO_CD
              , T1.OG_TP_CD
              , T1.PRTNR_NO
              , '0'  AS PERF_DV_CD
              , T1.CNTR_NO
              , T1.CNTR_SN
              , T1.CNTR_PERF_CRT_DV_CD
-             , NVL(T3.SELL_FEE, 0)      AS PERF_VAL
+             , T1.PERF_VAL
              , 'N'                      AS DTA_DL_YN
              <include refid="COMMON.insertSystemFieldValue" />
-          FROM TB_FEAM_WELS_NRCTR_MM_CL T1  /* 웰스순주문계약월마감 */
-         INNER JOIN TB_FEAM_NRCTR_MM_CL T2  /* 순주문계약월마감     */
-            ON T2.BASE_YM             = T1.BASE_YM
-           AND T2.FEE_TCNT_DV_CD      = T1.FEE_TCNT_DV_CD
-           AND T2.CNTR_PERF_CRT_DV_CD = T1.CNTR_PERF_CRT_DV_CD
-           AND T2.NTOR_CNFM_STAT_CD   = '02'   -- 순주문확정상태코드 - 01:임시저장, 02:확정
-          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3  /* 계약상세             */
-            ON T3.CNTR_NO             = T1.CNTR_NO
-           AND T3.CNTR_SN             = T1.CNTR_SN
-         WHERE T1.BASE_YM             =  #{perfYm}
-           AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
-           AND T1.CNTR_PERF_CRT_DV_CD = '01'   --계약실적생성구분코드 - 01:순주문
-           AND T1.OG_TP_CD            = 'W04'  --조직유형코드 - W04:B2B
+          FROM (
+                SELECT *
+                  FROM (
+                        SELECT T1.*
+                             , NVL(F1.SELL_FEE, 0) AS PERF_VAL   -- 판매수수료(총판) - As-Is의 LC1250P.LCAM01
+                             , ROW_NUMBER() OVER(PARTITION BY T1.CNTR_NO, T1.CNTR_SN ORDER BY F1.CH_SN DESC, F1.FST_RGST_DTM DESC) SEQ
+                          FROM (
+                                    SELECT N1.BASE_YM
+                                         , N1.PERF_YM
+                                         , N1.CNTR_PERF_CRT_DV_CD
+                                         , N1.FEE_TCNT_DV_CD
+                                         , N1.CNTR_NO
+                                         , N1.CNTR_SN
+                                         , N1.SELL_TP_CD
+                                         , N1.PD_CD
+                                         , N1.OG_TP_CD
+                                         , N1.PRTNR_NO
+                                         , C2.FEE_ACKMT_BASE_AMT
+                                         , C2.SELL_AMT
+                                         , C2.SELL_FEE
+                                         , C2.ACKMT_PERF_AMT
+                                         , C2.HGR_PD_CD
+                                         , (SELECT X1.OJ_PD_CD
+                                              FROM TB_SSCT_CNTR_PD_REL X1
+                                             WHERE N1.CNTR_NO = X1.CNTR_NO
+                                               AND N1.CNTR_SN = X1.CNTR_SN
+                                               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN X1.VL_STRT_DTM AND X1.VL_END_DTM
+                                               AND X1.PD_REL_TP_CD = '03'
+                                               AND X1.BASE_PD_CD = N1.PD_CD) AS SV_PD_CD
+                                         , C2.SELL_DSC_TP_CD
+                                         , C2.SELL_DSC_DV_CD
+                                         , N1.SELL_DSCR_CD
+                                         , N1.BFSVC_PRD_CD AS SV_PRD
+                                         , C3.HCR_DV_CD
+                                      FROM TB_FEAM_WELS_NRCTR_MM_CL N1
+                                INNER JOIN TB_SSCT_CNTR_BAS C1
+                                        ON N1.CNTR_NO = C1.CNTR_NO
+                                INNER JOIN TB_SSCT_CNTR_DTL C2
+                                        ON N1.CNTR_NO = C2.CNTR_NO
+                                       AND N1.CNTR_SN = C2.CNTR_SN
+                                INNER JOIN TB_SSCT_CNTR_WELLS_DTL C3
+                                        ON N1.CNTR_NO = C3.CNTR_NO
+                                       AND N1.CNTR_SN = C3.CNTR_SN
+                                     WHERE 1 = 1
+                                       AND N1.BASE_YM = #{perfYm}
+                                       AND N1.OG_TP_CD = 'W04'
+                                       AND N1.CNTR_PERF_CRT_DV_CD = '01' --계약실적생성구분코드 - 01:순주문
+                                       AND N1.FEE_TCNT_DV_CD = NVL(#{feeTcntDvCd}, '02')
+                                ) T1
+                    LEFT OUTER JOIN TB_PDBS_PD_BAS P1
+                            ON T1.SV_PD_CD = P1.PD_CD
+                    LEFT OUTER JOIN TB_FEAM_NCHN_FEE_BAS F1  --신채널수수료기본
+                            ON T1.SELL_TP_CD = F1.SELL_TP_CD
+                           AND T1.PD_CD = F1.PD_CD
+                           /* 상위상품코드는 판매유형코드(SELL_TP_CD)가 렌탈(SELL_TP_CD = '2')인 경우만 적용 */
+                           AND CASE WHEN (T1.SELL_TP_CD = '2') THEN NVL(T1.HGR_PD_CD, 'X') ELSE 'X' END = CASE WHEN (T1.SELL_TP_CD = '2') THEN NVL(F1.HGR_PD_CD, 'X') ELSE 'X' END
+                           AND NVL(P1.SV_PD_TP_CD, 'X') = NVL(F1.USWY_TP_CD, 'X')
+                           AND NVL(T1.SELL_DSC_TP_CD, 'X') = NVL(F1.PMOT_CD, 'X')
+                           AND NVL(T1.SELL_DSC_DV_CD, 'X') = NVL(F1.SELL_DSC_DV_CD, 'X')
+                           AND NVL(T1.SELL_DSCR_CD, 'X') = NVL(F1.SELL_DSCR_CD, 'X')
+                           AND NVL(T1.SV_PRD, 0) = NVL(F1.SV_PRD, 0)
+                           AND NVL(T1.HCR_DV_CD, 'X') = NVL(F1.HCR_DV_CD, 'X')
+                           AND F1.FEEC_DV_CD = 'W' --W:B2B
+                           AND F1.DTA_DL_YN = 'N'
+                           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN F1.APY_STRTDT AND F1.APY_ENDDT
+                         WHERE 1 = 1
+                      ) Y1
+                WHERE 1 = 1
+                  AND Y1.SEQ = 1
+              ) T1
+--           INNER JOIN TB_FEAM_NRCTR_MM_CL T2  /* 순주문계약월마감     */
+--              ON T2.BASE_YM             = T1.BASE_YM
+--             AND T2.FEE_TCNT_DV_CD      = T1.FEE_TCNT_DV_CD
+--             AND T2.CNTR_PERF_CRT_DV_CD = T1.CNTR_PERF_CRT_DV_CD
+--             AND T2.NTOR_CNFM_STAT_CD   = '02'   -- 순주문확정상태코드 - 01:임시저장, 02:확정
     </insert>
 
     <insert id="insertAggregateNtorPerfMmCl">
@@ -490,7 +552,7 @@
              , T1.PERF_ATC_CD
              , T1.CO_CD
              , T1.OG_TP_CD
-             , T3.DGR1_LEVL_DG_PRTNR_NO
+             , T3.DGR3_LEVL_DG_PRTNR_NO
              , '2'                   AS PERF_DV_CD
              , SUM(T1.PERF_VAL)      AS PERF_VAL
              , 'N'                   AS DTA_DL_YN
@@ -516,7 +578,7 @@
                , T1.PERF_ATC_CD
                , T1.CO_CD
                , T1.OG_TP_CD
-               , T3.DGR1_LEVL_DG_PRTNR_NO
+               , T3.DGR3_LEVL_DG_PRTNR_NO
     </insert>
 
     <insert id="insertAggregateNtorPerfPointMmCl">
@@ -541,7 +603,7 @@
              , T1.PERF_ATC_CD
              , T1.CO_CD
              , T1.OG_TP_CD
-             , T3.DGR1_LEVL_DG_PRTNR_NO
+             , T3.DGR3_LEVL_DG_PRTNR_NO
              , '2'                  AS PERF_DV_CD     /* 지국(지점)실적 */
              , SUM(T1.PERF_VAL)     AS PERF_VAL
              , 'N'                                     AS DTA_DL_YN
@@ -571,7 +633,7 @@
                 , T1.PERF_ATC_CD
                 , T1.CO_CD
                 , T1.OG_TP_CD
-                , T3.DGR1_LEVL_DG_PRTNR_NO
+                , T3.DGR3_LEVL_DG_PRTNR_NO
     </insert>
 
     <update id="updateAggregateNtorMmCl">
