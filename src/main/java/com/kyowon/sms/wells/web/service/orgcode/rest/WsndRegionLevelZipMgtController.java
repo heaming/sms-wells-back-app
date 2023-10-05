@@ -40,6 +40,7 @@ public class WsndRegionLevelZipMgtController {
         @ApiImplicitParam(name = "ctctyNm", value = "시군구명", paramType = "query", example = "도봉구"),
         @ApiImplicitParam(name = "wkGrpCd", value = "작업그룹코드", paramType = "query", example = "10", required = true),
         @ApiImplicitParam(name = "ogId", value = "서비스센터", paramType = "query", example = "011"),
+        @ApiImplicitParam(name = "unrgCenLocaraYn", value = "미등록중심지", paramType = "query", example = "N")
     })
     @GetMapping("/paging")
     public PagingResult<SearchRes> getZipNoPages(

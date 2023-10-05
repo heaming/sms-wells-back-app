@@ -18,13 +18,18 @@
              , F_CMZ_CD_NM(#{session.tenantId}, 'AUTH_RSG_EXCD_RSON_CD', A.AUTH_RSG_EXCD_RSON_CD , #{session.langId}) AS AUTH_RSG_EXCD_RSON_NM /*제외사유*/
              , A.AUTH_RSG_EXCD_RSON_CN                      /*제외사유내용*/
              , NVL(A.TOT_NPD_AMT,0) AS TOT_NPD_AMT          /*총미납금액*/
-             , 0 AS TOT_MCHN_NPD_AMT                        /*총미납금액(결합기기)*/
+             ,CASE WHEN A.SELL_TP_CD = '2' THEN 0
+                   WHEN A.SELL_TP_CD = '6'
+                   THEN -- 기기미납금
+                   CASE WHEN A.TOT_NPD_AMT - (NVL(E.BTD_ATAM,0) + NVL(Y1.PD_RVE_AMT,0) - NVL(Y1.RFND_RVE_AMT,0)) <![CDATA[<]]> 0 THEN 0
+                        ELSE A.TOT_NPD_AMT - (NVL(E.BTD_ATAM,0) + NVL(Y1.PD_RVE_AMT,0) - NVL(Y1.RFND_RVE_AMT,0))
+                         END
+                    END AS TOT_MCHN_NPD_AMT /*총미납금액(결합기기)*/
              , NVL(A.LSTMM_OCPT_CS,0) AS LSTMM_OCPT_CS      /*전월점유비*/
              , NVL(A.SL_SUM_AMT + A.THM_OCPT_CS,0) AS THM_OCPT_CS /*당월점유비*/
              , NVL(A.THM_ADN_SV_UC_AMT,0) AS THM_ADN_SV_UC_AMT /*당월가압펌프*/
-<!--             , NVL(A.RTRN_DBT_EXP_AMT,0) AS RTRN_DBT_TOT_AMT /*반환시총체납액*/-->
-<!--             , NVL(A.NRTRN_DBT_EXP_AMT,0) AS NRTRN_DBT_TOT_AMT /*미반환시총체납액*/-->
-             ,-(
+             , CASE WHEN A.SELL_TP_CD = '2' THEN
+               -(
                     (
                          NVL(E.BTD_ATAM, 0)
                        + NVL(Y1.PD_RVE_AMT,0)    /*입금금액*/
@@ -45,8 +50,11 @@
                   - A.LSTMM_OCPT_CS    /* 전월점유비용 */
                   - A.SL_SUM_AMT    /* 매출합계금액 */
                   + A.P_SL_AMT    /* 포인트매출금액 */
-             ) AS NRTRN_DBT_TOT_AMT /*미반환시총체납액*/
-             ,-(
+             )
+                    WHEN A.SELL_TP_CD = '6' THEN NVL(A.TOT_NPD_AMT,0)
+                     END AS NRTRN_DBT_TOT_AMT /*미반환시총체납액*/
+             , CASE WHEN A.SELL_TP_CD = '2' THEN
+               -(
                     (
                          NVL(E.BTD_ATAM, 0)
                        + NVL(Y1.PD_RVE_AMT,0)    /*입금금액*/
@@ -67,7 +75,9 @@
                   - A.LSTMM_OCPT_CS    /* 전월점유비용 LCSTM1 */
                   - A.SL_SUM_AMT    /* 매출합계금액 */
                   + A.P_SL_AMT    /* 포인트매출금액 */
-             ) AS RTRN_DBT_TOT_AMT /*반환시총체납액*/
+             )
+                    WHEN A.SELL_TP_CD = '6' THEN NVL(A.TOT_NPD_AMT,0)
+                     END AS RTRN_DBT_TOT_AMT /*반환시총체납액*/
              , NVL(A.SL_SUM_AMT,0) AS RENTAL_AMT /*당월렌탈료*/
              , NVL(A.RENTAL_RES_BOR_AMT,0) AS RENTAL_RES_BOR_AMT /*위약렌탈잔여*/
              , NVL(A.RENTAL_RGST_COST_BOR_AMT,0) AS RENTAL_RGST_COST_BOR_AMT /*위약등록비*/
@@ -193,10 +203,10 @@
            AND A.DTA_DL_YN = 'N'
            AND A.BASE_YM = SUBSTR(#{baseDt},1,6)
            AND A.RQDT = #{baseDt}                       /*요청일->직권해지일*/
-        <if test='@MybatisUtils@equals(sellTpCd, "02")'>
+        <if test='@MybatisUtils@equals(sellTpCd, "2")'>
            AND A.SELL_TP_CD = #{sellTpCd}              /*판매유형코드->상품유형*/
         </if>
-        <if test='@MybatisUtils@equals(sellTpCd, "06")'>
+        <if test='@MybatisUtils@equals(sellTpCd, "6")'>
            AND A.SELL_TP_CD = #{sellTpCd}              /*판매유형코드->상품유형*/
            AND D.SELL_TP_DTL_CD = '62'                 /*렌찰해지예정 상품유형-정기배송 (모종만)*/
         </if>
@@ -912,7 +922,7 @@
            UPDATE
               SET X1.TOT_NPD_EXP_AMT = (CASE WHEN X1.TOT_NPD_AMT - (X2.COL01 + X2.COL02 - X2.COL03) <![CDATA[<]]> 0 THEN 0
                                              ELSE X1.TOT_NPD_AMT - (X2.COL01 + X2.COL02 - X2.COL03) END)    /*총미납예정금액*/
-                , X1.RTRN_DBT_EXP_AMT = NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
+                , X1.RTRN_DBT_EXP_AMT = -NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
                                              - (X1.RENTAL_RES_BOR_AMT + X1.RENTAL_RGST_COST_BOR_AMT + X1.DSC_CS_BOR_AMT + X1.RSTL_BOR_AMT)
                                              - X1.CSMB_CS_BOR_AMT   /*소모품비용위약금액*/
                                              - X1.REQD_CS_BOR_AMT   /*철거비용위약금액*/
@@ -920,7 +930,7 @@
                                              - X1.LSTMM_OCPT_CS     /*전월점유비용*/
                                              - X1.SL_SUM_AMT        /*매출합계금액*/
                                              + X1.P_SL_AMT),0)      /*포인트매출금액*/ /*반환채무예정금액*/
-                , X1.NRTRN_DBT_EXP_AMT = NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
+                , X1.NRTRN_DBT_EXP_AMT = -NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
                                              - (X1.RENTAL_RES_BOR_AMT + X1.RENTAL_RGST_COST_BOR_AMT + X1.DSC_CS_BOR_AMT + X1.RSTL_BOR_AMT)
                                              - X1.CSMB_CS_BOR_AMT   /*소모품비용위약금액*/
                                              - X1.LS_RNTF           /*분실손료*/
@@ -939,7 +949,7 @@
            UPDATE
               SET X1.TOT_NPD_FNL_AMT = (CASE WHEN X1.TOT_NPD_AMT - (X2.COL01 + X2.COL02 - X2.COL03) <![CDATA[<]]> 0 THEN 0
                                              ELSE X1.TOT_NPD_AMT - (X2.COL01 + X2.COL02 - X2.COL03) END)    /*총미납최종금액*/
-                , X1.RTRN_DBT_FNL_AMT = NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
+                , X1.RTRN_DBT_FNL_AMT = -NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
                                              - (X1.RENTAL_RES_BOR_AMT + X1.RENTAL_RGST_COST_BOR_AMT + X1.DSC_CS_BOR_AMT + X1.RSTL_BOR_AMT)
                                              - X1.CSMB_CS_BOR_AMT   /*소모품비용위약금액*/
                                              - X1.REQD_CS_BOR_AMT   /*철거비용위약금액*/
@@ -947,7 +957,7 @@
                                              - X1.LSTMM_OCPT_CS     /*전월점유비용*/
                                              - X1.SL_SUM_AMT        /*매출합계금액*/
                                              + X1.P_SL_AMT),0)      /*포인트매출금액*/ /*반환채무최종금액*/
-                , X1.NRTRN_DBT_FNL_AMT = NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
+                , X1.NRTRN_DBT_FNL_AMT = -NVL(((X2.COL04 + X1.ADAMT_THM_OC_AMT - X1.ADAMT_DP_RPLC_AMT) /*X2.COL04+가산금당월발생금액-가산금입금대체금액*/
                                              - (X1.RENTAL_RES_BOR_AMT + X1.RENTAL_RGST_COST_BOR_AMT + X1.DSC_CS_BOR_AMT + X1.RSTL_BOR_AMT)
                                              - X1.CSMB_CS_BOR_AMT   /*소모품비용위약금액*/
                                              - X1.LS_RNTF           /*분실손료*/

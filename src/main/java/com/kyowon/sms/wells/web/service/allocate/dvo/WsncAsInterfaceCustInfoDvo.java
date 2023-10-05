@@ -1,6 +1,8 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
 import lombok.Getter;
 import lombok.Setter;
 

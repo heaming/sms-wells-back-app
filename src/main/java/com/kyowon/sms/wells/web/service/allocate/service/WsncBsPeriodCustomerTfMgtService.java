@@ -45,9 +45,9 @@ public class WsncBsPeriodCustomerTfMgtService {
     }
 
     public List<BranchsAndServiceCentersRes> getBranchsAndServiceCenters(
-        String ogTpCd, String ogId, String dgr1LevlOgId, String dgr2LevlOgId
+        String ogId
     ) {
-        return mapper.selectBranchsAndServiceCenters(ogTpCd, ogId, dgr1LevlOgId, dgr2LevlOgId);
+        return mapper.selectBranchsAndServiceCenters(ogId);
     }
 
     public List<ManagersAndEngineersRes> getManagersAndEngineers(String ogId) {
