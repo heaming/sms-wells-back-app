@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchLeaseRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchMembershipRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchRegularRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto.SearchRentalRes;
@@ -47,21 +46,6 @@ public class WdcbSalesPerformanceDetailController {
         return service.getMembershipSalesDetail(cntrNo, cntrSn, slClYm);
     }
 
-    @ApiOperation(value = "매출 실적 현황 - 리스매출 상세내역", notes = "조회조건에 따른 리스매출 상세내역을 조회")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "cntrDtlNo", value = "계약번호", paramType = "query"),
-        @ApiImplicitParam(name = "slClYm", value = "매출년월", paramType = "query"),
-    })
-    @GetMapping("/lease-sales-detail")
-    public SearchLeaseRes getLeaseSalesDetail(
-        @RequestParam
-        String cntrDtlNo,
-        @RequestParam
-        String slClYm
-    ) {
-        return service.getLeaseSalesDetail(cntrDtlNo, slClYm);
-    }
-
     @ApiOperation(value = "매출 실적 현황 - 렌탈매출 상세내역", notes = "조회조건에 따른 렌탈매출 상세내역을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrDtlNo", value = "계약번호", paramType = "query"),
@@ -70,11 +54,13 @@ public class WdcbSalesPerformanceDetailController {
     @GetMapping("/rental-sales-detail")
     public SearchRentalRes getRentalSalesDetail(
         @RequestParam
-        String cntrDtlNo,
+        String cntrNo,
+        @RequestParam
+        int cntrSn,
         @RequestParam
         String slClYm
     ) {
-        return service.getRentalSalesDetail(cntrDtlNo, slClYm);
+        return service.getRentalSalesDetail(cntrNo, cntrSn, slClYm);
     }
 
     @ApiOperation(value = "매출 실적 현황 - 정기배송매출 상세내역", notes = "조회조건에 따른 렌탈매출 상세내역을 조회")
@@ -85,10 +71,12 @@ public class WdcbSalesPerformanceDetailController {
     @GetMapping("/regular-shipping-detail")
     public SearchRegularRes getRegularShippingDetail(
         @RequestParam
-        String cntrDtlNo,
+        String cntrNo,
+        @RequestParam
+        int cntrSn,
         @RequestParam
         String slClYm
     ) {
-        return service.getRegularShippingDetail(cntrDtlNo, slClYm);
+        return service.getRegularShippingDetail(cntrNo, cntrSn, slClYm);
     }
 }
