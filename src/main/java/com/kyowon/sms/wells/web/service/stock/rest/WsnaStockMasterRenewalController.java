@@ -19,6 +19,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0279M01 재고마스터갱신 Controller
+ * </pre>
+ *
+ * @author hyewon.kim 김혜원
+ * @since 2023.03.13
+ */
+
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/stock-master-renewal")
 @Api(tags = "[WSNA] 재고마스터 갱신 REST API")
