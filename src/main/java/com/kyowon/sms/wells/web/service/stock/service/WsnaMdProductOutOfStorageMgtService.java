@@ -36,7 +36,7 @@ public class WsnaMdProductOutOfStorageMgtService {
         if ("all".equals(dvo.getFirstSppGb()) || "N".equals(dvo.getFirstSppGb())) {
             // 검색조건 (종료일자) 매월 마지막 영업일이후인경우 해당월 마지막 일자까지 조회
             String lasyDay = mapper.selectBusinessDays(dvo);
-            if (lasyDay.compareTo(dvo.getEndDt()) < 0) {
+            if (lasyDay.compareTo(dvo.getEndDt()) <= 0) {
                 dvo.setEndDt(DateUtil.getLastDateOfMonth(dvo.getEndDt()));
             }
         }
