@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMdProductOutOfStorageMgtMapper">
+    <select id="selectBusinessDays" resultType="String">
+       WITH DAY_INF AS
+       (
+          SELECT DATES
+          FROM ( SELECT TO_CHAR(START_DT+LEVEL-1,'YYYYMMDD') DATES  /*날짜*/
+                      , TO_CHAR (START_DT+LEVEL-1,'D') DAYS         /*요일*/
+                 FROM (  SELECT TRUNC(TO_DATE(#{endDt}),'MM') START_DT        /*시작년월일*/
+                              , TO_NUMBER(TO_CHAR(LAST_DAY(TO_DATE(#{endDt})),'DD')) END_DT   /*마지막 날짜*/
+                         FROM DUAL
+                       ) A
+                CONNECT BY LEVEL  <![CDATA[<=]]> A.END_DT
+               ) TM
+          WHERE 1=1
+          AND TM.DAYS NOT IN ('1', '7')   /*일요일,토요일 제외*/
+          AND NOT EXISTS ( SELECT 1
+                           FROM T_CMZ_HLDY_M S1 /*T:휴일기본*/
+                           WHERE SUBSTR(S1.HLDY_APPY_START_DTM,1,8) = TM.DATES
+                            AND S1.TENANT_ID = 'TNT_WELLS'
+                            AND S1.HLDY_USE_YN = 'Y'
+                            AND S1.DEL_YN = 'N'
+                          )
+          ORDER BY DATES DESC
+       )
+       SELECT DATES AS LAST_DATE
+       FROM DAY_INF
+       WHERE ROWNUM = 1
+    </select>
     <select id="selectMdProductOutOfStorages" resultType="camelMap">
        WITH INQRY_LIST AS
        (  /* 택배 대상 */
@@ -141,6 +168,14 @@
                                  ON S6.CNTR_NO = S1.CNTR_NO
                                  AND S6.CNTR_SN = S1.CNTR_SN
                                  AND S6.DTA_DL_YN = 'N'
+                                INNER JOIN TB_SVST_MCBY_WARE_IZ S7 /*월별창고내역, KWAS.LC_STOCK_ST102TB 창고조직기본정보*/
+                                  /* TODO 변경사항  ON T9.WARE_MNGT_PRTNR_NO = NVL(T4.PRTNR_NO, T2.ICHR_PRTNR_NO) */
+                                 ON (CASE WHEN S7.WARE_MNGT_PRTNR_NO = '71321'
+                                     THEN '99992' ELSE S7.WARE_MNGT_PRTNR_NO END) = NVL(S3.PRTNR_NO, S2.ICHR_PRTNR_NO)
+                                 AND S7.WARE_DTL_DV_CD = '10'  /*창고상세구분코드*/
+                                 AND S7.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                 AND S7.DTA_DL_YN = 'N'
+                                 AND S7.WARE_NO = '100002'
                                 INNER JOIN TB_SSCT_CNTR_BAS C0                /*계약기본*/
                                  ON C0.CNTR_NO = S1.CNTR_NO
                                  AND C0.DTA_DL_YN = 'N'
@@ -183,7 +218,17 @@
                                 AND S2.WK_PRGS_STAT_CD IN ('00', '10')
                                 AND C3.RSG_FSH_DT IS NULL  /*해지완료일자*/
                                 AND C3.RSG_APLC_DT IS NULL /*해지신청일자*/
-                                AND C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
+
+                                    <if test="@MybatisUtils@equals(firstSppGb, 'all')">
+                                    AND ( C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
+                                        OR S6.IST_DT BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959' )
+                                    </if>
+                                    <if test="@MybatisUtils@equals(firstSppGb, '1')">
+                                    AND C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
+                                    </if>
+                                    <if test="@MybatisUtils@equals(firstSppGb, 'N')">
+                                    AND S6.IST_DT BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
+                                    </if>
                                 </if>
                                 /*
                                 AND S1.CNTR_NO = 'W20234972331'

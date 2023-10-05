@@ -35,6 +35,15 @@ public class WsnaMdProductOutOfStorageMgtController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "startDt", value = "계약시작일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query", required = true),
+        @ApiImplicitParam(name = "findGb", value = "조회구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "firstSppGb", value = "첫배송여부구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "selCnt", value = "조회제한건수", paramType = "query"),
+        @ApiImplicitParam(name = "vstFshDt", value = "출고확정일자", paramType = "query"),
+        @ApiImplicitParam(name = "prtnrBzsCd", value = "파트너업체코드", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cstNm", value = "고객명", paramType = "query"),
+        @ApiImplicitParam(name = "cralIdvTno", value = "휴대폰번호", paramType = "query"),
+        @ApiImplicitParam(name = "serialNo", value = "시리얼번호", paramType = "query"),
     })
     @GetMapping
     public List getMdProductOutOfStorages(

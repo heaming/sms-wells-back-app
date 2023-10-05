@@ -15,9 +15,26 @@ public class WsnaMdProductOutOfStorageMgtDto {
     @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-SearchReq")
     public record SearchReq(
         String startDt,
+
         String endDt,
+
         String findGb,
-        String selCnt
+
+        String selCnt,
+
+        String vstFshDt,
+
+        String prtnrBzsCd,
+
+        String firstSppGb,
+
+        String cntrNo,
+
+        String cstNm,
+
+        String cralIdvTno,
+
+        String serialNo
     ) {}
 
     @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-SaveReq")
