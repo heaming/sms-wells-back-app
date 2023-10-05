@@ -4,7 +4,10 @@ import java.util.Base64;
 
 import javax.validation.constraints.NotBlank;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.ibatis.annotations.AutomapConstructor;
+
+import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
 
@@ -55,11 +58,14 @@ public class WsncQuickResponseRpblDto {
         String vstFshDt,
         String vstFshHh,
         String bcInMthdCd,
-        String useMpno,
         String cstSignCn,
         String dnldPrtnrKnm,
         String publishInfo,
-        String rnk
+        String svpdQrType,
+        String qrCd,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno
     ) {
         @AutomapConstructor
         public SearchRes(
@@ -81,11 +87,14 @@ public class WsncQuickResponseRpblDto {
             String vstFshDt,
             String vstFshHh,
             String bcInMthdCd,
-            String useMpno,
             byte[] cstSignCn,
             String dnldPrtnrKnm,
             String publishInfo,
-            String rnk
+            String svpdQrType,
+            String qrCd,
+            String cralLocaraTno,
+            String mexnoEncr,
+            String cralIdvTno
         ) {
             this(
                 mngrDvCd,
@@ -106,11 +115,14 @@ public class WsncQuickResponseRpblDto {
                 vstFshDt,
                 vstFshHh,
                 bcInMthdCd,
-                useMpno,
-                Base64.getEncoder().encodeToString(cstSignCn),
+                cstSignCn==null?null:Base64.getEncoder().encodeToString(cstSignCn),
                 dnldPrtnrKnm,
                 publishInfo,
-                rnk
+                svpdQrType,
+                qrCd,
+                cralLocaraTno,
+                StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr,
+                cralIdvTno
             );
         }
     }

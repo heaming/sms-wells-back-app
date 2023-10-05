@@ -159,10 +159,12 @@
              , S1.CST_SV_ASN_NO
           FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
          INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2
-            ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
-         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S3
-            ON S1.CNTR_NO = S3.CNTR_NO
-           AND S1.CNTR_SN = S3.CNTR_SN
+            ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+           AND S2.CNTR_NO = S1.CNTR_NO
+           AND S2.CNTR_SN = S1.CNTR_SN
+          LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ S3
+            ON S3.CNTR_NO = S1.CNTR_NO
+           AND S3.CNTR_SN = S1.CNTR_SN
           LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S4
             ON S4.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
           LEFT JOIN TB_SVPD_QLTY_MNGT_AS_DTL_IZ S5
@@ -245,18 +247,19 @@
             ON S2.PD_CD = P1.PD_CD
          WHERE 1 = 1
            AND S2.DTA_DL_YN = 'N'
+           AND S2.MTR_STAT_CD IN ('1', '2')
         <choose>
             <when test='@MybatisUtils@equals(serviceType, "9")'>
-            AND S1.SV_BIZ_HCLSF_CD = '1'
-            AND S3.ALNC_BZS_CD = '03' /* 서비스유형 : 홈쇼핑만 */
+           AND S1.SV_BIZ_HCLSF_CD = '1'
+           AND S3.ALNC_BZS_CD = '03' /* 서비스유형 : 홈쇼핑만 */
             </when>
             <when test='@MybatisUtils@equals(serviceType, "10")'>
-            AND S1.SV_BIZ_HCLSF_CD = '3' /* 서비스유형 : 리콜 */
-            AND ((S2.CNSL_TP_HCLSF_CD = 'L001' AND S2.CNSL_TP_MCLSF_CD = 'N005' AND S2.CNSL_TP_LCLSF_CD = 'C015')
-             OR (S2.CNSL_TP_HCLSF_CD = 'L001' AND S2.CNSL_TP_MCLSF_CD = 'N003' AND S2.CNSL_TP_LCLSF_CD = 'C008'))
+           AND S1.SV_BIZ_HCLSF_CD = '3' /* 서비스유형 : 리콜 */
+           AND ((S2.CNSL_TP_HCLSF_CD = 'L001' AND S2.CNSL_TP_MCLSF_CD = 'N005' AND S2.CNSL_TP_LCLSF_CD = 'C015')
+            OR (S2.CNSL_TP_HCLSF_CD = 'L001' AND S2.CNSL_TP_MCLSF_CD = 'N003' AND S2.CNSL_TP_LCLSF_CD = 'C008'))
             </when>
             <when test='@MybatisUtils@isNotEmpty(serviceType)'>
-            AND S1.SV_BIZ_HCLSF_CD = #{serviceType} /* 서비스유형 */
+           AND S1.SV_BIZ_HCLSF_CD = #{serviceType} /* 서비스유형 */
             </when>
         </choose>
         <if test='@MybatisUtils@isNotEmpty(ogId)'>
@@ -287,6 +290,7 @@
                  </when>
                  <when test='@MybatisUtils@equals(inquiryBase, "2")'>
             AND S1.WK_EXCN_DT BETWEEN #{baseDateFrom} AND #{baseDateTo} /* 조회기준 : 처리일자 */
+            AND ((S2.PD_CD != 'WM02100082') OR (S1.SV_BIZ_HCLSF_CD = '3' AND S2.PD_CD = 'WM02100082'))
                  </when>
                  <when test='@MybatisUtils@equals(inquiryBase, "3")'>
             AND S1.VST_CNFMDT BETWEEN #{baseDateFrom} AND #{baseDateTo} /* 조회기준 : 방문확정일 */

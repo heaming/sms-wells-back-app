@@ -24,7 +24,8 @@ public class WsndRegionLevelZipMgtDto {
         String ctctyNm, // 시군구명
         @NotBlank
         String wkGrpCd, // 작업그룹코드
-        String ogId // 서비스센터
+        String ogId, // 서비스센터
+        String unrgCenLocaraYn // 미등록 중심지
     ) {}
 
     @ApiModel(value = "WsndRegionLevelZipMngtDto-SearchRes")

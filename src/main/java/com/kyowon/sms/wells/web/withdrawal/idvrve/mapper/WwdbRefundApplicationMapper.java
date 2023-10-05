@@ -21,11 +21,6 @@ public interface WwdbRefundApplicationMapper {
         SearchRefundApplicationReq req
     );
 
-    PagingResult<SearchRefundContractDetailRes> selectRefundContractDetail(
-        SearchRefundContractDetailReq req,
-        PageInfo pageInfo
-    );
-
     List<SearchRefundContractDetailRes> selectRefundContractDetail(
         SearchRefundContractDetailReq req
     );
@@ -33,21 +28,18 @@ public interface WwdbRefundApplicationMapper {
     SearchRefundRes selectRefund(SearchRefundReq req);
 
     /* 환불상세-팝업에서 선택시 */
-    PagingResult<SearchRefundDetailRes> selectRefundDetail(
-        SearchRefundDetailReq req,
-        PageInfo pageInfo
+    List<SearchRefundDetailRes> selectRefundDetail(
+        SearchRefundDetailReq req
     );
 
     /*  환불상세 - 메인->그리드->팝업 */
-    PagingResult<SearchRefundDetailRes> selectRefundDetailPage(
-        SearchRefundDetailReq req,
-        PageInfo pageInfo
+    List<SearchRefundDetailRes> selectRefundDetailPage(
+        SearchRefundDetailReq req
     );
 
     /* 전금상세 */
-    PagingResult<SearchRefundBalanceTransferRes> selectRefundBalanceTransfer(
-        SearchRefundBalanceTransferReq req,
-        PageInfo pageInfo
+    List<SearchRefundBalanceTransferRes> selectRefundBalanceTransfer(
+        SearchRefundBalanceTransferReq req
     );
 
     /* TODO: 임시저장 START */
