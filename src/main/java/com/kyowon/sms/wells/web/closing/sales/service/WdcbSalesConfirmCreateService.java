@@ -50,11 +50,6 @@ public class WdcbSalesConfirmCreateService {
         /* 2.대표고객 매핑 */
         String dgCstId = mapper.selectDgCstId(dvo);
         /* 3.SAP상품구분코드 매핑 */
-        /* 3-1. 판매유형에 필터가 들어온경우 (SELL_TP_CD = 9 )
-        판매유형상세에 빈값이 들어올예정으로 이때 SELL_TP_DTL_CD (판매유형상세) 에 9 셋팅
-         */
-        if ("9".equals(dvo.getSellTpCd()))
-            dvo.setSellTpDtlCd("9");
         String sapPdDvCd = StringUtils.isNotEmpty(mapper.selectSapPdDvCd(dvo)) ? mapper.selectSapPdDvCd(dvo) : "";
         /* 4. 렌탈등록비부가가치세(RENTAL_RGST_COST_VAT)  */
         int rentalRgstCostVat = (int)Math.floor(dvo.getRentalRgstCost() * 0.0909);
@@ -137,22 +132,23 @@ public class WdcbSalesConfirmCreateService {
         }
 
         /* 15. SAP매출유형코드 */
+        String tempSellTpDtlCd = ""; /*판매유형상세코드*/
+        String tempSlRcogClsfCd = ""; /*매출인식분류코드*/
         String sapSlTpCd = "";
         String slTpDvCd = "";
         String clssVal = "";
         String addCondition = "";
         String slpMapngCdv = "";
 
-        if (StringUtils.isNotEmpty(dvo.getRtngdYn()) && "N".equals(dvo.getRtngdYn())) {
+        log.info("dvo.getSlRcogClsfCd().substring(1):" + dvo.getSlRcogClsfCd().substring(0, 1));
+        tempSellTpDtlCd = dvo.getSlRcogClsfCd().substring(0, 1).equals("S") ? "ANY" : dvo.getSellTpDtlCd();
+
+        tempSlRcogClsfCd = dvo.getSlRcogClsfCd().substring(0, 1).equals("W") ? "W" : dvo.getSlRcogClsfCd();
+
+        if (StringUtils.isEmpty(dvo.getRtngdYn()) || "N".equals(dvo.getRtngdYn())) {
             slTpDvCd = "1";
         } else if (StringUtils.isNotEmpty(dvo.getRtngdYn()) && "Y".equals(dvo.getRtngdYn())) {
             slTpDvCd = "2";
-        }
-        if (dvo.getPcsvReimAmt() > 0) {
-            slTpDvCd = "3";
-        }
-        if (dvo.getSlCanAmt() > 0) {
-            slTpDvCd = "7";
         }
 
         if (StringUtils.isNotEmpty(sapMatEvlClssVal)) {
@@ -174,15 +170,19 @@ public class WdcbSalesConfirmCreateService {
         } else if (StringUtils.isNotEmpty(dvo.getLgstItmGdCd())
             && "E".equals(dvo.getLgstItmGdCd()) || "R".equals(dvo.getLgstItmGdCd())) {
             addCondition = "2";
-        } else if ((StringUtils.isNotEmpty(dvo.getSellTpCd()) && "6".equals(dvo.getSellTpCd()))
-            && (StringUtils.isNotEmpty(dvo.getRvpyYn()) && "Y".equals(dvo.getRvpyYn()))) {
+        } else if ("PDC000000000068".equals(dvo.getPdMclsfId()) || "PDC000000000070".equals(dvo.getPdMclsfId())) {
             addCondition = "3";
+        } else if (StringUtils.isNotEmpty(dvo.getCanDt()) || dvo.getSlCanAmt() != 0) {
+            addCondition = "4";
         } else {
             addCondition = "0";
         }
 
-        slpMapngCdv = mapper.selectSlpMapngCdv(dvo.getSellTpDtlCd(), clssVal, slTpDvCd, addCondition);
+        slpMapngCdv = mapper.selectSlpMapngCdv(tempSellTpDtlCd, tempSlRcogClsfCd, clssVal, slTpDvCd, addCondition);
         sapSlTpCd = StringUtil.isEmpty(slpMapngCdv) ? "ERR" : slpMapngCdv;
+
+        String tmpSapBizDvCd = mapper.selectSapBizDvCd(tempSellTpDtlCd, tempSlRcogClsfCd, addCondition);
+        String sapBizDvCd = StringUtil.isEmpty(tmpSapBizDvCd) ? "ERR" : tmpSapBizDvCd;
 
         /* 매핑 값 셋팅 */
         inputDvo.setCntrNo(dvo.getCntrNo());
@@ -271,7 +271,7 @@ public class WdcbSalesConfirmCreateService {
         inputDvo.setPcsvReimAmt(dvo.getPcsvReimAmt());
         inputDvo.setSapMatEvlClssVal(sapMatEvlClssVal);
         inputDvo.setSapSlTpCd(sapSlTpCd);
-        inputDvo.setSapBizDvCd("");
+        inputDvo.setSapBizDvCd(sapBizDvCd);
         inputDvo.setSapBzHdqInfCd(sapBzHdqInfCd);
         inputDvo.setSlAmt(slAmt);
         inputDvo.setVat(vat);
