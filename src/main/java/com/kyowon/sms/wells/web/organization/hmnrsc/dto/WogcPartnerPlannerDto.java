@@ -18,8 +18,7 @@ public class WogcPartnerPlannerDto {
         String prtnrKnm,
         String prtnrNo,
         String qlfDvCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchLicenseRes")
     public record SearchLicenseRes(
@@ -66,8 +65,7 @@ public class WogcPartnerPlannerDto {
         String dsbAmt,
         String cntrDt,
         String prtnrCntrTpCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchReq")
     @Builder
@@ -83,16 +81,14 @@ public class WogcPartnerPlannerDto {
         String ogLevlDvCd3,
         String ogLevlDvCd4,
         String olfDvCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchCheckReq")
     @Builder
     public record SearchCheckReq(
         String mngtYm
 
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchRes")
     public record SearchRes(
@@ -129,8 +125,7 @@ public class WogcPartnerPlannerDto {
         String mQlfDvNm,
         String btnYn,
         String mTotCnt
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-DeleteReq")
     @Builder
@@ -139,8 +134,7 @@ public class WogcPartnerPlannerDto {
         String prtnrKnm,
         String prtnrNo,
         String aplcSn
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SaveReq")
     @Builder
@@ -151,8 +145,7 @@ public class WogcPartnerPlannerDto {
         String prtnrNo,
 
         String qlfDvCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchCountMmPartnerReq")
     @Builder
@@ -162,8 +155,7 @@ public class WogcPartnerPlannerDto {
         String prtnrKnm,
         String prtnrNo,
         String qlfDvCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchCountPlarPartnerReq")
     @Builder
@@ -172,8 +164,7 @@ public class WogcPartnerPlannerDto {
         String prtnrKnm,
         String prtnrNo,
         String olfDvCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-FindRes")
     public record FindRes(
@@ -189,14 +180,16 @@ public class WogcPartnerPlannerDto {
         String upgrDmtnDvCd,
         String rcntrDt,
         String upgrMcn,
-        String fstRgstDtm,
-        String fstRgstUsrId,
+        String rgrOgTpCd,
         String rgstPrtnrKnm,
-        String fnlMdfcDtm,
-        String fnlMdfcUsrId,
-        String mdfcPrtnrKnm
-    ) {
-    }
+        String rgrPrtnrNo,
+        String rgstDt,
+        String udrOgTpCd,
+        String mdfcPrtnrKnm,
+        String udrPrtnrNo,
+        String mdfcDt
+
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-EditReq")
     @Builder
@@ -216,8 +209,7 @@ public class WogcPartnerPlannerDto {
         String cltnDt,
         String rcntrDt,
         String upgrMcn
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SaveQulificationReq")
     @Builder
@@ -242,6 +234,5 @@ public class WogcPartnerPlannerDto {
         String fnlMdfcUsrId,
         String fnlMdfcPrgId,
         String fnlMdfcDeptId
-    ) {
-    }
+    ) {}
 }
