@@ -19,5 +19,5 @@ public class WdcbSalesConfirmReceivingAndPayingDvo {
     private String sppMthdTpCd;
     private String sapPlntCd;
     private String sapSaveLctCd;
-    private int cnt;
+    private String lgstItmGdCd;
 }
