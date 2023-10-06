@@ -28,8 +28,8 @@ public class WfebSoleDistributorFeeMgtDto {
         String sellDscDvCd,
         String sellDscrCd,
         String sellDscTpCd,
-        String relPdCd,
-        String pmotUswyDvCd,
+        String sppDvCd,
+        String svPdTpCd,
         String mgNm,
         String bfsvcPrdCd,
         String rcpdt, // 접수일자
