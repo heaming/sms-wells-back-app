@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
  * W-SV-U-0001M01 반품출고 등록
  * </pre>
  *
- * @author hyewon.kim 김혜원
+ * @author hyewon.kim
  * @since 2023.02.14
  */
 @Service

@@ -23,6 +23,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0054M01 서비스처리 내역
+ * </pre>
+ *
+ * @author hyewon.kim
+ * @since 2023.03.20
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/service-processing")
 @Api(tags = "[WSNB] 서비스처리 내역 REST API")

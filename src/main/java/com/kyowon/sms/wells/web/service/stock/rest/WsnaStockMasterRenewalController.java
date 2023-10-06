@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
  * W-SV-U-0279M01 재고마스터갱신 Controller
  * </pre>
  *
- * @author hyewon.kim 김혜원
+ * @author hyewon.kim
  * @since 2023.03.13
  */
 

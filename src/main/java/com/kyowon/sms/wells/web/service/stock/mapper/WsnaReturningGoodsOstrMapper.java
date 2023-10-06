@@ -12,7 +12,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo;
  * W-SV-U-0001M01 반품출고 등록
  * </pre>
  *
- * @author hyewon.kim 김혜원
+ * @author hyewon.kim
  * @author SongTaeSung
  * @since 2023.02.14
  */
