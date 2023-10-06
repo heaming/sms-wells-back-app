@@ -9,7 +9,7 @@ import javax.validation.constraints.NotBlank;
  * W-SV-U-0279M01 재고마스터갱신
  * </pre>
  *
- * @author hyewon.kim 김혜원
+ * @author hyewon.kim
  * @since 2023.03.13
  */
 public class WsnaStockMasterRenewalDto {

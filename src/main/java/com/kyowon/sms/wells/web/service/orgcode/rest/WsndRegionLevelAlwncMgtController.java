@@ -20,6 +20,14 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0226M01 급지 수당 관리
+ * </pre>
+ *
+ * @author hyewon.kim
+ * @since 2022.12.14
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/region-level-allowances")
 @Api(tags = "[WSND] 급지 수당 관리 REST API")

@@ -13,7 +13,7 @@ import io.swagger.annotations.ApiModel;
  * W-SV-U-0226M01 급지 수당 관리
  * </pre>
  *
- * @author hyewon.kim 김혜원
+ * @author hyewon.kim
  * @since 2022.12.14
  */
 public class WsndRegionLevelAlwncMgtDto {

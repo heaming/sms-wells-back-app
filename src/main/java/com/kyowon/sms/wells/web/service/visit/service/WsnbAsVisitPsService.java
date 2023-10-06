@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
  * W-SV-U-0031M01 상품별 서비스 처리 집계 현황
  * </pre>
  *
- * @author hyewon.kim 김혜원
+ * @author hyewon.kim
  * @since 2022.12.30
  */
 @Service

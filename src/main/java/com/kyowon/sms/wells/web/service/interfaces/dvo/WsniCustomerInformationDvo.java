@@ -8,7 +8,7 @@ import lombok.Setter;
  * W-SV-I-0035 고객센터 인터페이스 특이사항 조회
  * </pre>
  *
- * @author hyewon.kim 김혜원
+ * @author hyewon.kim
  * @since 2023.04.04
  */
 @Setter

@@ -11,7 +11,7 @@ import lombok.Builder;
  * W-SV-U-0036M01 책임지역 우편번호 관리
  * </pre>
  *
- * @author hyewon.kim 김혜원
+ * @author hyewon.kim
  * @since 2022.11.17
  */
 public class WsncRpbAreaZipMgtDto {
