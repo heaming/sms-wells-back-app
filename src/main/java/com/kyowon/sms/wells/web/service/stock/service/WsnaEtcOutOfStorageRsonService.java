@@ -100,6 +100,11 @@ public class WsnaEtcOutOfStorageRsonService {
         return this.mapper.selectEtcOutOfStorageRsons(dto);
     }
 
+    /**
+     * 기타출고 사유내역 엑셀다운로드
+     * @param dto
+     * @return
+     */
     public List<SearchRes> getEtcOutOfStorageRsonsBusinessForExcelDownload(SearchReq dto) {
         return this.mapper.selectEtcOutOfStorageRsonBusiness(dto);
 

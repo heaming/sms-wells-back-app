@@ -19,6 +19,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0001M01 반품출고 등록
+ * </pre>
+ *
+ * @author hyewon.kim 김혜원
+ * @since 2023.02.14
+ */
+
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/returning-goods-out-of-storages")
 @Api(tags = "[WSNA] 반품출고 등록 REST API")

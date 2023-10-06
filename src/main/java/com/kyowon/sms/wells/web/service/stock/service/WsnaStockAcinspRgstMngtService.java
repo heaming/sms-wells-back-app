@@ -22,6 +22,15 @@ import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0139M01 월별 재고실사 등록 관리
+ * </pre>
+ *
+ * @author SongTaeSung
+ * @since 2023.07.26
+ */
+
 @Service
 @RequiredArgsConstructor
 public class WsnaStockAcinspRgstMngtService {
@@ -31,10 +40,22 @@ public class WsnaStockAcinspRgstMngtService {
 
     private final ExcelDownloadService excelDownloadService;
 
+    /**
+     * 월별재고 실사 페이징 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
     public PagingResult<SearchRes> getStockAcinspRgstMngtPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectStockAcinspRgstMngtPages(dto, pageInfo);
     }
 
+    /**
+     * 월별재고실사 대용량 엑셀다운로드
+     * @param dto
+     * @return
+     * @throws Exception
+     */
     public SXSSFWorkbook getStockAcinspRgstMngtsForExcelDownload(SearchReq dto)
         throws Exception {
         List<SearchRes> results = mapper.selectStockAcinspRgstMngtPages(dto);
@@ -110,6 +131,11 @@ public class WsnaStockAcinspRgstMngtService {
         return excelDownloadService.createExcel(fields, results);
     }
 
+    /**
+     * 창고 조회
+     * @param dto
+     * @return
+     */
     public List<WsnzWellsCodeWareHouseDvo> getWareHouses(SearchWareReq dto) {
         ValidAssert.notNull(dto);
         ValidAssert.hasText(dto.baseYm());
@@ -118,6 +144,11 @@ public class WsnaStockAcinspRgstMngtService {
         return this.mapper.selectWarehouse(dto);
     }
 
+    /**
+     * 재고적용
+     * @param dtos
+     * @return
+     */
     @Transactional
     public int saveStockAcinspRgstStocApy(List<SaveReq> dtos) {
         ValidAssert.notEmpty(dtos);
@@ -151,6 +182,11 @@ public class WsnaStockAcinspRgstMngtService {
         return processCount;
     }
 
+    /**
+     * 월별재고실사 저장
+     * @param dtos
+     * @return
+     */
     @Transactional
     public int saveStockAcinspRgst(List<SaveAcinspReq> dtos) {
         ValidAssert.notEmpty(dtos);
@@ -171,6 +207,11 @@ public class WsnaStockAcinspRgstMngtService {
         return processCount;
     }
 
+    /**
+     * 실사 확정처리
+     * @param dtos
+     * @return
+     */
     public int saveStockAcinspRgstCnfm(List<SaveAcinspCnfmReq> dtos) {
 
         ValidAssert.notEmpty(dtos);

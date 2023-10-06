@@ -22,6 +22,15 @@ import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0134M01 재고상태조정 관리 Controller
+ * </pre>
+ *
+ * @author SongTaeSung
+ * @since 2023.07.11
+ */
+
 @Service
 @RequiredArgsConstructor
 public class WsnaStockStatusControlService {
@@ -39,34 +48,75 @@ public class WsnaStockStatusControlService {
     private static final String OSTR_IOST_TP_CD = "281";
     private static final String STR_IOST_TP_CD = "181";
 
+    /**
+     * 재고상태조정 페이징 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
     public PagingResult<SearchRes> getStockStatusControlPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectStockStatusControlPages(dto, pageInfo);
     }
 
+    /**
+     * 재고상태조정 엑셀다운로드
+     * @param dto
+     * @return
+     */
     public List<SearchRes> getStockStatusControlsForExcelDownload(SearchReq dto) {
         return mapper.selectStockStatusControlPages(dto);
     }
 
+    /**
+     * 창고조회
+     * @param dto
+     * @return
+     */
     public List<SearchWarehouseRes> getStockStatusControlsWarehouse(SearchWarehouseReq dto) {
         return mapper.selectStockStatusControlWarehouse(dto);
     }
 
+    /**
+     * 관리부서 조회
+     * @param wareNo
+     * @return
+     */
     public FindOgNmRes getOrganizationDeptName(String wareNo) {
         return mapper.selectOrganizationDeptName(wareNo);
     }
 
+    /**
+     * 상품 조회
+     * @param dto
+     * @return
+     */
     public List<SearchItmPdCdRes> getStockStatusItmPdCd(SearchItmPdCdReq dto) {
         return mapper.selectStockStatusItmPdCd(dto);
     }
 
+    /**
+     * 상품조회
+     * @param dto
+     * @return
+     */
     public List<SearchWarehouseItmPdCdRes> getStockStatusWarehouseItmPdCd(SearchWarehouseItmPdCdReq dto) {
         return mapper.selectStockStatusWarehouseItmPdCd(dto);
     }
 
+    /**
+     * 상태에 따른 상품조회
+     * @param dto
+     * @return
+     */
     public List<SearchWarehouseItmPdCdRes> getStatusProductItmPdCd(SearchStatusProductReq dto) {
         return mapper.selectStatusProductItmPdCd(dto);
     }
 
+    /**
+     * 상품에 해당하는 수량 조회
+     * @param dto
+     * @return
+     */
     public SearchPdCdQtyRes getItmPdCdQty(SearchPdCdQtyReq dto) {
         ValidAssert.notNull(dto);
 
@@ -148,6 +198,11 @@ public class WsnaStockStatusControlService {
         return processCount;
     }
 
+    /**
+     * 품목재고 내역 출고 파라미터 변환
+     * @param dvo
+     * @return
+     */
     private WsnaItemStockItemizationReqDvo convertStockItemizationCreateReq(
         WsnaStockStatusControlDvo dvo
     ) {
@@ -170,6 +225,11 @@ public class WsnaStockStatusControlService {
 
     }
 
+    /**
+     * 품목재고내역 입고 파라미터 변환
+     * @param dvo
+     * @return
+     */
     private WsnaItemStockItemizationReqDvo convertStockStrItemizationCreateReq(
         WsnaStockStatusControlDvo dvo
     ) {
@@ -212,6 +272,11 @@ public class WsnaStockStatusControlService {
         return reqDvo;
     }
 
+    /**
+     * 품목재고내역 삭제 파라미터 변환
+     * @param dvo
+     * @return
+     */
     private WsnaItemStockItemizationReqDvo convertRemoveStrSotckItemizationRemoveReq(
         WsnaStockStatusControlDvo dvo
     ) {
