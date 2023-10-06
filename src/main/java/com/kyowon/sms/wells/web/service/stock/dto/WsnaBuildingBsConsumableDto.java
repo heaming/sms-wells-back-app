@@ -84,4 +84,12 @@ public class WsnaBuildingBsConsumableDto {
         @NotBlank
         String bfsvcCsmbDdlvStatCd
     ) {}
+
+    @ApiModel(value = "WsnaBldBfsvcCsmbDdlvDto-CreateOstrReq")
+    public record CreateOstrReq(
+        @NotBlank
+        String mngtYm,
+        @NotBlank
+        String strWareNo
+    ) {}
 }

@@ -43,6 +43,7 @@
                            )
            </if>
          GROUP BY A.BLD_CD, A.BLD_NM, A.RSPP_PRTNR_NO, C.VST_CST_N
+         ORDER BY A.BLD_NM
     </select>
 
     <select id="selectItemQtys" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo">
@@ -348,16 +349,14 @@
 
     <insert id="mergeBuildingBsConsumables">
          MERGE INTO TB_SVST_BFSVC_CSMB_DDLV_IZ T1
-         USING (<foreach collection="list" item="item" separator="UNION ALL">
-                SELECT #{item.mngtYm} AS MNGT_YM
-                     , #{item.bfsvcCsmbDdlvOjCd} AS BFSVC_CSMB_DDLV_OJ_CD
-                     , #{item.strWareNo} AS STR_WARE_NO
-                     , #{item.csmbPdCd} AS CSMB_PD_CD
-                     , #{item.sapMatCd} AS SAP_MAT_CD
-                     , TO_NUMBER(#{item.bfsvcCsmbDdlvQty}) AS BFSVC_CSMB_DDLV_QTY
-                     , #{item.bfsvcCsmbDdlvStatCd} AS BFSVC_CSMB_DDLV_STAT_CD
+         USING (SELECT #{mngtYm} AS MNGT_YM
+                     , #{bfsvcCsmbDdlvOjCd} AS BFSVC_CSMB_DDLV_OJ_CD
+                     , #{strWareNo} AS STR_WARE_NO
+                     , #{csmbPdCd} AS CSMB_PD_CD
+                     , #{sapMatCd} AS SAP_MAT_CD
+                     , TO_NUMBER(#{bfsvcCsmbDdlvQty}) AS BFSVC_CSMB_DDLV_QTY
+                     , #{bfsvcCsmbDdlvStatCd} AS BFSVC_CSMB_DDLV_STAT_CD
                   FROM DUAL
-                </foreach>
                ) T2
             ON ( T1.MNGT_YM = T2.MNGT_YM
                  AND T1.BFSVC_CSMB_DDLV_OJ_CD = T2.BFSVC_CSMB_DDLV_OJ_CD
@@ -396,20 +395,21 @@
     </insert>
 
     <select id="selectBfsvcCsmbDdlvIzByMngtYm" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo">
-        SELECT MNGT_YM
-             , BFSVC_CSMB_DDLV_OJ_CD
-             , STR_WARE_NO
-             , CSMB_PD_CD
-             , SAP_MAT_CD
-             , BFSVC_CSMB_DDLV_QTY
-             , BFSVC_CSMB_DDLV_STAT_CD
-             , OSTR_AK_NO
-             , OSTR_AK_SN
-          FROM TB_SVST_BFSVC_CSMB_DDLV_IZ
+        SELECT S1.MNGT_YM
+             , S1.BFSVC_CSMB_DDLV_OJ_CD
+             , S1.STR_WARE_NO
+             , S1.CSMB_PD_CD
+             , S1.SAP_MAT_CD
+             , S1.BFSVC_CSMB_DDLV_QTY
+             , S1.BFSVC_CSMB_DDLV_STAT_CD
+             , S1.OSTR_AK_NO
+             , S1.OSTR_AK_SN
+          FROM TB_SVST_BFSVC_CSMB_DDLV_IZ S1
          WHERE BFSVC_CSMB_DDLV_STAT_CD = '20'
            AND BFSVC_CSMB_DDLV_OJ_CD = '3'
            AND BFSVC_CSMB_DDLV_QTY > 0
            AND MNGT_YM = #{mngtYm}
+           AND STR_WARE_NO = #{strWareNo}
     </select>
 
     <select id="selectNewOstrAkNo" resultType="String">
@@ -435,8 +435,8 @@
              <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
            AND MNGT_YM = #{mngtYm}
-           AND BFSVC_CSMB_DDLV_OJ_CD = #{bfsvcCsmbDdlvOjCd}
+           AND BFSVC_CSMB_DDLV_OJ_CD = '3'
            AND STR_WARE_NO = #{strWareNo}
-           AND CSMB_PD_CD = #{csmbPdCd}
+           <!-- AND CSMB_PD_CD = #{csmbPdCd} -->
     </update>
 </mapper>
