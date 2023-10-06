@@ -61,9 +61,9 @@ public class WsncBsPeriodCustomerTfMgtController {
     @ApiOperation(value = "정기BS 소속 조회")
     @GetMapping("/organizations")
     public List<BranchsAndServiceCentersRes> getBranchsAndServiceCenters(
-        String ogId
+        BranchsAndServiceCentersReq dto
     ) {
-        return service.getBranchsAndServiceCenters(ogId);
+        return service.getBranchsAndServiceCenters(dto);
     }
 
     @ApiOperation(value = "정기BS 파트너 조회")
