@@ -22,6 +22,17 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0109M01 이동입고현황
+ * W-SV-U-0132M01 이동입고 관리
+ * W-SV-U-0169P01 이관입고 등록
+ *
+ * </pre>
+ *
+ * @author songTaeSung
+ * @since 2023.02.13
+ */
 @Api(tags = "[WSNA] 이동입고현황 REST API")
 @Validated
 @RequiredArgsConstructor
@@ -138,6 +149,7 @@ public class WsnaMovementStoreController {
     }
 
     @GetMapping("/strware-monthly-end")
+    @ApiOperation(value = "마감된 창고 조회", notes = "마감된 창고의 건수를 조회한다.")
     public int getStrWareMonthlyClosed(warehouseMonthlyReq dto) {
         return service.getStrWareMonthlyClosed(dto);
     }

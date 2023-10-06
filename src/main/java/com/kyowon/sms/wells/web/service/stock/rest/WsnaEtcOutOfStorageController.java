@@ -19,6 +19,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0143M01 기타출고 등록
+ * </pre>
+ *
+ * @author songTaeSung
+ * @since 2023.02.03
+ */
+
 @Api(tags = "[WSNA] 기타출고 등록 조회")
 @RequiredArgsConstructor
 @RestController

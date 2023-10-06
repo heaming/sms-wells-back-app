@@ -22,6 +22,16 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ *
+ * <pre>
+ * W-SV-U-0117M01 출고요청 관리
+ * </pre>
+ *
+ * @author songtaesung
+ * @since 2022.12.26
+ */
+
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/out-of-storage-asks")
 @Api(tags = "[WSNA] 출고요청 관리 REST API")

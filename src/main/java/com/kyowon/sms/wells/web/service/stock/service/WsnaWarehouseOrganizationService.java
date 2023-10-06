@@ -74,6 +74,11 @@ public class WsnaWarehouseOrganizationService {
         return this.mapper.selectWareCarriedCounter(dto);
     }
 
+    /**
+     * 창고조직 이월 저장
+     * @param dto
+     * @return
+     */
     @Transactional
     public int createWareCarried(CreateReq dto) {
 
@@ -106,11 +111,21 @@ public class WsnaWarehouseOrganizationService {
         return this.converter.mapWsnaWarehouseOgDvoToFindRes(warehouse);
     }
 
+    /**
+     * 창고조직 등록 상세조회
+     * @param apyYmWareNo
+     * @return
+     */
     private WsnaWarehouseOrganizationDvo getWarehouseByPk(String apyYmWareNo) {
         ValidAssert.hasText(apyYmWareNo);
         return this.mapper.selectWarehouseByPk(apyYmWareNo).orElseThrow();
     }
 
+    /**
+     * 창고조직 등록 저장
+     * @param dto
+     * @return
+     */
     @Transactional(timeout = 300)
     public int saveWarehouseOg(SaveReq dto) {
         int processCount = 0;
@@ -173,6 +188,11 @@ public class WsnaWarehouseOrganizationService {
         return processCount;
     }
 
+    /**
+     * 셀렉트 박스 창고목록 조회
+     * @param dto
+     * @return
+     */
     public List<SearchWarehouseRes> getHighRankWarehouses(SearchWarehouseReq dto) {
         List<SearchWarehouseRes> dtos;
 
@@ -214,15 +234,32 @@ public class WsnaWarehouseOrganizationService {
         return dtos;
     }
 
+    /**
+     * 창고상세구분코드 비교
+     * @param wareDtlDvCd
+     * @return
+     */
     private boolean isOrgWarehouse(String wareDtlDvCd) {
         return SERVICE_CENTER_ORGANIZATION.getCode().equals(wareDtlDvCd)
             || BUSINESS_CENTER_ORGANIZATION.getCode().equals(wareDtlDvCd);
     }
 
+    /**
+     * 빌딩목록 페이징 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
     public PagingResult<SearchBuildingRes> getBuildings(SearchBuildingReq dto, PageInfo pageInfo) {
         return this.mapper.selectBuildings(dto, pageInfo);
     }
 
+    /**
+     * 중복키 제거
+     * @param keyExtractor
+     * @return
+     * @param <T>
+     */
     public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Set<Object> seen = ConcurrentHashMap.newKeySet();
         return t -> seen.add(keyExtractor.apply(t));
