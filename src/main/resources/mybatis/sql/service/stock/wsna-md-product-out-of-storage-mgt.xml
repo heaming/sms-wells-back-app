@@ -129,6 +129,9 @@
                                      , S2.RPB_LOCARA_CD     /*책임지역코드*/
                                      , S1.PD_USWY_CD        /*상품용도코드*/
                                      , S3.VST_FSH_DT        /*방문완료일자(출고완료일자)*/
+                                     , B1.SPP_PROCS_BZS_CD  /*배송업체*/
+                                     , B1.SPP_BZS_PD_ID     /*시리얼번호*/
+                                     , B1.SPP_IVC_NO        /*송장번호*/
                                        /*작업결과용*/
                                      , NVL(S3.AS_LCT_CD, S5.AS_LCT_CD) AS AS_LCT_CD    /*AS위치코드*/
                                      , NVL(S3.AS_PHN_CD, S5.AS_PHN_CD) AS AS_PHN_CD    /*AS현상코드*/
@@ -204,6 +207,10 @@
                                  ON P1.PD_CD = C2.OJ_PD_CD
                                  AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
                                  AND P1.DTA_DL_YN = 'N'
+                                LEFT OUTER JOIN TB_SSSO_SPP_BZS_IVC_PROCS_IZ  B1  /*배송업체송장처리내역*/
+                                 ON B1.CNTR_NO = S1.CNTR_NO
+                                 AND B1.CNTR_SN = S1.CNTR_SN
+                                 AND B1.DTA_DL_YN = 'N'
                                WHERE 1=1
                                 /* 출고구분 */
                                 /* 0 :전체 1: 작업완료 2: 작업대기 */
@@ -212,7 +219,7 @@
                                 </if>
                                 <if test="@MybatisUtils@equals(findGb, '1')">
                                 AND S2.WK_PRGS_STAT_CD = '20'
-                                AND S3.VST_FSH_DT = #{vstFshDt}
+                                AND S3.VST_FSH_DT = #{ostrCnfmDt}
                                 </if>
                                 <if test="@MybatisUtils@equals(findGb, '2')">
                                 AND S2.WK_PRGS_STAT_CD IN ('00', '10')
@@ -230,10 +237,13 @@
                                     AND S6.IST_DT BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
                                     </if>
                                 </if>
-                                /*
-                                AND S1.CNTR_NO = 'W20234972331'
-                                AND S1.CNTR_NO IN ('W20235479631', 'W20235996822', 'W20236057066', 'W20236057294', 'W20236148047')
-                                */
+                                /* 고객정보 검색조건 */
+                                <if test="@MybatisUtils@isNotEmpty(cntrDtlNo)">
+                                AND S1.CNTR_NO||'-'||S1.CNTR_SN = #{cntrDtlNo} /* 계약상세번호 검색 */
+                                </if>
+                                <if test="@MybatisUtils@isNotEmpty(serialNo)">
+                                AND B1.SPP_BZS_PD_ID = #{serialNo} /* 제품시리얼번호 검색 */
+                                </if>
                         ) PL1
                      ) V1
                 WHERE 1=1
@@ -358,6 +368,19 @@
            AND C1.CNTR_SN = I1.CNTR_SN
           WHERE 1=1
            AND C1.DTA_DL_YN = 'N'
+           /* 고객정보 검색조건 */
+           <if test='@MybatisUtils@isNotEmpty(rcgvpKnm)'>
+           AND C4.RCGVP_KNM = #{rcgvpKnm}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
+           AND C4.CRAL_LOCARA_TNO = #{cralLocaraTno} /*휴대폰번호1*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
+           AND C4.MEXNO_ENCR = #{mexnoEncr}          /*휴대폰번호2*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
+           AND C4.CRAL_IDV_TNO = #{cralIdvTno}       /*휴대폰번호3*/
+           </if>
        )
        SELECT
            C1.CNTR_NO               /*계약번호*/
@@ -403,7 +426,13 @@
          , NVL(I1.OG_ID, I1.SV_CNR_OG_ID) AS OG_ID
          , NVL(I1.OG_TP_CD, I1.ICHR_OG_TP_CD) AS OG_TP_CD
          , NVL(I1.PRTNR_NO, I1.ICHR_PRTNR_NO) AS PRTNR_NO
-         , TO_CHAR(TO_DATE(I1.VST_FSH_DT ),'YYYY-MM-DD') AS VST_FSH_DT  /*방문완료일자(출고확정일)*/
+         , TO_CHAR(TO_DATE(I1.VST_FSH_DT ),'YYYY-MM-DD') AS OSTR_CNFRM_DT  /*출고확정일*/
+         /* MD 기준 */
+         , '파트너업체' AS PRTNR_BZS_NM
+         , '1'        AS PCSV_COMP_DV
+         , '택배사'    AS PCSV_COMP_NM
+         , '송장번호' AS SPP_IVC_NO
+         , '시리얼번호' AS SPP_BZS_PD_ID
          /* 작업결과 */
          , I1.AS_LCT_CD                 /*AS위치코드*/
          , I1.AS_PHN_CD                 /*AS현상코드*/

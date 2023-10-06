@@ -33,16 +33,18 @@ public class WsnaMdProductOutOfStorageMgtController {
 
     @ApiOperation(value = "MD 상품 출고관리", notes = "조회조건에 일치하는 MD 상품출고관리 데이터를 조회한다.")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "startDt", value = "계약시작일자", paramType = "query", required = true),
-        @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query", required = true),
-        @ApiImplicitParam(name = "findGb", value = "조회구분", paramType = "query", required = true),
-        @ApiImplicitParam(name = "firstSppGb", value = "첫배송여부구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "startDt", value = "계약시작일자", paramType = "query"),
+        @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query"),
+        @ApiImplicitParam(name = "findGb", value = "조회구분", paramType = "query"),
+        @ApiImplicitParam(name = "firstSppGb", value = "첫배송여부구분", paramType = "query"),
         @ApiImplicitParam(name = "selCnt", value = "조회제한건수", paramType = "query"),
-        @ApiImplicitParam(name = "vstFshDt", value = "출고확정일자", paramType = "query"),
+        @ApiImplicitParam(name = "ostrCnfmDt", value = "출고확정일자", paramType = "query"),
         @ApiImplicitParam(name = "prtnrBzsCd", value = "파트너업체코드", paramType = "query"),
-        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
-        @ApiImplicitParam(name = "cstNm", value = "고객명", paramType = "query"),
-        @ApiImplicitParam(name = "cralIdvTno", value = "휴대폰번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrDtlNo", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "rcgvpKnm", value = "고객명", paramType = "query"),
+        @ApiImplicitParam(name = "cralLocaraTno", value = "휴대지역전화번호", paramType = "query"),
+        @ApiImplicitParam(name = "mexnoEncr", value = "휴대전화국번호암호화", paramType = "query"),
+        @ApiImplicitParam(name = "cralIdvTno", value = "휴대개별전화번호", paramType = "query"),
         @ApiImplicitParam(name = "serialNo", value = "시리얼번호", paramType = "query"),
     })
     @GetMapping
