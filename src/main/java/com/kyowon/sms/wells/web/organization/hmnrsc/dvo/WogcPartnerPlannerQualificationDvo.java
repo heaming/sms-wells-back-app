@@ -18,6 +18,9 @@ public class WogcPartnerPlannerQualificationDvo {
     String pymdt;
     String dsbAmt;
     String chdt;
+    String pcpOgTpCd;
+    String pcpPrtnrNo;
+    String prcsdt;
     String dtaDlYn;
     String fstRgstDtm;
     String fstRgstUsrId;
