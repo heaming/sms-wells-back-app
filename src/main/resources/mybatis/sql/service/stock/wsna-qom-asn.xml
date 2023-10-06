@@ -120,13 +120,14 @@
              )
           WITH TW_QTY1 AS   /* 금주 수량 계산 */
              (
-               SELECT /*+ INLINE */
+               SELECT /*+ USE_HASH(D1 D2 D3) */
                       D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
                     , D3.PU_PART_PD_CD      AS PD_CD
                     , SUM(D3.PU_QTY)        AS QTY
                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
                 INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2   /* 고객서비스BS대상내역 */
                    ON D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
+                  AND D2.ASN_OJ_YM     = D1.ASN_OJ_YM
                 INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ D3       /* 정기BS투입품목내역 */
                    ON D3.ASN_OJ_YM  = D2.ASN_OJ_YM
                   AND D3.CNTR_NO    = D2.CNTR_NO
@@ -180,10 +181,7 @@
                     THEN NVL(T1.ETN_WTCF_APY_QTY, 0) + MOD(T1.ETN_WTCF_APY_QTY, 2)
                     ELSE T1.ETN_WTCF_APY_QTY
                END                                                  AS CNFM_QTY
-             , CASE WHEN T1.BOX_QTY <![CDATA[>]]> 0 THEN T1.BOX_QTY * CEIL( GREATEST( ( SELECT QTY
-                                                                                          FROM TW_QTY1
-                                                                                         WHERE PRTNR_NO = T1.WARE_MNGT_PRTNR_NO
-                                                                                           AND PD_CD    = T1.ITM_PD_CD ), T1.ETN_WTCF_APY_QTY, 0 ) / T1.BOX_QTY ) / T1.BOX_QTY
+             , CASE WHEN T1.BOX_QTY <![CDATA[>]]> 0 THEN T1.BOX_QTY * CEIL( GREATEST( TW_QTY1.QTY, T1.ETN_WTCF_APY_QTY, 0 ) / T1.BOX_QTY ) / T1.BOX_QTY
                     ELSE 0
                END                                                  AS BOX_UNIT_QTY
              , 0                                                    AS ACL_OSTR_QTY
@@ -301,6 +299,9 @@
                        GROUP BY D7.WARE_NO, D1.PART_PD_CD, D7.DIDY_DV_CD, D3.MNGT_PRTNR_NO, D3.MNGT_PRTNR_OG_TP_CD, D9.BLD_CD, NVL(D10.ADR_ID, D7.WARE_ADR_ID), D6.PD_PRP_VAL19
                     ) QOM
              ) T1
+          LEFT OUTER JOIN TW_QTY1
+            ON TW_QTY1.PRTNR_NO = T1.WARE_MNGT_PRTNR_NO
+           AND TW_QTY1.PD_CD    = T1.ITM_PD_CD
          WHERE NOT EXISTS ( SELECT 1
                               FROM TB_SVST_QOM_ASN_EXCD_IZ   /* 물량배정제외내역 */
                              WHERE ITM_PD_CD = T1.ITM_PD_CD
@@ -313,7 +314,7 @@
                                AND S1.OG_TP_CD       = T1.OG_TP_CD
                                AND S1.DTA_DL_YN      = 'N'
                                AND S1.QOM_ASN_APY_YN = 'N'
-                               AND S1.APY_SN         = ( SELECT /*+ UNNEST */
+                               AND S1.APY_SN         = ( SELECT /*+ UNNEST INDEX(TB_SVST_QOM_ASN_PRTNR_APY_IZ) */
                                                                 MAX(APY_SN)
                                                            FROM TB_SVST_QOM_ASN_PRTNR_APY_IZ
                                                           WHERE PRTNR_NO  = S1.PRTNR_NO
@@ -353,15 +354,20 @@
              , DTA_DL_YN            /* 데이터삭제여부 */
         <include refid="COMMON.insertSystemField" />
              )
-          WITH TW_QTY1 AS   /* 금주 수량 계산 */
+          WITH BASE_QTY AS
              (
-               SELECT /*+ LEADING(D1 D2 D4 D3) INDEX(D2 IX_SVPD_CST_SV_BFSVC_OJ_IZ_01) */
-                      D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
-                    , D3.PU_PART_PD_CD      AS PD_CD
-                    , SUM(D3.PU_QTY)        AS QTY
+               SELECT /*+ USE_HASH(D1 D2 D3) */
+                      D1.CNFM_PSIC_PRTNR_NO                            AS PRTNR_NO
+                    , D3.PU_PART_PD_CD                                 AS PD_CD
+                    , CASE WHEN D1.VST_PRGS_STAT_CD = '20' THEN D1.VST_PRGS_STAT_CD
+                           ELSE '21'
+                      END                                              AS VST_PRGS_STAT_CD
+                    , TO_CHAR(TO_DATE(D1.VST_CNFMDT, 'YYYYMMDD'), 'W') AS VST_WEEK
+                    , SUM(D3.PU_QTY)                                   AS QTY
                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
                 INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2   /* 고객서비스BS대상내역 */
                    ON D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
+                  AND D2.ASN_OJ_YM     = D1.ASN_OJ_YM
                 INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ D3       /* 정기BS투입품목내역 */
                    ON D3.ASN_OJ_YM  = D2.ASN_OJ_YM
                   AND D3.CNTR_NO    = D2.CNTR_NO
@@ -374,99 +380,20 @@
                   AND D2.DTA_DL_YN = 'N'
                   AND D3.DTA_DL_YN = 'N'
                   AND D4.DTA_DL_YN = 'N'
-                  AND D1.VST_PRGS_STAT_CD <![CDATA[<>]]> '20'
                   AND D4.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
+                  AND (
+                           D1.VST_PRGS_STAT_CD <![CDATA[<>]]> '20'
+                        OR (     D1.VST_PRGS_STAT_CD = '20'
+                             AND TO_CHAR(TO_DATE(D1.VST_CNFMDT, 'YYYYMMDD'), 'W') = TO_CHAR(SYSDATE, 'W')
+                           )
+                      )
                   AND D4.REQD_DT IS NULL
                   AND D4.CPS_DT IS NULL
                   AND D1.ASN_OJ_YM = #{apyYm}
-                GROUP BY D1.CNFM_PSIC_PRTNR_NO, D3.PU_PART_PD_CD
-             )
-             , TW_QTY2 AS
-             (
-               SELECT /*+ LEADING(D1 D2 D4 D3) */
-                      D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
-                    , D3.PU_PART_PD_CD      AS PD_CD
-                    , SUM(D3.PU_QTY)        AS QTY
-                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
-                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2   /* 고객서비스BS대상내역 */
-                   ON D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
-                INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ D3       /* 정기BS투입품목내역 */
-                   ON D3.ASN_OJ_YM  = D2.ASN_OJ_YM
-                  AND D3.CNTR_NO    = D2.CNTR_NO
-                  AND D3.CNTR_SN    = D2.CNTR_SN
-                  AND D3.PDCT_PD_CD = D2.PDCT_PD_CD
-                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D4       /* 고객서비스수행내역 */
-                   ON D4.CNTR_NO = D1.CNTR_NO
-                  AND D4.CNTR_SN = D1.CNTR_SN
-                WHERE D1.DTA_DL_YN = 'N'
-                  AND D2.DTA_DL_YN = 'N'
-                  AND D3.DTA_DL_YN = 'N'
-                  AND D4.DTA_DL_YN = 'N'
-                  AND D1.VST_PRGS_STAT_CD <![CDATA[<>]]> '20'
-                  AND D4.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
-                  AND D4.REQD_DT IS NULL
-                  AND D4.CPS_DT IS NULL
-                  AND D1.ASN_OJ_YM = #{asnOjYm}
-                  AND TO_CHAR(TO_DATE(D1.VST_CNFMDT, 'YYYYMMDD'), 'W') = TO_CHAR(SYSDATE, 'W')
-                GROUP BY D1.CNFM_PSIC_PRTNR_NO, D3.PU_PART_PD_CD
-             )
-             , NW_QTY1 AS
-             (
-               SELECT /*+ LEADING(D1 D2 D4 D3) */
-                      D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
-                    , D3.PU_PART_PD_CD      AS PD_CD
-                    , SUM(D3.PU_QTY)        AS QTY
-                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
-                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2   /* 고객서비스BS대상내역 */
-                   ON D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
-                INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ D3       /* 정기BS투입품목내역 */
-                   ON D3.ASN_OJ_YM  = D2.ASN_OJ_YM
-                  AND D3.CNTR_NO    = D2.CNTR_NO
-                  AND D3.CNTR_SN    = D2.CNTR_SN
-                  AND D3.PDCT_PD_CD = D2.PDCT_PD_CD
-                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D4       /* 고객서비스수행내역 */
-                   ON D4.CNTR_NO = D1.CNTR_NO
-                  AND D4.CNTR_SN = D1.CNTR_SN
-                WHERE D1.DTA_DL_YN = 'N'
-                  AND D2.DTA_DL_YN = 'N'
-                  AND D3.DTA_DL_YN = 'N'
-                  AND D4.DTA_DL_YN = 'N'
-                  AND D1.VST_PRGS_STAT_CD <![CDATA[<>]]> '20'
-                  AND D4.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
-                  AND D4.REQD_DT IS NULL
-                  AND D4.CPS_DT IS NULL
-                  AND D1.ASN_OJ_YM = #{asnOjYm}
-                  AND TO_CHAR(TO_DATE(D1.VST_CNFMDT, 'YYYYMMDD'), 'W') = TO_CHAR(SYSDATE + 7, 'W')
-                GROUP BY D1.CNFM_PSIC_PRTNR_NO, D3.PU_PART_PD_CD
-             )
-             , BS_QTY1 AS
-             (
-               SELECT /*+ LEADING(D1 D2 D4 D3) */
-                      D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
-                    , D3.PU_PART_PD_CD      AS PD_CD
-                    , SUM(D3.PU_QTY)        AS QTY
-                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
-                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2   /* 고객서비스BS대상내역 */
-                   ON D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
-                INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ D3       /* 정기BS투입품목내역 */
-                   ON D3.ASN_OJ_YM  = D2.ASN_OJ_YM
-                  AND D3.CNTR_NO    = D2.CNTR_NO
-                  AND D3.CNTR_SN    = D2.CNTR_SN
-                  AND D3.PDCT_PD_CD = D2.PDCT_PD_CD
-                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D4       /* 고객서비스수행내역 */
-                   ON D4.CNTR_NO = D1.CNTR_NO
-                  AND D4.CNTR_SN = D1.CNTR_SN
-                WHERE D1.DTA_DL_YN        = 'N'
-                  AND D2.DTA_DL_YN        = 'N'
-                  AND D3.DTA_DL_YN        = 'N'
-                  AND D4.DTA_DL_YN        = 'N'
-                  AND D1.VST_PRGS_STAT_CD = '20'
-                  AND D4.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
-                  AND D4.REQD_DT IS NULL
-                  AND D4.CPS_DT IS NULL
-                  AND D1.ASN_OJ_YM        = #{asnOjYm}
-                  AND TO_CHAR(TO_DATE(D1.VST_CNFMDT, 'YYYYMMDD'), 'W') = TO_CHAR(SYSDATE, 'W')
-                GROUP BY D1.CNFM_PSIC_PRTNR_NO, D3.PU_PART_PD_CD
+                GROUP BY D1.CNFM_PSIC_PRTNR_NO, D3.PU_PART_PD_CD, TO_CHAR(TO_DATE(D1.VST_CNFMDT, 'YYYYMMDD'), 'W')
+                    , CASE WHEN D1.VST_PRGS_STAT_CD = '20' THEN D1.VST_PRGS_STAT_CD
+                           ELSE '21'
+                      END
              )
         SELECT #{wareDtlDvCd} || #{asnOjYm} || LPAD( #{qomAsnNo} + ROWNUM, 7, '0')
              , #{asnOjYm}                                           AS ASN_OJ_YM
@@ -520,8 +447,7 @@
         <include refid="COMMON.insertSystemFieldValue" />
           FROM
              (
-               SELECT /*+ NO_MERGE(T1) */
-                      QOM.STR_WARE_NO
+               SELECT QOM.STR_WARE_NO
                     , QOM.ITM_PD_CD
                     , QOM.SPP_DV_CD
                     , QOM.WARE_MNGT_PRTNR_NO
@@ -541,31 +467,19 @@
                     , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm} THEN 0
                            ELSE NVL( STOC.PITM_STOC_A_GD_QTY, 0 )
                       END                      AS CRTL_STOC_QTY
-                    , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm} THEN NVL( ( SELECT QTY
-                                                                                 FROM TW_QTY1
-                                                                                WHERE PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
-                                                                                  AND PD_CD    = QOM.ITM_PD_CD ), 0)
-                           ELSE NVL( ( SELECT QTY
-                                         FROM TW_QTY2
-                                        WHERE PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
-                                          AND PD_CD    = QOM.ITM_PD_CD ), 0)
+                    , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm} THEN NVL(TW_QTY1.QTY, 0)
+                           ELSE NVL(TW_QTY2.QTY, 0)
                       END                      AS THWK_EXP_QTY
                     , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm}                     THEN 0
                            WHEN #{apyYm} <![CDATA[<>]]> TO_CHAR(SYSDATE + 7, 'YYYYMM') THEN 0
-                           ELSE NVL( ( SELECT QTY
-                                         FROM NW_QTY1
-                                        WHERE PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
-                                          AND PD_CD    = QOM.ITM_PD_CD ), 0)
+                           ELSE NVL(NW_QTY1.QTY, 0)
                       END                      AS BORR_EXP_QTY
                     , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm} THEN 0
-                           ELSE NVL( ( SELECT QTY
-                                         FROM BS_QTY1
-                                        WHERE PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
-                                          AND PD_CD    = QOM.ITM_PD_CD ), 0)
+                           ELSE NVL(BS_QTY1.QTY, 0)
                       END                      AS BFSVC_FSH_CT
                  FROM
                     (
-                      SELECT /*+ NO_MERGE LEADING(D1 D4) INDEX(D1 PK_SVPD_RGBS_PU_ITM_IZ) INDEX(D2 (CST_SV_ASN_NO, ASN_OJ_YM, CNTR_NO, CNTR_SN, PDCT_PD_CD, DTA_DL_YN)) */
+                      SELECT /*+ USE_HASH(D1 D2 D3) */
                              D8.WARE_NO                      AS STR_WARE_NO
                            , D1.PU_PART_PD_CD                AS ITM_PD_CD
                            , D8.DIDY_DV_CD                   AS SPP_DV_CD
@@ -650,6 +564,53 @@
                    ON STOC.WARE_NO   = QOM.STR_WARE_NO
                   AND STOC.ITM_PD_CD = QOM.ITM_PD_CD
                   AND STOC.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN
+                    (
+                      SELECT PRTNR_NO
+                           , PD_CD
+                           , SUM(QTY) AS QTY
+                        FROM BASE_QTY
+                       WHERE VST_PRGS_STAT_CD = '21'
+                       GROUP BY PRTNR_NO, PD_CD
+                    ) TW_QTY1   /* 금주 수량 계산 */
+                   ON TW_QTY1.PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
+                  AND TW_QTY1.PD_CD    = QOM.ITM_PD_CD
+                 LEFT OUTER JOIN
+                    (
+                      SELECT PRTNR_NO
+                           , PD_CD
+                           , SUM(QTY) AS QTY
+                        FROM BASE_QTY
+                       WHERE VST_PRGS_STAT_CD = '21'
+                         AND VST_WEEK         = TO_CHAR(SYSDATE, 'W')
+                       GROUP BY PRTNR_NO, PD_CD
+                    ) TW_QTY2
+                   ON TW_QTY2.PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
+                  AND TW_QTY2.PD_CD    = QOM.ITM_PD_CD
+                 LEFT OUTER JOIN
+                    (
+                      SELECT PRTNR_NO
+                           , PD_CD
+                           , SUM(QTY) AS QTY
+                        FROM BASE_QTY
+                       WHERE VST_PRGS_STAT_CD = '21'
+                         AND VST_WEEK         = TO_CHAR(SYSDATE + 7, 'W')
+                       GROUP BY PRTNR_NO, PD_CD
+                    ) NW_QTY1
+                   ON NW_QTY1.PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
+                  AND NW_QTY1.PD_CD    = QOM.ITM_PD_CD
+                 LEFT OUTER JOIN
+                    (
+                      SELECT PRTNR_NO
+                           , PD_CD
+                           , SUM(QTY) AS QTY
+                        FROM BASE_QTY
+                       WHERE VST_PRGS_STAT_CD = '20'
+                         AND VST_WEEK         = TO_CHAR(SYSDATE, 'W')
+                       GROUP BY PRTNR_NO, PD_CD
+                    ) BS_QTY1
+                   ON BS_QTY1.PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
+                  AND BS_QTY1.PD_CD    = QOM.ITM_PD_CD
              ) T1
          WHERE NOT EXISTS ( SELECT 1
                               FROM TB_SVST_QOM_ASN_EXCD_IZ   /* 물량배정제외내역 */
