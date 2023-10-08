@@ -284,14 +284,12 @@ public class WwdbRefundApplicationService {
         String acFntRsCd = resultDvo.getAcFntRsCd();
         String acFntRsNm = "";
         // 3.2 리턴받은 계좌이체불능코드에 해당하는 계좌이체결과코드 조회
-        //        if (!ObjectUtils.isEmpty(resultDvo.getBilCrtStatCd())) {
-        //            if ("1".equals(resultDvo.getBilCrtStatCd())) {
-        //                acFntRsNm = mapper.selectAutomaticTransferResultCodeName("VAC", acFntRsCd);
-        //            }
-        //            if ("2".equals(resultDvo.getBilCrtStatCd())) {
-        //                acFntRsNm = resultDvo.getErrCn();
-        //            }
-        //        }
+        if (!StringUtil.isEmpty(resultDvo.getBilCrtStatCd())) {
+            // 실패인 경우
+            if ("2".equals(resultDvo.getBilCrtStatCd())) {
+                acFntRsNm = resultDvo.getErrCn();
+            }
+        }
         return WwdaAutoTransferInterfaceDto.SearchBankEffectivenessCheckRes.builder()
             .achldrNm(resultDvo.getAchldrNm())
             .acFntImpsCd(acFntRsCd)
