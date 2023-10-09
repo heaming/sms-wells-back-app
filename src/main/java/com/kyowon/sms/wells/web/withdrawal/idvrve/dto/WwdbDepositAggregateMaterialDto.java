@@ -11,12 +11,13 @@ public class WwdbDepositAggregateMaterialDto {
     ) {
 
     }
+
     @ApiModel("WwdbDepositAggregateMaterialDto-SearchDepositAggregateMaterialRes")
     public record SearchDepositAggregateMaterialRes(
         String dvNm,
         String dpTpCd,
-        String sellTpCd,
-        String totRowNum,
+//        String sellTpCd,
+//        String totRowNum,
         String spayAmt,
         String rtlsAmt,
         String mbmsAmt,
@@ -46,7 +47,8 @@ public class WwdbDepositAggregateMaterialDto {
         String coIstPer,
         String mngtPer,
         String rglrPer,
-        String filtPer
+        String filtPer,
+        String totalPer
     ) {
 
     }
