@@ -422,7 +422,7 @@
                   FROM (
                         SELECT T1.*
                              , NVL(F1.SELL_FEE, 0) AS PERF_VAL   -- 판매수수료(총판) - As-Is의 LC1250P.LCAM01
-                             , ROW_NUMBER() OVER(PARTITION BY T1.CNTR_NO, T1.CNTR_SN ORDER BY F1.CH_SN DESC, F1.FST_RGST_DTM DESC) SEQ
+                             , ROW_NUMBER() OVER(PARTITION BY T1.CNTR_NO, T1.CNTR_SN ORDER BY NVL(F1.HGR_PD_CD, '0') DESC, F1.FST_RGST_DTM DESC) SEQ
                           FROM (
                                     SELECT N1.BASE_YM
                                          , N1.PERF_YM
@@ -471,16 +471,17 @@
                     LEFT OUTER JOIN TB_FEAM_NCHN_FEE_BAS F1  --신채널수수료기본
                             ON T1.SELL_TP_CD = F1.SELL_TP_CD
                            AND T1.PD_CD = F1.PD_CD
-                           /* 상위상품코드는 판매유형코드(SELL_TP_CD)가 렌탈(SELL_TP_CD = '2')인 경우만 적용 */
-                           AND CASE WHEN (T1.SELL_TP_CD = '2') THEN NVL(T1.HGR_PD_CD, 'X') ELSE 'X' END = CASE WHEN (T1.SELL_TP_CD = '2') THEN NVL(F1.HGR_PD_CD, 'X') ELSE 'X' END
+                           /* 상위상품코드는 판매유형코드(SELL_TP_CD)가 렌탈(2)인 경우만 적용 */
+                           AND (
+                                    ( T1.SELL_TP_CD != '2' AND 1 = 1 )
+                                 OR ( T1.SELL_TP_CD = '2' AND ( T1.HGR_PD_CD = F1.HGR_PD_CD OR F1.HGR_PD_CD IS NULL ) )
+                               )
                            AND NVL(P1.SV_PD_TP_CD, 'X') = NVL(F1.USWY_TP_CD, 'X')
                            AND NVL(T1.SELL_DSC_TP_CD, 'X') = NVL(F1.PMOT_CD, 'X')
                            AND NVL(T1.SELL_DSC_DV_CD, 'X') = NVL(F1.SELL_DSC_DV_CD, 'X')
                            AND NVL(T1.SELL_DSCR_CD, 'X') = NVL(F1.SELL_DSCR_CD, 'X')
-                           AND NVL(T1.SV_PRD, 0) = NVL(F1.SV_PRD, 0)
-                           AND NVL(T1.HCR_DV_CD, 'X') = NVL(F1.HCR_DV_CD, 'X')
+                           AND (T1.SV_PRD = F1.SV_PRD  OR F1.SV_PRD IS NULL)
                            AND F1.FEEC_DV_CD = 'W' --W:B2B
-                           AND F1.DTA_DL_YN = 'N'
                            AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN F1.APY_STRTDT AND F1.APY_ENDDT
                          WHERE 1 = 1
                       ) Y1
