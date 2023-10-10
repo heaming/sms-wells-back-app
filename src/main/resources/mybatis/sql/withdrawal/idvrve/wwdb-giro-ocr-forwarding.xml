@@ -39,7 +39,7 @@
                       , T1.CNTR_SN /*계약일련번호*/
                       , T1.CNTR_NO || T1.CNTR_SN AS CNTR /*계약상세번호*/
                       , T4.CST_KNM
-                      , T1.SL_RCOG_DT AS SL_DT /*매출일자*/
+                      , T5.CNTR_PD_STRTDT AS SL_DT /*매출일자*/
                       , T1.RENTAL_TN/*현재차월*/
                       , T5.STPL_PTRM AS RECAP_DUTY_PTRM_N /*약정개월*/
                       , CASE WHEN T1.RENTAL_TN = 1
@@ -48,8 +48,8 @@
                               END AS START_SL_DT /*시작*/
                       , CASE WHEN T1.RENTAL_TN = 1
                              THEN 11
-                             WHEN T1.RENTAL_TN + 12 >= T1.ISTM_MCN
-                             THEN T1.ISTM_MCN
+                             WHEN T1.RENTAL_TN + 12 >= T1.CNTR_PTRM
+                             THEN T1.CNTR_PTRM
                              ELSE T1.RENTAL_TN + 11
                               END AS END_SL_DT/*종료*/
                       , T1.CNTR_PTRM AS RENTAL_PTRM /*렌탈기간*/
@@ -63,9 +63,9 @@
                              ELSE 0
                               END AS PY_AMT /*청규렌탈료*/
                       , 'N' AS LTPAY_YN/*후납여부*/
-                      , TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(SUBSTR(T1.SL_RCOG_DT,0,6)||'01'), T2.FRISU_BFSVC_PTRM_N)),'DD') AS LST_DD
-                      , T1.ISTM_MCN
-                      , SUBSTR(T1.SL_RCOG_DT , -2) AS LCSLED
+                      , TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(SUBSTR(T5.CNTR_PD_STRTDT,0,6)||'01'), T2.FRISU_BFSVC_PTRM_N)),'DD') AS LST_DD
+                      , T1.CNTR_PTRM AS ISTM_MCN
+                      , SUBSTR(T5.CNTR_PD_STRTDT , -2) AS LCSLED
                       , T1.CNTR_TAM
                       , (SELECT NVL(CNTR_AMT,0)
                            FROM TB_SSCT_CNTR_DTL
@@ -78,15 +78,15 @@
                      ON T2.CNTR_NO = T1.CNTR_NO
                     AND T2.CNTR_SN = T1.CNTR_SN
                     AND T2.DTA_DL_YN = 'N'
-                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3 /*월마감테이블*/
-                     ON T3.SL_CL_YM = SUBSTR(T1.SL_RCOG_DT,0,6)  /*매출마감년월    매출일자*/
-                    AND T3.CNTR_NO = T1.CNTR_NO
-                    AND T3.CNTR_SN = T1.CNTR_SN
-                    AND T3.DTA_DL_YN = 'N'
                    JOIN TB_SSCT_CNTR_DTL T5
                      ON T5.CNTR_NO = T1.CNTR_NO
                     AND T5.CNTR_SN = T1.CNTR_SN
                     AND T5.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3 /*월마감테이블*/
+                     ON T3.SL_CL_YM = SUBSTR(T5.CNTR_PD_STRTDT,0,6)  /*매출마감년월    매출일자*/
+                    AND T3.CNTR_NO = T1.CNTR_NO
+                    AND T3.CNTR_SN = T1.CNTR_SN
+                    AND T3.DTA_DL_YN = 'N'
                    JOIN TB_SSCT_CNTR_BAS T6
                      ON T6.CNTR_NO = T5.CNTR_NO
                     AND T6.DTA_DL_YN = 'N'
@@ -96,7 +96,10 @@
                   <if test='@MybatisUtils@equals(cntr, "no")'>
                    JOIN TB_SSCT_CNTR_STLM_REL SCSR
                      ON T5.CNTR_NO = SCSR.DTL_CNTR_NO
+                    AND T5.CNTR_SN = SCSR.DTL_CNTR_SN
                     AND SCSR.DP_TP_CD = '0401'
+                    AND SCSR.DTA_DL_YN = 'N'
+                    AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN SCSR.VL_STRT_DTM AND SCSR.VL_END_DTM
                   </if>
                   WHERE 1 = 1
         <choose>
@@ -104,7 +107,7 @@
                 AND T1.DTA_DL_YN = 'N'
                 AND (T1.RENTAL_TN = 1 OR MOD(T1.RENTAL_TN,12)=0)
                 AND T1.RENTAL_TN > 0
-                AND T1.RENTAL_TN <![CDATA[<]]> T1.ISTM_MCN
+                AND T1.RENTAL_TN <![CDATA[<]]> T1.CNTR_PTRM
                 AND T1.PRM_MCN = 0
                 AND (T1.SL_STP_YN = 'N' OR T1.SL_STP_YN IS NULL)
                 AND T1.SL_RCOG_DT IS NOT NULL
@@ -127,6 +130,7 @@
 
         AND T1.DTA_DL_YN = 'N'
         )
+        ORDER BY RENTAL_TN ASC , CNTR_NO ASC , CNTR_SN ASC
     </select>
 
     <select id="selectGiroOcrForwardings" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchRes">
