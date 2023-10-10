@@ -212,6 +212,7 @@ public class WsnaStockAcinspRgstMngtService {
      * @param dtos
      * @return
      */
+    @Transactional
     public int saveStockAcinspRgstCnfm(List<SaveAcinspCnfmReq> dtos) {
 
         ValidAssert.notEmpty(dtos);
@@ -243,6 +244,7 @@ public class WsnaStockAcinspRgstMngtService {
      * @param dtos
      * @return
      */
+    @Transactional
     public int deleteStockAcinspRgstCancel(List<SaveCancelReq> dtos) {
         ValidAssert.notEmpty(dtos);
 
@@ -274,6 +276,7 @@ public class WsnaStockAcinspRgstMngtService {
      * @param dtos
      * @return
      */
+    @Transactional
     public int removeManagerStockControl(List<RemoveReq> dtos) {
         ValidAssert.notEmpty(dtos);
 
