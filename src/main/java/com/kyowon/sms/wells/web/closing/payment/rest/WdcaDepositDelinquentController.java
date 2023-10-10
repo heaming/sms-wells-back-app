@@ -21,13 +21,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Api(tags = "[WDCA] 입금 연체 현황")
+@Api(tags = "[WDCA] 입금 연체 현황 - W-CL-U-0016M01")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = DcClosingConst.COMMON_URL_V1 + "/deposit-delinquents")
 public class WdcaDepositDelinquentController {
     private final WdcaDepositDelinquentService service;
 
+    /**
+     * 입금 연체 현황 조회
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "입금 연체 현황", notes = "조회조건에 따른 입금 연체 현황을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),
@@ -47,6 +52,11 @@ public class WdcaDepositDelinquentController {
         return service.getDepositDelinquents(dto);
     }
 
+    /**
+     * 입금 연체 현황 엑셀 다운로드
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "입금 연체 현황", notes = "조회조건에 따른 입금 연체 현황을 엑셀 다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),

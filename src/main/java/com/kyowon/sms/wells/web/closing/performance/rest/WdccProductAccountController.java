@@ -23,7 +23,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Api(tags = "[WDCC] 상품별 계정 현황")
+@Api(tags = "[WDCC] 상품별 계정 현황 - W-CL-U-0032M01")
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -32,6 +32,11 @@ import lombok.extern.slf4j.Slf4j;
 public class WdccProductAccountController {
     private final WdccProductAccountService service;
 
+    /**
+     * 상품별 계정 현황(집계)
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "상품별 계정 현황(집계)", notes = "조회조건에 따른 상품별 계정 현황을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYmFrom", value = "기준년월시작", paramType = "query"),
@@ -50,6 +55,11 @@ public class WdccProductAccountController {
         return service.getProductAccountTotals(dto);
     }
 
+    /**
+     * 상품별 계정 현황(상품)
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "상품별 계정 현황(상품)", notes = "조회조건에 따른 상품별 계정 현황을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYmFrom", value = "기준년월시작", paramType = "query"),
@@ -68,7 +78,11 @@ public class WdccProductAccountController {
         return service.getProductAccounts(dto);
     }
 
-    /** TODO : 엑셀 다운로드 컬럼 아직 정의가 안됨 */
+    /**
+     * 상품별 계정 현황 상세내역 다운로드
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "상품별 계정 현황 상세내역 다운로드", notes = "조회조건에 따른 상품별 계정 현황을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYmFrom", value = "기준년월시작", paramType = "query"),

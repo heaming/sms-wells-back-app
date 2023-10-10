@@ -19,14 +19,29 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbProductSalesDetailService {
     private final WdcbProductSalesDetailMapper mapper;
 
+    /**
+     * 매출상세조회(일시불,금융리스,정기구매)
+     * @param dto
+     * @return
+     */
     public List<SearchSingleRes> getProductSalesSinglePaymentDetails(SearchReq dto) {
         return mapper.selectProductSalesSinglePaymentDetails(dto);
     }
 
+    /**
+     * 매출상세조회(렌탈)
+     * @param dto
+     * @return
+     */
     public List<SearchRentalRes> getProductSalesRentalDetails(SearchReq dto) {
         return mapper.selectProductSalesRentalDetails(dto);
     }
 
+    /**
+     * 매출상세조회(멤버십)
+     * @param dto
+     * @return
+     */
     public List<SearchMembershipRes> getProductSalesMembershipDetails(SearchReq dto) {
         return mapper.selectProductSalesMembershipDetails(dto);
     }

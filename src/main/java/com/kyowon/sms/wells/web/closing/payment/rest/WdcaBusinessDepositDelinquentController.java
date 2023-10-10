@@ -22,7 +22,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Api(tags = "[WDCA] 영업부 입금/연체 현황")
+@Api(tags = "[WDCA] 영업부 입금/연체 현황 - W-CL-U-0018M01")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
@@ -31,6 +31,11 @@ public class WdcaBusinessDepositDelinquentController {
 
     private final WdcaBusinessDepositDelinquentService service;
 
+    /**
+     * 영업부 입금/연체 현황 조회
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "영업부 입금/연체 현황 조회", notes = "조회조건에 따른 영업부 입금/연체 현황을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
@@ -47,6 +52,11 @@ public class WdcaBusinessDepositDelinquentController {
         return service.getBusinessDepositDelinquentPages(dto, pageInfo);
     }
 
+    /**
+     * 영업부 입금/연체 현황 조회 엑셀다운로드
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "영업부 입금/연체 현황 조회 엑셀다운로드", notes = "조회조건에 따른 영업부 입금/연체 현황을 조회하여 엑셀다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
