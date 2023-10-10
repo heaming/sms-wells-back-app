@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaAsConsumablesStoreDto.*;
 import static com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -169,10 +168,9 @@ public class WsnaAsConsumablesStoreService {
      * AS소모품 입고관리 저장
      * @param dtos
      * @return
-     * @throws ParseException
      */
     @Transactional
-    public int saveAsConsumablesStores(List<SaveReq> dtos) throws ParseException {
+    public int saveAsConsumablesStores(List<SaveReq> dtos) {
         int processCount = 0;
         String itmStrNo = null;
         String strTpCd = ETC_STR;
@@ -273,10 +271,9 @@ public class WsnaAsConsumablesStoreService {
      * AS소모품 입고관리 삭제
      * @param dtos
      * @return
-     * @throws ParseException
      */
     @Transactional
-    public int removeAsConsumablesStores(List<RemoveReq> dtos) throws ParseException {
+    public int removeAsConsumablesStores(List<RemoveReq> dtos) {
         int processCount = 0;
 
         for (RemoveReq dto : dtos) {

@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.rest;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsStoreDto.*;
 
-import java.text.ParseException;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -64,7 +63,7 @@ public class WsnaReturningGoodsStoreController {
         @NotEmpty
         List<SaveReq> dtos
 
-    ) throws ParseException {
+    ) throws Exception {
         return SaveResponse.builder().processCount(this.service.saveReturningGoodsStores(dtos)).build();
     }
 
@@ -76,7 +75,7 @@ public class WsnaReturningGoodsStoreController {
         @NotEmpty
         List<SaveConfirmationReq> dtos
 
-    ) throws ParseException {
+    ) throws Exception {
         return SaveResponse.builder().processCount(this.service.saveReturningGoodsStoreConfirmations(dtos)).build();
     }
 

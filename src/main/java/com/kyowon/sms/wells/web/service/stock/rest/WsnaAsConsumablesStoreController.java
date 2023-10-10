@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.rest;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaAsConsumablesStoreDto.*;
 
-import java.text.ParseException;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -86,7 +85,7 @@ public class WsnaAsConsumablesStoreController {
         @RequestBody
         @NotEmpty
         List<RemoveReq> dtos
-    ) throws ParseException {
+    ) {
         return this.service.removeAsConsumablesStores(dtos);
 
     }
