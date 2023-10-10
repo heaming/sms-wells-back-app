@@ -25,6 +25,7 @@ public class WfebB2bFeeMgtDto {
         String cstKnm, // 고객성명
         String basePdCd, // 상품코드
         String pdNm, // 상품명
+        String sellTpCd,
         String sellDscDvCd,
         String sellDscrCd,
         String sellDscTpCd,
