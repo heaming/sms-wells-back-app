@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,10 +84,9 @@ public class WsnaReturningGoodsOstrService {
      * 반품출고 등록
      * @param dtos
      * @return
-     * @throws ParseException
      */
     @Transactional
-    public int saveReturningGoodsOstrs(List<SaveReq> dtos) throws ParseException {
+    public int saveReturningGoodsOstrs(List<SaveReq> dtos) {
         int processCount = 0;
         int serialNumber = 0;
 
@@ -199,10 +197,9 @@ public class WsnaReturningGoodsOstrService {
      * 반품출고 삭제
      * @param dtos
      * @return
-     * @throws ParseException
      */
     @Transactional
-    public int removeReturningGoodsOstrs(List<RemoveReq> dtos) throws ParseException {
+    public int removeReturningGoodsOstrs(List<RemoveReq> dtos) {
         int processCount = 0;
 
         List<WsnaReturningGoodsDvo> dvos = this.converter.mapRemoveAllReturningGoodsDvoToReturningGoods(dtos);
