@@ -23,6 +23,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0158M01 설치/분리비용 관리
+ * </pre>
+ *
+ * @author kyunglyn.lee
+ * @since 2023-04-07
+ */
 @Api(tags = "[WSNY] 설치/분리 비용 관리")
 @RequiredArgsConstructor
 @RestController

@@ -15,12 +15,23 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0159M01 유상A/S 서비스비용 관리
+ * </pre>
+ *
+ * @author kyunglyn.lee
+ * @since 2023.03.08
+ */
 @Service
 @RequiredArgsConstructor
 public class WsnyPaidAsCostMgtService {
     private final WsnyPaidAsCostMgtMapper mapper;
     private final WsnyPaidAsCostMgtConverter converter;
 
+    /**
+     * 유상 A/S 서비스 비용 조회
+     */
     public PagingResult<SearchRes> getPaidAsCostMgts(
         SearchReq dto, PageInfo pageInfo
     ){
@@ -28,10 +39,16 @@ public class WsnyPaidAsCostMgtService {
     }
 
 
+    /**
+     * 유상 A/S 서비스 비용 엑셀 다운로드
+     */
     public List<SearchRes> getPaidAsCostMgtsExcelDownload(SearchReq dto)throws Exception{
         return mapper.selectPaidAsCostMgts(dto);
     }
 
+    /**
+     * 유상 A/S 서비스 비용 수정
+     */
     public int savePaidAsCostMgts(List<SaveReq> dtos){
         int proccessCount = 0;
         for(SaveReq dto : dtos){
