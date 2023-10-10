@@ -594,103 +594,182 @@
              , T2.DGR1_LEVL_OG_NM AS MNG_DPT       /* 총괄단 */
              , T2.DGR2_LEVL_OG_NM AS RGNL_GRP      /* 지역단 */
              , T2.DGR3_LEVL_OG_NM AS BRANCH        /* 지점 */
-             , CD1.CD_CNTN AS RSB                  /* 직책 */
+             , T1.RSB_DV_CD AS RSB                  /* 직책 */
              , T1.CNTR_DT AS RGS_BASE_MM           /* 등록기준월 = 계약월 */
              , T1.PRFMT_DT AS PRFMT_MON            /* 승진월 */
              , T1.CLTN_DT AS BIZ_CLTN_MON          /* 업무해약월 */
-             , CD2.CD_CNTN AS QLF                  /* 자격 */
-             , SUBSTR(T3.CV_DT,0,6) AS OPNG_MM     /* 개시월 = 웰스매니저 승급 전환월 */
-             , CASE WHEN NVL(T3.CV_DT,0) = 0 THEN 0
-                    WHEN NVL(T3.ENDDT,0) = 0 THEN MONTHS_BETWEEN(SYSDATE, TO_DATE(T3.CV_DT, 'YYYY-MM-DD'))
-                    ELSE MONTHS_BETWEEN(T3.ENDDT, TO_DATE(T3.CV_DT, 'YYYY-MM-DD'))
-               END AS OPNG_NMM                                  /* 개시차월 = 해약일자 - 전환일자 */
-             , NVL(SUBSTR(T3.ENDDT,0,6),0) AS MNG_CLTN_MM      /* 매니저 해약월 */
-             , NVL(T4.MGT_CNT,0)-NVL(T6.CAN_CNT,0) AS MGT_CNT /* BS 총 관리건수 = 관리건수 - 취소건수*/
-             , NVL(T4.VST_CNT,0) AS VST_CNT /* BS 총 방문건수 */
-             , CASE WHEN NVL(T4.MGT_CNT,0) = 0 THEN 0
-                    ELSE ROUND(NVL(T4.VST_CNT,0)/(NVL(T4.MGT_CNT,0)-NVL(T6.CAN_CNT,0))*100, 2)
+             , T1.QLF_DV_CD AS QLF                  /* 자격 */
+             , CASE WHEN T4.MNGR2_ATC IS NOT NULL THEN T4.MNGR2_ATC
+                    ELSE T3.MNGR1_ATC
+               END AS OPNG_MM /*매니저개시-재개시월*/
+             , CASE WHEN T6.MNGR4_ATC IS NOT NULL THEN T6.MNGR4_ATC
+                    ELSE T5.MNGR3_ATC
+               END AS MNG_CLTN_MM /*매니저개시-업무해약월*/
+             , CASE WHEN (T5.MNGR3_ATC IS NULL AND T6.MNGR4_ATC IS NULL) OR (T5.MNGR3_ATC <![CDATA[>=]]> #{perfYm} OR T6.MNGR4_ATC <![CDATA[>=]]> #{perfYm}) THEN
+			        CASE WHEN T4.MNGR2_ATC IS NOT NULL THEN
+				         NVL(TO_CHAR(MONTHS_BETWEEN(TO_DATE(#{perfYm}, 'YYYYMM'), TO_DATE(SUBSTR(T4.MNGR2_ATC, 0, 6), 'YYYYMM')) + 1), '')
+				         ELSE
+				         NVL(TO_CHAR(MONTHS_BETWEEN(TO_DATE(#{perfYm}, 'YYYYMM'), TO_DATE(SUBSTR(T3.MNGR1_ATC, 0, 6), 'YYYYMM')) + 1), '')
+				    END
+				    ELSE
+				    ''
+			   END AS OPNG_NMM /* 매니저 게시차월 */
+             , NVL(T7.MGT_CNT,0)-NVL(T9.CAN_CNT,0) AS MGT_CNT /* BS 총 관리건수 = 관리건수 - 취소건수*/
+             , NVL(T7.VST_CNT,0) AS VST_CNT /* BS 총 방문건수 */
+             , CASE WHEN NVL(T7.MGT_CNT,0) = 0 THEN 0
+                    ELSE ROUND(NVL(T7.VST_CNT,0)/(NVL(T7.MGT_CNT,0)-NVL(T9.CAN_CNT,0))*100, 2)
                END AS PROCS_RT
-             , NVL(T5.INTBS_AMT,0) AS INTBS_SUM
-             , NVL(T5.DDCTAM,0) AS DDTN_SUM
-             , NVL(T5.DSB_OJ_AMT,0) AS ACL_DSB_AMT
+             , NVL(T8.INTBS_AMT,0) AS INTBS_SUM
+             , NVL(T8.DDCTAM,0) AS DDTN_SUM
+             , NVL(T8.DSB_OJ_AMT,0) AS ACL_DSB_AMT
           FROM TB_OGBS_MM_PRTNR_IZ T1 /* T 월파트너내역 T */
          INNER JOIN TB_OGBS_MM_OG_IZ T2 /* T 월조직내역 T */
             ON T1.OG_TP_CD = T2.OG_TP_CD
            AND T1.BASE_YM = T2.BASE_YM
            AND T1.OG_ID = T2.OG_ID
-          LEFT OUTER JOIN ( SELECT ROW_NUMBER() OVER (PARTITION BY PRTNR_NO ORDER BY CV_DT DESC) AS RANK
-                                 , SUBSTR(CV_DT,0,6) AS CV_DT
-                                 , SUBSTR(ENDDT,0,6) AS ENDDT
-                                 , PRTNR_NO
-                              FROM TB_OGPS_PLAR_QLF_CH_IZ /*플래너 자격 변경내역*/
-                             WHERE OG_TP_CD = 'W02'
-                               AND QLF_DV_CD = '3'  /* 웰스매니저 */
-                               AND QLF_APLC_DV_CD = '1'  /* 승급 */
-                               AND DTA_DL_YN = 'N'
-                          )T3
+
+          LEFT OUTER JOIN
+             (
+       	       SELECT MIN(STRTDT) AS MNGR1_ATC /* 매니저 최초게시일 */
+		            , PRTNR_NO
+     		     FROM TB_OGPS_PLAR_QLF_CH_IZ
+			    WHERE 1=1
+			      AND SUBSTR(STRTDT, 0, 6)  <![CDATA[<=]]>  #{perfYm}
+			      AND OG_TP_CD = 'W02'
+			      AND QLF_DV_CD IN (3, 6)
+			      AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
+                  AND PRTNR_NO = #{no}
+			      AND DTA_DL_YN = 'N'
+
+			    GROUP BY PRTNR_NO
+			 ) T3
             ON T1.PRTNR_NO = T3.PRTNR_NO
-           AND T3.RANK = 1   /* 마지막 웰스매니저 승급정보 */
-          LEFT OUTER JOIN ( SELECT T.PRTNR_NO
-                                 , NVL(SUM(T.COL1),0) AS MGT_CNT
-                                 , NVL(SUM(T.COL2),0) AS VST_CNT
-                                 , ROUND(NVL(SUM(T.COL2),0)/NVL(SUM(T.COL1),0)*100, 2) AS PROCS_RT
-                              FROM ( SELECT BS.PRTNR_NO
-                                          , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN BS.PERF_VAL END AS COL1
-                                          , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 IN ('02','03') THEN BS.PERF_VAL END AS COL2
-                                       FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
-                                      INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD GI
-                                         ON BS.PRTNR_SV_PERF_ATC_CD = GI.PRTNR_SV_PERF_ATC_CD
-                                        AND SUBSTR(GI.PRTNR_SV_PERF_ATC_CD,1,4) = CASE WHEN BS.BASE_YM &lt; '202207' THEN 'SV01' ELSE 'SV08' END /*202207년 이후는 구분코드 08*/
-                                        AND GI.PRTNR_PERF_DTLP_ATC_CDV3 = '01' /* 일반 */
-                                        AND GI.PRTNR_PERF_DTLP_ATC_CDV2 != '99'
-                                      WHERE BS.BASE_YM = #{perfYm}
-                                        AND BS.PRTNR_NO = #{no}
-                                        AND BS.CL_DV_CD = '02'
-                                        AND BS.OG_TP_CD = 'W02'
-                                      UNION ALL
-                                     SELECT BS.PRTNR_NO
-                                          , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN BS.PERF_VAL END AS COL1
-                                          , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 IN ('02','03') THEN BS.PERF_VAL END AS COL2
-                                       FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
-                                      INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD GI
-                                         ON BS.PRTNR_SV_PERF_ATC_CD = GI.PRTNR_SV_PERF_ATC_CD
-                                        AND SUBSTR(GI.PRTNR_SV_PERF_ATC_CD,1,4) = 'SV08'
-                                        AND GI.PRTNR_PERF_DTLP_ATC_CDV3 = '02' /* 정액 */
-                                        AND GI.PRTNR_PERF_DTLP_ATC_CDV2 != '99'
-                                      WHERE BS.BASE_YM = #{perfYm}
-                                        AND BS.PRTNR_NO = #{no}
-                                        AND BS.CL_DV_CD = '02'
-                                        AND BS.OG_TP_CD = 'W02'
-                                   )T
-                             GROUP BY T.PRTNR_NO
-                          )T4
+
+          LEFT OUTER JOIN
+             (
+			   SELECT STRTDT AS MNGR2_ATC /* 매니저 재개시월 */
+			        , PRTNR_NO
+			     FROM TB_OGPS_PLAR_QLF_CH_IZ
+			    WHERE 1=1
+			      AND #{perfYm} BETWEEN SUBSTR(STRTDT, 0, 6) AND SUBSTR(ENDDT, 0, 6)
+			      AND OG_TP_CD = 'W02'
+			      AND QLF_DV_CD IN (3, 6)
+			      AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
+                  AND PRTNR_NO = #{no}
+    		      AND DTA_DL_YN = 'N'
+
+			    UNION ALL
+
+	           SELECT STRTDT AS MNGR2_ATC /* 매니저 재개시월 */
+			        , PRTNR_NO
+			     FROM TB_OGPS_PLAR_QLF_CH_IZ
+			    WHERE 1=1
+			      AND SUBSTR(STRTDT, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1), 'YYYYMM')
+		  	      AND OG_TP_CD = 'W02'
+			      AND QLF_DV_CD IN (3, 6)
+			      AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
+                  AND PRTNR_NO = #{no}
+			      AND DTA_DL_YN = 'N'
+			 ) T4
             ON T1.PRTNR_NO = T4.PRTNR_NO
-          LEFT OUTER JOIN TB_FEAM_FEE_DSB_IZ T5
-            ON T1.BASE_YM = T5.DSB_YM
-           AND T1.OG_TP_CD = T5.OG_TP_CD
-           AND T1.PRTNR_NO = T5.PRTNR_NO
-           AND T5.CO_CD = #{session.companyCode}
-           AND T5.FEE_TCNT_DV_CD = '02'
-           AND T5.SPMT_DSB_DV_CD = '01'
-          LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                 , COUNT(WK_CAN_RSON_CD) AS CAN_CNT
-                              FROM TB_FEAM_WELS_SV_PERF_IZ
-                             WHERE BASE_YM = #{perfYm}
-                               AND OG_TP_CD = 'W02'
-                               AND PRTNR_NO = #{no}
-                               AND CL_DV_CD = '02'
-                               AND WK_CAN_RSON_CD IS NOT NULL
-                             GROUP BY PRTNR_NO
-                          )T6
+
+          LEFT OUTER JOIN
+             (
+		       SELECT MAX (ENDDT) AS MNGR3_ATC /* 매니저 최종해약월 */
+			        , PRTNR_NO
+			     FROM TB_OGPS_PLAR_QLF_CH_IZ
+			    WHERE 1=1
+	 		      AND SUBSTR(ENDDT, 0, 6) <![CDATA[<=]]>  #{perfYm}
+ 			      AND OG_TP_CD = 'W02'
+			      AND QLF_DV_CD IN (3, 6)
+			      AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
+                  AND PRTNR_NO = #{no}
+			      AND DTA_DL_YN = 'N'
+			    GROUP BY PRTNR_NO
+			 ) T5
+            ON T1.PRTNR_NO = T5.PRTNR_NO
+
+          LEFT OUTER JOIN
+             (
+		       SELECT CASE WHEN MAX(ENDDT) = '99991231' THEN ''
+			               ELSE MAX(ENDDT)
+			          END AS MNGR4_ATC /* 매니저 업무해약월 */
+			        , PRTNR_NO
+			     FROM TB_OGPS_PLAR_QLF_CH_IZ
+			    WHERE 1=1
+			      AND OG_TP_CD = 'W02'
+			      AND QLF_DV_CD IN (3, 6)
+			      AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
+                  AND PRTNR_NO = #{no}
+			      AND DTA_DL_YN = 'N'
+			    GROUP BY PRTNR_NO
+			 ) T6
             ON T1.PRTNR_NO = T6.PRTNR_NO
-          LEFT OUTER JOIN T_CMZ_CD_D CD1
-            ON T1.RSB_DV_CD = CD1.CD_VLD_VAL
-           AND CD1.CD_ID = 'RSB_DV_CD'
-           AND CD1.TENANT_ID = 'TNT_WELLS'
-          LEFT OUTER JOIN T_CMZ_CD_D CD2
-            ON T1.QLF_DV_CD = CD2.CD_VLD_VAL
-           AND CD2.CD_ID = 'QLF_DV_CD'
-           AND CD2.TENANT_ID = 'TNT_WELLS'
+
+          LEFT OUTER JOIN
+             (
+               SELECT T.PRTNR_NO
+                    , NVL(SUM(T.COL1),0) AS MGT_CNT
+                    , NVL(SUM(T.COL2),0) AS VST_CNT
+                    , ROUND(NVL(SUM(T.COL2),0)/NVL(SUM(T.COL1),0)*100, 2) AS PROCS_RT
+                 FROM
+                    (
+                      SELECT BS.PRTNR_NO
+                           , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN BS.PERF_VAL END AS COL1
+                           , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 IN ('02','03') THEN BS.PERF_VAL END AS COL2
+                        FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
+                       INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD GI
+                          ON BS.PRTNR_SV_PERF_ATC_CD = GI.PRTNR_SV_PERF_ATC_CD
+                         AND SUBSTR(GI.PRTNR_SV_PERF_ATC_CD,1,4) = CASE WHEN BS.BASE_YM <![CDATA[<]]> '202207' THEN 'SV01' ELSE 'SV08' END /*202207년 이후는 구분코드 08*/
+                         AND GI.PRTNR_PERF_DTLP_ATC_CDV3 = '01' /* 일반 */
+                         AND GI.PRTNR_PERF_DTLP_ATC_CDV2 != '99'
+                       WHERE 1=1
+                         AND BS.BASE_YM = #{perfYm}
+                         AND BS.PRTNR_NO = #{no}
+                         AND BS.CL_DV_CD = '02'
+                         AND BS.OG_TP_CD = 'W02'
+
+                       UNION ALL
+
+                      SELECT BS.PRTNR_NO
+                           , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN BS.PERF_VAL END AS COL1
+                           , CASE WHEN GI.PRTNR_PERF_DTLP_ATC_CDV4 IN ('02','03') THEN BS.PERF_VAL END AS COL2
+                        FROM TB_FEAM_WPTN_SV_PERF_AGRG BS
+                       INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD GI
+                          ON BS.PRTNR_SV_PERF_ATC_CD = GI.PRTNR_SV_PERF_ATC_CD
+                         AND SUBSTR(GI.PRTNR_SV_PERF_ATC_CD,1,4) = 'SV08'
+                         AND GI.PRTNR_PERF_DTLP_ATC_CDV3 = '02' /* 정액 */
+                         AND GI.PRTNR_PERF_DTLP_ATC_CDV2 != '99'
+                       WHERE 1=1
+                         AND BS.BASE_YM = #{perfYm}
+                         AND BS.PRTNR_NO = #{no}
+                         AND BS.CL_DV_CD = '02'
+                         AND BS.OG_TP_CD = 'W02'
+                     ) T
+                 GROUP BY T.PRTNR_NO
+             ) T7
+            ON T1.PRTNR_NO = T7.PRTNR_NO
+          LEFT OUTER JOIN TB_FEAM_FEE_DSB_IZ T8
+            ON T1.BASE_YM = T8.DSB_YM
+           AND T1.OG_TP_CD = T8.OG_TP_CD
+           AND T1.PRTNR_NO = T8.PRTNR_NO
+           AND T8.CO_CD = #{session.companyCode}
+           AND T8.FEE_TCNT_DV_CD = '02'
+           AND T8.SPMT_DSB_DV_CD = '01'
+          LEFT OUTER JOIN
+             (
+               SELECT PRTNR_NO
+                    , COUNT(WK_CAN_RSON_CD) AS CAN_CNT
+                 FROM TB_FEAM_WELS_SV_PERF_IZ
+                WHERE 1=1
+                  AND BASE_YM = #{perfYm}
+                  AND OG_TP_CD = 'W02'
+                  AND PRTNR_NO = #{no}
+                  AND CL_DV_CD = '02'
+                  AND WK_CAN_RSON_CD IS NOT NULL
+                GROUP BY PRTNR_NO
+             ) T9
+            ON T1.PRTNR_NO = T9.PRTNR_NO
          WHERE T1.BASE_YM = #{perfYm}
            AND T1.OG_TP_CD = 'W02'     /* M 조직 */
            AND T1.PRTNR_NO = #{no}
