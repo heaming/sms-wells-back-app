@@ -9,6 +9,14 @@ import com.kyowon.sms.wells.web.service.visit.dvo.WsnbIndividualServicePsDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
+/**
+ * <pre>
+ * W-SV-U-0072M01 개인별 서비스 현황
+ * </pre>
+ *
+ * @author kyunglyn.lee
+ * @since 2023-06-17
+ */
 @Mapper
 public interface WsnbIndividualServicePsMapper {
     int insertUnusualItem(WsnbIndividualServicePsDvo dvo);

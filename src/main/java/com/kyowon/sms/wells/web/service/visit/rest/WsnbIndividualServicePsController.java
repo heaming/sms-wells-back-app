@@ -20,6 +20,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0072M01 개인별 서비스 현황
+ * </pre>
+ *
+ * @author kyunglyn.lee
+ * @since 2023-06-17
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/individual-service-ps")
 @Api(tags = "[WSNB] 개인별 서비스 현황(W-SV-U-0072M01)")

@@ -4,6 +4,14 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * W-SV-U-0158M01 설치/분리비용 관리
+ * </pre>
+ *
+ * @author kyunglyn.lee
+ * @since 2023-04-07
+ */
 public class WsnyInstallSeparationMgtDto {
     @ApiModel(value = "WsnyInstallSeparationMgtDto-SearchReq")
     public record SearchReq(

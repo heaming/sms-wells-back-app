@@ -16,6 +16,7 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
+
 /**
  * <pre>
  * W-SV-U-0158M01 설치/분리비용 관리
@@ -30,16 +31,25 @@ public class WsnyInstallSeparationMgtService {
     private final WsnyInstallSeparationMgtMapper mapper;
     private final WsnyInstallSeparationMgtConverter converter;
 
+    /**
+     * 설치/분리 비용 조회
+     */
     public PagingResult<SearchRes> getInstallSeparationCosts(
         SearchReq dto, PageInfo pageInfo
     ){
         return mapper.selectInstallSeparationCosts(dto,pageInfo);
     }
 
+    /**
+     * 설치/분리 비용 엑셀 다운로드
+     */
     public List<SearchRes> getInstallSeparationCostsExcelDownload(SearchReq dto)throws Exception{
         return mapper.selectInstallSeparationCosts(dto);
     }
 
+    /**
+     * 설치/분리 비용 추가
+     */
     @Transactional
     public int saveInstallSeparationCosts(List<SaveReq> dtos) throws Exception{
         int processCnt = 0;
@@ -51,6 +61,9 @@ public class WsnyInstallSeparationMgtService {
         return processCnt;
     }
 
+    /**
+     * 설치/분리 비용 삭제
+     */
     @Transactional
     public int removeInstallSeparationCosts(List<RemoveReq> dtos) throws Exception{
         int processCnt = 0;
