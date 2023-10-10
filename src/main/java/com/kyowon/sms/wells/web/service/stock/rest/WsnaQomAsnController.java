@@ -67,7 +67,7 @@ public class WsnaQomAsnController {
     @ApiOperation(value = "물량배정 건수 조회", notes = "물량배정 데이터 건수를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true, dataType = "integer"),
         @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
         @ApiImplicitParam(name = "wareDvCd", value = "입고창고구분코드", paramType = "query", example = "3", required = true),
         @ApiImplicitParam(name = "wareDtlDvCd", value = "입고창고세부구분코드", paramType = "query", example = "31", required = true)
@@ -82,7 +82,7 @@ public class WsnaQomAsnController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
         @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true, dataType = "integer"),
         @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07102157"),
@@ -101,7 +101,7 @@ public class WsnaQomAsnController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
         @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true, dataType = "integer"),
         @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07102157"),
@@ -149,7 +149,7 @@ public class WsnaQomAsnController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
         @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true, dataType = "integer"),
         @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07102157"),
@@ -168,7 +168,7 @@ public class WsnaQomAsnController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
         @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true, dataType = "integer"),
         @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07102157"),

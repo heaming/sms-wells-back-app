@@ -47,7 +47,7 @@ public class WsnaSeedingSowPlanController {
         @ApiImplicitParam(name = "strtDt", value = "시작일자", paramType = "query", example = "20230703", required = true),
         @ApiImplicitParam(name = "endDt", value = "종료일자", paramType = "query", example = "20230703", required = true),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", example = "W20195353741"),
-        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", example = "1")
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", example = "1", dataType = "integer")
     })
     public PagingResult<SearchRes> getSeedingSowPlansPaging(@Valid
     SearchReq dto, @Valid
@@ -61,7 +61,7 @@ public class WsnaSeedingSowPlanController {
         @ApiImplicitParam(name = "strtDt", value = "시작일자", paramType = "query", example = "20230703", required = true),
         @ApiImplicitParam(name = "endDt", value = "종료일자", paramType = "query", example = "20230703", required = true),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", example = "W20195353741"),
-        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", example = "1")
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", example = "1", dataType = "integer")
     })
     public List<SearchRes> getSeedingSowPlansExcelDownload(@Valid
     SearchReq dto) {
