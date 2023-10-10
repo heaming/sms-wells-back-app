@@ -443,7 +443,7 @@
                       )F
         ON A.PRTNR_NO = F.PRTNR_NO
       LEFT OUTER JOIN ( SELECT AK05.PRTNR_NO /* 지점장 사번 */
-                             , COUNT(CASE WHEN AK17.AKDEQ0 > 0 AND BS.SERCNT >= 50 THEN 1 END) GADCNT   /* 실가동 인원 */
+                             , COUNT(CASE WHEN AK17.AKDEQ0 > 0 AND BS.SERCNT <![CDATA[>=]]> 50 THEN 1 END) GADCNT   /* 실가동 인원 */
                              , SUM(NVL(AK17.AKDEQ0,0)) J_AKDEQ0 /* 지점 실적 */
                              , SUM(NVL(BS.SERCNT,0)) J_SERCNT   /* 지점 서비스 횟수 */
                           FROM ( SELECT B.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
@@ -540,7 +540,7 @@
                 END AS EDU7_ATC /*교육-Pre누적교육 */
              , NVL(T12.EDU8_ATC,'-') AS EDU8_ATC /*교육-수석정착*/
              , CASE WHEN T12.EDU8_ATC != NULL
-                         THEN MONTHS_BETWEEN(TO_DATE('202306','YYYYMM'), TO_DATE(T12.EDU8_ATC,'YYYYMM')) + 1
+                         THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(T12.EDU8_ATC,'YYYYMM')) + 1
                          ELSE 0
                      END AS EDU9_ATC /*교육-수석차월*/
              , T6.MNGR1_ATC /*매니저개시-최초개시월*/
@@ -568,7 +568,7 @@
                     ELSE TRUNC((T11.VST_CNT / (T11.MNGT_CNT - T11.CAN_CNT))*100.00,2)
                END AS INDV3_BS_ATC /*개인BS-처리율*/
              , CASE WHEN NVL(T11.VST_CNT,0) = 0 OR NVL(T11.MNGT_CNT,0) = 0 THEN 0
-                    ELSE ( CASE WHEN TRUNC((T11.VST_CNT / (T11.MNGT_CNT - T11.CAN_CNT))*100.00,2) >= 90 THEN 100
+                    ELSE ( CASE WHEN TRUNC((T11.VST_CNT / (T11.MNGT_CNT - T11.CAN_CNT))*100.00,2) <![CDATA[>=]]> 90 THEN 100
                                 ELSE 80
                            END
                          )
@@ -605,6 +605,9 @@
              , NVL(T16.ETC1_ATC,0) AS ETC1_ATC /*기타-재지급 */
              , NVL(T16.ETC2_ATC,0) AS ETC2_ATC /*기타-멤버십 */
              , NVL(T16.ETC3_ATC,0) AS ETC3_ATC /*기타-기타지원 */
+             , NVL(T16.HOME_CARE, 0) AS HOME_CARE /* 홈케어 */
+             , NVL(T16.RSTL, 0) AS RSTL /* 재약정 */
+             , NVL(T16.LIVE_PAKG, 0) AS LIVE_PAKG /* 라이브팩 */
              , NVL(T15.INTBS_SUM,0) AS INTBS_SUM /*과표합계 */
              , NVL(T15.DDTN_SUM,0) AS DDTN_SUM /*총공제액 */
              , NVL(T15.ACL_DSB_AMT,0) AS ACL_DSB_AMT /*실지급액 */
@@ -994,6 +997,9 @@
                     , SUM(ETC1_ATC) AS ETC1_ATC
                     , SUM(ETC2_ATC) AS ETC2_ATC
                     , SUM(ETC3_ATC) AS ETC3_ATC
+                    , SUM(HOME_CARE) AS HOME_CARE
+                    , SUM(RSTL) AS RSTL
+                    , SUM(LIVE_PAKG) AS LIVE_PAKG
                  FROM
                     (
                       SELECT PRTNR_NO
@@ -1016,6 +1022,9 @@
                            , CASE WHEN FEE_CD = 'W020090' THEN FEE_ATC_VAL ELSE 0 END AS ETC1_ATC
                            , CASE WHEN FEE_CD = 'W020006' THEN FEE_ATC_VAL ELSE 0 END AS ETC2_ATC
                            , CASE WHEN FEE_CD = 'W020094' THEN FEE_ATC_VAL ELSE 0 END AS ETC3_ATC
+                           , CASE WHEN FEE_CD = 'W020078' THEN FEE_ATC_VAL ELSE 0 END AS HOME_CARE
+                           , CASE WHEN FEE_CD = 'W020119' THEN FEE_ATC_VAL ELSE 0 END AS RSTL
+                           , CASE WHEN FEE_CD = 'W020007' THEN FEE_ATC_VAL ELSE 0 END AS LIVE_PAKG
                         FROM TB_FEAM_FEE_DSB_DTL_IZ
                        WHERE 1=1
                          AND DSB_YM = #{perfYm}
@@ -1026,7 +1035,7 @@
                                          'W020081', 'W020005', 'W020084', 'W020122', 'W020085',
                                          'W020027', 'W020096', 'W020086', 'W020098', 'W020014',
                                          'W020124', 'W020090', 'W020006', 'W020094', 'W020075',
-                                         'W020076', 'W020077'
+                                         'W020076', 'W020077', 'W020078', 'W020119', 'W020007'
                                        )
                          <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                              AND PRTNR_NO = #{prtnrNo}
@@ -1146,6 +1155,9 @@
              , NVL(T13.ETC1_ATC,0) AS ETC1_ATC /*기타-재지급 */
              , NVL(T13.ETC2_ATC,0) AS ETC2_ATC /*기타-멤버십 */
              , NVL(T13.ETC3_ATC,0) AS ETC3_ATC /*기타-기타지원 */
+             , NVL(T13.HOME_CARE, 0) AS HOME_CARE /* 홈케어 */
+             , NVL(T13.RSTL, 0) AS RSTL /* 재약정 */
+             , NVL(T13.LIVE_PAKG, 0) AS LIVE_PAKG /* 라이브팩 */
              , NVL(T10.INTBS_SUM,0) AS INTBS_SUM /*과표합계 */
              , NVL(T10.DDTN_SUM,0) AS DDTN_SUM /*총공제액 */
              , NVL(T10.ACL_DSB_AMT,0) AS ACL_DSB_AMT /*실지급액 */
@@ -1248,7 +1260,7 @@
                                                          AND X.PRTNR_PERF_DTLP_ATC_CDV2 IN ('99','90')
                                                          AND X.PRTNR_PERF_DTLP_ATC_CDV3 IN ('99','90')
                                                          AND SUBSTR(X.PRTNR_SV_PERF_ATC_CD,1,2) = 'SV'
-                                                       WHERE Z.BASE_YM = '202306'
+                                                       WHERE Z.BASE_YM = #{perfYm}
                                                          AND Z.CL_DV_CD = '02'
                                                          AND Z.OG_TP_CD = 'W02'
                                                     <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
@@ -1314,7 +1326,7 @@
                                                 AND X.PRTNR_PERF_DTLP_ATC_CDV2 IN ('99','90')
                                                 AND X.PRTNR_PERF_DTLP_ATC_CDV3 IN ('99','90')
                                                 AND SUBSTR(X.PRTNR_SV_PERF_ATC_CD,1,2) = 'SV'
-                                              WHERE Z.BASE_YM = '202306'
+                                              WHERE Z.BASE_YM = #{perfYm}
                                                 AND Z.CL_DV_CD = '02'
                                                 AND Z.OG_TP_CD = 'W02'
                                               GROUP BY Z.PRTNR_NO, X.PRTNR_PERF_DTLP_ATC_CDV2, X.PRTNR_PERF_DTLP_ATC_CDV4
@@ -1500,6 +1512,9 @@
                                 , SUM(ETC1_ATC) AS ETC1_ATC
                                 , SUM(ETC2_ATC) AS ETC2_ATC
                                 , SUM(ETC3_ATC) AS ETC3_ATC
+                                , SUM(HOME_CARE) AS HOME_CARE
+                                , SUM(RSTL) AS RSTL
+                                , SUM(LIVE_PAKG) AS LIVE_PAKG
                              FROM ( SELECT PRTNR_NO
                                          , CASE WHEN FEE_CD = 'W020002' THEN FEE_ATC_VAL ELSE 0 END AS INDV1_FEE
                                          , CASE WHEN FEE_CD = 'W020004' THEN FEE_ATC_VAL ELSE 0 END AS INDV2_FEE
@@ -1528,6 +1543,9 @@
                                          , CASE WHEN FEE_CD = 'W020015' THEN FEE_ATC_VAL ELSE 0 END AS OG6_FEE /*조직배출1*/
                                          , CASE WHEN FEE_CD = 'W020016' THEN FEE_ATC_VAL ELSE 0 END AS OG7_FEE /*조직배출2*/
                                          , CASE WHEN FEE_CD = 'W020025' THEN FEE_ATC_VAL ELSE 0 END AS OG8_FEE /*신설지점*/
+                                         , CASE WHEN FEE_CD = 'W020079' THEN FEE_ATC_VAL ELSE 0 END AS HOME_CARE /* 홈케어 */
+                                         , CASE WHEN FEE_CD = 'W020120' THEN FEE_ATC_VAL ELSE 0 END AS RSTL /* 재약정 */
+                                         , CASE WHEN FEE_CD = 'W020035' THEN FEE_ATC_VAL ELSE 0 END AS LIVE_PAKG /* 라이브팩 */
                                       FROM TB_FEAM_FEE_DSB_DTL_IZ
                                      WHERE DSB_YM = #{perfYm}
                                        AND OG_TP_CD = 'W02'
@@ -1538,7 +1556,7 @@
                                                      , 'W020099', 'W020041', 'W020091', 'W020033', 'W020095'
                                                      , 'W020020', 'W020023', 'W020017', 'W020121', 'W020015'
                                                      , 'W020016', 'W020025', 'W020075', 'W020076', 'W020077'
-                                                     , 'W020116'
+                                                     , 'W020116', 'W020079', 'W020120', 'W020035'
                                                      )
                                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                                        AND PRTNR_NO = #{prtnrNo}
@@ -2391,11 +2409,11 @@
              , NVL(SUBSTR(T1.RCNTR_DT,1,6),'-') AS BIZ_RGST2_ARTC /*업무등록-재등록월*/
              , NVL(SUBSTR(T1.FNL_CLTN_DT,1,6),'-') AS BIZ_RGST3_ARTC /*업무등록-최종해약월*/
              , NVL(SUBSTR(T1.CLTN_DT,1,6),'-') AS BIZ_RGST4_ARTC /*업무등록-업무해약월*/
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(SUBSTR(T15.CV_DT,1,6),'-') END AS PRFMT_MM /*승진월*/
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(SUBSTR(T18.CV_DT,1,6),'-') END AS PRFMT_MM /*승진월*/
              , CASE WHEN T1.PSTN_DV_CD = 15
-                         AND NVL(T15.CV_DT,'0') != '0'
-                         AND MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T15.CV_DT,1,6),'YYYYMM')) &gt;= 0
-                         THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T15.CV_DT,1,6),'YYYYMM')) + 1
+                         AND NVL(T18.CV_DT,'0') != '0'
+                         AND MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T18.CV_DT,1,6),'YYYYMM')) <![CDATA[>=]]> 0
+                         THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T18.CV_DT,1,6),'YYYYMM')) + 1
                     ELSE 0
                END AS PRFMT_NMN /*승진차월*/
              , NVL(T3.PERF_VAL,0) AS METG_DC /*미팅일수*/
@@ -2406,160 +2424,178 @@
                     WHEN T5.PRTNR_NO IS NOT NULL THEN 'M->P'
                     WHEN T4.PRTNR_NO IS NULL AND T5.PRTNR_NO IS NULL THEN '해약'
                END AS QLF2_ATC /*자격-M+1*/
-             , NVL(T9.EDU1_ATC,'-') AS EDU1_ATC /*교육-스타트업 */
-             , NVL(T9.EDU2_ATC,'-') AS EDU2_ATC /*교육-Pre스타트업 */
-             , T10.EDU3_ATC AS EDU3_ATC /*교육-보수 */
-             , T10.EDU4_ATC AS EDU4_ATC /*교육-정착1 */
-             , T10.EDU5_ATC AS EDU5_ATC /*교육-정착2 */
-             , T10.EDU6_ATC AS EDU6_ATC /*교육-정착345 */
-             , NVL(T10.EDU12_ATC,'N') AS EDU10_ATC /*교육-지점온라인*/
-             , CASE WHEN T10.EDU7_ATC = 'Y' THEN '1'
-                    WHEN T10.EDU8_ATC = 'Y' THEN '2'
-                    WHEN T10.EDU9_ATC = 'Y' THEN '3'
-                    WHEN T10.EDU10_ATC = 'Y' THEN '4'
-                    WHEN T10.EDU11_ATC = 'Y' THEN '5'
+             , NVL(T12.EDU1_ATC,'-') AS EDU1_ATC /*교육-스타트업 */
+             , NVL(T12.EDU2_ATC,'-') AS EDU2_ATC /*교육-Pre스타트업 */
+             , T13.EDU3_ATC AS EDU3_ATC /*교육-보수 */
+             , T13.EDU4_ATC AS EDU4_ATC /*교육-정착1 */
+             , T13.EDU5_ATC AS EDU5_ATC /*교육-정착2 */
+             , T13.EDU6_ATC AS EDU6_ATC /*교육-정착345 */
+             , NVL(T13.EDU12_ATC,'N') AS EDU10_ATC /*교육-지점온라인*/
+             , CASE WHEN T13.EDU7_ATC = 'Y' THEN '1'
+                    WHEN T13.EDU8_ATC = 'Y' THEN '2'
+                    WHEN T13.EDU9_ATC = 'Y' THEN '3'
+                    WHEN T13.EDU10_ATC = 'Y' THEN '4'
+                    WHEN T13.EDU11_ATC = 'Y' THEN '5'
                     ELSE ''
                END AS EDU7_ATC /*교육-Pre누적교육 */
-             , NVL(T9.EDU8_ATC,'-') AS EDU8_ATC /*교육-수석정착*/
-             , CASE WHEN T9.EDU8_ATC != NULL
-                         THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(T9.EDU8_ATC,'YYYYMM')) + 1
+             , NVL(T12.EDU8_ATC,'-') AS EDU8_ATC /*교육-수석정착*/
+             , CASE WHEN T12.EDU8_ATC != NULL
+                         THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(T12.EDU8_ATC,'YYYYMM')) + 1
                     ELSE 0
                END AS EDU9_ATC /*교육-수석차월*/
-             , NVL(SUBSTR(T6.FST_OPNG,1,6),'-') AS MNGR1_ATC /*매니저개시-최초개시월*/
-             , NVL(SUBSTR(T6.RE_OPNG,1,6),'-') AS MNGR2_ATC /*매니저개시-재개시월*/
-             , NVL(SUBSTR(T7.FST_CV_DT,1,6),'-') AS MNGR3_ATC /*매니저개시-최종해약월*/
-             , NVL(SUBSTR(T7.CV_DT,1,6),'-') AS MNGR4_ATC /*매니저개시-업무해약월*/
-             , CASE WHEN NVL(T7.CV_DT,'0') != '0'
-                         AND MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T7.CV_DT,1,6),'YYYYMM')) &gt;= 0
-                         THEN MONTHS_BETWEEN(TO_DATE(#{perfYm},'YYYYMM'), TO_DATE(SUBSTR(T7.CV_DT,1,6),'YYYYMM')) + 1
-                    ELSE 0
-               END AS MNGR5_ATC /*매니저개시-개시차월*/
-             , NVL(T6.OPNG_CD,'9') AS MNGR6_ATC /*매니저개시-정착지급유형*/
+             , T6.MNGR1_ATC /*매니저개시-최초개시월*/
+             , CASE WHEN T6.MNGR1_ATC = T7.MNGR2_ATC THEN ''
+                    ELSE T7.MNGR2_ATC
+               END AS MNGR2_ATC /*매니저개시-재개시월*/
+             , CASE WHEN T8.MNGR3_ATC = T9.MNGR4_ATC THEN ''
+                    ELSE T8.MNGR3_ATC
+               END AS MNGR3_ATC /*매니저개시-최종해약월*/
+             , T9.MNGR4_ATC /*매니저개시-업무해약월*/
+             , CASE WHEN (T8.MNGR3_ATC IS NULL AND T9.MNGR4_ATC IS NULL) OR (T8.MNGR3_ATC  <![CDATA[>=]]>  #{perfYm} OR T9.MNGR4_ATC  <![CDATA[>=]]>  #{perfYm}) THEN
+                    CASE WHEN T7.MNGR2_ATC IS NOT NULL THEN
+                         NVL(TO_CHAR(MONTHS_BETWEEN(TO_DATE(#{perfYm}, 'YYYYMM'), TO_DATE(SUBSTR(T7.MNGR2_ATC, 0, 6), 'YYYYMM')) + 1), '')
+                         ELSE
+                         NVL(TO_CHAR(MONTHS_BETWEEN(TO_DATE(#{perfYm}, 'YYYYMM'), TO_DATE(SUBSTR(T6.MNGR1_ATC, 0, 6), 'YYYYMM')) + 1), '')
+                    END
+                    ELSE
+                    ''
+               END AS MNGR5_ATC /* 매니저 게시차월 */
+             , T10.MNGR6_ATC /*매니저개시-정착지급유형*/
              , '0' AS MNGR7_ATC /*매니저개시-5일배정수 추후 재확인 필요*/
-             , NVL(T8.MNGT_CNT,0) AS INDV1_BS_ATC /*개인BS-배정건수*/
-             , NVL(T8.VST_CNT,0) AS INDV2_BS_ATC /*개인BS-완료건수*/
-             , CASE WHEN NVL(T8.VST_CNT,0) = 0 OR NVL(T8.MNGT_CNT,0) = 0 THEN 0
-                     ELSE TRUNC((T8.VST_CNT / (T8.MNGT_CNT - T8.CAN_CNT))*100.00,2)
+             , NVL(T11.MNGT_CNT,0) AS INDV1_BS_ATC /*개인BS-배정건수*/
+             , NVL(T11.VST_CNT,0) AS INDV2_BS_ATC /*개인BS-완료건수*/
+             , CASE WHEN NVL(T11.VST_CNT,0) = 0 OR NVL(T11.MNGT_CNT,0) = 0 THEN 0
+                     ELSE TRUNC((T11.VST_CNT / (T11.MNGT_CNT - T11.CAN_CNT))*100.00,2)
                END AS INDV3_BS_ATC /*개인BS-처리율*/
-             , CASE WHEN NVL(T8.VST_CNT,0) = 0 OR NVL(T8.MNGT_CNT,0) = 0 THEN 0
-                    ELSE ( CASE WHEN TRUNC((T8.VST_CNT / (T8.MNGT_CNT - T8.CAN_CNT))*100.00,2) &gt;= 90 THEN 100
+             , CASE WHEN NVL(T11.VST_CNT,0) = 0 OR NVL(T11.MNGT_CNT,0) = 0 THEN 0
+                    ELSE ( CASE WHEN TRUNC((T11.VST_CNT / (T11.MNGT_CNT - T11.CAN_CNT))*100.00,2) <![CDATA[>=]]> 90 THEN 100
                                 ELSE 80
                            END
                          )
                END AS INDV4_BS_ATC /*개인BS-지급률*/
-             , NVL(T8.W1_CNT,0) AS INDV5_BS_ATC /*개인BS-W1건수*/
-             , NVL(T8.W2_CNT,0) AS INDV6_BS_ATC /*개인BS-W2건수*/
-             , NVL(T16.MNGT_CNT,0) AS OG1_BS_ATC /*조직BS-배정건수 */
-             , NVL(T16.VST_CNT,0) AS OG2_BS_ATC /*조직BS-완료건수 */
-             , CASE WHEN NVL(T16.VST_CNT,0) = 0 OR NVL(T16.MNGT_CNT,0) = 0 THEN 0
-                    ELSE TRUNC((T16.VST_CNT / (T16.MNGT_CNT - T16.CAN_CNT))*100.00,2)
+             , NVL(T11.W1_CNT,0) AS INDV5_BS_ATC /*개인BS-W1건수*/
+             , NVL(T11.W2_CNT,0) AS INDV6_BS_ATC /*개인BS-W2건수*/
+             , NVL(T19.MNGT_CNT,0) AS OG1_BS_ATC /*조직BS-배정건수 */
+             , NVL(T19.VST_CNT,0) AS OG2_BS_ATC /*조직BS-완료건수 */
+             , CASE WHEN NVL(T19.VST_CNT,0) = 0 OR NVL(T19.MNGT_CNT,0) = 0 THEN 0
+                    ELSE TRUNC((T19.VST_CNT / (T19.MNGT_CNT - T19.CAN_CNT))*100.00,2)
                END AS OG3_BS_ATC /*조직BS-처리율 */
-             , CASE WHEN NVL(T16.VST_CNT,0) = 0 OR NVL(T16.MNGT_CNT,0) = 0 THEN 0
-                    ELSE ( CASE WHEN TRUNC((T16.VST_CNT / (T16.MNGT_CNT - T16.CAN_CNT))*100.00,2) &gt;= 90 THEN 100
+             , CASE WHEN NVL(T19.VST_CNT,0) = 0 OR NVL(T19.MNGT_CNT,0) = 0 THEN 0
+                    ELSE ( CASE WHEN TRUNC((T19.VST_CNT / (T19.MNGT_CNT - T19.CAN_CNT))*100.00,2) <![CDATA[>=]]> 90 THEN 100
                                 ELSE 80
                            END
                          )
                END AS OG4_BS_ATC /*조직BS-지급률 */
-             , NVL(T11.INDV1_PERF,0) AS INDV1_PERF /*개인실적-가정인정건수 */
-             , NVL(T11.INDV2_PERF,0) AS INDV2_PERF /*개인실적-렌탈기준가 */
-             , NVL(T11.INDV3_PERF,0) AS INDV3_PERF /*개인실적-일시불기준가 */
-             , NVL(T11.INDV4_PERF,0) AS INDV4_PERF /*개인실적-기변건수 */
-             , NVL(T11.INDV5_PERF,0) AS INDV5_PERF /*개인실적-가전외인정실적 */
-             , NVL(T11.INDV1_SELL,0) AS INDV1_SELL /*개인기타판매-정액건수*/
-             , NVL(T11.INDV2_SELL,0) AS INDV2_SELL /*개인기타판매-라이브팩건수 */
-             , NVL(T11.INDV3_SELL,0) AS INDV3_SELL /*개인기타판매-홈케어멤버십건수 */
-             , NVL(T14.RENTAL_CAN_CT + T14.LEASE_CAN_CT + T14.MSH_SPR_CT + T14.RENTAL_EXN_CT , 0) AS INDV_ACC1_NINC
-             , NVL(T14.RENTAL_NW_CT + T14.LEASE_NW_CT , 0) AS INDV_ACC2_NINC
-             , NVL(T14.RENTAL_CAN_CT + T14.LEASE_CAN_CT + T14.MSH_SPR_CT + T14.RENTAL_EXN_CT , 0) - NVL(T14.RENTAL_NW_CT + T14.LEASE_NW_CT , 0) AS INDV_ACC3_NINC
-             , NVL(T11.OG1_PERF,0) AS OG1_PERF /*조직실적-가정인정건수 */
-             , NVL(T11.OG2_PERF,0) AS OG2_PERF /*조직실적-렌탈기준가 */
-             , NVL(T11.OG3_PERF,0) AS OG3_PERF /*조직실적-일시불기준가 */
-             , NVL(T11.OG4_PERF,0) AS OG4_PERF /*조직실적-기변건수 */
-             , NVL(T11.OG2_PERF,0) + NVL(T11.OG3_PERF,0) AS OG_PERF_SUM /*조직실적-계 */
-             , NVL(T17.RENTAL_CAN_CT + T17.LEASE_CAN_CT + T17.MSH_SPR_CT + T17.RENTAL_EXN_CT , 0) AS OG_ACC1_NINC /*조직계정순증-전월취소 */
-             , NVL(T17.RENTAL_NW_CT + T17.LEASE_NW_CT , 0) AS OG_ACC2_NINC /*조직계정순증-당월신규 */
-             , NVL(T17.RENTAL_CAN_CT + T17.LEASE_CAN_CT + T17.MSH_SPR_CT + T17.RENTAL_EXN_CT , 0) - NVL(T17.RENTAL_NW_CT + T17.LEASE_NW_CT , 0) AS OG_ACC3_NINC /*조직계정순증-순증 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV151_FEE,0)
-                    ELSE NVL(T13.INDV071_FEE,0)
+             , NVL(T14.INDV1_PERF,0) AS INDV1_PERF /*개인실적-가정인정건수 */
+             , NVL(T14.INDV2_PERF,0) AS INDV2_PERF /*개인실적-렌탈기준가 */
+             , NVL(T14.INDV3_PERF,0) AS INDV3_PERF /*개인실적-일시불기준가 */
+             , NVL(T14.INDV4_PERF,0) AS INDV4_PERF /*개인실적-기변건수 */
+             , NVL(T14.INDV5_PERF,0) AS INDV5_PERF /*개인실적-가전외인정실적 */
+             , NVL(T14.INDV1_SELL,0) AS INDV1_SELL /*개인기타판매-정액건수*/
+             , NVL(T14.INDV2_SELL,0) AS INDV2_SELL /*개인기타판매-라이브팩건수 */
+             , NVL(T14.INDV3_SELL,0) AS INDV3_SELL /*개인기타판매-홈케어멤버십건수 */
+             , NVL(T17.RENTAL_CAN_CT + T17.LEASE_CAN_CT + T17.MSH_SPR_CT + T17.RENTAL_EXN_CT , 0) AS INDV_ACC1_NINC
+             , NVL(T17.RENTAL_NW_CT + T17.LEASE_NW_CT , 0) AS INDV_ACC2_NINC
+             , NVL(T17.RENTAL_CAN_CT + T17.LEASE_CAN_CT + T17.MSH_SPR_CT + T17.RENTAL_EXN_CT , 0) - NVL(T17.RENTAL_NW_CT + T17.LEASE_NW_CT , 0) AS INDV_ACC3_NINC
+             , NVL(T14.OG1_PERF,0) AS OG1_PERF /*조직실적-가정인정건수 */
+             , NVL(T14.OG2_PERF,0) AS OG2_PERF /*조직실적-렌탈기준가 */
+             , NVL(T14.OG3_PERF,0) AS OG3_PERF /*조직실적-일시불기준가 */
+             , NVL(T14.OG4_PERF,0) AS OG4_PERF /*조직실적-기변건수 */
+             , NVL(T14.OG2_PERF,0) + NVL(T14.OG3_PERF,0) AS OG_PERF_SUM /*조직실적-계 */
+             , NVL(T20.RENTAL_CAN_CT + T20.LEASE_CAN_CT + T20.MSH_SPR_CT + T20.RENTAL_EXN_CT , 0) AS OG_ACC1_NINC /*조직계정순증-전월취소 */
+             , NVL(T20.RENTAL_NW_CT + T20.LEASE_NW_CT , 0) AS OG_ACC2_NINC /*조직계정순증-당월신규 */
+             , NVL(T20.RENTAL_CAN_CT + T20.LEASE_CAN_CT + T20.MSH_SPR_CT + T20.RENTAL_EXN_CT , 0) - NVL(T20.RENTAL_NW_CT + T20.LEASE_NW_CT , 0) AS OG_ACC3_NINC /*조직계정순증-순증 */
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV151_FEE,0)
+                    ELSE NVL(T16.INDV071_FEE,0)
                END AS INDV1_FEE /*개인수수료-가전비례 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV152_FEE,0)
-                    ELSE NVL(T13.INDV072_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV152_FEE,0)
+                    ELSE NVL(T16.INDV072_FEE,0)
                END AS INDV2_FEE /*개인수수료-가전외비례 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV153_FEE,0)
-                    ELSE NVL(T13.INDV073_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV153_FEE,0)
+                    ELSE NVL(T16.INDV073_FEE,0)
                END AS INDV3_FEE /*개인수수료-가전판매장려 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV154_FEE,0)
-                    ELSE NVL(T13.INDV074_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV154_FEE,0)
+                    ELSE NVL(T16.INDV074_FEE,0)
                END AS INDV4_FEE /*개인수수료-미팅 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV155_FEE,0)
-                    ELSE NVL(T13.INDV075_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV155_FEE,0)
+                    ELSE NVL(T16.INDV075_FEE,0)
                END AS INDV5_FEE /*개인수수료-교육 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV156_FEE,0)
-                    ELSE NVL(T13.INDV076_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV156_FEE,0)
+                    ELSE NVL(T16.INDV076_FEE,0)
                END AS INDV6_FEE /*개인수수료-정착 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV157_FEE,0)
-                    ELSE NVL(T13.INDV077_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV157_FEE,0)
+                    ELSE NVL(T16.INDV077_FEE,0)
                END AS INDV7_FEE /*개인수수료-기기변경 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV158_FEE,0)
-                    ELSE NVL(T13.INDV078_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV158_FEE,0)
+                    ELSE NVL(T16.INDV078_FEE,0)
                END AS INDV8_FEE /*개인수수료-BS관리 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV159_FEE,0)
-                    ELSE NVL(T13.INDV079_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV159_FEE,0)
+                    ELSE NVL(T16.INDV079_FEE,0)
                END AS INDV9_FEE /*개인수수료-BS장려 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV1510_FEE,0)
-                    ELSE NVL(T13.INDV0710_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV1510_FEE,0)
+                    ELSE NVL(T16.INDV0710_FEE,0)
                END AS INDV10_FEE /*개인수수료-급지 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV1511_FEE,0)
-                    ELSE NVL(T13.INDV0711_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV1511_FEE,0)
+                    ELSE NVL(T16.INDV0711_FEE,0)
                END AS INDV11_FEE /*개인수수료-WM통신 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV1512_FEE,0)
-                    ELSE NVL(T13.INDV0712_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV1512_FEE,0)
+                    ELSE NVL(T16.INDV0712_FEE,0)
                END AS INDV12_FEE /*개인수수료-WM기타 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV1513_FEE,0)
-                    ELSE NVL(T13.INDV0713_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV1513_FEE,0)
+                    ELSE NVL(T16.INDV0713_FEE,0)
                END AS INDV13_FEE /*개인수수료-사전방문 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV1514_FEE,0)
-                    ELSE NVL(T13.INDV0714_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV1514_FEE,0)
+                    ELSE NVL(T16.INDV0714_FEE,0)
                END AS INDV14_FEE /*개인수수료-유니폼 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV1515_FEE,0)
-                    ELSE NVL(T13.INDV0715_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV1515_FEE,0)
+                    ELSE NVL(T16.INDV0715_FEE,0)
                END AS INDV15_FEE /*개인수수료-자재실장 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.INDV1516_FEE,0)
-                    ELSE NVL(T13.INDV0716_FEE,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV1516_FEE,0)
+                    ELSE NVL(T16.INDV0716_FEE,0)
                END AS INDV16_FEE /*개인수수료-가전추가장려 */
-             , NVL(T13.OG1_FEE,0) AS OG1_FEE /*조직수수료-가전조직비례 */
-             , NVL(T13.OG2_FEE,0) AS OG2_FEE /*조직수수료-가전조직외비례 */
-             , NVL(T13.OG3_FEE,0) AS OG3_FEE /*조직수수료-가전조직판매장려 */
-             , NVL(T13.OG4_FEE,0) AS OG4_FEE /*조직수수료-교육 */
-             , NVL(T13.OG5_FEE,0) AS OG5_FEE /*조직수수료-순증관리 */
-             , NVL(T13.OG6_FEE,0) AS OG6_FEE /*조직수수료-조직배출1 */
-             , NVL(T13.OG7_FEE,0) AS OG7_FEE /*조직수수료-조직배출2 */
-             , NVL(T13.OG8_FEE,0) AS OG8_FEE /*조직수수료-신설지점 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.ETC151_ATC,0)
-                    ELSE NVL(T13.ETC071_ATC,0)
+             , NVL(T16.OG1_FEE,0) AS OG1_FEE /*조직수수료-가전조직비례 */
+             , NVL(T16.OG2_FEE,0) AS OG2_FEE /*조직수수료-가전조직외비례 */
+             , NVL(T16.OG3_FEE,0) AS OG3_FEE /*조직수수료-가전조직판매장려 */
+             , NVL(T16.OG4_FEE,0) AS OG4_FEE /*조직수수료-교육 */
+             , NVL(T16.OG5_FEE,0) AS OG5_FEE /*조직수수료-순증관리 */
+             , NVL(T16.OG6_FEE,0) AS OG6_FEE /*조직수수료-조직배출1 */
+             , NVL(T16.OG7_FEE,0) AS OG7_FEE /*조직수수료-조직배출2 */
+             , NVL(T16.OG8_FEE,0) AS OG8_FEE /*조직수수료-신설지점 */
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.ETC151_ATC,0)
+                    ELSE NVL(T16.ETC071_ATC,0)
                END AS ETC1_ATC /*기타-재지급 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.ETC152_ATC,0)
-                    ELSE NVL(T13.ETC072_ATC,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.ETC152_ATC,0)
+                    ELSE NVL(T16.ETC072_ATC,0)
                END AS ETC2_ATC /*기타-멤버십 */
-             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T13.ETC153_ATC,0)
-                    ELSE NVL(T13.ETC073_ATC,0)
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.ETC153_ATC,0)
+                    ELSE NVL(T16.ETC073_ATC,0)
                END AS ETC3_ATC /*기타-기타지원 */
-             , NVL(T12.INTBS_SUM,0) AS INTBS_SUM /*과표합계 */
-             , NVL(T12.DDTN_SUM,0) AS DDTN_SUM /*총공제액 */
-             , NVL(T12.ACL_DSB_AMT,0) AS ACL_DSB_AMT /*실지급액 */
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.P_HOME_CARE,0)
+                    ELSE NVL(T16.HOME_CARE,0)
+               END AS HOME_CARE /* 홈케어 */
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.P_RSTL,0)
+                    ELSE NVL(T16.RSTL,0)
+               END AS RSTL /* 재약정 */
+             , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.P_LIVE_PAKG,0)
+                    ELSE NVL(T16.LIVE_PAKG,0)
+               END AS LIVE_PAKG /* 라이브팩 */
+             , NVL(T15.INTBS_SUM,0) AS INTBS_SUM /*과표합계 */
+             , NVL(T15.DDTN_SUM,0) AS DDTN_SUM /*총공제액 */
+             , NVL(T15.ACL_DSB_AMT,0) AS ACL_DSB_AMT /*실지급액 */
           FROM TB_OGBS_MM_PRTNR_IZ T1
          INNER JOIN TB_OGBS_MM_OG_IZ T2
             ON T1.BASE_YM = T2.BASE_YM
            AND T1.OG_ID = T2.OG_ID
-      <if test='@MybatisUtils@isNotEmpty(ogLevl1Id)'>
-           AND T2.DGR1_LEVL_OG_ID = #{ogLevl1Id}
-      </if>
-      <if test='@MybatisUtils@isNotEmpty(ogLevl2Id)'>
-           AND T2.DGR2_LEVL_OG_ID = #{ogLevl2Id}
-      </if>
-      <if test='@MybatisUtils@isNotEmpty(ogLevl3Id)'>
-           AND T2.DGR3_LEVL_OG_ID = #{ogLevl3Id}
-      </if>
+           <if test='@MybatisUtils@isNotEmpty(ogLevl1Id)'>
+               AND T2.DGR1_LEVL_OG_ID = #{ogLevl1Id}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(ogLevl2Id)'>
+               AND T2.DGR2_LEVL_OG_ID = #{ogLevl2Id}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(ogLevl3Id)'>
+               AND T2.DGR3_LEVL_OG_ID = #{ogLevl3Id}
+           </if>
+
           LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL T3
             ON T1.PRTNR_NO = T3.PRTNR_NO
            AND T1.OG_TP_CD = T3.OG_TP_CD
@@ -2567,517 +2603,652 @@
            AND T3.FEE_TCNT_DV_CD = #{feeTcntDvCd}
            AND T3.PERF_ATC_CD = 'W02P00093'    /*미팅참석일수*/
            AND T3.PERF_AGRG_CRT_DV_CD = '201'
-      <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-           AND T3.PRTNR_NO = #{prtnrNo}
-      </if>
+           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+               AND T3.PRTNR_NO = #{prtnrNo}
+           </if>
+
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4 /*+1 month M조직 여부*/
             ON T1.PRTNR_NO = T4.PRTNR_NO
            AND T1.OG_TP_CD = T4.OG_TP_CD
            AND T4.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
-      <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-           AND T4.PRTNR_NO = #{prtnrNo}
-      </if>
+           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+               AND T4.PRTNR_NO = #{prtnrNo}
+           </if>
+
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T5  /*+1 month P조직 이동*/
             ON T1.PRTNR_NO = T5.PRTNR_NO
            AND T5.OG_TP_CD = 'W01'
            AND T5.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM' )
-      <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-           AND T5.PRTNR_NO = #{prtnrNo}
-      </if>
-          LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                 , MAX(FST_OPNG) AS FST_OPNG
-                                 , MAX(RE_OPNG) AS RE_OPNG
-                                 , MAX(OPNG_CD) AS OPNG_CD
-                              FROM ( SELECT PRTNR_NO
-                                          , OPNG_CD
-                                          , CASE WHEN OPNG_CD IN ('1','2') THEN BASE_YM END AS FST_OPNG
-                                          , CASE WHEN OPNG_CD IN ('3','4') THEN BASE_YM END AS RE_OPNG
-                                       FROM TB_FEAM_WELS_MNGER_OPNG_BAS
-                                      WHERE BASE_YM  &lt;= #{perfYm}
-                                        AND OG_TP_CD = 'W02'
-                                        AND TCNT_DV_CD = '02'
-                                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                        AND PRTNR_NO = #{prtnrNo}
-                                   </if>
-                                   )
-                             GROUP BY PRTNR_NO
-                          )T6
+           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+               AND T5.PRTNR_NO = #{prtnrNo}
+           </if>
+
+          LEFT OUTER JOIN
+             (
+               SELECT MIN(STRTDT) AS MNGR1_ATC /* 매니저 최초게시일 */
+                    , PRTNR_NO
+                 FROM TB_OGPS_PLAR_QLF_CH_IZ
+                WHERE 1=1
+                  AND SUBSTR(STRTDT, 0, 6)  <![CDATA[<=]]> #{perfYm}
+                  AND OG_TP_CD = 'W02'
+                  AND QLF_DV_CD IN (3, 6)
+                  AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
+                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                      AND PRTNR_NO = #{prtnrNo}
+                  </if>
+                  AND DTA_DL_YN = 'N'
+
+                GROUP BY PRTNR_NO
+             ) T6
             ON T1.PRTNR_NO = T6.PRTNR_NO
-          LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                  , MAX(CV_DT) AS CV_DT
-                                  , MIN(CV_DT) AS FST_CV_DT
-                               FROM TB_OGPS_PLAR_QLF_CH_IZ /*플래너 자격 변경내역*/
-                              WHERE OG_TP_CD = 'W02'
-                                AND QLF_DV_CD = '3'  /* 웰스매니저 */
-                                AND QLF_APLC_DV_CD = '2'  /* 자격해제 */
-                                AND DTA_DL_YN = 'N'
-                           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                AND PRTNR_NO = #{prtnrNo}
-                           </if>
-                              GROUP BY PRTNR_NO
-                          )T7
+
+          LEFT OUTER JOIN
+             (
+               SELECT STRTDT AS MNGR2_ATC /* 매니저 재개시월 */
+                    , PRTNR_NO
+                 FROM TB_OGPS_PLAR_QLF_CH_IZ
+                WHERE 1=1
+                  AND #{perfYm} BETWEEN SUBSTR(STRTDT, 0, 6) AND SUBSTR(ENDDT, 0, 6)
+                  AND OG_TP_CD = 'W02'
+                  AND QLF_DV_CD IN (3, 6)
+                  AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
+                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                      AND PRTNR_NO = #{prtnrNo}
+                  </if>
+                  AND DTA_DL_YN = 'N'
+
+                UNION ALL
+
+               SELECT STRTDT AS MNGR2_ATC /* 매니저 재개시월 */
+                    , PRTNR_NO
+                 FROM TB_OGPS_PLAR_QLF_CH_IZ
+                WHERE 1=1
+                  AND SUBSTR(STRTDT, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1), 'YYYYMM')
+                  AND OG_TP_CD = 'W02'
+                  AND QLF_DV_CD IN (3, 6)
+                  AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
+                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                      AND PRTNR_NO = #{prtnrNo}
+                  </if>
+                  AND DTA_DL_YN = 'N'
+             ) T7
             ON T1.PRTNR_NO = T7.PRTNR_NO
-          LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                 , NVL(MAX(W1_CNT),0) AS W1_CNT
-                                 , NVL(MAX(W2_CNT),0) AS W2_CNT
-                                 , NVL(MAX(MNGT_CNT),0) AS MNGT_CNT
-                                 , NVL(MAX(VST_CNT),0) AS VST_CNT
-                                 , NVL(MAX(CAN_CNT),0) AS CAN_CNT
-                              FROM ( SELECT PRTNR_NO
-                                          , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010101' THEN PERF_VAL END AS W1_CNT
-                                          , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010101' THEN PERF_VAL END AS W2_CNT
-                                          , 0 AS MNGT_CNT
-                                          , 0 AS VST_CNT
-                                          , 0 AS CAN_CNT
-                                       FROM TB_FEAM_WPTN_SV_PERF_AGRG
-                                      WHERE BASE_YM = #{perfYm}
-                                        AND CL_DV_CD = #{feeTcntDvCd}
-                                        AND OG_TP_CD = 'W02'
-                                        AND PRTNR_SV_PERF_ATC_CD IN ('SV06010101','SV06010102')
-                                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                        AND PRTNR_NO = #{prtnrNo}
-                                   </if>
-                                      UNION ALL
-                                     SELECT A.PRTNR_NO
-                                          , 0 AS W1_CNT
-                                          , 0 AS W2_CNT
-                                          , NVL(SUM(A.MNGT_CNT),0) AS MNGT_CNT
-                                          , NVL(SUM(A.VST_CNT),0) AS VST_CNT
-                                          , NVL(SUM(A.CAN_CNT),0) AS CAN_CNT
-                                       FROM ( SELECT PRTNR_NO
-                                                   , MNGT_CNT AS MNGT_CNT
-                                                   , VST_CNT1 + VST_CNT2 AS VST_CNT
-                                                   , CAN_CNT
-                                                FROM ( SELECT Z.PRTNR_NO
-                                                            , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
-                                                                        AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01'
-                                                                        THEN SUM(Z.PERF_VAL)
-                                                                   ELSE 0
-                                                              END AS MNGT_CNT
-                                                            , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
-                                                                        AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '02'
-                                                                        THEN SUM(Z.PERF_VAL)
-                                                                   ELSE 0
-                                                              END AS VST_CNT1
-                                                            , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
-                                                                        AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '03'
-                                                                        THEN SUM(Z.PERF_VAL)
-                                                                   ELSE 0
-                                                              END AS VST_CNT2
-                                                            , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '90'
-                                                                        AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01'
-                                                                        THEN SUM(Z.PERF_VAL)
-                                                                   ELSE 0
-                                                              END AS CAN_CNT
-                                                              FROM TB_FEAM_WPTN_SV_PERF_AGRG Z
-                                                             INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD X
-                                                                ON Z.PRTNR_SV_PERF_ATC_CD = X.PRTNR_SV_PERF_ATC_CD
-                                                               AND X.PRTNR_PERF_DTLP_ATC_CDV1 = '01'
-                                                               AND X.PRTNR_PERF_DTLP_ATC_CDV2 IN ('99','90')
-                                                               AND X.PRTNR_PERF_DTLP_ATC_CDV3 IN ('99','90')
-                                                               AND SUBSTR(X.PRTNR_SV_PERF_ATC_CD,1,2) = 'SV'
-                                                             WHERE Z.BASE_YM = '202306'
-                                                               AND Z.CL_DV_CD = '02'
-                                                               AND Z.OG_TP_CD = 'W02'
-                                                          <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                                               AND Z.PRTNR_NO = #{prtnrNo}
-                                                          </if>
-                                                             GROUP BY Z.PRTNR_NO, X.PRTNR_PERF_DTLP_ATC_CDV2, X.PRTNR_PERF_DTLP_ATC_CDV4
-                                                     )
-                                            )A
-                                      INNER JOIN TB_OGBS_MM_PRTNR_IZ B
-                                         ON A.PRTNR_NO = B.PRTNR_NO
-                                        AND B.BASE_YM = #{perfYm}
-                                        AND B.OG_TP_CD = 'W02'
-                                      INNER JOIN TB_OGBS_MM_OG_IZ C
-                                         ON B.BASE_YM = C.BASE_YM
-                                        AND B.OG_ID = C.OG_ID
-                                   <if test='@MybatisUtils@isNotEmpty(ogLevl1Id)'>
-                                        AND C.DGR1_LEVL_OG_ID = #{ogLevl1Id}
-                                   </if>
-                                   <if test='@MybatisUtils@isNotEmpty(ogLevl2Id)'>
-                                        AND C.DGR2_LEVL_OG_ID = #{ogLevl2Id}
-                                   </if>
-                                   <if test='@MybatisUtils@isNotEmpty(ogLevl3Id)'>
-                                        AND C.DGR3_LEVL_OG_ID = #{ogLevl3Id}
-                                   </if>
-                                      GROUP BY A.PRTNR_NO
-                                   )
-                             GROUP BY PRTNR_NO
-                          )T8
-             ON T1.PRTNR_NO = T8.PRTNR_NO
-           LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                  , MAX(EDU1_ATC) AS EDU1_ATC
-                                  , MAX(EDU2_ATC) AS EDU2_ATC
-                                  , MAX(EDU8_ATC) AS EDU8_ATC
-                               FROM ( SELECT PRTNR_NO
-                                           , CASE WHEN EDUC_CRSE_NO = '96' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END AS EDU1_ATC
-                                           , CASE WHEN EDUC_CRSE_NO = '143' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END AS EDU2_ATC
-                                           , CASE WHEN EDUC_CRSE_NO = '17' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END AS EDU8_ATC
-                                        FROM TB_PSCA_MCPTN_EDUC_IZ
-                                       WHERE OG_TP_CD = 'W02'
-                                         AND EDUC_CRSE_NO IN ('96','143')
-                                         AND EDUC_CRSE_CRT_BASE_YM &lt;= #{perfYm}
-                                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                         AND PRTNR_NO = #{prtnrNo}
-                                    </if>
-                                    )
-                              GROUP BY PRTNR_NO
-                           )T9
-             ON T1.PRTNR_NO = T9.PRTNR_NO
-           LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                  , MAX(EDU3_ATC) AS EDU3_ATC
-                                  , MAX(EDU4_ATC) AS EDU4_ATC
-                                  , MAX(EDU5_ATC) AS EDU5_ATC
-                                  , MAX(EDU6_ATC) AS EDU6_ATC
-                                  , MAX(EDU7_ATC) AS EDU7_ATC
-                                  , MAX(EDU8_ATC) AS EDU8_ATC
-                                  , MAX(EDU9_ATC) AS EDU9_ATC
-                                  , MAX(EDU10_ATC) AS EDU10_ATC
-                                  , MAX(EDU11_ATC) AS EDU11_ATC
-                                  , MAX(EDU12_ATC) AS EDU12_ATC
-                               FROM ( SELECT PRTNR_NO
-                                           , CASE WHEN PERF_ATC_CD = 'W02P00116' THEN FEE_PERF_ATC_VAL END AS EDU3_ATC
-                                           , CASE WHEN PERF_ATC_CD = 'W02P00124' THEN FEE_PERF_ATC_VAL END AS EDU4_ATC
-                                           , CASE WHEN PERF_ATC_CD = 'W02P00125' THEN FEE_PERF_ATC_VAL END AS EDU5_ATC
-                                           , CASE WHEN PERF_ATC_CD = 'W02P00126' THEN FEE_PERF_ATC_VAL END AS EDU6_ATC
-                                           , CASE WHEN PERF_ATC_CD = 'W02P00127' THEN FEE_PERF_ATC_VAL END AS EDU7_ATC
-                                           , CASE WHEN PERF_ATC_CD = 'W02P00128' THEN FEE_PERF_ATC_VAL END AS EDU8_ATC
-                                           , CASE WHEN PERF_ATC_CD = 'W02P00129' THEN FEE_PERF_ATC_VAL END AS EDU9_ATC
-                                           , CASE WHEN PERF_ATC_CD = 'W02P00130' THEN FEE_PERF_ATC_VAL END AS EDU10_ATC
-                                           , CASE WHEN PERF_ATC_CD = 'W02P00131' THEN FEE_PERF_ATC_VAL END AS EDU11_ATC
-                                           , CASE WHEN PERF_ATC_CD = 'W02P00120' THEN FEE_PERF_ATC_VAL END AS EDU12_ATC
-                                        FROM TB_FEAM_PRTNR_PERF_MM_CL
-                                       WHERE BASE_YM = #{perfYm}
-                                         AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
-                                         AND PERF_AGRG_CRT_DV_CD = '201'
-                                         AND PERF_ATC_CD IN ( 'W02P00116', 'W02P00124', 'W02P00125', 'W02P00126', 'W02P00127'
-                                                            , 'W02P00128', 'W02P00129', 'W02P00130', 'W02P00131', 'W02P00120'
-                                                            )
-                                         AND CO_CD = '2000'
-                                         AND OG_TP_CD = 'W02'
-                                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                         AND PRTNR_NO = #{prtnrNo}
-                                    </if>
-                                    )
-                              GROUP BY PRTNR_NO
-                           )T10
-             ON T1.PRTNR_NO = T10.PRTNR_NO
-           LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                  , SUM(INDV1_PERF) AS INDV1_PERF
-                                  , SUM(INDV2_PERF) AS INDV2_PERF
-                                  , SUM(INDV3_PERF) AS INDV3_PERF
-                                  , SUM(INDV4_PERF) AS INDV4_PERF
-                                  , SUM(INDV5_PERF) AS INDV5_PERF
-                                  , SUM(INDV1_SELL) AS INDV1_SELL
-                                  , SUM(INDV2_SELL) AS INDV2_SELL
-                                  , SUM(INDV3_SELL) AS INDV3_SELL
-                                  , SUM(OG1_PERF) AS OG1_PERF
-                                  , SUM(OG2_PERF) AS OG2_PERF
-                                  , SUM(OG3_PERF) AS OG3_PERF
-                                  , SUM(OG4_PERF) AS OG4_PERF
-                               FROM ( SELECT PRTNR_NO
-                                           , CASE WHEN PERF_ATC_CD IN ('W02P00103', 'W02P00002') THEN PERF_VAL ELSE 0 END AS INDV1_PERF
-                                           , CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS INDV2_PERF
-                                           , CASE WHEN PERF_ATC_CD = 'W00P00034' THEN PERF_VAL ELSE 0 END AS INDV3_PERF
-                                           , CASE WHEN PERF_ATC_CD IN ('W00P00014', 'W00P00018') THEN PERF_VAL ELSE 0 END AS INDV4_PERF
-                                           , CASE WHEN PERF_ATC_CD IN ('W02P00027', 'W02P00112') THEN PERF_VAL ELSE 0 END AS INDV5_PERF
-                                           , CASE WHEN PERF_ATC_CD IN ('W00P00005', 'W00P00007') THEN 1 ELSE 0 END AS INDV1_SELL
-                                           , CASE WHEN PERF_ATC_CD IN ('W02P00105', 'W00P00009') THEN PERF_VAL ELSE 0 END AS INDV2_SELL
-                                           , CASE WHEN PERF_ATC_CD = 'W02P00086' THEN PERF_VAL ELSE 0 END AS INDV3_SELL
-                                           , 0 AS OG1_PERF
-                                           , 0 AS OG2_PERF
-                                           , 0 AS OG3_PERF
-                                           , 0 AS OG4_PERF
-                                        FROM TB_FEAM_NTORP_PERF_MM_CL
-                                       WHERE BASE_YM = #{perfYm}
-                                         AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
-                                         AND PERF_AGRG_CRT_DV_CD = '201'
-                                         AND PERF_DV_CD = '0'
-                                         AND OG_TP_CD = 'W02'
-                                         AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00034', 'W00P00014'
-                                                            , 'W00P00018', 'W02P00027', 'W02P00112', 'W00P00005', 'W00P00007'
-                                                            , 'W02P00105', 'W00P00009', 'W02P00086'
-                                                            )
-                                         AND PERF_VAL &gt; 0
-                                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                         AND PRTNR_NO = #{prtnrNo}
-                                    </if>
-                                       UNION ALL
-                                      SELECT PRTNR_NO
-                                           , 0 AS INDV1_PERF
-                                           , 0 AS INDV2_PERF
-                                           , 0 AS INDV3_PERF
-                                           , 0 AS INDV4_PERF
-                                           , 0 AS INDV5_PERF
-                                           , 0 AS INDV1_SELL
-                                           , 0 AS INDV2_SELL
-                                           , 0 AS INDV3_SELL
-                                           , CASE WHEN PERF_ATC_CD IN ('W02P00103', 'W02P00002') THEN PERF_VAL ELSE 0 END AS OG1_PERF
-                                           , CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS OG2_PERF
-                                           , CASE WHEN PERF_ATC_CD = 'W00P00034' THEN PERF_VAL ELSE 0 END AS OG3_PERF
-                                           , CASE WHEN PERF_ATC_CD IN ('W00P00014', 'W00P00018') THEN PERF_VAL ELSE 0 END AS OG4_PERF
-                                        FROM TB_FEAM_NTORP_PERF_MM_CL
-                                       WHERE BASE_YM = #{perfYm}
-                                         AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
-                                         AND PERF_AGRG_CRT_DV_CD = '201'
-                                         AND PERF_DV_CD = '2'
-                                         AND OG_TP_CD = 'W02'
-                                         AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00034', 'W00P00014', 'W00P00018')
-                                         AND PERF_VAL &gt; 0
-                                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                         AND PRTNR_NO = #{prtnrNo}
-                                    </if>
-                                    )
-                              GROUP BY PRTNR_NO
-                           )T11
-             ON T1.PRTNR_NO = T11.PRTNR_NO
-           LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                  , SUM(INTBS_AMT) AS INTBS_SUM
-                                  , SUM(DDCTAM) AS DDTN_SUM
-                                  , SUM(DSB_OJ_AMT) AS ACL_DSB_AMT
-                               FROM TB_FEAM_FEE_DSB_IZ
-                              WHERE DSB_YM = #{perfYm}
-                                AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
-                                AND OG_TP_CD = 'W02'
-                           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                AND PRTNR_NO = #{prtnrNo}
-                           </if>
-                              GROUP BY PRTNR_NO
-                           )T12
-             ON T1.PRTNR_NO = T12.PRTNR_NO
-           LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                  , SUM(INDV151_FEE) AS INDV151_FEE
-                                  , SUM(INDV152_FEE) AS INDV152_FEE
-                                  , SUM(INDV153_FEE) AS INDV153_FEE
-                                  , SUM(INDV154_FEE) AS INDV154_FEE
-                                  , SUM(INDV155_FEE) AS INDV155_FEE
-                                  , SUM(INDV156_FEE) AS INDV156_FEE
-                                  , SUM(INDV157_FEE) AS INDV157_FEE
-                                  , SUM(INDV158_FEE) AS INDV158_FEE
-                                  , SUM(INDV159_FEE) AS INDV159_FEE
-                                  , SUM(INDV1510_FEE) AS INDV1510_FEE
-                                  , SUM(INDV1511_FEE) AS INDV1511_FEE
-                                  , SUM(INDV1512_FEE) AS INDV1512_FEE
-                                  , SUM(INDV1513_FEE) AS INDV1513_FEE
-                                  , SUM(INDV1514_FEE) AS INDV1514_FEE
-                                  , SUM(INDV1515_FEE) AS INDV1515_FEE
-                                  , SUM(INDV1516_FEE) AS INDV1516_FEE
-                                  , SUM(ETC151_ATC) AS ETC151_ATC
-                                  , SUM(ETC152_ATC) AS ETC152_ATC
-                                  , SUM(ETC153_ATC) AS ETC153_ATC
-                                  , SUM(INDV071_FEE) AS INDV071_FEE
-                                  , SUM(INDV072_FEE) AS INDV072_FEE
-                                  , SUM(INDV073_FEE) AS INDV073_FEE
-                                  , SUM(INDV074_FEE) AS INDV074_FEE
-                                  , SUM(INDV075_FEE) AS INDV075_FEE
-                                  , SUM(INDV076_FEE) AS INDV076_FEE
-                                  , SUM(INDV077_FEE) AS INDV077_FEE
-                                  , SUM(INDV078_FEE) AS INDV078_FEE
-                                  , SUM(INDV079_FEE) AS INDV079_FEE
-                                  , SUM(INDV0710_FEE) AS INDV0710_FEE
-                                  , SUM(INDV0711_FEE) AS INDV0711_FEE
-                                  , SUM(INDV0712_FEE) AS INDV0712_FEE
-                                  , SUM(INDV0713_FEE) AS INDV0713_FEE
-                                  , SUM(INDV0714_FEE) AS INDV0714_FEE
-                                  , SUM(INDV0715_FEE) AS INDV0715_FEE
-                                  , SUM(INDV0716_FEE) AS INDV0716_FEE
-                                  , SUM(ETC071_ATC) AS ETC071_ATC
-                                  , SUM(ETC072_ATC) AS ETC072_ATC
-                                  , SUM(ETC073_ATC) AS ETC073_ATC
-                                  , SUM(OG1_FEE) AS OG1_FEE
-                                  , SUM(OG2_FEE) AS OG2_FEE
-                                  , SUM(OG3_FEE) AS OG3_FEE
-                                  , SUM(OG4_FEE) AS OG4_FEE
-                                  , SUM(OG5_FEE) AS OG5_FEE
-                                  , SUM(OG6_FEE) AS OG6_FEE
-                                  , SUM(OG7_FEE) AS OG7_FEE
-                                  , SUM(OG8_FEE) AS OG8_FEE
-                               FROM ( SELECT PRTNR_NO
-                                           , CASE WHEN FEE_CD = 'W020001' THEN FEE_ATC_VAL ELSE 0 END AS INDV151_FEE
-                                           , CASE WHEN FEE_CD = 'W020003' THEN FEE_ATC_VAL ELSE 0 END AS INDV152_FEE
-                                           , CASE WHEN FEE_CD = 'W020115' THEN FEE_ATC_VAL ELSE 0 END AS INDV153_FEE
-                                           , CASE WHEN FEE_CD = 'W020117' THEN FEE_ATC_VAL ELSE 0 END AS INDV154_FEE
-                                           , CASE WHEN FEE_CD IN ('W020116', 'W020077', 'W020076', 'W020075') THEN FEE_ATC_VAL ELSE 0 END AS INDV155_FEE
-                                           , CASE WHEN FEE_CD = 'W020081' THEN FEE_ATC_VAL ELSE 0 END AS INDV156_FEE
-                                           , CASE WHEN FEE_CD = 'W020005' THEN FEE_ATC_VAL ELSE 0 END AS INDV157_FEE
-                                           , CASE WHEN FEE_CD = 'W020084' THEN FEE_ATC_VAL ELSE 0 END AS INDV158_FEE
-                                           , CASE WHEN FEE_CD = 'W020122' THEN FEE_ATC_VAL ELSE 0 END AS INDV159_FEE
-                                           , CASE WHEN FEE_CD = 'W020085' THEN FEE_ATC_VAL ELSE 0 END AS INDV1510_FEE
-                                           , CASE WHEN FEE_CD = 'W020027' THEN FEE_ATC_VAL ELSE 0 END AS INDV1511_FEE
-                                           , CASE WHEN FEE_CD = 'W020096' THEN FEE_ATC_VAL ELSE 0 END AS INDV1512_FEE
-                                           , CASE WHEN FEE_CD = 'W020086' THEN FEE_ATC_VAL ELSE 0 END AS INDV1513_FEE
-                                           , CASE WHEN FEE_CD = 'W020098' THEN FEE_ATC_VAL ELSE 0 END AS INDV1514_FEE
-                                           , CASE WHEN FEE_CD = 'W020014' THEN FEE_ATC_VAL ELSE 0 END AS INDV1515_FEE
-                                           , CASE WHEN FEE_CD = 'W020124' THEN FEE_ATC_VAL ELSE 0 END AS INDV1516_FEE
-                                           , CASE WHEN FEE_CD = 'W020090' THEN FEE_ATC_VAL ELSE 0 END AS ETC151_ATC
-                                           , CASE WHEN FEE_CD = 'W020006' THEN FEE_ATC_VAL ELSE 0 END AS ETC152_ATC
-                                           , CASE WHEN FEE_CD = 'W020094' THEN FEE_ATC_VAL ELSE 0 END AS ETC153_ATC
-                                           , CASE WHEN FEE_CD = 'W020002' THEN FEE_ATC_VAL ELSE 0 END AS INDV071_FEE
-                                           , CASE WHEN FEE_CD = 'W020004' THEN FEE_ATC_VAL ELSE 0 END AS INDV072_FEE
-                                           , CASE WHEN FEE_CD = 'W020011' THEN FEE_ATC_VAL ELSE 0 END AS INDV073_FEE
-                                           , 0 AS INDV074_FEE
-                                           , CASE WHEN FEE_CD IN ('W020116', 'W020077', 'W020076', 'W020075') THEN FEE_ATC_VAL ELSE 0 END AS INDV075_FEE
-                                           , 0 AS INDV076_FEE
-                                           , CASE WHEN FEE_CD = 'W020030' THEN FEE_ATC_VAL ELSE 0 END AS INDV077_FEE
-                                           , CASE WHEN FEE_CD = 'W020087' THEN FEE_ATC_VAL ELSE 0 END AS INDV078_FEE
-                                           , CASE WHEN FEE_CD = 'W020123' THEN FEE_ATC_VAL ELSE 0 END AS INDV079_FEE
-                                           , CASE WHEN FEE_CD = 'W020088' THEN FEE_ATC_VAL ELSE 0 END AS INDV0710_FEE
-                                           , CASE WHEN FEE_CD = 'W020089' THEN FEE_ATC_VAL ELSE 0 END AS INDV0711_FEE
-                                           , CASE WHEN FEE_CD = 'W020097' THEN FEE_ATC_VAL ELSE 0 END AS INDV0712_FEE
-                                           , 0 AS INDV0713_FEE
-                                           , CASE WHEN FEE_CD = 'W020099' THEN FEE_ATC_VAL ELSE 0 END AS INDV0714_FEE
-                                           , CASE WHEN FEE_CD = 'W020041' THEN FEE_ATC_VAL ELSE 0 END AS INDV0715_FEE
-                                           , 0 AS INDV0716_FEE
-                                           , CASE WHEN FEE_CD = 'W020091' THEN FEE_ATC_VAL ELSE 0 END AS ETC071_ATC
-                                           , CASE WHEN FEE_CD = 'W020033' THEN FEE_ATC_VAL ELSE 0 END AS ETC072_ATC
-                                           , CASE WHEN FEE_CD = 'W020095' THEN FEE_ATC_VAL ELSE 0 END AS ETC073_ATC
-                                           , CASE WHEN FEE_CD = 'W020020' THEN FEE_ATC_VAL ELSE 0 END AS OG1_FEE
-                                           , CASE WHEN FEE_CD = 'W020023' THEN FEE_ATC_VAL ELSE 0 END AS OG2_FEE
-                                           , CASE WHEN FEE_CD = 'W020017' THEN FEE_ATC_VAL ELSE 0 END AS OG3_FEE
-                                           , CASE WHEN FEE_CD = 'W020118' THEN FEE_ATC_VAL ELSE 0 END AS OG4_FEE
-                                           , CASE WHEN FEE_CD = 'W020121' THEN FEE_ATC_VAL ELSE 0 END AS OG5_FEE
-                                           , CASE WHEN FEE_CD = 'W020015' THEN FEE_ATC_VAL ELSE 0 END AS OG6_FEE
-                                           , CASE WHEN FEE_CD = 'W020016' THEN FEE_ATC_VAL ELSE 0 END AS OG7_FEE
-                                           , CASE WHEN FEE_CD = 'W020025' THEN FEE_ATC_VAL ELSE 0 END AS OG8_FEE
-                                        FROM TB_FEAM_FEE_DSB_DTL_IZ
-                                       WHERE DSB_YM = #{perfYm}
-                                         AND OG_TP_CD = 'W02'
-                                         AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
-                                         AND FEE_ATC_DV_CD = '01'
-                                         AND FEE_CD IN ( 'W020001', 'W020003', 'W020115', 'W020117', 'W020116'
-                                                       , 'W020081', 'W020005', 'W020084', 'W020122', 'W020085'
-                                                       , 'W020027', 'W020096', 'W020086', 'W020098', 'W020014'
-                                                       , 'W020124', 'W020090', 'W020006', 'W020094', 'W020002'
-                                                       , 'W020004', 'W020011', 'W020118', 'W020030', 'W020087'
-                                                       , 'W020123', 'W020088', 'W020089', 'W020097', 'W020099'
-                                                       , 'W020041', 'W020091', 'W020033', 'W020095', 'W020020'
-                                                       , 'W020023', 'W020017', 'W020121', 'W020015', 'W020016'
-                                                       , 'W020025', 'W020075', 'W020076', 'W020077'
-                                                       )
-                                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                         AND PRTNR_NO = #{prtnrNo}
-                                    </if>
-                                    )
-                              GROUP BY PRTNR_NO
-                           )T13
-             ON T1.PRTNR_NO = T13.PRTNR_NO
-           LEFT OUTER JOIN TB_FEAM_WELS_ACC_NINC_MM_CL T14
-             ON T1.BASE_YM = T14.PERF_YM
-            AND T1.PRTNR_NO = T14.PRTNR_NO
-            AND T3.FEE_TCNT_DV_CD = T14.FEE_TCNT_DV_CD
-            AND T14.CO_CD = '2000'
-       <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-            AND T14.PRTNR_NO = #{prtnrNo}
-       </if>
-           LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                  , MAX(CV_DT) AS CV_DT
-                               FROM TB_OGPS_PLAR_QLF_CH_IZ /*플래너 자격 변경내역*/
-                              WHERE OG_TP_CD = 'W02'
-                                AND QLF_DV_CD IN ('4','5')  /* 플래너, 웰스지점장 */
-                                AND QLF_APLC_DV_CD = '1'  /* 승급 */
-                                AND DTA_DL_YN = 'N'
-                           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                AND PRTNR_NO = #{prtnrNo}
-                           </if>
-                              GROUP BY PRTNR_NO
-                           )T15
-             ON T1.PRTNR_NO = T15.PRTNR_NO
-           LEFT OUTER JOIN ( SELECT C.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
-                                  , NVL(SUM(A.MNGT_CNT),0) AS MNGT_CNT
-                                  , NVL(SUM(A.VST_CNT),0) AS VST_CNT
-                                  , NVL(SUM(A.CAN_CNT),0) AS CAN_CNT
-                               FROM ( SELECT PRTNR_NO
-                                           , MNGT_CNT AS MNGT_CNT
-                                           , VST_CNT1 + VST_CNT2 AS VST_CNT
-                                           , CAN_CNT
-                                        FROM ( SELECT Z.PRTNR_NO
-                                                    , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
-                                                                AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01'
-                                                                THEN SUM(Z.PERF_VAL)
-                                                           ELSE 0
-                                                           END AS MNGT_CNT
-                                                    , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
-                                                                AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '02'
-                                                                THEN SUM(Z.PERF_VAL)
-                                                           ELSE 0
-                                                      END AS VST_CNT1
-                                                    , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99'
-                                                                AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '03'
-                                                                THEN SUM(Z.PERF_VAL)
-                                                           ELSE 0
-                                                      END AS VST_CNT2
-                                                    , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '90'
-                                                                AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01'
-                                                                THEN SUM(Z.PERF_VAL)
-                                                           ELSE 0
-                                                      END AS CAN_CNT
-                                                 FROM TB_FEAM_WPTN_SV_PERF_AGRG Z
-                                                INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD X
-                                                   ON Z.PRTNR_SV_PERF_ATC_CD = X.PRTNR_SV_PERF_ATC_CD
-                                                  AND X.PRTNR_PERF_DTLP_ATC_CDV1 = '01'
-                                                  AND X.PRTNR_PERF_DTLP_ATC_CDV2 IN ('99','90')
-                                                  AND X.PRTNR_PERF_DTLP_ATC_CDV3 IN ('99','90')
-                                                  AND SUBSTR(X.PRTNR_SV_PERF_ATC_CD,1,2) = 'SV'
-                                                WHERE Z.BASE_YM = '202306'
-                                                  AND Z.CL_DV_CD = '02'
-                                                  AND Z.OG_TP_CD = 'W02'
-                                                GROUP BY Z.PRTNR_NO, X.PRTNR_PERF_DTLP_ATC_CDV2, X.PRTNR_PERF_DTLP_ATC_CDV4
-                                             )
-                                    )A
-                              INNER JOIN TB_OGBS_MM_PRTNR_IZ B
-                                 ON A.PRTNR_NO = B.PRTNR_NO
-                                AND B.BASE_YM = #{perfYm}
-                                AND B.OG_TP_CD = 'W02'
-                              INNER JOIN TB_OGBS_MM_OG_IZ C
-                                 ON B.BASE_YM = C.BASE_YM
-                                AND B.OG_ID = C.OG_ID
-                                AND C.DGR3_LEVL_DG_PRTNR_NO IS NOT NULL
-                           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                AND C.DGR3_LEVL_DG_PRTNR_NO = #{prtnrNo}
-                           </if>
-                              GROUP BY C.DGR3_LEVL_DG_PRTNR_NO
-                           )T16
-             ON T1.PRTNR_NO = T16.PRTNR_NO
-           LEFT OUTER JOIN ( SELECT C.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
-                                  , NVL(SUM(A.RENTAL_CAN_CT),0) AS RENTAL_CAN_CT
-                                  , NVL(SUM(A.LEASE_CAN_CT),0) AS LEASE_CAN_CT
-                                  , NVL(SUM(A.MSH_SPR_CT),0) AS MSH_SPR_CT
-                                  , NVL(SUM(A.RENTAL_EXN_CT),0) AS RENTAL_EXN_CT
-                                  , NVL(SUM(A.RENTAL_NW_CT),0) AS RENTAL_NW_CT
-                                  , NVL(SUM(A.LEASE_NW_CT),0) AS LEASE_NW_CT
-                               FROM ( SELECT PRTNR_NO
-                                           , RENTAL_CAN_CT
-                                           , LEASE_CAN_CT
-                                           , MSH_SPR_CT
-                                           , RENTAL_EXN_CT
-                                           , RENTAL_NW_CT
-                                           , LEASE_NW_CT
-                                        FROM TB_FEAM_WELS_ACC_NINC_MM_CL
-                                       WHERE PERF_YM = #{perfYm}
-                                         AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
-                                         AND CO_CD = '2000'
-                                    )A
-                              INNER JOIN TB_OGBS_MM_PRTNR_IZ B
-                                 ON A.PRTNR_NO = B.PRTNR_NO
-                                AND B.BASE_YM = #{perfYm}
-                                AND B.OG_TP_CD = 'W02'
-                              INNER JOIN TB_OGBS_MM_OG_IZ C
-                                 ON B.BASE_YM = C.BASE_YM
-                                AND B.OG_ID = C.OG_ID
-                                AND C.DGR3_LEVL_DG_PRTNR_NO IS NOT NULL
-                           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                AND C.DGR3_LEVL_DG_PRTNR_NO = #{prtnrNo}
-                           </if>
-                              GROUP BY C.DGR3_LEVL_DG_PRTNR_NO
-                           )T17
-             ON T1.PRTNR_NO = T17.PRTNR_NO
-          WHERE T1.BASE_YM = #{perfYm}
-            AND T1.PSTN_DV_CD IN ( '7', '15')
-            AND T1.OG_TP_CD = 'W02'
-       <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-            AND T1.PRTNR_NO = #{prtnrNo}
-       </if>
+
+          LEFT OUTER JOIN
+             (
+               SELECT MAX (ENDDT) AS MNGR3_ATC /* 매니저 최종해약월 */
+                    , PRTNR_NO
+                 FROM TB_OGPS_PLAR_QLF_CH_IZ
+                WHERE 1=1
+                  AND SUBSTR(ENDDT, 0, 6)  <![CDATA[<=]]> #{perfYm}
+                  AND OG_TP_CD = 'W02'
+                  AND QLF_DV_CD IN (3, 6)
+                  AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
+                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                      AND PRTNR_NO = #{prtnrNo}
+                  </if>
+                  AND DTA_DL_YN = 'N'
+                GROUP BY PRTNR_NO
+             ) T8
+            ON T1.PRTNR_NO = T8.PRTNR_NO
+
+          LEFT OUTER JOIN
+             (
+               SELECT CASE WHEN MAX(ENDDT) = '99991231' THEN ''
+                           ELSE MAX(ENDDT)
+                      END AS MNGR4_ATC /* 매니저 업무해약월 */
+                    , PRTNR_NO
+                 FROM TB_OGPS_PLAR_QLF_CH_IZ
+                WHERE 1=1
+                  AND OG_TP_CD = 'W02'
+                  AND QLF_DV_CD IN (3, 6)
+                  AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
+                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                      AND PRTNR_NO = #{prtnrNo}
+                  </if>
+                  AND DTA_DL_YN = 'N'
+                GROUP BY PRTNR_NO
+             ) T9
+            ON T1.PRTNR_NO = T9.PRTNR_NO
+
+          LEFT OUTER JOIN
+             (
+               SELECT OPNG_CD AS MNGR6_ATC /* 매니저개시 정착지급유형 */
+                    , PRTNR_NO
+                 FROM TB_FEAM_WELS_MNGER_OPNG_BAS
+                WHERE 1=1
+                  AND BASE_YM = #{perfYm}
+                  AND OG_TP_CD = 'W02'
+                  AND TCNT_DV_CD = #{feeTcntDvCd}
+                  AND DTA_DL_YN = 'N'
+                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                      AND PRTNR_NO = #{prtnrNo}
+                  </if>
+             ) T10
+            ON T1.PRTNR_NO = T10.PRTNR_NO
+
+          LEFT OUTER JOIN
+             (
+               SELECT PRTNR_NO
+                    , NVL(MAX(W1_CNT),0) AS W1_CNT
+                    , NVL(MAX(W2_CNT),0) AS W2_CNT
+                    , NVL(MAX(MNGT_CNT),0) AS MNGT_CNT
+                    , NVL(MAX(VST_CNT),0) AS VST_CNT
+                    , NVL(MAX(CAN_CNT),0) AS CAN_CNT
+                 FROM
+                    (
+                      SELECT PRTNR_NO
+                           , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010101' THEN PERF_VAL END AS W1_CNT
+                           , CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010101' THEN PERF_VAL END AS W2_CNT
+                           , 0 AS MNGT_CNT
+                           , 0 AS VST_CNT
+                           , 0 AS CAN_CNT
+                        FROM TB_FEAM_WPTN_SV_PERF_AGRG
+                       WHERE 1=1
+                         AND BASE_YM = #{perfYm}
+                         AND CL_DV_CD = #{feeTcntDvCd}
+                         AND OG_TP_CD = 'W02'
+                         AND PRTNR_SV_PERF_ATC_CD IN ('SV06010101','SV06010102')
+                         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                             AND PRTNR_NO = #{prtnrNo}
+                         </if>
+
+                       UNION ALL
+
+                      SELECT A.PRTNR_NO
+                           , 0 AS W1_CNT
+                           , 0 AS W2_CNT
+                           , NVL(SUM(A.MNGT_CNT),0) AS MNGT_CNT
+                           , NVL(SUM(A.VST_CNT),0) AS VST_CNT
+                           , NVL(SUM(A.CAN_CNT),0) AS CAN_CNT
+                        FROM
+                           (
+                             SELECT PRTNR_NO
+                                  , MNGT_CNT AS MNGT_CNT
+                                  , VST_CNT1 + VST_CNT2 AS VST_CNT
+                                  , CAN_CNT
+                               FROM
+                                  (
+                                    SELECT Z.PRTNR_NO
+                                         , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99' AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN SUM(Z.PERF_VAL)
+                                                ELSE 0
+                                           END AS MNGT_CNT
+                                         , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99' AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '02' THEN SUM(Z.PERF_VAL)
+                                                ELSE 0
+                                           END AS VST_CNT1
+                                        , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99' AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '03' THEN SUM(Z.PERF_VAL)
+                                               ELSE 0
+                                          END AS VST_CNT2
+                                        , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '90' AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN SUM(Z.PERF_VAL)
+                                               ELSE 0
+                                          END AS CAN_CNT
+                                     FROM TB_FEAM_WPTN_SV_PERF_AGRG Z
+                                    INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD X
+                                       ON Z.PRTNR_SV_PERF_ATC_CD = X.PRTNR_SV_PERF_ATC_CD
+                                      AND X.PRTNR_PERF_DTLP_ATC_CDV1 = '01'
+                                      AND X.PRTNR_PERF_DTLP_ATC_CDV2 IN ('99','90')
+                                      AND X.PRTNR_PERF_DTLP_ATC_CDV3 IN ('99','90')
+                                      AND SUBSTR(X.PRTNR_SV_PERF_ATC_CD,1,2) = 'SV'
+                                    WHERE 1=1
+                                      AND Z.BASE_YM = #{perfYm}
+                                      AND Z.CL_DV_CD = '02'
+                                      AND Z.OG_TP_CD = 'W02'
+                                      <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                          AND Z.PRTNR_NO = #{prtnrNo}
+                                      </if>
+                                    GROUP BY Z.PRTNR_NO, X.PRTNR_PERF_DTLP_ATC_CDV2, X.PRTNR_PERF_DTLP_ATC_CDV4
+                                  )
+                           ) A
+                       INNER JOIN TB_OGBS_MM_PRTNR_IZ B
+                          ON A.PRTNR_NO = B.PRTNR_NO
+                         AND B.BASE_YM = #{perfYm}
+                         AND B.OG_TP_CD = 'W02'
+                       INNER JOIN TB_OGBS_MM_OG_IZ C
+                          ON B.BASE_YM = C.BASE_YM
+                         AND B.OG_ID = C.OG_ID
+                         <if test='@MybatisUtils@isNotEmpty(ogLevl1Id)'>
+                             AND C.DGR1_LEVL_OG_ID = #{ogLevl1Id}
+                         </if>
+                         <if test='@MybatisUtils@isNotEmpty(ogLevl2Id)'>
+                             AND C.DGR2_LEVL_OG_ID = #{ogLevl2Id}
+                         </if>
+                         <if test='@MybatisUtils@isNotEmpty(ogLevl3Id)'>
+                             AND C.DGR3_LEVL_OG_ID = #{ogLevl3Id}
+                         </if>
+                       GROUP BY A.PRTNR_NO
+                    )
+                GROUP BY PRTNR_NO
+             ) T11
+            ON T1.PRTNR_NO = T11.PRTNR_NO
+
+          LEFT OUTER JOIN
+             (
+               SELECT PRTNR_NO
+                    , MAX(EDU1_ATC) AS EDU1_ATC
+                    , MAX(EDU2_ATC) AS EDU2_ATC
+                    , MAX(EDU8_ATC) AS EDU8_ATC
+                 FROM
+                    (
+                      SELECT PRTNR_NO
+                           , CASE WHEN EDUC_CRSE_NO = '96' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END AS EDU1_ATC
+                           , CASE WHEN EDUC_CRSE_NO = '143' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END AS EDU2_ATC
+                           , CASE WHEN EDUC_CRSE_NO = '17' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END AS EDU8_ATC
+                        FROM TB_PSCA_MCPTN_EDUC_IZ
+                       WHERE 1=1
+                         AND OG_TP_CD = 'W02'
+                         AND EDUC_CRSE_NO IN ('96','143')
+                         AND EDUC_CRSE_CRT_BASE_YM &lt;= #{perfYm}
+                         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                             AND PRTNR_NO = #{prtnrNo}
+                         </if>
+                    )
+                GROUP BY PRTNR_NO
+             ) T12
+            ON T1.PRTNR_NO = T12.PRTNR_NO
+
+          LEFT OUTER JOIN
+             (
+               SELECT PRTNR_NO
+                    , MAX(EDU3_ATC) AS EDU3_ATC
+                    , MAX(EDU4_ATC) AS EDU4_ATC
+                    , MAX(EDU5_ATC) AS EDU5_ATC
+                    , MAX(EDU6_ATC) AS EDU6_ATC
+                    , MAX(EDU7_ATC) AS EDU7_ATC
+                    , MAX(EDU8_ATC) AS EDU8_ATC
+                    , MAX(EDU9_ATC) AS EDU9_ATC
+                    , MAX(EDU10_ATC) AS EDU10_ATC
+                    , MAX(EDU11_ATC) AS EDU11_ATC
+                    , MAX(EDU12_ATC) AS EDU12_ATC
+                 FROM
+                    (
+                      SELECT PRTNR_NO
+                           , CASE WHEN PERF_ATC_CD = 'W02P00116' THEN FEE_PERF_ATC_VAL END AS EDU3_ATC
+                           , CASE WHEN PERF_ATC_CD = 'W02P00124' THEN FEE_PERF_ATC_VAL END AS EDU4_ATC
+                           , CASE WHEN PERF_ATC_CD = 'W02P00125' THEN FEE_PERF_ATC_VAL END AS EDU5_ATC
+                           , CASE WHEN PERF_ATC_CD = 'W02P00126' THEN FEE_PERF_ATC_VAL END AS EDU6_ATC
+                           , CASE WHEN PERF_ATC_CD = 'W02P00127' THEN FEE_PERF_ATC_VAL END AS EDU7_ATC
+                           , CASE WHEN PERF_ATC_CD = 'W02P00128' THEN FEE_PERF_ATC_VAL END AS EDU8_ATC
+                           , CASE WHEN PERF_ATC_CD = 'W02P00129' THEN FEE_PERF_ATC_VAL END AS EDU9_ATC
+                           , CASE WHEN PERF_ATC_CD = 'W02P00130' THEN FEE_PERF_ATC_VAL END AS EDU10_ATC
+                           , CASE WHEN PERF_ATC_CD = 'W02P00131' THEN FEE_PERF_ATC_VAL END AS EDU11_ATC
+                           , CASE WHEN PERF_ATC_CD = 'W02P00120' THEN FEE_PERF_ATC_VAL END AS EDU12_ATC
+                        FROM TB_FEAM_PRTNR_PERF_MM_CL
+                       WHERE 1=1
+                         AND BASE_YM = #{perfYm}
+                         AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                         AND PERF_AGRG_CRT_DV_CD = '201'
+                         AND PERF_ATC_CD IN ( 'W02P00116', 'W02P00124', 'W02P00125', 'W02P00126', 'W02P00127',
+                                              'W02P00128', 'W02P00129', 'W02P00130', 'W02P00131', 'W02P00120'
+                                            )
+                         AND CO_CD = '2000'
+                         AND OG_TP_CD = 'W02'
+                         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                             AND PRTNR_NO = #{prtnrNo}
+                         </if>
+
+                    )
+                GROUP BY PRTNR_NO
+             ) T13
+            ON T1.PRTNR_NO = T13.PRTNR_NO
+
+          LEFT OUTER JOIN
+             (
+               SELECT PRTNR_NO
+                    , SUM(INDV1_PERF) AS INDV1_PERF
+                    , SUM(INDV2_PERF) AS INDV2_PERF
+                    , SUM(INDV3_PERF) AS INDV3_PERF
+                    , SUM(INDV4_PERF) AS INDV4_PERF
+                    , SUM(INDV5_PERF) AS INDV5_PERF
+                    , SUM(INDV1_SELL) AS INDV1_SELL
+                    , SUM(INDV2_SELL) AS INDV2_SELL
+                    , SUM(INDV3_SELL) AS INDV3_SELL
+                    , SUM(OG1_PERF) AS OG1_PERF
+                    , SUM(OG2_PERF) AS OG2_PERF
+                    , SUM(OG3_PERF) AS OG3_PERF
+                    , SUM(OG4_PERF) AS OG4_PERF
+                 FROM
+                    (
+                      SELECT PRTNR_NO
+                           , CASE WHEN PERF_ATC_CD IN ('W02P00103', 'W02P00002') THEN PERF_VAL ELSE 0 END AS INDV1_PERF
+                           , CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS INDV2_PERF
+                           , CASE WHEN PERF_ATC_CD = 'W00P00034' THEN PERF_VAL ELSE 0 END AS INDV3_PERF
+                           , CASE WHEN PERF_ATC_CD IN ('W00P00014', 'W00P00018') THEN PERF_VAL ELSE 0 END AS INDV4_PERF
+                           , CASE WHEN PERF_ATC_CD IN ('W02P00027', 'W02P00112') THEN PERF_VAL ELSE 0 END AS INDV5_PERF
+                           , CASE WHEN PERF_ATC_CD IN ('W00P00005', 'W00P00007') THEN 1 ELSE 0 END AS INDV1_SELL
+                           , CASE WHEN PERF_ATC_CD IN ('W02P00105', 'W00P00009') THEN PERF_VAL ELSE 0 END AS INDV2_SELL
+                           , CASE WHEN PERF_ATC_CD = 'W02P00086' THEN PERF_VAL ELSE 0 END AS INDV3_SELL
+                           , 0 AS OG1_PERF
+                           , 0 AS OG2_PERF
+                           , 0 AS OG3_PERF
+                           , 0 AS OG4_PERF
+                        FROM TB_FEAM_NTORP_PERF_MM_CL
+                       WHERE 1=1
+                         AND BASE_YM = #{perfYm}
+                         AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                         AND PERF_AGRG_CRT_DV_CD = '201'
+                         AND PERF_DV_CD = '0'
+                         AND OG_TP_CD = 'W02'
+                         AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00034', 'W00P00014',
+                                              'W00P00018', 'W02P00027', 'W02P00112', 'W00P00005', 'W00P00007',
+                                              'W02P00105', 'W00P00009', 'W02P00086'
+                                            )
+                         AND PERF_VAL &gt; 0
+                         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                             AND PRTNR_NO = #{prtnrNo}
+                         </if>
+
+                       UNION ALL
+
+                      SELECT PRTNR_NO
+                           , 0 AS INDV1_PERF
+                           , 0 AS INDV2_PERF
+                           , 0 AS INDV3_PERF
+                           , 0 AS INDV4_PERF
+                           , 0 AS INDV5_PERF
+                           , 0 AS INDV1_SELL
+                           , 0 AS INDV2_SELL
+                           , 0 AS INDV3_SELL
+                           , CASE WHEN PERF_ATC_CD IN ('W02P00103', 'W02P00002') THEN PERF_VAL ELSE 0 END AS OG1_PERF
+                           , CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS OG2_PERF
+                           , CASE WHEN PERF_ATC_CD = 'W00P00034' THEN PERF_VAL ELSE 0 END AS OG3_PERF
+                           , CASE WHEN PERF_ATC_CD IN ('W00P00014', 'W00P00018') THEN PERF_VAL ELSE 0 END AS OG4_PERF
+                        FROM TB_FEAM_NTORP_PERF_MM_CL
+                       WHERE 1=1
+                         AND BASE_YM = #{perfYm}
+                         AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                         AND PERF_AGRG_CRT_DV_CD = '201'
+                         AND PERF_DV_CD = '2'
+                         AND OG_TP_CD = 'W02'
+                         AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00034', 'W00P00014', 'W00P00018')
+                         AND PERF_VAL &gt; 0
+                         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                             AND PRTNR_NO = #{prtnrNo}
+                         </if>
+                    )
+                GROUP BY PRTNR_NO
+             ) T14
+            ON T1.PRTNR_NO = T14.PRTNR_NO
+
+          LEFT OUTER JOIN
+             (
+               SELECT PRTNR_NO
+                    , SUM(INTBS_AMT) AS INTBS_SUM
+                    , SUM(DDCTAM) AS DDTN_SUM
+                    , SUM(DSB_OJ_AMT) AS ACL_DSB_AMT
+                 FROM TB_FEAM_FEE_DSB_IZ
+                WHERE 1=1
+                  AND DSB_YM = #{perfYm}
+                  AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                  AND OG_TP_CD = 'W02'
+                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                      AND PRTNR_NO = #{prtnrNo}
+                  </if>
+                GROUP BY PRTNR_NO
+             ) T15
+            ON T1.PRTNR_NO = T15.PRTNR_NO
+
+          LEFT OUTER JOIN
+             (
+               SELECT PRTNR_NO
+                    , SUM(INDV151_FEE) AS INDV151_FEE
+                    , SUM(INDV152_FEE) AS INDV152_FEE
+                    , SUM(INDV153_FEE) AS INDV153_FEE
+                    , SUM(INDV154_FEE) AS INDV154_FEE
+                    , SUM(INDV155_FEE) AS INDV155_FEE
+                    , SUM(INDV156_FEE) AS INDV156_FEE
+                    , SUM(INDV157_FEE) AS INDV157_FEE
+                    , SUM(INDV158_FEE) AS INDV158_FEE
+                    , SUM(INDV159_FEE) AS INDV159_FEE
+                    , SUM(INDV1510_FEE) AS INDV1510_FEE
+                    , SUM(INDV1511_FEE) AS INDV1511_FEE
+                    , SUM(INDV1512_FEE) AS INDV1512_FEE
+                    , SUM(INDV1513_FEE) AS INDV1513_FEE
+                    , SUM(INDV1514_FEE) AS INDV1514_FEE
+                    , SUM(INDV1515_FEE) AS INDV1515_FEE
+                    , SUM(INDV1516_FEE) AS INDV1516_FEE
+                    , SUM(ETC151_ATC) AS ETC151_ATC
+                    , SUM(ETC152_ATC) AS ETC152_ATC
+                    , SUM(ETC153_ATC) AS ETC153_ATC
+                    , SUM(INDV071_FEE) AS INDV071_FEE
+                    , SUM(INDV072_FEE) AS INDV072_FEE
+                    , SUM(INDV073_FEE) AS INDV073_FEE
+                    , SUM(INDV074_FEE) AS INDV074_FEE
+                    , SUM(INDV075_FEE) AS INDV075_FEE
+                    , SUM(INDV076_FEE) AS INDV076_FEE
+                    , SUM(INDV077_FEE) AS INDV077_FEE
+                    , SUM(INDV078_FEE) AS INDV078_FEE
+                    , SUM(INDV079_FEE) AS INDV079_FEE
+                    , SUM(INDV0710_FEE) AS INDV0710_FEE
+                    , SUM(INDV0711_FEE) AS INDV0711_FEE
+                    , SUM(INDV0712_FEE) AS INDV0712_FEE
+                    , SUM(INDV0713_FEE) AS INDV0713_FEE
+                    , SUM(INDV0714_FEE) AS INDV0714_FEE
+                    , SUM(INDV0715_FEE) AS INDV0715_FEE
+                    , SUM(INDV0716_FEE) AS INDV0716_FEE
+                    , SUM(ETC071_ATC) AS ETC071_ATC
+                    , SUM(ETC072_ATC) AS ETC072_ATC
+                    , SUM(ETC073_ATC) AS ETC073_ATC
+                    , SUM(OG1_FEE) AS OG1_FEE
+                    , SUM(OG2_FEE) AS OG2_FEE
+                    , SUM(OG3_FEE) AS OG3_FEE
+                    , SUM(OG4_FEE) AS OG4_FEE
+                    , SUM(OG5_FEE) AS OG5_FEE
+                    , SUM(OG6_FEE) AS OG6_FEE
+                    , SUM(OG7_FEE) AS OG7_FEE
+                    , SUM(OG8_FEE) AS OG8_FEE
+                    , SUM(P_HOME_CARE) AS P_HOME_CARE
+                    , SUM(HOME_CARE) AS HOME_CARE
+                    , SUM(P_RSTL) AS P_RSTL
+                    , SUM(RSTL) AS RSTL
+                    , SUM(P_LIVE_PAKG) AS P_LIVE_PAKG
+                    , SUM(LIVE_PAKG) AS LIVE_PAKG
+                 FROM
+                    (
+                      SELECT PRTNR_NO
+                           , CASE WHEN FEE_CD = 'W020001' THEN FEE_ATC_VAL ELSE 0 END AS INDV151_FEE
+                           , CASE WHEN FEE_CD = 'W020003' THEN FEE_ATC_VAL ELSE 0 END AS INDV152_FEE
+                           , CASE WHEN FEE_CD = 'W020115' THEN FEE_ATC_VAL ELSE 0 END AS INDV153_FEE
+                           , CASE WHEN FEE_CD = 'W020117' THEN FEE_ATC_VAL ELSE 0 END AS INDV154_FEE
+                           , CASE WHEN FEE_CD IN ('W020116', 'W020077', 'W020076', 'W020075') THEN FEE_ATC_VAL ELSE 0 END AS INDV155_FEE
+                           , CASE WHEN FEE_CD = 'W020081' THEN FEE_ATC_VAL ELSE 0 END AS INDV156_FEE
+                           , CASE WHEN FEE_CD = 'W020005' THEN FEE_ATC_VAL ELSE 0 END AS INDV157_FEE
+                           , CASE WHEN FEE_CD = 'W020084' THEN FEE_ATC_VAL ELSE 0 END AS INDV158_FEE
+                           , CASE WHEN FEE_CD = 'W020122' THEN FEE_ATC_VAL ELSE 0 END AS INDV159_FEE
+                           , CASE WHEN FEE_CD = 'W020085' THEN FEE_ATC_VAL ELSE 0 END AS INDV1510_FEE
+                           , CASE WHEN FEE_CD = 'W020027' THEN FEE_ATC_VAL ELSE 0 END AS INDV1511_FEE
+                           , CASE WHEN FEE_CD = 'W020096' THEN FEE_ATC_VAL ELSE 0 END AS INDV1512_FEE
+                           , CASE WHEN FEE_CD = 'W020086' THEN FEE_ATC_VAL ELSE 0 END AS INDV1513_FEE
+                           , CASE WHEN FEE_CD = 'W020098' THEN FEE_ATC_VAL ELSE 0 END AS INDV1514_FEE
+                           , CASE WHEN FEE_CD = 'W020014' THEN FEE_ATC_VAL ELSE 0 END AS INDV1515_FEE
+                           , CASE WHEN FEE_CD = 'W020124' THEN FEE_ATC_VAL ELSE 0 END AS INDV1516_FEE
+                           , CASE WHEN FEE_CD = 'W020090' THEN FEE_ATC_VAL ELSE 0 END AS ETC151_ATC
+                           , CASE WHEN FEE_CD = 'W020006' THEN FEE_ATC_VAL ELSE 0 END AS ETC152_ATC
+                           , CASE WHEN FEE_CD = 'W020094' THEN FEE_ATC_VAL ELSE 0 END AS ETC153_ATC
+                           , CASE WHEN FEE_CD = 'W020002' THEN FEE_ATC_VAL ELSE 0 END AS INDV071_FEE
+                           , CASE WHEN FEE_CD = 'W020004' THEN FEE_ATC_VAL ELSE 0 END AS INDV072_FEE
+                           , CASE WHEN FEE_CD = 'W020011' THEN FEE_ATC_VAL ELSE 0 END AS INDV073_FEE
+                           , 0 AS INDV074_FEE
+                           , CASE WHEN FEE_CD IN ('W020116', 'W020077', 'W020076', 'W020075') THEN FEE_ATC_VAL ELSE 0 END AS INDV075_FEE
+                           , 0 AS INDV076_FEE
+                           , CASE WHEN FEE_CD = 'W020030' THEN FEE_ATC_VAL ELSE 0 END AS INDV077_FEE
+                           , CASE WHEN FEE_CD = 'W020087' THEN FEE_ATC_VAL ELSE 0 END AS INDV078_FEE
+                           , CASE WHEN FEE_CD = 'W020123' THEN FEE_ATC_VAL ELSE 0 END AS INDV079_FEE
+                           , CASE WHEN FEE_CD = 'W020088' THEN FEE_ATC_VAL ELSE 0 END AS INDV0710_FEE
+                           , CASE WHEN FEE_CD = 'W020089' THEN FEE_ATC_VAL ELSE 0 END AS INDV0711_FEE
+                           , CASE WHEN FEE_CD = 'W020097' THEN FEE_ATC_VAL ELSE 0 END AS INDV0712_FEE
+                           , 0 AS INDV0713_FEE
+                           , CASE WHEN FEE_CD = 'W020099' THEN FEE_ATC_VAL ELSE 0 END AS INDV0714_FEE
+                           , CASE WHEN FEE_CD = 'W020041' THEN FEE_ATC_VAL ELSE 0 END AS INDV0715_FEE
+                           , 0 AS INDV0716_FEE
+                           , CASE WHEN FEE_CD = 'W020091' THEN FEE_ATC_VAL ELSE 0 END AS ETC071_ATC
+                           , CASE WHEN FEE_CD = 'W020033' THEN FEE_ATC_VAL ELSE 0 END AS ETC072_ATC
+                           , CASE WHEN FEE_CD = 'W020095' THEN FEE_ATC_VAL ELSE 0 END AS ETC073_ATC
+                           , CASE WHEN FEE_CD = 'W020020' THEN FEE_ATC_VAL ELSE 0 END AS OG1_FEE
+                           , CASE WHEN FEE_CD = 'W020023' THEN FEE_ATC_VAL ELSE 0 END AS OG2_FEE
+                           , CASE WHEN FEE_CD = 'W020017' THEN FEE_ATC_VAL ELSE 0 END AS OG3_FEE
+                           , CASE WHEN FEE_CD = 'W020118' THEN FEE_ATC_VAL ELSE 0 END AS OG4_FEE
+                           , CASE WHEN FEE_CD = 'W020121' THEN FEE_ATC_VAL ELSE 0 END AS OG5_FEE
+                           , CASE WHEN FEE_CD = 'W020015' THEN FEE_ATC_VAL ELSE 0 END AS OG6_FEE
+                           , CASE WHEN FEE_CD = 'W020016' THEN FEE_ATC_VAL ELSE 0 END AS OG7_FEE
+                           , CASE WHEN FEE_CD = 'W020025' THEN FEE_ATC_VAL ELSE 0 END AS OG8_FEE
+                           , CASE WHEN FEE_CD = 'W020078' THEN FEE_ATC_VAL ELSE 0 END AS P_HOME_CARE
+                           , CASE WHEN FEE_CD = 'W020079' THEN FEE_ATC_VAL ELSE 0 END AS HOME_CARE
+                           , CASE WHEN FEE_CD = 'W020119' THEN FEE_ATC_VAL ELSE 0 END AS P_RSTL
+                           , CASE WHEN FEE_CD = 'W020120' THEN FEE_ATC_VAL ELSE 0 END AS RSTL
+                           , CASE WHEN FEE_CD = 'W020007' THEN FEE_ATC_VAL ELSE 0 END AS P_LIVE_PAKG
+                           , CASE WHEN FEE_CD = 'W020035' THEN FEE_ATC_VAL ELSE 0 END AS LIVE_PAKG
+                        FROM TB_FEAM_FEE_DSB_DTL_IZ
+                       WHERE 1=1
+                         AND DSB_YM = #{perfYm}
+                         AND OG_TP_CD = 'W02'
+                         AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                         AND FEE_ATC_DV_CD = '01'
+                         AND FEE_CD IN ( 'W020001', 'W020003', 'W020115', 'W020117', 'W020116',
+                                         'W020081', 'W020005', 'W020084', 'W020122', 'W020085',
+                                         'W020027', 'W020096', 'W020086', 'W020098', 'W020014',
+                                         'W020124', 'W020090', 'W020006', 'W020094', 'W020002',
+                                         'W020004', 'W020011', 'W020118', 'W020030', 'W020087',
+                                         'W020123', 'W020088', 'W020089', 'W020097', 'W020099',
+                                         'W020041', 'W020091', 'W020033', 'W020095', 'W020020',
+                                         'W020023', 'W020017', 'W020121', 'W020015', 'W020016',
+                                         'W020025', 'W020075', 'W020076', 'W020077', 'W020078',
+                                         'W020079', 'W020119', 'W020120', 'W020007', 'W020035'
+                                       )
+                         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                             AND PRTNR_NO = #{prtnrNo}
+                         </if>
+                    )
+                GROUP BY PRTNR_NO
+             ) T16
+            ON T1.PRTNR_NO = T16.PRTNR_NO
+
+          LEFT OUTER JOIN TB_FEAM_WELS_ACC_NINC_MM_CL T17
+            ON T1.BASE_YM = T17.PERF_YM
+           AND T1.PRTNR_NO = T17.PRTNR_NO
+           AND T3.FEE_TCNT_DV_CD = T17.FEE_TCNT_DV_CD
+           AND T17.CO_CD = '2000'
+           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                AND T14.PRTNR_NO = #{prtnrNo}
+           </if>
+
+          LEFT OUTER JOIN
+             (
+               SELECT PRTNR_NO
+                    , MAX(CV_DT) AS CV_DT
+                 FROM TB_OGPS_PLAR_QLF_CH_IZ /*플래너 자격 변경내역*/
+                WHERE 1=1
+                  AND OG_TP_CD = 'W02'
+                  AND QLF_DV_CD IN ('4','5')  /* 플래너, 웰스지점장 */
+                  AND QLF_APLC_DV_CD = '1'  /* 승급 */
+                  AND DTA_DL_YN = 'N'
+                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                      AND PRTNR_NO = #{prtnrNo}
+                  </if>
+                GROUP BY PRTNR_NO
+             ) T18
+            ON T1.PRTNR_NO = T18.PRTNR_NO
+
+          LEFT OUTER JOIN
+             (
+               SELECT C.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                    , NVL(SUM(A.MNGT_CNT),0) AS MNGT_CNT
+                    , NVL(SUM(A.VST_CNT),0) AS VST_CNT
+                    , NVL(SUM(A.CAN_CNT),0) AS CAN_CNT
+                 FROM
+                    (
+                      SELECT PRTNR_NO
+                           , MNGT_CNT AS MNGT_CNT
+                           , VST_CNT1 + VST_CNT2 AS VST_CNT
+                           , CAN_CNT
+                        FROM
+                           (
+                             SELECT Z.PRTNR_NO
+                                   , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99' AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN SUM(Z.PERF_VAL)
+                                          ELSE 0
+                                     END AS MNGT_CNT
+                                   , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99' AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '02' THEN SUM(Z.PERF_VAL)
+                                          ELSE 0
+                                     END AS VST_CNT1
+                                   , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '99' AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '03' THEN SUM(Z.PERF_VAL)
+                                          ELSE 0
+                                     END AS VST_CNT2
+                                   , CASE WHEN X.PRTNR_PERF_DTLP_ATC_CDV2 = '90' AND X.PRTNR_PERF_DTLP_ATC_CDV4 = '01' THEN SUM(Z.PERF_VAL)
+                                          ELSE 0
+                                     END AS CAN_CNT
+                                FROM TB_FEAM_WPTN_SV_PERF_AGRG Z
+                               INNER JOIN TB_FEAM_WPTN_SV_PERF_ATC_CD X
+                                  ON Z.PRTNR_SV_PERF_ATC_CD = X.PRTNR_SV_PERF_ATC_CD
+                                 AND X.PRTNR_PERF_DTLP_ATC_CDV1 = '01'
+                                 AND X.PRTNR_PERF_DTLP_ATC_CDV2 IN ('99','90')
+                                 AND X.PRTNR_PERF_DTLP_ATC_CDV3 IN ('99','90')
+                                 AND SUBSTR(X.PRTNR_SV_PERF_ATC_CD,1,2) = 'SV'
+                               WHERE 1=1
+                                 AND Z.BASE_YM = #{perfYm}
+                                 AND Z.CL_DV_CD = '02'
+                                 AND Z.OG_TP_CD = 'W02'
+                               GROUP BY Z.PRTNR_NO, X.PRTNR_PERF_DTLP_ATC_CDV2, X.PRTNR_PERF_DTLP_ATC_CDV4
+                           )
+                    ) A
+                INNER JOIN TB_OGBS_MM_PRTNR_IZ B
+                   ON A.PRTNR_NO = B.PRTNR_NO
+                  AND B.BASE_YM = #{perfYm}
+                  AND B.OG_TP_CD = 'W02'
+                INNER JOIN TB_OGBS_MM_OG_IZ C
+                   ON B.BASE_YM = C.BASE_YM
+                  AND B.OG_ID = C.OG_ID
+                  AND C.DGR3_LEVL_DG_PRTNR_NO IS NOT NULL
+                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                      AND C.DGR3_LEVL_DG_PRTNR_NO = #{prtnrNo}
+                  </if>
+                GROUP BY C.DGR3_LEVL_DG_PRTNR_NO
+             ) T19
+            ON T1.PRTNR_NO = T19.PRTNR_NO
+
+          LEFT OUTER JOIN
+             (
+               SELECT C.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                    , NVL(SUM(A.RENTAL_CAN_CT),0) AS RENTAL_CAN_CT
+                    , NVL(SUM(A.LEASE_CAN_CT),0) AS LEASE_CAN_CT
+                    , NVL(SUM(A.MSH_SPR_CT),0) AS MSH_SPR_CT
+                    , NVL(SUM(A.RENTAL_EXN_CT),0) AS RENTAL_EXN_CT
+                    , NVL(SUM(A.RENTAL_NW_CT),0) AS RENTAL_NW_CT
+                    , NVL(SUM(A.LEASE_NW_CT),0) AS LEASE_NW_CT
+                 FROM
+                    (
+                      SELECT PRTNR_NO
+                           , RENTAL_CAN_CT
+                           , LEASE_CAN_CT
+                           , MSH_SPR_CT
+                           , RENTAL_EXN_CT
+                           , RENTAL_NW_CT
+                           , LEASE_NW_CT
+                        FROM TB_FEAM_WELS_ACC_NINC_MM_CL
+                       WHERE 1=1
+                         AND PERF_YM = #{perfYm}
+                         AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                         AND CO_CD = '2000'
+                    ) A
+                INNER JOIN TB_OGBS_MM_PRTNR_IZ B
+                   ON A.PRTNR_NO = B.PRTNR_NO
+                  AND B.BASE_YM = #{perfYm}
+                  AND B.OG_TP_CD = 'W02'
+                INNER JOIN TB_OGBS_MM_OG_IZ C
+                   ON B.BASE_YM = C.BASE_YM
+                  AND B.OG_ID = C.OG_ID
+                  AND C.DGR3_LEVL_DG_PRTNR_NO IS NOT NULL
+                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                      AND C.DGR3_LEVL_DG_PRTNR_NO = #{prtnrNo}
+                  </if>
+                GROUP BY C.DGR3_LEVL_DG_PRTNR_NO
+             ) T20
+            ON T1.PRTNR_NO = T20.PRTNR_NO
+         WHERE 1=1
+           AND T1.BASE_YM = #{perfYm}
+           AND T1.PSTN_DV_CD IN ( '7', '15')
+           AND T1.OG_TP_CD = 'W02'
+           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+               AND T1.PRTNR_NO = #{prtnrNo}
+           </if>
     </select>
 
     <select id='selectManagerTotalBeforeFees'
@@ -3758,6 +3929,7 @@
        </if>
            AND A.PSTN_DV_CD = '15'
     </select>
+
     <select id='selectPlannerBranchManagerFees'
             resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto$SearchPlarBrmgrRes">
         SELECT A.OG_CD AS OG_NM  /*소속*/
@@ -3786,6 +3958,7 @@
                END AS AKDRIY                    /* 승진월     */
              , SUBSTR(PAI.UPGR_YM,1,6) AS AKSTYM  /*수석승급월*/
              , A.FST_CNTR_DT AS LCECAYMD /*웰스매니저 개시일 LC1700P 정리되지 않아 임시처리 */
+             , NVL(MM.B_AKSD05,0) AS B_AKSD05             /* 정착수수료 = 이전 정착수수료*/
              , NVL(B.AKCDA0, 0) AS AKCDA0  /* 가전    */
              , NVL(B.AKCDA1, 0) AS AKCDA1  /* 가전외    */
              , NVL(B.AKCDA2, 0) AS AKCDA2  /* 기변    */
@@ -4041,6 +4214,51 @@
          AND A.OG_TP_CD = G.OG_TP_CD
          AND G.EDUC_CRSE_NO IN ('14','19')
          AND G.EDUC_CPC_ACKMT_YN = 'Y'
+        LEFT OUTER JOIN ( SELECT T1.PRTNR_NO
+                                , NVL(SUM(T1.B_AKSD05),0) AS B_AKSD05
+                            FROM ( SELECT PRTNR_NO
+                                        , FEE_ATC_VAL AS B_AKSD05  /* P조직 기준일 이전수수료 */
+                                        , DSB_YM
+                                      FROM TB_FEAM_FEE_DSB_DTL_IZ
+                                    WHERE DSB_YM <![CDATA[<]]> #{perfYm}
+                                      AND OG_TP_CD = 'W01' /*P조직*/
+                                      AND FEE_TCNT_DV_CD = #{feeTcntDvCd}  /*차수구분=2차확정*/
+                                      <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                          AND A.PRTNR_NO = #{prtnrNo}
+                                      </if>
+                                      AND FEE_CD IN ('W010005', 'W010105')
+
+                                    UNION ALL
+
+                                    SELECT PRTNR_NO
+                                        , FEE_ATC_VAL AS B_AKSD05  /* P조직 기준일 이전수수료 */
+                                        , DSB_YM
+                                      FROM TB_FEAM_FEE_DSB_DTL_IZ
+                                    WHERE DSB_YM <![CDATA[<]]> #{perfYm}
+                                      AND DSB_YM <![CDATA[>=]]> '201904'
+                                      AND OG_TP_CD = 'W02' /*M조직*/
+                                      AND FEE_TCNT_DV_CD = #{feeTcntDvCd}  /*차수구분*/
+                                      <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                          AND A.PRTNR_NO = #{prtnrNo}
+                                      </if>
+                                      AND FEE_CD IN ('W020080', 'W020081', 'W020082')
+                                  )T1
+                            INNER JOIN ( SELECT A.PRTNR_NO
+                                              , MAX(UPGR_YM) AS UPGR_YM
+                                            FROM TB_OGPS_TOPMR_PLAR_APLC_IZ A  /* 수석플래너신청내역 */
+                                          WHERE A.OG_TP_CD = 'W01'
+                                            AND A.QLF_DV_CD = '1'  /* 수석플래너 */
+                                            AND A.UPGR_DMTN_DV_CD = '1' /* 승급 */
+                                            <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                                                AND A.PRTNR_NO = #{prtnrNo}
+                                            </if>
+                                          GROUP BY A.PRTNR_NO
+                                        )T2
+                              ON T1.PRTNR_NO = T2.PRTNR_NO
+                            WHERE T1.DSB_YM <![CDATA[<]]> NVL(T2.UPGR_YM,'000001')     /*수석플래너등록 이전*/
+                            GROUP BY T1.PRTNR_NO
+                        )MM
+          ON A.PRTNR_NO = MM.PRTNR_NO
        WHERE A.BASE_YM = #{perfYm}
          AND A.OG_TP_CD = 'W01' /*P조직*/
     <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
