@@ -64,8 +64,13 @@ public class WogcPartnerPlannerDto {
         String pymdt,
         String dsbAmt,
         String cntrDt,
-        String prtnrCntrTpCd
-    ) {}
+        String prtnrCntrTpCd,
+        String pcpOgTpCd,
+        String pcpPrtnrNo,
+        String pcpPrtnrKnm,
+        String prcsdt
+    ) {
+    }
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchReq")
     @Builder
@@ -225,6 +230,9 @@ public class WogcPartnerPlannerDto {
         String pymdt,
         String dsbAmt,
         String chdt,
+        String pcpOgTpCd,
+        String pcpPrtnrNo,
+        String prcsdt,
         String dtaDlYn,
         String fstRgstDtm,
         String fstRgstUsrId,

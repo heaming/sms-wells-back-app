@@ -6,7 +6,18 @@ import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * W-SV-U-0072M01 개인별 서비스 현황
+ * </pre>
+ *
+ * @author kyunglyn.lee
+ * @since 2023-06-17
+ */
 public class WsnbIndividualServicePsDto {
+    /**
+     * 조회 조건
+     */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchReq")
     public record SearchReq(
         String cntrNo,
@@ -15,6 +26,9 @@ public class WsnbIndividualServicePsDto {
         String sppIvcNo
     ){}
 
+    /**
+     * 개인별서비스현황 조회
+     */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchRes")
     public record SearchRes(
         String cntrNoDtl, /*계약상세번호*/
@@ -73,6 +87,11 @@ public class WsnbIndividualServicePsDto {
             mexnoEncr = DbEncUtil.dec(mexnoEncr);
         }
     }
+
+
+    /**
+     * 가구화 조회
+     */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchHouseholdRes")
     public record SearchHouseholdRes(
         String svHshdNo,
@@ -88,6 +107,9 @@ public class WsnbIndividualServicePsDto {
         String idvTno
     ){}
 
+    /**
+     * 컨택현황 조회
+     */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchContactRes")
     public record SearchContactRes(
         String cntcDt,
@@ -99,6 +121,9 @@ public class WsnbIndividualServicePsDto {
         String cntcCn
     ){}
 
+    /**
+     * 처리내역 조회
+     */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchStateRes")
     public record SearchStateRes(
         String cstSvAsnNo, //
@@ -143,6 +168,9 @@ public class WsnbIndividualServicePsDto {
         }
     }
 
+    /**
+     * 연계코드 조회
+     */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchFarmRes")
     public record SearchFarmRes(
         String gubun,
@@ -164,6 +192,9 @@ public class WsnbIndividualServicePsDto {
         }
     }
 
+    /**
+     * 상담내역 조회
+     */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchCounselRes")
     public record SearchCounselRes(
         String cselSts,
@@ -179,6 +210,9 @@ public class WsnbIndividualServicePsDto {
         String cnslCn
     ){}
 
+    /**
+     * 연체정보 조회
+     */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchDelinquentRes")
     public record SearchDelinquentRes(
         String psuminamt,
@@ -189,6 +223,9 @@ public class WsnbIndividualServicePsDto {
         String tdlyamt
     ){}
 
+    /**
+     * 고객특이사항 저장
+     */
     @ApiModel(value = "WsnbIndividualServicePsDto-SaveReq")
     public record SaveReq(
         @NotBlank

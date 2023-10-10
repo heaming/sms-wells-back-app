@@ -10,6 +10,14 @@ import com.kyowon.sms.wells.web.service.common.dvo.WsnyInstallSeparationMgtDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
+/**
+ * <pre>
+ * W-SV-U-0158M01 설치/분리비용 관리
+ * </pre>
+ *
+ * @author kyunglyn.lee
+ * @since 2023-04-07
+ */
 @Mapper
 public interface WsnyInstallSeparationMgtMapper {
     PagingResult<SearchRes> selectInstallSeparationCosts(SearchReq dto, PageInfo pageInfo);

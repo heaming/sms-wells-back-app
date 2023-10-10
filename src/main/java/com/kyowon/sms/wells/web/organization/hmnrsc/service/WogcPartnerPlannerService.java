@@ -419,4 +419,24 @@ public class WogcPartnerPlannerService {
 
         return processCount;
     }
+
+    /**
+     * 매니저 자격관리 변경내역 저장(지급일자, 지급내역)
+     * @param dto
+     * @return
+     * @throws Exception
+     */
+    @Transactional
+    public int editPlannerQualificationPaymentInfo(List<SaveQulificationReq> dtos) throws Exception {
+        int processCount = 0;
+
+        for (SaveQulificationReq dto : dtos) {
+            WogcPartnerPlannerQualificationDvo qualificationDvo = converter
+                .mapSaveQulificationReqToPartnerPlannerQualificationDvo(dto);
+
+            processCount = mapper.updatePlannerQualificationChange(qualificationDvo);
+        }
+
+        return processCount;
+    }
 }
