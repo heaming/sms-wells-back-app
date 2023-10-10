@@ -275,6 +275,7 @@ public class WsnaAsConsumablesStoreService {
      * @return
      * @throws ParseException
      */
+    @Transactional
     public int removeAsConsumablesStores(List<RemoveReq> dtos) throws ParseException {
         int processCount = 0;
 
