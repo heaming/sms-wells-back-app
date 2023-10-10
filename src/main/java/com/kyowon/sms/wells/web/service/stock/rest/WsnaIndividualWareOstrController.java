@@ -64,7 +64,7 @@ public class WsnaIndividualWareOstrController {
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "3", required = true),
         @ApiImplicitParam(name = "wareDtlDvCd", value = "창고세부구분코드", paramType = "query", example = "31", required = true),
         @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
-        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "1", required = true),
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "1", required = true, dataType = "integer"),
         @ApiImplicitParam(name = "hgrStrWareNo", value = "상위입고창고번호", paramType = "query", example = "300001")
     })
     public List<WsnzWellsCodeWareHouseDvo> getQomAsnStrWares(SearchWareReq dto) {
@@ -76,11 +76,11 @@ public class WsnaIndividualWareOstrController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
         @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true, dataType = "integer"),
         @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
-        @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]"),
-        @ApiImplicitParam(name = "totOutQty", value = "확정 후 재고", paramType = "query", example = "5"),
+        @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]", dataType = "array"),
+        @ApiImplicitParam(name = "totOutQty", value = "확정 후 재고", paramType = "query", example = "5", dataType = "number"),
         @ApiImplicitParam(name = "hgrStrWareNo", value = "상위입고창고번호", paramType = "query", example = "300001", required = true),
         @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "300031"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07102157"),
@@ -97,11 +97,11 @@ public class WsnaIndividualWareOstrController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
         @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
-        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true),
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true, dataType = "integer"),
         @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
-        @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]"),
-        @ApiImplicitParam(name = "totOutQty", value = "확정 후 재고", paramType = "query", example = "5"),
+        @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]", dataType = "array"),
+        @ApiImplicitParam(name = "totOutQty", value = "확정 후 재고", paramType = "query", example = "5", dataType = "number"),
         @ApiImplicitParam(name = "hgrStrWareNo", value = "상위입고창고번호", paramType = "query", example = "300001", required = true),
         @ApiImplicitParam(name = "strWareNo", value = "입고창고번호", paramType = "query", example = "300031"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07102157"),
