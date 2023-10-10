@@ -10,5 +10,5 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProdcutOutOfStorageSaveD
 @Mapper(componentModel = "spring")
 public interface WsnaMdProductOutOfStorageSaveConverter {
 
-    List<WsnaMdProdcutOutOfStorageSaveDvo> mapSaveReqToMdProductOutOfStorageDvo(List<SaveReq> dtos);
+    List<WsnaMdProdcutOutOfStorageSaveDvo> mapSaveReqToMdProductOutOfStorageSaveDvo(List<SaveReq> dtos);
 }

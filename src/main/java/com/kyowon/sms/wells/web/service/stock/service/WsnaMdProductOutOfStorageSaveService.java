@@ -29,7 +29,7 @@ public class WsnaMdProductOutOfStorageSaveService {
     public int saveMdProductOutOfStorages(List<SaveReq> dtos) {
         int processCount = 0;
 
-        List<WsnaMdProdcutOutOfStorageSaveDvo> dvos = converter.mapSaveReqToMdProductOutOfStorageDvo(dtos);
+        List<WsnaMdProdcutOutOfStorageSaveDvo> dvos = converter.mapSaveReqToMdProductOutOfStorageSaveDvo(dtos);
         for (WsnaMdProdcutOutOfStorageSaveDvo dvo : dvos) {
 
             //            // 0.동일 키값으로 결과가 저장되었는지 체크한다.
