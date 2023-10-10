@@ -21,6 +21,14 @@ import com.sds.sflex.common.utils.DateUtil;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 기준 상품 관리 서비스 
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 @Service
 @RequiredArgsConstructor
 public class WpdcStandardMgtService {
@@ -30,6 +38,13 @@ public class WpdcStandardMgtService {
     private final ZpdcRelationMgtService relService;
     private final ZpdcHistoryMgtService hisService;
 
+    /**
+     * 기준상품 저장
+     * @param dto 상품 저장 정보
+     * @param isCreate - 생성(true), 수정(false)
+     * @return 생성됨 상품 정보
+     * @throws Exception 미처리 시 Exception 처리
+     */
     @Transactional
     public ZpdcProductDto.TbPdbsPdBas saveProduct(WpdcStandardMgtDto.SaveReq dto, boolean isCreate)
         throws Exception {
@@ -64,6 +79,12 @@ public class WpdcStandardMgtService {
         return pdService.getProductByPdCd(pdCd);
     }
 
+    /**
+     * 기준상품 삭제
+     * @param pdCd 상품코드
+     * @return 상품 삭제 건수
+     * @throws Exception 미처리 시 Exception 처리
+     */
     @Transactional
     public int removeProduct(String pdCd) throws Exception {
         String startDtm = DateUtil.getDate(new Date());

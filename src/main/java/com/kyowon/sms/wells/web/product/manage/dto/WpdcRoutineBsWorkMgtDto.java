@@ -7,6 +7,14 @@ import javax.validation.constraints.NotEmpty;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 서비스 상품 - B/S 투입정보 관리 DTO
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 public class WpdcRoutineBsWorkMgtDto {
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchReq")

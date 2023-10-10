@@ -18,6 +18,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 서비스 상품 - B/S 투입 관리 서비스 
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 @Service
 @RequiredArgsConstructor
 public class WpdcRoutineBsWorkMgtService {
@@ -25,22 +33,49 @@ public class WpdcRoutineBsWorkMgtService {
     private final WpdcRoutineBsWorkMgtConverter converter;
     private final WpdcRoutineBsWorkMgtMapper mapper;
 
+    /**
+     * 정기 B/S 투입 방문 작업 기준 목록 조회
+     * @param dto 검색조건 정보
+     * @return 검색 결과 목록
+     */
     public List<WpdcRoutineBsWorkMgtDto.SearchRoutineBsWorkBaseRes> getRoutineBsWorkStandards(WpdcRoutineBsWorkMgtDto.SearchReq dto) {
         return mapper.selectRoutineBsWorkBases(dto);
     }
 
+    /**
+     * 정기 B/S 투입 방문 작업 기준 페이징 조회
+     * @param dto 검색조건 정보
+     * @param pageInfo 페이지 정보
+     * @return 검색 결과 목록
+     */
     public PagingResult<WpdcRoutineBsWorkMgtDto.SearchRoutineBsWorkBaseRes> getRoutineBsWorkStandardPages(WpdcRoutineBsWorkMgtDto.SearchStdBaseReq dto, PageInfo pageInfo) {
         return mapper.selectRoutineBsWorkBasePages(dto, pageInfo);
     }
 
+    /**
+     * 정기 B/S 투입 방문 작업 목록 조회
+     * @param dto 검색조건 정보
+     * @return 검색 결과 목록
+     */
     public List<WpdcRoutineBsWorkMgtDto.SearchRoutineBsWorkDetailRes> getRoutineBsWorkTasks(WpdcRoutineBsWorkMgtDto.SearchReq dto) {
         return mapper.selectRoutineBsWorkDetails(dto);
     }
 
+    /**
+     * 정기 B/S 투입 방문 작업 페이징 조회
+     * @param dto 검색조건 정보
+     * @return 검색 결과 목록
+     */
     public List<WpdcRoutineBsWorkMgtDto.SearchLifeCustomFiltersRes> getLifeCustomFilters(WpdcRoutineBsWorkMgtDto.SearchReq dto) {
         return mapper.selectLifeCustomFilters(dto);
     }
 
+    /**
+     * 정기 B/S 투입 방문 작업 기준 수정
+     * @param dto 수정내용 정보
+     * @return 수정 건수
+     * @throws Exception 미처리 시 Exception 처리
+     */
     public int saveRoutineBsWorks(WpdcRoutineBsWorkMgtDto.EditReq dto) throws Exception {
         int cnt = 0;
         cnt += mapper.deleteRoutineBsWorkBase(dto.svPdCd(), dto.pdctPdCd());
@@ -61,6 +96,12 @@ public class WpdcRoutineBsWorkMgtService {
         return cnt;
     }
 
+    /**
+     * 정기 B/S 투입 상세 수정
+     * @param dto 수정내용 정보
+     * @return 수정 건수
+     * @throws Exception 미처리 시 Exception 처리
+     */
     public int saveRoutineBsWorkDetails(WpdcRoutineBsWorkMgtDto.EditDetailReq dto) throws Exception {
         int cnt = 0;
         List<WpdcRoutineBsWorkDetailDvo> details = converter.mapAllBsWorkDetailDtoToBsWorkDetailDvo(dto.details());
@@ -70,6 +111,12 @@ public class WpdcRoutineBsWorkMgtService {
         return cnt;
     }
 
+    /**
+     * 생활맞춤형필터 수정
+     * @param dto 수정내용 정보
+     * @return 처리결과
+     * @throws Exception Exception 미처리 시 Exception 처리
+     */
     public int saveLifeFilters(WpdcRoutineBsWorkMgtDto.EditLifeFilterReq dto) throws Exception {
         int cnt = 0;
         List<WpdcLifeCustomFilterBaseDvo> filters = converter.mapAllLifeFltBaseDtoToLifeFltBaseDvo(dto.bases());
@@ -80,6 +127,11 @@ public class WpdcRoutineBsWorkMgtService {
         return cnt;
     }
 
+    /**
+     * 정기 B/S 투입 상세 삭제
+     * @param dtos B/S 투입 삭제 정보
+     * @return 삭제 건수
+     */
     public int removeRoutineBsWorkDetails(List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkDetail> dtos) {
         int cnt = 0;
         List<WpdcRoutineBsWorkDetailDvo> details = converter.mapAllBsWorkDetailDtoToBsWorkDetailDvo(dtos);
@@ -89,6 +141,11 @@ public class WpdcRoutineBsWorkMgtService {
         return cnt;
     }
 
+    /**
+     * 생활맞춤형필터 삭제
+     * @param dtos 삭제 정보
+     * @return 삭제 건수
+     */
     public int removeLifeFilters(List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> dtos) {
         int cnt = 0;
         List<WpdcLifeCustomFilterBaseDvo> filters = converter.mapAllRemoveLifeFltBaseDtoToLifeFltBaseDvo(dtos);
@@ -107,12 +164,21 @@ public class WpdcRoutineBsWorkMgtService {
         return cnt;
     }
 
+    /**
+     * 정기 B/S 투입 기준 삭제 (by 상품코드)
+     * @param pdCd 상품코드
+     */
     public void removeRoutineBsWorksPdCd(String pdCd) {
         mapper.deleteRoutineBsWorkBase(pdCd, null);
         mapper.deleteRoutineBsWorkDetail(pdCd, null);
         mapper.deleteLifeCustomFilterStdByPdCd(pdCd);
     }
 
+    /**
+     * 생활맞춤형필터 저장 중복 여부 확인
+     * @param dtos 저장 대상
+     * @return 중복결과
+     */
     public String checkLifeFilterDuplication(List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> dtos) {
         List<WpdcLifeCustomFilterBaseDvo> bases = converter.mapAllRemoveLifeFltBaseDtoToLifeFltBaseDvo(dtos);
         String duplicationKey = null;

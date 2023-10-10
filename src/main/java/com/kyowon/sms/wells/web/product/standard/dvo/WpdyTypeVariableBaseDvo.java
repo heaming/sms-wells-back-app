@@ -3,6 +3,14 @@ package com.kyowon.sms.wells.web.product.standard.dvo;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * <pre>
+ * 판매유형 변수 관리 기본 DVO
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 @Setter
 @Getter
 public class WpdyTypeVariableBaseDvo {

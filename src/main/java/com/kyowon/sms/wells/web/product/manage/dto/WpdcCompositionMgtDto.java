@@ -11,6 +11,14 @@ import com.kyowon.sms.common.web.product.manage.dto.ZpdcRelationMgtDto;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
+/**
+ * <pre>
+ * 복합 상품 DTO
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 public class WpdcCompositionMgtDto {
     @ApiModel(value = "WpdcCompositionMgtDto-EditReq")
     public record EditReq(

@@ -8,6 +8,14 @@ import javax.validation.constraints.NotEmpty;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 상품 렌탈/리스 위약금관리 DTO
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 public class WpdyRentalLeasePenaltyMgtDto {
 
     @ApiModel(value = "WpdyRentalLeasePenaltyMgtDto-SearchReq")

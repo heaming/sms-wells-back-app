@@ -25,6 +25,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 복합상품 관리 컨트롤러
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 @RestController
 @Api(tags = "[WPDC] 상품(Wells) - 상품운영관리 - 복합상품 관리")
 @RequestMapping(value = PdProductWellsConst.REST_URL_V1 + "/compositions")
@@ -37,6 +45,12 @@ public class WpdcCompositionMgtController {
     private final ZpdcPriceMgtService priceService;
     private final ZpdcRelationMgtService relService;
 
+    /**
+     * 복합상품 상품 수정
+     * @param dto 수정내용 정보
+     * @return 상품정보
+     * @throws Exception 미처리 시 Exception 처리
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "path", required = true, example = "WP04103177"),
     })
@@ -55,6 +69,12 @@ public class WpdcCompositionMgtController {
             .build();
     }
 
+    /**
+     * 복합상품 상품 수정
+     * @param dto 수정내용 정보
+     * @return 상품정보
+     * @throws Exception 미처리 시 Exception 처리
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "path", required = true, example = "WP04103177"),
     })
@@ -88,6 +108,12 @@ public class WpdcCompositionMgtController {
             .build();
     }
 
+    /**
+     * 복합상품 상품 생성
+     * @param dto 생성 정보
+     * @return 상품정보
+     * @throws Exception 미처리 시 Exception 처리
+     */
     @ApiOperation(value = "기준상품 상품 생성", notes = "수정된 상품정보를 반영한다.")
     @PostMapping
     public SaveResponse createProduct(
@@ -99,6 +125,12 @@ public class WpdcCompositionMgtController {
             .build();
     }
 
+    /**
+     * 복합상품 상품 삭제
+     * @param pdCd 상품코드
+     * @return 처리결과
+     * @throws Exception 미처리 시 Exception 처리
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "path", required = true, example = "WP04103177"),
     })

@@ -10,6 +10,14 @@ import com.kyowon.sms.common.web.product.manage.dto.ZpdcRelationMgtDto;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
+/**
+ * <pre>
+ * 서비스 상품 DTO
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 public class WpdcServiceMgtDto {
 
     @ApiModel(value = "WpdcServiceMgtDto-EditReq")

@@ -19,6 +19,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 모종제품가격 관리 서비스
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 @Service
 @RequiredArgsConstructor
 public class WpdySeedlingPriceMgtService {
@@ -26,14 +34,31 @@ public class WpdySeedlingPriceMgtService {
     private final WpdySeedlingPriceMgtConverter converter;
     private final WpdySeedlingPriceMgtMapper mapper;
 
+    /**
+     * 모종제품가격 관리 목록 조회
+     * @param dto 검색조건 정보
+     * @return 검색 결과 목록
+     */
     public List<WpdySeedlingPriceMgtDto.SearchRes> getSeedlingPrices(WpdySeedlingPriceMgtDto.SearchReq dto) {
         return mapper.selectSeedlingPrices(dto);
     }
 
+    /**
+     * 모종제품가격 관리 페이징 조회
+     * @param dto 검색조건 정보
+     * @param pageInfo 페이지 정보
+     * @return 검색 결과 목록
+     */
     public PagingResult<WpdySeedlingPriceMgtDto.SearchRes> getSeedlingPricePages(WpdySeedlingPriceMgtDto.SearchReq dto, PageInfo pageInfo) {
         return mapper.selectSeedlingPricePages(dto, pageInfo);
     }
 
+    /**
+     * 모종제품가격 관리 수정
+     * @param dto 수정내용 정보
+     * @return 수정건수
+     * @throws Exception 미처리 시 Exception 처리
+     */
     public int saveSeedlingPrices(WpdySeedlingPriceMgtDto.SaveReq dto) throws Exception {
         int cnt = 0;
         List<WpdySeedlingPriceBaseDvo> bases = converter.mapAllSeedlingPriceBaseDtoToSeedlingPriceBaseDvo(dto.bases());
@@ -50,6 +75,11 @@ public class WpdySeedlingPriceMgtService {
         return cnt;
     }
 
+    /**
+     * 모종제품가격 관리 삭제
+     * @param dtos 삭제 정보 목록
+     * @return 삭제건수
+     */
     public int removeSeedlingPrices(List<WpdySeedlingPriceMgtDto.SeedlingPriceBase> dtos) {
         int cnt = 0;
         List<WpdySeedlingPriceBaseDvo> bases = converter.mapAllSeedlingPriceBaseDtoToSeedlingPriceBaseDvo(dtos);
@@ -62,6 +92,11 @@ public class WpdySeedlingPriceMgtService {
         return cnt;
     }
 
+    /**
+     * 모종제품가격 정보 저장 - 저장전 기본정보
+     * @param base 모종제품 기본정보
+     * @param isSave 수정(true), 생성(false)
+     */
     private void setSeedlingPrice(WpdySeedlingPriceBaseDvo base, boolean isSave) {
         String histStrtDtm = DateUtil.getDate(new Date());
         String histEndDtm = PdProductConst.END_DATE_STR;
@@ -80,6 +115,11 @@ public class WpdySeedlingPriceMgtService {
         }
     }
 
+    /**
+     * 모종제품 중복체크
+     * @param dtos 저장대상 정보 목록
+     * @return 중복정보(중복키)
+     */
     public String checkDuplication(List<WpdySeedlingPriceMgtDto.SeedlingPriceBase> dtos) {
         List<WpdySeedlingPriceBaseDvo> bases = converter.mapAllSeedlingPriceBaseDtoToSeedlingPriceBaseDvo(dtos);
         List<String> idList = bases.stream()

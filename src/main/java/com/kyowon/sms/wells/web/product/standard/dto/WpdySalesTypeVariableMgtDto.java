@@ -7,6 +7,14 @@ import javax.validation.constraints.NotEmpty;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 상품 판매유형 변수 관리 DTO
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 public class WpdySalesTypeVariableMgtDto {
 
     @ApiModel(value = "WpdySalesTypeVariableMgtDto-SearchReq")
