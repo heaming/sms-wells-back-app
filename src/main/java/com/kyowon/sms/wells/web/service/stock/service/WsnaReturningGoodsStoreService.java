@@ -398,6 +398,7 @@ public class WsnaReturningGoodsStoreService {
      * @param dtos
      * @return
      */
+    @Transactional
     public int saveReturningGoodsStoreConfirmations(List<SaveConfirmationReq> dtos) {
         int processCount = 0;
 
