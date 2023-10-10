@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * <pre>
- * W-SV-U-0142M01 정상출고 관리
+ * W-SV-U-0142M01 정상출고 관리, W-SV-U-0180P01 요청자재보유현황 서비스
  * </pre>
  *
  * @author inho.choi

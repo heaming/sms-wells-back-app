@@ -46,7 +46,6 @@ public class WsnaItemBaseInformationService {
 
     /**
      * 품목 기본정보 조회
-     *
      * @param dto
      * @return
      */
@@ -63,7 +62,6 @@ public class WsnaItemBaseInformationService {
 
     /**
      * 품목 기본정보 조회 (출고내역)
-     *
      * @param dto
      * @return
      */
