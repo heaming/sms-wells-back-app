@@ -228,6 +228,9 @@ public class WfebOrganizationFeeDto {
         String etc1Atc, /*기타-재지급*/
         String etc2Atc, /*기타-멤버십*/
         String etc3Atc, /*기타-기타지원*/
+        String homeCare, /* 홈케어 */
+        String rstl, /* 재약정 */
+        String livePakg, /* 라이브팩 */
         String intbsSum, /*과표합계*/
         String ddtnSum, /*총공제액*/
         String aclDsbAmt /*실지급액*/
@@ -389,6 +392,9 @@ public class WfebOrganizationFeeDto {
         String etc1Atc, /*기타-재지급*/
         String etc2Atc, /*기타-멤버십*/
         String etc3Atc, /*기타-기타지원*/
+        String homeCare, /* 홈케어 */
+        String rstl, /* 재약정 */
+        String livePakg, /* 라이브팩 */
         String intbsSum, /*과표합계*/
         String ddtnSum, /*총공제액*/
         String aclDsbAmt /*실지급액*/
@@ -565,6 +571,9 @@ public class WfebOrganizationFeeDto {
         String etc1Atc, /*기타-재지급*/
         String etc2Atc, /*기타-멤버십*/
         String etc3Atc, /*기타-기타지원*/
+        String homeCare, /* 홈케어 */
+        String rstl, /* 재약정 */
+        String livePakg, /* 라이브팩 */
         String intbsSum, /*과표합계*/
         String ddtnSum, /*총공제액*/
         String aclDsbAmt /*실지급액*/
@@ -718,6 +727,7 @@ public class WfebOrganizationFeeDto {
         String akdriy,
         String akstym,
         String lcecaymd,
+        String bAksd05,
         String akcda0,
         String akcda1,
         String akcda2,
