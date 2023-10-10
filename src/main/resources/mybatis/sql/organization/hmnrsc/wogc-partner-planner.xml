@@ -89,6 +89,10 @@
              , T1.DSB_AMT                            /* 지급금액 */
              , T3.CNTR_DT                            /* 계약일자 */
              , T3.PRTNR_CNTR_TP_CD                   /* 파트너 계약유형코드 */
+             , T1.PCP_OG_TP_CD                       /* 처리자조직유형코 */
+             , T1.PCP_PRTNR_NO                       /* 처리자파트너번호 */
+             , T4.PRTNR_KNM AS PCP_PRTNR_KNM         /* 처리자파트너한글명 */
+             , T1.PRCSDT                             /* 처리일자 */
           FROM TB_OGPS_PLAR_QLF_CH_IZ T1
          INNER JOIN TB_OGBS_PRTNR_BAS T2
             ON T2.OG_TP_CD = T1.OG_TP_CD
@@ -99,6 +103,13 @@
            AND T3.PRTNR_NO = T2.PRTNR_NO
            AND T3.BASE_YM = SUBSTR(T1.STRTDT, 1, 6)
            AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4
+            ON T4.BASE_YM = CASE WHEN T1.ENDDT = '99991231' THEN TO_CHAR(SYSDATE, 'YYYYMM')
+                                                            ELSE TO_CHAR(TO_DATE(T1.ENDDT), 'YYYYMM')
+                            END
+           AND T4.OG_TP_CD = T1.PCP_OG_TP_CD
+           AND T4.PRTNR_NO = T1.PCP_PRTNR_NO
+           AND T4.DTA_DL_YN = 'N'
          WHERE T1.OG_TP_CD = 'W02'
            AND T1.DTA_DL_YN = 'N'
            AND T1.PRTNR_NO = #{prtnrNo}
@@ -827,7 +838,11 @@
              , PYMDT
              , DSB_AMT
              , CHDT
-             <include refid="COMMON.insertSystemField"/>)
+             , PCP_OG_TP_CD
+             , PCP_PRTNR_NO
+             , PRCSDT
+        <include refid="COMMON.insertSystemField"/>
+)
         VALUES
              ( #{ogTpCd}
              , #{prtnrNo}
@@ -839,7 +854,11 @@
              , #{pymdt}
              , #{dsbAmt}
              , #{strtdt}
-             <include refid="COMMON.insertSystemFieldValue" />)
+             , #{session.ogTpCd}
+             , #{session.employeeIDNumber}
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')
+        <include refid="COMMON.insertSystemFieldValue" />
+)
     </insert>
 
     <update id="updatePlannerQualificationChange">
@@ -863,6 +882,15 @@
         <if test="@MybatisUtils@isNotEmpty(newStrtdt)">
              , CHDT = #{newStrtdt}
         </if>
+        <if test="@MybatisUtils@isNotEmpty(pymdt)">
+             , PYMDT = #{pymdt}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dsbAmt)">
+             , DSB_AMT = #{dsbAmt}
+        </if>
+             , PCP_OG_TP_CD = #{session.ogTpCd}
+             , PCP_PRTNR_NO = #{session.employeeIDNumber}
+             , PRCSDT = TO_CHAR(SYSDATE, 'YYYYMMDD')
         <include refid="COMMON.updateSystemField"/>
         </set>
          WHERE 1=1
