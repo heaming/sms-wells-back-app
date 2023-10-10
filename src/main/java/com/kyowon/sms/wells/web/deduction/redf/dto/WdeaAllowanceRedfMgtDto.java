@@ -345,6 +345,11 @@ public class WdeaAllowanceRedfMgtDto {
         String wpEnvrExcpOgRedf, /*가전외 조직비례*/
         String wpOgSellEncrgRedf, /*조직 판매장려*/
         String dlqRedfAmt, /*연체되물림*/
+        String redfPerfRental, /*되물림 구분 연체일 때, 되물림실적.렌탈*/
+        String redfPerfExcp, /*되물림 구분 연체일 때, 되물림실적.가전외일시불실적*/
+        String dlqRedfPerfRental, /*되물림 구분 연체일 때, 연체되물림실적.렌탈*/
+        String dlqRedfPerfExcp, /*되물림 구분 연체일 때, 연체되물림실적.가전외일시불*/
+        String dlqRedfPerfTot, /*되물림 구분 연체일 때, 연체되물림실적.계*/
         String wpLifRedfAmt, /*상조되물림*/
 
         /*되물림 합계금액(그리드별)*/
