@@ -23,6 +23,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0145M01 급지 우편번호 관리
+ * </pre>
+ *
+ * @author hyewon.kim
+ * @since 2022.12.06
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/region-level-zips")
 @Api(tags = "[WSND] 급지 우편번호 관리 REST API")

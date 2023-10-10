@@ -13,8 +13,6 @@ import com.kyowon.sms.wells.web.closing.sales.dto.WdcbCancelBorControlStatusDto.
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbCancelBorControlStatusDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.sales.service.WdcbCancelBorControlStatusService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -37,13 +35,12 @@ public class WdcbCancelBorControlStatusController {
         @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true)
     })
-    @GetMapping("/paging")
-    public PagingResult<SearchRes> getAdjustCancellationPages(
+    @GetMapping()
+    public List<SearchRes> getAdjustCancellationPages(
         @Valid
-        SearchReq req,
-        PageInfo pageInfo
+        SearchReq req
     ) {
-        return service.getAdjustCancellationPages(req, pageInfo);
+        return service.getAdjustCancellationPages(req);
     }
 
     @ApiOperation(value = "렌탈 취소위약/조정현황 매출조정/취소집계 엑셀다운로드", notes = "검색조건을 입력 받아 렌탈 취소위약/조정현황 매출조정/취소집계 조회결과를 엑셀다운로드 한다.")

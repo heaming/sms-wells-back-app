@@ -22,6 +22,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0141M01 출고관리
+ * </pre>
+ *
+ * @author songTaeSung
+ * @since 2023.01.30
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/out-of-storage-itemizations")
 @Api(tags = "[WSNA] 출고관리 REST API")

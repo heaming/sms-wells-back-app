@@ -161,8 +161,10 @@
                      , NVL(TP.TOT_CNT * 1000000, 0) M_TOT_SUM /* P조직 - M조직환산실적      */
                      , TP.CUR_BS                              /* P조직 - 관리상품건수 ???   */
                      , NVL(TP.TOT_SUM, 0) TOT_SUM             /* P조직 - 누적실적          */
-                     , NVL(T3.PRFMT_DT, '') PRFMT_DT          /* P조직 - 수석승급월         */
-                     , NVL(T3.DMTN_DT, '') DMTN_DT            /* P조직 - 강등일자          */
+                    -- , NVL(T3.PRFMT_DT, '') PRFMT_DT        /* P조직 - 수석승급월         */
+                    -- , NVL(T3.DMTN_DT, '') DMTN_DT          /* P조직 - 강등일자          */
+                     , NVL(T7.LAST_UPGR_YMD, '') PRFMT_DT     /* P조직 - 수석승급월         */
+                     , NVL(T7.LAST_DMTN_YMD, '') DMTN_DT      /* P조직 - 강등일자           */
                      , NVL(TP.DMTN_CUR_BS, 0) DMTN_CUR_BS     /* P조직 - 강등후관리상품건수  */
                      , NVL(TP.DMTN_TOT_SUM, 0) DMTN_TOT_SUM   /* P조직 - 강등후누적실적     */
                      , NVL(TX.STRTDT, '') STRTDT              /* M조직 - 업무등록월         */
@@ -183,6 +185,26 @@
                   LEFT OUTER JOIN TB_OGBS_MM_OG_IZ       T4  /* 월조직내역          */
                     ON T4.BASE_YM     = T3.BASE_YM
                    AND T4.OG_ID       = T3.OG_ID
+                  -- 2023.10.05 수정
+                  LEFT OUTER JOIN ( SELECT    T1.OG_TP_CD
+                                            , T1.PRTNR_NO
+                                            , MAX(CASE WHEN T2.UPGR_DMTN_DV_CD = '1' THEN T2.RFDT ELSE '' END) LAST_UPGR_YMD
+                                            , MAX(CASE WHEN T2.UPGR_DMTN_DV_CD = '2' THEN T2.RFDT ELSE '' END) LAST_DMTN_YMD
+                                     FROM TB_OGBS_MM_PRTNR_IZ                   T1 --월파트너내역
+                                    INNER JOIN TB_OGPS_TOPMR_PLAR_APLC_IZ T2 --수석플래너신청내역
+                                       ON T2.OG_TP_CD  = T1.OG_TP_CD
+                                      AND T2.PRTNR_NO  = T1.PRTNR_NO
+                                      AND T2.RFDT     >= T1.CNTR_DT
+                                    WHERE T1.BASE_YM         = #{mngtYm} /* 파라미터 #############################  */
+                                      AND T1.OG_TP_CD        = 'W01' --조직유형코드 - W01:P조직
+                                      AND T1.PSTN_DV_CD      = '15'
+                                      AND T1.BZ_STAT_CD      = '1'   --사업상태코드 - 1:사업, 2:해약, 3:휴업
+                                      AND T1.PRR_BIZ_RGST_YN = 'N'   --사전업무등록여부 - N:기존영업부 Y:사전업무등록자
+                                      AND T1.DTA_DL_YN       = 'N'
+                                    GROUP BY T1.OG_TP_CD
+                                           , T1.PRTNR_NO ) T7 /* 파트너별 승진일자, 강등일자 */
+                    ON T7.OG_TP_CD = T3.OG_TP_CD
+                   AND T7.PRTNR_NO = T3.PRTNR_NO
                   LEFT OUTER JOIN (SELECT MNGT_YM
                                         , OG_TP_CD
                                         , PRTNR_NO
@@ -220,8 +242,8 @@
                                           , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM  = #{mngtYm}  THEN X1.PERF_VAL ELSE 0 END) CUR_SUM      /* P조직 당월 - 순주문실적금액 */
                                           , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009'                              THEN X1.PERF_VAL ELSE 0 END) TOT_SUM      /* P조직 누적 - 순주문실적금액 */
                                           , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00018' AND X1.BASE_YM  = #{mngtYm}  THEN X1.PERF_VAL ELSE 0 END) CUR_BS       /* P조직 당월 - BS관리상품 판매수 */
-                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM >= X0.DMTN_DT THEN X1.PERF_VAL ELSE 0 END) DMTN_TOT_SUM /* P조직 강등후누적 - 순주문실적금액 */
-                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00018' AND X1.BASE_YM >= X0.DMTN_DT THEN X1.PERF_VAL ELSE 0 END) DMTN_CUR_BS  /* P조직 강등후누적 - BS관리상품 판매수 */
+                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM >= X2.LAST_DMTN_YMD THEN X1.PERF_VAL ELSE 0 END) DMTN_TOT_SUM /* P조직 강등후누적 - 순주문실적금액 */
+                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00018' AND X1.BASE_YM >= X2.LAST_DMTN_YMD THEN X1.PERF_VAL ELSE 0 END) DMTN_CUR_BS  /* P조직 강등후누적 - BS관리상품 판매수 */
                                           , SUM(CASE WHEN X1.OG_TP_CD = 'W02' AND X1.PERF_AGRG_CRT_DV_CD = '201' AND X1.PERF_ATC_CD = 'W02P00002'                              THEN X1.PERF_VAL ELSE 0 END) TOT_CNT      /* M조직 누적 - 판매인정건수 */
                                        FROM /*************/ TB_OGBS_MM_PRTNR_IZ X0 /* 월파트너내역 */
                                        LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL X1 /* 순주문파트너실적월마감 */
@@ -234,6 +256,26 @@
                                         AND X1.PERF_ATC_CD IN ('W01P00009', 'W01P00018', 'W02P00002') /* 실적항목코드 - W01P00009:순주문실적금액, W01P00018:BS관리상품 판매수, W02P00002:판매인정건수 */
                                         AND X1.PERF_DV_CD = '0' /* 실적구분코드 - 0:개인판매 */
                                         AND X1.DTA_DL_YN = 'N'
+                                        -- 2023.10.05 수정
+                                       LEFT OUTER JOIN ( SELECT    T1.OG_TP_CD
+                                                                 , T1.PRTNR_NO
+                                                                 , MAX(CASE WHEN T2.UPGR_DMTN_DV_CD = '1' THEN T2.RFDT ELSE '' END) LAST_UPGR_YMD
+                                                                 , MAX(CASE WHEN T2.UPGR_DMTN_DV_CD = '2' THEN T2.RFDT ELSE '' END) LAST_DMTN_YMD
+                                                          FROM TB_OGBS_MM_PRTNR_IZ                   T1 --월파트너내역
+                                                               INNER JOIN TB_OGPS_TOPMR_PLAR_APLC_IZ T2 --수석플래너신청내역
+                                                               ON  T2.OG_TP_CD  = T1.OG_TP_CD
+                                                               AND T2.PRTNR_NO  = T1.PRTNR_NO
+                                                               AND T2.RFDT     >= T1.CNTR_DT
+                                                          WHERE T1.BASE_YM         = #{mngtYm} /* 파라미터 #############################  */
+                                                            AND T1.OG_TP_CD        = 'W01' --조직유형코드 - W01:P조직
+                                                            AND T1.PSTN_DV_CD      = '15'
+                                                            AND T1.BZ_STAT_CD      = '1'   --사업상태코드 - 1:사업, 2:해약, 3:휴업
+                                                            AND T1.PRR_BIZ_RGST_YN = 'N'   --사전업무등록여부 - N:기존영업부 Y:사전업무등록자
+                                                            AND T1.DTA_DL_YN       = 'N'
+                                                          GROUP BY T1.OG_TP_CD
+                                                                 , T1.PRTNR_NO ) X2 /* 파트너별 승진일자, 강등일자 */
+                                         ON X2.OG_TP_CD = X0.OG_TP_CD
+                                        AND X2.PRTNR_NO = X0.PRTNR_NO
                                     WHERE X0.BASE_YM          = #{mngtYm} /* 파라미터 #############################  */
                                       AND X0.OG_TP_CD         = 'W01' /* 조직유형코드 - W01:P조직 */
                                       AND X0.BZ_STAT_CD       = '1'   /* 사업상태코드 - 1:사업, 2:해약, 3:휴업 */
@@ -662,18 +704,20 @@
              , PAI.UPGR_DMTN_DV_CD              /* 승급강등구분코드 */
              , PAI.RCNTR_DT                     /* 재계약일자 */
              , PAI.UPGR_MCN                     /* 승급개월수 */
-             , PAI.FST_RGST_DTM                 /* 생성일자 */
-             , PAI.FST_RGST_USR_ID              /* 생성자ID */
+             , PAI.RGR_OG_TP_CD                 /* 등록자조직유형코드 */
              , (SELECT PRTNR_KNM
                   FROM TB_OGBS_PRTNR_BAS
-                 WHERE PRTNR_NO = PAI.FST_RGST_USR_ID
-                   AND ROWNUM = 1) AS RGST_PRTNR_KNM /* 생성자성명 */
-             , PAI.FNL_MDFC_DTM                 /* 수정일자 */
-             , PAI.FNL_MDFC_USR_ID              /* 수정자ID */
+                 WHERE PRTNR_NO = PAI.RGR_PRTNR_NO
+                   AND ROWNUM = 1) AS RGST_PRTNR_KNM
+             , PAI.RGR_PRTNR_NO                 /* 등록자파트너번호 */
+             , PAI.RGST_DT                      /* 등록일자 */
+             , PAI.UDR_OG_TP_CD                 /* 수정자조직유형코드 */
              , (SELECT PRTNR_KNM
                   FROM TB_OGBS_PRTNR_BAS
-                 WHERE PRTNR_NO = PAI.FNL_MDFC_USR_ID
-                   AND ROWNUM = 1) AS MDFC_PRTNR_KNM /* 수정자성명 */
+                 WHERE PRTNR_NO = PAI.UDR_PRTNR_NO
+                   AND ROWNUM = 1) AS MDFC_PRTNR_KNM
+             , PAI.UDR_PRTNR_NO                 /* 수정자파트너번호 */
+             , PAI.MDFC_DT                      /* 수정일자 */
           FROM TB_OGPS_TOPMR_PLAR_APLC_IZ PAI /* 수석플래너신청내역 */
          INNER JOIN TB_OGBS_PRTNR_BAS PB /* 파트너기본 */
             ON PB.OG_TP_CD = PAI.OG_TP_CD
@@ -706,6 +750,12 @@
                   , CLTN_DT              /*해약일자*/
                   , RCNTR_DT             /*재계약일자*/
                   , UPGR_MCN             /*승급개월수*/
+                  , RGR_OG_TP_CD         /*등록자조직유형코드*/
+                  , RGR_PRTNR_NO         /*등록자파트너번호*/
+                  , RGST_DT              /*등록일자*/
+                  , UDR_OG_TP_CD         /*수정자조직유형코드*/
+                  , UDR_PRTNR_NO         /*수정자파트너번호*/
+                  , MDFC_DT              /*수정일자*/
                   , DTA_DL_YN		    /*데이터삭제여부*/
                    <include refid="COMMON.insertSystemField"/>
              ) VALUES (
@@ -738,6 +788,18 @@
                         AND OG_TP_CD = #{ogTpCd}
                         AND PRTNR_NO = #{prtnrNo})
                   , #{upgrMcn}
+                  , (SELECT OG_TP_CD
+                       FROM TB_OGBS_PRTNR_BAS
+                      WHERE PRTNR_NO = #{session.prtnrNo}
+                        AND ROWNUM = 1)
+                  , #{session.prtnrNo}
+                  , TO_CHAR(SYSDATE, 'YYYYMMDD')
+                  , (SELECT OG_TP_CD
+                       FROM TB_OGBS_PRTNR_BAS
+                      WHERE PRTNR_NO = #{session.prtnrNo}
+                        AND ROWNUM = 1)
+                  , #{session.prtnrNo}
+                  , TO_CHAR(SYSDATE, 'YYYYMMDD')
                   , 'N'
                   <include refid="COMMON.insertSystemFieldValue" />
              )

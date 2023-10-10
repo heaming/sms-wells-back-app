@@ -22,6 +22,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0031M01 상품별 서비스 처리 집계 현황
+ * </pre>
+ *
+ * @author hyewon.kim
+ * @since 2022.12.30
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/as-visit-state")
 @Api(tags = "[WSNB] 상품별 서비스 처리 집계 REST API")

@@ -19,6 +19,14 @@ public class WsncBsPeriodCustomerTfDto {
         String addressZip
     ) {}
 
+    @ApiModel(value = "WsncBsPeriodCustomerTfDto-BranchsAndServiceCentersReq")
+    public record BranchsAndServiceCentersReq(
+        String ogId,
+        String managerAuthYn,
+        String bznsSpptRsbDvCd,
+        String manageOgId
+    ){}
+
     @ApiModel(value = "WsncBsPeriodCustomerTfDto-SearchRes")
     public record SearchRes(
         String asnOjYm,
@@ -128,6 +136,9 @@ public class WsncBsPeriodCustomerTfDto {
 
     @ApiModel(value = "WsncBsPeriodCustomerTfDto-SearchAuthRes")
     public record SearchAuthRes(
-        String managerAuthYn
+        String managerAuthYn,
+        String bznsSpptRsbDvCd,
+        String manageOgId,
+        String ogId
     ) {}
 }

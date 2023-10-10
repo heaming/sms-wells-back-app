@@ -20,6 +20,15 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * W-SV-U-0108M01 반품입고 관리 Controller
+ * </pre>
+ *
+ * @author SongTaeSung
+ * @since 2023.05.04
+ */
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -42,10 +51,22 @@ public class WsnaReturningGoodsStoreService {
 
     private final WsnaLogisticsInStorageAskService logisticsService;
 
+    /**
+     * 반품입고 관리 페이징 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
     public PagingResult<SearchRes> getReturningGoodsStores(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectReturningGoodsStores(dto, pageInfo);
     }
 
+    /**
+     * 반품입고 저장
+     * @param dtos
+     * @return
+     * @throws ParseException
+     */
     @Transactional
     public int saveReturningGoodsStores(List<SaveReq> dtos) throws ParseException {
         int processCount = 0;
@@ -222,7 +243,11 @@ public class WsnaReturningGoodsStoreService {
 
     }
 
-    /*반품유형처리타입이 20, 21일때*/
+    /**
+     * 출고창고 재고모듈 파라미터 변환
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setQuantityOstrWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsStoreDvo vo
     ) {
@@ -241,7 +266,11 @@ public class WsnaReturningGoodsStoreService {
         return reqDvo;
     }
 
-    /*반품유형처리타입이 20, 21일때*/
+    /**
+     * 반품유형처리타입이 20, 21 일때 사용하는 파라미터 변환
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setQuantityStrWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsStoreDvo vo
     ) {
@@ -264,7 +293,12 @@ public class WsnaReturningGoodsStoreService {
         return reqDvo;
     }
 
-    /*입고창고 재고모듈을 실행한다. (입고창고 = 반품처리유형에 따른 입고창고)*/
+    /**
+     * 입고창고 재고모듈 호출을 위한 파라미터 변환
+     * (입고창고 = 반품처리유형에 따른 입고창고)
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setQuantityStrReqDvoWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsStoreDvo vo
     ) {
@@ -288,7 +322,11 @@ public class WsnaReturningGoodsStoreService {
         return reqDvo;
     }
 
-    /*반품처리유형이  10 물류폐기, 11 리퍼-E급 tt물류폐기, 12 리퍼-물류반품, 22 리퍼-tt특별자재인 경우 */
+    /**
+     * 반품처리유형이  10 물류폐기, 11 리퍼-E급 tt물류폐기, 12 리퍼-물류반품, 22 리퍼-tt특별자재인 경우 파라미터변환
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setDiDiSuseOstrWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsStoreDvo vo
     ) {
@@ -308,7 +346,11 @@ public class WsnaReturningGoodsStoreService {
 
     }
 
-    /*기타출고일 경우*/
+    /**
+     * 기타출고유형일 경우 파라미터 변환
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setEtcOstrWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsStoreDvo vo
     ) {
@@ -327,6 +369,11 @@ public class WsnaReturningGoodsStoreService {
         return reqDvo;
     }
 
+    /**
+     * 넘어온 반품유형코드 비교
+     * @param rtngdProcsTpCd
+     * @return
+     */
     public String isOstrTpCd(String rtngdProcsTpCd) {
         if (List.of("80", "81", "82").contains(rtngdProcsTpCd)) {
             //218
@@ -337,10 +384,20 @@ public class WsnaReturningGoodsStoreService {
 
     }
 
+    /**
+     * 반품입고 엑셀다운로드
+     * @param dto
+     * @return
+     */
     public List<SearchRes> getReturningGoodsStoresExcelDownload(SearchReq dto) {
         return mapper.selectReturningGoodsStores(dto);
     }
 
+    /**
+     * 반품처리유형코드 저장
+     * @param dtos
+     * @return
+     */
     public int saveReturningGoodsStoreConfirmations(List<SaveConfirmationReq> dtos) {
         int processCount = 0;
 

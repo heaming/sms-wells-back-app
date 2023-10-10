@@ -89,10 +89,15 @@ public class WsnaEtcOutOfStorageService {
             itemStockservice.removeStock(etcRemoveDvo);
 
         }
-        //TODO: 현재 삭제처리 후 출고창고의 출고재고수량 복원을 위한 품목재고내역 삭제 메소드호출 필요 (추후 개발)
         return processCount;
     }
 
+    /**
+     * 기타출고 저장
+     * @param dtos
+     * @return
+     * @throws Exception
+     */
     @Transactional
     public int saveEtcOutOfStoragess(List<SaveReq> dtos) throws Exception {
         int processCount = 0;
@@ -123,11 +128,19 @@ public class WsnaEtcOutOfStorageService {
         return processCount;
     }
 
+    /**
+     * 기타출고등록 청구부서 조회
+     * @return
+     */
     public List<SearchDeptRes> getEtcOutOfStorageDepts() {
         return this.mapper.selectEtcOutOfStorageDepts();
     }
 
-    //기타출고 등록시 품목재고내역 등록
+    /**
+     * 기타출고 등록시 품목재고내역 등록 파라미터 설정
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setEtcOutOfStoreageWsnaItemStockItemizationDvo(
         WsnaEtcOutOfStorageDvo vo
     ) {
@@ -146,6 +159,11 @@ public class WsnaEtcOutOfStorageService {
         return reqDvo;
     }
 
+    /**
+     * 품목재고내역 삭제 메소드
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setEtcOutOfStoreageRemoveWsnaItemStockItemizationDvo(
         WsnaEtcOutOfStorageDvo vo
     ) {
@@ -164,6 +182,11 @@ public class WsnaEtcOutOfStorageService {
         return removeDvo;
     }
 
+    /**
+     * 기타출고 영업센터 조직창고 조회
+     * @param apyYm
+     * @return
+     */
     public List<SearchCodeRes> getWellsCenterWarehouse(String apyYm) {
         return this.mapper.selectWellsCenterWarehouse(apyYm);
 

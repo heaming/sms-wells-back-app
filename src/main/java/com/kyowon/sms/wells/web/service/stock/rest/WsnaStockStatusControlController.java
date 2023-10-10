@@ -22,6 +22,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0134M01 재고상태조정 관리 Controller
+ * </pre>
+ *
+ * @author SongTaeSung
+ * @since 2023.07.11
+ */
 @Api(tags = "[WSNA] 재고상태조정 관리")
 @Validated
 @RequiredArgsConstructor

@@ -2,84 +2,69 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbCancelBorControlStatusMapper">
     <select id="selectAdjustCancellationPages" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbCancelBorControlStatusDto$SearchRes">
-        -- 대상건 추출
         <![CDATA[
-        WITH RESAMT_CNTR AS (
-            SELECT Y.CNTR_NO, Y.CNTR_SN, MAX(Y.PERF_YM) AS PERF_YM
-              FROM TB_CBCL_WELLS_SL_MM_CL_IZ X    /*WELLS매출월마감내역*/
-                 , TB_CBCL_WELLS_BOR_AMT_BAS Y   /*WELLS위약금액기본*/
-             WHERE Y.PERF_YM = #{perfYm}
-               AND X.CNTR_NO = Y.CNTR_NO
-               AND X.CNTR_SN = Y.CNTR_SN
-               AND X.SL_CL_YM = Y.PERF_YM
-               AND (X.LEASE_SL_CTR_AMT + X.LEASE_SL_CAN_AMT) != 0
-               AND X.SELL_TP_DTL_CD = #{sellTpDtlCd}   /*판매유형상세 22:리스, 24:환경리스, 25:장기할부, 26:환경할부*/
-               AND X.DTA_DL_YN = 'N'
-               AND Y.DTA_DL_YN = 'N'
-             GROUP BY Y.CNTR_NO, Y.CNTR_SN
-        )
-        SELECT T.PERF_YM                                                                 AS PERF_YM            /*실적년월*/
+        SELECT A.SL_CL_YM                                                              AS PERF_YM            /*실적년월*/
              , A.CNTR_NO || '-' || A.CNTR_SN                                           AS CNTR_DTL_SN        /*계약상세번호*/
              , DECODE(H.HIST_STRT_DTM, NULL, '', TO_CHAR(TO_DATE(H.HIST_STRT_DTM, 'YYYYMMDDHH24MISS'), 'YYYYMMDD')) AS CAN_DTM            /*취소일자*/
              , A.LEASE_SL_CTR_AMT AS SL_CTR_AMT /*매출조정금액*/
              , A.LEASE_SL_CAN_AMT AS SL_CAN_AMT /*매출취소금액 - 취소조정(취소 잔여 매출액포함)*/
-             , NVL(I.MM_ISTM_PCAM_AMT, A.LEASE_SL_CTR_AMT) AS LEASE_SL_CTR_AMT/*매출조정금액 - 원금*/
-             , DECODE(I.MM_ISTM_PCAM_AMT, NULL, A.LEASE_SL_CAN_AMT, ROUND(A.LEASE_SL_CAN_AMT * (I.MM_ISTM_PCAM_AMT/I.MM_MPY_AMT), 0)) AS LEASE_SL_CAN_AMT/*매출취소금액 - 원금*/
-             , NVL(I.MM_ISTM_INT_AMT, 0) AS CTR_PVDA_AMT  /*매출조정금액 - 이자*/
-             , DECODE(I.MM_ISTM_PCAM_AMT, NULL, 0, A.LEASE_SL_CAN_AMT - ROUND(A.LEASE_SL_CAN_AMT * (I.MM_ISTM_PCAM_AMT/I.MM_MPY_AMT), 0)) AS CAN_PVDA_AMT
+             , DECODE(Y.MM_ISTM_PCAM_AMT, NULL, A.LEASE_SL_CTR_AMT, ROUND(A.LEASE_SL_CTR_AMT * (Y.MM_ISTM_PCAM_AMT/Y.MM_MPY_AMT), 0)) AS LEASE_SL_CTR_AMT  /*매출조정금액 - 원금*/
+             , DECODE(Y.MM_ISTM_PCAM_AMT, NULL, A.LEASE_SL_CAN_AMT, ROUND(A.LEASE_SL_CAN_AMT * (Y.MM_ISTM_PCAM_AMT/Y.MM_MPY_AMT), 0)) AS LEASE_SL_CAN_AMT  /*매출취소금액 - 원금*/
+             , DECODE(Y.MM_ISTM_PCAM_AMT, NULL, 0, A.LEASE_SL_CTR_AMT - ROUND(A.LEASE_SL_CTR_AMT * (Y.MM_ISTM_PCAM_AMT/Y.MM_MPY_AMT), 0)) AS CTR_PVDA_AMT  /*매출조정금액 - 이자*/
+             , DECODE(Y.MM_ISTM_PCAM_AMT, NULL, 0, A.LEASE_SL_CAN_AMT - ROUND(A.LEASE_SL_CAN_AMT * (Y.MM_ISTM_PCAM_AMT/Y.MM_MPY_AMT), 0)) AS CAN_PVDA_AMT  /*매출취소금액 - 이자*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'SL_CTR_DSC_TP_CD', B.SL_CTR_DSC_TP_CD)        AS CTR_TP             /*조정유형*/
              , B.SL_CTR_RMK_CN                                                                               /*취소조정사유*/
              , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = D.BASE_PD_CD)           AS PD_NM              /*상품명*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'CMN_STAT_CH_RSON_CD', C.CNTR_STAT_CH_RSON_CD) AS STAT_CH_RSON_NM    /*취소사유*/
-             , E.EOT_DLQ_AMT                                                                                 /*최종연체금*/
-             , F.EOT_BOR_AMT                                                                                 /*최종위약금*/
-          FROM TB_SSCT_CNTR_DTL D                             /*계약상세*/
-             , RESAMT_CNTR T                                 /*대상건*/
-             , TB_CBCL_WELLS_SL_MM_CL_IZ A                   /*WELLS매출월마감내역*/
-             , TB_CBCL_WELLS_BOR_AMT_BAS F                   /*WELLS위약금액기본*/
-          LEFT OUTER JOIN TB_RVDW_SL_CTR_BAS B        /*매출조정기본*/
-            ON B.CNTR_NO = F.CNTR_NO
-           AND B.CNTR_SN = F.CNTR_SN
-           AND F.PERF_YM BETWEEN B.SL_CTR_STRT_YM AND B.SL_CTR_END_YM
-           AND B.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C /*계약해지처리내역*/
-            ON C.CNTR_NO = F.CNTR_NO
-           AND C.CNTR_SN = F.CNTR_SN
-           AND C.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_CBCL_DLQ_BAS E           /*연체기본*/
-            ON E.PERF_YM = F.PERF_YM
-           AND E.CNTR_NO = F.CNTR_NO
-           AND E.CNTR_SN = F.CNTR_SN
-           AND E.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST H/*계약상세상태변경이력*/
-		    ON H.CNTR_NO = F.CNTR_NO
-		   AND H.CNTR_SN = F.CNTR_SN
-		   AND H.CNTR_DTL_STAT_CD IN ('301', '302', '303', '304', '305')
-		   AND H.HIST_END_DTM = '99991231235959'
-		   AND H.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN LATERAL
-          (SELECT Y.MM_MPY_AMT, Y.MM_ISTM_PCAM_AMT, Y.MM_ISTM_INT_AMT
-   		    FROM TB_RVDW_PVDA_PLAN_BAS X/*현재가치할인차금계획기본*/
-      		            ,TB_RVDW_PVDA_PLAN_DTL Y/*현재가치할인차금계획상세*/
-    		  WHERE X.CNTR_NO = F.CNTR_NO
- 		      AND X.CNTR_SN = F.CNTR_SN
-    		      AND X.PVDA_PLAN_NO = Y.PVDA_PLAN_NO
-    		      AND Y.ISTM_TN = A.RENTAL_TN
-    		      AND Y.MM_MPY_AMT = D.MM_ISTM_AMT
-    		      AND X.DTA_DL_YN = 'N'
-    		      AND Y.DTA_DL_YN = 'N'
- 		  ) I
-            ON 1=1
-         WHERE F.CNTR_NO = T.CNTR_NO
-           AND F.CNTR_SN = T.CNTR_SN
-           AND F.PERF_YM = T.PERF_YM
-           AND A.CNTR_NO = D.CNTR_NO
+             , NVL(E.EOT_DLQ_AMT, 0) AS EOT_DLQ_AMT                                                                  /*최종연체금*/
+             , NVL(F.EOT_BOR_AMT, 0) AS EOT_BOR_AMT                                                                  /*최종위약금*/
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ A/*WELLS매출월마감내역*/
+         INNER JOIN TB_SSCT_CNTR_DTL D/*계약상세*/
+            ON A.CNTR_NO = D.CNTR_NO
            AND A.CNTR_SN = D.CNTR_SN
-           AND F.PERF_YM = A.SL_CL_YM
+           AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+           AND D.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS F /*WELLS위약금액기본*/
+            ON F.PERF_YM = A.SL_CL_YM
            AND F.CNTR_NO = A.CNTR_NO
            AND F.CNTR_SN = A.CNTR_SN
-           AND F.EOT_BOR_AMT > 0
            AND F.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_RVDW_SL_CTR_BAS B/*매출조정기본*/
+            ON B.CNTR_NO = A.CNTR_NO
+           AND B.CNTR_SN = A.CNTR_SN
+           AND A.SL_CL_YM BETWEEN B.SL_CTR_STRT_YM AND B.SL_CTR_END_YM
+           AND B.SL_CTR_DSC_TP_CD = '13'
+           AND B.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C/*계약해지처리내역*/
+            ON C.CNTR_NO = A.CNTR_NO
+           AND C.CNTR_SN = A.CNTR_SN
+           AND C.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS E/*연체기본*/
+            ON E.PERF_YM = A.SL_CL_YM
+           AND E.CNTR_NO = A.CNTR_NO
+           AND E.CNTR_SN = A.CNTR_SN
+           AND E.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST H/*계약상세상태변경이력*/
+            ON H.CNTR_NO = A.CNTR_NO
+           AND H.CNTR_SN = A.CNTR_SN
+           AND H.CNTR_DTL_STAT_CD IN ('301', '302', '303', '304', '305')
+           AND H.HIST_END_DTM = '99991231235959'
+           AND H.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_RVDW_PVDA_PLAN_BAS X/*현재가치할인차금계획기본*/
+            ON X.CNTR_NO = A.CNTR_NO
+           AND X.CNTR_SN = A.CNTR_SN
+           AND X.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_RVDW_PVDA_PLAN_DTL Y/*현재가치할인차금계획상세*/
+            ON X.PVDA_PLAN_NO = Y.PVDA_PLAN_NO
+           AND Y.ISTM_TN = A.RENTAL_TN
+           AND Y.MM_MPY_AMT = D.MM_ISTM_AMT
+           AND Y.DTA_DL_YN = 'N'
+         WHERE A.SL_CL_YM = #{perfYm}
+           AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
+           AND A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+           AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
+           AND (A.LEASE_SL_CTR_AMT <> 0 OR A.LEASE_SL_CAN_AMT <> 0)
            AND A.DTA_DL_YN = 'N'
            AND D.DTA_DL_YN = 'N'
          ORDER BY 1,2,3,4

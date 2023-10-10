@@ -63,9 +63,8 @@
         SELECT /*+ USE_NL(T1 T2) LEADING(T1 T2) */
                T1.LGST_SPP_MTHD_CD AS SPP_MTHD_TP_CD /*배송방식유형코드*/
              , T1.SAP_PLNT_CD   /*SAP플랜트코드*/
-             , T2.SAP_SAVE_LCT_CD  /*SAP저장위치코드*/
+             , SUBSTR(T2.SAP_SAVE_LCT_CD,-4) AS SAP_SAVE_LCT_CD  /*SAP저장위치코드*/
              , T1.LGST_ITM_GD_CD    /*물류품목등급코드 -14일이나반품건이나 폐기건 찾는건데.. 입출금에서 못줄꺼 대비*/
-             , COUNT(1) AS CNT   /*이게 0보다 크면 수불여부 Y 조회되지 않거나 0이면  N*/
           FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT T1
          INNER JOIN TB_IFIN_ITM_OSTR_AK_SEND_ETXT T2
             ON T1.LGST_OSTR_AK_NO = T2.LGST_OSTR_AK_NO
@@ -84,10 +83,11 @@
           FROM TB_CBCL_SLP_BASE_INF_BAS
          WHERE SLP_BASE_CDV = 'SAP_SL_TP_CD'
            AND SAP_BZ_TERY_CD = '1210'
-           AND CNDT_VARB_NM1 = #{sellTpDtlCd}  /*판매유형코드*/
-           AND CNDT_VARB_NM2 = #{clssVal}  /*평가클래스*/
+           AND CNDT_VARB_NM1 = #{tempSellTpDtlCd}  /*판매유형상세코드. 매출인식분류코드가 S로 시작하는경우 ANY 를 넣어줌. */
+           AND CNDT_VARB_NM2 = #{tempSlRcogClsfCd}  /*매출인식분류코드 => W00 으로 되어잇는건 W로 넘김 */
            AND CNDT_VARB_NM3 = #{slTpDvCd}  /*매출유형구분*/
-           AND CNDT_VARB_NM4 = #{addCondition}  /*추가조건*/
+           AND CNDT_VARB_NM4 = #{clssVal}  /*평가클래스구분*/
+           AND CNDT_VARB_NM5 = #{addCondition}  /*추가조건*/
     </select>
 
     <insert id="insertSalesConfirm">
@@ -329,6 +329,15 @@
         SELECT VAT_TP_CD
           FROM TB_PDBS_PD_BAS
          WHERE PD_CD = #{pdCd}
+    </select>
+
+    <select id="selectSapBizDvCd" resultType="string">
+        SELECT MAX(SLP_MAPNG_CDV) FROM TB_CBCL_SLP_BASE_INF_BAS
+         WHERE SLP_BASE_CDV = 'SAP_BIZ_DV_CD'
+           AND SAP_BZ_TERY_CD = '1210'
+           AND CNDT_VARB_NM1 = #{tempSellTpDtlCd}  /*판매유형상세코드. 매출인식분류코드가 S로 시작하는경우 ANY 를 넣어줌. */
+           AND CNDT_VARB_NM2 = #{tempSlRcogClsfCd}   /*매출인식분류코드 => W00 으로 되어잇는건 W로 넘김 */
+           AND CNDT_VARB_NM3 = #{addCondition}  /*추가조건 - (SAP업무구분코드에서만) 3이 들어오는 경우는 0으로 변경하여 여기넣어줌  */
     </select>
 
 </mapper>

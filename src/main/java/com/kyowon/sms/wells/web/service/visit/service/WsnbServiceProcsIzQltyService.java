@@ -32,6 +32,9 @@ public class WsnbServiceProcsIzQltyService {
 
     private final WsnbServiceProcsIzQltyConverter converter;
 
+    /**
+     * 서비스 처리내역 조회 (품질)
+     */
     public PagingResult<SearchRes> getServiceProcsIzQltys(SearchReq dto, PageInfo pageInfo) {
         PagingResult<WsnbServiceProcsIzQltyDvo> dvos = mapper.selectServiceProcsIzQltys(dto, pageInfo);
 
@@ -44,6 +47,9 @@ public class WsnbServiceProcsIzQltyService {
         return new PagingResult<>(converter.mapAllDvoToSearchRes(dvos), pageInfo);
     }
 
+    /**
+     * 서비스 처리내역 조회 (품질) 엑셀 다운로드
+     */
     public List<SearchRes> getServiceProcsIzQltysForExcel(SearchReq dto) {
         return converter.mapAllDvoToSearchRes(mapper.selectServiceProcsIzQltys(dto));
     }

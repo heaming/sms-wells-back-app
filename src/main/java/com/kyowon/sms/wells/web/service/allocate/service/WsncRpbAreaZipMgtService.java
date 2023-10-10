@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * W-SV-U-0036M01 책임지역 우편번호 관리
  * </pre>
  *
- * @author gs.piit130 김혜원
+ * @author hyewon.kim
  * @since 2022.11.17
  */
 @Service

@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
  * W-SV-U-0226M01 급지 수당 관리
  * </pre>
  *
- * @author hyewon.kim 김혜원
+ * @author hyewon.kim
  * @since 2022.12.14
  */
 @Service

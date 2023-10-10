@@ -22,6 +22,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0133M01 입고상세내역조회
+ * </pre>
+ *
+ * @author songTaeSung
+ * @since 2023.01.25
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/store-detail-itemizations")
 @Api(tags = "[WSNA] 입고상세내역 REST API")
