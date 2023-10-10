@@ -32,6 +32,11 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbProductSalesDetailController {
     private final WdcbProductSalesDetailService service;
 
+    /**
+     * 매출상세조회(일시불,금융리스,정기구매)
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "매출상세조회(일시불,금융리스,정기구매)", notes = "조회조건에 따른 매출상세를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDtmnFrom", value = "매출시작일자", paramType = "query"),
@@ -53,6 +58,11 @@ public class WdcbProductSalesDetailController {
         return service.getProductSalesSinglePaymentDetails(dto);
     }
 
+    /**
+     * 매출상세조회(렌탈)
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "매출상세조회(렌탈)", notes = "조회조건에 따른 매출상세를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDtmnFrom", value = "매출시작일자", paramType = "query"),
@@ -74,6 +84,11 @@ public class WdcbProductSalesDetailController {
         return service.getProductSalesRentalDetails(dto);
     }
 
+    /**
+     * 매출상세조회(멤버십)
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "매출상세조회(멤버십)", notes = "조회조건에 따른 매출상세를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDtmnFrom", value = "매출시작일자", paramType = "query"),
@@ -95,6 +110,11 @@ public class WdcbProductSalesDetailController {
         return service.getProductSalesMembershipDetails(dto);
     }
 
+    /**
+     * 상품별 매출 현황 엑셀 다운로드
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "상품별 매출 현황 엑셀 다운로드", notes = "조회조건에 따른 상품별 매출 목록을 엑셀 다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDtmnFrom", value = "매출시작일자", paramType = "query"),
@@ -116,6 +136,11 @@ public class WdcbProductSalesDetailController {
         return service.getProductSalesSinglePaymentDetails(dto);
     }
 
+    /**
+     * 상품별 매출 현황 엑셀 다운로드
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "상품별 매출 현황 엑셀 다운로드", notes = "조회조건에 따른 상품별 매출 목록을 엑셀 다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDtmnFrom", value = "매출시작일자", paramType = "query"),
@@ -137,6 +162,11 @@ public class WdcbProductSalesDetailController {
         return service.getProductSalesRentalDetails(dto);
     }
 
+    /**
+     * 상품별 매출 현황 엑셀 다운로드
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "상품별 매출 현황 엑셀 다운로드", notes = "조회조건에 따른 상품별 매출 목록을 엑셀 다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDtmnFrom", value = "매출시작일자", paramType = "query"),

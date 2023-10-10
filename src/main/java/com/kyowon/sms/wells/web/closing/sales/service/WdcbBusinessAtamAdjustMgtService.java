@@ -21,22 +21,46 @@ public class WdcbBusinessAtamAdjustMgtService {
     private final WdcbBusinessAtamAdjustMgtMapper mapper;
     private final WdcbBusinessAtamAdjustMgtConverter converter;
 
+    /**
+     * 대표고객코드 조회
+     * @return
+     */
     public List<SearchSapPdDvCdRes> getSapPdDvCds() {
         return mapper.selectSapPdDvCds();
     }
 
+    /**
+     * 영업선수금 정산 관리(집계)
+     * @param dto
+     * @return
+     */
     public List<SearchTotalRes> getBusinessAtamTotals(SearchReq dto) {
         return mapper.selectBusinessAtamTotals(dto);
     }
 
+    /**
+     * 영업선수금 정산 관리(상세)
+     * @param dto
+     * @return
+     */
     public List<SearchDetailRes> getBusinessAtamDetails(SearchReq dto) {
         return mapper.selectBusinessAtamDetails(dto);
     }
 
+    /**
+     * 채권반제 조회
+     * @param sapAlrpySlpno
+     * @return
+     */
     public List<SearchSlpnoRes> getSapAlrpySlpnos(String sapAlrpySlpno) {
         return mapper.selectSapAlrpySlpnos(sapAlrpySlpno);
     }
 
+    /**
+     * 전표 초기화
+     * @param dtos
+     * @return
+     */
     @Transactional
     public int saveSlpnoInitializes(List<SaveSlpnoReq> dtos) {
         int processCount = 0;

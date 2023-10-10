@@ -21,7 +21,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Api(tags = "[WDCB] 영업선수금 정산 관리")
+@Api(tags = "[WDCB] 영업선수금 정산 관리 - W-CL-U-0034M01")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
@@ -31,12 +31,21 @@ public class WdcbBusinessAtamAdjustMgtController {
     private final WdcbBusinessAtamAdjustMgtService service;
     private final ZdchClearingSlipCreateService zdchClearingSlipCreateService;
 
+    /**
+     * 대표고객코드 조회
+     * @return
+     */
     @ApiOperation(value = "대표고객코드 조회", notes = "대표고객코드 정보를 조회")
     @GetMapping("/codes")
     public List<SearchSapPdDvCdRes> getSapPdDvCds() {
         return service.getSapPdDvCds();
     }
 
+    /**
+     * 영업선수금 정산 관리(집계)
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "영업선수금 정산 관리(집계)", notes = "조회조건에 따른 영업선수금 내역을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
@@ -54,6 +63,11 @@ public class WdcbBusinessAtamAdjustMgtController {
         return service.getBusinessAtamTotals(dto);
     }
 
+    /**
+     * 영업선수금 정산 관리(상세)
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "영업선수금 정산 관리(상세)", notes = "조회조건에 따른 영업선수금 내역을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
@@ -71,6 +85,11 @@ public class WdcbBusinessAtamAdjustMgtController {
         return service.getBusinessAtamDetails(dto);
     }
 
+    /**
+     * 반제전표 생성
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "반제전표 생성", notes = "반제전표 생성")
     @PostMapping
     public String saveSlipCreate(
@@ -81,6 +100,11 @@ public class WdcbBusinessAtamAdjustMgtController {
         return zdchClearingSlipCreateService.clearingSlipCreate(dto);
     }
 
+    /**
+     * 채권반제 조회
+     * @param sapAlrpySlpno
+     * @return
+     */
     @ApiOperation(value = "채권반제 조회", notes = "조회조건에 따른 채권반제 내역을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "sapAlrpySlpno", value = "SAP전표번호", paramType = "query"),
@@ -93,6 +117,11 @@ public class WdcbBusinessAtamAdjustMgtController {
         return service.getSapAlrpySlpnos(sapAlrpySlpno);
     }
 
+    /**
+     * 전표 초기화
+     * @param dtos
+     * @return
+     */
     @ApiOperation(value = "전표 초기화", notes = "전표 초기화")
     @PostMapping("/sapAlrpySlpno")
     public SaveResponse saveSlpnoInitializes(

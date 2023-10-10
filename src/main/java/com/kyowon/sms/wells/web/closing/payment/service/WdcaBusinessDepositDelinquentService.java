@@ -19,10 +19,20 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcaBusinessDepositDelinquentService {
     private final WdcaBusinessDepositDelinquentMapper mapper;
 
+    /**
+     * 영업부 입금/연체 현황 조회
+     * @param dto
+     * @return
+     */
     public PagingResult<SearchRes> getBusinessDepositDelinquentPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectBusinessDepositDelinquentPages(dto, pageInfo);
     }
 
+    /**
+     * 영업부 입금/연체 현황 조회 엑셀다운로드
+     * @param dto
+     * @return
+     */
     public List<SearchRes> getBusinessDepositDelinquentForExcelDownload(SearchReq dto) {
         return mapper.selectBusinessDepositDelinquentPages(dto);
     }
