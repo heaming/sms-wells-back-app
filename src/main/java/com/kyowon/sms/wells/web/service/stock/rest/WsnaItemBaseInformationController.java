@@ -22,6 +22,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0173P01 품목기본정보 팝업 Controller
+ * </pre>
+ *
+ * @author songTaeSung
+ * @since 2023.02.20
+ */
 @Api(tags = "[WSNA] 품목기본정보")
 @Validated
 @RequiredArgsConstructor

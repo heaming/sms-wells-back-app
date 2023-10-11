@@ -14,6 +14,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0252M01 품목별 수불현황 서비스
+ * </pre>
+ *
+ * @author SongTaeSung
+ * @since 2023.05.17
+ */
 @Service
 @RequiredArgsConstructor
 public class WsnaItemReceivingAndPayingService {

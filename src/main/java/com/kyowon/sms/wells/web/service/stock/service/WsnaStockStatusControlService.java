@@ -253,6 +253,11 @@ public class WsnaStockStatusControlService {
 
     }
 
+    /**
+     * 품목재고내역 입고 삭제 파라미터 변환
+     * @param dvo
+     * @return
+     */
     private WsnaItemStockItemizationReqDvo convertRemoveStockItemizationRemoveReq(
         WsnaStockStatusControlDvo dvo
     ) {
@@ -273,7 +278,7 @@ public class WsnaStockStatusControlService {
     }
 
     /**
-     * 품목재고내역 삭제 파라미터 변환
+     * 품목재고내역 출고 삭제 파라미터 변환
      * @param dvo
      * @return
      */

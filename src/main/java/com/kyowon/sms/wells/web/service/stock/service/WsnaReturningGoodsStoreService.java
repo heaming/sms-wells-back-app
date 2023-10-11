@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsStoreDto.*;
 
-import java.text.ParseException;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -65,10 +64,9 @@ public class WsnaReturningGoodsStoreService {
      * 반품입고 저장
      * @param dtos
      * @return
-     * @throws ParseException
      */
     @Transactional
-    public int saveReturningGoodsStores(List<SaveReq> dtos) throws ParseException {
+    public int saveReturningGoodsStores(List<SaveReq> dtos) {
         int processCount = 0;
         int serialNumber = 0;
         String ostrDt = DateUtil.getNowDayString();

@@ -17,6 +17,15 @@ import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemBaseInformationMapp
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0173P01 품목기본정보 팝업 서비스
+ * </pre>
+ *
+ * @author songTaeSung
+ * @since 2023.02.20
+ */
+
 @Service
 @RequiredArgsConstructor
 public class WsnaItemBaseInformationService {
@@ -75,14 +84,28 @@ public class WsnaItemBaseInformationService {
         return dvos;
     }
 
+    /**
+     * 품목 기본정보 조회 (신청내역)
+     * @param dto
+     * @return
+     */
     public List<SearchAplcRes> getItemBaseInformationAplcLists(SearchAplcReq dto) {
         return this.mapper.selectItemBaseInformationAplcLists(dto);
     }
 
+    /**
+     * 창고 구분, 상세구분 조회
+     * @param dto
+     * @return
+     */
     public List<SearchWareRes> getItemBaseInformationWareDvCds(SearchReq dto) {
         return this.mapper.selectItemBaseInformationWareDvCds(dto);
     }
 
+    /**
+     * 실시간 물류재고 조회 (품목기본정보 조회)
+     * @param dvos
+     */
     private void getRealTimeItemBaseLogisticStockQtys(List<WsnaItemBaseInformationReturnDvo> dvos) {
         if (CollectionUtils.isNotEmpty(dvos)) {
             int size = dvos.size();
@@ -104,6 +127,10 @@ public class WsnaItemBaseInformationService {
         }
     }
 
+    /**
+     * 실시간 물류재고 조회 (품목 기본정보 조회 - 출고내역)
+     * @param dvos
+     */
     private void getRealTimeLogisticStockQtys(List<WsnaItemBaseInformationDvo> dvos) {
         if (CollectionUtils.isNotEmpty(dvos)) {
 
@@ -128,6 +155,11 @@ public class WsnaItemBaseInformationService {
         }
     }
 
+    /**
+     * 물류재고 셋팅 (품목기본정보 조회)
+     * @param stocks
+     * @param sliceDvos
+     */
     private void setItemBaseTotalLogisticQty(
         List<RealTimeGradeStockResIvo> stocks, List<WsnaItemBaseInformationReturnDvo> sliceDvos
     ) {
@@ -159,6 +191,11 @@ public class WsnaItemBaseInformationService {
         }
     }
 
+    /**
+     * 물류재고 셋팅 (품목 기본정보 조회 - 출고내역)
+     * @param stocks
+     * @param sliceDvos
+     */
     private void setTotalLogisticQty(
         List<RealTimeGradeStockResIvo> stocks, List<WsnaItemBaseInformationDvo> sliceDvos
     ) {
