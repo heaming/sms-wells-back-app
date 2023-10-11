@@ -8,4 +8,6 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductOutOfStorageExcel
 public interface WsnaMdProductOutOfStorageExcelUploadMapper {
 
     int selectExistSppIvcNo(WsnaMdProductOutOfStorageExcelUploadDvo dvo);
+
+    int insertSppBzsInvoiceProcessIz(WsnaMdProductOutOfStorageExcelUploadDvo dvo);
 }
