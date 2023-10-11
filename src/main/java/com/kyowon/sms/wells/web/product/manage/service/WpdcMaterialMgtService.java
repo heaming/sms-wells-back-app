@@ -38,6 +38,14 @@ import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * 상품 >> 교재/자재 WELLS Service
+ * </pre>
+ *
+ * @author junho.bae
+ * @since 2023-07-01
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -60,18 +68,29 @@ public class WpdcMaterialMgtService {
 
     /**
      * SAP 교재/자재 페이징 조회(팝업)
-     * @param dto
-     * @param pageInfo
-     * @return
+     * @param dto SAP 자재코드 조회조건
+     * @param pageInfo 페이징정보
+     * @return SAP 자재코드 데이터 목록
      */
     public PagingResult<SearchSapRes> getMaterialSapPages(SearchSapReq dto, PageInfo pageInfo) {
         return mapper.selectMaterialSapPages(dto, pageInfo);
     }
 
+    /**
+     * SAP 교재/자재 엑셀다운(팝업)
+     * @param dto 조회조건
+     * @return SAP 교재/자재 목록정보
+     */
     public List<SearchSapRes> getMaterialSapForExcelDownload(SearchSapReq dto) {
         return mapper.selectMaterialSapPages(dto);
     }
 
+    /**
+     * 교재/자재 저장
+     * @param dto 교재/자재 정보
+     * @return 교재/자재 정보
+     * @throws Exception 모든 오류
+     */
     @Transactional
     public ZpdcProductDto.TbPdbsPdBas saveMaterial(ZpdcMaterialMgtDto.SaveReq dto, boolean isCreate)
         throws Exception {
@@ -124,10 +143,10 @@ public class WpdcMaterialMgtService {
     }
 
     /**
-     * 연결상품
-     * @param pdCd
-     * @param tbPdbsPdRels
-     * @throws Exception
+     * 연결상품 수정
+     * @param pdCd 상품코드(PK)
+     * @param tbPdbsPdRels 교재/자재 연결상품 정보
+     * @throws Exception 모든오류
      */
     @Transactional
     public void editEachTbPdbsPdRel(
@@ -173,6 +192,13 @@ public class WpdcMaterialMgtService {
         }
     }
 
+    /**
+     * 교재/자재 수정
+     * @param dto 교재/자재 정보
+     * @param isCreate 신규생성유무
+     * @return 교재/자재 정보
+     * @throws Exception 모든오류
+     */
     @Transactional
     public ZpdcProductDto.TbPdbsPdBas editMaterial(ZpdcMaterialMgtDto.EditReq dto, boolean isCreate)
         throws Exception {
@@ -210,6 +236,12 @@ public class WpdcMaterialMgtService {
         return productConverter.mapProductDvoToPdBas(dvo);
     }
 
+    /**
+     * 교재/자재 삭제
+     * @param pdCd 상품코드(PK)
+     * @return 성공여부
+     * @throws Exception 모든오류
+     */
     @Transactional
     public int removeMaterial(String pdCd) throws Exception {
         productMapper.deleteEachCompanyProps(pdCd, "");
@@ -223,12 +255,12 @@ public class WpdcMaterialMgtService {
 
     /**
      * 엑셀 데이터 유효성 체크
-     * @param excelData
-     * @param metaItems
-     * @param tbPdbsPdBas
-     * @param tbPdbsPdEcomPrpDtl
-     * @return
-     * @throws Exception
+     * @param excelData 엑셀데이터
+     * @param metaItems 상품 Meta 테이블정보
+     * @param tbPdbsPdBas 상품 Meta Master 정보
+     * @param tbPdbsPdEcomPrpDtl 상품 각사속성 정보
+     * @return 화면에 return할 엑셀오류정보
+     * @throws Exception 오류정보
      */
     public List<ExcelUploadErrorDvo> checkDataValidation(
         List<Map<String, Object>> excelData,
@@ -417,13 +449,12 @@ public class WpdcMaterialMgtService {
     /**
      * Excel Data를 DB에 저장.
      * 코드값은 Excel Dropdown으로 'CODE_NM|CODE_CD'로 입력받는다는 대전제.
-     * @param excelData
-     * @param metaItems
-     * @param tbPdbsPdBas
-     * @param tbPdbsPdEcomPrpDtl
-     * @param tbPdbsPdDtl
-     * @param prgGrpDves
-     * @throws Exception
+     * @param excelData 엑셀데이터
+     * @param metaItems 상품 Meta 테이블정보
+     * @param tbPdbsPdBas 상품 Meta Master 정보
+     * @param tbPdbsPdEcomPrpDtl 상품 각사속성 정보
+     * @param prgGrpDves 상품 Meta에 등록된 상품속성그룹구분코드
+     * @throws Exception 모든오류
      */
     @Transactional
     public void saveExcelUpload(
@@ -608,8 +639,8 @@ public class WpdcMaterialMgtService {
 
     /**
      * 유효성 체크 조회
-     * @param dto
-     * @return
+     * @param dto 유효성 체크할 대상 정보
+     * @return 유효성 체크 결과
      */
     public String checkValidation(ValidationReq dto) {
         return this.mapper.selectValidation(dto);

@@ -18,6 +18,14 @@ import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 고객 >>  신규접수 배정관리 Service
+ * </pre>
+ *
+ * @author junho.bae
+ * @since 2023-07-01
+ */
 @Service
 @RequiredArgsConstructor
 public class WcsbNewReceiptMgtService {
@@ -27,9 +35,9 @@ public class WcsbNewReceiptMgtService {
 
     /**
      * 접수 목록 조회 - 페이징용
-     * @param dto
-     * @param pageInfo
-     * @return
+     * @param dto 검색조건
+     * @param pageInfo 페이징정보
+     * @return 접수 목록
      */
     public PagingResult<WcsbNewReceiptMgtDto.SearchRes> getReceiptPages(
         WcsbNewReceiptMgtDto.SearchReq dto, PageInfo pageInfo
@@ -39,8 +47,8 @@ public class WcsbNewReceiptMgtService {
 
     /**
      * 접수 목록 조회 - 엑셀다운로드용
-     * @param dto
-     * @return
+     * @param dto 검색조건
+     * @return 접수 목록
      */
     public List<WcsbNewReceiptMgtDto.SearchRes> getReceiptsForExcelDownload(
         WcsbNewReceiptMgtDto.SearchReq dto
@@ -50,9 +58,9 @@ public class WcsbNewReceiptMgtService {
 
     /**
      * 접수 (단건)상세 조회
-     * @param pspcCstCnslId
-     * @param cntrNo
-     * @return
+     * @param pspcCstCnslId 가망고객상담ID
+     * @param cntrNo 계약번호
+     * @return 접수정보
      */
     public WcsbNewReceiptMgtDto.SearchDtlRes getPspcCstCnslAssign(
         String pspcCstCnslId, String cntrNo

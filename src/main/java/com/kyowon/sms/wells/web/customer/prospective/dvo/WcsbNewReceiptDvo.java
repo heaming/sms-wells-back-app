@@ -3,6 +3,14 @@ package com.kyowon.sms.wells.web.customer.prospective.dvo;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * <pre>
+ * 고객 >>  신규접수 배정관리 Dvo
+ * </pre>
+ *
+ * @author junho.bae
+ * @since 2023-07-01
+ */
 @Setter
 @Getter
 public class WcsbNewReceiptDvo {
