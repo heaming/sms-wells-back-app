@@ -45,7 +45,7 @@ public class WsncFixationVisitMngtController {
     @GetMapping("/excel-download")
     public List<WsncFixationVisitDto.SearchRes> getFixationVisitsExcelDownload(
         WsncFixationVisitDto.SearchReq dto
-    ) {
+    ) throws Exception {
         return wsncFixationVisitMgntService.getFixationVisitsExcelDownload(dto);
     }
 
