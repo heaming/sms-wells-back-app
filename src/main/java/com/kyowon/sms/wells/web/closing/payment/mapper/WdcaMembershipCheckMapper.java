@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto.SearchAfterRes;
+import com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto.SearchRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -26,10 +27,10 @@ public interface WdcaMembershipCheckMapper {
     List<SearchRes> selectBeforePages();
 
     PagingResult<SearchAfterRes> selectAfterPages(
-        String deptGubun, PageInfo pageInfo
+        SearchReq dto, PageInfo pageInfo
     );
 
     List<SearchAfterRes> selectAfterPages(
-        String deptGubun
+        SearchReq dto
     );
 }
