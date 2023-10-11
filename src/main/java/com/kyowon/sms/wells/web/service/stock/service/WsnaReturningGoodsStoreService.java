@@ -14,8 +14,6 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsStoreDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaReturningGoodsStoreMapper;
 import com.sds.sflex.common.utils.DateUtil;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,13 +50,12 @@ public class WsnaReturningGoodsStoreService {
     private final WsnaLogisticsInStorageAskService logisticsService;
 
     /**
-     * 반품입고 관리 페이징 조회
+     * 반품입고 관리 조회
      * @param dto
-     * @param pageInfo
      * @return
      */
-    public PagingResult<SearchRes> getReturningGoodsStores(SearchReq dto, PageInfo pageInfo) {
-        return mapper.selectReturningGoodsStores(dto, pageInfo);
+    public List<SearchRes> getReturningGoodsStores(SearchReq dto) {
+        return mapper.selectReturningGoodsStores(dto);
     }
 
     /**

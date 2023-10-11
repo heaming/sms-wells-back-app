@@ -43,16 +43,16 @@ public class WsnaReturningGoodsStoreDto {
         String reqdDt, /*철거일자*/
         String vstFshDt, /*작업일자*/
         String rtngdConfYn, /*반품확인여부*/
-        String useDay,
+        String useDay, /*사용일수*/
         String useMths, /*사용개월*/
         String refurbishYn, /*리퍼여부*/
         String fnlItmGdCd, /*최종상품등급코드*/
         String useQty, /*사용수량*/
         String refrAsRcpYn, /*리퍼접수*/
         String cntrDtlNo, /*고객번호*/
-        String cntrNo,
-        String cntrSn,
-        String itemGr,
+        String cntrNo, /*계약번호*/
+        String cntrSn, /*계약순번*/
+        String itemGr, /*상품구분*/
         String rcgvpKnm, /*고객명*/
         String mngtUnitNm, /*관리단위*/
         String sellTpCd, /*판매유형코드*/

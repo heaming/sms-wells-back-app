@@ -47,13 +47,11 @@ public class WsnaReturningGoodsStoreController {
         @ApiImplicitParam(name = "stFnlVstFshDtFrom", value = "처리일자From", paramType = "query", example = "20230109"),
         @ApiImplicitParam(name = "edFnlVstFshDtTo", value = "처리일자To", paramType = "query", example = "20230109")
     })
-    @GetMapping("/paging")
-    public PagingResult<SearchRes> getReturningGoodsStores(
-        SearchReq dto,
-        @Valid
-        PageInfo pageInfo
+    @GetMapping
+    public List<SearchRes> getReturningGoodsStores(
+        SearchReq dto
     ) {
-        return service.getReturningGoodsStores(dto, pageInfo);
+        return service.getReturningGoodsStores(dto);
     }
 
     @ApiOperation(value = "반품입고 저장", notes = "창고장이나 매니저/엔지니어가 반품입고를받아 물류센터로 반품출고요청을 한다.")
