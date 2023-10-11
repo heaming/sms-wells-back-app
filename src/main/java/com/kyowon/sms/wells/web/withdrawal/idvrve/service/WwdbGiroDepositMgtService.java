@@ -266,7 +266,8 @@ public class WwdbGiroDepositMgtService {
                     insertMap.put("prtnrNo", session.getEmployeeIDNumber());
                     insertMap.put("ogId", session.getOgId());
                     insertMap.put(
-                        "dpAmt", Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
+                        "dpAmt", Integer.toString(Integer.parseInt(list.rveAmt()))
+//                        "dpAmt", Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
                     );
                     insertMap.put("itgDpNo", list.itgDpNo());
                     insertMap.put("cstNo", selectContractDetail.cntrCstNo());
@@ -284,7 +285,8 @@ public class WwdbGiroDepositMgtService {
                     askDvo.setRvePrtnrOgTpCd(session.getOgTpCd()); // 수납요청파트너조직유형코드
                     askDvo.setRvePrtnrNo(session.getEmployeeIDNumber()); // 수납요청파트너번호
                     askDvo.setReceiveAskAmount(
-                        Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
+//                        Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
+                        Integer.toString(Integer.parseInt(list.rveAmt()))
                     ); // 수납요청금액
                     askDvo.setReceiveAskDate(sysDateYmd); // 수납요청일자
                     askDvo.setReceiveAskStatusCode("01"); //수납요청상태코드
@@ -308,10 +310,10 @@ public class WwdbGiroDepositMgtService {
                     askDvo.setContractSerialNumber(list.cntrSn()); //계약일련번호
                     askDvo.setProductCode(selectContractDetail.basePdCd());//상품코드
                     askDvo.setReceiveAskAmount(
-                        Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
+                        Integer.toString(Integer.parseInt(list.rveAmt()))
                     );//수납요청금액
                     askDvo.setReceiveAmount(
-                        Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
+                        Integer.toString(Integer.parseInt(list.rveAmt()))
                     );//수납금액
                     askDvo.setReceiveStatusCode("01"); //수납상태코드 수납완료(02)
                     askDvo.setIncmdcYn("N"); //소득공제여부
