@@ -8,12 +8,12 @@ import javax.validation.constraints.NotBlank;
 public class WfeyProductBsFeeDto {
 
     public record SearchProductBsFeeReq(
-        String basePdCd,
-        String vstMcn,
-        String svFeeDvCd,
-        String apyStrtYm,
-        String apyEndYm,
-        String svFeePdDvCd
+        String basePdCd, /* 기준상품코드 */
+        String vstMcn, /* 방문개월 */
+        String svFeeDvCd, /* 서비스구분코드 */
+        String apyStrtYm, /* 적용기간 시작 */
+        String apyEndYm, /* 적용기간 종료 */
+        String svFeePdDvCd /* BS상품그룹코드 */
     ) {}
 
     public record SearchProductBsFeeRes(

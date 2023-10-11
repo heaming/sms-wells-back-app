@@ -55,6 +55,12 @@ public class WfeyContractBsFeeExService {
         return mapper.selectContractBsFeeExList(req, pageInfo);
     }
 
+    /**
+     * 기준변경차수 최대값 +1 채번
+     * @param cntrNo
+     * @param cntrSn
+     * @return
+     */
     public int getMaxBaseChTcnt(String cntrNo, int cntrSn) {
          return mapper.selectMaxBaseChTcnt(cntrNo, cntrSn);
     }
