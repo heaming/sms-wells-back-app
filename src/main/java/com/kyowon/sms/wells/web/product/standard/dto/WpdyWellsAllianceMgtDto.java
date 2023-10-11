@@ -7,6 +7,14 @@ import javax.validation.constraints.NotEmpty;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 상품 웰스제휴 관리 DTO
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 public class WpdyWellsAllianceMgtDto {
 
     @ApiModel(value = "WpdyWellsAllianceMgtDto-SearchReq")
@@ -27,12 +35,12 @@ public class WpdyWellsAllianceMgtDto {
         String svcDurtion, /* 약정기간 */
         String sellChnlCds, /* 판매채널 */
 
-        String fstRgstUsrId,
-        String fnlMdfcUsrId,
-        String fstRgstDtm,
-        String fstRgstUsrNm,
-        String fnlMdfcDtm,
-        String fnlMdfcUsrNm,
+        String fstRgstUsrId, /* 등록자 */
+        String fnlMdfcUsrId, /* 수정자 */
+        String fstRgstDtm, /* 등록일 */
+        String fstRgstUsrNm, /* 등록자명 */
+        String fnlMdfcDtm, /* 수정일 */
+        String fnlMdfcUsrNm, /* 수정자명 */
 
         String pdAlncmpBaseId, /* 상품제휴사기준ID */
         String alncmpCd, /* 제휴사코드 */
@@ -53,7 +61,7 @@ public class WpdyWellsAllianceMgtDto {
     @ApiModel(value = "WpdyWellsAllianceMgtDto-SaveReq")
     public record SaveReq(
         @NotEmpty
-        List<WpdyWellsAllianceMgtDto.AllianceBase> bases
+        List<WpdyWellsAllianceMgtDto.AllianceBase> bases /* 기본정보 */
     ) {}
 
     @ApiModel(value = "WpdyWellsAllianceMgtDto-AllianceBase")

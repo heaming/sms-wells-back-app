@@ -3,6 +3,14 @@ package com.kyowon.sms.wells.web.product.manage.dvo;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * <pre>
+ * 서비스 상품 - 생활맞춤필터관리 DVO
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 @Setter
 @Getter
 public class WpdcLifeCustomFilterBaseDvo {
