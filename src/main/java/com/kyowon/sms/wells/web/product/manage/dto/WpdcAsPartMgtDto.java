@@ -11,6 +11,14 @@ import com.kyowon.sms.common.web.product.zcommon.constants.PdProductConst;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
+/**
+ * <pre>
+ * 상품 >> AS부품 관리 Dto
+ * </pre>
+ *
+ * @author junho.bae
+ * @since 2023-07-01
+ */
 public class WpdcAsPartMgtDto {
 
     @ApiModel(value = "WpdcAsPartMgtDto-SearchReq")

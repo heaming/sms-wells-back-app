@@ -8,6 +8,14 @@ import com.sds.sflex.common.utils.StringUtil;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
+/**
+ * <pre>
+ * 고객 >>  신규접수 배정관리 Dto
+ * </pre>
+ *
+ * @author junho.bae
+ * @since 2023-07-01
+ */
 public class WcsbNewReceiptMgtDto {
 
     @ApiModel(value = "WcsbNewReceiptMgtDto-SearchReq")

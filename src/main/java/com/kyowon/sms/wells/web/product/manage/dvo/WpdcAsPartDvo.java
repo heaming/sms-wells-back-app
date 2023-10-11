@@ -5,6 +5,14 @@ import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * <pre>
+ * 상품 >> AS부품 관리 Dvo
+ * </pre>
+ *
+ * @author junho.bae
+ * @since 2023-07-01
+ */
 @Setter
 @Getter
 public class WpdcAsPartDvo {
