@@ -20,7 +20,7 @@ public class WcsbNewReceiptDvo {
     private Long rngBaseQty; /* 범위기준수량 */
     private String aplcBaseMoCn; /* 신청기준메모내용 */
 
-    private String days;
+    private String days; /* 날짜 */
     private String dupliYn; /* 중복체크용 생성변수 */
     private String orglFnlMdfcDtm;
 }

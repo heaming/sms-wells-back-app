@@ -20,53 +20,53 @@ public class WcsbNewReceiptMgtDto {
 
     @ApiModel(value = "WcsbNewReceiptMgtDto-SearchReq")
     public record SearchReq(
-        String assignDtFrom,
-        String assignDtTo,
-        String sellInflwchnlDvCd,
-        String[] prdtType,
-        Boolean isAllPrdt
+        String assignDtFrom, /* 배정시작일 */
+        String assignDtTo, /* 배정종료일 */
+        String sellInflwchnlDvCd, /* 접수구분 */
+        String[] prdtType, /* 상품유형 */
+        Boolean isAllPrdt /* 상품유형 검색조건 쿼리 수행할지 판단 변수 */
     ) {}
 
     @ApiModel(value = "WcsbNewReceiptMgtDto-SearchRes")
     public record SearchRes(
-        String pspcCstInflwDt,
-        String aplcSn,
-        String pspcCstCnslId,
-        String ichrAsnFshDt,
-        String ichrOgTpCd,
-        String ichrPrtnrNo,
-        String ichrPrtnrNm,
-        String sellInflwChnlDvCd,
-        String recvTpNm,
-        String inrtPdDvNm,
-        String inrtPdDvCd,
-        String contactDate,
-        String contactTime,
-        String pspcCstRcpCn,
-        String pspcCstKnm,
-        String otsdLkDrmVal,
+        String pspcCstInflwDt, /* 가망고객유입일자 */
+        String aplcSn, /* 신청일련번호 */
+        String pspcCstCnslId, /* 가망고객상담ID */
+        String ichrAsnFshDt, /* 담당배정완료일시 */
+        String ichrOgTpCd, /* 조직담당유형코드 */
+        String ichrPrtnrNo, /* 파트너번호 */
+        String ichrPrtnrNm, /* 파트너명 */
+        String sellInflwChnlDvCd, /* 판매유입채널구분코드 */
+        String recvTpNm, /* 접수구분 */
+        String inrtPdDvNm, /* 상품구분 */
+        String inrtPdDvCd, /* 상품구분코드 */
+        String contactDate, /* 컨택요청일 */
+        String contactTime, /* 요청시간 */
+        String pspcCstRcpCn, /* 요청내용 */
+        String pspcCstKnm, /* 고객명 */
+        String otsdLkDrmVal, /* 고객코드 */
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
         String locaraTno,
         String exnoEncr,
-        String idvTno,
-        String newAdrZip,
-        String custAdr,
+        String idvTno, /* 휴대개별전화번호 */
+        String newAdrZip, /* 우편번호 */
+        String custAdr, /* 주소 */
         String fstRgstDt,
-        String sppDuedt,
-        String cntrPdStrtdt,
-        String cntrNo,
-        String pdNm,
+        String sppDuedt, /* 배송예정일자 */
+        String cntrPdStrtdt, /* 매출일 */
+        String cntrNo, /* 계약번호 */
+        String pdNm, /* 상품명 */
 
-        String pspcCstCnslRsNm,
-        String cnslMoCn,
+        String pspcCstCnslRsNm, /* 배정컨택 */
+        String cnslMoCn, /* 비고 */
 
         // 가공 column
         String phNo, /* 고객 휴대전화 */
         String wireTelNo, /* 고객 유선전화 */
 
-        String fstRgstDtmCp,
+        String fstRgstDtmCp, /* 생성일 */
         String fstRgstDeptNm,
         String fnlMdfcDeptNm,
         String fstRgstDtm,
@@ -160,53 +160,53 @@ public class WcsbNewReceiptMgtDto {
     @Builder
     @ApiModel("WcsbNewReceiptMgtDto-AssignReq")
     public record AssignReq(
-        String[] pspcCstCnslIds,
-        String ogTpCd,
-        String prtnrNo,
-        String pspcCstCnslId
+        String[] pspcCstCnslIds, /* 가망고개상담ID 배열 */
+        String ogTpCd, /* 조직유형코드 */
+        String prtnrNo, /* 파트너번호 */
+        String pspcCstCnslId /* 가망고개상담ID */
 
     ) {}
 
     @ApiModel(value = "WcsbNewReceiptMgtDto-SearchDtlRes")
     public record SearchDtlRes(
-        String pspcCstInflwDt,
-        String aplcSn,
-        String pspcCstCnslId,
-        String ichrAsnFshDt,
-        String ichrOgTpCd,
-        String ichrPrtnrNo,
-        String ichrPrtnrNm,
-        String pspcCstCnslRsCd,
-        String pspcCstCnslRsNm,
-        String cnslMoCn,
-        String sellInflwChnlDvCd,
-        String recvTpNm,
-        String inrtPdDvNm,
-        String inrtPdDvCd,
-        String contactDate,
-        String contactTime,
-        String pspcCstRcpCn,
-        String pspcCstKnm,
-        String otsdLkDrmVal,
+        String pspcCstInflwDt, /* 가망고객유입일자 */
+        String aplcSn, /* 신청일련번호 */
+        String pspcCstCnslId, /* 가망고개상담ID */
+        String ichrAsnFshDt, /* 담당배정완료일시 */
+        String ichrOgTpCd, /* 담당조직유형코드 */
+        String ichrPrtnrNo, /* 파트너번호 */
+        String ichrPrtnrNm, /* 파트너명 */
+        String pspcCstCnslRsCd, /* 가망고객상담결과코드 */
+        String pspcCstCnslRsNm, /* 가망고객상담결과명 */
+        String cnslMoCn, /* 비고 */
+        String sellInflwChnlDvCd, /* 판매유입채널구분코드 */
+        String recvTpNm, /* 접수구분 */
+        String inrtPdDvNm, /* 상품구분명 */
+        String inrtPdDvCd, /* 상품구분코드 */
+        String contactDate, /* 계약일 */
+        String contactTime, /* 계약시간 */
+        String pspcCstRcpCn, /* 요청내용 */
+        String pspcCstKnm, /* 고객명 */
+        String otsdLkDrmVal, /* 고객코드 */
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
         String locaraTno,
         String exnoEncr,
-        String idvTno,
-        String newAdrZip,
-        String custAdr,
+        String idvTno, /* 휴대개별전화번호 */
+        String newAdrZip, /* 우편번호 */
+        String custAdr, /* 주소 */
         String fstRgstDt,
-        String sppDuedt,
-        String cntrPdStrtdt,
-        String cntrNo,
-        String pdNm,
+        String sppDuedt, /* 배송예정일자 */
+        String cntrPdStrtdt, /* 매출일 */
+        String cntrNo, /* 계약번호 */
+        String pdNm, /* 상품명 */
 
         // 가공 column
         String phNo, /* 고객 휴대전화 */
         String wireTelNo, /* 고객 유선전화 */
 
-        String fstRgstDtmCp,
+        String fstRgstDtmCp, /* 생성일 */
         String fstRgstDtm,
         String fstRgstUsrNm,
         String fstRgstDeptNm,
@@ -258,10 +258,10 @@ public class WcsbNewReceiptMgtDto {
 
     @ApiModel("WcsbNewReceiptMgtDto-ContactReq")
     public record ContactReq(
-        String[] pspcCstCnslIds,
-        String pspcCstCnslId,
-        String pspcCstCnslRsCd,
-        String cnslMoCn
+        String[] pspcCstCnslIds, /* 가망고개상담ID 배열 */
+        String pspcCstCnslId, /* 가망고개상담ID */
+        String pspcCstCnslRsCd, /* 가망고객상담결과코드 */
+        String cnslMoCn /* 비고 */
     ) {}
 
     /*
@@ -269,11 +269,11 @@ public class WcsbNewReceiptMgtDto {
      */
     @ApiModel(value = "WcsbNewReceiptMgtDto-SearchAssignReq")
     public record SearchAssignReq(
-        String assignDtFrom,
-        String assignDtTo,
-        String[] prdtType,
-        Boolean isAllPrdt,
-        String ichrPrtnrNo
+        String assignDtFrom, /* 배정시작일 */
+        String assignDtTo, /* 배정종료일 */
+        String[] prdtType, /* 상품유형 */
+        Boolean isAllPrdt, /* 상품유형 검색조건 쿼리 수행할지 판단 변수 */
+        String ichrPrtnrNo /* 파트너번호 */
     ) {}
 
     /*
@@ -283,18 +283,18 @@ public class WcsbNewReceiptMgtDto {
      */
     @ApiModel(value = "EcsbSmartExperienceDeviceMgtDto-SearchSummariesReq")
     public record SearchSummariesReq(
-        String recvDtFrom,
-        String recvDtTo,
-        String[] prdtType,
-        Boolean isAllPrdt
+        String recvDtFrom, /* 집계시작일자 */
+        String recvDtTo, /* 집계종료일자 */
+        String[] prdtType, /* 상품유형 */
+        Boolean isAllPrdt /* 상품유형 검색조건 쿼리 수행할지 판단 변수 */
     ) {}
 
     @ApiModel(value = "EcsbSmartExperienceDeviceMgtDto-SearchSummariesRes")
     public record SearchSummariesRes(
-        String inrtPdDvNm,
-        String inrtPdDvCd,
-        int recvCount,
-        int cntrCount
+        String inrtPdDvNm, /* 상품구분 */
+        String inrtPdDvCd, /* 상품구분 코드 */
+        int recvCount, /* 접수카운트 */
+        int cntrCount /* 계약카운트 */
     ) {}
 
 }

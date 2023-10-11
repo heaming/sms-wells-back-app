@@ -3,6 +3,14 @@ package com.kyowon.sms.wells.web.product.standard.dvo;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * <pre>
+ * 상품 >> 재약정 기본정보 관리 Dvo
+ * </pre>
+ *
+ * @author  junho.bae
+ * @since 2023-07-01
+ */
 @Setter
 @Getter
 public class WpdyRestipulationDvo {
