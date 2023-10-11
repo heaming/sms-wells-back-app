@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.interfaces.mapper.WpskPinatMetgCheckMapper">
+    <update id="updateMeetingCheck">
+        MERGE INTO TB_PSCA_PRTNR_METG_BAS T1
+        USING ( SELECT METG_SCHD_MNGT_ID AS METG_SCHD_MNGT_ID
+                     , PRTNR_NO AS PRTNR_NO
+                     , METG_CNFM_CD AS METG_CNFM_CD
+                     , #{session.userId} AS METG_RGST_USR_ID
+                     , #{metgPrscDt}||'000000' AS METG_PRSC_DTM
+                     , METG_CNFM_MES_CD AS METG_CNFM_MES_CD
+                     , 'N' AS DTA_DL_YN
+                  FROM
+                     ( SELECT
+                              T3.METG_SCHD_MNGT_ID
+                            , T2.PRTNR_NO
+                            , T3.METG_SCHD_YM
+                            , T3.METG_SCHD_D
+                            , T3.METG_SCHD_STRT_HM
+                            , T3.METG_SCHD_END_HM
+                            , T1.OG_TP_CD
+                            , T2.RSB_DV_CD
+                            , T3.QLF_DV_CD
+                            , T3.METG_D_DV_CD
+                            , '01' AS METG_CNFM_CD	-- 미팅확정코드 01:비컨 확정 02:지각
+                            , '02' AS METG_CNFM_MES_CD -- 미팅확정수단코드 '비컨' 고정
+                         FROM TB_OGBS_MM_OG_IZ T1 /* 월조직내역 */
+                        INNER JOIN TB_OGBS_MM_PRTNR_IZ T2 /* 월파트너내역 */
+                           ON T2.BASE_YM = T1.BASE_YM /* 기준년월 */
+                          AND T2.OG_TP_CD = T1.OG_TP_CD /* 조직유형코드 */
+                          AND T2.OG_ID = T1.OG_ID /* 조직ID */
+                          AND T1.DTA_DL_YN = 'N'
+                        INNER JOIN TB_PSCA_METG_SCHD_MNGT_BAS T3	/* 미팅일정관리기본 */
+                           ON T3.OG_TP_CD = T2.OG_TP_CD
+                          AND T3.RSB_DV_CD = T2.RSB_DV_CD
+                          AND T3.METG_SCHD_D = SUBSTR(#{metgPrscDt},7,2)
+                          AND T3.METG_SCHD_YM = T1.BASE_YM
+                          AND NVL(T3.QLF_DV_CD, 1 ) = NVL(T2.QLF_DV_CD, 1 )
+                        WHERE T2.PRTNR_NO =  #{prtnrNo}
+                          AND T1.BASE_YM = SUBSTR(#{metgPrscDt},0,6) ) A
+            ) T2
+           ON ( T1.METG_SCHD_MNGT_ID = T2.METG_SCHD_MNGT_ID
+          AND T1.PRTNR_NO = T2.PRTNR_NO )
+         WHEN MATCHED THEN
+       UPDATE SET T1.METG_PRSC_DTM = T2.METG_PRSC_DTM
+            , T1.METG_RGST_USR_ID = T2.METG_RGST_USR_ID
+            <include refid="COMMON.updateSystemField"/>
+         WHEN NOT MATCHED THEN
+        INSERT (
+              METG_SCHD_MNGT_ID /* 미팅일정관리ID */
+            , PRTNR_NO          /* 파트너번호 */
+            , METG_CNFM_CD      /* 미팅확정코드 */
+            , METG_RGST_USR_ID  /* 미팅등록사용자ID */
+            , METG_PRSC_DTM     /* 미팅참석일시 */
+            , METG_CNFM_MES_CD  /* 미팅확정수단코드 */
+            , DTA_DL_YN         /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES ( T2.METG_SCHD_MNGT_ID
+             , T2.PRTNR_NO
+             , T2.METG_CNFM_CD
+             , T2.METG_RGST_USR_ID
+             , T2.METG_PRSC_DTM
+             , T2.METG_CNFM_MES_CD
+             , T2.DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </update>
+
+
+    <select id="selectPrtnrOgTpCd" resultType="String">
+        SELECT T2.OG_TP_CD
+          FROM TB_OGBS_MM_OG_IZ T1 /* 월조직내역 */
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T2 /* 월파트너내역 */
+            ON T2.BASE_YM = T1.BASE_YM /* 기준년월 */
+           AND T2.OG_TP_CD = T1.OG_TP_CD /* 조직유형코드 */
+           AND T2.OG_ID = T1.OG_ID /* 조직ID */
+           AND T1.DTA_DL_YN = 'N'
+         WHERE T2.PRTNR_NO =  #{prtnrNo}
+           AND T1.BASE_YM = SUBSTR(#{metgPrscDt},0,6)
+    </select>
+</mapper>
