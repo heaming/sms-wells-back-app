@@ -9,6 +9,7 @@ import lombok.Setter;
 @Getter
 public class WsnbServiceProcDetailListDvo {
 
+    String cnslNo;
     String cntrNo;
     String cntrSn;
     String rcgvpKnm;
@@ -19,33 +20,37 @@ public class WsnbServiceProcDetailListDvo {
     String mexnoEncr;
     String cralIdvTno;
     String cstSvAsnNo;
-    String adrId;
     String rnadr;
     String rdadr;
-    String pdCd;
+    String pdPrpVal20;
     String pdNm;
     String wkBcNo;
     String flBcNo;
-    String cnslDtlpTpCd;
-    String cnslDtlpTpNm;
+    String cnslCn;
     String cnslMoCn;
     String vstFshDt;
     String vstFshHh;
     String prtnrNo;
     String prtnrKnm;
     String asCausCd;
+    String asCausCdNm;
     String svProcsCn;
     // 고객서명 이미지 파일
-    String cstSignCn;
     byte[] cstSignCnByte;
     String bzrno;
-    String rc101BizOk;
+    String bizOk;
     String asLctCd;
+    String asLctCdNm;
     String asPhnCd;
+    String asPhnCdNm;
     String imptaRsonCd;
-    String lnfDvCd;
+    String imptaRsonCdNm;
+    String acpnPrtnrNo;
+    String acpnPrtnrKnm;
     String tonepIstOptYn;
-    String txinvPblD;
-    String txinvPblYn;
-
+    String tonepIstOpt;
+    String pblDt;
+    String aplcDt;
+    String aplcYn;
+    String istLctDtlCn;
 }
