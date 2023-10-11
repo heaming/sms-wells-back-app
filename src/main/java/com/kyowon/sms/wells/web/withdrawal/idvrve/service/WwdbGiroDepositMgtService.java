@@ -287,7 +287,7 @@ public class WwdbGiroDepositMgtService {
                         Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
                     ); // 수납요청금액
                     askDvo.setReceiveAskDate(sysDateYmd); // 수납요청일자
-                    askDvo.setReceiveAskStatusCode("03"); //수납요청상태코드
+                    askDvo.setReceiveAskStatusCode("01"); //수납요청상태코드
                     askDvo.setReceiveCompanyCode(session.getCompanyCode()); // 수납회사코드
 
                     /*수납요청기본 데이터 생성*/
@@ -313,7 +313,7 @@ public class WwdbGiroDepositMgtService {
                     askDvo.setReceiveAmount(
                         Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
                     );//수납금액
-                    askDvo.setReceiveStatusCode("02"); //수납상태코드 수납완료(02)
+                    askDvo.setReceiveStatusCode("01"); //수납상태코드 수납완료(02)
                     askDvo.setIncmdcYn("N"); //소득공제여부
 
                     // 수납요청상세 데이터 생성
@@ -341,11 +341,11 @@ public class WwdbGiroDepositMgtService {
                         //입금대사 서비스 호출
                         HashMap<String, Object> comfirmation = depositComparisonComfirmationService.createDepositComparisonComfirmation(list.itgDpNo(), null);
 
-                        ZwdbEtcDepositProcessingDvo processingDvo = new ZwdbEtcDepositProcessingDvo();
-                        processingDvo.setRveNo(comfirmation.get("RVE_NO").toString());
-                        processingDvo.setRveDt(dto.rveDt());
-                        processingDvo.setPerfDt(dto.fntDt());
-                        etcDepositMapper.updateReceiveDateModify(processingDvo);
+//                        ZwdbEtcDepositProcessingDvo processingDvo = new ZwdbEtcDepositProcessingDvo();
+//                        processingDvo.setRveNo(comfirmation.get("RVE_NO").toString());
+//                        processingDvo.setRveDt(dto.rveDt());
+//                        processingDvo.setPerfDt(dto.fntDt());
+//                        etcDepositMapper.updateReceiveDateModify(processingDvo);
                     }
 
 
