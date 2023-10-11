@@ -20,10 +20,10 @@ public class WpdcRoutineBsWorkMgtDto {
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String svPdCd,
+        String svPdCd, /* 서비스상품코드 */
         @NotBlank
-        String pdctPdCd,
-        String partPdCd
+        String pdctPdCd, /* 제품상품코드 */
+        String partPdCd /* 제품코드 */
 
     ) {}
 
@@ -57,7 +57,6 @@ public class WpdcRoutineBsWorkMgtDto {
     public record SearchRoutineBsWorkBaseRes(
         String partPdNm, /* 제품상품명 */
         String dtlHasYn, /* B/S 투입 상세 데이터 존재 여부 */
-
         String svPdCd, /* 서비스상품코드 */
         String pdctPdCd, /* 제품상품코드 */
         Long dtlSn, /* 상세일련번호 */
@@ -79,7 +78,6 @@ public class WpdcRoutineBsWorkMgtDto {
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchRoutineBsWorkDetailRes")
     public record SearchRoutineBsWorkDetailRes(
         String partPdNm, /* 제품상품명 */
-
         String svPdCd, /* 서비스상품코드 */
         String pdctPdCd, /* 제품상품코드 */
         Long dtlSn, /* 상세일련번호 */
@@ -100,7 +98,6 @@ public class WpdcRoutineBsWorkMgtDto {
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchLifeCustomFiltersRes")
     public record SearchLifeCustomFiltersRes(
         String chPdctPdNm, /* 변경제품상품명 */
-
         String svPdCd, /* 서비스상품코드 */
         String pdctPdCd, /* 제품상품코드 */
         String partPdCd, /* 부품상품코드 */
@@ -116,34 +113,34 @@ public class WpdcRoutineBsWorkMgtDto {
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-EditReq")
     public record EditReq(
         @NotBlank
-        String svPdCd,
+        String svPdCd, /* 서비스상품코드 */
         @NotBlank
-        String pdctPdCd,
-        List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkBase> bases,
-        List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkDetail> details
+        String pdctPdCd, /* 제품상품코드 */
+        List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkBase> bases, /* 기본정보 */
+        List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkDetail> details /* 상세정보 */
     ) {}
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-EditDetailReq")
     public record EditDetailReq(
         @NotEmpty
-        List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkDetail> details
+        List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkDetail> details /* 상세정보 */
     ) {}
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-EditLifeCustomFilterReq")
     public record EditLifeFilterReq(
         @NotBlank
-        String svPdCd,
+        String svPdCd, /* 서비스상품코드 */
         @NotBlank
-        String pdctPdCd,
+        String pdctPdCd, /* 제품상품코드 */
         @NotBlank
-        String partPdCd,
-        List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> bases
+        String partPdCd, /* 부품코드 */
+        List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> bases /* 기본정보 */
     ) {}
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-RemoveLifeFilterReq")
     public record RemoveLifeFilterReq(
         @NotEmpty
-        List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> bases
+        List<WpdcRoutineBsWorkMgtDto.LifeCustomFilterBase> bases /* 기본정보 */
     ) {}
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-RoutineBsWorkBase")

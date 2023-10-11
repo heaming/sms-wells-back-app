@@ -24,49 +24,49 @@ public class WpdcStandardMgtDto {
     @ApiModel(value = "WpdcStandardMgtDto-EditReq")
     public record EditReq(
         @NotBlank
-        String pdCd,
-        String pdTpCd,
-        boolean isModifiedProp,
-        boolean isModifiedPrice,
-        boolean isOnlyFileModified,
-        boolean isModifiedRelation,
-        ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
-        List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl,
-        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
-        List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel,
-        List<ZpdcPriceMgtDto.ProductPriceDetail> tbPdbsPdPrcDtl,
-        List<ZpdcPriceMgtDto.ProductPriceFinalDetail> tbPdbsPdPrcFnlDtl,
-        List<ZpdcPriceMgtDto.ProductDiscountPremiumDetail> tbPdbsPdDscPrumDtl
+        String pdCd, /* 상품코드 */
+        String pdTpCd, /* 상품유형코드 */
+        boolean isModifiedProp, /* 상품기본속성 수정여부 */
+        boolean isModifiedPrice, /* 상품가격 수정여부 */
+        boolean isOnlyFileModified, /* 상품기본속성 첨부파일 단독 수정여부 */
+        boolean isModifiedRelation, /* 연결상품 수정여부 */
+        ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* 상품기본속성 FRONT pdConst.js 동기화 */
+        List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl, /* 상품상세속성 */
+        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl, /* 각사송성 */
+        List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel, /* 연결상품 */
+        List<ZpdcPriceMgtDto.ProductPriceDetail> tbPdbsPdPrcDtl, /* 상품가격상세 */
+        List<ZpdcPriceMgtDto.ProductPriceFinalDetail> tbPdbsPdPrcFnlDtl, /* 상품최종가격상세 */
+        List<ZpdcPriceMgtDto.ProductDiscountPremiumDetail> tbPdbsPdDscPrumDtl /* 선택변수 */
     ) {}
 
     @Builder
     @ApiModel(value = "WpdcStandardMgtDto-SaveReq")
     public record SaveReq(
-        String pdCd,
-        String pdTpCd,
-        boolean isModifiedProp,
-        boolean isModifiedPrice,
-        boolean isOnlyFileModified,
-        boolean isModifiedRelation,
-        ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
-        List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl,
-        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
-        List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel,
-        List<ZpdcPriceMgtDto.ProductPriceDetail> tbPdbsPdPrcDtl,
-        List<ZpdcPriceMgtDto.ProductPriceFinalDetail> tbPdbsPdPrcFnlDtl,
-        List<ZpdcPriceMgtDto.ProductDiscountPremiumDetail> tbPdbsPdDscPrumDtl
+        String pdCd, /* 상품코드 */
+        String pdTpCd, /* 상품유형코드 */
+        boolean isModifiedProp, /* 상품기본속성 수정여부 */
+        boolean isModifiedPrice, /* 상품가격 수정여부 */
+        boolean isOnlyFileModified, /* 상품기본속성 첨부파일 단독 수정여부 */
+        boolean isModifiedRelation, /* 연결상품 수정여부 */
+        ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* 상품기본속성 FRONT pdConst.js 동기화 */
+        List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl, /* 상품상세속성 */
+        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl, /* 각사송성 */
+        List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel, /* 연결상품 */
+        List<ZpdcPriceMgtDto.ProductPriceDetail> tbPdbsPdPrcDtl, /* 상품가격상세 */
+        List<ZpdcPriceMgtDto.ProductPriceFinalDetail> tbPdbsPdPrcFnlDtl, /* 상품최종가격상세 */
+        List<ZpdcPriceMgtDto.ProductDiscountPremiumDetail> tbPdbsPdDscPrumDtl /* 선택변수 */
     ) {}
 
     @Builder
     @ApiModel(value = "WpdcStandardMgtDto-ProductInfoRes")
     public record ProductInfoRes(
         ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
-        List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl,
-        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
-        List<ZpdcPriceMgtDto.ProductPriceDetail> tbPdbsPdPrcDtl,
-        List<ZpdcPriceMgtDto.ProductPriceFinalDetail> tbPdbsPdPrcFnlDtl,
-        List<ZpdcPriceMgtDto.ProductDiscountPremiumDetail> tbPdbsPdDscPrumDtl,
-        List<ZpdcProductDto.PropertyGroupCode> groupCodes,
-        List<ZpdcRelationMgtDto.SearchProductRes> relProducts
+        List<ZpdcProductDto.TbPdbsPdDtl> tbPdbsPdDtl, /* 상품기본속성 FRONT pdConst.js 동기화 */
+        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl, /* 각사송성 */
+        List<ZpdcPriceMgtDto.ProductPriceDetail> tbPdbsPdPrcDtl, /* 상품가격상세 */
+        List<ZpdcPriceMgtDto.ProductPriceFinalDetail> tbPdbsPdPrcFnlDtl, /* 상품최종가격상세 */
+        List<ZpdcPriceMgtDto.ProductDiscountPremiumDetail> tbPdbsPdDscPrumDtl, /* 선택변수 */
+        List<ZpdcProductDto.PropertyGroupCode> groupCodes, /* 상품그룹코드목록 */
+        List<ZpdcRelationMgtDto.SearchProductRes> relProducts /* 연결상품정보목록 */
     ) {}
 }

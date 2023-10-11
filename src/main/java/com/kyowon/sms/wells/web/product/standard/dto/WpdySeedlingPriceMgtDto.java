@@ -28,12 +28,12 @@ public class WpdySeedlingPriceMgtDto {
 
     @ApiModel(value = "WpdySeedlingPriceMgtDto-SearchRes")
     public record SearchRes(
-        String fstRgstUsrId,
-        String fnlMdfcUsrId,
-        String fstRgstDtm,
-        String fstRgstUsrNm,
-        String fnlMdfcDtm,
-        String fnlMdfcUsrNm,
+        String fstRgstUsrId, /* 등록자 */
+        String fnlMdfcUsrId, /* 수정자 */
+        String fstRgstDtm, /* 등록일 */
+        String fstRgstUsrNm, /* 등록자명 */
+        String fnlMdfcDtm, /* 수정일 */
+        String fnlMdfcUsrNm, /* 수정자명 */
         String pdctPdNm, /* 제품상품코드 */
         String pdTpDtlCd, /* 상품유형 */
         String pdClsfNm, /* 상품분류 */
@@ -60,13 +60,13 @@ public class WpdySeedlingPriceMgtDto {
     @ApiModel(value = "WpdySeedlingPriceMgtDto-SaveReq")
     public record SaveReq(
         @NotEmpty
-        List<WpdySeedlingPriceMgtDto.SeedlingPriceBase> bases
+        List<WpdySeedlingPriceMgtDto.SeedlingPriceBase> bases /* 기본정보 */
     ) {}
 
     @ApiModel(value = "WpdySeedlingPriceMgtDto-SeedlingPriceBase")
     public record SeedlingPriceBase(
-        String fnlMdfcDtm,
-        String fnlMdfcUsrNm,
+        String fnlMdfcDtm, /* 수정일 */
+        String fnlMdfcUsrNm, /* 수정자명 */
 
         String rglrSppSdingPrcId, /* 정기배송모종가격ID */
         String pdctPdCd, /* 제품상품코드 */

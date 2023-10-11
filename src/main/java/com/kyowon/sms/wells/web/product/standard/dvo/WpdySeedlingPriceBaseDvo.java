@@ -14,10 +14,10 @@ import lombok.Setter;
 @Setter
 @Getter
 public class WpdySeedlingPriceBaseDvo {
-    private String fnlMdfcDtm;
-    private String fnlMdfcUsrNm;
-    private String histStrtDtm;
-    private String histEndDtm;
+    private String fnlMdfcDtm; /* 수정일 */
+    private String fnlMdfcUsrNm; /* 수정자명 */
+    private String histStrtDtm; /* 이력시작일 */
+    private String histEndDtm; /* 이력종료일 */
 
     private String rglrSppSdingPrcId; /* 정기배송모종가격ID */
     private String pdctPdCd; /* 제품상품코드 */

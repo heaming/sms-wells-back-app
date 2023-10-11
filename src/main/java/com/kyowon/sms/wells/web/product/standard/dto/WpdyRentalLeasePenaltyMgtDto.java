@@ -22,8 +22,8 @@ public class WpdyRentalLeasePenaltyMgtDto {
     public record SearchReq(
         String prdtCateHigh, /* 대분류 */
         String prdtCateMid, /* 중분류 */
-        String prdtCateLow,
-        String prdtCateLowDtl,
+        String prdtCateLow, /* 하분류 */
+        String prdtCateLowDtl, /* 세분류 */
         String pdNm, /* 상품명 */
         String pdCd, /* 상품코드 */
         String svcStartDt, /* 적용 시작일 */
@@ -34,12 +34,12 @@ public class WpdyRentalLeasePenaltyMgtDto {
     public record SearchRes(
         String pdNm, /* 상품명 */
 
-        String fstRgstUsrId,
-        String fnlMdfcUsrId,
-        String fstRgstDtm,
-        String fstRgstUsrNm,
-        String fnlMdfcDtm,
-        String fnlMdfcUsrNm,
+        String fstRgstUsrId, /* 등록자 */
+        String fnlMdfcUsrId, /* 수정자 */
+        String fstRgstDtm, /* 등록일 */
+        String fstRgstUsrNm, /* 등록자명 */
+        String fnlMdfcDtm, /* 수정일 */
+        String fnlMdfcUsrNm, /* 수정자명 */
 
         String ccamId, /* 위약금ID */
         String histStrtDtm, /* 이력시작일시 */
@@ -59,7 +59,7 @@ public class WpdyRentalLeasePenaltyMgtDto {
     @ApiModel(value = "WpdyRentalLeasePenaltyMgtDto-SaveReq")
     public record SaveReq(
         @NotEmpty
-        List<WpdyRentalLeasePenaltyMgtDto.CancelChargeBase> bases
+        List<WpdyRentalLeasePenaltyMgtDto.CancelChargeBase> bases /* 기본정보 */
     ) {}
 
     @ApiModel(value = "WpdyRentalLeasePenaltyMgtDto-CancelChargeBase")

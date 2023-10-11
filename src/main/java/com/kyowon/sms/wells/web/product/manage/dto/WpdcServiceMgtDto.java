@@ -23,36 +23,36 @@ public class WpdcServiceMgtDto {
     @ApiModel(value = "WpdcServiceMgtDto-EditReq")
     public record EditReq(
         @NotBlank
-        String pdCd,
-        String pdGrpCd,
-        boolean isModifiedProp,
-        boolean isOnlyFileModified,
-        boolean isModifiedRelation,
-        ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
-        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
-        List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel
+        String pdCd, /* 상품코드 */
+        String pdGrpCd, /* 상품그룹코드 */
+        boolean isModifiedProp, /* 상품기본속성 수정여부 */
+        boolean isOnlyFileModified, /* 상품기본속성 첨부파일 단독 수정여부 */
+        boolean isModifiedRelation, /* 연결상품 수정여부 */
+        ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* 상품기본속성 FRONT pdConst.js 동기화 */
+        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl, /* 각사송성 */
+        List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel /* 연결상품 */
     ) {}
 
     @Builder
     @ApiModel(value = "WpdcServiceMgtDto-SaveReq")
     public record SaveReq(
-        String pdCd,
-        String pdGrpCd,
-        boolean isModifiedProp,
-        boolean isOnlyFileModified,
-        boolean isModifiedRelation,
-        ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
-        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
-        List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel
+        String pdCd, /* 상품코드 */
+        String pdGrpCd, /* 상품그룹코드 */
+        boolean isModifiedProp, /* 상품기본속성 수정여부 */
+        boolean isOnlyFileModified, /* 상품기본속성 첨부파일 단독 수정여부 */
+        boolean isModifiedRelation, /* 연결상품 수정여부 */
+        ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* 상품기본속성 FRONT pdConst.js 동기화 */
+        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl, /* 각사송성 */
+        List<ZpdcRelationMgtDto.ProductRelation> tbPdbsPdRel /* 연결상품 */
 
     ) {}
 
     @Builder
     @ApiModel(value = "WpdcServiceMgtDto-ProductInfoRes")
     public record ProductInfoRes(
-        ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* FRONT pdConst.js 동기화 */
-        List<ZpdcProductDto.PropertyGroupCode> groupCodes,
-        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl,
-        List<ZpdcRelationMgtDto.SearchProductRes> relProducts
+        ZpdcProductDto.TbPdbsPdBas tbPdbsPdBas, /* 상품기본속성 FRONT pdConst.js 동기화 */
+        List<ZpdcProductDto.PropertyGroupCode> groupCodes, /* 상품속성그룹목록 */
+        List<ZpdcProductDto.TbPdbsPdEcomPrpDtl> tbPdbsPdEcomPrpDtl, /* 각사송성 */
+        List<ZpdcRelationMgtDto.SearchProductRes> relProducts /* 연결상품 */
     ) {}
 }
