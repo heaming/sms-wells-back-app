@@ -191,16 +191,22 @@
                         </if>
                            WHERE 1 = 1
                              AND RRD.DTA_DL_YN = 'N'
-                        <if test="@MybatisUtils@isNotEmpty(rfndAkNo)">
                              AND RRD.DP_DV_CD = '1' /*입금구분코드 : 1(입금)*/
                              AND RRD.DP_TP_CD != '0203' /*입금유형코드 : 0203(카드자동이체)*/
-                        </if>
                          ) T1
                   WHERE 1 = 1
                     <if test="@MybatisUtils@isNotEmpty(cntrStartDay) or @MybatisUtils@isNotEmpty(cntrEndDay)">
-                    AND (T1.CNTR_NO, T1.CNTR_SN) IN (SELECT CNTR_NO, CNTR_SN
-                                                       FROM TB_RVDW_RVE_DTL RVE
-                                                      WHERE RVE.DP_DT BETWEEN #{cntrStartDay} AND #{cntrEndDay} ) /* 수납일자 */
+                    AND EXISTS (
+                                SELECT 'X'
+                                  FROM TB_RVDW_RVE_DTL RVE
+                                 WHERE RVE.KW_GRP_CO_CD = '2000'
+                                   AND RVE.CNTR_NO = T1.CNTR_NO
+                                   AND RVE.CNTR_SN = T1.CNTR_SN
+                                   AND RVE.DP_DT BETWEEN #{cntrStartDay} AND #{cntrEndDay}
+                                   AND RVE.DTA_DL_YN = 'N'
+                                   AND RVE.DP_DV_CD = '1' /*입금구분코드 : 1(입금)*/
+                                   AND RVE.DP_TP_CD != '0203' /*입금유형코드 : 0203(카드자동이체)*/
+                               ) /* 수납일자 */
                     </if>
                     <if test="@MybatisUtils@isNotEmpty(copnDvCd)">
                     AND T1.COPN_DV_CD = #{copnDvCd}             /* 고객유형 */
@@ -224,6 +230,9 @@
                    </choose>
                 ) T2
           WHERE 1 = 1
+            <if test="@MybatisUtils@isEmpty(rfndAkNo)">
+            AND RFND_PSB_AMT <![CDATA[>]]> 0
+            </if>
           GROUP BY T2.CNTR_NO
                  , T2.CNTR_SN
                  , T2.CNTR_DTL_NO
