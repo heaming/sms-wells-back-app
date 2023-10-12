@@ -10,6 +10,7 @@ public class WsnaAsMaterialItemGradePsDto {
     @Builder
     @ApiModel("WsnaAsMaterialItemGradePsDto-SearchWareReq")
     public record SearchWareReq(
+        // 기준년월
         @NotBlank
         String baseYm
     ) {}

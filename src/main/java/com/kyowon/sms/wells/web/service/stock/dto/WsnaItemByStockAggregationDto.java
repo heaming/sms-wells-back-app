@@ -23,29 +23,43 @@ public class WsnaItemByStockAggregationDto {
     @Builder
     @ApiModel("WsnaItemByStockAggregationDto-SearchWareRes")
     public record SearchWareRes(
+        // 창고상세구분
         String wareDtlDvCd,
+        // 창고번호
         String wareNo,
+        // 창고명
         String wareNm
     ) {}
 
     @Builder
     @ApiModel("WsnaItemByStockAggregationDto-SearchReq")
     public record SearchReq(
+        // 기준일자
         @NotBlank
         @ValidDate
         String baseDt,
-
+        // 창고구분
         @NotBlank
         String wareDvCd,
+        // 재고유형
         String mgtTypCd,
+        // 품목구분
         String itmKndCd,
+        // 품목코드 리스트
         List<String> itmPdCds,
+        // 등급
         String itmGdCd,
+        // 사용여부
         String useYn,
+        // 자재구분
         String matUtlzDvCd,
+        // 창고유형
         String wareTpCd,
+        // 품목코드
         String itmPdCd,
+        // 시작SAP코드
         String strtSapCd,
+        // 종료SAP코드
         String endSapCd
 
     ) {}

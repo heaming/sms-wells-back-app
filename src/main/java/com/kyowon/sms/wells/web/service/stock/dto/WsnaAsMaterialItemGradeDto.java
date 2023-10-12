@@ -22,6 +22,7 @@ public class WsnaAsMaterialItemGradeDto {
     @Builder
     @ApiModel("WsnaAsMaterialItemGradeDto-SearchWareReq")
     public record SearchWareReq(
+        // 기준년월
         @NotBlank
         String baseYm,
         // 창고구분코드
@@ -33,7 +34,6 @@ public class WsnaAsMaterialItemGradeDto {
 
         //창고담당번호 (ASIS : CHG_CD=000)
         String wareIchrNo,
-
 
         // 상위창고번호
         String hgrWareNo
