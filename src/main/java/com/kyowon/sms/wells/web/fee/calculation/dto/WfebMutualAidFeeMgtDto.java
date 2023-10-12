@@ -5,66 +5,66 @@ import javax.validation.constraints.NotBlank;
 public class WfebMutualAidFeeMgtDto {
     public record SearchAidReq(
         @NotBlank
-        String baseYm,
-        String strtDt,
-        String endDt,
-        String pdCd,
-        String sellPrtnrNo,
-        String clasfctnFee
+        String baseYm, /* 기준년월 */
+        String strtDt, /* 시작일 */
+        String endDt, /* 종료일 */
+        String pdCd, /* 상품코드 */
+        String sellPrtnrNo, /* 번호 */
+        String clasfctnFee /* 수수료구분 */
     ) {}
 
     public record CreateAidReq(
         @NotBlank
-        String baseYm
+        String baseYm  /* 기준년월 */
     ) {}
 
 
     public record AidIndividual(
-        String baseYm,
-        String cntrStat,
-        String ogCd,
-        String prtnrNo,
-        String prtnrKnm,
-        String rsbDvCd,
-        String brmgrPrtnrNo,
-        String cntrNo,
-        String pdNm,
-        String cntrPdStrtdt,
-        String lifCntrNo,
-        String lifPdNm,
-        String rcpdt,
-        String cntrDt,
-        String canDt,
-        Integer sellFee,
-        String totDsbOjDvCd,
-        String lifCntrOcTn,
-        Integer slOcAcuAmt,
-        Integer dpAcuAmt,
-        String flpymTn,
-        Integer preAmtSum,
-        Integer curAmt,
-        String etCnfmDvNm,
-        String feeDsbYm,
-        String feeRedfYm
+        String baseYm, /* 발생월 */
+        String cntrStat, /* 수수료구분 */
+        String ogCd, /* 소속지점cd */
+        String prtnrNo, /* 번호 */
+        String prtnrKnm, /* 성명 */
+        String rsbDvCd, /* 직책 */
+        String brmgrPrtnrNo, /* 지점장번호 */
+        String cntrNo, /* 계약번호 */
+        String pdNm, /* 상품명 */
+        String cntrPdStrtdt /* 설치일 */,
+        String lifCntrNo, /* 상조계약번호 */
+        String lifPdNm, /* 상조상품명 */
+        String rcpdt, /* 접수일 */
+        String cntrDt, /* 계약일 */
+        String canDt, /* 취소일 */
+        Integer sellFee, /* 판매자수수료 */
+        String totDsbOjDvCd, /* 총지급대상 */
+        String lifCntrOcTn, /* 회차 */
+        Integer slOcAcuAmt, /* 누적발생매출 */
+        Integer dpAcuAmt, /* 누적임금 */
+        String flpymTn, /* 완납회차 */
+        Integer preAmtSum, /* 가지급금 */
+        Integer curAmt, /* 당월지급 */
+        String etCnfmDvNm, /* 라이프 확정 */
+        String feeDsbYm, /* 수수료 지급월 */
+        String feeRedfYm /* 수수료 되물림월 */
     ) {}
 
     public record AidGroup(
-        String baseYm,
-        String cntrStat,
-        String ogCd,
-        String brmgrPrtnrNo,
-        String prtnrKnm,
-        String rsbDvCd,
-        Integer brchCt,
-        Integer brchAmt,
-        String feeDsbYm,
-        String feeRedfYm,
-        String etCnfmDvNm
+        String baseYm, /* 발생월 */
+        String cntrStat, /* 수수료구분 */
+        String ogCd, /* 소속 */
+        String brmgrPrtnrNo, /* 지점장번호 */
+        String prtnrKnm, /* 지점장명 */
+        String rsbDvCd, /* 직책 */
+        Integer brchCt, /* 건수 지점 */
+        Integer brchAmt, /* 금액 지점 */
+        String feeDsbYm, /* 수수료 지급월 */
+        String feeRedfYm, /* 수수료 되물림월 */
+        String etCnfmDvNm /* 라이프 확정 */
     ) {}
 
     public record SearchAidOrderReq(
         @NotBlank
-        String baseYm,
+        String baseYm, /* 기준년월 */
         String cntrStat, // 실적구분
         String alncCd, // 제휴구분
         String rsbDvCd, // 직책유행
@@ -75,22 +75,22 @@ public class WfebMutualAidFeeMgtDto {
         String prtnrNm
     ) {}
     public record AidOrder(
-        String alncNm,
-        String cntrNo,
-        String lifCntrNo,
-        String cstKnm,
-        String ogCd,
-        String prtnrNo,
-        String prtnrKnm,
-        String cdCntn,
-        String brmgrPrtnrNo,
-        String rcpdt,
-        String cntrDt,
-        String dpDt,
-        String wdwlDt,
-        String canDt,
-        String feeDsbYm,
-        String cntrStat
+        String alncNm, /* 제휴구분 */
+        String cntrNo, /* 웰스계약번호 */
+        String lifCntrNo, /* 상조계약번호 */
+        String cstKnm, /* 고객명 */
+        String ogCd, /* 가지급금 */
+        String prtnrNo, /* 가지급금 */
+        String prtnrKnm, /* 가지급금 */
+        String cdCntn, /* 가지급금 */
+        String brmgrPrtnrNo, /* 가지급금 */
+        String rcpdt, /* 가지급금 */
+        String cntrDt, /* 가지급금 */
+        String dpDt, /* 가지급금 */
+        String wdwlDt, /* 가지급금 */
+        String canDt, /* 가지급금 */
+        String feeDsbYm, /* 가지급금 */
+        String cntrStat /* 가지급금 */
     ) {}
 
 }
