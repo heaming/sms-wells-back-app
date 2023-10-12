@@ -1,9 +1,9 @@
 package com.kyowon.sms.wells.web.bond.consultation.dto;
 
-import javax.validation.constraints.NotBlank;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
+
+import javax.validation.constraints.NotBlank;
 
 public class WbncRentalResignConfirmDto {
     // *********************************************************
@@ -14,15 +14,16 @@ public class WbncRentalResignConfirmDto {
     @ApiModel("WbncRentalResignConfirmDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String fromAuthRsgCnfmdt, /* 확정년월시작 */
+        String authRsgCnfmdtStart, /* 확정년월시작 */
         @NotBlank
-        String toAuthRsgCnfmdt, /* 확정년월종료 */
+        String authRsgCnfmdtEnd, /* 확정년월종료 */
         String clctamDvCd, /* 집금구분코드 */
         String clctamPrtnrNo, /* 집금담당자 */
         String cstNo, /* 고객번호 */
         String cntrNo, /* 계약번호 */
         String cntrSn /* 계약일련번호 */
-    ) {}
+    ) {
+    }
 
     // *********************************************************
     // Result Dto
@@ -48,5 +49,6 @@ public class WbncRentalResignConfirmDto {
         String pdNm, /* 상품명 */
         String clctamPrtnrNo, /* 집금파트너번호 */
         String prtnrKnm /* 집금파트너명 */
-    ) {}
+    ) {
+    }
 }
