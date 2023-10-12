@@ -17,7 +17,7 @@ import lombok.ToString;
 @ToString
 public class WdcbSalesConfirmSapMatDvo {
 
-    private String pdCd;
-    private String sapMatEvlClssVal;
-    private String sapMatCd;
+    private String pdCd; /*상품코드*/
+    private String sapMatEvlClssVal; /*SAP자재평가클래스값*/
+    private String sapMatCd; /*SAP자재코드*/
 }
