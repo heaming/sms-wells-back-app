@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
@@ -49,7 +51,34 @@ public class WsnaMdProductOutOfStorageMgtDto {
     }
 
     @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-SaveReq")
-    public record SaveReq() {
+    public record SaveReq(
+        @NotBlank
+        String cstSvAsnNo,
 
-    }
+        @NotBlank
+        String cntrNo,
+
+        @NotBlank
+        String cntrSn,
+
+        @NotBlank
+        String svBizDclsfCd,
+
+        @NotBlank
+        String svBizHclsfCd,
+
+        @NotBlank
+        String prtnrNo,
+
+        @NotBlank
+        String ogTpCd,
+
+        @NotBlank
+        String ogId,
+
+        @NotBlank
+        String pdctPdCd,
+
+        String istDt
+    ) {}
 }
