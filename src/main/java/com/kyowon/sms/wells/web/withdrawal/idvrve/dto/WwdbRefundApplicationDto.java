@@ -107,11 +107,13 @@ public class WwdbRefundApplicationDto {
         String rfndAkNo,
         String fnitCd,
         String cstNo,
-        String crdcdFer
-    ) {}
-    /* TODO: 환불신청팝업 - 환불상세 END*/
+        String crdcdFer,
 
-    /* TODO: 전금상세 */
+        String dpTpCd
+    ) {}
+    /* 환불신청팝업 - 환불상세 END*/
+
+    /* 전금상세 */
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundBalanceTransferReq")
     public record SearchRefundBalanceTransferReq(
         String cntrNo,
