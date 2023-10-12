@@ -1,10 +1,5 @@
 package com.kyowon.sms.wells.web.bond.consultation.service;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kyowon.sms.wells.web.bond.consultation.converter.WbncRegularShippingResignConverter;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncRegularShippingResignDto.SaveConfirmReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncRegularShippingResignDto.SearchReq;
@@ -13,10 +8,14 @@ import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncAuthorityResignIzDvo;
 import com.kyowon.sms.wells.web.bond.consultation.mapper.WbncRegularShippingResignMapper;
 import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractDtlStatCdChDvo;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbContractDtlStatCdChService;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.WctzCntrDtlStatCd;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +42,8 @@ public class WbncRegularShippingResignService {
             WctbContractDtlStatCdChDvo wctbContractDtlStatCdChDvo = new WctbContractDtlStatCdChDvo();
             wctbContractDtlStatCdChDvo.setCntrNo(dvo.getCntrNo());
             wctbContractDtlStatCdChDvo.setCntrSn(String.valueOf(dvo.getCntrSn()));
-            wctbContractDtlStatCdChDvo.setCntrDtlStatCd("302");
+            wctbContractDtlStatCdChDvo.setCntrDtlStatCd(WctzCntrDtlStatCd.CLTN_DLQ.getCode());
+
             try {
                 wctbContractDtlStatCdChService.editContractDtlStatCdCh(wctbContractDtlStatCdChDvo);
             } catch (Exception e) {
