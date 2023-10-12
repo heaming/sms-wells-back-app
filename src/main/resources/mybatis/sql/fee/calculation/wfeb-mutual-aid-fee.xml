@@ -68,6 +68,7 @@
         WHERE 1=1
           AND T1.BASE_YM          = #{baseYm}
           AND T1.LIF_CNTR_STAT_CD = '0'                 --20230703 - 라이프계약상태코드 - 0수수료, 3재지급, 2연체, 1되물림
+          AND T1.OG_TP_CD = 'W01' /* 2023.10.12 상조 p조직 고정 */
           AND T1.DTA_DL_YN           = 'N'
          <if test='@MybatisUtils@isNotEmpty(sellPrtnrNo)'>
           AND T1.PRTNR_NO         = #{sellPrtnrNo}         --20230703 - 파트너번호
@@ -136,6 +137,7 @@
          WHERE 1=1
            AND T1.BASE_YM          = #{baseYm}
            AND T1.LIF_CNTR_STAT_CD = '1'
+           AND T1.OG_TP_CD = 'W01' /* 2023.10.12 상조 p조직 고정 */
            AND T1.CAN_DT           = T1.BASE_YM
            AND T1.CAN_DT          <![CDATA[<>]]>  SUBSTR(T1.CNTR_DT,1,6)
           <if test='@MybatisUtils@isNotEmpty(sellPrtnrNo)'>
@@ -216,6 +218,7 @@
          WHERE 1=1
            AND T1.BASE_YM          <![CDATA[<=]]> #{baseYm}
            AND T1.LIF_CNTR_STAT_CD  = #{clasfctnFee}
+           AND T1.OG_TP_CD = 'W01' /* 2023.10.12 상조 p조직 고정 */
          <if test='@MybatisUtils@isNotEmpty(sellPrtnrNo)'>
            AND T1.PRTNR_NO         = #{sellPrtnrNo}               --파트너번호
          </if>
@@ -268,6 +271,7 @@
          WHERE 1=1
            AND T1.BASE_YM             = #{baseYm}
            AND T1.LIF_CNTR_STAT_CD    = '0'               /* 수수료  라이프계약상태코드 */
+           AND T1.OG_TP_CD = 'W01' /* 2023.10.12 상조 p조직 고정 */
            AND T1.LIF_CNTR_OC_TN      = 1                 /* 라이프계약발생회차          */
            AND T1.PRTNR_NO           != T1.BRMGR_PRTNR_NO /* 판매자사번 != 지점장사번    */
            <if test='@MybatisUtils@isNotEmpty(strtDt) and @MybatisUtils@isNotEmpty(endDt)'>
@@ -331,6 +335,7 @@
          WHERE 1=1
            AND T1.LIF_CNTR_STAT_CD    = '0'  /* 되물림이지만 라이프계약상태코드 수수료로 고정 */
            AND T1.FLPYM_TN            = 1
+           AND T1.OG_TP_CD = 'W01' /* 2023.10.12 상조 p조직 고정 */
            AND T1.PRTNR_NO           != T1.BRMGR_PRTNR_NO
            <if test='@MybatisUtils@isNotEmpty(strtDt) and @MybatisUtils@isNotEmpty(endDt)'>
            AND T1.CNTR_DT >= #{strtDt}
@@ -392,6 +397,7 @@
            AND T1.PRTNR_NO = T7.PRTNR_NO
          WHERE 1=1
            AND T1.LIF_CNTR_STAT_CD    = #{clasfctnFee}
+           AND T1.OG_TP_CD = 'W01' /* 2023.10.12 상조 p조직 고정 */
            AND T1.FLPYM_TN            = 1                 /* 완납 회차                              */
            AND T1.PRTNR_NO           != T1.BRMGR_PRTNR_NO /* 판매자사번 != 지점장사번               */
            <if test='@MybatisUtils@isNotEmpty(strtDt) and @MybatisUtils@isNotEmpty(endDt)'>
@@ -422,6 +428,7 @@
          WHERE A.BASE_YM           = #{baseYm}
            AND A.ET_CNFM_DV_CD     = '00'
            AND A.LIF_CNTR_STAT_CD  = '0'
+           AND A.OG_TP_CD = 'W01' /* 2023.10.12 상조 p조직 고정 */
            AND A.CAN_DT           IS NULL
            AND A.FLPYM_TN         <![CDATA[<=]]> A.TOT_DSB_OJ_DV_CD
            AND 0 = ( SELECT MOD(COUNT(1), 2)
@@ -435,6 +442,7 @@
                           AND A.OG_TP_CD   = X.OG_TP_CD
            )
     </update>
+
     <!-- 미지급 -->
     <update id="updateMutualAidNpaid">
         UPDATE TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
@@ -444,6 +452,7 @@
          WHERE A.BASE_YM           <![CDATA[<]]> #{baseYm}
            AND A.ET_CNFM_DV_CD     = '00'
            AND A.LIF_CNTR_STAT_CD  = '0'
+           AND A.OG_TP_CD = 'W01' /* 2023.10.12 상조 p조직 고정 */
            AND A.CAN_DT           IS NULL
            AND A.FLPYM_TN         <![CDATA[<=]]> A.TOT_DSB_OJ_DV_CD
            AND A.FEE_DSB_YM       IS NULL
@@ -452,6 +461,7 @@
                      WHERE B.LIF_CNTR_STAT_CD IN ('2', '3')
                        AND B.LIF_CNTR_NO       = A.LIF_CNTR_NO)
     </update>
+
     <!-- 되물림생성 -->
     <update id="updateRedfMutualAidFee">
         UPDATE TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
@@ -461,12 +471,14 @@
          WHERE A.BASE_YM           = #{baseYm}
            AND A.ET_CNFM_DV_CD     = '00'
            AND A.LIF_CNTR_STAT_CD  = '1'
+           AND A.OG_TP_CD = 'W01' /* 2023.10.12 상조 p조직 고정 */
            AND A.CAN_DT           <![CDATA[<>]]> SUBSTR(A.CNTR_DT,1,6)
            AND 0 = ( SELECT COUNT(1)
                      FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ B
                      WHERE B.LIF_CNTR_STAT_CD = '2'
                        AND B.LIF_CNTR_NO      = A.LIF_CNTR_NO )
     </update>
+
     <!-- 연체 -->
     <update id="updateRedfMutualAidDlq">
         UPDATE TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
@@ -476,6 +488,8 @@
         WHERE  A.BASE_YM           = #{baseYm}
           AND  A.ET_CNFM_DV_CD     = '00'
           AND  A.LIF_CNTR_STAT_CD  = '2'
+          AND  A.OG_TP_CD = 'W01' /* 2023.10.12 상조 p조직 고정 */
+
     </update>
     <!--재지급 -->
     <update id="updateRedfMutualAidAdsb">
@@ -486,6 +500,7 @@
          WHERE A.BASE_YM           = #{baseYm}
            AND A.ET_CNFM_DV_CD     = '00'
            AND A.LIF_CNTR_STAT_CD  = '3'
+           AND A.OG_TP_CD = 'W01' /* 2023.10.12 상조 p조직 고정 */
     </update>
 
     <!-- 상조제휴주문 -->
