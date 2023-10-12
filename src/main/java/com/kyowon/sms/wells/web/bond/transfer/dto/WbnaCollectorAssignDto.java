@@ -114,7 +114,7 @@ public class WbnaCollectorAssignDto {
         Long objAmt, /* 대상금액        */
         Long dlqAmt, /* 연체금액        */
         Long thmChramAmt, /* 당월요금        */
-        Long dlqAddDpAmt, /* 연체가산금       */
+        Long dlqAddAmt, /* 연체가산금       */
         Long rsgBorAmt, /* 위약금액        */
         String lwmTpCd, /* 법조치유형       */
         String lwmDtlTpCd, /* 법조치상세       */
@@ -135,7 +135,7 @@ public class WbnaCollectorAssignDto {
         String objAmt, /* 대상금액        */
         String dlqAmt, /* 연체금액        */
         String thmChramAmt, /* 당월요금        */
-        String dlqAddDpAmt, /* 연체가산금       */
+        String dlqAddAmt, /* 연체가산금       */
         String rsgBorAmt /* 위약금액        */
     ) {}
 
