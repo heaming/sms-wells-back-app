@@ -2,9 +2,9 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndependenceWareOstrMapper">
 
     <select id="selectProducts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaIndependenceWareOstrDto$SearchPdRes">
-        SELECT D1.PD_CD
-             , D1.PD_NM
-             , D2.PD_PRP_VAL19 AS ITM_KND_CD
+        SELECT D1.PD_CD                        /* 품목코드 */
+             , D1.PD_NM                        /* 품목명 */
+             , D2.PD_PRP_VAL19 AS ITM_KND_CD   /* 품목종류코드 */
           FROM TB_PDBS_PD_BAS D1                 /* 상품기본 */
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
             ON D2.PD_CD = D1.PD_CD
@@ -17,27 +17,27 @@
     </select>
 
     <select id="selectIndependenceStrWares" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo">
-        SELECT DISTINCT D1.HGR_WARE_NO             AS WARE_NO
+        SELECT DISTINCT D1.HGR_WARE_NO             AS WARE_NO   /* 창고번호 */
              , ( SELECT WARE_NM
                    FROM TB_SVST_MCBY_WARE_IZ
                   WHERE APY_YM  = D1.APY_YM
-                    AND WARE_NO = D1.HGR_WARE_NO ) AS WARE_NM
+                    AND WARE_NO = D1.HGR_WARE_NO ) AS WARE_NM   /* 창고명 */
           FROM TB_SVST_MCBY_WARE_IZ D1   /* 월별창고내역 */
          INNER JOIN
              (
                SELECT DISTINCT STR_WARE_NO   /* 입고창고번호 */
                  FROM TB_SVST_ITM_QOM_ASN_IZ   /* 품목물량배정내역 */
                 WHERE DTA_DL_YN      = 'N'
-                  AND ASN_OJ_YM      = #{asnOjYm}
-                  AND ASN_TN_N       = #{cnt}
-                  AND OSTR_WARE_NO   = #{ostrWareNo}
-                  AND WARE_DV_CD     = #{wareDvCd}
-                  AND WARE_DTL_DV_CD = #{wareDtlDvCd}
+                  AND ASN_OJ_YM      = #{asnOjYm}       /* 배정년월 */
+                  AND ASN_TN_N       = #{cnt}           /* 회차 */
+                  AND OSTR_WARE_NO   = #{ostrWareNo}    /* 출고창고 */
+                  AND WARE_DV_CD     = #{wareDvCd}      /* 창고구분 - 영업센터 */
+                  AND WARE_DTL_DV_CD = #{wareDtlDvCd}   /* 창고상세구분 - 영업센터 독립창고 */
              ) D2
             ON D2.STR_WARE_NO = D1.WARE_NO
          WHERE D1.DTA_DL_YN   = 'N'
            AND D1.WARE_USE_YN = 'Y'
-           AND D1.APY_YM      = #{apyYm}
+           AND D1.APY_YM      = #{apyYm}   /* 기준년월 */
          ORDER BY WARE_NM
     </select>
 
@@ -163,14 +163,14 @@
                   AND D4.PD_EXTS_PRP_GRP_CD = 'PART'
                   AND D4.PD_PRP_VAL19      IN ('4', '5', '6')
                   AND D6.DTA_DL_YN          = 'N'
-                  AND D1.ASN_OJ_YM          = #{asnOjYm}
-                  AND D1.ASN_TN_N           = #{cnt}
-                  AND D1.OSTR_WARE_NO       = #{ostrWareNo}
-                  AND D1.WARE_DV_CD         = #{wareDvCd}
-                  AND D1.WARE_DTL_DV_CD     = #{wareDtlDvCd}
-                  AND D2.HGR_WARE_NO        = #{strWareNo}
-                  AND D2.APY_YM             = #{apyYm}
-                  AND D6.APY_YM             = #{apyYm}
+                  AND D1.ASN_OJ_YM          = #{asnOjYm}       /* 배정년월 */
+                  AND D1.ASN_TN_N           = #{cnt}           /* 회차 */
+                  AND D1.OSTR_WARE_NO       = #{ostrWareNo}    /* 출고창고 */
+                  AND D1.WARE_DV_CD         = #{wareDvCd}      /* 창고구분 - 영업센터 */
+                  AND D1.WARE_DTL_DV_CD     = #{wareDtlDvCd}   /* 창고상세구분 - 영업센터 독립창고 */
+                  AND D2.HGR_WARE_NO        = #{strWareNo}     /* 입고창고번호 */
+                  AND D2.APY_YM             = #{apyYm}         /* 기준년월 */
+                  AND D6.APY_YM             = #{apyYm}         /* 기준년월 */
             <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
                   AND D4.PD_PRP_VAL19       = #{itmKndCd}
             </if>
@@ -197,7 +197,7 @@
     </select>
 
     <select id="selectOstrAkNoByQomAsn" resultType="java.lang.String">
-        SELECT DISTINCT D2.OSTR_AK_NO
+        SELECT DISTINCT D2.OSTR_AK_NO   /* 출고요청번호 */
           FROM TB_SVST_ITM_QOM_ASN_IZ D1                     /* 품목물량배정내역 */
          INNER JOIN TB_SVST_ITM_OSTR_AK_IZ D2                /* 품목출고요청내역 */
             ON D2.ITM_QOM_ASN_NO = D1.ITM_QOM_ASN_NO
@@ -208,10 +208,10 @@
          WHERE D1.DTA_DL_YN    = 'N'
            AND D2.DTA_DL_YN    = 'N'
            AND D3.LGST_OSTR_AK_NO IS NULL
-           AND D1.ASN_OJ_YM    = #{asnOjYm}
-           AND D1.ASN_TN_N     = #{asnTnN}
-           AND D1.OSTR_WARE_NO = #{ostrWareNo}
-           AND D1.STR_WARE_NO  = #{strWareNo}
+           AND D1.ASN_OJ_YM    = #{asnOjYm}      /* 배정년월 */
+           AND D1.ASN_TN_N     = #{asnTnN}       /* 회차 */
+           AND D1.OSTR_WARE_NO = #{ostrWareNo}   /* 출고창고 */
+           AND D1.STR_WARE_NO  = #{strWareNo}    /* 입고창고 */
            AND ROWNUM          = 1
     </select>
 
@@ -359,11 +359,11 @@
            AND D3.DTA_DL_YN = 'N'
          WHERE D1.DTA_DL_YN          = 'N'
            AND D2.DTA_DL_YN          = 'N'
-           AND D1.ASN_OJ_YM          = #{asnOjYm}
-           AND D1.ASN_TN_N           = #{cnt}
-           AND D1.OSTR_WARE_NO       = #{ostrWareNo}
-           AND D1.WARE_DV_CD         = #{wareDvCd}
-           AND D1.WARE_DTL_DV_CD     = #{wareDtlDvCd}
+           AND D1.ASN_OJ_YM          = #{asnOjYm}       /* 배정년월 */
+           AND D1.ASN_TN_N           = #{cnt}           /* 회차 */
+           AND D1.OSTR_WARE_NO       = #{ostrWareNo}    /* 출고창고 */
+           AND D1.WARE_DV_CD         = #{wareDvCd}      /* 창고구분 - 영업센터 */
+           AND D1.WARE_DTL_DV_CD     = #{wareDtlDvCd}   /* 창고상세구분 - 영업센터 독립창고 */
            AND D3.LGST_OSTR_AK_NO IS NULL
          ORDER BY D2.OSTR_AK_NO, D2.OSTR_AK_SN
     </select>
