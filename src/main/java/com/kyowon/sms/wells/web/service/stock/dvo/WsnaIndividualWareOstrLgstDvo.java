@@ -17,9 +17,14 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WsnaIndividualWareOstrLgstDvo {
+    // 배정년월
     private String asnOjYm;
+    // 회차
     private BigDecimal cnt;
+    // 출고창고
     private String ostrWareNo;
+    // 창고구분
     private String wareDvCd;
+    // 창고상세구분
     private String wareDtlDvCd;
 }

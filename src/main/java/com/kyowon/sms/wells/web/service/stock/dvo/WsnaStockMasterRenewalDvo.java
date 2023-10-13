@@ -15,7 +15,9 @@ import lombok.Setter;
 @Getter
 public class WsnaStockMasterRenewalDvo {
 
+    // 관리년월
     private String mngtYm;
+    // 창고구분
     private String wareDvCd;
 
 }
