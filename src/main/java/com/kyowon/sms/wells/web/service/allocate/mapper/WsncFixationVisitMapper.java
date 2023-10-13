@@ -27,6 +27,14 @@ public interface WsncFixationVisitMapper {
         WsncFixationVisitDto.SearchReq dto
     );
 
+    List<WsncFixationVisitDto.SearchRes> selectFixationVisits3(
+        WsncFixationVisitDto.SearchReq dto
+    );
+
+    List<WsncFixationVisitDto.SearchRes> selectFixationVisits4(
+        WsncFixationVisitDto.SearchReq dto
+    );
+
     WsncFixationVisitDto.SearchRegRes selectFixationVisit(
         WsncFixationVisitDto.SearchRegReq dto
     );
