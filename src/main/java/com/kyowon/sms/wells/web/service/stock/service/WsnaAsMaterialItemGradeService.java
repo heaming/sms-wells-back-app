@@ -42,9 +42,6 @@ public class WsnaAsMaterialItemGradeService {
      * @return 창고 리스트
      */
     public List<WsnzWellsCodeWareHouseDvo> getWareHouses(SearchWareReq dto) {
-        ValidAssert.notNull(dto);
-        ValidAssert.hasText(dto.baseYm());
-        ValidAssert.hasText(dto.wareDvCd());
 
         return this.mapper.selectWareHouses(dto);
     }
