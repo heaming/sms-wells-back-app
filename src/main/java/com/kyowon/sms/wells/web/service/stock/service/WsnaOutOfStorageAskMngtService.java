@@ -326,7 +326,7 @@ public class WsnaOutOfStorageAskMngtService {
                             .selectLogisticsOutStorageAskInfo(createOstrAkNos);
                         List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
                             .mapAllCreateOutOfStorageAsksDvo(createLogisticsDvo);
-                        logisticsservice.createOutOfStorageAsks(dvo);
+                        logisticsservice.createOutOfStorageAsks(dvo, false);
                     } else {
                         //영업센터일경우
                         List<WsnaOutOfStorageAskMngtDvo> businessCreateLogisticsDvo = this.mapper
