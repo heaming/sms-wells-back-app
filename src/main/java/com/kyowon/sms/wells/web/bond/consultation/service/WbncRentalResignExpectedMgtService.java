@@ -1,21 +1,12 @@
 package com.kyowon.sms.wells.web.bond.consultation.service;
 
-import static com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.*;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.kyowon.sms.common.web.bond.zcommon.utils.BnBondUtils;
 import com.kyowon.sms.wells.web.bond.consultation.converter.WbncRentalResignExpectedMgtConverter;
 import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncAuthorityResignIzDvo;
 import com.kyowon.sms.wells.web.bond.consultation.mapper.WbncRentalResignExpectedMgtMapper;
+import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractDtlStatCdChDvo;
+import com.kyowon.sms.wells.web.contract.changeorder.service.WctbContractDtlStatCdChService;
+import com.kyowon.sms.wells.web.contract.zcommon.constants.WctzCntrDtlStatCd;
 import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
@@ -26,8 +17,18 @@ import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+
+import static com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +38,7 @@ public class WbncRentalResignExpectedMgtService {
     private final WbncRentalResignExpectedMgtConverter converter;
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
+    private final WctbContractDtlStatCdChService wctbContractDtlStatCdChService;
 
     private static final String MSG_ALT_SVE_ERR_STR = "MSG_ALT_SVE_ERR";
 
@@ -103,6 +105,26 @@ public class WbncRentalResignExpectedMgtService {
 
         BizAssert.isTrue(processCount != 0, "MSG_ALT_NO_CNFM_DTA"); // 확정할 데이터가 없습니다.
 
+        // 직권해지 확정 조회, 계약상태 변경처리
+        if ("02".equals(dto.confirmDvCd())) {
+            // 직권해지 계약 조회
+            List<WbncAuthorityResignIzDvo> resignConfirms = this.mapper.selectRentalResignConfirms(dto.baseDt());
+
+            // 계약 해지 호출
+            for (WbncAuthorityResignIzDvo resignConfirm : resignConfirms) {
+                WctbContractDtlStatCdChDvo wctbContractDtlStatCdChDvo = new WctbContractDtlStatCdChDvo();
+                wctbContractDtlStatCdChDvo.setCntrNo(resignConfirm.getCntrNo());
+                wctbContractDtlStatCdChDvo.setCntrSn(String.valueOf(resignConfirm.getCntrSn()));
+                wctbContractDtlStatCdChDvo.setCntrDtlStatCd(WctzCntrDtlStatCd.CLTN_DLQ.getCode());
+
+                try {
+                    wctbContractDtlStatCdChService.editContractDtlStatCdCh(wctbContractDtlStatCdChDvo);
+                } catch (Exception e) {
+                    throw new BizException("계약 상세 상태 변경 실패");
+                }
+            }
+        }
+
         return processCount;
     }
 
@@ -119,7 +141,7 @@ public class WbncRentalResignExpectedMgtService {
         // 업로드 엑셀 헤더 설정
         Map<String, String> headerTitle = new LinkedHashMap<>();
         headerTitle.put("baseYm", messageResourceService.getMessage("MSG_TXT_AUTH_AUTH_RSG_YM")); // 직권해지년월
-        headerTitle.put("cntrNoSn", messageResourceService.getMessage("MSG_TXT_CST_CD")); // 계약상세번호
+        headerTitle.put("cntrNoSn", messageResourceService.getMessage("MSG_TXT_CNTR_DTL_NO")); // 계약상세번호
         headerTitle.put("excdYn", messageResourceService.getMessage("MSG_TXT_EXCD_YN")); // 제외여부
         headerTitle.put("authRsgExcdRsonCd", messageResourceService.getMessage("MSG_TXT_EXCD_RSON")); // 제외 사유
         // file
@@ -164,11 +186,7 @@ public class WbncRentalResignExpectedMgtService {
             row = 3;
             for (WbncAuthorityResignIzDvo dvo : list) {
                 String baseYm = dvo.getBaseYm();
-                Matcher matcher = BnBondUtils.cntrDtlNoMatch(dvo.getCntrNoSn());
-                String cntrNo = matcher.group(1);
-                int cntrSn = Integer.parseInt(matcher.group(2));
                 String excdYn = dvo.getExcdYn();
-
                 if (!BnBondUtils.checkDate(baseYm)) {
                     ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
@@ -181,11 +199,8 @@ public class WbncRentalResignExpectedMgtService {
                     );
                     excelUploadErrorDvos.add(errorDvo);
                 } else {
-                    /* 업로드 월 확정데이터 여부 확인 */
-                    int checkCount = this.mapper.selectcheckRentalResignExpectedByReq(
-                        CheckReq.builder().baseDt(baseYm).cntrNo(cntrNo).cntrSn(cntrSn).build()
-                    );
-                    if (checkCount != 1) {
+                    Matcher matcher = BnBondUtils.cntrDtlNoMatch(dvo.getCntrNoSn());
+                    if (matcher == null) {
                         ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                         errorDvo.setErrorRow(row);
                         errorDvo.setHeaderName(headerTitle.get("cntrNoSn"));
@@ -194,6 +209,23 @@ public class WbncRentalResignExpectedMgtService {
                             messageResourceService.getMessage("MSG_ALT_CNTR_NO_NOT_EXIST")
                         );
                         excelUploadErrorDvos.add(errorDvo);
+                    } else {
+                        String cntrNo = matcher.group(1);
+                        int cntrSn = Integer.parseInt(matcher.group(2));
+                        /* 업로드 월 확정데이터 여부 확인 */
+                        int checkCount = this.mapper.selectcheckRentalResignExpectedByReq(
+                            CheckReq.builder().baseDt(baseYm).cntrNo(cntrNo).cntrSn(cntrSn).build()
+                        );
+                        if (checkCount != 1) {
+                            ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+                            errorDvo.setErrorRow(row);
+                            errorDvo.setHeaderName(headerTitle.get("cntrNoSn"));
+                            // 계약번호가 존재하지 않습니다.
+                            errorDvo.setErrorData(
+                                messageResourceService.getMessage("MSG_ALT_CNTR_NO_NOT_EXIST")
+                            );
+                            excelUploadErrorDvos.add(errorDvo);
+                        }
                     }
                 }
 
@@ -206,7 +238,7 @@ public class WbncRentalResignExpectedMgtService {
                         messageResourceService.getMessage("MSG_ALT_INVLD_PARAM", headerTitle.get("excdYn"))
                     );
                     excelUploadErrorDvos.add(errorDvo);
-                } else if (excdYn.equals("1") && StringUtil.isBlank(dvo.getAuthRsgExcdRsonCd())) {
+                } else if ("1".equals(excdYn) && StringUtil.isBlank(dvo.getAuthRsgExcdRsonCd())) {
                     ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
                     errorDvo.setHeaderName(headerTitle.get("authRsgExcdRsonCd"));
@@ -216,7 +248,7 @@ public class WbncRentalResignExpectedMgtService {
                         )
                     );
                     excelUploadErrorDvos.add(errorDvo);
-                } else if (excdYn.equals("0") && StringUtil.isNotBlank(dvo.getAuthRsgExcdRsonCd())) {
+                } else if ("0".equals(excdYn) && StringUtil.isNotBlank(dvo.getAuthRsgExcdRsonCd())) {
                     ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
                     errorDvo.setHeaderName(headerTitle.get("authRsgExcdRsonCd"));
@@ -226,7 +258,7 @@ public class WbncRentalResignExpectedMgtService {
                         )
                     );
                     excelUploadErrorDvos.add(errorDvo);
-                } else if (excdYn.equals("1") && StringUtil.isNotBlank(dvo.getAuthRsgExcdRsonCd())) {
+                } else if ("1".equals(excdYn) && StringUtil.isNotBlank(dvo.getAuthRsgExcdRsonCd())) {
                     if (!List.of("1", "2", "3", "4", "5").contains(dvo.getAuthRsgExcdRsonCd())) {
                         ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                         errorDvo.setErrorRow(row);
