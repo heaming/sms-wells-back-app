@@ -409,11 +409,11 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
             Object rveNo = depositComparisonComfirmation.get("RVE_NO");
             WwdbMutualAidAllianceBulkDepositDvo bulkDepositDvo = new WwdbMutualAidAllianceBulkDepositDvo();
-
+//
             bulkDepositDvo.setPerfDt(dto.perfDt());
             bulkDepositDvo.setRveDt(dto.rveDt());
             bulkDepositDvo.setRveNo(rveNo.toString());
-
+//
             processCount += mapper.updateReceiveDateModify(bulkDepositDvo);
         }
         return processCount;

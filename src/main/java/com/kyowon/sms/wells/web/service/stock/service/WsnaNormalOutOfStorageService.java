@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * <pre>
- * W-SV-U-0142M01 정상출고 관리
+ * W-SV-U-0142M01 정상출고 관리, W-SV-U-0180P01 요청자재보유현황 서비스
  * </pre>
  *
  * @author inho.choi
@@ -398,9 +398,7 @@ public class WsnaNormalOutOfStorageService {
      * @param pageInfo
      * @return
      */
-    public PagingResult<AskRes> getAskMaterialsHavePss(
-        AskReq dto, PageInfo pageInfo
-    ) {
+    public PagingResult<AskRes> getAskMaterialsHavePss(AskReq dto, PageInfo pageInfo) {
         return this.mapper.selectAskMaterialsHavePss(dto, pageInfo);
     }
 
@@ -410,9 +408,7 @@ public class WsnaNormalOutOfStorageService {
      * @param pageInfo
      * @return
      */
-    public PagingResult<CenterRes> getAskMaterialsCenterPresentState(
-        CenterReq dto, PageInfo pageInfo
-    ) {
+    public PagingResult<CenterRes> getAskMaterialsCenterPresentState(CenterReq dto, PageInfo pageInfo) {
         return this.mapper.selectAskMaterialsCenterPresentState(dto, pageInfo);
     }
 

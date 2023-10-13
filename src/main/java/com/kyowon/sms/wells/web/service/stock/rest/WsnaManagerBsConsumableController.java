@@ -42,6 +42,11 @@ public class WsnaManagerBsConsumableController {
         return service.selectBuildings(mngtYm);
     }
 
+    @GetMapping
+    public List<SearchRes> getManagerBsConsumable(SearchReq dto) {
+        return service.getManagerBsConsumable(dto);
+    }
+
     @GetMapping("/paging")
     public PagingResult<SearchRes> getManagerBsConsumablePages(SearchReq dto, PageInfo pageInfo) {
         return service.getManagerBsConsumablePages(dto, pageInfo);
@@ -77,13 +82,14 @@ public class WsnaManagerBsConsumableController {
             .build();
     }
 
-    @PostMapping("/{mngtYm}/request")
+    @PostMapping("/request")
     public SaveResponse createManagerBsConsumablesRequest(
-        @PathVariable
-        String mngtYm
+        @RequestBody
+        @Valid
+        List<CreateOstrReq> dtos
     ) {
         return SaveResponse.builder()
-            .processCount(service.createManagerBsConsumablesRequest(mngtYm))
+            .processCount(service.createManagerBsConsumablesRequest(dtos))
             .build();
     }
 }

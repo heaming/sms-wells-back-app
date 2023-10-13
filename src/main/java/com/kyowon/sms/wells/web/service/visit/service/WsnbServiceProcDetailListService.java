@@ -1,9 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import java.util.Base64;
 import java.util.List;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.SearchReq;
@@ -24,11 +22,7 @@ public class WsnbServiceProcDetailListService {
 
     public WsnbServiceProcDetailListDvo getServiceProcDetailList(SearchReq dto) {
 
-        WsnbServiceProcDetailListDvo dvo = mapper.selectServiceProcDetailList(dto);
-        if (ObjectUtils.isNotEmpty(dvo.getCstSignCnByte())) {
-            dvo.setCstSignCn(Base64.getEncoder().encodeToString(dvo.getCstSignCnByte()));
-        }
-        return dvo;
+        return mapper.selectServiceProcDetailList(dto);
     }
 
     public List<WsnbServiceProcDetailStlmIzDvo> getServiceProcDetailStlmIzs(SearchReq dto) {

@@ -16,8 +16,11 @@ import lombok.Setter;
 @Setter
 public class WsnaQomAsnWareRenewalDvo {
 
+    // 배정년월
     private String asnOjYm;
+    // 기준년월
     private String apyYm;
+    // 출고창고번호
     private String ostrWareNo;
 
 }

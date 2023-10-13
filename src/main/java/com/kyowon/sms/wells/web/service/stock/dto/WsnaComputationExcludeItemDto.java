@@ -100,6 +100,7 @@ public class WsnaComputationExcludeItemDto {
     @Builder
     @ApiModel("WsnaComputationExcludeItemDto-TransferReq")
     public record TransferReq(
+        // 조회년월
         @NotBlank
         String inqrYm
     ) {}

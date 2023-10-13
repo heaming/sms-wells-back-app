@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 /**
  * <pre>
  * W-SV-U-0109M01 이동입고현황
+ * W-SV-U-0132M01 이동입고 관리
+ * W-SV-U-0169P01 이관입고 등록
  * </pre>
  *
  * @author songTaeSung
@@ -98,6 +100,12 @@ public class WsnaMovementStoreService {
         return mapper.selectMoveMentStrIzs(dto);
     }
 
+    /**
+     * 이동입고 등록 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
     public PagingResult<MovementOstrMngtRes> getMovementStoresReg(MovementOstrMngtReq dto, PageInfo pageInfo) {
         return mapper.selectMovementStoresReg(dto, pageInfo);
     }
@@ -106,6 +114,11 @@ public class WsnaMovementStoreService {
         return mapper.selectMovementStoresReg(dto);
     }
 
+    /**
+     * 이동입고 등록
+     * @param list
+     * @return
+     */
     @Transactional
     public int saveStrMovementConfrim(List<MovementStrSaveReq> list) {
         int cnt = 0;
@@ -141,6 +154,11 @@ public class WsnaMovementStoreService {
         return count;
     }
 
+    /**
+     * 마감 창고 건수 조회
+     * @param dto
+     * @return
+     */
     public int getStrWareMonthlyClosed(warehouseMonthlyReq dto) {
         return mapper.countStrWareMonthlyClosed(dto);
     }

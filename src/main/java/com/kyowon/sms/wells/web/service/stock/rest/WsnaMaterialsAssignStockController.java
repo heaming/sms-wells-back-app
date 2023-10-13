@@ -23,6 +23,15 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * W-SV-U-0125M01 물량배정 입고창고 관리 Controller
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-07-17
+ */
+
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/materials-assign-stocks")
 @Api(tags = "[WSNA] 물량배정 입고창고관리 REST API")

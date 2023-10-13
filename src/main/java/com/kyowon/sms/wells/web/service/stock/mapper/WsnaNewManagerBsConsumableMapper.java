@@ -29,13 +29,13 @@ public interface WsnaNewManagerBsConsumableMapper {
 
     int mergeNewManagerBsConsumableAplcClose(WsnaNewManagerBsConsumableDvo dvo);
 
-    int mergeNewManagerBsConsumables(List<WsnaNewManagerBsConsumableDvo> dvos);
+    int mergeNewManagerBsConsumables(WsnaNewManagerBsConsumableDvo dvo);
 
-    List<WsnaNewManagerBsConsumableDvo> selectBfsvcCsmbDdlvIzByMngtYm(String mngtYm);
+    List<WsnaNewManagerBsConsumableDvo> selectBfsvcCsmbDdlvIzByMngtYm(String mngtYm, String strWareNo);
 
     String selectNewOstrAkNo(String ostrAkTpCd, String ostrAkRgstDt);
 
     int updateBfsvcCsmbDdlvIzOstrAkNoSn(WsnaNewManagerBsConsumableDvo dvo);
 
-    int updateBfsvcCsmbDdlvIzDdlvStatCd(WsnaNewManagerBsConsumableDvo dvo);
+    int updateBfsvcCsmbDdlvIzDdlvStatCd(String strWareNo, String mngtYm);
 }

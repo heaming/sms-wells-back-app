@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.evaluate.mapper.WpsdWelsMngerSvCmpstIctrMapper">
+    <select id="selectWelsMngerSvCmpstIctrPages" resultType="com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdWelsMngerSvCmpstIctrDvo">
+        SELECT *
+        FROM (
+              <if test='dgr1LevlOgId != null and dgr1LevlOgId != ""'>
+                  <if test='dgr2LevlOgId == null or dgr2LevlOgId == ""'>
+                  SELECT *
+                  FROM (
+                      <include refid="com.kyowon.sms.wells.web.competence.evaluate.mapper.WpsdWelsMngerSvCmpstIctrMapper.refSql_BsServiceEvaluationTotalList"/>
+                      )
+                  UNION ALL
+                  </if>
+              </if>
+            SELECT MNGT_YM /** 관리년월 **/
+                   , ICHR_PRTNR_NO /** 사번 **/
+                   , ICHR_PRTNR_NM /** 성명 **/
+                   , CNR_OG_CD1  AS CNR_OG_CD1
+                   , CNR_OG_CD /** 소속 **/
+                   , SV_PROCS_RT_VST_ACC_N /** 배정계정 **/
+                   , CTT_FSH_CT /** 컨택완료 **/
+                   , TO_CHAR(CONTACT_RATE_01, 'FM900.0') AS CONTACT_RATE_01 /** 컨택율 **/
+                   , CTT_CT3 /** 3일전 컨택완료 **/
+                   , TO_CHAR(CONTACT_RATE_3BF, 'FM900.0') AS CONTACT_RATE_3BF /** BS완료 3일전 컨택율 **/
+                   , TO_CHAR(CONTACT_PLUS, 'FM900.0') AS CONTACT_PLUS /** 3일전 컨택가산점 **/
+                   , DIS_CNTCT /** 미컨택 **/
+                   , PROM_OBY_CT /** 약속준수건수 **/
+                   , TO_CHAR(PROM_OBY_RAT, 'FM900.0') AS PROM_OBY_RAT /** 약속준수율 **/
+                   , SCN_CT /** 스캔건수 **/
+                   , TO_CHAR(SCN_RAT, 'FM900.0') AS SCN_RAT /** 스캔율 **/
+                   , SV_PROCS_RT_FSH_ACC_N /** 서비스처리완료건수 **/
+                   , TO_CHAR(SV_PROCS_RT_VST_RAT, 'FM900.0') AS SV_PROCS_RT_VST_RAT /** 서비스처리율 **/
+                   , HPCALL_RSP_CT /** 해피콜 응답건수 **/
+                   , TO_CHAR(HPCALL_RSP_RAT, 'FM900.0') AS HPCALL_RSP_RAT /** 해피콜 응답율 **/
+                   , TO_CHAR(HPCALL_ADD_PC, 'FM900.0') AS HPCALL_ADD_PC /** 해피콜 가산점수 **/
+                   , TO_CHAR(CONTACT_RATE_01 + CONTACT_PLUS + PROM_OBY_RAT + SCN_RAT + SV_PROCS_RT_VST_RAT + HPCALL_ADD_PC, 'FM900.0') AS TOTAL_SCORE /** 총점 **/
+                   , RANK() OVER(ORDER BY (CONTACT_RATE_01 + CONTACT_PLUS + PROM_OBY_RAT + SCN_RAT + SV_PROCS_RT_VST_RAT + HPCALL_ADD_PC) DESC) AS ALL_RANK /** 종합순위 **/
+                   , BF_TOTAL_SCORE
+                   , TO_CHAR(((CONTACT_RATE_01 + CONTACT_PLUS + PROM_OBY_RAT + SCN_RAT + SV_PROCS_RT_VST_RAT + HPCALL_ADD_PC) - BF_TOTAL_SCORE), 'FM900.0') AS OVER_SCORE
+              FROM (
+                    <include refid="com.kyowon.sms.wells.web.competence.evaluate.mapper.WpsdWelsMngerSvCmpstIctrMapper.refSql_BsServiceEvaluationList"/>
+                  )
+              )
+        ORDER BY ALL_RANK, CNR_OG_CD1, CNR_OG_CD, ICHR_PRTNR_NO
+    </select>
+
+    <sql id="refSql_BsServiceEvaluationList">
+        SELECT MNGT_YM
+        <if test='dgr1LevlOgId == null or dgr1LevlOgId == ""'>
+               /** 총괄단 **/
+             , '' AS ICHR_PRTNR_NO
+             , '' AS ICHR_PRTNR_NM
+             , (SELECT MAX(OG_NM)
+                        FROM TB_OGBS_MM_OG_IZ
+                       WHERE OG_CD LIKE SUBSTR(CNR_OG_CD, 1, 1)||'%'
+                         AND OG_LEVL_DV_CD = '1'
+                         AND BASE_YM = #{mngtYm}) AS CNR_OG_CD1
+             , '-' AS CNR_OG_CD
+        </if>
+        <if test='dgr1LevlOgId != null and dgr1LevlOgId != ""'>
+             /** 지역단 **/
+             , '' AS ICHR_PRTNR_NO
+             , '' AS ICHR_PRTNR_NM
+             , (SELECT MAX(OG_NM)
+                        FROM TB_OGBS_MM_OG_IZ
+                       WHERE OG_CD LIKE SUBSTR(CNR_OG_CD, 1, 1)||'%'
+                         AND OG_LEVL_DV_CD = '1'
+                         AND BASE_YM = #{mngtYm}) AS CNR_OG_CD1
+             , (SELECT MAX(OG_NM)
+                        FROM TB_OGBS_MM_OG_IZ
+                       WHERE OG_CD = CNR_OG_CD
+                         AND BASE_YM = #{mngtYm}) AS CNR_OG_CD
+        </if>
+             , SUM(NVL(SV_PROCS_RT_VST_ACC_N, 0)) AS SV_PROCS_RT_VST_ACC_N /** 배정계정 **/
+             , SUM(NVL(CTT_CT1, 0)) AS CTT_FSH_CT /** 컨택완료 **/
+             , (CASE WHEN SUM(NVL(SV_PROCS_RT_VST_ACC_N, 0)) != 0
+                     THEN (SUM(NVL(CTT_CT1, 0)) / SUM(NVL(SV_PROCS_RT_VST_ACC_N, 0))) * 100
+                     ELSE 0 END) AS CONTACT_RATE_01 /** 컨택율 **/
+             , SUM(NVL(CTT_CT3, 0)) AS CTT_CT3 /** 3일전 컨택완료 **/
+             , (CASE WHEN SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) > 0
+                     THEN ROUND((SUM(NVL(CTT_CT3, 0)) / SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0))) * 100, 1)
+                     ELSE 0 END) AS CONTACT_RATE_3BF /** BS완료 3일전 컨택율 **/
+             , (CASE WHEN SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) > 0 AND (CASE WHEN SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) > 0
+                                                                           THEN ROUND((SUM(NVL(CTT_CT3, 0)) / SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0))) * 100, 1)
+                                                                            ELSE 0 END) > 50
+                     THEN ROUND(((SUM(NVL(CTT_CT3, 0))) / SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) * 100) , 1) - 50
+                     ELSE 0 END) AS CONTACT_PLUS /** 3일전 컨택 가산점(50점) **/
+             , CASE WHEN ((SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) > 0) AND (TO_NUMBER(SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0))) <![CDATA[>]]> TO_NUMBER(SUM(NVL(CTT_FSH_CT,0)))))
+                    THEN SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) - SUM(NVL(CTT_FSH_CT, 0))
+                    ELSE 0 END AS DIS_CNTCT /** 미컨택 **/
+             , SUM(NVL(PROM_OBY_CT, 0)) AS PROM_OBY_CT /** 약속준수건수 **/
+             , (CASE WHEN NVL(SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)), 0) <![CDATA[>]]> 0
+                     THEN ROUND((NVL(SUM(NVL(PROM_OBY_CT, 0)), 0) / NVL(SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)), 0)) * 100, 1)
+                     ELSE 0 END) AS PROM_OBY_RAT /** 약속준수율 **/
+             , SUM(NVL(SCN_CT, 0)) AS SCN_CT /** 스캔건수 **/
+             , (CASE WHEN NVL(SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)), 0) > 0
+                     THEN TRUNC(((SUM(NVL(SCN_CT, 0))) / SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0))) * 100, 1)
+                     ELSE 0 END) AS SCN_RAT /** 스캔율 **/
+             , SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) AS SV_PROCS_RT_FSH_ACC_N /** 서비스처리완료 **/
+             , (CASE WHEN SUM(NVL(SV_PROCS_RT_VST_ACC_N, 0)) > 0
+                     THEN TRUNC((SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) / SUM(NVL(SV_PROCS_RT_VST_ACC_N, 0))) * 100, 1)
+                     ELSE 0 END) AS SV_PROCS_RT_VST_RAT /** 서비스처리율 **/
+             , SUM(NVL(HPCALL_RSP_CT, 0)) AS HPCALL_RSP_CT /** 해피콜 응답건수 **/
+             , (CASE WHEN SUM(NVL(HPCALL_FW_CT, 0)) != 0 AND SUM(NVL(HPCALL_FW_CT, 0)) <![CDATA[<]]> 50
+                     THEN TRUNC((SUM(NVL(HPCALL_RSP_CT, 0)) / SUM(NVL(HPCALL_FW_CT, 0)) * 100 )/ 2, 1)
+                     WHEN SUM(NVL(HPCALL_FW_CT, 0)) != 0 AND SUM(NVL(HPCALL_FW_CT, 0)) <![CDATA[>=]]> 50
+                     THEN TRUNC(SUM(NVL(HPCALL_RSP_CT, 0)) / SUM(NVL(HPCALL_FW_CT, 0)) * 100, 1)
+                     ELSE 0 END) AS HPCALL_RSP_RAT /** 해피콜 응답율 **/
+             , (CASE WHEN SUM(NVL(HPCALL_RSP_CT, 0)) > 0
+                     THEN NVL(TRUNC(SUM(NVL(HPCALL_AV_PC, 0)) / SUM(NVL(HPCALL_RSP_CT, 0)), 1), 0)
+                     ELSE 0 END) AS HPCALL_ADD_PC /** 해피콜 가산점수 **/
+             , ROUND((SELECT ((CASE WHEN SUM(NVL(CTT_FSH_CT,0)) != 0
+                                    THEN ((SUM(NVL(CTT_CT1, 0)) / SUM(NVL(CTT_FSH_CT, 0))))
+                                    ELSE 0 END)
+                            + (CASE WHEN SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) > 0 AND (
+                                    CASE WHEN SUM(NVL(CTT_FSH_CT, 0)) > 0
+                                         THEN ROUND((NVL(SUM(CTT_CT3), 0) / NVL (SUM(CTT_FSH_CT), 0)) * 100, 1)
+                                         ELSE 0 END) > 50
+                                    THEN ROUND(((SUM(SV_PROCS_RT_FSH_ACC_N) - SUM(CTT_CT3)) / SUM(SV_PROCS_RT_FSH_ACC_N) * 100) , 1) - 50
+                                    ELSE 0 END)
+                            + (CASE WHEN SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) > 0
+                                    THEN ROUND((SUM(NVL(PROM_OBY_CT, 0)) / SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0))) * 100, 1)
+                                    ELSE 0 END)
+                            + (CASE WHEN SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) > 0
+                                    THEN TRUNC(((SUM(NVL(SCN_CT, 0))) / SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0))) * 100, 1)
+                                    ELSE 0 END)
+                            + (CASE WHEN SUM(NVL(SV_PROCS_RT_VST_ACC_N, 0)) > 0
+                                    THEN TRUNC((SUM(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) / SUM(NVL(SV_PROCS_RT_VST_ACC_N, 0))) * 100, 1)
+                                    ELSE 0 END)
+                            + (CASE WHEN SUM(NVL(HPCALL_RSP_CT, 0)) > 0
+                                    THEN TRUNC (SUM(NVL(HPCALL_AV_PC, 0)) / SUM(NVL(HPCALL_RSP_CT, 0)), 1)
+                                    ELSE 0 END)
+                            )
+                        FROM TB_SVPD_CMPST_ICTR_MCBY_AGRG T2
+                        WHERE T2.MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm},'YYYYMM'),-1),'YYYYMM')
+                        <if test='dgr1LevlOgId == null or dgr1LevlOgId == ""'>
+                          /** 총괄단 **/
+                          AND SUBSTR(T2.CNR_OG_CD, 1, 1) = SUBSTR(T1.CNR_OG_CD, 1, 1)
+                        </if>
+                        <if test='dgr1LevlOgId != null and dgr1LevlOgId != ""'>
+                            /** 지역단 **/
+                          AND SUBSTR(T2.CNR_OG_CD, 1, 3) = SUBSTR(T1.CNR_OG_CD, 1, 3)
+                        </if>
+                        ), 1) AS BF_TOTAL_SCORE
+        FROM TB_SVPD_CMPST_ICTR_MCBY_AGRG T1
+       WHERE MNGT_YM = #{mngtYm}
+         AND T1.SV_DV_CD = '2'
+         AND SUBSTR(CNR_OG_CD, 1, 1) IN ('A','B','C','D','E','F','G','H')
+        <if test='dgr1LevlOgId == null or dgr1LevlOgId == ""'>
+            /** 총괄단 **/
+            GROUP BY MNGT_YM, SUBSTR(CNR_OG_CD, 1, 1)
+        </if>
+        <if test='dgr1LevlOgId != null and dgr1LevlOgId != ""'>
+            /** 총괄단 **/
+            AND SUBSTR(CNR_OG_CD, 1, 1) = SUBSTR(#{dgr1LevlOgId}, 1, 1)
+            <if test='dgr2LevlOgId == null or dgr2LevlOgId == ""'>
+                /** 지역단 **/
+                GROUP BY MNGT_YM, SUBSTR(CNR_OG_CD, 1, 1), SUBSTR(CNR_OG_CD, 1, 3), CNR_OG_CD
+            </if>
+            <if test='dgr2LevlOgId != null and dgr2LevlOgId != ""'>
+                /** 지역단 **/
+                AND SUBSTR(CNR_OG_CD, 1, 3) = SUBSTR(#{dgr2LevlOgId}, 1, 3)
+                GROUP BY MNGT_YM, SUBSTR(CNR_OG_CD, 1, 1), SUBSTR(CNR_OG_CD, 1, 3), CNR_OG_CD
+            </if>
+        </if>
+    </sql>
+
+    <sql id="refSql_BsServiceEvaluationTotalList">
+        SELECT MNGT_YM /** 관리년월 **/
+             , '' AS ICHR_PRTNR_NO /** 사번 **/
+             , '' AS ICHR_PRTNR_NM /** 성명 **/
+             , CNR_OG_CD1 AS CNR_OG_CD1 /** 총괄단 **/
+             , '소계' AS CNR_OG_CD /** 소속 **/
+             , SUM(SV_PROCS_RT_VST_ACC_N) AS SV_PROCS_RT_VST_ACC_N /** 배정계정 **/
+             , SUM(CTT_FSH_CT) AS CTT_FSH_CT /** 컨택완료 **/
+             , TO_CHAR(AVG(CONTACT_RATE_01), 'FM900.0') AS CONTACT_RATE_01 /** 컨택율 **/
+             , SUM(CTT_CT3) AS CTT_CT3 /** 3일전 컨택완료 **/
+             , TO_CHAR(AVG(CONTACT_RATE_3BF), 'FM900.0') AS CONTACT_RATE_3BF /** BS완료 3일전 컨택율 **/
+             , TO_CHAR(AVG(CONTACT_PLUS), 'FM900.0') AS CONTACT_PLUS /** 3일전 컨택가산점 **/
+             , SUM(DIS_CNTCT) AS DIS_CNTCT /** 미컨택 **/
+             , SUM(PROM_OBY_CT) AS PROM_OBY_CT /** 약속준수건수 **/
+             , TO_CHAR(AVG(PROM_OBY_RAT), 'FM900.0') AS PROM_OBY_RAT /** 약속준수율 **/
+             , SUM(SCN_CT) AS SCN_CT /** 스캔건수 **/
+             , TO_CHAR(AVG(SCN_RAT), 'FM900.0') AS SCN_RAT /** 스캔율 **/
+             , SUM(SV_PROCS_RT_FSH_ACC_N) AS SV_PROCS_RT_FSH_ACC_N /** 서비스처리완료건수 **/
+             , TO_CHAR(AVG(SV_PROCS_RT_VST_RAT), 'FM900.0') AS SV_PROCS_RT_VST_RAT /** 서비스처리율 **/
+             , SUM(HPCALL_RSP_CT) AS HPCALL_RSP_CT /** 해피콜 응답건수 **/
+             , TO_CHAR(AVG(HPCALL_RSP_RAT), 'FM900.0') AS HPCALL_RSP_RAT /** 해피콜 응답율 **/
+             , TO_CHAR(AVG(HPCALL_ADD_PC), 'FM900.0') AS HPCALL_ADD_PC /** 해피콜 가산점수 **/
+             , TO_CHAR(AVG(CONTACT_RATE_01) + AVG(CONTACT_PLUS) + AVG(PROM_OBY_RAT) + AVG(SCN_RAT) + AVG(SV_PROCS_RT_VST_RAT) + AVG(HPCALL_ADD_PC), 'FM900.0') AS TOTAL_SCORE /** 총점 **/
+             , 0 AS ALL_RANK /** 종합순위 **/
+             , SUM(BF_TOTAL_SCORE) AS BF_TOTAL_SCORE
+             , '' AS OVER_SCORE /** 증감점수 **/
+        FROM (
+            <include refid="com.kyowon.sms.wells.web.competence.evaluate.mapper.WpsdWelsMngerSvCmpstIctrMapper.refSql_BsServiceEvaluationList"/>
+            )
+        GROUP BY MNGT_YM, CNR_OG_CD1
+    </sql>
+    <select id="selectWelsMngerSvCmpstIctrTotalPages" resultType="com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdWelsMngerSvCmpstIctrDvo">
+        SELECT (SELECT MAX(OG_NM)
+                  FROM TB_OGBS_MM_OG_IZ
+                 WHERE OG_CD LIKE SUBSTR(CNR_OG_CD, 1, 1)||'%'
+                   AND OG_LEVL_DV_CD = '1'
+                   AND BASE_YM = #{mngtYm})  AS CNR_OG_CD  /* 센터조직코드 */
+             , (SELECT OG_NM
+                FROM TB_OGBS_MM_OG_IZ
+                WHERE OG_CD = CNR_OG_CD
+                  AND BASE_YM = #{mngtYm}) AS CNR_OG_CD1 /* 지역단조직코드 */
+             , CNR_OG_CD AS CNR_OG_CD2 /* 센터조직코드 */
+             , ICHR_PRTNR_NO /* 담당파트너번호 */
+             , ICHR_PRTNR_NM /* 담당파트너명 */
+             , RSB_NM /* 직책명 */
+             , SV_PROCS_RT_VST_ACC_N AS CTT_VST_ACC_N  /* 방문계정 */
+             , CTT_FSH_CT /* 컨택완료건수 */
+             , CTT_CT1 /* 1차컨택완료 */
+             , DGR1_CTT_RAT /* 1차컨택율 */
+             , CTT_CT2 /* 2차컨택완료 */
+             , DGR2_CTT_RAT /* 2차컨택율 */
+             , CTT_PC /* 컨택점수 */
+             , HPCALL_FW_CT /* 해피콜발송건수 */
+             , HPCALL_RSP_CT /* 해피콜응답건수 */
+             , HPCALL_RSP_RAT /* 해피콜응답율 */
+             , HPCALL_AV_PC /* 해피콜평균점수 */
+             , HPCALL_EVL_PC /* 해피콜평가점수 */
+             , SV_PROCS_RT_VST_ACC_N /* 서비스처리율방문계정 */
+             , SV_PROCS_RT_FSH_ACC_N /* 서비스처리율완료계정 */
+             , SV_PROCS_RT_VST_RAT /* 서비스처리율방문율 */
+             , SV_PROCS_RT_EVL_PC /* 서비스처리율평가점수 */
+             , PROM_OBY_CT /* 약속준수건수 */
+             , PROM_OBY_RAT /* 약속준수비율 */
+             , PROM_OBY_RAT AS PROM_OBY_PC /* 약속준수점수 */
+             , SCN_CT /* 스캔건수 */
+             , SCN_RAT /* 스캔비율 */
+             , SCN_PC /* 스캔점수 */
+             , TO_CHAR(CTT_PC + HPCALL_AV_PC + SV_PROCS_RT_EVL_PC + PROM_OBY_RAT + SCN_PC, 'FM900.0') AS TOTAL_SCORE /* 총점 */
+             , RANK() OVER(ORDER BY (CTT_PC + HPCALL_AV_PC + SV_PROCS_RT_EVL_PC + PROM_OBY_RAT + SCN_PC) DESC) AS ALL_RANK /* 종합순위 */
+          FROM (SELECT T1.CNR_OG_CD /* 센터조직코드 */
+                     , T1.ICHR_PRTNR_NO /* 담당파트너번호 */
+                     , T1.ICHR_PRTNR_NM /* 담당파트너명 */
+                     , T1.RSB_NM /* 직책명 */
+                     , NVL(T1.CTT_FSH_CT, 0) AS CTT_FSH_CT /* 컨택완료건수 */
+                     , NVL(T1.CTT_CT1, 0) AS CTT_CT1 /* 1차컨택완료 */
+                     , NVL(T1.DGR1_CTT_RAT, 0) * 100 AS DGR1_CTT_RAT /* 1차컨택율 */
+                     , NVL(T1.CTT_CT2, 0) AS CTT_CT2 /* 2차컨택완료 */
+                     , NVL(T1.DGR2_CTT_RAT, 0) * 100 AS DGR2_CTT_RAT /* 2차컨택율 */
+                     , ROUND((NVL(DGR1_CTT_RAT, 0) + NVL(DGR2_CTT_RAT, 0)) * 100, 1) AS CTT_PC /* 컨택점수 */
+                     , NVL(T1.HPCALL_FW_CT, 0) AS HPCALL_FW_CT /* 해피콜발송건수 */
+                     , NVL(T1.HPCALL_RSP_CT, 0) AS HPCALL_RSP_CT /* 해피콜응답건수 */
+                     , NVL(T1.HPCALL_RSP_RAT, 0) AS HPCALL_RSP_RAT /* 해피콜응답율 */
+                     , NVL(T1.HPCALL_AV_PC, 0) AS HPCALL_AV_PC /* 해피콜평균점수 */
+                     , NVL(T1.HPCALL_EVL_PC, 0) AS HPCALL_EVL_PC /* 해피콜평가점수 */
+                     , NVL(T1.SV_PROCS_RT_VST_ACC_N, 0) AS SV_PROCS_RT_VST_ACC_N /* 서비스처리율방문계정 */
+                     , NVL(T1.SV_PROCS_RT_FSH_ACC_N, 0) AS SV_PROCS_RT_FSH_ACC_N /* 서비스처리율완료계정 */
+                     , NVL(T1.SV_PROCS_RT_VST_RAT, 0) AS SV_PROCS_RT_VST_RAT /* 서비스처리율방문율 */
+                     , NVL(T1.SV_PROCS_RT_EVL_PC, 0) AS SV_PROCS_RT_EVL_PC /* 서비스처리율평가점수 */
+                     , NVL(T1.PROM_OBY_CT, 0) AS PROM_OBY_CT /* 약속준수건수 */
+                     , NVL(T1.PROM_OBY_RAT, 0) AS PROM_OBY_RAT /* 약속준수비율 */
+                     , NVL(T1.SCN_CT, 0) AS SCN_CT /* 스캔건수 */
+                     , NVL(T1.SCN_RAT, 0) AS SCN_RAT /* 스캔비율 */
+                     , NVL(T1.SCN_PC, 0) AS SCN_PC /* 스캔점수 */
+                  FROM TB_SVPD_CMPST_ICTR_MCBY_AGRG T1
+                 WHERE 1 = 1
+                   AND T1.MNGT_YM = #{mngtYm}
+                   AND T1.SV_DV_CD = '2'
+                 )
+    </select>
+</mapper>

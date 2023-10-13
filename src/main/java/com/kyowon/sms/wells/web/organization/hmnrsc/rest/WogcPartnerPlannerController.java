@@ -197,4 +197,21 @@ public class WogcPartnerPlannerController {
     ) throws Exception {
         return SaveResponse.builder().processCount(service.updatePlannerQualificationCancel(dto)).build();
     }
+
+    @ApiOperation(value = "매니저 자격관리 변경내역 저장(지급일자, 지급내역)", notes = "매니저 자격관리 상세현황의 지급일자, 지급금액 정보를 저장한다.")
+    @PutMapping("/planner-qualification-paymentInfo")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "body", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "body", required = true),
+        @ApiImplicitParam(name = "qlfDvCd", value = "자격구분코드", paramType = "body", required = true),
+        @ApiImplicitParam(name = "strtdt", value = "시작일자", paramType = "body", required = true),
+        @ApiImplicitParam(name = "pymdt", value = "지급일자", paramType = "body", required = true),
+        @ApiImplicitParam(name = "dsbAmt", value = "지급금액", paramType = "body", required = true)
+    })
+    public SaveResponse editPlannerQualificationPaymentInfo(
+        @Valid @RequestBody
+        List<SaveQulificationReq> dtos
+    ) throws Exception {
+        return SaveResponse.builder().processCount(service.editPlannerQualificationPaymentInfo(dtos)).build();
+    }
 }

@@ -51,6 +51,81 @@ public class WsnaManagerBsConsumableService {
         return bldMapper.selectBuildingList(mngtYm);
     }
 
+    public List<SearchRes> getManagerBsConsumable(SearchReq dto) {
+        List<WsnaManagerBsConsumableDvo> bldInfos = mapper.selectBuildings(dto);
+        List<WsnaManagerBsConsumableDvo> bldAndItemsInfos = new ArrayList<>();
+        Iterator<WsnaManagerBsConsumableDvo> it = bldInfos.iterator();
+
+        while (it.hasNext()) {
+            WsnaManagerBsConsumableDvo bfBldInfo = it.next();
+            WsnaManagerBsConsumableDvo aftBldInfo;
+            List<WsnaManagerBsConsumableDvo> itemInfos;
+
+            aftBldInfo = bfBldInfo;
+
+            List<String> fxnItemQtys = new ArrayList<>();
+            List<String> aplcItemQtys = new ArrayList<>();
+
+            // 매니저 별 기등록 품목 수량 조회
+            itemInfos = mapper.selectItemQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
+
+            if (CollectionUtils.isEmpty(itemInfos)) {
+                // 매니저 별 미등록 품목 계산 수량 조회
+                itemInfos = mapper.selectItemFirstQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
+
+                String mngtYear = dto.mngtYm().substring(0, 4);
+                String mngtMonth = "";
+                mngtMonth = dto.mngtYm().substring(4);
+                mngtMonth = mngtMonth.startsWith("0") ? " " + mngtMonth.substring(1) : mngtMonth;
+
+                BizAssert.isTrue(
+                    itemInfos.size() > 0, "MSG_ALT_BFSVC_CSMB_DDLV_BASE",
+                    new String[] {mngtYear, mngtMonth}
+                );
+
+                for (WsnaManagerBsConsumableDvo itemInfo : itemInfos) {
+                    switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
+                        case "1" -> {
+                            fxnItemQtys.add(itemInfo.getFxnDdlvUnitQty());
+                        }
+
+                        case "2" -> {
+                            aplcItemQtys.add(itemInfo.getAplcDdlvUnitQty());
+                        }
+                    }
+                }
+
+                aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
+                aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
+                aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
+                bldAndItemsInfos.add(aftBldInfo);
+
+            } else {
+                for (WsnaManagerBsConsumableDvo itemInfo : itemInfos) {
+                    switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
+                        case "1" -> {
+                            fxnItemQtys.add(itemInfo.getBfsvcCsmbDdlvQty());
+                        }
+
+                        case "2" -> {
+                            aplcItemQtys.add(itemInfo.getBfsvcCsmbDdlvQty());
+                        }
+                    }
+                }
+
+                aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
+                aftBldInfo.setBfsvcCsmbDdlvStatCd(itemInfos.get(0).getBfsvcCsmbDdlvStatCd());
+                aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
+                aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
+                bldAndItemsInfos.add(aftBldInfo);
+            }
+        }
+
+        List<SearchRes> rtnDto = converter.mapAllDvoToSearchRes(bldAndItemsInfos);
+
+        return rtnDto;
+    }
+
     public PagingResult<SearchRes> getManagerBsConsumablePages(SearchReq dto, PageInfo pageInfo) {
         PagingResult<WsnaManagerBsConsumableDvo> bldInfos = mapper.selectBuildings(dto, pageInfo);
         List<WsnaManagerBsConsumableDvo> bldAndItemsInfos = new ArrayList<>();
@@ -148,55 +223,65 @@ public class WsnaManagerBsConsumableService {
     public int createManagerBsConsumables(List<CreateReq> dtos) {
         List<WsnaManagerBsConsumableDvo> dvos = converter.mapCreateReqToNewManagerBsConsumable(dtos);
 
-        return mapper.mergeManagerBsConsumables(dvos);
+        for (WsnaManagerBsConsumableDvo dvo : dvos) {
+            if (Integer.parseInt(dvo.getBfsvcCsmbDdlvQty()) > 0) {
+                mapper.mergeManagerBsConsumables(dvo);
+            }
+        }
+
+        return 1;
     }
 
     @Transactional
-    public int createManagerBsConsumablesRequest(String mngtYm) {
+    public int createManagerBsConsumablesRequest(List<CreateOstrReq> dtos) {
         String ostrAkNo = null;
         String ostrAkRgstDt = DateUtil.getNowDayString();
+        String mngtYm = dtos.get(0).mngtYm();
+        List<String> strWareNos = dtos.stream().map(CreateOstrReq::strWareNo).toList();
 
-        List<WsnaManagerBsConsumableDvo> dvos = mapper.selectBfsvcCsmbDdlvIzByMngtYm(mngtYm);
+        for (String strWareNo : strWareNos) {
+            List<WsnaManagerBsConsumableDvo> dvos = mapper.selectBfsvcCsmbDdlvIzByMngtYm(mngtYm, strWareNo);
 
-        if (!ObjectUtils.isEmpty(dvos)) {
-            SFLEXContext context = SFLEXContextHolder.getContext();
-            UserSessionDvo userSession = context.getUserSession();
-            ostrAkNo = mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_BS, ostrAkRgstDt);
-            int ostrAkSn = 1;
+            if (!ObjectUtils.isEmpty(dvos)) {
+                SFLEXContext context = SFLEXContextHolder.getContext();
+                UserSessionDvo userSession = context.getUserSession();
+                ostrAkNo = mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_BS, ostrAkRgstDt);
+                int ostrAkSn = 1;
 
-            List<WsnaBsConsumablesAskReqDvo> reqDvos = new ArrayList<>(dvos.size());
+                List<WsnaBsConsumablesAskReqDvo> reqDvos = new ArrayList<>(dvos.size());
 
-            for (WsnaManagerBsConsumableDvo dvo : dvos) {
-                WsnaBsConsumablesAskReqDvo reqDvo = new WsnaBsConsumablesAskReqDvo();
+                for (WsnaManagerBsConsumableDvo dvo : dvos) {
+                    WsnaBsConsumablesAskReqDvo reqDvo = new WsnaBsConsumablesAskReqDvo();
 
-                reqDvo.setOstrAkNo(ostrAkNo);
-                reqDvo.setOstrAkSn(ostrAkSn);
-                reqDvo.setOstrAkTpCd(OSTR_AK_TP_CD_BS);
-                reqDvo.setOstrAkRgstDt(ostrAkRgstDt);
-                reqDvo.setIostAkDvCd(IOST_AK_DV_CD_WELLS);
-                reqDvo.setWareMngtPrtnrNo(userSession.getEmployeeIDNumber());
-                reqDvo.setWareMngtPrtnrOgTpCd(userSession.getOgTpCd());
-                reqDvo.setLgstSppMthdCd(LGST_SPP_MTHD_CD_CRGO);
-                reqDvo.setLgstWkMthdCd(LGST_WK_MTHD_CD_MNGER);
-                reqDvo.setItmPdCd(dvo.getCsmbPdCd());
-                reqDvo.setItmGdCd(ITM_GD_CD_A);
-                reqDvo.setOstrOjWareNo(OSTR_OJ_WARE_NO_PAJU);
-                reqDvo.setStrWareNo(dvo.getStrWareNo());
+                    reqDvo.setOstrAkNo(ostrAkNo);
+                    reqDvo.setOstrAkSn(ostrAkSn);
+                    reqDvo.setOstrAkTpCd(OSTR_AK_TP_CD_BS);
+                    reqDvo.setOstrAkRgstDt(ostrAkRgstDt);
+                    reqDvo.setIostAkDvCd(IOST_AK_DV_CD_WELLS);
+                    reqDvo.setWareMngtPrtnrNo(userSession.getEmployeeIDNumber());
+                    reqDvo.setWareMngtPrtnrOgTpCd(userSession.getOgTpCd());
+                    reqDvo.setLgstSppMthdCd(LGST_SPP_MTHD_CD_CRGO);
+                    reqDvo.setLgstWkMthdCd(LGST_WK_MTHD_CD_MNGER);
+                    reqDvo.setItmPdCd(dvo.getCsmbPdCd());
+                    reqDvo.setItmGdCd(ITM_GD_CD_A);
+                    reqDvo.setOstrOjWareNo(OSTR_OJ_WARE_NO_PAJU);
+                    reqDvo.setStrWareNo(dvo.getStrWareNo());
 
-                reqDvos.add(reqDvo);
-                ostrAkSn++;
+                    reqDvos.add(reqDvo);
+                    ostrAkSn++;
+                }
+
+                // BS소모품배부내역 OSTR_NO, OSTR_SN UPDATE
+                editBfsvcCsmbDdlvIzOstrAkNoSn(reqDvos, mngtYm);
+
+                // 출고요청 및 배송요청
+                bsConsumablesAskService.createBsConsumablesAsk(reqDvos, mngtYm, BFSVC_CSMB_DDLV_OJ_CD_MNGER);
+
+                // BS소모품배부상태코드 UPDATE
+                editBfsvcCsmbDdlvIzDdlvStatCd(strWareNo, mngtYm);
+            } else {
+                throw new BizException("MSG_TXT_AK_NO_DATA");
             }
-
-            // BS소모품배부내역 OSTR_NO, OSTR_SN UPDATE
-            editBfsvcCsmbDdlvIzOstrAkNoSn(reqDvos, mngtYm);
-
-            // 출고요청 및 배송요청
-            bsConsumablesAskService.createBsConsumablesAsk(reqDvos, mngtYm, BFSVC_CSMB_DDLV_OJ_CD_MNGER);
-
-            // BS소모품배부상태코드 UPDATE
-            editBfsvcCsmbDdlvIzDdlvStatCd(reqDvos, mngtYm);
-        } else {
-            throw new BizException("MSG_TXT_AK_NO_DATA");
         }
 
         return 1;
@@ -217,18 +302,8 @@ public class WsnaManagerBsConsumableService {
         }
     }
 
-    private void editBfsvcCsmbDdlvIzDdlvStatCd(List<WsnaBsConsumablesAskReqDvo> reqDvos, String mngtYm) {
-        for (WsnaBsConsumablesAskReqDvo reqDvo : reqDvos) {
-            WsnaManagerBsConsumableDvo dvo = new WsnaManagerBsConsumableDvo();
-
-            dvo.setMngtYm(mngtYm);
-            dvo.setCsmbPdCd(reqDvo.getItmPdCd());
-            dvo.setBfsvcCsmbDdlvOjCd("2");
-            dvo.setStrWareNo(reqDvo.getStrWareNo());
-            dvo.setOstrAkNo(reqDvo.getOstrAkNo());
-            dvo.setOstrAkSn(reqDvo.getOstrAkSn());
-
-            mapper.updateBfsvcCsmbDdlvIzDdlvStatCd(dvo);
-        }
+    private void editBfsvcCsmbDdlvIzDdlvStatCd(String strWareNo, String mngtYm) {
+        // 품목별 단건 update에서 매니저별 일괄 update로 변경
+        mapper.updateBfsvcCsmbDdlvIzDdlvStatCd(strWareNo, mngtYm);
     }
 }

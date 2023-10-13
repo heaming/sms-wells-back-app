@@ -6,12 +6,12 @@ import com.sds.sflex.system.config.masking.MaskingType;
 public class WfeyNewChannelBaseDto {
 
     public record SearchNewChannelBaseReq(
-        String apyStrtdt,
-        String pdCd,
-        String sellTpCd,
-        String svPrd,
-        String pmotCd,
-        String feecDvCd
+        String apyStrtdt, /* 적용시작일 */
+        String pdCd, /* 상품코드 */
+        String sellTpCd, /* 판매유형 */
+        String svPrd, /* bs주기 */
+        String pmotCd, /* 할인제도 */
+        String feecDvCd /* 채널구분 */
 
     ) {}
 

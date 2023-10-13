@@ -23,6 +23,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0296P01 산출 제외품목 등록 Controller
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-06-23
+ */
+
 @Api(tags = "[WSNA] 산출 제외품목 등록")
 @Validated
 @RestController
@@ -44,7 +53,7 @@ public class WsnaComputationExcludeItemController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "inqrYm", value = "조회년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "6"),
-        @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]"),
+        @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]", dataType = "array"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
     })
@@ -60,7 +69,7 @@ public class WsnaComputationExcludeItemController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "inqrYm", value = "조회년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "6"),
-        @ApiImplicitParam(name = "itmPdCd", value = "품목상품코드", paramType = "query", example = "WM07104077"),
+        @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]", dataType = "array"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
     })

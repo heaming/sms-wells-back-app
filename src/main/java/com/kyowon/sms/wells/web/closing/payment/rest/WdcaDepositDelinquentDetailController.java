@@ -25,13 +25,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Api(tags = "[WDCA] 입금 연체 상세")
+@Api(tags = "[WDCA] 입금 연체 상세 - W-CL-U-0017M01")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = DcClosingConst.COMMON_URL_V1 + "/deposit-delinquent-details")
 public class WdcaDepositDelinquentDetailController {
     private final WdcaDepositDelinquentDetailService service;
 
+    /**
+     * 입금 연체 상세 조회
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "입금 연체 상세", notes = "조회조건에 따른 입금 연체 상세를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),
@@ -56,6 +61,11 @@ public class WdcaDepositDelinquentDetailController {
         return service.getDepositDelinquentDetails(dto);
     }
 
+    /**
+     * 입금 연체 상세-계약별 상세조회
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "입금 연체 상세-계약별 상세조회", notes = "조회조건에 따른 매출 채권(계약상세번호 Level)의 매출 / 입금/ 연체정보를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),
@@ -81,7 +91,12 @@ public class WdcaDepositDelinquentDetailController {
         return service.getDepositDelinquentContractPages(dto, pageInfo);
     }
 
-    @ApiOperation(value = "입금 연체 상세-계약별 상세조회", notes = "조회조건에 따른 매출 채권(계약상세번호 Level)의 매출 / 입금/ 연체정보를 조회")
+    /**
+     * 입금 연체 상세-계약별 상세조회 엑셀 다운로드
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "입금 연체 상세-계약별 상세조회 엑셀 다운로드", notes = "조회조건에 따른 매출 채권(계약상세번호 Level)의 매출 / 입금/ 연체정보를 조회를 엑셀 다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query"),
         @ApiImplicitParam(name = "dlqDv", value = "연체구분", paramType = "query"),

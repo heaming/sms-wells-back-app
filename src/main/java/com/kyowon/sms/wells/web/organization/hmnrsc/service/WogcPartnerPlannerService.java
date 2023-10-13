@@ -320,8 +320,8 @@ public class WogcPartnerPlannerService {
 
         String newStrtdt = DateUtil.getNowDayString();
         if (detailList.get(0).qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_1.getCode())) {
-            if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) >= 0
-                && DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).enddt()) <= 0) {
+            if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) <= 0
+                && DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).enddt()) >= 0) {
                 // 승급(현재)
 
                 // 종료처리
@@ -332,7 +332,7 @@ public class WogcPartnerPlannerService {
                 qualificationDvo.setEnddt(DateUtil.addDays(newStrtdt, -1));
                 mapper.updatePlannerQualificationChange(qualificationDvo);
             } else if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) <= 0
-                && DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).enddt()) <= 0) {
+                && DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).enddt()) >= 0) {
                 // 승급(예정)
 
                 // 삭제처리
@@ -415,6 +415,26 @@ public class WogcPartnerPlannerService {
                     BizAssert.isTrue(processCount == 1, "MSG_ALT_PITM_STOC_MINUS_EXST_PROCS_IMPSB");
                 }
             }
+        }
+
+        return processCount;
+    }
+
+    /**
+     * 매니저 자격관리 변경내역 저장(지급일자, 지급내역)
+     * @param dto
+     * @return
+     * @throws Exception
+     */
+    @Transactional
+    public int editPlannerQualificationPaymentInfo(List<SaveQulificationReq> dtos) throws Exception {
+        int processCount = 0;
+
+        for (SaveQulificationReq dto : dtos) {
+            WogcPartnerPlannerQualificationDvo qualificationDvo = converter
+                .mapSaveQulificationReqToPartnerPlannerQualificationDvo(dto);
+
+            processCount = mapper.updatePlannerQualificationChange(qualificationDvo);
         }
 
         return processCount;

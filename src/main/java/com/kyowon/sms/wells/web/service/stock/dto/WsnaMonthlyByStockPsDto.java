@@ -22,38 +22,55 @@ public class WsnaMonthlyByStockPsDto {
     @Builder
     @ApiModel("WsnaMonthlyByStockPsDto-SearchWareReq")
     public record SearchWareReq(
+        // 기준년월
         @NotBlank
         String baseYm,
+        // 창고구분
         @NotBlank
         String wareDvCd,
+        // 상위창고번호
         String hgrWareNo
     ) {}
 
     @Builder
     @ApiModel("WsnaMonthlyByStockPsDto-SearchWareRes")
     public record SearchWareRes(
+        // 창고번호
         String wareNo,
+        // 창고명
         String wareNm
     ) {}
 
     @Builder
     @ApiModel("WsnaMonthlyByStockPsDto-SearchReq")
     public record SearchReq(
-
+        // 기준년월
         @NotBlank
         String baseYm,
+        // 창고구분
         @NotBlank
         String wareDvCd,
+        // 상위창고번호
         String hgrWareNo,
+        // 창고번호
         String wareNo,
+        // 창고상세구분
         String wareDtlDvCd,
+        // 등급
         String itmGdCd,
+        // 사용여부
         String useYn,
+        // 품목종류
         String itmKndCd,
+        // 품목코드 리스트
         List<String> itmPdCds,
+        // 품목코드
         String itmPdCd,
+        // 시작SAP코드
         String strtSapCd,
+        // 종료SAP코드
         String endSapCd,
+        // 자재구분
         String matUtlzDvCd
 
     ) {}
@@ -61,9 +78,11 @@ public class WsnaMonthlyByStockPsDto {
     @Builder
     @ApiModel("WsnaMonthlyByStockPsDto-SearchRes")
     public record SearchRes(
-
+        // SAP코드
         String sapMatCd,
+        // 품목코드
         String itmPdCd,
+        // 품목명
         String pdNm,
         // 구매입고
         BigDecimal prchsQty,

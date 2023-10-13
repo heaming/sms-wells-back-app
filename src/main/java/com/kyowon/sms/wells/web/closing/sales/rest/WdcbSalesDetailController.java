@@ -21,7 +21,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Api(tags = "[WDCB] 매출 상세정보")
+@Api(tags = "[WDCB] 매출 상세정보(W-CL-U-0028P02)")
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -30,6 +30,11 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbSalesDetailController {
     private final WdcbSalesDetailService service;
 
+    /**
+     * 매출 상세정보 조회
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "매출 상세정보", notes = "조회조건에 따른 계약상세번호 별 매출상세정보를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
@@ -44,6 +49,11 @@ public class WdcbSalesDetailController {
         return service.getSalesDetailRental(dto);
     }
 
+    /**
+     * 매출 상세정보 조회
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "매출 상세정보", notes = "조회조건에 따른 계약상세번호 별 매출상세정보를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
@@ -58,6 +68,11 @@ public class WdcbSalesDetailController {
         return service.getSalesDetailMembership(dto);
     }
 
+    /**
+     * 매출 상세정보 조회
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "매출 상세정보", notes = "조회조건에 따른 계약상세번호 별 매출상세정보를 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),

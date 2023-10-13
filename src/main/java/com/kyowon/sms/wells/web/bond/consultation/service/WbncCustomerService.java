@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchRes;
 import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncCustomerDvo;
 import com.kyowon.sms.wells.web.bond.consultation.mapper.WbncCustomerMapper;
+import com.sds.sflex.system.config.core.service.UserService;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -48,6 +51,7 @@ public class WbncCustomerService {
 
     private final WbncCustomerMapper mapper;
     private final WbncCustomerConverter converter;
+    private final UserService user;
 
     /**
      * 기준년월 조회
@@ -128,12 +132,17 @@ public class WbncCustomerService {
         int processCount = 0;
         WbncCustomerDvo dvo = converter.mapSaveReqToWbncCounselDvo(dto);
 
+        if (user.getUserCustomParam() != null) {
+            dvo.setRdgId(user.getUserCustomParam().get("recId").toString());
+        }
+
         processCount = mapper.insertCounsel(dvo);
         BizAssert.isTrue(processCount > 0, "MSG_ALT_SVE_ERR");
 
         processCount = mapper.insertPromise(dvo);
         BizAssert.isTrue(processCount > 0, "MSG_ALT_SVE_ERR");
 
+        user.setUserCustomParam(null);
         return processCount;
     }
 
@@ -171,6 +180,11 @@ public class WbncCustomerService {
             in.close();
 
             result = response.toString();
+
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put("recId", result);
+
+            user.setUserCustomParam(paramMap);
         } catch (Exception e) {
             e.printStackTrace();
 

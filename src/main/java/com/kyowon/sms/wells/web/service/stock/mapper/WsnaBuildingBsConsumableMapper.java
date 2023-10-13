@@ -29,13 +29,13 @@ public interface WsnaBuildingBsConsumableMapper {
 
     List<SearchBldRes> selectBuildingList(String mngtYm);
 
-    int mergeBuildingBsConsumables(List<CreateReq> dto);
+    int mergeBuildingBsConsumables(CreateReq dto);
 
-    List<WsnaBuildingBsConsumableDvo> selectBfsvcCsmbDdlvIzByMngtYm(String mngtYm);
+    List<WsnaBuildingBsConsumableDvo> selectBfsvcCsmbDdlvIzByMngtYm(String mngtYm, String strWareNo);
 
     String selectNewOstrAkNo(String ostrAkTpCd, String ostrAkRgstDt);
 
     int updateBfsvcCsmbDdlvIzOstrAkNoSn(WsnaBuildingBsConsumableDvo dvo);
 
-    int updateBfsvcCsmbDdlvIzDdlvStatCd(WsnaBuildingBsConsumableDvo dvo);
+    int updateBfsvcCsmbDdlvIzDdlvStatCd(String strWareNo, String mngtYm);
 }

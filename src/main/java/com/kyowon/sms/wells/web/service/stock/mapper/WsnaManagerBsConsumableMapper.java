@@ -15,6 +15,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WsnaManagerBsConsumableMapper {
     List<SearchItmRes> selectItems(String mngtYm);
 
+    List<WsnaManagerBsConsumableDvo> selectBuildings(SearchReq dto);
+
     PagingResult<WsnaManagerBsConsumableDvo> selectBuildings(SearchReq dto, PageInfo pageInfo);
 
     List<WsnaManagerBsConsumableDvo> selectItemQtys(String mngtYm, String prtnrNo);
@@ -27,13 +29,13 @@ public interface WsnaManagerBsConsumableMapper {
 
     int mergeManagerBsConsumableAplcClose(WsnaManagerBsConsumableDvo dvo);
 
-    int mergeManagerBsConsumables(List<WsnaManagerBsConsumableDvo> dvos);
+    int mergeManagerBsConsumables(WsnaManagerBsConsumableDvo dvo);
 
-    List<WsnaManagerBsConsumableDvo> selectBfsvcCsmbDdlvIzByMngtYm(String mngtYm);
+    List<WsnaManagerBsConsumableDvo> selectBfsvcCsmbDdlvIzByMngtYm(String mngtYm, String strWareNo);
 
     String selectNewOstrAkNo(String ostrAkTpCd, String ostrAkRgstDt);
 
     int updateBfsvcCsmbDdlvIzOstrAkNoSn(WsnaManagerBsConsumableDvo dvo);
 
-    int updateBfsvcCsmbDdlvIzDdlvStatCd(WsnaManagerBsConsumableDvo dvo);
+    int updateBfsvcCsmbDdlvIzDdlvStatCd(String strWareNo, String mngtYm);
 }

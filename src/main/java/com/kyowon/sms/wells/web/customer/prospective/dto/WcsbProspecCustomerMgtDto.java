@@ -1,15 +1,27 @@
 package com.kyowon.sms.wells.web.customer.prospective.dto;
 
-import com.sds.sflex.common.utils.DbEncUtil;
-import com.sds.sflex.common.utils.StringUtil;
-import io.swagger.annotations.ApiModel;
-import lombok.Builder;
-import org.apache.commons.lang.StringUtils;
+import java.math.BigDecimal;
+import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
-import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.common.utils.StringUtil;
+
+import io.swagger.annotations.ApiModel;
+import lombok.Builder;
+
+/**
+ * <pre>
+ * 고객 >> 가망고객 Dto
+ * </pre>
+ *
+ * @author  junho.bae
+ * @since 2023-07-01
+ */
 
 public class WcsbProspecCustomerMgtDto {
 
@@ -42,7 +54,7 @@ public class WcsbProspecCustomerMgtDto {
         String freDgnsNm, /* 모집형태 */
         //        String cstType, /* 고객구분 - 최근 6개월 실적 존재 여부 확인 */
         String pspcCstKnm, /* 이름 */
-        String sexDvCd,
+        String sexDvCd, /* 성별 */
         String sexDvCdNm, /* 성별 */
         String bryyMmdd, /* 생년월일 */
         String cralLocaraTno,
@@ -66,15 +78,15 @@ public class WcsbProspecCustomerMgtDto {
         String phNo,
         String fstRgstDtm2, /* 신청일 */
 
-        String chnlDvNm, /*  */
-        String chnlDtlNm, /*  */
-        String chnlDvCd, /*  */
+        String chnlDvNm, /* 채널구분명 */
+        String chnlDtlNm, /* 채널구분상세 */
+        String chnlDvCd, /* 채널구분코드 */
         String chnlDtlCd, /*  */
 
-        String dtrcNm, /*  */
-        String dtrcOgNm, /*  */
-        String ogAsnStatCd, /*  */
-        String ogAsnStatNm, /*  */
+        String dtrcNm, /* 지국장명 */
+        String dtrcOgNm, /* 지국명 */
+        String ogAsnStatCd, /* 조직배정상태코드 */
+        String ogAsnStatNm, /* 조직배정상태코드명 */
 
         String fstRgstUsrId, /* 최초등록사용자ID */
         String fstRgstUsrNm, /* 최초등록사용자명 */
@@ -164,11 +176,9 @@ public class WcsbProspecCustomerMgtDto {
 
         String newAdrZip, /* 우편번호 */
         String custAdr, /* 주소 */
-        String basAdr,
-        String dtlAdr,
+        String basAdr, /* 기본주소 */
+        String dtlAdr, /* 상세주소 */
 
-        // TODO 명확한 게 없어 우선 다 주석처리
-        //        String saveGubun, /* I/F 넘어올때 kwlink */
         String freeExpnYn, /* 무료체험 여부 T5*/
         String freExpnRcpDtm, /* 무료체험 신청일자 T5*/
         String freDgnsNm /* 모집형태 */
@@ -252,8 +262,8 @@ public class WcsbProspecCustomerMgtDto {
 
         String newAdrZip, /* 우편번호 */
         String custAdr, /* 주소 */
-        String basAdr,
-        String dtlAdr,
+        String basAdr, /* 기본주소 */
+        String dtlAdr, /* 상세주소 */
 
         String freeExpnYn, /* 무료체험 여부 T5*/
         String freExpnRcpDtm, /* 무료체험 신청일자 T5*/
@@ -317,7 +327,7 @@ public class WcsbProspecCustomerMgtDto {
     @ApiModel(value = "WcsbProspecCustomerMgtDto-SearchRecruitTypeReq")
     public record SearchRecruitTypeReq(
         String hgrFreDgnsTpCd, /* 상위 무진코드 */
-        String freDgnsFomDvCd
+        String freDgnsFomDvCd /* 무료진단형태구분코드 */
 
     ) {}
 

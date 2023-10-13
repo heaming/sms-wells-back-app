@@ -11,9 +11,12 @@ import java.util.List;
 
 @Mapper
 public interface WfeyNewChannelBaseMapper {
+    /* 상품별 신채널수수료 기준관리 - 조회 */
     List<SearchNewChannelBaseRes> selectNewChannelBaseList(SearchNewChannelBaseReq req);
     PagingResult<SearchNewChannelBaseRes> selectNewChannelBaseList(SearchNewChannelBaseReq req, PageInfo pageInfo);
+    /* 상품별 신채널수수료 기준관리 - 정합성체크 */
     int selectValidNewChannelBase(WfeyNewChannelBaseDvo req);
+    /* 상품별 신채널수수료 기준관리 - 저장 */
     int insertNewChannelBase(WfeyNewChannelBaseDvo req);
     int updateNewChannelBase(WfeyNewChannelBaseDvo req);
     int deleteNewChannelBase(WfeyNewChannelBaseDvo req);

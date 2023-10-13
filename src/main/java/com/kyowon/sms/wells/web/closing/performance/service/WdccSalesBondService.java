@@ -35,6 +35,7 @@ public class WdccSalesBondService {
         param.put("slClEYm", req.slClYm());
         param.put("agrgDv", req.agrgDv());
         param.put("sellTpCd", req.sellTpCd());
+        param.put("sellTpCdSub", (StringUtils.equals(req.sellTpCd(), "10") ? "2" : req.sellTpCd()));
         param.put("sellTpDtlCd", req.sellTpDtlCd());
         param.put("sellChnlDtl", req.sellChnlDtl());
         param.put("cntrNo", req.cntrNo());

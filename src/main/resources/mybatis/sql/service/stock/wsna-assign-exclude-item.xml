@@ -3,13 +3,13 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaAssignExcludeItemMapper">
 
     <select id="selectWarehouses" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo">
-        SELECT WARE_NO
-             , WARE_NM
+        SELECT WARE_NO   /* 창고번호 */
+             , WARE_NM   /* 창고명 */
           FROM TB_SVST_MCBY_WARE_IZ
          WHERE DTA_DL_YN      = 'N'
            AND APY_YM         = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND WARE_DV_CD     = '3'
-           AND WARE_DTL_DV_CD = '30'
+           AND WARE_DV_CD     = '3'    /* 영업센터 */
+           AND WARE_DTL_DV_CD = '30'   /* 영업센터 조직창고 */
          ORDER BY TO_NUMBER(SORT_DV_VAL), WARE_NM, HGR_WARE_NO, WARE_NO
     </select>
 
@@ -29,9 +29,9 @@
              , TO_CHAR(TO_NUMBER(D1.SAP_MAT_CD))                                             AS SAP_MAT_CD       /* SAP코드 */
              , CASE WHEN D3.ITM_PD_CD IS NOT NULL THEN 'Y'
                     ELSE 'N'
-               END                                                                           AS ORG_CHK          /* Row 체크여부 */
-          FROM TB_PDBS_PD_BAS D1
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2
+               END                                                                           AS ORG_CHK          /* Row 체크여부 (삭제를 판단하기 위한 용도) */
+          FROM TB_PDBS_PD_BAS D1                       /* 상품기본 */
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2         /* 상품각사속성상세 */
             ON D2.PD_CD = D1.PD_CD
           LEFT OUTER JOIN TB_SVST_QOM_ASN_EXCD_IZ D3   /* 물량배정제외내역 */
             ON D3.ITM_PD_CD      = D1.PD_CD
@@ -44,7 +44,7 @@
            AND D1.PD_TP_CD           = 'M'
            AND D2.DTA_DL_YN          = 'N'
            AND D2.PD_EXTS_PRP_GRP_CD = 'PART'
-           AND D2.PD_PRP_VAL19      IN ('4', '5', '6')
+           AND D2.PD_PRP_VAL19      IN ('4', '5', '6')   /* 상품, 필터, A/S자재 */
         <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
            AND D2.PD_PRP_VAL19       = #{itmKndCd}
         </if>
@@ -77,15 +77,15 @@
          MERGE INTO TB_SVST_QOM_ASN_EXCD_IZ TB_TGT   /* 물량배정제외내역 */
          USING
              (
-               SELECT #{asnExcdDvCd}                         AS ASN_EXCD_DV_CD
-                    , #{strWareNo}                           AS STR_WARE_NO
-                    , #{itmPdCd}                             AS ITM_PD_CD
-                    , #{itmKndCd}                            AS ITM_KND_CD
+               SELECT #{asnExcdDvCd}                         AS ASN_EXCD_DV_CD   /* 배정제외구분코드 */
+                    , #{strWareNo}                           AS STR_WARE_NO      /* 입고창고번호 */
+                    , #{itmPdCd}                             AS ITM_PD_CD        /* 품목상품코드 */
+                    , #{itmKndCd}                            AS ITM_KND_CD       /* 품목종류코드 */
                     , ( SELECT NVL(MAX(ASN_EXCD_SN), 0) + 1
                           FROM TB_SVST_QOM_ASN_EXCD_IZ
                          WHERE ASN_EXCD_DV_CD = #{asnExcdDvCd}
                            AND STR_WARE_NO    = #{strWareNo}
-                           AND ITM_PD_CD      = #{itmPdCd} ) AS ASN_EXCD_SN
+                           AND ITM_PD_CD      = #{itmPdCd} ) AS ASN_EXCD_SN      /* 배정제외일련번호 */
                  FROM DUAL
              ) TB_SRC
             ON

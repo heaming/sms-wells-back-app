@@ -5,12 +5,7 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.customer.prospective.dto.WcsbNewReceiptMgtDto;
 import com.kyowon.sms.wells.web.customer.prospective.dto.WcsbNewReceiptMgtDto.AssignReq;
@@ -28,6 +23,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 고객 >>  신규접수 배정관리 Controller
+ * </pre>
+ *
+ * @author junho.bae
+ * @since 2023-07-01
+ */
 @RestController
 @Api(tags = "[WCSB] 고객 >> 가망고객관리 >> 신규접수 배정관리")
 @RequestMapping(value = CsCustomerConst.REST_URL_V1 + "/receipts")
@@ -40,6 +43,13 @@ public class WcsbNewReceiptMgtController {
      * ---------------------------------------
      *       접수조회 (TAB)   - Receipt
      * ---------------------------------------
+     */
+
+    /**
+     * 신규접수 배정 접수목록 조회
+     * @param dto 검색조건
+     * @param pageInfo 페이징정보
+     * @return 신규접수 배정 접수목록
      */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "assignDtFrom", value = "접수기간시작일", paramType = "query", required = true, example = "20220501"),
@@ -56,6 +66,11 @@ public class WcsbNewReceiptMgtController {
         return service.getReceiptPages(dto, pageInfo);
     }
 
+    /**
+     * 신규접수 배정 접수목록 조회
+     * @param dto 검색조건
+     * @return 신규접수 배정 접수목록
+     */
     @ApiOperation(value = "접수 목록 엑셀다운로드", notes = "검색조건을 입력 받아 엑셀다운로드용 접수 목록을 조회한다.")
     @GetMapping({"/excel-download"})
     public List<WcsbNewReceiptMgtDto.SearchRes> getReceiptsForExcelDownload(
@@ -64,6 +79,13 @@ public class WcsbNewReceiptMgtController {
         return this.service.getReceiptsForExcelDownload(dto);
     }
 
+    /**
+     * 신규접수 배정 단건조회
+     * @param pspcCstCnslId 가망고객상담ID
+     * @param cntrNo 계약번호
+     * @return 신규접수 배정 정보
+     * @throws Exception 오류정보
+     */
     @ApiOperation(value = "배정/접수 (단건)상세 조회", notes = "배정/접수 상세 데이터를 조회한다.")
     @GetMapping("/assign/{pspcCstCnslId}/{cntrNo}")
     public WcsbNewReceiptMgtDto.SearchDtlRes getPspcCstCnslAssign(
@@ -77,6 +99,12 @@ public class WcsbNewReceiptMgtController {
         return service.getPspcCstCnslAssign(pspcCstCnslId, cntrNo);
     }
 
+    /**
+     * 담당자 정보 조회
+     * @param prtnrNo  파트너번호
+     * @return 담당자 정보
+     * @throws Exception 오류정보
+     */
     @ApiOperation(value = "담당자 수동배정 조회", notes = "담당자 수동배정을 위해 사번을 입력받아 담당자 정보를 조회한다.")
     @GetMapping("/partner/{prtnrNo}")
     public PartnerRes getPartnerInfoByPrtnrNo(
@@ -88,6 +116,12 @@ public class WcsbNewReceiptMgtController {
         return service.getPartnerInfoByPrtnrNo(prtnrNo);
     }
 
+    /**
+     * 신규접수 배정 - 담당자 수동 배정
+     * @param dto 신규접수 배정을 위한 배정 정보
+     * @return 성공여부
+     * @throws Exception 오류정보
+     */
     @ApiOperation(value = "담당자 수동배정 저장", notes = "담당자 수동배정에서 변경된 담당자로 수정한다.  ")
     @PutMapping("/assign")
     public SaveResponse editPspcCstCnslAssign(
@@ -100,6 +134,12 @@ public class WcsbNewReceiptMgtController {
             .build();
     }
 
+    /**
+     * 신규접수 배정 수정
+     * @param dto 신규접수 배정 정보
+     * @return 성공여부
+     * @throws Exception 오류정보
+     */
     @ApiOperation(value = "배정정보 수정", notes = "상세 화면에서 조회된 데이터를 수정한다.")
     @PutMapping("/contact")
     public SaveResponse editPspcCstCnslContact(
@@ -117,6 +157,13 @@ public class WcsbNewReceiptMgtController {
      *       배정조회 (TAB)   - Assign
      * ---------------------------------------
      */
+
+    /**
+     * 신규접수 배정 배정목록 조회
+     * @param dto 검색조건
+     * @param pageInfo 페이징정보
+     * @return 신규접수 배정 배정목록
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "assignDtFrom", value = "접수기간시작일", paramType = "query", required = true, example = "20220501"),
         @ApiImplicitParam(name = "assignDtTo", value = "접수기간종료일", paramType = "query", required = true, example = "20220530"),
@@ -131,6 +178,11 @@ public class WcsbNewReceiptMgtController {
         return service.getAssignPages(dto, pageInfo);
     }
 
+    /**
+     * 신규접수 배정 배정목록
+     * @param dto 검색조건
+     * @return 신규접수 배정 배정목록
+     */
     @ApiOperation(value = "접수 배정 목록 엑셀다운로드", notes = "검색조건을 입력 받아 엑셀다운로드용 접수배정 목록을 조회한다.")
     @GetMapping({"/assign/excel-download"})
     public List<WcsbNewReceiptMgtDto.SearchDtlRes> getAssignsForExcelDownload(
@@ -143,6 +195,12 @@ public class WcsbNewReceiptMgtController {
      * ---------------------------------------
      *       집계 (TAB) - Summaries
      * ---------------------------------------
+     */
+
+    /**
+     * 신규접수 배정 집계정보
+     * @param dto 검색조건
+     * @return 신규접수 배정 집계정보
      */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "assignDtFrom", value = "접수기간시작일", paramType = "query", required = true, example = "20220501"),

@@ -1,19 +1,24 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kyowon.sms.common.web.fee.schedule.service.ZfeyFeeScheduleMgtService;
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.*;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.CreateReq;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.Fee;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.Performance;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.SearchFeeReq;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.SearchPerformanceReq;
 import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebSoleDistributorFeeDvo;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebSoleDistributorFeeMgtMapper;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
-import com.sds.sflex.system.config.validation.BizAssert;
-import lombok.RequiredArgsConstructor;
-import org.apiguardian.api.API;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 /**
  * <pre>
@@ -47,7 +52,7 @@ public class WfebSoleDistributorFeeMgtService {
      * @return
      */
     public List<Fee> getDistributorFee(SearchFeeReq req) {
-         return mapper.selectDistributorFee(req);
+        return mapper.selectDistributorFee(req);
     }
 
     /**
@@ -117,8 +122,8 @@ public class WfebSoleDistributorFeeMgtService {
         // 00. 총판 순주문집계 가능여부 체크
         // 00-1. 수수료일정 갱신 API 체크 > 화면에서해서 일단 페스
         // 00-2. 순주문파트너월마감 확정여부 체크
-        int checkCount = mapper.selectCheckSoleConfrim(req);
-        BizAssert.isFalse(checkCount > 0, "MSG_ALT_CNFM_NO_RENEW_DATA"); // 확정된 DATA는 갱신이 불가능합니다.
+        //int checkCount = mapper.selectCheckSoleConfrim(req);
+        //BizAssert.isFalse(checkCount > 0, "MSG_ALT_CNFM_NO_RENEW_DATA"); // 확정된 DATA는 갱신이 불가능합니다.
 
         // 01. 총판 기존 순주문집계 삭제
         // 01-1. 순주문파트너월마감 삭제
@@ -140,10 +145,10 @@ public class WfebSoleDistributorFeeMgtService {
         // 04-2. 순주문파트너실적월마감 - 조직 생성
         processCount += mapper.insertOgAggregateNtorPerfMmCl(req);
 
-
         // 06. 수수료일정 갱신 API 호출 공통모듈
         // @TODO 세션 coCd[session.getCompanyCode()] 관련해서 업무별로 말이 다달라서 하드코딩함 -_-;
-        String feeSchdId = req.perfYm() + "501" + (StringUtil.isEmpty(req.feeTcntDvCd()) ? "02" : req.feeTcntDvCd()) + "2000"; // 기준일+총판+2차수+회사코드
+        String feeSchdId = req.perfYm() + "501" + (StringUtil.isEmpty(req.feeTcntDvCd()) ? "02" : req.feeTcntDvCd())
+            + "2000"; // 기준일+총판+2차수+회사코드
         service.editStepLevelStatus(feeSchdId, "W0501", "03");
         return processCount;
     }

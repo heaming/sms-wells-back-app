@@ -36,8 +36,4 @@ public class WsnaPcsvReturningGoodsMgtService {
         return service.savePcsvReturningGoods(dtos);
     }
 
-    public int savePcsvReturningGoodsTest(List<SaveReq> dtos) {
-        return service.savePcsvReturningGoodsTest(dtos);
-    }
-
 }

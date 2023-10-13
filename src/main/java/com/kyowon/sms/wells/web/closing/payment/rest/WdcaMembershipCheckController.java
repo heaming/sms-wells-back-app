@@ -2,12 +2,15 @@ package com.kyowon.sms.wells.web.closing.payment.rest;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto.SearchAfterRes;
+import com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.payment.service.WdcaMembershipCheckService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
@@ -50,18 +53,18 @@ public class WdcaMembershipCheckController {
 
     @GetMapping("/membership-check-after/paging")
     public PagingResult<SearchAfterRes> getAfterPages(
-        @RequestParam
-        String deptGubun,
+        @Valid
+        SearchReq dto,
         PageInfo pageInfo
     ) {
-        return service.getAfterPages(deptGubun, pageInfo);
+        return service.getAfterPages(dto, pageInfo);
     }
 
     @GetMapping("/membership-check-after/excel-download")
     public List<SearchAfterRes> getAfterForExcelDownload(
-        @RequestParam
-        String deptGubun
+        @Valid
+        SearchReq dto
     ) {
-        return service.getAfterForExcelDownload(deptGubun);
+        return service.getAfterForExcelDownload(dto);
     }
 }

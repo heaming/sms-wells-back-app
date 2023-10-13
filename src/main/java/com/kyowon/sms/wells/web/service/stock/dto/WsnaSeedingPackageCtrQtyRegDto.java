@@ -24,8 +24,10 @@ public class WsnaSeedingPackageCtrQtyRegDto {
     @Builder
     @ApiModel("WsnaSeedingPackageCtrQtyRegDto-SearchReq")
     public record SearchReq(
+        // 서비스센터
         @NotBlank
         String dgGgLctCd,
+        // 출고일자
         @NotBlank
         @ValidDate
         String ostrDt
@@ -34,11 +36,15 @@ public class WsnaSeedingPackageCtrQtyRegDto {
     @Builder
     @ApiModel("WsnaSeedingPackageCtrQtyRegDto-SearchRes")
     public record SearchRes(
-
+        // 품목명
         String sdingPkgNm,
+        // 품목코드
         String sdingPkgCd,
+        // 출고수량
         BigDecimal ostrQty,
+        // 제외수량
         BigDecimal excdQty,
+        // 추가수량
         BigDecimal spmtQty
 
     ) {}
@@ -46,17 +52,21 @@ public class WsnaSeedingPackageCtrQtyRegDto {
     @Builder
     @ApiModel("WsnaSeedingPackageCtrQtyRegDto-SaveReq")
     public record SaveReq(
+        // 서비스센터
         @NotBlank
         String dgGgLctCd,
+        // 품목코드
         @NotBlank
         String sdingPkgCd,
+        // 출고예정일자
         @NotBlank
         @ValidDate
         String ostrDuedt,
-
+        // 제외수량
         @Min(0)
         @Max(999999999999L)
         BigDecimal excdQty,
+        // 추가수량
         @Min(0)
         @Max(999999999999L)
         BigDecimal spmtQty

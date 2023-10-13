@@ -9,7 +9,9 @@ import java.util.List;
 
 @Mapper
 public interface WsncManagerAccountEnrlPsInqrMapper {
+    // 총괄단 집계
     List<SearchGnrdvAgrgRes> selectManagerAccountEnrlPss(SearchReq searchReq);
-    PagingResult<SearchMngerAccEnrlPsRes> selectMngerAccEnrlPss(SearchReq searchReq, PageInfo pageInfo);
+
+    // 매니저 계정 및 재적 현황
     List<SearchMngerAccEnrlPsRes> selectMngerAccEnrlPss(SearchReq searchReq);
 }

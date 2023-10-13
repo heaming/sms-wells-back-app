@@ -21,6 +21,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0036M01 책임지역 우편번호 관리
+ * </pre>
+ *
+ * @author hyewon.kim
+ * @since 2022.11.17
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/responsible-area-zips")
 @Api(tags = "[WSNC] 책임지역 우편번호 관리 REST API")

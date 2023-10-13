@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaAsConsumablesStoreDto.*;
 import static com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,6 +34,15 @@ import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0013M01 AS소모품 입고관리(엑셀업로드) Controller
+ * </pre>
+ *
+ * @author SongTaeSung
+ * @since 2023-06-11
+ */
+
 @Service
 @RequiredArgsConstructor
 public class WsnaAsConsumablesStoreService {
@@ -51,14 +59,31 @@ public class WsnaAsConsumablesStoreService {
 
     private static final String ETC_STR = "117";
 
+    /**
+     * AS소모품 입고관리(엑셀업로드) 페이징 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
     public PagingResult<SearchRes> getAsConsumablesStorePages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectAsConsumablesStorePages(dto, pageInfo);
     }
 
+    /**
+     * AS소모품 입고관리(엑셀업로드) 엑셀다운로드
+     * @param dto
+     * @return
+     */
     public List<SearchRes> getAsConsumablesStoresForExcelDownload(SearchReq dto) {
         return mapper.selectAsConsumablesStorePages(dto);
     }
 
+    /**
+     * AS소모품 입고관리(엑셀업로드) 엑셀업로드
+     * @param file
+     * @return
+     * @throws Exception
+     */
     @Transactional
     public UploadRes saveAsConsumablesStoresExcelUpload(MultipartFile file) throws Exception {
         // 업로드 엑셀 헤더 설정
@@ -139,8 +164,13 @@ public class WsnaAsConsumablesStoreService {
             .status(excelUploadErrorDvos.isEmpty() ? "S" : "E").errorInfo(excelUploadErrorDvos).excelData(list).build();
     }
 
+    /**
+     * AS소모품 입고관리 저장
+     * @param dtos
+     * @return
+     */
     @Transactional
-    public int saveAsConsumablesStores(List<SaveReq> dtos) throws ParseException {
+    public int saveAsConsumablesStores(List<SaveReq> dtos) {
         int processCount = 0;
         String itmStrNo = null;
         String strTpCd = ETC_STR;
@@ -237,7 +267,13 @@ public class WsnaAsConsumablesStoreService {
         return processCount;
     }
 
-    public int removeAsConsumablesStores(List<RemoveReq> dtos) throws ParseException {
+    /**
+     * AS소모품 입고관리 삭제
+     * @param dtos
+     * @return
+     */
+    @Transactional
+    public int removeAsConsumablesStores(List<RemoveReq> dtos) {
         int processCount = 0;
 
         for (RemoveReq dto : dtos) {
@@ -300,6 +336,11 @@ public class WsnaAsConsumablesStoreService {
         return processCount;
     }
 
+    /**
+     * 품목코드 조회
+     * @param dto
+     * @return
+     */
     public List<SearchItemRes> getItemProductCodes(SearchItemReq dto) {
         return this.mapper.selectItemProductCodes(dto);
     }

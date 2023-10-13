@@ -27,15 +27,23 @@ public class WsnbNewPdctMThreeAcuAfSvRtDto {
 
     @ApiModel(value = "WsnbNewPdctMThreeAcuAfSvRtDto-SearchRes")
     public record SearchRes(
-        String chk,
-        String pdCd,    /* 상품코드 */
-        String code,    /* 상품코드 */
-        String codeName,/* 상품코드  + 상품명 */
-        String nmKor,   /* 상품명 */
-        String itmKndCd,/* 품목종류코드 */
-        String pdGrpCd, /* 상품그룹코드 */
-        String lncStrtdt,/* 출시시작일자 */
-        String lncExdt  /* 출시만기일자 */
+        String nm,
+        Integer acol1,
+        Integer acol2,
+        Integer acol3,
+        Integer acol4,
+        Integer acol5,
+        Integer acol6,
+        Integer acol7,
+        Integer acol8,
+        Integer acol9,
+        Integer acol10,
+        Integer acol11,
+        Integer acol12,
+        Integer maxval,
+        Integer minval,
+        Integer tcnt,
+        Integer avg
     ) {}
 
     @ApiModel(value = "WsnbNewPdctMThreeAcuAfSvRtDto-PdListReq")

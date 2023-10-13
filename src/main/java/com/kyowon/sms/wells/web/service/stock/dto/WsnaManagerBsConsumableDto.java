@@ -99,4 +99,12 @@ public class WsnaManagerBsConsumableDto {
             bfsvcCsmbDdlvQty = StringUtil.isEmpty(bfsvcCsmbDdlvQty) ? "0" : bfsvcCsmbDdlvQty;
         }
     }
+
+    @ApiModel(value = "WsnaManagerBsConsumableDto-CreateOstrReq")
+    public record CreateOstrReq(
+        @NotBlank
+        String mngtYm,
+        @NotBlank
+        String strWareNo
+    ) {}
 }

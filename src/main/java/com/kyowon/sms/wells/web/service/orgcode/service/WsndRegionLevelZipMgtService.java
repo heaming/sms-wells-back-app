@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
  * W-SV-U-0145M01 급지 우편번호 관리
  * </pre>
  *
- * @author gs.piit130 김혜원
+ * @author hyewon.kim
  * @since 2022.12.06
  */
 @Service

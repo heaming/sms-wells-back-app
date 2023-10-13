@@ -31,23 +31,37 @@ public class WsnaMaterialsAssignStocksDto {
 
     @ApiModel(value = "WsnaMaterialsAssignStocksDto-SearchRes")
     public record SearchRes(
+        // 사번
         String prtnrNo,
+        // 성명
         String prtnrKnm,
+        // 조직ID
         String ogId,
+        // 조직유형
         String ogTpCd,
+        // 소속
         String ogNm,
-
+        // 빌딩코드
         String bldCd,
+        // 빌딩
         String bldNm,
+        // 상위창고
         String hgrWareNm,
+        // 물량배정적용여부
         String qomAsnApyYn,
+        // 독립 매니저 여부
         String didyDvNm,
-
+        // 지정주소여부
         String adrUseYn,
+        // 우편번호
         String adrZip,
+        // 주소
         String adr,
+        // 기준년월
         String baseYm,
+        // 창고번호
         String wareNo,
+        // 창고상세구분
         String wareDtlDvNm
 
     ) {}

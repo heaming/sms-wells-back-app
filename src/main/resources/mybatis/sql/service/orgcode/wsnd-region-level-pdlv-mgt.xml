@@ -3,8 +3,8 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelPdlvMgtMapper">
 
     <select id="selectPlaceOfDeliveryPages" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMgtDto$SearchRes">
-        SELECT H1.PDLV_DV_CD
-             , H1.PDLV_NO
+        SELECT B1.PDLV_DV_CD
+             , B1.PDLV_NO
              , (SELECT MAX(APY_STRTDT)
                   FROM TB_SVPD_PDLV_HIST
                  WHERE PDLV_NO = H1.PDLV_NO) AS APY_STRTDT_MAX /* 적용시작일-최대값 */
@@ -16,12 +16,13 @@
              , H1.PDLV_DTL_ADR
              , H1.CNR_OG_ID
           FROM TB_SVPD_PDLV_BAS B1
-         RIGHT OUTER JOIN TB_SVPD_PDLV_HIST H1
-           ON B1.PDLV_NO = H1.PDLV_NO
+         INNER JOIN TB_SVPD_PDLV_HIST H1
+            ON B1.PDLV_NO = H1.PDLV_NO
+           AND B1.PDLV_DV_CD = H1.PDLV_DV_CD
          WHERE 1 = 1
            AND B1.DTA_DL_YN = 'N'
         <if test="@MybatisUtils@isNotEmpty(pdlvDvCd)">
-           AND H1.PDLV_DV_CD = #{pdlvDvCd}
+           AND B1.PDLV_DV_CD = #{pdlvDvCd}
         </if>
         <if test="@MybatisUtils@isNotEmpty(pdlvNm)">
            AND H1.PDLV_NM LIKE '%'||#{pdlvNm}||'%'
@@ -114,18 +115,26 @@
     </insert>
 
     <select id="selectPlaceOfDeliveryByPk" resultType="com.kyowon.sms.wells.web.service.orgcode.dvo.WsndPlaceOfDeliveryDvo">
-        SELECT B1.PDLV_NO
-             , B1.PDLV_DV_CD
-             , B1.DTA_DL_YN AS DATA_DL_YN
-             , H1.APY_STRTDT
-        FROM TB_SVPD_PDLV_BAS B1
-        LEFT OUTER JOIN TB_SVPD_PDLV_HIST H1
-          ON B1.PDLV_NO = H1.PDLV_NO
-         AND H1.APY_ENDDT = ( SELECT MAX(APY_ENDDT)
-                                FROM TB_SVPD_PDLV_HIST
-                               WHERE H1.PDLV_NO = PDLV_NO
-                            )
-       WHERE B1.PDLV_NO = #{pdlvNo}
+        SELECT T1.PDLV_NO
+         	  , T1.PDLV_DV_CD
+         	  , T1.DATA_DL_YN
+         	  , T1.APY_STRTDT
+           FROM (SELECT B1.PDLV_NO
+		             , B1.PDLV_DV_CD
+		             , B1.DTA_DL_YN AS DATA_DL_YN
+		             , H1.APY_STRTDT
+		             , ROW_NUMBER() OVER (ORDER BY H1.APY_STRTDT DESC) AS RN
+		          FROM TB_SVPD_PDLV_BAS B1
+		          LEFT OUTER JOIN TB_SVPD_PDLV_HIST H1
+		            ON B1.PDLV_NO = H1.PDLV_NO
+		           AND H1.APY_ENDDT = ( SELECT MAX(APY_ENDDT)
+		                                  FROM TB_SVPD_PDLV_HIST
+		                                 WHERE H1.PDLV_NO = PDLV_NO
+		                              )
+		         WHERE B1.PDLV_NO = #{pdlvNo}
+		           AND B1.PDLV_DV_CD = #{pdlvDvCd}
+		        ) T1
+        WHERE T1.RN = 1
     </select>
 
 

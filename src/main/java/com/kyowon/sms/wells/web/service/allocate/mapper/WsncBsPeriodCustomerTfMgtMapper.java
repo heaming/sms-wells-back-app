@@ -21,7 +21,7 @@ public interface WsncBsPeriodCustomerTfMgtMapper {
         SearchReq dto
     );
 
-    List<BranchsAndServiceCentersRes> selectBranchsAndServiceCenters(String ogId);
+    List<BranchsAndServiceCentersRes> selectBranchsAndServiceCenters(BranchsAndServiceCentersReq dto);
 
     List<ManagersAndEngineersRes> selectManagersAndEngineers(String ogId);
 

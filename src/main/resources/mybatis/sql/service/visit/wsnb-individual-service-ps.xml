@@ -95,22 +95,46 @@
                    AND X.PRTNR_NO = SP.PRTNR_NO) AS SELL_CHNL /*판매채널*/
              , SP.PRTNR_NO /*판매자사번*/
              , SP.PRTNR_KNM /*판매자*/
-             , (SELECT X.OJ_CNTR_NO ||'-'|| X.OJ_CNTR_SN
-                  FROM TB_SSCT_MCHN_CH_IZ X
-                 WHERE X.BASE_CNTR_NO = SV1.CNTR_NO
-                   AND X.BASE_CNTR_SN = SV1.CNTR_SN
-                   AND X.DTA_DL_YN = 'N'
-                   AND SC5.CNTR_DTL_STAT_CD NOT IN '303') AS BF_CNTR_NO /*전상대코드*/
-             , (SELECT X.BASE_CNTR_NO ||'-'|| X.BASE_CNTR_SN
-                  FROM TB_SSCT_MCHN_CH_IZ X
-                 WHERE X.BASE_CNTR_NO = SV1.CNTR_NO
-                   AND X.BASE_CNTR_SN = SV1.CNTR_SN
-                   AND X.DTA_DL_YN = 'N'
-                   AND SC5.CNTR_DTL_STAT_CD NOT IN '303') AS AF_CNTR_NO /*후상대코드*/
+<!--             , (SELECT X.OJ_CNTR_NO ||'-'|| X.OJ_CNTR_SN-->
+<!--                  FROM TB_SSCT_MCHN_CH_IZ X-->
+<!--                 WHERE X.BASE_CNTR_NO = SV1.CNTR_NO-->
+<!--                   AND X.BASE_CNTR_SN = SV1.CNTR_SN-->
+<!--                   AND X.DTA_DL_YN = 'N'-->
+<!--                   AND SV1.CNTR_DTL_STAT_CD != '303') AS BF_CNTR_NO /*전상대코드*/-->
+             , (SELECT X.BASE_DTL_CNTR_NO || '-' || X.BASE_DTL_CNTR_SN
+                  FROM TB_SSCT_CNTR_REL X
+                 WHERE X.OJ_DTL_CNTR_NO = SV1.CNTR_NO
+                   AND X.OJ_DTL_CNTR_SN = SV1.CNTR_SN
+                   AND X.CNTR_REL_DTL_CD = '212'
+                   AND X.DTA_DL_YN = 'N') AS BF_CNTR_NO /*전상대코드*/
+<!--             , (SELECT X.BASE_CNTR_NO ||'-'|| X.BASE_CNTR_SN-->
+<!--                  FROM TB_SSCT_MCHN_CH_IZ X-->
+<!--                 WHERE X.BASE_CNTR_NO = SV1.CNTR_NO-->
+<!--                   AND X.BASE_CNTR_SN = SV1.CNTR_SN-->
+<!--                   AND X.DTA_DL_YN = 'N'-->
+<!--                   AND SV1.CNTR_DTL_STAT_CD != '303') AS AF_CNTR_NO /*후상대코드*/-->
+             , (SELECT MAX(X.OJ_DTL_CNTR_NO || '-' || X.OJ_DTL_CNTR_SN)
+                  FROM TB_SSCT_CNTR_REL X
+                 WHERE X.BASE_DTL_CNTR_NO = SV1.CNTR_NO
+                   AND X.BASE_DTL_CNTR_SN = SV1.CNTR_SN
+                   AND X.CNTR_REL_DTL_CD = '212'
+                   AND X.DTA_DL_YN = 'N') AS AF_CNTR_NO /*후상대코드*/
              , SV1.IST_DT /*설치일자*/
              , SV1.CHNG_DT /*교체일자*/
-             , CASE WHEN SC5.CNTR_DTL_STAT_CD = '303' THEN SUBSTR(SC5.HIST_STRT_DTM,1,8) ELSE '' END AS CAN_DT /*취소일자*/
-             , CASE WHEN SC5.CNTR_DTL_STAT_CD = '202' THEN SUBSTR(SC5.HIST_STRT_DTM,1,8) ELSE '' END AS SV_STP_DT /*중지일자*/
+             , (SELECT MAX(DECODE(X.CNTR_DTL_STAT_CD, '303', SUBSTR(X.HIST_STRT_DTM,1,8), ''))
+                  FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST X /* 계약상세상태변경이력 */
+                 WHERE SV1.CNTR_NO = X.CNTR_NO
+                   AND SV1.CNTR_SN = X.CNTR_SN
+                   AND SUBSTR(X.HIST_END_DTM,1,8) = '99991231'
+                   AND X.DTA_DL_YN = 'N') AS CAN_DT /*취소일자*/
+             , (SELECT MAX(DECODE(X.CNTR_DTL_STAT_CD, '202', SUBSTR(X.HIST_STRT_DTM,1,8), ''))
+                  FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST X /* 계약상세상태변경이력 */
+                 WHERE SV1.CNTR_NO = X.CNTR_NO
+                   AND SV1.CNTR_SN = X.CNTR_SN
+                   AND SUBSTR(X.HIST_END_DTM,1,8) = '99991231'
+                   AND X.DTA_DL_YN = 'N') AS SV_STP_DT /*중지일자*/
+<!--             , CASE WHEN SC5.CNTR_DTL_STAT_CD = '303' THEN SUBSTR(SC5.HIST_STRT_DTM,1,8) ELSE '' END AS CAN_DT /*취소일자*/-->
+<!--             , CASE WHEN SC5.CNTR_DTL_STAT_CD = '202' THEN SUBSTR(SC5.HIST_STRT_DTM,1,8) ELSE '' END AS SV_STP_DT /*중지일자*/-->
              , (CASE WHEN SV1.IST_DT IS NOT NULL AND TO_NUMBER(SV1.IST_DT) != 0
                      THEN TO_CHAR(ADD_MONTHS(SV1.IST_DT,SC4.FRISU_AS_PTRM_N),'YYYYMMDD')
                      ELSE ''
@@ -196,6 +220,9 @@
           LEFT OUTER JOIN TB_SSCT_CNTR_CST_REL SC3 /*계약고객관계*/
             ON SC3.DTL_CNTR_NO = SC2.CNTR_NO
            AND SC3.DTL_CNTR_SN = SC2.CNTR_SN
+           AND SC3.CNTR_CST_REL_TP_CD = '10' /* 계약자 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SC3.VL_STRT_DTM AND SC3.VL_END_DTM
+           AND SC3.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL SC4 /*계약WELLS상세*/
             ON SC4.CNTR_NO = SV1.CNTR_NO
            AND SC4.CNTR_SN = SV1.CNTR_SN
@@ -212,11 +239,11 @@
             ON SA2.CNTR_ADRPC_ID = SA1.CNTR_ADRPC_ID
           LEFT OUTER JOIN TB_GBCO_ADR_BAS ADR /*주소기본*/
             ON ADR.ADR_ID = SA2.ADR_ID
-          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST SC5 /* 계약상세상태변경이력 */
-            ON SV1.CNTR_NO = SC5.CNTR_NO
-           AND SV1.CNTR_SN = SC5.CNTR_SN
-           AND SUBSTR(SC5.HIST_END_DTM,1,8) = '99991231'
-           AND SC5.DTA_DL_YN = 'N'
+<!--          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST SC5 /* 계약상세상태변경이력 */-->
+<!--            ON SV1.CNTR_NO = SC5.CNTR_NO-->
+<!--           AND SV1.CNTR_SN = SC5.CNTR_SN-->
+<!--           AND SUBSTR(SC5.HIST_END_DTM,1,8) = '99991231'-->
+<!--           AND SC5.DTA_DL_YN = 'N'-->
           LEFT OUTER JOIN TB_SSCT_CNTR_PD_REL SC6 /*계약상품관계*/
             ON SC6.CNTR_PD_REL_ID = (SELECT MAX(X.CNTR_PD_REL_ID)
                                        FROM TB_SSCT_CNTR_PD_REL X
@@ -267,17 +294,10 @@
              , NVL2(SA2.CRAL_LOCARA_TNO, SA2.MEXNO_ENCR, '')   AS MEXNO_ENCR /*휴대전화번호(휴대전화국번호암호화)*/
              , NVL2(SA2.CRAL_LOCARA_TNO, SA2.CRAL_IDV_TNO, '') AS CRAL_IDV_TNO /*휴대전화번호(휴대개별전화번호)*/
           FROM TB_SVPD_CST_SV_EXCN_IZ SV1/*서비스수행내역*/
-         INNER JOIN TB_SSCT_CNTR_CST_REL SC1 /*계약고객관계*/
-            ON SC1.DTL_CNTR_NO = SV1.CNTR_NO
-           AND SC1.DTL_CNTR_SN = SV1.CNTR_SN
-           AND SC1.CNTR_CST_REL_TP_CD = '10'
          INNER JOIN TB_SSCT_CNTR_ADR_REL SA1 /*계약주소관계*/
-            ON SC1.DTL_CNTR_NO = SA1.DTL_CNTR_NO
-           AND SC1.DTL_CNTR_SN = SA1.DTL_CNTR_SN
-           AND SC1.VL_STRT_DTM = SA1.VL_STRT_DTM
-           AND SC1.VL_END_DTM = SA1.VL_END_DTM
-           AND SA1.ADRPC_TP_CD IN ('2','3')
-           AND SA1.DTA_DL_YN = 'N'
+            ON SV1.CNTR_NO = SA1.DTL_CNTR_NO
+           AND SV1.CNTR_SN = SA1.DTL_CNTR_SN
+           AND SA1.ADRPC_TP_CD = '3'
          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS SA2 /*계약주소지기본*/
             ON SA1.CNTR_ADRPC_ID = SA2.CNTR_ADRPC_ID
          LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ SV2
@@ -740,7 +760,7 @@
                 , (SELECT NVL(X.NEW_ADR_ZIP, X.OLD_ADR_ZIP)
                      FROM TB_GBCO_ADR_BAS X
                     WHERE X.ADR_ID = S4.ADR_ID) AS ZIP_NO /*우편번호*/
-                , F_CMZ_CD_NM('TNT_WELLS', 'MNGR_DV_CD', DECODE(P1.OG_TP_CD, 'W06', '2','1')) AS OG_TP /*구분(담당자)*/
+                , NVL2(P1.PRTNR_NO, F_CMZ_CD_NM('TNT_WELLS', 'MNGR_DV_CD', DECODE(P1.OG_TP_CD, 'W06', '2','1')), '') AS OG_TP /*구분(담당자)*/
                 , DECODE(P1.OG_TP_CD, 'W06', P1.OG_NM, P1.OG_CD) AS OG_NM /*소속(담당자)*/
                 , P1.PRTNR_NO AS PRTNR_NO /*사번(담당자)*/
                 , P1.PRTNR_KNM  AS PRTNR_NM /*성명(담당자)*/
@@ -840,7 +860,7 @@
                    , (SELECT NVL(X.NEW_ADR_ZIP, X.OLD_ADR_ZIP)
                         FROM TB_GBCO_ADR_BAS X
                        WHERE X.ADR_ID = S4.ADR_ID) AS ZIP_NO /*우편번호*/
-                   , F_CMZ_CD_NM('TNT_WELLS', 'MNGR_DV_CD', DECODE(P1.OG_TP_CD, 'W06', '2','1')) AS OG_TP /*구분(담당자)*/
+                   , NVL2(P1.PRTNR_NO, F_CMZ_CD_NM('TNT_WELLS', 'MNGR_DV_CD', DECODE(P1.OG_TP_CD, 'W06', '2','1')), '') AS OG_TP /*구분(담당자)*/
                    , DECODE(P1.OG_TP_CD, 'W06', P1.OG_NM, P1.OG_CD) AS OG_NM /*소속(담당자)*/
                    , DECODE(P1.OG_CD, '71321', '', P1.PRTNR_NO) AS PRTNR_NO /*사번(담당자)*/
                    , DECODE(P1.OG_CD, '71321', '택배발송', P1.PRTNR_KNM) AS PRTNR_NM /*성명(담당자)*/
@@ -1310,7 +1330,7 @@
                   FROM CCSDBS.TB_CODE X
                  WHERE X.CDSET_ID='CUST_RESP_CD'
                    AND X.USE_FG='Y'
-                   AND X.CD_VAL = CC.CUST_RESP_CD) AS CUST_RESP/*고객반응*/
+                   AND X.CD_VAL = CC.CUST_RESP_CD) AS CUST_RESP /*고객반응*/
              , (SELECT X.CD_VAL_NM
                   FROM CCSDBS.TB_CODE X
                  WHERE X.CDSET_ID='CLNT_DV_CD'
@@ -1325,12 +1345,12 @@
     </select>
 
     <select id="selectIndividualDelinquent" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualServicePsDto$SearchDelinquentRes">
-        SELECT TA.PSUMINAMT
-             , TB.CSUMINAMT
-             , TA.PSUMINAMT+TB.CSUMINAMT AS TSUMINAMT
-             , TC.PDLYAMT AS PDLYAMT
-             , TC.CDLYAMT AS CDLYAMT
-             , TC.TLCMAMT AS TDLYAMT
+        SELECT TA.PSUMINAMT /*입금액(전월)*/
+             , TB.CSUMINAMT /*입금액(당월)*/
+             , TA.PSUMINAMT+TB.CSUMINAMT AS TSUMINAMT /*입금액(합계)*/
+             , TC.PDLYAMT AS PDLYAMT /*연체금액(전월)*/
+             , TC.CDLYAMT AS CDLYAMT /*연체금액(당월)*/
+             , TC.TLCMAMT AS TDLYAMT /*연체금액(합계)*/
           FROM (SELECT COALESCE(SUM(CASE WHEN DP_DV_CD = '1' THEN RVE_AMT ELSE -RVE_AMT END), 0) PSUMINAMT
                   FROM TB_RVDW_RVE_DTL /*수납상세 KWMART.LC3300P*/
                  WHERE 1=1

@@ -106,6 +106,7 @@ public class WsnaItemByStockAggregationService {
         dvo.setOffSet(startRow);
         dvo.setSize(pageSize);
 
+        // 페이징 정보에 해당하는 데이터 조회
         List<HashMap<String, Object>> stockAggs = this.mapper.selectItemByStockAggs(dvo);
 
         return new PagingResult<>(

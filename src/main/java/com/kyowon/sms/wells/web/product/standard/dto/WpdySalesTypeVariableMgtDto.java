@@ -7,6 +7,14 @@ import javax.validation.constraints.NotEmpty;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 상품 판매유형 변수 관리 DTO
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 public class WpdySalesTypeVariableMgtDto {
 
     @ApiModel(value = "WpdySalesTypeVariableMgtDto-SearchReq")
@@ -19,12 +27,12 @@ public class WpdySalesTypeVariableMgtDto {
     public record SearchRes(
         String rgltnVarbNm, /* 변수명 */
 
-        String fstRgstUsrId,
-        String fnlMdfcUsrId,
-        String fstRgstDtm,
-        String fstRgstUsrNm,
-        String fnlMdfcDtm,
-        String fnlMdfcUsrNm,
+        String fstRgstUsrId, /* 등록자 */
+        String fnlMdfcUsrId, /* 수정자 */
+        String fstRgstDtm, /* 등록일 */
+        String fstRgstUsrNm, /* 등록자명 */
+        String fnlMdfcDtm, /* 수정일 */
+        String fnlMdfcUsrNm, /* 수정자명 */
 
         String sellTpCd, /* 판매유형코드 */
         Integer varbSn, /* 변수일련번호 */
@@ -39,7 +47,7 @@ public class WpdySalesTypeVariableMgtDto {
     @ApiModel(value = "WpdySalesTypeVariableMgtDto-SaveReq")
     public record SaveReq(
         @NotEmpty
-        List<WpdySalesTypeVariableMgtDto.TypeVariableBase> bases
+        List<WpdySalesTypeVariableMgtDto.TypeVariableBase> bases /* 기본정보 */
     ) {}
 
     @ApiModel(value = "WpdySalesTypeVariableMgtDto-TypeVariableBase")
