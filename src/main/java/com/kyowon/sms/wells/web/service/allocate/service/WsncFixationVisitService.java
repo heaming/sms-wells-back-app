@@ -22,11 +22,12 @@ public class WsncFixationVisitService {
 
     private final WsncFixationVisitConverter wsncFixationVisitConverter;
 
+    @Transactional
     public PagingResult<WsncFixationVisitDto.SearchRes> getFixationVisits(
         WsncFixationVisitDto.SearchReq dto, PageInfo pageInfo
     ) {
         if("test1".equals(dto.fxnPrtnrNo())){
-            wwsncFixationVisitMgntMapper.selectFixationVisits2(dto);
+            return wwsncFixationVisitMgntMapper.selectFixationVisits2(dto, pageInfo);
         }
         return wwsncFixationVisitMgntMapper.selectFixationVisits(dto, pageInfo);
     }
@@ -34,6 +35,9 @@ public class WsncFixationVisitService {
     public List<WsncFixationVisitDto.SearchRes> getFixationVisitsExcelDownload(
         WsncFixationVisitDto.SearchReq dto
     ) {
+        if("test1".equals(dto.fxnPrtnrNo())){
+            return wwsncFixationVisitMgntMapper.selectFixationVisits2(dto);
+        }
         return wwsncFixationVisitMgntMapper.selectFixationVisits(dto);
     }
 
