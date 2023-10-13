@@ -50,7 +50,8 @@
                     INNER JOIN OG_INF
                             ON TB_SVST_MCBY_WARE_IZ.OG_ID = OG_INF.OG_ID
                          WHERE APY_YM = SUBSTR(#{baseDt},1,6)
-                           AND WARE_ICHR_NO = '000'
+                          AND WARE_ICHR_NO = '000'
+                          AND WARE_USE_YN = 'Y'
          )
          , M_STOC AS ( SELECT S1.WARE_NO WARE_NO
                             , S1.ITM_PD_CD PD_CD
@@ -286,6 +287,7 @@
                                ON TB_SVST_MCBY_WARE_IZ.OG_ID = OG_INF.OG_ID
                             WHERE APY_YM = SUBSTR(#{baseDt},1,6)
                               AND WARE_ICHR_NO != '000'
+                              AND WARE_USE_YN = 'Y'
         )
         , E_M_STOC AS (SELECT E_STOCK_INF.HGR_WARE_NO HGR_WARE_NO
                             , S1.ITM_PD_CD PD_CD
@@ -498,9 +500,9 @@
                    , MAIN2.OG_NM
                    , MAIN2.PD_CD
                    , MAIN2.PD_NM
-                   , PRV_MNG
-                   , ENG_QTY
-                   , PRV_MNG + ENG_QTY AS STOCK_TOTAL
+                   , NVL(PRV_MNG,0) AS PRV_MNG
+                   , NVL(ENG_QTY,0) AS ENG_QTY
+                   , NVL(PRV_MNG,0) + NVL(ENG_QTY,0) AS STOCK_TOTAL
                    , SUM(CASE WHEN RN=1 THEN NVL(VST_CNFMDT_QTY,0) ELSE 0 END) INSTALLDATE1
                    , SUM(CASE WHEN RN=2 THEN NVL(VST_CNFMDT_QTY,0) ELSE 0 END) INSTALLDATE2
                    , SUM(CASE WHEN RN=3 THEN NVL(VST_CNFMDT_QTY,0) ELSE 0 END) INSTALLDATE3
@@ -850,7 +852,7 @@
                  INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T2
                          ON S11.CNTR_NO = T2.CNTR_NO
                         AND S11.CNTR_SN = T2.CNTR_SN
-                        AND ADD_MONTHS(DECODE(TO_NUMBER(T2.IST_DT), 0 , TO_CHAR(SYSDATE,'YYYYMMDD'), T2.IST_DT),12)  <=  S11.FNL_VST_FSH_DT
+                        AND ADD_MONTHS(DECODE(TO_NUMBER(T2.IST_DT), 0 , TO_CHAR(SYSDATE,'YYYYMMDD'), T2.IST_DT),12)  <![CDATA[<=]]>  S11.FNL_VST_FSH_DT
                       WHERE S11.FNL_MDFC_USR_ID IS NULL
                         AND S11.FNL_MDFC_USR_ID IS NULL
                         AND S11.SV_BIZ_HCLSF_CD IN ('1','2','3','4')
@@ -1185,19 +1187,41 @@
                  )
           GROUP BY WARE_NO, PD_CD
             ) ENG_AGRG
-            WHERE ENG_AGRG.WARE_NO = AGRG2.WARE_NO
-            AND ENG_AGRG.PD_CD = AGRG2.PD_CD
-            /* SELECT 2 */
+            WHERE ENG_AGRG.WARE_NO(+) = AGRG2.WARE_NO
+            AND ENG_AGRG.PD_CD(+) = AGRG2.PD_CD
+            AND ENG_AGRG.WARE_NO(+) IN ('200001',
+                                        '200002',
+                                        '200009',
+                                        '200006',
+                                        '200005',
+                                        '200003',
+                                        '200010',
+                                        '200014',
+                                        '200013',
+                                        '200127',
+                                        '201698',
+                                        '200371',
+                                        '200015',
+                                        '201551',
+                                        '201714',
+                                        '201721',
+                                        '201715',
+                                        '200608',
+                                        '200961',
+                                        '201017',
+                                        '201777')
+        /* SELECT 2 */
         ) MAIN2
    WHERE SV_INF.OG_ID(+) = MAIN2.OG_ID
      AND SV_INF.PD_CD(+) = MAIN2.PD_CD
+
 GROUP BY MAIN2.OG_ID  /* SELECT 3 :: 센터별 날짜별 - 설치 */
-                   , MAIN2.OG_NM
-                   , MAIN2.PD_CD
-                   , MAIN2.PD_NM
-                   , PRV_MNG
-                   , ENG_QTY
-                   , PRV_MNG + ENG_QTY
+       , MAIN2.OG_NM
+       , MAIN2.PD_CD
+       , MAIN2.PD_NM
+       , NVL(PRV_MNG,0)
+       , NVL(ENG_QTY,0)
+       , NVL(PRV_MNG,0) + NVL(PRV_MNG,0)
     ) IST_AGRG
 
     </select>
