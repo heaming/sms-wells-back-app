@@ -398,9 +398,7 @@ public class WsnaNormalOutOfStorageService {
      * @param pageInfo
      * @return
      */
-    public PagingResult<AskRes> getAskMaterialsHavePss(
-        AskReq dto, PageInfo pageInfo
-    ) {
+    public PagingResult<AskRes> getAskMaterialsHavePss(AskReq dto, PageInfo pageInfo) {
         return this.mapper.selectAskMaterialsHavePss(dto, pageInfo);
     }
 
@@ -410,9 +408,7 @@ public class WsnaNormalOutOfStorageService {
      * @param pageInfo
      * @return
      */
-    public PagingResult<CenterRes> getAskMaterialsCenterPresentState(
-        CenterReq dto, PageInfo pageInfo
-    ) {
+    public PagingResult<CenterRes> getAskMaterialsCenterPresentState(CenterReq dto, PageInfo pageInfo) {
         return this.mapper.selectAskMaterialsCenterPresentState(dto, pageInfo);
     }
 

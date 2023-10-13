@@ -42,9 +42,6 @@ public class WsnaAsMaterialItemGradeService {
      * @return 창고 리스트
      */
     public List<WsnzWellsCodeWareHouseDvo> getWareHouses(SearchWareReq dto) {
-        ValidAssert.notNull(dto);
-        ValidAssert.hasText(dto.baseYm());
-        ValidAssert.hasText(dto.wareDvCd());
 
         return this.mapper.selectWareHouses(dto);
     }
@@ -137,7 +134,7 @@ public class WsnaAsMaterialItemGradeService {
         Integer createCount = this.mapper.selectCstSvItmGdIzCount(dvo);
         String year = baseYm.substring(0, 4);
         String month = baseYm.substring(4, 6);
-        BizAssert.isFalse(createCount != null, "MSG_TXT_EXIST_NEW_DATA", new String[] {year + "-" + month});
+        BizAssert.isNull(createCount, "MSG_TXT_EXIST_NEW_DATA", new String[] {year + "-" + month});
 
         int count = 0;
 
