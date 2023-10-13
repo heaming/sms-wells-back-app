@@ -120,7 +120,13 @@
                                AND C.CNTR_SN = A.CNTR_SN
                                AND C.DTA_DL_YN = 'N'
                              WHERE A.SL_RCOG_DT BETWEEN #{slClYm}||'01' AND TO_CHAR(LAST_DAY(TO_DATE(#{slClYm},'YYYYMM')),'YYYYMMDD')
-                               AND A.SELL_TP_CD = #{sellTpCdSub}
+                               AND A.SELL_TP_CD = DECODE(#{sellTpCd}, '10', '2', #{sellTpCd}) /* 렌탈 리스 화면코드 분리로 인해 변환처리, '10' : 리스 */
+                               <if test="@MybatisUtils@equals(sellTpCd, '2')">
+                               AND A.SELL_TP_DTL_CD IN ('21', '23')
+                               </if>
+                               <if test="@MybatisUtils@equals(sellTpCd, '10')">
+                               AND A.SELL_TP_DTL_CD NOT IN ('21', '23')
+                               </if>
                                <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
                                AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
                                </if>
@@ -136,7 +142,7 @@
                                <if test="@MybatisUtils@isNotEmpty(sellChnlDtl)">
                                AND B.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDtl}
                                </if>
-                               <if test="(@MybatisUtils@equals(sellTpCdSub, '2') and @MybatisUtils@isEmpty(sellTpDtlCd)) or (@MybatisUtils@equals(sellTpCdSub, '2') and (@MybatisUtils@equals(sellTpDtlCd, '21') or @MybatisUtils@equals(sellTpDtlCd, '23')))">
+                               <if test="(@MybatisUtils@equals(sellTpCd, '2') and @MybatisUtils@isEmpty(sellTpDtlCd)) or (@MybatisUtils@equals(sellTpCd, '2') and (@MybatisUtils@equals(sellTpDtlCd, '21') or @MybatisUtils@equals(sellTpDtlCd, '23')))">
                                AND NOT EXISTS (SELECT /*+ UNNEST */ 1
                                                  FROM TB_SSCT_CNTR_DTL AA
                                                 INNER JOIN TB_PDBS_PD_CLSF_BAS BB /* 상품분류기본-소분류[AS-IS:KA1100P] */
@@ -147,7 +153,7 @@
                                                 WHERE AA.CNTR_NO = A.CNTR_NO
                                                   AND AA.CNTR_SN = A.CNTR_SN )
                                </if>
-                            <if test="(@MybatisUtils@equals(sellTpCdSub, '6') and @MybatisUtils@isEmpty(sellTpDtlCd)) or (@MybatisUtils@equals(sellTpCdSub, '6') and (@MybatisUtils@equals(sellTpDtlCd, '63')))">
+                            <if test="(@MybatisUtils@equals(sellTpCd, '6') and @MybatisUtils@isEmpty(sellTpDtlCd)) or (@MybatisUtils@equals(sellTpCd, '6') and (@MybatisUtils@equals(sellTpDtlCd, '63')))">
                              UNION ALL
                             SELECT SUBSTR(A.SL_RCOG_DT,1,6) AS SL_CL_YM /* 실적년월 */
                                  , A.SL_RCOG_DT AS SL_CL_DT /* 실적일자 */
@@ -1075,7 +1081,7 @@
                   							   WHERE KW_GRP_CO_CD = '2000'
                   								   AND DP_TP_CD = '0802' --K머니
                   								   AND ITG_DP_CAN_DTM IS NOT NULL
-                    								 AND ITG_DP_CAN_DTM BETWEEN T1.SL_CL_YM||'01' AND TO_CHAR(LAST_DAY(TO_DATE(T1.SL_CL_YM,'YYYYMM')),'YYYYMMDD')
+                    								 AND ITG_DP_CAN_DTM BETWEEN T1.SL_CL_YM||'01000000' AND TO_CHAR(LAST_DAY(TO_DATE(T1.SL_CL_YM,'YYYYMM')),'YYYYMMDD')||'999999'
                     								 AND DP_DV_CD = '1'
                     								 AND ITG_DP_CAN_RSON_CD = '21'), 0)
         			     ELSE 0 END) AS BOUT_CAN_SL_AMT /* 상품권_취소/만료매출 */
