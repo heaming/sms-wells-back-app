@@ -36,6 +36,10 @@ public class WsncFixationVisitService {
             wwsncFixationVisitMgntMapper.selectFixationVisits4(dto);
         } else if("test5".equals(dto.fxnPrtnrNo())){
             wwsncFixationVisitMgntMapper.selectFixationVisits3(dto, pageInfo);
+        } else if("test6".equals(dto.fxnPrtnrNo())){
+            wwsncFixationVisitMgntMapper.selectFixationVisits6(dto);
+        } else if("test7".equals(dto.fxnPrtnrNo())){
+            wwsncFixationVisitMgntMapper.selectFixationVisits6(dto, pageInfo);
         }
         return wwsncFixationVisitMgntMapper.selectFixationVisits(dto, pageInfo);
     }
