@@ -7,13 +7,13 @@ import java.util.List;
 
 import org.mapstruct.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAssignExcludeItemDelDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAssignExcludeItemDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAssignExcludeItemRemoveDvo;
 
 @Mapper(componentModel = "spring")
 public interface WsnaAssignExcludeItemConverter {
 
-    List<WsnaAssignExcludeItemDelDvo> mapAllRemoveReqToWsnaAssignExcludeItemDelDvo(List<RemoveReq> dtos);
+    List<WsnaAssignExcludeItemRemoveDvo> mapAllRemoveReqToWsnaAssignExcludeItemDelDvo(List<RemoveReq> dtos);
 
     List<WsnaAssignExcludeItemDvo> mapAllCreateReqToWsnaAssignExcludeItemDvo(List<CreateReq> list);
 }
