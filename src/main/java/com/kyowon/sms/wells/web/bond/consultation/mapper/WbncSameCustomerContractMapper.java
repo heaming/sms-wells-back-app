@@ -13,7 +13,7 @@ public interface WbncSameCustomerContractMapper {
     );
 
     List<FindDepositRes> selectContractDeposits(
-        String bndBizDvCd, String cntrNo, int cntrSn
+        String cntrNo, int cntrSn
     );
 
     FindDepositInfoRes selectContractDeposit(
