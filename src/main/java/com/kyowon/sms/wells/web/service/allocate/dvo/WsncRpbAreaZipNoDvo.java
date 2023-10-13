@@ -9,7 +9,7 @@ import lombok.Setter;
  * W-SV-U-0036M01 책임지역 우편번호 관리
  * </pre>
  *
- * @author gs.piit130 김혜원
+ * @author hyewon.kim
  * @since 2022.11.17
  */
 @Setter
@@ -36,6 +36,6 @@ public class WsncRpbAreaZipNoDvo {
     String ildYn; // 섬여부
     String pdlvNo; // 출고지번호
     String dtaDlYn; // 데이터삭제여부
-    String applyDate;
+    String applyDate; // 적용일자
 
 }

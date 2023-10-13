@@ -37,6 +37,12 @@ public class WsnbServiceProcsIzQltyController {
 
     private final WsnbServiceProcsIzQltyService service;
 
+    /**
+     * 서비스처리 내역(품질) 조회
+     * @param dto 조회조건
+     * @param pageInfo 페이지정보
+     * @return 서비스처리 내역(품질)
+     */
     @ApiOperation(value = "서비스처리 내역(품질) 조회", notes = "조회조건에 해당하는 고객 방문 후 서비스 처리 내역을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "serviceType", value = "서비스유형", paramType = "query", example = "1"),
@@ -61,6 +67,11 @@ public class WsnbServiceProcsIzQltyController {
         return this.service.getServiceProcsIzQltys(dto, pageInfo);
     }
 
+    /**
+     * 서비스처리 내역(품질) 조회 (엑셀 다운로드)
+     * @param dto 조회조건
+     * @return 서비스처리 내역(품질)
+     */
     @ApiOperation(value = "서비스처리 내역(품질) 조회 (엑셀 다운로드)", notes = "조회조건에 해당하는 고객 방문 후 서비스 처리 내역을 조회한다.")
     @GetMapping("/excel-download")
     public List<SearchRes> getServiceProcsIzQltysForExcel(SearchReq dto) {
