@@ -39,6 +39,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 상품 >> AS부품 관리 Controller
+ * </pre>
+ *
+ * @author junho.bae
+ * @since 2023-07-01
+ */
 @RestController
 @Api(tags = "[WPDC] 상품 >> 상품운영관리 >> AS부품관리")
 @RequestMapping(value = PdProductWellsConst.REST_URL_V1 + "/as-parts")
@@ -54,6 +62,12 @@ public class WpdcAsPartsMgtController {
     private final WpdcMaterialMgtService wAsservice;
     private final MessageResourceService messageResourceService;
 
+    /**
+     * AS 부품관리 목록 조회
+     * @param dto 검색조건
+     * @param pageInfo 페이징정보
+     * @return AS 부품관리 목록
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "pdTpCd", value = "상품구분", paramType = "query", required = false, example = "S"),
         @ApiImplicitParam(name = "pdNm", value = "AS부품명", paramType = "query", required = false, example = "정수기"),
@@ -70,6 +84,11 @@ public class WpdcAsPartsMgtController {
         return service.getAsPartPages(dto, pageInfo);
     }
 
+    /**
+     * AS 부품관리 목록 조회
+     * @param dto 검색조건
+     * @return AS 부품관리 목록
+     */
     @ApiOperation(value = "AS부품 목록 엑셀다운로드", notes = "검색조건을 입력 받아 엑셀다운로드용 AS부품 목록을 조회한다.")
     @GetMapping({"/excel-download"})
     public List<WpdcAsPartMgtDto.SearchRes> getAsPartsForExcelDownload(
@@ -78,6 +97,12 @@ public class WpdcAsPartsMgtController {
         return this.service.getAsPartsForExcelDownload(dto);
     }
 
+    /**
+     * AS 부품관리 단건조회
+     * @param pdCd 상품코드(PK)
+     * @return AS 부품관리 정보
+     * @throws Exception 오류정보
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "path", required = true, example = "WM04103177"),
     })
@@ -94,6 +119,12 @@ public class WpdcAsPartsMgtController {
             .build();
     }
 
+    /**
+     * AS 부품관리 정보 저장
+     * @param dto AS 부품관리 정보
+     * @return AS 부품관리 정보
+     * @throws Exception 오류정보
+     */
     @ApiOperation(value = "AS부품 저장 및 임시저장", notes = "최초 신규 생성 또는 최초 임시저장한 AS부품 정보를 반영한다.")
     @PostMapping
     public SaveResponse createAsParts(
@@ -106,6 +137,12 @@ public class WpdcAsPartsMgtController {
             .build();
     }
 
+    /**
+     * AS 부품관리 정보 수정
+     * @param dto AS 부품관리 정보
+     * @return AS 부품관리 정보
+     * @throws Exception 오류정보
+     */
     @ApiOperation(value = "AS부품 수정", notes = "수정된 AS부품 정보를 반영한다.")
     @PutMapping
     public SaveResponse editAsParts(
@@ -118,6 +155,12 @@ public class WpdcAsPartsMgtController {
             .build();
     }
 
+    /**
+     * AS 부품관리 정보 삭제
+     * @param pdCd 상품코드(PK)
+     * @return 성공여부
+     * @throws Exception 오류정보
+     */
     @ApiOperation(value = "AS부품 삭제")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "상품코드", value = "PD_CD", paramType = "path", required = true)
@@ -128,6 +171,12 @@ public class WpdcAsPartsMgtController {
         return SaveResponse.builder().processCount(service.removeAsParts(pdCd)).build();
     }
 
+    /**
+     * AS 부품관리 정보 일과등록
+     * @param file AS 부품관리 엑셀정보
+     * @return AS 부품관리 업로드 정보
+     * @throws Exception 오류정보
+     */
     @ApiOperation(value = "교재/자재 엑셀 업로드를 통한 일괄등록")
     @PostMapping("/excel-upload")
     public UploadRes saveForDirectExcelUpload(
@@ -260,6 +309,11 @@ public class WpdcAsPartsMgtController {
 
     }
 
+    /**
+     * AS 부품관리 유효성 체크
+     * @param dto AS 부품관리 정보
+     * @return AS 부품관리 유효성 체크 결과
+     */
     @GetMapping("/check-validation")
     public String checkValidation(ValidationReq dto) {
         return this.service.checkValidation(dto);

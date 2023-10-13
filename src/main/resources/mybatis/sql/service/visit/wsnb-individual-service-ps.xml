@@ -95,18 +95,30 @@
                    AND X.PRTNR_NO = SP.PRTNR_NO) AS SELL_CHNL /*판매채널*/
              , SP.PRTNR_NO /*판매자사번*/
              , SP.PRTNR_KNM /*판매자*/
-             , (SELECT X.OJ_CNTR_NO ||'-'|| X.OJ_CNTR_SN
-                  FROM TB_SSCT_MCHN_CH_IZ X
-                 WHERE X.BASE_CNTR_NO = SV1.CNTR_NO
-                   AND X.BASE_CNTR_SN = SV1.CNTR_SN
-                   AND X.DTA_DL_YN = 'N'
-                   AND SV1.CNTR_DTL_STAT_CD != '303') AS BF_CNTR_NO /*전상대코드*/
-             , (SELECT X.BASE_CNTR_NO ||'-'|| X.BASE_CNTR_SN
-                  FROM TB_SSCT_MCHN_CH_IZ X
-                 WHERE X.BASE_CNTR_NO = SV1.CNTR_NO
-                   AND X.BASE_CNTR_SN = SV1.CNTR_SN
-                   AND X.DTA_DL_YN = 'N'
-                   AND SV1.CNTR_DTL_STAT_CD != '303') AS AF_CNTR_NO /*후상대코드*/
+<!--             , (SELECT X.OJ_CNTR_NO ||'-'|| X.OJ_CNTR_SN-->
+<!--                  FROM TB_SSCT_MCHN_CH_IZ X-->
+<!--                 WHERE X.BASE_CNTR_NO = SV1.CNTR_NO-->
+<!--                   AND X.BASE_CNTR_SN = SV1.CNTR_SN-->
+<!--                   AND X.DTA_DL_YN = 'N'-->
+<!--                   AND SV1.CNTR_DTL_STAT_CD != '303') AS BF_CNTR_NO /*전상대코드*/-->
+             , (SELECT X.BASE_DTL_CNTR_NO || '-' || X.BASE_DTL_CNTR_SN
+                  FROM TB_SSCT_CNTR_REL X
+                 WHERE X.OJ_DTL_CNTR_NO = SV1.CNTR_NO
+                   AND X.OJ_DTL_CNTR_SN = SV1.CNTR_SN
+                   AND X.CNTR_REL_DTL_CD = '212'
+                   AND X.DTA_DL_YN = 'N') AS BF_CNTR_NO /*전상대코드*/
+<!--             , (SELECT X.BASE_CNTR_NO ||'-'|| X.BASE_CNTR_SN-->
+<!--                  FROM TB_SSCT_MCHN_CH_IZ X-->
+<!--                 WHERE X.BASE_CNTR_NO = SV1.CNTR_NO-->
+<!--                   AND X.BASE_CNTR_SN = SV1.CNTR_SN-->
+<!--                   AND X.DTA_DL_YN = 'N'-->
+<!--                   AND SV1.CNTR_DTL_STAT_CD != '303') AS AF_CNTR_NO /*후상대코드*/-->
+             , (SELECT MAX(X.OJ_DTL_CNTR_NO || '-' || X.OJ_DTL_CNTR_SN)
+                  FROM TB_SSCT_CNTR_REL X
+                 WHERE X.BASE_DTL_CNTR_NO = SV1.CNTR_NO
+                   AND X.BASE_DTL_CNTR_SN = SV1.CNTR_SN
+                   AND X.CNTR_REL_DTL_CD = '212'
+                   AND X.DTA_DL_YN = 'N') AS AF_CNTR_NO /*후상대코드*/
              , SV1.IST_DT /*설치일자*/
              , SV1.CHNG_DT /*교체일자*/
              , (SELECT MAX(DECODE(X.CNTR_DTL_STAT_CD, '303', SUBSTR(X.HIST_STRT_DTM,1,8), ''))
@@ -748,7 +760,7 @@
                 , (SELECT NVL(X.NEW_ADR_ZIP, X.OLD_ADR_ZIP)
                      FROM TB_GBCO_ADR_BAS X
                     WHERE X.ADR_ID = S4.ADR_ID) AS ZIP_NO /*우편번호*/
-                , F_CMZ_CD_NM('TNT_WELLS', 'MNGR_DV_CD', DECODE(P1.OG_TP_CD, 'W06', '2','1')) AS OG_TP /*구분(담당자)*/
+                , NVL2(P1.PRTNR_NO, F_CMZ_CD_NM('TNT_WELLS', 'MNGR_DV_CD', DECODE(P1.OG_TP_CD, 'W06', '2','1')), '') AS OG_TP /*구분(담당자)*/
                 , DECODE(P1.OG_TP_CD, 'W06', P1.OG_NM, P1.OG_CD) AS OG_NM /*소속(담당자)*/
                 , P1.PRTNR_NO AS PRTNR_NO /*사번(담당자)*/
                 , P1.PRTNR_KNM  AS PRTNR_NM /*성명(담당자)*/
@@ -848,7 +860,7 @@
                    , (SELECT NVL(X.NEW_ADR_ZIP, X.OLD_ADR_ZIP)
                         FROM TB_GBCO_ADR_BAS X
                        WHERE X.ADR_ID = S4.ADR_ID) AS ZIP_NO /*우편번호*/
-                   , F_CMZ_CD_NM('TNT_WELLS', 'MNGR_DV_CD', DECODE(P1.OG_TP_CD, 'W06', '2','1')) AS OG_TP /*구분(담당자)*/
+                   , NVL2(P1.PRTNR_NO, F_CMZ_CD_NM('TNT_WELLS', 'MNGR_DV_CD', DECODE(P1.OG_TP_CD, 'W06', '2','1')), '') AS OG_TP /*구분(담당자)*/
                    , DECODE(P1.OG_TP_CD, 'W06', P1.OG_NM, P1.OG_CD) AS OG_NM /*소속(담당자)*/
                    , DECODE(P1.OG_CD, '71321', '', P1.PRTNR_NO) AS PRTNR_NO /*사번(담당자)*/
                    , DECODE(P1.OG_CD, '71321', '택배발송', P1.PRTNR_KNM) AS PRTNR_NM /*성명(담당자)*/
@@ -1318,7 +1330,7 @@
                   FROM CCSDBS.TB_CODE X
                  WHERE X.CDSET_ID='CUST_RESP_CD'
                    AND X.USE_FG='Y'
-                   AND X.CD_VAL = CC.CUST_RESP_CD) AS CUST_RESP/*고객반응*/
+                   AND X.CD_VAL = CC.CUST_RESP_CD) AS CUST_RESP /*고객반응*/
              , (SELECT X.CD_VAL_NM
                   FROM CCSDBS.TB_CODE X
                  WHERE X.CDSET_ID='CLNT_DV_CD'
@@ -1333,12 +1345,12 @@
     </select>
 
     <select id="selectIndividualDelinquent" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualServicePsDto$SearchDelinquentRes">
-        SELECT TA.PSUMINAMT
-             , TB.CSUMINAMT
-             , TA.PSUMINAMT+TB.CSUMINAMT AS TSUMINAMT
-             , TC.PDLYAMT AS PDLYAMT
-             , TC.CDLYAMT AS CDLYAMT
-             , TC.TLCMAMT AS TDLYAMT
+        SELECT TA.PSUMINAMT /*입금액(전월)*/
+             , TB.CSUMINAMT /*입금액(당월)*/
+             , TA.PSUMINAMT+TB.CSUMINAMT AS TSUMINAMT /*입금액(합계)*/
+             , TC.PDLYAMT AS PDLYAMT /*연체금액(전월)*/
+             , TC.CDLYAMT AS CDLYAMT /*연체금액(당월)*/
+             , TC.TLCMAMT AS TDLYAMT /*연체금액(합계)*/
           FROM (SELECT COALESCE(SUM(CASE WHEN DP_DV_CD = '1' THEN RVE_AMT ELSE -RVE_AMT END), 0) PSUMINAMT
                   FROM TB_RVDW_RVE_DTL /*수납상세 KWMART.LC3300P*/
                  WHERE 1=1

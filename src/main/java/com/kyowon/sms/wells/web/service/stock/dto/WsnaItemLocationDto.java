@@ -15,38 +15,61 @@ import io.swagger.annotations.ApiModel;
 public class WsnaItemLocationDto {
     @ApiModel("WsnaItemLocationDto-SearchReq")
     public record SearchReq(
+        // 품목코드
         @NotBlank
         String itmPdCd,
+        // 창고번호
         @NotBlank
         String wareNo
 
     ) {}
     @ApiModel("WsnaItemLocationDto-SearchRes")
     public record SearchRes(
+        // 품목코드
         String itmPdCd,
+        // 품목명
         String pdAbbrNm,
+        // SAP코드
         String sapMatCd,
+        // 품목종류
         String itmKndCd,
+        // 창고번호
         String wareNo,
+        // 창고명
         String wareNm,
+        // 표준창고사용여부
         String stdWareUseYn,
+        // 재고수량
         String pitmStocAGdQty,
+        // 앵글
         String itmLctAngleVal,
+        // 층수
         String itmLctCofVal,
+        // 층번호
         String itmLctFlorNoVal,
+        // 그룹
         String itmLctMatGrpCd,
+        // 위치
         String itmLctNm
     ) {}
+
     @ApiModel("WsnaItemLocationDto-CreateReq")
     public record CreateReq(
+        // 창고번호
         @NotBlank
         String wareNo,
+        // 품목코드
         @NotBlank
         String itmPdCd,
+        // 앵글
         String itmLctAngleVal,
+        // 층수
         String itmLctCofVal,
+        // 층번호
         String itmLctFlorNoVal,
+        // 그룹
         String itmLctMatGrpCd,
+        // 품목종류
         String itmKndCd
 
     ) {}

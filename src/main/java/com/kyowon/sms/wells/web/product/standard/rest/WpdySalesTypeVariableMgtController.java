@@ -26,6 +26,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 판매유형별 변수 관리 컨트롤러
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 @RestController
 @Api(tags = "[WPDY] 상품(Wells) - 기준정보관리 - 판매유형별 변수관리")
 @RequestMapping(value = PdProductWellsConst.REST_URL_V1 + "/variables")
@@ -35,11 +43,16 @@ public class WpdySalesTypeVariableMgtController {
 
     private final WpdySalesTypeVariableMgtService service;
 
+    /**
+     * 판매유형별 변수 목록 조회
+     * @param dto 검색조건 정보
+     * @return 검색 결과 목록
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query", example = "01"),
         @ApiImplicitParam(name = "rgltnVarbNm", value = "변수명", paramType = "query", example = "등록비"),
     })
-    @ApiOperation(value = "판매유형별 변수 조회", notes = "판매유형별 변수 정보 목록을 조회한다.")
+    @ApiOperation(value = "판매유형별 변수 목록 조회", notes = "판매유형별 변수 정보 목록을 조회한다.")
     @GetMapping
     public List<WpdySalesTypeVariableMgtDto.SearchRes> getSalesTypeVariables(
         WpdySalesTypeVariableMgtDto.SearchReq dto
@@ -47,6 +60,12 @@ public class WpdySalesTypeVariableMgtController {
         return service.getSalesTypeVariables(dto);
     }
 
+    /**
+     * 판매유형별 변수 페이징 조회
+     * @param dto 검색조건 정보
+     * @param pageInfo 페이지 정보
+     * @return 검색 결과 목록
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query", example = "01"),
         @ApiImplicitParam(name = "rgltnVarbNm", value = "변수명", paramType = "query", example = "등록비"),
@@ -60,6 +79,12 @@ public class WpdySalesTypeVariableMgtController {
         return service.getSalesTypeVariablePages(dto, pageInfo);
     }
 
+    /**
+     * 판매유형별 변수 수정
+     * @param dto 수정내용 정보
+     * @return 처리결과
+     * @throws Exception 미처리 시 Exception 처리
+     */
     @ApiOperation(value = "판매유형별 변수 수정", notes = "수정된 판매유형별 변수 정보를 반영한다.")
     @PostMapping
     public SaveResponse saveSalesTypeVariables(
@@ -72,6 +97,12 @@ public class WpdySalesTypeVariableMgtController {
             .build();
     }
 
+    /**
+     * 판매유형별 변수 삭제
+     * @param dtos 삭제 정보
+     * @return 처리결과
+     * @throws Exception 미처리 시 Exception 처리
+     */
     @ApiOperation(value = "판매유형별 변수 삭제")
     @DeleteMapping
     public SaveResponse removeSalesTypeVariables(
@@ -84,6 +115,11 @@ public class WpdySalesTypeVariableMgtController {
             .build();
     }
 
+    /**
+     * 판매유형별 변수 중복체크
+     * @param dtos 비교 대상 정보
+     * @return 체크결과
+     */
     @ApiOperation(value = "판매유형별 변수 중복체크")
     @PostMapping("/duplication-check")
     public SaveResponse checkDuplication(

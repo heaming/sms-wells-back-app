@@ -8,8 +8,8 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAssignExcludeItemDelDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAssignExcludeItemDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAssignExcludeItemRemoveDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -20,7 +20,7 @@ public interface WsnaAssignExcludeItemMapper {
 
     PagingResult<SearchRes> selectAssignExcludeItemsPaging(SearchReq dto, PageInfo pageInfo);
 
-    int updateQomAsnExcdIzForRemove(WsnaAssignExcludeItemDelDvo dvo);
+    int updateQomAsnExcdIzForRemove(WsnaAssignExcludeItemRemoveDvo dvo);
 
     int insertQomAsnExcdIz(WsnaAssignExcludeItemDvo dvo);
 }

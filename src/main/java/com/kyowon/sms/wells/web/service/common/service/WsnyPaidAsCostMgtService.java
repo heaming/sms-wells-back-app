@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
  * </pre>
  *
  * @author kyunglyn.lee
- * @since 2023.03.08
+ * @since 2023-03-08
  */
 @Service
 @RequiredArgsConstructor

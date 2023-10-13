@@ -18,10 +18,14 @@ import lombok.Setter;
 @Setter
 public class WsnaSeedReleaseScheduleAggDvo {
 
+    // 센터
     private String dept;
+    // 센터명
     private String deptNm;
 
-    // 전체
+    /**
+     * 전체
+     */
     // 샐러드
     private BigDecimal pak01;
     // 채소식단
@@ -81,7 +85,9 @@ public class WsnaSeedReleaseScheduleAggDvo {
     // 소계
     private BigDecimal totSum;
 
-    // 설치, BS, AS
+    /**
+     * 설치, BS, AS
+     */
     // 건강샐러드/주스SLIM
     private BigDecimal pak01001;
     // 건강샐러드/주스WIDE

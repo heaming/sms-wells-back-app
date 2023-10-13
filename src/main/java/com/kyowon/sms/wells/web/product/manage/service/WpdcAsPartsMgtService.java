@@ -35,6 +35,14 @@ import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 상품 >> AS부품 관리 Service
+ * </pre>
+ *
+ * @author junho.bae
+ * @since 2023-07-01
+ */
 @Service
 @RequiredArgsConstructor
 public class WpdcAsPartsMgtService {
@@ -46,9 +54,7 @@ public class WpdcAsPartsMgtService {
     private final ZpdcProductService productService;
     private final ZpdcHistoryMgtService hisService;
     private final AttachFileService fileService;
-
     private final WpdcMaterialMgtMapper wMapper;
-
     private final CodeService codeService;
 
     /**
@@ -74,6 +80,12 @@ public class WpdcAsPartsMgtService {
         return this.mapper.selectAsPartPages(dto);
     }
 
+    /**
+     * AS 부품관리 정보 저장
+     * @param dto AS 부품관리 정보
+     * @return AS 부품관리
+     * @throws Exception 오류정보
+     */
     @Transactional
     public ZpdcProductDto.TbPdbsPdBas saveAsParts(WpdcAsPartMgtDto.SaveReq dto)
         throws Exception {
@@ -123,6 +135,12 @@ public class WpdcAsPartsMgtService {
         return productConverter.mapProductDvoToPdBas(dvo);
     }
 
+    /**
+     * AS 부품관리 수정
+     * @param dto AS 부품관리 정보
+     * @return AS 부품관리
+     * @throws Exception 오류정보
+     */
     @Transactional
     public ZpdcProductDto.TbPdbsPdBas editAsParts(WpdcAsPartMgtDto.EditReq dto)
         throws Exception {
@@ -156,6 +174,12 @@ public class WpdcAsPartsMgtService {
         return productConverter.mapProductDvoToPdBas(dvo);
     }
 
+    /**
+     * AS 부품관리 삭제
+     * @param pdCd 상품코드(PK)
+     * @return 성공여부
+     * @throws Exception 오류정보
+     */
     @Transactional
     public int removeAsParts(String pdCd) throws Exception {
         productMapper.deleteEachCompanyProps(pdCd, "");
@@ -313,6 +337,11 @@ public class WpdcAsPartsMgtService {
         return this.mapper.selectValidation(dto);
     }
 
+    /**
+     * 엑셀 Column 값에서 값 추출 공통함수
+     * @param obj 엑셀 Column 값
+     * @return 가공된 엑셀 Column 값
+     */
     public String getExcelValue(Object obj) {
         String compareValue = StringUtil.nvl2(obj.toString(), "");
         if (compareValue.split("\\|").length > 1) {

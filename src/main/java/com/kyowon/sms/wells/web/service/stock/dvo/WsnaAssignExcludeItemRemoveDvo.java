@@ -14,9 +14,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsnaAssignExcludeItemDelDvo {
+public class WsnaAssignExcludeItemRemoveDvo {
 
+    // 배정제외구분코드
     private String asnExcdDvCd;
+    // 입고창고번호
     private String strWareNo;
+    // 품목상품코드
     private String itmPdCd;
 }

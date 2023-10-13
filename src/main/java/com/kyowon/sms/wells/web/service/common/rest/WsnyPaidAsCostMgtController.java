@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
  * </pre>
  *
  * @author kyunglyn.lee
- * @since 2023.03.08
+ * @since 2023-03-08
  */
 @Api(tags = "[WSNY] 유상 A/S 서비스비용 관리")
 @RequiredArgsConstructor

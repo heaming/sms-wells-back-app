@@ -52,7 +52,7 @@ public class WsncAsEngineerAllocateSearchDto {
         String newAdrZip,
         String adrDtl,
         String cnslMoCn,
-        String svBizDclsfCd,
+        String svBizDclsf,
         String asRefriDvCd,
         String bsRefriDvCd,
         String istDt,
@@ -64,6 +64,14 @@ public class WsncAsEngineerAllocateSearchDto {
         String dtmChRsonCd,
         String dtmChRsonDtlCn,
         String prtnrNm,
+        String wkPrgsStat,
+
+        String cstSvAsnNo,
+        String prtnrNo,
+        String svHshdNo,
+        String svHshdNoCnt,
+        String svBizHclsfCd,
+        String svBizDclsfCd,
         String wkPrgsStatCd
     ) {}
 }

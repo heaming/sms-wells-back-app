@@ -7,6 +7,14 @@ import com.sds.sflex.common.utils.StringUtil;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 상품 >> 재약정 기본정보 관리 Mapper
+ * </pre>
+ *
+ * @author  junho.bae
+ * @since 2023-07-01
+ */
 public class WpdyRestipulationMgtDto {
 
     @ApiModel("WpdyRestipulationMgtDto-SearchReq")

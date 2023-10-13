@@ -28,6 +28,7 @@ public class WsncFixationVisitService {
         return wwsncFixationVisitMgntMapper.selectFixationVisits(dto, pageInfo);
     }
 
+    @Transactional
     public List<WsncFixationVisitDto.SearchRes> getFixationVisitsExcelDownload(
         WsncFixationVisitDto.SearchReq dto
     ) {

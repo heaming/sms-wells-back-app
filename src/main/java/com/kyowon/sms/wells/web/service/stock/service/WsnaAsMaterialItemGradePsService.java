@@ -123,11 +123,10 @@ public class WsnaAsMaterialItemGradePsService {
         dvo.setOffSet(startRow);
         dvo.setSize(pageSize);
 
+        // 페이징 정보에 해당하는 데이터 조회
         List<HashMap<String, String>> itemGradePs = this.mapper.selectAsMaterialItemGradePs(dvo);
 
-        return new PagingResult<>(
-            itemGradePs, pageInfo
-        );
+        return new PagingResult<>(itemGradePs, pageInfo);
     }
 
     /**

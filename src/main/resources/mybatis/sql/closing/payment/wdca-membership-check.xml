@@ -7,7 +7,7 @@
         -----------------------------------------------------------------------
         SELECT A.CNTR_NO || '-' || A.CNTR_SN    AS 계약상세번호 /*계약번호 || '-' || 계약일련번호*/
               ,'11'                             AS 체크구분코드
-              ,'멤버탈퇴가 되어야하는데 안된건' AS 체크구분명
+              ,'멤버탈퇴가 되어야하는데 안된건'       AS 체크구분명
               ,A.CNTR_PD_STRTDT                 AS 계약일자 /*계약상품시작일자*/
               ,B.IST_DT                         AS 설치일자
               ,B.CPS_DT                         AS 취소일자 /*보상일자*/
@@ -17,16 +17,27 @@
               ,'H'                              AS 구분02 /*H:할부 R:렌탈 회사설치:C*/
               ,'-'                              AS 비고
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3000P] -- 멤버십계약만*/
+         INNER JOIN TB_SSCT_CNTR_REL D/*계약관계*/
+            ON D.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND D.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
+           AND D.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
          INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
             ON B.CNTR_NO = A.CNTR_NO
            AND B.CNTR_SN = A.CNTR_SN
-           AND B.CPS_DT IS NOT NULL /*취소된 계약을 찾음 -> 취소=탈회*/
          -- 상품가입여부 확인을 위한 구문
          INNER JOIN TB_SSCT_CNTR_BAS C /*계약기본 [AS-IS:LCLIB.LC3500P]*/
             ON C.CNTR_NO = A.CNTR_NO
-         WHERE 1 = 1
-           AND A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
-           AND C.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
+         INNER JOIN TB_SSCT_CNTR_BAS E /*계약기본 [AS-IS:LCLIB.LC3000P]*/
+            ON E.CNTR_NO = D.OJ_DTL_CNTR_NO
+         INNER JOIN TB_SSCT_CNTR_DTL F /*계약WELLS상세 [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
+            ON F.CNTR_NO = D.OJ_DTL_CNTR_NO
+           AND F.CNTR_SN = D.OJ_DTL_CNTR_SN
+           AND F.SELL_TP_CD = '1'	/*원계약 일시불*/
+         WHERE A.SELL_TP_CD = '3' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND (E.CNTR_CAN_DTM IS NOT NULL OR B.CPS_DT IS NOT NULL)  /*원계약의 취소일시 OR 보상일자 존재*/
+           AND C.CNTR_CNFM_DTM IS NOT NULL /*멤버십 계약의 계약확정일시 존재*/
+           AND A.CNTR_PD_ENDDT IS NULL	/*멤버십 계약을 상품종료일자가 존재하지 않는것*/
         UNION ALL
         -----------------------------------------------------------------------
         -- 21. 렌탈 60차월 종료 철거시 종료 일자 미세팅건 찾기
@@ -36,38 +47,31 @@
               ,'21'                                         AS 체크구분코드
               ,'렌탈 60차월 종료 철거시 종료 일자 미세팅건' AS 체크구분명
               ,A.CNTR_PD_STRTDT                             AS 계약일자 /*계약상품시작일자*/
-              ,NVL(D.CNTR_CNFM_APR_DTM, '-')                AS 설치일자
+              ,NVL(F.CNTR_CNFM_APR_DTM, '-')                AS 설치일자
               ,B.CPS_DT                                     AS 취소일자 /*보상일자*/
               ,A.CNTR_PD_ENDDT                              AS 종료일자 /*계약상품종료일자*/
               ,B.REQD_DT                                    AS 철거일자
               ,A.ISTM_MCN                                   AS 렌탈기간 /*할부개월수*/
               ,'R'                                          AS 구분02 /*H:할부 R:렌탈 회사설치:C*/
-              ,CASE WHEN TO_NUMBER(TO_NUMBER(SUBSTR(NVL(D.CNTR_CNFM_APR_DTM, '0000000000'), 5, 4))) >= TO_NUMBER(SUBSTR(NVL(B.REQD_DT, '00000000'), 5, 4)) /*렌탈의 매출확정은 설처 기준으로 생성*/
+              ,CASE WHEN TO_NUMBER(TO_NUMBER(SUBSTR(NVL(F.CNTR_CNFM_APR_DTM, '0000000000'), 5, 4))) >= TO_NUMBER(SUBSTR(NVL(B.REQD_DT, '00000000'), 5, 4)) /*렌탈의 매출확정은 설처 기준으로 생성*/
                          THEN '만료취소'
                     ELSE 'X' END                           AS 비고
           FROM TB_SSCT_CNTR_DTL A /*계약기본상세 [AS-IS:LCLIB.LC3000P] -- 렌탈계약*/
          INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
             ON B.CNTR_NO = A.CNTR_NO
            AND B.CNTR_SN = A.CNTR_SN
-           AND B.CPS_DT IS NOT NULL /*취소일자 존재*/
-           AND B.REQD_DT IS NOT NULL /*철거일자 존재*/
+           AND B.CPS_DT IS NULL /*원계약의 취소일자가 없고*/
+           AND B.REQD_DT IS NULL /*원계약의 철거일자 없고*/
            AND SUBSTR(B.REQD_DT, 1, 6) = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') /*전달 철거된 정보*/
-          LEFT OUTER JOIN TB_SSCT_CNTR_REL C /*계약관계 (렌탈->멤버십) [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
-            ON C.OJ_DTL_CNTR_NO = A.CNTR_NO
-           AND C.OJ_DTL_CNTR_SN = A.CNTR_SN
-           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN SUBSTR(C.VL_STRT_DTM, 1, 8) AND SUBSTR(C.VL_END_DTM, 1, 8)
-           AND C.CNTR_UNIT_TP_CD = '020' /*계약단위유형코드 [010:계약, 020:계약상세]*/
-           AND C.CNTR_REL_TP_CD = '20' /*계약관계유형코드 [10:계약전환관계, 20:연계상품계약관계, 30:대체회원계약관계]*/
-           AND C.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
-          -- 상품가입여부 확인을 위한 구문
-         INNER JOIN TB_SSCT_CNTR_BAS D /*계약기본 [AS-IS:LCLIB.LC3500P]*/
-            ON D.CNTR_NO = C.BASE_DTL_CNTR_NO
-           AND D.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
          INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ E/*WELLS매출월마감내역*/
             ON E.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')/*전월기준*/
            AND E.CNTR_PTRM = E.RENTAL_TN/*렌탈기간 = 실적회차*/
+         INNER JOIN TB_SSCT_CNTR_BAS F /*계약기본 [AS-IS:LCLIB.LC3000P]*/
+            ON F.CNTR_NO = A.CNTR_NO
+           AND F.CNTR_CAN_DTM IS NULL /*계약취소일시*/
          WHERE 1 = 1
            AND A.SELL_TP_CD = '2' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터]*/
+           AND A.CNTR_PD_ENDDT IS NULL
         UNION ALL
         -----------------------------------------------------------------------
         -- 31. (회사설치) 멤버탈퇴가 되어야하는데 안된건 찾기
@@ -88,8 +92,7 @@
          INNER JOIN TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세 [AS-IS:LCLIB.LC9500P+LCLIB.LC3500P]*/
             ON B.CNTR_NO = A.CNTR_NO
            AND B.CNTR_SN = A.CNTR_SN
-           AND B.REQD_DT IS NOT NULL /*취소일자 존재*/
-           AND B.CPS_DT IS NOT NULL /*보상일자 존재*/
+           AND (B.REQD_DT IS NOT NULL /*취소일자 존재*/ OR B.CPS_DT IS NOT NULL /*보상일자 존재*/ )
          INNER JOIN TB_SSCT_CNTR_REL C /*계약관계 (회사설치->멤버십) [AS-IS:LCLIB.LC9500P+LCLIB.LC3500P]*/
             ON C.OJ_DTL_CNTR_NO = A.CNTR_NO
            AND C.OJ_DTL_CNTR_SN = A.CNTR_SN
@@ -99,9 +102,13 @@
            AND C.CNTR_REL_DTL_CD = '212' /*계약관계상세코드 [212:원주문-멤버십]*/
          INNER JOIN TB_SSCT_CNTR_BAS D /*계약기본 [AS-IS:LCLIB.LC3500P]*/
             ON D.CNTR_NO = C.BASE_DTL_CNTR_NO
-           AND D.CNTR_CNFM_APR_DTM IS NOT NULL /*계약확정승인일시*/
+           AND D.CNTR_CNFM_DTM IS NOT NULL /*계약확정승인일시*/
+         INNER JOIN TB_SSCT_CNTR_DTL E /*계약WELLS상세 [AS-IS:LCLIB.LC9500P+LCLIB.LC3500P]*/
+            ON E.CNTR_NO = C.BASE_DTL_CNTR_NO
+           AND E.CNTR_SN = C.BASE_DTL_CNTR_SN
          WHERE 1 = 1
            AND A.SELL_TP_CD = '4' /*판매유형코드 [1:할부, 2:렌탈/리스, 3:멤버십, 4:회사설치, 5:유지관리, 6:정기배송, 9:필터] */
+           AND E.CNTR_PD_ENDDT IS NULL
         UNION ALL
         -----------------------------------------------------------------------
         -- 41. 웰스팜 맴버십 주문 중 전월 미수금 있는 건 조회
@@ -117,7 +124,7 @@
               ,' '                              AS 철거일자
               ,B.STPL_PTRM                      AS 렌탈기간
               ,TO_CHAR(D.EOT_UC_AMT)            AS 구분02 /*H:할부 R:렌탈 회사설치:C*/
-              ,B.CNTR_NO || '-' || B.CNTR_SN    AS 비고
+              ,E.BASE_DTL_CNTR_NO || '-' || E.BASE_DTL_CNTR_SN    AS 비고
         FROM TB_SSCT_CNTR_BAS A/*계약기본*/
             ,TB_PDBS_PD_BAS E/*상품기본*/
             ,TB_PDBS_PD_CLSF_BAS F/*상품분류기본*/
@@ -126,10 +133,15 @@
            ON C.CNTR_NO = B.CNTR_NO
           AND C.CNTR_SN = B.CNTR_SN
           AND C.CPS_DT IS NOT NULL /*취소 X*/
+        /*모종계약 찾기*/
+        INNER JOIN TB_SSCT_CNTR_REL E/*계약관계 - 216 : 모종결함*/
+           ON E.OJ_DTL_CNTR_NO = B.CNTR_NO
+          AND E.OJ_DTL_CNTR_SN = B.CNTR_SN
+          AND E.CNTR_REL_DTL_CD = '216'
         INNER JOIN LATERAL (SELECT *
               FROM TB_CBCL_WELLS_SL_MM_CL_IZ/*WELLS매출월마감내역*/
-             WHERE CNTR_NO = B.CNTR_NO
-               AND CNTR_SN = B.CNTR_SN
+             WHERE CNTR_NO = E.BASE_DTL_CNTR_NO
+               AND CNTR_SN = E.BASE_DTL_CNTR_SN
              ORDER BY SL_CL_YM DESC
              FETCH FIRST 1 ROW ONLY) D ON 1=1
         WHERE 1=1
@@ -139,9 +151,10 @@
           AND E.PD_CLSF_ID = F.PD_CLSF_ID
           AND F.REF_PD_CLSF_VAL LIKE '05001003%'/*웰스팜 기기만*/
           AND B.SELL_TP_CD = '3'
-          AND B.CNTR_PD_ENDDT IS NULL/*탈퇴 X*/
-          AND D.EOT_UC_AMT > 0/*미수금 존재건(오류)*/
-          AND (B.CNTR_PTRM = '999' OR D.RENTAL_TN > B.CNTR_PTRM + 2)/*모종매출차월이 모종렌탈기간보다 크거나 같은 건(모종은 후불이며 2번에 나누어서 받기 때문에 매출금액 발생 후 2개월 동안 받는다.)*/
+          AND A.CNTR_CNFM_DTM IS NULL /*계약확정일시 X*/
+          AND A.CNTR_CAN_DTM IS NULL/*탈퇴 X*/
+          AND D.EOT_UC_AMT > 0 /*미수금 존재건(오류)*/
+          AND (D.CNTR_PTRM = '999' OR D.RENTAL_TN > B.CNTR_PTRM + 2) /*모종매출차월이 모종렌탈기간보다 크거나 같은 건(모종은 후불이며 2번에 나누어서 받기 때문에 매출금액 발생 후 2개월 동안 받는다.)*/
         UNION ALL
         -----------------------------------------------------------------------
         -- 42. 멤버십서비스종료일자를 초과하는 계약건 조회
@@ -157,17 +170,27 @@
               ,A.STPL_PTRM                      AS 렌탈기간
               ,' '    AS 구분02 /*H:할부 R:렌탈 회사설치:C*/
               ,' '   AS 비고
-         FROM TB_SSCT_CNTR_DTL A
-             ,TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세*/
+         FROM TB_SSCT_CNTR_WELLS_DTL B /*계약WELLS상세*/
+             ,TB_SSCT_CNTR_DTL A
+        INNER JOIN TB_SSCT_CNTR_BAS E
+           ON E.CNTR_NO = A.CNTR_NO
+         LEFT OUTER JOIN TB_SSCT_CNTR_PRTNR_REL C
+           ON C.CNTR_NO = A.CNTR_NO
+          AND C.OG_TP_CD = E.SELL_OG_TP_CD
+          AND C.PRTNR_NO = E.SELL_PRTNR_NO
+         LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL D
+           ON D.PD_CD = A.BASE_PD_CD
+          AND D.PD_EXTS_PRP_GRP_CD ='ETC'
         WHERE A.CNTR_NO = B.CNTR_NO
           AND A.CNTR_SN = B.CNTR_SN
           AND B.CPS_DT IS NOT NULL /*취소 X*/
           AND A.SELL_TP_CD = '3'
           AND A.CNTR_DTL_STAT_CD = '401' /*멤버십서비스 최종종료건*/
-          AND A.CNTR_PD_STRTDT > TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(A.CNTR_PD_ENDDT), -12)), 'YYYYMMDD')
+          AND SUBSTR(C.OG_ID, 1, 1) NOT IN ('Y', 'Z')
+          AND A.CNTR_PD_STRTDT > TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(D.PD_PRP_VAL02), -12)), 'YYYYMMDD')
     </select>
 
-    <select id="selectAfterPages" parameterType="String" resultType="com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto$SearchAfterRes">
+    <select id="selectAfterPages" resultType="com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto$SearchAfterRes">
         -- 1.가입일자　누락건
         -- 확정일자 -> TO-BE 설치일자로 확인
         -- 가입일자 -> TO-BE 계약확정승인일시로 확인
@@ -181,11 +204,16 @@
               ,A.FNL_AMT                             AS COL8 /*멤버십회비 - 월할부금액*/
               ,E.CNTR_PTRM                           AS COL9/*렌탈기간*/
               ,NVL(G.RENTAL_TN, 0)                   AS COL10/*렌탈차월*/
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                   AS COL11/*입력담당자명*/
-              ,A.FST_RGST_USR_ID                     AS COL12 /*입력담당자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                   AS COL11/*입력담당자명*/
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*입력담당자ID*/
               ,NVL(H.DLQ_MCN, 0)                     AS COL13 /*연체개월수*/
               ,''                                    AS COL14/*구분02*/
               ,''                                    AS COL15/*비고*/
@@ -201,7 +229,7 @@
               </when>
               <otherwise>
               /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
-              AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010', #{deptGubun}) /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+              AND C.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
               </otherwise>
         </choose>
         INNER JOIN TB_SSCT_CNTR_REL D /*계약관계 (렌탈 -> 멤버십) [AS-IS:LCLIB.LC3100P+LCLIB.LC3500P]*/
@@ -262,11 +290,16 @@
               ,A.FNL_AMT                             AS COL8 /*멤버십회비 - 월할부금액*/
               ,E.CNTR_PTRM + E.RENTAL_PTRM2          AS COL9 /*렌탈기간*/
               ,NVL(G.RENTAL_TN, 0)                   AS COL10/*렌탈차월*/
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                   AS COL11 /*입력담당자명*/
-              ,A.FST_RGST_USR_ID                     AS COL12 /*입력담당자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                   AS COL11 /*입력담당자명*/
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*입력담당자ID*/
               ,0                                     AS COL13 /*연체개월수*/
               ,''                                    AS COL14 /*구분02*/
               ,''                                    AS COL15 /*비고*/
@@ -353,7 +386,11 @@
                  WHERE 1 = 1
                    AND PRTNR_NO = A.FST_RGST_USR_ID
                    AND ROWNUM = 1)                      AS COL11
-              ,A.FST_RGST_USR_ID                        AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                        AS COL12 /*최초등록사용자ID*/
               ,NVL(H.DLQ_MCN, 0)                        AS COL13 /*연체개월수*/
               ,''                                       AS COL14
               ,''                                       AS COL15
@@ -419,7 +456,11 @@
                  WHERE 1 = 1
                    AND PRTNR_NO = A.FST_RGST_USR_ID
                    AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,NVL(H.DLQ_MCN, 0)                     AS COL13 /*연체개월수*/
               ,''                                    AS COL14
               ,''                                    AS COL15
@@ -485,11 +526,16 @@
               ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,E.CNTR_PTRM                           AS COL9
               ,NVL(G.RENTAL_TN, 0)                   AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                   AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,NVL(H.DLQ_MCN, 0)                     AS COL13 /*연체개월수*/
               ,''                                    AS COL14
               ,''                                    AS COL15
@@ -556,11 +602,16 @@
               ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,E.CNTR_PTRM                           AS COL9
               ,0                                     AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                   AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,0                                     AS COL13
               ,''                                    AS COL14
               ,''                                    AS COL15
@@ -617,11 +668,16 @@
               ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,E.CNTR_PTRM                           AS COL9
               ,0                                     AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                   AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,0                                     AS COL13
               ,''                                    AS COL14
               ,''                                    AS COL15
@@ -679,7 +735,11 @@
                  WHERE 1 = 1
                    AND PRTNR_NO = A.FST_RGST_USR_ID
                    AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,0                                     AS COL13
               ,''                                    AS COL14
               ,''                                    AS COL15
@@ -724,8 +784,8 @@
               ,'멤버십가입건중에서비스센터철거된건'        AS COL3
               ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
               ,F.REQD_DT                             AS COL5 /*철거일자*/
-              ,'44444444'                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-              ,'44444444'                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+              ,NULL                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
+              ,NULL                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
               ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,0                                     AS COL9
               ,0                                     AS COL10
@@ -734,7 +794,11 @@
                  WHERE 1 = 1
                    AND PRTNR_NO = A.FST_RGST_USR_ID
                    AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,0                                     AS COL13
               ,''                                    AS COL14
               ,''                                    AS COL15
@@ -780,16 +844,21 @@
               ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)         AS COL4 /*계약상품시작일자*/
               ,CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '303', '401', '402') THEN A.CNTR_PD_ENDDT
                     ELSE '' END                         AS COL5 /*철거일자*/
-              ,'44444444'                               AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-              ,'44444444'                               AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+              ,NULL                               AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
+              ,NULL                               AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
               ,A.FNL_AMT                                AS COL8 /*월할부금액*/
               ,0                                        AS COL9
               ,0                                        AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                      AS COL11
-              ,A.FST_RGST_USR_ID                        AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                      AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                        AS COL12 /*최초등록사용자ID*/
               ,0                                        AS COL13
               ,''                                       AS COL14
               ,''                                       AS COL15
@@ -819,11 +888,16 @@
               ,A.FNL_AMT                              AS COL8 /*월할부금액*/
               ,E.CNTR_PTRM                            AS COL9
               ,NVL(G.RENTAL_TN, 0)                    AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                    AS COL11
-              ,A.FST_RGST_USR_ID                      AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                    AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                      AS COL12 /*최초등록사용자ID*/
               ,NVL(H.DLQ_MCN, 0)                      AS COL13 /*연체개월수*/
               ,''                                     AS COL14
               ,''                                     AS COL15
@@ -890,19 +964,24 @@
               /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
                 </when>
                 <otherwise>
-                  ,'44444444'                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-                  ,'44444444'                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+                  ,NULL                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
+                  ,NULL                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
                 </otherwise>
               </choose>
               /*2023-07-18 화면 조직선택 - 고객센터인 경우*/
               ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,0                                     AS COL9
               ,0                                     AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                   AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,0                                     AS COL13
               /*2023-07-18 화면 조직선택 - 영업부인 경우*/
               <choose>
@@ -965,16 +1044,21 @@
               ,'KIWI철거일자있는데멤버십가입건'           AS COL3
               ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
               ,F.REQD_DT                             AS COL5 /*철거일자*/
-              ,'44444444'                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-              ,'44444444'                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+              ,NULL                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
+              ,NULL                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
               ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,0                                     AS COL9
               ,0                                     AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                   AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,0                                     AS COL13
               ,''                                    AS COL14
               ,''                                    AS COL15
@@ -1016,16 +1100,21 @@
               ,'설치아닌데가입건체크'                    AS COL3
               ,SUBSTR(C.CNTR_RCP_FSH_DTM, 1, 8)      AS COL4 /*계약상품시작일자*/
               ,G.REQD_DT                             AS COL5 /*철거일자*/
-              ,'44444444'                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
-              ,'44444444'                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
+              ,NULL                            AS COL6 /*보상일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 보상일자는 없는데. */
+              ,NULL                            AS COL7 /*철거일자 - AS-IS 왜 저 정보를 조회할까? 어짜피 철거일자는 없는데. */
               ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,0                                     AS COL9
               ,0                                     AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                   AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,0                                     AS COL13
               ,''                                    AS COL14
               ,''                                    AS COL15
@@ -1083,11 +1172,16 @@
               ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,0                                     AS COL9
               ,0                                     AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                   AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,0                                     AS COL13
               ,''                                    AS COL14
               ,''                                    AS COL15
@@ -1139,7 +1233,11 @@
                  WHERE 1 = 1
                    AND PRTNR_NO = A.FST_RGST_USR_ID
                    AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,0                                     AS COL13
               ,'R'                                   AS COL14
               ,CASE WHEN SUBSTR(F.IST_DT, 5, 4) <![CDATA[>=]]> SUBSTR(F.REQD_DT, 5, 4)
@@ -1197,11 +1295,16 @@
               ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,E.CNTR_PTRM                           AS COL9
               ,G.RENTAL_TN                           AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                   AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,0                                     AS COL13
               ,''                                    AS COL14
               ,''                                    AS COL15
@@ -1270,11 +1373,16 @@
               ,A.FNL_AMT                             AS COL8 /*월할부금액*/
               ,0                                     AS COL9
               ,0                                     AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                   AS COL11
-              ,A.FST_RGST_USR_ID                     AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                   AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                     AS COL12 /*최초등록사용자ID*/
               ,0                                     AS COL13
               ,''                                    AS COL14
               ,''                                    AS COL15
@@ -1318,11 +1426,16 @@
               ,A.FNL_AMT                                     AS COL8 /*월할부금액*/
               ,0                                             AS COL9
               ,0                                             AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                           AS COL11
-              ,A.FST_RGST_USR_ID                             AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                           AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                             AS COL12 /*최초등록사용자ID*/
               ,0                                             AS COL13
               ,''                                            AS COL14
               ,''                                            AS COL15
@@ -1371,11 +1484,16 @@
               ,A.FNL_AMT                                          AS COL8 /*월할부금액*/
               ,0                                                  AS COL9
               ,0                                                  AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                                AS COL11
-              ,A.FST_RGST_USR_ID                                  AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                                AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                                  AS COL12 /*최초등록사용자ID*/
               ,0                                                  AS COL13
               ,''                                                 AS COL14
               ,''                                                 AS COL15
@@ -1419,11 +1537,16 @@
               ,A.FNL_AMT                                          AS COL8 /*월할부금액*/
               ,0                                                  AS COL9
               ,0                                                  AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                                AS COL11
-              ,A.FST_RGST_USR_ID                                  AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                                AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                                  AS COL12 /*최초등록사용자ID*/
               ,0                                                  AS COL13
               ,''                                                 AS COL14
               ,''                                                 AS COL15
@@ -1468,11 +1591,16 @@
               ,A.FNL_AMT                                 AS COL8 /*월할부금액*/
               ,0                                         AS COL9
               ,0                                         AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)                       AS COL11
-              ,A.FST_RGST_USR_ID                         AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                       AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                         AS COL12 /*최초등록사용자ID*/
               ,0                                         AS COL13
               ,''                                        AS COL14
               ,''                                        AS COL15
@@ -1528,7 +1656,11 @@
                  WHERE 1 = 1
                    AND PRTNR_NO = A.FST_RGST_USR_ID
                    AND ROWNUM = 1)              AS COL11
-              ,A.FST_RGST_USR_ID                AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                AS COL12 /*최초등록사용자ID*/
               ,0                                AS COL13
               ,''                               AS COL14
               ,''                               AS COL15
@@ -1574,11 +1706,16 @@
               ,A.FNL_AMT                        AS COL8 /*월할부금액*/
               ,0                                AS COL9
               ,0                                AS COL10
-              ,(SELECT PRTNR_KNM
-                  FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
-                 WHERE PRTNR_NO = A.FST_RGST_USR_ID
-                   AND ROWNUM = 1)              AS COL11
-              ,A.FST_RGST_USR_ID                AS COL12 /*최초등록사용자ID*/
+              ,NVL( (SELECT USR_NM
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )              AS COL11
+              ,NVL( (SELECT EPNO
+                FROM T_CMP_USR_ACO_M
+               WHERE (USR_ID = A.FNL_MDFC_USR_ID OR EPNO = A.FNL_MDFC_USR_ID)
+                  AND DEL_YN = 'N'
+                  AND ROWNUM = 1), A.FNL_MDFC_USR_ID )                AS COL12 /*최초등록사용자ID*/
               ,0                                AS COL13
               ,''                               AS COL14
               ,''                               AS COL15

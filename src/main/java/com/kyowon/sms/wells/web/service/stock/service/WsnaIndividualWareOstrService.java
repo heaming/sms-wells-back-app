@@ -19,7 +19,6 @@ import com.kyowon.sms.wells.web.service.stock.converter.WsnaIndividualWareOstrCo
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrLgstDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskResDvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndividualWareOstrMapper;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -236,9 +235,9 @@ public class WsnaIndividualWareOstrService {
         BizAssert.isFalse(CollectionUtils.isEmpty(dvos), "MSG_ALT_NO_APPY_OBJ_DT");
 
         // 물류 출고처리
-        WsnaLogisticsOutStorageAskResDvo resDvo = this.lgstService.createQomOutOfStorageAsks(dvos);
+        this.lgstService.createQomOutOfStorageAsks(dvos);
 
-        return resDvo.getAkCnt();
+        return dvos.size();
     }
 
 }

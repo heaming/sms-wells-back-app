@@ -1,11 +1,10 @@
 package com.kyowon.sms.wells.web.bond.consultation.dto;
 
-import javax.validation.constraints.NotBlank;
-
-import org.eclipse.jetty.util.StringUtil;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
+import org.eclipse.jetty.util.StringUtil;
+
+import javax.validation.constraints.NotBlank;
 
 public class WbncRentalResignExpectedMgtDto {
     // *********************************************************
@@ -131,7 +130,6 @@ public class WbncRentalResignExpectedMgtDto {
         String baseYm, /* 기준년월 */
         @NotBlank
         String excdYn, /* 제외여부 */
-        @NotBlank
         String authRsgExcdRsonCd, /* 제외사유 */
         @NotBlank
         String cntrNo, /* 계약번호 */

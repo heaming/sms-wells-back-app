@@ -34,11 +34,13 @@ public class WsnaFilterNeedsPsService {
      */
     public List<WsnaFilterNeedsPsDvo> getFilterNeedsState(SearchReq dto) {
 
-        // b2b 관리코드
+        // B2B 관리코드
         String b2bMngtCd = dto.b2bMngtCd();
+        // B2B 관리코드가 유효한 경우
         if (StringUtils.isNotEmpty(b2bMngtCd) && List.of("A", "P").contains(b2bMngtCd)) {
             return this.mapper.selectFilterNeedsStateForB2B(dto);
         } else {
+            // 그 외는 전체로 조회
             return this.mapper.selectFilterNeedsState(dto);
         }
     }

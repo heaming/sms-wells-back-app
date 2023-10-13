@@ -6,11 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.product.standard.converter.WpdyRestipulationMgtConverter;
-import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.DuplicationRes;
-import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.RemoveReq;
-import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.product.standard.dto.WpdyRestipulationMgtDto.*;
 import com.kyowon.sms.wells.web.product.standard.dvo.WpdyRestipulationDvo;
 import com.kyowon.sms.wells.web.product.standard.mapper.WpdyRestipulationMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
@@ -21,6 +17,14 @@ import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 상품 >> 재약정 기본정보 관리 Service
+ * </pre>
+ *
+ * @author  junho.bae
+ * @since 2023-07-01
+ */
 @Service
 @RequiredArgsConstructor
 public class WpdyRestipulationMgtService {
@@ -30,8 +34,8 @@ public class WpdyRestipulationMgtService {
 
     /**
      * 재약정 목록 조회
-     * @param dto
-     * @return
+     * @param dto 검색조건
+     * @return 재약정 목록
      */
     public PagingResult<SearchRes> getRestipulationPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectRestipulationPages(dto, pageInfo);
@@ -39,8 +43,8 @@ public class WpdyRestipulationMgtService {
 
     /**
      * 재약정 목록 엑셀다운로드
-     * @param dto
-     * @return
+     * @param dto 검색조건
+     * @return 재약정 목록
      */
     public List<SearchRes> getRestipulationsForExcelDownload(SearchReq dto) {
         return mapper.selectRestipulationPages(dto);
@@ -48,8 +52,8 @@ public class WpdyRestipulationMgtService {
 
     /**
      * 재약정 입력시 데이터 중복검사
-     * @param dtos
-     * @return
+     * @param dtos 재약정 정보
+     * @return 중복 여부 관련 정보
      */
     public DuplicationRes checkDuplicationByPk(List<SaveReq> dtos) {
         DuplicationRes duplicationRes = new DuplicationRes(null, "N");
@@ -64,8 +68,8 @@ public class WpdyRestipulationMgtService {
 
     /**
      * 재약정 목록 저장(추가/수정)
-     * @param dtos
-     * @return
+     * @param dtos 재약정 정보
+     * @return 성공여부
      */
     @Transactional
     public int saveRestipulations(List<SaveReq> dtos) {
@@ -89,8 +93,8 @@ public class WpdyRestipulationMgtService {
 
     /**
      * 재약정 삭제
-     * @param pkArr
-     * @return
+     * @param dtos  재약정 PK 배열
+     * @return 성공여부
      */
     @Transactional
     public int removeRestipulations(List<RemoveReq> dtos) {

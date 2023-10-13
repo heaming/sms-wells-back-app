@@ -33,11 +33,11 @@ public class WbncSameCustomerContractService {
 
     /**
       * 동일고객 계약 입금정보 조회
-      * @param bndBizDvCd, cntrNo, cntrSn
+      * @param cntrNo, cntrSn
       * @return 조회결과
       */
-    public List<FindDepositRes> getContractDeposits(String bndBizDvCd, String cntrNo, int cntrSn) {
-        return mapper.selectContractDeposits(bndBizDvCd, cntrNo, cntrSn);
+    public List<FindDepositRes> getContractDeposits(String cntrNo, int cntrSn) {
+        return mapper.selectContractDeposits(cntrNo, cntrSn);
     }
 
     /**

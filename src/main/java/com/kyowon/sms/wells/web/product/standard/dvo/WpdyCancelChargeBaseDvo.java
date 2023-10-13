@@ -5,6 +5,14 @@ import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * <pre>
+ * 상품 렌탈/리스 위약금관리 DVO
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 @Setter
 @Getter
 public class WpdyCancelChargeBaseDvo {

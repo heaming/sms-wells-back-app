@@ -11,17 +11,35 @@ import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 렌탈 신규/철거 집계현황
+ * </pre>
+ *
+ * @author songmi.in
+ * @since 2023-08-16
+ */
 @Service
 @RequiredArgsConstructor
 public class WdcbRentalNewRequidationAggregateService {
     private final WdcbRentalNewRequidationAggregateMapper mapper;
 
+    /**
+      * 렌탈 신규/철거 집계현황 - 집계현황 조회
+      * @param dto
+      * @return 조회결과
+      */
     public List<SearchRes> getAggregates(
         SearchReq dto
     ) {
         return mapper.selectAggregates(dto);
     }
 
+    /**
+      * 렌탈 신규/철거 집계현황 - 상세현황 조회
+      * @param dto
+      * @return 조회결과
+      */
     public List<SearchDetailRes> getRentalNewRequidations(
         SearchDetailReq dto
     ) {

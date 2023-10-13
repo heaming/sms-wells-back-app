@@ -17,6 +17,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 헬스 제휴 관리 서비스
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 @Service
 @RequiredArgsConstructor
 public class WpdyWellsAllianceMgtService {
@@ -24,14 +32,31 @@ public class WpdyWellsAllianceMgtService {
     private final WpdyWellsAllianceMgtConverter converter;
     private final WpdyWellsAllianceMgtMapper mapper;
 
+    /**
+     * 헬스 제휴 관리 목록 조회
+     * @param dto 검색조건 정보
+     * @return 검색 결과 목록
+     */
     public List<WpdyWellsAllianceMgtDto.SearchRes> getWellsAlliances(WpdyWellsAllianceMgtDto.SearchReq dto) {
         return mapper.selectWellsAlliances(dto);
     }
 
+    /**
+     * 헬스 제휴 관리 페이징 조회
+     * @param dto 검색조건 정보
+     * @param pageInfo 페이지 정보
+     * @return 검색 결과 목록
+     */
     public PagingResult<WpdyWellsAllianceMgtDto.SearchRes> getWellsAlliancePages(WpdyWellsAllianceMgtDto.SearchReq dto, PageInfo pageInfo) {
         return mapper.selectWellsAlliancePages(dto, pageInfo);
     }
 
+    /**
+     * 헬스 제휴 관리 수정
+     * @param dto 수정내용 정보
+     * @return 수정건수
+     * @throws Exception 미처리 시 Exception 처리
+     */
     public int saveWellsAlliances(WpdyWellsAllianceMgtDto.SaveReq dto) throws Exception {
         int cnt = 0;
         List<WpdyAllianceBaseDvo> bases = converter.mapAllAllianceBaseDtoToAllianceBaseDvo(dto.bases());
@@ -44,6 +69,11 @@ public class WpdyWellsAllianceMgtService {
         return cnt;
     }
 
+    /**
+     * 헬스 제휴 관리 삭제
+     * @param dtos 삭제 정보 목록
+     * @return 삭제건수
+     */
     public int removeWellsAlliances(List<WpdyWellsAllianceMgtDto.AllianceBase> dtos) {
         int cnt = 0;
         List<WpdyAllianceBaseDvo> bases = converter.mapAllAllianceBaseDtoToAllianceBaseDvo(dtos);
@@ -53,6 +83,11 @@ public class WpdyWellsAllianceMgtService {
         return cnt;
     }
 
+    /**
+     * 헬스 제휴 관리 중복체크
+     * @param dtos 저장대상 정보 목록
+     * @return 중복정보(중복키)
+     */
     public String checkDuplication(List<WpdyWellsAllianceMgtDto.AllianceBase> dtos) {
         List<WpdyAllianceBaseDvo> bases = converter.mapAllAllianceBaseDtoToAllianceBaseDvo(dtos);
         List<String> idList = bases.stream()
@@ -69,6 +104,11 @@ public class WpdyWellsAllianceMgtService {
         return duplicationKey;
     }
 
+    /**
+     *  헬스 제휴 관리 저장 검증
+     * @param dtos 저장대상 정보 목록
+     * @return 검증오류정보(중복키) - 값이 Null일시 정상
+     */
     public String checkValidation(List<WpdyWellsAllianceMgtDto.AllianceBase> dtos) {
         List<WpdyAllianceBaseDvo> bases = converter.mapAllAllianceBaseDtoToAllianceBaseDvo(dtos);
         String validationIssueKey = null;

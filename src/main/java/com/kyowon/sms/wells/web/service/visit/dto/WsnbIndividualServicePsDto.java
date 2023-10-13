@@ -20,10 +20,10 @@ public class WsnbIndividualServicePsDto {
      */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchReq")
     public record SearchReq(
-        String cntrNo,
-        String cntrSn,
-        String bcNo,
-        String sppIvcNo
+        String cntrNo, /*계약번호*/
+        String cntrSn, /*계약일련번호*/
+        String bcNo, /*바코드*/
+        String sppIvcNo /*송장번호*/
     ){}
 
     /**
@@ -94,17 +94,16 @@ public class WsnbIndividualServicePsDto {
      */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchHouseholdRes")
     public record SearchHouseholdRes(
-        String svHshdNo,
-        String cntrDtl,
-        String cstNm,
-        String pdNm,
-        String adrZip,
-        String cralLocaraTno,
-        String mexnoEncr,
-        String cralIdvTno,
-        String locaraTno,
-        String exnoEncr,
-        String idvTno
+        String svHshdNo, /*가구화번호*/
+        String cntrDtl, /*계약상세번호*/
+        String cstNm, /*고객명*/
+        String pdNm, /*상품명*/
+        String cralLocaraTno,/*전화번호(지역전화번호)*/
+        String mexnoEncr,/*전화번호(전화국번호암호화)*/
+        String cralIdvTno,/*전화번호(개별전화번호)*/
+        String locaraTno,/*휴대전화번호(휴대지역전화번호)*/
+        String exnoEncr,/*휴대전화번호(휴대전화국번호암호화)*/
+        String idvTno/*휴대전화번호(휴대개별전화번호)*/
     ){}
 
     /**
@@ -112,13 +111,13 @@ public class WsnbIndividualServicePsDto {
      */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchContactRes")
     public record SearchContactRes(
-        String cntcDt,
-        String absncRsonKind,
-        String absncRson,
-        String ogTpCd,
-        String prtnrNo,
-        String prtnrNm,
-        String cntcCn
+        String cntcDt, /*컨택일자*/
+        String absncRsonKind, /*컨택그룹*/
+        String absncRson, /*컨택구분*/
+        String ogTpCd, /*소속*/
+        String prtnrNo, /*사번*/
+        String prtnrNm, /*성명*/
+        String cntcCn /*컨택상세*/
     ){}
 
     /**
@@ -126,65 +125,61 @@ public class WsnbIndividualServicePsDto {
      */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchStateRes")
     public record SearchStateRes(
-        String cstSvAsnNo, //
-        String svTp, // 유형
-        String rcpDt, // 접수(배정)일자
-        String svBizDclsf, //접수(배정)내역
-        String reqDt, //요청약속일자
-        String vstFshDt, // 처리일자
-        String wkPrgsStat, // 처리결과
-        String asCaus, // 처리내역
-        String rtngdProcsTp, // 반품처리정보
-        String fstVstFshDt, // 폐기일자: 출고확인일자
-        String zipNo, // 우편번호
-        String ogTp, // 구분(담당자)
-        String ogNm, // 소속(담당자)
-        String prtnrNo, // 사번(담당자)
-        String prtnrNm, // 성명(담당자)
-        String cralLocaraTno, // 휴대지역전화번호(담당자)
-        String mexnoEncr, // 휴대전화국번호암호화(담당자)
-        String cralIdvTno, // 휴대개별전화번호(담당자)
-        String bldNm, // 소속빌딩(담당자)
-        String bcNo, // 작업시바코드
-        String imgYn, // 사진
-        String istEnvrPhoPhDocId, // 설치환경사진경로
-        String istKitPhoPhDocId, // 설치키트사진경로
-        String istCelngPhoPhDocId, // 설치천장사진경로
-        String istEnvrFileUid, // 설치환경사진UID
-        String istKitFileUid, //설치키트사진UID
-        String istCelngFileUid, // 설치천장사진UID
-        String svHshdNo, // 가구화번호
-        String svHshdNoCnt, // 가구화번호CNT
-        String svBizHclsfCd, // 서비스대분류코드
-        String svBizDclsfCd, // 서비스소분류코드
-        String procStus, // 작업진행상태코드
-        String cntrNo, //계약번호
-        String cntrSn
+        String cstSvAsnNo, /*배정번호*/
+        String svTp, /* 유형*/
+        String rcpDt, /* 접수(배정)일자*/
+        String svBizDclsf, /*접수(배정)내역*/
+        String reqDt, /*요청약속일자*/
+        String vstFshDt, /* 처리일자*/
+        String wkPrgsStat, /* 처리결과*/
+        String asCaus, /* 처리내역*/
+        String rtngdProcsTp, /* 반품처리정보*/
+        String fstVstFshDt, /* 폐기일자: 출고확인일자*/
+        String zipNo, /* 우편번호*/
+        String ogTp, /* 구분(담당자)*/
+        String ogNm, /* 소속(담당자)*/
+        String prtnrNo, /* 사번(담당자)*/
+        String prtnrNm, /* 성명(담당자)*/
+        String cralLocaraTno, /* 휴대지역전화번호(담당자)*/
+        String mexnoEncr, /* 휴대전화국번호암호화(담당자)*/
+        String cralIdvTno, /* 휴대개별전화번호(담당자)*/
+        String bldNm, /* 소속빌딩(담당자)*/
+        String bcNo, /* 작업시바코드*/
+        String imgYn, /* 사진*/
+        String istEnvrPhoPhDocId, /* 설치환경사진경로*/
+        String istKitPhoPhDocId, /* 설치키트사진경로*/
+        String istCelngPhoPhDocId, /* 설치천장사진경로*/
+        String istEnvrFileUid, /* 설치환경사진UID*/
+        String istKitFileUid, /*설치키트사진UID*/
+        String istCelngFileUid, /* 설치천장사진UID*/
+        String svHshdNo, /* 가구화번호*/
+        String svHshdNoCnt, /* 가구화번호CNT*/
+        String svBizHclsfCd, /* 서비스대분류코드*/
+        String svBizDclsfCd, /* 서비스소분류코드*/
+        String procStus, /* 작업진행상태코드*/
+        String cntrNo, /*계약번호*/
+        String cntrSn /*계약일련번호*/
 
 
-    ){
-        public SearchStateRes{
-            mexnoEncr = DbEncUtil.dec(mexnoEncr);
-        }
-    }
+    ){}
 
     /**
      * 연계코드 조회
      */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchFarmRes")
     public record SearchFarmRes(
-        String gubun,
-        String cntrDtl,
-        String cstNm,
-        String pdNm,
-        String sdingCntrDtl,
-        String adrZip,
-        String locaraTno,
-        String exnoEncr,
-        String idvTno,
-        String cralLocaraTno,
-        String mexnoEncr,
-        String cralIdvTno
+        String gubun,/*구분*/
+        String cntrDtl,/*계약상세번호*/
+        String cstNm,/*고객명*/
+        String pdNm,/*상품명*/
+        String sdingCntrDtl,/*상대고객*/
+        String adrZip,/*주소*/
+        String locaraTno,/*전화번호(지역전화번호)*/
+        String exnoEncr,/*전화번호(전화국번호암호화)*/
+        String idvTno,/*전화번호(개별전화번호)*/
+        String cralLocaraTno,/*휴대전화번호(휴대지역전화번호)*/
+        String mexnoEncr,/*휴대전화번호(휴대전화국번호암호화)*/
+        String cralIdvTno/*휴대전화번호(휴대개별전화번호)*/
     ){
         public SearchFarmRes{
             exnoEncr = DbEncUtil.dec(exnoEncr);
@@ -197,17 +192,17 @@ public class WsnbIndividualServicePsDto {
      */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchCounselRes")
     public record SearchCounselRes(
-        String cselSts,
-        String cnslStDt,
-        String cnslEdDt,
-        String cnslTpHcsfCd,
-        String cnslTpMcsfCd,
-        String cnslTpLcsfCd,
-        String pcpNm,
-        String cselRstCd,
-        String custResp,
-        String clntDvNm,
-        String cnslCn
+        String cselSts, /*처리상태*/
+        String cnslStDt, /*접수일자*/
+        String cnslEdDt, /*처리일자*/
+        String cnslTpHcsfCd, /*상담분류(대)*/
+        String cnslTpMcsfCd, /*상담분류(중)*/
+        String cnslTpLcsfCd, /*상담분류(소)*/
+        String pcpNm, /*처리자*/
+        String cselRstCd, /*처리구분*/
+        String custResp, /*고객반응*/
+        String clntDvNm,  /*의뢰자*/
+        String cnslCn /*상담내용*/
     ){}
 
     /**
@@ -215,12 +210,12 @@ public class WsnbIndividualServicePsDto {
      */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchDelinquentRes")
     public record SearchDelinquentRes(
-        String psuminamt,
-        String csuminamt,
-        String tsuminamt,
-        String pdlyamt,
-        String cdlyamt,
-        String tdlyamt
+        String psuminamt,/*입금액(전월)*/
+        String csuminamt,/*입금액(당월)*/
+        String tsuminamt,/*입금액(합계)*/
+        String pdlyamt,/*연체금액(전월)*/
+        String cdlyamt,/*연체금액(당월)*/
+        String tdlyamt/*연체금액(합계)*/
     ){}
 
     /**
@@ -229,11 +224,11 @@ public class WsnbIndividualServicePsDto {
     @ApiModel(value = "WsnbIndividualServicePsDto-SaveReq")
     public record SaveReq(
         @NotBlank
-        String cntrNo,
+        String cntrNo, /*계약번호*/
         @NotBlank
-        String cntrSn,
-        String ogTpCd,
-        String wkPrtnrNo,
-        String cstUnuitmCn
+        String cntrSn, /*계약일련번호*/
+        String ogTpCd, /*소속(작성자)*/
+        String wkPrtnrNo, /*파트너번호(작성자)*/
+        String cstUnuitmCn /*고객특이사항상세*/
     ){}
 }

@@ -16,10 +16,15 @@ import lombok.Setter;
 @Setter
 public class WsnaShippingByFilterTypeDvo {
 
+    // 고객서비스배정번호
     private String cstSvAsnNo;
+    // 작업출고일련번호
     private int wkOstrSn;
+    // 반납여부
     private String stkrPrntYn;
+    // 특이사항
     private String rmkCn;
+    // 수거일자
     private String ostrConfDt;
 
 }

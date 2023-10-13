@@ -3,44 +3,243 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbServiceProcDetailListMapper">
     <!--서비스처리상세내역 Dvo-->
     <select id="selectServiceProcDetailList" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcDetailListDvo">
-        SELECT    'W20215424510' AS  CNTR_NO
-                , '1' AS  CNTR_SN
-                , '테스트' AS  RCGVP_KNM
-                , 'W20215424510-1' AS  CNTR_DTL_NO
-                , '010' AS  CRAL_LOCARA_TNO
-                , 'SgBG9oaLr6l4CnWEAh1gBw==' AS  MEXNO_ENCR
-                , '5232' AS  CRAL_IDV_TNO
-                , '3202308160000866176' AS  CST_SV_ASN_NO
-                , 'EGa+sVc0EXbv3Dg000SXPk4NN_00001' AS  ADR_ID
-                , '인천 미추홀구 경인로 395' AS  RNADR
-                , '3동 808호 (주안동,현대아파트)' AS  RDADR
-                , 'WP02120618' AS  PD_CD
-                , 'AP107그레이/택배배송 렌탈 일반렌탈' AS  PD_NM
-                , 'AL4WAKD02Q70300051' AS  WK_BC_NO
-                , 'AL4WAKD02Q70300051' AS  FL_BC_NO
-                , '8' AS  CNSL_DTLP_TP_CD
-                , '반품' AS  CNSL_DTLP_TP_NM
-                , '10' AS  CNSL_MO_CN
-                , '20230925' AS  VST_FSH_DT
-                , '145718' AS  VST_FSH_HH
-                , '372' AS  PRTNR_NO
-                , '테스트' AS  PRTNR_KNM
-                , '1' AS  AS_CAUS_CD
-                , '22' AS  SV_PROCS_CN
-                , (SELECT CST_SIGN_CN
-                    FROM WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ
-                    WHERE
-                    CST_SV_ASN_NO = '3202101010000000346') AS  CST_SIGN_CN_BYTE
-                , '33' AS  BZRNO
-                , '44' AS  RC101_BIZ_OK
-                , '5' AS  AS_LCT_CD
-                , '6' AS  AS_PHN_CD
-                , '7' AS  IMPTA_RSON_CD
-                , '8' AS  LNF_DV_CD
-                , 'Y' AS  TONEP_IST_OPT_YN
-                , '20230905' AS  TXINV_PBL_D
-                , 'Y' AS  TXINV_PBL_YN
-          FROM DUAL
+        SELECT *
+          FROM
+            (SELECT  T9.CNSL_NO AS CNSL_NO
+                   , T1.CNTR_NO
+                   , T1.CNTR_SN
+                   , T6.RCGVP_KNM
+                   , T1.CNTR_NO||'-'||T1.CNTR_SN AS CNTR_DTL_NO
+                   , T6.CRAL_LOCARA_TNO
+                   , T6.MEXNO_ENCR
+                   , T6.CRAL_IDV_TNO
+                   , T2.CST_SV_ASN_NO
+                   , T7.RNADR
+                   , T7.RDADR
+                   , P2.PD_PRP_VAL20
+                   , (CASE P2.PD_PRP_VAL20
+                        WHEN '11' THEN P1.PD_ABBR_NM
+                        ELSE P3.PD_ABBR_NM                  /* 추가 작업 필요 */
+                      END) AS  PD_NM
+                   , ' (작업바코드 : ' || T2.BC_NO || DECODE(T2.BC_IN_MTHD_CD, 'S', ', 스캔',(DECODE(T2.BC_NO,'','',', 입력'))) || ')' AS WK_BC_NO
+                   , ' (최종바코드 : ' || T1.BC_NO || DECODE(T1.BC_IN_MTHD_CD, 'S', ', 스캔',(DECODE(T1.BC_NO,'','',', 입력'))) || ')' AS FL_BC_NO
+                   , T9.CNSL_CN AS CNSL_CN
+                   , T3.CNSL_MO_CN
+                   , T2.VST_FSH_DT
+                   , T2.VST_FSH_HH
+                   , T2.PRTNR_NO
+                   , T10.PRTNR_KNM
+                   , T2.AS_CAUS_CD
+                   , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', T2.AS_CAUS_CD, 'ko') AS AS_CAUS_CD_NM
+                   , T2.SV_PROCS_CN
+                   , T2.CST_SIGN_CN AS CST_SIGN_CN_BYTE
+                   , T12.APLC_DT                              /* 세금계산서 신청 일자 - 없으면 N */
+                   , (CASE T12.APLC_DT
+                        WHEN '' THEN 'N'
+                        ELSE 'Y'
+                      END) AS  APLC_YN
+                   , T12.PBL_DT                               /* 세금계산서 발행 일자 */
+                   , T12.BZRNO                                /* 사업자등록번호 */
+                   , '' AS BIZ_OK                             /* 교원마스터등록여부 */
+                   , T2.AS_LCT_CD                             /* 위치 */
+                   , F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', T2.AS_LCT_CD, 'ko') AS AS_LCT_CD_NM
+                   , T2.AS_PHN_CD                             /* 현상 */
+                   , F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', T2.AS_PHN_CD, 'ko') AS AS_PHN_CD_NM
+                   , T2.IMPTA_RSON_CD                         /* 귀책 */
+                   , F_CMZ_CD_NM('TNT_WELLS', 'IMPTA_RSON_CD', T2.IMPTA_RSON_CD, 'ko') AS IMPTA_RSON_CD_NM
+                   , T2.ACPN_PRTNR_NO AS ACPN_PRTNR_NO
+                   , T13.PRTNR_KNM AS ACPN_PRTNR_KNM
+                   , T2.TONEP_IST_OPT_YN
+                   , (CASE T2.TONEP_IST_OPT_YN
+                        WHEN '1' THEN '싱크대'
+                        WHEN '2' THEN '싱크볼'
+                        WHEN '3' THEN '수납장'
+                        WHEN '4' THEN '스탠드'
+                        WHEN '5' THEN '벽걸이'
+                        ELSE ''
+                      END) AS  TONEP_IST_OPT
+                   , T8.IST_LCT_DTL_CN                         /* 설치위치상세내용 */
+              FROM WSMDBS.TB_SVPD_CST_SV_EXCN_IZ T1            /* 고객서비스수행내역 */
+             INNER JOIN WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ T2      /* 고객서비스작업결과내역 */
+                ON T1.CNTR_NO = T2.CNTR_NO
+               AND T1.CNTR_SN = T2.CNTR_SN
+               AND T2.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_SVPD_CST_SVAS_IST_OJ_IZ T3   /* 고객서비스AS설치대상내역 */
+                ON T1.CNTR_NO = T3.CNTR_NO
+               AND T1.CNTR_SN = T3.CNTR_SN
+               AND T2.CST_SV_ASN_NO = T3.CST_SV_ASN_NO
+               AND T3.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_SVPD_SV_CS_BIL_IZ T4         /* 서비스비용청구내역 */
+                ON T1.CNTR_NO = T4.CNTR_NO
+               AND T1.CNTR_SN = T4.CNTR_SN
+               AND T2.CST_SV_ASN_NO = T4.CST_SV_ASN_NO
+               AND T4.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL T5         /* 계약주소관계 */
+                ON T1.CNTR_NO = T5.DTL_CNTR_NO
+               AND T1.CNTR_SN = T5.DTL_CNTR_SN
+               AND T5.ADRPC_TP_CD = '3'                        /* 1 계약주소, 2 배달주소,3 설치주소 */
+               AND T5.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS T6       /*계약주소지기본*/
+                ON T5.CNTR_ADRPC_ID = T6.CNTR_ADRPC_ID
+               AND T6.DTA_DL_YN = 'N'
+             INNER JOIN GBSDBS.TB_GBCO_ADR_BAS T7
+                ON T6.ADR_ID = T7.ADR_ID
+               AND T7.DTA_DL_YN = 'N'
+             LEFT OUTER JOIN WSMDBS.TB_SVPD_CNTR_PDCT_IST_LCT_DTL T8
+                ON T1.CNTR_NO = T8.CNTR_NO
+               AND T1.CNTR_SN = T8.CNTR_SN
+               AND T1.IST_DT = SUBSTR(T8.FST_RGST_DTM, 0, 8)
+             INNER JOIN CCSDBS.TB_WELLS_COUNSEL T9
+                ON T1.CNTR_NO = T9.CNTR_NO
+               AND T1.CNTR_SN = T9.CNTR_SN
+             LEFT OUTER JOIN WSMDBS.TB_OGBS_MM_PRTNR_IZ T10          /* 월파트너조직내역 */
+                ON T2.PRTNR_NO = T10.PRTNR_NO
+               AND T10.BASE_YM =  SUBSTR(T2.ASN_DT, 0, 6)
+             LEFT OUTER JOIN WSMDBS.TB_SSCT_TXINV_OJ_DTL T11         /* 세금계산서대상상세 */
+                ON T1.CNTR_NO = T11.CNTR_NO
+               AND T1.CNTR_SN = T11.CNTR_SN
+             LEFT OUTER JOIN WSMDBS.TB_SSCT_TXINV_APLC_BAS T12       /* 세금계산서신청기본 */
+                ON T11.TXINV_ID = T12.TXINV_ID
+             LEFT OUTER JOIN WSMDBS.TB_OGBS_MM_PRTNR_IZ T13          /* 월파트너조직내역 */
+                ON T2.ACPN_PRTNR_NO = T13.PRTNR_NO
+               AND T13.BASE_YM =  SUBSTR(T2.ASN_DT, 0, 6)
+             INNER JOIN WSMDBS.TB_PDBS_PD_BAS P1                     /*상품기본*/
+                ON T3.PD_CD = P1.PD_CD
+               AND P1.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P2            /*상품각사속성상세*/
+                ON P1.PD_CD = P2.PD_CD
+               AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
+               AND P2.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_PDBS_PD_BAS P3
+                ON T1.PDCT_PD_CD = P3.PD_CD
+               AND P1.DTA_DL_YN = 'N'
+             WHERE 1 = 1
+               AND T1.CNTR_NO = #{cntrNo}
+               AND T1.CNTR_SN = #{cntrSn}
+               AND T2.CST_SV_ASN_NO = #{cstSvAsnNo}
+               AND T1.DTA_DL_YN = 'N'
+             ORDER BY CNSL_NO DESC)
+          WHERE 1=1
+               AND ROWNUM = 1
+        UNION ALL
+        SELECT *
+          FROM
+            (SELECT  T9.CNSL_NO AS CNSL_NO
+                   , T1.CNTR_NO
+                   , T1.CNTR_SN
+                   , T6.RCGVP_KNM
+                   , T1.CNTR_NO||'-'||T1.CNTR_SN AS CNTR_DTL_NO
+                   , T6.CRAL_LOCARA_TNO
+                   , T6.MEXNO_ENCR
+                   , T6.CRAL_IDV_TNO
+                   , T2.CST_SV_ASN_NO
+                   , T7.RNADR
+                   , T7.RDADR
+                   , P2.PD_PRP_VAL20
+                   , (CASE P2.PD_PRP_VAL20
+                        WHEN '11' THEN P1.PD_ABBR_NM
+                        ELSE P3.PD_ABBR_NM                  /* 추가 작업 필요 */
+                      END) AS  PD_NM
+                   , ' (작업바코드 : ' || T2.BC_NO || DECODE(T2.BC_IN_MTHD_CD, 'S', ', 스캔',(DECODE(T2.BC_NO,'','',', 입력'))) || ')' AS WK_BC_NO
+                   , ' (최종바코드 : ' || T1.BC_NO || DECODE(T1.BC_IN_MTHD_CD, 'S', ', 스캔',(DECODE(T1.BC_NO,'','',', 입력'))) || ')' AS FL_BC_NO
+                   , '' AS CNSL_CN
+                   , '' AS CNSL_MO_CN
+                   , T2.VST_FSH_DT
+                   , T2.VST_FSH_HH
+                   , T2.PRTNR_NO
+                   , T10.PRTNR_KNM
+                   , T2.AS_CAUS_CD
+                   , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', T2.AS_CAUS_CD, 'ko') AS AS_CAUS_CD_NM
+                   , T2.SV_PROCS_CN
+                   , T2.CST_SIGN_CN AS CST_SIGN_CN_BYTE
+                   , T12.APLC_DT                              /* 세금계산서 신청 일자 - 없으면 N */
+                   , (CASE T12.APLC_DT
+                        WHEN '' THEN 'N'
+                        ELSE 'Y'
+                      END) AS  APLC_YN
+                   , T12.PBL_DT                               /* 세금계산서 발행 일자 */
+                   , T12.BZRNO                                /* 사업자등록번호 */
+                   , '' AS BIZ_OK                             /* 교원마스터등록여부 */
+                   , T2.AS_LCT_CD                             /* 위치 */
+                   , F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', T2.AS_LCT_CD, 'ko') AS AS_LCT_CD_NM
+                   , T2.AS_PHN_CD                             /* 현상 */
+                   , F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', T2.AS_PHN_CD, 'ko') AS AS_PHN_CD_NM
+                   , T2.IMPTA_RSON_CD                         /* 귀책 */
+                   , F_CMZ_CD_NM('TNT_WELLS', 'IMPTA_RSON_CD', T2.IMPTA_RSON_CD, 'ko') AS IMPTA_RSON_CD_NM
+                   , T2.ACPN_PRTNR_NO AS ACPN_PRTNR_NO
+                   , T13.PRTNR_KNM AS ACPN_PRTNR_KNM
+                   , T2.TONEP_IST_OPT_YN
+                   , (CASE T2.TONEP_IST_OPT_YN
+                        WHEN '1' THEN '싱크대'
+                        WHEN '2' THEN '싱크볼'
+                        WHEN '3' THEN '수납장'
+                        WHEN '4' THEN '스탠드'
+                        WHEN '5' THEN '벽걸이'
+                        ELSE ''
+                      END) AS  TONEP_IST_OPT
+                   , T8.IST_LCT_DTL_CN                         /* 설치위치상세내용 */
+              FROM WSMDBS.TB_SVPD_CST_SV_EXCN_IZ T1            /* 고객서비스수행내역 */
+             INNER JOIN WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ T2      /* 고객서비스작업결과내역 */
+                ON T1.CNTR_NO = T2.CNTR_NO
+               AND T1.CNTR_SN = T2.CNTR_SN
+               AND T2.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_SVPD_CST_SV_BFSVC_OJ_IZ T3   /* 고객서비스BS대상내역 */
+                ON T1.CNTR_NO = T3.CNTR_NO
+               AND T1.CNTR_SN = T3.CNTR_SN
+               AND T2.CST_SV_ASN_NO = T3.CST_SV_ASN_NO
+               AND T3.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_SVPD_SV_CS_BIL_IZ T4         /* 서비스비용청구내역 */
+                ON T1.CNTR_NO = T4.CNTR_NO
+               AND T1.CNTR_SN = T4.CNTR_SN
+               AND T2.CST_SV_ASN_NO = T4.CST_SV_ASN_NO
+               AND T4.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL T5         /* 계약주소관계 */
+                ON T1.CNTR_NO = T5.DTL_CNTR_NO
+               AND T1.CNTR_SN = T5.DTL_CNTR_SN
+               AND T5.ADRPC_TP_CD = '3'                        /* 1 계약주소, 2 배달주소,3 설치주소 */
+               AND T5.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS T6       /*계약주소지기본*/
+                ON T5.CNTR_ADRPC_ID = T6.CNTR_ADRPC_ID
+               AND T6.DTA_DL_YN = 'N'
+             INNER JOIN GBSDBS.TB_GBCO_ADR_BAS T7
+                ON T6.ADR_ID = T7.ADR_ID
+               AND T7.DTA_DL_YN = 'N'
+             LEFT OUTER JOIN WSMDBS.TB_SVPD_CNTR_PDCT_IST_LCT_DTL T8
+                ON T1.CNTR_NO = T8.CNTR_NO
+               AND T1.CNTR_SN = T8.CNTR_SN
+               AND T1.IST_DT = SUBSTR(T8.FST_RGST_DTM, 0, 8)
+             INNER JOIN CCSDBS.TB_WELLS_COUNSEL T9
+                ON T1.CNTR_NO = T9.CNTR_NO
+               AND T1.CNTR_SN = T9.CNTR_SN
+             LEFT OUTER JOIN WSMDBS.TB_OGBS_MM_PRTNR_IZ T10          /* 월파트너조직내역 */
+                ON T2.PRTNR_NO = T10.PRTNR_NO
+               AND T10.BASE_YM = SUBSTR(T2.ASN_DT, 0, 6)
+             LEFT OUTER JOIN WSMDBS.TB_SSCT_TXINV_OJ_DTL T11         /* 세금계산서대상상세 */
+                ON T1.CNTR_NO = T11.CNTR_NO
+               AND T1.CNTR_SN = T11.CNTR_SN
+             LEFT OUTER JOIN WSMDBS.TB_SSCT_TXINV_APLC_BAS T12       /* 세금계산서신청기본 */
+                ON T11.TXINV_ID = T12.TXINV_ID
+             LEFT OUTER JOIN WSMDBS.TB_OGBS_MM_PRTNR_IZ T13          /* 월파트너조직내역 */
+                ON T2.ACPN_PRTNR_NO = T13.PRTNR_NO
+               AND T13.BASE_YM = SUBSTR(T2.ASN_DT, 0, 6)
+             INNER JOIN WSMDBS.TB_PDBS_PD_BAS P1                     /*상품기본*/
+                ON T3.PDCT_PD_CD = P1.PD_CD
+               AND P1.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P2            /*상품각사속성상세*/
+                ON P1.PD_CD = P2.PD_CD
+               AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
+               AND P2.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_PDBS_PD_BAS P3
+                ON T1.PDCT_PD_CD = P3.PD_CD
+               AND P1.DTA_DL_YN = 'N'
+             WHERE 1 = 1
+               AND T1.CNTR_NO = #{cntrNo}
+               AND T1.CNTR_SN = #{cntrSn}
+               AND T2.CST_SV_ASN_NO = #{cstSvAsnNo}
+               AND T1.DTA_DL_YN = 'N'
+             ORDER BY CNSL_NO DESC)
+          WHERE 1=1
+               AND ROWNUM = 1
     </select>
     <!--결제내역 Dvo-->
     <select id="selectServiceProcDetailStlmIz" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcDetailStlmIzDvo">

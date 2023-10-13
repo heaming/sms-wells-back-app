@@ -3,6 +3,11 @@ package com.kyowon.sms.wells.web.closing.payment.dto;
 import io.swagger.annotations.ApiModel;
 
 public class WdcaMembershipCheckDto {
+    @ApiModel(value = "WdcaMembershipCheckDto-SearchReq")
+    public record SearchReq(
+        String deptGubun
+    ) {}
+
     @ApiModel(value = "WdcaMembershipCheckDto-SearchRes")
     public record SearchRes(
         String col1,

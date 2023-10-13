@@ -583,9 +583,9 @@
              , NVL(T14.INDV1_SELL,0) AS INDV1_SELL /*개인기타판매-정액건수*/
              , NVL(T14.INDV2_SELL,0) AS INDV2_SELL /*개인기타판매-라이브팩건수 */
              , NVL(T14.INDV3_SELL,0) AS INDV3_SELL /*개인기타판매-홈케어멤버십건수 */
-             , NVL(T17.RENTAL_CAN_CT + T17.LEASE_CAN_CT + T17.MSH_SPR_CT + T17.RENTAL_EXN_CT , 0) AS INDV_ACC1_NINC
-             , NVL(T17.RENTAL_NW_CT + T17.LEASE_NW_CT , 0) AS INDV_ACC2_NINC
-             , NVL(T17.RENTAL_CAN_CT + T17.LEASE_CAN_CT + T17.MSH_SPR_CT + T17.RENTAL_EXN_CT , 0) - NVL(T17.RENTAL_NW_CT + T17.LEASE_NW_CT , 0) AS INDV_ACC3_NINC
+             , NVL(T17.RENTAL_CAN_CT + T17.MSH_SPR_CT + T17.RENTAL_EXN_CT , 0) AS INDV_ACC1_NINC
+             , NVL(T17.RENTAL_NW_CT, 0) AS INDV_ACC2_NINC
+             , NVL(T17.RENTAL_NW_CT, 0) - NVL(T17.RENTAL_CAN_CT + T17.MSH_SPR_CT + T17.RENTAL_EXN_CT , 0) AS INDV_ACC3_NINC
              , NVL(T16.INDV1_FEE,0) AS INDV1_FEE /*개인수수료-가전비례 */
              , NVL(T16.INDV2_FEE,0) AS INDV2_FEE /*개인수수료-가전외비례 */
              , NVL(T16.INDV3_FEE,0) AS INDV3_FEE /*개인수수료-가전판매장려 */
@@ -852,24 +852,18 @@
           LEFT OUTER JOIN
              (
                SELECT PRTNR_NO
-                    , MAX(EDU1_ATC) AS EDU1_ATC
-                    , MAX(EDU2_ATC) AS EDU2_ATC
-                    , MAX(EDU8_ATC) AS EDU8_ATC
-                 FROM
-                    (
-                      SELECT PRTNR_NO
-                           , CASE WHEN EDUC_CRSE_NO = '96' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END AS EDU1_ATC
-                           , CASE WHEN EDUC_CRSE_NO = '143' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END AS EDU2_ATC
-                           , CASE WHEN EDUC_CRSE_NO = '17' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END AS EDU8_ATC
-                        FROM TB_PSCA_MCPTN_EDUC_IZ
-                       WHERE 1=1
-                         AND OG_TP_CD = 'W02'
-                         AND EDUC_CRSE_NO IN ('96','143')
-                         AND EDUC_CRSE_CRT_BASE_YM <![CDATA[<=]]> #{perfYm}
-                         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                             AND PRTNR_NO = #{prtnrNo}
-                         </if>
-                    )
+                    , MAX(CASE WHEN EDUC_CRSE_NO = '96' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END) AS EDU1_ATC
+                    , MAX(CASE WHEN EDUC_CRSE_NO = '143' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END) AS EDU2_ATC
+                    , MAX(CASE WHEN EDUC_CRSE_NO = '17' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END) AS EDU8_ATC
+                 FROM TB_PSCA_MCPTN_EDUC_IZ
+                WHERE 1=1
+                  AND OG_TP_CD = 'W02'
+                  AND EDUC_CRSE_NO IN ('96','143')
+                  AND EDUC_CPC_ACKMT_YN = 'Y'
+                  AND EDUC_CRSE_CRT_BASE_YM <![CDATA[<=]]> #{perfYm}
+                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                      AND PRTNR_NO = #{prtnrNo}
+                  </if>
                 GROUP BY PRTNR_NO
              ) T12
             ON T1.PRTNR_NO = T12.PRTNR_NO
@@ -1117,17 +1111,17 @@
              , NVL(T9.INDV1_SELL,0) AS INDV1_SELL /*개인기타판매-정액건수*/
              , NVL(T9.INDV2_SELL,0) AS INDV2_SELL /*개인기타판매-라이브팩건수 */
              , NVL(T9.INDV3_SELL,0) AS INDV3_SELL /*개인기타판매-홈케어멤버십건수 */
-             , NVL(T11.RENTAL_CAN_CT + T11.LEASE_CAN_CT + T11.MSH_SPR_CT + T11.RENTAL_EXN_CT , 0) AS INDV_ACC1_NINC
-             , NVL(T11.RENTAL_NW_CT + T11.LEASE_NW_CT , 0) AS INDV_ACC2_NINC
-             , NVL(T11.RENTAL_CAN_CT + T11.LEASE_CAN_CT + T11.MSH_SPR_CT + T11.RENTAL_EXN_CT , 0) - NVL(T11.RENTAL_NW_CT + T11.LEASE_NW_CT , 0) AS INDV_ACC3_NINC
+             , NVL(T11.RENTAL_CAN_CT + T11.MSH_SPR_CT + T11.RENTAL_EXN_CT , 0) AS INDV_ACC1_NINC
+             , NVL(T11.RENTAL_NW_CT, 0) AS INDV_ACC2_NINC
+             , NVL(T11.RENTAL_NW_CT, 0) - NVL(T11.RENTAL_CAN_CT + T11.MSH_SPR_CT + T11.RENTAL_EXN_CT , 0) AS INDV_ACC3_NINC
              , NVL(T9.OG1_PERF,0) AS OG1_PERF /*조직실적-가정인정건수 */
              , NVL(T9.OG2_PERF,0) AS OG2_PERF /*조직실적-렌탈기준가 */
              , NVL(T9.OG3_PERF,0) AS OG3_PERF /*조직실적-일시불기준가 */
              , NVL(T9.OG4_PERF,0) AS OG4_PERF /*조직실적-기변건수 */
              , NVL(T9.OG2_PERF,0) + NVL(T9.OG3_PERF,0) AS OG_PERF_SUM /*조직실적-계 */
-             , NVL(T12.RENTAL_CAN_CT + T12.LEASE_CAN_CT + T12.MSH_SPR_CT + T12.RENTAL_EXN_CT , 0) AS OG_ACC1_NINC /*조직계정순증-전월취소 */
-             , NVL(T12.RENTAL_NW_CT + T12.LEASE_NW_CT , 0) AS OG_ACC2_NINC /*조직계정순증-당월신규 */
-             , NVL(T12.RENTAL_CAN_CT + T12.LEASE_CAN_CT + T12.MSH_SPR_CT + T12.RENTAL_EXN_CT , 0) - NVL(T12.RENTAL_NW_CT + T12.LEASE_NW_CT , 0) AS OG_ACC3_NINC /*조직계정순증-순증 */
+             , NVL(T12.RENTAL_CAN_CT + T12.MSH_SPR_CT + T12.RENTAL_EXN_CT , 0) AS OG_ACC1_NINC /*조직계정순증-전월취소 */
+             , NVL(T12.RENTAL_NW_CT, 0) AS OG_ACC2_NINC /*조직계정순증-당월신규 */
+             , NVL(T12.RENTAL_NW_CT, 0) - NVL(T12.RENTAL_CAN_CT + T12.MSH_SPR_CT + T12.RENTAL_EXN_CT , 0) AS OG_ACC3_NINC /*조직계정순증-순증 */
              , NVL(T13.INDV1_FEE,0) AS INDV1_FEE /*개인수수료-가전비례 */
              , NVL(T13.INDV2_FEE,0) AS INDV2_FEE /*개인수수료-가전외비례 */
              , NVL(T13.INDV3_FEE,0) AS INDV3_FEE /*개인수수료-가전판매장려 */
@@ -1453,18 +1447,14 @@
      </if>
          LEFT OUTER JOIN ( SELECT C.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
                                 , NVL(SUM(A.RENTAL_CAN_CT),0) AS RENTAL_CAN_CT
-                                , NVL(SUM(A.LEASE_CAN_CT),0) AS LEASE_CAN_CT
                                 , NVL(SUM(A.MSH_SPR_CT),0) AS MSH_SPR_CT
                                 , NVL(SUM(A.RENTAL_EXN_CT),0) AS RENTAL_EXN_CT
                                 , NVL(SUM(A.RENTAL_NW_CT),0) AS RENTAL_NW_CT
-                                , NVL(SUM(A.LEASE_NW_CT),0) AS LEASE_NW_CT
                              FROM ( SELECT PRTNR_NO
                                          , RENTAL_CAN_CT
-                                         , LEASE_CAN_CT
                                          , MSH_SPR_CT
                                          , RENTAL_EXN_CT
                                          , RENTAL_NW_CT
-                                         , LEASE_NW_CT
                                       FROM TB_FEAM_WELS_ACC_NINC_MM_CL
                                      WHERE PERF_YM = #{perfYm}
                                        AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
@@ -2494,17 +2484,17 @@
              , NVL(T14.INDV1_SELL,0) AS INDV1_SELL /*개인기타판매-정액건수*/
              , NVL(T14.INDV2_SELL,0) AS INDV2_SELL /*개인기타판매-라이브팩건수 */
              , NVL(T14.INDV3_SELL,0) AS INDV3_SELL /*개인기타판매-홈케어멤버십건수 */
-             , NVL(T17.RENTAL_CAN_CT + T17.LEASE_CAN_CT + T17.MSH_SPR_CT + T17.RENTAL_EXN_CT , 0) AS INDV_ACC1_NINC
-             , NVL(T17.RENTAL_NW_CT + T17.LEASE_NW_CT , 0) AS INDV_ACC2_NINC
-             , NVL(T17.RENTAL_CAN_CT + T17.LEASE_CAN_CT + T17.MSH_SPR_CT + T17.RENTAL_EXN_CT , 0) - NVL(T17.RENTAL_NW_CT + T17.LEASE_NW_CT , 0) AS INDV_ACC3_NINC
+             , NVL(T17.RENTAL_CAN_CT + T17.MSH_SPR_CT + T17.RENTAL_EXN_CT , 0) AS INDV_ACC1_NINC
+             , NVL(T17.RENTAL_NW_CT, 0) AS INDV_ACC2_NINC
+             , NVL(T17.RENTAL_NW_CT , 0) - NVL(T17.RENTAL_CAN_CT + T17.MSH_SPR_CT + T17.RENTAL_EXN_CT , 0) AS INDV_ACC3_NINC
              , NVL(T14.OG1_PERF,0) AS OG1_PERF /*조직실적-가정인정건수 */
              , NVL(T14.OG2_PERF,0) AS OG2_PERF /*조직실적-렌탈기준가 */
              , NVL(T14.OG3_PERF,0) AS OG3_PERF /*조직실적-일시불기준가 */
              , NVL(T14.OG4_PERF,0) AS OG4_PERF /*조직실적-기변건수 */
              , NVL(T14.OG2_PERF,0) + NVL(T14.OG3_PERF,0) AS OG_PERF_SUM /*조직실적-계 */
-             , NVL(T20.RENTAL_CAN_CT + T20.LEASE_CAN_CT + T20.MSH_SPR_CT + T20.RENTAL_EXN_CT , 0) AS OG_ACC1_NINC /*조직계정순증-전월취소 */
-             , NVL(T20.RENTAL_NW_CT + T20.LEASE_NW_CT , 0) AS OG_ACC2_NINC /*조직계정순증-당월신규 */
-             , NVL(T20.RENTAL_CAN_CT + T20.LEASE_CAN_CT + T20.MSH_SPR_CT + T20.RENTAL_EXN_CT , 0) - NVL(T20.RENTAL_NW_CT + T20.LEASE_NW_CT , 0) AS OG_ACC3_NINC /*조직계정순증-순증 */
+             , NVL(T20.RENTAL_CAN_CT + T20.MSH_SPR_CT + T20.RENTAL_EXN_CT , 0) AS OG_ACC1_NINC /*조직계정순증-전월취소 */
+             , NVL(T20.RENTAL_NW_CT, 0) AS OG_ACC2_NINC /*조직계정순증-당월신규 */
+             , NVL(T20.RENTAL_NW_CT, 0) - NVL(T20.RENTAL_CAN_CT + T20.MSH_SPR_CT + T20.RENTAL_EXN_CT , 0) AS OG_ACC3_NINC /*조직계정순증-순증 */
              , CASE WHEN T1.PSTN_DV_CD = 15 THEN NVL(T16.INDV151_FEE,0)
                     ELSE NVL(T16.INDV071_FEE,0)
                END AS INDV1_FEE /*개인수수료-가전비례 */
@@ -2823,25 +2813,20 @@
 
           LEFT OUTER JOIN
              (
+
                SELECT PRTNR_NO
-                    , MAX(EDU1_ATC) AS EDU1_ATC
-                    , MAX(EDU2_ATC) AS EDU2_ATC
-                    , MAX(EDU8_ATC) AS EDU8_ATC
-                 FROM
-                    (
-                      SELECT PRTNR_NO
-                           , CASE WHEN EDUC_CRSE_NO = '96' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END AS EDU1_ATC
-                           , CASE WHEN EDUC_CRSE_NO = '143' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END AS EDU2_ATC
-                           , CASE WHEN EDUC_CRSE_NO = '17' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END AS EDU8_ATC
-                        FROM TB_PSCA_MCPTN_EDUC_IZ
-                       WHERE 1=1
-                         AND OG_TP_CD = 'W02'
-                         AND EDUC_CRSE_NO IN ('96','143')
-                         AND EDUC_CRSE_CRT_BASE_YM &lt;= #{perfYm}
-                         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                             AND PRTNR_NO = #{prtnrNo}
-                         </if>
-                    )
+                    , MAX(CASE WHEN EDUC_CRSE_NO = '96' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END) AS EDU1_ATC
+                    , MAX(CASE WHEN EDUC_CRSE_NO = '143' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END) AS EDU2_ATC
+                    , MAX(CASE WHEN EDUC_CRSE_NO = '17' THEN SUBSTR(EDUC_CRSE_CRT_BASE_YM,1,6) END) AS EDU8_ATC
+                 FROM TB_PSCA_MCPTN_EDUC_IZ
+                WHERE 1=1
+                  AND OG_TP_CD = 'W02'
+                  AND EDUC_CRSE_NO IN ('96','143')
+                  AND EDUC_CPC_ACKMT_YN = 'Y'
+                  AND EDUC_CRSE_CRT_BASE_YM <![CDATA[<=]]> #{perfYm}
+                  <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                      AND PRTNR_NO = #{prtnrNo}
+                  </if>
                 GROUP BY PRTNR_NO
              ) T12
             ON T1.PRTNR_NO = T12.PRTNR_NO
@@ -3208,20 +3193,16 @@
              (
                SELECT C.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
                     , NVL(SUM(A.RENTAL_CAN_CT),0) AS RENTAL_CAN_CT
-                    , NVL(SUM(A.LEASE_CAN_CT),0) AS LEASE_CAN_CT
                     , NVL(SUM(A.MSH_SPR_CT),0) AS MSH_SPR_CT
                     , NVL(SUM(A.RENTAL_EXN_CT),0) AS RENTAL_EXN_CT
                     , NVL(SUM(A.RENTAL_NW_CT),0) AS RENTAL_NW_CT
-                    , NVL(SUM(A.LEASE_NW_CT),0) AS LEASE_NW_CT
                  FROM
                     (
                       SELECT PRTNR_NO
                            , RENTAL_CAN_CT
-                           , LEASE_CAN_CT
                            , MSH_SPR_CT
                            , RENTAL_EXN_CT
                            , RENTAL_NW_CT
-                           , LEASE_NW_CT
                         FROM TB_FEAM_WELS_ACC_NINC_MM_CL
                        WHERE 1=1
                          AND PERF_YM = #{perfYm}
