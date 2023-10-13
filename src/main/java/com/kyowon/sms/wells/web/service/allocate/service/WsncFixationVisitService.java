@@ -25,22 +25,6 @@ public class WsncFixationVisitService {
     public PagingResult<WsncFixationVisitDto.SearchRes> getFixationVisits(
         WsncFixationVisitDto.SearchReq dto, PageInfo pageInfo
     ) {
-        if("test1".equals(dto.fxnPrtnrNo())){
-            return wwsncFixationVisitMgntMapper.selectFixationVisits2(dto, pageInfo);
-        } else if("test2".equals(dto.fxnPrtnrNo())){
-            wwsncFixationVisitMgntMapper.selectFixationVisits2(dto);
-            return wwsncFixationVisitMgntMapper.selectFixationVisits2(dto, pageInfo);
-        } else if("test3".equals(dto.fxnPrtnrNo())){
-            wwsncFixationVisitMgntMapper.selectFixationVisits3(dto);
-        } else if("test4".equals(dto.fxnPrtnrNo())){
-            wwsncFixationVisitMgntMapper.selectFixationVisits4(dto);
-        } else if("test5".equals(dto.fxnPrtnrNo())){
-            wwsncFixationVisitMgntMapper.selectFixationVisits3(dto, pageInfo);
-        } else if("test6".equals(dto.fxnPrtnrNo())){
-            wwsncFixationVisitMgntMapper.selectFixationVisits6(dto);
-        } else if("test7".equals(dto.fxnPrtnrNo())){
-            wwsncFixationVisitMgntMapper.selectFixationVisits6(dto, pageInfo);
-        }
         return wwsncFixationVisitMgntMapper.selectFixationVisits(dto, pageInfo);
     }
 
@@ -48,9 +32,6 @@ public class WsncFixationVisitService {
     public List<WsncFixationVisitDto.SearchRes> getFixationVisitsExcelDownload(
         WsncFixationVisitDto.SearchReq dto
     ) {
-        if("test1".equals(dto.fxnPrtnrNo())){
-            return wwsncFixationVisitMgntMapper.selectFixationVisits2(dto);
-        }
         return wwsncFixationVisitMgntMapper.selectFixationVisits(dto);
     }
 
