@@ -10,4 +10,6 @@ public interface WsnaMdProductOutOfStorageExcelUploadMapper {
     int selectExistSppIvcNo(WsnaMdProductOutOfStorageExcelUploadDvo dvo);
 
     int insertSppBzsInvoiceProcessIz(WsnaMdProductOutOfStorageExcelUploadDvo dvo);
+
+    int updateSvpdCstSvWkRsIz(WsnaMdProductOutOfStorageExcelUploadDvo dvo);
 }
