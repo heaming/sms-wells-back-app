@@ -22,7 +22,6 @@ public class WsncFixationVisitService {
 
     private final WsncFixationVisitConverter wsncFixationVisitConverter;
 
-    @Transactional
     public PagingResult<WsncFixationVisitDto.SearchRes> getFixationVisits(
         WsncFixationVisitDto.SearchReq dto, PageInfo pageInfo
     ) {
@@ -39,6 +38,7 @@ public class WsncFixationVisitService {
         return wwsncFixationVisitMgntMapper.selectFixationVisits(dto, pageInfo);
     }
 
+    @Transactional
     public List<WsncFixationVisitDto.SearchRes> getFixationVisitsExcelDownload(
         WsncFixationVisitDto.SearchReq dto
     ) {
