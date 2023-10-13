@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class WsncFixationVisitService {
     private final WsncFixationVisitMapper wwsncFixationVisitMgntMapper;
 
@@ -26,6 +25,9 @@ public class WsncFixationVisitService {
     public PagingResult<WsncFixationVisitDto.SearchRes> getFixationVisits(
         WsncFixationVisitDto.SearchReq dto, PageInfo pageInfo
     ) {
+        if("test1".equals(dto.fxnPrtnrNo())){
+            wwsncFixationVisitMgntMapper.selectFixationVisits2(dto);
+        }
         return wwsncFixationVisitMgntMapper.selectFixationVisits(dto, pageInfo);
     }
 
@@ -41,6 +43,7 @@ public class WsncFixationVisitService {
         return wwsncFixationVisitMgntMapper.selectFixationVisit(dto);
     }
 
+    @Transactional
     public int saveFixationVisit(WsncFixationVisitDto.SaveRegReq dto) throws Exception {
         WsncFixationVisitDvo dvo = wsncFixationVisitConverter.mapFixationVisitReqToFixationVisitDvo(dto);
 
