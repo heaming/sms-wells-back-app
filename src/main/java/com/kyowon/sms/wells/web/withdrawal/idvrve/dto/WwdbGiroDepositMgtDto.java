@@ -13,7 +13,8 @@ public class WwdbGiroDepositMgtDto {
 
         String dgCntrNo,
         String dgCntrSn
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchRes")
     public record SearchRes(
@@ -38,7 +39,8 @@ public class WwdbGiroDepositMgtDto {
         String giroDpSn, /*일련번호*/
         String itgDpProcsYn,
 
-        String itgDpNo
+        String itgDpNo,
+        String dpDt
 
         //        String kwGrpCoCd,
         //        String cntrNo, //--계약번호
@@ -52,13 +54,15 @@ public class WwdbGiroDepositMgtDto {
         //        String sellTpCd, //--판매유형
         //        String procsErrTpCd, // --처리오류유형코드
         //        String dgCntrNo //--대표번호
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchRes")
     public record SearchSumRes(
         String rveAmtSum,
         String giroFeeSum
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveReq")
     public record SaveReq(
@@ -74,7 +78,8 @@ public class WwdbGiroDepositMgtDto {
         String giroRveDvCd, //--지로수납구분코드
         String giroFeeDvCd, //--지로수수료구분코드
         String rmkCn //--비고
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDepositRes")
     public record SearchDepositRes(
@@ -96,19 +101,22 @@ public class WwdbGiroDepositMgtDto {
         String giroPrtsDvCd,
         String procsErrTpCd,
         String dtaDlYn
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDepositReq")
     public record SearchDepositReq(
 
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDepositCountReq")
     public record SearchDepositCountReq(
         String giroOcrBndlYm,
         String dgCntrNo,
         String dgCntrSn
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveReq")
     public record SaveBillingReq(
@@ -131,7 +139,8 @@ public class WwdbGiroDepositMgtDto {
         String sellTpCd,
         String sellTpDtlCd,
         String cntrDtlStatCd
-    ) {}
+    ) {
+    }
 
     /* 지로 입금 설정 금액 및 고객 조회*/
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDepositSettingRes")
@@ -160,7 +169,8 @@ public class WwdbGiroDepositMgtDto {
         String fnlMdfcUsrId, //--수정아이디
         String dpErrProcsCn,
         String cntrSn
-    ) {}
+    ) {
+    }
 
     //지로 입금 에러 저장
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveErrosReq")
@@ -175,7 +185,8 @@ public class WwdbGiroDepositMgtDto {
         String cntrSn,
         String dpErrProcsCn,
         String cntr
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDtlStateRes")
     public record SearchDtlStateRes(
@@ -183,26 +194,32 @@ public class WwdbGiroDepositMgtDto {
         String cntrNo,
         String cntrSn,
         String cntrDtlStatCd //--계약상태코드
-    ) {}
+    ) {
+    }
+
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDtlStateReq")
     public record SearchDtlStateReq(
 
         String cntrNo,
         String cntrSn
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchLedgerItemizationReq")
     public record SearchLedgerItemizationReq(
         String fntDt,
+        
         String giroDpMtrDvCd
 
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchLedgerItemizationReq")
     public record SearchLedgerItemizationRes(
         String fntDt,
         int chkCnt,
         int itgDpProcsYCnt
-    ) {}
+    ) {
+    }
 
 }
