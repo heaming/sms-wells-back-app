@@ -22,6 +22,8 @@ public interface WbncRentalResignExpectedMgtMapper {
 
     int updateRentalResignExpected(WbncAuthorityResignIzDvo dvo);
 
+    int updateRentalResignExpectedList(List<WbncAuthorityResignIzDvo> list);
+
     int updateAuthorityResignRentalCnfms(SaveConfirmReq dto);
 
     int updateAuthorityResignRegularShippingCnfms(SaveConfirmReq dto);
