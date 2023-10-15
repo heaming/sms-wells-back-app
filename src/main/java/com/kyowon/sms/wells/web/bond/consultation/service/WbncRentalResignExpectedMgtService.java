@@ -42,12 +42,37 @@ public class WbncRentalResignExpectedMgtService {
 
     private static final String MSG_ALT_SVE_ERR_STR = "MSG_ALT_SVE_ERR";
 
+    /**
+     * <pre>
+     * 직권 해지 내역 조회
+     * </pre>
+     *
+     * @param dto baseDt 계약번호(필수)
+     *            sellTpCd 상품유형코드
+     *            clctamDvCd 집금구분코드
+     *            clctamPrtnrNo 집금담당자
+     *            cntrNo 계약번호
+     *            cntrSn 계약일련번호
+     *            cstNo 고객번호
+     *            authRsgCd 확정구분(필수)
+     * @author jeongwon.hwang
+     * @since 2023-10-15
+     */
     public List<SearchRes> getRentalResignExpecteds(SearchReq dto) {
         String baseDt = dto.baseDt();
         BizAssert.isTrue(DateUtil.getLastDateOfMonth(baseDt).equals(baseDt), "MSG_ALT_CHO_MM_TLST_D"); // 직권해지일자가 월마지막날이 아닙니다. 월마지막날을 선택하기 바랍니다.
         return this.converter.listAuthorityResignIzToSearchRes(mapper.selectRentalResignExpecteds(dto));
     }
 
+    /**
+     * <pre>
+     * 직권 해지 내역 생성
+     * </pre>
+     *
+     * @param dto baseDt 계약번호(필수)
+     * @author jeongwon.hwang
+     * @since 2023-10-15
+     */
     @Transactional
     public int createRentalResignExpecteds(CreateReq dto) throws Exception {
         int processCount = 0;
@@ -73,6 +98,20 @@ public class WbncRentalResignExpectedMgtService {
         return this.mapper.selectcheckRentalResignExpectedByReq(dto);
     }
 
+    /**
+     * <pre>
+     * 직권 해지 제외 여부 수정
+     * </pre>
+     *
+     * @param dtos baseDt 직권해지일(필수)
+     *             excdYn 제외여부(필수)
+     *             authRsgExcdRsonCd 제외사유
+     *             cntrNo 계약번호(필수)
+     *             cntrSn 계약일련번호(필수)
+     *             rowState 상태코드(필수)
+     * @author jeongwon.hwang
+     * @since 2023-10-15
+     */
     @Transactional
     public int editRentalResignExpecteds(List<SaveReq> dtos) throws Exception {
         int processCount = 0;
@@ -90,6 +129,16 @@ public class WbncRentalResignExpectedMgtService {
         return processCount;
     }
 
+    /**
+     * <pre>
+     * 예정생성된 직권해지 데이터에 대해 예정확정, 최종확정 처리
+     * </pre>
+     *
+     * @param dto baseDt 직권해지일(필수)
+     *            confirmDvCd 예정확정(필수) : '01' , 최종확정 : '02'
+     * @author jeongwon.hwang
+     * @since 2023-10-15
+     */
     @Transactional
     public int saveRentalResignExpectedCnfms(SaveConfirmReq dto) throws Exception {
         int processCount = 0;
@@ -109,16 +158,10 @@ public class WbncRentalResignExpectedMgtService {
         if ("02".equals(dto.confirmDvCd())) {
             // 직권해지 계약 조회
             List<WbncAuthorityResignIzDvo> resignConfirms = this.mapper.selectRentalResignConfirms(dto.baseDt());
-
-            // 계약 해지 호출
-            for (WbncAuthorityResignIzDvo resignConfirm : resignConfirms) {
-                WctbContractDtlStatCdChDvo wctbContractDtlStatCdChDvo = new WctbContractDtlStatCdChDvo();
-                wctbContractDtlStatCdChDvo.setCntrNo(resignConfirm.getCntrNo());
-                wctbContractDtlStatCdChDvo.setCntrSn(String.valueOf(resignConfirm.getCntrSn()));
-                wctbContractDtlStatCdChDvo.setCntrDtlStatCd(WctzCntrDtlStatCd.CLTN_DLQ.getCode());
-
+            List<WctbContractDtlStatCdChDvo> resignContractList = getResignContractList(resignConfirms);
+            if (!resignContractList.isEmpty()) {
                 try {
-                    wctbContractDtlStatCdChService.editContractDtlStatCdCh(wctbContractDtlStatCdChDvo);
+                    wctbContractDtlStatCdChService.editContractsDtlStatCdCh(resignContractList);
                 } catch (Exception e) {
                     throw new BizException("계약 상세 상태 변경 실패");
                 }
@@ -128,6 +171,15 @@ public class WbncRentalResignExpectedMgtService {
         return processCount;
     }
 
+    /**
+     * <pre>
+     * 예정확정된 직권해지 대상에 대한 취소 처리
+     * </pre>
+     *
+     * @param dto baseDt 직권해지일(필수)
+     * @author jeongwon.hwang
+     * @since 2023-10-15
+     */
     @Transactional
     public int saveRentalResignExpectedCancels(SaveCancelReq dto) throws Exception {
         int processCount = this.mapper.insertRentalResignExpectedCancel(dto);
@@ -136,6 +188,18 @@ public class WbncRentalResignExpectedMgtService {
         return processCount;
     }
 
+    /**
+     * <pre>
+     * 엑셀 업로드 - 직권 해지 제외 여부 수정
+     * </pre>
+     *
+     * @param file baseYm 직권해지월(필수)
+     *             cntrNoSn 계약상세번호(필수)
+     *             excdYn 제외여부(필수)
+     *             authRsgExcdRsonCd 제외사유
+     * @author jeongwon.hwang
+     * @since 2023-10-15
+     */
     @Transactional
     public UploadRes saveRentalResignExpectedExcelUpload(MultipartFile file) throws Exception {
         // 업로드 엑셀 헤더 설정
@@ -148,6 +212,9 @@ public class WbncRentalResignExpectedMgtService {
         List<WbncAuthorityResignIzDvo> list = excelReadService
             .readExcel(file, new ExcelMetaDvo(2, headerTitle), WbncAuthorityResignIzDvo.class, true);
         List<ExcelUploadErrorDvo> excelUploadErrorDvos = new ArrayList<>();
+
+        BizAssert.notEmpty(list, "MSG_ALT_SAV_NO_DATA");
+
         int row = 3;
         // 엑셀 데이터 검증 and 정규식
         for (WbncAuthorityResignIzDvo dvo : list) {
@@ -182,7 +249,7 @@ public class WbncRentalResignExpectedMgtService {
             }
             row++;
         }
-        if (excelUploadErrorDvos.size() == 0) {
+        if (excelUploadErrorDvos.isEmpty()) {
             row = 3;
             for (WbncAuthorityResignIzDvo dvo : list) {
                 String baseYm = dvo.getBaseYm();
@@ -275,7 +342,8 @@ public class WbncRentalResignExpectedMgtService {
             }
         }
         // insert
-        if (excelUploadErrorDvos.size() == 0) {
+        if (excelUploadErrorDvos.isEmpty()) {
+            List<WbncAuthorityResignIzDvo> updateList = new ArrayList<>();
             for (WbncAuthorityResignIzDvo dvo : list) {
                 WbncAuthorityResignIzDvo param = new WbncAuthorityResignIzDvo();
                 param.setBaseYm(dvo.getBaseYm());
@@ -286,12 +354,26 @@ public class WbncRentalResignExpectedMgtService {
                 param.setAuthRsgExcdRsonCd(
                     StringUtil.isBlank(dvo.getAuthRsgExcdRsonCd()) ? "" : dvo.getAuthRsgExcdRsonCd()
                 );
-
-                int result = this.mapper.updateRentalResignExpected(param);
-                BizAssert.isTrue(result == 1, MSG_ALT_SVE_ERR_STR);
+                updateList.add(param);
+            }
+            if (!updateList.isEmpty()) {
+                this.mapper.updateRentalResignExpectedList(updateList);
             }
         }
         return UploadRes.builder()
             .status(excelUploadErrorDvos.isEmpty() ? "S" : "E").errorInfo(excelUploadErrorDvos).excelData(list).build();
+    }
+
+    private List<WctbContractDtlStatCdChDvo> getResignContractList(List<WbncAuthorityResignIzDvo> resignConfirms) {
+        List<WctbContractDtlStatCdChDvo> resignContractList = new ArrayList<>();
+        // 계약 해지 호출
+        for (WbncAuthorityResignIzDvo resignConfirm : resignConfirms) {
+            WctbContractDtlStatCdChDvo wctbContractDtlStatCdChDvo = new WctbContractDtlStatCdChDvo();
+            wctbContractDtlStatCdChDvo.setCntrNo(resignConfirm.getCntrNo());
+            wctbContractDtlStatCdChDvo.setCntrSn(String.valueOf(resignConfirm.getCntrSn()));
+            wctbContractDtlStatCdChDvo.setCntrDtlStatCd(WctzCntrDtlStatCd.CLTN_DLQ.getCode());
+            resignContractList.add(wctbContractDtlStatCdChDvo);
+        }
+        return resignContractList;
     }
 }
