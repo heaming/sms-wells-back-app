@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrLgstDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryKssDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 
 @Mapper
@@ -28,5 +28,5 @@ public interface WsnaIndividualWareOstrMapper {
 
     int mergeItmOstrAkIz(WsnaIndividualWareOstrDvo dvo);
 
-    List<WsnaLogisticsOutStorageAskReqDvo> selectIndividualLogisticsTransfer(WsnaIndividualWareOstrLgstDvo dvo);
+    List<WsnaLogisticsOutStorageAskReqDvo> selectIndividualLogisticsTransfer(WsnaLogisticsDeliveryKssDvo dvo);
 }

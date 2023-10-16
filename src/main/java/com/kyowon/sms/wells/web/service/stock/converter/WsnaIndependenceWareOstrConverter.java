@@ -8,7 +8,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrLgstDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryKssDvo;
 
 /**
  * <pre>
@@ -22,6 +22,6 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrLgstDv
 public interface WsnaIndependenceWareOstrConverter {
     List<WsnaIndependenceWareOstrDvo> mapAllSaveReqToWsnaIndependenceWareOstrDvo(List<SaveReq> dtos);
 
-    WsnaIndependenceWareOstrLgstDvo mapCreateReqToWsnaIndependenceWareOstrLgstDvo(CreateReq dto);
+    WsnaLogisticsDeliveryKssDvo mapCreateReqToWsnaLogisticsDeliveryKssDvo(CreateReq dto);
 
 }
