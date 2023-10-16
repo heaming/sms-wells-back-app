@@ -62,15 +62,15 @@ public class WsnbWellsServiceCfdcController {
         return service.getWellsServiceConfirmationsForExcelDownload(dto);
     }
 
-//    @ApiOperation(value = "웰스 서비스 확인서 출력", notes = "웰스 서비스 확인서 출력한다.")
-//    @PostMapping("/print")
-//    public int printReport(
-//        @Valid
-//        @RequestBody
-//        ReportReq dto
-//    ) throws Exception {
-//        return service.printWellsServiceConfirmationByReport(dto);
-//    }
+    //    @ApiOperation(value = "웰스 서비스 확인서 출력", notes = "웰스 서비스 확인서 출력한다.")
+    //    @PostMapping("/print")
+    //    public int printReport(
+    //        @Valid
+    //        @RequestBody
+    //        ReportReq dto
+    //    ) throws Exception {
+    //        return service.printWellsServiceConfirmationByReport(dto);
+    //    }
 
     @ApiOperation(value = "웰스 서비스 확인서 발송 (카카오 알림톡)", notes = "웰스 서비스 확인서 발송한다.")
     @PostMapping("/kakao")
@@ -110,5 +110,14 @@ public class WsnbWellsServiceCfdcController {
         PageInfo pageInfo
     ) {
         return service.getWellsServiceConfirmationHistoriesForEmail(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "OZ리포트 조회", notes = "OZ리포트 조회")
+    @GetMapping("/oz")
+    public FindOzRes getOzReport(
+        @RequestParam
+        String cstSvAsnNo
+    ) {
+        return service.getOzReport(cstSvAsnNo);
     }
 }

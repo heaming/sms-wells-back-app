@@ -97,7 +97,8 @@ public class WsnbWellsServiceCfdcDto {
         String etcSelect,
         String publishDatetime,
         String callingNumber,
-        String receivingNumber
+        String receivingNumber,
+        String cstSvAsnNo
     ) {}
 
     @ApiModel(value = "WsnbWellsServiceCfdcDto-EmailReq")
@@ -111,7 +112,8 @@ public class WsnbWellsServiceCfdcDto {
         String etcSelect,
         String publishDatetime,
         String caller,
-        String receiver
+        String receiver,
+        String cstSvAsnNo
     ) {}
 
     @ApiModel(value = "WsnbWellsServiceCfdcDto-HistoryReq")
@@ -128,6 +130,24 @@ public class WsnbWellsServiceCfdcDto {
     public record HistoryRes(
         String receiver,
         String sendDatetime,
-        String sender
+        String sender,
+        String cstSvAsnNo
+    ) {}
+
+    @ApiModel(value = "WsnbWellsServiceCfdcDto-FindOzRes")
+    public record FindOzRes(
+        String cstSvAsnNo,
+        String cntrNo,
+        String cntrSn,
+        String cntrCnfmDtm,
+        String pdNm,
+        String rcgvpNm,
+        String rnadr,
+        String rdadr,
+        String vstFshDt,
+        String vstFshHh,
+        String svProcsCn,
+        String psicPrtnrNm,
+        String psicPrtnrNo
     ) {}
 }

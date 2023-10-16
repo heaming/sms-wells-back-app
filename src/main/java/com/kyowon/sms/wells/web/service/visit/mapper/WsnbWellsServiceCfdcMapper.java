@@ -28,4 +28,6 @@ public interface WsnbWellsServiceCfdcMapper {
     );
 
     Optional<WsnbWellsServiceCfdcDvo> selectCustomer(String cstSvAsnNo);
+
+    Optional<WsnbWellsServiceCfdcDvo> selectOzReport(String cstSvAsnNo);
 }
