@@ -9,7 +9,7 @@ import io.swagger.annotations.ApiModel;
  * W-SV-U-0059M01 - 설치 위치 상세 관리
  * </pre>
  *
- * @author gs.piit129 천영화
+ * @author gs.piit129
  * @since 2022.12.08
  */
 public class WsnbInstallLocationMgtDto {
@@ -25,9 +25,9 @@ public class WsnbInstallLocationMgtDto {
         String pdGrpCd, /* 상위상품그룹코드 */
         String pdCd, /* 하위상품그룹코드 */
         String cstDvCd, /* 고객구분코드 */
-        String cstNm, /* 고객 명 */
+        String cstNm, /* 고객명 */
         String cntrNo, /* 계약번호 */
-        String cntrSn
+        String cntrSn /* 계약일련번호 */
     ) {}
 
     @ApiModel(value = "WsnbIstLctDtlMngtDto-SearchRes")
@@ -40,12 +40,12 @@ public class WsnbInstallLocationMgtDto {
         String pdctPdCd, /* 상품코드 */
         String sapMatCd, /* SAP코드 */
         String pdNm, /* 상품명 */
-        String locaraTno, /* 전화번호1 */
-        String exnoEncr, /* 전화번호2 */
-        String idvTno, /* 전화번호3 */
-        String cralLocaraTno, /* 휴대폰번호1 */
-        String mexnoEncr, /* 휴대폰번호2 */
-        String cralIdvTno, /* 휴대폰번호3 */
+        String locaraTno, /* 지역전화번호 */
+        String exnoEncr, /* 전화국번호암호화 */
+        String idvTno, /* 개별전화번호 */
+        String cralLocaraTno, /* 휴대지역전화번호 */
+        String mexnoEncr, /* 휴대전화국번호암호화 */
+        String cralIdvTno, /* 휴대개별전화번호 */
         String zip, /* 우편번호 */
         String adr, /* 주소 */
         String istLctDtlCn, /* 설치위치상세 */
@@ -69,19 +69,10 @@ public class WsnbInstallLocationMgtDto {
 
     @ApiModel(value = "WsnbIstLctDtlMngtDto-FindProductRes")
     public record FindProductRes(
-        String codeId,
-        String codeName,
-        String abbrName,
-        String pdGrpCd
-    ) {}
-
-    @ApiModel(value = "WsnbIstLctDtlMngtDto-FindCenterRes")
-    public record FindCenterRes(
-        String ogTpCd,
-        String ogId,
-        String ogCd,
-        String ogNm,
-        String hgrOgId
+        String codeId, /* 상품코드 */
+        String codeName, /* 상품명(상품코드) */
+        String abbrName, /* 상품명 */
+        String pdGrpCd /* 상품그룹코드 */
     ) {}
 
 }

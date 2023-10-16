@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
  * W-SV-U-0035M01 설치 위치 상세 관리
  * </pre>
  *
- * @author yeonghwa.cheon 천영화
+ * @author yeonghwa.cheon
  * @since 2023.01.02
  */
 @Service
@@ -35,11 +35,6 @@ public class WsnbInstallLocationMgtService {
 
     /**
      * 설치 위치 상세 관리 - 조회(페이징)
-     * @param dto : { svcCd : 관리구분코드 , ogId : 서비스센터ID, engId : 엔지니어ID, rgsnYn : 퇴사여부, istDtTo : 설치일자 To,
-     *            istDtFrom :설치일자 From, hgrPdGrop : 상위상품그룹코드, lorPdGrop : 하위상품그룹코드, cstDvCd : 고객구분코드,
-     *            cstNm : 고객명, cstNo : 고객번호 }
-     * @param pageInfo : 페이징정보
-     * @return 조회결과
      */
     public PagingResult<SearchRes> getInstallLocationPages(
         SearchReq dto, PageInfo pageInfo
@@ -54,10 +49,6 @@ public class WsnbInstallLocationMgtService {
 
     /**
      * 설치 위치 상세 관리 - 조회(엑셀다운로드)
-     * @param dto : { svcCd : 관리구분코드 , ogId : 서비스센터ID, engId : 엔지니어ID, rgsnYn : 퇴사여부, istDtTo : 설치일자 To,
-     *            istDtFrom :설치일자 From, hgrPdGrop : 상위상품그룹코드, lorPdGrop : 하위상품그룹코드, cstDvCd : 고객구분코드,
-     *            cstNm : 고객명, cstNo : 고객번호 }
-     * @return 조회결과
      */
     public List<SearchRes> getInstallLocationPagesExcelDownload(SearchReq dto) {
 
@@ -66,7 +57,6 @@ public class WsnbInstallLocationMgtService {
 
     /**
      * 설치 위치 상세 관리 - 저장
-     * @param dtos : [{ cntrNo : 계약번호, cntrSn : 계약일련번호, istLctDtlCn : 설치위치상세, wkPrtnrNo : 작업파트너번호 }]
      */
     public int createInstallLocations(List<CreateReq> dtos) {
         int processCount = 0;
@@ -81,7 +71,6 @@ public class WsnbInstallLocationMgtService {
 
     /**
      * 설치 위치 상세 관리 - 저장 프로시저
-     * @param dtos : [{ cntrNo : 계약번호, cntrSn : 계약일련번호, istLctDtlCn : 설치위치상세, wkPrtnrNo : 작업파트너번호 }]
      */
     public int createInitializeInstallLocations(List<CreateReq> dtos) {
         int processCount = 0;
@@ -91,11 +80,11 @@ public class WsnbInstallLocationMgtService {
             WsnbInstallLocationDvo dvo = converter.mapCreateReqToWsnbInstallLocationDvo(dto);
             String dtlSn = mapper.selectSerialNumberByPk(dto.cntrNo());
 
-            if (Integer.parseInt(dtlSn) >= 001) {
+            if (Integer.parseInt(dtlSn) >= 001) { // 계약제품설치위치 상세일련번호 1보다 크거나 같으면,
                 dvo.setDtlSn(dtlSn);
 
                 int cnLength = mapper.selectInstallLocationContentLength(dvo);
-                if (cnLength > 0) {
+                if (cnLength > 0) { // 설치위치상세내용이 존재하면,
                     result += mapper.insertInitializeInstallLocation(dvo);
                 }
             }
@@ -105,7 +94,7 @@ public class WsnbInstallLocationMgtService {
     }
 
     /**
-     * 검색조건 용 상품내역 조회 (임시)
+     * 검색조건 용 상품내역 조회
      */
     public List<FindProductRes> getProducts() {
         return mapper.selectProducts();
