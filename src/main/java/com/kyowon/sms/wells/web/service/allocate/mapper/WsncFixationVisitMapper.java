@@ -47,6 +47,10 @@ public interface WsncFixationVisitMapper {
         WsncFixationVisitDto.SearchReq dto
     );
 
+    List<WsncFixationVisitDto.SearchRes> selectFixationVisits6(
+        WsncFixationVisitDto.SearchReq dto
+    );
+
     WsncFixationVisitDto.SearchRegRes selectFixationVisit(
         WsncFixationVisitDto.SearchRegReq dto
     );
