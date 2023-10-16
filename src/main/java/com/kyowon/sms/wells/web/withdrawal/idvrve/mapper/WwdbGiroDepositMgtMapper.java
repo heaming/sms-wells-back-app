@@ -97,4 +97,6 @@ public interface WwdbGiroDepositMgtMapper {
     SearchLedgerItemizationRes selectBillingDocumentMgtLedgerItemization(List<String> rveDt);
 
     int updateIntegrationDeposit(Map<String, Object> dto) throws Exception;
+
+    String selectGiroPerfDt(String rveDt);
 }

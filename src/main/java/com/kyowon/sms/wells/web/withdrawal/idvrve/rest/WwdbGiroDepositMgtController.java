@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveDvo;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveIntegrationReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveErrosReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchErrosRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationRes;
@@ -112,5 +114,14 @@ public class WwdbGiroDepositMgtController {
         List<SearchLedgerItemizationReq> dto
     ) {
         return service.getBillingDocumentMgtLedgerItemization(dto);
+    }
+
+    @ApiOperation(value = "지로 입금관리 실적일자 조회", notes = " 검색조건을 받아 지로 입금관리 실적일자 조회 한다.")
+    @PostMapping("/date-chk")
+    public List<WwdbGiroDepositSaveDvo> getGiroPerfDt(
+        @RequestBody
+        @Valid
+        List<SaveReq> dto) {
+        return service.getGiroPerfDt(dto);
     }
 }
