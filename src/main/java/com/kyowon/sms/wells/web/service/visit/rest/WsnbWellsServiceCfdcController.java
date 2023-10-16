@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.rest;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 
@@ -114,10 +115,7 @@ public class WsnbWellsServiceCfdcController {
 
     @ApiOperation(value = "OZ리포트 조회", notes = "OZ리포트 조회")
     @GetMapping("/oz")
-    public FindOzRes getOzReport(
-        @RequestParam
-        String cstSvAsnNo
-    ) {
-        return service.getOzReport(cstSvAsnNo);
+    public Map<String, Object> getOzReport(FindOzReq dto) {
+        return service.getOzReport(dto);
     }
 }
