@@ -23,6 +23,7 @@ public class WpsfActivityGoodsMgtDto {
         String actiGdsCd, /* 활동물품코드 */
         String aplcDt,
         String prtnrNo,
+        String actiStatCd,
         String actiGdsStddDvId, /* 활동물품규격구분ID */
         String actiGdsSn, /* 활동물품일련번호 */
         String actiGdsStddCd, /* 활동물품규격구분코드 */

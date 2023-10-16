@@ -188,95 +188,88 @@
     </update>
 
     <select id="selectActivityGoodsApplicationIzPages" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto$SearchStatRes">
-        WITH EXAMPLE1 AS (  /*활동물품공제내역*/
-            SELECT MAX(FEE_DDTN_OC_DT) MAX_FEE_DDTN_OC_DT
-                 , ACTI_GDS_APLC_ID
-                 , NVL(SUM(FEE_DDTN_DST_AMT),0) SUM_FEE_DDTN_DST_AMT
-                 , NVL(COUNT(FEE_DDTN_DST_AMT),0) COUNT_MCN
-                 , MAX(ACTI_GDS_DDTN_ID) ACTI_GDS_DDTN_ID
-              FROM TB_PSGA_ACTI_GDS_DDTN_IZ
-             WHERE DTA_DL_YN ='N'
-             GROUP BY ACTI_GDS_APLC_ID
-        )
-        SELECT T1.ACTI_GDS_APLC_ID /* 활동물품신청ID */
-             , T1.OG_TP_CD         /* 조직유형코드 */
-             , T1.ACTI_GDS_CD      /* 활동물품코드 */
-             , T1.ACTI_GDS_SN      /* 활동물품일련번호 */
-             , T1.APLC_QTY
-             , T6.ACTI_GDS_NM      /* 활동물품명 */
-             , (T6.ACTI_GDS_AMT * T1.APLC_QTY) ACTI_GDS_AMT
-	         , T6.PAT_DDTN_MCN
-             , CASE WHEN (T9.COUNT_MCN)+1 = T6.PAT_DDTN_MCN THEN ((T6.ACTI_GDS_AMT * T1.APLC_QTY ) -T9.SUM_FEE_DDTN_DST_AMT)
-               ELSE TRUNC((T6.ACTI_GDS_AMT * T1.APLC_QTY ) / T6.PAT_DDTN_MCN)
+        SELECT b.ACTI_GDS_APLC_ID /* 활동물품신청ID */
+             , b.OG_TP_CD         /* 조직유형코드 */
+             , b.ACTI_GDS_CD      /* 활동물품코드 */
+             , b.ACTI_GDS_SN      /* 활동물품일련번호 */
+             , b.APLC_QTY
+             , a.ACTI_GDS_NM      /* 활동물품명 */
+             , (a.ACTI_GDS_AMT * b.APLC_QTY) ACTI_GDS_AMT
+             , a.PAT_DDTN_MCN
+             , CASE WHEN (e.COUNT_MCN)+1 = a.PAT_DDTN_MCN THEN ((a.ACTI_GDS_AMT * b.APLC_QTY ) - e.SUM_FEE_DDTN_DST_AMT)
+                    ELSE TRUNC((a.ACTI_GDS_AMT * b.APLC_QTY ) / a.PAT_DDTN_MCN)
                END AS PNPYAM_OC_AMT
-             , T9.MAX_FEE_DDTN_OC_DT
-             , NVL(T9.SUM_FEE_DDTN_DST_AMT,0) SUM_FEE_DDTN_DST_AMT
-             , NVL(T9.COUNT_MCN,0) COUNT_MCN
-             , T9.ACTI_GDS_DDTN_ID
-             , T1.ACTI_GDS_STDD_CD /* 활동물품규격코드 */
-             , T10.ACTI_GDS_STDD_NM
-             , T1.PRTNR_NO         /* 파트너번호 */
-             , T2.ACTI_GDS_APLC_SN /* 활동물품신청일련번호 */
-             , T2.ACTI_GDS_APLC_STAT_CD
-             , F_CMZ_CD_NM(#{session.tenantId}, 'ACTI_GDS_APLC_STAT_CD', T2.ACTI_GDS_APLC_STAT_CD, #{session.langId}) AS ACTI_GDS_APLC_STAT_NM
-             , T2.APLC_DT          /* 최종 신청일자 */
-             , T2.APLC_RSON_CN     /* 최종 신청사유내용 */
-             , T2.SPP_DT           /* 최종 배송일자 */
-             , T2.SPP_BZS_CD       /* 최종 배송업체코드 */
-             , F_CMZ_CD_NM(#{session.tenantId}, 'SPP_BZS_CD', T2.SPP_BZS_CD, #{session.langId}) AS SPP_BZS_NM
-             , T2.SPP_IVC_NO       /* 최종 배송송장번호 */
-
-             , T201.APLC_DT AS APLC_DT_S        /* 신청일자 */
-
-             , T5.PRTNR_KNM /* 성명 */
-             , T5.BLD_NM
-             , T5.CRAL_LOCARA_TNO
-             , T5.MEXNO_ENCR
-             , T5.CRAL_IDV_TNO
-             , T5.CLTN_DT  /* 해약일자 */
-             , T5.CNTR_DT  /* 계약일자 */
+             , e.MAX_FEE_DDTN_OC_DT
+             , NVL(e.SUM_FEE_DDTN_DST_AMT,0) SUM_FEE_DDTN_DST_AMT
+             , NVL(e.COUNT_MCN,0) COUNT_MCN
+             , e.ACTI_GDS_DDTN_ID
+             , b.ACTI_GDS_STDD_CD /* 활동물품규격코드 */
+             , g.ACTI_GDS_STDD_NM
+             , b.PRTNR_NO         /* 파트너번호 */
+             , d.ACTI_GDS_APLC_SN /* 활동물품신청일련번호 */
+             , d.ACTI_GDS_APLC_STAT_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'ACTI_GDS_APLC_STAT_CD', d.ACTI_GDS_APLC_STAT_CD, #{session.langId}) AS ACTI_GDS_APLC_STAT_NM
+             , d.APLC_DT          /* 최종 신청일자 */
+             , d.APLC_RSON_CN     /* 최종 신청사유내용 */
+             , d.SPP_DT           /* 최종 배송일자 */
+             , d.SPP_BZS_CD       /* 최종 배송업체코드 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SPP_BZS_CD', d.SPP_BZS_CD, #{session.langId}) AS SPP_BZS_NM
+             , d.SPP_IVC_NO       /* 최종 배송송장번호 */
+             , c.APLC_DT AS APLC_DT_S        /* 신청일자 */
+             , f.PRTNR_KNM /* 성명 */
+             , f.BLD_NM
+             , f.CRAL_LOCARA_TNO
+             , f.MEXNO_ENCR
+             , f.CRAL_IDV_TNO
+             , f.CLTN_DT  /* 해약일자 */
+             , f.CNTR_DT  /* 계약일자 */
              , CASE WHEN (
                     SELECT COUNT(1)
                       FROM TB_OGBS_MM_PRTNR_IZ
-                     WHERE OG_TP_CD = T1.OG_TP_CD
-                       AND PRTNR_NO = T1.PRTNR_NO
-                       AND BASE_YM <![CDATA[<=]]> SUBSTR(T1.FST_RGST_DTM, 1, 6)
-             )  <![CDATA[>]]>  0 THEN '추가' ELSE '신입'
-           END BASE_DV_NM
-            , TO_CHAR(ADD_MONTHS(TO_DATE(T3.CNTR_DT, 'YYYYMMDD'), 1), 'YYYY-MM') AS START_YRMN
-          FROM TB_PSGA_ACTI_GDS_APLC_IZ T1 LEFT JOIN TB_OGBS_PRTNR_DTL T3
-            ON T3.OG_TP_CD = T1.OG_TP_CD
-           AND T3.PRTNR_NO = T1.PRTNR_NO
-          LEFT JOIN TB_PSGA_ACTI_GDS_BAS T6
-            ON T1.ACTI_GDS_CD = T6.ACTI_GDS_CD
-           AND T1.ACTI_GDS_SN = T6.ACTI_GDS_SN
-          LEFT JOIN
-            (
-             SELECT A.ACTI_GDS_APLC_SN /* 활동물품신청일련번호 */
-                  , A.ACTI_GDS_APLC_ID
-                  , A.ACTI_GDS_APLC_STAT_CD
-                  , A.APLC_DT          /* 신청일자 */
-                  , A.APLC_RSON_CN     /* 신청사유내용 */
-                  , A.SPP_DT           /* 배송일자 */
-                  , A.SPP_BZS_CD       /* 배송업체코드 */
-                  , A.SPP_IVC_NO       /* 배송송장번호 */
-                  , A.DTA_DL_YN
-              FROM TB_PSGA_ACTI_GDS_APLC_STAT_IZ A INNER JOIN (
-                    SELECT ACTI_GDS_APLC_ID
-                         , MAX(ACTI_GDS_APLC_SN)   MAX_ACTI_GDS_APLC_SN      /* 활동물품일련번호 */
-                      FROM TB_PSGA_ACTI_GDS_APLC_STAT_IZ
-                     WHERE DTA_DL_YN  ='N'         /* 데이터삭제여부 */
-                     GROUP BY ACTI_GDS_APLC_ID
-                    ) B
-                    ON A.ACTI_GDS_APLC_ID = B.ACTI_GDS_APLC_ID
-                   AND A.ACTI_GDS_APLC_SN = B.MAX_ACTI_GDS_APLC_SN
-            ) T2 /* 활동물품신청내역,활동물품신청상태내역  */
-            ON T1.ACTI_GDS_APLC_ID = T2.ACTI_GDS_APLC_ID
-          LEFT JOIN TB_PSGA_ACTI_GDS_APLC_STAT_IZ T201
-            ON T1.ACTI_GDS_APLC_ID = T201.ACTI_GDS_APLC_ID
-           AND T201.ACTI_GDS_APLC_STAT_CD ='01'
-           AND T201.DTA_DL_YN = 'N'
-          LEFT JOIN (
+                     WHERE OG_TP_CD = b.OG_TP_CD
+                       AND PRTNR_NO = b.PRTNR_NO
+                       AND BASE_YM <![CDATA[<=]]> SUBSTR(b.FST_RGST_DTM, 1, 6)
+               ) <![CDATA[>]]> 0 THEN '추가' ELSE '신입' END BASE_DV_NM
+             , TO_CHAR(ADD_MONTHS(TO_DATE(h.CNTR_DT, 'YYYYMMDD'), 1), 'YYYY-MM') AS START_YRMN
+        FROM TB_PSGA_ACTI_GDS_BAS a /*활동물품기본*/
+            INNER JOIN TB_PSGA_ACTI_GDS_APLC_IZ b ON (b.OG_TP_CD = a.OG_TP_CD AND b.ACTI_GDS_CD = a.ACTI_GDS_CD AND b.ACTI_GDS_SN = a.ACTI_GDS_SN AND b.DTA_DL_YN = 'N') /*활동물품신청내역*/
+            LEFT OUTER JOIN TB_PSGA_ACTI_GDS_APLC_STAT_IZ c ON (c.ACTI_GDS_APLC_ID = b.ACTI_GDS_APLC_ID AND c.ACTI_GDS_APLC_STAT_CD = '01' AND c.DTA_DL_YN = 'N') /*활동물품신청상태내역 - 신청정보*/
+            LEFT OUTER JOIN (
+                SELECT
+                    aa.ACTI_GDS_APLC_ID
+                    ,aa.ACTI_GDS_APLC_STAT_CD AS MAX_ACTI_GDS_APLC_STAT_CD
+                    ,aa.ACTI_GDS_APLC_SN /* 활동물품신청일련번호 */
+                    ,aa.ACTI_GDS_APLC_STAT_CD
+                    ,aa.APLC_DT          /* 신청일자 */
+                    ,aa.APLC_RSON_CN     /* 신청사유내용 */
+                    ,aa.SPP_DT           /* 배송일자 */
+                    ,aa.SPP_BZS_CD       /* 배송업체코드 */
+                    ,aa.SPP_IVC_NO       /* 배송송장번호 */
+                FROM TB_PSGA_ACTI_GDS_APLC_STAT_IZ aa
+                    INNER JOIN (
+                        SELECT ACTI_GDS_APLC_ID, MAX(ACTI_GDS_APLC_SN) AS ACTI_GDS_APLC_SN
+                        FROM TB_PSGA_ACTI_GDS_APLC_STAT_IZ
+                        WHERE DTA_DL_YN = 'N'
+                        GROUP BY ACTI_GDS_APLC_ID
+                    ) bb ON (bb.ACTI_GDS_APLC_ID = aa.ACTI_GDS_APLC_ID AND bb.ACTI_GDS_APLC_SN = aa.ACTI_GDS_APLC_SN)
+            ) d ON (d.ACTI_GDS_APLC_ID = b.ACTI_GDS_APLC_ID) /*활동물품신청상태내역 - 최종상태정보*/
+            LEFT OUTER JOIN (
+                SELECT
+                    ACTI_GDS_APLC_ID
+                    ,MAX(ACTI_GDS_DDTN_ID) ACTI_GDS_DDTN_ID
+                    ,MAX(FEE_DDTN_OC_DT) MAX_FEE_DDTN_OC_DT /*최종발생일자*/
+                    ,NVL(SUM(FEE_DDTN_DST_AMT),0) SUM_FEE_DDTN_DST_AMT /*누적금액*/
+                    ,NVL(COUNT(FEE_DDTN_DST_AMT),0) COUNT_MCN /*차수*/
+                FROM TB_PSGA_ACTI_GDS_DDTN_IZ
+                WHERE 1=1
+                    AND PROCS_YN = 'Y'
+                    AND DTA_DL_YN = 'N'
+                    <if test='@MybatisUtils@isNotEmpty(aplcDt)'>
+                    AND SUBSTR(FEE_DDTN_OC_DT, 0, 6) <![CDATA[<=]]> #{aplcDt}
+                    </if>
+                GROUP BY ACTI_GDS_APLC_ID
+            ) e ON (e.ACTI_GDS_APLC_ID = b.ACTI_GDS_APLC_ID) /*활동물품공제내역 - 공제정보*/
+            LEFT OUTER JOIN (
                 SELECT IZ.PRTNR_KNM /* 성명 */
                      , IZ.PRTNR_NO /* 번호 */
                      , MZ.BLD_NM
@@ -297,52 +290,57 @@
                  INNER JOIN TB_OGBS_PRTNR_BAS PB
                     ON IZ.OG_TP_CD = PB.OG_TP_CD
                    AND IZ.PRTNR_NO = PB.PRTNR_NO
-             ) T5
-            ON T5.PRTNR_NO = T1.PRTNR_NO
-           AND T5.OG_TP_CD = T1.OG_TP_CD
-           AND T5.BASE_YM = SUBSTR(T1.FST_RGST_DTM, 1, 6)
-          LEFT JOIN EXAMPLE1 T9
-            ON T1.ACTI_GDS_APLC_ID = T9.ACTI_GDS_APLC_ID
-          LEFT JOIN TB_PSGA_ACTI_GDS_STDD_DV_DTL T10
-            ON T10.ACTI_GDS_STDD_DV_ID = T6.ACTI_GDS_STDD_DV_ID
-           AND T10.ACTI_GDS_STDD_CD = T1.ACTI_GDS_STDD_CD
-         WHERE 1 = 1
-           AND T1.DTA_DL_YN ='N'
-           AND T2.DTA_DL_YN ='N'
-          <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
-           AND T1.OG_TP_CD =#{ogTpCd}
-          </if>
-          <if test='@MybatisUtils@isNotEmpty(bzStatCd)'>
-           AND T5.BZ_STAT_CD =#{bzStatCd}
-          </if>
-          <if test='@MybatisUtils@isNotEmpty(aplcDt)'>
-           AND T201.APLC_DT BETWEEN TO_CHAR(TO_DATE(#{aplcDt}||'01', 'YYYYMMDD'), 'YYYYMMDD')
-           AND TO_CHAR(LAST_DAY(TO_DATE(#{aplcDt}, 'YYYYMM')), 'YYYYMMDD')  /* 신청일자 */
-          </if>
-          <if test='@MybatisUtils@isNotEmpty(actiGdsAplcId)'>
-           AND T1.ACTI_GDS_APLC_ID = #{actiGdsAplcId}    /* 활동물품신청ID */
-          </if>
-          <if test='@MybatisUtils@isNotEmpty(actiGdsSn)'>
-           AND T1.ACTI_GDS_SN  = #{actiGdsSn}     /* 활동물품일련번호 */
-          </if>
-          <if test='@MybatisUtils@isNotEmpty(aplcQty)'>
-           AND T1.APLC_QTY      = #{aplcQty}    /* 신청수량 */
-          </if>
-          <if test='@MybatisUtils@isNotEmpty(actiGdsStddCd)'>
-           AND T1.ACTI_GDS_STDD_CD = #{actiGdsStddCd}    /* 활동물품규격코드 */
-          </if>
-        <choose>
-            <when test='@MybatisUtils@equals(session.baseRleCd, "W2010")'> <!-- 플래너 -->
-           AND T1.PRTNR_NO = #{session.employeeIDNumber}   /* 파트너번호 */
-            </when>
-            <otherwise>
-              <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-           AND T1.PRTNR_NO = #{prtnrNo}    /* 파트너번호 */
-              </if>
-            </otherwise>
-        </choose>
-         ORDER BY T1.ACTI_GDS_APLC_ID DESC,T2.ACTI_GDS_APLC_SN DESC
-
+            ) f ON (f.PRTNR_NO = b.PRTNR_NO AND f.OG_TP_CD = b.OG_TP_CD AND f.BASE_YM = SUBSTR(b.FST_RGST_DTM, 1, 6))
+            LEFT OUTER JOIN TB_PSGA_ACTI_GDS_STDD_DV_DTL g ON (g.ACTI_GDS_STDD_DV_ID = a.ACTI_GDS_STDD_DV_ID AND g.ACTI_GDS_STDD_CD =  b.ACTI_GDS_STDD_CD)
+            LEFT OUTER JOIN TB_OGBS_PRTNR_DTL h ON (h.OG_TP_CD = b.OG_TP_CD AND h.PRTNR_NO = b.PRTNR_NO)
+        WHERE 1=1
+            <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
+            AND b.OG_TP_CD = #{ogTpCd} /*조직유형*/
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(aplcDt)'>
+                <choose>
+                    <when test='@MybatisUtils@equals(actiStatCd, "01")'>
+                        AND SUBSTR(c.APLC_DT, 0, 6) = #{aplcDt} /*신청일자*/
+                    </when>
+                    <when test='@MybatisUtils@equals(actiStatCd, "02")'>
+                        AND EXISTS (
+                            SELECT 1
+                            FROM TB_PSGA_ACTI_GDS_DDTN_IZ
+                            WHERE ACTI_GDS_APLC_ID = b.ACTI_GDS_APLC_ID
+                                AND SUBSTR(FEE_DDTN_OC_DT, 0, 6) = #{aplcDt} /*공제일자*/
+                        )
+                    </when>
+                    <otherwise>
+                        AND 1=1
+                    </otherwise>
+                </choose>
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(bzStatCd)'>
+                AND f.BZ_STAT_CD = #{bzStatCd} /*재직구분*/
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(actiGdsAplcId)'>
+                AND b.ACTI_GDS_APLC_ID = #{actiGdsAplcId} /*활동물품신청ID*/
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(actiGdsSn)'>
+                AND b.ACTI_GDS_SN = #{actiGdsSn} /*활동물품일련번호*/
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(aplcQty)'>
+                AND b.APLC_QTY = #{aplcQty} /*신청수량*/
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(actiGdsStddCd)'>
+                AND b.ACTI_GDS_STDD_CD = #{actiGdsStddCd} /*활동물품규격코드*/
+            </if>
+            <choose>
+                <when test='@MybatisUtils@equals(session.baseRleCd, "W2010")'> /*플래너*/
+                    AND b.PRTNR_NO = #{session.employeeIDNumber} /*파트너번호*/
+                </when>
+                <otherwise>
+                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                        AND b.PRTNR_NO = #{prtnrNo} /*파트너번호*/
+                    </if>
+                </otherwise>
+            </choose>
+        ORDER BY b.PRTNR_NO, c.APLC_DT
     </select>
 
     <select id="selectActiGdsAplcId" resultType="String">
