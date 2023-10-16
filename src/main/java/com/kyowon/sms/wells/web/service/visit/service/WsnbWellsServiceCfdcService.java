@@ -15,6 +15,7 @@ import com.kyowon.sflex.common.message.service.KakaoMessageService;
 import com.kyowon.sflex.common.report.dvo.ReportDvo;
 import com.kyowon.sflex.common.report.dvo.ReportEntryDvo;
 import com.kyowon.sflex.common.report.service.ReportService;
+import com.kyowon.sms.wells.web.service.visit.converter.WsnbWellsServiceCfdcConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.*;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWellsServiceCfdcDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbWellsServiceCfdcMapper;
@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WsnbWellsServiceCfdcService {
     private final WsnbWellsServiceCfdcMapper mapper;
+    private final WsnbWellsServiceCfdcConverter converter;
     private final KakaoMessageService kakaoMessageService;
     private final EmailService emailService;
     private final TemplateService templateService;
@@ -42,14 +44,12 @@ public class WsnbWellsServiceCfdcService {
         return mapper.selectWellsServiceConfirmations(dto);
     }
 
-//    public int printWellsServiceConfirmationByReport(ReportReq dto) throws Exception {
-//        return 0;
-//    }
-
     public int sendWellsServiceConfirmationByKakao(KakaoReq dto) throws Exception {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("custNm", dto.nm());
-        paramMap.put("url", "test url");
+        paramMap.put(
+            "url", "https://wsm.kyowon.co.kr/anonymous/sms/wells/service/wells-service-cfdc/report/" + dto.cstSvAsnNo()
+        );
 
         KakaoSendReqDvo dvo = KakaoSendReqDvo.withTemplateCode()
             .templateCode("Wells18053")
@@ -58,6 +58,7 @@ public class WsnbWellsServiceCfdcService {
             .callback(dto.callingNumber())
             .sendDatetime(dto.publishDatetime()) // yyyyMMddHHmmss
             .reserved2("Wells18053")
+            .reserved3(dto.cstSvAsnNo())
             .build();
 
         return kakaoMessageService.sendMessage(dvo);
@@ -66,7 +67,9 @@ public class WsnbWellsServiceCfdcService {
     public int sendWellsServiceConfirmationByEmail(EmailReq dto) throws Exception {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("custNm", dto.nm());
-        paramMap.put("url", "test url");
+        paramMap.put(
+            "url", "https://wsm.kyowon.co.kr/anonymous/sms/wells/service/wells-service-cfdc/report/" + dto.cstSvAsnNo()
+        );
 
         List<EmailDto.CreateReceiptUserReq> receiptUsers = new ArrayList<>();
         receiptUsers.add(
@@ -138,6 +141,12 @@ public class WsnbWellsServiceCfdcService {
             dvo.setErrorMessage("등록된 생년월일과 일치하지 않습니다.");
             return reportService.openReportAuthEntry(dvo);
         }
+    }
 
+    public FindOzRes getOzReport(String cstSvAsnNo) {
+        WsnbWellsServiceCfdcDvo dvo = mapper.selectOzReport(cstSvAsnNo).orElseThrow(
+            () -> new BizException("MSG_ALT_NO_DATA")
+        );
+        return converter.mapWellsServiceCfdcDvoToFindOzRes(dvo);
     }
 }
