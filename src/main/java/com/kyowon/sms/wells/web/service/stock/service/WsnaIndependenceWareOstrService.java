@@ -17,9 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaIndependenceWareOstrConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrLgstDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryKssDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskResDvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndependenceWareOstrMapper;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
@@ -53,6 +52,9 @@ public class WsnaIndependenceWareOstrService {
 
     // 물류 출고 서비스
     private final WsnaLogisticsOutStorageAskService lgstService;
+
+    // HQ관련 서비스
+    private final WsnaLogisticsDeliveryAskService deliveryService;
 
     // 메시지 서비스
     private final MessageResourceService messageService;
@@ -270,16 +272,18 @@ public class WsnaIndependenceWareOstrService {
     @Transactional
     public int createIndependenceLogisticsTransfer(CreateReq dto) {
 
-        WsnaIndependenceWareOstrLgstDvo dvo = this.converter.mapCreateReqToWsnaIndependenceWareOstrLgstDvo(dto);
+        WsnaLogisticsDeliveryKssDvo dvo = this.converter.mapCreateReqToWsnaLogisticsDeliveryKssDvo(dto);
+        // KSS물량배정송신전문 데이터 생성
+        int count = this.deliveryService.createKssQomAsnSendTemp(dvo);
+        // 적용 대상 데이터가 없습니다.
+        BizAssert.isFalse(count == 0, "MSG_ALT_NO_APPY_OBJ_DT");
 
         List<WsnaLogisticsOutStorageAskReqDvo> dvos = this.mapper.selectIndependenceLogisticsTransfer(dvo);
-        // 적용 대상 데이터가 없습니다.
-        BizAssert.isFalse(CollectionUtils.isEmpty(dvos), "MSG_ALT_NO_APPY_OBJ_DT");
 
         // 물류 출고처리
-        WsnaLogisticsOutStorageAskResDvo resDvo = this.lgstService.createQomOutOfStorageAsks(dvos);
+        this.lgstService.createQomOutOfStorageAsks(dvos);
 
-        return resDvo.getAkCnt();
+        return count;
     }
 
 }
