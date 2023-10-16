@@ -34,7 +34,16 @@ public class WsnaMdProductOutOfStorageExcelUploadService {
     @Transactional
     public int saveMdProductOutOfStoragExcelUpload(List<ValidateReq> dtos) {
         int processCount = 0;
-        // TODO 엑셀 업로드 타겟 테이블 저장
+        List<WsnaMdProductOutOfStorageExcelUploadDvo> dvos = converter
+            .mapValidateReqToMdProductOutOfStorageExcelUploadDvo(dtos);
+        for (WsnaMdProductOutOfStorageExcelUploadDvo dvo : dvos) {
+            // 1.작업결과 송장번호 업데이트
+            mapper.updateSvpdCstSvWkRsIz(dvo);
+
+            // 2.택배 정보 저장 (TODO 엑셀 업로드 타겟 테이블 확인필요 )
+            mapper.insertSppBzsInvoiceProcessIz(dvo);
+            processCount += 1;
+        }
         return processCount;
     }
 
@@ -86,7 +95,7 @@ public class WsnaMdProductOutOfStorageExcelUploadService {
                         errors.add(
                             setErrorMsg(
                                 header,
-                                messageResourceService.getMessage("MSG_ALT_DUPLICATE_VALUE_EXISTS", sppIvcNo)
+                                messageResourceService.getMessage("MSG_ALT_SPP_IVC_NO")
                             )
                         );
                     }
