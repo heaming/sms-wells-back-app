@@ -81,6 +81,23 @@ public class WwdbGiroDepositMgtDto {
     ) {
     }
 
+    @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveReq")
+    public record SaveRes(
+        String giroDpMtrDvCd, // --구분코드
+        String dpSn, // --일련번호
+        String rveDt, //--수납일자
+        String fntDt, //--이체일자
+        String giroDpBnkCd, //--은행코드
+        String bnkBrncCd, //--은행점포코드
+        String giroIndxNo, //--지로색인번호
+        String giroInqNo, //--지로조회번호
+        String pyAmt, //--납입금액
+        String giroRveDvCd, //--지로수납구분코드
+        String giroFeeDvCd, //--지로수수료구분코드
+        String rmkCn //--비고
+    ) {
+    }
+
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDepositRes")
     public record SearchDepositRes(
         String itgDpNo,
@@ -208,7 +225,7 @@ public class WwdbGiroDepositMgtDto {
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchLedgerItemizationReq")
     public record SearchLedgerItemizationReq(
         String fntDt,
-        
+
         String giroDpMtrDvCd
 
     ) {
