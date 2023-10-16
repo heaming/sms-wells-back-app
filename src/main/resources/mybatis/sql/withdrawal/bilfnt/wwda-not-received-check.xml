@@ -10,14 +10,14 @@
           FROM (
                         SELECT     <if test='@MybatisUtils@equals(fntDvCd, "01")'>
                                        '자동이체(은행) 청구되었으나 미수신건' AS AUTO_FNT_CLSF
-                                     , LPAD(A.BNK_CD, 3, 0) AS BNK_CD
-                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(A.BNK_CD, 3, 0) = FNIT_CD)
+                                     , LPAD(SCSB.BNK_CD, 3, 0) AS BNK_CD
+                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(SCSB.BNK_CD, 3, 0) = FNIT_CD)
                                             AS BNK_NM /* 은행명 */
                                     </if>
                                     <if test='@MybatisUtils@equals(fntDvCd, "02")'>
                                        '자동이체(카드) 청구되었으나 미수신건' AS AUTO_FNT_CLSF
-                                     , LPAD(A.CDCO_CD, 3, 0) AS BNK_CD
-                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(A.CDCO_CD, 3, 0) = FNIT_CD)
+                                     , LPAD(SCSB.CDCO_CD, 3, 0) AS BNK_CD
+                                     , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(SCSB.CDCO_CD, 3, 0) = FNIT_CD)
                                             AS BNK_NM /* 은행명 */
                                     </if>
                                   FROM TB_RVCL_BIL_FNT_AK_BAS RBFB
@@ -25,34 +25,18 @@
                                     ON RBFB.BIL_NO = RBFD.BIL_NO
                                    AND RBFB.DTA_DL_YN = 'N'
                                    AND RBFD.DTA_DL_YN = 'N'
-                                  JOIN LATERAL (
-                                                SELECT *
-                                                  FROM (
-                                                        SELECT SCSB.BNK_CD
-                                                             , SCSB.CDCO_CD
-                                                             , ROW_NUMBER() OVER(PARTITION BY SCSR.DTL_CNTR_NO, SCSR.DTL_CNTR_SN ORDER BY SCSR.VL_STRT_DTM DESC) AS RN
-                                                          FROM TB_SSCT_CNTR_STLM_REL SCSR
-                                                          JOIN TB_SSCT_CNTR_STLM_BAS SCSB
-                                                            ON SCSB.CNTR_STLM_ID = SCSR.CNTR_STLM_ID
-                                                           AND SCSB.DTA_DL_YN = 'N'
-                                                           AND SCSR.DTA_DL_YN = 'N'
-                                                           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
-                                                          JOIN TB_SSCT_CNTR_DTL SCD
-                                                            ON SCD.CNTR_NO = SCSR.DTL_CNTR_NO
-                                                           AND SCD.CNTR_SN = SCSR.DTL_CNTR_SN
-                                                           AND SCD.DTA_DL_YN = 'N'
-                                                          JOIN TB_SSCT_CNTR_BAS SCB
-                                                            ON SCD.CNTR_NO = SCB.CNTR_NO
-                                                           AND SCB.DTA_DL_YN = 'N'
-                                                          JOIN TB_CUBS_CST_BAS CCB
-                                                            ON CCB.CST_NO = SCB.CNTR_CST_NO
-                                                           AND CCB.DTA_DL_YN = 'N'
-                                                         WHERE RBFD.CNTR_NO = SCSR.DTL_CNTR_NO
-                                                           AND RBFD.CNTR_SN = SCSR.DTL_CNTR_SN
-                                                       )
-                                                 WHERE RN = 1
-                                               ) A
-                                    ON 1 = 1
+                                  JOIN TB_SSCT_CNTR_DTL SCD
+                                    ON SCD.CNTR_NO = RBFD.CNTR_NO
+                                   AND SCD.CNTR_SN = RBFD.CNTR_SN
+                                   AND SCD.DTA_DL_YN = 'N'
+                             LEFT JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+                                    ON SCSB.CNTR_STLM_ID = RBFB.CNTR_STLM_ID
+                                   AND SCSB.DTA_DL_YN = 'N'
+                             LEFT JOIN TB_SSCT_CNTR_STLM_REL SCSR
+                                    ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID
+                                   AND SCSR.DTA_DL_YN = 'N'
+                                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                   AND SCSR.VL_END_DTM = '99991231235959'
                                   <if test='@MybatisUtils@equals(fntDvCd, "01")'>
                                   JOIN TB_RVCL_AC_FNT_SEND_MTR_IZ RAFS
                                     ON RBFB.BIL_NO = RAFS.BIL_NO
