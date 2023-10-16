@@ -4,13 +4,12 @@ import com.kyowon.sms.wells.web.service.orgcode.service.WsndRglvlEgerPdlvMngtSer
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRglvlEgerPdlvMngtDto.*;
 
@@ -36,4 +35,16 @@ public class WsndRglvlEgerPdlvMngtController {
     public List<SearchRes> getRglvlEgerPdlvMngtExcelDownload(SearchReq dto){
         return service.getRglvlEgerPdlvMngtExcelDownload(dto);
     }
+
+//    @ApiOperation(value = "RT급지 엔지니어출고지관리 저장", notes = "RT급지 엔지니어출고지관리 저장 처리")
+//    @PostMapping("/save")
+//    public SaveResponse saveRglvlEgerPdlvMngt(@RequestBody List<SaveEgerReq> dtos){
+//
+//    }
+
+//    @ApiOperation(value = "RT급지 엔지니어출고지관리 승인", notes = "RT급지 엔지니어출고지관리 승인 처리")
+//    @PostMapping("/approval")
+//    public SaveResponse approvalRglvlEgerPdlvMngt(@RequestBody List<ApporovalEgerReq> dtos){
+//
+//    }
 }
