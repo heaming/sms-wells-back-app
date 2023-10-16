@@ -26,14 +26,14 @@ public class WdcaDepositDelinquentDto {
      */
     @ApiModel("WdcaDepositDelinquentDto-SearchReq")
     public record SearchReq(
-        String perfYm,
-        String copnDvCd,
-        String inqrDv,
-        List<String> sellChnl,
-        String sellTpCd,
-        String sellTpDtlCd,
-        String cntrNo,
-        String cntrSn
+        String perfYm, /*실적년월*/
+        String copnDvCd, /*개인/법인구분*/
+        String inqrDv, /*조회구분*/
+        List<String> sellChnl, /*판매채널*/
+        String sellTpCd, /*판매유형*/
+        String sellTpDtlCd, /*판매유형상세*/
+        String cntrNo, /*계약번호*/
+        String cntrSn /*계약일련번호*/
     ) {}
 
     /**
@@ -41,29 +41,29 @@ public class WdcaDepositDelinquentDto {
      */
     @ApiModel("WdcaDepositDelinquentDto-SearchRes")
     public record SearchRes(
-        String sellTpCd,
-        String sellTpDtlCd,
-        String sellInflwChnlDtlCd,
-        String pdClsfNm,
-        String totAccN,
-        String ucamTam,
-        String fnlAmt,
-        String thmNwAccN,
-        String thmNwDpAmt,
-        String thmNwDpRt,
-        String nomUcAmt,
-        String nomAccN,
-        String nomDpAmt,
-        String nomDpRt,
-        String dlqAmt,
-        String dlqAccN,
-        String dlqDpAmt,
-        String ucCprDlqRt,
-        String totDpAmt,
-        String dpRt,
-        String bilAgg,
-        String dpAgg,
-        String dlqRtSum
+        String sellTpCd, /*판매유형*/
+        String sellTpDtlCd, /*판매유형상세*/
+        String sellInflwChnlDtlCd, /*판매유입채널상세코드*/
+        String pdClsfNm, /*상품명*/
+        String totAccN, /*총 계정수*/
+        String ucamTam, /*미수금 총액*/
+        String fnlAmt, /*미수금액*/
+        String thmNwAccN, /*계정수*/
+        String thmNwDpAmt, /*입금금액*/
+        String thmNwDpRt, /*입금률*/
+        String nomUcAmt, /*미수금액*/
+        String nomAccN, /*계정수*/
+        String nomDpAmt, /*입금금액*/
+        String nomDpRt, /*입금률*/
+        String dlqAmt, /*연체금액*/
+        String dlqAccN, /*계정수*/
+        String dlqDpAmt, /*입금금액*/
+        String ucCprDlqRt, /*미수대비연체율*/
+        String totDpAmt, /*총입금액*/
+        String dpRt, /*입금률*/
+        String bilAgg, /*청구누계*/
+        String dpAgg, /*입금누계*/
+        String dlqRtSum /*연체율계*/
     ) {}
 
 }
