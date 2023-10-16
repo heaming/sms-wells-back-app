@@ -55,18 +55,22 @@
                                  , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세코드 */
                                  , A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
                                  ------------------------------------
-                                 -- 미수금
-                                 ------------------------------------
-                                 , 0 AS PRE_TOT_UC_AMT /* 기초미수 */
-                                 , 0 AS PRE_TOT_UC_AMT /* 기말미수 */
-                                 ------------------------------------
                                  -- 매출 영역
                                  ------------------------------------
                                  , CASE WHEN (A.SELL_TP_CD = '1' AND (C.ALNCMP_CD IS NULL OR C.ALNCMP_CD <![CDATA[<>]]> '51')) OR
-                                             (A.SELL_TP_CD = '2' AND A.SELL_TP_DTL_CD IN ('21', '23')) OR
                                               A.SELL_TP_CD = '3' OR
                                               A.SELL_TP_CD = '6'
                                         THEN NVL(A.NOM_SL_AMT, 0)
+                                        WHEN A.SELL_TP_CD = '2' AND A.SELL_TP_DTL_CD IN ('21', '23')
+                                        THEN NVL(A.RENTAL_RGST_COST, 0) - NVL(A.RENTAL_DSC_AMT, 0) + (NVL(C.CNTR_AMT, 0) - NVL(C.CNTRAM_DSC_AMT, 0))
+                                           - NVL((SELECT SUM(NVL(RVE_AMT, 0))
+                  			                            FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수 */
+                  			                           WHERE RVE_DT = A.SL_RCOG_DT
+                  			                             AND CNTR_NO = A.CNTR_NO
+                  			                             AND CNTR_SN = A.CNTR_SN
+                  			                             AND RVE_DV_CD = '01' /* 계약금 */
+                  			                             AND DP_DV_CD = '2'), 0)
+                  			                   + NVL(A.RENTAL_AMT, 0) - NVL(A.SL_CAN_AMT, 0)
                                         ELSE 0
                                     END AS NOM_SL_AMT /* 정상매출 */
                                  , CASE WHEN (A.SELL_TP_CD = '1' AND (C.ALNCMP_CD IS NULL OR C.ALNCMP_CD <![CDATA[<>]]> '51')) OR
@@ -81,7 +85,7 @@
                                     END AS FEE_SL_AMT /* 수수료매출 */
                                  , 0 AS BOUT_NOR_SL_AMT /* 상품권정상 */
                                  , 0 AS BOUT_CAN_SL_AMT /* 상품권_취소/만료매출 */
-                                 , CASE WHEN (A.SELL_TP_CD = '2' AND A.SELL_TP_DTL_CD NOT IN ('21', '23')) THEN NVL(A.SL_AMT, 0)
+                                 , CASE WHEN (A.SELL_TP_CD = '2' AND A.SELL_TP_DTL_CD NOT IN ('21', '23')) THEN NVL(A.PVDA_OJ_PCAM, 0)
                                         ELSE 0
                                     END AS ORI_SL_AMT /* 원금매출 */
                                  , CASE WHEN (A.SELL_TP_CD = '2' AND A.SELL_TP_DTL_CD NOT IN ('21', '23')) THEN NVL(A.NOM_INT_AMT, 0)
@@ -160,11 +164,6 @@
                                  , A.SELL_TP_CD AS SELL_TP_CD /* 판매유형코드 */
                                  , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세코드 */
                                  , A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-                                 ------------------------------------
-                                 -- 미수금 → 이건 아래에서 처리
-                                 ------------------------------------
-                                 , 0 AS PRE_TOT_UC_AMT /* 기초미수 */
-                                 , 0 AS TOT_UC_BLAM /* 기말미수 */
                                  ------------------------------------
                                  -- 매출 영역
                                  ------------------------------------
@@ -266,45 +265,62 @@
                   AND SAP_PD_DV_CD = W3.SAP_PD_DV_CD) AS SAP_PD_ATC_NM /* SAP상품코드명 */
              , W3.PRE_TOT_UC_AMT AS PRE_TOT_UC_AMT /* 전기이월 */
              ------------------------------------
-             -- 매출 영역
+             -- 매출 영역(수정)
              ------------------------------------
+             <if test="@MybatisUtils@equals(sellTpCd, '1')">
              , W2.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
              , W2.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
              , W2.FEE_SL_AMT AS FEE_SL_AMT /* 수수료매출 */
-             , W2.BOUT_NOR_SL_AMT AS BOUT_NOR_SL_AMT /* 상품권정상 */
-             , W2.BOUT_CAN_SL_AMT AS BOUT_CAN_SL_AMT /* 상품권취소 */
+             , 0 AS BOUT_NOR_SL_AMT /* 상품권정상 */
+             , 0 AS BOUT_CAN_SL_AMT /* 상품권취소 */
+             , W2.NOM_SL_AMT + W2.CAN_SL_AMT + W2.FEE_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , 0 AS CNTR_DP_AMT /* 계약금 */
+             , 0 AS INST_DP_AMT /* 할부금 */
+             , 0 AS TOT_DP_AMT /* 매출대사합계 */
+             , 0 AS DFA_PROCS_AMT /* 대손 */
+             , 0 AS TOT_UC_BLAM /* 기말미수 */
+             , 0 AS CRP_UC_AMT /* 법인미수 */
+             , 0 AS BOUT_DP_AMT /* 상품권입금 */
+             , 0 AS ETC_DP_AMT /* 기타선수대체 */
+             , W2.INTER_CONT_NOM_SL_AMT AS INTER_CONT_NOM_SL_AMT /* 사간거래정상 */
+             , W2.INTER_CONT_CAN_SL_AMT AS INTER_CONT_CAN_SL_AMT /* 사간거래취소 */
+             , 0 AS INTER_CONT_DP_AMT /* 사간거래입금 */
+             </if>
+             <if test="@MybatisUtils@equals(sellTpCd, '2')">
+             , W2.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
+             , W2.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
+             , W2.NOM_SL_AMT + W2.CAN_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , 0 AS TOT_DP_AMT /* 매출대사합계 */
+             , 0 AS BOR_REM_AMT /* 위약잔여 */
+             , 0 AS BOR_ADJ_AMT/* 위약조정 */
+             , 0 AS DP_CNG_AMT /* 선수전환 */
+             , 0 AS DFA_PROCS_AMT /* 대손 */
+             , 0 AS TOT_UC_BLAM /* 기말미수 */
+             </if>
+             <if test="@MybatisUtils@equals(sellTpCd, '10')">
              , W2.ORI_SL_AMT AS ORI_SL_AMT /* 원금매출 */
              , W2.ITR_SL_AMT AS ITR_SL_AMT /* 이자매출 */
              , W2.SVC_SL_AMT AS SVC_SL_AMT /* 서비스매출 */
-             , CASE WHEN W2.SELL_TP_CD = '1'
-                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT + W2.FEE_SL_AMT
-                    WHEN W2.SELL_TP_CD = '2' AND W2.SELL_TP_DTL_CD IN ('21', '23')
-                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT
-                    WHEN W2.SELL_TP_CD = '2' AND W2.SELL_TP_DTL_CD NOT IN ('21', '23')
-                         THEN W2.ORI_SL_AMT + W2.ITR_SL_AMT + W2.SVC_SL_AMT
-                    WHEN W2.SELL_TP_CD = '3'
-                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT
-                    WHEN W2.SELL_TP_CD = '6' THEN W2.NOM_SL_AMT
-                    ELSE 0
-               END AS TOT_SL_AMT /* 매출합계 */
-             ------------------------------------
-             -- 매출대사(미조회)
-             ------------------------------------
-             , W2.CNTR_DP_AMT AS CNTR_DP_AMT /* 계약금 */
-             , W2.INST_DP_AMT AS INST_DP_AMT /* 할부금 */
-             , W2.TOT_DP_AMT AS TOT_DP_AMT /* 매출대사합계 */
-             , W2.SL_ADJ_AMT AS SL_ADJ_AMT /* 매출조정
-             ------------------------------------ */
-             -- 기타 영역
-             ------------------------------------
-             , W2.DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
-             , W2.CRP_UC_AMT AS CRP_UC_AMT /* 법인미수 */
-             , W2.BOUT_DP_AMT AS BOUT_DP_AMT /* 상품권입금 */
-             , W2.ETC_DP_AMT AS ETC_DP_AMT /* 기타선수대체 */
-             , W2.INTER_CONT_NOM_SL_AMT AS INTER_CONT_NOM_SL_AMT /* 사간거래정상 */
-             , W2.INTER_CONT_CAN_SL_AMT AS INTER_CONT_CAN_SL_AMT /* 사간거래취소 */
-             , W2.INTER_CONT_DP_AMT AS INTER_CONT_DP_AMT /* 사간거래입금 */
+             , W2.ORI_SL_AMT + W2.ITR_SL_AMT + W2.SVC_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , 0 AS SL_ADJ_AMT /* 매출조정 */
+             , 0 AS TOT_DP_AMT /* 매출대사합계 */
+             , 0 AS DFA_PROCS_AMT /* 대손 */
              , 0 AS TOT_UC_BLAM /* 기말미수 */
+             </if>
+             <if test="@MybatisUtils@equals(sellTpCd, '3')">
+             , W2.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
+             , W2.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
+             , W2.NOM_SL_AMT + W2.CAN_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , 0 AS TOT_DP_AMT /* 매출대사합계 */
+             , 0 AS DFA_PROCS_AMT /* 대손 */
+             , 0 AS TOT_UC_BLAM /* 기말미수 */
+             </if>
+             <if test="@MybatisUtils@equals(sellTpCd, '6')">
+             , W2.NOM_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , 0 AS TOT_DP_AMT /* 매출대사합계 */
+             , 0 AS DFA_PROCS_AMT /* 대손 */
+             , 0 AS TOT_UC_BLAM /* 기말미수 */
+             </if>
           FROM W3
           LEFT OUTER JOIN W2
             ON 1=1
@@ -327,45 +343,62 @@
                   AND SAP_PD_DV_CD = W2.SAP_PD_DV_CD) AS SAP_PD_ATC_NM /* SAP상품코드명 */
              , 0 AS PRE_TOT_UC_AMT /* 전기이월 */
              ------------------------------------
-             -- 매출 영역
+             -- 매출 영역(수정)
              ------------------------------------
+             <if test="@MybatisUtils@equals(sellTpCd, '1')">
              , W2.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
              , W2.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
              , W2.FEE_SL_AMT AS FEE_SL_AMT /* 수수료매출 */
-             , W2.BOUT_NOR_SL_AMT AS BOUT_NOR_SL_AMT /* 상품권정상 */
-             , W2.BOUT_CAN_SL_AMT AS BOUT_CAN_SL_AMT /* 상품권취소 */
+             , 0 AS BOUT_NOR_SL_AMT /* 상품권정상 */
+             , 0 AS BOUT_CAN_SL_AMT /* 상품권취소 */
+             , W2.NOM_SL_AMT + W2.CAN_SL_AMT + W2.FEE_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , 0 AS CNTR_DP_AMT /* 계약금 */
+             , 0 AS INST_DP_AMT /* 할부금 */
+             , 0 AS TOT_DP_AMT /* 매출대사합계 */
+             , 0 AS DFA_PROCS_AMT /* 대손 */
+             , 0 AS TOT_UC_BLAM /* 기말미수 */
+             , 0 AS CRP_UC_AMT /* 법인미수 */
+             , 0 AS BOUT_DP_AMT /* 상품권입금 */
+             , 0 AS ETC_DP_AMT /* 기타선수대체 */
+             , W2.INTER_CONT_NOM_SL_AMT AS INTER_CONT_NOM_SL_AMT /* 사간거래정상 */
+             , W2.INTER_CONT_CAN_SL_AMT AS INTER_CONT_CAN_SL_AMT /* 사간거래취소 */
+             , 0 AS INTER_CONT_DP_AMT /* 사간거래입금 */
+             </if>
+             <if test="@MybatisUtils@equals(sellTpCd, '2')">
+             , W2.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
+             , W2.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
+             , W2.NOM_SL_AMT + W2.CAN_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , 0 AS TOT_DP_AMT /* 매출대사합계 */
+             , 0 AS BOR_REM_AMT /* 위약잔여 */
+             , 0 AS BOR_ADJ_AMT/* 위약조정 */
+             , 0 AS DP_CNG_AMT /* 선수전환 */
+             , 0 AS DFA_PROCS_AMT /* 대손 */
+             , 0 AS TOT_UC_BLAM /* 기말미수 */
+             </if>
+             <if test="@MybatisUtils@equals(sellTpCd, '10')">
              , W2.ORI_SL_AMT AS ORI_SL_AMT /* 원금매출 */
              , W2.ITR_SL_AMT AS ITR_SL_AMT /* 이자매출 */
              , W2.SVC_SL_AMT AS SVC_SL_AMT /* 서비스매출 */
-             , CASE WHEN W2.SELL_TP_CD = '1'
-                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT + W2.FEE_SL_AMT
-                    WHEN W2.SELL_TP_CD = '2' AND W2.SELL_TP_DTL_CD IN ('21', '23')
-                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT
-                    WHEN W2.SELL_TP_CD = '2' AND W2.SELL_TP_DTL_CD NOT IN ('21', '23')
-                         THEN W2.ORI_SL_AMT + W2.ITR_SL_AMT + W2.SVC_SL_AMT
-                    WHEN W2.SELL_TP_CD = '3'
-                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT
-                    WHEN W2.SELL_TP_CD = '6' THEN W2.NOM_SL_AMT
-                    ELSE 0
-               END AS TOT_SL_AMT /* 매출합계 */
-             ------------------------------------
-             -- 매출대사(미조회)
-             ------------------------------------
-             , W2.CNTR_DP_AMT AS CNTR_DP_AMT /* 계약금 */
-             , W2.INST_DP_AMT AS INST_DP_AMT /* 할부금 */
-             , W2.TOT_DP_AMT AS TOT_DP_AMT /* 매출대사합계 */
-             , W2.SL_ADJ_AMT AS SL_ADJ_AMT /* 매출조정
-             ------------------------------------ */
-             -- 기타 영역
-             ------------------------------------
-             , W2.DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
-             , W2.CRP_UC_AMT AS CRP_UC_AMT /* 법인미수 */
-             , W2.BOUT_DP_AMT AS BOUT_DP_AMT /* 상품권입금 */
-             , W2.ETC_DP_AMT AS ETC_DP_AMT /* 기타선수대체 */
-             , W2.INTER_CONT_NOM_SL_AMT AS INTER_CONT_NOM_SL_AMT /* 사간거래정상 */
-             , W2.INTER_CONT_CAN_SL_AMT AS INTER_CONT_CAN_SL_AMT /* 사간거래취소 */
-             , W2.INTER_CONT_DP_AMT AS INTER_CONT_DP_AMT /* 사간거래입금 */
+             , W2.ORI_SL_AMT + W2.ITR_SL_AMT + W2.SVC_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , 0 AS SL_ADJ_AMT /* 매출조정 */
+             , 0 AS TOT_DP_AMT /* 매출대사합계 */
+             , 0 AS DFA_PROCS_AMT /* 대손 */
              , 0 AS TOT_UC_BLAM /* 기말미수 */
+             </if>
+             <if test="@MybatisUtils@equals(sellTpCd, '3')">
+             , W2.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
+             , W2.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
+             , W2.NOM_SL_AMT + W2.CAN_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , 0 AS TOT_DP_AMT /* 매출대사합계 */
+             , 0 AS DFA_PROCS_AMT /* 대손 */
+             , 0 AS TOT_UC_BLAM /* 기말미수 */
+             </if>
+             <if test="@MybatisUtils@equals(sellTpCd, '6')">
+             , W2.NOM_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , 0 AS TOT_DP_AMT /* 매출대사합계 */
+             , 0 AS DFA_PROCS_AMT /* 대손 */
+             , 0 AS TOT_UC_BLAM /* 기말미수 */
+             </if>
           FROM W1
           LEFT OUTER JOIN W2
             ON W2.SL_CL_DT = W1.SL_CL_DT
@@ -387,45 +420,62 @@
                   AND SAP_PD_DV_CD = W3.SAP_PD_DV_CD) AS SAP_PD_ATC_NM /* SAP상품코드명 */
              , 0 AS PRE_TOT_UC_AMT /* 전기이월 */
              ------------------------------------
-             -- 매출 영역
+             -- 매출 영역(수정)
              ------------------------------------
+             <if test="@MybatisUtils@equals(sellTpCd, '1')">
              , W2.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
              , W2.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
              , W2.FEE_SL_AMT AS FEE_SL_AMT /* 수수료매출 */
-             , W2.BOUT_NOR_SL_AMT AS BOUT_NOR_SL_AMT /* 상품권정상 */
-             , W2.BOUT_CAN_SL_AMT AS BOUT_CAN_SL_AMT /* 상품권취소 */
+             , W3.BOUT_NOR_SL_AMT AS BOUT_NOR_SL_AMT /* 상품권정상 */
+             , W3.BOUT_CAN_SL_AMT AS BOUT_CAN_SL_AMT /* 상품권취소 */
+             , W2.NOM_SL_AMT + W2.CAN_SL_AMT + W2.FEE_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , W3.CNTR_DP_AMT AS CNTR_DP_AMT /* 계약금 */
+             , W3.INST_DP_AMT AS INST_DP_AMT /* 할부금 */
+             , W3.TOT_DP_AMT AS TOT_DP_AMT /* 매출대사합계 */
+             , W3.DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
+             , W3.TOT_UC_BLAM AS TOT_UC_BLAM /* 기말미수 */
+             , W3.CRP_UC_AMT AS CRP_UC_AMT /* 법인미수 */
+             , W3.BOUT_DP_AMT AS BOUT_DP_AMT /* 상품권입금 */
+             , W3.ETC_DP_AMT AS ETC_DP_AMT /* 기타선수대체 */
+             , W2.INTER_CONT_NOM_SL_AMT AS INTER_CONT_NOM_SL_AMT /* 사간거래정상 */
+             , W2.INTER_CONT_CAN_SL_AMT AS INTER_CONT_CAN_SL_AMT /* 사간거래취소 */
+             , W3.INTER_CONT_DP_AMT AS INTER_CONT_DP_AMT /* 사간거래입금 */
+             </if>
+             <if test="@MybatisUtils@equals(sellTpCd, '2')">
+             , W2.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
+             , W2.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
+             , W2.NOM_SL_AMT + W2.CAN_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , W3.TOT_DP_AMT AS TOT_DP_AMT /* 매출대사합계 */
+             , W3.BOR_REM_AMT AS BOR_REM_AMT /* 위약잔여 */
+             , W3.BOR_ADJ_AMT AS BOR_ADJ_AMT/* 위약조정 */
+             , W3.DP_CNG_AMT AS DP_CNG_AMT /* 선수전환 */
+             , W3.DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
+             , W3.TOT_UC_BLAM AS TOT_UC_BLAM /* 기말미수 */
+             </if>
+             <if test="@MybatisUtils@equals(sellTpCd, '10')">
              , W2.ORI_SL_AMT AS ORI_SL_AMT /* 원금매출 */
              , W2.ITR_SL_AMT AS ITR_SL_AMT /* 이자매출 */
              , W2.SVC_SL_AMT AS SVC_SL_AMT /* 서비스매출 */
-             , CASE WHEN W2.SELL_TP_CD = '1'
-                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT + W2.FEE_SL_AMT
-                    WHEN W2.SELL_TP_CD = '2' AND W2.SELL_TP_DTL_CD IN ('21', '23')
-                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT
-                    WHEN W2.SELL_TP_CD = '2' AND W2.SELL_TP_DTL_CD NOT IN ('21', '23')
-                         THEN W2.ORI_SL_AMT + W2.ITR_SL_AMT + W2.SVC_SL_AMT
-                    WHEN W2.SELL_TP_CD = '3'
-                         THEN W2.NOM_SL_AMT + W2.CAN_SL_AMT
-                    WHEN W2.SELL_TP_CD = '6' THEN W2.NOM_SL_AMT
-                    ELSE 0
-               END AS TOT_SL_AMT /* 매출합계 */
-             ------------------------------------
-             -- 매출대사(미조회)
-             ------------------------------------
-             , W2.CNTR_DP_AMT AS CNTR_DP_AMT /* 계약금 */
-             , W2.INST_DP_AMT AS INST_DP_AMT /* 할부금 */
-             , W2.TOT_DP_AMT AS TOT_DP_AMT /* 매출대사합계 */
-             , W2.SL_ADJ_AMT AS SL_ADJ_AMT /* 매출조정
-             ------------------------------------ */
-             -- 기타 영역
-             ------------------------------------
-             , W2.DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
-             , W2.CRP_UC_AMT AS CRP_UC_AMT /* 법인미수 */
-             , W2.BOUT_DP_AMT AS BOUT_DP_AMT /* 상품권입금 */
-             , W2.ETC_DP_AMT AS ETC_DP_AMT /* 기타선수대체 */
-             , W2.INTER_CONT_NOM_SL_AMT AS INTER_CONT_NOM_SL_AMT /* 사간거래정상 */
-             , W2.INTER_CONT_CAN_SL_AMT AS INTER_CONT_CAN_SL_AMT /* 사간거래취소 */
-             , W2.INTER_CONT_DP_AMT AS INTER_CONT_DP_AMT /* 사간거래입금 */
+             , W2.ORI_SL_AMT + W2.ITR_SL_AMT + W2.SVC_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , W3.SL_ADJ_AMT AS SL_ADJ_AMT /* 매출조정 */
+             , W3.TOT_DP_AMT AS TOT_DP_AMT /* 매출대사합계 */
+             , W3.DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
              , W3.TOT_UC_BLAM AS TOT_UC_BLAM /* 기말미수 */
+             </if>
+             <if test="@MybatisUtils@equals(sellTpCd, '3')">
+             , W2.NOM_SL_AMT AS NOM_SL_AMT /* 정상매출 */
+             , W2.CAN_SL_AMT AS CAN_SL_AMT /* 취소매출 */
+             , W2.NOM_SL_AMT + W2.CAN_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , W3.TOT_DP_AMT AS TOT_DP_AMT /* 매출대사합계 */
+             , W3.DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
+             , W3.TOT_UC_BLAM AS TOT_UC_BLAM /* 기말미수 */
+             </if>
+             <if test="@MybatisUtils@equals(sellTpCd, '6')">
+             , W2.NOM_SL_AMT AS TOT_SL_AMT /* 매출합계 */
+             , W3.TOT_DP_AMT AS TOT_DP_AMT /* 매출대사합계 */
+             , W3.DFA_PROCS_AMT AS DFA_PROCS_AMT /* 대손 */
+             , W3.TOT_UC_BLAM AS TOT_UC_BLAM /* 기말미수 */
+             </if>
           FROM W3
           LEFT OUTER JOIN W2
             ON 1=1
@@ -1407,7 +1457,7 @@
                            -----------------------------------------------------------
                   				 -- 기초
                   				 -----------------------------------------------------------
-                           , NVL(A.BTD_UC_AMT, 0) - NVL(D.BTD_DLQ_ADD_AMT, 0) AS BTD_UC_AMT /* LC505.LCMAMT - LC505.LCAM84 기말미수금 */
+                           , NVL(A.BTD_UC_AMT, 0) + NVL(D.BTD_DLQ_ADD_AMT, 0) AS BTD_UC_AMT /* LC505.LCMAMT - LC505.LCAM84 기말미수금 */
                            , NVL(D.BTD_DLQ_ADD_AMT, 0) AS BTD_DLQ_ADD_AMT /* LC505.LCAM84 기초연체가산금 */
                            , NVL(H.EOT_BOR_AMT, 0) AS BTD_BOR_AMT /* LC505.LCA106 위약잔여 */
                            -----------------------------------------------------------
@@ -1431,7 +1481,7 @@
                            -----------------------------------------------------------
                   				 -- 기말
                   				 -----------------------------------------------------------
-                           , NVL(A.EOT_UC_AMT, 0) AS EOT_UC_AMT /* LC505.LCMAMT 기말미수금 */
+                           , NVL(A.EOT_UC_AMT, 0) + NVL(D.EOT_DLQ_ADD_AMT, 0) AS EOT_UC_AMT /* LC505.LCMAMT 기말미수금 */
                            , NVL(D.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT /* LC505.LCAM84 기초연체가산금 */
                            , NVL(E.EOT_BOR_AMT, 0) AS EOT_BOR_AMT /* LC505.LCA106 위약잔여 */
                         FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
