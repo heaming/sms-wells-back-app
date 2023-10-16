@@ -40,6 +40,8 @@ public class WsncFixationVisitService {
             wwsncFixationVisitMgntMapper.selectFixationVisits4(dto);
         } else if("test7".equals(dto.fxnPrtnrNo())){
             wwsncFixationVisitMgntMapper.selectFixationVisits5(dto, pageInfo);
+        } else if(StringUtils.isNotEmpty(dto.fxnPrtnrNo()) && dto.fxnPrtnrNo().startsWith("test-")){
+            wwsncFixationVisitMgntMapper.selectFixationVisits6(dto);
         }
         return wwsncFixationVisitMgntMapper.selectFixationVisits(dto, pageInfo);
     }
