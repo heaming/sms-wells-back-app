@@ -134,20 +134,10 @@ public class WsnbWellsServiceCfdcDto {
         String cstSvAsnNo
     ) {}
 
-    @ApiModel(value = "WsnbWellsServiceCfdcDto-FindOzRes")
-    public record FindOzRes(
+    @ApiModel(value = "WsnbWellsServiceCfdcDto-FindOzReq")
+    public record FindOzReq(
         String cstSvAsnNo,
-        String cntrNo,
-        String cntrSn,
-        String cntrCnfmDtm,
-        String pdNm,
         String rcgvpNm,
-        String rnadr,
-        String rdadr,
-        String vstFshDt,
-        String vstFshHh,
-        String svProcsCn,
-        String psicPrtnrNm,
-        String psicPrtnrNo
+        String prtnrNm
     ) {}
 }

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -15,7 +16,6 @@ import com.kyowon.sflex.common.message.service.KakaoMessageService;
 import com.kyowon.sflex.common.report.dvo.ReportDvo;
 import com.kyowon.sflex.common.report.dvo.ReportEntryDvo;
 import com.kyowon.sflex.common.report.service.ReportService;
-import com.kyowon.sms.wells.web.service.visit.converter.WsnbWellsServiceCfdcConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.*;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWellsServiceCfdcDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbWellsServiceCfdcMapper;
@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WsnbWellsServiceCfdcService {
     private final WsnbWellsServiceCfdcMapper mapper;
-    private final WsnbWellsServiceCfdcConverter converter;
     private final KakaoMessageService kakaoMessageService;
     private final EmailService emailService;
     private final TemplateService templateService;
@@ -142,10 +141,43 @@ public class WsnbWellsServiceCfdcService {
         }
     }
 
-    public FindOzRes getOzReport(String cstSvAsnNo) {
-        WsnbWellsServiceCfdcDvo dvo = mapper.selectOzReport(cstSvAsnNo).orElseThrow(
+    public Map<String, Object> getOzReport(FindOzReq dto) {
+        WsnbWellsServiceCfdcDvo dvo = mapper.selectOzReport(dto).orElseThrow(
             () -> new BizException("MSG_ALT_NO_DATA")
         );
-        return converter.mapWellsServiceCfdcDvoToFindOzRes(dvo);
+
+        List<Map<String, Object>> list1 = new ArrayList<>();
+        Map<String, Object> obj1 = new HashMap<>();
+        obj1.put("CUSTNM", dvo.getRcgvpNm());
+        obj1.put("CHKNAM", "DDD");
+        obj1.put("REGDAT", dvo.getCntrCnfmDtm());
+        obj1.put("CNT", "100");
+        list1.add(obj1);
+
+        List<Map<String, Object>> list2 = new ArrayList<>();
+        Map<String, Object> obj2 = new HashMap<>();
+        obj2.put("ROWNUM", "1");
+        obj2.put("CUST_CD", dvo.getCntrNo() + "-" + dvo.getCntrSn());
+        obj2.put("ITEM_NM", dvo.getPdNm());
+        obj2.put("CUST_NM", dvo.getRcgvpNm());
+        if (StringUtils.isEmpty(dvo.getRdadr())) {
+            obj2.put("ADDR", dvo.getRnadr());
+        } else {
+            obj2.put("ADDR", dvo.getRnadr() + " " + dvo.getRdadr());
+        }
+        obj2.put("WRK_DATE", dvo.getVstFshDt());
+        obj2.put("PROC_TXT", dvo.getSvProcsCn());
+        obj2.put("WRK_EMP_NM", dvo.getPsicPrtnrNm());
+        obj2.put("CHKVAL", dvo.getPsicPrtnrNo());
+        list2.add(obj2);
+
+        List<Map<String, Object>> list3 = new ArrayList<>();
+
+        Map<String, Object> rtn = new HashMap<>();
+        rtn.put("DataMaster", list1);
+        rtn.put("DataList", list2);
+        rtn.put("DataList2", list3);
+
+        return rtn;
     }
 }
