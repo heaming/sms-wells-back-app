@@ -124,8 +124,7 @@ public class WsnbWellsServiceCfdcService {
 
         if (birth.equals(cstDvo.getCstBthd())) {
             ReportDvo dvo = new ReportDvo();
-            dvo.setOzrPath("ksswells/cust/reprt/wellsServConf.ozr");
-            dvo.setOdiPath("/ksswells/cust/reprt/wellsServConf");
+            dvo.setOzrPath("/kyowon_as/wellsServConf.ozr");
             Map<String, String> map = new HashMap();
             map.put("cstSvAsnNo", cstSvAsnNo);
             map.put("cstNm", cstDvo.getCstNm());
