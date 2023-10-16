@@ -35,7 +35,7 @@ public interface WsncFixationVisitMapper {
         WsncFixationVisitDto.SearchReq dto
     );
 
-    List<WsncFixationVisitDto.SearchRes> selectFixationVisits2(
+    PagingResult<WsncFixationVisitDto.SearchRes> selectFixationVisits2(
         WsncFixationVisitDto.SearchReq dto
     );
 
