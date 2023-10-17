@@ -66,5 +66,6 @@ public interface WsnaReturningGoodsStoreMapper {
 
     int updateReturningGoodsStrConfirm(WsnaReturningGoodsStoreDvo dvo);
 
-    //    int insertItmOstrAkIz(WsnaReturningGoodsStoreDvo dvo);
+    List<SearchWareRes> selectReturningGoodsStoresLoginWarehouse(String prtnrNo);
+
 }
