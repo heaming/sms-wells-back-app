@@ -21,7 +21,8 @@ public class WwdbRefundApplicationDto {
         String cntrNo, // 계약번호
         String cntrSn, // 계약일련번호
         String cstNo // 고객번호
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationRes")
     public record SearchRefundApplicationRes(
@@ -45,7 +46,8 @@ public class WwdbRefundApplicationDto {
         String rfndRsonCd, /* 환불사유 */
         String rfndRsonCn, /* 환불내용 */
         String rfndEvidMtrFileId /* 첨부파일:환불증빙자료파일 */
-    ) {}
+    ) {
+    }
 
     /*  환불신청팝업 호출시(p01,p03) 환불요청기본정보  */
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundReq")
@@ -54,7 +56,8 @@ public class WwdbRefundApplicationDto {
         String cntrSn,
         String rfndAkNo,
         String rfndAkStatCd
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundRes")
     public record SearchRefundRes(
@@ -82,9 +85,12 @@ public class WwdbRefundApplicationDto {
         String cntrNo,
         String cntrSn,
         String rfndAkNo,
-        String rfndAkStatCd
+        String rfndAkStatCd,
+        String cntrStartDay,
+        String cntrEndDay
 
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundDetailRes")
     public record SearchRefundDetailRes(
@@ -110,7 +116,8 @@ public class WwdbRefundApplicationDto {
         String crdcdFer,
 
         String dpTpCd
-    ) {}
+    ) {
+    }
     /* 환불신청팝업 - 환불상세 END*/
 
     /* 전금상세 */
@@ -120,7 +127,8 @@ public class WwdbRefundApplicationDto {
         String cntrSn,
         String rfndAkNo,
         String rfndAkStatCd
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundBalanceTransferRes")
     public record SearchRefundBalanceTransferRes(
@@ -144,7 +152,8 @@ public class WwdbRefundApplicationDto {
         String rfndEvidMtrFileNm,
         String rfndAkNo,
         String cstNo
-    ) {}
+    ) {
+    }
 
     /* TODO: 전금상세  END*/
     // TODO:환불신청팝업 P01 Req
@@ -188,8 +197,11 @@ public class WwdbRefundApplicationDto {
         String mmIstmAmt,
         String borAmt,
         String svAmt,
-        String sellAmt
-    ) {}
+        String sellAmt,
+        String cntrStartDay,
+        String cntrEndDay
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundApplicationDto-SaveReq")
     public record SaveReq(
@@ -255,7 +267,8 @@ public class WwdbRefundApplicationDto {
         String svAmt,
         String rfndAkNo,
         String aftRfndAkNo
-    ) {}
+    ) {
+    }
 
     /* 환불요청상세 데이터(팝업) */
     @ApiModel(value = "WwdbRefundApplicationDto-SaveDtlReq")
@@ -351,7 +364,8 @@ public class WwdbRefundApplicationDto {
         String totRfndCardAkAmt, // 총 카드금액
         String totCrdcdFeeAmt, // 총 수수료금액
         String totRfndEtAmt // 총 합계
-    ) {}
+    ) {
+    }
 
     /* TODO: 그리드에서 팝업진입시 */
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundBaseReq")
@@ -360,12 +374,14 @@ public class WwdbRefundApplicationDto {
         String rfndAkStatCd,
         String cntrNo,
         String cntrSn
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundBaseRes")
     public record SearchRefundBaseRes(
         String cntrNo /* ※미수정*/
-    ) {}
+    ) {
+    }
     /* TODO: 그리드에서 팝업진입시 END */
 
     //    @ApiModel(value = "WwdbRefundApplicationDto-SaveRefundReq")
@@ -447,19 +463,22 @@ public class WwdbRefundApplicationDto {
         String rfndDsbDt, // 지급일자
         String rfndStatCd, // 처리구분 (반려, 승인)
         String rfndProcsCn // 처리내용
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundApplicationDto-removeReq")
     public record removeReq(
         String rfndAkNo /* 환불요청번호 */
-    ) {}
+    ) {
+    }
 
     // TODO: SaveEnd
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationInfoRes")
     public record SearchRefundApplicationInfoRes(
         RefundBasic basic,
         List<RefundDetail> details // 추가 버튼 누르면 추가로 생성되는 부분
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundApplicationDto-RefundDetail")
     public record RefundDetail(
@@ -511,7 +530,8 @@ public class WwdbRefundApplicationDto {
     public record EditRefundReq(
         RefundBasic basic,
         List<RefundDetail> details // 추가 버튼 누르면 추가로 생성되는 부분
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationDetailReq")
     public record SearchRefundApplicationDetailReq(
@@ -520,7 +540,8 @@ public class WwdbRefundApplicationDto {
         String cntrSn, // 계약일련번호
         String rfndRcpNo, // 환불접수번호
         String rfndRcpDtlSn // 환불접수일련번호
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundApplicationConnectHistoryRes")
     public record SearchRefundApplicationConnectHistoryRes(
@@ -530,7 +551,8 @@ public class WwdbRefundApplicationDto {
         String cttPsicId, // 번호
         String cttMoCn // 상담내용
 
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbRefundApplicationDto-SaveApprovalReq")
     public record SaveApprovalReq(
