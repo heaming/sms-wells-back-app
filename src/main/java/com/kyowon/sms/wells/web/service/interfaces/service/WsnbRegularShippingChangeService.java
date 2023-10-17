@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.interfaces.service;
 
 import com.kyowon.sflex.common.message.dvo.SmsSendReqDvo;
 import com.kyowon.sflex.common.message.service.SmsMessageService;
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbSeedingPackageChangeDto;
+import com.kyowon.sms.wells.web.contract.changeorder.service.WctbSeedingPackageChangeService;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRegularBfsvcAsnDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncRegularBfsvcAsnService;
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbRegularShippingChangeDto.*;
@@ -15,7 +17,9 @@ import com.kyowon.sms.wells.web.service.visit.service.WsnbIndividualVisitPrdServ
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
@@ -42,9 +46,10 @@ public class WsnbRegularShippingChangeService {
     private final WsnbCustomerRglrBfsvcDlService service2;
     private final WsncRegularBfsvcAsnService service3;
     private final SmsMessageService smsMessageService;
+    private final WctbSeedingPackageChangeService service4;
 
     /**
-    * PR_KIWI_CAPSULE_CHANGE
+    * LC_ASREGN_API_005 > LC_ASREGN_API_I04_T > LC_ASREGN_API_I08 > PR_KIWI_CAPSULE_CHANGE
     * */
     public void capsuleChange(SaveReq req) throws Exception {
 
@@ -62,8 +67,7 @@ public class WsnbRegularShippingChangeService {
             mapper.deleteTbSvpdHcfAsAkIz(req);
         else {
             /**해당 키로 존재하는지 체크**/
-            if (mapper.countTbSvpdHcfAsAkIz(req)
-                .intValue() > 0)
+            if (mapper.countTbSvpdHcfAsAkIz(req) > 0)
                 mapper.updateTbSvpdHcfAsAkIz(req);
             else
                 mapper.insertTbSvpdHcfAsAkIz(req);
@@ -159,7 +163,6 @@ public class WsnbRegularShippingChangeService {
         //홈카페 캡슐 패키지/서비스 변경 오라클
         //String result = LC_ASREGN_API_I04_T; -> PR_KIWI_CAPSULE_CHANGE
         capsuleChange(req);
-        String result = "S001";
 
         /* 2. 5250 인서트 로직 */
         String cntrNo = req.cntrNo();
@@ -192,81 +195,110 @@ public class WsnbRegularShippingChangeService {
             //Database.getInstanceDB2().delete("environment.LC_ASREGN_API_D01", params);
             mapper.deleteRegularShippingChangeBase(baseReq);
 
-        } else if (mapper.selectRegularShippingChangeCount(
+        } /*else if (mapper.selectRegularShippingChangeCount(
             new SearchRegularShippingChangeBaseReq(cntrNo, cntrSn, asAkDvCd, akChdt)
-        ) == 0) {
+          ) == 0) {
 
-            /*요청일련번호 - LC0200P에서 채번 (별도 시트 참고)*/
-            //ArrayList chk1 = (ArrayList)Database.getInstanceDB2().queryForList("environment.LC_ASREGN_API_S08", params01);
-            int seq = mapper.selectRegularShippingChangeMaxSn(cntrNo);
+            */
+        /*요청일련번호 - LC0200P에서 채번 (별도 시트 참고)*/
+        /*
+        //ArrayList chk1 = (ArrayList)Database.getInstanceDB2().queryForList("environment.LC_ASREGN_API_S08", params01);
+        int seq = mapper.selectRegularShippingChangeMaxSn(cntrNo);
 
-            // Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I04", params);
-            mapper.insertRegularShippingChangeBase(baseReq);
+        // Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I04", params);
+        mapper.insertRegularShippingChangeBase(baseReq);
 
-            if (partList.length() > 0) {
+        if (partList.length() > 0) {
 
-                //자유선택 패키지이고 선택 캡슐이 있다면,
-                String[] A_P_PART_LIST = partList.split("\\|");
+        //자유선택 패키지이고 선택 캡슐이 있다면,
+        String[] A_P_PART_LIST = partList.split("\\|");
 
-                for (int i = 0; i < A_P_PART_LIST.length; i++) {
-                    //String[] AA_P_PART_LIST = A_P_PART_LIST[i].split(",");
-                    //---params.put("LCICDE", AA_P_PART_LIST[0].trim());
-                    //---params.put("LCIQTY", AA_P_PART_LIST[1].trim());
-                    //---params.put("LCISEQ", String.valueOf(i + 1));
+        for (int i = 0; i < A_P_PART_LIST.length; i++) {
+        //String[] AA_P_PART_LIST = A_P_PART_LIST[i].split(",");
+        //---params.put("LCICDE", AA_P_PART_LIST[0].trim());
+        //---params.put("LCIQTY", AA_P_PART_LIST[1].trim());
+        //---params.put("LCISEQ", String.valueOf(i + 1));
 
-                    //LC3220P 인서트
-                    //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I06", params);
-                    //배송변경접수상세
-                    mapper.insertRegularShippingChangeDtl(
-                        new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, asAkDvCd, akChdt, seq)
-                    );
-                }
+        //LC3220P 인서트
+        //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I06", params);
+        //배송변경접수상세
+        mapper.insertRegularShippingChangeDtl(
+        new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, asAkDvCd, akChdt, seq)
+        );
+        }
 
-                //LC3300H 인서트
-                //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I05", params);
-                mapper.insertRegularShippingChangeHist(historyReq);
-
-            }
-
-        } else {
-            //LC3220P 삭제 처리
-            //Database.getInstanceDB2().delete("environment.LC_ASREGN_API_D02", params);
-            mapper.deleteRegularShippingChangeDtl(
-                new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, asAkDvCd, akChdt, 0)
-            );
-
-            //LC3200P 업데이트
-            //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_U05", params);
-            mapper.updateRegularShippingChangeBase(
-                new SaveRegularShippingChangeBaseReq(cntrNo, cntrSn, asAkDvCd, akChdt)
-            );
-
-            //LC3220P 인서트
-            if (partList.length() > 0) {
-
-                //자유선택 패키지이고 선택 캡슐이 있다면,
-                String[] A_P_PART_LIST = partList.split("\\|");
-
-                for (int i = 0; i < A_P_PART_LIST.length; i++) {
-                    //String[] AA_P_PART_LIST = A_P_PART_LIST[i].split(",");
-                    //---params.put("LCICDE", AA_P_PART_LIST[0].trim()); //변경적용예정년월일
-                    //---params.put("LCIQTY", AA_P_PART_LIST[1].trim()); //작업자
-                    //---params.put("LCISEQ", String.valueOf(i + 1)); //작업자
-
-                    //LC3220P 인서트
-                    //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I06", params);
-                    mapper.insertRegularShippingChangeDtl(
-                        new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, asAkDvCd, akChdt, 0)
-                    );
-                }
-            }
-
-            //LC3300H 인서트
-            //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I05", params);
-            mapper.insertRegularShippingChangeHist(historyReq);
+        //LC3300H 인서트
+        //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I05", params);
+        mapper.insertRegularShippingChangeHist(historyReq);
 
         }
 
-        return new SaveRes(result, "");
+        } else {
+        //LC3220P 삭제 처리
+        //Database.getInstanceDB2().delete("environment.LC_ASREGN_API_D02", params);
+        mapper.deleteRegularShippingChangeDtl(
+        new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, asAkDvCd, akChdt, 0)
+        );
+
+        //LC3200P 업데이트
+        //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_U05", params);
+        mapper.updateRegularShippingChangeBase(
+        new SaveRegularShippingChangeBaseReq(cntrNo, cntrSn, asAkDvCd, akChdt)
+        );
+
+        //LC3220P 인서트
+        if (partList.length() > 0) {
+
+        //자유선택 패키지이고 선택 캡슐이 있다면,
+        String[] A_P_PART_LIST = partList.split("\\|");
+
+        for (int i = 0; i < A_P_PART_LIST.length; i++) {
+        //String[] AA_P_PART_LIST = A_P_PART_LIST[i].split(",");
+        //---params.put("LCICDE", AA_P_PART_LIST[0].trim()); //변경적용예정년월일
+        //---params.put("LCIQTY", AA_P_PART_LIST[1].trim()); //작업자
+        //---params.put("LCISEQ", String.valueOf(i + 1)); //작업자
+
+        //LC3220P 인서트
+        //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I06", params);
+        mapper.insertRegularShippingChangeDtl(
+        new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, asAkDvCd, akChdt, 0)
+        );
+        }
+        }
+
+        //LC3300H 인서트
+        //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I05", params);
+        mapper.insertRegularShippingChangeHist(historyReq);
+
+        }*/
+
+        List<WctbSeedingPackageChangeDto.ConsPdct> consPdList = new ArrayList<>();
+        String pdct = mapper.selectPdctPdCds(req.cntrNo(), req.cntrSn(), req.akSn());
+        if (StringUtil.isNotEmpty(pdct)) {
+            String[] pdctPdCds = pdct.split("|");
+            for (String s : pdctPdCds) {
+                consPdList.add(
+                    new WctbSeedingPackageChangeDto.ConsPdct(
+                        s.split(",")[0], Integer.parseInt(s.split(",")[1])
+                    )
+                );
+            }
+        }
+
+        /**
+        * @param
+        * 수행구분코드(1.모종 기준상품변경 2.모종패키지 구성제품 변경)
+        * 계약번호
+        * 계약일련번호
+        * 변경기준상품코드(수행구분코드 1일때 필수)
+        * 변경모종구성제품/수량리스트(List<제품, 수량>)
+        * */
+        service4.saveSeedingPackageChanges(
+            new WctbSeedingPackageChangeDto.SaveReq(
+                "1", req.cntrNo(), req.cntrSn(), req.afchPdCd(), consPdList
+            )
+        );
+
+        return new SaveRes("S001", "");
     }
 }
