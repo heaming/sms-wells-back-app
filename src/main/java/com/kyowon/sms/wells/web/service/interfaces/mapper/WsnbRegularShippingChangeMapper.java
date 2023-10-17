@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.interfaces.mapper;
 
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbRegularShippingChangeDto.*;
+import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniSidingServiceChangesDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -37,12 +38,18 @@ public interface WsnbRegularShippingChangeMapper {
 
     int deleteTbSvpdHcfAsAkIz(SaveReq req);
 
-    Integer countTbSvpdHcfAsAkIz(SaveReq req);
+    int countTbSvpdHcfAsAkIz(SaveReq req);
 
     int updateTbSvpdHcfAsAkIz(SaveReq req);
 
     int insertTbSvpdHcfAsAkIz(SaveReq req);
 
     int updateStopNextSiding(SaveReq req);
+
+    String selectPdctPdCds(
+        String cntrNo,
+        String cntrSn,
+        String akSn
+    );
 
 }
