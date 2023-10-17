@@ -468,7 +468,8 @@
              )
              , BTD_STOC AS   /* 기초재고(월초) */
              (
-               SELECT NVL(BTD_STOC_A_GD_QTY, 0) AS BTD_STOC_A_GD_QTY
+               SELECT BASE_YM
+                    , NVL(BTD_STOC_A_GD_QTY, 0) AS BTD_STOC_A_GD_QTY
                     , NVL(BTD_STOC_B_GD_QTY, 0) AS BTD_STOC_B_GD_QTY
                     , NVL(BTD_STOC_E_GD_QTY, 0) AS BTD_STOC_E_GD_QTY
                     , NVL(BTD_STOC_R_GD_QTY, 0) AS BTD_STOC_R_GD_QTY
@@ -476,15 +477,15 @@
                 WHERE DTA_DL_YN = 'N'
                   AND WARE_NO   = #{wareNo}
                   AND ITM_PD_CD = #{itmPdCd}
-                  AND BASE_YM   = SUBSTR(#{strRgstFrom}, 1, 6)
+                  AND BASE_YM BETWEEN SUBSTR(#{strRgstFrom}, 1, 6) AND SUBSTR(#{strRgstTo}, 1, 6)
              )
              , BASIC_STOC AS   /* 기초재고 */
              (
-               SELECT T.YMD                                             /* 일자 */
-                    , SUM(T.STR_QTY)            AS STR_QTY              /* 입고수량 */
-                    , SUM(T.RTNGD_STR_OTSD_QTY) AS RTNGD_STR_OTSD_QTY   /* 반품입고외부 수량 */
-                    , SUM(T.OSTR_QTY)           AS OSTR_QTY             /* 출고수량 */
-                    , SUM(T.USE_QTY)            AS USE_QTY              /* 작업출고수량 */
+               SELECT T.YMD                                                     /* 일자 */
+                    , NVL(SUM(T.STR_QTY), 0)            AS STR_QTY              /* 입고수량 */
+                    , NVL(SUM(T.RTNGD_STR_OTSD_QTY), 0) AS RTNGD_STR_OTSD_QTY   /* 반품입고외부 수량 */
+                    , NVL(SUM(T.OSTR_QTY), 0)           AS OSTR_QTY             /* 출고수량 */
+                    , NVL(SUM(T.USE_QTY), 0)            AS USE_QTY              /* 작업출고수량 */
                  FROM
                     (
                       SELECT STR_RGST_DT  AS YMD
@@ -496,7 +497,7 @@
                        WHERE DTA_DL_YN   = 'N'
                          AND STR_WARE_NO = #{wareNo}
                          AND ITM_PD_CD   = #{itmPdCd}
-                         AND STR_RGST_DT <![CDATA[>=]]> SUBSTR(#{strRgstTo}, 1, 6) || '01'
+                         AND STR_RGST_DT <![CDATA[>=]]> SUBSTR(#{strRgstFrom}, 1, 6) || '01'
                          AND STR_RGST_DT <![CDATA[<]]> #{strRgstTo}
                        GROUP BY STR_RGST_DT
                        UNION ALL
@@ -515,7 +516,7 @@
                          AND SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4', '6')
                          AND WK_WARE_NO = #{wareNo}
                          AND ITM_PD_CD  = #{itmPdCd}
-                         AND FNL_VST_FSH_DT <![CDATA[>=]]> SUBSTR(#{strRgstTo}, 1, 6) || '01'
+                         AND FNL_VST_FSH_DT <![CDATA[>=]]> SUBSTR(#{strRgstFrom}, 1, 6) || '01'
                          AND FNL_VST_FSH_DT <![CDATA[<]]> #{strRgstTo}
                        GROUP BY FNL_VST_FSH_DT
                        UNION ALL
@@ -528,7 +529,7 @@
                        WHERE DTA_DL_YN    = 'N'
                          AND OSTR_WARE_NO = #{wareNo}
                          AND ITM_PD_CD    = #{itmPdCd}
-                         AND OSTR_DT <![CDATA[>=]]> SUBSTR(#{strRgstTo}, 1, 6) || '01'
+                         AND OSTR_DT <![CDATA[>=]]> SUBSTR(#{strRgstFrom}, 1, 6) || '01'
                          AND OSTR_DT <![CDATA[<]]> #{strRgstTo}
                        GROUP BY OSTR_DT
                     ) T
@@ -568,7 +569,8 @@
                     , NVL(T7.BTD_STOC_A_GD_QTY, 0) + NVL(T7.BTD_STOC_B_GD_QTY, 0) + NVL(T7.BTD_STOC_E_GD_QTY, 0) + NVL(T7.BTD_STOC_R_GD_QTY, 0)
                       + ( SELECT NVL(SUM(STR_QTY + RTNGD_STR_OTSD_QTY - OSTR_QTY - USE_QTY), 0)
                             FROM BASIC_STOC
-                           WHERE YMD <![CDATA[<]]> T1.YMD )                         AS BAS_STOC_QTY            /* 기초재고수량 */
+                           WHERE YMD <![CDATA[>=]]> SUBSTR(T1.YMD, 1, 6) || '01'
+                             AND YMD <![CDATA[<]]> T1.YMD )                         AS BAS_STOC_QTY            /* 기초재고수량 */
                     , NVL(T2.PRCHS_STR_QTY, 0)                                      AS PRCHS_STR_QTY           /* 구매입고수량 */
                     , NVL(T2.NOM_STR_QTY, 0)                                        AS NOM_STR_QTY             /* 정상입고수량 */
                     , NVL(T2.QOM_ASN_STR_QTY, 0)                                    AS QOM_ASN_STR_QTY         /* 물량배정입고수량 */
@@ -688,7 +690,7 @@
                     ) T6   /* 등급조정정보 */
                    ON T6.YMD = T1.YMD
                  LEFT OUTER JOIN BTD_STOC T7   /* 기초재고(월초) */
-                   ON 1 = 1
+                   ON T7.BASE_YM = SUBSTR(T1.YMD, 1, 6)
              ) A1
          ORDER BY A1.YMD
     </select>
