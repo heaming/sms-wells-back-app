@@ -107,6 +107,7 @@ public class WbnaFosterTransferMgtController {
         "2. 수정된 Row를 채권계약기본 Table에 UPDATE한다.")
     @PutMapping
     public SaveResponse editFosterDataTransfers(
+        @RequestBody
         @Valid
         List<SaveReq> dtos
     ) throws Exception {
