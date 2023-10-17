@@ -149,9 +149,9 @@ public class WsnbWellsServiceCfdcService {
         List<Map<String, Object>> list1 = new ArrayList<>();
         Map<String, Object> obj1 = new HashMap<>();
         obj1.put("CUSTNM", dvo.getRcgvpNm());
-        obj1.put("CHKNAM", "DDD");
+        obj1.put("CHKNAM", "사번");
         obj1.put("REGDAT", dvo.getCntrCnfmDtm());
-        obj1.put("CNT", "100");
+        obj1.put("CNT", "1");
         list1.add(obj1);
 
         List<Map<String, Object>> list2 = new ArrayList<>();
