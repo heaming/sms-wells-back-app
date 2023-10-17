@@ -407,4 +407,13 @@ public class WsnaReturningGoodsStoreService {
 
         return processCount;
     }
+
+    /**
+     * 로그인한 사용자의 창고를 조회
+     * @param prtnrNo
+     * @return
+     */
+    public List<SearchWareRes> getReturningGoodsStoresLoginWarehouse(String prtnrNo) {
+        return mapper.selectReturningGoodsStoresLoginWarehouse(prtnrNo);
+    }
 }

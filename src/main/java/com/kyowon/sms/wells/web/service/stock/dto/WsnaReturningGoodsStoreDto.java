@@ -195,4 +195,9 @@ public class WsnaReturningGoodsStoreDto {
         String rmkCn /*비고*/
 
     ) {}
+
+    @ApiModel("WsnaReturningGoodsStoreDto-SearchWareRes")
+    public record SearchWareRes(
+        String hgrWareNo /*상위창고번호*/
+    ) {}
 }
