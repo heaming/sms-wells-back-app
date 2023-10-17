@@ -23,19 +23,6 @@ public class WfeeIndividualFeeService {
     private final WfeeIndividualFeeMapper mapper;
 
     /**
-     * 수수료 개인별 실적 상세 조회(P조직)
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchPlarRes> getIndividualPerformancePlarDetails(
-        SearchReq dto
-    ) {
-        return this.mapper.selectIndividualPerformancePlarDetails(dto);
-    }
-
-    /**
      * 수수료 개인별 실적 상세 조회(M조직)
      * @param dto : {
      * perfYm : 실적년월,
@@ -120,67 +107,6 @@ public class WfeeIndividualFeeService {
         SearchHmstReq dto
     ) {
         return this.mapper.selectHmstPnpyams(dto);
-    }
-
-    /**
-     * 수수료 P조직 개인별 실적 기본정보 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public FindPlarRes getPlar(SearchPlarReq dto) {
-        return mapper.selectPlar(dto);
-    }
-
-    /**
-     * 수수료 P조직 개인별 실적 기타내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchPlarEtcRes> getPlarEtcs(
-        SearchPlarReq dto
-    ) {
-        return this.mapper.selectPlarEtcs(dto);
-    }
-
-    /**
-     * 수수료 P조직 개인별 실적 수수료 내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchPlarFeeRes> getPlarFees(
-        SearchPlarReq dto
-    ) {
-        return this.mapper.selectPlarFees(dto);
-    }
-
-    /**
-     * 수수료 P조직 개인별 실적 공제 내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public FindPlarDeductionRes getPlarDeduction(SearchPlarReq dto) {
-        return mapper.selectPlarDeduction(dto);
-    }
-
-    /**
-     * 수수료 P조직 개인별 실적 가지급금 세부내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchPlarPnpyamRes> getPlarPnpyams(
-        SearchPlarReq dto
-    ) {
-        return this.mapper.selectPlarPnpyams(dto);
     }
 
     /**
