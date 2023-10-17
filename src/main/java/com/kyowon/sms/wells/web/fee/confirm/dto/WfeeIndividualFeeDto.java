@@ -101,63 +101,6 @@ public class WfeeIndividualFeeDto {
         int perfSnglPmnt /*일시불*/
     ) {}
 
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindHmstRes")
-    public record FindHmstRes(
-        String perfYm, /*실적년월*/
-        String blg, /*소속*/
-        String prtnrNo, /*번호*/
-        String rsb, /*직책*/
-        String emplNm, /*성명*/
-        String frrSum, /*수수료계*/
-        String ddtnSum, /*공제계*/
-        String aclDsb, /*실지급*/
-        String dsbBnk, /*지급은행*/
-        String dsbAc, /*지급계좌*/
-        String pstnDvCd
-    ) {
-        public FindHmstRes {
-            dsbAc = StringUtils.isNotEmpty(dsbAc) ? DbEncUtil.dec(dsbAc) : dsbAc;
-        }
-    }
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstEtcRes")
-    public record SearchHmstEtcRes(
-        String div,
-        String elhmAckmtCt,
-        String svCnt,
-        String svRat
-    ) {}
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstFeeRes")
-    public record SearchHmstFeeRes(
-        String item1,
-        String fval1,
-        String item2,
-        String fval2,
-        String item3,
-        String fval3,
-        String item4,
-        String fval4
-    ) {}
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindHmstDeductionRes")
-    public record FindHmstDeductionRes(
-        String item1,
-        String amt1,
-        String item2,
-        String amt2
-    ) {}
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstPnpyamRes")
-    public record SearchHmstPnpyamRes(
-        String item,
-        String lstmm,
-        String thmOc,
-        String tmh,
-        String thmDdtn,
-        String thmBlam
-    ) {}
-
     @ApiModel(value = "WfeeFeeIndividualDetailDto-FindMngerBasicRes")
     public record FindMngerBasicRes(
         String perfYm, /* 실적년월 */

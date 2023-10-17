@@ -51,67 +51,6 @@ public class WfeeIndividualFeeService {
     }
 
     /**
-     * 수수료 홈마스터 개인별 실적 기본정보 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public FindHmstRes getHmst(SearchHmstReq dto) {
-        return mapper.selectHmst(dto);
-    }
-
-    /**
-     * 수수료 홈마스터 개인별 실적 기타내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchHmstEtcRes> getHmstEtcs(
-        SearchHmstReq dto
-    ) {
-        return this.mapper.selectHmstEtcs(dto);
-    }
-
-    /**
-     * 수수료 홈마스터 개인별 실적 수수료 내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchHmstFeeRes> getHmstFees(
-        SearchHmstReq dto
-    ) {
-        return this.mapper.selectHmstFees(dto);
-    }
-
-    /**
-     * 수수료 홈마스터 개인별 실적 공제 내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<FindHmstDeductionRes> getHmstDeductions(SearchHmstReq dto) {
-        return mapper.selectHmstDeductions(dto);
-    }
-
-    /**
-     * 수수료 홈마스터 개인별 실적 가지급금 세부내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchHmstPnpyamRes> getHmstPnpyams(
-        SearchHmstReq dto
-    ) {
-        return this.mapper.selectHmstPnpyams(dto);
-    }
-
-    /**
      * 수수료 M조직 개인별 실적 기본정보 조회
      * @param dto : {
      * perfYm : 실적년월,

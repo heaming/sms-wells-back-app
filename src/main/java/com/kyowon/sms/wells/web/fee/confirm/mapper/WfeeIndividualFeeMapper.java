@@ -24,26 +24,6 @@ public interface WfeeIndividualFeeMapper {
         SearchReq dto
     );
 
-    FindHmstRes selectHmst(
-        SearchHmstReq dto
-    );
-
-    List<SearchHmstEtcRes> selectHmstEtcs(
-        SearchHmstReq dto
-    );
-
-    List<SearchHmstFeeRes> selectHmstFees(
-        SearchHmstReq dto
-    );
-
-    List<FindHmstDeductionRes> selectHmstDeductions(
-        SearchHmstReq dto
-    );
-
-    List<SearchHmstPnpyamRes> selectHmstPnpyams(
-        SearchHmstReq dto
-    );
-
     FindMngerBasicRes selectMngerBasic(
         SearchMngerReq dto
     );
