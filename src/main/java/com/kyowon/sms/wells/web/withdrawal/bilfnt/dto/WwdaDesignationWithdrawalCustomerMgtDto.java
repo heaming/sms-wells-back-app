@@ -7,10 +7,12 @@ public class WwdaDesignationWithdrawalCustomerMgtDto {
 
     @ApiModel("WwdaDesignationWithdrawalCustomerMgtDto-SearchAutoFntDsnWdrwCstReq")
     public record SearchAutoFntDsnWdrwCstReq(
+        String cntrNo,
+        String cntrSn,
+
         String baseYm, // 기준년월
         String sellTpCd // 판매유형코드
-    ) {
-    }
+    ) {}
 
     @ApiModel("WwdaDesignationWithdrawalCustomerMgtDto-SearchAutoFntDsnWdrwCstRes")
     public record SearchAutoFntDsnWdrwCstRes(
@@ -32,8 +34,7 @@ public class WwdaDesignationWithdrawalCustomerMgtDto {
         String fstRgstDtm // 등록일시
         //        String bilNo, // 청구번호
         //        String bilDtlSn // 청구상세일련번호
-    ) {
-    }
+    ) {}
 
     @Builder
     @ApiModel("WwdaDesignationWithdrawalCustomerMgtDto-SaveReq")
@@ -68,14 +69,12 @@ public class WwdaDesignationWithdrawalCustomerMgtDto {
         String cntrNo, // 계약번호
         String cntrSn, // 계약일련번호
         String fntYm // 이체일자
-    ) {
-    }
+    ) {}
 
     @ApiModel("WwdaDesignationWithdrawalCustomerMgtDto-checkBillingFundTransferAsk")
     public record CheckBillingFundTransferAsk(
         String bilNo,
         String bilDtlSn
-    ) {
-    }
+    ) {}
 
 }
