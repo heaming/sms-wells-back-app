@@ -156,7 +156,18 @@ public class WbnaBondPartTransferDto {
         String cstNo,
         String bndNwDvCd
     ) {}
-
+    /**
+     * 파트이관 상세 합계 조회 응답
+     * @param baseYm 기준년월
+     * @param bzHdqDvCd 사업구분
+     * @param clctamDvCd 집금구분코드
+     * @param objAmt 대상금액
+     * @param dlqAmt 연체금액
+     * @param thmChramAmt 당월금액
+     * @param dlqAddDpAmt 연체가산금액
+     * @param rsgBorAmt 위약금액
+     * @param ucAmt 미수금
+     */
     @ApiModel("WbnaPartTransferDto-SearchDetailSummaryRes")
     public record SearchDetailSummaryRes(
         String baseYm,
