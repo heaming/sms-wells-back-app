@@ -70,11 +70,6 @@ public class WbnaFosterTransferMgtService {
                 params.put("baseYm", dto.baseYm()); //기준년월
                 params.put("bzHdqDvCd", dto.bzHdqDvCd()); //사업부 구분
                 params.put("clctamDvCd", dto.clctamDvCd()); //집금구분코드
-                params.put("bndNwDvCd", dto.bndNwDvCd()); // 신규구분
-                params.put("cstNo", dto.cstNo()); // 고객번호
-                params.put("cralLocaraTno", dto.cralLocaraTno()); // 휴대지역전화번호
-                params.put("mexnoEncr", dto.mexnoEncr()); // 휴대전화국번호암호화
-                params.put("cralIdvTno", dto.cralIdvTno()); // 휴대개별전화번호
                 batchDvo.setParams(params); // Job 실행시 필요한 파라미터
 
                 String runId = batchCallService.runJob(batchDvo);
