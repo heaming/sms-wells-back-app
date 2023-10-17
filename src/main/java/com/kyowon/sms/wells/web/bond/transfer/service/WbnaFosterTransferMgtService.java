@@ -200,7 +200,7 @@ public class WbnaFosterTransferMgtService {
                     )
                 );
                 excelUploadErrorDvos.add(errorDvo);
-            } else if (prtnrList.contains(dvo.getClctamPrtnrNo())) {
+            } else if (!prtnrList.contains(dvo.getClctamPrtnrNo())) {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(headerTitle.get("clctamPrtnrNo"));
