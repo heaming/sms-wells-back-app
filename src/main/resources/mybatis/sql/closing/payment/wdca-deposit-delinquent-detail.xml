@@ -1314,7 +1314,7 @@
              , A1.BASE_PD_CD                                                         AS BASE_PD_CD           /*기준상품코드*/
              , A4.PD_NM                                                              AS PD_NM             /*상품명*/
              , NVL(A9.DLQ_MCN, 0)                                                    AS DLQ_MCN           /*연체개월수*/
-             , NVL(A9.EOT_DLQ_AMT, 0)                                                AS EOT_DLQ_AMT           /*기말연체금액*/
+             , NVL(A9.EOT_DLQ_AMT + A9.BTD_DLQ_ADD_AMT - A9.THM_DLQ_ADD_DP_SUM_AMT - A9.THM_CTR_DLQ_ADD_AMT + A9.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(A12.EOT_BOR_AMT,0)  EOT_DLQ_AMT           /*기말연체금액*/
              , A6.BND_ALRPY_AGG_AMT                                                  AS BILLING_AMOUNT         /*매출누계금액*/
              , A6.RVE_AMT                                                            AS DEPOSIT_AMOUNT      /*입금금액*/
              , A6.UC_AMT                                                             AS UNCOLLECTED_AMOUNT  /*미수금액*/
@@ -1361,17 +1361,27 @@
          INNER JOIN TB_SSCT_CNTR_STLM_BAS A5 /*계약결제기본*/
             ON A5.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A5.CNTR_NO   = A1.CNTR_NO
+           AND A5.CNTR_STLM_ID = (SELECT B1.CNTR_STLM_ID
+                                         FROM TB_SSCT_CNTR_STLM_BAS B1
+                                                 ,TB_SSCT_CNTR_STLM_REL B2
+                                      WHERE B1.CNTR_NO = A1.CNTR_NO
+                                         AND B2.DTL_CNTR_NO = A1.CNTR_NO
+                                         AND B2.DTL_CNTR_SN = A1.CNTR_SN
+                                         AND B1.CNTR_STLM_ID = B2.CNTR_STLM_ID
+                                         AND TO_CHAR(#{perfYm}) BETWEEN SUBSTR(B2.VL_STRT_DTM, 1, 6) AND SUBSTR(B2.VL_END_DTM, 1, 6)
+                                         AND B1.DTA_DL_YN = 'N'
+                                         AND B2.DTA_DL_YN = 'N')
          INNER JOIN TB_CBCL_SL_BND_ALRPY_BAS A6 /*WELLS매출월마감내역*/
             ON A6.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A6.CNTR_NO = A1.CNTR_NO
            AND A6.CNTR_SN = A1.CNTR_SN
-           AND A6.BASE_YM = #{perfYm}
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ A7 /*월파트너내역*/
+           AND A6.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM')
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ A7 /*월파트너내역*/
             ON A7.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A7.BASE_YM   = #{perfYm}
            AND A7.OG_TP_CD = A2.SELL_OG_TP_CD
            AND A7.PRTNR_NO = A2.SELL_PRTNR_NO
-         INNER JOIN TB_OGBS_MM_OG_IZ A8 /*월조직내역*/
+         LEFT OUTER JOIN TB_OGBS_MM_OG_IZ A8 /*월조직내역*/
             ON A8.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A8.OG_ID = A7.OG_ID
            AND A8.BASE_YM = #{perfYm}
@@ -1388,6 +1398,11 @@
            AND A10.CNTR_SN = A1.CNTR_SN
           LEFT OUTER JOIN TB_CBBO_CLCTAM_PRTNR_DTL A11/*집금파트너상세*/
             ON A11.PRTNR_NO = A10.CLCTAM_PRTNR_NO
+          LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS A12 /*위약금액기본*/
+            ON A12.DTA_DL_YN = 'N' /*데이터삭제여부*/
+           AND A12.PERF_YM = #{perfYm}
+           AND A12.CNTR_NO = A1.CNTR_NO
+           AND A12.CNTR_SN = A1.CNTR_SN
          WHERE 1=1
            AND A1.DTA_DL_YN  = 'N' /*데이터삭제여부*/
            <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
