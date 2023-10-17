@@ -36,7 +36,7 @@ public class WsnaReceiptsAndPaymentsDvo {
     // SAP코드 리스트
     List<String> sapMatDpcts;
     // OFFSET
-    Integer offSet;
+    Integer offset;
     // FETCH SIZE
     Integer size;
 }
