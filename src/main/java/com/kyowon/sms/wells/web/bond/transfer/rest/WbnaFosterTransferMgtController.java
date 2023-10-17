@@ -97,6 +97,7 @@ public class WbnaFosterTransferMgtController {
         "3. 호출결과를 Return 한다.")
     @PostMapping("/confirm")
     public SaveResponse confirmFosterDataTransfers(
+        @RequestBody
         @Valid
         SearchReq dto
     ) throws Exception {
