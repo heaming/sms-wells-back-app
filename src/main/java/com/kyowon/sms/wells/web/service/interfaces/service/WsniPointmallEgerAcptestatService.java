@@ -24,6 +24,9 @@ public class WsniPointmallEgerAcptestatService {
 
     private final WsniPointmallEgerAcptestatMapper mapper;
 
+    /**
+     * 포인트몰 금융리스 안마의자,전기레인지 엔지니어 수락상태값 조회
+     */
     public SearchRes getPointmallEgerAcptestats(SearchReq dto) {
         return mapper.selectPointmallEgerAcptestats(dto);
     }
