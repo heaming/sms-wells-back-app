@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.fee.confirm.rest;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -200,12 +201,12 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/mnger-informations")
-    public FindMngerRes getMnger(
+    @GetMapping("/mnger-basic")
+    public FindMngerBasicRes getMngerBasic(
         @Valid
         SearchMngerReq dto
     ) {
-        return service.getMnger(dto);
+        return service.getMngerBasic(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 기타내역 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 상세 실적 기타내역을 조회한다.")
@@ -213,11 +214,11 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
-    @GetMapping("/mnger-etcs")
-    public List<SearchMngerEtcRes> getMngerEtcs(
+    @GetMapping("/mnger-selletcs")
+    public List<SearchMngerSellEtcsRes> getMngerSellEtcs(
         SearchMngerReq dto
     ) {
-        return this.service.getMngerEtcs(dto);
+        return this.service.getMngerSellEtcs(dto);
     }
 
     @ApiOperation(value = "개인별 개인별 실적 상세 BS내역 목록 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 실적 수수료 BS내역 목록을 조회한다.")
@@ -238,7 +239,7 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/mnger-fees")
-    public List<SearchMngerFeeRes> getMngerFees(
+    public List<HashMap<String, Object>> getMngerFees(
         SearchMngerReq dto
     ) {
         return this.service.getMngerFees(dto);
@@ -250,7 +251,7 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/mnger-deductions")
-    public FindMngerDeductionRes getMngerDeduction(
+    public List<SearchMngerDeductionRes> getMngerDeduction(
         @Valid
         SearchMngerReq dto
     ) {

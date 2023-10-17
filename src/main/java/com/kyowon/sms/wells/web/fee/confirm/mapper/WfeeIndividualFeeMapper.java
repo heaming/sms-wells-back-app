@@ -44,11 +44,11 @@ public interface WfeeIndividualFeeMapper {
         SearchHmstReq dto
     );
 
-    FindMngerRes selectMnger(
+    FindMngerBasicRes selectMngerBasic(
         SearchMngerReq dto
     );
 
-    List<SearchMngerEtcRes> selectMngerEtcs(
+    List<SearchMngerSellEtcsRes> selectMngerSellEtcs(
         SearchMngerReq dto
     );
 
@@ -57,10 +57,10 @@ public interface WfeeIndividualFeeMapper {
     );
 
     List<SearchMngerFeeRes> selectMngerFees(
-        SearchMngerReq dto
+        SearchMngerReq dto, String feeAtcTpCd
     );
 
-    FindMngerDeductionRes selectMngerDeduction(
+    List<SearchMngerDeductionRes> selectMngerDeduction(
         SearchMngerReq dto
     );
 
