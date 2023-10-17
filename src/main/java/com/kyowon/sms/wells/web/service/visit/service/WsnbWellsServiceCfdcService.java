@@ -174,9 +174,9 @@ public class WsnbWellsServiceCfdcService {
         List<Map<String, Object>> list3 = new ArrayList<>();
 
         Map<String, Object> rtn = new HashMap<>();
-        rtn.put("DataMaster", list1);
-        rtn.put("DataList", list2);
-        rtn.put("DataList2", list3);
+        rtn.put("jsonMaster", list1);
+        rtn.put("jsonList1", list2);
+        rtn.put("jsonData2", list3);
 
         return rtn;
     }
