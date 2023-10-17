@@ -95,7 +95,8 @@ public class WsncRoutineBsPsicAssignStateDto {
         String cntrDtlStatCd,
         String cntrDtlStatNm,
         String asMatItmGrpCd,
-        String hirFomCd
+        String hirFomCd,
+        String cstSvAsnNo
 
     ) {
         @AutomapConstructor
@@ -155,7 +156,8 @@ public class WsncRoutineBsPsicAssignStateDto {
             String cntrDtlStatCd,
             String cntrDtlStatNm,
             String asMatItmGrpCd,
-            String hirFomCd
+            String hirFomCd,
+            String cstSvAsnNo
         ) {
             this(
                 snRpblYn,
@@ -213,7 +215,8 @@ public class WsncRoutineBsPsicAssignStateDto {
                 cntrDtlStatCd,
                 cntrDtlStatNm,
                 asMatItmGrpCd,
-                hirFomCd
+                hirFomCd,
+                cstSvAsnNo
             );
         }
     }
