@@ -42,11 +42,10 @@
                          THEN NVL(A.EOT_ATAM, 0) + NVL(A.MLG_EOT_PRPD_AMT, 0)                      /* 선수기말(LC50.LCAM36) + 포인트기말(LC50.LCAM75) */
                     ELSE NVL(A.EOT_ATAM, 0)
                END                                                     AS EOT_ATAM                 /* 선수금액 */
-             , NVL(A.EOT_UC_AMT, 0)                                    AS EOT_UC_AMT               /* 미수금액(LC50.LCMAMT) */
-             , CASE WHEN A.SELL_TP_DTL_CD IN ('21', '23')
-                         THEN NVL(C.EOT_DLQ_AMT, 0) + (NVL(C.EOT_DLQ_ADD_AMT, 0) - NVL(C.THM_OC_DLQ_ADD_AMT, 0)) + NVL(D.EOT_BOR_AMT, 0)
-                    ELSE NVL(C.EOT_DLQ_AMT, 0) + NVL(C.EOT_DLQ_ADD_AMT, 0) + NVL(D.EOT_BOR_AMT, 0)
-               END                                                     AS EOT_DLQ_AMT              /* 연체금액(LC50.LCDAMT) TOBE 렌탈의 경우 위약금에 순수 위약금만 관리 */
+             , (CASE WHEN A.SELL_TP_DTL_CD NOT IN ('21', '23')
+                          THEN NVL(A.EOT_BIL_UC_AMT, 0)
+                     ELSE NVL(A.EOT_UC_AMT, 0) END)                    AS EOT_UC_AMT               /* 미수금액(LC50.LCMAMT) */
+             , NVL(C.EOT_DLQ_AMT, 0) + NVL(C.BTD_DLQ_ADD_AMT, 0) - NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_CTR_DLQ_ADD_AMT, 0) + NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT /* 연체금액(LC50.LCDAMT) TOBE 렌탈의 경우 위약금에 순수 위약금만 관리 */
              , NVL(C.DLQ_MCN, 0)                                       AS DLQ_MCN                  /* 연체개월수(LC50.LCDCNT) */
              , NVL(C.BTD_DLQ_ADD_AMT, 0)                               AS BTD_DLQ_ADD_AMT          /* 가산금기초(LC50.LCAM81) */
              , NVL(C.THM_OC_DLQ_ADD_AMT, 0)                            AS THM_OC_DLQ_ADD_AMT       /* 가산금발생(LC50.LCAM82) */
@@ -101,7 +100,7 @@
                  END                                                   AS DP_AMT                   /* 입금금액 */
              , NVL(A.EOT_ATAM, 0)                                      AS EOT_ATAM                 /* 선수잔액(LC55.LCAM36) */
              , NVL(A.EOT_UC_AMT, 0)                                    AS EOT_UC_AMT               /* 미수금액*/
-             , NVL(C.EOT_DLQ_AMT, 0) + NVL(C.EOT_DLQ_ADD_AMT, 0)       AS EOT_DLQ_AMT              /* 연체금액(LC55.LCDAMT) */
+             , NVL(C.EOT_DLQ_AMT, 0) + NVL(C.BTD_DLQ_ADD_AMT, 0) - NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_CTR_DLQ_ADD_AMT, 0) + NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT /* 연체금액(LC55.LCDAMT) */
              , NVL(C.DLQ_MCN, 0)                                       AS DLQ_MCN                  /* 연체개월수 */
              , NVL(C.BTD_DLQ_ADD_AMT, 0)                               AS BTD_DLQ_ADD_AMT          /* 가산금기초(LC55.LCAM81) */
              , NVL(C.THM_OC_DLQ_ADD_AMT, 0)                            AS THM_OC_DLQ_ADD_AMT       /* 가산금발생(LC55.LCAM82) */
@@ -143,7 +142,7 @@
              , NVL(A.THM_ATAM_DP_AMT, 0) - NVL(A.THM_ATAM_RFND_AMT, 0) AS DP_AMT                   /* 입금금액 : 선수입금(LD55.LCAM32) - 선수환불(LD50.LCAM33) */
              , NVL(A.EOT_ATAM, 0)                                      AS EOT_ATAM                 /* 선수잔액(LD50.LCAM36) */
              , NVL(A.EOT_UC_AMT, 0)                                    AS EOT_UC_AMT               /* 미수금액(LD50.LCMAMT) */
-             , NVL(C.EOT_DLQ_AMT, 0)                                   AS EOT_DLQ_AMT              /* 연체금액(LC55.LCDAMT) */
+             , NVL(C.EOT_DLQ_AMT, 0) + NVL(C.BTD_DLQ_ADD_AMT, 0) - NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_CTR_DLQ_ADD_AMT, 0) + NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT /* 연체금액(LC55.LCDAMT) */
              , C.DLQ_MCN                                               AS DLQ_MCN                  /* 연체개월수 */
              , NVL(C.BTD_DLQ_ADD_AMT, 0)                               AS BTD_DLQ_ADD_AMT          /* 가산금기초 */
              , NVL(C.THM_OC_DLQ_ADD_AMT, 0)                            AS THM_OC_DLQ_ADD_AMT       /* 가산금발생 */
@@ -274,7 +273,7 @@
                    ----------------------------------------------------------------
               	 , T8.DLQ_MCN AS DLQ_MCN -- 연체개월수(CW50.CWDCNT)
               	 , T8.EOT_DLQ_AMT AS THM_OC_DLQ_AMT -- 연체금액(CW50.CWDAMT)
-              	 , T1.EOT_UC_AMT AS UC_BLAM --미수금액(CW50.CWQAMT - (CW50.CWSAMT + CW50.CWAAMT + CW50.CWPAMT))
+              	 , T1.SELL_AMT - (SELECT NVL(SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT,0) ELSE NVL(RVE_AMT*-1,0) END), 0) FROM W1) AS UC_BLAM --미수금액(CW50.CWQAMT - (CW50.CWSAMT + CW50.CWAAMT + CW50.CWPAMT))
               	 , '' AS UC_PRT --미수출력(CW50.CWFLG2) @TO-DO
               	 ----------------------------------------------------------------
                    -- 대손사항
