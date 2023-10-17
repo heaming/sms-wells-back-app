@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto.*;
+import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeePlannerDto.*;
+import com.kyowon.sms.wells.web.fee.confirm.service.WfeeIndividualFeePlannerService;
 import com.kyowon.sms.wells.web.fee.confirm.service.WfeeIndividualFeeService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
 
@@ -28,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WfeeIndividualFeeController {
     private final WfeeIndividualFeeService service;
+    private final WfeeIndividualFeePlannerService plannerService;
 
     @ApiOperation(value = "수수료 개인별 실적 상세 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 개인별 상세 실적 내역을 조회한다.")
     @ApiImplicitParams(value = {
@@ -38,7 +41,7 @@ public class WfeeIndividualFeeController {
     public List<SearchPlarRes> getIndividualPerformancePlarDetails(
         SearchReq dto
     ) {
-        return service.getIndividualPerformancePlarDetails(dto);
+        return plannerService.getIndividualPerformancePlarDetails(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 개인별 상세 실적 내역을 조회한다.")
@@ -137,7 +140,7 @@ public class WfeeIndividualFeeController {
         @Valid
         SearchPlarReq dto
     ) {
-        return service.getPlar(dto);
+        return plannerService.getPlar(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 기타내역 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 상세 실적 기타내역을 조회한다.")
@@ -149,7 +152,7 @@ public class WfeeIndividualFeeController {
     public List<SearchPlarEtcRes> getPlarEtcs(
         SearchPlarReq dto
     ) {
-        return this.service.getPlarEtcs(dto);
+        return plannerService.getPlarEtcs(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 수수료내역 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 상세 실적 수수료 내역을 조회한다.")
@@ -161,7 +164,7 @@ public class WfeeIndividualFeeController {
     public List<SearchPlarFeeRes> getPlarFees(
         SearchPlarReq dto
     ) {
-        return this.service.getPlarFees(dto);
+        return plannerService.getPlarFees(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 공제내역 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 상세 실적 공제 내역을 조회한다.")
@@ -170,11 +173,11 @@ public class WfeeIndividualFeeController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/plar-deductions")
-    public FindPlarDeductionRes getPlarDeduction(
+    public List<FindPlarDeductionRes> getPlarDeduction(
         @Valid
         SearchPlarReq dto
     ) {
-        return service.getPlarDeduction(dto);
+        return plannerService.getPlarDeduction(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 가지급금 세부내역 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 상세 실적 가지급금 세부 내역을 조회한다.")
@@ -186,7 +189,7 @@ public class WfeeIndividualFeeController {
     public List<SearchPlarPnpyamRes> getPlarPnpyams(
         SearchPlarReq dto
     ) {
-        return this.service.getPlarPnpyams(dto);
+        return this.plannerService.getPlarPnpyams(dto);
     }
 
     @ApiOperation(value = "수수료 개인별 실적 상세 기본정보 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 상세 실적 기본정보 내역을 조회한다.")

@@ -16,10 +16,6 @@ import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto.*;
  */
 @Mapper
 public interface WfeeIndividualFeeMapper {
-    List<SearchPlarRes> selectIndividualPerformancePlarDetails(
-        SearchReq dto
-    );
-
     List<SearchMngerRes> selectIndividualPerformanceMngerDetails(
         SearchReq dto
     );
@@ -46,26 +42,6 @@ public interface WfeeIndividualFeeMapper {
 
     List<SearchHmstPnpyamRes> selectHmstPnpyams(
         SearchHmstReq dto
-    );
-
-    FindPlarRes selectPlar(
-        SearchPlarReq dto
-    );
-
-    List<SearchPlarEtcRes> selectPlarEtcs(
-        SearchPlarReq dto
-    );
-
-    List<SearchPlarFeeRes> selectPlarFees(
-        SearchPlarReq dto
-    );
-
-    FindPlarDeductionRes selectPlarDeduction(
-        SearchPlarReq dto
-    );
-
-    List<SearchPlarPnpyamRes> selectPlarPnpyams(
-        SearchPlarReq dto
     );
 
     FindMngerRes selectMnger(
