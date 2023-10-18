@@ -118,7 +118,7 @@ public class WsnaReturningGoodsStoreDto {
         String rowState, /*행상태*/
         String cstSvAsnNo, /*고객요청번호*/
         String itmPdCd, /*품목상품코드*/
-        String itmKndCd, /*품목구분코드*/
+        String itmKnd, /*품목구분코드*/
         String stFnlVstFshDtFrom, /*처리일자FROM*/
         String edFnlVstFshDtTo, /*처리일자TO*/
         String strWareDvCd, /*입고창고구분코드*/
