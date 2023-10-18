@@ -27,6 +27,8 @@ public class WwdbContractRefundDto {
 
     @ApiModel(value = "WwdbContractRefundDto-SearchContractRefundRes")
     public record SearchContractRefundRes(
+        String rfndRcpNo,
+        String rfndRcpDtlSn,
         String cntrNo,
         String cntrSn,
         String cntrDtlNo, /* 계약상세번호 */
@@ -95,11 +97,12 @@ public class WwdbContractRefundDto {
         /* 확인 필요: 인수 전금 계 */
         /* 확인 필요: 할부전금(웰스)  */
         /* 확인 필요: 할부전금계 = 인수전금 합계 + 할부전금 합계  */
-        String rfndDsbPspIntSum // 지연이자 합계
+        String rfndDsbPspIntSum, // 지연이자 합계
         /* 확인 필요:K 포인트 */
-        /* 확인 필요:전금합계 */
+        String rfndBltfSum/* 확인 필요:전금합계 */
         /* 확인 필요:환불 총계 */
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WwdbContractRefundDto-SearchContractRefundSummaryRes")
     public record SearchContractRefundSummaryRes(
@@ -109,5 +112,6 @@ public class WwdbContractRefundDto {
         String totRfndDsbAmt,
         String totRfndDsbPspInt,
         String totCardRfndFee
-    ) {}
+    ) {
+    }
 }
