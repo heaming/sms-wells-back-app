@@ -67,7 +67,8 @@ public class WsnbWellsServiceCfdcService {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("custNm", dto.nm());
         paramMap.put(
-            "url", "https://wsm.kyowon.co.kr/anonymous/sms/wells/service/wells-service-cfdc/report/" + dto.cstSvAsnNo()
+            "url",
+            "https://d-wsm.kyowon.co.kr/anonymous/sms/wells/service/wells-service-cfdc/report/" + dto.cstSvAsnNo()
         );
 
         List<EmailDto.CreateReceiptUserReq> receiptUsers = new ArrayList<>();
@@ -126,8 +127,9 @@ public class WsnbWellsServiceCfdcService {
             dvo.setOzrPath("/kyowon_as/wellsServConf.ozr");
             Map<String, String> map = new HashMap();
             map.put("cstSvAsnNo", cstSvAsnNo);
-            map.put("cstNm", cstDvo.getCstNm());
-            map.put("cstBthd", cstDvo.getCstBthd());
+            map.put("searchApiUrl", "/api/v1/anonymous/sms/wells/service/wells-service-cfdc/oz");
+            map.put("rcgvpNm", "");
+            map.put("prtnrNm", "");
             dvo.setArgs(map);
             return reportService.openReport(dvo);
         } else {
