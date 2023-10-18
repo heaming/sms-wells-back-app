@@ -15,8 +15,6 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationReturnDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaItemBaseInformationService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -24,6 +22,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0173P01 품목기본정보 팝업 Controller
+ * </pre>
+ *
+ * @author songTaeSung
+ * @since 2023.02.20
+ */
 @Api(tags = "[WSNA] 품목기본정보")
 @Validated
 @RequiredArgsConstructor
@@ -33,27 +39,23 @@ public class WsnaItemBaseInformationController {
 
     private final WsnaItemBaseInformationService service;
 
-    @ApiOperation(value = "품목기본정보 페이징 조회", notes = "")
+    @ApiOperation(value = "품목기본정보 조회", notes = "")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
-    @GetMapping("/paging")
-    public PagingResult<WsnaItemBaseInformationReturnDvo> getItemBaseInformations(
+    @GetMapping
+    public List<WsnaItemBaseInformationReturnDvo> getItemBaseInformations(
         @Valid
-        SearchReq dto,
-        @Valid
-        PageInfo pageInfo
+        SearchReq dto
     ) {
-        return service.getItemBaseInformations(dto, pageInfo);
+        return service.getItemBaseInformations(dto);
     }
 
-    @GetMapping("/out-of/paging")
-    public PagingResult<WsnaItemBaseInformationDvo> getItemBaseInformationsOutOf(
-        SearchReq dto,
-        @Valid
-        PageInfo pageInfo
+    @GetMapping("/out-of")
+    public List<WsnaItemBaseInformationDvo> getItemBaseInformationsOutOf(
+        SearchReq dto
     ) {
-        return service.getItemBaseInformationsOutOf(dto, pageInfo);
+        return service.getItemBaseInformationsOutOf(dto);
     }
 
     @GetMapping("/aplclists")

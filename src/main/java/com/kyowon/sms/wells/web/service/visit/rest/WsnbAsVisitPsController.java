@@ -22,6 +22,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0031M01 상품별 서비스 처리 집계 현황
+ * </pre>
+ *
+ * @author hyewon.kim
+ * @since 2022.12.30
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/as-visit-state")
 @Api(tags = "[WSNB] 상품별 서비스 처리 집계 REST API")
@@ -31,6 +39,12 @@ public class WsnbAsVisitPsController {
 
     private final WsnbAsVisitPsService service;
 
+    /**
+     * 상품별 서비스 처리 집계 현황 조회
+     * @param dto 조회조건
+     * @param pageInfo 페이지정보
+     * @return 상품별 서비스 처리 집계 현황 목록
+     */
     @ApiOperation(value = "상품별 서비스 처리 집계 현황", notes = "조회조건에 일치하는 상품별 서비스 처리 집계 현황을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "서비스센터", value = "ogId", paramType = "query", example = "OG00002"),
@@ -48,6 +62,11 @@ public class WsnbAsVisitPsController {
         return this.service.getProductServices(dto, pageInfo);
     }
 
+    /**
+     * 상품별 서비스 처리 집계 현황 엑셀 다운로드
+     * @param dto 조회조건
+     * @return 상품별 서비스 처리 집계 현황 목록
+     */
     @ApiOperation(value = "상품별 서비스 처리 집계 현황 엑셀 다운로드", notes = "조회조건에 일치하는 상품별 서비스 처리 집계 현황을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "서비스센터", value = "ogId", paramType = "query", example = "OG00002"),

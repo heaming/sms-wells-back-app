@@ -3,6 +3,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncTransferHistoryMapper">
     <select id="selectTransferHistory"
             resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncTransferHistoryDto$SearchRes">
+        /* BS 대상 */
         SELECT TO_CHAR(TO_DATE(TB_1.FNL_MDFC_DTM, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD AMHH:MI:SS', 'nls_date_language=korean') AS FNL_MDFC_DTM
              , TB_1.ASN_TF_DV_CD            AS ASN_TF_DV_CD
              , TB_2.OG_NM                   AS BF_OG_NM
@@ -18,6 +19,10 @@
              , TB_5.OG_TP_CD                AS TF_OG_TP_CD
              , TB_5.PRTNR_NO                AS TF_PRTNR_NO
              , TB_5.OG_ID                   AS TF_OG_ID
+             , TB_6.OG_NM                   AS CNFM_OG_NM
+             , TB_1.TF_CNFM_PRTNR_NO        AS CNFM_PSIC_PRTNR_NO
+             , TB_1.TF_CNFMDT               AS CNFMDT
+             , TB_6.PRTNR_KNM               AS CNFM_PRTNR_KNM
           FROM TB_SVPD_ASN_RS_TF_IZ TB_1
          INNER JOIN TB_OGBS_PRTNR_BAS TB_2
          ON (
@@ -39,6 +44,62 @@
             AND TB_1.TF_AK_PRTNR_NO = TB_5.PRTNR_NO
             AND TB_4.ASN_OJ_YM = TB_5.BASE_YM
             AND TB_5.DTA_DL_YN = 'N'
+         )
+         INNER JOIN TB_OGBS_PRTNR_BAS TB_6
+         ON (
+                TB_1.TF_CNFM_PRTNR_OG_TP_CD = TB_6.OG_TP_CD
+            AND TB_1.TF_CNFM_PRTNR_NO = TB_6.PRTNR_NO
+         )
+         WHERE 1=1
+           AND TB_1.TF_STAT_CD = '20'        -- 확정완료 공통코드(ASN_TF_STAT_CD)
+           AND TB_1.CST_SV_ASN_NO = #{cstSvAsnNo}
+        UNION ALL
+        /* AS 대상 */
+        SELECT TO_CHAR(TO_DATE(TB_1.FNL_MDFC_DTM, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD AMHH:MI:SS', 'nls_date_language=korean') AS FNL_MDFC_DTM
+             , TB_1.ASN_TF_DV_CD            AS ASN_TF_DV_CD
+             , TB_2.OG_NM                   AS BF_OG_NM
+             , TB_1.BFCH_ICHR_PRTNR_NO      AS BF_CNFM_PSIC_PRTNR_NO
+             , TB_2.PRTNR_KNM               AS BF_PRTNR_KNM
+             , TB_3.OG_NM                   AS AF_OG_NM
+             , TB_1.TF_CNFM_PRTNR_NO        AS AF_CNFM_PSIC_PRTNR_NO
+             , TB_3.PRTNR_KNM               AS AF_PRTNR_KNM
+             , TB_1.TF_CNFMDT               AS TF_CNFMDT
+             , TB_1.TF_AK_RSON_CD           AS TF_AK_RSON_CD
+             , TB_5.OG_NM                   AS TF_OG_NM
+             , TB_5.PRTNR_KNM               AS TF_PRTNR_KNM
+             , TB_5.OG_TP_CD                AS TF_OG_TP_CD
+             , TB_5.PRTNR_NO                AS TF_PRTNR_NO
+             , TB_5.OG_ID                   AS TF_OG_ID
+             , TB_6.OG_NM                   AS CNFM_OG_NM
+             , TB_1.TF_CNFM_PRTNR_NO        AS CNFM_PSIC_PRTNR_NO
+             , TB_1.TF_CNFMDT               AS CNFMDT
+             , TB_6.PRTNR_KNM               AS CNFM_PRTNR_KNM
+          FROM TB_SVPD_ASN_RS_TF_IZ TB_1
+         INNER JOIN TB_OGBS_PRTNR_BAS TB_2
+         ON (
+                TB_1.BFCH_ICHR_PRTNR_OG_TP_CD = TB_2.OG_TP_CD
+            AND TB_1.BFCH_ICHR_PRTNR_NO = TB_2.PRTNR_NO
+         )
+         INNER JOIN TB_OGBS_PRTNR_BAS TB_3
+         ON (
+                TB_1.TF_CNFM_PRTNR_OG_TP_CD = TB_3.OG_TP_CD
+            AND TB_1.TF_CNFM_PRTNR_NO = TB_3.PRTNR_NO
+         )
+         INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ TB_4
+         ON (
+            TB_1.CST_SV_ASN_NO = TB_4.CST_SV_ASN_NO
+         )
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ TB_5
+         ON (
+                TB_1.TF_AK_PRTNR_OG_TP_CD = TB_5.OG_TP_CD
+            AND TB_1.TF_AK_PRTNR_NO = TB_5.PRTNR_NO
+            AND SUBSTR(TB_4.ASN_DT, 0, 6) = TB_5.BASE_YM
+            AND TB_5.DTA_DL_YN = 'N'
+         )
+         INNER JOIN TB_OGBS_PRTNR_BAS TB_6
+         ON (
+                TB_1.TF_CNFM_PRTNR_OG_TP_CD = TB_6.OG_TP_CD
+            AND TB_1.TF_CNFM_PRTNR_NO = TB_6.PRTNR_NO
          )
          WHERE 1=1
            AND TB_1.TF_STAT_CD = '20'        -- 확정완료 공통코드(ASN_TF_STAT_CD)

@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.interfaces.rest;
 
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsniSidingServiceChangesDto.*;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniSidingServiceChangesDto.SaveReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsniSidingServiceChangesDto.SaveRes;
 import com.kyowon.sms.wells.web.service.interfaces.service.WsniSidingServiceChangesService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
@@ -31,6 +32,12 @@ public class WsniSidingServiceChangesController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약순번", paramType = "query", required = true),
+        @ApiImplicitParam(name = "akSn", value = "요청일련번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "asAkDvCd", value = "AS요청구분코드 (1:패키지변경, 4:차월 방문 중지)", paramType = "query", required = true),
+        @ApiImplicitParam(name = "akChdt", value = "요청변경일자", paramType = "query", required = true),
+        @ApiImplicitParam(name = "bfchPdCd", value = "변경전상품코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "afchPdCd", value = "변경후상품코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "mtrProcsStatCd", value = "자료처리상태코드 (1:신규, 2:변경, 3:취소)", paramType = "query", required = true),
     })
     @PostMapping
     public EaiWrapper saveSidingProductChange(

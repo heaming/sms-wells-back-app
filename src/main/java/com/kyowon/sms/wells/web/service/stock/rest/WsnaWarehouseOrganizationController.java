@@ -6,13 +6,13 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.stock.service.WsnaWarehouseOrganizationService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -21,6 +21,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0138M01 창고조직 관리
+ * W-SV-U-0175P01 창고조직 등록
+ * </pre>
+ *
+ * @author SongTaeSung
+ * @since 2022.12.08
+ */
 @RestController
 @RequestMapping(value = SnServiceConst.REST_URL_V1 + "/warehouse-organizations")
 @Api(tags = "[WSNA] 창고조직관리 REST API")

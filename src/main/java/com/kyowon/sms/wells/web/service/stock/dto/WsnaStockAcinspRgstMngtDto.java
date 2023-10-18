@@ -26,11 +26,20 @@ public class WsnaStockAcinspRgstMngtDto {
     @Builder
     @ApiModel("WsnaStockAcinspRgstMngtDto-SearchReq")
     public record SearchReq(
+        // 기준년월
         @NotBlank
         String baseYm,
+        // 창고구분
+        @NotBlank
         String wareDvCd,
+        // 창고상세구분
         String wareDtlDvCd,
-        String searchWareNo,
+        // 상위창고번호
+
+        String hgrWareNo,
+        // 창고번호
+        String wareNo,
+        // 상태구분
         String useYn
     ) {}
 

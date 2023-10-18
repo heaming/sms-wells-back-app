@@ -42,10 +42,17 @@ public class WsnbServiceProcessingService {
 
     private final AttachFileService attachFileService;
 
+    /**
+     * 상품 그룹별 상품 목록 조회
+     * @param pdGrpCd 상품그룹코드
+     */
     public List<FindProductRes> getProducts(String pdGrpCd) {
         return this.mapper.selectProducts(pdGrpCd);
     }
 
+    /**
+     * 서비스 처리내역 조회
+     */
     public PagingResult<SearchRes> getServiceProcessings(SearchReq dto, PageInfo pageInfo) {
         PagingResult<WsnbServiceProcessingDvo> dvos = mapper.selectServiceProcessings(dto, pageInfo);
 
@@ -88,6 +95,9 @@ public class WsnbServiceProcessingService {
         return new PagingResult<>(converter.mapAllDvoToSearchRes(dvos), pageInfo);
     }
 
+    /**
+     * 서비스 처리내역 엑셀 다운로드
+     */
     public List<SearchRes> getServiceProcessingsForExcel(SearchReq dto) {
         return converter.mapAllDvoToSearchRes(mapper.selectServiceProcessings(dto));
     }

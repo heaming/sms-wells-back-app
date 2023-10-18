@@ -1,5 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import javax.validation.constraints.NotBlank;
+
+import com.sds.sflex.common.utils.DbEncUtil;
+
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -20,25 +24,61 @@ public class WsnaMdProductOutOfStorageMgtDto {
 
         String findGb,
 
+        String firstSppGb,
+
         String selCnt,
 
-        String vstFshDt,
+        String ostrCnfmDt,
 
         String prtnrBzsCd,
 
-        String firstSppGb,
+        String cntrDtlNo,
 
-        String cntrNo,
+        String rcgvpKnm,
 
-        String cstNm,
+        String serialNo,
 
-        String cralIdvTno,
+        String cralLocaraTno,
 
-        String serialNo
-    ) {}
+        String mexnoEncr,
+
+        String cralIdvTno
+
+    ) {
+        public SearchReq {
+            mexnoEncr = DbEncUtil.enc(mexnoEncr);
+        }
+    }
 
     @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-SaveReq")
-    public record SaveReq() {
+    public record SaveReq(
+        @NotBlank
+        String cstSvAsnNo,
 
-    }
+        @NotBlank
+        String cntrNo,
+
+        @NotBlank
+        String cntrSn,
+
+        @NotBlank
+        String svBizDclsfCd,
+
+        @NotBlank
+        String svBizHclsfCd,
+
+        @NotBlank
+        String prtnrNo,
+
+        @NotBlank
+        String ogTpCd,
+
+        @NotBlank
+        String ogId,
+
+        @NotBlank
+        String pdctPdCd,
+
+        String istDt
+    ) {}
 }

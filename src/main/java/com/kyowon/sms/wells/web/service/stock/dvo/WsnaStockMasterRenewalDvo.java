@@ -8,14 +8,16 @@ import lombok.Setter;
  * W-SV-U-0279M01 재고마스터갱신
  * </pre>
  *
- * @author hyewon.kim 김혜원
+ * @author hyewon.kim
  * @since 2023.03.13
  */
 @Setter
 @Getter
 public class WsnaStockMasterRenewalDvo {
 
+    // 관리년월
     private String mngtYm;
+    // 창고구분
     private String wareDvCd;
 
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto.SearchAfterRes;
+import com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.payment.dto.WdcaMembershipCheckDto.SearchRes;
 import com.kyowon.sms.wells.web.closing.payment.mapper.WdcaMembershipCheckMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -38,24 +39,24 @@ public class WdcaMembershipCheckService {
 
     /**
     * 멤버십확정 체크리스트 - 체크리스트(후) - 조회
-    * @param deptGubun 조직선택
+    * @param dto 조직선택
     * @param pageInfo 페이징 처리 정보
     * @return
     */
     public PagingResult<SearchAfterRes> getAfterPages(
-        String deptGubun, PageInfo pageInfo
+        SearchReq dto, PageInfo pageInfo
     ) {
-        return mapper.selectAfterPages(deptGubun, pageInfo);
+        return mapper.selectAfterPages(dto, pageInfo);
     }
 
     /**
     * 멤버십확정 체크리스트 - 체크리스트(후) - 엑셀다운로드
-    * @param deptGubun 조직선택
+    * @param dto 조직선택
     * @return
     */
     public List<SearchAfterRes> getAfterForExcelDownload(
-        String deptGubun
+        SearchReq dto
     ) {
-        return mapper.selectAfterPages(deptGubun);
+        return mapper.selectAfterPages(dto);
     }
 }

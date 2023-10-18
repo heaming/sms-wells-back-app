@@ -70,11 +70,6 @@ public class WbnaFosterTransferMgtService {
                 params.put("baseYm", dto.baseYm()); //기준년월
                 params.put("bzHdqDvCd", dto.bzHdqDvCd()); //사업부 구분
                 params.put("clctamDvCd", dto.clctamDvCd()); //집금구분코드
-                params.put("bndNwDvCd", dto.bndNwDvCd()); // 신규구분
-                params.put("cstNo", dto.cstNo()); // 고객번호
-                params.put("cralLocaraTno", dto.cralLocaraTno()); // 휴대지역전화번호
-                params.put("mexnoEncr", dto.mexnoEncr()); // 휴대전화국번호암호화
-                params.put("cralIdvTno", dto.cralIdvTno()); // 휴대개별전화번호
                 batchDvo.setParams(params); // Job 실행시 필요한 파라미터
 
                 String runId = batchCallService.runJob(batchDvo);
@@ -200,45 +195,45 @@ public class WbnaFosterTransferMgtService {
                     )
                 );
                 excelUploadErrorDvos.add(errorDvo);
-            } else if (prtnrList.contains(dvo.getClctamPrtnrNo())) {
+            } else if (!prtnrList.contains(dvo.getClctamPrtnrNo())) {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(headerTitle.get("clctamPrtnrNo"));
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_NOT_NO_CLCTAM_PRTNR_NO_FOUND" // 집금자번호를 찾을 수 없습니다.
+                        "MSG_ALT_NO_CLCTAM_PRTNR_NO_FOUND" // 집금자번호를 찾을 수 없습니다.
                     )
                 );
                 excelUploadErrorDvos.add(errorDvo);
             }
-
-            if (excelUploadErrorDvos.size() == 0) {
-                for (WbnaBondContractBaseDvo data : list) {
-                    String[] cntrList = data.getCntrDtlNo().split("-");
-                    data.setCntrNo(cntrList[0]);
-                    data.setCntrSn(Integer.parseInt(cntrList[1]));
-                    data.setBaseYm(baseYm);
-
-                    int insertResult = this.mapper.insertBondContractHistories(data);
-                    int updateResult = this.mapper.updateFosterTransfer(data);
-
-                    BizAssert.isTrue(insertResult == 1 && updateResult == 1, MSG_ALT_SVE_ERR_STR);
-                }
-            }
-
             row++;
         }
-        // 채권 업로드 이력 insert
-        ZbnaExcelHistoryMgtDvo uploadIz = ZbnaExcelHistoryMgtDvo
-            .builder()
-            .baseYm(baseYm)
-            .bzHdqDvCd(bzHdqDvCd)
-            .excelUldCt(list.size())
-            .excelDldFileNm(Objects.requireNonNull(file.getOriginalFilename()).replaceAll("[^ㄱ-ㅎㅏ-ㅣ가-힣0-9]", ""))
-            .excelDldSrnId(pageId)
-            .excelUldErrTpCd(excelUploadErrorDvos.size() > 0 ? "06" : "")
-            .build();
-        zbnaExcelHistoryMgtService.createBondUploadIz(uploadIz);
+
+        if (excelUploadErrorDvos.size() == 0) {
+            for (WbnaBondContractBaseDvo data : list) {
+                String[] cntrList = data.getCntrDtlNo().split("-");
+                data.setCntrNo(cntrList[0]);
+                data.setCntrSn(Integer.parseInt(cntrList[1]));
+                data.setBaseYm(baseYm);
+
+                int insertResult = this.mapper.insertBondContractHistories(data);
+                int updateResult = this.mapper.updateFosterTransfer(data);
+
+                BizAssert.isTrue(insertResult == 1 && updateResult == 1, MSG_ALT_SVE_ERR_STR);
+            }
+
+            // 채권 업로드 이력 insert
+            ZbnaExcelHistoryMgtDvo uploadIz = ZbnaExcelHistoryMgtDvo
+                .builder()
+                .baseYm(baseYm)
+                .bzHdqDvCd(bzHdqDvCd)
+                .excelUldCt(list.size())
+                .excelDldFileNm(Objects.requireNonNull(file.getOriginalFilename()).replaceAll("[^ㄱ-ㅎㅏ-ㅣ가-힣0-9]", ""))
+                .excelDldSrnId(pageId)
+                .excelUldErrTpCd(excelUploadErrorDvos.size() > 0 ? "06" : "")
+                .build();
+            zbnaExcelHistoryMgtService.createBondUploadIz(uploadIz);
+        }
 
         return UploadRes.builder()
             .status(excelUploadErrorDvos.isEmpty() ? "S" : "E").errorInfo(excelUploadErrorDvos).excelData(list).build();

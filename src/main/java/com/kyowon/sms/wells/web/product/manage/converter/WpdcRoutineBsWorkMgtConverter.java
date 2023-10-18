@@ -9,6 +9,14 @@ import com.kyowon.sms.wells.web.product.manage.dvo.WpdcLifeCustomFilterBaseDvo;
 import com.kyowon.sms.wells.web.product.manage.dvo.WpdcRoutineBsWorkBaseDvo;
 import com.kyowon.sms.wells.web.product.manage.dvo.WpdcRoutineBsWorkDetailDvo;
 
+/**
+ * <pre>
+ * 서비스 상품 - B/S 투입관리 VO <==> DTO 컨버터 
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 @Mapper(componentModel = "spring")
 public interface WpdcRoutineBsWorkMgtConverter {
     List<WpdcRoutineBsWorkBaseDvo> mapAllBsWorkBaseDtoToBsWorkBaseDvo(List<WpdcRoutineBsWorkMgtDto.RoutineBsWorkBase> dtos);

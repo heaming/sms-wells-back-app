@@ -14,8 +14,8 @@ public class WsnbServiceProcessingDto {
 
     @ApiModel("WsnbServiceProcessingIzDto-FindProductRes")
     public record FindProductRes(
-        String codeId,
-        String codeName
+        String codeId, // 코드ID(상품코드)
+        String codeName // 코드명(상품명)
     ) {}
 
     @ApiModel("WsnbServiceProcessingIzDto-SearchReq")
@@ -36,121 +36,121 @@ public class WsnbServiceProcessingDto {
 
     @ApiModel("WsnbServiceProcessingIzDto-SearchRes")
     public record SearchRes(
-        String cntrNo,
-        String cntrSn,
-        String cntrNoSn,
-        String cstSvAsnNo,
-        String cstKnm,
-        String copnDvNm,
-        String cttIchr,
-        String hsp,
-        String alncBzsNm,
-        String frisuYn,
-        String sellTpNm,
-        String wtholVlvOptYn,
-        String cralLocaraTno,
-        String mexnoEncr,
-        String cralIdvTno,
-        String newAdrZip,
-        String radr,
-        String cntrCnfmDtm,
-        String pdNm,
-        String pdGrpCd,
-        String pdGrpNm,
-        String pdCd,
-        String modelNm,
-        String scnYn,
-        String bfMnftCoId,
-        String bcNo,
-        String prdtYm,
-        String channelNm,
-        String gnrdv,
-        String rgrp,
-        String ogNm,
-        String prtnrKnm,
-        String cnslMoCn,
-        String istDt,
-        String useMcn,
-        String svBizHclsfNm,
-        String svBizDclsfNm,
-        String cntrCstNo,
-        String asRefriDvNm,
-        String bfsvcRefriDvNm,
-        String refriDvNm,
-        String egerCnrNm,
-        String rpbLocaraCd,
-        String ichrCnrSdingDidy,
-        String prtnr,
-        String prtnrPstnDv,
-        String siteAwDvNm,
-        String siteAwAmt,
-        String rglvlGdCd,
-        String awAmt,
-        String contactCralLocaraTno,
-        String contactMexnoEncr,
-        String contactCralIdvTno,
-        String fnlRcpdt,
-        String fnlRcpHh,
-        String vstDuedt,
-        String vstExpHh,
-        String vstChYn,
-        String vstCnfmdt,
-        String vstCnfmHh,
-        String dtmChCausNm,
-        String dtmChRsonNm,
-        String dtmChRsonDtlCn,
-        String smsFwYn,
-        String promHh,
-        String arvDtm,
-        String vstFshDtm,
-        String istDelay,
-        String wkLdtm,
-        String wkPrgsStatNm,
-        String wkCanRsonNm,
-        String wkCanMoCn,
-        String fgptDsbYn,
-        String badDvNm,
-        String asLctNm,
-        String asPhnNm,
-        String asLctCdNm,
-        String svProcsFomNm,
-        String imptaRsonNm,
-        String asCdEyn,
-        String sftAcdnYn,
-        String plsSvYn,
-        String peslArtcDfrnYn,
-        String cwtrWprsVal,
-        String wwtWprsVal,
-        String per1mOlqVal,
-        String istPlcTpCd,
-        String rcvryOpt,
-        String asCausNm,
-        String svProcsCn,
-        String pu1Part,
-        String pu2Part,
-        String pu3Part,
-        String pu4Part,
-        String pu5Part,
-        String pu6Part,
-        String pu7Part,
-        String pu8Part,
-        String pu9Part,
-        String pu10Part,
-        String partCs,
-        String tcfee,
-        String bstrCs,
-        String etcCs,
-        String rveCsTot,
-        String cashStlm,
-        String cardStlm,
-        String elcStlm,
-        String adpBilAmt,
-        String cstSignCn,
+        String cntrNo, // 계약번호
+        String cntrSn, // 계약일련번호
+        String cntrNoSn, // 계약상세번호
+        String cstSvAsnNo, // 고객서비스배정번호
+        String cstKnm, // 고객명
+        String copnDvNm, // 법인격구분명
+        String cttIchr, // 컨택담당
+        String hsp, // 홈쇼핑
+        String alncBzsNm, // 제휴회사명
+        String frisuYn, // 무료체험(무상여부)
+        String sellTpNm, // 고객유형(판매유형명)
+        String wtholVlvOptYn, // 조리수설치여부
+        String cralLocaraTno, // 휴대지역전화번호
+        String mexnoEncr, // 휴대전화국번호암호화
+        String cralIdvTno, // 휴대개별전화번호
+        String newAdrZip, // 우편번호
+        String radr, // 주소
+        String cntrCnfmDtm, // 계약일자
+        String pdNm, // 상품명
+        String pdGrpCd, // 상품군코드
+        String pdGrpNm, // 상품군명
+        String pdCd, // 상품코드
+        String modelNm, // 모델명
+        String scnYn, // 스캔여부
+        String bfMnftCoId, // 이전제조번호
+        String bcNo, // 제조번호
+        String prdtYm, // 제조년월
+        String channelNm, // 채널명(접수구분)
+        String gnrdv, // 총괄단
+        String rgrp, // 지역단
+        String ogNm, // 접수자소속
+        String prtnrKnm, // 접수자표시
+        String cnslMoCn, // 접수내역
+        String istDt, // 설치일자
+        String useMcn, // 사용개월
+        String svBizHclsfNm, // 서비스유형명
+        String svBizDclsfNm, // 서비스유형상세명
+        String cntrCstNo, // 상대고객번호
+        String asRefriDvNm, // AS고객구분
+        String bfsvcRefriDvNm, // BS고객구분
+        String refriDvNm, // 유무상구분
+        String egerCnrNm, // 담당센터
+        String rpbLocaraCd, // 책임지역
+        String ichrCnrSdingDidy, // AS담당센터(모종직배)
+        String prtnr, // 담당엔지니어
+        String prtnrPstnDv, // 직급구분
+        String siteAwDvNm, // 현장수당항목
+        String siteAwAmt, // 현장수당금액
+        String rglvlGdCd, // 현장수당(급지)
+        String awAmt, // 현장수당(금액)
+        String contactCralLocaraTno, // 연락처(핸드폰) 1
+        String contactMexnoEncr, // 연락처(핸드폰) 2
+        String contactCralIdvTno, // 연락처(핸드폰) 3
+        String fnlRcpdt, // 접수일자
+        String fnlRcpHh, // 접수일시
+        String vstDuedt, // 예정일자
+        String vstExpHh, // 예정일시
+        String vstChYn, // 변경
+        String vstCnfmdt, // 확정일자
+        String vstCnfmHh, // 확정일시
+        String dtmChCausNm, // 변경원인
+        String dtmChRsonNm, // 변경사유
+        String dtmChRsonDtlCn, // 변경사유상세
+        String smsFwYn, // SMS발송
+        String promHh, // 약속시간
+        String arvDtm, // 작업시간(도착)
+        String vstFshDtm, // 작업시간(완료)
+        String istDelay, // 설치지연일
+        String wkLdtm, // 소요시간
+        String wkPrgsStatNm, // 작업상태
+        String wkCanRsonNm, // 취소사유
+        String wkCanMoCn, // 취소상세내역
+        String fgptDsbYn, // 사은품지급여부
+        String badDvNm, // 불량구분
+        String asLctNm, // 고장위치
+        String asPhnNm, // 고장현상
+        String asLctCdNm, // 고장위치상세
+        String svProcsFomNm, // 처리형태
+        String imptaRsonNm, // 귀책
+        String asCdEyn, // AS코드없음
+        String sftAcdnYn, // 안전사고
+        String plsSvYn, // 플러스서비스
+        String peslArtcDfrnYn, // 인적사항다름
+        String cwtrWprsVal, // 수압(냉)
+        String wwtWprsVal, // 수압(온)
+        String per1mOlqVal, // 유량
+        String istPlcTpCd, // 설치유형
+        String rcvryOpt, // 복구옵션
+        String asCausNm, // AS원인
+        String svProcsCn, // 결과입력 상세
+        String pu1Part, // 투입부품1
+        String pu2Part, // 투입부품2
+        String pu3Part, // 투입부품3
+        String pu4Part, // 투입부품4
+        String pu5Part, // 투입부품5
+        String pu6Part, // 투입부품6
+        String pu7Part, // 투입부품7
+        String pu8Part, // 투입부품8
+        String pu9Part, // 투입부품9
+        String pu10Part, // 투입부품10
+        String partCs, // 수납(부품비)
+        String tcfee, // 수납(기술료)
+        String bstrCs, // 수납(출장료)
+        String etcCs, // 수납(기타비용)
+        String rveCsTot, // 수납(전체)
+        String cashStlm, // 현금
+        String cardStlm, // 카드
+        String elcStlm, // 전자결제
+        String adpBilAmt, // 합산청구금액
+        String cstSignCn, // 고객서명
         String istEnvrPhoPhFileUid, // 설치환경사진 FILE_UID
         String istKitPhoPhFileUid, // 설치키트사진 FILE_UID
         String istCelngPhoPhFileUid, // 설치천장사진 FILE_UID
-        String acpnPrtnrKnm,
-        String acpnPrtnrGdNm
+        String acpnPrtnrKnm, // 동행작업자명
+        String acpnPrtnrGdNm // 동행작업자직급
     ) {}
 
 }

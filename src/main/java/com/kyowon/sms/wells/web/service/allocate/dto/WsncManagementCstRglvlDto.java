@@ -13,8 +13,9 @@ public class WsncManagementCstRglvlDto {
         String exceptWellsManagerYn,
         String addressZipFrom,
         String addressZipTo,
-        @NotBlank
-        String localGroupCd,
+//        String localGroupCd,
+        String localGroup,
+        String localGroupOgCd,
         String branchOfficeCd,
         String partnerNo,
         String bizPsicSrnDvCd

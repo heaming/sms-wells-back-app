@@ -30,7 +30,7 @@ public interface WsniSidingServiceChangesMapper {
 
     WsniSidingServiceChangesDvo selectCustomer(String cntrNo, String cntrSn);
 
-    Integer selectSidingAkCount(
+    int selectSidingAkCount(
         String cntrNo,
         String cntrSn,
         String akSn,
@@ -64,5 +64,11 @@ public interface WsniSidingServiceChangesMapper {
         String asnOjYm
     );
 
-    Integer updateStopNextSiding(String cntrNo, String cntrSn, String akChdt);
+    int updateStopNextSiding(String cntrNo, String cntrSn, String akChdt);
+
+    String selectPdctPdCds(
+        String cntrNo,
+        String cntrSn,
+        String akSn
+    );
 }

@@ -97,17 +97,6 @@ public class WwdbGiroDepositMgtService {
 
             }
 
-            // 중복 제거
-            //            List<SaveReq> duplicates = dtos.stream().distinct().collect(Collectors.toList());
-
-            //            String[] fntDt = new String[dtos.size()];
-            //
-            //            for (int i = 0; i < duplicates.size(); i++) {
-            //                if (duplicates.get(i).giroDpMtrDvCd().equals("22")) {
-            //                    fntDt[i] = duplicates.get(i).rveDt();
-            //                }
-            //            }
-
             deleteDvo.setFntDt(dtos.get(1).fntDt());
             deleteDvo.setRveDt(dtos.get(1).rveDt());
 
@@ -266,7 +255,8 @@ public class WwdbGiroDepositMgtService {
                     insertMap.put("prtnrNo", session.getEmployeeIDNumber());
                     insertMap.put("ogId", session.getOgId());
                     insertMap.put(
-                        "dpAmt", Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
+                        "dpAmt", Integer.toString(Integer.parseInt(list.rveAmt()))
+//                        "dpAmt", Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
                     );
                     insertMap.put("itgDpNo", list.itgDpNo());
                     insertMap.put("cstNo", selectContractDetail.cntrCstNo());
@@ -284,10 +274,11 @@ public class WwdbGiroDepositMgtService {
                     askDvo.setRvePrtnrOgTpCd(session.getOgTpCd()); // 수납요청파트너조직유형코드
                     askDvo.setRvePrtnrNo(session.getEmployeeIDNumber()); // 수납요청파트너번호
                     askDvo.setReceiveAskAmount(
-                        Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
+//                        Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
+                        Integer.toString(Integer.parseInt(list.rveAmt()))
                     ); // 수납요청금액
                     askDvo.setReceiveAskDate(sysDateYmd); // 수납요청일자
-                    askDvo.setReceiveAskStatusCode("03"); //수납요청상태코드
+                    askDvo.setReceiveAskStatusCode("01"); //수납요청상태코드
                     askDvo.setReceiveCompanyCode(session.getCompanyCode()); // 수납회사코드
 
                     /*수납요청기본 데이터 생성*/
@@ -308,13 +299,14 @@ public class WwdbGiroDepositMgtService {
                     askDvo.setContractSerialNumber(list.cntrSn()); //계약일련번호
                     askDvo.setProductCode(selectContractDetail.basePdCd());//상품코드
                     askDvo.setReceiveAskAmount(
-                        Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
+                        Integer.toString(Integer.parseInt(list.rveAmt()))
                     );//수납요청금액
                     askDvo.setReceiveAmount(
-                        Integer.toString(Integer.parseInt(list.rveAmt()) + Integer.parseInt(list.giroFee()))
+                        Integer.toString(Integer.parseInt(list.rveAmt()))
                     );//수납금액
-                    askDvo.setReceiveStatusCode("02"); //수납상태코드 수납완료(02)
+                    askDvo.setReceiveStatusCode("01"); //수납상태코드 수납완료(02)
                     askDvo.setIncmdcYn("N"); //소득공제여부
+                    askDvo.setReceiveAskObjectDrmNumber1(list.dpDt());
 
                     // 수납요청상세 데이터 생성
                     processCount += zwdzWithdrawalService.createReceiveAskDetail(askDvo);
@@ -341,11 +333,11 @@ public class WwdbGiroDepositMgtService {
                         //입금대사 서비스 호출
                         HashMap<String, Object> comfirmation = depositComparisonComfirmationService.createDepositComparisonComfirmation(list.itgDpNo(), null);
 
-                        ZwdbEtcDepositProcessingDvo processingDvo = new ZwdbEtcDepositProcessingDvo();
-                        processingDvo.setRveNo(comfirmation.get("RVE_NO").toString());
-                        processingDvo.setRveDt(dto.rveDt());
-                        processingDvo.setPerfDt(dto.fntDt());
-                        etcDepositMapper.updateReceiveDateModify(processingDvo);
+//                        ZwdbEtcDepositProcessingDvo processingDvo = new ZwdbEtcDepositProcessingDvo();
+//                        processingDvo.setRveNo(comfirmation.get("RVE_NO").toString());
+//                        processingDvo.setRveDt(dto.rveDt());
+//                        processingDvo.setPerfDt(dto.fntDt());
+//                        etcDepositMapper.updateReceiveDateModify(processingDvo);
                     }
 
 
@@ -780,5 +772,21 @@ public class WwdbGiroDepositMgtService {
             .selectBillingDocumentMgtLedgerItemization(fntDts);
 
         return itemizationRes;
+    }
+
+    @Transactional
+    public List<WwdbGiroDepositSaveDvo> getGiroPerfDt(List<SaveReq> dtos) {
+
+        List<WwdbGiroDepositSaveDvo> editPerfDt = new ArrayList<WwdbGiroDepositSaveDvo>();
+
+        for (SaveReq dto : dtos) {
+            WwdbGiroDepositSaveDvo wwdbGiroDepositSaveDvo = convert.mapSearchWwwdbGiroDepositSaveDvo(dto);
+            String perfDt = mapper.selectGiroPerfDt(dto.rveDt());
+            wwdbGiroDepositSaveDvo.setRveDt(perfDt);
+            wwdbGiroDepositSaveDvo.setFntDt(perfDt);
+            editPerfDt.add(wwdbGiroDepositSaveDvo);
+        }
+
+        return editPerfDt;
     }
 }

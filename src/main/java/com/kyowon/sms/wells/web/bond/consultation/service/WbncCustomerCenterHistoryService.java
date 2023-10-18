@@ -14,12 +14,25 @@ import com.sds.sflex.common.utils.StringUtil;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 고객센터 컨택이력 조회
+ * </pre>
+ *
+ * @author songmi.in
+ * @since 2023-09-14
+ */
 @Service
 @RequiredArgsConstructor
 public class WbncCustomerCenterHistoryService {
     private final EaiInterfaceService interfaceService;
     private static final String CST_CENTER_URL = "/W/SV/EAI_WSVO1013/req";
 
+    /**
+     * [EAI_WSVO1013] 고객센터 컨택이력 조회
+     * @param cstNo
+     * @return
+     */
     public List<FindRes> getCustomerCenterHistories(String cstNo) {
         CustomerReqIvo req = new CustomerReqIvo();
         req.setCstNo(cstNo);

@@ -6,5 +6,12 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProdcutOutOfStorageSaveD
 
 @Mapper
 public interface WsnaMdProductOutOfStorageSaveMapper {
+
+    int selectExistSvpdCstSvWkRsIz(WsnaMdProdcutOutOfStorageSaveDvo vo);
+
+    void updateSvpdCstSvasIstAsnIz(WsnaMdProdcutOutOfStorageSaveDvo vo);
+
     void updateSvpdCstSvExcnIz(WsnaMdProdcutOutOfStorageSaveDvo vo);
+
+    void insertSvpdCstSvWkRsIz(WsnaMdProdcutOutOfStorageSaveDvo vo);
 }

@@ -224,19 +224,6 @@
 				   AND TEMP.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
 				   AND OG_ID IN ('OG00098159', 'OG00098160', 'OG00098161', 'OG00098163')
 				  UNION
-                </if>
-                SELECT T1.OG_ID
-                     , T1.OG_TP_CD
-                     , T1.OG_CD
-                     , T1.OG_NM
-                     , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
-                     , T1.HGR_OG_ID
-                  FROM TB_OGBS_MM_OG_IZ T1
-                 WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                   AND T1.OG_TP_CD = 'W02'
-                   AND T1.OG_LEVL_DV_CD = '3'
-                   AND T1.DTA_DL_YN = 'N'
-                 UNION
                 SELECT T2.OG_ID
                      , T2.OG_TP_CD
                      , T2.OG_CD
@@ -251,11 +238,33 @@
                    AND T2.OG_LEVL_DV_CD = '1'
                    AND T2.CLO_YN = 'N'
                    AND T2.DTA_DL_YN = 'N'
+                 UNION
+                </if>
+                SELECT T1.OG_ID
+                     , T1.OG_TP_CD
+                     , T1.OG_CD
+                     , T1.OG_NM
+                     , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
+                     , T1.HGR_OG_ID
+                  FROM TB_OGBS_MM_OG_IZ T1
+                 WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND T1.OG_TP_CD = 'W02'
+                   AND T1.OG_LEVL_DV_CD = '3'
+                   AND T1.DTA_DL_YN = 'N'
+             <if test="@MybatisUtils@isNotEmpty(managerAuthYn) and @MybatisUtils@equals(managerAuthYn, 'Y')">
+                 <if test="@MybatisUtils@isNotEmpty(bznsSpptRsbDvCd) and @MybatisUtils@equals(bznsSpptRsbDvCd, 'W0206')">
+                   -- 업무지원매니저(W0206)인 경우만
+                   --AND T1.OG_LEVL_DV_CD = '1'
+                   AND T1.DGR2_LEVL_OG_ID = #{manageOgId}
+                 </if>
+                 <if test="@MybatisUtils@isNotEmpty(bznsSpptRsbDvCd) and @MybatisUtils@equals(bznsSpptRsbDvCd, 'W0207')">
+                   -- 영업지원매니저-BM(W0207)인 경우만
+                   --AND T1.OG_LEVL_DV_CD = '2'
+                   AND T1.DGR1_LEVL_OG_ID = #{manageOgId}
+                 </if>
+             </if>
               ) T3
         WHERE 1=1
-        <if test="@MybatisUtils@isNotEmpty(ogId)">
-          AND OG_ID = #{ogId}
-        </if>
         ORDER BY T3.OG_CD
     </select>
 
@@ -474,13 +483,25 @@
 	</update>
 
     <select id="selectBsPeriodCustomersManagerAuthYn" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto$SearchAuthRes">
-        SELECT DECODE(COUNT(t1.OG_ID), 0, 'N','Y') AS MANAGER_AUTH_YN        -- Y인 경우 업무담당자 or BM 으로 지정됨
-          FROM TB_OGBS_SPPT_OG_IZ t1
-         WHERE 1=1
-           AND t1.BZNS_SPPT_RSB_DV_CD IN ('W0206', 'W0207') -- 업무담당자, BM 지정 코드
-           AND t1.OG_TP_CD = 'W02'                -- M조직
-           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN t1.MNGT_STRT_DT AND t1.MNGT_END_DT
-           AND t1.PRTNR_NO = #{session.employeeIDNumber}             -- 세션의 파트너 사번
+        -- BS담당자이관 구분 쿼리
+        SELECT NVL(MAX(MANAGER_AUTH_YN),'N') AS MANAGER_AUTH_YN
+             , MAX(BZNS_SPPT_RSB_DV_CD)         AS BZNS_SPPT_RSB_DV_CD
+             , MAX(OG_ID)                     AS MANAGE_OG_ID
+             , '' AS OG_ID      -- session OG_ID를 사용하기 위한 empty parameter
+          FROM (SELECT DECODE(t1.OG_ID, t1.OG_ID, 'Y','N') AS MANAGER_AUTH_YN        -- Y인 경우 업무담당자 or BM 으로 지정됨
+                     , t1.BZNS_SPPT_RSB_DV_CD
+                     , t1.OG_ID
+                  FROM TB_OGBS_SPPT_OG_IZ t1
+                     , TB_OGBS_MM_OG_IZ t2
+                 WHERE t1.OG_ID = t2.OG_ID
+                   AND t2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND ((t1.BZNS_SPPT_RSB_DV_CD = 'W0206' AND t1.OG_ID = t2.DGR2_LEVL_OG_ID)  -- 업무담당자
+                       OR (t1.BZNS_SPPT_RSB_DV_CD = 'W0207' AND t1.OG_ID = t2.DGR1_LEVL_OG_ID)) -- BM
+                   AND t1.OG_TP_CD = 'W02'                -- M조직
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN t1.MNGT_STRT_DT AND t1.MNGT_END_DT
+                   AND t1.PRTNR_NO = #{session.employeeIDNumber}             -- 세션의 파트너 사번
+                   AND rownum = 1
+                 GROUP BY t1.BZNS_SPPT_RSB_DV_CD, t1.OG_ID)
     </select>
 
 </mapper>

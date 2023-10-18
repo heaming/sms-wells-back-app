@@ -20,6 +20,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0017M01 책임지역 담당자 관리
+ * </pre>
+ *
+ * @author hyewon.kim
+ * @since 2022.12.22
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/responsible-area-charges")
 @Api(tags = "[WSNC] 책임지역 담당자 관리 REST API")
@@ -29,7 +37,12 @@ public class WsncRpbAreaChargeMgtController {
 
     private final WsncRpbAreaChargeMgtService service;
 
-    @ApiOperation(value = "책임지역 담당자 관리", notes = "조회조건에 일치하는 책임지역별 책임담당자, 작업그룹, 서비스센터(지점) 등을 조회한다.")
+    /**
+     * 책임지역 담당자 조회
+     * @param dto 조회조건
+     * @return 책임지역 담당자 목록
+     */
+    @ApiOperation(value = "책임지역 담당자 조회", notes = "조회조건에 일치하는 책임지역별 책임담당자, 작업그룹, 서비스센터(지점) 등을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "zipFrom", value = "우편번호From", paramType = "query", example = "011"),
         @ApiImplicitParam(name = "zipTo", value = "우편번호To", paramType = "query", example = "022"),
@@ -45,6 +58,12 @@ public class WsncRpbAreaChargeMgtController {
         return this.service.getAreaCharges(dto);
     }
 
+    /**
+     * 책임지역 담당자 저장
+     * @param dtos 저장할 담당자 배열
+     * @return 처리건수
+     * @throws Exception
+     */
     @ApiOperation(value = "책임지역 담당자 저장", notes = "책임지역별 적용시작일자, 적용종료일자, 담당파트너번호, 예비담당파트너번호1~5 정보를 저장한다.")
     @PostMapping
     public SaveResponse createAreaCharges(

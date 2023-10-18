@@ -105,6 +105,11 @@ public class WsnaOutOfStorageAskMngtService {
         return outOfDvo;
     }
 
+    /**
+     * 출고요청 관리 엑셀다운로드
+     * @param dto
+     * @return
+     */
     public List<WsnaOutOfStorageAskMngtDvo> getOutOfStorageItemExcelDownload(SearchReq dto) {
 
         WsnaOutOfStorageAskMngtSearchDvo searchExcelDvo = this.converter
@@ -196,6 +201,11 @@ public class WsnaOutOfStorageAskMngtService {
         return this.mapper.selectOstrObjectWarehouses(dto);
     }
 
+    /**
+     * 출고요청 관리 삭제
+     * @param dtos
+     * @return
+     */
     @Transactional
     public int removeOutOfStorageAskItems(List<RemoveReq> dtos) {
         int processCount = 0;
@@ -246,6 +256,11 @@ public class WsnaOutOfStorageAskMngtService {
         return processCount;
     }
 
+    /**
+     * 출고요청 저장
+     * @param dtos
+     * @return
+     */
     @Transactional
     public int saveOutOfStorageAskItems(List<SaveReq> dtos) {
         int processCount = 0;
@@ -311,7 +326,7 @@ public class WsnaOutOfStorageAskMngtService {
                             .selectLogisticsOutStorageAskInfo(createOstrAkNos);
                         List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
                             .mapAllCreateOutOfStorageAsksDvo(createLogisticsDvo);
-                        logisticsservice.createOutOfStorageAsks(dvo);
+                        logisticsservice.createOutOfStorageAsks(dvo, false);
                     } else {
                         //영업센터일경우
                         List<WsnaOutOfStorageAskMngtDvo> businessCreateLogisticsDvo = this.mapper

@@ -21,6 +21,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0036M01 책임지역 우편번호 관리
+ * </pre>
+ *
+ * @author hyewon.kim
+ * @since 2022.11.17
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/responsible-area-zips")
 @Api(tags = "[WSNC] 책임지역 우편번호 관리 REST API")
@@ -30,6 +38,11 @@ public class WsncRpbAreaZipMgtController {
 
     private final WsncRpbAreaZipMgtService service;
 
+    /**
+     * 책임지역 우편번호 조회
+     * @param dto 조회조건
+     * @return 책임지역 우편번호 목록
+     */
     @ApiOperation(value = "책임지역 우편번호 조회", notes = "조회조건에 일치하는 책임지역 우편번호 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "zipFrom", value = "우편번호From", paramType = "query", example = "011"),
@@ -46,12 +59,22 @@ public class WsncRpbAreaZipMgtController {
         return this.service.getZipNos(dto);
     }
 
-    @ApiOperation(value = "책임지역 법정동 행정동 리스트 조회", notes = "책임지역 법정동 행정동 리스트 조회한다.")
+    /**
+     * 책임지역 법정동 행정동 목록 조회
+     * @return 법정동 행정동 목록
+     */
+    @ApiOperation(value = "책임지역 법정동 행정동 목록 조회", notes = "책임지역 법정동 행정동 목록을 조회한다.")
     @GetMapping("/districts")
     public List<District> getDistricts() {
         return this.service.getDistricts();
     }
 
+    /**
+     * 책임지역 우편번호 저장
+     * @param dtos 저장할 책임지역 우편번호 배열
+     * @return 처리건수
+     * @throws Exception
+     */
     @ApiOperation(value = "책임지역 우편번호 저장", notes = "책임지역 우편번호를 저장한다.")
     @PostMapping
     public SaveResponse createZipNos(

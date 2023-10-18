@@ -79,6 +79,11 @@ public class WdccSalesPerformDto {
         String islease
     ) {}
 
+    /**
+     * 일시불 조회 요청
+     * @param cntrNo 계약번호
+     * @param cntrSn 계약일련번호
+     */
     @ApiModel("WdccSalesPerformDto-SearchSinglePaymentReq")
     public record SearchSinglePaymentReq(
         @NotBlank

@@ -17,6 +17,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0072M01 개인별 서비스 현황
+ * </pre>
+ *
+ * @author kyunglyn.lee
+ * @since 2023-06-17
+ */
 @Service
 @RequiredArgsConstructor
 public class WsnbIndividualServicePsService {
@@ -25,21 +33,44 @@ public class WsnbIndividualServicePsService {
     private final WsnbIndividualServicePsConverter converter;
     private final AttachFileService attachFileService;
 
+    /**
+     * 개인별서비스현황 조회
+     */
     public SearchRes getIndividualServicePs(SearchReq dto){
         return mapper.selectIndividualServicePs(dto);
-    } // 개인별서비스현황 조회
+    }
+
+    /**
+     * 가구화 조회
+     */
     public List<SearchHouseholdRes> getIndividualServiceHousehold(SearchReq dto){
         return converter.mapSearchHouseholdToDvo(mapper.selectIndividualServiceHousehold(dto)) ;
-    } // 가구화 조회
+    }
+
+    /**
+     * 컨택현황 조회
+     */
     public List<SearchContactRes> getIndividualServiceContact(SearchReq dto){
         return mapper.selectIndividualServiceContact(dto);
-    } // 컨택현황 조회
+    }
+
+    /**
+     * 연계코드 조회
+     */
     public List<SearchFarmRes> getIndividualServiceFarm(SearchReq dto){
         return mapper.selectIndividualFarm(dto);
-    } // 연계코드 조회
+    }
+
+    /**
+     * 연체정보 조회
+     */
     public List<SearchDelinquentRes> getIndividualDelinquent(SearchReq dto){
         return mapper.selectIndividualDelinquent(dto);
-    } // 연체정보 조회
+    }
+
+    /**
+     * 처리내역 조회
+     */
     public PagingResult<SearchStateRes> getIndividualProcessState(SearchReq dto, PageInfo pageInfo){
         PagingResult<WsnbIndividualServicePsDvo> dvos = mapper.selectIndividualProcessState(dto, pageInfo);
 
@@ -65,22 +96,30 @@ public class WsnbIndividualServicePsService {
         rtnDtos.setPageInfo(dvos.getPageInfo());
 
         return rtnDtos;
-        // return converter.mapAllSearchStateToDvo(dvos);
-//        return mapper.selectIndividualProcessState(dto, pageInfo);
-    } // 처리내역 조회
+    }
 
+    /**
+     * 처리내역 엑셀 다운로드
+     */
     public List<SearchStateRes> getIndividualProcessStateExcelDownload(SearchReq dto)throws Exception{
         List<WsnbIndividualServicePsDvo> dvos = mapper.selectIndividualProcessState(dto);
         return converter.mapAllSearchStateResToDvo(dvos);
     }
+
+    /**
+     * 상담내역 조회
+     */
     public PagingResult<SearchCounselRes> getIndividualCounsel(SearchReq dto, PageInfo pageInfo){
         return mapper.selectIndividualCounsel(dto, pageInfo);
-    } // 상담내역 조회
+    }
 
+    /**
+     * 고객특이사항 저장
+     */
     @Transactional
     public int saveUnusualItem(SaveReq dto){
         WsnbIndividualServicePsDvo dvo = converter.mapWsnbIndividualServicePsDvoToSaveReq(dto);
         mapper.insertUnusualItem(dvo);
         return 1;
-    } // 고객특이사항 저장
+    }
 }

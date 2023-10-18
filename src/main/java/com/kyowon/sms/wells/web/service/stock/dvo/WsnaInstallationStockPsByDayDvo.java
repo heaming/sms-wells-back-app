@@ -10,8 +10,8 @@ public class WsnaInstallationStockPsByDayDvo {
     String ogNm;
     String pdCd;
     String pdNm;
-    Integer strSum;
-    Integer prvMngSum;
+    Integer prvMng;
+    Integer engQty;
     Integer stockTotal;
     Integer stockdate1;
     Integer stockdate2;

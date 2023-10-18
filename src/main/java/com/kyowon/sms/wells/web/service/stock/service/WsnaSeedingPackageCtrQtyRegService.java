@@ -5,6 +5,7 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingPackageCtrQt
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaSeedingPackageCtrQtyRegConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedingPackageCtrQtyRegDvo;
@@ -43,6 +44,7 @@ public class WsnaSeedingPackageCtrQtyRegService {
      * @param dtos
      * @return
      */
+    @Transactional
     public int saveSeedingPackageCtrQtys(List<SaveReq> dtos) {
 
         int count = 0;

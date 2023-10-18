@@ -10,6 +10,7 @@ public class WwdcSalesControlDto {
     @ApiModel("WwdcSalesControlDto-SearchSalesControlReq")
     public record SearchSalesControlReq(
         String sellTp, /* 판매유형 */
+        String sellTpDtlCd, /* 판매유형상세 */
         String exmpYn, /* 방학면제여부 */
         String perfStrtDtm, /* 실적 To*/
         String perfFshDtm, /* 실적 From*/
@@ -36,7 +37,8 @@ public class WwdcSalesControlDto {
         String pdCd, /* 제품코드 */
         String pdNm, /* 제품명 */
         String slCtrTpCd,
-        String slCtrSellTpCd, /* 판매유형코드*/
+        String slCtrSellTpCd, /* 판매유형코드 */
+        String sellTpDtlCd, /* 판매유형상세코드 */
         String slCtrMtrDvCd, /* 자료구분코드 */
         String slCtrMtrTpCd, /* 매출조정자료유형코드 */
         String slCtrDvCd, /* 매출조정구분코드 */

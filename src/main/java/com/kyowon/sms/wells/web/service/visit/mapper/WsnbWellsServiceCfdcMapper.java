@@ -5,10 +5,7 @@ import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.HistoryReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.HistoryRes;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.SearchRes;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.*;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWellsServiceCfdcDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -28,4 +25,6 @@ public interface WsnbWellsServiceCfdcMapper {
     );
 
     Optional<WsnbWellsServiceCfdcDvo> selectCustomer(String cstSvAsnNo);
+
+    Optional<WsnbWellsServiceCfdcDvo> selectOzReport(FindOzReq dto);
 }

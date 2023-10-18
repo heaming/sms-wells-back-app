@@ -11,10 +11,12 @@ import java.util.List;
 
 @Mapper
 public interface WfeySellProductTypeMapper {
+    /* 판매상품별 제품유형 - 조회 */
     List<SearchSellProductRes> selectSellProductTypeList(SearchSellProductReq req);
     PagingResult<SearchSellProductRes> selectSellProductTypeList(SearchSellProductReq req, PageInfo pageInfo);
-
+    /* 판매상품별 제품유형 - 정합성체크 */
     int selectDuplicateSellProductType(WfeySellProductTypeDvo req);
+    /* 판매상품별 제품유형 - 저장 및 삭제 */
     int insertSellProductType(WfeySellProductTypeDvo req);
     int updateSellProductType(WfeySellProductTypeDvo req);
     int deleteSellProductType(WfeySellProductTypeDvo req);

@@ -43,7 +43,7 @@ public class WdcdMarketableSecuritieMgtService {
 //        String cnfmYn = mapper.selectCheckWhetherMonthFinalized(firstReq);
 //        //2. 1번에서 CNFM_YN 결과값이 'Y'이면 alert 띄운다.
 //        if ("Y".equals(cnfmYn)) {
-//            BizAssert.isTrue(false, "해당 월은 등록/수정 불가합니다."); // TODO 메세지 처리
+//            BizAssert.isTrue(false, "해당 월은 등록/수정 불가합니다.");
 //        }
         //3. 카드 정보/금액 조회 (ASIS : getAccCardInfoDetail)
         AccCardInfoDetailRes res = mapper.selectAccCardInfoDetail(firstReq);

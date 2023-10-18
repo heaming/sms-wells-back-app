@@ -16,8 +16,8 @@ import lombok.ToString;
 @Setter
 @ToString
 public class WdcbSalesConfirmReceivingAndPayingDvo {
-    private String sppMthdTpCd;
-    private String sapPlntCd;
-    private String sapSaveLctCd;
-    private int cnt;
+    private String sppMthdTpCd; /*배송방식유형코드*/
+    private String sapPlntCd; /* SAP플랜트코드 */
+    private String sapSaveLctCd; /* sap저장위치코드*/
+    private String lgstItmGdCd; /*물류품목등급코드*/
 }

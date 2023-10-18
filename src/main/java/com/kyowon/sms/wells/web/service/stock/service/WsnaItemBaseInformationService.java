@@ -14,10 +14,17 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationReturnD
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationSearchDvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemBaseInformationMapper;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
+
+/**
+ * <pre>
+ * W-SV-U-0173P01 품목기본정보 팝업 서비스
+ * </pre>
+ *
+ * @author songTaeSung
+ * @since 2023.02.20
+ */
 
 @Service
 @RequiredArgsConstructor
@@ -37,23 +44,28 @@ public class WsnaItemBaseInformationService {
 
     private static final String LGST_DV_CD = "1";
 
-    public PagingResult<WsnaItemBaseInformationReturnDvo> getItemBaseInformations(SearchReq dto, PageInfo pageInfo) {
+    /**
+     * 품목 기본정보 조회
+     * @param dto
+     * @return
+     */
+    public List<WsnaItemBaseInformationReturnDvo> getItemBaseInformations(SearchReq dto) {
 
         WsnaItemBaseInformationSearchDvo searchDvo = this.converter.mapSearchReqToWsnaItemBaseInformationSearchDvo(dto);
 
-        PagingResult<WsnaItemBaseInformationReturnDvo> returnBaseDvo = this.mapper
-            .selectItemBaseInformations(searchDvo, pageInfo);
-
-        List<WsnaItemBaseInformationReturnDvo> dvos = returnBaseDvo.getList();
+        List<WsnaItemBaseInformationReturnDvo> dvos = this.mapper.selectItemBaseInformations(searchDvo);
 
         this.getRealTimeItemBaseLogisticStockQtys(dvos);
 
-        returnBaseDvo.setList(dvos);
-
-        return returnBaseDvo;
+        return dvos;
     }
 
-    public PagingResult<WsnaItemBaseInformationDvo> getItemBaseInformationsOutOf(SearchReq dto, PageInfo pageInfo) {
+    /**
+     * 품목 기본정보 조회 (출고내역)
+     * @param dto
+     * @return
+     */
+    public List<WsnaItemBaseInformationDvo> getItemBaseInformationsOutOf(SearchReq dto) {
 
         WsnaItemBaseInformationSearchDvo searchDvo = this.converter.mapSearchReqToWsnaItemBaseInformationSearchDvo(dto);
 
@@ -61,27 +73,39 @@ public class WsnaItemBaseInformationService {
 
         searchDvo.setOstrWareDvCd(ostrWareDvCd);
 
-        PagingResult<WsnaItemBaseInformationDvo> itemBaseDvo = this.mapper
-            .selectItemBaseInformationsOutOf(searchDvo, pageInfo);
+        List<WsnaItemBaseInformationDvo> dvos = this.mapper.selectItemBaseInformationsOutOf(searchDvo);
 
-        List<WsnaItemBaseInformationDvo> dvos = itemBaseDvo.getList();
         //출고대상 창고가 물류센터일경우
         if (LGST_DV_CD.equals(ostrWareDvCd) && CollectionUtils.isNotEmpty(dvos)) {
             // 실시간 물류 재고조회
             this.getRealTimeLogisticStockQtys(dvos);
         }
-        itemBaseDvo.setList(dvos);
-        return itemBaseDvo;
+
+        return dvos;
     }
 
+    /**
+     * 품목 기본정보 조회 (신청내역)
+     * @param dto
+     * @return
+     */
     public List<SearchAplcRes> getItemBaseInformationAplcLists(SearchAplcReq dto) {
         return this.mapper.selectItemBaseInformationAplcLists(dto);
     }
 
+    /**
+     * 창고 구분, 상세구분 조회
+     * @param dto
+     * @return
+     */
     public List<SearchWareRes> getItemBaseInformationWareDvCds(SearchReq dto) {
         return this.mapper.selectItemBaseInformationWareDvCds(dto);
     }
 
+    /**
+     * 실시간 물류재고 조회 (품목기본정보 조회)
+     * @param dvos
+     */
     private void getRealTimeItemBaseLogisticStockQtys(List<WsnaItemBaseInformationReturnDvo> dvos) {
         if (CollectionUtils.isNotEmpty(dvos)) {
             int size = dvos.size();
@@ -103,6 +127,10 @@ public class WsnaItemBaseInformationService {
         }
     }
 
+    /**
+     * 실시간 물류재고 조회 (품목 기본정보 조회 - 출고내역)
+     * @param dvos
+     */
     private void getRealTimeLogisticStockQtys(List<WsnaItemBaseInformationDvo> dvos) {
         if (CollectionUtils.isNotEmpty(dvos)) {
 
@@ -127,6 +155,11 @@ public class WsnaItemBaseInformationService {
         }
     }
 
+    /**
+     * 물류재고 셋팅 (품목기본정보 조회)
+     * @param stocks
+     * @param sliceDvos
+     */
     private void setItemBaseTotalLogisticQty(
         List<RealTimeGradeStockResIvo> stocks, List<WsnaItemBaseInformationReturnDvo> sliceDvos
     ) {
@@ -158,6 +191,11 @@ public class WsnaItemBaseInformationService {
         }
     }
 
+    /**
+     * 물류재고 셋팅 (품목 기본정보 조회 - 출고내역)
+     * @param stocks
+     * @param sliceDvos
+     */
     private void setTotalLogisticQty(
         List<RealTimeGradeStockResIvo> stocks, List<WsnaItemBaseInformationDvo> sliceDvos
     ) {

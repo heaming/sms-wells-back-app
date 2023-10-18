@@ -20,6 +20,15 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0210P01 품목위치관리 팝업, W-SV-U-0137M01 품목위치 관리 Controller
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-10-10
+ */
+
 @Api(tags = "[WSNA] 품목위치관리 REST API")
 @Validated
 @RequiredArgsConstructor

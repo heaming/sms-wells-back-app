@@ -11,7 +11,7 @@ import java.util.List;
  * W-SV-U-0035M01 책임지역 지역코드 관리
  * </pre>
  *
- * @author gs.piit129 천영화
+ * @author yeonghwa.cheon
  * @since 2022.11.22
  */
 public class WsncRpbAreaCodeMgtDto {
@@ -31,7 +31,6 @@ public class WsncRpbAreaCodeMgtDto {
 
     @ApiModel(value = "WsncRpbLocaraCdMngtDto-SearchRes")
     public record SearchRes(
-        String chk,
         String fr2pLgldCd, /* 법정동코드 앞2자리 */
         String ctpvNm, /* 시도명 */
         String ctctyNm, /* 시군구명 */
@@ -41,8 +40,6 @@ public class WsncRpbAreaCodeMgtDto {
         String zipList, /* 우편번호 List */
         String apyStrtdt, /* 적용시작일자 */
         String apyEnddt, /* 적용종료일자 */
-        //        String mgtCnt, /* 지역별 서비스 계정 수 */
-        //        String wrkCnt, /* 월별 수임 건수 (조회월 이전 3개월 평균) */
         String rpbLocaraCd, /* 책임지역코드 */
         String rpbLocaraGrpCd, /* 책임지역그룹코드 */
         String vstDowVal, /* 방문요일코드 */
@@ -52,7 +49,7 @@ public class WsncRpbAreaCodeMgtDto {
         String ichrPrtnrNo, /* 담당파트너번호 */
         String prtnrKnm, /* 파트너한글명 */
         String locaraCenStruAdr, /* 지역중심건물주소 */
-        List<WsncRpbAreaCodeDvo> changeCodes
+        List<WsncRpbAreaCodeDvo> changeCodes /* 책임지역변경코드 list(콤보박스생성용) */
     ) {}
 
     @ApiModel(value = "WsncRpbLocaraCdMngtDto-SaveReq")

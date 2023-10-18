@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -42,14 +43,12 @@ public class WsnbWellsServiceCfdcService {
         return mapper.selectWellsServiceConfirmations(dto);
     }
 
-//    public int printWellsServiceConfirmationByReport(ReportReq dto) throws Exception {
-//        return 0;
-//    }
-
     public int sendWellsServiceConfirmationByKakao(KakaoReq dto) throws Exception {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("custNm", dto.nm());
-        paramMap.put("url", "test url");
+        paramMap.put(
+            "url", "https://wsm.kyowon.co.kr/anonymous/sms/wells/service/wells-service-cfdc/report/" + dto.cstSvAsnNo()
+        );
 
         KakaoSendReqDvo dvo = KakaoSendReqDvo.withTemplateCode()
             .templateCode("Wells18053")
@@ -58,6 +57,7 @@ public class WsnbWellsServiceCfdcService {
             .callback(dto.callingNumber())
             .sendDatetime(dto.publishDatetime()) // yyyyMMddHHmmss
             .reserved2("Wells18053")
+            .reserved3(dto.cstSvAsnNo())
             .build();
 
         return kakaoMessageService.sendMessage(dvo);
@@ -66,7 +66,10 @@ public class WsnbWellsServiceCfdcService {
     public int sendWellsServiceConfirmationByEmail(EmailReq dto) throws Exception {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("custNm", dto.nm());
-        paramMap.put("url", "test url");
+        paramMap.put(
+            "url",
+            "https://d-wsm.kyowon.co.kr/anonymous/sms/wells/service/wells-service-cfdc/report/" + dto.cstSvAsnNo()
+        );
 
         List<EmailDto.CreateReceiptUserReq> receiptUsers = new ArrayList<>();
         receiptUsers.add(
@@ -121,12 +124,12 @@ public class WsnbWellsServiceCfdcService {
 
         if (birth.equals(cstDvo.getCstBthd())) {
             ReportDvo dvo = new ReportDvo();
-            dvo.setOzrPath("ksswells/cust/reprt/wellsServConf.ozr");
-            dvo.setOdiPath("/ksswells/cust/reprt/wellsServConf");
+            dvo.setOzrPath("/kyowon_as/wellsServConf.ozr");
             Map<String, String> map = new HashMap();
             map.put("cstSvAsnNo", cstSvAsnNo);
-            map.put("cstNm", cstDvo.getCstNm());
-            map.put("cstBthd", cstDvo.getCstBthd());
+            map.put("searchApiUrl", "/api/v1/anonymous/sms/wells/service/wells-service-cfdc/oz");
+            map.put("rcgvpNm", "");
+            map.put("prtnrNm", "");
             dvo.setArgs(map);
             return reportService.openReport(dvo);
         } else {
@@ -138,6 +141,45 @@ public class WsnbWellsServiceCfdcService {
             dvo.setErrorMessage("등록된 생년월일과 일치하지 않습니다.");
             return reportService.openReportAuthEntry(dvo);
         }
+    }
 
+    public Map<String, Object> getOzReport(FindOzReq dto) {
+        WsnbWellsServiceCfdcDvo dvo = mapper.selectOzReport(dto).orElseThrow(
+            () -> new BizException("MSG_ALT_NO_DATA")
+        );
+
+        List<Map<String, Object>> list1 = new ArrayList<>();
+        Map<String, Object> obj1 = new HashMap<>();
+        obj1.put("CUSTNM", dvo.getRcgvpNm());
+        obj1.put("CHKNAM", "사번");
+        obj1.put("REGDAT", dvo.getCntrCnfmDtm());
+        obj1.put("CNT", "1");
+        list1.add(obj1);
+
+        List<Map<String, Object>> list2 = new ArrayList<>();
+        Map<String, Object> obj2 = new HashMap<>();
+        obj2.put("ROWNUM", "1");
+        obj2.put("CUST_CD", dvo.getCntrNo() + "-" + dvo.getCntrSn());
+        obj2.put("ITEM_NM", dvo.getPdNm());
+        obj2.put("CUST_NM", dvo.getRcgvpNm());
+        if (StringUtils.isEmpty(dvo.getRdadr())) {
+            obj2.put("ADDR", dvo.getRnadr());
+        } else {
+            obj2.put("ADDR", dvo.getRnadr() + " " + dvo.getRdadr());
+        }
+        obj2.put("WRK_DATE", dvo.getVstFshDt());
+        obj2.put("PROC_TXT", dvo.getSvProcsCn());
+        obj2.put("WRK_EMP_NM", dvo.getPsicPrtnrNm());
+        obj2.put("CHKVAL", dvo.getPsicPrtnrNo());
+        list2.add(obj2);
+
+        List<Map<String, Object>> list3 = new ArrayList<>();
+
+        Map<String, Object> rtn = new HashMap<>();
+        rtn.put("jsonMaster", list1);
+        rtn.put("jsonList1", list2);
+        rtn.put("jsonData2", list3);
+
+        return rtn;
     }
 }

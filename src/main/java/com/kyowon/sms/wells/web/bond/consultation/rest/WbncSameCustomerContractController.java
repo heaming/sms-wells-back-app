@@ -9,6 +9,8 @@ import com.kyowon.sms.wells.web.bond.consultation.service.WbncSameCustomerContra
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +22,9 @@ public class WbncSameCustomerContractController {
     private final WbncSameCustomerContractService service;
 
     @ApiOperation(value = "동일고객 계약내역 조회", notes = "동일고객 계약내역을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query", required = true),
+    })
     @GetMapping
     public List<FindContractRes> getContracts(@RequestParam
     String cstNo) {
@@ -27,15 +32,23 @@ public class WbncSameCustomerContractController {
     }
 
     @ApiOperation(value = "동일고객 계약 입금정보 조회", notes = "동일고객 계약번호에 대한 입금정보를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
     @GetMapping("/deposits")
     public List<FindDepositRes> getContractDeposits(@RequestParam
-    String bndBizDvCd, @RequestParam
     String cntrNo, @RequestParam
     int cntrSn) {
-        return service.getContractDeposits(bndBizDvCd, cntrNo, cntrSn);
+        return service.getContractDeposits(cntrNo, cntrSn);
     }
 
     @ApiOperation(value = "동일고객 계약 입금정보 상세조회", notes = "동일고객 계약번호에 대한 입금 상세정보를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "bndBizDvCd", value = "고객번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
     @GetMapping("/deposit")
     public FindDepositInfoRes getContractDeposit(@RequestParam
     String bndBizDvCd, @RequestParam
@@ -45,6 +58,11 @@ public class WbncSameCustomerContractController {
     }
 
     @ApiOperation(value = "동일고객 계약 위약정보 조회", notes = "동일고객 계약번호에 대한 위약정보를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "bndBizDvCd", value = "고객번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
     @GetMapping("/breach-of-promise")
     public FindBreachOfPromiseRes getBreachOfPromise(@RequestParam
     String bndBizDvCd, @RequestParam
@@ -61,6 +79,10 @@ public class WbncSameCustomerContractController {
     }
 
     @ApiOperation(value = "동일고객 계약 입금 상세조회", notes = "동일고객 계약번호에 대한 입금 상세정보를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
     @GetMapping("/deposit-details")
     public List<FindDepositDtlRes> getDeposits(@RequestParam
     String cntrNo, @RequestParam

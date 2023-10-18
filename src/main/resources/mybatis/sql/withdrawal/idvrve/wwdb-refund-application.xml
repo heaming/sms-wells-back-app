@@ -101,135 +101,349 @@
     </select>
 
     <select id="selectRefundContractDetail" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundContractDetailRes">
-        SELECT T2.CNTR_NO
-             , T2.CNTR_SN
-             , T2.CNTR_DTL_NO
-             , T2.SELL_TP_CD
-             , T2.CST_NO
-             , SUM(T2.RFND_PSB_AMT) AS RFND_PSB_AMT
-             , T2.PD_CD
-             , T2.PD_NM
-             , T2.CST_KNM
-             , SUM(T2.DP_AMT) AS DP_AMT
-             , SUM(T2.DLQ_ADD_AMT) AS DLQ_ADD_AMT
-             , SUM(T2.MM_ISTM_AMT) AS MM_ISTM_AMT
-             , SUM(T2.BOR_AMT) AS BOR_AMT
-             , SUM(T2.SV_AMT) AS SV_AMT
-             , SUM(T2.SELL_AMT) AS SELL_AMT
+        SELECT A1.CNTR_NO
+             , A1.CNTR_SN
+             , A1.CNTR_DTL_NO
+             , A1.SELL_TP_CD
+             , A1.CST_NO
+             , A1.PD_CD
+             , A1.PD_NM
+             , A1.CST_KNM
+             , A1.COPN_DV_CD
+             , NVL(A1.DP_AMT, 0) DP_AMT
+             , NVL(A1.SELL_AMT, 0) SELL_AMT
+             , NVL(G1.EOT_DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT  /* 연체가산금 */
+             , NVL(E1.RENTAL_AMT, 0) AS MM_ISTM_AMT /* 월 납부금(월 납입금) */
+             , NVL(F1.EOT_BOR_AMT, 0) AS BOR_AMT /* 위약금 */
+             , NVL(E1.EOT_SV_AMT, 0) AS SV_AMT /* 서비스금액 */
+<!--             , (NVL(A1.DP_AMT, 0) - NVL(G1.EOT_DLQ_ADD_AMT,0) - NVL(E1.RENTAL_AMT,0) - NVL(F1.EOT_BOR_AMT,0) - NVL(E1.EOT_SV_AMT , 0)) RFND_PSB_AMT-->
+             , M2.RFND_ALLOW_AMT AS RFND_PSB_AMT
+             , #{cntrStartDay} AS CNTR_START_DAY
+             , #{cntrEndDay} AS CNTR_END_DAY
+             --, A3.RVE_NO
+             --, A3.DP_DT
+             --, A3.RVE_DT
+             --, A3.DP_TP_CD
           FROM (
-                 SELECT T1.CNTR_NO
-                      , T1.CNTR_SN
-                      , T1.CNTR_DTL_NO
-                      , T1.SELL_TP_CD
-                      , T1.CST_NO
-                      , (T1.DP_AMT - T1.MM_ISTM_AMT - T1.DLQ_ADD_AMT - T1.BOR_AMT - T1.SV_AMT) AS RFND_PSB_AMT
-                      , T1.PD_CD
-                      , T1.PD_NM
-                      , T1.CST_KNM
-                      , T1.DP_AMT
-                      , T1.DLQ_ADD_AMT
-                      , T1.MM_ISTM_AMT
-                      , T1.BOR_AMT
-                      , T1.SV_AMT
-                      , T1.SELL_AMT
-                  FROM ( SELECT
-                                 RRD.CNTR_NO
-                               , RRD.CNTR_SN
-                               , RRD.CNTR_NO ||'-'|| RRD.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 */
-                               , RRD.RVE_NO
-                               , SCD.SELL_TP_CD /* 판매유형코드 */
-                               , SCB.CNTR_CST_NO AS CST_NO
-                               , SCD.BASE_PD_CD AS PD_CD
-                               , PPB.PD_NM /*상품명*/
-                               , CCB.CST_KNM /*고객명*/
-                               , CCB.COPN_DV_CD      /* 법인격유형코드 (01.개인 , 02.법인 )*/
-                               , RRD.DP_DT    /* 입금일자 */
-                               , RRD.RVE_DT   /* 수납일자 */
-                               , RRD.DP_AMT                              /* 입금금액 */
-                               , NVL(CBCB.DLQ_ADD_AMT,0) AS DLQ_ADD_AMT  /* 연체가산금 */
-                               , NVL(CWSMCI.RENTAL_AMT,0) AS MM_ISTM_AMT /* 월 납부금(월 납입금) */
-                               , NVL(CBCB.RSG_BOR_AMT,0) AS BOR_AMT /* 위약금 */
-                               , NVL(CWSMCI.SV_AMT , 0) AS SV_AMT /* 서비스금액 */
-                               , NVL(SCD.SELL_AMT, 0) AS SELL_AMT /* 주문금액 */
-                               , RRAD.CRCDNO_ENCR /* 검색조건(카드번호) */
-                               , RRAD.ACNO_ENCR /* 검색조건(계좌번호) */
-                            FROM TB_RVDW_RVE_DTL RRD      /* 수납상세 */
-                           INNER JOIN TB_RVDW_RVE_AK_DTL RRAD /* 수납요청상세 */
-                              ON RRAD.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD
-                             AND RRAD.RVE_AK_NO = RRD.RVE_AK_NO
-                             AND RRAD.RVE_AK_SN = RRD.RVE_AK_SN
-                             AND RRAD.DTA_DL_YN = 'N'
-                           INNER JOIN TB_SSCT_CNTR_DTL SCD /*계약상세*/
-                              ON SCD.CNTR_NO = RRD.CNTR_NO
-                             AND SCD.CNTR_SN = RRD.CNTR_SN
-                             AND SCD.DTA_DL_YN = 'N'
-                           INNER JOIN TB_SSCT_CNTR_BAS SCB /*계약기본*/
-                              ON SCB.CNTR_NO = SCD.CNTR_NO
-                             AND SCB.DTA_DL_YN = 'N'
-                      LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ CWSMCI /*월마감*/
-                              ON CWSMCI.CNTR_NO = RRD.CNTR_NO
-                             AND CWSMCI.CNTR_SN = RRD.CNTR_SN
-                             AND CWSMCI.DTA_DL_YN = 'N'
-                             AND CWSMCI.SL_CL_YM = TO_CHAR(SYSDATE , 'YYYYMM')
-                           INNER JOIN TB_PDBS_PD_BAS PPB  /*상품기본*/
-                              ON PPB.PD_CD = SCD.BASE_PD_CD
-                             AND PPB.DTA_DL_YN = 'N'
-                      LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS CBCB /*채권계약기본*/
-                              ON CBCB.CNTR_NO = SCD.CNTR_NO
-                             AND CBCB.CNTR_SN = SCD.CNTR_SN
-                             AND CBCB.BASE_YM = TO_CHAR(SYSDATE ,'YYYYMM')
-                             AND CBCB.DTA_DL_YN = 'N'
-                           INNER JOIN TB_CUBS_CST_BAS CCB /*고객기본*/
-                              ON CCB.CST_NO = SCB.CNTR_CST_NO
-                             AND CCB.DTA_DL_YN = 'N'
-                        <if test="@MybatisUtils@isNotEmpty(rfndAkNo)">
-                           INNER JOIN TB_RVDW_RFND_AK_CNTR_DTL RRACD
-                              ON RRACD.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD
-                             AND RRACD.CNTR_NO      = RRD.CNTR_NO
-                             AND RRACD.CNTR_SN      = RRD.CNTR_SN
-                             AND RRACD.DTA_DL_YN    = 'N'
-                             AND RRACD.RFND_AK_NO   = #{rfndAkNo}
+                SELECT A3.KW_GRP_CO_CD
+                     , A3.CNTR_NO
+                     , A3.CNTR_SN
+                     , A3.CNTR_DTL_NO
+                     , A3.SELL_TP_CD
+                     , A3.CST_NO
+                     , A3.PD_CD
+                     , A3.PD_NM
+                     , A3.CST_KNM
+                     , A3.COPN_DV_CD
+                     , SUM(A3.DP_AMT) DP_AMT
+                     , SUM(A3.SELL_AMT) SELL_AMT
+                     --, A3.RVE_NO
+                     --, A3.DP_DT
+                     --, A3.RVE_DT
+                     --, A3.DP_TP_CD
+                     --, A3.DP_AMT
+                  FROM (
+                        SELECT A1.KW_GRP_CO_CD
+                             , A1.CNTR_NO
+                             , A1.CNTR_SN
+                             , A1.CNTR_NO ||'-'|| A1.CNTR_SN AS CNTR_DTL_NO   /* 계약상세번호 */
+                             , A1.RVE_NO
+                             , C1.SELL_TP_CD /* 판매유형코드 */
+                             , D1.CNTR_CST_NO AS CST_NO
+                             , C1.BASE_PD_CD AS PD_CD
+                             , (SELECT A2.PD_NM FROM TB_PDBS_PD_BAS A2 WHERE A2.PD_CD = C1.BASE_PD_CD) PD_NM /*상품명*/
+                             , (SELECT A2.CST_KNM FROM TB_CUBS_CST_BAS A2 WHERE A2.CST_NO = D1.CNTR_CST_NO) CST_KNM   /*고객명*/
+                             , (SELECT A2.COPN_DV_CD FROM TB_CUBS_CST_BAS A2 WHERE A2.CST_NO = D1.CNTR_CST_NO) COPN_DV_CD /* 법인격유형코드 (01.개인 , 02.법인 )*/
+                             , A1.DP_DT   /* 입금일자 */
+                             , A1.RVE_DT  /* 수납일자 */
+                             , A1.RVE_AMT AS DP_AMT  /* 입금금액 */
+                             , A1.DP_TP_CD
+                             , NVL(C1.SELL_AMT, 0) AS SELL_AMT /* 주문금액 */
+                          FROM TB_RVDW_RVE_DTL A1         /* 수납상세 */
+                    INNER JOIN TB_SSCT_CNTR_DTL C1 /*계약상세*/
+                            ON C1.CNTR_NO = A1.CNTR_NO
+                           AND C1.CNTR_SN = A1.CNTR_SN
+                           AND C1.DTA_DL_YN = 'N'
+                    INNER JOIN TB_SSCT_CNTR_BAS D1 /*계약기본*/
+                            ON D1.CNTR_NO = A1.CNTR_NO
+                           AND D1.DTA_DL_YN = 'N'
+                       <if test="@MybatisUtils@isNotEmpty(rfndAkNo)">
+                    INNER JOIN TB_RVDW_RFND_AK_CNTR_DTL H1
+                            ON H1.KW_GRP_CO_CD = A1.KW_GRP_CO_CD
+                           AND H1.CNTR_NO      = A1.CNTR_NO
+                           AND H1.CNTR_SN      = A1.CNTR_SN
+                           AND H1.DTA_DL_YN    = 'N'
+                           AND H1.RFND_AK_NO   = #{rfndAkNo}
+                       </if>
+                         WHERE A1.DTA_DL_YN = 'N'
+                           AND A1.KW_GRP_CO_CD = '2000'
+                           AND A1.DP_DV_CD IN ('1','3') /*입금구분코드 : 1(입금)*/
+                           <if test="@MybatisUtils@isNotEmpty(cntrStartDay) or @MybatisUtils@isNotEmpty(cntrEndDay)">
+                           AND (A1.DP_DT BETWEEN #{cntrStartDay}||'000000' AND #{cntrEndDay}||'235959' OR A1.RVE_DT BETWEEN #{cntrStartDay} AND #{cntrEndDay}) /*수납일자OR입금일자*/
+                           </if>
+                           <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+                           AND A1.CNTR_NO = #{cntrNo}                  /* 계약번호 */
+                           </if>
+                           <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+                           AND A1.CNTR_SN = #{cntrSn}                  /* 계약일련번호 */
+                           </if>
+                           <if test="@MybatisUtils@isNotEmpty(cstNo)">
+                           AND D1.CNTR_CST_NO = #{cstNo}               /* 고객번호 */
+                           </if>
+                       ) A3
+                 WHERE 1=1
+                   <if test="@MybatisUtils@isNotEmpty(copnDvCd)">
+                   AND A3.COPN_DV_CD = #{copnDvCd}             /* 고객유형 */
+                   </if>
+                 GROUP BY A3.KW_GRP_CO_CD
+                     , A3.CNTR_NO
+                     , A3.CNTR_SN
+                     , A3.CNTR_DTL_NO
+                     , A3.SELL_TP_CD
+                     , A3.CST_NO
+                     , A3.PD_CD
+                     , A3.PD_NM
+                     , A3.CST_KNM
+                     , A3.COPN_DV_CD
+                     --, A3.RVE_NO
+                     --, A3.DP_DT
+                     --, A3.RVE_DT
+                     --, A3.DP_TP_CD
+                ) A1
+     LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ E1 /*월마감*/
+             ON E1.SL_CL_YM = TO_CHAR(SYSDATE , 'YYYYMM')
+            AND E1.CNTR_NO = A1.CNTR_NO
+            AND E1.CNTR_SN = A1.CNTR_SN
+            AND E1.DTA_DL_YN = 'N'
+     LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS F1 /*WELLS위약금액기본*/
+             ON F1.PERF_YM = TO_CHAR(SYSDATE ,'YYYYMM')
+            AND F1.CNTR_NO = A1.CNTR_NO
+            AND F1.CNTR_SN = A1.CNTR_SN
+            AND F1.DTA_DL_YN = 'N'
+     LEFT OUTER JOIN TB_CBCL_DLQ_BAS G1 /*연체기본*/
+             ON G1.PERF_YM = TO_CHAR(SYSDATE ,'YYYYMM')
+            AND G1.CNTR_NO = A1.CNTR_NO
+            AND G1.CNTR_SN = A1.CNTR_SN
+            AND G1.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(crdcdNo)'>
+            AND EXSITS (
+                        SELECT 'X'
+                          FROM TB_RVDW_RVE_DTL A2
+                    LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS B2
+                            ON B2.DTA_DL_YN = 'N'
+                           AND B2.ITG_DP_NO = A2.ITG_DP_NO
+                           AND A2.CNTR_NO = A1.CNTR_NO
+                           AND A2.CNTR_SN = A1.CNTR_SN
+                        <if test='@MybatisUtils@equals(encr ,"01")'>
+                           AND B2.CRCDNO_ENCR = #{crdcdNo} /* 카드번호 */
                         </if>
-                           WHERE 1 = 1
-                             AND RRD.DTA_DL_YN ='N'
-                         ) T1
-                  WHERE 1 = 1
-                    <!--           AND RRD.DP_DV_CD IN ('2','4') /* 입금구분코드 2.환불 , 4.전금환불 */-->
-                    <if test="@MybatisUtils@isNotEmpty(cntrStartDay) or @MybatisUtils@isNotEmpty(cntrEndDay)">
-                    AND (T1.CNTR_NO, T1.CNTR_SN) IN (SELECT CNTR_NO, CNTR_SN
-                                                       FROM TB_RVDW_RVE_DTL RVE
-                                                      WHERE RVE.DP_DT BETWEEN #{cntrStartDay} AND #{cntrEndDay} ) /* 수납일자 */
-                    </if>
-                    <if test="@MybatisUtils@isNotEmpty(copnDvCd)">
-                    AND T1.COPN_DV_CD = #{copnDvCd}             /* 고객유형 */
-                    </if>
-                    <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-                    AND T1.CNTR_NO = #{cntrNo}                  /* 계약번호 */
-                    </if>
-                    <if test="@MybatisUtils@isNotEmpty(cntrSn)">
-                    AND T1.CNTR_SN = #{cntrSn}                  /* 계약일련번호 */
-                    </if>
-                    <if test="@MybatisUtils@isNotEmpty(cstNo)">
-                    AND T1.CST_NO = #{cstNo}               /* 고객번호 */
-                    </if>
-                    <choose>
-                     <when test="@MybatisUtils@equals(encr ,'01') and @MybatisUtils@isNotEmpty(crdcdNo)">
-                    AND T1.CRCDNO_ENCR = #{crdcdNo} /* 카드번호 */
-                     </when>
-                     <when test="@MybatisUtils@equals(encr ,'02') and @MybatisUtils@isNotEmpty(acnoEncr)">
-                    AND T1.ACNO_ENCR = #{acnoEncr} /* 계좌번호 */
-                     </when>
-                   </choose>
-                ) T2
-          WHERE 1 = 1
-          GROUP BY T2.CNTR_NO
-                 , T2.CNTR_SN
-                 , T2.CNTR_DTL_NO
-                 , T2.SELL_TP_CD
-                 , T2.CST_NO
-                 , T2.PD_CD
-                 , T2.PD_NM
-                 , T2.CST_KNM
+                        <if test='@MybatisUtils@equals(encr ,"02")'>
+                           AND B2.ACNO_ENCR = #{acnoEncr} /* 계좌번호 */
+                        </if>
+                       )
+        </if>
+        INNER JOIN ( <![CDATA[
+                    SELECT T1.CNTR_NO
+                           , T1.CNTR_SN
+                           , T11.CNTR_CST_NO
+                           /*일시불 환불가능금액*/
+                            /*
+                             * 일시불 환불금 조회 로직 순서
+                             *
+                             * 1) 예정일,매출일이 없는 경우 => 계약금액 전체 환불
+                             * 2) 예정일 & 매출일이 있는경우
+                             *   2-1) 상품변경등록 => 계약금액 전체 환불
+                             *   2-2) 법인미수금계약 법인미수금 환불액 => 법인미수금 입금 초과금액 [법인미수금 입금합계 - 법인미수금계약금액]
+                             */
+                           , CASE WHEN T1.SELL_TP_CD = '1' THEN CASE WHEN T1.SPP_DUEDT IS NULL AND T1.CNTR_PD_STRTDT IS NULL THEN T4.AMT2
+                                                                /* 2) 예정일 & 매출일이 있는경우 2-1) 상품변경등록 => 계약금액 전체 환불 */
+                                                                     WHEN T1.SPP_DUEDT IS NOT NULL AND T1.CNTR_PD_STRTDT IS NOT NULL THEN T4.AMT2
+                                                                /*   2-2) 법인미수 초과금액*/
+                                                                     ELSE T4.GAMT1 - T1.CRP_UC_AMT
+                                                                      END
+                           /*
+                             * 렌탈 금융리스 환불금 조회 로직 순서
+                             *
+                             * 1.완료일 설정된 경우 => 총입금누계 - 입금대체누계 - 총가산입금액 - 등록비용(등록-할인) - 위약금액 - 소모품비
+                             * 2.취소일 설정된 경우 => 마지막달의 선수금- 현재월 연체금
+                             * 3.매출중지인 경우 (금융리스는 매출중지가 없으므로 L20 (렌탈) 만 조회
+                             *   3-1)이번달 연체금액이 없으면 (선수금액 - 렌탈매출액)
+                             *   3-2)이번달 연체금액이 있으면 (연체금액 + 매출중지액)
+                             * 5. 선납인 경우
+                             *   5-1)선납이 살아있는 경우
+                             *     5-1-1)선납년월과 조회년월이 다른경우 => 환불 가능액 = 선수잔액
+                             *     5-1-2)선납년월과 조회년월이 같은 경우 => 환불 가능액 = 선수총액 + 매출금액
+                             *   5-2)선납이 중지된 경우 => 당월선수금 - 당월 발생 추가 매출액 = 환불 가능액
+                             * 6. 그 외
+                             *   6-1) 전월 선수금이 있는 경우
+                             *     6-1-1) 당월매출액이 음수인 경우 => 전월 선수금액 + 당월 입금액 - 당월매출액
+                             *     6-1-2) 그외 => 전월 선수금액+당월 입금액
+                             *   6-2) 그 외
+                             *     6-2-1) 당월매출액이 음수인 경우 => 당월 입금액 - 전월 연체금액 - 당월매출액
+                             *     6-2-2) 그외 => 당월 입금액 - 전월 연체금액 */
+                                                                    /* 1.완료일 설정된 경우 => 총입금누계 - 입금대체누계 - 총가산입금액 - 등록비용(등록-할인) - 위약금액 - 소모품비 */
+                                   WHEN T1.SELL_TP_CD = '2' THEN CASE WHEN T2.FULPY_DT > 0 THEN NVL(T4.AMT1 , 0) - NVL(T2.SL_DP_AGG_AMT , 0) - NVL(T4.AM83 , 0) - NVL(T1.CNTR_AMT,0) -  NVL(T3.BOR_AMT,0) - NVL(T3.CSMB_COST_BOR_AMT2,0)
+                                                               /* 2.취소일 설정된 경우 => 마지막달의 선수금- 현재월 연체금 */
+                                                                      WHEN T2.CAN_DT IS NOT NULL THEN (NVL(T2.EOT_ATAM,0) + NVL(T2.MLG_EOT_PRPD_AMT,0)) - NVL(T5.EOT_DLQ_AMT ,0)
+                                                               /* 3.매출중지인 경우 (금융리스는 매출중지가 없으므로 L20 (렌탈) 만 조회
+                                                               *   3-1)이번달 연체금액이 없으면 (선수금액 - 렌탈매출액) */
+                                                                      WHEN T1.SELL_TP_DTL_CD NOT IN ('22' , '24') AND NVL(T2.SL_STP_YN , 'N' ) = 'Y' AND NVL(T5.EOT_DLQ_AMT,0) = 0  THEN NVL(T5.EOT_ATAM, 0) + NVL(T5.MLG_EOT_PRPD_AMT , 0) - NVL(T5.AM16 , 0)
+                                                               /*   3-2)이번달 연체금액이 있으면 (연체금액 + 매출중지액) */
+                                                                      WHEN T1.SELL_TP_DTL_CD NOT IN ('22' , '24') AND NVL(T2.SL_STP_YN , 'N' ) = 'Y' AND NVL(T5.EOT_DLQ_AMT,0) != 0 THEN NVL(T5.EOT_DLQ_AMT , 0)- NVL(T5.AM16 , 0)
+                                                               /* 5. 선납인 경우
+                                                                         *   5-1)선납이 살아있는 경우
+                                                                         *     5-1-1)선납년월과 조회년월이 다른경우 => 환불 가능액 = 선수잔액 */
+                                                                      WHEN NVL(T5.PRPMYN,'N') = 'Y' AND NVL(T5.PRPMSTYN,'N') != 'Y' THEN NVL(T5.EOT_ATAM,0) - NVL(T5.PRM_BLAM_EOT_AMT,0)
+                                                               /*     5-1-2)선납년월과 조회년월이 같은 경우 => 환불 가능액 = 선수총액 + 매출금액 */
+                                                                      WHEN NVL(T5.PRPMYN,'N') = 'Y' AND NVL(T5.PRPMSTYN,'N') = 'Y' THEN NVL(T5.EOT_ATAM,0) + NVL(T5.MLG_EOT_PRPD_AMT , 0) + NVL(T5.AM16 , 0)
+                                                               /*   5-2)선납이 중지된 경우 => 당월선수금 - 당월 발생 추가 매출액 = 환불 가능액 */
+                                                                      WHEN T6.PRM_END_YM > TO_CHAR(SYSDATE , 'YYYYMMDD') AND T5.PRM_END_YM IS NULL THEN NVL(T5.EOT_ATAM,0) + NVL(T5.MLG_EOT_PRPD_AMT , 0)
+                                                                      /* 6. 그 외
+                                                                         *   6-1) 전월 선수금이 있는 경우
+                                                                         *     6-1-1) 당월매출액이 음수인 경우 => 전월 선수금액 + 당월 입금액 - 당월매출액 */
+                                                                      WHEN NVL(T6.EOT_ATAM,0) + NVL(T6.MLG_EOT_PRPD_AMT,0) > 0 AND NVL(T5.AM16,0) < 0 THEN NVL(T6.EOT_ATAM,0) + NVL(T6.MLG_EOT_PRPD_AMT,0) + NVL(T5.IAMT,0) - NVL(T5.AM16,0)
+
+                                                                    /*     6-1-2) 그외 => 전월 선수금액+당월 입금액 */
+                                                                      WHEN NVL(T6.EOT_ATAM,0) + NVL(T6.MLG_EOT_PRPD_AMT,0) > 0 THEN NVL(T6.EOT_ATAM,0) + NVL(T6.MLG_EOT_PRPD_AMT,0) + NVL(T5.IAMT,0)
+                                                                    /*   6-2) 그 외
+                                                                     *     6-2-1) 당월매출액이 음수인 경우 => 당월 입금액 - 전월 연체금액 - 당월매출액
+                                                                     *     6-2-2) 그외 => 당월 입금액 - 전월 연체금액 */
+                                                                      WHEN NVL(T5.AM16,0) < 0 THEN NVL(T5.IAMT,0) - NVL(T6.EOT_DLQ_AMT,0) - NVL(T5.AM16,0)
+                                                                      ELSE NVL(T5.IAMT,0) - NVL(T6.EOT_DLQ_AMT,0)
+                                                                       END
+                            /*
+                             * 멤버십, 홈케어멤버십 환불금 조회 로직 순서
+                             *
+                             * ********** 마지막 매출 정보가 있는 경우에만 환불금액 조회 가능 **********
+                             *
+                             * 1. 완료일자가 있는 경우 => 총입금누계 - 입금대체누계 - 총가산입금액 - 필터공제 = 환불 가능금액(선수금)
+                             * 2. 탈퇴일자가 있는 경우 => 환불가능금액 (이번달 선수금)
+                             * 3. 전월 선수금이 있는 경우 => 전월 선수금액+당월 입금액
+                             * 4. 그 이외 => 당월 입금액 - 전월 연체금액
+                             */
+                                                                    /* 1. 완료일자가 있는 경우 => 총입금누계 - 입금누계 - 총가산입금액 - 필터공제 = 환불 가능금액(선수금) */
+                                  WHEN T1.SELL_TP_CD = '3' THEN CASE WHEN NVL(T2.FULPY_DT,0) > 0 THEN NVL(T4.AMT1,0) - NVL(T2.SL_DP_AGG_AMT,0) - NVL(T4.AM83,0) - NVL(T3.FILT_DDCTAM ,0) --> TB_SSCT_CNTR_RSG_PROCS_IZ.FILT_DDCTAM (필터공제금액)
+                                                                    /* 2. 탈퇴일자가 있는 경우 => 환불가능금액 (이번달 선수금) */
+                                                                     WHEN NVL(T2.CAN_DT,0) > 0 THEN NVL(T5.EOT_ATAM,0)
+                                                                    /* 3. 전월 선수금이 있는 경우 => 전월 선수금액+당월 입금액 */
+                                                                     WHEN NVL(T6.EOT_ATAM,0) > 0 THEN NVL(T6.EOT_ATAM,0) + NVL(T5.IAMT,0)
+                                                                    /* 4. 그 이외 => 당월 입금액 - 전월 연체금액*/
+                                                                     ELSE NVL(T5.IAMT,0) - NVL(T6.EOT_DLQ_AMT,0)
+                                                                      END
+                                                                      /* 1. 취소인 경우
+                                                                     *   1-1) 연체가 있는 경우 => 이번달 선수금 - 이번달 연체금액 */
+                                  WHEN T1.SELL_TP_CD = '6' THEN CASE  WHEN NVL(T2.CAN_DT,0) > 0 AND NVL(T2.FULPY_DT,0) = 0 AND NVL(T5.THM_BIL_SPMT_AMT,0) > 0 THEN NVL(T5.EOT_ATAM,0) - NVL(T5.THM_BIL_SPMT_AMT,0)
+                                                                    /*   1-2) 연체가 없는 경우 => 이번달 선수금 */
+                                                                      WHEN NVL(T2.CAN_DT,0) > 0 AND NVL(T2.FULPY_DT,0) = 0 THEN NVL(T5.EOT_ATAM,0)
+                                                                    /* 2. 전월 선수금이 있는 경우 => 전월 선수금액+당월 입금액 */
+                                                                      WHEN NVL(T6.EOT_ATAM,0) > 0 THEN NVL(T6.EOT_ATAM,0) + NVL(T5.IAMT,0)
+                                                                    /* 3. 그 이외 => 당월 입금액 - 전월 연체금액 */
+                                                                      ELSE NVL(T5.IAMT,0) - NVL(T6.THM_BIL_SPMT_AMT,0)
+                                                                       END
+
+                                   END 	AS RFND_ALLOW_AMT /*환불가능금액*/
+                        FROM TB_SSCT_CNTR_DTL T1
+                       INNER JOIN TB_SSCT_CNTR_BAS T11
+                          ON (    T11.CNTR_NO = T1.CNTR_NO
+                              AND T11.DTA_DL_YN = 'N')
+                       INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T2  --매출실적_최종월기준
+                          ON (    T2.CNTR_NO = T1.CNTR_NO
+                              AND T2.CNTR_SN = T1.CNTR_SN
+                              AND T2.DTA_DL_YN = 'N'
+                              AND T2.SL_CL_YM = (SELECT MAX(S1.SL_CL_YM)
+                                                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ S1
+                                                  WHERE 1 = 1
+                                                    AND S1.CNTR_NO = T2.CNTR_NO
+                                                    AND S1.CNTR_SN = T2.CNTR_SN
+                                                    AND S1.DTA_DL_YN = 'N'))
+                       LEFT OUTER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ T3 /*계약해지처리내역*/
+                         ON (    T3.CNTR_NO = T1.CNTR_NO
+                             AND T3.CNTR_SN = T1.CNTR_SN
+                             AND T3.DTA_DL_YN = 'N')
+                        LEFT OUTER JOIN LATERAL( SELECT SUM(CASE WHEN S1.RVE_DV_CD = '02' AND S1.DP_DV_CD IN ('1' , '3') THEN S1.RVE_AMT
+                                                                 ELSE 0
+                                                                  END ) AS AM83 /*총가산금 입금액*/
+                                                      , SUM(CASE WHEN S1.DP_DV_CD IN ('1' , '3') THEN RVE_AMT
+                                                                 ELSE 0
+                                                                  END ) AS AMT1 --입금누계
+                                                      , SUM(CASE WHEN S1.RVE_DV_CD = '01' AND  S1.DP_DV_CD IN ('1' , '3') THEN S1.RVE_AMT
+                                                                  ELSE -S1.RVE_AMT
+                                                                   END ) AS AMT2  --계약금 입금누계
+                                                      , SUM( CASE WHEN S1.RVE_DV_CD = '01' AND T1.CRP_UC_AMT > 0 AND S1.DP_DV_CD IN ('1' , '3') THEN S1.RVE_AMT
+                                                                  WHEN S1.RVE_DV_CD = '01' AND T1.CRP_UC_AMT > 0 AND S1.DP_DV_CD IN ('2' , '4') THEN -S1.RVE_AMT
+                                                                  ELSE 0  --계약금 미수금액
+                                                                   END ) AS GAMT1
+                                                   FROM TB_RVDW_RVE_DTL S1
+                                                 WHERE 1 = 1
+                                                   AND S1.KW_GRP_CO_CD = '2000'
+                                                   AND S1.CNTR_NO = T1.CNTR_NO
+                                                   AND S1.CNTR_SN = T1.CNTR_SN
+                                                   AND S1.DTA_DL_YN = 'N' ) T4
+                          ON 1 = 1
+                    --  --매출실적_현재월기준
+                       LEFT OUTER JOIN LATERAL ( SELECT S1.PRM_STRT_YM  	 /*(선납시작년월)*/
+                                                      , S1.PRM_END_YM  	 /*(선납종료년월)*/
+                                                      , S1.SL_CL_YM    	 /*(매출마감년월)*/
+                                                      , S2.EOT_DLQ_AMT 	 /*기말연체금액*/
+                                                      , S1.EOT_ATAM 		 /*(기말선수금)*/
+                                                      , S1.MLG_EOT_PRPD_AMT/*(마일리지기말선수금액)*/
+                                                      , S1.PRM_BLAM_EOT_AMT/*(선납잔액기말금액)*/
+                                                      , S1.THM_BIL_SPMT_AMT
+                                                      , CASE WHEN T1.SELL_TP_DTL_CD IN ('22','24') THEN S1.THM_BIL_OC_AMT - S1.THM_BIL_CTR_AMT + S1.THM_BIL_SPMT_AMT
+                                                             ELSE S1.THM_SL_SUM_AMT /*(당월매출합계금액)*/
+                                                              END AS AM16 /*렌탈매출*/
+                                                      , CASE WHEN SUBSTR(SL_RCOG_DT , 1 , 6) = S1.SL_CL_YM THEN S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT - S1.RENTAL_RGST_COST + (RENTAL_RGST_COST-CNTR_AMT) + MLG_DP_AMT - MLG_RFND_AMT
+                                                             ELSE S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT + S1.MLG_DP_AMT - S1.MLG_RFND_AMT
+                                                              END AS IAMT /*당월입금액(등록비제외)*/
+                                                      , CASE WHEN S1.PRM_STRT_YM > '000000' AND S1.SL_CL_YM BETWEEN S1.PRM_STRT_YM AND S1.PRM_END_YM THEN 'Y'
+                                                             ELSE 'N'
+                                                              END AS PRPMYN /*선납할인적용중인지 여부*/
+                                                      , CASE WHEN S1.PRM_STRT_YM = S1.SL_CL_YM THEN 'Y'  /*당월 선납할인 시작월인지 여부*/
+                                                             ELSE 'N'
+                                                              END AS PRPMSTYN
+                                                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ S1 /*월마감*/
+                                                   LEFT OUTER JOIN TB_CBCL_DLQ_BAS S2/*연체기본*/
+                                                     ON (    S2.CNTR_NO = S1.CNTR_NO
+                                                         AND S2.CNTR_SN = S1.CNTR_SN
+                                                         AND S2.PERF_YM  = TO_CHAR(SYSDATE , 'YYYYMM')
+                                                         AND S2.DTA_DL_YN = 'N' )
+                                                  WHERE 1 = 1
+                                                    AND S1.SL_CL_YM = TO_CHAR(SYSDATE , 'YYYYMM')
+                                                    AND S1.DTA_DL_YN = 'N'
+                    --  						        AND S1.SELL_TP_CD = '2'
+                                                    AND S1.CNTR_NO = T1.CNTR_NO
+                                                    AND S1.CNTR_SN = T1.CNTR_SN ) T5
+                         ON 1 = 1
+                        --매출실적_전월기준
+                       LEFT OUTER JOIN LATERAL( SELECT S1.PRM_STRT_YM  	 /*(선납시작년월)*/
+                                                     , S1.PRM_END_YM  	 /*(선납종료년월)*/
+                                                     , S1.SL_CL_YM    	 /*(매출마감년월)*/
+                                                     , S2.EOT_DLQ_AMT 	 /*기말연체금액*/
+                                                     , S1.EOT_ATAM 		 /*(기말선수금)*/
+                                                     , S1.MLG_EOT_PRPD_AMT/*(마일리지기말선수금액)*/
+                                                     , S1.PRM_BLAM_EOT_AMT/*(선납잔액기말금액)*/
+                                                     , S1.THM_BIL_SPMT_AMT
+                                                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ S1 /*월마감*/
+                                                  LEFT OUTER JOIN TB_CBCL_DLQ_BAS S2/*연체기본*/
+                                                    ON (    S2.CNTR_NO = S1.CNTR_NO
+                                                        AND S2.CNTR_SN = S1.CNTR_SN
+                                                        AND S2.PERF_YM  = TO_CHAR(ADD_MONTHS(SYSDATE , -1) , 'YYYYMM')
+                                                        AND S2.DTA_DL_YN = 'N' )
+                                                 WHERE 1 = 1
+                                                   AND S1.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE , -1) , 'YYYYMM')
+                                                   AND S1.DTA_DL_YN = 'N'
+                    --  						       AND S1.SELL_TP_CD = '2'
+                                                   AND S1.CNTR_NO = T1.CNTR_NO
+                                                   AND S1.CNTR_SN = T1.CNTR_SN ) T6
+                         ON 1 = 1
+                      WHERE 1 = 1
+                      ]]>
+         ) M2
+           ON M2.CNTR_NO = A1.CNTR_NO
+          AND M2.CNTR_SN = A1.CNTR_SN
+          AND M2.CNTR_CST_NO = A1.CST_NO
+       WHERE 1=1
+
     </select>
 
     <!-- 환불기본정보조회 -->
@@ -250,15 +464,14 @@
              AND RFND_AK_STAT_CD = #{rfndAkStatCd}
     </select>
 
-    <!-- TODO: 계약상세 조회 -->
+    <!-- 계약상세 조회 -->
      <select id="selectRefundBasePages" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundBaseRes">
          SELECT CNTR_NO
            FROM TB_RVDW_RVE_DTL
           WHERE 1=1
     </select>
 
-
-    <!-- TODO: 환불상세 조회 -->
+    <!-- 환불상세 조회 -->
     <select id="selectRefundDetail" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundDetailRes">
            SELECT T1.RVE_NO
                 , T1.RVE_SN
@@ -279,70 +492,77 @@
                 , FNIT_CD
                 , NVL(CRDCD_FER , 0) AS CRDCD_FER
                 , CST_NO
-             FROM ( SELECT RRD.RVE_NO      /* 수납번호 */
-                         , RRD.RVE_SN      /* 수납일련번호 */
-                         , RRD.CNTR_NO     /* 계약번호*/
-                         , RRD.CNTR_SN     /* 계약일련번호 */
-                         , RRD.CNTR_NO || RRD.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 */
-                         , RRD.DP_DT               /* 입금일 */
-                         , RRD.DP_MES_CD           /* 입금수단 */
-                         , RRD.RVE_DV_CD            /* 입금유형 -> 수납유형(사양서, 설계서결과에 맞게 수정) */
-                         , RRAD.FNIT_CD
-                         , RFFB.CRDCD_FER
-                         , (SELECT
-                                   NVL(MAX(S9.SV_AMT),0)
-                              FROM TB_CBCL_WELLS_SL_MM_CL_IZ S9
-                             WHERE 1 = 1
-                               AND S9.CNTR_NO = SCD.CNTR_NO
-                               AND S9.CNTR_SN = SCD.CNTR_SN
-                               AND S9.DTA_DL_YN = 'N'
-                           ) AS SV_AMT /* 서비스금액 */
-                         , NVL(RRD.DP_AMT, 0) AS DP_AMT /* 입금액 */
-                         , NVL(CBCB.DLQ_ADD_AMT,0) AS DLQ_ADD_AMT  /* 연체가산금 */
-                         , NVL(SCD.MM_ISTM_AMT,0) AS MM_ISTM_AMT /* 월 납부금(월 납입금) */
-                         , NVL(CBCB.RSG_BOR_AMT,0) AS BOR_AMT /* 위약금 */
-                         , SCB.CNTR_CST_NO AS CST_NO
-<!--                         , NVL(RRAD.CRDCD_FER, 0) AS CRDCD_FER   /* 카드수수료율 */-->
+                , DP_TP_CD
+             FROM ( SELECT A1.RVE_NO      /* 수납번호 */
+                         , A1.RVE_SN      /* 수납일련번호 */
+                         , A1.CNTR_NO     /* 계약번호*/
+                         , A1.CNTR_SN     /* 계약일련번호 */
+                         , A1.CNTR_NO || A1.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 */
+                         , A1.DP_DT               /* 입금일 */
+                         , A1.DP_MES_CD           /* 입금수단 */
+                         , A1.RVE_DV_CD            /* 입금유형 -> 수납유형(사양서, 설계서결과에 맞게 수정) */
+                         , NVL(B1.FNIT_CD, B1.CARD_KND_CD) FNIT_CD
+                         , NVL(H1.CRDCD_FER, 0) CRDCD_FER
+                         , NVL(E1.EOT_SV_AMT , 0) AS SV_AMT /* 서비스금액 */
+                         , NVL(A1.DP_AMT, 0) AS DP_AMT /* 입금액 */
+                         , NVL(G1.EOT_DLQ_ADD_AMT,0) AS DLQ_ADD_AMT  /* 연체가산금 */
+                         , NVL(E1.RENTAL_AMT,0) AS MM_ISTM_AMT /* 월 납부금(월 납입금) */
+                         , NVL(F1.EOT_BOR_AMT,0) AS BOR_AMT /* 위약금 */
+                         , D1.CNTR_CST_NO AS CST_NO
                          , '전금행추가' AS BLTF_ADD  /* 전금행추가 - 컬럼 */
-                      FROM TB_RVDW_RVE_DTL RRD /* 수납상세 */
-                     INNER JOIN TB_RVDW_RVE_AK_DTL RRAD
-                        ON RRAD.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD
-                       AND RRAD.RVE_AK_NO = RRD.RVE_AK_NO
-                       AND RRAD.RVE_AK_SN = RRD.RVE_AK_SN
-                       AND RRAD.DTA_DL_YN = 'N'
-                     INNER JOIN TB_SSCT_CNTR_DTL SCD /* 계약상세 */
-                        ON SCD.CNTR_NO = RRD.CNTR_NO
-                       AND SCD.CNTR_SN = RRD.CNTR_SN
-                       AND SCD.DTA_DL_YN = 'N'
-                     INNER JOIN TB_SSCT_CNTR_BAS SCB /*계약기본*/
-                        ON SCB.CNTR_NO = SCD.CNTR_NO
-                       AND SCB.DTA_DL_YN = 'N'
-                      LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS CBCB /*채권계약기본*/
-                        ON CBCB.CNTR_NO = SCD.CNTR_NO
-                       AND CBCB.CNTR_SN = SCD.CNTR_SN
-                       AND CBCB.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
-                       AND CBCB.DTA_DL_YN = 'N'
-                      LEFT OUTER JOIN TB_RVDW_FNIT_FEE_BAS RFFB
-                        ON RFFB.KW_GRP_CO_CD = RRAD.KW_GRP_CO_CD
-                       AND RFFB.FNIT_CD = RRAD.FNIT_CD
-                       AND RFFB.FNIT_FEE_TP_CD = '2'
-                       AND RFFB.DTA_DL_YN = 'N'
-                       AND RFFB.VL_STRTDT  <![CDATA[<=]]> RRD.RVE_DT
-                       AND RFFB.VL_ENDDT   >=   RRD.RVE_DT
+                         , A1.DP_TP_CD
+                      FROM TB_RVDW_RVE_DTL A1 /* 수납상세 */
+                LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS B1 /* 통합입금기본 */
+                        ON B1.ITG_DP_NO = A1.ITG_DP_NO
+                       AND B1.DTA_DL_YN = 'N'
+                       AND B1.ITG_DP_CAN_YN = 'N'
+                INNER JOIN TB_SSCT_CNTR_DTL C1 /* 계약상세 */
+                        ON C1.CNTR_NO = A1.CNTR_NO
+                       AND C1.CNTR_SN = A1.CNTR_SN
+                       AND C1.DTA_DL_YN = 'N'
+                INNER JOIN TB_SSCT_CNTR_BAS D1 /*계약기본*/
+                        ON D1.CNTR_NO = C1.CNTR_NO
+                       AND D1.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ E1 /*월마감*/
+                        ON E1.SL_CL_YM = TO_CHAR(SYSDATE , 'YYYYMM')
+                       AND E1.CNTR_NO = A1.CNTR_NO
+                       AND E1.CNTR_SN = A1.CNTR_SN
+                       AND E1.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS F1 /*WELLS위약금액기본*/
+                        ON F1.PERF_YM = TO_CHAR(SYSDATE ,'YYYYMM')
+                       AND F1.CNTR_NO = A1.CNTR_NO
+                       AND F1.CNTR_SN = A1.CNTR_SN
+                       AND F1.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_CBCL_DLQ_BAS G1 /*연체기본*/
+                        ON G1.PERF_YM = TO_CHAR(SYSDATE ,'YYYYMM')
+                       AND G1.CNTR_NO = A1.CNTR_NO
+                       AND G1.CNTR_SN = A1.CNTR_SN
+                       AND G1.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_RVDW_FNIT_FEE_BAS H1
+                        ON H1.KW_GRP_CO_CD = B1.KW_GRP_CO_CD
+                       AND H1.FNIT_CD = B1.FNIT_CD
+                       AND H1.FNIT_FEE_TP_CD = '2'
+                       AND H1.DTA_DL_YN = 'N'
+                       AND H1.VL_STRTDT <![CDATA[<=]]> A1.RVE_DT
+                       AND H1.VL_ENDDT  <![CDATA[>=]]> A1.RVE_DT
                      WHERE 1 = 1
-                       AND RRD.DTA_DL_YN = 'N'
-                       AND RRD.CNTR_NO = #{cntrNo}
-                       AND RRD.CNTR_SN = #{cntrSn}
+                       AND A1.DTA_DL_YN = 'N'
+                       AND A1.DP_DV_CD IN ('1','3') /*입금구분코드 : 1(입금)*/
+                       AND A1.CNTR_NO = #{cntrNo}
+                       AND A1.CNTR_SN = #{cntrSn}
                       <if test="@MybatisUtils@isNotEmpty(rveNo)">
-                       AND RRD.RVE_NO = #{rveNo}
+                       AND A1.RVE_NO = #{rveNo}
+                      </if>
+                      <if test="@MybatisUtils@isNotEmpty(cntrStartDay) or @MybatisUtils@isNotEmpty(cntrEndDay)">
+                       AND (A1.DP_DT BETWEEN #{cntrStartDay}||'000000' AND #{cntrEndDay}||'235959' OR A1.RVE_DT BETWEEN #{cntrStartDay} AND #{cntrEndDay}) /*수납일자OR입금일자*/
                       </if>
                       <if test="@MybatisUtils@isNotEmpty(rveSn)">
-                       AND RRD.RVE_SN = #{rveSn}
+                       AND A1.RVE_SN = #{rveSn}
                       </if>
                       <if test="@MybatisUtils@isNotEmpty(dpDt)">
-                       AND RRD.DP_DT = #{dpDt}
+                       AND A1.DP_DT = #{dpDt}
                       </if>
-                     ORDER BY RRD.CNTR_NO , RRD.CNTR_SN ,RRD.RVE_DT
+                     ORDER BY A1.CNTR_NO , A1.CNTR_SN ,A1.RVE_DT
                  ) T1
     </select>
 
@@ -367,80 +587,84 @@
                 , T1.FNIT_CD
                 , NVL(T1.CRDCD_FER , 0) AS CRDCD_FER
                 , CST_NO
-             FROM ( SELECT RRD.RVE_NO      /* 수납번호 */
-                         , RRD.RVE_SN      /* 수납일련번호 */
-                         , RRAD.CNTR_NO     /* 계약번호*/
-                         , RRAD.CNTR_SN     /* 계약일련번호 */
-                         , RRAD.CNTR_NO || RRAD.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 */
-                         , RRD.DP_DT               /* 입금일 */
-                         , RRD.DP_MES_CD           /* 입금수단 */
-                         , RRD.RVE_DV_CD            /* 입금유형 -> 수납유형(사양서, 설계서결과에 맞게 수정) */
-                         , (SELECT
-                                   NVL(MAX(S9.SV_AMT),0)
-                              FROM TB_CBCL_WELLS_SL_MM_CL_IZ S9
-                             WHERE 1 = 1
-                               AND S9.CNTR_NO = SCD.CNTR_NO
-                               AND S9.CNTR_SN = SCD.CNTR_SN
-                               AND S9.DTA_DL_YN = 'N'
-                           ) AS SV_AMT /* 서비스금액 */
-                         , NVL(RRD.DP_AMT, 0) AS DP_AMT /* 입금액 */
-                         , NVL(CBCB.DLQ_ADD_AMT,0) AS DLQ_ADD_AMT  /* 연체가산금 */
-                         , NVL(SCD.MM_ISTM_AMT,0) AS MM_ISTM_AMT /* 월 납부금(월 납입금) */
-                         , NVL(CBCB.RSG_BOR_AMT,0) AS BOR_AMT /* 위약금 */
-<!--                         , NVL(RRAD.CRDCD_FER, 0) AS CRDCD_FER   /* 카드수수료율 */-->
+                , T1.DP_TP_CD
+             FROM ( SELECT A1.RVE_NO      /* 수납번호 */
+                         , A1.RVE_SN      /* 수납일련번호 */
+                         , A1.CNTR_NO     /* 계약번호*/
+                         , A1.CNTR_SN     /* 계약일련번호 */
+                         , A1.CNTR_NO ||'-'|| A1.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 */
+                         , B1.DP_DT               /* 입금일 */
+                         , B1.DP_MES_CD           /* 입금수단 */
+                         , B1.RVE_DV_CD            /* 입금유형 -> 수납유형(사양서, 설계서결과에 맞게 수정) */
+                         , NVL(E1.EOT_SV_AMT , 0) AS SV_AMT /* 서비스금액 */
+                         , NVL(B1.DP_AMT, 0) AS DP_AMT /* 입금액 */
+                         , NVL(G1.EOT_DLQ_ADD_AMT,0) AS DLQ_ADD_AMT  /* 연체가산금 */
+                         , NVL(E1.RENTAL_AMT,0) AS MM_ISTM_AMT /* 월 납부금(월 납입금) */
+                         , NVL(F1.EOT_BOR_AMT,0) AS BOR_AMT /* 위약금 */
                          , '전금행추가' AS BLTF_ADD  /* 전금행추가 - 컬럼 */
-                         , NVL(RRAD.RFND_CSH_AK_AMT, 0) AS RFND_CSH_AK_AMT
-                         , NVL(RRAD.RFND_CARD_AK_AMT, 0) AS RFND_CARD_AK_AMT
-                         , NVL(RRAD.CRDCD_FEE_AMT, 0) AS CRDCD_FEE_AMT
-                         , NVL(RRAD.RFND_BLTF_AK_AMT, 0) AS RFND_BLTF_AK_AMT
-                         , RRAD.RFND_AK_NO
-                         , RRKD.FNIT_CD
-                         , RFFB.CRDCD_FER
-                         , SCB.CNTR_CST_NO AS CST_NO
-                      FROM TB_RVDW_RFND_AK_DTL RRAD /* 환불요청상세 */
-                     INNER JOIN TB_RVDW_RVE_DTL RRD /* 수납상세 */
-                        ON RRD.CNTR_NO = RRAD.CNTR_NO
-                       AND RRD.CNTR_SN = RRAD.CNTR_SN
-                       AND RRD.RVE_NO = RRAD.RVE_NO
-                       AND RRD.RVE_SN = RRAD.RVE_SN
-                       AND RRAD.DTA_DL_YN = 'N'
-                     INNER JOIN TB_RVDW_RVE_AK_DTL RRKD
-                        ON RRKD.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD
-                       AND RRKD.RVE_AK_NO = RRD.RVE_AK_NO
-                       AND RRKD.RVE_AK_SN = RRD.RVE_AK_SN
-                       AND RRKD.DTA_DL_YN = 'N'
-                     INNER JOIN TB_SSCT_CNTR_DTL SCD /* 계약상세 */
-                        ON SCD.CNTR_NO = RRD.CNTR_NO
-                       AND SCD.CNTR_SN = RRD.CNTR_SN
-                       AND SCD.DTA_DL_YN = 'N'
-                     INNER JOIN TB_SSCT_CNTR_BAS SCB /* 계약기본 */
-                        ON SCB.CNTR_NO = SCD.CNTR_NO
-                       AND SCB.DTA_DL_YN = 'N'
-                      LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS CBCB /*채권계약기본*/
-                        ON CBCB.CNTR_NO = SCD.CNTR_NO
-                       AND CBCB.CNTR_SN = SCD.CNTR_SN
-                       AND CBCB.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
-                       AND CBCB.DTA_DL_YN = 'N'
-                      LEFT OUTER JOIN TB_RVDW_FNIT_FEE_BAS RFFB
-                        ON RFFB.KW_GRP_CO_CD = RRKD.KW_GRP_CO_CD
-                       AND RFFB.FNIT_CD = RRKD.FNIT_CD
-                       AND RFFB.FNIT_FEE_TP_CD = '2'
-                       AND RFFB.DTA_DL_YN = 'N'
-                       AND RFFB.VL_STRTDT  <![CDATA[<=]]> RRD.RVE_DT
-                       AND RFFB.VL_ENDDT   >=   RRD.RVE_DT
+                         , NVL(A1.RFND_CSH_AK_AMT, 0) AS RFND_CSH_AK_AMT
+                         , NVL(A1.RFND_CARD_AK_AMT, 0) AS RFND_CARD_AK_AMT
+                         , NVL(A1.CRDCD_FEE_AMT, 0) AS CRDCD_FEE_AMT
+                         , NVL(A1.RFND_BLTF_AK_AMT, 0) AS RFND_BLTF_AK_AMT
+                         , A1.RFND_AK_NO
+                         , C1.CARD_KND_CD FNIT_CD
+                         , NVL(NVL(A1.CRDCD_FER, H1.CRDCD_FER), 0) CRDCD_FER
+                         , I1.CNTR_CST_NO AS CST_NO
+                         , B1.DP_TP_CD
+                      FROM TB_RVDW_RFND_AK_DTL A1 /* 환불요청상세 */
+                 LEFT OUTER JOIN TB_RVDW_RVE_DTL B1 /* 수납상세 */
+                        ON B1.KW_GRP_CO_CD = A1.KW_GRP_CO_CD
+                       AND B1.RVE_NO = A1.RVE_NO
+                       AND B1.RVE_SN = A1.RVE_SN
+                       AND B1.CNTR_NO = A1.CNTR_NO
+                       AND B1.CNTR_SN = A1.CNTR_SN
+                       AND B1.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS C1 /* 통합입금기본 */
+                        ON C1.ITG_DP_NO = B1.ITG_DP_NO
+                       AND C1.DTA_DL_YN = 'N'
+                       AND C1.ITG_DP_CAN_YN = 'N'
+                INNER JOIN TB_SSCT_CNTR_DTL D1 /* 계약상세 */
+                        ON D1.CNTR_NO = A1.CNTR_NO
+                       AND D1.CNTR_SN = A1.CNTR_SN
+                       AND D1.DTA_DL_YN = 'N'
+                INNER JOIN TB_SSCT_CNTR_BAS I1 /* 계약기본 */
+                        ON I1.CNTR_NO = D1.CNTR_NO
+                       AND I1.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ E1 /*월마감*/
+                        ON E1.SL_CL_YM = TO_CHAR(SYSDATE , 'YYYYMM')
+                       AND E1.CNTR_NO = A1.CNTR_NO
+                       AND E1.CNTR_SN = A1.CNTR_SN
+                       AND E1.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS F1 /*WELLS위약금액기본*/
+                        ON F1.PERF_YM = TO_CHAR(SYSDATE ,'YYYYMM')
+                       AND F1.CNTR_NO = A1.CNTR_NO
+                       AND F1.CNTR_SN = A1.CNTR_SN
+                       AND F1.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_CBCL_DLQ_BAS G1 /*연체기본*/
+                        ON G1.PERF_YM = TO_CHAR(SYSDATE ,'YYYYMM')
+                       AND G1.CNTR_NO = A1.CNTR_NO
+                       AND G1.CNTR_SN = A1.CNTR_SN
+                       AND G1.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_RVDW_FNIT_FEE_BAS H1
+                        ON H1.KW_GRP_CO_CD = C1.KW_GRP_CO_CD
+                       AND H1.FNIT_CD = C1.FNIT_CD
+                       AND H1.FNIT_FEE_TP_CD = '2'
+                       AND H1.DTA_DL_YN = 'N'
+                       AND H1.VL_STRTDT <![CDATA[<=]]> B1.RVE_DT
+                       AND H1.VL_ENDDT  <![CDATA[>=]]> B1.RVE_DT
                      WHERE 1 = 1
-                       AND RRD.DTA_DL_YN = 'N'
-                       AND RRAD.RFND_AK_NO = #{rfndAkNo}
+                       AND A1.DTA_DL_YN = 'N'
+                       AND A1.RFND_AK_NO = #{rfndAkNo}
                       <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
-                       AND RRAD.CNTR_NO = #{cntrNo}
+                       AND A1.CNTR_NO = #{cntrNo}
                       </if>
                       <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
-                       AND RRAD.CNTR_SN = #{cntrSn}
+                       AND A1.CNTR_SN = #{cntrSn}
                       </if>
                   ) T1
     </select>
 
-    <!-- TODO: 전금상세 - 환불전금요청상세 조회 -->
+    <!-- 전금상세 - 환불전금요청상세 조회 -->
     <select id="selectRefundBalanceTransfer" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundBalanceTransferRes">
               SELECT RRABD.CNTR_NO
                    , RRABD.CNTR_SN
@@ -463,13 +687,14 @@
                    , RRABD.RFND_AK_NO
                    , RRABD.CST_NO
                 FROM TB_RVDW_RFND_AK_BLTF_DTL RRABD
-               INNER JOIN TB_RVDW_RVE_DTL RRD
-                  ON RRABD.CNTR_NO = RRD.CNTR_NO
+           LEFT OUTER JOIN TB_RVDW_RVE_DTL RRD
+                  ON RRABD.KW_GRP_CO_CD = RRD.KW_GRP_CO_CD
+                 AND RRABD.RVE_NO = RRD.RVE_NO
+                 AND RRABD.RVE_SN = RRD.RVE_SN
+                 AND RRABD.CNTR_NO = RRD.CNTR_NO
                  AND RRABD.CNTR_SN = RRD.CNTR_SN
-                 AND RRD.RVE_NO = RRABD.RVE_NO
-                 AND RRD.RVE_SN = RRABD.RVE_SN
                  AND RRD.DTA_DL_YN = 'N'
-               INNER JOIN TB_SSCT_CNTR_DTL SCD
+          INNER JOIN TB_SSCT_CNTR_DTL SCD
                   ON SCD.CNTR_NO = RRD.CNTR_NO
                  AND SCD.CNTR_SN = RRD.CNTR_SN
                  AND SCD.DTA_DL_YN = 'N'
@@ -484,10 +709,7 @@
                 </if>
     </select>
 
-
-
-
-    <!-- TODO: 임시저장 -->
+    <!-- 임시저장 시작 -->
     <select id="selectRefundPk" resultType="java.lang.String">
         SELECT 'RVR' || TO_CHAR(SYSDATE, 'YYYY') || LPAD(NVL(MAX(SUBSTR(RFND_AK_NO , 9)),0) + 1,12,'0') AS RFND_AK_NO
           FROM TB_RVDW_RFND_AK_BAS /* 환불요청기본 */
@@ -497,8 +719,8 @@
          MERGE INTO TB_RVDW_RFND_AK_BAS T1 /* 환불요청기본 */
          USING DUAL
             ON (
-                T1.KW_GRP_CO_CD = #{session.companyCode}
-            AND T1.RFND_AK_NO = #{rfndAkNo}
+               T1.KW_GRP_CO_CD = #{session.companyCode}
+           AND T1.RFND_AK_NO = #{rfndAkNo}
                )
           WHEN MATCHED THEN
         UPDATE
@@ -572,52 +794,47 @@
     </insert>
 
     <insert id="insertRefundTempSaveReqDetail">
-        MERGE INTO TB_RVDW_RFND_AK_CNTR_DTL T1 /* */
+        MERGE INTO TB_RVDW_RFND_AK_CNTR_DTL T1
         USING DUAL
-            ON (
-                T1.KW_GRP_CO_CD = #{session.companyCode}
-            AND T1.RFND_AK_NO = #{rfndAkNo}
-            AND T1.CNTR_NO = #{cntrNo}
-            AND T1.CNTR_SN = #{cntrSn}
-               )
-          WHEN MATCHED THEN
-        UPDATE
-           SET DTA_DL_YN = 'N' /* 수정되는 데이터 없어보여서 수정데이터 삽입X */
-         <include refid="COMMON.updateSystemField" />
-          WHEN NOT MATCHED THEN
-         INSERT
-               (
-                 KW_GRP_CO_CD
-               , RFND_AK_NO
-               , CNTR_NO
-               , CNTR_SN
-               , CST_NO
-               , DTA_DL_YN
-             <include refid="COMMON.insertSystemField"/>
-               ) VALUES (
-                 '2000' /* WELLS*/
-               , #{aftRfndAkNo}
-               , #{cntrNo}
-               , #{cntrSn}
-               , #{cstNo}
-               , 'N'
-             <include refid="COMMON.insertSystemFieldValue"/>
-               )
+           ON (
+              T1.KW_GRP_CO_CD = #{session.companyCode}
+          AND T1.RFND_AK_NO = #{rfndAkNo}
+          AND T1.CNTR_NO = #{cntrNo}
+          AND T1.CNTR_SN = #{cntrSn}
+              )
+         WHEN NOT MATCHED THEN
+        INSERT
+             (
+               KW_GRP_CO_CD
+             , RFND_AK_NO
+             , CNTR_NO
+             , CNTR_SN
+             , CST_NO
+             , DTA_DL_YN
+           <include refid="COMMON.insertSystemField"/>
+             ) VALUES (
+               '2000' /* WELLS*/
+             , #{aftRfndAkNo}
+             , #{cntrNo}
+             , #{cntrSn}
+             , #{cstNo}
+             , 'N'
+           <include refid="COMMON.insertSystemFieldValue"/>
+             )
     </insert>
-
 
     <insert id="insertRefundTempSaveDetail">
         MERGE INTO TB_RVDW_RFND_AK_DTL T1 /* 환불요청상세 */
         USING DUAL
            ON (
-                T1.KW_GRP_CO_CD = #{session.companyCode}
-            AND T1.RFND_AK_NO = #{rfndAkNo}
-            AND T1.RVE_NO = #{rveNo}
-            AND T1.RVE_SN = #{rveSn}
+              T1.KW_GRP_CO_CD = #{session.companyCode}
+          AND T1.RFND_AK_NO = #{rfndAkNo}
+          AND T1.RVE_NO = #{rveNo}
+          AND T1.RVE_SN = #{rveSn}
               )
          WHEN MATCHED THEN
        UPDATE
-          SET T1.CSH_RFND_DV_CD = '02' <!-- TODO: #{rfndDvCd} 01:선환불, 02:일반환불, 03:카드현금-->
+          SET T1.CSH_RFND_DV_CD = '02' /* CSH_RFND_DV_CD 01:선환불, 02:일반환불, 03:카드현금 */
             , T1.RFND_CSH_AK_AMT = #{rfndCshAkAmt}
             , T1.RFND_CARD_AK_AMT = #{rfndCardAkAmt}
             , T1.CRDCD_FEE_AMT = #{crdcdFeeAmt}
@@ -627,110 +844,108 @@
            <include refid="COMMON.updateSystemField" />
         WHEN NOT MATCHED THEN
       INSERT
-             (
-               KW_GRP_CO_CD
-             , RFND_AK_NO
-             , CNTR_NO
-             , CNTR_SN
-             , RVE_NO
-             , RVE_SN
-             , CST_NO
-             , RFND_DV_CD
-             , RFND_DSB_DV_CD
-             , CSH_RFND_DV_CD
-             , RFND_CSH_AK_AMT
-             , RFND_CARD_AK_AMT
-             , CRDCD_FEE_AMT
-             , CRDCD_FER
-             , RFND_BLTF_AK_AMT
-             , RFND_RSON_CD
-             , RFND_RSON_CN
-             , DTA_DL_YN
-       <include refid="COMMON.insertSystemField"/>
-             ) VALUES (
-               '2000'
-             , #{aftRfndAkNo}
-             , #{cntrNo}
-             , #{cntrSn}
-             , #{rveNo}
-             , #{rveSn}
-             , #{cstNo}
-             , '02' /* 환불구분코드 01:전체, 02:부분*/
-             , '01' /* 환불지급구분코드 01~08 매 환불마다 구분해야할듯함. */
-             , '02' /* 01: 선환불 , 02: 일반환불, 03: 카드현금 */
-             , #{rfndCshAkAmt}
-             , #{rfndCardAkAmt}
-             , #{crdcdFeeAmt}
-             , #{crdcdFer}
-             , #{rfndBltfAkAmt}
-             , #{rfndRsonCd}
-             , #{rfndRsonCn}
-             , 'N'
-       <include refid="COMMON.insertSystemFieldValue"/>
-             )
+           (
+             KW_GRP_CO_CD
+           , RFND_AK_NO
+           , CNTR_NO
+           , CNTR_SN
+           , RVE_NO
+           , RVE_SN
+           , CST_NO
+           , RFND_DV_CD
+           , RFND_DSB_DV_CD
+           , CSH_RFND_DV_CD
+           , RFND_CSH_AK_AMT
+           , RFND_CARD_AK_AMT
+           , CRDCD_FEE_AMT
+           , CRDCD_FER
+           , RFND_BLTF_AK_AMT
+           , RFND_RSON_CD
+           , RFND_RSON_CN
+           , DTA_DL_YN
+           <include refid="COMMON.insertSystemField"/>
+           ) VALUES (
+             '2000'
+           , #{aftRfndAkNo}
+           , #{cntrNo}
+           , #{cntrSn}
+           , #{rveNo}
+           , #{rveSn}
+           , #{cstNo}
+           , '02' /* 환불구분코드 01:전체, 02:부분*/
+           , '01' /* 환불지급구분코드 01~08 매 환불마다 구분해야할듯함. */
+           , '02' /* 01: 선환불 , 02: 일반환불, 03: 카드현금 */
+           , #{rfndCshAkAmt}
+           , #{rfndCardAkAmt}
+           , #{crdcdFeeAmt}
+           , #{crdcdFer}
+           , #{rfndBltfAkAmt}
+           , #{rfndRsonCd}
+           , #{rfndRsonCn}
+           , 'N'
+           <include refid="COMMON.insertSystemFieldValue"/>
+           )
     </insert>
 
     <insert id="insertBalanceTempSaveDetail">
         MERGE INTO TB_RVDW_RFND_AK_BLTF_DTL T1 /* 전금요청상세 */
         USING DUAL
            ON (
-                T1.KW_GRP_CO_CD = #{session.companyCode}
-            AND T1.RFND_AK_NO = #{rfndAkNo}
-            AND T1.CNTR_NO = #{cntrNo}
-            AND T1.CNTR_SN = #{cntrSn}
-            AND T1.RVE_NO = #{rveNo}
-            AND T1.RVE_SN = #{rveSn}
-            AND T1.BLTF_OJ_CNTR_NO = #{bltfOjCntrNo}
-            AND T1.BLTF_OJ_CNTR_SN = #{bltfOjCntrSn}
+              T1.KW_GRP_CO_CD = #{session.companyCode}
+          AND T1.RFND_AK_NO = #{rfndAkNo}
+          AND T1.CNTR_NO = #{cntrNo}
+          AND T1.CNTR_SN = #{cntrSn}
+          AND T1.RVE_NO = #{rveNo}
+          AND T1.RVE_SN = #{rveSn}
+          AND T1.BLTF_OJ_CNTR_NO = #{bltfOjCntrNo}
+          AND T1.BLTF_OJ_CNTR_SN = #{bltfOjCntrSn}
               )
          WHEN MATCHED THEN
        UPDATE
           SET T1.RFND_BLTF_AK_AMT = #{rfndBltfAkAmt}
-<!--            , T1.BLTF_OJ_CNTR_NO = #{bltfOjCntrNo}-->
-<!--            , T1.BLTF_OJ_CNTR_SN = #{bltfOjCntrSn}-->
             , T1.BLTF_RFND_MB_DV_CD = #{bltfRfndMbDvCd}
             , T1.RFND_EVID_MTR_FILE_ID = #{rfndEvidMtrFileId}
             , T1.DTA_DL_YN = 'N' /* 조건없으면 수정하더라도 삭제하면 데이터가 안보임.*/
            <include refid="COMMON.updateSystemField" />
         WHEN NOT MATCHED THEN
-        INSERT
-             (
-               KW_GRP_CO_CD
-             , RFND_AK_NO
-             , CNTR_NO
-             , CNTR_SN
-             , RVE_NO
-             , RVE_SN
-             , BLTF_OJ_CNTR_NO
-             , BLTF_OJ_CNTR_SN
-             , CST_NO
-             , RFND_BLTF_AK_AMT
-             , BLTF_RFND_DV_CD
-             , BLTF_RFND_TP_CD
-             , BLTF_RFND_MB_DV_CD
-             , RFND_EVID_MTR_FILE_ID
-             , DTA_DL_YN
-        <include refid="COMMON.insertSystemField"/>
-             ) VALUES (
-               #{session.companyCode}
-             , #{rfndAkNo} /* 행추가시 rfndAkNo는 항상있으므로 재채번할필요없음. */
-             , #{cntrNo}
-             , #{cntrSn}
-             , #{rveNo}
-             , #{rveSn}
-             , #{bltfOjCntrNo}
-             , #{bltfOjCntrSn}
-             , #{cstNo}
-             , #{rfndBltfAkAmt}
-             , '01' /* 전금환불구분코드. 01:카드 , 02: 현금 */
-             , '1' /* 전금환불유형코드. 1:인수금 2:할부금 */
-             , #{bltfRfndMbDvCd}
-             , #{rfndEvidMtrFileId}
-             , 'N'
-        <include refid="COMMON.insertSystemFieldValue"/>
-             )
+      INSERT
+           (
+             KW_GRP_CO_CD
+           , RFND_AK_NO
+           , CNTR_NO
+           , CNTR_SN
+           , RVE_NO
+           , RVE_SN
+           , BLTF_OJ_CNTR_NO
+           , BLTF_OJ_CNTR_SN
+           , CST_NO
+           , RFND_BLTF_AK_AMT
+           , BLTF_RFND_DV_CD
+           , BLTF_RFND_TP_CD
+           , BLTF_RFND_MB_DV_CD
+           , RFND_EVID_MTR_FILE_ID
+           , DTA_DL_YN
+           <include refid="COMMON.insertSystemField"/>
+           ) VALUES (
+             #{session.companyCode}
+           , #{rfndAkNo} /* 행추가시 rfndAkNo는 항상있으므로 재채번할필요없음. */
+           , #{cntrNo}
+           , #{cntrSn}
+           , #{rveNo}
+           , #{rveSn}
+           , #{bltfOjCntrNo}
+           , #{bltfOjCntrSn}
+           , #{cstNo}
+           , #{rfndBltfAkAmt}
+           , '01' /* 전금환불구분코드. 01:카드 , 02: 현금 */
+           , '1' /* 전금환불유형코드. 1:인수금 2:할부금 */
+           , #{bltfRfndMbDvCd}
+           , #{rfndEvidMtrFileId}
+           , 'N'
+           <include refid="COMMON.insertSystemFieldValue"/>
+           )
     </insert>
-    <!-- TODO: INSERT END-->
+    <!-- 임시저장 종료-->
 
     <update id="deleteBalanceTempSaveDetail">
         UPDATE TB_RVDW_RFND_AK_BLTF_DTL /* 전금요청상세 */
@@ -742,9 +957,8 @@
            AND CNTR_SN = #{cntrSn}
            AND DTA_DL_YN = 'N'
     </update>
-    <!-- TODO: 임시저장 -->
 
-    <!-- TODO: 삭제 -->
+    <!-- 삭제 -->
     <update id="deleteRefundBase">
         UPDATE TB_RVDW_RFND_AK_BAS /* 환불요청기본 */
            SET DTA_DL_YN = 'Y'
@@ -859,14 +1073,14 @@
              , #{session.userId}                     AS RFND_PROCS_USR_ID	    /*환불처리사용자ID*/
              <include refid="COMMON.insertSystemFieldValue"/>
            FROM WSMDBS.TB_RVDW_RFND_AK_BAS     T1
-                INNER JOIN TB_RVDW_RFND_AK_DTL T2
-                        ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
-                            AND T2.RFND_AK_NO   = T1.RFND_AK_NO
-                            AND T2.DTA_DL_YN    = 'N')
-                INNER JOIN TB_SSCT_CNTR_DTL    T3
-                        ON (    T3.CNTR_NO      = T2.CNTR_NO
-                            AND T3.CNTR_SN      = T2.CNTR_SN
-                            AND T3.DTA_DL_YN    = 'N')
+     INNER JOIN TB_RVDW_RFND_AK_DTL T2
+             ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                 AND T2.RFND_AK_NO   = T1.RFND_AK_NO
+                 AND T2.DTA_DL_YN    = 'N')
+     INNER JOIN TB_SSCT_CNTR_DTL    T3
+             ON (    T3.CNTR_NO      = T2.CNTR_NO
+                 AND T3.CNTR_SN      = T2.CNTR_SN
+                 AND T3.DTA_DL_YN    = 'N')
           WHERE 1 = 1
             AND T1.KW_GRP_CO_CD          = #{session.companyCode}
             AND T1.RFND_AK_NO            = #{rfndAkNo}
@@ -912,7 +1126,7 @@
         	 , RFND_PSIC_RJ_RSON_CN	/*환불담당자반려사유내용*/
         	 , RFND_PROCS_USR_ID	/*환불처리사용자ID*/
              <include refid="COMMON.insertSystemField"/>
-        )
+             )
         SELECT T1.KW_GRP_CO_CD												    /*교원그룹회사코드*/
              , #{rfndRcpNo}                          AS RFND_RCP_NO	            /*환불접수번호*/
              , T1.RVE_CO_CD	                                                    /*수납회사코드*/
@@ -946,14 +1160,14 @@
              , #{session.userId}                     AS RFND_PROCS_USR_ID	    /*환불처리사용자ID*/
              <include refid="COMMON.insertSystemFieldValue"/>
           FROM WSMDBS.TB_RVDW_RFND_AK_BAS T1
-               INNER JOIN TB_RVDW_RFND_AK_DTL T2
-                       ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
-                           AND T2.RFND_AK_NO   = T1.RFND_AK_NO
-                           AND T2.DTA_DL_YN    = 'N')
-               INNER JOIN TB_SSCT_CNTR_DTL    T3
-                       ON (    T3.CNTR_NO      = T2.CNTR_NO
-                           AND T3.CNTR_SN      = T2.CNTR_SN
-                           AND T3.DTA_DL_YN    = 'N')
+    INNER JOIN TB_RVDW_RFND_AK_DTL T2
+            ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                AND T2.RFND_AK_NO   = T1.RFND_AK_NO
+                AND T2.DTA_DL_YN    = 'N')
+    INNER JOIN TB_SSCT_CNTR_DTL T3
+            ON (    T3.CNTR_NO      = T2.CNTR_NO
+                AND T3.CNTR_SN      = T2.CNTR_SN
+                AND T3.DTA_DL_YN    = 'N')
          WHERE 1 = 1
            AND T1.KW_GRP_CO_CD          = #{session.companyCode}
            AND T1.RFND_AK_NO            = #{rfndAkNo}
@@ -999,7 +1213,7 @@
         	 , RFND_PSIC_RJ_RSON_CN	/*환불담당자반려사유내용*/
         	 , RFND_PROCS_USR_ID	/*환불처리사용자ID*/
              <include refid="COMMON.insertSystemField"/>
-        )
+             )
         SELECT T1.KW_GRP_CO_CD												    /*교원그룹회사코드*/
              , #{rfndRcpNo}                           AS RFND_RCP_NO	            /*환불접수번호*/
              , T1.RVE_CO_CD	                                                    /*수납회사코드*/
@@ -1033,14 +1247,14 @@
              , #{session.userId}                      AS RFND_PROCS_USR_ID	    /*환불처리사용자ID*/
              <include refid="COMMON.insertSystemFieldValue"/>
            FROM WSMDBS.TB_RVDW_RFND_AK_BAS T1
-                INNER JOIN TB_RVDW_RFND_AK_DTL T2
-                        ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
-                            AND T2.RFND_AK_NO   = T1.RFND_AK_NO
-                            AND T2.DTA_DL_YN    = 'N')
-                INNER JOIN TB_SSCT_CNTR_DTL    T3
-                        ON (    T3.CNTR_NO      = T2.CNTR_NO
-                            AND T3.CNTR_SN      = T2.CNTR_SN
-                            AND T3.DTA_DL_YN    = 'N')
+     INNER JOIN TB_RVDW_RFND_AK_DTL T2
+             ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                 AND T2.RFND_AK_NO   = T1.RFND_AK_NO
+                 AND T2.DTA_DL_YN    = 'N')
+     INNER JOIN TB_SSCT_CNTR_DTL    T3
+             ON (    T3.CNTR_NO      = T2.CNTR_NO
+                 AND T3.CNTR_SN      = T2.CNTR_SN
+                 AND T3.DTA_DL_YN    = 'N')
           WHERE 1 = 1
            AND T1.KW_GRP_CO_CD          = #{session.companyCode}
            AND T1.RFND_AK_NO            = #{rfndAkNo}
@@ -1118,7 +1332,7 @@
         	 , IDF_MTR_FILE_ID	/*신분증자료파일ID*/
         	 , FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
              <include refid="COMMON.insertSystemField"/>
-        )
+             )
         SELECT T1.KW_GRP_CO_CD					                                /*교원그룹회사코드*/
         	 , #{rfndRcpNo}                           AS RFND_RCP_NO	        /*환불접수번호*/
         	 , (SELECT NVL(MAX(RFND_RCP_DTL_SN) , 0) + 1
@@ -1132,7 +1346,7 @@
         	 , '03'                                   AS CSH_RFND_DV_CD	        /*현금환불구분코드*/
         	 , '02'                                   AS RFND_AC_DV_CD	        /*환불계좌구분코드*/
         	 , NULL                                   AS RFND_RNTF_EXST_YN	    /*환불손료존재여부*/
-        	 , T4.FNIT_CD                             AS CSH_RFND_FNIT_CD	    /*현금환불금융기관코드*/
+        	 , T1.CSH_RFND_FNIT_CD                    AS CSH_RFND_FNIT_CD	    /*현금환불금융기관코드*/
         	 , T1.CSH_RFND_ACNO_ENCR                  AS CSH_RFND_ACNO_ENCR	    /*현금환불계좌번호암호화*/
         	 , T1.CSH_RFND_ACOWN_NM                   AS CSH_RFND_ACOWN_NM	    /*현금환불계좌주명*/
         	 , '01'                                   AS CSH_RFND_ADRS_DV_CD	/*현금환불수취인구분코드*/
@@ -1186,23 +1400,23 @@
         	 , NULL                                   AS IDF_MTR_FILE_ID	/*신분증자료파일ID*/
         	 , NULL                                   AS FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
              <include refid="COMMON.insertSystemFieldValue"/>
-          FROM WSMDBS.TB_RVDW_RFND_AK_BAS          T1
-               INNER JOIN TB_RVDW_RFND_AK_DTL      T2
-                       ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
-                           AND T2.RFND_AK_NO   = T1.RFND_AK_NO
-                           AND T2.DTA_DL_YN    = 'N')
-               INNER JOIN TB_RVDW_RVE_DTL          T3
-                       ON (    T3.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
-                           AND T3.RVE_NO       = T2.RVE_NO
-                           AND T3.RVE_SN       = T2.RVE_SN
-                           AND T3.CNTR_NO      = T2.CNTR_NO
-                           AND T3.CNTR_SN      = T2.CNTR_SN
-                           AND T3.DTA_DL_YN    = 'N')
-               INNER JOIN TB_RVDW_RVE_AK_DTL       T4
-                       ON (    T4.KW_GRP_CO_CD = T3.KW_GRP_CO_CD
-                           AND T4.RVE_AK_NO    = T3.RVE_AK_NO
-                           AND T4.RVE_AK_SN    = T3.RVE_AK_SN
-                           AND T4.DTA_DL_YN    = 'N')
+          FROM WSMDBS.TB_RVDW_RFND_AK_BAS T1
+    INNER JOIN TB_RVDW_RFND_AK_DTL      T2
+            ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                AND T2.RFND_AK_NO   = T1.RFND_AK_NO
+                AND T2.DTA_DL_YN    = 'N')
+    INNER JOIN TB_RVDW_RVE_DTL          T3
+            ON (    T3.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
+                AND T3.RVE_NO       = T2.RVE_NO
+                AND T3.RVE_SN       = T2.RVE_SN
+                AND T3.CNTR_NO      = T2.CNTR_NO
+                AND T3.CNTR_SN      = T2.CNTR_SN
+                AND T3.DTA_DL_YN    = 'N')
+    INNER JOIN TB_RVDW_RVE_AK_DTL       T4
+            ON (    T4.KW_GRP_CO_CD = T3.KW_GRP_CO_CD
+                AND T4.RVE_AK_NO    = T3.RVE_AK_NO
+                AND T4.RVE_AK_SN    = T3.RVE_AK_SN
+                AND T4.DTA_DL_YN    = 'N')
          WHERE 1 = 1
            AND T1.KW_GRP_CO_CD          = #{session.companyCode}
            AND T1.RFND_AK_NO            = #{rfndAkNo}
@@ -1280,7 +1494,7 @@
         	 , IDF_MTR_FILE_ID	/*신분증자료파일ID*/
         	 , FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
              <include refid="COMMON.insertSystemField"/>
-        )
+             )
         SELECT T1.KW_GRP_CO_CD					                                /*교원그룹회사코드*/
         	 , #{rfndRcpNo}                           AS RFND_RCP_NO	        /*환불접수번호*/
         	 , (SELECT NVL(MAX(RFND_RCP_DTL_SN) , 0) + 1
@@ -1348,25 +1562,25 @@
         	 , NULL                                   AS IDF_MTR_FILE_ID	/*신분증자료파일ID*/
         	 , NULL                                   AS FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
             <include refid="COMMON.insertSystemFieldValue"/>
-          FROM WSMDBS.TB_RVDW_RFND_AK_BAS                T1
-               INNER JOIN TB_RVDW_RFND_AK_DTL            T2
-                       ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
-                           AND T2.RFND_AK_NO   = T1.RFND_AK_NO
-                           AND T2.DTA_DL_YN    = 'N')
-               INNER JOIN TB_RVDW_RVE_DTL                T3
-                       ON (    T3.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
-                           AND T3.RVE_NO       = T2.RVE_NO
-                           AND T3.RVE_SN       = T2.RVE_SN
-                           AND T3.CNTR_NO      = T2.CNTR_NO
-                           AND T3.CNTR_SN      = T2.CNTR_SN
-                           AND T3.DTA_DL_YN    = 'N')
-               INNER JOIN TB_RVDW_ITG_DP_BAS             T4
-                       ON (    T4.ITG_DP_NO    = T3.ITG_DP_NO
-                           AND T4.DTA_DL_YN    = 'N')
-                LEFT OUTER JOIN TB_RVDW_CRDCD_RTM_TRD_IZ T5
-                       ON (    T5.CARD_APRNO   =   T4.CARD_KND_CD
-                           AND T5.CRCDNO_ENCR  =   T4.CRCDNO_ENCR
-                           AND T5.DTA_DL_YN    = 'N')
+          FROM WSMDBS.TB_RVDW_RFND_AK_BAS T1
+    INNER JOIN TB_RVDW_RFND_AK_DTL        T2
+            ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                AND T2.RFND_AK_NO   = T1.RFND_AK_NO
+                AND T2.DTA_DL_YN    = 'N')
+    INNER JOIN TB_RVDW_RVE_DTL            T3
+            ON (    T3.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
+                AND T3.RVE_NO       = T2.RVE_NO
+                AND T3.RVE_SN       = T2.RVE_SN
+                AND T3.CNTR_NO      = T2.CNTR_NO
+                AND T3.CNTR_SN      = T2.CNTR_SN
+                AND T3.DTA_DL_YN    = 'N')
+    INNER JOIN TB_RVDW_ITG_DP_BAS         T4
+            ON (    T4.ITG_DP_NO    = T3.ITG_DP_NO
+                AND T4.DTA_DL_YN    = 'N')
+     LEFT OUTER JOIN TB_RVDW_CRDCD_RTM_TRD_IZ T5
+            ON (    T5.CARD_APRNO   =   T4.CARD_KND_CD
+                AND T5.CRCDNO_ENCR  =   T4.CRCDNO_ENCR
+                AND T5.DTA_DL_YN    = 'N')
          WHERE 1 = 1
            AND T1.KW_GRP_CO_CD          = #{session.companyCode}
            AND T1.RFND_AK_NO            = #{rfndAkNo}
@@ -1444,7 +1658,7 @@
         	 , IDF_MTR_FILE_ID	/*신분증자료파일ID*/
         	 , FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
              <include refid="COMMON.insertSystemField"/>
-        )
+             )
         SELECT T1.KW_GRP_CO_CD					                                /*교원그룹회사코드*/
         	 , #{rfndRcpNo}                           AS RFND_RCP_NO	        /*환불접수번호*/
         	 , ROWNUM                                 AS RFND_RCP_DTL_SN	/*환불접수상세일련번호*/
@@ -1509,25 +1723,25 @@
         	 , NULL                                   AS IDF_MTR_FILE_ID	/*신분증자료파일ID*/
         	 , NULL                                   AS FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
             <include refid="COMMON.insertSystemFieldValue"/>
-          FROM WSMDBS.TB_RVDW_RFND_AK_BAS                T1
-               INNER JOIN TB_RVDW_RFND_AK_DTL            T2
-                       ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
-                           AND T2.RFND_AK_NO   = T1.RFND_AK_NO
-                           AND T2.DTA_DL_YN    = 'N')
-               INNER JOIN TB_RVDW_RVE_DTL                T3
-                       ON (    T3.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
-                           AND T3.RVE_NO       = T2.RVE_NO
-                           AND T3.RVE_SN       = T2.RVE_SN
-                           AND T3.CNTR_NO      = T2.CNTR_NO
-                           AND T3.CNTR_SN      = T2.CNTR_SN
-                           AND T3.DTA_DL_YN    = 'N')
-               INNER JOIN TB_RVDW_RFND_AK_BLTF_DTL       T4
-                       ON (    T4.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
-                           AND T4.RFND_AK_NO   = T2.RFND_AK_NO
-                           AND T4.CNTR_NO      = T2.CNTR_NO
-                           AND T4.CNTR_SN      = T2.CNTR_SN
-                           AND T4.RVE_NO       = T2.RVE_NO
-                           AND T4.RVE_SN       = T2.RVE_SN )
+          FROM WSMDBS.TB_RVDW_RFND_AK_BAS T1
+    INNER JOIN TB_RVDW_RFND_AK_DTL        T2
+            ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                AND T2.RFND_AK_NO   = T1.RFND_AK_NO
+                AND T2.DTA_DL_YN    = 'N')
+    INNER JOIN TB_RVDW_RVE_DTL            T3
+            ON (    T3.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
+                AND T3.RVE_NO       = T2.RVE_NO
+                AND T3.RVE_SN       = T2.RVE_SN
+                AND T3.CNTR_NO      = T2.CNTR_NO
+                AND T3.CNTR_SN      = T2.CNTR_SN
+                AND T3.DTA_DL_YN    = 'N')
+    INNER JOIN TB_RVDW_RFND_AK_BLTF_DTL   T4
+            ON (    T4.KW_GRP_CO_CD = T2.KW_GRP_CO_CD
+                AND T4.RFND_AK_NO   = T2.RFND_AK_NO
+                AND T4.CNTR_NO      = T2.CNTR_NO
+                AND T4.CNTR_SN      = T2.CNTR_SN
+                AND T4.RVE_NO       = T2.RVE_NO
+                AND T4.RVE_SN       = T2.RVE_SN )
          WHERE 1 = 1
            AND T1.KW_GRP_CO_CD          = #{session.companyCode}
            AND T1.RFND_AK_NO            = #{rfndAkNo}
@@ -1585,7 +1799,7 @@
         	 , RFND_PSIC_RJ_RSON_CN	/*환불담당자반려사유내용*/
         	 , RFND_PROCS_USR_ID	/*환불처리사용자ID*/
              <include refid="COMMON.insertSystemField"/>
-        )
+             )
         SELECT KW_GRP_CO_CD	/*교원그룹회사코드*/
         	 , RFND_RCP_NO	/*환불접수번호*/
         	 , TO_CHAR(SYSDATE , 'YYYYMMDDHH24MISS') AS HIST_CH_DTM
@@ -1692,7 +1906,7 @@
         	 , IDF_MTR_FILE_ID	/*신분증자료파일ID*/
         	 , FML_REL_CRTFD_FILE_ID	/*가족관계증명서파일ID*/
              <include refid="COMMON.insertSystemField"/>
-        )
+             )
         SELECT KW_GRP_CO_CD					/*교원그룹회사코드*/
         	 , RFND_RCP_NO	/*환불접수번호*/
         	 , RFND_RCP_DTL_SN	/*환불접수상세일련번호*/

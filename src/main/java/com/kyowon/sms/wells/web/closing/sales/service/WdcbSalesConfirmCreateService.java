@@ -50,11 +50,6 @@ public class WdcbSalesConfirmCreateService {
         /* 2.대표고객 매핑 */
         String dgCstId = mapper.selectDgCstId(dvo);
         /* 3.SAP상품구분코드 매핑 */
-        /* 3-1. 판매유형에 필터가 들어온경우 (SELL_TP_CD = 9 )
-        판매유형상세에 빈값이 들어올예정으로 이때 SELL_TP_DTL_CD (판매유형상세) 에 9 셋팅
-         */
-        if ("9".equals(dvo.getSellTpCd()))
-            dvo.setSellTpDtlCd("9");
         String sapPdDvCd = StringUtils.isNotEmpty(mapper.selectSapPdDvCd(dvo)) ? mapper.selectSapPdDvCd(dvo) : "";
         /* 4. 렌탈등록비부가가치세(RENTAL_RGST_COST_VAT)  */
         int rentalRgstCostVat = (int)Math.floor(dvo.getRentalRgstCost() * 0.0909);
@@ -73,11 +68,14 @@ public class WdcbSalesConfirmCreateService {
                 ? sapMatEvlClssVal.substring(0, 2).equals("Z7") ? "Y" : "N" : "";*/
             if (StringUtils.isNotEmpty(sapMatEvlClssVal)) {
                 if (sapMatEvlClssVal.substring(0, 2).equals("Z7")) {
+                    // SAP 자재평가클래스값의 앞의 두자리가 Z7 이면 저장품. 이때는 저장물품여부(SAVE_GDS_YN) 값을 Y로 셋팅
                     saveGdsYn = "Y";
                 } else {
+                    // 아니면 N 으로 셋팅
                     saveGdsYn = "N";
                 }
             } else {
+                // 아니면 N 으로 셋팅
                 saveGdsYn = "";
             }
         }
@@ -104,22 +102,28 @@ public class WdcbSalesConfirmCreateService {
         //String sapTxnDtfrCd = dvo.getPvdaAmt() > 0 ? "3" : vat > 0 ? "1" : "0";
         String sapTxnDtfrCd = "";
         if (dvo.getPvdaAmt() > 0) {
+            // 현할차금액(PVDA_AMT) 있으면 3
             sapTxnDtfrCd = "3";
         } else {
             if (vat > 0) {
+                // VAT있으면 1
                 sapTxnDtfrCd = "1";
             } else {
+                // 없으면 0
                 sapTxnDtfrCd = "0";
             }
         }
         /* 13. SAP세금계산서발행기준코드 */
         String sapTxinvPblBaseCd = "";
         if (StringUtils.isNotEmpty(sapPdDvCd) && ("B1".equals(sapPdDvCd) || "B2".equals(sapPdDvCd))) {
+            // SAP상품구분코드가 B1, B2 로 매핑되어있으면 빈칸
             sapTxinvPblBaseCd = "";
         } else {
+            // 아니면 모두 4
             sapTxinvPblBaseCd = "4";
         }
         if ((StringUtils.isNotEmpty(sapPdDvCd) && "B3".equals(sapPdDvCd)) || dvo.getPvdaAmt() > 0) {
+            // SAP상품구분코드가 B3 이면서 현찰차금액 PVDA_AMT > 0 이면 3
             sapTxinvPblBaseCd = "3";
         }
         /* 14. 물류배송방식코드, SAP플랜트코드, SAP저장위치값. */
@@ -137,52 +141,69 @@ public class WdcbSalesConfirmCreateService {
         }
 
         /* 15. SAP매출유형코드 */
+        String tempSellTpDtlCd = ""; /*판매유형상세코드*/
+        String tempSlRcogClsfCd = ""; /*매출인식분류코드*/
         String sapSlTpCd = "";
         String slTpDvCd = "";
         String clssVal = "";
         String addCondition = "";
         String slpMapngCdv = "";
 
-        if (StringUtils.isNotEmpty(dvo.getRtngdYn()) && "N".equals(dvo.getRtngdYn())) {
+        log.info("dvo.getSlRcogClsfCd().substring(1):" + dvo.getSlRcogClsfCd().substring(0, 1));
+        tempSellTpDtlCd = dvo.getSlRcogClsfCd().substring(0, 1).equals("S") ? "ANY" : dvo.getSellTpDtlCd();
+
+        tempSlRcogClsfCd = dvo.getSlRcogClsfCd().substring(0, 1).equals("W") ? "W" : dvo.getSlRcogClsfCd();
+
+        if (StringUtils.isEmpty(dvo.getRtngdYn()) || "N".equals(dvo.getRtngdYn())) {
+            // 반품여부(RTNGD_YN) N 또는 NULL 이면 1
             slTpDvCd = "1";
         } else if (StringUtils.isNotEmpty(dvo.getRtngdYn()) && "Y".equals(dvo.getRtngdYn())) {
+            // 반품여부(RTNGD_YN) Y이면 2
             slTpDvCd = "2";
-        }
-        if (dvo.getPcsvReimAmt() > 0) {
-            slTpDvCd = "3";
-        }
-        if (dvo.getSlCanAmt() > 0) {
-            slTpDvCd = "7";
         }
 
         if (StringUtils.isNotEmpty(sapMatEvlClssVal)) {
             if ("Z1".equals(sapMatEvlClssVal.substring(0, 2))) {
+                // SAP저장위치값 앞2자리가 Z1 이면 1
                 clssVal = "1";
             } else if ("Z2".equals(sapMatEvlClssVal.substring(0, 2))) {
+                // SAP저장위치값 앞2자리가 Z2 이면 2
                 clssVal = "2";
             } else if ("Z7".equals(sapMatEvlClssVal.substring(0, 2))) {
+                // SAP저장위치값 앞2자리가 Z7 이면 3
                 clssVal = "3";
             } else {
+                // SAP저장위치가 없으면 2로 셋팅
                 clssVal = "2";
             }
         } else {
+            // SAP저장위치가 없으면 2로 셋팅
             clssVal = "2";
         }
 
         if (dvo.getRentalRgstCost() > 0) {
+            // 렌탈등록비(RENTAL_RGST_COST) 가 0보다 크면 1
             addCondition = "1";
         } else if (StringUtils.isNotEmpty(dvo.getLgstItmGdCd())
             && "E".equals(dvo.getLgstItmGdCd()) || "R".equals(dvo.getLgstItmGdCd())) {
+            // 14일이내 취소건 : 물류품목등급코드(LGST_ITM_GD_CD) 가 E 또는 R 이면 2
             addCondition = "2";
-        } else if ((StringUtils.isNotEmpty(dvo.getSellTpCd()) && "6".equals(dvo.getSellTpCd()))
-            && (StringUtils.isNotEmpty(dvo.getRvpyYn()) && "Y".equals(dvo.getRvpyYn()))) {
+        } else if ("PDC000000000068".equals(dvo.getPdMclsfId()) || "PDC000000000070".equals(dvo.getPdMclsfId())) {
+            // VO에 들어온 상품중분류코드 (PD_MCLSF_ID) 가 PDC000000000068,PDC000000000070 이면 3
             addCondition = "3";
+        } else if (StringUtils.isNotEmpty(dvo.getCanDt()) || dvo.getSlCanAmt() != 0) {
+            // VO의 취소일자(CAN_DT) 가 널이 아니거나,  또는 취소금액(SL_CAN_AMT) 이 0이 아닌경우.  4
+            addCondition = "4";
         } else {
+            // 모두에 해당하지 않으면 0
             addCondition = "0";
         }
 
-        slpMapngCdv = mapper.selectSlpMapngCdv(dvo.getSellTpDtlCd(), clssVal, slTpDvCd, addCondition);
+        slpMapngCdv = mapper.selectSlpMapngCdv(tempSellTpDtlCd, tempSlRcogClsfCd, clssVal, slTpDvCd, addCondition);
         sapSlTpCd = StringUtil.isEmpty(slpMapngCdv) ? "ERR" : slpMapngCdv;
+
+        String tmpSapBizDvCd = mapper.selectSapBizDvCd(tempSellTpDtlCd, tempSlRcogClsfCd, addCondition);
+        String sapBizDvCd = StringUtil.isEmpty(tmpSapBizDvCd) ? "ERR" : tmpSapBizDvCd;
 
         /* 매핑 값 셋팅 */
         inputDvo.setCntrNo(dvo.getCntrNo());
@@ -271,7 +292,7 @@ public class WdcbSalesConfirmCreateService {
         inputDvo.setPcsvReimAmt(dvo.getPcsvReimAmt());
         inputDvo.setSapMatEvlClssVal(sapMatEvlClssVal);
         inputDvo.setSapSlTpCd(sapSlTpCd);
-        inputDvo.setSapBizDvCd("");
+        inputDvo.setSapBizDvCd(sapBizDvCd);
         inputDvo.setSapBzHdqInfCd(sapBzHdqInfCd);
         inputDvo.setSlAmt(slAmt);
         inputDvo.setVat(vat);

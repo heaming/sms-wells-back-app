@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.evaluate.mapper.WpsdWelsMngerSvCmpstIctrIndvMapper">
+    <select id="selectWelsMngerSvCmpstIctrIndvPages" resultType="com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdWelsMngerSvCmpstIctrIndvDvo">
+        SELECT CNR_OG_CD /* 센터조직코드 */
+             , ICHR_PRTNR_NO /* 담당파트너번호 */
+             , ICHR_PRTNR_NM /* 담당파트너명 */
+             , RSB_NM /* 직책명 */
+             , SV_PROCS_RT_VST_ACC_N /* 배정계정 */
+             , CTT_FSH_CT /* 컨택완료건수 */
+             , NVL(CONTACT_RATE, 0) AS CONTACT_RATE /* 컨택율 */
+             , NVL(CONTACT_RATE_3BF, 0) AS CONTACT_RATE_3BF /* 3일전컨택율 */
+             , CONTACT_PLUS /* 3일전컨택가산점 */
+             , DIS_CNTCT /* 미컨택 */
+             , PROM_OBY_CT /* 약속준수건수 */
+             , NVL(PROM_OBY_RAT, 0) AS PROM_OBY_RAT /* 약속준수비율 */
+             , SCN_CT /* 스캔건수 */
+             , NVL(SCN_RAT, 0) AS SCN_RAT /* 스캔비율 */
+             , SV_PROCS_RT_FSH_ACC_N /* 서비스처리율완료계정수 */
+             , NVL(SV_PROCS_RT_VST_RAT, 0) AS SV_PROCS_RT_VST_RAT /* 서비스처리율방문비율 */
+             , HPCALL_RSP_CT /* 해피콜응답건수 */
+             , HPCALL_AV_PC /* 해피콜평균점수 */
+             , TO_CHAR(CTT_FST_RAT + CONTACT_PLUS + PROM_OBY_RAT + SCN_RAT + SV_PROCS_RT_VST_RAT + HPCALL_AV_PC, 'FM900.0') AS TOTAL_SCORE /* 총점 */
+             , RANK() OVER(ORDER BY (CTT_FST_RAT + CONTACT_PLUS + PROM_OBY_RAT + SCN_RAT + SV_PROCS_RT_VST_RAT + HPCALL_AV_PC) DESC) AS ALL_RANK /* 종합순위 */
+          FROM (SELECT T1.CNR_OG_CD /* 센터조직코드 */
+                     , T1.ICHR_PRTNR_NO /* 담당파트너번호 */
+                     , T1.ICHR_PRTNR_NM /* 담당파트너명 */
+                     , T1.RSB_NM /* 직책명 */
+                     , T1.SV_PROCS_RT_VST_ACC_N /* 배정계정 */
+                     , NVL(T1.CTT_FSH_CT, 0) AS CTT_FSH_CT /* 컨택완료건수 */
+                     , TRUNC(NVL(CTT_FSH_CT / DECODE(SV_PROCS_RT_VST_ACC_N, 0, NULL, SV_PROCS_RT_VST_ACC_N), 0), 3) *100 AS CTT_FST_RAT /* 컨택비율 */
+                     , NVL(T1.CTT_CT3, 0) AS CTT_CT3 /* 3일전컨택건수 */
+                     , (CASE WHEN NVL(SV_PROCS_RT_VST_ACC_N, 0) != 0
+                             THEN ROUND((NVL(CTT_CT1, 0) / NVL(SV_PROCS_RT_VST_ACC_N, 0)) * 100, 1)
+                             ELSE 0 END) AS CONTACT_RATE /* 컨택율 */
+                     , (CASE WHEN NVL(SV_PROCS_RT_FSH_ACC_N, 0) > 0
+                             THEN ROUND((NVL(CTT_CT3, 0) / NVL(SV_PROCS_RT_FSH_ACC_N, 0)) * 100, 1)
+                             ELSE 0 END) AS CONTACT_RATE_3BF /* 3일전컨택율 */
+                     , (CASE WHEN NVL(SV_PROCS_RT_FSH_ACC_N, 0) > 0 AND (CASE WHEN NVL(SV_PROCS_RT_FSH_ACC_N, 0) > 0
+                                                                              THEN ROUND((NVL(CTT_CT3, 0) / NVL(SV_PROCS_RT_FSH_ACC_N, 0)) * 100, 1)
+                                                                              ELSE 0 END) > 50
+                             THEN ROUND(((NVL(CTT_CT3, 0)) / NVL(SV_PROCS_RT_FSH_ACC_N, 0) * 100), 1) - 50
+                             ELSE 0 END) AS CONTACT_PLUS /* 3일전컨택가산점 */
+                     , CASE WHEN ((NVL(SV_PROCS_RT_FSH_ACC_N, 0) > 0) AND (TO_NUMBER(NVL(SV_PROCS_RT_FSH_ACC_N, 0)) > TO_NUMBER(NVL(CTT_FSH_CT, 0))))
+                            THEN NVL(SV_PROCS_RT_FSH_ACC_N, 0) - NVL(CTT_FSH_CT, 0)
+                            ELSE 0 END AS DIS_CNTCT /* 미컨택 */
+                     , T1.PROM_OBY_CT /* 약속준수건수 */
+                     , T1.PROM_OBY_RAT /* 약속준수비율 */
+                     , T1.SCN_CT /* 스캔건수 */
+                     , T1.SCN_RAT /* 스캔비율 */
+                     , T1.SV_PROCS_RT_FSH_ACC_N /* 서비스처리율완료계정수 */
+                     , T1.SV_PROCS_RT_VST_RAT /* 서비스처리율방문비율 */
+                     , T1.HPCALL_RSP_CT /* 해피콜응답건수 */
+                     , T1.HPCALL_AV_PC /* 해피콜평균점수 */
+                  FROM TB_SVPD_CMPST_ICTR_MCBY_AGRG T1
+                 WHERE 1 = 1
+                   AND T1.MNGT_YM = #{mngtYm}
+                   AND T1.SV_DV_CD = '2'
+                 <if test='dgr1LevlOgId != null and dgr1LevlOgId != ""'>
+                   AND SUBSTR(T1.CNR_OG_CD, 1, 1) = SUBSTR(#{dgr1LevlOgId}, 1, 1)
+                 </if>
+                 <if test='dgr2LevlOgId != null and dgr2LevlOgId != ""'>
+                   AND T1.CNR_OG_CD = #{dgr2LevlOgId}
+                 </if>
+                 <if test='prtnrNo != null and prtnrNo != ""'>
+                   AND T1.ICHR_PRTNR_NO = #{prtnrNo}
+                 </if>
+                 )
+    </select>
+</mapper>

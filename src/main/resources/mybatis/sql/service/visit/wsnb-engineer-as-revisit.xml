@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbEngineerAsRevisitListSearchMapper">
+
+    <select id="selectEngineerAsRevisitListSearchPages" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbEngineerAsRevisitListSearchDvo">
+    WITH TB_RS AS (
+                    SELECT *
+                      FROM TB_SVPD_CST_SV_WK_RS_IZ T1
+                         , TB_OGBS_OG_BAS T2
+                     WHERE T1.AS_LCT_CD NOT IN ('A832', 'A832', 'A904', 'A808', 'A814'
+                                               , 'A834', 'A835', 'A837', 'A838', 'A904'
+                                               , 'X605', 'X606', 'X607')
+                       AND T1.AS_PHN_CD NOT IN ('B803', 'B834', 'B835', 'B839', 'B841'
+                                               , 'B891', 'B902', 'B904', 'B942', 'B943'
+                                               , 'B946', 'B947', 'B954', 'B963', 'Y904'
+                                               , 'B831', 'B834', 'B835', 'B904', 'B907'
+                                               , 'B963')
+                       AND T1.AS_CAUS_CD NOT IN ('Z535', 'Z536', 'Z537', 'Z539')
+                       AND T1.SV_BIZ_DCLSF_CD = '3110'
+                       AND T1.REFRI_DV_CD = '1'
+
+                       AND T1.OG_ID = T2.OG_ID
+                       AND T2.OG_TP_CD IN ('W03', 'W06')
+                       AND T2.OG_CD NOT LIKE '9%'
+                    )
+
+    SELECT V1.CNTR_NO
+         , V1.CNTR_SN
+         , V1.RCGVP_KNM_A
+         , V1.COPN_DV
+         , V1.SAP_MAT_CD
+         , V1.PDCT_PD_CD PD_CD
+         , V1.PD_NM
+         , TO_CHAR(TO_DATE(V1.VST_FSH_DT_B, 'YYYYMMDD'), 'YYYY-MM-DD') VST_FSH_DT_B
+         , TO_CHAR(TO_DATE(V1.NEXT_DT, 'YYYYMMDD'), 'YYYY-MM-DD') NEXT_DT
+         , V1.BETWEEN_DT
+         , V1.OG_NM_B
+         , V1.PRTNR_NO_B
+         , V1.PRTNR_KNM_B
+         , V1.AS_LCT_B
+         , V1.AS_PHN_B
+         , V1.AS_CAUS_B
+         , 'A/S' SV_BIZ_HCLSF_B
+
+         , V2.OG_NM OG_NM_A
+         , V2.PRTNR_NO PRTNR_NO_A
+         , V2.PRTNR_KNM PRTNR_KNM_A
+         , F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', V2.AS_LCT_CD) AS_LCT_A
+         , F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', V2.AS_PHN_CD) AS_PHN_A
+         , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', V2.AS_CAUS_CD) AS_CAUS_A
+         , ITM_PD_CD1
+         , ITM_PD_CD2
+         , ITM_PD_CD3
+         , ITM_PD_CD4
+         , ITM_PD_CD5
+         , ITM_PD_CD6
+         , ITM_PD_CD7
+         , ITM_PD_CD8
+         , ITM_PD_CD9
+         , ITM_PD_CD10
+         , NEXT_ITM_PD_CD1
+         , NEXT_ITM_PD_CD2
+         , NEXT_ITM_PD_CD3
+         , NEXT_ITM_PD_CD4
+         , NEXT_ITM_PD_CD5
+         , NEXT_ITM_PD_CD6
+         , NEXT_ITM_PD_CD7
+         , NEXT_ITM_PD_CD8
+         , NEXT_ITM_PD_CD9
+         , NEXT_ITM_PD_CD10
+      FROM (
+            SELECT CNTR_NO
+                 , CNTR_SN
+                 , SV_BIZ_HCLSF_CD
+                 , RCGVP_KNM RCGVP_KNM_A
+                 , COPN_DV
+                 , SAP_MAT_CD
+                 , PDCT_PD_CD
+                 , PD_NM
+                 , VST_FSH_DT VST_FSH_DT_B
+                 , NEXT_DT
+                 , BETWEEN_DT
+                 , OG_NM OG_NM_B
+                 , PRTNR_NO PRTNR_NO_B
+                 , PRTNR_KNM PRTNR_KNM_B
+                 , F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', AS_LCT_CD) AS_LCT_B
+                 , F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', AS_PHN_CD) AS_PHN_B
+                 , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', AS_CAUS_CD) AS_CAUS_B
+                 /* 직전 투입 정보 */
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ)*/
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '1') ITM_PD_CD1
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '2') ITM_PD_CD2
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '3') ITM_PD_CD3
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '4') ITM_PD_CD4
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '5') ITM_PD_CD5
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '6') ITM_PD_CD6
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '7') ITM_PD_CD7
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '8') ITM_PD_CD8
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '9') ITM_PD_CD9
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '10') ITM_PD_CD10
+                 /* 재방문 투입 정보 */
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.NEXT_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '1') NEXT_ITM_PD_CD1
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.NEXT_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '2') NEXT_ITM_PD_CD2
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.NEXT_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '3') NEXT_ITM_PD_CD3
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.NEXT_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '4') NEXT_ITM_PD_CD4
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.NEXT_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '5') NEXT_ITM_PD_CD5
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.NEXT_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '6') NEXT_ITM_PD_CD6
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.NEXT_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '7') NEXT_ITM_PD_CD7
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.NEXT_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '8') NEXT_ITM_PD_CD8
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.NEXT_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '9') NEXT_ITM_PD_CD9
+                 , (SELECT /*+ INDEX(PK_SVST_SV_WK_OSTR_IZ) */
+                           CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' OR
+                                     T1.SV_BIZ_HCLSF_CD = '2' OR
+                                     T1.SV_BIZ_HCLSF_CD = '3'
+                                    THEN '출고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                                ELSE '입고 '||T1.ITM_PD_CD||' '||T2.PD_NM
+                            END
+                      FROM TB_SVST_SV_WK_OSTR_IZ T1
+                         , TB_PDBS_PD_BAS T2
+                     WHERE T1.ITM_PD_CD = T2.PD_CD
+                       AND V1.NEXT_SV_ASN_NO = T1.CST_SV_ASN_NO
+                       AND T1.WK_OSTR_SN = '10') NEXT_ITM_PD_CD10
+              FROM (
+                    SELECT /*+ INDEX(RS1 IX_SVST_SV_WK_OSTR_IZ_02) */
+                           RS1.CNTR_NO
+                         , RS1.CNTR_SN
+                         , SSCT2.RCGVP_KNM
+                         , RS1.CST_SV_ASN_NO
+                         , RS1.VST_FSH_DT
+                         , RS1.VST_FSH_HH
+                         , F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', SSCT2.COPN_DV_CD) COPN_DV
+                         , RS1.PRTNR_NO
+                         , PRT1.PRTNR_KNM
+                         , RS1.AS_LCT_CD
+                         , RS1.AS_PHN_CD
+                         , RS1.AS_CAUS_CD
+                         , PRT1.OG_NM
+                         , '3' SV_BIZ_HCLSF_CD
+                         , RANK() OVER(PARTITION BY RS1.CNTR_NO, RS1.CNTR_SN ORDER BY RS1.VST_FSH_DT DESC, RS1.VST_FSH_HH DESC) RN
+                         , PD1.SAP_MAT_CD
+                         , RS1.PDCT_PD_CD
+                         , PD1.PD_NM
+                         , RS1.SV_BIZ_DCLSF_CD
+                         , (SELECT MIN(T1.VST_FSH_DT)
+                              FROM TB_RS T1
+                             WHERE T1.CNTR_NO = RS1.CNTR_NO
+                               AND T1.CNTR_SN = RS1.CNTR_SN
+                               AND T1.VST_FSH_DT &gt; RS1.VST_FSH_DT) NEXT_DT
+                         , (SELECT MIN(T1.CST_SV_ASN_NO)
+                              FROM TB_RS T1
+                             WHERE T1.CNTR_NO = RS1.CNTR_NO
+                               AND T1.CNTR_SN = RS1.CNTR_SN
+                               AND T1.VST_FSH_DT &gt; RS1.VST_FSH_DT) NEXT_SV_ASN_NO
+                         , (SELECT TO_DATE(MIN(T1.VST_FSH_DT), 'YYYYMMDD') - TO_DATE(RS1.VST_FSH_DT,'YYYYMMDD')
+                              FROM TB_RS T1
+                             WHERE T1.CNTR_NO = RS1.CNTR_NO
+                               AND T1.CNTR_SN = RS1.CNTR_SN
+                               AND T1.VST_FSH_DT &gt; RS1.VST_FSH_DT) BETWEEN_DT
+                      FROM TB_RS RS1
+                         , TB_SSCT_CNTR_ADR_REL SSCT1
+                         , TB_SSCT_CNTR_ADRPC_BAS SSCT2
+                         , TB_OGBS_MM_PRTNR_IZ PRT1
+                         , TB_PDBS_PD_BAS PD1
+                     WHERE 1=1
+                       AND RS1.VST_FSH_DT BETWEEN (TO_DATE(#{baseDateTo}) - 60) AND #{baseDateTo}
+
+                       AND RS1.CNTR_NO = SSCT1.DTL_CNTR_NO
+                       AND RS1.CNTR_SN = SSCT1.DTL_CNTR_SN
+                       AND SSCT1.ADRPC_TP_CD = '3'
+
+                       AND SSCT1.CNTR_ADRPC_ID = SSCT2.CNTR_ADRPC_ID
+
+                       AND SUBSTR(RS1.VST_FSH_DT, 1, 6) = PRT1.BASE_YM
+                       AND RS1.PRTNR_NO = PRT1.PRTNR_NO
+                       AND PRT1.OG_TP_CD IN ('W03', 'W06')
+
+                       AND RS1.PDCT_PD_CD = PD1.PD_CD
+                       <if test='@MybatisUtils@isNotEmpty(ogId)'>
+                       AND PRT1.OG_ID = #{ogId}
+                       </if>
+                    ) V1
+             WHERE 1=1
+               AND RN &gt; 1
+               AND NEXT_DT &gt;= #{baseDateFrom}
+               AND NEXT_DT &lt;= #{baseDateTo}
+               AND BETWEEN_DT &lt;= 30
+            ) V1
+         , (
+            SELECT /*+ INDEX(RS1 IX_SVST_SV_WK_OSTR_IZ_02) */
+                   RS1.CNTR_NO
+                 , RS1.CNTR_SN
+                 , RS1.AS_LCT_CD
+                 , RS1.AS_PHN_CD
+                 , RS1.AS_CAUS_CD
+                 , RS1.VST_FSH_DT
+                 , RS1.VST_FSH_HH
+                 , RS1.PRTNR_NO
+                 , PRT1.PRTNR_KNM
+                 , PRT1.OG_NM
+              FROM TB_RS RS1
+                 , TB_OGBS_MM_PRTNR_IZ PRT1
+             WHERE 1=1
+               AND RS1.VST_FSH_DT BETWEEN (TO_DATE(#{baseDateTo}) - 60) AND #{baseDateTo}
+
+               AND SUBSTR(RS1.VST_FSH_DT, 1, 6) = PRT1.BASE_YM
+
+               AND RS1.PRTNR_NO = PRT1.PRTNR_NO
+               AND PRT1.OG_TP_CD IN ('W03', 'W06')
+            ) V2
+     WHERE 1=1
+       AND V1.CNTR_NO = V2.CNTR_NO
+       AND V1.CNTR_SN = V2.CNTR_SN
+
+       AND V1.NEXT_DT = V2.VST_FSH_DT
+    </select>
+</mapper>

@@ -30,9 +30,13 @@ public interface WdcbSalesConfirmCreateMapper {
 
     WdcbSalesConfirmReceivingAndPayingDvo selectReceivingAndPaying(WdcbSalesConfirmCreateDvo dvo);
 
-    String selectSlpMapngCdv(String sellTpDtlCd, String clssVal, String slTpDvCd, String addCondition);
+    String selectSlpMapngCdv(
+        String tempSellTpDtlCd, String tempSlRcogClsfCd, String clssVal, String slTpDvCd, String addCondition
+    );
 
     int insertSalesConfirm(WdcbSlCnfmBasDvo inputDvo);
 
     String selectVatTpCd(String pdCd);
+
+    String selectSapBizDvCd(String tempSellTpDtlCd, String tempSlRcogClsfCd, String addCondition);
 }

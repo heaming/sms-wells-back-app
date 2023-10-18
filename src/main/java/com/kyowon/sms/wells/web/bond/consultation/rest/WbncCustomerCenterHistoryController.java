@@ -13,6 +13,8 @@ import com.kyowon.sms.wells.web.bond.consultation.service.WbncCustomerCenterHist
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +26,9 @@ public class WbncCustomerCenterHistoryController {
     private final WbncCustomerCenterHistoryService service;
 
     @ApiOperation(value = "[EAI_WSVO1013] 고객센터 상담이력 조회", notes = "고객번호에 대한 고객센터 상담이력 목록을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query"),
+    })
     @GetMapping
     public List<FindRes> getCustomerCenterHistories(
         @RequestParam

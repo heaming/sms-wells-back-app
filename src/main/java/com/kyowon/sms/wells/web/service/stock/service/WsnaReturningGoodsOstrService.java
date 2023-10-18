@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
  * W-SV-U-0001M01 반품출고 등록
  * </pre>
  *
- * @author hyewon.kim 김혜원
+ * @author hyewon.kim
  * @since 2023.02.14
  */
 @Service
@@ -47,10 +46,20 @@ public class WsnaReturningGoodsOstrService {
 
     private final WsnaLogisticsInStorageAskService logisticsService;
 
+    /**
+     * 출고요청 창고 조회
+     * @param dto
+     * @return
+     */
     public List<SearchWarehouseRes> getWareHouses(SearchWarehouseReq dto) {
         return this.mapper.selectWareHouses(dto);
     }
 
+    /**
+     * 반품출고 조회
+     * @param dto
+     * @return
+     */
     public SearchRes getReturningGoodsOstrs(SearchReq dto) {
         ItemOutOfStorage itemOutOfStorage = this.mapper.selectItemOutOfStorage(dto);
         List<ReturningGoods> returningGoods = this.converter
@@ -61,13 +70,23 @@ public class WsnaReturningGoodsOstrService {
         return new SearchRes(itemOutOfStorage, returningGoods);
     }
 
+    /**
+     * 입고마감 체크
+     * @param itmOstrNo
+     * @return
+     */
     public Boolean isClosed(String itmOstrNo) {
         String sellReceiptDate = this.mapper.selectIsClosedByPk(itmOstrNo);
         return StringUtil.isNotEmpty(sellReceiptDate);
     }
 
+    /**
+     * 반품출고 등록
+     * @param dtos
+     * @return
+     */
     @Transactional
-    public int saveReturningGoodsOstrs(List<SaveReq> dtos) throws ParseException {
+    public int saveReturningGoodsOstrs(List<SaveReq> dtos) {
         int processCount = 0;
         int serialNumber = 0;
 
@@ -174,8 +193,13 @@ public class WsnaReturningGoodsOstrService {
         return processCount;
     }
 
+    /**
+     * 반품출고 삭제
+     * @param dtos
+     * @return
+     */
     @Transactional
-    public int removeReturningGoodsOstrs(List<RemoveReq> dtos) throws ParseException {
+    public int removeReturningGoodsOstrs(List<RemoveReq> dtos) {
         int processCount = 0;
 
         List<WsnaReturningGoodsDvo> dvos = this.converter.mapRemoveAllReturningGoodsDvoToReturningGoods(dtos);
@@ -270,15 +294,30 @@ public class WsnaReturningGoodsOstrService {
         return processCount;
     }
 
+    /**
+     * 출고유형코드 값 체크
+     * @param ostrTpCd
+     * @return
+     */
     public Boolean isReturning(String ostrTpCd) {
         return RETURN_INSIDE.equals(ostrTpCd) || RETURN_OUTSIDE.equals(ostrTpCd);
     }
 
+    /**
+     * 반품출고내부 및 물류구분인지 체크
+     * @param ostrTpCd
+     * @param strWareDvCd
+     * @return
+     */
     public Boolean isReturnToLogistics(String ostrTpCd, String strWareDvCd) {
         return RETURN_INSIDE.equals(ostrTpCd) && WARE_DV_CD_LOGISTICS_CENTER.equals(strWareDvCd);
     }
 
-    /*품목재고내역관리 서비스(W-SV-S-0087)의 품목재고내역 등록 메소드(saveItemStockIzRgsts)를 호출 - 반품출고*/
+    /**
+     * 품목재고내역의 등록 호출파라미터 변환
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setReturningOstrWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsDvo vo
     ) {
@@ -297,6 +336,11 @@ public class WsnaReturningGoodsOstrService {
         return reqDvo;
     }
 
+    /**
+     * 품목재고내역 이동재고를 위한 파라미터 변환
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setReturningMoveWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsDvo vo
     ) {
@@ -315,6 +359,11 @@ public class WsnaReturningGoodsOstrService {
         return moveDvo;
     }
 
+    /**
+     * 품목재고내역 입고 파라미터 변환
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setReturningStrWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsDvo vo
     ) {
@@ -333,6 +382,11 @@ public class WsnaReturningGoodsOstrService {
         return reqDvo;
     }
 
+    /**
+     * 폐기출고 처리를 위한 파라미터 변환환
+    * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setReturningDisuseWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsDvo vo
     ) {
@@ -351,6 +405,11 @@ public class WsnaReturningGoodsOstrService {
         return reqDvo;
     }
 
+    /**
+     * 품목재고내역 입고창고의 재고내역을 삭제하기 위한 파라미터 변환
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setReturningRemoveWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsDvo vo
     ) {
@@ -369,6 +428,11 @@ public class WsnaReturningGoodsOstrService {
         return removeDvo;
     }
 
+    /**
+     * 품목재고내역 입고창고의 이동재고삭제를 위한 파라미터 변환
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setReturningRemoveMoveWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsDvo vo
     ) {
@@ -387,6 +451,11 @@ public class WsnaReturningGoodsOstrService {
         return removeDvo;
     }
 
+    /**
+     * 품목재고내역 삭제를 위한 파라미터 변환
+     * @param vo
+     * @return
+     */
     protected WsnaItemStockItemizationReqDvo setReturningOstrRemoveWsnaItemStockItemizationDtoSaveReq(
         WsnaReturningGoodsDvo vo
     ) {

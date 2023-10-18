@@ -26,6 +26,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 헬스 제휴 관리 컨트롤러
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 @RestController
 @Api(tags = "[WPDY] 상품(Wells) - 기준정보관리 - 헬스 제휴 관리")
 @RequestMapping(value = PdProductWellsConst.REST_URL_V1 + "/alliances")
@@ -35,6 +43,11 @@ public class WpdyWellsAllianceMgtController {
 
     private final WpdyWellsAllianceMgtService service;
 
+    /**
+     * 헬스 제휴 목록 조회
+     * @param dto 검색조건 정보
+     * @return 검색 결과 목록
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "alncmpCd", value = "제휴코드", paramType = "query", example = "ABC"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query", example = "01"),
@@ -45,7 +58,7 @@ public class WpdyWellsAllianceMgtController {
         @ApiImplicitParam(name = "svcStartDt", value = "적용 시작일", paramType = "query", example = "20230421"),
         @ApiImplicitParam(name = "svcEndDt", value = "적용 종료일", paramType = "query", example = "20230431"),
     })
-    @ApiOperation(value = "헬스 제휴 조회", notes = "헬스 제휴 정보 목록을 조회한다.")
+    @ApiOperation(value = "헬스 제휴 목록 조회", notes = "헬스 제휴 정보 목록을 조회한다.")
     @GetMapping
     public List<WpdyWellsAllianceMgtDto.SearchRes> getWellsAlliances(
         WpdyWellsAllianceMgtDto.SearchReq dto
@@ -53,6 +66,12 @@ public class WpdyWellsAllianceMgtController {
         return service.getWellsAlliances(dto);
     }
 
+    /**
+     * 헬스 제휴 페이징 조회
+     * @param dto 검색조건 정보
+     * @param pageInfo 페이지 정보
+     * @return 검색 결과 목록
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "alncmpCd", value = "제휴코드", paramType = "query", example = "ABC"),
         @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query", example = "01"),
@@ -72,6 +91,12 @@ public class WpdyWellsAllianceMgtController {
         return service.getWellsAlliancePages(dto, pageInfo);
     }
 
+    /**
+     * 헬스 제휴 수정
+     * @param dto 수정내용 정보
+     * @return 처리결과
+     * @throws Exception 미처리 시 Exception 처리
+     */
     @ApiOperation(value = "헬스 제휴 수정", notes = "수정된 헬스 제휴 정보를 반영한다.")
     @PostMapping
     public SaveResponse saveWellsAlliances(
@@ -84,6 +109,12 @@ public class WpdyWellsAllianceMgtController {
             .build();
     }
 
+    /**
+     * 헬스 제휴 삭제
+     * @param 삭제 정보
+     * @return 처리결과
+     * @throws Exception 미처리 시 Exception 처리
+     */
     @ApiOperation(value = "헬스 제휴 삭제")
     @DeleteMapping
     public SaveResponse removeWellsAlliances(
@@ -96,6 +127,11 @@ public class WpdyWellsAllianceMgtController {
             .build();
     }
 
+    /**
+     * 헬스 제휴 중복체크
+     * @param dtos 비교 대상 정보
+     * @return 체크결과
+     */
     @ApiOperation(value = "헬스 제휴 중복체크")
     @PostMapping("/duplication-check")
     public SaveResponse checkDuplication(
@@ -108,7 +144,12 @@ public class WpdyWellsAllianceMgtController {
             .build();
     }
 
-    @ApiOperation(value = "헬스 제휴 중복체크")
+    /**
+     * 헬스 제휴 저장검증
+     * @param dtos 검증 대상 정보
+     * @return 체크결과
+     */
+    @ApiOperation(value = "헬스 제휴 저장검증")
     @PostMapping("/validation-check")
     public SaveResponse checkValidation(
         @RequestBody

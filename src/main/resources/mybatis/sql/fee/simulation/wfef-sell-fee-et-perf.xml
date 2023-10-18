@@ -1,0 +1,1173 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.simulation.mapper.WfefSellFeeEtPerfMapper">
+    <select id="getSellFeeEtPerf" resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefSellFeeEtPerfDto$SearchRes">
+    SELECT ORDR.OG_CD
+         , ORDR.PRTNR_NM
+         , ORDR.PRTNR_NO
+         , MIN(PR_PSTN.PSTN_DV_CD) AS PSTN_DV_CD
+        <choose>
+            <when test="@MybatisUtils@equals(inqrDv, '3') or @MybatisUtils@equals(inqrDv, '4')">
+         , ORDR.CNTR_NO
+         , ORDR.CNTR_SN
+            </when>
+            <otherwise>
+         , MIN(ORDR.CNTR_NO) AS CNTR_NO
+         , MIN(ORDR.CNTR_SN) AS CNTR_SN
+            </otherwise>
+        </choose>
+         , MIN(ORDR.CNTR_CST_NO) AS CNTR_CST_NO
+         , MIN(ORDR.CNTR_CST_NM) AS CNTR_CST_NM
+         , MIN(ORDR.CNTR_CNFM_DT) AS CNTR_CNFM_DT
+         , MIN(ORDR.CNTR_PD_STRTDT) AS CNTR_PD_STRTDT
+         , MIN(ORDR.CNTR_CAN_DT) AS CNTR_CAN_DT
+         , MIN(ORDR.PD_CLSF_NM) AS PD_CLSF_NM
+         , MIN(ORDR.PD_CD) AS PD_CD
+         , MIN(PD_NM) AS PD_NM
+         , MIN(MCHN_CH_TP_CD) AS MCHN_CH_TP_CD
+         , COUNT(DISTINCT ORDR.BRCH_NO) AS BRCH_CT
+         , SUM(NVL(RNTL_CNT_B, 0)) + SUM(NVL(RRNT_CNT_B, 0)) + SUM(NVL(RGLR_CNT_B, 0)) AS ELHM_RENTAL_CT /* 가전(렌탈)건수 */
+         , SUM(NVL(RNTL_AMT, 0)) + SUM(NVL(RGLR_AMT, 0)) AS ELHM_RENTAL_AMT /* 가전(렌탈)금액 */
+         , SUM(NVL(ENV_ILSI_CNT_B, 0)) AS ELHM_SPAY_CT /* 가전(일시불)건수 */
+         , SUM(NVL(ENV_ILSI_AMT, 0)) AS ELHM_SPAY_AMT /* 가전(할부)금액 */
+         , SUM(NVL(NOT_ENV_PAMT_B, 0)) AS NOT_ELHM_SPAY_AMT /* 가전외일시금액 */
+         , SUM(VST_ASN_CT) AS VST_ASN_CT /* 방문배정건수 */
+         , SUM(VST_FSH_CT) AS VST_FSH_CT /* 방문배정건수 */
+         , CAST(SUM(VST_FSH_CT) AS FLOAT) / CAST(CASE WHEN SUM(VST_ASN_CT) = 0 THEN 1 ELSE SUM(VST_ASN_CT) END AS FLOAT) * 100 AS VST_PROCS_RT /* 방문처리율 */
+         , SUM(NVL(ACNT_RNTL_CNT, 0)) AS RENTAL_NINC_CT /* 렌탈순증건수 */
+         , SUM(NVL(ACNT_ENV_ILSI_CNT, 0)) AS ELHM_SPAY_NINC_CT  /* 일시불 순증 건수 */
+         , SUM(NVL(ACNT_RNTL_CNCL_CNT, 0)) AS RENTAL_CAN_CT /* 렌탈 취소 건수 */
+         , SUM(NVL(ACNT_ILSI_CNCL_CNT, 0)) AS ELHM_SPAY_CAN_CT /* 일시불 취소 건수 */
+         , SUM(NVL(ACNT_RNTL_MNRY_CNT, 0)) AS RENTAL_EXN_CT /* 렌탈만료건수 */
+         , SUM(NVL(ACNT_MMBR_CNCL_CNT, 0)) AS MSH_WDWAL_CNT /* 멤버쉽탈퇴건수 */
+         , SUM(NVL(ACNT_RNTL_CNT, 0)) + SUM(NVL(ACNT_ENV_ILSI_CNT, 0))
+            - SUM(NVL(ACNT_ILSI_CNCL_CNT, 0)) - SUM(NVL(ACNT_RNTL_CNCL_CNT, 0))
+            - SUM(NVL(ACNT_RNTL_MNRY_CNT, 0)) - SUM(NVL(ACNT_MMBR_CNCL_CNT, 0)) AS ACC_NINC_SUM /* 계정순증합계 */
+         , NVL(MIN(CAN_TP_NM), '신규') AS CAN_TP_NM
+         , MIN(CNTR_STAT_CH_RSON_CD) AS CNTR_STAT_CH_RSON_CD
+         , MIN(ORIG_SELL_PRTNR_NO) AS ORIG_SELL_PRTNR_NO
+         , MIN(ORIG_PRTNR_KNM) AS ORIG_PRTNR_KNM
+         , MIN(ORIG_OG_CD) AS ORIG_OG_CD
+      FROM (
+            SELECT
+                <if test="@MybatisUtils@equals(pstnDvCd, '01')">
+                   OG.DGR1_LEVL_OG_CD AS OG_CD
+                 , OG.DGR1_LEVL_DG_PRTNR_NM AS PRTNR_NM
+                 , OG.DGR1_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                </if>
+                <if test="@MybatisUtils@equals(pstnDvCd, '02')">
+                   OG.DGR2_LEVL_OG_CD AS OG_CD
+                 , OG.DGR2_LEVL_DG_PRTNR_NM AS PRTNR_NM
+                 , OG.DGR2_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                </if>
+                <if test="@MybatisUtils@equals(pstnDvCd, '03')">
+                   OG.DGR3_LEVL_OG_CD AS OG_CD
+                 , OG.DGR3_LEVL_DG_PRTNR_NM AS PRTNR_NM
+                 , OG.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                </if>
+                <if test="@MybatisUtils@equals(pstnDvCd, '04')">
+                   PR.OG_CD AS OG_CD
+                 , PR.PRTNR_KNM AS PRTNR_NM
+                 , PR.PRTNR_NO AS PRTNR_NO
+                </if>
+                 , CASE WHEN PR.PSTN_DV_CD = '7' THEN PR.PRTNR_NO END AS BRCH_NO
+                 , TB03.SELL_PRTNR_NO
+                 , TB03.CNTR_NO
+                 , TB03.CNTR_SN
+                 , TB03.CNTR_CST_NO
+                 , TB03.CNTR_CST_NM
+                 , TB03.CNTR_CNFM_DT
+                 , TB03.CNTR_PD_STRTDT
+                 , TB03.CNTR_CAN_DT
+                 , TB03.PD_CLSF_NM
+                 , TB03.PD_CD
+                 , TB03.PD_NM
+                 , TB03.MCHN_CH_TP_CD
+                <choose>
+                    <when test="@MybatisUtils@equals(inqrDvCd, '1')">
+                 , CASE WHEN TB03.CNTR_DTL_STAT_CD NOT LIKE '3%' THEN TB03.RNTL_CNT_B ELSE 0 END AS RNTL_CNT_B
+                 , CASE WHEN TB03.CNTR_DTL_STAT_CD NOT LIKE '3%' THEN TB03.RRNT_CNT_B ELSE 0 END AS RRNT_CNT_B
+                 , CASE WHEN TB03.CNTR_DTL_STAT_CD NOT LIKE '3%' THEN TB03.RGLR_CNT_B ELSE 0 END AS RGLR_CNT_B
+                 , CASE WHEN TB03.CNTR_DTL_STAT_CD NOT LIKE '3%' THEN TB03.ENV_ILSI_CNT_B ELSE 0 END AS ENV_ILSI_CNT_B
+                 , CASE WHEN TB03.CNTR_DTL_STAT_CD NOT LIKE '3%' THEN TB03.NOT_ENV_ILSI_CNT_B ELSE 0 END AS NOT_ENV_ILSI_CNT_B
+                 , CASE WHEN TB03.CNTR_DTL_STAT_CD NOT LIKE '3%' THEN TB03.NOT_ENV_PAMT_B ELSE 0 END AS NOT_ENV_PAMT_B
+                 , CASE WHEN TB03.CNTR_DTL_STAT_CD NOT LIKE '3%' THEN TB03.RNTL_AMT ELSE 0 END AS RNTL_AMT
+                 , CASE WHEN TB03.CNTR_DTL_STAT_CD NOT LIKE '3%' THEN TB03.RGLR_AMT ELSE 0 END AS RGLR_AMT
+                 , CASE WHEN TB03.CNTR_DTL_STAT_CD NOT LIKE '3%' THEN TB03.ENV_ILSI_AMT ELSE 0 END AS ENV_ILSI_AMT
+                 , CASE WHEN TB03.CNTR_DTL_STAT_CD NOT LIKE '3%' THEN TB03.NOT_ENV_ILSI_AMT ELSE 0 END AS NOT_ENV_ILSI_AMT
+                    </when>
+                    <otherwise>
+                 , TB03.RNTL_CNT_B
+                 , TB03.RRNT_CNT_B
+                 , TB03.RGLR_CNT_B
+                 , TB03.ENV_ILSI_CNT_B
+                 , TB03.NOT_ENV_ILSI_CNT_B
+                 , TB03.NOT_ENV_PAMT_B
+                 , TB03.RNTL_AMT
+                 , TB03.RGLR_AMT
+                 , TB03.ENV_ILSI_AMT
+                 , TB03.NOT_ENV_ILSI_AMT
+                    </otherwise>
+                 </choose>
+                 , TB03.ACNT_RNTL_CNT
+                 , TB03.ACNT_ENV_ILSI_CNT
+                 , TB03.ACNT_ILSI_CNCL_CNT
+                 , TB03.ACNT_RNTL_CNCL_CNT
+                 , TB03.ACNT_RNTL_MNRY_CNT
+                 , TB03.ACNT_MMBR_CNCL_CNT
+                 , NVL(SUB1.LCCNT1, 0) - NVL(SUB1.LCCCNT, 0) AS VST_ASN_CT
+                 , NVL(SUB1.LCCNT2, 0) + NVL(SUB1.LCCNT3, 0) AS VST_FSH_CT
+                 , TB03.CAN_TP_NM
+                 , TB03.CNTR_STAT_CH_RSON_CD
+                 , TB03.ORIG_SELL_PRTNR_NO
+                 , PR_ORIG.PRTNR_KNM AS ORIG_PRTNR_KNM
+                 , PR_ORIG.OG_CD AS ORIG_OG_CD
+              FROM TB_OGBS_MM_PRTNR_IZ PR
+             INNER JOIN TB_OGBS_MM_OG_IZ OG
+                ON OG.BASE_YM = PR.BASE_YM
+               AND OG.OG_ID = PR.OG_ID
+              LEFT JOIN (
+                    SELECT *
+                      FROM (
+                            SELECT PRTNR_NO, PRTNR_SV_PERF_ATC_CD, PERF_VAL
+                              FROM TB_FEAM_WPTN_SV_PERF_AGRG PA
+                             WHERE PA.BASE_YM = SUBSTR(#{inqrStrtDt}, 1, 6)
+                               AND PA.CL_DV_CD = '02'
+                               AND PA.OG_TP_CD != 'HR1'
+                               AND PA.PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999909', 'SV01909001')
+                           )
+                       PIVOT (SUM(PERF_VAL) FOR PRTNR_SV_PERF_ATC_CD IN (
+                                    'SV01999901' AS LCCNT1,
+                                    'SV01999902' AS LCCNT2,
+                                    'SV01999903' AS LCCNT3,
+                                    'SV01999909' AS LCRAT1,
+                                    'SV01909001' AS LCCCNT)
+                           )
+                   ) SUB1
+                ON SUB1.PRTNR_NO = PR.PRTNR_NO
+              LEFT JOIN (
+                        /* 일시불 */
+                        SELECT LC30.CNTR_NO
+                             , LC30.CNTR_SN
+                             , LC30.SELL_PRTNR_NO
+                             , LC30.CNTR_DTL_STAT_CD
+                             , LC30.CNTR_CST_NO
+                             , LC30.CNTR_CST_NM /* 고객명 */
+                             , LC30.CNTR_CNFM_DT /* 접수일자 */
+                             , LC30.CNTR_PD_STRTDT /* 매출일자 */
+                             , CASE WHEN LC30.CNTR_DTL_STAT_CD LIKE '3%' THEN LC30.CNTR_PD_ENDDT END AS CNTR_CAN_DT /* 취소일자 */
+                             , LC30.PD_CLSF_NM /* 상품구분 */
+                             , LC30.BASE_PD_CD AS PD_CD /* 상품코드 */
+                             , LC30.PD_NM /* 상품명 */
+                             , '' AS MCHN_CH_TP_CD /* 기변유형 */
+                             , 0 AS RNTL_CNT_B /* 인정건수_렌탈 */
+                             , 0 AS RRNT_CNT_B /* 인정건수_재약정 */
+                             , 0 AS RGLR_CNT_B /* 인정건수_정기배송 */
+                             , CASE
+                                WHEN SELL_DSC_DV_CD = '9' AND SELL_DSCR_CD = '99' THEN 0
+                                WHEN SELL_DSC_DV_CD = '5' AND SELL_DSCR_CD IN ('11', '12', '13', '14') AND ACKMT_PERF_AMT > 0 THEN 0
+                                WHEN SELL_TP_DTL_CD = '13' AND NVL(FEE_FXAM_YN, 'N') != 'Y' AND ACKMT_PERF_AMT > 0 THEN
+                                    CASE WHEN FEE_ACKMT_CT = 0 THEN 0
+                                         WHEN ROW_SCNT = 0 THEN 0
+                                         ELSE 1 END
+                                ELSE 0 END AS ENV_ILSI_CNT_B /* 인정건수_가전일시*/
+                             , CASE
+                                WHEN SELL_TP_DTL_CD = '12' THEN 0
+                                WHEN (SELL_TP_DTL_CD = '13' AND NVL(FEE_FXAM_YN, 'N') = 'Y') OR
+                                     SELL_TP_DTL_CD != '13' THEN
+                                    CASE WHEN FEE_ACKMT_CT = 0 THEN 0
+                                         WHEN ROW_SCNT = 0 THEN 0
+                                         ELSE 1 END
+                                ELSE 0 END AS NOT_ENV_ILSI_CNT_B /* 인정건수_가전외일시 */
+                             , CASE
+                                WHEN SELL_TP_DTL_CD = '12' THEN 0
+                                WHEN NVL(FEE_FXAM_YN, 'N') = 'Y' THEN 0
+                                WHEN FEE_ACKMT_CT = 0 THEN 0
+                                WHEN ROW_SCNT != 0 THEN 0
+                                WHEN REF_PD_CLSF_VAL IN ('01003002', '05003002') THEN 0
+                                ELSE ACKMT_PERF_AMT END AS NOT_ENV_PAMT_B /* 가전외인정금액 */
+                             , 0 AS RNTL_AMT /* 인정금액_렌탈 */
+                             , 0 AS RGLR_AMT /* 인정금액_정기배송 */
+                             , CASE
+                                WHEN SELL_DSC_DV_CD = '9' AND SELL_DSCR_CD = '99' THEN 0
+                                WHEN SELL_DSC_DV_CD = '5' AND SELL_DSCR_CD IN ('11', '12', '13', '14') AND ACKMT_PERF_AMT > 0 THEN 0
+                                WHEN ROW_SCNT = 0 THEN 0
+                                WHEN SELL_TP_DTL_CD = '13' AND FEE_ACKMT_CT > 0 AND ACKMT_PERF_AMT > 2 THEN FEE_ACKMT_BASE_AMT
+                                ELSE 0 END AS ENV_ILSI_AMT /* 인정금액_가전일시 */
+                             , CASE
+                                WHEN SELL_DSC_DV_CD = '9' AND SELL_DSCR_CD = '99' THEN 0
+                                WHEN SELL_DSC_DV_CD = '5' AND SELL_DSCR_CD IN ('11', '12', '13', '14') AND ACKMT_PERF_AMT > 0 THEN 0
+                                WHEN ROW_SCNT = 0 THEN 0
+                                WHEN SELL_TP_DTL_CD != '13' AND FEE_ACKMT_CT > 0 AND ACKMT_PERF_AMT > 2 THEN FEE_ACKMT_BASE_AMT
+                                ELSE 0 END AS NOT_ENV_ILSI_AMT /* 인정금액_가전외일시 */
+                             , 0 AS ACNT_RNTL_CNT /* 계정순증신규_렌탈 */
+                             , CASE
+                                WHEN SELL_TP_DTL_CD = '13' AND FEE_FXAM_YN != 'Y' AND ACKMT_PERF_AMT > 0 THEN
+                                    CASE WHEN FEE_ACKMT_CT = 0 THEN 0
+                                         WHEN ROW_SCNT = 0 THEN 0
+                                    ELSE 1 END
+                                ELSE 0 END AS ACNT_ENV_ILSI_CNT /* 계정순증신규_가전일시 */
+                             , 0 AS ACNT_ILSI_CNCL_CNT /* 계정순증-일시-해지건수 */
+                             , 0 AS ACNT_RNTL_CNCL_CNT /* 계정순증-렌탈-해지건수 */
+                             , 0 AS ACNT_RNTL_MNRY_CNT /* 계정순증-렌탈-만료건수 */
+                             , 0 AS ACNT_MMBR_CNCL_CNT /* 계정순증-멤버-탈퇴건수 */
+                             , '' AS CAN_TP_NM /* 취소유형명 */
+                             , '' AS CNTR_STAT_CH_RSON_CD
+                             , '' AS ORIG_SELL_PRTNR_NO
+                          FROM (
+                                SELECT CB.CNTR_NO
+                                     , CD.CNTR_SN
+                                     , CB.CNTR_CST_NO
+                                     , CB.CNTR_CST_NM
+                                     , CB.SELL_PRTNR_NO
+                                     , SUBSTR(CB.CNTR_CNFM_DTM, 1, 8) AS CNTR_CNFM_DT
+                                     , CD.CNTR_PD_STRTDT
+                                     , CD.CNTR_PD_ENDDT
+                                     , CD.SELL_DSC_DV_CD
+                                     , CD.SELL_DSCR_CD
+                                     , CD.CNTR_DTL_STAT_CD
+                                     , CD.ACKMT_PERF_AMT
+                                     , CD.FEE_ACKMT_CT
+                                     , CD.FEE_FXAM_YN
+                                     , CD.FEE_ACKMT_BASE_AMT
+                                     , CD.SELL_TP_DTL_CD
+                                     , CD.BASE_PD_CD
+                                     , PD.PD_NM
+                                     , PC.PD_CLSF_NM
+                                     , PC2.REF_PD_CLSF_VAL
+                                     , (
+                                            SELECT COUNT(*)
+                                            FROM TB_FEAM_WELS_SV_FEE_BAS WS
+                                            WHERE WS.BASE_PD_CD IN (
+                                                SELECT DISTINCT T2.BASE_PD_CD
+                                                FROM TB_PDBS_PD_REL T1
+                                                INNER JOIN TB_PDBS_PD_REL T2
+                                                ON T1.OJ_PD_CD = T2.OJ_PD_CD
+                                                AND T2.PD_REL_TP_CD = '05'
+                                                AND T2.DTA_DL_YN = 'N'
+                                                AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                                                WHERE T1.BASE_PD_CD = CD.BASE_PD_CD
+                                                AND T1.PD_REL_TP_CD = '05'
+                                                AND T1.DTA_DL_YN = 'N'
+                                                AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                                            )
+                                            AND WS.VST_MCN = 0
+                                            AND SUBSTR(#{inqrStrtDt}, 1, 6) BETWEEN WS.APY_STRT_YM AND WS.APY_END_YM
+                                       ) AS ROW_SCNT
+                                  FROM TB_SSCT_CNTR_BAS CB
+                                 INNER JOIN TB_SSCT_CNTR_DTL CD
+                                    ON CD.CNTR_NO = CB.CNTR_NO
+                                 INNER JOIN TB_PDBS_PD_BAS PD
+                                    ON PD.PD_CD = CD.BASE_PD_CD
+                                 INNER JOIN TB_PDBS_PD_CLSF_BAS PC2
+                                    ON PC2.PD_CLSF_ID = PD.PD_CLSF_ID
+                                 INNER JOIN TB_PDBS_PD_CLSF_BAS PC
+                                    ON PC.PD_CLSF_ID = PD.PD_MCLSF_ID
+                                 WHERE 1=1
+                                   AND CB.DTA_DL_YN = 'N'
+                                    <choose>
+                                        <when test="@MybatisUtils@equals(perfBaseDv, '1')">
+                                   AND CB.CNTR_CNFM_DTM BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959' /* 접수일 */
+                                        </when>
+                                        <otherwise>
+                                   AND CD.CNTR_PD_STRTDT BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959' /* 설치일 */
+                                        </otherwise>
+                                     </choose>
+                                   AND CB.SELL_OG_TP_CD != 'HR1'
+                                   AND CD.SELL_TP_CD = '1' /* 1: 일시불 */
+                             ) LC30
+                         /* 렌탈 */
+                         UNION ALL
+                        SELECT LC31.CNTR_NO
+                             , LC31.CNTR_SN
+                             , LC31.SELL_PRTNR_NO
+                             , LC31.CNTR_DTL_STAT_CD
+                             , LC31.CNTR_CST_NO
+                             , LC31.CNTR_CST_NM /* 고객명 */
+                             , LC31.CNTR_CNFM_DT /* 접수일자 */
+                             , LC31.CNTR_PD_STRTDT /* 매출일자 */
+                             , CASE WHEN LC31.CNTR_DTL_STAT_CD LIKE '3%' THEN LC31.CNTR_PD_ENDDT END AS CNTR_CAN_DT /* 취소일자 */
+                             , LC31.PD_CLSF_NM /* 상품구분 */
+                             , LC31.BASE_PD_CD AS PD_CD /* 상품코드 */
+                             , LC31.PD_NM /* 상품명 */
+                             , LC31.MCHN_CH_TP_CD AS MCHN_CH_TP_CD /* 기변유형 */
+                             , CASE
+                                WHEN SELL_DSC_DV_CD = '5' AND SELL_DSCR_CD IN ('5', '6', '9') AND ACKMT_PERF_AMT > 2 THEN 0
+                                WHEN REF_PD_CLSF_VAL IN ('01003002', '05003002') THEN 0 /* 원두, 캡슐 */
+                                WHEN ACKMT_PERF_EXCD_YN = 'Y' THEN 0
+                                WHEN (SELL_DSC_DV_CD != '5' AND RSTL_YN = 'Y' AND MCHN_CH_TP_CD = '0' AND ACKMT_PERF_AMT > 0) OR
+                                     (SELL_DSC_DV_CD != '5' AND RSTL_YN != 'Y' AND ACKMT_PERF_AMT > 0) OR
+                                     (SELL_DSC_DV_CD != '5' AND RSTL_YN = 'Y' AND MCHN_CH_TP_CD IN ('15', '16', '19')) OR
+                                     (SELL_DSC_DV_CD = '5' AND ACKMT_PERF_AMT > 0 AND MCHN_CH_TP_CD = '0') OR
+                                     (SELL_DSC_DV_CD = '5' AND ACKMT_PERF_AMT > 0 AND MCHN_CH_TP_CD IN ('15', '16', '19')) THEN
+                                    CASE WHEN FEE_ACKMT_CT = 0 THEN 0
+                                         WHEN ROW_SCNT = 0 THEN 0
+                                         ELSE 1 END
+                                ELSE 0 END AS RNTL_CNT_B /* 인정건수_렌탈 */
+                             , 0 AS RRNT_CNT_B /* 인정건수_재약정 */
+                             , 0 AS RGLR_CNT_B /* 인정건수_정기배송 */
+                             , 0 AS ENV_ILSI_CNT_B /* 인정건수_가전일시 */
+                             , CASE
+                                WHEN SELL_TP_DTL_CD != '13' THEN
+                                    CASE WHEN FEE_ACKMT_CT = 0 THEN 0
+                                         WHEN ROW_SCNT = 0 THEN 0
+                                         ELSE 1 END
+                                ELSE 0 END AS NOT_ENV_ILSI_CNT_B /* 인정건수_가전외일시*/
+                             , CASE
+                                WHEN FEE_ACKMT_CT = 0 THEN 0
+                                WHEN ROW_SCNT != 0 THEN 0
+                                ELSE ACKMT_PERF_AMT END AS NOT_ENV_PAMT_B /* 인정금액_가전외일시 */
+                             , CASE
+                                WHEN ACKMT_PERF_EXCD_YN = 'Y' THEN 0
+                                WHEN MCHN_CH_TP_CD = '18' THEN 0    /* 의무기간경과 */
+                                WHEN ACKMT_PERF_AMT <![CDATA[ <= ]]> 2 THEN 0
+                                WHEN ROW_SCNT = 0 THEN 0
+                                ELSE FEE_ACKMT_BASE_AMT END AS RNTL_AMT /* 인정금액_렌탈 */
+                             , 0 AS RGLR_AMT /* 인정금액_정기배송 */
+                             , 0 AS ENV_ILSI_AMT /* 인정금액_가전일시 */
+                             , 0 AS NOT_ENV_ILSI_AMT /* 인정금액_가전외일시 */
+                             , CASE
+                                WHEN REF_PD_CLSF_VAL IN ('01003002', '05003002') THEN 0 /* 원두, 캡슐 */
+                                WHEN ACKMT_PERF_EXCD_YN !='Y' AND RSTL_YN !='Y' AND ACKMT_PERF_AMT > 0 THEN
+                                    CASE WHEN FEE_ACKMT_CT = 0 THEN 0
+                                         WHEN ROW_SCNT = 0 THEN 0
+                                    ELSE 1 END
+                                ELSE 0 END AS ACNT_RNTL_CNT /* 계정순증신규_렌탈 */
+                             , 0 AS ACNT_ENV_ILSI_CNT /* 계정순증신규_가전일시 */
+                             , 0 AS ACNT_ILSI_CNCL_CNT /*계정순증-일시-해지건수*/
+                             , 0 AS ACNT_RNTL_CNCL_CNT /*계정순증-렌탈-해지건수*/
+                             , 0 AS ACNT_RNTL_MNRY_CNT /*계정순증-렌탈-만료건수*/
+                             , 0 AS ACNT_MMBR_CNCL_CNT /*계정순증-멤버-탈퇴건수*/
+                             , '' AS CAN_TP_NM /* 취소유형명 */
+                             , '' AS CNTR_STAT_CH_RSON_CD
+                             , '' AS ORIG_SELL_PRTNR_NO
+                        FROM (
+                                SELECT CB.CNTR_NO
+                                     , CD.CNTR_SN
+                                     , CB.CNTR_CST_NO
+                                     , CB.CNTR_CST_NM
+                                     , CB.SELL_PRTNR_NO
+                                     , SUBSTR(CB.CNTR_CNFM_DTM, 1, 8) AS CNTR_CNFM_DT
+                                     , CD.CNTR_PD_STRTDT
+                                     , CD.CNTR_PD_ENDDT
+                                     , CD.SELL_DSC_DV_CD
+                                     , CD.SELL_DSCR_CD
+                                     , CD.CNTR_DTL_STAT_CD
+                                     , CD.ACKMT_PERF_AMT
+                                     , CD.FEE_ACKMT_CT
+                                     , CD.FEE_FXAM_YN
+                                     , CD.FEE_ACKMT_BASE_AMT
+                                     , CD.SELL_TP_DTL_CD
+                                     , CD.BASE_PD_CD
+                                     , PD.PD_NM
+                                     , PC.PD_CLSF_NM
+                                     , PC.REF_PD_CLSF_VAL
+                                     , (
+                                            SELECT COUNT(*)
+                                            FROM TB_FEAM_WELS_SV_FEE_BAS WS
+                                            WHERE WS.BASE_PD_CD IN (
+                                                SELECT DISTINCT T2.BASE_PD_CD
+                                                FROM TB_PDBS_PD_REL T1
+                                                INNER JOIN TB_PDBS_PD_REL T2
+                                                ON T1.OJ_PD_CD = T2.OJ_PD_CD
+                                                AND T2.PD_REL_TP_CD = '05'
+                                                AND T2.DTA_DL_YN = 'N'
+                                                AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                                                WHERE T1.BASE_PD_CD = CD.BASE_PD_CD
+                                                AND T1.PD_REL_TP_CD = '05'
+                                                AND T1.DTA_DL_YN = 'N'
+                                                AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                                            )
+                                            AND WS.VST_MCN = 0
+                                            AND SUBSTR(#{inqrStrtDt}, 1, 6) BETWEEN WS.APY_STRT_YM AND WS.APY_END_YM
+                                       ) AS ROW_SCNT
+                                     /* , CD.RSTL_YN */
+                                     , CASE WHEN CH.OJ_CNTR_NO IS NOT NULL THEN 'Y' ELSE 'N' END AS RSTL_YN
+                                     , CASE WHEN CH.MCHN_CPS_APYR = 0 THEN 'Y'
+                                            WHEN CH.OJ_CNTR_NO IS NOT NULL AND CD.ACKMT_PERF_AMT = 0 THEN 'Y'
+                                            ELSE 'N' END AS ACKMT_PERF_EXCD_YN
+                                     , NVL(CH.MCHN_CH_TP_CD, '0') AS MCHN_CH_TP_CD
+                                  FROM TB_SSCT_CNTR_BAS CB
+                                 INNER JOIN TB_SSCT_CNTR_DTL CD
+                                    ON CD.CNTR_NO = CB.CNTR_NO
+                                 INNER JOIN TB_PDBS_PD_BAS PD
+                                    ON PD.PD_CD = CD.BASE_PD_CD
+                                 INNER JOIN TB_PDBS_PD_CLSF_BAS PC
+                                    ON PC.PD_CLSF_ID = PD.PD_MCLSF_ID
+                                  LEFT JOIN TB_SSCT_MCHN_CH_IZ CH
+                                    ON CH.BASE_CNTR_NO = CD.CNTR_NO
+                                   AND CH.BASE_CNTR_SN = CD.CNTR_SN
+                                 WHERE 1=1
+                                   AND CB.DTA_DL_YN = 'N'
+                                    <choose>
+                                        <when test="@MybatisUtils@equals(perfBaseDv, '1')">
+                                   AND CB.CNTR_CNFM_DTM BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959' /* 접수일 */
+                                        </when>
+                                        <otherwise>
+                                   AND CD.CNTR_PD_STRTDT BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959' /* 설치일 */
+                                        </otherwise>
+                                     </choose>
+                                   AND CB.SELL_OG_TP_CD != 'HR1'
+                                   AND CD.SELL_TP_CD = '2' /* 2: 렌탈 */
+                                   AND CD.PD_BASE_AMT > 100
+                             ) LC31
+                        /* 멤버쉽 */
+                         UNION ALL
+                        SELECT LC35.CNTR_NO
+                             , LC35.CNTR_SN
+                             , LC35.SELL_PRTNR_NO
+                             , LC35.CNTR_DTL_STAT_CD
+                             , LC35.CNTR_CST_NO
+                             , LC35.CNTR_CST_NM /* 고객명 */
+                             , LC35.CNTR_CNFM_DT /* 접수일자 */
+                             , LC35.CNTR_PD_STRTDT  /* 매출일자 */
+                             , CASE WHEN LC35.CNTR_DTL_STAT_CD LIKE '3%' THEN LC35.CNTR_PD_ENDDT END AS CNTR_CAN_DT /* 취소일자 */
+                             , LC35.PD_CLSF_NM /* 상품구분 */
+                             , LC35.BASE_PD_CD AS PD_CD /* 상품코드 */
+                             , LC35.PD_NM /* 상품명 */
+                             , '' AS MCHN_CH_TP_CD /* 기변유형 */
+                             , 0 AS RNTL_CNT_B /*인정_건수_렌탈*/
+                             , 0 AS RRNT_CNT_B /*인정_건수_재약정*/
+                             , 0 AS RGLR_CNT_B /*인정_건수_정기배송*/
+                             , 0 AS ENV_ILSI_CNT_B /*인정_건수_가전일시*/
+                             , 0 AS NOT_ENV_ILSI_CNT_B /*인정_건수_가전외일시*/
+                             , 0 AS NOT_ENV_PAMT_B /*인정_금액_가전외일시*/
+                             , 0 AS RNTL_AMT /*인정_금액_렌탈*/
+                             , 0 AS RGLR_AMT /*인정_금액_정기배송*/
+                             , 0 AS ENV_ILSI_AMT /*인정_금액_가전일시*/
+                             , 0 AS NOT_ENV_ILSI_AMT /*인정_금액_가전외일시*/
+                             , 0 AS ACNT_RNTL_CNT /*계정순증신규_렌탈*/
+                             , 0 AS ACNT_ENV_ILSI_CNT /*계정순증신규_가전일시*/
+                             , 0 AS ACNT_ILSI_CNCL_CNT /*계정순증-일시-해지건수*/
+                             , 0 AS ACNT_RNTL_CNCL_CNT /*계정순증-렌탈-해지건수*/
+                             , 0 AS ACNT_RNTL_MNRY_CNT /*계정순증-렌탈-만료건수*/
+                             , 0 AS ACNT_MMBR_CNCL_CNT /*계정순증-멤버-탈퇴건수*/
+                             , '' AS CAN_TP_NM /* 취소유형명 */
+                             , '' AS CNTR_STAT_CH_RSON_CD
+                             , '' AS ORIG_SELL_PRTNR_NO
+                         FROM (
+                                SELECT CB.CNTR_NO
+                                     , CD.CNTR_SN
+                                     , CB.CNTR_CST_NO
+                                     , CB.CNTR_CST_NM
+                                     , CB.SELL_PRTNR_NO
+                                     , SUBSTR(CB.CNTR_CNFM_DTM, 1, 8) AS CNTR_CNFM_DT
+                                     , CD.CNTR_PD_STRTDT
+                                     , CD.CNTR_PD_ENDDT
+                                     , CD.SELL_DSC_DV_CD
+                                     , CD.SELL_DSCR_CD
+                                     , CD.CNTR_DTL_STAT_CD
+                                     , CD.ACKMT_PERF_AMT
+                                     , CD.FEE_ACKMT_CT
+                                     , CD.FEE_FXAM_YN
+                                     , CD.FEE_ACKMT_BASE_AMT
+                                     , CD.SELL_TP_DTL_CD
+                                     , CD.BASE_PD_CD
+                                     , PD.PD_NM
+                                     , PC.PD_CLSF_NM
+                                  FROM TB_SSCT_CNTR_BAS CB
+                                 INNER JOIN TB_SSCT_CNTR_DTL CD
+                                    ON CD.CNTR_NO = CB.CNTR_NO
+                                 INNER JOIN TB_PDBS_PD_BAS PD
+                                    ON PD.PD_CD = CD.BASE_PD_CD
+                                 INNER JOIN TB_PDBS_PD_CLSF_BAS PC
+                                    ON PC.PD_CLSF_ID = PD.PD_MCLSF_ID
+                                 WHERE 1=1
+                                   AND CB.DTA_DL_YN = 'N'
+                                    <choose>
+                                        <when test="@MybatisUtils@equals(perfBaseDv, '1')">
+                                   AND CB.CNTR_CNFM_DTM BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959' /* 접수일 */
+                                        </when>
+                                        <otherwise>
+                                   AND CD.CNTR_PD_STRTDT BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959' /* 설치일 */
+                                        </otherwise>
+                                     </choose>
+                                   AND CB.SELL_OG_TP_CD != 'HR1'
+                                   AND CD.SELL_TP_CD = '3' /* 3: 멤버쉽 */
+                              ) LC35
+                        /* 정기배송 */
+                         UNION ALL
+                        SELECT LD30.CNTR_NO
+                             , LD30.CNTR_SN
+                             , LD30.SELL_PRTNR_NO
+                             , LD30.CNTR_DTL_STAT_CD
+                             , LD30.CNTR_CST_NO
+                             , LD30.CNTR_CST_NM /* 고객명 */
+                             , LD30.CNTR_CNFM_DT   /* 접수일자 */
+                             , LD30.CNTR_PD_STRTDT   /* 매출일자 */
+                             , CASE WHEN LD30.CNTR_DTL_STAT_CD LIKE '3%' THEN LD30.CNTR_PD_ENDDT END AS CNTR_CAN_DT /* 취소일자 */
+                             , LD30.PD_CLSF_NM /* 상품구분 */
+                             , LD30.BASE_PD_CD AS PD_CD /* 상품코드 */
+                             , LD30.PD_NM /* 상품명 */
+                             , '' AS MCHN_CH_TP_CD /* 기변유형 */
+                             , 0 AS RNTL_CNT_B /*인정_건수_렌탈*/
+                             , 0 AS RRNT_CNT_B /*인정_건수_재약정*/
+                             , CASE
+                                WHEN SELL_TP_DTL_CD = '62' THEN FEE_ACKMT_CT
+                                ELSE 0 END AS RGLR_CNT_B /* 인정건수_정기배송 */
+                             , 0 AS ENV_ILSI_CNT_B /*인정_건수_가전일시*/
+                             , 0 AS NOT_ENV_ILSI_CNT_B /*인정_건수_가전외일시*/
+                             , CASE
+                                WHEN SELL_TP_DTL_CD = '63' THEN 0
+                                WHEN SELL_TP_DTL_CD = '62' THEN 0 /*모종은 가전외 인정금액은 0으로 산정*/
+                                WHEN ACKMT_PERF_AMT = 0 THEN 0
+                                ELSE
+                                    CASE
+                                    WHEN FEE_ACKMT_CT = 0 THEN 0
+                                    ELSE ACKMT_PERF_AMT END
+                                END AS NOT_ENV_PAMT_B /* 인정_금액_가전외일시 */
+                             , 0 AS RNTL_AMT /* 인정_금액_렌탈 */
+                             , CASE
+                                WHEN SELL_TP_DTL_CD = '62' AND ACKMT_PERF_AMT > 2 THEN FEE_ACKMT_BASE_AMT
+                                ELSE 0 END AS RGLR_AMT /*인정_금액_정기배송 */
+                             , 0 AS ENV_ILSI_AMT /*인정_금액_가전일시*/
+                             , 0 AS NOT_ENV_ILSI_AMT /*인정_금액_가전외일시*/
+                             , CASE
+                                WHEN SELL_TP_DTL_CD = '62' AND ACKMT_PERF_AMT > 2 THEN 1
+                                ELSE 0 END AS ACNT_RNTL_CNT /*계정순증신규_렌탈*/
+                             , 0 AS ACNT_ENV_ILSI_CNT /*계정순증신규_가전일시*/
+                             , 0 AS ACNT_ILSI_CNCL_CNT /*계정순증-일시-해지건수*/
+                             , 0 AS ACNT_RNTL_CNCL_CNT /*계정순증-렌탈-해지건수*/
+                             , 0 AS ACNT_RNTL_MNRY_CNT /*계정순증-렌탈-만료건수*/
+                             , 0 AS ACNT_MMBR_CNCL_CNT /*계정순증-멤버-탈퇴건수*/
+                             , '' AS CAN_TP_NM /* 취소유형명 */
+                             , '' AS CNTR_STAT_CH_RSON_CD
+                             , '' AS ORIG_SELL_PRTNR_NO
+                          FROM (
+                                SELECT CB.CNTR_NO
+                                     , CD.CNTR_SN
+                                     , CB.CNTR_CST_NO
+                                     , CB.CNTR_CST_NM
+                                     , CB.SELL_PRTNR_NO
+                                     , SUBSTR(CB.CNTR_CNFM_DTM, 1, 8) AS CNTR_CNFM_DT
+                                     , CD.CNTR_PD_STRTDT
+                                     , CD.CNTR_PD_ENDDT
+                                     , CD.SELL_DSC_DV_CD
+                                     , CD.SELL_DSCR_CD
+                                     , CD.CNTR_DTL_STAT_CD
+                                     , CD.ACKMT_PERF_AMT
+                                     , CD.FEE_ACKMT_CT
+                                     , CD.FEE_FXAM_YN
+                                     , CD.FEE_ACKMT_BASE_AMT
+                                     , CD.SELL_TP_DTL_CD
+                                     , CD.BASE_PD_CD
+                                     , PD.PD_NM
+                                     , PC.PD_CLSF_NM
+                                  FROM TB_SSCT_CNTR_BAS CB
+                                 INNER JOIN TB_SSCT_CNTR_DTL CD
+                                    ON CD.CNTR_NO = CB.CNTR_NO
+                                 INNER JOIN TB_PDBS_PD_BAS PD
+                                    ON PD.PD_CD = CD.BASE_PD_CD
+                                 INNER JOIN TB_PDBS_PD_CLSF_BAS PC
+                                    ON PC.PD_CLSF_ID = PD.PD_MCLSF_ID
+                                 WHERE 1=1
+                                   AND CB.DTA_DL_YN = 'N'
+                                    <choose>
+                                        <when test="@MybatisUtils@equals(perfBaseDv, '1')">
+                                   AND CB.CNTR_CNFM_DTM BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959' /* 접수일 */
+                                        </when>
+                                        <otherwise>
+                                   AND CD.CNTR_PD_STRTDT BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959' /* 설치일 */
+                                        </otherwise>
+                                     </choose>
+                                   AND CB.SELL_OG_TP_CD NOT IN ('W01', 'HR1')
+                                   AND CD.CNTR_PTRM >= 6
+                                   AND CD.SELL_TP_CD = '6' /* 6: 정기배송 */
+                               ) LD30
+                        /* 재약정 */
+                         UNION ALL
+                        SELECT LC44.CNTR_NO
+                             , LC44.CNTR_SN
+                             , LC44.SELL_PRTNR_NO
+                             , LC44.CNTR_DTL_STAT_CD
+                             , LC44.CNTR_CST_NO
+                             , LC44.CNTR_CST_NM /* 고객명 */
+                             , LC44.CNTR_CNFM_DT   /* 접수일자 */
+                             , LC44.CNTR_PD_STRTDT   /* 매출일자 */
+                             , CASE WHEN LC44.CNTR_DTL_STAT_CD LIKE '3%' THEN LC44.CNTR_PD_ENDDT END AS CNTR_CAN_DT /* 취소일자 */
+                             , LC44.PD_CLSF_NM /* 상품구분 */
+                             , LC44.BASE_PD_CD AS PD_CD /* 상품코드 */
+                             , LC44.PD_NM /* 상품명 */
+                             , '' AS MCHN_CH_TP_CD /* 기변유형 */
+                             , 0 AS RNTL_CNT_B /*인정_건수_렌탈*/
+                             , 0 AS RRNT_CNT_B /*인정_건수_재약정*/
+                             , CASE
+                                WHEN SELL_TP_DTL_CD = '62' THEN FEE_ACKMT_CT
+                                ELSE 0 END AS RGLR_CNT_B /* 인정건수_정기배송 */
+                             , 0 AS ENV_ILSI_CNT_B /*인정_건수_가전일시*/
+                             , 0 AS NOT_ENV_ILSI_CNT_B /*인정_건수_가전외일시*/
+                             , CASE
+                                WHEN SELL_TP_DTL_CD = '63' THEN 0
+                                WHEN SELL_TP_DTL_CD = '62' THEN 0 /*모종은 가전외 인정금액은 0으로 산정*/
+                                WHEN ACKMT_PERF_AMT = 0 THEN 0
+                                ELSE
+                                    CASE WHEN FEE_ACKMT_CT = 0 THEN 0
+                                         ELSE ACKMT_PERF_AMT END
+                                END AS NOT_ENV_PAMT_B /* 인정_금액_가전외일시 */
+                             , 0 AS RNTL_AMT /* 인정_금액_렌탈 */
+                             , CASE
+                                WHEN SELL_TP_DTL_CD = '62' AND ACKMT_PERF_AMT > 2 THEN FEE_ACKMT_BASE_AMT
+                                ELSE 0 END AS RGLR_AMT /*인정_금액_정기배송 */
+                             , 0 AS ENV_ILSI_AMT /*인정_금액_가전일시*/
+                             , 0 AS NOT_ENV_ILSI_AMT /*인정_금액_가전외일시*/
+                             , CASE
+                                WHEN SELL_TP_DTL_CD = '62' AND ACKMT_PERF_AMT > 2 THEN 1
+                                ELSE 0 END AS ACNT_RNTL_CNT /*계정순증신규_렌탈*/
+                             , 0 AS ACNT_ENV_ILSI_CNT /*계정순증신규_가전일시*/
+                             , 0 AS ACNT_ILSI_CNCL_CNT /*계정순증-일시-해지건수*/
+                             , 0 AS ACNT_RNTL_CNCL_CNT /*계정순증-렌탈-해지건수*/
+                             , 0 AS ACNT_RNTL_MNRY_CNT /*계정순증-렌탈-만료건수*/
+                             , 0 AS ACNT_MMBR_CNCL_CNT /*계정순증-멤버-탈퇴건수*/
+                             , '' AS CAN_TP_NM /* 취소유형명 */
+                             , '' AS CNTR_STAT_CH_RSON_CD
+                             , '' AS ORIG_SELL_PRTNR_NO
+                          FROM (
+                                SELECT CB.CNTR_NO
+                                     , CD.CNTR_SN
+                                     , CB.CNTR_CST_NO
+                                     , CB.CNTR_CST_NM
+                                     , CB.SELL_PRTNR_NO
+                                     , SUBSTR(CB.CNTR_CNFM_DTM, 1, 8) AS CNTR_CNFM_DT
+                                     , CD.CNTR_PD_STRTDT
+                                     , CD.CNTR_PD_ENDDT
+                                     , CD.SELL_DSC_DV_CD
+                                     , CD.SELL_DSCR_CD
+                                     , CD.CNTR_DTL_STAT_CD
+                                     , CD.ACKMT_PERF_AMT
+                                     , CD.FEE_ACKMT_CT
+                                     , CD.FEE_FXAM_YN
+                                     , CD.FEE_ACKMT_BASE_AMT
+                                     , CD.SELL_TP_DTL_CD
+                                     , CD.BASE_PD_CD
+                                     , PD.PD_NM
+                                     , PC.PD_CLSF_NM
+                                  FROM TB_SSCT_RENTAL_RSTL_IZ RR
+                                 INNER JOIN TB_SSCT_CNTR_BAS CB
+                                    ON CB.CNTR_NO = RR.CNTR_NO
+                                 INNER JOIN TB_SSCT_CNTR_DTL CD
+                                    ON CD.CNTR_NO = CB.CNTR_NO
+                                 INNER JOIN TB_PDBS_PD_BAS PD
+                                    ON PD.PD_CD = CD.BASE_PD_CD
+                                 INNER JOIN TB_PDBS_PD_CLSF_BAS PC
+                                    ON PC.PD_CLSF_ID = PD.PD_MCLSF_ID
+                                 INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS PT
+                                    ON PD.PD_CD = PT.BASE_PD_CD
+                                   AND TO_CHAR(ADD_MONTHS(CB.CNTR_CNFM_DTM, -1), 'YYYYMM') BETWEEN PT.APY_STRT_YM AND PT.APY_END_YM
+                                   AND PT.DTA_DL_YN = 'N'
+                                 WHERE 1=1
+                                   AND CB.DTA_DL_YN = 'N'
+                                   AND PT.FEE_PDCT_TP_CD1 = 'B' /* 웰스팜 */
+                                    <choose>
+                                        <when test="@MybatisUtils@equals(perfBaseDv, '1')">
+                                   AND RR.STPL_RCP_DTM BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959' /* 접수일 */
+                                        </when>
+                                        <otherwise>
+                                   AND RR.STPL_CNFM_DTM BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959' /* 설치일 */
+                                        </otherwise>
+                                     </choose>
+                                   AND RR.FEE_ACKMT_CT > 0
+                               ) LC44
+                        /* 계정순증-순수해지 */
+                           UNION ALL
+                          SELECT CNTR_NO
+                               , CNTR_SN
+                               , SELL_PRTNR_NO
+                               , CNTR_DTL_STAT_CD
+                               , CNTR_CST_NO
+                               , CNTR_CST_NM /* 고객명 */
+                               , CNTR_CNFM_DT   /* 접수일자 */
+                               , CNTR_PD_STRTDT   /* 매출일자 */
+                               , CASE WHEN CNTR_DTL_STAT_CD LIKE '3%' THEN CNTR_PD_ENDDT END AS CNTR_CAN_DT /* 취소일자 */
+                               , PD_CLSF_NM /* 상품구분 */
+                               , BASE_PD_CD AS PD_CD /* 상품코드 */
+                               , PD_NM /* 상품명 */
+                               , '' AS MCHN_CH_TP_CD /* 기변유형 */
+                               , 0 AS RNTL_CNT_B /*인정_건수_렌탈*/
+                               , 0 AS RRNT_CNT_B /*인정_건수_재약정*/
+                               , 0 AS RGLR_CNT_B /* 인정건수_정기배송 */
+                               , 0 AS ENV_ILSI_CNT_B /*인정_건수_가전일시*/
+                               , 0 AS NOT_ENV_ILSI_CNT_B /*인정_건수_가전외일시*/
+                               , 0 AS NOT_ENV_PAMT_B /* 인정_금액_가전외일시 */
+                               , 0 AS RNTL_AMT /* 인정_금액_렌탈 */
+                               , 0 AS RGLR_AMT /*인정_금액_정기배송 */
+                               , 0 AS ENV_ILSI_AMT /*인정_금액_가전일시*/
+                               , 0 AS NOT_ENV_ILSI_AMT /*인정_금액_가전외일시*/
+                               , 0 AS ACNT_RNTL_CNT /*계정순증신규_렌탈*/
+                               , 0 AS ACNT_ENV_ILSI_CNT /*계정순증신규_가전일시*/
+                               , (
+                                    CASE WHEN SELL_TP_DTL_CD = '13' AND NVL(FEE_FXAM_YN, 'N') != 'Y' THEN
+                                        CASE WHEN ROW_SCNT = 0 THEN 0
+                                             ELSE 1 END
+                                    ELSE 0 END
+                                 ) AS ACNT_ILSI_CNCL_CNT /*계정순증-일시-해지건수*/
+                               , 0 AS ACNT_RNTL_CNCL_CNT /*계정순증-렌탈-해지건수*/
+                               , 0 AS ACNT_RNTL_MNRY_CNT /*계정순증-렌탈-만료건수*/
+                               , 0 AS ACNT_MMBR_CNCL_CNT /*계정순증-멤버-탈퇴건수*/
+                               , '순수해지' AS CAN_TP_NM /* 취소유형명 */
+                               , '' AS CNTR_STAT_CH_RSON_CD
+                               , SELL_PRTNR_NO AS ORIG_SELL_PRTNR_NO
+                          FROM (
+                                SELECT CB.CNTR_NO
+                                     , CD.CNTR_SN
+                                     , CB.CNTR_CST_NO
+                                     , CB.CNTR_CST_NM
+                                     , CB.SELL_PRTNR_NO
+                                     , SUBSTR(CB.CNTR_CNFM_DTM, 1, 8) AS CNTR_CNFM_DT
+                                     , CD.CNTR_PD_STRTDT
+                                     , CD.CNTR_PD_ENDDT
+                                     , CD.SELL_DSC_DV_CD
+                                     , CD.SELL_DSCR_CD
+                                     , CD.CNTR_DTL_STAT_CD
+                                     , CD.ACKMT_PERF_AMT
+                                     , CD.FEE_ACKMT_CT
+                                     , CD.FEE_FXAM_YN
+                                     , CD.FEE_ACKMT_BASE_AMT
+                                     , CD.SELL_TP_DTL_CD
+                                     , CD.BASE_PD_CD
+                                     , PD.PD_NM
+                                     , PC.PD_CLSF_NM
+                                     , (
+                                            SELECT COUNT(*)
+                                              FROM TB_FEAM_WELS_SV_FEE_BAS WS
+                                             WHERE WS.BASE_PD_CD IN (
+                                                    SELECT DISTINCT T2.BASE_PD_CD
+                                                      FROM TB_PDBS_PD_REL T1
+                                                     INNER JOIN TB_PDBS_PD_REL T2
+                                                        ON T1.OJ_PD_CD = T2.OJ_PD_CD
+                                                       AND T2.PD_REL_TP_CD = '05'
+                                                       AND T2.DTA_DL_YN = 'N'
+                                                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                                                     WHERE T1.BASE_PD_CD = CD.BASE_PD_CD
+                                                       AND T1.PD_REL_TP_CD = '05'
+                                                       AND T1.DTA_DL_YN = 'N'
+                                                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                                            )
+                                            AND WS.VST_MCN = 0
+                                            AND SUBSTR(#{inqrStrtDt}, 1, 6) BETWEEN WS.APY_STRT_YM AND WS.APY_END_YM
+                                       ) AS ROW_SCNT
+                                  FROM TB_SSCT_CNTR_BAS CB
+                                 INNER JOIN TB_SSCT_CNTR_DTL CD
+                                    ON CD.CNTR_NO = CB.CNTR_NO
+                                 INNER JOIN TB_PDBS_PD_BAS PD
+                                    ON PD.PD_CD = CD.BASE_PD_CD
+                                 INNER JOIN TB_PDBS_PD_CLSF_BAS PC
+                                    ON PC.PD_CLSF_ID = PD.PD_MCLSF_ID
+                                 INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS PT
+                                    ON PD.PD_CD = PT.BASE_PD_CD
+                                   AND TO_CHAR(ADD_MONTHS(#{inqrStrtDt}, -1), 'YYYYMM') BETWEEN PT.APY_STRT_YM AND PT.APY_END_YM
+                                   AND PT.DTA_DL_YN = 'N'
+                                 WHERE 1=1
+                                   AND CB.DTA_DL_YN = 'N'
+                                   AND CD.CNTR_PD_ENDDT LIKE TO_CHAR(ADD_MONTHS(#{inqrStrtDt}, -1), 'YYYYMM') || '%'
+                                   AND CB.SELL_OG_TP_CD != 'HR1'
+                                   AND CD.SELL_TP_CD = '1'
+                                   AND CD.CNTR_DTL_STAT_CD LIKE '3%'
+                                   AND PT.FEE_PDCT_TP_CD1 != 'B' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
+                                   AND NOT EXISTS (
+                                        SELECT 1
+                                          FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS EB /* 실적제외대상 */
+                                         WHERE EB.CNTR_NO = CD.CNTR_NO
+                                           AND EB.CNTR_SN = CD.CNTR_SN
+                                           AND EB.FEE_PERF_EXCD_DV_CD = '03')
+                               ) LC30_CAN
+                        /* 전월 순수해지_렌탈취소 */
+                           UNION ALL
+                          SELECT CNTR_NO
+                               , CNTR_SN
+                               , SELL_PRTNR_NO
+                               , CNTR_DTL_STAT_CD
+                               , CNTR_CST_NO
+                               , CNTR_CST_NM /* 고객명 */
+                               , CNTR_CNFM_DT   /* 접수일자 */
+                               , CNTR_PD_STRTDT   /* 매출일자 */
+                               , CASE WHEN CNTR_DTL_STAT_CD LIKE '3%' THEN CNTR_PD_ENDDT END AS CNTR_CAN_DT /* 취소일자 */
+                               , PD_CLSF_NM /* 상품구분 */
+                               , BASE_PD_CD AS PD_CD /* 상품코드 */
+                               , PD_NM /* 상품명 */
+                               , '' AS MCHN_CH_TP_CD /* 기변유형 */
+                               , 0 AS RNTL_CNT_B /*인정_건수_렌탈*/
+                               , 0 AS RRNT_CNT_B /*인정_건수_재약정*/
+                               , 0 AS RGLR_CNT_B /* 인정건수_정기배송 */
+                               , 0 AS ENV_ILSI_CNT_B /*인정_건수_가전일시*/
+                               , 0 AS NOT_ENV_ILSI_CNT_B /*인정_건수_가전외일시*/
+                               , 0 AS NOT_ENV_PAMT_B /* 인정_금액_가전외일시 */
+                               , 0 AS RNTL_AMT /* 인정_금액_렌탈 */
+                               , 0 AS RGLR_AMT /*인정_금액_정기배송 */
+                               , 0 AS ENV_ILSI_AMT /*인정_금액_가전일시*/
+                               , 0 AS NOT_ENV_ILSI_AMT /*인정_금액_가전외일시*/
+                               , 0 AS ACNT_RNTL_CNT /*계정순증신규_렌탈*/
+                               , 0 AS ACNT_ENV_ILSI_CNT /*계정순증신규_가전일시*/
+                               , 0 AS ACNT_ILSI_CNCL_CNT /*계정순증-일시-해지건수*/
+                               , (
+                                    CASE WHEN REF_PD_CLSF_VAL IN ('01003002', '05003002') THEN 0 /* 원두, 캡슐 */
+                                         WHEN ROW_SCNT = 0 THEN 0
+                                         ELSE 1 END
+                                 ) AS ACNT_RNTL_CNCL_CNT /*계정순증-렌탈-해지건수*/
+                               , 0 AS ACNT_RNTL_MNRY_CNT /*계정순증-렌탈-만료건수*/
+                               , 0 AS ACNT_MMBR_CNCL_CNT /*계정순증-멤버-탈퇴건수*/
+                               , '순수해지' AS CAN_TP_NM /* 취소유형명 */
+                               , CNTR_STAT_CH_RSON_CD
+                               , ORIG_SELL_PRTNR_NO
+                          FROM (
+                                SELECT CB.CNTR_NO
+                                     , CD.CNTR_SN
+                                     , CB.CNTR_CST_NO
+                                     , CB.CNTR_CST_NM
+                                     , CS.MNGT_PRTNR_NO AS SELL_PRTNR_NO
+                                     , SUBSTR(CB.CNTR_CNFM_DTM, 1, 8) AS CNTR_CNFM_DT
+                                     , CD.CNTR_PD_STRTDT
+                                     , CD.CNTR_PD_ENDDT
+                                     , CD.SELL_DSC_DV_CD
+                                     , CD.SELL_DSCR_CD
+                                     , CD.CNTR_DTL_STAT_CD
+                                     , CD.ACKMT_PERF_AMT
+                                     , CD.FEE_ACKMT_CT
+                                     , CD.FEE_FXAM_YN
+                                     , CD.FEE_ACKMT_BASE_AMT
+                                     , CD.SELL_TP_DTL_CD
+                                     , CD.BASE_PD_CD
+                                     , PD.PD_NM
+                                     , PC.PD_CLSF_NM
+                                     , PC2.REF_PD_CLSF_VAL
+                                     , CB.SELL_PRTNR_NO AS ORIG_SELL_PRTNR_NO
+                                     , RP.CNTR_STAT_CH_RSON_CD
+                                     , (
+                                            SELECT COUNT(*)
+                                              FROM TB_FEAM_WELS_SV_FEE_BAS WS
+                                             WHERE WS.BASE_PD_CD IN (
+                                                    SELECT DISTINCT T2.BASE_PD_CD
+                                                      FROM TB_PDBS_PD_REL T1
+                                                     INNER JOIN TB_PDBS_PD_REL T2
+                                                        ON T1.OJ_PD_CD = T2.OJ_PD_CD
+                                                       AND T2.PD_REL_TP_CD = '05'
+                                                       AND T2.DTA_DL_YN = 'N'
+                                                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                                                     WHERE T1.BASE_PD_CD = CD.BASE_PD_CD
+                                                       AND T1.PD_REL_TP_CD = '05'
+                                                       AND T1.DTA_DL_YN = 'N'
+                                                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                                            )
+                                            AND WS.VST_MCN = 0
+                                            AND SUBSTR(#{inqrStrtDt}, 1, 6) BETWEEN WS.APY_STRT_YM AND WS.APY_END_YM
+                                       ) AS ROW_SCNT
+                                  FROM TB_SSCT_CNTR_BAS CB
+                                 INNER JOIN TB_SSCT_CNTR_DTL CD
+                                    ON CD.CNTR_NO = CB.CNTR_NO
+                                 INNER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ RP
+                                    ON RP.CNTR_NO = CD.CNTR_NO
+                                   AND RP.CNTR_SN = CD.CNTR_SN
+                                 INNER JOIN TB_PDBS_PD_BAS PD
+                                    ON PD.PD_CD = CD.BASE_PD_CD
+                                 INNER JOIN TB_PDBS_PD_CLSF_BAS PC
+                                    ON PC.PD_CLSF_ID = PD.PD_MCLSF_ID
+                                 INNER JOIN TB_PDBS_PD_CLSF_BAS PC2
+                                    ON PC2.PD_CLSF_ID = PD.PD_CLSF_ID
+                                 INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS PT
+                                    ON PD.PD_CD = PT.BASE_PD_CD
+                                   AND TO_CHAR(ADD_MONTHS(#{inqrStrtDt}, -1), 'YYYYMM') BETWEEN PT.APY_STRT_YM AND PT.APY_END_YM
+                                   AND PT.DTA_DL_YN = 'N'
+                                  LEFT JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ CS
+                                    ON CS.MNGT_YM = TO_CHAR(ADD_MONTHS(#{inqrStrtDt}, -1), 'YYYYMM')
+                                   AND CS.CNTR_NO = CD.CNTR_NO
+                                   AND CS.CNTR_SN = CD.CNTR_SN
+                                 WHERE 1=1
+                                   AND CB.DTA_DL_YN = 'N'
+                                   AND CD.CNTR_PD_ENDDT LIKE TO_CHAR(ADD_MONTHS(#{inqrStrtDt}, -1), 'YYYYMM') || '%'
+                                   AND CB.SELL_OG_TP_CD != 'HR1'
+                                   AND CD.SELL_TP_CD = '2'
+                                   AND CD.CNTR_DTL_STAT_CD LIKE '3%'
+                                   AND PT.FEE_PDCT_TP_CD1 != 'B' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
+                                   AND RP.CNTR_STAT_CH_RSON_CD NOT IN ('11','19','22','42','08','09','36','77')
+                                   AND RP.PD_GD_CD != 'E' /* 14일이내 취소 제외 */
+                                   AND NOT EXISTS (
+                                        SELECT 1
+                                          FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS EB /* 실적제외대상 */
+                                         WHERE EB.CNTR_NO = CD.CNTR_NO
+                                           AND EB.CNTR_SN = CD.CNTR_SN
+                                           AND EB.FEE_PERF_EXCD_DV_CD = '03')
+                                   AND NOT EXISTS (
+                                        SELECT 1
+                                        FROM TB_CUBS_CST_BAS CS
+                                        JOIN TB_SSCT_SELL_LM_OJ_IZ SL /* 판매제한대상내역 */
+                                        ON SL.SELL_LM_BZRNO = CS.BZRNO
+                                        WHERE CS.CST_NO = CB.CNTR_CST_NO
+                                       )
+                               ) LC31_CAN
+                        /* 전월 순수해지_렌탈만료 */
+                           UNION ALL
+                          SELECT CNTR_NO
+                               , CNTR_SN
+                               , SELL_PRTNR_NO
+                               , CNTR_DTL_STAT_CD
+                               , CNTR_CST_NO
+                               , CNTR_CST_NM /* 고객명 */
+                               , CNTR_CNFM_DT   /* 접수일자 */
+                               , CNTR_PD_STRTDT   /* 매출일자 */
+                               , CASE WHEN CNTR_DTL_STAT_CD LIKE '3%' THEN CNTR_PD_ENDDT END AS CNTR_CAN_DT /* 취소일자 */
+                               , PD_CLSF_NM /* 상품구분 */
+                               , BASE_PD_CD AS PD_CD /* 상품코드 */
+                               , PD_NM /* 상품명 */
+                               , '' AS MCHN_CH_TP_CD /* 기변유형 */
+                               , 0 AS RNTL_CNT_B /*인정_건수_렌탈*/
+                               , 0 AS RRNT_CNT_B /*인정_건수_재약정*/
+                               , 0 AS RGLR_CNT_B /* 인정건수_정기배송 */
+                               , 0 AS ENV_ILSI_CNT_B /*인정_건수_가전일시*/
+                               , 0 AS NOT_ENV_ILSI_CNT_B /*인정_건수_가전외일시*/
+                               , 0 AS NOT_ENV_PAMT_B /* 인정_금액_가전외일시 */
+                               , 0 AS RNTL_AMT /* 인정_금액_렌탈 */
+                               , 0 AS RGLR_AMT /*인정_금액_정기배송 */
+                               , 0 AS ENV_ILSI_AMT /*인정_금액_가전일시*/
+                               , 0 AS NOT_ENV_ILSI_AMT /*인정_금액_가전외일시*/
+                               , 0 AS ACNT_RNTL_CNT /*계정순증신규_렌탈*/
+                               , 0 AS ACNT_ENV_ILSI_CNT /*계정순증신규_가전일시*/
+                               , 0 AS ACNT_ILSI_CNCL_CNT /*계정순증-일시-해지건수*/
+                               , 0 AS ACNT_RNTL_CNCL_CNT /*계정순증-렌탈-해지건수*/
+                               , (
+                                    CASE WHEN REF_PD_CLSF_VAL IN ('01003002', '05003002') THEN 0 /* 원두, 캡슐 */
+                                         WHEN ROW_SCNT = 0 THEN 0
+                                         ELSE 1 END
+                                 ) AS ACNT_RNTL_MNRY_CNT /*계정순증-렌탈-만료건수*/
+                               , 0 AS ACNT_MMBR_CNCL_CNT /*계정순증-멤버-탈퇴건수*/
+                               , '만료' AS CAN_TP_NM /* 취소유형명 */
+                               , '' AS CNTR_STAT_CH_RSON_CD
+                               , ORIG_SELL_PRTNR_NO
+                          FROM (
+                                SELECT CB.CNTR_NO
+                                     , CD.CNTR_SN
+                                     , CB.CNTR_CST_NO
+                                     , CB.CNTR_CST_NM
+                                     , CS.MNGT_PRTNR_NO AS SELL_PRTNR_NO
+                                     , SUBSTR(CB.CNTR_CNFM_DTM, 1, 8) AS CNTR_CNFM_DT
+                                     , CD.CNTR_PD_STRTDT
+                                     , CD.CNTR_PD_ENDDT
+                                     , CD.SELL_DSC_DV_CD
+                                     , CD.SELL_DSCR_CD
+                                     , CD.CNTR_DTL_STAT_CD
+                                     , CD.ACKMT_PERF_AMT
+                                     , CD.FEE_ACKMT_CT
+                                     , CD.FEE_FXAM_YN
+                                     , CD.FEE_ACKMT_BASE_AMT
+                                     , CD.SELL_TP_DTL_CD
+                                     , CD.BASE_PD_CD
+                                     , PD.PD_NM
+                                     , PC.PD_CLSF_NM
+                                     , PC.REF_PD_CLSF_VAL
+                                     , CB.SELL_PRTNR_NO AS ORIG_SELL_PRTNR_NO
+                                     , (
+                                            SELECT COUNT(*)
+                                              FROM TB_FEAM_WELS_SV_FEE_BAS WS
+                                             WHERE WS.BASE_PD_CD IN (
+                                                    SELECT DISTINCT T2.BASE_PD_CD
+                                                      FROM TB_PDBS_PD_REL T1
+                                                     INNER JOIN TB_PDBS_PD_REL T2
+                                                        ON T1.OJ_PD_CD = T2.OJ_PD_CD
+                                                       AND T2.PD_REL_TP_CD = '05'
+                                                       AND T2.DTA_DL_YN = 'N'
+                                                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                                                     WHERE T1.BASE_PD_CD = CD.BASE_PD_CD
+                                                       AND T1.PD_REL_TP_CD = '05'
+                                                       AND T1.DTA_DL_YN = 'N'
+                                                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                                            )
+                                            AND WS.VST_MCN = 0
+                                            AND SUBSTR(#{inqrStrtDt}, 1, 6) BETWEEN WS.APY_STRT_YM AND WS.APY_END_YM
+                                       ) AS ROW_SCNT
+                                  FROM TB_SSCT_CNTR_BAS CB
+                                 INNER JOIN TB_SSCT_CNTR_DTL CD
+                                    ON CD.CNTR_NO = CB.CNTR_NO
+                                 INNER JOIN TB_PDBS_PD_BAS PD
+                                    ON PD.PD_CD = CD.BASE_PD_CD
+                                 INNER JOIN TB_PDBS_PD_CLSF_BAS PC
+                                    ON PC.PD_CLSF_ID = PD.PD_MCLSF_ID
+                                 INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS PT
+                                    ON PD.PD_CD = PT.BASE_PD_CD
+                                   AND TO_CHAR(ADD_MONTHS(#{inqrStrtDt}, -1), 'YYYYMM') BETWEEN PT.APY_STRT_YM AND PT.APY_END_YM
+                                   AND PT.DTA_DL_YN = 'N'
+                                  LEFT JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ CS
+                                    ON CS.MNGT_YM = TO_CHAR(ADD_MONTHS(#{inqrStrtDt}, -1), 'YYYYMM')
+                                   AND CS.CNTR_NO = CD.CNTR_NO
+                                   AND CS.CNTR_SN = CD.CNTR_SN
+                                 WHERE 1=1
+                                   AND CB.DTA_DL_YN = 'N'
+                                   AND CD.CNTR_PD_STRTDT LIKE TO_CHAR(ADD_MONTHS(#{inqrStrtDt}, -1 - CD.CNTR_PTRM), 'YYYYMM') || '%'
+                                   AND CB.SELL_OG_TP_CD != 'HR1'
+                                   AND CD.SELL_TP_CD = '2'
+                                   AND CD.CNTR_DTL_STAT_CD NOT LIKE '3%'
+                                   AND PT.FEE_PDCT_TP_CD1 != 'B' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
+                                   AND NOT EXISTS (
+                                        SELECT 1
+                                          FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS EB /* 실적제외대상 */
+                                         WHERE EB.CNTR_NO = CD.CNTR_NO
+                                           AND EB.CNTR_SN = CD.CNTR_SN
+                                           AND EB.FEE_PERF_EXCD_DV_CD = '03')
+                               ) LC31_EXN
+                        /* 전월 순수해지_멤버십탈퇴 */
+                           UNION ALL
+                          SELECT CNTR_NO
+                               , CNTR_SN
+                               , SELL_PRTNR_NO
+                               , CNTR_DTL_STAT_CD
+                               , CNTR_CST_NO
+                               , CNTR_CST_NM /* 고객명 */
+                               , CNTR_CNFM_DT   /* 접수일자 */
+                               , CNTR_PD_STRTDT   /* 매출일자 */
+                               , CASE WHEN CNTR_DTL_STAT_CD LIKE '3%' THEN CNTR_PD_ENDDT END AS CNTR_CAN_DT /* 취소일자 */
+                               , PD_CLSF_NM /* 상품구분 */
+                               , BASE_PD_CD AS PD_CD /* 상품코드 */
+                               , PD_NM /* 상품명 */
+                               , '' AS MCHN_CH_TP_CD /* 기변유형 */
+                               , 0 AS RNTL_CNT_B /*인정_건수_렌탈*/
+                               , 0 AS RRNT_CNT_B /*인정_건수_재약정*/
+                               , 0 AS RGLR_CNT_B /* 인정건수_정기배송 */
+                               , 0 AS ENV_ILSI_CNT_B /*인정_건수_가전일시*/
+                               , 0 AS NOT_ENV_ILSI_CNT_B /*인정_건수_가전외일시*/
+                               , 0 AS NOT_ENV_PAMT_B /* 인정_금액_가전외일시 */
+                               , 0 AS RNTL_AMT /* 인정_금액_렌탈 */
+                               , 0 AS RGLR_AMT /*인정_금액_정기배송 */
+                               , 0 AS ENV_ILSI_AMT /*인정_금액_가전일시*/
+                               , 0 AS NOT_ENV_ILSI_AMT /*인정_금액_가전외일시*/
+                               , 0 AS ACNT_RNTL_CNT /*계정순증신규_렌탈*/
+                               , 0 AS ACNT_ENV_ILSI_CNT /*계정순증신규_가전일시*/
+                               , 0 AS ACNT_ILSI_CNCL_CNT /*계정순증-일시-해지건수*/
+                               , 0 AS ACNT_RNTL_CNCL_CNT /*계정순증-렌탈-해지건수*/
+                               , 0 AS ACNT_RNTL_MNRY_CNT /*계정순증-렌탈-만료건수*/
+                               , (
+                                    CASE WHEN ROW_SCNT = 0 THEN 0
+                                         ELSE 1 END
+                                 ) AS ACNT_MMBR_CNCL_CNT /*계정순증-멤버-탈퇴건수*/
+                               , '멤버십탈퇴' AS CAN_TP_NM /* 취소유형명 */
+                               , CNTR_STAT_CH_RSON_CD
+                               , ORIG_SELL_PRTNR_NO
+                          FROM (
+                                SELECT CB.CNTR_NO
+                                     , CD.CNTR_SN
+                                     , CB.CNTR_CST_NO
+                                     , CB.CNTR_CST_NM
+                                     , CS.MNGT_PRTNR_NO AS SELL_PRTNR_NO
+                                     , SUBSTR(CB.CNTR_CNFM_DTM, 1, 8) AS CNTR_CNFM_DT
+                                     , CD.CNTR_PD_STRTDT
+                                     , CD.CNTR_PD_ENDDT
+                                     , CD.SELL_DSC_DV_CD
+                                     , CD.SELL_DSCR_CD
+                                     , CD.CNTR_DTL_STAT_CD
+                                     , CD.ACKMT_PERF_AMT
+                                     , CD.FEE_ACKMT_CT
+                                     , CD.FEE_FXAM_YN
+                                     , CD.FEE_ACKMT_BASE_AMT
+                                     , CD.SELL_TP_DTL_CD
+                                     , CD.BASE_PD_CD
+                                     , PD.PD_NM
+                                     , PC.PD_CLSF_NM
+                                     , PC.REF_PD_CLSF_VAL
+                                     , CB.SELL_PRTNR_NO AS ORIG_SELL_PRTNR_NO
+                                     , RP.CNTR_STAT_CH_RSON_CD
+                                     , (
+                                            SELECT COUNT(*)
+                                              FROM TB_FEAM_WELS_SV_FEE_BAS WS
+                                             WHERE WS.BASE_PD_CD IN (
+                                                    SELECT DISTINCT T2.BASE_PD_CD
+                                                      FROM TB_PDBS_PD_REL T1
+                                                     INNER JOIN TB_PDBS_PD_REL T2
+                                                        ON T1.OJ_PD_CD = T2.OJ_PD_CD
+                                                       AND T2.PD_REL_TP_CD = '05'
+                                                       AND T2.DTA_DL_YN = 'N'
+                                                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                                                     WHERE T1.BASE_PD_CD = CD.BASE_PD_CD
+                                                       AND T1.PD_REL_TP_CD = '05'
+                                                       AND T1.DTA_DL_YN = 'N'
+                                                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                                            )
+                                            AND WS.VST_MCN = 0
+                                            AND SUBSTR(#{inqrStrtDt}, 1, 6) BETWEEN WS.APY_STRT_YM AND WS.APY_END_YM
+                                       ) AS ROW_SCNT
+                                  FROM TB_SSCT_CNTR_BAS CB
+                                 INNER JOIN TB_SSCT_CNTR_DTL CD
+                                    ON CD.CNTR_NO = CB.CNTR_NO
+                                 INNER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ RP
+                                    ON RP.CNTR_NO = CD.CNTR_NO
+                                   AND RP.CNTR_SN = CD.CNTR_SN
+                                 INNER JOIN TB_PDBS_PD_BAS PD
+                                    ON PD.PD_CD = CD.BASE_PD_CD
+                                 INNER JOIN TB_PDBS_PD_CLSF_BAS PC
+                                    ON PC.PD_CLSF_ID = PD.PD_MCLSF_ID
+                                 INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS PT
+                                    ON PD.PD_CD = PT.BASE_PD_CD
+                                   AND TO_CHAR(ADD_MONTHS(#{inqrStrtDt}, -1), 'YYYYMM') BETWEEN PT.APY_STRT_YM AND PT.APY_END_YM
+                                   AND PT.DTA_DL_YN = 'N'
+                                  LEFT JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ CS
+                                    ON CS.MNGT_YM = TO_CHAR(ADD_MONTHS(#{inqrStrtDt}, -1), 'YYYYMM')
+                                   AND CS.CNTR_NO = CD.CNTR_NO
+                                   AND CS.CNTR_SN = CD.CNTR_SN
+                                 WHERE 1=1
+                                   AND CB.DTA_DL_YN = 'N'
+                                   AND CD.CNTR_PD_ENDDT LIKE TO_CHAR(ADD_MONTHS(#{inqrStrtDt}, -1), 'YYYYMM') || '%'
+                                   AND CB.SELL_OG_TP_CD != 'HR1'
+                                   AND CD.SELL_TP_CD = '3' /* 3: 멤버십 */
+                                   AND CD.SELL_TP_DTL_CD IN ('31', '32') /* 31: 일반, 32: 렌탈 */
+                                   AND CD.CNTR_DTL_STAT_CD LIKE '3%'
+                                   AND PT.FEE_PDCT_TP_CD1 != 'B' /* 웰스팜은 취소건에서 제외(모종 취소에 포함) */
+                                   AND RP.CNTR_STAT_CH_RSON_CD NOT IN ('11','19','22','42','08','09','36','77')
+                                   AND NOT EXISTS (
+                                        SELECT 1
+                                          FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS EB /* 실적제외대상 */
+                                         WHERE EB.CNTR_NO = CD.CNTR_NO
+                                           AND EB.CNTR_SN = CD.CNTR_SN
+                                           AND EB.FEE_PERF_EXCD_DV_CD = '03')
+                                   AND NOT EXISTS (
+                                        SELECT 1
+                                        FROM TB_CUBS_CST_BAS CS
+                                        JOIN TB_SSCT_SELL_LM_OJ_IZ SL /* 판매제한대상내역 */
+                                        ON SL.SELL_LM_BZRNO = CS.BZRNO
+                                        WHERE CS.CST_NO = CB.CNTR_CST_NO
+                                       )
+                               ) LC35_CAN
+                   ) TB03
+                ON PR.PRTNR_NO = TB03.SELL_PRTNR_NO
+              LEFT JOIN TB_OGBS_MM_PRTNR_IZ PR_ORIG
+                ON PR_ORIG.BASE_YM = SUBSTR(TB03.CNTR_CNFM_DT, 1, 6)
+               --AND PR_ORIG.OG_TP_CD IN ('W01', 'W02')
+               AND PR_ORIG.PRTNR_NO = TB03.ORIG_SELL_PRTNR_NO
+             WHERE PR.BASE_YM = SUBSTR(#{inqrStrtDt}, 1, 6)
+               AND PR.OG_TP_CD IN ('W01', 'W02')
+               AND PR.PSTN_DV_CD IN (7, 10, 15)
+               AND SUBSTR(OG.DGR1_LEVL_OG_CD, 1, 1) <![CDATA[ <= ]]> 'P'
+                <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgCd)">
+               AND OG.DGR1_LEVL_OG_CD = #{dgr1LevlOgCd}
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgCd)">
+               AND OG.DGR2_LEVL_OG_CD = #{dgr2LevlOgCd}
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgCd)">
+               AND OG.DGR3_LEVL_OG_CD = #{dgr3LevlOgCd}
+                </if>
+                <if test="@MybatisUtils@equals(inqrDv, '3')">
+               AND TB03.CNTR_DTL_STAT_CD NOT LIKE '3%'
+                </if>
+                <if test="@MybatisUtils@equals(inqrDv, '4')">
+                    <choose>
+                        <when test="@MybatisUtils@equals(nincDv, '02')">
+               AND TB03.ACNT_RNTL_CNT + TB03.ACNT_ENV_ILSI_CNT > 0
+                        </when>
+                        <otherwise>
+               AND TB03.ACNT_ILSI_CNCL_CNT + TB03.ACNT_RNTL_CNCL_CNT + TB03.ACNT_RNTL_MNRY_CNT + TB03.ACNT_MMBR_CNCL_CNT > 0
+                        </otherwise>
+                    </choose>
+                </if>
+           ) ORDR
+     INNER JOIN TB_OGBS_MM_PRTNR_IZ PR_PSTN
+        ON PR_PSTN.BASE_YM = SUBSTR(#{inqrStrtDt}, 1, 6)
+       AND PR_PSTN.OG_TP_CD IN ('W01', 'W02')
+       AND PR_PSTN.PRTNR_NO = ORDR.PRTNR_NO
+     WHERE 1=1
+        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+       AND ORDR.PRTNR_NO = #{prtnrNo}
+        </if>
+     GROUP BY ORDR.OG_CD
+         , ORDR.PRTNR_NM
+         , ORDR.PRTNR_NO
+        <if test="@MybatisUtils@equals(inqrDv, '3') or @MybatisUtils@equals(inqrDv, '4')">
+         , CNTR_NO
+         , CNTR_SN
+        </if>
+     ORDER BY ORDR.OG_CD
+    </select>
+</mapper>

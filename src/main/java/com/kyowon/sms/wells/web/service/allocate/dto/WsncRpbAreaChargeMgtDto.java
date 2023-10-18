@@ -66,11 +66,11 @@ public class WsncRpbAreaChargeMgtDto {
         String locaraCenStruAdr, // 지역중심건물주소
         String satWrkYn, // 토요일근무여부
         String ogNm, // 조직명
-        String ogNm1,
-        String ogNm2,
-        String ogNm3,
-        String ogNm4,
-        String ogNm5
+        String ogNm1, // 예비담당파트너조직1
+        String ogNm2, // 예비담당파트너조직2
+        String ogNm3, // 예비담당파트너조직3
+        String ogNm4, // 예비담당파트너조직4
+        String ogNm5 // 예비담당파트너조직5
     ) {}
 
     @ApiModel(value = "WsncRpbAreaChargeMgtDto-SearchZipsReq")

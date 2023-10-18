@@ -21,6 +21,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0274M01 기타출고 사유내역
+ * </pre>
+ *
+ * @author songtaesung
+ * @since 2023.01.13
+ */
+
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/etc-out-of-storage-resons")
 @Api(tags = "[WSNA] 기타출고 사유내역 REST API")

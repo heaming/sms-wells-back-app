@@ -10,13 +10,13 @@ import javax.validation.constraints.NotNull;
 public class WfeyContractBsFeeExDto {
 
     public record SearchContractBsFeeExReq(
-        String cntrNo,
-        String cntrSn,
-        String basePdCd,
-        Integer vstMcn,
-        String apyStrtYm,
-        String apyEndYm,
-        String svFeePdDvCd
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
+        String basePdCd, /* 상품코드 */
+        Integer vstMcn, /* 방문개월 */
+        String apyStrtYm, /* 적용기간 시작 */
+        String apyEndYm, /* 적용기간 종료 */
+        String svFeePdDvCd /* BS상품그룹 코드 */
     ) {}
 
     public record SearchContractBsFeeExRes(
@@ -52,9 +52,9 @@ public class WfeyContractBsFeeExDto {
     public record SaveContractBsFeeExReq(
         String rowState,
         @NotBlank
-        String cntrNo,
+        String cntrNo,  /* 계약번호 */
         @NotBlank
-        String cntrSn,
+        String cntrSn, /* 계약일련번호 */
         @NotBlank
         String cntrDtlSn,            /* 계약번호-계약일련번호 */
         @NotBlank

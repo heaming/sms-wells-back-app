@@ -100,6 +100,10 @@
                              , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 10) AS PART_CD_10
                              , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 10) AS PART_NM_10
                              , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 10) AS PART_QTY_10
+                             , PL1.SPP_PROCS_BZS_CD  /*택배사*/
+                             , PL1.SPP_BZS_PD_ID     /*시리얼번호*/
+                             , PL1.SPP_IVC_NO        /*송장번호*/
+                             , PL1.PRTNR_BZS_NM      /*파트너업체*/
                         FROM (
                                 SELECT DISTINCT
                                        S1.AS_IST_OJ_NO  /*접수번호*/
@@ -149,6 +153,11 @@
                                        WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN) AS PART_NM_LIST
                                      , LISTAGG(C2.PD_QTY, ',')
                                        WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN) AS PART_QTY_LIST
+                                      /* MD */
+                                     , S2.DTM_CH_RSON_DTL_CN AS SPP_PROCS_BZS_CD  /*택배사*/
+                                     , S3.BC_NO AS SPP_BZS_PD_ID     /*시리얼번호*/
+                                     , S3.SPP_IVC_NO AS SPP_IVC_NO        /*송장번호*/
+                                     , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', P1.PD_PRP_VAL09) AS PRTNR_BZS_NM /*파트너업체*/
                                 FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1            /*고객서비스AS설치대상내역, AC211TB*/
                                 INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2     /*고객서비스수행배정내역, AC221TB*/
                                  ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
@@ -168,14 +177,6 @@
                                  ON S6.CNTR_NO = S1.CNTR_NO
                                  AND S6.CNTR_SN = S1.CNTR_SN
                                  AND S6.DTA_DL_YN = 'N'
-                                INNER JOIN TB_SVST_MCBY_WARE_IZ S7 /*월별창고내역, KWAS.LC_STOCK_ST102TB 창고조직기본정보*/
-                                  /* TODO 변경사항  ON T9.WARE_MNGT_PRTNR_NO = NVL(T4.PRTNR_NO, T2.ICHR_PRTNR_NO) */
-                                 ON (CASE WHEN S7.WARE_MNGT_PRTNR_NO = '71321'
-                                     THEN '99992' ELSE S7.WARE_MNGT_PRTNR_NO END) = NVL(S3.PRTNR_NO, S2.ICHR_PRTNR_NO)
-                                 AND S7.WARE_DTL_DV_CD = '10'  /*창고상세구분코드*/
-                                 AND S7.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                 AND S7.DTA_DL_YN = 'N'
-                                 AND S7.WARE_NO = '100002'
                                 INNER JOIN TB_SSCT_CNTR_BAS C0                /*계약기본*/
                                  ON C0.CNTR_NO = S1.CNTR_NO
                                  AND C0.DTA_DL_YN = 'N'
@@ -200,19 +201,29 @@
                                  ON C3.CNTR_NO = S1.CNTR_NO
                                  AND C3.CNTR_SN = S1.CNTR_SN
                                  AND C3.DTA_DL_YN = 'N'
+                                INNER JOIN T_CMY_USR_M U1                     /* 사용자기본 */
+                                 ON U1.TENANT_ID = 'TNT_WELLS'
+                                 AND U1.BASE_RLE_CD = 'W8030'
+                                 AND U1.USR_ID = S1.FST_RGST_USR_ID
+                                 AND U1.DEL_YN = 'N'
+                                INNER JOIN T_CMP_USR_ACO_M U2                 /* 사용자계정기본 */
+                                 ON U2.USR_ID = U1.USR_ID
+                                 AND U2.DEL_YN = 'N'
                                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1         /*상품각사속성상세*/
                                  ON P1.PD_CD = C2.OJ_PD_CD
-                                 AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+                                 AND P1.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                 AND P1.PD_PRP_VAL01 = U2.RSB_CD
                                  AND P1.DTA_DL_YN = 'N'
                                WHERE 1=1
                                 /* 출고구분 */
+                                AND S1.SV_BIZ_DCLSF_CD ='1112'
                                 /* 0 :전체 1: 작업완료 2: 작업대기 */
                                 <if test="@MybatisUtils@equals(findGb, '0')">
                                 AND C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
                                 </if>
                                 <if test="@MybatisUtils@equals(findGb, '1')">
                                 AND S2.WK_PRGS_STAT_CD = '20'
-                                AND S3.VST_FSH_DT = #{vstFshDt}
+                                AND S3.VST_FSH_DT = #{ostrCnfmDt}
                                 </if>
                                 <if test="@MybatisUtils@equals(findGb, '2')">
                                 AND S2.WK_PRGS_STAT_CD IN ('00', '10')
@@ -230,10 +241,17 @@
                                     AND S6.IST_DT BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
                                     </if>
                                 </if>
-                                /*
-                                AND S1.CNTR_NO = 'W20234972331'
-                                AND S1.CNTR_NO IN ('W20235479631', 'W20235996822', 'W20236057066', 'W20236057294', 'W20236148047')
-                                */
+                                /* 고객정보 검색조건 */
+                                <if test="@MybatisUtils@isNotEmpty(cntrDtlNo)">
+                                AND S1.CNTR_NO||'-'||S1.CNTR_SN = #{cntrDtlNo} /* 계약상세번호 검색 */
+                                </if>
+                                <if test="@MybatisUtils@isNotEmpty(serialNo)">
+                                AND B1.SPP_BZS_PD_ID = #{serialNo} /* 제품시리얼번호 검색 */
+                                </if>
+                                /* 파트너업체 검색조건 */
+                                <if test="@MybatisUtils@isNotEmpty(prtnrBzsCd)">
+                                AND P1.PD_PRP_VAL09 = #{prtnrBzsCd} /* 파트너업체 검색 */
+                                </if>
                         ) PL1
                      ) V1
                 WHERE 1=1
@@ -358,6 +376,19 @@
            AND C1.CNTR_SN = I1.CNTR_SN
           WHERE 1=1
            AND C1.DTA_DL_YN = 'N'
+           /* 고객정보 검색조건 */
+           <if test='@MybatisUtils@isNotEmpty(rcgvpKnm)'>
+           AND C4.RCGVP_KNM = #{rcgvpKnm}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
+           AND C4.CRAL_LOCARA_TNO = #{cralLocaraTno} /*휴대폰번호1*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
+           AND C4.MEXNO_ENCR = #{mexnoEncr}          /*휴대폰번호2*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
+           AND C4.CRAL_IDV_TNO = #{cralIdvTno}       /*휴대폰번호3*/
+           </if>
        )
        SELECT
            C1.CNTR_NO               /*계약번호*/
@@ -391,7 +422,6 @@
          , I1.PDCT_PD_CD            /*제품코드*/
          , P1.PD_NM AS PDCT_PD_NM   /*제품명*/
          , I1.SV_PD_CD              /*서비스코드*/
-         , P2.PD_NM AS SV_PD_NM     /*서비스명*/
          , I1.PD_GD_CD              /*제품등급*/
          , I1.SV_BIZ_HCLSF_CD       /*서비스업무대분류코드*/
          , I1.SV_BIZ_DCLSF_CD       /*서비스업무세분류코드*/
@@ -403,7 +433,13 @@
          , NVL(I1.OG_ID, I1.SV_CNR_OG_ID) AS OG_ID
          , NVL(I1.OG_TP_CD, I1.ICHR_OG_TP_CD) AS OG_TP_CD
          , NVL(I1.PRTNR_NO, I1.ICHR_PRTNR_NO) AS PRTNR_NO
-         , TO_CHAR(TO_DATE(I1.VST_FSH_DT ),'YYYY-MM-DD') AS VST_FSH_DT  /*방문완료일자(출고확정일)*/
+         , TO_CHAR(TO_DATE(I1.VST_FSH_DT ),'YYYY-MM-DD') AS OSTR_CNFRM_DT  /*출고확정일*/
+         /*MD 배송정보*/
+         , I1.PRTNR_BZS_NM
+         , I1.SPP_IVC_NO
+         , I1.SPP_BZS_PD_ID
+         , I1.SPP_PROCS_BZS_CD AS PCSV_COMP_DV
+         , F_CMZ_CD_NM('TNT_WELLS', 'SPP_PROCS_BZS_CD', I1.SPP_PROCS_BZS_CD) AS PCSV_COMP_NM
          /* 작업결과 */
          , I1.AS_LCT_CD                 /*AS위치코드*/
          , I1.AS_PHN_CD                 /*AS현상코드*/
@@ -453,11 +489,8 @@
        AND C1.CNTR_SN = I1.CNTR_SN
        AND ADRPC_TP_CD_RNK = 1
       INNER JOIN PART_INF P1
-       ON P1.PD_CD = I1.PDCT_PD_CD
-       AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
-      INNER JOIN PART_INF P2
-       ON P2.PD_CD = I1.SV_PD_CD
-       AND P2.PD_EXTS_PRP_GRP_CD = 'SCHD'
+       ON P1.PD_CD = I1.BASE_PD_CD
+       AND P1.PD_EXTS_PRP_GRP_CD = 'SPP'
        WHERE 1=1
     </select>
 </mapper>

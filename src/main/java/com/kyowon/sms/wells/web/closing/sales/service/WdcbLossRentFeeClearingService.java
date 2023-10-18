@@ -26,7 +26,7 @@ public class WdcbLossRentFeeClearingService {
     /**
      * WELLS 상품 철거 발생 시, 기 산출된 위약금 중 분실손료 금액을 초기화하고, 위약금 잔액(분실손료만큼 잔액을 수정)을 수정 관리한다.
      * 철거에 대한 처리의 시작은 서비스 영역에서 Event 처리되며, 해당 서비스는 서비스 영역에서 호출된다.
-     * @return WdcbLossRentFeeClearingDto
+     * @return WdcbLossRentFeeClearingDvo
      * @throws BizException SQL 오류 발생 시 Exception 처리
      */
     @Transactional

@@ -1,14 +1,12 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
-import java.util.List;
-
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsStoreDvo;
-import org.apache.ibatis.annotations.Mapper;
-
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsStoreDto.*;
 
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsStoreDvo;
 
 /**
  * <pre>
@@ -21,15 +19,11 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsnaReturningGoodsStoreMapper {
 
-    PagingResult<SearchRes> selectReturningGoodsStores(SearchReq dto, PageInfo pageInfo);
-
     List<SearchRes> selectReturningGoodsStores(SearchReq dto);
 
     String selectNextItmOstrNo(FindItmOstrNoReq findItmOstrNoReq);
 
     String selectNextItmStrNo(FindItmStrNoReq findItmStrNoReq);
-
-    String selectNextOstrAkNo(FindOstrAkNoReq findOstrAkNoReq);
 
     String selectHgrWareNo(WsnaReturningGoodsStoreDvo dvo);
 
@@ -70,5 +64,6 @@ public interface WsnaReturningGoodsStoreMapper {
 
     int updateReturningGoodsStrConfirm(WsnaReturningGoodsStoreDvo dvo);
 
-    //    int insertItmOstrAkIz(WsnaReturningGoodsStoreDvo dvo);
+    List<SearchWareRes> selectReturningGoodsStoresLoginWarehouse(String prtnrNo);
+
 }

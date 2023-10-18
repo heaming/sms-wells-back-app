@@ -1,21 +1,18 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
-import java.text.ParseException;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsStoreDto.*;
+
 import java.util.List;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-import com.kyowon.sms.wells.web.service.stock.service.WsnaReturningGoodsStoreService;
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.system.config.response.SaveResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsStoreDto.*;
-
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
+import com.kyowon.sms.wells.web.service.stock.service.WsnaReturningGoodsStoreService;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -23,6 +20,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0108M01 반품입고 관리 Controller
+ * </pre>
+ *
+ * @author SongTaeSung
+ * @since 2023.05.04
+ */
 @Api(tags = "[WSNA] 반품입고 관리")
 @Validated
 @RequiredArgsConstructor
@@ -39,13 +44,11 @@ public class WsnaReturningGoodsStoreController {
         @ApiImplicitParam(name = "stFnlVstFshDtFrom", value = "처리일자From", paramType = "query", example = "20230109"),
         @ApiImplicitParam(name = "edFnlVstFshDtTo", value = "처리일자To", paramType = "query", example = "20230109")
     })
-    @GetMapping("/paging")
-    public PagingResult<SearchRes> getReturningGoodsStores(
-        SearchReq dto,
-        @Valid
-        PageInfo pageInfo
+    @GetMapping
+    public List<SearchRes> getReturningGoodsStores(
+        SearchReq dto
     ) {
-        return service.getReturningGoodsStores(dto, pageInfo);
+        return service.getReturningGoodsStores(dto);
     }
 
     @ApiOperation(value = "반품입고 저장", notes = "창고장이나 매니저/엔지니어가 반품입고를받아 물류센터로 반품출고요청을 한다.")
@@ -56,7 +59,7 @@ public class WsnaReturningGoodsStoreController {
         @NotEmpty
         List<SaveReq> dtos
 
-    ) throws ParseException {
+    ) throws Exception {
         return SaveResponse.builder().processCount(this.service.saveReturningGoodsStores(dtos)).build();
     }
 
@@ -68,7 +71,7 @@ public class WsnaReturningGoodsStoreController {
         @NotEmpty
         List<SaveConfirmationReq> dtos
 
-    ) throws ParseException {
+    ) throws Exception {
         return SaveResponse.builder().processCount(this.service.saveReturningGoodsStoreConfirmations(dtos)).build();
     }
 
@@ -78,6 +81,15 @@ public class WsnaReturningGoodsStoreController {
         SearchReq dto
     ) {
         return service.getReturningGoodsStoresExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "반품입고 관리 로그인 사용자 창고조회", notes = "로그인한 사용자의 창고를 조회한다.")
+    @GetMapping("/login-warehouse")
+    public List<SearchWareRes> getReturningGoodsStoresLoginWarehouse(
+        @RequestParam
+        String prtnrNo
+    ) {
+        return service.getReturningGoodsStoresLoginWarehouse(prtnrNo);
     }
 
 }

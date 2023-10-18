@@ -20,6 +20,14 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0226M01 급지 수당 관리
+ * </pre>
+ *
+ * @author hyewon.kim
+ * @since 2022.12.14
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/region-level-allowances")
 @Api(tags = "[WSND] 급지 수당 관리 REST API")
@@ -29,12 +37,21 @@ public class WsndRegionLevelAlwncMgtController {
 
     private final WsndRegionLevelAlwncMgtService service;
 
+    /**
+     * 급지 기본 정보 조회
+     * @return 이동 급지, 업무 급지 기본 정보
+     */
     @ApiOperation(value = "급지 기본 정보 조회", notes = "이동급지, 업무급지 기본 정보를 조회한다.")
     @GetMapping("/base-information")
     public SearchBaseRes getAllowanceBases() {
         return this.service.getAllowanceBases();
     }
 
+    /**
+     * 급지 수당 조회
+     * @param applyDate 적용일자
+     * @return 급지 수당
+     */
     @ApiOperation(value = "급지 수당 조회", notes = "급지 정보에 일치하는 엔지니어 수당 정보를 조회한다.")
     @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", example = "20221214", required = true)
     @GetMapping
@@ -46,6 +63,12 @@ public class WsndRegionLevelAlwncMgtController {
         return this.service.getAllowances(applyDate);
     }
 
+    /**
+     * 급지 수당 저장
+     * @param dtos 조회조건
+     * @return 처리건수
+     * @throws Exception
+     */
     @ApiOperation(value = "급지 수당 저장", notes = "급지 정보에 일치하는 엔지니어 수당 정보를 저장한다.")
     @PostMapping
     public SaveResponse saveAllowances(

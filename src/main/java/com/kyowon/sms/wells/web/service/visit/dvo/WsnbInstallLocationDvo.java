@@ -9,7 +9,7 @@ import lombok.Setter;
  * W-SV-U-0035M01 책임지역 지역코드 관리
  * </pre>
  *
- * @author gs.piit129 천영화
+ * @author yeonghwa.cheon
  * @since 2022.11.22
  */
 @Setter
@@ -27,14 +27,14 @@ public class WsnbInstallLocationDvo {
     String pdctPdCd; /* 상품코드 */
     String sapMatCd; /* SAP코드 */
     String pdNm; /* 상품명 */
-    String locaraTno; /* 전화번호1 */
+    String locaraTno; /* 지역전화번호 */
     @DBDecField
-    String exnoEncr; /* 전화번호2 */
-    String idvTno; /* 전화번호3 */
-    String cralLocaraTno; /* 휴대폰번호1 */
+    String exnoEncr; /* 전화국번호암호화 */
+    String idvTno; /* 개별전화번호 */
+    String cralLocaraTno; /* 휴대지역전화번호 */
     @DBDecField
-    String mexnoEncr; /* 휴대폰번호2 */
-    String cralIdvTno; /* 휴대폰번호3 */
+    String mexnoEncr; /* 휴대전화국번호암호화 */
+    String cralIdvTno; /* 휴대개별전화번호 */
     String zip; /* 우편번호 */
     String adr; /* 주소 */
     String ogNm; /* 소속센터 */

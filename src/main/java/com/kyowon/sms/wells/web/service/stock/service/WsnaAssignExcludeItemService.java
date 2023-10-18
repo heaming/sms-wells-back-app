@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaAssignExcludeItemConverter;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAssignExcludeItemDelDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAssignExcludeItemDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAssignExcludeItemRemoveDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaAssignExcludeItemMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -62,9 +62,9 @@ public class WsnaAssignExcludeItemService {
 
         int count = 0;
 
-        List<WsnaAssignExcludeItemDelDvo> dvos = this.converter.mapAllRemoveReqToWsnaAssignExcludeItemDelDvo(dtos);
+        List<WsnaAssignExcludeItemRemoveDvo> dvos = this.converter.mapAllRemoveReqToWsnaAssignExcludeItemDelDvo(dtos);
 
-        for (WsnaAssignExcludeItemDelDvo dvo : dvos) {
+        for (WsnaAssignExcludeItemRemoveDvo dvo : dvos) {
             count += this.mapper.updateQomAsnExcdIzForRemove(dvo);
         }
 

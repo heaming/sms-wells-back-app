@@ -23,6 +23,14 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * W-SV-U-0035M01 설치 위치 상세 관리
+ * </pre>
+ *
+ * @author yeonghwa.cheon
+ * @since 2023.01.02
+ */
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/installation-locations")
 @Api(tags = "[WSNB] 설치위치상세관리 REST API")
@@ -33,6 +41,9 @@ public class WsnbInstallLocationMgtController {
 
     private final WsnbInstallLocationMgtService service;
 
+    /**
+     * 설치 위치 상세 관리 - 조회(페이징)
+     */
     @ApiOperation(value = "설치위치상세관리 조회", notes = "설치위치상세관리를 조회한다.")
     @GetMapping("/paging")
     public PagingResult<SearchRes> getInstallLocationPages(
@@ -42,12 +53,18 @@ public class WsnbInstallLocationMgtController {
         return service.getInstallLocationPages(dto, pageInfo);
     }
 
+    /**
+     * 설치 위치 상세 관리 - 조회(엑셀다운로드)
+     */
     @ApiOperation(value = "설치위치상세관리 목록 엑셀 다운로드", notes = "검색조건을 입력 받아 엑셀 다운로드용 설치위치상세관리 목록을 조회한다.")
     @GetMapping("/excel-download")
     public List<SearchRes> getInstallLocationPagesExcelDownload(SearchReq dto) {
         return service.getInstallLocationPagesExcelDownload(dto);
     }
 
+    /**
+     * 설치 위치 상세 관리 - 저장
+     */
     @ApiOperation(value = "설치위치상세관리 저장", notes = "설치위치상세관리를 저장한다.")
     @PostMapping
     public SaveResponse createInstallLocations(
@@ -61,6 +78,9 @@ public class WsnbInstallLocationMgtController {
             .build();
     }
 
+    /**
+     * 설치 위치 상세 관리 - 저장 프로시저
+     */
     @ApiOperation(value = "설치위치상세관리 저장 프로시저", notes = "설치위치상세관리 초기화값을 저장한다.")
     @PostMapping("/initialize")
     public SaveResponse createInitializeInstallLocations(
@@ -74,6 +94,9 @@ public class WsnbInstallLocationMgtController {
             .build();
     }
 
+    /**
+     * 검색조건 용 상품내역 조회
+     */
     @ApiOperation(value = "상품 조회", notes = "상품 리스르를 조회한다.")
     @GetMapping("/products")
     public List<FindProductRes> getProducts() {

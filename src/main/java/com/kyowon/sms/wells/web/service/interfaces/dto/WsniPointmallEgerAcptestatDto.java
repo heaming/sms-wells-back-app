@@ -3,6 +3,14 @@ package com.kyowon.sms.wells.web.service.interfaces.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * W-SV-I-0018 포인트몰 금융리스 안마의자,전기레인지 엔지니어 수락상태값 조회
+ * </pre>
+ *
+ * @author yeonghwa.cheon
+ * @since 2023.04.20
+ */
 public class WsniPointmallEgerAcptestatDto {
 
     @ApiModel(value = "WsniPointmallEgerInqrDto-SearchReq")
@@ -32,6 +40,10 @@ public class WsniPointmallEgerAcptestatDto {
         @JsonProperty("WK_PRGS_STAT_CD")
         String wkPrgsStatCd, /* 작업진행상태코드 */
         @JsonProperty("RTNGD_YN")
-        String rtngdYn /* 반품여부 */
+        String rtngdYn, /* 반품여부 */
+        @JsonProperty("CNTR_CNFM_Y")
+        String cntrCnfmY, /* 주문확정년 */
+        @JsonProperty("SAMSUNG_YN_CD")
+        String samsungYnCd /* 삼성제품여부코드 */
     ) {}
 }

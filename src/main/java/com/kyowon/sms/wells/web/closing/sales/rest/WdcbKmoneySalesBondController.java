@@ -32,6 +32,11 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbKmoneySalesBondController {
     private final WdcbKmoneySalesBondService service;
 
+    /**
+     * 매출채권 현황 조회
+     * @param baseYr
+     * @return
+     */
     @ApiOperation(value = "매출채권 현황", notes = "조회조건에 따른 매출 채권 현황을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYr", value = "기준년", paramType = "query"),
@@ -45,6 +50,11 @@ public class WdcbKmoneySalesBondController {
         return service.getSalesBondPages(baseYr, pageinfo);
     }
 
+    /**
+     * 매출채권 현황 엑셀 다운로드
+     * @param baseYr
+     * @return
+     */
     @ApiOperation(value = "매출채권 현황 엑셀 다운로드", notes = "조회조건에 따른 매출채권 현황을 엑셀 다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYr", value = "기준년", paramType = "query"),
@@ -57,6 +67,11 @@ public class WdcbKmoneySalesBondController {
         return service.getSalesBondExcelDownload(baseYr);
     }
 
+    /**
+     * 월별 입금 상세내역 조회
+     * @param baseYm
+     * @return
+     */
     @ApiOperation(value = "월별 입금 상세내역", notes = "조회조건에 따른 월별 입금 상세내역을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
@@ -69,6 +84,11 @@ public class WdcbKmoneySalesBondController {
         return service.getDepositDetails(baseYm);
     }
 
+    /**
+     * 월별 적립취소 상세내역 조회
+     * @param baseYm
+     * @return
+     */
     @ApiOperation(value = "월별 적립취소 상세내역", notes = "조회조건에 따른 월별 적립취소 상세내역을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),

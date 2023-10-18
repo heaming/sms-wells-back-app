@@ -12,6 +12,14 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 /* wcsb-new-receipt-mgt.xml */
+/**
+ * <pre>
+ * 고객 >>  신규접수 배정관리 Mapper
+ * </pre>
+ *
+ * @author junho.bae
+ * @since 2023-07-01
+ */
 @Mapper
 public interface WcsbNewReceiptMgtMapper {
 

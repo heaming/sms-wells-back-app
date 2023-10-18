@@ -17,14 +17,29 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbSalesDetailService {
     private final WdcbSalesDetailMapper mapper;
 
+    /**
+     * 매출 상세정보 조회
+     * @param dto
+     * @return
+     */
     public SearchRentalRes getSalesDetailRental(SearchReq dto) {
         return mapper.selectSalesDetailRental(dto);
     }
 
+    /**
+     * 매출 상세정보 조회
+     * @param dto
+     * @return
+     */
     public SearchMembershipRes getSalesDetailMembership(SearchReq dto) {
         return mapper.selectSalesDetailMembership(dto);
     }
 
+    /**
+     * 매출 상세정보 조회
+     * @param dto
+     * @return
+     */
     public SearchSingleRes getSalesDetailSinglePayment(SearchReq dto) {
         return mapper.selectSalesDetailSinglePayment(dto);
     }

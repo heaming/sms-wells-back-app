@@ -26,6 +26,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 렌탈/리스 위약금 관리 컨트롤러
+ * </pre>
+ *
+ * @author jintae.choi
+ * @since 2023-10-10
+ */
 @RestController
 @Api(tags = "[WPDY] 상품(Wells) - 기준정보관리 - 렌탈/리스 위약금 관리")
 @RequestMapping(value = PdProductWellsConst.REST_URL_V1 + "/cancel-charges")
@@ -35,6 +43,11 @@ public class WpdyRentalLeasePenaltyMgtController {
 
     private final WpdyRentalLeasePenaltyMgtService service;
 
+    /**
+     * 렌탈/리스 위약금 조회
+     * @param dto 검색조건 정보
+     * @return 검색 결과 목록
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "prdtCateHigh", value = "대분류", paramType = "query", example = "PDC000000000001"),
         @ApiImplicitParam(name = "prdtCateMid", value = "중분류", paramType = "query", example = "PDC000000000012"),
@@ -51,6 +64,12 @@ public class WpdyRentalLeasePenaltyMgtController {
         return service.getRentalLeasePenalties(dto);
     }
 
+    /**
+     * 렌탈/리스 위약금 페이징 조회
+     * @param dto 검색조건 정보
+     * @param pageInfo 페이지 정보
+     * @return 검색 결과 목록
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "prdtCateHigh", value = "대분류", paramType = "query", example = "PDC000000000001"),
         @ApiImplicitParam(name = "prdtCateMid", value = "중분류", paramType = "query", example = "PDC000000000012"),
@@ -68,6 +87,12 @@ public class WpdyRentalLeasePenaltyMgtController {
         return service.getRentalLeasePenaltyPages(dto, pageInfo);
     }
 
+    /**
+     * 렌탈/리스 위약금 수정
+     * @param dto 수정내용 정보
+     * @return 처리결과
+     * @throws Exception 미처리 시 Exception 처리
+     */
     @ApiOperation(value = "렌탈/리스 위약금 수정", notes = "수정된 렌탈/리스 위약금 정보를 반영한다.")
     @PostMapping
     public SaveResponse saveRentalLeasePenalties(
@@ -80,6 +105,12 @@ public class WpdyRentalLeasePenaltyMgtController {
             .build();
     }
 
+    /**
+     * 렌탈/리스 위약금 삭제
+     * @param dtos 삭제 정보
+     * @return 처리결과
+     * @throws Exception 미처리 시 Exception 처리
+     */
     @ApiOperation(value = "렌탈/리스 위약금 삭제")
     @DeleteMapping
     public SaveResponse removeRentalLeasePenalties(
@@ -92,6 +123,11 @@ public class WpdyRentalLeasePenaltyMgtController {
             .build();
     }
 
+    /**
+     * 렌탈/리스 중복체크
+     * @param dtos 비교 대상 정보
+     * @return 체크결과
+     */
     @ApiOperation(value = "렌탈/리스 중복체크")
     @PostMapping("/duplication-check")
     public SaveResponse checkDuplication(

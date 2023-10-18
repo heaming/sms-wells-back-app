@@ -19,14 +19,29 @@ import lombok.extern.slf4j.Slf4j;
 public class WdccProductAccountService {
     private final WdccProductAccountMapper mapper;
 
+    /**
+     * 상품별 계정 현황 상세내역 다운로드
+     * @param dto
+     * @return
+     */
     public List<SearchTotalRes> getProductAccountTotals(SearchReq dto) {
         return mapper.selectProductAccountTotals(dto);
     }
 
+    /**
+     * 상품별 계정 현황(상품)
+     * @param dto
+     * @return
+     */
     public List<SearchProductRes> getProductAccounts(SearchReq dto) {
         return mapper.selectProductAccounts(dto);
     }
 
+    /**
+     * 상품별 계정 현황 상세내역 다운로드
+     * @param dto
+     * @return
+     */
     public List<SearchExcelRes> getProductAccountsExcelDownload(SearchReq dto) {
         return mapper.selectProductAccountsExcelDownload(dto);
     }

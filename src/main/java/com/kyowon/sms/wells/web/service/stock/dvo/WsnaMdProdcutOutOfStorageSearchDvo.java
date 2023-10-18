@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import com.sds.sflex.system.config.annotation.DBEncField;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,19 +15,24 @@ public class WsnaMdProdcutOutOfStorageSearchDvo {
 
     String findGb;
 
+    String firstSppGb;
+
     String selCnt;
 
-    String vstFshDt;
+    String ostrCnfmDt;
 
     String prtnrBzsCd;
 
-    String firstSppGb;
+    String cntrDtlNo;
 
-    String cntrNo;
-
-    String cstNm;
-
-    String cralIdvTno;
+    String rcgvpKnm;
 
     String serialNo;
+
+    String cralLocaraTno;
+
+    @DBEncField
+    String mexnoEncr;
+
+    String cralIdvTno;
 }

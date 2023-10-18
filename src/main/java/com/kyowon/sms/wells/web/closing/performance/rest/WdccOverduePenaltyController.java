@@ -19,7 +19,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[WDCC] 매출채권/선수금 현황 - 영업선수금")
+@Api(tags = "[WDCC] 매출채권/선수금 현황 - 영업선수금(W-CL-U-0058M01)")
 @RestController
 @RequestMapping(DcClosingConst.COMMON_URL_V1 + "/performance/overdue-penalty")
 @RequiredArgsConstructor
@@ -28,12 +28,21 @@ public class WdccOverduePenaltyController {
 
     private final WdccOverduePenaltyService service;
 
-    @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(집계)", notes = "매출채권/선수금 현황 - 연체가산금")
+    /**
+     * 매출채권/선수금 현황 - SAP상품구분코드 조회
+     * @return
+     */
+    @ApiOperation(value = "매출채권/선수금 현황 - SAP상품구분코드 조회", notes = "매출채권/선수금 현황 - 연체가산금")
     @GetMapping("/code")
     public List<FindCodeRes> getCode() {
         return service.getCode();
     }
 
+    /**
+     * 매출채권/선수금 현황 - 연체가산금(포인트/집계)
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트/집계)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
@@ -49,6 +58,11 @@ public class WdccOverduePenaltyController {
         return service.getPointAggregates(req);
     }
 
+    /**
+     * 매출채권/선수금 현황 - 연체가산금(포인트/주문별)
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트/주문별)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
@@ -64,6 +78,11 @@ public class WdccOverduePenaltyController {
         return service.getPointOrders(req);
     }
 
+    /**
+     * 매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/일자별)
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/일자별)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
@@ -79,6 +98,11 @@ public class WdccOverduePenaltyController {
         return service.getAnticipationDates(req);
     }
 
+    /**
+     * 매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/일시불)
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/일시불)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
@@ -94,6 +118,11 @@ public class WdccOverduePenaltyController {
         return service.getAnticipationSinglePayments(req);
     }
 
+    /**
+     * 매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/멤버십)
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/멤버십)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
@@ -109,6 +138,11 @@ public class WdccOverduePenaltyController {
         return service.getAnticipationMemberships(req);
     }
 
+    /**
+     * 매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/정기배송)
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/정기배송)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
@@ -124,6 +158,11 @@ public class WdccOverduePenaltyController {
         return service.getAnticipationRegularShippings(req);
     }
 
+    /**
+     * 매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/렌탈)
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/렌탈)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
@@ -139,6 +178,11 @@ public class WdccOverduePenaltyController {
         return service.getAnticipationRentals(req);
     }
 
+    /**
+     * 매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/리스)
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "매출채권/선수금 현황 - 연체가산금(포인트 미선택(선수금)/리스)", notes = "매출채권/선수금 현황 - 연체가산금")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),

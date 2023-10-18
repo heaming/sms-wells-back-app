@@ -21,14 +21,29 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcaDepositDelinquentDetailService {
     private final WdcaDepositDelinquentDetailMapper mapper;
 
+    /**
+     * 입금 연체 상세 조회
+     * @param dto
+     * @return
+     */
     public List<SearchRes> getDepositDelinquentDetails(SearchReq dto) {
         return mapper.selectDepositDelinquentDetails(dto);
     }
 
+    /**
+     * 입금 연체 상세-계약별 상세조회
+     * @param dto
+     * @return
+     */
     public PagingResult<SearchContractRes> getDepositDelinquentContractPages(SearchContractReq dto, PageInfo pageInfo) {
         return mapper.selectDepositDelinquentContractPages(dto, pageInfo);
     }
 
+    /**
+     * 입금 연체 상세-계약별 상세조회 엑셀 다운로드
+     * @param dto
+     * @return
+     */
     public List<SearchContractRes> getDepositDelinquentContractForExcelDownload(SearchContractReq dto) {
         return mapper.selectDepositDelinquentContractPages(dto);
     }

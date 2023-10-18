@@ -5,83 +5,99 @@ import java.math.BigDecimal;
 import io.swagger.annotations.ApiModel;
 
 public class WbncSameCustomerContractDto {
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 동일고객 계약내역 조회 Find Result Dto
     @ApiModel(value = "WbncSameCustomerContractDto-FindContractRes")
     public record FindContractRes(
-        String mpyBsdt,
-        String bndBizDvCd,
-        String bndBizDvNm,
-        String pdClsfNm,
-        String pdNm,
-        String pdCd,
-        String cntrNo,
-        String cntrSn,
-        String cntrDtlNo,
-        String cstNo,
-        String cstKnm,
-        String dlqMcn,
-        String ojAmt,
-        String ojDpAmt,
-        String ojBlam,
-        String authRsgCnfmdt
+        String mpyBsdt, /* 이체 */
+        String bndBizDvCd, /* 채권업무구분코드 */
+        String bndBizDvNm, /* 채권업무구분명 */
+        String pdClsfNm, /* 제품군 */
+        String pdNm, /* 제품명 */
+        String pdCd, /* 제품코드 */
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
+        String cntrDtlNo, /* 계약상세번호 */
+        String cstNo, /* 고객코드 */
+        String cstKnm, /* 고객명 */
+        String dlqMcn, /* 연체개월 */
+        String ojAmt, /* 대상금액 */
+        String ojDpAmt, /* 대상입금 */
+        String ojBlam, /* 대상잔액 */
+        String authRsgCnfmdt /* 직권해지일자 */
     ) {}
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 동일고객 계약 입금정보 조회 Find Result Dto
     @ApiModel(value = "WbncSameCustomerContractDto-FindDepositRes")
     public record FindDepositRes(
-        String perfDt,
-        String bilTn,
-        String slBndAlrpyAmt,
-        String dpAmt,
-        String atamCvAmt,
-        String eotDlqAmt,
-        String dlqMcn,
-        String eotDlqAddAmt,
-        String thmDlqAddDpSumAmt,
-        String dlqAddBlam,
-        String ucAmt
+        String perfDt, /* 실적월 */
+        String bilTn, /* 차월 */
+        String slBndAlrpyAmt, /* 매출금액 */
+        String dpAmt, /* 입금액 */
+        String atamCvAmt, /* 영업선수금액 */
+        String eotDlqAmt, /* 연체금액 */
+        String dlqMcn, /* 연체금액 */
+        String eotDlqAddAmt, /* 연체가산금 */
+        String thmDlqAddDpSumAmt, /* 연체가산입금 */
+        String dlqAddBlam, /* 연체가산입금 */
+        String ucAmt /* 미수금액 */
     ) {}
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 동일고객 계약 입금정보 상세조회 Find Result Dto
     @ApiModel(value = "WbncSameCustomerContractDto-FindDepositInfoRes")
     public record FindDepositInfoRes(
-        String ojAmt,
-        String rsgBorAmt,
-        String dlqAmt,
-        String slAggAmt,
-        String ojDpAmt,
-        String lsRntf,
-        String dlqDpAmt,
-        String dpAggAmt,
-        String ojBlam,
-        String dlqMcn,
-        String dlqBlam,
-        String dscAggAmt,
-        String ucAmt,
-        String thmChramAmt,
-        String dlqAddAmt,
-        String ctrAggAmt,
-        String ucDpAmt,
-        String mmChramDpAmt,
-        String dlqAddDpAmt,
-        String ucBlam,
-        String mmChramBlam,
-        String dlqAddBlam
+        String ojAmt, /* 대상금액 */
+        String rsgBorAmt, /* 위약금 */
+        String dlqAmt, /* 연체금액 */
+        String slAggAmt, /* 매출누계 */
+        String ojDpAmt, /* 대상입금 */
+        String lsRntf, /* 분실료 */
+        String dlqDpAmt, /* 연체입금 */
+        String dpAggAmt, /* 입금누계 */
+        String ojBlam, /* 대상잔액 */
+        String dlqMcn, /* 연체개월 */
+        String dlqBlam, /* 연체잔액 */
+        String dscAggAmt, /* 할인누계 */
+        String ucAmt, /* 미수금액 */
+        String thmChramAmt, /* 월요금액 */
+        String dlqAddAmt, /* 연체가산금액 */
+        String ctrAggAmt, /* 조정누계 */
+        String ucDpAmt, /* 미수입금 */
+        String mmChramDpAmt, /* 월요금입금 */
+        String dlqAddDpAmt, /* 연체가산입금 */
+        String ucBlam, /* 미수잔액 */
+        String mmChramBlam, /* 월요금잔액 */
+        String dlqAddBlam /* 연체가산잔액 */
     ) {}
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 동일고객 계약 위약정보 조회 Find Result Dto
     @ApiModel(value = "WbncSameCustomerContractDto-FindBreachOfPromiseRes")
     public record FindBreachOfPromiseRes(
-        String eotBorAmt,
-        String dpCcamSumAmt,
-        String borBlam,
-        String thmSlSumAmt,
-        String ucAmt,
-        String rsgBorAmt,
-        String rgstCostDscBorAmt,
-        String rentalDscBorAmt,
-        String csmbCostBorAmt,
-        String pBorAmt,
-        String reqdCsBorAmt,
-        String lsRntf,
-        String rstlBorAmt,
-        String acuDpAmt
+        String eotBorAmt, /* 기말위약금액 */
+        String dpCcamSumAmt, /* 입금위약금합계금액 */
+        String borBlam, /* 위약잔액 */
+        String thmSlSumAmt, /* 당월매출합계금액 */
+        String ucAmt, /* 미수금액 */
+        String rsgBorAmt, /* 해지위약금액 */
+        String rgstCostDscBorAmt, /* 등록비할인위약금액 */
+        String rentalDscBorAmt, /* 렌탈할인위약금액 */
+        String csmbCostBorAmt, /* 소모품비위약금액 */
+        String pBorAmt, /* 포인트위약금액 */
+        String reqdCsBorAmt, /* 철거비용위약금액 */
+        String lsRntf, /* 분실손료 */
+        String rstlBorAmt, /* 재약정위약금액 */
+        String acuDpAmt /* 누적입금금액 */
     ) {}
 
     @ApiModel(value = "EbncSameCustomerContractDto-FindSalesRes")
@@ -128,23 +144,27 @@ public class WbncSameCustomerContractDto {
         BigDecimal mmIntam
     ) {}
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 동일고객 계약 입금내역 조회 Find Result Dto
     @ApiModel(value = "WbncSameCustomerContractDto-FindDepositDtlRes")
     public record FindDepositDtlRes(
-        String rveNoSn,
-        String rveDt,
-        String perfDt,
-        String rveCd,
-        String rveNm,
-        String dpDvCd,
-        String dpDvNm,
-        String sellTpCd,
-        String sellTpNm,
-        String dpTpCd,
-        String dpTpNm,
-        String rveAmt,
-        String dpMesCd,
-        String dpMesNm,
-        String rveDvCd,
-        String rveDvNm
+        String rveNoSn, /* 입금번호 */
+        String rveDt, /* 수납일자 */
+        String perfDt, /* 실적일자 */
+        String rveCd, /* 수납코드 */
+        String rveNm, /* 수납명 */
+        String dpDvCd, /* 입금구분코드 */
+        String dpDvNm, /* 입금구분명 */
+        String sellTpCd, /* 입금종류코드 */
+        String sellTpNm, /* 입금종류명 */
+        String dpTpCd, /* 입금유형코드 */
+        String dpTpNm, /* 입금유형명 */
+        String rveAmt, /* 수납금액 */
+        String dpMesCd, /* 입금수단코드 */
+        String dpMesNm, /* 카드구분 */
+        String rveDvCd, /* 수납구분코드 */
+        String rveDvNm /* 업무구분 */
     ) {}
 }
