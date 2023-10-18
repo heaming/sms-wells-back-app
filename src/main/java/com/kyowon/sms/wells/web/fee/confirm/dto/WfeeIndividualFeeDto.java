@@ -25,9 +25,9 @@ public class WfeeIndividualFeeDto {
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String perfYm,
+        String perfYm, /* 실적년월 */
         @NotBlank
-        String no
+        String prtnrNo /* 파트너번호 */
     ) {}
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstReq")
     public record SearchHmstReq(
