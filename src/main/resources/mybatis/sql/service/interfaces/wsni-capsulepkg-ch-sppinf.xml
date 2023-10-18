@@ -3,15 +3,15 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniCapsulepkgChSppinfMapper">
 
     <select id="selectCapsulepkgChSppinfs" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto$SearchRes">
-    SELECT SPP_DUEDT
-         , PD_CD
-         , PD_NM
-         , AFCH_PD_CD
-         , AFCH_PD_NM
-         , SUBSTR(DT_INFO, 4, LENGTH(DT_INFO)) AS DT_INFO
-         , SELL_AMT
-         , SPP_PRGS_STAT_CD
-         , IST_ADDR
+    SELECT SPP_DUEDT    /* 배송예정일자 */
+         , PD_CD        /* 상품코드 */
+         , PD_NM        /* 상품명 */
+         , AFCH_PD_CD   /* 변경후상품코드 */
+         , AFCH_PD_NM   /* 변경후상품명 */
+         , SUBSTR(DT_INFO, 4, LENGTH(DT_INFO)) AS DT_INFO /* 패키지구성정보 */
+         , SELL_AMT     /* 판매금액 */
+         , SPP_PRGS_STAT_CD /* 배송진행상태코드 */
+         , IST_ADDR     /* 설치주소 */
     FROM (
       SELECT VST_DT AS SPP_DUEDT /*배송예정일*/
            , MAX(PDCT_PD_CD) AS PD_CD /*현재패키지CD*/
@@ -58,12 +58,12 @@
                                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
                                   AND T1.DTL_CNTR_NO = C.CNTR_NO
                                   AND T1.DTL_CNTR_SN = C.CNTR_SN) AS ADDR
-                FROM TB_SVPD_CST_SV_RGBSPR_IZ A
-                LEFT OUTER JOIN TB_SVPD_HCF_AS_AK_IZ B
+                FROM TB_SVPD_CST_SV_RGBSPR_IZ A /* 고객서비스정기BS주기내역 */
+                LEFT OUTER JOIN TB_SVPD_HCF_AS_AK_IZ B /* 홈카페AS요청내역 */
                   ON B.CNTR_NO = A.CNTR_NO
                  AND B.CNTR_SN = A.CNTR_SN
                  AND SUBSTR(B.AK_CHDT, 1, 6) = SUBSTR(A.VST_DUEDT, 1, 6)
-                LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ C
+                LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ C /* 고객서비스수행내역 */
                   ON C.CNTR_NO = A.CNTR_NO
                  AND C.CNTR_SN = A.CNTR_SN
                INNER JOIN (SELECT T1.PD_CD
@@ -71,11 +71,11 @@
                                 , T4.FNL_VAL
                                 , T4.VL_STRT_DTM
                                 , T4.VL_END_DTM
-                             FROM TB_PDBS_PD_BAS T1 -- 기준
-                            INNER JOIN TB_PDBS_PD_REL T2
+                             FROM TB_PDBS_PD_BAS T1 /* 상품기본 */
+                            INNER JOIN TB_PDBS_PD_REL T2 /* 상품관계 */
                                ON T1.PD_CD = T2.BASE_PD_CD AND T2.PD_REL_TP_CD = '05' /* 제품만 조회 */
                               AND TO_CHAR(SYSDATE, 'YYYYYMM') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
-                             LEFT OUTER JOIN TB_PDBS_PD_PRC_FNL_DTL T4
+                             LEFT OUTER JOIN TB_PDBS_PD_PRC_FNL_DTL T4 /* 상품가격최종상세 */
                                ON T1.PD_CD = T4.PD_CD AND T4.HIST_END_DTM = '99991231235959' AND TO_CHAR(SYSDATE, 'YYYYYMM') BETWEEN T4.VL_STRT_DTM AND T4.VL_END_DTM
                             WHERE T1.PD_TP_CD = 'P'
                               AND T1.SELL_TP_CD = '6' /* 정기배송 상품 */) D
