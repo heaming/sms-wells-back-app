@@ -51,6 +51,7 @@ public class WsnbServiceCancelPsDto {
         String unuitm,                      // 특이사항
         String istImpEnvr1stImgFileUid,     // 설치불가환경 이미지 1
         String istImpEnvr2ndImgFileUid,     // 설치불가환경 이미지 2
-        String istImpEnvr3rdImgFileUid      // 설치불가환경 이미지 3
+        String istImpEnvr3rdImgFileUid,     // 설치불가환경 이미지 3
+        String cstSvAsnNo                   // 고객서비스배정번호
     ){}
 }
