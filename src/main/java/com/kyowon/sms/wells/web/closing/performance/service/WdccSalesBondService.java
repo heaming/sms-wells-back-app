@@ -18,6 +18,14 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * <pre>
+ * 매출채권/선수금 현황 - 연체가산금 서비스
+ * </pre>
+ *
+ * @author gugyeongu
+ * @since 2023-08-23
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -27,6 +35,11 @@ public class WdccSalesBondService {
     private final WdccSalesBondConverter converter;
     private final DateTimeFormatter formatterType = DateTimeFormatter.ofPattern("yyyyMM");
 
+    /**
+     * 매출채권/선수금 현황 매출채권 조회
+     * @param req 검색조건
+     * @return 검색결과
+     */
     public List<SearchRes> getSalesBondAggregate(
         SearchReq req
     ) {
@@ -60,6 +73,11 @@ public class WdccSalesBondService {
         return converter.mapAllWdccSalesBondDvoToSearchRes(dvos);
     }
 
+    /**
+     * 날짜 변경을 위한 LocalDate 변환 메소드
+     * @param slClYm 기준년월
+     * @return LocalDate
+     */
     public LocalDate getSlClYmForLocalDate(String slClYm) {
         Matcher matcher = Pattern.compile("^(\\d{4})(\\d{2})").matcher(slClYm);
         if (matcher.matches()) {
@@ -69,6 +87,11 @@ public class WdccSalesBondService {
         return null;
     }
 
+    /**
+     * 매출채권/선수금 현황 매출채권 조회(일자별이외)
+     * @param param 검색조건
+     * @return 검색결과
+     */
     public List<WdccSalesBondDvo> getAccountsReceivable(Map<String, Object> param) {
         // selectAccountsReceivableRental 렌탈
         // selectAccountsReceivableLease 리스
