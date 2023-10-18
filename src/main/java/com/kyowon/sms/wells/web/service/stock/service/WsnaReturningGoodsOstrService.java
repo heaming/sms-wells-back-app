@@ -48,6 +48,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 출고요청 창고 조회
+     *
      * @param dto
      * @return
      */
@@ -57,6 +58,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 반품출고 조회
+     *
      * @param dto
      * @return
      */
@@ -72,6 +74,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 입고마감 체크
+     *
      * @param itmOstrNo
      * @return
      */
@@ -82,6 +85,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 반품출고 등록
+     *
      * @param dtos
      * @return
      */
@@ -195,6 +199,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 반품출고 삭제
+     *
      * @param dtos
      * @return
      */
@@ -296,6 +301,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 출고유형코드 값 체크
+     *
      * @param ostrTpCd
      * @return
      */
@@ -305,6 +311,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 반품출고내부 및 물류구분인지 체크
+     *
      * @param ostrTpCd
      * @param strWareDvCd
      * @return
@@ -315,6 +322,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 품목재고내역의 등록 호출파라미터 변환
+     *
      * @param vo
      * @return
      */
@@ -338,6 +346,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 품목재고내역 이동재고를 위한 파라미터 변환
+     *
      * @param vo
      * @return
      */
@@ -361,6 +370,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 품목재고내역 입고 파라미터 변환
+     *
      * @param vo
      * @return
      */
@@ -384,7 +394,8 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 폐기출고 처리를 위한 파라미터 변환환
-    * @param vo
+     *
+     * @param vo
      * @return
      */
     protected WsnaItemStockItemizationReqDvo setReturningDisuseWsnaItemStockItemizationDtoSaveReq(
@@ -407,6 +418,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 품목재고내역 입고창고의 재고내역을 삭제하기 위한 파라미터 변환
+     *
      * @param vo
      * @return
      */
@@ -430,6 +442,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 품목재고내역 입고창고의 이동재고삭제를 위한 파라미터 변환
+     *
      * @param vo
      * @return
      */
@@ -453,6 +466,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 품목재고내역 삭제를 위한 파라미터 변환
+     *
      * @param vo
      * @return
      */
@@ -474,4 +488,13 @@ public class WsnaReturningGoodsOstrService {
         return removeDvo;
     }
 
+    /**
+     * 출고창고에 있는 상품의 시점재고 조회
+     * @param wareNo 창고번호
+     * @param dto 조회조건
+     * @return
+     */
+    public List<SearchPitmStockRes> getPitmStocks(String wareNo, SearchPitmStockReq dto) {
+        return mapper.selectPitmStocks(wareNo, dto.itmPdCds(), dto.itmGdCd());
+    }
 }
