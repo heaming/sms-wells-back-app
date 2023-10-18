@@ -25,8 +25,6 @@ public interface WsnaReturningGoodsStoreMapper {
 
     String selectNextItmStrNo(FindItmStrNoReq findItmStrNoReq);
 
-    String selectNextOstrAkNo(FindOstrAkNoReq findOstrAkNoReq);
-
     String selectHgrWareNo(WsnaReturningGoodsStoreDvo dvo);
 
     String selectUpHgrWareNo(WsnaReturningGoodsStoreDvo dvo);
