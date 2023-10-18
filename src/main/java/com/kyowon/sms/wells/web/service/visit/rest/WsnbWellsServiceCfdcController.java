@@ -113,7 +113,7 @@ public class WsnbWellsServiceCfdcController {
         return service.getWellsServiceConfirmationHistoriesForEmail(dto, pageInfo);
     }
 
-    @ApiOperation(value = "OZ 리포트 조회", notes = "OZ리포트 조회")
+    @ApiOperation(value = "OZ리포트 조회", notes = "OZ리포트 조회")
     @GetMapping("/oz")
     public Map<String, Object> getOzReport(FindOzReq dto) {
         return service.getOzReport(dto);
