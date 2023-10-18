@@ -41,7 +41,7 @@ public class WsnbWellsServiceCfdcMvController {
         return service.openReport(cstSvAsnNo, dto.custBday());
     }
 
-    @ApiOperation(value = "OZ리포트 조회", notes = "OZ리포트 조회")
+    @ApiOperation(value = "OZ 리포트 조회", notes = "OZ리포트 조회")
     @GetMapping("/oz")
     public Map<String, Object> getOzReport(WsnbWellsServiceCfdcDto.FindOzReq dto) {
         return service.getOzReport(dto);
