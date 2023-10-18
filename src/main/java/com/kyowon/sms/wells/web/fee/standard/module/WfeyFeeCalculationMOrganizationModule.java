@@ -5,11 +5,16 @@ import com.kyowon.sms.common.web.fee.standard.annotation.FeeModuleInfo;
 import com.kyowon.sms.common.web.fee.standard.annotation.FeeModuleMethodInfo;
 import com.kyowon.sms.common.web.fee.standard.context.ApplicationContextHolder;
 import com.kyowon.sms.common.web.fee.standard.dto.ZfeyFeeStandardDto;
+import com.kyowon.sms.common.web.fee.standard.dvo.ZfeyFeeStandardDvo;
 import com.kyowon.sms.common.web.fee.standard.module.ZfeyFeeCalculationCommonModule;
+import com.kyowon.sms.common.web.fee.standard.service.ZfeyFeeStandardSqlService;
+import com.kyowon.sms.common.web.fee.standard.util.FeFeeUtil;
 import com.kyowon.sms.wells.web.fee.standard.mapper.WfeyMOrganizationCalculationMapper;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.FeeCalculationUnit.PARTNER_UNIT;
 import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.REDEMPTION_OF_FEE;
@@ -20,6 +25,7 @@ import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.SYSTEM_
 @FeeModuleInfo(systemType = SYSTEM_PACKAGE_WELLS, moduleName = "M조직모듈", moduleExplanation = "M조직 특화수당계산 모듈")
 public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCommonModule {
 
+    protected ZfeyFeeStandardSqlService feeStandardSqlService;
     protected WfeyMOrganizationCalculationMapper mOrganizationCalculationMapper;
 
     /**
@@ -36,8 +42,10 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
     public WfeyFeeCalculationMOrganizationModule(ZfeyFeeStandardDto.SearchFeeStandardDetailRes feeStandardDetail, String tenantId, String feeCd, String baseYm, String perfYm, String feeTcntDvCd, String perfAgrgCrtDvCd, String cntrPerfCrtDvCd) {
         super(feeStandardDetail, tenantId, feeCd, baseYm, perfYm, feeTcntDvCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
         mOrganizationCalculationMapper = ApplicationContextHolder.getBean(WfeyMOrganizationCalculationMapper.class);
+        feeStandardSqlService = ApplicationContextHolder.getBean(ZfeyFeeStandardSqlService.class);
     }
-        /**
+
+    /**
      * 생성자
      *
      * @param tenantId
@@ -66,9 +74,8 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
 
     /**
      * BS관리(판매자)수수료(W020084) 후처리
-     *
+     * <p>
      * 웰스서비스실적내역 테이블에 수수료계산금액 업데이트
-     *
      */
     @FeeModuleMethodInfo(methodName = "BS관리(판매자)수수료(W020084) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 수수료계산금액 업데이트")
     public void runBsManagementFeeForSellerPostProcess() {
@@ -80,9 +87,8 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
 
     /**
      * WM급지(판매자)수수료(W020085) 후처리
-     *
+     * <p>
      * 웰스서비스실적내역 테이블에 급지수수료금액 업데이트
-     *
      */
     @FeeModuleMethodInfo(methodName = "WM급지(판매자)수수료(W020085) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 급지수수료금액 업데이트")
     public void runRegionLevelFeeForSellerPostProcess() {
@@ -91,9 +97,8 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
 
     /**
      * BS관리(지점장)수수료(W020087) 후처리
-     *
+     * <p>
      * 웰스서비스실적내역 테이블에 수수료계산금액 업데이트
-     *
      */
     @FeeModuleMethodInfo(methodName = "BS관리(지점장)수수료(W020087) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 수수료계산금액 업데이트")
     public void runBsManagementFeeForBrmgrPostProcess() {
@@ -109,9 +114,8 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
 
     /**
      * WM급지(지점장)수수료(W020088) 후처리
-     *
+     * <p>
      * 웰스서비스실적내역 테이블에 급지수수료금액 업데이트
-     *
      */
     @FeeModuleMethodInfo(methodName = "WM급지(지점장)수수료(W020088) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 급지수수료금액 업데이트")
     public void runRegionLevelFeeForBrmgrPostProcess() {
@@ -121,9 +125,8 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
 
     /**
      * M조직 특화 정액되물림 계산
-     *
+     * <p>
      * 계약단위로 생성하여 파트너단위로 SUM하는 되물림 금액 계산
-     *
      */
     @FeeModuleMethodInfo(methodName = "M조직 특화 정액되물림 계산", methodExplanation = "M조직 특화  테이블에 급지수수료금액 업데이트")
     public void runFixedAmountRedemptionCalculate() {
@@ -138,11 +141,16 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
 
         int insertCount = 0;
 
-        if(PARTNER_UNIT.getCode().equals(basic.feeCalcUnitCd())) {
-            insertCount = mOrganizationCalculationMapper.insertFxamRedfPartnerData(baseYm, feeCd, basic.dtaCrtFeeCd(), perfAgrgCrtDvCd, basic.apyStrtYm(), basic.apyEndYm(), feeStandard.redfPerformVarbs().get(0).perfVarbColVal(), feeStandard.redfPerformVarbs().get(0).indvPerfYn());
+        if (PARTNER_UNIT.getCode().equals(basic.feeCalcUnitCd())) {
+            /* 계산식 생성 */
+            List<ZfeyFeeStandardDvo.ZfeyPerformVarbsDvo> redfPerformVarbs = feeStandardSqlService.convertPerformanceVariableDtoToZfeyPerformVarbsDvo(feeStandard.redfPerformVarbs());
+            List<ZfeyFeeStandardDvo.ZfeyConditionVarbsDvo> redfConvertedConditionVarbs = FeFeeUtil.convertConditionVariable(feeStandard.redfCondVarbs(), redfPerformVarbs);
+            String calcExpr = feeStandardSqlService.getFeeAmtProcString(basic.feeAmtProcsUnitCd(), basic.feeAmtDigtCd(), FeFeeUtil.getFeeCalculateFomula(feeStandard.basic().redfCalfCn(), redfPerformVarbs, redfConvertedConditionVarbs), "SUM");
+
+            insertCount = mOrganizationCalculationMapper.insertFxamRedfPartnerData(baseYm, feeCd, basic.dtaCrtFeeCd(), perfAgrgCrtDvCd, basic.apyStrtYm(), basic.apyEndYm(), feeStandard.redfPerformVarbs().get(0).perfVarbColVal(), feeStandard.redfPerformVarbs().get(0).indvPerfYn(), calcExpr);
         }
 
-        if(insertCount > 0) {
+        if (insertCount > 0) {
             /* 되물림 이력 생성 */
             runInsertionRedfDataHistoriesStep();
         }

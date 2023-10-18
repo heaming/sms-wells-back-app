@@ -195,14 +195,17 @@ public interface WfeyMOrganizationCalculationMapper {
      * M조직 특화 정액되물림 계산
      *
      * 계약단위로 생성하여 파트너단위로 SUM하는 되물림 금액 계산
-     *
-     * @param baseYm
-     * @param feeCd
-     * @param perfAgrgCrtDvCd
-     * @param apyStrtYm
-     * @param apyEndYm
-     * @param perfVarbColVal
-     * @return
+     * 
+     * @param baseYm 기준년월
+     * @param feeCd 수수료코드
+     * @param dtaCrtFeeCd 데이터생성수수료코드
+     * @param perfAgrgCrtDvCd 실적집계생성구분코드
+     * @param apyStrtYm 적용시작년월
+     * @param apyEndYm 적용종료년월
+     * @param perfAtcCd 실적항목코드
+     * @param indvPerfYn 개인실적여부
+     * @param calcExpr 계산식
+     * @return 처리건수
      */
-    Integer insertFxamRedfPartnerData(String baseYm, String feeCd, String dtaCrtFeeCd, String perfAgrgCrtDvCd, String apyStrtYm, String apyEndYm, String perfAtcCd, String indvPerfYn);
+    Integer insertFxamRedfPartnerData(String baseYm, String feeCd, String dtaCrtFeeCd, String perfAgrgCrtDvCd, String apyStrtYm, String apyEndYm, String perfAtcCd, String indvPerfYn, String calcExpr);
 }
