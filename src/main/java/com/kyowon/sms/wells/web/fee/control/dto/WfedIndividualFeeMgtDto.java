@@ -34,9 +34,9 @@ public class WfedIndividualFeeMgtDto {
     @ApiModel(value = "WfedIndividualFeeMgtDto-SearchMngerReq")
     public record SearchMngerReq(
         @NotBlank
-        String perfYm,
+        String perfYm, /* 실적년월 */
         @NotBlank
-        String no
+        String prtnrNo /* 파트너번호 */
     ) {}
 
     // *********************************************************
@@ -157,84 +157,77 @@ public class WfedIndividualFeeMgtDto {
         String ctrr
     ) {}
 
-    @ApiModel(value = "WfedIndividualFeeMgtDto-FindMngerEntrpRes")
-    public record FindMngerEntrpRes(
-        String emplNm,
-        String mngDpt,
-        String rgnlGrp,
-        String branch,
-        String rsb,
-        String rgsBaseMm,
-        String prfmtMon,
-        String bizCltnMon,
-        String qlf,
-        String opngMm,
-        String opngNmm,
-        String mngCltnMm,
-        String mgtCnt,
-        String vstCnt,
-        String procsRt,
-        String intbsSum,
-        String ddtnSum,
-        String aclDsbAmt
-
+    @ApiModel(value = "WfedIndividualFeeMgtDto-FindMngerBasicRes")
+    public record FindMngerBasicRes(
+        String perfYm, /* 실적년월 */
+        String ogCd, /* 조직코드 */
+        String dgr1LevlOgNm, /* 1차레벨조직명 */
+        String dgr2LevlOgNm, /* 2차레벨조직명 */
+        String dgr3LevlOgNm, /* 3차레벨조직명 */
+        String dgr4LevlOgNm, /* 4차레벨조직명 */
+        String dgr5LevlOgNm, /* 5차레벨조직명 */
+        String prtnrNo, /* 파트너번호 */
+        String prtnrKnm, /* 파트너명 */
+        String rsbDvCd, /* 직책구분코드 */
+        String qlfDvCd, /* 자격구분코드 */
+        String cntrDt, /* 계약일자 */
+        String prfmtDt, /* 승진일자 */
+        String cltnDt, /* 해약일자 */
+        String intbsAmt, /* 소득과표금액 */
+        String ddctam, /* 공제금액 */
+        String dsbOjAmt, /* 지급대상금액 */
+        String mngtCt, /* 관리건수 */
+        String vstCt, /* 방문건수 */
+        String procsRt, /* 처리율 */
+        String mngerOpngMm, /* 매니저개시-개시월 */
+        String mngerBizCltnMm, /* 매니저개시-업무해약월 */
+        String mngerBltnNmn /* 매니저 게시차월 */
     ) {}
 
-    @ApiModel(value = "WfedIndividualFeeMgtDto-SearchMngerBaseInfoRes")
-    public record SearchMngerBaseInfoRes(
-        String item1,
-        String fval1,
-        String item2,
-        String fval2,
-        String item3,
-        String fval3,
-        String item4,
-        String fval4
+    @ApiModel(value = "WfedIndividualFeeMgtDto-SearchMngerSellEtcsRes")
+    public record SearchMngerSellEtcsRes(
+        String perfItem1, /* 실적항목1 */
+        String perfItem2, /* 실적항목2 */
+        String perfItem3, /* 실적항목3 */
+        String perfItem4, /* 실적항목4 */
+        String perfVal1, /* 개인실적 */
+        String perfVal2, /* 조직실적 */
+        String perfVal3, /* BS실적 */
+        String perfVal4 /* 기타 */
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-SearchMngerBeforeServiceRes")
     public record SearchMngerBeforeServiceRes(
-        String cdNm,
-        String cnt1,
-        String cnt2,
-        String amt1,
-        String cnt3,
-        String cnt4,
-        String amt2,
-        String sumAmt
+        String cdNm, /* 상품명 */
+        String geMngtCt, /* 일반-관리건수 */
+        String geVstCt, /* 일반-방문건수 */
+        String geAmt, /* 일반-금액 */
+        String fxamMngtCt, /* 정액-관리건수 */
+        String fxamVstCt, /* 정액-방문건수 */
+        String fxamAmt, /* 정액-금액 */
+        String sumAmt /* 합계 */
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-SearchMngerFeeRes")
     public record SearchMngerFeeRes(
-        String item1,
-        String fval1,
-        String item2,
-        String fval2,
-        String item3,
-        String fval3,
-        String item4,
-        String fval4
+        String srnMarkFeeNm, /* 화면표시수수료명 */
+        String feeAtcVal /* 수수료항목값 */
     ) {}
 
-    @ApiModel(value = "WfedIndividualFeeMgtDto-FindMngerDeductionRes")
-    public record FindMngerDeductionRes(
-        String rds,
-        String erntx,
-        String rsdntx,
-        String hirInsr,
-        String buDdtn,
-        String pnpyam,
-        String inddInsr
+    @ApiModel(value = "WfedIndividualFeeMgtDto-SearchMngerDeductionRes")
+    public record SearchMngerDeductionRes(
+        String feeAtcItem, /* 공제코드명 */
+        String feeAtcVal /* 수수료항목값 */
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-SearchMngerControlRes")
     public record SearchMngerControlRes(
-        String div,
-        String item,
-        String ctrBf,
-        String ctrAf,
-        String rsn,
-        String ctrDtm,
-        String ctrr
+        String div, /* 구분 */
+        String item, /* 항목명 */
+        String ctrBf, /* 조정 전 */
+        String ctrAf, /* 조정 후 */
+        String rsn, /* 사유 */
+        String ctrDtm, /* 조정일시 */
+        String ctrr /* 조정자 */
     ) {}
 }
