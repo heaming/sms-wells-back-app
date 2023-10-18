@@ -43,8 +43,8 @@ public class WsnaMdProductOutOfStorageSaveService {
 
             // 1.배정테이블 업데이트
             // TODO 해당 소스 프로세스 정의필요
-            // 임의로 판매유형코드: 정기배송인경우에만 BS배정 OR 설치배정 (작업진행상태 :작업완료업데이트)
-            if ("6".equals(dvo.getSellTpCd())) {
+            // EX) 서비스대분류코드 : BS 인경우에만 BS배정  그외에는 AS 설치배정
+            if ("2".equals(dvo.getSvBizHclsfCd())) {
                 mapper.updateSvpdCstSvBfsvcAsnIz(dvo); // 고객서비스BS배정내역
             } else {
                 mapper.updateSvpdCstSvasIstAsnIz(dvo); // 고객서비스설치배정내역
