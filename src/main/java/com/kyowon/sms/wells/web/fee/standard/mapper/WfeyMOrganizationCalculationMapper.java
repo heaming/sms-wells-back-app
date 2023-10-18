@@ -191,4 +191,18 @@ public interface WfeyMOrganizationCalculationMapper {
     Integer updateOverPerf120RegionLevelFeeForBrmgr(String baseYm, String feeCd, String feeTcntDvCd, String ogTpCd);
 
 
+    /**
+     * M조직 특화 정액되물림 계산
+     *
+     * 계약단위로 생성하여 파트너단위로 SUM하는 되물림 금액 계산
+     *
+     * @param baseYm
+     * @param feeCd
+     * @param perfAgrgCrtDvCd
+     * @param apyStrtYm
+     * @param apyEndYm
+     * @param perfVarbColVal
+     * @return
+     */
+    Integer insertFxamRedfPartnerData(String baseYm, String feeCd, String perfAgrgCrtDvCd, String apyStrtYm, String apyEndYm, String perfVarbColVal, String indvPerfYn);
 }
