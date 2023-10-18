@@ -204,5 +204,5 @@ public interface WfeyMOrganizationCalculationMapper {
      * @param perfVarbColVal
      * @return
      */
-    Integer insertFxamRedfPartnerData(String baseYm, String feeCd, String perfAgrgCrtDvCd, String apyStrtYm, String apyEndYm, String perfVarbColVal, String indvPerfYn);
+    Integer insertFxamRedfPartnerData(String baseYm, String feeCd, String dtaCrtFeeCd, String perfAgrgCrtDvCd, String apyStrtYm, String apyEndYm, String perfAtcCd, String indvPerfYn);
 }

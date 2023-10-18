@@ -132,14 +132,20 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
         /* 되물림 실적변수가 1개가 아니면 오류 */
         BizAssert.isTrue(feeStandard.redfPerformVarbs().size() == 1, "MSG_ALT_WRONG_PERF_VARB_CNT"); /* 실적변수 개수가 맞지 않습니다. */
         /* 실적변수는 테이블은 TB_FEAM_NTORP_PERF_MM_CL, TB_FEAM_NTORP_CNTR_MM_CL 이어야 함 */
-        BizAssert.isTrue(Arrays.asList("TB_FEAM_NTORP_PERF_MM_CL", "TB_FEAM_NTORP_CNTR_MM_CL").contains(feeStandard.redfPerformVarbs().get(0).perfVarbTblCd()), "");
+        BizAssert.isTrue(Arrays.asList("TB_FEAM_NTORP_PERF_MM_CL", "TB_FEAM_NTORP_CNTR_MM_CL").contains(feeStandard.redfPerformVarbs().get(0).perfVarbTblCd()), "MSG_ALT_WORNG_PERF_VARB_TBL"); /* 실적변수 테이블명이 맞지 않습니다. */
+
+        runDeletionRedfData();
+
+        int insertCount = 0;
 
         if(PARTNER_UNIT.getCode().equals(basic.feeCalcUnitCd())) {
-            mOrganizationCalculationMapper.insertFxamRedfPartnerData(baseYm, feeCd, perfAgrgCrtDvCd, basic.apyStrtYm(), basic.apyEndYm(), feeStandard.redfPerformVarbs().get(0).perfVarbColVal(), feeStandard.redfPerformVarbs().get(0).indvPerfYn());
+            insertCount = mOrganizationCalculationMapper.insertFxamRedfPartnerData(baseYm, feeCd, basic.dtaCrtFeeCd(), perfAgrgCrtDvCd, basic.apyStrtYm(), basic.apyEndYm(), feeStandard.redfPerformVarbs().get(0).perfVarbColVal(), feeStandard.redfPerformVarbs().get(0).indvPerfYn());
         }
 
-        /* 되물림 이력 생성 */
-        runInsertionRedfDataHistoriesStep();
+        if(insertCount > 0) {
+            /* 되물림 이력 생성 */
+            runInsertionRedfDataHistoriesStep();
+        }
     }
 
 }
