@@ -88,8 +88,6 @@ public class WpsdExcellentDivisionBaseMgtDto {
         String ctstGrpUseYn,
         String evlAtcCn,
         String dtaDlYn,
-        String calfCn,
-        String cexpCn,
         String rsbDvCds,
         String rsbDvNms,
         String qlfDvNm,
