@@ -13,6 +13,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * <pre>
+ * 매출채권/선수금 현황 - 연체가산금 서비스
+ * </pre>
+ *
+ * @author gugyeongu
+ * @since 2023-08-24
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -20,6 +28,11 @@ public class WdccDelinquentAdditionalChargesService {
     private final WdccDelinquentAdditionalChargesConverter converter;
     private final WdccDelinquentAdditionalChargesMapper mapper;
 
+    /**
+     * 매출채권/선수금 현황 - 연체가산금 조회
+     * @param req 검색조건
+     * @return 검색목록
+     */
     public List<SearchRes> getDelinquentAdditionalCharges(
         SearchReq req
     ) {
