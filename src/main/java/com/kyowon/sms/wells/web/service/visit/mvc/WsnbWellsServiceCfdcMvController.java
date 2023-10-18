@@ -6,7 +6,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -34,7 +33,7 @@ public class WsnbWellsServiceCfdcMvController {
         return service.openReportAuthEntry(cstSvAsnNo);
     }
 
-    @PostMapping("/report/{cstSvAsnNo}")
+    @GetMapping("/report/{cstSvAsnNo}")
     public ModelAndView openReport(
         @PathVariable
         String cstSvAsnNo,
