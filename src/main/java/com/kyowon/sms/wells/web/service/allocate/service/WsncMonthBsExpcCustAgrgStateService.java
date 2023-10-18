@@ -18,6 +18,7 @@ public class WsncMonthBsExpcCustAgrgStateService {
     private final WsncMonthBsExpcCustAgrgStateMapper mapper;
 
     public List<SearchRes> getMonthBsExpcCustAgrgState(SearchReq req) {
+
         return mapper.selectMonthBsExpcCustAgrgState(req);
     }
 }
