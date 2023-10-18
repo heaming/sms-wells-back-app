@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.fee.control.dto.WfedIndividualFeeHomeMasterMgtDto;
 import com.kyowon.sms.wells.web.fee.control.dto.WfedIndividualFeeMgtDto.*;
+import com.kyowon.sms.wells.web.fee.control.service.WfedIndividualFeeHomeMasterMgtService;
 import com.kyowon.sms.wells.web.fee.control.service.WfedIndividualFeeMgtService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
 
@@ -30,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WfedIndividualFeeMgtController {
     private final WfedIndividualFeeMgtService service;
+    private final WfedIndividualFeeHomeMasterMgtService hmstService;
 
     @ApiOperation(value = "개인별 수수료 관리 사업자정보 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 수수료 관리 사업자정보를 조회한다.")
     @ApiImplicitParams(value = {
@@ -37,11 +40,11 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/home-master/entrepreneurs")
-    public FindHmstEntrpRes getHmstEntrp(
+    public WfedIndividualFeeHomeMasterMgtDto.FindHmstEntrpRes getHmstEntrp(
         @Valid
-        SearchHmstReq dto
+        WfedIndividualFeeHomeMasterMgtDto.SearchHmstReq dto
     ) {
-        return service.getHmstEntrp(dto);
+        return hmstService.getHmstEntrp(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 수수료 내역 정보 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 수수료 관리 수수료 내역 정보를 조회한다.")
@@ -49,12 +52,12 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/home-master/fee")
-    public List<SearchHmstFeeRes> getHmstFee(
+    @GetMapping("/home-master/fees")
+    public List<WfedIndividualFeeHomeMasterMgtDto.SearchHmstFeeRes> getHmstFees(
         @Valid
-        SearchHmstReq dto
+        WfedIndividualFeeHomeMasterMgtDto.SearchHmstReq dto
     ) {
-        return service.getHmstFee(dto);
+        return hmstService.getHmstFees(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 공제내역 정보 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 수수료 관리 공제내역 정보를 조회한다.")
@@ -63,11 +66,11 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/home-master/deduction")
-    public FindHmstDeductionRes getHmstDeduction(
+    public WfedIndividualFeeHomeMasterMgtDto.FindHmstDeductionRes getHmstDeduction(
         @Valid
-        SearchHmstReq dto
+        WfedIndividualFeeHomeMasterMgtDto.SearchHmstReq dto
     ) {
-        return service.getHmstDeduction(dto);
+        return hmstService.getHmstDeduction(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 조정내역 목록 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 수수료 관리 조정내역 목록을 조회한다.")
@@ -76,10 +79,10 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/home-master/control")
-    public List<SearchHmstControlRes> getHmstControls(
-        SearchHmstReq dto
+    public List<WfedIndividualFeeHomeMasterMgtDto.SearchHmstControlRes> getHmstControls(
+        WfedIndividualFeeHomeMasterMgtDto.SearchHmstReq dto
     ) {
-        return this.service.getHmstControls(dto);
+        return hmstService.getHmstControls(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 사업자정보 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 수수료 관리 사업자정보를 조회한다.")
