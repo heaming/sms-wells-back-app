@@ -1,0 +1,348 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.control.mapper.WfedIndividualFeePlannerMgtMapper">
+    <select id='selectPlarEntrp'
+            resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedIndividualFeePlannerMgtDto$FindPlarEntrpRes">
+        SELECT T1.PRTNR_KNM || '(' || T1.PRTNR_NO || ')'  AS EMPL_NM
+             , T1.OG_NM AS BLG
+             , T1.PRTNR_NO
+             , CD.CD_CNTN AS RSB
+            , NVL(
+                   ( SELECT DISTINCT PM.PERF_VAL
+                       FROM TB_FEAM_PRTNR_PERF_MM_CL PM     /*순주문집계 확정 테이블*/
+                      WHERE PM.PRTNR_NO = T1.PRTNR_NO
+                        AND PM.OG_TP_CD = T1.OG_TP_CD
+                        AND PM.BASE_YM = T1.BASE_YM
+                        AND PM.PERF_ATC_CD = 'W01P00012'    /*미팅참석일수*/
+                        AND PM.PERF_AGRG_CRT_DV_CD = '101'  /*P추진단순주문실적생성*/
+                   )
+                  ,0 ) AS METG     /*출석일수*/
+            , CD2.CD_CNTN AS QLF
+            , NVL(T2.INTBS_SUM,0) AS INTBS_SUM
+            , NVL(T2.DDTN_SUM,0) AS DDTN_SUM
+            , NVL(T2.ACL_DSB_AMT,0) AS ACL_DSB_AMT
+         FROM TB_OGBS_MM_PRTNR_IZ T1
+         LEFT OUTER JOIN ( SELECT E.PRTNR_NO
+                                , E.OG_TP_CD
+                                , SUM(E.INTBS_AMT) AS INTBS_SUM
+                                , SUM(E.DDCTAM) AS DDTN_SUM
+                                , SUM(E.DSB_OJ_AMT) AS ACL_DSB_AMT
+                             FROM TB_FEAM_FEE_DSB_IZ E
+                            WHERE E.DSB_YM = #{perfYm}
+                              AND ( E.INTBS_AMT &gt; 0 OR E.DDCTAM &gt; 0  OR E.DSB_OJ_AMT&gt; 0 )
+                              AND E.PRTNR_NO = #{no}
+                              AND E.FEE_TCNT_DV_CD = '02'
+                            GROUP BY E.PRTNR_NO, E.OG_TP_CD
+                          )T2
+           ON T1.PRTNR_NO = T2.PRTNR_NO
+          AND T1.OG_TP_CD = T2.OG_TP_CD
+         LEFT OUTER JOIN T_CMZ_CD_D CD
+           ON T1.RSB_DV_CD = CD.CD_VLD_VAL
+          AND CD.CD_ID = 'RSB_DV_CD'
+          AND CD.TENANT_ID = #{session.tenantId}
+         LEFT OUTER JOIN T_CMZ_CD_D CD2
+           ON T1.QLF_DV_CD = CD2.CD_ID
+          AND CD2.CD_ID = 'QLF_DV_CD'
+          AND CD2.TENANT_ID = #{session.tenantId}
+        WHERE T1.BASE_YM = #{perfYm}
+          AND T1.OG_TP_CD = 'W01' /*W01~03 P,M,홈마스터*/
+          AND T1.PRTNR_NO = #{no}
+    </select>
+
+    <select id='selectPlarEtcs'
+            resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedIndividualFeePlannerMgtDto$SearchPlarEtcRes">
+        SELECT P1.INDV_ELHM
+             , P1.INDV_ELHM_EXCP
+             , P1.INDV_ADP
+             , P1.INDV_ELHM_CHDVC
+             , P1.INDV_MUTU
+             , P2.OG_ELHM
+             , P2.OG_ELHM_EXCP
+             , P2.OG_ADP
+             , P2.OG_MUTU
+          FROM (
+                 SELECT #{no} AS PRTNR_NO
+                      , NVL(ELHM, 0)                                  AS INDV_ELHM /* 개인가전 : W01P00001 */
+                      , NVL(ELHM_EXCP, 0)                             AS INDV_ELHM_EXCP /* 개인가전외 : W01P00004 */
+                      , ELHM + ELHM_EXCP                              AS INDV_ADP /* 개인합산 */
+                      , NVL(ELHM_CHDVC, 0)                            AS INDV_ELHM_CHDVC /* 가전기변 : W00P00028 */
+                      , (SELECT NVL(SUM(FEE_ATC_VAL), 0)
+                           FROM TB_FEAM_FEE_DSB_DTL_IZ F1
+                          WHERE F1.FEE_CD = 'W010021'
+                            AND F1.DSB_YM = T1.BASE_YM
+                            AND F1.CO_CD = T1.CO_CD
+                            AND F1.PRTNR_NO = T1.PRTNR_NO
+                            AND F1.FEE_TCNT_DV_CD = T1.FEE_TCNT_DV_CD) AS INDV_MUTU /* 개인상조 */
+                  FROM ((SELECT PERF_ATC_CD
+                              , PERF_VAL
+                              , BASE_YM
+                              , CO_CD
+                              , OG_TP_CD
+                              , PRTNR_NO
+                              , FEE_TCNT_DV_CD
+                           FROM TB_FEAM_NTORP_PERF_MM_CL S1 /*순주문 파트너 실적 월마감*/
+                          WHERE 1 = 1
+                            AND S1.BASE_YM = #{perfYm}
+                            AND S1.FEE_TCNT_DV_CD = '02'
+                            AND S1.PERF_AGRG_CRT_DV_CD = '101'
+                            AND S1.OG_TP_CD = 'W01' /*웰스 P조직*/
+                            AND S1.PRTNR_NO = #{no}
+                            AND S1.PERF_DV_CD = 0
+                            AND S1.PERF_ATC_CD IN ('W01P00001', 'W01P00004', 'W00P00028')
+                            AND S1.DTA_DL_YN = 'N') PIVOT (
+                                                           SUM(PERF_VAL) FOR PERF_ATC_CD IN('W01P00001' AS ELHM, 'W01P00004' AS ELHM_EXCP, 'W00P00028' AS ELHM_CHDVC)
+                      )) T1
+               ) P1
+          JOIN (
+                 SELECT #{no} AS PRTNR_NO
+                      , NVL(ELHM, 0)                                  AS OG_ELHM /* 조직가전 : W01P00001 */
+                      , NVL(ELHM_EXCP, 0)                             AS OG_ELHM_EXCP /* 조직가전외 : W01P00004 */
+                      , ELHM + ELHM_EXCP                              AS OG_ADP /* 조직합산 */
+                      , (SELECT NVL(SUM(FEE_ATC_VAL), 0)
+                           FROM TB_FEAM_FEE_DSB_DTL_IZ F2
+                          WHERE F2.FEE_CD = 'W010022'
+                            AND F2.DSB_YM = T2.BASE_YM
+                            AND F2.CO_CD = T2.CO_CD
+                            AND F2.PRTNR_NO = T2.PRTNR_NO
+                            AND F2.FEE_TCNT_DV_CD = T2.FEE_TCNT_DV_CD) AS OG_MUTU /* 조직상조 */
+                  FROM ((SELECT PERF_ATC_CD
+                              , PERF_VAL
+                              , BASE_YM
+                              , CO_CD
+                              , OG_TP_CD
+                              , PRTNR_NO
+                              , FEE_TCNT_DV_CD
+                           FROM TB_FEAM_NTORP_PERF_MM_CL S1 /*순주문 파트너 실적 월마감*/
+                          WHERE 1 = 1
+                            AND S1.BASE_YM = #{perfYm}
+                            AND S1.FEE_TCNT_DV_CD = '02'
+                            AND S1.PERF_AGRG_CRT_DV_CD = '101'
+                            AND S1.OG_TP_CD = 'W01' /*웰스 P조직*/
+                            AND S1.PRTNR_NO = #{no}
+                            AND S1.PERF_DV_CD = 2
+                            AND S1.PERF_ATC_CD IN ('W01P00001', 'W01P00004', 'W00P00028')
+                            AND S1.DTA_DL_YN = 'N') PIVOT (
+                                                         SUM(PERF_VAL) FOR PERF_ATC_CD IN('W01P00001' AS ELHM, 'W01P00004' AS ELHM_EXCP, 'W00P00028' AS ELHM_CHDVC)
+                     )) T2
+               ) P2 ON P1.PRTNR_NO = P2.PRTNR_NO
+    </select>
+
+    <select id='selectPlarFee'
+            resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedIndividualFeePlannerMgtDto$SearchPlarFeeRes">
+        SELECT ITEM1, FVAL1, ITEM2,FVAL2, ITEM3, FVAL3
+          FROM ( /* 기타 수수료 */
+                 SELECT T3.SRN_MARK_FEE_NM                              AS ITEM3
+                      , T2.FEE_ATC_VAL                                  AS FVAL3
+                      , ROW_NUMBER() over (ORDER BY T3.SRN_MARK_FEE_NM) AS SN
+                   FROM TB_FEAM_FEE_DSB_IZ T1                  /* 수수료지급내역 */
+                  INNER JOIN TB_FEAM_FEE_DSB_DTL_IZ T2         /* 수수료지급상세내역 */
+                     ON T1.DSB_YM = T2.DSB_YM                  /* 지급년월 */
+                    AND T1.CO_CD = T2.CO_CD                    /* 회사코드 */
+                    AND T1.OG_TP_CD = T2.OG_TP_CD              /* 조직유형코드 */
+                    AND T1.PRTNR_NO = T2.PRTNR_NO              /* 파트너번호 */
+                    AND T1.FEE_TCNT_DV_CD = T2.FEE_TCNT_DV_CD  /* 수수료차수구분코드 */
+                    AND T1.SPMT_DSB_DV_CD = T2.SPMT_DSB_DV_CD  /* 추가지급구분코드 */
+                    AND T2.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN (
+                          SELECT S1.FEE_CD
+                               , NVL(S2.SRN_MARK_FEE_NM, S1.BAS_SRN_MARK_FEE_NM) AS SRN_MARK_FEE_NM
+                               , S1.SRN_MARK_ODR_SN
+                            FROM TB_FEAM_FEE_CD S1
+                           INNER JOIN TB_FEAM_FEE_BASE_DTL S2
+                              ON S1.FEE_CD = S2.FEE_CD
+                             AND #{perfYm} BETWEEN S2.APY_STRT_YM AND S2.APY_END_YM
+                             AND S2.FEE_BASE_STAT_CD = '02'
+                             AND S2.DTA_DL_YN = 'N'
+                           WHERE 1=1
+                             AND S1.OG_TP_CD = 'W01'
+                             AND #{perfYm} BETWEEN S1.APY_STRT_YM AND S1.APY_END_YM
+                             AND S1.DTA_DL_YN = 'N'
+                        ) T3
+                     ON T2.FEE_CD = T3.FEE_CD
+                   LEFT OUTER JOIN TB_FEAM_FEE_CD_DTL T4
+                     ON T2.FEE_CD = T4.FEE_CD
+                    AND T4.DTA_DL_YN = 'N'
+                  WHERE 1=1
+                    AND T1.DTA_DL_YN       = 'N'
+                    AND T1.DSB_YM          = #{perfYm}      /* 지급년월 */ /* @OZParam.AKSDYM@ */
+                    AND T1.FEE_TCNT_DV_CD  = '02'           /* 수수료차수구분코드 */
+                    AND T1.OG_TP_CD        = 'W01'          /* 조직유형코드 */
+                    AND T1.CO_CD           = '2000'         /* 회사코드 */
+                    AND T1.PRTNR_NO        = #{no}          /* 파트너번호 */ /* @OZParam.AKDCDE@ */
+                    AND T2.FEE_ATC_DV_CD   = '01'           /* 수수료항목구분코드 = 01 : 수수료 */
+                    AND T2.FEE_ATC_VAL      > 0             /* 수수료항목값 */
+                    AND T4.FEE_ATC_TP_CD = '07'             /* 수수료항목유형코드 = 07 : 기타수수료 */
+               ) A1
+          FULL OUTER JOIN ( /* 개인 수수료 */
+                 SELECT T3.SRN_MARK_FEE_NM                              AS ITEM1
+                      , T2.FEE_ATC_VAL                                  AS FVAL1
+                      , ROW_NUMBER() over (ORDER BY T3.SRN_MARK_FEE_NM) AS SN
+                   FROM TB_FEAM_FEE_DSB_IZ T1                  /* 수수료지급내역 */
+                  INNER JOIN TB_FEAM_FEE_DSB_DTL_IZ T2         /* 수수료지급상세내역 */
+                     ON T1.DSB_YM = T2.DSB_YM                  /* 지급년월 */
+                    AND T1.CO_CD = T2.CO_CD                    /* 회사코드 */
+                    AND T1.OG_TP_CD = T2.OG_TP_CD              /* 조직유형코드 */
+                    AND T1.PRTNR_NO = T2.PRTNR_NO              /* 파트너번호 */
+                    AND T1.FEE_TCNT_DV_CD = T2.FEE_TCNT_DV_CD  /* 수수료차수구분코드 */
+                    AND T1.SPMT_DSB_DV_CD = T2.SPMT_DSB_DV_CD  /* 추가지급구분코드 */
+                    AND T2.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN (
+                          SELECT S1.FEE_CD
+                               , NVL(S2.SRN_MARK_FEE_NM, S1.BAS_SRN_MARK_FEE_NM) AS SRN_MARK_FEE_NM
+                               , S1.SRN_MARK_ODR_SN
+                            FROM TB_FEAM_FEE_CD S1
+                           INNER JOIN TB_FEAM_FEE_BASE_DTL S2
+                              ON S1.FEE_CD = S2.FEE_CD
+                             AND #{perfYm} BETWEEN S2.APY_STRT_YM AND S2.APY_END_YM
+                             AND S2.FEE_BASE_STAT_CD = '02'
+                             AND S2.DTA_DL_YN = 'N'
+                           WHERE 1=1
+                             AND S1.OG_TP_CD = 'W01'
+                             AND #{perfYm} BETWEEN S1.APY_STRT_YM AND S1.APY_END_YM
+                             AND S1.DTA_DL_YN = 'N'
+                        ) T3
+                     ON T2.FEE_CD = T3.FEE_CD
+                   LEFT OUTER JOIN TB_FEAM_FEE_CD_DTL T4
+                     ON T2.FEE_CD = T4.FEE_CD
+                    AND T4.DTA_DL_YN = 'N'
+                  WHERE 1=1
+                    AND T1.DTA_DL_YN       = 'N'
+                    AND T1.DSB_YM          = #{perfYm}      /* 지급년월 */ /* @OZParam.AKSDYM@ */
+                    AND T1.FEE_TCNT_DV_CD  = '02'           /* 수수료차수구분코드 */
+                    AND T1.OG_TP_CD        = 'W01'          /* 조직유형코드 */
+                    AND T1.CO_CD           = '2000'         /* 회사코드 */
+                    AND T1.PRTNR_NO        = #{no}          /* 파트너번호 */ /* @OZParam.AKDCDE@ */
+                    AND T2.FEE_ATC_DV_CD   = '01'           /* 수수료항목구분코드 = 01 : 수수료 */
+                    AND T2.FEE_ATC_VAL      > 0             /* 수수료항목값 */
+                    AND T4.FEE_ATC_TP_CD = '02'             /* 수수료항목유형코드 = 02 : 개인수수료 */
+               ) A2 ON A2.SN = A1.SN
+          FULL OUTER JOIN ( /* 조직 수수료 */
+                 SELECT T3.SRN_MARK_FEE_NM                              AS ITEM2
+                      , T2.FEE_ATC_VAL                                  AS FVAL2
+                      , ROW_NUMBER() over (ORDER BY T3.SRN_MARK_FEE_NM) AS SN
+                   FROM TB_FEAM_FEE_DSB_IZ T1                  /* 수수료지급내역 */
+                  INNER JOIN TB_FEAM_FEE_DSB_DTL_IZ T2         /* 수수료지급상세내역 */
+                     ON T1.DSB_YM = T2.DSB_YM                  /* 지급년월 */
+                    AND T1.CO_CD = T2.CO_CD                    /* 회사코드 */
+                    AND T1.OG_TP_CD = T2.OG_TP_CD              /* 조직유형코드 */
+                    AND T1.PRTNR_NO = T2.PRTNR_NO              /* 파트너번호 */
+                    AND T1.FEE_TCNT_DV_CD = T2.FEE_TCNT_DV_CD  /* 수수료차수구분코드 */
+                    AND T1.SPMT_DSB_DV_CD = T2.SPMT_DSB_DV_CD  /* 추가지급구분코드 */
+                    AND T2.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN (
+                          SELECT S1.FEE_CD
+                               , NVL(S2.SRN_MARK_FEE_NM, S1.BAS_SRN_MARK_FEE_NM) AS SRN_MARK_FEE_NM
+                               , S1.SRN_MARK_ODR_SN
+                            FROM TB_FEAM_FEE_CD S1
+                           INNER JOIN TB_FEAM_FEE_BASE_DTL S2
+                              ON S1.FEE_CD = S2.FEE_CD
+                             AND #{perfYm} BETWEEN S2.APY_STRT_YM AND S2.APY_END_YM
+                             AND S2.FEE_BASE_STAT_CD = '02'
+                             AND S2.DTA_DL_YN = 'N'
+                           WHERE 1=1
+                             AND S1.OG_TP_CD = 'W01'
+                             AND #{perfYm} BETWEEN S1.APY_STRT_YM AND S1.APY_END_YM
+                             AND S1.DTA_DL_YN = 'N'
+                        ) T3
+                     ON T2.FEE_CD = T3.FEE_CD
+                   LEFT OUTER JOIN TB_FEAM_FEE_CD_DTL T4
+                     ON T2.FEE_CD = T4.FEE_CD
+                    AND T4.DTA_DL_YN = 'N'
+                  WHERE 1=1
+                    AND T1.DTA_DL_YN       = 'N'
+                    AND T1.DSB_YM          = #{perfYm}      /* 지급년월 */ /* @OZParam.AKSDYM@ */
+                    AND T1.FEE_TCNT_DV_CD  = '02'           /* 수수료차수구분코드 */
+                    AND T1.OG_TP_CD        = 'W01'          /* 조직유형코드 */
+                    AND T1.CO_CD           = '2000'         /* 회사코드 */
+                    AND T1.PRTNR_NO        = #{no}          /* 파트너번호 */ /* @OZParam.AKDCDE@ */
+                    AND T2.FEE_ATC_DV_CD   = '01'           /* 수수료항목구분코드 = 01 : 수수료 */
+                    AND T2.FEE_ATC_VAL      > 0             /* 수수료항목값 */
+                    AND T4.FEE_ATC_TP_CD = '03'             /* 수수료항목유형코드 = 03 : 조직수수료 */
+               ) A3 ON A3.SN = NVL(A1.SN, A2.SN)
+    </select>
+
+    <select id='selectPlarDeduction'
+            resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedIndividualFeePlannerMgtDto$FindPlarDeductionRes">
+        SELECT NVL(RDS, 0) AS RDS
+             , NVL(ERNTX, 0) AS ERNTX
+             , NVL(RSDNTX, 0) AS RSDNTX
+             , NVL(HIR_INSR, 0) AS HIR_INSR
+             , NVL(BU_DDTN, 0) AS BU_DDTN
+             , NVL(PNPYAM, 0) AS PNPYAM
+             , NVL(INDD_INSR, 0) AS INDD_INSR
+        FROM (
+                SELECT T2.FEE_DDTN_TP_CD
+                     , T2.FEE_ATC_VAL
+                  FROM TB_FEAM_FEE_DSB_IZ T1                 /* 수수료지급내역 */
+                 INNER JOIN TB_FEAM_FEE_DSB_DTL_IZ T2        /* 수수료지급상세내역 */
+                    ON T1.DSB_YM = T2.DSB_YM                 /* 지급년월 */
+                   AND T1.CO_CD = T2.CO_CD                   /* 회사코드 */
+                   AND T1.OG_TP_CD = T2.OG_TP_CD             /* 조직유형코드 */
+                   AND T1.PRTNR_NO = T2.PRTNR_NO             /* 파트너번호 */
+                   AND T1.FEE_TCNT_DV_CD = T2.FEE_TCNT_DV_CD /* 수수료차수구분코드 */
+                   AND T1.SPMT_DSB_DV_CD = T2.SPMT_DSB_DV_CD /* 추가지급구분코드 */
+                   AND T2.DTA_DL_YN = 'N'
+                 WHERE 1=1
+                   AND T1.DTA_DL_YN       = 'N'
+                   AND T1.DSB_YM          = #{perfYm}         /* 지급년월 */
+                   AND T1.FEE_TCNT_DV_CD  = '02'              /* 수수료차수구분코드 */
+                   AND T1.OG_TP_CD        = 'W01'             /* 조직유형코드 */
+                   AND T1.CO_CD           = '2000'            /* 회사코드 */
+                   AND T1.PRTNR_NO        = #{no}             /* 파트너번호 */
+                   AND T2.FEE_ATC_DV_CD   = '02'              /* 수수료항목구분코드 = 02 : 공제 */
+             ) PIVOT (
+                SUM(FEE_ATC_VAL) FOR FEE_DDTN_TP_CD IN ('01' AS RDS, '02' AS ERNTX, '03' AS RSDNTX, '04' AS HIR_INSR, '05' AS BU_DDTN, '06' AS PNPYAM, '07' AS INDD_INSR)
+             )
+    </select>
+
+    <select id='selectPlarControls'
+            resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedIndividualFeePlannerMgtDto$SearchPlarControlRes">
+        SELECT M.DIV
+             , M.ITEM
+             , M.CTR_BF
+             , M.CTR_AF
+             , M.RSN
+             , M.CTR_DTM
+             , A.PRTNR_KNM AS CTRR
+          FROM TB_OGBS_MM_PRTNR_IZ A
+        INNER JOIN ( SELECT '공제' AS DIV
+                          , B.FEE_DDTN_TP_NM AS ITEM
+                          , A.FEE_DDCTAM AS CTR_BF
+                          , A.FEE_DDTN_CNFM_AMT AS CTR_AF
+                          , A.FEE_CTR_RSON_CN AS RSN
+                          , A.FNL_MDFC_DTM AS CTR_DTM
+                          , A.FEE_CTR_OG_TP_CD AS FEE_CTR_OG_TP_CD
+                          , A.FEE_CTR_PRTNR_NO AS FEE_CTR_PRTNR_NO
+                       FROM TB_FEAM_FEE_DDTN_IZ A
+                      INNER JOIN TB_FEAM_FEE_DDTN_TP_CD B
+                          ON A.FEE_DDTN_TP_CD = B.FEE_DDTN_TP_CD
+                          AND B.APY_STRT_YM &lt;= #{perfYm}
+                          WHERE A.DDTN_YM = #{perfYm}
+                          AND A.OG_TP_CD = 'W01' /*P조직*/
+                          AND A.PRTNR_NO = #{no}
+                         AND A.FEE_TCNT_DV_CD = '02'
+                          AND A.SPMT_DSB_DV_CD = '01'
+                     UNION ALL
+                     SELECT '수수료' AS DIV
+                          , B.FEE_NM AS ITEM
+                          , A.FEE_CALC_AMT AS CTR_BF
+                          , A.FEE_CTR_CNFM_AMT AS CTR_AF
+                          , A.FEE_CTR_RSON_CN AS RSN
+                          , A.FNL_MDFC_DTM AS CTR_DTM
+                          , A.FEE_CTR_OG_TP_CD AS FEE_CTR_OG_TP_CD
+                          , A.FEE_CTR_PRTNR_NO AS FEE_CTR_PRTNR_NO
+                       FROM TB_FEAM_FEE_CALC_BAS A
+                      INNER JOIN TB_FEAM_FEE_CD B
+                         ON A.FEE_CD = B.FEE_CD
+                      WHERE A.BASE_YM = #{perfYm}
+                        AND A.OG_TP_CD = 'W01' /*P조직*/
+                        AND A.PRTNR_NO = #{no}
+                        AND A.FEE_TCNT_DV_CD = '02'
+                        AND A.SPMT_DSB_DV_CD = '01'
+                    )M
+         ON A.PRTNR_NO = M.FEE_CTR_PRTNR_NO
+        AND A.OG_TP_CD = M.FEE_CTR_OG_TP_CD
+      WHERE A.BASE_YM = #{perfYm}
+      ORDER BY M.DIV, M.ITEM
+    </select>
+
+</mapper>

@@ -32,26 +32,6 @@ public interface WfedIndividualFeeMgtMapper {
         SearchHmstReq dto
     );
 
-    FindPlarEntrpRes selectPlarEntrp(
-        SearchPlarReq dto
-    );
-
-    FindPlarDeductionRes selectPlarDeduction(
-        SearchPlarReq dto
-    );
-
-    List<SearchPlarEtcRes> selectPlarEtcs(
-        SearchPlarReq dto
-    );
-
-    List<SearchPlarFeeRes> selectPlarFee(
-        SearchPlarReq dto
-    );
-
-    List<SearchPlarControlRes> selectPlarControls(
-        SearchPlarReq dto
-    );
-
     FindMngerEntrpRes selectMngerEntrp(
         SearchMngerReq dto
     );

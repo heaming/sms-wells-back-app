@@ -24,13 +24,6 @@ public class WfedIndividualFeeMgtDto {
         @NotBlank
         String no
     ) {}
-    @ApiModel(value = "WfedIndividualFeeMgtDto-SearchPlarReq")
-    public record SearchPlarReq(
-        @NotBlank
-        String perfYm,
-        @NotBlank
-        String no
-    ) {}
     @ApiModel(value = "WfedIndividualFeeMgtDto-SearchMngerReq")
     public record SearchMngerReq(
         @NotBlank
@@ -94,60 +87,6 @@ public class WfedIndividualFeeMgtDto {
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-SearchHmstControlRes")
     public record SearchHmstControlRes(
-        String div,
-        String item,
-        String ctrBf,
-        String ctrAf,
-        String rsn,
-        String ctrDtm,
-        String ctrr
-    ) {}
-
-    @ApiModel(value = "WfedIndividualFeeMgtDto-FindPlarEntrpRes")
-    public record FindPlarEntrpRes(
-        String emplNm,
-        String blg,
-        String rsb,
-        String metg,
-        String qlf,
-        String intbsSum,
-        String ddtnSum,
-        String aclDsbAmt
-    ) {}
-
-    @ApiModel(value = "WfedIndividualFeeMgtDto-SearchPlarEtcRes")
-    public record SearchPlarEtcRes(
-        String item1,
-        String fval1,
-        String item2,
-        String fval2,
-        String item3,
-        String fval3
-    ) {}
-
-    @ApiModel(value = "WfedIndividualFeeMgtDto-SearchPlarFeeRes")
-    public record SearchPlarFeeRes(
-        String item1,
-        String fval1,
-        String item2,
-        String fval2,
-        String item3,
-        String fval3
-    ) {}
-
-    @ApiModel(value = "WfedIndividualFeeMgtDto-FindPlarDeductionRes")
-    public record FindPlarDeductionRes(
-        String rds,
-        String erntx,
-        String rsdntx,
-        String hirInsr,
-        String buDdtn,
-        String pnpyam,
-        String inddInsr
-    ) {}
-
-    @ApiModel(value = "WfedIndividualFeeMgtDto-SearchPlarControlRes")
-    public record SearchPlarControlRes(
         String div,
         String item,
         String ctrBf,
