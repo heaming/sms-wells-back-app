@@ -342,6 +342,7 @@ public class WdcbSalesPerformanceDetailDto {
         String borDpAmt,
         String borAdjAmt,
         String eotBorAmt,
+        String borAmt,
         String btdDlqAddAmt,
         String thmOcDlqAddAmt,
         String thmCtrDlqAddAmt,
