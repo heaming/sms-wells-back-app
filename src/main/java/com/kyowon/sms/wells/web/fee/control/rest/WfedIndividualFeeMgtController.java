@@ -1,9 +1,11 @@
 package com.kyowon.sms.wells.web.fee.control.rest;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.validation.Valid;
 
+import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -147,32 +149,32 @@ public class WfedIndividualFeeMgtController {
     @ApiOperation(value = "개인별 수수료 관리 사업자정보 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 사업자정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/mnger-entrepreneur")
-    public FindMngerEntrpRes getMngerEntrp(
+    @GetMapping("/mnger-basic")
+    public FindMngerBasicRes getMngerBasic(
         @Valid
         SearchMngerReq dto
     ) {
-        return service.getMngerEntrp(dto);
+        return service.getMngerBasic(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 기본내역 목록 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 기본내역 목록을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", example = "1673419", required = true),
     })
-    @GetMapping("/mnger-base-info")
-    public List<SearchMngerBaseInfoRes> getMngerBaseInfo(
+    @GetMapping("/mnger-selletcs")
+    public List<SearchMngerSellEtcsRes> getMngerSellEtcs(
         SearchMngerReq dto
     ) {
-        return this.service.getMngerBaseInfo(dto);
+        return this.service.getMngerSellEtcs(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 BS내역 목록 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 BS내역 목록을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/mnger-before-services")
     public List<SearchMngerBeforeServiceRes> getMngerBeforeServices(
@@ -184,10 +186,10 @@ public class WfedIndividualFeeMgtController {
     @ApiOperation(value = "개인별 수수료 관리 수수료 내역 정보 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 수수료 내역 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/mnger-fee")
-    public List<SearchMngerFeeRes> getMngerFees(
+    @GetMapping("/mnger-fees")
+    public List<HashMap<String, Object>> getMngerFees(
         @Valid
         SearchMngerReq dto
     ) {
@@ -197,10 +199,10 @@ public class WfedIndividualFeeMgtController {
     @ApiOperation(value = "개인별 수수료 관리 공제내역 정보 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 공제내역 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/mnger-deduction")
-    public FindMngerDeductionRes getMngerDeduction(
+    @GetMapping("/mnger-deductions")
+    public List<SearchMngerDeductionRes> getMngerDeduction(
         @Valid
         SearchMngerReq dto
     ) {
@@ -210,7 +212,7 @@ public class WfedIndividualFeeMgtController {
     @ApiOperation(value = "개인별 수수료 관리 조정내역 목록 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 조정내역 목록을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/mnger-control")
     public List<SearchMngerControlRes> getMngerControls(
