@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class WsnbWellsServiceCfdcMvController {
     private final WsnbWellsServiceCfdcService service;
 
-    @GetMapping("/report/{cstSvAsnNo}")
+    @GetMapping("/report/{cstSvAsnNo}/auth")
     public ModelAndView openReportAuthEntry(
         @PathVariable
         String cstSvAsnNo
