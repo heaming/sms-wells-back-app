@@ -263,6 +263,7 @@
              , NVL(T5.MNGT_CT, 0) AS MNGT_CT /* 관리건수 */
              , NVL(T5.VST_CT, 0) AS VST_CT /* 방문건수 */
              , NVL(T5.PROCS_RT, 0) AS PROCS_RT /* 처리율 */
+             , T6.METG_DC /* 미팅일수 */
           FROM TB_OGBS_MM_OG_IZ T1 /* 월조직내역 */
          INNER JOIN TB_OGBS_MM_PRTNR_IZ T2 /* 월파트너내역 */
             ON T1.BASE_YM = T2.BASE_YM /* 기준년월 */
@@ -322,6 +323,36 @@
                   AND PRTNR_NO = #{prtnrNo} /* 파트너번호 */
              ) T5
             ON T3.PRTNR_NO = T5.PRTNR_NO
+          LEFT OUTER JOIN
+             (
+               SELECT T1.BASE_YM /* 기준년월 */
+                    , T1.OG_TP_CD /* 조직유형코드 */
+                    , T1.PRTNR_NO /* 파트너번호 */
+                    , CASE WHEN T2.METG_PTCP_ACKMT_YN = 'Y' AND NVL(T2.METG_PRSC_DC, 0) <![CDATA[<]]> NVL(T3.METG_BASE_DC, 0)
+                           THEN NVL(T3.METG_BASE_DC, 0)
+                           ELSE NVL(T2.METG_PRSC_DC, 0)
+                      END AS METG_DC /* 미팅일수 */
+                 FROM TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역 */
+                INNER JOIN TB_PSCA_MCPTN_METG_AGRG T2 /* 월별파트너미팅집계 */
+                   ON T1.BASE_YM = T2.AGRG_YM /* 기준년월 */
+                  AND T1.OG_TP_CD = T2.OG_TP_CD /* 조직유형코드 */
+                  AND T1.PRTNR_NO = T2.PRTNR_NO /* 파트너번호 */
+                  AND T2.DTA_DL_YN =  'N'
+                INNER JOIN TB_PSCA_PRTNR_METG_BASE_BAS T3  /* 파트너미팅기준기본 */
+                   ON T1.OG_TP_CD = T3.OG_TP_CD /* 조직유형코드 */
+                  AND T1.RSB_DV_CD = T3.RSB_DV_CD /* 직책구분코드 */
+                  AND T1.QLF_DV_CD = T3.QLF_DV_CD /* 자격구분코드 */
+                  AND #{perfYm} || '01' BETWEEN T3.VL_STRTDT AND T3.VL_ENDDT
+                  AND T3.DTA_DL_YN = 'N'
+                WHERE 1=1
+                  AND T1.DTA_DL_YN = 'N'
+                  AND T1.OG_TP_CD = 'W02' /* 조직유형코드 */
+                  AND T1.BASE_YM = #{perfYm} /* 기준년월 */
+                  AND T1.PRTNR_NO = #{prtnrNo}
+             ) T6
+            ON T2.BASE_YM = T6.BASE_YM
+           AND T2.OG_TP_CD = T6.OG_TP_CD
+           AND T2.PRTNR_NO = T6.PRTNR_NO
          WHERE 1=1
            AND T1.DTA_DL_YN = 'N'
            AND T1.BASE_YM = #{perfYm} /* 기준년월 */

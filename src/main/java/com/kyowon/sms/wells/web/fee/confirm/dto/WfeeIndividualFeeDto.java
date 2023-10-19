@@ -114,6 +114,7 @@ public class WfeeIndividualFeeDto {
         String mngtCt, /* 관리건수 */
         String vstCt, /* 방문건수 */
         String procsRt, /* 처리율 */
+        String metgDc, /* 미팅일수 */
         String dgr1LevlOgId, /* 1차레벨조직ID */
         String dgr2LevlOgId, /* 2차레벨조직ID */
         String dgr3LevlOgId, /* 3차레벨조직ID */
