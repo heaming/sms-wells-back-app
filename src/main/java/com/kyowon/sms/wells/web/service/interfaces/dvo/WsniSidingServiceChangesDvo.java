@@ -24,4 +24,5 @@ public class WsniSidingServiceChangesDvo {
     String cralLocaraTno;
     String mexnoEncr;
     String cralIdvTno;
+    String pdctPdCd;
 }

@@ -176,7 +176,35 @@ public class WsniServiceHistoryInterfaceDto {
         @JsonProperty("CST_SV_ASN_NO_2")
         String cstSvAsnNo2,
         @JsonProperty("FS_VST_CNT")
-        Integer fsVstCnt
+        Integer fsVstCnt,
+        @JsonProperty("CNSL_TP_HCLSF_CD")
+        String cnslTpHclsfCd,
+        @JsonProperty("CNSL_TP_MCLSF_CD")
+        String cnslTpMclsfCd,
+        @JsonProperty("CNSL_TP_LCLSF_CD")
+        String cnslTpLclsfCd,
+        @JsonProperty("ADR_DV_CD")
+        String adrDvCd,
+        @JsonProperty("ADR_ID")
+        String adrId,
+        @JsonProperty("LOCARA_TNO")
+        String locaraTno,
+        @JsonProperty("EXNO")
+        String exno,
+        @JsonProperty("IDV_TNO")
+        String idvTno,
+        @JsonProperty("CRAL_LOCARA_TNO")
+        String cralLocaraTno,
+        @JsonProperty("MEXNO")
+        String mexno,
+        @JsonProperty("CRAL_IDV_TNO")
+        String cralIdvTno,
+        @JsonProperty("NEW_ADR_ZIP")
+        String newAdrZip,
+        @JsonProperty("RNADR")
+        String rnadr,
+        @JsonProperty("RDADR")
+        String rdadr
     ) {
         @AutomapConstructor
         public SearchRes(
@@ -257,7 +285,21 @@ public class WsniServiceHistoryInterfaceDto {
             String outInvoice,
             String cstSvAsnNo1,
             String cstSvAsnNo2,
-            Integer fsVstCnt
+            Integer fsVstCnt,
+            String cnslTpHclsfCd,
+            String cnslTpMclsfCd,
+            String cnslTpLclsfCd,
+            String adrDvCd,
+            String adrId,
+            String locaraTno,
+            String exno,
+            String idvTno,
+            String cralLocaraTno,
+            String mexno,
+            String cralIdvTno,
+            String newAdrZip,
+            String rnadr,
+            String rdadr
         ) {
             this(
                 custNm,
@@ -339,7 +381,21 @@ public class WsniServiceHistoryInterfaceDto {
                 outInvoice,
                 cstSvAsnNo1,
                 cstSvAsnNo2,
-                fsVstCnt
+                fsVstCnt,
+                cnslTpHclsfCd,
+                cnslTpMclsfCd,
+                cnslTpLclsfCd,
+                adrDvCd,
+                adrId,
+                locaraTno,
+                DbEncUtil.dec(exno),
+                idvTno,
+                cralLocaraTno,
+                DbEncUtil.dec(mexno),
+                cralIdvTno,
+                newAdrZip,
+                rnadr,
+                rdadr
             );
         }
     }

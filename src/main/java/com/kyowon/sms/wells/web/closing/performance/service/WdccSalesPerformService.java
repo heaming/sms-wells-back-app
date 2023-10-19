@@ -19,6 +19,14 @@ import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 매출채권_선수금 현황 서비스
+ * </pre>
+ *
+ * @author gugyeongu
+ * @since 2023-08-03
+ */
 @Service
 @RequiredArgsConstructor
 public class WdccSalesPerformService {
@@ -26,6 +34,12 @@ public class WdccSalesPerformService {
     private final WdccSalesPerformMapper mapper;
     private final WdccSalesPerformConverter converter;
 
+    /**
+     * 매출실적현황 조회
+     * @param dto 조회조건
+     * @param pageInfo 페이지정보
+     * @return 매출실적현황 목록(페이징포함)
+     */
     public PagingResult<SearchRes> getSalesPerformancePresentStatePages(SearchReq dto, PageInfo pageInfo) {
         WdccContractDvo contractDvo = mapper.selectContract(dto);
         // 계약정보 없으면 에러
@@ -38,11 +52,11 @@ public class WdccSalesPerformService {
             );
         PagingResult<WdccSalesPerformDvo> result = null;
         PagingResult<SearchRes> pagingResult = new PagingResult<>();
-        if (StringUtils.equals("2", contractDvo.getSellTpCd())) {
+        if (StringUtils.equals("2", contractDvo.getSellTpCd())) { //렌탈
             result = mapper.selectRentalSalesPages(dto, pageInfo);
-        } else if (StringUtils.equals("3", contractDvo.getSellTpCd())) {
+        } else if (StringUtils.equals("3", contractDvo.getSellTpCd())) { //맴버십
             result = mapper.selectMembershipSalesPages(dto, pageInfo);
-        } else if (StringUtils.equals("6", contractDvo.getSellTpCd())) {
+        } else if (StringUtils.equals("6", contractDvo.getSellTpCd())) { //정기배송
             result = mapper.selectRegularShippingSalesPages(dto, pageInfo);
         }
         if (result != null) {
@@ -52,39 +66,71 @@ public class WdccSalesPerformService {
         return pagingResult;
     }
 
+    /**
+     * 매출실적현황 조회(엑셀다운로드)
+     * @param dto 조회조건
+     * @return 매출실적현황 목록
+     */
     public List<SearchRes> getSalesPerformancePresentStateForExcelDownload(SearchReq dto) {
         WdccContractDvo contractDvo = mapper.selectContract(dto);
         List<WdccSalesPerformDvo> result = null;
-        if (StringUtils.equals("2", contractDvo.getSellTpCd())) {
+        if (StringUtils.equals("2", contractDvo.getSellTpCd())) { //렌탈
             result = mapper.selectRentalSalesPages(dto);
-        } else if (StringUtils.equals("3", contractDvo.getSellTpCd())) {
+        } else if (StringUtils.equals("3", contractDvo.getSellTpCd())) { //맴버십
             result = mapper.selectMembershipSalesPages(dto);
-        } else if (StringUtils.equals("6", contractDvo.getSellTpCd())) {
+        } else if (StringUtils.equals("6", contractDvo.getSellTpCd())) { //정기배송
             result = mapper.selectRegularShippingSalesPages(dto);
         }
         return CollectionUtils.isEmpty(result) ? null : converter.mapAllWdccSalesPerformDvoToSearchRes(result);
     }
 
+    /**
+     * 매출 실적 현황 - 일시불(기본정보) 조회
+     * @param dto 조회조건
+     * @return 일시불(기본정보)
+     */
     public SearchSinglePaymentBaseRes getSinglePaymentBaseInfo(SearchSinglePaymentReq dto) {
         return mapper.selectSinglePaymentBaseInfo(dto);
     }
 
+    /**
+     * 매출 실적 현황 - 일시불(매출실적) 조회
+     * @param dto 조회조건
+     * @param pageInfo 페이지정보
+     * @return 매출실적 목록
+     */
     public PagingResult<SearchSinglePaymentSalesRes> getSinglePaymentSalesPaging(
         SearchSinglePaymentReq dto, PageInfo pageInfo
     ) {
         return mapper.selectSinglePaymentSales(dto, pageInfo);
     }
 
+    /**
+     * 매출 실적 현황 - 일시불(입금내역)
+     * @param dto 조회조건
+     * @param pageInfo 페이지정보
+     * @return 입금내역 목록
+     */
     public PagingResult<SearchSinglePaymentDepositsRes> getSinglePaymentDepositsPaging(
         SearchSinglePaymentReq dto, PageInfo pageInfo
     ) {
         return mapper.selectSinglePaymentDeposits(dto, pageInfo);
     }
 
+    /**
+     * 매출 실적 현황 - 일시불(매출실적)(엑셀다운로드)
+     * @param dto 조회조건
+     * @return 입금내역 목록
+     */
     public List<SearchSinglePaymentSalesRes> getSinglePaymentSalesExcelDownload(SearchSinglePaymentReq dto) {
         return mapper.selectSinglePaymentSales(dto);
     }
 
+    /**
+     * 매출 실적 현황 - 일시불(입금내역)(엑셀다운로드)
+     * @param dto 조회조건
+     * @return 입금내역 목록
+     */
     public List<SearchSinglePaymentDepositsRes> getSinglePaymentDepositsExcelDownload(SearchSinglePaymentReq dto) {
         return mapper.selectSinglePaymentDeposits(dto);
     }

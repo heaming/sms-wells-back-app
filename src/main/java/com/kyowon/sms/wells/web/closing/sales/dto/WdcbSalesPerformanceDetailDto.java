@@ -342,6 +342,7 @@ public class WdcbSalesPerformanceDetailDto {
         String borDpAmt,
         String borAdjAmt,
         String eotBorAmt,
+        String borAmt,
         String btdDlqAddAmt,
         String thmOcDlqAddAmt,
         String thmCtrDlqAddAmt,
@@ -383,6 +384,92 @@ public class WdcbSalesPerformanceDetailDto {
     // Result Dto
     // *********************************************************
     // 정기배송매출 상세내역 Search Result Dto
+
+    /**
+     * 정기배송매출 결과
+     * @param cstNo 고객번호
+     * @param cstKnm 고객명
+     * @param cntrNo 계약번호
+     * @param cntrSn 계약일련번호
+     * @param slClYm 매출년월
+     * @param sellTpCd 판매유형
+     * @param sellTpNm 판매유형명
+     * @param sellTpDtlCd 판매유형상세
+     * @param sellTpDtlCdNm 판매유형상세명
+     * @param pdCd 상품코드
+     * @param pdNm 상품명
+     * @param rcpPkgYn 접수기준 패키지여부
+     * @param rcpPkgCd 접수기준 패키지
+     * @param rcpPkgNm 접수기준 패키지명
+     * @param pkgYn 현재기준-패키지 여부
+     * @param pkgCd 현재기준-패키지
+     * @param pkgNm 현재기준-패키지명
+     * @param pkgTpNm 현재기준-패키지군
+     * @param mchnSellTpNm 기기정보-판매유형
+     * @param mchnCntrNo 기기정보-계약번호
+     * @param mchnCntrSn 기기정보-계약번호일련번호
+     * @param mchnRcgvpKnm 기기정보- 수령자한글명
+     * @param mchnPdCd 기기정보- 기기상품
+     * @param mchnPdNm 기기정보- 기기상품명
+     * @param rglrSppPrcDvCd 판매유형
+     * @param sellAmt 판매금액
+     * @param rentalAmt 추가금액
+     * @param dscAmt 할인금액
+     * @param mmIstmAmt 월청구금액
+     * @param cntrDt 접수일자
+     * @param sppDt 최초배송일자
+     * @param lcsleDt 매출일자
+     * @param slOccYm 매출발생월
+     * @param sppYn 배송여부
+     * @param rentalTn 진행차월
+     * @param sppTn 배송차월
+     * @param rentalDc 사용일수
+     * @param canDt 취소일자
+     * @param nomSlAmt 정상매출금액
+     * @param nomDscAmt 정상할인금액
+     * @param fulpyDt 완료일자
+     * @param spmtSlAmt 추가매출금액
+     * @param spmtDscAmt 추가할인금액
+     * @param slCtrAmt 매출조정금액
+     * @param thmSlSumAmt 매출금액
+     * @param slSumVat 매출VAT
+     * @param slAggAmt 매출누계금액
+     * @param dscAggAmt 할인누계금액
+     * @param ctrAggAmt 조정누계금액
+     * @param slBlam 매출잔액
+     * @param btdAtam 기초금액
+     * @param thmAtamDpAmt 선수입금액
+     * @param thmAtamRfndAmt 선수환불금액
+     * @param prpdSlAmt 매출대체금액
+     * @param slBndAlrpyAmt 매출입금액
+     * @param slDpAggAmt 입금누계금액
+     * @param atamRplcProcsAmt 선수대체금액
+     * @param eotAtam 선수잔액
+     * @param eotUcAmt 미수총액
+     * @param eotDlqAmt 연체금액
+     * @param btdBilUcAmt 기초금액
+     * @param thmBilOcAmt 당월예정금액
+     * @param thmBilSpmtAmt 당월추가금액
+     * @param thmBilDpAmt 당월입금액
+     * @param thmBilCtrAmt 당월조정금액
+     * @param eotBilUcAmt 청구잔액
+     * @param nmnBilUcExpAmt 차월금액
+     * @param tsmBilUcExpAmt 차차월금액
+     * @param dlqMcn 연체개월
+     * @param dlqAcuMcn 연체누적개월수
+     * @param slStpYn 매출중지여부
+     * @param actcsDt 수임일자
+     * @param rcpAoffceCd 접수사무소코드
+     * @param rcpAoffceCdNm 접수사무소명
+     * @param clctamDvCd 집금구분코드
+     * @param clctamDvCdNm 집금구분코드명
+     * @param clctamPrtnrNo 집금파트너번호
+     * @param clctamPrtnrNm 집금파트너명
+     * @param dpTpCd 이체구분코드
+     * @param dpTpCdNm
+     * @param mpyBsdt 이체일자
+     * @param fnitAprRsCd 금융기관승인결과코드
+     */
     @ApiModel("WdcbSalesPerformanceDetailDto-SearchRegularRes")
     public record SearchRegularRes(
         String cstNo,

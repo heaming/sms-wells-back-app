@@ -82,8 +82,6 @@
              , T2.FNL_MDFC_USR_ID
              , T2.FNL_MDFC_PRG_ID
              , T2.FNL_MDFC_DEPT_ID
-			 , T3.CALF_CN
-			 , T3.CEXP_CN
 			 , T3.RSB_DV_NMS
 		     , T3.RSB_DV_CDS
 		     , T3.QLF_DV_CD
@@ -107,15 +105,13 @@
           LEFT OUTER JOIN
           	 ( SELECT EVL_OG_TP_CD
                     , QLF_DV_CD
-          	 		, CALF_CN
-					, CEXP_CN
 					, EVL_RSB_REL_ID
           	 	    , LISTAGG(F_CMZ_CD_NM(#{session.tenantId}, 'EVL_RSB_DV_CD', EVL_RSB_DV_CD), ',') WITHIN GROUP (ORDER BY EVL_RSB_REL_ID  ) AS RSB_DV_NMS
           	        , LISTAGG(EVL_RSB_DV_CD, ',') WITHIN GROUP (ORDER BY EVL_RSB_REL_ID  ) AS RSB_DV_CDS
           	 	 FROM TB_PSEV_AWD_EVL_RSB_REL /* 시상평가직책관계 */
           	    WHERE DTA_DL_YN     = 'N'
           	      AND EVL_OG_TP_CD  = #{evlOgTpCd}
-          	    GROUP BY EVL_OG_TP_CD, EVL_RSB_REL_ID, QLF_DV_CD, CALF_CN, CEXP_CN
+          	    GROUP BY EVL_OG_TP_CD, EVL_RSB_REL_ID, QLF_DV_CD
           	 ) T3
             ON T3.EVL_OG_TP_CD = T2.EVL_OG_TP_CD
            AND T3.EVL_RSB_REL_ID = T2.EVL_RSB_REL_ID
@@ -164,30 +160,31 @@
     </update>
 
     <insert id="insertEvaluationResponsibility">
-        INSERT INTO TB_PSEV_AWD_EVL_RSB_REL (  /* 시상평가직책관계 */
-               EVL_OG_TP_CD     /* 평가조직유형코드 */
-             , RGST_SN          /* 등록일련번호 */
-             , EVL_RSB_DV_CD    /* 평가직책구분코드 */
-             , QLF_DV_CD        /* 자격구분코드 */
-             , EVL_RSB_REL_ID   /* 평가직책관계ID */
-             , CALF_CN          /* 계산식내용 */
-             , CEXP_CN          /* 조건식내용 */
-             , DTA_DL_YN        /* 데이터삭제여부 */
-             <include refid="COMMON.insertSystemField" />)
-        <foreach item="item" collection="rsbDvCdList">
-         VALUES (
-               #{evlOgTpCd}
-             , (SELECT NVL(MAX(RGST_SN)+1,1)
-                  FROM TB_PSEV_AWD_EVL_RSB_REL
+        <foreach item="item" collection="rsbDvCdList" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL" index="idx">
+            INTO TB_PSEV_AWD_EVL_RSB_REL (  /* 시상평가직책관계 */
+                 EVL_OG_TP_CD     /* 평가조직유형코드 */
+               , RGST_SN          /* 등록일련번호 */
+               , EVL_RSB_DV_CD    /* 평가직책구분코드 */
+               , QLF_DV_CD        /* 자격구분코드 */
+               , EVL_RSB_REL_ID   /* 평가직책관계ID */
+               , CALF_CN          /* 계산식내용 */
+               , CEXP_CN          /* 조건식내용 */
+               , DTA_DL_YN        /* 데이터삭제여부 */
+               <include refid="COMMON.insertSystemField" />
                )
-             , #{item}
-             , #{qlfDvCd}
-             , (SELECT #{evlOgTpCd}||#{evlDvCd}||LPAD('1', 5, '0')
-                  FROM DUAL )
-             , #{calfCn}
-             , #{cexpCn}
-             , 'N'
-             <include refid="COMMON.insertSystemFieldValue" /> )
+          VALUES
+               ( #{evlOgTpCd}
+               , (SELECT NVL(MAX(RGST_SN)+(1+#{idx}),1)
+                    FROM TB_PSEV_AWD_EVL_RSB_REL
+                 )
+               , #{item}
+               , #{qlfDvCd}
+               , (#{evlOgTpCd}||#{evlDvCd}||LPAD('1', 5, '0'))
+               , #{calfCn}
+               , #{cexpCn}
+               , 'N'
+               <include refid="COMMON.insertSystemFieldValue" />
+               )
         </foreach>
     </insert>
 

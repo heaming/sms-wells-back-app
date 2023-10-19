@@ -83,7 +83,6 @@ public class WsnaReturningGoodsStoreService {
 
         itmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(ostrTpCd, ostrDt));
         itmStrNo = this.mapper.selectNextItmStrNo(new FindItmStrNoReq(ostrTpCd, ostrDt));
-        ostrAkNo = this.mapper.selectNextOstrAkNo(new FindOstrAkNoReq(ostrAkTpCd, ostrDt));
         disuseItmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(disuseOstrTpCd, ostrDt));
         strQuantityItmStrNo = this.mapper.selectNextItmStrNo(new FindItmStrNoReq(ostrTpCd, ostrDt));
         quantityItmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(ostrTpCd, ostrDt));
@@ -100,8 +99,6 @@ public class WsnaReturningGoodsStoreService {
             dvo.setQuantityItmOstrNo(quantityItmOstrNo);
             dvo.setOstrSn(String.valueOf(serialNumber));
             dvo.setStrSn(String.valueOf(serialNumber));
-            dvo.setOstrAkNo(ostrAkNo);
-            dvo.setOstrAkSn(String.valueOf(serialNumber));
             dvo.setDisuseOstrTpCd(disuseOstrTpCd);
             dvo.setOstrTpCd(ostrTpCd);
             dvo.setOstrAkTpCd(ostrAkTpCd);
@@ -406,5 +403,14 @@ public class WsnaReturningGoodsStoreService {
         }
 
         return processCount;
+    }
+
+    /**
+     * 로그인한 사용자의 창고를 조회
+     * @param prtnrNo
+     * @return
+     */
+    public List<SearchWareRes> getReturningGoodsStoresLoginWarehouse(String prtnrNo) {
+        return mapper.selectReturningGoodsStoresLoginWarehouse(prtnrNo);
     }
 }

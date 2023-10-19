@@ -77,33 +77,30 @@
                               , D2.PD_CD
                               , D2.PD_ABBR_NM
                            FROM TB_SVST_MCBY_WARE_IZ D1
-                           LEFT OUTER JOIN TB_PDBS_PD_BAS D2
-                             ON D1.APY_YM = #{baseYm}
-                            AND D2.SAP_MAT_CD IS NOT NULL
-                            AND D2.DTA_DL_YN = 'N'
-                           INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3
+                          INNER JOIN TB_PDBS_PD_BAS D2
+                             ON 1 = 1
+                          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3
                              ON D3.PD_CD = D2.PD_CD
-                            AND D3.DTA_DL_YN = 'N'
-                          WHERE 1 = 1
-                        <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
-                        <choose>
-                        <when test='@MybatisUtils@equals(wareDvCd, "2")'>
-                            AND D1.WARE_DV_CD = #{wareDvCd}
-                        </when>
-                        <when test='@MybatisUtils@equals(wareDvCd, "3")'>
-                            AND D1.WARE_DV_CD = #{wareDvCd}
-                            AND D3.PD_PRP_VAL19 IN('5','6')
-                            AND D3.PD_PRP_VAL04 = 'Y'
-                        </when>
-                        </choose>
+                          WHERE D1.DTA_DL_YN          = 'N'
+                            AND D2.DTA_DL_YN          = 'N'
+                            AND D2.PD_TP_CD           = 'M'
+                            AND D3.DTA_DL_YN          = 'N'
+                            AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
+                            AND D2.SAP_MAT_CD IS NOT NULL
+                            AND D1.APY_YM             = #{baseYm}
+                            AND D1.WARE_DV_CD         = #{wareDvCd}
+                        <if test='@MybatisUtils@equals(wareDvCd, "3")'>
+                            AND D3.PD_PRP_VAL19      IN ('5','6')
                         </if>
                         <if test='@MybatisUtils@isNotEmpty(wareDtlDvCd)'>
-                            AND D1.WARE_DTL_DV_CD = #{wareDtlDvCd}
+                            AND D1.WARE_DTL_DV_CD     = #{wareDtlDvCd}
                         </if>
-                        <if test="@MybatisUtils@isNotEmpty(searchWareNo)">
-                            AND D1.WARE_NO        = #{searchWareNo}
+                        <if test="@MybatisUtils@isNotEmpty(hgrWareNo)">
+                            AND ( D1.HGR_WARE_NO = #{hgrWareNo} OR D1.WARE_NO = #{hgrWareNo} )
                         </if>
-                            AND D1.DTA_DL_YN = 'N'
+                        <if test="@MybatisUtils@isNotEmpty(wareNo)">
+                            AND D1.WARE_NO            = #{hgrWareNo}
+                        </if>
                         ) T1
                     LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ T2
                       ON T2.BASE_YM = T1.APY_YM
@@ -137,7 +134,7 @@
                                          INNER JOIN TB_SVST_MCBY_WARE_IZ D2
                                             ON D2.WARE_NO = D1.STR_WARE_NO
                                            AND D2.APY_YM = #{baseYm}
-                                           AND D1.STR_RGST_DT LIKE #{baseYm}||'%'
+                                           AND D1.STR_RGST_DT LIKE #{baseYm} || '%'
                                          WHERE 1 = 1
                                            AND D1.STR_CONF_DT IS NOT NULL
                                        <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
@@ -146,11 +143,13 @@
                                        <if test='@MybatisUtils@isNotEmpty(wareDtlDvCd)'>
                                            AND D2.WARE_DTL_DV_CD = #{wareDtlDvCd}
                                        </if>
-                                       <if test="@MybatisUtils@isNotEmpty(searchWareNo)">
-                                           AND D2.WARE_NO        = #{searchWareNo}
+                                       <if test="@MybatisUtils@isNotEmpty(hgrWareNo)">
+                                           AND ( D2.HGR_WARE_NO = #{hgrWareNo} OR D2.WARE_NO = #{hgrWareNo} )
                                        </if>
-                                         GROUP BY D1.STR_WARE_NO
-                                                , D1.ITM_PD_CD
+                                       <if test="@MybatisUtils@isNotEmpty(wareNo)">
+                                           AND D2.WARE_NO = #{wareNo}
+                                       </if>
+                                         GROUP BY D1.STR_WARE_NO, D1.ITM_PD_CD
                                      ) T5
                       ON T5.STR_WARE_NO = T1.WARE_NO
                      AND T5.ITM_PD_CD = T1.PD_CD

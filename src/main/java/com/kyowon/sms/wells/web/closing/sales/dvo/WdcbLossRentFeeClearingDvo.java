@@ -16,7 +16,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class WdcbLossRentFeeClearingDvo {
-    private String cntrNo;
-    private String cntrSn;
-    private String reqdDt;
+    private String cntrNo; /*계약번호*/
+    private int cntrSn; /*계약일련번호*/
+    private String reqdDt; /*철거일자*/
 }

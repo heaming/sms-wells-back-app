@@ -53,55 +53,19 @@
                 , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_CD) AS PD_NM -- 상품명
                 , T1.RENTAL_RGST_COST AS RENTAL_RGST_COST -- 월회비(LCTAMT)
                 , T1.DSC_AMT AS DSC_AMT -- 할인금액(LCRAMT)
-                , (SELECT
-                   CASE WHEN BB.OJ_PD_CD = 'WM02100167' -- AS-IS : LC50.LCICDE = '4350' 공기청정기KW-A05W2
-                             THEN CASE WHEN CC.SV_PD_TP_CD IN ('1', '3') THEN '황사필터('||CC.SV_PD_TP_CD||')'
-                                       WHEN CC.SV_PD_TP_CD = '2' THEN '항바이러스('||CC.SV_PD_TP_CD||')'
-                                       ELSE '일반('||CC.SV_PD_TP_CD||')'
-                                  END
-                        WHEN BB.OJ_PD_CD = 'WM03100203' -- AS-IS : LC50.LCICDE = '4415' 비데(BK750RWA)
-                             THEN CASE WHEN CC.SV_PD_TP_CD = '0' THEN '구분없음('||CC.SV_PD_TP_CD||')'
-                                       WHEN CC.SV_PD_TP_CD IN ('1', '3') THEN '일반('||CC.SV_PD_TP_CD||')'
-                                       WHEN CC.SV_PD_TP_CD = '2' THEN '대형법인('||CC.SV_PD_TP_CD||')'
-                                       WHEN CC.SV_PD_TP_CD = '4' THEN '대형법인2('||CC.SV_PD_TP_CD||')'
-                                       WHEN CC.SV_PD_TP_CD = '5' THEN '홈케어('||CC.SV_PD_TP_CD||')'
-                                       ELSE (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SV_TP_CD' AND CD_VLD_VAL = CC.SV_PD_TP_CD) || '(' || CC.SV_PD_TP_CD || ')'
-                                  END
-                        WHEN T3.PD_MCLSF_ID = 'PDC000000000059' -- AS-IS : KA11.KAETC2 = '4' 연수기
-                             THEN CASE WHEN CC.SV_PD_TP_CD = '0' THEN '일반('||CC.SV_PD_TP_CD||')'
-                                       WHEN CC.SV_PD_TP_CD = '1' THEN '특별('||CC.SV_PD_TP_CD||')'
-                                       ELSE ''
-                                  END
-                        WHEN T3.PD_MCLSF_ID = 'PDC000000000063' -- AS-IS : KA11.KAETC2 = 'F' 안마의자
-                             THEN CASE WHEN CC.SV_PD_TP_CD = '0' THEN '일반('||CC.SV_PD_TP_CD||')'
-                                       WHEN CC.SV_PD_TP_CD = '1' THEN '특별('||CC.SV_PD_TP_CD||')'
-                                       ELSE ''
-                                  END
-                        ELSE CASE WHEN CC.SV_PD_TP_CD = '0' THEN '구분없음('||CC.SV_PD_TP_CD||')'
-                                  WHEN CC.SV_PD_TP_CD IN ('1', '3') THEN '일반('||CC.SV_PD_TP_CD||')'
-                                  WHEN CC.SV_PD_TP_CD IN ('2', '4') THEN '업소용('||CC.SV_PD_TP_CD||')'
-                                  WHEN CC.SV_PD_TP_CD = '5' THEN '홈케어('||CC.SV_PD_TP_CD||')'
-                                  WHEN CC.SV_PD_TP_CD = '6' THEN '조리수밸브('||CC.SV_PD_TP_CD||')'
-                                  ELSE (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SV_TP_CD' AND CD_VLD_VAL = CC.SV_PD_TP_CD) || '(' || CC.SV_PD_TP_CD || ')'
-                             END
-                   END
-                   FROM (SELECT BASE_PD_CD FROM W1 WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND ROWNUM = 1) AA
-                   LEFT OUTER JOIN (SELECT BASE_PD_CD, OJ_PD_CD, SV_PD_TP_CD FROM W1 WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND PD_REL_TP_CD = '05' AND ROWNUM = 1) BB -- 05 : 기준상품 - 제품 관계 * 추후 계약당 단건으로 마이그 조정 예정
-                   ON BB.BASE_PD_CD = AA.BASE_PD_CD
-                   LEFT OUTER JOIN (SELECT BASE_PD_CD, OJ_PD_CD, SV_PD_TP_CD FROM W1 WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND PD_REL_TP_CD = '03' AND ROWNUM = 1) CC -- 03 : 기준상품 - 서비스 관계 * 추후 계약당 단건으로 마이그 조정 예정
-                   ON CC.BASE_PD_CD = AA.BASE_PD_CD) AS SV_TP_CD_NM -- 용도구분명
+                , T12.SV_TP_CD_NM AS SV_TP_CD_NM -- 서비스코드(ASIS 용도구분 대신 사용)
                 , TO_CHAR(TO_DATE(T1.CNTR_DT), 'YYYY-MM-DD') AS CNTR_DT -- 계약일자
                 , TO_CHAR(TO_DATE(SUBSTR(T2.CNTR_CNFM_DTM, 1, 8)), 'YYYY-MM-DD') AS CNTR_CNFM_DT  -- 확정일자
-                , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CNTR_CAN_DT  -- 취소일자
+                , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CNTR_CAN_DT  -- 취소일자
                 , TO_CHAR(TO_DATE(T3.CNTR_PD_STRTDT), 'YYYY-MM-DD') AS LCSLE_DT -- 매출일자
                 --------------------------------------------------------------
                 -- 선납사항
                 --------------------------------------------------------------
                 , T1.PRM_TN AS PRM_TN -- 선납회차(LCPCNT)
                 , T1.PRM_MCN AS PRM_MCN -- 선납개월(LCPMON)
-                , TO_CHAR(TO_DATE(T1.PRM_STRT_YM), 'YYYY-MM-DD') AS PRM_STRT_YM -- 선납시작년월(LCPSYY)
-                , TO_CHAR(TO_DATE(T1.PRM_END_YM), 'YYYY-MM-DD') AS PRM_END_YM-- 선납종료년월(LCPEYY)
-                , T1.PRM_DSCR AS PRM_DSCR -- 할인율(LCPRAT)
+                , TO_CHAR(TO_DATE(T1.PRM_STRT_YM, 'YYYYMM'), 'YYYY-MM') AS PRM_STRT_YM -- 선납시작년월(LCPSYY)
+			          , TO_CHAR(TO_DATE(T1.PRM_END_YM, 'YYYYMM'), 'YYYY-MM') AS PRM_END_YM-- 선납종료년월(LCPEYY)
+                1.PRM_DSCR AS PRM_DSCR -- 할인율(LCPRAT)
                 , T1.PRM_DSC_AMT AS PRM_DSC_AMT -- 할인금액(LCHAMT)
                 , T1.PRM_DP_AMT1 AS PRM_AMT1 -- 선납금액1(LCPAM1)
                 , T1.PRM_PTRM_MCN1 AS PRM_MCN1 --선납기간1(LCPMO1)
@@ -122,7 +86,7 @@
                 , TO_CHAR(TO_DATE(T3.CNTR_PD_STRTDT), 'YYYY-MM-DD') AS J_DT -- 가입일자
                 , T1.NOM_SL_AMT AS NOM_SL_AMT --정상매출금액(LCAM11)
                 , T1.NOM_DSC_AMT AS NOM_DSC_AMT--정상할인금액(LCAM13)
-                , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS MSH_WDWAL_DT -- 탈퇴일자
+                , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS MSH_WDWAL_DT -- 탈퇴일자
                 , T1.SPMT_SL_AMT AS SPMT_SL_AMT --추가매출금액(LCAM12)
                 , T1.SPMT_DSC_AMT AS SPMT_DSC_AMT--추가할인금액(LCAM14)
                 , TO_CHAR(TO_DATE(T1.FULPY_DT), 'YYYY-MM-DD') AS FSH_DT -- 완료일자
@@ -181,12 +145,12 @@
                       AND ASN_OJ_YM = T1.SL_CL_YM) AS VST_DT -- 방문일자
                 , T6.DLQ_MCN AS DLQ_MCN -- 연체개월
                 , T6.DLQ_ACU_MCN AS DLQ_ACU_MCN -- 연체누계
-                , NVL(T6.EOT_DLQ_AMT, 0) AS EOT_DLQ_AMT -- 연체금액
+                , NVL(T6.EOT_DLQ_AMT, 0) + NVL(T6.BTD_DLQ_ADD_AMT, 0) - NVL(T6.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T6.THM_CTR_DLQ_ADD_AMT, 0) + NVL(T6.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT -- 연체금액(C50.LCDAMT)
                 , NVL((SELECT SUM(NVL(DFA_AMT, 0)) FROM TB_CBBO_DFA_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND DTA_DL_YN = 'N'), 0) AS DFA_AMT -- 대손금액
                 , NVL((SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT, 0) ELSE NVL(RVE_AMT*-1, 0) END) FROM W2 WHERE RVE_DV_CD = '09'), 0) AS DFA_DP_AMT -- 대손입금액
-                , TO_CHAR(TO_DATE(T9.ACTCS_DT), 'YYYY-MM-DD') AS ACTCS_DT -- 수임일자
-                , T30.RCP_AOFFCE_CD AS RCP_AOFFCE_CD -- 접수사무소코드
-                , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'RCP_AOFFCE_CD' AND CD_VLD_VAL = T30.RCP_AOFFCE_CD) AS RCP_AOFFCE_CD_NM -- 접수사무소명 @TO-DO 사무소명이 집금담당자의 근무지정보이면 집금파트너상세 Table.집금상담사근무지코드(CLCTAM_CSLR_WRKP_CD)를 읽어야 함
+                , TO_CHAR(TO_DATE(T9.BND_ASN_DT), 'YYYY-MM-DD') AS ACTCS_DT -- 수임일자
+                , T31.CLCTAM_CSLR_WRKP_CD AS RCP_AOFFCE_CD -- 접수사무소코드
+               	, (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'CLCTAM_CSLR_WRKP_CD' AND CD_VLD_VAL = T31.CLCTAM_CSLR_WRKP_CD) AS RCP_AOFFCE_CD_NM -- 접수사무소명
                 , T9.CLCTAM_DV_CD AS CLCTAM_DV_CD -- 집금구분코드
                 , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'CLCTAM_DV_CD' AND CD_VLD_VAL = T9.CLCTAM_DV_CD) AS CLCTAM_DV_CD_NM -- 집금구분코드명
                 , T9.CLCTAM_PRTNR_NO AS CLCTAM_PRTNR_NO -- 집금파트너번호
@@ -230,6 +194,20 @@
                   AND T10.CNTR_NO = T1.CNTR_NO
                   AND T10.CNTR_SN = T1.CNTR_SN
                   AND T10.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN LATERAL (SELECT A.PD_CD AS SV_PD_CD
+                        					    				 , (TRIM(AFMDBS.F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', A.SV_PD_TP_CD))  || ' - 방문(' || NVL(B.PD_PRP_VAL02,'0') || ')/택배(' || B.PD_PRP_VAL03 || ')')  AS SV_TP_CD_NM
+                        										FROM TB_PDBS_PD_BAS A
+                        										LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL B
+                        										  ON B.PD_CD = A.PD_CD
+                        										 AND B.PD_EXTS_PRP_GRP_CD = 'SCHD'
+                        									WHERE A.PD_CD IN (SELECT OJ_PD_CD
+                        									                    FROM TB_SSCT_CNTR_PD_REL
+                        									                   WHERE CNTR_NO = T1.CNTR_NO
+                        									                     AND CNTR_SN = T1.CNTR_SN
+                        									                     AND PD_REL_TP_CD = '03'
+                        									                     AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                        									                     AND DTA_DL_YN = 'N')) T12
+                   ON 1=1
                  LEFT OUTER JOIN LATERAL (SELECT *
                                           FROM (SELECT T1.SL_CL_YM, T1.CNTR_NO, T1.CNTR_SN, RCP_AOFFCE_CD
                                                 FROM TB_CBBO_WELLS_BND_CLCO_SEND_IZ -- Wells채권추심사송신내역
@@ -243,6 +221,15 @@
                    ON T30.SL_CL_YM = T1.SL_CL_YM
                   AND T30.CNTR_NO = T1.CNTR_NO
                   AND T30.CNTR_SN = T1.CNTR_SN
+                 LEFT OUTER JOIN LATERAL (SELECT CLCTAM_CSLR_WRKP_CD
+                    		      							FROM TB_CBBO_CLCTAM_PRTNR_DTL -- 집금파트너상세
+                    		      						 WHERE PRTNR_NO = T9.CLCTAM_PRTNR_NO
+                    		      						   AND OG_TP_CD = NVL((SELECT OG_TP_CD
+                    								                               FROM TB_OGBS_MM_PRTNR_IZ -- 월파트너
+                          												                WHERE BASE_YM = T1.SL_CL_YM
+                          												                  AND PRTNR_NO = T9.CLCTAM_PRTNR_NO), 'HR1')
+                    									   ) T31
+           				 ON 1=1
                 WHERE T1.CNTR_NO = #{cntrNo}
                   AND T1.CNTR_SN = #{cntrSn}
                   <if test='@MybatisUtils@isNotEmpty(slClYm)'>
@@ -311,42 +298,7 @@
                             , TO_CHAR(TO_DATE(T1.CNTR_DT), 'YYYY-MM-DD') AS CNTR_DT -- 접수일(LC50.LCCRTY) ASIS 계약일자
                             , TO_CHAR(TO_DATE(T3.CNTR_PD_STRTDT), 'YYYY-MM-DD') AS LCSLE_DT -- 매출일자
                             , T3.SV_PRD AS SV_PRD -- 주기(개월)
-                            , (SELECT CASE WHEN BB.OJ_PD_CD = 'WM02100167' -- AS-IS : LC50.LCICDE = '4350' 공기청정기KW-A05W2
-                                                  THEN CASE WHEN CC.SV_PD_TP_CD IN ('1', '3') THEN '황사필터('||CC.SV_PD_TP_CD||')'
-                                                            WHEN CC.SV_PD_TP_CD = '2' THEN '항바이러스('||CC.SV_PD_TP_CD||')'
-                                                            ELSE '일반('||CC.SV_PD_TP_CD||')'
-                                                       END
-                                         WHEN BB.OJ_PD_CD = 'WM03100203' -- AS-IS : LC50.LCICDE = '4415' 비데(BK750RWA)
-                                                  THEN CASE WHEN CC.SV_PD_TP_CD = '0' THEN '구분없음('||CC.SV_PD_TP_CD||')'
-                                                              WHEN CC.SV_PD_TP_CD IN ('1', '3') THEN '일반('||CC.SV_PD_TP_CD||')'
-                                                              WHEN CC.SV_PD_TP_CD = '2' THEN '대형법인('||CC.SV_PD_TP_CD||')'
-                                                              WHEN CC.SV_PD_TP_CD = '4' THEN '대형법인2('||CC.SV_PD_TP_CD||')'
-                                                              WHEN CC.SV_PD_TP_CD = '5' THEN '홈케어('||CC.SV_PD_TP_CD||')'
-                                                              ELSE (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SV_TP_CD' AND CD_VLD_VAL = CC.SV_PD_TP_CD) || '(' || CC.SV_PD_TP_CD || ')'
-                                                         END
-                                               WHEN T3.PD_MCLSF_ID = 'PDC000000000059' -- AS-IS : KA11.KAETC2 = '4' 연수기
-                                                    THEN CASE WHEN CC.SV_PD_TP_CD = '0' THEN '일반('||CC.SV_PD_TP_CD||')'
-                                                              WHEN CC.SV_PD_TP_CD = '1' THEN '특별('||CC.SV_PD_TP_CD||')'
-                                                              ELSE ''
-                                                         END
-                                               WHEN T3.PD_MCLSF_ID = 'PDC000000000063' -- AS-IS : KA11.KAETC2 = 'F' 안마의자
-                                                    THEN CASE WHEN CC.SV_PD_TP_CD = '0' THEN '일반('||CC.SV_PD_TP_CD||')'
-                                                              WHEN CC.SV_PD_TP_CD = '1' THEN '특별('||CC.SV_PD_TP_CD||')'
-                                                              ELSE ''
-                                                         END
-                                               ELSE CASE WHEN CC.SV_PD_TP_CD = '0' THEN '구분없음'||CC.SV_PD_TP_CD||')'
-                                                         WHEN CC.SV_PD_TP_CD IN ('1', '3') THEN '일반('||CC.SV_PD_TP_CD||')'
-                                                         WHEN CC.SV_PD_TP_CD IN ('2', '4') THEN '업소용('||CC.SV_PD_TP_CD||')'
-                                                         WHEN CC.SV_PD_TP_CD = '5' THEN '홈케어('||CC.SV_PD_TP_CD||')'
-                                                         WHEN CC.SV_PD_TP_CD = '6' THEN '조리수밸브('||CC.SV_PD_TP_CD||')'
-                                                         ELSE (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SV_TP_CD' AND CD_VLD_VAL = CC.SV_PD_TP_CD) || '(' || CC.SV_PD_TP_CD || ')'
-                                                    END
-                                           END
-                                 FROM (SELECT BASE_PD_CD FROM W1 WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND ROWNUM = 1) AA
-                                 LEFT OUTER JOIN (SELECT BASE_PD_CD, OJ_PD_CD, SV_PD_TP_CD FROM W1 WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND PD_REL_TP_CD = '05' AND ROWNUM = 1) BB -- 05 : 기준상품 - 제품 관계
-                                   ON BB.BASE_PD_CD = AA.BASE_PD_CD
-                                 LEFT OUTER JOIN (SELECT BASE_PD_CD, OJ_PD_CD, SV_PD_TP_CD FROM W1 WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND PD_REL_TP_CD = '03' AND ROWNUM = 1) CC -- 03 : 기준상품 - 서비스 관계
-                                   ON CC.BASE_PD_CD = AA.BASE_PD_CD) AS SV_TP_CD_NM -- 용도구분명
+                            , T12.SV_TP_CD_NM AS SV_TP_CD_NM -- 서비스코드
                             , T1.RENTAL_RGST_COST AS RENTAL_RGST_COST -- 렌탈등록비(LC50.LCTAMT)
                             , T1.RENTAL_RGST_COST - T1.CNTR_AMT AS DSC_AMT -- 등록비할인금액(LC50.LCRAMT)
                             , T1.CNTR_TAM AS CNTR_TAM -- 렌탈총액(LC50.LCAMTT)
@@ -369,8 +321,8 @@
                             --------------------------------------------------------------
                             , T1.PRM_TN AS PRM_TN -- 회차(LC50.LCPCNT)
                             , T1.PRM_MCN AS PRM_MCN-- 선납개월(LC50.LCPMON)
-                            , TO_CHAR(TO_DATE(T1.PRM_STRT_YM), 'YYYY-MM-DD') AS PRM_STRT_YM -- 선납시작년월(LC50.LCPSYY)
-                            , TO_CHAR(TO_DATE(T1.PRM_END_YM), 'YYYY-MM-DD') AS PRM_END_YM-- 선납종료년월(LC50.LCPEYY)
+                            , TO_CHAR(TO_DATE(T1.PRM_STRT_YM, 'YYYYMM'), 'YYYY-MM') AS PRM_STRT_YM -- 선납시작년월(LCPSYY)
+	      		                , TO_CHAR(TO_DATE(T1.PRM_END_YM, 'YYYYMM'), 'YYYY-MM') AS PRM_END_YM-- 선납종료년월(LCPEYY)
                             , T1.PRM_DSCR AS PRM_DSCR -- 할인율(LC50.LCPRAT)
                             , T1.PRM_DSC_AMT AS PRM_DSC_AMT -- 선납할인금액(LC50.LCHAMT)
                             , T1.PRM_DP_AMT1 AS PRM_AMT1 -- 선납금액1(LC50.LCPAM1)
@@ -383,7 +335,7 @@
                             , T1.RENTAL_DC AS RENTAL_DC -- 렌탈일수(LC50.LCRDAY)
                             , T1.SL_DC AS SL_DC -- 매출일수(LC50.LCSDAY)
                             , (SELECT PD_USE_DC FROM TB_SSCT_CNTR_RSG_PROCS_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN) AS USE_DC -- 사용일수 LC50.LCCDAY
-                            , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301','303') THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CAN_DT -- 취소일자(LC50.LCCANY)
+                            , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301','303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CAN_DT -- 취소일자(LC50.LCCANY)
                             , T1.NOM_SL_AMT AS NOM_SL_AMT -- 정상매출금액(LC50.LCAM11)
                             , T1.NOM_DSC_AMT AS NOM_DSC_AMT -- 정상할인금액(LC50.LCAM13)
                             , TO_CHAR(TO_DATE(T1.FULPY_DT), 'YYYY-MM-DD') AS FSH_DT -- 완료일자(LC50.LCWANY)
@@ -396,7 +348,7 @@
                             , T1.PVDA_AGG_AMT AS INT_AGG_AMT -- 이자누계액(LC50.LCCM17)
                             , T1.SL_AGG_AMT + T1.PVDA_AGG_AMT AS SUM_SL_AGG_AMT -- 매출누계
                           , T1.DSC_AGG_AMT AS SUM_DSC_AGG_AMT -- 할인누계액 (ASIS 리스는 원금할인누계금액 + 이자할인누계금액 + 이자추가누계금액(LCAM18 + LCCM18 + LCCM20)) @TODO 매핑정의 수정 * LCCM20은 ASIS데이터 없음
-                          , NVL((SELECT SUM(NVL(T1.SL_CTR_AMT, 0))
+                          , NVL((SELECT SUM(NVL(A.SL_CTR_AMT, 0))
                                    FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
                                   WHERE A.CNTR_NO = T1.CNTR_NO
                                     AND A.CNTR_SN = T1.CNTR_SN
@@ -437,6 +389,7 @@
                             ----------------------------------------------------------------
                             -- 위약금
                             ----------------------------------------------------------------
+                            , NVL(T10.BOR_AMT, 0) AS BOR_AMT -- 위약금
                             , NVL(T10.BTD_BOR_AMT, 0) AS BTD_BOR_AMT -- 위약금기초금액
                             , NVL(T10.OC_BOR_AMT, 0) AS OC_BOR_AMT -- 위약금발생금액
                             , NVL(T10.LS_RNTF, 0) AS LS_RNTF -- 분실손료
@@ -459,19 +412,19 @@
                             , '' AS KEEP_AW_TOT_AMT -- @TO-DO 유지수당누계금액 LC50.LCCNT2
                             , T6.DLQ_MCN AS DLQ_MCN -- 연체개월
                             , T6.DLQ_ACU_MCN AS DLQ_ACU_MCN -- 연체누적개월수
-                            , NVL(T6.EOT_DLQ_AMT, 0) AS EOT_DLQ_AMT -- 연체금액(C50.LCDAMT)
+                            , NVL(T6.EOT_DLQ_AMT, 0) + NVL(T6.BTD_DLQ_ADD_AMT, 0) - NVL(T6.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T6.THM_CTR_DLQ_ADD_AMT, 0) + NVL(T6.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT -- 연체금액(C50.LCDAMT)
                             , (SELECT NVL(SUM(NVL(DFA_AMT, 0)), 0) FROM TB_CBBO_DFA_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND DTA_DL_YN = 'N') AS DFA_AMT -- 대손금액
                             , NVL((SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT, 0) ELSE NVL(RVE_AMT*-1, 0) END) FROM W2 WHERE RVE_DV_CD = '09'), 0) AS DFA_DP_AMT -- 대손입금액(CW5400P.CWAMT1)
                             , T1.SL_STP_YN AS SL_STP_YN -- 매출중지여부
                             , TRUNC(T1.SL_STP_AMT * 0.3,-1) AS SL_STP_AMT -- 매출중지금액(LC50.LCAM96)
-                            , TO_CHAR(TO_DATE(T9.ACTCS_DT), 'YYYY-MM-DD') AS ACTCS_DT -- 수임일자
-                            , T30.RCP_AOFFCE_CD AS RCP_AOFFCE_CD -- 접수사무소코드
-                            , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'RCP_AOFFCE_CD' AND CD_VLD_VAL = T30.RCP_AOFFCE_CD) AS RCP_AOFFCE_CD_NM -- 접수사무소명
+                            , TO_CHAR(TO_DATE(T9.BND_ASN_DT), 'YYYY-MM-DD') AS ACTCS_DT -- 수임일자
+                            , T31.CLCTAM_CSLR_WRKP_CD AS RCP_AOFFCE_CD -- 접수사무소코드
+                          	, (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'CLCTAM_CSLR_WRKP_CD' AND CD_VLD_VAL = T31.CLCTAM_CSLR_WRKP_CD) AS RCP_AOFFCE_CD_NM -- 접수사무소명
                             , T9.CLCTAM_DV_CD AS CLCTAM_DV_CD -- 집금구분코드
                             , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'CLCTAM_DV_CD' AND CD_VLD_VAL = T9.CLCTAM_DV_CD) AS CLCTAM_DV_CD_NM -- 집금구분코드명
                             , T9.CLCTAM_PRTNR_NO AS CLCTAM_PRTNR_NO -- 집금파트너번호
                             , (SELECT NVL(MAX(PRTNR_KNM), '') FROM TB_CBBO_CLCTAM_PRTNR_DTL WHERE PRTNR_NO  = T9.CLCTAM_PRTNR_NO) AS CLCTAM_PRTNR_NM -- 집금파트너이름
-                            , SUBSTR(T30.CLCO_TF_DT, 1, 4) || '-' || SUBSTR(T30.CLCO_TF_DT, 5) AS CLCO_TF_DT -- 발송년월
+                            , TO_CHAR(TO_DATE(T30.CLCO_TF_DT, 'YYYYMM'), 'YYYY-MM') AS CLCO_TF_DT -- 발송년월
                             ----------------------------------------------------------------
                             -- 기타정보
                             ----------------------------------------------------------------
@@ -524,6 +477,20 @@
                        AND T11.CNTR_SN = T1.CNTR_SN
                        AND T11.ADN_SV_DV_CD = '01'
                        AND T11.ADN_SV_SN = 1
+                      LEFT OUTER JOIN LATERAL (SELECT A.PD_CD AS SV_PD_CD
+                            					    				  , (TRIM(AFMDBS.F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', A.SV_PD_TP_CD))  || ' - 방문(' || NVL(B.PD_PRP_VAL02,'0') || ')/택배(' || B.PD_PRP_VAL03 || ')')  AS SV_TP_CD_NM
+                              									 FROM TB_PDBS_PD_BAS A
+                              									 LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL B
+                              									   ON B.PD_CD = A.PD_CD
+                              									  AND B.PD_EXTS_PRP_GRP_CD = 'SCHD'
+                              									WHERE A.PD_CD IN (SELECT OJ_PD_CD
+                              									                    FROM TB_SSCT_CNTR_PD_REL
+                              									                   WHERE CNTR_NO = T1.CNTR_NO
+                              									                     AND CNTR_SN = T1.CNTR_SN
+                              									                     AND PD_REL_TP_CD = '03'
+                              									                     AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                              									                     AND DTA_DL_YN = 'N')) T12
+                        ON 1=1
                       LEFT OUTER JOIN LATERAL (SELECT *
                                                        FROM (SELECT T1.SL_CL_YM, T1.CNTR_NO, T1.CNTR_SN, RCP_AOFFCE_CD, CLCO_TF_DT
                                                                  FROM TB_CBBO_WELLS_BND_CLCO_SEND_IZ -- Wells채권추심사송신내역
@@ -536,6 +503,15 @@
                           ON T30.SL_CL_YM = T1.SL_CL_YM
                          AND T30.CNTR_NO = T1.CNTR_NO
                          AND T30.CNTR_SN = T1.CNTR_SN
+                      LEFT OUTER JOIN LATERAL (SELECT CLCTAM_CSLR_WRKP_CD
+                        		      							 FROM TB_CBBO_CLCTAM_PRTNR_DTL -- 집금파트너상세
+                        		      						  WHERE PRTNR_NO = T9.CLCTAM_PRTNR_NO
+                        		      						    AND OG_TP_CD = NVL((SELECT OG_TP_CD
+                        								                                FROM TB_OGBS_MM_PRTNR_IZ -- 월파트너
+                              										  		               WHERE BASE_YM = T1.SL_CL_YM
+                              												                   AND PRTNR_NO = T9.CLCTAM_PRTNR_NO), 'HR1')
+                        									    ) T31
+               				  ON 1=1
                      WHERE T1.CNTR_NO = #{cntrNo}
                        AND T1.CNTR_SN = #{cntrSn}
                        <if test='@MybatisUtils@isNotEmpty(slClYm)'>
@@ -609,7 +585,7 @@
                 , T1.RENTAL_TN AS RENTAL_TN --진행차월(LCRCNT)
                 , T1.SPP_TN AS SPP_TN -- 배송차월(LCDCNT)
                 , T1.RENTAL_DC AS RENTAL_DC --사용일수(LCCDAY)
-                , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CAN_DT -- 취소일자
+                , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CAN_DT -- 취소일자
                 , T1.NOM_SL_AMT AS NOM_SL_AMT --정상매출금액(LCAM11)
                 , T1.NOM_DSC_AMT AS NOM_DSC_AMT--정상할인금액(LCAM13)
                 , TO_CHAR(TO_DATE(T1.FULPY_DT), 'YYYY-MM-DD') AS FULPY_DT -- 완료일자
@@ -638,7 +614,7 @@
                 , T1.ATAM_RPLC_PROCS_AMT AS ATAM_RPLC_PROCS_AMT --선수대체금액(LCAM34)
                 , T1.EOT_ATAM AS EOT_ATAM --선수잔액(LCAM36)
                 , T1.EOT_UC_AMT AS EOT_UC_AMT --미수총액(LCMAMT)
-                , NVL(T5.EOT_DLQ_AMT, 0) AS EOT_DLQ_AMT --연체금액(LCDAMT)
+                , NVL(T5.EOT_DLQ_AMT, 0) + NVL(T5.BTD_DLQ_ADD_AMT, 0) - NVL(T5.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T5.THM_CTR_DLQ_ADD_AMT, 0) + NVL(T5.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT -- 연체금액(C50.LCDAMT)
                 --------------------------------------------------------------
                 -- 청구미수
                 --------------------------------------------------------------
@@ -656,9 +632,9 @@
                 , T5.DLQ_MCN AS DLQ_MCN -- 연체개월
                 , T5.DLQ_ACU_MCN AS DLQ_ACU_MCN -- 연체누적개월수
                 , T1.SL_STP_YN AS SL_STP_YN -- 매출중지여부
-                , TO_CHAR(TO_DATE(T8.ACTCS_DT), 'YYYY-MM-DD') AS ACTCS_DT -- 수임일자
-                , T30.RCP_AOFFCE_CD AS RCP_AOFFCE_CD -- 접수사무소코드
-                , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'RCP_AOFFCE_CD' AND CD_VLD_VAL = T30.RCP_AOFFCE_CD) AS RCP_AOFFCE_CD_NM -- 접수사무소명 @TO-DO 사무소명이 집금담당자의 근무지정보이면 집금파트너상세 Table.집금상담사근무지코드(CLCTAM_CSLR_WRKP_CD)를 읽어야 함
+                , TO_CHAR(TO_DATE(T8.BND_ASN_DT), 'YYYY-MM-DD') AS ACTCS_DT -- 수임일자
+                , T31.CLCTAM_CSLR_WRKP_CD AS RCP_AOFFCE_CD -- 접수사무소코드
+               	, (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'CLCTAM_CSLR_WRKP_CD' AND CD_VLD_VAL = T31.CLCTAM_CSLR_WRKP_CD) AS RCP_AOFFCE_CD_NM -- 접수사무소명
                 , T8.CLCTAM_DV_CD AS CLCTAM_DV_CD -- 집금구분코드
                 , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'CLCTAM_DV_CD' AND CD_VLD_VAL = T8.CLCTAM_DV_CD) AS CLCTAM_DV_CD_NM -- 집금구분코드명
                 , T8.CLCTAM_PRTNR_NO AS CLCTAM_PRTNR_NO -- 집금파트너번호
@@ -696,6 +672,11 @@
                  LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T9
                    ON T9.PD_CD = T4.PD_CD
                   AND T9.PD_EXTS_PRP_GRP_CD  ='CNTR'
+                 LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS T10 -- WELLS위약금액기본
+                   ON T10.PERF_YM = T1.SL_CL_YM
+                  AND T10.CNTR_NO = T1.CNTR_NO
+                  AND T10.CNTR_SN = T1.CNTR_SN
+                  AND T10.DTA_DL_YN = 'N'
                  LEFT OUTER JOIN LATERAL (SELECT BASE_DTL_CNTR_NO
                                                 , BASE_DTL_CNTR_SN
                                                 , OJ_DTL_CNTR_NO
@@ -801,6 +782,15 @@
                    ON T30.SL_CL_YM = T1.SL_CL_YM
                   AND T30.CNTR_NO = T1.CNTR_NO
                   AND T30.CNTR_SN = T1.CNTR_SN
+                 LEFT OUTER JOIN LATERAL (SELECT CLCTAM_CSLR_WRKP_CD
+                    		      							FROM TB_CBBO_CLCTAM_PRTNR_DTL -- 집금파트너상세
+                    		      						 WHERE PRTNR_NO = T9.CLCTAM_PRTNR_NO
+                    		      						   AND OG_TP_CD = NVL((SELECT OG_TP_CD
+                    								                               FROM TB_OGBS_MM_PRTNR_IZ -- 월파트너
+                    												                      WHERE BASE_YM = T1.SL_CL_YM
+                    												                        AND PRTNR_NO = T9.CLCTAM_PRTNR_NO), 'HR1')
+                    									   ) T31
+                   ON 1=1
                 WHERE T1.CNTR_NO = #{cntrNo}
                   AND T1.CNTR_SN = #{cntrSn}
                   <if test="@MybatisUtils@isNotEmpty(slClYm)">

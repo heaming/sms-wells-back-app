@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
 
 import io.swagger.annotations.ApiModel;
@@ -183,6 +184,21 @@ public class WsnaReturningGoodsOstrDto {
         String strTpCd, // 입고유형코드
         String strWareDvCd, // 입고창고구분코드
         String strWareMngtPrtnrNo // 입고창고관리파트너번호
+    ) {}
+
+    @ApiModel(value = "WsnaReturningGoodsOstrDto-SearchPitmStockReq")
+    public record SearchPitmStockReq(
+        @NotEmpty
+        List<String> itmPdCds, // 품목상품코드
+        @NotBlank
+        String itmGdCd // 품목등급코드
+    ) {}
+
+    @ApiModel(value = "WsnaReturningGoodsOstrDto-SearchPitmStockRes")
+    public record SearchPitmStockRes(
+        String itmPdCd, // 품목상품코드
+        String itmGdCd, // 품목등급코드
+        String pitmQty // 시점재고
     ) {}
 
 }

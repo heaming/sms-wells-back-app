@@ -23,7 +23,7 @@ class WsniChkOverdueCustInterfaceControllerTest extends SpringTestSupport {
     void getCreativeConvAppRenewalInformation() throws Exception {
         WsniChkOverdueCustDto.FindReq req = WsniChkOverdueCustDto.FindReq.builder()
             .cntrCstNo("034246851")
-            //.dlqMcn(5)
+            .dlqMcn(5)
             .build();
 
         WsniChkOverdueCustDto.FindRes result = service.selectChkOverdueCust(req);

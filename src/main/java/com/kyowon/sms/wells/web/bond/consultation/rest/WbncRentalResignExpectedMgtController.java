@@ -1,25 +1,22 @@
 package com.kyowon.sms.wells.web.bond.consultation.rest;
 
-import java.util.List;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.*;
 import com.kyowon.sms.wells.web.bond.consultation.service.WbncRentalResignExpectedMgtService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.system.config.response.SaveResponse;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 @Api(tags = "[WBNC] 직권해지관리 - 렌탈 해지예정")
 @Validated
@@ -88,13 +85,15 @@ public class WbncRentalResignExpectedMgtController {
         return service.saveRentalResignExpectedExcelUpload(file);
     }
 
-    @ApiOperation(value = "직권해지관리 - 렌탈 해지예정 취소자료등록", notes = "취소자료등록 버튼 클릭 시 등록된 직권해지 대상을 취소처리 한다.")
-    @PutMapping("/cancel")
-    public SaveResponse saveRentalResignExpectedCancels(
-        @RequestBody
+    @ApiOperation(value = "직권해지관리 - 렌탈 해지예정 알림톡 발송 확인", notes = "최종확정전 알림톡 발송여부(건수)를 체크한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseDt", value = "직권해지일", paramType = "query", required = true),
+    })
+    @GetMapping("/sms-count")
+    public Integer getRentalResignExpectedSmsCount(
         @Valid
-        SaveCancelReq dto
+        SmsCheckReq dto
     ) throws Exception {
-        return SaveResponse.builder().processCount(this.service.saveRentalResignExpectedCancels(dto)).build();
+        return service.getRentalResignExpectedSmsCount(dto);
     }
 }

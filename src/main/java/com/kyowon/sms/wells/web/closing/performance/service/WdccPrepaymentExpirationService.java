@@ -53,7 +53,7 @@ public class WdccPrepaymentExpirationService {
 
             paramMap.put("cstKnm", dto.cstKnm());
             paramMap.put("prmEndMm", dto.prmEndMm());
-            paramMap.put("cntrNo", dto.cntrNo());
+            paramMap.put("cntrNo", dto.cntrNo() + "-" + dto.cntrSn());
             paramMap.put("pdNm", dto.pdNm());
             paramMap.put("cnt", dto.cnt());
             paramMap.put("currMm", dto.currMm());

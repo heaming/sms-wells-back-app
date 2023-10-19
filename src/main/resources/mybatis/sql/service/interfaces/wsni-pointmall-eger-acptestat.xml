@@ -3,30 +3,47 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniPointmallEgerAcptestatMapper">
 
     <select id="selectPointmallEgerAcptestats" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniPointmallEgerAcptestatDto$SearchRes">
-        SELECT TD.IN_CHNL_DV_CD
-             , TD.AS_IST_OJ_NO
-             , NVL(TD.WK_ACPTE_STAT_CD, 'N') AS WK_ACPTE_STAT_CD
-             , NVL(TD.WK_ACPTE_DT, '00000000') AS WK_ACPTE_DT
-             , NVL(TD.WK_ACPTE_HH, '000000') AS WK_ACPTE_HH
-             , NVL(TD.VST_CNFMDT, '00000000') AS VST_CNFMDT
-             , NVL(TD.VST_CNFM_HH, '000000') AS VST_CNFM_HH
-             , TD.WK_PRGS_STAT_CD AS WK_PRGS_STAT_CD
-             , 'N' AS RTNGD_YN
-          FROM ( SELECT AC211.IN_CHNL_DV_CD
-                      , AC211.AS_IST_OJ_NO
+        SELECT TD.IN_CHNL_DV_CD /* 입력채널구분코드 */
+             , TD.AS_IST_OJ_NO  /* AS설치대상번호 */
+             , NVL(TD.WK_ACPTE_STAT_CD, 'N') AS WK_ACPTE_STAT_CD /* 작업수락상태코드 */
+             , NVL(TD.WK_ACPTE_DT, '00000000') AS WK_ACPTE_DT    /* 작업수락일자 */
+             , NVL(TD.WK_ACPTE_HH, '000000') AS WK_ACPTE_HH      /* 작업수락시간 */
+             , NVL(TD.VST_CNFMDT, '00000000') AS VST_CNFMDT      /* 방문확정일자 */
+             , NVL(TD.VST_CNFM_HH, '000000') AS VST_CNFM_HH      /* 방문확정시간 */
+             , TD.WK_PRGS_STAT_CD AS WK_PRGS_STAT_CD             /* 작업진행상태코드 */
+             , 'N' AS RTNGD_YN /* 반품여부 */
+             , TD.CNTR_CNFM_Y AS CNTR_CNFM_Y /* 주문확정년 */
+             , TD.SAMSUNG_YN_CD AS SAMSUNG_YN_CD /* 삼성제품여부코드 */
+          FROM ( SELECT AC211.IN_CHNL_DV_CD /* 입력채널구분코드 */
+                      , AC211.AS_IST_OJ_NO  /* AS설치대상번호 */
                       , AC221.CST_SV_ASN_NO       /*배정일자(접수관리)*/
-                      , AC211.CNTR_NO        /*고객년도*/
-                      , AC211.CNTR_SN        /*고객코드*/
-                      ,NVL(AC221.WK_ACPTE_STAT_CD,'N') AS WK_ACPTE_STAT_CD  /*작업수락상태(수락 'Y', 그외 '')*/
-                      ,AC221.WK_ACPTE_DT    /*작업수락일자 : 배송상품 수신 일시*/
-                      ,AC221.WK_ACPTE_HH    /*작업수락시간 : 배송상품 수신 일시*/
-                      ,AC221.VST_CNFMDT        /*방문확정일자(최초 고객센터 입력, 최종 변경 일자)*/
-                      ,AC221.VST_CNFM_HH  /*방문확정시간(최초 고객센터 입력, 최종 변경 시간)*/
-                      ,AC221.WK_PRGS_STAT_CD
+                      , AC211.CNTR_NO        /*계약번호*/
+                      , AC211.CNTR_SN        /*계약일련번호*/
+                      , NVL(AC221.WK_ACPTE_STAT_CD,'N') AS WK_ACPTE_STAT_CD  /*작업수락상태(수락 'Y', 그외 '')*/
+                      , AC221.WK_ACPTE_DT    /*작업수락일자 : 배송상품 수신 일시*/
+                      , AC221.WK_ACPTE_HH    /*작업수락시간 : 배송상품 수신 일시*/
+                      , AC221.VST_CNFMDT        /*방문확정일자(최초 고객센터 입력, 최종 변경 일자)*/
+                      , AC221.VST_CNFM_HH  /*방문확정시간(최초 고객센터 입력, 최종 변경 시간)*/
+                      , AC221.WK_PRGS_STAT_CD /* 작업진행상태코드 */
+                      , SUBSTR(T1.CNTR_CNFM_DTM,1,4) AS CNTR_CNFM_Y /* 주문확정년 */
+	  				  , TRIM(P2.PD_PRP_VAL02) AS SAMSUNG_YN_CD /* 삼성제품여부코드 */
                       , RANK() OVER(ORDER BY  AS_IST_OJ_NO DESC ) AS RN
-                   FROM TB_SVPD_CST_SVAS_IST_OJ_IZ AC211
-                  INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ AC221
+                   FROM TB_SVPD_CST_SVAS_IST_OJ_IZ AC211 /* 고객서비스AS설치대상내역 */
+                  INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /* 고객서비스AS설치배정내역 */
                      ON AC211.CST_SV_ASN_NO = AC221.CST_SV_ASN_NO
+                  INNER JOIN TB_SSCT_CNTR_BAS T1 /* 계약기본 */
+                     ON AC211.CNTR_NO = T1.CNTR_NO
+                  INNER JOIN TB_SSCT_CNTR_DTL T2 /* 계약상세 */
+                     ON AC211.CNTR_NO = T2.CNTR_NO
+                    AND AC211.CNTR_SN = T2.CNTR_SN
+                  INNER JOIN TB_PDBS_PD_BAS P1 /* 상품기본 */
+                     ON T2.BASE_PD_CD = P1.PD_CD
+                    AND P1.TEMP_SAVE_YN = 'N'
+                    AND P1.DTA_DL_YN = 'N'
+                  INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2 /* 상품각사속성상세 */
+                     ON P1.PD_CD = P2.PD_CD
+                    AND P2.PD_EXTS_PRP_GRP_CD= 'SPP'
+                    AND P2.DTA_DL_YN = 'N'
                   WHERE 1=1
                     AND AC211.CNTR_NO = #{cntrNo}
                     AND AC211.CNTR_SN = #{cntrSn}
