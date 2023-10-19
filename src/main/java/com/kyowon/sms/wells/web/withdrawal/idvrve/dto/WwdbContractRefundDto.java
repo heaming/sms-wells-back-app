@@ -99,8 +99,8 @@ public class WwdbContractRefundDto {
         /* 확인 필요: 할부전금계 = 인수전금 합계 + 할부전금 합계  */
         String rfndDsbPspIntSum, // 지연이자 합계
         /* 확인 필요:K 포인트 */
-        String rfndBltfSum/* 확인 필요:전금합계 */
-        /* 확인 필요:환불 총계 */
+        String rfndBltfSum,/* 확인 필요:전금합계 */
+        String rfTotalSum/* 확인 필요:환불 총계 */
     ) {
     }
 

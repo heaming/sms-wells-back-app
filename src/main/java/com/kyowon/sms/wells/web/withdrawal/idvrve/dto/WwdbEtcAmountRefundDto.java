@@ -96,13 +96,14 @@ public class WwdbEtcAmountRefundDto {
         String cashCardRfndDdtnAmtSum, // 현금계(현금 환불공제금액 합계 + 카드 공제(환불공제금액 합계))
         String cardRfndDsbAmtSum, // 카드 (환불지급금액) 합계
         /* 확인필요 : 웰스 인수 전금 */
-        /* 확인필요 : 웰스 할부 전금 */
-        /* 확인필요 : 웰스 렌탈 전금 */
-        /* 확인필요 : 웰스 멤버 전금 */
-        String rfndDsbPspIntSum // 지연이자 합계
+        String welsIstmBltf,/* 확인필요 : 웰스 할부 전금 */
+        String welsRentalBltf,/* 확인필요 : 웰스 렌탈 전금 */
+        String welsMmbrBltf,/* 확인필요 : 웰스 멤버 전금 */
+
+        String rfndDsbPspIntSum, // 지연이자 합계
         // k머니 합계
-        /* 확인 필요:전금합계 */
-        /* 확인 필요:환불 총계 */
+        String rfndBltfSum, /* 확인 필요:전금합계 */
+        String rfTotalSum/* 확인 필요:환불 총계 */
     ) {
     }
 
