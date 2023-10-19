@@ -12,11 +12,24 @@
                  , RAFB.BASE_YM AS FNT_YM
                  , RAFB.DSN_WDRW_FNT_D
                  , RAFB.FNT_YN
-                 , NVL(RAFB.DP_AMT, 0) AS DP_AMT
+                 , NVL(RAFB.DSN_WDRW_AMT, 0) - NVL((
+                 									SELECT DP_AMT
+                 									  FROM (
+                 									  		SELECT DP_AMT
+		                                                         , ROW_NUMBER() OVER(ORDER BY BIL_NO DESC) AS RN
+		                                                      FROM TB_RVCL_BIL_FNT_AK_DTL
+		                                                     WHERE 1 = 1
+		                                                       AND DTA_DL_YN = 'N'
+		                                                       AND CNTR_NO = RAFB.CNTR_NO
+		                                                       AND CNTR_SN = RAFB.CNTR_SN
+		                                                       AND BIL_YM = RAFB.BASE_YM
+                 									       )
+                 									 WHERE RN = 1
+                                                       ),0) AS DP_AMT
                  , NVL(RAFB.UC_AMT, 0) AS UC_AMT
                  , RAFB.DSN_WDRW_FNT_PRD_CD
-                 , OPB.PRTNR_KNM
-                 , RAFB.FST_RGST_USR_ID
+                 , USR.USR_NM AS PRTNR_KNM
+                 , USR.EPNO AS FST_RGST_USR_ID
                  , RAFB.FST_RGST_DTM
               FROM TB_RVCL_AC_FNT_DSN_WDRW_BAS RAFB
               JOIN TB_SSCT_CNTR_DTL SCD
@@ -30,11 +43,13 @@
               JOIN TB_CUBS_CST_BAS CCB
                 ON SCB.CNTR_CST_NO = CCB.CST_NO
                AND CCB.DTA_DL_YN = 'N'
-   LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OPB
-                ON RAFB.FNL_MDFC_USR_ID = OPB.PRTNR_NO /* 조인 조건이 맞는지 */
-               AND OPB.DTA_DL_YN = 'N'
-             WHERE RAFB.CNTR_NO = #{cntrNo}
+         LEFT JOIN T_CMP_USR_ACO_M USR
+                ON USR.USR_ID = RAFB.FST_RGST_USR_ID
+             WHERE 1 = 1
+               <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+               AND RAFB.CNTR_NO = #{cntrNo}
                AND RAFB.CNTR_SN = #{cntrSn}
+               </if>
                AND RAFB.BASE_YM = #{baseYm}
                <if test="sellTpCd != 'ALL'">
                AND SCD.SELL_TP_CD = #{sellTpCd}

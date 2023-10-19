@@ -3,12 +3,12 @@ package com.kyowon.sms.wells.web.service.allocate.service;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncBeforeServiceAsnBatConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBeforeServiceAsnBatDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBeforeServiceAsnBatDvo;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.annotation.LongTransactional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@LongTransactional
 public class WsncBeforeServiceAsnBatService {
 
     private final WsncSpecCustAsnService wsncSpecCustAsnService;    //[W-SV-S-0027] 특정고객 배정 인서트
@@ -26,12 +27,10 @@ public class WsncBeforeServiceAsnBatService {
 
     private final WsncBeforeServiceAsnBatConverter converter;
 
-    @Transactional
     public int processBeforeServiceAsnBat(WsncBeforeServiceAsnBatDto.SaveProcessReq dto) throws Exception {
         return processBeforeServiceAsnBat(converter.mapSaveProcessReqToDvo(dto));
     }
 
-    @Transactional
     public int processBeforeServiceAsnBat(WsncBeforeServiceAsnBatDvo dvo) throws Exception {
 
         /*
@@ -56,7 +55,6 @@ public class WsncBeforeServiceAsnBatService {
         return 1;
     }
 
-    @Transactional
     public int processBeforeServiceAsnBat(Map<String, Object> param) throws Exception {
         WsncBeforeServiceAsnBatDvo dvo = new WsncBeforeServiceAsnBatDvo();
         dvo.setAsnOjYm(StringUtil.nvl(param.get("PARAM1")));

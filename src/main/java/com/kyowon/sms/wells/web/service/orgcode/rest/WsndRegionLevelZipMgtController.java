@@ -40,6 +40,12 @@ public class WsndRegionLevelZipMgtController {
 
     private final WsndRegionLevelZipMgtService service;
 
+    /**
+     * 급지 우편번호 조회
+     * @param dto 조회조건
+     * @param pageInfo 페이지정보
+     * @return 급지 우편번호 목록
+     */
     @ApiOperation(value = "급지 우편번호 조회", notes = "조회조건에 일치하는 우편번호별 법정동, 행정동, 행정동 주민센터 등의 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "zipFrom", value = "우편번호From", paramType = "query", example = "011"),
@@ -60,6 +66,11 @@ public class WsndRegionLevelZipMgtController {
         return this.service.getZipNoPages(dto, pageInfo);
     }
 
+    /**
+     * 급지 우편번호 목록 엑셀 다운로드
+     * @param dto 조회조건
+     * @return 급지 우편번호 목록
+     */
     @ApiOperation(value = "급지 우편번호 목록 엑셀 다운로드", notes = "검색조건을 입력 받아 엑셀 다운로드용 급지 우편번호 목록을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "zipFrom", value = "우편번호From", paramType = "query", example = "011"),
@@ -75,6 +86,12 @@ public class WsndRegionLevelZipMgtController {
         return this.service.getZipNosForExcelDownload(dto);
     }
 
+    /**
+     * 급지 우편번호 저장
+     * @param dtos 급지 우편번호 출고지 정보
+     * @return 처리건수
+     * @throws Exception
+     */
     @ApiOperation(value = "급지 우편번호 저장", notes = "우편번호의 출고지 정보를 저장한다.")
     @PutMapping
     public SaveResponse editZipNos(

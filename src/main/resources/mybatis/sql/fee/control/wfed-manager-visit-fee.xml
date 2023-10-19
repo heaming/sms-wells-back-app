@@ -10,8 +10,8 @@
              , OG.DGR1_LEVL_DG_PRTNR_NO	/*총괄단장*/
              , OG.DGR2_LEVL_DG_PRTNR_NO	/*지역단장*/
              , OG.DGR3_LEVL_DG_PRTNR_NO	/*지점장*/
-             , T1.PRTNR_NO
-             , OG.PRTNR_KNM
+             , T1.PRTNR_NO  /*파트너번호*/
+             , OG.PRTNR_KNM     /*파트너명*/
              , T1.CNTR_NO	/*계약번호*/
              , T4.CNTR_CST_NO   /*계약고객번호*/
              , (SELECT C.CST_KNM FROM TB_CUBS_CST_BAS C WHERE C.DTA_DL_YN = 'N' AND C.CST_NO = T4.CNTR_CST_NO ) AS CST_KNM  /*고객명*/
@@ -42,12 +42,12 @@
                ELSE '' END AS CAN_YN	/*취소여부*/
           FROM TB_FEAM_WELS_SV_PERF_IZ T1	/*웰스서비스실적내역*/
           LEFT OUTER JOIN
-             ( SELECT A.PD_CD
-                    , A.PD_NM
-                    , A.PD_CLSF_ID
-                    , B.REF_PD_CLSF_VAL
-                 FROM TB_PDBS_PD_BAS A
-                INNER JOIN TB_PDBS_PD_CLSF_BAS B
+             ( SELECT A.PD_CD   /*상품코드*/
+                    , A.PD_NM   /*상품명*/
+                    , A.PD_CLSF_ID  /*상품분류ID*/
+                    , B.REF_PD_CLSF_VAL     /*참조상품분류값*/
+                 FROM TB_PDBS_PD_BAS A  /*상품기본*/
+                INNER JOIN TB_PDBS_PD_CLSF_BAS B    /*상품분류기본*/
                    ON A.PD_CLSF_ID = B.PD_CLSF_ID
                   AND B.DTA_DL_YN = 'N'
                 WHERE A.DTA_DL_YN = 'N'
@@ -59,9 +59,9 @@
                 * => 정기배송 패키지 상품(모종)이고 결합 계약인 것을 제외함
                 * */
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1 C3) USE_NL(C1 C2 C3) */
-                      C1.CNTR_SN AS SEQ
+                      C1.CNTR_SN AS SEQ     /*순번*/
              	    , C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
-                    , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('301','303') THEN C1.CNTR_PD_ENDDT ELSE NULL END AS CNTR_CAN_DTM	/*계약취소일시*/
+                    , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('301', '302', '303') THEN C1.CNTR_PD_ENDDT ELSE NULL END AS CNTR_CAN_DTM	/*계약취소일시*/
                     , NULL AS REQD_DT	/*철거일자*/
                     , NULL AS SL_STP_YN	/*매출중지여부*/
                     , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
@@ -83,20 +83,20 @@
                 UNION ALL
                  /*멤버십*/
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) USE_NL(C1 C2 C3) */
-                      C1.CNTR_SN AS SEQ
+                      C1.CNTR_SN AS SEQ     /*순번*/
                     , C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
-                    , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('301','303') THEN C1.CNTR_PD_ENDDT ELSE NULL END AS CNTR_CAN_DTM	/*멤버십종료일시*/
+                    , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('301', '302', '303') THEN C1.CNTR_PD_ENDDT ELSE NULL END AS CNTR_CAN_DTM	/*멤버십종료일시*/
                     , NULL AS REQD_DT	/*철거일자*/
                     , NULL AS SL_STP_YN	/*매출중지여부*/
                     , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
-                    , C3.HCR_DV_CD
+                    , C3.HCR_DV_CD  /*홈케어구분코드*/
                     , C2.CNTR_CST_NO	/*계약고객번호*/
                     , 'N' AS COMBI_YN	/*결합제외여부*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
                 INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
                    ON C1.CNTR_NO = C2.CNTR_NO
                   AND C2.DTA_DL_YN = 'N'
-                INNER JOIN TB_SSCT_CNTR_WELLS_DTL C3
+                INNER JOIN TB_SSCT_CNTR_WELLS_DTL C3    /*계약WELLS상세*/
                    ON C1.CNTR_NO = C3.CNTR_NO
                   AND C1.CNTR_SN = C3.CNTR_SN
                 WHERE C1.CNTR_NO = T1.CNTR_NO
@@ -109,13 +109,13 @@
                   * 웰스팜 기기이고 결합이 아니면 제외
                   * */
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1) USE_NL(C1 C2 C3 C4) */
-                      0 AS SEQ
+                      0 AS SEQ  /*순번*/
                  	, C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
-                    , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('301','303') THEN C1.CNTR_PD_ENDDT ELSE NULL END AS CNTR_CAN_DTM	/*계약취소일시*/
+                    , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('301', '302', '303') THEN C1.CNTR_PD_ENDDT ELSE NULL END AS CNTR_CAN_DTM	/*계약취소일시*/
                     , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('401','402') THEN C4.REQD_DT ELSE NULL END AS REQD_DT /*철거일자(만료철거일자)*/
                     , D1.SL_STP_YN	/*매출중지여부*/
                     , C2.CNTR_CAN_RSON_CD	/*계약취소사유코드*/
-                    , NULL AS HCR_DV_CD
+                    , NULL AS HCR_DV_CD     /*홈케어구분코드*/
                     , C2.CNTR_CST_NO	/*계약고객번호*/
                     , CASE WHEN T2.REF_PD_CLSF_VAL LIKE '05001003%' AND C3.CNTR_REL_DTL_CD = '216' THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
@@ -125,7 +125,7 @@
                  LEFT OUTER JOIN TB_SSCT_CNTR_REL C3	/*계약관계*/
                    ON C3.BASE_DTL_CNTR_NO = C1.CNTR_NO
                   AND C3.BASE_DTL_CNTR_SN = C1.CNTR_SN
-                  AND C3.OJ_DTL_CNTR_NO IS NOT NULL
+                  <!--AND C3.OJ_DTL_CNTR_NO IS NOT NULL-->
                   AND C3.DTA_DL_YN = 'N'
                 INNER JOIN TB_SSCT_CNTR_WELLS_DTL C4	/*계약WELLS상세*/
                    ON C4.CNTR_NO = C1.CNTR_NO
@@ -146,13 +146,13 @@
                   * 웰스팜 기기이고 결합이 아니면 제외
                   * */
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1) USE_NL(C1 C2 C3 C4) */
-                      0 AS SEQ
+                      0 AS SEQ  /*순번*/
                     , C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
-                    , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('301','303') THEN C1.CNTR_PD_ENDDT ELSE NULL END AS CNTR_CAN_DTM	/*계약취소일시*/
+                    , CASE WHEN C1.CNTR_DTL_STAT_CD IN ('301', '302', '303') THEN C1.CNTR_PD_ENDDT ELSE NULL END AS CNTR_CAN_DTM	/*계약취소일시*/
                     , C4.CPS_DT AS REQD_DT	/*철거일자(보상일자)*/
                     , NULL AS SL_STP_YN	/*매출중지여부*/
                     , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
-                    , C4.HCR_DV_CD
+                    , C4.HCR_DV_CD  /*홈케어구분코드*/
                     , C2.CNTR_CST_NO	/*계약고객번호*/
                     , CASE WHEN T2.REF_PD_CLSF_VAL LIKE '05001003%' AND C3.CNTR_REL_DTL_CD = '216' THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
@@ -162,7 +162,7 @@
                  LEFT OUTER JOIN TB_SSCT_CNTR_REL C3	/*계약관계*/
                    ON C3.BASE_DTL_CNTR_NO = C1.CNTR_NO
                   AND C3.BASE_DTL_CNTR_SN = C1.CNTR_SN
-                  AND C3.OJ_DTL_CNTR_NO IS NOT NULL
+                  <!--AND C3.OJ_DTL_CNTR_NO IS NOT NULL-->
                   AND C3.DTA_DL_YN = 'N'
                 INNER JOIN TB_SSCT_CNTR_WELLS_DTL C4	/*계약WELLS상세*/
                    ON C4.CNTR_NO = C1.CNTR_NO
@@ -175,13 +175,13 @@
                 UNION ALL
                 /*회사설치*/
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1) USE_NL(C1 C2 C3 C4) */
-                      0 AS SEQ
+                      0 AS SEQ  /*순번*/
                     , C1.CNTR_DTL_STAT_CD	/*계약상세상태코드*/
                     , NULL AS CNTR_CAN_DTM	/*계약취소일시*/
                     , C4.REQD_DT AS REQD_DT	/*철거일자(반품일자)*/
                     , NULL AS SL_STP_YN	/*매출중지여부*/
                     , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
-                    , NULL AS HCR_DV_CD
+                    , NULL AS HCR_DV_CD     /*홈케어구분코드*/
                     , C2.CNTR_CST_NO	/*계약고객번호*/
                     , CASE WHEN T2.REF_PD_CLSF_VAL LIKE '05001003%' THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
@@ -201,16 +201,16 @@
             ) T4 ON 1=1
          LEFT OUTER JOIN
             ( SELECT /*+ USE_NL(A B) */
-                    A.BASE_YM
-                   , A.OG_TP_CD
-                   , A.DGR1_LEVL_OG_ID
-                   , A.DGR2_LEVL_OG_ID
-                   , A.DGR3_LEVL_OG_ID
-                   , A.DGR1_LEVL_DG_PRTNR_NO
-                   , A.DGR2_LEVL_DG_PRTNR_NO
-                   , A.DGR3_LEVL_DG_PRTNR_NO
-                   , B.PRTNR_NO
-                   , B.PRTNR_KNM
+                    A.BASE_YM   /*기준년월*/
+                   , A.OG_TP_CD     /*조직유형코드*/
+                   , A.DGR1_LEVL_OG_ID  /*총괄단*/
+                   , A.DGR2_LEVL_OG_ID  /*지역단*/
+                   , A.DGR3_LEVL_OG_ID  /*지점*/
+                   , A.DGR1_LEVL_DG_PRTNR_NO    /*총괄단대표파트너번호*/
+                   , A.DGR2_LEVL_DG_PRTNR_NO    /*지역단대표파트너번호*/
+                   , A.DGR3_LEVL_DG_PRTNR_NO    /*지점대표파트너번호*/
+                   , B.PRTNR_NO     /*파트너번호*/
+                   , B.PRTNR_KNM    /*파트너명*/
                 FROM TB_OGBS_MM_OG_IZ A /* 월조직내역 */
                INNER JOIN TB_OGBS_MM_PRTNR_IZ B /* 월파트너내역 */
                   ON A.BASE_YM = B.BASE_YM
@@ -218,7 +218,7 @@
                  AND A.OG_ID = B.OG_ID
                  AND B.DTA_DL_YN = 'N'
                WHERE A.DTA_DL_YN = 'N'
-                 AND A.BASE_YM = #{baseYm}
+                 AND A.BASE_YM = #{baseYm}  /*기준년월*/
                  AND A.OG_TP_CD IN ('W02', 'W03')	/*M조직, 홈마스터*/
             ) OG
            ON T1.BASE_YM = OG.BASE_YM
@@ -227,7 +227,7 @@
          LEFT OUTER JOIN LATERAL
             ( SELECT SV_FEE_BASE_AMT	/*BS기본수수료*/
                    , SV_FEE_PD_DV_CD	/*BS상품그룹*/
-                FROM TB_FEAM_WELS_SV_FEE_BAS C
+                FROM TB_FEAM_WELS_SV_FEE_BAS C  /*웰스서비스수수료기본*/
                WHERE BASE_PD_CD = T1.BASE_PD_CD
                  AND VST_MCN = 0
                  AND SV_FEE_DV_CD = CASE WHEN OG.OG_TP_CD = 'W03' THEN '2' ELSE '1' END

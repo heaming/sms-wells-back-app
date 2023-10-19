@@ -24,7 +24,7 @@ public class WsnbRegularShippingChangeDto {
         String bfchPdCd,
         @JsonProperty(value = "AFCH_PD_CD")
         String afchPdCd,
-        @JsonProperty(value = "CHO_CAPSL_CN") // P_PART_LIST
+        @JsonProperty(value = "CHO_CAPSL_CN") // P_PART_LIST (판매코드,수량 | 판매코드, 수량 | ... )
         String choCapslCn,
         @JsonProperty(value = "MTR_PROCS_STAT_CD")
         String mtrProcsStatCd,

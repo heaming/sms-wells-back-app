@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.customer.contact.rest;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementReq;
-import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementRes;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementReq;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementRes;
 import com.kyowon.sms.wells.web.customer.contact.service.WcsaCustomerInterfaceService;
 import com.kyowon.sms.wells.web.customer.zcommon.constants.CstCommonConstant;
 import com.sds.sflex.system.config.annotation.InterfaceController;
@@ -19,6 +19,15 @@ import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+
+/**
+ * <pre>
+ * 고객 인터페이스 관리 - wells Controller
+ * </pre>
+ *
+ * @author Jaeyeol.Lee
+ * @since 2023-02-01
+ */
 
 @InterfaceController
 @Api(tags = "[WCSA] 고객 인터페이스 관리")

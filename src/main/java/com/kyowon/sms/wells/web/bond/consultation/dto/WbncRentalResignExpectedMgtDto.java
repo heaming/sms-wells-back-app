@@ -1,11 +1,10 @@
 package com.kyowon.sms.wells.web.bond.consultation.dto;
 
-import javax.validation.constraints.NotBlank;
-
-import org.eclipse.jetty.util.StringUtil;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
+import org.eclipse.jetty.util.StringUtil;
+
+import javax.validation.constraints.NotBlank;
 
 public class WbncRentalResignExpectedMgtDto {
     // *********************************************************
@@ -25,7 +24,8 @@ public class WbncRentalResignExpectedMgtDto {
         String cstNo, /* 고객번호 */
         @NotBlank
         String authRsgCd/* 확정구분 */
-    ) {}
+    ) {
+    }
 
     // *********************************************************
     // Result Dto
@@ -114,7 +114,9 @@ public class WbncRentalResignExpectedMgtDto {
     public record CreateReq(
         @NotBlank
         String baseDt /* 직권해지일 */
-    ) {}
+    ) {
+    }
+
     @Builder
     @ApiModel("WbncRentalResignExpectedMgtDto-CheckReq")
     public record CheckReq(
@@ -122,7 +124,8 @@ public class WbncRentalResignExpectedMgtDto {
         String baseDt, /* 직권해지일 */
         String cntrNo,
         int cntrSn
-    ) {}
+    ) {
+    }
 
     @Builder
     @ApiModel("WbncRentalResignExpectedMgtDto-SaveReq")
@@ -131,7 +134,6 @@ public class WbncRentalResignExpectedMgtDto {
         String baseYm, /* 기준년월 */
         @NotBlank
         String excdYn, /* 제외여부 */
-        @NotBlank
         String authRsgExcdRsonCd, /* 제외사유 */
         @NotBlank
         String cntrNo, /* 계약번호 */
@@ -139,7 +141,8 @@ public class WbncRentalResignExpectedMgtDto {
         String cntrSn, /* 계약일련번호 */
         @NotBlank
         String rowState /* 상태코드 */
-    ) {}
+    ) {
+    }
 
     @Builder
     @ApiModel("WbncRentalResignExpectedMgtDto-SaveConfirmReq")
@@ -148,11 +151,22 @@ public class WbncRentalResignExpectedMgtDto {
         String baseDt, /* 직권해지일 */
         @NotBlank
         String confirmDvCd /* 예정확정 : '01' , 최종확정 : '02' */
-    ) {}
+    ) {
+    }
+
     @Builder
     @ApiModel("WbncRentalResignExpectedMgtDto-SaveCancelReq")
     public record SaveCancelReq(
         @NotBlank
         String baseDt /* 직권해지일 */
-    ) {}
+    ) {
+    }
+
+    @Builder
+    @ApiModel("WbncRentalResignExpectedMgtDto-SmsCheckReq")
+    public record SmsCheckReq(
+        @NotBlank
+        String baseDt /* 직권해지일 */
+    ) {
+    }
 }

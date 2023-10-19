@@ -62,5 +62,6 @@ public class WsncRoutineBsPsicAssignStateDvo {
     String cntrDtlStatNm;
     String asMatItmGrpCd;
     String hirFomCd;
+    String cstSvAsnNo;
 
 }

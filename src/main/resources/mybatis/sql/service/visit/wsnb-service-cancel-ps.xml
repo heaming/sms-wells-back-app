@@ -1,0 +1,80 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbServiceCancelPsMapper">
+    <select id="selectServiceCancelPsPages" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceCancelPsDvo">
+        SELECT S1.CNTR_NO 							/* 계약번호 */
+             , S1.CNTR_SN 							/* 계약일련번호 */
+             , S1.CNTR_NO || '-' || S1.CNTR_SN AS CNTR_NO_SN
+             , C4.RCGVP_KNM AS CST_KNM /* 설치자명 */
+             , S1.SITE_AW_PD_GRP_CD AS PD_GRP_CD /* 상품군코드 */
+            , F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', S1.SITE_AW_PD_GRP_CD) AS PD_GRP_NM /* 상품군명 */
+--              , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', S1.SITE_AW_PD_GRP_CD) AS PD_GRP_NM /* 상품군명 */
+             , P1.PD_NM /* 상품명 */
+             , S1.ARV_DT || (CASE WHEN LENGTH(S1.ARV_HH) = 4 THEN S1.ARV_HH || '00' ELSE S1.ARV_HH END) AS ARV_DTM /* 작업시간(도착) */
+             , S4.VST_FSH_DT || S4.VST_FSH_HH AS VST_FSH_DTM /* 작업시간(완료) */
+             , S4.CRAL_LOCARA_TNO					/* 휴대지역전화번호 */
+             , S4.MEXNO_ENCR						/* 휴대전화국번호암호화 */
+             , S4.CRAL_IDV_TNO						/* 휴대개별전화번호 */
+             , A1.NEW_ADR_ZIP						/* 계약자-우편번호 */
+             , A1.RNADR || ' ' || A1.RDADR AS RADR 	/* 계약자-주소 */
+             , O12.DGR1_LEVL_OG_NM AS GNRDV 		/* 총괄단 */
+             , O12.DGR2_LEVL_OG_NM AS RGRP 			/* 지역단 */
+             , S3.ALNC_BZS_CD						/* 서비스유형 */
+            , F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_HCLSF_CD', S1.SV_BIZ_HCLSF_CD) AS SV_BIZ_HCLSF_NM /* 서비스유형명 */
+            , F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', S1.SV_BIZ_DCLSF_CD) AS SV_BIZ_DCLSF_NM /* 서비스유형상세명 */
+--              , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', S1.SV_BIZ_HCLSF_CD) AS SV_BIZ_HCLSF_NM /* 서비스유형명 */
+--              , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', S1.SV_BIZ_DCLSF_CD) AS SV_BIZ_DCLSF_NM /* 서비스유형상세명 */
+             , S1.SV_CNR_OG_ID						/* 서비스센터 */
+             , S1.RPB_LOCARA_CD 					/* 책임지역 */
+             , O1.PRTNR_KNM || '(' || O1.PRTNR_NO || ')' AS PRTNR /* 담당엔지니어 */
+             , S2.CNSL_MO_CN 						/* 접수내역 */
+            , F_CMZ_CD_NM(#{session.tenantId}, 'WK_PRGS_STAT_CD', S1.WK_PRGS_STAT_CD) AS WK_PRGS_STAT_NM /* 작업상태 */
+--              , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', S1.WK_PRGS_STAT_CD) AS WK_PRGS_STAT_NM /* 작업상태 */
+             , S1.WK_CAN_RSON_CD					/* 취소원인 */
+            , F_CMZ_CD_NM(#{session.tenantId}, 'SV_WK_CAN_RSON_CD', S1.WK_CAN_RSON_CD) AS WK_CAN_RSON_NM /* 취소사유 */
+--              , F_CMZ_CD_NM('TNT_WELLS', 'SV_WK_CAN_RSON_CD', S1.WK_CAN_RSON_CD) AS WK_CAN_RSON_NM /* 취소사유 */
+             , S1.WK_CAN_MO_CN /* 취소상세내역 */
+             , S4.IST_ENVR_PHO_PH_DOC_ID AS IST_IMP_ENVR_1ST_IMG_FILE_UID			/* 설치환경사진 */
+             , S4.IST_KIT_PHO_PH_DOC_ID AS IST_IMP_ENVR_2ND_IMG_FILE_UID 			/* 설치키트사진 */
+             , S4.IST_CELNG_PHO_PH_DOC_ID AS IST_IMP_ENVR_3RD_IMG_FILE_UID 			/* 설치천장사진 */
+             , P1.PD_ABBR_NM AS MODEL_NM 			/* 모델명 */
+             , '특이사항' AS UNUITM 			        /* 특이사항 */
+             , S1.CST_SV_ASN_NO /* 고객서비스배정번호 */
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
+         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2
+            ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+          LEFT OUTER JOIN TB_PDBS_PD_BAS P1
+            ON S2.PD_CD = P1.PD_CD
+          LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ S3
+            ON S3.CNTR_NO = S1.CNTR_NO
+           AND S3.CNTR_SN = S1.CNTR_SN
+          LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S4
+            ON S4.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL C3
+            ON C3.DTL_CNTR_NO = S1.CNTR_NO
+           AND C3.DTL_CNTR_SN = S1.CNTR_SN
+           AND C3.ADRPC_TP_CD IN ('2', '3')
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS C4
+            ON C4.CNTR_ADRPC_ID = C3.CNTR_ADRPC_ID
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ O1 /* 월파트너내역 */
+            ON O1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND O1.OG_TP_CD = S1.ICHR_OG_TP_CD
+           AND O1.PRTNR_NO = S1.ICHR_PRTNR_NO
+           AND O1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ O11
+            ON SUBSTR(S2.RCPDT, 1, 6) = O11.BASE_YM
+           AND S2.RCP_OG_TP_CD = O11.OG_TP_CD
+           AND S2.RCP_ICHR_PRTNR_NO = O11.PRTNR_NO
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ O12
+            ON O11.BASE_YM = O12.BASE_YM
+           AND O11.OG_TP_CD = O12.OG_TP_CD
+           AND O11.OG_ID = O12.OG_ID
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS A1
+            ON C4.ADR_ID = A1.ADR_ID
+		 WHERE 1=1
+           AND S1.DTA_DL_YN = 'N'
+           AND S2.DTA_DL_YN = 'N'
+           AND S2.MTR_STAT_CD IN ('1', '2')
+		   AND S3.IST_DT BETWEEN '20231001' AND '20231017'
+    </select>
+</mapper>

@@ -18,18 +18,30 @@ import lombok.Setter;
 @Setter
 public class WsnaItemByStockAggregationDvo {
 
+    // 기준일자
     private String baseDt;
 
+    // 창고구분
     private String wareDvCd;
+    // 재고유형
     private String mgtTypCd;
+    // 품목종류
     private String itmKndCd;
+    // 품목코드 리스트
     private List<String> itmPdCds;
+    // 품목그룹
     private String itmGdCd;
+    // 사용여부
     private String useYn;
+    // 자재구분
     private String matUtlzDvCd;
+    // 창고유형
     private String wareTpCd;
+    // 품목코드
     private String itmPdCd;
+    // 시작SAP코드
     private String strtSapCd;
+    // 종료SAP코드
     private String endSapCd;
 
     // PIVOT 창고번호 조건

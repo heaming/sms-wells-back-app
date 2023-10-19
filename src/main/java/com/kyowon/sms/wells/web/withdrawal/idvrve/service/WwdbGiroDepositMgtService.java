@@ -97,17 +97,6 @@ public class WwdbGiroDepositMgtService {
 
             }
 
-            // 중복 제거
-            //            List<SaveReq> duplicates = dtos.stream().distinct().collect(Collectors.toList());
-
-            //            String[] fntDt = new String[dtos.size()];
-            //
-            //            for (int i = 0; i < duplicates.size(); i++) {
-            //                if (duplicates.get(i).giroDpMtrDvCd().equals("22")) {
-            //                    fntDt[i] = duplicates.get(i).rveDt();
-            //                }
-            //            }
-
             deleteDvo.setFntDt(dtos.get(1).fntDt());
             deleteDvo.setRveDt(dtos.get(1).rveDt());
 
@@ -317,6 +306,7 @@ public class WwdbGiroDepositMgtService {
                     );//수납금액
                     askDvo.setReceiveStatusCode("01"); //수납상태코드 수납완료(02)
                     askDvo.setIncmdcYn("N"); //소득공제여부
+                    askDvo.setReceiveAskObjectDrmNumber1(list.dpDt());
 
                     // 수납요청상세 데이터 생성
                     processCount += zwdzWithdrawalService.createReceiveAskDetail(askDvo);
@@ -782,5 +772,21 @@ public class WwdbGiroDepositMgtService {
             .selectBillingDocumentMgtLedgerItemization(fntDts);
 
         return itemizationRes;
+    }
+
+    @Transactional
+    public List<WwdbGiroDepositSaveDvo> getGiroPerfDt(List<SaveReq> dtos) {
+
+        List<WwdbGiroDepositSaveDvo> editPerfDt = new ArrayList<WwdbGiroDepositSaveDvo>();
+
+        for (SaveReq dto : dtos) {
+            WwdbGiroDepositSaveDvo wwdbGiroDepositSaveDvo = convert.mapSearchWwwdbGiroDepositSaveDvo(dto);
+            String perfDt = mapper.selectGiroPerfDt(dto.rveDt());
+            wwdbGiroDepositSaveDvo.setRveDt(perfDt);
+            wwdbGiroDepositSaveDvo.setFntDt(perfDt);
+            editPerfDt.add(wwdbGiroDepositSaveDvo);
+        }
+
+        return editPerfDt;
     }
 }

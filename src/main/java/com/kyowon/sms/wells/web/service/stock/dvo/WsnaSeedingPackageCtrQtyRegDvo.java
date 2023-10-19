@@ -18,10 +18,15 @@ import lombok.Setter;
 @Getter
 public class WsnaSeedingPackageCtrQtyRegDvo {
 
+    // 대표집하위치코드
     private String dgGgLctCd;
+    // 모종패키지코드
     private String sdingPkgCd;
+    // 출고예정일자
     private String ostrDuedt;
+    // 제외수량
     private BigDecimal excdQty;
+    // 추가수량
     private BigDecimal spmtQty;
 
 }

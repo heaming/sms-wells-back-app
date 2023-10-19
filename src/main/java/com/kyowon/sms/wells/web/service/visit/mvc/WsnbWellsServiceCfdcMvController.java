@@ -1,17 +1,18 @@
 package com.kyowon.sms.wells.web.service.visit.mvc;
 
+import java.util.Map;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.kyowon.sflex.common.report.dto.ReportDto;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbWellsServiceCfdcService;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -22,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class WsnbWellsServiceCfdcMvController {
     private final WsnbWellsServiceCfdcService service;
 
-    @GetMapping("/report/{cstSvAsnNo}")
+    @GetMapping("/report/{cstSvAsnNo}/auth")
     public ModelAndView openReportAuthEntry(
         @PathVariable
         String cstSvAsnNo
@@ -34,8 +35,15 @@ public class WsnbWellsServiceCfdcMvController {
     public ModelAndView openReport(
         @PathVariable
         String cstSvAsnNo,
+        @RequestBody
         ReportDto.FindEntryReq dto
     ) {
         return service.openReport(cstSvAsnNo, dto.custBday());
+    }
+
+    @ApiOperation(value = "OZ리포트 조회", notes = "OZ리포트 조회")
+    @GetMapping("/oz")
+    public Map<String, Object> getOzReport(WsnbWellsServiceCfdcDto.FindOzReq dto) {
+        return service.getOzReport(dto);
     }
 }

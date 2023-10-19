@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.fee.confirm.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -21,19 +23,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WfeeIndividualFeeService {
     private final WfeeIndividualFeeMapper mapper;
-
-    /**
-     * 수수료 개인별 실적 상세 조회(P조직)
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchPlarRes> getIndividualPerformancePlarDetails(
-        SearchReq dto
-    ) {
-        return this.mapper.selectIndividualPerformancePlarDetails(dto);
-    }
 
     /**
      * 수수료 개인별 실적 상세 조회(M조직)
@@ -62,136 +51,14 @@ public class WfeeIndividualFeeService {
     }
 
     /**
-     * 수수료 홈마스터 개인별 실적 기본정보 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public FindHmstRes getHmst(SearchHmstReq dto) {
-        return mapper.selectHmst(dto);
-    }
-
-    /**
-     * 수수료 홈마스터 개인별 실적 기타내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchHmstEtcRes> getHmstEtcs(
-        SearchHmstReq dto
-    ) {
-        return this.mapper.selectHmstEtcs(dto);
-    }
-
-    /**
-     * 수수료 홈마스터 개인별 실적 수수료 내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchHmstFeeRes> getHmstFees(
-        SearchHmstReq dto
-    ) {
-        return this.mapper.selectHmstFees(dto);
-    }
-
-    /**
-     * 수수료 홈마스터 개인별 실적 공제 내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<FindHmstDeductionRes> getHmstDeductions(SearchHmstReq dto) {
-        return mapper.selectHmstDeductions(dto);
-    }
-
-    /**
-     * 수수료 홈마스터 개인별 실적 가지급금 세부내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchHmstPnpyamRes> getHmstPnpyams(
-        SearchHmstReq dto
-    ) {
-        return this.mapper.selectHmstPnpyams(dto);
-    }
-
-    /**
-     * 수수료 P조직 개인별 실적 기본정보 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public FindPlarRes getPlar(SearchPlarReq dto) {
-        return mapper.selectPlar(dto);
-    }
-
-    /**
-     * 수수료 P조직 개인별 실적 기타내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchPlarEtcRes> getPlarEtcs(
-        SearchPlarReq dto
-    ) {
-        return this.mapper.selectPlarEtcs(dto);
-    }
-
-    /**
-     * 수수료 P조직 개인별 실적 수수료 내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchPlarFeeRes> getPlarFees(
-        SearchPlarReq dto
-    ) {
-        return this.mapper.selectPlarFees(dto);
-    }
-
-    /**
-     * 수수료 P조직 개인별 실적 공제 내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public FindPlarDeductionRes getPlarDeduction(SearchPlarReq dto) {
-        return mapper.selectPlarDeduction(dto);
-    }
-
-    /**
-     * 수수료 P조직 개인별 실적 가지급금 세부내역 조회
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchPlarPnpyamRes> getPlarPnpyams(
-        SearchPlarReq dto
-    ) {
-        return this.mapper.selectPlarPnpyams(dto);
-    }
-
-    /**
      * 수수료 M조직 개인별 실적 기본정보 조회
      * @param dto : {
      * perfYm : 실적년월,
      * no : 번호 }
      * @return 조회결과
      */
-    public FindMngerRes getMnger(SearchMngerReq dto) {
-        return mapper.selectMnger(dto);
+    public FindMngerBasicRes getMngerBasic(SearchMngerReq dto) {
+        return mapper.selectMngerBasic(dto);
     }
 
     /**
@@ -201,10 +68,10 @@ public class WfeeIndividualFeeService {
      * no : 번호 }
      * @return 조회결과
      */
-    public List<SearchMngerEtcRes> getMngerEtcs(
+    public List<SearchMngerSellEtcsRes> getMngerSellEtcs(
         SearchMngerReq dto
     ) {
-        return this.mapper.selectMngerEtcs(dto);
+        return this.mapper.selectMngerSellEtcs(dto);
     }
 
     /**
@@ -227,10 +94,83 @@ public class WfeeIndividualFeeService {
      * no : 번호 }
      * @return 조회결과
      */
-    public List<SearchMngerFeeRes> getMngerFees(
+    public List<HashMap<String, Object>> getMngerFees(
         SearchMngerReq dto
     ) {
-        return this.mapper.selectMngerFees(dto);
+        /*
+        * 수수료항목유형코드
+        * 01 : BS수수료
+        * 02 : 개인수수료
+        * 03 : 조직수수료
+        * 04 : 판매수수료
+        * 05 : 서비스수수료
+        * 05 : 교육수수료
+        * 07 : 기타수수료
+        * */
+        List<SearchMngerFeeRes> indvFeeList = mapper.selectMngerFees(dto, "02");
+        List<SearchMngerFeeRes> ogFeeList = mapper.selectMngerFees(dto, "03");
+        List<SearchMngerFeeRes> bsFeeList = mapper.selectMngerFees(dto, "01");
+        List<SearchMngerFeeRes> etcFeeList = mapper.selectMngerFees(dto, "07");
+
+        Integer indvFeeListCnt = indvFeeList.size();
+        Integer ogFeeListCnt = ogFeeList.size();
+        Integer bsFeeListCnt = bsFeeList.size();
+        Integer etcFeeListCnt = etcFeeList.size();
+
+        Integer feeListCnt = Math
+            .max(Math.max(Math.max(indvFeeListCnt, ogFeeListCnt), bsFeeListCnt), etcFeeListCnt);
+
+        ArrayList<HashMap<String, Object>> feeDataList = new ArrayList<>();
+
+        for (int i = 0; i < feeListCnt; i++) {
+
+            HashMap<String, Object> feeHashMap = new HashMap<>();
+
+            String feeNm1 = "";
+            String feeAtcVal1 = "";
+            String feeNm2 = "";
+            String feeAtcVal2 = "";
+            String feeNm3 = "";
+            String feeAtcVal3 = "";
+            String feeNm4 = "";
+            String feeAtcVal4 = "";
+
+            if (i < indvFeeListCnt) {
+                feeNm1 = indvFeeList.get(i).srnMarkFeeNm();
+                feeAtcVal1 = indvFeeList.get(i).feeAtcVal();
+            }
+
+            if (i < ogFeeListCnt) {
+                feeNm2 = ogFeeList.get(i).srnMarkFeeNm();
+                feeAtcVal2 = ogFeeList.get(i).feeAtcVal();
+            }
+
+            if (i < bsFeeListCnt) {
+                feeNm3 = bsFeeList.get(i).srnMarkFeeNm();
+                feeAtcVal3 = bsFeeList.get(i).feeAtcVal();
+            }
+
+            if (i < etcFeeListCnt) {
+                feeNm4 = etcFeeList.get(i).srnMarkFeeNm();
+                feeAtcVal4 = etcFeeList.get(i).feeAtcVal();
+            }
+
+            feeHashMap.put("feeNm1", feeNm1);
+            feeHashMap.put("feeAtcVal1", feeAtcVal1);
+
+            feeHashMap.put("feeNm2", feeNm2);
+            feeHashMap.put("feeAtcVal2", feeAtcVal2);
+
+            feeHashMap.put("feeNm3", feeNm3);
+            feeHashMap.put("feeAtcVal3", feeAtcVal3);
+
+            feeHashMap.put("feeNm4", feeNm4);
+            feeHashMap.put("feeAtcVal4", feeAtcVal4);
+
+            feeDataList.add(feeHashMap);
+        }
+
+        return feeDataList;
     }
 
     /**
@@ -240,7 +180,7 @@ public class WfeeIndividualFeeService {
      * no : 번호 }
      * @return 조회결과
      */
-    public FindMngerDeductionRes getMngerDeduction(SearchMngerReq dto) {
+    public List<SearchMngerDeductionRes> getMngerDeduction(SearchMngerReq dto) {
         return mapper.selectMngerDeduction(dto);
     }
 

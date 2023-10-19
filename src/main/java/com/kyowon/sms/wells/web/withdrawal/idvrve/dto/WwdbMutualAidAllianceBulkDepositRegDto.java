@@ -8,6 +8,7 @@ public class WwdbMutualAidAllianceBulkDepositRegDto {
     ) {
 
     }
+
     public record SearchRes(
         String lifSpptYm, /*라이프지원년월*/
         String lifCntrNo, /* 라이프계약번호*/
@@ -29,9 +30,9 @@ public class WwdbMutualAidAllianceBulkDepositRegDto {
 
     public record SearchSumRes(
         String countLif, /*대상건수*/
-        String amtSum, /*대상금액*/
-        String dpDtm, //수납일
-        String dpBlam //잔액
+        String amtSum /*대상금액*/
+//        String dpDtm, //수납일
+//        String dpBlam //잔액
     ) {
 
     }

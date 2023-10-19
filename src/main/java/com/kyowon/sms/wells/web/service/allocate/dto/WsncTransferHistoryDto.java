@@ -33,7 +33,11 @@ public class WsncTransferHistoryDto {
         String tfPrtnrKnm,
         String tfOgTpCd,
         String tfPrtnrNo,
-        String tfOgId
+        String tfOgId,
+        String cnfmOgNm,
+        String cnfmPsicPrtnrNo,
+        String cnfmdt,
+        String cnfmPrtnrKnm
     ) {}
 
 }

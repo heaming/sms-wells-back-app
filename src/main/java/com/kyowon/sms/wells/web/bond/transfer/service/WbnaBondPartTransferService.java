@@ -61,6 +61,11 @@ public class WbnaBondPartTransferService {
         return mapper.selectPartTransferDetailPages(dto, pageInfo);
     }
 
+    /**
+     * 파트이관 집계 상세정보 합계 조회
+     * @param dto 검색조건
+     * @return 합계정보
+     */
     public SearchDetailSummaryRes getPartTransferDetailSummary(
         SearchDetailReq dto
     ) {
@@ -140,10 +145,10 @@ public class WbnaBondPartTransferService {
             WbnaBondPartTransferDvo dvo = converter.mapEditReqToWbnaBondPartTransferDvo(dto);
 
             int result = mapper.updateBondContractBase(dvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
             result = mapper.updateBondAssignItemization(dvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
             processCount += result;
         }
@@ -157,12 +162,12 @@ public class WbnaBondPartTransferService {
             bondTransferAssignDvo.setExcnSn(bondTransferAssignMgtService.getExcnSn(bondTransferAssignDvo));
 
             int result = bondTransferAssignMgtService.createBondTransferAssign(bondTransferAssignDvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
             bondTransferAssignDvo.setClctamDvCd(dtos.get(0).clctamDvCd());
             bondTransferAssignDvo.setExcnSn(bondTransferAssignMgtService.getExcnSn(bondTransferAssignDvo));
             result = bondTransferAssignMgtService.createBondTransferAssign(bondTransferAssignDvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR"); // TODO 메시지 변경 필요(설계 혹은 공통 메시지 나오면 수정)
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
         }
         return processCount;
     }

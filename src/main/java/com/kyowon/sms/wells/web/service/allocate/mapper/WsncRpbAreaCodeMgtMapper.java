@@ -11,10 +11,6 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo;
 @Mapper
 public interface WsncRpbAreaCodeMgtMapper {
 
-    //    PagingResult<WsncRpbAreaCodeDvo> selectAreaCodePages(
-    //        SearchReq dto, PageInfo pageInfo
-    //    );
-
     List<WsncRpbAreaCodeDvo> selectAreaCodes(
         SearchReq dto
     );

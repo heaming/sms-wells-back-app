@@ -19,7 +19,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @InterfaceController
-@Api(tags = "[WDCC] EAI_WCLI1001 홈케어멤버십위약금조회 I/F ")
+@Api(tags = "[WDCC] EAI_WCLI1001 홈케어멤버십위약금조회 I/F (W-CL-I-0006) ")
 @RequestMapping(DcClosingConst.INTERFACE_URL_V1 + "/home-care-breach-promise")
 @RequiredArgsConstructor
 @Validated

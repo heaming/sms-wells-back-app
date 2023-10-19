@@ -97,6 +97,7 @@ public class WbnaFosterTransferMgtController {
         "3. 호출결과를 Return 한다.")
     @PostMapping("/confirm")
     public SaveResponse confirmFosterDataTransfers(
+        @RequestBody
         @Valid
         SearchReq dto
     ) throws Exception {
@@ -107,6 +108,7 @@ public class WbnaFosterTransferMgtController {
         "2. 수정된 Row를 채권계약기본 Table에 UPDATE한다.")
     @PutMapping
     public SaveResponse editFosterDataTransfers(
+        @RequestBody
         @Valid
         List<SaveReq> dtos
     ) throws Exception {

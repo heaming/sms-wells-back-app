@@ -189,7 +189,8 @@ public class WbncCustomerDto {
         String tnoCnt1,
         String tnoCnt2,
         String tnoCnt3,
-        String bndBizDvCd /* 채권업무구분코드 */
+        String bndBizDvCd, /* 채권업무구분코드 */
+        String baseYm /* 기준년월 */
     ) {
         public FindRes {
             cntrMexnoEncr = StringUtils.isNotEmpty(cntrMexnoEncr) ? DbEncUtil.dec(cntrMexnoEncr) : cntrMexnoEncr;

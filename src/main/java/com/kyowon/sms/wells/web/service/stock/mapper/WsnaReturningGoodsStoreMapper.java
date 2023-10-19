@@ -25,8 +25,6 @@ public interface WsnaReturningGoodsStoreMapper {
 
     String selectNextItmStrNo(FindItmStrNoReq findItmStrNoReq);
 
-    String selectNextOstrAkNo(FindOstrAkNoReq findOstrAkNoReq);
-
     String selectHgrWareNo(WsnaReturningGoodsStoreDvo dvo);
 
     String selectUpHgrWareNo(WsnaReturningGoodsStoreDvo dvo);
@@ -66,5 +64,6 @@ public interface WsnaReturningGoodsStoreMapper {
 
     int updateReturningGoodsStrConfirm(WsnaReturningGoodsStoreDvo dvo);
 
-    //    int insertItmOstrAkIz(WsnaReturningGoodsStoreDvo dvo);
+    List<SearchWareRes> selectReturningGoodsStoresLoginWarehouse(String prtnrNo);
+
 }

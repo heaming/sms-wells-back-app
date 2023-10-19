@@ -61,30 +61,30 @@
            <!-- AND C3.DTA_DL_YN    = 'N' -->
          WHERE T1.DTA_DL_YN = 'N'
            <if test='@MybatisUtils@isNotEmpty( apyStrtdt )'>
-           AND T1.APY_ENDDT <![CDATA[>=]]> #{apyStrtdt}
+           AND T1.APY_ENDDT <![CDATA[>=]]> #{apyStrtdt}    /* 적용종료일 */
                <if test='@MybatisUtils@isEmpty( apyEnddt )'>
-               AND T1.APY_STRTDT <![CDATA[<=]]> #{apyStrtdt}
+               AND T1.APY_STRTDT <![CDATA[<=]]> #{apyStrtdt}    /* 적용시작일 */
                </if>
            </if>
            <if test='@MybatisUtils@isNotEmpty( apyEnddt )'>
                <if test='@MybatisUtils@isEmpty( apyStrtdt )'>
-               AND T1.APY_ENDDT <![CDATA[>=]]> #{apyEnddt}
+               AND T1.APY_ENDDT <![CDATA[>=]]> #{apyEnddt}    /* 적용종료일 */
                </if>
-           AND T1.APY_STRTDT <![CDATA[<=]]> #{apyEnddt}
+           AND T1.APY_STRTDT <![CDATA[<=]]> #{apyEnddt}    /* 적용시작일 */
            </if>
            <if test='@MybatisUtils@isNotEmpty( pdctPdNm )'>
              <bind name="pdctPdNm" value="'%'+ pdctPdNm +'%'"/>
-           AND UPPER(PB.PD_NM) LIKE UPPER(#{pdctPdNm})
+           AND UPPER(PB.PD_NM) LIKE UPPER(#{pdctPdNm})    /* 제품명 */
            </if>
            <if test='@MybatisUtils@isNotEmpty( pdctPdCd )'>
              <bind name="pdctPdCd" value="'%'+ pdctPdCd +'%'"/>
-           AND UPPER(PB.PD_CD) LIKE UPPER(#{pdctPdCd})
+           AND UPPER(PB.PD_CD) LIKE UPPER(#{pdctPdCd})    /* 제품코드 */
            </if>
            <if test='@MybatisUtils@isNotEmpty( rglrSppMchnTpCd )'>
-           AND T1.RGLR_SPP_MCHN_TP_CD = #{rglrSppMchnTpCd}
+           AND T1.RGLR_SPP_MCHN_TP_CD = #{rglrSppMchnTpCd}    /* 정기배송기기유형코드 */
            </if>
            <if test='@MybatisUtils@isNotEmpty( rglrSppPrcDvCd )'>
-           AND T1.RGLR_SPP_PRC_DV_CD = #{rglrSppPrcDvCd}
+           AND T1.RGLR_SPP_PRC_DV_CD = #{rglrSppPrcDvCd}    /* 정기배송가격구분코드 */
            </if>
     </sql>
 
@@ -225,18 +225,18 @@
             , USE_YN                /* 사용여부 */
             , DTA_DL_YN             /* 데이터삭제여부 */
             <include refid="COMMON.insertSystemField" />
-          FROM TB_PDBS_SDING_PRC_BAS
+          FROM TB_PDBS_SDING_PRC_BAS /* 모종가격기본 */
          WHERE RGLR_SPP_SDING_PRC_ID = #{rglrSppSdingPrcId}
            AND PD_PRC_TCNT = #{pdPrcTcnt}
            AND ROWNUM = 1
     </insert>
     
     <update id="updateSeedlingPricePrevHistory">
-        UPDATE TB_PDBS_SDING_PRC_CH_HIST H1
+        UPDATE TB_PDBS_SDING_PRC_CH_HIST H1 /* 모종가격변경이력 */
            SET HIST_END_DTM = TO_CHAR(TO_DATE(#{histStrtDtm}, 'YYYYMMDDHH24MISS') + interval '-1' second, 'YYYYMMDDHH24MISS')
-         WHERE RGLR_SPP_SDING_PRC_ID = #{rglrSppSdingPrcId}
-           AND HIST_END_DTM = #{histEndDtm}
-           AND HIST_STRT_DTM != #{histStrtDtm}
+         WHERE RGLR_SPP_SDING_PRC_ID = #{rglrSppSdingPrcId} /* 정기배송모종가격ID */
+           AND HIST_END_DTM = #{histEndDtm}    /* 이력종료일시 */
+           AND HIST_STRT_DTM != #{histStrtDtm} /* 이력시작일시 */
     </update>
     
     <select id="selectSeedlingPriceDuplication" resultType="String">
@@ -244,14 +244,14 @@
                || ',' || #{info.apyStrtdt}
                || ',' || #{info.apyEnddt}
                || ',' || BASE_PD_CD
-          FROM TB_PDBS_SDING_PRC_BAS 
+          FROM TB_PDBS_SDING_PRC_BAS  /* 모종가격기본 */
          WHERE DTA_DL_YN = 'N'
-           AND PDCT_PD_CD = #{info.pdctPdCd}
-           AND RGLR_SPP_MCHN_KND_CD = #{info.rglrSppMchnKndCd}
-           AND RGLR_SPP_MCHN_TP_CD = #{info.rglrSppMchnTpCd}
-           AND RGLR_SPP_PRC_DV_CD = #{info.rglrSppPrcDvCd}
-           AND APY_ENDDT <![CDATA[>=]]> #{info.apyStrtdt}
-           AND APY_STRTDT <![CDATA[<=]]> #{info.apyEnddt}
+           AND PDCT_PD_CD = #{info.pdctPdCd} /* 제품상품코드 */
+           AND RGLR_SPP_MCHN_KND_CD = #{info.rglrSppMchnKndCd} /* 정기배송기기종류코드 */
+           AND RGLR_SPP_MCHN_TP_CD = #{info.rglrSppMchnTpCd} /* 정기배송기기유형코드 */
+           AND RGLR_SPP_PRC_DV_CD = #{info.rglrSppPrcDvCd} /* 정기배송가격구분코드 */
+           AND APY_ENDDT <![CDATA[>=]]> #{info.apyStrtdt} /* 적용시작일자 */
+           AND APY_STRTDT <![CDATA[<=]]> #{info.apyEnddt} /* 적용종료일자 */
            <choose> 
                <when test='@MybatisUtils@isNotEmpty( info.basePdCd )'> AND BASE_PD_CD = #{info.basePdCd} </when>
                <otherwise> AND BASE_PD_CD IS NULL </otherwise> 

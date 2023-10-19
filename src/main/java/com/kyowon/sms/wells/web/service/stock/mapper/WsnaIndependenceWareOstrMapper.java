@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrLgstDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryKssDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 
 @Mapper
@@ -28,6 +28,6 @@ public interface WsnaIndependenceWareOstrMapper {
 
     int updateItmQomAsnIz(WsnaIndependenceWareOstrDvo dvo);
 
-    List<WsnaLogisticsOutStorageAskReqDvo> selectIndependenceLogisticsTransfer(WsnaIndependenceWareOstrLgstDvo dvo);
+    List<WsnaLogisticsOutStorageAskReqDvo> selectIndependenceLogisticsTransfer(WsnaLogisticsDeliveryKssDvo dvo);
 
 }
