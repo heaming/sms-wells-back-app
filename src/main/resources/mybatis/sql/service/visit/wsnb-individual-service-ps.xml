@@ -248,33 +248,34 @@
            AND SV1.CNTR_SN = #{cntrSn}
         </if>
         <if test="@MybatisUtils@isNotEmpty(bcNo)">
-          AND SV1.CNTR_NO = NVL((SELECT MAX(T1.CNTR_NO)
-                                   FROM TB_SVPD_CST_SV_EXCN_IZ T1
-                                  WHERE T1.BC_NO = #{bcNo}
-                                    AND T1.DTA_DL_YN = 'N'),
-                                (SELECT MAX(T2.CNTR_NO)
-                                   FROM TB_SVPD_PD_BC_RPBL_CST_IZ T2
-                                  WHERE T2.BC_NO = #{bcNo}
-                                    AND T2.ITM_KND_CD = '4'
-                                    AND T2.DTA_DL_YN = 'N'))
-          AND SV1.CNTR_SN = NVL((SELECT MAX(T1.CNTR_SN)
-                                   FROM TB_SVPD_CST_SV_EXCN_IZ T1
-                                  WHERE T1.BC_NO = #{bcNo}
-                                    AND T1.DTA_DL_YN = 'N'),
-                                (SELECT MAX(T2.CNTR_SN)
-                                   FROM TB_SVPD_PD_BC_RPBL_CST_IZ T2
-                                  WHERE T2.BC_NO = #{bcNo}
-                                    AND T2.ITM_KND_CD = '4'
-                                    AND T2.DTA_DL_YN = 'N'))
+           AND (SV1.CNTR_NO, SV1.CNTR_SN) = (SELECT A.CNTR_NO
+                                                  , A.CNTR_SN
+                                               FROM TB_SSCT_CNTR_DTL A
+                                              WHERE A.CNTR_NO = (SELECT X.CNTR_NO
+                                                                   FROM TB_SSCT_CNTR_BAS X
+                                                                  WHERE X.CNTR_CNFM_DTM = (SELECT MAX(Y.CNTR_CNFM_DTM)
+                                                                                             FROM TB_SSCT_CNTR_BAS Y
+                                                                                            WHERE Y.CNTR_NO IN (SELECT Z.CNTR_NO
+                                                                                                                  FROM TB_SVPD_CST_SV_EXCN_IZ Z
+                                                                                                                 WHERE Z.BC_NO = #{bcNo}
+                                                                                                               )
+                                                                                          )
+                                                                    AND X.CNTR_NO IN (SELECT Y.CNTR_NO
+                                                                                        FROM TB_SVPD_CST_SV_EXCN_IZ Y
+                                                                                       WHERE Y.BC_NO = #{bcNo}
+                                                                                     )
+                                                                    AND ROWNUM = 1
+                                                                )
+                                              )
         </if>
         <if test="@MybatisUtils@isNotEmpty(sppIvcNo)">
           AND SV1.CNTR_NO = (SELECT MAX(T1.CNTR_NO)
                                FROM TB_SVPD_CST_SV_WK_RS_IZ T1
-                              WHERE T1.BC_NO = #{sppIvcNo}
+                              WHERE T1.SPP_IVC_NO = #{sppIvcNo}
                                 AND T1.DTA_DL_YN = 'N')
           AND SV1.CNTR_SN = (SELECT MAX(T1.CNTR_SN)
                                FROM TB_SVPD_CST_SV_WK_RS_IZ T1
-                              WHERE T1.BC_NO = #{sppIvcNo}
+                              WHERE T1.SPP_IVC_NO = #{sppIvcNo}
                                 AND T1.DTA_DL_YN = 'N')
         </if>
     </select>
@@ -945,8 +946,28 @@
                )
          )
         WHERE 1=1
-          AND CNTR_NO = #{cntrNo}
-          AND CNTR_SN = #{cntrSn}
+          AND (CNTR_NO, CNTR_SN) IN (SELECT #{cntrNo} AS CNTR_NO
+                                           , TO_NUMBER(#{cntrSn}) AS CNTR_SN
+                                        FROM DUAL
+                                       UNION ALL
+                                      SELECT BASE_DTL_CNTR_NO AS CNTR_NO /* 멤버십 계약번호 */
+                                           , BASE_DTL_CNTR_SN AS CNTR_SN
+                                        FROM TB_SSCT_CNTR_REL
+                                       WHERE 1 = 1
+                                         AND OJ_DTL_CNTR_NO = #{cntrNo}
+                                         AND OJ_DTL_CNTR_SN = #{cntrSn}
+                                         AND CNTR_REL_DTL_CD = '212' /* 멤버십-원주문 */
+                                         AND DTA_DL_YN = 'N'
+                                       UNION ALL
+                                      SELECT OJ_DTL_CNTR_NO AS CNTR_NO /* 멤버십 계약번호 */
+                                           , OJ_DTL_CNTR_SN AS CNTR_SN
+                                        FROM TB_SSCT_CNTR_REL
+                                       WHERE 1 = 1
+                                         AND BASE_DTL_CNTR_NO = #{cntrNo}
+                                         AND BASE_DTL_CNTR_SN = #{cntrSn}
+                                         AND CNTR_REL_DTL_CD = '212' /* 멤버십-원주문 */
+                                         AND DTA_DL_YN = 'N'
+                                       )
         ORDER BY RCP_DT DESC, NVL(VST_FSH_DT,NVL(RCP_DT, ASN_DT)) DESC, CST_SV_ASN_NO DESC
     </select>
     <select id="selectIndividualFarm" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualServicePsDto$SearchFarmRes">
