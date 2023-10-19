@@ -150,6 +150,7 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
             insertCount = mOrganizationCalculationMapper.insertFxamRedfPartnerData(baseYm, feeCd, basic.dtaCrtFeeCd(), perfAgrgCrtDvCd, basic.apyStrtYm(), basic.apyEndYm(), feeStandard.redfPerformVarbs().get(0).perfVarbColVal(), feeStandard.redfPerformVarbs().get(0).indvPerfYn(), calcExpr);
         }
 
+        /* 생성된 데이터가있으면 이력 생성 */
         if (insertCount > 0) {
             /* 되물림 이력 생성 */
             runInsertionRedfDataHistoriesStep();
