@@ -135,12 +135,12 @@ public class WsnaReturningGoodsOstrService {
                     dvo
                 );
                 result += itemStockservice.createStock(returnOstrDvo);
-
+                // 품목재고내역 이동
                 WsnaItemStockItemizationReqDvo returnMoveDvo = setReturningMoveWsnaItemStockItemizationDtoSaveReq(
                     dvo
                 );
                 result += itemStockservice.saveStockMovement(returnMoveDvo);
-
+                // 품목 재고내역 등록
                 WsnaItemStockItemizationReqDvo returnStrDvo = setReturningStrWsnaItemStockItemizationDtoSaveReq(
                     dvo
                 );
@@ -284,7 +284,7 @@ public class WsnaReturningGoodsOstrService {
             itemStockservice.removeStock(ostrRemoveDvo);
 
             int result = this.mapper.deleteItemForwardingHistory(dvo); // 품목출고내역삭제
-
+            // 삭제에 실패 하였습니다.
             BizAssert.isTrue(result == 1, "MSG_ALT_DEL_ERR");
             processCount += result;
         }
