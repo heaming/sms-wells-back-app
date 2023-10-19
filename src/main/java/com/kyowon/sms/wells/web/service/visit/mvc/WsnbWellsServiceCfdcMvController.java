@@ -10,13 +10,14 @@ import org.springframework.web.servlet.ModelAndView;
 import com.kyowon.sflex.common.report.dto.ReportDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbWellsServiceCfdcService;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("/anonymous/sms/wells/service/wells-service-cfdc")
+@RequestMapping(SnServiceConst.REPORT_URL_V1 + "/wells-service-cfdc")
 @Api(tags = "[WSNB] 웰스 서비스 확인서 MVC")
 @RequiredArgsConstructor
 @Validated

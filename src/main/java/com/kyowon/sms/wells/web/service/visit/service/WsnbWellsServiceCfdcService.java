@@ -19,6 +19,7 @@ import com.kyowon.sflex.common.report.service.ReportService;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.*;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWellsServiceCfdcDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbWellsServiceCfdcMapper;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.common.common.service.TemplateService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -50,7 +51,9 @@ public class WsnbWellsServiceCfdcService {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("custNm", dto.nm());
         paramMap.put(
-            "url", "https://wsm.kyowon.co.kr/anonymous/sms/wells/service/wells-service-cfdc/report/"
+            "url", "https://wsm.kyowon.co.kr"
+                + SnServiceConst.REPORT_URL_V1
+                + "/wells-service-cfdc/report/"
                 + dto.cstSvAsnNo()
                 + "/auth"
         );
@@ -73,7 +76,9 @@ public class WsnbWellsServiceCfdcService {
         paramMap.put("custNm", dto.nm());
         paramMap.put(
             "url",
-            "https://d-wsm.kyowon.co.kr/anonymous/sms/wells/service/wells-service-cfdc/report/"
+            "https://d-wsm.kyowon.co.kr"
+                + SnServiceConst.REPORT_URL_V1
+                + "/wells-service-cfdc/report/"
                 + dto.cstSvAsnNo()
                 + "/auth"
         );
@@ -121,7 +126,7 @@ public class WsnbWellsServiceCfdcService {
         ReportEntryDvo dvo = new ReportEntryDvo();
         dvo.setBzopNoYn("N"); //사업자여부
         dvo.setCustName(cstDvo.getCstNm());
-        dvo.setReturnUrl("/anonymous/sms/wells/service/wells-service-cfdc/report/" + cstSvAsnNo + "/auth");
+        dvo.setReturnUrl(SnServiceConst.REPORT_URL_V1 + "/wells-service-cfdc/report/" + cstSvAsnNo + "/auth");
         return reportService.openReportAuthEntry(dvo);
     }
 
@@ -135,7 +140,7 @@ public class WsnbWellsServiceCfdcService {
             ReportEntryDvo dvo = new ReportEntryDvo();
             dvo.setBzopNoYn("N"); //사업자여부
             dvo.setCustName(cstDvo.getCstNm());
-            dvo.setReturnUrl("/anonymous/sms/wells/service/wells-service-cfdc/report/" + cstSvAsnNo + "/auth");
+            dvo.setReturnUrl(SnServiceConst.REPORT_URL_V1 + "/wells-service-cfdc/report/" + cstSvAsnNo + "/auth");
             dvo.setError("error");
             dvo.setErrorMessage("등록된 생년월일과 일치하지 않습니다.");
             return reportService.openReportAuthEntry(dvo);
@@ -145,7 +150,7 @@ public class WsnbWellsServiceCfdcService {
     public ModelAndView openReport(String cstSvAsnNo) {
         Map<String, String> map = new HashMap();
         map.put("cstSvAsnNo", cstSvAsnNo);
-        map.put("searchApiUrl", "/api/v1/anonymous/sms/wells/service/wells-service-cfdc/oz");
+        map.put("searchApiUrl", SnServiceConst.REPORT_URL_V1 + "/wells-service-cfdc/oz");
         map.put("rcgvpNm", "");
         map.put("prtnrNm", "");
 
