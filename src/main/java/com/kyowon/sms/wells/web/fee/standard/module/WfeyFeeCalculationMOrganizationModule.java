@@ -18,8 +18,7 @@ import java.util.stream.IntStream;
 
 import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.FeeCalculationUnit.PARTNER_UNIT;
 import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.REDEMPTION_OF_FEE;
-import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.RedemptionDivideCode.FIXED_AMOUNT_REDF;
-import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.RedemptionDivideCode.FIXED_RATE_REDF;
+import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.RedemptionDivideCode.*;
 import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.SYSTEM_PACKAGE_WELLS;
 
 @FeeModuleInfo(systemType = SYSTEM_PACKAGE_WELLS, moduleName = "M조직모듈", moduleExplanation = "M조직 특화수당계산 모듈")
@@ -124,14 +123,14 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
     }
 
     /**
-     * M조직 특화 정액되물림 계산
+     * M조직 특화 정액 사용자정의되물림 계산
      * <p>
      * 계약단위로 생성하여 파트너단위로 SUM하는 되물림 금액 계산
      */
-    @FeeModuleMethodInfo(methodName = "M조직 특화 정액되물림 계산", methodExplanation = "M조직 특화  테이블에 급지수수료금액 업데이트")
+    @FeeModuleMethodInfo(methodName = "M조직 특화 정액 사용자정의되물림 계산", methodExplanation = "M조직 특화 정액 사용자정의되물림 계산 생성")
     public void runFixedAmountRedemptionCalculate() {
-        /* 정액되물림인지 확인 */
-        BizAssert.isTrue(FIXED_AMOUNT_REDF.getCode().equals(basic.redfDvCd()), "MSG_ALT_WRONG_REDF_TP"); /* 되물림유형이 맞지 않습니다. */
+        /* 사용자정의되물림인지 확인 */
+        BizAssert.isTrue(USER_DEFINE_REDF.getCode().equals(basic.redfDvCd()), "MSG_ALT_WRONG_REDF_TP"); /* 되물림유형이 맞지 않습니다. */
         /* 되물림 실적변수가 1개가 아니면 오류 */
         BizAssert.isTrue(feeStandard.redfPerformVarbs().size() == 1, "MSG_ALT_WRONG_PERF_VARB_CNT"); /* 실적변수 개수가 맞지 않습니다. */
         /* 실적변수는 테이블은 TB_FEAM_NTORP_PERF_MM_CL, TB_FEAM_NTORP_CNTR_MM_CL 이어야 함 */
