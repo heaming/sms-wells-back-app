@@ -508,7 +508,7 @@
              , 'N'                           AS AUTH_RSG_EXP_YN                 /*직권해지예정여부*/
              , ''                            AS AUTH_RSG_DUEDT                  /*직권해지예정일자*/
              , ''                            AS AUTH_RSG_EXP_RGST_PRTNR_NO      /*직권해지예정등록파트너번호*/
-             , ''                            AS AUTH_RSG_CNFM_YN                /*직권해지확정여부*/
+             , 'N'                           AS AUTH_RSG_CNFM_YN                /*직권해지확정여부*/
              , ''                            AS AUTH_RSG_CNFMDT                 /*직권해지확정일자*/
              , ''                            AS AUTH_RSG_CNFM_RGST_PRTNR_NO     /*직권해지확정등록파트너번호*/
              , 'N'                           AS DTA_DL_YN                       /*데이터삭제여부*/
@@ -536,7 +536,7 @@
            AND F.CNTR_NO = C.CNTR_NO
            AND F.CNTR_SN = C.CNTR_SN
            AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
-           AND F.BND_CLCTN_PRP_DV_CD NOT IN ('02','03','08')    /* 채권추심속성구분코드 */
+           AND F.BND_CLCTN_PRP_DV_CD IN ('02','03','08')    /* 채권추심속성구분코드 */
           LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
             ON G.PERF_YM = C.SL_CL_YM
            AND G.CNTR_NO = C.CNTR_NO
@@ -807,7 +807,7 @@
              , 'N'                           AS AUTH_RSG_EXP_YN                 /*직권해지예정여부*/
              , ''                            AS AUTH_RSG_DUEDT                  /*직권해지예정일자*/
              , ''                            AS AUTH_RSG_EXP_RGST_PRTNR_NO      /*직권해지예정등록파트너번호*/
-             , ''                            AS AUTH_RSG_CNFM_YN                /*직권해지확정여부*/
+             , 'N'                           AS AUTH_RSG_CNFM_YN                /*직권해지확정여부*/
              , ''                            AS AUTH_RSG_CNFMDT                 /*직권해지확정일자*/
              , ''                            AS AUTH_RSG_CNFM_RGST_PRTNR_NO     /*직권해지확정등록파트너번호*/
              , 'N'                           AS DTA_DL_YN                       /*데이터삭제여부*/
@@ -828,7 +828,7 @@
            AND F.CNTR_NO = C.CNTR_NO
            AND F.CNTR_SN = C.CNTR_SN
            AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
-           AND F.BND_CLCTN_PRP_DV_CD NOT IN ('02','03','08')    /* 채권추심속성구분코드 */
+           AND F.BND_CLCTN_PRP_DV_CD IN ('02','03','08')    /* 채권추심속성구분코드 */
           LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
             ON G.PERF_YM = C.SL_CL_YM
            AND G.CNTR_NO = C.CNTR_NO
@@ -927,10 +927,31 @@
                                            AND RVE_DT LIKE SUBSTR(#{baseDt},1,6)||'%'   /*수납월*/
                                        ) I
                        ON 1 = 1
+                    <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
+                     /* 변경 - 추가 3개월 입금액 */
+                     LEFT JOIN LATERAL (
+                     					SELECT CNTR_NO, CNTR_SN ,NVL(SUM(RVE_AMT),0) AS RVE_AMT
+                     					  FROM TB_RVDW_RVE_DTL /* 수납상게 */
+                     					 WHERE 1 = 1
+                     					   AND RVE_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}),-3),'YYYYMMDD') AND #{baseDt}
+                     					   AND CNTR_NO = T.CNTR_NO
+                     					   AND CNTR_SN = T.CNTR_SN
+                     					   AND RVE_DV_CD <![CDATA[!=]]> '08' /*수납구분코드-환불금*/
+                     					   AND DTA_DL_YN = 'N'
+                     					  GROUP BY CNTR_NO, CNTR_SN
+                     ) RVE_M3	/* 3개월 수납 */
+                       ON 1 = 1
+                      AND RVE_M3.CNTR_NO = T.CNTR_NO
+                      AND RVE_M3.CNTR_SN = T.CNTR_SN
+                    </if>
                     WHERE 1 = 1
                       AND T.DTA_DL_YN = 'N'
                       AND T.BASE_YM = SUBSTR(#{baseDt},1,6)    /*기준년월*/
                       AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
+                    <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
+                      /* 변경 - 추가 */
+                      AND NVL(RVE_M3.RVE_AMT, 0) <![CDATA[<=]]> 0	/* 3개월 입금액 */
+                    </if>
                   ) X2
                ON (     X2.COL05 = X1.CNTR_NO
                     AND X2.COL07 = X1.BASE_YM
