@@ -32,7 +32,7 @@ public interface WfedIndividualFeeMgtMapper {
         SearchHmstReq dto
     );
 
-    FindMngerEntrpRes selectMngerBasic(
+    FindMngerBasicRes selectMngerBasic(
         SearchMngerReq dto
     );
 
