@@ -14,6 +14,8 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskReqDv
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaReturningGoodsOstrMapper;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -95,9 +97,11 @@ public class WsnaReturningGoodsOstrService {
         int serialNumber = 0;
 
         SaveReq saveReq = dtos.get(0);
-
         List<String> ostrSns = new ArrayList<>();
         List<WsnaReturningGoodsDvo> dvos = new ArrayList<>();
+
+        // 사용자 세션
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
 
         String itmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(saveReq.ostrTpCd(), saveReq.ostrDt()));
         String itmStrNo = null;
@@ -118,6 +122,7 @@ public class WsnaReturningGoodsOstrService {
             dvo.setItmStrNo(itmStrNo);
             dvo.setStrSn(String.valueOf(serialNumber));
 
+            dvo.setWareMngtPrtnrNo(session.getEmployeeIDNumber());
             // 품목출고내역 insert
             int result = this.mapper.insertItemForwardingHistory(dvo);
             dvos.add(dvo);
@@ -207,6 +212,8 @@ public class WsnaReturningGoodsOstrService {
     public int removeReturningGoodsOstrs(List<RemoveReq> dtos) {
         int processCount = 0;
 
+        RemoveReq removeReq = dtos.get(0);
+
         List<WsnaReturningGoodsDvo> dvos = this.converter.mapRemoveAllReturningGoodsDvoToReturningGoods(dtos);
 
         //삭제건들을 담기위한 listDvos
@@ -214,8 +221,17 @@ public class WsnaReturningGoodsOstrService {
 
         List<String> deleteOstrSns = new ArrayList<>();
 
+        String ostrPrtnrNo = this.mapper
+            .selectOstrPrtnrNo(new FindOstrPrtnrNoReq(removeReq.ostrWareNo(), removeReq.ostrDt()));
+
+        String strPrtnrNo = this.mapper
+            .selectStrPrtnrNo(new FindStrPrtnrNoReq(removeReq.strWareNo(), removeReq.ostrDt()));
+
         for (RemoveReq dto : dtos) {
             WsnaReturningGoodsDvo dvo = this.converter.mapRemoveReqToReturningGoodsDvo(dto);
+
+            dvo.setWareMngtPrtnrNo(ostrPrtnrNo);
+            dvo.setStrWareMngtPrtnrNo(strPrtnrNo);
 
             // 반품출고(내부/외부)인 경우
             if (isReturning(dvo.getOstrTpCd())) {

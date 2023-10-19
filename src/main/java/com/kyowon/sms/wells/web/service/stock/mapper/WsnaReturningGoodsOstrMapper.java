@@ -46,4 +46,8 @@ public interface WsnaReturningGoodsOstrMapper {
     List<WsnaReturningGoodsDvo> selectLogisticsRemoveReturn(String itmOstrNo, List<String> deleteOstrSns);
 
     List<SearchPitmStockRes> selectPitmStocks(String wareNo, List<String> itmPdCds, String itmGdCd);
+
+    String selectOstrPrtnrNo(FindOstrPrtnrNoReq findOstrPrtnrNoReq);
+
+    String selectStrPrtnrNo(FindStrPrtnrNoReq findStrPrtnrNoReq);
 }

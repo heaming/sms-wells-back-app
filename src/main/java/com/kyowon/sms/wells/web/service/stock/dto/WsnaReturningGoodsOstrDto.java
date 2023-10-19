@@ -132,6 +132,7 @@ public class WsnaReturningGoodsOstrDto {
         String itmPdCd, // 품목상품코드
         String itmPdNm, // 품목명(한글)
         String itmGdCd, // 품목등급코드
+        String itmKndCd, // 품목구분코드
         BigDecimal onQty, // 재고수량
         String mngtUnitCd, // 관리단위코드
         @NotBlank
@@ -201,4 +202,15 @@ public class WsnaReturningGoodsOstrDto {
         BigDecimal pitmQty // 시점재고
     ) {}
 
+    @ApiModel(value = "WsnaReturningGoodsOstrDto-FindOstrPrtnrNoReq")
+    public record FindOstrPrtnrNoReq(
+        String ostrWareNo, // 출고유형코드
+        String ostrDt // 출고일자
+    ) {}
+
+    @ApiModel(value = "WsnaReturningGoodsOstrDto-FindStrPrtnrNoReq")
+    public record FindStrPrtnrNoReq(
+        String strWareNo, // 출고유형코드
+        String ostrDt // 출고일자
+    ) {}
 }
