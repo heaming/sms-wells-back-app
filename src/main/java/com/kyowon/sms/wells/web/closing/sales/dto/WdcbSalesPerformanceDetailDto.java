@@ -377,7 +377,8 @@ public class WdcbSalesPerformanceDetailDto {
         String dpTpCd,
         String dpTpCdNm,
         String mpyBsdt,
-        String fnitAprRsCd
+        String fnitAprRsCd,
+        String pvdaAmt /*이자매출*/
     ) {}
 
     // *********************************************************
