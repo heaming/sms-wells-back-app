@@ -6,6 +6,8 @@ import com.sds.sflex.common.docs.dto.AttachFileDto;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.common.utils.StringUtil;
 
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
 import io.swagger.annotations.ApiModel;
 
 public class WwdbRefundApplicationDto {
@@ -108,12 +110,21 @@ public class WwdbRefundApplicationDto {
         String rfndBltfAkAmt,
         String rfndAkNo,
         String fnitCd,
+        String fnitNm,
+        @MaskRequired(type = MaskingType.ACCOUNT)
+        String acCrNo,
         String cstNo,
         String crdcdFer,
         String dpTpCd,
         String rfndRsonCd,
         String rfndRsonCn
-    ) {}
+    ) {
+        public SearchRefundDetailRes {
+            if (!StringUtil.isEmpty(acCrNo)) {
+                acCrNo = DbEncUtil.dec(acCrNo); // 계좌/신용카드 번호 복호화
+            }
+        }
+    }
     /* 환불신청팝업 - 환불상세 END*/
 
     /* 전금상세 */
