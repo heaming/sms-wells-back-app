@@ -198,7 +198,7 @@ public class WsnaReturningGoodsOstrDto {
     public record SearchPitmStockRes(
         String itmPdCd, // 품목상품코드
         String itmGdCd, // 품목등급코드
-        String pitmQty // 시점재고
+        BigDecimal pitmQty // 시점재고
     ) {}
 
 }
