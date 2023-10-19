@@ -189,58 +189,98 @@
        AND M1.PRTNR_NO = #{prtnrNo} /* 파트너번호 */
       </if>
       <choose>
-      <when test='@MybatisUtils@equals(cnclTpCd, "01")'> /* 렌탈 */
+      <when test='@MybatisUtils@equals(sellTpCd, "01")'> /* 렌탈 */
       AND M1.RENTAL_NW_CT <![CDATA[>]]> 0
       </when>
-      <when test='@MybatisUtils@equals(cnclTpCd, "02")'> /* 일시불 */
+      <when test='@MybatisUtils@equals(sellTpCd, "02")'> /* 일시불 */
       AND M1.SPAY_NW_CT <![CDATA[>]]> 0
       </when>
       </choose>
     </select>
 
     <select id='selectAggregateChecks' resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WwfeaAccountNetIncreaseDto$SearchCheckRes">
-
-      SELECT CASE WHEN #{aggregateTpCd} = '01' THEN G2.OG_CD
-                  WHEN #{aggregateTpCd} = '02' THEN G2.DGR3_LEVL_OG_CD
-                  WHEN #{aggregateTpCd} = '03' THEN G2.DGR2_LEVL_OG_CD
-                  WHEN #{aggregateTpCd} = '04' THEN G2.DGR1_LEVL_OG_CD
-                   END AS inqrDvCd /* 유형구분코드 */
-           , G1.PRTNR_KNM /* 파트너명 */
-           , G1.PRTNR_NO /* 파트너번호 */
-           , NVL(W1.RENTAL_CAN_CT, 0) AS RENTAL_CAN_CT /* 렌탈취소건수 */
-           , NVL(W1.SPAY_RSG_CT, 0) AS SPAY_RSG_CT /* 일시불해지건수 */
-           , NVL(W1.MSH_SPR_CT, 0) AS MSH_SPR_CT /* 멤버십이탈건수 */
-           , NVL(W1.RENTAL_EXN_CT, 0) AS RENTAL_EXN_CT /* 렌탈만료건수 */
-           , NVL(W1.RENTAL_BOO_CAN_CT, 0) AS RENTAL_BOO_CAN_CT /* 렌탈예약취소건수 */
-           , NVL(W1.SPAY_BOO_CAN_CT, 0) AS SPAY_BOO_CAN_CT /* 일시불예약취소건수 */
-           , W1.RENTAL_CAN_CT + W1.SPAY_RSG_CT + W1.MSH_SPR_CT + W1.RENTAL_EXN_CT + RENTAL_BOO_CAN_CT + SPAY_BOO_CAN_CT AS CAN_TOT_CT /* 취소건수계 */
-           , NVL(W1.RENTAL_NW_CT, 0) AS RENTAL_NW_CT /* 렌탈신규건수 */
-           , NVL(W1.SPAY_NW_CT, 0) AS SPAY_NW_CT /* 일시불신규건수 */
-           , W1.RENTAL_NW_CT + W1.SPAY_NW_CT AS NW_TOT_CT /* 신규건수계 */
-           , (W1.RENTAL_NW_CT + W1.SPAY_NW_CT) - (W1.RENTAL_CAN_CT + W1.SPAY_RSG_CT + W1.MSH_SPR_CT + W1.RENTAL_EXN_CT + RENTAL_BOO_CAN_CT + SPAY_BOO_CAN_CT) AS ACC_NINC_YN /* 계정순증계 */
-        FROM TB_FEAM_WELS_ACC_NINC_MM_CL W1 /* 웰스계정순증월마감 */
-       INNER JOIN TB_OGBS_MM_PRTNR_IZ G1 /*월파트너내역*/
-          ON W1.PERF_YM = G1.BASE_YM
-         AND W1.PRTNR_NO = G1.PRTNR_NO
-         AND G1.OG_TP_CD = #{ogTpCd}
-       INNER JOIN TB_OGBS_MM_OG_IZ G2 /*월조직내역*/
-          ON G1.BASE_YM = G2.BASE_YM
-         AND G1.OG_ID = G2.OG_ID
-         AND G2.DTA_DL_YN = 'N'
-       WHERE W1.FEE_TCNT_DV_CD = #{feeTcntDvCd} /* 차수 */
-         AND W1.PERF_YM = #{perfYm} /* 실적년월 */
-         <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
-         AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId} /* 조직1레벨 */
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
-         AND G2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId} /* 조직2레벨 */
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
-         AND G2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId} /* 조직3레벨 */
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-         AND W1.PRTNR_NO = #{prtnrNo} /* 파트너번호 */
-         </if>
+      <choose>
+        <when test='@MybatisUtils@equals(aggregateTpCd, "01")'> /* 개인 */
+          SELECT G2.OG_CD AS inqrDvCd /* 유형구분코드 */
+               , G1.PRTNR_KNM /* 파트너명 */
+               , G1.PRTNR_NO /* 파트너번호 */
+               , NVL(W1.RENTAL_CAN_CT, 0) AS RENTAL_CAN_CT /* 렌탈취소건수 */
+               , NVL(W1.SPAY_RSG_CT, 0) AS SPAY_RSG_CT /* 일시불해지건수 */
+               , NVL(W1.MSH_SPR_CT, 0) AS MSH_SPR_CT /* 멤버십이탈건수 */
+               , NVL(W1.RENTAL_EXN_CT, 0) AS RENTAL_EXN_CT /* 렌탈만료건수 */
+               , NVL(W1.RENTAL_BOO_CAN_CT, 0) AS RENTAL_BOO_CAN_CT /* 렌탈예약취소건수 */
+               , NVL(W1.SPAY_BOO_CAN_CT, 0) AS SPAY_BOO_CAN_CT /* 일시불예약취소건수 */
+               , NVL(W1.RENTAL_CAN_CT, 0) + NVL(W1.SPAY_RSG_CT, 0) + NVL(W1.MSH_SPR_CT, 0) + NVL(W1.RENTAL_EXN_CT, 0)
+                    + NVL(W1.RENTAL_BOO_CAN_CT, 0) + NVL(W1.SPAY_BOO_CAN_CT, 0) AS CAN_TOT_CT /* 취소건수계 */
+               , NVL(W1.RENTAL_NW_CT, 0) AS RENTAL_NW_CT /* 렌탈신규건수 */
+               , NVL(W1.SPAY_NW_CT, 0) AS SPAY_NW_CT /* 일시불신규건수 */
+               , NVL(W1.RENTAL_NW_CT, 0) + NVL(W1.SPAY_NW_CT, 0) AS NW_TOT_CT /* 신규건수계 */
+               , NVL(W1.RENTAL_NW_CT, 0) + NVL(W1.SPAY_NW_CT, 0) - NVL(W1.RENTAL_CAN_CT, 0) - NVL(W1.SPAY_RSG_CT, 0) - NVL(W1.MSH_SPR_CT, 0)
+                    - NVL(W1.RENTAL_EXN_CT, 0) - NVL(W1.RENTAL_BOO_CAN_CT, 0) - NVL(W1.SPAY_BOO_CAN_CT, 0) AS ACC_NINC_YN /* 계정순증계 */
+        </when>
+        <otherwise>
+          SELECT CASE WHEN #{aggregateTpCd} = '02' THEN MAX(G2.DGR3_LEVL_OG_CD)
+                      WHEN #{aggregateTpCd} = '03' THEN MAX(G2.DGR2_LEVL_OG_CD)
+                      WHEN #{aggregateTpCd} = '04' THEN MAX(G2.DGR1_LEVL_OG_CD)
+                       END AS inqrDvCd /* 유형구분코드 */
+               , CASE WHEN #{aggregateTpCd} = '02' THEN MAX(G2.DGR3_LEVL_DG_PRTNR_NM)
+                      WHEN #{aggregateTpCd} = '03' THEN MAX(G2.DGR2_LEVL_DG_PRTNR_NM)
+                      WHEN #{aggregateTpCd} = '04' THEN MAX(G2.DGR1_LEVL_DG_PRTNR_NM)
+                       END AS PRTNR_KNM /* 파트너명 */
+               , CASE WHEN #{aggregateTpCd} = '02' THEN MAX(G2.DGR3_LEVL_DG_PRTNR_NO)
+                      WHEN #{aggregateTpCd} = '03' THEN MAX(G2.DGR2_LEVL_DG_PRTNR_NO)
+                      WHEN #{aggregateTpCd} = '04' THEN MAX(G2.DGR1_LEVL_DG_PRTNR_NO)
+                       END AS PRTNR_NO /* 파트너번호 */
+               , NVL(SUM(W1.RENTAL_CAN_CT), 0) AS RENTAL_CAN_CT /* 렌탈취소건수 */
+               , NVL(SUM(W1.SPAY_RSG_CT), 0) AS SPAY_RSG_CT /* 일시불해지건수 */
+               , NVL(SUM(W1.MSH_SPR_CT), 0) AS MSH_SPR_CT /* 멤버십이탈건수 */
+               , NVL(SUM(W1.RENTAL_EXN_CT), 0) AS RENTAL_EXN_CT /* 렌탈만료건수 */
+               , NVL(SUM(W1.RENTAL_BOO_CAN_CT), 0) AS RENTAL_BOO_CAN_CT /* 렌탈예약취소건수 */
+               , NVL(SUM(W1.SPAY_BOO_CAN_CT), 0) AS SPAY_BOO_CAN_CT /* 일시불예약취소건수 */
+               , NVL(SUM(W1.RENTAL_CAN_CT), 0) + NVL(SUM(W1.SPAY_RSG_CT), 0) + NVL(SUM(W1.MSH_SPR_CT), 0) + NVL(SUM(W1.RENTAL_EXN_CT), 0)
+                    + NVL(SUM(W1.RENTAL_BOO_CAN_CT), 0) + NVL(SUM(W1.SPAY_BOO_CAN_CT), 0) AS CAN_TOT_CT /* 취소건수계 */
+               , NVL(SUM(W1.RENTAL_NW_CT), 0) AS RENTAL_NW_CT /* 렌탈신규건수 */
+               , NVL(SUM(W1.SPAY_NW_CT), 0) AS SPAY_NW_CT /* 일시불신규건수 */
+               , NVL(SUM(W1.RENTAL_NW_CT), 0) + NVL(SUM(W1.SPAY_NW_CT), 0) AS NW_TOT_CT /* 신규건수계 */
+               , NVL(SUM(W1.RENTAL_NW_CT), 0) + NVL(SUM(W1.SPAY_NW_CT), 0) - NVL(SUM(W1.RENTAL_CAN_CT), 0) - NVL(SUM(W1.SPAY_RSG_CT), 0) - NVL(SUM(W1.MSH_SPR_CT), 0)
+                    - NVL(SUM(W1.RENTAL_EXN_CT), 0) - NVL(SUM(W1.RENTAL_BOO_CAN_CT), 0) - NVL(SUM(W1.SPAY_BOO_CAN_CT), 0) AS ACC_NINC_YN /* 계정순증계 */
+        </otherwise>
+      </choose>
+            FROM TB_FEAM_WELS_ACC_NINC_MM_CL W1 /* 웰스계정순증월마감 */
+           INNER JOIN TB_OGBS_MM_PRTNR_IZ G1 /*월파트너내역*/
+              ON W1.PERF_YM = G1.BASE_YM
+             AND W1.PRTNR_NO = G1.PRTNR_NO
+             AND W1.OG_TP_CD = G1.OG_TP_CD
+           INNER JOIN TB_OGBS_MM_OG_IZ G2 /*월조직내역*/
+              ON G1.BASE_YM = G2.BASE_YM
+             AND G1.OG_ID = G2.OG_ID
+             AND G2.DTA_DL_YN = 'N'
+           WHERE W1.FEE_TCNT_DV_CD = #{feeTcntDvCd} /* 차수 */
+             AND W1.PERF_YM = #{perfYm} /* 실적년월 */
+             AND W1.OG_TP_CD = #{ogTpCd}
+             <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+             AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId} /* 조직1레벨 */
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+             AND G2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId} /* 조직2레벨 */
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+             AND G2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId} /* 조직3레벨 */
+             </if>
+             <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+             AND W1.PRTNR_NO = #{prtnrNo} /* 파트너번호 */
+             </if>
+            <choose>
+            <when test='@MybatisUtils@equals(aggregateTpCd, "02")'> /* 지점 */
+            GROUP BY G2.DGR3_LEVL_OG_CD
+            </when>
+            <when test='@MybatisUtils@equals(aggregateTpCd, "03")'> /* 지역단 */
+            GROUP BY G2.DGR2_LEVL_OG_CD
+            </when>
+            <when test='@MybatisUtils@equals(aggregateTpCd, "04")'> /* 총력단 */
+            GROUP BY G2.DGR1_LEVL_OG_CD
+            </when>
+            </choose>
     </select>
 
 </mapper>
