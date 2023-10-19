@@ -123,7 +123,8 @@ public class WbncRentalResignExpectedMgtDto {
         @NotBlank
         String baseDt, /* 직권해지일 */
         String cntrNo,
-        int cntrSn
+        int cntrSn,
+        String confirmDvCd /* 예정확정 : '01' , 최종확정 : '02' */
     ) {
     }
 
