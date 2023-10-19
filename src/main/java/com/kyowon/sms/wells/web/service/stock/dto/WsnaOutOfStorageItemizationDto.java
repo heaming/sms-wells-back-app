@@ -27,25 +27,25 @@ public class WsnaOutOfStorageItemizationDto {
         @NotBlank
         String ostrWareNo, /*출고창고번호*/
         String strWareDvCd, /*입고창고구분코드*/
-        String strWareNoM,
-        String strWareNoD
+        String strWareNoM, /* 입고창고상위 */
+        String strWareNoD /* 입고창고개인 */
 
     ) {}
 
     @ApiModel(value = "WsnaOutOfStorageManagementDto-SearchRes")
     public record SearchRes(
-        String ostrTpCd,
-        String ostrWareNo,
-        String strWareNo,
-        String itmOstrNo,
-        String itmStrNo,
-        String ostrAkNo,
-        String ostrAkSn,
-        String strHopDt,
-        String ostrDt,
-        String wareNm,
-        String wareAdrId,
-        String txtNote
+        String ostrTpCd, /* 출고구분코드 */
+        String ostrWareNo, /* 출고창고번호 */
+        String strWareNo, /* 입고창고번호 */
+        String itmOstrNo, /* 품목출고번호 */
+        String itmStrNo, /* 품목입고번호 */
+        String ostrAkNo, /* 출고요청번호 */
+        String ostrAkSn, /* 출고요청순번 */
+        String strHopDt, /* 입고희망일자 */
+        String ostrDt, /* 출고일자 */
+        String wareNm, /* 창고명 */
+        String wareAdrId, /* 창고주소ID */
+        String txtNote /* 비고 */
 
     ) {}
 }
