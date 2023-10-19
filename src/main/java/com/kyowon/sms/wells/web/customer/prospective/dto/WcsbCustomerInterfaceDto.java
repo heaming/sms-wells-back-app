@@ -4,6 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 웰스홈페이지 신규접수 I/F Dto
+ * </pre>
+ *
+ * @author jeongeon.kim
+ * @since 2023-06-26
+ */
 public class WcsbCustomerInterfaceDto {
 
     /**
