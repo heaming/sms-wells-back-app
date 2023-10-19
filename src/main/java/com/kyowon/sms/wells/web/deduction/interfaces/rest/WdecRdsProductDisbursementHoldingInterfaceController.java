@@ -11,7 +11,8 @@ import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursem
 import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingInterfaceDto.FindReq;
 import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingInterfaceDto.FindRes;
 import com.kyowon.sms.wells.web.deduction.interfaces.service.WdecRdsProductDisbursementHoldingInterfaceService;
-import com.kyowon.sms.wells.web.deduction.zcommon.constants.DeDeductionConst; //wells
+import com.kyowon.sms.wells.web.deduction.zcommon.constants.DeDeductionConst;
+import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 
@@ -55,17 +56,35 @@ public class WdecRdsProductDisbursementHoldingInterfaceController {
         //Response용 EaiWrapper 생성
         EaiWrapper<WdecRdsProductDisbursementHoldingInterfaceDto.SaveRes> resWrapper = reqWrapper.newResInstance();
 
-        //return 파라미터
-        String[] returnValue = service.createRdsProductDisbursementHoldings(reqWrapper.getBody());
+        //현재날짜
+        String wkPrtcDtmVal = DateUtil.getNowString();
 
-        // 서비스 메소드 호출 및 Response Body 세팅
-        resWrapper.setBody(
-            WdecRdsProductDisbursementHoldingInterfaceDto.SaveRes.builder()
-                .rdsDsbDuedt(returnValue[0]) //RDS지급예정일자
-                .rsCd(returnValue[1]) //결과코드
-                .rsMsg(returnValue[2]) //결과메시지
-                .build()
-        );
+        int check = service.insertRdsProductDisbursementHoldings(reqWrapper.getBody(), wkPrtcDtmVal);
+
+        if (check > 0) {
+            //return 파라미터
+            String[] returnValue = service.createRdsProductDisbursementHoldings(reqWrapper.getBody(), wkPrtcDtmVal);
+
+            // 서비스 메소드 호출 및 Response Body 세팅
+            resWrapper.setBody(
+                WdecRdsProductDisbursementHoldingInterfaceDto.SaveRes.builder()
+                    .rdsDsbDuedt(returnValue[0]) //RDS지급예정일자
+                    .rsCd(returnValue[1]) //결과코드
+                    .rsMsg(returnValue[2]) //결과메시지
+                    .build()
+            );
+        } else {
+            //인서트쿼리가 실패하면, 처리
+            String[] stringArray = new String[] {"Insert Failed", "F", "데이터 등록이 실패하였습니다."}; //스트링배열로 리턴
+
+            resWrapper.setBody(
+                WdecRdsProductDisbursementHoldingInterfaceDto.SaveRes.builder()
+                    .rdsDsbDuedt(stringArray[0]) //메세지 처리
+                    .rsCd(stringArray[1]) //메세지 처리
+                    .rsMsg(stringArray[2]) //메세지 처리
+                    .build()
+            );
+        }
 
         return resWrapper;
     }
