@@ -79,7 +79,7 @@ public class WpsfActivityGoodsMgtDto {
         String actiGdsAplcStatNm,
         String actiGdsNm,
         Long actiGdsAmt,
-        Integer patDdtnMcn,
+        String patDdtnMcn,
         Long pnpyamOcAmt,
         String maxFeeDdtnOcDt,
         String sumFeeDdtnDstAmt,
@@ -89,7 +89,9 @@ public class WpsfActivityGoodsMgtDto {
         String aplcDtS,
         String actiGdsStddNm,
         String cltnDt, /* 해약일자 */
-        String cntrDt /* 계약일자 */
+        String cntrDt, /* 계약일자 */
+
+        String thmAmt
 
     ) {
         public SearchStatRes {
