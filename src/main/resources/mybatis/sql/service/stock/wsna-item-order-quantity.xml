@@ -56,6 +56,10 @@
         <if test="@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)">
            AND T1.SAP_MAT_CD IS NOT NULL
         </if>
+         ORDER BY T1.PD_CD
+        <if test="@MybatisUtils@isNotEmpty(offSet) and @MybatisUtils@isNotEmpty(size)">
+        OFFSET ${offSet} ROW FETCH NEXT ${size} ROW ONLY
+        </if>
     </sql>
 
     <select id="selectItemOrderQuantityCount" resultType="java.lang.Long">
@@ -64,7 +68,9 @@
     </select>
 
     <select id="selectItemOrderQuantitiy" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemOrderQuantityDvo">
-        SELECT /*+ LEADING(D1) NO_MERGE(D1) NO_MERGE(D2) NO_MERGE(D3) NO_MERGE(D4) NO_MERGE(D5) NO_MERGE(D6) NO_MERGE(D7) NO_MERGE(D8) USE_NL(D1 D2 D3 D4 D5 D6 D7 D8) */
+          WITH PD AS
+             ( <include refid="selectWithProduct" /> )
+        SELECT /*+ USE_HASH(D1 D2) */
                F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', D1.ITEM_GR, #{session.langId})      AS COMM_GB_NM        /* 제품군 */
              , TO_CHAR(TO_NUMBER(D1.SAP_CD))                                             AS SAP_CD            /* SAP코드 */
              , D1.PD_CD                                                                                       /* 품목코드 */
@@ -80,10 +86,7 @@
              , D1.MOQ                                                                                         /* 최소발주량 */
              , D1.LEAD_TIME                                                                                   /* 리드타임 */
              , NVL(D7.PART_USE_QTY, 0)                                                   AS ET_NED_QTY5       /* 예상소요량 5개월 */
-          FROM
-             (
-               <include refid="selectWithProduct" />
-             ) D1
+          FROM PD D1   /* WITH절 상품 */
           LEFT OUTER JOIN
              (
                SELECT T.ITM_PD_CD
@@ -103,6 +106,8 @@
                                       THEN NVL(D1.PITM_STOC_A_GD_QTY, 0) + NVL(D1.PITM_STOC_B_GD_QTY, 0) + NVL(D1.PITM_STOC_E_GD_QTY, 0) + NVL(D1.PITM_STOC_R_GD_QTY, 0)
                                  END) AS SV_CNR_QTY        /* 서비스센터 */
                         FROM TB_SVST_MCITM_STOC_IZ D1       /* 월별품목재고내역 */
+                       INNER JOIN PD D2                     /* WITH절 상품 */
+                          ON D2.PD_CD = D1.ITM_PD_CD
                        INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
                           ON D3.WARE_NO = D1.WARE_NO
                          AND D3.APY_YM  = TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrYm}, 'YYYYMM'), -1),'YYYYMM')
@@ -134,8 +139,10 @@
                                       THEN ( NVL(D1.STOC_ACINSP_STR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_R_GD_QTY, 0) )
                                            - ( NVL(D1.STOC_ACINSP_OSTR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_R_GD_QTY, 0) )
                                  END) AS SV_CNR_QTY        /* 서비스센터 */
-                        FROM TB_SVST_MCITM_STOC_IZ D1   /* 월별품목재고내역 */
-                       INNER JOIN TB_SVST_MCBY_WARE_IZ D3
+                        FROM TB_SVST_MCITM_STOC_IZ D1       /* 월별품목재고내역 */
+                       INNER JOIN PD D2                     /* WITH절 상품 */
+                          ON D2.PD_CD = D1.ITM_PD_CD
+                       INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
                           ON D3.APY_YM  = D1.BASE_YM
                          AND D3.WARE_NO = D1.WARE_NO
                        WHERE D1.DTA_DL_YN   = 'N'
@@ -159,8 +166,10 @@
                                        AND D3.WARE_DTL_DV_CD <![CDATA[<>]]> '30' THEN D1.STR_QTY
                                  END)                                                    AS BZNS_INDV_QTY     /* 영업개인 */
                            , SUM(CASE WHEN D3.WARE_DV_CD = '2' THEN D1.STR_QTY END)      AS SV_CNR_QTY        /* 서비스센터 */
-                        FROM TB_SVST_ITM_STR_IZ D1   /* 품목입고내역 */
-                       INNER JOIN TB_SVST_MCBY_WARE_IZ D3
+                        FROM TB_SVST_ITM_STR_IZ D1          /* 품목입고내역 */
+                       INNER JOIN PD D2                     /* WITH절 상품 */
+                          ON D2.PD_CD = D1.ITM_PD_CD
+                       INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
                           ON D3.WARE_NO = D1.STR_WARE_NO
                        WHERE D1.DTA_DL_YN   = 'N'
                          AND D3.DTA_DL_YN   = 'N'
@@ -194,8 +203,10 @@
                                                 ELSE D1.USE_QTY * -1
                                            END
                                  END) AS SV_QTY            /* 서비스 */
-                        FROM TB_SVST_SV_WK_OSTR_IZ D1   /* 서비스작업출고내역 */
-                       INNER JOIN TB_SVST_MCBY_WARE_IZ D3
+                        FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
+                       INNER JOIN PD D2                     /* WITH절 상품 */
+                          ON D2.PD_CD = D1.ITM_PD_CD
+                       INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
                           ON D3.WARE_NO = D1.WK_WARE_NO
                        WHERE D1.DTA_DL_YN   = 'N'
                          AND D1.FNL_ITM_GD_CD <![CDATA[<>]]> 'X'
@@ -222,8 +233,10 @@
                                        AND D3.WARE_DTL_DV_CD <![CDATA[<>]]> '30' THEN D1.OSTR_QTY * -1
                                  END)                                                          AS BZNS_INDV_QTY     /* 영업개인 */
                            , SUM(CASE WHEN D3.WARE_DV_CD = '2' THEN D1.OSTR_QTY * -1 END)      AS SV_CNR_QTY        /* 서비스 */
-                        FROM TB_SVST_ITM_OSTR_IZ D1   /* 품목출고내역 */
-                       INNER JOIN TB_SVST_MCBY_WARE_IZ D3
+                        FROM TB_SVST_ITM_OSTR_IZ D1         /* 품목출고내역 */
+                       INNER JOIN PD D2                     /* WITH절 상품 */
+                          ON D2.PD_CD = D1.ITM_PD_CD
+                       INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
                           ON D3.WARE_NO = D1.OSTR_WARE_NO
                        WHERE D1.DTA_DL_YN   = 'N'
                          AND D1.ITM_GD_CD <![CDATA[<>]]> 'X'
@@ -253,6 +266,8 @@
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
                    ON D2.CNTR_NO = D1.CNTR_NO
                   AND D2.CNTR_SN = D1.CNTR_SN
+                INNER JOIN PD D3                       /* WITH절 상품 */
+                   ON D3.PD_CD = D1.PART_PD_CD
                 WHERE D1.DTA_DL_YN = 'N'
                   AND D2.DTA_DL_YN = 'N'
                   AND D2.REQD_DT IS NULL
@@ -281,6 +296,8 @@
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
                    ON D2.CNTR_NO = D1.CNTR_NO
                   AND D2.CNTR_SN = D1.CNTR_SN
+                INNER JOIN PD D3                       /* WITH절 상품 */
+                   ON D3.PD_CD = D1.PART_PD_CD
                 WHERE D1.DTA_DL_YN = 'N'
                   AND D2.DTA_DL_YN = 'N'
                   AND D2.REQD_DT IS NULL
@@ -309,6 +326,8 @@
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
                    ON D2.CNTR_NO = D1.CNTR_NO
                   AND D2.CNTR_SN = D1.CNTR_SN
+                INNER JOIN PD D3                       /* WITH절 상품 */
+                   ON D3.PD_CD = D1.PART_PD_CD
                 WHERE D1.DTA_DL_YN = 'N'
                   AND D2.DTA_DL_YN = 'N'
                   AND D2.REQD_DT IS NULL
@@ -337,6 +356,8 @@
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
                    ON D2.CNTR_NO = D1.CNTR_NO
                   AND D2.CNTR_SN = D1.CNTR_SN
+                INNER JOIN PD D3                       /* WITH절 상품 */
+                   ON D3.PD_CD = D1.PART_PD_CD
                 WHERE D1.DTA_DL_YN = 'N'
                   AND D2.DTA_DL_YN = 'N'
                   AND D2.REQD_DT IS NULL
@@ -365,6 +386,8 @@
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
                    ON D2.CNTR_NO = D1.CNTR_NO
                   AND D2.CNTR_SN = D1.CNTR_SN
+                INNER JOIN PD D3                       /* WITH절 상품 */
+                   ON D3.PD_CD = D1.PART_PD_CD
                 WHERE D1.DTA_DL_YN = 'N'
                   AND D2.DTA_DL_YN = 'N'
                   AND D2.REQD_DT IS NULL
@@ -390,6 +413,8 @@
                SELECT D1.PU_PART_PD_CD AS ITM_PD_CD
                     , SUM(D1.PU_QTY)   AS THM_QOM_ASN_QTY
                  FROM TB_SVPD_RGBS_PU_ITM_IZ D1   /* 정기BS투입품목내역 */
+                INNER JOIN PD D2                  /* WITH절 상품 */
+                   ON D2.PD_CD = D1.PU_PART_PD_CD
                 WHERE D1.DTA_DL_YN     = 'N'
                   AND D1.ASN_OJ_YM     = #{inqrYm}
              <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
@@ -405,9 +430,6 @@
              ) D8
             ON D8.ITM_PD_CD = D1.PD_CD
          ORDER BY D1.PD_CD
-        <if test="@MybatisUtils@isNotEmpty(offSet) and @MybatisUtils@isNotEmpty(size)">
-        OFFSET ${offSet} ROW FETCH NEXT ${size} ROW ONLY
-        </if>
     </select>
 
 </mapper>
