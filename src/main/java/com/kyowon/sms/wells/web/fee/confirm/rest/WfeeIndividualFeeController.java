@@ -39,7 +39,7 @@ public class WfeeIndividualFeeController {
     @ApiOperation(value = "수수료 개인별 실적 상세 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 개인별 상세 실적 내역을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/plar-details")
     public List<SearchPlarRes> getIndividualPerformancePlarDetails(
@@ -63,7 +63,7 @@ public class WfeeIndividualFeeController {
     @ApiOperation(value = "수수료 개인별 실적 상세 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 개인별 상세 실적 내역을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/hmst-details")
     public List<WfeeIndividualFeeHomeMasterDto.SearchHmstRes> getIndividualPerformanceHmstDetails(
