@@ -38,6 +38,8 @@ public class WsnbWellsServiceCfdcService {
 
     @Value("${report.ozUrl}")
     private String ozUrl;
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
 
     public PagingResult<SearchRes> getWellsServiceConfirmations(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectWellsServiceConfirmations(dto, pageInfo);
@@ -51,7 +53,7 @@ public class WsnbWellsServiceCfdcService {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("custNm", dto.nm());
         paramMap.put(
-            "url", "https://wsm.kyowon.co.kr"
+            "url", getBaseUrl()
                 + SnServiceConst.REPORT_URL_V1
                 + "/wells-service-cfdc/report/"
                 + dto.cstSvAsnNo()
@@ -76,7 +78,7 @@ public class WsnbWellsServiceCfdcService {
         paramMap.put("custNm", dto.nm());
         paramMap.put(
             "url",
-            "https://d-wsm.kyowon.co.kr"
+            getBaseUrl()
                 + SnServiceConst.REPORT_URL_V1
                 + "/wells-service-cfdc/report/"
                 + dto.cstSvAsnNo()
@@ -200,5 +202,25 @@ public class WsnbWellsServiceCfdcService {
         rtn.put("jsonData2", list3);
 
         return rtn;
+    }
+
+    String getBaseUrl() {
+        String baseUrl = "";
+        switch (activeProfile) {
+            case "dev":
+                baseUrl = "https://d-wsm.kyowon.co.kr";
+                break;
+            case "qa":
+                baseUrl = "https://q-wsm.kyowon.co.kr";
+                break;
+            case "local":
+                baseUrl = "http://localhost:8080";
+                break;
+            case "prd":
+            default:
+                baseUrl = "https://wsm.kyowon.co.kr";
+                break;
+        }
+        return baseUrl;
     }
 }
