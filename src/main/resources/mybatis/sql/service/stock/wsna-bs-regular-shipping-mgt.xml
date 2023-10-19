@@ -3,10 +3,10 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsRegularShippingMgtMapper">
 
     <select id="selectProducts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto$SearchProductRes">
-        SELECT LGST_WK_MTHD_CD
-             , PG_GB
-             ,(CASE WHEN LGST_WK_MTHD_CD = 'MJ00' THEN MAX(OLD_PRNT_PD_NM) ELSE MAX(CD_CNTN) END) AS PD_NAME
-             , COUNT(DISTINCT LGST_WK_MTHD_CD) AS CNT_LGST_WK_MTHD_CD
+        SELECT LGST_WK_MTHD_CD /*물류작업방식코드*/
+             , PG_GB /* 그룹핑코드 (G :배송상품그룹매핑, P:미매핑상품) */
+             ,(CASE WHEN LGST_WK_MTHD_CD = 'MJ00' THEN MAX(OLD_PRNT_PD_NM) ELSE MAX(CD_CNTN) END) AS PD_NAME /* 상품명 */
+             , COUNT(DISTINCT LGST_WK_MTHD_CD) AS CNT_LGST_WK_MTHD_CD /*물류작업방식코드 건수*/
         FROM (
                SELECT /*+ USE_NL(TA TN TC TK CO PB) LEADING(TA) */
                       NVL2(TN.PD_CD, TN.SPP_PD_CD, TA.PDCT_PD_CD) AS PD_CODE  /*배송상품코드, 매핑이 없으면 제품상품코드*/
@@ -15,22 +15,22 @@
                     , TK.PD_PRP_VAL20   AS PD_GROUP_CD                            /* 상품속성값 사용*/
                     , NVL2(TN.SPP_PD_CD, CO.USER_DFN_06, 'WE99') AS LGST_WK_MTHD_CD /*물류작업방식코드*/
                     , TN.OLD_SRN_PRNT_PD_NM AS OLD_PRNT_PD_NM  /* 구화면출력상품명(모종용) */
-                 FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ TA
-                 LEFT JOIN TB_SVPD_PCSV_PD_IZ TN
+                 FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ TA /* 고객서비스BS대상내역 */
+                 LEFT JOIN TB_SVPD_PCSV_PD_IZ TN /* 택배상품내역 */
                    ON TN.PD_CD = TA.PDCT_PD_CD
                   AND TN.SPP_DV_CD = #{sppDvCd}
-                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TC
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TC /* 고객서비스수행내역 */
                    ON TC.CNTR_NO = TA.CNTR_NO
                   AND TC.CNTR_SN = TA.CNTR_SN
-                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL TK
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL TK /* 상품각사속성상세 */
                    ON TK.PD_CD = TA.PDCT_PD_CD
                   AND TK.PD_EXTS_PRP_GRP_CD = 'PART'
-                 LEFT OUTER JOIN T_CMZ_CD_D CO
+                 LEFT OUTER JOIN T_CMZ_CD_D CO /* 코드상세 */
                    ON CO.TENANT_ID = 'TNT_WELLS'
                   AND CO.CD_ID = 'SPP_PD_CD'
                   AND CO.CD_VLD_VAL = TN.SPP_PD_CD
                   AND CO.DEL_YN = 'N'
-                INNER JOIN TB_PDBS_PD_BAS  PB
+                INNER JOIN TB_PDBS_PD_BAS  PB /* 상품기본 */
                    ON PB.PD_CD = TA.PDCT_PD_CD
                  WHERE 1=1
                    AND TA.ASN_OJ_YM = #{asnYm}
@@ -43,7 +43,7 @@
                    AND TK.PD_PRP_VAL20 NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '11', '91', '92', '93', '94', '95', '96') /*자가필터: 모종제외(11,92)*/
                 </if>
             ) A
-            LEFT JOIN T_CMZ_CD_D C
+            LEFT JOIN T_CMZ_CD_D C /* 코드상세 */
               ON  C.CD_ID = 'LGST_WK_MTHD_CD'
              AND C.TENANT_ID = 'TNT_WELLS'
              AND C.CD_VLD_VAL = A.LGST_WK_MTHD_CD
@@ -52,45 +52,45 @@
     </select>
     <select id="selectShippingItems" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMgtDvo">
 
-WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
+    WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
             SELECT
-                   PL1.CST_SV_ASN_NO AS CST_SV_ASN_NO
-                 , PL1.PDCT_PD_CD AS PDCT_PD_CD
-                 , PL1.PART_CNT_TOTAL AS PART_CNT_TOTAL    /*투입부품모델수*/
-                 , PL1.PART_SUM_TOTAL AS PART_SUM_TOTAL    /*투입부품수량합계*/
-                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 1) AS PART_CD_01
-                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 1) AS PART_NM_01
-                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 1) AS PART_QTY_01
-                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 2) AS PART_CD_02
-                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 2) AS PART_NM_02
-                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 2) AS PART_QTY_02
-                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 3) AS PART_CD_03
-                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 3) AS PART_NM_03
-                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 3) AS PART_QTY_03
-                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 4) AS PART_CD_04
-                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 4) AS PART_NM_04
-                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 4) AS PART_QTY_04
-                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 5) AS PART_CD_05
-                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 5) AS PART_NM_05
-                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 5) AS PART_QTY_05
-                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 6) AS PART_CD_06
-                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 6) AS PART_NM_06
-                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 6) AS PART_QTY_06
-                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 7) AS PART_CD_07
-                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 7) AS PART_NM_07
-                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 7) AS PART_QTY_07
-                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 8) AS PART_CD_08
-                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 8) AS PART_NM_08
-                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 8) AS PART_QTY_08
-                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 9) AS PART_CD_09
-                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 9) AS PART_NM_09
-                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 9) AS PART_QTY_09
-                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 10) AS PART_CD_10
-                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 10) AS PART_NM_10
-                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 10) AS PART_QTY_10
+                   PL1.CST_SV_ASN_NO AS CST_SV_ASN_NO /* 고객서비스배정번호 */
+                 , PL1.PDCT_PD_CD AS PDCT_PD_CD /* 제품상품코드 */
+                 , PL1.PART_CNT_TOTAL AS PART_CNT_TOTAL    /* 투입부품모델수 */
+                 , PL1.PART_SUM_TOTAL AS PART_SUM_TOTAL    /* 투입부품수량합계 */
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 1) AS PART_CD_01   /* 투입부품코드01 */
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 1) AS PART_NM_01   /* 투입부품명01 */
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 1) AS PART_QTY_01  /* 투입부품갯수01 */
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 2) AS PART_CD_02   /* 투입부품코드02 */
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 2) AS PART_NM_02   /* 투입부품명02 */
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 2) AS PART_QTY_02  /* 투입부품갯수02 */
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 3) AS PART_CD_03   /* 투입부품코드03 */
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 3) AS PART_NM_03   /* 투입부품명03 */
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 3) AS PART_QTY_03  /* 투입부품갯수03 */
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 4) AS PART_CD_04   /* 투입부품코드04 */
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 4) AS PART_NM_04   /* 투입부품명04 */
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 4) AS PART_QTY_04  /* 투입부품갯수04 */
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 5) AS PART_CD_05   /* 투입부품코드05 */
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 5) AS PART_NM_05   /* 투입부품명05 */
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 5) AS PART_QTY_05  /* 투입부품갯수05 */
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 6) AS PART_CD_06   /* 투입부품코드06 */
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 6) AS PART_NM_06   /* 투입부품명06 */
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 6) AS PART_QTY_06  /* 투입부품갯수06 */
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 7) AS PART_CD_07   /* 투입부품코드07 */
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 7) AS PART_NM_07   /* 투입부품명07 */
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 7) AS PART_QTY_07  /* 투입부품갯수07 */
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 8) AS PART_CD_08   /* 투입부품코드08 */
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 8) AS PART_NM_08   /* 투입부품명08 */
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 8) AS PART_QTY_08  /* 투입부품갯수08 */
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 9) AS PART_CD_09   /* 투입부품코드09 */
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 9) AS PART_NM_09   /* 투입부품명09 */
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 9) AS PART_QTY_09  /* 투입부품갯수09 */
+                 , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 10) AS PART_CD_10  /* 투입부품코드10 */
+                 , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 10) AS PART_NM_10  /* 투입부품명10 */
+                 , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 10) AS PART_QTY_10 /* 투입부품갯수10 */
               FROM (
-                    SELECT DISTINCT TA.CST_SV_ASN_NO  /* ==> 중복로우로 DISTINCT 추가 */
-                         , TB.PDCT_PD_CD AS PDCT_PD_CD
+                    SELECT DISTINCT TA.CST_SV_ASN_NO  /* 고객서비스배정번호 */
+                         , TB.PDCT_PD_CD AS PDCT_PD_CD /* 제품상품코드 */
                          , COUNT(1) OVER ( PARTITION BY TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN
                                            ORDER BY     TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN
                                            RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) AS PART_CNT_TOTAL
@@ -106,113 +106,113 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                          , LISTAGG(TB.PU_QTY, ',')
                              WITHIN GROUP ( ORDER BY TB.ITM_KND_CD, TB.FILT_CHNG_LV_CD, TB.PU_PART_PD_CD )
                              OVER ( PARTITION BY TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN, TB.PDCT_PD_CD ) AS PART_QTY_LIST
-                     FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ  TA
-                            INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ TB
-                                    ON  TA.ASN_OJ_YM = TB.ASN_OJ_YM
-                                    AND TA.CNTR_NO   = TB.CNTR_NO
-                                    AND TA.CNTR_SN   = TB.CNTR_SN
-                            INNER JOIN TB_PDBS_PD_BAS TC
-                                    ON TB.PU_PART_PD_CD = TC.PD_CD
+                     FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ  TA /* 고객서비스BS대상내역 */
+                    INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ TB /* 정기BS투입품목내역 */
+                            ON  TA.ASN_OJ_YM = TB.ASN_OJ_YM
+                            AND TA.CNTR_NO   = TB.CNTR_NO
+                            AND TA.CNTR_SN   = TB.CNTR_SN
+                    INNER JOIN TB_PDBS_PD_BAS TC /* 상품기본 */
+                            ON TB.PU_PART_PD_CD = TC.PD_CD
                     WHERE 1=1
                       AND TA.ASN_OJ_YM = #{asnYm}
                       AND TA.VST_DV_CD = '20' /*20:택배*/
                    ) PL1
              WHERE 1=1
         )
-            SELECT V1.ASN_OJ_YM
-                 , V1.CNTR_NO
-                 , V1.CNTR_SN
-                 , V1.CST_SV_ASN_NO
-                 , V1.CST_NO
+            SELECT V1.ASN_OJ_YM /* 배정년월 */
+                 , V1.CNTR_NO /* 계약번호 */
+                 , V1.CNTR_SN /* 계약일련번호 */
+                 , V1.CST_SV_ASN_NO /* 고객서비스배정번호 */
+                 , V1.CST_NO /* 고객번호 */
                  , DENSE_RANK() OVER (ORDER BY V1.CNTR_NO, V1.CNTR_SN) AS MPAC_SN /* 합포장번호 */
-                 , V1.CST_KNM
-                 , V1.ZIP
-                 , V1.BAS_ADR
-                 , V1.DTL_ADR
-                 , V1.CRAL_LOCARA_TNO
-                 , V1.MEXNO_ENCR
-                 , V1.CRAL_IDV_TNO
-                 , V1.LOCARA_TNO
-                 , V1.EXNO_ENCR
-                 , V1.IDV_TNO
-                 , V1.SELL_TP_CD
-                 , V1.SELL_TP_NM
-                 , V1.IST_DT
-                 , V1.REQD_DT
-                 , V1.CPS_DT
-                 , V1.TH_REQD_DT
-                 , V1.PDCT_PD_CD
-                 , V1.BASE_PD_CD
-                 , V1.PD_NM
-                 , V1.SV_BIZ_DCLSF_CD
-                 , V1.SV_BIZ_DCLSF_NM
-                 , V1.IST_NMN_N
-                 , V1.VST_NMN_N
-                 , V1.P_VST_PRGS_STAT_CD AS PP_VST_PRGS_STAT_CD
-                 , V1.P_VST_PRGS_STAT_NM AS PP_VST_PRGS_STAT_NM
-                 , V1.VST_DUEDT
-                 , V1.WK_EXCN_DT
-                 , V1.VST_OJ_LOCARA_CD
-                 , V1.VST_OJ_LOCARA_NM
-                 , V1.WARE_NO
-                 , V1.OG_CD
-                 , V1.CNFM_PSIC_PRTNR_NO
-                 , V1.SITE_AW_PD_GRP_CD
-                 , V1.AS_LCT_CD
-                 , V1.AS_LCT_NM
-                 , V1.AS_PHN_CD
-                 , V1.AS_PHN_NM
-                 , V1.AS_CAUS_CD
-                 , V1.AS_CAUS_NM
-                 , NVL(PL.PART_CNT_TOTAL, 0) AS PART_CNT_TOTAL
-                 , NVL(PL.PART_SUM_TOTAL, 0) AS PART_SUM_TOTAL
-                 , PL.PART_CD_01
-                 , PL.PART_CD_02
-                 , PL.PART_CD_03
-                 , PL.PART_CD_04
-                 , PL.PART_CD_05
-                 , PL.PART_CD_06
-                 , PL.PART_CD_07
-                 , PL.PART_CD_08
-                 , PL.PART_CD_09
-                 , PL.PART_CD_10
-                 , PL.PART_QTY_01
-                 , PL.PART_QTY_02
-                 , PL.PART_QTY_03
-                 , PL.PART_QTY_04
-                 , PL.PART_QTY_05
-                 , PL.PART_QTY_06
-                 , PL.PART_QTY_07
-                 , PL.PART_QTY_08
-                 , PL.PART_QTY_09
-                 , PL.PART_QTY_10
-                 , PL.PART_NM_01
-                 , PL.PART_NM_02
-                 , PL.PART_NM_03
-                 , PL.PART_NM_04
-                 , PL.PART_NM_05
-                 , PL.PART_NM_06
-                 , PL.PART_NM_07
-                 , PL.PART_NM_08
-                 , PL.PART_NM_09
-                 , PL.PART_NM_10
-                 , V1.FRISU_RCVRY_TP_CD
-                 , V1.SPP_AK_SPF_DT
-                 , V1.BZRNO
-                 , V1.BFSVC_BZS_DV_CD
-                 , V1.SPP_DV_CD
-                 , V1.SPP_PD_CD
-                 , V1.WARE_ICHR_NO
-                 , V1.WARE_MNGT_PRTNRNO
-                 , V1.PD_GROUP_CD
+                 , V1.CST_KNM /* 고객명 */
+                 , V1.ZIP /* 배송우편번호 */
+                 , V1.BAS_ADR /* 배송기본주소 */
+                 , V1.DTL_ADR /* 상세주소 */
+                 , V1.CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+                 , V1.MEXNO_ENCR /* 휴대전화국번호암호화 */
+                 , V1.CRAL_IDV_TNO /* 휴대개별전화번호 */
+                 , V1.LOCARA_TNO /* 지역전화번호 */
+                 , V1.EXNO_ENCR /* 전화국번호암호화 */
+                 , V1.IDV_TNO /* 개별전화번호 */
+                 , V1.SELL_TP_CD /* 판매유형코드 */
+                 , V1.SELL_TP_NM /* 판매유형명 */
+                 , V1.IST_DT /* 설치일자 */
+                 , V1.REQD_DT /* 철거일자 */
+                 , V1.CPS_DT /* 보상일자 */
+                 , V1.TH_REQD_DT /* 철거일자2 */
+                 , V1.PDCT_PD_CD /* 제품상품코드 */
+                 , V1.BASE_PD_CD /* 기준상품코드 */
+                 , V1.PD_NM /* 상품명 */
+                 , V1.SV_BIZ_DCLSF_CD /* 서비스업무세분류코드 */
+                 , V1.SV_BIZ_DCLSF_NM /* 서비스업무세분류명 */
+                 , V1.IST_NMN_N /* 설치차월수 */
+                 , V1.VST_NMN_N /* 방문차월수 */
+                 , V1.P_VST_PRGS_STAT_CD AS PP_VST_PRGS_STAT_CD /* 방문진행상태코드 */
+                 , V1.P_VST_PRGS_STAT_NM AS PP_VST_PRGS_STAT_NM /* 방문진행상태명 */
+                 , V1.VST_DUEDT /* 방문예정일자 */
+                 , V1.WK_EXCN_DT /* 작업수행일자(작업완료일자) */
+                 , V1.VST_OJ_LOCARA_CD /* 방문대상지역코드 */
+                 , V1.VST_OJ_LOCARA_NM /* 방문대상지역명 */
+                 , V1.WARE_NO /* 배송창고(창고번호) */
+                 , V1.OG_CD /* 조직코드 */
+                 , V1.CNFM_PSIC_PRTNR_NO /* 확정담당자파트너번호 */
+                 , V1.SITE_AW_PD_GRP_CD /* 현장수당상품그룹코드 */
+                 , V1.AS_LCT_CD /* AS위치코드 */
+                 , V1.AS_LCT_NM /* AS위치명 */
+                 , V1.AS_PHN_CD /* AS현상코드 */
+                 , V1.AS_PHN_NM /* AS현상명 */
+                 , V1.AS_CAUS_CD /* AS원인코드 */
+                 , V1.AS_CAUS_NM /* AS원인명 */
+                 , NVL(PL.PART_CNT_TOTAL, 0) AS PART_CNT_TOTAL /* 투입부품모델수 */
+                 , NVL(PL.PART_SUM_TOTAL, 0) AS PART_SUM_TOTAL /* 투입부품수량합계 */
+                 , PL.PART_CD_01 /* 투입부품코드01 */
+                 , PL.PART_CD_02 /* 투입부품코드02 */
+                 , PL.PART_CD_03 /* 투입부품코드03 */
+                 , PL.PART_CD_04 /* 투입부품코드04 */
+                 , PL.PART_CD_05 /* 투입부품코드05 */
+                 , PL.PART_CD_06 /* 투입부품코드06 */
+                 , PL.PART_CD_07 /* 투입부품코드07 */
+                 , PL.PART_CD_08 /* 투입부품코드08 */
+                 , PL.PART_CD_09 /* 투입부품코드09 */
+                 , PL.PART_CD_10 /* 투입부품코드10 */
+                 , PL.PART_QTY_01 /* 투입부품갯수01 */
+                 , PL.PART_QTY_02 /* 투입부품갯수02 */
+                 , PL.PART_QTY_03 /* 투입부품갯수03 */
+                 , PL.PART_QTY_04 /* 투입부품갯수04 */
+                 , PL.PART_QTY_05 /* 투입부품갯수05 */
+                 , PL.PART_QTY_06 /* 투입부품갯수06 */
+                 , PL.PART_QTY_07 /* 투입부품갯수07 */
+                 , PL.PART_QTY_08 /* 투입부품갯수08 */
+                 , PL.PART_QTY_09 /* 투입부품갯수09 */
+                 , PL.PART_QTY_10 /* 투입부품갯수10 */
+                 , PL.PART_NM_01 /* 투입부품명01 */
+                 , PL.PART_NM_02 /* 투입부품명02 */
+                 , PL.PART_NM_03 /* 투입부품명03 */
+                 , PL.PART_NM_04 /* 투입부품명04 */
+                 , PL.PART_NM_05 /* 투입부품명05 */
+                 , PL.PART_NM_06 /* 투입부품명06 */
+                 , PL.PART_NM_07 /* 투입부품명07 */
+                 , PL.PART_NM_08 /* 투입부품명08 */
+                 , PL.PART_NM_09 /* 투입부품명09 */
+                 , PL.PART_NM_10 /* 투입부품명10 */
+                 , V1.FRISU_RCVRY_TP_CD /* 무상복구유형코드 */
+                 , V1.SPP_AK_SPF_DT /* 배송요청특정일자 */
+                 , V1.BZRNO /* 사업자등록번호 */
+                 , V1.BFSVC_BZS_DV_CD /* BS업체구분코드 */
+                 , V1.SPP_DV_CD /* 배송구분코드 */
+                 , V1.SPP_PD_CD /* 배송상품코드 */
+                 , V1.WARE_ICHR_NO /* 배송창고(번호) */
+                 , V1.WARE_MNGT_PRTNRNO /* 배송창고(파트너번호) */
+                 , V1.PD_GROUP_CD /* 상품그룹코드 */
                  , (CASE WHEN (    V1.P_VST_PRGS_STAT_CD     NOT IN ('20')
                                AND (   V1.REQD_DT IS NOT NULL
                                     OR V1.CPS_DT  IS NOT NULL
                                     OR V1.TH_REQD_DT <![CDATA[<=]]> TO_CHAR(SYSDATE,'YYYYMMDD') ) )
                          THEN '93'
                          ELSE V1.P_VST_PRGS_STAT_CD
-                    END)   AS VST_PRGS_STAT_CD
-                 , #{procsDvCd} AS PROCS_DV_CD
+                    END)   AS VST_PRGS_STAT_CD /* 방문진행상태코드 */
+                 , #{procsDvCd} AS PROCS_DV_CD /* 처리구분코드 */
 <!--                 , (CASE WHEN #{pdCd} = 'WM01106494'-->
 <!--                         THEN '[BH]' ||SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 ' || ( CASE WHEN V1.PDCT_PD_CD = 'WM03106507' THEN '백수오+EGF'-->
 <!--                                                                                    ELSE F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', V1.SITE_AW_PD_GRP_CD, #{session.langId})-->
@@ -225,16 +225,16 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
 <!--                         THEN '[아웃소싱]' ||SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 ' || '커피원두 정기배송'-->
 <!--                         ELSE SUBSTR(V1.ASN_OJ_YM, 5, 2) || '월 자가관리필터_' || F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', V1.SITE_AW_PD_GRP_CD, #{session.langId})-->
 <!--                    END )  AS SPP_PD_NM-->
-                 , NVL2(PL.PART_NM_01, PL.PART_NM_01 || '(' || PL.PART_CD_01 || '): ' || PL.PART_QTY_01, '') AS PART_NM_QTY_01
-                 , NVL2(PL.PART_NM_02, PL.PART_NM_02 || '(' || PL.PART_CD_02 || '): ' || PL.PART_QTY_02, '') AS PART_NM_QTY_02
-                 , NVL2(PL.PART_NM_03, PL.PART_NM_03 || '(' || PL.PART_CD_03 || '): ' || PL.PART_QTY_03, '') AS PART_NM_QTY_03
-                 , NVL2(PL.PART_NM_04, PL.PART_NM_04 || '(' || PL.PART_CD_04 || '): ' || PL.PART_QTY_04, '') AS PART_NM_QTY_04
-                 , NVL2(PL.PART_NM_05, PL.PART_NM_05 || '(' || PL.PART_CD_05 || '): ' || PL.PART_QTY_05, '') AS PART_NM_QTY_05
-                 , NVL2(PL.PART_NM_06, PL.PART_NM_06 || '(' || PL.PART_CD_06 || '): ' || PL.PART_QTY_06, '') AS PART_NM_QTY_06
-                 , NVL2(PL.PART_NM_07, PL.PART_NM_07 || '(' || PL.PART_CD_07 || '): ' || PL.PART_QTY_07, '') AS PART_NM_QTY_07
-                 , NVL2(PL.PART_NM_08, PL.PART_NM_08 || '(' || PL.PART_CD_08 || '): ' || PL.PART_QTY_08, '') AS PART_NM_QTY_08
-                 , NVL2(PL.PART_NM_09, PL.PART_NM_09 || '(' || PL.PART_CD_09 || '): ' || PL.PART_QTY_09, '') AS PART_NM_QTY_09
-                 , NVL2(PL.PART_NM_10, PL.PART_NM_10 || '(' || PL.PART_CD_10 || '): ' || PL.PART_QTY_10, '') AS PART_NM_QTY_10
+                 , NVL2(PL.PART_NM_01, PL.PART_NM_01 || '(' || PL.PART_CD_01 || '): ' || PL.PART_QTY_01, '') AS PART_NM_QTY_01 /* 투입부품정보(코드+이름+갯수)01 */
+                 , NVL2(PL.PART_NM_02, PL.PART_NM_02 || '(' || PL.PART_CD_02 || '): ' || PL.PART_QTY_02, '') AS PART_NM_QTY_02 /* 투입부품정보(코드+이름+갯수)02 */
+                 , NVL2(PL.PART_NM_03, PL.PART_NM_03 || '(' || PL.PART_CD_03 || '): ' || PL.PART_QTY_03, '') AS PART_NM_QTY_03 /* 투입부품정보(코드+이름+갯수)03 */
+                 , NVL2(PL.PART_NM_04, PL.PART_NM_04 || '(' || PL.PART_CD_04 || '): ' || PL.PART_QTY_04, '') AS PART_NM_QTY_04 /* 투입부품정보(코드+이름+갯수)04 */
+                 , NVL2(PL.PART_NM_05, PL.PART_NM_05 || '(' || PL.PART_CD_05 || '): ' || PL.PART_QTY_05, '') AS PART_NM_QTY_05 /* 투입부품정보(코드+이름+갯수)05 */
+                 , NVL2(PL.PART_NM_06, PL.PART_NM_06 || '(' || PL.PART_CD_06 || '): ' || PL.PART_QTY_06, '') AS PART_NM_QTY_06 /* 투입부품정보(코드+이름+갯수)06 */
+                 , NVL2(PL.PART_NM_07, PL.PART_NM_07 || '(' || PL.PART_CD_07 || '): ' || PL.PART_QTY_07, '') AS PART_NM_QTY_07 /* 투입부품정보(코드+이름+갯수)07 */
+                 , NVL2(PL.PART_NM_08, PL.PART_NM_08 || '(' || PL.PART_CD_08 || '): ' || PL.PART_QTY_08, '') AS PART_NM_QTY_08 /* 투입부품정보(코드+이름+갯수)08 */
+                 , NVL2(PL.PART_NM_09, PL.PART_NM_09 || '(' || PL.PART_CD_09 || '): ' || PL.PART_QTY_09, '') AS PART_NM_QTY_09 /* 투입부품정보(코드+이름+갯수)09 */
+                 , NVL2(PL.PART_NM_10, PL.PART_NM_10 || '(' || PL.PART_CD_10 || '): ' || PL.PART_QTY_10, '') AS PART_NM_QTY_10 /* 투입부품정보(코드+이름+갯수)10 */
                  , ( SELECT SA.CD_CNTN
                        FROM T_CMZ_CD_D SA
                       WHERE SA.TENANT_ID = 'TNT_WELLS'
@@ -246,7 +246,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                                                  THEN '93'
                                                  ELSE V1.P_VST_PRGS_STAT_CD
                                             END)
-                   )     AS VST_PRGS_STAT_NM
+                   )     AS VST_PRGS_STAT_NM /* 방문진행상태명 */
               FROM (
 
                     SELECT DISTINCT
@@ -318,14 +318,14 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
                       LEFT JOIN TB_SVPD_PCSV_PD_IZ TN /*택배상품내역*/
                         ON TN.PD_CD     = TA.PDCT_PD_CD
                        AND TN.SPP_DV_CD = #{sppDvCd}
-                      LEFT OUTER JOIN T_CMZ_CD_D CO
+                      LEFT OUTER JOIN T_CMZ_CD_D CO /* 코드상세 */
 	                    ON CO.TENANT_ID = 'TNT_WELLS'
 	                   AND CO.CD_ID = 'SPP_PD_CD'
 	                   AND CO.CD_VLD_VAL = TN.SPP_PD_CD
 	                   AND CO.DEL_YN = 'N'
                      INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ TB /*고객서비스BS배정내역*/
                         ON TB.CST_SV_ASN_NO = TA.CST_SV_ASN_NO
-                     INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TC
+                     INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TC /* 고객서비스수행내역 */
                         ON TC.CNTR_NO = TA.CNTR_NO
                        AND TC.CNTR_SN = TA.CNTR_SN
                      INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL TK /*상품각사속성상세*/
@@ -363,7 +363,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
 <!--                       AND TJ.SL_CL_YM = TA.ASN_OJ_YM-->
 <!--                       AND TJ.KW_GRP_CO_CD = '2000' /*교원*/-->
 <!--                       AND TJ.SL_STP_YN IS NULL-->
-                      LEFT OUTER JOIN TB_OGBS_PRTNR_BAS TM
+                      LEFT OUTER JOIN TB_OGBS_PRTNR_BAS TM /* 파트너기본 */
                         ON TM.PRTNR_NO = TB.CNFM_PSIC_PRTNR_NO
                        AND TM.OG_CD = '71321' /* 택배담당 조직 '71321'(물류운영3팀) 대상 */
                      WHERE 1=1
@@ -428,7 +428,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
             ORDER BY V1.ASN_OJ_YM DESC, V1.CNTR_NO, V1.CNTR_SN
     </select>
     <insert id="insertParcelFwInformation">
-        INSERT INTO TB_SVPD_OSTR_AK_PCSV_SEND_DTL (
+        INSERT INTO TB_SVPD_OSTR_AK_PCSV_SEND_DTL ( /* 출고요청택배송신상세 */
                OSTR_AK_NO
              , OSTR_AK_SN
              , SPP_DV_CD
@@ -528,7 +528,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
           FROM DUAL
     </select>
     <insert id="insertOutOfStorage">
-        INSERT INTO TB_SVST_SV_WK_OSTR_IZ (
+        INSERT INTO TB_SVST_SV_WK_OSTR_IZ ( /* 서비스작업출고내역 */
                CST_SV_ASN_NO
              , WK_OSTR_SN
              , CNTR_NO
@@ -656,12 +656,12 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
     </insert>
     <select id="selectMngtUnit" resultType="String">
         SELECT PD_PRP_VAL05
-           FROM TB_PDBS_PD_ECOM_PRP_DTL
+           FROM TB_PDBS_PD_ECOM_PRP_DTL /* 상품각사속성상세 */
           WHERE PD_CD = #{itmPdCd}
             AND PD_EXTS_PRP_GRP_CD = 'PART'
     </select>
     <insert id="insertWorkResult">
-        INSERT INTO TB_SVPD_CST_SV_WK_RS_IZ (
+        INSERT INTO TB_SVPD_CST_SV_WK_RS_IZ ( /* 고객서비스작업결과내역 */
                CST_SV_ASN_NO
              , CNTR_NO
              , CNTR_SN
@@ -827,7 +827,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
              <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
     <update id="updateBsPeriod">
-        UPDATE TB_SVPD_CST_SV_RGBSPR_IZ
+        UPDATE TB_SVPD_CST_SV_RGBSPR_IZ /* 고객서비스정기BS주기내역 */
            SET WK_DT            = TO_CHAR(SYSDATE,'YYYYMMDD')
              , WK_PSIC_DV_CD	= '2'
              , WK_PSIC_OG_TP_CD = #{session.ogTpCd}
@@ -839,7 +839,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
            AND VST_DUEDT BETWEEN SUBSTR(#{vstDuedt}, 1, 6)||'01' AND SUBSTR(#{vstDuedt}, 1, 6)||'31'
     </update>
     <update id="updateBsAssign">
-        UPDATE TB_SVPD_CST_SV_BFSVC_ASN_IZ
+        UPDATE TB_SVPD_CST_SV_BFSVC_ASN_IZ /* 고객서비스BS배정내역 */
            SET VST_PRGS_STAT_CD  = '20'
              , WK_EXCN_DT        = TO_CHAR(SYSDATE,'YYYYMMDD')
              , CNFM_PSIC_DV_CD    = '2'
@@ -866,7 +866,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
          WHERE CST_SV_ASN_NO     = #{cstSvAsnNo}
     </update>
     <update id="updateExecution">
-        UPDATE TB_SVPD_CST_SV_EXCN_IZ  TA
+        UPDATE TB_SVPD_CST_SV_EXCN_IZ  TA /* 고객서비스수행내역 */
            SET IST_DT = NVL(TA.IST_DT, TO_CHAR(SYSDATE,'YYYYMMDD'))
          WHERE 1=1
            AND CNTR_NO = #{cntrNo}
@@ -879,13 +879,13 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
     <select id="selectWareMngtInfo" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBsRegularShippingMgtDto$WareMngtRes">
         SELECT WARE_MNGT_PRTNR_NO
              , OG_TP_CD AS WARE_MNGT_PRTNR_OG_TP_CD
-          FROM TB_SVST_MCBY_WARE_IZ
+          FROM TB_SVST_MCBY_WARE_IZ /* 월별창고내역 */
          WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND WARE_NO = #{wareNo}
            AND WARE_DTL_DV_CD = '10'
     </select>
     <insert id="insertSdingOutOfStorage">
-        INSERT INTO TB_SVST_SV_WK_OSTR_IZ (
+        INSERT INTO TB_SVST_SV_WK_OSTR_IZ ( /* 서비스작업출고내역 */
                CST_SV_ASN_NO
              , WK_OSTR_SN
              , CNTR_NO
@@ -1042,13 +1042,13 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
           	   , T4.AS_LCT_CD /* AS위치코드 */
           	   , T4.AS_PHN_CD /* AS현상코드 */
           	   , T4.AS_CAUS_CD /* AS원인코드 */
-          	   , T6.CRAL_LOCARA_TNO
-          	   , T6.MEXNO_ENCR
-          	   , T6.CRAL_IDV_TNO
+          	   , T6.CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+          	   , T6.MEXNO_ENCR /* 휴대전화국번호암호화 */
+          	   , T6.CRAL_IDV_TNO /* 휴대개별전화번호 */
             FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ T1 /* 고객서비스BS설치대상내역 */
            INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T2 /*고객서비스BS배정내역*/
            	  ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-           INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3
+           INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3 /* 고객서비스수행내역 */
               ON T1.CNTR_NO = T3.CNTR_NO
              AND T1.CNTR_SN = T3.CNTR_SN
             LEFT OUTER JOIN TB_SVPD_AS_TP_CD T4 /* AS유형코드 */
@@ -1067,39 +1067,39 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
            AND T1.CST_SV_ASN_NO   =  #{sppOrdNo}
     </select>
     <select id="selectWellsfarmMachine" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsRegularShippingMgtDvo">
-        SELECT T1.CST_SV_ASN_NO
-             , T1.CNTR_NO
-             , T1.CNTR_SN
-             , T1.SV_BIZ_DCLSF_CD
-             , E1.PDCT_PD_CD AS ITEM_PD_CD
-             , T3.SELL_TP_CD
-             , E1.PDCT_PD_CD
-             , 1 AS OSTR_AK_QTY
-             , E1.IST_DT
-             , '99992' AS OG_CD
-             , '100009' AS WK_WARE_NO
-             , T1.VST_DUEDT
-             , T2.VST_OJ_LOCARA_CD
-             , T1.IST_NMN_N
-             , T1.VST_NMN_N
-             , T4.AS_LCT_CD
-             , T4.AS_PHN_CD
-             , T4.AS_CAUS_CD
-             , T6.CRAL_LOCARA_TNO
-             , T6.MEXNO_ENCR
-             , T6.CRAL_IDV_TNO
+        SELECT T1.CST_SV_ASN_NO /* 고객서비스배정번호 */
+             , T1.CNTR_NO /* 계약번호 */
+             , T1.CNTR_SN /* 계약일련번호 */
+             , T1.SV_BIZ_DCLSF_CD /* 서비스업무세분류코드 */
+             , E1.PDCT_PD_CD AS ITEM_PD_CD /* 제품상품코드 */
+             , T3.SELL_TP_CD /* 판매유형코드 */
+             , E1.PDCT_PD_CD /* 제품상품코드 */
+             , 1 AS OSTR_AK_QTY /* 출고요청수량 */
+             , E1.IST_DT /* 설치일자 */
+             , '99992' AS OG_CD /* 조직코드 */
+             , '100009' AS WK_WARE_NO /* 작업창고번호 */
+             , T1.VST_DUEDT /* 방문예정일자 */
+             , T2.VST_OJ_LOCARA_CD /* 방문대상지역코드 */
+             , T1.IST_NMN_N /* 설치차월수 */
+             , T1.VST_NMN_N /* 방문차월수 */
+             , T4.AS_LCT_CD /* AS위치코드 */
+             , T4.AS_PHN_CD /* AS현상코드 */
+             , T4.AS_CAUS_CD /* AS원인코드 */
+             , T6.CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+             , T6.MEXNO_ENCR /* 휴대전화국번호암호화 */
+             , T6.CRAL_IDV_TNO /* 휴대개별전화번호 */
           FROM TB_SSCT_CNTR_REL R1  /* 계약관계(모종 - 기기) */
-         INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ R2
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ R2 /* 고객서비스BS배정내역 */
             ON R2.CST_SV_ASN_NO = #{cstSvAsnNo}
-         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ E1
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ E1 /* 고객서비스수행내역 */
             ON R1.OJ_DTL_CNTR_NO = E1.CNTR_NO
            AND R1.OJ_DTL_CNTR_SN = E1.CNTR_SN
-         INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T1
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T1 /* 고객서비스BS대상내역 */
             ON R1.OJ_DTL_CNTR_NO = T1.CNTR_NO
            AND R1.OJ_DTL_CNTR_SN = T1.CNTR_SN
            AND T1.ASN_OJ_YM = R2.ASN_OJ_YM
            AND T1.DTA_DL_YN = 'N'
-         INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T2
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T2 /* 고객서비스BS배정내역 */
             ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
          INNER JOIN TB_SSCT_CNTR_DTL T3 /*계약상세*/
             ON T1.CNTR_NO = T3.CNTR_NO
@@ -1124,25 +1124,25 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
     </select>
 
     <select id="selectCancelItem" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo">
-       SELECT '1' AS WARE_DV
-            , '100002' AS WARE_NO
-            , '71321' AS WARE_MNGT_PRTNR_NO
-            , '213' AS IOST_TP
-            , 'D' AS WORK_DIV
-            , T1.ITM_PD_CD
-            , T2.PD_PRP_VAL05 AS MNGT_UNIT
-            , 'A' AS ITEM_GD
-            , T1.OSTR_AK_QTY AS QTY
-         FROM TB_SVPD_OSTR_AK_PCSV_SEND_DTL T1
-        INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+       SELECT '1' AS WARE_DV /* 창고구분 */
+            , '100002' AS WARE_NO /* 창고번호 */
+            , '71321' AS WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
+            , '213' AS IOST_TP /* 입출고유형코드 */
+            , 'D' AS WORK_DIV /* 작업구분 (A : 등록, D : 삭제) */
+            , T1.ITM_PD_CD /* 품목상품코드 */
+            , T2.PD_PRP_VAL05 AS MNGT_UNIT /* 관리단위 */
+            , 'A' AS ITEM_GD /* 상품등급 */
+            , T1.OSTR_AK_QTY AS QTY /* 수량 */
+         FROM TB_SVPD_OSTR_AK_PCSV_SEND_DTL T1 /* 출고요청택배송신상세 */
+        INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2 /* 상품각사속성상세 */
            ON T1.ITM_PD_CD = T2.PD_CD
           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
         WHERE T1.OSTR_AK_NO = #{ostrAkNo}
     </select>
     <select id="selectAssignNo" resultType="String">
-        SELECT DISTINCT T2.CST_SV_ASN_NO
-         FROM TB_SVPD_OSTR_AK_PCSV_SEND_DTL T1
-        INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+        SELECT DISTINCT T2.CST_SV_ASN_NO /* 고객서비스배정번호 */
+         FROM TB_SVPD_OSTR_AK_PCSV_SEND_DTL T1 /* 출고요청택배송신상세 */
+        INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2 /* 고객서비스BS대상내역 */
            ON T1.CNTR_NO   = T2.CNTR_NO
           AND T1.CNTR_SN   = T2.CNTR_SN
           AND T2.DTA_DL_YN = 'N'
@@ -1152,7 +1152,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
         WHERE T1.OSTR_AK_NO = #{ostrAkNo}
     </select>
     <update id="deleteParcelSend">
-        UPDATE TB_SVPD_OSTR_AK_PCSV_SEND_DTL
+        UPDATE TB_SVPD_OSTR_AK_PCSV_SEND_DTL /* 출고요청택배송신상세 */
            SET DTA_DL_YN = 'Y'
             <include refid="COMMON.updateSystemField" />
          WHERE OSTR_AK_NO = #{ostrAkNo}
@@ -1164,18 +1164,18 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
   	     WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
     </update>
     <update id="mergeBsPeriodCancel">
-        MERGE INTO TB_SVPD_CST_SV_RGBSPR_IZ S1
-        USING (SELECT DISTINCT T2.CNTR_NO
-   		     	    , T2.CNTR_SN
-                 FROM TB_SVPD_OSTR_AK_PCSV_SEND_DTL T1
-                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
+        MERGE INTO TB_SVPD_CST_SV_RGBSPR_IZ S1 /* 고객서비스정기BS주기내역 */
+        USING (SELECT DISTINCT T2.CNTR_NO /* 계약번호 */
+   		     	    , T2.CNTR_SN /* 계약상세번호 */
+                 FROM TB_SVPD_OSTR_AK_PCSV_SEND_DTL T1 /* 출고요청택배송신상세 */
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ T2 /* 고객서비스BS대상내역 */
                    ON T1.CNTR_NO   = T2.CNTR_NO
                   AND T1.CNTR_SN   = T2.CNTR_SN
                   AND T2.DTA_DL_YN = 'N'
                   AND T2.ASN_OJ_YM = #{lgstCnfmDt}
                   AND (T2.SPC_AS_TP_CD != '99' OR T2.SPC_AS_TP_CD IS NULL)
                   AND T2.VST_DV_CD = '20'
-                INNER JOIN TB_SVPD_CST_SV_RGBSPR_IZ T3
+                INNER JOIN TB_SVPD_CST_SV_RGBSPR_IZ T3 /* 고객서비스정기BS주기내역 */
                    ON T3.CNTR_NO = T2.CNTR_NO
                   AND T3.CNTR_SN = T2.CNTR_SN
                   AND T3.VST_DUEDT BETWEEN SUBSTR(T2.VST_DUEDT , 1, 6)||'01' AND SUBSTR(T2.VST_DUEDT , 1, 6)||'31'
@@ -1192,7 +1192,7 @@ WITH PART_LIST_TB AS (  /* B/S배정 대상부품 투입정보 */
           <include refid="COMMON.updateSystemField" />
     </update>
     <update id="updateBsAssignCancel">
-        UPDATE TB_SVPD_CST_SV_BFSVC_ASN_IZ
+        UPDATE TB_SVPD_CST_SV_BFSVC_ASN_IZ /* 고객서비스BS배정내역 */
            SET VST_PRGS_STAT_CD         = '00'
     		 , WK_EXCN_DT               = NULL
              , CNFM_PSIC_DV_CD          = NULL
