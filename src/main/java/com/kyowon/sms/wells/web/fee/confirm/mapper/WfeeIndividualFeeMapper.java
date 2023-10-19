@@ -52,7 +52,7 @@ public interface WfeeIndividualFeeMapper {
         SearchFeeReq dto
     );
 
-    SearchUserInfoRes selectUserInfo(
-        SearchFeeReq dto
-    );
+    //    SearchUserInfoRes selectUserInfo(
+    //        SearchFeeReq dto
+    //    );
 }
