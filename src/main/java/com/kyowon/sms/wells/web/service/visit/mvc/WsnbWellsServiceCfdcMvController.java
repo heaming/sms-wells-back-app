@@ -31,14 +31,22 @@ public class WsnbWellsServiceCfdcMvController {
         return service.openReportAuthEntry(cstSvAsnNo);
     }
 
-    @PostMapping("/report/{cstSvAsnNo}")
-    public ModelAndView openReport(
+    @PostMapping("/report/{cstSvAsnNo}/auth")
+    public ModelAndView openReportWithAuth(
         @PathVariable
         String cstSvAsnNo,
         @RequestBody
         ReportDto.FindEntryReq dto
     ) {
-        return service.openReport(cstSvAsnNo, dto.custBday());
+        return service.openReportWithAuth(cstSvAsnNo, dto.custBday());
+    }
+
+    @GetMapping("/report/{cstSvAsnNo}")
+    public ModelAndView openReport(
+        @PathVariable
+        String cstSvAsnNo
+    ) {
+        return service.openReport(cstSvAsnNo);
     }
 
     @ApiOperation(value = "OZ리포트 조회", notes = "OZ리포트 조회")

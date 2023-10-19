@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -13,7 +14,6 @@ import com.kyowon.sflex.common.message.dto.EmailDto;
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.EmailService;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
-import com.kyowon.sflex.common.report.dvo.ReportDvo;
 import com.kyowon.sflex.common.report.dvo.ReportEntryDvo;
 import com.kyowon.sflex.common.report.service.ReportService;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.*;
@@ -34,6 +34,9 @@ public class WsnbWellsServiceCfdcService {
     private final EmailService emailService;
     private final TemplateService templateService;
     private final ReportService reportService;
+
+    @Value("${report.ozUrl}")
+    private String ozUrl;
 
     public PagingResult<SearchRes> getWellsServiceConfirmations(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectWellsServiceConfirmations(dto, pageInfo);
@@ -118,24 +121,16 @@ public class WsnbWellsServiceCfdcService {
         ReportEntryDvo dvo = new ReportEntryDvo();
         dvo.setBzopNoYn("N"); //사업자여부
         dvo.setCustName(cstDvo.getCstNm());
-        dvo.setReturnUrl("/anonymous/sms/wells/service/wells-service-cfdc/report/" + cstSvAsnNo);
+        dvo.setReturnUrl("/anonymous/sms/wells/service/wells-service-cfdc/report/" + cstSvAsnNo + "/auth");
         return reportService.openReportAuthEntry(dvo);
     }
 
-    public ModelAndView openReport(String cstSvAsnNo, String birth) {
+    public ModelAndView openReportWithAuth(String cstSvAsnNo, String birth) {
         WsnbWellsServiceCfdcDvo cstDvo = mapper.selectCustomer(cstSvAsnNo)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
 
         if (birth.equals(cstDvo.getCstBthd())) {
-            ReportDvo dvo = new ReportDvo();
-            dvo.setOzrPath("/kyowon_as/wellsServConf.ozr");
-            Map<String, String> map = new HashMap();
-            map.put("cstSvAsnNo", cstSvAsnNo);
-            map.put("searchApiUrl", "/api/v1/anonymous/sms/wells/service/wells-service-cfdc/oz");
-            map.put("rcgvpNm", "");
-            map.put("prtnrNm", "");
-            dvo.setArgs(map);
-            return reportService.openReport(dvo);
+            return openReport(cstSvAsnNo);
         } else {
             ReportEntryDvo dvo = new ReportEntryDvo();
             dvo.setBzopNoYn("N"); //사업자여부
@@ -145,6 +140,21 @@ public class WsnbWellsServiceCfdcService {
             dvo.setErrorMessage("등록된 생년월일과 일치하지 않습니다.");
             return reportService.openReportAuthEntry(dvo);
         }
+    }
+
+    public ModelAndView openReport(String cstSvAsnNo) {
+        Map<String, String> map = new HashMap();
+        map.put("cstSvAsnNo", cstSvAsnNo);
+        map.put("searchApiUrl", "/api/v1/anonymous/sms/wells/service/wells-service-cfdc/oz");
+        map.put("rcgvpNm", "");
+        map.put("prtnrNm", "");
+
+        ModelAndView mv = new ModelAndView("common/common/view");
+        mv.addObject("ozrPath", "/kyowon_as/wellsServConf.ozr");
+        mv.addObject("ozUrl", ozUrl);
+        mv.addObject("args", map);
+
+        return mv;
     }
 
     public Map<String, Object> getOzReport(FindOzReq dto) {
