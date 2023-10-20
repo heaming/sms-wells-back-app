@@ -63,9 +63,9 @@ public class WsnbRegularShippingChangeService {
         mapper.insertTbSvpdHcfAsAkHist(req);
 
         /**취소일 경우 삭제 **/
-        if ("3".equals(mtrProcsStatCd))
+        if ("3".equals(mtrProcsStatCd)) {
             mapper.deleteTbSvpdHcfAsAkIz(req);
-        else {
+        } else {
             /**해당 키로 존재하는지 체크**/
             if (mapper.countTbSvpdHcfAsAkIz(req) > 0)
                 mapper.updateTbSvpdHcfAsAkIz(req);
@@ -127,7 +127,7 @@ public class WsnbRegularShippingChangeService {
                 );
 
                 /*알림톡발송*/
-                final Map<String, Object> paramMap = new HashMap<>();
+                final Map<String, Object> paramMap = new HashMap<String, Object>();
                 paramMap.put("cntrNo", req.cntrNo());
                 paramMap.put("cntrSn", req.cntrSn());
                 smsMessageService.sendMessage(
@@ -145,9 +145,8 @@ public class WsnbRegularShippingChangeService {
         }
 
         /*요청 구분에 따라 처리 - 1: 패키지변경, 4:다음회차 방문 중지*/
-        if ("4".equals(req.asAkDvCd())) {
+        if ("4".equals(req.asAkDvCd()))
             mapper.updateStopNextSiding(req);
-        }
 
     }
 
@@ -170,21 +169,17 @@ public class WsnbRegularShippingChangeService {
         String asAkDvCd = req.asAkDvCd();
         String akChdt = req.akChdt();
         //String afchPdCd = req.afchPdCd(); // LCPKAG 변경판매코드
-        String partList = req.choCapslCn(); /*자유패키지 캡슐 구성 정보 > 판매코드,수량 | 판매코드, 수량 |~~~ */
+        //String partList = req.choCapslCn(); /*자유패키지 캡슐 구성 정보 > 판매코드,수량 | 판매코드, 수량 |~~~ */
         String mtrProcsStatCd = req.mtrProcsStatCd();
-
-        SaveRegularShippingChangeHistReq historyReq = new SaveRegularShippingChangeHistReq(
-            cntrNo, cntrSn, mtrProcsStatCd, asAkDvCd, akChdt
-        );
-        SaveRegularShippingChangeBaseReq baseReq = new SaveRegularShippingChangeBaseReq(
-            cntrNo, cntrSn, asAkDvCd, akChdt
-        );
 
         /*1.먼저 LCLIB.LD3200P 에 미처리 된 같은 요청이 존재하는지 체크*/
         //int LD3200_CNT = LC_ASREGN_API_S09(request, response);
         if (StringUtil.nvl2(mtrProcsStatCd, "").equals("3")) {
 
             //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I05", params);
+            SaveRegularShippingChangeHistReq historyReq = new SaveRegularShippingChangeHistReq(
+                cntrNo, cntrSn, mtrProcsStatCd, asAkDvCd, akChdt
+            );
             mapper.insertRegularShippingChangeHist(historyReq);
 
             //Database.getInstanceDB2().delete("environment.LC_ASREGN_API_D02", params);
@@ -193,6 +188,9 @@ public class WsnbRegularShippingChangeService {
             );
 
             //Database.getInstanceDB2().delete("environment.LC_ASREGN_API_D01", params);
+            SaveRegularShippingChangeBaseReq baseReq = new SaveRegularShippingChangeBaseReq(
+                cntrNo, cntrSn, asAkDvCd, akChdt
+            );
             mapper.deleteRegularShippingChangeBase(baseReq);
 
         } /*else if (mapper.selectRegularShippingChangeCount(
@@ -272,14 +270,14 @@ public class WsnbRegularShippingChangeService {
 
         }*/
 
-        List<WctbSeedingPackageChangeDto.ConsPdct> consPdList = new ArrayList<>();
+        List<WctbSeedingPackageChangeDto.ConsPdct> consPdList = new ArrayList<WctbSeedingPackageChangeDto.ConsPdct>();
         String pdct = mapper.selectPdctPdCds(req.cntrNo(), req.cntrSn(), req.akSn());
         if (StringUtil.isNotEmpty(pdct)) {
-            String[] pdctPdCds = pdct.split("|");
+            String[] pdctPdCds = pdct.split("\\|");
             for (String s : pdctPdCds) {
                 consPdList.add(
                     new WctbSeedingPackageChangeDto.ConsPdct(
-                        s.split(",")[0], Integer.parseInt(s.split(",")[1])
+                        s.split(",")[0], Integer.parseInt(s.split("\\,")[1])
                     )
                 );
             }
