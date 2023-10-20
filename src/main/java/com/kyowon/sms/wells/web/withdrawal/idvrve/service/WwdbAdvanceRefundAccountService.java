@@ -12,6 +12,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 선환불계좌조회 Service
+ * </pre>
+ *
+ * @author jaeha.yeon
+ * @since 2023-10-20
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbAdvanceRefundAccountService {
@@ -20,8 +28,8 @@ public class WwdbAdvanceRefundAccountService {
 
     /**
      * 선환불계좌조회 목록
-     * @param pageInfo 
-     * @param SearchAdvanceRefundAccountReq
+     * @param pageInfo
+     * @param req
      * @return PagingResult<SearchAdvanceRefundAccountRes>
      */
     public PagingResult<SearchAdvanceRefundAccountRes> getAdvanceRefundAccountPages(
@@ -33,8 +41,7 @@ public class WwdbAdvanceRefundAccountService {
 
     /**
      * 선환불계좌조회 엑셀다운로드
-     * @param List 
-     * @param SearchAdvanceRefundAccountReq
+     * @param req
      * @return List<SearchAdvanceRefundAccountRes>
      */
     public List<SearchAdvanceRefundAccountRes> getAdvanceRefundAccountExcels(
@@ -42,5 +49,4 @@ public class WwdbAdvanceRefundAccountService {
     ) {
         return mapper.selectAdvanceRefundAccount(req);
     }
-
 }
