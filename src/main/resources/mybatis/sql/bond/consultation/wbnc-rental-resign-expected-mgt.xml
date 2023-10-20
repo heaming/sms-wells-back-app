@@ -543,6 +543,7 @@
            AND F.CNTR_SN = C.CNTR_SN
            AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
            AND F.BND_CLCTN_PRP_DV_CD IN ('02','03','08')    /* 채권추심속성구분코드 */
+           AND F.BND_CLCTN_PRP_RSON_CD != '3C'				/* 채권추심속성사유코드-위탁관리 */
           LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
             ON G.PERF_YM = C.SL_CL_YM
            AND G.CNTR_NO = C.CNTR_NO
@@ -555,13 +556,6 @@
            AND NVL(C.RENTAL_TN,0)  <![CDATA[<]]> NVL(B.CNTR_PTRM,0)    /*렌탈회차<![CDATA[<]]>계약기간*/
            AND NOT (A.CNTR_TP_CD = '02' AND SUBSTR(D.HMNRSC_DEPT_CD,1,1) BETWEEN 'W' AND 'Z')   /*법인,신채널 제외*/
            /* 4.전월 제외대상 익월 예정생성 요건 */
-           /* 당월제외사번이 '채권전략팀'이면 익월에 예정생성시 제외값이 N ( '채권전략팀' 외의 전월 제외 이력이 있는 대상은 제외데이터 유지 ) */
-           AND F.CLCTAM_PRTNR_NO NOT IN (SELECT PRTNR_NO
-                                           FROM TB_OGBS_MM_PRTNR_IZ /*T:월파트너내역*/
-                                          WHERE 1 = 1
-                                            AND BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}), -1), 'YYYYMM')
-                                            AND HMNRSC_DEPT_CD = '70202' /* 채권전략팀-70202 */
-                                            AND PRTNR_NO = F.CLCTAM_PRTNR_NO)
     </insert>
     <insert id="insertAuthorityResignRegularShippings">
         /* 직권해지 정기배송 [예정생성] - ASIS : insertOvrdAthrTrmtAdmnShpnList */
@@ -835,6 +829,7 @@
            AND F.CNTR_SN = C.CNTR_SN
            AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
            AND F.BND_CLCTN_PRP_DV_CD IN ('02','03','08')    /* 채권추심속성구분코드 */
+           AND F.BND_CLCTN_PRP_RSON_CD != '3C'				/* 채권추심속성사유코드-위탁관리 */
           LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
             ON G.PERF_YM = C.SL_CL_YM
            AND G.CNTR_NO = C.CNTR_NO
@@ -926,7 +921,7 @@
                                              , SUM((CASE WHEN DP_DV_CD = '3' THEN NVL(RVE_AMT,0) ELSE 0 END)) AS RFND_RVE_AMT  /*환불금액*/
                                           FROM TB_RVDW_RVE_DTL /*T:수납상세*/
                                          WHERE 1 = 1
-                                           AND SUBSTR(RVE_DT,1,6) = T.BASE_YM
+                                           AND RVE_DT BETWEEN T.BASE_YM || '01' AND T.BASE_YM || '31'
                                            AND CNTR_NO = T.CNTR_NO
                                            AND CNTR_SN = T.CNTR_SN
                                            AND RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
@@ -1091,7 +1086,7 @@
                                             ON S2.CNTR_NO = S1.CNTR_NO
                                            AND S2.CNTR_SN = S1.CNTR_SN
                                          WHERE 1 = 1
-                                           AND SUBSTR(S1.RVE_DT,1,6) = T.BASE_YM
+                                           AND S1.RVE_DT BETWEEN T.BASE_YM || '01' AND T.BASE_YM || '31'
                                            AND S1.CNTR_NO = T.LK_CNTR_NO
                                            AND S1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
                                            AND S1.RVE_DT LIKE SUBSTR(#{baseDt},1,6)||'%'   /*수납월*/
@@ -1105,7 +1100,7 @@
                                             ON S2.CNTR_NO = S1.CNTR_NO
                                            AND S2.CNTR_SN = S1.CNTR_SN
                                          WHERE 1 = 1
-                                           AND SUBSTR(S1.RVE_DT,1,6) = T.BASE_YM
+                                           AND S1.RVE_DT BEETWEEN T.BASE_YM || '01' AND T.BASE_YM || '31'
                                            AND S1.CNTR_NO = T.LK_CNTR_NO
                                            AND S1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
                                            AND S1.RVE_DT LIKE SUBSTR(#{baseDt},1,6)||'%'   /*수납월*/
@@ -1366,7 +1361,8 @@
                                          , SUM(CASE WHEN DP_DV_CD = '2' THEN RVE_AMT ELSE 0 END) AS RFND_AMT
                                       FROM TB_RVDW_RVE_DTL J1 /* 수납상게 */
                                      WHERE 1 = 1
-                                       AND J1.RVE_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}), -1),'YYYYMM') || '01' AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}), -1),'YYYYMM') || '31' /* 직권해지일자 */
+                                       AND J1.RVE_DT BETWEEN SUBSTR(#{baseDt} , 0, 6) || '01' AND SUBSTR(#{baseDt} , 0, 6) || '31' /* 직권해지일자 */
+                                       AND J1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
                                        AND J1.CNTR_NO = T1.CNTR_NO
                                        AND J1.CNTR_SN = T1.CNTR_SN) T4
             ON 1 = 1
@@ -1384,7 +1380,7 @@
                               AND Z1.CNTR_SN = T1.CNTR_SN )
         /* -- 총미납금 0원 제외 */
            AND T1.TOT_NPD_AMT - (NVL(T1.PRPD_BTD_AMT,0) + NVL(RVE_AMT,0) - NVL(RFND_AMT,0) ) > 0
-           AND T1.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}), -1),'YYYYMM')
+           AND T1.BASE_YM = SUBSTR(#{baseDt}, 0, 6) /* 직권해지일자 */
     </insert>
 
     <select id="selectRentalResignConfirms" resultType="com.kyowon.sms.wells.web.bond.consultation.dvo.WbncAuthorityResignIzDvo">
@@ -1446,5 +1442,39 @@
 	                 ,MRG.CAN_DT = SRC.CAN_DT	/* 취소일자 */
 	                  /*수정정보*/
 	                 <include refid="COMMON.updateSystemField"/>
+	</update>
+
+	<update id="updateOvrdAthrTrmtPreExcdAdmn">
+		/* 직권해지 대상관리 전월 제외대상 당월저장 */
+		MERGE INTO TB_CBBO_WELLS_AUTH_RSG_IZ MRG	/*T:WELLS직권해지내역*/
+        USING (
+               SELECT BASE_YM    /* 기준년월 */
+                     ,CNTR_NO    /* 계약번호 */
+                     ,CNTR_SN    /* 계약일련번호 */
+                     ,AUTH_RSG_EXCD_RQR_PRTNR_NO    /* 직권해지제외요청자파트너번호 */
+                     ,AUTH_RSG_EXCD_RSON_CD    /* 직권해지제외사유코드 */
+                     ,AUTH_RSG_EXCD_RSON_CN    /* 직권해지제외사유내용 */
+                     ,(
+                       SELECT CASE WHEN COUNT(*) = 0 THEN 'N' ELSE 'Y' END
+                         FROM TB_OGBS_MM_PRTNR_IZ /*T:월파트너내역*/
+                        WHERE 1 = 1
+                          AND BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}), -1), 'YYYYMM')
+                          AND HMNRSC_DEPT_CD = '70202' /* 채권전략팀-70202, param변경가능 */
+                          /* 채권전략팀 여부-CLCTAM_PRTNR_NO-(집금파트너번호),AUTH_RSG_EXCD_RQR_PRTNR_NO(직권해지제외요청자파트너번호) */
+                          AND PRTNR_NO = A.AUTH_RSG_EXCD_RQR_PRTNR_NO
+                     )  AS BND_STRT_YN
+                 FROM TB_CBBO_WELLS_AUTH_RSG_IZ A /*T:WELLS직권해지내역*/
+                WHERE 1 = 1
+                  AND BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}), -1), 'YYYYMM')
+                  AND AUTH_RSG_EXCD_RQR_PRTNR_NO IS NOT NULL    /* 직권해지제외요청자파트너번호 */
+              ) SRC ON
+              (
+                   MRG.BASE_YM = SUBSTR(#{baseDt}, 0, 6)
+               AND MRG.CNTR_NO = SRC.CNTR_NO	/* 계약번호 */
+               AND MRG.CNTR_SN = SRC.CNTR_SN	/* 계약일련번호 */
+              )
+         WHEN MATCHED THEN
+       UPDATE SET MRG.AUTH_RSG_EXCD_RQR_PRTNR_NO = CASE WHEN SRC.BND_STRT_YN = 'N' THEN SRC.AUTH_RSG_EXCD_RQR_PRTNR_NO ELSE '' END
+                 ,MRG.AUTH_RSG_EXCD_RSON_CD = CASE WHEN SRC.BND_STRT_YN = 'N' THEN SRC.AUTH_RSG_EXCD_RSON_CD ELSE '' END
 	</update>
 </mapper>

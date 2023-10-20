@@ -66,12 +66,14 @@ public class WpdcStandardMgtService {
                 pdService.saveProductBaseFinalDtm(dto.pdCd());
             }
         }
+        // 가격 저장
         if (isCreate || dto.isModifiedPrice()) {
             ZpdcProductPriceDvo prc = prcService.saveProductPrices(pdCd, startDtm);
             List<ZpdcProductPriceDetailDvo> dtls = prcService.savePricePropDetails(prc, dto.tbPdbsPdPrcDtl(), startDtm);
             prcService.savePricePropFinalDetails(prc, dtls, dto.tbPdbsPdPrcFnlDtl(), startDtm);
             prcService.savePriceDiscountPremiumDetail(pdCd, dto.tbPdbsPdDscPrumDtl());
         }
+        // 연결상품 저장
         if (isCreate || dto.isModifiedRelation()) {
             relService.saveProductRelations(pdCd, dto.tbPdbsPdRel(), startDtm);
             hisService.createRelationHistory(pdCd, startDtm);
