@@ -3,7 +3,108 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaWelsMngerSettlementAwMapper">
 
-    <select id='selectWelsMngers'
+    <select id="selectWelsMngers"
+            resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaWelsMngerSettlementAwDto$SearchRes">
+        SELECT OG.DGR1_LEVL_OG_NM
+             , OG.DGR2_LEVL_OG_NM
+             , A.OG_CD
+             , OG.BLD_NM
+             , A.PRTNR_NO
+             , A.PRTNR_KNM
+             , PR.RSB_DV_CD
+             , PR.QLF_DV_CD
+             , CASE
+                WHEN NMNPR.PSTN_DV_CD = '7' THEN '지점장'
+                WHEN NMNPR.PSTN_DV_CD IS NULL THEN '해약'
+                WHEN NMNPR.QLF_DV_CD = '2' THEN '프리매니저'
+                WHEN NMNPR.QLF_DV_CD = '3' THEN '웰스매니저'
+                WHEN NMNPR.QLF_DV_CD = '6' THEN 'BS프리매니저'
+                ELSE '' END AS NMN_QLF_DV_NM
+             , '' AS PROCS_DTM
+             , EDU.SRTUP_DT
+             , EDU.PRE_SRTUP_DT
+             , CASE WHEN QF.ENDDT = '99991231' THEN 'Y' ELSE 'N' END AS ACTI_YN
+             , QF.STRTDT AS CNTR_DT
+             , CASE WHEN QF.ENDDT = '99991231' THEN '' ELSE QF.ENDDT END AS CLTN_DT
+             , '' AS FST_CNTR_DT
+             , '' AS FNL_CLTN_DT
+             , OB.OPNG_CD
+             , #{baseYm} AS BASE_YM
+             , #{tcntDvCd} AS TCNT_DV_CD
+             , '' AS CNFM_STAT_YN
+          FROM TB_OGBS_PRTNR_BAS A   /* 파트너기본 */
+          JOIN TB_OGBS_PRTNR_DTL B   /* 파트너상세 */
+            ON B.OG_TP_CD = A.OG_TP_CD
+           AND B.PRTNR_NO = A.PRTNR_NO
+          JOIN (
+                SELECT *
+                  FROM (
+                        SELECT QFIN.*, RANK() OVER (PARTITION BY OG_TP_CD, PRTNR_NO ORDER BY STRTDT DESC) RNK
+                          FROM TB_OGPS_PLAR_QLF_CH_IZ QFIN  /* 플래너자격변경내역 */
+                         WHERE QLF_DV_CD IN ('3', '6')
+                       )
+                 WHERE RNK = 1
+               ) QF
+            ON QF.OG_TP_CD = A.OG_TP_CD
+           AND QF.PRTNR_NO = A.PRTNR_NO
+           AND QF.QLF_DV_CD IN ('3', '6')
+           AND QF.DTA_DL_YN = 'N'
+        <if test="@MybatisUtils@equals(divCd, '01')">
+           AND QF.STRTDT = #{baseYm} || '01'
+        </if>
+        <if test="@MybatisUtils@equals(divCd, '02')">
+           AND QF.ENDDT = #{baseYm} || '31'
+        </if>
+        <if test="@MybatisUtils@equals(divCd, '03')">
+           AND QF.ENDDT = '99991231'
+        </if>
+          LEFT JOIN TB_OGBS_MM_PRTNR_IZ PR   /* 월파트너내역 */
+            ON PR.BASE_YM = CASE WHEN B.CLTN_DT IS NOT NULL THEN SUBSTR(B.CLTN_DT, 1, 6) ELSE #{baseYm} END
+           AND PR.OG_TP_CD = A.OG_TP_CD
+           AND PR.PRTNR_NO = A.PRTNR_NO
+          LEFT JOIN TB_OGBS_MM_OG_IZ OG  /* 월조직기본 */
+            ON OG.BASE_YM = PR.BASE_YM
+           AND OG.OG_ID = PR.OG_ID
+          LEFT JOIN TB_OGBS_MM_PRTNR_IZ NMNPR   /* 월파트너내역 (차월) */
+            ON NMNPR.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(PR.BASE_YM, 'YYYYMM'), 1), 'YYYYMM')
+           AND NMNPR.OG_TP_CD = A.OG_TP_CD
+           AND NMNPR.PRTNR_NO = A.PRTNR_NO
+          LEFT JOIN (
+                SELECT OG_TP_CD
+                     , PRTNR_NO
+                     , MAX(SRTUP_DT) AS SRTUP_DT
+                     , MAX(PRE_SRTUP_DT) PRE_SRTUP_DT
+                FROM (
+                        SELECT PRTNR_NO
+                             , OG_TP_CD
+                             , CASE WHEN EDUC_CRSE_NO = '96' THEN SUBSTR(EDUC_CPC_ACKMT_DT, 1, 6) END SRTUP_DT
+                             , CASE WHEN EDUC_CRSE_NO = '143' THEN SUBSTR(EDUC_CPC_ACKMT_DT, 1, 6) END PRE_SRTUP_DT
+                        FROM TB_PSCA_MCPTN_EDUC_IZ   /* 월별파트너교육내역 */
+                        WHERE OG_TP_CD = 'W02'
+                        AND EDUC_CRSE_NO IN ('96', '143')   /* 96:스타트업, 143:프리스타트업 */
+                        AND DTA_DL_YN = 'N'
+                     ) GROUP BY OG_TP_CD, PRTNR_NO
+                 ) EDU
+              ON EDU.OG_TP_CD = A.OG_TP_CD
+             AND EDU.PRTNR_NO = A.PRTNR_NO
+            LEFT JOIN TB_FEAM_WELS_MNGER_OPNG_BAS OB
+              ON OB.BASE_YM = #{baseYm}
+             AND OB.OG_TP_CD = A.OG_TP_CD
+             AND OB.PRTNR_NO = A.PRTNR_NO
+             AND OB.TCNT_DV_CD = #{tcntDvCd}
+           WHERE A.OG_TP_CD = 'W02'
+             AND A.DTA_DL_YN = 'N'
+             AND B.DTA_DL_YN = 'N'
+        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+             AND A.PRTNR_NO = #{prtnrNo}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(rsbDvCd)">
+             AND B.RSB_DV_CD = #{rsbDvCd}
+        </if>
+           ORDER BY TO_NUMBER(A.PRTNR_NO)
+    </select>
+
+    <select id='selectWelsMngersOld'
             resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaWelsMngerSettlementAwDto$SearchRes">
         SELECT T2.DGR1_LEVL_OG_NM AS OG1_NM /* 총괄단 */
              , T2.DGR2_LEVL_OG_NM AS OG2_NM  /* 지역단 */
