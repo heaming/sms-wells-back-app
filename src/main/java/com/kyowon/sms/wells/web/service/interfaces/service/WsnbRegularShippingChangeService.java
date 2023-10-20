@@ -25,6 +25,7 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -54,6 +55,16 @@ public class WsnbRegularShippingChangeService {
     * */
     public void capsuleChange(SaveReq req) throws Exception {
 
+        log.debug("cntrNo : " + req.cntrNo());
+        log.debug("cntrSn : " + req.cntrSn());
+        log.debug("akSn : " + req.akSn());
+        log.debug("asAkDvCd : " + req.asAkDvCd());
+        log.debug("akChdt : " + req.akChdt());
+        log.debug("bfchPdCd : " + req.bfchPdCd());
+        log.debug("afchPdCd : " + req.afchPdCd());
+        log.debug("choCapslCn : " + req.choCapslCn());
+        log.debug("mtrProcsStatCd : " + req.mtrProcsStatCd());
+
         /**취소일 경우 삭제 **/
         if ("3".equals(req.mtrProcsStatCd())) {
             mapper1.deleteTbSvpdHcfAsAkIz(req);
@@ -71,24 +82,27 @@ public class WsnbRegularShippingChangeService {
                     req.bfchPdCd(),
                     req.afchPdCd(),
                     req.choCapslCn(),
-                    req.mtrProcsStatCd()
+                    req.mtrProcsStatCd(),
+                    RandomStringUtils.randomNumeric(6)
                 );
                 mapper1.insertTbSvpdHcfAsAkIz(req);
             }
         }
         /**홈카페AS요청이력**/
-        mapper1.insertTbSvpdHcfAsAkHist(req);
-
-        /***********************************************************
-        * 주기변경 처리를 위한 고객의 정보 확인
-        *
-        * SV_PRD       방문주기
-        * PD_PRP_VAL01 상품용도
-        * SELL_TP_CD   관리유형
-        * IST_DT       설치일자
-        * BS_MTHS      무상 BS 개월수
-        ***********************************************************/
-        //WsniSidingServiceChangesDvo dvo = mapper3.selectCustomer(req.cntrNo(), req.cntrSn());
+        mapper1.insertTbSvpdHcfAsAkHist(
+            new SaveReq(
+                req.cntrNo(),
+                req.cntrSn(),
+                req.akSn(),
+                req.asAkDvCd(),
+                req.akChdt(),
+                req.bfchPdCd(),
+                req.afchPdCd(),
+                req.choCapslCn(),
+                req.mtrProcsStatCd(),
+                RandomStringUtils.randomNumeric(6)
+            )
+        );
 
         /*요청 구분에 따라 처리 - 1: 패키지변경, 4:다음회차 방문 중지*/
         if ("1".equals(req.asAkDvCd()) && !"3".equals(req.mtrProcsStatCd())) {
@@ -100,8 +114,8 @@ public class WsnbRegularShippingChangeService {
                     req.cntrSn(),
                     req.akChdt(),
                     null,
-                    null,
                     req.akChdt(),
+                    null,
                     null,
                     null
                 )

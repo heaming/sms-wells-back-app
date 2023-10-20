@@ -95,17 +95,6 @@ public class WsniSidingServiceChangesService {
             ""
         );
 
-        /***********************************************************
-        * 주기변경 처리를 위한 고객의 정보 확인
-        *
-        * SV_PRD       방문주기
-        * PD_PRP_VAL01 상품용도
-        * SELL_TP_CD   관리유형
-        * IST_DT       설치일자
-        * BS_MTHS      무상 BS 개월수
-        ***********************************************************/
-        //WsniSidingServiceChangesDvo dvo = mapper.selectCustomer(req.cntrNo(), req.cntrSn());
-
         /*요청 구분에 따라 처리 - 1: 패키지변경, 4:다음회차 방문 중지*/
         //IF(P_REQ_GB = '1' AND P_DATA_STUS != '3') THEN
         if ("1".equals(req.asAkDvCd()) && !"3".equals(req.mtrProcsStatCd())) {
@@ -160,6 +149,16 @@ public class WsniSidingServiceChangesService {
 
     @Transactional
     public SaveRes saveSidingProductChange(SaveReq req) throws Exception {
+
+        log.debug("cntrNo : " + req.cntrNo());
+        log.debug("cntrSn : " + req.cntrSn());
+        log.debug("akSn : " + req.akSn());
+        log.debug("asAkDvCd : " + req.asAkDvCd());
+        log.debug("akChdt : " + req.akChdt());
+        log.debug("bfchPdCd : " + req.bfchPdCd());
+        log.debug("afchPdCd : " + req.afchPdCd());
+        log.debug("choCapslCn : " + req.choCapslCn());
+        log.debug("mtrProcsStatCd : " + req.mtrProcsStatCd());
 
         AsReceiption(req); // LC_ASREGN_API_I02_T
 
