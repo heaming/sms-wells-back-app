@@ -76,54 +76,84 @@ public class WsnaItemLocationDto {
 
     @ApiModel("WsnaItemLocationDto-SearchStockCdRes")
     public record SearchStockCdRes(
+        // 코드 ID
         String codeId,
+        // 코드명
         String codeName
     ) {}
 
     @ApiModel("WsnaItemLocationDto-SearchLocationReq")
     public record SearchLocationReq(
+        // 품목상품코드
         String itmPdCd,
+        // 품목구분
         String itmKnd,
+        // 창고번호
         String wareNo
 
     ) {}
     @ApiModel("WsnaItemLocationDto-SearchLocationRes")
     public record SearchLocationRes(
+        // 품목상품코드
         String itmPdCd,
+        // 품목약어명
         String pdAbbrNm,
+        // SAP자재코드
         String sapMatCd,
+        // 품목구분코드
         String itmKndCd,
+        // 창고번호
         String wareNo,
+        // 창고명
         String wareNm,
+        //표준창고사용여부
         String stdWareUseYn,
+        // 시점재고A등급수량
         String pitmStocAGdQty,
+        // 창고유형코드
         String wareTpCd,
+        // 위치코드
         String locationCd,
+        // 품목앵글값
         String itmLctAngleVal,
+        // 품목층수값
         String itmLctCofVal,
+        // 품목위치층번호값
         String itmLctFlorNoVal,
+        // 품목위치자재그룹코드
         String itmLctMatGrpCd,
+        // 품목위치명
         String itmLctNm
     ) {}
 
     @ApiModel("WsnaItemLocationDto-CreateLocationReq")
     public record CreateLocationReq(
+        // 창고번호
         @NotBlank
         String wareNo,
+        // 품목상품코드
         @NotBlank
         String itmPdCd,
+        // 창고유형코드
         String wareTpCd,
+        // 품목위치앵글값
         String itmLctAngleVal,
+        // 품목위치층수값
         String itmLctCofVal,
+        // 품목위치층번호값
         String itmLctFlorNoVal,
+        // 품목위치자재그룹코드
         String itmLctMatGrpCd,
+        // 품목구분
         String itemKnd
 
     ) {}
 
     @ApiModel(value = "WsnaItemLocationDto-CreateWareLocationReq")
     public record CreateWareLocationReq(
+        // 창고번호
         String wareNo,
+        // 창고표준구분
         @NotBlank
         String stckStdGb
     ) {}

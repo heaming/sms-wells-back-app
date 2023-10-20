@@ -51,6 +51,7 @@ public class WsnaItemBaseInformationController {
         return service.getItemBaseInformations(dto);
     }
 
+    @ApiOperation(value = "품목 기본정보 조회 (출고내역)", notes = "부모창에서 넘어온 파라미터로 품목기본정보 조회")
     @GetMapping("/out-of")
     public List<WsnaItemBaseInformationDvo> getItemBaseInformationsOutOf(
         SearchReq dto
@@ -58,6 +59,7 @@ public class WsnaItemBaseInformationController {
         return service.getItemBaseInformationsOutOf(dto);
     }
 
+    @ApiOperation(value = "품목 기본정보 조회 (신청내역)", notes = "부모창에서 넘어온 파라미터로 품목기본정보 조회")
     @GetMapping("/aplclists")
     public List<SearchAplcRes> getItemBaseInformationAplcLists(
         SearchAplcReq dto

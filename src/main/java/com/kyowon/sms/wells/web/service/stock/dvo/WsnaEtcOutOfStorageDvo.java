@@ -14,24 +14,23 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WsnaEtcOutOfStorageDvo {
-    String itmOstrNo;
-    String ostrTpCd;
-    String ostrWareNo;
-    String sapMatCd;
-    String itmPdCd;
-    String itmKndCd;
-    String ostrSn;
-    String pdAbbrNm;
-    String itmGdCd;
-    int onQty;
-    String mngtUnitCd;
-    int ostrQty;
-    String ostrRsonCd;
-    String rmkCn;
-    String wareNm;
-    String wareMngtPrtnrNo;
-    String ostrDt;
-    String strOjWareNo;
-
-    String bilDept;
+    String itmOstrNo; /* 품목출고번호 */
+    String ostrTpCd; /*출고유형코드 */
+    String ostrWareNo; /* 출고창고번호 */
+    String sapMatCd; /* SAP자재코드 */
+    String itmPdCd; /* 품목상품코드 */
+    String itmKndCd; /* 품목구분코드 */
+    String ostrSn; /* 출고순번 */
+    String pdAbbrNm; /* 품목약어명 */
+    String itmGdCd; /* 품목등급코드 */
+    int onQty; /* 수량 */
+    String mngtUnitCd; /* 관리단위코드 */
+    int ostrQty; /* 출고수량 */
+    String ostrRsonCd; /* 출고사유코드 */
+    String rmkCn; /* 비고 */
+    String wareNm; /* 창고명 */
+    String wareMngtPrtnrNo; /* 창고관리파트너번호 */
+    String ostrDt; /* 출고일자 */
+    String strOjWareNo; /* 입고대상창고번호 */
+    String bilDept; /* 청구부서 */
 }

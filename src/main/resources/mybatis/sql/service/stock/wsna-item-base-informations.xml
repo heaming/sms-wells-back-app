@@ -145,15 +145,15 @@
             ON D2.PD_CD = D1.PD_CD
           LEFT OUTER JOIN
              (
-               SELECT ITM_PD_CD
+               SELECT ITM_PD_CD /* 품목상품코드 */
                     , SUM(CASE WHEN #{ostrWareDvCd} = '1' THEN 0
                                ELSE CASE WHEN WARE_NO = #{ostrWareNo} THEN PITM_STOC_A_GD_QTY
                                     END
-                          END) AS WAREHOUSE_QTY
+                          END) AS WAREHOUSE_QTY /* 출고창고재고 */
                     , SUM(CASE WHEN WARE_NO = #{wareNo} THEN PITM_STOC_A_GD_QTY
-                          END) AS CENTER_QTY
+                          END) AS CENTER_QTY /* 센터A등급재고(조직) */
                     , SUM(CASE WHEN WARE_NO = #{wareNo} THEN PITM_STOC_B_GD_QTY
-                          END) AS CENTER_B_QTY
+                          END) AS CENTER_B_QTY /* 센터B등급재고(조직) */
                  FROM TB_SVST_CST_SV_ITM_STOC_IZ   /* 고객서비스품목재고내역 */
                 WHERE DTA_DL_YN = 'N'
                   AND WARE_NO IN ( #{wareNo}, #{ostrWareNo} )
@@ -163,9 +163,9 @@
           LEFT OUTER JOIN
              (
                SELECT /*+ INDEX(D2 (APY_YM, WARE_DV_CD, HGR_WARE_NO)) */
-                      D1.ITM_PD_CD
-                    , SUM(D1.PITM_STOC_A_GD_QTY) AS INDI_QTY
-                    , SUM(D1.PITM_STOC_B_GD_QTY) AS INDI_B_QTY
+                      D1.ITM_PD_CD /* 품목상품코드 */
+                    , SUM(D1.PITM_STOC_A_GD_QTY) AS INDI_QTY /* 개인수량 */
+                    , SUM(D1.PITM_STOC_B_GD_QTY) AS INDI_B_QTY /* 개인B수량 */
                  FROM TB_SVST_CST_SV_ITM_STOC_IZ D1   /* 고객서비스품목재고내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2    /* 월별창고내역 */
                    ON D2.WARE_NO = D1.WARE_NO
@@ -180,8 +180,8 @@
           LEFT OUTER JOIN
              (
                SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
-                      D1.ITM_PD_CD
-                    , SUM(D1.USE_QTY) AS USE_QTY
+                      D1.ITM_PD_CD /* 품목상품코드 */
+                    , SUM(D1.USE_QTY) AS USE_QTY  /* 당월사용수량 */
                  FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
                    ON D2.WARE_NO = D1.WK_WARE_NO
@@ -198,7 +198,7 @@
              (
                SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) INDEX(D2 (APY_YM, WARE_DV_CD, HGR_WARE_NO)) */
                       D1.ITM_PD_CD
-                    , SUM(D1.USE_QTY) AS USE_QTY
+                    , SUM(D1.USE_QTY) AS USE_QTY /* 전월사용수량 */
                  FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
                    ON D2.WARE_NO = D1.WK_WARE_NO
@@ -215,7 +215,7 @@
              (
                SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) INDEX(D2 (APY_YM, WARE_DV_CD, HGR_WARE_NO)) */
                       D1.ITM_PD_CD
-                    , SUM(D1.USE_QTY) AS USE_QTY
+                    , SUM(D1.USE_QTY) AS USE_QTY /* 전년도사용수량 */
                  FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
                    ON D2.WARE_NO = D1.WK_WARE_NO
@@ -228,7 +228,7 @@
                 GROUP BY D1.ITM_PD_CD
              ) D7
             ON D7.ITM_PD_CD = D1.PD_CD
-          LEFT OUTER JOIN T_CMD_ATTH_FILE_D D8
+          LEFT OUTER JOIN T_CMD_ATTH_FILE_D D8 /* 첨부파일상세 */
             ON D8.ATTH_DOC_ID = D1.IMG_APN_FILE_ID
            AND D8.DEL_YN      = 'N'
            AND D8.TENANT_ID   = 'TNT_WELLS'
@@ -259,11 +259,11 @@
     </select>
 
     <select id="selectItemBaseInformationAplcLists" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemBaseInformationDto$SearchAplcRes">
-        SELECT T1.PD_CD AS ITM_PD_CD
-          FROM TB_SVST_ITM_APLC_IZ T1
-         INNER JOIN TB_SVST_MCBY_WARE_IZ T2
+        SELECT T1.PD_CD AS ITM_PD_CD /* 품목상품코드 */
+          FROM TB_SVST_ITM_APLC_IZ T1 /* 품목신청내역 */
+         INNER JOIN TB_SVST_MCBY_WARE_IZ T2 /* 월별창고내역 */
             ON T2.HGR_WARE_NO = T1.WARE_NO
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ T3
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T3 /* 월파트너내역 */
             ON T3.BASE_YM  = T2.APY_YM
            AND T3.PRTNR_NO = T2.WARE_MNGT_PRTNR_NO
            AND T3.OG_TP_CD = T2.OG_TP_CD
@@ -279,17 +279,17 @@
     </select>
 
     <select id="selectItemBaseInformationWareDvCds" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemBaseInformationDto$SearchWareRes">
-        SELECT WARE_DTL_DV_CD
-             , WARE_DV_CD
-          FROM TB_SVST_MCBY_WARE_IZ
+        SELECT WARE_DTL_DV_CD   /* 창고상세구분코드 */
+             , WARE_DV_CD   /* 창고구분코드 */
+          FROM TB_SVST_MCBY_WARE_IZ /* 월별창고내역 */
          WHERE DTA_DL_YN = 'N'
            AND APY_YM    = TO_CHAR(SYSDATE, 'YYYYMM')
            AND WARE_NO   = #{wareNo}
     </select>
 
     <select id="selectOstrWareDvCd" resultType="java.lang.String">
-        SELECT WARE_DV_CD
-          FROM TB_SVST_MCBY_WARE_IZ
+        SELECT WARE_DV_CD /* 창고구분코드*/
+          FROM TB_SVST_MCBY_WARE_IZ /* 월별창고내역 */
          WHERE DTA_DL_YN = 'N'
            AND APY_YM    = TO_CHAR(SYSDATE, 'YYYYMM')
            AND WARE_NO   = #{ostrWareNo}
