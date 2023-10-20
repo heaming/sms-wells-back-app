@@ -47,6 +47,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.util.StringUtils;
 
+/**
+ * <pre>
+ * 상조제휴 일괄입금 등록 Service
+ * </pre>
+ *
+ * @author jaeha.yeon
+ * @since 2023-10-20
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -63,7 +71,6 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
     private final ZwdzWithdrawalService zwdzWithdrawalService;
 
-
     private final BatchCallService batchCallService;
 
     private final ZwdbDepositComparisonComfirmationService depositComparisonComfirmationService;
@@ -74,21 +81,45 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
     private final ZwdbEtcDepositMapper etcDepositMapper;
 
+    /**
+     * 상조제휴 일괄입금 등록 목록 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
     @Transactional
     public PagingResult<SearchRes> getMutualAidAllianceBulkDepositRegPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectMutualAidAllianceBulkDepositRegs(dto, pageInfo);
     }
 
+    /**
+     * 상조제휴 일괄입금 등록 목록 엑셀다운로드
+     * @param dto
+     * @return
+     */
     @Transactional
     public List<SearchRes> getMutualAidAllianceBulkDepositRegExcels(SearchReq dto) {
         return mapper.selectMutualAidAllianceBulkDepositRegs(dto);
     }
 
+    /**
+     * 상조제휴 일괄입금 등록 입금내역 조회
+     * @param dto
+     * @return
+     */
     @Transactional
     public SearchSumRes getMutualAidAllianceBulkDepositRegsSum(SearchSumReq dto) {
         return mapper.selectMutualAidAllianceBulkDepositRegsSum(dto);
     }
 
+    /**
+     * 상조제휴 일괄입금 등록 엑셀 업로드
+     * @param lifAlncDvCd
+     * @param lifSpptYm
+     * @param file
+     * @return
+     * @throws Exception
+     */
     @Transactional
     public int saveMutualAidAllianceBulkDepositRegExcelUpload(String lifAlncDvCd, String lifSpptYm, MultipartFile file)
         throws Exception {
@@ -147,6 +178,11 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
     }
 
+    /**
+     * 상조제휴 일괄입금 등록 엑셀 업로드 Header
+     * @param lifAlncDvCd
+     * @return
+     */
     public Map<String, String> setLifAlncDvCdHeader(String lifAlncDvCd) {
         Map<String, String> headerTitle = new LinkedHashMap<>();
         if (lifAlncDvCd.equals("30")) { //웰스399
@@ -187,6 +223,13 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         return headerTitle;
     }
 
+    /**
+     * 에러 DVO 셋팅
+     * @param row
+     * @param header
+     * @param errorData
+     * @return
+     */
     public ExcelUploadErrorDvo getErrorDvo(int row, String header, String errorData) {
         ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
         errorDvo.setErrorRow(row);
@@ -195,6 +238,11 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         return errorDvo;
     }
 
+    /**
+     * 엑셀업로드 유효성 체크
+     * @param header
+     * @param dvos
+     */
     public void validateExcelDatas(
         Map<String, String> header, List<WwdbMutualAidAllianceBulkDepositRegDvo> dvos
     ) {
@@ -212,7 +260,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
                 BizAssert.hasText(
                     dvo.getWelsCntrNo().toString(), "MSG_ALT_INVALID_UPLOAD_DATA",
-                    new String[]{String.valueOf(row), header.get("welsCntrNo"), dvo.getWelsCntrNo().toString()}
+                    new String[] {String.valueOf(row), header.get("welsCntrNo"), dvo.getWelsCntrNo().toString()}
                 );
 
                 //                errorDvos.add(getErrorDvo(i + 1, header.get("welsCntrNo"), dvo.getWelsCntrNo().toString()));
@@ -220,7 +268,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             if (StringUtil.isBlank(dvo.getLifAlncPdNm().toString())) { //상품명
                 BizAssert.hasText(
                     dvo.getLifAlncPdNm().toString(), "MSG_ALT_INVALID_UPLOAD_DATA",
-                    new String[]{String.valueOf(row), header.get("lifAlncPdNm"), dvo.getLifAlncPdNm().toString()}
+                    new String[] {String.valueOf(row), header.get("lifAlncPdNm"), dvo.getLifAlncPdNm().toString()}
                 );
                 //                errorDvos.add(getErrorDvo(i + 1, header.get("lifAlncPdNm"), dvo.getLifAlncPdNm().toString()));
             }
@@ -228,7 +276,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             if (StringUtil.isBlank(dvo.getLifCntrNo().toString())) { //상조계약번호
                 BizAssert.hasText(
                     dvo.getLifCntrNo().toString(), "MSG_ALT_INVALID_UPLOAD_DATA",
-                    new String[]{String.valueOf(row), header.get("lifCntrNo"), dvo.getLifCntrNo().toString()}
+                    new String[] {String.valueOf(row), header.get("lifCntrNo"), dvo.getLifCntrNo().toString()}
                 );
                 //                errorDvos.add(getErrorDvo(i + 1, header.get("lifCntrNo"), dvo.getLifCntrNo().toString()));
             }
@@ -236,7 +284,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             if (StringUtil.isBlank(dvo.getLifSpptAmt().toString())) { //지원금액
                 BizAssert.hasText(
                     dvo.getLifSpptAmt().toString(), "MSG_ALT_INVALID_UPLOAD_DATA",
-                    new String[]{String.valueOf(row), header.get("lifSpptAmt"), dvo.getLifSpptAmt().toString()}
+                    new String[] {String.valueOf(row), header.get("lifSpptAmt"), dvo.getLifSpptAmt().toString()}
                 );
                 //                errorDvos.add(getErrorDvo(i + 1, header.get("lifSpptAmt"), dvo.getLifSpptAmt().toString()));
             }
@@ -244,6 +292,12 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         }
     }
 
+    /**
+     * 상조제휴 일괄입금 등록 생성
+     * @param dtos
+     * @return
+     * @throws Exception
+     */
     @Transactional
     public int saveMutualAidAllianceBulkDepositReg(List<SaveUploadReq> dtos) throws Exception {
         int processCount = 0;
@@ -257,6 +311,12 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         return processCount;
     }
 
+    /**
+     * 상조제휴 일괄입금 등록 생성
+     * @param dto
+     * @return
+     * @throws Exception
+     */
     @Transactional
     public int saveMutualAidAllianceBulkDepositRegs(SaveReq dto) throws Exception {
         int processCount = 0;
@@ -264,7 +324,6 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         //통합입금 조회
         //        com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbIntegrationDepositDto.SearchRes selectIntegrationDeposit = depositMapper
         //            .selectIntegrationDeposit(dto);
-
 
         ZwdbCorporationDepositDto.SearchIntegrationDepositRes searchIntegrationDepositRes = corporationDepositMapper
             .selectIntegrationDepositInfo(dto.itgDpNo());
@@ -331,9 +390,9 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         String rveCd = "85044";
 
         /*통합입금번호로 해당 데이터 조회*/
-//                WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes searchIntegrationDepositRes = mapper
-//                    .selectIntegrationDepositInfo(dto.itgDpNo());
-//
+        //                WwdbMutualAidAllianceBulkDepositRegDto.SearchIntegrationDepositRes searchIntegrationDepositRes = mapper
+        //                    .selectIntegrationDepositInfo(dto.itgDpNo());
+        //
         /*수납요청기본 인설트 데이터 입력*/
         ZwdzWithdrawalReceiveAskDvo zwdzWithdrawalReceiveAskDvo = new ZwdzWithdrawalReceiveAskDvo();
         zwdzWithdrawalReceiveAskDvo.setKyowonGroupCompanyCd(session.getCompanyCode()); //KW_GRP_CO_CD	교원그룹회사코드
@@ -350,7 +409,6 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         String receiveAskNumber = zwdzWithdrawalService.createReceiveAskBase(zwdzWithdrawalReceiveAskDvo);
         zwdzWithdrawalReceiveAskDvo.setReceiveAskNumber(receiveAskNumber);
 
-
         for (SearchRes searchRes : selectMutualAidAllianceBulkDepositRegs) {
 
             //계약 번호 셋팅
@@ -359,8 +417,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             );
 
             //계약조회
-            ZwdbCorporationDepositDto.SearchDepositContractRes searchDepositContractRes = corporationDepositMapper
-                .selectDepositContracts(contractRes);
+            corporationDepositMapper.selectDepositContracts(contractRes);
 
             ZwdbWithdrawalReceiveAskReqDvo reqDvo = new ZwdbWithdrawalReceiveAskReqDvo();
             reqDvo.setRveAkNo(receiveAskNumber); /*수납요청번호*/
@@ -378,7 +435,6 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             reqDvo.setRveAkAmt(searchRes.amt()); /*수납요청금액*/
             reqDvo.setRveAmt(searchRes.amt()); /*수납금액*/
             reqDvo.setItgDpNo(dto.itgDpNo()); /*통합입금번호*/
-
 
             zwdzWithdrawalReceiveAskDvo = etcDepositMapper.selectReceiveAskDetailInfo(reqDvo);
 
@@ -400,20 +456,20 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             depoDvo.setItgDpNo(dto.itgDpNo());
             zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
 
-
         }
 
         if (!StringUtils.isEmpty(dto.itgDpNo())) {
             //입금대사 서비스 호출
-            HashMap<String, Object> depositComparisonComfirmation = depositComparisonComfirmationService.createDepositComparisonComfirmation(dto.itgDpNo(), null);
+            HashMap<String, Object> depositComparisonComfirmation = depositComparisonComfirmationService
+                .createDepositComparisonComfirmation(dto.itgDpNo(), null);
 
             Object rveNo = depositComparisonComfirmation.get("RVE_NO");
             WwdbMutualAidAllianceBulkDepositDvo bulkDepositDvo = new WwdbMutualAidAllianceBulkDepositDvo();
-//
+            //
             bulkDepositDvo.setPerfDt(dto.perfDt());
             bulkDepositDvo.setRveDt(dto.rveDt());
             bulkDepositDvo.setRveNo(rveNo.toString());
-//
+            //
             processCount += mapper.updateReceiveDateModify(bulkDepositDvo);
         }
         return processCount;
