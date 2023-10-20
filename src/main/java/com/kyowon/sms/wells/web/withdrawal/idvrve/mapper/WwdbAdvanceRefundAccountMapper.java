@@ -12,11 +12,22 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WwdbAdvanceRefundAccountMapper {
 
+    /**
+     * 선환불현황 조회
+     * @param req
+     * @param pageInfo
+     * @return PagingResult<SearchAdvanceRefundAccountRes>
+     */
     PagingResult<SearchAdvanceRefundAccountRes> selectAdvanceRefundAccount(
         SearchAdvanceRefundAccountReq req,
         PageInfo pageInfo
     );
 
+    /**
+     * 선환불현황 조회 엑셀 다운로드용
+     * @param req
+     * @return PagingResult<SearchAdvanceRefundAccountRes>
+     */
     List<SearchAdvanceRefundAccountRes> selectAdvanceRefundAccount(
         SearchAdvanceRefundAccountReq req
     );
