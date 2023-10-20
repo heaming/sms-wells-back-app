@@ -166,10 +166,10 @@ public class WwdbBillDepositMgtService {
     }
 
     @Transactional
-    public PagingResult<SearchElectronicRes> getRegistrationElectronicDetailPages(
-        SearchElectronicReq dto, PageInfo pageInfo
+    public List<SearchElectronicRes> getRegistrationElectronicDetailPages(
+        SearchElectronicReq dto
     ) {
-        return mapper.selectRegistrationElectronicDetails(dto, pageInfo);
+        return mapper.selectRegistrationElectronicDetails(dto);
     }
 
     @Transactional
@@ -225,7 +225,7 @@ public class WwdbBillDepositMgtService {
 
             itgDvo.setItgDpNo(dto.get(0).itgDpNo());//통합입금번호
             itgDvo.setRveAkNo(receiveAskNumber); //수납요청번호
-
+            itgDvo.setRveCd(session.getRveCd());
             processCount += etcDepositMapper.updateIntegrationDeposit(itgDvo);
 
             ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
