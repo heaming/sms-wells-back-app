@@ -49,8 +49,8 @@ public class WsniSidingServiceChangesDto {
         String mtrProcsStatCd,
 
         // 자유선택인 경우 제품상품코드목록 (제품상품코드,수량|제품상품코드,수량| ....)
-        @JsonProperty(value = "CONS_PD_LIST")
-        String consPdList
+        @JsonProperty(value = "CHO_CAPSL_CN")
+        String choCapslCn
     ) {}
 
     @ApiModel(value = "WsniSidingServiceChangesDto-SaveRes")

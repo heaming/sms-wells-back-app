@@ -42,6 +42,8 @@ public interface WsnbRegularShippingChangeMapper {
 
     int updateTbSvpdHcfAsAkIz(SaveReq req);
 
+    String selectAkSnMax(String cntrNo, String cntrSn);
+
     int insertTbSvpdHcfAsAkIz(SaveReq req);
 
     int updateStopNextSiding(SaveReq req);
