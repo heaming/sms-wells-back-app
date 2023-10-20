@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.*;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaBuildingBsConsumableService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -28,11 +26,6 @@ public class WsnaBuildingBsConsumableController {
     @GetMapping
     public List<SearchRes> getBuildingBsConsumables(SearchReq dto) {
         return service.getBuildingBsConsumables(dto);
-    }
-
-    @GetMapping("/paging")
-    public PagingResult<SearchRes> getBuildingBsConsumablPages(SearchReq dto, PageInfo pageInfo) {
-        return service.getBuildingBsConsumablePages(dto, pageInfo);
     }
 
     @GetMapping("/items/{mngtYm}")
@@ -62,12 +55,9 @@ public class WsnaBuildingBsConsumableController {
             .build();
     }
 
-    @GetMapping("/building-code/{mngtYm}")
-    public List<SearchBldRes> selectBuildings(
-        @PathVariable
-        String mngtYm
-    ) {
-        return service.getBuildingList(mngtYm);
+    @GetMapping("/building-code")
+    public List<SearchBldRes> selectBuildings() {
+        return service.getBuildingList();
     }
 
     @PostMapping

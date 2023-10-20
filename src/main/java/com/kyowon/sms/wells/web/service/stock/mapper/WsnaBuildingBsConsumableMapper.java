@@ -27,7 +27,7 @@ public interface WsnaBuildingBsConsumableMapper {
 
     int mergeBuildingBsConsumableAplcClose(WsnaBuildingBsConsumableDvo dvo);
 
-    List<SearchBldRes> selectBuildingList(String mngtYm);
+    List<SearchBldRes> selectBuildingList();
 
     int mergeBuildingBsConsumables(CreateReq dto);
 

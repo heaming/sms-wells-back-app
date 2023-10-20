@@ -33,4 +33,6 @@ public class WsnaNewManagerBsConsumableDvo {
     String ostrAkNo;
     int ostrAkSn;
     String ogTpCd;
+    String fxnPdCd;
+    String aplcPdCd;
 }
