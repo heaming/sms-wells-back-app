@@ -274,13 +274,13 @@ public class WsnbRegularShippingChangeService {
         String pdct = mapper.selectPdctPdCds(req.cntrNo(), req.cntrSn(), req.akSn());
         if (StringUtil.isNotEmpty(pdct)) {
             String[] pdctPdCds = pdct.split("\\|");
-            for (String s : pdctPdCds) {
+            for (String s : pdctPdCds)
                 consPdList.add(
                     new WctbSeedingPackageChangeDto.ConsPdct(
                         s.split(",")[0], Integer.parseInt(s.split("\\,")[1])
                     )
                 );
-            }
+
         }
 
         /**
