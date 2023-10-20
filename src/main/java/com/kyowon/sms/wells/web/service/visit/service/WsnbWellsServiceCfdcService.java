@@ -98,7 +98,9 @@ public class WsnbWellsServiceCfdcService {
         EmailDto.CreateReq emailDto = new EmailDto.CreateReq(
             templateService.getTemplateByTemplateId("TMP_SNB_WELLS18053").getSendTemplateTitle(),
             "TMP_SNB_WELLS18053",
-            templateService.getTemplateContent("TMP_SNB_WELLS18053", paramMap),
+            "<html><body>"
+                + templateService.getTemplateContent("TMP_SNB_WELLS18053", paramMap).replaceAll("(\r\n|\n)", "<br>")
+                + "</body></html>",
             "wellsorder@kyowon.co.kr",
             "",
             "Y",
