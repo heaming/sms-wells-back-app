@@ -11,10 +11,10 @@ import lombok.Setter;
 @Setter
 @Getter
 public class SummaryItem7Req {
-    @JsonProperty("siRecvCnt7")
-    private String siRecvCnt7; /* segmentID(CBR07) */
     @JsonProperty("siSgmtId7")
-    private String siSgmtId7; /* 렌탈CB 기타 요약항목 수신건수 */
+    private String siSgmtId7; /* segmentID(CBR07) */
+    @JsonProperty("siRecvCnt7")
+    private String siRecvCnt7; /* 렌탈CB 기타 요약항목 수신건수 */
     @JsonProperty("siReqCnt7")
     private String siReqCnt7; /* 렌탈CB 기타 요약항목 요청건수(반복건수) */
 }

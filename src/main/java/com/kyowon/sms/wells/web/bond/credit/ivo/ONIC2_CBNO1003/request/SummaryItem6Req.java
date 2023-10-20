@@ -13,10 +13,10 @@ import lombok.ToString;
 @Getter
 @ToString
 public class SummaryItem6Req {
-    @JsonProperty("siRecvCnt6")
-    private String siRecvCnt6; /* segmentID(CBR06) */
     @JsonProperty("siSgmtId6")
-    private String siSgmtId6; /* 렌탈CB 일반 요약항목 수신건수 */
+    private String siSgmtId6; /* segmentID(CBR06) */
+    @JsonProperty("siRecvCnt6")
+    private String siRecvCnt6; /* 렌탈CB 일반 요약항목 수신건수 */
     @JsonProperty("siReqCnt6")
     private String siReqCnt6; /* 렌탈CB 일반 요약항목 요청건수(반복건수) */
 }

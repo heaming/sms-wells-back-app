@@ -118,7 +118,7 @@
                   LEFT OUTER JOIN TB_CBCL_DLQ_BAS G    /*연체기본*/
                     ON G.CNTR_NO = F.CNTR_NO
                    AND G.CNTR_SN = F.CNTR_SN
-                   AND G.PERF_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND G.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
                 -----------------------------------------------------------------------
                 -- 41. 웰스팜 맴버십 주문 중 전월 미수금 있는 건 조회
                 -- 특이사항 : 웰스팜 기기건만 대상
@@ -162,8 +162,10 @@
                    AND A.SELL_TP_CD = '3'   --멤버십
                    AND A.CNTR_PD_ENDDT = '99991231'    --멤버십 탈퇴일자 미존재
                    AND A.CNTR_PD_STRTDT IS NULL        --멤버십 가입일자 미존재
-                   AND (D.SELL_TP_DTL_CD IN ('21', '23') AND F.RENTAL_TN >= D.CNTR_PTRM)    --사용차월, 렌탈차월 비교
-                   AND NVL(G.DLQ_MCN, 0) = 0        --연체건수가 없는건
+                   AND ((D.SELL_TP_DTL_CD IN ('21', '23') AND F.RENTAL_TN >= D.CNTR_PTRM) --사용차월, 렌탈차월 비교
+                     OR (D.SELL_TP_DTL_CD NOT IN ('21', '23') AND F.RENTAL_TN >= D.CNTR_PTRM
+                   AND TO_CHAR(ADD_MONTHS(D.CNTR_PD_STRTDT, D.CNTR_PTRM), 'YYYYMMDD') <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMMDD')))
+                   AND NVL(G.DLQ_MCN, 0) <![CDATA[<]]> 2 --연체건수 2개월 미만
                    AND S.CNTR_NO   = A.CNTR_NO
                    AND S.CNTR_SN   = A.CNTR_SN
                    AND S.REQD_DT   IS NULL   --철거일자

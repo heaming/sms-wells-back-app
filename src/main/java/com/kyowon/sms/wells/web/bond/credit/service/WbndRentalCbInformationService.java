@@ -1,16 +1,15 @@
 package com.kyowon.sms.wells.web.bond.credit.service;
 
-import java.io.File;
 import java.util.*;
 
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbInformationDto.SearchContractPresentStateReq;
 import com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbInformationDvo;
 import com.kyowon.sms.wells.web.bond.credit.ivo.ONIC2_CBNO1003.request.*;
 import com.kyowon.sms.wells.web.bond.credit.mapper.WbndRentalCbInformationMapper;
 import com.sds.sflex.common.common.service.CruzLinkInterfaceService;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
@@ -72,14 +71,7 @@ public class WbndRentalCbInformationService {
 
         try {
             // ONIC2_CBNO1003 (CB렌탈정보 조회 요청) 인터페이스 호출
-            //            Map body = interfaceService.post(RENTAL_CB_URL, req, Map.class);
-            // TODO: 테스트용
-            ObjectMapper ob = new ObjectMapper();
-            File f = new File(
-                "C:\\pjt-kyowon\\workspace\\sms-wells-back-app\\src\\main\\java\\com\\kyowon\\sms\\wells\\web\\bond\\credit\\service\\RentalCBImfoTestFile.json"
-            );
-            Map body = ob.readValue(f, Map.class);
-            // *TODO: end
+            Map body = interfaceService.post(RENTAL_CB_URL, req, Map.class);
             log.debug("CB렌탈정보 조회 응답 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", body);
 
             Map<String, Object> COMM = (Map<String, Object>)body.get("COMM");
@@ -96,26 +88,32 @@ public class WbndRentalCbInformationService {
                 SUMMARYITEM_6 = (Map<String, Object>)body.get("SUMMARYITEM_6");
                 SUMMARYITEM_7 = (Map<String, Object>)body.get("SUMMARYITEM_7");
 
+                log.debug("CB렌탈정보 ROWDATA_5 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", ROWDATA_5);
+                log.debug("CB렌탈정보 SUMMARYITEM_6 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", SUMMARYITEM_6);
+                log.debug("CB렌탈정보 SUMMARYITEM_7 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", SUMMARYITEM_7);
+
                 // 렌탈CB연체(일반)세그먼트>>>  0 or 1건 : {} ,  2건이상 : [{},{}] 처리
                 if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) == 1) {
                     ROWDATA_5_REPEAT.add((Map<String, Object>)body.get("ROWDATA_5_REPEAT"));
+                    log.debug("CB렌탈정보 ROWDATA_5_REPEAT 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", ROWDATA_5_REPEAT);
                 } else if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 1) {
                     ROWDATA_5_REPEAT = (List<Map<String, Object>>)body.get("ROWDATA_5_REPEAT");
+                    log.debug("CB렌탈정보 ROWDATA_5_REPEAT 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", ROWDATA_5_REPEAT);
                 }
 
                 // 렌탈CB연체(일반)세그먼트 코드 매핑
                 if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 0) {
                     Map<String, Object> params;
-                    Map<String, Object> rst;
+                    String rst = "";
                     for (int i = 0; i < ROWDATA_5_REPEAT.size(); i++) {
                         //렌탈 상품코드(소분류)
                         params = new HashMap<>();
                         //params.put("LCGROP", "1000000212");
                         params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("rntlPrdtCdS5"));
 
-                        rst = mapper.selectTransCdMsg(params);
-                        if (rst != null) {
-                            ROWDATA_5_REPEAT.get(i).put("rntlPrdtNmS5", rst.get("LCTEXT"));
+//                        rst = mapper.selectTransErrorCdMsg(params);
+                        if (StringUtil.isNotBlank(rst)) {
+                            ROWDATA_5_REPEAT.get(i).put("rntlPrdtNmS5", rst);
                         }
 
                         //연체구분코드
@@ -123,9 +121,9 @@ public class WbndRentalCbInformationService {
                         //params.put("LCGROP", "1000000211");
                         params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("delyDivCd5"));
 
-                        rst = mapper.selectTransCdMsg(params);
-                        if (rst != null) {
-                            ROWDATA_5_REPEAT.get(i).put("delyDivNm5", rst.get("LCTEXT"));
+//                        rst = mapper.selectTransErrorCdMsg(params);
+                        if (StringUtil.isNotBlank(rst)) {
+                            ROWDATA_5_REPEAT.get(i).put("delyDivNm5", rst);
                         }
 
                     }
@@ -135,6 +133,11 @@ public class WbndRentalCbInformationService {
                 if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) == 1) {
                     Map<String, Object> SUMMARYITEM_6_REPEAT_OBJ = (Map<String, Object>)body
                         .get("SUMMARYITEM_6_REPEAT");
+
+                    log.debug(
+                        "CB렌탈정보 SUMMARYITEM_6_REPEAT 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", SUMMARYITEM_6_REPEAT_OBJ
+                    );
+
                     SUMMARYITEM_6_REPEAT.put(
                         SUMMARYITEM_6_REPEAT_OBJ.get("siCd6").toString(),
                         SUMMARYITEM_6_REPEAT_OBJ.get("siVal6").toString()
@@ -142,12 +145,16 @@ public class WbndRentalCbInformationService {
                 } else if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) > 1) {
                     List<Map<String, Object>> SUMMARYITEM_6_REPEAT_LIST = (List<Map<String, Object>>)body
                         .get("SUMMARYITEM_6_REPEAT");
+
                     for (int i = 0; i < SUMMARYITEM_6_REPEAT_LIST.size(); i++) {
                         SUMMARYITEM_6_REPEAT.put(
                             SUMMARYITEM_6_REPEAT_LIST.get(i).get("siCd6").toString(),
                             SUMMARYITEM_6_REPEAT_LIST.get(i).get("siVal6").toString()
                         );
                     }
+
+                    log.debug("CB렌탈정보 SUMMARYITEM_6_REPEAT 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", SUMMARYITEM_6_REPEAT);
+
                 }
 
                 //기타  요약항목 세그먼트>>> 0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리
@@ -158,6 +165,8 @@ public class WbndRentalCbInformationService {
                             SUMMARYITEM_7_OBJ.get("etcItmCd7").toString(),
                             SUMMARYITEM_7_OBJ.get("etcItmVal7").toString()
                         );
+
+                    log.debug("CB렌탈정보 SUMMARYITEM_7_REPEAT 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", SUMMARYITEM_7_REPEAT);
                 } else if (Integer.parseInt(SUMMARYITEM_7.get("respCnt7").toString()) > 1) {
                     List<Map<String, Object>> SUMMARYITEM_7_LIST = (List<Map<String, Object>>)body
                         .get("SUMMARYITEM_7_REPEAT");
@@ -302,7 +311,7 @@ public class WbndRentalCbInformationService {
                     String[] crtlTot6 = {"RT3600001", "RT3600101", "RT3600201", "RT3600103", "RT3600104", "CAL_PER_36",
                         "RT1200003",
                         "RT1200207", "RT1200103"};
-                    for (int i = 0; i < 8; i++) {
+                    for (int i = 0; i < 9; i++) {
                         WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
                         cbVo.setType(type[i]);
                         cbVo.setBaseNm(baseNm[i]);
@@ -367,10 +376,15 @@ public class WbndRentalCbInformationService {
                     res.add(cbVo);
                 }
             } else {
-                //TODO TB_SSCT_DANG_ARBIT_CD 에서 조회해야 하는지 확인해야 함
-                log.debug("응답코드 >>>>>>>>>>>>>>>>>>>>>> {} ", rplyCd);
-                throw new BizException("등록되지 않은 응답 코드 오류.");
-                //*TODO: end
+                // 에러 메세지 송출
+                String rst;
+                log.debug("응답코드 :  {}", rplyCd);
+
+                rst = this.mapper.selectTransErrorCdMsg(rplyCd);
+                if (StringUtil.isBlank(rst)) {
+                    throw new BizException("[" + rplyCd + "]" + "등록되지 않은 응답 코드 오류.");
+                }
+                throw new BizException("[" + rplyCd + "]" + rst);
             }
         } catch (BizException e) {
             throw new BizException(e);
@@ -461,8 +475,8 @@ public class WbndRentalCbInformationService {
         // 6.렌탈CB 일반 요약항목
         SummaryItem6Req summaryItem6Req = new SummaryItem6Req();
         summaryItem6Req.setSiSgmtId6("CBR06");
-        summaryItem6Req.setSiSgmtId6("0");
-        summaryItem6Req.setSiSgmtId6("48");
+        summaryItem6Req.setSiRecvCnt6("0");
+        summaryItem6Req.setSiReqCnt6("48");
 
         log.debug("렌탈CB 일반 요약항목 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", summaryItem6Req);
         req.setSummaryItem6Req(summaryItem6Req);
@@ -521,6 +535,9 @@ public class WbndRentalCbInformationService {
         summaryItem7Req.setSiRecvCnt7("0");
         summaryItem7Req.setSiReqCnt7("42");
 
+        log.debug("렌탈CB 기타 요약항목 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", summaryItem7Req);
+        req.setSummaryItem7Req(summaryItem7Req);
+
         // 8.렌탈CB 기타 요약항목 반복부
         List<SummaryItem7RepaetItemReq> summaryItem7RepaetItemReqs = new ArrayList<>();
         //휴대폰번호 기준 렌탈(일반) 계약 건수
@@ -533,15 +550,15 @@ public class WbndRentalCbInformationService {
         List<String> Item7Repaet3 = Arrays
             .asList("RENTB0003", "RENTB0010", "RENTB0017", "RENTB0024", "RENTB0031", "RENTB0038");
 
-        //휴대폰번호 기준 렌탈(렌터카) 계약 건수
-        List<String> Item7Repaet4 = Arrays
-            .asList("RENTA0001", "RENTA0008", "RENTA0015", "RENTA0022", "RENTA0029", "RENTA0036");
-        //휴대폰번호 기준 렌탈(렌터카) 약정 납입액
-        List<String> Item7Repaet5 = Arrays
-            .asList("RENTA0002", "RENTA0009", "RENTA0016", "RENTA0023", "RENTA0030", "RENTA0037");
-        //휴대폰번호 기준 렌탈(렌터카) 실제 납입액
-        List<String> Item7Repaet6 = Arrays
-            .asList("RENTA0003", "RENTA0010", "RENTA0017", "RENTA0024", "RENTA0031", "RENTA0038");
+        //        //휴대폰번호 기준 렌탈(렌터카) 계약 건수
+        //        List<String> Item7Repaet4 = Arrays
+        //            .asList("RENTA0001", "RENTA0008", "RENTA0015", "RENTA0022", "RENTA0029", "RENTA0036");
+        //        //휴대폰번호 기준 렌탈(렌터카) 약정 납입액
+        //        List<String> Item7Repaet5 = Arrays
+        //            .asList("RENTA0002", "RENTA0009", "RENTA0016", "RENTA0023", "RENTA0030", "RENTA0037");
+        //        //휴대폰번호 기준 렌탈(렌터카) 실제 납입액
+        //        List<String> Item7Repaet6 = Arrays
+        //            .asList("RENTA0003", "RENTA0010", "RENTA0017", "RENTA0024", "RENTA0031", "RENTA0038");
 
         //설치지주소 기준 렌탈(일반) 계약 건수
         List<String> Item7Repaet7 = Arrays
@@ -557,21 +574,21 @@ public class WbndRentalCbInformationService {
         List<String> Item7Repaet10 = Arrays
             .asList("RENTB0007", "RENTB0014", "RENTB0021", "RENTB0028", "RENTB0035", "RENTB0042");
         //자택번호 기준 렌탈(렌터카) 계약 건수
-        List<String> Item7Repaet11 = Arrays
-            .asList("RENTA0007", "RENTA0014", "RENTA0021", "RENTA0028", "RENTA0035", "RENTA0042");
+        //        List<String> Item7Repaet11 = Arrays
+        //            .asList("RENTA0007", "RENTA0014", "RENTA0021", "RENTA0028", "RENTA0035", "RENTA0042");
 
         List<String> item7Repaet = new ArrayList<>();
         item7Repaet.addAll(Item7Repaet1);
         item7Repaet.addAll(Item7Repaet2);
         item7Repaet.addAll(Item7Repaet3);
-        item7Repaet.addAll(Item7Repaet4);
-        item7Repaet.addAll(Item7Repaet5);
-        item7Repaet.addAll(Item7Repaet6);
+        //        item7Repaet.addAll(Item7Repaet4);
+        //        item7Repaet.addAll(Item7Repaet5);
+        //        item7Repaet.addAll(Item7Repaet6);
         item7Repaet.addAll(Item7Repaet7);
         item7Repaet.addAll(Item7Repaet8);
         item7Repaet.addAll(Item7Repaet9);
         item7Repaet.addAll(Item7Repaet10);
-        item7Repaet.addAll(Item7Repaet11);
+        //        item7Repaet.addAll(Item7Repaet11);
 
         for (String s : item7Repaet) {
             SummaryItem7RepaetItemReq summaryItem7RepaetItemReq = new SummaryItem7RepaetItemReq();
