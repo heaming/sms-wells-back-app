@@ -134,17 +134,16 @@ public class WpdcMaterialMgtService {
         }
 
         // #5. 연결상품 INSERT
-        this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
+        // this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
+        if (dto.isModifiedRelation() || CollectionUtils.isNotEmpty(dto.tbPdbsPdRel())) {
+            relService.saveProductRelations(dvo.getPdCd(), dto.tbPdbsPdRel(), startDtm);
+            hisService.createRelationHistory(dvo.getPdCd(), startDtm);
+        }
 
         // #6. 이력 INSERT
         if (!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
 
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
-        }
-
-        if (dto.isModifiedRelation()) {
-            relService.saveProductRelations(dvo.getPdCd(), dto.tbPdbsPdRel(), startDtm);
-            hisService.createRelationHistory(dvo.getPdCd(), startDtm);
         }
 
         return productConverter.mapProductDvoToPdBas(dvo);
@@ -235,12 +234,18 @@ public class WpdcMaterialMgtService {
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
         productService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
 
-        this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
+        // this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
+        // 연결 상품 저장
+        if (dto.isModifiedRelation()) {
+            relService.saveProductRelations(dvo.getPdCd(), dto.tbPdbsPdRel(), startDtm);
+            hisService.createRelationHistory(dvo.getPdCd(), startDtm);
+        }
 
         if (!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
 
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
+
         return productConverter.mapProductDvoToPdBas(dvo);
     }
 
