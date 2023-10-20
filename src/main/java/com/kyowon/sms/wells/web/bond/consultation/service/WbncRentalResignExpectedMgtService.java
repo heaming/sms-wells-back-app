@@ -91,6 +91,10 @@ public class WbncRentalResignExpectedMgtService {
         processCount += regularShippingCount;
 
         BizAssert.isTrue(processCount != 0, "MSG_ALT_DTA_EXST"); // 생성된 데이터가 없습니다.
+
+        /* 직권해지 대상관리 전월 제외대상 당월 저장 */
+        this.mapper.updateOvrdAthrTrmtPreExcdAdmn(baseDt);
+
         return processCount;
     }
 
