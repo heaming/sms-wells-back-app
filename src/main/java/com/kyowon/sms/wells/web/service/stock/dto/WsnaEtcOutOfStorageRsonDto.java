@@ -15,15 +15,25 @@ import java.math.BigDecimal;
 public class WsnaEtcOutOfStorageRsonDto {
     @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-SearchReq")
     public record SearchReq(
+        // 시작출고일자
         String stOstrDt,
+        // 종료출고일자
         String edOstrDt,
+        // 청구사유코드
         String bilRsonCd,
+        // 창고구분코드
         String wareDvCd,
+        // 상위창고번호
         String wareNoM,
+        // 창고번호
         String wareNoD,
+        // 상품그룹코드
         String pdGdCd,
+        // 품목구분코드
         String itmKndCd,
+        // 시작품목코드
         String startItemCd,
+        // 종료품목코드
         String endItemCd
 
     ) {}
@@ -40,22 +50,28 @@ public class WsnaEtcOutOfStorageRsonDto {
         int ostrQty, /*수량*/
         BigDecimal csmrUprcAmt, /*소비자가*/
         BigDecimal totalAmt, /*총금액*/
-        String sortDvVal,
-        String deptNm,
+        String sortDvVal, /* 정렬구분 */
+        String deptNm, /* 부서명 */
         String rmkCn /*비고*/
     ) {}
 
     @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-CenterRes")
     public record CenterRes(
+        // CODEID
         String codeId,
+        // CODENAME
         String codeName,
+        // 창고관리파트너번호
         String wareMngtPrtnrNo
     ) {}
 
     @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-BusinessRes")
     public record BusinessRes(
+        // CODEID
         String codeId,
+        // CODENAME
         String codeName,
+        // 창고구분코드
         String wareDvCd
     ) {}
 }
