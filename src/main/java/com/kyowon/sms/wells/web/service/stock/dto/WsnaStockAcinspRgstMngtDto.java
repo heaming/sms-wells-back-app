@@ -38,7 +38,7 @@ public class WsnaStockAcinspRgstMngtDto {
 
         String hgrWareNo,
         // 창고번호
-        String wareNo,
+        String searchWareNo,
         // 상태구분
         String useYn
     ) {}
