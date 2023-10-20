@@ -16,6 +16,14 @@ import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.Se
 import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaCustomerInfoDvo;
 import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaInterfaceResultDvo;
 
+/**
+ * <pre>
+ * 고객 인터페이스 관리 - WELLS Converter
+ * </pre>
+ *
+ * @author jeongeon.kim
+ * @since 2023-02-01
+ */
 @Mapper(componentModel = "spring")
 public interface WcsaCustomerInterfaceConverter {
 
@@ -127,7 +135,11 @@ public interface WcsaCustomerInterfaceConverter {
         ZcsaCustomerInfoByEccDvo dvo
     );
 
-    WcsaCustomerAgreementDvo mapSaveCustomerAgreementReqToWcsaCustomerAgreementDvo(WcsaCustomerInterfaceDto.SaveCustomerAgreementReq dto);
+    WcsaCustomerAgreementDvo mapSaveCustomerAgreementReqToWcsaCustomerAgreementDvo(
+        WcsaCustomerInterfaceDto.SaveCustomerAgreementReq dto
+    );
 
-    WcsaCustomerInterfaceDto.SaveCustomerAgreementRes mapWcsaCustomerAgreementResultDvoToSaveCustomerAgreementRes(WcsaCustomerAgreementResultDvo resultDvo);
+    WcsaCustomerInterfaceDto.SaveCustomerAgreementRes mapWcsaCustomerAgreementResultDvoToSaveCustomerAgreementRes(
+        WcsaCustomerAgreementResultDvo resultDvo
+    );
 }

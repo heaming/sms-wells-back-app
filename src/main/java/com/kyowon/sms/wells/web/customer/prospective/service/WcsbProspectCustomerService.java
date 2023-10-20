@@ -24,6 +24,14 @@ import com.sds.sflex.common.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * 웰스홈페이지 신규접수 I/F Service
+ * </pre>
+ *
+ * @author jeongeon.kim
+ * @since 2023-06-26
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -32,6 +40,11 @@ public class WcsbProspectCustomerService {
     private final SujiewonService sujiewonService;
     private final WcsbProspectCustomerMapper mapper;
 
+    /**
+    * (wells홈페이지, 고객센터) 신규접수 외부인터페이스 처리
+    * @param dto 진단검사 쿠폰 완료처리 I/F 수신정보(주요 PARMA: 진단쿠폰번호, 진단검사일자, 관계자한글명, 관리파트너번호 등)
+    * @return 신규접수 I/F 처리 건수
+    */
     @Transactional
     public CreateNewReceiptInquiryRes createNewReceiptInquiry(CreateNewReceiptInquiryReq dto) throws Exception {
         WcsbInterfaceResultDvo ifResDvo = new WcsbInterfaceResultDvo();

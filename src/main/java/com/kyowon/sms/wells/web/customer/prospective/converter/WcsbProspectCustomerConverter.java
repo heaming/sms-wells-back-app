@@ -9,6 +9,14 @@ import com.kyowon.sms.wells.web.customer.prospective.dvo.WcsbNewReceiptInquiryDv
 import com.kyowon.sms.wells.web.customer.prospective.dvo.WcsbProspectCustomerBasDvo;
 import com.kyowon.sms.wells.web.customer.prospective.dvo.WcsbProspectCustomerCnslBasDvo;
 
+/**
+ * <pre>
+ * 웰스홈페이지 신규접수 I/F Converter
+ * </pre>
+ *
+ * @author jeongeon.kim
+ * @since 2023-06-26
+ */
 @Mapper(componentModel = "spring")
 public interface WcsbProspectCustomerConverter {
 
