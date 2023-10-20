@@ -7,6 +7,7 @@ import com.sds.sflex.common.utils.StringUtil;
 
 import io.swagger.annotations.ApiModel;
 
+
 public class WwdbRefundCurrentStatusDto {
 
     @ApiModel(value = "WwdbRefundCurrentStatusDto-SearchRefundHistoryReq")
