@@ -111,6 +111,11 @@ public class WcsaCustomerInterfaceService {
 
     }
 
+    /**
+    * 고객센터 Wells 계약고객 정보 변경 처리 서비스. 연관 I/F : EAI_WCUI1017
+    * @param dto 고객정보
+    * @return 고객번호, 결과
+    */
     public WcsaCustomerInterfaceDto.SearchCustomerInfoEditRes editCustomerByCc(
         WcsaCustomerInterfaceDto.SearchCustomerInfoEditReq dto
     ) {
@@ -174,6 +179,11 @@ public class WcsaCustomerInterfaceService {
         }
     }
 
+    /**
+    * 고객센터 Wells 계약고객 정보 변경 처리 서비스. 연관 I/F : EAI_WCUI1017
+    * @param dvo 고객정보
+    * @return 결과
+    */
     public int editCustomerInfoByEcc(ZcsaCustomerInfoByEccDvo dvo) {
         //휴대폰 번호, 주소, 변경요청확인여부, 변경요청서 확인일자, 특이사항내용, 등록수정사용자ID
 
@@ -265,6 +275,11 @@ public class WcsaCustomerInterfaceService {
         return 1;
     }
 
+    /**
+    * wells 사업본부 동의정보 등록/변경(IF ID:EAI_WCUI1009)
+    * @param dto 고객정보
+    * @return 결과
+    */
     @Transactional
     public SaveCustomerAgreementRes saveCustomerAgreements(SaveCustomerAgreementReq dto) {
 
