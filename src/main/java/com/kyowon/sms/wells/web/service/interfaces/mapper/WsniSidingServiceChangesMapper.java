@@ -16,7 +16,7 @@ public interface WsniSidingServiceChangesMapper {
         String bfchPdCd,
         String afchPdCd,
         String mtrProcsStatCd,
-        String matNm,
+        String choCapslCn,
         String csmrUprcAmt
     );
 
@@ -28,7 +28,10 @@ public interface WsniSidingServiceChangesMapper {
         String akChdt
     );
 
-    WsniSidingServiceChangesDvo selectCustomer(String cntrNo, String cntrSn);
+    WsniSidingServiceChangesDvo selectCustomer(
+        String cntrNo,
+        String cntrSn
+    );
 
     int selectSidingAkCount(
         String cntrNo,
@@ -49,9 +52,12 @@ public interface WsniSidingServiceChangesMapper {
         String asAkDvCd
     );
 
+    String selectAkSnMax(String cntrNo, String cntrSn);
+
     int insertSidingAk(
         String cntrNo,
         String cntrSn,
+        String akSn,
         String asAkDvCd,
         String bfchPdCd,
         String afchPdCd,
