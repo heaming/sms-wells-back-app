@@ -1,29 +1,122 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRglvlEgerPdlvMngtMapper">
     <select id="selectRglvlEgerPdlvMngtPages" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndRglvlEgerPdlvMngtDto$SearchRes">
-        SELECT B.PRTNR_KNM			-- 성명
-             , B.PRTNR_NO			-- 사번
-             , A.CNR_OG_ID			-- 서비스센터
-             , A.PDLV_NO			-- 출고지번호
-             , A.APY_STRTDT			-- 적용시작일
-             , A.APY_ENDDT			-- 적용종료일
-             , A.ZIP				-- 우편번호
-             , A.PDLV_ADR			-- 기본출고지 주소
-             , A.PDLV_NM			-- 출고지명
-             , A.PDLV_DV_CD			-- 출고지구분코드
-             , '' AS BSTR_ZIP		-- 출장출고지 우편번호
-             , '' AS BSTR_PDLV_ADR	-- 출장출고지 주소
-             , '' AS BSTR_PDLV_NM	-- 출장 출고지명
-             , '' AS APR			-- 승인
-             , '' AS APR_TEAM_NM	-- 승인팀명
-             , '' AS APR_PRTNR_NO	-- 승인자 사번
-             , '' AS APR_PRTNR_KNM	-- 승인자 성명
-             , '' AS BSTR_RSON	    -- 출장사유
-          FROM TB_SVPD_PDLV_BAS A
-             , TB_OGBS_MM_PRTNR_IZ B
-         WHERE A.CNR_OG_ID=B.OG_ID
-    <if test='@MybatisUtils@isNotEmpty(ogId)'>
-           AND A.CNR_OG_ID=#{ogId}
+        SELECT '' AS CHK                      /* 체크박스 */
+             , AL150.MNGT_SN                  /* 관리일련번호 */
+             , AL150.EGER_PRTNR_OG_TP_CD      /* 엔지니어파트너조직유형코드 */
+             , M1.OG_NM AS DEPT_NM            /* 서비스센터 */
+             , M1.PRTNR_NO AS EMP_ID          /* 사번 */
+             , M1.PRTNR_KNM AS EMP_NM         /* 성명 */
+             , AL150.BASE_PDLV_NO AS BASIC_SHP_CD   /* 기준출고지번호 */
+             , B_CD.PDLV_NO AS BASIC_SHP      /* 기준출고지번호 */
+             , CASE WHEN AL150.APY_STRTDT IS NOT NULL THEN AL150.APY_STRTDT
+                    WHEN AL150.APY_STRTDT IS NULL AND (SELECT MAX(C1.MNGT_SN)FROM TB_SVPD_EGER_PDLV_MNGT_IZ C1 WHERE C1.EGER_PRTNR_NO = M1.PRTNR_NO AND C1.EGER_PRTNR_OG_TP_CD = M1.OG_TP_CD) IS NULL THEN M1.CNTR_DT
+                    WHEN AL150.APY_STRTDT IS NULL AND (SELECT MAX(C1.MNGT_SN)FROM TB_SVPD_EGER_PDLV_MNGT_IZ C1 WHERE C1.EGER_PRTNR_NO = M1.PRTNR_NO AND C1.EGER_PRTNR_OG_TP_CD = M1.OG_TP_CD ) IS NOT NULL THEN
+                                (SELECT TO_CHAR(TO_DATE(MAX(C1.MNGT_SN),'YYYYMMDD')+1,'YYYYMMDD')  FROM TB_SVPD_EGER_PDLV_MNGT_IZ C1 WHERE C1.EGER_PRTNR_NO = M1.PRTNR_NO AND C1.EGER_PRTNR_OG_TP_CD =  M1.OG_TP_CD)
+               END AS APLD_FR /* 적용시작일자 */
+             , NVL(AL150.APY_ENDDT, '99991231') AS APLD_TO  /* 적용종료일자 */
+             , AL150.BSTR_PDLV_NO AS MV_SHP_CD /* 출장출고지번호 */
+             , AL150.APR_DT   /* 승인일자 */
+             , AL150.APR_HH   /* 승인시간 */
+             , AL150.APR_PRTNR_NO  /* 승인파트너번호 */
+             , (CASE WHEN AL150.APR_PRTNR_NO IS NOT NULL THEN 'Y'
+                    ELSE 'N'
+                END) AS CFRM_YN  /* 승인여부 */
+             , CF.PRTNR_KNM AS CFRM_EMP_NM  /* 승인자성명 */
+             , CF.OG_NM AS CFRM_EMP_DEPT_NM /* 승인팀명 */
+             , AL150.BSTR_RSON_CN            /* 출장사유내용 */
+             , B_CD.PDLV_NM AS BS_NM          /* 기본출고지명*/
+             , B_CD.PDLV_ADR || B_CD.PDLV_DTL_ADR  AS BS_ADD  /* 기본출고지주소 */
+             , M_CD.PDLV_NM AS MV_NM          /* 출장출고지명*/
+             , M_CD.PDLV_ADR || M_CD.PDLV_DTL_ADR  AS MV_ADD  /* 출장출고지주소*/
+          FROM TB_OGBS_MM_PRTNR_IZ  M1
+          LEFT OUTER JOIN (SELECT *
+                             FROM TB_SVPD_EGER_PDLV_MNGT_IZ V1
+                            WHERE V1.MNGT_SN = (SELECT MAX(SUB1.MNGT_SN)
+                                                  FROM TB_SVPD_EGER_PDLV_MNGT_IZ SUB1
+                                                 WHERE SUB1.EGER_PRTNR_NO = V1.EGER_PRTNR_NO
+                                                   AND SUB1.EGER_PRTNR_OG_TP_CD = V1.EGER_PRTNR_OG_TP_CD
+                                                   AND #{inqrDt} BETWEEN SUB1.APY_STRTDT AND SUB1.APY_ENDDT
+                                               )
+                          ) AL150
+            ON AL150.EGER_PRTNR_NO = M1.PRTNR_NO
+           AND AL150.EGER_PRTNR_OG_TP_CD = M1.OG_TP_CD
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS  CF
+            ON AL150.APR_PRTNR_NO = CF.PRTNR_NO
+           AND AL150.APR_PRTNR_OG_TP_CD = CF.OG_TP_CD
+          LEFT OUTER JOIN TB_SVPD_PDLV_BAS B_CD
+            ON B_CD.PDLV_NO = AL150.BASE_PDLV_NO
+           AND B_CD.PDLV_DV_CD = 'E'
+          LEFT OUTER JOIN TB_SVPD_PDLV_BAS M_CD
+            ON M_CD.PDLV_NO = AL150.BSTR_PDLV_NO
+           AND M_CD.PDLV_DV_CD = 'E'
+         WHERE M1.OG_TP_CD = 'W06'
+           AND M1.BASE_YM = SUBSTR(#{inqrDt}, 0, 6)
+           AND M1.BZ_STAT_CD = '1'
+           AND M1.PRTNR_NO NOT LIKE '99%'
+           AND M1.PRTNR_NO != 'WEBAS'
+    <if test='@MybatisUtils@equals(fnitAprRsCd, "Y")'>
+           AND AL150.APR_PRTNR_NO IS NOT NULL -- 승인항목만 보기
+    </if>
+    <if test='@MybatisUtils@isNotEmpty(ogCd)'>
+           AND M1.OG_CD = #{ogCd}
     </if>
     </select>
+
+    <insert id="insertRglvlEgerPdlvMngts">
+        INSERT
+          INTO TB_SVPD_EGER_PDLV_MNGT_IZ
+             (  EGER_PRTNR_NO
+             , MNGT_SN
+             , EGER_PRTNR_OG_TP_CD
+             , APY_STRTDT
+             , APY_ENDDT
+             , BASE_PDLV_NO
+    <if test="@MybatisUtils@isNotEmpty(mvShpCd)">
+             , BSTR_PDLV_NO
+    </if>
+    <if test="@MybatisUtils@isNotEmpty(bstrRsonCn)">
+             , BSTR_RSON_CN
+    </if>
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               #{empId}
+             , (
+               SELECT NVL(MAX(MNGT_SN), 0) + 1
+                 FROM TB_SVPD_EGER_PDLV_MNGT_IZ
+                WHERE EGER_PRTNR_NO = #{empId}
+                  AND EGER_PRTNR_OG_TP_CD = 'W06'
+               )
+             , 'W06'
+             ,#{apldFr}
+             ,#{apldTo}
+             ,#{basicShpCd}
+    <if test="@MybatisUtils@isNotEmpty(mvShpCd)">
+             ,#{mvShpCd}
+    </if>
+    <if test="@MybatisUtils@isNotEmpty(bstrRsonCn)">
+             , #{bstrRsonCn}
+    </if>
+             ,'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <update id="updateRglvlEgerPdlvMngts">
+        UPDATE TB_SVPD_EGER_PDLV_MNGT_IZ
+           SET APR_DT=TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , APR_HH=TO_CHAR(SYSDATE, 'HHMISS')
+             , APR_PRTNR_OG_TP_CD = 'W06'
+             , APR_PRTNR_NO = #{session.employeeIDNumber}
+         WHERE EGER_PRTNR_NO = #{empId}
+           AND MNGT_SN = (
+                         SELECT MAX(MNGT_SN)
+            			   FROM TB_SVPD_EGER_PDLV_MNGT_IZ
+ 				          WHERE EGER_PRTNR_NO = #{empId}
+             			    AND EGER_PRTNR_OG_TP_CD = 'W06'
+                         )
+    </update>
 </mapper>

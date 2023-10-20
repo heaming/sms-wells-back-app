@@ -7,7 +7,7 @@ public class WsnyPdlvDto {
     public record SearchRes(
         String pdlvNo,      // 출고지 번호
         String pdlvDvCd,    // 출고지 구분코드
-        String pdlvKey,
+        String cnrOgId,
         String pdlvNm,      // 출고지명
         String pdlvAdd      // 출고지 주소
     ){}

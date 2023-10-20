@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.orgcode.rest;
 
+import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaCollectorAssignDto;
 import com.kyowon.sms.wells.web.service.orgcode.service.WsndRglvlEgerPdlvMngtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndRglvlEgerPdlvMngtDto.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @RestController
@@ -36,15 +38,15 @@ public class WsndRglvlEgerPdlvMngtController {
         return service.getRglvlEgerPdlvMngtExcelDownload(dto);
     }
 
-//    @ApiOperation(value = "RT급지 엔지니어출고지관리 저장", notes = "RT급지 엔지니어출고지관리 저장 처리")
-//    @PostMapping("/save")
-//    public SaveResponse saveRglvlEgerPdlvMngt(@RequestBody List<SaveEgerReq> dtos){
-//
-//    }
+    @ApiOperation(value = "RT급지 엔지니어출고지관리 저장", notes = "RT급지 엔지니어출고지관리 저장 처리")
+    @PutMapping("/save")
+    public SaveResponse saveRglvlEgerPdlvMngt(@Valid @RequestBody @NotEmpty List<SaveEgerReq> dtos){
+        return SaveResponse.builder().processCount(service.saveRglvlEgerPdlvMngt(dtos)).build();
+    }
 
-//    @ApiOperation(value = "RT급지 엔지니어출고지관리 승인", notes = "RT급지 엔지니어출고지관리 승인 처리")
-//    @PostMapping("/approval")
-//    public SaveResponse approvalRglvlEgerPdlvMngt(@RequestBody List<ApporovalEgerReq> dtos){
-//
-//    }
+    @ApiOperation(value = "RT급지 엔지니어출고지관리 승인", notes = "RT급지 엔지니어출고지관리 승인 처리")
+    @PutMapping("/approval")
+    public SaveResponse approvalRglvlEgerPdlvMngt(@Valid @RequestBody @NotEmpty List<SaveEgerReq> dtos){
+        return SaveResponse.builder().processCount(service.approvalRglvlEgerPdlvMngt(dtos)).build();
+    }
 }
