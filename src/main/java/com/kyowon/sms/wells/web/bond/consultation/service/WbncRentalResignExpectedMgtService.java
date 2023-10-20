@@ -145,16 +145,7 @@ public class WbncRentalResignExpectedMgtService {
      */
     @Transactional
     public int saveRentalResignExpectedCnfms(SaveConfirmReq dto) throws Exception {
-
-        if ("01".equals(dto.confirmDvCd())) {
-            int count = this.checkRentalResignExpectedBaseYm(CheckReq.builder().baseDt(dto.baseDt()).confirmDvCd("01").build());
-            BizAssert.isTrue(count == 0, "MSG_ALT_EXIST_EXP_CNFMS"); // 요청 월에 이미 예정확정 혹은 최종확정된 자료가 있어 예정확정이 불가합니다.
-        }
-        if ("02".equals(dto.confirmDvCd())) {
-            int count = this.checkRentalResignExpectedBaseYm(CheckReq.builder().baseDt(dto.baseDt()).confirmDvCd("02").build());
-            BizAssert.isTrue(count == 0, "MSG_ALT_EXIST_FINAL_CNFMS"); // 요청 월에 이미 최종확정된 자료가 있어 최종확정이 불가합니다.
-        }
-
+        
         int processCount = 0;
 
         // 직권해지 렌탈 [예정확정] [최종확정]
