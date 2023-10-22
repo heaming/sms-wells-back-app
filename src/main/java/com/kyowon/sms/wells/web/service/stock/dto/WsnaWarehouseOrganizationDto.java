@@ -23,8 +23,8 @@ public class WsnaWarehouseOrganizationDto {
         String baseYm, /*기준년월*/
         String codeUseYn, /*사용여부*/
         String wareDtlDvCd, /*창고상세구분코드*/
-        String wareNoM,
-        String wareNoD,
+        String wareNoM, // 상위창고번호
+        String wareNoD, // 개인창고번호
         String wareMngtPrtnrNo, /*창고관리파트너번호*/
         String wareDvCd /*창고구분*/
     ) {}
@@ -50,21 +50,14 @@ public class WsnaWarehouseOrganizationDto {
         String dsnBldNm, /*지정빌딩명*/
         String adrUseYn, /*주소사용여부*/
         String hgrWareNm, /*상위창고명*/
-        //        String coCd, /* 회사코드 */
         String didyDvCd, /* 직배구분코드 */
         String sortDvVal, /* 정렬구분값 */
         String wareStocMgr, /*관리자*/
         String wareAdrId, /* 창고주소ID */
-        String adrNm,
-        //        String bldCd, /* 빌딩코드 */
+        String adrNm, /* 주소명 */
         String bldNm, /* 빌딩명 */
         String ogCd, /* 조직코드 */
         String wareUseYn /* 창고사용여부 */
-        //        String adrUseYn, /* 주소사용여부 */
-        //        String apyStrtdt, /* 적용시작일자 */
-        //        String apyEnddt, /* 적용종료일자 */
-        //        String dtaDlYn, /* 데이터삭제여부 */
-        //        String rmkCn /* 비고내용 */
     ) {}
 
     @ApiModel(value = "WsnaWarehouseOrganizationDto-CreateReq")
@@ -72,7 +65,6 @@ public class WsnaWarehouseOrganizationDto {
     public record CreateReq(
         @NotBlank
         String baseYm //기준년월
-        //        String userId //사용자ID
     ) {}
 
     @ApiModel(value = "WsnaWarehouseOrganizationDto-FindRes")
@@ -94,20 +86,20 @@ public class WsnaWarehouseOrganizationDto {
         String bldCdNm, //빌딩코드명
         String wareAdrId, // 창고주소ID
         String sortDvVal, // 정렬구분값
-        String rnadr,
-        String rdadr,
-        String newAdrZip,
-        String ogId,
-        String ogCd,
-        String ogNm,
-        String dgr1LevlOgCd,
-        String dgr1LevlOgId,
-        String dgr1LevlOgNm,
-        String dgr1LevlOgCdNm,
-        String dgr2LevlOgCd,
-        String dgr2LevlOgNm,
-        String dgr2LevlOgId,
-        String dgr2LevlOgCdNm
+        String rnadr, // 도로명주소
+        String rdadr, // 도로명상세주소
+        String newAdrZip, //신주소우편번호
+        String ogId, // 조직ID
+        String ogCd, // 조직코드
+        String ogNm, // 조직명
+        String dgr1LevlOgCd, //1차레벨조직코드
+        String dgr1LevlOgId, //1차레벨조직ID
+        String dgr1LevlOgNm, //1차레벨조직명
+        String dgr1LevlOgCdNm, //1차레벨조직코드명
+        String dgr2LevlOgCd, //2차레벨조직코드
+        String dgr2LevlOgNm, //2차레벨조직명
+        String dgr2LevlOgId, //2차레벨조직ID
+        String dgr2LevlOgCdNm //2차레벨조직코드명
     ) {}
 
     @ApiModel(value = "WsnaWarehouseOrganizationDto-SaveReq")
@@ -156,8 +148,8 @@ public class WsnaWarehouseOrganizationDto {
 
     @ApiModel(value = "WsnaWarehouseOrganizationDto-SearchWarehouseRes")
     public record SearchWarehouseRes(
-        String codeId,
-        String codeName,
+        String codeId, //코드ID
+        String codeName, //코드NAME
         String sortDvVal, // 정렬구분값
         String isSameOg // 동일조직여부
     ) {}

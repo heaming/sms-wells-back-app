@@ -1,6 +1,10 @@
 package com.kyowon.sms.wells.web.product.manage.service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -16,7 +20,11 @@ import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSap
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcRelationMgtDto;
-import com.kyowon.sms.common.web.product.manage.dvo.*;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcEachCompanyPropDtlDvo;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcGbcoSapMatDvo;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcProductDetailDvo;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcProductDvo;
+import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
 import com.kyowon.sms.common.web.product.manage.mapper.ZpdcProductMapper;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcHistoryMgtService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
@@ -126,17 +134,16 @@ public class WpdcMaterialMgtService {
         }
 
         // #5. 연결상품 INSERT
-        this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
+        // this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
+        if (dto.isModifiedRelation() || CollectionUtils.isNotEmpty(dto.tbPdbsPdRel())) {
+            relService.saveProductRelations(dvo.getPdCd(), dto.tbPdbsPdRel(), startDtm);
+            hisService.createRelationHistory(dvo.getPdCd(), startDtm);
+        }
 
         // #6. 이력 INSERT
         if (!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
 
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
-        }
-
-        if (dto.isModifiedRelation()) {
-            relService.saveProductRelations(dvo.getPdCd(), dto.tbPdbsPdRel(), startDtm);
-            hisService.createRelationHistory(dvo.getPdCd(), startDtm);
         }
 
         return productConverter.mapProductDvoToPdBas(dvo);
@@ -169,8 +176,8 @@ public class WpdcMaterialMgtService {
                         .ojPdCd(relDto.ojPdCd())
                         .pdRelId(relDto.pdRelId())
                         .basePdCd(pdCd)
-                        .vlStrtDtm(startDtm)
-                        .vlEndDtm(endDtm)
+                        .vlStrtDtm(StringUtil.isEmpty(relDto.vlStrtDtm()) ? startDtm : relDto.vlStrtDtm())
+                        .vlEndDtm(StringUtil.isEmpty(relDto.vlEndDtm()) ? endDtm : relDto.vlEndDtm())
                         .tempSaveYn(tempSaveYn)
                         .pdRelTpCd(relDto.pdRelTpCd())
                         .build()
@@ -227,12 +234,18 @@ public class WpdcMaterialMgtService {
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
         productService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
 
-        this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
+        // this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
+        // 연결 상품 저장
+        if (dto.isModifiedRelation()) {
+            relService.saveProductRelations(dvo.getPdCd(), dto.tbPdbsPdRel(), startDtm);
+            hisService.createRelationHistory(dvo.getPdCd(), startDtm);
+        }
 
         if (!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
 
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
+
         return productConverter.mapProductDvoToPdBas(dvo);
     }
 
@@ -293,9 +306,9 @@ public class WpdcMaterialMgtService {
                     /*
                     if (entry.getKey().equals(PdProductConst.SAP_MAT_CD)
                         && PdProductConst.SAP_MAT_CD.equals(metaVo.getColNm())) {
-
+                    
                         String sapPlntVal = getExcelValue2(excelDataMap, tbPdbsPdBas, PdProductConst.SAP_PLNT_VAL);
-
+                    
                         this.checkExcelValidation(
                             entry, metaVo, rowIndex, dataErrors, PdProductConst.VALIDATION_TARGET_DB, sapPlntVal
                         );

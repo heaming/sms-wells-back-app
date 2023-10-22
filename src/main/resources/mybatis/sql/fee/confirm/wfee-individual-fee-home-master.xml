@@ -163,15 +163,12 @@
                                            , ACNO_ENCR
                                            , FNIT_CD
                                            , RANK() OVER (PARTITION BY (PRTNR_NO) ORDER BY VL_END_DTM DESC) AS RK_NUM
-                                        FROM TB_OGBS_PRTNR_AC_BAS
+                                        FROM TB_OGBS_PRTNR_AC_BAS /* 수수료지급계좌 */
                                        WHERE PRTNR_NO = #{no}
                                          AND OG_TP_CD = 'W03'
                                          AND PRTNR_AC_USWY_CD = '1'
-                                         AND #{perfYm} &lt;= ( CASE WHEN TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(VL_END_DTM,1,6),'YYYYMM'), 1),'YYYYMM' ) = '000000' THEN '999912'
-                                                                    ELSE TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(VL_END_DTM,1,6),'YYYYMM'), 1),'YYYYMM' )
-                                                               END
-                                                             )
-                                    )D
+                                         AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN VL_STRT_DTM AND VL_END_DTM /* 현재일 수수료계좌 */
+                                    ) D
                       ON A.PRTNR_NO = D.PRTNR_NO
                      AND A.OG_TP_CD = D.OG_TP_CD
                      AND D.RK_NUM = 1
@@ -525,65 +522,108 @@
 
     <select id="selectHmstPnpyams"
             resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeHomeMasterDto$SearchHmstPnpyamRes">
-    SELECT F_CMZ_CD_NM(#{session.tenantId}, 'PNPYAM_ATC_CD', S1.PNPYAM_ATC_CD) AS ITEM
-         , S3.OC_PNPYAM_OC_AMT - S4.OC_PNPYAM_DDCTAM AS LSTMM /* 전월잔액 */
-         , S2.MM_PNPYAM_OC_AMT AS THM_OC /* 당월발생 */
-         , S3.OC_PNPYAM_OC_AMT - S4.OC_PNPYAM_DDCTAM + S2.MM_PNPYAM_OC_AMT AS TMH /* 당월합계 */
-         , S1.MM_PNPYAM_DDCTAM AS THM_DDTN/* 당월공제 */
-         , S3.OC_PNPYAM_OC_AMT - S4.OC_PNPYAM_DDCTAM + S2.MM_PNPYAM_OC_AMT - S1.MM_PNPYAM_DDCTAM AS THM_BLAM /* 당월잔액 */
-      FROM (
-            SELECT PRTNR_NO       /* 파트너번호 */
-                 , PNPYAM_ATC_CD  /* 가지급금항목코드 */
-                 , SUM(PNPYAM_DDCTAM) AS MM_PNPYAM_DDCTAM /* (당월)가지급금공제금액 */
-              FROM TB_FEDD_PNPY_DDTN_IZ /* 가지급금공제내역 */
-             WHERE PRTNR_NO = #{no} /* 파트너번호 */
-               AND DDTN_YM = #{perfYm} /* 공제년월 */
-               AND OG_TP_CD = 'W03'
-               AND PNPYAM_DDCTAM > 0
-             GROUP BY PRTNR_NO, PNPYAM_ATC_CD
-           ) S1 /* 당월 가지급금 공제 */
-      LEFT JOIN
-           (
-            SELECT PRTNR_NO
-                 , PNPYAM_ATC_CD
-                 , SUM(PNPYAM_OC_AMT) AS MM_PNPYAM_OC_AMT
-              FROM TB_FEDD_PNPY_OC_BAS /* 가지급금발생기본 */
-             WHERE PRTNR_NO = #{no}
-               AND PNPYAM_OC_YM = #{perfYm}
-               AND OG_TP_CD = 'W03'
-               AND PNPYAM_OC_AMT > 0
-             GROUP BY PRTNR_NO, PNPYAM_ATC_CD
-           ) S2 /* 당월 가지급금 발생 */
-        ON S2.PRTNR_NO = S1.PRTNR_NO
-       AND S2.PNPYAM_ATC_CD = S1.PNPYAM_ATC_CD
-      LEFT JOIN
-           (
-            SELECT PRTNR_NO
-                 , PNPYAM_ATC_CD
-                 , SUM(PNPYAM_OC_AMT) AS OC_PNPYAM_OC_AMT /* (전월)가지급금발생금액 */
-              FROM TB_FEDD_PNPY_OC_BAS /* 가지급금발생기본 */
-             WHERE PRTNR_NO = #{no}
-               AND PNPYAM_OC_YM <![CDATA[<]]> #{perfYm}
-               AND OG_TP_CD = 'W03'
-               AND PNPYAM_OC_AMT > 0
-             GROUP BY PRTNR_NO, PNPYAM_ATC_CD
-           ) S3 /* 전월까지 가지급금 발생 */
-          ON S3.PRTNR_NO = S1.PRTNR_NO
-         AND S3.PNPYAM_ATC_CD = S1.PNPYAM_ATC_CD
-      LEFT JOIN
-            (
-            SELECT PRTNR_NO       /* 파트너번호 */
-                 , PNPYAM_ATC_CD  /* 가지급금항목코드 */
-                 , SUM(PNPYAM_DDCTAM) AS OC_PNPYAM_DDCTAM /* (전월)가지급금공제금액 */
-              FROM TB_FEDD_PNPY_DDTN_IZ /* 가지급금공제내역 */
-             WHERE PRTNR_NO = #{no} /* 파트너번호 */
-               AND DDTN_YM <![CDATA[<]]> #{perfYm} /* 공제년월 */
-               AND OG_TP_CD = 'W03'
-               AND PNPYAM_DDCTAM > 0
-             GROUP BY PRTNR_NO, PNPYAM_ATC_CD
-           ) S4 /* 전월까지 가지급금 공제 */
-        ON S4.PRTNR_NO = S1.PRTNR_NO
-       AND S4.PNPYAM_ATC_CD = S1.PNPYAM_ATC_CD
-     ORDER BY S1.PNPYAM_ATC_CD
+        SELECT PNPYAM_ATC_CD_NM AS ITEM /* 가지급금 항목명 */
+             , BFMN_BLNC  AS LSTMM /* 전월잔액 */
+             , THMN_OCCR AS THM_OC /* 당월발생 */
+             , THMN_SUM AS TMH /* 당월합계 */
+             , THMN_DCTN AS THM_DDTN /* 당월공제 */
+             , THMN_BLNC AS THM_BLAM /* 당월잔액 */
+          FROM (
+                SELECT S1.PRTNR_NO
+                     , F_CMZ_CD_NM('TNT_EDU', 'PNPYAM_ATC_CD', S1.PNPYAM_ATC_CD) AS PNPYAM_ATC_CD_NM /* 가지급금 항목명 */
+                     , NVL(S4.OC_PNPYAM_OC_AMT, 0) - NVL(S5.OC_PNPYAM_DDCTAM, 0) AS BFMN_BLNC  /* 전월잔액 */
+                     , NVL(S3.MM_PNPYAM_OC_AMT, 0)                               AS THMN_OCCR  /* 당월발생 */
+                     , (NVL(S4.OC_PNPYAM_OC_AMT, 0) - NVL(S5.OC_PNPYAM_DDCTAM, 0)) + NVL(S3.MM_PNPYAM_OC_AMT, 0) AS THMN_SUM  /* 당월합계 */
+                     , NVL(S2.MM_PNPYAM_DDCTAM, 0)                               AS THMN_DCTN  /* 당월공제 */
+                     , ((NVL(S4.OC_PNPYAM_OC_AMT, 0) - NVL(S5.OC_PNPYAM_DDCTAM, 0)) + NVL(S3.MM_PNPYAM_OC_AMT, 0)) - NVL(S2.MM_PNPYAM_DDCTAM, 0) AS THMN_BLNC  /* 당월잔액 */
+                     , S1.DDTN_APY_ODR
+                  FROM (
+                        SELECT T1.PRTNR_NO /* 파트너번호 */
+                             , T1.OG_TP_CD /* 조직유형코드 */
+                             , T2.PNPYAM_ATC_CD /* 가지급금항목코드 */
+                             , T2.DDTN_APY_ODR /* 공제적용순서 */
+                          FROM TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역 */
+                         INNER JOIN TB_FEDD_PNPYAM_CD T2 /* 가지급금코드 */
+                            ON T1.OG_TP_CD = T2.OG_TP_CD /* 조직유형코드 */
+                           AND T2.DTA_DL_YN = 'N'
+                         WHERE 1=1
+                           AND T1.BASE_YM = #{perfYm} /* 기준년월 */
+                           AND T1.OG_TP_CD = 'W03' /* 조직유형코드 */
+                           AND T1.PRTNR_NO = #{no} /* 파트너번호 */
+                       ) S1
+                  LEFT OUTER JOIN (
+                        SELECT PRTNR_NO                                /* 파트너번호 */
+                             , OG_TP_CD                                /* 조직유형코드 */
+                             , PNPYAM_ATC_CD                           /* 가지급금항목코드 */
+                             , SUM(PNPYAM_DDCTAM) AS MM_PNPYAM_DDCTAM  /* 가지급금공제금액 */
+                          FROM TB_FEDD_PNPY_DDTN_IZ  /* 가지급공제내역 */
+                         WHERE 1=1
+                           AND PRTNR_NO = #{no}  /* 파트너번호 */
+                           AND OG_TP_CD = 'W03'  /* 조직유형코드 */
+                           AND PNPYAM_DDCTAM <![CDATA[>]]> 0  /* 가지급금공제금액 */
+                           AND DDTN_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1), 'YYYYMM')  /* 공제년월 */
+                           AND PNPY_DDTN_TP_CD = '1' /* 가지급공제유형코드 */
+                         GROUP BY PRTNR_NO, OG_TP_CD, PNPYAM_ATC_CD
+                         ORDER BY TO_NUMBER(PNPYAM_ATC_CD) ASC
+                        ) S2  /* 당월 가지급금 공제 */
+                     ON S1.PRTNR_NO = S2.PRTNR_NO
+                    AND S1.OG_TP_CD = S2.OG_TP_CD
+                    AND S1.PNPYAM_ATC_CD = S2.PNPYAM_ATC_CD
+                   LEFT OUTER JOIN (
+                        SELECT PRTNR_NO                                /* 파트너번호 */
+                             , OG_TP_CD                                /* 조직유형코드 */
+                             , PNPYAM_ATC_CD                           /* 가지급금항목코드 */
+                             , SUM(PNPYAM_OC_AMT) AS MM_PNPYAM_OC_AMT  /* 가지급금발생금액 */
+                          FROM TB_FEDD_PNPY_OC_BAS  /* 가지급발생기본 */
+                         WHERE 1=1
+                           AND PRTNR_NO = #{no}  /* 파트너번호 */
+                           AND OG_TP_CD = 'W03'  /* 조직유형코드 */
+                           AND PNPYAM_OC_AMT <![CDATA[>]]> 0  /* 가지급금발생금액 */
+                           AND PNPYAM_OC_YM = #{perfYm}  /* 가지급금발생년월 */
+                           AND PNPY_OC_TP_CD = '1' /* 가지급발생유형코드 */
+                         GROUP BY PRTNR_NO, OG_TP_CD, PNPYAM_ATC_CD
+                         ORDER BY TO_NUMBER(PNPYAM_ATC_CD) ASC
+                        ) S3  /* 당월 가지급금 발생 */
+                     ON S1.PRTNR_NO = S3.PRTNR_NO
+                    AND S1.OG_TP_CD = S3.OG_TP_CD
+                    AND S1.PNPYAM_ATC_CD = S3.PNPYAM_ATC_CD
+                   LEFT OUTER JOIN (
+                        SELECT PRTNR_NO                                /* 파트너번호 */
+                             , OG_TP_CD                                 /* 조직유형코드 */
+                             , PNPYAM_ATC_CD                            /* 가지급금항목코드 */
+                             , SUM(PNPYAM_OC_AMT)  AS OC_PNPYAM_OC_AMT  /* 가지급금발생금액 */
+                          FROM TB_FEDD_PNPY_OC_BAS  /* 가지급발생기본 */
+                         WHERE 1=1
+                           AND PRTNR_NO = #{no}  /* 파트너번호 */
+                           AND OG_TP_CD = 'W03'  /* 조직유형코드 */
+                           AND PNPYAM_OC_AMT <![CDATA[>]]> 0  /* 가지급금발생금액 */
+                           AND PNPYAM_OC_YM <![CDATA[<]]> #{perfYm}  /* 가지급금발생년월 */
+                         GROUP BY PNPYAM_ATC_CD, OG_TP_CD, PRTNR_NO
+                         ORDER BY TO_NUMBER(PNPYAM_ATC_CD) ASC
+                      ) S4  /* 전월 가지급금 발생내역합계 */
+                     ON S1.PRTNR_NO = S4.PRTNR_NO
+                    AND S1.OG_TP_CD = S4.OG_TP_CD
+                    AND S1.PNPYAM_ATC_CD = S4.PNPYAM_ATC_CD
+                   LEFT OUTER JOIN (
+                        SELECT PRTNR_NO                               /* 파트너번호 */
+                             , OG_TP_CD                                /* 조직유형코드 */
+                             , PNPYAM_ATC_CD                           /* 가지급금항목코드 */
+                             , SUM(PNPYAM_DDCTAM) AS OC_PNPYAM_DDCTAM  /* 가지급금공제금액 */
+                          FROM TB_FEDD_PNPY_DDTN_IZ  /* 가지급공제내역 */
+                         WHERE 1=1
+                           AND PRTNR_NO = #{no}  /* 파트너번호 */
+                           AND OG_TP_CD = 'W03'  /* 조직유형코드 */
+                           AND PNPYAM_DDCTAM <![CDATA[>]]> 0  /* 가지급금공제금액 */
+                           AND DDTN_YM <![CDATA[<]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1), 'YYYYMM')  /* 공제년월 */
+                         GROUP BY PNPYAM_ATC_CD, OG_TP_CD, PRTNR_NO
+                         ORDER BY TO_NUMBER(PNPYAM_ATC_CD) ASC
+                      ) S5  /* 전월 가지급금 공제내역합계 */
+                     ON S1.PRTNR_NO = S5.PRTNR_NO
+                    AND S1.OG_TP_CD = S5.OG_TP_CD
+                    AND S1.PNPYAM_ATC_CD = S5.PNPYAM_ATC_CD
+               ) M
+         WHERE 1=1
+           AND M.THMN_DCTN > 0
+         ORDER BY M.DDTN_APY_ODR
     </select>
 </mapper>

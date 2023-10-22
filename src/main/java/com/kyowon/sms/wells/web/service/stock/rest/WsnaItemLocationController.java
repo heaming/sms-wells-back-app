@@ -38,6 +38,7 @@ public class WsnaItemLocationController {
 
     private final WsnaItemLocationService service;
 
+    @ApiOperation(value = "품목위치관리 팝업 페이징 조회.", notes = "품목위치관리 페이지를 조회한다.")
     @GetMapping
     public PagingResult<SearchRes> getItemLocations(@Valid
     SearchReq dto, @Valid
@@ -45,12 +46,14 @@ public class WsnaItemLocationController {
         return service.getItemLocations(dto, pageInfo);
     }
 
+    @ApiOperation(value = "품목위치 관리 팝업 엑셀다운로드.", notes = "품목위치관리 엑셀다운로드 할 데이터를 조회한다.")
     @GetMapping("/excel-download")
     public List<SearchRes> getItemLocationsExcelDownload(@Valid
     SearchReq dto) {
         return service.getItemLocations(dto);
     }
 
+    @ApiOperation(value = "품목위치 관리 팝업 저장.", notes = "품목위치관리 입력한 내용을 저장한다.")
     @PutMapping
     public SaveResponse saveItemLocations(
         @RequestBody
@@ -70,6 +73,7 @@ public class WsnaItemLocationController {
         return service.getItemLocationsStockCd();
     }
 
+    @ApiOperation(value = "품목위치 관리 페이징 조회.", notes = "품목위치관리 항목을 조회한다.")
     @GetMapping("/locations/paging")
     public PagingResult<SearchLocationRes> getStockItemLocations(
         SearchLocationReq dto,
@@ -79,12 +83,14 @@ public class WsnaItemLocationController {
         return service.getStockItemLocations(dto, pageInfo);
     }
 
+    @ApiOperation(value = "품목위치 관리 엑셀다운로드.", notes = "품목위치관리 엑셀다운로드할 데이터를 조회한다.")
     @GetMapping("/locations/excel-download")
     public List<SearchLocationRes> getStockItemLocationsExcelDownload(@Valid
     SearchLocationReq dto) {
         return service.getStockItemLocationsExcelDownload(dto);
     }
 
+    @ApiOperation(value = "품목위치 관리 저장.", notes = "품목위치관리에서 입력한 내용을 저장한다.")
     @PutMapping("/locations")
     public SaveResponse saveStockItemLocations(
         @RequestBody
@@ -98,6 +104,7 @@ public class WsnaItemLocationController {
             .build();
     }
 
+    @ApiOperation(value = "품목위치 관리 상단 창고 조회.", notes = "품목위치관리 상단 창고항목을 조회한다.")
     @PutMapping("/standard/locations")
     public int saveStandardWarehouse(
         @RequestBody

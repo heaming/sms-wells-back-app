@@ -32,4 +32,6 @@ public interface WbncRentalResignExpectedMgtMapper {
     Integer selectRentalResignExpectedSmsCount(SmsCheckReq dto);
 
     int updateRentalResignExpectedCancel(SaveCancelReq dto);
+
+    int updateOvrdAthrTrmtPreExcdAdmn(@Param("baseDt") String baseDt);
 }

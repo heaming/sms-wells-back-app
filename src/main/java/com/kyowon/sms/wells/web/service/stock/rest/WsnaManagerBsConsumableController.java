@@ -11,8 +11,6 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.Se
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaManagerBsConsumableDto.*;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaManagerBsConsumableService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -34,22 +32,14 @@ public class WsnaManagerBsConsumableController {
         return service.selectItems(mngtYm);
     }
 
-    @GetMapping("/building-code/{mngtYm}")
-    public List<SearchBldRes> selectBuildings(
-        @PathVariable
-        String mngtYm
-    ) {
-        return service.selectBuildings(mngtYm);
+    @GetMapping("/building-code")
+    public List<SearchBldRes> selectBuildings() {
+        return service.selectBuildings();
     }
 
     @GetMapping
     public List<SearchRes> getManagerBsConsumable(SearchReq dto) {
         return service.getManagerBsConsumable(dto);
-    }
-
-    @GetMapping("/paging")
-    public PagingResult<SearchRes> getManagerBsConsumablePages(SearchReq dto, PageInfo pageInfo) {
-        return service.getManagerBsConsumablePages(dto, pageInfo);
     }
 
     @GetMapping("/time-limit/{mngtYm}")

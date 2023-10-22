@@ -21,6 +21,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 선환불계좌조회 Controller
+ * </pre>
+ *
+ * @author jaeha.yeon
+ * @since 2023-10-20
+ */
 @Api(tags = "[입금관리 - 개별수납] 선환불계좌조회")
 @RestController
 @RequiredArgsConstructor

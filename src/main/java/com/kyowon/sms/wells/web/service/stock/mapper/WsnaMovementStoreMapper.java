@@ -70,7 +70,7 @@ public interface WsnaMovementStoreMapper {
 
     int saveItemQtyConfirm(WsnaMovementStoreConfirmDvo dvo);
 
-    int countStrWareMonthlyClosed(warehouseMonthlyReq dto);
+    int countStrWareMonthlyClosed(WarehouseMonthlyReq dto);
 
     int updateItmStrForRemove(WsnaMovementStoreConfirmDvo dvo);
 

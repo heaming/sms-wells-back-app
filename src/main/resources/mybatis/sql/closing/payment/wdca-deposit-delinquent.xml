@@ -8,40 +8,40 @@
                  , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_CHNL_DTL_CD', T.SELL_INFLW_CHNL_DTL_CD) AS SELL_INFLW_CHNL_DTL_CD
                  , '' AS PD_CLSF_NM
                  , SUM(TOT_ACC_N) AS TOT_ACC_N
-                 , SUM(UC_AMT) AS UCAM_TAM
-                 , SUM(THM_UC_AMT) AS FNL_AMT --당월신규_미수
-                 , SUM(CASE WHEN THM_UC_AMT > 0 THEN 1 ELSE 0 END) AS THM_NW_ACC_N --SUM(당월계정수) AS THM_NW_ACC_N--당월신규_계정수
-                 , 0 AS THM_NW_DP_AMT  --미수에대한 입금은 익월데이터에서 추출하기때문
-                 , 0 AS THM_NW_DP_RT --미수에대한 입금은 익월데이터에서 추출하기때문
-                 , SUM(UC_AMT - DLQ_AMT) AS NOM_UC_AMT
+                 , SUM(NOM_UC_AMT) AS UCAM_TAM
+                 , SUM(THM_NW_ACC_N) AS THM_NW_ACC_N --당월신규_계정수
+                 , SUM(CASE WHEN THM_NW_ACC_N = 1 THEN THM_NW_DP ELSE 0 END) AS THM_NW_DP_AMT  --미수에대한 입금은 익월데이터에서 추출하기때문
+                 , SUM(NOM_UC_AMT - DLQ_AMT) AS NOM_UC_AMT
                  , SUM(NOM_ACC_N) AS NOM_ACC_N
                  , SUM(DP_AMT - DLQ_DP_AMT) AS NOM_DP_AMT
-                 , FLOOR(CASE WHEN NVL(SUM(UC_AMT - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP_AMT - DLQ_DP_AMT) / SUM(UC_AMT - DLQ_AMT) END * 1000) / 10 AS NOM_DP_RT
+                 , LEAST(TRUNC(CASE WHEN NVL(SUM(NOM_UC_AMT - DLQ_AMT), 0) = 0 THEN 1 ELSE SUM(DP_AMT - DLQ_DP_AMT) / SUM(NOM_UC_AMT - DLQ_AMT) END * 1000) / 10, 100) AS NOM_DP_RT
                  , SUM(DLQ_AMT) AS DLQ_AMT
                  , SUM(CASE WHEN DLQ_AMT > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N
                  , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
-                 , CASE WHEN NVL(SUM(UC_AMT), 0) = 0 THEN 0 ELSE FLOOR((SUM(DLQ_AMT) - SUM(DLQ_DP_AMT)) / SUM(UC_AMT) * 1000) / 10 END AS UC_CPR_DLQ_RT
+                 , CASE WHEN NVL(SUM(NOM_UC_AMT), 0) = 0 THEN 0 ELSE TRUNC((SUM(DLQ_AMT) - SUM(DLQ_DP_AMT)) / SUM(NOM_UC_AMT) * 1000) / 10 END AS UC_CPR_DLQ_RT
                  , SUM(DP_AMT) AS TOT_DP_AMT
-                 , CASE WHEN NVL(SUM(UC_AMT), 0) = 0 THEN 0 ELSE FLOOR(SUM(DP_AMT) / SUM(UC_AMT) * 1000) / 10 END AS DP_RT
+                 , LEAST(CASE WHEN NVL(SUM(NOM_UC_AMT), 0) = 0 THEN 100 ELSE TRUNC(SUM(DP_AMT) / SUM(NOM_UC_AMT) * 1000) / 10 END, 100) AS DP_RT
                  , SUM(T.SL_AGG_AMT) AS BIL_AGG
-                 , SUM(DP_AMT) AS DP_AGG
-                 , CASE WHEN NVL(SUM(UC_AMT), 0) = 0 THEN 0 ELSE FLOOR(SUM(UC_AMT - DP_AMT) / SUM(UC_AMT) * 1000) / 10 END AS DLQ_RT_SUM
+                 , SUM(DP_AGG) AS DP_AGG
+                 , CASE WHEN NVL(SUM(T.SL_AGG_AMT), 0) = 0 THEN 0 ELSE TRUNC(SUM(T.SL_AGG_AMT - DP_AGG) / SUM(T.SL_AGG_AMT) * 1000) / 10 END AS DLQ_RT_SUM
               FROM (
-                   SELECT A.BF_ORD_NO, A.CNTR_NO
-                        , A.SELL_TP_CD
+                   SELECT A.SELL_TP_CD
                         , A.SELL_TP_DTL_CD
                         , B.SELL_INFLW_CHNL_DTL_CD/*판매유입채널상세코드*/
                         , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 1 ELSE 0 END)
                                ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N/*총계정수*/
-                        , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G2.EOT_BIL_UC_AMT,0) + NVL(D2.EOT_DLQ_ADD_AMT,0)
-                               WHEN A.SELL_TP_CD = '1' THEN GREATEST(NVL(G2.EOT_UC_AMT,0), 0)
-                               ELSE GREATEST(NVL(G2.EOT_BIL_UC_AMT,0), 0) END AS THM_UC_AMT/*당월미수*/
-                        , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
+                        , CASE WHEN SUBSTR(B.CNTR_RCP_FSH_DTM, 1, 6) = #{perfYm} OR SUBSTR(A.CNTR_PD_STRTDT, 1, 6) = #{perfYm} THEN 1 ELSE 0 END AS THM_NW_ACC_N
+                        , CASE WHEN A.SELL_TP_CD = '6' OR A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN NVL(G3.THM_BIL_DP_AMT - G3.SV_DP_AMT, 0)
+                               WHEN A.SELL_TP_CD = '3' THEN NVL(G3.THM_ATAM_DP_AMT, 0)
+                               ELSE NVL(G3.THM_ISTM_TOT_DP_AMT, 0)
+                               END AS THM_NW_DP
+                        , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G.EOT_UC_AMT, 0) ELSE NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0) END)
                                WHEN A.SELL_TP_CD = '6' THEN NVL(G2.EOT_BIL_UC_AMT,0)
                                WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(G.EOT_UC_AMT,0) ELSE NVL(G.EOT_BIL_UC_AMT,0) + NVL(G2.THM_SL_SUM_AMT,0) END)
                                WHEN A.SELL_TP_CD = '1' THEN NVL(G.EOT_UC_AMT,0)
-                               ELSE 0 END AS UC_AMT/*미수*/
+                               ELSE 0 END AS NOM_UC_AMT/*미수*/
                         , CASE WHEN A.SELL_TP_CD = '1' THEN NVL(G.EOT_UC_AMT,0)
+                               WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN  NVL(D.EOT_DLQ_AMT - D.THM_OC_DLQ_ADD_AMT, 0) + NVL(F.EOT_BOR_AMT, 0)
                                ELSE NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                END AS DLQ_AMT/*연체금액*/
                         , CASE WHEN A.SELL_TP_CD IN ('2', '6') THEN NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0)
@@ -52,25 +52,35 @@
                                ELSE (CASE WHEN NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 0
                                              ELSE LEAST(NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0), GREATEST(NVL(D2.THM_DLQ_DP_SUM_AMT, 0), 0)) END)
                                END AS DLQ_DP_AMT/*연체입금금액*/
+                        , NVL(G2.SL_DP_AGG_AMT, 0) AS DP_AGG
                         , CASE WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 1 ELSE 0 END)
                                WHEN A.SELL_TP_CD = '1' THEN (CASE WHEN G2.CAN_DT IS NULL AND NVL(D.EOT_DLQ_AMT,0) = 0 THEN 1 ELSE 0 END)
                                ELSE (  (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL AND (NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)) = 0 THEN 1 ELSE 0 END)
                                       - (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 0 ELSE 1 END))
                                END AS NOM_ACC_N/*정상계정수*/
-                        , G.SL_AGG_AMT
+                        , NVL(G.SL_AGG_AMT + G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) AS SL_AGG_AMT
                      FROM TB_SSCT_CNTR_DTL A /*계약상세*/
-                        , TB_CBCL_WELLS_SL_MM_CL_IZ G/*WELLS매출월마감내역*/
                         INNER JOIN  TB_SSCT_CNTR_BAS B/*계약기본*/
-                          ON B.CNTR_NO = G.CNTR_NO
+                          ON B.CNTR_NO = A.CNTR_NO
                          AND B.DTA_DL_YN = 'N'
+                        LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G	/*WELLS매출월마감내역 - 전월(연체기준)*/
+                          ON G.CNTR_NO = A.CNTR_NO
+                         AND G.CNTR_SN = A.CNTR_SN
+                         AND G.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
+                         AND G.DTA_DL_YN = 'N'
                         LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G2/*WELLS매출월마감내역*/
-                          ON G2.CNTR_NO = G.CNTR_NO
-                         AND G2.CNTR_SN = G.CNTR_SN
+                          ON G2.CNTR_NO = A.CNTR_NO
+                         AND G2.CNTR_SN = A.CNTR_SN
                          AND G2.SL_CL_YM = #{perfYm}
                          AND G2.DTA_DL_YN = 'N'
+                        LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G3	/*WELLS매출월마감내역 - 당월발생입금기준*/
+                          ON G3.CNTR_NO = A.CNTR_NO
+                         AND G3.CNTR_SN = A.CNTR_SN
+                         AND G3.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), 1), 'YYYYMM')
+                         AND G3.DTA_DL_YN = 'N'
                         LEFT OUTER JOIN TB_CBCL_DLQ_BAS D/*연체기본-전월연체발생*/
-                          ON D.CNTR_NO = G.CNTR_NO
-                         AND D.CNTR_SN = G.CNTR_SN
+                          ON D.CNTR_NO = A.CNTR_NO
+                         AND D.CNTR_SN = A.CNTR_SN
                          AND D.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
                          AND D.DTA_DL_YN = 'N'
                         LEFT OUTER JOIN TB_CBCL_DLQ_BAS D2/*연체기본-당월입금*/
@@ -84,15 +94,12 @@
                          AND D3.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -2), 'YYYYMM')
                          AND D3.DTA_DL_YN = 'N'
                         LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS F/*위약금액기본*/
-                          ON F.CNTR_NO = G.CNTR_NO
-                         AND F.CNTR_SN = G.CNTR_SN
+                          ON F.CNTR_NO = A.CNTR_NO
+                         AND F.CNTR_SN = A.CNTR_SN
                          AND F.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
                          AND F.DTA_DL_YN = 'N'
-                        WHERE A.CNTR_NO = G.CNTR_NO
-                          AND A.CNTR_SN = G.CNTR_SN
-                          AND G.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
+                        WHERE 1=1
                           AND A.DTA_DL_YN = 'N'
-                          AND G.DTA_DL_YN = 'N'
                           <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
                           /*화면-계약상세번호 입력 시-시작*/
                           AND A.CNTR_NO = #{cntrNo}
@@ -127,40 +134,40 @@
                  , '' AS SELL_INFLW_CHNL_DTL_CD
                  , T.PD_CLSF_NM AS PD_CLSF_NM
                  , SUM(TOT_ACC_N) AS TOT_ACC_N
-                 , SUM(UC_AMT) AS UCAM_TAM
-                 , SUM(THM_UC_AMT) AS FNL_AMT --당월신규_미수
-                 , SUM(CASE WHEN THM_UC_AMT > 0 THEN 1 ELSE 0 END) AS THM_NW_ACC_N --SUM(당월계정수) AS 당월신규계정수--당월신규_계정수
-                 , 0 AS THM_NW_DP_AMT --미수에대한 입금은 익월데이터에서 추출하기때문
-                 , 0 AS THM_NW_DP_RT --미수에대한 입금은 익월데이터에서 추출하기때문
-                 , SUM(UC_AMT - DLQ_AMT) AS NOM_UC_AMT
+                 , SUM(NOM_UC_AMT) AS UCAM_TAM
+                 , SUM(THM_NW_ACC_N) AS THM_NW_ACC_N --당월신규_계정수
+                 , SUM(CASE WHEN THM_NW_ACC_N = 1 THEN THM_NW_DP ELSE 0 END) AS THM_NW_DP_AMT --미수에대한 입금은 익월데이터에서 추출하기때문
+                 , SUM(NOM_UC_AMT - DLQ_AMT) AS NOM_UC_AMT
                  , SUM(NOM_ACC_N) AS NOM_ACC_N
                  , SUM(DP_AMT - DLQ_DP_AMT) AS NOM_DP_AMT
-                 , FLOOR(CASE WHEN NVL(SUM(UC_AMT - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP_AMT - DLQ_DP_AMT) / SUM(UC_AMT - DLQ_AMT) END * 1000) / 10 AS NOM_DP_RT
+                 , LEAST(TRUNC(CASE WHEN NVL(SUM(NOM_UC_AMT - DLQ_AMT), 0) = 0 THEN 1 ELSE SUM(DP_AMT - DLQ_DP_AMT) / SUM(NOM_UC_AMT - DLQ_AMT) END * 1000) / 10, 100) AS NOM_DP_RT
                  , SUM(DLQ_AMT) AS DLQ_AMT
                  , SUM(CASE WHEN DLQ_AMT > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N
                  , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
-                 , CASE WHEN NVL(SUM(UC_AMT), 0) = 0 THEN 0 ELSE FLOOR((SUM(DLQ_AMT) - SUM(DLQ_DP_AMT)) / SUM(UC_AMT) * 1000) / 10 END AS UC_CPR_DLQ_RT
+                 , CASE WHEN NVL(SUM(NOM_UC_AMT), 0) = 0 THEN 0 ELSE TRUNC((SUM(DLQ_AMT) - SUM(DLQ_DP_AMT)) / SUM(NOM_UC_AMT) * 1000) / 10 END AS UC_CPR_DLQ_RT
                  , SUM(DP_AMT) AS TOT_DP_AMT
-                 , CASE WHEN NVL(SUM(UC_AMT), 0) = 0 THEN 0 ELSE FLOOR(SUM(DP_AMT) / SUM(UC_AMT) * 1000) / 10 END AS DP_RT
+                 , LEAST(CASE WHEN NVL(SUM(NOM_UC_AMT), 0) = 0 THEN 100 ELSE TRUNC(SUM(DP_AMT) / SUM(NOM_UC_AMT) * 1000) / 10 END, 100) AS DP_RT
                  , SUM(T.SL_AGG_AMT) AS BIL_AGG
-                 , SUM(DP_AMT) AS DP_AGG
-                 , CASE WHEN NVL(SUM(UC_AMT), 0) = 0 THEN 0 ELSE FLOOR(SUM(UC_AMT - DP_AMT) / SUM(UC_AMT) * 1000) / 10 END AS DLQ_RT_SUM
+                 , SUM(DP_AGG) AS DP_AGG
+                 , CASE WHEN NVL(SUM(T.SL_AGG_AMT), 0) = 0 THEN 0 ELSE TRUNC(SUM(T.SL_AGG_AMT - DP_AGG) / SUM(T.SL_AGG_AMT) * 1000) / 10 END AS DLQ_RT_SUM
               FROM (
-                    SELECT A.BF_ORD_NO, A.CNTR_NO
-                         , A.SELL_TP_CD
+                    SELECT A.SELL_TP_CD
                          , A.SELL_TP_DTL_CD
                          , E.PD_CLSF_NM
                          , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 1 ELSE 0 END)
                                 ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N/*총계정수*/
-                         , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G2.EOT_BIL_UC_AMT,0) + NVL(D2.EOT_DLQ_ADD_AMT,0)
-                                WHEN A.SELL_TP_CD = '1' THEN GREATEST(NVL(G2.EOT_UC_AMT,0), 0)
-                                ELSE GREATEST(NVL(G2.EOT_BIL_UC_AMT,0), 0) END AS THM_UC_AMT/*당월미수*/
-                         , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
+                         , CASE WHEN SUBSTR(B.CNTR_RCP_FSH_DTM, 1, 6) = #{perfYm} OR SUBSTR(A.CNTR_PD_STRTDT, 1, 6) = #{perfYm} THEN 1 ELSE 0 END AS THM_NW_ACC_N
+                         , CASE WHEN A.SELL_TP_CD = '6' OR A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN NVL(G3.THM_BIL_DP_AMT - G3.SV_DP_AMT, 0)
+                                WHEN A.SELL_TP_CD = '3' THEN NVL(G3.THM_ATAM_DP_AMT, 0)
+                                ELSE NVL(G3.THM_ISTM_TOT_DP_AMT, 0)
+                                END AS THM_NW_DP
+                         , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G.EOT_UC_AMT, 0) ELSE NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0) END)
                                 WHEN A.SELL_TP_CD = '6' THEN NVL(G2.EOT_BIL_UC_AMT,0)
                                 WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(G.EOT_UC_AMT,0) ELSE NVL(G.EOT_BIL_UC_AMT,0) + NVL(G2.THM_SL_SUM_AMT,0) END)
                                 WHEN A.SELL_TP_CD = '1' THEN NVL(G.EOT_UC_AMT,0)
-                                ELSE 0 END AS UC_AMT/*미수*/
+                                ELSE 0 END AS NOM_UC_AMT/*미수*/
                          , CASE WHEN A.SELL_TP_CD = '1' THEN NVL(G.EOT_UC_AMT,0)
+                                WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN  NVL(D.EOT_DLQ_AMT - D.THM_OC_DLQ_ADD_AMT, 0) + NVL(F.EOT_BOR_AMT, 0)
                                 ELSE NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                 END AS DLQ_AMT/*연체금액*/
                          , CASE WHEN A.SELL_TP_CD IN ('2', '6') THEN NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0)
@@ -171,50 +178,56 @@
                                 ELSE (CASE WHEN NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 0
                                               ELSE LEAST(NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0), GREATEST(NVL(D2.THM_DLQ_DP_SUM_AMT, 0), 0)) END)
                                 END AS DLQ_DP_AMT/*연체입금금액*/
+                         , NVL(G2.SL_DP_AGG_AMT, 0) AS DP_AGG
                          , CASE WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 1 ELSE 0 END)
                                 WHEN A.SELL_TP_CD = '1' THEN (CASE WHEN G2.CAN_DT IS NULL AND NVL(D.EOT_DLQ_AMT,0) = 0 THEN 1 ELSE 0 END)
                                 ELSE (  (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL AND (NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)) = 0 THEN 1 ELSE 0 END)
                                        - (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 0 ELSE 1 END))
                                 END AS NOM_ACC_N/*정상계정수*/
-                         , G.SL_AGG_AMT
+                         , NVL(G.SL_AGG_AMT + G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) AS SL_AGG_AMT
                       FROM TB_SSCT_CNTR_DTL A /*계약상세*/
-                     INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G/*WELLS매출월마감내역*/
+                     LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G/*WELLS매출월마감내역*/
                           ON A.CNTR_NO = G.CNTR_NO
                          AND A.CNTR_SN = G.CNTR_SN
                          AND G.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
                          AND G.DTA_DL_YN = 'N'
                         INNER JOIN  TB_SSCT_CNTR_BAS B/*계약기본*/
-                          ON B.CNTR_NO = G.CNTR_NO
+                          ON B.CNTR_NO = A.CNTR_NO
                          AND B.DTA_DL_YN = 'N'
                         LEFT OUTER JOIN TB_PDBS_PD_BAS C/*상품기본*/
                               ON C.PD_CD = A.BASE_PD_CD
                              AND C.DTA_DL_YN = 'N'
                         LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS E/*상품분류기본*/
-                          ON E.PD_CLSF_ID = C.PD_CLSF_ID
+                          ON E.PD_CLSF_ID = C.PD_MCLSF_ID
                          AND E.DTA_DL_YN = 'N'
                         LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G2/*WELLS매출월마감내역*/
-                          ON G2.CNTR_NO = G.CNTR_NO
-                         AND G2.CNTR_SN = G.CNTR_SN
+                          ON G2.CNTR_NO = A.CNTR_NO
+                         AND G2.CNTR_SN = A.CNTR_SN
                          AND G2.SL_CL_YM = #{perfYm}
                          AND G2.DTA_DL_YN = 'N'
+                        LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G3	/*WELLS매출월마감내역 - 당월발생입금기준*/
+                          ON G3.CNTR_NO = A.CNTR_NO
+                         AND G3.CNTR_SN = A.CNTR_SN
+                         AND G3.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), 1), 'YYYYMM')
+                         AND G3.DTA_DL_YN = 'N'
                         LEFT OUTER JOIN TB_CBCL_DLQ_BAS D/*연체기본-전월연체발생*/
-                          ON D.CNTR_NO = G.CNTR_NO
-                         AND D.CNTR_SN = G.CNTR_SN
+                          ON D.CNTR_NO = A.CNTR_NO
+                         AND D.CNTR_SN = A.CNTR_SN
                          AND D.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
                          AND D.DTA_DL_YN = 'N'
                         LEFT OUTER JOIN TB_CBCL_DLQ_BAS D2/*연체기본-당월입금*/
-                          ON D2.CNTR_NO = D.CNTR_NO
-                         AND D2.CNTR_SN = D.CNTR_SN
+                          ON D2.CNTR_NO = A.CNTR_NO
+                         AND D2.CNTR_SN = A.CNTR_SN
                          AND D2.PERF_YM = #{perfYm}
                          AND D2.DTA_DL_YN = 'N'
                         LEFT OUTER JOIN TB_CBCL_DLQ_BAS D3/*연체기본-전월연체발생*/
-                          ON D3.CNTR_NO = D.CNTR_NO
-                         AND D3.CNTR_SN = D.CNTR_SN
+                          ON D3.CNTR_NO = A.CNTR_NO
+                         AND D3.CNTR_SN = A.CNTR_SN
                          AND D3.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -2), 'YYYYMM')
                          AND D3.DTA_DL_YN = 'N'
                         LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS F/*위약금액기본*/
-                          ON F.CNTR_NO = G.CNTR_NO
-                         AND F.CNTR_SN = G.CNTR_SN
+                          ON F.CNTR_NO = A.CNTR_NO
+                         AND F.CNTR_SN = A.CNTR_SN
                          AND F.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
                          AND F.DTA_DL_YN = 'N'
                         WHERE A.DTA_DL_YN = 'N'
@@ -234,13 +247,6 @@
                           </if>
                           <if test="@MybatisUtils@isNotEmpty(copnDvCd) and !@MybatisUtils@equals(copnDvCd, 'ALL')">
                           AND B.COPN_DV_CD = #{copnDvCd} /*개인법인구분*/
-                          </if>
-                          <if test="@MybatisUtils@isNotEmpty(sellChnl) and sellChnl.size() > 0">
-                          AND B.SELL_INFLW_CHNL_DTL_CD IN (
-                              <foreach collection="sellChnl" item="sellChnl" separator=",">
-                                   #{sellChnl}
-                              </foreach>
-                               )
                           </if>
                    ) T
                GROUP BY T.SELL_TP_CD, T.SELL_TP_DTL_CD, T.PD_CLSF_NM

@@ -15,6 +15,8 @@ public class SnServiceConst {
     public static final String REST_INTERFACE_DOC_V1 = "[WSNI] Wells 서비스 인터페이스 REST API";
     public static final String REST_INTERFACE_URL_V1 = CommConst.REST_URL_V1 + "/interface/sms/wells/service";
 
+    public static final String REPORT_URL_V1 = CommConst.REST_URL_V1 + "/anonymous/sms/wells/service";
+
     // 급지구분코드 (RGLVL_DV_CD)
     public enum RglvlDvCd {
         REGION_LEVEL1("1", "1급지(이동급지)"),

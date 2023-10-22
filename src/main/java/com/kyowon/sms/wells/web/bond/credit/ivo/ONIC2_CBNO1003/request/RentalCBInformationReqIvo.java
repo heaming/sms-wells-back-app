@@ -21,20 +21,21 @@ import lombok.Setter;
 public class RentalCBInformationReqIvo {
     @JsonProperty("COMM")
     private CommReq commReq;
-    @JsonProperty("ROWDATA_5")
-    private RowData5Req rowData5Req;
+    @JsonProperty("DATA")
+    private DataReq dataReq;
+    @JsonProperty("ROWDATA_1")
+    private RowData1Req rowData1Req;
     @JsonProperty("ROWDATA_4")
     private RowData4Req rowData4Req;
+    @JsonProperty("ROWDATA_5")
+    private RowData5Req rowData5Req;
     @JsonProperty("SUMMARYITEM_6")
     private SummaryItem6Req summaryItem6Req;
     @JsonProperty("SUMMARYITEM_6_REPAET")
     private List<SummaryItem6RepaetItemReq> summaryItem6RepaetItemReqs;
-    @JsonProperty("DATA")
-    private DataReq dataReq;
     @JsonProperty("SUMMARYITEM_7")
     private SummaryItem7Req summaryItem7Req;
     @JsonProperty("SUMMARYITEM_7_REPAET")
     private List<SummaryItem7RepaetItemReq> summaryItem7RepaetItemReqs;
-    @JsonProperty("ROWDATA_1")
-    private RowData1Req rowData1Req;
+
 }

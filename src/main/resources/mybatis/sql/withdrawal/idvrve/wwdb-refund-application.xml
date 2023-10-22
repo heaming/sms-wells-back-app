@@ -8,7 +8,7 @@
              , TO_CHAR(TO_DATE(RRAB.RFND_AK_DTM, 'YYYYMMDD HH24MISS'), 'YYYYMMDD') AS RFND_AK_DTM /* 접수일자 */
              , RRAB.RFND_AK_NO /* 접수번호 */
              , NVL(T1.DP_AMT, 0) - NVL(T1.DLQ_ADD_AMT, 0) - NVL(T1.MM_ISTM_AMT, 0) - NVL(T1.BOR_AMT, 0) - NVL(T1.SV_AMT, 0) AS RFND_PSB_AMT/* 환불가능금액 */
-             , NVL(RRAD.RFND_CSH_AK_AMT,0) + NVL(RRAD.RFND_CARD_AK_AMT,0) +  NVL(RRAD.CRDCD_FEE_AMT, 0) + NVL(RRAD.RFND_BLTF_AK_AMT,0) AS RFND_AK_AMT
+             , NVL(RRAD.RFND_CSH_AK_AMT,0) + NVL(RRAD.RFND_CARD_AK_AMT,0) + NVL(RRAD.RFND_BLTF_AK_AMT,0) AS RFND_AK_AMT
              , RRAD.CNTR_NO /* 계약기본 */
              , RRAD.CNTR_SN /* 계약상세 */
              , RRAD.CNTR_NO || RRAD.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 */
@@ -490,9 +490,13 @@
                 , 0 AS RFND_BLTF_AK_AMT
                 , NULL AS RFND_AK_NO
                 , FNIT_CD
+                , FNIT_NM
+                , AC_CR_NO
                 , NVL(CRDCD_FER , 0) AS CRDCD_FER
                 , CST_NO
                 , DP_TP_CD
+                , '' RFND_RSON_CD
+                , '' RFND_RSON_CN
              FROM ( SELECT A1.RVE_NO      /* 수납번호 */
                          , A1.RVE_SN      /* 수납일련번호 */
                          , A1.CNTR_NO     /* 계약번호*/
@@ -501,7 +505,9 @@
                          , A1.DP_DT               /* 입금일 */
                          , A1.DP_MES_CD           /* 입금수단 */
                          , A1.RVE_DV_CD            /* 입금유형 -> 수납유형(사양서, 설계서결과에 맞게 수정) */
-                         , NVL(B1.FNIT_CD, B1.CARD_KND_CD) FNIT_CD
+                         , NVL(B1.FNIT_CD, B1.CRDCD_FNIT_CD) FNIT_CD
+                         , I1.FNIT_NM
+                         , NVL(B1.ACNO_ENCR, B1.CRCDNO_ENCR) AC_CR_NO
                          , NVL(H1.CRDCD_FER, 0) CRDCD_FER
                          , NVL(E1.EOT_SV_AMT , 0) AS SV_AMT /* 서비스금액 */
                          , NVL(A1.DP_AMT, 0) AS DP_AMT /* 입금액 */
@@ -545,6 +551,9 @@
                        AND H1.DTA_DL_YN = 'N'
                        AND H1.VL_STRTDT <![CDATA[<=]]> A1.RVE_DT
                        AND H1.VL_ENDDT  <![CDATA[>=]]> A1.RVE_DT
+                LEFT OUTER JOIN TB_RVDW_FNIT_CD I1
+                        ON I1.FNIT_CD = NVL(B1.FNIT_CD, B1.CRDCD_FNIT_CD)
+                       AND I1.FNIT_DV_CD = DECODE(B1.FNIT_CD, NULL, '2', '1')
                      WHERE 1 = 1
                        AND A1.DTA_DL_YN = 'N'
                        AND A1.DP_DV_CD IN ('1','3') /*입금구분코드 : 1(입금)*/
@@ -585,9 +594,13 @@
                 , T1.RFND_BLTF_AK_AMT
                 , T1.RFND_AK_NO
                 , T1.FNIT_CD
+                , T1.FNIT_NM
+                , T1.AC_CR_NO
                 , NVL(T1.CRDCD_FER , 0) AS CRDCD_FER
                 , CST_NO
                 , T1.DP_TP_CD
+                , T1.RFND_RSON_CD
+                , T1.RFND_RSON_CN
              FROM ( SELECT A1.RVE_NO      /* 수납번호 */
                          , A1.RVE_SN      /* 수납일련번호 */
                          , A1.CNTR_NO     /* 계약번호*/
@@ -607,10 +620,14 @@
                          , NVL(A1.CRDCD_FEE_AMT, 0) AS CRDCD_FEE_AMT
                          , NVL(A1.RFND_BLTF_AK_AMT, 0) AS RFND_BLTF_AK_AMT
                          , A1.RFND_AK_NO
-                         , C1.CARD_KND_CD FNIT_CD
+                         , NVL(C1.FNIT_CD, C1.CRDCD_FNIT_CD) FNIT_CD
+                         , G1.FNIT_NM
+                         , NVL(C1.ACNO_ENCR, C1.CRCDNO_ENCR) AC_CR_NO
                          , NVL(NVL(A1.CRDCD_FER, H1.CRDCD_FER), 0) CRDCD_FER
                          , I1.CNTR_CST_NO AS CST_NO
                          , B1.DP_TP_CD
+                         , A1.RFND_RSON_CD
+                         , A1.RFND_RSON_CN
                       FROM TB_RVDW_RFND_AK_DTL A1 /* 환불요청상세 */
                  LEFT OUTER JOIN TB_RVDW_RVE_DTL B1 /* 수납상세 */
                         ON B1.KW_GRP_CO_CD = A1.KW_GRP_CO_CD
@@ -652,6 +669,9 @@
                        AND H1.DTA_DL_YN = 'N'
                        AND H1.VL_STRTDT <![CDATA[<=]]> B1.RVE_DT
                        AND H1.VL_ENDDT  <![CDATA[>=]]> B1.RVE_DT
+                LEFT OUTER JOIN TB_RVDW_FNIT_CD G1
+                        ON G1.FNIT_CD = NVL(C1.FNIT_CD, C1.CRDCD_FNIT_CD)
+                       AND G1.FNIT_DV_CD = DECODE(C1.FNIT_CD, NULL, '2', '1')
                      WHERE 1 = 1
                        AND A1.DTA_DL_YN = 'N'
                        AND A1.RFND_AK_NO = #{rfndAkNo}

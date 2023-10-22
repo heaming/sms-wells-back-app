@@ -16,16 +16,26 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 환불현황 서비스
+ * </pre>
+ *
+ * @author Sonkiseok
+ * @since $DATE$
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbRefundCurrentStatusService {
 
     private final WwdbRefundCurrentStatusMapper mapper;
 
+
     /**
      * 환불내역 목록
-     * @param pageInfo 
-     * @param SearchRefundHistoryReq
+     *
+     * @param req
+     * @param pageInfo
      * @return PagingResult<SearchRefundHistoryRes>
      */
     public PagingResult<SearchRefundHistoryRes> getRefundHistoryPages(
@@ -37,7 +47,8 @@ public class WwdbRefundCurrentStatusService {
 
     /**
      * 환불내역 엑셀다운로드
-     * @param SearchRefundHistoryReq
+     *
+     * @param req
      * @return List<SearchRefundHistoryRes>
      */
     public List<SearchRefundHistoryRes> getRefundHistoryExcels(
@@ -48,9 +59,10 @@ public class WwdbRefundCurrentStatusService {
 
     /**
      * 카드사별 환불내역 목록
-     * @param pageInfo 
-     * @param SearchCardRefundHistoryReq
-     * @return PagingResult<SearchCardRefundHistoryRes> 
+     *
+     * @param req
+     * @param pageInfo
+     * @return PagingResult<SearchCardRefundHistoryRes>
      */
     public PagingResult<SearchCardRefundHistoryRes> getCardRefundHistoryPages(
         SearchCardRefundHistoryReq req,
@@ -61,7 +73,8 @@ public class WwdbRefundCurrentStatusService {
 
     /**
      * 카드사별 환불내역 엑셀다운로드
-     * @param SearchCardRefundHistoryReq
+     *
+     * @param req
      * @return List<SearchCardRefundHistoryRes>
      */
     public List<SearchCardRefundHistoryRes> getCardRefundHistoryExcels(
@@ -72,8 +85,9 @@ public class WwdbRefundCurrentStatusService {
 
     /**
      * 전금내역 목록
-     * @param pageInfo 
-     * @param SearchBalanceTransferRefundHistoryReq
+     *
+     * @param req
+     * @param pageInfo
      * @return PagingResult<SearchBalanceTransferRefundHistoryRes>
      */
     public PagingResult<SearchBalanceTransferRefundHistoryRes> getBalanceTransferRefundHistoryPages(
@@ -85,7 +99,8 @@ public class WwdbRefundCurrentStatusService {
 
     /**
      * 전금내역 목록 엑셀다운로드
-     * @param SearchBalanceTransferRefundHistoryReq
+     *
+     * @param req
      * @return List<SearchBalanceTransferRefundHistoryRes>
      */
     public List<SearchBalanceTransferRefundHistoryRes> getBalanceTransferRefundHistoryExcels(

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -13,12 +14,12 @@ import com.kyowon.sflex.common.message.dto.EmailDto;
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.EmailService;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
-import com.kyowon.sflex.common.report.dvo.ReportDvo;
 import com.kyowon.sflex.common.report.dvo.ReportEntryDvo;
 import com.kyowon.sflex.common.report.service.ReportService;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsServiceCfdcDto.*;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWellsServiceCfdcDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbWellsServiceCfdcMapper;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.common.common.service.TemplateService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -35,6 +36,11 @@ public class WsnbWellsServiceCfdcService {
     private final TemplateService templateService;
     private final ReportService reportService;
 
+    @Value("${report.ozUrl}")
+    private String ozUrl;
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
+
     public PagingResult<SearchRes> getWellsServiceConfirmations(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectWellsServiceConfirmations(dto, pageInfo);
     }
@@ -47,7 +53,9 @@ public class WsnbWellsServiceCfdcService {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("custNm", dto.nm());
         paramMap.put(
-            "url", "https://wsm.kyowon.co.kr/anonymous/sms/wells/service/wells-service-cfdc/report/"
+            "url", getBaseUrl()
+                + SnServiceConst.REPORT_URL_V1
+                + "/wells-service-cfdc/report/"
                 + dto.cstSvAsnNo()
                 + "/auth"
         );
@@ -70,7 +78,9 @@ public class WsnbWellsServiceCfdcService {
         paramMap.put("custNm", dto.nm());
         paramMap.put(
             "url",
-            "https://d-wsm.kyowon.co.kr/anonymous/sms/wells/service/wells-service-cfdc/report/"
+            getBaseUrl()
+                + SnServiceConst.REPORT_URL_V1
+                + "/wells-service-cfdc/report/"
                 + dto.cstSvAsnNo()
                 + "/auth"
         );
@@ -88,7 +98,9 @@ public class WsnbWellsServiceCfdcService {
         EmailDto.CreateReq emailDto = new EmailDto.CreateReq(
             templateService.getTemplateByTemplateId("TMP_SNB_WELLS18053").getSendTemplateTitle(),
             "TMP_SNB_WELLS18053",
-            templateService.getTemplateContent("TMP_SNB_WELLS18053", paramMap),
+            "<html><body>"
+                + templateService.getTemplateContent("TMP_SNB_WELLS18053", paramMap).replaceAll("(\r\n|\n)", "<br>")
+                + "</body></html>",
             "wellsorder@kyowon.co.kr",
             "",
             "Y",
@@ -118,33 +130,40 @@ public class WsnbWellsServiceCfdcService {
         ReportEntryDvo dvo = new ReportEntryDvo();
         dvo.setBzopNoYn("N"); //사업자여부
         dvo.setCustName(cstDvo.getCstNm());
-        dvo.setReturnUrl("/anonymous/sms/wells/service/wells-service-cfdc/report/" + cstSvAsnNo);
+        dvo.setReturnUrl(SnServiceConst.REPORT_URL_V1 + "/wells-service-cfdc/report/" + cstSvAsnNo + "/auth");
         return reportService.openReportAuthEntry(dvo);
     }
 
-    public ModelAndView openReport(String cstSvAsnNo, String birth) {
+    public ModelAndView openReportWithAuth(String cstSvAsnNo, String birth) {
         WsnbWellsServiceCfdcDvo cstDvo = mapper.selectCustomer(cstSvAsnNo)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
 
         if (birth.equals(cstDvo.getCstBthd())) {
-            ReportDvo dvo = new ReportDvo();
-            dvo.setOzrPath("/kyowon_as/wellsServConf.ozr");
-            Map<String, String> map = new HashMap();
-            map.put("cstSvAsnNo", cstSvAsnNo);
-            map.put("searchApiUrl", "/api/v1/anonymous/sms/wells/service/wells-service-cfdc/oz");
-            map.put("rcgvpNm", "");
-            map.put("prtnrNm", "");
-            dvo.setArgs(map);
-            return reportService.openReport(dvo);
+            return openReport(cstSvAsnNo);
         } else {
             ReportEntryDvo dvo = new ReportEntryDvo();
             dvo.setBzopNoYn("N"); //사업자여부
             dvo.setCustName(cstDvo.getCstNm());
-            dvo.setReturnUrl("/anonymous/sms/wells/service/wells-service-cfdc/report/" + cstSvAsnNo + "/auth");
+            dvo.setReturnUrl(SnServiceConst.REPORT_URL_V1 + "/wells-service-cfdc/report/" + cstSvAsnNo + "/auth");
             dvo.setError("error");
             dvo.setErrorMessage("등록된 생년월일과 일치하지 않습니다.");
             return reportService.openReportAuthEntry(dvo);
         }
+    }
+
+    public ModelAndView openReport(String cstSvAsnNo) {
+        Map<String, String> map = new HashMap();
+        map.put("cstSvAsnNo", cstSvAsnNo);
+        map.put("searchApiUrl", SnServiceConst.REPORT_URL_V1 + "/wells-service-cfdc/oz");
+        map.put("rcgvpNm", "");
+        map.put("prtnrNm", "");
+
+        ModelAndView mv = new ModelAndView("common/common/view");
+        mv.addObject("ozrPath", "/kyowon_as/wellsServConf.ozr");
+        mv.addObject("ozUrl", ozUrl);
+        mv.addObject("args", map);
+
+        return mv;
     }
 
     public Map<String, Object> getOzReport(FindOzReq dto) {
@@ -185,5 +204,25 @@ public class WsnbWellsServiceCfdcService {
         rtn.put("jsonData2", list3);
 
         return rtn;
+    }
+
+    String getBaseUrl() {
+        String baseUrl = "";
+        switch (activeProfile) {
+            case "dev":
+                baseUrl = "https://d-wsm.kyowon.co.kr";
+                break;
+            case "qa":
+                baseUrl = "https://q-wsm.kyowon.co.kr";
+                break;
+            case "local":
+                baseUrl = "http://localhost:8080";
+                break;
+            case "prd":
+            default:
+                baseUrl = "https://wsm.kyowon.co.kr";
+                break;
+        }
+        return baseUrl;
     }
 }

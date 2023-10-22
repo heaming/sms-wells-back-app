@@ -37,6 +37,9 @@ public class WsnaBsRegularShippingMgtController {
 
     private final WsnaBsRegularShippingMgtService service;
 
+    /**
+     * (자가필터,건식상품) 배송관리 조회 조건(상품 목록) 조회
+     */
     @GetMapping("/products")
     @ApiOperation(value = "(자가필터,건식상품) 배송관리 조회 조건(상품 목록) 조회", notes = "자가필터,건식상품 배송관리 화면의 조회 조건인 상품 목록을 조회한다.")
     public List<SearchProductRes> getProducts(
@@ -46,6 +49,9 @@ public class WsnaBsRegularShippingMgtController {
         return this.service.getProducts(dto);
     }
 
+    /**
+     * (자가필터,건식상품) 목록 조회
+     */
     @GetMapping
     @ApiOperation(value = "(자가필터,건식상품) 목록 조회", notes = "선택한 조회 조건에 맞는 배송 목록을 조회한다.")
     public List<SearchRes> getShippingItems(
@@ -55,6 +61,9 @@ public class WsnaBsRegularShippingMgtController {
         return this.service.getShippingItems(dto);
     }
 
+    /**
+     * (자가필터,건식상품) 목록 조회 -페이징
+     */
     @GetMapping("/paging")
     @ApiOperation(value = "(자가필터,건식상품) 목록 조회(페이징)", notes = "선택한 조회 조건에 맞는 배송 목록을 조회한다.")
     public PagingResult<SearchRes> getShippingItemPages(
@@ -66,8 +75,11 @@ public class WsnaBsRegularShippingMgtController {
         return this.service.getShippingItemPages(dto, pageInfo);
     }
 
+    /**
+     * (자가필터,건식상품) 데이터 저장
+     */
     @PostMapping
-    @ApiOperation(value = "(자가필터,건식상품) 배송 관련 데이터 생성", notes = "(자가필터,건식상품) 배송 관련 데이터를 생성한다.")
+    @ApiOperation(value = "(자가필터,건식상품) 데이터 저장", notes = "(자가필터,건식상품) 데이터를 저장한다.")
     public SaveResponse saveShippingItems(
         @RequestBody
         @Valid

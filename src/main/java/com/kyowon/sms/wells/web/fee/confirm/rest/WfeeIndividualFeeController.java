@@ -288,16 +288,16 @@ public class WfeeIndividualFeeController {
         return this.service.getFees(dto);
     }
 
-    @ApiOperation(value = "수수료 조회 사용자 고용정보 조회", notes = "로그인한 사용자의 고용정보를 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "userEmpID", value = "사용자ID", paramType = "query", required = false),
-        @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = false),
-    })
-    @GetMapping("/userInfo")
-    public SearchUserInfoRes getUserInfo(
-        SearchFeeReq dto
-    ) {
-        return this.service.getUserInfo(dto);
-    }
+    //    @ApiOperation(value = "수수료 조회 사용자 고용정보 조회", notes = "로그인한 사용자의 고용정보를 조회한다.")
+    //    @ApiImplicitParams(value = {
+    //        @ApiImplicitParam(name = "userEmpID", value = "사용자ID", paramType = "query", required = false),
+    //        @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = false),
+    //    })
+    //    @GetMapping("/userInfo")
+    //    public SearchUserInfoRes getUserInfo(
+    //        SearchFeeReq dto
+    //    ) {
+    //        return this.service.getUserInfo(dto);
+    //    }
 
 }

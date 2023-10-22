@@ -213,7 +213,6 @@ public class WfeeIndividualFeeService {
     public List<SearchFeeRes> getFees(
         SearchFeeReq dto
     ) {
-        System.out.println("###############################################=" + dto.toString());
         return this.mapper.selectFees(dto);
     }
 
@@ -224,10 +223,10 @@ public class WfeeIndividualFeeService {
      * feeDsbYn : 수수료지급여부}
      * @return 조회결과
      */
-    public SearchUserInfoRes getUserInfo(
-        SearchFeeReq dto
-    ) {
-        return this.mapper.selectUserInfo(dto);
-    }
+    //    public SearchUserInfoRes getUserInfo(
+    //        SearchFeeReq dto
+    //    ) {
+    //        return this.mapper.selectUserInfo(dto);
+    //    }
 
 }
