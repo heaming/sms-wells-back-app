@@ -173,4 +173,9 @@ public class WsnaBsCsmbDeliveryBaseDto {
         String bfsvcCsmbAplcLmQty,
         String sortOdr
     ) {}
+
+    public record CreateCrdovrReq(
+        String carriedOverFrom,
+        String carriedOverTo
+    ) {}
 }
