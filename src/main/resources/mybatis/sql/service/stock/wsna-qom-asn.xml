@@ -174,19 +174,8 @@
              , NVL(TW_QTY1.QTY, 0)                                  AS THWK_EXP_QTY        /* 금주예정수량 */
              , 0                                                    AS BORR_EXP_QTY        /* 차주예정수량 */
              , CASE WHEN T1.ITM_PD_CD IN ('WM07104793', 'WM07104794', 'WM07104795', 'WM07104796', 'WM07104797', 'WM07104798', 'WM07105097')
-                    THEN GREATEST( NVL(TW_QTY1.QTY, 0) - T1.CRTL_STOC_QTY   /* 금주예정수량 - 현재재고수량 */
-				                 , T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY   /* 회차별가중치적용수량 - 현재재고수량 */
-				                 , 0 )
-                         + MOD( GREATEST( NVL(TW_QTY1.QTY, 0) + - T1.CRTL_STOC_QTY
-                                        , T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY
-									    , 0 ), 2 )
-                    WHEN T1.BOX_QTY <![CDATA[>]]> 0
-                    THEN T1.BOX_QTY * CEIL( GREATEST( NVL(TW_QTY1.QTY, 0) + - T1.CRTL_STOC_QTY
-									                , T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY
-									                , 0 ) / T1.BOX_QTY )
-                    ELSE GREATEST( NVL(TW_QTY1.QTY, 0) - T1.CRTL_STOC_QTY
-				                 , T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY
-				                 , 0 )
+                    THEN NVL(T1.ETN_WTCF_APY_QTY, 0) - T1.CRTL_STOC_QTY + NVL(TW_QTY1.QTY, 0) + MOD(T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY + NVL(TW_QTY1.QTY, 0), 2)
+                    ELSE T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY + NVL(TW_QTY1.QTY, 0)
                END                                                  AS CNFM_QTY            /* 확정수량 */
              , CASE WHEN T1.BOX_QTY <![CDATA[>]]> 0 THEN T1.BOX_QTY * CEIL( GREATEST( NVL(TW_QTY1.QTY, 0) - T1.CRTL_STOC_QTY, T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY, 0 ) / T1.BOX_QTY ) / T1.BOX_QTY
                     ELSE 0
@@ -207,14 +196,8 @@
                     , QOM.GE_ASN_QOM_CT
                     , QOM.CRP_ASN_QOM_CT
                     , QOM.BOX_QTY
-                    , CASE WHEN QOM.ITM_KND_CD <![CDATA[<>]]> '5' THEN QOM.GE_ASN_QOM_CT
-                           WHEN QOM.BLD_CD NOT IN ('885', '951')  THEN CASE WHEN QOM.GE_ASN_QOM_CT <![CDATA[<]]> 5
-                                                                            THEN QOM.GE_ASN_QOM_CT
-                                                                            ELSE ROUND(QOM.GE_ASN_QOM_CT * 0.4, 0)
-                                                                       END
-                           ELSE QOM.GE_ASN_QOM_CT
-                      END + QOM.CRP_ASN_QOM_CT        AS ETN_WTCF_APY_QTY
-                    , NVL(STOC.PITM_STOC_A_GD_QTY, 0) AS CRTL_STOC_QTY
+                    , QOM.GE_ASN_QOM_CT + QOM.CRP_ASN_QOM_CT AS ETN_WTCF_APY_QTY   /* 회차별 가중치 없어짐 */
+                    , NVL(STOC.PITM_STOC_A_GD_QTY, 0)        AS CRTL_STOC_QTY
                  FROM
                     (
                       SELECT /*+ LEADING(D1 D2 D3) */
@@ -234,7 +217,7 @@
                            , SUM( CASE WHEN D1.PART_PD_CD IN ('WM07103020', 'WM07105668') THEN NVL(TO_NUMBER(D6.PD_PRP_VAL12), 0)
                                        ELSE 0
                                   END )                      AS BOX_QTY
-                           , D6.PD_PRP_VAL19                 AS ITM_KND_CD
+                           , D1.ITM_KND_CD
                         FROM TB_SVPD_CST_SV_RGBSPR_IZ D1          /* 고객서비스정기BS주기내역 */
                        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2       /* 고객서비스수행내역 */
                           ON D2.CNTR_NO = D1.CNTR_NO
@@ -304,7 +287,7 @@
                                                                        WHERE CNTR_NO   = S1.CNTR_NO
                                                                          AND CNTR_SN   = S1.CNTR_SN
                                                                          AND DTA_DL_YN = 'N' ) )
-                       GROUP BY D7.WARE_NO, D1.PART_PD_CD, D7.DIDY_DV_CD, D3.MNGT_PRTNR_NO, D3.MNGT_PRTNR_OG_TP_CD, D9.BLD_CD, NVL(D10.ADR_ID, D7.WARE_ADR_ID), D6.PD_PRP_VAL19
+                       GROUP BY D7.WARE_NO, D1.PART_PD_CD, D7.DIDY_DV_CD, D3.MNGT_PRTNR_NO, D3.MNGT_PRTNR_OG_TP_CD, D9.BLD_CD, NVL(D10.ADR_ID, D7.WARE_ADR_ID), D1.ITM_KND_CD
                     ) QOM
                  LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ STOC
                    ON STOC.WARE_NO   = QOM.STR_WARE_NO
