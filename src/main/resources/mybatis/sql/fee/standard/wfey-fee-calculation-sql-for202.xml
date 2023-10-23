@@ -678,4 +678,107 @@
          WHERE 1 = 1
          GROUP BY MST.BASE_YM, MST.OG_TP_CD, MST.PRTNR_NO
     </insert>
+
+    <insert id="insertPlarBrmgrSettleFeeRedf">
+        /**
+         *
+         * (W020080)정착수수료(플래너지점장)   되물림 전용
+         *
+         * 1. 설명 : 수석플래너가 정착수수료 받다가 플래너지점장이 된 경우 계속 지급된 경우
+         * 2. 되물림 : 개인 판매인정실적 건수가 6건 미만이 되면 전액 되물림 되어야 함.
+         * 3. 이력 : 지금까지 되물림 발생된 이력이 없음. ( 23.08 기준 )
+         *
+         **/
+        INSERT INTO TB_FEDD_FEE_REDF_ADSB_BAS(
+               FEE_REDF_ADSB_ID   /* 수수료되물림재지급ID */
+             , REDF_ADSB_OC_YM         /* 되물림재지급발생년월 */
+             , PERF_YM                 /* 실적년월 */
+             , PERF_DV_CD              /* 실적구분코드 */
+             , CO_CD                   /* 회사코드 */
+             , OG_TP_CD                /* 조직유형코드 */
+             , PRTNR_NO                /* 파트너번호 */
+             , FEE_CD                  /* 수수료코드 */
+             , DTA_CRT_FEE_CD          /* 데이터생성수수료코드 */
+             , REDF_ADSB_DV_CD         /* 되물림재지급구분코드 */
+             , REDF_ADSB_TP_CD         /* 되물림재지급유형코드 */
+             , REDF_ADSB_OC_AMT        /* 되물림재지급발생금액 */
+             , REDF_ADSB_CTR_CNFM_AMT  /* 되물림재지급조정확정금액 */
+        <include refid="COMMON.insertSystemField" />
+             )
+          SELECT 'EFEDD050002' || '0202' || SRC.BASE_YM || LPAD(SQ_FEDD_FEE_REDF_ADSB_BAS$FEE_REDF_ADSB_ID.NEXTVAL, 9, '0') AS FEE_REDF_ADSB_ID /* 수수료되물림재지급ID */
+             , SRC.BASE_YM AS REDF_ADSB_OC_YM /* 되물림재지급발생년월 */
+             , SRC.PERF_YM /* 실적년월 */
+             , SRC.PERF_DV_CD /* 실적구분코드 */
+             , SRC.CO_CD /* 회사코드 */
+             , SRC.OG_TP_CD /* 조직유형코드 */
+             , SRC.PRTNR_NO /* 파트너번호 */
+             , SRC.FEE_CD /* 수수료코드 */
+             , SRC.DTA_CRT_FEE_CD /* 데이터생성수수료코드 */
+             , '02' AS REDF_ADSB_DV_CD /* 되물림재지급구분코드 */
+             , '0202' AS REDF_ADSB_TP_CD /* 되물림재지급유형코드 */
+             , SRC.REDF_ADSB_OC_AMT AS REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
+             , SRC.REDF_ADSB_OC_AMT AS REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+        <include refid="COMMON.insertSystemFieldValue" />
+            FROM (
+        SELECT A.BASE_YM
+              ,A.PERF_YM
+              ,A.PERF_DV_CD
+              ,A.CO_CD
+              ,A.OG_TP_CD
+              ,A.PRTNR_NO
+              ,A.PERF_VAL
+              ,B.FEE_CD
+              ,B.DTA_CRT_FEE_CD
+              ,B.FEE_CTR_CNFM_AMT                                      -- 수수료 금액
+              ,SUM(NVL(Z.REDF_ADSB_CTR_CNFM_AMT,0))  AS REDF_ADSB_CTR_CNFM_AMT     -- 지금까지 되물림된 금액
+              ,B.FEE_CTR_CNFM_AMT - SUM(NVL(Z.REDF_ADSB_CTR_CNFM_AMT,0))  AS IMSI_AMT
+              ,CASE WHEN A.PERF_VAL >= 6 THEN 0
+                                         ELSE B.FEE_CTR_CNFM_AMT - SUM(NVL(Z.REDF_ADSB_CTR_CNFM_AMT,0)) END AS REDF_ADSB_OC_AMT   -- 개인 판매인정실적 건수가 6건 미만이 되면 전액 되물림 되어야 함.
+          FROM TB_FEAM_NTORP_PERF_MM_CL A     -- 파트너별실적
+               JOIN TB_FEAM_FEE_CALC_BAS B    -- 최초 수수료
+                 ON B.BASE_YM     = A.PERF_YM  -- 기준과 실적 연동
+                AND B.PERF_YM     = A.PERF_YM
+                AND B.OJ_DSB_YM   = A.PERF_YM
+                AND B.CO_CD       = A.CO_CD
+                AND B.OG_TP_CD    = A.OG_TP_CD
+                AND B.PRTNR_NO    = A.PRTNR_NO
+                AND B.FEE_CD      = #{feeCd}    -- 고정
+                AND B.FEE_TCNT_DV_CD = '02'      -- 고정  / 2차
+                AND B.FEE_CALC_TP_CD = '01'      -- 고정  / 수수료
+                AND B.FEE_CTR_CNFM_AMT > 0       -- 고정
+                AND B.DTA_DL_YN       = 'N'
+           LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_BAS Z -- 되물림 실적
+                        ON Z.REDF_ADSB_OC_YM <![CDATA[<]]> A.BASE_YM  -- 이전에 되물림된 건들
+                       AND Z.PERF_YM         = A.PERF_YM
+                       AND Z.FEE_CD          = #{feeCd}
+                       AND Z.OG_TP_CD        = A.OG_TP_CD
+                       AND Z.PRTNR_NO        = A.PRTNR_NO
+                       AND Z.REDF_ADSB_DV_CD = '02'
+                       AND Z.REDF_ADSB_TP_CD = '0202'
+                       AND Z.REDF_ADSB_CTR_CNFM_AMT  > 0  -- 실제 반영된 되물림 금액
+                       AND Z.DTA_DL_YN       = 'N'
+        WHERE 1 = 1
+           AND A.BASE_YM           = #{baseYm}     --  변수
+           AND A.PERF_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -59), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
+           AND A.PERF_YM           BETWEEN #{apyStrtYm} AND #{apyEndYm}
+           AND A.PERF_AGRG_CRT_DV_CD = #{perfAgrgCrtDvCd}
+           AND A.FEE_TCNT_DV_CD    = '02'         --  고정 / 2차만
+           AND A.PERF_ATC_CD       = 'W02P00002'  --  고정 / 판매인정건수
+           AND A.CO_CD             = #{coCd}
+           AND A.OG_TP_CD          = #{ogTpCd}
+           AND A.PERF_DV_CD        = '0'          --  고정 /  개인
+           AND A.DTA_DL_YN       = 'N'
+        GROUP BY
+               A.BASE_YM
+              ,A.PERF_YM
+              ,A.PERF_DV_CD
+              ,A.CO_CD
+              ,A.OG_TP_CD
+              ,A.PRTNR_NO
+              ,A.PERF_VAL
+              ,B.FEE_CD
+              ,B.FEE_CTR_CNFM_AMT   )  SRC
+            WHERE 1 = 1
+              AND SRC.REDF_ADSB_OC_AMT > 0
+    </insert>
 </mapper>
