@@ -36,6 +36,7 @@ public class WsncQuickResponseRpblController {
         @ApiImplicitParam(name = "mngrDvCd", value = "관리구분", paramType = "query", required = false),
         @ApiImplicitParam(name = "pdPrpVal20", value = "상품그룹", paramType = "query", required = false),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "cntrSn", value = "계약순번", paramType = "query", required = false),
         @ApiImplicitParam(name = "prtnrNo", value = "사번", paramType = "query", required = false),
         @ApiImplicitParam(name = "mngtDptmtCd", value = "총괄단", paramType = "query", required = false),
         @ApiImplicitParam(name = "rgnlGrpCd", value = "지역단", paramType = "query", required = false),
