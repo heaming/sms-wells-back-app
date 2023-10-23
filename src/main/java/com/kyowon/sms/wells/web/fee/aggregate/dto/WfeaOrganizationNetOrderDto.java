@@ -213,6 +213,22 @@ public class WfeaOrganizationNetOrderDto {
         String perfExcd
     ) {}
 
+    public record SearchHmstFeeRes2(
+        String ogNm,
+        String prtnrNo,
+        String prtnrKnm,
+        String cntrNo,
+        String rcpdt,
+        String slDt,
+        String canDt,
+        String feePerfTpCd,
+        String pdCd,
+        String pdNm,
+        String ackmtPerfAmt,
+        String ackmtPerfCt,
+        String mchnChTpCd
+    ) {}
+
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerRes")
     public record SearchMngerRes(
         String blg,
