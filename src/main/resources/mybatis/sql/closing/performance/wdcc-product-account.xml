@@ -5,14 +5,14 @@
         /*상품별 계정현황 집계 */
         WITH S0 AS (
         SELECT #{baseYm} AS BASE_YM
-              ,T1.SELL_TP_CD       /*판매유형코드*/
-              ,T1.SELL_TP_DTL_CD   /*판매유형상세코드*/
-              ,T1.BASE_PD_CD  AS PD_CD      /*기준상품코드*/
-              ,T4.PD_HCLSF_ID
-              ,T4.PD_MCLSF_ID
-              ,1 AS AGRG_CT1
-              ,T1.CNTR_NO
-              ,T2.SELL_OG_TP_CD /*조직유형코드*/
+             , T1.SELL_TP_CD       /*판매유형코드*/
+             , T1.SELL_TP_DTL_CD   /*판매유형상세코드*/
+             , T1.BASE_PD_CD  AS PD_CD      /*기준상품코드*/
+             , T4.PD_HCLSF_ID
+             , T4.PD_MCLSF_ID
+             , 1 AS AGRG_CT1
+             , T1.CNTR_NO
+             , T2.SELL_OG_TP_CD /*조직유형코드*/
           FROM TB_SSCT_CNTR_DTL T1
                INNER JOIN TB_SSCT_CNTR_BAS T2 ON (T1.CNTR_NO = T2.CNTR_NO AND T2.DTA_DL_YN = 'N')
                LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T3 ON (T1.CNTR_NO = T3.CNTR_NO AND T1.CNTR_SN = T3.CNTR_SN  AND T3.DTA_DL_YN = 'N')
@@ -25,6 +25,7 @@
                                                                               ELSE TO_CHAR(ADD_MONTHS(TO_DATE(T3.IST_DT,'YYYYMMDD'), T1.CNTR_PTRM) -1, 'YYYYMM')  /* 매출일(설치일) + 계약기간 -1 */
                                                                               END ) >= #{baseYm}   )
             OR  (T1.SELL_TP_CD = '3' AND T2.CNTR_TEMP_SAVE_DTM <![CDATA[<]]> #{baseYm} || '01000000'  /*조회월 > 가입월*/
+                                     AND T2.CNTR_TEMP_SAVE_DTM IS NOT NULL
                                      AND T1.CNTR_PD_ENDDT >= #{baseYm} || '01'   /*조회월 <![CDATA[<=]]> 취소월 */
                                      )
             OR  (T1.SELL_TP_CD = '6' AND T1.CNTR_PD_STRTDT <![CDATA[<]]> #{baseYm} || '01'   /*개입월 <![CDATA[<]]> 조회월*/
@@ -37,14 +38,14 @@
         /*유입 - 렌탈 설치일, 멤버십 가입일, 정기배송 매출일*/
         , S1 AS (
         SELECT #{baseYm}  AS BASE_YM
-              ,T1.SELL_TP_CD       /*판매유형코드*/
-              ,T1.SELL_TP_DTL_CD   /*판매유형상세코드*/
-              ,T1.BASE_PD_CD  AS PD_CD      /*기준상품코드*/
-              ,T4.PD_HCLSF_ID
-              ,T4.PD_MCLSF_ID
-              ,1 AS AGRG_CT2
-              ,T1.CNTR_NO
-              ,T2.SELL_OG_TP_CD /*조직유형코드*/
+             , T1.SELL_TP_CD       /*판매유형코드*/
+             , T1.SELL_TP_DTL_CD   /*판매유형상세코드*/
+             , T1.BASE_PD_CD  AS PD_CD      /*기준상품코드*/
+             , T4.PD_HCLSF_ID
+             , T4.PD_MCLSF_ID
+             , 1 AS AGRG_CT2
+             , T1.CNTR_NO
+             , T2.SELL_OG_TP_CD /*조직유형코드*/
           FROM TB_SSCT_CNTR_DTL T1
                INNER JOIN TB_SSCT_CNTR_BAS T2 ON (T1.CNTR_NO = T2.CNTR_NO AND T2.DTA_DL_YN = 'N')
                LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T3 ON (T1.CNTR_NO = T3.CNTR_NO AND T1.CNTR_SN = T3.CNTR_SN  AND T3.DTA_DL_YN = 'N')
@@ -52,21 +53,21 @@
          WHERE T1.CNTR_NO NOT IN (SELECT CNTR_NO FROM TB_CBCL_WELLS_NOM_ACC_EXCD_BAS WHERE CNTR_NO IS NOT NULL AND DTA_DL_YN = 'N')
            AND T1.BASE_PD_CD NOT IN (SELECT PD_CD FROM TB_CBCL_WELLS_NOM_ACC_EXCD_BAS WHERE PD_CD IS NOT NULL  AND DTA_DL_YN = 'N')
            AND ( (T1.SELL_TP_CD = '2' AND T3.IST_DT LIKE #{baseYm} || '%' )
-           OR  (T1.SELL_TP_CD = '3' AND T2.CNTR_TEMP_SAVE_DTM LIKE #{baseYm} || '%'  )
+           OR  (T1.SELL_TP_CD = '3' AND T2.CNTR_TEMP_SAVE_DTM LIKE #{baseYm} || '%' AND T2.CNTR_TEMP_SAVE_DTM IS NOT NULL )
            OR  (T1.SELL_TP_CD = '6' AND T1.CNTR_PD_STRTDT LIKE #{baseYm} || '%'  )
            )
          )
         /*해지 - 렌탈 취소일, 멤버십 탈퇴일, 정기배송 취소일*/
         ,S2 AS (
         SELECT #{baseYm}  AS BASE_YM
-              ,T1.SELL_TP_CD       /*판매유형코드*/
-              ,T1.SELL_TP_DTL_CD   /*판매유형상세코드*/
-              ,T1.BASE_PD_CD  AS PD_CD      /*기준상품코드*/
-              ,T4.PD_HCLSF_ID
-              ,T4.PD_MCLSF_ID
-              ,1 AS AGRG_CT3
-              ,T1.CNTR_NO
-              ,T2.SELL_OG_TP_CD /*조직유형코드*/
+             , T1.SELL_TP_CD       /*판매유형코드*/
+             , T1.SELL_TP_DTL_CD   /*판매유형상세코드*/
+             , T1.BASE_PD_CD  AS PD_CD      /*기준상품코드*/
+             , T4.PD_HCLSF_ID
+             , T4.PD_MCLSF_ID
+             , 1 AS AGRG_CT3
+             , T1.CNTR_NO
+             , T2.SELL_OG_TP_CD /*조직유형코드*/
           FROM TB_SSCT_CNTR_DTL T1
                INNER JOIN TB_SSCT_CNTR_BAS T2 ON (T1.CNTR_NO = T2.CNTR_NO AND T2.DTA_DL_YN = 'N')
                LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T3 ON (T1.CNTR_NO = T3.CNTR_NO AND T1.CNTR_SN = T3.CNTR_SN  AND T3.DTA_DL_YN = 'N')
@@ -74,21 +75,21 @@
          WHERE T1.CNTR_NO NOT IN (SELECT CNTR_NO FROM TB_CBCL_WELLS_NOM_ACC_EXCD_BAS WHERE CNTR_NO IS NOT NULL  AND DTA_DL_YN = 'N')
            AND T1.BASE_PD_CD NOT IN (SELECT PD_CD FROM TB_CBCL_WELLS_NOM_ACC_EXCD_BAS WHERE PD_CD IS NOT NULL  AND DTA_DL_YN = 'N')
            AND (( T1.SELL_TP_CD = '2' AND T3.IST_DT IS NOT NULL AND  T1.CNTR_DTL_STAT_CD IN ('301','302','303') AND T1.CNTR_PD_ENDDT LIKE #{baseYm} || '%'   )  /* '301' : 고객요청해약,'302' : 연체해약, '303' : 계약취소*/
-           OR  (T1.SELL_TP_CD = '3' AND T1.CNTR_PD_ENDDT LIKE #{baseYm} || '%' ) --AND T1.CNTR_PD_STRTDT  IS NOT NULL 뺏음. 이게들어갈래면 유입, 해지, 만료, 이월에 다넣어야함.
+           OR  (T1.SELL_TP_CD = '3' AND T1.CNTR_PD_ENDDT LIKE #{baseYm} || '%' AND T2.CNTR_TEMP_SAVE_DTM IS NOT NULL )
            OR  (T1.SELL_TP_CD = '6' AND T1.CNTR_PD_STRTDT  IS NOT NULL AND T3.REQD_DT LIKE #{baseYm} || '%'   ))
          )
         /*만료 - 렌탈 만료일, 멤버십 의무만료일, 정기배송 만료일*/
         ,S3 AS (
         SELECT #{baseYm}  AS BASE_YM
-              ,T1.SELL_TP_CD       /*판매유형코드*/
-              ,T1.SELL_TP_DTL_CD   /*판매유형상세코드*/
-              ,T1.BASE_PD_CD  AS PD_CD      /*기준상품코드*/
-              ,T4.PD_HCLSF_ID
-              ,T4.PD_MCLSF_ID
-              ,CASE WHEN T1.SELL_TP_CD = '3' THEN 0
+             , T1.SELL_TP_CD       /*판매유형코드*/
+             , T1.SELL_TP_DTL_CD   /*판매유형상세코드*/
+             , T1.BASE_PD_CD  AS PD_CD      /*기준상품코드*/
+             , T4.PD_HCLSF_ID
+             , T4.PD_MCLSF_ID
+             , CASE WHEN T1.SELL_TP_CD = '3' THEN 0
                     ELSE 1 END AS AGRG_CT4
-              ,T1.CNTR_NO
-              ,T2.SELL_OG_TP_CD /*조직유형코드*/
+             , T1.CNTR_NO
+             , T2.SELL_OG_TP_CD /*조직유형코드*/
           FROM TB_SSCT_CNTR_DTL T1
                INNER JOIN TB_SSCT_CNTR_BAS T2 ON (T1.CNTR_NO = T2.CNTR_NO AND T2.DTA_DL_YN = 'N')
                LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T3 ON (T1.CNTR_NO = T3.CNTR_NO AND T1.CNTR_SN = T3.CNTR_SN  AND T3.DTA_DL_YN = 'N')
@@ -100,19 +101,20 @@
                                                   ELSE TO_CHAR(ADD_MONTHS(TO_DATE(T3.IST_DT,'YYYYMMDD'), T1.CNTR_PTRM) -1, 'YYYYMM')  /* 매출일(설치일) + 계약기간 -1 */
                                                   END ) LIKE #{baseYm} || '%'   AND T1.CNTR_DTL_STAT_CD IN ('401','402')  )
            OR  (T1.SELL_TP_CD = '3' AND TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(T2.CNTR_CNFM_DTM, 1, 6), 'YYYYMM'), T1.STPL_PTRM) -1,'YYYYMM') LIKE #{baseYm} || '%'
-                                    AND T1.CNTR_PD_ENDDT NOT BETWEEN #{baseYm} || '01' AND #{baseYm} || '31'   )  /*유상만료일. 무상일때는 T1.STPL_PTRM 대신 T3.FRISU_BFSVC_PTRM_N. 멤버십 만료없음. */
+                                    AND T1.CNTR_PD_ENDDT NOT BETWEEN #{baseYm} || '01' AND #{baseYm} || '31'
+                                    AND T2.CNTR_TEMP_SAVE_DTM IS NOT NULL)  /*유상만료일. 무상일때는 T1.STPL_PTRM 대신 T3.FRISU_BFSVC_PTRM_N. 멤버십 만료없음. */
            OR  (T1.SELL_TP_CD = '6' AND T1.CNTR_PD_ENDDT LIKE #{baseYm} || '%'  AND T1.CNTR_PD_STRTDT  IS NOT NULL  AND T3.REQD_DT IS NULL ) )
          )
          /*쿼리*/
          SELECT BASE_YM
-               ,SELL_TP_CD
-               ,SELL_TP_DTL_CD
-               ,SUM(AGRG_CT1) AS AGRG_CT1 /*이월*/
-               ,SUM(AGRG_CT2) AS AGRG_CT2 /*유입*/
-               ,SUM(AGRG_CT3) AS AGRG_CT3 /*해지*/
-               ,SUM(AGRG_CT4) AS AGRG_CT4 /*만료*/
-               ,SUM(AGRG_CT2-AGRG_CT3-AGRG_CT4) AS AGRG_CT5 /*순증*/
-               ,SUM(AGRG_CT1+AGRG_CT2-AGRG_CT3-AGRG_CT4) AS AGRG_CT6 /*기말합계*/
+              , SELL_TP_CD
+              , SELL_TP_DTL_CD
+              , SUM(AGRG_CT1) AS AGRG_CT1 /*이월*/
+              , SUM(AGRG_CT2) AS AGRG_CT2 /*유입*/
+              , SUM(AGRG_CT3) AS AGRG_CT3 /*해지*/
+              , SUM(AGRG_CT4) AS AGRG_CT4 /*만료*/
+              , SUM(AGRG_CT2-AGRG_CT3-AGRG_CT4) AS AGRG_CT5 /*순증*/
+              , SUM(AGRG_CT1+AGRG_CT2-AGRG_CT3-AGRG_CT4) AS AGRG_CT6 /*기말합계*/
            FROM
            (
              SELECT BASE_YM
@@ -214,6 +216,7 @@
                                                                               END ) >= #{baseYm}   )
             OR  (T1.SELL_TP_CD = '3' AND T2.CNTR_TEMP_SAVE_DTM <![CDATA[<]]> #{baseYm} || '01000000'  /*조회월 > 가입월*/
                                      AND T1.CNTR_PD_ENDDT >= #{baseYm} || '01'   /*조회월 <![CDATA[<=]]> 취소월 */
+                                     AND T2.CNTR_TEMP_SAVE_DTM IS NOT NULL
                                      )
             OR  (T1.SELL_TP_CD = '6' AND T1.CNTR_PD_STRTDT <![CDATA[<]]> #{baseYm} || '01'   /*개입월 <![CDATA[<]]> 조회월*/
                                      AND (T3.REQD_DT >= #{baseYm} || '01' OR T3.REQD_DT IS NULL)   /*취소월 >= 조회월 */
@@ -240,7 +243,7 @@
          WHERE T1.CNTR_NO NOT IN (SELECT CNTR_NO FROM TB_CBCL_WELLS_NOM_ACC_EXCD_BAS WHERE CNTR_NO IS NOT NULL AND DTA_DL_YN = 'N')
            AND T1.BASE_PD_CD NOT IN (SELECT PD_CD FROM TB_CBCL_WELLS_NOM_ACC_EXCD_BAS WHERE PD_CD IS NOT NULL  AND DTA_DL_YN = 'N')
            AND ( (T1.SELL_TP_CD = '2' AND T3.IST_DT LIKE #{baseYm} || '%' )
-           OR  (T1.SELL_TP_CD = '3' AND T2.CNTR_TEMP_SAVE_DTM LIKE #{baseYm} || '%'  )
+           OR  (T1.SELL_TP_CD = '3' AND T2.CNTR_TEMP_SAVE_DTM LIKE #{baseYm} || '%' AND T2.CNTR_TEMP_SAVE_DTM IS NOT NULL )
            OR  (T1.SELL_TP_CD = '6' AND T1.CNTR_PD_STRTDT LIKE #{baseYm} || '%'  )
            )
          )
@@ -262,7 +265,7 @@
          WHERE T1.CNTR_NO NOT IN (SELECT CNTR_NO FROM TB_CBCL_WELLS_NOM_ACC_EXCD_BAS WHERE CNTR_NO IS NOT NULL  AND DTA_DL_YN = 'N')
            AND T1.BASE_PD_CD NOT IN (SELECT PD_CD FROM TB_CBCL_WELLS_NOM_ACC_EXCD_BAS WHERE PD_CD IS NOT NULL  AND DTA_DL_YN = 'N')
            AND (( T1.SELL_TP_CD = '2' AND T3.IST_DT IS NOT NULL AND  T1.CNTR_DTL_STAT_CD IN ('301','302','303') AND T1.CNTR_PD_ENDDT LIKE #{baseYm} || '%'   )  /* '301' : 고객요청해약,'302' : 연체해약, '303' : 계약취소*/
-           OR  (T1.SELL_TP_CD = '3' AND T1.CNTR_PD_ENDDT LIKE #{baseYm} || '%' ) --AND T1.CNTR_PD_STRTDT  IS NOT NULL 뺏음. 이게들어갈래면 유입, 해지, 만료, 이월에 다넣어야함.
+           OR  (T1.SELL_TP_CD = '3' AND T1.CNTR_PD_ENDDT LIKE #{baseYm} || '%' AND T2.CNTR_TEMP_SAVE_DTM IS NOT NULL)
            OR  (T1.SELL_TP_CD = '6' AND T1.CNTR_PD_STRTDT  IS NOT NULL AND T3.REQD_DT LIKE #{baseYm} || '%'   ))
          )
         /*만료 - 렌탈 만료일, 멤버십 의무만료일, 정기배송 만료일*/
@@ -288,7 +291,8 @@
                                                   ELSE TO_CHAR(ADD_MONTHS(TO_DATE(T3.IST_DT,'YYYYMMDD'), T1.CNTR_PTRM) -1, 'YYYYMM')  /* 매출일(설치일) + 계약기간 -1 */
                                                   END ) LIKE #{baseYm} || '%'   AND T1.CNTR_DTL_STAT_CD IN ('401','402')  )
            OR  (T1.SELL_TP_CD = '3' AND TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(T2.CNTR_CNFM_DTM, 1, 6), 'YYYYMM'), T1.STPL_PTRM) -1,'YYYYMM') LIKE #{baseYm} || '%'
-                                    AND T1.CNTR_PD_ENDDT NOT BETWEEN #{baseYm} || '01' AND #{baseYm} || '31'   )  /*유상만료일. 무상일때는 T1.STPL_PTRM 대신 T3.FRISU_BFSVC_PTRM_N. 멤버십 만료없음. */
+                                    AND T1.CNTR_PD_ENDDT NOT BETWEEN #{baseYm} || '01' AND #{baseYm} || '31'
+                                    AND T2.CNTR_TEMP_SAVE_DTM IS NOT NULL  )  /*유상만료일. 무상일때는 T1.STPL_PTRM 대신 T3.FRISU_BFSVC_PTRM_N. 멤버십 만료없음. */
            OR  (T1.SELL_TP_CD = '6' AND T1.CNTR_PD_ENDDT LIKE #{baseYm} || '%'  AND T1.CNTR_PD_STRTDT  IS NOT NULL  AND T3.REQD_DT IS NULL ) )
          )
          /*쿼리*/
