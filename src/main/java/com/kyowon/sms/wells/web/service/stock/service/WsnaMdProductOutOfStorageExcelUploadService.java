@@ -59,7 +59,7 @@ public class WsnaMdProductOutOfStorageExcelUploadService {
         List<WsnaMdProductOutOfStorageExcelUploadErrorDvo> excelUploadErrorDvos = validateExcelDatas(dvos);
 
         return ValidateRes.builder()
-            .result(CollectionUtils.isEmpty(excelUploadErrorDvos) ? true : false)
+            .result(CollectionUtils.isEmpty(excelUploadErrorDvos))
             .errors(excelUploadErrorDvos).build();
     }
 
