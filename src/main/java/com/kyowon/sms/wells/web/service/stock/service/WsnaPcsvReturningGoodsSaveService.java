@@ -14,7 +14,6 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdD
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaPcsvReturningGoodsMgtConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvReturningGoodsMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvReturningGoodsSaveProductDvo;
@@ -38,7 +37,6 @@ public class WsnaPcsvReturningGoodsSaveService {
     private final WsnaPcsvReturningGoodsMgtMapper mapper;
     private final WsnaPcsvReturningGoodsMgtConverter converter;
     private final ZsnaWellsCounselSevice counselService;
-    private final WsnaItemStockItemizationService itemStockService;
     private final WctaInstallationReqdDtInService reqdDtService;
     private final WsnaLogisticsInStorageAskService logisticsService;
 
@@ -135,9 +133,6 @@ public class WsnaPcsvReturningGoodsSaveService {
                 // 10. 반품요청 연계(물류서비스) DVO 변환 및 호출
                 logisticsService.createInStorageAsks(setLogisticsInStorageAskReqDvo(logisticsVo));
                 // 11. 품목 재고 변경 내용 저장 => 물류 연계 배치 처리 후, 품목 재고 변경
-                /*
-                itemStockService.createStock(setPcsvReturnGoodsWsnaItemStockItemizationDtoSaveReq(dvo));
-                */
                 ostrSn += 1;
             }
             processCount += 1;
@@ -181,27 +176,6 @@ public class WsnaPcsvReturningGoodsSaveService {
         }
 
         return AskReqList;
-    }
-
-    private WsnaItemStockItemizationReqDvo setPcsvReturnGoodsWsnaItemStockItemizationDtoSaveReq(
-        WsnaPcsvReturningGoodsSaveDvo dvo
-    ) {
-
-        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
-        String nowDay = DateUtil.getNowDayString();
-        reqDvo.setProcsYm(dvo.getOstrDt().substring(0, 6));
-        reqDvo.setProcsDt(dvo.getOstrDt());
-        reqDvo.setWareDv(dvo.getWkWareNo().substring(0, 1)); /*창고구분*/
-        reqDvo.setWareNo(dvo.getWkWareNo());
-        reqDvo.setWareMngtPrtnrNo(dvo.getWareMngtPrtnrNo()); //파트너번호
-        reqDvo.setIostTp(RETURN_INSIDE); //입출고유형(택배반품 261)
-        reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
-        reqDvo.setItmPdCd(dvo.getLogisticsPdCd());
-        reqDvo.setMngtUnit("1");
-        reqDvo.setItemGd(dvo.getFnlGb()); //최종산정등급
-        reqDvo.setQty(dvo.getLogisticsPdQty());
-
-        return reqDvo;
     }
 
     private void selectExistSvpdCstSvWkRsIz(

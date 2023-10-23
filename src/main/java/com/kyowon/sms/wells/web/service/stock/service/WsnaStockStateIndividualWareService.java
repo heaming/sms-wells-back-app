@@ -32,8 +32,6 @@ public class WsnaStockStateIndividualWareService {
     // Header용 창고 조회
     public List<WsnaStockStateIndividualWareWareDvo> getWareHouses(SearchReq dto) {
 
-        WsnaStockStateIndividualWareWareDvo wareDvo = new WsnaStockStateIndividualWareWareDvo();
-
         return mapper.selectMcByWares(dto);
     }
 
@@ -41,7 +39,6 @@ public class WsnaStockStateIndividualWareService {
     public WsnaStockStateIndividualWareDvo convertPivotWsnaStockStateIndividualWareDvo(
         SearchReq dto
     ) {
-        String baseYm = dto.baseYm();
         List<WsnaStockStateIndividualWareWareDvo> wares = getWareHouses(dto);
 
         WsnaStockStateIndividualWareDvo dvo = converter.mapSearchReqToWsnaStockStateIndividualWareDvo(dto);

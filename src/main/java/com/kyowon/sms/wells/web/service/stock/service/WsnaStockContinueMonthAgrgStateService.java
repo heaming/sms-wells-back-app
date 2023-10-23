@@ -29,17 +29,8 @@ public class WsnaStockContinueMonthAgrgStateService {
         return mapper.selectStockContinueMonthAgrgState(dvo);
     }
 
-    public List<HashMap<String, String>> getStockContinueMonthAgrgStateExcelDownload(SearchReq dto) {
-
-        WsnaStockContinueMonthAgrgStateDvo dvo = convertPivotStockContinueMonthAgrgStateDvo(dto);
-
-        return mapper.selectStockContinueMonthAgrgState(dvo);
-    }
-
     // Header용 창고 조회
     public List<WsnaStockContinueMonthAgrgStateWareDvo> getWareHouses(String baseYm) {
-
-        WsnaStockContinueMonthAgrgStateWareDvo wareDvo = new WsnaStockContinueMonthAgrgStateWareDvo();
 
         return mapper.selectMcByWares(baseYm);
     }
