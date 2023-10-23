@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaCollectionMaterialsAgrgMapper">
+    <select id="selectCollectionMaterialsAgrgs" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaCollectionMaterialsAgrgDto$SearchRes">
+       WITH PD_INF AS
+       (
+            SELECT T1.PD_CD
+                 , T1.PD_NM
+                 , T2.PD_PRP_VAL19 AS ITM_KND_CD
+                 , T1.SAP_MAT_CD
+                 , T2.PD_PRP_VAL15 AS ORDNY_HV_MAT_YN
+                 , T2.PD_PRP_VAL20 AS PD_GRP_CD
+            FROM TB_PDBS_PD_BAS T1 /*상품기본*/
+            LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2  /*상품각사속성상세*/
+            ON T1.PD_CD = T2.PD_CD
+             AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
+            WHERE 1=1
+       )
+       , STOCK_INF AS
+       ( /* 최신 창고정보 */
+            SELECT A.WARE_NO
+                 , A.WARE_NM
+                 , B.OG_ID
+                 , B.OG_NM
+            FROM TB_SVST_MCBY_WARE_IZ A
+            INNER JOIN TB_OGBS_MM_OG_IZ B
+            ON A.OG_TP_CD = B.OG_TP_CD
+            AND A.OG_ID = B.OG_ID
+            AND A.APY_YM = B.BASE_YM
+            WHERE A.APY_YM = SUBSTR(#{startDt},1,6)
+       )
+       <if test="@MybatisUtils@isEmpty(wareNoD)">
+           <if test="@MybatisUtils@equals(wareDtlDvCd, 'ALL') or @MybatisUtils@equals(wareDtlDvCd, '20')">
+           /* ALL: 전체 , 20: 조직창고  */
+               SELECT  /*+ INDEX(S1 IX_SVST_SV_WK_OSTR_IZ_01) */
+                      W1.HGR_WARE_NO AS WARE_NO
+                    , W2.OG_NM       AS WARE_NM
+                    , SUM(CASE WHEN S1.ITM_PD_CD = 'WM07101720' THEN S1.USE_QTY ELSE 0 END) AS QTY_WM07101720 /* 회수 키트류 */
+                    , SUM(CASE WHEN S1.ITM_PD_CD = 'WM07101721' THEN S1.USE_QTY ELSE 0 END) AS QTY_WM07101721 /* 회수 조리수밸브 */
+                    , SUM(CASE WHEN S1.ITM_PD_CD = 'WM07101722' THEN S1.USE_QTY ELSE 0 END) AS QTY_WM07101722 /* 회수 연수기밸브류 */
+                    , SUM(CASE WHEN S1.ITM_PD_CD = 'WM07101723' THEN S1.USE_QTY ELSE 0 END) AS QTY_WM07101723 /* 회수 연수기호스류 */
+                    , NVL(SUM(S1.USE_QTY),0) AS QTY_SUM
+              FROM TB_SVST_MCBY_WARE_IZ W1/* ST102 월별창고 */
+              INNER JOIN TB_SVST_SV_WK_OSTR_IZ S1 /* ST163 서비스작업출고내역*/
+               ON W1.WARE_NO = S1.WK_WARE_NO
+               AND W1.APY_YM = SUBSTR(S1.FNL_VST_FSH_DT,1,6)
+               AND S1.ITM_PD_CD IN ('WM07101721', 'WM07101722', 'WM07101720', 'WM07101723')
+               AND S1.FNL_VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
+              LEFT OUTER JOIN STOCK_INF W2
+               ON W1.HGR_WARE_NO = W2.WARE_NO
+               AND W1.WARE_USE_YN = 'Y'
+              WHERE 1=1
+               AND W1.WARE_DV_CD = '2'
+               AND W1.APY_YM = SUBSTR(#{startDt},1,6)
+               <if test="@MybatisUtils@isNotEmpty(wareNoM)">
+               AND W1.HGR_WARE_NO = #{wareNoM}
+               </if>
+               GROUP BY W1.HGR_WARE_NO
+                      , W2.OG_NM
+           </if>
+           <if test="@MybatisUtils@equals(wareDtlDvCd, 'ALL')">
+              UNION ALL
+           </if>
+           <if test="@MybatisUtils@equals(wareDtlDvCd, 'ALL') or @MybatisUtils@equals(wareDtlDvCd, '21')">
+               /* ALL: 전체 , 21: 개인창고  */
+               SELECT /*+ INDEX(S1 IX_SVST_SV_WK_OSTR_IZ_01) */
+                      W1.WARE_NO AS WARE_NO
+                    , W2.WARE_NM AS WARE_NM
+                    , SUM(CASE WHEN S1.ITM_PD_CD = 'WM07101720' THEN S1.USE_QTY ELSE 0 END) AS QTY_WM07101720 /* 회수 키트류 */
+                    , SUM(CASE WHEN S1.ITM_PD_CD = 'WM07101721' THEN S1.USE_QTY ELSE 0 END) AS QTY_WM07101721 /* 회수 조리수밸브 */
+                    , SUM(CASE WHEN S1.ITM_PD_CD = 'WM07101722' THEN S1.USE_QTY ELSE 0 END) AS QTY_WM07101722 /* 회수 연수기밸브류 */
+                    , SUM(CASE WHEN S1.ITM_PD_CD = 'WM07101723' THEN S1.USE_QTY ELSE 0 END) AS QTY_WM07101723 /* 회수 연수기호스류 */
+                    , NVL(SUM(S1.USE_QTY),0) AS QTY_SUM
+               FROM TB_SVST_MCBY_WARE_IZ W1/* ST102 월별창고 */
+               LEFT OUTER JOIN STOCK_INF W2
+                   ON W1.WARE_NO = W2.WARE_NO
+               LEFT OUTER JOIN TB_SVST_SV_WK_OSTR_IZ S1 /* ST163 서비스작업출고내역*/
+                   ON W1.WARE_NO = S1.WK_WARE_NO
+                   AND W1.APY_YM = SUBSTR(S1.FNL_VST_FSH_DT,1,6)
+                   AND S1.ITM_PD_CD IN ('WM07101721', 'WM07101722', 'WM07101720', 'WM07101723')
+                   AND S1.FNL_VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
+               LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ P1 /* 월별 파트너 */
+                   ON W1.OG_TP_CD = P1.OG_TP_CD
+                   AND W1.WARE_MNGT_PRTNR_NO = P1.PRTNR_NO
+                   AND P1.DTA_DL_YN = 'N'
+               WHERE W1.APY_YM = P1.BASE_YM
+                   AND W1.WARE_DV_CD = '2'
+                   AND W1.APY_YM = SUBSTR(#{startDt},1,6)
+                   <if test="@MybatisUtils@isNotEmpty(wareNoM)">
+                   AND W1.HGR_WARE_NO = #{wareNoM}
+                   </if>
+                   <if test='@MybatisUtils@isNotEmpty(rgsnYn) and @MybatisUtils@equals(rgsnYn, "Y")'>
+                    AND P1.FNL_CLTN_DT IS NULL
+                   </if>
+               GROUP BY W1.WARE_NO
+                      , W2.WARE_NM
+           </if>
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(wareNoD)">
+         /*개별창고 (전체,조직,개인 아닌경우) */
+           SELECT /*+ INDEX(S1 IX_SVST_SV_WK_OSTR_IZ_01) */
+                  W1.WARE_NO  AS WARE_NO
+                , W2.WARE_NM  AS WARE_NM
+                , SUM(CASE WHEN S1.ITM_PD_CD = 'WM07101720' THEN S1.USE_QTY ELSE 0 END) AS QTY_WM07101720 /* 회수 키트류 */
+                , SUM(CASE WHEN S1.ITM_PD_CD = 'WM07101721' THEN S1.USE_QTY ELSE 0 END) AS QTY_WM07101721 /* 회수 조리수밸브 */
+                , SUM(CASE WHEN S1.ITM_PD_CD = 'WM07101722' THEN S1.USE_QTY ELSE 0 END) AS QTY_WM07101722 /* 회수 연수기밸브류 */
+                , SUM(CASE WHEN S1.ITM_PD_CD = 'WM07101723' THEN S1.USE_QTY ELSE 0 END) AS QTY_WM07101723 /* 회수 연수기호스류 */
+                , NVL(SUM(S1.USE_QTY),0) AS QTY_SUM
+           FROM TB_SVST_MCBY_WARE_IZ W1/* ST102 월별창고 */
+           LEFT OUTER JOIN STOCK_INF W2
+               ON W1.WARE_NO = W2.WARE_NO
+           INNER JOIN TB_SVST_SV_WK_OSTR_IZ S1 /* ST163 서비스작업출고내역*/
+               ON W1.WARE_NO = S1.WK_WARE_NO
+               AND W1.APY_YM = SUBSTR(S1.FNL_VST_FSH_DT,1,6)
+               AND S1.ITM_PD_CD IN ('WM07101721', 'WM07101722', 'WM07101720', 'WM07101723')
+               AND S1.FNL_VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
+           WHERE 1=1
+            AND W1.WARE_DV_CD = '2'
+            AND S1.WK_WARE_NO  = #{wareNoD}
+           GROUP BY W1.WARE_NO
+                  , W2.WARE_NM
+       </if>
+    </select>
+</mapper>
