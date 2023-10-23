@@ -10,7 +10,6 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,7 +22,7 @@ public class WpsdWelsMngerSvCmpstIctrService {
     public PagingResult<SearchRes> getWelsMngerSvCmpstIctrPages(SearchReq dto, PageInfo pageInfo) {
         PagingResult<SearchRes> res = new PagingResult<>();
         WpsdWelsMngerSvCmpstIctrDvo dvo = converter.mapToDvo(dto);
-        List<WpsdWelsMngerSvCmpstIctrDvo> list = new ArrayList<>();
+        List<WpsdWelsMngerSvCmpstIctrDvo> list;
         if (dvo.getAwdDv().equals("01")) {
             list = mapper.selectWelsMngerSvCmpstIctrTotalPages(dvo, pageInfo);
         } else {
@@ -37,7 +36,7 @@ public class WpsdWelsMngerSvCmpstIctrService {
 
     public List<SearchRes> getWelsMngerSvCmpstIctrsForExcelDownload(SearchReq dto) {
         WpsdWelsMngerSvCmpstIctrDvo dvo = converter.mapToDvo(dto);
-        List<WpsdWelsMngerSvCmpstIctrDvo> list = new ArrayList<>();
+        List<WpsdWelsMngerSvCmpstIctrDvo> list;
         if (dvo.getAwdDv().equals("01")) {
             list = mapper.selectWelsMngerSvCmpstIctrTotalPages(dvo);
         } else {
