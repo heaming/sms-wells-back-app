@@ -23,9 +23,6 @@ public class WsndRglvlEgerPdlvMngtService {
 
     public PagingResult<SearchRes> getRglvlEgerPdlvMngtPages(SearchReq dto, PageInfo pageInfo){
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
-        String sessionUserNo = session.getUserId();
-        String sessionUserName = session.getUserName();
-        String sessionOgNm = session.getOgCdNm();
 
         PagingResult<SearchRes> dtos = mapper.selectRglvlEgerPdlvMngtPages(dto, pageInfo);
         return dtos;
