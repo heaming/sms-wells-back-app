@@ -29,7 +29,53 @@
        WHERE ROWNUM = 1
     </select>
     <select id="selectMdProductOutOfStorages" resultType="camelMap">
-       WITH INQRY_LIST AS
+       WITH OJ_LIST AS
+       (
+            <if test="@MybatisUtils@equals(firstSppGb, 'ALL') or @MybatisUtils@equals(firstSppGb, '1')">
+            SELECT T1.AS_IST_OJ_NO     /*접수번호*/
+                 , T1.CST_SV_ASN_NO    /*배정번호*/
+                 , T1.CNTR_NO
+                 , T1.CNTR_SN
+                 , T1.SV_BIZ_HCLSF_CD
+                 , T1.SV_BIZ_DCLSF_CD
+                 , T2.WK_PRGS_STAT_CD   /*서비스상태코드 */
+                 , T1.FST_RGST_USR_ID   /*접수자사번*/
+                 , T1.PD_GD_CD
+                 , T2.SV_CNR_OG_ID      /*서비스센터조직ID - 배정정보*/
+                 , T2.ICHR_OG_TP_CD     /*담당조직유형코드 - 배정정보*/
+                 , T2.ICHR_PRTNR_NO     /*담당파트너번호 - 배정정보*/
+                 , T1.AS_REFRI_DV_CD    /*AS유무상구분코드*/
+                 , T1.BFSVC_REFRI_DV_CD /*BS유무상구분코드*/
+                 , T2.DTM_CH_RSON_DTL_CN AS SPP_PROCS_BZS_CD  /*택배사*/
+           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1        /* 고객서비스AS설치대상내역 */
+           INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2 /* 고객서비스AS설치배정내역 */
+            ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+           </if>
+           <if test="@MybatisUtils@equals(firstSppGb, 'ALL')">
+           UNION ALL
+           </if>
+           <if test="@MybatisUtils@equals(firstSppGb, 'ALL') or @MybatisUtils@equals(firstSppGb, 'N')">
+           SELECT '' AS AS_IST_OJ_NO
+                , T1.CST_SV_ASN_NO AS CST_SV_ASN_NO
+                , T1.CNTR_NO AS CNTR_NO
+                , T1.CNTR_SN AS CNTR_SN
+                , '2' AS SV_BIZ_HCLSF_CD
+                , T1.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+                , T2.VST_PRGS_STAT_CD AS WK_PRGS_STAT_CD
+                , T1.FST_RGST_USR_ID
+                , 'A' AS PD_GD_CD
+                , '' AS SV_CNR_OG_ID
+                , '' AS ICHR_OG_TP_CD
+                , '' AS ICHR_PRTNR_NO
+                , '' AS AS_REFRI_DV_CD
+                , '' AS BFSVC_REFRI_DV_CD
+                , '' AS SPP_PROCS_BZS_CD
+           FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ T1         /* 고객서비스BS대상내역 */
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ  T2 /* 고객서비스BS배정내역 */
+            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+           </if>
+       )
+       , INQRY_LIST AS
        (  /* 택배 대상 */
           SELECT V2.*
           FROM (
@@ -59,15 +105,7 @@
                              , PL1.PRTNR_NO          /*파트너번호 - 작업자정보*/
                              , PL1.AS_REFRI_DV_CD    /*AS유무상구분코드*/
                              , PL1.BFSVC_REFRI_DV_CD /*BS유무상구분코드*/
-                             , PL1.URGT_DV_CD        /*긴급구분코드*/
-                             , PL1.RPB_LOCARA_CD     /*책임지역코드*/
-                             , PL1.PD_USWY_CD        /*상품용도코드*/
                              , PL1.VST_FSH_DT        /*방문완료일자(출고완료일자)*/
-                             , PL1.AS_LCT_CD         /*AS위치코드*/
-                             , PL1.AS_PHN_CD         /*AS현상코드*/
-                             , PL1.AS_CAUS_CD        /*AS원인코드*/
-                             , PL1.SITE_AW_SV_TP_CD  /*현장수당서비스유형코드*/
-                             , PL1.SITE_AW_ATC_CD    /*현장수당항목코드*/
                              , PL1.CNTR_CNFM_DTM    /*계약확정일*/
 			                 , PL1.PART_CNT_TOTAL AS PART_CNT_TOTAL    /*투입부품모델수*/
                              , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 1) AS PART_CD_01
@@ -117,29 +155,25 @@
                                      , S1.SV_BIZ_HCLSF_CD
                                      , S1.SV_BIZ_DCLSF_CD
                                      , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', S1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_NM
-                                     , S2.WK_PRGS_STAT_CD   /*서비스상태코드 */
-                                     , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', S2.WK_PRGS_STAT_CD, 'ko') AS WK_PRGS_STAT_NM
+                                     , S1.WK_PRGS_STAT_CD   /*서비스상태코드 */
+                                     , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', S1.WK_PRGS_STAT_CD, 'ko') AS WK_PRGS_STAT_NM
                                      , S6.IST_DT                /*설치일자*/
                                      , S6.REQD_DT               /*철거일자*/
-                                     , S2.SV_CNR_OG_ID      /*서비스센터조직ID - 배정정보*/
-                                     , S2.ICHR_OG_TP_CD     /*담당조직유형코드 - 배정정보*/
-                                     , S2.ICHR_PRTNR_NO     /*담당파트너번호 - 배정정보*/
+                                     , S1.SV_CNR_OG_ID      /*서비스센터조직ID - 배정정보*/
+                                     , S1.ICHR_OG_TP_CD     /*담당조직유형코드 - 배정정보*/
+                                     , S1.ICHR_PRTNR_NO     /*담당파트너번호 - 배정정보*/
                                      , S3.OG_ID             /*조직ID - 작업자정보*/
                                      , S3.OG_TP_CD          /*조직유형코드 - 작업자정보*/
                                      , S3.PRTNR_NO          /*파트너번호 - 작업자정보*/
                                      , S1.AS_REFRI_DV_CD    /*AS유무상구분코드*/
                                      , S1.BFSVC_REFRI_DV_CD /*BS유무상구분코드*/
-                                     , S1.URGT_DV_CD        /*긴급구분코드*/
-                                     , S2.RPB_LOCARA_CD     /*책임지역코드*/
-                                     , S1.PD_USWY_CD        /*상품용도코드*/
                                      , S3.VST_FSH_DT        /*방문완료일자(출고완료일자)*/
                                        /*작업결과용*/
-                                     , NVL(S3.AS_LCT_CD, S5.AS_LCT_CD) AS AS_LCT_CD    /*AS위치코드*/
-                                     , NVL(S3.AS_PHN_CD, S5.AS_PHN_CD) AS AS_PHN_CD    /*AS현상코드*/
-                                     , NVL(S3.AS_CAUS_CD, S5.AS_CAUS_CD) AS AS_CAUS_CD /*AS원인코드*/
-                                     , TRIM(NVL(S2.SITE_AW_SV_TP_CD, S5.SV_TP_CD)) AS SITE_AW_SV_TP_CD      /*현장수당서비스유형코드*/
-                                     , TRIM(NVL(S2.SITE_AW_ATC_CD, S5.SITE_AW_ATC_CD)) AS SITE_AW_ATC_CD    /*현장수당항목코드*/
                                      , S1.FST_RGST_USR_ID  /*접수자사번*/
+                                     , S7.WARE_NO    /*창고번호*/
+                                     , S7.WARE_NM    /*창고명*/
+                                     , (CASE WHEN S7.OG_TP_CD LIKE '@%' THEN 'W06' ELSE S7.OG_TP_CD END) AS WARE_MNGT_PRTNR_OG_TP_CD
+                                     , S7.OG_TP_CD AS WARE_MNGT_PRTNR_OG_TP_CD
                                      , C0.CNTR_CNFM_DTM     /*계약확정일*/
                                      , COUNT(1) OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
                                                           ORDER BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
@@ -154,29 +188,28 @@
                                      , LISTAGG(C2.PD_QTY, ',')
                                        WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN) AS PART_QTY_LIST
                                       /* MD */
-                                     , S2.DTM_CH_RSON_DTL_CN AS SPP_PROCS_BZS_CD  /*택배사*/
+                                     , S1.SPP_PROCS_BZS_CD  /*택배사*/
                                      , S3.BC_NO AS SPP_BZS_PD_ID     /*시리얼번호*/
                                      , S3.SPP_IVC_NO AS SPP_IVC_NO        /*송장번호*/
                                      , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', P1.PD_PRP_VAL09) AS PRTNR_BZS_NM /*파트너업체*/
-                                FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1            /*고객서비스AS설치대상내역, AC211TB*/
-                                INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2     /*고객서비스수행배정내역, AC221TB*/
-                                 ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
-                                 AND S2.DTA_DL_YN = 'N'
+                                FROM OJ_LIST S1
                                 LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3    /*고객서비스작업결과내역, VS106TB*/
                                  ON S3.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
                                  AND S3.DTA_DL_YN = 'N'
                                 LEFT OUTER JOIN TB_SVST_SV_WK_OSTR_IZ S4      /*서비스작업출고내역, ST163TB*/
                                  ON S4.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
                                  AND S4.DTA_DL_YN = 'N'
-                                LEFT OUTER JOIN TB_SVPD_AS_TP_CD S5           /*AS유형코드, CO460TB*/
-                                 ON S5.PD_CD = S1.PD_CD
-                                 AND S5.SV_ANA_HCLSF_CD = S1.SV_BIZ_DCLSF_CD
-                                 AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN S5.APY_STRTDT AND S5.APY_ENDDT
-                                 AND S5.DTA_DL_YN = 'N'
                                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S6          /*고객서비스수행내역*/
                                  ON S6.CNTR_NO = S1.CNTR_NO
                                  AND S6.CNTR_SN = S1.CNTR_SN
                                  AND S6.DTA_DL_YN = 'N'
+                                INNER JOIN TB_SVST_MCBY_WARE_IZ S7 /*월별창고내역, LC_STOCK_ST102TB 창고조직기본정보*/
+                                 ON (CASE WHEN S7.WARE_MNGT_PRTNR_NO = '71321'
+                                     THEN '99992' ELSE S7.WARE_MNGT_PRTNR_NO END) = NVL(S3.PRTNR_NO, S1.ICHR_PRTNR_NO)
+                                 AND S7.WARE_DTL_DV_CD = '10'  /*창고상세구분코드*/
+                                 AND S7.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                 AND S7.DTA_DL_YN = 'N'
+                                 AND S7.WARE_NO =  'TEMP' /* 창고 정의필요  */
                                 INNER JOIN TB_SSCT_CNTR_BAS C0                /*계약기본*/
                                  ON C0.CNTR_NO = S1.CNTR_NO
                                  AND C0.DTA_DL_YN = 'N'
@@ -222,15 +255,15 @@
                                 AND C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
                                 </if>
                                 <if test="@MybatisUtils@equals(findGb, '1')">
-                                AND S2.WK_PRGS_STAT_CD = '20'
+                                AND S1.WK_PRGS_STAT_CD = '20'
                                 AND S3.VST_FSH_DT = #{ostrCnfmDt}
                                 </if>
                                 <if test="@MybatisUtils@equals(findGb, '2')">
-                                AND S2.WK_PRGS_STAT_CD IN ('00', '10')
+                                AND S1.WK_PRGS_STAT_CD IN ('00', '10')
                                 AND C3.RSG_FSH_DT IS NULL  /*해지완료일자*/
                                 AND C3.RSG_APLC_DT IS NULL /*해지신청일자*/
 
-                                    <if test="@MybatisUtils@equals(firstSppGb, 'all')">
+                                    <if test="@MybatisUtils@equals(firstSppGb, 'ALL')">
                                     AND ( C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
                                         OR S6.IST_DT BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959' )
                                     </if>
@@ -441,16 +474,8 @@
          , I1.SPP_PROCS_BZS_CD AS PCSV_COMP_DV
          , F_CMZ_CD_NM('TNT_WELLS', 'SPP_PROCS_BZS_CD', I1.SPP_PROCS_BZS_CD) AS PCSV_COMP_NM
          /* 작업결과 */
-         , I1.AS_LCT_CD                 /*AS위치코드*/
-         , I1.AS_PHN_CD                 /*AS현상코드*/
-         , I1.AS_CAUS_CD                /*AS원인코드*/
-         , I1.RPB_LOCARA_CD             /*책임지역코드*/
-         , I1.SITE_AW_SV_TP_CD          /*현장수당서비스유형코드*/
-         , I1.SITE_AW_ATC_CD            /*현장수당항목코드*/
-         , I1.PD_USWY_CD                /*상품용도코드*/
          , I1.AS_REFRI_DV_CD            /*AS유무상구분코드*/
          , I1.BFSVC_REFRI_DV_CD         /*BS유무상구분코드*/
-         , I1.URGT_DV_CD                /*긴급구분코드*/
           /*자재*/
          , PART_CNT_TOTAL AS PART_CNT
          , PART_CD_01  AS PART_CD_1
