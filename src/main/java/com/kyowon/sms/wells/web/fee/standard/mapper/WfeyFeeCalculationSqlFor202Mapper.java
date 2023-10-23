@@ -80,9 +80,11 @@ public interface WfeyFeeCalculationSqlFor202Mapper {
      * @param baseYm      기준년월
      * @param ogTpCd      조직유형코드
      * @param feeCd       수수료코드
-     * @param feeTcntDvCd 수수료차수구분코드
+     * @param perfAgrgCrtDvCd 실적집계생성구분코드
+     * @param apyStrtYm 적용시작일자
+     * @param apyEndYm 적용종료년월
      * @return 처리개수
      */
     @SqlMethodInfo(methodName = "M조직 플래너지점장 정착수수료 되물림 계산(W020080)", methodExplanation = "M조직 플래너지점장 정착수수료 되물림 계산(W020080) SQL 매퍼")
-    Integer insertPlarBrmgrSettleFeeRedf(String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String feeTcntDvCd, String fnlFeeYn);
+    Integer insertPlarBrmgrSettleFeeRedf(String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String perfAgrgCrtDvCd, String apyStrtYm, String apyEndYm);
 }
