@@ -1,21 +1,19 @@
 package com.kyowon.sms.wells.web.competence.educations.service;
 
-import static com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchReq;
-import static com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchRes;
-
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kyowon.sms.common.web.deduction.zcommon.constant.DeDeductionConst;
 import com.kyowon.sms.wells.web.competence.educations.converter.WpsbZoomMngtConverter;
 import com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto;
 import com.kyowon.sms.wells.web.competence.educations.dvo.WpsbZoomMgtDvo;
 import com.kyowon.sms.wells.web.competence.educations.mapper.WpsbZoomMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchReq;
+import static com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchRes;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +35,7 @@ public class WpsbZoomMgtService {
     @Transactional
     public int saveAllZoom(WpsbZoomMgtDto.EditReq dto) {
         int processCount = 0;
-        int delCnt = mapper.deleteZoom(dto.hgrSvEducMnalId());
+        mapper.deleteZoom(dto.hgrSvEducMnalId());
         for (WpsbZoomMgtDto.SaveReq zoomDto : dto.treeList()) {
             boolean inSave = false;
             if (dto.hgrSvEducMnalId().equals("WELS0000000000")) {
@@ -58,11 +56,11 @@ public class WpsbZoomMgtService {
     }
 
     /**
-    * Zoom 등록,수정
-    *
-    * @param dto
-    * @return processCount
-    */
+     * Zoom 등록,수정
+     *
+     * @param dto
+     * @return processCount
+     */
     @Transactional
     public int saveZoom(WpsbZoomMgtDto.SaveReq dto) {
         int processCount = 0;
