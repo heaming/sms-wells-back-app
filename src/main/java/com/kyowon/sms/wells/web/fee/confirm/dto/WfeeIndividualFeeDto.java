@@ -25,9 +25,9 @@ public class WfeeIndividualFeeDto {
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String perfYm,
+        String perfYm, /* 실적년월 */
         @NotBlank
-        String no
+        String prtnrNo /* 파트너번호 */
     ) {}
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstReq")
     public record SearchHmstReq(
@@ -46,20 +46,18 @@ public class WfeeIndividualFeeDto {
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeReq")
     public record SearchFeeReq(
         @NotBlank
-        String perfYm, /*실적년월*/
+        String perfYm, /* 실적년월 */
         @NotBlank
-        String ogTpCd, /*조직유형*/
+        String ogTpCd, /* 조직유형코드 */
         @NotBlank
-        String rsbDvCd, /*직책유형*/
-        String ogLevl1Id, /*조직레벨1*/
-        String ogLevl2Id, /*조직레벨2*/
-        String ogLevl3Id, /*조직레벨3*/
+        String rsbDvCd, /* 직책유형코드 */
+        String ogLevl1, /* 조직레벨1 */
+        String ogLevl2, /* 조직레벨2 */
+        String ogLevl3, /* 조직레벨3 */
+        String ogLevl4, /* 조직레벨4 */
+        String ogLevl5, /* 조직레벨5 */
         String prtnrNo, /*파트너번호*/
-        String feeDsbYn, /*수수료지급여부*/
-        String userRsbCd, /*직책구분코드*/
-        String userSpptRsbDvCd,
-        String hirFomCd, /*고용형태코드*/
-        String userEmpId /*로그인Id*/
+        String feeDsbYn /* 수수료지급여부 */
     ) {}
 
     // *********************************************************
@@ -116,6 +114,7 @@ public class WfeeIndividualFeeDto {
         String mngtCt, /* 관리건수 */
         String vstCt, /* 방문건수 */
         String procsRt, /* 처리율 */
+        String metgDc, /* 미팅일수 */
         String dgr1LevlOgId, /* 1차레벨조직ID */
         String dgr2LevlOgId, /* 2차레벨조직ID */
         String dgr3LevlOgId, /* 3차레벨조직ID */
@@ -175,25 +174,49 @@ public class WfeeIndividualFeeDto {
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeRes")
     public record SearchFeeRes(
-        String mngtDiv,
-        String renlGrp,
-        String branch,
-        String emplNm,
-        String prtnrNo,
-        String rsbDvCd,
-        String qlfDvCd,
-        String fnitCd,
-        String acNo,
-        String pstnDvCd,
-        int intbsSum,
-        int ddtnSum,
-        int aclDsbAmt,
-        int awbIntbsSum,
-        int awbDdtnSum,
-        int awbAclDsbAmt
+        String baseYm, /* 기준년월 */
+        String dgr1LevlOgId, /* 1차레벨조직id */
+        String dgr1LevlOgCd, /* 1차레벨조직코드 */
+        String dgr1LevlOgNm, /* 1차레벨조직명 */
+        String dgr1LevlDgPrtnrNo, /* 1차레벨대표파트너번호 */
+        String dgr1LevlDgPrtnrNm, /* 1차레벨대표파트너명 */
+        String dgr2LevlOgId, /* 2차레벨조직id */
+        String dgr2LevlOgCd, /* 2차레벨조직코드 */
+        String dgr2LevlOgNm, /* 2차레벨조직명 */
+        String dgr2LevlDgPrtnrNo, /* 2차레벨대표파트너번호 */
+        String dgr2LevlDgPrtnrNm, /* 2차레벨대표파트너명 */
+        String dgr3LevlOgId, /* 3차레벨조직id */
+        String dgr3LevlOgCd, /* 3차레벨조직코드 */
+        String dgr3LevlOgNm, /* 3차레벨조직명 */
+        String dgr3LevlDgPrtnrNo, /* 3차레벨대표파트너번호 */
+        String dgr3LevlDgPrtnrNm, /* 3차레벨대표파트너명 */
+        String dgr4LevlOgId, /* 4차레벨조직id */
+        String dgr4LevlOgCd, /* 4차레벨조직코드 */
+        String dgr4LevlOgNm, /* 4차레벨조직명 */
+        String dgr4LevlDgPrtnrNo, /* 4차레벨대표파트너번호 */
+        String dgr4LevlDgPrtnrNm, /* 4차레벨대표파트너명 */
+        String dgr5LevlOgId, /* 5차레벨조직id */
+        String dgr5LevlOgCd, /* 5차레벨조직코드 */
+        String dgr5LevlOgNm, /* 5차레벨조직명 */
+        String dgr5LevlDgPrtnrNo, /* 5차레벨대표파트너번호 */
+        String dgr5LevlDgPrtnrNm, /* 5차레벨대표파트너명 */
+        String prtnrNo, /* 파트너번호 */
+        String prtnrKnm, /* 파트너명 */
+        String rsbDvCd, /* 직책구분코드 */
+        String qlfDvCd, /* 자격구분코드 */
+        String coCd, /* 회사코드 */
+        String pymdt, /* 지급일자 */
+        String intbsAmt, /* 소득과표금액 */
+        String ddctam, /* 공제금액 */
+        String dsbOjAmt, /* 지급대상금액 */
+        String awdIntbsAmt, /* 시상소득과표금액 */
+        String awdErnWhtx, /* 시상소득원천세 */
+        String awdDsbOjAmt, /* 시상실지급액 */
+        String bnkNm, /* 은행명 */
+        String acnoEncr /* 계좌번호암호화 */
     ) {
         public SearchFeeRes {
-            acNo = StringUtils.isNotEmpty(acNo) ? DbEncUtil.dec(acNo) : acNo;
+            acnoEncr = StringUtils.isNotEmpty(acnoEncr) ? DbEncUtil.dec(acnoEncr) : acnoEncr;
         }
     }
 

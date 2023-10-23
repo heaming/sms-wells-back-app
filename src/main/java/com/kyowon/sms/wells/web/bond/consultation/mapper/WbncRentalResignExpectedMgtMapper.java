@@ -1,9 +1,6 @@
 package com.kyowon.sms.wells.web.bond.consultation.mapper;
 
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.CheckReq;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.SaveCancelReq;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.SaveConfirmReq;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.*;
 import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncAuthorityResignIzDvo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -31,4 +28,10 @@ public interface WbncRentalResignExpectedMgtMapper {
     int insertRentalResignExpectedCancel(SaveCancelReq dto);
 
     List<WbncAuthorityResignIzDvo> selectRentalResignConfirms(@Param("baseDt") String baseDt);
+
+    Integer selectRentalResignExpectedSmsCount(SmsCheckReq dto);
+
+    int updateRentalResignExpectedCancel(SaveCancelReq dto);
+
+    int updateOvrdAthrTrmtPreExcdAdmn(@Param("baseDt") String baseDt);
 }

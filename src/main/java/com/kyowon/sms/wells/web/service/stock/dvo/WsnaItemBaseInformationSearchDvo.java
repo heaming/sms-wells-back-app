@@ -6,18 +6,18 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WsnaItemBaseInformationSearchDvo {
-    private String itmKndCd;
-    private String itmPdCd;
-    private String itmPdNm;
-    private String wareNo;
-    private String ostrWareNo;
-    private String ostrWareDvCd;
-    private String wareDvCd;
-    private String wareDtlDvCd;
-    private String strtSapCd;
-    private String endSapCd;
+    private String itmKndCd; /* 품목구분코드 */
+    private String itmPdCd; /* 품목상품코드 */
+    private String itmPdNm; /* 품목상품명 */
+    private String wareNo; /* 창고번호 */
+    private String ostrWareNo; /* 출고창고번호 */
+    private String ostrWareDvCd; /* 출고창고구분코드 */
+    private String wareDvCd; /* 창고구분코드 */
+    private String wareDtlDvCd; /* 창고상세구분코드 */
+    private String strtSapCd; /* 시작SAP코드 */
+    private String endSapCd; /* 종료SAP코드 */
     // OFFSET
-    private Integer offSet;
+    private Integer offSet; /* OFFSET */
     // FETCH SIZE
-    private Integer size;
+    private Integer size; /* SIZE */
 }

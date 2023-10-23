@@ -46,18 +46,18 @@ public class WsnaReturningGoodsDvo {
     String trnspnCd; //운송코드
 
     //물류에 전송하기 위한 데이터 dvo
-    private String ostrAkNo;
-    private String ostrAkSn;
-    private String ostrAkTpCd;
-    private String ostrAkRgstDt;
-    private String strHopDt;
-    private String lgstStrTpCd;
-    private String iostAkDvCd;
-    private String wareMngtPrtnrOgTpCd;
-    private String sapIostTpCd;
-    private String lgstSppMthdCd;
-    private String ostrAkQty;
-    private String ostrOjWareNo;
-    private String svCnrCd;
-    private String svCnrNm;
+    private String ostrAkNo; /* 출고요청번호 */
+    private String ostrAkSn; /* 출고요청순번 */
+    private String ostrAkTpCd; /* 출고요청유형코드 */
+    private String ostrAkRgstDt; /* 출고요청등록일자 */
+    private String strHopDt; /* 입고희망일자 */
+    private String lgstStrTpCd; /* 물류입고유형코드 */
+    private String iostAkDvCd; /* 입출고요청구분코드 */
+    private String wareMngtPrtnrOgTpCd; /* 창고관리파트너조직유형코드 */
+    private String sapIostTpCd; /* SAP입출고유형코드 */
+    private String lgstSppMthdCd; /* 물류배송방식코드 */
+    private String ostrAkQty; /* 출고요청수량 */
+    private String ostrOjWareNo; /* 출고대상창고번호 */
+    private String svCnrCd; /* 서비스센터코드 */
+    private String svCnrNm; /* 서비스센터명 */
 }

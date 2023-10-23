@@ -206,7 +206,7 @@ public class WfeaOrganizationNetOrderController {
         @ApiImplicitParam(name = "inqrDvCd", value = "조회구분", paramType = "query", required = true),
         @ApiImplicitParam(name = "divCd", value = "구분", paramType = "query", required = false),
         @ApiImplicitParam(name = "feeTcntDvCd", value = "차수", paramType = "query", required = true),
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "og1LevlId", value = "총괄단ID", paramType = "query", required = false),
         @ApiImplicitParam(name = "og2LevlId", value = "지역단총괄단ID", paramType = "query", required = false),
         @ApiImplicitParam(name = "og3LevlId", value = "지점ID", paramType = "query", required = false),

@@ -83,12 +83,12 @@
              , T1.QLF_APLC_DV_CD                                    /* 자격변경(자격신청구분코드) - 1:승급, 2:자격해제 */
              , F_CMZ_CD_NM(#{session.tenantId}, 'QLF_APLC_DV_CD', T1.QLF_APLC_DV_CD) AS QLF_APLC_DV_NM  /* 자격변경명 */
              , T1.STRTDT                                            /* 시작일자 */
-             , NVL(T3.CNTR_DT, T5.CNTR_DT) AS CNTR_DT               /* 계약일자 */
-             , NVL(T3.PRTNR_CNTR_TP_CD, '4') AS PRTNR_CNTR_TP_CD    /* 파트너 계약유형코드 */
+             , T1.CV_DT                                             /* 전환일자 */
+             , T1.ENDDT                                             /* 종료일자 */
              , T1.PYMDT                                             /* 지급일자 */
              , T1.DSB_AMT                                           /* 지급금액 */
-             , T3.CNTR_DT                                           /* 계약일자 */
-             , T3.PRTNR_CNTR_TP_CD                                  /* 파트너 계약유형코드 */
+             , NVL(T3.CNTR_DT, T5.CNTR_DT) AS CNTR_DT               /* 계약일자 */
+             , NVL(T3.PRTNR_CNTR_TP_CD, '4') AS PRTNR_CNTR_TP_CD    /* 파트너 계약유형코드 */
              , T1.PCP_OG_TP_CD                                      /* 처리자조직유형코 */
              , T1.PCP_PRTNR_NO                                      /* 처리자파트너번호 */
              , T4.PRTNR_KNM AS PCP_PRTNR_KNM                        /* 처리자파트너한글명 */
@@ -104,9 +104,7 @@
            AND T3.BASE_YM = SUBSTR(T1.STRTDT, 1, 6)
            AND T3.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4
-            ON T4.BASE_YM = CASE WHEN T1.ENDDT = '99991231' THEN TO_CHAR(SYSDATE, 'YYYYMM')
-                                                            ELSE TO_CHAR(TO_DATE(T1.ENDDT), 'YYYYMM')
-                            END
+            ON T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T4.OG_TP_CD = T1.PCP_OG_TP_CD
            AND T4.PRTNR_NO = T1.PCP_PRTNR_NO
            AND T4.DTA_DL_YN = 'N'
@@ -536,7 +534,6 @@
                                       FROM TB_OGPS_TOPMR_PLAR_APLC_IZ /* 수석플래너신청내역 */
                                       WHERE MNGT_YM   = #{mngtYm} /* 파라미터 #############################  */
                                         AND DTA_DL_YN = 'N'
-                                      GROUP BY MNGT_YM, OG_TP_CD, PRTNR_NO
                                     )  T2
                     ON T2.PRTNR_NO    = T1.PRTNR_NO
                     LEFT OUTER JOIN ( /* 수석플래너신청내역 파트너별 최종 이력 */
@@ -628,7 +625,7 @@
                         ,QLF_DV.CLTN_DT                        --해약일자
                         ,QLF_DV.RCNTR_DT                       --재계약일자
                         ,CASE WHEN (QLF_DV.QLF_DV_CD = QLF_DV.LAST_QLF_DV_CD) AND (QLF_DV.UPGR_DMTN_DV_CD = '1') AND (QLF_DV.UPGR_YM IS NOT NULL)
-                              THEN NVL(QLF_DV.UPGR_MCN, 0) + (MONTHS_BETWEEN(TO_DATE(#{mngtYm},'YYYYMM'), TO_DATE(QLF_DV.UPGR_YM,'YYYYMM')))
+                              THEN (MONTHS_BETWEEN(TO_DATE(#{mngtYm},'YYYYMM'), TO_DATE(QLF_DV.UPGR_YM,'YYYYMM')) + 1) /* 추가 내역 - 2023-10-16 */
                               ELSE 0
                          END                                   --승급개월수
                         ,'N'                                   --데이터삭제여부

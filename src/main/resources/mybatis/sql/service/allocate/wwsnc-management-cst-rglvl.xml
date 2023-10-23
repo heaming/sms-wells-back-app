@@ -14,12 +14,18 @@
 						 , T3.NEW_ADR_ZIP 																-- 우편번호
 						 , T3.RNADR || ' ' || T3.RDADR AS ADR 											-- 주소
 						 , T3.CTPV_NM || ' ' || T3.CTCTY_NM || ' ' || T3.EMD_NM AS ADR_EMD				-- 주소(읍면동)
-						 , CASE
-							 WHEN ( T4.WK_SN = 1 AND T4.VST_DUEDT = #{manageYm} ) 		  THEN '01' --'신규'
-							 WHEN ( T4.ASN_OJ_YM = #{manageYm} AND T4.VST_PRGS_STAT_CD = '00' ) THEN '02' --'작업대기'
-							 WHEN ( T4.ASN_OJ_YM = #{manageYm} AND T4.VST_PRGS_STAT_CD = '20' ) THEN '03' --'작업완료'
-						   	 ELSE '00' -- '예정'
-						   END AS RCGVP_DIV 															-- 고객구분
+						 , CASE WHEN (
+                                    (SELECT NVL(MAX(1),0) CNT
+                                       FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ z1
+                                      WHERE z1.ASN_OJ_YM <![CDATA[<]]> #{manageYm}
+                                        AND z1.DTA_DL_YN = 'N'
+                                        AND z1.CNTR_NO = T1.CNTR_NO
+                                        AND z1.CNTR_SN = T1.CNTR_SN
+                                    ) = 0 ) THEN '01' --'신규'
+                                WHEN ( T4.VST_PRGS_STAT_CD = '00' ) THEN '02' --'작업대기'
+                                WHEN ( T4.VST_PRGS_STAT_CD = '20' ) THEN '03' --'작업완료'
+                                ELSE '00' -- '예정'
+                           END AS RCGVP_DIV 															-- 고객구분
 						 , DECODE(T6.DTA_DL_YN, 'Y', '고정', '') AS FIX									-- 고정
 						 , T5.VST_DUEDT																	-- 차기방문월
 						 , T9.DGR2_LEVL_OG_CD   AS MNG_STD_DGR2_LEVL_OG_CD								-- 관리기준(관리계정) - 지역단
@@ -62,10 +68,16 @@
 			  			   ) T3
 					  	ON T3.DTL_CNTR_NO = T1.CNTR_NO
 					   AND T3.DTL_CNTR_SN = T1.CNTR_SN
-                INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T4
-		   				ON T4.CNTR_NO = T1.CNTR_NO
-		   			   AND T4.CNTR_SN = T1.CNTR_SN
-					   AND T4.DTA_DL_YN = 'N'
+                INNER JOIN (SELECT z2.*
+                              FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ z2
+                            INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ z3
+                            ON z2.CST_SV_ASN_NO = z3.CST_SV_ASN_NO
+                            AND z3.VST_DV_CD != '20'
+                            ) T4
+                        ON T4.CNTR_NO = T1.CNTR_NO
+                       AND T4.CNTR_SN = T1.CNTR_SN
+                       AND T4.ASN_OJ_YM = #{manageYm}
+                       AND T4.DTA_DL_YN = 'N'
 		   LEFT OUTER JOIN (
 			   			SELECT T1.CNTR_NO
 			   				 , T1.CNTR_SN

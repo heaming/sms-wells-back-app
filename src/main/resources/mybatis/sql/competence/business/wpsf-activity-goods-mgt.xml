@@ -195,13 +195,13 @@
              , b.APLC_QTY
              , a.ACTI_GDS_NM      /* 활동물품명 */
              , (a.ACTI_GDS_AMT * b.APLC_QTY) ACTI_GDS_AMT
-             , a.PAT_DDTN_MCN
+             , TO_CHAR(NVL(e.COUNT_MCN,0)) || ' / ' || TO_CHAR(a.PAT_DDTN_MCN) AS PAT_DDTN_MCN
              , CASE WHEN (e.COUNT_MCN)+1 = a.PAT_DDTN_MCN THEN ((a.ACTI_GDS_AMT * b.APLC_QTY ) - e.SUM_FEE_DDTN_DST_AMT)
                     ELSE TRUNC((a.ACTI_GDS_AMT * b.APLC_QTY ) / a.PAT_DDTN_MCN)
                END AS PNPYAM_OC_AMT
              , e.MAX_FEE_DDTN_OC_DT
              , NVL(e.SUM_FEE_DDTN_DST_AMT,0) SUM_FEE_DDTN_DST_AMT
-             , NVL(e.COUNT_MCN,0) COUNT_MCN
+             , NVL(e.COUNT_MCN,1) COUNT_MCN
              , e.ACTI_GDS_DDTN_ID
              , b.ACTI_GDS_STDD_CD /* 활동물품규격코드 */
              , g.ACTI_GDS_STDD_NM
@@ -231,6 +231,10 @@
                        AND BASE_YM <![CDATA[<=]]> SUBSTR(b.FST_RGST_DTM, 1, 6)
                ) <![CDATA[>]]> 0 THEN '추가' ELSE '신입' END BASE_DV_NM
              , TO_CHAR(ADD_MONTHS(TO_DATE(h.CNTR_DT, 'YYYYMMDD'), 1), 'YYYY-MM') AS START_YRMN
+             , CASE WHEN a.PAT_DDTN_MCN = COUNT_MCN+1 THEN a.ACTI_GDS_AMT * b.APLC_QTY - e.SUM_FEE_DDTN_DST_AMT /*마지막 차수에 나머지 금액 포함하여 공제*/
+                    WHEN e.THM_AMT IS NULL THEN CAST(a.ACTI_GDS_AMT * b.APLC_QTY / a.PAT_DDTN_MCN / 10 AS INT) * 10
+                    ELSE e.THM_AMT
+               END THM_AMT
         FROM TB_PSGA_ACTI_GDS_BAS a /*활동물품기본*/
             INNER JOIN TB_PSGA_ACTI_GDS_APLC_IZ b ON (b.OG_TP_CD = a.OG_TP_CD AND b.ACTI_GDS_CD = a.ACTI_GDS_CD AND b.ACTI_GDS_SN = a.ACTI_GDS_SN AND b.DTA_DL_YN = 'N') /*활동물품신청내역*/
             LEFT OUTER JOIN TB_PSGA_ACTI_GDS_APLC_STAT_IZ c ON (c.ACTI_GDS_APLC_ID = b.ACTI_GDS_APLC_ID AND c.ACTI_GDS_APLC_STAT_CD = '01' AND c.DTA_DL_YN = 'N') /*활동물품신청상태내역 - 신청정보*/
@@ -260,6 +264,7 @@
                     ,MAX(FEE_DDTN_OC_DT) MAX_FEE_DDTN_OC_DT /*최종발생일자*/
                     ,NVL(SUM(FEE_DDTN_DST_AMT),0) SUM_FEE_DDTN_DST_AMT /*누적금액*/
                     ,NVL(COUNT(FEE_DDTN_DST_AMT),0) COUNT_MCN /*차수*/
+                    ,SUM(CASE WHEN SUBSTR(FEE_DDTN_OC_DT, 0, 6) = #{aplcDt} THEN FEE_DDTN_DST_AMT ELSE NULL END) THM_AMT /*당월금액*/
                 FROM TB_PSGA_ACTI_GDS_DDTN_IZ
                 WHERE 1=1
                     AND PROCS_YN = 'Y'

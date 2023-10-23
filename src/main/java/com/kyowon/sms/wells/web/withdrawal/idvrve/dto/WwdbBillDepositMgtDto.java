@@ -16,10 +16,10 @@ public class WwdbBillDepositMgtDto {
     }
 
     public record SearchRes(
-        String cntrNo, /*계약번호*/
-        String cntrSn, /*계약일련번호*/
-        String cntrDtlNo, /*계약상세번호*/
-        String cntrCstNo,
+//        String cntrNo, /*계약번호*/
+//        String cntrSn, /*계약일련번호*/
+//        String cntrDtlNo, /*계약상세번호*/
+//        String cntrCstNo,
         String mconBzsNm, /*거래처명*/
         String billRmkCn, /*어음구분*/
         String billDpAmt, /*입금액*/

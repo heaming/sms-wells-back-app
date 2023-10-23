@@ -45,8 +45,8 @@ public class WsnaBsRegularShippingMgtService {
 
     /**
      * (자가필터,건식상품) 배송관리 조회 조건(상품 목록) 조회
-     * @param dto
-     * @return
+     * @param dto { asnYm: 배정년월, sppDvCd: 프로그램ID(A1:자가필터, A2:건식상품) }
+     * @return 조회결과
      */
     public List<SearchProductRes> getProducts(SearchProductReq dto) {
         return mapper.selectProducts(dto);
@@ -54,8 +54,9 @@ public class WsnaBsRegularShippingMgtService {
 
     /**
      * (자가필터,건식상품) 목록 조회
-     * @param dto
-     * @return
+     * @param dto { asnYm: 배정년월, sppDvCd: 프로그램ID(A1:자가필터, A2:건식상품), lgstWkMthdCd: 물류요청작업방식코드
+     *              pgGb: 그룹핑코드 (G:배송상품그룹매핑, P:미매핑상품), procsDvCd: 처리구분, rownum: 조회제한건수 }
+     * @return 조회결과
      */
     public List<SearchRes> getShippingItems(SearchReq dto) {
         List<WsnaBsRegularShippingMgtDvo> dvos = mapper.selectShippingItems(dto);
@@ -64,8 +65,10 @@ public class WsnaBsRegularShippingMgtService {
 
     /**
      * (자가필터,건식상품) 목록 조회(페이징)
-     * @param dto, pageInfo
-     * @return
+     * @param dto { asnYm: 배정년월, sppDvCd: 프로그램ID(A1:자가필터, A2:건식상품), lgstWkMthdCd: 물류요청작업방식코드
+     *              pgGb: 그룹핑코드 (G:배송상품그룹매핑, P:미매핑상품), procsDvCd: 처리구분, rownum: 조회제한건수 }
+     * @param pageInfo : 페이징정보
+     * @return 조회결과
      */
     public PagingResult<SearchRes> getShippingItemPages(SearchReq dto, PageInfo pageInfo) {
         PagingResult<WsnaBsRegularShippingMgtDvo> dvos = mapper.selectShippingItems(dto, pageInfo);
@@ -79,7 +82,6 @@ public class WsnaBsRegularShippingMgtService {
     /**
      * (자가필터,건식상품) 데이터 저장
      * @param dtos
-     * @return
      */
     @Transactional
     public int createShippingItems(List<SaveReq> dtos) {
@@ -151,6 +153,10 @@ public class WsnaBsRegularShippingMgtService {
         return processCount;
     }
 
+    /**
+     * (자가필터,건식상품) WsnaBsRegularShippingMaterialDvo 값 세팅
+     * @param dvo
+     */
     public List<WsnaBsRegularShippingMaterialDvo> transferShippingMaterials(WsnaBsRegularShippingMgtDvo dvo) {
 
         List<WsnaBsRegularShippingMaterialDvo> materialDvos = new ArrayList<>();
@@ -277,6 +283,10 @@ public class WsnaBsRegularShippingMgtService {
         return materialDvos;
     }
 
+    /**
+     * (자가필터,건식상품) 재고정보변경, 물류인터페이스 dvo list 세팅 후 재고변경 서비스 호출
+     * @param materialDvo
+     */
     public void putStockItems(WsnaBsRegularShippingMaterialDvo materialDvo) {
         String now = DateUtil.getNowString();
         WsnaItemStockItemizationReqDvo stockItem = new WsnaItemStockItemizationReqDvo();

@@ -4,7 +4,7 @@
     <select id="selectGiroOcrForwardingObjects" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchObjectRes">
         SELECT CNTR_NO /*계약번호*/
              , CNTR_SN /*계약일련번호*/
-             , CNTR_NO || CNTR_SN AS CNTR /*계약상세번호*/
+             , CNTR_NO ||'-'|| CNTR_SN AS CNTR /*계약상세번호*/
              , CST_KNM AS CST_FNM
              , SL_DT /*매출일자*/
              , RENTAL_TN/*현재차월*/
@@ -29,11 +29,11 @@
                   WHEN T7.END_SL_DT BETWEEN 23 AND  34 THEN 23
                   WHEN T7.END_SL_DT BETWEEN 35 AND  46 THEN 35
                   WHEN T7.END_SL_DT BETWEEN 47 AND  59 THEN 47
-                  ELSE 60 END  END_GIRO_TN
+                  ELSE 60 END  END_GIRO_TN 
             , <![CDATA[
               CASE WHEN T7.END_SL_DT < M1.ISTM_MCN THEN 0
-                   WHEN T7.START_SL_DT <= M1.ISTM_MCN AND SUBSTR(M1.SL_DT,6,2) = SUBSTR(T7.LAST_DD,6,2) OR SUBSTR(M1.SL_DT,6,2) >= 30 THEN M1.RENTAL_AMT - M1.RENTAL_DSC_AMT
-                   WHEN T7.START_SL_DT <= M1.ISTM_MCN THEN ROUND((M1.RENTAL_AMT - M1.RENTAL_DSC_AMT) / 30 * SUBSTR(M1.SL_DT,6,2) /10) * 10
+                   WHEN T7.START_SL_DT <= M1.ISTM_MCN AND SUBSTR(M1.SL_DT,7,2) = SUBSTR(T7.LAST_DD,7,2) OR SUBSTR(M1.SL_DT,7,2) >= 30 THEN M1.RENTAL_AMT - M1.RENTAL_DSC_AMT
+                   WHEN T7.START_SL_DT <= M1.ISTM_MCN THEN ROUND((M1.RENTAL_AMT - M1.RENTAL_DSC_AMT) / 30 * SUBSTR(M1.SL_DT,7,2) /10) * 10
                    ELSE 0
                     END EXN_NMN_AMT   ]]>
                 </otherwise>
@@ -78,7 +78,8 @@
                       , T1.RENTAL_AMT /*렌탈료*/
                       , T1.RENTAL_DSC_AMT/*렌탈할인*/
                       , CASE WHEN T1.RENTAL_TN <![CDATA[<=]]> T1.CNTR_PTRM
-                             THEN T1.RENTAL_AMT - T1.RENTAL_DSC_AMT /* - 재약정할인*/
+                             THEN T1.RENTAL_AMT /* - 재약정할인*/
+<!--                             THEN T1.RENTAL_AMT - T1.RENTAL_DSC_AMT /* - 재약정할인*/-->
                              ELSE 0
                               END AS PY_AMT /*청규렌탈료*/
                       , 'N' AS LTPAY_YN/*후납여부*/
@@ -221,6 +222,8 @@
            AND T1.DTA_DL_YN = 'N'
          ORDER BY T1.WK_DT
                 , T1.WK_SN
+                , T1.CNTR_NO
+                , T1.CNTR_SN
     </select>
 
     <insert id="insertGiroOcrForwardings">
@@ -621,8 +624,12 @@
                                                    AND T9.DTA_DL_YN = 'N'
                                                  WHERE 1 = 1
                                                    AND T1.WK_DT = #{wkDt}
-                                                   AND T1.LTPAY_YN = 'N'
+<!--                                                   AND T1.LTPAY_YN = 'N'-->
                                                    AND T1.DTA_DL_YN = 'N'
+                                                 ORDER BY T1.WK_DT --작업년월
+                                                        , T1.WK_SN --일련번호
+                                                        , T1.CNTR_SN  --계약번호
+                                                        , T1.CNTR_NO
                                              ) T02
                                 ) T03
                     )

@@ -20,6 +20,14 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-I-0020 Wells홈페이지 홈카페 캡슐 패키지 변경을 위한 배송 정보 리스트
+ * </pre>
+ *
+ * @author yeonghwa.cheon
+ * @since 2023.03.20
+ */
 @InterfaceController
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1 + ": 홈카페 캡슐 패키지 변경을 위한 배송 정보 리스트")
 @RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/capsulepkg-ch-sppinf")
@@ -30,6 +38,9 @@ public class WsniCapsulepkgChSppinfInterfaceController {
 
     private final WsniCapsulepkgChSppinfInterfaceService service;
 
+    /**
+     * Wells홈페이지 홈카페 캡슐 패키지 변경을 위한 배송 정보 리스트 조회
+     */
     @ApiOperation(value = "Wells홈페이지 홈카페 캡슐 패키지 변경을 위한 배송 정보 리스트", notes = "Wells홈페이지 홈카페 캡슐 패키지 변경을 위한 배송 정보 리스트 조회 API이다.")
     @PostMapping
     public EaiWrapper getCapsulepkgChSppinfs(

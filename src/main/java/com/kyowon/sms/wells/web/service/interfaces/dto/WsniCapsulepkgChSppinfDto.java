@@ -20,31 +20,31 @@ public class WsniCapsulepkgChSppinfDto {
         @JsonProperty("CNTR_SN")
         String cntrSn, /* 계약일련번호 */
         @JsonProperty("PAGE_INDEX")
-        int pageIndex,
+        int pageIndex, /* 페이지 인덱스 */
         @JsonProperty("PAGE_SIZE")
-        int pageSize
+        int pageSize /* 페이지 크기 */
     ) {}
 
     @ApiModel(value = "WsnbCapsulepkgChSppinfDto-SearchRes")
     public record SearchRes(
         @JsonProperty("SPP_DUEDT")
-        String sppDuedt,
+        String sppDuedt, /* 배송예정일자 */
         @JsonProperty("PD_CD")
-        String pdCd,
+        String pdCd, /* 상품코드 */
         @JsonProperty("PD_NM")
-        String pdNm,
+        String pdNm, /* 상품명 */
         @JsonProperty("AFCH_PD_CD")
-        String afchPdCd,
+        String afchPdCd, /* 변경후상품코드 */
         @JsonProperty("AFCH_PD_NM")
-        String afchPdNm,
+        String afchPdNm, /* 변경후상품명 */
         @JsonProperty("DT_INFO")
-        String dtInfo,
+        String dtInfo, /* 패키지구성정보 */
         @JsonProperty("SELL_AMT")
-        String sellAmt,
+        String sellAmt, /* 판매금액 */
         @JsonProperty("SPP_PRGS_STAT_CD")
-        String sppPrgsStatCd,
+        String sppPrgsStatCd, /* 배송진행상태코드 */
         @JsonProperty("IST_ADDR")
-        String istAddr
+        String istAddr /* 설치주소 */
     ) {}
 
 }

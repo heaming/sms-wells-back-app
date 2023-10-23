@@ -19,6 +19,14 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 웰스홈페이지 신규접수 I/F Controller
+ * </pre>
+ *
+ * @author jeongeon.kim
+ * @since 2023-06-26
+ */
 @InterfaceController
 @Api(tags = "[WCSB] 웰스홈페이지 신규접수")
 @RequestMapping(CstCommonConstant.INTERFACE_URL_V1 + "/customer/prospect-customers")
@@ -28,6 +36,11 @@ import lombok.RequiredArgsConstructor;
 public class WcsbCustomerInterfaceController {
     private final WcsbProspectCustomerService service;
 
+    /**
+    * (wells홈페이지, 고객센터) 신규접수 외부인터페이스 처리
+    * @param reqWrapper 진단검사 쿠폰 완료처리 I/F 수신정보(주요 PARMA: 진단쿠폰번호, 진단검사일자, 관계자한글명, 관리파트너번호 등)
+    * @return 신규접수 (I/F) 처리 건수
+    */
     @ApiOperation(value = "(wells홈페이지, 고객센터) 신규접수 외부인터페이스 처리", notes = "고객번호에 해당하는 고객 기본/상세 정보 조회")
     @PostMapping
     public EaiWrapper createNewReceiptInquiry(

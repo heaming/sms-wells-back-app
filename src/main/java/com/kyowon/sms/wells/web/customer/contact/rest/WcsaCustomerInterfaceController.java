@@ -38,6 +38,11 @@ import lombok.RequiredArgsConstructor;
 public class WcsaCustomerInterfaceController {
     private final WcsaCustomerInterfaceService wcsaCustomerInterfaceService;
 
+    /**
+    * 고객번호 기준으로 고객정보를 조회 - 고객번호에 해당하는 고객 기본/상세 정보 조회
+    * @param reqWrapper 고객정보 조회 조건 (주요 PARAM: 고객번호 )
+    * @return 고객 정보
+    */
     @ApiOperation(value = "고객번호 기준으로 고객정보를 조회(IF ID:EAI_WCUI1011)", notes = "고객번호에 해당하는 고객 기본/상세 정보 조회")
     @PostMapping
     public EaiWrapper getCustomerByCstNo(
@@ -52,7 +57,7 @@ public class WcsaCustomerInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "고객센터 Wells 계약고객 정보 변경 처리 서비스. 연관 I/F : EAI_ECUI1017", notes = "고객번호에 해당하는 고객 기본/상세 변경")
+    @ApiOperation(value = "고객센터 Wells 계약고객 정보 변경 처리 서비스. 연관 I/F : EAI_WCUI1017", notes = "고객번호에 해당하는 고객 기본/상세 변경")
     @PostMapping("/contract-customers")
     public EaiWrapper editCustomerByCc(
         @Valid

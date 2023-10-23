@@ -14,6 +14,8 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskReqDv
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaReturningGoodsOstrMapper;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -48,6 +50,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 출고요청 창고 조회
+     *
      * @param dto
      * @return
      */
@@ -57,6 +60,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 반품출고 조회
+     *
      * @param dto
      * @return
      */
@@ -72,6 +76,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 입고마감 체크
+     *
      * @param itmOstrNo
      * @return
      */
@@ -82,6 +87,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 반품출고 등록
+     *
      * @param dtos
      * @return
      */
@@ -91,9 +97,11 @@ public class WsnaReturningGoodsOstrService {
         int serialNumber = 0;
 
         SaveReq saveReq = dtos.get(0);
-
         List<String> ostrSns = new ArrayList<>();
         List<WsnaReturningGoodsDvo> dvos = new ArrayList<>();
+
+        // 사용자 세션
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
 
         String itmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(saveReq.ostrTpCd(), saveReq.ostrDt()));
         String itmStrNo = null;
@@ -114,6 +122,7 @@ public class WsnaReturningGoodsOstrService {
             dvo.setItmStrNo(itmStrNo);
             dvo.setStrSn(String.valueOf(serialNumber));
 
+            dvo.setWareMngtPrtnrNo(session.getEmployeeIDNumber());
             // 품목출고내역 insert
             int result = this.mapper.insertItemForwardingHistory(dvo);
             dvos.add(dvo);
@@ -126,12 +135,12 @@ public class WsnaReturningGoodsOstrService {
                     dvo
                 );
                 result += itemStockservice.createStock(returnOstrDvo);
-
+                // 품목재고내역 이동
                 WsnaItemStockItemizationReqDvo returnMoveDvo = setReturningMoveWsnaItemStockItemizationDtoSaveReq(
                     dvo
                 );
                 result += itemStockservice.saveStockMovement(returnMoveDvo);
-
+                // 품목 재고내역 등록
                 WsnaItemStockItemizationReqDvo returnStrDvo = setReturningStrWsnaItemStockItemizationDtoSaveReq(
                     dvo
                 );
@@ -195,12 +204,15 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 반품출고 삭제
+     *
      * @param dtos
      * @return
      */
     @Transactional
     public int removeReturningGoodsOstrs(List<RemoveReq> dtos) {
         int processCount = 0;
+
+        RemoveReq removeReq = dtos.get(0);
 
         List<WsnaReturningGoodsDvo> dvos = this.converter.mapRemoveAllReturningGoodsDvoToReturningGoods(dtos);
 
@@ -209,8 +221,17 @@ public class WsnaReturningGoodsOstrService {
 
         List<String> deleteOstrSns = new ArrayList<>();
 
+        String ostrPrtnrNo = this.mapper
+            .selectOstrPrtnrNo(new FindOstrPrtnrNoReq(removeReq.ostrWareNo(), removeReq.ostrDt()));
+
+        String strPrtnrNo = this.mapper
+            .selectStrPrtnrNo(new FindStrPrtnrNoReq(removeReq.strWareNo(), removeReq.ostrDt()));
+
         for (RemoveReq dto : dtos) {
             WsnaReturningGoodsDvo dvo = this.converter.mapRemoveReqToReturningGoodsDvo(dto);
+
+            dvo.setWareMngtPrtnrNo(ostrPrtnrNo);
+            dvo.setStrWareMngtPrtnrNo(strPrtnrNo);
 
             // 반품출고(내부/외부)인 경우
             if (isReturning(dvo.getOstrTpCd())) {
@@ -263,7 +284,7 @@ public class WsnaReturningGoodsOstrService {
             itemStockservice.removeStock(ostrRemoveDvo);
 
             int result = this.mapper.deleteItemForwardingHistory(dvo); // 품목출고내역삭제
-
+            // 삭제에 실패 하였습니다.
             BizAssert.isTrue(result == 1, "MSG_ALT_DEL_ERR");
             processCount += result;
         }
@@ -296,6 +317,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 출고유형코드 값 체크
+     *
      * @param ostrTpCd
      * @return
      */
@@ -305,6 +327,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 반품출고내부 및 물류구분인지 체크
+     *
      * @param ostrTpCd
      * @param strWareDvCd
      * @return
@@ -315,6 +338,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 품목재고내역의 등록 호출파라미터 변환
+     *
      * @param vo
      * @return
      */
@@ -338,6 +362,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 품목재고내역 이동재고를 위한 파라미터 변환
+     *
      * @param vo
      * @return
      */
@@ -361,6 +386,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 품목재고내역 입고 파라미터 변환
+     *
      * @param vo
      * @return
      */
@@ -384,7 +410,8 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 폐기출고 처리를 위한 파라미터 변환환
-    * @param vo
+     *
+     * @param vo
      * @return
      */
     protected WsnaItemStockItemizationReqDvo setReturningDisuseWsnaItemStockItemizationDtoSaveReq(
@@ -407,6 +434,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 품목재고내역 입고창고의 재고내역을 삭제하기 위한 파라미터 변환
+     *
      * @param vo
      * @return
      */
@@ -430,6 +458,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 품목재고내역 입고창고의 이동재고삭제를 위한 파라미터 변환
+     *
      * @param vo
      * @return
      */
@@ -453,6 +482,7 @@ public class WsnaReturningGoodsOstrService {
 
     /**
      * 품목재고내역 삭제를 위한 파라미터 변환
+     *
      * @param vo
      * @return
      */
@@ -474,4 +504,13 @@ public class WsnaReturningGoodsOstrService {
         return removeDvo;
     }
 
+    /**
+     * 출고창고에 있는 상품의 시점재고 조회
+     * @param wareNo 창고번호
+     * @param dto 조회조건
+     * @return
+     */
+    public List<SearchPitmStockRes> getPitmStocks(String wareNo, SearchPitmStockReq dto) {
+        return mapper.selectPitmStocks(wareNo, dto.itmPdCds(), dto.itmGdCd());
+    }
 }

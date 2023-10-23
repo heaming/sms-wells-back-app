@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.interfaces.mapper;
 
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbRegularShippingChangeDto.*;
-import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniSidingServiceChangesDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -41,6 +40,8 @@ public interface WsnbRegularShippingChangeMapper {
     int countTbSvpdHcfAsAkIz(SaveReq req);
 
     int updateTbSvpdHcfAsAkIz(SaveReq req);
+
+    String selectAkSnMax(String cntrNo, String cntrSn);
 
     int insertTbSvpdHcfAsAkIz(SaveReq req);
 

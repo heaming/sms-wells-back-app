@@ -2,140 +2,280 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbRefundCurrentStatusMapper">
     <select id="selectRefundHistory" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto$SearchRefundHistoryRes">
-        SELECT T1.CNTR_NO
-             , T1.CNTR_SN
-             , T1.CNTR_NO || T1.CNTR_SN AS CNTR/*계약상세번호*/
-             , (SELECT CST_KNM
-                  FROM TB_CUBS_CST_BAS S1
-                 WHERE 1 = 1
-                   AND S1.CST_NO = T1.CST_NO
-                   AND S1.DTA_DL_YN = 'N') AS CST_KNM  /*고객명*/
-             , T3.SELL_TP_CD  /*판매유형*/
-             , NVL(T4.DP_AMT , 0) AS DP_AMT /*입금총액*/
-             , NVL(T2.RFND_DSB_AMT, 0) AS RVE_AMT  /*지급금액*/
-             , NVL(T2.RFND_DSB_AMT, 0) AS RFND_DSB_AMT   /*환불금액*/
-             , NVL(T2.RFND_DSB_PSP_INT , 0) AS RFND_DSB_PSP_INT  /*지연이자*/
-             , NVL(T2.RFND_DDTN_AMT , 0) AS RFND_DDTN_AMT /*카드공제*/
-             , T2.CSH_RFND_FNIT_CD
-             , NVL((SELECT FNIT_NM
-                  FROM TB_RVDW_FNIT_CD S1
-                 WHERE 1 = 1
-                   AND FNIT_CD = CSH_RFND_FNIT_CD
-                   AND DTA_DL_YN = 'N'),'') AS CSH_FNIT_NM /*은행*/
-             , T2.CARD_RFND_FNIT_CD
-             , NVL((SELECT FNIT_NM
-                  FROM TB_RVDW_FNIT_CD S1
-                 WHERE 1 = 1
-                   AND FNIT_CD = T2.CARD_RFND_FNIT_CD
-                   AND DTA_DL_YN = 'N'),'') AS CARD_FNIT_NM /*카드사*/
-             , T2.CSH_RFND_ACNO_ENCR                  /* 계좌번호 */
-             , T2.CARD_RFND_CRCDNO_ENCR               /* 카드번호 */
-             , NVL(NVL(T2.CSH_RFND_DLGPS_NM , T2.CARD_RFND_CRCDONR_NM),'')AS CSH_RFND_ACOWN_NM
-             , T6.SELL_TP_CD AS SELL_TP_DTL_CD  /*판매유형*/
-             , T4.DP_TP_CD AS RVE_DV_CD  /*입금유형*/
-             , T5.CNTR_CST_NO AS CST_NO   /*전급고객번호*/
-             , (SELECT CST_KNM
-                  FROM TB_CUBS_CST_BAS S1
-                 WHERE 1 = 1
-                   AND S1.CST_NO = T5.CNTR_CST_NO
-                   AND S1.DTA_DL_YN = 'N') AS TMP2 /*전금고객명*/
-          FROM TB_RVDW_RFND_RCP_BAS T1                /* 환불접수기본 */
-         INNER JOIN TB_RVDW_RFND_RCP_DTL T2                /* 환불접수상세 */
-            ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
-                AND T2.RFND_RCP_NO = T1.RFND_RCP_NO
-                AND T2.DTA_DL_YN = 'N')
-         INNER JOIN TB_SSCT_CNTR_DTL T3 /*계약상세*/
-            ON (    T3.CNTR_NO = T1.CNTR_NO
-                AND T3.CNTR_SN = T1.CNTR_SN
-                AND T3.DTA_DL_YN = 'N')
-         INNER JOIN TB_RVDW_RVE_DTL T4 /*수납상세*/
-            ON (    T4.RVE_NO  = T2.RVE_NO
-                AND T4.RVE_SN  = T2.RVE_SN
-                AND T4.DTA_DL_YN ='N'
-                AND T4.KW_GRP_CO_CD = '2000')
-          LEFT OUTER JOIN TB_SSCT_CNTR_BAS T5
-            ON T5.CNTR_NO = T2.BLTF_OJ_CNTR_NO
-           AND T5.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T6
-            ON (    T6.CNTR_NO = T2.BLTF_OJ_CNTR_NO
-                AND T6.CNTR_SN = T2.BLTF_OJ_CNTR_SN
-                AND T6.DTA_DL_YN = 'N')
-         WHERE 1 = 1
-           AND T1.DTA_DL_YN = 'N'
-        <if test='@MybatisUtils@isNotEmpty(rveDtStart)'>
-           AND T1.RFND_RVE_DT >= #{rveDtStart} /* 수납일자 */
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(rveDtFinish)'>
-           AND T1.RFND_RVE_DT <![CDATA[<=]]> #{rveDtFinish} /* 수납일자 */
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(perfDtStart)'>
-           AND T1.RFND_PERF_DT >= #{perfDtStart} /* 실적일자 */
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(perfDtFinish)'>
-           AND T1.RFND_PERF_DT <![CDATA[<=]]> #{perfDtFinish} /* 실적일자 */
-        </if>
-
-        <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>
+           SELECT
+                  T1.CNTR_NO
+                , T1.CNTR_SN
+                , T1.CNTR_NO || T1.CNTR_SN AS CNTR/*계약상세번호*/
+                , (SELECT CST_KNM
+                     FROM TB_CUBS_CST_BAS S1
+                    WHERE 1 = 1
+                      AND S1.CST_NO = T1.CST_NO
+                      AND S1.DTA_DL_YN = 'N') AS CST_KNM  /*고객명*/
+                , T2.SELL_TP_CD
+                , NVL(T3.RVE_AMT_DP,0) - NVL(T3.RVE_AMT_RF,0) AS DP_AMT /*입금총액*/
+                , T1.RVE_AMT AS RVE_AMT  /*지급금액*/
+                , T1.RVE_AMT AS RFND_DSB_AMT   /*환불금액*/
+                , NVL(T4.RFND_DSB_PSP_INT , 0 ) AS RFND_DSB_PSP_INT  /*지연이자*/
+                , NVL(T4.RFND_DDTN_AMT ,0) AS RFND_DDTN_AMT /*카드공제*/
+                , NVL(T4.CSH_RFND_FNIT_CD , T7.FNIT_CD) AS  CSH_RFND_FNIT_CD /*은행/카드사*/
+                , NVL((SELECT FNIT_NM
+                         FROM TB_RVDW_FNIT_CD S1
+                        WHERE 1 = 1
+                          AND FNIT_CD = NVL(T4.CARD_RFND_FNIT_CD, CASE WHEN T7.DP_MES_CD = '01' THEN T7.FNIT_CD END )
+                          AND DTA_DL_YN = 'N'),'') AS CSH_FNIT_NM /*은행*/
+                , T4.CARD_RFND_FNIT_CD
+                , NVL((SELECT FNIT_NM
+                         FROM TB_RVDW_FNIT_CD S1
+                        WHERE 1 = 1
+                          AND FNIT_CD = NVL(T4.CARD_RFND_FNIT_CD, CASE WHEN T7.DP_MES_CD = '02' THEN T7.FNIT_CD END )
+                          AND DTA_DL_YN = 'N'),'') AS CARD_FNIT_NM /*카드사*/
+                , NVL(T4.CSH_RFND_ACNO_ENCR , T7.ACNO_ENCR) AS CSH_RFND_ACNO_ENCR                /* 계좌번호 */
+                , NVL(T4.CARD_RFND_CRCDNO_ENCR, T7.CRCDNO_ENCR) AS CARD_RFND_CRCDNO_ENCR              /* 카드번호 */
+                , NVL(NVL(T4.CSH_RFND_DLGPS_NM , T4.CARD_RFND_CRCDONR_NM),T7.ACOWN_NM)AS CSH_RFND_ACOWN_NM
+                , (SELECT SELL_TP_CD
+                     FROM TB_SSCT_CNTR_DTL S1
+                    WHERE 1 = 1
+                      AND S1.CNTR_NO = T4.BLTF_OJ_CNTR_NO
+                      AND S1.CNTR_SN = T4.BLTF_OJ_CNTR_SN
+                      AND S1.DTA_DL_YN = 'N') AS SELL_TP_DTL_CD /*전금 판매유형*/
+                , ''     AS RVE_DV_CD  /*입금유형*/
+                , T6.CNTR_CST_NO AS CST_NO
+                , (SELECT CST_KNM
+                     FROM TB_CUBS_CST_BAS S1
+                    WHERE 1 = 1
+                      AND S1.CST_NO = T6.CNTR_CST_NO
+                      AND S1.DTA_DL_YN = 'N') AS TMP2 /*전금고객명*/
+              FROM TB_RVDW_RVE_DTL T1 /*수납상세*/
+             INNER JOIN TB_SSCT_CNTR_DTL T2  /*계약상세*/
+                ON (    T2.CNTR_NO = T1.CNTR_NO /*계약번호*/
+                    AND T2.CNTR_SN = T1.CNTR_SN /*계약일련번호*/
+                    AND T2.DTA_DL_YN = 'N' /*삭제여부*/
+                    AND T2.SELL_TP_CD = #{sellTpCd}
+                  <choose>
+                   <when test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+                   AND T2.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
+                   </when>
+                  </choose>
+                    )
+            INNER JOIN (SELECT S1.CNTR_NO /*게약번호*/
+                             , S1.CNTR_SN /*계약일련번호*/
+                             , SUM( CASE WHEN S1.DP_DV_CD IN ('1' , '3') THEN S1.RVE_AMT
+                                          END ) AS RVE_AMT_DP /*입금금액*/
+                             , SUM( CASE WHEN S1.DP_DV_CD IN ('2' , '4') THEN S1.RVE_AMT
+                                          END ) AS RVE_AMT_RF /*환불금액*/
+                          FROM TB_RVDW_RVE_DTL S1  /*수납상세*/
+                         WHERE 1 = 1
+                           AND S1.DTA_DL_YN = 'N'
+                           AND S1.KW_GRP_CO_CD = '2000'
+                           AND S1.RVE_DV_CD IN ('03' , '04' ,'05' ,'09' , '17')
+                         AND S1.DTA_DL_YN  = 'N'
+                         GROUP BY S1.CNTR_NO , S1.CNTR_SN) T3
+              ON (    T3.CNTR_NO = T1.CNTR_NO
+                  AND T3.CNTR_SN = T1.CNTR_SN )
+            LEFT OUTER JOIN TB_RVDW_RFND_RCP_DTL T4
+              ON (    T4.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                  AND T4.RFND_RCP_NO = T1.RVE_OJ_DRM_NO1
+                  AND T4.DTA_DL_YN = 'N' )
+            LEFT OUTER JOIN TB_RVDW_RFND_RCP_BAS T5
+              ON (    T5.KW_GRP_CO_CD = T4.KW_GRP_CO_CD
+                  AND T5.RFND_RCP_NO = T4.RFND_RCP_NO
+                  AND T5.DTA_DL_YN = 'N'
+                  AND T5.RFND_STAT_CD = '03')
+            LEFT OUTER JOIN TB_SSCT_CNTR_BAS T6
+              ON (    T6.CNTR_NO = T4.BLTF_OJ_CNTR_NO
+                  AND T6.DTA_DL_YN = 'N')
+            LEFT OUTER JOIN TB_RVDW_RVE_AK_DTL T7
+              ON (    T7.RVE_AK_NO = T1.RVE_AK_NO
+                  AND T7.RVE_AK_SN = T1.RVE_AK_SN
+                  AND T7.CNTR_NO   = T1.CNTR_NO
+                  AND T7.CNTR_SN   = T1.CNTR_SN
+                  AND T7.CST_NO    = T1.CST_NO
+                  AND T7.DP_DV_CD  = T1.DP_DV_CD
+                  AND T7.DP_MES_CD = T1.DP_MES_CD
+                  AND T7.RVE_DV_CD = T1.RVE_DV_CD
+                  AND T7.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                  AND T7.DTA_DL_YN = 'N')
+             WHERE 1 = 1
+               AND T1.KW_GRP_CO_CD = '2000'
+               <if test='@MybatisUtils@isNotEmpty(rveDtStart)'>
+               AND T1.RVE_DT >= #{rveDtStart} /* 수납일자 */
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(rveDtFinish)'>
+               AND T1.RVE_DT <![CDATA[<=]]> #{rveDtFinish} /* 수납일자 */
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(perfDtStart)'>
+               AND T1.PERF_DT >= #{perfDtStart} /* 실적일자 */
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(perfDtFinish)'>
+               AND T1.PERF_DT <![CDATA[<=]]> #{perfDtFinish} /* 실적일자 */
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>
               <choose>
                 <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>
-           AND T2.RFND_DSB_DV_CD = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */
-                </when>
-                <otherwise>
-           AND T2.RFND_DSB_DV_CD != '04'               /* 환불접수상세.환불지급구분코드 != 04.귀속 */
-                </otherwise>
-              </choose>
-        </if>
-        <choose>
-            <when test='@MybatisUtils@isNotEmpty(sellTpCd)'>
-           AND T3.SELL_TP_CD = #{sellTpCd}
-            </when>
-            <otherwise>
-           AND T3.SELL_TP_CD IN ('2','3','6')
-            </otherwise>
-        </choose>
-        <choose>
-           <when test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
-           AND T3.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
-           </when>
-           <otherwise>
-           AND T3.SELL_TP_DTL_CD IN ('11', '12', '13', '21', '22', '24', '25', '26' , '31', '32', '33','61')
-           </otherwise>
-       </choose>
-        <if test="@MybatisUtils@isNotEmpty(rveDvCd)">
-            <choose>
-              <when test='@MybatisUtils@equals(rveDvCd,"09")'>
-           AND (T2.PROCS_DV_CD = 1 AND T4.RVE_DV_CD != '09')                  /* 수납상세.수납구분코드 != 09.대손이관 = 일반 테스트용 임시주석*/
-              </when>
-              <otherwise>
-           AND (T2.PROCS_DV_CD = 2 AND T4.RVE_DV_CD = '09')                   /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 테스트용 임시주석 */
-              </otherwise>
-            </choose>
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
-         <choose>
-           <when test='@MybatisUtils@equals(dpMesCd,"07")'>
-           AND T4.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */
-           </when>
-           <otherwise>
-           AND T4.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */
-           </otherwise>
-         </choose>
-        </if>
-<!--        -->
-<!--      GROUP BY RRRB.CNTR_NO                          /* 계약번호 테스트용 RRD가 NULL이어서 RRRB로 바꿈*/-->
-<!--             , RRRB.CNTR_SN                             /* 계약일련번호 테스트용 RRD가 NULL이어서 RRRB로 바꿈*/-->
-<!--             , CCB.CST_KNM                              /* 고객명 */-->
-<!--             , SCD.SELL_TP_CD                           /* 판매유형 */-->
-<!--             , RRRD.CSH_RFND_FNIT_CD                    /* 은행사 */-->
-<!--             , RRRD.CARD_RFND_FNIT_CD                   /* 카드사 */-->
-<!--             , RRRD.CSH_RFND_ACNO_ENCR                  /* 계좌번호 */-->
-<!--             , RRRD.CARD_RFND_CRCDNO_ENCR               /* 카드번호 */-->
-<!--             , RRRD.CSH_RFND_ACOWN_NM                   /* 예금주 현금 */-->
-<!--             , RRRD.CARD_RFND_CRDCD_APRNO               /* 예금주 카드 */-->
-<!--             , SCD.SELL_TP_DTL_CD                       /* 판매유형상세 */-->
-<!--             , RRD.RVE_DV_CD                            /* 입금유형 */-->
-<!--             , RRRB.CST_NO                              /* 전금고객번호 */-->
-<!--             /* , TMP2                                   전금고객명 */-->
+               AND T4.RFND_DSB_DV_CD = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */
+                    </when>
+                    <otherwise>
+               AND T4.RFND_DSB_DV_CD != '04'               /* 환불접수상세.환불지급구분코드 != 04.귀속 */
+                    </otherwise>
+                  </choose>
+               </if>
+               AND T1.DP_DV_CD IN ('2','4')
+               AND T1.DTA_DL_YN  = 'N'
+            <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
+             <choose>
+               <when test='@MybatisUtils@equals(dpMesCd,"07")'>
+               AND T1.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */
+               </when>
+               <otherwise>
+               AND T1.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */
+               </otherwise>
+             </choose>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(rveDvCd)">
+                <choose>
+                  <when test='@MybatisUtils@equals(rveDvCd,"09")'>
+               AND (T1.RVE_DV_CD IN ('03' , '04' ,'05' , '17'))                  /* 수납상세.수납구분코드 != 09.대손이관 = 일반 테스트용 임시주석*/
+                  </when>
+                  <otherwise>
+               AND (T1.RVE_DV_CD = '09')                   /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 테스트용 임시주석 */
+                  </otherwise>
+                </choose>
+            </if>
+             ORDER BY T1.RVE_DT , T1.PERF_DT , T1.CNTR_NO , T1.CNTR_SN
+
+
+
+
+<!--        SELECT T1.CNTR_NO-->
+<!--             , T1.CNTR_SN-->
+<!--             , T1.CNTR_NO || T1.CNTR_SN AS CNTR/*계약상세번호*/-->
+<!--             , (SELECT CST_KNM-->
+<!--                  FROM TB_CUBS_CST_BAS S1-->
+<!--                 WHERE 1 = 1-->
+<!--                   AND S1.CST_NO = T1.CST_NO-->
+<!--                   AND S1.DTA_DL_YN = 'N') AS CST_KNM  /*고객명*/-->
+<!--             , T3.SELL_TP_CD  /*판매유형*/-->
+<!--             , NVL(T4.DP_AMT , 0) AS DP_AMT /*입금총액*/-->
+<!--             , NVL(T2.RFND_DSB_AMT, 0) AS RVE_AMT  /*지급금액*/-->
+<!--             , NVL(T2.RFND_DSB_AMT, 0) AS RFND_DSB_AMT   /*환불금액*/-->
+<!--             , NVL(T2.RFND_DSB_PSP_INT , 0) AS RFND_DSB_PSP_INT  /*지연이자*/-->
+<!--             , NVL(T2.RFND_DDTN_AMT , 0) AS RFND_DDTN_AMT /*카드공제*/-->
+<!--             , T2.CSH_RFND_FNIT_CD-->
+<!--             , NVL((SELECT FNIT_NM-->
+<!--                  FROM TB_RVDW_FNIT_CD S1-->
+<!--                 WHERE 1 = 1-->
+<!--                   AND FNIT_CD = CSH_RFND_FNIT_CD-->
+<!--                   AND DTA_DL_YN = 'N'),'') AS CSH_FNIT_NM /*은행*/-->
+<!--             , T2.CARD_RFND_FNIT_CD-->
+<!--             , NVL((SELECT FNIT_NM-->
+<!--                  FROM TB_RVDW_FNIT_CD S1-->
+<!--                 WHERE 1 = 1-->
+<!--                   AND FNIT_CD = T2.CARD_RFND_FNIT_CD-->
+<!--                   AND DTA_DL_YN = 'N'),'') AS CARD_FNIT_NM /*카드사*/-->
+<!--             , T2.CSH_RFND_ACNO_ENCR                  /* 계좌번호 */-->
+<!--             , T2.CARD_RFND_CRCDNO_ENCR               /* 카드번호 */-->
+<!--             , NVL(NVL(T2.CSH_RFND_DLGPS_NM , T2.CARD_RFND_CRCDONR_NM),'')AS CSH_RFND_ACOWN_NM-->
+<!--             , T6.SELL_TP_CD AS SELL_TP_DTL_CD  /*판매유형*/-->
+<!--             , T7.DP_TP_CD AS RVE_DV_CD  /*입금유형*/-->
+<!--             , T5.CNTR_CST_NO AS CST_NO   /*전급고객번호*/-->
+<!--             , (SELECT CST_KNM-->
+<!--                  FROM TB_CUBS_CST_BAS S1-->
+<!--                 WHERE 1 = 1-->
+<!--                   AND S1.CST_NO = T5.CNTR_CST_NO-->
+<!--                   AND S1.DTA_DL_YN = 'N') AS TMP2 /*전금고객명*/-->
+<!--          FROM TB_RVDW_RFND_RCP_BAS T1                /* 환불접수기본 */-->
+<!--         INNER JOIN TB_RVDW_RFND_RCP_DTL T2                /* 환불접수상세 */-->
+<!--            ON (    T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD-->
+<!--                AND T2.RFND_RCP_NO = T1.RFND_RCP_NO-->
+<!--                AND T2.DTA_DL_YN = 'N')-->
+<!--         INNER JOIN TB_SSCT_CNTR_DTL T3 /*계약상세*/-->
+<!--            ON (    T3.CNTR_NO = T1.CNTR_NO-->
+<!--                AND T3.CNTR_SN = T1.CNTR_SN-->
+<!--                AND T3.DTA_DL_YN = 'N')-->
+<!--         INNER JOIN TB_RVDW_RVE_DTL T4 /*수납상세*/-->
+<!--            ON (    T4.RVE_NO  = T2.RVE_NO-->
+<!--                AND T4.RVE_SN  = T2.RVE_SN-->
+<!--                AND T4.DTA_DL_YN ='N'-->
+<!--                AND T4.KW_GRP_CO_CD = '2000')-->
+<!--          LEFT OUTER JOIN TB_SSCT_CNTR_BAS T5-->
+<!--            ON T5.CNTR_NO = T2.BLTF_OJ_CNTR_NO-->
+<!--           AND T5.DTA_DL_YN = 'N'-->
+<!--          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T6-->
+<!--            ON (    T6.CNTR_NO = T2.BLTF_OJ_CNTR_NO-->
+<!--                AND T6.CNTR_SN = T2.BLTF_OJ_CNTR_SN-->
+<!--                AND T6.DTA_DL_YN = 'N')-->
+<!--          LEFT OUTER JOIN LATERAL (SELECT DP_TP_CD AS DP_TP_CD-->
+<!--                                     FROM TB_RVDW_RVE_DTL S1-->
+<!--                                    WHERE 1 = 1-->
+<!--                                      AND S1.KW_GRP_CO_CD = T2.BLTF_OJ_CNTR_NO-->
+<!--                                      AND S1.CNTR_NO = T2.BLTF_OJ_CNTR_NO-->
+<!--                                      AND S1.CNTR_SN = T2.BLTF_OJ_CNTR_NO-->
+<!--                                      AND S1.DTA_DL_YN = 'N'-->
+<!--                                      AND S1.DP_DV_CD IN ('1','3')-->
+<!--                                    ORDER BY RVE_DT DESC-->
+<!--                                    FETCH FIRST 1 ROWS ONLY ) T7-->
+<!--            ON 1 = 1-->
+<!--         WHERE 1 = 1-->
+<!--           AND T1.DTA_DL_YN = 'N'-->
+<!--        <if test='@MybatisUtils@isNotEmpty(rveDtStart)'>-->
+<!--           AND T1.RFND_RVE_DT >= #{rveDtStart} /* 수납일자 */-->
+<!--        </if>-->
+<!--        <if test='@MybatisUtils@isNotEmpty(rveDtFinish)'>-->
+<!--           AND T1.RFND_RVE_DT <![CDATA[<=]]> #{rveDtFinish} /* 수납일자 */-->
+<!--        </if>-->
+<!--        <if test='@MybatisUtils@isNotEmpty(perfDtStart)'>-->
+<!--           AND T1.RFND_PERF_DT >= #{perfDtStart} /* 실적일자 */-->
+<!--        </if>-->
+<!--        <if test='@MybatisUtils@isNotEmpty(perfDtFinish)'>-->
+<!--           AND T1.RFND_PERF_DT <![CDATA[<=]]> #{perfDtFinish} /* 실적일자 */-->
+<!--        </if>-->
+
+<!--        <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>-->
+<!--              <choose>-->
+<!--                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>-->
+<!--           AND T2.RFND_DSB_DV_CD = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */-->
+<!--                </when>-->
+<!--                <otherwise>-->
+<!--           AND T2.RFND_DSB_DV_CD != '04'               /* 환불접수상세.환불지급구분코드 != 04.귀속 */-->
+<!--                </otherwise>-->
+<!--              </choose>-->
+<!--        </if>-->
+<!--        <choose>-->
+<!--            <when test='@MybatisUtils@isNotEmpty(sellTpCd)'>-->
+<!--           AND T3.SELL_TP_CD = #{sellTpCd}-->
+<!--            </when>-->
+<!--            <otherwise>-->
+<!--           AND T3.SELL_TP_CD IN ('2','3','6')-->
+<!--            </otherwise>-->
+<!--        </choose>-->
+<!--        <choose>-->
+<!--           <when test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>-->
+<!--           AND T3.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */-->
+<!--           </when>-->
+<!--           <otherwise>-->
+<!--           AND T3.SELL_TP_DTL_CD IN ('11', '12', '13', '21', '22', '24', '25', '26' , '31', '32', '33','61')-->
+<!--           </otherwise>-->
+<!--       </choose>-->
+<!--        <if test="@MybatisUtils@isNotEmpty(rveDvCd)">-->
+<!--            <choose>-->
+<!--              <when test='@MybatisUtils@equals(rveDvCd,"09")'>-->
+<!--           AND (T2.PROCS_DV_CD = 1 AND T4.RVE_DV_CD != '09')                  /* 수납상세.수납구분코드 != 09.대손이관 = 일반 테스트용 임시주석*/-->
+<!--              </when>-->
+<!--              <otherwise>-->
+<!--           AND (T2.PROCS_DV_CD = 2 AND T4.RVE_DV_CD = '09')                   /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 테스트용 임시주석 */-->
+<!--              </otherwise>-->
+<!--            </choose>-->
+<!--        </if>-->
+<!--        <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */-->
+<!--         <choose>-->
+<!--           <when test='@MybatisUtils@equals(dpMesCd,"07")'>-->
+<!--           AND T4.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */-->
+<!--           </when>-->
+<!--           <otherwise>-->
+<!--           AND T4.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */-->
+<!--           </otherwise>-->
+<!--         </choose>-->
+<!--        </if>-->
     </select>
 
     <select id="selectCardRefundHistory" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto$SearchCardRefundHistoryRes">

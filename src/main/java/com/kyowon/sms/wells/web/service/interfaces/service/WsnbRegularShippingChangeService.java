@@ -6,7 +6,8 @@ import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbSeedingPackageChang
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbSeedingPackageChangeService;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRegularBfsvcAsnDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncRegularBfsvcAsnService;
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbRegularShippingChangeDto.*;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbRegularShippingChangeDto.SaveReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbRegularShippingChangeDto.SaveRes;
 import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniSidingServiceChangesDvo;
 import com.kyowon.sms.wells.web.service.interfaces.mapper.WsnbRegularShippingChangeMapper;
 import com.kyowon.sms.wells.web.service.interfaces.mapper.WsniSidingServiceChangesMapper;
@@ -24,13 +25,12 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
 /**
  *
- *
  * W-SV-I-0016 정기배송 변경
- *
  *
  * @author gs.piit122 김동엽
  * @since 2023-04-13
@@ -40,8 +40,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class WsnbRegularShippingChangeService {
 
-    private final WsnbRegularShippingChangeMapper mapper;
-    private final WsniSidingServiceChangesMapper mapper3;
+    private final WsnbRegularShippingChangeMapper mapper1;
+    private final WsniSidingServiceChangesMapper mapper2;
     private final WsnbIndividualVisitPrdService service1;
     private final WsnbCustomerRglrBfsvcDlService service2;
     private final WsncRegularBfsvcAsnService service3;
@@ -49,77 +49,98 @@ public class WsnbRegularShippingChangeService {
     private final WctbSeedingPackageChangeService service4;
 
     /**
-    * LC_ASREGN_API_005 > LC_ASREGN_API_I04_T > LC_ASREGN_API_I08 > PR_KIWI_CAPSULE_CHANGE
+    * <pre>
+    * PR_KIWI_CAPSULE_CHANGE 홈카페 캡슐 패키지/서비스 변경 처리
+    * </pre>
     * */
     public void capsuleChange(SaveReq req) throws Exception {
 
-        /**변경구분 1:패키지변경, 4:차월 방문 중지**/
-        String asAkDvCd = req.asAkDvCd();
-
-        /**작업구분 1:신규, 2:변경, 3:취소**/
-        String mtrProcsStatCd = req.mtrProcsStatCd();
-
-        /**홈카페AS요청이력**/
-        mapper.insertTbSvpdHcfAsAkHist(req);
+        log.debug("cntrNo : " + req.cntrNo());
+        log.debug("cntrSn : " + req.cntrSn());
+        log.debug("akSn : " + req.akSn());
+        log.debug("asAkDvCd : " + req.asAkDvCd());
+        log.debug("akChdt : " + req.akChdt());
+        log.debug("bfchPdCd : " + req.bfchPdCd());
+        log.debug("afchPdCd : " + req.afchPdCd());
+        log.debug("choCapslCn : " + req.choCapslCn());
+        log.debug("mtrProcsStatCd : " + req.mtrProcsStatCd());
 
         /**취소일 경우 삭제 **/
-        if ("3".equals(mtrProcsStatCd))
-            mapper.deleteTbSvpdHcfAsAkIz(req);
-        else {
+        if ("3".equals(req.mtrProcsStatCd())) {
+            mapper1.deleteTbSvpdHcfAsAkIz(req);
+        } else {
             /**해당 키로 존재하는지 체크**/
-            if (mapper.countTbSvpdHcfAsAkIz(req) > 0)
-                mapper.updateTbSvpdHcfAsAkIz(req);
-            else
-                mapper.insertTbSvpdHcfAsAkIz(req);
+            if (mapper1.countTbSvpdHcfAsAkIz(req) > 0)
+                mapper1.updateTbSvpdHcfAsAkIz(req);
+            else {
+                req = new SaveReq(
+                    req.cntrNo(),
+                    req.cntrSn(),
+                    mapper1.selectAkSnMax(req.cntrNo(), req.cntrSn()),
+                    req.asAkDvCd(),
+                    req.akChdt(),
+                    req.bfchPdCd(),
+                    req.afchPdCd(),
+                    req.choCapslCn(),
+                    req.mtrProcsStatCd(),
+                    RandomStringUtils.randomNumeric(6)
+                );
+                mapper1.insertTbSvpdHcfAsAkIz(req);
+            }
         }
-
-        /***********************************************************
-        * 주기변경 처리를 위한 고객의 정보 확인
-        *
-        * SV_PRD       방문주기
-        * PD_PRP_VAL01 상품용도
-        * SELL_TP_CD   관리유형
-        * IST_DT       설치일자
-        * BS_MTHS      무상 BS 개월수
-        ***********************************************************/
-        //WsniSidingServiceChangesDvo dvo = mapper3.selectCustomer(req.cntrNo(), req.cntrSn());
+        /**홈카페AS요청이력**/
+        mapper1.insertTbSvpdHcfAsAkHist(
+            new SaveReq(
+                req.cntrNo(),
+                req.cntrSn(),
+                req.akSn(),
+                req.asAkDvCd(),
+                req.akChdt(),
+                req.bfchPdCd(),
+                req.afchPdCd(),
+                req.choCapslCn(),
+                req.mtrProcsStatCd(),
+                RandomStringUtils.randomNumeric(6)
+            )
+        );
 
         /*요청 구분에 따라 처리 - 1: 패키지변경, 4:다음회차 방문 중지*/
-        if ("1".equals(asAkDvCd) && !"3".equals(mtrProcsStatCd)) {
+        if ("1".equals(req.asAkDvCd()) && !"3".equals(req.mtrProcsStatCd())) {
 
             /*방문주기 재생성(SP_LC_SERVICEVISIT_482_LST_I06)*/
             service1.processVisitPeriodRegen(
                 new WsnbIndividualVisitPrdDto.SearchProcessReq(
                     req.cntrNo(),
                     req.cntrSn(),
+                    req.akChdt(),
                     null,
-                    null,
-                    null,
+                    req.akChdt(),
                     null,
                     null,
                     null
                 )
             );
 
-            WsniSidingServiceChangesDvo dvo = mapper3.selectBsTarget(
-                req.cntrNo(), req.cntrSn(),
+            WsniSidingServiceChangesDvo bsTargetDvo = mapper2.selectBsTarget(
+                req.cntrNo(),
+                req.cntrSn(),
                 req.akChdt().substring(0, 6)
             );
 
-            if (StringUtil.isNotEmpty(dvo.getCstSvAsnNo())) {
+            if (bsTargetDvo != null) {
 
                 /*고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/
                 service2.removeRglrBfsvcDl(
                     new WsnbCustomerRglrBfsvcDlDto.SaveReq(
-                        dvo.getCstSvAsnNo(),
-                        req.akChdt().substring(0, 6)
+                        bsTargetDvo.getCstSvAsnNo(), //row.getCstSvAsnNo(),
+                        bsTargetDvo.getAsnOjYm()
                     )
                 );
 
                 /*고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)*/
                 service3.processRegularBfsvcAsn(
                     new WsncRegularBfsvcAsnDto.SaveProcessReq(
-                        req.akChdt().substring(0, 6),
+                        bsTargetDvo.getAsnOjYm(),
                         SFLEXContextHolder.getContext().getUserSession().getUserId(),
                         req.cntrNo(),
                         req.cntrSn()
@@ -127,7 +148,7 @@ public class WsnbRegularShippingChangeService {
                 );
 
                 /*알림톡발송*/
-                final Map<String, Object> paramMap = new HashMap<>();
+                final Map<String, Object> paramMap = new HashMap<String, Object>();
                 paramMap.put("cntrNo", req.cntrNo());
                 paramMap.put("cntrSn", req.cntrSn());
                 smsMessageService.sendMessage(
@@ -135,7 +156,8 @@ public class WsnbRegularShippingChangeService {
                         .templateId("Wells18100")
                         .templateParamMap(paramMap)
                         .destInfo(
-                            dvo.getRcgvpKnm() + "^" + dvo.getCralLocaraTno() + dvo.getMexnoEncr() + dvo.getCralIdvTno()
+                            bsTargetDvo.getRcgvpKnm() + "^" + bsTargetDvo.getCralLocaraTno()
+                                + bsTargetDvo.getMexnoEncr() + bsTargetDvo.getCralIdvTno()
                         )
                         .callback("15884113")
                         .build()
@@ -145,9 +167,8 @@ public class WsnbRegularShippingChangeService {
         }
 
         /*요청 구분에 따라 처리 - 1: 패키지변경, 4:다음회차 방문 중지*/
-        if ("4".equals(req.asAkDvCd())) {
-            mapper.updateStopNextSiding(req);
-        }
+        if ("4".equals(req.asAkDvCd()))
+            mapper1.updateStopNextSiding(req);
 
     }
 
@@ -160,128 +181,24 @@ public class WsnbRegularShippingChangeService {
      */
     public SaveRes saveRegularShippingChange(SaveReq req) throws Exception {
 
-        //홈카페 캡슐 패키지/서비스 변경 오라클
-        //String result = LC_ASREGN_API_I04_T; -> PR_KIWI_CAPSULE_CHANGE
         capsuleChange(req);
 
-        /* 2. 5250 인서트 로직 */
-        String cntrNo = req.cntrNo();
-        String cntrSn = req.cntrSn();
-        String asAkDvCd = req.asAkDvCd();
-        String akChdt = req.akChdt();
-        //String afchPdCd = req.afchPdCd(); // LCPKAG 변경판매코드
-        String partList = req.choCapslCn(); /*자유패키지 캡슐 구성 정보 > 판매코드,수량 | 판매코드, 수량 |~~~ */
-        String mtrProcsStatCd = req.mtrProcsStatCd();
-
-        SaveRegularShippingChangeHistReq historyReq = new SaveRegularShippingChangeHistReq(
-            cntrNo, cntrSn, mtrProcsStatCd, asAkDvCd, akChdt
-        );
-        SaveRegularShippingChangeBaseReq baseReq = new SaveRegularShippingChangeBaseReq(
-            cntrNo, cntrSn, asAkDvCd, akChdt
-        );
-
-        /*1.먼저 LCLIB.LD3200P 에 미처리 된 같은 요청이 존재하는지 체크*/
-        //int LD3200_CNT = LC_ASREGN_API_S09(request, response);
-        if (StringUtil.nvl2(mtrProcsStatCd, "").equals("3")) {
-
-            //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I05", params);
-            mapper.insertRegularShippingChangeHist(historyReq);
-
-            //Database.getInstanceDB2().delete("environment.LC_ASREGN_API_D02", params);
-            mapper.deleteRegularShippingChangeDtl(
-                new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, asAkDvCd, akChdt, 0)
-            );
-
-            //Database.getInstanceDB2().delete("environment.LC_ASREGN_API_D01", params);
-            mapper.deleteRegularShippingChangeBase(baseReq);
-
-        } /*else if (mapper.selectRegularShippingChangeCount(
-            new SearchRegularShippingChangeBaseReq(cntrNo, cntrSn, asAkDvCd, akChdt)
-          ) == 0) {
-
-            */
-        /*요청일련번호 - LC0200P에서 채번 (별도 시트 참고)*/
-        /*
-        //ArrayList chk1 = (ArrayList)Database.getInstanceDB2().queryForList("environment.LC_ASREGN_API_S08", params01);
-        int seq = mapper.selectRegularShippingChangeMaxSn(cntrNo);
-
-        // Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I04", params);
-        mapper.insertRegularShippingChangeBase(baseReq);
-
-        if (partList.length() > 0) {
-
-        //자유선택 패키지이고 선택 캡슐이 있다면,
-        String[] A_P_PART_LIST = partList.split("\\|");
-
-        for (int i = 0; i < A_P_PART_LIST.length; i++) {
-        //String[] AA_P_PART_LIST = A_P_PART_LIST[i].split(",");
-        //---params.put("LCICDE", AA_P_PART_LIST[0].trim());
-        //---params.put("LCIQTY", AA_P_PART_LIST[1].trim());
-        //---params.put("LCISEQ", String.valueOf(i + 1));
-
-        //LC3220P 인서트
-        //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I06", params);
-        //배송변경접수상세
-        mapper.insertRegularShippingChangeDtl(
-        new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, asAkDvCd, akChdt, seq)
-        );
-        }
-
-        //LC3300H 인서트
-        //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I05", params);
-        mapper.insertRegularShippingChangeHist(historyReq);
-
-        }
-
-        } else {
-        //LC3220P 삭제 처리
-        //Database.getInstanceDB2().delete("environment.LC_ASREGN_API_D02", params);
-        mapper.deleteRegularShippingChangeDtl(
-        new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, asAkDvCd, akChdt, 0)
-        );
-
-        //LC3200P 업데이트
-        //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_U05", params);
-        mapper.updateRegularShippingChangeBase(
-        new SaveRegularShippingChangeBaseReq(cntrNo, cntrSn, asAkDvCd, akChdt)
-        );
-
-        //LC3220P 인서트
-        if (partList.length() > 0) {
-
-        //자유선택 패키지이고 선택 캡슐이 있다면,
-        String[] A_P_PART_LIST = partList.split("\\|");
-
-        for (int i = 0; i < A_P_PART_LIST.length; i++) {
-        //String[] AA_P_PART_LIST = A_P_PART_LIST[i].split(",");
-        //---params.put("LCICDE", AA_P_PART_LIST[0].trim()); //변경적용예정년월일
-        //---params.put("LCIQTY", AA_P_PART_LIST[1].trim()); //작업자
-        //---params.put("LCISEQ", String.valueOf(i + 1)); //작업자
-
-        //LC3220P 인서트
-        //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I06", params);
-        mapper.insertRegularShippingChangeDtl(
-        new SaveRegularShippingChangeDtlReq(cntrNo, cntrSn, asAkDvCd, akChdt, 0)
-        );
-        }
-        }
-
-        //LC3300H 인서트
-        //Database.getInstanceDB2().insert("environment.LC_ASREGN_API_I05", params);
-        mapper.insertRegularShippingChangeHist(historyReq);
-
-        }*/
-
         List<WctbSeedingPackageChangeDto.ConsPdct> consPdList = new ArrayList<>();
-        String pdct = mapper.selectPdctPdCds(req.cntrNo(), req.cntrSn(), req.akSn());
-        if (StringUtil.isNotEmpty(pdct)) {
-            String[] pdctPdCds = pdct.split("|");
-            for (String s : pdctPdCds) {
+        String strPdctPdcds = StringUtil.isEmpty(req.choCapslCn()) ? mapper2.selectPdctPdCds(
+            req.cntrNo(), req.cntrSn(),
+            req.akSn()
+        ) : req.choCapslCn();
+        if (StringUtil.isNotEmpty(strPdctPdcds)) {
+            String[] arrayPdctPdCds = strPdctPdcds.split("\\|");
+            for (String s : arrayPdctPdCds) {
+                log.debug(s);
                 consPdList.add(
                     new WctbSeedingPackageChangeDto.ConsPdct(
-                        s.split(",")[0], Integer.parseInt(s.split(",")[1])
+                        s.split("\\,")[0], Integer.parseInt(s.split("\\,")[1])
                     )
                 );
+                log.debug(s.split("\\,")[0]);
+                log.debug(s.split("\\,")[1]);
             }
         }
 
@@ -293,12 +210,17 @@ public class WsnbRegularShippingChangeService {
         * 변경기준상품코드(수행구분코드 1일때 필수)
         * 변경모종구성제품/수량리스트(List<제품, 수량>)
         * */
+        log.debug("saveGbn: 1");
+        log.debug("cntrNo: " + req.cntrNo());
+        log.debug("cntrSn: " + req.cntrSn());
+        log.debug("chPdCd: " + req.afchPdCd());
+        log.debug("consPdList: " + consPdList);
         service4.saveSeedingPackageChanges(
             new WctbSeedingPackageChangeDto.SaveReq(
                 "1", req.cntrNo(), req.cntrSn(), req.afchPdCd(), consPdList
             )
         );
 
-        return new SaveRes("S001", "");
+        return new SaveRes("S", "");
     }
 }

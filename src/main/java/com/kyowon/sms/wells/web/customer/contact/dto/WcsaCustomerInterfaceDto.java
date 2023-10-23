@@ -13,6 +13,14 @@ import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 고객 인터페이스 관리 Dto
+ * </pre>
+ *
+ * @author jeongeon.kim
+ * @since 2023-02-01
+ */
 public class WcsaCustomerInterfaceDto {
 
     /**

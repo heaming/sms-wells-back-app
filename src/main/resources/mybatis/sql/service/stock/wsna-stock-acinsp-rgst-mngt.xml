@@ -2,9 +2,9 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaStockAcinspRgstMngtMapper">
 
     <select id="selectWarehouse" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo">
-            SELECT T1.WARE_NO
-                 , T1.WARE_NM
-              FROM TB_SVST_MCBY_WARE_IZ T1
+            SELECT T1.WARE_NO  /* 창고번호 */
+                 , T1.WARE_NM  /* 창고명 */
+              FROM TB_SVST_MCBY_WARE_IZ T1 /* 월별창고내역 */
              WHERE 1 = 1
                AND T1.DTA_DL_YN      = 'N'
                AND T1.WARE_USE_YN    = 'Y'
@@ -17,26 +17,26 @@
     </select>
 
     <select id="selectStockAcinspRgstMngtPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto$SearchRes">
-        SELECT A1.APY_YM /*기준년월*/
-             , A1.WARE_NO /*창고번호*/
-             , A1.WARE_NM /*창고명*/
-             , A1.ITM_KND /*품목종류*/
-             , A1.SAP_CD /*SAP코드*/
-             , A1.ITM_PD_CD /*품목상품코드*/
-             , A1.PD_ABBR_NM /*품목상품명*/
+        SELECT A1.APY_YM        /*기준년월*/
+             , A1.WARE_NO       /*창고번호*/
+             , A1.WARE_NM        /*창고명*/
+             , A1.ITM_KND        /*품목종류*/
+             , A1.SAP_CD        /*SAP코드*/
+             , A1.ITM_PD_CD     /*품목상품코드*/
+             , A1.PD_ABBR_NM    /*품목상품명*/
              , A1.STATUS_T
-             , A1.EOT_STOC /*기말재고*/
-             , A1.ACINSP_QTY /*실사재고*/
+             , A1.EOT_STOC      /*기말재고*/
+             , A1.ACINSP_QTY    /*실사재고*/
              , NVL(ACINSP_QTY, 0) - NVL(EOT_STOC, 0) AS MINUS_QTY /*재고차이*/
-             , A1.ACINSP_RMK_CN
-             , A1.CNFMDT
-             , A1.CNFM_PITM_EOT_STOC_QTY
-             , A1.CNFM_PITM_STR_GAP_QTY
-             , A1.CNFM_PITM_OSTR_GAP_QTY
-             , A1.DIFF_QTY
-             , A1.IOST_RFDT
+             , A1.ACINSP_RMK_CN /* 실사비고 */
+             , A1.CNFMDT /* 확정일자 */
+             , A1.CNFM_PITM_EOT_STOC_QTY /* 확정시점기말재고수량 */
+             , A1.CNFM_PITM_STR_GAP_QTY/* 확정시점입고차이수량 */
+             , A1.CNFM_PITM_OSTR_GAP_QTY /* 확정시점출고차이수량 */
+             , A1.DIFF_QTY /* 차이수량 */
+             , A1.IOST_RFDT /* 입출고반영일자 */
           FROM (
-                SELECT T1.APY_YM
+                SELECT T1.APY_YM /*기준년월*/
                      , T1.WARE_NO
                      , T1.WARE_NM
                      , T1.PD_PRP_VAL19 AS ITM_KND
@@ -98,30 +98,30 @@
                         <if test="@MybatisUtils@isNotEmpty(hgrWareNo)">
                             AND ( D1.HGR_WARE_NO = #{hgrWareNo} OR D1.WARE_NO = #{hgrWareNo} )
                         </if>
-                        <if test="@MybatisUtils@isNotEmpty(wareNo)">
+                        <if test="@MybatisUtils@isNotEmpty(searchWareNo)">
                             AND D1.WARE_NO            = #{hgrWareNo}
                         </if>
                         ) T1
-                    LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ T2
+                    LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ T2 /* 월별창고내역 */
                       ON T2.BASE_YM = T1.APY_YM
                      AND T2.WARE_NO = T1.WARE_NO
                      AND T2.ITM_PD_CD = T1.PD_CD
                      AND T2.DTA_DL_YN = 'N'
                 <if test="@MybatisUtils@isNotEmpty(useYn)">
-                   INNER JOIN TB_SVST_MCBY_STOC_ACINSP_IZ T3
+                   INNER JOIN TB_SVST_MCBY_STOC_ACINSP_IZ T3 /* 월별재고실사내역 */
                       ON T3.BASE_YM = T1.APY_YM
                      AND T3.WARE_NO = T1.WARE_NO
                      AND T3.PD_CD = T1.PD_CD
                      AND T3.DTA_DL_YN = 'N'
                 </if>
                 <if test="@MybatisUtils@isEmpty(useYn)">
-                    LEFT OUTER JOIN TB_SVST_MCBY_STOC_ACINSP_IZ T3
+                    LEFT OUTER JOIN TB_SVST_MCBY_STOC_ACINSP_IZ T3 /* 월별재고실사내역 */
                       ON T3.BASE_YM = T1.APY_YM
                      AND T3.WARE_NO = T1.WARE_NO
                      AND T3.PD_CD = T1.PD_CD
                      AND T3.DTA_DL_YN = 'N'
                 </if>
-                    LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T4
+                    LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T4 /* 고객서비스품목재고내역 */
                       ON T4.WARE_NO = T1.WARE_NO
                      AND T4.ITM_PD_CD = T1.PD_CD
                      AND T4.DTA_DL_YN = 'N'
@@ -146,8 +146,8 @@
                                        <if test="@MybatisUtils@isNotEmpty(hgrWareNo)">
                                            AND ( D2.HGR_WARE_NO = #{hgrWareNo} OR D2.WARE_NO = #{hgrWareNo} )
                                        </if>
-                                       <if test="@MybatisUtils@isNotEmpty(wareNo)">
-                                           AND D2.WARE_NO = #{wareNo}
+                                       <if test="@MybatisUtils@isNotEmpty(searchWareNo)">
+                                           AND D2.WARE_NO = #{searchWareNo}
                                        </if>
                                          GROUP BY D1.STR_WARE_NO, D1.ITM_PD_CD
                                      ) T5
@@ -176,19 +176,19 @@
     </select>
 
     <select id="selectStocAcinspIz" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo">
-        SELECT T1.BASE_YM
-             , T1.WARE_NO
-             , T1.PD_CD
-             , T1.CNFM_PITM_STR_GAP_QTY
-             , T1.CNFM_PITM_OSTR_GAP_QTY
-             , T2.PITM_STOC_A_GD_QTY
-             , T3.PITM_STOC_A_GD_QTY AS CST_PITM_STOC_A_GD_QTY
-          FROM TB_SVST_MCBY_STOC_ACINSP_IZ T1
-         INNER JOIN TB_SVST_MCITM_STOC_IZ T2
+        SELECT T1.BASE_YM   /* 기준년월 */
+             , T1.WARE_NO   /* 창고번호 */
+             , T1.PD_CD     /* 상품코드 */
+             , T1.CNFM_PITM_STR_GAP_QTY  /* 확정시점입고차이수량 */
+             , T1.CNFM_PITM_OSTR_GAP_QTY /* 확정시점출고차이수량 */
+             , T2.PITM_STOC_A_GD_QTY     /* 시점재고A등급수량 */
+             , T3.PITM_STOC_A_GD_QTY AS CST_PITM_STOC_A_GD_QTY /* 고객시점재고A등급수량 */
+          FROM TB_SVST_MCBY_STOC_ACINSP_IZ T1 /* 월별재고실사내역 */
+         INNER JOIN TB_SVST_MCITM_STOC_IZ T2 /* 월별품목재고내역 */
             ON T2.BASE_YM = T1.BASE_YM
            AND T2.WARE_NO = T1.WARE_NO
            AND T2.ITM_PD_CD = T1.PD_CD
-         INNER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T3
+         INNER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T3 /* 고객서비스품목재고내역 */
             ON T3.WARE_NO = T1.WARE_NO
            AND T3.ITM_PD_CD = T1.PD_CD
          WHERE T1.CNFMDT IS NOT NULL
@@ -203,7 +203,7 @@
     <select id="selectChkCountAcinsp" resultType="java.lang.Integer">
 
           SELECT COUNT(1)
-            FROM TB_SVST_MCBY_STOC_ACINSP_IZ T1
+            FROM TB_SVST_MCBY_STOC_ACINSP_IZ T1  /* 월별재고실사내역 */
            WHERE 1 = 1
              AND T1.CNFMDT IS NOT NULL
              AND T1.IOST_RFDT IS NULL
@@ -222,10 +222,10 @@
                      SELECT #{item.baseYm} AS BASE_YM                   /* 기준년월 */
                           , #{item.wareNo} AS WARE_NO                   /* 창고번호 */
                           , #{item.pdCd} AS ITM_PD_CD                 /* 품목상품코드 */
-                          , #{item.cnfmPitmStrGapQty} AS CNFM_PITM_STR_GAP_QTY
-                          , #{item.cnfmPitmOstrGapQty} AS CNFM_PITM_OSTR_GAP_QTY
-                          , #{item.pitmStocAGdQty} AS PITM_STOC_A_GD_QTY
-                          , #{item.cstPitmStocAGdQty} AS CST_PITM_STOC_A_GD_QTY
+                          , #{item.cnfmPitmStrGapQty} AS CNFM_PITM_STR_GAP_QTY /* 확정시점입고차이수량 */
+                          , #{item.cnfmPitmOstrGapQty} AS CNFM_PITM_OSTR_GAP_QTY /* 확정시점출고차이수량 */
+                          , #{item.pitmStocAGdQty} AS PITM_STOC_A_GD_QTY /* 시점재고A등급수량 */
+                          , #{item.cstPitmStocAGdQty} AS CST_PITM_STOC_A_GD_QTY /* 고객시점재고A등급수량 */
                        FROM DUAL
              </foreach>
                        ) T2
@@ -241,15 +241,15 @@
                 <include refid="COMMON.updateSystemField"/>
         WHEN NOT MATCHED THEN
           INSERT (
-                     BASE_YM
-                   , WARE_NO
-                   , ITM_PD_CD
-                   , WARE_MNGT_PRTNR_NO
-                   , OG_TP_CD
-                   , PITM_STOC_A_GD_QTY
-                   , STOC_ACINSP_STR_A_GD_QTY
-                   , STOC_ACINSP_OSTR_A_GD_QTY
-                   , STOC_ACINSP_DT
+                     BASE_YM            /* 기준년월 */
+                   , WARE_NO            /* 창고번호 */
+                   , ITM_PD_CD          /* 품목상품코드 */
+                   , WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
+                   , OG_TP_CD           /* 조직유형코드 */
+                   , PITM_STOC_A_GD_QTY /* 시점재고A등급수량 */
+                   , STOC_ACINSP_STR_A_GD_QTY /* 확정시점입고차이수량 */
+                   , STOC_ACINSP_OSTR_A_GD_QTY/* 확정시점출고차이수량 */
+                   , STOC_ACINSP_DT /* 재고실사일자 */
                 <include refid="COMMON.insertSystemField" />
           ) VALUES (
                      T2.BASE_YM
@@ -276,12 +276,12 @@
         MERGE INTO TB_SVST_CST_SV_ITM_STOC_IZ T1  /* 고객서비스품목재고내역 */
              USING (
              <foreach collection="stocApyDvoList" item="item" open="" close="" index="index" separator="UNION ALL">
-                     SELECT #{item.wareNo} AS WARE_NO                /* 창고번호 */
-                          , #{item.pdCd} AS ITM_PD_CD              /* 품목상품코드 */
-                          , #{item.cnfmPitmStrGapQty} AS CNFM_PITM_STR_GAP_QTY
-                          , #{item.cnfmPitmOstrGapQty} AS CNFM_PITM_OSTR_GAP_QTY
-                          , #{item.pitmStocAGdQty} AS PITM_STOC_A_GD_QTY
-                          , #{item.cstPitmStocAGdQty} AS CST_PITM_STOC_A_GD_QTY
+                     SELECT #{item.wareNo} AS WARE_NO                            /* 창고번호 */
+                          , #{item.pdCd} AS ITM_PD_CD                            /* 품목상품코드 */
+                          , #{item.cnfmPitmStrGapQty} AS CNFM_PITM_STR_GAP_QTY   /* 확정시점입고차이수량 */
+                          , #{item.cnfmPitmOstrGapQty} AS CNFM_PITM_OSTR_GAP_QTY /* 확정시점출고차이수량 */
+                          , #{item.pitmStocAGdQty} AS PITM_STOC_A_GD_QTY         /* 시점재고A등급수량 */
+                          , #{item.cstPitmStocAGdQty} AS CST_PITM_STOC_A_GD_QTY  /* 고객시점재고A등급수량 */
                        FROM DUAL
               </foreach>
                     ) T2
@@ -293,11 +293,11 @@
                 <include refid="COMMON.updateSystemField"/>
         WHEN NOT MATCHED THEN
           INSERT (
-                     WARE_NO
-                   , ITM_PD_CD
-                   , PITM_STOC_A_GD_QTY
-                   , FNL_STR_DT
-                   , DTA_DL_YN
+                     WARE_NO                /* 창고번호 */
+                   , ITM_PD_CD              /* 품목상품코드 */
+                   , PITM_STOC_A_GD_QTY     /* 시점재고A등급수량 */
+                   , FNL_STR_DT             /* 최종입고일자 */
+                   , DTA_DL_YN              /* 삭제여부 */
                 <include refid="COMMON.insertSystemField" />
           ) VALUES (
                      T2.WARE_NO
@@ -339,18 +339,18 @@
                 <include refid="COMMON.updateSystemField"/>
         WHEN NOT MATCHED THEN
           INSERT (
-                     BASE_YM
-                   , WARE_NO
-                   , PD_CD
-                   , ACINSP_QTY
-                   , ACINSP_RMK_CN
-                   , CNFMDT
-                   , CNFM_PITM_EOT_STOC_QTY
-                   , CNFM_PITM_STR_GAP_QTY
-                   , CNFM_PITM_OSTR_GAP_QTY
-                   , IOST_RFDT
-                   , ACINSP_AK_ID
-                   , DTA_DL_YN
+                     BASE_YM                    /* 기준년월 */
+                   , WARE_NO                    /* 창고번호 */
+                   , PD_CD                      /* 상품코드 */
+                   , ACINSP_QTY                 /* 실사수량 */
+                   , ACINSP_RMK_CN              /* 실사비고 */
+                   , CNFMDT                     /* 확정일자 */
+                   , CNFM_PITM_EOT_STOC_QTY     /* 확정시점기말재고수량 */
+                   , CNFM_PITM_STR_GAP_QTY      /* 확정시점입고차이수량 */
+                   , CNFM_PITM_OSTR_GAP_QTY     /* 확정시점출고차이수량*/
+                   , IOST_RFDT                  /* 입출고반영일자 */
+                   , ACINSP_AK_ID               /* 실사요청ID*/
+                   , DTA_DL_YN                  /* 삭제여부 */
                 <include refid="COMMON.insertSystemField" />
           ) VALUES (
                      #{apyYm}
@@ -371,37 +371,37 @@
 
 
     <select id="selectAcinspRgstCnfm" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo">
-          SELECT T1.BASE_YM
-               , T1.WARE_NO
-               , T1.PD_CD
-               , NVL(T2.PITM_STOC_A_GD_QTY, 0) AS CNFM_PITM_EOT_STOC_QTY
-               , T1.ACINSP_QTY
+          SELECT T1.BASE_YM     /* 기준년월 */
+               , T1.WARE_NO     /* 창고번호 */
+               , T1.PD_CD       /* 상품코드 */
+               , NVL(T2.PITM_STOC_A_GD_QTY, 0) AS CNFM_PITM_EOT_STOC_QTY /* 확정시점기말재고수량 */
+               , T1.ACINSP_QTY                          /* 실사수량 */
                , (CASE WHEN T1.ACINSP_QTY - NVL(T2.PITM_STOC_A_GD_QTY,0) + (CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') != #{baseYm} THEN (CASE WHEN T4.STR_CONF_DT IS NULL THEN NVL(T4.STR_QTY, 0) ELSE 0 END)
                                                                               ELSE NVL(T3.MMT_STOC_A_GD_QTY, 0) END) <![CDATA[>]]> 0 THEN  T1.ACINSP_QTY - NVL(T2.PITM_STOC_A_GD_QTY,0) + (CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') != #{baseYm} THEN (CASE WHEN T4.STR_CONF_DT IS NULL THEN NVL(T4.STR_QTY, 0) ELSE 0 END)
                                                                                                                                                                                                                                      ELSE NVL(T3.MMT_STOC_A_GD_QTY, 0) END)
                       ELSE 0
-                  END) AS CNFM_PITM_STR_GAP_QTY
+                  END) AS CNFM_PITM_STR_GAP_QTY         /* 확정시점입고차이수량 */
                , (CASE WHEN T1.ACINSP_QTY - NVL(T2.PITM_STOC_A_GD_QTY,0) + (CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') != #{baseYm} THEN (CASE WHEN T4.STR_CONF_DT IS NULL THEN NVL(T4.STR_QTY, 0) ELSE 0 END)
                                                                       ELSE NVL(T3.MMT_STOC_A_GD_QTY, 0) END) <![CDATA[<]]> 0 THEN  NVL(T2.PITM_STOC_A_GD_QTY,0) - T1.ACINSP_QTY - (CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') != '202307' THEN (CASE WHEN T4.STR_CONF_DT IS NULL THEN NVL(T4.STR_QTY, 0) ELSE 0 END)
                                                                                                                                                                                                                                  ELSE NVL(T3.MMT_STOC_A_GD_QTY, 0) END)
                       ELSE 0
-                  END) AS CNFM_PITM_OSTR_GAP_QTY
-               , TO_CHAR(SYSDATE, 'YYYYMMDD') AS CNFMDT
-            FROM TB_SVST_MCBY_STOC_ACINSP_IZ T1
-            LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ T2
+                  END) AS CNFM_PITM_OSTR_GAP_QTY        /* 확정시점출고차이수량 */
+               , TO_CHAR(SYSDATE, 'YYYYMMDD') AS CNFMDT /* 확정일자 */
+            FROM TB_SVST_MCBY_STOC_ACINSP_IZ T1 /* 월별재고실사내역 */
+            LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ T2 /* 월별품목재고내역 */
               ON T2.BASE_YM   = T1.BASE_YM
              AND T2.WARE_NO   = T1.WARE_NO
              AND T2.ITM_PD_CD = T1.PD_CD
-            LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T3
+            LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T3 /* 고객서비스품목재고내역 */
               ON T3.ITM_PD_CD = T1.PD_CD
              AND T3.WARE_NO   = T1.WARE_NO
             LEFT OUTER JOIN (
-                                SELECT D1.STR_WARE_NO
-                                     , D1.ITM_PD_CD
-                                     , MAX(D1.STR_CONF_DT) AS STR_CONF_DT
-                                     , SUM(D1.STR_QTY) AS STR_QTY
-                                  FROM TB_SVST_ITM_STR_IZ D1
-                                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2
+                                SELECT D1.STR_WARE_NO                       /* 입고창고번호 */
+                                     , D1.ITM_PD_CD                         /* 품목상품코드 */
+                                     , MAX(D1.STR_CONF_DT) AS STR_CONF_DT   /* 입고확인일자 */
+                                     , SUM(D1.STR_QTY) AS STR_QTY           /* 입고수량 */
+                                  FROM TB_SVST_ITM_STR_IZ D1 /* 품목입고내역 */
+                                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2 /* 월별창고내역 */
                                     ON D2.WARE_NO = D1.STR_WARE_NO
                                    AND D2.APY_YM = #{baseYm}
                                    AND D1.STR_RGST_DT LIKE #{baseYm}||'%'
@@ -439,7 +439,7 @@
 
     <select id="selectChkCountCnfm" resultType="java.lang.Integer">
         SELECT COUNT(1)
-          FROM TB_SVST_MCBY_STOC_ACINSP_IZ
+          FROM TB_SVST_MCBY_STOC_ACINSP_IZ /* 월별재고실사내역 */
          WHERE 1 = 1
            AND CNFMDT IS NULL
            AND BASE_YM = #{apyYm}
@@ -449,7 +449,7 @@
 
     <update id="updateStockAcinspIzCnfm">
         <foreach collection="reSearchDvo" item="item" open="DECLARE BEGIN" close="; END;" separator=";">
-          UPDATE TB_SVST_MCBY_STOC_ACINSP_IZ
+          UPDATE TB_SVST_MCBY_STOC_ACINSP_IZ /* 월별재고실사내역 */
              SET CNFMDT = #{item.cnfmdt}
                , CNFM_PITM_EOT_STOC_QTY = #{item.cnfmPitmEotStocQty}
                , CNFM_PITM_STR_GAP_QTY = #{item.cnfmPitmStrGapQty}
@@ -463,19 +463,19 @@
     </update>
 
     <select id="selectDeleteAcinspRgstCancel" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo">
-          SELECT T1.BASE_YM
-               , T1.WARE_NO
-               , T1.PD_CD
-               , NVL(T2.PITM_STOC_A_GD_QTY, 0) AS CNFM_PITM_EOT_STOC_QTY
-               , T1.ACINSP_QTY
+          SELECT T1.BASE_YM                                              /* 기준년월 */
+               , T1.WARE_NO                                             /* 창고번호 */
+               , T1.PD_CD                                               /* 품목코드 */
+               , NVL(T2.PITM_STOC_A_GD_QTY, 0) AS CNFM_PITM_EOT_STOC_QTY /* 확정시점기말재고수량 */
+               , T1.ACINSP_QTY /* 실사수량 */
                , ( CASE WHEN T1.ACINSP_QTY - NVL(T2.PITM_STOC_A_GD_QTY,0) <![CDATA[>]]> 0 THEN  T1.ACINSP_QTY - NVL(T2.PITM_STOC_A_GD_QTY,0)
                         ELSE 0
-                    END ) AS CNFM_PITM_STR_GAP_QTY
+                    END ) AS CNFM_PITM_STR_GAP_QTY /* 확정시점입고차이수량 */
                , ( CASE WHEN T1.ACINSP_QTY - NVL(T2.PITM_STOC_A_GD_QTY,0) <![CDATA[<]]> 0 THEN  NVL(T2.PITM_STOC_A_GD_QTY,0) - T1.ACINSP_QTY
                         ELSE 0
-                    END ) AS CNFM_PITM_OSTR_GAP_QTY
-            FROM TB_SVST_MCBY_STOC_ACINSP_IZ T1
-            LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ T2
+                    END ) AS CNFM_PITM_OSTR_GAP_QTY /* 확정시점출고차이수량 */
+            FROM TB_SVST_MCBY_STOC_ACINSP_IZ T1 /* 월별재고실사내역 */
+            LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ T2 /* 월별품목재고내역 */
               ON T2.BASE_YM = T1.BASE_YM
              AND T2.WARE_NO = T1.WARE_NO
              AND T2.ITM_PD_CD = T1.PD_CD
@@ -489,7 +489,7 @@
     <select id="selectChkAcinspRgstCancel" resultType="java.lang.Integer">
 
             SELECT COUNT(1)
-              FROM TB_SVST_MCBY_STOC_ACINSP_IZ
+              FROM TB_SVST_MCBY_STOC_ACINSP_IZ /* 월별재고실사내역 */
              WHERE 1 = 1
                AND CNFMDT IS NOT NULL
                AND BASE_YM = #{apyYm}
@@ -499,7 +499,7 @@
 
     <delete id="updateStockAcinspIzCancel">
         <foreach collection="reDeleteDvo" item="item" open="DECLARE BEGIN" close="; END;" separator=";">
-           UPDATE TB_SVST_MCBY_STOC_ACINSP_IZ
+           UPDATE TB_SVST_MCBY_STOC_ACINSP_IZ /* 월별재고실사내역 */
               SET CNFMDT = ''
                 , CNFM_PITM_EOT_STOC_QTY = ''
                 , CNFM_PITM_STR_GAP_QTY = ''
@@ -514,7 +514,7 @@
 
     <delete id="deleteApplAcinsp">
 
-        UPDATE TB_SVST_MCBY_STOC_ACINSP_IZ
+        UPDATE TB_SVST_MCBY_STOC_ACINSP_IZ  /* 월별재고실사내역 */
            SET DTA_DL_YN = 'Y'
            <include refid="COMMON.updateSystemField"/>
          WHERE BASE_YM = #{apyYm}

@@ -12,9 +12,7 @@ public class WdccProductAccountDto {
     @ApiModel("WdccProductAccountDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String baseYmFrom, /*기준년월 시작*/
-        @NotBlank
-        String baseYmTo, /*기준년월 종료*/
+        String baseYm, /*기준년월 시작*/
         String sellTpCd, /*판매유형*/
         String sellTpDtlCd, /*판매유형상세*/
         String ogTpCd, /*조직유형*/

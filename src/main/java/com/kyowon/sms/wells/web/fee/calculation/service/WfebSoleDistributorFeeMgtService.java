@@ -15,8 +15,6 @@ import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto
 import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebSoleDistributorFeeDvo;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebSoleDistributorFeeMgtMapper;
 import com.sds.sflex.common.utils.StringUtil;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -63,7 +61,6 @@ public class WfebSoleDistributorFeeMgtService {
     @Transactional
     public int editDistributorFee(SaveReq dtos) {
         int processCount = 0;
-        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         for (Fee row : dtos.changedRows()) {
             WfebSoleDistributorFeeDvo dvo = new WfebSoleDistributorFeeDvo();
             dvo.setBaseYm(row.baseYm());
@@ -117,8 +114,6 @@ public class WfebSoleDistributorFeeMgtService {
     @Transactional
     public int aggregateDistributorPerformance(CreateReq req) throws Exception {
         int processCount = 0;
-        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
-
         // 00. 총판 순주문집계 가능여부 체크
         // 00-1. 수수료일정 갱신 API 체크 > 화면에서해서 일단 페스
         // 00-2. 순주문파트너월마감 확정여부 체크
@@ -146,7 +141,6 @@ public class WfebSoleDistributorFeeMgtService {
         processCount += mapper.insertOgAggregateNtorPerfMmCl(req);
 
         // 06. 수수료일정 갱신 API 호출 공통모듈
-        // @TODO 세션 coCd[session.getCompanyCode()] 관련해서 업무별로 말이 다달라서 하드코딩함 -_-;
         String feeSchdId = req.perfYm() + "501" + (StringUtil.isEmpty(req.feeTcntDvCd()) ? "02" : req.feeTcntDvCd())
             + "2000"; // 기준일+총판+2차수+회사코드
         service.editStepLevelStatus(feeSchdId, "W0501", "03");

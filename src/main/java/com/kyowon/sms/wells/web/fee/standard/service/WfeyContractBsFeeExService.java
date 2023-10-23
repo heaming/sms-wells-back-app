@@ -115,6 +115,7 @@ public class WfeyContractBsFeeExService {
         headerTitle.put("apyEndYm", messageService.getMessage("MSG_TXT_APY_END_YM"));
 
         String status = "S";
+        String errorMesId = "MSG_ALT_EMPTY_REQUIRED_VAL"; // 필수값이 누락되어 있습니다.
         int row = 2;
         List<Map<String, Object>> checks = new ArrayList<>();
         ExcelMetaDvo meta = new ExcelMetaDvo(1, headerTitle);
@@ -131,42 +132,42 @@ public class WfeyContractBsFeeExService {
             if (StringUtils.isEmpty(list.getCntrDtlSn())) {
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("cntrDtlSn"));
-                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+                errorDvo.setErrorData(messageService.getMessage(errorMesId)); //필수값이 누락되어 있습니다.
             }
             if (StringUtils.isEmpty(list.getVstMcn())) {
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("vstMcn"));
-                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+                errorDvo.setErrorData(messageService.getMessage(errorMesId)); //필수값이 누락되어 있습니다.
             }
             if (StringUtils.isEmpty(list.getSvFeePdDvCd())) {
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("svFeePdDvCd"));
-                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+                errorDvo.setErrorData(messageService.getMessage(errorMesId)); //필수값이 누락되어 있습니다.
             }
             if (StringUtils.isEmpty(list.getBaseChTcnt())) {
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("baseChTcnt"));
-                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+                errorDvo.setErrorData(messageService.getMessage(errorMesId)); //필수값이 누락되어 있습니다.
             }
             if (StringUtils.isEmpty(list.getSvFeeBaseAmt())) {
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("svFeeBaseAmt"));
-                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+                errorDvo.setErrorData(messageService.getMessage(errorMesId)); //필수값이 누락되어 있습니다.
             }
             if (StringUtils.isEmpty(list.getFeeFxamYn())) {
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("feeFxamYn"));
-                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+                errorDvo.setErrorData(messageService.getMessage(errorMesId)); //필수값이 누락되어 있습니다.
             }
             if (StringUtils.isEmpty(list.getApyStrtYm())) {
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("apyStrtYm"));
-                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+                errorDvo.setErrorData(messageService.getMessage(errorMesId)); //필수값이 누락되어 있습니다.
             }
             if (StringUtils.isEmpty(list.getApyEndYm())) {
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("apyEndYm"));
-                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+                errorDvo.setErrorData(messageService.getMessage(errorMesId)); //필수값이 누락되어 있습니다.
             }
             // 키값 필수 유효성 통과시 데이터 정합성 체크
             if (StringUtils.isNotEmpty(list.getCntrDtlSn()) && StringUtils.isNotEmpty(list.getVstMcn()) && StringUtils.isNotEmpty(list.getBaseChTcnt())) {

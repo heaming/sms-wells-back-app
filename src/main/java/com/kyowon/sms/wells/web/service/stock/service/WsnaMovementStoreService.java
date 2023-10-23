@@ -159,7 +159,7 @@ public class WsnaMovementStoreService {
      * @param dto
      * @return
      */
-    public int getStrWareMonthlyClosed(warehouseMonthlyReq dto) {
+    public int getStrWareMonthlyClosed(WarehouseMonthlyReq dto) {
         return mapper.countStrWareMonthlyClosed(dto);
     }
 }

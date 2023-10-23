@@ -33,4 +33,6 @@ public class WsnaBuildingBsConsumableDvo {
     int ostrAkSn;
     String ogTpCd;
     String prtnrNo;
+    String fxnPdCd;
+    String aplcPdCd;
 }

@@ -38,6 +38,7 @@ public class WsnyAsCodeMgtService {
     private final WsnyAsCodeMgtConverter converter;
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
+    private String MSG_ALT_INPUT_OVER_LEN = "MSG_ALT_INPUT_OVER_LEN";
 
     public PagingResult<SearchRes> getAsCodePages(
         SearchReq dto, PageInfo pageInfo
@@ -111,7 +112,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        MSG_ALT_INPUT_OVER_LEN, "4",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getPdGrpCd(), "").length())
                     )
                 );
@@ -121,7 +122,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "0",
+                        MSG_ALT_INPUT_OVER_LEN, "0",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getPdCd(), "").length())
                     )
                 );
@@ -131,7 +132,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "2",
+                        MSG_ALT_INPUT_OVER_LEN, "2",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getSvTpCd(), "").length())
                     )
                 );
@@ -141,7 +142,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        MSG_ALT_INPUT_OVER_LEN, "4",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getAsLctCd(), "").length())
                     )
                 );
@@ -151,7 +152,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        MSG_ALT_INPUT_OVER_LEN, "4",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getAsPhnCd(), "").length())
                     )
                 );
@@ -161,7 +162,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        MSG_ALT_INPUT_OVER_LEN, "4",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getAsCausCd(), "").length())
                     )
                 );
@@ -171,7 +172,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "8",
+                        MSG_ALT_INPUT_OVER_LEN, "8",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getSiteAwAtcDsnDt(), "").length())
                     )
                 );
@@ -181,7 +182,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        MSG_ALT_INPUT_OVER_LEN, "4",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getSiteAwAtcCd(), "").length())
                     )
                 );
@@ -191,7 +192,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        MSG_ALT_INPUT_OVER_LEN, "4",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getSvAnaHclsfCd(), "").length())
                     )
                 );
@@ -201,7 +202,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        MSG_ALT_INPUT_OVER_LEN, "4",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getSvAnaMclsfCd(), "").length())
                     )
                 );
@@ -211,7 +212,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "4",
+                        MSG_ALT_INPUT_OVER_LEN, "4",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getSvAnaLclsfCd(), "").length())
                     )
                 );
@@ -221,7 +222,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "8",
+                        MSG_ALT_INPUT_OVER_LEN, "8",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getSvAnaDsnDt(), "").length())
                     )
                 );
@@ -231,7 +232,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "8",
+                        MSG_ALT_INPUT_OVER_LEN, "8",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getApyStrtdt(), "").length())
                     )
                 );
@@ -241,7 +242,7 @@ public class WsnyAsCodeMgtService {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
-                        "MSG_ALT_INPUT_OVER_LEN", "8",
+                        MSG_ALT_INPUT_OVER_LEN, "8",
                         String.valueOf(StringUtil.nvl(excelRowDvo.getApyEnddt(), "").length())
                     )
                 );

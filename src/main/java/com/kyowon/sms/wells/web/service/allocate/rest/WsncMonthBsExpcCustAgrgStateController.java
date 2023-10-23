@@ -46,5 +46,4 @@ public class WsncMonthBsExpcCustAgrgStateController {
     ) {
         return service.getMonthBsExpcCustAgrgState(dto);
     }
-
 }

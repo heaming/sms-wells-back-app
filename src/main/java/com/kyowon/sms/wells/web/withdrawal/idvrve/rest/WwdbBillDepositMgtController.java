@@ -31,6 +31,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+
 @Api(tags = "[수납입출금 - 개별수납] 어음입금 등록")
 @RestController
 @RequiredArgsConstructor
@@ -113,15 +114,15 @@ public class WwdbBillDepositMgtController {
         @ApiImplicitParam(name = "itgDpNo", value = "통합입금번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false),
     })
-    @GetMapping("/electronic-detail/paging")
-    public PagingResult<SearchElectronicRes> getRegistrationElectronicDetailPages(
-        SearchElectronicReq dto, PageInfo pageInfo
+    @GetMapping("/electronic-detail")
+    public List<SearchElectronicRes> getRegistrationElectronicDetailPages(
+        SearchElectronicReq dto
     ) {
         log.info("===========");
         log.info(dto.toString());
         log.info("===========");
 
-        return service.getRegistrationElectronicDetailPages(dto, pageInfo);
+        return service.getRegistrationElectronicDetailPages(dto);
     }
 
     @ApiImplicitParams(value = {
