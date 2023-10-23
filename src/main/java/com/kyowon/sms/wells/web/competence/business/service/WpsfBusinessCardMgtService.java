@@ -38,17 +38,16 @@ public class WpsfBusinessCardMgtService {
     private final AttachFileService attachFileService;
     private final KakaoMessageService kakaoMessageService;
     private final UrlShortenerService shorterService;
-    private final String groupId = "ATG_PSF_BCD_IMG";
+    private final static String groupId = "ATG_PSF_BCD_IMG";
 
     public PagingResult<WpsfBusinessCardMgtDto.SearchRes> getPartnerCustomerContactBasePages(
         WpsfBusinessCardMgtDto.SearchReq dto, PageInfo pageInfo
     ) {
-        PagingResult<WpsfPartnerCustomerContactBaseDvo> dvos = mapper
-            .selectPartnerCustomerContactBasePages(dto, pageInfo);
+        PagingResult<WpsfPartnerCustomerContactBaseDvo> dvos = mapper.selectPartnerCustomerContactBasePages(dto, pageInfo);
         PageInfo newPage = dvos.getPageInfo();
         PagingResult<WpsfBusinessCardMgtDto.SearchRes> res = null;
 
-        if (null != dvos) {
+        if ( dvos.getList().size() > 0 ) {
             for (WpsfPartnerCustomerContactBaseDvo dvo : dvos) {
                 String base64Image = attachFileService.convertAttachFileToBase64(dvo.getFileUid());
                 dvo.setRealFpath(base64Image);

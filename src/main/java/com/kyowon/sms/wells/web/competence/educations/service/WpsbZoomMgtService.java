@@ -37,7 +37,7 @@ public class WpsbZoomMgtService {
     @Transactional
     public int saveAllZoom(WpsbZoomMgtDto.EditReq dto) {
         int processCount = 0;
-        int delCnt = mapper.deleteZoom(dto.hgrSvEducMnalId());
+        mapper.deleteZoom(dto.hgrSvEducMnalId());
         for (WpsbZoomMgtDto.SaveReq zoomDto : dto.treeList()) {
             boolean inSave = false;
             if (dto.hgrSvEducMnalId().equals("WELS0000000000")) {
@@ -52,7 +52,6 @@ public class WpsbZoomMgtService {
                 dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
                 processCount = mapper.insertZoom(dvo);
             }
-
         }
         return processCount;
     }

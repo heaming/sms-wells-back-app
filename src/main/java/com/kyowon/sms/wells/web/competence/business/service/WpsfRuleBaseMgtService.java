@@ -30,7 +30,7 @@ public class WpsfRuleBaseMgtService {
     private final WpsfRuleBaseMgtMapper mapper;
     private final WpsfRuleBaseMgtConverter converter;
     private final AttachFileService attachFileService;
-    private final String groupId = "ATG_PSF_RUL_BASE";
+    private final static String groupId = "ATG_PSF_RUL_BASE";
 
     public PagingResult<SearchRes> getRuleBaseMgtPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectRuleBaseMgtPages(dto, pageInfo);
@@ -64,7 +64,7 @@ public class WpsfRuleBaseMgtService {
             BigDecimal one = new BigDecimal("1");
             String strBigNum = vlEndDtm.subtract(one).toString();
             dvo.setVlEndDtm(strBigNum);
-            processCount = mapper.updatePrevRuleBase(dvo);
+            mapper.updatePrevRuleBase(dvo);
 
             dvo.setBznsSpptMnalRgstCd("01");
             //String BnzsSpptMnalId = mapper.selectBnzsSpptMnalId();

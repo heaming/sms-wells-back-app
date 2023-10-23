@@ -26,7 +26,7 @@ public class WpsdExcellentDivisionBaseMgtService {
     private final WpsdExcellentDivisionBaseMgtMapper mapper;
     private final WpsdExcellentDivisionBaseMgtConverter converter;
     private final MessageResourceService messageResourceService;
-
+    private final static String SAVE_ERROR_MESSAGE = "MSG_ALT_SVE_ERR";
     /**
      * 우수사업부 기준관리 - 상품 기준 관리 페이징 목록 조회
      * @param req, pageInfo
@@ -61,7 +61,7 @@ public class WpsdExcellentDivisionBaseMgtService {
             } else if("updated".equals(dvo.getRowState())) {
                 resultCnt = mapper.updateProductBase(dvo);
             }
-            BizAssert.isTrue(resultCnt > 0, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
             processCount += resultCnt;
         }
         return processCount;
@@ -146,10 +146,11 @@ public class WpsdExcellentDivisionBaseMgtService {
             WpsdElvBaseDvo dvo = converter.elvMapToElvBaseDvo(req);
             int resultCnt = 0;
             resultCnt = mapper.updateEvaluationBase(dvo);
-            BizAssert.isTrue(resultCnt > 0, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
             if(dvo.getRsbDvCdList().length > 0){
-                resultCnt = mapper.removeEvaluationResponsibility(dvo);
+                mapper.removeEvaluationResponsibility(dvo);
                 resultCnt = mapper.insertEvaluationResponsibility(dvo);
+                BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
             }
             processCount += resultCnt;
         }
@@ -175,7 +176,7 @@ public class WpsdExcellentDivisionBaseMgtService {
         for(EvlDetailSaveReq req : reqs){
             WpsdElvDetailDvo dvo = converter.elvMapToDetailDvo(req);
             int resultCnt = mapper.updateEvaluationDetail(dvo);
-            BizAssert.isTrue(resultCnt > 0, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
             processCount += resultCnt;
         }
         return processCount;
@@ -211,7 +212,7 @@ public class WpsdExcellentDivisionBaseMgtService {
         for(EvlDetailSaveReq req : reqs){
             WpsdElvDetailDvo dvo = converter.elvMapToDetailDvo(req);
             int resultCnt = mapper.updateTargetBase(dvo);
-            BizAssert.isTrue(resultCnt > 0, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
             processCount += resultCnt;
         }
         return processCount;
