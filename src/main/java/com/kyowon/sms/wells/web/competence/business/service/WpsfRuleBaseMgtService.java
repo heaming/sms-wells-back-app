@@ -30,7 +30,7 @@ public class WpsfRuleBaseMgtService {
     private final WpsfRuleBaseMgtMapper mapper;
     private final WpsfRuleBaseMgtConverter converter;
     private final AttachFileService attachFileService;
-    private final static String groupId = "ATG_PSF_RUL_BASE";
+    private static final String groupId = "ATG_PSF_RUL_BASE";
 
     public PagingResult<SearchRes> getRuleBaseMgtPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectRuleBaseMgtPages(dto, pageInfo);

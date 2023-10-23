@@ -26,7 +26,7 @@ public class WpsdExcellentDivisionBaseMgtService {
     private final WpsdExcellentDivisionBaseMgtMapper mapper;
     private final WpsdExcellentDivisionBaseMgtConverter converter;
     private final MessageResourceService messageResourceService;
-    private final static String SAVE_ERROR_MESSAGE = "MSG_ALT_SVE_ERR";
+    private static final String SAVE_ERROR_MESSAGE = "MSG_ALT_SVE_ERR";
     /**
      * 우수사업부 기준관리 - 상품 기준 관리 페이징 목록 조회
      * @param req, pageInfo
