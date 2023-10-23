@@ -150,7 +150,8 @@ public class WbncSameCustomerContractDto {
     // 동일고객 계약 입금내역 조회 Find Result Dto
     @ApiModel(value = "WbncSameCustomerContractDto-FindDepositDtlRes")
     public record FindDepositDtlRes(
-        String rveNoSn, /* 입금번호 */
+        String rn, /* 번호 */
+        String rveNo, /* 입금번호 */
         String rveDt, /* 수납일자 */
         String perfDt, /* 실적일자 */
         String rveCd, /* 수납코드 */

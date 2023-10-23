@@ -230,42 +230,48 @@
 
     <!-- 동일고객 계약 입금내역 조회 -->
     <select id="selectDeposits" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto$FindDepositDtlRes">
-        SELECT T1.RVE_NO || '-' || T1.RVE_SN AS RVE_NO_SN /* 입금번호 */
-             , T1.RVE_DT /* 수납일자 */
-             , T1.PERF_DT /* 실적일자 */
-             , T1.RVE_CD /* 수납코드 */
-             , (SELECT RVE_NM FROM TB_RVDW_RVE_CD WHERE KW_GRP_CO_CD = T1.KW_GRP_CO_CD AND RVE_CD = T1.RVE_CD AND DTA_DL_YN = 'N') AS RVE_NM /* 수납명 */
-             , T1.DP_DV_CD /* 입금구분코드 */
-             , F_CMZ_CD_NM('TNT_WELLS', 'DP_DV_CD', T1.DP_DV_CD) AS DP_DV_NM  /* 입금구분명 */
-             , T3.SELL_TP_CD /* 입금종류코드 */
-             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T3.SELL_TP_CD) AS SELL_TP_NM  /* 입금종류명 */
-             , T1.DP_TP_CD /* 입금유형코드 */
-             , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T1.DP_TP_CD) AS DP_TP_NM  /* 입금유형명 */
-             , T1.RVE_AMT /* 수납금액 */
-             , T1.DP_MES_CD /* 입금수단코드 */
-             , CASE WHEN T1.DP_MES_CD = '01' THEN F_CMZ_CD_NM('TNT_WELLS', 'DP_MES_CD', T1.DP_MES_CD)
-                    WHEN T1.DP_MES_CD = '02' THEN (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_CD = T2.CRDCD_FNIT_CD AND DTA_DL_YN = 'N')
-                    ELSE ''
-               END AS DP_MES_NM /* 카드구분 */
-             , T1.RVE_DV_CD /* 수납구분코드 */
-             , CASE WHEN T1.RVE_DV_CD = '01' THEN '청약/인수'
-                    WHEN T1.RVE_DV_CD = '03' THEN '할부입금'
-                    WHEN T1.RVE_DV_CD = '98' THEN '기타선수'
-                    ELSE ''
-               END AS RVE_DV_NM /* 일시불 - 업무구분 */
-          FROM TB_RVDW_RVE_DTL T1
-          LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS T2
-            ON T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
-           AND T2.ITG_DP_NO = T1.ITG_DP_NO
-           AND T2.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3
-            ON T3.CNTR_NO = T1.CNTR_NO
-           AND T3.CNTR_SN = T1.CNTR_SN
-           AND T3.DTA_DL_YN = 'N'
-         WHERE 1=1
-           AND T1.CNTR_NO = #{cntrNo}
-           AND T1.CNTR_SN = #{cntrSn}
-           AND T1.DTA_DL_YN = 'N'
-         ORDER BY T1.RVE_DT DESC
+        SELECT *
+          FROM
+             (
+              SELECT ROW_NUMBER() OVER(PARTITION BY T1.RVE_NO ORDER BY RVE_NO DESC) AS RN
+                   , T1.RVE_NO  /* 입금번호 */
+                   , T1.RVE_DT /* 수납일자 */
+                   , T1.PERF_DT /* 실적일자 */
+                   , T1.RVE_CD /* 수납코드 */
+                   , (SELECT RVE_NM FROM TB_RVDW_RVE_CD WHERE KW_GRP_CO_CD = T1.KW_GRP_CO_CD AND RVE_CD = T1.RVE_CD AND DTA_DL_YN = 'N') AS RVE_NM /* 수납명 */
+                   , T1.DP_DV_CD /* 입금구분코드 */
+                   , F_CMZ_CD_NM('TNT_WELLS', 'DP_DV_CD', T1.DP_DV_CD) AS DP_DV_NM  /* 입금구분명 */
+                   , T3.SELL_TP_CD /* 입금종류코드 */
+                   , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T3.SELL_TP_CD) AS SELL_TP_NM  /* 입금종류명 */
+                   , T1.DP_TP_CD /* 입금유형코드 */
+                   , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T1.DP_TP_CD) AS DP_TP_NM  /* 입금유형명 */
+                   , (SELECT SUM(RVE_AMT) FROM TB_RVDW_RVE_DTL WHERE RVE_NO = T1.RVE_NO AND CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN) AS RVE_AMT /* 수납금액 */
+                   , T1.DP_MES_CD /* 입금수단코드 */
+                   , CASE WHEN T1.DP_MES_CD = '01' THEN F_CMZ_CD_NM('TNT_WELLS', 'DP_MES_CD', T1.DP_MES_CD)
+                          WHEN T1.DP_MES_CD = '02' THEN (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_CD = T2.CRDCD_FNIT_CD AND DTA_DL_YN = 'N')
+                          ELSE ''
+                     END AS DP_MES_NM /* 카드구분 */
+                   , T1.RVE_DV_CD /* 수납구분코드 */
+                   , CASE WHEN T1.RVE_DV_CD = '01' THEN '청약/인수'
+                          WHEN T1.RVE_DV_CD = '03' THEN '할부입금'
+                          WHEN T1.RVE_DV_CD = '98' THEN '기타선수'
+                          ELSE ''
+                     END AS RVE_DV_NM /* 일시불 - 업무구분 */
+                FROM TB_RVDW_RVE_DTL T1
+                LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS T2
+                  ON T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                 AND T2.ITG_DP_NO = T1.ITG_DP_NO
+                 AND T2.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3
+                  ON T3.CNTR_NO = T1.CNTR_NO
+                 AND T3.CNTR_SN = T1.CNTR_SN
+                 AND T3.DTA_DL_YN = 'N'
+               WHERE 1=1
+                 AND T1.CNTR_NO = #{cntrNo}
+                 AND T1.CNTR_SN = #{cntrSn}
+                 AND T1.DTA_DL_YN = 'N'
+               ORDER BY T1.RVE_DT DESC
+             )
+         WHERE RN = 1
     </select>
 </mapper>
