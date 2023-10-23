@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.kyowon.sms.common.web.fee.common.dvo.ZfezFeeBatchStatusDetailsDvo;
-import com.kyowon.sms.common.web.fee.common.service.ZfezFeeBatchStatusDetailsService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,14 +11,16 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
 import com.kyowon.sflex.common.common.service.BatchCallService;
 import com.kyowon.sms.common.web.fee.common.dto.ZfezFeeNetOrderStatusDto.SearchRes;
+import com.kyowon.sms.common.web.fee.common.dvo.ZfezFeeBatchStatusDetailsDvo;
+import com.kyowon.sms.common.web.fee.common.service.ZfezFeeBatchStatusDetailsService;
 import com.kyowon.sms.common.web.fee.common.service.ZfezFeeNetOrderStatusService;
 import com.kyowon.sms.wells.web.fee.aggregate.converter.WfeaOrganizationNetOrderConverter;
 import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaOrganizationNetOrderDto;
 import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaOrganizationNetOrderDvo;
 import com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaOrganizationNetOrderMapper;
-import com.sds.sflex.system.config.validation.BizAssert;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -157,6 +157,12 @@ public class WfeaOrganizationNetOrderService {
         WfeaOrganizationNetOrderDto.SearchHmstReq dto
     ) {
         return this.mapper.selectHomeMasterFees(dto);
+    }
+
+    public List<WfeaOrganizationNetOrderDto.SearchHmstFeeRes2> getHomeMasterFees2(
+        WfeaOrganizationNetOrderDto.SearchHmstReq dto
+    ) {
+        return this.mapper.selectHomeMasterFees2(dto);
     }
 
     /**
