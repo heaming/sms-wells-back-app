@@ -23,7 +23,8 @@ public class WsndBusinessVehiclesMgtService {
     private final WsndBusinessVehiclesMgtConverter converter;
 
     public List<SearchRes> getBusinessVehicles(SearchReq dto) {
-        return mapper.selectBusinessVehicles(dto);
+        List<WsndBusinessVehiclesMgtDvo> dvos = mapper.selectBusinessVehicles(dto);
+        return converter.mapAllDvoToSearchRes(dvos);
     }
 
     public PagingResult<SearchRes> getBusinessVehiclesPages(SearchReq dto, PageInfo pageInfo) {
