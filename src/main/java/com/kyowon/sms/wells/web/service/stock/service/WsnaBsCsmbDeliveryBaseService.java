@@ -31,30 +31,44 @@ public class WsnaBsCsmbDeliveryBaseService {
     }
 
     @Transactional
-    public int createDeliveryBasesNextMonth() {
+    public int createDeliveryBasesNextMonth(CreateCrdovrReq dto) {
+        WsnaBsCsmbDeliveryBaseDvo dvo = converter.mapCreateCrdovrReqToDeliveryBaseDto(dto);
         int processCount = 0;
 
-        // 당월 적용 대상 데이터 존재 여부 확인
-        int nowMonthBas = mapper.selectExistNowMonthDeliveryBase();
-        int nowMonthDtl = mapper.selectExistNowMonthDeliveryDtl();
+        String fromYm = dvo.getCarriedOverFrom();
+        String toYm = dvo.getCarriedOverTo();
 
-        if (nowMonthBas > 0 && nowMonthDtl > 0) { // 당월 적용 대상 데이터가 있을경우 당월에만 insert
-            int result1 = mapper.insertDeliveryBasesNowMonth();
-            processCount += result1;
+        // 이월 대상 월 데이터 존재 여부
+        int fromMonthBas = mapper.selectExistNowMonthDeliveryBase(fromYm);
+        int fromMonthDtl = mapper.selectExistNowMonthDeliveryDtl(fromYm);
 
-            int result2 = mapper.insertDeliveryBaseDtlsNowMonth();
-            processCount += result2;
-        } else {
-            throw new BizException("MSG_TXT_THM_DTA_EXST");
+        // 적용 대상 월 데이터 존재 여부
+        int toMonthBas = mapper.selectExistNowMonthDeliveryBase(toYm);
+        int toMonthDtl = mapper.selectExistNowMonthDeliveryDtl(toYm);
+
+        String fromYear = dvo.getCarriedOverFrom().substring(0, 4);
+        String fromMonth = "";
+        fromMonth = dvo.getCarriedOverFrom().substring(4);
+        fromMonth = fromMonth.startsWith("0") ? " " + fromMonth.substring(1) : fromMonth;
+
+        if (fromMonthBas == 0 && fromMonthDtl == 0) { // 이월 대상 월 데이터가 없으면
+            throw new BizException("MSG_ALT_THM_DATA_NOT_EXST", new String[] {fromYear, fromMonth});
         }
 
-        // else { // 없을 경우 당월 이후 월에 계속하여 insert
-        //     int result1 = mapper.insertDeliveryBasesNextMonth();
-        //     processCount += result1;
+        String toYear = dvo.getCarriedOverTo().substring(0, 4);
+        String toMonth = "";
+        toMonth = dvo.getCarriedOverTo().substring(4);
+        toMonth = toMonth.startsWith("0") ? " " + toMonth.substring(1) : toMonth;
 
-        //     int result2 = mapper.insertDeliveryBaseDtlsNextMonth();
-        //     processCount += result2;
-        // }
+        if (toMonthBas > 0 && toMonthDtl > 0) { // 적용 대상 월 데이터가 있으면
+            throw new BizException("MSG_TXT_THM_DTA_EXST", new String[] {toYear, toMonth});
+        }
+
+        int result1 = mapper.insertDeliveryBasesNowMonth(dvo);
+        processCount += result1;
+
+        int result2 = mapper.insertDeliveryBaseDtlsNowMonth(dvo);
+        processCount += result2;
 
         return processCount;
     }

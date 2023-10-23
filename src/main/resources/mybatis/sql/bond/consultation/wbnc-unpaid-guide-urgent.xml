@@ -43,7 +43,8 @@
                      , T1.BNK_CD                                                            /* 은행코드 */
                      , F_CMZ_CD_NM(#{session.tenantId}, 'BNK_CD', T1.BNK_CD , #{session.langId}) AS BNK_NM /* 은행코드명 */
                      , T1.VAC_NO                                                            /* 가상계좌번호 */
-                     , T1.ACHLDR_NM                                                         /* 예금주명 */
+<!--                     , T1.ACHLDR_NM                                                         /* 예금주명 */-->
+                     , '교원프라퍼티' AS ACHLDR_NM                                            /* 2023-10-23 예금주명 : '교원프라퍼티'*/
                      , T1.PY_TMLM_DT                                                        /* 납입기한일자 */
                      , T1.WK_DT                                                             /* 작업일자 */
                      , T1.CLCTAM_PRTNR_NM                                                   /* 집금파트너명 */
@@ -109,7 +110,8 @@
                      , T1.BNK_CD                                                            /* 은행코드 */
                      , F_CMZ_CD_NM(#{session.tenantId}, 'BNK_CD', T1.BNK_CD , #{session.langId}) AS BNK_NM /* 은행코드명 */
                      , T1.VAC_NO                                                            /* 가상계좌번호 */
-                     , T1.ACHLDR_NM                                                         /* 예금주명 */
+<!--                     , T1.ACHLDR_NM                                                         /* 예금주명 */-->
+                     , '교원프라퍼티' AS ACHLDR_NM                                            /* 2023-10-23 예금주명 : '교원프라퍼티'*/
                      , T1.PY_TMLM_DT                                                        /* 납입기한일자 */
                      , T1.WK_DT                                                             /* 작업일자 */
                      , T1.CLCTAM_PRTNR_NM                                                   /* 집금파트너명 */
@@ -167,14 +169,13 @@
            AND DTA_DL_YN        = 'N'                        /* 데이터삭제여부 */
     </update>
 
-    <update id="deleteAllUnpaidGuideUrgentObjects">
-        UPDATE TB_CBBO_WELLS_UCAM_ADVNT_OJ_IZ T1 /* WELLS미수금안내장대상내역 */
-           SET T1.DTA_DL_YN = 'Y'
+    <delete id="deleteAllUnpaidGuideUrgentObjects">
+        DELETE FROM TB_CBBO_WELLS_UCAM_ADVNT_OJ_IZ T1 /* WELLS미수금안내장대상내역 */
          WHERE 1 = 1
            AND UC_AMT_FW_TP_CD  = #{ucAmtFwTpCd}             /* 미수금액발송유형코드 */
            AND WK_DT            = #{ojWkDt}                  /* 작업일자 */
            AND DTA_DL_YN        = 'N'                        /* 데이터삭제여부 */
-    </update>
+    </delete>
     <insert id="insertUnpaidGuideUrgentObjects">
         INSERT INTO TB_CBBO_WELLS_UCAM_ADVNT_OJ_IZ (  /* WELLS미수금안내장대상내역 */
                WK_DT            /* 작업일자 */
@@ -259,7 +260,8 @@
 			 , (SELECT SUBSTR(MAX(TT1.RVE_DT),7,2) FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DP_DV_CD = '1') AS FNL_PY_D -- 최종납입일
              , T10.VAC_BNK_CD AS BNK_CD              -- 가상계좌은행
              , T10.VAC_NO AS VAC_NO                  -- 가상계좌번호
-             , T10.VAC_ACOWN_NM AS ACHLDR_NM         -- 예금주
+<!--             , T10.VAC_ACOWN_NM AS ACHLDR_NM         &#45;&#45; 예금주-->
+             , '교원프라퍼티' AS ACHLDR_NM            /* 2023-10-23 예금주명 : '교원프라퍼티'*/
              , #{ojPyTmlmDt} AS PY_TMLM_DT          -- 파라미터로 전달받은 납입기한
              , T1.CLCTAM_OG_TP_CD  -- 집금조직유형코드
              , T1.CLCTAM_PRTNR_NO -- 집금파트너번호
@@ -289,7 +291,9 @@
           LEFT JOIN TB_CBBO_CLCTAM_PRTNR_USTEL_DTL T11 ON T11.OG_TP_CD = T1.CLCTAM_OG_TP_CD AND T11.PRTNR_NO = T1.CLCTAM_PRTNR_NO AND T11.MPHON_YN = 'Y' AND T11.DTA_DL_YN = 'N'
          WHERE 1 = 1
            AND T1.BASE_YM = SUBSTR(#{ojWkDt},1,6)   -- 자료생성 작업일자 파라미터 기준으로 substr로 데이터 잘라서 세팅
+        <if test="@MybatisUtils@isNotEmpty(copnDvCd)">
            AND T3.COPN_DV_CD = #{copnDvCd}          -- 고객유형 개인 = '1' 법인 = '2'
+        </if>
            AND T2.DLQ_MCN BETWEEN #{fromDlqMcn} AND #{toDlqMcn} -- 연체개월 FROM ~ TO 조건
            AND T2.CLCTAM_DV_CD = #{clctamDvCd}      -- 집금구분 01 - 단기 or 02 - 중기 인건만
            AND T1.DTA_DL_YN = 'N'
@@ -303,14 +307,13 @@
                    AND TT1.CST_NO = T1.CST_NO) = 0
     </insert>
 
-    <update id="deleteAllUnpaidGuideUrgentCustomers">
-        UPDATE TB_CBBO_WELLS_UCAM_ADVNT_FW_IZ T1 /* WELLS미수금안내장발송내역 */
-           SET T1.DTA_DL_YN = 'Y'
+    <delete id="deleteAllUnpaidGuideUrgentCustomers">
+        DELETE FROM TB_CBBO_WELLS_UCAM_ADVNT_FW_IZ T1 /* WELLS미수금안내장발송내역 */
          WHERE 1 = 1
            AND UC_AMT_FW_TP_CD  = #{ucAmtFwTpCd}             /* 미수금액발송유형코드 */
            AND WK_DT            = #{wkDt}                    /* 작업일자 */
            AND DTA_DL_YN        = 'N'                        /* 데이터삭제여부 */
-    </update>
+    </delete>
 
     <insert id="insertUnpaidGuideUrgentCustomers">
         INSERT INTO TB_CBBO_WELLS_UCAM_ADVNT_FW_IZ (  /* WELLS미수금안내장발송내역 */
@@ -448,7 +451,8 @@
                      , T2.FNL_PY_D                  -- 최종납입일
                      , T2.BNK_CD                    -- 은행코드
                      , T2.VAC_NO                    -- 가상계좌번호
-                     , T2.ACHLDR_NM                 -- 예금주명
+<!--                     , T2.ACHLDR_NM                 &#45;&#45; 예금주명-->
+                     , '교원프라퍼티' AS ACHLDR_NM    /* 2023-10-23 예금주명 : '교원프라퍼티'*/
                      , #{pyTmlmDt} AS PY_TMLM_DT    -- 납입기한일자 파라미터로 입력
                      , T2.CLCTAM_OG_TP_CD           -- 집금조직유형코드
                      , T2.CLCTAM_PRTNR_NO           -- 집금파트너번호

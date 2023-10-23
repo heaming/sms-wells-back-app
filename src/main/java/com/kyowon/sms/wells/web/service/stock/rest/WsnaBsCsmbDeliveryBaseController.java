@@ -40,9 +40,13 @@ public class WsnaBsCsmbDeliveryBaseController {
 
     @ApiOperation(value = "BS소모품 배부기준 이월", notes = "당월 기준 직전월 배부기준 자료등록")
     @PostMapping("/next-month")
-    public SaveResponse createDeliveryBasesNextMonth() {
+    public SaveResponse createDeliveryBasesNextMonth(
+        @RequestBody
+        @Valid
+        CreateCrdovrReq dto
+    ) {
         return SaveResponse.builder()
-            .processCount(service.createDeliveryBasesNextMonth())
+            .processCount(service.createDeliveryBasesNextMonth(dto))
             .build();
     }
 

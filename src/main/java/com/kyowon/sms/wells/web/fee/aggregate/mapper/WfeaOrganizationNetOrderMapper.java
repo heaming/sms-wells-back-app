@@ -26,6 +26,10 @@ public interface WfeaOrganizationNetOrderMapper {
         SearchHmstReq dto
     );
 
+    List<SearchHmstFeeRes2> selectHomeMasterFees2(
+        SearchHmstReq dto
+    );
+
     List<SearchMngerRes> selectManagers(
         SearchMngerReq dto
     );

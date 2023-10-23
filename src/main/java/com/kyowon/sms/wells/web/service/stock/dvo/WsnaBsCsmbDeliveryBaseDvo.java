@@ -24,4 +24,6 @@ public class WsnaBsCsmbDeliveryBaseDvo {
     int bfsvcCsmbDdlvUnitQty;
     int bfsvcCsmbAplcLmQty;
     int sortOdr;
+    String carriedOverFrom;
+    String carriedOverTo;
 }
