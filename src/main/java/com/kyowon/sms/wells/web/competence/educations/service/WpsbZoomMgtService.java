@@ -50,7 +50,6 @@ public class WpsbZoomMgtService {
                 dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
                 processCount = mapper.insertZoom(dvo);
             }
-
         }
         return processCount;
     }
