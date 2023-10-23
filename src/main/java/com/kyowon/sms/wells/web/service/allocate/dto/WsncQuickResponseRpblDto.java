@@ -24,6 +24,7 @@ public class WsncQuickResponseRpblDto {
         String mngrDvCd, // 관리구분
         String pdPrpVal20, // 상품그룹
         String cntrNo, // 계약번호
+        String cntrSn, // 계약순번
         String prtnrNo, // 사번
         // Case2
         String mngtDptmtCd, // 총괄단
