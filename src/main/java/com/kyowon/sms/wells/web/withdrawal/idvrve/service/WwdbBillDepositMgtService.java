@@ -139,28 +139,32 @@ public class WwdbBillDepositMgtService {
             }
         }
 
-        //통합입금기본 데이터 생성
-        ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
-        depoDvo.setItgDpNo(dvo.getItgDpNo());    /*통합입금번호*/
-        depoDvo.setKwGrpCoCd("2000");    /*교원그룹회사코드*/
-        depoDvo.setRveCoCd("2000");    /*수납회사코드*/
+        switch (mainDto.state()) {
+            case CommConst.ROW_STATE_CREATED -> {
+                //통합입금기본 데이터 생성
+                ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
+                depoDvo.setItgDpNo(dvo.getItgDpNo());    /*통합입금번호*/
+                depoDvo.setKwGrpCoCd("2000");    /*교원그룹회사코드*/
+                depoDvo.setRveCoCd("2000");    /*수납회사코드*/
 
-//        depoDvo.setCstNo(dvo.);    /*고객번호*/
-        depoDvo.setDpDvCd("1");    /*입금구분코드*/
-        depoDvo.setDpMesCd("03");    /*입금수단코드*/
-        depoDvo.setDpTpCd("0301");    /*입금유형코드*/
-        depoDvo.setDpDtm(sysDateYmd);    /*입금일시*/
-        depoDvo.setPerfDt(sysDate);    /*실적일자*/
-//        depoDvo.setDprNm();    /*입금자명*/
-        depoDvo.setDpAmt(Integer.toString(sumAmt));    /*입금금액*/
+                //        depoDvo.setCstNo(dvo.);    /*고객번호*/
+                depoDvo.setDpDvCd("1");    /*입금구분코드*/
+                depoDvo.setDpMesCd("03");    /*입금수단코드*/
+                depoDvo.setDpTpCd("0301");    /*입금유형코드*/
+                depoDvo.setDpDtm(sysDateYmd);    /*입금일시*/
+                depoDvo.setPerfDt(sysDate);    /*실적일자*/
+                //        depoDvo.setDprNm();    /*입금자명*/
+                depoDvo.setDpAmt(Integer.toString(sumAmt));    /*입금금액*/
 
-        depoDvo.setDpBlam(Integer.toString(sumAmt));    /*입금잔액*/
+                depoDvo.setDpBlam(Integer.toString(sumAmt));    /*입금잔액*/
 
-        depoDvo.setIncmdcYn("N");    /*소득공제여부*/
+                depoDvo.setIncmdcYn("N");    /*소득공제여부*/
 
 
-        zwdbIntegrationDepositMapper.insertIntegrationDeposit(depoDvo);
-        zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
+                zwdbIntegrationDepositMapper.insertIntegrationDeposit(depoDvo);
+                zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
+            }
+        }
 
         return processCount;
     }
