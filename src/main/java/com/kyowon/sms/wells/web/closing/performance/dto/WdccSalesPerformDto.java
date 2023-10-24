@@ -80,6 +80,23 @@ public class WdccSalesPerformDto {
     ) {}
 
     /**
+     * 계약 상세정보
+     * @param cntrNo 계약번호
+     * @param cntrSn 계약일련번호
+     * @param sellTpCd 판매유형코드
+     * @param sellTpDtlCd 판매유형상세코드
+     * @param islease 렌탈여부
+     */
+    @ApiModel(value = "WdccSalesPerformDto-SearchContractReq")
+    public record SearchContractReq(
+        String cntrNo,
+        String cntrSn,
+        String sellTpCd,
+        String sellTpDtlCd,
+        String islease
+    ) {}
+
+    /**
      * 일시불 조회 요청
      * @param cntrNo 계약번호
      * @param cntrSn 계약일련번호
