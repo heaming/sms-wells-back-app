@@ -85,6 +85,15 @@ public class WdccSalesPerformService {
     }
 
     /**
+     * 검색 조건에 대항하는 계약 정보를 조회
+     * @param dto 검색조건
+     * @return 계약정보
+     */
+    public SearchContractReq getContract(SearchReq dto) {
+        return converter.mapWdccContractDvoToSearchContractReq(mapper.selectContract(dto));
+    }
+
+    /**
      * 매출 실적 현황 - 일시불(기본정보) 조회
      * @param dto 조회조건
      * @return 일시불(기본정보)
