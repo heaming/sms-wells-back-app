@@ -33,7 +33,6 @@ import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 
 /**
- *
  * <pre>
  *
  * </pre>
@@ -59,6 +58,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 수석플래너 신청관리 조회
+     *
      * @param
      * @return
      */
@@ -70,6 +70,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 수석플래너 신청관리 엑셀 다운로드
+     *
      * @param
      * @return
      */
@@ -79,6 +80,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 순주문 체크
+     *
      * @param dto
      * @return
      */
@@ -93,6 +95,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 자격생성 체크
+     *
      * @param dto
      * @return
      */
@@ -107,6 +110,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 수석플래너 신청관리 자격생성
+     *
      * @param dto
      * @return
      * @throws Exception
@@ -117,22 +121,23 @@ public class WogcPartnerPlannerService {
         WogcPartnerPlannerDvo planner = this.converter.mapSaveReqToWogcPartnerPlannerDvo(dto);
 
         //  1/4. 수석플래너신청내역(TB_OGPS_TOPMR_PLAR_APLC_IZ) 생성 (전월 -> 당월)
-        processCount = this.mapper.insertOneTopPlanner(planner);
+        processCount += this.mapper.insertOneTopPlanner(planner);
 
         //  2/4. 수석플래너신청내역 - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신
-        processCount = this.mapper.insertTwoTopPlanner(planner);
+        processCount += this.mapper.insertTwoTopPlanner(planner);
 
         //  3/4. 월파트너내역(TB_OGBS_MM_PRTNR_IZ) - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신
-        processCount = this.mapper.updateMmPartner(planner);
+        processCount += this.mapper.updateMmPartner(planner);
 
         //  4/4. 파트너상세(TB_OGBS_PRTNR_DTL) - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신
-        processCount = this.mapper.updateDtlPartner(planner);
+        processCount += this.mapper.updateDtlPartner(planner);
 
         return processCount;
     }
 
     /**
      * 수석플래너 신청관리 자격조정 팝업 조회
+     *
      * @param ogTpCd
      * @param prtnrNo
      * @param mngtYm
@@ -144,6 +149,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 수석플래너 신청관리 자격조정
+     *
      * @param dto
      * @return
      * @throws Exception
@@ -153,13 +159,10 @@ public class WogcPartnerPlannerService {
         WogcPartnerPlannerDvo planner = this.converter.mapEditReqToWogcPartnerPlannerDvo(dto);
 
         int processCount = this.mapper.insertAdTopPlanner(planner); // 1. 수석플래너신청내역 테이블 INSERT
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
 
-        processCount = this.mapper.updateAdMmPartner(planner); // 2. 월파트너내역 파트너등급 UPDATE
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        processCount += this.mapper.updateAdMmPartner(planner); // 2. 월파트너내역 파트너등급 UPDATE
 
-        processCount = this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        processCount += this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
 
         return processCount;
     }
@@ -178,6 +181,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 매니저 자격관리 보류, 개시 저장
+     *
      * @param dto
      * @return
      * @throws Exception
@@ -298,6 +302,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 매니저 자격관리 당일개시 저장
+     *
      * @param dto
      * @return
      * @throws Exception
@@ -366,6 +371,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 매니저 자격관리 해약
+     *
      * @param dto
      * @return
      * @throws Exception
@@ -422,6 +428,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 매니저 자격관리 변경내역 저장(지급일자, 지급내역)
+     *
      * @param dto
      * @return
      * @throws Exception
