@@ -331,7 +331,7 @@ public class WogcPartnerPlannerService {
                 qualificationDvo.setCvDt(null);
                 qualificationDvo.setEnddt(DateUtil.addDays(newStrtdt, -1));
                 mapper.updatePlannerQualificationChange(qualificationDvo);
-            } else if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) <= 0
+            } else if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) >= 0
                 && DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).enddt()) >= 0) {
                 // 승급(예정)
 
