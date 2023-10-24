@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchContractDetailRes;
@@ -97,4 +98,8 @@ public interface WwdbGiroDepositMgtMapper {
     SearchLedgerItemizationRes selectBillingDocumentMgtLedgerItemization(List<String> rveDt);
 
     int updateIntegrationDeposit(Map<String, Object> dto) throws Exception;
+
+    String selectGiroPerfDt(String rveDt);
+
+    WwdbGiroDepositMgtDto.SearchGiroNumberRes selectGiroNumberInquiry(String giroNo);
 }

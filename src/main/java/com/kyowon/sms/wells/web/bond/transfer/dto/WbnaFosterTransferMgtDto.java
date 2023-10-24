@@ -114,6 +114,8 @@ public class WbnaFosterTransferMgtDto {
         String lwmDt, /* 법조치일자 */
         String dfltDt, /* 채불등록일자 */
         String addr, /* 고객 주소 */
+        String baseYm, /* 기준년월 */
+        String clctamDvCd, /* 집금구분코드 */
         String fnlMdfcDtm/* 최종수정일시 */
     ) {}
 
@@ -134,7 +136,7 @@ public class WbnaFosterTransferMgtDto {
         @NotBlank
         String cntrNo, /* 계약번호 */
         @NotBlank
-        Integer cntrSn, /* 계약일련번호 */
+        String cntrSn, /* 계약일련번호 */
         @NotBlank
         String clctamPrtnrNo, /* 집금파트너번호 */
         @NotBlank

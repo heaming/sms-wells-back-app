@@ -32,6 +32,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
+/**
+ * <pre>
+ * 집금자배정 조회,생성,저장 관련 서비스
+ * </pre>
+ *
+ * @author gugyeongu
+ * @since 2023-02-22
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -46,30 +54,57 @@ public class WbnaCollectorAssignService {
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
 
+    /**
+     * 집금자배정 목록 조회
+     * @param dto 검색조건
+     * @return 집금자배정 목록
+     */
     public List<SearchRes> getCollectorAssigns(
         SearchReq dto
     ) {
         return mapper.selectCollectorAssigns(dto);
     }
 
+    /**
+     * 집금자배정 상세 목록 조회
+     * @param dto 검색조건
+     * @param pageInfo 페이지정보
+     * @return 상세목록
+     */
     public PagingResult<SearchDetailRes> getCollectorAssignDetails(
         SearchReq dto, PageInfo pageInfo
     ) {
         return mapper.selectCollectorAssignDetailPages(dto, pageInfo);
     }
 
+    /**
+     * 집금자배정 상세 목록 조회(엑셀다운로드용)
+     * @param dto 검색조건
+     * @return 상세목록
+     */
     public List<SearchDetailRes> getExcelDownload(
         SearchReq dto
     ) {
         return mapper.selectCollectorAssignDetailPages(dto);
     }
 
+    /**
+     * 집금자배정 상세 목록 합계 조회
+     * @param dto dto 검색조건
+     * @return 합계정보
+     */
     public SearchSummaryRes getCollectorAssignDetailsSummary(
         SearchReq dto
     ) {
         return mapper.selectCollectorAssignDetailsSummary(dto);
     }
 
+    /**
+     * 집금자 배정 생성
+     * @param dto 작업정보
+     * @return 호출된 배치 정보
+     * @throws Exception 배치호출 관련 에러
+     */
     @Transactional
     public String createCollectorAssigns(
         CreateReq dto
@@ -117,6 +152,11 @@ public class WbnaCollectorAssignService {
         return oldBondBatchJobRunId;
     }
 
+    /**
+     * 집금자배정 수정
+     * @param dtos 수정목록
+     * @return 갱신개수
+     */
     @Transactional
     public int editCollectorAssignsDetails(
         List<EditReq> dtos
@@ -154,6 +194,11 @@ public class WbnaCollectorAssignService {
         return processCount;
     }
 
+    /**
+     * 집금자배정 확정
+     * @param dto 확정할 정보
+     * @return 갱신개수
+     */
     @Transactional
     public int editCollectorAssingsConfirm(
         SearchReq dto
@@ -177,6 +222,13 @@ public class WbnaCollectorAssignService {
         return processCount;
     }
 
+    /**
+     * 집금자배정 엑셀업로드
+     * @param file 엑셀파일
+     * @param baseYm 기준년월
+     * @return 업로드결과
+     * @throws Exception 엑셀업로드 에러
+     */
     @Transactional
     public ExcelUploadDto.UploadRes createCollectorAssignsDetailsExcelUpload(
         MultipartFile file, String baseYm

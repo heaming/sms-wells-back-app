@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
-import java.util.List;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +8,7 @@ import lombok.Setter;
  * W-SV-U-0035M01 책임지역 지역코드 관리
  * </pre>
  *
- * @author gs.piit129 천영화
+ * @author yeonghwa.cheon
  * @since 2022.11.22
  */
 @Setter
@@ -26,8 +24,6 @@ public class WsncRpbAreaCodeDvo {
     String zipList; /* 우편번호 List */
     String apyStrtdt; /* 적용시작일자 */
     String apyEnddt; /* 적용종료일자 */
-    //        String mgtCnt; /* 지역별 서비스 계정 수 */
-    //        String wrkCnt; /* 월별 수임 건수 (조회월 이전 3개월 평균) */
     String rpbLocaraCd; /* 책임지역코드 */
     String rpbLocaraGrpCd; /* 책임지역그룹코드 */
     String vstDowVal; /* 방문요일코드 */
@@ -39,6 +35,5 @@ public class WsncRpbAreaCodeDvo {
     String locaraCenStruAdr; /* 지역중심건물주소 */
     String chLocaraCd; /* 변경 책임지역코드 */
     String orderNo; /* 정렬순서번호 */
-    List<WsncRpbAreaCodeDvo> changeCodes; /* 책임지역변경코드 list(콤보박스생성용) */
 
 }

@@ -26,6 +26,102 @@ public class WdccSalesBondDto {
         String cntrNo,
         String cntrSn
     ) {}
+
+    /**
+     * 목록 조회 결과
+     * @param slClYm 기준년월
+     * @param slClDt
+     * @param sellTpCd 판매유형코드
+     * @param sellTpCdNm 판매유형코드명
+     * @param sellTpDtlCd 판매유형상세코드
+     * @param sellTpDtlCdNm 판매유형상세코드명
+     * @param sapPdDvCd SAP상품코드
+     * @param sapPdAtcNm SAP상품코드명
+     * @param cntrNo 계약번호
+     * @param cstNo 고객번호
+     * @param cstKnm 고객명
+     * @param pdCd 상품코드
+     * @param pdNm 상품명
+     * @param slRcogDt 미정
+     * @param preTotUcAmt 전기이월
+     * @param preUcAmt1 미정
+     * @param preUcAmt2 미정
+     * @param nomSlAmt 정상매출
+     * @param nomSlAmt1 렌탈등록비
+     * @param nomSlAmt2 렌탈할인
+     * @param nomSlAmt3 렌탈등록비차액
+     * @param nomSlAmt4 등록환불
+     * @param nomSlAmt5 원금매출
+     * @param nomSlAmt6 원금매출
+     * @param slCanAmt 미정
+     * @param totSlAmt 매출합계
+     * @param totDpAmt 매출대사
+     * @param slBndAlrpyAmt 매출입금
+     * @param totUcBlam 미수금액
+     * @param ucBlam1 미정
+     * @param ucBlam2 미정
+     * @param borRemAmt  위약잔여
+     * @param borRemAmt1 미정
+     * @param borRemAmt2 미정
+     * @param borAdjAmt 위약조정
+     * @param borAdjAmt1 미정
+     * @param borAdjAmt2 미정
+     * @param borAdjAmt3 미정
+     * @param dpCngAmt 선수전환
+     * @param dpCngAmt1 미정
+     * @param dfaProcsAmt 대손
+     * @param slClYm2 미정
+     * @param btdDlqAddAmt  미정
+     * @param thmOcDlqAddAmt 미정
+     * @param thmCtrDlqAddAmt 미정
+     * @param thmDlqAddDpSumAmt 미정
+     * @param thmDlqAddRfndSumAmt 미정
+     * @param eotDlqAddAmt 기말연체가산금
+     * @param w1Am011 미정
+     * @param w1Am012 미정
+     * @param w1Am013 미정
+     * @param oriSlAmt 원금매출
+     * @param itrSlAmt 이자매출
+     * @param svcSlAmt 서비스매출
+     * @param slAdjAmt 매출조정
+     * @param w1Am081 미정
+     * @param w1Am082 미정
+     * @param w1Am09 미정
+     * @param w1Am10 미정
+     * @param w1Am50 미정
+     * @param w1Am121 미정
+     * @param w1Am122 미정
+     * @param w1Am123 미정
+     * @param canSlAmt 취소매출
+     * @param w1Am05 미정
+     * @param w1Am07 미정
+     * @param w1Am08 미정
+     * @param feeSlAmt 수수료매출금액
+     * @param boutNorSlAmt 상품권_정상매출
+     * @param boutCanSlAmt  상품권_취소매출
+     * @param cntrDpAmt 계약금입금
+     * @param instDpAmt 할부금입금
+     * @param eotUcAmt 기말미수잔액
+     * @param crpUcAmt 법인미수금
+     * @param boutDpAmt 상품권입금
+     * @param etcDpAmt 기타선수대체
+     * @param interContNomSlAmt 사간거래_정상매출금액
+     * @param interContCanSlAmt 사간거래_취소매출금액
+     * @param interContDpAmt 사간거래입금
+     * @param interContDpAmt1 미정
+     * @param interContDpAmt2 미정
+     * @param bfThmUcBlam 대손금액
+     * @param bfEotDlqAddAmt 미정
+     * @param bfEotBorAmt 미정
+     * @param w1Am191 미정
+     * @param w1Am192 미정
+     * @param w1Am193 미정
+     * @param w1Am194 미정
+     * @param w1Am195 미정
+     * @param w1Am196 미정
+     * @param thmUcBlam 기말미수잔액
+     * @param eotBorAmt 당월위약금
+     */
     @ApiModel(value = "WdccDelinquentDto-SearchRes")
     public record SearchRes(
         String slClYm,

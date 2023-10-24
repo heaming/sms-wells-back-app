@@ -1,10 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMdProductOutOfStorageExcelUploadMapper">
+    <select id="selectExistMdProductOutOfStorage" resultType="int">
+        SELECT COUNT(1) AS CNT
+        FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1            /*고객서비스AS설치대상내역, AC211TB*/
+        INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2     /*고객서비스수행배정내역, AC221TB*/
+         ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+         AND S2.DTA_DL_YN = 'N'
+        INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3         /*고객서비스작업결과내역, VS106TB*/
+         ON S3.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+         AND S3.DTA_DL_YN = 'N'
+        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S6          /*고객서비스수행내역*/
+         ON S6.CNTR_NO = S1.CNTR_NO
+         AND S6.CNTR_SN = S1.CNTR_SN
+         AND S6.DTA_DL_YN = 'N'
+        INNER JOIN TB_SSCT_CNTR_BAS C0                /*계약기본*/
+         ON C0.CNTR_NO = S1.CNTR_NO
+         AND C0.DTA_DL_YN = 'N'
+        INNER JOIN TB_SSCT_CNTR_DTL C1                /*계약상세*/
+         ON C1.CNTR_NO = S1.CNTR_NO
+         AND C1.CNTR_SN = S1.CNTR_SN
+         AND C1.DTA_DL_YN = 'N'
+        INNER JOIN TB_SSCT_CNTR_PD_REL C2             /*계약상품관계*/
+         ON C2.CNTR_NO = S1.CNTR_NO
+         AND C2.CNTR_SN = S1.CNTR_SN
+         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C2.VL_STRT_DTM AND C2.VL_END_DTM
+         AND C2.DTA_DL_YN = 'N'
+         AND C2.PD_REL_TP_CD = '05'
+        INNER JOIN T_CMY_USR_M U1                     /* 사용자기본 */
+         ON U1.TENANT_ID = 'TNT_WELLS'
+         AND U1.BASE_RLE_CD = 'W8030'
+         AND U1.USR_ID = S1.FST_RGST_USR_ID
+         AND U1.DEL_YN = 'N'
+        INNER JOIN T_CMP_USR_ACO_M U2                 /* 사용자계정기본 */
+         ON U2.USR_ID = U1.USR_ID
+         AND U2.DEL_YN = 'N'
+       WHERE 1=1
+        /* 출고구분 */
+        AND S1.SV_BIZ_DCLSF_CD ='1112'
+        AND S2.WK_PRGS_STAT_CD = '20'
+        AND S1.CST_SV_ASN_NO = #{cstSvAsnNo}
+        AND S1.CNTR_NO = #{cntrNo}
+        AND S1.CNTR_SN = #{cntrSn}
+    </select>
     <select id="selectExistSppIvcNo" resultType="int">
         SELECT COUNT(1) AS CNT
-        FROM TB_SSSO_SPP_BZS_IVC_PROCS_IZ
+        FROM TB_SVPD_CST_SV_WK_RS_IZ
         WHERE 1=1
+         AND SV_BIZ_DCLSF_CD  ='1112'  /* MD 출고인경우*/
          AND CNTR_NO = #{cntrNo}
          AND CNTR_SN = #{cntrSn}
          AND SPP_IVC_NO = #{sppIvcNo}
@@ -22,7 +65,7 @@
         )
         VALUES
         (
-            (SELECT NVL(MAX(TO_NUMBER(SPP_BZS_PROCS_ID)), 0) + 1 FROM TB_SSSO_SPP_BZS_IVC_PROCS_IZ)
+            (SELECT LPAD(NVL(MAX(TO_NUMBER(SPP_BZS_PROCS_ID)),0) +1,15,'0') FROM TB_SSSO_SPP_BZS_IVC_PROCS_IZ)
           , #{cntrNo}
           , #{cntrSn}
           , #{sppIvcNo}
@@ -31,15 +74,6 @@
           <include refid="COMMON.insertSystemFieldValue"/>
         )
     </insert>
-    <update id="updateSvpdCstSvExcnIz">
-        /* 시리얼번호 업데이트 */
-        UPDATE TB_SVPD_CST_SV_EXCN_IZ
-        SET BC_NO = #{sppBzsPdId}
-         <include refid="COMMON.updateSystemField"/>
-        WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
-         AND CNTR_NO = #{cntrNo}
-         AND CNTR_SN = #{cntrSn}
-    </update>
     <update id="updateSvpdCstSvasIstAsnIz">
         /* 택배사 업데이트 */
         UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ
@@ -50,9 +84,10 @@
          AND CNTR_SN = #{cntrSn}
     </update>
     <update id="updateSvpdCstSvWkRsIz">
-        /* 송장번호 업데이트 */
+        /* 송장번호, 시리얼번호 업데이트 */
         UPDATE TB_SVPD_CST_SV_WK_RS_IZ
         SET SPP_IVC_NO = #{sppIvcNo}
+          , BC_NO      = #{sppBzsPdId}
          <include refid="COMMON.updateSystemField"/>
         WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
          AND CNTR_NO = #{cntrNo}

@@ -13,6 +13,8 @@ import com.kyowon.sms.wells.web.bond.consultation.service.WbncServiceService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +26,10 @@ public class WbncServiceController {
     private final WbncServiceService service;
 
     @ApiOperation(value = "서비스 상세내역 조회", notes = "서비스 상세내역을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
     @GetMapping
     public List<FindRes> getServices(@RequestParam
     String cntrNo, @RequestParam

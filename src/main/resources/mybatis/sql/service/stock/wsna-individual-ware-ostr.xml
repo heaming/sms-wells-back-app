@@ -48,7 +48,7 @@
         <if test='@MybatisUtils@isNotEmpty(hgrStrWareNo) and !@MybatisUtils@equals(hgrDvCd, "30")'>
            AND D1.HGR_WARE_NO = #{hgrStrWareNo}   /* 상위입고창고 */
         </if>
-         ORDER BY WARE_NM
+         ORDER BY WARE_NM, WARE_NO
     </select>
 
     <select id="selectIndividualWareOstrs" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndividualWareOstrDvo">
@@ -57,6 +57,7 @@
                END                                 AS LGST_TRS_YN   /* 물류전송여부 */
              , CASE WHEN T.OUT_QTY <![CDATA[>]]> 0
                      AND ( #{totOutQty} IS NULL OR T.HGR_CRTL_STOC_QTY - T.TOT_OUT_QTY <![CDATA[<=]]> #{totOutQty} )
+                     AND T.OSTR_AK_NO IS NULL   /* 한번이라도 저장된 경우 제외 */
                      AND T.LGST_OSTR_AK_NO IS NULL THEN 'Y'
                     ELSE 'N'
                END                                 AS CHK           /* Row 체크여부 */
@@ -360,6 +361,9 @@
              , D2.OVIV_TP_CD                                /* 배차유형코드 */
              , D2.RMK_CN                                    /* 비고 */
              , D1.ASN_TN_N            AS TCNT               /* 차수 */
+             , CASE WHEN D4.ADR_USE_YN = 'Y' THEN NVL(D4.BLD_CD, D4.WARE_MNGT_PRTNR_NO)
+                    ELSE NVL(D5.BLD_CD, D6.BLD_CD)
+               END                    AS BLD_CD             /* 빌딩코드 */
           FROM TB_SVST_ITM_QOM_ASN_IZ D1                     /* 품목물량배정내역 */
          INNER JOIN TB_SVST_ITM_OSTR_AK_IZ D2                /* 품목출고요청내역 */
             ON D2.ITM_QOM_ASN_NO = D1.ITM_QOM_ASN_NO
@@ -367,15 +371,28 @@
             ON D3.REL_NO    = D2.OSTR_AK_NO
            AND D3.REL_SN    = D2.OSTR_AK_SN
            AND D3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SVST_MCBY_WARE_IZ D4                  /* 월별창고내역(입고) */
+            ON D4.APY_YM  = SUBSTR(D2.OSTR_AK_RGST_DT, 1, 6)
+           AND D4.WARE_NO = D2.STR_OJ_WARE_NO
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D5                /* 월조직내역 */
+            ON D5.BASE_YM   = D4.APY_YM
+           AND D5.OG_ID     = D4.OG_ID
+           AND D5.OG_TP_CD  = D4.OG_TP_CD
+           AND D5.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_OG_BAS D6                        /* 조직기본 */
+            ON D6.OG_ID     = D4.OG_ID
+           AND D6.OG_TP_CD  = D4.OG_TP_CD
          WHERE D1.DTA_DL_YN          = 'N'
            AND D2.DTA_DL_YN          = 'N'
+           AND D4.DTA_DL_YN          = 'N'
+           AND D6.DTA_DL_YN          = 'N'
            AND D1.ASN_OJ_YM          = #{asnOjYm}       /* 배정년월 */
            AND D1.ASN_TN_N           = #{cnt}           /* 회차 */
            AND D1.OSTR_WARE_NO       = #{ostrWareNo}    /* 출고창고 */
            AND D1.WARE_DV_CD         = #{wareDvCd}      /* 창고구분 - 영업센터 */
            AND D1.WARE_DTL_DV_CD     = #{wareDtlDvCd}   /* 창고상세구분 - 영업센터 개인창고 */
            AND D3.LGST_OSTR_AK_NO IS NULL
-         ORDER BY D2.OSTR_AK_NO, D2.OSTR_AK_SN
+         ORDER BY BLD_CD, D2.OSTR_AK_NO, D2.OSTR_AK_SN
     </select>
 
 

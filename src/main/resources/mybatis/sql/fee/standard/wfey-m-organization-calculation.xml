@@ -208,14 +208,23 @@
                                            AND A.OG_TP_CD = D.OG_TP_CD
                                            AND A.PRTNR_NO = D.PRTNR_NO
                                            AND '0' = D.PERF_DV_CD /* 개인 */
+                       LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL E
+                                       ON A.BASE_YM = E.BASE_YM
+                                           AND A.PERF_YM = E.PERF_YM
+                                           AND A.FEE_TCNT_DV_CD = E.FEE_TCNT_DV_CD
+                                           AND 'W02P00002' = E.PERF_ATC_CD /* 판매인정건수 */
+                                           AND A.OG_TP_CD = E.OG_TP_CD
+                                           AND A.PRTNR_NO = E.PRTNR_NO
+                                           AND '0' = E.PERF_DV_CD /* 개인 */
                  WHERE 1 = 1
-                   AND A.BASE_YM = #{baseYm}
-                   AND A.PERF_YM = #{baseYm}
-                   AND A.OG_TP_CD = #{ogTpCd}
-                   AND A.FEE_CD = #{feeCd}
-                   AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND A.BASE_YM = ${baseYm}    -- 변수
+                   AND A.PERF_YM = ${baseYm}    -- 변수
+                   AND A.OG_TP_CD = ${ogTpCd}      -- 변수
+                   AND A.FEE_CD = ${feeCd}    -- 변수
+                   AND A.FEE_TCNT_DV_CD = ${feeTcntDvCd} -- 변수
                    AND A.FEE_CALC_AMT > 0
-                   AND NVL(B.PERF_VAL, 0) = 1 /* 허위방문건수    */
+                   AND NVL(E.PERF_VAL, 0) <![CDATA[<]]> 2 /* 판매인정건수 */
+                   AND NVL(B.PERF_VAL, 0) > 0 /* 허위방문건수    */
                    AND NVL(C.PERF_VAL, 100) <![CDATA[<]]> 90 /* 비율   */
                    AND NVL(D.PERF_VAL, 0) <![CDATA[<]]> 120 /* 실적건수   */
                )
@@ -617,5 +626,89 @@
            AND B.FEE_UPRC_AMT > 0          -- BS 관리 수수료가 존재하는 건이 WM급지 수수료 대상
            AND B.SV_BIZ_DCLSF_CD NOT IN ('4330', '2250', '2240') -- 제외 홈마스터 방문부재건 4330 / 웰컴BS 2250 / 사전방문 2240
     </update>
+
+    <insert id="insertFxamRedfPartnerData">
+        INSERT INTO TB_FEDD_FEE_REDF_ADSB_BAS(
+                                               FEE_REDF_ADSB_ID /* 수수료되물림재지급ID */
+                                             , REDF_ADSB_OC_YM /* 되물림재지급발생년월 */
+                                             , PERF_YM /* 실적년월 */
+                                             , PERF_DV_CD /* 실적구분코드 */
+                                             , CO_CD /* 회사코드 */
+                                             , OG_TP_CD /* 조직유형코드 */
+                                             , PRTNR_NO /* 파트너번호 */
+                                             , FEE_CD /* 수수료코드 */
+                                             , DTA_CRT_FEE_CD /* 데이터생성수수료코드 */
+                                             , REDF_ADSB_DV_CD /* 되물림재지급구분코드 */
+                                             , REDF_ADSB_TP_CD /* 되물림재지급유형코드 */
+                                             , REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
+                                             , REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+            <include refid="COMMON.insertSystemField" />
+        )
+        SELECT 'WFEDD0500020202' || #{baseYm} ||
+               LPAD(SQ_FEDD_FEE_REDF_ADSB_BAS$FEE_REDF_ADSB_ID.NEXTVAL, 9, '0') AS FEE_REDF_ADSB_ID /* 수수료되물림재지급ID */
+             , #{baseYm}                                                        AS REDF_ADSB_OC_YM /* 되물림재지급발생년월 */
+             , PERF_YM
+             , DECODE(#{indvPerfYn}, 'Y', '0', '2') AS PERF_DV_CD
+             , CO_CD
+             , OG_TP_CD
+             , PRTNR_NO
+             , #{feeCd}                                                         AS FEE_CD /* 수수료코드 */
+             , #{dtaCrtFeeCd}                                                   AS DTA_CRT_FEE_CD /* 데이터생성수수료코드 */
+             , '02'                                                             AS REDF_ADSB_DV_CD /* 되물림재지급구분코드 */
+             , '0202'                                                           AS REDF_ADSB_TP_CD /* 되물림재지급유형코드 */
+             , REDF_ADSB_OC_AMT
+             , REDF_ADSB_OC_AMT                                                 AS REDF_ADSB_CTR_CNFM_AMT
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM (SELECT T01.PERF_YM /* 실적년월 */
+                     , T01.CO_CD /* 회사코드 */
+                     , T01.OG_TP_CD /* 조직유형코드 */
+                     , T01.PRTNR_NO /* 파트너번호 */
+                     , ${calcExpr} AS REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
+                  FROM TB_FEAM_FEE_CALC_BAS T01 /* 수수료계산기본 */
+                       INNER JOIN (SELECT T10.BASE_YM /* 기준년월 */
+                                        , T10.PERF_YM /* 실적년월 */
+                                        , T10.FEE_TCNT_DV_CD /* 수수료차수구분코드 */
+                                        , T10.PERF_AGRG_CRT_DV_CD /* 실적집계생성구분코드 */
+                                        , T10.PERF_ATC_CD /* 실적항목코드 */
+                                        , T10.CO_CD /* 회사코드 */
+                                        , T10.OG_TP_CD /* 조직유형코드 */
+                                        , T10.PRTNR_NO /* 파트너번호 */
+                                        , T10.PERF_DV_CD /* 실적구분코드 */
+                                        , T10.CNTR_NO /* 계약번호 */
+                                        , T10.CNTR_SN /* 계약일련번호 */
+                                        , T10.CNTR_PERF_CRT_DV_CD /* 계약실적생성구분코드 */
+                                        , FST.PERF_VAL - T10.PERF_VAL AS PERF_VAL
+                                        , T10.DTA_DL_YN /* 데이터삭제여부 */
+                                     FROM TB_FEAM_NTORP_CNTR_MM_CL T10/* 순주문파트너계약월마감 */
+                                          INNER JOIN TB_FEAM_NTORP_CNTR_MM_CL FST /* 순주문파트너계약월마감 */
+                                                     ON (T10.PERF_YM = FST.PERF_YM AND T10.PERF_YM = FST.BASE_YM AND
+                                                         T10.FEE_TCNT_DV_CD = FST.FEE_TCNT_DV_CD AND
+                                                         T10.PERF_ATC_CD = FST.PERF_ATC_CD AND T10.CO_CD = FST.CO_CD AND
+                                                         T10.OG_TP_CD = FST.OG_TP_CD AND T10.PRTNR_NO = FST.PRTNR_NO AND
+                                                         T10.PERF_DV_CD = FST.PERF_DV_CD AND T10.CNTR_NO = FST.CNTR_NO AND
+                                                         T10.CNTR_SN = FST.CNTR_SN)
+                                    WHERE T10.BASE_YM = #{baseYm}
+                                      AND T10.PERF_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -60), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
+                                      AND T10.PERF_YM BETWEEN #{apyStrtYm} AND #{apyEndYm}
+                                      AND T10.PERF_AGRG_CRT_DV_CD = #{perfAgrgCrtDvCd}
+                                      AND T10.FEE_TCNT_DV_CD = '02'
+                                      AND T10.PERF_ATC_CD = #{perfAtcCd}
+                                      AND FST.PERF_VAL > 0
+                                      AND T10.DTA_DL_YN = 'N') T10
+                                  ON (T01.PERF_YM = T10.PERF_YM AND T01.OJ_DSB_YM = T10.PERF_YM AND T01.CO_CD = T10.CO_CD AND
+                                      T01.OG_TP_CD = T10.OG_TP_CD AND T01.FEE_TCNT_DV_CD = T10.FEE_TCNT_DV_CD AND
+                                      T10.BASE_YM = #{baseYm} AND
+                                      T10.PERF_AGRG_CRT_DV_CD = #{perfAgrgCrtDvCd} AND T01.PRTNR_NO = T10.PRTNR_NO)
+                 WHERE T01.FEE_CD = #{feeCd}
+                   AND T01.BASE_YM BETWEEN #{apyStrtYm} AND #{apyEndYm}
+                   AND T01.FEE_TCNT_DV_CD = '02'
+                   AND T01.FEE_CTR_CNFM_AMT > 0
+                   AND T01.FEE_CALC_TP_CD = '01'
+                   AND T01.DTA_DL_YN = 'N'
+                 GROUP BY T01.PERF_YM /* 실적년월 */
+                        , T01.CO_CD /* 회사코드 */
+                        , T01.OG_TP_CD /* 조직유형코드 */
+                        , T01.PRTNR_NO /* 파트너번호 */)
+    </insert>
 
 </mapper>

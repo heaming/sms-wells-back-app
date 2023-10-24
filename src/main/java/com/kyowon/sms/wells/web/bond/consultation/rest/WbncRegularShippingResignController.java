@@ -26,7 +26,7 @@ import java.util.List;
 public class WbncRegularShippingResignController {
     private final WbncRegularShippingResignService service;
 
-    @ApiOperation(value = "직권해지관리 - 정기배송 해지 조회", notes = "직권해지관리 - 정기배송 해지을 조회한다.")
+    @ApiOperation(value = "직권해지관리 - 정기배송 해지 조회", notes = "직권해지관리 - 정기배송 해지를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "authRsgDt", value = "직권해지일", paramType = "query", required = true),
         @ApiImplicitParam(name = "clctamDvCd", value = "집금구분코드", paramType = "query"),

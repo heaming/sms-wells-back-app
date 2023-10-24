@@ -119,7 +119,7 @@ public class WsnaOutOfStorageAskMngtService {
         searchExcelDvo.setOstrWareDvCd(ostrWareDvCd);
 
         List<WsnaOutOfStorageAskMngtDvo> outOfDvo = this.mapper.selectOutOfStorageItms(searchExcelDvo);
-
+        // 출고창고구분코드가 물류일경우 물류센터 재고 조회 서비스 호출
         if (WARE_DV_CD_LOGISTICS_CENTER.equals(ostrWareDvCd)) {
             this.getRealTimeLogisticStockQtys(outOfDvo);
         }
@@ -326,7 +326,7 @@ public class WsnaOutOfStorageAskMngtService {
                             .selectLogisticsOutStorageAskInfo(createOstrAkNos);
                         List<WsnaLogisticsOutStorageAskReqDvo> dvo = this.converter
                             .mapAllCreateOutOfStorageAsksDvo(createLogisticsDvo);
-                        logisticsservice.createOutOfStorageAsks(dvo, false);
+                        logisticsservice.createOutOfStorageAsks(dvo);
                     } else {
                         //영업센터일경우
                         List<WsnaOutOfStorageAskMngtDvo> businessCreateLogisticsDvo = this.mapper

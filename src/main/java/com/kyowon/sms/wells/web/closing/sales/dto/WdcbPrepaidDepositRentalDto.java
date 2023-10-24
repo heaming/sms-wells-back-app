@@ -28,12 +28,9 @@ public class WdcbPrepaidDepositRentalDto {
     @ApiModel("WdcbPrepaidDepositRentalDto-SearchRes")
     public record SearchRes(
         String rentalTn,
-        String prmMcn,
         String prmDpAmt,
-        String prmPrd,
         String rentalAmt,
         String thmAtamDpAmt,
-        String col7,
         String prmBlamEotAmt
     ) {}
 }

@@ -68,7 +68,7 @@ public class WsnaReturningGoodsStoreDvo {
     String wkOstrSn; /*작업출고순번*/
 
     //물류에 전송하기 위한 데이터 dvo
-    private String ostrAkRgstDt;
+    private String ostrAkRgstDt; /*출고요청등록일자*/
     private String strHopDt; /*입고희망일자*/
     private String lgstStrTpCd; /*물류입고구분코드*/
     private String iostAkDvCd; /*입출고요청구분콛,*/

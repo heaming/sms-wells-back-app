@@ -16,10 +16,6 @@ import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto.*;
  */
 @Mapper
 public interface WfeeIndividualFeeMapper {
-    List<SearchPlarRes> selectIndividualPerformancePlarDetails(
-        SearchReq dto
-    );
-
     List<SearchMngerRes> selectIndividualPerformanceMngerDetails(
         SearchReq dto
     );
@@ -28,51 +24,11 @@ public interface WfeeIndividualFeeMapper {
         SearchReq dto
     );
 
-    FindHmstRes selectHmst(
-        SearchHmstReq dto
-    );
-
-    List<SearchHmstEtcRes> selectHmstEtcs(
-        SearchHmstReq dto
-    );
-
-    List<SearchHmstFeeRes> selectHmstFees(
-        SearchHmstReq dto
-    );
-
-    List<FindHmstDeductionRes> selectHmstDeductions(
-        SearchHmstReq dto
-    );
-
-    List<SearchHmstPnpyamRes> selectHmstPnpyams(
-        SearchHmstReq dto
-    );
-
-    FindPlarRes selectPlar(
-        SearchPlarReq dto
-    );
-
-    List<SearchPlarEtcRes> selectPlarEtcs(
-        SearchPlarReq dto
-    );
-
-    List<SearchPlarFeeRes> selectPlarFees(
-        SearchPlarReq dto
-    );
-
-    FindPlarDeductionRes selectPlarDeduction(
-        SearchPlarReq dto
-    );
-
-    List<SearchPlarPnpyamRes> selectPlarPnpyams(
-        SearchPlarReq dto
-    );
-
-    FindMngerRes selectMnger(
+    FindMngerBasicRes selectMngerBasic(
         SearchMngerReq dto
     );
 
-    List<SearchMngerEtcRes> selectMngerEtcs(
+    List<SearchMngerSellEtcsRes> selectMngerSellEtcs(
         SearchMngerReq dto
     );
 
@@ -81,10 +37,10 @@ public interface WfeeIndividualFeeMapper {
     );
 
     List<SearchMngerFeeRes> selectMngerFees(
-        SearchMngerReq dto
+        SearchMngerReq dto, String feeAtcTpCd
     );
 
-    FindMngerDeductionRes selectMngerDeduction(
+    List<SearchMngerDeductionRes> selectMngerDeduction(
         SearchMngerReq dto
     );
 
@@ -96,7 +52,7 @@ public interface WfeeIndividualFeeMapper {
         SearchFeeReq dto
     );
 
-    SearchUserInfoRes selectUserInfo(
-        SearchFeeReq dto
-    );
+    //    SearchUserInfoRes selectUserInfo(
+    //        SearchFeeReq dto
+    //    );
 }

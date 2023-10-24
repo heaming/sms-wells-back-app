@@ -150,7 +150,7 @@ public class WsnaMovementStoreController {
 
     @GetMapping("/strware-monthly-end")
     @ApiOperation(value = "마감된 창고 조회", notes = "마감된 창고의 건수를 조회한다.")
-    public int getStrWareMonthlyClosed(warehouseMonthlyReq dto) {
+    public int getStrWareMonthlyClosed(WarehouseMonthlyReq dto) {
         return service.getStrWareMonthlyClosed(dto);
     }
 

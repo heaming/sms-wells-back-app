@@ -1,16 +1,22 @@
 package com.kyowon.sms.wells.web.fee.control.rest;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.validation.Valid;
 
+import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kyowon.sms.wells.web.fee.control.dto.WfedIndividualFeeHomeMasterMgtDto;
 import com.kyowon.sms.wells.web.fee.control.dto.WfedIndividualFeeMgtDto.*;
+import com.kyowon.sms.wells.web.fee.control.dto.WfedIndividualFeePlannerMgtDto.*;
+import com.kyowon.sms.wells.web.fee.control.service.WfedIndividualFeeHomeMasterMgtService;
 import com.kyowon.sms.wells.web.fee.control.service.WfedIndividualFeeMgtService;
+import com.kyowon.sms.wells.web.fee.control.service.WfedIndividualFeePlannerMgtService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
 
 import io.swagger.annotations.Api;
@@ -28,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WfedIndividualFeeMgtController {
     private final WfedIndividualFeeMgtService service;
+    private final WfedIndividualFeeHomeMasterMgtService hmstService;
+    private final WfedIndividualFeePlannerMgtService plannerService;
 
     @ApiOperation(value = "개인별 수수료 관리 사업자정보 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 수수료 관리 사업자정보를 조회한다.")
     @ApiImplicitParams(value = {
@@ -35,11 +43,11 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/home-master/entrepreneurs")
-    public FindHmstEntrpRes getHmstEntrp(
+    public WfedIndividualFeeHomeMasterMgtDto.FindHmstEntrpRes getHmstEntrp(
         @Valid
-        SearchHmstReq dto
+        WfedIndividualFeeHomeMasterMgtDto.SearchHmstReq dto
     ) {
-        return service.getHmstEntrp(dto);
+        return hmstService.getHmstEntrp(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 수수료 내역 정보 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 수수료 관리 수수료 내역 정보를 조회한다.")
@@ -47,12 +55,12 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/home-master/fee")
-    public List<SearchHmstFeeRes> getHmstFee(
+    @GetMapping("/home-master/fees")
+    public List<WfedIndividualFeeHomeMasterMgtDto.SearchHmstFeeRes> getHmstFees(
         @Valid
-        SearchHmstReq dto
+        WfedIndividualFeeHomeMasterMgtDto.SearchHmstReq dto
     ) {
-        return service.getHmstFee(dto);
+        return hmstService.getHmstFees(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 공제내역 정보 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 수수료 관리 공제내역 정보를 조회한다.")
@@ -61,11 +69,11 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/home-master/deduction")
-    public FindHmstDeductionRes getHmstDeduction(
+    public WfedIndividualFeeHomeMasterMgtDto.FindHmstDeductionRes getHmstDeduction(
         @Valid
-        SearchHmstReq dto
+        WfedIndividualFeeHomeMasterMgtDto.SearchHmstReq dto
     ) {
-        return service.getHmstDeduction(dto);
+        return hmstService.getHmstDeduction(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 조정내역 목록 조회(홈마스터)", notes = "조회조건 실적년월에 해당하는 사번의 홈마스터 개인별 수수료 관리 조정내역 목록을 조회한다.")
@@ -74,10 +82,10 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/home-master/control")
-    public List<SearchHmstControlRes> getHmstControls(
-        SearchHmstReq dto
+    public List<WfedIndividualFeeHomeMasterMgtDto.SearchHmstControlRes> getHmstControls(
+        WfedIndividualFeeHomeMasterMgtDto.SearchHmstReq dto
     ) {
-        return this.service.getHmstControls(dto);
+        return hmstService.getHmstControls(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 사업자정보 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 수수료 관리 사업자정보를 조회한다.")
@@ -90,7 +98,7 @@ public class WfedIndividualFeeMgtController {
         @Valid
         SearchPlarReq dto
     ) {
-        return service.getPlarEntrp(dto);
+        return plannerService.getPlarEntrp(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 기본 정보 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 수수료 관리 기본 정보를 조회한다.")
@@ -99,11 +107,11 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/plar-basic")
-    public List<SearchPlarEtcRes> getPlarEtcs(
+    public SearchPlarEtcRes getPlarEtcs(
         @Valid
         SearchPlarReq dto
     ) {
-        return service.getPlarEtcs(dto);
+        return plannerService.getPlarEtcs(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 수수료 내역 정보 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 수수료 관리 수수료 내역 정보를 조회한다.")
@@ -116,7 +124,7 @@ public class WfedIndividualFeeMgtController {
         @Valid
         SearchPlarReq dto
     ) {
-        return service.getPlarFee(dto);
+        return plannerService.getPlarFee(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 공제내역 정보 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 수수료 관리 공제내역 정보를 조회한다.")
@@ -129,7 +137,7 @@ public class WfedIndividualFeeMgtController {
         @Valid
         SearchPlarReq dto
     ) {
-        return service.getPlarDeduction(dto);
+        return plannerService.getPlarDeduction(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 조정내역 목록 조회(P조직)", notes = "조회조건 실적년월에 해당하는 사번의 P조직 개인별 수수료 관리 조정내역 목록을 조회한다.")
@@ -141,38 +149,38 @@ public class WfedIndividualFeeMgtController {
     public List<SearchPlarControlRes> getPlarControls(
         SearchPlarReq dto
     ) {
-        return this.service.getPlarControls(dto);
+        return plannerService.getPlarControls(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 사업자정보 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 사업자정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/mnger-entrepreneur")
-    public FindMngerEntrpRes getMngerEntrp(
+    @GetMapping("/mnger-basic")
+    public FindMngerBasicRes getMngerBasic(
         @Valid
         SearchMngerReq dto
     ) {
-        return service.getMngerEntrp(dto);
+        return service.getMngerBasic(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 기본내역 목록 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 기본내역 목록을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", example = "1673419", required = true),
     })
-    @GetMapping("/mnger-base-info")
-    public List<SearchMngerBaseInfoRes> getMngerBaseInfo(
+    @GetMapping("/mnger-selletcs")
+    public List<SearchMngerSellEtcsRes> getMngerSellEtcs(
         SearchMngerReq dto
     ) {
-        return this.service.getMngerBaseInfo(dto);
+        return this.service.getMngerSellEtcs(dto);
     }
 
     @ApiOperation(value = "개인별 수수료 관리 BS내역 목록 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 BS내역 목록을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/mnger-before-services")
     public List<SearchMngerBeforeServiceRes> getMngerBeforeServices(
@@ -184,10 +192,10 @@ public class WfedIndividualFeeMgtController {
     @ApiOperation(value = "개인별 수수료 관리 수수료 내역 정보 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 수수료 내역 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/mnger-fee")
-    public List<SearchMngerFeeRes> getMngerFees(
+    @GetMapping("/mnger-fees")
+    public List<HashMap<String, Object>> getMngerFees(
         @Valid
         SearchMngerReq dto
     ) {
@@ -197,10 +205,10 @@ public class WfedIndividualFeeMgtController {
     @ApiOperation(value = "개인별 수수료 관리 공제내역 정보 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 공제내역 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = true),
     })
-    @GetMapping("/mnger-deduction")
-    public FindMngerDeductionRes getMngerDeduction(
+    @GetMapping("/mnger-deductions")
+    public List<SearchMngerDeductionRes> getMngerDeduction(
         @Valid
         SearchMngerReq dto
     ) {
@@ -210,7 +218,7 @@ public class WfedIndividualFeeMgtController {
     @ApiOperation(value = "개인별 수수료 관리 조정내역 목록 조회(M조직)", notes = "조회조건 실적년월에 해당하는 사번의 M조직 개인별 수수료 관리 조정내역 목록을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", example = "1673419", required = true),
     })
     @GetMapping("/mnger-control")
     public List<SearchMngerControlRes> getMngerControls(

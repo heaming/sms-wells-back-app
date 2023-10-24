@@ -23,13 +23,13 @@ public class WsnaStoreDetailItemizationDto {
         String itmKndCd, /*품목코드*/
         String itmPdCd, /*품목상품코드*/
         String useYn, /*사용여부*/
-        String strWareDvCd,
-        String strWareNoD,
-        String strWareNoM,
-        String strWareDtlDvCd,
-        String ostrWareNoD,
-        String ostrWareNoM,
-        String ostrWareDtlDvCd
+        String strWareDvCd, /* 입고창고구분코드 */
+        String strWareNoD, /* 입고창고번호D*/
+        String strWareNoM, /* 입고창고번호M*/
+        String strWareDtlDvCd, /* 입고창고상세구분코드 */
+        String ostrWareNoD, /* 출고창고번호D */
+        String ostrWareNoM, /* 출고창고번호 M */
+        String ostrWareDtlDvCd /* 출고창고상세구분코드 */
     ) {}
 
     @ApiModel(value = "WsnaStoreDetailItemizationDto-SearchRes")

@@ -18,6 +18,14 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-I-0018 포인트몰 금융리스 안마의자,전기레인지 엔지니어 수락상태값 조회
+ * </pre>
+ *
+ * @author yeonghwa.cheon
+ * @since 2023.04.20
+ */
 @InterfaceController
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1 + ": 포인트몰 금융리스 안마의자,전기레인지 엔지니어 수락상태값 조회")
 @RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/pointmall-eger-acptestat")
@@ -27,6 +35,9 @@ public class WsniPointmallEgerAcptestatInterfaceController {
 
     private final WsniPointmallEgerAcptestatService service;
 
+    /**
+     * 포인트몰 금융리스 안마의자,전기레인지 엔지니어 수락상태값 조회
+     */
     @ApiOperation(value = "포인트몰 금융리스 안마의자,전기레인지 엔지니어 수락상태값 조회", notes = "포인트몰 금융리스 안마의자, 전기레인지 엔지니어 수락상태값 정보를 조회하는 인터페이스이다.")
     @PostMapping
     public EaiWrapper getPointmallEgerAcptestats(

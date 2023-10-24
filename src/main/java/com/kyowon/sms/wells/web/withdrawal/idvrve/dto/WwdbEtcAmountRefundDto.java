@@ -27,11 +27,13 @@ public class WwdbEtcAmountRefundDto {
 
     @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundRes")
     public record SearchEtcAmountRefundRes(
+        String rfndRcpNo,
+        String rfndRcpDtlSn,
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
         String cntrDtlNo, /* 계약상세번호 */
         String cstKnm, /* 고객명 -한글 */
-        String cstEnm, /* 고객명 -영문*/
+//        String cstEnm, /* 고객명 -영문*/
         String rfndRveDt, /* 처리일자 */
         String rfndPerfDt, /* 실적일자 */
         String bizDv, /* 업무구분 */
@@ -94,14 +96,16 @@ public class WwdbEtcAmountRefundDto {
         String cashCardRfndDdtnAmtSum, // 현금계(현금 환불공제금액 합계 + 카드 공제(환불공제금액 합계))
         String cardRfndDsbAmtSum, // 카드 (환불지급금액) 합계
         /* 확인필요 : 웰스 인수 전금 */
-        /* 확인필요 : 웰스 할부 전금 */
-        /* 확인필요 : 웰스 렌탈 전금 */
-        /* 확인필요 : 웰스 멤버 전금 */
-        String rfndDsbPspIntSum // 지연이자 합계
+        String welsIstmBltf,/* 확인필요 : 웰스 할부 전금 */
+        String welsRentalBltf,/* 확인필요 : 웰스 렌탈 전금 */
+        String welsMmbrBltf,/* 확인필요 : 웰스 멤버 전금 */
+
+        String rfndDsbPspIntSum, // 지연이자 합계
         // k머니 합계
-        /* 확인 필요:전금합계 */
-        /* 확인 필요:환불 총계 */
-    ) {}
+        String rfndBltfSum, /* 확인 필요:전금합계 */
+        String rfTotalSum/* 확인 필요:환불 총계 */
+    ) {
+    }
 
     @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundSummaryRes")
     public record SearchEtcAmountRefundSummaryRes(
@@ -111,5 +115,6 @@ public class WwdbEtcAmountRefundDto {
         String totRfndDsbAmt, /* 환불금액합계 */
         String totRfndDsbPspInt, /* 지연이자합계 */
         String totCardRfndFee /* 카드수수료합계 */
-    ) {}
+    ) {
+    }
 }

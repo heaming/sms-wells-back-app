@@ -81,6 +81,8 @@
          AND T1.OG_TP_CD            = 'W05'
          AND T1.CNTR_PERF_CRT_DV_CD = '01'                /* 계약실적생성구분코드 01-순주문집계            */
          AND T1.DTA_DL_YN           = 'N'
+         AND T1.SL_DT >= #{perfYm} || '01'
+         AND T1.SL_DT <![CDATA[<=]]> #{perfYm} || '31'
         <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
          AND T1.FEE_TCNT_DV_CD      = #{feeTcntDvCd}
         </if>
@@ -94,12 +96,12 @@
 
     <select id='selectDistributorFee' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto$Fee">
        SELECT
-             T1.BASE_YM
-           , T1.FEE_TCNT_DV_CD
-           , T1.CO_CD                             /* 업체코드          */
+             T0.BASE_YM
+           , T0.FEE_TCNT_DV_CD
+           , T0.CO_CD                             /* 업체코드          */
            , O1.HOO_PRTNR_NM AS  CO_CD_NM   /* 업체명 - T1.CO_CD */
            , T3.OG_CD                             /* 소속(지점CD)      */
-           , T1.PRTNR_NO                          /* 번호              */
+           , T0.PRTNR_NO                          /* 번호              */
            /* 20230823 수정 */
            , MAX(NVL(T9.CNT, 0)) CNT              /* 실적(계약건수)    */
            , SUM(CASE WHEN T1.FEE_CD = 'W050001' THEN T1.FEE_CTR_CNFM_AMT ELSE 0 END) AS AMT_W050001  /* 수수료-기본수수료 */
@@ -107,12 +109,17 @@
            , SUM(CASE WHEN T1.FEE_CD = 'W050003' THEN T1.FEE_CTR_CNFM_AMT ELSE 0 END) AS AMT_W050003  /* 수수료-인센티브   */
            , SUM(CASE WHEN T1.FEE_CD = 'W050020' THEN T1.FEE_CTR_CNFM_AMT ELSE 0 END) AS AMT_W050020  /* 수수료-재지급     */
            , SUM(CASE WHEN T1.FEE_CD = 'W050004' THEN T1.FEE_CTR_CNFM_AMT ELSE 0 END) AS AMT_W050004  /* 수수료-분기성과   */
-           /* 20230823 수정 */
-           --, SUM(CASE WHEN T2.FEE_DDTN_TP_CD = '01' THEN T2.FEE_DDTN_CNFM_AMT ELSE 0 END) AS AMT_01 /* 공제-보증예치금 */
-           --, SUM(CASE WHEN T2.FEE_DDTN_TP_CD = '08' THEN T2.FEE_DDTN_CNFM_AMT ELSE 0 END) AS AMT_08 /* 공제-환수되물림 */
            , MAX(NVL(T2.SUM_01, 0)) AMT_01 /* 공제-보증예치금 */
            , MAX(NVL(T2.SUM_08, 0)) AMT_08 /* 공제-환수되물림 */
-       FROM TB_FEAM_FEE_CALC_BAS T1         /* 수수료계산기본    */
+       FROM TB_FEAM_NTORP_PERF_MM_CL T0
+       LEFT OUTER JOIN TB_FEAM_FEE_CALC_BAS T1         /* 수수료계산기본    */
+         ON T1.BASE_YM             = T0.BASE_YM
+        AND T1.FEE_TCNT_DV_CD      = T0.FEE_TCNT_DV_CD
+        AND T1.CO_CD               = T0.CO_CD
+        AND T1.OG_TP_CD            = T0.OG_TP_CD
+        AND T1.PRTNR_NO            = T0.PRTNR_NO
+        AND T1.DTA_DL_YN  = 'N'
+        AND T1.FEE_CALC_TP_CD = '01' /* 수수료계산 (2023.04.26 추가) */
        /* 20230823 수정 */
        LEFT OUTER JOIN ( SELECT DDTN_YM
                               , CO_CD
@@ -129,15 +136,15 @@
                             AND OG_TP_CD       = 'W05'
                             AND DTA_DL_YN      = 'N'
                           GROUP BY DDTN_YM, CO_CD, OG_TP_CD, PRTNR_NO, FEE_TCNT_DV_CD ) T2
-          ON T2.DDTN_YM         = T1.BASE_YM
-         AND T2.CO_CD           = T1.CO_CD
-         AND T2.OG_TP_CD        = T1.OG_TP_CD
-         AND T2.PRTNR_NO        = T1.PRTNR_NO
-         AND T2.FEE_TCNT_DV_CD  = T1.FEE_TCNT_DV_CD
+          ON T2.DDTN_YM         = T0.BASE_YM
+         AND T2.CO_CD           = T0.CO_CD
+         AND T2.OG_TP_CD        = T0.OG_TP_CD
+         AND T2.PRTNR_NO        = T0.PRTNR_NO
+         AND T2.FEE_TCNT_DV_CD  = T0.FEE_TCNT_DV_CD
       INNER JOIN TB_OGBS_MM_PRTNR_IZ  T3         /* 월파트너          */
-         ON T3.BASE_YM    = T1.BASE_YM
-        AND T3.OG_TP_CD   = T1.OG_TP_CD
-        AND T3.PRTNR_NO   = T1.PRTNR_NO
+         ON T3.BASE_YM    = T0.BASE_YM
+        AND T3.OG_TP_CD   = T0.OG_TP_CD
+        AND T3.PRTNR_NO   = T0.PRTNR_NO
       INNER JOIN TB_OGBS_MM_OG_IZ O1 /* 2023.08.22 조인 추가 */
          ON T3.BASE_YM = O1.BASE_YM
         AND T3.OG_ID = O1.OG_ID
@@ -174,14 +181,15 @@
          AND T9.CO_CD          = T1.CO_CD
          AND T9.OG_TP_CD       = T1.OG_TP_CD
          AND T9.PRTNR_NO       = T1.PRTNR_NO
-      WHERE T1.BASE_YM    = #{perfYm}
-        <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
-        AND T1.FEE_TCNT_DV_CD      = #{feeTcntDvCd}
-        </if>
-        AND T1.OG_TP_CD   = 'W05'
-        AND T1.DTA_DL_YN  = 'N'
-        AND T1.FEE_CALC_TP_CD = '01' /* 수수료계산 (2023.04.26 추가) */
-      GROUP BY T1.BASE_YM, T1.FEE_TCNT_DV_CD, T1.CO_CD, O1.HOO_PRTNR_NM, T3.OG_CD, T1.PRTNR_NO
+          WHERE T0.BASE_YM =  #{perfYm}
+            <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
+            AND T1.FEE_TCNT_DV_CD      = #{feeTcntDvCd}
+            </if>
+            AND T0.PERF_DV_CD = '2'             /* 지점장 */
+            AND T0.FEE_TCNT_DV_CD      = '02'   /* 확정 */
+            AND T0.PERF_AGRG_CRT_DV_CD = '501'  /* 총판 실적 */
+            AND T0.DTA_DL_YN = 'N'
+      GROUP BY T0.BASE_YM, T0.FEE_TCNT_DV_CD, T0.CO_CD, O1.HOO_PRTNR_NM, T3.OG_CD, T0.PRTNR_NO
     </select>
 
 

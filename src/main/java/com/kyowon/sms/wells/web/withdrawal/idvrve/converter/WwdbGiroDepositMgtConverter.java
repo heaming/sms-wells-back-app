@@ -15,6 +15,8 @@ public interface WwdbGiroDepositMgtConverter {
 
     WwdbGiroDepositSaveDvo mapSaveWwwdbGiroDepositSaveDvo(SaveReq dto);
 
+    WwdbGiroDepositSaveDvo mapSearchWwwdbGiroDepositSaveDvo(SaveReq dto);
+
     WwdbGiroDepositErrorSaveDvo mapSaveGiroDepositErrorSaveDvo(SaveErrosReq dto);
 
     WwdbGiroDepositSaveInfoDvo mapSaveGiroDepositSaveDvo(SaveIntegrationReq dto);

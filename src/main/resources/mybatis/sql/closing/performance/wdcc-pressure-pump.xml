@@ -143,15 +143,22 @@
 		                      ON T5.CNTR_CST_NO =  T6.CST_NO
 		                   INNER JOIN TB_OGBS_OG_BAS T7 --조직기본
 		                      ON T1.BRCH_OG_ID = T7.OG_ID
-		                    LEFT JOIN TB_SSCT_RENTAL_ADN_SV_IZ T9 --렌탈부가서비스내역
-		                      ON T1.CNTR_NO = T9.CNTR_NO
-		                     AND T1.CNTR_SN = T9.CNTR_SN
-		                     AND T9.ADN_SV_DV_CD = '01'    --01
-		                     AND ADN_SV_SN = ( SELECT MAX(ADN_SV_SN)
-										         FROM TB_SSCT_RENTAL_ADN_SV_IZ 
-										        WHERE CNTR_NO = T9.CNTR_NO
-										          AND CNTR_SN = T9.CNTR_SN
-										          AND ADN_SV_DV_CD = '01')  
+		                    LEFT JOIN (SELECT A.*, B.OJ_PD_CD  
+							             FROM TB_SSCT_RENTAL_ADN_SV_IZ A --렌탈부가서비스내역
+							            INNER JOIN TB_PDBS_PD_REL B  --상품관계
+							                    ON A.PDCT_PD_CD = B.BASE_PD_CD
+							                   AND B.PD_REL_TP_CD = '05'
+							            WHERE A.ADN_SV_DV_CD = '01'    --01 : 가압펌프            
+							              AND ADN_SV_SN = ( SELECT MAX(ADN_SV_SN)
+							                                  FROM TB_SSCT_RENTAL_ADN_SV_IZ 
+							                                 WHERE CNTR_NO = A.CNTR_NO
+							                                   AND CNTR_SN = A.CNTR_SN
+							                                   AND PDCT_PD_CD = A.PDCT_PD_CD 
+							                                   AND ADN_SV_DV_CD = '01') 
+					           ) T9
+					          ON T1.CNTR_NO = T9.CNTR_NO
+					         AND T1.CNTR_SN = T9.CNTR_SN
+					         AND T1.ITM_PD_CD = T9.OJ_PD_CD
 		                   INNER JOIN TB_SSCT_CNTR_DTL T10 --계약상세
 		                      ON T1.CNTR_NO = T10.CNTR_NO 
 		                     AND T1.CNTR_SN = T10.CNTR_SN 

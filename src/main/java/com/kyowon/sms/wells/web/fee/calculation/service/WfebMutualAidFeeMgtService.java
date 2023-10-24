@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,29 +28,25 @@ public class WfebMutualAidFeeMgtService {
      * @return
      */
     public List<AidIndividual> getMutualAidIndividual(SearchAidReq req) {
-        List<AidIndividual> list = new ArrayList<>();
         if ("0".equals(req.clasfctnFee())) {
             // 0 수수료
-            list = mapper.selectMutualAidIndividualFee(req);
+            return mapper.selectMutualAidIndividualFee(req);
         } else if ("1".equals(req.clasfctnFee())) {
             // 1 되물림
-            list = mapper.selectMutualAidIndividualRedf(req);
+            return mapper.selectMutualAidIndividualRedf(req);
         } else {
             // 2연체 3재지급
-            list = mapper.selectMutualAidIndividualEtc(req);
+            return mapper.selectMutualAidIndividualEtc(req);
         }
-        return list;
     }
     public List<AidGroup> getMutualAidGroup(SearchAidReq req) {
-        List<AidGroup> list = new ArrayList<>();
         if ("0".equals(req.clasfctnFee())) {
-            list = mapper.selectMutualAidGroupFee(req);
+            return mapper.selectMutualAidGroupFee(req);
         } else if ("1".equals(req.clasfctnFee())) {
-            list = mapper.selectMutualAidGroupRedf(req);
+            return mapper.selectMutualAidGroupRedf(req);
         } else { // 2, 3
-            list = mapper.selectMutualAidGroupEtc(req);
+            return mapper.selectMutualAidGroupEtc(req);
         }
-        return list;
     }
 
     /**

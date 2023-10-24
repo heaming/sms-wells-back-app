@@ -12,4 +12,6 @@ import java.util.List;
 public interface WsndRglvlEgerPdlvMngtMapper {
     PagingResult<SearchRes> selectRglvlEgerPdlvMngtPages(SearchReq dto, PageInfo pageInfo);
     List<SearchRes> selectRglvlEgerPdlvMngtPages(SearchReq dto);
+    int insertRglvlEgerPdlvMngts(SaveEgerReq dto);
+    int updateRglvlEgerPdlvMngts(SaveEgerReq dto);
 }

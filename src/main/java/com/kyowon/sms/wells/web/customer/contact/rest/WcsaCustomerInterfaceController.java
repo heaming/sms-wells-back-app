@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.customer.contact.rest;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementReq;
-import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementRes;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementReq;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementRes;
 import com.kyowon.sms.wells.web.customer.contact.service.WcsaCustomerInterfaceService;
 import com.kyowon.sms.wells.web.customer.zcommon.constants.CstCommonConstant;
 import com.sds.sflex.system.config.annotation.InterfaceController;
@@ -19,6 +19,15 @@ import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+
+/**
+ * <pre>
+ * 고객 인터페이스 관리 - wells Controller
+ * </pre>
+ *
+ * @author Jaeyeol.Lee
+ * @since 2023-02-01
+ */
 
 @InterfaceController
 @Api(tags = "[WCSA] 고객 인터페이스 관리")
@@ -29,6 +38,11 @@ import lombok.RequiredArgsConstructor;
 public class WcsaCustomerInterfaceController {
     private final WcsaCustomerInterfaceService wcsaCustomerInterfaceService;
 
+    /**
+    * 고객번호 기준으로 고객정보를 조회 - 고객번호에 해당하는 고객 기본/상세 정보 조회
+    * @param reqWrapper 고객정보 조회 조건 (주요 PARAM: 고객번호 )
+    * @return 고객 정보
+    */
     @ApiOperation(value = "고객번호 기준으로 고객정보를 조회(IF ID:EAI_WCUI1011)", notes = "고객번호에 해당하는 고객 기본/상세 정보 조회")
     @PostMapping
     public EaiWrapper getCustomerByCstNo(
@@ -43,7 +57,7 @@ public class WcsaCustomerInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "고객센터 Wells 계약고객 정보 변경 처리 서비스. 연관 I/F : EAI_ECUI1017", notes = "고객번호에 해당하는 고객 기본/상세 변경")
+    @ApiOperation(value = "고객센터 Wells 계약고객 정보 변경 처리 서비스. 연관 I/F : EAI_WCUI1017", notes = "고객번호에 해당하는 고객 기본/상세 변경")
     @PostMapping("/contract-customers")
     public EaiWrapper editCustomerByCc(
         @Valid

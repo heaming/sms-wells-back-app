@@ -47,10 +47,8 @@ public class WdcaDepositDelinquentDto {
         String pdClsfNm, /*상품명*/
         String totAccN, /*총 계정수*/
         String ucamTam, /*미수금 총액*/
-        String fnlAmt, /*미수금액*/
         String thmNwAccN, /*계정수*/
         String thmNwDpAmt, /*입금금액*/
-        String thmNwDpRt, /*입금률*/
         String nomUcAmt, /*미수금액*/
         String nomAccN, /*계정수*/
         String nomDpAmt, /*입금금액*/

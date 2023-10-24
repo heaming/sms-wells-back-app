@@ -92,4 +92,20 @@ public class WsnaReturningGoodsOstrController {
         return SaveResponse.builder().processCount(this.service.removeReturningGoodsOstrs(dtos)).build();
     }
 
+    @ApiOperation(value = "시점 재고 조회", notes = "출고창고에 있는 상품의 시점재고를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "wareNo", value = "출고창고번호", paramType = "query", example = "200005"),
+        @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드", paramType = "query", example = "'WM07102143','WM07105938'"),
+        @ApiImplicitParam(name = "itmGdCd", value = "품목등급코드", paramType = "query", example = "A")
+    })
+    @GetMapping("/{wareNo}")
+    public List<SearchPitmStockRes> getPitmStocks(
+        @PathVariable
+        String wareNo,
+        @Valid
+        SearchPitmStockReq dto
+    ) {
+        return this.service.getPitmStocks(wareNo, dto);
+    }
+
 }

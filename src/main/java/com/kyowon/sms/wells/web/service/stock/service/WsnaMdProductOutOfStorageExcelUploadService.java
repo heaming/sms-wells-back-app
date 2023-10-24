@@ -37,10 +37,13 @@ public class WsnaMdProductOutOfStorageExcelUploadService {
         List<WsnaMdProductOutOfStorageExcelUploadDvo> dvos = converter
             .mapValidateReqToMdProductOutOfStorageExcelUploadDvo(dtos);
         for (WsnaMdProductOutOfStorageExcelUploadDvo dvo : dvos) {
-            // 1.작업결과 송장번호 업데이트
+            // 1.작업결과 (송장번호,시리얼번호) 업데이트
             mapper.updateSvpdCstSvWkRsIz(dvo);
 
-            // 2.택배 정보 저장 (TODO 엑셀 업로드 타겟 테이블 확인필요 )
+            // 2.배정내역 (택배사) 업데이트
+            mapper.updateSvpdCstSvasIstAsnIz(dvo);
+
+            // 3.배송업체송장처리내역 저장
             mapper.insertSppBzsInvoiceProcessIz(dvo);
             processCount += 1;
         }
@@ -56,7 +59,7 @@ public class WsnaMdProductOutOfStorageExcelUploadService {
         List<WsnaMdProductOutOfStorageExcelUploadErrorDvo> excelUploadErrorDvos = validateExcelDatas(dvos);
 
         return ValidateRes.builder()
-            .result(CollectionUtils.isEmpty(excelUploadErrorDvos) ? true : false)
+            .result(CollectionUtils.isEmpty(excelUploadErrorDvos))
             .errors(excelUploadErrorDvos).build();
     }
 
@@ -86,8 +89,27 @@ public class WsnaMdProductOutOfStorageExcelUploadService {
                 // Error 목록
                 List<String> errors = new ArrayList<>();
 
+                //1. 출고확정대상 체크
+                String cstSvAsnNo = dvo.getCstSvAsnNo();
+                String cntrNo = dvo.getCntrNo();
+                String cntrSn = dvo.getCntrSn();
+                if (StringUtils.isNotEmpty(cstSvAsnNo)
+                    && StringUtils.isNotEmpty(cntrNo)
+                    && StringUtils.isNotEmpty(cntrSn)) {
+                    // MD 출고 대상이 아닌경우
+                    int result = mapper.selectExistMdProductOutOfStorage(dvo);
+                    if (result == 0) {
+                        errors.add(
+                            setErrorMsg(
+                                "출고품목",
+                                "출고확정된 데이터가 존재하지않습니다."
+                            )
+                        );
+                    }
+                }
+
+                //2. 송장번호 중복체크
                 String sppIvcNo = dvo.getSppIvcNo();
-                // 송장번호 중복체크
                 if (StringUtils.isNotEmpty(sppIvcNo)) {
                     int result = mapper.selectExistSppIvcNo(dvo);
                     if (result > 0) {

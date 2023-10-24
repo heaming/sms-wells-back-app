@@ -14,7 +14,6 @@ import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursem
 import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingInterfaceDto.SaveReq;
 import com.kyowon.sms.wells.web.deduction.interfaces.dvo.WdecRdsProductDisbursementHoldingInterfaceDvo;
 import com.kyowon.sms.wells.web.deduction.interfaces.mapper.WdecRdsProductDisbursementHoldingInterfaceMapper;
-import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 
@@ -33,11 +32,11 @@ public class WdecRdsProductDisbursementHoldingInterfaceService {
         return mapper.selectRdsProductDisbursementHoldings(dto);
     }
 
-    //등록등록처리(트랜잭션)
+    //배치 및 인터페이스처리 전 선행 대상 등록
     @Transactional
-    public String[] createRdsProductDisbursementHoldings(SaveReq dto) throws Exception {
-
+    public int insertRdsProductDisbursementHoldings(SaveReq dto, String wkPrtcDtmVal) throws Exception {
         WdecRdsProductDisbursementHoldingInterfaceDvo saveDvo = new WdecRdsProductDisbursementHoldingInterfaceDvo();
+        int resultCnt = 0;
 
         //리스트로 넘어온 데이터 처리
         for (OrganizationTypes organizationTypes : dto.data()) {
@@ -45,14 +44,21 @@ public class WdecRdsProductDisbursementHoldingInterfaceService {
             saveDvo.setOgTpCdAryVal(organizationTypes.ogTpCdAryVal()); //조직유형코드값
             saveDvo.setPrtnrNO(organizationTypes.prtnrNo()); //파트너번호 셋팅
             saveDvo.setRdsDsbDuedt(dto.rdsDsbDuedt()); //RDS지급예정일자 셋팅
+            saveDvo.setWkPrtcDtmVal(wkPrtcDtmVal);
 
-            int resultCnt = mapper.insertRdsProductDisbursementHoldings(saveDvo); //계약변경접수기본
+            resultCnt += mapper.insertRdsProductDisbursementHoldings(saveDvo); //계약변경접수기본
 
             //인서트쿼리가 실패하면, 처리
-            if (resultCnt <= 0) {
-                return new String[] {dto.rdsDsbDuedt(), "F", "데이터 등록이 실패하였습니다."}; //스트링배열로 리턴
-            }
+            //            if (resultCnt <= 0) {
+            //                return new String[] {dto.rdsDsbDuedt(), "F", "데이터 등록이 실패하였습니다."}; //스트링배열로 리턴
+            //            }
         }
+        return resultCnt;
+    }
+
+    //등록등록처리(트랜잭션)
+    @Transactional
+    public String[] createRdsProductDisbursementHoldings(SaveReq dto, String wkPrtcDtmVal) throws Exception {
 
         //배치 dvo 생성
         BatchCallReqDvo batchDvo = new BatchCallReqDvo();
@@ -60,8 +66,6 @@ public class WdecRdsProductDisbursementHoldingInterfaceService {
         //배치 실행횟수
         //        String batchRunId = "";
 
-        //현재날짜
-        String wkPrtcDtmVal = DateUtil.getNowString();
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         String tenantId = session.getTenantId();//테넌트Id
 

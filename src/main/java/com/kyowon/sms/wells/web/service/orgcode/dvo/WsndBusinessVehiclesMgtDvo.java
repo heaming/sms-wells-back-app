@@ -32,4 +32,5 @@ public class WsndBusinessVehiclesMgtDvo {
     String cntrDt;
     String ogId;
     String carnm;
+    String vhcMngtTpNm;
 }

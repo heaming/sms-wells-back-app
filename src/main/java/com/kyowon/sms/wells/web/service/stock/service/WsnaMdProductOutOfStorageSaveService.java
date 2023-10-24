@@ -42,10 +42,16 @@ public class WsnaMdProductOutOfStorageSaveService {
             BizAssert.isTrue(existCnt == 0, "MSG_ALT_EXIST_FSH_WK_LIST_RTRY_CONF");
 
             // 1.배정테이블 업데이트
-            mapper.updateSvpdCstSvasIstAsnIz(dvo);
-            //dvo.setSvProcsCn(messageResourceService.getMessage("MSG_ALT_INST_PCSV_OSTR_FSH"));
-            dvo.setSvProcsCn("MD택배상품 출고완료");
+            // TODO 해당 소스 프로세스 정의필요
+            // EX) 서비스대분류코드 : BS 인경우에만 BS배정  그외에는 AS 설치배정
+            if ("2".equals(dvo.getSvBizHclsfCd())) {
+                mapper.updateSvpdCstSvBfsvcAsnIz(dvo); // 고객서비스BS배정내역
+            } else {
+                mapper.updateSvpdCstSvasIstAsnIz(dvo); // 고객서비스설치배정내역
+            }
+
             // 2.작업결과 IU
+            dvo.setSvProcsCn("MD택배상품 출고완료");
             mapper.insertSvpdCstSvWkRsIz(dvo);
 
             // 3.출고 확정시 일자(설치일자,배송예정일자) 현재날짜 지정 (판매시스템 연계)

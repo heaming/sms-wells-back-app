@@ -19,4 +19,6 @@ public interface WsndBusinessVehiclesMgtConverter {
     WsndBusinessVehiclesMgtDvo mapEditReqToBusinessVehiclesMgtDvo(EditReq dto);
 
     PagingResult<SearchRes> mapAllBusinessVehiclesMgtDvoToSearchRes(List<WsndBusinessVehiclesMgtDvo> dvos);
+
+    List<SearchRes> mapAllDvoToSearchRes(List<WsndBusinessVehiclesMgtDvo> dvos);
 }

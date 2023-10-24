@@ -136,7 +136,6 @@ public class WfebB2bFeeMgtService {
     @Transactional
     public int aggregateB2bPerformance(CreateReq req) throws Exception {
         int processCount = 0;
-        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         // 00. B2B 순주문집계 가능여부 체크
         // 00-1. 수수료일정 갱신 API 체크 > 화면에서해서 일단 페스
         // 00-2. 순주문파트너월마감 확정여부 체크

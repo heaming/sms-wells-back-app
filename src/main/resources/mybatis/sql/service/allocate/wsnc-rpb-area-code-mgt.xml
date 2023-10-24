@@ -2,37 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncRpbAreaCodeMgtMapper">
 
-    <resultMap id="codes" type="com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo">
-        <result property="chk" column="CHK"/>
-        <result property="fr2pLgldCd" column="FR2P_LGLD_CD"/>
-        <result property="ctpvNm" column="CTPV_NM"/>
-        <result property="ctctyNm" column="CTCTY_NM"/>
-        <result property="lawcEmdNm" column="LAWC_EMD_NM"/>
-        <result property="amtdNm" column="AMTD_NM"/>
-        <result property="locaraSn" column="LOCARA_SN"/>
-        <result property="zipList" column="ZIP_LIST"/>
-        <result property="apyStrtdt" column="APY_STRTDT"/>
-        <result property="apyEnddt" column="APY_ENDDT"/>
-        <result property="rpbLocaraCd" column="RPB_LOCARA_CD"/>
-        <result property="rpbLocaraGrpCd" column="RPB_LOCARA_GRP_CD"/>
-        <result property="vstDowVal" column="VST_DOW_VAL"/>
-        <result property="vstDowNm" column="VST_DOW_NM"/>
-        <result property="mmtAvLdtm" column="MMT_AV_LDTM"/>
-        <result property="ogNm" column="OG_NM"/>
-        <result property="ichrPrtnrNo" column="ICHR_PRTNR_NO"/>
-        <result property="prtnrKnm" column="PRTNR_KNM"/>
-        <result property="locaraCenStruAdr" column="LOCARA_CEN_STRU_ADR"/>
-        <result property="orderNo" column="ORDER_NO"/>
 
-        <collection property="changeCodes"
-            ofType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo"
-            javaType="List"
-            select="selectLgldCtpvLocaras"
-            column="{ctpvNm = CTPV_NM, rpbLocaraCd = RPB_LOCARA_CD}"
-        />
-    </resultMap>
-
-    <select id="selectAreaCodes" resultMap="codes">
+    <select id="selectAreaCodes" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo">
 <!--        WITH-->
 <!--        TEMP1 AS (-->
 <!--          SELECT B3.FR2P_LGLD_CD-->
@@ -133,12 +104,12 @@
 <!--	    ),-->
 <!--	    TEMP3 AS (-->
 	      SELECT DISTINCT '' AS CHK
-	           , D1.FR2P_LGLD_CD
-	           , D1.CTPV_NM
-	           , D1.CTCTY_NM
-	           , D1.LAWC_EMD_NM
-	           , D1.AMTD_NM
-	           , D2.LOCARA_SN
+	           , D1.FR2P_LGLD_CD /* 앞2자리법정동코드 */
+	           , D1.CTPV_NM /* 시도명 */
+	           , D1.CTCTY_NM /* 시군구명 */
+	           , D1.LAWC_EMD_NM /* 법정읍면동명 */
+	           , D1.AMTD_NM /* 행정동명 */
+	           , D2.LOCARA_SN /* 순번 */
 	           , (SELECT LISTAGG(AD1.NEW_ADR_ZIP, ', ') WITHIN GROUP (ORDER BY AD1.NEW_ADR_ZIP)
 	                FROM TB_SVPD_EGER_ASN_ADR_IZ AD1
 	               WHERE 1=1
@@ -151,21 +122,21 @@
 	                                          FROM TB_SVPD_EGER_ASN_ADR_IZ
 	                                         WHERE NEW_ADR_ZIP = AD1.NEW_ADR_ZIP
 	                                       )
-	             ) AS ZIP_LIST
-	           , D2.APY_STRTDT
-	           , D2.APY_ENDDT
-	           , D2.RPB_LOCARA_CD
-	           , D3.RPB_LOCARA_GRP_CD
-	           , D3.VST_DOW_VAL
-	           , F_CMZ_CD_NM(#{session.tenantId}, 'LOCARA_VST_PRD_CD', D3.VST_DOW_VAL, #{session.langId}) AS VST_DOW_NM
-	           , D3.MMT_AV_LDTM --확인필요
-	           , D4.OG_NM
-	           , D3.ICHR_PRTNR_NO
-	           , D4.PRTNR_KNM
-	           , D3.LOCARA_CEN_STRU_ADR --확인필요
-               , C1.CD_VLD_VAL AS ORDER_NO
-	        FROM TB_SVPD_EGER_ASN_ADR_IZ D1
-	       INNER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ D2
+	             ) AS ZIP_LIST /* 우편번호 List */
+	           , D2.APY_STRTDT /* 적용시작일자 */
+	           , D2.APY_ENDDT /* 적용종료일자 */
+	           , D2.RPB_LOCARA_CD /* 책임지역코드 */
+	           , D3.RPB_LOCARA_GRP_CD /* 책임지역그룹코드 */
+	           , D3.VST_DOW_VAL /* 방문요일코드 */
+	           , F_CMZ_CD_NM(#{session.tenantId}, 'LOCARA_VST_PRD_CD', D3.VST_DOW_VAL, #{session.langId}) AS VST_DOW_NM /* 방문요일명 */
+	           , D3.MMT_AV_LDTM /* 이동평균소요시간 */
+	           , D4.OG_NM /* 조직명 */
+	           , D3.ICHR_PRTNR_NO /* 담당파트너번호 */
+	           , D4.PRTNR_KNM /* 파트너한글명 */
+	           , D3.LOCARA_CEN_STRU_ADR /* 지역중심건물주소 */
+               , C1.CD_VLD_VAL AS ORDER_NO /* 정렬기준 */
+	        FROM TB_SVPD_EGER_ASN_ADR_IZ D1 /* 엔지니어배정주소내역 */
+	       INNER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ D2 /* 책임지역관리주소내역 */
 	          ON D1.FR2P_LGLD_CD = D2.FR2P_LGLD_CD
 	         AND D1.CTPV_NM      = D2.CTPV_NM
 	         AND D1.CTCTY_NM     = D2.CTCTY_NM
@@ -181,7 +152,7 @@
 	                                    AND L1.AMTD_NM      = D2.AMTD_NM
 	                                    AND #{applyDate} BETWEEN L1.APY_STRTDT AND L1.APY_ENDDT)
 	         AND D2.DTA_DL_YN    = 'N'
-	       INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ D3
+	       INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ D3 /* 책임지역담당자내역 */
 	          ON D2.RPB_LOCARA_CD = D3.RPB_LOCARA_CD
 	         AND D3.IZ_SN         = (SELECT MAX(L2.IZ_SN)
 	                                   FROM TB_SVPD_RPB_LOCARA_PSIC_IZ L2
@@ -195,7 +166,7 @@
 		     AND D4.PRTNR_NO = D3.ICHR_PRTNR_NO
 		     AND D4.OG_TP_CD = D3.ICHR_PRTNR_OG_TP_CD
 		     AND D4.DTA_DL_YN = 'N'
-           INNER JOIN T_CMZ_CD_D C1
+           INNER JOIN T_CMZ_CD_D C1 /* 코드상세 */
 		      ON D1.FR2P_LGLD_CD = C1.USER_DFN_02
 		     AND C1.CD_ID = 'LOCARA_CD'
 		   WHERE 1=1
@@ -269,12 +240,12 @@
 <!--	     ORDER BY TM3.RPB_LOCARA_CD ,TM3.FR2P_LGLD_CD, TM3.CTPV_NM, TM3.CTCTY_NM, TM3.LAWC_EMD_NM, TM3.AMTD_NM-->
     </select>
 
-    <select id='selectLgldCtpvLocaras' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo">
+    <select id='selectLgldCtpvLocaras' resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaCodeMgtDto$LocaraCd">
         SELECT *
          FROM (
-        SELECT DISTINCT CTPV_NM
-             , RPB_LOCARA_CD
-          FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T2
+        SELECT DISTINCT CTPV_NM /* 시도명 */
+             , RPB_LOCARA_CD /* 책임지역코드 */
+          FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T2 /* 책임지역관리주소내역 */
          WHERE DTA_DL_YN = 'N'
            AND ADR_ODR_NO =
                (
@@ -288,9 +259,9 @@
                   AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TT1.APY_STRTDT AND TT1.APY_ENDDT
                )
         UNION ALL
-        SELECT CTPV_NM
-             , LPAD(MAX(RPB_LOCARA_CD), 3, '0') AS RPB_LOCARA_CD
-          FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T2
+        SELECT CTPV_NM /* 시도명 */
+             , LPAD(MAX(RPB_LOCARA_CD), 3, '0') AS RPB_LOCARA_CD /* 책임지역코드 */
+          FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T2 /* 책임지역관리주소내역 */
          WHERE DTA_DL_YN = 'N'
            AND ADR_ODR_NO =
                (
@@ -305,18 +276,17 @@
                )
          GROUP BY CTPV_NM
         )
-        WHERE CTPV_NM = #{ctpvNm}
         ORDER BY RPB_LOCARA_CD
     </select>
 
     <select id="selectCountAreaCodePsic" resultType="int">
         SELECT COUNT(1)
-          FROM TB_SVPD_RPB_LOCARA_PSIC_IZ
+          FROM TB_SVPD_RPB_LOCARA_PSIC_IZ /* 책임지역담당자내역 */
          WHERE RPB_LOCARA_CD = #{chLocaraCd}
     </select>
 
     <insert id="insertAreaCode">
-        INSERT INTO TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ
+        INSERT INTO TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ /* 책임지역관리주소내역 */
              ( RPB_LOCARA_CD
              , LOCARA_SN
              , APY_STRTDT
@@ -355,7 +325,7 @@
     </insert>
 
     <insert id="insertAreaCodePsic">
-        INSERT INTO TB_SVPD_RPB_LOCARA_PSIC_IZ
+        INSERT INTO TB_SVPD_RPB_LOCARA_PSIC_IZ /* 책임지역담당자내역 */
              ( WK_GRP_CD
              , RPB_LOCARA_CD
              , IZ_SN
@@ -408,7 +378,7 @@
              , '145AUTO'
              , ''
              , ''
-         FROM TB_SVPD_RPB_LOCARA_PSIC_IZ I1
+         FROM TB_SVPD_RPB_LOCARA_PSIC_IZ I1 /* 책임지역담당자내역 */
         WHERE 1=1
           AND RPB_LOCARA_CD = #{prbLocaraCd}
           AND IZ_SN         = (SELECT MAX(IZ_SN)

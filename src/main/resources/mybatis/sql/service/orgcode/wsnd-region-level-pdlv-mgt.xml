@@ -3,20 +3,20 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndRegionLevelPdlvMgtMapper">
 
     <select id="selectPlaceOfDeliveryPages" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndRegionLevelPdlvMgtDto$SearchRes">
-        SELECT B1.PDLV_DV_CD
-             , B1.PDLV_NO
+        SELECT B1.PDLV_DV_CD /* 출고지구분코드 */
+             , B1.PDLV_NO /* 출고지번호 */
              , (SELECT MAX(APY_STRTDT)
                   FROM TB_SVPD_PDLV_HIST
                  WHERE PDLV_NO = H1.PDLV_NO) AS APY_STRTDT_MAX /* 적용시작일-최대값 */
-             , H1.APY_STRTDT
-             , H1.APY_ENDDT
-             , H1.PDLV_NM
-             , H1.ZIP
-             , H1.PDLV_ADR
-             , H1.PDLV_DTL_ADR
-             , H1.CNR_OG_ID
-          FROM TB_SVPD_PDLV_BAS B1
-         INNER JOIN TB_SVPD_PDLV_HIST H1
+             , H1.APY_STRTDT /* 적용시작일 */
+             , H1.APY_ENDDT /* 적용종료일 */
+             , H1.PDLV_NM /* 출고지명 */
+             , H1.ZIP /* 우편번호 */
+             , H1.PDLV_ADR /* 출고지주소 */
+             , H1.PDLV_DTL_ADR /* 출고지상세주소 */
+             , H1.CNR_OG_ID /* 서비스센터ID */
+          FROM TB_SVPD_PDLV_BAS B1 /* 출고지기본 */
+         INNER JOIN TB_SVPD_PDLV_HIST H1 /* 출고지이력 */
             ON B1.PDLV_NO = H1.PDLV_NO
            AND B1.PDLV_DV_CD = H1.PDLV_DV_CD
          WHERE 1 = 1
@@ -36,7 +36,7 @@
     </select>
 
     <update id="deletePlaceOfDelivery">
-        UPDATE TB_SVPD_PDLV_BAS
+        UPDATE TB_SVPD_PDLV_BAS /* 출고지기본 */
            SET DTA_DL_YN = 'Y'
               <include refid="COMMON.updateSystemField"/>
          WHERE PDLV_DV_CD = #{pdlvDvCd}
@@ -44,7 +44,7 @@
     </update>
 
     <insert id="insertPlaceOfDelivery">
-        INSERT INTO TB_SVPD_PDLV_BAS
+        INSERT INTO TB_SVPD_PDLV_BAS /* 출고지기본 */
              ( PDLV_NO
              , PDLV_DV_CD
              , APY_STRTDT
@@ -77,7 +77,7 @@
     </insert>
 
     <insert id="insertPlaceOfDeliveryHistory">
-        INSERT INTO TB_SVPD_PDLV_HIST
+        INSERT INTO TB_SVPD_PDLV_HIST /* 출고지이력 */
              ( PDLV_DV_CD
              , PDLV_NO
              , PDLV_SN
@@ -115,17 +115,17 @@
     </insert>
 
     <select id="selectPlaceOfDeliveryByPk" resultType="com.kyowon.sms.wells.web.service.orgcode.dvo.WsndPlaceOfDeliveryDvo">
-        SELECT T1.PDLV_NO
-         	  , T1.PDLV_DV_CD
-         	  , T1.DATA_DL_YN
-         	  , T1.APY_STRTDT
+        SELECT T1.PDLV_NO /* 출고지번호 */
+         	  , T1.PDLV_DV_CD /* 출고지구분코드 */
+         	  , T1.DATA_DL_YN /* 데이터삭제여부 */
+         	  , T1.APY_STRTDT /* 적용시작일 */
            FROM (SELECT B1.PDLV_NO
 		             , B1.PDLV_DV_CD
 		             , B1.DTA_DL_YN AS DATA_DL_YN
 		             , H1.APY_STRTDT
 		             , ROW_NUMBER() OVER (ORDER BY H1.APY_STRTDT DESC) AS RN
-		          FROM TB_SVPD_PDLV_BAS B1
-		          LEFT OUTER JOIN TB_SVPD_PDLV_HIST H1
+		          FROM TB_SVPD_PDLV_BAS B1 /* 출고지기본 */
+		          LEFT OUTER JOIN TB_SVPD_PDLV_HIST H1 /* 출고지이력 */
 		            ON B1.PDLV_NO = H1.PDLV_NO
 		           AND H1.APY_ENDDT = ( SELECT MAX(APY_ENDDT)
 		                                  FROM TB_SVPD_PDLV_HIST
@@ -139,7 +139,7 @@
 
 
     <update id="updatePlaceOfDeliveryHistory">
-        UPDATE TB_SVPD_PDLV_HIST
+        UPDATE TB_SVPD_PDLV_HIST /* 출고지이력 */
            SET APY_ENDDT = (#{apyStrtdt} - 1)
               <include refid="COMMON.updateSystemField"/>
          WHERE PDLV_NO    = #{pdlvNo}
@@ -151,7 +151,7 @@
     </update>
 
     <update id="updatePlaceOfDelivery">
-        UPDATE TB_SVPD_PDLV_BAS
+        UPDATE TB_SVPD_PDLV_BAS /* 출고지기본 */
            SET PDLV_NM    = #{pdlvNm}
              , APY_STRTDT = #{apyStrtdt}
              , APY_ENDDT  = #{apyEnddt}

@@ -2,9 +2,7 @@ package com.kyowon.sms.wells.web.fee.aggregate.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiModel;
-import lombok.Builder;
 
 /**
  * <pre>
@@ -67,19 +65,19 @@ public class WfeaWelsMngerSettlementAwDto {
     // 웰스매니저 정착수당 Search Result Dto
     @ApiModel(value = "WfeaWelsMngerSettlementAwDto-SearchRes")
     public record SearchRes(
-        String og1nm,
-        String og2nm,
-        String ogId,
+        String dgr1LevlOgNm,
+        String dgr2LevlOgNm,
+        String ogCd,
         String bldNm,
         String prtnrNo,
         String prtnrKnm,
         String rsbDvCd,
         String qlfDvCd,
-        String nextQlfDvCd,
+        String nmnQlfDvNm,
         String procsDtm,
-        String srtup,
-        String freeSrtup,
-        String bzStatCd,
+        String srtupDt,
+        String preSrtupDt,
+        String actiYn,
         String cntrDt,
         String cltnDt,
         String fstCntrDt,

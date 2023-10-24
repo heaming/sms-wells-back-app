@@ -50,6 +50,16 @@ public class WdccProductSalesController {
         return service.getBasicList(dto);
     }
 
+    @ApiOperation(value = "상품별 매출 현황(렌탈/리스)", notes = "조회조건에 따른 상품별 매출 현황을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseDtFrom", value = "매출시작일자", paramType = "query"),
+        @ApiImplicitParam(name = "baseDtTo", value = "매출종료일자", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
+        @ApiImplicitParam(name = "inqrDv", value = "판매구분", paramType = "query"),
+        @ApiImplicitParam(name = "sellChnlDvCd", value = "판매채널", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분", paramType = "query"),
+    })
     @GetMapping("/rental/lists")
     public List<SearchRentalRes> getRentalList(
         @Valid
@@ -58,6 +68,16 @@ public class WdccProductSalesController {
         return service.getRentalList(dto);
     }
 
+    @ApiOperation(value = "상품별 매출 현황(멤버십)", notes = "조회조건에 따른 상품별 매출 현황을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseDtFrom", value = "매출시작일자", paramType = "query"),
+        @ApiImplicitParam(name = "baseDtTo", value = "매출종료일자", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
+        @ApiImplicitParam(name = "inqrDv", value = "판매구분", paramType = "query"),
+        @ApiImplicitParam(name = "sellChnlDvCd", value = "판매채널", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분", paramType = "query"),
+    })
     @GetMapping("/membership/lists")
     public List<SearchMembershipRes> getMembershipList(
         @Valid
@@ -66,7 +86,6 @@ public class WdccProductSalesController {
         return service.getMembershipList(dto);
     }
 
-    // summary
     @GetMapping("/basic/summary")
     public SearchRes getBasicSummary(
         @Valid

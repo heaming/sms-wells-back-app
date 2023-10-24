@@ -9,6 +9,7 @@ public class WsncMonthBsExpcCustAgrgStateDto {
     public record SearchReq(
         @NotBlank
         String mngrDvCd,
+        @NotBlank
         String baseYm,
         String dgr1LevlOgId,
         String dgr2LevlOgId,
@@ -24,25 +25,26 @@ public class WsncMonthBsExpcCustAgrgStateDto {
         String ogNm,
         String prtnrKnm,
         String pstnDvCd,
+        String pstnDvNm,
         String bldNm,
         String mngrCustCnt,
-        String g42,
-        String g42Mini,
-        String g411,
-        String g412,
-        String g43,
-        String g44,
-        String cof,
-        String chr,
-        String fWide,
-        String fSlim,
-        String farm,
-        String dryer,
-        String aircon,
-        String airdresser,
-        String washer,
-        String mj,
-        String tot
+        String wrfr,
+        String miniWrfr,
+        String bdtIndv,
+        String bdtCrp,
+        String arcl,
+        String wtrSftnr,
+        String cffMchn,
+        String msgcr,
+        String wellsFarmWide,
+        String wellsFarmSlim,
+        String wellsFarm,
+        String dryr,
+        String arcon,
+        String ardrssr,
+        String wash,
+        String sding,
+        String fieldSum
 
     ) {}
 }

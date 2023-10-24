@@ -3,11 +3,11 @@ package com.kyowon.sms.wells.web.fee.confirm.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import io.swagger.annotations.ApiModel;
-
 import org.apache.commons.lang.StringUtils;
 
 import com.sds.sflex.common.utils.DbEncUtil;
+
+import io.swagger.annotations.ApiModel;
 
 /**
  * <pre>
@@ -25,9 +25,9 @@ public class WfeeIndividualFeeDto {
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String perfYm,
+        String perfYm, /* 실적년월 */
         @NotBlank
-        String no
+        String prtnrNo /* 파트너번호 */
     ) {}
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstReq")
     public record SearchHmstReq(
@@ -36,60 +36,34 @@ public class WfeeIndividualFeeDto {
         @NotBlank
         String no
     ) {}
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarReq")
-    public record SearchPlarReq(
-        @NotBlank
-        String perfYm,
-        @NotBlank
-        String no
-    ) {}
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerReq")
     public record SearchMngerReq(
         @NotBlank
-        String perfYm,
+        String perfYm, /* 실적년월 */
         @NotBlank
-        String no
+        String prtnrNo /* 파트너번호 */
     ) {}
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeReq")
     public record SearchFeeReq(
         @NotBlank
-        String perfYm, /*실적년월*/
+        String perfYm, /* 실적년월 */
         @NotBlank
-        String ogTpCd, /*조직유형*/
+        String ogTpCd, /* 조직유형코드 */
         @NotBlank
-        String rsbDvCd, /*직책유형*/
-        String ogLevl1Id, /*조직레벨1*/
-        String ogLevl2Id, /*조직레벨2*/
-        String ogLevl3Id, /*조직레벨3*/
+        String rsbDvCd, /* 직책유형코드 */
+        String ogLevl1, /* 조직레벨1 */
+        String ogLevl2, /* 조직레벨2 */
+        String ogLevl3, /* 조직레벨3 */
+        String ogLevl4, /* 조직레벨4 */
+        String ogLevl5, /* 조직레벨5 */
         String prtnrNo, /*파트너번호*/
-        String feeDsbYn, /*수수료지급여부*/
-        String userRsbCd, /*직책구분코드*/
-        String userSpptRsbDvCd,
-        String hirFomCd, /*고용형태코드*/
-        String userEmpId /*로그인Id*/
+        String feeDsbYn /* 수수료지급여부 */
     ) {}
 
     // *********************************************************
     // Result Dto
     // *********************************************************
     // 수수료 개인 상세 Search Result Dto
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarRes")
-    public record SearchPlarRes(
-        String prtnrNo, /*파트너번호*/
-        String prtnrKnm, /*성명*/
-        String perfAtcNm, /*실적구분*/
-        String cntrwTpNm, /*상품구분*/
-        String rcpdt, /*접수일자*/
-        String slDt, /*매출일자*/
-        String canDt, /*취소일자*/
-        String cntrNo, /*계약번호*/
-        String pdNm, /*상품명*/
-        String cstKnm, /*고객명*/
-        String saleDiv, /*판매구분*/
-        int perfElhm, /*가전*/
-        int perfChng, /*기변*/
-        int perfElhmExcd /*가전외*/
-    ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerRes")
     public record SearchMngerRes(
@@ -125,228 +99,124 @@ public class WfeeIndividualFeeDto {
         int perfSnglPmnt /*일시불*/
     ) {}
 
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindHmstRes")
-    public record FindHmstRes(
-        String perfYm, /*실적년월*/
-        String blg, /*소속*/
-        String prtnrNo, /*번호*/
-        String rsb, /*직책*/
-        String emplNm, /*성명*/
-        String frrSum, /*수수료계*/
-        String ddtnSum, /*공제계*/
-        String aclDsb, /*실지급*/
-        String dsbBnk, /*지급은행*/
-        String dsbAc, /*지급계좌*/
-        String pstnDvCd
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindMngerBasicRes")
+    public record FindMngerBasicRes(
+        String perfYm, /* 실적년월 */
+        String ogCd, /* 조직코드 */
+        String prtnrNo, /* 파트너번호 */
+        String prtnrKnm, /* 파트너명 */
+        String rsbDvCd, /* 직책구분코드 */
+        String intbsAmt, /* 소득과표금액 */
+        String ddctam, /* 공제금액 */
+        String dsbOjAmt, /* 지급대상금액 */
+        String bnkNm, /* 은행명 */
+        String acnoEncr, /* 계좌번호암호화 */
+        String mngtCt, /* 관리건수 */
+        String vstCt, /* 방문건수 */
+        String procsRt, /* 처리율 */
+        String metgDc, /* 미팅일수 */
+        String dgr1LevlOgId, /* 1차레벨조직ID */
+        String dgr2LevlOgId, /* 2차레벨조직ID */
+        String dgr3LevlOgId, /* 3차레벨조직ID */
+        String dgr5LevlOgId, /* 4차레벨조직ID */
+        String dgr4LevlOgId /* 5차레벨조직ID */
     ) {
-        public FindHmstRes {
-            dsbAc = StringUtils.isNotEmpty(dsbAc) ? DbEncUtil.dec(dsbAc) : dsbAc;
+        public FindMngerBasicRes {
+            acnoEncr = StringUtils.isNotEmpty(acnoEncr) ? DbEncUtil.dec(acnoEncr) : acnoEncr;
         }
     }
 
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstEtcRes")
-    public record SearchHmstEtcRes(
-        String div,
-        String elhmAckmtCt,
-        String svCnt,
-        String svRat
-    ) {}
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstFeeRes")
-    public record SearchHmstFeeRes(
-        String item1,
-        String fval1,
-        String item2,
-        String fval2,
-        String item3,
-        String fval3,
-        String item4,
-        String fval4
-    ) {}
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindHmstDeductionRes")
-    public record FindHmstDeductionRes(
-        String item1,
-        String amt1,
-        String item2,
-        String amt2
-    ) {}
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstPnpyamRes")
-    public record SearchHmstPnpyamRes(
-        String item,
-        String lstmm,
-        String thmOc,
-        String tmh,
-        String thmDdtn,
-        String thmBlam
-    ) {}
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindMngerRes")
-    public record FindMngerRes(
-        String perfYm, /*실적년월*/
-        String prtnrNo, /*번호*/
-        String frrSum, /*수수료계*/
-        String blg, /*소속*/
-        String rsb, /*직책*/
-        String ddtnSum, /*공제계*/
-        String emplNm, /*성명*/
-        String dsbBnk, /*지급은행*/
-        String dsbAc, /*지급계좌*/
-        String aclDsb, /*실지급*/
-        String mgtCnt,
-        String vstCnt,
-        String procsRt,
-        String rsbDvCd,
-        String pstnDvCd,
-        String ogLv1Id,
-        String ogLv2Id,
-        String ogLv3Id
-    ) {
-        public FindMngerRes {
-            dsbAc = StringUtils.isNotEmpty(dsbAc) ? DbEncUtil.dec(dsbAc) : dsbAc;
-        }
-    }
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerEtcRes")
-    public record SearchMngerEtcRes(
-        String item1,
-        String fval1,
-        String item2,
-        String fval2,
-        String item3,
-        String fval3,
-        String item4,
-        String fval4
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerSellEtcsRes")
+    public record SearchMngerSellEtcsRes(
+        String perfItem1, /* 실적항목1 */
+        String perfItem2, /* 실적항목2 */
+        String perfItem3, /* 실적항목3 */
+        String perfItem4, /* 실적항목4 */
+        String perfVal1, /* 개인실적 */
+        String perfVal2, /* 조직실적 */
+        String perfVal3, /* BS실적 */
+        String perfVal4 /* 기타 */
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerBeforeServiceRes")
     public record SearchMngerBeforeServiceRes(
-        String cdNm,
-        String cnt1,
-        String cnt2,
-        String amt1,
-        String cnt3,
-        String cnt4,
-        String amt2,
-        String sumAmt
+        String cdNm, /* 상품명 */
+        String geMngtCt, /* 일반-관리건수 */
+        String geVstCt, /* 일반-방문건수 */
+        String geAmt, /* 일반-금액 */
+        String fxamMngtCt, /* 정액-관리건수 */
+        String fxamVstCt, /* 정액-방문건수 */
+        String fxamAmt, /* 정액-금액 */
+        String sumAmt /* 합계 */
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerFeeRes")
     public record SearchMngerFeeRes(
-        String item1,
-        String fval1,
-        String item2,
-        String fval2,
-        String item3,
-        String fval3,
-        String item4,
-        String fval4
+        String srnMarkFeeNm, /* 화면표시수수료명 */
+        String feeAtcVal /* 수수료항목값 */
     ) {}
 
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindMngerDeductionRes")
-    public record FindMngerDeductionRes(
-        String rds,
-        String erntx,
-        String rsdntx,
-        String hirInsr,
-        String buDdtn,
-        String pnpyam,
-        String inddInsr
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerDeductionRes")
+    public record SearchMngerDeductionRes(
+        String feeAtcItem, /* 공제코드명 */
+        String feeAtcVal /* 수수료항목값 */
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerPnpyamRes")
     public record SearchMngerPnpyamRes(
-        String item,
-        String lstmm,
-        String thmOc,
-        String tmh,
-        String thmDdtn,
-        String thmBlam
-    ) {}
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindPlarRes")
-    public record FindPlarRes(
-        String perfYm, /*실적년월*/
-        String blg, /*소속*/
-        String prtnrNo, /*번호*/
-        String rsb, /*직책*/
-        String emplNm, /*성명*/
-        String frrSum, /*수수료계*/
-        String ddtnSum, /*공제계*/
-        String aclDsb, /*실지급*/
-        String dsbBnk, /*지급은행*/
-        String dsbAc, /*지급계좌*/
-        String pstnDvCd
-    ) {
-        public FindPlarRes {
-            dsbAc = StringUtils.isNotEmpty(dsbAc) ? DbEncUtil.dec(dsbAc) : dsbAc;
-        }
-    }
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarEtcRes")
-    public record SearchPlarEtcRes(
-        String item1,
-        String fval1,
-        String item2,
-        String fval2,
-        String item3,
-        String fval3
-    ) {}
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarFeeRes")
-    public record SearchPlarFeeRes(
-        String item1,
-        String fval1,
-        String item2,
-        String fval2,
-        String item3,
-        String fval3
-    ) {}
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-FindPlarDeductionRes")
-    public record FindPlarDeductionRes(
-        String rds,
-        String erntx,
-        String rsdntx,
-        String pnpyam,
-        String hirInsr,
-        String inddInsr,
-        String buDdtn,
-        String ddtnSum
-    ) {}
-
-    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarPnpyamRes")
-    public record SearchPlarPnpyamRes(
-        String item,
-        String lstmm,
-        String thmOc,
-        String tmh,
-        String thmDdtn,
-        String thmBlam
+        String pnpyamAtcCdNm, /* 가지급금 항목명 */
+        String bfmnBlnc, /* 전월잔액 */
+        String thmnOccr, /* 당월발생 */
+        String thmnSum, /* 당월합계 */
+        String thmnDctn, /* 당월공제 */
+        String thmnBlnc /* 당월잔액 */
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchFeeRes")
     public record SearchFeeRes(
-        String mngtDiv,
-        String renlGrp,
-        String branch,
-        String emplNm,
-        String prtnrNo,
-        String rsbDvCd,
-        String qlfDvCd,
-        String fnitCd,
-        String acNo,
-        String pstnDvCd,
-        int intbsSum,
-        int ddtnSum,
-        int aclDsbAmt,
-        int awbIntbsSum,
-        int awbDdtnSum,
-        int awbAclDsbAmt
+        String baseYm, /* 기준년월 */
+        String dgr1LevlOgId, /* 1차레벨조직id */
+        String dgr1LevlOgCd, /* 1차레벨조직코드 */
+        String dgr1LevlOgNm, /* 1차레벨조직명 */
+        String dgr1LevlDgPrtnrNo, /* 1차레벨대표파트너번호 */
+        String dgr1LevlDgPrtnrNm, /* 1차레벨대표파트너명 */
+        String dgr2LevlOgId, /* 2차레벨조직id */
+        String dgr2LevlOgCd, /* 2차레벨조직코드 */
+        String dgr2LevlOgNm, /* 2차레벨조직명 */
+        String dgr2LevlDgPrtnrNo, /* 2차레벨대표파트너번호 */
+        String dgr2LevlDgPrtnrNm, /* 2차레벨대표파트너명 */
+        String dgr3LevlOgId, /* 3차레벨조직id */
+        String dgr3LevlOgCd, /* 3차레벨조직코드 */
+        String dgr3LevlOgNm, /* 3차레벨조직명 */
+        String dgr3LevlDgPrtnrNo, /* 3차레벨대표파트너번호 */
+        String dgr3LevlDgPrtnrNm, /* 3차레벨대표파트너명 */
+        String dgr4LevlOgId, /* 4차레벨조직id */
+        String dgr4LevlOgCd, /* 4차레벨조직코드 */
+        String dgr4LevlOgNm, /* 4차레벨조직명 */
+        String dgr4LevlDgPrtnrNo, /* 4차레벨대표파트너번호 */
+        String dgr4LevlDgPrtnrNm, /* 4차레벨대표파트너명 */
+        String dgr5LevlOgId, /* 5차레벨조직id */
+        String dgr5LevlOgCd, /* 5차레벨조직코드 */
+        String dgr5LevlOgNm, /* 5차레벨조직명 */
+        String dgr5LevlDgPrtnrNo, /* 5차레벨대표파트너번호 */
+        String dgr5LevlDgPrtnrNm, /* 5차레벨대표파트너명 */
+        String prtnrNo, /* 파트너번호 */
+        String prtnrKnm, /* 파트너명 */
+        String rsbDvCd, /* 직책구분코드 */
+        String qlfDvCd, /* 자격구분코드 */
+        String coCd, /* 회사코드 */
+        String pymdt, /* 지급일자 */
+        String intbsAmt, /* 소득과표금액 */
+        String ddctam, /* 공제금액 */
+        String dsbOjAmt, /* 지급대상금액 */
+        String awdIntbsAmt, /* 시상소득과표금액 */
+        String awdErnWhtx, /* 시상소득원천세 */
+        String awdDsbOjAmt, /* 시상실지급액 */
+        String bnkNm, /* 은행명 */
+        String acnoEncr /* 계좌번호암호화 */
     ) {
         public SearchFeeRes {
-            acNo = StringUtils.isNotEmpty(acNo) ? DbEncUtil.dec(acNo) : acNo;
+            acnoEncr = StringUtils.isNotEmpty(acnoEncr) ? DbEncUtil.dec(acnoEncr) : acnoEncr;
         }
     }
 

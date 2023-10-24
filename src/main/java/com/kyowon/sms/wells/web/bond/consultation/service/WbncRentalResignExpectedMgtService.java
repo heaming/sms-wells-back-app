@@ -22,10 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 
 import static com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExpectedMgtDto.*;
@@ -91,6 +88,10 @@ public class WbncRentalResignExpectedMgtService {
         processCount += regularShippingCount;
 
         BizAssert.isTrue(processCount != 0, "MSG_ALT_DTA_EXST"); // 생성된 데이터가 없습니다.
+
+        /* 직권해지 대상관리 전월 제외대상 당월 저장 */
+        this.mapper.updateOvrdAthrTrmtPreExcdAdmn(baseDt);
+
         return processCount;
     }
 
@@ -141,6 +142,7 @@ public class WbncRentalResignExpectedMgtService {
      */
     @Transactional
     public int saveRentalResignExpectedCnfms(SaveConfirmReq dto) throws Exception {
+
         int processCount = 0;
 
         // 직권해지 렌탈 [예정확정] [최종확정]
@@ -156,6 +158,14 @@ public class WbncRentalResignExpectedMgtService {
 
         // 직권해지 확정 조회, 계약상태 변경처리
         if ("02".equals(dto.confirmDvCd())) {
+            SaveCancelReq cancelDto = this.converter.mapSaveReqToCancleDto(dto);
+
+            // 직권해지 취소자료 등록
+            this.mapper.insertRentalResignExpectedCancel(cancelDto);
+
+            // 직권해지 관리 취소자료 업데이트
+            this.mapper.updateRentalResignExpectedCancel(cancelDto);
+
             // 직권해지 계약 조회
             List<WbncAuthorityResignIzDvo> resignConfirms = this.mapper.selectRentalResignConfirms(dto.baseDt());
             List<WctbContractDtlStatCdChDvo> resignContractList = getResignContractList(resignConfirms);
@@ -173,7 +183,7 @@ public class WbncRentalResignExpectedMgtService {
 
     /**
      * <pre>
-     * 예정확정된 직권해지 대상에 대한 취소 처리
+     * 예정확정된 직권해지 대상 알림톡 발송 건수 체크
      * </pre>
      *
      * @param dto baseDt 직권해지일(필수)
@@ -181,11 +191,8 @@ public class WbncRentalResignExpectedMgtService {
      * @since 2023-10-15
      */
     @Transactional
-    public int saveRentalResignExpectedCancels(SaveCancelReq dto) throws Exception {
-        int processCount = this.mapper.insertRentalResignExpectedCancel(dto);
-        BizAssert.isFalse(processCount == 0, "MSG_ALT_NO_DATA_RGST_CANCEL_DATA"); // 취소자료 등록할 자료가 없습니다.
-        BizAssert.isTrue(processCount > 0, MSG_ALT_SVE_ERR_STR); // 저장에 실패 하였습니다.
-        return processCount;
+    public Integer getRentalResignExpectedSmsCount(SmsCheckReq dto) throws Exception {
+        return this.mapper.selectRentalResignExpectedSmsCount(dto);
     }
 
     /**
@@ -193,21 +200,32 @@ public class WbncRentalResignExpectedMgtService {
      * 엑셀 업로드 - 직권 해지 제외 여부 수정
      * </pre>
      *
-     * @param file baseYm 직권해지월(필수)
-     *             cntrNoSn 계약상세번호(필수)
-     *             excdYn 제외여부(필수)
-     *             authRsgExcdRsonCd 제외사유
+     * @param file   baseYm 직권해지월(필수)
+     *               cntrNoSn 계약상세번호(필수)
+     *               excdYn 제외여부(필수)
+     *               authRsgExcdRsonCd 제외사유
+     * @param baseDt 기준월(필수)
      * @author jeongwon.hwang
      * @since 2023-10-15
      */
     @Transactional
-    public UploadRes saveRentalResignExpectedExcelUpload(MultipartFile file) throws Exception {
+    public UploadRes saveRentalResignExpectedExcelUpload(String baseDt, MultipartFile file) throws Exception {
+
         // 업로드 엑셀 헤더 설정
         Map<String, String> headerTitle = new LinkedHashMap<>();
         headerTitle.put("baseYm", messageResourceService.getMessage("MSG_TXT_AUTH_AUTH_RSG_YM")); // 직권해지년월
         headerTitle.put("cntrNoSn", messageResourceService.getMessage("MSG_TXT_CNTR_DTL_NO")); // 계약상세번호
         headerTitle.put("excdYn", messageResourceService.getMessage("MSG_TXT_EXCD_YN")); // 제외여부
         headerTitle.put("authRsgExcdRsonCd", messageResourceService.getMessage("MSG_TXT_EXCD_RSON")); // 제외 사유
+
+        BizAssert.isTrue(StringUtil.isNotBlank(baseDt)
+            , messageResourceService.getMessage("MSG_ALT_NCELL_REQUIRED_VAL", headerTitle.get("baseYm")));
+        BizAssert.isTrue(DateUtil.getLastDateOfMonth(baseDt).equals(baseDt), "MSG_ALT_CHO_MM_TLST_D"); // 직권해지일자가 월마지막날이 아닙니다. 월마지막날을 선택하기 바랍니다.
+
+        Date baseDate = BnBondUtils.parseStrToDate(baseDt.substring(0, 6));
+        BizAssert.notNull(baseDate
+            , messageResourceService.getMessage("MSG_ALT_NCELL_REQUIRED_VAL", headerTitle.get("baseYm")));
+
         // file
         List<WbncAuthorityResignIzDvo> list = excelReadService
             .readExcel(file, new ExcelMetaDvo(2, headerTitle), WbncAuthorityResignIzDvo.class, true);
@@ -251,10 +269,12 @@ public class WbncRentalResignExpectedMgtService {
         }
         if (excelUploadErrorDvos.isEmpty()) {
             row = 3;
+
             for (WbncAuthorityResignIzDvo dvo : list) {
                 String baseYm = dvo.getBaseYm();
                 String excdYn = dvo.getExcdYn();
-                if (!BnBondUtils.checkDate(baseYm)) {
+                Date baseYmDate = BnBondUtils.parseStrToDate(baseYm);
+                if (baseYmDate == null) {
                     ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
                     errorDvo.setHeaderName(headerTitle.get("baseYm"));
@@ -263,6 +283,15 @@ public class WbncRentalResignExpectedMgtService {
                         messageResourceService.getMessage(
                             "MSG_ALT_ERROR_DT", headerTitle.get("baseYm")
                         )
+                    );
+                    excelUploadErrorDvos.add(errorDvo);
+                } else if (baseYmDate.compareTo(baseDate) != 0) {
+                    ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+                    errorDvo.setErrorRow(row);
+                    errorDvo.setHeaderName(headerTitle.get("baseYm"));
+                    // 값이 올바르지 않습니다.
+                    errorDvo.setErrorData(
+                        messageResourceService.getMessage("MSG_ALT_IS_NOT_VAL")
                     );
                     excelUploadErrorDvos.add(errorDvo);
                 } else {

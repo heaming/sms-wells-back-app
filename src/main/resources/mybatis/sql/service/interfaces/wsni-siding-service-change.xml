@@ -16,14 +16,15 @@
          , AFCH_PD_CD
          , MTR_PROCS_STAT_CD
          , CNFMDT
-         , MAT_NM
+         , CHO_CAPSL_CN
          , CSMR_UPRC_AMT
+         , DTA_DL_YN
          <include refid="COMMON.insertSystemField" />
     ) VALUES (
            #{cntrNo}
          , #{cntrSn}
          , #{akSn}
-         , #{histChDtm}
+         , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') + ${histChDtm}
          , TO_CHAR(SYSDATE,'YYYYMMDD')
          , #{asAkDvCd}
          , #{akChdt}
@@ -31,14 +32,16 @@
          , #{afchPdCd}
          , #{mtrProcsStatCd}
          , null
-         , #{matNm}
+         , #{choCapslCn}
          , #{csmrUprcAmt}
+         , 'N'
          <include refid="COMMON.insertSystemFieldValue" />
     )
     </insert>
 
     <delete id="deleteSdingAskAk">
-    DELETE FROM TB_SVPD_SDING_AS_AK_IZ
+    UPDATE TB_SVPD_SDING_AS_AK_IZ
+       SET DTA_DL_YN = 'Y'
      WHERE CNTR_NO = #{cntrNo}
        AND CNTR_SN = #{cntrSn}
        AND AK_SN = #{akSn}
@@ -63,14 +66,16 @@
         ON SSCT1.CNTR_NO = SSCT2.CNTR_NO AND SSCT1.CNTR_SN = SSCT2.CNTR_SN
       LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PDBS1
         ON SSCT1.BASE_PD_CD = PDBS1.PD_CD
-     WHERE SSCT1.CNTR_NO = #{cntrNo}
+     WHERE 'N' IN (SSCT1.DTA_DL_YN, SSCT2.DTA_DL_YN, PDBS1.DTA_DL_YN)
+       AND SSCT1.CNTR_NO = #{cntrNo}
        AND SSCT1.CNTR_SN = #{cntrSn}
     </select>
 
     <select id="selectSidingAkCount" resultType="java.lang.Integer">
     SELECT COUNT(*) AS COUNT
       FROM TB_SVPD_SDING_AS_AK_IZ SVPD1 /*모종AS요청내역*/
-     WHERE SVPD1.CNTR_NO = #{cntrNo}
+     WHERE SVPD1.DTA_DL_YN = 'N'
+       AND SVPD1.CNTR_NO = #{cntrNo}
        AND SVPD1.CNTR_SN = #{cntrSn}
        AND AK_SN = #{akSn}
        AND AS_AK_DV_CD = #{asAkDvCd}
@@ -84,7 +89,7 @@
          , BFCH_PD_CD = #{bfchPdCd}
          , AFCH_PD_CD = #{afchPdCd}
          , MTR_PROCS_STAT_CD = #{mtrProcsStatCd}
-         <include refid="COMMON.updateSystemField" />
+         <include refid="COMMON.updateSystemField"/>
      WHERE CNTR_NO = #{cntrNo}
        AND CNTR_SN = #{cntrSn}
        AND AK_SN = #{akSn}
@@ -92,6 +97,14 @@
        AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
        AND CNFMDT IS NULL
     </update>
+
+    <select id="selectAkSnMax" resultType="java.lang.String">
+    SELECT NVL(MAX(AK_SN), 0) + 1 AS MAX_AK_SN
+          FROM TB_SVPD_SDING_AS_AK_IZ
+         WHERE DTA_DL_YN = 'N'
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
 
     <insert id="insertSidingAk">
     INSERT INTO TB_SVPD_SDING_AS_AK_IZ (
@@ -104,20 +117,19 @@
          , AFCH_PD_CD
          , MTR_PROCS_STAT_CD
          , CSMR_UPRC_AMT
+         , DTA_DL_YN
          <include refid="COMMON.insertSystemField" />
     ) VALUES (
            #{cntrNo}
          , #{cntrSn}
-         , (SELECT LPAD(NVL(MAX(AK_SN), 0) + 1, 2, '0') AS MAX_AK_SN
-              FROM TB_SVPD_SDING_AS_AK_IZ
-             WHERE CNTR_NO = #{cntrNo}
-               AND CNTR_SN = #{cntrSn})
+         , #{akSn}
          , #{asAkDvCd}
          , TO_CHAR(SYSDATE, 'YYYYMMDD')
          , #{bfchPdCd}
          , #{afchPdCd}
          , #{mtrProcsStatCd}
          , 0
+         , 'N'
          <include refid="COMMON.insertSystemFieldValue" />
     )
     </insert>
@@ -140,7 +152,8 @@
        AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN VL_STRT_DTM AND VL_END_DTM
       JOIN TB_SSCT_CNTR_ADRPC_BAS SSCT2 /*계약주소지기본*/
         ON SSCT1.CNTR_ADRPC_ID = SSCT2.CNTR_ADRPC_ID
-     WHERE SVPD.CNTR_NO = #{cntrNo}
+     WHERE 'N' IN (SVPD.DTA_DL_YN, SSCT1.DTA_DL_YN, SSCT2.DTA_DL_YN)
+       AND SVPD.CNTR_NO = #{cntrNo}
        AND SVPD.CNTR_SN = #{cntrSn}
        AND ASN_OJ_YM = #{asnOjYm}
     </select>
@@ -161,5 +174,14 @@
                                  ORDER BY VST_DUEDT ASC)
                          WHERE rownum = 1)
     </update>
+
+    <select id="selectPdctPdCds" resultType="java.lang.String">
+    SELECT CHO_CAPSL_CN AS PDCT_PD_CD
+      FROM TB_SVPD_SDING_AS_AK_IZ
+     WHERE DTA_DL_YN = 'N'
+       AND CNTR_NO = #{cntrNo}
+       AND CNTR_SN = #{cntrSn}
+       AND AK_SN = #{akSn}
+    </select>
 
 </mapper>

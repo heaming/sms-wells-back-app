@@ -4,28 +4,28 @@
 
     <select id="selectInstallLocationPages" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallLocationDvo">
          SELECT '' AS CHK
-              , T1.CNTR_NO
-              , T1.CNTR_SN
-              , T1.IST_DT
+              , T1.CNTR_NO /* 계약번호 */
+              , T1.CNTR_SN /* 계약일련번호 */
+              , T1.IST_DT /* 설치일자 */
               , D2.CNTR_CST_NO -- 고객번호
-              , AD2.RCGVP_KNM AS CUST_NM -- 설치자고객명
-              , F_CMZ_CD_NM(#{session.tenantId}, 'PRD_MNGT_TP_CD', D1.SELL_TP_CD, #{session.langId}) AS SELL_TP_NM
-              , T1.PDCT_PD_CD
-              , PD1.SAP_MAT_CD
-              , PD1.PD_NM
+              , AD2.RCGVP_KNM AS CUST_NM /* 고객명 */
+              , F_CMZ_CD_NM(#{session.tenantId}, 'PRD_MNGT_TP_CD', D1.SELL_TP_CD, #{session.langId}) AS SELL_TP_NM /* 유형명 */
+              , T1.PDCT_PD_CD /* 상품코드 */
+              , PD1.SAP_MAT_CD /* SAP코드 */
+              , PD1.PD_NM /* 상품명 */
               , AD2.LOCARA_TNO /* 지역전화번호 */
-              , AD2.EXNO_ENCR /* 전화국번호암호화 (복호화필요) */
+              , AD2.EXNO_ENCR /* 전화국번호암호화 */
               , AD2.IDV_TNO  /* 개별전화번호 */
               , AD2.CRAL_LOCARA_TNO /* 휴대지역전화번호 */
               , AD2.MEXNO_ENCR  /* 휴대전화국번호암호화 */
               , AD2.CRAL_IDV_TNO  /* 휴대개별전화번호 */
-              , AD3.NEW_ADR_ZIP AS ZIP
-              , AD3.RNADR || ' ' || AD3.RDADR AS ADR
-              , LD1.IST_LCT_DTL_CN
-              , P1.OG_NM
-              , P1.PRTNR_KNM
-              , LD1.WK_PRTNR_NO /* 작업파트너번호 */
-              , TO_CHAR(TO_DATE(LD1.FST_RGST_DTM, 'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS REG_DTM
+              , AD3.NEW_ADR_ZIP AS ZIP /* 우편번호 */
+              , AD3.RNADR || ' ' || AD3.RDADR AS ADR /* 주소 */
+              , LD1.IST_LCT_DTL_CN /* 설치위치상세 */
+              , P1.OG_NM /* 소속센터 */
+              , P1.PRTNR_KNM /* 등록자명 */
+              , LD1.WK_PRTNR_NO /* 등록자사번 */
+              , TO_CHAR(TO_DATE(LD1.FST_RGST_DTM, 'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS REG_DTM /* 최초등록일자 */
            FROM TB_SVPD_CST_SV_EXCN_IZ T1           /* 고객서비스수행내역 */
           INNER JOIN TB_SSCT_CNTR_ADR_REL AD1       /* 계약주소관계 */
              ON T1.CNTR_NO = AD1.DTL_CNTR_NO
@@ -85,6 +85,9 @@
          <if test="@MybatisUtils@isNotEmpty(pdCd)">
             AND T1.PDCT_PD_CD = #{pdCd}
          </if>
+         <if test="@MybatisUtils@isNotEmpty(cstDvCd)">
+            AND D2.COPN_DV_CD = #{cstDvCd}
+         </if>
          <if test="@MybatisUtils@isNotEmpty(cstNm)">
             AND AD2.RCGVP_KNM = #{cstNm}
          </if>
@@ -95,7 +98,7 @@
     </select>
 
     <insert id="insertInstallLocation">
-        INSERT INTO TB_SVPD_CNTR_PDCT_IST_LCT_DTL
+        INSERT INTO TB_SVPD_CNTR_PDCT_IST_LCT_DTL /* 계약제품설치위치상세 */
              ( CNTR_NO
              , CNTR_SN
              , DTL_SN
@@ -122,25 +125,25 @@
              )
     </insert>
     <select id="selectSerialNumberByPk" resultType="String">
-        SELECT LPAD(NVL(MAX(DTL_SN),0),3,'0')
+        SELECT LPAD(NVL(MAX(DTL_SN),0),3,'0') /* 상세일련번호 */
           FROM (SELECT MAX(DTL_SN) AS DTL_SN
-                  FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL
+                  FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL /* 계약제품설치위치상세 */
                  WHERE CNTR_NO = #{cntrNo}
-                   AND CNTR_SN = '00'
+                   AND CNTR_SN = #{cntrSn}
                  GROUP BY CNTR_NO, CNTR_SN
                )
     </select>
 
     <select id="selectInstallLocationContentLength" resultType="int">
-        SELECT NVL(LENGTH(TRIM(IST_LCT_DTL_CN)),0)
-          FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL
+        SELECT NVL(LENGTH(TRIM(IST_LCT_DTL_CN)),0) /* 설치위치상세 정보길이 */
+          FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL /* 계약제품설치위치상세 */
          WHERE CNTR_NO = #{cntrNo}
-           AND CNTR_SN = '00'
+           AND CNTR_SN = #{cntrSn}
            AND DTL_SN  = #{dtlSn}
     </select>
 
     <insert id="insertInitializeInstallLocation">
-        INSERT INTO TB_SVPD_CNTR_PDCT_IST_LCT_DTL
+        INSERT INTO TB_SVPD_CNTR_PDCT_IST_LCT_DTL /* 계약제품설치위치상세 */
              ( CNTR_NO
              , CNTR_SN
              , DTL_SN
@@ -161,12 +164,12 @@
     </insert>
 
     <select id="selectProducts" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallLocationMgtDto$FindProductRes">
-        SELECT T1.PD_CD AS CODE_ID
-             , T1.PD_NM  || '(' || T1.PD_CD || ')' AS CODE_NAME
-             , T1.PD_NM  AS ABBR_NAME
-             , T2.PD_PRP_VAL20 AS PD_GRP_CD
-          FROM TB_PDBS_PD_BAS T1
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+        SELECT T1.PD_CD AS CODE_ID /* 코드 */
+             , T1.PD_NM  || '(' || T1.PD_CD || ')' AS CODE_NAME /* 코드명 */
+             , T1.PD_NM  AS ABBR_NAME /* 상품명 */
+             , T2.PD_PRP_VAL20 AS PD_GRP_CD /* 상품그룹코드 */
+          FROM TB_PDBS_PD_BAS T1 /* 상품기본 */
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2 /* 상품각사속성상세 */
             ON T1.PD_CD = T2.PD_CD
            AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
            AND T2.DTA_DL_YN = 'N'

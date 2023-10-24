@@ -52,23 +52,23 @@ public class WsnaWarehouseOrganizationDvo {
     String fnlMdfcPrgId; /* 최종수정프로그램ID */
     String fnlMdfcDeptId; /* 최종수정부서ID */
 
-    String prtnrNo;
-    String prtnrKnm;
-    String hgrWareNm;
-    String rnadr;
-    String rdadr;
-    String newAdrZip;
-    String bldCdNm;
-    String ogId;
-    String ogCd;
-    String ogNm;
-    String dgr1LevlOgCd;
-    String dgr1LevlOgId;
-    String dgr1LevlOgNm;
-    String dgr1LevlOgCdNm;
-    String dgr2LevlOgCd;
-    String dgr2LevlOgId;
-    String dgr2LevlOgNm;
-    String dgr2LevlOgCdNm;
+    String prtnrNo; /*파트너번호*/
+    String prtnrKnm; /*파트너명*/
+    String hgrWareNm; /*상위창고명*/
+    String rnadr; /* 도로명주소 */
+    String rdadr; /* 도로명상세주소 */
+    String newAdrZip; /*신주소우편번호*/
+    String bldCdNm; /* 빌딩코드명 */
+    String ogId; /* 조직ID */
+    String ogCd; /* 조직코드 */
+    String ogNm; /* 조직명 */
+    String dgr1LevlOgCd; /* 1레벨조직코드 */
+    String dgr1LevlOgId; /* 1레벨조직ID */
+    String dgr1LevlOgNm; /* 1레벨조직명 */
+    String dgr1LevlOgCdNm; /* 1레벨조직코드명 */
+    String dgr2LevlOgCd; /* 2레벨조직코드 */
+    String dgr2LevlOgId; /* 2레벨조직ID */
+    String dgr2LevlOgNm; /* 2레벨조직명 */
+    String dgr2LevlOgCdNm; /* 2레벨조직코드명 */
 
 }

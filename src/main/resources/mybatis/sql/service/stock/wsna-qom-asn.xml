@@ -129,10 +129,9 @@
                    ON D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
                   AND D2.ASN_OJ_YM     = D1.ASN_OJ_YM
                 INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ D3       /* 정기BS투입품목내역 */
-                   ON D3.ASN_OJ_YM  = D2.ASN_OJ_YM
-                  AND D3.CNTR_NO    = D2.CNTR_NO
-                  AND D3.CNTR_SN    = D2.CNTR_SN
-                  AND D3.PDCT_PD_CD = D2.PDCT_PD_CD
+                   ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                  AND D3.ASN_OJ_YM     = D2.ASN_OJ_YM
+                  AND D3.PDCT_PD_CD    = D2.PDCT_PD_CD
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D4       /* 고객서비스수행내역 */
                    ON D4.CNTR_NO = D1.CNTR_NO
                   AND D4.CNTR_SN = D1.CNTR_SN
@@ -171,17 +170,14 @@
                     AND ITM_PD_CD   = T1.ITM_PD_CD
                     AND DTA_DL_YN   = 'N'
                    AND ASN_OJ_YM   = #{asnOjYm} )                   AS MCBY_ACU_OSTR_QTY   /* 월별누적출고수량 */
-             , 0                                                    AS CRTL_STOC_QTY       /* 현재재고수량 */
-             , NVL( ( SELECT QTY
-                        FROM TW_QTY1
-                       WHERE PRTNR_NO = T1.WARE_MNGT_PRTNR_NO
-                         AND PD_CD    = T1.ITM_PD_CD ), 0)          AS THWK_EXP_QTY        /* 금주예정수량 */
+             , T1.CRTL_STOC_QTY                                     AS CRTL_STOC_QTY       /* 현재재고수량, 조회시점 재고수량 */
+             , NVL(TW_QTY1.QTY, 0)                                  AS THWK_EXP_QTY        /* 금주예정수량 */
              , 0                                                    AS BORR_EXP_QTY        /* 차주예정수량 */
              , CASE WHEN T1.ITM_PD_CD IN ('WM07104793', 'WM07104794', 'WM07104795', 'WM07104796', 'WM07104797', 'WM07104798', 'WM07105097')
-                    THEN NVL(T1.ETN_WTCF_APY_QTY, 0) + MOD(T1.ETN_WTCF_APY_QTY, 2)
-                    ELSE T1.ETN_WTCF_APY_QTY
+                    THEN NVL(T1.ETN_WTCF_APY_QTY, 0) - T1.CRTL_STOC_QTY + NVL(TW_QTY1.QTY, 0) + MOD(T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY + NVL(TW_QTY1.QTY, 0), 2)
+                    ELSE T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY + NVL(TW_QTY1.QTY, 0)
                END                                                  AS CNFM_QTY            /* 확정수량 */
-             , CASE WHEN T1.BOX_QTY <![CDATA[>]]> 0 THEN T1.BOX_QTY * CEIL( GREATEST( TW_QTY1.QTY, T1.ETN_WTCF_APY_QTY, 0 ) / T1.BOX_QTY ) / T1.BOX_QTY
+             , CASE WHEN T1.BOX_QTY <![CDATA[>]]> 0 THEN T1.BOX_QTY * CEIL( GREATEST( NVL(TW_QTY1.QTY, 0) - T1.CRTL_STOC_QTY, T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY, 0 ) / T1.BOX_QTY ) / T1.BOX_QTY
                     ELSE 0
                END                                                  AS BOX_UNIT_QTY        /* 박스단위수량 */
              , 0                                                    AS ACL_OSTR_QTY        /* 실제출고수량 */
@@ -200,16 +196,11 @@
                     , QOM.GE_ASN_QOM_CT
                     , QOM.CRP_ASN_QOM_CT
                     , QOM.BOX_QTY
-                    , CASE WHEN QOM.ITM_KND_CD <![CDATA[<>]]> '5' THEN QOM.GE_ASN_QOM_CT
-                           WHEN QOM.BLD_CD NOT IN ('885', '951')  THEN CASE WHEN QOM.GE_ASN_QOM_CT <![CDATA[<]]> 5
-                                                                            THEN QOM.GE_ASN_QOM_CT
-                                                                            ELSE ROUND(QOM.GE_ASN_QOM_CT * 0.4, 0)
-                                                                       END
-                           ELSE QOM.GE_ASN_QOM_CT
-                      END + QOM.CRP_ASN_QOM_CT AS ETN_WTCF_APY_QTY
+                    , QOM.GE_ASN_QOM_CT + QOM.CRP_ASN_QOM_CT AS ETN_WTCF_APY_QTY   /* 회차별 가중치 없어짐 */
+                    , NVL(STOC.PITM_STOC_A_GD_QTY, 0)        AS CRTL_STOC_QTY
                  FROM
                     (
-                      SELECT /*+ LEADING(D1 D3) INDEX(D3 PK_SVPD_MCBY_CST_SV_OJ_IZ) */
+                      SELECT /*+ LEADING(D1 D2 D3) */
                              D7.WARE_NO                      AS STR_WARE_NO
                            , D1.PART_PD_CD                   AS ITM_PD_CD
                            , D7.DIDY_DV_CD                   AS SPP_DV_CD
@@ -226,7 +217,7 @@
                            , SUM( CASE WHEN D1.PART_PD_CD IN ('WM07103020', 'WM07105668') THEN NVL(TO_NUMBER(D6.PD_PRP_VAL12), 0)
                                        ELSE 0
                                   END )                      AS BOX_QTY
-                           , D6.PD_PRP_VAL19                 AS ITM_KND_CD
+                           , D1.ITM_KND_CD
                         FROM TB_SVPD_CST_SV_RGBSPR_IZ D1          /* 고객서비스정기BS주기내역 */
                        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2       /* 고객서비스수행내역 */
                           ON D2.CNTR_NO = D1.CNTR_NO
@@ -274,6 +265,7 @@
                          AND D1.PART_USE_QTY <![CDATA[>]]> 0
                          AND D8.PSTN_DV_CD <![CDATA[<>]]> '4'
                          AND D7.DIDY_DV_CD <![CDATA[<>]]> '2'
+                         AND D1.MTR_CAN_DT IS NULL
                          AND D2.REQD_DT IS NULL
                          AND D2.CPS_DT IS NULL
                          AND D2.CNTR_DTL_STAT_CD NOT IN ('201', '202', '203', '303')   /* 고객요청정지, 연체정지, 해약접수정지, 계약취소 */
@@ -296,8 +288,12 @@
                                                                        WHERE CNTR_NO   = S1.CNTR_NO
                                                                          AND CNTR_SN   = S1.CNTR_SN
                                                                          AND DTA_DL_YN = 'N' ) )
-                       GROUP BY D7.WARE_NO, D1.PART_PD_CD, D7.DIDY_DV_CD, D3.MNGT_PRTNR_NO, D3.MNGT_PRTNR_OG_TP_CD, D9.BLD_CD, NVL(D10.ADR_ID, D7.WARE_ADR_ID), D6.PD_PRP_VAL19
+                       GROUP BY D7.WARE_NO, D1.PART_PD_CD, D7.DIDY_DV_CD, D3.MNGT_PRTNR_NO, D3.MNGT_PRTNR_OG_TP_CD, D9.BLD_CD, NVL(D10.ADR_ID, D7.WARE_ADR_ID), D1.ITM_KND_CD
                     ) QOM
+                 LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ STOC
+                   ON STOC.WARE_NO   = QOM.STR_WARE_NO
+                  AND STOC.ITM_PD_CD = QOM.ITM_PD_CD
+                  AND STOC.DTA_DL_YN = 'N'
              ) T1
           LEFT OUTER JOIN TW_QTY1
             ON TW_QTY1.PRTNR_NO = T1.WARE_MNGT_PRTNR_NO
@@ -369,10 +365,9 @@
                    ON D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
                   AND D2.ASN_OJ_YM     = D1.ASN_OJ_YM
                 INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ D3       /* 정기BS투입품목내역 */
-                   ON D3.ASN_OJ_YM  = D2.ASN_OJ_YM
-                  AND D3.CNTR_NO    = D2.CNTR_NO
-                  AND D3.CNTR_SN    = D2.CNTR_SN
-                  AND D3.PDCT_PD_CD = D2.PDCT_PD_CD
+                   ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                  AND D3.ASN_OJ_YM     = D2.ASN_OJ_YM
+                  AND D3.PDCT_PD_CD    = D2.PDCT_PD_CD
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D4       /* 고객서비스수행내역 */
                    ON D4.CNTR_NO = D1.CNTR_NO
                   AND D4.CNTR_SN = D1.CNTR_SN
@@ -425,9 +420,10 @@
              , CASE WHEN T1.ITM_PD_CD IN ('WM07104793', 'WM07104794', 'WM07104795', 'WM07104796', 'WM07104797', 'WM07104798', 'WM07105097')
                     THEN GREATEST( T1.THWK_EXP_QTY + T1.BORR_EXP_QTY - T1.CRTL_STOC_QTY
                                  , T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY - T1.BFSVC_FSH_CT
-                                 , 0 ) + MOD( GREATEST( T1.THWK_EXP_QTY + T1.BORR_EXP_QTY - T1.CRTL_STOC_QTY
-                                                      , T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY - T1.BFSVC_FSH_CT
-                                                      , 0 ), 2 )
+                                 , 0 )
+                         + MOD( GREATEST( T1.THWK_EXP_QTY + T1.BORR_EXP_QTY - T1.CRTL_STOC_QTY
+                                        , T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY - T1.BFSVC_FSH_CT
+                                        , 0 ), 2 )
                     WHEN T1.BOX_QTY <![CDATA[>]]> 0
                     THEN T1.BOX_QTY * CEIL( GREATEST( T1.THWK_EXP_QTY + T1.BORR_EXP_QTY - T1.CRTL_STOC_QTY
                                                     , T1.ETN_WTCF_APY_QTY - T1.CRTL_STOC_QTY - T1.BFSVC_FSH_CT
@@ -463,20 +459,18 @@
                                                                             ELSE ROUND(QOM.GE_ASN_QOM_CT * 0.4, 0)
                                                                        END
                            ELSE QOM.GE_ASN_QOM_CT
-                      END + QOM.CRP_ASN_QOM_CT AS ETN_WTCF_APY_QTY
-                    , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm} THEN 0
-                           ELSE NVL( STOC.PITM_STOC_A_GD_QTY, 0 )
-                      END                      AS CRTL_STOC_QTY
+                      END + QOM.CRP_ASN_QOM_CT        AS ETN_WTCF_APY_QTY
+                    , NVL(STOC.PITM_STOC_A_GD_QTY, 0) AS CRTL_STOC_QTY
                     , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm} THEN NVL(TW_QTY1.QTY, 0)
                            ELSE NVL(TW_QTY2.QTY, 0)
-                      END                      AS THWK_EXP_QTY
+                      END                             AS THWK_EXP_QTY
                     , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm}                     THEN 0
                            WHEN #{apyYm} <![CDATA[<>]]> TO_CHAR(SYSDATE + 7, 'YYYYMM') THEN 0
                            ELSE NVL(NW_QTY1.QTY, 0)
-                      END                      AS BORR_EXP_QTY
+                      END                             AS BORR_EXP_QTY
                     , CASE WHEN #{apyYm} <![CDATA[<>]]> #{asnOjYm} THEN 0
                            ELSE NVL(BS_QTY1.QTY, 0)
-                      END                      AS BFSVC_FSH_CT
+                      END                             AS BFSVC_FSH_CT
                  FROM
                     (
                       SELECT /*+ USE_HASH(D1 D2 D3) */
@@ -499,11 +493,11 @@
                            , D7.PD_PRP_VAL19                 AS ITM_KND_CD
                         FROM TB_SVPD_RGBS_PU_ITM_IZ D1             /* 정기BS투입품목내역 */
                        INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2    /* 고객서비스BS대상내역 */
-                          ON D2.ASN_OJ_YM = D1.ASN_OJ_YM
-                         AND D2.CNTR_NO   = D1.CNTR_NO
-                         AND D2.CNTR_SN   = D1.CNTR_SN
+                          ON D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
+                         AND D2.ASN_OJ_YM     = D1.ASN_OJ_YM
                        INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3   /* 고객서비스BS배정내역 */
                           ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                         AND D3.ASN_OJ_YM     = D2.ASN_OJ_YM
                        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D4        /* 고객서비스수행내역 */
                           ON D4.CNTR_NO = D1.CNTR_NO
                          AND D4.CNTR_SN = D1.CNTR_SN
@@ -808,9 +802,8 @@
                                                             END
                             <if test="!@MybatisUtils@equals(cnt, 1)">
                               INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D4   /* 고객서비스BS배정내역 */
-                                 ON D4.ASN_OJ_YM = D1.ASN_OJ_YM
-                                AND D4.CNTR_NO   = D1.CNTR_NO
-                                AND D4.CNTR_SN   = D1.CNTR_SN
+                                 ON D4.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
+                                AND D4.ASN_OJ_YM     = D1.ASN_OJ_YM
                                 AND D4.DTA_DL_YN = 'N'
                                 AND D4.VST_PRGS_STAT_CD IN ('00', '10')
                             </if>
@@ -824,9 +817,9 @@
                                 AND D6.OG_TP_CD = D5.OG_TP_CD
                               INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D7      /* 상품각사속성상세 */
                                  ON D7.PD_CD = D1.PU_PART_PD_CD
-                              INNER JOIN TB_SVPD_CST_SV_RGBSPR_IZ D8     /* 고객서비스정기BS주기내역 */
-                                 ON D8.CNTR_NO = D1.CNTR_NO
-                                AND D8.CNTR_SN = D1.CNTR_SN
+                              INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D8   /* 고객서비스BS대상내역 */
+                                 ON D8.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
+                                AND D8.ASN_OJ_YM     = D1.ASN_OJ_YM
                               WHERE D1.DTA_DL_YN           = 'N'
                                 AND D2.DTA_DL_YN           = 'N'
                                 AND D3.DTA_DL_YN           = 'N'
@@ -1085,48 +1078,47 @@
                     , T1.STR_WARE_NO
                  FROM
                     (
-                      SELECT D1.ASN_OJ_YM                                /* 배정대상년월 */
-                           , D1.CNTR_NO                                  /* 계약번호 */
-	                       , D1.CNTR_SN                                  /* 계약일련번호 */
-                           , D1.SV_BIZ_MCLSF_CD                          /* 서비스업무중분류코드 */
-	                       , D1.SV_BIZ_DCLSF_CD                          /* 서비스업무세분류코드 */
-                           , D1.WK_SN                                    /* 작업일련번호 */
-                           , D1.PDCT_PD_CD                               /* 제품상품코드 */
-      	                   , D1.IST_NMN_N                                /* 설치차월수 */
-                           , D1.PU_PART_PD_CD                            /* 투입부품상품코드 */
-                           , D1.QOM_ASN_WARE_NO AS BEF_QOM_ASN_WARE_NO   /* 변경전 물량배정창고번호 */
-                           , #{ostrWareNo}      AS QOM_ASN_WARE_NO       /* 물량배정창고번호 */
-                           , D1.STR_WARE_DV_CD  AS BEF_WARE_DV_CD        /* 변경전 창고구분코드 */
+                      SELECT /*+ USE_HASH(D1 D2 D4) */
+                             D1.ASN_OJ_YM                                          /* 배정대상년월 */
+                           , D1.CNTR_NO                                            /* 계약번호 */
+                           , D1.CNTR_SN                                            /* 계약일련번호 */
+                           , D1.SV_BIZ_MCLSF_CD                                    /* 서비스업무중분류코드 */
+                           , D1.SV_BIZ_DCLSF_CD                                    /* 서비스업무세분류코드 */
+                           , D1.WK_SN                                              /* 작업일련번호 */
+                           , D1.PDCT_PD_CD                                         /* 제품상품코드 */
+      	                   , D1.IST_NMN_N                                          /* 설치차월수 */
+                           , D1.PU_PART_PD_CD                                      /* 투입부품상품코드 */
+                           , NVL(D1.QOM_ASN_WARE_NO, ' ') AS BEF_QOM_ASN_WARE_NO   /* 변경전 물량배정창고번호 */
+                           , #{ostrWareNo}                AS QOM_ASN_WARE_NO       /* 물량배정창고번호 */
+                           , NVL(D1.STR_WARE_DV_CD, ' ')  AS BEF_WARE_DV_CD        /* 변경전 창고구분코드 */
 	                       , CASE WHEN D5.DIDY_DV_CD = '1'
  	                               AND D5.WARE_DV_CD = '2' THEN '1'
 			                      WHEN D5.DIDY_DV_CD = '1'
 			                       AND D5.WARE_DV_CD = '3' THEN '2'
 			                      WHEN D5.DIDY_DV_CD = '2' THEN '3'
 			                      ELSE '9'
-	                         END                AS WARE_DV_CD            /* 창고구분코드 */
-                           , D1.STR_WARE_NO     AS BEF_STR_WARE_NO       /* 변경전 입고창고번호 */
+                             END                          AS WARE_DV_CD            /* 창고구분코드 */
+                           , NVL(D1.STR_WARE_NO, ' ')     AS BEF_STR_WARE_NO       /* 변경전 입고창고번호 */
 	                       , CASE WHEN D5.DIDY_DV_CD = '2' THEN D5.WARE_NO
  	                              ELSE D5.HGR_WARE_NO
-	                         END                AS STR_WARE_NO           /* 입고창고번호 */
+                             END                          AS STR_WARE_NO           /* 입고창고번호 */
                         FROM TB_SVPD_RGBS_PU_ITM_IZ D1                   /* 정기BS투입품목내역 */
                        INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2          /* 고객서비스BS대상내역 */
-                          ON D2.ASN_OJ_YM = D1.ASN_OJ_YM
-                         AND D2.CNTR_NO   = D1.CNTR_NO
-                         AND D2.CNTR_SN   = D1.CNTR_SN
+                          ON D2.ASN_OJ_YM     = D1.ASN_OJ_YM
+                         AND D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
                        INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ D3           /* 월별고객서비스대상내역 */
                           ON D3.CNTR_NO = D2.CNTR_NO
                          AND D3.CNTR_SN = D2.CNTR_SN
                         LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D4   /* 고객서비스BS배정내역 */
-                          ON D4.ASN_OJ_YM = D1.ASN_OJ_YM
-                         AND D4.CNTR_NO   = D1.CNTR_NO
-                         AND D4.CNTR_SN   = D1.CNTR_SN
-                         AND D4.DTA_DL_YN = 'N'
+                          ON D4.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                         AND D4.ASN_OJ_YM     = D2.ASN_OJ_YM
+                         AND D4.DTA_DL_YN     = 'N'
                        INNER JOIN TB_SVST_MCBY_WARE_IZ D5               /* 월별창고내역 */
-                          ON D5.OG_TP_CD           = CASE WHEN #{apyYm} = #{asnOjYm} THEN NVL(D4.CNFM_PSIC_PRTNR_OG_TP_CD, D3.FXN_PRTNR_OG_TP_CD)
-	                                                      ELSE D3.FXN_PRTNR_OG_TP_CD
+                          ON D5.OG_TP_CD           = CASE WHEN #{apyYm} = #{asnOjYm} THEN NVL( D4.CNFM_PSIC_PRTNR_OG_TP_CD, NVL(D3.FXN_PRTNR_OG_TP_CD, D3.MNGT_PRTNR_OG_TP_CD) )
+	                                                      ELSE NVL(D3.FXN_PRTNR_OG_TP_CD, D3.MNGT_PRTNR_OG_TP_CD)
 							                         END
-                         AND D5.WARE_MNGT_PRTNR_NO = CASE WHEN #{apyYm} = #{asnOjYm} THEN NVL(D4.CNFM_PSIC_PRTNR_NO, D3.FXN_PRTNR_NO)
-	                                                      ELSE D3.FXN_PRTNR_NO
+                         AND D5.WARE_MNGT_PRTNR_NO = CASE WHEN #{apyYm} = #{asnOjYm} THEN NVL( D4.CNFM_PSIC_PRTNR_NO, NVL(D3.FXN_PRTNR_NO, D3.MNGT_PRTNR_NO) )
+	                                                      ELSE NVL(D3.FXN_PRTNR_NO, D3.MNGT_PRTNR_NO)
 					   		                         END
                        WHERE D1.DTA_DL_YN   = 'N'
                          AND D2.DTA_DL_YN   = 'N'

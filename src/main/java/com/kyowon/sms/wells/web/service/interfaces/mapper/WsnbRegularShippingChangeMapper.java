@@ -37,12 +37,20 @@ public interface WsnbRegularShippingChangeMapper {
 
     int deleteTbSvpdHcfAsAkIz(SaveReq req);
 
-    Integer countTbSvpdHcfAsAkIz(SaveReq req);
+    int countTbSvpdHcfAsAkIz(SaveReq req);
 
     int updateTbSvpdHcfAsAkIz(SaveReq req);
+
+    String selectAkSnMax(String cntrNo, String cntrSn);
 
     int insertTbSvpdHcfAsAkIz(SaveReq req);
 
     int updateStopNextSiding(SaveReq req);
+
+    String selectPdctPdCds(
+        String cntrNo,
+        String cntrSn,
+        String akSn
+    );
 
 }

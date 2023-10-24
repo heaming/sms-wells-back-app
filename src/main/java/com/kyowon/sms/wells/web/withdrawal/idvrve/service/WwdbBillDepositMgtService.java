@@ -42,6 +42,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.util.StringUtils;
 
+/**
+ * <pre>
+ * 어음입금 등록 서비스 ( 메인 + 신규등록 팝업 )
+ * </pre>
+ *
+ * @author heungjun.lee
+ * @since 2023-10-24
+ */
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -63,31 +72,63 @@ public class WwdbBillDepositMgtService {
 
     private final ZwdbDepositComparisonComfirmationService depositComparisonComfirmationService;
 
+    /**
+     * 어음입금 등록 메인페이지 조회 / 페이징
+     * @param dto 어음입금 등록 메인 DTO
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRes>
+     */
     @Transactional
     public PagingResult<SearchRes> getRegistrationPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectRegistrationPages(dto, pageInfo);
     }
 
+    /**
+     * 어음입금 등록 메인페이지 엑셀 다운로드
+     * @param dto 어음입금 등록 메인 DTO
+     * @return List<SearchRes>
+     */
     @Transactional
     public List<SearchRes> getRegistrationExcels(SearchReq dto) {
         return mapper.selectRegistrationPages(dto);
     }
 
+    /**
+     * 전자어음 입금대상 조회 / 페이징 ( 현재 사용 X - 페이징 없어짐 )
+     * @param dto 전자어음 입금 대상 DTO
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchDetailRes>
+     */
     @Transactional
     public PagingResult<SearchDetailRes> getRegistrationElectronicPages(SearchDetailReq dto, PageInfo pageInfo) {
         return mapper.selectRegistrationElectronics(dto, pageInfo);
     }
 
+    /**
+     * 전자어음 입금대상 조회 / 엑셀 다운로드
+     * @param dto 전자어음 입금 대상 DTO
+     * @return
+     */
     @Transactional
     public List<SearchDetailRes> getRegistrationElectronicExcels(SearchDetailReq dto) {
         return mapper.selectRegistrationElectronics(dto);
     }
 
+    /**
+     * 통합입금번호 PK 채번
+     * @return WwdbBillDepositMgtDto.SearchItgNoRes
+     */
     @Transactional
     public WwdbBillDepositMgtDto.SearchItgNoRes getRegistrationPk() {
         return mapper.selectRegistrationPk();
     }
 
+    /**
+     * 전자어음 신규 등록 저장 ( 팝업 )
+     * @param dtos 전자어음 신규 등록 DTO
+     * @return SaveResponse
+     * @throws Exception
+     */
     @Transactional
     public int saveRegistrationElectronics(SaveReq dtos) throws Exception {
 
@@ -139,39 +180,53 @@ public class WwdbBillDepositMgtService {
             }
         }
 
-        //통합입금기본 데이터 생성
-        ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
-        depoDvo.setItgDpNo(dvo.getItgDpNo());    /*통합입금번호*/
-        depoDvo.setKwGrpCoCd("2000");    /*교원그룹회사코드*/
-        depoDvo.setRveCoCd("2000");    /*수납회사코드*/
+        switch (mainDto.state()) {
+            case CommConst.ROW_STATE_CREATED -> {
+                //통합입금기본 데이터 생성
+                ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
+                depoDvo.setItgDpNo(dvo.getItgDpNo());    /*통합입금번호*/
+                depoDvo.setKwGrpCoCd("2000");    /*교원그룹회사코드*/
+                depoDvo.setRveCoCd("2000");    /*수납회사코드*/
 
-//        depoDvo.setCstNo(dvo.);    /*고객번호*/
-        depoDvo.setDpDvCd("1");    /*입금구분코드*/
-        depoDvo.setDpMesCd("03");    /*입금수단코드*/
-        depoDvo.setDpTpCd("0301");    /*입금유형코드*/
-        depoDvo.setDpDtm(sysDateYmd);    /*입금일시*/
-        depoDvo.setPerfDt(sysDate);    /*실적일자*/
-//        depoDvo.setDprNm();    /*입금자명*/
-        depoDvo.setDpAmt(Integer.toString(sumAmt));    /*입금금액*/
+                //        depoDvo.setCstNo(dvo.);    /*고객번호*/
+                depoDvo.setDpDvCd("1");    /*입금구분코드*/
+                depoDvo.setDpMesCd("03");    /*입금수단코드*/
+                depoDvo.setDpTpCd("0301");    /*입금유형코드*/
+                depoDvo.setDpDtm(sysDateYmd);    /*입금일시*/
+                depoDvo.setPerfDt(sysDate);    /*실적일자*/
+                //        depoDvo.setDprNm();    /*입금자명*/
+                depoDvo.setDpAmt(Integer.toString(sumAmt));    /*입금금액*/
 
-        depoDvo.setDpBlam(Integer.toString(sumAmt));    /*입금잔액*/
+                depoDvo.setDpBlam(Integer.toString(sumAmt));    /*입금잔액*/
 
-        depoDvo.setIncmdcYn("N");    /*소득공제여부*/
+                depoDvo.setIncmdcYn("N");    /*소득공제여부*/
 
 
-        zwdbIntegrationDepositMapper.insertIntegrationDeposit(depoDvo);
-        zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
+                zwdbIntegrationDepositMapper.insertIntegrationDeposit(depoDvo);
+                zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
+            }
+        }
 
         return processCount;
     }
 
+    /**
+     * 전자어음 상세 조회 / 페이징 ( 페이징 제거로 현재 사용 x )
+     * @param dto 전자어음 상세 조회 DTO
+     * @return List<SearchElectronicRes>
+     */
     @Transactional
-    public PagingResult<SearchElectronicRes> getRegistrationElectronicDetailPages(
-        SearchElectronicReq dto, PageInfo pageInfo
+    public List<SearchElectronicRes> getRegistrationElectronicDetailPages(
+        SearchElectronicReq dto
     ) {
-        return mapper.selectRegistrationElectronicDetails(dto, pageInfo);
+        return mapper.selectRegistrationElectronicDetails(dto);
     }
 
+    /**
+     * 전자어음 상세 조회 / 엑셀 다운로드
+     * @param dto 전자어음 상세 조회 DTO
+     * @return List<SearchElectronicRes>
+     */
     @Transactional
     public List<SearchElectronicRes> getRegistrationElectronicDetailExcels(
         SearchElectronicReq dto
@@ -181,9 +236,8 @@ public class WwdbBillDepositMgtService {
 
     /**
      * 입금전표 생성
-     *
-     * @param dto
-     * @return
+     * @param dto 입금 / 대체전표 생성 DTO
+     * @return int processCount
      */
     @Transactional
     public int saveRegistrationElectronicDepositSlip(List<WwdbBillDepositMgtDto.SaveDepositSlip> dto) throws Exception {
@@ -225,7 +279,7 @@ public class WwdbBillDepositMgtService {
 
             itgDvo.setItgDpNo(dto.get(0).itgDpNo());//통합입금번호
             itgDvo.setRveAkNo(receiveAskNumber); //수납요청번호
-
+            itgDvo.setRveCd(session.getRveCd());
             processCount += etcDepositMapper.updateIntegrationDeposit(itgDvo);
 
             ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
@@ -280,9 +334,8 @@ public class WwdbBillDepositMgtService {
 
     /**
      * 대체전표 생성
-     *
-     * @param dto
-     * @return
+     * @param dto 입금 / 대체전표 생성 DTO
+     * @return int processCount
      */
     @Transactional
     public int saveReplacementSlipProcessing(List<WwdbBillDepositMgtDto.SaveDepositSlip> dto) throws Exception {

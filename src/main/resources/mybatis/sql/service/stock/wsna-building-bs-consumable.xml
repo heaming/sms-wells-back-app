@@ -51,7 +51,7 @@
              , T1.STR_WARE_NO
              , T1.CSMB_PD_CD
              , T1.SAP_MAT_CD
-             , T1.BFSVC_CSMB_DDLV_QTY
+             , NVL(T1.BFSVC_CSMB_DDLV_QTY, '0') AS BFSVC_CSMB_DDLV_QTY
              , T1.BFSVC_CSMB_DDLV_STAT_CD
              , (CASE WHEN T1.BFSVC_CSMB_DDLV_STAT_CD = '10' THEN '신청'
                      WHEN T1.BFSVC_CSMB_DDLV_STAT_CD = '20' THEN '신청확인'
@@ -79,61 +79,57 @@
              , '미신청' AS REQ_YN
              , #{strWareNo} AS STR_WARE_NO
              , T1.CSMB_PD_CD AS FXN_PD_CD
-             , T2.SVPD_SAP_CD AS FXN_SAP_CD
-             , CASE WHEN T1.BFSVC_CSMB_DDLV_CMPT_BASE_CD = '1' THEN NVL(T1.BFSVC_CSMB_DDLV_UNIT_QTY, 0)
-                    WHEN T1.BFSVC_CSMB_DDLV_CMPT_BASE_CD = '2' THEN NVL((CEIL(T2.ACC_CNT/T1.BFSVC_CSMB_DDLV_UNIT_ACC_N) * T1.BFSVC_CSMB_DDLV_UNIT_QTY), 0)
+             , (SELECT SAP_MAT_CD FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.CSMB_PD_CD ) AS FXN_SAP_CD
+             , CASE WHEN T1.BFSVC_CSMB_DDLV_CMPT_BASE_CD = '2' THEN NVL(T1.BFSVC_CSMB_DDLV_UNIT_QTY, 0)
+                    WHEN T1.BFSVC_CSMB_DDLV_CMPT_BASE_CD = '1' THEN NVL((CEIL((SELECT COUNT(1)
+                                                                                 FROM TB_SVPD_MCBY_CST_SV_OJ_IZ A1
+                                                                                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ A2
+                                                                                   ON A2.CNTR_NO = A1.CNTR_NO
+                                                                                  AND A2.CNTR_SN = A1.CNTR_SN
+                                                                                  AND A2.MNGT_PRTNR_OG_TP_CD = 'W02'
+                                                                                INNER JOIN TB_SSCT_CNTR_BAS A3
+                                                                                   ON A1.CNTR_NO = A3.CNTR_NO
+                                                                                  AND A3.COPN_DV_CD = NVL(T1.BFSVC_CSMB_DDLV_OJ_ACC_TP_CD, A3.COPN_DV_CD)
+                                                                                  AND A3.DTA_DL_YN = 'N'
+                                                                                INNER JOIN TB_SSCT_CNTR_DTL A4
+                                                                                   ON A1.CNTR_NO = A4.CNTR_NO
+                                                                                  AND A1.CNTR_SN = A4.CNTR_SN
+                                                                                  AND A4.DTA_DL_YN = 'N'
+                                                                                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL A5
+                                                                                   ON A1.PDCT_PD_CD = A5.PD_CD
+                                                                                  AND A5.PD_EXTS_PRP_GRP_CD = 'PART'
+                                                                                  AND A5.PD_PRP_VAL20 = NVL(T1.BFSVC_CSMB_DDLV_OJ_PD_GRP_CD, A5.PD_PRP_VAL20)
+                                                                                  AND A5.DTA_DL_YN = 'N'
+                                                                                WHERE A1.DTA_DL_YN = 'N'
+                                                                                  AND A1.MNGT_YM = #{mngtYm}
+                                                                                  AND A1.CNTR_DTL_STAT_CD NOT IN ('401','402')
+                                                                                  AND A2.MNGT_PRTNR_NO IN (SELECT Y.PRTNR_NO
+                                                                                                             FROM TB_OGBS_MM_OG_IZ X
+                                                                                                            INNER JOIN TB_OGBS_MM_PRTNR_IZ Y
+                                                                                                               ON Y.BASE_YM = X.BASE_YM
+                                                                                                              AND Y.OG_TP_CD = 'W02'
+                                                                                                              AND Y.OG_ID = X.OG_ID
+                                                                                                            WHERE X.BASE_YM = #{mngtYm}
+                                                                                                              AND X.BLD_CD = #{strWareNo}
+                                                                                                          )
+                                                                              )/T1.BFSVC_CSMB_DDLV_UNIT_ACC_N) * T1.BFSVC_CSMB_DDLV_UNIT_QTY), 0)
                 END AS FXN_DDLV_UNIT_QTY
              , '' AS APLC_PD_CD
              , '' AS APLC_SAP_CD
              , NULL AS APLC_DDLV_UNIT_QTY
           FROM TB_SVST_BFSVC_CSMB_BASE_DTL T1
-             , (SELECT A.CSMB_PD_CD
-                     , B.SVPD_SAP_CD
-                     , A.BFSVC_CSMB_DDLV_OJ_PD_GRP_CD
-                     , A.BFSVC_CSMB_DDLV_OJ_ACC_TP_CD
-                     , COUNT(1) AS ACC_CNT
-                  FROM TB_SVST_BFSVC_CSMB_BASE_DTL A
-                     , (SELECT A.SVPD_ITEM_KND
-                             , A.SVPD_PD_CD
-                             , A.SVPD_SAP_CD
-                          FROM (SELECT T1.PD_CD AS SVPD_PD_CD
-                                     , T1.SAP_MAT_CD AS SVPD_SAP_CD
-                                     , T2.PD_PRP_VAL19 AS SVPD_ITEM_KND
-                                  FROM TB_PDBS_PD_BAS T1
-                                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-                                    ON T1.PD_CD = T2.PD_CD
-                                   AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-                                   AND T2.DTA_DL_YN = 'N'
-                               ) A
-                         WHERE A.SVPD_PD_CD IN (SELECT Z.PDCT_PD_CD
-                                                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ Y
-                                                     , TB_SVPD_CST_SV_EXCN_IZ Z
-                                                 WHERE Y.CNTR_NO = Z.CNTR_NO
-                                                   AND Y.CNTR_SN = Z.CNTR_SN
-                                                 GROUP BY Z.PDCT_PD_CD
-                                               )
-                       ) B
-                     , (SELECT A.CST_SV_ASN_NO
-                             , A.ASN_OJ_YM
-                             , A.CNTR_NO
-                             , B.COPN_DV_CD
-                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ A
-                             , TB_SSCT_CNTR_BAS B
-                         WHERE A.CNTR_NO = B.CNTR_NO
-                       ) C
-                 WHERE A.BFSVC_CSMB_DDLV_OJ_PD_GRP_CD = B.SVPD_ITEM_KND
-                   AND A.CSMB_PD_CD = B.SVPD_PD_CD
-                   AND A.BFSVC_CSMB_DDLV_OJ_ACC_TP_CD = C.COPN_DV_CD
-                   AND A.BFSVC_CSMB_DDLV_TP_CD = '1'
-                   AND A.MNGT_YM = #{mngtYm}
-                 GROUP BY A.CSMB_PD_CD, B.SVPD_SAP_CD, A.BFSVC_CSMB_DDLV_OJ_PD_GRP_CD, A.BFSVC_CSMB_DDLV_OJ_ACC_TP_CD
-               ) T2
-         WHERE T1.CSMB_PD_CD = T2.CSMB_PD_CD(+)
-           AND T1.BFSVC_CSMB_DDLV_OJ_PD_GRP_CD = T2.BFSVC_CSMB_DDLV_OJ_PD_GRP_CD(+)
-           AND T1.BFSVC_CSMB_DDLV_OJ_ACC_TP_CD = T2.BFSVC_CSMB_DDLV_OJ_ACC_TP_CD(+)
+         WHERE 1 = 1
            AND T1.BFSVC_CSMB_DDLV_OJ_CD = '3'
            AND T1.BFSVC_CSMB_DDLV_ORT_YN = 'Y'
+           AND T1.BFSVC_CSMB_DDLV_TP_CD = '1'
            AND T1.MNGT_YM = #{mngtYm}
+        <!--   AND NOT EXISTS (SELECT 1 -->
+        <!--                     FROM TB_SVST_BFSVC_CSMB_DDLV_IZ X -->
+        <!--                    WHERE X.MNGT_YM = T1.MNGT_YM -->
+        <!--                      AND X.BFSVC_CSMB_DDLV_OJ_CD = '1' -->
+        <!--                      AND X.STR_WARE_NO = #{prtnrNo} -->
+        <!--                      AND X.CSMB_PD_CD = T1.CSMB_PD_CD -->
+        <!--                  ) -->
          UNION ALL
         SELECT X.SORT_ODR
              , X.BFSVC_CSMB_DDLV_TP_CD
@@ -153,6 +149,13 @@
            AND X.BFSVC_CSMB_DDLV_ORT_YN = 'Y'
            AND X.BFSVC_CSMB_DDLV_TP_CD = '2'
            AND X.MNGT_YM = #{mngtYm}
+        <!--   AND NOT EXISTS (SELECT 1 -->
+        <!--                     FROM TB_SVST_BFSVC_CSMB_DDLV_IZ X -->
+        <!--                    WHERE X.MNGT_YM = T1.MNGT_YM -->
+        <!--                      AND X.BFSVC_CSMB_DDLV_OJ_CD = '1' -->
+        <!--                      AND X.STR_WARE_NO = #{prtnrNo} -->
+        <!--                      AND X.CSMB_PD_CD = T1.CSMB_PD_CD -->
+        <!--                  ) -->
          ORDER BY BFSVC_CSMB_DDLV_TP_CD, SORT_ODR
     </select>
 
@@ -335,7 +338,7 @@
              , (SELECT X.OG_TP_CD
                      , X.BLD_CD
                   FROM TB_OGBS_MM_OG_IZ X
-                 WHERE X.BASE_YM = #{mngtYm}
+                 WHERE X.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                    AND X.BLD_CD IS NOT NULL
                    AND X.OG_TP_CD = 'W02'
                    AND X.CLO_YN = 'N'

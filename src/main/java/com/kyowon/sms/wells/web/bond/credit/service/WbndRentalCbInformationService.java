@@ -1,24 +1,17 @@
 package com.kyowon.sms.wells.web.bond.credit.service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbInformationDto.SearchContractPresentStateReq;
 import com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbInformationDvo;
+import com.kyowon.sms.wells.web.bond.credit.ivo.ONIC2_CBNO1003.request.*;
 import com.kyowon.sms.wells.web.bond.credit.mapper.WbndRentalCbInformationMapper;
+import com.sds.sflex.common.common.service.CruzLinkInterfaceService;
+import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 public class WbndRentalCbInformationService {
 
     private final WbndRentalCbInformationMapper mapper;
+    private final CruzLinkInterfaceService interfaceService;
+    private static final String RENTAL_CB_URL = "ONIC2_CBNO1003";
 
     /**
      * 렌탈CB 정보 - 계약현황(미해지 계약) 조회
@@ -45,19 +40,9 @@ public class WbndRentalCbInformationService {
      */
     public List<WbndRentalCbInformationDvo> getContractPresentStates(SearchContractPresentStateReq dto)
         throws Exception {
-
-        Map<String, Object> ROWDATA_5 = new HashMap<String, Object>(); //렌탈CB연체(일반)세그먼트
-        Map<String, Object> SUMMARYITEM_6 = new HashMap<String, Object>(); //일반 요약항목 세그먼트
-        Map<String, Object> SUMMARYITEM_7 = new HashMap<String, Object>(); //기타 요약항목 세그먼트
-
-        List<Map<String, Object>> ROWDATA_5_REPEAT = new ArrayList<Map<String, Object>>();//렌탈CB연체(렌터카) 세그먼트 반복부
-        Map<String, Object> SUMMARYITEM_6_REPEAT = new HashMap<String, Object>(); //일반 요약항목 세그먼트 반복부 
-        Map<String, Object> SUMMARYITEM_7_REPEAT = new HashMap<String, Object>(); //기타 요약항목 세그먼트 반복부
-
-        Map<String, Object> paramMap = new HashMap<String, Object>();
-
         List<WbndRentalCbInformationDvo> res = new ArrayList<>();
 
+        Map<String, Object> paramMap = new HashMap<>();
         String insHpNo = dto.insHpNo1() + "" + dto.insHpNo2() + "" + dto.insHpNo3();
         String insHomNo = dto.insHomNo1() + "" + dto.insHomNo2() + "" + dto.insHomNo3();
         String insAdr = dto.insAdrWAD1() + "" + dto.insAdrWAD2() + "" + dto.insAdrWAD3();
@@ -73,106 +58,132 @@ public class WbndRentalCbInformationService {
 
         String TransSeq = mapper.selectTransSeq();
         paramMap.put("TransSeq", TransSeq);
+        // 인터페이스 호출 ivo 생성
+        RentalCBInformationReqIvo req = getRentalCBInformationReqIvo(paramMap);
 
-        String rtnJson = Trans(paramMap);
-        Map<String, Object> NcCbResultMap = new ObjectMapper().readValue(rtnJson, Map.class);
-        Map<String, Object> cruzjson = (Map<String, Object>)NcCbResultMap.get("cruzjson"); // 최상위  KEY
-        Map<String, Object> body = (Map<String, Object>)cruzjson.get("body");
-        Map<String, Object> COMM = (Map<String, Object>)body.get("COMM");
+        Map<String, Object> ROWDATA_5; //렌탈CB연체(일반)세그먼트
+        Map<String, Object> SUMMARYITEM_6; //일반 요약항목 세그먼트
+        Map<String, Object> SUMMARYITEM_7; //기타 요약항목 세그먼트
 
-        String rplyCd = COMM.get("rplyCd").toString();
-        paramMap.put("rplyCd", rplyCd);
+        List<Map<String, Object>> ROWDATA_5_REPEAT = new ArrayList<>();//렌탈CB연체(렌터카) 세그먼트 반복부
+        Map<String, Object> SUMMARYITEM_6_REPEAT = new HashMap<>(); //일반 요약항목 세그먼트 반복부
+        Map<String, Object> SUMMARYITEM_7_REPEAT = new HashMap<>(); //기타 요약항목 세그먼트 반복부
 
-        /**
-         *  P000        정상
-         */
+        try {
+            // ONIC2_CBNO1003 (CB렌탈정보 조회 요청) 인터페이스 호출
+            Map body = interfaceService.post(RENTAL_CB_URL, req, Map.class);
+            log.debug("CB렌탈정보 조회 응답 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", body);
 
-        if (rplyCd.equals("P000") || rplyCd.equals("5857")) {
+            Map<String, Object> COMM = (Map<String, Object>)body.get("COMM");
 
-            ROWDATA_5 = (Map<String, Object>)body.get("ROWDATA_5");
-            SUMMARYITEM_6 = (Map<String, Object>)body.get("SUMMARYITEM_6");
-            SUMMARYITEM_7 = (Map<String, Object>)body.get("SUMMARYITEM_7");
+            String rplyCd = COMM.get("rplyCd").toString();
+            paramMap.put("rplyCd", rplyCd);
+            log.debug("응답코드 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", rplyCd);
 
-            // 렌탈CB연체(일반)세그먼트>>>  0 or 1건 : {} ,  2건이상 : [{},{}] 처리
-            if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) == 1) {
-                ROWDATA_5_REPEAT.add((Map<String, Object>)body.get("ROWDATA_5_REPEAT"));
-            } else if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 1) {
-                ROWDATA_5_REPEAT = (List<Map<String, Object>>)body.get("ROWDATA_5_REPEAT");
-            }
+            /**
+             *  P000        정상
+             */
+            if (rplyCd.equals("P000")) {
+                ROWDATA_5 = (Map<String, Object>)body.get("ROWDATA_5");
+                SUMMARYITEM_6 = (Map<String, Object>)body.get("SUMMARYITEM_6");
+                SUMMARYITEM_7 = (Map<String, Object>)body.get("SUMMARYITEM_7");
 
-            // 렌탈CB연체(일반)세그먼트 코드 매핑
-            if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 0) {
-                Map<String, Object> params;
-                Map<String, Object> rst;
-                for (int i = 0; i < ROWDATA_5_REPEAT.size(); i++) {
-                    //렌탈 상품코드(소분류)
-                    params = new HashMap<String, Object>();
-                    //params.put("LCGROP", "1000000212");
-                    params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("rntlPrdtCdS5"));
+                log.debug("CB렌탈정보 ROWDATA_5 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", ROWDATA_5);
+                log.debug("CB렌탈정보 SUMMARYITEM_6 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", SUMMARYITEM_6);
+                log.debug("CB렌탈정보 SUMMARYITEM_7 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", SUMMARYITEM_7);
 
-                    rst = mapper.selectTransCdMsg(params);
-                    if (rst != null) {
-                        ROWDATA_5_REPEAT.get(i).put("rntlPrdtNmS5", rst.get("LCTEXT"));
-                    }
-
-                    //연체구분코드
-                    params = new HashMap<String, Object>();
-                    //params.put("LCGROP", "1000000211");
-                    params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("delyDivCd5"));
-
-                    rst = mapper.selectTransCdMsg(params);
-                    if (rst != null) {
-                        ROWDATA_5_REPEAT.get(i).put("delyDivNm5", rst.get("LCTEXT"));
-                    }
-
+                // 렌탈CB연체(일반)세그먼트>>>  0 or 1건 : {} ,  2건이상 : [{},{}] 처리
+                if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) == 1) {
+                    ROWDATA_5_REPEAT.add((Map<String, Object>)body.get("ROWDATA_5_REPEAT"));
+                    log.debug("CB렌탈정보 ROWDATA_5_REPEAT 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", ROWDATA_5_REPEAT);
+                } else if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 1) {
+                    ROWDATA_5_REPEAT = (List<Map<String, Object>>)body.get("ROWDATA_5_REPEAT");
+                    log.debug("CB렌탈정보 ROWDATA_5_REPEAT 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", ROWDATA_5_REPEAT);
                 }
-            }
 
-            // 일반 요약항목 세그먼트>>>  0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리  
-            if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) == 1) {
-                Map<String, Object> SUMMARYITEM_6_REPEAT_OBJ = (Map<String, Object>)body
-                    .get("SUMMARYITEM_6_REPEAT");
-                SUMMARYITEM_6_REPEAT.put(
-                    SUMMARYITEM_6_REPEAT_OBJ.get("siCd6").toString(),
-                    SUMMARYITEM_6_REPEAT_OBJ.get("siVal6").toString()
-                );
-            } else if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) > 1) {
-                List<Map<String, Object>> SUMMARYITEM_6_REPEAT_LIST = (List<Map<String, Object>>)body
-                    .get("SUMMARYITEM_6_REPEAT");
-                for (int i = 0; i < SUMMARYITEM_6_REPEAT_LIST.size(); i++) {
+                // 렌탈CB연체(일반)세그먼트 코드 매핑
+                if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 0) {
+                    Map<String, Object> params;
+                    String rst = "";
+                    for (int i = 0; i < ROWDATA_5_REPEAT.size(); i++) {
+                        //렌탈 상품코드(소분류)
+                        params = new HashMap<>();
+                        //params.put("LCGROP", "1000000212");
+                        params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("rntlPrdtCdS5"));
+
+//                        rst = mapper.selectTransErrorCdMsg(params);
+                        if (StringUtil.isNotBlank(rst)) {
+                            ROWDATA_5_REPEAT.get(i).put("rntlPrdtNmS5", rst);
+                        }
+
+                        //연체구분코드
+                        params = new HashMap<String, Object>();
+                        //params.put("LCGROP", "1000000211");
+                        params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("delyDivCd5"));
+
+//                        rst = mapper.selectTransErrorCdMsg(params);
+                        if (StringUtil.isNotBlank(rst)) {
+                            ROWDATA_5_REPEAT.get(i).put("delyDivNm5", rst);
+                        }
+
+                    }
+                }
+
+                // 일반 요약항목 세그먼트>>>  0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리
+                if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) == 1) {
+                    Map<String, Object> SUMMARYITEM_6_REPEAT_OBJ = (Map<String, Object>)body
+                        .get("SUMMARYITEM_6_REPEAT");
+
+                    log.debug(
+                        "CB렌탈정보 SUMMARYITEM_6_REPEAT 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", SUMMARYITEM_6_REPEAT_OBJ
+                    );
+
                     SUMMARYITEM_6_REPEAT.put(
-                        SUMMARYITEM_6_REPEAT_LIST.get(i).get("siCd6").toString(),
-                        SUMMARYITEM_6_REPEAT_LIST.get(i).get("siVal6").toString()
+                        SUMMARYITEM_6_REPEAT_OBJ.get("siCd6").toString(),
+                        SUMMARYITEM_6_REPEAT_OBJ.get("siVal6").toString()
                     );
-                }
-            }
+                } else if (Integer.parseInt(SUMMARYITEM_6.get("respCnt6").toString()) > 1) {
+                    List<Map<String, Object>> SUMMARYITEM_6_REPEAT_LIST = (List<Map<String, Object>>)body
+                        .get("SUMMARYITEM_6_REPEAT");
 
-            //기타  요약항목 세그먼트>>> 0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리
-            if (Integer.parseInt(SUMMARYITEM_7.get("respCnt7").toString()) == 1) {
-                Map<String, Object> SUMMARYITEM_7_OBJ = (Map<String, Object>)body.get("SUMMARYITEM_7_REPEAT");
-                SUMMARYITEM_7_REPEAT
-                    .put(
-                        SUMMARYITEM_7_OBJ.get("etcItmCd7").toString(),
-                        SUMMARYITEM_7_OBJ.get("etcItmVal7").toString()
-                    );
-            } else if (Integer.parseInt(SUMMARYITEM_7.get("respCnt7").toString()) > 1) {
-                List<Map<String, Object>> SUMMARYITEM_7_LIST = (List<Map<String, Object>>)body
-                    .get("SUMMARYITEM_7_REPEAT");
-                for (int i = 0; i < SUMMARYITEM_7_LIST.size(); i++) {
-                    if ("999999802".equals(SUMMARYITEM_7_LIST.get(i).get("etcItmVal7").toString())
-                        || "999999801".equals(SUMMARYITEM_7_LIST.get(i).get("etcItmVal7").toString())) { // 조회 조건 불충 분시 999999802 코드 전송됨
-                        SUMMARYITEM_7_REPEAT.put(SUMMARYITEM_7_LIST.get(i).get("etcItmCd7").toString(), 0);
-                    } else {
-                        SUMMARYITEM_7_REPEAT.put(
-                            SUMMARYITEM_7_LIST.get(i).get("etcItmCd7").toString(),
-                            SUMMARYITEM_7_LIST.get(i).get("etcItmVal7").toString()
+                    for (int i = 0; i < SUMMARYITEM_6_REPEAT_LIST.size(); i++) {
+                        SUMMARYITEM_6_REPEAT.put(
+                            SUMMARYITEM_6_REPEAT_LIST.get(i).get("siCd6").toString(),
+                            SUMMARYITEM_6_REPEAT_LIST.get(i).get("siVal6").toString()
                         );
                     }
-                }
-            }
 
-            //납입율 계산 
-            if (SUMMARYITEM_6_REPEAT != null) {
+                    log.debug("CB렌탈정보 SUMMARYITEM_6_REPEAT 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", SUMMARYITEM_6_REPEAT);
+
+                }
+
+                //기타  요약항목 세그먼트>>> 0 : {Nodata} , 1건 : {} ,  2건이상 : [{},{}] 처리
+                if (Integer.parseInt(SUMMARYITEM_7.get("respCnt7").toString()) == 1) {
+                    Map<String, Object> SUMMARYITEM_7_OBJ = (Map<String, Object>)body.get("SUMMARYITEM_7_REPEAT");
+                    SUMMARYITEM_7_REPEAT
+                        .put(
+                            SUMMARYITEM_7_OBJ.get("etcItmCd7").toString(),
+                            SUMMARYITEM_7_OBJ.get("etcItmVal7").toString()
+                        );
+
+                    log.debug("CB렌탈정보 SUMMARYITEM_7_REPEAT 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", SUMMARYITEM_7_REPEAT);
+                } else if (Integer.parseInt(SUMMARYITEM_7.get("respCnt7").toString()) > 1) {
+                    List<Map<String, Object>> SUMMARYITEM_7_LIST = (List<Map<String, Object>>)body
+                        .get("SUMMARYITEM_7_REPEAT");
+                    for (int i = 0; i < SUMMARYITEM_7_LIST.size(); i++) {
+                        if ("999999802".equals(SUMMARYITEM_7_LIST.get(i).get("etcItmVal7").toString())
+                            || "999999801".equals(SUMMARYITEM_7_LIST.get(i).get("etcItmVal7").toString())) { // 조회 조건 불충 분시 999999802 코드 전송됨
+                            SUMMARYITEM_7_REPEAT.put(SUMMARYITEM_7_LIST.get(i).get("etcItmCd7").toString(), 0);
+                        } else {
+                            SUMMARYITEM_7_REPEAT.put(
+                                SUMMARYITEM_7_LIST.get(i).get("etcItmCd7").toString(),
+                                SUMMARYITEM_7_LIST.get(i).get("etcItmVal7").toString()
+                            );
+                        }
+                    }
+                }
+
+                //납입율 계산
                 //납입율 계산  >>> 약정납입액 && 실제납입액(현재 )
                 if (SUMMARYITEM_6_REPEAT.get("RT0100201") != null
                     && SUMMARYITEM_6_REPEAT.get("RT0100202") != null) {
@@ -279,353 +290,316 @@ public class WbndRentalCbInformationService {
                     }
 
                 }
+                if (SUMMARYITEM_6_REPEAT.size() != 0) {
+                    String[] type = {"A", "A", "A", "B", "B", "B", "C", "C", "C"};
+                    String[] baseNm = {"총건수", "기관수", "총약정액", "약정납입액", "실제납입액", "납입률", "계약건수", "계약총금액", "계약기관수"};
+                    String[] crtlTot1 = {"RT0000001", "RT0000101", "RT0000201", "RT0100201", "RT0100202", "CAL_PER_0",
+                        "RT8000001",
+                        "RT8000201", "RT8000101"};
+                    String[] crtlTot2 = {"RT0300001", "RT0300101", "RT0300201", "RT0300203", "RT0300204", "CAL_PER_3",
+                        "RT0100001",
+                        "RT0100205", "RT0100101"};
+                    String[] crtlTot3 = {"RT0600001", "RT0600101", "RT0600201", "RT0600203", "RT0600204", "CAL_PER_6",
+                        "RT0200001",
+                        "RT0200201", "RT0200101"};
+                    String[] crtlTot4 = {"RT1200001", "RT1200101", "RT1200201", "RT1200203", "RT1200204", "CAL_PER_12",
+                        "RT0300003",
+                        "RT0300207", "RT0300103"};
+                    String[] crtlTot5 = {"RT2400101", "RT2400101", "RT2400201", "RT2400103", "RT2400104", "CAL_PER_24",
+                        "RT0600003",
+                        "RT0600207", "RT0600103"};
+                    String[] crtlTot6 = {"RT3600001", "RT3600101", "RT3600201", "RT3600103", "RT3600104", "CAL_PER_36",
+                        "RT1200003",
+                        "RT1200207", "RT1200103"};
+                    for (int i = 0; i < 9; i++) {
+                        WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
+                        cbVo.setType(type[i]);
+                        cbVo.setBaseNm(baseNm[i]);
+                        cbVo.setCrtlTot1(SUMMARYITEM_6_REPEAT.get(crtlTot1[i]).toString());
+                        cbVo.setCrtlTot2(SUMMARYITEM_6_REPEAT.get(crtlTot2[i]).toString());
+                        cbVo.setCrtlTot3(SUMMARYITEM_6_REPEAT.get(crtlTot3[i]).toString());
+                        cbVo.setCrtlTot4(SUMMARYITEM_6_REPEAT.get(crtlTot4[i]).toString());
+                        cbVo.setCrtlTot5(SUMMARYITEM_6_REPEAT.get(crtlTot5[i]).toString());
+                        cbVo.setCrtlTot6(SUMMARYITEM_6_REPEAT.get(crtlTot6[i]).toString());
+                        res.add(cbVo);
+                    }
+                }
+                if (SUMMARYITEM_7_REPEAT.size() != 0) {
+                    String[] type_D = {"D", "D", "D", "D", "D", "D", "D"};
+                    String[] baseNm_D = {"휴대전화전화", "휴대전화전화", "휴대전화전화", "설치지주소", "설치지주소", "설치지주소", "자택번호"};
+                    String[] ptrmPs_D = {"계약건수", "약정납입액", "실제납입액", "계약건수", "약정납입액", "실제납입액", "계약건수"};
+                    String[] crtlTot_D1 = {"RENTB0001", "RENTB0002", "RENTB0003", "RENTB0004", "RENTB0005", "RENTB0006",
+                        "RENTB0007"};
+                    String[] crtlTot_D2 = {"RENTB0008", "RENTB0009", "RENTB0010", "RENTB0011", "RENTB0012", "RENTB0013",
+                        "RENTB0014"};
+                    String[] crtlTot_D3 = {"RENTB0015", "RENTB0016", "RENTB0017", "RENTB0018", "RENTB0019", "RENTB0020",
+                        "RENTB0021"};
+                    String[] crtlTot_D4 = {"RENTB0022", "RENTB0023", "RENTB0024", "RENTB0025", "RENTB0026", "RENTB0027",
+                        "RENTB0028"};
+                    String[] crtlTot_D5 = {"RENTB0029", "RENTB0030", "RENTB0031", "RENTB0032", "RENTB0033", "RENTB0034",
+                        "RENTB0035"};
+                    String[] crtlTot_D6 = {"RENTB0036", "RENTB0037", "RENTB0038", "RENTB0039", "RENTB0040", "RENTB0041",
+                        "RENTB0042"};
+                    for (int i = 0; i < 7; i++) {
+                        WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
+                        cbVo.setType(type_D[i]);
+                        cbVo.setBaseNm(baseNm_D[i]);
+                        cbVo.setPtrmPs(ptrmPs_D[i]);
+                        cbVo.setCrtlTot1(SUMMARYITEM_7_REPEAT.get(crtlTot_D1[i]).toString());
+                        cbVo.setCrtlTot2(SUMMARYITEM_7_REPEAT.get(crtlTot_D2[i]).toString());
+                        cbVo.setCrtlTot3(SUMMARYITEM_7_REPEAT.get(crtlTot_D3[i]).toString());
+                        cbVo.setCrtlTot4(SUMMARYITEM_7_REPEAT.get(crtlTot_D4[i]).toString());
+                        cbVo.setCrtlTot5(SUMMARYITEM_7_REPEAT.get(crtlTot_D5[i]).toString());
+                        cbVo.setCrtlTot6(SUMMARYITEM_7_REPEAT.get(crtlTot_D6[i]).toString());
+                        res.add(cbVo);
+                    }
+                }
+                for (Map<String, Object> cbMap : ROWDATA_5_REPEAT) {
+                    WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
+                    cbVo.setType("F");
+
+                    if (cbMap.get("rntlPrdtNmS5") == null) {
+                        cbVo.setBaseNm("");
+                    } else {
+                        cbVo.setBaseNm(String.valueOf(cbMap.get("rntlPrdtNmS5")));
+                    }
+                    if (cbMap.get("delyDivNm5") == null) {
+                        cbVo.setCrtlTot1("");
+                    } else {
+                        cbVo.setCrtlTot1(String.valueOf(cbMap.get("delyDivNm5")));
+                    }
+                    cbVo.setCrtlTot2(String.valueOf(cbMap.get("ocuinstNm5")));
+                    cbVo.setCrtlTot3(String.valueOf(cbMap.get("fistOcuDay5")));
+                    cbVo.setCrtlTot4(String.valueOf(cbMap.get("ocuRegtDay5")));
+                    cbVo.setCrtlTot5(String.valueOf(cbMap.get("delyAmt5")));
+                    cbVo.setCrtlTot6(String.valueOf(cbMap.get("fistDelyAmt5")));
+                    res.add(cbVo);
+                }
             } else {
-                log.debug("SUMMARYITEM_6_REPEAT IS NULL ");
-            }
+                // 에러 메세지 송출
+                String rst;
+                log.debug("응답코드 :  {}", rplyCd);
 
-            String[] type = {"A", "A", "A", "B", "B", "B", "C", "C", "C"};
-            String[] baseNm = {"총건수", "기관수", "총약정액", "약정납입액", "실제납입액", "납입률", "계약건수", "계약총금액", "계약기관수"};
-            String[] crtlTot1 = {"RT0000001", "RT0000101", "RT0000201", "RT0100201", "RT0100202", "CAL_PER_0",
-                "RT8000001",
-                "RT8000201", "RT8000101"};
-            String[] crtlTot2 = {"RT0300001", "RT0300101", "RT0300201", "RT0300203", "RT0300204", "CAL_PER_3",
-                "RT0100001",
-                "RT0100205", "RT0100101"};
-            String[] crtlTot3 = {"RT0600001", "RT0600101", "RT0600201", "RT0600203", "RT0600204", "CAL_PER_6",
-                "RT0200001",
-                "RT0200201", "RT0200101"};
-            String[] crtlTot4 = {"RT1200001", "RT1200101", "RT1200201", "RT1200203", "RT1200204", "CAL_PER_12",
-                "RT0300003",
-                "RT0300207", "RT0300103"};
-            String[] crtlTot5 = {"RT2400101", "RT2400101", "RT2400201", "RT2400103", "RT2400104", "CAL_PER_24",
-                "RT0600003",
-                "RT0600207", "RT0600103"};
-            String[] crtlTot6 = {"RT3600001", "RT3600101", "RT3600201", "RT3600103", "RT3600104", "CAL_PER_36",
-                "RT1200003",
-                "RT1200207", "RT1200103"};
-            for (int i = 0; i < 8; i++) {
-                WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
-                cbVo.setType(type[i]);
-                cbVo.setBaseNm(baseNm[i]);
-                cbVo.setCrtlTot1(SUMMARYITEM_6_REPEAT.get(crtlTot1[i]).toString());
-                cbVo.setCrtlTot2(SUMMARYITEM_6_REPEAT.get(crtlTot2[i]).toString());
-                cbVo.setCrtlTot3(SUMMARYITEM_6_REPEAT.get(crtlTot3[i]).toString());
-                cbVo.setCrtlTot4(SUMMARYITEM_6_REPEAT.get(crtlTot4[i]).toString());
-                cbVo.setCrtlTot5(SUMMARYITEM_6_REPEAT.get(crtlTot5[i]).toString());
-                cbVo.setCrtlTot6(SUMMARYITEM_6_REPEAT.get(crtlTot6[i]).toString());
-                res.add(cbVo);
-            }
-
-            String[] type_D = {"D", "D", "D", "D", "D", "D", "D"};
-            String[] baseNm_D = {"휴대전화전화", "휴대전화전화", "휴대전화전화", "설치지주소", "설치지주소", "설치지주소", "자택번호"};
-            String[] ptrmPs_D = {"계약건수", "약정납입액", "실제납입액", "계약건수", "약정납입액", "실제납입액", "계약건수"};
-            String[] crtlTot_D1 = {"RENTB0001", "RENTB0002", "RENTB0003", "RENTB0004", "RENTB0005", "RENTB0006",
-                "RENTB0007"};
-            String[] crtlTot_D2 = {"RENTB0008", "RENTB0009", "RENTB0010", "RENTB0011", "RENTB0012", "RENTB0013",
-                "RENTB0014"};
-            String[] crtlTot_D3 = {"RENTB0015", "RENTB0016", "RENTB0017", "RENTB0018", "RENTB0019", "RENTB0020",
-                "RENTB0021"};
-            String[] crtlTot_D4 = {"RENTB0022", "RENTB0023", "RENTB0024", "RENTB0025", "RENTB0026", "RENTB0027",
-                "RENTB0028"};
-            String[] crtlTot_D5 = {"RENTB0029", "RENTB0030", "RENTB0031", "RENTB0032", "RENTB0033", "RENTB0034",
-                "RENTB0035"};
-            String[] crtlTot_D6 = {"RENTB0036", "RENTB0037", "RENTB0038", "RENTB0039", "RENTB0040", "RENTB0041",
-                "RENTB0042"};
-            for (int i = 0; i < 7; i++) {
-                WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
-                cbVo.setType(type_D[i]);
-                cbVo.setBaseNm(baseNm_D[i]);
-                cbVo.setPtrmPs(ptrmPs_D[i]);
-                cbVo.setCrtlTot1(SUMMARYITEM_7_REPEAT.get(crtlTot_D1[i]).toString());
-                cbVo.setCrtlTot2(SUMMARYITEM_7_REPEAT.get(crtlTot_D2[i]).toString());
-                cbVo.setCrtlTot3(SUMMARYITEM_7_REPEAT.get(crtlTot_D3[i]).toString());
-                cbVo.setCrtlTot4(SUMMARYITEM_7_REPEAT.get(crtlTot_D4[i]).toString());
-                cbVo.setCrtlTot5(SUMMARYITEM_7_REPEAT.get(crtlTot_D5[i]).toString());
-                cbVo.setCrtlTot6(SUMMARYITEM_7_REPEAT.get(crtlTot_D6[i]).toString());
-                res.add(cbVo);
-            }
-
-            for (Map<String, Object> cbMap : ROWDATA_5_REPEAT) {
-                WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
-                cbVo.setType("F");
-
-                if (cbMap.get("rntlPrdtNmS5") == null) {
-                    cbVo.setBaseNm("");
-                } else {
-                    cbVo.setBaseNm(String.valueOf(cbMap.get("rntlPrdtNmS5")));
+                rst = this.mapper.selectTransErrorCdMsg(rplyCd);
+                if (StringUtil.isBlank(rst)) {
+                    throw new BizException("[" + rplyCd + "]" + "등록되지 않은 응답 코드 오류.");
                 }
-                if (cbMap.get("delyDivNm5") == null) {
-                    cbVo.setCrtlTot1("");
-                } else {
-                    cbVo.setCrtlTot1(String.valueOf(cbMap.get("delyDivNm5")));
-                }
-                cbVo.setCrtlTot2(String.valueOf(cbMap.get("ocuBmcNm5")));
-                cbVo.setCrtlTot3(String.valueOf(cbMap.get("fistOcuDay5")));
-                cbVo.setCrtlTot4(String.valueOf(cbMap.get("ocuRegtDay5")));
-                cbVo.setCrtlTot5(String.valueOf(cbMap.get("delyAmt5")));
-                cbVo.setCrtlTot6(String.valueOf(cbMap.get("fistDelyAmt5")));
-                res.add(cbVo);
+                throw new BizException("[" + rplyCd + "]" + rst);
             }
+        } catch (BizException e) {
+            throw new BizException(e);
+        } catch (Exception e) {
+            throw new Exception("내부 서버 오류.[" + e + "]");
+        } finally {
+            // 렌탈CB 정보 조회 정보 Insert
+            int result = mapper.insertCBSearchTrans(paramMap);
+            BizAssert.isFalse(result == 0, "MSG_ALT_SVE_ERR");
         }
-        mapper.insertCBSearchTrans(paramMap);
         return res;
 
     }
 
-    private JsonParser SUMMARYITEM_6_REPEAT() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     /**
-     * 전문 처리 처버 URL  
-     * @return
+     * 렌탈CB 정보 - 호출 인터페이스 ivo 생성 로직
+     * @param paramMap 검색 조건
+     * @return RentalCBInformationReqIvo 호출 인터페이스 ivo
      */
-    private String getSpczServerURL() {
+    private RentalCBInformationReqIvo getRentalCBInformationReqIvo(Map<String, Object> paramMap) {
+        RentalCBInformationReqIvo req = new RentalCBInformationReqIvo();
 
-        //String profile = kcComnService.getProfile();
-        String strUrl = null;
-        /*  if (StringUtil.isEquals("product", profile)) {
-            // 운영 URL
-            strUrl = "http://10.1.25.23:23101/";
-        } else {
-            //strUrl = "http://10.1.25.23:23101/";
-            // 개발 URL
-            strUrl = "http://10.1.25.21:23101/";
-        }*/
+        // 1. 공통부
+        CommReq commReq = new CommReq();
+        commReq.setSpczGropCd("NICEIF");
+        commReq.setDealKindClfyCd("0200");
+        commReq.setDealDivCd("1R000");
+        commReq.setSnrcFlag("B");
+        commReq.setTrunDiv("503");
+        commReq.setRplyCd("");
+        commReq.setEtrcInttId("KYOWON12");
+        commReq.setInttSpczAdmnNo(String.valueOf(paramMap.get("TransSeq")));
+        commReq.setInttSpczTrnmHr(getT());
+        commReq.setEtrcInttId("KYOWON12");
+        commReq.setNiceSpczAdmnNo("0000000000");
+        commReq.setNiceSpczTrnmHr("00000000000000");
+        commReq.setBlnkC("");
+        commReq.setInqwtcnRsnCd(String.valueOf(paramMap.get("inqwtcnRsnCd")));
 
-        strUrl = "http://10.1.25.23:23101/";
-        return strUrl;
-    }
+        log.debug("공통부 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", commReq);
+        req.setCommReq(commReq);
 
-    public String Trans(Map<String, Object> params) throws Exception {
-        String body = "";
-        OutputStreamWriter wr = null;
-        String spczServerURL = "";
-        URL url;
-        HttpURLConnection connection;
-        try {
-            spczServerURL = this.getSpczServerURL();
-            log.debug("spczServerURL :  " + spczServerURL);
-            url = new URL(spczServerURL); //CLOUD DEV
-            connection = (HttpURLConnection)url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
+        // 2. 개별요청부
+        DataReq dataReq = new DataReq();
+        dataReq.setKeyDiv(String.valueOf(paramMap.get("keyDiv")));
+        dataReq.setRsdnNo(String.valueOf(paramMap.get("rsdnNo")));
+        dataReq.setInsHpNo(String.valueOf(paramMap.get("insHpNo")));
+        dataReq.setInsHomNo(String.valueOf(paramMap.get("insHomNo")));
+        dataReq.setInsAdr(String.valueOf(paramMap.get("insAdr")));
+        dataReq.setInqRsnCd(String.valueOf(paramMap.get("inqRsnCd")));
+        dataReq.setRtryReqNum("00");
+        dataReq.setInfoCntiYn("N");
+        dataReq.setRepotCnfimNo("0000000000000");
+        dataReq.setRwDtaSgmtReqCnt("0003");
+        dataReq.setShtItmSgmtReqCnt("02");
+        dataReq.setBlnkD("");
 
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Accept", "*/*");
-            connection.setRequestProperty("X-Requested-With", "XMLHttpRequest");
+        log.debug("개별요청부 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", dataReq);
+        req.setDataReq(dataReq);
 
-            wr = new OutputStreamWriter(connection.getOutputStream(), "UTF-8");
+        // 3.렌탈CB식별정보
+        RowData1Req rowData1Req = new RowData1Req();
+        rowData1Req.setRdSgmtId1("CBR01");
+        rowData1Req.setRdRecvCnt1("0");
+        rowData1Req.setRdReqCnt1("999");
 
-            wr.write(this.jsonGen(params));
-            wr.flush();
-            connection.connect();
-            InputStream is = connection.getInputStream();
-            body = IOUtils.toString(is);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        } finally {
-            if (wr != null)
-                try {
-                    wr.close();
-                } catch (IOException e) {}
+        log.debug("렌탈CB식별정보 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", rowData1Req);
+        req.setRowData1Req(rowData1Req);
+
+        // 4.렌탈CB연체(렌터카)정보
+        RowData4Req rowData4Req = new RowData4Req();
+        rowData4Req.setRdSgmtId4("CBR04");
+        rowData4Req.setRdRecvCnt4("0");
+        rowData4Req.setRdReqCnt4("0");
+
+        log.debug("렌탈CB연체(렌터카)정보 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", rowData4Req);
+        req.setRowData4Req(rowData4Req);
+
+        // 5.렌탈CB연체(렌터카)정보
+        RowData5Req rowData5Req = new RowData5Req();
+        rowData5Req.setRdSgmtId5("CBR05");
+        rowData5Req.setRdRecvCnt5("0");
+        rowData5Req.setRdReqCnt5("999");
+
+        log.debug("렌탈CB연체(렌터카)정보 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", rowData5Req);
+        req.setRowData5Req(rowData5Req);
+
+        // 6.렌탈CB 일반 요약항목
+        SummaryItem6Req summaryItem6Req = new SummaryItem6Req();
+        summaryItem6Req.setSiSgmtId6("CBR06");
+        summaryItem6Req.setSiRecvCnt6("0");
+        summaryItem6Req.setSiReqCnt6("48");
+
+        log.debug("렌탈CB 일반 요약항목 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", summaryItem6Req);
+        req.setSummaryItem6Req(summaryItem6Req);
+
+        // 7.렌탈CB 일반 요약항목 반복부
+        List<SummaryItem6RepaetItemReq> summaryItem6RepaetItemReqs = new ArrayList<>();
+        //미해지 일반렌탈 총건수
+        List<String> item6Repaet1 = Arrays
+            .asList("RT0000001", "RT0300001", "RT0600001", "RT1200001", "RT2400001", "RT3600001");
+        //미해지 일반렌탈 총기관수
+        List<String> item6Repaet2 = Arrays
+            .asList("RT0000101", "RT0300101", "RT0600101", "RT1200101", "RT2400101", "RT3600101");
+        //미해지 일반렌탈 총계약금액
+        List<String> item6Repaet3 = Arrays
+            .asList("RT0000201", "RT0300201", "RT0600201", "RT1200201", "RT2400201", "RT3600201");
+
+        //미해지 일반렌탈 총 약정납입액
+        List<String> item6Repaet4 = Arrays
+            .asList("RT0100201", "RT0300203", "RT0600203", "RT1200203", "RT2400103", "RT3600103");
+        //미해지 일반렌탈 총 실제납입액
+        List<String> item6Repaet5 = Arrays
+            .asList("RT0100202", "RT0300204", "RT0600204", "RT1200204", "RT2400104", "RT3600104");
+
+        //(최근)미해지 일반렌탈 총건수
+        List<String> item6Repaet6 = Arrays
+            .asList("RT8000001", "RT0100001", "RT0200001", "RT0300003", "RT0600003", "RT1200003");
+        //(최근)미해지 일반렌탈 총계약금액
+        List<String> item6Repaet7 = Arrays
+            .asList("RT8000201", "RT0100205", "RT0200201", "RT0300207", "RT0600207", "RT1200207");
+        //(최근)미해지 일반렌탈 총기관수
+        List<String> item6Repaet8 = Arrays
+            .asList("RT8000101", "RT0100101", "RT0200101", "RT0300103", "RT0600103", "RT1200103");
+
+        List<String> item6Repaet = new ArrayList<>();
+        item6Repaet.addAll(item6Repaet1);
+        item6Repaet.addAll(item6Repaet2);
+        item6Repaet.addAll(item6Repaet3);
+        item6Repaet.addAll(item6Repaet4);
+        item6Repaet.addAll(item6Repaet5);
+        item6Repaet.addAll(item6Repaet6);
+        item6Repaet.addAll(item6Repaet7);
+        item6Repaet.addAll(item6Repaet8);
+
+        for (String s : item6Repaet) {
+            SummaryItem6RepaetItemReq summaryItem6RepaetItemReq = new SummaryItem6RepaetItemReq();
+            summaryItem6RepaetItemReq.setSiCd6(s);
+            summaryItem6RepaetItemReqs.add(summaryItem6RepaetItemReq);
         }
 
-        return body;
+        log.debug("렌탈CB 일반 요약항목 반복부 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", item6Repaet);
+        req.setSummaryItem6RepaetItemReqs(summaryItem6RepaetItemReqs);
 
-    }
+        // 7.렌탈CB 기타 요약항목
+        SummaryItem7Req summaryItem7Req = new SummaryItem7Req();
+        summaryItem7Req.setSiSgmtId7("CBR07");
+        summaryItem7Req.setSiRecvCnt7("0");
+        summaryItem7Req.setSiReqCnt7("42");
 
-    /**
-     * @param params TransSeq 기관전문 관리번호
-     * @param params inqwtcnRsnCd 조회동의사유코드
-     * @param params keyDiv 주민/사업자/법인/회원번호 조회키 구분
-     * @param params rsdnNo 주민번호/사업자/법인번호/회원번호
-     * @param params insHpNo 설치지 휴대폰번호
-     * @param params insHomNo 설치지 자택 전화번호
-     * @param params InsAdr 설치지 주소
-     * @param params inqRsnCd 조회사유코드
-     * @return 
-     */
+        log.debug("렌탈CB 기타 요약항목 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", summaryItem7Req);
+        req.setSummaryItem7Req(summaryItem7Req);
 
-    private String jsonGen(Map<String, Object> params) {
+        // 8.렌탈CB 기타 요약항목 반복부
+        List<SummaryItem7RepaetItemReq> summaryItem7RepaetItemReqs = new ArrayList<>();
+        //휴대폰번호 기준 렌탈(일반) 계약 건수
+        List<String> Item7Repaet1 = Arrays
+            .asList("RENTB0001", "RENTB0008", "RENTB0015", "RENTB0022", "RENTB0029", "RENTB0036");
+        //휴대폰번호 기준 렌탈(일반) 약정 납입액
+        List<String> Item7Repaet2 = Arrays
+            .asList("RENTB0002", "RENTB0009", "RENTB0016", "RENTB0023", "RENTB0030", "RENTB0037");
+        //휴대폰번호 기준 렌탈(일반) 실제 납입액
+        List<String> Item7Repaet3 = Arrays
+            .asList("RENTB0003", "RENTB0010", "RENTB0017", "RENTB0024", "RENTB0031", "RENTB0038");
 
-        String data = "";
-        data += "   {\"cruzjson\":{     ";
-        data += "       \"header\":{    ";
-        data += "            \"bkndPgmId\":\"NC02\", ";
-        //data +="              \"globId\":\""+getGID("FO1", "NC02")+"\",   "; 
-        data += "            \"globId\":\"" + getWellsGID("wells") + "\",    ";
-        data += "            \"orgChanId\":\"ONC2\",";
-        data += "            \"exsIntfId\":\"ONC2_1R000\",";
-        data += "            \"resultCode\":\"0000\",";
-        data += "            \"resultMsg\":\"\"";
-        data += "  }";
-        //대외계와 통신 기준정보 마감 입니다.
+        //        //휴대폰번호 기준 렌탈(렌터카) 계약 건수
+        //        List<String> Item7Repaet4 = Arrays
+        //            .asList("RENTA0001", "RENTA0008", "RENTA0015", "RENTA0022", "RENTA0029", "RENTA0036");
+        //        //휴대폰번호 기준 렌탈(렌터카) 약정 납입액
+        //        List<String> Item7Repaet5 = Arrays
+        //            .asList("RENTA0002", "RENTA0009", "RENTA0016", "RENTA0023", "RENTA0030", "RENTA0037");
+        //        //휴대폰번호 기준 렌탈(렌터카) 실제 납입액
+        //        List<String> Item7Repaet6 = Arrays
+        //            .asList("RENTA0003", "RENTA0010", "RENTA0017", "RENTA0024", "RENTA0031", "RENTA0038");
 
-        data += " ,\"body\":{";
+        //설치지주소 기준 렌탈(일반) 계약 건수
+        List<String> Item7Repaet7 = Arrays
+            .asList("RENTB0004", "RENTB0011", "RENTB0018", "RENTB0025", "RENTB0032", "RENTB0039");
+        //설치지주소 기준 렌탈(일반) 약정 납입액
+        List<String> Item7Repaet8 = Arrays
+            .asList("RENTB0005", "RENTB0012", "RENTB0019", "RENTB0026", "RENTB0033", "RENTB0040");
+        ////설치지주소 기준 렌탈(일반) 실제 납입액
+        List<String> Item7Repaet9 = Arrays
+            .asList("RENTB0006", "RENTB0013", "RENTB0020", "RENTB0027", "RENTB0034", "RENTB0041");
 
-        //1.요청 데이터 레이아웃 공통부 
-        data += "\"COMM\":{";
-        data += "\"spczGropCd\"    :\"NICEIF   \"";
-        data += ",\"dealKindClfyCd\"  :\"0200\"";
-        data += ",\"dealDivCd\"  :\"1R000\"";
-        data += ",\"snrcFlag\"   :\"B\"";
-        data += ",\"trunDiv\"     :\"503\"";
-        data += ",\"rplyCd\"    :\"\"";
-        data += ",\"etrcInttId\"  :\"KYOWON12 \"";
-        data += ",\"inttSpczAdmnNo\"     :\"" + params.get("TransSeq") + "\"";
-        data += ",\"inttSpczTrnmHr\"       :\"" + getT() + "\"";
-        data += ",\"niceSpczAdmnNo\"       :\"0000000000\"";
-        data += ",\"niceSpczTrnmHr\"       :\"00000000000000\"";
-        data += ",\"blnkC\"       :\"\"";
-        data += ",\"inqwtcnRsnCd\"       :\"" + params.get("inqwtcnRsnCd") + "\""; //조회 동의사유코드
+        //자택번호 기준 렌탈(일반) 계약 건수
+        List<String> Item7Repaet10 = Arrays
+            .asList("RENTB0007", "RENTB0014", "RENTB0021", "RENTB0028", "RENTB0035", "RENTB0042");
+        //자택번호 기준 렌탈(렌터카) 계약 건수
+        //        List<String> Item7Repaet11 = Arrays
+        //            .asList("RENTA0007", "RENTA0014", "RENTA0021", "RENTA0028", "RENTA0035", "RENTA0042");
 
-        data += " },";
+        List<String> item7Repaet = new ArrayList<>();
+        item7Repaet.addAll(Item7Repaet1);
+        item7Repaet.addAll(Item7Repaet2);
+        item7Repaet.addAll(Item7Repaet3);
+        //        item7Repaet.addAll(Item7Repaet4);
+        //        item7Repaet.addAll(Item7Repaet5);
+        //        item7Repaet.addAll(Item7Repaet6);
+        item7Repaet.addAll(Item7Repaet7);
+        item7Repaet.addAll(Item7Repaet8);
+        item7Repaet.addAll(Item7Repaet9);
+        item7Repaet.addAll(Item7Repaet10);
+        //        item7Repaet.addAll(Item7Repaet11);
 
-        //2.요청 데이터 레이아웃 개별요청        
-        data += "\"DATA\":{";
-        data += "\"keyDiv\":\"" + params.get("keyDiv") + "\","; //주민/사업자/법인/회원번호 조회키 구분
-        data += "\"rsdnNo\":\"" + params.get("rsdnNo") + "\","; //주민번호/사업자/법인번호/회원번호
-        data += "\"insHpNo\":\"" + params.get("insHpNo") + "\","; //설치지 휴대폰번호
-        data += "\"insHomNo\":\"" + params.get("insHomNo") + "\","; //설치지 자택 전화번호
-        data += "\"InsAdr\":\"" + params.get("InsAdr") + "\","; //설치지 주소
-        data += "\"inqRsnCd\":\"" + params.get("inqRsnCd") + "\","; //조회사유코드
-        data += "\"rtryReqNum\":\"00\","; //재요청횟수
-        data += "\"infoCntiYn\":\"N\","; //정보연속여부
-        data += "\"repotCnfimNo\":\"0000000000000\","; //보고서 인증번호
-        data += "\"rwDtaSgmtReqCnt\":\"0003\","; //raw data SEGMENT 요청건수 (반복건수)
-        data += "\"shtItmSgmtReqCnt\":\"02\","; //요약항목 SEGMENT 요청건수 (반복건수)
-        data += "\"blnkD\":\"\""; //공란
-        data += " },";
+        for (String s : item7Repaet) {
+            SummaryItem7RepaetItemReq summaryItem7RepaetItemReq = new SummaryItem7RepaetItemReq();
+            summaryItem7RepaetItemReq.setSiCd7(s);
+            summaryItem7RepaetItemReqs.add(summaryItem7RepaetItemReq);
+        }
 
-        //3.요청 데이터 레이아웃 raw data 세그먼트       
-        data += "\"ROWDATA_1\":{"; // 렌탈CB식별정보
-        data += "\"rdSgmtId1\":\"CBR01\","; //
-        data += "\"rdRecvCnt1\":\"0\","; //
-        data += "\"rdReqCnt1\":\"999\""; //
-        data += " },";
-        //      data +="\"REPEAT2\":{";
-        //      data += "\"sgmtId2\":\"CBR02\",";  //
-        //      data += "\"rntlCbRecvCnt2\":\"0\",";  //
-        //      data += "\"rntlCbReqCnt2\":\"0\"";  //
-        //      data +=" },";
-        //      data +="\"REPEAT3\":{";
-        //      data += "\"sgmtId3\":\"CBR03\",";  //
-        //      data += "\"rntlCbRecvCnt3\":\"0\",";  //
-        //      data += "\"rntlCbReqCnt3\":\"0\"";  //
-        //      data +=" },";
-        data += "\"ROWDATA_4\":{"; //렌탈CB연체(렌터카)정보
-        data += "\"rdSgmtId4\":\"CBR04\","; //
-        data += "\"rdRecvCnt4\":\"0\","; //
-        data += "\"rdReqCnt4\":\"0\""; //
-        data += " },";
-        data += "\"ROWDATA_5\":{"; //렌탈CB연체(일반)정보
-        data += "\"rdSgmtId5\":\"CBR05\","; //
-        data += "\"rdRecvCnt5\":\"0\","; //
-        data += "\"rdReqCnt5\":\"999\""; //
-        data += " },";
+        log.debug("렌탈CB 기타 요약항목 반복부 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", item7Repaet);
+        req.setSummaryItem7RepaetItemReqs(summaryItem7RepaetItemReqs);
 
-        //4.요청 데이터 레이아웃 요약항목 세그먼트
-        //
-        data += "\"SUMMARYITEM_6\":{"; //렌탈CB 일반 요약항목 반복부
-        data += "\"siSgmtId6\":\"CBR06\","; //
-        data += "\"siRecvCnt6\":\"0\","; //
-        data += "\"siReqCnt6\":\"48\""; //
-        data += " },";
-        data += " \"SUMMARYITEM_6_REPAET\":[";
-        data += "{\"siCd6\":\"RT0000001\"}, {\"siCd6\":\"RT0300001\"}, {\"siCd6\":\"RT0600001\"}, {\"siCd6\":\"RT1200001\"}, {\"siCd6\":\"RT2400001\"}, {\"siCd6\":\"RT3600001\"},"; //미해지 일반렌탈 총건수
-        data += "{\"siCd6\":\"RT0000101\"}, {\"siCd6\":\"RT0300101\"}, {\"siCd6\":\"RT0600101\"}, {\"siCd6\":\"RT1200101\"}, {\"siCd6\":\"RT2400101\"}, {\"siCd6\":\"RT3600101\"},"; //미해지 일반렌탈 총기관수
-        data += "{\"siCd6\":\"RT0000201\"}, {\"siCd6\":\"RT0300201\"}, {\"siCd6\":\"RT0600201\"}, {\"siCd6\":\"RT1200201\"}, {\"siCd6\":\"RT2400201\"}, {\"siCd6\":\"RT3600201\"},"; //미해지 일반렌탈 총계약금액
-
-        data += "{\"siCd6\":\"RT0100201\"}, {\"siCd6\":\"RT0300203\"}, {\"siCd6\":\"RT0600203\"}, {\"siCd6\":\"RT1200203\"}, {\"siCd6\":\"RT2400103\"}, {\"siCd6\":\"RT3600103\"},"; //미해지 일반렌탈 총 약정납입액
-        data += "{\"siCd6\":\"RT0100202\"}, {\"siCd6\":\"RT0300204\"}, {\"siCd6\":\"RT0600204\"}, {\"siCd6\":\"RT1200204\"}, {\"siCd6\":\"RT2400104\"}, {\"siCd6\":\"RT3600104\"},"; //미해지 일반렌탈 총 실제납입액
-
-        data += "{\"siCd6\":\"RT8000001\"}, {\"siCd6\":\"RT0100001\"}, {\"siCd6\":\"RT0200001\"}, {\"siCd6\":\"RT0300003\"}, {\"siCd6\":\"RT0600003\"}, {\"siCd6\":\"RT1200003\"},"; //(최근)미해지 일반렌탈 총건수
-        data += "{\"siCd6\":\"RT8000201\"}, {\"siCd6\":\"RT0100205\"}, {\"siCd6\":\"RT0200201\"}, {\"siCd6\":\"RT0300207\"}, {\"siCd6\":\"RT0600207\"}, {\"siCd6\":\"RT1200207\"},"; //(최근)미해지 일반렌탈 총계약금액
-        data += "{\"siCd6\":\"RT8000101\"}, {\"siCd6\":\"RT0100101\"}, {\"siCd6\":\"RT0200101\"}, {\"siCd6\":\"RT0300103\"}, {\"siCd6\":\"RT0600103\"}, {\"siCd6\":\"RT1200103\"}"; //(최근)미해지 일반렌탈 총기관수
-
-        data += " ],";
-
-        data += "\"SUMMARYITEM_7\":{"; //렌탈CB 기타 요약항목
-        data += "\"siSgmtId7\":\"CBR07\","; //
-        data += "\"siRecvCnt7\":\"0\","; //
-        data += "\"siReqCnt7\":\"42\""; //
-        data += " },";
-        data += " \"SUMMARYITEM_7_REPAET\":[";
-        data += "{\"siCd7\":\"RENTB0001\"}, {\"siCd7\":\"RENTB0008\"}, {\"siCd7\":\"RENTB0015\"}, {\"siCd7\":\"RENTB0022\"}, {\"siCd7\":\"RENTB0029\"}, {\"siCd7\":\"RENTB0036\"},"; //휴대폰번호 기준 렌탈(일반) 계약 건수
-        data += "{\"siCd7\":\"RENTB0002\"}, {\"siCd7\":\"RENTB0009\"}, {\"siCd7\":\"RENTB0016\"}, {\"siCd7\":\"RENTB0023\"}, {\"siCd7\":\"RENTB0030\"}, {\"siCd7\":\"RENTB0037\"},"; //휴대폰번호 기준 렌탈(일반) 약정 납입액
-        data += "{\"siCd7\":\"RENTB0003\"}, {\"siCd7\":\"RENTB0010\"}, {\"siCd7\":\"RENTB0017\"}, {\"siCd7\":\"RENTB0024\"}, {\"siCd7\":\"RENTB0031\"}, {\"siCd7\":\"RENTB0038\"},"; //휴대폰번호 기준 렌탈(일반) 실제 납입액
-
-        /*data += "{\"siCd7\":\"RENTA0001\"}, {\"siCd7\":\"RENTA0008\"}, {\"siCd7\":\"RENTA0015\"}, {\"siCd7\":\"RENTA0022\"}, {\"siCd7\":\"RENTA0029\"}, {\"siCd7\":\"RENTA0036\"},"; //휴대폰번호 기준 렌탈(렌터카) 계약 건수
-        data += "{\"siCd7\":\"RENTA0002\"}, {\"siCd7\":\"RENTA0009\"}, {\"siCd7\":\"RENTA0016\"}, {\"siCd7\":\"RENTA0023\"}, {\"siCd7\":\"RENTA0030\"}, {\"siCd7\":\"RENTA0037\"},"; //휴대폰번호 기준 렌탈(렌터카) 약정 납입액
-        data += "{\"siCd7\":\"RENTA0003\"}, {\"siCd7\":\"RENTA0010\"}, {\"siCd7\":\"RENTA0017\"}, {\"siCd7\":\"RENTA0024\"}, {\"siCd7\":\"RENTA0031\"}, {\"siCd7\":\"RENTA0038\"},"; //휴대폰번호 기준 렌탈(렌터카) 실제 납입액
-        */
-        data += "{\"siCd7\":\"RENTB0004\"}, {\"siCd7\":\"RENTB0011\"}, {\"siCd7\":\"RENTB0018\"}, {\"siCd7\":\"RENTB0025\"}, {\"siCd7\":\"RENTB0032\"}, {\"siCd7\":\"RENTB0039\"},"; //설치지주소 기준 렌탈(일반) 계약 건수
-        data += "{\"siCd7\":\"RENTB0005\"}, {\"siCd7\":\"RENTB0012\"}, {\"siCd7\":\"RENTB0019\"}, {\"siCd7\":\"RENTB0026\"}, {\"siCd7\":\"RENTB0033\"}, {\"siCd7\":\"RENTB0040\"},"; //설치지주소 기준 렌탈(일반) 약정 납입액
-        data += "{\"siCd7\":\"RENTB0006\"}, {\"siCd7\":\"RENTB0013\"}, {\"siCd7\":\"RENTB0020\"}, {\"siCd7\":\"RENTB0027\"}, {\"siCd7\":\"RENTB0034\"}, {\"siCd7\":\"RENTB0041\"},"; //설치지주소 기준 렌탈(일반) 실제 납입액
-
-        data += "{\"siCd7\":\"RENTB0007\"}, {\"siCd7\":\"RENTB0014\"}, {\"siCd7\":\"RENTB0021\"}, {\"siCd7\":\"RENTB0028\"}, {\"siCd7\":\"RENTB0035\"}, {\"siCd7\":\"RENTB0042\"}"; //자택번호 기준 렌탈(일반) 계약 건수
-        //data += "{\"siCd7\":\"RENTA0007\"}, {\"siCd7\":\"RENTA0014\"}, {\"siCd7\":\"RENTA0021\"}, {\"siCd7\":\"RENTA0028\"}, {\"siCd7\":\"RENTA0035\"}, {\"siCd7\":\"RENTA0042\"}"; //자택번호 기준 렌탈(렌터카) 계약 건수
-
-        data += " ]";
-
-        /*data +="\"REPEAT6\":{";
-        data += "\"sgmtId6\":\"CBR06\",";  //
-        data += "\"rntlCbRecvCnt6\":\"0\",";  //
-        data += "\"rntlCbReqCnt6\":\"2\"";  //
-        data +=" },";
-        data +=" \"REPEAT6_D\":[";
-        data += "   {\"shtItmCd6\":\"RT0300001\"}, {\"shtItmCd6\":\"RT0000201\"}"; //{"members":["a","b"]}  
-        data +=" ],";
-        
-        data +="\"REPEAT7\":{";
-        data += "\"sgmtId7\":\"CBR07\",";  //
-        data += "\"rntlCbRecvCnt7\":\"0\",";  //
-        data += "\"rntlCbReqCnt7\":\"2\"";  //
-        data +=" },";
-        data +=" \"REPEAT7_D\":[";
-        data += "   {\"shtItmCd7\":\"RENTA0029\"}, {\"shtItmCd7\":\"RENTA0038\"}"; //{"members":["a","b"]}  
-        data +=" ]";
-        */
-        //요청 데이터 레이아웃  종료
-        data += "}}}";
-
-        log.debug("data :  " + data);
-        return data;
-    }
-
-    private String getWellsGID(String prgramNumber) {
-        String GID = "";
-        Calendar calendar = Calendar.getInstance();
-        String date = calendar.get(Calendar.YEAR) + ""
-            + get2Ciper(calendar.get(Calendar.MONTH) + 1) + ""
-            + get2Ciper(calendar.get(Calendar.DAY_OF_MONTH));
-        ;
-        String time = get2Ciper(calendar.get(Calendar.HOUR_OF_DAY)) + ""
-            + get2Ciper(calendar.get(Calendar.MINUTE)) + ""
-            + get2Ciper(calendar.get(Calendar.SECOND)) + ""
-            + get3Ciper(calendar.get(Calendar.MILLISECOND));
-        long nanoTime = System.nanoTime();
-        GID = prgramNumber + "_" + date + time + "_" + nanoTime;
-        return GID;
-    }
-
-    private String getGID(String SystemCode, String prgramNumber) {
-        String GID = "";
-        Calendar calendar = Calendar.getInstance();
-        String date = calendar.get(Calendar.YEAR) + ""
-            + get2Ciper(calendar.get(Calendar.MONTH) + 1) + ""
-            + get2Ciper(calendar.get(Calendar.DAY_OF_MONTH));
-        ;
-        String time = get2Ciper(calendar.get(Calendar.HOUR_OF_DAY)) + ""
-            + get2Ciper(calendar.get(Calendar.MINUTE)) + ""
-            + get2Ciper(calendar.get(Calendar.SECOND)) + ""
-            + get3Ciper(calendar.get(Calendar.MILLISECOND));
-        long nanoTime = System.nanoTime();
-        GID = date + time + "_" + nanoTime + "_" + SystemCode + "_" + prgramNumber;
-        return GID;
+        return req;
     }
 
     private String getT() {
@@ -633,7 +607,7 @@ public class WbndRentalCbInformationService {
         String date = calendar.get(Calendar.YEAR) + ""
             + get2Ciper(calendar.get(Calendar.MONTH) + 1) + ""
             + get2Ciper(calendar.get(Calendar.DAY_OF_MONTH));
-        ;
+
         String time = get2Ciper(calendar.get(Calendar.HOUR_OF_DAY)) + ""
             + get2Ciper(calendar.get(Calendar.MINUTE)) + ""
             + get2Ciper(calendar.get(Calendar.SECOND));
@@ -642,29 +616,9 @@ public class WbndRentalCbInformationService {
 
     private String get2Ciper(int i) {
         if (i < 10) {
-            return String.valueOf("0" + i);
+            return "0" + i;
         } else {
             return String.valueOf(i);
         }
-    }
-
-    /**
-     * @param i
-     * @return
-     */
-    private String get3Ciper(int i) {
-        int length = String.valueOf(i).length();
-        switch (length) {
-            case 1:
-                return String.valueOf("00" + i);
-            case 2:
-                return String.valueOf("0" + i);
-            case 3:
-                return String.valueOf("" + i);
-        }
-        if (length > 3) {
-            return String.valueOf(i).substring(0, 3);
-        }
-        return String.valueOf(i);
     }
 }

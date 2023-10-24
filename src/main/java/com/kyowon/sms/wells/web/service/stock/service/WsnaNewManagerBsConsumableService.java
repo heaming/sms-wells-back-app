@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaNewManagerBsConsumableConverter;
@@ -20,8 +19,6 @@ import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.context.SFLEXContext;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
@@ -47,15 +44,15 @@ public class WsnaNewManagerBsConsumableService {
         return mapper.selectItems(mngtYm);
     }
 
-    public List<SearchBldRes> selectBuildings(String mngtYm) {
-        return bldMapper.selectBuildingList(mngtYm);
+    public List<SearchBldRes> selectBuildings() {
+        return bldMapper.selectBuildingList();
     }
 
     //public List<SearchRes> getNewManagerBsConsumables(SearchReq dto) {
     //    return null;
     //}
 
-    public List<SearchRes> getNewManagerBsConsumablePages(SearchReq dto) {
+    public List<SearchRes> getNewManagerBsConsumable(SearchReq dto) {
         List<WsnaNewManagerBsConsumableDvo> bldInfos = mapper.selectBuildings(dto);
         List<WsnaNewManagerBsConsumableDvo> bldAndItemsInfos = new ArrayList<>();
         Iterator<WsnaNewManagerBsConsumableDvo> it = bldInfos.iterator();
@@ -63,7 +60,8 @@ public class WsnaNewManagerBsConsumableService {
         while (it.hasNext()) {
             WsnaNewManagerBsConsumableDvo bfBldInfo = it.next();
             WsnaNewManagerBsConsumableDvo aftBldInfo;
-            List<WsnaNewManagerBsConsumableDvo> itemInfos;
+            List<WsnaNewManagerBsConsumableDvo> rgstItemInfos;
+            List<WsnaNewManagerBsConsumableDvo> unrgItemInfos;
 
             aftBldInfo = bfBldInfo;
 
@@ -71,135 +69,69 @@ public class WsnaNewManagerBsConsumableService {
             List<String> aplcItemQtys = new ArrayList<>();
 
             // 매니저 별 기등록 품목 수량 조회
-            itemInfos = mapper.selectItemQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
+            rgstItemInfos = mapper.selectItemQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
 
-            if (CollectionUtils.isEmpty(itemInfos)) {
-                // 매니저 별 미등록 품목 계산 수량 조회
-                itemInfos = mapper.selectItemFirstQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
+            // 매니저 별 미등록 품목 계산 수량 조회
+            unrgItemInfos = mapper.selectItemFirstQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
 
-                String mngtYear = dto.mngtYm().substring(0, 4);
-                String mngtMonth = "";
-                mngtMonth = dto.mngtYm().substring(4);
-                mngtMonth = mngtMonth.startsWith("0") ? " " + mngtMonth.substring(1) : mngtMonth;
+            String mngtYear = dto.mngtYm().substring(0, 4);
+            String mngtMonth = "";
+            mngtMonth = dto.mngtYm().substring(4);
+            mngtMonth = mngtMonth.startsWith("0") ? " " + mngtMonth.substring(1) : mngtMonth;
 
-                BizAssert.isTrue(
-                    itemInfos.size() > 0, "MSG_ALT_BFSVC_CSMB_DDLV_BASE",
-                    new String[] {mngtYear, mngtMonth}
-                );
+            BizAssert.isTrue(
+                !ObjectUtils.isEmpty(unrgItemInfos), "MSG_ALT_BFSVC_CSMB_DDLV_BASE", new String[] {mngtYear, mngtMonth}
+            );
 
-                for (WsnaNewManagerBsConsumableDvo itemInfo : itemInfos) {
-                    switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
-                        case "1" -> {
-                            fxnItemQtys.add(itemInfo.getFxnDdlvUnitQty());
+            for (WsnaNewManagerBsConsumableDvo unrgItemInfo : unrgItemInfos) {
+                switch (unrgItemInfo.getBfsvcCsmbDdlvTpCd()) {
+                    case "1" -> { // 고정품목
+                        int i = 0;
+
+                        for (WsnaNewManagerBsConsumableDvo rgstItemInfo : rgstItemInfos) {
+                            // 기등록 품목에 대한 갯수가 있다면
+                            if (unrgItemInfo.getFxnPdCd().equals(rgstItemInfo.getCsmbPdCd())) {
+                                fxnItemQtys.add(rgstItemInfo.getBfsvcCsmbDdlvQty());
+                                i++;
+                            }
                         }
 
-                        case "2" -> {
-                            aplcItemQtys.add(itemInfo.getAplcDdlvUnitQty());
+                        if (i == 0) { // 기등록 품목이 없으면 미등록 품목 수량을 넣어준다
+                            fxnItemQtys.add(unrgItemInfo.getFxnDdlvUnitQty());
+                        }
+                    }
+
+                    case "2" -> { // 신청품목
+                        int i = 0;
+
+                        for (WsnaNewManagerBsConsumableDvo rgstItemInfo : rgstItemInfos) {
+                            // 기등록 품목에 대한 갯수가 있다면
+                            if (unrgItemInfo.getAplcPdCd().equals(rgstItemInfo.getCsmbPdCd())) {
+                                aplcItemQtys.add(rgstItemInfo.getBfsvcCsmbDdlvQty());
+
+                                i++;
+                            }
+                        }
+
+                        if (i == 0) { // 기등록 품목이 없으면 미등록 품목 수량을 넣어준다
+                            aplcItemQtys.add(unrgItemInfo.getAplcDdlvUnitQty());
                         }
                     }
                 }
-
-                aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
-                aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
-                aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
-                bldAndItemsInfos.add(aftBldInfo);
-            } else {
-                for (WsnaNewManagerBsConsumableDvo itemInfo : itemInfos) {
-                    switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
-                        case "1" -> {
-                            fxnItemQtys.add(itemInfo.getBfsvcCsmbDdlvQty());
-                        }
-
-                        case "2" -> {
-                            aplcItemQtys.add(itemInfo.getBfsvcCsmbDdlvQty());
-                        }
-                    }
-                }
-
-                aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
-                aftBldInfo.setBfsvcCsmbDdlvStatCd(itemInfos.get(0).getBfsvcCsmbDdlvStatCd());
-                aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
-                aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
-                bldAndItemsInfos.add(aftBldInfo);
             }
+
+            aftBldInfo.setReqYn(
+                ObjectUtils.isEmpty(rgstItemInfos) ? unrgItemInfos.get(0).getReqYn() : rgstItemInfos.get(0).getReqYn()
+            );
+            aftBldInfo.setBfsvcCsmbDdlvStatCd(
+                ObjectUtils.isEmpty(rgstItemInfos) ? "" : rgstItemInfos.get(0).getBfsvcCsmbDdlvStatCd()
+            );
+            aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
+            aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
+            bldAndItemsInfos.add(aftBldInfo);
         }
 
         List<SearchRes> rtnDto = converter.mapAllDvoToListSearchRes(bldAndItemsInfos);
-
-        return rtnDto;
-    }
-
-    public PagingResult<SearchRes> getNewManagerBsConsumablePages(SearchReq dto, PageInfo pageInfo) {
-        PagingResult<WsnaNewManagerBsConsumableDvo> bldInfos = mapper.selectBuildings(dto, pageInfo);
-        List<WsnaNewManagerBsConsumableDvo> bldAndItemsInfos = new ArrayList<>();
-        Iterator<WsnaNewManagerBsConsumableDvo> it = bldInfos.iterator();
-
-        while (it.hasNext()) {
-            WsnaNewManagerBsConsumableDvo bfBldInfo = it.next();
-            WsnaNewManagerBsConsumableDvo aftBldInfo;
-            List<WsnaNewManagerBsConsumableDvo> itemInfos;
-
-            aftBldInfo = bfBldInfo;
-
-            List<String> fxnItemQtys = new ArrayList<>();
-            List<String> aplcItemQtys = new ArrayList<>();
-
-            // 매니저 별 기등록 품목 수량 조회
-            itemInfos = mapper.selectItemQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
-
-            if (CollectionUtils.isEmpty(itemInfos)) {
-                // 매니저 별 미등록 품목 계산 수량 조회
-                itemInfos = mapper.selectItemFirstQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
-
-                String mngtYear = dto.mngtYm().substring(0, 4);
-                String mngtMonth = "";
-                mngtMonth = dto.mngtYm().substring(4);
-                mngtMonth = mngtMonth.startsWith("0") ? " " + mngtMonth.substring(1) : mngtMonth;
-
-                BizAssert.isTrue(
-                    itemInfos.size() > 0, "MSG_ALT_BFSVC_CSMB_DDLV_BASE",
-                    new String[] {mngtYear, mngtMonth}
-                );
-
-                for (WsnaNewManagerBsConsumableDvo itemInfo : itemInfos) {
-                    switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
-                        case "1" -> {
-                            fxnItemQtys.add(itemInfo.getFxnDdlvUnitQty());
-                        }
-
-                        case "2" -> {
-                            aplcItemQtys.add(itemInfo.getAplcDdlvUnitQty());
-                        }
-                    }
-                }
-
-                aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
-                aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
-                aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
-                bldAndItemsInfos.add(aftBldInfo);
-            } else {
-                for (WsnaNewManagerBsConsumableDvo itemInfo : itemInfos) {
-                    switch (itemInfo.getBfsvcCsmbDdlvTpCd()) {
-                        case "1" -> {
-                            fxnItemQtys.add(itemInfo.getBfsvcCsmbDdlvQty());
-                        }
-
-                        case "2" -> {
-                            aplcItemQtys.add(itemInfo.getBfsvcCsmbDdlvQty());
-                        }
-                    }
-                }
-
-                aftBldInfo.setReqYn(itemInfos.get(0).getReqYn());
-                aftBldInfo.setBfsvcCsmbDdlvStatCd(itemInfos.get(0).getBfsvcCsmbDdlvStatCd());
-                aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
-                aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
-                bldAndItemsInfos.add(aftBldInfo);
-            }
-        }
-
-        PagingResult<SearchRes> rtnDto = converter.mapDvoToSearchRes(bldAndItemsInfos);
-        rtnDto.setPageInfo(bldInfos.getPageInfo());
 
         return rtnDto;
     }

@@ -90,7 +90,8 @@
              , 'Y' -- 삭제여부
              <include refid="COMMON.insertSystemFieldValue"/>
           FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
-         WHERE CNTR_NO = #{cntrNo}
+         WHERE DTA_DL_YN = 'N'
+           AND CNTR_NO = #{cntrNo}
            AND SPP_CH_TP_CD = #{reqGb}
            AND CH_APY_STRTDT = #{reqDt} /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
 --            AND LCFIXY = 0
@@ -98,7 +99,8 @@
 
     <delete id="deleteRegularShippingChangeDtl">
     /*배송변경접수상세 삭제*/
-        DELETE FROM TB_SSSO_SPP_CH_RCP_DTL
+        UPDATE TB_SSSO_SPP_CH_RCP_DTL
+           SET DTA_DL_YN = 'Y'
          WHERE SPP_CH_RCP_ID = (SELECT SPP_CH_RCP_ID FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/ WHERE CNTR_NO = #{cntrNo})
     --        AND SPP_CH_SN = (SELECT LCCSEQ
     --                        FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
@@ -111,7 +113,8 @@
 
     <delete id="deleteRegularShippingChangeBase">
         /*배송변경접수기본 삭제*/
-        DELETE FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
+        UPDATE TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
+           SET DTA_DL_YN = 'Y'
          WHERE CNTR_NO = #{cntrNo}
            AND SPP_CH_TP_CD = #{reqGb} -- P_REQ_GB
            AND CH_APY_STRTDT = #{reqDt} /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
@@ -122,7 +125,8 @@
         /* 배송변경접수기본(TB_SSSO_SPP_CH_RCP_BAS)에 처리되지 않은 동일 요청이 있는지 체크*/
         SELECT COUNT(1) AS CNT
           FROM TB_SSSO_SPP_CH_RCP_BAS /*LD3200P*/
-         WHERE CNTR_NO = #{cntrNo}
+         WHERE DTA_DL_YN ='N'
+           AND CNTR_NO = #{cntrNo}
            AND SPP_CH_TP_CD = #{reqGb}
            AND CH_APY_STRTDT = #{reqDt} /*LCCHGY-LCCHGM-LCCHGD 변경적용시작일자*/
     --        AND LCFIXY = 0
@@ -315,7 +319,7 @@
               #{cntrNo}
             , #{cntrSn}
             , #{akSn}
-            , TO_CHAR (SYSDATE, 'YYYYMMDD')
+            , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') + ${histChDtm}
             , #{asAkDvCd}
             , TO_CHAR (SYSDATE, 'YYYYMMDD')
             , #{akChdt}
@@ -329,8 +333,8 @@
     </insert>
 
     <delete id="deleteTbSvpdHcfAsAkIz">
-        DELETE
-          FROM TB_SVPD_HCF_AS_AK_IZ
+        UPDATE TB_SVPD_HCF_AS_AK_IZ
+           SET DTA_DL_YN = 'Y'
          WHERE CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
            AND AK_SN = #{akSn}
@@ -341,12 +345,10 @@
     <select id="countTbSvpdHcfAsAkIz" resultType="java.lang.Integer">
     SELECT COUNT(*) AS COUNT
       FROM TB_SVPD_HCF_AS_AK_IZ SVPD1 /*홈카페AS요청내역*/
-     WHERE SVPD1.CNTR_NO = #{cntrNo}
+     WHERE DTA_DL_YN = 'N'
+       AND SVPD1.CNTR_NO = #{cntrNo}
        AND SVPD1.CNTR_SN = #{cntrSn}
        AND AK_SN = #{akSn}
-       AND AS_AK_DV_CD = #{asAkDvCd}
-       AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
-       AND CNFMDT IS NULL
     </select>
 
     <update id="updateTbSvpdHcfAsAkIz">
@@ -365,6 +367,14 @@
        AND CNFMDT IS NULL
     </update>
 
+    <select id="selectAkSnMax" resultType="java.lang.String">
+    SELECT NVL(MAX(AK_SN), 0) + 1 AS MAX_AK_SN
+          FROM TB_SVPD_HCF_AS_AK_IZ
+         WHERE DTA_DL_YN = 'N'
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+
     <insert id="insertTbSvpdHcfAsAkIz">
     INSERT INTO TB_SVPD_HCF_AS_AK_IZ (
            CNTR_NO
@@ -380,10 +390,7 @@
     ) VALUES (
            #{cntrNo}
          , #{cntrSn}
-         , (SELECT LPAD(NVL(MAX(AK_SN), 0) + 1, 2, '0') AS MAX_AK_SN
-              FROM TB_SVPD_HCF_AS_AK_IZ
-             WHERE CNTR_NO = #{cntrNo}
-               AND CNTR_SN = #{cntrSn})
+         , #{akSn}
          , #{asAkDvCd}
          , TO_CHAR(SYSDATE, 'YYYYMMDD')
          , #{bfchPdCd}
@@ -402,5 +409,14 @@
        AND CNTR_SN = #{cntrSn}
        AND SUBSTR (VST_DUEDT, 1, 6) = SUBSTR (#{akChdt}, 1, 6)
     </update>
+
+    <select id="selectPdctPdCds" resultType="java.lang.String">
+    SELECT CHO_CAPSL_CN AS PDCT_PD_CD -- WM05100886,3|WM05100888,3
+      FROM TB_SVPD_HCF_AS_AK_IZ
+     WHERE DTA_DL_YN = 'N'
+       AND CNTR_NO = #{cntrNo}
+       AND CNTR_SN = #{cntrSn}
+       AND AK_SN = #{akSn}
+    </select>
 
 </mapper>

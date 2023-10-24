@@ -31,6 +31,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+
 @Api(tags = "[수납입출금 - 개별수납] 어음입금 등록")
 @RestController
 @RequiredArgsConstructor
@@ -40,6 +41,12 @@ public class WwdbBillDepositMgtController {
 
     private final WwdbBillDepositMgtService service;
 
+    /**
+     * 어음입금 등록 메인페이지 조회 / 페이징
+     * @param dto 어음입금 등록 메인 DTO
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRes>
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "rcpStartDt", value = "시작일자", paramType = "query", required = false),
         @ApiImplicitParam(name = "rcpEndDt", value = "종료일자", paramType = "query", required = false),
@@ -51,6 +58,11 @@ public class WwdbBillDepositMgtController {
         return service.getRegistrationPages(dto, pageInfo);
     }
 
+    /**
+     * 어음입금 등록 메인페이지 엑셀 다운로드
+     * @param dto 어음입금 등록 메인 DTO
+     * @return List<SearchRes>
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "rcpStartDt", value = "시작일자", paramType = "query", required = false),
         @ApiImplicitParam(name = "rcpEndDt", value = "종료일자", paramType = "query", required = false),
@@ -62,6 +74,12 @@ public class WwdbBillDepositMgtController {
         return service.getRegistrationExcels(dto);
     }
 
+    /**
+     * 전자어음 입금대상 조회 / 페이징 ( 현재 사용 X - 페이징 없어짐 )
+     * @param dto 전자어음 입금 대상 DTO
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchDetailRes>
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "bzrno", value = "사업자등록번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false),
@@ -74,6 +92,11 @@ public class WwdbBillDepositMgtController {
         return service.getRegistrationElectronicPages(dto, pageInfo);
     }
 
+    /**
+     * 전자어음 입금대상 조회 / 엑셀 다운로드
+     * @param dto 전자어음 입금 대상 DTO
+     * @return List<SearchDetailRes>
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "bzrno", value = "사업자등록번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false),
@@ -86,6 +109,10 @@ public class WwdbBillDepositMgtController {
         return service.getRegistrationElectronicExcels(dto);
     }
 
+    /**
+     * 통합입금번호 PK 채번
+     * @return WwdbBillDepositMgtDto.SearchItgNoRes
+     */
     @GetMapping("/electronic")
     public WwdbBillDepositMgtDto.SearchItgNoRes getRegistrationPk() {
         log.info("============");
@@ -94,6 +121,12 @@ public class WwdbBillDepositMgtController {
         return pk;
     }
 
+    /**
+     * 전자어음 신규 등록 저장
+     * @param dtos 전자어음 등록 DTO
+     * @return SaveResponse
+     * @throws Exception
+     */
     @PostMapping("/electronic")
     public SaveResponse saveRegistrationElectronics(
         @RequestBody
@@ -109,21 +142,31 @@ public class WwdbBillDepositMgtController {
             .build();
     }
 
+    /**
+     * 전자어음 상세 조회 / 페이징 ( 페이징 제거로 현재 사용 x )
+     * @param dto 전자어음 상세 조회 DTO
+     * @return List<SearchElectronicRes>
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "itgDpNo", value = "통합입금번호", paramType = "query", required = false),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false),
     })
-    @GetMapping("/electronic-detail/paging")
-    public PagingResult<SearchElectronicRes> getRegistrationElectronicDetailPages(
-        SearchElectronicReq dto, PageInfo pageInfo
+    @GetMapping("/electronic-detail")
+    public List<SearchElectronicRes> getRegistrationElectronicDetailPages(
+        SearchElectronicReq dto
     ) {
         log.info("===========");
         log.info(dto.toString());
         log.info("===========");
 
-        return service.getRegistrationElectronicDetailPages(dto, pageInfo);
+        return service.getRegistrationElectronicDetailPages(dto);
     }
 
+    /**
+     * 전자어음 상세 조회 / 엑셀 다운로드
+     * @param dto 전자어음 상세 조회 DTO
+     * @return List<SearchElectronicRes>
+     */
     @ApiImplicitParams(value = {
     })
     @GetMapping("/electronic-detail/excel-download")
@@ -134,6 +177,12 @@ public class WwdbBillDepositMgtController {
         return service.getRegistrationElectronicDetailExcels(dto);
     }
 
+    /**
+     * 입금전표, 대체전표 생성
+     * @param dto 입금전표, 대체전표 생성 DTO
+     * @return SaveResponse
+     * @throws Exception
+     */
     @PostMapping("/deposit-processing")
     public SaveResponse saveRegistrationElectronicDepositSlip(
         @RequestBody
