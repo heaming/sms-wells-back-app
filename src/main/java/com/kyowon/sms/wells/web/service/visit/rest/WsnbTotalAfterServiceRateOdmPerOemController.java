@@ -29,6 +29,7 @@ public class WsnbTotalAfterServiceRateOdmPerOemController {
         @ApiImplicitParam(name = "svType", value = "서비스유형", paramType = "query", example = "3110"),
         @ApiImplicitParam(name = "badDivide", value = "불량구분", paramType = "query", example = "500R"),
         @ApiImplicitParam(name = "pdGrp", value = "상품그룹", paramType = "query", example = "2"),
+        @ApiImplicitParam(name = "pdGrpGubun", value = "상품그룹구분", paramType = "query", example = "0"),
         @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", example = "WM04100162")
     })
     @GetMapping
