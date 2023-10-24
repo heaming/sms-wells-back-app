@@ -4,8 +4,16 @@
 
 
     <select id="selectMonthlyStateWareHouses" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMonthlyByStockPsDto$SearchWareRes">
-        SELECT WARE_NO   /* 창고번호 */
-             , WARE_NM   /* 창고명 */
+        SELECT WARE_NO                            /* 창고번호 */
+             , WARE_NM || CASE WHEN #{hgrWareNo} IS NOT NULL
+                               THEN '[' || WARE_MNGT_PRTNR_NO || ']'
+                          END || CASE WHEN WARE_USE_YN <![CDATA[<>]]> 'Y'   /* 미사용인 경우만 (미사용) 표기 */
+                                      THEN ( SELECT '(' || MLNG_CNTN || ')'
+                                               FROM T_CMZ_MLNG_D
+                                              WHERE TENANT_ID = 'TNT_BASE'
+                                                AND MLNG_ID   = 'MSG_TXT_NUSD'
+                                                AND LNG_ID    = #{session.langId} )
+                                 END AS WARE_NM   /* 창고명 */
           FROM TB_SVST_MCBY_WARE_IZ   /* 월별창고내역 */
          WHERE DTA_DL_YN  = 'N'
            AND APY_YM     = #{baseYm}
@@ -23,7 +31,7 @@
            AND HGR_WARE_NO    = #{hgrWareNo}
     </otherwise>
     </choose>
-         ORDER BY WARE_NM, WARE_NO
+         ORDER BY WARE_USE_YN DESC, TO_NUMBER(SORT_DV_VAL), WARE_NM, WARE_NO
     </select>
 
     <select id="selectMonthlyByStocksState" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaMonthlyByStockPsDto$SearchRes">
