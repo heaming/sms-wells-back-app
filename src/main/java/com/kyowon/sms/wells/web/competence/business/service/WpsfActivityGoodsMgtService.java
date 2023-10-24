@@ -79,30 +79,12 @@ public class WpsfActivityGoodsMgtService {
     @Transactional
     public int saveActivityGoodsBase(List<WpsfActivityGoodsMgtDto.EditReq> dtos) {
         int processCount = 0;
-        // int oldActiGdsSn = 0;  (2023-10-23) 코드 인스펙션으로 인한 주석 처리
         for (WpsfActivityGoodsMgtDto.EditReq dto : dtos) {
             int actiGdsSn = mapper.selectMaxActiGdsSn(dto);
             WpsfActivityGoodsBaseDvo dvo = converter.mapSaveActivityReq(dto);
-            // (2023-10-23) 코드 인스펙션으로 인한 주석 처리
-            /*
-            if (dvo.getActiGdsSn() != null) {
-                oldActiGdsSn = dvo.getActiGdsSn();
-            }
-            */
             dvo.setActiGdsSn(actiGdsSn);
             dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
             processCount = mapper.insertActivityGoodsBase(dvo);
-            /*
-            if (dvo.getActiGdsSn() != null) {
-                WpsfActivityGoodsAplcIzDvo aDvo = new WpsfActivityGoodsAplcIzDvo();
-                aDvo.setActiGdsCd(dvo.getActiGdsCd());
-                aDvo.setOgTpCd(dvo.getOgTpCd());
-                aDvo.setNewActiGdsSn(actiGdsSn);
-                aDvo.setActiGdsSn(oldActiGdsSn);
-                processCount = mapper.updateActiGdsAplcIzSn(aDvo);
-            }
-             */
-
         }
 
         return processCount;
@@ -155,8 +137,6 @@ public class WpsfActivityGoodsMgtService {
      */
     @Transactional
     public int saveApplication(List<WpsfActivityGoodsMgtDto.SaveApplicationReq> dtos) {
-        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
-        // String userBaseRleCd = userSession.getBaseRleCd(); (2023-10-23) 코드 인스펙션으로 인한 주석 처리
         int processCount = 0;
         for (WpsfActivityGoodsMgtDto.SaveApplicationReq dto : dtos) {
             WpsfActivityGoodsAplcIzDvo dvo = converter.mapSaveApplicationReq(dto);
@@ -294,8 +274,6 @@ public class WpsfActivityGoodsMgtService {
      */
     @Transactional
     public int removeDeductionItemization(List<WpsfActivityGoodsMgtDto.RemoveDeductionReq> dtos) {
-        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
-        // String userCompanyCode = userSession.getCompanyCode(); (2023-10-23) 코드 인스펙션으로 인한 주석 처리
         int processCount = 0;
         for (WpsfActivityGoodsMgtDto.RemoveDeductionReq dto : dtos) {
             WpsfActivityGoodsDeductionItemizationDvo dvo = converter.mapRemoveDeductionItemizationReq(dto);
@@ -371,10 +349,9 @@ public class WpsfActivityGoodsMgtService {
             row++;
         }
         // insert
-        if (excelUploadErrorDvos.size() == 0) {
+        if (excelUploadErrorDvos.isEmpty()) {
             for (WpsfActivityGoodsExcelDvo exDvo : list) {
                 int result = 0;
-                //int result = this.mapper.insertMessageSendExcludeObject(insertData);
                 WpsfActivityGoodsBaseDvo bDvo = new WpsfActivityGoodsBaseDvo();
                 bDvo.setOgTpCd(ogTpCd);
                 bDvo.setActiGdsCd(exDvo.getActiGdsCd());
