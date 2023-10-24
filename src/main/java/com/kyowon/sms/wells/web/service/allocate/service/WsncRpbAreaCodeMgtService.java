@@ -58,4 +58,10 @@ public class WsncRpbAreaCodeMgtService {
         return processCount;
     }
 
+    /**
+     * 책임지역 지역코드 관리 - 지역코드 리스트(콤보박스용) 조회
+     */
+    public List<WsncRpbAreaCodeMgtDto.LocaraCd> getLocaraCds() {
+        return mapper.selectLgldCtpvLocaras();
+    }
 }

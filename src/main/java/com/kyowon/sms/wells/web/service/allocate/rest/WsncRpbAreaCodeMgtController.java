@@ -61,4 +61,12 @@ public class WsncRpbAreaCodeMgtController {
             .build();
     }
 
+    /**
+     * 책임지역 지역코드 관리 - 지역코드 리스트(콤보박스용) 조회
+     */
+    @ApiOperation(value = "책임지역 지역코드 콤보박스용 목록 조회", notes = "콤보박스용 책임지역 지역코드 List를 조회한다.")
+    @GetMapping("/locaraCds")
+    public List<WsncRpbAreaCodeMgtDto.LocaraCd> getLocaraCds() {
+        return service.getLocaraCds();
+    }
 }
