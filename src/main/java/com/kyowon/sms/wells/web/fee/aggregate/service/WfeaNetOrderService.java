@@ -141,19 +141,20 @@ public class WfeaNetOrderService {
         return this.mapper.selectNetAggregateProducts(dto);
     }
 
-//}    /**
-//     * WELLS 월순주문 집계 배치 진행상태 조회
-//     * @param 'SearchReq' 검색조건 정보
-//     * @return 조회된 데이터
-//     */
-//
-//    public String getEndOfBatch(SearchReq dto) {
-//        String jobStatus;
-//        try {
-//            String jobId = this.mapper.selectNetAggregateJobId(dto);
-//            jobStatus = batchCallService.getLastestJobStatus(jobId);
-//        } catch (Exception e) {
-//            return "Fail";
-//        }
-//        return jobStatus;
-//    }
+    //    /**
+    //     * WELLS 월순주문 집계 배치 진행상태 조회
+    //     * @param 'SearchReq' 검색조건 정보
+    //     * @return 조회된 데이터
+    //     */
+    //
+    //    public String getEndOfBatch(SearchReq dto) {
+    //        String jobStatus;
+    //        try {
+    //            String jobId = this.mapper.selectNetAggregateJobId(dto);
+    //            jobStatus = batchCallService.getLastestJobStatus(jobId);
+    //        } catch (Exception e) {
+    //            return "Fail";
+    //        }
+    //        return jobStatus;
+    //    }
+}
