@@ -84,7 +84,7 @@ public class WwfeaAccountNetIncreaseDto {
         String prtnrKnm, /* 성명 */
         String prtnrNo, /* 번호 */
         int rentalCanCt, /* 렌탈취소건수 */
-        int spayCanCt, /* 일시불취소건수 */
+        int spayRsgCt, /* 일시불해지건수 */
         int rentalBooCanCt, /* 렌탈예약취소건수 */
         int spayBooCanCt, /* 일시불예약취소건수 */
         int rentalExnCt, /* 렌탈만료 */
