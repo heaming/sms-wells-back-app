@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.sds.sflex.system.config.validation.BizAssert;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -73,6 +74,7 @@ public class WwdbGiroDepositMgtService {
 
     /**
      * 지로입금 합계 조회
+     *
      * @param dto
      * @return
      */
@@ -84,6 +86,7 @@ public class WwdbGiroDepositMgtService {
 
     /**
      * 지로입금 목록 엑셀다운르도용
+     *
      * @param dto
      * @return
      */
@@ -95,6 +98,7 @@ public class WwdbGiroDepositMgtService {
 
     /**
      * 지로 입금관리 업로드
+     *
      * @param dtos
      * @return
      * @throws Exception
@@ -148,6 +152,7 @@ public class WwdbGiroDepositMgtService {
 
     /**
      * 지로 입금관리 생성
+     *
      * @param dto
      * @return
      * @throws Exception
@@ -736,6 +741,7 @@ public class WwdbGiroDepositMgtService {
 
     /**
      * 지로입금 에러 조회
+     *
      * @param dto
      * @param pageInfo
      * @return
@@ -748,6 +754,7 @@ public class WwdbGiroDepositMgtService {
 
     /**
      * 지로입금 에러 조회 엑셀 다운로드용
+     *
      * @param dto
      * @return
      */
@@ -759,6 +766,7 @@ public class WwdbGiroDepositMgtService {
 
     /**
      * 지로입금에러 저장
+     *
      * @param dtos
      * @return
      * @throws Exception
@@ -803,6 +811,7 @@ public class WwdbGiroDepositMgtService {
 
     /**
      * 지로 입금관리 원장 내역 조회
+     *
      * @param dtos
      * @return
      */
@@ -820,6 +829,7 @@ public class WwdbGiroDepositMgtService {
 
     /**
      * 지로 입금관리 실적일자 조회
+     *
      * @param dtos
      * @return
      */
@@ -833,6 +843,24 @@ public class WwdbGiroDepositMgtService {
             String perfDt = mapper.selectGiroPerfDt(dto.rveDt());
             wwdbGiroDepositSaveDvo.setRveDt(perfDt);
             wwdbGiroDepositSaveDvo.setFntDt(perfDt);
+
+
+            SearchGiroNumberRes searchGiroNumberRes = mapper.selectGiroNumberInquiry(dto.giroInqNo());
+
+
+            BizAssert.isFalse(ObjectUtils.isEmpty(searchGiroNumberRes), "MSG_ALT_IT_NOT_EXIST",
+                new String[]{"지로번호"}); //존재하지 않는 지로번호 입니다.
+
+            BizAssert.isFalse(StringUtil.isEmpty(searchGiroNumberRes.cntrNo()), "MSG_ALT_IT_NOT_EXIST",
+                new String[]{"MSG_TXT_CNTR_NO"}); //존재하지 않는 계약번호 입니다.
+            
+            wwdbGiroDepositSaveDvo.setCntrNo(searchGiroNumberRes.cntrNo());
+            wwdbGiroDepositSaveDvo.setCntrSn(searchGiroNumberRes.cntrSn());
+            wwdbGiroDepositSaveDvo.setCntr(searchGiroNumberRes.cntr());
+            wwdbGiroDepositSaveDvo.setCstNo(searchGiroNumberRes.cstNo());
+            wwdbGiroDepositSaveDvo.setCstKnm(searchGiroNumberRes.cstKnm());
+
+
             editPerfDt.add(wwdbGiroDepositSaveDvo);
         }
 
