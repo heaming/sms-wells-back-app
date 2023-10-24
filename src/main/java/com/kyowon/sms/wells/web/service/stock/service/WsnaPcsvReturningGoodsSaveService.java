@@ -43,7 +43,6 @@ public class WsnaPcsvReturningGoodsSaveService {
     @Transactional
     public int savePcsvReturningGoods(List<SaveReq> dtos) {
 
-        WellsCounselResIvo counselRes;
         int processCount = 0;
         int saveCount = 0;
 
@@ -79,8 +78,8 @@ public class WsnaPcsvReturningGoodsSaveService {
                   반품요청(wkPrgsStatCd-00), 반품등록(wkPrgsStatCd-10) 처리
                 */
                 // 1. 고객서비스AS설치배정내역 업데이트
-                counselRes = new WellsCounselResIvo();
-                counselRes = counselService.saveWellsCounsel(setPcsvReturnGoodsWellsCounselReqIvoSaveReq(dvo));
+                WellsCounselResIvo counselRes = counselService
+                    .saveWellsCounsel(setPcsvReturnGoodsWellsCounselReqIvoSaveReq(dvo));
                 log.info("[고객센터 상담정보 연계 처리결과 조회] => {}", counselRes);
                 // 성공 시, 다음 단계 진행
                 if ("S".equals(counselRes.getResultCode())) {
