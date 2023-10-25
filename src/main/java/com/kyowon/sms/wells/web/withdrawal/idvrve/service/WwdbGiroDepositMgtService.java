@@ -841,25 +841,27 @@ public class WwdbGiroDepositMgtService {
         for (SaveReq dto : dtos) {
             WwdbGiroDepositSaveDvo wwdbGiroDepositSaveDvo = convert.mapSearchWwwdbGiroDepositSaveDvo(dto);
             String perfDt = mapper.selectGiroPerfDt(dto.rveDt());
-            wwdbGiroDepositSaveDvo.setRveDt(perfDt);
-            wwdbGiroDepositSaveDvo.setFntDt(perfDt);
-
-
             SearchGiroNumberRes searchGiroNumberRes = mapper.selectGiroNumberInquiry(dto.giroInqNo());
 
-
-            BizAssert.isFalse(ObjectUtils.isEmpty(searchGiroNumberRes), "MSG_ALT_IT_NOT_EXIST",
-                new String[]{"지로번호"}); //존재하지 않는 지로번호 입니다.
-
-            BizAssert.isFalse(StringUtil.isEmpty(searchGiroNumberRes.cntrNo()), "MSG_ALT_IT_NOT_EXIST",
-                new String[]{"MSG_TXT_CNTR_NO"}); //존재하지 않는 계약번호 입니다.
-            
-            wwdbGiroDepositSaveDvo.setCntrNo(searchGiroNumberRes.cntrNo());
-            wwdbGiroDepositSaveDvo.setCntrSn(searchGiroNumberRes.cntrSn());
-            wwdbGiroDepositSaveDvo.setCntr(searchGiroNumberRes.cntr());
-            wwdbGiroDepositSaveDvo.setCstNo(searchGiroNumberRes.cstNo());
-            wwdbGiroDepositSaveDvo.setCstKnm(searchGiroNumberRes.cstKnm());
-
+            if (ObjectUtils.isEmpty(searchGiroNumberRes)) {
+                wwdbGiroDepositSaveDvo.setRveDt("");
+                wwdbGiroDepositSaveDvo.setFntDt("");
+                wwdbGiroDepositSaveDvo.setCntrNo("");
+                wwdbGiroDepositSaveDvo.setCntrSn("");
+                wwdbGiroDepositSaveDvo.setCntr("");
+                wwdbGiroDepositSaveDvo.setCstNo("");
+                wwdbGiroDepositSaveDvo.setCstKnm("");
+                wwdbGiroDepositSaveDvo.setProcsErrTpCd("1"); //오류코드
+            } else {
+                wwdbGiroDepositSaveDvo.setProcsErrTpCd("3"); //정상처리
+                wwdbGiroDepositSaveDvo.setCntrNo(searchGiroNumberRes.cntrNo());
+                wwdbGiroDepositSaveDvo.setCntrSn(searchGiroNumberRes.cntrSn());
+                wwdbGiroDepositSaveDvo.setCntr(searchGiroNumberRes.cntr());
+                wwdbGiroDepositSaveDvo.setCstNo(searchGiroNumberRes.cstNo());
+                wwdbGiroDepositSaveDvo.setCstKnm(searchGiroNumberRes.cstKnm());
+                wwdbGiroDepositSaveDvo.setRveDt(perfDt);
+                wwdbGiroDepositSaveDvo.setFntDt(perfDt);
+            }
 
             editPerfDt.add(wwdbGiroDepositSaveDvo);
         }
