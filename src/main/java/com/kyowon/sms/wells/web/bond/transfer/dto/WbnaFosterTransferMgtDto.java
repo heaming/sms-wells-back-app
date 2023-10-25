@@ -137,7 +137,6 @@ public class WbnaFosterTransferMgtDto {
         String cntrNo, /* 계약번호 */
         @NotBlank
         String cntrSn, /* 계약일련번호 */
-        @NotBlank
         String clctamPrtnrNo, /* 집금파트너번호 */
         @NotBlank
         String rowState,

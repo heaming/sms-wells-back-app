@@ -29,7 +29,6 @@ public class WogcPartnerPlannerDto {
         String ogId,
         String ogTpCd,
         String prtnrNo,
-        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm,
         String rsbDvCd,
         String rsbDvNm,
@@ -69,8 +68,7 @@ public class WogcPartnerPlannerDto {
         String pcpPrtnrNo,
         String pcpPrtnrKnm,
         String prcsdt
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchReq")
     @Builder
@@ -101,12 +99,10 @@ public class WogcPartnerPlannerDto {
         String dgr2LevlOgNm,
         String ogCd,
         String ogTpCd,
-        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm,
         String prtnrNo,
         String qlfDvCd,
         String qlfDvNm,
-        @MaskRequired(type = MaskingType.NAME)
         String rcmdrPrtnrNm,
         String rcmdrPrtnrNo,
         String cntrDt,

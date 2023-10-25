@@ -109,6 +109,7 @@ public class WfedIndividualFeeMgtDto {
         String prtnrKnm, /* 파트너명 */
         String rsbDvCd, /* 직책구분코드 */
         String qlfDvCd, /* 자격구분코드 */
+        String brmgrDvCd, /* 지점장구분코드 */
         String cntrDt, /* 계약일자 */
         String prfmtDt, /* 승진일자 */
         String cltnDt, /* 해약일자 */

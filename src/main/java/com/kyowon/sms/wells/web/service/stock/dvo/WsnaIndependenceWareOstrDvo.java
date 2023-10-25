@@ -80,6 +80,8 @@ public class WsnaIndependenceWareOstrDvo {
     private BigDecimal asnTnN;
     // 창고구분
     private String wareDvCd;
+    // 출고누계수량
+    private BigDecimal ostrAggQty;
 
     /**
      * 출고요청 관련

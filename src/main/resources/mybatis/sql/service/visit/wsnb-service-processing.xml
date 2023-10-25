@@ -50,11 +50,13 @@
              , F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', S1.SITE_AW_PD_GRP_CD) AS PD_GRP_NM /* 상품군명 */
              , S2.PD_CD /* 품목코드 */
              , P1.PD_ABBR_NM AS MODEL_NM /* 모델명 */
-             , S5.SCN_YN /* 스캔 */
+             , NVL(S5.SCN_YN, 'N') AS SCN_YN /* 스캔 */
              , S5.BF_MNFT_CO_ID /* 이전제조번호 */
              , S4.BC_NO /* 제조번호 */
              , S5.PRDT_YM /* 제조년월 */
-             , F_CMZ_CD_NM(#{session.tenantId}, 'IN_CHNL_DV_CD', S2.IN_CHNL_DV_CD) AS CHANNEL_NM /* 접수구분 */
+             , (CASE WHEN S2.IN_CHNL_DV_CD = '3' THEN '판매'
+                     ELSE F_CMZ_CD_NM(#{session.tenantId}, 'IN_CHNL_DV_CD', S2.IN_CHNL_DV_CD)
+                END) AS CHANNEL_NM /* 접수구분 */
              , O12.DGR1_LEVL_OG_NM AS GNRDV /* 총괄단 */
              , O12.DGR2_LEVL_OG_NM AS RGRP /* 지역단 */
              , O11.OG_NM /* 접수자소속 */
@@ -96,15 +98,15 @@
                      WHEN O1.PRTNR_GD_CD = '33' THEN T6.ROL_L2_LOLYR_AW_AMT
                      WHEN O1.PRTNR_GD_CD = '41' THEN T6.ROL_L3_AW_AMT
                      WHEN O1.PRTNR_GD_CD = '51' THEN T6.CRWK_AW_AMT
-                     WHEN O1.PRTNR_CLSF_CD = '1' THEN T6.FULEY_AW_AMT
-                     WHEN O1.PRTNR_CLSF_CD = '2' AND O1.PSTN_DV_CD = '86' THEN T6.ROL_LYR1_MDLYR_AW_AMT
-                     WHEN O1.PRTNR_CLSF_CD = '2' AND O1.PSTN_DV_CD = '87' THEN T6.ROL_L2_MDLYR_AW_AMT
-                     WHEN O1.PRTNR_CLSF_CD = '2' AND O1.PSTN_DV_CD = '88' THEN T6.ROL_L3_AW_AMT
-                     WHEN O1.PRTNR_CLSF_CD = '6' THEN T6.CRWK_AW_AMT
-                     WHEN O1.PRTNR_CLSF_CD = '7' THEN T6.INDV_ENTRP_AW_AMT
+                     WHEN O1.HIR_FOM_CD = '3' THEN T6.FULEY_AW_AMT
+                     WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '86' THEN T6.ROL_LYR1_MDLYR_AW_AMT
+                     WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '87' THEN T6.ROL_L2_MDLYR_AW_AMT
+                     WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '88' THEN T6.ROL_L3_AW_AMT
+                     WHEN O1.HIR_FOM_CD = '2' THEN T6.CRWK_AW_AMT
+                     WHEN O1.HIR_FOM_CD = '1' THEN T6.INDV_ENTRP_AW_AMT
                      ELSE 0
                 END) AS SITE_AW_AMT /* 현장수당금액 */
-             , S1.RGLVL_GD_CD /* 현장수당(급지) */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RGLVL_DV_CD', S3.MNGER_RGLVL_DV_CD) AS RGLVL_GD_CD /* 현장수당(급지) */
              , NVL((SELECT X1.AW_AMT
                       FROM TB_SVPD_RGLVL_GD_AW_WTCF_IZ X1
                      WHERE 1 = 1
@@ -195,11 +197,11 @@
           LEFT OUTER JOIN TB_SVPD_QLTY_MNGT_AS_DTL_IZ S5
             ON S5.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
           LEFT OUTER JOIN (SELECT X1.CST_SV_ASN_NO
-                          , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '10' THEN X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT ELSE 0 END) PART_CS
-                          , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '20' THEN X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT ELSE 0 END) TCFEE
-                          , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '30' THEN X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT ELSE 0 END) BSTR_CS
-                          , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '50' THEN X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT ELSE 0 END) ETC_CS
-                          , SUM(X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT) RVE_CS_TOT
+                          , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '10' THEN NVL(X1.BIL_OJ_AMT, 0) - NVL(X1.BIL_CTR_SUM_AMT, 0) ELSE 0 END) PART_CS
+                          , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '20' THEN NVL(X1.BIL_OJ_AMT, 0) - NVL(X1.BIL_CTR_SUM_AMT, 0) ELSE 0 END) TCFEE
+                          , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '30' THEN NVL(X1.BIL_OJ_AMT, 0) - NVL(X1.BIL_CTR_SUM_AMT, 0) ELSE 0 END) BSTR_CS
+                          , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '50' THEN NVL(X1.BIL_OJ_AMT, 0) - NVL(X1.BIL_CTR_SUM_AMT, 0) ELSE 0 END) ETC_CS
+                          , SUM(NVL(X1.BIL_OJ_AMT, 0) - NVL(X1.BIL_CTR_SUM_AMT, 0)) RVE_CS_TOT
                        FROM TB_SVPD_SV_CS_BIL_DTL X1
                       WHERE 1 = 1
                         AND X1.DTA_DL_YN = 'N'
@@ -253,9 +255,9 @@
           LEFT OUTER JOIN TB_GBCO_ADR_BAS A1
             ON C4.ADR_ID = A1.ADR_ID
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ O1 /* 월파트너내역 */
-            ON O1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND O1.OG_TP_CD = S1.ICHR_OG_TP_CD
-           AND O1.PRTNR_NO = S1.ICHR_PRTNR_NO
+            ON O1.BASE_YM = SUBSTR(NVL(S1.WK_EXCN_DT, TO_CHAR(SYSDATE, 'YYYYMMDD')), 1, 6)
+           AND O1.OG_TP_CD = S1.WK_PRTNR_OG_TP_CD
+           AND O1.PRTNR_NO = S1.WK_PRTNR_NO
            AND O1.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ O11
             ON SUBSTR(S2.RCPDT, 1, 6) = O11.BASE_YM
@@ -277,9 +279,9 @@
             ON S2.PD_CD = P1.PD_CD
           LEFT OUTER JOIN TB_FEAM_SITE_AW_DSB_BASE_BAS T6 /* 현장수당지급기준기본 */
             ON T6.PD_GRP_CD = S1.SITE_AW_PD_GRP_CD
-           AND T6.SV_TP_CD = S1.SITE_AW_SV_TP_CD
+           AND T6.SV_TP_CD = S2.SV_BIZ_HCLSF_CD
            AND T6.SITE_AW_ATC_CD = S1.SITE_AW_ATC_CD
-           AND T6.RGLVL_DV_CD = S1.RGLVL_GD_CD
+           AND T6.RGLVL_DV_CD = S3.MNGER_RGLVL_DV_CD
            AND NVL(S1.WK_EXCN_DT, TO_CHAR(SYSDATE, 'YYYYMMDD')) BETWEEN T6.APY_STRTDT AND T6.APY_ENDDT
          WHERE 1 = 1
            AND S1.DTA_DL_YN = 'N'
@@ -387,11 +389,13 @@
               , F_CMZ_CD_NM(#{session.tenantId}, 'PD_GRP_CD', S1.SITE_AW_PD_GRP_CD) AS PD_GRP_NM /* 상품군명 */
               , S2.PD_CD /* 품목코드 */
               , P1.PD_ABBR_NM AS MODEL_NM /* 모델명 */
-              , S5.SCN_YN /* 스캔 */
+              , NVL(S5.SCN_YN, 'N') AS SCN_YN /* 스캔 */
               , S5.BF_MNFT_CO_ID /* 이전제조번호 */
               , S4.BC_NO /* 제조번호 */
               , S5.PRDT_YM /* 제조년월 */
-              , F_CMZ_CD_NM(#{session.tenantId}, 'IN_CHNL_DV_CD', S2.IN_CHNL_DV_CD) AS CHANNEL_NM /* 접수구분 */
+              , (CASE WHEN S2.IN_CHNL_DV_CD = '3' THEN '판매'
+                      ELSE F_CMZ_CD_NM(#{session.tenantId}, 'IN_CHNL_DV_CD', S2.IN_CHNL_DV_CD)
+                 END) AS CHANNEL_NM /* 접수구분 */
               , O12.DGR1_LEVL_OG_NM AS GNRDV /* 총괄단 */
               , O12.DGR2_LEVL_OG_NM AS RGRP /* 지역단 */
               , O11.OG_NM /* 접수자소속 */
@@ -433,15 +437,15 @@
                       WHEN O1.PRTNR_GD_CD = '33' THEN T6.ROL_L2_LOLYR_AW_AMT
                       WHEN O1.PRTNR_GD_CD = '41' THEN T6.ROL_L3_AW_AMT
                       WHEN O1.PRTNR_GD_CD = '51' THEN T6.CRWK_AW_AMT
-                      WHEN O1.PRTNR_CLSF_CD = '1' THEN T6.FULEY_AW_AMT
-                      WHEN O1.PRTNR_CLSF_CD = '2' AND O1.PSTN_DV_CD = '86' THEN T6.ROL_LYR1_MDLYR_AW_AMT
-                      WHEN O1.PRTNR_CLSF_CD = '2' AND O1.PSTN_DV_CD = '87' THEN T6.ROL_L2_MDLYR_AW_AMT
-                      WHEN O1.PRTNR_CLSF_CD = '2' AND O1.PSTN_DV_CD = '88' THEN T6.ROL_L3_AW_AMT
-                      WHEN O1.PRTNR_CLSF_CD = '6' THEN T6.CRWK_AW_AMT
-                      WHEN O1.PRTNR_CLSF_CD = '7' THEN T6.INDV_ENTRP_AW_AMT
+                      WHEN O1.HIR_FOM_CD = '3' THEN T6.FULEY_AW_AMT
+                      WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '86' THEN T6.ROL_LYR1_MDLYR_AW_AMT
+                      WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '87' THEN T6.ROL_L2_MDLYR_AW_AMT
+                      WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '88' THEN T6.ROL_L3_AW_AMT
+                      WHEN O1.HIR_FOM_CD = '2' THEN T6.CRWK_AW_AMT
+                      WHEN O1.HIR_FOM_CD = '1' THEN T6.INDV_ENTRP_AW_AMT
                       ELSE 0
                  END) AS SITE_AW_AMT /* 현장수당금액 */
-              , S1.RGLVL_GD_CD /* 현장수당(급지) */
+              , F_CMZ_CD_NM(#{session.tenantId}, 'RGLVL_DV_CD', S3.MNGER_RGLVL_DV_CD) AS RGLVL_GD_CD /* 현장수당(급지) */
               , NVL((SELECT X1.AW_AMT
                        FROM TB_SVPD_RGLVL_GD_AW_WTCF_IZ X1
                       WHERE 1 = 1
@@ -532,11 +536,11 @@
            LEFT OUTER JOIN TB_SVPD_QLTY_MNGT_AS_DTL_IZ S5
              ON S5.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
            LEFT OUTER JOIN (SELECT X1.CST_SV_ASN_NO
-                           , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '10' THEN X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT ELSE 0 END) PART_CS
-                           , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '20' THEN X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT ELSE 0 END) TCFEE
-                           , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '30' THEN X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT ELSE 0 END) BSTR_CS
-                           , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '50' THEN X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT ELSE 0 END) ETC_CS
-                           , SUM(X1.BIL_OJ_AMT - X1.BIL_CTR_SUM_AMT) RVE_CS_TOT
+                           , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '10' THEN NVL(X1.BIL_OJ_AMT, 0) - NVL(X1.BIL_CTR_SUM_AMT, 0) ELSE 0 END) PART_CS
+                           , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '20' THEN NVL(X1.BIL_OJ_AMT, 0) - NVL(X1.BIL_CTR_SUM_AMT, 0) ELSE 0 END) TCFEE
+                           , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '30' THEN NVL(X1.BIL_OJ_AMT, 0) - NVL(X1.BIL_CTR_SUM_AMT, 0) ELSE 0 END) BSTR_CS
+                           , SUM(CASE WHEN X1.CS_BIL_ATC_CD = '50' THEN NVL(X1.BIL_OJ_AMT, 0) - NVL(X1.BIL_CTR_SUM_AMT, 0) ELSE 0 END) ETC_CS
+                           , SUM(NVL(X1.BIL_OJ_AMT, 0) - NVL(X1.BIL_CTR_SUM_AMT, 0)) RVE_CS_TOT
                         FROM TB_SVPD_SV_CS_BIL_DTL X1
                        WHERE 1 = 1
                          AND X1.DTA_DL_YN = 'N'
@@ -590,9 +594,9 @@
            LEFT OUTER JOIN TB_GBCO_ADR_BAS A1
              ON C4.ADR_ID = A1.ADR_ID
            LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ O1 /* 월파트너내역 */
-             ON O1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-            AND O1.OG_TP_CD = S1.ICHR_OG_TP_CD
-            AND O1.PRTNR_NO = S1.ICHR_PRTNR_NO
+             ON O1.BASE_YM = SUBSTR(NVL(S1.WK_EXCN_DT, TO_CHAR(SYSDATE, 'YYYYMMDD')), 1, 6)
+            AND O1.OG_TP_CD = S1.WK_PRTNR_OG_TP_CD
+            AND O1.PRTNR_NO = S1.WK_PRTNR_NO
             AND O1.DTA_DL_YN = 'N'
            LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ O11
              ON SUBSTR(S2.RCPDT, 1, 6) = O11.BASE_YM
@@ -614,9 +618,9 @@
              ON S2.PD_CD = P1.PD_CD
            LEFT OUTER JOIN TB_FEAM_SITE_AW_DSB_BASE_BAS T6 /* 현장수당지급기준기본 */
              ON T6.PD_GRP_CD = S1.SITE_AW_PD_GRP_CD
-            AND T6.SV_TP_CD = S1.SITE_AW_SV_TP_CD
+            AND T6.SV_TP_CD = S2.SV_BIZ_HCLSF_CD
             AND T6.SITE_AW_ATC_CD = S1.SITE_AW_ATC_CD
-            AND T6.RGLVL_DV_CD = S1.RGLVL_GD_CD
+            AND T6.RGLVL_DV_CD = S3.MNGER_RGLVL_DV_CD
             AND NVL(S1.WK_EXCN_DT, TO_CHAR(SYSDATE, 'YYYYMMDD')) BETWEEN T6.APY_STRTDT AND T6.APY_ENDDT
           WHERE 1 = 1
             AND S1.DTA_DL_YN = 'N'
