@@ -142,7 +142,10 @@ public class WbncCustomerService {
         processCount = mapper.insertPromise(dvo);
         BizAssert.isTrue(processCount > 0, "MSG_ALT_SVE_ERR");
 
-        user.setUserCustomParam(null);
+        if (user.getUserCustomParam() != null) {
+            user.setUserCustomParam(null);
+        }
+
         return processCount;
     }
 
