@@ -36,7 +36,7 @@ public class WsnyErrorCodeMgtService {
     private final WsnyErrorCodeMgtMapper mapper;
     private final WsnyErrorCodeMgtConverter converter;
     private final AttachFileService attachFileService;
-    private final String groupId = "ATG_SNY_ERR_IMG";
+    private static final String groupId = "ATG_SNY_ERR_IMG";
 
     /**
      * 상품별 에러코드 관리 조회(페이징)

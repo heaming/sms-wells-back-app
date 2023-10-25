@@ -11,7 +11,8 @@ public class WsncExpProductStateDto {
         String baseYm,
         String ogId,
         String pdGrpCd,
-        String pdCd
+        String pdCd,
+        String cstSvAsnNo
     ) {}
 
     @ApiModel(value = "WsncExpProductStateDto-SearchRes")

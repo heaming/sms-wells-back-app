@@ -69,7 +69,8 @@ public class WsncBsEngineerAllocateSearchDto {
         String feamSite,
         String svProcsCn,
         String cstSignCn,
-        String chngs
+        String chngs,
+        String cstSvAsnNo
     ) {
         @AutomapConstructor
         public SearchRes(
@@ -112,7 +113,8 @@ public class WsncBsEngineerAllocateSearchDto {
             String feamSite,
             String svProcsCn,
             byte[] cstSignCn,
-            String chngs
+            String chngs,
+            String cstSvAsnNo
         ) {
             this(
                 barcodeIssue,
@@ -154,7 +156,8 @@ public class WsncBsEngineerAllocateSearchDto {
                 feamSite,
                 svProcsCn,
                 cstSignCn != null ? Base64.getEncoder().encodeToString(cstSignCn) : "",
-                chngs
+                chngs,
+                cstSvAsnNo
             );
         }
     }
