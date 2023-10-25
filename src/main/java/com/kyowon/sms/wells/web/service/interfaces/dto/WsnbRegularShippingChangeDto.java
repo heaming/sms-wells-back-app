@@ -35,7 +35,10 @@ public class WsnbRegularShippingChangeDto {
     @ApiModel(value = "WsnbRegularShippingChDto-SaveRes")
     public record SaveRes(
         @NotBlank
+        @JsonProperty(value = "RESULT")
         String result,
+
+        @JsonProperty(value = "MSG")
         String msg
     ) {}
 
