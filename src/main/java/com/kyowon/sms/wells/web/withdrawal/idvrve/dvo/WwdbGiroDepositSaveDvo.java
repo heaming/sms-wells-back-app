@@ -36,6 +36,7 @@ public class WwdbGiroDepositSaveDvo {
     String cntr;
     String cstNo;
     String cstKnm;
+    String procsErrTpCd; //오류코드
 
     String ogTpCd; /*조직유형코드*/
     String prtnrNo; /*파트너번호*/
