@@ -15,9 +15,7 @@ public class WwdbContractRefundDto {
         String startDay, // 처리일자 시작일
         @NotBlank
         String endDay, // 처리일자 종료일
-        @NotBlank
         String perfDtStartDay, // 실적일자 시작일
-        @NotBlank
         String perfDtEndDay, // 실적일자 종료일
         String cntrwTpCd // 업무구분
         //        String prntDv // 확인필요. 출력구분. 센터, 신용
@@ -27,6 +25,8 @@ public class WwdbContractRefundDto {
 
     @ApiModel(value = "WwdbContractRefundDto-SearchContractRefundRes")
     public record SearchContractRefundRes(
+        String rveNo,
+        String rveSn,
         String rfndRcpNo,
         String rfndRcpDtlSn,
         String cntrNo,
@@ -67,9 +67,7 @@ public class WwdbContractRefundDto {
         String startDay, // 처리일자 시작일
         @NotBlank
         String endDay, // 처리일자 종료일
-        @NotBlank
         String perfDtStartDay, // 실적일자 시작일
-        @NotBlank
         String perfDtEndDay, // 실적일자 종료일
         String cntrwTpCd // 업무구분
         //        String prntDv // 확인필요. 출력구분. 센터, 신용
@@ -90,15 +88,16 @@ public class WwdbContractRefundDto {
         String nhCardRfndDsbAmtSum, // 농협 환불지급금액 합계
         String ydCardRfndDsbAmtSum, // 여민동락 환불지급금액 합계
         String cardRfndDdtnAmtSum, // 카드 공제(환불공제금액 합계)
-        /* 확인 필요: 회사귀속 */
+        String blngAmt,/* 확인 필요: 회사귀속 */
         String cashCardRfndDdtnAmtSum, // 현금계(현금 환불공제금액 합계 + 카드 공제(환불공제금액 합계))
         String cardRfndDsbAmtSum, // 카드 (환불지급금액) 합계
-        /* 확인 필요: 인수 전금 웰스: 홈케어: */
-        /* 확인 필요: 인수 전금 계 */
-        /* 확인 필요: 할부전금(웰스)  */
-        /* 확인 필요: 할부전금계 = 인수전금 합계 + 할부전금 합계  */
+        String tkMrntBltfSum,/* 확인 필요: 인수 전금 웰스: 홈케어: */
+        String tkHcrBltfSum,
+        String tkBltfResultSum,/* 확인 필요: 인수 전금 계 */
+        String istmBltfSum,/* 확인 필요: 할부전금(웰스)  */
+        String istmBltfResultSum,/* 확인 필요: 할부전금계 = 인수전금 합계 + 할부전금 합계  */
         String rfndDsbPspIntSum, // 지연이자 합계
-        /* 확인 필요:K 포인트 */
+        String pointSum,/* 확인 필요:K 포인트 */
         String rfndBltfSum,/* 확인 필요:전금합계 */
         String rfTotalSum/* 확인 필요:환불 총계 */
     ) {

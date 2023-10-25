@@ -15,9 +15,8 @@ public class WwdbEtcAmountRefundDto {
         String startDay, // 처리일자 시작일
         @NotBlank
         String endDay, // 처리일자 종료일
-        @NotBlank
+
         String perfDtStartDay, // 실적일자 시작일
-        @NotBlank
         String perfDtEndDay, // 실적일자 종료일
         String rfndDv, // 환불구분
         String icptSellYn // 불완전판매여부
@@ -70,9 +69,9 @@ public class WwdbEtcAmountRefundDto {
         String startDay, // 처리일자 시작일
         @NotBlank
         String endDay, // 처리일자 종료일
-        @NotBlank
+
         String perfDtStartDay, // 실적일자 시작일
-        @NotBlank
+
         String perfDtEndDay, // 실적일자 종료일
         String rfndDv, // 환불구분
         String icptSellYn // 불완전판매여부
