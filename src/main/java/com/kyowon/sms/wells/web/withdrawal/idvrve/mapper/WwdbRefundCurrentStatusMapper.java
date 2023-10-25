@@ -46,7 +46,7 @@ public interface WwdbRefundCurrentStatusMapper {
      * @return PagingResult<SearchCardRefundHistoryRes>
      */
     PagingResult<SearchCardRefundHistoryRes> selectCardRefundHistory(
-        SearchCardRefundHistoryReq req,
+        SearchRefundHistoryReq req,
         PageInfo pageInfo
     );
 
