@@ -162,6 +162,31 @@ public class WsnaIndividualWareOstrDto {
     ) {}
 
     @Builder
+    @ApiModel("WsnaIndividualWareOstrDto-SearchTranferReq")
+    public record SearchTranferReq(
+        // 배정년월
+        @NotBlank
+        String asnOjYm,
+        // 기준년월
+        @NotBlank
+        String apyYm,
+        // 회차
+        @Positive
+        @Max(999999999999L)
+        BigDecimal cnt,
+        // 출고창고
+        @NotBlank
+        String ostrWareNo,
+        // 창고구분
+        @NotBlank
+        String wareDvCd,
+        // 창고상세구분
+        @NotBlank
+        String wareDtlDvCd
+
+    ) {}
+
+    @Builder
     @ApiModel("WsnaIndividualWareOstrDto-CreateReq")
     public record CreateReq(
         // 배정년월

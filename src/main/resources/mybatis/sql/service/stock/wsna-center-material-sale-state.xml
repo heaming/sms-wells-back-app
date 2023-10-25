@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaCenterMaterialSaleStateMapper">
+    <select id="selectCenterMaterialSaleState" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaCenterMaterialSaleStateDto$SearchRes">
+        SELECT SAP_MAT_CD
+             , PD_CD
+             , PD_NM
+             , FRE                                  /*무상*/
+             , RECAP                                /*유상*/
+             , OSTR_SUM                             /*출고계*/
+             , NVL(AMT_SUM+AMT,0) AMT_SUM_WON       /*금액계(원)*/
+             , INSTL                                /*설치*/
+             , BEFORE_SERVICE                       /*B/S*/
+             , FRISU_AFTER_SERVICE                  /*A/S(무)*/
+             , FLTR                                 /*필터*/
+             , NVL(AMT_SUM,0) AMT_SUM               /*금액(원)*/
+             , RECAP_AFTER_SERVICE                  /*A/S(유)*/
+             , NVL(AMT,0) AMT                       /*금액*/
+          FROM
+            (SELECT  SAP_MAT_CD
+                   , PD_CD
+                   , PD_NM
+                   , SUM(INSTL) AS INSTL
+                   , SUM(BEFORE_SERVICE) AS BEFORE_SERVICE
+                   , SUM(FRISU_AFTER_SERVICE) AS FRISU_AFTER_SERVICE
+                   , SUM(FLTR) AS FLTR
+                   , SUM(AMT_SUM) AS AMT_SUM
+                   , SUM(RECAP_AFTER_SERVICE) AS RECAP_AFTER_SERVICE
+                   , SUM(AMT) AS AMT
+                   , SUM(FRE) AS FRE
+                   , SUM(RECAP) AS RECAP
+                   , SUM(OSTR_SUM) AS OSTR_SUM
+              FROM (
+                    SELECT SAP_MAT_CD
+                         , PD_CD
+                         , PD_NM
+                         , DECODE(GUBN,'1',SUM(USE_QTY)) INSTL
+                         , DECODE(GUBN,'2',SUM(USE_QTY)) BEFORE_SERVICE
+                         , DECODE(GUBN,'3',SUM(USE_QTY)) FRISU_AFTER_SERVICE
+                         , DECODE(GUBN,'4',SUM(USE_QTY)) FLTR
+                         , DECODE(GUBN,'4',SUM(USE_QTY*CSMR_UPRC_AMT)) AMT_SUM
+                         , DECODE(GUBN,'5',SUM(USE_QTY)) RECAP_AFTER_SERVICE
+                         , DECODE(GUBN,'5',SUM(USE_QTY*CSMR_UPRC_AMT)) AMT
+                         , CASE WHEN (GUBN) IN ('1','2','3') THEN SUM(USE_QTY) END FRE
+                         , CASE WHEN (GUBN) IN ('4','5') THEN SUM(USE_QTY) END RECAP
+                         , SUM(USE_QTY) OSTR_SUM
+                      FROM
+                           (
+                            SELECT P2.SAP_MAT_CD AS SAP_MAT_CD
+                                 , P2.PD_CD AS PD_CD
+                                 , P2.PD_NM AS PD_NM
+                                 , S1.CSMR_UPRC_AMT AS CSMR_UPRC_AMT
+                                 , CASE WHEN S1.SV_BIZ_HCLSF_CD = '1' AND (S1.REFRI_DV_CD  = '1' OR S1.REFRI_DV_CD IS NULL)  THEN '1'
+                                        WHEN S1.SV_BIZ_HCLSF_CD = '2'                          THEN '2'
+                                        WHEN S1.SV_BIZ_HCLSF_CD = '3' AND (S1.REFRI_DV_CD  = '1' OR S1.REFRI_DV_CD IS NULL)  THEN '3'
+                                        WHEN S1.SV_BIZ_HCLSF_CD = '1' AND S1.REFRI_DV_CD  = '2' THEN '4'
+                                        WHEN S1.SV_BIZ_HCLSF_CD = '3' AND S1.REFRI_DV_CD  = '2' THEN '5'
+                                        ELSE '6'
+                                   END  GUBN
+                                 , S1.USE_QTY AS USE_QTY
+                              FROM TB_SVST_SV_WK_OSTR_IZ S1	                       /*LC_STOCK_ST163TB 서비스작업출고내역*/
+                        INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P1               /*상품각사속성상세*/
+                                ON P1.PD_CD = S1.ITM_PD_CD
+                               AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+                               AND P1.DTA_DL_YN = 'N'
+                        INNER JOIN WSMDBS.TB_PDBS_PD_BAS P2                        /*상품기본*/
+                                ON P2.PD_CD = P1.PD_CD
+                               AND P2.DTA_DL_YN = 'N'
+                        INNER JOIN WSMDBS.TB_SVST_MCBY_WARE_IZ W1                  /*월별창고내역*/
+                                ON W1.WARE_NO = S1.WK_WARE_NO
+                               AND W1.APY_YM = SUBSTR(S1.FNL_VST_FSH_DT,1,6)
+                               AND W1.WARE_DV_CD = '2'                             /*서비스센터 고정*/
+                               AND W1.DTA_DL_YN = 'N'
+                         WHERE 1=1
+                               AND S1.SV_BIZ_DCLSF_CD != '6'
+                               /*출고일자검색*/
+                               AND S1.FNL_VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
+                               /*품목그룹검색*/
+                               <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+                               AND P1.PD_PRP_VAL19 = #{itmKndCd}
+                               </if>
+                               /*품목코드검색*/
+                               <if test="@MybatisUtils@isNotEmpty(itmCdFrom)">
+                               AND S1.ITM_PD_CD BETWEEN #{itmCdFrom} AND #{itmCdTo}
+                               </if>
+                               AND S1.DTA_DL_YN = 'N'
+                               /*창고구분(중)검색*/
+                               <if test="@MybatisUtils@isNotEmpty(wareNoM)">
+                               AND (W1.HGR_WARE_NO = #{wareNoM} or W1.WARE_NO = #{wareNoM})
+                               </if>
+                               /*창고구분(하)검색*/
+                               <if test="@MybatisUtils@isNotEmpty(wareNoD)">
+                               AND W1.WARE_NO = #{wareNoD}
+                               </if>
+                               /*창고상세구분검색*/
+                               <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
+                               AND W1.WARE_DTL_DV_CD = #{wareDtlDvCd}
+                               </if>
+                           )
+                     GROUP BY SAP_MAT_CD, PD_CD, PD_NM, GUBN
+                   )
+             GROUP BY SAP_MAT_CD, PD_CD, PD_NM
+             )
+         WHERE 1=1
+         ORDER BY PD_CD
+    </select>
+</mapper>

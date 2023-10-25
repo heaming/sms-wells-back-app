@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchWareRes;
+
 import java.util.List;
 
 import javax.validation.Valid;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchWareReq;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaReturningGoodsOstrAgrgService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -45,5 +48,14 @@ public class WsnaReturningGoodsOstrAgrgController {
         SearchReq dto
     ) {
         return service.getReturningGoodsOstrAgrg(dto);
+    }
+
+    @ApiOperation(value = "반품출고집계현황 창고 드롭박스 초기 설정", notes = "유저 정보를 받아 담당 창고를 선택한다")
+    @GetMapping("/user-og-ware")
+    public List<SearchWareRes> getReturningGoodsOstrAgrg(
+        @Valid
+        SearchWareReq dto
+    ) {
+        return service.getWareByUserOgId(dto);
     }
 }

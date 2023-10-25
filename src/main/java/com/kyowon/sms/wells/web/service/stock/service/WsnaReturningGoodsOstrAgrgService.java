@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchWareReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchWareRes;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaReturningGoodsOstrAgrgMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -33,6 +35,10 @@ public class WsnaReturningGoodsOstrAgrgService {
 
     public List<SearchRes> getReturningGoodsOstrAgrg(SearchReq dto) {
         return mapper.selectReturningGoodsOstrAgrg(dto);
+    }
+
+    public List<SearchWareRes> getWareByUserOgId(SearchWareReq dto) {
+        return mapper.selectWareByUserOgId(dto);
     }
 
 }
