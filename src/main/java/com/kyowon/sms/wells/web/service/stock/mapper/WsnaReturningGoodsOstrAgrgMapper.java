@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchWareReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchWareRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -23,5 +25,7 @@ public interface WsnaReturningGoodsOstrAgrgMapper {
     PagingResult<SearchRes> selectReturningGoodsOstrAgrg(SearchReq dto, PageInfo pageInfo);
 
     List<SearchRes> selectReturningGoodsOstrAgrg(SearchReq dto);
+
+    List<SearchWareRes> selectWareByUserOgId(SearchWareReq dto);
 
 }

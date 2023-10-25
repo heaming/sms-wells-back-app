@@ -20,6 +20,12 @@ public class WsnaReturningGoodsOstrAgrgDto {
         String rtngdProcsTpCd
     ) {}
 
+    @ApiModel(value = "WsnaReturningGoodsOstrAgrgDto-SearchWareReq")
+    public record SearchWareReq(
+        String ogTpCd,
+        String ogId
+    ) {}
+
     @ApiModel(value = "WsnaReturningGoodsOstrAgrgDto-SearchRes")
     public record SearchRes(
         String pdClsfId,
@@ -30,5 +36,10 @@ public class WsnaReturningGoodsOstrAgrgDto {
         Integer fnlESum,
         Integer fnlRSum,
         Integer fnlXSum
+    ) {}
+
+    @ApiModel(value = "WsnaReturningGoodsOstrAgrgDto-SearchWareRes")
+    public record SearchWareRes(
+        String wareNo
     ) {}
 }
