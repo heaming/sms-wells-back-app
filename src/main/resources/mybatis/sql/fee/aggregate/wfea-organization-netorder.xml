@@ -1614,7 +1614,12 @@
                     WHEN T.SELL_TP_CD = '3' THEN F_CMZ_CD_NM(#{session.tenantId}, 'MSH_DSC_TP_CD', T.SELL_DSC_TP_CD)
                     ELSE T.SELL_DSC_TP_CD END AS DSC_SYST /* 할인제도 !!!*/
              , T.LCST04 AS COMBI_DV /* 결합구분 !!!*/
-             , T.DP_PERF        /* 입금실적 !!!*/
+             , CASE WHEN T.SELL_TP_CD = '1' THEN T.LCPAMT
+                    WHEN T.SELL_TP_CD = '2' THEN TRUNC(T.FNL_AMT / 1.1 ) * 12
+                    WHEN T.SELL_TP_CD = '6' THEN
+                        CASE WHEN T.CNTRW_TP_CD = 6 THEN T.LCPAMT / (T.STPL_PTRM / 12)
+                             ELSE T.LCPAMT * (T.STPL_PTRM / 12) END
+                END AS DP_PERF /* 입금실적 !!!*/
              , T.LCMONT AS ISTM  /* 할부 !!!*/
              , T.HOMCARE AS HOME_CARE /* 홈케어 !!!*/
              , T.HOMCARE3_YEAR AS HCR_MSH_Y3 /* 홈케어멤버십3년 !!!!*/
@@ -1628,7 +1633,18 @@
              , T.AKDBNM AS BRMGR_FNM /* 지점장성명 !!!*/
              , T.LCAMT1 AS RTLFE /* 렌탈료 !!!*/
              , T.STPL_PTRM AS STPL_MCNT           /* 약정개월 !!!*/
-             , T.LCFLG3 AS MNGT_PRD          /* 관리주기 !!!*/
+             , CASE WHEN T.SELL_TP_CD = '2' THEN
+                 (SELECT MAX(P1.PD_PRP_VAL02)
+                    FROM TB_PDBS_PD_ECOM_PRP_DTL P1
+                   INNER JOIN TB_SSCT_CNTR_PD_REL P2
+                      ON P1.PD_CD = P2.OJ_PD_CD
+                     AND P2.CNTR_NO = SUBSTR(T.CNTR_DTL_CD,1,12)
+                     AND P2.CNTR_SN = SUBSTR(T.CNTR_DTL_CD,13,1)
+                     AND P2.PD_REL_TP_CD = '03'
+                     AND P2.DTA_DL_YN = 'N'
+                     AND NVL(T.CNTR_TEMP_SAVE_DTM,NVL(T.LCSLET,T.LCCANT)) BETWEEN P2.VL_STRT_DTM AND P2.VL_END_DTM
+                   WHERE P1.DTA_DL_YN = 'N')
+                END AS MNGT_PRD  /* 관리주기 !!!*/
              , T.LCPAMT AS PD_ACC_RSLT   /* 인정실적 !!!*/
              , T.LCCK02 AS PMOT_NO /* 프로모션번호!!!!! */
              , '0' AS PKG_SN    /* 패키지 일련번호!!!!! */
@@ -1669,11 +1685,9 @@
                                                               AND SCR.CNTR_REL_DTL_CD = '216' /* 모종의 경우만 결합 구분 */
                                                               AND ROWNUM = 1) > 0
                              THEN 'Y' END AS LCST04 /* 결합구분 !!!*/
-                      , CPC.FNL_VAL AS DP_PERF  /* 입금실적 */
                       , CD.ISTM_MCN AS LCMONT   /* 할부 !!!*/
                       , CASE WHEN CD.SELL_TP_CD = '1' THEN 0
                              ELSE CD.STPL_PTRM END AS STPL_PTRM /* 약정개월 !!!*/
-                      , CD.SV_PRD AS LCFLG3           /* 관리주기 !!!*/
                       , CD.ACKMT_PERF_AMT AS LCPAMT   /* 인정실적 !!!*/
                       , CASE WHEN PF.FEE_PDCT_TP_CD = 'E' THEN ( CASE WHEN CD.SELL_TP_CD = '6' THEN (CD.SELL_AMT- CD.CNTRAM_DSC_AMT )/ CD.SV_PRD
                                                                       ELSE CD.SELL_AMT
@@ -1718,6 +1732,10 @@
                       , MP.OG_TP_CD
                       , MP.CNTR_DT
                       , PP.SV_PD_TP_CD
+                      , CB.CNTR_TEMP_SAVE_DTM
+                      , CD.FNL_AMT
+                      , CD.SV_PRD
+                      , CD.CNTRW_TP_CD
                    FROM TB_SSCT_CNTR_BAS CB
                   INNER JOIN TB_SSCT_CNTR_DTL CD
                      ON CB.CNTR_NO = CD.CNTR_NO
@@ -1812,9 +1830,6 @@
                                                 AND A.FEE_PERF_EXCD_DV_CD = '01'
                                            )EX
                      ON 1=1
-                   LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ CPC
-                     ON CD.CNTR_NO = CPC.CNTR_NO
-                    AND CD.CNTR_SN = CPC.CNTR_SN
                   WHERE CB.SELL_OG_TP_CD   = 'W01'
                     AND CB.DTA_DL_YN = 'N'
                <if test='!@MybatisUtils@equals(divCd, "01")'>
@@ -1846,11 +1861,9 @@
                       , CD.SELL_DSCR_CD  AS LCETC4  /* 할인유형 !!!*/
                       , CD.SELL_DSC_TP_CD /* 할인제도 !!!*/
                       , '' AS LCST04 /* 결합구분 !!!*/
-                      , CPC.FNL_VAL AS DP_PERF  /* 입금실적 */
                       , CD.ISTM_MCN AS LCMONT   /* 할부 !!!*/
                       , CASE WHEN CD.SELL_TP_CD = '1' THEN 0
                              ELSE CD.STPL_PTRM END AS STPL_PTRM /* 약정개월 !!!*/
-                      , CD.SV_PRD AS LCFLG3           /* 관리주기 !!!*/
                       , CD.ACKMT_PERF_AMT AS LCPAMT   /* 인정실적 !!!*/
                       , 0 AS HOMCARE /* 홈케어 !!!*/
                       , '' AS HOMCARE3_YEAR /* 홈케어멤버십3년 !!!!*/
@@ -1872,6 +1885,10 @@
                       , MP.OG_TP_CD
                       , MP.CNTR_DT
                       , PP.SV_PD_TP_CD
+                      , CB.CNTR_TEMP_SAVE_DTM
+                      , CD.FNL_AMT
+                      , CD.SV_PRD
+                      , CD.CNTRW_TP_CD
                    FROM ( SELECT A.CNTR_NO
                                , A.CNTR_SN
                                , A.STPL_STRTDT
@@ -1886,7 +1903,7 @@
                              AND A.STPL_STRTDT BETWEEN #{strtDt} AND  #{endDt} /* 계약확정일시 */
                          </if>
                          <if test='@MybatisUtils@equals(divCd, "01")'> /* 매출 */
-                             AND SUBSTR(A.STPL_CNFM_DTM,1,6) BETWEEN #{strtDt} AND #{endDt}  /* 매출 확정일자 */
+                             AND SUBSTR(A.STPL_CNFM_DTM,1,8) BETWEEN #{strtDt} AND #{endDt}  /* 매출 확정일자 */
                          </if>
                          <if test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
                              AND A.STPL_CAN_DTM &gt;= #{cancStrtDt}
@@ -1984,9 +2001,6 @@
                                                 AND A.FEE_PERF_EXCD_DV_CD = '01'
                                            )EX
                      ON 1=1
-                   LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ CPC
-                     ON CD.CNTR_NO = CPC.CNTR_NO
-                    AND CD.CNTR_SN = CPC.CNTR_SN
                   WHERE RI.RK_NUM = 1
                     </if>
                </if>
@@ -2089,7 +2103,7 @@
                       , CD.ISTM_MCN AS LCMONT   /* 할부 !!!*/
                       , CASE WHEN CD.SELL_TP_CD = '1' THEN 0
                              ELSE CD.STPL_PTRM END AS STPL_PTRM /* 약정개월 !!!*/
-                      , CD.SV_PRD AS LCFLG3           /* 관리주기 !!!*/
+                      , T1.BFSVC_PRD_CD AS LCFLG3           /* 관리주기 !!!*/
                       , CD.ACKMT_PERF_AMT AS LCPAMT   /* 인정실적 !!!*/
                       , CASE WHEN PF.FEE_PDCT_TP_CD = 'E' THEN ( CASE WHEN CD.SELL_TP_CD = '6' THEN (CD.SELL_AMT- CD.CNTRAM_DSC_AMT )/ CD.SV_PRD
                                                                       ELSE CD.SELL_AMT
@@ -2227,7 +2241,7 @@
                       , CD.ISTM_MCN AS LCMONT   /* 할부 !!!*/
                       , CASE WHEN CD.SELL_TP_CD = '1' THEN 0
                              ELSE CD.STPL_PTRM END AS STPL_PTRM /* 약정개월 !!!*/
-                      , CD.SV_PRD AS LCFLG3           /* 관리주기 !!!*/
+                      , T1.BFSVC_PRD_CD AS LCFLG3           /* 관리주기 !!!*/
                       , CD.ACKMT_PERF_AMT AS LCPAMT   /* 인정실적 !!!*/
                       , 0 AS HOMCARE /* 홈케어 !!!*/
                       , '' AS HOMCARE3_YEAR /* 홈케어멤버십3년 !!!!*/
@@ -2376,11 +2390,12 @@
                       , 0 AS ET_AMT
                       , 0 AS UP_AMT
                    FROM ( SELECT T1.PRTNR_NO
-                               , CASE WHEN T3.FEE_PERF_TP_CD = 'EH' THEN T1.ACKMT_PERF_CT END AS EH_CNT
-                               , CASE WHEN T3.FEE_PERF_TP_CD = 'EX' THEN T1.ACKMT_PERF_CT END AS EX_CNT
-                               , CASE WHEN T3.FEE_PERF_TP_CD = 'ET' THEN T1.ACKMT_PERF_CT END AS ET_CNT
-                               , CASE WHEN T3.FEE_PERF_TP_CD = 'UP' THEN T1.ACKMT_PERF_CT END AS UP_CNT
+                               , CASE WHEN T3.FEE_PERF_TP_CD = 'EH' THEN T2.FEE_ACKMT_CT END AS EH_CNT
+                               , CASE WHEN T3.FEE_PERF_TP_CD = 'EX' THEN T2.FEE_ACKMT_CT END AS EX_CNT
+                               , CASE WHEN T3.FEE_PERF_TP_CD = 'ET' THEN T2.FEE_ACKMT_CT END AS ET_CNT
+                               , CASE WHEN T3.FEE_PERF_TP_CD = 'UP' THEN T2.FEE_ACKMT_CT END AS UP_CNT
                             FROM TB_FEAM_WELS_NRCTR_MM_CL T1
+                           INNER JOIN TB_SSCT_CNTR_DTL T2 ON T2.CNTR_NO = T1.CNTR_NO AND T2.CNTR_SN = T1.CNTR_SN
                            INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS T2
                               ON T1.PD_CD = T2.BASE_PD_CD
                              AND #{perfYm} BETWEEN APY_STRT_YM AND APY_END_YM
@@ -2391,7 +2406,7 @@
                              AND T1.OG_TP_CD = 'W01'
                              AND T1.FEE_TCNT_DV_CD = #{feeTcntDvCd}
                              AND T1.CNTR_PERF_CRT_DV_CD = '01'
-                             AND T1.ACKMT_PERF_CT > 0
+                             AND T2.FEE_ACKMT_CT > 0
                              AND NVL(T1.ACC_NINC_YN,'N') = 'N'
                         )T
                   GROUP BY T.PRTNR_NO
