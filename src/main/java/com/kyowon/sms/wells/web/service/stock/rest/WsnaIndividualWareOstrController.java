@@ -124,6 +124,21 @@ public class WsnaIndividualWareOstrController {
         return SaveResponse.builder().processCount(this.service.saveIndividualWareOstrs(dtos)).build();
     }
 
+    @GetMapping("/transfer-data-download")
+    @ApiOperation(value = "개인창고 출고관리 이관 데이터 다운로드", notes = "물류로 이관될 데이터를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "apyYm", value = "기준년월", paramType = "query", example = "202305", required = true),
+        @ApiImplicitParam(name = "asnOjYm", value = "배정년월", paramType = "query", example = "202305", required = true),
+        @ApiImplicitParam(name = "cnt", value = "회차", paramType = "query", example = "2", required = true, dataType = "integer"),
+        @ApiImplicitParam(name = "ostrWareNo", value = "출고창고번호", paramType = "query", example = "100002", required = true),
+        @ApiImplicitParam(name = "wareDvCd", value = "창고구분", paramType = "query", example = "3", required = true),
+        @ApiImplicitParam(name = "wareDtlDvCd", value = "창고세부구분", paramType = "query", example = "31", required = true)
+    })
+    public List<WsnaIndividualWareOstrDvo> selectLogisticsTransferDatas(@Valid
+    SearchTranferReq dto) {
+        return this.service.selectLogisticsTransferDatas(dto);
+    }
+
     @PostMapping("/logistics-transfer")
     @ApiOperation(value = "개인창고 출고관리 물류 전송", notes = "개인창고 출고관리 데이터를 물류로 전송한다.")
     public SaveResponse createIndividualLogisticsTransfer(
