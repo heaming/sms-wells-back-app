@@ -31,24 +31,24 @@ public class WsnbServiceCancelPsService {
             List<AttachFileDvo> attachFileDvos;
 
             // 설치불가환경 1
-            if(StringUtil.isNotBlank(dvo.getIstImpEnvr1stImgFileUid())){
-                attachFileDvos = attachFileService.getAttachFiles(dvo.getIstImpEnvr1stImgFileUid());
+            if(StringUtil.isNotBlank(dvo.getIstImpPhoApnFileUid1())){
+                attachFileDvos = attachFileService.getAttachFiles(dvo.getIstImpPhoApnFileUid1());
                 if(!CollectionUtils.sizeIsEmpty(attachFileDvos)){
-                    dvo.setIstImpEnvr1stImgFileUid(attachFileDvos.get(0).getFileUid());
+                    dvo.setIstImpPhoApnFileUid1(attachFileDvos.get(0).getFileUid());
                 }
             }
             // 설치불가환경 2
-            if(StringUtil.isNotBlank(dvo.getIstImpEnvr2ndImgFileUid())){
-                attachFileDvos = attachFileService.getAttachFiles(dvo.getIstImpEnvr2ndImgFileUid());
+            if(StringUtil.isNotBlank(dvo.getIstImpPhoApnFileUid2())){
+                attachFileDvos = attachFileService.getAttachFiles(dvo.getIstImpPhoApnFileUid2());
                 if(!CollectionUtils.sizeIsEmpty(attachFileDvos)){
-                    dvo.setIstImpEnvr2ndImgFileUid(attachFileDvos.get(0).getFileUid());
+                    dvo.setIstImpPhoApnFileUid2(attachFileDvos.get(0).getFileUid());
                 }
             }
             // 설치불가환경 3
-            if(StringUtil.isNotBlank(dvo.getIstImpEnvr3rdImgFileUid())){
-                attachFileDvos = attachFileService.getAttachFiles(dvo.getIstImpEnvr3rdImgFileUid());
+            if(StringUtil.isNotBlank(dvo.getIstImpPhoApnFileUid3())){
+                attachFileDvos = attachFileService.getAttachFiles(dvo.getIstImpPhoApnFileUid3());
                 if(!CollectionUtils.sizeIsEmpty(attachFileDvos)){
-                    dvo.setIstImpEnvr3rdImgFileUid(attachFileDvos.get(0).getFileUid());
+                    dvo.setIstImpPhoApnFileUid3(attachFileDvos.get(0).getFileUid());
                 }
             }
         }
