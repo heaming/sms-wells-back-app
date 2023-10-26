@@ -265,6 +265,21 @@ public class WsnaIndependenceWareOstrService {
     }
 
     /**
+     * 물류 이관 데이터 조회
+     * @param dto
+     * @return
+     */
+    public List<WsnaIndependenceWareOstrDvo> getLogisticsTransferDatas(SearchTranferReq dto) {
+
+        List<WsnaIndependenceWareOstrDvo> dvos = this.mapper.selectLogisticsTransferDatas(dto);
+
+        // 실시간 물류재고 조회 호출
+        this.getRealTimeLogisticStockQtys(dvos);
+
+        return dvos;
+    }
+
+    /**
      * 물류 전송
      * @param dto
      * @return

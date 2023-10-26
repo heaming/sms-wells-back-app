@@ -30,4 +30,6 @@ public interface WsnaIndependenceWareOstrMapper {
 
     List<WsnaLogisticsOutStorageAskReqDvo> selectIndependenceLogisticsTransfer(WsnaLogisticsDeliveryKssDvo dvo);
 
+    List<WsnaIndependenceWareOstrDvo> selectLogisticsTransferDatas(SearchTranferReq dto);
+
 }

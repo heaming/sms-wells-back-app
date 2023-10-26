@@ -134,9 +134,9 @@ public class WsnaIndividualWareOstrController {
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분", paramType = "query", example = "3", required = true),
         @ApiImplicitParam(name = "wareDtlDvCd", value = "창고세부구분", paramType = "query", example = "31", required = true)
     })
-    public List<WsnaIndividualWareOstrDvo> selectLogisticsTransferDatas(@Valid
+    public List<WsnaIndividualWareOstrDvo> getLogisticsTransferDatas(@Valid
     SearchTranferReq dto) {
-        return this.service.selectLogisticsTransferDatas(dto);
+        return this.service.getLogisticsTransferDatas(dto);
     }
 
     @PostMapping("/logistics-transfer")
