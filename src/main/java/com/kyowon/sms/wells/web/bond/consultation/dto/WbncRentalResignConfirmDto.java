@@ -48,7 +48,9 @@ public class WbncRentalResignConfirmDto {
         String pdCd, /* 상품코드 */
         String pdNm, /* 상품명 */
         String clctamPrtnrNo, /* 집금파트너번호 */
-        String prtnrKnm /* 집금파트너명 */
+        String prtnrKnm, /* 집금파트너명 */
+        String sellTpDtlCd, /* 판매유형상세코드 */
+        String sellTpDtlNm /* 판매유형상세명 */
     ) {
     }
 }
