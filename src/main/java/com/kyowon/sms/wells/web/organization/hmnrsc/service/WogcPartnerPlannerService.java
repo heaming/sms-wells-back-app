@@ -319,7 +319,7 @@ public class WogcPartnerPlannerService {
         int processCount = mapper.insertPlannerQualificationChange(qualificationDvo);
 
         String newStrtdt = DateUtil.getNowDayString();
-        if (detailList.get(0).qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_1.getCode())) {
+        if (qualificationDvo.getQlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_1.getCode())) {
             if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) <= 0
                 && DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).enddt()) >= 0) {
                 // 승급(현재)
