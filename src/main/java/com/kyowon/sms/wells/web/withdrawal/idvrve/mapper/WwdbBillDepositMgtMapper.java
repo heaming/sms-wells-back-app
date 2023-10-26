@@ -57,4 +57,7 @@ public interface WwdbBillDepositMgtMapper {
 
     //전표 등록 업데이트
     int updateSlipRegistration(WwdbBillDepositMgtDvo dvo) throws Exception;
+
+    // 어음 신규등록 팝업 - 전자어음 엑셀 업로드 계약 상세번호 존재 체크
+//    int selectValidationCntr(String cntr);
 }

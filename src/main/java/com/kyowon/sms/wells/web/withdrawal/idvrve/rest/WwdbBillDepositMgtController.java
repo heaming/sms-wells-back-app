@@ -5,11 +5,9 @@ import java.util.List;
 import javax.validation.Valid;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.sds.sflex.common.common.dto.ExcelUploadDto;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchDetailReq;
@@ -21,6 +19,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.Sear
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveDepositSlip;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbBillDepositMgtService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
+import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -30,6 +29,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @Api(tags = "[수납입출금 - 개별수납] 어음입금 등록")
@@ -107,6 +107,21 @@ public class WwdbBillDepositMgtController {
         SearchDetailReq dto
     ) {
         return service.getRegistrationElectronicExcels(dto);
+    }
+
+    /**
+     * 어음신규 등록 전자어음 입금대상 엑셀 업로드
+     * @param file 엑셀파일
+     * @return 엑셀 업로드 결과
+     * @throws Exception 엑셀 업로드 에러 발생 시
+     */
+    @ApiOperation(value = "어음신규 등록 전자어음 입금대상 엑셀 업로드", notes = "어음신규 등록 전자어음 입금대상 엑셀 업로드한다.")
+    @PostMapping("/electronic/excel-upload")
+    public UploadRes saveRegistrationElectronicExcelUpload(
+        @RequestParam("file")
+        MultipartFile file
+    ) throws Exception {
+        return service.saveRegistrationElectronicExcelUpload(file);
     }
 
     /**
