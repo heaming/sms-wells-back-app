@@ -3667,7 +3667,7 @@
              , SUBSTR(A.RCNTR_DT,1,6) AS RCNTR_DT /*재등록월*/
              , SUBSTR(A.FNL_CLTN_DT,1,6) AS FNL_CLTN_DT /*최종해약월*/
              , SUBSTR(A.CLTN_DT,1,6) AS CLTN_DT /*업무해약월*/
-             , SUBSTR(NVL(A.PRFMT_DT, A.DMTN_DT),1,6) AS AKSTYM  /* 승진월, 강등월 */
+             , SUBSTR(PAI.UPGR_YM,1,6) AS AKSTYM  /*수석승급월*/
              , H.CV_DT AS LCECAYMD       /*웰스매니저 개시일 */
              , NVL(MM.B_AKSD05,0) AS B_AKSD05             /* 정착수수료 = 이전 정착수수료*/
              , NVL(B.AKCDA0, 0) AS AKCDA0  /* 가전    */
@@ -3860,6 +3860,13 @@
                              GROUP BY PRTNR_NO
                           )H
             ON A.PRTNR_NO = H.PRTNR_NO
+          LEFT OUTER JOIN TB_OGPS_TOPMR_PLAR_APLC_IZ PAI
+            ON PAI.MNGT_YM = #{perfYm}
+           AND PAI.OG_TP_CD = 'W01'
+           AND PAI.QLF_DV_CD = '1'  /* 수석플래너 */
+           AND PAI.UPGR_MCN > 0 /* 승급개월수가 0 이상, 강등되지 않은 */
+           AND PAI.UPGR_DMTN_DV_CD = '1' /* 승급 */
+           AND PAI.PRTNR_NO = A.PRTNR_NO
           LEFT OUTER JOIN ( SELECT T1.PRTNR_NO
                                  , NVL(SUM(T1.B_AKSD05),0) AS B_AKSD05
                               FROM ( SELECT PRTNR_NO
@@ -3934,8 +3941,8 @@
              , NVL(P_CNT.RUNCNT,0) AS RUNCNT        /* 실활동인원     */
              , NVL(P_CNT.GADCNT,0) AS GADCNT  	/* 가동인원 */
              , CASE WHEN G.EDUC_CRSE_NO = '19' THEN G.EDUC_CRSE_CRT_BASE_YM END AS IS17EDU /* 수석(플래너)실전 */
-             , CASE WHEN A.PRFMT_DT > 0 THEN SUBSTR(A.PRFMT_DT,1,6)
-                    ELSE CASE WHEN AA.PRFMT_DT > 0 THEN SUBSTR(AA.PRFMT_DT,1,6) ELSE '' END
+             , CASE WHEN A.PRFMT_DT > 0 AND A.PRFMT_DMTN_DV_CD = 0 THEN SUBSTR(A.PRFMT_DT,1,6)
+                    ELSE CASE WHEN AA.PRFMT_DT > 0 AND AA.PRFMT_DMTN_DV_CD = 0 THEN SUBSTR(AA.PRFMT_DT,1,6) ELSE '' END
                END AS AKDRIY                    /* 승진월     */
              , SUBSTR(PAI.UPGR_YM,1,6) AS AKSTYM  /*수석승급월*/
              , H.CV_DT AS LCECAYMD /*웰스매니저 개시일 LC1700P 정리되지 않아 임시처리 */
@@ -4286,10 +4293,10 @@
              , NVL(P_CNT.RUNCNT,0) AS RUNCNT        /* 실활동인원     */
              , NVL(P_CNT.GADCNT,0) AS GADCNT  	/* 가동인원 */
              , CASE WHEN A.PSTN_DV_CD = 7 THEN
-                        CASE WHEN A.PRFMT_DT > 0 THEN SUBSTR(A.PRFMT_DT,1,6)
-                             ELSE CASE WHEN AA.PRFMT_DT > 0 THEN SUBSTR(AA.PRFMT_DT,1,6) ELSE '' END
+                        CASE WHEN A.PRFMT_DT > 0 AND A.PRFMT_DMTN_DV_CD = 0 THEN SUBSTR(A.PRFMT_DT,1,6)
+                             ELSE CASE WHEN AA.PRFMT_DT > 0 AND AA.PRFMT_DMTN_DV_CD = 0 THEN SUBSTR(AA.PRFMT_DT,1,6) ELSE '' END
                          END
-                    ELSE SUBSTR(NVL(A.PRFMT_DT, A.DMTN_DT),1,6)
+                    ELSE SUBSTR(A.PRFMT_DT,1,6)
                 END AS AKDRIY                    /* 승진월     */
              , SUBSTR(PAI.UPGR_YM,1,6) AS AKSTYM  /*수석승급월*/
              , H.CV_DT AS LCECAYMD       /*웰스매니저 개시일 */
