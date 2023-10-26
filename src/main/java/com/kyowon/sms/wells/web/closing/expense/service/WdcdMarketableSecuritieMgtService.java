@@ -71,7 +71,7 @@ public class WdcdMarketableSecuritieMgtService {
         for (SaveReq req : reqs) {
             WdcdMarketableSecuritieDvo dvo = converter.mapSaveReqToWdcdMarketableSecuritieDvo(req);
             dvo.setOpcsAdjNo(masterDvo.getOpcsAdjNo());
-            if (Integer.valueOf(dvo.getDstAmt()) > 0) {
+            if (Integer.valueOf(dvo.getDstAmt()) != 0) {
                 mapper.insertAccDetail(dvo);
             }
         }
