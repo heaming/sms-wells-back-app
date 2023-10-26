@@ -99,7 +99,9 @@ public class WbncRentalResignExpectedMgtDto {
         String authRsgCnfmRgstPrtnrNo, /* 직권해지확정등록파트너번호 */
         String bndClctnPrpDvCd, /* 채권추심속성구분코드 */
         String bndClctnPrpRsonCd, /* 채권추심속성사유코드 */
-        String bndStrtYn/* 채권전략팀 여부 */
+        String bndStrtYn, /* 채권전략팀 여부 */
+        String sellTpDtlCd, /* 판매유형상세코드 */
+        String sellTpDtlNm /* 판매유형상세명 */
     ) {
         public SearchRes {
             if (StringUtil.isNotBlank(cralLocaraTno) && StringUtil.isNotBlank(mexnoEncr)
