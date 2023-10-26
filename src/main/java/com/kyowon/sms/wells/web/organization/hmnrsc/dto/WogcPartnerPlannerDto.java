@@ -15,36 +15,37 @@ public class WogcPartnerPlannerDto {
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchLicenseReq")
     public record SearchLicenseReq(
-        String prtnrKnm,
-        String prtnrNo,
-        String qlfDvCd
+        String prtnrKnm, // 파트너한글명
+        String prtnrNo, // 파트너번호
+        String qlfDvCd // 자격구분코드
     ) {
     }
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchLicenseRes")
     public record SearchLicenseRes(
-        String dgr1LevlOgNm,
-        String dgr2LevlOgNm,
-        String ogCd,
-        String bldNm,
-        String ogId,
-        String ogTpCd,
-        String prtnrNo,
-        String prtnrKnm,
-        String rsbDvCd,
-        String rsbDvNm,
-        String bizUseIdvTno,
-        String bizUseExnoEncr,
-        String bizUseLocaraTno,
-        String bryyMmdd,
-        String rcrtWrteDt,
-        String fnlCltnDt,
-        String edu143,
-        String edu96,
-        String qlfDvCd,
-        String qlfDvNm
+        String dgr1LevlOgNm, // 총괄단
+        String dgr2LevlOgNm, // 지역단
+        String ogCd, // 조직코드
+        String bldNm, // 빌딩명
+        String ogId, // 조직ID
+        String ogTpCd, // 조직유형코드
+        String prtnrNo, // 파트너번호
+        String prtnrKnm, // 파트너한글명
+        String rsbDvCd, // 직책코드
+        String rsbDvNm, // 직책명
+        String bizUseIdvTno, // 업무사용개별전화번호
+        String bizUseExnoEncr, // 업무사용전화국번호암호화
+        String bizUseLocaraTno, // 업무사용지역전화번호
+        String bryyMmdd, // 생년월일
+        String cntrDt, // 계약일자(리쿠르팅 일자)
+        String fnlCltnDt, // 최종해약일자
+        String edu143, // Pre스타트업
+        String edu96, // 스타트업
+        String qlfDvCd, // 자격구분코드
+        String qlfDvNm // 자격구분코드명
     ) {
         public SearchLicenseRes {
+            // 업무사용전화국번호암호화 복호화처리
             bizUseExnoEncr = StringUtils.isNotEmpty(bizUseExnoEncr) ? DbEncUtil.dec(bizUseExnoEncr) : bizUseExnoEncr;
         }
     }
