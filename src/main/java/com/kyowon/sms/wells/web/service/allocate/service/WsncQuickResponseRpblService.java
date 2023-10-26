@@ -27,4 +27,10 @@ public class WsncQuickResponseRpblService {
     ) {
         return mapper.selectQuickResponseRpbl(dto);
     }
+
+    public int saveQuickResponseRpbls(
+        WsncQuickResponseRpblDto.SearchReq dto
+    ) {
+        return mapper.updateQuickResponseRpbl(dto);
+    }
 }
