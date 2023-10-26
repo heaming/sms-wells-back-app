@@ -40,7 +40,7 @@ public class WfedIndividualFeePlannerMgtService {
      * no : 번호 }
      * @return 조회결과
      */
-    public FindPlarDeductionRes getPlarDeduction(SearchPlarReq dto) {
+    public List<FindPlarDeductionRes> getPlarDeduction(SearchPlarReq dto) {
         return mapper.selectPlarDeduction(dto);
     }
 
