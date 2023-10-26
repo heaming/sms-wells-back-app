@@ -57,7 +57,7 @@ public class WsncQuickResponseRpblDto {
         String rdadr,
         String vstYm,
         String bcNo,
-        String fnlMdfcDtm,
+        String dldDt,
         String vstFshDt,
         String vstFshHh,
         String bcInMthdCd,
@@ -68,7 +68,8 @@ public class WsncQuickResponseRpblDto {
         String qrCd,
         String cralLocaraTno,
         String mexnoEncr,
-        String cralIdvTno
+        String cralIdvTno,
+        String bcRpblId
     ) {
         @AutomapConstructor
         public SearchRes(
@@ -88,7 +89,7 @@ public class WsncQuickResponseRpblDto {
             String rdadr,
             String vstYm,
             String bcNo,
-            String fnlMdfcDtm,
+            String dldDt,
             String vstFshDt,
             String vstFshHh,
             String bcInMthdCd,
@@ -99,7 +100,8 @@ public class WsncQuickResponseRpblDto {
             String qrCd,
             String cralLocaraTno,
             String mexnoEncr,
-            String cralIdvTno
+            String cralIdvTno,
+            String bcRpblId
         ) {
             this(
                 mngrDvCd,
@@ -118,7 +120,7 @@ public class WsncQuickResponseRpblDto {
                 rdadr,
                 vstYm,
                 bcNo,
-                fnlMdfcDtm,
+                dldDt,
                 vstFshDt,
                 vstFshHh,
                 bcInMthdCd,
@@ -129,7 +131,8 @@ public class WsncQuickResponseRpblDto {
                 qrCd,
                 cralLocaraTno,
                 StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr,
-                cralIdvTno
+                cralIdvTno,
+                bcRpblId
             );
         }
     }
