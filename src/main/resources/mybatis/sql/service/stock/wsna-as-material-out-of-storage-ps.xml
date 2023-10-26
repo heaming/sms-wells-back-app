@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaAsMaterialOutOfStoragePsMapper">
+    <select id="selectAsMaterialOutOfStorages" resultType="camelMap">
+        WITH PD_INF AS
+        (
+            SELECT T1.PD_CD
+                 , T1.PD_NM
+                 , T2.PD_PRP_VAL19 AS ITM_KND_CD
+                 , T1.SAP_MAT_CD
+                 , T2.PD_PRP_VAL20 AS PD_GRP_CD
+            FROM TB_PDBS_PD_BAS T1 /*상품기본*/
+            LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2  /*상품각사속성상세*/
+            ON T1.PD_CD = T2.PD_CD
+             AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
+            WHERE 1=1
+        )
+        SELECT '1'
+        FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1
+        INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2
+         ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+        INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ T3
+         ON T1.CST_SV_ASN_NO = T3.CST_SV_ASN_NO
+        INNER JOIN TB_OGBS_PRTNR_BAS T4
+         ON T2.WK_PRTNR_NO = T4.PRTNR_NO
+         AND T2.WK_PRTNR_OG_TP_CD = T4.OG_TP_CD
+        INNER JOIN TB_SVST_SV_WK_OSTR_IZ T5
+         ON T1.CST_SV_ASN_NO = T5.CST_SV_ASN_NO
+        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T6
+         ON T1.CNTR_NO = T6.CNTR_NO
+         AND T1.CNTR_SN = T6.CNTR_SN
+        LEFT OUTER JOIN PD_INF P1
+         ON T5.ITM_PD_CD = P1.PD_CD
+        WHERE 1=1
+        AND T2.WK_PRGS_STAT_CD = '20'
+        AND T5.SV_BIZ_HCLSF_CD != '6'
+        AND T5.SV_BIZ_DCLSF_CD = '3110'
+        AND P1.ITM_KND_CD != '4'
+
+        <!-- 검색조건 -->
+        AND T3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
+        <if test="@MybatisUtils@isNotEmpty(serviceType)">
+             /*  서비스 유형 */
+            <if test='@MybatisUtils@equals(serviceType, "1") or
+                      @MybatisUtils@equals(serviceType, "2") or
+                      @MybatisUtils@equals(serviceType, "3")'>
+            AND T3.SV_BIZ_HCLSF_CD = #{serviceType}  /*  서비스 유형 (1:설치 , 2:B/S, 3: A/S) */
+            </if>
+            <if test='@MybatisUtils@equals(serviceType, "4")'>
+            AND T3.SV_BIZ_HCLSF_CD IN ('1,3')        /*  서비스 유형 (4: A/S+설치) */
+            </if>
+            <if test='@MybatisUtils@equals(serviceType, "5")'>
+            AND T3.SV_BIZ_HCLSF_CD IN ('2,3')        /*  서비스 유형 (5: A/S+B/S) */
+            </if>
+            <if test='@MybatisUtils@equals(serviceType, "6")'>
+            AND T3.SV_BIZ_HCLSF_CD IN ('1,2')       /*  서비스 유형 (6: B/S+설치) */
+            </if>
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(ogCd)">
+        AND T4.OG_CD = #{ogCd} /* 서비스센터 조직코드 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+        AND T4.PRTNR_NO = #{prtnrNo} /* 엔지니어 */
+        </if>
+        <if test='@MybatisUtils@equals(refriType, "1")'>
+        AND T5.REFRI_DV_CD = #{refriType}
+        AND T5.ITM_BIL_AMT  <![CDATA[<=]]> 0   /* 무상서비스 */
+        </if>
+        <if test='@MybatisUtils@equals(refriType, "2")'>
+        AND T5.REFRI_DV_CD = #{refriType}
+        AND T5.ITM_BIL_AMT  <![CDATA[>]]> 0    /* 유상서비스 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(installBase)">
+        AND T6.IST_DT  <![CDATA[ > ]]>  TO_CHAR(ADD_MONTHS(TO_DATE(T3.VST_FSH_DT,'YYYYMM'),-1),'YYYYMM')
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+        AND P1.ITM_KND_CD = #{itmKndCd}  /* 품목종류 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
+        AND P1.PD_GRP_CD = #{pdGrpCd}        /* 상품그룹 */
+        </if>
+    </select>
+</mapper>
