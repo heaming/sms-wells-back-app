@@ -25,6 +25,16 @@ public class WfebRedemptionFeeController {
 
     private final WfebRedemptionFeeService redemptionFeeService;
 
+    @ApiOperation(value = "되물림 생성(집계 + 취소 + 연체)", notes = "기준년월, 계약실적생성구분코드를 파라메터로 연체되물림 생성")
+    @ApiImplicitParams(value = {
+            @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "path", required = true),
+            @ApiImplicitParam(name = "cntrPerfCrtDvCd", value = "계약실적생성구분코드", paramType = "path", required = true),
+    })
+    @PostMapping("/all-redemption-fees/{baseYm}-{cntrPerfCrtDvCd}")
+    public void saveRedemptionOfFees(@PathVariable String baseYm, @PathVariable String cntrPerfCrtDvCd) {
+        redemptionFeeService.saveRedemptionOfFees(baseYm, cntrPerfCrtDvCd);
+    }
+
     @ApiOperation(value = "연체되물림 생성", notes = "기준년월, 계약실적생성구분코드를 파라메터로 연체되물림 생성")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "path", required = true),
