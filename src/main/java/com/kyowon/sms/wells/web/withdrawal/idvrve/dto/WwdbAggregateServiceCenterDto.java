@@ -19,6 +19,8 @@ public class WwdbAggregateServiceCenterDto {
         String prtnrKnm, //엔지니어
         String recapAmt, //유상금액
         String ctrAmt, //조정금액
+        String cshBilSlAmt,								                    /*현금 매출금액*/
+        String cshBilDpAmt,		                                            /*현금 입금액*/
         String adpBilSlAmt, //합산청구-매출금액
         String adpBilDpAmt, //합산청구-입금액
         String vacSlAmt, //가상계좌-매출금액
@@ -31,9 +33,9 @@ public class WwdbAggregateServiceCenterDto {
 
     @ApiModel(value = "WwdbAggregateServiceCenterDto-SearchAggregateServiceCenterTotalRes")
     public record SearchAggregateServiceCenterTotalRes(
-        String recapAmtTt, //유상금액 총합계 
+        String recapAmtTt, //유상금액 총합계
         String ctrAmtTt, //조정금액 총합계
-        String adpBilSlAmtTt, //합산청구-매출금액 총합계 
+        String adpBilSlAmtTt, //합산청구-매출금액 총합계
         String adpBilDpAmtTt, //합산청구-입금액 총합계
         String vacSlAmtTt, //가상계좌-매출금액 총합계
         String vacDpAmtTt, //가상계좌-입금액 총합계
