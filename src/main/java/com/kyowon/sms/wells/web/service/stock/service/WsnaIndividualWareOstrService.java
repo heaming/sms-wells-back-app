@@ -228,7 +228,7 @@ public class WsnaIndividualWareOstrService {
      * @param dto
      * @return
      */
-    public List<WsnaIndividualWareOstrDvo> selectLogisticsTransferDatas(SearchTranferReq dto) {
+    public List<WsnaIndividualWareOstrDvo> getLogisticsTransferDatas(SearchTranferReq dto) {
 
         // 물류 이관 데이터 조회
         List<WsnaIndividualWareOstrDvo> dvos = this.mapper.selectLogisticsTransferDatas(dto);
