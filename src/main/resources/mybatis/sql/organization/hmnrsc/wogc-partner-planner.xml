@@ -75,49 +75,79 @@
     </select>
 
     <select id="selectPlannerLicenseDetailPages" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto$SearchLicenseDetailRes">
-        SELECT T1.OG_TP_CD
-             , T1.PRTNR_NO
-             , T2.OG_ID
-             , T1.QLF_DV_CD                                         /* 자격 */
-             , F_CMZ_CD_NM(#{session.tenantId}, 'QLF_DV_CD', T1.QLF_DV_CD) AS QLF_DV_NM                 /* 자격명 */
-             , T1.QLF_APLC_DV_CD                                    /* 자격변경(자격신청구분코드) - 1:승급, 2:자격해제 */
-             , F_CMZ_CD_NM(#{session.tenantId}, 'QLF_APLC_DV_CD', T1.QLF_APLC_DV_CD) AS QLF_APLC_DV_NM  /* 자격변경명 */
-             , T1.STRTDT                                            /* 시작일자 */
-             , T1.CV_DT                                             /* 전환일자 */
-             , T1.ENDDT                                             /* 종료일자 */
-             , T1.PYMDT                                             /* 지급일자 */
-             , T1.DSB_AMT                                           /* 지급금액 */
-             , NVL(T3.CNTR_DT, T5.CNTR_DT) AS CNTR_DT               /* 계약일자 */
-             , NVL(T3.PRTNR_CNTR_TP_CD, '4') AS PRTNR_CNTR_TP_CD    /* 파트너 계약유형코드 */
-             , T1.PCP_OG_TP_CD                                      /* 처리자조직유형코 */
-             , T1.PCP_PRTNR_NO                                      /* 처리자파트너번호 */
-             , T4.PRTNR_KNM AS PCP_PRTNR_KNM                        /* 처리자파트너한글명 */
-             , T1.PRCSDT                                            /* 처리일자 */
-          FROM TB_OGPS_PLAR_QLF_CH_IZ T1
-         INNER JOIN TB_OGBS_PRTNR_BAS T2
-            ON T2.OG_TP_CD = T1.OG_TP_CD
-           AND T2.PRTNR_NO = T1.PRTNR_NO
-           AND T2.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_OGPS_PRTNR_CNTR_BAS T3
-            ON T3.OG_TP_CD = T2.OG_TP_CD
-           AND T3.PRTNR_NO = T2.PRTNR_NO
-           AND T3.BASE_YM = SUBSTR(T1.STRTDT, 1, 6)
-           AND T3.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4
-            ON T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND T4.OG_TP_CD = T1.PCP_OG_TP_CD
-           AND T4.PRTNR_NO = T1.PCP_PRTNR_NO
-           AND T4.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_OGPS_WELS_MNGER_RCNTR_BAS T5
-            ON T5.OG_TP_CD = T1.OG_TP_CD
-           AND T5.PRTNR_NO = T1.PRTNR_NO
-         WHERE T1.OG_TP_CD = 'W02'
-           AND T1.DTA_DL_YN = 'N'
-           AND T1.PRTNR_NO = #{prtnrNo}
-           AND T2.OG_ID IN (
-               <include refid="com.kyowon.sms.common.web.organization.common.mapper.ZogzOrganizationSearchMapper.sqlSessionOrganization" />
-           )
-         ORDER BY T1.STRTDT DESC
+        SELECT TB1.*
+          FROM (
+               SELECT T1.OG_TP_CD
+                    , T1.PRTNR_NO
+                    , T2.OG_ID
+                    , T1.QLF_DV_CD                                         /* 자격 */
+                    , F_CMZ_CD_NM(#{session.tenantId}, 'QLF_DV_CD', T1.QLF_DV_CD) AS QLF_DV_NM                 /* 자격명 */
+                    , T1.QLF_APLC_DV_CD                                    /* 자격변경(자격신청구분코드) - 1:승급, 2:자격해제 */
+                    , F_CMZ_CD_NM(#{session.tenantId}, 'QLF_APLC_DV_CD', T1.QLF_APLC_DV_CD) AS QLF_APLC_DV_NM  /* 자격변경명 */
+                    , T1.STRTDT                                            /* 시작일자 */
+                    , T1.CV_DT                                             /* 전환일자 */
+                    , T1.ENDDT                                             /* 종료일자 */
+                    , T1.PYMDT                                             /* 지급일자 */
+                    , T1.DSB_AMT                                           /* 지급금액 */
+                    , RANK() OVER(PARTITION BY T1.STRTDT ORDER BY T3.CNTR_DT DESC) AS RNK1
+                    , RANK() OVER(PARTITION BY T1.STRTDT ORDER BY T5.CNTR_DT DESC) AS RNK2
+                    , CASE WHEN T1.QLF_DV_CD = '2' AND T3.CNTR_DT IS NOT NULL AND (T3.CNTR_DT <![CDATA[ >= ]]> T1.STRTDT AND T3.CNTR_DT <![CDATA[ <= ]]> T1.ENDDT)
+                           THEN MAX(T3.CNTR_DT) OVER(PARTITION BY T1.STRTDT)
+                           WHEN T1.QLF_DV_CD != '2' AND T5.CNTR_DT IS NOT NULL AND (T5.CNTR_DT <![CDATA[ >= ]]> T1.STRTDT AND T5.CNTR_DT <![CDATA[ <= ]]> T1.ENDDT)
+                           THEN MAX(T5.CNTR_DT) OVER(PARTITION BY T1.STRTDT)
+                           ELSE NULL
+                      END AS CNTR_DT                                       /* 계약일자 */
+                    , CASE WHEN T1.QLF_DV_CD = '2' AND T3.CNTR_DT IS NOT NULL AND (T3.CNTR_DT <![CDATA[ >= ]]> T1.STRTDT AND T3.CNTR_DT <![CDATA[ <= ]]> T1.ENDDT)
+                           THEN T3.PRTNR_CNTR_TP_CD
+                           WHEN T1.QLF_DV_CD != '2' AND T5.CNTR_DT IS NOT NULL AND (T5.CNTR_DT <![CDATA[ >= ]]> T1.STRTDT AND T5.CNTR_DT <![CDATA[ <= ]]> T1.ENDDT)
+                           THEN T5.PRTNR_CNTR_TP_CD
+                           ELSE NULL
+                      END AS PRTNR_CNTR_TP_CD                              /* 파트너 계약유형코드 */
+                    , T1.PCP_OG_TP_CD                                      /* 처리자조직유형코 */
+                    , T1.PCP_PRTNR_NO                                      /* 처리자파트너번호 */
+                    , T4.PRTNR_KNM AS PCP_PRTNR_KNM                        /* 처리자파트너한글명 */
+                    , T1.PRCSDT                                            /* 처리일자 */
+                 FROM TB_OGPS_PLAR_QLF_CH_IZ T1
+                INNER JOIN TB_OGBS_PRTNR_BAS T2
+                   ON T2.OG_TP_CD = T1.OG_TP_CD
+                  AND T2.PRTNR_NO = T1.PRTNR_NO
+                  AND T2.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN (SELECT OG_TP_CD
+                                       , PRTNR_NO
+                                       , MAX(CNTR_DT) AS CNTR_DT
+                                       , COUNT(CNTR_DT) AS CNT
+                                       , PRTNR_CNTR_TP_CD
+                                    FROM TB_OGPS_PRTNR_CNTR_BAS
+                                   WHERE 1=1
+                                     AND DTA_DL_YN = 'N'
+                                   GROUP BY OG_TP_CD
+                                          , PRTNR_NO
+                                          , BASE_YM
+                                          , PRTNR_CNTR_TP_CD) T3
+                   ON T3.OG_TP_CD = T1.OG_TP_CD
+                  AND T3.PRTNR_NO = T1.PRTNR_NO
+                  AND (T3.CNTR_DT <![CDATA[ >= ]]> T1.STRTDT AND T3.CNTR_DT <![CDATA[ <= ]]> T1.ENDDT)
+                 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4
+                   ON T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                  AND T4.OG_TP_CD = T1.PCP_OG_TP_CD
+                  AND T4.PRTNR_NO = T1.PCP_PRTNR_NO
+                  AND T4.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_OGPS_WELS_MNGER_RCNTR_BAS T5
+                   ON T5.OG_TP_CD = T1.OG_TP_CD
+                  AND T5.PRTNR_NO = T1.PRTNR_NO
+                  AND (T5.CNTR_DT <![CDATA[ >= ]]> T1.STRTDT AND T5.CNTR_DT <![CDATA[ <= ]]> T1.ENDDT)
+                WHERE 1=1
+                  AND T1.OG_TP_CD = 'W02'
+                  AND T1.PRTNR_NO = #{prtnrNo}
+                  AND T1.QLF_DV_CD IN ('2', '6', '3')
+                  AND T2.OG_ID IN (
+                      <include refid="com.kyowon.sms.common.web.organization.common.mapper.ZogzOrganizationSearchMapper.sqlSessionOrganization" />
+                  )
+               ) TB1
+           WHERE 1=1
+             AND TB1.RNK1 = 1
+             AND TB1.RNK2 = 1
+           ORDER BY TB1.STRTDT DESC
     </select>
 
     <!--순주문 마감 체크-->
