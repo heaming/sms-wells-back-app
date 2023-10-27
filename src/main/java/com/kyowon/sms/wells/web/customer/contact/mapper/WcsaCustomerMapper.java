@@ -7,6 +7,13 @@ import com.kyowon.sms.common.web.customer.common.dvo.ZcsaCustomerInfoByEccDvo;
 import com.kyowon.sms.common.web.customer.contact.dvo.ZcsaCstCtplcBasDvo;
 import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaCustomerAgreementDvo;
 
+/**
+ * <pre>
+ * 고객 인터페이스 관리 Wells Dto
+ * </pre>
+ * @author Jaeyeol.Lee
+ * @since 2023-05-04
+ */
 @Mapper
 public interface WcsaCustomerMapper {
 
@@ -50,6 +57,11 @@ public interface WcsaCustomerMapper {
 
     String selectCustomerRecentAgreement(String cstNo);
 
+    /**
+    * 고객약관동의내역
+    * @param agreeDvo 약관동의내역
+    * @return 등록결과
+    */
     int insertCustomerAgreement(@Param("item")
     WcsaCustomerAgreementDvo agreeDvo);
 

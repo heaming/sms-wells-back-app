@@ -124,44 +124,76 @@ public class WcsaCustomerInterfaceDto {
 
     /**
      * 고객번호 기준으로 고객정보를 변경 (서비스) Search Request Dto
-     * @param CST_NO 고객번호
-     * @param CALNG_DV_CD 호출구분코드
+     * @param cstNo 고객번호
+     * @param calngDvCd 호출구분코드
+     * @param copnDvCd 법인격구분코드
+     * @param cstNo 고객번호
+     * @param locaraTno 지역전화번호
+     * @param exno 전화국번호
+     * @param idvTno 개별전화번호
+     * @param cralLocaraTno 휴대전화지역
+     * @param mexno 휴대전화국번호
+     * @param cralIdvTno 휴대전화번호
+     * @param adrId 주소ID
+     * @param adrDvCd 주소구분코드
+     * @param chLtrqConfYn 변경요청서확인여부
+     * @param chLtrqConfDt 변경요청서확인일자
+     * @param unuitmCn 특이사항내용
+     * @param rgstMdfcUsrId 등록수정사용자ID
      */
     @ApiModel(value = "WcsaCustomerInterfaceDto-SearchCustomerInfoEditReq")
     public record SearchCustomerInfoEditReq(
-        String CALNG_DV_CD, /*호출구분코드*/
-        String COPN_DV_CD, /*법인격구분코드*/
-        String CST_NO, /*고객번호 */
-        String LOCARA_TNO, /*지역전화번호*/
-        String EXNO, /*전화국번호*/
-        String IDV_TNO, /*개별전화번호*/
-        String CRAL_LOCARA_TNO, /*휴대전화지역*/
-        String MEXNO, /*휴대전화국번호*/
-        String CRAL_IDV_TNO, /*휴대전화번호*/
-        String ADR_ID, /*주소ID*/
-        String ADR_DV_CD, /*주소구분코드*/
-        String CH_LTRQ_CONF_YN, /*변경요청서확인여부*/
-        String CH_LTRQ_CONF_DT, /*변경요청서확인일자*/
-        String UNUITM_CN, /*특이사항내용*/
-        String RGST_MDFC_USR_ID /*등록수정사용자ID*/
+        @JsonProperty("CALNG_DV_CD")
+        String calngDvCd, /*호출구분코드*/
+        @JsonProperty("COPN_DV_CD")
+        String copnDvCd, /*법인격구분코드*/
+        @JsonProperty("CST_NO")
+        String cstNo, /*고객번호 */
+        @JsonProperty("LOCARA_TNO")
+        String locaraTno, /*지역전화번호*/
+        @JsonProperty("EXNO")
+        String exno, /*전화국번호*/
+        @JsonProperty("IDV_TNO")
+        String idvTno, /*개별전화번호*/
+        @JsonProperty("CRAL_LOCARA_TNO")
+        String cralLocaraTno, /*휴대전화지역*/
+        @JsonProperty("MEXNO")
+        String mexno, /*휴대전화국번호*/
+        @JsonProperty("CRAL_IDV_TNO")
+        String cralIdvTno, /*휴대전화번호*/
+        @JsonProperty("ADR_ID")
+        String adrId, /*주소ID*/
+        @JsonProperty("ADR_DV_CD")
+        String adrDvCd, /*주소구분코드*/
+        @JsonProperty("CH_LTRQ_CONF_YN")
+        String chLtrqConfYn, /*변경요청서확인여부*/
+        @JsonProperty("CH_LTRQ_CONF_DT")
+        String chLtrqConfDt, /*변경요청서확인일자*/
+        @JsonProperty("UNUITM_CN")
+        String unuitmCn, /*특이사항내용*/
+        @JsonProperty("RGST_MDFC_USR_ID")
+        String rgstMdfcUsrId /*등록수정사용자ID*/
     ) {
         public SearchCustomerInfoEditReq {
-            EXNO = StringUtils.isNotEmpty(EXNO) ? DbEncUtil.enc(EXNO) : EXNO;
-            MEXNO = StringUtils.isNotEmpty(MEXNO) ? DbEncUtil.enc(MEXNO) : MEXNO;
+            exno = StringUtils.isNotEmpty(exno) ? DbEncUtil.enc(exno) : exno;
+            mexno = StringUtils.isNotEmpty(mexno) ? DbEncUtil.enc(mexno) : mexno;
         }
     }
 
     /**
      * 고객번호 기준으로 고객정보를 조회 (IF정보 : EAI_ECUI1038_EDU 고객정보 조회) Search Result Dto
-     * @param CST_NO 고객번호
-     * @param RS_CD 결과코드
-     * @param RS_MSG 결과메시지
+     * @param cstNo 고객번호
+     * @param rsCd 결과코드
+     * @param rsMsg 결과메시지
      */
     @ApiModel(value = "WcsaCustomerInterfaceDto-SearchCustomerInfoEditRes")
     public record SearchCustomerInfoEditRes(
-        String CST_NO,
-        String RS_CD,
-        String RS_MSG
+        @JsonProperty("CST_NO")
+        String cstNo,
+        @JsonProperty("RS_CD")
+        String rsCd,
+        @JsonProperty("RS_MSG")
+        String rsMsg
     ) {}
 
     /**

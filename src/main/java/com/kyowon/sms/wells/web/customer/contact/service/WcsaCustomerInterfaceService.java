@@ -124,9 +124,9 @@ public class WcsaCustomerInterfaceService {
         ifResDvo.setCstNo("");
         ifResDvo.setRsCd("");
         ifResDvo.setRsMsg(null);
-        String cstNo = dto.CST_NO();
-        String copnDvCd = dto.COPN_DV_CD();
-        String calngDvCd = dto.CALNG_DV_CD();
+        String cstNo = dto.cstNo();
+        String copnDvCd = dto.copnDvCd();
+        String calngDvCd = dto.calngDvCd();
 
         //  1. 필수값 체크(호출구분코드 → 필수값 체크)
         if (cstNo.isEmpty()) {
@@ -150,7 +150,7 @@ public class WcsaCustomerInterfaceService {
         // 4. 고객등록여부 조회
         ZcsaCustomerInfoReqDvo indvDvo = new ZcsaCustomerInfoReqDvo();
         indvDvo.setSearchType("C01");
-        indvDvo.setCstNo(dto.CST_NO());
+        indvDvo.setCstNo(dto.cstNo());
 
         List<ZcsaCustomerInfoResDvo> pextCustomer = zcsaCustomerInfoService.getCustomers(indvDvo);
 
