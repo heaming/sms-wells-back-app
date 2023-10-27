@@ -34,6 +34,8 @@ public class WsnaItemOrderQuantityDvo {
     private BigDecimal svCnrQty;
     // 물류센터
     private BigDecimal logisticCnrQty;
+    // 택배
+    private BigDecimal pcsvQty;
     // 당월물량배정
     private BigDecimal thmQomAsnQty;
     // 물류계

@@ -134,8 +134,12 @@ public class WsnaItemOrderQuantityService {
             for (WsnaItemOrderQuantityDvo dvo : sliceDvos) {
                 String pdCd = dvo.getPdCd();
 
-                BigDecimal thmQomAsnQty = dvo.getThmQomAsnQty();
+                // 물류
                 BigDecimal lgstQty = BigDecimal.ZERO;
+                // 택배
+                BigDecimal pcsvQty = dvo.getPcsvQty();
+                // 당월 물량배정
+                BigDecimal thmQomAsnQty = dvo.getThmQomAsnQty();
 
                 for (int i = 0; i < stockSize; i++) {
                     RealTimeGradeStockResIvo stock = stocks.get(i);
@@ -143,12 +147,7 @@ public class WsnaItemOrderQuantityService {
                     String stockPdCd = stock.getItmPdCd();
 
                     if (pdCd.equals(stockPdCd)) {
-                        BigDecimal aGdQty = stock.getLgstAGdQty();
-                        BigDecimal bGdQty = stock.getLgstBGdQty();
-                        BigDecimal eGdQty = stock.getLgstEGdQty();
-                        BigDecimal rGdQty = stock.getLgstRGdQty();
-
-                        lgstQty = aGdQty.add(bGdQty).add(eGdQty).add(rGdQty);
+                        lgstQty = stock.getLgstAGdQty();
 
                         stockSize--;
                         stocks.remove(stock);
@@ -157,7 +156,8 @@ public class WsnaItemOrderQuantityService {
                 }
 
                 dvo.setLogisticCnrQty(lgstQty);
-                dvo.setLogisticSum(thmQomAsnQty.add(lgstQty));
+                // 물류 계 = 당월 물량배정 + 택배 + 물류
+                dvo.setLogisticSum(thmQomAsnQty.add(lgstQty).add(pcsvQty));
             }
         }
     }
