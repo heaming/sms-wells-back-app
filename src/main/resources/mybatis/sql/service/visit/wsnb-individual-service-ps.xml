@@ -1007,12 +1007,16 @@
                 , REL_TP_CD2
              FROM ( SELECT DISTINCT V1.*, RANK() OVER(PARTITION BY CNTR_DTL ORDER BY GUBUN) AS RN
                       FROM (
-                            SELECT (CASE WHEN P2.PD_PRP_VAL20 = '92' AND P1.PD_NM LIKE '%새싹재배기%' AND SC2.CNTR_REL_DTL_CD = '215' THEN '1+1 디바이스'
-                                         WHEN P2.PD_PRP_VAL20 = '11' AND P1.PD_NM LIKE '%새싹씨앗%' AND SC1.CNTR_REL_DTL_CD = '215' THEN '1+1 씨앗'
-                                         WHEN P2.PD_PRP_VAL20 = '92' AND P1.PD_NM LIKE '%새싹재배기%' AND SC2.CNTR_REL_DTL_CD = '22W' THEN '패키지디바이스'
-                                         WHEN P2.PD_PRP_VAL20 = '11' AND P1.PD_NM LIKE '%새싹씨앗%' AND SC1.CNTR_REL_DTL_CD = '22W' THEN '패키지씨앗'
+                            SELECT (CASE WHEN P2.PD_PRP_VAL20 = '92' AND P1.PD_NM LIKE '%새싹재배기%'
+                                              AND (SC1.CNTR_REL_DTL_CD = '215' OR SC2.CNTR_REL_DTL_CD = '215') THEN '1+1 디바이스'
+                                         WHEN P2.PD_PRP_VAL20 = '11' AND P1.PD_NM LIKE '%새싹씨앗%'
+                                              AND (SC1.CNTR_REL_DTL_CD = '215' OR SC2.CNTR_REL_DTL_CD = '215') THEN '1+1 씨앗'
+                                         WHEN P2.PD_PRP_VAL20 = '92' AND P1.PD_NM LIKE '%새싹재배기%'
+                                              AND (SC1.CNTR_REL_DTL_CD = '22W' OR SC2.CNTR_REL_DTL_CD = '22W') THEN '패키지디바이스'
+                                         WHEN P2.PD_PRP_VAL20 = '11' AND P1.PD_NM LIKE '%새싹씨앗%'
+                                              AND (SC1.CNTR_REL_DTL_CD = '22W' OR SC2.CNTR_REL_DTL_CD = '22W') THEN '패키지씨앗'
                                          WHEN P1.PD_NM LIKE '%새싹재배기%' THEN '새싹재배기'
-                                         WHEN P1.PD_NM LIKE '%새싹%' THEN '새싹'
+                                         WHEN P1.PD_NM LIKE '%새싹씨앗%' THEN '새싹씨앗'
                                          ELSE F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', P2.PD_PRP_VAL20, 'ko')
                                     END) AS GUBUN /*구분*/
                                  , SV.CNTR_NO ||'-'|| SV.CNTR_SN AS CNTR_DTL /*계약상세번호*/
@@ -1022,14 +1026,10 @@
                                         THEN SC2.BASE_DTL_CNTR_NO ||'-'|| SC2.BASE_DTL_CNTR_SN
                                         WHEN P2.PD_PRP_VAL20 = '11' AND SC1.CNTR_REL_DTL_CD IN ('214', '216')
                                         THEN SC1.OJ_DTL_CNTR_NO ||'-'|| SC1.OJ_DTL_CNTR_SN
-                                        WHEN SC1.CNTR_REL_DTL_CD IN ('22W', '215') OR SC2.CNTR_REL_DTL_CD IN ('22W', '215')
-                                        THEN (SELECT X.OJ_DTL_CNTR_NO ||'-'|| X.OJ_DTL_CNTR_SN
-                                                FROM TB_SSCT_CNTR_REL X
-                                               WHERE X.BASE_DTL_CNTR_NO = SV.CNTR_NO
-                                                 AND X.BASE_DTL_CNTR_SN = SV.CNTR_SN
-                                                 AND X.CNTR_REL_DTL_CD IN ('22W', '215')
-                                                 AND X.DTA_DL_YN = 'N'
-                                                 AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MMSS') BETWEEN X.VL_STRT_DTM AND X.VL_END_DTM)
+                                        WHEN SC1.CNTR_REL_DTL_CD IN ('22W', '215')
+                                        THEN SC1.OJ_DTL_CNTR_NO ||'-'|| SC1.OJ_DTL_CNTR_SN
+                                        WHEN SC2.CNTR_REL_DTL_CD IN ('22W', '215')
+                                        THEN SC2.BASE_DTL_CNTR_NO ||'-'|| SC2.BASE_DTL_CNTR_SN
                                     END AS SDING_CNTR_DTL /*상대고객*/
                                  , NVL(ADR.NEW_ADR_ZIP, ADR.OLD_ADR_ZIP) AS ADR_ZIP /*우편번호*/
                                  , NVL2(SA2.LOCARA_TNO, SA2.LOCARA_TNO, '') AS LOCARA_TNO /*전화번호 - 지역전화번호*/
