@@ -1,9 +1,12 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
+import java.util.HashMap;
 import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.common.web.fee.common.service.ZfezFeeArticleService;
 import com.kyowon.sms.wells.web.fee.calculation.converter.WfebOrganizationFeeConverter;
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto.*;
 import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebOrganizationFeeDvo;
@@ -26,7 +29,18 @@ import lombok.RequiredArgsConstructor;
 public class WfebOrganizationFeeService {
 
     private final WfebOrganizationFeeMapper mapper;
-    private final WfebOrganizationFeeConverter converter;;
+    private final WfebOrganizationFeeConverter converter;
+
+    private final ZfezFeeArticleService zfezFeeArticleService;
+
+    /**
+     * 수수료 항목 정보 조회
+     * @param dto
+     * @return 조회결과
+     */
+    public List<HashMap<String, Object>> getFeeArticles(String perfYm, String ogTpCd, String feeCalcUnitTpCd) {
+        return zfezFeeArticleService.getFeeArticles(perfYm, ogTpCd, feeCalcUnitTpCd);
+    }
 
     /**
      * WELLS 홈마스터 수수료 생성관리 목록 조회
@@ -54,38 +68,10 @@ public class WfebOrganizationFeeService {
      * @return 조회된 데이터
      */
 
-    public List<SearchMngerRes> getManagerFees(SearchMngerReq dto) {
-        return this.mapper.selectManagerFees(dto);
-    }
-
-    /**
-     * WELLS M조직 수수료 생성관리 2023년4월 이전 목록 조회
-     * @param 'SearchMngerReq' 검색조건 정보
-     * @return 조회된 데이터
-     */
-
-    public List<SearchMngerBfRes> getManagerBeforeFees(SearchMngerReq dto) {
-        return this.mapper.selectManagerBeforeFees(dto);
-    }
-
-    /**
-     * WELLS M조직 수수료 생성관리 지점장 목록 조회
-     * @param 'SearchMngerReq' 검색조건 정보
-     * @return 조회된 데이터
-     */
-
-    public List<SearchMngerBrmgrRes> getManagerBranchManagerFees(SearchMngerReq dto) {
-        return this.mapper.selectManagerBranchManagerFees(dto);
-    }
-
-    /**
-     * WELLS M조직 수수료 생성관리 지점장 2023년4월 이전 목록 조회
-     * @param 'SearchMngerReq' 검색조건 정보
-     * @return 조회된 데이터
-     */
-
-    public List<SearchMngerBrmgrBfRes> getManagerBranchManagerBeforeFees(SearchMngerReq dto) {
-        return this.mapper.selectManagerBranchManagerBeforeFees(dto);
+    public List<HashMap<String, Object>> getManagerFees(SearchMngerReq dto) {
+        // 실적년월의 수수료 항목 정보 조회
+        List<HashMap<String, Object>> feeArticles = getFeeArticles(dto.perfYm(), "W02", dto.feeCalcUnitTpCd());
+        return this.mapper.selectManagerFees(dto, feeArticles);
     }
 
     /**
@@ -94,7 +80,7 @@ public class WfebOrganizationFeeService {
      * @return 조회된 데이터
      */
 
-    public List<SearchMngerTotalRes> getManagerTotalFees(SearchMngerReq dto) {
+    public List<HashMap<String, Object>> getManagerTotalFees(SearchMngerReq dto) {
         return this.mapper.selectManagerTotalFees(dto);
     }
 
@@ -104,7 +90,7 @@ public class WfebOrganizationFeeService {
      * @return 조회된 데이터
      */
 
-    public List<SearchMngerTotalBfRes> getManagerTotalBeforeFees(SearchMngerReq dto) {
+    public List<HashMap<String, Object>> getManagerTotalBeforeFees(SearchMngerReq dto) {
         return this.mapper.selectManagerTotalBeforeFees(dto);
     }
 
