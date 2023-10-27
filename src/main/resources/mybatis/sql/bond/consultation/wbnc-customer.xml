@@ -96,7 +96,10 @@
 		             , NVL(T5.RSG_BOR_DP_AMT, 0) AS RSG_BOR_DP_AMT /* 해지위약입금금액 */   
 		             , NVL(T5.DLQ_DP_AMT, 0) + NVL(T5.DLQ_ADD_DP_AMT, 0) + NVL(T5.RSG_BOR_DP_AMT, 0) + NVL(T5.THM_CHRAM_DP_AMT, 0) AS UC_DP /* 미수입금 */  
 		             , NVL(T5.UC_AMT, 0) - (NVL(T5.DLQ_DP_AMT, 0) + NVL(T5.DLQ_ADD_DP_AMT, 0) + NVL(T5.RSG_BOR_DP_AMT, 0) + NVL(T5.THM_CHRAM_DP_AMT, 0)) AS UC_BLAM /* 미수금 - 총입금액 = 미수잔액 */
-		             , NVL(T5.DLQ_DP_AMT, 0) + NVL(T5.DLQ_ADD_DP_AMT, 0) + NVL(T5.RSG_BOR_DP_AMT, 0) + NVL(T5.THM_CHRAM_DP_AMT, 0) AS TOT_DP_AMT /* 연체입금금액 + 연체가산입금금액 + 해지위약금입금금액 + 당월요금입금금액 = 총입금액 */
+		             , ( SELECT NVL(SUM(TT1.RVE_AMT), 0)
+                           FROM TB_RVDW_RVE_DTL TT1
+                          WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND SUBSTR(TT1.RVE_DT,0,6) = T1.BASE_YM AND TT1.DP_DV_CD IN ('1', '3')
+                       ) AS TOT_DP_AMT /* 총입금액 */
 		             , NVL(T6.SPMT_SL_AMT, 0) AS SPMT_SL /* 추가매출 */  
 		             , NVL(T7.BOR_AMT, 0) AS CCAM /* 위약금 */
 		             , (SELECT NVL(TT1.LS_RNTF, 0) FROM TB_CBCL_WELLS_BOR_AMT_BAS TT1 WHERE TT1.PERF_YM = SUBSTR(T7.CCAM_CMPT_RQDT,0,6) AND TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DTA_DL_YN = 'N') AS LSFE/* 분실료 */    
@@ -616,7 +619,10 @@
 		     , NVL(T1.RSG_BOR_DP_AMT, 0) AS RSG_BOR_DP_AMT /* 해지위약입금금액 */   
 		     , NVL(T1.DLQ_DP_AMT, 0) + NVL(T1.DLQ_ADD_DP_AMT, 0) + NVL(T1.RSG_BOR_DP_AMT, 0) + NVL(T1.THM_CHRAM_DP_AMT, 0) AS UC_DP /* 미수입금 */  
 		     , NVL(T1.UC_AMT, 0) - (NVL(T1.DLQ_DP_AMT, 0) + NVL(T1.DLQ_ADD_DP_AMT, 0) + NVL(T1.RSG_BOR_DP_AMT, 0) + NVL(T1.THM_CHRAM_DP_AMT, 0)) AS UC_BLAM /* 미수금 - 총입금액 = 미수잔액 */
-		     , NVL(T1.DLQ_DP_AMT, 0) + NVL(T1.DLQ_ADD_DP_AMT, 0) + NVL(T1.RSG_BOR_DP_AMT, 0) + NVL(T1.THM_CHRAM_DP_AMT, 0) AS TOT_DP_AMT /* 연체입금금액 + 연체가산입금금액 + 해지위약금입금금액 + 당월요금입금금액 = 총입금액 */
+		     , ( SELECT NVL(SUM(TT1.RVE_AMT), 0)
+                   FROM TB_RVDW_RVE_DTL TT1
+                  WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND SUBSTR(TT1.RVE_DT,0,6) = T1.BASE_YM AND TT1.DP_DV_CD IN ('1', '3')
+               ) AS TOT_DP_AMT
 		     , NVL(T9.SPMT_SL_AMT, 0) AS SPMT_SL /* 추가매출 */ 
 		     , (SELECT NVL(TT1.LS_RNTF, 0) FROM TB_CBCL_WELLS_BOR_AMT_BAS TT1 WHERE TT1.PERF_YM = SUBSTR(T10.CCAM_CMPT_RQDT,0,6) AND TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DTA_DL_YN = 'N') AS LS_RNTF /* 분실손료 */  
 		     , F_CMZ_CD_NM('TNT_BASE', 'VNCO_DV_CD', T11.VAC_VNCO_DV_CD) AS VAC_VNCO_DV_CD /*가상계좌구분*/
@@ -634,6 +640,7 @@
 		     , T1.BND_TF_DT /* 이관일자 */
 		     , T5.SFK_VAL /* 세이프키*/
 		     , T1.CST_NO /* 고객번호*/
+		     , T1.BASE_YM /* 기준년월*/
 		  FROM TB_CBBO_BND_CNTR_BAS T1 /* 채권계약기본 */
 		  LEFT OUTER JOIN (
 		                   SELECT CST_NO

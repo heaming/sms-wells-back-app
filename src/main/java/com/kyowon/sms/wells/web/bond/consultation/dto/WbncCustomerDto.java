@@ -266,7 +266,8 @@ public class WbncCustomerDto {
         String prtnrNm, /*집금담당명*/
         String bndTfDt, /* 이관일자 */
         String sfkVal, /* 세이프키*/
-        String cstNo /* 세이프키*/
+        String cstNo, /* 세이프키*/
+        String baseYm /* 기준년월*/
     ) {}
 
     @ApiModel(value = "WbncCustomertDetailDto-FindUnusualArticlesReq")
