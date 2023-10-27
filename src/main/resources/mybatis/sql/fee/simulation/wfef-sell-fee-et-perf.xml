@@ -1304,10 +1304,10 @@
                         WHEN CH.ACKMT_PERF_EXCD_YN = 'Y' THEN 0
                         WHEN CD.FEE_ACKMT_CT = 0 THEN 0
                         WHEN WS.ROW_SCNT = 0 THEN 0
-                        WHEN CD.SELL_DSC_DV_CD != '5' AND CH.MCHN_CH_YN = 'N' AND CD.ACKMT_PERF_AMT > 0 THEN CD.FEE_ACKMT_CT
+                        WHEN CD.SELL_DSC_DV_CD != '5' AND CH.MCHN_CH_TP_CD IS NULL AND CD.ACKMT_PERF_AMT > 0 THEN CD.FEE_ACKMT_CT
                         WHEN CD.SELL_DSC_DV_CD != '5' AND CH.MCHN_CH_TP_CD IN ('15', '16', '19') THEN CD.FEE_ACKMT_CT
                         WHEN CD.SELL_DSC_DV_CD = '5' AND CD.ACKMT_PERF_AMT > 0 AND
-                                (CH.MCHN_CH_YN = 'N' OR CH.MCHN_CH_TP_CD IN ('15', '16', '19')) THEN CD.FEE_ACKMT_CT
+                                (CH.MCHN_CH_TP_CD IS NULL OR CH.MCHN_CH_TP_CD IN ('15', '16', '19')) THEN CD.FEE_ACKMT_CT
                         ELSE 0 END
                 WHEN CD.SELL_TP_CD = '6' THEN
                     CASE
@@ -1328,8 +1328,8 @@
                     ELSE 0 END
                  WHEN CD.SELL_TP_CD = '2' THEN
                     CASE
-                        WHEN CH.ACKMT_PERF_EXCD_YN = 'Y' THEN 0
-                        WHEN CH.MCHN_CH_TP_CD = '18' THEN 0
+                        WHEN NVL(CH.ACKMT_PERF_EXCD_YN, 'N') = 'Y' THEN 0
+                        WHEN NVL(CH.MCHN_CH_TP_CD, '0') = '18' THEN 0
                         WHEN CD.ACKMT_PERF_AMT <![CDATA[<= 2]]> THEN 0
                         WHEN WS.ROW_SCNT = 0 THEN 0
                         ELSE CD.FEE_ACKMT_BASE_AMT END
@@ -1371,21 +1371,13 @@
             ON OG.BASE_YM = PR.BASE_YM
            AND OG.OG_ID = PR.OG_ID
           LEFT JOIN LATERAL (
-                SELECT MAX(MCHN_CH_TP_CD) AS MCHN_CH_TP_CD
-                     , CASE WHEN MAX(MCHN_CPS_APYR) = 0 THEN 'Y'
-                            WHEN MAX(OJ_CNTR_NO) IS NOT NULL AND 1 = 0 THEN 'Y'
-                            ELSE 'N' END AS ACKMT_PERF_EXCD_YN
-                     , CASE WHEN COUNT(1) = 0 THEN 'N' ELSE 'Y' END AS MCHN_CH_YN
-                  FROM (
-                        SELECT MCHN_CH_TP_CD
-                             , MCHN_CPS_APYR
-                             , OJ_CNTR_NO
-                          FROM TB_SSCT_MCHN_CH_IZ  /* 기기변경내역 */
-                         WHERE BASE_CNTR_NO = CD.CNTR_NO
-                           AND BASE_CNTR_SN = CD.CNTR_SN
-                         ORDER BY MCHN_CH_SN DESC
-                         FETCH FIRST 1 ROW ONLY
-                       )
+                    SELECT MCHN_CH_TP_CD
+                         , CASE WHEN MCHN_CPS_APYR = 0 AND CD.ACKMT_PERF_AMT = 0 THEN 'Y' ELSE 'N' END AS ACKMT_PERF_EXCD_YN
+                      FROM TB_SSCT_MCHN_CH_IZ  /* 기기변경내역 */
+                     WHERE BASE_CNTR_NO = CD.CNTR_NO
+                       AND BASE_CNTR_SN = CD.CNTR_SN
+                     ORDER BY MCHN_CH_SN DESC
+                     FETCH FIRST 1 ROW ONLY
                ) CH ON 1=1
           LEFT JOIN LATERAL (
                   SELECT NVL(MAX(PD_PRP_VAL11), 'N') AS ENVR_SFT_YN
@@ -1622,10 +1614,10 @@
                     ELSE 0 END
                 WHEN CD.SELL_TP_CD = '2' THEN
                     CASE
-                        WHEN CH.ACKMT_PERF_EXCD_YN = 'Y' THEN 0
+                        WHEN CH.MCHN_CH_TP_CD IS NOT NULL THEN 0
+                        WHEN NVL(CH.ACKMT_PERF_EXCD_YN, 'N') = 'Y' THEN 0
                         WHEN CD.FEE_ACKMT_CT = 0 THEN 0
                         WHEN WS.ROW_SCNT = 0 THEN 0
-                        WHEN CH.MCHN_CH_YN = 'Y' THEN 0
                         WHEN CD.ACKMT_PERF_AMT > 0 THEN 1
                         ELSE 0 END
                 WHEN CD.SELL_TP_CD = '6' THEN
@@ -1645,21 +1637,13 @@
             ON OG.BASE_YM = PR.BASE_YM
            AND OG.OG_ID = PR.OG_ID
           LEFT JOIN LATERAL (
-                SELECT MAX(MCHN_CH_TP_CD) AS MCHN_CH_TP_CD
-                     , CASE WHEN MAX(MCHN_CPS_APYR) = 0 THEN 'Y'
-                            WHEN MAX(OJ_CNTR_NO) IS NOT NULL AND 1 = 0 THEN 'Y'
-                            ELSE 'N' END AS ACKMT_PERF_EXCD_YN
-                     , CASE WHEN COUNT(1) = 0 THEN 'N' ELSE 'Y' END AS MCHN_CH_YN
-                  FROM (
-                        SELECT MCHN_CH_TP_CD
-                             , MCHN_CPS_APYR
-                             , OJ_CNTR_NO
-                          FROM TB_SSCT_MCHN_CH_IZ  /* 기기변경내역 */
-                         WHERE BASE_CNTR_NO = CD.CNTR_NO
-                           AND BASE_CNTR_SN = CD.CNTR_SN
-                         ORDER BY MCHN_CH_SN DESC
-                         FETCH FIRST 1 ROW ONLY
-                       )
+                    SELECT MCHN_CH_TP_CD
+                         , CASE WHEN MCHN_CPS_APYR = 0 AND CD.ACKMT_PERF_AMT = 0 THEN 'Y' ELSE 'N' END AS ACKMT_PERF_EXCD_YN
+                      FROM TB_SSCT_MCHN_CH_IZ  /* 기기변경내역 */
+                     WHERE BASE_CNTR_NO = CD.CNTR_NO
+                       AND BASE_CNTR_SN = CD.CNTR_SN
+                     ORDER BY MCHN_CH_SN DESC
+                     FETCH FIRST 1 ROW ONLY
                ) CH ON 1=1
           LEFT JOIN LATERAL (
                   SELECT NVL(MAX(PD_PRP_VAL11), 'N') AS ENVR_SFT_YN
@@ -2108,12 +2092,13 @@
             ON O4.BASE_YM = O3.BASE_YM
            AND O4.OG_ID = O3.OG_ID
           LEFT OUTER JOIN LATERAL (
+                /* BS여부? */
                 SELECT DECODE(COUNT(1), 0, 0, 1) AS ROW_SCNT
                   FROM DUAL
                  WHERE EXISTS (
                         SELECT 1
                           FROM TB_FEAM_WELS_SV_FEE_BAS T1
-                         WHERE T1.BASE_PD_CD = CD.BASE_PD_CD
+                         WHERE T1.BASE_PD_CD = M.BASE_PD_CD
                            AND T1.VST_MCN = 0
                            AND SUBSTR(M.CNTR_PD_ENDDT,1,6) BETWEEN T1.APY_STRT_YM AND T1.APY_END_YM
                        )
