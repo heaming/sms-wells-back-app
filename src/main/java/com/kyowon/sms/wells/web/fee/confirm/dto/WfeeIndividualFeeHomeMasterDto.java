@@ -22,7 +22,7 @@ public class WfeeIndividualFeeHomeMasterDto {
         @NotBlank
         String perfYm,
         @NotBlank
-        String no
+        String prtnrNo
     ) {}
 
     @ApiModel(value = "WfeeIndividualFeeHomeMasterDto-SearchHmstRes")
