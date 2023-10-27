@@ -114,7 +114,7 @@ public class WfebB2bFeeMgtService {
                 dtlDvo.setFeeDdtnTpCd("01"); // 수수료공제유형코드 : 공제-보증예치금
                 dtlDvo.setFeeTcntDvCd("02"); // 2차
                 dtlDvo.setSpmtDsbDvCd("01"); // 정상지급
-                dtlDvo.setFeeDdtnCrtCd("01"); // 수수료공제유형코드 : 공제-보증예치금
+                dtlDvo.setFeeDdtnCrtCd("W0404"); // 수수료공제유형코드 : 공제-보증예치금
                 dtlDvo.setFeeCtrOgTpCd(session.getOgTpCd());
                 dtlDvo.setFeeCtrPrtnrNo(row.prtnrNo());
                 dtlDvo.setPrtnrNo(row.prtnrNo());
