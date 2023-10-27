@@ -77,7 +77,7 @@ public class WcsaCustomerInterfaceService {
         ifResDvo.setRsMsg(null); //정상의 경우 결과코드(rsCd)만 송신한다.
 
         //  1. 필수값 체크(고객번호 → 필수값 체크)
-        if (dto.CST_NO().isEmpty()) {
+        if (dto.cstNo().isEmpty()) {
             ifResDvo.setRsCd("F");
             Arrays.stream(dto.getClass().getDeclaredFields()).forEach(data -> {
                 ifResDvo.setRsMsg(data.getName() + "가(이) 없습니다 !");
