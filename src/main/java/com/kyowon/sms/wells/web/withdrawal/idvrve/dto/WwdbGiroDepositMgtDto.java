@@ -239,4 +239,15 @@ public class WwdbGiroDepositMgtDto {
     ) {
     }
 
+    @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchLedgerItemizationReq")
+    public record SearchGiroNumberRes(
+        String cntrNo,
+        String cntrSn,
+        String cntr,
+        String cstNo,
+        String cstKnm
+    ) {
+    }
+
+
 }

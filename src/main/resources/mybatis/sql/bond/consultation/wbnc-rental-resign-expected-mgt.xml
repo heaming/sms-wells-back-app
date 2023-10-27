@@ -115,7 +115,7 @@
              , (CASE WHEN A.CLCTAM_PRTNR_NO IS NULL THEN 'N' ELSE 'Y' END) AS CLCTAM_YN /*집금자여부*/
              , NVL(M_2.PD_RVE_AMT - M_2.RFND_RVE_AMT,0) AS RVE_AMT /*입금액*/
              , A.AUTH_RSG_EXCD_RQR_PRTNR_NO                 /*당월제외사번*/
-             , MAX(A.BASE_YM) OVER(PARTITION BY A.CNTR_NO ,A.CNTR_SN) AS RQR_BASE_YM /* 최초제외월 */
+             , MIN(A.BASE_YM) OVER(PARTITION BY A.CNTR_NO ,A.CNTR_SN) AS RQR_BASE_YM /* 최초제외월 */
              ,CASE WHEN A.SELL_TP_CD = '2' THEN (
                         NVL(M_2.PD_RVE_AMT,0) - NVL(M_2.RFND_RVE_AMT,0) + NVL(M3_2.PD_RVE_AMT,0) - NVL(M3_2.RFND_RVE_AMT,0)
                    )
@@ -170,6 +170,8 @@
                    AND BASE_YM = SUBSTR(#{baseDt},0,6)
                    AND HMNRSC_DEPT_CD = '70202' /* 채권전략팀-70202, param변경가능 */
                    AND PRTNR_NO = A.AUTH_RSG_EXCD_RQR_PRTNR_NO ) AS BND_STRT_YN /* 채권전략팀 여부-CLCTAM_PRTNR_NO-(집금파트너번호),AUTH_RSG_EXCD_RQR_PRTNR_NO(직권해지제외요청자파트너번호) */
+             , D.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세코드 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', D.SELL_TP_DTL_CD , #{session.langId}) AS SELL_TP_DTL_NM /*판매유형상세명*/
           FROM TB_CBBO_WELLS_AUTH_RSG_IZ A              /*T:WELLS직권해지내역*/
           LEFT JOIN TB_CBBO_BND_CNTR_BAS T1 /*T:채권계약기본*/
             ON T1.BASE_YM = A.BASE_YM
@@ -989,27 +991,15 @@
                     INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
                        ON B.CNTR_NO = T.CNTR_NO
                       AND B.CNTR_SN = T.CNTR_SN
-                    INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /*T:WELLS매출월마감내역*/
+                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /*T:WELLS매출월마감내역*/
                        ON C.SL_CL_YM = SUBSTR(A.CNTR_CNFM_DTM,1,6)
                       AND C.CNTR_NO = T.CNTR_NO
                       AND C.CNTR_SN = T.CNTR_SN
-                    INNER JOIN TB_OGBS_MM_PRTNR_IZ D /*T:월파트너내역*/
-                       ON D.BASE_YM = SUBSTR(A.CNTR_CNFM_DTM,1,6)
-                      AND D.OG_TP_CD = A.SELL_OG_TP_CD
-                      AND D.PRTNR_NO = A.SELL_PRTNR_NO
                      LEFT JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
                        ON F.BASE_YM = T.BASE_YM
                       AND F.CNTR_NO = T.CNTR_NO
                       AND F.CNTR_SN = T.CNTR_SN
-                     LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
-                       ON G.PERF_YM = T.BASE_YM
-                      AND G.CNTR_NO = T.CNTR_NO
-                      AND G.CNTR_SN = T.CNTR_SN
-                     LEFT JOIN TB_CBCL_DLQ_BAS H /*T:연체기본*/
-                       ON H.PERF_YM = T.BASE_YM
-                      AND H.CNTR_NO = T.CNTR_NO
-                      AND H.CNTR_SN = T.CNTR_SN
-                     LEFT JOIN LATERAL (SELECT SUM((CASE WHEN DP_DV_CD = '1' THEN NVL(RVE_AMT,0) ELSE 0 END)) AS PD_RVE_AMT    /*입금금액*/
+                     LEFT OUTER JOIN LATERAL (SELECT SUM((CASE WHEN DP_DV_CD = '1' THEN NVL(RVE_AMT,0) ELSE 0 END)) AS PD_RVE_AMT    /*입금금액*/
                                              , SUM((CASE WHEN DP_DV_CD = '3' THEN NVL(RVE_AMT,0) ELSE 0 END)) AS RFND_RVE_AMT  /*환불금액*/
                                           FROM TB_RVDW_RVE_DTL /*T:수납상세*/
                                          WHERE 1 = 1
@@ -1022,7 +1012,7 @@
                        ON 1 = 1
                     <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
                      /* 변경 - 추가 3개월 입금액 */
-                     LEFT JOIN LATERAL (
+                     LEFT OUTER JOIN LATERAL (
                      					SELECT CNTR_NO, CNTR_SN ,NVL(SUM(RVE_AMT),0) AS RVE_AMT
                      					  FROM TB_RVDW_RVE_DTL /* 수납상게 */
                      					 WHERE 1 = 1

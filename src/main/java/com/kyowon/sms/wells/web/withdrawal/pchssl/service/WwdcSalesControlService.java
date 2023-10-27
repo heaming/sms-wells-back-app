@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import com.kyowon.sms.common.web.closing.sales.dvo.ZdcbSalesDiscountCancelDvo;
 import com.kyowon.sms.common.web.closing.sales.service.ZdcbSalesDiscountCancelService;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import org.apache.commons.collections.CollectionUtils;
@@ -109,7 +110,9 @@ public class WwdcSalesControlService {
                         zdcbSalesDiscountCancelDvo.setSlRcogDt(sysDateYmd); //매출인식일자
                         zdcbSalesDiscountCancelDvo.setKwGrpCoCd(session.getCompanyCode()); //교원코드
                         zdcbSalesDiscountCancelDvo.setSlRcogDvCd("04"); //매출인식구분코드
-                        zdcbSalesDiscountCancelDvo.setSlCtrAmt(Long.parseLong(dvo.getSlCtrAmt())); //조정금액
+                        if (StringUtil.isNotEmpty(dvo.getSlCtrAmt())) {
+                            zdcbSalesDiscountCancelDvo.setSlCtrAmt(Long.parseLong(dvo.getSlCtrAmt())); //조정금액
+                        }
 
                         zdcbSalesDiscountCancelService.createSalesDiscountCancelData(zdcbSalesDiscountCancelDvo);
                     }

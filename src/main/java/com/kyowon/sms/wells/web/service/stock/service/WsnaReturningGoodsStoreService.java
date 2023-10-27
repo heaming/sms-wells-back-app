@@ -396,7 +396,6 @@ public class WsnaReturningGoodsStoreService {
 
         for (SaveConfirmationReq dto : dtos) {
             WsnaReturningGoodsStoreDvo dvo = this.converter.mapSaveConfirmationReqToReturningGoodsDvo(dto);
-            dvo.setRtngdConfYn("Y");
 
             processCount += this.mapper.updateReturningGoodsStoreConfirmations(dvo);
 

@@ -11,12 +11,12 @@
              , P1.SVPD_SAP_CD AS SAP_CD /*SAP코드*/
              , T1.ITM_PD_CD /*품목상품코드*/
              , T1.MNGT_UNIT_CD /*관리단위코드*/
-             , P1.SVPD_NM_ABBR1 AS ITM_PD_NM
+             , P1.SVPD_NM_ABBR1 AS ITM_PD_NM /* 품목명 */
              , T1.ITM_GD_CD /*품목등급코드*/
              , T1.STR_QTY /*입고수량*/
              , T1.RMK_CN  /*입고사유*/
-          FROM TB_SVST_ITM_STR_IZ T1
-         INNER JOIN TB_SVST_MCBY_WARE_IZ T2
+          FROM TB_SVST_ITM_STR_IZ T1        /* 품목입고내역 */
+         INNER JOIN TB_SVST_MCBY_WARE_IZ T2 /* 월별창고내역 */
             ON T1.STR_WARE_NO = T2.WARE_NO
            AND T2.APY_YM = #{strRgstDt}
          INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) P1
@@ -38,7 +38,7 @@
 
     <select id="selectMcbyWareIzCount" resultType="Integer">
         SELECT COUNT(*)
-          FROM TB_SVST_MCBY_WARE_IZ
+          FROM TB_SVST_MCBY_WARE_IZ /* 월별창고내역 */
          WHERE DTA_DL_YN   = 'N'
            AND WARE_USE_YN = 'Y'
            AND WARE_DV_CD  = '2'   /* 서비스센터 */
@@ -56,7 +56,7 @@
     </select>
 
     <select id="selectMgtUntFind" resultType="java.lang.String">
-        SELECT P1.SVPD_MGT_UNT AS MNGT_UNIT
+        SELECT P1.SVPD_MGT_UNT AS MNGT_UNIT /* 관리단위 */
           FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) P1
          WHERE 1 = 1
            AND P1.SVPD_PD_CD = #{itmPdCd}
@@ -64,7 +64,7 @@
     </select>
 
     <select id="selectNextItmStrNo" resultType="java.lang.String">
-        SELECT #{strTpCd} || #{strRgstDt} || LPAD(SQ_SVST_ITM_STR_IZ$ITM_STR_NO.NEXTVAL,7,'0') AS ITM_STR_NO
+        SELECT #{strTpCd} || #{strRgstDt} || LPAD(SQ_SVST_ITM_STR_IZ$ITM_STR_NO.NEXTVAL,7,'0') AS ITM_STR_NO /* 품목입고번호 */
           FROM DUAL
     </select>
 
@@ -124,8 +124,8 @@
     </insert>
 
     <select id="selectChkWareClose" resultType="Integer">
-		SELECT COUNT(*) AS CNT
-          FROM TB_SVST_MCBY_WARE_CL_IZ
+		SELECT COUNT(*) AS CNT /* 카운트숫자*/
+          FROM TB_SVST_MCBY_WARE_CL_IZ /* 월별창고마감내역 */
          WHERE APY_YM = SUBSTR(#{strRgstDt},1,6)
            AND WARE_NO = #{strWareNo}
            AND WARE_CL_YN = 'Y'
@@ -190,7 +190,7 @@
     </insert>
 
     <update id="updateAsConsumablesStore">
-        UPDATE TB_SVST_ITM_STR_IZ
+        UPDATE TB_SVST_ITM_STR_IZ /* 품목입고내역 */
            SET RMK_CN = #{rmkCn}
        <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
@@ -200,7 +200,7 @@
     </update>
 
     <delete id="deleteAsConsumablesStores">
-        UPDATE TB_SVST_ITM_STR_IZ
+        UPDATE TB_SVST_ITM_STR_IZ /* 품목입고내역 */
            SET DTA_DL_YN = 'Y'
        <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
@@ -210,26 +210,26 @@
     </delete>
 
     <select id="selectItemProductCodes" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaAsConsumablesStoreDto$SearchItemRes">
-        SELECT P1.SVPD_PD_CD AS CODE_ID
-             , P1.SVPD_NM_ABBR1 AS CODE_NAME
+        SELECT P1.SVPD_PD_CD                 AS CODE_ID    /* 품목상품코드 */
+             , '['|| P1.SVPD_PD_CD || ']' || P1.SVPD_NM_ABBR1 AS CODE_NAME  /* 품목코드명 */
           FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) P1
          WHERE 1 = 1
            AND P1.SVPD_ITEM_KND = #{itmKndCd}
-         ORDER BY P1.SVPD_PD_CD
+         ORDER BY P1.SVPD_NM_ABBR1, P1.SVPD_PD_CD
 
 
     </select>
 
     <select id="selectWareMngtPrtnrNo" resultType="java.lang.String">
-        SELECT WARE_MNGT_PRTNR_NO
-          FROM TB_SVST_MCBY_WARE_IZ
+        SELECT WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
+          FROM TB_SVST_MCBY_WARE_IZ /* 월별창고내역 */
          WHERE 1 = 1
            AND APY_YM  = SUBSTR(#{strRgstDt}, 1, 6)
            AND WARE_NO = #{strWareNo}
     </select>
 
     <update id="deletePitmStocAGdQty">
-        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ /* 고객서비스품목재고내역 */
            SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty}
              , FNL_OSTR_DT = #{strRgstDt}
              <include refid="COMMON.updateSystemField"/>
@@ -238,7 +238,7 @@
     </update>
 
     <update id="deletePitmStocEGdQty">
-        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ /* 고객서비스품목재고내역 */
            SET PITM_STOC_E_GD_QTY = #{pitmStocEGdQty}
              , FNL_OSTR_DT = #{strRgstDt}
              <include refid="COMMON.updateSystemField"/>
@@ -248,7 +248,7 @@
     </update>
 
     <update id="deleteMonthlyPitmStocAGdQty">
-        UPDATE TB_SVST_MCITM_STOC_IZ
+        UPDATE TB_SVST_MCITM_STOC_IZ /* 월별품목재고내역 */
            SET PITM_STOC_A_GD_QTY = #{monthlyPitmStocAGdQty}
              , ETC_STR_A_GD_QTY = #{etcStrAGdQty}
         <include refid="COMMON.updateSystemField"/>
@@ -258,7 +258,7 @@
     </update>
 
     <update id="deleteMonthlyPitmStocEGdQty">
-        UPDATE TB_SVST_MCITM_STOC_IZ
+        UPDATE TB_SVST_MCITM_STOC_IZ /* 월별품목재고내역 */
            SET PITM_STOC_E_GD_QTY = #{monthlyPitmStocEGdQty}
              , ETC_STR_E_GD_QTY = #{etcStrEGdQty}
         <include refid="COMMON.updateSystemField"/>

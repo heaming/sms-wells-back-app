@@ -59,7 +59,7 @@ public class WwdbRefundCurrentStatusController {
     public PagingResult<SearchCardRefundHistoryRes> getCardRefundHistoryPages(
         @ApiParam
         @Valid
-        SearchCardRefundHistoryReq req,
+        SearchRefundHistoryReq req,
         @Valid
         PageInfo pageInfo
     ) {

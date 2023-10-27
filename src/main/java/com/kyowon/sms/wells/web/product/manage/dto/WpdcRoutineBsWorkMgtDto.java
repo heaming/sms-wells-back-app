@@ -97,6 +97,13 @@ public class WpdcRoutineBsWorkMgtDto {
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchLifeCustomFiltersRes")
     public record SearchLifeCustomFiltersRes(
+        String fstRgstUsrId, /* 등록자 */
+        String fnlMdfcUsrId, /* 수정자 */
+        String fstRgstDtm, /* 등록일 */
+        String fstRgstUsrNm, /* 등록자명 */
+        String fnlMdfcDtm, /* 수정일 */
+        String fnlMdfcUsrNm, /* 수정자명 */
+
         String chPdctPdNm, /* 변경제품상품명 */
         String svPdCd, /* 서비스상품코드 */
         String pdctPdCd, /* 제품상품코드 */

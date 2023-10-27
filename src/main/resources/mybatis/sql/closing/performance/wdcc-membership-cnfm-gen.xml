@@ -160,6 +160,9 @@
                      , TB_SSCT_CNTR_WELLS_DTL S /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
                  WHERE 1 = 1
                    AND A.SELL_TP_CD = '3'   --멤버십
+                   AND D.SELL_TP_CD = '2' --렌탈
+                   AND NOT (D.CNTR_PD_ENDDT != '99991231' AND D.CNTR_DTL_STAT_CD = '301')    --렌탈취소 X
+                   AND A.SELL_TP_DTL_CD <![CDATA[<>]]> '33'         --홈케어 맴버십 제외
                    AND A.CNTR_PD_ENDDT = '99991231'    --멤버십 탈퇴일자 미존재
                    AND A.CNTR_PD_STRTDT IS NULL        --멤버십 가입일자 미존재
                    AND ((D.SELL_TP_DTL_CD IN ('21', '23') AND F.RENTAL_TN >= D.CNTR_PTRM) --사용차월, 렌탈차월 비교
@@ -270,7 +273,15 @@
                      , TB_SSCT_CNTR_REL C                /*계약관계*/
                      , TB_SSCT_CNTR_DTL D                /*계약상세 - 렌탈/리스*/
                      , TB_SSCT_CNTR_BAS E                /*계약기본 - 렌탈/리스*/
-                     , TB_CBCL_WELLS_SL_MM_CL_IZ F    /*WELLS매출월마감내역*/
+                  LEFT OUTER JOIN LATERAL (SELECT * FROM TB_CBCL_WELLS_SL_MM_CL_IZ   /*WELLS매출월마감내역*/
+                 WHERE CNTR_NO = C.OJ_DTL_CNTR_NO
+                   AND CNTR_SN = C.OJ_DTL_CNTR_SN
+                 ORDER BY SL_CL_YM DESC
+                 FETCH FIRST 1 ROWS ONLY) F ON 1=1
+                LEFT OUTER JOIN LATERAL (SELECT * FROM TB_CBCL_WELLS_SL_MM_CL_IZ   /*WELLS매출월마감내역*/
+                 WHERE CNTR_NO = C.OJ_DTL_CNTR_NO
+                   AND CNTR_SN = C.OJ_DTL_CNTR_SN
+                   AND SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')) H ON 1=1
                   LEFT OUTER JOIN TB_CBCL_DLQ_BAS G    /*연체기본*/
                     ON G.CNTR_NO = F.CNTR_NO
                    AND G.CNTR_SN = F.CNTR_SN
@@ -283,10 +294,10 @@
                    AND D.CNTR_NO = C.OJ_DTL_CNTR_NO
                    AND D.CNTR_SN = C.OJ_DTL_CNTR_SN
                    AND E.CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND F.CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND F.CNTR_SN = C.OJ_DTL_CNTR_SN
-                   AND F.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
-                   AND A.SELL_TP_CD = '2'   --렌탈
+                   AND A.SELL_TP_DTL_CD <![CDATA[<>]]> '33'         --홈케어 맴버십 제외
+                   AND A.SELL_TP_CD = '3'   --멤버십
+                   AND D.SELL_TP_CD = '2'   --렌탈
+                   AND NOT (D.CNTR_PD_ENDDT != '99991231' AND D.CNTR_DTL_STAT_CD = '301')    --렌탈취소 X
                    AND B.CNTR_CNFM_DTM IS NULL        --멤버십 확정일시 미존재
                    AND A.CNTR_PD_ENDDT = '99991231'    --멤버십 탈퇴일자 미존재
                    AND B.CNTR_CAN_DTM IS NULL        --멤버십 취소일시 미존재
@@ -294,6 +305,7 @@
                  --  AND SUBSTR(D.CNTR_PD_ENDDT, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')  --삭제
                    AND (D.SELL_TP_DTL_CD IN ('21', '23') AND F.RENTAL_TN >= D.CNTR_PTRM)    --사용차월, 렌탈차월 비교
                    AND NVL(G.DLQ_MCN, 0) = 0        --연체건수가 없는건
+                   AND H.CNTR_NO IS NULL     --전월매출이 없는 건(전월매출이 있는 건은 1번 쿼리에서 조회되기 때문이다.)
                    AND S.CNTR_NO   = A.CNTR_NO
                    AND S.CNTR_SN   = A.CNTR_SN
                    AND S.REQD_DT   IS NULL   --철거일자
@@ -408,6 +420,9 @@
                    AND D.CNTR_SN = C.OJ_DTL_CNTR_SN
                    AND E.CNTR_NO = C.OJ_DTL_CNTR_NO
                    AND A.SELL_TP_DTL_CD <![CDATA[<>]]> '33'         --홈케어 맴버십 제외
+                   AND A.SELL_TP_CD = '3'   --멤버십
+                   AND D.SELL_TP_CD = '1'   --일시불
+                   AND D.CNTR_PD_STRTDT IS NOT NULL --일시불 매출일자 존재
                    AND B.CNTR_CNFM_DTM IS NULL        --멤버십 확정일시 미존재
                    AND A.CNTR_PD_ENDDT = '99991231'    --멤버십 탈퇴일자 미존재
                    AND B.CNTR_CAN_DTM IS NULL        --멤버십 취소일시 미존재
@@ -515,11 +530,15 @@
                      , TB_SSCT_CNTR_REL C                /*계약관계*/
                      , TB_SSCT_CNTR_DTL D                /*계약상세 - 렌탈/리스*/
                      , TB_SSCT_CNTR_BAS E                /*계약기본 - 렌탈/리스*/
-                     , TB_CBCL_WELLS_SL_MM_CL_IZ F    /*WELLS매출월마감내역*/
+                  LEFT OUTER JOIN LATERAL (SELECT * FROM TB_CBCL_WELLS_SL_MM_CL_IZ     /*WELLS매출월마감내역*/
+                 WHERE CNTR_NO = C.OJ_DTL_CNTR_NO
+                   AND CNTR_SN = C.OJ_DTL_CNTR_SN
+                 ORDER BY SL_CL_YM DESC
+                 FETCH FIRST 1 ROWS ONLY) F ON 1=1
                   LEFT OUTER JOIN TB_CBCL_DLQ_BAS G    /*연체기본*/
                     ON G.CNTR_NO = F.CNTR_NO
                    AND G.CNTR_SN = F.CNTR_SN
-                   AND G.PERF_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND G.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
                      , TB_SSCT_CNTR_WELLS_DTL S /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
                  WHERE 1 = 1
                    AND A.CNTR_NO = B.CNTR_NO
@@ -527,11 +546,11 @@
                    AND C.BASE_DTL_CNTR_SN = A.CNTR_SN
                    AND D.CNTR_NO = C.OJ_DTL_CNTR_NO
                    AND D.CNTR_SN = C.OJ_DTL_CNTR_SN
+                   AND D.CNTR_PD_STRTDT IS NOT NULL  --회사설치 매출일자 존재
                    AND E.CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND F.CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND F.CNTR_SN = C.OJ_DTL_CNTR_SN
-                   AND F.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
                    AND A.SELL_TP_DTL_CD = '34'         --회사설치건
+                   AND A.SELL_TP_CD = '3'  --멤버십
+                   AND D.SELL_TP_CD = '4'  --회사설치
                    AND B.CNTR_CNFM_DTM IS NULL        --멤버십 확정일시 미존재
                    AND A.CNTR_PD_ENDDT = '99991231'    --멤버십 탈퇴일자 미존재
                    AND B.CNTR_CAN_DTM IS NULL        --멤버십 취소일시 미존재

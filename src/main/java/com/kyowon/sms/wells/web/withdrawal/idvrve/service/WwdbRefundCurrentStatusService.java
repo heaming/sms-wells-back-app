@@ -65,7 +65,7 @@ public class WwdbRefundCurrentStatusService {
      * @return PagingResult<SearchCardRefundHistoryRes>
      */
     public PagingResult<SearchCardRefundHistoryRes> getCardRefundHistoryPages(
-        SearchCardRefundHistoryReq req,
+        SearchRefundHistoryReq req,
         PageInfo pageInfo
     ) {
         return mapper.selectCardRefundHistory(req, pageInfo);

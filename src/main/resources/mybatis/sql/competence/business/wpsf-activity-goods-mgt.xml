@@ -118,7 +118,7 @@
     </select>
 
     <select id="selectGdsBaseCodes" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto$SearchBaseCodeRes">
-        SELECT T1.ACTI_GDS_SN CODE_ID       /* 활동물품일련번호 */
+        SELECT T1.OG_TP_CD || '-' || T1.ACTI_GDS_CD || '-' || T1.ACTI_GDS_SN CODE_ID /* 활동물품세트코드 */
              , T1.ACTI_GDS_NM CODE_NAME        /* 활동물품명 */
              , T1.ACTI_GDS_CD PRTS_CODE_ID
              , T1.ACTI_GDS_STDD_DV_ID
@@ -129,16 +129,20 @@
 		          FROM TB_PSGA_ACTI_GDS_BAS
                  WHERE DTA_DL_YN  ='N'         /* 데이터삭제여부 */
                 <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
-                   AND OG_TP_CD         = #{ogTpCd}          /* 활동물품코드 */
+                   AND OG_TP_CD         = #{ogTpCd}          /* 조직유형코드 */
                 </if>
+                <if test='@MybatisUtils@isNotEmpty(aplcYn)'>
                    AND USE_YN = 'Y'
+                </if>
                  GROUP BY OG_TP_CD,ACTI_GDS_CD
                 ) T2
              ON T1.OG_TP_CD=T2.OG_TP_CD
             AND T1.ACTI_GDS_CD=T2.ACTI_GDS_CD
             AND T1.ACTI_GDS_SN=T2.MAX_ACTI_GDS_SN
           WHERE T1.DTA_DL_YN  = 'N'         /* 데이터삭제여부 */
+          <if test='@MybatisUtils@isNotEmpty(aplcYn)'>
             AND T1.USE_YN = 'Y'
+          </if>
           ORDER BY T1.OG_TP_CD, T1.ACTI_GDS_SN DESC
     </select>
 
@@ -192,6 +196,7 @@
              , b.OG_TP_CD         /* 조직유형코드 */
              , b.ACTI_GDS_CD      /* 활동물품코드 */
              , b.ACTI_GDS_SN      /* 활동물품일련번호 */
+             , b.OG_TP_CD || '-' || b.ACTI_GDS_CD || '-' || b.ACTI_GDS_SN AS ACTI_GDS_SET_CD
              , b.APLC_QTY
              , a.ACTI_GDS_NM      /* 활동물품명 */
              , (a.ACTI_GDS_AMT * b.APLC_QTY) ACTI_GDS_AMT
@@ -299,9 +304,7 @@
             LEFT OUTER JOIN TB_PSGA_ACTI_GDS_STDD_DV_DTL g ON (g.ACTI_GDS_STDD_DV_ID = a.ACTI_GDS_STDD_DV_ID AND g.ACTI_GDS_STDD_CD =  b.ACTI_GDS_STDD_CD)
             LEFT OUTER JOIN TB_OGBS_PRTNR_DTL h ON (h.OG_TP_CD = b.OG_TP_CD AND h.PRTNR_NO = b.PRTNR_NO)
         WHERE 1=1
-            <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
             AND b.OG_TP_CD = #{ogTpCd} /*조직유형*/
-            </if>
             <if test='@MybatisUtils@isNotEmpty(aplcDt)'>
                 <choose>
                     <when test='@MybatisUtils@equals(actiStatCd, "01")'>
@@ -316,7 +319,7 @@
                         )
                     </when>
                     <otherwise>
-                        AND 1=1
+                        AND SUBSTR(c.APLC_DT, 0, 6) = #{aplcDt} /*신청일자*/
                     </otherwise>
                 </choose>
             </if>
@@ -326,17 +329,8 @@
             <if test='@MybatisUtils@isNotEmpty(actiGdsAplcId)'>
                 AND b.ACTI_GDS_APLC_ID = #{actiGdsAplcId} /*활동물품신청ID*/
             </if>
-            <if test='@MybatisUtils@isNotEmpty(actiGdsSn)'>
-                AND b.ACTI_GDS_SN = #{actiGdsSn} /*활동물품일련번호*/
-            </if>
-            <if test='@MybatisUtils@isNotEmpty(aplcQty)'>
-                AND b.APLC_QTY = #{aplcQty} /*신청수량*/
-            </if>
-            <if test='@MybatisUtils@isNotEmpty(actiGdsStddCd)'>
-                AND b.ACTI_GDS_STDD_CD = #{actiGdsStddCd} /*활동물품규격코드*/
-            </if>
             <choose>
-                <when test='@MybatisUtils@equals(session.baseRleCd, "W2010")'> /*플래너*/
+                <when test='@MybatisUtils@isNotEmpty(aplcYn)'>
                     AND b.PRTNR_NO = #{session.employeeIDNumber} /*파트너번호*/
                 </when>
                 <otherwise>
@@ -345,11 +339,11 @@
                     </if>
                 </otherwise>
             </choose>
-        ORDER BY b.PRTNR_NO, c.APLC_DT
+        ORDER BY b.PRTNR_NO, c.APLC_DT, b.ACTI_GDS_APLC_ID
     </select>
 
     <select id="selectActiGdsAplcId" resultType="String">
-        SELECT LPAD((NVl(MAX(ACTI_GDS_APLC_ID),0)+1),15,0)  FROM TB_PSGA_ACTI_GDS_APLC_IZ
+        SELECT LPAD((NVl(MAX(ACTI_GDS_APLC_ID),0)+1),15,0) FROM TB_PSGA_ACTI_GDS_APLC_IZ WHERE FST_RGST_PRG_ID != 'MIG_PGM'
     </select>
 
     <select id="selectGoodsBase" resultType="com.kyowon.sms.wells.web.competence.business.dvo.WpsfActivityGoodsBaseDvo">
@@ -513,18 +507,8 @@
          WHERE 1 = 1
            AND T1.PROCS_YN ='Y'
            AND T1.DTA_DL_YN ='N'
-        <choose>
-            <when test='@MybatisUtils@equals(session.baseRleCd, "W2010")'> <!-- 플래너 -->
            AND T2.PRTNR_NO = #{session.employeeIDNumber}   /* 파트너번호 */
-            </when>
-            <otherwise>
-              <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-           AND T2.PRTNR_NO = #{prtnrNo}    /* 파트너번호 */
-              </if>
-            </otherwise>
-        </choose>
            AND T2.OG_TP_CD = #{ogTpCd}
-
          ORDER BY T1.FEE_DDTN_OC_DT DESC
     </select>
 

@@ -16,9 +16,9 @@ public class WwdbRefundCurrentStatusDto {
         String rveDtStart, // 환불일자 시작일
         @NotBlank
         String rveDtFinish, // 환불일자 종료일
-        @NotBlank
+
         String perfDtStart, // 실적일자 시작일
-        @NotBlank
+        
         String perfDtFinish, // 실적일자 종료일
         // 일괄생성구분 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
         String rfndDsbDvCd, // 귀속환불구분
@@ -70,9 +70,9 @@ public class WwdbRefundCurrentStatusDto {
         String rveDtStart, // 환불일자 시작일
         @NotBlank
         String rveDtFinish, // 환불일자 종료일
-        @NotBlank
+
         String perfDtStart, // 실적일자 시작일
-        @NotBlank
+
         String perfDtFinish, // 실적일자 종료일
         // 일괄생성구분 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
         String rfndDsbDvCd, // 귀속환불구분
@@ -108,9 +108,9 @@ public class WwdbRefundCurrentStatusDto {
         String rveDtStart, // 환불일자 시작일
         @NotBlank
         String rveDtFinish, // 환불일자 종료일
-        @NotBlank
+
         String perfDtStart, // 실적일자 시작일
-        @NotBlank
+
         String perfDtFinish, // 실적일자 종료일
         // 일괄생성구분 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
         String rfndDsbDvCd, // 귀속환불구분

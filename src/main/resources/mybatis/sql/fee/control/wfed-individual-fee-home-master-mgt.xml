@@ -331,7 +331,7 @@
                 SELECT CASE WHEN FEE_DDTN_TP_CD = '02' THEN FEE_ATC_VAL ELSE 0 END AS ERNTX /* 소득세 */
                      , CASE WHEN FEE_DDTN_TP_CD = '03' THEN FEE_ATC_VAL ELSE 0 END AS RSDNTX /* 주민세 */
                      , CASE WHEN FEE_DDTN_TP_CD = '01' THEN FEE_ATC_VAL ELSE 0 END AS RDS /* RDS,보증예치금 */
-                     , CASE WHEN FEE_DDTN_TP_CD IN ('05', '96') THEN FEE_ATC_VAL ELSE 0 END AS HIR_INSR /* 고용보험 */
+                     , CASE WHEN FEE_DDTN_TP_CD = '05' THEN FEE_ATC_VAL ELSE 0 END AS HIR_INSR /* 고용보험 */
                      , CASE WHEN FEE_DDTN_TP_CD = '06' THEN FEE_ATC_VAL ELSE 0 END AS INDD_INSR /* 산재보험 */
                      , CASE WHEN FEE_DDTN_TP_CD = '07' THEN FEE_ATC_VAL ELSE 0 END AS BU_DDTN /* 부담공제 */
                      , CASE WHEN FEE_DDTN_TP_CD = '04' THEN FEE_ATC_VAL ELSE 0 END AS PNPYAM /* 가지급금 */
@@ -348,52 +348,70 @@
 
     <select id="selectHmstControls"
             resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedIndividualFeeHomeMasterMgtDto$SearchHmstControlRes">
-        SELECT M.DIV
-             , M.ITEM
-             , M.CTR_BF
-             , M.CTR_AF
-             , M.RSN
-             , M.CTR_DTM
-             , A.PRTNR_KNM AS CTRR
-          FROM TB_OGBS_MM_PRTNR_IZ A
-         INNER JOIN ( SELECT '공제' AS DIV
-                           , B.FEE_DDTN_TP_NM AS ITEM
-                           , A.FEE_DDCTAM AS CTR_BF
-                           , A.FEE_DDTN_CNFM_AMT AS CTR_AF
-                           , A.FEE_CTR_RSON_CN AS RSN
-                           , A.FNL_MDFC_DTM AS CTR_DTM
-                           , A.FEE_CTR_OG_TP_CD AS FEE_CTR_OG_TP_CD
-                           , A.FEE_CTR_PRTNR_NO AS FEE_CTR_PRTNR_NO
-                        FROM TB_FEAM_FEE_DDTN_IZ A
-                       INNER JOIN TB_FEAM_FEE_DDTN_TP_CD B
-                          ON A.FEE_DDTN_TP_CD = B.FEE_DDTN_TP_CD
-                         AND B.APY_STRT_YM &lt;= #{perfYm}
-                       WHERE A.DDTN_YM = #{perfYm}
-                         AND A.OG_TP_CD = 'W03'
-                         AND A.PRTNR_NO = #{no}
-                         AND A.FEE_TCNT_DV_CD = '02'
-                         AND A.SPMT_DSB_DV_CD = '01'
-                       UNION ALL
-                      SELECT '수수료' AS DIV
-                           , B.FEE_NM AS ITEM
-                           , A.FEE_CALC_AMT AS CTR_BF
-                           , A.FEE_CTR_CNFM_AMT AS CTR_AF
-                           , A.FEE_CTR_RSON_CN AS RSN
-                           , A.FNL_MDFC_DTM AS CTR_DTM
-                           , A.FEE_CTR_OG_TP_CD AS FEE_CTR_OG_TP_CD
-                           , A.FEE_CTR_PRTNR_NO AS FEE_CTR_PRTNR_NO
-                        FROM TB_FEAM_FEE_CALC_BAS A
-                       INNER JOIN TB_FEAM_FEE_CD B
-                          ON A.FEE_CD = B.FEE_CD
-                       WHERE A.BASE_YM = #{perfYm}
-                         AND A.OG_TP_CD = 'W03'
-                         AND A.PRTNR_NO = #{no}
-                         AND A.FEE_TCNT_DV_CD = '02'
-                         AND A.SPMT_DSB_DV_CD = '01'
-                    ) M
-            ON A.PRTNR_NO = M.FEE_CTR_PRTNR_NO
-           AND A.OG_TP_CD = M.FEE_CTR_OG_TP_CD
-         WHERE A.BASE_YM = #{perfYm}
-         ORDER BY M.DIV, M.ITEM
+        SELECT '수수료' AS DIV
+             , T1.FEE_CD AS CD /* 수수료코드 */
+             , T3.SRN_MARK_FEE_NM AS ITEM
+             , NVL(T1.FEE_CALC_AMT, 0) AS CTR_BF /* 수수료계산금액 */
+             , NVL(T1.FEE_CTR_CNFM_AMT, 0) AS CTR_AF /* 수수료조정확정금액 */
+             , NVL(T1.FEE_CTR_RSON_CN, '최초발생') AS RSN /* 수수료조정사유내용 */
+             , T1.HIST_CH_DTM AS CTR_DTM /* 이력변경일시 */
+             , CASE WHEN T1.FNL_MDFC_USR_ID = 'admin' THEN '관리자'
+               ELSE T2.PRTNR_KNM END AS CTRR /* 최종수정사용자ID, 파트너명 */
+          FROM TB_FEAM_FEE_CALC_HIST T1 /* 수수료계산이력 */
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T2 /* 월파트너내역 */
+            ON T1.BASE_YM = T2.BASE_YM /* 기준년월 */
+           AND T1.PERF_YM = T2.BASE_YM /* 실적년월 */
+           AND T1.OJ_DSB_YM = T2.BASE_YM /* 대상지급년월 */
+           AND T1.OG_TP_CD = T2.OG_TP_CD /* 조직유형코드 */
+           AND T1.FNL_MDFC_USR_ID = T2.PRTNR_NO /* 최종수정사용자ID */
+          LEFT OUTER JOIN
+             (
+               SELECT S1.FEE_CD /* 수수료코드 */
+                    , NVL(S2.SRN_MARK_FEE_NM, S1.BAS_SRN_MARK_FEE_NM) AS SRN_MARK_FEE_NM /* 화면표시수수료명, 기본화면표시수수료명 */
+                 FROM TB_FEAM_FEE_CD S1 /* 수수료코드 */
+                INNER JOIN TB_FEAM_FEE_BASE_DTL S2 /* 수수료기준상세 */
+                   ON S1.FEE_CD = S2.FEE_CD /* 수수료코드 */
+                  AND #{perfYm} BETWEEN S2.APY_STRT_YM AND S2.APY_END_YM /* 적용시작년월, 적용종료년월 */
+                  AND S2.FEE_BASE_STAT_CD = '02' /* 수수료기준상태코드 */
+                  AND S2.DTA_DL_YN = 'N'
+                WHERE 1=1
+                  AND S1.OG_TP_CD = 'W03' /* 조직유형코드 */
+                  AND #{perfYm} BETWEEN S1.APY_STRT_YM AND S1.APY_END_YM /* APY_STRT_YM, 적용종료년월 */
+                  AND S1.DTA_DL_YN = 'N'
+             ) T3
+            ON T1.FEE_CD = T3.FEE_CD /* 수수료코드 */
+         WHERE 1=1
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.BASE_YM = #{perfYm} /* 기준년월 */
+           AND T1.PERF_YM = #{perfYm} /* 실적년월 */
+           AND T1.OJ_DSB_YM = #{perfYm} /* 대상지급년월 */
+           AND T1.CO_CD = '2000' /* 회사코드 */
+           AND T1.OG_TP_CD = 'W03' /* 조직유형코드 */
+           AND T1.FEE_TCNT_DV_CD = '02' /* 수수료차수구분코드 */
+           AND T1.SPMT_DSB_DV_CD = '01' /* 추가지급구분코드 */
+           AND T1.PRTNR_NO = #{no} /* 파트너번호 */
+         UNION ALL
+        SELECT '공제' AS DIV
+             , T1.FEE_DDTN_TP_CD AS CD /* 수수료공제유형코드 */
+             , F_CMZ_CD_NM('TNT_EDU', 'FEE_DDTN_TP_CD', T1.FEE_DDTN_TP_CD) AS ITEM /* 수수료공제유형코드 */
+             , NVL(T1.FEE_DDCTAM, 0) AS CTR_BF /* 수수료공제금액 */
+             , NVL(T1.FEE_DDTN_CNFM_AMT, 0) AS CTR_AF /* 수수료공제확정금액 */
+             , NVL(T1.FEE_CTR_RSON_CN, '최초발생') AS RSN /* 수수료조정사유내용 */
+             , T1.HIST_CH_DTM AS CTR_DTM /* 이력변경일시 */
+             , CASE WHEN T1.FNL_MDFC_USR_ID = 'admin' THEN '관리자'
+               ELSE T2.PRTNR_KNM END AS CTRR /* 최종수정사용자ID, 파트너명 */
+          FROM TB_FEAM_FEE_DDTN_HIST T1 /* 수수료공제이력 */
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T2 /* 월파트너내역 */
+            ON T1.DDTN_YM = T2.BASE_YM /* 공제년월 */
+           AND T1.OG_TP_CD = T2.OG_TP_CD /* 조직유형코드 */
+           AND T1.FNL_MDFC_USR_ID = T2.PRTNR_NO /*  */
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.DDTN_YM = #{perfYm} /* 공제년월 */
+           AND T1.CO_CD = '2000' /* 회사코드 */
+           AND T1.OG_TP_CD = 'W03' /* 조직유형코드 */
+           AND T1.FEE_TCNT_DV_CD = '02' /* 수수료차수구분코드 */
+           AND T1.SPMT_DSB_DV_CD = '01' /* 추가지급구분코드 */
+           AND T1.PRTNR_NO = #{no} /* 파트너번호 */
+         ORDER BY CTR_DTM DESC
     </select>
 </mapper>

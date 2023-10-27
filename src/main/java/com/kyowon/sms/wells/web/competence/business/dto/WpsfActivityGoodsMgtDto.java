@@ -28,7 +28,8 @@ public class WpsfActivityGoodsMgtDto {
         String actiGdsSn, /* 활동물품일련번호 */
         String actiGdsStddCd, /* 활동물품규격구분코드 */
         String aplcQty, /* 신청수량 */
-        String bzStatCd /* 사업상태코드 */
+        String bzStatCd, /* 사업상태코드 */
+        String aplcYn
 
     ) {}
 
@@ -54,6 +55,7 @@ public class WpsfActivityGoodsMgtDto {
     // 활동물품신청내역 조회 Search Result Dto
     @ApiModel("WpsfActivityGoodsMgtDto-SearchStatRes")
     public record SearchStatRes(
+        String actiGdsSetCd, /* 활동물품세트코드 */
         String actiGdsAplcId, /* 활동물품신청ID */
         String ogTpCd, /* 조직유형코드 */
         String actiGdsCd, /* 활동물품코드 */
@@ -182,7 +184,7 @@ public class WpsfActivityGoodsMgtDto {
         @NotBlank
         String ogTpCd, /* 조직유형코드 */
         String actiGdsCd, /* 활동물품코드 */
-        Integer actiGdsSn, /* 활동물품일련번호 */
+        Long actiGdsSn, /* 활동물품일련번호 */
         String actiGdsStddCd, /* 활동물품규격구분코드 */
         @NotNull
         Long aplcQty,

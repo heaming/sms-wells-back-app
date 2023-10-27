@@ -115,15 +115,10 @@
              , NVL(G1.EOT_DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT  /* 연체가산금 */
              , NVL(E1.RENTAL_AMT, 0) AS MM_ISTM_AMT /* 월 납부금(월 납입금) */
              , NVL(F1.EOT_BOR_AMT, 0) AS BOR_AMT /* 위약금 */
-             , NVL(E1.EOT_SV_AMT, 0) AS SV_AMT /* 서비스금액 */
-<!--             , (NVL(A1.DP_AMT, 0) - NVL(G1.EOT_DLQ_ADD_AMT,0) - NVL(E1.RENTAL_AMT,0) - NVL(F1.EOT_BOR_AMT,0) - NVL(E1.EOT_SV_AMT , 0)) RFND_PSB_AMT-->
+             , NVL(DECODE(E1.EOT_SV_AMT, 0, E2.SV_DP_SUM_AMT, E1.EOT_SV_AMT), 0) AS SV_AMT /* 서비스금액 */
              , M2.RFND_ALLOW_AMT AS RFND_PSB_AMT
              , #{cntrStartDay} AS CNTR_START_DAY
              , #{cntrEndDay} AS CNTR_END_DAY
-             --, A3.RVE_NO
-             --, A3.DP_DT
-             --, A3.RVE_DT
-             --, A3.DP_TP_CD
           FROM (
                 SELECT A3.KW_GRP_CO_CD
                      , A3.CNTR_NO
@@ -137,11 +132,6 @@
                      , A3.COPN_DV_CD
                      , SUM(A3.DP_AMT) DP_AMT
                      , SUM(A3.SELL_AMT) SELL_AMT
-                     --, A3.RVE_NO
-                     --, A3.DP_DT
-                     --, A3.RVE_DT
-                     --, A3.DP_TP_CD
-                     --, A3.DP_AMT
                   FROM (
                         SELECT A1.KW_GRP_CO_CD
                              , A1.CNTR_NO
@@ -215,6 +205,22 @@
             AND E1.CNTR_NO = A1.CNTR_NO
             AND E1.CNTR_SN = A1.CNTR_SN
             AND E1.DTA_DL_YN = 'N'
+     LEFT OUTER JOIN (
+                      SELECT A2.CNTR_NO
+                           , A2.CNTR_SN
+                           , SUM(DP_SUM_AMT) SV_DP_SUM_AMT
+                        FROM TB_SVPD_SV_CS_BIL_IZ A2
+                        JOIN TB_SVPD_SV_CS_DP_IZ B2
+                          ON B2.DTA_DL_YN = 'N'
+                         AND B2.CNTR_NO = A2.CNTR_NO
+                         AND B2.CNTR_SN = A2.CNTR_SN
+                         AND B2.CS_BIL_NO = A2.CS_BIL_NO
+                         AND B2.CST_SV_ASN_NO = A2.CST_SV_ASN_NO
+                       WHERE A2.DTA_DL_YN = 'N'
+                       GROUP BY A2.CNTR_NO, A2.CNTR_SN
+                     ) E2
+             ON E2.CNTR_NO = A1.CNTR_NO
+            AND E2.CNTR_SN = A1.CNTR_SN
      LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS F1 /*WELLS위약금액기본*/
              ON F1.PERF_YM = TO_CHAR(SYSDATE ,'YYYYMM')
             AND F1.CNTR_NO = A1.CNTR_NO
