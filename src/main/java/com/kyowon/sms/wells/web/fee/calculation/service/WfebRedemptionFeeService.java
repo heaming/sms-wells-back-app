@@ -66,7 +66,7 @@ public class WfebRedemptionFeeService {
         redfOfFeeCalculationService.saveRedemptionOfFeeCalculation(baseYm, ogTpCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
 
         /* 연체되물림 서비스 호출 */
-        saveDlqRedemptionOfFees(baseYm, cntrPerfCrtDvCd);
+        saveDlqRedemptionOfFees(baseYm, ogTpCd, cntrPerfCrtDvCd);
     }
 
     /**
@@ -81,15 +81,24 @@ public class WfebRedemptionFeeService {
      * @param baseYm
      * @return
      */
-    public Integer saveDlqRedemptionOfFees(String baseYm, String cntrPerfCrtDvCd) {
-        Integer insertCount;
+    public Integer saveDlqRedemptionOfFees(String baseYm, String ogTpCd, String cntrPerfCrtDvCd) {
+        int insertCount = 0;
         /* 기생성했던 연체되물림 데이터 삭제 */
-        redemptionFeeMapper.deleteCommonDlqRedemptionOfFees(baseYm, cntrPerfCrtDvCd, "TB_FEDD_FEE_REDF_ADSB_BAS");
-        redemptionFeeMapper.deleteCommonDlqRedemptionOfFees(baseYm, cntrPerfCrtDvCd, "TB_FEDD_FEE_REDF_ADSB_DTL");
-        redemptionFeeMapper.deleteCommonDlqRedemptionOfFees(baseYm, cntrPerfCrtDvCd, "TB_FEDD_FEE_REDF_ADSB_HIST");
-        redemptionFeeMapper.deleteCommonDlqRedemptionOfFees(baseYm, cntrPerfCrtDvCd, "TB_FEDD_FEE_REDF_ADSB_DTL_HIST");
-        /* 계약별 연체되물림 데이터 생성 */
-        insertCount = redemptionFeeMapper.insertContractDlqRedemptionOfFees(baseYm, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, "REDF", baseYm, "0203"));
+        redemptionFeeMapper.deleteCommonDlqRedemptionOfFees(baseYm, ogTpCd, "TB_FEDD_FEE_REDF_ADSB_BAS");
+        redemptionFeeMapper.deleteCommonDlqRedemptionOfFees(baseYm, ogTpCd, "TB_FEDD_FEE_REDF_ADSB_DTL");
+        redemptionFeeMapper.deleteCommonDlqRedemptionOfFees(baseYm, ogTpCd, "TB_FEDD_FEE_REDF_ADSB_HIST");
+        redemptionFeeMapper.deleteCommonDlqRedemptionOfFees(baseYm, ogTpCd, "TB_FEDD_FEE_REDF_ADSB_DTL_HIST");
+
+        switch(ogTpCd) {
+            case "W01":
+                /* */
+                break;
+            case "W02":
+                /* 계약별 연체되물림 데이터 생성 */
+            insertCount = redemptionFeeMapper.insertContractDlqRedemptionOfFees(baseYm, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, "REDF", baseYm, "0203"));
+                break;
+        }
+
         /* 파트너별 연체되물림 데이터 생성 */
         if (insertCount > 0) {
             /* 파트너별 데이터 생성 */

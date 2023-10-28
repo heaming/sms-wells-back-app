@@ -5,11 +5,7 @@
         WHERE REDF_ADSB_OC_YM = #{baseYm}
            AND REDF_ADSB_TP_CD ='02'    /* 되물림 */
            AND REDF_ADSB_TP_CD = '0203' /* 연체 */
-           AND OG_TP_CD LIKE '%' || (SELECT MAX(USER_DFN_03)
-                                       FROM AFMDBS.T_CMZ_CD_D
-                                      WHERE TENANT_ID = #{session.tenantId}
-                                        AND CD_ID = 'CNTR_PERF_CRT_DV_CD'
-                                        AND CD_VLD_VAL = #{cntrPerfCrtDvCd}) || '%'
+           AND OG_TP_CD = #{ogTpCd}
     </sql>
     <delete id='deleteCommonDlqRedemptionOfFees'>
         DELETE ${tableName}
@@ -43,12 +39,13 @@
              , T1.PRTNR_NO
              , T1.CNTR_NO
              , T1.CNTR_SN
-             , T1.OG_TP_CD || '0000' AS FEE_CD
-             , T1.OG_TP_CD || '0000' AS DTA_CRT_FEE_CD
+             , T1.OG_TP_CD || '9999999' AS FEE_CD
+             , T1.OG_TP_CD || '9999999' AS DTA_CRT_FEE_CD
              , '02' AS REDF_ADSB_DV_CD /* 되물림 */
              , '0203' AS REDF_ADSB_TP_CD /* 연체되물림 */
              , T2.FEE_ACKMT_BASE_AMT  AS REDF_ADSB_OC_AMT /* 최초수수료율 * 대물림대상금액 */
              , T2.FEE_ACKMT_BASE_AMT  AS REDF_ADSB_CTR_CNFM_AMT /* 최초수수료율 * 대물림대상금액 */
+            <include refid="COMMON.insertSystemFieldValue" />
           FROM TB_FEAM_WELS_NRCTR_MM_CL T1
                INNER JOIN TB_SSCT_CNTR_DTL  T2
                ON (T1.CNTR_NO = T2.CNTR_NO AND T1.CNTR_SN = T2.CNTR_SN)
@@ -58,6 +55,36 @@
            AND T2.FEE_ACKMT_BASE_AMT > 0
            AND T1.DTA_DL_YN = 'N'
            AND T2.DTA_DL_YN = 'N'
+        UNION ALL
+        SELECT  ${feeRedfAdsbDtlId} AS FEE_REDF_ADSB_DTL_ID
+             , #{baseYm} AS REDF_ADSB_OC_YM
+             , T1.PERF_YM
+             , '0' AS PERF_DV_CD
+             , T1.CO_CD
+             , T1.OG_TP_CD
+             , T3.HOO_PRTNR_NO AS PRTNR_NO
+             , T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.OG_TP_CD || '9999999' AS FEE_CD
+             , T1.OG_TP_CD || '9999999' AS DTA_CRT_FEE_CD
+             , '02' AS REDF_ADSB_DV_CD /* 되물림 */
+             , '0203' AS REDF_ADSB_TP_CD /* 연체되물림 */
+             , T2.FEE_ACKMT_BASE_AMT * 0.5 AS REDF_ADSB_OC_AMT /* 최초수수료율 * 대물림대상금액 */
+             , T2.FEE_ACKMT_BASE_AMT * 0.5 AS REDF_ADSB_CTR_CNFM_AMT /* 최초수수료율 * 대물림대상금액 */
+            <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_FEAM_WELS_NRCTR_MM_CL T1
+               INNER JOIN TB_FEAM_MM_PRTNR_HOO_IZ T3
+               ON (T1.PERF_YM = T3.BASE_YM AND T1.OG_TP_CD = T3.OG_TP_CD AND T1.PRTNR_NO = T3.PRTNR_NO)
+               INNER JOIN TB_SSCT_CNTR_DTL  T2
+               ON (T1.CNTR_NO = T2.CNTR_NO AND T1.CNTR_SN = T2.CNTR_SN)
+         WHERE T1.BASE_YM = #{baseYm}
+           AND T1.CNTR_PERF_CRT_DV_CD = #{cntrPerfCrtDvCd} /* 되물림 */
+           AND T1.PERF_TP_CD = '10' /* 연체) */
+           AND T2.FEE_ACKMT_BASE_AMT > 0
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+           AND T3.PRTNR_NO != T3.HOO_PRTNR_NO
+           AND T3.PERF_DV_CD = '2'
     </insert>
 
     <insert id="insertDlqRedemptionOfFees">
