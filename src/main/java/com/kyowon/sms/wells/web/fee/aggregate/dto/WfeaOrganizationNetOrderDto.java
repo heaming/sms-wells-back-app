@@ -61,29 +61,45 @@ public class WfeaOrganizationNetOrderDto {
         String rsbDvCd
     ) {}
 
-    @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerReq")
-    public record SearchMngerReq(
+    @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerDetailReq")
+    public record SearchMngerDetailReq(
         @NotBlank
-        String inqrDvCd,
-        String feeTcntDvCd,
-        String divCd,
-        String feePerfCd,
-        String pdctTpCd,
-        String sellTpCd,
-        String strtDt,
-        String endDt,
-        String cancStrtDt,
-        String cancEndDt,
-        String pdStrtCd,
-        String pdEndCd,
-        String pkgStrtCd,
-        String pkgEndCd,
-        String og1LevlId,
-        String og2LevlId,
-        String og3LevlId,
-        String prtnrNo,
-        String perfYm,
-        String rsbDvCd
+        String dvCd, /* 구분 */
+        @NotBlank
+        String rcpDtFrom, /* 접수일자 시작 */
+        @NotBlank
+        String rcpDtTo, /* 접수일자 종료 */
+        String cancDtFrom, /* 취소일자 시작 */
+        String cancDtTo, /* 취소일자 종료 */
+        String pdCdFrom, /* 상품코드 시작 */
+        String pdCdTo, /* 상품코드 종료 */
+        String pkgCdFrom, /* 패키지코드 시작 */
+        String pkgCdTo, /* 패키지코드 종료 */
+        String feePerfTpCd, /* 수수료실적유형코드 */
+        String sellTpCd, /* 판매유형코드 */
+        String prtnrNo, /* 파트너번호 */
+        String feePdctTpCd, /* 수수료제품유형코드 */
+        String ogLevl1, /* 조직레벨1 */
+        String ogLevl2, /* 조직레벨2 */
+        String ogLevl3, /* 조직레벨3 */
+        String ogLevl4, /* 조직레벨4 */
+        String ogLevl5 /* 조직레벨5 */
+    ) {}
+
+    @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerAggregateReq")
+    public record SearchMngerAggregateReq(
+        @NotBlank
+        String dvCd, /* 구분 */
+        @NotBlank
+        String feeTcntDvCd, /* 수수료차수구분코드 */
+        @NotBlank
+        String perfYm, /* 실적년월 */
+        String ogLevl1, /* 조직레벨1 */
+        String ogLevl2, /* 조직레벨2 */
+        String ogLevl3, /* 조직레벨3 */
+        String ogLevl4, /* 조직레벨4 */
+        String ogLevl5, /* 조직레벨5 */
+        String prtnrNo /* 파트너번호 */
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchPlarReq")
@@ -229,95 +245,93 @@ public class WfeaOrganizationNetOrderDto {
         String mchnChTpCd
     ) {}
 
-    @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerRes")
-    public record SearchMngerRes(
-        String blg,
-        String sequenceNumber,
-        String emplNm,
-        String selType,
-        String pdctTp,
-        String prcTp,
-        String chdvcTp,
-        String fee,
-        String cntrDtlNo,
-        String cstDv,
-        String prdtNm,
-        String prdtCode,
-        String pdDcClass,
-        String discCode,
-        String dscSyst,
-        String combiDv,
-        String istm,
-        String stplMcnt,
-        String mngtPrd,
-        String pdAccRslt,
-        String basePrc,
-        String homeCare,
-        String hcrMshY3,
-        String fxamYn,
-        String fnnLease,
-        String elhmAckmtCt,
-        String nwSellCt,
-        String obj,
-        String recommitment,
-        String cntrDate,
-        String slDt,
-        String cancDt,
-        String demDt,
-        String brmgrNo,
-        String brmgrFnm,
-        String rtlfe,
-        String pmotNo,
-        String pkgPdNo,
-        String pkgSn,
-        String mchnPrtnr,
-        String mchnPd,
-        String perfExcd
+    @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerDetailRes")
+    public record SearchMngerDetailRes(
+        String ogCd, /* 조직코드 */
+        String prtnrNo, /* 파트너번호 */
+        String prtnrKnm, /* 파트너명 */
+        String sellTpCd, /* 판매유형코드 */
+        String feePdctTpCd, /* 수수료제품유형코드 */
+        String rglrSppPrcDvCd, /* 정기배송가격구분코드 */
+        String mchnChTpCd, /* 기기변경유형코드 */
+        String feePerfTpCd, /* 수수료실적유형코드 */
+        String cntrNo, /* 계약번호, 계약일련번호 */
+        String copnDvCd, /* 법인격구분코드 */
+        String pdNm, /* 상품명 */
+        String basePdCd, /* 기준상품코드 */
+        String sellDscDvCd, /* 판매할인구분코드 */
+        String sellDscrCd, /* 판매할인율코드 */
+        String sellDscTpCd, /* 판매할인유형코드 */
+        String combiDv, /* 결합구분코드 */
+        String cntrPtrm, /* 계약기간 */
+        String stplPtrm, /* 약정기간 */
+        String svPrd, /* 서비스주기 */
+        String ackmtPerfAmt, /* 인정실적금액 */
+        String feeAckmtBaseAmt, /* 수수료인정기준금액 */
+        String hcr, /* 홈케어 */
+        String hcrMshY3, /* 홈케어멤버십3년 */
+        String feeFxamYn, /* 정액여부 */
+        String fnnLease, /* 금융리스 */
+        String feeAckmtCt, /* 수수료인정건수 */
+        String nwSellCt, /* 신규판매건수 */
+        String bfsvcOjYn, /* bs대상여부 */
+        String rstlYn, /* 재약정여부 */
+        String cntrCnfmDtm, /* 계약확정일시 */
+        String slDt, /* 매출일자 */
+        String canDt, /* 취소일자 */
+        String reqdDt, /* 철거일자 */
+        String dgr3LevlDgPrtnrNo, /* 3차레벨대표파트너번호 */
+        String dgr3LevlDgPrtnrNm, /* 3차레벨대표파트너명 */
+        String sellAmt, /* 판매금액 */
+        String pmotNo, /* 프로모션번호 */
+        String pkgCd, /* 패키지코드 */
+        String mchnCstCd, /* 기기고객코드 */
+        String mchnPdCd, /* 기기상품코드 */
+        String perfExcdRgstYn /* 실적제외등록여부 */
     ) {}
-    @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerSellFeeRes")
-    public record SearchMngerSellFeeRes(
-        String blg,
-        String sequenceNumber,
-        String emplNm,
-        String selType,
-        String pdctTp,
-        String prcTp,
-        String chdvcTp,
-        String fee,
-        String cntrDtlNo,
-        String cstDv,
-        String prdtNm,
-        String prdtCode,
-        String pdDcClass,
-        String discCode,
-        String dscSyst,
-        String combiDv,
-        String istm,
-        String stplMcnt,
-        String mngtPrd,
-        String pdAccRslt,
-        String basePrc,
-        String homeCare,
-        String hcrMshY3,
-        String fxamYn,
-        String fnnLease,
-        String elhmAckmtCt,
-        String nwSellCt,
-        String obj,
-        String recommitment,
-        String cntrDate,
-        String slDt,
-        String cancDt,
-        String demDt,
-        String brmgrNo,
-        String brmgrFnm,
-        String rtlfe,
-        String pmotNo,
-        String pkgPdNo,
-        String pkgSn,
-        String mchnPrtnr,
-        String mchnPd,
-        String perfExcd
+    @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerAggregateRes")
+    public record SearchMngerAggregateRes(
+        String ogCd, /* 조직코드 */
+        String prtnrNo, /* 파트너번호 */
+        String prtnrKnm, /* 파트너명 */
+        String sellTpCd, /* 판매유형코드 */
+        String feePdctTpCd, /* 수수료제품유형코드 */
+        String rglrSppPrcDvCd, /* 정기배송가격구분코드 */
+        String mchnChTpCd, /* 기기변경유형코드 */
+        String feePerfTpCd, /* 수수료실적유형코드 */
+        String cntrNo, /* 계약번호, 계약일련번호 */
+        String copnDvCd, /* 법인격구분코드 */
+        String pdNm, /* 상품명 */
+        String basePdCd, /* 기준상품코드 */
+        String sellDscDvCd, /* 판매할인구분코드 */
+        String sellDscrCd, /* 판매할인율코드 */
+        String sellDscTpCd, /* 판매할인유형코드 */
+        String combiDv, /* 결합구분코드 */
+        String cntrPtrm, /* 계약기간 */
+        String stplPtrm, /* 약정기간 */
+        String svPrd, /* 서비스주기 */
+        String ackmtPerfAmt, /* 인정실적금액 */
+        String feeAckmtBaseAmt, /* 수수료인정기준금액 */
+        String hcr, /* 홈케어 */
+        String hcrMshY3, /* 홈케어멤버십3년 */
+        String feeFxamYn, /* 정액여부 */
+        String fnnLease, /* 금융리스 */
+        String feeAckmtCt, /* 수수료인정건수 */
+        String nwSellCt, /* 신규판매건수 */
+        String bfsvcOjYn, /* bs대상여부 */
+        String rstlYn, /* 재약정여부 */
+        String cntrCnfmDtm, /* 계약확정일시 */
+        String slDt, /* 매출일자 */
+        String canDt, /* 취소일자 */
+        String reqdDt, /* 철거일자 */
+        String dgr3LevlDgPrtnrNo, /* 3차레벨대표파트너번호 */
+        String dgr3LevlDgPrtnrNm, /* 3차레벨대표파트너명 */
+        String sellAmt, /* 판매금액 */
+        String pmotNo, /* 프로모션번호 */
+        String pkgCd, /* 패키지코드 */
+        String mchnCstCd, /* 기기고객코드 */
+        String mchnPdCd, /* 기기상품코드 */
+        String perfExcdRgstYn /* 실적제외등록여부 */
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerAgrgRes")
