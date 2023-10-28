@@ -101,4 +101,30 @@ public interface WfeyFeeCalculationSqlFor202Mapper {
      */
     @SqlMethodInfo(methodName = "M조직 플래너 추가장려수수료 되물림 계산(W020124)", methodExplanation = "M조직 플래너 추가장려수수료 되물림 계산(W020124) SQL 매퍼")
     Integer insertPlarSpmtEncrgRedf(String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String perfAgrgCrtDvCd, String apyStrtYm, String apyEndYm);
+
+    /**
+     * M조직 지점장 조직관리수수료 되물림 계산 SQL Mapper (W020018, 3)
+     *
+     * @param baseYm      기준년월
+     * @param ogTpCd      조직유형코드
+     * @param feeCd       수수료코드
+     * @param apyStrtYm 적용시작일자
+     * @param apyEndYm 적용종료년월
+     * @return 처리개수
+     */
+    @SqlMethodInfo(methodName = "M조직 지점장 조직관리수수료 되물림 계산(W020018, 3)", methodExplanation = "M조직 지점장 조직관리수수료 되물림 계산(W020018, 3) SQL 매퍼")
+    Integer insertBrmgrOgMngtFeeRedfForApyTn3(String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String apyStrtYm, String apyEndYm);
+
+    /**
+     * M조직 지점장 조직관리수수료 되물림 계산 SQL Mapper (W020018, 4)
+     *
+     * @param baseYm      기준년월
+     * @param ogTpCd      조직유형코드
+     * @param feeCd       수수료코드
+     * @param apyStrtYm 적용시작일자
+     * @param apyEndYm 적용종료년월
+     * @return 처리개수
+     */
+    @SqlMethodInfo(methodName = "M조직 지점장 조직관리수수료 되물림 계산(W020018, 4)", methodExplanation = "M조직 지점장 조직관리수수료 되물림 계산(W020018, 4) SQL 매퍼")
+    Integer insertBrmgrOgMngtFeeRedfForApyTn4(String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String apyStrtYm, String apyEndYm);
 }
