@@ -5,12 +5,13 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto.*;
 import com.kyowon.sms.wells.web.fee.calculation.service.WfebOrganizationFeeService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
-import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -175,28 +176,6 @@ public class WfebOrganizationFeeController {
         SearchPlarReq dto
     ) {
         return this.service.getPlannerTotalFees(dto);
-    }
-
-    @ApiOperation(value = "WM수수료 조회", notes = "조회조건에 일치하는 실적년월에 생성된 WM수수료 내역을 조회한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", example = "202301", required = true),
-        @ApiImplicitParam(name = "no", value = "번호", paramType = "query", example = "1673419"),
-    })
-    @GetMapping("/wms")
-    public List<SearchWmRes> getWmFees(SearchWmReq dto) {
-        return this.service.getWmFees(dto);
-    }
-
-    @ApiOperation(value = "WM수수료 생성", notes = "해당 실적년월의 WM수수료를 생성한다.")
-    @PostMapping
-    public SaveResponse saveWmFees(
-        @RequestBody
-        @Valid
-        SaveReq dto
-    ) throws Exception {
-        return SaveResponse.builder()
-            .processCount(this.service.saveWmFees(dto))
-            .build();
     }
 
 }

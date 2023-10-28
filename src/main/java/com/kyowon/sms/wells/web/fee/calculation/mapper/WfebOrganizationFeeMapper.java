@@ -22,18 +22,6 @@ public interface WfebOrganizationFeeMapper {
         SearchMngerReq dto, List<HashMap<String, Object>> feeArticles
     );
 
-    List<SearchMngerBfRes> selectManagerBeforeFees(
-        SearchMngerReq dto
-    );
-
-    List<SearchMngerBrmgrRes> selectManagerBranchManagerFees(
-        SearchMngerReq dto
-    );
-
-    List<SearchMngerBrmgrBfRes> selectManagerBranchManagerBeforeFees(
-        SearchMngerReq dto
-    );
-
     List<HashMap<String, Object>> selectManagerTotalFees(
         SearchMngerReq dto
     );
@@ -53,7 +41,5 @@ public interface WfebOrganizationFeeMapper {
     List<SearchPlarTotalRes> selectPlannerTotalFees(
         SearchPlarReq dto
     );
-
-    List<SearchWmRes> selectWmFees(SearchWmReq dto);
 
 }
