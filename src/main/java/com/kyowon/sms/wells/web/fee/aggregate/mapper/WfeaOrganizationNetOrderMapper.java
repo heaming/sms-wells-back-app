@@ -38,9 +38,9 @@ public interface WfeaOrganizationNetOrderMapper {
         SearchMngerAggregateReq dto
     );
 
-    List<SearchMngerAgrgRes> selectManagerStatusOrders(
-        SearchMngerReq dto
-    );
+    //    List<SearchMngerAgrgRes> selectManagerStatusOrders(
+    //        SearchMngerReq dto
+    //    );
 
     List<SearchPlarRes> selectPlanners(
         SearchPlarReq dto
