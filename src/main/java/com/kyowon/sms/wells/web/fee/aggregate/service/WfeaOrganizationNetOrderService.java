@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaOrganizationNetOrderDvo;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,8 +16,7 @@ import com.kyowon.sms.common.web.fee.common.dvo.ZfezFeeBatchStatusDetailsDvo;
 import com.kyowon.sms.common.web.fee.common.service.ZfezFeeBatchStatusDetailsService;
 import com.kyowon.sms.common.web.fee.common.service.ZfezFeeNetOrderStatusService;
 import com.kyowon.sms.wells.web.fee.aggregate.converter.WfeaOrganizationNetOrderConverter;
-import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaOrganizationNetOrderDto;
-import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaOrganizationNetOrderDvo;
+import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaOrganizationNetOrderDto.*;
 import com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaOrganizationNetOrderMapper;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
@@ -52,7 +52,7 @@ public class WfeaOrganizationNetOrderService {
      * @return 처리결과
      */
     @Transactional
-    public String saveOrganizationAggregates(WfeaOrganizationNetOrderDto.SaveOgNetOrderReq dto) throws Exception {
+    public String saveOrganizationAggregates(SaveOgNetOrderReq dto) throws Exception {
         UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
         // 주문별집계 확정 체크 추가
         SearchRes searchRes = zfezFeeNetOrderStatusService
@@ -117,7 +117,7 @@ public class WfeaOrganizationNetOrderService {
      * @return 처리결과
      */
     @Transactional
-    public int editOrganizationAggregates(WfeaOrganizationNetOrderDto.SaveOgNetOrderReq dto) {
+    public int editOrganizationAggregates(SaveOgNetOrderReq dto) {
         int processCnt = 0;
 
         WfeaOrganizationNetOrderDvo dvo = converter.mapSaveOgNetOrderReqToWfeaOrganizationNetOrderDvo(dto);
@@ -142,8 +142,8 @@ public class WfeaOrganizationNetOrderService {
      * @param 'SearchHmstReq' 검색조건 정보
      * @return 조회된 데이터
      */
-    public List<WfeaOrganizationNetOrderDto.SearchHmstRes> getHomeMasters(
-        WfeaOrganizationNetOrderDto.SearchHmstReq dto
+    public List<SearchHmstRes> getHomeMasters(
+        SearchHmstReq dto
     ) {
         return this.mapper.selectHomeMasters(dto);
     }
@@ -153,14 +153,14 @@ public class WfeaOrganizationNetOrderService {
      * @param 'SearchHmstReq' 검색조건 정보
      * @return 조회된 데이터
      */
-    public List<WfeaOrganizationNetOrderDto.SearchHmstFeeRes> getHomeMasterFees(
-        WfeaOrganizationNetOrderDto.SearchHmstReq dto
+    public List<SearchHmstFeeRes> getHomeMasterFees(
+        SearchHmstReq dto
     ) {
         return this.mapper.selectHomeMasterFees(dto);
     }
 
-    public List<WfeaOrganizationNetOrderDto.SearchHmstFeeRes2> getHomeMasterFees2(
-        WfeaOrganizationNetOrderDto.SearchHmstReq dto
+    public List<SearchHmstFeeRes2> getHomeMasterFees2(
+        SearchHmstReq dto
     ) {
         return this.mapper.selectHomeMasterFees2(dto);
     }
@@ -170,10 +170,10 @@ public class WfeaOrganizationNetOrderService {
      * @param 'SearchMngerReq' 검색조건 정보
      * @return 조회된 데이터
      */
-    public List<WfeaOrganizationNetOrderDto.SearchMngerRes> getManagers(
-        WfeaOrganizationNetOrderDto.SearchMngerReq dto
+    public List<SearchMngerDetailRes> getManagerDetailOrders(
+        SearchMngerDetailReq dto
     ) {
-        return this.mapper.selectManagers(dto);
+        return this.mapper.selectManagerDetailOrders(dto);
     }
 
     /**
@@ -181,10 +181,10 @@ public class WfeaOrganizationNetOrderService {
      * @param 'SearchMngerReq' 검색조건 정보
      * @return 조회된 데이터
      */
-    public List<WfeaOrganizationNetOrderDto.SearchMngerSellFeeRes> getManagerFees(
-        WfeaOrganizationNetOrderDto.SearchMngerReq dto
+    public List<SearchMngerAggregateRes> getManagerAggregateOrders(
+        SearchMngerAggregateReq dto
     ) {
-        return this.mapper.selectManagerFees(dto);
+        return this.mapper.selectManagerAggregateOrders(dto);
     }
 
     /**
@@ -192,10 +192,10 @@ public class WfeaOrganizationNetOrderService {
      * @param 'SearchMngerReq' 검색조건 정보
      * @return 조회된 데이터
      */
-    public List<WfeaOrganizationNetOrderDto.SearchMngerAgrgRes> getManagerAggregation(
-        WfeaOrganizationNetOrderDto.SearchMngerReq dto
+    public List<SearchMngerAgrgRes> getManagerStatusOrders(
+        SearchMngerReq dto
     ) {
-        return this.mapper.selectManagerAggregation(dto);
+        return this.mapper.selectManagerStatusOrders(dto);
     }
 
     /**
@@ -203,7 +203,7 @@ public class WfeaOrganizationNetOrderService {
      * @param 'SearchPlarReq' 검색조건 정보
      * @return 조회된 데이터
      */
-    public List<WfeaOrganizationNetOrderDto.SearchPlarRes> getPlanners(WfeaOrganizationNetOrderDto.SearchPlarReq dto) {
+    public List<SearchPlarRes> getPlanners(SearchPlarReq dto) {
         return this.mapper.selectPlanners(dto);
     }
 
@@ -212,8 +212,8 @@ public class WfeaOrganizationNetOrderService {
      * @param 'SearchPlarReq' 검색조건 정보
      * @return 조회된 데이터
      */
-    public List<WfeaOrganizationNetOrderDto.SearchPlarSellFeeRes> getPlannerSellFees(
-        WfeaOrganizationNetOrderDto.SearchPlarReq dto
+    public List<SearchPlarSellFeeRes> getPlannerSellFees(
+        SearchPlarReq dto
     ) {
         return this.mapper.selectPlannerFees(dto);
     }
@@ -223,8 +223,8 @@ public class WfeaOrganizationNetOrderService {
      * @param 'SearchMngerReq' 검색조건 정보
      * @return 조회된 데이터
      */
-    public List<WfeaOrganizationNetOrderDto.SearchPlarAgrgRes> getPlannerAggregation(
-        WfeaOrganizationNetOrderDto.SearchPlarReq dto
+    public List<SearchPlarAgrgRes> getPlannerAggregation(
+        SearchPlarReq dto
     ) {
         return this.mapper.selectPlannerAggregation(dto);
     }

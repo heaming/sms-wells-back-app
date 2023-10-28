@@ -37,49 +37,6 @@ public class WfeaNetOrderDto {
         String ogLevl3, /* 조직레벨3 */
         String ogLevl4, /* 조직레벨4 */
         String ogLevl5 /* 조직레벨5 */
-
-        /*
-        //조회구분
-        String dvCd,
-        //차수
-        String feeTcntDvCd,
-        //조직구분
-        String ogDvCd,
-        //구분
-        String divCd,
-        //제품유형
-        String pdctTpCd,
-        //판매유형
-        String selTpCd,
-        //시작일자
-        String strtDt,
-        //종료일자
-        String endDt,
-        //취소시작일자
-        String cancStrtDt,
-        //취소종료일자
-        String cancEndDt,
-        //상품시작코드
-        String pdStrtCd,
-        //상품종료코드
-        String pdEndCd,
-        //패키지시작코드
-        String pkgStrtCd,
-        //패키지종료코드
-        String pkgEndCd,
-        //총괄단
-        String ogLevl1Id,
-        //지역단
-        String ogLevl2Id,
-        //지점
-        String ogLevl3Id,
-        //번호
-        String prtnrNo,
-        //수수료년월
-        String perfYm,
-        String ogTpCd,
-        String feeBatWkId
-        */
     ) {}
 
     @ApiModel(value = "WfeaNetOrderDto-SearchAggregateReq")
