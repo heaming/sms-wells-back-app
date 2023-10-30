@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.*;
 
 /**
@@ -38,6 +40,12 @@ public class WogdEinsrService {
     private final AttachFileService attachFileService;
     private final WsnaWarehouseCloseCheckService snaWarehouseCloseCheckService;
 
+    /**
+     * 휴청신청 저장
+     * @param dto 휴업신청정보
+     * @return 저장 건수
+     */
+    @Transactional
     public int createStoppageApplcation(SaveStoppageApplcationReq dto) throws Exception {
         int processCount = 0;
         ZogcApointSaveDvo dvo = zogdEinsrConverter.mapSaveStoppageApplcationReqToZogcApointSaveDvo(dto);
@@ -66,20 +74,23 @@ public class WogdEinsrService {
 
                 // 휴업/복귀 - (휴업신청서) 첨부파일 등록
                 if (CollectionUtils.isNotEmpty(dto.attachLeaveFiles())) {
-                    if (StringUtils.isEmpty(dto.attachLeaveDtlDocumentId())) {
-                        ZogzAppendingFileRelationDvo apnFileRelDvo = ZogzAppendingFileRelationDvo.builder()
-                            .apnFileRelDvCd(OgConst.FileRelDvCd.GAOOR_FILE_RELDV_CD.getCode())
-                            .ogTpCd(dvo.getOgTpCd())
-                            .prtnrNo(dvo.getPrtnrNo())
-                            .refkVal1(dvo.getAplcSn())
-                            .apnFileKndCd(OgConst.AtthGrpId.ATG_OGC_LEAVE.getCode())
-                            .build();
-                        appendingFileRelationService
-                            .createAppendingFileRelationByAttachFFileDocId(dto.attachLeaveFiles(), apnFileRelDvo);
-                    } else {
-                        attachFileService.saveAttachFiles(
-                            OgConst.AtthGrpId.ATG_OGC_LEAVE.getCode(), dto.attachLeaveDtlDocumentId(), dto.attachLeaveFiles()
-                        );
+                    int leaveSize = dto.attachLeaveFiles().size();
+                    for (int i = 0; i < leaveSize; i++) {
+                        if (StringUtils.isEmpty(dto.attachLeaveFiles().get(i).fileUid())) {
+                            ZogzAppendingFileRelationDvo apnFileRelDvo = ZogzAppendingFileRelationDvo.builder()
+                                .apnFileRelDvCd(OgConst.FileRelDvCd.GAOOR_FILE_RELDV_CD.getCode())
+                                .ogTpCd(dvo.getOgTpCd())
+                                .prtnrNo(dvo.getPrtnrNo())
+                                .refkVal1(dvo.getAplcSn())
+                                .apnFileKndCd(dto.attachLeaveFiles().get(0).attachGroupId())
+                                .build();
+                            if (StringUtils.isNotEmpty(dto.attachLeaveFiles().get(i).attachDocumentId())) {
+                                apnFileRelDvo.setOldApnFileDocId(dto.attachLeaveFiles().get(i).attachDocumentId());
+                                appendingFileRelationService.removeAppendingFileRelation(apnFileRelDvo);
+                            }
+                            appendingFileRelationService
+                                .createAppendingFileRelation(dto.attachLeaveFiles().get(i), apnFileRelDvo);
+                        }
                     }
                 } else {
                     throw new BizException("MSG_ALT_NCELL_REQUIRED_ITEM", "휴업신청서");
@@ -87,21 +98,23 @@ public class WogdEinsrService {
 
                 // 휴업/복귀 - (휴업신청 증빙서류) 첨부파일 등록
                 if (CollectionUtils.isNotEmpty(dto.attachLeaveDtlFiles())) {
-                    if (StringUtils.isEmpty(dto.attachLeaveDtlDocumentId())) {
-                        ZogzAppendingFileRelationDvo apnFileRelDvo = ZogzAppendingFileRelationDvo.builder()
-                            .apnFileRelDvCd(OgConst.FileRelDvCd.GAOOR_FILE_RELDV_CD.getCode())
-                            .ogTpCd(dvo.getOgTpCd())
-                            .prtnrNo(dvo.getPrtnrNo())
-                            .refkVal1(dvo.getAplcSn())
-                            .apnFileKndCd(OgConst.AtthGrpId.ATG_OGC_LEAVE_DTL.getCode())
-                            .build();
-                        appendingFileRelationService
-                            .createAppendingFileRelationByAttachFFileDocId(dto.attachLeaveDtlFiles(), apnFileRelDvo);
-                    } else {
-                        attachFileService.saveAttachFiles(
-                            OgConst.AtthGrpId.ATG_OGC_LEAVE_DTL.getCode(), dto.attachLeaveDtlDocumentId(),
-                            dto.attachLeaveDtlFiles()
-                        );
+                    int leaveDtlSize = dto.attachLeaveDtlFiles().size();
+                    for (int i = 0; i < leaveDtlSize; i++) {
+                        if (StringUtils.isEmpty(dto.attachLeaveDtlFiles().get(i).fileUid())) {
+                            ZogzAppendingFileRelationDvo apnFileRelDvo = ZogzAppendingFileRelationDvo.builder()
+                                .apnFileRelDvCd(OgConst.FileRelDvCd.GAOOR_FILE_RELDV_CD.getCode())
+                                .ogTpCd(dvo.getOgTpCd())
+                                .prtnrNo(dvo.getPrtnrNo())
+                                .refkVal1(dvo.getAplcSn())
+                                .apnFileKndCd(dto.attachLeaveDtlFiles().get(0).attachGroupId())
+                                .build();
+                            if (StringUtils.isNotEmpty(dto.attachLeaveDtlFiles().get(i).attachDocumentId())) {
+                                apnFileRelDvo.setOldApnFileDocId(dto.attachLeaveDtlFiles().get(i).attachDocumentId());
+                                appendingFileRelationService.removeAppendingFileRelation(apnFileRelDvo);
+                            }
+                            appendingFileRelationService
+                                .createAppendingFileRelation(dto.attachLeaveDtlFiles().get(i), apnFileRelDvo);
+                        }
                     }
                 } else {
                     throw new BizException("MSG_ALT_NCELL_REQUIRED_ITEM", "휴업신청서 증빙서류");
