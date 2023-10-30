@@ -102,6 +102,21 @@ public class WfeaOrganizationNetOrderDto {
         String prtnrNo /* 파트너번호 */
     ) {}
 
+    @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerStatusReq")
+    public record SearchMngerStatusReq(
+        String rsbDvCd, /* 직책구분코드 */
+        @NotBlank
+        String feeTcntDvCd, /* 수수료차수구분코드 */
+        @NotBlank
+        String perfYm, /* 실적년월 */
+        String ogLevl1, /* 조직레벨1 */
+        String ogLevl2, /* 조직레벨2 */
+        String ogLevl3, /* 조직레벨3 */
+        String ogLevl4, /* 조직레벨4 */
+        String ogLevl5, /* 조직레벨5 */
+        String prtnrNo /* 파트너번호 */
+    ) {}
+
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchPlarReq")
     public record SearchPlarReq(
         @NotBlank
@@ -289,6 +304,7 @@ public class WfeaOrganizationNetOrderDto {
         String mchnPdCd, /* 기기상품코드 */
         String perfExcdRgstYn /* 실적제외등록여부 */
     ) {}
+
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerAggregateRes")
     public record SearchMngerAggregateRes(
         String ogCd, /* 조직코드 */
@@ -334,29 +350,32 @@ public class WfeaOrganizationNetOrderDto {
         String perfExcdRgstYn /* 실적제외등록여부 */
     ) {}
 
-    @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerAgrgRes")
-    public record SearchMngerAgrgRes(
-        String ogId,
-        String prtnrNo,
-        String prtnrKnm,
-        String pstnDvCd,
-        String ehCnt,
-        String exCnt,
-        String etCnt,
-        String upCnt,
-        String totCnt,
-        String ehAmt,
-        String exAmt,
-        String etAmt,
-        String upAmt,
-        String totAmt,
-        String ehPerfCnt,
-        String ehAmt1,
-        String ehAmt2,
-        String ehMcCnt,
-        String fxamCnt,
-        String lpkCnt,
-        String hmbCnt
+    @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerStatusRes")
+    public record SearchMngerStatusRes(
+        String ogCd, /* 조직코드 */
+        String prtnrNo, /* 파트너번호 */
+        String prtnrKnm, /* 파트너명 */
+        String pstnDvCd, /* 직급구분코드 */
+        String ehCnt, /* 가전건수 */
+        String exCnt, /* 가전외건수 */
+        String etCnt, /* 기타건수 */
+        String upCnt, /* 미지급건수 */
+        String totCnt, /* 총건수 */
+        String ehAmt, /* 가전금액 */
+        String exAmt, /* 가전외금액 */
+        String etAmt, /* 기타금액 */
+        String upAmt, /* 미지급금액 */
+        String totAmt, /* 총금액 */
+        String elhmAckmtCt, /* 가전인정건수 */
+        String rentalBasePrc, /* 렌탈기준가 */
+        String snglPmntBasePrc, /* 일시불기준가 */
+        String elhmExcpAckmtPerf, /* 가전외인정실적 */
+        String chng, /* 기변 */
+        String ninc, /* 순증 */
+        String fxamCt, /* 정액건수 */
+        String rstlCt, /* 재약정건수 */
+        String livePakg, /* 라이브팩 */
+        String mmbr /* 멤버십 */
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchPlarRes")
