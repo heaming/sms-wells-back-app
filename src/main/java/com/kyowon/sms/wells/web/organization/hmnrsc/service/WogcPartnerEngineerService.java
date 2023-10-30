@@ -149,6 +149,12 @@ public class WogcPartnerEngineerService {
         return processCount;
     }
 
+    /**
+     * 서비스센터 조 관리 조회
+     * @param dto 조회정보
+     * @param pageInfo 페이징정보
+     * @return 서비스센터 조 조회
+     */
     public PagingResult<FindJoeManagementRes> getJoeManagementPages(
         FindJoeManagementReq dto, PageInfo pageInfo
     ) {
@@ -174,6 +180,11 @@ public class WogcPartnerEngineerService {
         return results;
     }
 
+    /**
+     * 서비스센터 조 관리 엑셀다운로드
+     * @param dto 조회정보
+     * @return 서비스센터 조 조회
+     */
     public List<FindJoeManagementRes> getJoeManagementForExcelDownload(
         FindJoeManagementReq dto
     ) {
@@ -196,6 +207,11 @@ public class WogcPartnerEngineerService {
         return result;
     }
 
+    /**
+     * 서비스센터 조 저장
+     * @param dtos 저장정보
+     * @return 저장 건수
+     */
     @Transactional
     public int saveJoeManagement(List<SaveJoeManagementReq> dtos) {
         int processCnt = 0;
@@ -216,18 +232,34 @@ public class WogcPartnerEngineerService {
         return processCnt;
     }
 
+    /**
+     * 엔지니어 등급 관리 조회
+     * @param dto 조회정보
+     * @param pageInfo 페이징정보
+     * @return 엔지니어 등급 관리 조회
+     */
     public PagingResult<FindEngineerGradeRes> getEngineerGradePages(
         FindEngineerGradeReq dto, PageInfo pageInfo
     ) {
         return this.mapper.selectEngineerGrades(dto, pageInfo);
     }
 
+    /**
+     * 엔지니어 등급 관리 엑셀다운로드
+     * @param dto 조회정보
+     * @return 엔지니어 등급 관리 조회
+     */
     public List<FindEngineerGradeRes> getEngineerGradeForExcelDownload(
         FindEngineerGradeReq dto
     ) {
         return this.mapper.selectEngineerGrades(dto);
     }
 
+    /**
+     * 엔지니어 등급관리 저장
+     * @param dtos 저장정보
+     * @return 저장 건수
+     */
     @Transactional
     public int saveEngineerGrade(List<SaveEngineerGradeReq> dtos) {
         int processCnt = 0;
@@ -242,6 +274,11 @@ public class WogcPartnerEngineerService {
         return processCnt;
     }
 
+    /**
+     * 엔지니어 등급관리 엑셀업로드
+     * @param file 엑셀데이터 정보
+     * @return 저장 정보
+     */
     public UploadRes saveEngineerGradeForDirectExcelUpload(MultipartFile file)
         throws Exception {
         Map<String, String> headerTitle = new LinkedHashMap<>();
