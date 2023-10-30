@@ -2,9 +2,17 @@ package com.kyowon.sms.wells.web.bond.consultation.rest;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.*;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindBreachOfPromiseRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindContractRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositDtlRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositInfoRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindSalesRes;
 import com.kyowon.sms.wells.web.bond.consultation.service.WbncSameCustomerContractService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 
@@ -72,10 +80,17 @@ public class WbncSameCustomerContractController {
     }
 
     @ApiOperation(value = "동일고객 계약 매출정보 조회", notes = "동일고객 계약번호에 대한 매출정보를 조회한다.")
-    @GetMapping("/{bndCntrRefId}/sales")
-    public FindSalesRes getContractSales(@PathVariable
-    String bndCntrRefId) {
-        return service.getContractSales(bndCntrRefId);
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "bndBizDvCd", value = "고객번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
+    @GetMapping("/sales")
+    public FindSalesRes getContractSales(@RequestParam
+    String bndBizDvCd, @RequestParam
+    String cntrNo, @RequestParam
+    int cntrSn) {
+        return service.getContractSales(bndBizDvCd, cntrNo, cntrSn);
     }
 
     @ApiOperation(value = "동일고객 계약 입금 상세조회", notes = "동일고객 계약번호에 대한 입금 상세정보를 조회한다.")
