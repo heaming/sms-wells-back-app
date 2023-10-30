@@ -15,7 +15,21 @@
              AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
             WHERE 1=1
         )
-        SELECT '1'
+        SELECT T1.CNTR_NO
+             , T1.CNTR_SN
+             , T7.CNTR_RCP_FSH_DTM /*계약접수완료일시*/
+             , T9.LOCARA_TNO       /*지역전화번호*/
+             , T9.EXNO_ENCR        /*전화국번호암호화*/
+             , T9.IDV_TNO          /*개별전화번호*/
+             , T10.NEW_ADR_ZIP     /*신주소우편번호*/
+             , T10.RNADR           /*도로명주소*/
+             , T10.RDADR           /*도로명상세주소*/
+             , P1.SAP_MAT_CD
+             , P1.PD_CD
+             , P1.PD_NM
+             , 'A'         AS PD_GD_CD
+             , '무상서비스'  AS REFRI_DV_NM
+             , '테스트'     AS RCGVP_KNM
         FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1
         INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2
          ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
@@ -29,6 +43,18 @@
         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T6
          ON T1.CNTR_NO = T6.CNTR_NO
          AND T1.CNTR_SN = T6.CNTR_SN
+        INNER JOIN TB_SSCT_CNTR_BAS T7 /*계약기본*/
+         ON T1.CNTR_NO = T7.CNTR_NO
+        LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T8 /*계약주소관계*/
+         ON T1.CNTR_NO = T8.DTL_CNTR_NO
+         AND T1.CNTR_SN = T8.DTL_CNTR_SN
+         AND T8.ADRPC_TP_CD = '3'    /*1 계약주소, 2 배달주소,3 설치주소*/
+         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T8.VL_STRT_DTM AND T8.VL_END_DTM
+        LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T9 /*계약주소지기본*/
+         ON T8.CNTR_ADRPC_ID = T9.CNTR_ADRPC_ID
+        LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS T10
+         ON T9.ADR_ID = T10.ADR_ID
+         AND T10.DTA_DL_YN = 'N'
         LEFT OUTER JOIN PD_INF P1
          ON T5.ITM_PD_CD = P1.PD_CD
         WHERE 1=1
