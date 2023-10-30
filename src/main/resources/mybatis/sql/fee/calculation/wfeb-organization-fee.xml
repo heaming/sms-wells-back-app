@@ -648,7 +648,7 @@
                             END
                        ELSE 0 END AS MNGER_BLTN_NMN /* 매니저 개시차월 */
                     , F_CMZ_CD_NM('TNT_WELLS', 'OPNG_CD', MNGER5.OPNG_CD) AS MNGER_SETTLE_DSB_TP /* 매니저개시 정착지급유형 */
-                    , NVL(INDVBS.INDV_D5_ASN_CNT, 0) AS INDV_D5_ASN_CNT     /* 개인BS-5일배정건수 */
+                    , NVL(INDVD5.INDV_D5_ASN_CNT, 0) AS INDV_D5_ASN_CNT     /* 개인BS-5일배정건수 */
                     , NVL(INDVBS.INDV_ASN_CNT, 0) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
                     , NVL(INDVBS.INDV_FSH_CNT, 0) AS INDV_FSH_CNT	/* 개인BS-완료건수 */
                     , NVL(INDVBS.INDV_PROCS_RAT, 0) AS INDV_PROCS_RAT	/* 개인BS-처리율 */
@@ -840,19 +840,32 @@
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL ELSE 0 END ) AS INDV_PROCS_RAT	/* 개인BS-처리율 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010102' THEN PERF_VAL ELSE 0 END ) AS INDV_W1_CNT	/* 개인BS-W1급지건수 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010103' THEN PERF_VAL ELSE 0 END ) AS INDV_W2_CNT	/* 개인BS-W2급지건수 */
-                    , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV24010101' THEN PERF_VAL ELSE 0 END ) AS INDV_D5_ASN_CNT	/* 개인BS-5일배정건수 */
                  FROM TB_FEAM_WPTN_SV_PERF_AGRG T1	/* 웰스파트너서비스실적집계 */
                 WHERE DTA_DL_YN = 'N'
                   AND BASE_YM = #{dto.perfYm}
                   AND CL_DV_CD = #{dto.feeTcntDvCd}
                   AND OG_TP_CD = 'W02'
-                  AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910', 'SV06010102', 'SV06010103', 'SV24010101')	/* 배정건수, 당월완료건수, 전월완료건수, 비율, W1급지건수, W2급지건수, 5일배정건수 */
+                  AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910', 'SV06010102', 'SV06010103')	/* 배정건수, 당월완료건수, 전월완료건수, 비율, W1급지건수, W2급지건수 */
                   <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
                   AND PRTNR_NO = #{dto.prtnrNo}
                   </if>
                 GROUP BY PRTNR_NO
              ) INDVBS
             ON PRTNR.PRTNR_NO = INDVBS.PRTNR_NO
+          LEFT OUTER JOIN
+          	  (  SELECT PRTNR_NO
+                      , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV24010101' THEN PERF_VAL ELSE 0 END ) AS INDV_D5_ASN_CNT	/* 개인BS-5일배정건수 */
+                   FROM TB_FEAM_WPTN_SV_PED_AGRG T1	/* 웰스파트너서비스일집계 */
+                  WHERE DTA_DL_YN = 'N'
+                    AND BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{dto.perfYm},'YYYYMM'), 1), 'YYYYMM')
+                    AND OG_TP_CD = 'W02'
+                    AND PRTNR_SV_PERF_ATC_CD = 'SV24010101'	/* 5일배정건수 */
+                    <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
+                    AND PRTNR_NO = #{dto.prtnrNo}
+                    </if>
+                GROUP BY PRTNR_NO
+          	  ) INDVD5
+            ON PRTNR.PRTNR_NO = INDVD5.PRTNR_NO
           LEFT OUTER JOIN
              ( SELECT T3.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
                     , SUM(T1.OG_ASN_CNT) AS OG_ASN_CNT	/* 조직BS-배정건수 */
@@ -905,9 +918,9 @@
                    ( SELECT PRTNR_NO
                           , CASE WHEN PERF_ATC_CD IN ('W02P00103', 'W02P00002') THEN PERF_VAL ELSE 0 END AS INDV_ELHM_ACKMT_CNT	/* 개인가전인정건수 */
                           , CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS INDV_RENTAL_BASE_PRC	/* 개인렌탈기준가 */
-                          , CASE WHEN PERF_ATC_CD = 'W00P00034' THEN PERF_VAL ELSE 0 END AS INDV_SPAY_BASE_PRC	/* 개인일시불기준가 */
+                          , CASE WHEN PERF_ATC_CD = 'W00P00004' THEN PERF_VAL ELSE 0 END AS INDV_SPAY_BASE_PRC	/* 개인일시불기준가 */
                           , CASE WHEN PERF_ATC_CD IN ('W00P00014', 'W00P00018') THEN PERF_VAL ELSE 0 END AS INDV_CHDVC_CNT	/* 개인기변건수 */
-                          , CASE WHEN PERF_ATC_CD IN ('W02P00027', 'W02P00112') THEN PERF_VAL ELSE 0 END AS INDV_ELHM_EXCP_ACKMT_PERF	/* 개인가전외인정실적 */
+                          , CASE WHEN PERF_ATC_CD = 'W02P00112' THEN PERF_VAL ELSE 0 END AS INDV_ELHM_EXCP_ACKMT_PERF	/* 개인가전외인정실적 */
                           , CASE WHEN PERF_ATC_CD IN ('W00P00005', 'W00P00007') THEN PERF_VAL ELSE 0 END AS INDV_FXAM_CT	/* 개인정액건수 */
                           , CASE WHEN PERF_ATC_CD IN ('W02P00105', 'W00P00009') THEN PERF_VAL ELSE 0 END AS INDV_LIVE_PAKG_CNT	/* 개인라이브팩건수 */
                           , CASE WHEN PERF_ATC_CD = 'W02P00086' THEN PERF_VAL ELSE 0 END AS INDV_HCR_MSH_CNT	/* 개인홈케어멤버십건수 */
@@ -922,7 +935,7 @@
                         AND PERF_AGRG_CRT_DV_CD = '201'
                         AND PERF_DV_CD = '0'	/* 실적구분코드 0-개인 */
                         AND OG_TP_CD = 'W02'
-                        AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00034', 'W00P00014',
+                        AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00004', 'W00P00014',
                                              'W00P00018', 'W02P00027', 'W02P00112', 'W00P00005', 'W00P00007',
                                              'W02P00105', 'W00P00009', 'W02P00086' )
                         <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
@@ -940,7 +953,7 @@
                            , 0 AS INDV_HCR_MSH_CNT	/* 개인홈케어멤버십건수 */
                            , CASE WHEN PERF_ATC_CD IN ('W02P00103', 'W02P00002') THEN PERF_VAL ELSE 0 END AS OG_ELHM_ACKMT_CNT	/* 조직가전인정건수 */
                            , CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS OG_RENTAL_BASE_PRC	/* 조직렌탈기준가 */
-                           , CASE WHEN PERF_ATC_CD = 'W00P00034' THEN PERF_VAL ELSE 0 END AS OG_SPAY_BASE_PRC	/* 조직일시불기준가 */
+                           , CASE WHEN PERF_ATC_CD = 'W00P00004' THEN PERF_VAL ELSE 0 END AS OG_SPAY_BASE_PRC	/* 조직일시불기준가 */
                            , CASE WHEN PERF_ATC_CD IN ('W00P00014', 'W00P00018') THEN PERF_VAL ELSE 0 END AS OG_CHDVC_CNT	/* 조직기변건수 */
                         FROM TB_FEAM_NTORP_PERF_MM_CL	/* 순주문실적월마감 */
                        WHERE DTA_DL_YN = 'N'
@@ -949,7 +962,7 @@
                          AND PERF_AGRG_CRT_DV_CD = '201'
                          AND PERF_DV_CD = '2'	/* 실적구분코드 2-지점 */
                          AND OG_TP_CD = 'W02'
-                         AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00034', 'W00P00014', 'W00P00018')
+                         AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00004', 'W00P00014', 'W00P00018')
                          <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
                          AND PRTNR_NO = #{dto.prtnrNo}
                          </if>
@@ -1262,7 +1275,7 @@
                             END
                        ELSE 0 END AS MNGER_BLTN_NMN /* 매니저 개시차월 */
                     , F_CMZ_CD_NM('TNT_WELLS', 'OPNG_CD', MNGER5.OPNG_CD) AS MNGER_SETTLE_DSB_TP /* 매니저개시 정착지급유형 */
-                    , NVL(INDVBS.INDV_D5_ASN_CNT, 0) AS INDV_D5_ASN_CNT     /* 개인BS-5일배정건수 */
+                    , NVL(INDVD5.INDV_D5_ASN_CNT, 0) AS INDV_D5_ASN_CNT     /* 개인BS-5일배정건수 */
                     , NVL(INDVBS.INDV_ASN_CNT, 0) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
                     , NVL(INDVBS.INDV_FSH_CNT, 0) AS INDV_FSH_CNT	/* 개인BS-완료건수 */
                     , NVL(INDVBS.INDV_PROCS_RAT, 0) AS INDV_PROCS_RAT	/* 개인BS-처리율 */
@@ -1500,19 +1513,32 @@
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL ELSE 0 END ) AS INDV_PROCS_RAT	/* 개인BS-처리율 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010102' THEN PERF_VAL ELSE 0 END ) AS INDV_W1_CNT	/* 개인BS-W1급지건수 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010103' THEN PERF_VAL ELSE 0 END ) AS INDV_W2_CNT	/* 개인BS-W2급지건수 */
-                    , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV24010101' THEN PERF_VAL ELSE 0 END ) AS INDV_D5_ASN_CNT	/* 개인BS-5일배정건수 */
                  FROM TB_FEAM_WPTN_SV_PERF_AGRG T1	/* 웰스파트너서비스실적집계 */
                 WHERE DTA_DL_YN = 'N'
                   AND BASE_YM = #{perfYm}
                   AND CL_DV_CD = #{feeTcntDvCd}
                   AND OG_TP_CD = 'W02'
-                  AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910', 'SV06010102', 'SV06010103', 'SV24010101')	/* 배정건수, 당월완료건수, 전월완료건수, 비율, W1급지건수, W2급지건수, 5일배정건수 */
+                  AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910', 'SV06010102', 'SV06010103')	/* 배정건수, 당월완료건수, 전월완료건수, 비율, W1급지건수, W2급지건수 */
                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                   AND PRTNR_NO = #{prtnrNo}
                   </if>
                 GROUP BY PRTNR_NO
              ) INDVBS
             ON PRTNR.PRTNR_NO = INDVBS.PRTNR_NO
+          LEFT OUTER JOIN
+          	  (  SELECT PRTNR_NO
+                      , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV24010101' THEN PERF_VAL ELSE 0 END ) AS INDV_D5_ASN_CNT	/* 개인BS-5일배정건수 */
+                   FROM TB_FEAM_WPTN_SV_PED_AGRG T1	/* 웰스파트너서비스일집계 */
+                  WHERE DTA_DL_YN = 'N'
+                    AND BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{dto.perfYm},'YYYYMM'), 1), 'YYYYMM')
+                    AND OG_TP_CD = 'W02'
+                    AND PRTNR_SV_PERF_ATC_CD = 'SV24010101'	/* 5일배정건수 */
+                    <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
+                    AND PRTNR_NO = #{dto.prtnrNo}
+                    </if>
+                GROUP BY PRTNR_NO
+          	  ) INDVD5
+            ON PRTNR.PRTNR_NO = INDVD5.PRTNR_NO
           LEFT OUTER JOIN
              ( SELECT T3.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
                     , SUM(T1.OG_ASN_CNT) AS OG_ASN_CNT	/* 조직BS-배정건수 */
@@ -1565,9 +1591,9 @@
                    ( SELECT PRTNR_NO
                           , CASE WHEN PERF_ATC_CD IN ('W02P00103', 'W02P00002') THEN PERF_VAL ELSE 0 END AS INDV_ELHM_ACKMT_CNT	/* 개인가전인정건수 */
                           , CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS INDV_RENTAL_BASE_PRC	/* 개인렌탈기준가 */
-                          , CASE WHEN PERF_ATC_CD = 'W00P00034' THEN PERF_VAL ELSE 0 END AS INDV_SPAY_BASE_PRC	/* 개인일시불기준가 */
+                          , CASE WHEN PERF_ATC_CD = 'W00P00004' THEN PERF_VAL ELSE 0 END AS INDV_SPAY_BASE_PRC	/* 개인일시불기준가 */
                           , CASE WHEN PERF_ATC_CD IN ('W00P00014', 'W00P00018') THEN PERF_VAL ELSE 0 END AS INDV_CHDVC_CNT	/* 개인기변건수 */
-                          , CASE WHEN PERF_ATC_CD IN ('W02P00027', 'W02P00112') THEN PERF_VAL ELSE 0 END AS INDV_ELHM_EXCP_ACKMT_PERF	/* 개인가전외인정실적 */
+                          , CASE WHEN PERF_ATC_CD = 'W02P00112' THEN PERF_VAL ELSE 0 END AS INDV_ELHM_EXCP_ACKMT_PERF	/* 개인가전외인정실적 */
                           , CASE WHEN PERF_ATC_CD IN ('W00P00005', 'W00P00007') THEN PERF_VAL ELSE 0 END AS INDV_FXAM_CT	/* 개인정액건수 */
                           , CASE WHEN PERF_ATC_CD IN ('W02P00105', 'W00P00009') THEN PERF_VAL ELSE 0 END AS INDV_LIVE_PAKG_CNT	/* 개인라이브팩건수 */
                           , CASE WHEN PERF_ATC_CD = 'W02P00086' THEN PERF_VAL ELSE 0 END AS INDV_HCR_MSH_CNT	/* 개인홈케어멤버십건수 */
@@ -1582,7 +1608,7 @@
                         AND PERF_AGRG_CRT_DV_CD = '201'
                         AND PERF_DV_CD = '0'	/* 실적구분코드 0-개인 */
                         AND OG_TP_CD = 'W02'
-                        AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00034', 'W00P00014',
+                        AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00004', 'W00P00014',
                                              'W00P00018', 'W02P00027', 'W02P00112', 'W00P00005', 'W00P00007',
                                              'W02P00105', 'W00P00009', 'W02P00086' )
                         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
@@ -1600,7 +1626,7 @@
                            , 0 AS INDV_HCR_MSH_CNT	/* 개인홈케어멤버십건수 */
                            , CASE WHEN PERF_ATC_CD IN ('W02P00103', 'W02P00002') THEN PERF_VAL ELSE 0 END AS OG_ELHM_ACKMT_CNT	/* 조직가전인정건수 */
                            , CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS OG_RENTAL_BASE_PRC	/* 조직렌탈기준가 */
-                           , CASE WHEN PERF_ATC_CD = 'W00P00034' THEN PERF_VAL ELSE 0 END AS OG_SPAY_BASE_PRC	/* 조직일시불기준가 */
+                           , CASE WHEN PERF_ATC_CD = 'W00P00004' THEN PERF_VAL ELSE 0 END AS OG_SPAY_BASE_PRC	/* 조직일시불기준가 */
                            , CASE WHEN PERF_ATC_CD IN ('W00P00014', 'W00P00018') THEN PERF_VAL ELSE 0 END AS OG_CHDVC_CNT	/* 조직기변건수 */
                         FROM TB_FEAM_NTORP_PERF_MM_CL	/* 순주문실적월마감 */
                        WHERE DTA_DL_YN = 'N'
@@ -1609,7 +1635,7 @@
                          AND PERF_AGRG_CRT_DV_CD = '201'
                          AND PERF_DV_CD = '2'	/* 실적구분코드 2-지점 */
                          AND OG_TP_CD = 'W02'
-                         AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00034', 'W00P00014', 'W00P00018')
+                         AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00004', 'W00P00014', 'W00P00018')
                          <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                          AND PRTNR_NO = #{prtnrNo}
                          </if>
