@@ -269,12 +269,14 @@
                              *   2-1) 상품변경등록 => 계약금액 전체 환불
                              *   2-2) 법인미수금계약 법인미수금 환불액 => 법인미수금 입금 초과금액 [법인미수금 입금합계 - 법인미수금계약금액]
                              */
-                           , CASE WHEN T1.SELL_TP_CD = '1' THEN CASE WHEN T1.SPP_DUEDT IS NULL AND T1.CNTR_PD_STRTDT IS NULL THEN T4.AMT2
-                                                                /* 2) 예정일 & 매출일이 있는경우 2-1) 상품변경등록 => 계약금액 전체 환불 */
-                                                                     WHEN T1.SPP_DUEDT IS NOT NULL AND T1.CNTR_PD_STRTDT IS NOT NULL THEN T4.AMT2
-                                                                /*   2-2) 법인미수 초과금액*/
-                                                                     ELSE T4.GAMT1 - T1.CRP_UC_AMT
-                                                                      END
+                           , CASE WHEN T1.SELL_TP_CD = '1' THEN CASE WHEN T1.SPP_DUEDT IS NULL AND T1.CNTR_PD_STRTDT IS NULL THEN CASE WHEN NVL(T1.CNTR_AMT , 0 ) != 0 THEN NVL(T1.CNTR_AMT,0) + NVL(T1.CRP_UC_AMT ,0)
+                                                                                                                                       ELSE 0
+                                                                                                                                        END
+                                                       /* 2) 예정일 & 매출일이 있는경우 2-1) 상품변경등록 => 계약금액 전체 환불
+                                                                             WHEN T1.SPP_DUEDT IS NOT NULL AND T1.CNTR_PD_STRTDT IS NOT NULL THEN T4.AMT2  */
+                                                       /*   2-2) 법인미수 초과금액*/
+                                                            ELSE T4.GAMT2 - T1.CNTR_AMT
+                                                             END
                            /*
                              * 렌탈 금융리스 환불금 조회 로직 순서
                              *
@@ -387,6 +389,10 @@
                                                                   WHEN S1.RVE_DV_CD = '01' AND T1.CRP_UC_AMT > 0 AND S1.DP_DV_CD IN ('2' , '4') THEN -S1.RVE_AMT
                                                                   ELSE 0  --계약금 미수금액
                                                                    END ) AS GAMT1
+                                                      , SUM( CASE WHEN S1.RVE_DV_CD = '01'  AND S1.DP_DV_CD IN ('1' , '3') THEN S1.RVE_AMT
+                                                                  WHEN S1.RVE_DV_CD = '01'  AND S1.DP_DV_CD IN ('2' , '4') THEN -S1.RVE_AMT
+                                                                  ELSE 0  --계약금 미수금액
+                                                                   END ) AS GAMT2
                                                    FROM TB_RVDW_RVE_DTL S1
                                                  WHERE 1 = 1
                                                    AND S1.KW_GRP_CO_CD = '2000'
