@@ -67,13 +67,8 @@ public class WfedIndividualFeePlannerMgtDto {
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-FindPlarDeductionRes")
     public record FindPlarDeductionRes(
-        String rds,
-        String erntx,
-        String rsdntx,
-        String hirInsr,
-        String buDdtn,
-        String pnpyam,
-        String inddInsr
+        String feeAtcItem,
+        String feeAtcVal
     ) {}
 
     @ApiModel(value = "WfedIndividualFeeMgtDto-SearchPlarControlRes")

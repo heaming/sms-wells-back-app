@@ -169,6 +169,9 @@ public class WbncCustomerDto {
         String dsmnCltnDt, /* 지국장 해약일 */
         String bldCd, /* 소속빌딩코드 */
         String bldNm, /* 소속빌딩명 */
+        String bldLocaraTno,
+        String bldMexnoEncr,
+        String bldIdvTno, /* 빌딩 전화번호 */
         String alncCd, /* 제휴코드 */
         String alncNm, /* 제휴명 */
         String alncStat, /* 제휴상태 */
@@ -197,6 +200,7 @@ public class WbncCustomerDto {
             istExnoEncr = StringUtils.isNotEmpty(istExnoEncr) ? DbEncUtil.dec(istExnoEncr) : istExnoEncr;
             istMexnoEncr = StringUtils.isNotEmpty(istMexnoEncr) ? DbEncUtil.dec(istMexnoEncr) : istMexnoEncr;
             plarMexnoEncr = StringUtils.isNotEmpty(plarMexnoEncr) ? DbEncUtil.dec(plarMexnoEncr) : plarMexnoEncr;
+            bldMexnoEncr = StringUtils.isNotEmpty(bldMexnoEncr) ? DbEncUtil.dec(bldMexnoEncr) : bldMexnoEncr;
             dsmnMexnoEncr = StringUtils.isNotEmpty(dsmnMexnoEncr) ? DbEncUtil.dec(dsmnMexnoEncr) : dsmnMexnoEncr;
             vtAc = StringUtils.isNotEmpty(vtAc) ? DbEncUtil.dec(vtAc) : vtAc;
         }
@@ -262,7 +266,8 @@ public class WbncCustomerDto {
         String prtnrNm, /*집금담당명*/
         String bndTfDt, /* 이관일자 */
         String sfkVal, /* 세이프키*/
-        String cstNo /* 세이프키*/
+        String cstNo, /* 세이프키*/
+        String baseYm /* 기준년월*/
     ) {}
 
     @ApiModel(value = "WbncCustomertDetailDto-FindUnusualArticlesReq")

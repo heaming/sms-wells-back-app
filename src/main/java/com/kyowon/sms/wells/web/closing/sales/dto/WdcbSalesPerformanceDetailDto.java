@@ -303,7 +303,7 @@ public class WdcbSalesPerformanceDetailDto {
         String rentalDc,
         String slDc,
         String useDc,
-        String canDt,
+        String cntrCanDt,
         String nomSlAmt,
         String nomDscAmt,
         String fshDt,
@@ -315,15 +315,15 @@ public class WdcbSalesPerformanceDetailDto {
         String slAggAmt,
         String intAggAmt,
         String sumSlAggAmt,
-        String sumDscAggAmt,
-        String sumCtrAggAmt,
+        String dscAggAmt,
+        String ctrAggAmt,
         String slBlam,
         String btdAtam,
         String atamDpAmt,
         String atamRfndAmt,
         String prpdSlAmt,
         String slBndAlrpyAmt,
-        String sumSlDpAggAmt,
+        String slDpAggAmt,
         String eotUcAmt,
         String atamRplcProcsAmt,
         String atamTotAmt,
@@ -420,15 +420,15 @@ public class WdcbSalesPerformanceDetailDto {
      * @param cntrDt 접수일자
      * @param sppDt 최초배송일자
      * @param lcsleDt 매출일자
-     * @param slOccYm 매출발생월
+     * @param slOccYn 매출발생월
      * @param sppYn 배송여부
      * @param rentalTn 진행차월
      * @param sppTn 배송차월
      * @param rentalDc 사용일수
-     * @param canDt 취소일자
+     * @param cntrCanDt 취소일자
      * @param nomSlAmt 정상매출금액
      * @param nomDscAmt 정상할인금액
-     * @param fulpyDt 완료일자
+     * @param fshDt 완료일자
      * @param spmtSlAmt 추가매출금액
      * @param spmtDscAmt 추가할인금액
      * @param slCtrAmt 매출조정금액
@@ -505,15 +505,15 @@ public class WdcbSalesPerformanceDetailDto {
         String cntrDt,
         String sppDt,
         String lcsleDt,
-        String slOccYm,
+        String slOccYn,
         String sppYn,
         String rentalTn,
         String sppTn,
         String rentalDc,
-        String canDt,
+        String cntrCanDt,
         String nomSlAmt,
         String nomDscAmt,
-        String fulpyDt,
+        String fshDt,
         String spmtSlAmt,
         String spmtDscAmt,
         String slCtrAmt,

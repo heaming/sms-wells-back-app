@@ -1,16 +1,19 @@
 package com.kyowon.sms.wells.web.service.interfaces.rest;
 
 import static com.kyowon.sms.wells.web.service.interfaces.service.WsniParcelServiceRegService.TMP_PRC_SRV_REG_CUST_ID;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
 import javax.validation.Valid;
-
+import com.kyowon.sms.wells.web.service.visit.service.WsnbWorkOrderService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-
 import com.kyowon.sms.wells.web.service.interfaces.converter.WsniParcelServiceConverter;
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniParcelServiceRegDto;
 import com.kyowon.sms.wells.web.service.interfaces.dvo.WsniParcelServiceRegDvo;
@@ -18,23 +21,29 @@ import com.kyowon.sms.wells.web.service.interfaces.ivo.EAI_OCJM1_WSVO1003.respon
 import com.kyowon.sms.wells.web.service.interfaces.ivo.EAI_OCJM1_WSVO1003.response.PcsvAddressCleansingResIvo;
 import com.kyowon.sms.wells.web.service.interfaces.service.WsniParcelServiceRegService;
 import com.sds.sflex.system.config.annotation.InterfaceController;
-import com.sds.sflex.system.config.constant.CommConst;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+
+/**
+* OCJM1_CSVO1001 - CJ택배 인증키 생성, OCJM1_CSVO1002 - CJ택배 반품 집하 지시
+* */
 @Api(tags = "CJ택배 집하지시6 REST API")
 @InterfaceController
-@RequestMapping(value = CommConst.REST_URL_V1 + "/parcel-service")
+@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/parcel-service")
 @RequiredArgsConstructor
 public class WsniParcelServiceRegController {
 
     private final WsniParcelServiceRegService parcelServiceRegService;
 
+    private final WsnbWorkOrderService workOrderService;
+
     private final WsniParcelServiceConverter parcelServiceConverter;
+
+    private static final Logger logger = LoggerFactory.getLogger(WsniParcelServiceRegController.class);
 
     @ApiOperation(value = "집하지시 오더저장", notes = "집하지시 오더를 생성/취소한다.")
     @ApiImplicitParams(value = {
@@ -54,20 +63,26 @@ public class WsniParcelServiceRegController {
         @ApiImplicitParam(name = "gdsNm", value = "상품명", paramType = "query", required = false),
         @ApiImplicitParam(name = "gdsQty", value = "상품수량", paramType = "query", required = true),
         @ApiImplicitParam(name = "sendrNm", value = "발송자명", paramType = "query", required = true),
-        @ApiImplicitParam(name = "asnNo", value = "배정번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "recpId", value = "접수자ID", paramType = "query", required = true),
+        @ApiImplicitParam(name = "recpOgTpCd", value = "접수자조직유형", paramType = "query", required = true),
     })
     @PostMapping("/regist")
-    public void saveParcelServiceRegistration(
+    public EaiWrapper saveParcelServiceRegistration(
         @Valid
-        WsniParcelServiceRegDto.RegistParcelServiceReq dto
+        @RequestBody
+        EaiWrapper<WsniParcelServiceRegDto.RegistParcelServiceReq> reqEaiWrapper
     ) throws Exception {
 
+        EaiWrapper<PcsvAddressCleansingResIvo> resEaiWrapper = reqEaiWrapper.newResInstance();
+
+        WsniParcelServiceRegDto.RegistParcelServiceReq dto = reqEaiWrapper.getBody();
         WsniParcelServiceRegDvo save_data = parcelServiceConverter.mapRgstPrclServiceReqDtoToRgstPrclServiceReqDvo(dto);
-        System.out.println("요기 시작했음");
+
+        logger.debug("요기 시작했음");
         // STEP 01. 원송장번호 조회
         List<WsniParcelServiceRegDto.SearchOriginInvoiceRes> OriginInvoicelist = parcelServiceRegService
             .getOriginInvoiceNum(dto);
-        System.out.println("요기 시작했음1");
+        logger.debug("요기 시작했음1");
         if (OriginInvoicelist == null || OriginInvoicelist.size() <= 0) {
             throw new Exception(">> CJ예약(등록/취소) API 오류 - 원운송장번호를 고객번호로 찾을수 없습니다.");
         } else {
@@ -79,7 +94,7 @@ public class WsniParcelServiceRegController {
             save_data.setCustId(TMP_PRC_SRV_REG_CUST_ID);
             save_data.setOriinvcNo(invc_no_data.oriinvcNo());
             save_data.setReqdvCd(dto.reqdvCd());
-            save_data.setMpckKey(strToday + "_" + TMP_PRC_SRV_REG_CUST_ID + "_" + dto.custNo());
+            save_data.setMpckKey("R"+invc_no_data.oriinvcNo()+"_"+strToday);
             save_data.setRcptDv("02");
             if (dto.reqdvCd().equals("02")) {
 
@@ -133,7 +148,23 @@ public class WsniParcelServiceRegController {
 
             if (dto.reqdvCd().equals("02")) {
 
-                // TODO: 2023-06-19 API 취소 호출
+
+                WsnbWorkOrderDvo dvo = new WsnbWorkOrderDvo();
+                dvo.setCntrNo(dto.custNo());
+                dvo.setCntrSnB(dto.cntrSn());
+                dvo.setInChnlDvCd("1");
+                dvo.setSvBizHclsfCd("3");
+                dvo.setMtrStatCd("3");
+                dvo.setSvBizDclsfCd("3460");
+                dvo.setUrgtDvCd("2");
+                dvo.setAsIstOjNo(invc_no_data.asIstOjNo());
+                dvo.setSmsFwYn("N");
+                dvo.setUserId(dto.recpId());
+                dvo.setRcpOgTpCd(dto.recpOgTpCd());
+
+                // 다건 작업 오더 호출(PR_KIWI_WRK_CREATE_V2M)
+                workOrderService.saveWorkOrders(dvo);
+
             }
 
             // STEP 02. 토큰발급
@@ -161,7 +192,17 @@ public class WsniParcelServiceRegController {
                 save_data.setResultCd(result.getRESULTCD());
                 save_data.setResultDetail(result.getRESULTDETAIL());
                 parcelServiceRegService.saveParcelServiceData(save_data);
+
+                resEaiWrapper.setBody(result);
+            }else{
+                PcsvAddressCleansingResIvo err_result = new PcsvAddressCleansingResIvo();
+                err_result.setRESULTCD("E998");
+                err_result.setRESULTCD("반품집하지시 등록 오류");
+
+                resEaiWrapper.setBody(err_result);
             }
+
+            return resEaiWrapper;
 
         }
 

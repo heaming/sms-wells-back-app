@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WfeaWelsMngerSettlementAwController {
     private final WfeaWelsMngerSettlementAwService service;
 
-    @ApiOperation(value = "웰스매니저 정착수당정보 조회\", notes = \"조회조건 실적년월에 해당하는 웰스매니저 정착수당 정보를 조회한다.")
+    @ApiOperation(value = "웰스매니저 정착수당정보 조회", notes = "조회조건 실적년월에 해당하는 웰스매니저 정착수당 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "tcntDvCd", value = "차수", paramType = "query", required = true),
@@ -46,7 +46,7 @@ public class WfeaWelsMngerSettlementAwController {
         return this.service.getWelsMngers(dto);
     }
 
-    @ApiOperation(value = "웰스매니저 개시구분 생성조건 정보 조회\", notes = \"조회조건 실적년월에 해당하는 웰스매니저 개시구분 생성조건 정보를 조회한다.")
+    @ApiOperation(value = "웰스매니저 개시구분 생성조건 정보 조회", notes = "조회조건 실적년월에 해당하는 웰스매니저 개시구분 생성조건 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "실적년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "tcntDvCd", value = "차수", paramType = "query", required = true),

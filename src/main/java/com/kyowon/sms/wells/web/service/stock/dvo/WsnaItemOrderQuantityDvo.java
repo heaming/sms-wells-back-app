@@ -36,6 +36,8 @@ public class WsnaItemOrderQuantityDvo {
     private BigDecimal logisticCnrQty;
     // 당월물량배정
     private BigDecimal thmQomAsnQty;
+    // 택배
+    private BigDecimal pcsvQty;
     // 물류계
     private BigDecimal logisticSum;
     // 예상소요량 + 1개월

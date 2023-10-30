@@ -102,10 +102,10 @@
              , NVL(T1.THM_CHRAM_AMT, 0) AS THM_CHRAM_AMT  /* 월요금액 */
              , NVL(T1.DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT /* 연체가산금액 */
              , NVL((SELECT SUM(NVL(SL_CTR_AMT, 0)) FROM TB_CBCL_WELLS_SL_MM_CL_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN), 0) AS CTR_AGG_AMT /* 조정누계 */
-             , (SELECT NVL(SUM(RVE_AMT), 0) AS TOT_RVE_AMT FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND SUBSTR(RVE_DT,0,6) = T1.BASE_YM AND DP_DV_CD = '1' AND DTA_DL_YN = 'N') AS UC_DP_AMT  /* 미수입금 */
+             , (SELECT NVL(SUM(RVE_AMT), 0) AS TOT_RVE_AMT FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND SUBSTR(RVE_DT,0,6) = T1.BASE_YM AND DP_DV_CD IN ('1', '3') AND DTA_DL_YN = 'N') AS UC_DP_AMT  /* 미수입금 */
              , NVL(T1.THM_CHRAM_DP_AMT, 0) AS MM_CHRAM_DP_AMT /* 월요금입금 */
              , NVL(T1.DLQ_ADD_DP_AMT, 0) AS DLQ_ADD_DP_AMT /* 연체가산입금 */
-             , NVL(T1.UC_AMT, 0) - (SELECT NVL(SUM(RVE_AMT), 0) AS TOT_RVE_AMT FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND SUBSTR(RVE_DT,0,6) = T1.BASE_YM AND DP_DV_CD = '1' AND DTA_DL_YN = 'N') AS UC_BLAM /* 미수잔액 = 미수금액 - 미수입금 */
+             , NVL(T1.UC_AMT, 0) - (SELECT NVL(SUM(RVE_AMT), 0) AS TOT_RVE_AMT FROM TB_RVDW_RVE_DTL WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND SUBSTR(RVE_DT,0,6) = T1.BASE_YM AND DP_DV_CD IN ('1', '3') AND DTA_DL_YN = 'N') AS UC_BLAM /* 미수잔액 = 미수금액 - 미수입금 */
              , NVL(T1.THM_CHRAM_AMT, 0) - NVL(T1.THM_CHRAM_DP_AMT, 0) AS MM_CHRAM_BLAM /* 월요금잔액 = 당월요금금액 - 당월요금입금금액*/
              , NVL(T1.DLQ_ADD_AMT, 0) - NVL(T1.DLQ_ADD_DP_AMT, 0) AS DLQ_ADD_BLAM  /* 연체가산잔액 = 연체가산금액 - 연체가산금입금금액 */
           FROM TB_CBBO_BND_CNTR_BAS T1
@@ -149,11 +149,11 @@
              , NVL(T2.RGST_COST_DSC_BOR_AMT, 0) AS RGST_COST_DSC_BOR_AMT /* 등록비할인위약금액 */
              , NVL(T2.RENTAL_DSC_BOR_AMT, 0) AS RENTAL_DSC_BOR_AMT /* 렌탈할인위약금액 */
              , NVL(T2.CSMB_COST_BOR_AMT, 0) AS CSMB_COST_BOR_AMT /* 소모품비위약금액 */
-             , NVL(T2.P_BOR_AMT, 0) AS P_BOR_AMT /* 포인트위약금액 */
-             , NVL(T2.REQD_CS_BOR_AMT, 0) AS REQD_CS_BOR_AMT /* 철거비용위약금액 */
-             , NVL(T2.LS_RNTF, 0) AS LS_RNTF /* 분실손료 */
-             , NVL(T2.RSTL_BOR_AMT, 0) AS RSTL_BOR_AMT /* 재약정위약금액 */
-             , NVL(T5.ACU_DP_AMT, 0) AS ACU_DP_AMT /* 누적입금금액 */
+             , NVL(T5.P_BOR_AMT, 0) AS P_BOR_AMT /* 포인트위약금액 */
+             , NVL(T5.REQD_CS_BOR_AMT, 0) AS REQD_CS_BOR_AMT /* 철거비용위약금액 */
+             , NVL(T5.LS_RNTF, 0) AS LS_RNTF /* 분실손료 */
+             , NVL(T5.RSTL_BOR_AMT, 0) AS RSTL_BOR_AMT /* 재약정위약금액 */
+             , NVL(T4.ACU_DP_AMT, 0) AS ACU_DP_AMT /* 누적입금금액 */
           FROM TB_CBBO_BND_CNTR_BAS T1
           LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS T2
             ON T2.PERF_YM = T1.BASE_YM
@@ -172,9 +172,14 @@
                              FROM TB_CBCL_WELLS_BOR_AMT_BAS_HIST
                             WHERE DTA_DL_YN = 'N'
                             GROUP BY CNTR_NO, CNTR_SN
-                          ) T5
+                          ) T4
+            ON T4.CNTR_NO = T1.CNTR_NO
+           AND T4.CNTR_SN = T1.CNTR_SN
+          LEFT OUTER JOIN TB_CBBO_WELLS_AUTH_RSG_IZ T5
             ON T5.CNTR_NO = T1.CNTR_NO
            AND T5.CNTR_SN = T1.CNTR_SN
+           AND T5.AUTH_RSG_CNFM_YN = 'Y'
+           AND T5.DTA_DL_YN = 'N'
          WHERE 1=1
            AND T1.BASE_YM = (SELECT BASE_YM FROM (SELECT BASE_YM FROM TB_CBBO_BND_CNSL_BAS_IZ WHERE BND_CNTR_TP_CD = '01' ORDER BY BASE_YM DESC) WHERE ROWNUM = 1)
            AND T1.BND_BIZ_DV_CD = #{bndBizDvCd}

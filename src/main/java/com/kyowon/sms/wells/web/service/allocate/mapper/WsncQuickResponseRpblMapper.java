@@ -17,4 +17,6 @@ public interface WsncQuickResponseRpblMapper {
     List<WsncQuickResponseRpblDto.SearchRes> selectQuickResponseRpbl(
         WsncQuickResponseRpblDto.SearchReq dto
     );
+
+    int updateQuickResponseRpbl(WsncQuickResponseRpblDto.SearchReq dto);
 }

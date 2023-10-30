@@ -63,8 +63,6 @@ public class WsnaStoreNaprvStateDtlService {
 
         for (WsnaStoreNaprvStateDtlDto.SaveReq dto : dtos) {
             WsnaStoreNaprvStateDtlDvo dvo = converter.mapSaveReqToStoreNaprvStateDtlDvo(dto);
-            System.out.println(dto);
-            System.out.println(dvo);
             mapper.updateStoreNaprvStateDtlOstr(dvo);
             mapper.updateStoreNaprvStateDtlItmStock(dvo);
             mapper.updateStoreNaprvStateDtlStr(dvo);

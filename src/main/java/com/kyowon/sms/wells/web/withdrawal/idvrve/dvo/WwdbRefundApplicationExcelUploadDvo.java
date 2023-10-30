@@ -6,8 +6,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WwdbRefundApplicationExcelUploadDvo {
-    private String rfndRcpNo; // 환불접수번호 
-    private String cntrNo; // 계약번호 
+    private String rfndRcpNo; // 환불접수번호
+    private String cntrNo; // 계약번호
     private String cntrSn;
     private String cstNo; // 고객번호
     private String exRfndRsonCn; // 예외환불 사유
@@ -32,7 +32,7 @@ public class WwdbRefundApplicationExcelUploadDvo {
     private String endDay; // 승인일 종료
     private String rfndAkAmt; // 환불신청금액, 전금 요청금액(원)
     private String rfndDsbAmt; // 실지급액 (원)
-    //    private String rfndAkAmt2; // 
+    //    private String rfndAkAmt2; //
     private String rfndRsonCd; // 환불사유코드
 
     private String cardRfndFnitCd; // 카드구분

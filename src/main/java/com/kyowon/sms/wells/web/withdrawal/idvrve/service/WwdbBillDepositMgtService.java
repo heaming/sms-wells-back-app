@@ -1,6 +1,9 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.kyowon.sms.common.web.closing.payment.service.ZdcaNumberingSlpnoService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbEtcDepositProcessingDvo;
@@ -12,11 +15,22 @@ import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbDepositComparison
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositMgtDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositMgtSubDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositContractDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositSlipProcessingDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositExcelUploadDvo;
+import com.sds.sflex.common.common.dto.ExcelUploadDto;
+import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
+import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
+import com.sds.sflex.common.common.service.ExcelReadService;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
+import com.sds.sflex.system.config.validation.BizAssert;
+import org.apache.velocity.runtime.directive.Foreach;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,16 +44,16 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.Sear
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchElectronicRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositMgtDvo;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbBillDepositMgtSubDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbBillDepositMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
+import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.util.StringUtils;
 
 /**
@@ -71,6 +85,12 @@ public class WwdbBillDepositMgtService {
     private final ZdcaNumberingSlpnoService slpnoService;
 
     private final ZwdbDepositComparisonComfirmationService depositComparisonComfirmationService;
+
+    private final MessageResourceService messageResourceService;
+
+    private final ExcelReadService excelReadService;
+
+    private final static String MSG_ALT_INVALID_UPLOAD_DATA = "MSG_ALT_INVALID_UPLOAD_DATA";
 
     /**
      * 어음입금 등록 메인페이지 조회 / 페이징
@@ -371,6 +391,153 @@ public class WwdbBillDepositMgtService {
 
         return processCount;
 
+    }
+
+    /**
+     * 어음신규 등록 전자어음 입금대상 엑셀 업로드
+     * @param file 업로드 파일
+     * @return 업로드 결과정보
+     * @throws Exception 업로드된 파일 정보 Read, 파싱시 발생할 수 있는  Exception
+     */
+    @Transactional
+    public UploadRes saveRegistrationElectronicExcelUpload(MultipartFile file) throws Exception {
+        // 업로드 엑셀 헤더 설정
+        Map<String, String> headerTitle = new LinkedHashMap<>();
+        headerTitle.put("cntr", messageResourceService.getMessage("MSG_TXT_CNTR_DTL_NO")); // 계약상세번호
+        headerTitle.put("sellAmt", messageResourceService.getMessage("MSG_TXT_AMT_WON")); // 계약상세번호
+
+        // File 데이터 Read
+        List<WwdbBillDepositExcelUploadDvo> readExcel = excelReadService.readExcel(file, new ExcelMetaDvo(1, headerTitle), WwdbBillDepositExcelUploadDvo.class);
+
+        // Validation Check
+        List<ExcelUploadErrorDvo> errorDvos = new ArrayList<>();
+
+        List<WwdbBillDepositExcelUploadDvo> returnDvos = new ArrayList<WwdbBillDepositExcelUploadDvo>();
+
+//        int row = 1;
+        for (WwdbBillDepositExcelUploadDvo dvo: readExcel) {
+
+            if (StringUtil.isEmpty(dvo.getCntr())){ //계약상세번호 칸이 비어있을경우
+                dvo.setErrorCode("2");
+                continue;
+            } else {
+                if (dvo.getCntr().length() > 17){ //계약일련번호 초과 시 오류
+                    dvo.setErrorCode("2");
+                    continue;
+                } else if (dvo.getCntr().length() < 13){ //계약일련번호까지 안들어오면 오류
+                    dvo.setErrorCode("2");
+                    continue;
+                }
+
+//                2. 계약상세번호가 DB에 존재하는지 체크
+                String cntr = dvo.getCntr();
+                String cntrNo = cntr.substring(0, 12);
+                String cntrSn = cntr.substring(12);
+                dvo.setCntrNo(cntrNo);
+                dvo.setCntrSn(cntrSn);
+
+                int humanChk = mapper.selectValidationCntr(dvo); // 계약 상세 번호 존재여부
+
+                if (humanChk < 1){ // 계약 번호가 없을 경우
+                    dvo.setErrorCode("2");
+                    continue;
+                } else {
+                    dvo.setErrorCode("1");
+                }
+            }
+
+            if (StringUtil.isEmpty(dvo.getSellAmt())){ // 금액 비어있을 경우
+                dvo.setSellAmt("0"); // 0 설정
+//                BizAssert.hasText(
+//                    dvo.getSellAmt().toString(), MSG_ALT_INVALID_UPLOAD_DATA,
+//                    new String[] {String.valueOf(row), headerTitle.get("sellAmt"), dvo.getSellAmt().toString()}
+//                );
+                continue;
+            }
+            returnDvos.add(dvo);
+//            row++;
+        }
+        // Upload 결과 리턴
+        return UploadRes.builder()
+            .status(returnDvos.isEmpty() ? "S" : "E")
+//            .errorInfo(returnDvos)
+            .excelData(readExcel)
+            .build();
+    }
+
+    /**
+     * 엑셀 업로드 유효성 검사 - 현재 사용 X
+     * @param header 헤더
+     * @param dvos
+     * @return
+     */
+    public List<ExcelUploadErrorDvo> validateExcelDatas(
+        Map<String, String> header, List<WwdbBillDepositExcelUploadDvo> dvos
+    ) {
+        List<ExcelUploadErrorDvo> excelUploadErrorDvos = new ArrayList<>();
+        int row = 1;
+        for(int i = 0; i < dvos.size(); i++) {
+            WwdbBillDepositExcelUploadDvo dvo = dvos.get(i);
+
+            // 데이터 검증
+            if (StringUtil.isBlank(dvo.getCntr())) { // 계약상세번호
+                ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+                errorDvo.setErrorRow(row);
+                errorDvo.setHeaderName(header.get("cntr"));
+                BizAssert.hasText(
+                    dvo.getCntr(), MSG_ALT_INVALID_UPLOAD_DATA,
+                    new String[] {String.valueOf(row), header.get("cntr"), dvo.getCntr()}
+                );
+                excelUploadErrorDvos.add(errorDvo);
+            }
+
+            if (StringUtil.isBlank(dvo.getSellAmt().toString())) { // 금액(원)
+                BizAssert.hasText(
+                    dvo.getSellAmt().toString(), MSG_ALT_INVALID_UPLOAD_DATA,
+                    new String[] {String.valueOf(row), header.get("sellAmt"), dvo.getSellAmt().toString()}
+                );
+            }
+        }
+
+        // 1.필수값 체크(계약상세번호, 금액 null check)
+//        int row = 1;
+//        for (WwdbBillDepositExcelUploadDvo dvo : readExcel) {
+//            Map<String, String> headerTitleValidation = Map.of(
+//                "cntr", dvo.getCntr(),
+//                "sellAmt", dvo.getSellAmt()
+//            );
+//
+//            for (String key : headerTitleValidation.keySet()) {
+//                if(StringUtil.isBlank(headerTitleValidation.get(key))) {
+//                    ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+//                    errorDvo.setErrorRow(row);
+//                    errorDvo.setHeaderName(headerTitle.get(key));
+//                    errorDvo.setErrorData(
+//                        messageResourceService.getMessage(
+//                        "MSG_ALT_NO_EXPORT_DATA" // 엑셀 파일로 내보낼 데이터가 없습니다.
+//                        )
+//                    );
+//                    excelUploadErrorDvos.add(errorDvo);
+//                }
+//            }
+//            row++;
+//        }
+//
+//        for(WwdbBillDepositExcelUploadDvo uploadDvo : readExcel) {
+//            String cntrNo = uploadDvo.getCntr().
+//
+//            // 2. 계약상세번호가 DB에 존재하는지 체크
+//            int row2 = 1;
+//
+//            for (WwdbBillDepositExcelUploadDvo dvo : readExcel) {
+//                int existCntr = mapper.selectValidationCntr(dvo.getCntr());
+//
+//            int(existCntr == 0) {
+//
+//                }
+//            }
+//        }
+        return excelUploadErrorDvos;
     }
 
 }
