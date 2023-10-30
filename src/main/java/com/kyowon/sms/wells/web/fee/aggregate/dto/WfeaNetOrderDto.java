@@ -124,7 +124,6 @@ public class WfeaNetOrderDto {
         String reqdDt, /* 철거일자 */
         String sellAmt /* 판매금액 */
     ) {}
-
     @ApiModel(value = "WfeaNetOrderDto-SearchStatusRes")
     public record SearchStatusRes(
         String ogTpCd, /* 조직유형코드 */

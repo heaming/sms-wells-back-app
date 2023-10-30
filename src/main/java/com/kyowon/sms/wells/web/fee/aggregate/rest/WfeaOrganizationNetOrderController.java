@@ -147,24 +147,24 @@ public class WfeaOrganizationNetOrderController {
         return this.service.getManagerAggregateOrders(dto);
     }
 
-    //    @ApiOperation(value = "M조직 수수료 순주문 관리 집계정보 조회", notes = "조회조건에 따른 M조직 수수료 순주문 관리 집계정보 조회")
-    //    @ApiImplicitParams(value = {
-    //        @ApiImplicitParam(name = "inqrDvCd", value = "조회구분", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "divCd", value = "구분", paramType = "query", required = false),
-    //        @ApiImplicitParam(name = "feeTcntDvCd", value = "차수", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = false),
-    //        @ApiImplicitParam(name = "og1LevlId", value = "총괄단ID", paramType = "query", required = false),
-    //        @ApiImplicitParam(name = "og2LevlId", value = "지역단총괄단ID", paramType = "query", required = false),
-    //        @ApiImplicitParam(name = "og3LevlId", value = "지점ID", paramType = "query", required = false),
-    //        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = false),
-    //    })
-    //    @GetMapping("mnger-status-orders")
-    //    public List<SearchMngerAgrgRes> getManagerStatusOrders(
-    //        @Valid
-    //        SearchMngerReq dto
-    //    ) {
-    //        return this.service.getManagerStatusOrders(dto);
-    //    }
+    @ApiOperation(value = "M조직 수수료 순주문 관리 집계정보 조회", notes = "조회조건에 따른 M조직 수수료 순주문 관리 집계정보 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "inqrDvCd", value = "조회구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "divCd", value = "구분", paramType = "query", required = false),
+        @ApiImplicitParam(name = "feeTcntDvCd", value = "차수", paramType = "query", required = true),
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "og1LevlId", value = "총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "og2LevlId", value = "지역단총괄단ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "og3LevlId", value = "지점ID", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = false),
+    })
+    @GetMapping("mnger-status-orders")
+    public List<SearchMngerStatusRes> getManagerStatusOrders(
+        @Valid
+        SearchMngerStatusReq dto
+    ) {
+        return this.service.getManagerStatusOrders(dto);
+    }
 
     @ApiOperation(value = "P조직 수수료 순주문 관리 목록 조회", notes = "조회조건에 따른 P조직 수수료 순주문 관리 목록 조회")
     @ApiImplicitParams(value = {

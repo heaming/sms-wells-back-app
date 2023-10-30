@@ -192,11 +192,11 @@ public class WfeaOrganizationNetOrderService {
      * @param 'SearchMngerReq' 검색조건 정보
      * @return 조회된 데이터
      */
-    //    public List<SearchMngerAgrgRes> getManagerStatusOrders(
-    //        SearchMngerReq dto
-    //    ) {
-    //        return this.mapper.selectManagerStatusOrders(dto);
-    //    }
+    public List<SearchMngerStatusRes> getManagerStatusOrders(
+        SearchMngerStatusReq dto
+    ) {
+        return this.mapper.selectManagerStatusOrders(dto);
+    }
 
     /**
      * WELLS P조직 수수료 순주문 관리 목록 조회
