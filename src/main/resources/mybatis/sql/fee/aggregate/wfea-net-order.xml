@@ -8,11 +8,11 @@
              , A2.OG_CD /* 조직코드 */
              , A1.PRTNR_NO /* 파트너번호 */
              , A2.PRTNR_KNM /* 파트너명 */
-             , CASE WHEN SELL_TP_CD = '1' THEN '01' /* 일시불 */
-                    WHEN SELL_TP_CD = '2' THEN '02' /* 렌탈/리스 */
-                    WHEN SELL_TP_CD = '3' THEN '03' /* 멤버십 */
-                    WHEN SELL_TP_CD = '6' THEN '04' /* 정기배송 */
-                    WHEN SELL_TP_CD = '05' THEN '05' /* 재약정 */
+             , CASE WHEN A1.SELL_TP_CD = '1' THEN '01' /* 일시불 */
+                    WHEN A1.SELL_TP_CD = '2' THEN '02' /* 렌탈/리스 */
+                    WHEN A1.SELL_TP_CD = '3' THEN '03' /* 멤버십 */
+                    WHEN A1.SELL_TP_CD = '6' THEN '04' /* 정기배송 */
+                    WHEN A1.SELL_TP_CD = '05' THEN '05' /* 재약정 */
                END AS SELL_TP_CD /* 판매유형코드 */
              , A1.FEE_PDCT_TP_CD /* 수수료제품유형코드 */
              , A1.CNTR_NO || '-' || A1.CNTR_SN AS CNTR_NO /* 계약번호, 계약일련번호 */
@@ -47,7 +47,9 @@
                         , CASE WHEN T2.CNTR_DTL_STAT_CD IN ('301', '303') THEN T2.CNTR_PD_ENDDT
                                ELSE ''
                           END AS CAN_DT /* 취소일자 */
-                        , T2.SELL_AMT /* 판매금액 */
+                        , CASE WHEN T2.SELL_TP_CD = '6' THEN (NVL(T2.FNL_AMT, 0)- NVL(T2.CNTRAM_DSC_AMT, 0)) / NVL(T2.SV_PRD, 0)
+                               ELSE T2.SELL_AMT
+                          END AS SELL_AMT /* 판매금액 */
                         , T3.PD_NM /* 상품명 */
                         , CASE WHEN T1.SELL_OG_TP_CD = 'W01' THEN T5.FEE_PDCT_TP_CD2
                                WHEN T1.SELL_OG_TP_CD IN ('W02', 'W03', 'W04', 'W05') THEN T5.FEE_PDCT_TP_CD1
@@ -84,6 +86,7 @@
                           </when>
                           <when test='@MybatisUtils@equals(dvCd, "03")'> /* 구분 = 03 : 매출 */
                               AND T2.CNTR_PD_STRTDT BETWEEN #{rcpDtFrom} AND #{rcpDtTo} /* 계약상품시작일자 */
+                              AND T2.BOO_SELL_TP_CD IS NULL /* 예약판매유형코드 */
                           </when>
                       </choose>
 
@@ -159,7 +162,7 @@
                             , T3.STPL_PTRM /* 약정기간 */
                             , SUBSTR(T3.CNTR_PD_STRTDT, 0, 8) AS SL_DT /* 매출일자 */
                             , T1.STPL_CAN_DTM AS CAN_DT /* 취소일자 */
-                            , T3.SELL_AMT /* 판매금액 */
+                            , NVL(T3.FNL_AMT, 0) - NVL(T1.STPL_DSC_AMT, 0) SELL_AMT /* 판매금액 */
                             , T4.PD_NM /* 상품명 */
                             , CASE WHEN T2.SELL_OG_TP_CD = 'W01' THEN T6.FEE_PDCT_TP_CD2
                                    ELSE T6.FEE_PDCT_TP_CD1
