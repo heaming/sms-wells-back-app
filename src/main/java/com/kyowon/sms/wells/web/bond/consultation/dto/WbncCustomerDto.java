@@ -120,7 +120,7 @@ public class WbncCustomerDto {
     public static record FindRes(
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
-        String dtlCntrNo, /* 상세계약번호 */
+        String cntrDtlNo, /* 상세계약번호 */
         String cstNm, /* 고객명 */
         String sexDvCd, /* 성별코드 */
         String sexDvNm, /* 성별코드명 */
@@ -225,6 +225,7 @@ public class WbncCustomerDto {
         String pdNm, /* 제품명 */
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
+        String cntrDtlNo, /* 상세계약번호 */
         String cstKnm, /* 고객명 */
         String dlqMcn, /* 연체개월 */
         String authRsgCnfmdt, /* 직권해지일자 */
