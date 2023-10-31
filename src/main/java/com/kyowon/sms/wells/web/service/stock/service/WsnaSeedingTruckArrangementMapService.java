@@ -226,6 +226,7 @@ public class WsnaSeedingTruckArrangementMapService {
                             } else {
                                 cart9B.addAll(cart);
                             }
+                            break;
                         default:
                             break;
                     }

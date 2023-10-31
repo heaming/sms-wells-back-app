@@ -80,9 +80,11 @@ public class WbncRentalResignExpectedMgtController {
     @PostMapping("/excel-upload")
     public UploadRes saveRentalResignExpectedExcelUpload(
         @RequestParam("file")
-        MultipartFile file
+        MultipartFile file,
+        @RequestParam
+        String baseDt
     ) throws Exception {
-        return service.saveRentalResignExpectedExcelUpload(file);
+        return service.saveRentalResignExpectedExcelUpload(baseDt, file);
     }
 
     @ApiOperation(value = "직권해지관리 - 렌탈 해지예정 알림톡 발송 확인", notes = "최종확정전 알림톡 발송여부(건수)를 체크한다.")

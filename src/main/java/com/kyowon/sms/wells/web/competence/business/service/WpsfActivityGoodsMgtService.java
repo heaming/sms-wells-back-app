@@ -79,27 +79,12 @@ public class WpsfActivityGoodsMgtService {
     @Transactional
     public int saveActivityGoodsBase(List<WpsfActivityGoodsMgtDto.EditReq> dtos) {
         int processCount = 0;
-        int oldActiGdsSn = 0;
         for (WpsfActivityGoodsMgtDto.EditReq dto : dtos) {
             int actiGdsSn = mapper.selectMaxActiGdsSn(dto);
             WpsfActivityGoodsBaseDvo dvo = converter.mapSaveActivityReq(dto);
-            if (dvo.getActiGdsSn() != null) {
-                oldActiGdsSn = dvo.getActiGdsSn();
-            }
-            dvo.setActiGdsSn(actiGdsSn);
+            dvo.setActiGdsSn(Long.valueOf(actiGdsSn));
             dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
             processCount = mapper.insertActivityGoodsBase(dvo);
-            /*
-            if (dvo.getActiGdsSn() != null) {
-                WpsfActivityGoodsAplcIzDvo aDvo = new WpsfActivityGoodsAplcIzDvo();
-                aDvo.setActiGdsCd(dvo.getActiGdsCd());
-                aDvo.setOgTpCd(dvo.getOgTpCd());
-                aDvo.setNewActiGdsSn(actiGdsSn);
-                aDvo.setActiGdsSn(oldActiGdsSn);
-                processCount = mapper.updateActiGdsAplcIzSn(aDvo);
-            }
-             */
-
         }
 
         return processCount;
@@ -152,8 +137,6 @@ public class WpsfActivityGoodsMgtService {
      */
     @Transactional
     public int saveApplication(List<WpsfActivityGoodsMgtDto.SaveApplicationReq> dtos) {
-        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
-        String userBaseRleCd = userSession.getBaseRleCd();
         int processCount = 0;
         for (WpsfActivityGoodsMgtDto.SaveApplicationReq dto : dtos) {
             WpsfActivityGoodsAplcIzDvo dvo = converter.mapSaveApplicationReq(dto);
@@ -161,7 +144,7 @@ public class WpsfActivityGoodsMgtService {
             if (StringUtil.isEmpty(dto.actiGdsAplcId())) {
                 String actiGdsAplcId = mapper.selectActiGdsAplcId();
                 dvo.setActiGdsAplcId(actiGdsAplcId);
-                processCount = mapper.insertActiGdsAplcIz(dvo);
+                mapper.insertActiGdsAplcIz(dvo);
                 int actiGdsAplcSn = mapper.selectMaxActiGdsAplcSn();
                 WpsfActiGdsAplcStatIzDvo sDvo = new WpsfActiGdsAplcStatIzDvo();
                 sDvo.setActiGdsAplcId(dvo.getActiGdsAplcId());
@@ -249,14 +232,14 @@ public class WpsfActivityGoodsMgtService {
         String userCompanyCode = userSession.getCompanyCode();
         int processCount = 0;
         for (WpsfActivityGoodsMgtDto.EditDeductionReq dto : dtos) {
-            if (dto.patDdtnMcn() != dto.countMcn()) {
+            if (!dto.patDdtnMcn().equals(dto.countMcn())) {
                 String actiGdsDdtnId = mapper.selectMaxactiGdsDdtnId();
                 WpsfActivityGoodsDeductionItemizationDvo dvo = converter.mapSaveDeductionItemizationReq(dto);
                 dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
                 dvo.setProcsYn("N");
                 dvo.setActiGdsDdtnId(actiGdsDdtnId);
                 dvo.setFeeDdtnDstAmt(dto.pnpyamOcAmt());
-                processCount = mapper.insertActivityGoodsDeductionItemization(dvo);
+                mapper.insertActivityGoodsDeductionItemization(dvo);
 
                 // 4. 가지급금 생성(공제/대체 서비스 호출)
                 ZdezPnpyamCreateDvo saveReq = new ZdezPnpyamCreateDvo();
@@ -291,8 +274,6 @@ public class WpsfActivityGoodsMgtService {
      */
     @Transactional
     public int removeDeductionItemization(List<WpsfActivityGoodsMgtDto.RemoveDeductionReq> dtos) {
-        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
-        String userCompanyCode = userSession.getCompanyCode();
         int processCount = 0;
         for (WpsfActivityGoodsMgtDto.RemoveDeductionReq dto : dtos) {
             WpsfActivityGoodsDeductionItemizationDvo dvo = converter.mapRemoveDeductionItemizationReq(dto);
@@ -368,10 +349,9 @@ public class WpsfActivityGoodsMgtService {
             row++;
         }
         // insert
-        if (excelUploadErrorDvos.size() == 0) {
+        if (excelUploadErrorDvos.isEmpty()) {
             for (WpsfActivityGoodsExcelDvo exDvo : list) {
                 int result = 0;
-                //int result = this.mapper.insertMessageSendExcludeObject(insertData);
                 WpsfActivityGoodsBaseDvo bDvo = new WpsfActivityGoodsBaseDvo();
                 bDvo.setOgTpCd(ogTpCd);
                 bDvo.setActiGdsCd(exDvo.getActiGdsCd());
@@ -387,7 +367,7 @@ public class WpsfActivityGoodsMgtService {
                 dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
                 String actiGdsAplcId = mapper.selectActiGdsAplcId();
                 dvo.setActiGdsAplcId(actiGdsAplcId);
-                result = mapper.insertActiGdsAplcIz(dvo);
+                mapper.insertActiGdsAplcIz(dvo);
                 int actiGdsAplcSn = mapper.selectMaxActiGdsAplcSn();
                 WpsfActiGdsAplcStatIzDvo sDvo = new WpsfActiGdsAplcStatIzDvo();
                 sDvo.setActiGdsAplcId(dvo.getActiGdsAplcId());
@@ -451,7 +431,8 @@ public class WpsfActivityGoodsMgtService {
         for (WpsfActivityGoodsMgtDto.RemoveSizenReq dto : dtos) {
             WpsfActivityGoodsSizeDvo dvo = converter.mapRemoveSizeReq(dto);
             dvo.setDtaDlYn(DeDeductionConst.DELETE_Y);
-            processCount = mapper.updateActivityGoodsSizeDlayn(dvo);
+            mapper.updateActivityGoodsSizeDlayn(dvo);
+
             WpsfActivityGoodsSizeDetailDvo sDvo = new WpsfActivityGoodsSizeDetailDvo();
             sDvo.setActiGdsStddDvId(dvo.getActiGdsStddDvId());
             sDvo.setDtaDlYn(DeDeductionConst.DELETE_Y);

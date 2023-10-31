@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaCodeMgtDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo;
 
 @Mapper
@@ -26,4 +27,6 @@ public interface WsncRpbAreaCodeMgtMapper {
     int insertAreaCodePsic(
         WsncRpbAreaCodeDvo dvo
     );
+
+    List<WsncRpbAreaCodeMgtDto.LocaraCd> selectLgldCtpvLocaras();
 }

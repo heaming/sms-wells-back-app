@@ -27,7 +27,8 @@ public class WfeeIndividualFeeDto {
         @NotBlank
         String perfYm, /* 실적년월 */
         @NotBlank
-        String prtnrNo /* 파트너번호 */
+        String prtnrNo, /* 파트너번호 */
+        String ogTpCd /* 조직유형코드 */
     ) {}
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstReq")
     public record SearchHmstReq(
@@ -106,6 +107,8 @@ public class WfeeIndividualFeeDto {
         String prtnrNo, /* 파트너번호 */
         String prtnrKnm, /* 파트너명 */
         String rsbDvCd, /* 직책구분코드 */
+        String qlfDvCd, /* 자격구분코드 */
+        String brmgrDvCd, /* 지점장구분코드 */
         String intbsAmt, /* 소득과표금액 */
         String ddctam, /* 공제금액 */
         String dsbOjAmt, /* 지급대상금액 */

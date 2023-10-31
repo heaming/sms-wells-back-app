@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
-import java.util.List;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -37,6 +35,5 @@ public class WsncRpbAreaCodeDvo {
     String locaraCenStruAdr; /* 지역중심건물주소 */
     String chLocaraCd; /* 변경 책임지역코드 */
     String orderNo; /* 정렬순서번호 */
-    List<WsncRpbAreaCodeDvo> changeCodes; /* 책임지역변경코드 list(콤보박스생성용) */
 
 }

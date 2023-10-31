@@ -2,79 +2,85 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbFitForLifeFilterMapper">
 
     <select id="selectNextBSCustInfo" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbFitForLifeFilterDto$SearchInfoRes">
-	  SELECT T10.*
-		FROM (
-				SELECT T1.CNTR_NO
-					 , T1.CNTR_SN
-					 , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR										-- 계약번호
-					 , T2.RCGVP_KNM																	-- 성명
-					 , T1.VST_DUEDT																	-- 변경방문 예정일자
-					 , TO_CHAR(TO_DATE(T1.VST_DUEDT, 'YYYYMMDD') - 30, 'YYYYMMDD') AS ALT_DEADLINE	-- 변경마감일자
-					 , '생활 맞춤형 필터 변경' AS WORK_NM												-- 작업구분
-					 , T1.PART_PD_CD																-- 현재필터 (selectPartMaster: SVPD_NM_KOR)
-					 , T3.SVPD_NM_KOR
-			  	  FROM TB_SVPD_CST_SV_RGBSPR_IZ T1
-			LEFT OUTER JOIN (
-						SELECT T2.RCGVP_KNM
-							 , T1.DTL_CNTR_NO
-							 , T1.DTL_CNTR_SN
-						  FROM TB_SSCT_CNTR_ADR_REL T1
-						 INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2
-						 	ON T2.DTA_DL_YN = 'N'
-						   AND T2.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID
-						 WHERE T1.ADRPC_TP_CD = '3'
-						   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
-						   AND T1.DTA_DL_YN = 'N'
-			  	 	   ) T2
-			  	 	ON T2.DTL_CNTR_NO = T1.CNTR_NO
-			  	   AND T2.DTL_CNTR_SN = T1.CNTR_SN
-			     INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T3
-			  	    ON T3.SVPD_PD_CD = T1.PART_PD_CD
-			 	 WHERE TO_CHAR(TO_DATE(T1.VST_DUEDT, 'YYYYMMDD'), 'YYYYMM') > TO_CHAR(SYSDATE, 'YYYYMM')
-			   	   AND T1.WK_DT IS NULL
-			   	   AND T1.MTR_CAN_DT IS NULL
-			   	   AND T1.CNTR_NO = #{cntrNo}           -- [조회 조건]
-			   	   AND T1.CNTR_SN = #{cntrSn}			-- [조회 조건]
-			   	 ORDER BY T1.VST_DUEDT
-			  ) T10
-		WHERE ROWNUM = 1
+        SELECT T10.*
+        FROM (
+                 SELECT T1.CNTR_NO
+                      , T1.CNTR_SN
+                      , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR										-- 계약번호
+                      , T2.RCGVP_KNM																	-- 성명
+                      , T1.VST_DUEDT																	-- 변경방문 예정일자
+                      , TO_CHAR(TO_DATE(T1.VST_DUEDT, 'YYYYMMDD') - 30, 'YYYYMMDD') AS ALT_DEADLINE	-- 변경마감일자
+                      , '생활 맞춤형 필터 변경' AS WORK_NM												-- 작업구분
+                      , T1.PART_PD_CD																-- 현재필터
+                      , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PART_PD_CD) AS SVPD_NM_KOR
+                 FROM TB_SVPD_CST_SV_RGBSPR_IZ T1
+                          INNER JOIN (
+                     SELECT T2.RCGVP_KNM
+                          , T1.DTL_CNTR_NO
+                          , T1.DTL_CNTR_SN
+                     FROM TB_SSCT_CNTR_ADR_REL T1
+                              INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2
+                                         ON T2.DTA_DL_YN = 'N'
+                                             AND T2.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID
+                     WHERE T1.ADRPC_TP_CD IN ('2','3')
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                       AND T1.DTA_DL_YN = 'N'
+                 ) T2
+                                     ON T2.DTL_CNTR_NO = T1.CNTR_NO
+                                         AND T2.DTL_CNTR_SN = T1.CNTR_SN
+                 WHERE 1 = 1
+                   AND T1.WK_DT IS NULL
+                   AND T1.MTR_CAN_DT IS NULL
+                   AND T1.VST_DUEDT = (SELECT MIN(V1.VST_DUEDT)
+                                       FROM TB_SVPD_CST_SV_RGBSPR_IZ V1
+                                       WHERE V1.CNTR_NO = T1.CNTR_NO
+                                         AND V1.CNTR_SN = T1.CNTR_SN
+                                         AND TO_CHAR(TO_DATE(V1.VST_DUEDT, 'YYYYMMDD'), 'YYYYMM') > TO_CHAR(SYSDATE, 'YYYYMM')
+                                         AND V1.WK_DT IS NULL
+                 )
+                   AND T1.CNTR_NO = #{cntrNo}           -- [조회 조건]
+                   AND T1.CNTR_SN = #{cntrSn}			-- [조회 조건]
+                   AND T1.FILT_CHNG_LV_CD = '01'
+                 ORDER BY T1.VST_DUEDT
+             ) T10
     </select>
 
     <select id="selectFilterItems" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbFitForLifeFilterDto$SearchFiltersRes">
-		SELECT DISTINCT
-			   T1.CNTR_NO
-			 , T1.CNTR_SN
-			 , T1.PDCT_PD_CD 	            -- 제품상품코드
-			 , T1.SV_PD_CD 		            -- 서비스상품코드
-			 , T3.FILT_CMU_CDV 				-- 필터공용코드값
-			 , T3.FILT_CMU_NM				-- 필터공용명
-			 , T3.FILT_CMU_EPL 				-- 필터공용설명
-			 , T3.CH_PDCT_PD_CD 			-- 변경제품상품코드(selectPartMaster: SVPD_NM_KOR)
-		     , T4.SVPD_NM_KOR
-          FROM TB_SVPD_CST_SV_EXCN_IZ T1
-         INNER JOIN (
-                 SELECT T01.CNTR_NO
-                      , T01.CNTR_SN
-                      , T01.VST_DUEDT
-                      , MAX(T01.VST_DV_CD) AS VST_DV_CD
+        SELECT DISTINCT
+               T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.PDCT_PD_CD 	            -- 제품상품코드
+             , T1.SV_PD_CD 		            -- 서비스상품코드
+             , T3.FILT_CMU_CDV 				-- 필터공용코드값
+             , T3.FILT_CMU_NM				-- 필터공용명
+             , T3.FILT_CMU_EPL 				-- 필터공용설명
+             , T3.CH_PDCT_PD_CD 			-- 변경제품상품코드(selectPartMaster: SVPD_NM_KOR)
+             , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T3.CH_PDCT_PD_CD) AS SVPD_NM_KOR
+        FROM TB_SVPD_CST_SV_EXCN_IZ T1
+            INNER JOIN (
+            SELECT T01.CNTR_NO
+                 , T01.CNTR_SN
+                 , T01.VST_DUEDT
+                 , T01.PART_PD_CD
+                 , MAX(T01.VST_DV_CD) AS VST_DV_CD
 --                       , MAX(T01.VST_NMN_N) AS VST_NMN_N
-                  FROM TB_SVPD_CST_SV_RGBSPR_IZ T01
-                 WHERE T01.VST_DUEDT = #{vstDuedt}              -- [조회 조건]
-                   AND T01.CNTR_NO = #{cntrNo}				    -- [조회 조건]
-                   AND T01.CNTR_SN = #{cntrSn}					-- [조회 조건]
-                 GROUP BY T01.CNTR_NO, T01.CNTR_SN, T01.VST_DUEDT
-                ) T2
-            ON T2.CNTR_NO = T1.CNTR_NO
-           AND T2.CNTR_SN = T1.CNTR_SN
-         INNER JOIN TB_PDBS_LVLH_CSTMW_FILT_BAS T3
-            ON T3.PDCT_PD_CD = T1.PDCT_PD_CD
-           AND T3.SV_PD_CD = T1.SV_PD_CD
-           AND T3.VST_DV_CD = T2.VST_DV_CD
+              FROM TB_SVPD_CST_SV_RGBSPR_IZ T01
+             WHERE T01.VST_DUEDT = #{vstDuedt}              -- [조회 조건]
+               AND T01.CNTR_NO = #{cntrNo}				    -- [조회 조건]
+               AND T01.CNTR_SN = #{cntrSn}					-- [조회 조건]
+               AND T01.FILT_CHNG_LV_CD = '01'
+             GROUP BY T01.CNTR_NO, T01.CNTR_SN, T01.VST_DUEDT, T01.PART_PD_CD
+           ) T2
+           ON T2.CNTR_NO = T1.CNTR_NO
+          AND T2.CNTR_SN = T1.CNTR_SN
+          INNER JOIN TB_PDBS_LVLH_CSTMW_FILT_BAS T3
+          ON T3.PDCT_PD_CD = T1.PDCT_PD_CD
+          AND T3.SV_PD_CD = T1.SV_PD_CD
+          AND T3.PART_PD_CD = T2.PART_PD_CD
+          AND T3.VST_DV_CD = T2.VST_DV_CD
 --            AND TO_NUMBER(T3.PRD_MM_VAL) = T2.VST_NMN_N
-         INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T4
-            ON T4.SVPD_PD_CD = T3.CH_PDCT_PD_CD
-		 WHERE T1.CNTR_NO = #{cntrNo}					-- [조회 조건]
-		   AND T1.CNTR_SN = #{cntrSn}					-- [조회 조건]
+        WHERE T1.CNTR_NO = #{cntrNo}					-- [조회 조건]
+          AND T1.CNTR_SN = #{cntrSn}					-- [조회 조건]
     </select>
 
     <select id="selectFilterHistories" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbFitForLifeFilterDto$SearchHistoriesRes">

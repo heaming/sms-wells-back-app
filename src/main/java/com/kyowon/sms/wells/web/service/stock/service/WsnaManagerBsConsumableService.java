@@ -119,6 +119,9 @@ public class WsnaManagerBsConsumableService {
             aftBldInfo.setReqYn(
                 ObjectUtils.isEmpty(rgstItemInfos) ? unrgItemInfos.get(0).getReqYn() : rgstItemInfos.get(0).getReqYn()
             );
+            aftBldInfo.setBfsvcCsmbDdlvStatCd(
+                ObjectUtils.isEmpty(rgstItemInfos) ? "" : rgstItemInfos.get(0).getBfsvcCsmbDdlvStatCd()
+            );
             aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
             aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
             bldAndItemsInfos.add(aftBldInfo);

@@ -2,33 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesPerformanceDetailMapper">
     <select id="selectMembershipSalesDetail" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto$SearchMembershipRes">
-        WITH W1 AS (
-                SELECT
-                  A.CNTR_NO
-                , A.CNTR_SN
-                , A.BASE_PD_CD
-                , A.OJ_PD_CD
-                , A.PD_REL_TP_CD
-                , B.SV_PD_TP_CD
-                , B.PD_NM
-                FROM TB_SSCT_CNTR_PD_REL A -- 계약상품관계
-                INNER JOIN TB_PDBS_PD_BAS B -- 상품기본
-                   ON B.PD_CD = A.OJ_PD_CD -- 상품코드 = 대상상품코드
-                  AND B.DTA_DL_YN = 'N' -- 데이터삭제여부
-                WHERE TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN A.VL_STRT_DTM AND A.VL_END_DTM
-                  AND A.CNTR_NO = #{cntrNo}
-                  AND A.CNTR_SN = #{cntrSn}
-            ), W2 AS (
-                SELECT *
-                FROM TB_CBCL_BZNS_ATAM_BAS -- 영업선수금
-                WHERE CNTR_NO = #{cntrNo}
-                  AND CNTR_SN = #{cntrSn}
-                  <if test='@MybatisUtils@isNotEmpty(slClYm)'>
-                  AND SUBSTR(DP_CL_DT, 1, 6) = #{slClYm}
-                  </if>
-                  AND RVE_DV_CD = '09'
-                  AND DTA_DL_YN = 'N'
-            )
             SELECT
             *
             FROM
@@ -65,7 +38,7 @@
                 , T1.PRM_MCN AS PRM_MCN -- 선납개월(LCPMON)
                 , TO_CHAR(TO_DATE(T1.PRM_STRT_YM, 'YYYYMM'), 'YYYY-MM') AS PRM_STRT_YM -- 선납시작년월(LCPSYY)
 			          , TO_CHAR(TO_DATE(T1.PRM_END_YM, 'YYYYMM'), 'YYYY-MM') AS PRM_END_YM-- 선납종료년월(LCPEYY)
-                1.PRM_DSCR AS PRM_DSCR -- 할인율(LCPRAT)
+                , T1.PRM_DSCR AS PRM_DSCR -- 할인율(LCPRAT)
                 , T1.PRM_DSC_AMT AS PRM_DSC_AMT -- 할인금액(LCHAMT)
                 , T1.PRM_DP_AMT1 AS PRM_AMT1 -- 선납금액1(LCPAM1)
                 , T1.PRM_PTRM_MCN1 AS PRM_MCN1 --선납기간1(LCPMO1)
@@ -117,7 +90,7 @@
                 , T1.EOT_ATAM AS EOT_ATAM --선수총액(LCAM36)
                 , T1.SL_BND_ALRPY_AMT AS SL_BND_ALRPY_AMT --매출입금액(LCAM38)
                 , T1.SL_DP_AGG_AMT AS SL_DP_AGG_AMT --입금누계금액(LCAM39)
-                , T1.EOT_UC_AMT AS EOT_UC_AMT --미수총액(LCMAMT)
+                , NVL(T1.EOT_UC_AMT, 0) + NVL(T6.EOT_DLQ_ADD_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_UC_AMT --미수총액(LCMAMT)
                 --------------------------------------------------------------
                 -- 위약사항
                 --------------------------------------------------------------
@@ -147,7 +120,12 @@
                 , T6.DLQ_ACU_MCN AS DLQ_ACU_MCN -- 연체누계
                 , NVL(T6.EOT_DLQ_AMT, 0) + NVL(T6.BTD_DLQ_ADD_AMT, 0) - NVL(T6.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T6.THM_CTR_DLQ_ADD_AMT, 0) + NVL(T6.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT -- 연체금액(C50.LCDAMT)
                 , NVL((SELECT SUM(NVL(DFA_AMT, 0)) FROM TB_CBBO_DFA_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND DTA_DL_YN = 'N'), 0) AS DFA_AMT -- 대손금액
-                , NVL((SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT, 0) ELSE NVL(RVE_AMT*-1, 0) END) FROM W2 WHERE RVE_DV_CD = '09'), 0) AS DFA_DP_AMT -- 대손입금액
+                , NVL((SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT, 0) ELSE NVL(RVE_AMT*-1, 0) END)
+                         FROM TB_CBCL_BZNS_ATAM_BAS
+                        WHERE CNTR_NO = T1.CNTR_NO
+                          AND CNTR_SN = T1.CNTR_SN
+                          AND PERF_DT = TO_CHAR(TO_DATE(T1.SL_CL_YM, 'YYYYMM'), 'YYYYMM')
+                          AND RVE_DV_CD = '09'), 0) AS DFA_DP_AMT -- 대손입금액
                 , TO_CHAR(TO_DATE(T9.BND_ASN_DT), 'YYYY-MM-DD') AS ACTCS_DT -- 수임일자
                 , T31.CLCTAM_CSLR_WRKP_CD AS RCP_AOFFCE_CD -- 접수사무소코드
                	, (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'CLCTAM_CSLR_WRKP_CD' AND CD_VLD_VAL = T31.CLCTAM_CSLR_WRKP_CD) AS RCP_AOFFCE_CD_NM -- 접수사무소명
@@ -242,28 +220,6 @@
     </select>
 
     <select id="selectRentalSalesDetail" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesPerformanceDetailDto$SearchRentalRes">
-        WITH W1 AS (SELECT A.CNTR_NO
-                         , A.CNTR_SN
-                           , A.BASE_PD_CD
-                           , A.OJ_PD_CD
-                           , A.PD_REL_TP_CD
-                           , B.SV_PD_TP_CD
-                           , B.PD_NM
-                      FROM TB_SSCT_CNTR_PD_REL A -- 계약상품관계
-                     INNER JOIN TB_PDBS_PD_BAS B -- 상품기본
-                        ON B.PD_CD = A.OJ_PD_CD -- 상품코드 = 대상상품코드
-                       AND B.DTA_DL_YN = 'N' -- 데이터삭제여부
-                     WHERE TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN A.VL_STRT_DTM AND A.VL_END_DTM
-                       AND A.CNTR_NO = #{cntrNo}
-                       AND A.CNTR_SN = #{cntrSn})
-           , W2 AS (SELECT *
-                      FROM TB_CBCL_BZNS_ATAM_BAS -- 영업선수
-                     WHERE CNTR_NO = #{cntrNo}
-                       AND CNTR_SN = #{cntrSn}
-                       <if test='@MybatisUtils@isNotEmpty(slClYm)'>
-                       AND SUBSTR(DP_CL_DT, 1, 6) = #{slClYm}
-                       </if>
-                       AND DTA_DL_YN = 'N')
             SELECT *
               FROM (SELECT
                             ----------------------------------------------------------------
@@ -335,7 +291,7 @@
                             , T1.RENTAL_DC AS RENTAL_DC -- 렌탈일수(LC50.LCRDAY)
                             , T1.SL_DC AS SL_DC -- 매출일수(LC50.LCSDAY)
                             , (SELECT PD_USE_DC FROM TB_SSCT_CNTR_RSG_PROCS_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN) AS USE_DC -- 사용일수 LC50.LCCDAY
-                            , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CAN_DT -- 취소일자(LC50.LCCANY)
+                            , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CNTR_CAN_DT -- 취소일자(LC50.LCCANY)
                             , T1.NOM_SL_AMT AS NOM_SL_AMT -- 정상매출금액(LC50.LCAM11)
                             , T1.PVDA_AMT AS PVDA_AMT -- 이자매출(LC50.LCCM11)
                             , T1.NOM_DSC_AMT AS NOM_DSC_AMT -- 정상할인금액(LC50.LCAM13)
@@ -350,31 +306,35 @@
                             , T1.SL_AGG_AMT AS SL_AGG_AMT -- 매출누계금액(LC50.LCAM17)
                             , T1.PVDA_AGG_AMT AS INT_AGG_AMT -- 이자누계액(LC50.LCCM17)
                             , T1.SL_AGG_AMT + T1.PVDA_AGG_AMT AS SUM_SL_AGG_AMT -- 매출누계
-                          , T1.DSC_AGG_AMT AS SUM_DSC_AGG_AMT -- 할인누계액 (ASIS 리스는 원금할인누계금액 + 이자할인누계금액 + 이자추가누계금액(LCAM18 + LCCM18 + LCCM20)) @TODO 매핑정의 수정 * LCCM20은 ASIS데이터 없음
-                          , NVL((SELECT SUM(NVL(A.SL_CTR_AMT, 0))
-                                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
-                                  WHERE A.CNTR_NO = T1.CNTR_NO
-                                    AND A.CNTR_SN = T1.CNTR_SN
-                                    AND A.SL_CL_YM <![CDATA[<=]]> A.SL_CL_YM), 0) AS SUM_CTR_AGG_AMT -- 조정누계액
-                            , T1.CNTR_TAM - T1.SL_AGG_AMT AS SL_BLAM-- 매출잔액(LC50.LCMJAN)
+                            , T1.DSC_AGG_AMT AS DSC_AGG_AMT -- 할인누계액 (ASIS 리스는 원금할인누계금액 + 이자할인누계금액 + 이자추가누계금액(LCAM18 + LCCM18 + LCCM20)) @TODO 매핑정의 수정 * LCCM20은 ASIS데이터 없음
+                            , NVL((SELECT SUM(NVL(A.SL_CTR_AMT, 0))
+                                     FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+                                    WHERE A.CNTR_NO = T1.CNTR_NO
+                                      AND A.CNTR_SN = T1.CNTR_SN
+                                      AND A.SL_CL_YM <![CDATA[<=]]> A.SL_CL_YM), 0) AS CTR_AGG_AMT -- 조정누계액
+                            , (CASE WHEN T1.SELL_TP_DTL_CD IN ('21', '23') THEN T1.CNTR_TAM - T1.SL_AGG_AMT
+                                   ELSE T1.CNTR_TAM - T1.SL_AGG_AMT - T1.PVDA_AGG_AMT
+                               END) AS SL_BLAM-- 매출잔액(LC50.LCMJAN)
                             ----------------------------------------------------------------
                             -- 선납선수
                             ----------------------------------------------------------------
                             , CASE WHEN T1.SELL_TP_DTL_CD NOT IN ('21', '23') THEN 0 + T1.BTD_ATAM + T1.MLG_BTD_PRPD_AMT -- 리스면 : 0 +  LC50.LCAM31(기초선수금) + LC50.LCAM71(마일리지기초선수금액)
                                    ELSE T1.PRM_BLAM_BTD_AMT + T1.BTD_ATAM + T1.MLG_BTD_PRPD_AMT -- 렌탈이면 : LC50.LCAM21(선납잔액기초금액) +  LC50.LCAM31(기초선수금) + LC50.LCAM71(마일리지기초선수금액)
                               END AS BTD_ATAM -- 기초금액
-                          , CASE WHEN T1.SELL_TP_DTL_CD NOT IN ('21', '23') THEN T1.THM_ATAM_DP_AMT + T1.MLG_DP_AMT -- 리스면 : LC50.LCAM32(당월선수금입금금액) + LC50.LCAM72(마일리지입금금액)
+                            , CASE WHEN T1.SELL_TP_DTL_CD NOT IN ('21', '23') THEN T1.THM_ATAM_DP_AMT + T1.MLG_DP_AMT -- 리스면 : LC50.LCAM32(당월선수금입금금액) + LC50.LCAM72(마일리지입금금액)
                                    ELSE T1.THM_ATAM_DP_AMT -- 렌탈이면 : LC50.LCAM32(당월선수금입금금액)
                               END AS ATAM_DP_AMT --선수입금액
-                          , CASE WHEN T1.SELL_TP_DTL_CD NOT IN ('21', '23') THEN T1.THM_ATAM_RFND_AMT + T1.MLG_RFND_AMT -- 리스면 : LC50.LCAM33(당월선수금환불금액) + LC50.LCAM73(마일리지환불금액)
-                                     ELSE T1.THM_ATAM_RFND_AMT -- 렌탈이면 : LC50.LCAM33(당월선수금환불금액)
+                            , CASE WHEN T1.SELL_TP_DTL_CD NOT IN ('21', '23') THEN T1.THM_ATAM_RFND_AMT + T1.MLG_RFND_AMT -- 리스면 : LC50.LCAM33(당월선수금환불금액) + LC50.LCAM73(마일리지환불금액)
+                                   ELSE T1.THM_ATAM_RFND_AMT -- 렌탈이면 : LC50.LCAM33(당월선수금환불금액)
                               END AS ATAM_RFND_AMT --선수환불금액
                             , CASE WHEN T1.SELL_TP_DTL_CD NOT IN ('21', '23') THEN T1.PRPD_SL_AMT + T1.MLG_SL_AMT -- LC50.LCAM35(선수매출금액) + LC50.LCCM35(선수이자매출) + LC50.LCAM74(마일리지매출금액)
                                  ELSE T1.PRM_SL_AMT + T1.PRPD_SL_AMT + T1.MLG_SL_AMT -- LC50.LCAM25(선납매출금액) + LC50.LCAM35(선수매출금액) + LC50.LCAM74(마일리지매출금액)
                               END AS PRPD_SL_AMT -- 매출대체금액
                             , T1.SL_BND_ALRPY_AMT AS SL_BND_ALRPY_AMT -- 매출입금액(LC50.LCAM38)
-                            , T1.SL_DP_AGG_AMT AS SUM_SL_DP_AGG_AMT -- 매출입금누계(LC50.LCAM39)
-                            , T1.EOT_UC_AMT AS EOT_UC_AMT -- 미수금액(LC50.LCMAMT)
+                            , T1.SL_DP_AGG_AMT AS SL_DP_AGG_AMT -- 매출입금누계(LC50.LCAM39)
+                            , CASE WHEN T1.SELL_TP_DTL_CD IN ('21', '23')
+                                        THEN NVL(T1.EOT_UC_AMT, 0) + NVL(T6.EOT_DLQ_ADD_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0)
+                                   ELSE NVL(T1.EOT_BIL_UC_AMT, 0) END AS EOT_UC_AMT -- 미수금액(LC50.LCMAMT) ※렌탈은 매출미수, 리스는 청구미수
                             , T1.ATAM_RPLC_PROCS_AMT AS ATAM_RPLC_PROCS_AMT -- 선수대체금액(LC50.LCAM34)
                             , T1.EOT_ATAM + T1.MLG_EOT_PRPD_AMT AS ATAM_TOT_AMT -- 선수총액 (LCAM36 선수기말 + LCAM75 포인트기말)
                             , T1.PRM_BLAM_EOT_AMT AS PRM_BLAM_EOT_AMT -- 선납잔액(LC50.LCAM26)
@@ -417,7 +377,12 @@
                             , T6.DLQ_ACU_MCN AS DLQ_ACU_MCN -- 연체누적개월수
                             , NVL(T6.EOT_DLQ_AMT, 0) + NVL(T6.BTD_DLQ_ADD_AMT, 0) - NVL(T6.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T6.THM_CTR_DLQ_ADD_AMT, 0) + NVL(T6.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT -- 연체금액(C50.LCDAMT)
                             , (SELECT NVL(SUM(NVL(DFA_AMT, 0)), 0) FROM TB_CBBO_DFA_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND DTA_DL_YN = 'N') AS DFA_AMT -- 대손금액
-                            , NVL((SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT, 0) ELSE NVL(RVE_AMT*-1, 0) END) FROM W2 WHERE RVE_DV_CD = '09'), 0) AS DFA_DP_AMT -- 대손입금액(CW5400P.CWAMT1)
+                            , NVL((SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT, 0) ELSE NVL(RVE_AMT*-1, 0) END)
+                                     FROM TB_CBCL_BZNS_ATAM_BAS
+                                    WHERE CNTR_NO = T1.CNTR_NO
+                                      AND CNTR_SN = T1.CNTR_SN
+                                      AND PERF_DT = TO_CHAR(TO_DATE(T1.SL_CL_YM, 'YYYYMM'), 'YYYYMM')
+                                      AND RVE_DV_CD = '09'), 0) AS DFA_DP_AMT -- 대손입금액
                             , T1.SL_STP_YN AS SL_STP_YN -- 매출중지여부
                             , TRUNC(T1.SL_STP_AMT * 0.3,-1) AS SL_STP_AMT -- 매출중지금액(LC50.LCAM96)
                             , TO_CHAR(TO_DATE(T9.BND_ASN_DT), 'YYYY-MM-DD') AS ACTCS_DT -- 수임일자
@@ -568,7 +533,7 @@
                 , T1.SELL_AMT AS SELL_AMT --판매금액(LCTAMT)
                 , T1.RENTAL_AMT AS RENTAL_AMT --추가금액(LCAMT1)
                 , T1.DSC_AMT AS DSC_AMT --할인금액(LCRAMT)
-                , (CASE WHEN T3.STLM_TP_CD IN ('20', '40') -- 할부, 월납
+                , (CASE WHEN T3.STLM_TP_CD IN ('20', '30', '40') -- 할부, 월납
                             THEN (NVL(T1.SELL_AMT, 0) + NVL(T1.RENTAL_AMT, 0) - NVL(T1.DSC_AMT, 0)) / T3.SV_PRD
                         ELSE 0 END) AS MM_ISTM_AMT --월청구금액
                 , TO_CHAR(TO_DATE(T1.CNTR_DT), 'YYYY-MM-DD') AS CNTR_DT -- 접수일자
@@ -577,7 +542,7 @@
                 --------------------------------------------------------------
                 -- 매출사항
                 --------------------------------------------------------------
-                , (CASE WHEN T1.NOM_SL_AMT > 0 THEN 'Y' ELSE '' END) AS SL_OCC_YM --매출발생월(LD50.LCDFLG)
+                , (CASE WHEN T1.NOM_SL_AMT > 0 THEN 'Y' ELSE '' END) AS SL_OCC_YN --매출발생월(LD50.LCDFLG)
                 , (CASE WHEN T1.NOM_SL_AMT > 0 THEN	(SELECT CASE WHEN COUNT(*) = 0 THEN '' ELSE 'Y' END
                                                        FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
                                                       WHERE CNTR_NO = T1.CNTR_NO
@@ -588,10 +553,10 @@
                 , T1.RENTAL_TN AS RENTAL_TN --진행차월(LCRCNT)
                 , T1.SPP_TN AS SPP_TN -- 배송차월(LCDCNT)
                 , T1.RENTAL_DC AS RENTAL_DC --사용일수(LCCDAY)
-                , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CAN_DT -- 취소일자
+                , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CNTR_CAN_DT -- 취소일자
                 , T1.NOM_SL_AMT AS NOM_SL_AMT --정상매출금액(LCAM11)
                 , T1.NOM_DSC_AMT AS NOM_DSC_AMT--정상할인금액(LCAM13)
-                , TO_CHAR(TO_DATE(T1.FULPY_DT), 'YYYY-MM-DD') AS FULPY_DT -- 완료일자
+                , TO_CHAR(TO_DATE(T1.FULPY_DT), 'YYYY-MM-DD') AS FSH_DT -- 완료일자
                 , T1.SPMT_SL_AMT AS SPMT_SL_AMT --추가매출금액(LCAM12)
                 , T1.SPMT_DSC_AMT AS SPMT_DSC_AMT--추가할인금액(LCAM14)
                 , T1.SL_CTR_AMT AS SL_CTR_AMT --매출조정금액(LCAM15)
@@ -616,7 +581,7 @@
                 , T1.SL_DP_AGG_AMT AS SL_DP_AGG_AMT --입금누계금액(LCAM39)
                 , T1.ATAM_RPLC_PROCS_AMT AS ATAM_RPLC_PROCS_AMT --선수대체금액(LCAM34)
                 , T1.EOT_ATAM AS EOT_ATAM --선수잔액(LCAM36)
-                , T1.EOT_UC_AMT AS EOT_UC_AMT --미수총액(LCMAMT)
+                , NVL(T1.EOT_UC_AMT, 0) + NVL(T5.EOT_DLQ_ADD_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_UC_AMT --미수총액(LCMAMT)
                 , NVL(T5.EOT_DLQ_AMT, 0) + NVL(T5.BTD_DLQ_ADD_AMT, 0) - NVL(T5.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T5.THM_CTR_DLQ_ADD_AMT, 0) + NVL(T5.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT -- 연체금액(C50.LCDAMT)
                 --------------------------------------------------------------
                 -- 청구미수
@@ -787,18 +752,18 @@
                   AND T30.CNTR_SN = T1.CNTR_SN
                  LEFT OUTER JOIN LATERAL (SELECT CLCTAM_CSLR_WRKP_CD
                     		      							FROM TB_CBBO_CLCTAM_PRTNR_DTL -- 집금파트너상세
-                    		      						 WHERE PRTNR_NO = T9.CLCTAM_PRTNR_NO
+                    		      						 WHERE PRTNR_NO = T8.CLCTAM_PRTNR_NO
                     		      						   AND OG_TP_CD = NVL((SELECT OG_TP_CD
                     								                               FROM TB_OGBS_MM_PRTNR_IZ -- 월파트너
                     												                      WHERE BASE_YM = T1.SL_CL_YM
-                    												                        AND PRTNR_NO = T9.CLCTAM_PRTNR_NO), 'HR1')
+                    												                        AND PRTNR_NO = T8.CLCTAM_PRTNR_NO), 'HR1')
                     									   ) T31
                    ON 1=1
                 WHERE T1.CNTR_NO = #{cntrNo}
                   AND T1.CNTR_SN = #{cntrSn}
+                  AND T1.SELL_TP_CD = '6'
                   <if test="@MybatisUtils@isNotEmpty(slClYm)">
                   AND T1.SL_CL_YM = #{slClYm}
-                  AND T1.SELL_TP_CD = '6'
                   </if>
                 ORDER BY T1.SL_CL_YM DESC
             )

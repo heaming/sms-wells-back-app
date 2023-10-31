@@ -61,6 +61,21 @@ public class WdccSalesPerformController {
         return service.getSalesPerformancePresentStateForExcelDownload(req);
     }
 
+    @ApiOperation(value = "매출실적현황 계약상세", notes = "매출실적현황 계약상세")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
+        @ApiImplicitParam(name = "fromSlClYy", value = "검색시작일", paramType = "query"),
+        @ApiImplicitParam(name = "toSlClYy", value = "검색종료일", paramType = "query"),
+    })
+    @GetMapping("/contract")
+    public SearchContractReq getContract(
+        @Valid
+        SearchReq req
+    ) {
+        return service.getContract(req);
+    }
+
     @ApiOperation(value = "매출 실적 현황 - 일시불(기본정보)", notes = "조회조건에 따른 매출 실적 현황 - 일시불을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),

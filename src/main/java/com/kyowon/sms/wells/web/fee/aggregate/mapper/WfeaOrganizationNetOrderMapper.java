@@ -26,16 +26,20 @@ public interface WfeaOrganizationNetOrderMapper {
         SearchHmstReq dto
     );
 
-    List<SearchMngerRes> selectManagers(
-        SearchMngerReq dto
+    List<SearchHmstFeeRes2> selectHomeMasterFees2(
+        SearchHmstReq dto
     );
 
-    List<SearchMngerSellFeeRes> selectManagerFees(
-        SearchMngerReq dto
+    List<SearchMngerDetailRes> selectManagerDetailOrders(
+        SearchMngerDetailReq dto
     );
 
-    List<SearchMngerAgrgRes> selectManagerAggregation(
-        SearchMngerReq dto
+    List<SearchMngerAggregateRes> selectManagerAggregateOrders(
+        SearchMngerAggregateReq dto
+    );
+
+    List<SearchMngerStatusRes> selectManagerStatusOrders(
+        SearchMngerStatusReq dto
     );
 
     List<SearchPlarRes> selectPlanners(

@@ -1,10 +1,8 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaCodeDvo;
-import io.swagger.annotations.ApiModel;
-
 import javax.validation.constraints.NotBlank;
-import java.util.List;
+
+import io.swagger.annotations.ApiModel;
 
 /**
  * <pre>
@@ -48,8 +46,7 @@ public class WsncRpbAreaCodeMgtDto {
         String ogNm, /* 조직명 */
         String ichrPrtnrNo, /* 담당파트너번호 */
         String prtnrKnm, /* 파트너한글명 */
-        String locaraCenStruAdr, /* 지역중심건물주소 */
-        List<WsncRpbAreaCodeDvo> changeCodes /* 책임지역변경코드 list(콤보박스생성용) */
+        String locaraCenStruAdr /* 지역중심건물주소 */
     ) {}
 
     @ApiModel(value = "WsncRpbLocaraCdMngtDto-SaveReq")
@@ -67,5 +64,11 @@ public class WsncRpbAreaCodeMgtDto {
         @NotBlank
         String apyEnddt /* 적용종료일자 */
 
+    ) {}
+
+    @ApiModel(value = "WsncRpbLocaraCdMngtDto-LocaraCd")
+    public record LocaraCd(
+        String ctpvNm, /* 시도명 */
+        String rpbLocaraCd /* 책임지역코드 */
     ) {}
 }

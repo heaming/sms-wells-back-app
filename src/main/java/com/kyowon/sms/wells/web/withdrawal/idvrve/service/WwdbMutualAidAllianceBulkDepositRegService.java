@@ -202,6 +202,10 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             headerTitle.put("lifSpptAggAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AGG"));// 라이프지원누계금액
             headerTitle.put("lifRepAmt", messageResourceService.getMessage("MSG_TXT_REP_AMT")); //라이프환수금액
             headerTitle.put("lifCntrNo", messageResourceService.getMessage("MSG_TXT_MUTU_MB_CD"));// 상조계약번호
+            headerTitle.put("dummy", messageResourceService.getMessage("").toString());// 더미데이터
+            headerTitle.put("dummy", messageResourceService.getMessage("").toString());// 더미데이터
+            headerTitle.put("dummy", messageResourceService.getMessage("").toString());// 더미데이터
+            headerTitle.put("dummy", messageResourceService.getMessage("").toString());// 더미데이터
         } else {
             headerTitle.put("sn", messageResourceService.getMessage("MSG_TXT_SPPT_YM")); /* 순번 */
             headerTitle.put("lifAlncPdNm", messageResourceService.getMessage("MSG_TXT_PRDT_NM")); /*상품명*/
@@ -218,6 +222,10 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
             headerTitle.put("lifSpptAggAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AMT")); /*라이프지원누계금액*/
             headerTitle.put("lifRepAmt", messageResourceService.getMessage("MSG_TXT_SPPT_AMT")); /*라이프환수금액*/
             headerTitle.put("welsCntrNo", messageResourceService.getMessage("MSG_TXT_WELS_MB_CD"));/*웰스회원코드*/
+            headerTitle.put("dummy", messageResourceService.getMessage("").toString());// 더미데이터
+            headerTitle.put("dummy", messageResourceService.getMessage("").toString());// 더미데이터
+            headerTitle.put("dummy", messageResourceService.getMessage("").toString());// 더미데이터
+            headerTitle.put("dummy", messageResourceService.getMessage("").toString());// 더미데이터
         }
 
         return headerTitle;

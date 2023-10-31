@@ -4,7 +4,12 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.*;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindBreachOfPromiseRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindContractRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositDtlRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositInfoRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindSalesRes;
 
 @Mapper
 public interface WbncSameCustomerContractMapper {
@@ -25,7 +30,7 @@ public interface WbncSameCustomerContractMapper {
     );
 
     FindSalesRes selectContractSales(
-        String bndCntrRefId
+        String bndBizDvCd, String cntrNo, int cntrSn
     );
 
     List<FindDepositDtlRes> selectDeposits(

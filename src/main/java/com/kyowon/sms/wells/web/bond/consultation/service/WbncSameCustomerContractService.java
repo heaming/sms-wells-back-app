@@ -4,7 +4,12 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.*;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindBreachOfPromiseRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindContractRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositDtlRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositInfoRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindSalesRes;
 import com.kyowon.sms.wells.web.bond.consultation.mapper.WbncSameCustomerContractMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -59,12 +64,12 @@ public class WbncSameCustomerContractService {
     }
 
     /**
-      * 동일고객 계약 매출정보 조회
-      * @param bndCntrRefId
-      * @return 조회결과
-      */
-    public FindSalesRes getContractSales(String bndCntrRefId) {
-        return mapper.selectContractSales(bndCntrRefId);
+     * 동일고객 계약 매출정보 조회
+     * @param bndBizDvCd, cntrNo, cntrSn
+     * @return 조회결과
+     */
+    public FindSalesRes getContractSales(String bndBizDvCd, String cntrNo, int cntrSn) {
+        return mapper.selectContractSales(bndBizDvCd, cntrNo, cntrSn);
     }
 
     /**

@@ -124,10 +124,9 @@ public class WsnbServiceProcessingDvo {
     String bstrCs; // 수납(출장료)
     String etcCs; // 수납(기타비용)
     String rveCsTot; // 수납(전체)
-    String cashStlm; // 현금
-    String cardStlm; // 카드
-    String elcStlm; // 전자결제
-    String adpBilAmt; // 합산청구금액
+    String adpBilAmt; // 합산청구결제금액
+    String cardStlm; // 카드결제금액
+    String vacStlmAmt; // 가상계좌결제금액
     byte[] cstSignCnByte; // 고객서명(byte)
     String cstSignCn; // 고객서명
     String istEnvrPhoPhDocId; // 설치환경사진 DOC_ID
@@ -138,5 +137,6 @@ public class WsnbServiceProcessingDvo {
     String istCelngPhoPhFileUid; // 설치천장사진 FILE_UID
     String acpnPrtnrKnm; // 동행작업자명
     String acpnPrtnrGdNm; // 동행작업자직급
+    String bfCntrNoSn; // 전상대코드
 
 }

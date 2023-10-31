@@ -30,12 +30,12 @@ public class WsnbServiceCancelPsDvo {
     String arvDtm;                      // 도착시간
     String vstFshDtm;                   // 완료시간
     String wkPrgsStatNm;                // 작업상태
-    String wkCanRsonCd;                 // 취소원인
-    String wkCanRsonNm;                 // 취소사유
+    String wkCanCaus;                 // 취소원인
+    String rcpCanRson;                 // 취소사유
     String wkCanMoCn;                   // 상세내역
     String unuitm;                      // 특이사항
-    String istImpEnvr1stImgFileUid;     // 설치불가환경 이미지 1
-    String istImpEnvr2ndImgFileUid;     // 설치불가환경 이미지 2
-    String istImpEnvr3rdImgFileUid;     // 설치불가환경 이미지 3
+    String istImpPhoApnFileUid1;     // 설치불가환경 이미지 1
+    String istImpPhoApnFileUid2;     // 설치불가환경 이미지 2
+    String istImpPhoApnFileUid3;     // 설치불가환경 이미지 3
     String cstSvAsnNo;                  // 고객서비스배정번호
 }

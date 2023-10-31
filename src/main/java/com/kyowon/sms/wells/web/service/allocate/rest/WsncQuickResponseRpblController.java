@@ -4,15 +4,14 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncQuickResponseRpblDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncQuickResponseRpblService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -36,6 +35,7 @@ public class WsncQuickResponseRpblController {
         @ApiImplicitParam(name = "mngrDvCd", value = "관리구분", paramType = "query", required = false),
         @ApiImplicitParam(name = "pdPrpVal20", value = "상품그룹", paramType = "query", required = false),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false),
+        @ApiImplicitParam(name = "cntrSn", value = "계약순번", paramType = "query", required = false),
         @ApiImplicitParam(name = "prtnrNo", value = "사번", paramType = "query", required = false),
         @ApiImplicitParam(name = "mngtDptmtCd", value = "총괄단", paramType = "query", required = false),
         @ApiImplicitParam(name = "rgnlGrpCd", value = "지역단", paramType = "query", required = false),
@@ -57,5 +57,17 @@ public class WsncQuickResponseRpblController {
         WsncQuickResponseRpblDto.SearchReq dto
     ) {
         return service.getQuickResponseRpblsExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "고정방문 등록 팝업 - 고정방문 등록 및 수정", notes = "고정방문 등록")
+    @PostMapping
+    public SaveResponse saveQuickResponseRpbls(
+        @Valid
+        @RequestBody
+        WsncQuickResponseRpblDto.SearchReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.saveQuickResponseRpbls(dto))
+            .build();
     }
 }

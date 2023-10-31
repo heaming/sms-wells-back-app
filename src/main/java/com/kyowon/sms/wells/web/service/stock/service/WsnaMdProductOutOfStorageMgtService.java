@@ -33,7 +33,7 @@ public class WsnaMdProductOutOfStorageMgtService {
         WsnaMdProdcutOutOfStorageSearchDvo dvo = converter.mapSearchReqToWsnaMdProdcutOutOfStorageSerachDvo(dto);
 
         // 첫배송 여부가 전체 또는 N차인 경우
-        if ("all".equals(dvo.getFirstSppGb()) || "N".equals(dvo.getFirstSppGb())) {
+        if ("ALL".equals(dvo.getFirstSppGb()) || "N".equals(dvo.getFirstSppGb())) {
             // 검색조건 (종료일자) 매월 마지막 영업일이후인경우 해당월 마지막 일자까지 조회
             String lasyDay = mapper.selectBusinessDays(dvo);
             if (lasyDay.compareTo(dvo.getEndDt()) <= 0) {

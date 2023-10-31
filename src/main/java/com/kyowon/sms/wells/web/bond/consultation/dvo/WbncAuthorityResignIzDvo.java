@@ -1,11 +1,10 @@
 package com.kyowon.sms.wells.web.bond.consultation.dvo;
 
-import java.math.BigDecimal;
-
 import com.sds.sflex.system.config.annotation.DBDecField;
 import com.sds.sflex.system.config.annotation.DBEncField;
-
 import lombok.*;
+
+import java.math.BigDecimal;
 
 /**
  * <pre>
@@ -134,7 +133,9 @@ public class WbncAuthorityResignIzDvo {
     private String authRsgCnfmRgstPrtnrNo; /* 직권해지확정등록파트너번호 */
     private String dtaDlYn; /* 데이터삭제여부 */
 
-    /** 직권해지관리 - 렌탈 해지예정 전용 컬럼 */
+    /**
+     * 직권해지관리 - 렌탈 해지예정 전용 컬럼
+     */
     private String cntrNoSn; /* 계약일련상세번호 */
     private String sellTpNm; /* 판매유형명 */
     private String cstKnm; /* 고객명 */
@@ -166,5 +167,7 @@ public class WbncAuthorityResignIzDvo {
     private Long rtrnDbtTotAmt; /* 반환시총체납액 */
     private Long nrtrnDbtTotAmt; /* 미반환시총체납액 */
     private Long rentalAmt; /* 당월렌탈료 */
+    private String sellTpDtlCd; /* 판매유형상세코드 */
+    private String sellTpDtlNm; /* 판매유형상세명 */
 
 }

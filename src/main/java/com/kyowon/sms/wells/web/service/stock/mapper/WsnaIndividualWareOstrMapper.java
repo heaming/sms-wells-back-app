@@ -29,4 +29,6 @@ public interface WsnaIndividualWareOstrMapper {
     int mergeItmOstrAkIz(WsnaIndividualWareOstrDvo dvo);
 
     List<WsnaLogisticsOutStorageAskReqDvo> selectIndividualLogisticsTransfer(WsnaLogisticsDeliveryKssDvo dvo);
+
+    List<WsnaIndividualWareOstrDvo> selectLogisticsTransferDatas(SearchTranferReq dto);
 }

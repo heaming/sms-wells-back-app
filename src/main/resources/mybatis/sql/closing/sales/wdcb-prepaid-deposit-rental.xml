@@ -9,22 +9,22 @@
                AND CNTR_SN = #{cntrSn}
                AND RSTL_STAT_CD = '020' -- 확정
                AND DTA_DL_YN = 'N'
-               AND #{slClYmFrom} BETWEEN SUBSTR(STPL_STRTDT, 1, 6) AND SUBSTR(STPL_ENDDT, 1, 6)
+               AND SUBSTR(STPL_STRTDT, 1, 6) <![CDATA[<=]]> #{slClYmFrom}
         )
         SELECT /* 1.매출실적자료가 생성되지 않은 경우는 1개월 렌탈료 */
                /* 2.첫달이 설치월인 경우는 매출실적의 렌탈료 */
                /* 3.첫달이 설치월이 아닌 경우는 1개월 렌탈료 */
                CASE WHEN B.SL_CL_YM IS NULL THEN D1.AMT1
-                    WHEN TO_CHAR(TO_DATE(A.CNTR_PD_STRTDT), 'YYYYMM') = B.SL_CL_YM AND B.SELL_TP_DTL_CD IN ('21', '23') THEN B.THM_SL_SUM_AMT --LCAM16 당월매출합계금액
-                    WHEN TO_CHAR(TO_DATE(A.CNTR_PD_STRTDT), 'YYYYMM') = B.SL_CL_YM THEN B.THM_SL_SUM_AMT -- @TO-DO 컬럼 추가 후 반영 필요 B.LCMAM2-B.LCMAM4+B.LCMAM5+B.LCCAM2-B.LCCAM4+B.LCCAM5+B.LCSAM2-B.LCSAM4+B.LCSAM5
+                    WHEN TO_CHAR(TO_DATE(A.CNTR_PD_STRTDT), 'YYYYMM') = B.SL_CL_YM AND B.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(B.THM_SL_SUM_AMT, 0) --LCAM16 당월매출합계금액
+                    WHEN TO_CHAR(TO_DATE(A.CNTR_PD_STRTDT), 'YYYYMM') = B.SL_CL_YM THEN NVL(B.THM_BIL_OC_AMT, 0) - NVL(B.THM_BIL_CTR_AMT, 0) + NVL(B.THM_BIL_SPMT_AMT, 0) --  B.LCMAM2-B.LCMAM4+B.LCMAM5+B.LCCAM2-B.LCCAM4+B.LCCAM5+B.LCSAM2-B.LCSAM4+B.LCSAM5
                     ELSE D1.AMT1
                END
                +
                /* 사이의 월은 월단위 렌탈료 계산 */
                CASE WHEN D1.MNTHS <![CDATA[<=]]> 1 THEN 0 ELSE D1.AMT1 * (D1.MNTHS-1) END
-                   +
+               +
                /* 종료월 일할계산된 렌탈료 계산 */
-               CASE WHEN CAST(SUBSTR(#{slClYmTo}, 7, 2) AS INTEGER) = D1.LST_DD OR CAST(SUBSTR(#{slClYmTo}, 7, 2) AS INTEGER) >= 30 THEN D1.AMT1
+               CASE WHEN SUBSTR(#{slClYmTo}, 7, 2) = D1.LST_DD OR CAST(SUBSTR(#{slClYmTo}, 7, 2) AS INTEGER) >= 30 THEN D1.AMT1
                     ELSE TRUNC(D1.AMT1 / 30 * CAST(SUBSTR(#{slClYmTo}, 7, 2) AS INTEGER) , -1)
                END AS PRM_DP_AMT  -- 선입금금액
              , NVL(D2.CURR_MAMT,0) AS PRM_BLAM_EOT_AMT  --미수금액
@@ -40,9 +40,9 @@
              ( /* 날짜 및 기본 렌탈료 조회 */
                SELECT MONTHS_BETWEEN(TO_DATE(SUBSTR(#{slClYmTo}, 1, 6)||'01'), TO_DATE(#{slClYmFrom}||'01')) AS MNTHS -- 시작-종료월 개월수
                     , EXTRACT (DAY FROM LAST_DAY(TO_DATE(SUBSTR(#{slClYmTo}, 1, 6)||'-01'))) AS LST_DD -- 최종일
-                    , CASE WHEN B.RENTAL_TN IS NULL THEN B.RENTAL_AMT - B.RENTAL_DSC_AMT -- LCAMT1-LCRAM1(렌탈료1-렌탈할인1)
-                           WHEN B.RENTAL_TN <![CDATA[<=]]> B.CNTR_PTRM THEN B.RENTAL_AMT - B.RENTAL_DSC_AMT - (SELECT NVL(STPL_DSC_AMT, 0) FROM W1)-- A.LCAMT1-A.LCRAM1-B.LCRAM3 (렌탈료1-렌탈할인1-재약정할인)
-                           ELSE B.RENTAL_AMT2 - B.RENTAL_DSC_AMT2 - (SELECT NVL(STPL_DSC_AMT, 0) FROM W1) -- A.LCAMT2-A.LCRAM2-B.LCRAM3 (렌탈료2-렌탈할인2-재약정할인)
+                    , CASE WHEN B.RENTAL_TN IS NULL THEN NVL(B.RENTAL_AMT, 0) - NVL(B.RENTAL_DSC_AMT, 0) -- LCAMT1-LCRAM1(렌탈료1-렌탈할인1)
+                           WHEN B.RENTAL_TN <![CDATA[<=]]> B.CNTR_PTRM THEN NVL(B.RENTAL_AMT, 0) - NVL(B.RENTAL_DSC_AMT, 0) - (SELECT NVL(STPL_DSC_AMT, 0) FROM W1)-- A.LCAMT1-A.LCRAM1-B.LCRAM3 (렌탈료1-렌탈할인1-재약정할인)
+                           ELSE NVL(B.RENTAL_AMT2, 0) - NVL(B.RENTAL_DSC_AMT2, 0) - (SELECT NVL(STPL_DSC_AMT, 0) FROM W1) -- A.LCAMT2-A.LCRAM2-B.LCRAM3 (렌탈료2-렌탈할인2-재약정할인)
                       END AMT1 /* 재약정 및 변동구간 반영된 월렌탈료 */
                  FROM DUAL
              ) D1 ON 1=1
@@ -50,23 +50,29 @@
              ( /* 당월 미수/선수금액 조회 */
                SELECT *
                  FROM (
-                       SELECT /* 월마감 자료 생성전에는 전월실적자료 조회 */
-                               CASE WHEN A.SL_CL_YM = TO_CHAR(SYSDATE, 'YYYYMM') THEN NVL(B.EOT_DLQ_AMT, 0) -- 연체금액 LCDAMT
-                                    ELSE A.EOT_UC_AMT -- 미수금액 LCMAMT
-                               END CURR_MAMT
-                            , A.EOT_ATAM AS CURR_AM36 -- 선수기말 LCAM36
-                         FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
-                         LEFT OUTER JOIN TB_CBCL_DLQ_BAS B
-                           ON B.CNTR_NO = A.CNTR_NO
-                          AND B.CNTR_SN = A.CNTR_SN
-                          AND B.PERF_YM = A.SL_CL_YM
-                        WHERE A.CNTR_NO = #{cntrNo}
-                          AND A.CNTR_SN = #{cntrSn}
-                     ORDER BY A.SL_CL_YM DESC
+            		       SELECT /* 월마감 자료 생성전에는 전월실적자료 조회 */
+            		              CASE WHEN A.SL_CL_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+            		                        THEN NVL(B.EOT_DLQ_AMT, 0) + NVL(B.BTD_DLQ_ADD_AMT, 0) - NVL(B.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(B.THM_CTR_DLQ_ADD_AMT, 0) + NVL(B.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(C.EOT_BOR_AMT, 0) -- 연체금액 LCDAMT
+            		                   ELSE NVL(A.EOT_UC_AMT, 0) + NVL(B.BTD_DLQ_ADD_AMT, 0) + NVL(C.EOT_BOR_AMT, 0) -- 미수금액 LCMAMT (TOBE는 연체가산, 위약금 미포함)
+            		              END CURR_MAMT
+            		            , A.EOT_ATAM AS CURR_AM36 -- 선수기말 LCAM36
+            		         FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
+            		         LEFT OUTER JOIN TB_CBCL_DLQ_BAS B
+            		           ON B.CNTR_NO = A.CNTR_NO
+            		          AND B.CNTR_SN = A.CNTR_SN
+            		          AND B.PERF_YM = A.SL_CL_YM
+            		         LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS C -- WELLS위약금액기본
+                               ON C.PERF_YM = A.SL_CL_YM
+                              AND C.CNTR_NO = A.CNTR_NO
+                              AND C.CNTR_SN = A.CNTR_SN
+                              AND C.DTA_DL_YN = 'N'
+            		        WHERE A.CNTR_NO = #{cntrNo}
+            		          AND A.CNTR_SN = #{cntrSn}
+            		     ORDER BY A.SL_CL_YM DESC
                     )
                WHERE ROWNUM = 1
-             ) D2 ON 1=1
-        WHERE A.CNTR_NO = #{cntrNo}
-          AND A.CNTR_SN = #{cntrSn}
+              ) D2 ON 1=1
+         WHERE A.CNTR_NO = #{cntrNo}
+           AND A.CNTR_SN = #{cntrSn}
     </select>
 </mapper>

@@ -82,9 +82,18 @@ public class WdcbSalesConfirmCreateService {
 
         /* 7. SAP사업본부정보코드(SAP_BZ_HDQ_INF_CD) */
         String sapBzHdqInfCd = "0003";
+        /* 8-0 . 추가할인금액 : 매출중지 시 매출의 30프로만 점유비매출로 매출금엑에 떠야하는 상황이라,  추가할인금액에 정상매출의 70프로를 띄워놓음.  */
+        int spmtDscAmt = 0;
+        if (StringUtils.isNotEmpty(dvo.getSlStpYn()) && "Y".equals(dvo.getSlStpYn())) {
+            spmtDscAmt = (int)(dvo.getNomSlAmt() * 0.7) + dvo.getSpmtDscAmt();
+        } else {
+            spmtDscAmt = dvo.getSpmtDscAmt();
+        }
+        log.info("spmtDscAmt:" + spmtDscAmt);
         /* 8. 매출금액 (SL_AMT) */
-        int slAmt = dvo.getNomSlAmt() + dvo.getSpmtSlAmt() - dvo.getNomDscAmt() - dvo.getSpmtDscAmt()
+        int slAmt = dvo.getNomSlAmt() + dvo.getSpmtSlAmt() - dvo.getNomDscAmt() - spmtDscAmt
             - dvo.getSlCtrAmt(); // 정상매출금액 + 추가매출금액- 정상할인금액 - 추가할인금액 - 매출조정금액
+        log.info("slAmt:" + slAmt);
         /* 9. 부가가치세(VAT) */
         int vat = 0;
         String vatTpCd = mapper.selectVatTpCd(dvo.getPdCd());
@@ -264,7 +273,7 @@ public class WdcbSalesConfirmCreateService {
         inputDvo.setNomSlAmt(dvo.getNomSlAmt());
         inputDvo.setSpmtSlAmt(dvo.getSpmtSlAmt());
         inputDvo.setNomDscAmt(dvo.getNomDscAmt());
-        inputDvo.setSpmtDscAmt(dvo.getSpmtDscAmt());
+        inputDvo.setSpmtDscAmt(spmtDscAmt);
         inputDvo.setSlCtrAmt(dvo.getSlCtrAmt());
         inputDvo.setSlCanAmt(dvo.getSlCanAmt());
         inputDvo.setSlStpYn(dvo.getSlStpYn());

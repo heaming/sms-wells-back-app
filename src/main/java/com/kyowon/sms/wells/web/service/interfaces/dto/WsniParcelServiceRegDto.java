@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.interfaces.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -82,46 +84,65 @@ public class WsniParcelServiceRegDto {
 
         String gdsQty, /* P2P코드 */
 
-        String rcptYmd /* 도착지 서브 코드 */
+        String rcptYmd, /* 도착지 서브 코드 */
+
+        String asIstOjNo /* AS 설치대상번호 */
     ) {}
 
     @ApiModel(value = "WsniParcelServiceRegDto-RegistParcelServiceReq")
     @Builder
     public record RegistParcelServiceReq(
+
+        @JsonProperty("REQ_DV_CD")
         String reqdvCd, /* SM분류코드 */
 
+        @JsonProperty("CNTR_NO")
         String custNo, /* 주소 약칭 */
-
+        @JsonProperty("CNTR_SN")
         String cntrSn, /* 주소 약칭 */
-
+        @JsonProperty("SENDR_ADDR")
         String sendrAddr, /* 주소 약칭 */
-
+        @JsonProperty("SENDR_ADDR_DTL")
         String sendrAddrDtl, /* 배송집배점 명 */
-
+        @JsonProperty("SENDR_TEL_NO1")
         String sendrtelNo1, /* SM분류코드 */
-
+        @JsonProperty("SENDR_TEL_NO2")
         String sendrtelNo2, /* 권역 구분 */
-
+        @JsonProperty("SENDR_TEL_NO3")
         String sendrtelNo3, /* P2P코드 */
-
+        @JsonProperty("SENDR_CEL_NO1")
         String sendrcellNo1, /* P2P코드 */
-
+        @JsonProperty("SENDR_CEL_NO2")
         String sendrcellNo2, /* 결과코드 */
-
+        @JsonProperty("SENDR_CEL_NO3")
         String sendrcellNo3, /* 도착지 코드 */
-
+        @JsonProperty("SENDR_ZIP_NO")
         String sendrZipNo, /* 도착지 서브 코드 */
-
+        @JsonProperty("GDS_CD")
         String gdsCd, /* P2P코드 */
-
+        @JsonProperty("GDS_NM")
         String gdsNm, /* P2P코드 */
-
+        @JsonProperty("GDS_QTY")
         String gdsQty, /* P2P코드 */
-
+        @JsonProperty("SENDR_NM")
         String sendrNm, /* P2P코드 */
-
+        @JsonProperty("GDS_AMT")
         String gdsAmt, /* P2P코드 */
-        String asnNo /* P2P코드 */
+        @JsonProperty("RECP_ID")
+        String recpId, /* 접수자 사번 */
+        @JsonProperty("RECP_OG_TP_CD")
+        String recpOgTpCd  /* 접수자 조직유형코드 */
+
     ) {}
+
+
+    @ApiModel(value = "WsniParcelServiceRegDto-RegistParcelResult")
+    @Builder
+    public record RegistParcelResult(
+
+        String resultCd, /* 결과코드 */
+
+        String resultDetail /* 결과메시지 */
+    ){}
 
 }

@@ -115,10 +115,7 @@ public class WbncUnpaidGuideUrgentDto {
     public record CreateObjectReq(
         @NotBlank
         String ucAmtFwTpCd, /* 미수금액발송유형코드 */
-        @NotBlank
         String copnDvCd, /* 법인격구분코드 */
-        @NotBlank
-        String bndBizDvCd, /* 채권업무구분코드 */
         @NotBlank
         String fromDlqMcn, /* 시작연체개월 */
         @NotBlank

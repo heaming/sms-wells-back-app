@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncQuickResponseRpblMapper">
-    <select id="selectQuickResponseRpbl"
-            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncQuickResponseRpblDto$SearchRes">
+    <sql id="sqlQuickResponseRpbl">
         SELECT TB.*
           FROM (
             SELECT TB_2.WK_PSIC_DV_CD AS MNGR_DV_CD        -- 구분
@@ -32,7 +31,7 @@
                          ELSE 'http://qr.kyowonwells.com/qr/qr' || CHR(63) || 'qrnum=' || TB_2.BC_NO
                          END
                    ) AS    QR_CD                -- QR코드
-                 , TB_1.FNL_MDFC_DTM        -- 다운로드일자
+                 , TB_1.DLD_DT        -- 다운로드일자
                  , TB_10.PRTNR_KNM AS DNLD_PRTNR_KNM        -- 다운로드담당자
                  , TB_8.VST_FSH_DT            -- 처리일자
                  , TB_8.VST_FSH_HH            -- 처리시간
@@ -43,29 +42,25 @@
                 -- , (TB_9.CRAL_LOCARA_TNO || '-' || TB_9.MEXNO_ENCR || '-' || TB_9.CRAL_IDV_TNO) AS USE_MPNO            -- 작업파트너 휴대전화번호 (작업번호)
                  , TB_8.CST_SIGN_CN            -- 고객서명
 --                 , RANK() OVER (PARTITION BY TB_8.CNTR_NO, TB_8.CNTR_SN ORDER BY TB_8.CST_SV_ASN_NO DESC) AS RNK
+                 , TB_1.BC_RPBL_ID
               FROM (SELECT z1.CNTR_NO
                          , z1.CNTR_SN
                          , z1.CST_SV_ASN_NO
-                         , z2.MNGR_DV_CD
-                         , z2.BC_NO
-                         , z2.DLD_PRTNR_NO
-                         , z2.DLD_PRTNR_OG_TP_CD
-                         , z2.FNL_MDFC_DTM
+                         , z1.DLD_DT
+                         , z1.DLD_PRTNR_NO
+                         , z1.DLD_PRTNR_OG_TP_CD
+                         , z1.BC_RPBL_ID
                       FROM TB_SVPD_PD_BC_RPBL_APLC_IZ z1
-                         , (SELECT z2.*
-                              FROM TB_SVPD_BC_RPBL_AK_CST_IZ z2
-                             WHERE 1=1
-                               AND z2.AK_SN = (SELECT MAX(AK_SN)
-                                                    FROM TB_SVPD_BC_RPBL_AK_CST_IZ temp
-                                                   WHERE temp.CNTR_NO = z2.CNTR_NO
-                                                     AND temp.CNTR_SN = z2.CNTR_SN
-                                                     AND temp.VST_YM = #{baseYm}
-                                                     )
-                              ) z2
                      WHERE 1=1
-                       AND z1.CNTR_NO = z2.CNTR_NO(+)
-                       AND z1.CNTR_SN = z2.CNTR_SN(+)
                        AND z1.RPBL_DT LIKE (#{baseYm} || '%')
+                       AND z1.BC_RPBL_ID = (
+                                            SELECT MAX(TEMP.BC_RPBL_ID)
+                                              FROM TB_SVPD_PD_BC_RPBL_APLC_IZ TEMP
+                                             WHERE 1=1
+                                               AND TEMP.RPBL_DT LIKE (#{baseYm} || '%')
+                                               AND TEMP.CNTR_NO = z1.CNTR_NO
+                                               AND TEMP.CNTR_SN = z1.CNTR_SN
+                                           )
                        ) TB_1
              INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TB_2
              ON (
@@ -158,10 +153,39 @@
              <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
                AND TB_1.CNTR_NO = #{cntrNo}
              </if>
+             <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+               AND TB_1.CNTR_SN = #{cntrSn}
+             </if>
              <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                AND TB_2.MNGT_PRTNR_NO = #{prtnrNo}
              </if>
                ) TB
+    </sql>
+
+    <select id="selectQuickResponseRpbl"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncQuickResponseRpblDto$SearchRes">
+        <include refid="com.kyowon.sms.wells.web.service.allocate.mapper.WsncQuickResponseRpblMapper.sqlQuickResponseRpbl"/>
     </select>
+
+    <update id="updateQuickResponseRpbl">
+        MERGE INTO TB_SVPD_PD_BC_RPBL_APLC_IZ TB_TARGET
+        USING (
+            <include refid="com.kyowon.sms.wells.web.service.allocate.mapper.WsncQuickResponseRpblMapper.sqlQuickResponseRpbl"/>
+        ) TB_SOURCE
+        ON (
+                TB_TARGET.CNTR_NO = TB_SOURCE.CNTR_NO
+            AND TB_TARGET.CNTR_SN = TB_SOURCE.CNTR_SN
+            AND (TB_TARGET.FNL_PBL_DT IS NULL OR TB_TARGET.BC_RPBL_ID = TB_SOURCE.BC_RPBL_ID)
+        )
+        WHEN MATCHED THEN
+            UPDATE
+               SET TB_TARGET.DLD_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                 , TB_TARGET.DLD_HH = TO_CHAR(SYSDATE, 'HH24MISS')
+                 , TB_TARGET.DLD_PRTNR_OG_TP_CD = #{session.ogTpCd}
+                 , TB_TARGET.DLD_PRTNR_NO = #{session.employeeIDNumber}
+                 , TB_TARGET.FST_PBL_DT = NVL(TB_TARGET.FST_PBL_DT, TO_CHAR(SYSDATE, 'YYYYMMDD'))
+                 , TB_TARGET.FNL_PBL_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                   <include refid="COMMON.updateSystemField"/>
+    </update>
 
 </mapper>

@@ -89,13 +89,13 @@
                          AND B1.CNTR_SN = B2.CNTR_SN
                          AND B2.CNTR_PERF_CRT_DV_CD ='01'
                          AND B2.DTA_DL_YN = 'N'
-                       WHERE B2.SL_DT BETWEEN #{perfYm}||'01' AND #{perfYm}||'31'   /*매출일자가 당월인 것만 조회함. 1566 결함수정*/
+                       WHERE B2.SL_DT <![CDATA[>=]]> #{perfYm}||'01'   /*매출일자 과거실적은 조회하지않음. 1566 결함수정*/
 	               ) A1
                 LEFT OUTER JOIN
                    ( SELECT B1.CNTR_NO
                           , B1.CNTR_CST_NO
                           , B2.CNTRW_TP_CD
-                          , CASE WHEN B2.CNTR_DTL_STAT_CD IN ('301','303') THEN B2.CNTR_PD_ENDDT END CNTR_PD_ENDDT
+                          , CASE WHEN B2.CNTR_DTL_STAT_CD IN ('301','302','303') THEN B2.CNTR_PD_ENDDT END CNTR_PD_ENDDT
                        FROM TB_SSCT_CNTR_BAS B1	/*계약기본*/
                       INNER JOIN TB_SSCT_CNTR_DTL B2 	/*계약상세*/
                          ON B1.CNTR_NO = B2.CNTR_NO
@@ -220,7 +220,7 @@
                          AND B1.CNTR_SN = B2.CNTR_SN
                          AND B2.CNTR_PERF_CRT_DV_CD ='01'
                          AND B2.DTA_DL_YN = 'N'
-                       WHERE B2.SL_DT BETWEEN #{perfYm}||'01' AND #{perfYm}||'31'   /*매출일자가 당월인 것만 조회함. 1566 결함수정*/
+                       WHERE B2.SL_DT <![CDATA[>=]]> #{perfYm}||'01'   /*매출일자 과거실적은 조회하지않음. 1566 결함수정*/
 	               ) A1
 	            LEFT OUTER JOIN
 		           ( SELECT B1.CNTR_NO
@@ -255,6 +255,8 @@
              , T2.PRTNR_NO /* 파트너번호 */
              , T2.PRTNR_KNM /* 파트너명 */
              , T2.RSB_DV_CD /* 직책구분코드 */
+             , T2.QLF_DV_CD /* 자격구분코드 */
+             , DECODE(NVL(T2.BRMGR_DV_CD, 'X'), '1', '플래너지점장', '매니저지점장') AS BRMGR_DV_CD /* 지점장구분코드 */
              , T3.INTBS_AMT /* 소득과표금액 */
              , T3.DDCTAM /* 공제금액 */
              , T3.DSB_OJ_AMT /* 지급대상금액 */
@@ -435,7 +437,7 @@
            , '멤버십' AS PERF_ITEM4
            , MAX(CASE WHEN T2.PERF_ATC_CD = 'W02P00112' AND T2.PERF_DV_CD = 0 THEN T2.PERF_VAL ELSE 0 END) AS PERF_VAL1 /* 개인실적-가전외인정실적 */
            , MAX(CASE WHEN T2.PERF_ATC_CD = 'W02P00112' AND T2.PERF_DV_CD = 2 THEN T2.PERF_VAL ELSE 0 END) AS PERF_VAL2 /* 조직실적-가전외인정실적 */
-           , MAX(CASE WHEN T2.PERF_ATC_CD = 'W02P00085' AND T2.PERF_DV_CD = 2 THEN T2.PERF_VAL ELSE 0 END) AS PERF_VAL3 /* BS실적-조직BS완료 */
+           , MAX(CASE WHEN T2.PERF_ATC_CD = 'W02P00085' AND T2.PERF_DV_CD = 2 THEN T2.PERF_VAL ELSE 0 END) - MAX(CASE WHEN T2.PERF_ATC_CD = 'W02P00085' AND T2.PERF_DV_CD = 0 THEN T2.PERF_VAL ELSE 0 END) AS PERF_VAL3 /* BS실적-조직BS완료 */
            , MAX(CASE WHEN T2.PERF_ATC_CD = 'W02P00086' AND T2.PERF_DV_CD = 0 THEN T2.PERF_VAL ELSE 0 END) AS PERF_VAL4 /* 기타-멤버십 */
         FROM TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역 */
        INNER JOIN WITH_PERF T2
@@ -453,8 +455,8 @@
            , '기변' AS PERF_ITEM2
            , '' AS PERF_ITEM3
            , '' AS PERF_ITEM4
-           , MAX(CASE WHEN T2.PERF_ATC_CD IN ('W00P00014', 'W00P00018') AND T2.PERF_DV_CD = 0 THEN T2.PERF_VAL ELSE 0 END) AS PERF_VAL1 /* 개인실적-기변 */
-           , MAX(CASE WHEN T2.PERF_ATC_CD IN ('W00P00014', 'W00P00018') AND T2.PERF_DV_CD = 2 THEN T2.PERF_VAL ELSE 0 END) AS PERF_VAL2 /* 조직실적-기변 */
+           , MAX(CASE WHEN T2.PERF_ATC_CD = 'W00P00014' AND T2.PERF_DV_CD = 0 THEN T2.PERF_VAL ELSE 0 END) + MAX(CASE WHEN T2.PERF_ATC_CD = 'W00P00018' AND T2.PERF_DV_CD = 0 THEN T2.PERF_VAL ELSE 0 END) AS PERF_VAL1 /* 개인실적-기변 */
+           , MAX(CASE WHEN T2.PERF_ATC_CD = 'W00P00014' AND T2.PERF_DV_CD = 2 THEN T2.PERF_VAL ELSE 0 END) + MAX(CASE WHEN T2.PERF_ATC_CD = 'W00P00018' AND T2.PERF_DV_CD = 2 THEN T2.PERF_VAL ELSE 0 END) AS PERF_VAL2 /* 조직실적-기변 */
            , NULL AS PERF_VAL3
            , NULL AS PERF_VAL4
         FROM TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역 */

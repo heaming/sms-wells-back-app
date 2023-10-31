@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.report.mapper.WwpsgRentManagementMapper">
+
+    <select id="selectPsgaRpotBizPsicBas" resultType = "com.kyowon.sms.wells.web.competence.report.dvo.WwpsgRentManagementDvo">
+        SELECT PRBPB.RPOT_BIZ_ASN_ID  /* 보고서업무배정ID */
+             , PRBPB.RPOT_BIZ_TP_ID   /* 보고서업무유형ID */
+             , PRBPB.DG_YN            /* 대표여부 */
+             , PRBPB.OG_TP_CD         /* 조직유형코드 */
+             , PRBPB.PRTNR_NO         /* 파트너번호 */
+             , PRBPB.DTA_DL_YN        /* 데이터삭제여부 */
+             , OPB.CRAL_LOCARA_TNO          /* 휴대지역전화번호 */
+             , OPB.MEXNO_ENCR               /* 휴대전화국번호암호화 */
+             , OPB.CRAL_IDV_TNO             /* 휴대개별전화번호 */
+             , OPB.PRTNR_KNM                /* 파트너 한글명 */
+          FROM TB_PSGA_RPOT_BIZ_PSIC_BAS PRBPB /* 보고서업무담당자기본 */
+          LEFT JOIN TB_OGBS_PRTNR_BAS OPB
+            ON PRBPB.OG_TP_CD = OPB.OG_TP_CD
+           AND PRBPB.PRTNR_NO = OPB.PRTNR_NO
+         WHERE 1 = 1
+           AND PRBPB.DTA_DL_YN = 'N'
+           AND PRBPB.DG_YN = 'Y'
+           AND PRBPB.RPOT_BIZ_TP_ID = #{rpotBizTpId}
+    </select>
+
+    <select id="selectPsgaRpotBizTpBas" resultType = "com.kyowon.sms.wells.web.competence.report.dto.WwpsgRentManagementDto$businessTypeRes">
+        SELECT RPOT_BIZ_TP_ID    /* 보고서업무유형ID */
+             , RPOT_BIZ_TP_ID AS CODE_ID
+             , RPOT_BIZ_TP_DV_CD /* 보고서업무유형구분코드 */
+             , RPOT_BIZ_TP_NM    /* 보고서업무유형명 */
+             , RPOT_BIZ_TP_NM AS CODE_NAME
+             , CONF_ARTC_USE_YN  /* 확인사항사용여부 */
+             , CONF_ARTC_CN      /* 확인사항내용 */
+             , ATENTN_CN         /* 유의사항내용 */
+             , USE_YN            /* 사용여부 */
+             , SORT_ODR          /* 정렬순서 */
+             , DTA_DL_YN         /* 데이터삭제여부 */
+             , FST_RGST_DTM      /* 최초등록일시 */
+             , FST_RGST_USR_ID   /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID   /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID  /* 최초등록부서ID */
+             , FNL_MDFC_DTM      /* 최종수정일시 */
+             , FNL_MDFC_USR_ID   /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID   /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID  /* 최종수정부서ID */
+          FROM TB_PSGA_RPOT_BIZ_TP_BAS /* 보고서업무유형기본 */
+         WHERE 1 = 1
+           AND RPOT_BIZ_TP_DV_CD = #{rpotBizTpDvCd}
+           <if test='@MybatisUtils@isNotEmpty(rpotBizTpId)'>
+           AND RPOT_BIZ_TP_ID    = #{rpotBizTpId}      /* 보고서업무유형ID */
+           </if>
+    </select>
+
+    <select id="selectOgbsBldBas" resultType = "com.kyowon.sms.wells.web.competence.report.dto.WwpsgRentManagementDto$OgbsBldBasRes">
+        SELECT OG_TP_CD         /* 조직유형코드 */
+             , BLD_CD           /* 빌딩코드 */
+             , BLD_NM           /* 빌딩명 */
+             , LOCARA_BLD_NM    /* 지역빌딩명 */
+          FROM TB_OGBS_BLD_BAS /* 빌딩기본 */
+         WHERE 1 = 1
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectPsgaRpotbizProcsIz" resultType = "com.kyowon.sms.wells.web.competence.report.dto.WwpsgRentManagementDto$PopupSearchRes">
+        SELECT PRBPI.RPOT_BIZ_APLC_ID       /* 보고서업무신청ID */
+             , PRBPI.PROCS_SN               /* 처리일련번호 */
+             , PRBPI.RPOT_BIZ_PROCS_STAT_CD /* 보고서업무처리상태코드 */
+             , PRBPI.PROCS_CN               /* 처리내용 */
+             , TO_CHAR(TO_DATE(PRBPI.FNL_MDFC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') AS FNL_MDFC_DTM  /* 신청일시 */
+             , PRBPI.FNL_MDFC_USR_ID AS PROCS_PRTNR_NO       /* 최종수정사용자ID */
+             , OPB.PRTNR_KNM AS PROCS_PRTNR_KNM                    /* 파트너 한글명 */
+             , OPB.CRAL_LOCARA_TNO AS PROCS_CRAL_LOCARA_TNO        /* 휴대지역전화번호 */
+             , OPB.MEXNO_ENCR AS PROCS_MEXNO_ENCR                  /* 휴대전화국번호암호화 */
+             , OPB.CRAL_IDV_TNO AS PROCS_CRAL_IDV_TNO              /* 휴대개별전화번호 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RPOT_BIZ_PROCS_STAT_CD', PRBPI.RPOT_BIZ_PROCS_STAT_CD) AS RPOT_BIZ_PROCS_STAT_NM
+          FROM TB_PSGA_RPOT_BIZ_PROCS_IZ PRBPI /* 빌딩기본 */
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OPB
+            ON PRBPI.FNL_MDFC_USR_ID = OPB.PRTNR_NO
+         WHERE 1 = 1
+           AND PRBPI.DTA_DL_YN = 'N'
+           AND RPOT_BIZ_APLC_ID = #{rpotBizAplcId}
+           AND PROCS_SN = #{procsSn}
+    </select>
+
+    <select id="selectRentManagementPages" resultType = "com.kyowon.sms.wells.web.competence.report.dvo.WwpsgRentManagementDvo">
+        SELECT PRBAI.RPOT_BIZ_APLC_ID /* 보고서업무신청ID */
+             , PRBAI.RPOT_BIZ_TP_ID   /* 보고서업무유형ID */
+             , PRBAI.APLCNS_PRTNR_NO  /* 신청자파트너번호 */
+             , TO_CHAR(TO_DATE(PRBAI.APLC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS APLC_DTM  /* 신청일시 */
+             , PRBAI.BIZ_AK_CN        /* 업무요청내용 */
+             , PRBAI.APN_FILE_DOC_ID  /* 첨부파일문서ID */
+             , PRBAI.BIZ_AK_BLD_CD    /* 업무요청빌딩코드 */
+             , PRBAI.BIZ_AK_BLD_NM    /* 업무요청빌딩명 */
+             , PRBPI.PROCS_SN               /* 처리일련번호 */
+             , PRBPI.RPOT_BIZ_PROCS_STAT_CD /* 보고서업무처리상태코드 */
+             , PRBPI.PROCS_CN               /* 처리내용 */
+             , PRAI.BLD_CD           /* 빌딩코드 */
+             , PRAI.BLD_NM           /* 빌딩명 */
+             , PRAI.RNT_APLC_TP_CD   /* 임차신청유형코드 */
+             , OPB.PRTNR_KNM                /* 파트너 한글명 */
+             , OPB.CRAL_LOCARA_TNO          /* 휴대지역전화번호 */
+             , OPB.MEXNO_ENCR               /* 휴대전화국번호암호화 */
+             , OPB.CRAL_IDV_TNO             /* 휴대개별전화번호 */
+             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', TO_CHAR(TO_DATE(PRBPI.FNL_MDFC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD'), '40', TO_CHAR(TO_DATE(PRBPI.FNL_MDFC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD'), '') AS FNL_MDFC_DTM
+             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', PRBPI.FNL_MDFC_USR_ID, '40', PRBPI.FNL_MDFC_USR_ID, '') AS FNL_MDFC_USR_ID
+             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', OPB2.PRTNR_KNM, '40', OPB2.PRTNR_KNM, '') AS FNL_MDFC_USR_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RPOT_BIZ_PROCS_STAT_CD', PRBPI.RPOT_BIZ_PROCS_STAT_CD) AS RPOT_BIZ_PROCS_STAT_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RNT_APLC_TP_CD', PRAI.RNT_APLC_TP_CD) AS RNT_APLC_TP_NM
+             , OPB2.PRTNR_KNM AS PROCS_PRTNR_KNM                    /* 파트너 한글명 */
+             , OPB2.CRAL_LOCARA_TNO AS PROCS_CRAL_LOCARA_TNO        /* 휴대지역전화번호 */
+             , OPB2.MEXNO_ENCR AS PROCS_MEXNO_ENCR                  /* 휴대전화국번호암호화 */
+             , OPB2.CRAL_IDV_TNO AS PROCS_CRAL_IDV_TNO              /* 휴대개별전화번호 */
+        FROM TB_PSGA_RPOT_BIZ_APLC_IZ PRBAI /* 보고서업무신청내역 */
+        LEFT JOIN TB_PSGA_RPOT_BIZ_PROCS_IZ PRBPI /* 보고서업무처리내역 */
+          ON PRBAI.RPOT_BIZ_APLC_ID = PRBPI.RPOT_BIZ_APLC_ID
+         AND PRBPI.DTA_DL_YN = 'N'
+        LEFT JOIN TB_PSGA_RNT_APLC_IZ PRAI /* 임차신청내역 */
+          ON PRBAI.RPOT_BIZ_APLC_ID = PRAI.RPOT_BIZ_APLC_ID
+         AND PRAI.DTA_DL_YN = 'N'
+        LEFT JOIN TB_PSGA_RPOT_BIZ_PSIC_BAS PRBPB /* 보고서업무담당자기본 */
+          ON PRBAI.RPOT_BIZ_TP_ID = PRBPB.RPOT_BIZ_TP_ID
+         AND PRBPB.DG_YN = 'Y'
+        LEFT JOIN TB_OGBS_PRTNR_BAS OPB
+          ON PRBPB.OG_TP_CD = OPB.OG_TP_CD
+         AND PRBPB.PRTNR_NO = OPB.PRTNR_NO
+        LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OPB2
+          ON PRBPB.FNL_MDFC_USR_ID = OPB2.PRTNR_NO
+       WHERE 1 = 1
+         AND PRBAI.DTA_DL_YN = 'N'
+         <if test='@MybatisUtils@isNotEmpty(rcpStartDtm)'>
+         AND PRBAI.APLC_DTM BETWEEN #{rcpStartDtm} || '000000' AND #{rcpEndDtm} || '235959'
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(rpotBizTpId)'>
+         AND PRBAI.RPOT_BIZ_TP_ID = #{rpotBizTpId}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(rpotBizAplcId)'>
+         AND PRBAI.RPOT_BIZ_APLC_ID = #{rpotBizAplcId}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(rntAplcTpCd)'>
+         AND PRBAI.RNT_APLC_TP_CD = #{rntAplcTpCd}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(rpotBizProcsStatCd)'>
+         AND PRBAI.RPOT_BIZ_PROCS_STAT_CD = #{rpotBizProcsStatCd}
+         </if>
+    </select>
+
+    <insert id="insertPsgaRpotBizAplcIz" parameterType="com.kyowon.sms.wells.web.competence.report.dvo.WwpsgRentManagementDvo">
+        <selectKey keyProperty="dvo.rpotBizAplcId" resultType="java.lang.String" order="BEFORE">
+            SELECT NVL(MAX(TO_NUMBER(RPOT_BIZ_APLC_ID)) + 1, 1)
+              FROM TB_PSGA_RPOT_BIZ_APLC_IZ
+        </selectKey>
+        INSERT INTO TB_PSGA_RPOT_BIZ_APLC_IZ (  /* 보고서업무신청내역 */
+               RPOT_BIZ_APLC_ID /* 보고서업무신청ID */
+             , RPOT_BIZ_TP_ID   /* 보고서업무유형ID */
+             , APLCNS_PRTNR_NO  /* 신청자파트너번호 */
+             , APLC_DTM         /* 신청일시 */
+             , BIZ_AK_CN        /* 업무요청내용 */
+             , APN_FILE_DOC_ID  /* 첨부파일문서ID */
+             , BIZ_AK_BLD_CD    /* 업무요청빌딩코드 */
+             , BIZ_AK_BLD_NM    /* 업무요청빌딩명 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{dvo.rpotBizAplcId}
+             , #{dvo.rpotBizTpId}
+             , #{dvo.prtnrNo}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , #{dvo.bizAkCn}
+             , #{dvo.rpotBizAplcId}
+             , #{dvo.bizAkBldCd}
+             , #{dvo.bizAkBldNm}
+        <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertPsgaRpotBizProcsIz">
+        INSERT INTO TB_PSGA_RPOT_BIZ_PROCS_IZ (  /* 보고서업무처리내역 */
+               RPOT_BIZ_APLC_ID       /* 보고서업무신청ID */
+             , PROCS_SN               /* 처리일련번호 */
+             , RPOT_BIZ_PROCS_STAT_CD /* 보고서업무처리상태코드 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{rpotBizAplcId}
+             , '1'
+             , '10'  /*처리중*/
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertPsgaRntAplcIz">
+        INSERT INTO TB_PSGA_RNT_APLC_IZ (  /* 임차신청내역 */
+               RPOT_BIZ_APLC_ID /* 보고서업무신청ID */
+             , BLD_CD           /* 빌딩코드 */
+             , BLD_NM           /* 빌딩명 */
+             , RNT_APLC_TP_CD   /* 임차신청유형코드 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{rpotBizAplcId}
+             , #{bizAkBldCd}
+             , #{bizAkBldNm}
+             , #{rntAplcTpCd}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updatePsgaRpotBizProcsIz">
+        UPDATE TB_PSGA_RPOT_BIZ_PROCS_IZ   /* 보고서업무처리내역 */
+           SET RPOT_BIZ_PROCS_STAT_CD = #{rpotBizProcsStatCd} /* 보고서업무처리상태코드 */
+             , PROCS_CN = #{procsCn}               /* 처리내용 */
+             <include refid="COMMON.updateSystemField"/>
+         WHERE RPOT_BIZ_APLC_ID = #{rpotBizAplcId}
+           AND PROCS_SN = #{procsSn}
+    </update>
+</mapper>

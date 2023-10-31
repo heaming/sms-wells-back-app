@@ -404,17 +404,21 @@
      ORDER BY T1.SVPD_ITEM_CD, T1.SVPD_PART_CD
 </select>
 
-<select id="selectChangeOfRentalStatusWarehouse" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaChangeOfRentalStatusDto$SearchWarehouseRes">
-     SELECT T1.WARE_NO AS CODE_ID
-          , T1.WARE_NM AS CODE_NAME
-       FROM TB_SVST_MCBY_WARE_IZ T1
-      WHERE 1 = 1
-        AND T1.WARE_DV_CD = '2'
-        AND T1.WARE_DTL_DV_CD = '20'
-        AND T1.APY_YM = #{inqrYm}
-        AND T1.DTA_DL_YN = 'N'
-      ORDER BY T1.WARE_NO
-
-</select>
+    <select id="selectChangeOfRentalStatusWarehouse" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaChangeOfRentalStatusDto$SearchWarehouseRes">
+        SELECT T1.WARE_NO        AS CODE_ID
+             , T1.WARE_NM || CASE WHEN T1.WARE_USE_YN <![CDATA[<>]]> 'Y'   /* 미사용인 경우만 (미사용) 표기 */
+                                  THEN ( SELECT '(' || MLNG_CNTN || ')'
+                                           FROM T_CMZ_MLNG_D
+                                          WHERE TENANT_ID = 'TNT_BASE'
+                                            AND MLNG_ID   = 'MSG_TXT_NUSD'
+                                            AND LNG_ID    = #{session.langId} )
+                             END AS CODE_NAME
+          FROM TB_SVST_MCBY_WARE_IZ T1
+         WHERE T1.DTA_DL_YN      = 'N'
+           AND T1.WARE_DV_CD     = '2'
+           AND T1.WARE_DTL_DV_CD = '20'
+           AND T1.APY_YM         = #{inqrYm}
+         ORDER BY T1.WARE_USE_YN DESC, TO_NUMBER(T1.SORT_DV_VAL), T1.WARE_NM, T1.WARE_NO
+    </select>
 
 </mapper>

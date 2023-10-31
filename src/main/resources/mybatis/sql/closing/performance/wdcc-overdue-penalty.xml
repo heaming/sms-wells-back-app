@@ -136,6 +136,7 @@
                    ON A.CNTR_NO = B.CNTR_NO
                   AND B.DTA_DL_YN = 'N'
                 WHERE A.SL_CL_YM = #{slClYm}
+                  AND A.SELL_TP_CD = '2'
                   <if test="@MybatisUtils@equals(sellTpCd, '2')">
                   AND A.SELL_TP_DTL_CD IN ('21', '23')
                   </if>
@@ -157,7 +158,7 @@
                   <if test="@MybatisUtils@isNotEmpty(sellInflwChnlDtlCd) and !@MybatisUtils@equals(sellInflwChnlDtlCd, 'ALL')">
                   AND B.SELL_INFLW_CHNL_DTL_CD = #{sellInflwChnlDtlCd}
                   </if>
-                  AND A.MLG_BTD_PRPD_AMT + A.MLG_DP_AMT + A.MLG_RFND_AMT + A.MLG_SL_AMT <![CDATA[<>]]> 0
+                  AND A.MLG_BTD_PRPD_AMT + A.MLG_DP_AMT + A.MLG_RFND_AMT + A.MLG_SL_AMT != 0
                ) T1
     </select>
 
@@ -303,18 +304,18 @@
         /*--------------------------------------------------------------*/
         /* 1일자 조회 */
         /*--------------------------------------------------------------*/
-        SELECT TO_CHAR(TO_DATE(#{slClYm}, 'YYYYMM'), 'YYYY-MM') AS SL_CL_YM /*실적년월*/
-             , TO_CHAR(TO_DATE(#{slClYm}||'01', 'YYYYMMDD'), 'YYYY-MM-DD') AS SL_CL_DT /*매출마감일자*/
-	         , W3.SELL_TP_CD AS SELL_TP_CD /*판매유형코드*/
-             , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = #{session.tenantId} AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = W3.SELL_TP_CD) AS SELL_TP_CD_NM  /*판매유형코드명*/
-             , W3.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /*판매유형상세코드*/
+        SELECT TO_CHAR(TO_DATE(#{slClYm}, 'YYYYMM'), 'YYYY-MM') AS SL_CL_YM
+             , TO_CHAR(TO_DATE(#{slClYm}||'01', 'YYYYMMDD'), 'YYYY-MM-DD') AS SL_CL_DT
+	         , W3.SELL_TP_CD AS SELL_TP_CD
+             , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = #{session.tenantId} AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = W3.SELL_TP_CD) AS SELL_TP_CD_NM -- 판매유형코드명
+             , W3.SELL_TP_DTL_CD AS SELL_TP_DTL_CD
              , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = #{session.tenantId} AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = W3.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD_NM -- 판매유형상세코드명
-             , W3.SAP_PD_DV_CD AS SAP_PD_DV_CD /*SAP상품구분코드*/
+             , W3.SAP_PD_DV_CD AS SAP_PD_DV_CD
              , (SELECT MAX(SAP_PD_ATC_NM)
                 FROM TB_CBCL_SAP_PD_DV_CD
                 WHERE SAP_BZ_TERY_CD = '1210' -- SAP_BZ_TERY_CD : WELLS면 1210, EDU면 1110
                   AND SAP_PD_ATC_CD = '00'
-                  AND SAP_PD_DV_CD = W3.SAP_PD_DV_CD) AS SAP_PD_ATC_NM /*SAP상품코드명*/
+                  AND SAP_PD_DV_CD = W3.SAP_PD_DV_CD) AS SAP_PD_ATC_NM -- SAP상품코드명
              , BTD_ATAM AS BTD_ATAM -- 전기이월
              , NVL((SELECT SUM(RVE_AMT) FROM W2
                     WHERE RVE_DT = #{slClYm}||'01'
@@ -445,18 +446,18 @@
              , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = #{session.tenantId} AND CD_ID = 'SELL_TP_CD' AND CD_VLD_VAL = T2.SELL_TP_CD) AS SELL_TP_CD_NM -- 판매유형코드명
              , T2.SELL_TP_DTL_CD -- 판매유형상세코드
              , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = #{session.tenantId} AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = T2.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD_NM -- 판매유형상세코드명
-             , T2.SAP_PD_DV_CD AS SAP_PD_DV_CD /*SAP상품구분코드*/
+             , T2.SAP_PD_DV_CD AS SAP_PD_DV_CD
              , (SELECT MAX(SAP_PD_ATC_NM)
                 FROM TB_CBCL_SAP_PD_DV_CD
                 WHERE SAP_BZ_TERY_CD = '1210' -- SAP_BZ_TERY_CD : WELLS면 1210, EDU면 1110
                   AND SAP_PD_ATC_CD = '00'
-                  AND SAP_PD_DV_CD = T2.SAP_PD_DV_CD) AS SAP_PD_ATC_NM /*SAP상품코드명*/
+                  AND SAP_PD_DV_CD = T2.SAP_PD_DV_CD) AS SAP_PD_ATC_NM -- SAP상품코드명
              <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')">
              , '' AS CST_NO -- 고객번호
              , '' AS CST_KNM -- 고객명
              , '' AS PD_CD-- 상품코드
              , '' AS PD_NM -- 상품명
-             , '' AS CNTR_NO /*계약번호*/
+             , '' AS CNTR_NO
              , SUM(BTD_ATAM) AS BTD_ATAM-- 전기이월
              , SUM(ATAM_DP_AMT) AS ATAM_DP_AMT -- 선수입금(계약금+할부금+기타선수금)
              , SUM(CNTRAM_DP_AMT) AS ATAM_DP_AMT_1

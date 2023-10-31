@@ -5,7 +5,6 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -133,7 +132,7 @@ public class WfedIndividualFeeMgtController {
         @ApiImplicitParam(name = "no", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/plar-deduction")
-    public FindPlarDeductionRes getPlarDeduction(
+    public List<FindPlarDeductionRes> getPlarDeduction(
         @Valid
         SearchPlarReq dto
     ) {

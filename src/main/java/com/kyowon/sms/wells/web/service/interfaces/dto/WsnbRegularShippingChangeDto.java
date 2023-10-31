@@ -27,13 +27,18 @@ public class WsnbRegularShippingChangeDto {
         @JsonProperty(value = "CHO_CAPSL_CN") // P_PART_LIST (제품상품코드,수량|제품상품코드, 수량 | ... )
         String choCapslCn,
         @JsonProperty(value = "MTR_PROCS_STAT_CD")
-        String mtrProcsStatCd
+        String mtrProcsStatCd,
+
+        String histChDtm
     ) {}
 
     @ApiModel(value = "WsnbRegularShippingChDto-SaveRes")
     public record SaveRes(
         @NotBlank
+        @JsonProperty(value = "RESULT")
         String result,
+
+        @JsonProperty(value = "MSG")
         String msg
     ) {}
 
