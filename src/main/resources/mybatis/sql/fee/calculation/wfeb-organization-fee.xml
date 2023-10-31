@@ -516,10 +516,14 @@
              , PRTNR_NO	/* 파트너번호 */
              , PRTNR_KNM	/* 성명 */
              , RSB_DV_CD	/* 직책구분코드 */
-             , QLF_DV_CD	/* 수수료월 자격 */
-             , CASE WHEN NMN_QLF_DV_CD IS NULL THEN '해약'
-               ELSE F_CMZ_CD_NM('TNT_WELLS', 'QLF_DV_CD', NMN_QLF_DV_CD)
-               END AS NMN_QLF_DV_NM	/* M+1 자격(NULL 이면 해약) */
+             , CASE WHEN PSTN_DV_CD = '7' THEN CASE WHEN PRTNR_GD_CD = '12' THEN '플래너지점장' ELSE '매니저지점장' END
+                    ELSE F_CMZ_CD_NM('TNT_WELLS', 'QLF_DV_CD', QLF_DV_CD) END AS QLF_DV_NM
+             , CASE WHEN NMN_PSTN_DV_CD = '7' THEN
+                    	 CASE WHEN NMN_PRTNR_GD_CD = '12' THEN '플래너지점장' ELSE '매니저지점장' END
+                    WHEN NMN_PSTN_DV_CD = '15' THEN F_CMZ_CD_NM('TNT_WELLS', 'QLF_DV_CD', NMN_QLF_DV_CD)
+                    WHEN NMN_PSTN_DV_CD = '4'  THEN '지역단장'
+                    WHEN NMN_PSTN_DV_CD = '2'  THEN '총괄단장'
+                    ELSE '해약' END AS NMN_QLF_DV_NM /*  수수료실적년월+1개월의 직책    */
              , OG_ID	/* 조직ID */
              , DGR1_LEVL_OG_ID /* 총괄단조직ID */
              , DGR2_LEVL_OG_ID /* 지역단조직ID */
@@ -601,7 +605,11 @@
                     , PRTNR.PRTNR_KNM	/* 성명 */
                     , PRTNR.RSB_DV_CD	/* 직책구분코드 */
                     , PRTNR.QLF_DV_CD	/* 수수료월자격구분코드 */
-                    , QLF.QLF_DV_CD AS NMN_QLF_DV_CD	/* M+1 자격구분코드 */
+                    , PRTNR.PSTN_DV_CD  /* 수수료월직급구분코드 */
+                    , PRTNR.PRTNR_GD_CD     /* 수수료월파트너등급코드 */
+                    , NMNQLF.PSTN_DV_CD AS NMN_PSTN_DV_CD	/* 차월직급구분코드 */
+                    , NMNQLF.QLF_DV_CD AS NMN_QLF_DV_CD	/* M+1 자격구분코드 */
+                    , NMNQLF.PRTNR_GD_CD AS NMN_PRTNR_GD_CD	/* M+1 등급구분코드 */
                     , OG.OG_ID	/* 조직ID */
                     , OG.DGR1_LEVL_OG_ID /* 총괄단조직ID */
                     , OG.DGR2_LEVL_OG_ID /* 지역단조직ID */
@@ -694,7 +702,7 @@
                   AND PRTNR.PRTNR_NO = MT.PRTNR_NO
                   AND MT.FEE_TCNT_DV_CD = #{dto.feeTcntDvCd}
                   AND MT.PERF_ATC_CD = 'W02P00093'    /*미팅참석일수*/
-                  AND MT.PERF_AGRG_CRT_DV_CD = '201'
+                  <!--AND MT.PERF_AGRG_CRT_DV_CD = '201'-->
                  LEFT OUTER JOIN
                     ( SELECT MIN(STRTDT) AS MNGER_FST_OPNG /* 매니저 최초개시일 */
                            , PRTNR_NO
@@ -710,12 +718,22 @@
                        GROUP BY PRTNR_NO
                    ) MNGER1
                   ON PRTNR.PRTNR_NO = MNGER1.PRTNR_NO
-                LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ QLF  /* 웰스매니저 자격정보 M+1 자격 */
-                  ON PRTNR.OG_TP_CD = QLF.OG_TP_CD
-                 AND PRTNR.PRTNR_NO = QLF.PRTNR_NO
-                 AND NVL(QLF.QLF_APLC_DV_CD, '0') IN ('1', '2')     /* 승격,자격해제  3: 보류 제외*/
-                 AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{dto.perfYm},'YYYYMM'),1)),'YYYYMMDD') BETWEEN STRTDT AND ENDDT
-                 AND QLF.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN
+                   ( SELECT A.PRTNR_NO
+                   		  , A.PSTN_DV_CD
+                   	      , QLF.QLF_DV_CD
+                          , A.PRTNR_GD_CD
+                       FROM TB_OGBS_MM_PRTNR_IZ A
+                       LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ QLF  /* 웰스매니저 자격정보 M+1 자격 */
+                       ON A.OG_TP_CD = QLF.OG_TP_CD
+                        AND A.PRTNR_NO = QLF.PRTNR_NO
+                        AND NVL(QLF.QLF_APLC_DV_CD, '0') IN ('1', '2')     /* 승격,자격해제  3: 보류 제외*/
+                 		AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{dto.perfYm},'YYYYMM'),1)),'YYYYMMDD') BETWEEN STRTDT AND ENDDT
+                 		AND QLF.DTA_DL_YN = 'N'
+                      WHERE A.OG_TP_CD = 'W02'
+                        AND A.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{dto.perfYm}, 'YYYYMM'), 1),'YYYYMM')
+                  ) NMNQLF
+                 ON PRTNR.PRTNR_NO = NMNQLF.PRTNR_NO
                 LEFT OUTER JOIN
                    ( SELECT STRTDT AS MNGER_OPNG /* 매니저 재개시월 */
                           , PRTNR_NO
@@ -951,7 +969,7 @@
                            , 0 AS INDV_FXAM_CT	/* 개인정액건수 */
                            , 0 AS INDV_LIVE_PAKG_CNT	/* 개인라이브팩건수 */
                            , 0 AS INDV_HCR_MSH_CNT	/* 개인홈케어멤버십건수 */
-                           , CASE WHEN PERF_ATC_CD IN ('W02P00103', 'W02P00002') THEN PERF_VAL ELSE 0 END AS OG_ELHM_ACKMT_CNT	/* 조직가전인정건수 */
+                           , CASE WHEN PERF_ATC_CD = 'W02P00002' THEN PERF_VAL ELSE 0 END AS OG_ELHM_ACKMT_CNT	/* 조직가전인정건수 */
                            , CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS OG_RENTAL_BASE_PRC	/* 조직렌탈기준가 */
                            , CASE WHEN PERF_ATC_CD = 'W00P00004' THEN PERF_VAL ELSE 0 END AS OG_SPAY_BASE_PRC	/* 조직일시불기준가 */
                            , CASE WHEN PERF_ATC_CD IN ('W00P00014', 'W00P00018') THEN PERF_VAL ELSE 0 END AS OG_CHDVC_CNT	/* 조직기변건수 */
@@ -962,7 +980,7 @@
                          AND PERF_AGRG_CRT_DV_CD = '201'
                          AND PERF_DV_CD = '2'	/* 실적구분코드 2-지점 */
                          AND OG_TP_CD = 'W02'
-                         AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00004', 'W00P00014', 'W00P00018')
+                         AND PERF_ATC_CD IN ( 'W02P00002', 'W00P00003', 'W00P00004', 'W00P00014', 'W00P00018')
                          <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
                          AND PRTNR_NO = #{dto.prtnrNo}
                          </if>
@@ -1118,10 +1136,14 @@
              , PRTNR_NO	/* 파트너번호 */
              , PRTNR_KNM	/* 성명 */
              , RSB_DV_CD	/* 직책구분코드 */
-             , QLF_DV_CD	/* 수수료월 자격 */
-             , CASE WHEN NMN_QLF_DV_CD IS NULL THEN '해약'
-               ELSE F_CMZ_CD_NM('TNT_WELLS', 'QLF_DV_CD', NMN_QLF_DV_CD)
-               END AS NMN_QLF_DV_NM	/* M+1 자격(NULL 이면 해약) */
+             , CASE WHEN PSTN_DV_CD = '7' THEN CASE WHEN PRTNR_GD_CD = '12' THEN '플래너지점장' ELSE '매니저지점장' END
+                    ELSE F_CMZ_CD_NM('TNT_WELLS', 'QLF_DV_CD', QLF_DV_CD) END AS QLF_DV_NM
+             , CASE WHEN NMN_PSTN_DV_CD = '7' THEN
+                    	 CASE WHEN NMN_PRTNR_GD_CD = '12' THEN '플래너지점장' ELSE '매니저지점장' END
+                    WHEN NMN_PSTN_DV_CD = '15' THEN F_CMZ_CD_NM('TNT_WELLS', 'QLF_DV_CD', NMN_QLF_DV_CD)
+                    WHEN NMN_PSTN_DV_CD = '4'  THEN '지역단장'
+                    WHEN NMN_PSTN_DV_CD = '2'  THEN '총괄단장'
+                    ELSE '해약' END AS NMN_QLF_DV_NM /*  수수료실적년월+1개월의 직책    */
              , OG_ID	/* 조직ID */
              , DGR1_LEVL_OG_ID /* 총괄단조직ID */
              , DGR2_LEVL_OG_ID /* 지역단조직ID */
@@ -1228,7 +1250,11 @@
                     , PRTNR.PRTNR_KNM	/* 성명 */
                     , PRTNR.RSB_DV_CD	/* 직책구분코드 */
                     , PRTNR.QLF_DV_CD	/* 수수료월자격구분코드 */
-                    , QLF.QLF_DV_CD AS NMN_QLF_DV_CD	/* M+1 자격구분코드 */
+                    , PRTNR.PSTN_DV_CD  /* 수수료월직급구분코드 */
+                    , PRTNR.PRTNR_GD_CD     /* 수수료월파트너등급코드 */
+                    , NMNQLF.PSTN_DV_CD AS NMN_PSTN_DV_CD	/* 차월직급구분코드 */
+                    , NMNQLF.QLF_DV_CD AS NMN_QLF_DV_CD	/* M+1 자격구분코드 */
+                    , NMNQLF.PRTNR_GD_CD AS NMN_PRTNR_GD_CD	/* M+1 등급구분코드 */
                     , OG.OG_ID	/* 조직ID */
                     , OG.DGR1_LEVL_OG_ID /* 총괄단조직ID */
                     , OG.DGR2_LEVL_OG_ID /* 지역단조직ID */
@@ -1383,12 +1409,22 @@
                        GROUP BY PRTNR_NO
                    ) MNGER1
                   ON PRTNR.PRTNR_NO = MNGER1.PRTNR_NO
-                LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ QLF  /* 웰스매니저 자격정보 M+1 자격 */
-                  ON PRTNR.OG_TP_CD = QLF.OG_TP_CD
-                 AND PRTNR.PRTNR_NO = QLF.PRTNR_NO
-                 AND NVL(QLF.QLF_APLC_DV_CD, '0') IN ('1', '2')     /* 승격,자격해제  3: 보류 제외*/
-                 AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{perfYm},'YYYYMM'),1)),'YYYYMMDD') BETWEEN STRTDT AND ENDDT
-                 AND QLF.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN
+                   ( SELECT A.PRTNR_NO
+                   		  , A.PSTN_DV_CD
+                   	      , QLF.QLF_DV_CD
+                          , A.PRTNR_GD_CD
+                       FROM TB_OGBS_MM_PRTNR_IZ A
+                       LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ QLF  /* 웰스매니저 자격정보 M+1 자격 */
+                       ON A.OG_TP_CD = QLF.OG_TP_CD
+                        AND A.PRTNR_NO = QLF.PRTNR_NO
+                        AND NVL(QLF.QLF_APLC_DV_CD, '0') IN ('1', '2')     /* 승격,자격해제  3: 보류 제외*/
+                 		AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{perfYm},'YYYYMM'),1)),'YYYYMMDD') BETWEEN STRTDT AND ENDDT
+                 		AND QLF.DTA_DL_YN = 'N'
+                      WHERE A.OG_TP_CD = 'W02'
+                        AND A.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1),'YYYYMM')
+                  ) NMNQLF
+                 ON PRTNR.PRTNR_NO = NMNQLF.PRTNR_NO
                 LEFT OUTER JOIN
                    ( SELECT STRTDT AS MNGER_OPNG /* 매니저 재개시월 */
                           , PRTNR_NO
@@ -1533,8 +1569,8 @@
                     AND BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{dto.perfYm},'YYYYMM'), 1), 'YYYYMM')
                     AND OG_TP_CD = 'W02'
                     AND PRTNR_SV_PERF_ATC_CD = 'SV24010101'	/* 5일배정건수 */
-                    <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
-                    AND PRTNR_NO = #{dto.prtnrNo}
+                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                    AND PRTNR_NO = #{prtnrNo}
                     </if>
                 GROUP BY PRTNR_NO
           	  ) INDVD5
@@ -1624,7 +1660,7 @@
                            , 0 AS INDV_FXAM_CT	/* 개인정액건수 */
                            , 0 AS INDV_LIVE_PAKG_CNT	/* 개인라이브팩건수 */
                            , 0 AS INDV_HCR_MSH_CNT	/* 개인홈케어멤버십건수 */
-                           , CASE WHEN PERF_ATC_CD IN ('W02P00103', 'W02P00002') THEN PERF_VAL ELSE 0 END AS OG_ELHM_ACKMT_CNT	/* 조직가전인정건수 */
+                           , CASE WHEN PERF_ATC_CD = 'W02P00002' THEN PERF_VAL ELSE 0 END AS OG_ELHM_ACKMT_CNT	/* 조직가전인정건수 */
                            , CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS OG_RENTAL_BASE_PRC	/* 조직렌탈기준가 */
                            , CASE WHEN PERF_ATC_CD = 'W00P00004' THEN PERF_VAL ELSE 0 END AS OG_SPAY_BASE_PRC	/* 조직일시불기준가 */
                            , CASE WHEN PERF_ATC_CD IN ('W00P00014', 'W00P00018') THEN PERF_VAL ELSE 0 END AS OG_CHDVC_CNT	/* 조직기변건수 */
@@ -1635,7 +1671,7 @@
                          AND PERF_AGRG_CRT_DV_CD = '201'
                          AND PERF_DV_CD = '2'	/* 실적구분코드 2-지점 */
                          AND OG_TP_CD = 'W02'
-                         AND PERF_ATC_CD IN ( 'W02P00103', 'W02P00002', 'W00P00003', 'W00P00004', 'W00P00014', 'W00P00018')
+                         AND PERF_ATC_CD IN ( 'W02P00002', 'W00P00003', 'W00P00004', 'W00P00014', 'W00P00018')
                          <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                          AND PRTNR_NO = #{prtnrNo}
                          </if>
