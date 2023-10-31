@@ -42,7 +42,23 @@ public class WsnbRentalMembershipCancelPsDto {
 
         String exnoEncr, //전화국번호암호화(전화번호)
 
-        String idvTno //개별전화번호(전화번호)
+        String idvTno, //개별전화번호(전화번호)
+
+        String newAdrZip,
+
+        String sellOgId,
+
+        String sellOgCd,
+
+        String sellOgNm,
+
+        String ogId,
+
+        String ogCd,
+
+        String ogNm,
+
+        String rcgvpKnm
     ) {
         public SearchRes {
             exnoEncr = DbEncUtil.dec(exnoEncr);

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbRentalMembershipCancelPsConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbRentalMembershipCancelPsDto.SearchReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbRentalMembershipCancelPsDto.SearchRes;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbRentalMembershipCancelPsMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -22,13 +23,14 @@ public class WsnbRentalMembershipCancelPsService {
 
     private final WsnbRentalMembershipCancelPsConverter converter;
 
-    public PagingResult getRentalMembershipCancelPsPages(SearchReq dto, PageInfo pageInfo) {
-        // return converter.mapDvoToSearchResPages(mapper.selectRentalMembershipCancelPss(dto, pageInfo));
-        return this.mapper.selectRentalMembershipCancelPss(dto, pageInfo);
+    public PagingResult<SearchRes> getRentalMembershipCancelPsPages(SearchReq dto, PageInfo pageInfo) {
+        PagingResult<SearchRes> pagingResult = converter
+            .mapDvoToSearchResPages(mapper.selectRentalMembershipCancelPss(dto, pageInfo));
+        pagingResult.setPageInfo(pageInfo);
+        return pagingResult;
     }
 
-    public List getRentalMembershipCancelPss(SearchReq dto) {
-        // return converter.mapDvoToSearchRes(mapper.selectRentalMembershipCancelPss(dto));
-        return this.mapper.selectRentalMembershipCancelPss(dto);
+    public List<SearchRes> getRentalMembershipCancelPss(SearchReq dto) {
+        return converter.mapDvoToSearchRes(mapper.selectRentalMembershipCancelPss(dto));
     }
 }

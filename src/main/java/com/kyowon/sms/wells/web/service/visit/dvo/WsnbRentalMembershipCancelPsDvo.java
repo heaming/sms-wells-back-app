@@ -24,8 +24,6 @@ public class WsnbRentalMembershipCancelPsDvo {
 
     String cntrSn;
 
-    String newAdrZip;
-
     String rnadr; //주소
 
     String rdadr; //주소 상세
@@ -36,4 +34,20 @@ public class WsnbRentalMembershipCancelPsDvo {
     String exnoEncr; //전화국번호암호화(전화번호)
 
     String idvTno; //개별전화번호(전화번호)
+
+    String newAdrZip;
+
+    String sellOgId;
+
+    String sellOgCd;
+
+    String sellOgNm;
+
+    String ogId;
+
+    String ogCd;
+
+    String ogNm;
+
+    String rcgvpKnm;
 }
