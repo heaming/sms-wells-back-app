@@ -3,8 +3,20 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 입금집계 상세현황 DTO
+ * </pre>
+ *
+ * @author heungjun.lee
+ * @since 2023-10-31
+ */
 public class WwdbDepositAggregateDtlServiceCenterDto {
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 입금집계 상세현황 목록 조회 Search Request Dto
     @ApiModel(value = "WwwdbDepositAggregateDtlServiceCenterDto-SearchReq")
     public record SearchReq(
         String ogId, //센터코드
@@ -13,10 +25,12 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
         String useYn, //대사처리
         String stlmDvCd //결제유형
 
-    ) {
+    ) { }
 
-    }
-
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 입금집계 상세현황 목록 조회 Search Result Dto
     @ApiModel(value = "WwwdbDepositAggregateDtlServiceCenterDto-SearchRes")
     public record SearchRes(
         String vstFshDt, /*설치일자*/
@@ -50,19 +64,23 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
         }
     }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 입금집계 상세현황 서비스 조회 - 조직 내역 Search Result Dto
     @ApiModel(value = "WwwdbDepositAggregateDtlServiceCenterDto-SearchCodeRes")
     public record SearchCodeRes(
         String codeId,
         String codeName
-    ) {
+    ) { }
 
-    }
-
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 입금집계 상세현황 서비스 합계 조회 Search Result Dto
     @ApiModel(value = "WwwdbDepositAggregateDtlServiceCenterDto-SearchSumRes")
     public record SearchSumRes(
         String bilAmtTot,
         String dpSumAmtTot
-    ) {
-
-    }
+    ) { }
 }
