@@ -29,6 +29,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * 환불 신청 현황 서비스
+ * </pre>
+ *
+ * @author kimoon.lim
+ * @since 2023-10-31
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -326,7 +334,7 @@ public class WwdbRefundApplicationService {
 
     /* 승인 서비스 */
     /**
-     * 환불 신청 팝업 임시저장
+     * 환불 신청 팝업 임시 저장
      * @param req
      * @return
      * @throws Exception
