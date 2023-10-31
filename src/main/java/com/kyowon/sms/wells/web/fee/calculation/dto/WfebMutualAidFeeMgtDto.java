@@ -79,18 +79,18 @@ public class WfebMutualAidFeeMgtDto {
         String cntrNo, /* 웰스계약번호 */
         String lifCntrNo, /* 상조계약번호 */
         String cstKnm, /* 고객명 */
-        String ogCd, /* 가지급금 */
-        String prtnrNo, /* 가지급금 */
-        String prtnrKnm, /* 가지급금 */
-        String cdCntn, /* 가지급금 */
-        String brmgrPrtnrNo, /* 가지급금 */
-        String rcpdt, /* 가지급금 */
-        String cntrDt, /* 가지급금 */
-        String dpDt, /* 가지급금 */
-        String wdwlDt, /* 가지급금 */
-        String canDt, /* 가지급금 */
-        String feeDsbYm, /* 가지급금 */
-        String cntrStat /* 가지급금 */
+        String ogCd, /* 소속 */
+        String prtnrNo, /* 파트너번호 */
+        String prtnrKnm, /* 파트너명 */
+        String cdCntn, /* 직책명 */
+        String brmgrPrtnrNo, /* 지점장 */
+        String rcpdt,  /* 접수일자 */
+        String cntrDt, /* 계약일자 */
+        String dpDt,   /* 입금일자 */
+        String wdwlDt, /* 철회일자 */
+        String canDt,  /* 취소일자 */
+        String feeDsbYm,  /* 수수료월 */
+        String cntrStat /* 실적구분 */
     ) {}
 
 }
