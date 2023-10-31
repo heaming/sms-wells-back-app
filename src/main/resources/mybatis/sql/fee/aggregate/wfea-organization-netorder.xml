@@ -781,7 +781,7 @@
                         , T2.ACKMT_PERF_AMT /* 인정실적금액 */
                         , T2.FEE_ACKMT_BASE_AMT /* 수수료인정기준금액 */
                         , CASE WHEN T9.FEE_PDCT_TP_CD = 'E' THEN
-                               (CASE WHEN T2.SELL_TP_CD = '6' THEN (T2.SELL_AMT- T2.CNTRAM_DSC_AMT ) / T2.SV_PRD ELSE T2.SELL_AMT END )
+                               (CASE WHEN T2.SELL_TP_CD = '6' THEN (NVL(T2.FNL_AMT, 0)- NVL(T2.CNTRAM_DSC_AMT, 0)) / NVL(T2.SV_PRD, 0) ELSE T2.SELL_AMT END )
                                ELSE 0
                           END AS HCR /* 홈케어 */
                         , CASE WHEN T9.FEE_PDCT_TP_CD = 'E' AND T2.STPL_PTRM = '36' THEN 'Y'
@@ -809,7 +809,9 @@
                                ELSE ''
                           END AS CAN_DT /* 취소일자 */
                         , T6.REQD_DT /* 철거일자 */
-                        , T2.SELL_AMT /* 판매금액 */
+                        , CASE WHEN T2.SELL_TP_CD = '6' THEN (NVL(T2.FNL_AMT, 0)- NVL(T2.CNTRAM_DSC_AMT, 0)) / NVL(T2.SV_PRD, 0)
+                               ELSE T2.SELL_AMT
+                          END AS SELL_AMT /* 판매금액 */
                         , T14.PMOT_CD AS PMOT_NO /* 프로모션번호 */
                         , T2.HGR_PD_CD AS PKG_CD /* 상위상품코드 */
                         , T11.OJ_DTL_CNTR_NO /* 대상상세계약번호 */
@@ -947,8 +949,16 @@
                           </when>
                           <when test='@MybatisUtils@equals(dvCd, "03")'> /* 구분 = 03 : 매출 */
                               AND T2.CNTR_PD_STRTDT BETWEEN #{rcpDtFrom} AND #{rcpDtTo} /* 계약상품시작일자 */
+                              AND T2.BOO_SELL_TP_CD IS NULL /* 예약판매유형코드 */
                           </when>
                       </choose>
+
+                      <if test='@MybatisUtils@isEmpty(sellTpCd)'>
+                          AND
+                            (
+                              T2.SELL_TP_CD IN ('1', '2', '6') OR (T2.SELL_TP_CD = '3' AND T2.SELL_TP_DTL_CD = '33')
+                            )
+                      </if>
 
                       <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
                           <choose>
@@ -1012,7 +1022,7 @@
                             , T3.ACKMT_PERF_AMT /* 인정실적금액 */
                             , T3.FEE_ACKMT_BASE_AMT /* 수수료인정기준금액 */
                             , CASE WHEN T10.FEE_PDCT_TP_CD = 'E' THEN
-                                   (CASE WHEN T3.SELL_TP_CD = '6' THEN (T3.SELL_AMT- T3.CNTRAM_DSC_AMT ) / T3.SV_PRD ELSE T3.SELL_AMT END )
+                                   (CASE WHEN T3.SELL_TP_CD = '6' THEN (NVL(T3.FNL_AMT, 0)- NVL(T3.CNTRAM_DSC_AMT, 0)) / NVL(T3.SV_PRD, 0) ELSE T3.SELL_AMT END )
                                    ELSE 0
                               END AS HCR /* 홈케어 */
                             , CASE WHEN T10.FEE_PDCT_TP_CD = 'E' AND T3.STPL_PTRM = '36' THEN 'Y'
@@ -1037,7 +1047,7 @@
                             , SUBSTR(T1.STPL_STRTDT, 0, 8) AS SL_DT /* 약정시작일자 */
                             , T1.STPL_CAN_DTM AS CAN_DT /* 취소일자 */
                             , T7.REQD_DT /* 철거일자 */
-                            , T3.SELL_AMT /* 판매금액 */
+                            , NVL(T3.FNL_AMT, 0) - NVL(T1.STPL_DSC_AMT, 0) SELL_AMT /* 판매금액 */
                             , '' AS PMOT_NO /* 프로모션번호 */
                             , T3.HGR_PD_CD AS PKG_CD /* 상위상품코드 */
                             , T12.OJ_DTL_CNTR_NO /* 대상상세계약번호 */
@@ -1321,11 +1331,10 @@
                     , T3.CNTR_PTRM /* 계약기간 */
                     , T3.STPL_PTRM /* 약정기간 */
                     , T3.SV_PRD /* 서비스주기 */
-
                     , T3.ACKMT_PERF_AMT /* 인정실적금액 */
                     , T3.FEE_ACKMT_BASE_AMT /* 수수료인정기준금액 */
                     , CASE WHEN T10.FEE_PDCT_TP_CD = 'E' THEN
-                           (CASE WHEN T3.SELL_TP_CD = '6' THEN (T3.SELL_AMT- T3.CNTRAM_DSC_AMT ) / T3.SV_PRD ELSE T3.SELL_AMT END )
+                           (CASE WHEN T3.SELL_TP_CD = '6' THEN (NVL(T3.FNL_AMT, 0) - NVL(T3.CNTRAM_DSC_AMT, 0)) / NVL(T3.SV_PRD, 0) ELSE T3.SELL_AMT END)
                            ELSE 0
                       END AS HCR /* 홈케어 */
                     , CASE WHEN T10.FEE_PDCT_TP_CD = 'E' AND T3.STPL_PTRM = '36' THEN 'Y'
@@ -1351,7 +1360,9 @@
                     , T1.SL_DT /* 매출일자 */
                     , T1.CAN_DT /* 취소일자 */
                     , T7.REQD_DT /* 철거일자 */
-                    , T3.SELL_AMT /* 판매금액 */
+                    , CASE WHEN T3.SELL_TP_CD = '6' THEN (NVL(T3.FNL_AMT, 0)- NVL(T3.CNTRAM_DSC_AMT, 0)) / NVL(T3.SV_PRD, 0)
+                           ELSE T3.SELL_AMT
+                      END AS SELL_AMT /* 판매금액 */
                     , T15.PMOT_CD AS PMOT_NO /* 프로모션번호 */
                     , T3.HGR_PD_CD AS PKG_CD /* 상위상품코드 */
                     , T12.OJ_DTL_CNTR_NO /* 대상상세계약번호 */
