@@ -31,6 +31,10 @@ public class WsnbGoodsChangeAcceptingStateService {
         return mapper.selectGoodsChangeAcceptingState(req, pageInfo);
     }
 
+    public List<SearchRes> getGoodsChangeAcceptingStateExcelDownload(SearchReq req) {
+        return mapper.selectGoodsChangeAcceptingState(req);
+    }
+
     public int saveGoodsChangeAcceptingStateReject(List<SaveReq> dtos) {
         int processCount = 0;
 
