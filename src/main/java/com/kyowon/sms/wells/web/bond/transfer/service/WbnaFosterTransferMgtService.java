@@ -173,7 +173,7 @@ public class WbnaFosterTransferMgtService {
                     )
                 );
                 excelUploadErrorDvos.add(errorDvo);
-            } else if (cntrDtlNoList.contains(dvo.getCntrDtlNo())) {
+            } else if (!cntrDtlNoList.contains(dvo.getCntrDtlNo())) {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(headerTitle.get("cntrDtlNo"));

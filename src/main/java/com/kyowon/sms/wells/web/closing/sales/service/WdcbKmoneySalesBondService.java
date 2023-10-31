@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.closing.sales.service;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -29,7 +31,10 @@ public class WdcbKmoneySalesBondService {
     }
 
     public List<SearchDepositRes> getDepositDetails(String baseYm) {
-        return mapper.selectDepositDetails(baseYm);
+        final SimpleDateFormat format = new SimpleDateFormat("yyyyMM");
+        final String thisMonth = format.format(new Date());
+
+        return mapper.selectDepositDetails(baseYm, thisMonth.equals(baseYm) ? "Y" : "N");
     }
 
     public List<SearchCancelRes> getCancelDetails(String baseYm) {

@@ -144,7 +144,7 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
             /* 계산식 생성 */
             List<ZfeyFeeStandardDvo.ZfeyPerformVarbsDvo> redfPerformVarbs = feeStandardSqlService.convertPerformanceVariableDtoToZfeyPerformVarbsDvo(feeStandard.redfPerformVarbs());
             List<ZfeyFeeStandardDvo.ZfeyConditionVarbsDvo> redfConvertedConditionVarbs = FeFeeUtil.convertConditionVariable(feeStandard.redfCondVarbs(), redfPerformVarbs);
-            String calcExpr = feeStandardSqlService.getFeeAmtProcString(basic.feeAmtProcsUnitCd(), basic.feeAmtDigtCd(), FeFeeUtil.getFeeCalculateFomula(feeStandard.basic().redfCalfCn(), redfPerformVarbs, redfConvertedConditionVarbs), "SUM");
+            String calcExpr = FeFeeUtil.getFeeAmtProcString(basic.feeAmtProcsUnitCd(), basic.feeAmtDigtCd(), FeFeeUtil.getFeeCalculateFomula(feeStandard.basic().redfCalfCn(), redfPerformVarbs, redfConvertedConditionVarbs), "SUM");
 
             insertCount = mOrganizationCalculationMapper.insertFxamRedfPartnerData(baseYm, feeCd, basic.dtaCrtFeeCd(), perfAgrgCrtDvCd, basic.apyStrtYm(), basic.apyEndYm(), feeStandard.redfPerformVarbs().get(0).perfVarbColVal(), feeStandard.redfPerformVarbs().get(0).indvPerfYn(), calcExpr);
         }

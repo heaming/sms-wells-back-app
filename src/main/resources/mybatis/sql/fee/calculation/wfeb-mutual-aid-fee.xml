@@ -397,7 +397,7 @@
                --AND T1.BRMGR_PRTNR_NO = T7.BRMGR_PRTNR_NO
                  AND T1.PRTNR_NO       = T7.PRTNR_NO
          WHERE 1=1
-           AND T1.LIF_CNTR_STAT_CD    = '0'               /* 수수료 : 라이프계약상태코드 - 0:수수료 */
+           AND T1.LIF_CNTR_STAT_CD    = '0'               /* 수수료 라이프계약상태코드 - 0수수료 */
            AND T1.FLPYM_TN            = 1                 /* 완납 회차                              */
            AND T1.PRTNR_NO           != T1.BRMGR_PRTNR_NO /* 판매자사번 != 지점장사번               */
            AND T1.DTA_DL_YN           = 'N'
@@ -442,6 +442,10 @@
                           AND A.PRTNR_NO = X.PRTNR_NO
                           AND A.OG_TP_CD = X.OG_TP_CD
            )
+           AND EXISTS (SELECT 1
+                         FROM TB_SSCT_CNTR_BAS X /* 계약기본 */
+                        WHERE X.CNTR_NO = A.CNTR_NO
+           )
     </update>
 
     <!-- 미지급 -->
@@ -466,6 +470,10 @@
                         WHERE A.BASE_YM  = X.BASE_YM
                           AND A.PRTNR_NO = X.PRTNR_NO
                           AND A.OG_TP_CD = X.OG_TP_CD
+           )
+           AND EXISTS (SELECT 1
+                         FROM TB_SSCT_CNTR_BAS X /* 계약기본 */
+                        WHERE X.CNTR_NO = A.CNTR_NO
            )
     </update>
 
@@ -531,94 +539,120 @@
 
     <!-- 상조제휴주문 -->
     <select id='selectMutualAidOrder' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeMgtDto$AidOrder">
-        SELECT CASE WHEN T1.CNTR_NO IS NULL THEN '비제휴' ELSE '제휴' END ALNC_NM --제휴구분
-             , T1.CNTR_NO    --웰스계약번호
-             , T1.LIF_CNTR_NO     --상조계약번호
-             , T4.CST_KNM         --고객명
-             , T3.OG_CD           --소속(지점CD)
-             , T1.PRTNR_NO        --파트너번호
-             , T3.PRTNR_KNM       --파트너명
-             , T9.CD_CNTN         --직책명(파트너)
-             , T1.BRMGR_PRTNR_NO  --지점장
-             , T1.RCPDT           --접수일자
-             , T1.CNTR_DT         --계약일자
-             , TU.KLINSY||TU.KLINSM||TU.KLINSD AS DP_DT   --입금일자
-             , TU.KLREVY||TU.KLREVM||TU.KLREVD AS WDWL_DT --철회일자
-             , T1.CAN_DT         --취소일자
-             , T1.FEE_DSB_YM     --수수료월
-             , CASE WHEN (T1.RCPDT   IS NOT NULL) AND (T1.CNTR_DT IS NULL) AND (T1.CAN_DT IS NULL) THEN '접수'
-                    WHEN (T1.CNTR_DT IS NOT NULL) AND (T1.CAN_DT IS NULL)  THEN '계약'
-                    WHEN (T1.CAN_DT  IS NOT NULL)  THEN '취소'
-                    ELSE 'Error'
-                     END CNTR_STAT --실적구분
-         FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T1   /* 라이프제휴수수료계약내역 */
-        INNER JOIN TB_SSCT_CNTR_BAS             T2   /* 계약기본                 */
-           ON T1.CNTR_NO = T2.CNTR_NO
-        INNER JOIN TB_OGBS_MM_PRTNR_IZ          T3   /* 월파트너                 */
-           ON T1.BASE_YM  = T3.BASE_YM
-          AND T1.PRTNR_NO = T3.PRTNR_NO
-          AND T1.OG_TP_CD   = T3.OG_TP_CD          /* 20230502 - 조건절 추가 */
-        INNER JOIN TB_CUBS_CST_BAS              T4   /* 고객기본                 */
-           ON T2.CNTR_CST_NO = T4.CST_NO
-        INNER JOIN T_CMZ_CD_D                   T9   /* 공통코드 - 직책          */
-           ON T9.TENANT_ID       = #{session.tenantId}
-          AND T9.CD_ID           = 'RSB_DV_CD'
-          AND T9.CD_VLD_VAL      = T3.RSB_DV_CD
-        INNER JOIN TB_OGBS_OG_BAS               TT   /* 조직기본                 */
-           ON T3.OG_ID = TT.OG_ID
-         LEFT OUTER JOIN TB_GBCO_LIF_ORD_RCV_ETXT TU  /* ZA_라이프주문수신전문 */
-           ON SUBSTR(T1.CNTR_NO, 2, 4) = TU.KLFLG8
-          AND SUBSTR(T1.CNTR_NO, 6, 7) = TU.KLFLG9
-        WHERE 1=1
-          -- AND T1.CNFM_YN         = 'Y'
-          AND T1.ET_CNFM_DV_CD   = '00'
-          AND T1.DTA_DL_YN       = 'N'
-          AND T1.BASE_YM         = #{baseYm}
-          <if test='@MybatisUtils@isNotEmpty(dgr4LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
-              <choose>
-                <when test='@MybatisUtils@isNotEmpty(dgr4LevlOgId)'>
-                  AND TT.OG_ID = #{dgr4LevlOgId}     /* 조직 - 3레벨 선택 */
-                </when>
-                <when test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
-                  AND TT.OG_ID = #{dgr3LevlOgId}     /* 조직 - 2레벨 선택 */
-                </when>
-                <when test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
-                  AND TT.OG_ID = #{dgr2LevlOgId}     /* 조직 - 1레벨 선택 */
-                </when>
-              </choose>
-          </if>
-          <if test='@MybatisUtils@isNotEmpty(cntrStat)'>
+       SELECT T0.ALNC_NM
+            , T0.CNTR_NO
+            , T0.LIF_CNTR_NO
+            , T0.CST_KNM
+            , T0.OG_CD
+            , T0.PRTNR_NO
+            , T0.PRTNR_KNM
+            , T0.CD_CNTN
+            , T0.BRMGR_PRTNR_NO
+            , T0.RCPDT
+            , T0.CNTR_DT
+            , T0.DP_DT
+            , T0.WDWL_DT
+            , T0.CAN_DT
+            , T0.FEE_DSB_YM
+            , CASE WHEN (T0.RCPDT   IS NOT NULL) AND (T0.CNTR_DT IS NULL) AND (T0.CAN_DT IS NULL) THEN '접수'
+                   WHEN (T0.CNTR_DT IS NOT NULL) AND (T0.CAN_DT  IS NULL) THEN '계약'
+                   WHEN (T0.CAN_DT  IS NOT NULL)  THEN '취소'
+                   ELSE '' END CNTR_STAT --실적구분
+        FROM ( SELECT CASE WHEN KL30.KLFLG8 != '0' THEN '제휴' ELSE '비제휴' END ALNC_NM        --제휴구분
+                     , CASE WHEN KL30.KLFLG8 = '0' THEN '' ELSE 'W'||KL30.KLFLG8||KL30.KLFLG9 END AS CNTR_NO        --웰스계약번호
+                     , 'L'||KL30.KLYEAR||KL30.KLCODE                AS LIF_CNTR_NO    --상조계약번호
+                     , KL30.KLCNAM                                  AS CST_KNM        --고객명
+                     , T3.OG_CD                                     AS OG_CD          --소속(지점CD)
+                     , TO_CHAR(KL30.KLDCDE)                         AS PRTNR_NO       --파트너번호
+                     , T3.PRTNR_KNM                                 AS PRTNR_KNM      --파트너명
+                     , T9.CD_CNTN                                   AS CD_CNTN        --직책명(파트너)
+                     , TT.HOO_PRTNR_NO                              AS BRMGR_PRTNR_NO --지점장
+                     , CASE WHEN KL30.KLCRTY = '0' THEN '' ELSE KL30.KLCRTY || LPAD(KL30.KLCRTM, 2, '00') || LPAD(KL30.KLCRTD, 2, '00') END AS RCPDT   --접수일자
+                     , CASE WHEN KL30.KLSLEY = '0' THEN '' ELSE KL30.KLSLEY || LPAD(KL30.KLSLEM, 2, '00') || LPAD(KL30.KLSLED, 2, '00') END AS CNTR_DT --계약일자
+                     , CASE WHEN KL30.KLINSY = '0' THEN '' ELSE KL30.KLINSY || LPAD(KL30.KLINSM, 2, '00') || LPAD(KL30.KLINSD, 2, '00') END AS DP_DT   --입금일자
+                     , CASE WHEN KL30.KLREVY = '0' THEN '' ELSE KL30.KLREVY || LPAD(KL30.KLREVM, 2, '00') || LPAD(KL30.KLREVD, 2, '00') END AS WDWL_DT --철회일자
+                     , CASE WHEN KL30.KLCANY = '0' THEN '' ELSE KL30.KLCANY || LPAD(KL30.KLCANM, 2, '00') || LPAD(KL30.KLCAND, 2, '00') END AS CAN_DT  --취소일자
+                     , T7.FEE_DSB_YM
+                  FROM TB_GBCO_LIF_ORD_RCV_ETXT             KL30 /* ZA_라이프주문수신전문 */
+                  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ  T3   /* 월파트너        */
+                    ON #{baseYm} = T3.BASE_YM
+                   AND 'W01'    = T3.OG_TP_CD
+                   AND TO_CHAR(KL30.KLDCDE)    = T3.PRTNR_NO
+                  LEFT OUTER JOIN TB_OGBS_OG_BAS       TT   /* 조직기본        */
+                    ON T3.OG_ID = TT.OG_ID
+                  LEFT OUTER JOIN T_CMZ_CD_D           T9   /* 공통코드 - 직책 */
+                    ON T9.TENANT_ID   = #{session.tenantId}
+                   AND T9.CD_ID       = 'RSB_DV_CD'
+                   AND T9.CD_VLD_VAL  = T3.RSB_DV_CD
+                  LEFT OUTER JOIN TB_IFIN_LIF_ALNC_FEE_CNTR_IZ  T7  /* 라이프제휴수수료계약내역 */
+                    ON T7.BASE_YM       = KL30.KLSLEY || LPAD(KL30.KLSLEM, 2, '00')
+                   AND T7.ET_CNFM_DV_CD = '00'
+                   AND T7.LIF_CNTR_NO   = 'L'||KL30.KLYEAR||KL30.KLCODE
+                   AND T7.CNTR_NO       = 'W'||KL30.KLFLG8||KL30.KLFLG9
+                   AND T7.FLPYM_TN      = 1
+                   AND T7.CNFM_YN       = 'Y'
+                   AND T7.OG_TP_CD      = 'W01'
+                   AND T7.DTA_DL_YN     = 'N'
+                 WHERE KL30.KLETC6 IN ('51', '59')                               --제휴업체
+                   /* asis는 접수년월인데 to-be는 기준년월
+                   AND  KL30.KLCRTY||LPAD(KL30.KLCRTM, 2, '00') = 'baseYm'        --접수년월
+                   */
+                    AND  KL30.KLSLEY||LPAD(KL30.KLSLEM, 2, '00') = #{baseYm}        --계약년월
+                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                    AND TO_CHAR(KL30.KLDCDE) = #{prtnrNo}
+                    </if>
+                    <if test='!"0".equals(alncCd)'>
+                      <choose>
+                        <when test='"1".equals(alncCd)'>
+                        AND  KL30.KLFLG8                            != '0'             --제휴만 적용
+                        </when>
+                        <when test='"2".equals(alncCd)'>
+                        AND  KL30.KLFLG8                             = '0'             --비제휴만 적용
+                        </when>
+                      </choose>
+                    </if>
+                    <if test='!"0".equals(rsbDvCd)'>
+                        <choose>
+                            <when test='"15".equals(rsbDvCd)'>
+                            AND  TO_CHAR(KL30.KLDCDE)                   != TT.HOO_PRTNR_NO --직책유형 플래너만 적용
+                            </when>
+                            <when test='"7".equals(rsbDvCd)'>
+                            AND  TO_CHAR(KL30.KLDCDE)                    = TT.HOO_PRTNR_NO --직책유형 지점장만 적용
+                            </when>
+                        </choose>
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(dgr4LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+                        <choose>
+                            <when test='@MybatisUtils@isNotEmpty(dgr4LevlOgId)'>
+                            AND TT.OG_ID = #{dgr4LevlOgId}     /* 조직 - 3레벨 선택 */
+                            </when>
+                            <when test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+                            AND TT.OG_ID = #{dgr3LevlOgId}     /* 조직 - 2레벨 선택 */
+                            </when>
+                            <when test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+                            AND TT.OG_ID = #{dgr2LevlOgId}     /* 조직 - 1레벨 선택 */
+                            </when>
+                        </choose>
+                    </if>
+         ) T0
+         WHERE 1=1
+         <if test='@MybatisUtils@isNotEmpty(cntrStat)'>
             <choose>
                 <when test='"0".equals(cntrStat)'>
-                AND T1.RCPDT   IS NOT NULL
-                AND T1.CNTR_DT IS NULL
-                AND T1.CAN_DT IS NULL
+                AND T0.RCPDT IS NOT NULL
+                AND T0.CNTR_DT IS NULL
+                AND T0.CAN_DT IS NULL
                 </when>
                 <when test='"1".equals(cntrStat)'>
-                AND T1.CNTR_DT IS NOT NULL
-                AND T1.CAN_DT  IS NULL
+                AND T0.CNTR_DT IS NOT NULL
+                AND T0.CAN_DT  IS NULL
                 </when>
                 <when test='"2".equals(cntrStat)'>
-                AND T1.CAN_DT IS NOT NULL
+                AND T0.CAN_DT IS NOT NULL
                 </when>
             </choose>
-          </if>
-          <if test='!"0".equals(alncCd)'>
-              <choose>
-                <when test='"1".equals(alncCd)'>
-                AND T1.CNTR_NO IS NOT NULL
-                </when>
-                <when test='"2".equals(alncCd)'>
-                AND T1.CNTR_NO IS NULL
-                </when>
-              </choose>
-          </if>
-          <if test='!"0".equals(rsbDvCd)'>
-            AND T9.USER_DFN_03 = #{rsbDvCd}
-          </if>
-          <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-            AND T1.PRTNR_NO = #{prtnrNo}
-          </if>
+         </if>
+
     </select>
 
 </mapper>

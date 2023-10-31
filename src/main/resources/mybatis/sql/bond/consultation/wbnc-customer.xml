@@ -387,6 +387,21 @@
 		     , T2.BZRNO /* 사업자번호 */
 		     , T1.BND_BIZ_DV_CD /* 채권업무구분코드 */
 		     , T1.BASE_YM /* 기준년월 */
+		     , ( SELECT TT1.RS_NM 
+		           FROM ( SELECT ROW_NUMBER() OVER(PARTITION BY B.CNTR_NO, B.CNTR_SN ORDER BY A.BIL_DT DESC) AS RN
+		                       , B.CNTR_NO
+		                       , B.CNTR_SN
+		                       , CASE WHEN A.FNT_DV_CD = '01'/*계좌이체*/ THEN TO_CHAR(TO_DATE(A.BIL_DT,'YYYYMMDD'), 'YYYY-MM-DD')||'('||(SELECT AFTN_RS_ABBR_NM FROM TB_RVDW_AFTN_RS_CD WHERE AFTN_RS_DV_CD = '1' AND AFTN_RS_CD = C.AC_FNT_RS_CD)||')'
+		                              WHEN A.FNT_DV_CD = '02'/*카드이체*/ THEN TO_CHAR(TO_DATE(A.BIL_DT,'YYYYMMDD'), 'YYYY-MM-DD')||'('||(SELECT AFTN_RS_ABBR_NM FROM TB_RVDW_AFTN_RS_CD WHERE AFTN_RS_DV_CD = '9' AND AFTN_RS_CD = D.CARD_FNT_RS_CD)||')'
+		                          END RS_NM
+		                    FROM TB_RVCL_BIL_FNT_AK_BAS A
+		                    LEFT JOIN TB_RVCL_BIL_FNT_AK_DTL B ON A.BIL_NO = B.BIL_NO
+		                    LEFT JOIN TB_RVCL_AC_FNT_SEND_MTR_IZ C ON A.BIL_NO = C.BIL_NO
+		                    LEFT JOIN TB_RVCL_CARD_FNT_SEND_MTR_IZ D ON A.BIL_NO = D.BIL_NO
+		                   WHERE 1=1
+		                     AND (C.AC_FNT_RS_CD IS NOT NULL OR D.CARD_FNT_RS_CD IS NOT NULL)
+		              ) TT1 
+		          WHERE TT1.RN = 1 AND TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN) AS RS_NM
 		  FROM TB_CBBO_BND_CNTR_BAS T1 /*채권계약기본*/
 		  LEFT OUTER JOIN TB_CUBS_CST_BAS T2 /* 고객기본 */
 		    ON T1.CST_NO = T2.CST_NO
@@ -884,8 +899,6 @@
              , TEL_CNSL_CN AS CNSL_CN
           FROM TB_CBBO_BND_TEL_CNSL_IZ T1
          WHERE T1.CST_NO = #{schCstNo}
-           AND T1.CNTR_NO = #{schCntrNo} 
-           AND T1.CNTR_SN = #{schCntrSn}
          ORDER BY T1.FST_RGST_DTM DESC
     </select>
     

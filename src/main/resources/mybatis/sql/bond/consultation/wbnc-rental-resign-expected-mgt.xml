@@ -115,14 +115,21 @@
              , (CASE WHEN A.CLCTAM_PRTNR_NO IS NULL THEN 'N' ELSE 'Y' END) AS CLCTAM_YN /*집금자여부*/
              , NVL(M_2.PD_RVE_AMT - M_2.RFND_RVE_AMT,0) AS RVE_AMT /*입금액*/
              , A.AUTH_RSG_EXCD_RQR_PRTNR_NO                 /*당월제외사번*/
-             , MIN(A.BASE_YM) OVER(PARTITION BY A.CNTR_NO ,A.CNTR_SN) AS RQR_BASE_YM /* 최초제외월 */
-             ,CASE WHEN A.SELL_TP_CD = '2' THEN (
+             , CASE WHEN A.AUTH_RSG_EXCD_RQR_PRTNR_NO IS NULL THEN ''
+                     ELSE ( SELECT MIN(Z.BASE_YM)
+                           FROM TB_CBBO_WELLS_AUTH_RSG_IZ Z
+                           WHERE Z.CNTR_NO = A.CNTR_NO
+                             AND Z.CNTR_SN = A.CNTR_SN
+                             AND Z.AUTH_RSG_EXCD_RQR_PRTNR_NO IS NOT NULL
+                           )
+               END AS RQR_BASE_YM /* 최초제외월 */
+             , CASE WHEN A.SELL_TP_CD = '2' THEN (
                         NVL(M_2.PD_RVE_AMT,0) - NVL(M_2.RFND_RVE_AMT,0) + NVL(M3_2.PD_RVE_AMT,0) - NVL(M3_2.RFND_RVE_AMT,0)
                    )
                    WHEN A.SELL_TP_CD = '6' THEN (
 	                    NVL(M_6.PD_RVE_AMT,0) - NVL(M_6.RFND_RVE_AMT,0) + NVL(M3_6.PD_RVE_AMT,0) - NVL(M3_6.RFND_RVE_AMT,0)
                    )
-              END AS ACU_RVE_AMT          /*총미납금액*/
+               END AS ACU_RVE_AMT          /*총미납금액*/
              , B.BRYY_MMDD                                  /*생년월일*/
              , C.CNTR_TP_CD                                 /*계약구분코드*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_TP_CD', C.CNTR_TP_CD , #{session.langId}) AS CNTR_TP_NM /*계약구분명*/
@@ -632,7 +639,7 @@
            AND D.OG_TP_CD = A.SELL_OG_TP_CD
            AND D.PRTNR_NO = A.SELL_PRTNR_NO
           LEFT JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
-            ON F.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(C.SL_CL_YM,'YYYYMM'),1),'YYYYMM')	/* 채권.BASE_YM = 재권외.M+1 */
+            ON F.BASE_YM = C.SL_CL_YM
            AND F.CNTR_NO = C.CNTR_NO
            AND F.CNTR_SN = C.CNTR_SN
            AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
@@ -918,7 +925,7 @@
            AND D.OG_TP_CD = A.SELL_OG_TP_CD
            AND D.PRTNR_NO = A.SELL_PRTNR_NO
           LEFT JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
-            ON F.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(C.SL_CL_YM,'YYYYMM'),1),'YYYYMM')	/* 채권.BASE_YM = 재권외.M+1 */
+            ON F.BASE_YM = C.SL_CL_YM
            AND F.CNTR_NO = C.CNTR_NO
            AND F.CNTR_SN = C.CNTR_SN
            AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
@@ -1007,7 +1014,7 @@
                                            AND CNTR_NO = T.CNTR_NO
                                            AND CNTR_SN = T.CNTR_SN
                                            AND RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
-                                           AND RVE_DT LIKE SUBSTR(#{baseDt},1,6)||'%'   /*수납월*/
+                                           AND RVE_DT BETWEEN SUBSTR(#{baseDt} , 0, 6) || '01' AND SUBSTR(#{baseDt} , 0, 6) || '31' /*수납월*/
                                        ) I
                        ON 1 = 1
                     <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
@@ -1171,7 +1178,7 @@
                                            AND S1.RVE_DT BETWEEN T.BASE_YM || '01' AND T.BASE_YM || '31'
                                            AND S1.CNTR_NO = T.LK_CNTR_NO
                                            AND S1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
-                                           AND S1.RVE_DT LIKE SUBSTR(#{baseDt},1,6)||'%'   /*수납월*/
+                                           AND S1.RVE_DT BETWEEN SUBSTR(#{baseDt} , 0, 6) || '01' AND SUBSTR(#{baseDt} , 0, 6) || '31' /*수납월*/
                                            AND S2.SELL_TP_CD = '6'  /*판매유형코드->6:정기배송*/
                                        ) I  /*T:수납상세->정기배송 수납정보*/
                        ON 1 = 1
@@ -1185,7 +1192,7 @@
                                            AND S1.RVE_DT BETWEEN T.BASE_YM || '01' AND T.BASE_YM || '31'
                                            AND S1.CNTR_NO = T.LK_CNTR_NO
                                            AND S1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
-                                           AND S1.RVE_DT LIKE SUBSTR(#{baseDt},1,6)||'%'   /*수납월*/
+                                           AND S1.RVE_DT BETWEEN SUBSTR(#{baseDt} , 0, 6) || '01' AND SUBSTR(#{baseDt} , 0, 6) || '31' /*수납월*/
                                            AND S2.SELL_TP_CD = '2'  /*판매유형코드->2:렌탈*/
                                        ) J  /*T:수납상세->렌탈기기 수납정보*/
                        ON 1 = 1

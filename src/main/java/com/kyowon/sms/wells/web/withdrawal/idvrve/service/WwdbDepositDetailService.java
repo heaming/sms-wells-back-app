@@ -26,6 +26,12 @@ public class WwdbDepositDetailService {
 
     private final WwdbDepositDetailConvert convert;
 
+    /**
+     * 입금내역 조회
+     * @param dto
+     * @param pageInfo
+     * @return
+     */
     @Transactional
     public PagingResult<SearchRes> getDepositDetailPages(SearchReq dto, PageInfo pageInfo) {
         WwdbDepositDetailSearchDvo dvo = convert.mapWwdbDepositDetailSearchDvo(dto);
@@ -36,6 +42,11 @@ public class WwdbDepositDetailService {
         return mapper.selectDepositDetail(dvo, pageInfo);
     }
 
+    /**
+     * 입금내역 엑셀다운로드
+     * @param dto
+     * @return
+     */
     @Transactional
     public List<SearchRes> getDepositDetailExcels(SearchReq dto) {
         WwdbDepositDetailSearchDvo dvo = convert.mapWwdbDepositDetailSearchDvo(dto);
