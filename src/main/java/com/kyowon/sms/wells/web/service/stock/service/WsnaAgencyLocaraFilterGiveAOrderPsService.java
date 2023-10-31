@@ -29,7 +29,7 @@ public class WsnaAgencyLocaraFilterGiveAOrderPsService {
         return mapper.selectAgencyLocaraFilterGiveAOrderPsAgrgs(dto);
     }
 
-    public PagingResult getAgencyLocaraFilterGiveAOrderPsPages(
+    public PagingResult<SearchRes> getAgencyLocaraFilterGiveAOrderPsPages(
         SearchReq dto, PageInfo pageInfo
     ) {
         PagingResult<WsnaAgencyLocaraFilterGiveAOrderPsDvo> dvos = mapper
