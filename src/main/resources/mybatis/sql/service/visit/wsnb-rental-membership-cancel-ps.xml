@@ -2,7 +2,129 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbRentalMembershipCancelPsMapper">
     <select id="selectRentalMembershipCancelPss" resultType="camelMap">
-       SELECT '1'
-       FROM DUAL
+		WITH OG_INF_PRTNR AS
+		(
+            /* 조직정보 파트너 */
+            SELECT T1.BASE_YM
+                 , T1.OG_TP_CD
+                 , T1.PRTNR_NO
+                 , T1.PSTN_DV_CD
+                 , F_CMZ_CD_NM('TNT_WELLS', 'WELLS_OJ_PSTN_RANK_CD', T1.PSTN_DV_CD, 'ko') AS PSTN_DV_CD_NM
+                 , T1.RSB_DV_CD
+                 , T1.FST_CNTR_DT
+                 , T1.RCNTR_DT
+                 , T1.PRTNR_KNM
+                 , T1.OG_ID
+                 , T1.OG_CD
+                 , T1.OG_NM
+                 , T3.BLD_CD
+                 , T3.BLD_NM
+                 , T1.HMNRSC_DEPT_CD   /*인사부서코드*/
+                 , T3.HGR_OG_ID
+                 , T3.DGR1_LEVL_OG_ID
+                 , T3.DGR2_LEVL_OG_ID
+                 , T3.DGR3_LEVL_OG_ID
+                 , T4.OG_NM AS HGR_OG_NM
+                 , RANK() OVER(PARTITION BY T1.PRTNR_NO ORDER BY T1.OG_TP_CD DESC) AS RNK
+            FROM TB_OGBS_MM_PRTNR_IZ T1 /*월파트너내역*/
+            INNER JOIN TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
+             ON T1.PRTNR_NO = T2.PRTNR_NO
+             AND T1.OG_TP_CD = T2.OG_TP_CD
+             AND T2.DTA_DL_YN = 'N'
+            INNER JOIN TB_OGBS_MM_OG_IZ T3   /*월조직내역*/
+             ON T1.OG_ID = T3.OG_ID
+             AND T1.BASE_YM = T3.BASE_YM
+             AND T3.DTA_DL_YN = 'N'
+            LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T4   /*월조직내역*/
+             ON T3.BASE_YM = T4.BASE_YM
+             AND T3.HGR_OG_ID = T4.OG_ID
+             AND T4.DTA_DL_YN = 'N'
+             WHERE 1=1
+              AND T1.BASE_YM = '202310'
+              AND T1.DTA_DL_YN = 'N'
+             ORDER BY T1.PRTNR_KNM
+        )
+		SELECT T1.CNTR_NO
+             , T2.CNTR_SN
+             , T7.OG_ID AS SELL_OG_ID
+             , T7.OG_CD AS SELL_OG_CD
+             , T7.OG_NM AS SELL_OG_NM
+             , T6.DGR1_LEVL_OG_ID
+             , T6.DGR2_LEVL_OG_ID
+             , T6.DGR3_LEVL_OG_ID
+             , T6.OG_ID
+		     , T6.OG_CD
+             , T6.OG_NM
+             , T9.RCGVP_KNM
+             , T9.CRAL_LOCARA_TNO
+             , T9.MEXNO_ENCR
+             , T9.CRAL_IDV_TNO
+             , T10.NEW_ADR_ZIP
+             , T10.RNADR
+             , T10.RDADR
+          FROM TB_SSCT_CNTR_BAS T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.SELL_TP_CD  IN ('2','3')  /* 판매유형코드 : 렌탈(2),멤버십(3)*/
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_PRTNR_REL T3
+            ON T3.CNTR_NO = T1.CNTR_NO
+           AND T3.PRTNR_NO  = T1.SELL_PRTNR_NO
+           AND T3.OG_TP_CD = T1.SELL_OG_TP_CD
+           AND T3.CNTR_PRTNR_TP_CD  IN ('010')      /* 계약파트너유형코드 : 판매자(010) */
+           AND T3.VL_END_DTM = '99991231235959'
+           AND T3.DTA_DL_YN = 'N'
+         LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ T4
+           ON  T4.CNTR_NO = T1.CNTR_NO
+         LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T5
+           ON  T4.MNGT_PRTNR_NO = T5.PRTNR_NO
+           AND T4.MNGT_YM  = T5.BASE_YM
+           AND T4.MNGT_PRTNR_OG_TP_CD    = T5.OG_TP_CD
+         LEFT OUTER JOIN OG_INF_PRTNR T6 /*파트너기본*/
+           ON T5.BASE_YM = T6.BASE_YM
+          AND T5.OG_TP_CD = T6.OG_TP_CD
+          AND T5.PRTNR_NO = T6.PRTNR_NO
+         LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
+           ON  T3.PRTNR_NO = T7.PRTNR_NO
+           AND T3.OG_TP_CD = T7.OG_TP_CD
+           AND T3.OG_ID    = T7.OG_ID
+           AND TO_CHAR(TO_DATE(T7.BASE_YM,'YYYYMM'),'YYYYMM') BETWEEN SUBSTR(T3.VL_STRT_DTM,1,6) AND SUBSTR(T3.VL_END_DTM,1,6)
+         LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T8 /*계약주소관계*/
+		   ON T2.CNTR_NO = T8.DTL_CNTR_NO
+		   AND T2.CNTR_SN = T8.DTL_CNTR_SN
+		   AND T8.ADRPC_TP_CD = '3'    /*1 계약주소, 2 배달주소,3 설치주소*/
+		   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T8.VL_STRT_DTM AND T8.VL_END_DTM
+		 LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T9
+            ON T8.CNTR_ADRPC_ID = T9.CNTR_ADRPC_ID
+           AND T9.DTA_DL_YN = 'N'
+         LEFT OUTER JOIN TB_GBCO_ADR_BAS T10
+            ON T9.ADR_ID = T10.ADR_ID
+           AND T10.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T1.DTA_DL_YN = 'N'
+           AND SUBSTR(CNTR_CNFM_DTM, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')
+           /* 검색 조건 */
+           <if test="@MybatisUtils@isNotEmpty(sellTpCd) and @MybatisUtils@equals(sellTpCd, '1')">
+           AND T2.SELL_TP_CD = '3' /*판매유형 : 멤버십 */
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(sellTpCd) and @MybatisUtils@equals(sellTpCd, '2')">
+           AND T2.SELL_TP_CD = '2' /*판매유형 : 렌탈 */
+           </if>
+           /* 조직 검색 조건 */
+           <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+           AND T6.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}   /* 총괄단조건(1차레벨조직코드) */
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+           AND T6.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}   /* 지역단조건(2차레벨조직코드)*/
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+           AND T6.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}   /* 지점조건(3차레벨조직코드)*/
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND T6.PRTNR_NO = #{prtnrNo}               /* 엔지니어/매니저 파트너번호 */
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(ogId)">
+           AND T6.OG_ID = #{ogId}                     /* 서비스센터 */
+           </if>
     </select>
 </mapper>
