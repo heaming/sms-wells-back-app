@@ -24,8 +24,6 @@ public class WsnaAsMaterialOutOfStoragePsDvo {
 
     String cntrSn;
 
-    String newAdrZip;
-
     String rnadr; //주소
 
     String rdadr; //주소 상세
@@ -36,4 +34,53 @@ public class WsnaAsMaterialOutOfStoragePsDvo {
     String exnoEncr; //전화국번호암호화(전화번호)
 
     String idvTno; //개별전화번호(전화번호)
+
+    String cntrRcpFshDtm;
+
+    String newAdrZip;
+
+    String itmPdCd;
+
+    String itmPdNm;
+
+    String useQty;
+
+    String pdNm;
+
+    String pdGdCd;
+
+    String refriDvNm;
+
+    String rcgvpKnm;
+
+    String egerCnrNm;
+
+    String wkPrgsStatNm;
+
+    String vstFshDt;
+
+    String istDt;
+
+    String vstCnfmdt;
+
+    String modelNm;
+
+    String fnlBcNo;
+
+    String bcNo;
+
+    String svBizHclsfNm;
+
+    String prtnrNm;
+
+    String asLctNm;
+
+    String asPhnNm;
+
+    String asCausNm;
+
+    String svProcsCn;
+
+    String cnslMoCn;
+
 }

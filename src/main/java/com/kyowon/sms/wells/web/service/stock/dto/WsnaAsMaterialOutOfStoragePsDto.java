@@ -44,7 +44,55 @@ public class WsnaAsMaterialOutOfStoragePsDto {
 
         String exnoEncr, //전화국번호암호화(전화번호)
 
-        String idvTno //개별전화번호(전화번호)
+        String idvTno, //개별전화번호(전화번호)
+
+        String cntrRcpFshDtm,
+
+        String newAdrZip,
+
+        String itmPdCd,
+
+        String itmPdNm,
+
+        String useQty,
+
+        String pdNm,
+
+        String pdGdCd,
+
+        String refriDvNm,
+
+        String rcgvpKnm,
+
+        String egerCnrNm,
+
+        String wkPrgsStatNm,
+
+        String vstFshDt,
+
+        String istDt,
+
+        String vstCnfmdt,
+
+        String modelNm,
+
+        String fnlBcNo,
+
+        String bcNo,
+
+        String svBizHclsfNm,
+
+        String prtnrNm,
+
+        String asLctNm,
+
+        String asPhnNm,
+
+        String asCausNm,
+
+        String svProcsCn,
+
+        String cnslMoCn
     ) {
         public SearchRes {
             exnoEncr = DbEncUtil.dec(exnoEncr);

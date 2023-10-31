@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaAsMaterialOutOfStoragePsConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialOutOfStoragePsDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialOutOfStoragePsDto.SearchRes;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaAsMaterialOutOfStoragePsMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -20,13 +21,14 @@ public class WsnaAsMaterialOutOfStoragePsService {
 
     private final WsnaAsMaterialOutOfStoragePsConverter converter;
 
-    public PagingResult getAsMaterialOutOfStoragePsPages(SearchReq dto, PageInfo pageInfo) {
-        // return converter.mapDvoToSearchResPages(mapper.selectAsMaterialOutOfStorages(dto, pageInfo));
-        return mapper.selectAsMaterialOutOfStorages(dto, pageInfo);
+    public PagingResult<SearchRes> getAsMaterialOutOfStoragePsPages(SearchReq dto, PageInfo pageInfo) {
+        PagingResult<SearchRes> pagingResult = converter
+            .mapDvoToSearchResPages(mapper.selectAsMaterialOutOfStorages(dto, pageInfo));
+        pagingResult.setPageInfo(pageInfo);
+        return pagingResult;
     }
 
-    public List getAsMaterialOutOfStoragePsForExcelDownload(SearchReq dto) {
-        // return converter.mapDvoToSearchRes(mapper.selectAsMaterialOutOfStorages(dto));
-        return mapper.selectAsMaterialOutOfStorages(dto);
+    public List<SearchRes> getAsMaterialOutOfStoragePsForExcelDownload(SearchReq dto) {
+        return converter.mapDvoToSearchRes(mapper.selectAsMaterialOutOfStorages(dto));
     }
 }
