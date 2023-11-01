@@ -33,7 +33,7 @@
              , MC.MCHN_CH_TP_CD /* 기변유형 LCFLAG */
              , MC.MCHN_CPS_APYR /* 기변실적율 LCRATE */
              , MC.OJ_CNTR_NO AS OJ_CNTR_NO1 /* 기변1년도 LCCOD1 */
-             , '' AS OJ_CNTR_NO2 /* 기변2년도 LCCOD2 , TOBE Column 없음, ASIS 데이터도 없음 */
+             , '' AS OJ_CNTR_NO2 /* 기변2년도 LCCOD2 , TOBE Column 없음, ASIS 데이터도 둘중 하나만 있음, 데이터 이관 시 두 데이터 중 하나만 이관 */
              , CD.ALNCMP_CD /* 제휴코드 LCETC8 */
              , PM.PMOT_CD /* 프로모션 번호 LCCK02 */
              , CB.FST_RGST_PRG_ID /* 등록PGM LCEPGM */
@@ -54,11 +54,20 @@
            AND MP.OG_ID = MO.OG_ID
          INNER JOIN TB_PDBS_PD_BAS PB
             ON CD.BASE_PD_CD = PB.PD_CD
+          LEFT OUTER JOIN TB_SSCT_CNTR_REL CR /* 계약관계 */
+            ON CR.BASE_DTL_CNTR_NO = CD.CNTR_NO
+           AND CR.BASE_DTL_CNTR_SN = CD.CNTR_SN
+           AND CR.CNTR_REL_DTL_CD = '215' /* 1+1 연계만 대상 */
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL RCD /* 연결 계약상세 */
+            ON RCD.CNTR_NO = CR.OJ_DTL_CNTR_NO
+           AND RCD.CNTR_SN = CR.OJ_DTL_CNTR_SN
           LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ MC /* 기기변경내역 */
             ON MC.BASE_CNTR_NO = CD.CNTR_NO
            AND MC.BASE_CNTR_SN = CD.CNTR_SN
           LEFT OUTER JOIN TB_SSCT_CNTR_BAS CCB  /*T 변경렌탈내역 T*/
             ON MC.OJ_CNTR_NO = CCB.CNTR_NO
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL CCD /* 변경 계약상세 */
+            ON CCD.CNTR_NO = CCB.CNTR_NO
           LEFT OUTER JOIN LATERAL (
                  SELECT A.PMOT_CD
                       , A.PMOT_FVR_AMT
@@ -76,44 +85,133 @@
           LEFT OUTER JOIN TB_PDBS_PD_PRC_FNL_DTL PFD /* 상품가격최종상세 */
             ON PFD.PD_PRC_FNL_DTL_ID = CPC.PD_PRC_FNL_DTL_ID
            AND PFD.VER_SN = CPC.VER_SN
-          LEFT OUTER JOIN TB_PDBS_PMOT_APY_FVR_DTL AF /* 프로모션적용혜택상세 */
-            ON AF.PMOT_CD = PM.PMOT_CD
-           AND CD.CNTR_PD_STRTDT BETWEEN AF.VL_STRT_DTM AND AF.VL_END_DTM
+          LEFT OUTER JOIN TB_PDBS_PMOT_APY_CNDT_DTL AC /* 프로모션조건상세 */
+            ON AC.PMOT_CD = PM.PMOT_CD
+           AND CD.CNTR_PD_STRTDT BETWEEN AC.VL_STRT_DTM AND AC.VL_END_DTM
           LEFT OUTER JOIN (
-                 SELECT A.PMOT_FVR_ID
-                      , A.HGR_PMOT_FVR_ID
+                 SELECT A.PMOT_CNDT_ID
+                      , A.HGR_PMOT_CNDT_ID
                       , CONNECT_BY_ROOT (F.VARB_BAS_VAL) AS VARB_BAS_VAL
                       , CONNECT_BY_ROOT (F.VL_STRT_DTM) AS VL_STRT_DTM
                       , CONNECT_BY_ROOT (F.VL_END_DTM) AS VL_END_DTM
                       , CONNECT_BY_ISLEAF AS IS_LEAF
-                   FROM TB_PDBS_PMOT_FVR_BAS A
-                   LEFT OUTER JOIN TB_PDBS_PMOT_FVR_DTL F
-                     ON A.PMOT_FVR_ID = F.PMOT_FVR_ID
+                   FROM TB_PDBS_PMOT_CNDT_BAS A
+                   LEFT OUTER JOIN TB_PDBS_PMOT_CNDT_DTL F
+                     ON A.PMOT_CNDT_ID = F.PMOT_CNDT_ID
                     AND F.DTA_DL_YN = 'N'
-                CONNECT BY PRIOR A.HGR_PMOT_FVR_ID = A.PMOT_FVR_ID
-                  START WITH F.PMOT_FVR_ATC_ID = 'PDI000000000037') LF
-            ON LF.IS_LEAF = 1
-           AND LF.PMOT_FVR_ID = AF.PMOT_FVR_ID
-           AND CD.CNTR_PD_STRTDT BETWEEN LF.VL_STRT_DTM AND LF.VL_END_DTM
-         WHERE 1=1
-           AND CD.SELL_TP_CD = '2' /* v 렌탈 */
-           AND CD.CNTR_DTL_STAT_CD = '101' /* v 정상계약 : 취소가 아님 */
-           AND CD.CTT_RS_CD = '01' /* v 컨택코드 */
-           AND CD.BASE_PD_CD != 'WP02120086' /* ASIS LCICDE = '4129'  */
-           AND CD.FRISU_YN != 'Y' /* v 체험유무(LCEGUB) */
-           AND CD.SELL_DSC_DV_CD != '5' /* 할인구분 ASIS (2직원, 5공구) TOBE (5:법인단체 ) */
-           AND CB.SELL_INFLW_CHNL_DTL_CD != '9020' /* 직원판매 제외 */
-           AND (
+                CONNECT BY PRIOR A.HGR_PMOT_CNDT_ID = A.PMOT_CNDT_ID
+                  START WITH F.PMOT_CNDT_ATC_ID = 'PDD000000000022' /* 기기변경이전상품명 */
+               ) LC
+           ON LC.IS_LEAF = 1
+          AND LC.PMOT_CNDT_ID = AC.PMOT_CNDT_ID
+          AND CD.CNTR_PD_STRTDT BETWEEN LC.VL_STRT_DTM AND LC.VL_END_DTM
+         LEFT OUTER JOIN TB_PDBS_PMOT_APY_FVR_DTL AF /* 프로모션적용혜택상세 */
+           ON AF.PMOT_CD = PM.PMOT_CD
+          AND CD.CNTR_PD_STRTDT BETWEEN AF.VL_STRT_DTM AND AF.VL_END_DTM
+          AND (
+                  LC.VARB_BAS_VAL IS NULL OR -- ASIS E.LCCICD='' OR 기기이전상품이 없거나
+                  (CD.SELL_DSC_TP_CD = '03' AND LC.VARB_BAS_VAL = RCD.BASE_PD_CD) OR -- ASIS (E.LCCICD != '' AND A.LCFLG4='03' AND E.LCCICD=F.LCICD1) OR 없지 않고 할인제도가 03이고 기기이전상품이 프로모션 연계 상품1 이거나
+                  (MC.MCHN_CH_TP_CD IS NOT NULL AND LC.VARB_BAS_VAL = CCD.BASE_PD_CD) -- ASIS (E.LCCICD != '' AND A.LCETC7='Y' AND E.LCCICD IN (B.LCICD2,B.LCICD1)) 없지 않고 기기변경여부가 Y 이고 기기이전상품이 기변1년도, 기변2년도 상품이면
+              )
+         LEFT OUTER JOIN (
+                SELECT A.PMOT_FVR_ID
+                     , A.HGR_PMOT_FVR_ID
+                     , CONNECT_BY_ROOT (F.VARB_BAS_VAL) AS VARB_BAS_VAL
+                     , CONNECT_BY_ROOT (F.VL_STRT_DTM) AS VL_STRT_DTM
+                     , CONNECT_BY_ROOT (F.VL_END_DTM) AS VL_END_DTM
+                     , CONNECT_BY_ISLEAF AS IS_LEAF
+                  FROM TB_PDBS_PMOT_FVR_BAS A
+                  LEFT OUTER JOIN TB_PDBS_PMOT_FVR_DTL F
+                    ON A.PMOT_FVR_ID = F.PMOT_FVR_ID
+                   AND F.DTA_DL_YN = 'N'
+               CONNECT BY PRIOR A.HGR_PMOT_FVR_ID = A.PMOT_FVR_ID
+                 START WITH F.PMOT_FVR_ATC_ID = 'PDI000000000037' /* 기준수수료 */
+              ) LF
+           ON LF.IS_LEAF = 1
+          AND LF.PMOT_FVR_ID = AF.PMOT_FVR_ID
+          AND CD.CNTR_PD_STRTDT BETWEEN LF.VL_STRT_DTM AND LF.VL_END_DTM
+        WHERE 1=1
+          AND CD.SELL_TP_CD = '2' /* v 렌탈 */
+          AND CD.CNTR_DTL_STAT_CD = '101' /* v 정상계약 : 취소가 아님 */
+          AND CD.CTT_RS_CD = '01' /* v 컨택코드 */
+          AND CD.BASE_PD_CD != 'WP02120086' /* ASIS LCICDE = '4129'  */
+          AND CD.FRISU_YN != 'Y' /* v 체험유무(LCEGUB) */
+          AND CD.SELL_DSC_DV_CD != '5' /* 할인구분 ASIS (2직원, 5공구) TOBE (5:법인단체 ) */
+          AND CB.SELL_INFLW_CHNL_DTL_CD != '9020' /* 직원판매 제외 */
+          AND (
                 /* v 2:배송에약 */
                 (NVL(CD.BOO_SELL_TP_CD, '0') = '2' AND SUBSTR(CB.CNTR_RCP_FSH_DTM,1,6) = #{perfYm}) OR /* 계약년월 */
                 (NVL(CD.BOO_SELL_TP_CD, '0') != '2' AND SUBSTR(CD.CNTR_PD_STRTDT,1,6) = #{perfYm}) /* 매출년월 */
-               )
-           AND CD.RSTL_YN = 'N' /* 재약정 여부 N */
-           AND (
+              )
+          AND CD.RSTL_YN = 'N' /* 재약정 여부 N */
+          AND (
                 /* v 에듀제휴,홈쇼핑 제외 */
                 NVL(CD.ALNCMP_CD, '0') NOT IN ('01', '03', '18', '19', '20', '21', '26', '27', '28', '29', '31', '32', '43', '44', '45')
                 OR (MC.MCHN_CPS_APYR = 0 AND CD.FNL_AMT > 0)
-               )
+              )
+          AND ( -- ASIS 'X' 조회 로직
+                (
+                    -- ASIS WHEN A.LCRCDE>0 AND (S5.LCBAM1 != A.LCGUB5*A.LCPRAT/100 OR S5.LCBGB1 != A.LCST13) THEN 'X'
+                    CD.HGR_PD_CD IS NOT NULL AND -- TOBE 는 패키지, 기준상품 가격 조회 통일
+                    (CD.FEE_ACKMT_BASE_AMT * CD.ACKMT_PERF_RT / 100 != PFD.PD_PRC_FNL_PRP_VAL03 OR
+                    CD.FEE_FXAM_YN != PFD.PD_PRC_FNL_PRP_VAL03)
+                ) OR
+                (
+                    -- ASIS WHEN E.LCPCOD IS NOT NULL AND (A.LCGUB5 != TRUNC(E.LCBAM1*A.LCPRAT/100,0)) THEN 'X'
+                    AF.PMOT_CD IS NOT NULL AND CD.FEE_ACKMT_BASE_AMT != TRUNC(LF.VARB_BAS_VAL * CD.ACKMT_PERF_RT / 100)
+                ) OR
+                (
+                    -- ASIS WHEN A.LCRCDE=0 AND E.LCPCOD IS NULL AND S4.LCICD3 IS NOT NULL AND A.LCETC7='Y' AND B.LCFLG1=18 AND A.LCICDE IN ('4715','4615','4716','4616') AND A.LCGUB5 != 5000 THEN 'X'
+                    CD.HGR_PD_CD IS NULL AND
+                    AF.PMOT_CD IS NULL AND
+                    PFD.PD_CD IS NOT NULL AND
+                    NVL(MC.MCHN_CH_TP_CD,0) > 0 AND
+                    MC.MCHN_CH_TP_CD = 18 AND
+                    PB.PD_CD IN ('WP01120346', 'WP01120347', 'WP01120380', 'WP01120381') AND
+                    CD.FEE_ACKMT_BASE_AMT != 5000
+                ) OR
+                (
+                    -- ASIS WHEN A.LCRCDE=0 AND E.LCPCOD IS NULL AND S4.LCICD3 IS NOT NULL AND A.LCETC7='Y' AND B.LCFLG1=18 AND A.LCICDE NOT IN ('4715','4615','4716','4616') AND A.LCCGUB='1' AND A.LCGUB5 != 10000 THEN 'X'
+                    CD.HGR_PD_CD IS NULL AND
+                    AF.PMOT_CD IS NULL AND
+                    PFD.PD_CD IS NOT NULL AND
+                    NVL(MC.MCHN_CH_TP_CD, 0) > 0 AND
+                    MC.MCHN_CH_TP_CD = 18 AND
+                    PB.PD_CD NOT IN ('WP01120346', 'WP01120347', 'WP01120380', 'WP01120381') AND
+                    CB.COPN_DV_CD = 1 AND
+                    CD.FEE_ACKMT_BASE_AMT != 10000
+                ) OR
+                (
+                    -- ASIS WHEN A.LCRCDE=0 AND E.LCPCOD IS NULL AND S4.LCICD3 IS NOT NULL AND A.LCETC7='Y' AND B.LCFLG1=18 AND A.LCST13 != 'Y' THEN 'X'
+                    CD.HGR_PD_CD IS NULL AND
+                    AF.PMOT_CD IS NULL AND
+                    PFD.PD_CD IS NOT NULL AND
+                    NVL(MC.MCHN_CH_TP_CD, 0) > 0 AND
+                    MC.MCHN_CH_TP_CD = 18 AND
+                    CD.FEE_FXAM_YN != 'Y'
+                ) OR
+                (
+                    -- ASIS WHEN A.LCRCDE=0 AND E.LCPCOD IS NULL AND S4.LCICD3 IS NOT NULL AND A.LCETC7='Y' AND B.LCFLG1=18 AND A.LCICDE NOT IN ('4715','4615','4716','4616') AND A.LCCGUB != '1' AND A.LCGUB5 != S4.LCBAM1 THEN 'X'
+                    CD.HGR_PD_CD IS NULL AND
+                    AF.PMOT_CD IS NULL AND
+                    PFD.PD_CD IS NOT NULL AND
+                    NVL(MC.MCHN_CH_TP_CD, 0) > 0 AND
+                    MC.MCHN_CH_TP_CD = 18 AND
+                    PB.PD_CD NOT IN ('WP01120346', 'WP01120347', 'WP01120380', 'WP01120381') AND
+                    CB.COPN_DV_CD != 1 AND
+                    CD.FEE_ACKMT_BASE_AMT != LF.VARB_BAS_VAL
+                ) OR
+                (
+                    -- ASIS WHEN A.LCRCDE=0 AND E.LCPCOD IS NULL AND S4.LCICD3 IS NOT NULL AND NOT (A.LCETC7='Y' AND B.LCFLG1=18) AND (A.LCGUB5 != TRUNC(S4.LCBAM1*A.LCPRAT/100,0)) THEN 'X'
+                    CD.HGR_PD_CD IS NULL AND
+                    AF.PMOT_CD IS NULL AND
+                    PFD.PD_CD IS NOT NULL AND
+                    NOT (NVL(MC.MCHN_CH_TP_CD, 0) > 0 AND
+                    MC.MCHN_CH_TP_CD = 18) AND
+                    CD.FEE_ACKMT_BASE_AMT != LF.VARB_BAS_VAL * CD.ACKMT_PERF_RT / 100
+                )
+                OR 1=1 /* 계약가격산출내역 테이블(TB_SSCT_CNTR_PRC_CMPT_IZ) 이관이 안되어있어 데이터 조회를 위해 임시 조건 무효화 */
+              )
     </select>
 
 </mapper>
