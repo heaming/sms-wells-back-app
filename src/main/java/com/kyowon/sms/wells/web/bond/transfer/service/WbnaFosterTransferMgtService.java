@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.bond.transfer.service;
 
 import java.util.*;
 
+import com.kyowon.sms.common.web.bond.transfer.service.ZbnaBondTransferConfirmService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,7 @@ public class WbnaFosterTransferMgtService {
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
     private final ZbnaExcelHistoryMgtService zbnaExcelHistoryMgtService;
+    private final ZbnaBondTransferConfirmService bondTransferConfirmService;
     private static final String MSG_ALT_SVE_ERR_STR = "MSG_ALT_SVE_ERR";
 
     public List<SearchRes> getFosterTransfers(SearchReq dto) {
@@ -74,6 +76,9 @@ public class WbnaFosterTransferMgtService {
 
                 String runId = batchCallService.runJob(batchDvo);
                 BizAssert.isTrue(StringUtils.isNotEmpty(runId), MSG_ALT_SVE_ERR_STR);
+
+                // 위탁이관 가상계좌 발급 관련 배치 호출(우선 성공여부 신경쓰지 않고 호출만)
+                bondTransferConfirmService.runBndVirtualAccountIssueObjJob(dto.baseYm(), "03", "02");
 
                 data = StringUtil.isBlank(runId) ? "S" : "E";
             }
