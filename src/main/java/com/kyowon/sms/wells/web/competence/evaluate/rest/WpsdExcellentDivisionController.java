@@ -1,20 +1,17 @@
 package com.kyowon.sms.wells.web.competence.evaluate.rest;
 
-import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionDto.SearchContestReq;
-import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionDto.SearchContestRes;
-import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionDto.SearchReq;
+import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionDto.*;
 import com.kyowon.sms.wells.web.competence.evaluate.service.WpsdExcellentDivisionService;
 import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.HashMap;
@@ -44,7 +41,7 @@ public class WpsdExcellentDivisionController {
         SearchReq dto,
         @Valid
         PageInfo pageInfo
-    ) throws Exception {
+    ) {
         return service.getExcellentDivisionPages(dto, pageInfo);
     }
 
@@ -64,8 +61,9 @@ public class WpsdExcellentDivisionController {
         return service.getExcellentDivisionsForExcelDownload(dto);
     }
 
-    @ApiOperation(value = "우수사업부 현황 - 경진조 조회", notes = "")
+    @ApiOperation(value = "우수사업부 현황 - 경진조 조회", notes = "경진조 조회")
     @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "evlDvCd", value = "평가구분코드", paramType = "query", required = true),
     })
@@ -75,6 +73,45 @@ public class WpsdExcellentDivisionController {
         SearchContestReq req
     ){
         return service.getContestGroupList(req);
+    }
+    @ApiOperation(value = "우수사업부 현황 - 평가직책 조회", notes = "경진조 등록 팝업 내에 평가 직책 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "evlDvCd", value = "평가구분코드", paramType = "query", required = true),
+    })
+    @GetMapping("/evaluation-responsibility")
+    public List<SearchEvlRsbRes> getEvaluationResponsibility(
+        @Valid
+        SearchEvlRsbReq req
+    ){
+        return service.getEvaluationResponsibility(req);
+    }
+
+    @ApiOperation(value = "우수사업부 현황 - 조직별 경진 그룹 조회", notes = "경진조 등록 팝업 내에 조직별 경진그룹 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "evlDvCd", value = "평가구분코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "evlRsbDvCd", value = "평가직책구분코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ctstGrpCd", value = "경진그룹코드", paramType = "query" ),
+    })
+    @GetMapping("/contest-responsibility")
+    public List<SearchContestRsbRes> getContestResponsibilityGroupList(
+        @Valid
+        SearchContestRsbReq req
+    ){
+        return service.getContestResponsibilityGroupList(req);
+    }
+
+    @ApiOperation(value = "우수사업부 현황 - 조직별 경진 저장", notes = "경진조 등록 팝업 내에 조직별 경진그룹 저장")
+    @PostMapping("/contest-responsibility")
+    public SaveResponse saveContestResponsibilityGroup(
+        @Valid
+        @RequestBody
+        List<SearchContestRsbRes> reqs
+    ){
+        return SaveResponse.builder().processCount(service.saveContestResponsibilityGroup(reqs))
+            .build();
     }
 
 }
