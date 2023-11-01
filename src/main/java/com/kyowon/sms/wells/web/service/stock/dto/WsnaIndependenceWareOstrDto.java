@@ -149,7 +149,11 @@ public class WsnaIndependenceWareOstrDto {
         // 출고창고파트너번호
         String ostrPrtnrNo,
         // 출고창고파트너조직유형코드
-        String ostrPrtnrOgTpCd
+        String ostrPrtnrOgTpCd,
+        // 물류재고
+        BigDecimal logisticStocQty,
+        // 입고창고명
+        String wareNm
     ) {}
 
     @Builder

@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndependenceWareOstrDto.*;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -222,7 +223,8 @@ public class WsnaIndependenceWareOstrService {
 
         // 입고창고 필터링
         List<WsnaIndependenceWareOstrDvo> filterDvos = dvos.stream()
-            .filter(distinctByKey(dvo -> dvo.getStrWareNo())).toList();
+            .filter(distinctByKey(dvo -> dvo.getStrWareNo()))
+            .sorted(Comparator.comparing(WsnaIndependenceWareOstrDvo::getWareNm)).toList();
 
         for (WsnaIndependenceWareOstrDvo filterDvo : filterDvos) {
             // 출고요청번호
@@ -243,6 +245,9 @@ public class WsnaIndependenceWareOstrService {
                     dvo.setOstrAkNo(newOstrAkNo);
                 }
 
+                // 물류재고 체크
+                this.validLogisticStockQty(dvo);
+
                 // 출고요청 저장
                 count += this.mapper.mergeItmOstrAkIz(dvo);
 
@@ -254,6 +259,36 @@ public class WsnaIndependenceWareOstrService {
         }
 
         return count;
+    }
+
+    /**
+     * 물류창고 재고 유효성 체크
+     * @param dvo
+     */
+    private void validLogisticStockQty(WsnaIndependenceWareOstrDvo dvo) {
+
+        // 물류재고
+        BigDecimal logisticQty = dvo.getLogisticStocQty();
+        // 출고수량
+        BigDecimal outQty = dvo.getOutQty();
+        // 출고누계수량
+        BigDecimal ostrAggQty = this.mapper.selectItemByOstrAggQty(dvo);
+
+        // 출고수량 + 출고누계수량 > 물류재고
+        boolean isNotValid = outQty.add(ostrAggQty).compareTo(logisticQty) > 0;
+
+        if (isNotValid) {
+            String wareNm = dvo.getWareNm();
+            String wareTxt = this.messageService.getMessage("MSG_TXT_WARE");
+            String itmPdCd = dvo.getItmPdCd();
+            String itmTxt = this.messageService.getMessage("MSG_TXT_OF_ITM");
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(wareNm).append(" ").append(wareTxt).append(" ").append(itmPdCd).append(" ").append(itmTxt);
+
+            // {0} 상위창고 재고수량이 부족합니다.
+            BizAssert.isFalse(true, "MSG_ALT_HGR_WARE_STOC_STG", new String[] {sb.toString()});
+        }
     }
 
     /**
