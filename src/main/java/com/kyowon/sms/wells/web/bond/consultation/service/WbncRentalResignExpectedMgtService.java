@@ -209,7 +209,7 @@ public class WbncRentalResignExpectedMgtService {
      * @since 2023-10-15
      */
     @Transactional
-    public UploadRes saveRentalResignExpectedExcelUpload(String baseDt, MultipartFile file) throws Exception {
+    public UploadRes saveRentalResignExpectedExcelUpload(String baseDt, String authRsgCd, MultipartFile file) throws Exception {
 
         // 업로드 엑셀 헤더 설정
         Map<String, String> headerTitle = new LinkedHashMap<>();
@@ -310,7 +310,7 @@ public class WbncRentalResignExpectedMgtService {
                         int cntrSn = Integer.parseInt(matcher.group(2));
                         /* 업로드 월 확정데이터 여부 확인 */
                         int checkCount = this.mapper.selectcheckRentalResignExpectedByReq(
-                            CheckReq.builder().baseDt(baseYm).cntrNo(cntrNo).cntrSn(cntrSn).build()
+                            CheckReq.builder().baseDt(baseYm).cntrNo(cntrNo).cntrSn(cntrSn).authRsgCd(authRsgCd).build()
                         );
                         if (checkCount != 1) {
                             ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
