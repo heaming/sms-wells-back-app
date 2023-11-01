@@ -119,14 +119,15 @@ public class WsnbServiceProcessingDvo {
     String pu8Part; // 투입부품8
     String pu9Part; // 투입부품9
     String pu10Part; // 투입부품10
-    String partCs; // 수납(부품비)
-    String tcfee; // 수납(기술료)
-    String bstrCs; // 수납(출장료)
-    String etcCs; // 수납(기타비용)
-    String rveCsTot; // 수납(전체)
-    String adpBilAmt; // 합산청구결제금액
-    String cardStlm; // 카드결제금액
-    String vacStlmAmt; // 가상계좌결제금액
+    String partCs; // 청구내역(부품비)
+    String tcfee; // 청구내역(기술료)
+    String bstrCs; // 청구내역(출장료)
+    String etcCs; // 청구내역(기타비용)
+    String rveCsTot; // 청구내역(전체)
+    String csBilNo; // 결제내역(비용청구번호)
+    String adpBilAmt; // 결제내역(합산청구)
+    String cardStlm; // 결제내역(신용카드)
+    String vacStlmAmt; // 결제내역(가상계좌)
     byte[] cstSignCnByte; // 고객서명(byte)
     String cstSignCn; // 고객서명
     String istEnvrPhoPhDocId; // 설치환경사진 DOC_ID
