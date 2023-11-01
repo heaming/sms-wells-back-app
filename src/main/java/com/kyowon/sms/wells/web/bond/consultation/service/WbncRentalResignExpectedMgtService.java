@@ -55,10 +55,20 @@ public class WbncRentalResignExpectedMgtService {
      * @author jeongwon.hwang
      * @since 2023-10-15
      */
-    public List<SearchRes> getRentalResignExpecteds(SearchReq dto) {
+    public SearchResponse getRentalResignExpecteds(SearchReq dto) {
         String baseDt = dto.baseDt();
         BizAssert.isTrue(DateUtil.getLastDateOfMonth(baseDt).equals(baseDt), "MSG_ALT_CHO_MM_TLST_D"); // 직권해지일자가 월마지막날이 아닙니다. 월마지막날을 선택하기 바랍니다.
-        return this.converter.listAuthorityResignIzToSearchRes(mapper.selectRentalResignExpecteds(dto));
+        List<SearchRes> list = this.converter.listAuthorityResignIzToSearchRes(mapper.selectRentalResignExpecteds(dto));
+
+        SearchResponse.SearchResponseBuilder builder = SearchResponse.builder().list(list);
+        List<String> stateList = List.of("03", "02", "01"); // 01 : 예정생성 (미확정), 02: 예정확정, 03: 최정확정
+        for (String state : stateList) {
+            int count = this.checkRentalResignExpectedBaseYm(CheckReq.builder().baseDt(baseDt).authRsgCd(state).build());
+            if (count > 0) {
+                return builder.authRsgState(state).build();
+            }
+        }
+        return builder.authRsgState("00").build();
     }
 
     /**
