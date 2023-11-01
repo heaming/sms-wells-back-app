@@ -14,7 +14,7 @@ class ZdccMonthlySalesClosingAggregationServiceTest extends SpringTestSupport {
     @Test
     @DisplayName("WELLS 매출 월마감 내역 집계 테스트")
     void createSalesMonthlyClosingDetailsTally() {
-        int result = service.createSalesMonthlyClosingDetailsTallyForWells("20231009", "W20093924043", "1");
+        int result = service.createSalesMonthlyClosingDetailsTallyForWells("20231025", "W20233701936", "1");
         Assertions.assertThat(result).isEqualTo(1);
     }
 }
