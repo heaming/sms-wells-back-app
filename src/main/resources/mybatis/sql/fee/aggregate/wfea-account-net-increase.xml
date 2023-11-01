@@ -18,13 +18,13 @@
                 , G2.DGR2_LEVL_DG_PRTNR_NO AS ICHR_BRMGR_NO
                 , C1.CNTR_CNFM_DTM /* 계약일 */
                 , C3.IST_DT /* 설치일 */
-                , S5.CNTR_CH_RCP_DTM /* 취소요청일 */
+                , C4.RSG_APLC_DT AS cntrChRcpDtm /* 취소요청일 */
                 , C2.CNTR_PD_ENDDT AS CNTR_CAN_DTM /* 취소일 */
-                , '' AS CNTR_PD_ENDDT /* 만료일 */
+                , TO_CHAR(ADD_MONTHS(TO_DATE(C2.CNTR_PD_STRTDT,'YYYYMMDD'), C2.CNTR_PTRM), 'YYYYMMDD') AS CNTR_PD_ENDDT /* 만료일 */
                 , C2.CNTR_PD_STRTDT /* 사용일 */
                 , C1.CNTR_RCP_FSH_DTM /* 멤버십접수일 */
-                , C1.CNTR_CNFM_APR_DTM /* 멤버십가입일 */
-                , C1.CNTR_CAN_RSON_CD /* 취소사유 */
+                , S1.MSH_J_DT AS CNTR_CNFM_APR_DTM /* 멤버십가입일 */
+                , C4.CNTR_STAT_CH_RSON_CD AS CNTR_CAN_RSON_CD /* 취소사유 */
                 , S3.BZRNO
                 , CASE WHEN (SELECT COUNT(1) FROM TB_SSCT_SELL_LM_OJ_IZ
                               WHERE TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN VL_STRT_DTM AND VL_END_DTM
@@ -36,10 +36,7 @@
                 , G1.PRTNR_KNM  AS SELL_PRTNR_KNM
                 , C1.SELL_PRTNR_NO
                 , DECODE(S4.FEE_PERF_EXCD_DV_CD, '03' , 'Y', 'N') AS PERF_EXCD_OJ_YN /* 제외대상 */
-                , CASE  WHEN S4.FEE_PERF_EXCD_DV_CD = '03'
-                            AND  TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN S4.APY_STRT_YM
-                            AND S4.APY_END_YM THEN 'Y'
-                        ELSE 'N' END AS APY_OJ_YN
+                , 'Y' AS APY_OJ_YN
 	       FROM TB_FEAM_WELS_ACC_NINC_MM_DTL M1
           INNER JOIN TB_SSCT_CNTR_BAS C1 /*계약기본*/
              ON M1.CNTR_NO = C1.CNTR_NO
@@ -53,6 +50,10 @@
              ON M1.CNTR_NO = C3.CNTR_NO
             AND M1.CNTR_SN = C3.CNTR_SN
             AND C3.DTA_DL_YN = 'N'
+          INNER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C4
+             ON M1.CNTR_NO = C4.CNTR_NO
+            AND M1.CNTR_SN = C4.CNTR_SN
+            AND C4.DTA_DL_YN = 'N'
           INNER JOIN TB_OGBS_MM_PRTNR_IZ G1 /*월파트너내역*/
              ON M1.PERF_YM  = G1.BASE_YM
             AND M1.PRTNR_NO = G1.PRTNR_NO
@@ -65,6 +66,11 @@
           INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
              ON C2.BASE_PD_CD = P1.PD_CD
             AND P1.DTA_DL_YN = 'N'
+           LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S1
+             ON SUBSTR(C2.CNTR_PD_ENDDT, 1, 6) = S1.MNGT_YM
+            AND C2.CNTR_NO = S1.CNTR_NO
+            AND C2.CNTR_SN = S1.CNTR_SN
+            AND S1.DTA_DL_YN = 'N'
            LEFT OUTER JOIN TB_SSOP_PSPC_CST_BAS S3 /* 가망고객기본 */
              ON C1.PSPC_CST_ID = S3.PSPC_CST_ID
             AND S3.DTA_DL_YN = 'N'
@@ -72,10 +78,6 @@
              ON M1.CNTR_NO = S4.CNTR_NO
             AND M1.CNTR_SN = S4.CNTR_SN
             AND S4.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_SSCT_CNTR_CH_RCP_BAS S5 /* 계약변경접수기본 */
-             ON C1.CNTR_CH_RCP_ID = S5.CNTR_CH_RCP_ID
-            AND S5.CNTR_CH_TP_CD = '402'
-            AND S5.DTA_DL_YN = 'N'
           WHERE 1=1
           	AND M1.PERF_YM = #{perfYm}
           	AND M1.FEE_TCNT_DV_CD = #{feeTcntDvCd}
