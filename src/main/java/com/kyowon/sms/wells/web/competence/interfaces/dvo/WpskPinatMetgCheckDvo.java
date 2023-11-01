@@ -11,6 +11,7 @@ public class WpskPinatMetgCheckDvo {
     private String metgPrscDt;      /* 미팅참석년도 */
     private String ogTpCd;          /* 조직유형코드 */
 
-    private String rspCd;           /* 응답코드 */
-    private String rspMsg;          /* 응답메시지 */
+    private String chek;           /* 체크 결과 */
+    private String ercd;            /* 결과메시지코드 */
+    private String emsg;            /* 결과메시지 */
 }
