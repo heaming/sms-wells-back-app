@@ -5,6 +5,7 @@ import lombok.Builder;
 import org.eclipse.jetty.util.StringUtil;
 
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 public class WbncRentalResignExpectedMgtDto {
     // *********************************************************
@@ -172,4 +173,18 @@ public class WbncRentalResignExpectedMgtDto {
         String baseDt /* 직권해지일 */
     ) {
     }
+
+
+    // *********************************************************
+    // Response Dto
+    // *********************************************************
+    // 직권해지관리 - 렌탈 해지예정 Search Response DTO
+    @Builder
+    @ApiModel("WbncRentalResignExpectedMgtDto-SearchResponse")
+    public record SearchResponse(
+        List<SearchRes> list, // 조회 결과 리스트
+        String authRsgState
+    ) {
+    }
+
 }

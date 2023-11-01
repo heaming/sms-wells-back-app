@@ -38,7 +38,7 @@ public class WbncRentalResignExpectedMgtController {
         @ApiImplicitParam(name = "authRsgCd", value = "확정구분", paramType = "query", required = true),
     })
     @GetMapping
-    public List<SearchRes> getRentalResignExpecteds(
+    public SearchResponse getRentalResignExpecteds(
         @Valid
         SearchReq dto
     ) {
