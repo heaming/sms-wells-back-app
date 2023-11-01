@@ -110,7 +110,7 @@ public class WfeaRedemptionPerfService {
          *              GROUP BY A.AKDDTY, A.AKDDTM, AKDBON
          */
         if ("W01".equals(ogTpCd)) {
-            mapper.insertActiPplNForPorganization(baseYm);
+            mapper.insertActiPplNForPorganization(baseYm, ogTpCd, perfAgrgCrtDvCd);
         }
     }
 }
