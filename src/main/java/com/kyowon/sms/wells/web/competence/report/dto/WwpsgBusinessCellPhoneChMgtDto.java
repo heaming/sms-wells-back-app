@@ -4,6 +4,7 @@ import javax.validation.constraints.NotBlank;
 
 import com.sds.sflex.common.docs.dto.AttachFileDto;
 import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
@@ -11,21 +12,22 @@ import lombok.Builder;
 
 import java.util.List;
 
-public class WwpsgRentManagementDto {
+public class WwpsgBusinessCellPhoneChMgtDto {
     // *********************************************************
     // Request Dto
     // *********************************************************
-    // 임차관리 Search Request Dto
+    // 업무폰변경 관리 Search Request Dto
     @Builder
-    @ApiModel("WwpsgRentManagementDto-BaseSearchReq")
+    @ApiModel("WwpsgBusinessCellPhoneChMgtDto-BaseSearchReq")
     public record BaseSearchReq(
         String rpotBizTpId,
         String rpotBizTpDvCd,
-        String ogTpCd
+        String ogTpCd,
+        String prtnrNo
     ) {
     }
 
-    @ApiModel("WwpsgRentManagementDto-SearchReq")
+    @ApiModel("WwpsgBusinessCellPhoneChMgtDto-SearchReq")
     public record SearchReq(
         String rpotBizTpId,
         String rpotBizTpDvCd,
@@ -40,7 +42,7 @@ public class WwpsgRentManagementDto {
     ) {
     }
 
-    @ApiModel("WwpsgRentManagementDto-PopupSearchRes")
+    @ApiModel("WwpsgBusinessCellPhoneChMgtDto-PopupSearchRes")
     public record PopupSearchRes(
         String rpotBizAplcId,
         String procsSn,
@@ -72,20 +74,12 @@ public class WwpsgRentManagementDto {
     ) {
     }
 
-    @ApiModel("WwpsgRentManagementDto-OgbsBldBasRes")
-    public record OgbsBldBasRes (
-        String ogTpCd,           /* 조직유형코드 */
-        String bldCd,            /* 빌딩코드 */
-        String bldNm,            /* 빌딩명 */
-        String locaraBldNm      /* 지역빌딩명 */
-
-    ) {}
 
     // *********************************************************
     // Result Dto
     // *********************************************************
     // 임차관리 Search Result Dto
-    @ApiModel("WwpsgRentManagementDto-BaseSearchRes")
+    @ApiModel("WwpsgBusinessCellPhoneChMgtDto-BaseSearchRes")
     public record BaseSearchRes(
         String rpotBizAsnId,
         String rpotBizTpId,
@@ -100,7 +94,20 @@ public class WwpsgRentManagementDto {
     ) {
     }
 
-    @ApiModel("WwpsgRentManagementDto-SearchRes")
+    @ApiModel("WwpsgBusinessCellPhoneChMgtDto-SellPrtnrRes")
+    public record SellPrtnrRes(
+        String ogTpCd,
+        String prtnrNo,
+        String rsbDvNm,
+        String sellCralLocaraTno,
+        String sellMexnoEncr,
+        String sellCralIdvTno,
+        String bldNm
+
+    ) {
+    }
+
+    @ApiModel("WwpsgBusinessCellPhoneChMgtDto-SearchRes")
     public record SearchRes(
         String rpotBizAplcId,    /* 보고서업무신청ID */
         String rpotBizTpId,      /* 보고서업무유형ID */
@@ -131,22 +138,43 @@ public class WwpsgRentManagementDto {
         String rcstPrtnrNm,
         String rcstCralLocaraTno,
         String rcstMexnoEncr,
-        String rcstCralIdvTno
+        String rcstCralIdvTno,
+        String bizCralTelChTpCd,
+        String bizCralTelChTpNm,
+        String chRqdt,
+        String sellPrtnrNo,
+        String sellPrtnrNm,
+        String bfchCralLocaraTno,
+        String bfchMexnoEncr,
+        String bfchCralIdvTno,
+        String afchCralLocaraTno,
+        String afchMexnoEncr,
+        String afchCralIdvTno,
+        String rsbDvNm,
+        String rsbDvCd,
+        String ogId,
+        String ogNm
     ) {
     }
 
-    @ApiModel("WwpsgRentManagementDto-SaveReq")
+    @ApiModel("WwpsgBusinessCellPhoneChMgtDto-SaveReq")
     public record SaveReq(
         String rpotBizAplcId,
         String rpotBizTpId,
         String prtnrNo,
-        String bizAkBldCd,
-        String bizAkBldNm,
-        String rntAplcTpCd,
         String bizAkCn,
         String procsSn,
         String rpotBizProcsStatCd,
         String procsCn,
-        List<AttachFileDto.AttachFile> attachFiles /* 첨부 파일 */
+        String bizCralTelChTpCd,     /* 업무휴대전화변경유형코드 */
+        String chRqdt,               /* 변경요청일자 */
+        String sellPrtnrNo,          /* 판매파트너번호 */
+        String bfchCralLocaraTno,    /* 변경전휴대지역전화번호 */
+        String bfchMexnoEncr,        /* 변경전휴대전화국번호암호화 */
+        String bfchCralIdvTno,       /* 변경전휴대개별전화번호 */
+        String afchCralLocaraTno,    /* 변경후휴대지역전화번호 */
+        String afchMexnoEncr,        /* 변경후휴대전화국번호암호화 */
+        String afchCralIdvTno       /* 변경후휴대개별전화번호 */
+
     ){}
 }

@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.competence.report.dvo;
 
 import com.sds.sflex.common.docs.dto.AttachFileDto;
 import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -11,7 +12,7 @@ import java.util.List;
 @ToString
 @Getter
 @Setter
-public class WwpsgRentManagementDvo {
+public class WwpsgBusinessCellPhoneChMgtDvo {
     private String rpotBizAsnId;
     private String rpotBizTpId;
     private String dgYn;
@@ -34,8 +35,6 @@ public class WwpsgRentManagementDvo {
 
     private String bizAkCn;
     private String rpotBizAplcId;
-    private String bizAkBldCd;
-    private String bizAkBldNm;
     private String rntAplcTpCd;
     private String rntAplcTpNm;
     private String procsPrtnrKnm;
@@ -43,11 +42,35 @@ public class WwpsgRentManagementDvo {
     @DBDecField
     private String procsMexnoEncr;
     private String procsCralIdvTno;
+
+    private String rsbDvNm;
+    private String sellCralLocaraTno;
+    @DBDecField
+    private String sellMexnoEncr;
+    private String sellCralIdvTno;
+    private String bldNm;
+    private String bizCralTelChTpCd;
+    private String bizCralTelChTpNm;
+    private String chRqdt;
+    private String sellPrtnrNo;
+    private String sellPrtnrNm;
+    private String bfchCralLocaraTno;
+    @DBDecField
+    @DBEncField
+    private String bfchMexnoEncr;
+    private String bfchCralIdvTno;
+    private String afchCralLocaraTno;
+    @DBDecField
+    @DBEncField
+    private String afchMexnoEncr;
+    private String afchCralIdvTno;
     private String rcstPrtnrNo;
     private String rcstPrtnrNm;
     private String rcstCralLocaraTno;
     @DBDecField
     private String rcstMexnoEncr;
     private String rcstCralIdvTno;
-    private List<AttachFileDto.AttachFile> attachFiles; /* 첨부 파일 */
+    private String ogCd;
+    private String ogNm;
+
 }
