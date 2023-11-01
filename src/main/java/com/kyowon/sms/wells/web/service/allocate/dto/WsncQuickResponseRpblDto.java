@@ -33,7 +33,9 @@ public class WsncQuickResponseRpblDto {
         String mngrCd, // 매니저
         // Case3
         String svcCntrCd, // 서비스센터
-        String engineerCd // 엔지니어
+        String engineerCd, // 엔지니어
+
+        String rpblYn // 재발행 여부
     ) {}
 
     // *********************************************************
