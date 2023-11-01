@@ -48,6 +48,7 @@ public class WfeaRedemptionPerfService {
         /* 기생성 데이터 삭제 */
         zRedfmapper.deleteCommonRedempPerfData("TB_FEAM_NTORP_PERF_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
         zRedfmapper.deleteCommonRedempPerfData("TB_FEAM_NTORP_CNTR_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
+        zRedfmapper.deleteCommonRedempPerfData("TB_FEAM_PRTNR_PERF_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
 
         List<String> perfAtcCds = new ArrayList<>();
         /* 조직유형별 실적 생성 */
