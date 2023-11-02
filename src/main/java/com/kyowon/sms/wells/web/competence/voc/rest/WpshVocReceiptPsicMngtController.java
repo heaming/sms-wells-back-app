@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.competence.voc.rest;
 
-import com.kyowon.sms.common.web.competence.zcommon.constants.PsCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.kyowon.sms.wells.web.competence.voc.dto.WpshVocReceiptPsicMngtDto.SaveReq;
 import com.kyowon.sms.wells.web.competence.voc.dto.WpshVocReceiptPsicMngtDto.SearchReq;
 import com.kyowon.sms.wells.web.competence.voc.dto.WpshVocReceiptPsicMngtDto.SearchRes;
