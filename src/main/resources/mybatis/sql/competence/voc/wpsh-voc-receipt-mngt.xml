@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.voc.mapper.WpshVocReceiptMngtMapper">
+    <select id="selectVocReceiptMngtPages" resultType = "com.kyowon.sms.wells.web.competence.voc.dto.WpshVocReceiptMngtDto$SearchRes">
+        SELECT T1.VOC_RCP_ID        /* VOC접수ID */
+             , T1.VOC_BIZ_TP_CD     /* VOC업무유형코드 */
+             , T1.VOC_BIZ_TP_DTL_CD /* VOC업무유형상세코드 */
+             , T1.VOC_RCP_TIT_NM    /* VOC접수제목명 */
+             , T1.CNTR_NO           /* 계약번호 */
+             , T1.CNTR_SN           /* 계약일련번호 */
+             , T1.CST_NO            /* 고객번호 */
+             , T1.BIZ_AK_CN         /* 업무요청내용 */
+             , T1.APN_FILE_DOC_ID   /* 첨부파일문서ID */
+             , T1.STFD_EVL_VAL      /* 만족도평가값 */
+             , T1.VOC_RCP_CTG_CD    /* VOC접수카테고리코드 */
+             , T1.VOC_RCP_DV_CD     /* VOC접수구분코드 */
+             , T1.RCST_PRTNR_NO     /* 접수자파트너번호 */
+             , T1.RCP_DTM           /* 접수일시 */
+             , T1.RCP_MO_CN         /* 접수메모내용 */
+             , T1.PCP_PRTNR_NO      /* 처리자파트너번호 */
+             , T1.PROCS_DTM         /* 처리일시 */
+             , T1.VOC_PROCS_STAT_CD /* VOC처리상태코드 */
+             , T1.DTA_DL_YN         /* 데이터삭제여부 */
+             , T1.FST_RGST_DTM      /* 최초등록일시 */
+             , T1.FST_RGST_USR_ID   /* 최초등록사용자ID */
+             , T1.FST_RGST_PRG_ID   /* 최초등록프로그램ID */
+             , T1.FST_RGST_DEPT_ID  /* 최초등록부서ID */
+             , T1.FNL_MDFC_DTM      /* 최종수정일시 */
+             , T1.FNL_MDFC_USR_ID   /* 최종수정사용자ID */
+             , T1.FNL_MDFC_PRG_ID   /* 최종수정프로그램ID */
+             , T1.FNL_MDFC_DEPT_ID  /* 최종수정부서ID */
+             , T2.DEPT_NM
+             , T2.DEPT_ID
+             , T2.RSB_EN_NM
+             , T2.EPNO
+             , T2.USR_NM
+             , T3.USR_NM AS RCP_NM
+             , (SELECT COUNT(1)
+                  FROM T_CMD_ATTH_FILE_D
+                 WHERE DEL_YN = 'N'
+                   AND TENANT_ID = #{session.tenantId}
+                   AND ATTH_DOC_ID = T1.APN_FILE_DOC_ID
+                   AND ATTH_GRP_ID = 'ATG_PSH_VOC_RCP') AS ATTCH_DOC_ID_NUMBER_OF_FILES
+          FROM TB_PSGA_VOC_RCP_IZ T1 /* VOC접수내역 */
+    INNER JOIN T_CMP_USR_ACO_M T2 /* 사용자계정기본 */
+            ON T1.FST_RGST_USR_ID = T2.USR_ID
+     LEFT JOIN T_CMP_USR_ACO_M T3
+            ON T1.RCST_PRTNR_NO = T3.EPNO
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.FST_RGST_DTM BETWEEN #{startRcpDtm} || '000000' AND #{endRcpDtm} || '235959'
+           <if test='@MybatisUtils@isNotEmpty(vocBizTpCd)'>
+           AND T1.VOC_BIZ_TP_CD = #{vocBizTpCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(vocRcpTitNm)'>
+           AND T1.VOC_RCP_TIT_NM LIKE '%' || #{vocRcpTitNm} || '%'
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(vocProcsStatCd)'>
+           AND T1.VOC_PROCS_STAT_CD = #{vocProcsStatCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND T2.EPNO = #{prtnrNo}
+           </if>
+      ORDER BY T1.FST_RGST_DTM DESC
+    </select>
+    <select id="selectVocRcpId" resultType="String">
+        SELECT 'M' || LPAD(NVL(MAX(SUBSTR(VOC_RCP_ID, 2, 14)), 0), 14, 0) FROM TB_PSGA_VOC_RCP_IZ
+    </select>
+    <select id="selectVocRlyId" resultType="String">
+        SELECT 'M' || LPAD(NVL(MAX(SUBSTR(VOC_RLY_ID, 2, 14)), 0), 14, 0) FROM TB_PSGA_VOC_RLY_IZ
+    </select>
+    <select id="selectVocReceiptDtl" resultType="com.kyowon.sms.wells.web.competence.voc.dto.WpshVocReceiptMngtDto$SearchDtlRes">
+        SELECT T2.VOC_RLY_ID
+             , T1.VOC_RCP_CTG_CD
+             , T1.VOC_RCP_DV_CD
+             , T1.RCP_MO_CN
+             , T1.STFD_EVL_VAL
+             , T1.VOC_PROCS_STAT_CD
+             , T2.RLY_CN
+             , T2.FNL_MDFC_DTM
+             , T3.USR_NM AS RLY_PRTNR_NM
+             , (SELECT COUNT(1)
+                  FROM T_CMD_ATTH_FILE_D
+                 WHERE DEL_YN = 'N'
+                   AND TENANT_ID = #{session.tenantId}
+                   AND ATTH_DOC_ID = T1.APN_FILE_DOC_ID
+                   AND ATTH_GRP_ID = 'ATG_PSH_VOC_RLY') AS ATTCH_DOC_ID_NUMBER_OF_FILES
+          FROM TB_PSGA_VOC_RCP_IZ T1
+     LEFT JOIN TB_PSGA_VOC_RLY_IZ T2
+            ON T1.VOC_RCP_ID = T2.VOC_RCP_ID
+     LEFT JOIN T_CMP_USR_ACO_M T3 /* 사용자계정기본 */
+            ON T2.FNL_MDFC_USR_ID = T3.USR_ID
+         WHERE T1.VOC_RCP_ID = #{vocRcpId}
+    </select>
+    <insert id="saveVocReceipt">
+        INSERT INTO TB_PSGA_VOC_RCP_IZ (  /* VOC접수내역 */
+               VOC_RCP_ID        /* VOC접수ID */
+             , VOC_BIZ_TP_CD     /* VOC업무유형코드 */
+             , VOC_BIZ_TP_DTL_CD /* VOC업무유형상세코드 */
+             , VOC_RCP_TIT_NM    /* VOC접수제목명 */
+             , CNTR_NO           /* 계약번호 */
+             , CNTR_SN           /* 계약일련번호 */
+             , CST_NO            /* 고객번호 */
+             , BIZ_AK_CN         /* 업무요청내용 */
+             , APN_FILE_DOC_ID   /* 첨부파일문서ID */
+             , STFD_EVL_VAL      /* 만족도평가값 */
+             , VOC_PROCS_STAT_CD /* VOC처리상태코드 */
+             , DTA_DL_YN         /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               (SELECT 'M' || LPAD(NVL(MAX(SUBSTR(VOC_RCP_ID, 2, 14)), 0) + 1, 14, 0) FROM TB_PSGA_VOC_RCP_IZ)
+             , #{vocBizTpCd}
+             , #{vocBizTpDtlCd}
+             , #{vocRcpTitNm}
+             , #{cntrNo}
+             , #{cntrSn}
+             , #{cntrCstNo}
+             , #{bizAkCn}
+             , (SELECT 'M' || LPAD(NVL(MAX(SUBSTR(VOC_RCP_ID, 2, 14)), 0) + 1, 14, 0) FROM TB_PSGA_VOC_RCP_IZ)
+             , '0'
+             , '10'
+             , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <update id="saveVocReceiptEvl">
+        UPDATE TB_PSGA_VOC_RCP_IZ /* VOC접수내역 */
+           SET STFD_EVL_VAL      = #{stfdEvlVal}/* 만족도평가값 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND VOC_RCP_ID        = #{vocRcpId}         /* VOC접수ID */
+    </update>
+    <update id="saveVocReceiptRcp">
+        UPDATE TB_PSGA_VOC_RCP_IZ /* VOC접수내역 */
+           SET VOC_RCP_CTG_CD    = #{vocRcpCtgCd}      /* VOC접수카테고리코드 */
+             , VOC_RCP_DV_CD     = #{vocRcpDvCd}       /* VOC접수구분코드 */
+             , RCST_PRTNR_NO     = #{rcstPrtnrNo}      /* 접수자파트너번호 */
+             , RCP_DTM           = #{rcpDtm}           /* 접수일시 */
+             , RCP_MO_CN         = #{rcpMoCn}          /* 접수메모내용 */
+             , VOC_PROCS_STAT_CD = '20'                /* VOC처리상태코드 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND VOC_RCP_ID        = #{vocRcpId}         /* VOC접수ID */
+    </update>
+    <update id="saveVocReceiptProcs">
+        UPDATE TB_PSGA_VOC_RCP_IZ /* VOC접수내역 */
+           SET PCP_PRTNR_NO      = #{pcpPrtnrNo}       /* 처리자파트너번호 */
+             , PROCS_DTM         = #{procsDtm}         /* 처리일시 */
+             , VOC_PROCS_STAT_CD = '30'                /* VOC처리상태코드 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND VOC_RCP_ID        = #{vocRcpId}         /* VOC접수ID */
+    </update>
+    <update id="saveVocReceiptRly">
+        MERGE INTO TB_PSGA_VOC_RLY_IZ T1  /* VOC답변내역 */
+             USING DUAL
+                ON (T1.VOC_RLY_ID = #{vocRlyId}       /* VOC답변ID */
+                   )
+        WHEN MATCHED THEN
+          UPDATE SET RLY_CN = #{rlyCn}
+                   , APN_FILE_DOC_ID = #{vocRlyId}
+                <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+          INSERT (
+                     VOC_RLY_ID
+                   , VOC_RCP_ID
+                   , RLY_CN
+                   , APN_FILE_DOC_ID
+                   , DTA_DL_YN
+                <include refid="COMMON.insertSystemField" />
+          ) VALUES (
+                     (SELECT 'M' || LPAD(NVL(MAX(SUBSTR(VOC_RLY_ID, 2, 14)), 0) + 1, 14, 0) FROM TB_PSGA_VOC_RLY_IZ)
+                   , #{vocRcpId}
+                   , #{rlyCn}
+                   , (SELECT 'M' || LPAD(NVL(MAX(SUBSTR(VOC_RLY_ID, 2, 14)), 0) + 1, 14, 0) FROM TB_PSGA_VOC_RLY_IZ)
+                   , 'N'
+                <include refid="COMMON.insertSystemFieldValue" />  )
+    </update>
+</mapper>
