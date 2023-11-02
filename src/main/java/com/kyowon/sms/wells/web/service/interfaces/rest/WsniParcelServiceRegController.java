@@ -148,16 +148,18 @@ public class WsniParcelServiceRegController {
 
             if (dto.reqdvCd().equals("02")) {
 
-
+                DateTimeFormatter formatter_hist = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+                String strHist = date.format(formatter);
                 WsnbWorkOrderDvo dvo = new WsnbWorkOrderDvo();
                 dvo.setCntrNo(dto.custNo());
-                dvo.setCntrSnB(dto.cntrSn());
+                dvo.setCntrSn(dto.cntrSn());
+                dvo.setApyDtm(strHist);
                 dvo.setInChnlDvCd("1");
                 dvo.setSvBizHclsfCd("3");
                 dvo.setMtrStatCd("3");
                 dvo.setSvBizDclsfCd("3460");
                 dvo.setUrgtDvCd("2");
-                dvo.setAsIstOjNo(invc_no_data.asIstOjNo());
+                dvo.setAsIstOjNo(invc_no_data.rtnAsIstOjNo());
                 dvo.setSmsFwYn("N");
                 dvo.setUserId(dto.recpId());
                 dvo.setRcpOgTpCd(dto.recpOgTpCd());

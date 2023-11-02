@@ -1,16 +1,22 @@
 package com.kyowon.sms.wells.web.service.interfaces.dvo;
 
+import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 @Setter
 @Getter
 public class WsniParcelServiceRegDvo {
+
     private String tokkenNum; /* 토큰번호 */
 
     private String custId; /* 고객코드 */
 
     private String rcptYmd; /* 접수년월일 */
+
 
     private String custNo; /* 계약번호 */
 
@@ -40,12 +46,15 @@ public class WsniParcelServiceRegDvo {
 
     private String sendrtelNo1; /* 보내는분 전화번호1  */
 
+    @DBDecField
     private String sendrtelNo2; /* 보내는분 전화번호2 */
+
 
     private String sendrtelNo3; /* 보내는분 전화번호3 */
 
     private String sendrcellNo1; /* 보내는분 휴대폰번호1  */
 
+    @DBDecField
     private String sendrcellNo2; /* 보내는분 휴대폰번호2 */
 
     private String sendrcellNo3; /* 보내는분 휴대폰번호3 */
@@ -60,14 +69,16 @@ public class WsniParcelServiceRegDvo {
 
     private String rcvrtelNo1; /* 받는분 전화번호1  */
 
-    private String rcvrtelNo2; /* 받는분 전화번호1  */
+    @DBDecField
+    private String rcvrtelNo2; /* 받는분 전화번호2  */
 
-    private String rcvrtelNo3; /* 받는분 전화번호1  */
+    private String rcvrtelNo3; /* 받는분 전화번호3  */
     private String rcvrcellNo1; /* 받는분 휴대폰번호1 */
 
-    private String rcvrcellNo2; /* 받는분 휴대폰번호1 */
+    @DBDecField
+    private String rcvrcellNo2; /* 받는분 휴대폰번호2 */
 
-    private String rcvrcellNo3; /* 받는분 휴대폰번호1 */
+    private String rcvrcellNo3; /* 받는분 휴대폰번호3 */
 
     private String rcvrzipNo; /* 받는분 우편번호 */
 
@@ -106,5 +117,6 @@ public class WsniParcelServiceRegDvo {
     private String resultCd;
 
     private String resultDetail;
+
 
 }
