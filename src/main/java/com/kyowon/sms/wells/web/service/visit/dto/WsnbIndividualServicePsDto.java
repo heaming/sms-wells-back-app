@@ -125,6 +125,7 @@ public class WsnbIndividualServicePsDto {
      */
     @ApiModel(value = "WsnbIndividualServicePsDto-SearchStateRes")
     public record SearchStateRes(
+        String gubun, /*작업구분*/
         String cstSvAsnNo, /*배정번호*/
         String svTp, /* 유형*/
         String rcpDt, /* 접수(배정)일자*/
