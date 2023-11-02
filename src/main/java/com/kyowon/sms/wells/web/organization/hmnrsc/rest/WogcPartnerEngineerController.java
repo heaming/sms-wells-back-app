@@ -142,6 +142,7 @@ public class WogcPartnerEngineerController {
         @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "rsbDvCd", value = "직책", paramType = "query", required = false),
         @ApiImplicitParam(name = "chk", value = "미등록", paramType = "query", required = false),
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = false),
     })
     @GetMapping("/engineer-grade/paging")
     PagingResult<FindEngineerGradeRes> getEngineerGradePages(FindEngineerGradeReq dto, PageInfo pageInfo) {
