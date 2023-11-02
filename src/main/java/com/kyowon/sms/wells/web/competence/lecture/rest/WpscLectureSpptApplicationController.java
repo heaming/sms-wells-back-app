@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.competence.lecture.rest;
 
 import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptApplicationDto.*;
 import com.kyowon.sms.wells.web.competence.lecture.service.WpscLectureSpptApplicationService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -21,7 +21,7 @@ import java.util.List;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/lecture-sppt-application")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/lecture-sppt-application")
 public class WpscLectureSpptApplicationController {
 
     private final WpscLectureSpptApplicationService service;

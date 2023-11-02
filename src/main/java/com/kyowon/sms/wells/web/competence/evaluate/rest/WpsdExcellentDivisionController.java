@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.competence.evaluate.rest;
 
 import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionDto.*;
 import com.kyowon.sms.wells.web.competence.evaluate.service.WpsdExcellentDivisionService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
@@ -22,7 +22,7 @@ import java.util.Map;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/excellent-division")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/excellent-division")
 public class WpsdExcellentDivisionController {
 
     private final WpsdExcellentDivisionService service;

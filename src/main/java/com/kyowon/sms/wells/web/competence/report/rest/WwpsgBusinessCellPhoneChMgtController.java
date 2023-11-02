@@ -1,33 +1,30 @@
 package com.kyowon.sms.wells.web.competence.report.rest;
 
-import java.util.List;
-import java.util.Map;
-
-import javax.validation.Valid;
-
 import com.kyowon.sms.wells.web.competence.report.dto.WwpsgBusinessCellPhoneChMgtDto;
 import com.kyowon.sms.wells.web.competence.report.service.WwpsgBusinessCellPhoneChMgtService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
-import com.sds.sflex.system.config.response.SaveResponse;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import static com.kyowon.sms.wells.web.competence.report.dto.WwpsgBusinessCellPhoneChMgtDto.*;
-
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-
+import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
+import java.util.Map;
+
+import static com.kyowon.sms.wells.web.competence.report.dto.WwpsgBusinessCellPhoneChMgtDto.*;
 
 @Api(tags = "[] 업무폰변경 관리")
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/business-cell-phone")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/business-cell-phone")
 public class WwpsgBusinessCellPhoneChMgtController {
 
     private final WwpsgBusinessCellPhoneChMgtService service;

@@ -5,9 +5,8 @@ import java.util.Map;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.wells.web.competence.report.dto.WwpsgBusinessManagerReportMgtDto;
 import com.kyowon.sms.wells.web.competence.report.service.WwpsgRentManagementService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/rent-management")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/rent-management")
 public class WwpsgRentManagementController {
 
     private final WwpsgRentManagementService service;

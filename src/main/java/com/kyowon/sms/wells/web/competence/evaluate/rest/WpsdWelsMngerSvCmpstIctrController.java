@@ -3,7 +3,7 @@ package com.kyowon.sms.wells.web.competence.evaluate.rest;
 import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdWelsMngerSvCmpstIctrDto.SearchReq;
 import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdWelsMngerSvCmpstIctrDto.SearchRes;
 import com.kyowon.sms.wells.web.competence.evaluate.service.WpsdWelsMngerSvCmpstIctrService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import io.swagger.annotations.Api;
@@ -23,7 +23,7 @@ import java.util.List;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/evaluate/wels-mnger-sv-cmpst-ictr")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/evaluate/wels-mnger-sv-cmpst-ictr")
 public class WpsdWelsMngerSvCmpstIctrController {
 
     private final WpsdWelsMngerSvCmpstIctrService service;
