@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.voc.mapper.WpshVocReceiptPsicMngtMapper">
+    <select id="selectVocReceiptPsicMngtPages" resultType="com.kyowon.sms.wells.web.competence.voc.dvo.WpshVocReceiptPsicMngtDvo">
+        SELECT T1.VOC_BIZ_ASN_ID    /* VOC업무배정ID */
+             , T1.VOC_BIZ_TP_DTL_CD /* VOC업무유형상세코드 */
+             , T1.DG_YN             /* 대표여부 */
+             , T1.OG_TP_CD          /* 조직유형코드 */
+             , T1.PRTNR_NO          /* 파트너번호 */
+             , T2.PRTNR_KNM         /* 파트너한글명 */
+             , T2.OG_NM             /* 조직명 */
+             , T2.CRAL_LOCARA_TNO   /* 휴대지역전화번호 */
+             , T2.MEXNO_ENCR        /* 휴대전화국번호암호화 */
+             , T2.CRAL_IDV_TNO      /* 휴대개별전화번호 */
+          FROM TB_PSGA_VOC_BIZ_PSIC_BAS T1 /* VOC업무담당자기본 */
+    INNER JOIN TB_OGBS_PRTNR_BAS T2 /* 파트너기본 */
+            ON T1.PRTNR_NO = T2.PRTNR_NO
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+       <if test="@MybatisUtils@isNotEmpty(vocBizTpCd)">
+           AND T1.VOC_BIZ_TP_DTL_CD LIKE SUBSTR(#{vocBizTpCd}, 0, 1) || '%'
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(ipvmProsTpCd)">
+           AND T1.VOC_BIZ_TP_DTL_CD LIKE '2' || #{ipvmProsTpCd}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(ichrDeptId)">
+           AND T2.OG_CD = #{ichrDeptId}
+       </if>
+      ORDER BY T1.VOC_BIZ_ASN_ID DESC
+    </select>
+    <insert id="insertVocReceiptPsic">
+    INSERT INTO TB_PSGA_VOC_BIZ_PSIC_BAS (  /* VOC업무담당자기본 */
+           VOC_BIZ_ASN_ID    /* VOC업무배정ID */
+         , VOC_BIZ_TP_DTL_CD /* VOC업무유형상세코드 */
+         , DG_YN             /* 대표여부 */
+         , OG_TP_CD          /* 조직유형코드 */
+         , PRTNR_NO          /* 파트너번호 */
+         , DTA_DL_YN         /* 데이터삭제여부 */
+         <include refid="COMMON.insertSystemField" />)
+        VALUES (
+          (SELECT 'M' || LPAD(NVL(MAX(SUBSTR(VOC_BIZ_ASN_ID, 2, 14)), 0) + 1, 14, 0) FROM TB_PSGA_VOC_BIZ_PSIC_BAS)
+        , #{vocBizTpDtlCd}
+        , #{dgYn}
+        , #{ogTpCd}
+        , #{prtnrNo}
+        , 'N'
+        <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <update id="updateVocReceiptPsic">
+        UPDATE TB_PSGA_VOC_BIZ_PSIC_BAS /* VOC업무담당자기본 */
+           SET VOC_BIZ_TP_DTL_CD = #{vocBizTpDtlCd}    /* VOC업무유형상세코드 */
+             , DG_YN             = #{dgYn}             /* 대표여부 */
+             , OG_TP_CD          = #{ogTpCd}           /* 조직유형코드 */
+             , PRTNR_NO          = #{prtnrNo}          /* 파트너번호 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND VOC_BIZ_ASN_ID    = #{vocBizAsnId}      /* VOC업무배정ID */
+    </update>
+    <update id="deleteVocReceiptPsic">
+        UPDATE TB_PSGA_VOC_BIZ_PSIC_BAS /* VOC업무담당자기본 */
+           SET DTA_DL_YN         = 'Y'          /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND VOC_BIZ_ASN_ID    = #{vocBizAsnId}      /* VOC업무배정ID */
+    </update>
+</mapper>
