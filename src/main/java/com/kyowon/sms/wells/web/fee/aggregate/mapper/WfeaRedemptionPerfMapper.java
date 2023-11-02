@@ -19,14 +19,14 @@ public interface WfeaRedemptionPerfMapper {
      * @param baseYm
      * @return
      */
-    int insertIndivContractDataFromLife(String baseYm, String ogTpCd, String perfAtcCd, String cntrPerfCrtDvCd);
+    int insertIndivContractDataFromLife(String baseYm, String ogTpCd, String perfAtcCd, String cntrPerfCrtDvCd, String perfAgrgCrtDvCd);
 
     /**
      * P조직 개인 라이프 상조 되물림대상 계약 생성
      * @param baseYm
      * @return
      */
-    int insertOrgContractDataFromLife(String baseYm, String ogTpCd, String perfAtcCd, String cntrPerfCrtDvCd);
+    int insertOrgContractDataFromLife(String baseYm, String ogTpCd, String perfAtcCd, String cntrPerfCrtDvCd, String perfAgrgCrtDvCd);
 
     /**
      * P조직 실활동인원수 되물림실적 생성
