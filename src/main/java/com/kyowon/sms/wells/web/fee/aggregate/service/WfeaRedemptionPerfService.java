@@ -84,9 +84,9 @@ public class WfeaRedemptionPerfService {
 
         if ("W01".equals(ogTpCd)) {
             /* 개인 라이프 상조 취소되물림 계약 데이터 생성 */
-            mapper.insertIndivContractDataFromLife(baseYm, ogTpCd, "W01P00010", cntrPerfCrtDvCd);
+            mapper.insertIndivContractDataFromLife(baseYm, ogTpCd, "W01P00010", cntrPerfCrtDvCd, perfAgrgCrtDvCd);
             /* 조직 라이프 상조 취소되물림 계약 데이터 생성 */
-            mapper.insertOrgContractDataFromLife(baseYm, ogTpCd, "W01P00034", cntrPerfCrtDvCd);
+            mapper.insertOrgContractDataFromLife(baseYm, ogTpCd, "W01P00034", cntrPerfCrtDvCd, perfAgrgCrtDvCd);
             perfAtcCds.addAll(Arrays.asList("W01P00010", "W01P00034"));
         } else if ("W02".equals(ogTpCd)) {
             /* 아직 미반영 */
