@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.competence.voc.rest;
 
-import com.kyowon.sms.common.web.competence.zcommon.constants.PsCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.kyowon.sms.wells.web.competence.voc.dto.WpshVocReceiptMngtDto.*;
 import com.kyowon.sms.wells.web.competence.voc.service.WpshVocReceiptMngtService;
 import com.sds.sflex.system.config.datasource.PageInfo;
