@@ -18,15 +18,17 @@ public class WsnaItemBaseInformationDto {
     @ApiModel("WsnaItemBaseInformationDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String itmKndCd,
-        String itmPdCd,
-        String itmPdNm,
-        String wareNo,
-        String ostrWareNo,
-        String wareDvCd,
-        String wareDtlDvCd,
-        String strtSapCd,
-        String endSapCd
+        String itmKndCd, // 품목종류코드
+        String itmPdCd, // 품목상품코드
+        String itmPdNm, // 품목상품
+        String wareNo, // 창고번호
+        String ostrWareNo, // 출고창고번호
+        String wareDvCd, // 창고구분코드
+        String wareDtlDvCd, // 창고상세구분코드
+        String strtSapCd, // 시작SAP코드
+        String endSapCd, // 종료 SAP코드
+        String itmGrpCd, // 상품그룹코드
+        String svMatGrpCd // 자재그룹코드
     ) {}
 
     @ApiModel("WsnaItemBaseInformationDto-SearchRes")
