@@ -757,7 +757,15 @@
           FROM
              (
                <if test='!@MybatisUtils@equals(sellTpCd, "05")'> /* 판매유형 = 05 : 재약정 */
-                   SELECT SUBSTR(T1.CNTR_CNFM_DTM, 0, 6) AS BASE_YM /* 기준년월 */
+                   SELECT
+                         <choose>
+                             <when test='@MybatisUtils@equals(dvCd, "01") or @MybatisUtils@equals(dvCd, "02")'> /* 구분 = 01 : 접수, 02 : 예약 */
+                                 SUBSTR(T1.CNTR_CNFM_DTM, 0, 6) AS BASE_YM /* 기준년월 */
+                             </when>
+                             <when test='@MybatisUtils@equals(dvCd, "03")'>  /* 구분 = 03 : 매출 */
+                                 SUBSTR(T2.CNTR_PD_STRTDT, 0, 6) AS BASE_YM /* 기준년월 */
+                             </when>
+                         </choose>
                         , T1.SELL_OG_TP_CD AS OG_TP_CD /* 조직유형코드 */
                         , T1.SELL_PRTNR_NO AS PRTNR_NO /* 파트너번호 */
                         , T2.SELL_TP_CD /* 판매유형코드 */
@@ -1161,7 +1169,7 @@
                    </if>
                </if>
              ) A1
-          LEFT OUTER JOIN
+         INNER JOIN
              (
                SELECT T1.BASE_YM /* 기준년월 */
                     , T1.OG_TP_CD /* 조직유형코드 */
