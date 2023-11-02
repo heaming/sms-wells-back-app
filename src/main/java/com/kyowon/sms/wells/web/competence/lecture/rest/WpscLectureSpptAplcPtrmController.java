@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.competence.lecture.rest;
 
 import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptAplcPtrmDto.*;
 import com.kyowon.sms.wells.web.competence.lecture.service.WpscLectureSpptAplcPtrmService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -18,7 +18,7 @@ import javax.validation.Valid;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/lecture-sppt-aplc-ptrm")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/lecture-sppt-aplc-ptrm")
 public class WpscLectureSpptAplcPtrmController {
 
     private final WpscLectureSpptAplcPtrmService service;

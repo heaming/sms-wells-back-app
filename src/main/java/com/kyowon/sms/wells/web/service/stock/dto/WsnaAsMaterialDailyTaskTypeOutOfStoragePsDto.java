@@ -8,15 +8,15 @@ public class WsnaAsMaterialDailyTaskTypeOutOfStoragePsDto {
         String baseYm,
         String baseYear,
         String baseMonth,
-        String wareDvCd,
         String wareDtlDvCd,
         String wareNoM,
         String wareNoD,
         String svBizHclsfCd,
         String useYn,
         String itmKndCd,
-        String itmPdCd
-    ){}
+        String itmPdCdFrom,
+        String itmPdCdTo
+    ) {}
 
     @ApiModel(value = "WsnaAsMaterialDailyTaskTypeOutOfStoragePsDto-SearchRes")
     public record SearchRes(
@@ -66,6 +66,9 @@ public class WsnaAsMaterialDailyTaskTypeOutOfStoragePsDto {
         Integer qty28,
         Integer qty29,
         Integer qty30,
-        Integer qty31
-    ){}
+        Integer qty31,
+        String trnovrRtOjYn,
+        String cmnPartDvCd,
+        String ordnyHvMatYn
+    ) {}
 }
