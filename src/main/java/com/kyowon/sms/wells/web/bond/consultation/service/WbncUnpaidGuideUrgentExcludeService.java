@@ -27,6 +27,14 @@ import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-BN-U-0032M01	미납요금 안내/촉구 대상 제외관리(탭)
+ * </pre>
+ *
+ * @author gs.piit128 gilyong.han
+ * @since 2023-07-10
+ */
 @Service
 @RequiredArgsConstructor
 public class WbncUnpaidGuideUrgentExcludeService {
@@ -36,10 +44,20 @@ public class WbncUnpaidGuideUrgentExcludeService {
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
 
+    /**
+     * 미납요금 안내/촉구 대상 제외관리(탭) 조회
+     * @param dto
+     * @return List<SearchRes>
+     */
     public List<SearchRes> getUnpaidGuideUrgentExcludes(SearchReq dto) {
         return mapper.selectUnpaidGuideUrgentExcludes(dto);
     }
 
+    /**
+     * 미납요금 안내/촉구 대상 제외관리(탭) 저장
+     * @param dtos
+     * @return int
+     */
     @Transactional
     public int saveUnpaidGuideUrgentExcludes(List<SaveReq> dtos) {
         int processCount = 0;
@@ -53,6 +71,11 @@ public class WbncUnpaidGuideUrgentExcludeService {
         return processCount;
     }
 
+    /**
+     * 미납요금 안내/촉구 대상 제외관리(탭) 엑셀 업로드
+     * @param file
+     * @return UploadRes
+     */
     @Transactional
     public UploadRes saveUnpaidGuideUrgentExcludesExcelUpload(MultipartFile file) throws Exception {
         // 업로드 엑셀 헤더 설정

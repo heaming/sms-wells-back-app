@@ -31,6 +31,14 @@ import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * W-BN-U-0067M01	렌탈CB 알림톡 발송 제외 자료 등록
+ * </pre>
+ *
+ * @author gs.piit128 gilyong.han
+ * @since 2023-03-28
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -41,16 +49,31 @@ public class WbndRentalCbMgtMessageExcludeService {
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
 
+    /**
+     * 렌탈CB 알림톡 발송 제외 자료 등록 페이징 조회
+     * @param dto, pageInfo
+     * @return PagingResult<SearchRes>
+     */
     public PagingResult<SearchRes> getRentalCbMessageExcludePages(
         SearchReq dto, PageInfo pageInfo
     ) {
         return mapper.selectRentalCbMessageExcludePages(dto, pageInfo);
     }
 
+    /**
+     * 렌탈CB 알림톡 발송 제외 자료 등록 엑셀 다운로드
+     * @param dto
+     * @return List<SearchRes>
+     */
     public List<SearchRes> getRentalCbMessageExcludesForExcelDownload(SearchReq dto) {
         return mapper.selectRentalCbMessageExcludePages(dto);
     }
 
+    /**
+     * 렌탈CB 알림톡 발송 제외 자료 등록 저장
+     * @param dtos
+     * @return int
+     */
     @Transactional
     public int saveRentalCbMessageExcludes(List<SaveReq> dtos) {
         int processCount = 0;
@@ -73,6 +96,11 @@ public class WbndRentalCbMgtMessageExcludeService {
         return processCount;
     }
 
+    /**
+     * 렌탈CB 알림톡 발송 제외 자료 등록 삭제
+     * @param bndCntcExcdOjIds
+     * @return int
+     */
     @Transactional
     public int removeRentalCbMessageExcludes(List<String> bndCntcExcdOjIds) {
         int processCount = 0;
@@ -85,6 +113,11 @@ public class WbndRentalCbMgtMessageExcludeService {
         return processCount;
     }
 
+    /**
+     * 렌탈CB 알림톡 발송 제외 자료 엑셀 업로드
+     * @param file
+     * @return UploadRes
+     */
     @Transactional
     public UploadRes saveRentalCbMessageExcludesExcelUpload(MultipartFile file) throws Exception {
         // 업로드 엑셀 헤더 설정

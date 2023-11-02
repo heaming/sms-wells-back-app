@@ -36,59 +36,59 @@ public class WbnaFosterTransferMgtDto {
     @Builder
     @ApiModel("WbnaFosterTransferMgtDto-SearchRes")
     public record SearchRes(
-        String bzHdqDvCd,
-        String baseYm,
-        String clctamPrtnrNm,
-        String clctamPrtnrNo,
-        Double woCstCt,
-        Double woCntrCt,
-        Double woObjAmt,
-        Double woDlqAmt,
-        Double woThmChramAmt,
-        Double woDlqAddAmt,
-        Double woRsgBorAmt,
-        Double rentalCstCt,
-        Double rentalCntrCt,
-        Double rentalObjAmt,
-        Double rentalDlqAmt,
-        Double rentalThmChramAmt,
-        Double rentalDlqAddAmt,
-        Double rentalRsgBorAmt,
-        Double leaseCstCt,
-        Double leaseCntrCt,
-        Double leaseObjAmt,
-        Double leaseDlqAmt,
-        Double leaseThmChramAmt,
-        Double leaseDlqAddAmt,
-        Double leaseRsgBorAmt,
-        Double mshCstCt,
-        Double mshCntrCt,
-        Double mshObjAmt,
-        Double mshDlqAmt,
-        Double mshThmChramAmt,
-        Double mshDlqAddAmt,
-        Double mshRsgBorAmt,
-        Double rglrSppCstCt,
-        Double rglrSppCntrCt,
-        Double rglrSppObjAmt,
-        Double rglrSppDlqAmt,
-        Double rglrSppThmChramAmt,
-        Double rglrSppDlqAddAmt,
-        Double rglrSppRsgBorAmt,
-        Double hcrCstCt,
-        Double hcrCntrCt,
-        Double hcrObjAmt,
-        Double hcrDlqAmt,
-        Double hcrThmChramAmt,
-        Double hcrDlqAddAmt,
-        Double hcrRsgBorAmt,
-        Double spayCstCt,
-        Double spayCntrCt,
-        Double spayObjAmt,
-        Double spayDlqAmt,
-        Double spayThmChramAmt,
-        Double spayDlqAddAmt,
-        Double spayRsgBorAmt
+        String bzHdqDvCd, /* 사업부 */
+        String baseYm, /* 기준년월 */
+        String clctamPrtnrNm, /* 집금담당자명 */
+        String clctamPrtnrNo, /* 집금담당자번호 */
+        Double woCstCt, /* 전체 - 고객수 */
+        Double woCntrCt, /* 전체 - 계약수 */
+        Double woObjAmt, /* 전체 - 당월대상 */
+        Double woDlqAmt, /* 전체 - 연체금액 */
+        Double woThmChramAmt, /* 전체 - 당월요금 */
+        Double woDlqAddAmt, /* 전체 - 연체가산금액 */
+        Double woRsgBorAmt, /* 전체 - 위약금액 */
+        Double rentalCstCt, /* 렌탈 - 고객수 */
+        Double rentalCntrCt, /* 렌탈 - 계약수 */
+        Double rentalObjAmt, /* 렌탈 - 당월대상 */
+        Double rentalDlqAmt, /* 렌탈 - 연체금액 */
+        Double rentalThmChramAmt, /* 렌탈 - 당월요금 */
+        Double rentalDlqAddAmt, /* 렌탈 - 연체가산금액 */
+        Double rentalRsgBorAmt, /* 렌탈 - 위약금액 */
+        Double leaseCstCt, /* 금융리스 - 고객수 */
+        Double leaseCntrCt, /* 금융리스 - 계약수 */
+        Double leaseObjAmt, /* 금융리스 - 당월대상 */
+        Double leaseDlqAmt, /* 금융리스 - 연체금액 */
+        Double leaseThmChramAmt, /* 금융리스 - 당월요금 */
+        Double leaseDlqAddAmt, /* 금융리스 - 연체가산금액 */
+        Double leaseRsgBorAmt, /* 금융리스 - 위약금액 */
+        Double mshCstCt, /* 일반멤버십 - 고객수 */
+        Double mshCntrCt, /* 일반멤버십 - 계약수 */
+        Double mshObjAmt, /* 일반멤버십 - 당월대상 */
+        Double mshDlqAmt, /* 일반멤버십 - 연체금액 */
+        Double mshThmChramAmt, /* 일반멤버십 - 당월요금 */
+        Double mshDlqAddAmt, /* 일반멤버십 - 연체가산금액 */
+        Double mshRsgBorAmt, /* 일반멤버십 - 위약금액 */
+        Double rglrSppCstCt, /* 홈케어멤버십 - 고객수 */
+        Double rglrSppCntrCt, /* 홈케어멤버십 - 계약수 */
+        Double rglrSppObjAmt, /* 홈케어멤버십 - 당월대상 */
+        Double rglrSppDlqAmt, /* 홈케어멤버십 - 연체금액 */
+        Double rglrSppThmChramAmt, /* 홈케어멤버십 - 당월요금 */
+        Double rglrSppDlqAddAmt, /* 홈케어멤버십 - 연체가산금액 */
+        Double rglrSppRsgBorAmt, /* 홈케어멤버십 - 위약금액 */
+        Double hcrCstCt, /* 일시불 - 고객수 */
+        Double hcrCntrCt, /* 일시불 - 계약수 */
+        Double hcrObjAmt, /* 일시불 - 당월대상 */
+        Double hcrDlqAmt, /* 일시불 - 연체금액 */
+        Double hcrThmChramAmt, /* 일시불 - 당월요금 */
+        Double hcrDlqAddAmt, /* 일시불 - 연체가산금액 */
+        Double hcrRsgBorAmt, /* 일시불 - 위약금액 */
+        Double spayCstCt, /* 정기배송 - 고객수 */
+        Double spayCntrCt, /* 정기배송 - 계약수 */
+        Double spayObjAmt, /* 정기배송 - 당월대상 */
+        Double spayDlqAmt, /* 정기배송 - 연체금액 */
+        Double spayThmChramAmt, /* 정기배송 - 당월요금 */
+        Double spayDlqAddAmt, /* 정기배송 - 연체가산금액 */
+        Double spayRsgBorAmt/* 정기배송 - 위약금액 */
     ) {}
     @Builder
     @ApiModel("WbnaFosterTransferMgtDto-SearchDetailRes")
