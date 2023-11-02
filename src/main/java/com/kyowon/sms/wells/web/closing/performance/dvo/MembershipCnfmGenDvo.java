@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class MembershipCnfmGenDvo {
     private String cntrNo;
+    private int cntrSn;
     private String confirmDate;
     private String joinDate;
 }
