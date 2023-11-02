@@ -12,7 +12,7 @@ import com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto;
 import com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.competence.business.dto.WpsfActivityGoodsMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.competence.business.service.WpsfActivityGoodsMgtService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/business/activity")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/business/activity")
 public class WpsfActivityGoodsMgtController {
 
     private final WpsfActivityGoodsMgtService service;

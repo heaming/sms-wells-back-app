@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.competence.interfaces.rest;
 
-import com.kyowon.sms.common.web.competence.zcommon.constants.PsCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.kyowon.sms.wells.web.competence.interfaces.service.WpskPinatMetgCheckService;
 import com.kyowon.sms.wells.web.competence.interfaces.dto.WpskPinatMetgCheckDto.CreateRes;
 import com.kyowon.sms.wells.web.competence.interfaces.dto.WpskPinatMetgCheckDto.CreateReq;
