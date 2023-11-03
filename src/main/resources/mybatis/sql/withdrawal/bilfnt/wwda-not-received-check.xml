@@ -103,7 +103,60 @@
     </select>
 
     <select id="selectAftnSlPerfCheckInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchAftnSlPerfCheckInqrRes">
-           /* 기준년월 = 당월(영업선수금일마감)  */
+        SELECT
+               '매출실적 입금반영 누락건(' || (SELECT CD_CNTN
+                                          FROM T_CMZ_CD_D
+                                         WHERE CD_ID = UPPER('SELL_TP_CD')
+                                           AND DEL_YN = 'N'
+                                           AND CD_VLD_VAL = B.SELL_TP_CD
+                                           AND TENANT_ID =  #{session.tenantId}
+                           ) || ')' AS SELL_TP_NM
+             , SL_CL_YM  AS BASE_YM
+             , B.CNTR_NO
+             , B.CNTR_SN
+             , B.CNTR_NO || B.CNTR_SN AS CNTR
+             , B.RENTAL_TN AS RENTAL_NMN
+             , B.THM_ATAM_DP_AMT  AS THM_INTAM_DP_AMT
+             , B.THM_ATAM_RFND_AMT  AS THM_ISTM_RFND_AMT
+             , NVL(( SELECT SUM(CASE WHEN S1.DP_DV_CD IN ('2','4') THEN -RVE_AMT ELSE RVE_AMT END)
+                         FROM TB_RVDW_RVE_DTL S1
+                        INNER JOIN TB_SSCT_CNTR_DTL S2
+                           ON (    S2.CNTR_NO = S1.CNTR_NO
+                               AND S2.CNTR_SN = S1.CNTR_SN
+                               AND S2.SELL_TP_CD IN ('2','3','6')
+                               AND S2.DTA_DL_YN = 'N')
+                        WHERE 1 = 1
+                         AND S1.CNTR_NO = B.CNTR_NO
+                         AND S1.CNTR_SN = B.CNTR_SN
+                         AND S1.DP_MES_CD NOT IN ('06')
+                         AND S1.KW_GRP_CO_CD = '2000'
+                         AND S1.PERF_DT >= B.SL_CL_YM||'01'
+                         AND S1.PERF_DT <![CDATA[<=]]> B.SL_CL_YM||'31'
+                         AND S1.DTA_DL_YN = 'N'),0)
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ B
+         WHERE 1 = 1
+           AND SL_CL_YM = #{baseYm}
+           AND (B.THM_ATAM_DP_AMT - B.THM_ATAM_RFND_AMT ) != NVL(( SELECT SUM(CASE WHEN S1.DP_DV_CD IN ('2','4') THEN -RVE_AMT ELSE RVE_AMT END)
+                                                                     FROM TB_RVDW_RVE_DTL S1
+                                                                    INNER JOIN TB_SSCT_CNTR_DTL S2
+                                                                       ON (    S2.CNTR_NO = S1.CNTR_NO
+                                                                           AND S2.CNTR_SN = S1.CNTR_SN
+                                                                           AND S2.SELL_TP_CD IN ('2','3','6')
+                                                                           AND S2.DTA_DL_YN = 'N')
+                                                                    WHERE 1 = 1
+                                                                     AND S1.CNTR_NO = B.CNTR_NO
+                                                                     AND S1.CNTR_SN = B.CNTR_SN
+                                                                     AND S1.DP_MES_CD NOT IN ('06')
+                                                                     AND S1.KW_GRP_CO_CD = #{session.companyCode}
+                                                                     AND S1.PERF_DT >= B.SL_CL_YM||'01'
+                                                                     AND S1.PERF_DT <![CDATA[<=]]> B.SL_CL_YM||'31'
+                                                                     AND S1.DTA_DL_YN = 'N'),0)
+            AND B.SELL_TP_CD != 1
+
+
+
+
+           <!-- = 당월(영업선수금일마감)  */
            SELECT '매출실적 입금반영 누락건(' || (SELECT CD_CNTN
                                   FROM T_CMZ_CD_D
                                  WHERE CD_ID = UPPER('SELL_TP_CD')
@@ -135,31 +188,29 @@
                         , D1.CNTR_NO
                         , D1.CNTR_SN
                         , A1.DP_CL_DT
-                        , E1.DP_MES_CD
+                        , B1.DP_MES_CD
                      FROM TB_CBCL_BZNS_ATAM_BAS A1
                      JOIN TB_RVDW_RVE_DTL B1
                        ON B1.DTA_DL_YN = 'N'
                       AND B1.RVE_NO = A1.RVE_NO
                       AND B1.RVE_SN = A1.RVE_SN
+                      AND B1.KW_GRP_CO_CD = #{session.companyCode}
                      JOIN TB_RVCL_BIL_FNT_AK_DTL C1
                        ON C1.DTA_DL_YN = 'N'
-                      AND C1.BIL_NO = B1.RVE_OJ_DRM_NO1
-                      AND C1.BIL_DTL_SN = B1.RVE_OJ_DRM_NO2
+                      AND C1.BIL_NO = B1.BIL_NO
+                      AND C1.BIL_DTL_SN = B1.BIL_DTL_SN
                      JOIN TB_SSCT_CNTR_DTL D1
                        ON D1.DTA_DL_YN = 'N'
                       AND D1.CNTR_NO = C1.CNTR_NO
                       AND D1.CNTR_SN = C1.CNTR_SN
-                     JOIN TB_RVDW_RVE_AK_DTL E1
-                       ON E1.RVE_AK_NO = B1.RVE_AK_NO
-                      AND E1.RVE_AK_SN = B1.RVE_AK_SN
-                      AND E1.DTA_DL_YN = 'N'
                     WHERE A1.DTA_DL_YN = 'N'
-                      AND A1.DP_CL_DT LIKE #{baseYm} || '%'
+                      AND A1.DP_CL_DT >= #{baseYm} || '01'
+                      AND A1.DP_CL_DT <![CDATA[<=]]> #{baseYm} || '31'
                     GROUP BY D1.SELL_TP_CD
                            , D1.CNTR_NO
                            , D1.CNTR_SN
                            , A1.DP_CL_DT
-                           , E1.DP_MES_CD
+                           , B1.DP_MES_CD
                   ) A2
             WHERE A2.ATAM_RVE_AMT != A2.RVE_AMT
             UNION ALL
@@ -179,51 +230,61 @@
                 , B2.THM_INTAM_DP_AMT
                 , B2.THM_ISTM_RFND_AMT
                 , B2.RVE_AMT
-                , ( SELECT CD_CNTN
-                      FROM T_CMZ_CD_D
-                     WHERE CD_ID = UPPER('DP_MES_CD')
-                       AND DEL_YN = 'N'
-                       AND CD_VLD_VAL = B2.DP_MES_CD
-                       AND TENANT_ID =  #{session.tenantId}
-                  ) AS DP_MES_CD
+&lt;!&ndash;                , ( SELECT CD_CNTN&ndash;&gt;
+&lt;!&ndash;                      FROM T_CMZ_CD_D&ndash;&gt;
+&lt;!&ndash;                     WHERE CD_ID = UPPER('DP_MES_CD')&ndash;&gt;
+&lt;!&ndash;                       AND DEL_YN = 'N'&ndash;&gt;
+&lt;!&ndash;                       AND CD_VLD_VAL = B2.DP_MES_CD&ndash;&gt;
+&lt;!&ndash;                       AND TENANT_ID =  #{session.tenantId}&ndash;&gt;
+&lt;!&ndash;                  ) AS DP_MES_CD&ndash;&gt;
+                 , '' AS DP_MES_CD
             FROM (
-                  SELECT
-                        NVL(A1.THM_INTAM_DP_AMT, 0) THM_INTAM_DP_AMT
-                      , NVL(A1.THM_ISTM_RFND_AMT, 0) THM_ISTM_RFND_AMT
-                      , SUM(D1.RVE_AMT) RVE_AMT
-                      , B1.SELL_TP_CD
-                      , B1.CNTR_NO
-                      , B1.CNTR_SN
-                      , A1.SL_RCOG_DT AS DP_CL_DT
-                      , E1.DP_MES_CD
+
+                 SELECT
+                        NVL(A1.THM_ATAM_DP_AMT, 0) THM_INTAM_DP_AMT
+                      , NVL(A1.THM_ATAM_RFND_AMT, 0) THM_ISTM_RFND_AMT
+                      , B1.RVE_AMT RVE_AMT
+                      , (SELECT SELL_TP_CD
+                           FROM TB_SSCT_CNTR_DTL S1
+                          WHERE S1.CNTR_NO = A1.CNTR_NO
+                            AND S1.CNTR_SN = A1.CNTR_SN
+                            AND S1.DTA_DL_YN = 'N') SELL_TP_CD
+                      , A1.CNTR_NO
+                      , A1.CNTR_SN
+                      , A1.SL_CL_YM AS DP_CL_DT
+&lt;!&ndash;                      , B1.DP_MES_CD&ndash;&gt;
                    FROM TB_CBCL_WELLS_SL_MM_CL_IZ A1
-                   JOIN TB_SSCT_CNTR_DTL B1
-                     ON B1.DTA_DL_YN = 'N'
-                    AND B1.CNTR_NO = A1.CNTR_NO
-                    AND B1.CNTR_SN = A1.CNTR_SN
-                   JOIN TB_RVCL_BIL_FNT_AK_DTL C1
-                     ON C1.DTA_DL_YN = 'N'
-                    AND C1.CNTR_NO = A1.CNTR_NO
-                    AND C1.CNTR_SN = A1.CNTR_SN
-                   JOIN TB_RVDW_RVE_DTL D1
-                     ON D1.DTA_DL_YN = 'N'
-                    AND D1.RVE_OJ_DRM_NO1 = C1.BIL_NO
-                    AND D1.RVE_OJ_DRM_NO2 = C1.BIL_DTL_SN
-                   JOIN TB_RVDW_RVE_AK_DTL E1
-                     ON E1.RVE_AK_NO = D1.RVE_AK_NO
-                    AND E1.RVE_AK_SN = D1.RVE_AK_SN
-                    AND E1.DTA_DL_YN = 'N'
+                   JOIN LATERAL ( SELECT S2.CNTR_NO
+                                       , S2.CNTR_SN
+&lt;!&ndash;                                       , S3.DP_MES_CD&ndash;&gt;
+                                       , SUM(CASE WHEN S3.DP_DV_CD IN ('1','3') THEN S3.RVE_AMT
+                                                  ELSE S3.RVE_AMT * -1
+                                                   END ) AS RVE_AMT
+                                    FROM TB_RVCL_BIL_FNT_AK_BAS S1
+                                   INNER JOIN TB_RVCL_BIL_FNT_AK_DTL S2
+                                      ON (    S2.BIL_NO = S1.BIL_NO
+                                          AND S2.DTA_DL_YN = 'N')
+                                   INNER JOIN TB_RVDW_RVE_DTL S3
+                                      ON (    S3.KW_GRP_CO_CD = #{session.companyCode}
+                                          AND S3.DP_MES_CD IN ('01', '02')
+                                          AND S3.RVE_DT >= A1.SL_CL_YM||'01'
+                                          AND S3.RVE_DT <![CDATA[<=]]> A1.SL_CL_YM||'31'
+                                          AND S3.DTA_DL_YN  = 'N'
+                                          AND S3.CNTR_NO = S2.CNTR_NO
+                                          AND S3.CNTR_SN = S2.CNTR_SN)
+                                    WHERE 1 = 1
+                                      AND S2.BIL_YM = A1.SL_CL_YM
+                                      AND SUBSTR(S2.CNTR_NO,0,1) != '@'
+                                      AND A1.CNTR_NO = S2.CNTR_NO
+                                      AND A1.CNTR_SN = S2.CNTR_SN
+                                      AND S1.DTA_DL_YN = 'N'
+                                      AND S1.RVE_DT IS NOT NULL
+                                    GROUP BY S2.CNTR_NO  , S2.CNTR_SN    ) B1
+                     ON 1 = 1
                   WHERE A1.DTA_DL_YN = 'N'
-                    AND A1.SL_RCOG_DT LIKE #{baseYm} || '%'
-                  GROUP BY B1.SELL_TP_CD
-                         , B1.CNTR_NO
-                         , B1.CNTR_SN
-                         , A1.SL_RCOG_DT
-                         , A1.THM_INTAM_DP_AMT
-                         , A1.THM_ISTM_RFND_AMT
-                         , E1.DP_MES_CD
-                 ) B2
-           WHERE (B2.THM_INTAM_DP_AMT - THM_ISTM_RFND_AMT) != RVE_AMT
+                    AND A1.SL_CL_YM = #{baseYm}
+                ) B2
+           WHERE (B2.THM_INTAM_DP_AMT - THM_ISTM_RFND_AMT) != RVE_AMT-->
     </select>
 
     <select id="selectAftnRsBndlErrInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchResultBundleErrorRes">
