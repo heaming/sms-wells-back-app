@@ -35,6 +35,7 @@ public class WsnbServiceProcDetailListController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cstSvAsnNo", value = "고객서비스배정번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "gubun", value = "조회유형", paramType = "query", required = true),
     })
     @GetMapping
     public WsnbServiceProcDetailListDvo getServiceProcDetailList(
@@ -50,6 +51,7 @@ public class WsnbServiceProcDetailListController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cstSvAsnNo", value = "고객서비스배정번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "gubun", value = "조회유형", paramType = "query", required = true),
     })
     @GetMapping("/stlm-iz")
     public List<WsnbServiceProcDetailStlmIzDvo> getServiceProcDetailStlmIzs(
@@ -65,6 +67,7 @@ public class WsnbServiceProcDetailListController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cstSvAsnNo", value = "고객서비스배정번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "gubun", value = "조회유형", paramType = "query", required = true),
     })
     @GetMapping("/bil-item")
     public List<WsnbServiceProcDetailBilItemDvo> getServiceProcDetailBilItems(
@@ -80,6 +83,7 @@ public class WsnbServiceProcDetailListController {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cstSvAsnNo", value = "고객서비스배정번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "gubun", value = "조회유형", paramType = "query", required = true),
     })
     @GetMapping("/pu-part")
     public List<WsnbServiceProcDetailPuPartDvo> getServiceProcDetailPuParts(
