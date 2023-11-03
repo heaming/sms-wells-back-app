@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.competence.voc.rest;
 
-import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.kyowon.sms.wells.web.competence.voc.dto.WpshVocReceiptMngtDto.*;
 import com.kyowon.sms.wells.web.competence.voc.service.WpshVocReceiptMngtService;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -86,7 +86,7 @@ public class WpshVocReceiptMngtController {
         return SaveResponse.builder().processCount(service.saveVocReceiptEvl(dto)).build();
     }
 
-    @ApiOperation(value = "VOC 접수 관리 평가", notes = "")
+    @ApiOperation(value = "VOC 접수 관리 처리완료", notes = "")
     @PostMapping("/procs")
     public SaveResponse saveVocReceiptProcs(
         @RequestBody
@@ -106,7 +106,7 @@ public class WpshVocReceiptMngtController {
         return SaveResponse.builder().processCount(service.saveVocReceiptRcp(dto)).build();
     }
 
-    @ApiOperation(value = "VOC 접수 관리 VOC 답변 등록", notes = "")
+    @ApiOperation(value = "VOC 접수 관리 VOC 답변 등록/수정", notes = "")
     @PostMapping("/rly")
     public SaveResponse saveVocReceiptRly(
         @RequestBody
