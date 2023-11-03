@@ -41,7 +41,7 @@
              , O.RSB_DV_CD /* 파트너 직급 */
              , NVL(PERF.PERF02, 0) AS PERF02 /* 가전인정건수 */
              , NVL(PERF.PERF03, 0) AS PERF03 /* 가전기변건수 */
-             , NVL(PERF.MEET_DATES, 0) AS MEET_DATES /* 미팅참석일수 */
+             , NVL(MEET.MEET_DATES, 0) AS MEET_DATES /* 미팅참석일수 */
              , ${feeCdFields}
              , ${feeSumField}
              , NVL(D.DDTN02, 0) AS DDTN02 /* 소득세 */
@@ -164,22 +164,36 @@
                      , OG_TP_CD
                      , NVL(SUM(CASE WHEN PERF_ATC_CD = 'W02P00103' THEN PERF_VAL END), 0) AS PERF02 /* 가전인정건수 */
                      , NVL(SUM(CASE WHEN PERF_ATC_CD = 'W02P00104' THEN PERF_VAL END), 0) AS PERF03  /* 가전기변건수 */
-                     , NVL(SUM(CASE WHEN PERF_ATC_CD = 'W02P00093' THEN PERF_VAL END), 0) AS MEET_DATES /* 미팅참석일수 */
-               -- FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감 */
-                 FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL /* 파트너실적월누적마감 */
+                 FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감 */
                 WHERE 1 = 1
                   AND DTA_DL_YN = 'N'
                   AND BASE_YM = #{dto.perfDt}
---                  AND FEE_TCNT_DV_CD = '02'
-                  AND MM_ACU_PERF_AGRG_CRT_DV_CD = '01' /* 접수-00:총주문월누적, 매출-01:순주문월누적 */
+                  AND FEE_TCNT_DV_CD = '02'
+            --      AND MM_ACU_PERF_AGRG_CRT_DV_CD = '01' /* 접수-00:총주문월누적, 매출-01:순주문월누적 */
                   AND PERF_AGRG_CRT_DV_CD = '201' /*실적집계생성구분코드(101 : P추진단순주문실적생성 , 201: M추진단순주문실적생성 , 301 : 홈마스터순주문실적생성 )*/
                   AND OG_TP_CD = #{dto.ogTpCd} /*조직유형코드(W02: M추진단)*/
-                  AND PERF_ATC_CD IN ('W02P00103', 'W02P00104', 'W02P00093') /* 실적항목코드(W02P00002: 판매인정건수, W00P00014:기변１건수, W00P00018: 단체할인기변 1, W02P00093: 미팅참석일수) */
+                  AND PERF_ATC_CD IN ('W02P00103', 'W02P00104') /* 실적항목코드(W02P00002: 판매인정건수, W00P00014:기변１건수, W00P00018: 단체할인기변 1, W02P00093: 미팅참석일수) */
                 GROUP BY BASE_YM, PRTNR_NO, OG_TP_CD
             ) PERF
              ON FC.DSB_YM   = PERF.BASE_YM
             AND FC.PRTNR_NO = PERF.PRTNR_NO
             AND FC.OG_TP_CD = PERF.OG_TP_CD
+           LEFT JOIN (
+                        SELECT BASE_YM,PRTNR_NO ,OG_TP_CD
+                             , NVL(SUM(PERF_VAL), 0) AS MEET_DATES /* 미팅참석일수 */
+                          FROM TB_FEAM_PRTNR_PERF_MM_CL
+                         WHERE 1=1
+                            AND DTA_DL_YN = 'N'
+                            AND BASE_YM = #{dto.perfDt}
+                            AND FEE_TCNT_DV_CD = '02'
+                            AND PERF_ATC_CD = 'W02P00093'
+                            AND PERF_AGRG_CRT_DV_CD = '201' /*실적집계생성구분코드(101 : P추진단순주문실적생성 , 201: M추진단순주문실적생성 , 301 : 홈마스터순주문실적생성 )*/
+                            AND OG_TP_CD = #{dto.ogTpCd} /*조직유형코드(W02: M추진단)*/
+                         GROUP BY BASE_YM, PRTNR_NO, OG_TP_CD
+                      ) MEET /* 파트너실적월마감 */
+             ON FC.DSB_YM   = MEET.BASE_YM
+            AND FC.PRTNR_NO = MEET.PRTNR_NO
+            AND FC.OG_TP_CD = MEET.OG_TP_CD
            LEFT OUTER JOIN
             (
                 SELECT DSB_YM , CO_CD , OG_TP_CD ,PRTNR_NO, DSB_OJ_AMT
@@ -228,7 +242,7 @@
               , O.DGR3_LEVL_OG_CD     /* 3차레벨조직코드 - 지점 코드*/
               , O.PRTNR_KNM           /* 파트너명 */
               , O.RSB_DV_CD           /* 파트너 직급 */
-              , NVL(PERF.PERF01, 0) AS MEET_DATES   /* 미팅참석일수 */
+              , NVL(MEET.MEET_DATES, 0) AS MEET_DATES   /* 미팅참석일수 */
               , NVL(PERF.PERF02, 0) AS PERF02   /* 가전 실적 */
               , NVL(PERF.PERF03, 0) AS PERF03   /* 가전외 실적 */
               , NVL(PERF.PERF04, 0) AS PERF04   /* 합산 실적 */
@@ -353,24 +367,40 @@
                 SELECT BASE_YM
                      , PRTNR_NO
                      , OG_TP_CD
-                         , NVL(SUM(CASE WHEN ( PERF_ATC_CD = 'W01P00012') THEN PERF_VAL END), 0) AS PERF01                   /* 미팅참석일수 */
                          , NVL(SUM(CASE WHEN ( PERF_ATC_CD = 'W01P00001') THEN PERF_VAL END), 0) AS PERF02                   /* 가전실적금액 */
                          , NVL(SUM(CASE WHEN ( PERF_ATC_CD = 'W01P00004') THEN PERF_VAL END), 0) AS PERF03                   /* 가전외실적금액 */
                          , NVL(SUM(CASE WHEN ( PERF_ATC_CD IN ('W01P00001','W01P00004')) THEN PERF_VAL END), 0) AS PERF04    /* 합산  */
                          , NVL(SUM(CASE WHEN ( PERF_ATC_CD IN ('W01P00002')) THEN PERF_VAL END), 0) AS PERF05               /* 기변실적금액 */
-               -- FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감 */
-                 FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL /* 파트너실적월누적마감 */
+                 FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감 */
+                 -- FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL /* 파트너실적월누적마감 */
                 WHERE 1 = 1
                   AND DTA_DL_YN = 'N'
                   AND BASE_YM = #{dto.perfDt}
-                  AND MM_ACU_PERF_AGRG_CRT_DV_CD = '01' /* 접수-00:총주문월누적, 매출-01:순주문월누적 */
+                  AND FEE_TCNT_DV_CD = '02'
+--                  AND MM_ACU_PERF_AGRG_CRT_DV_CD = '01' /* 접수-00:총주문월누적, 매출-01:순주문월누적 */
                   AND PERF_AGRG_CRT_DV_CD = '101' /*실적집계생성구분코드(101 : P추진단순주문실적생성 , 201: M추진단순주문실적생성 , 301 : 홈마스터순주문실적생성 )*/
                   AND OG_TP_CD = #{dto.ogTpCd} /*조직유형코드(W01: P추진단)*/
-                  AND PERF_ATC_CD IN ('W01P00012','W01P00001', 'W01P00004', 'W01P00002')
+                  AND PERF_ATC_CD IN ('W01P00001', 'W01P00004', 'W01P00002')
                 GROUP BY BASE_YM, PRTNR_NO, OG_TP_CD
               ) PERF
              ON FC.DSB_YM = PERF.BASE_YM
             AND FC.PRTNR_NO = PERF.PRTNR_NO
+            LEFT JOIN (
+                        SELECT BASE_YM,PRTNR_NO ,OG_TP_CD
+                             , NVL(SUM(PERF_VAL), 0) AS MEET_DATES /* 미팅참석일수 */
+                          FROM TB_FEAM_PRTNR_PERF_MM_CL
+                         WHERE 1=1
+                            AND DTA_DL_YN = 'N'
+                            AND BASE_YM = #{dto.perfDt}
+                            AND FEE_TCNT_DV_CD = '02'
+                            AND PERF_ATC_CD = 'W01P00012'
+                            AND PERF_AGRG_CRT_DV_CD = '101' /*실적집계생성구분코드(101 : P추진단순주문실적생성 , 201: M추진단순주문실적생성 , 301 : 홈마스터순주문실적생성 )*/
+                            AND OG_TP_CD = #{dto.ogTpCd} /*조직유형코드(W02: M추진단)*/
+                         GROUP BY BASE_YM, PRTNR_NO, OG_TP_CD
+                      ) MEET /* 파트너실적월마감 */
+             ON FC.DSB_YM   = MEET.BASE_YM
+            AND FC.PRTNR_NO = MEET.PRTNR_NO
+            AND FC.OG_TP_CD = MEET.OG_TP_CD
            LEFT OUTER JOIN (
                           SELECT DSB_YM , CO_CD , OG_TP_CD ,PRTNR_NO, DSB_OJ_AMT
                           FROM TB_FEAM_FEE_DSB_IZ   /* 수수료지급내역 */
@@ -424,7 +454,7 @@
                   , O.DGR3_LEVL_OG_CD     /* 3차레벨조직코드 - 지점 코드*/
                   , O.PRTNR_KNM           /* 파트너명 */
                   , O.RSB_DV_CD           /* 파트너 직급 */
-                  , NVL(PERF.PERF01, 0) AS MEET_DATES    /* 미팅참석일수 */
+                  , NVL(MEET.MEET_DATES, 0) AS MEET_DATES    /* 미팅참석일수 */
                   , NVL(PERF.PERF02, 0) AS PERF02    /* 조직 - 가전인정건수 */
                   , NVL(PERF.PERF03, 0) AS PERF03    /* 개인 - 가전인정건수 */
                   , NVL(PERF.PERF04, 0) AS PERF04    /* 개인 - 가전기변건수 */
@@ -543,23 +573,41 @@
                     SELECT BASE_YM
                          , PRTNR_NO
                          , OG_TP_CD
-                         , NVL(SUM(CASE WHEN (PERF_ATC_CD = 'W02P00093') THEN PERF_VAL END), 0) AS PERF01                                        /* 미팅참석일수 */
-                         , NVL(SUM(CASE WHEN (PERF_ATC_CD = 'W02P00103') THEN PERF_VAL END), 0) AS PERF02                   /* 조직 - 가전인정건수 */
+                         , NVL(SUM(CASE WHEN (PERF_ATC_CD = 'W02P00093') THEN PERF_VAL END), 0) AS PERF01                   /* 미팅참석일수 */
+                         , NVL(SUM(CASE WHEN (PERF_ATC_CD = 'W02P00002') THEN PERF_VAL END), 0) AS PERF02                   /* 조직 - 가전인정건수 */
                          , NVL(SUM(CASE WHEN (PERF_ATC_CD = 'W02P00103') THEN PERF_VAL END), 0) AS PERF03                   /* 개인 - 가전인정건수 */
-                         , NVL(SUM(CASE WHEN (PERF_ATC_CD = 'W02P00104') THEN PERF_VAL END), 0) AS PERF04                   /* 개인 - 가전기변건수 */
-                     FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL /* 파트너실적월누적마감 */
+                         , NVL(SUM(CASE WHEN (PERF_ATC_CD = 'W02P00104') THEN PERF_VAL END), 0) AS PERF04                   /* 가전기변건수 */
+
+                     FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감 */
                     WHERE 1 = 1
                       AND DTA_DL_YN = 'N'
                       AND BASE_YM = #{dto.perfDt}
-                      AND MM_ACU_PERF_AGRG_CRT_DV_CD = '01' /* 접수-00:총주문월누적, 매출-01:순주문월누적 */
+                      AND FEE_TCNT_DV_CD = '02'
+                --      AND MM_ACU_PERF_AGRG_CRT_DV_CD = '01' /* 접수-00:총주문월누적, 매출-01:순주문월누적 */
                       AND PERF_AGRG_CRT_DV_CD = '201' /*실적집계생성구분코드(101 : P추진단순주문실적생성 , 201: M추진단순주문실적생성 , 301 : 홈마스터순주문실적생성 )*/
                       AND OG_TP_CD = #{dto.ogTpCd} /*조직유형코드(W01: P추진단)*/
-                      AND PERF_ATC_CD IN ('W02P00093','W02P00103', 'W02P00104')
+                      AND PERF_ATC_CD IN ('W02P00093','W02P00002','W02P00103', 'W02P00104')
                     GROUP BY BASE_YM, PRTNR_NO, OG_TP_CD
                 ) PERF
                  ON FC.DSB_YM = PERF.BASE_YM
                 AND FC.PRTNR_NO = PERF.PRTNR_NO
                 AND FC.OG_TP_CD = PERF.OG_TP_CD
+              LEFT JOIN (
+                            SELECT BASE_YM,PRTNR_NO ,OG_TP_CD
+                                 , NVL(SUM(PERF_VAL), 0) AS MEET_DATES /* 미팅참석일수 */
+                              FROM TB_FEAM_PRTNR_PERF_MM_CL /* 파트너실적월마감*/
+                             WHERE 1=1
+                                AND DTA_DL_YN = 'N'
+                                AND BASE_YM = #{dto.perfDt}
+                                AND FEE_TCNT_DV_CD = '02'
+                                AND PERF_ATC_CD = 'W02P00093'
+                                AND PERF_AGRG_CRT_DV_CD = '201' /*실적집계생성구분코드(101 : P추진단순주문실적생성 , 201: M추진단순주문실적생성 , 301 : 홈마스터순주문실적생성 )*/
+                                AND OG_TP_CD = #{dto.ogTpCd} /*조직유형코드(W02: M추진단)*/
+                             GROUP BY BASE_YM, PRTNR_NO, OG_TP_CD
+                          ) MEET /* 파트너실적월마감 */
+                 ON FC.DSB_YM   = MEET.BASE_YM
+                AND FC.PRTNR_NO = MEET.PRTNR_NO
+                AND FC.OG_TP_CD = MEET.OG_TP_CD
                LEFT OUTER JOIN (
                                 SELECT DSB_YM , CO_CD , OG_TP_CD ,PRTNR_NO, DSB_OJ_AMT
                                   FROM TB_FEAM_FEE_DSB_IZ   /* 수수료지급내역 */
@@ -609,7 +657,7 @@
                 , O.DGR3_LEVL_OG_CD     /* 3차레벨조직코드 - 지점 코드*/
                 , O.PRTNR_KNM           /* 파트너명 */
                 , O.RSB_DV_CD           /* 파트너 직급 */
-                , NVL(PERF.MEET_DATE, 0) AS MEET_DATES   /* 미팅참석일수 */
+                , NVL(MEET.MEET_DATES, 0) AS MEET_DATES   /* 미팅참석일수 */
                 , NVL(PERF.PERF01, 0) AS PERF01   /* 조직 - 가전실적금액 */
                 , NVL(PERF.PERF02, 0) AS PERF02   /* 조직 - 가전외실적금액 */
                 , NVL(PERF.PERF03, 0) AS PERF03   /* 합산1 */
@@ -730,7 +778,6 @@
                         SELECT BASE_YM
                              , PRTNR_NO
                              , OG_TP_CD
-                             , SUM(CASE WHEN (PERF_ATC_CD = 'W01P00012') THEN PERF_VAL END) AS MEET_DATE        /* 미팅참석일수 */
                              , SUM(CASE WHEN (PERF_ATC_CD = 'W01P00001') THEN PERF_VAL END) AS PERF01        /* 조직 - 가전실적금액 */
                              , SUM(CASE WHEN (PERF_ATC_CD = 'W01P00004') THEN PERF_VAL END) AS PERF02        /* 조직 - 가전외실적금액 */
                              , SUM(CASE WHEN (PERF_ATC_CD IN('W01P00001','W01P00004') ) THEN PERF_VAL END) AS PERF03   /* 합산1 */
@@ -738,19 +785,36 @@
                              , SUM(CASE WHEN (PERF_ATC_CD = 'W01P00004') THEN PERF_VAL END) AS PERF05   /* 개인 - 가전외 */
                              , SUM(CASE WHEN (PERF_ATC_CD IN('W01P00001','W01P00004') ) THEN PERF_VAL END) AS PERF06   /* 합산2 */
                              , SUM(CASE WHEN (PERF_ATC_CD = 'W00P00028') THEN PERF_VAL END) AS PERF07   /* 개인 - 기변실적금액 */
-                         FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL /* 파트너실적월누적마감 */
+                         FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감 */
                         WHERE 1 = 1
                           AND DTA_DL_YN = 'N'
                           AND BASE_YM = #{dto.perfDt}
-                          AND MM_ACU_PERF_AGRG_CRT_DV_CD = '01' /* 접수-00:총주문월누적, 매출-01:순주문월누적 */
+                          AND FEE_TCNT_DV_CD = '02'
+                       -- AND MM_ACU_PERF_AGRG_CRT_DV_CD = '01' /* 접수-00:총주문월누적, 매출-01:순주문월누적 */
                           AND PERF_AGRG_CRT_DV_CD = '101' /*실적집계생성구분코드(101 : P추진단순주문실적생성 , 201: M추진단순주문실적생성 , 301 : 홈마스터순주문실적생성 )*/
                           AND OG_TP_CD = #{dto.ogTpCd} /*조직유형코드(W01: P추진단)*/
-                          AND PERF_ATC_CD IN ('W01P00012','W01P00001', 'W01P00004','W00P00028')
+                          AND PERF_ATC_CD IN ('W01P00001', 'W01P00004','W01P00001','W01P00004','W00P00028')
                         GROUP BY BASE_YM, PRTNR_NO, OG_TP_CD
                 ) PERF
                      ON FC.DSB_YM = PERF.BASE_YM
                     AND FC.PRTNR_NO = PERF.PRTNR_NO
                     AND FC.OG_TP_CD = PERF.OG_TP_CD
+                   LEFT JOIN (
+                                SELECT BASE_YM,PRTNR_NO ,OG_TP_CD
+                                     , NVL(SUM(PERF_VAL), 0) AS MEET_DATES /* 미팅참석일수 */
+                                  FROM TB_FEAM_PRTNR_PERF_MM_CL
+                                 WHERE 1=1
+                                    AND DTA_DL_YN = 'N'
+                                    AND BASE_YM = #{dto.perfDt}
+                                    AND FEE_TCNT_DV_CD = '02'
+                                    AND PERF_ATC_CD = 'W01P00012'
+                                    AND PERF_AGRG_CRT_DV_CD = '101' /*실적집계생성구분코드(101 : P추진단순주문실적생성 , 201: M추진단순주문실적생성 , 301 : 홈마스터순주문실적생성 )*/
+                                    AND OG_TP_CD = #{dto.ogTpCd} /*조직유형코드(W02: M추진단)*/
+                                 GROUP BY BASE_YM, PRTNR_NO, OG_TP_CD
+                              ) MEET /* 파트너실적월마감 */
+                     ON FC.DSB_YM   = MEET.BASE_YM
+                    AND FC.PRTNR_NO = MEET.PRTNR_NO
+                    AND FC.OG_TP_CD = MEET.OG_TP_CD
                    LEFT OUTER JOIN (
                                         SELECT DSB_YM , CO_CD , OG_TP_CD ,PRTNR_NO, DSB_OJ_AMT
                                           FROM TB_FEAM_FEE_DSB_IZ   /* 수수료지급내역 */
