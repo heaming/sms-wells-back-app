@@ -14,7 +14,9 @@ public class WsnbServiceProcDetailListDto {
         @NotBlank
         String cntrSn,
         @NotBlank
-        String cstSvAsnNo
+        String cstSvAsnNo,
+        @NotBlank
+        String gubun
 
     ) {}
 }
