@@ -256,8 +256,8 @@ public class WbnaCollectorAssignService {
                 dvo.setBaseYm(baseYm);
 
                 result = bondContractBasicHistService
-                    .createBondContractHistoryWithCntrNo(dvo.getBaseYm(), cntrNo, cntrSn);
-                if (result == 0) { // 히스토리 만들지 못한 경우 추가 작업 없이 다음으로
+                    .createBondContractHistoryWithCntrNo(dvo.getBaseYm(), cntrNo, cntrSn, "Y");
+                if (result == 0) { // 히스토리 만들지 못한 경우 추가 작업 없이 다음으로(히스토리 생성시 집금구분 같이 확인(단기~집행))
                     ExcelUploadErrorDvo excelUploadErrorDvo = new ExcelUploadErrorDvo();
                     excelUploadErrorDvo.setErrorRow(loopNumber);
                     excelUploadErrorDvo
