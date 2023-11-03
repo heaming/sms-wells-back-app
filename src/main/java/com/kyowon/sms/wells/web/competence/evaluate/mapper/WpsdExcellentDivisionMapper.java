@@ -1,16 +1,14 @@
 package com.kyowon.sms.wells.web.competence.evaluate.mapper;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.ibatis.annotations.Mapper;
-
 import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionDto.*;
-
+import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdExcellentDivisionDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.HashMap;
+import java.util.List;
 
 @Mapper
 public interface WpsdExcellentDivisionMapper {
@@ -33,4 +31,10 @@ public interface WpsdExcellentDivisionMapper {
     List<HashMap<String, Object>> selectGridConfigList(SearchReq req);
 
     List<HashMap<String, Object>> selectTargetList(SearchReq req);
+
+    List<SearchEvlRsbRes> selectEvaluationResponsibility(SearchEvlRsbReq req);
+
+    List<SearchContestRsbRes> selectContestResponsibilityGroupList(SearchContestRsbReq req);
+
+    int updateContestResponsibilityGroup(WpsdExcellentDivisionDvo req);
 }

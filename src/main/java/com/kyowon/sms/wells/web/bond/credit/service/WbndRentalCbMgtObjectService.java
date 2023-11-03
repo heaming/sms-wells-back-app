@@ -21,6 +21,15 @@ import com.sds.sflex.system.config.validation.ValidAssert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * W-BN-U-0069M01	렌탈CB 연체대상 관리
+ * W-BN-U-0071P01	렌탈CB납입정보(팝업)
+ * </pre>
+ *
+ * @author gs.piit128 gilyong.han
+ * @since 2023-05-12
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -29,6 +38,11 @@ public class WbndRentalCbMgtObjectService {
     private final WbndRentalCbMgtObjectMapper mapper;
     private final WbndRentalCbMgtObjectConverter converter;
 
+    /**
+     * 렌탈CB 연체대상 관리 조회
+     * @param dto
+     * @return List<SearchRes>
+     */
     public List<SearchRes> getRentalCbMgtObjects(SearchReq dto) {
         WbndRentalCbDelinquentIzDvo reqDvo = this.converter.mapSearchReqToRentalCbDlqIzDvo(dto);
         List<WbndRentalCbDelinquentIzDvo> resList = new ArrayList<>();
@@ -43,6 +57,11 @@ public class WbndRentalCbMgtObjectService {
         return this.converter.listRentalCbDlqIzDvoToSearchRes(resList);
     }
 
+    /**
+     * 렌탈CB 연체대상 관리 저장
+     * @param dtos
+     * @return int
+     */
     @Transactional
     public int saveRentalCbMgtObjects(List<SaveReq> dtos) {
         int processCount = 0;
@@ -61,6 +80,11 @@ public class WbndRentalCbMgtObjectService {
         return processCount;
     }
 
+    /**
+     * 렌탈CB납입정보(팝업) 페이징 조회
+     * @param cstNo, pageInfo
+     * @return PagingResult<SearchPaymentRes>
+     */
     public PagingResult<SearchPaymentRes> getRentalCbMgtPaymentInfos(String cstNo, PageInfo pageInfo) {
         ValidAssert.hasText(cstNo);
         PagingResult<SearchPaymentRes> pagingResult = new PagingResult<>();
@@ -74,6 +98,11 @@ public class WbndRentalCbMgtObjectService {
         return pagingResult;
     }
 
+    /**
+     * 렌탈CB납입정보(팝업) 엑셀다운로드
+     * @param cstNo
+     * @return List<SearchPaymentRes>
+     */
     public List<SearchPaymentRes> getRentalCbMgtPaymentInfoForExcelDownload(String cstNo) {
         return this.converter.listRentalCbDlqIzDvoToSearchPaymentRes(this.mapper.selectRentalCbMgtPaymentInfos(cstNo));
     }

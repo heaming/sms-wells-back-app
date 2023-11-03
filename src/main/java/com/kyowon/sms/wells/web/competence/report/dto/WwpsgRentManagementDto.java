@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.competence.report.dto;
 import javax.validation.constraints.NotBlank;
 
 import com.sds.sflex.common.docs.dto.AttachFileDto;
+import com.sds.sflex.system.config.annotation.DBDecField;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
@@ -125,7 +126,12 @@ public class WwpsgRentManagementDto {
         String procsPrtnrKnm,
         String procsCralLocaraTno,
         String procsMexnoEncr,
-        String procsCralIdvTno
+        String procsCralIdvTno,
+        String rcstPrtnrNo,
+        String rcstPrtnrNm,
+        String rcstCralLocaraTno,
+        String rcstMexnoEncr,
+        String rcstCralIdvTno
     ) {
     }
 

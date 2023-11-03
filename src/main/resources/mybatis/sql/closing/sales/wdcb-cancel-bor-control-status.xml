@@ -16,8 +16,8 @@
              , B.SL_CTR_RMK_CN                                                                               /*취소조정사유*/
              , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = D.BASE_PD_CD)           AS PD_NM              /*상품명*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'CMN_STAT_CH_RSON_CD', C.CNTR_STAT_CH_RSON_CD) AS STAT_CH_RSON_NM    /*취소사유*/
-            , NVL(E.DLQ_AMT, 0) + NVL(F.EOT_BOR_AMT,0) AS EOT_BOR_AMT/*최종위약금*/
-            , GREATEST(NVL(F.OC_BOR_AMT - F.LS_RNTF, 0), 0) AS EOT_DLQ_AMT/*최종연체금*/
+            , NVL(E.DLQ_AMT, 0) + NVL(F.EOT_BOR_AMT,0) AS EOT_DLQ_AMT/*최종연체금*/
+            , GREATEST(NVL(F.OC_BOR_AMT - F.LS_RNTF, 0), 0) AS EOT_BOR_AMT/*최종위약금*/
           FROM TB_CBCL_WELLS_SL_MM_CL_IZ A/*WELLS매출월마감내역*/
          INNER JOIN TB_SSCT_CNTR_DTL D/*계약상세*/
             ON A.CNTR_NO = D.CNTR_NO
@@ -29,8 +29,8 @@
                                     WHERE CNTR_NO = A.CNTR_NO
                                       AND CNTR_SN = A.CNTR_SN
                                       AND DTA_DL_YN = 'N'
-                                    ORDER BY PERF_YM DESC
-                                    FETCH FIRST 1 ROW ONLY) F ON 1 = 1
+                                      AND PERF_YM = (SELECT MAX(SL_CL_YM) FROM TB_CBCL_WELLS_SL_MM_CL_IZ WHERE CNTR_NO = A.CNTR_NO AND CNTR_SN = A.CNTR_SN)
+                                   ) F ON 1 = 1
           LEFT OUTER JOIN TB_RVDW_SL_CTR_BAS B/*매출조정기본*/
             ON B.CNTR_NO = A.CNTR_NO
            AND B.CNTR_SN = A.CNTR_SN

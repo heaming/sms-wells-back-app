@@ -17,7 +17,7 @@ public class WbncContractDto {
         String schIstLocaraTno,
         String schIstExnoEncr,
         String schIstIdvTno, /* 설치전화번호 */
-        String schCntrNo,
+        String schCntrDtlNo,
         String schCstNo,
         String schBizDv,
         String schIstCralLocaraTno,

@@ -31,7 +31,8 @@ public class WpsdExcellentDivisionDto {
     @ApiModel("WpsdExcellentDivisionDto-SearchContestReq")
     public record SearchContestReq(
         String evlOgTpCd,           /* 조직유형코드 */
-        String evlDvCd           /* 평가구분코드 */
+        String evlDvCd,           /* 평가구분코드 */
+        String ctstGrpCd
     ){}
 
     // *********************************************************
@@ -41,9 +42,70 @@ public class WpsdExcellentDivisionDto {
     @ApiModel("WpsdExcellentDivisionDto-SearchContestRes")
     public record SearchContestRes(
         String evlOgTpCd,           /* 조직유형코드 */
+        String evlDvCd,
+        String evlDvNm,
         String ctstGrpCd,        /* 경진그룹코드 */
+        String ctstGrpNm,
         String vlStrtdt,         /* 유효시작일자 */
-        String vlEnddt,          /* 유효종료일자 */
-        String ctstGrpNm
+        String vlEnddt          /* 유효종료일자 */
     ){}
+
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // SearchGnrdvRes Request Dto
+    @ApiModel("WpsdExcellentDivisionDto-SearchEvlRsbReq")
+    public record SearchEvlRsbReq(
+        @NotBlank
+        String evlOgTpCd,              /* 관리년월 */
+        String evlDvCd           /* 조직유형코드 */
+    ){}
+
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // SearchGnrdvRes Result Dto
+    @ApiModel("WpsdExcellentDivisionDto-SearchEvlRsbRes")
+    public record SearchEvlRsbRes(
+        String evlOgTpCd,
+        String evlRsbDvCd,
+        String evlRsbDvNm
+    ){}
+
+
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // SearchContestRes Request Dto
+    @ApiModel("WpsdExcellentDivisionDto-SearchContestRsbReq")
+    public record SearchContestRsbReq(
+        @NotBlank
+        String baseYm,
+        @NotBlank
+        String evlOgTpCd,           /* 조직유형코드 */
+        @NotBlank
+        String evlDvCd,           /* 평가구분코드 */
+        String evlRsbDvCd,
+        String ctstGrpCd
+    ){}
+
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // SearchGnrdvRes Result Dto
+    @ApiModel("WpsdExcellentDivisionDto-SearchContestRsbRes")
+    public record SearchContestRsbRes(
+        String baseYm,
+        String evlOgTpCd,
+        String evlDvCd,
+        String evlDvNm,
+        String ogId,
+        String ogNm,
+        String evlAtcDvCd,
+        String evlAtcDvNm,
+        String evlRsbDvCd,
+        String evlRsbDvNm,
+        String ctstGrpCd
+    ){}
+
 }

@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbGoodsChangeAcceptingStateDto.SearchReq;
@@ -12,6 +14,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WsnbGoodsChangeAcceptingStateMapper {
 
     PagingResult<SearchRes> selectGoodsChangeAcceptingState(SearchReq dto, PageInfo pageInfo);
+
+    List<SearchRes> selectGoodsChangeAcceptingState(SearchReq dto);
 
     int updateSvpdPdChngAprAkIz(WsnbGoodsChangeAcceptingStateDvo vo);
 

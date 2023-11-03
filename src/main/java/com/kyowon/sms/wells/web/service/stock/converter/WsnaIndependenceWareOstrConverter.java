@@ -6,6 +6,8 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndependenceWareOst
 import java.util.List;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaIndependenceWareOstrDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryKssDvo;
@@ -18,8 +20,13 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryKssDvo;
  * @author inho.choi
  * @since 2023-03-28
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = {java.math.BigDecimal.class,
+    org.apache.commons.lang3.ObjectUtils.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface WsnaIndependenceWareOstrConverter {
+
+    @Mapping(target = "logisticStocQty", expression = "java( ObjectUtils.isEmpty(dto.logisticStocQty()) ? BigDecimal.ZERO : dto.logisticStocQty() )")
+    WsnaIndependenceWareOstrDvo mapSaveReqToWsnaIndependenceWareOstrDvo(SaveReq dto);
+
     List<WsnaIndependenceWareOstrDvo> mapAllSaveReqToWsnaIndependenceWareOstrDvo(List<SaveReq> dtos);
 
     WsnaLogisticsDeliveryKssDvo mapCreateReqToWsnaLogisticsDeliveryKssDvo(CreateReq dto);

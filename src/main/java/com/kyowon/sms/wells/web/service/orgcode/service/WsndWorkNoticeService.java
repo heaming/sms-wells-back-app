@@ -35,7 +35,11 @@ public class WsndWorkNoticeService {
     public PagingResult<SearchRes> getWorkNoticePages(
         SearchReq dto, PageInfo pageInfo
     ) {
-        return mapper.selectWorkNotices(dto, pageInfo);
+        SearchReq newdto = new SearchReq(
+            dto.stRgstDt(), dto.edRgstDt(), dto.mngrDvCd(), dto.ntccnTitNm().replace("%", "\\%")
+        );
+
+        return mapper.selectWorkNotices(newdto, pageInfo);
     }
 
     /**
@@ -44,7 +48,10 @@ public class WsndWorkNoticeService {
      * @return
      */
     public List<SearchRes> getWorkNotices(SearchReq dto) {
-        return mapper.selectWorkNotices(dto);
+        SearchReq newdto = new SearchReq(
+            dto.stRgstDt(), dto.edRgstDt(), dto.mngrDvCd(), dto.ntccnTitNm().replace("%", "\\%")
+        );
+        return mapper.selectWorkNotices(newdto);
     }
 
     /**

@@ -251,6 +251,7 @@
            AND SV1.CNTR_SN = #{cntrSn}
         </if>
         <if test="@MybatisUtils@isNotEmpty(bcNo)">
+           AND NVL(SV1.BC_NO, SV2.BC_NO) = #{bcNo}
            AND (SV1.CNTR_NO, SV1.CNTR_SN) = (SELECT A.CNTR_NO
                                                   , A.CNTR_SN
                                                FROM TB_SSCT_CNTR_DTL A
@@ -260,30 +261,57 @@
                                                                                                  FROM TB_SSCT_CNTR_BAS Y
                                                                                                 WHERE Y.CNTR_NO IN (SELECT Z.CNTR_NO
                                                                                                                       FROM TB_SVPD_CST_SV_EXCN_IZ Z
-                                                                                                                     WHERE Z.BC_NO = #{bcNo}
-                                                                                                                   )
+                                                                                                                     WHERE Z.BC_NO = #{bcNo})
                                                                                                 )
                                                                          AND X.CNTR_NO IN (SELECT Y.CNTR_NO
                                                                                              FROM TB_SVPD_CST_SV_EXCN_IZ Y
-                                                                                             WHERE Y.BC_NO = #{bcNo}
-                                                                                           )
-                                                                         AND ROWNUM = 1
-                                                                      ),
+                                                                                             WHERE Y.BC_NO = #{bcNo})
+                                                                         AND ROWNUM = 1),
                                                                       (SELECT X.CNTR_NO
                                                                        FROM TB_SSCT_CNTR_BAS X
                                                                       WHERE X.CNTR_CNFM_DTM = (SELECT MAX(Y.CNTR_CNFM_DTM)
                                                                                                  FROM TB_SSCT_CNTR_BAS Y
                                                                                                 WHERE Y.CNTR_NO IN (SELECT Z.CNTR_NO
                                                                                                                       FROM TB_SVPD_PD_BC_RPBL_CST_IZ Z
-                                                                                                                     WHERE Z.BC_NO = #{bcNo}
-                                                                                                                   )
+                                                                                                                     WHERE Z.BC_NO = #{bcNo})
                                                                                                 )
                                                                          AND X.CNTR_NO IN (SELECT Y.CNTR_NO
                                                                                              FROM TB_SVPD_PD_BC_RPBL_CST_IZ Y
-                                                                                             WHERE Y.BC_NO = #{bcNo}
-                                                                                           )
-                                                                         AND ROWNUM = 1
+                                                                                             WHERE Y.BC_NO = #{bcNo})
+                                                                         AND ROWNUM = 1)
                                                                       )
+                                                 AND A.CNTR_SN = NVL((SELECT X.CNTR_SN
+                                                                        FROM TB_SVPD_CST_SV_EXCN_IZ X
+                                                                       WHERE X.CNTR_NO = (SELECT X.CNTR_NO
+                                                                                            FROM TB_SSCT_CNTR_BAS X
+                                                                                           WHERE X.CNTR_CNFM_DTM = (SELECT MAX(Y.CNTR_CNFM_DTM)
+                                                                                                                      FROM TB_SSCT_CNTR_BAS Y
+                                                                                                                     WHERE Y.CNTR_NO IN (SELECT Z.CNTR_NO
+                                                                                                                                           FROM TB_SVPD_CST_SV_EXCN_IZ Z
+                                                                                                                                          WHERE Z.BC_NO = #{bcNo})
+                                                                                                                    )
+                                                                                             AND X.CNTR_NO IN (SELECT Y.CNTR_NO
+                                                                                                                 FROM TB_SVPD_CST_SV_EXCN_IZ Y
+                                                                                                                 WHERE Y.BC_NO = #{bcNo})
+                                                                                             AND ROWNUM = 1
+                                                                                           )
+                                                                       ),
+                                                                       (SELECT X.CNTR_SN
+                                                                          FROM TB_SVPD_PD_BC_RPBL_CST_IZ X
+                                                                         WHERE X.CNTR_NO = (SELECT X.CNTR_NO
+                                                                                              FROM TB_SSCT_CNTR_BAS X
+                                                                                             WHERE X.CNTR_CNFM_DTM = (SELECT MAX(Y.CNTR_CNFM_DTM)
+                                                                                                                        FROM TB_SSCT_CNTR_BAS Y
+                                                                                                                       WHERE Y.CNTR_NO IN (SELECT Z.CNTR_NO
+                                                                                                                                             FROM TB_SVPD_PD_BC_RPBL_CST_IZ Z
+                                                                                                                                            WHERE Z.BC_NO = #{bcNo})
+                                                                                                                      )
+                                                                                               AND X.CNTR_NO IN (SELECT Y.CNTR_NO
+                                                                                                                   FROM TB_SVPD_PD_BC_RPBL_CST_IZ Y
+                                                                                                                   WHERE Y.BC_NO = #{bcNo})
+                                                                                               AND ROWNUM = 1
+                                                                                             )
+                                                                       )
                                                                       )
                                               )
         </if>
@@ -314,7 +342,7 @@
          INNER JOIN TB_SSCT_CNTR_ADR_REL SA1 /*계약주소관계*/
             ON SV1.CNTR_NO = SA1.DTL_CNTR_NO
            AND SV1.CNTR_SN = SA1.DTL_CNTR_SN
-           AND SA1.ADRPC_TP_CD = '3'
+           AND SA1.ADRPC_TP_CD IN ('2','3')
          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS SA2 /*계약주소지기본*/
             ON SA1.CNTR_ADRPC_ID = SA2.CNTR_ADRPC_ID
          LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ SV2

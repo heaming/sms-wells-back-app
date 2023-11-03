@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.report.mapper.WwpsgBusinessCellPhoneChMgtMapper">
+
+    <select id="selectPsgaRpotBizPsicBas" resultType = "com.kyowon.sms.wells.web.competence.report.dvo.WwpsgBusinessCellPhoneChMgtDvo">
+        SELECT PRBPB.RPOT_BIZ_ASN_ID  /* 보고서업무배정ID */
+             , PRBPB.RPOT_BIZ_TP_ID   /* 보고서업무유형ID */
+             , PRBPB.DG_YN            /* 대표여부 */
+             , PRBPB.OG_TP_CD         /* 조직유형코드 */
+             , PRBPB.PRTNR_NO         /* 파트너번호 */
+             , PRBPB.DTA_DL_YN        /* 데이터삭제여부 */
+             , OPB.CRAL_LOCARA_TNO          /* 휴대지역전화번호 */
+             , OPB.MEXNO_ENCR               /* 휴대전화국번호암호화 */
+             , OPB.CRAL_IDV_TNO             /* 휴대개별전화번호 */
+             , OPB.PRTNR_KNM                /* 파트너 한글명 */
+          FROM TB_PSGA_RPOT_BIZ_PSIC_BAS PRBPB /* 보고서업무담당자기본 */
+          LEFT JOIN TB_OGBS_PRTNR_BAS OPB
+            ON PRBPB.OG_TP_CD = OPB.OG_TP_CD
+           AND PRBPB.PRTNR_NO = OPB.PRTNR_NO
+         WHERE 1 = 1
+           AND PRBPB.DTA_DL_YN = 'N'
+           AND PRBPB.DG_YN = 'Y'
+           AND PRBPB.RPOT_BIZ_TP_ID = #{rpotBizTpId}
+    </select>
+
+    <select id="selectOgbsMmPrtnrIz" resultType = "com.kyowon.sms.wells.web.competence.report.dvo.WwpsgBusinessCellPhoneChMgtDvo">
+        SELECT OMPI.OG_TP_CD                 /* 조직유형코드 */
+             , OMPI.PRTNR_NO                 /* 파트너번호 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SAP_RSB_DV_CD',OMPI.RSB_DV_CD, 'ko') AS RSB_DV_NM
+             , OPB.CRAL_LOCARA_TNO AS SELL_CRAL_LOCARA_TNO         /* 휴대지역전화번호 */
+             , OPB.MEXNO_ENCR AS SELL_MEXNO_ENCR              /* 휴대전화국번호암호화 */
+             , OPB.CRAL_IDV_TNO AS SELL_CRAL_IDV_TNO            /* 휴대개별전화번호 */
+             , OMOI.BLD_NM
+          FROM TB_OGBS_MM_PRTNR_IZ OMPI /* 월파트너내역 */
+          JOIN TB_OGBS_PRTNR_BAS OPB /* 파트너기본 */
+            ON OMPI.OG_TP_CD = OPB.OG_TP_CD
+           AND OMPI.PRTNR_NO = OPB.PRTNR_NO
+           AND OMPI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+          JOIN TB_OGBS_MM_OG_IZ OMOI /* 월조직내역 */
+            ON OMPI.OG_ID = OMOI.OG_ID
+           AND OMOI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+         WHERE 1=1
+           AND OMPI.PRTNR_NO = #{prtnrNo}
+           AND OMPI.OG_TP_CD = #{ogTpCd}
+    </select>
+
+    <select id="selectPsgaRpotBizTpBas" resultType = "com.kyowon.sms.wells.web.competence.report.dto.WwpsgBusinessCellPhoneChMgtDto$businessTypeRes">
+        SELECT RPOT_BIZ_TP_ID    /* 보고서업무유형ID */
+             , RPOT_BIZ_TP_ID AS CODE_ID
+             , RPOT_BIZ_TP_DV_CD /* 보고서업무유형구분코드 */
+             , RPOT_BIZ_TP_NM    /* 보고서업무유형명 */
+             , RPOT_BIZ_TP_NM AS CODE_NAME
+             , CONF_ARTC_USE_YN  /* 확인사항사용여부 */
+             , CONF_ARTC_CN      /* 확인사항내용 */
+             , ATENTN_CN         /* 유의사항내용 */
+             , USE_YN            /* 사용여부 */
+             , SORT_ODR          /* 정렬순서 */
+             , DTA_DL_YN         /* 데이터삭제여부 */
+             , FST_RGST_DTM      /* 최초등록일시 */
+             , FST_RGST_USR_ID   /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID   /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID  /* 최초등록부서ID */
+             , FNL_MDFC_DTM      /* 최종수정일시 */
+             , FNL_MDFC_USR_ID   /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID   /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID  /* 최종수정부서ID */
+          FROM TB_PSGA_RPOT_BIZ_TP_BAS /* 보고서업무유형기본 */
+         WHERE 1 = 1
+           AND RPOT_BIZ_TP_DV_CD = #{rpotBizTpDvCd}
+           <if test='@MybatisUtils@isNotEmpty(rpotBizTpId)'>
+           AND RPOT_BIZ_TP_ID    = #{rpotBizTpId}      /* 보고서업무유형ID */
+           </if>
+    </select>
+
+    <select id="selectPsgaRpotbizProcsIz" resultType = "com.kyowon.sms.wells.web.competence.report.dto.WwpsgBusinessCellPhoneChMgtDto$PopupSearchRes">
+        SELECT PRBPI.RPOT_BIZ_APLC_ID       /* 보고서업무신청ID */
+             , PRBPI.PROCS_SN               /* 처리일련번호 */
+             , PRBPI.RPOT_BIZ_PROCS_STAT_CD /* 보고서업무처리상태코드 */
+             , PRBPI.PROCS_CN               /* 처리내용 */
+             , TO_CHAR(TO_DATE(PRBPI.FNL_MDFC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') AS FNL_MDFC_DTM  /* 신청일시 */
+             , PRBPI.FNL_MDFC_USR_ID AS PROCS_PRTNR_NO       /* 최종수정사용자ID */
+             , OPB.PRTNR_KNM AS PROCS_PRTNR_KNM                    /* 파트너 한글명 */
+             , OPB.CRAL_LOCARA_TNO AS PROCS_CRAL_LOCARA_TNO        /* 휴대지역전화번호 */
+             , OPB.MEXNO_ENCR AS PROCS_MEXNO_ENCR                  /* 휴대전화국번호암호화 */
+             , OPB.CRAL_IDV_TNO AS PROCS_CRAL_IDV_TNO              /* 휴대개별전화번호 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RPOT_BIZ_PROCS_STAT_CD', PRBPI.RPOT_BIZ_PROCS_STAT_CD) AS RPOT_BIZ_PROCS_STAT_NM
+          FROM TB_PSGA_RPOT_BIZ_PROCS_IZ PRBPI
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OPB
+            ON PRBPI.FNL_MDFC_USR_ID = OPB.PRTNR_NO
+         WHERE 1 = 1
+           AND PRBPI.DTA_DL_YN = 'N'
+           AND RPOT_BIZ_APLC_ID = #{rpotBizAplcId}
+           AND PROCS_SN = #{procsSn}
+    </select>
+
+    <select id="selectBusinessCellPhoneChMgtPages" resultType = "com.kyowon.sms.wells.web.competence.report.dvo.WwpsgBusinessCellPhoneChMgtDvo">
+        SELECT PRBAI.RPOT_BIZ_APLC_ID /* 보고서업무신청ID */
+             , PRBAI.RPOT_BIZ_TP_ID   /* 보고서업무유형ID */
+             , PRBAI.APLCNS_PRTNR_NO  /* 신청자파트너번호 */
+             , TO_CHAR(TO_DATE(PRBAI.APLC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS APLC_DTM  /* 신청일시 */
+             , PRBAI.BIZ_AK_CN        /* 업무요청내용 */
+             , PRBPI.PROCS_SN               /* 처리일련번호 */
+             , PRBPI.RPOT_BIZ_PROCS_STAT_CD /* 보고서업무처리상태코드 */
+             , PRBPI.PROCS_CN               /* 처리내용 */
+             , PCTCAI.BIZ_CRAL_TEL_CH_TP_CD   /* 업무휴대전화변경유형코드 */
+             , TO_CHAR(TO_DATE(PCTCAI.CH_RQDT,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS CH_RQDT /* 변경요청일자 */
+             , PCTCAI.SELL_PRTNR_NO         /* 판매파트너번호 */
+             , PCTCAI.BFCH_CRAL_LOCARA_TNO  /* 변경전휴대지역전화번호 */
+             , PCTCAI.BFCH_MEXNO_ENCR       /* 변경전휴대전화국번호암호화 */
+             , PCTCAI.BFCH_CRAL_IDV_TNO     /* 변경전휴대개별전화번호 */
+             , PCTCAI.AFCH_CRAL_LOCARA_TNO  /* 변경후휴대지역전화번호 */
+             , PCTCAI.AFCH_MEXNO_ENCR       /* 변경후휴대전화국번호암호화 */
+             , PCTCAI.AFCH_CRAL_IDV_TNO     /* 변경후휴대개별전화번호 */
+             , OPB4.PRTNR_KNM AS SELL_PRTNR_NM
+             , OMPI.RSB_DV_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'RSB_DV_CD',OMPI.RSB_DV_CD, 'ko') AS RSB_DV_NM
+             , OPB.PRTNR_KNM                /* 파트너 한글명 */
+             , OPB.CRAL_LOCARA_TNO          /* 휴대지역전화번호 */
+             , OPB.MEXNO_ENCR               /* 휴대전화국번호암호화 */
+             , OPB.CRAL_IDV_TNO             /* 휴대개별전화번호 */
+             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', TO_CHAR(TO_DATE(PRBPI.FNL_MDFC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD'), '40', TO_CHAR(TO_DATE(PRBPI.FNL_MDFC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD'), '') AS FNL_MDFC_DTM
+             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', PRBPI.FNL_MDFC_USR_ID, '40', PRBPI.FNL_MDFC_USR_ID, '') AS FNL_MDFC_USR_ID
+             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', OPB2.PRTNR_KNM, '40', OPB2.PRTNR_KNM, '') AS FNL_MDFC_USR_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RPOT_BIZ_PROCS_STAT_CD', PRBPI.RPOT_BIZ_PROCS_STAT_CD) AS RPOT_BIZ_PROCS_STAT_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'BIZ_CRAL_TEL_CH_TP_CD', PCTCAI.BIZ_CRAL_TEL_CH_TP_CD) AS BIZ_CRAL_TEL_CH_TP_NM
+             , OPB2.PRTNR_KNM AS PROCS_PRTNR_KNM                    /* 파트너 한글명 */
+             , OPB2.CRAL_LOCARA_TNO AS PROCS_CRAL_LOCARA_TNO        /* 휴대지역전화번호 */
+             , OPB2.MEXNO_ENCR AS PROCS_MEXNO_ENCR                  /* 휴대전화국번호암호화 */
+             , OPB2.CRAL_IDV_TNO AS PROCS_CRAL_IDV_TNO              /* 휴대개별전화번호 */
+             , PRBAI.FNL_MDFC_USR_ID AS RCST_PRTNR_NO
+             , OPB3.PRTNR_KNM AS RCST_PRTNR_KNM                    /* 파트너 한글명 */
+             , OPB3.CRAL_LOCARA_TNO AS RCST_CRAL_LOCARA_TNO        /* 휴대지역전화번호 */
+             , OPB3.MEXNO_ENCR AS RCST_MEXNO_ENCR                  /* 휴대전화국번호암호화 */
+             , OPB3.CRAL_IDV_TNO AS RCST_CRAL_IDV_TNO              /* 휴대개별전화번호 */
+             , OMOI.OG_CD
+             , OMOI.OG_NM
+        FROM TB_PSGA_RPOT_BIZ_APLC_IZ PRBAI /* 보고서업무신청내역 */
+        JOIN TB_PSGA_RPOT_BIZ_PROCS_IZ PRBPI /* 보고서업무처리내역 */
+          ON PRBAI.RPOT_BIZ_APLC_ID = PRBPI.RPOT_BIZ_APLC_ID
+         AND PRBPI.DTA_DL_YN = 'N'
+        JOIN TB_PSGA_CRAL_TEL_CH_APLC_IZ PCTCAI /* 휴대전화변경신청내역 */
+          ON PRBAI.RPOT_BIZ_APLC_ID = PCTCAI.RPOT_BIZ_APLC_ID
+         AND PCTCAI.DTA_DL_YN = 'N'
+        LEFT JOIN TB_PSGA_RPOT_BIZ_PSIC_BAS PRBPB /* 보고서업무담당자기본 */
+          ON PRBAI.RPOT_BIZ_TP_ID = PRBPB.RPOT_BIZ_TP_ID
+         AND PRBPB.DG_YN = 'Y'
+        LEFT JOIN TB_OGBS_PRTNR_BAS OPB
+          ON PRBPB.OG_TP_CD = OPB.OG_TP_CD
+         AND PRBPB.PRTNR_NO = OPB.PRTNR_NO
+        LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OPB2
+          ON PRBPB.FNL_MDFC_USR_ID = OPB2.PRTNR_NO
+        LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OPB3
+          ON PRBAI.FNL_MDFC_USR_ID = OPB3.PRTNR_NO
+        LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OPB4
+          ON PCTCAI.SELL_PRTNR_NO = OPB4.PRTNR_NO
+        LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ OMPI /* 월파트너내역 */
+          ON OPB4.PRTNR_NO = OMPI.PRTNR_NO
+         AND OMPI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+        LEFT OUTER JOIN TB_OGBS_MM_OG_IZ OMOI
+          ON OPB4.OG_ID = OMOI.OG_ID
+         AND OPB4.OG_TP_CD = OMOI.OG_TP_CD
+         AND OMOI.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+        WHERE 1 = 1
+         AND PRBAI.DTA_DL_YN = 'N'
+         <if test='@MybatisUtils@isNotEmpty(rcpStartDtm)'>
+         AND PRBAI.APLC_DTM BETWEEN #{rcpStartDtm} || '000000' AND #{rcpEndDtm} || '235959'
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(rpotBizTpId)'>
+         AND PRBAI.RPOT_BIZ_TP_ID = #{rpotBizTpId}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(rpotBizAplcId)'>
+         AND PRBAI.RPOT_BIZ_APLC_ID = #{rpotBizAplcId}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(rntAplcTpCd)'>
+         AND PRBAI.RNT_APLC_TP_CD = #{rntAplcTpCd}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(rpotBizProcsStatCd)'>
+         AND PRBAI.RPOT_BIZ_PROCS_STAT_CD = #{rpotBizProcsStatCd}
+         </if>
+    </select>
+
+    <insert id="insertPsgaRpotBizAplcIz" parameterType="com.kyowon.sms.wells.web.competence.report.dvo.WwpsgBusinessCellPhoneChMgtDvo">
+        <selectKey keyProperty="dvo.rpotBizAplcId" resultType="java.lang.String" order="BEFORE">
+            SELECT 'M' ||LPAD(NVL(MAX(TO_NUMBER(SUBSTR(RPOT_BIZ_APLC_ID, 2))) + 1, 1), 14, '0')
+              FROM TB_PSGA_RPOT_BIZ_APLC_IZ
+        </selectKey>
+        INSERT INTO TB_PSGA_RPOT_BIZ_APLC_IZ (  /* 보고서업무신청내역 */
+               RPOT_BIZ_APLC_ID /* 보고서업무신청ID */
+             , RPOT_BIZ_TP_ID   /* 보고서업무유형ID */
+             , APLCNS_PRTNR_NO  /* 신청자파트너번호 */
+             , APLC_DTM         /* 신청일시 */
+             , BIZ_AK_CN        /* 업무요청내용 */
+             , APN_FILE_DOC_ID  /* 첨부파일문서ID */
+             <if test='@MybatisUtils@isNotEmpty(bizAkBldCd)'>
+             , BIZ_AK_BLD_CD    /* 업무요청빌딩코드 */
+             , BIZ_AK_BLD_NM    /* 업무요청빌딩명 */
+             </if>
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{dvo.rpotBizAplcId}
+             , #{dvo.rpotBizTpId}
+             , #{dvo.prtnrNo}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , #{dvo.bizAkCn}
+             , #{dvo.rpotBizAplcId}
+             <if test='@MybatisUtils@isNotEmpty(bizAkBldCd)'>
+             , #{dvo.bizAkBldCd}
+             , #{dvo.bizAkBldNm}
+             </if>
+        <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertPsgaRpotBizProcsIz">
+        INSERT INTO TB_PSGA_RPOT_BIZ_PROCS_IZ (  /* 보고서업무처리내역 */
+               RPOT_BIZ_APLC_ID       /* 보고서업무신청ID */
+             , PROCS_SN               /* 처리일련번호 */
+             , RPOT_BIZ_PROCS_STAT_CD /* 보고서업무처리상태코드 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{rpotBizAplcId}
+             , '1'
+             , '10'  /*처리중*/
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertPsgaCralTelChAplcIz">
+        INSERT INTO TB_PSGA_CRAL_TEL_CH_APLC_IZ ( /* 휴대전화변경신청내역 */
+               RPOT_BIZ_APLC_ID      /* 보고서업무신청ID */
+             , BIZ_CRAL_TEL_CH_TP_CD /* 업무휴대전화변경유형코드 */
+             , CH_RQDT               /* 변경요청일자 */
+             , SELL_PRTNR_NO         /* 판매파트너번호 */
+             , BFCH_CRAL_LOCARA_TNO  /* 변경전휴대지역전화번호 */
+             , BFCH_MEXNO_ENCR       /* 변경전휴대전화국번호암호화 */
+             , BFCH_CRAL_IDV_TNO     /* 변경전휴대개별전화번호 */
+             , AFCH_CRAL_LOCARA_TNO  /* 변경후휴대지역전화번호 */
+             , AFCH_MEXNO_ENCR       /* 변경후휴대전화국번호암호화 */
+             , AFCH_CRAL_IDV_TNO     /* 변경후휴대개별전화번호 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{rpotBizAplcId}
+             , #{bizCralTelChTpCd}
+             , #{chRqdt}
+             , #{sellPrtnrNo}
+             , #{bfchCralLocaraTno}
+             , #{bfchMexnoEncr}
+             , #{bfchCralIdvTno}
+             , #{afchCralLocaraTno}
+             , #{afchMexnoEncr}
+             , #{afchCralIdvTno}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updatePsgaRpotBizProcsIz">
+        UPDATE TB_PSGA_RPOT_BIZ_PROCS_IZ   /* 보고서업무처리내역 */
+           SET RPOT_BIZ_PROCS_STAT_CD = #{rpotBizProcsStatCd} /* 보고서업무처리상태코드 */
+             , PROCS_CN = #{procsCn}               /* 처리내용 */
+             <include refid="COMMON.updateSystemField"/>
+         WHERE RPOT_BIZ_APLC_ID = #{rpotBizAplcId}
+           AND PROCS_SN = #{procsSn}
+    </update>
+</mapper>

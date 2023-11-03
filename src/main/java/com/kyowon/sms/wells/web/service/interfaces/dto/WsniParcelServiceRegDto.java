@@ -1,6 +1,8 @@
 package com.kyowon.sms.wells.web.service.interfaces.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -67,7 +69,7 @@ public class WsniParcelServiceRegDto {
         String sendrtelNo3, /* P2P코드 */
 
         String sendrcellNo1, /* P2P코드 */
-
+        @DBDecField
         String sendrcellNo2, /* 결과코드 */
 
         String sendrcellNo3, /* 도착지 코드 */
@@ -86,7 +88,9 @@ public class WsniParcelServiceRegDto {
 
         String rcptYmd, /* 도착지 서브 코드 */
 
-        String asIstOjNo /* AS 설치대상번호 */
+        String asIstOjNo, /* AS 설치대상번호 */
+
+        String rtnAsIstOjNo /* 반품 설치대상번호 */
     ) {}
 
     @ApiModel(value = "WsniParcelServiceRegDto-RegistParcelServiceReq")
@@ -113,6 +117,7 @@ public class WsniParcelServiceRegDto {
         @JsonProperty("SENDR_CEL_NO1")
         String sendrcellNo1, /* P2P코드 */
         @JsonProperty("SENDR_CEL_NO2")
+        @DBDecField
         String sendrcellNo2, /* 결과코드 */
         @JsonProperty("SENDR_CEL_NO3")
         String sendrcellNo3, /* 도착지 코드 */

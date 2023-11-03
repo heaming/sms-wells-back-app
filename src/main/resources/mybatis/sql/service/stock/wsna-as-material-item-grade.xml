@@ -123,26 +123,26 @@
                   AND T2.PD_PRP_VAL32 <![CDATA[<>]]> 'Y'
             </if>
              )
-        SELECT T1.SAP_CD                                            /* SAP코드 */
-             , T1.ITM_PD_CD                                         /* 품목상품코드 */
-             , T1.ITM_PD_NM                                         /* 상품명 */
-             , T2.QTY_SUM                    AS JBF_MMS3_OSTR_QTY   /* 직전3개월출고수량 */
-             , ROUND(T2.QTY_SUM / 3, 1)      AS MLMN_OSTR_QTY       /* 월평균출고수량 */
-             , ROUND(T2.QTY_SUM / 3 / 23, 1) AS D_AV_OSTR_QTY       /* 일평균출고수량 */
+        SELECT T1.SAP_CD                                                    /* SAP코드 */
+             , T1.ITM_PD_CD                                                 /* 품목상품코드 */
+             , T1.ITM_PD_NM                                                 /* 상품명 */
+             , NVL(T2.QTY_SUM, 0)                    AS JBF_MMS3_OSTR_QTY   /* 직전3개월출고수량 */
+             , ROUND(NVL(T2.QTY_SUM, 0) / 3, 1)      AS MLMN_OSTR_QTY       /* 월평균출고수량 */
+             , ROUND(NVL(T2.QTY_SUM, 0) / 3 / 23, 1) AS D_AV_OSTR_QTY       /* 일평균출고수량 */
              , CASE WHEN ROUND(T2.QTY_SUM / 3, 1) <![CDATA[>=]]> 100 THEN 'S'
                     WHEN ROUND(T2.QTY_SUM / 3, 1) <![CDATA[>=]]> 50  THEN 'A'
                     WHEN ROUND(T2.QTY_SUM / 3, 1) <![CDATA[>=]]> 30  THEN 'B'
                     WHEN ROUND(T2.QTY_SUM / 3, 1) <![CDATA[>=]]> 10  THEN 'C'
                     ELSE 'D'
-               END                           AS ITM_MNGT_GD_CD      /* 품목관리등급코드 */
-             , T3.CTR_ITM_MNGT_GD_CD                                /* 조정품목관리등급코드 */
-             , T3.RMK_CN                                            /* 비고내용 */
-             , #{baseYm}                     AS MNGT_YM             /* 관리년월 */
+               END                                   AS ITM_MNGT_GD_CD      /* 품목관리등급코드 */
+             , T3.CTR_ITM_MNGT_GD_CD                                        /* 조정품목관리등급코드 */
+             , T3.RMK_CN                                                    /* 비고내용 */
+             , #{baseYm}                             AS MNGT_YM             /* 관리년월 */
           FROM PD T1
           LEFT OUTER JOIN
              (
                SELECT T.ITM_PD_CD
-                    , SUM(T.QTY) AS QTY_SUM
+                    , NVL(SUM(T.QTY), 0) AS QTY_SUM
                  FROM
                     (
                       SELECT D1.ITM_PD_CD
@@ -356,13 +356,13 @@
                   AND ROUND(SUM(T.QTY) / 3, 1) <![CDATA[>=]]> 10
                </when>
                <when test='@MybatisUtils@equals(itmMngtGdCd, "D")'>
-               HAVING ROUND(SUM(T.QTY) / 3, 1) <![CDATA[<]]> 10
+               HAVING ROUND(NVL(SUM(T.QTY), 0) / 3, 1) <![CDATA[<]]> 10
                </when>
                <when test='@MybatisUtils@equals(itmMngtGdCd, "SAB")'>
                HAVING ROUND(SUM(T.QTY) / 3, 1) <![CDATA[>=]]> 30
                </when>
                <when test='@MybatisUtils@equals(itmMngtGdCd, "CD")'>
-               HAVING ROUND(SUM(T.QTY) / 3, 1) <![CDATA[<]]> 30
+               HAVING ROUND(NVL(SUM(T.QTY), 0) / 3, 1) <![CDATA[<]]> 30
                </when>
                </choose>
                </if>
@@ -397,6 +397,27 @@
              ) T3
             ON T3.ITM_PD_CD = T1.ITM_PD_CD
            AND T3.RN        = 1
+        <if test="@MybatisUtils@isNotEmpty(itmMngtGdCd)">
+        <choose>
+        <when test='!@MybatisUtils@equals(itmMngtGdCd, "SAB") and !@MybatisUtils@equals(itmMngtGdCd, "CD")'>
+         WHERE (    T3.CTR_ITM_MNGT_GD_CD = #{itmMngtGdCd}
+                 OR CASE WHEN ROUND(T2.QTY_SUM / 3, 1) <![CDATA[>=]]> 100 THEN 'S'
+                         WHEN ROUND(T2.QTY_SUM / 3, 1) <![CDATA[>=]]> 50  THEN 'A'
+                         WHEN ROUND(T2.QTY_SUM / 3, 1) <![CDATA[>=]]> 30  THEN 'B'
+                         WHEN ROUND(T2.QTY_SUM / 3, 1) <![CDATA[>=]]> 10  THEN 'C'
+                         ELSE 'D'
+                    END = #{itmMngtGdCd} )
+        </when>
+        <when test='@MybatisUtils@equals(itmMngtGdCd, "SAB")'>
+         WHERE (    T3.CTR_ITM_MNGT_GD_CD IN ('S', 'A', 'B')
+                 OR ROUND(T2.QTY_SUM / 3, 1) <![CDATA[>=]]> 30 )
+        </when>
+        <when test='@MybatisUtils@equals(itmMngtGdCd, "CD")'>
+         WHERE (    T3.CTR_ITM_MNGT_GD_CD IN ('C', 'D')
+                 OR ROUND(NVL(T2.QTY_SUM, 0) / 3, 1) <![CDATA[<]]> 30 )
+        </when>
+        </choose>
+        </if>
          ORDER BY T1.ITM_PD_CD
     </select>
 

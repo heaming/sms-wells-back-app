@@ -63,14 +63,12 @@ public class WpskPinatMetgCheckService {
                 mcbyDvo.setAgrgYm(reqDvo.getMetgPrscDt().substring(0, 6));
                 mcbyPrtnrMetgAgrgCrtService.editMcbyPrtnrMetgAgrg(mcbyDvo);
             }
-            res.setRspCd("Y");
-
-            // [TO-DO] FEP 연동 추가 해야함
-
+            res.setChek("Y");
+            res.setErcd("");
             return converter.dvoToCreateRes(res);
         } catch (Exception e) {
-            res.setRspCd("N");
-            res.setRspMsg(e.getMessage());
+            res.setChek("N");
+            res.setEmsg(e.getMessage());
             return converter.dvoToCreateRes(res);
         }
     }

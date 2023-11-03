@@ -1,9 +1,11 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.dto;
 
+import javax.validation.constraints.NotBlank;
+
+import org.apache.commons.lang.StringUtils;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
-
-import javax.validation.constraints.NotBlank;
 
 public class WogcPartnerEngineerDto {
 
@@ -18,7 +20,8 @@ public class WogcPartnerEngineerDto {
         String baseDt,
         @NotBlank
         String ogTpCd
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WogcPartnerEngineerDto-SearchEngineerRes")
     public record SearchEngineerRes(
@@ -43,7 +46,8 @@ public class WogcPartnerEngineerDto {
         String pcpPrtnrNm,
         String procsDtm
 
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WogcPartnerEngineerDto-SearchVacationRes")
     public record SearchVacationRes(
@@ -56,19 +60,22 @@ public class WogcPartnerEngineerDto {
         String prtnrKnm,
         String bizAgntPrtnrNo
 
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WogcPartnerEngineerDto-SearchVacationReq")
     public record SearchVacationReq(
         String prtnrNo
 
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WogcPartnerEngineerDto-SearchVacationCntRes")
     public record SearchVacationCntRes(
         String cnt
 
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WogcPartnerEngineerDto-SaveReq")
     public record SaveReq(
@@ -82,7 +89,8 @@ public class WogcPartnerEngineerDto {
         String wrkDt,
         String rowState
 
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WogcPartnerEngineerDto-RemoveReq")
     public record RemoveReq(
@@ -91,7 +99,8 @@ public class WogcPartnerEngineerDto {
         String vcnStrtDt,
         String rowState
 
-    ) {}
+    ) {
+    }
 
     @ApiModel(value = "WogcPartnerEngineerDto-SaveEngineerAttendReq")
     public record SaveEngineerAttendReq(
@@ -117,7 +126,8 @@ public class WogcPartnerEngineerDto {
         String ogLevlDvCd2,
         String procsDtm
 
-    ) {}
+    ) {
+    }
 
     /**
      * 서비스 조 관리 조회 Request dto
@@ -126,6 +136,7 @@ public class WogcPartnerEngineerDto {
      * @param wkGrpCd 작업그룹코드
      * @param rsbDvCd 직책구분코드
      * @param prtnrNo 파트너번호
+     * @param baseYm 기준년월
      * @param vlDt 적용일자
      */
     @ApiModel(value = "WogcPartnerEngineerDto-FindJoeManagementReq")
@@ -136,8 +147,15 @@ public class WogcPartnerEngineerDto {
         String wkGrpCd,
         String rsbDvCd,
         String prtnrNo,
+        String baseYm,
         String vlDt
-    ) {}
+    ) {
+        public FindJoeManagementReq {
+            if (StringUtils.isNotEmpty(vlDt)) {
+                baseYm = vlDt.substring(0, 6);
+            }
+        }
+    }
 
     /**
      * 서비스 조 관리 조회 Response dto
@@ -199,7 +217,8 @@ public class WogcPartnerEngineerDto {
         String dtaDlYn,
         String telNumber,
         String ogCd
-    ) {}
+    ) {
+    }
 
     /**
      * 서비스 조 관리 저장 Request dto
@@ -257,7 +276,8 @@ public class WogcPartnerEngineerDto {
         String cralIdvTno,
         String dtaDlYn,
         String telNumber
-    ) {}
+    ) {
+    }
 
     /**
      * 엔지니어 등급 관리 조회 Request dto
@@ -265,6 +285,7 @@ public class WogcPartnerEngineerDto {
      * @param ogLevlDvCd2 2레벨조직코드
      * @param rsbDvCd 직책
      * @param chk 미등록
+     * @param baseYm 기준년월
      */
     @ApiModel(value = "WogcPartnerEngineerDto-FindEngineerGradeReq")
     @Builder
@@ -272,8 +293,10 @@ public class WogcPartnerEngineerDto {
         String ogLevlDvCd1,
         String ogLevlDvCd2,
         String rsbDvCd,
-        String chk
-    ) {}
+        String chk,
+        String baseYm
+    ) {
+    }
 
     /**
      * 엔지니어 등급 관리 조회 Response dto
@@ -329,7 +352,8 @@ public class WogcPartnerEngineerDto {
         String apySeqn,
         String dtaDlYn,
         String ogCd
-    ) {}
+    ) {
+    }
 
     /**
      * 엔지니어 등급 관리 저장 Request dto
@@ -376,5 +400,6 @@ public class WogcPartnerEngineerDto {
         String cltnDt,
         String apySeqn,
         String dtaDlYn
-    ) {}
+    ) {
+    }
 }

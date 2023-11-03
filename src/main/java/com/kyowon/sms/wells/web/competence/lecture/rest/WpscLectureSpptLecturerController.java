@@ -1,11 +1,10 @@
 package com.kyowon.sms.wells.web.competence.lecture.rest;
 
-import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptLectureDto;
 import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptLecturerDto.SaveReq;
 import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptLecturerDto.SearchReq;
 import com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptLecturerDto.SearchRes;
 import com.kyowon.sms.wells.web.competence.lecture.service.WpscLectureSpptLecturerService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -24,7 +23,7 @@ import java.util.List;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/lecture-sppt-lecturer")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/lecture-sppt-lecturer")
 public class WpscLectureSpptLecturerController {
 
     private final WpscLectureSpptLecturerService service;

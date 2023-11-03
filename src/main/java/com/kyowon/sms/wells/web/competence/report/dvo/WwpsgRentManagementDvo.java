@@ -43,5 +43,11 @@ public class WwpsgRentManagementDvo {
     @DBDecField
     private String procsMexnoEncr;
     private String procsCralIdvTno;
+    private String rcstPrtnrNo;
+    private String rcstPrtnrNm;
+    private String rcstCralLocaraTno;
+    @DBDecField
+    private String rcstMexnoEncr;
+    private String rcstCralIdvTno;
     private List<AttachFileDto.AttachFile> attachFiles; /* 첨부 파일 */
 }

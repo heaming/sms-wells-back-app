@@ -1,11 +1,11 @@
 package com.kyowon.sms.wells.web.competence.evaluate.service;
 
 import com.kyowon.sms.wells.web.competence.evaluate.converter.WpsdExcellentDivisionBaseMgtConverter;
+import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto.*;
 import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdElvBaseDvo;
 import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdElvDetailDvo;
 import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdPdBaseDvo;
 import com.kyowon.sms.wells.web.competence.evaluate.mapper.WpsdExcellentDivisionBaseMgtMapper;
-import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto.*;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -27,6 +28,7 @@ public class WpsdExcellentDivisionBaseMgtService {
     private final WpsdExcellentDivisionBaseMgtConverter converter;
     private final MessageResourceService messageResourceService;
     private static final String SAVE_ERROR_MESSAGE = "MSG_ALT_SVE_ERR";
+    private static final String BLANK_ERROR_MESSAGE = "MSG_ALT_EMPTY_REQUIRED_VAL";
     /**
      * 우수사업부 기준관리 - 상품 기준 관리 페이징 목록 조회
      * @param req, pageInfo
@@ -95,28 +97,28 @@ public class WpsdExcellentDivisionBaseMgtService {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(messageResourceService.getMessage("MSG_TXT_MGT_YNM"));
-                errorDvo.setErrorData(messageResourceService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL"));
+                errorDvo.setErrorData(messageResourceService.getMessage(BLANK_ERROR_MESSAGE));
                 response.add(errorDvo);
             }
             if(StringUtils.isBlank(dvo.getEvlPdDvCd())){
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(messageResourceService.getMessage("MSG_TXT_MNGT_DV"));
-                errorDvo.setErrorData(messageResourceService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL"));
+                errorDvo.setErrorData(messageResourceService.getMessage(BLANK_ERROR_MESSAGE));
                 response.add(errorDvo);
             }
             if(StringUtils.isBlank(dvo.getPdCd())){
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(messageResourceService.getMessage("MSG_TXT_PRDT_CODE"));
-                errorDvo.setErrorData(messageResourceService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL"));
+                errorDvo.setErrorData(messageResourceService.getMessage(BLANK_ERROR_MESSAGE));
                 response.add(errorDvo);
             }
             if(StringUtils.isBlank(dvo.getCvtPc())){
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(messageResourceService.getMessage("MSG_TXT_CVT_CT"));
-                errorDvo.setErrorData(messageResourceService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL"));
+                errorDvo.setErrorData(messageResourceService.getMessage(BLANK_ERROR_MESSAGE));
                 response.add(errorDvo);
             }
 
@@ -145,7 +147,11 @@ public class WpsdExcellentDivisionBaseMgtService {
         for(EvlSaveReq req : reqs){
             WpsdElvBaseDvo dvo = converter.elvMapToElvBaseDvo(req);
             int resultCnt = 0;
-            resultCnt = mapper.updateEvaluationBase(dvo);
+            if( mapper.selectEvaluationBase(dvo) > 0) {
+                resultCnt = mapper.updateEvaluationBase(dvo);
+            } else {
+                resultCnt = mapper.insertEvaluationBase(dvo);
+            }
             BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
             if(dvo.getRsbDvCdList().length > 0){
                 mapper.removeEvaluationResponsibility(dvo);
@@ -175,7 +181,9 @@ public class WpsdExcellentDivisionBaseMgtService {
         int processCount = 0;
         for(EvlDetailSaveReq req : reqs){
             WpsdElvDetailDvo dvo = converter.elvMapToDetailDvo(req);
-            int resultCnt = mapper.updateEvaluationDetail(dvo);
+            mapper.deleteEvaluationDetail(dvo);
+            List<HashMap<String, Object>> target = mapper.selectTargetList(dvo);
+            int resultCnt = mapper.insertEvaluationDetail(dvo, target);
             BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
             processCount += resultCnt;
         }

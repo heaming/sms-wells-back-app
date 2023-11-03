@@ -16,6 +16,8 @@ public class WsnaItemBaseInformationSearchDvo {
     private String wareDtlDvCd; /* 창고상세구분코드 */
     private String strtSapCd; /* 시작SAP코드 */
     private String endSapCd; /* 종료SAP코드 */
+    private String itmGrpCd; /* 품목그룹코드 */
+    private String svMatGrpCd; /* 자재그룹코드 */
     // OFFSET
     private Integer offSet; /* OFFSET */
     // FETCH SIZE

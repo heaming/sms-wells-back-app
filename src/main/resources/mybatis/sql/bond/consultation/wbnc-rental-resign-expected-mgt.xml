@@ -115,14 +115,21 @@
              , (CASE WHEN A.CLCTAM_PRTNR_NO IS NULL THEN 'N' ELSE 'Y' END) AS CLCTAM_YN /*집금자여부*/
              , NVL(M_2.PD_RVE_AMT - M_2.RFND_RVE_AMT,0) AS RVE_AMT /*입금액*/
              , A.AUTH_RSG_EXCD_RQR_PRTNR_NO                 /*당월제외사번*/
-             , MIN(A.BASE_YM) OVER(PARTITION BY A.CNTR_NO ,A.CNTR_SN) AS RQR_BASE_YM /* 최초제외월 */
-             ,CASE WHEN A.SELL_TP_CD = '2' THEN (
+             , CASE WHEN A.AUTH_RSG_EXCD_RQR_PRTNR_NO IS NULL THEN ''
+                     ELSE ( SELECT MIN(Z.BASE_YM)
+                           FROM TB_CBBO_WELLS_AUTH_RSG_IZ Z
+                           WHERE Z.CNTR_NO = A.CNTR_NO
+                             AND Z.CNTR_SN = A.CNTR_SN
+                             AND Z.AUTH_RSG_EXCD_RQR_PRTNR_NO IS NOT NULL
+                           )
+               END AS RQR_BASE_YM /* 최초제외월 */
+             , CASE WHEN A.SELL_TP_CD = '2' THEN (
                         NVL(M_2.PD_RVE_AMT,0) - NVL(M_2.RFND_RVE_AMT,0) + NVL(M3_2.PD_RVE_AMT,0) - NVL(M3_2.RFND_RVE_AMT,0)
                    )
                    WHEN A.SELL_TP_CD = '6' THEN (
 	                    NVL(M_6.PD_RVE_AMT,0) - NVL(M_6.RFND_RVE_AMT,0) + NVL(M3_6.PD_RVE_AMT,0) - NVL(M3_6.RFND_RVE_AMT,0)
                    )
-              END AS ACU_RVE_AMT          /*총미납금액*/
+               END AS ACU_RVE_AMT          /*총미납금액*/
              , B.BRYY_MMDD                                  /*생년월일*/
              , C.CNTR_TP_CD                                 /*계약구분코드*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_TP_CD', C.CNTR_TP_CD , #{session.langId}) AS CNTR_TP_NM /*계약구분명*/
@@ -190,8 +197,8 @@
            AND E.CNTR_SN = A.CNTR_SN
           LEFT JOIN TB_OGBS_PRTNR_BAS F               /*T:파트너기본*/
             ON 1 = 1
-           AND F.OG_TP_CD = B.OG_TP_CD
-           AND F.PRTNR_NO = B.PRTNR_NO
+           AND F.OG_TP_CD = C.SELL_OG_TP_CD
+           AND F.PRTNR_NO = C.SELL_PRTNR_NO
           /* 직권해지정보(기기) */
           LEFT OUTER JOIN TB_CBBO_WELLS_AUTH_RSG_IZ R1	/*T:WELLS직권해지내역-직권해지정보(기기)-LB325_J*/
             ON R1.BASE_YM = A.BASE_YM
@@ -342,11 +349,14 @@
            AND CNTR_SN = #{cntrSn}
            AND AUTH_RSG_CNFM_YN = 'N'
         </if>
-        <if test='@MybatisUtils@equals(confirmDvCd,"01")'>
-           AND (AUTH_RSG_EXP_YN = 'Y' OR AUTH_RSG_CNFM_YN = 'Y')
+        <if test='@MybatisUtils@equals(authRsgCd,"01")'>
+           AND AUTH_RSG_EXP_YN = 'N' AND AUTH_RSG_CNFM_YN = 'N'
         </if>
-        <if test='@MybatisUtils@equals(confirmDvCd,"02")'>
-           AND AUTH_RSG_CNFM_YN = 'Y'
+        <if test='@MybatisUtils@equals(authRsgCd,"02")'>
+           AND AUTH_RSG_EXP_YN = 'Y' AND AUTH_RSG_CNFM_YN = 'N'
+        </if>
+        <if test='@MybatisUtils@equals(authRsgCd,"03")'>
+           AND AUTH_RSG_EXP_YN = 'Y' AND AUTH_RSG_CNFM_YN = 'Y'
         </if>
            AND DTA_DL_YN = 'N'
     </select>
@@ -1032,8 +1042,7 @@
                       AND T.BASE_YM = SUBSTR(#{baseDt},1,6)    /*기준년월*/
                       AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
                     <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
-                      /* 변경 - 추가 */
-                      AND NVL(RVE_M3.RVE_AMT, 0) <![CDATA[<=]]> 0	/* 3개월 입금액 */
+                      AND NVL(C.RENTAL_AMT * 3, 0) <![CDATA[<]]> (NVL(T.TOT_NPD_AMT,0) - (NVL(C.BTD_ATAM,0) + NVL(I.PD_RVE_AMT,0) - NVL(I.RFND_RVE_AMT,0)))   /* 렌탈금액*3 총미납금 */
                     </if>
                   ) X2
                ON (     X2.COL05 = X1.CNTR_NO

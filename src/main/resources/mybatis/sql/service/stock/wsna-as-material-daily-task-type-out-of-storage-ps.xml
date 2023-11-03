@@ -28,17 +28,20 @@
                      WHERE 1=1
                        AND P1.DTA_DL_YN = 'N'
                        AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
-    <choose>
-        <when test='@MybatisUtils@isNotEmpty(itmKndCd)'>
+                    <choose>
+                        <when test='@MybatisUtils@isNotEmpty(itmKndCd)'>
                        AND P1.PD_PRP_VAL19=#{itmKndCd}
-        </when>
-        <otherwise>
+                        </when>
+                        <otherwise>
                        AND P1.PD_PRP_VAL19 IN ('4', '5', '6', '7', '9')
-        </otherwise>
-    </choose>
-    <if test='@MybatisUtils@isNotEmpty(useYn)'>
+                        </otherwise>
+                    </choose>
+                    <if test='@MybatisUtils@isNotEmpty(useYn)'>
                        AND P1.PD_PRP_VAL32 = #{useYn}
-    </if>
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(itmPdCdFrom) or @MybatisUtils@isNotEmpty(itmPdCdTo)">
+                        AND P1.PD_CD BETWEEN NVL(#{itmPdCdFrom},'WM00000000') AND NVL(#{itmPdCdTo},'WM99999999')
+                    </if>
         )
         , WARE_INF AS (
                    SELECT APY_YM
@@ -48,9 +51,30 @@
                         , WARE_ICHR_NO
                      FROM TB_SVST_MCBY_WARE_IZ
                     WHERE APY_YM = #{baseYm}
-    <if test='@MybatisUtils@isNotEmpty(wareDvCd)'>
-                      AND WARE_DV_CD = #{wareDvCd}
-    </if>
+                      AND WARE_DV_CD = '2'
+                    <if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                      AND (HGR_WARE_NO = #{wareNoM} OR WARE_NO = #{wareNoM})
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(wareNoD)'>
+                      AND WARE_NO = #{wareNoD}
+                    </if>
+                    <choose>
+                    <when test='@MybatisUtils@isNotEmpty(wareDtlDvCd)'>
+                    /* 조직창고 */
+                    <if test='@MybatisUtils@equals(wareDtlDvCd, "20")'>
+                      AND WARE_ICHR_NO = '000'
+                      AND WARE_NO = #{wareNoM}
+                    </if>
+                    /* 개인창고 */
+                    <if test='@MybatisUtils@equals(wareDtlDvCd, "21")'>
+                        AND WARE_ICHR_NO != '000'
+                        AND WARE_NO = #{wareNoD}
+                    </if>
+                    </when>
+                    <otherwise>
+                        AND WARE_NO = #{wareNoD}
+                    </otherwise>
+                    </choose>
         )
         SELECT PD_INF.SAP_MAT_CD /* SAP */
              , PD_INF.PD_CD /* 코드 */
@@ -68,6 +92,10 @@
              , NVL(QTY_CENTER_SUM,0) AS QTY_CENTER_SUM /* 센터재고 */
              , NVL(QTY_ENG_SUM,0) AS QTY_ENG_SUM/* 엔지니어 재고 */
              , NVL(QTY_MM,0) AS QTY_MM/* 기준월합계 */
+             /* 필터링 */
+             , PD_INF.TRNOVR_RT_OJ_YN /* 회전율 */
+             , PD_INF.CMN_PART_DV_CD /* 중수리 */
+             , PD_INF.ORDNY_HV_MAT_YN /* 기초자재 */
              /* 1일~31일 */
              , NVL(QTY_01,0) AS QTY_1
              , NVL(QTY_02,0) AS QTY_2
@@ -132,7 +160,8 @@
 
                                          UNION ALL
 
-                                        SELECT 'A' AS ITM_GD_CD
+                                        SELECT /*+ INDEX(O2 IX_SVST_SV_WK_OSTR_IZ_01) */
+                                               'A' AS ITM_GD_CD
                                              , O2.ITM_PD_CD
                                              , O2.USE_QTY AS QTY
                                              , WARE_INF.HGR_WARE_NO
@@ -174,7 +203,8 @@
 
                                          UNION ALL
 
-                                        SELECT 'B' AS ITM_GD_CD
+                                        SELECT /*+ INDEX(O4 IX_SVST_SV_WK_OSTR_IZ_01) */
+                                               'B' AS ITM_GD_CD
                                              , O4.ITM_PD_CD
                                              , O4.USE_QTY AS QTY
                                              , WARE_INF.HGR_WARE_NO
@@ -196,6 +226,9 @@
                                            AND O4.FNL_VST_FSH_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYear}-1||#{baseMonth}, 'YYYYMM'), -3), 'YYYYMM')||'01' AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYear}-1||#{baseMonth}, 'YYYYMM'), 3), 'YYYYMM')||'31'
                                         )
                                   WHERE 1=1
+                                  <if test='@MybatisUtils@isNotEmpty(svBizHclsfCd)'>
+                                    AND WRK_CD = #{svBizHclsfCd}
+                                  </if>
                                  ) T1
                         ON PD_INF.PD_CD = T1.ITM_PD_CD
                      GROUP BY PD_INF.PD_CD, PD_INF.PD_NM
@@ -256,7 +289,8 @@
 
                                UNION ALL
 
-                              SELECT O2.ITM_PD_CD
+                              SELECT /*+ INDEX(O2 IX_SVST_SV_WK_OSTR_IZ_01) */
+                                     O2.ITM_PD_CD
                                    , PD_INF.PD_NM
                                    , O2.USE_QTY AS QTY
                                    , WARE_INF.HGR_WARE_NO
@@ -278,6 +312,9 @@
                                  AND O2.FNL_VST_FSH_DT LIKE #{baseYm}||'%'
                               )
                           WHERE 1=1
+                        <if test='@MybatisUtils@isNotEmpty(svBizHclsfCd)'>
+                            AND WRK_CD = #{svBizHclsfCd}
+                        </if>
                        )
                  GROUP BY ITM_PD_CD , PD_NM
              ) BASMM_OSTR
@@ -299,13 +336,19 @@
                         FROM TB_SVST_MCITM_STOC_IZ O1 /* ST122 월별품목재고내역 */
                         LEFT OUTER JOIN WARE_INF
                           ON O1.WARE_NO = WARE_INF.WARE_NO
-                        LEFT OUTER JOIN PD_INF
+                        INNER JOIN PD_INF
                           ON O1.ITM_PD_CD = PD_INF.PD_CD
                        WHERE 1=1
                          AND O1.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')
                          AND ((O1.WARE_NO = '100002')
-                              OR (O1.WARE_NO = '' AND WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
-                              OR (WARE_INF.HGR_WARE_NO = '' AND  WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
+                              OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                                  O1.WARE_NO = #{wareNoM} AND
+                                  </if>
+                                  WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
+                              OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                                  WARE_INF.HGR_WARE_NO = #{wareNoM} AND
+                                  </if>
+                                  WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
                              )
 
                        UNION ALL
@@ -323,14 +366,20 @@
                         FROM TB_SVST_MCITM_STOC_IZ O2 /* ST122 월별품목재고내역 */
                         LEFT OUTER JOIN WARE_INF
                           ON O2.WARE_NO = WARE_INF.WARE_NO
-                        LEFT OUTER JOIN PD_INF
+                        INNER JOIN PD_INF
                           ON O2.ITM_PD_CD = PD_INF.PD_CD
                        WHERE 1=1
                          AND O2.BASE_YM = #{baseYm}
                          AND ((O2.WARE_NO = '100002')
-                              OR (O2.WARE_NO = '' AND WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
-                              OR (WARE_INF.HGR_WARE_NO = '' AND  WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
-                             )
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               O2.WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               WARE_INF.HGR_WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
+                        )
 
                        UNION ALL
 
@@ -347,21 +396,28 @@
                         FROM TB_SVST_ITM_STR_IZ O3 /* ST141 품목입고내역 */
                         LEFT OUTER JOIN WARE_INF
                           ON O3.STR_WARE_NO = WARE_INF.WARE_NO
-                        LEFT OUTER JOIN PD_INF
+                        INNER JOIN PD_INF
                           ON O3.ITM_PD_CD = PD_INF.PD_CD
                        WHERE 1=1
                          AND O3.STR_QTY <![CDATA[ > ]]> 0
                          AND O3.ITM_GD_CD = 'A'
-                         AND STR_RGST_DT BETWEEN '202308'||'01' AND '202308'||'31'
+                         AND STR_RGST_DT BETWEEN #{baseYm}||'01' AND #{baseYm}||'31'
                          AND ((O3.STR_WARE_NO = '100002')
-                              OR (O3.STR_WARE_NO = '' AND WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
-                              OR (WARE_INF.HGR_WARE_NO = '' AND  WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
-                             )
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               O3.STR_WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               WARE_INF.HGR_WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
+                        )
 
                        UNION ALL
 
                       /* 외부반품입고 */
-                      SELECT 'STR' AS DIV
+                      SELECT /*+ INDEX(O4 IX_SVST_SV_WK_OSTR_IZ_01) */
+                             'STR' AS DIV
                            , O4.ITM_PD_CD
                            , NVL(O4.USE_QTY,0) AS QTY
                            , O4.WK_WARE_NO AS WARE_NO
@@ -373,7 +429,7 @@
                         FROM TB_SVST_SV_WK_OSTR_IZ O4 /* ST163  서비스작업출고내역 */
                         LEFT OUTER JOIN WARE_INF
                           ON O4.WK_WARE_NO = WARE_INF.WARE_NO
-                        LEFT OUTER JOIN PD_INF
+                        INNER JOIN PD_INF
                           ON O4.ITM_PD_CD = PD_INF.PD_CD
                        WHERE 1=1
                          AND O4.SV_BIZ_HCLSF_CD = '6'
@@ -381,9 +437,15 @@
                          AND O4.USE_QTY <![CDATA[ > ]]> 0
                          AND O4.FNL_VST_FSH_DT BETWEEN #{baseYm}||'01' AND #{baseYm}||'31'
                          AND ((O4.WK_WARE_NO = '100002')
-                              OR (O4.WK_WARE_NO = '' AND WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
-                              OR (WARE_INF.HGR_WARE_NO = '' AND  WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
-                             )
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               O4.WK_WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               WARE_INF.HGR_WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
+                        )
 
                        UNION ALL
 
@@ -406,9 +468,15 @@
                          AND O5.CTR_QTY <![CDATA[ > ]]> 0
                          AND O5.AFCT_ITM_GD_CD = 'A'
                          AND ((O5.WARE_NO = '100002')
-                              OR (O5.WARE_NO = '' AND WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
-                              OR (WARE_INF.HGR_WARE_NO = '' AND  WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
-                             )
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               O5.WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               WARE_INF.HGR_WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
+                        )
 
                        UNION ALL
 
@@ -425,15 +493,21 @@
                         FROM TB_SVST_MCITM_STOC_IZ O6 /* ST122 월별품목재고내역 */
                         LEFT OUTER JOIN WARE_INF
                           ON O6.WARE_NO = WARE_INF.WARE_NO
-                        LEFT OUTER JOIN PD_INF
+                        INNER JOIN PD_INF
                           ON O6.ITM_PD_CD = PD_INF.PD_CD
                        WHERE 1=1
                          AND O6.STOC_ACINSP_OSTR_A_GD_QTY <![CDATA[ > ]]> 0
                          AND O6.BASE_YM = #{baseYm}
                          AND ((O6.WARE_NO = '100002')
-                              OR (O6.WARE_NO = '' AND WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
-                              OR (WARE_INF.HGR_WARE_NO = '' AND  WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
-                             )
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               O6.WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               WARE_INF.HGR_WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
+                        )
 
                        UNION ALL
 
@@ -450,21 +524,28 @@
                         FROM TB_SVST_ITM_OSTR_IZ O7 /* ST161 품목출고내역 */
                         LEFT OUTER JOIN WARE_INF
                           ON O7.OSTR_WARE_NO = WARE_INF.WARE_NO
-                        LEFT OUTER JOIN PD_INF
+                        INNER JOIN PD_INF
                           ON O7.ITM_PD_CD = PD_INF.PD_CD
                        WHERE 1=1
                          AND OSTR_QTY <![CDATA[ > ]]> 0
                          AND O7.OSTR_DT BETWEEN #{baseYm}||'01' AND #{baseYm}||'31'
                          AND ITM_GD_CD = 'A'
                          AND ((O7.OSTR_WARE_NO = '100002')
-                              OR (O7.OSTR_WARE_NO = '' AND WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
-                              OR (WARE_INF.HGR_WARE_NO = '' AND  WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
-                             )
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               O7.OSTR_WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               WARE_INF.HGR_WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
+                        )
 
                        UNION ALL
 
                       /* 작업(입고)출고 */
-                      SELECT 'OSTR' AS DIV
+                      SELECT /*+ INDEX(O8 IX_SVST_SV_WK_OSTR_IZ_01) */
+                             'OSTR' AS DIV
                            , O8.ITM_PD_CD
                            , NVL(-O8.USE_QTY,0) AS QTY
                            , O8.WK_WARE_NO AS WARE_NO
@@ -476,7 +557,7 @@
                         FROM TB_SVST_SV_WK_OSTR_IZ O8 /* ST163 */
                         LEFT OUTER JOIN WARE_INF
                           ON O8.WK_WARE_NO = WARE_INF.WARE_NO
-                        LEFT OUTER JOIN PD_INF
+                        INNER JOIN PD_INF
                           ON O8.ITM_PD_CD = PD_INF.PD_CD
                        WHERE 1=1
                          AND O8.SV_BIZ_HCLSF_CD IN ('1','2','3')
@@ -484,9 +565,15 @@
                          AND O8.FNL_ITM_GD_CD = 'A'
                          AND O8.FNL_VST_FSH_DT BETWEEN #{baseYm}||'01' AND #{baseYm}||'31'
                          AND ((O8.WK_WARE_NO = '100002')
-                              OR (O8.WK_WARE_NO = '' AND WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
-                              OR (WARE_INF.HGR_WARE_NO = '' AND  WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
-                             )
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               O8.WK_WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               WARE_INF.HGR_WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
+                        )
 
                        UNION ALL
 
@@ -511,11 +598,17 @@
                          AND PD_INF.ITM_KND_CD = '6'
                          AND O9.STAT_CTR_APY_DT BETWEEN #{baseYm}||'01' AND #{baseYm}||'31'
                          AND ((O9.WARE_NO = '100002')
-                              OR (O9.WARE_NO = '' AND WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
-                              OR (WARE_INF.HGR_WARE_NO = '' AND  WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
-                             )
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               O9.WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO = '000' AND WARE_INF.WARE_DV_CD != '1')
+                             OR (<if test='@MybatisUtils@isNotEmpty(wareNoM)'>
+                               WARE_INF.HGR_WARE_NO = #{wareNoM} AND
+                                 </if>
+                               WARE_INF.WARE_ICHR_NO != '000' AND  WARE_INF.WARE_DV_CD != '1')
+                        )
                       )
-                GROUP BY ITM_PD_CD, WARE_NO
+                GROUP BY ITM_PD_CD
              ) WARE_STR
              , PD_INF
          WHERE 1=1
@@ -523,6 +616,5 @@
            AND PD_INF.PD_CD = WARE_STR.ITM_PD_CD(+)
            AND PD_INF.PD_CD = BASMM_OSTR.ITM_PD_CD(+)
          ORDER BY PD_INF.PD_CD
-        --)
     </select>
 </mapper>

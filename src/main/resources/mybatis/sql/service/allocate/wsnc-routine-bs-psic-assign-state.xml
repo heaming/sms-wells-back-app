@@ -46,7 +46,22 @@
                  , O2.QLF_DV_CD             /*자격구분코드*/
                  , O2.PERF_EXCD_OJ_YN       /*실적제외대상여부*/
                  , O2.RDS_DSB_EXCD_OJ_YN    /*RDS지급제외대상여부*/
-                 , O3.PRTNR_GD_CD AS ENG_PRTNR_GD_CD             /*파트너등급코드*/
+                 , (SELECT PRTNR_GD_CD
+                      FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ
+                     WHERE 1=1
+                       AND OG_TP_CD = O2.OG_TP_CD
+                       AND PRTNR_NO = O2.PRTNR_NO
+                       AND #{baseYm} BETWEEN APY_STRTDT AND APY_ENDDT
+                       AND DTA_DL_YN = 'N'
+		               AND APY_SEQN = (SELECT MAX(O3.APY_SEQN)
+								         FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ O3
+								        WHERE 1=1
+								          AND O3.OG_TP_CD = O2.OG_TP_CD
+								          AND O3.PRTNR_NO = O2.PRTNR_NO
+								          AND #{baseYm} BETWEEN O3.APY_STRTDT AND O3.APY_ENDDT
+								          AND O3.DTA_DL_YN = 'N'
+								       )
+                   ) AS ENG_PRTNR_GD_CD     /*엔지니어등급등록내역*/
                  , COUNT(1) OVER (PARTITION BY HGR_OG_ID ORDER BY HGR_OG_ID) AS HTR_CNT
               FROM WSMDBS.TB_OGBS_MM_OG_IZ O1  /*월조직내역*/
                    INNER JOIN TB_SVST_MCBY_WARE_IZ S1 /*월별창고내역*/
@@ -61,7 +76,7 @@
                                AND S1.OG_TP_CD = O2.OG_TP_CD
                                AND S1.OG_ID = O2.OG_ID
                                AND S1.WARE_MNGT_PRTNR_NO = O2.PRTNR_NO
-                               AND O2.BASE_YM = SUBSTR(#{baseYm}, 1, 6)
+                               AND O2.BASE_YM = #{baseYm}
                                /*퇴사자제외 조건 선택 시*/
                              <if test='@MybatisUtils@isNotEmpty(rgsnExcdYn) and @MybatisUtils@equals(rgsnExcdYn, "Y")'>
                                AND O2.CLTN_DT IS NULL     /* 퇴사자 제외 */
@@ -70,15 +85,9 @@
                              <if test='@MybatisUtils@isNotEmpty(vacManaYn) and @MybatisUtils@equals(vacManaYn, "Y")'>
                                AND O2.PSTN_DV_CD = '4'     /* 가상매니저 : 확인필요 AS-IS 4 */
                              </if>
-                   INNER JOIN WSMDBS.TB_OGPS_EGER_GD_RGST_IZ O3 /*엔지니어등급등록내역*/
-                                ON O3.OG_TP_CD = O2.OG_TP_CD
-                               AND O3.PRTNR_NO = O2.PRTNR_NO
-                               AND #{baseYm} BETWEEN O3.APY_STRTDT AND O3.APY_ENDDT
-                               and rownum = 1
-                               and O3.DTA_DL_YN = 'N'
               WHERE 1 = 1
                 /*익월 bs를 조회시 월조직이 생성이 안되어 있기 때문에 이렇게 처리*/
-                AND O1.BASE_YM = LEAST(SUBSTR(#{baseYm}, 1, 6), to_char(sysdate, 'YYYYMM'))
+                AND O1.BASE_YM = LEAST(#{baseYm}, to_char(sysdate, 'YYYYMM'))
                 /* 조직 검색조건 */
              <if test='@MybatisUtils@isNotEmpty(mngrDvCd) and @MybatisUtils@equals(mngrDvCd, "1")'>
                 AND O1.OG_TP_CD IN ('W02') /* 매니저 */
@@ -98,6 +107,7 @@
              <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                 AND O2.PRTNR_NO = #{prtnrNo}               /* 엔지니어/매니저 파트너번호 */
              </if>
+                AND S1.WARE_USE_YN = 'Y'                   /* 창고사용여부 */
                 AND O1.DTA_DL_YN = 'N'
               ORDER BY O1.BASE_YM, O1.OG_CD
          )
@@ -181,7 +191,7 @@
                            ON P1.PD_CD = S2.PDCT_PD_CD
              WHERE 1=1
                /*배정기준일 조건값*/
-               AND S1.ASN_OJ_YM  = SUBSTR(#{baseYm}, 1, 6)
+               AND S1.ASN_OJ_YM  = #{baseYm}
                /*약속일자 선택 값 존재 시*/
                AND S1.VST_CNFMDT  BETWEEN #{startDt} AND #{endDt}
                /*서비스유형 검색 - 21:정기B/S 22:비정기B/S*/
@@ -322,9 +332,9 @@
                    INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS C4     /*계약주소지기본*/
                            ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
                           AND C4.DTA_DL_YN = 'N'
-                   INNER JOIN GBSDBS.TB_GBCO_ADR_BAS C5
-                           ON C4.ADR_ID = C5.ADR_ID   /*이해욱이사님,이진성프로님과 협의 설치, AS는 배정시에 주소를 사용 해야 하기 때문에 TB_SVPD_CST_SVAS_IST_OJ_IZ 에 ADR_ID 를 추가 하기로 함. 테이블이 변경 되면, C4.ADR_ID 를 C1.ADR_ID 으로 수정 해야 함*/
-                          AND C5.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS C5
+                                ON C4.ADR_ID = C5.ADR_ID   /*이해욱이사님,이진성프로님과 협의 설치, AS는 배정시에 주소를 사용 해야 하기 때문에 TB_SVPD_CST_SVAS_IST_OJ_IZ 에 ADR_ID 를 추가 하기로 함. 테이블이 변경 되면, C4.ADR_ID 를 C1.ADR_ID 으로 수정 해야 함*/
+                               AND C5.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN WSMDBS.TB_SSCT_CNTR_RSG_PROCS_IZ C6  /*계약해지처리내역*/
                                 ON C1.CNTR_NO = C6.CNTR_NO
                                AND C1.CNTR_SN = C6.CNTR_SN
@@ -456,6 +466,9 @@
                    AND F1.PD_GRP_CD = I1.AS_MAT_ITM_GRP_CD
                    AND F1.SV_TP_CD = SUBSTR(I1.SV_BIZ_MCLSF_CD,1,1)
                    AND F1.SITE_AW_ATC_CD = I1.SITE_AW_ATC_CD
+                 <if test='@MybatisUtils@isNotEmpty(mngrDvCd) and @MybatisUtils@equals(mngrDvCd, "1")'>
+                   AND F1.RGLVL_DV_CD = I1.MNGER_RGLVL_DV_CD   /* 매니저 */
+                 </if>
                  <if test='@MybatisUtils@isNotEmpty(mngrDvCd) and @MybatisUtils@equals(mngrDvCd, "2")'>
                    AND F1.RGLVL_DV_CD = '1'   /* 엔지니어 급지는 1급지로 정리됨 */
                  </if>

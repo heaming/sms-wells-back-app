@@ -8,11 +8,11 @@
              , A2.OG_CD /* 조직코드 */
              , A1.PRTNR_NO /* 파트너번호 */
              , A2.PRTNR_KNM /* 파트너명 */
-             , CASE WHEN SELL_TP_CD = '1' THEN '01' /* 일시불 */
-                    WHEN SELL_TP_CD = '2' THEN '02' /* 렌탈/리스 */
-                    WHEN SELL_TP_CD = '3' THEN '03' /* 멤버십 */
-                    WHEN SELL_TP_CD = '6' THEN '04' /* 정기배송 */
-                    WHEN SELL_TP_CD = '05' THEN '05' /* 재약정 */
+             , CASE WHEN A1.SELL_TP_CD = '1' THEN '01' /* 일시불 */
+                    WHEN A1.SELL_TP_CD = '2' THEN '02' /* 렌탈/리스 */
+                    WHEN A1.SELL_TP_CD = '3' THEN '06' /* 멤버십 */
+                    WHEN A1.SELL_TP_CD = '6' THEN '04' /* 정기배송 */
+                    WHEN A1.SELL_TP_CD = '05' THEN '05' /* 재약정 */
                END AS SELL_TP_CD /* 판매유형코드 */
              , A1.FEE_PDCT_TP_CD /* 수수료제품유형코드 */
              , A1.CNTR_NO || '-' || A1.CNTR_SN AS CNTR_NO /* 계약번호, 계약일련번호 */
@@ -31,7 +31,15 @@
              (
 
                <if test='!@MybatisUtils@equals(sellTpCd, "05")'> /* 판매유형 = 05 : 재약정 */
-                   SELECT SUBSTR(T1.CNTR_CNFM_DTM, 0, 6) AS BASE_YM /* 기준년월 */
+                   SELECT
+                         <choose>
+                             <when test='@MybatisUtils@equals(dvCd, "01") or @MybatisUtils@equals(dvCd, "02")'> /* 구분 = 01 : 접수, 02 : 예약 */
+                                 SUBSTR(T1.CNTR_CNFM_DTM, 0, 6) AS BASE_YM /* 기준년월 */
+                             </when>
+                             <when test='@MybatisUtils@equals(dvCd, "03")'>  /* 구분 = 03 : 매출 */
+                                 SUBSTR(T2.CNTR_PD_STRTDT, 0, 6) AS BASE_YM /* 기준년월 */
+                             </when>
+                         </choose>
                         , T1.SELL_OG_TP_CD AS OG_TP_CD /* 조직유형코드 */
                         , T1.SELL_PRTNR_NO AS PRTNR_NO /* 파트너번호 */
                         , T1.COPN_DV_CD /* 법인격구분코드 */
@@ -47,7 +55,9 @@
                         , CASE WHEN T2.CNTR_DTL_STAT_CD IN ('301', '303') THEN T2.CNTR_PD_ENDDT
                                ELSE ''
                           END AS CAN_DT /* 취소일자 */
-                        , T2.SELL_AMT /* 판매금액 */
+                        , CASE WHEN T2.SELL_TP_CD = '6' THEN (NVL(T2.FNL_AMT, 0)- NVL(T2.CNTRAM_DSC_AMT, 0)) / NVL(T2.SV_PRD, 0)
+                               ELSE T2.SELL_AMT
+                          END AS SELL_AMT /* 판매금액 */
                         , T3.PD_NM /* 상품명 */
                         , CASE WHEN T1.SELL_OG_TP_CD = 'W01' THEN T5.FEE_PDCT_TP_CD2
                                WHEN T1.SELL_OG_TP_CD IN ('W02', 'W03', 'W04', 'W05') THEN T5.FEE_PDCT_TP_CD1
@@ -84,6 +94,7 @@
                           </when>
                           <when test='@MybatisUtils@equals(dvCd, "03")'> /* 구분 = 03 : 매출 */
                               AND T2.CNTR_PD_STRTDT BETWEEN #{rcpDtFrom} AND #{rcpDtTo} /* 계약상품시작일자 */
+                              AND T2.BOO_SELL_TP_CD IS NULL /* 예약판매유형코드 */
                           </when>
                       </choose>
 
@@ -98,6 +109,10 @@
                           </choose>
                       </if>
 
+                      <if test='@MybatisUtils@isEmpty(sellTpCd)'>
+                          AND T2.SELL_TP_CD IN ('1', '2', '3', '6')
+                      </if>
+
                       <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
                           <choose>
                               <when test='@MybatisUtils@equals(sellTpCd, "01")'> /* 판매유형 = 01 : 일시불 */
@@ -106,9 +121,8 @@
                               <when test='@MybatisUtils@equals(sellTpCd, "02")'> /* 판매유형 = 02 : 렌탈/리스 */
                                   AND T2.SELL_TP_CD = '2' /* 판매유형코드 = 2 : 렌탈/리스 */
                               </when>
-                              <when test='@MybatisUtils@equals(sellTpCd, "03")'> /* 판매유형 = 03 : 홈케어멤버십 */
+                              <when test='@MybatisUtils@equals(sellTpCd, "06")'> /* 판매유형 = 06 : 멤버십 */
                                   AND T2.SELL_TP_CD = '3' /* 판매유형코드 = 3 : 멤버십 */
-                                  AND T2.SELL_TP_DTL_CD = '33' /* 판매유형상세코드 = 33 : 홈케어 멤버십 */
                               </when>
                               <when test='@MybatisUtils@equals(sellTpCd, "04")'> /* 판매유형 = 04 : 정기배송 */
                                   AND T2.SELL_TP_CD = '6' /* 판매유형코드 = 6 : 정기배송 */
@@ -159,7 +173,7 @@
                             , T3.STPL_PTRM /* 약정기간 */
                             , SUBSTR(T3.CNTR_PD_STRTDT, 0, 8) AS SL_DT /* 매출일자 */
                             , T1.STPL_CAN_DTM AS CAN_DT /* 취소일자 */
-                            , T3.SELL_AMT /* 판매금액 */
+                            , NVL(T3.FNL_AMT, 0) - NVL(T1.STPL_DSC_AMT, 0) SELL_AMT /* 판매금액 */
                             , T4.PD_NM /* 상품명 */
                             , CASE WHEN T2.SELL_OG_TP_CD = 'W01' THEN T6.FEE_PDCT_TP_CD2
                                    ELSE T6.FEE_PDCT_TP_CD1
@@ -188,7 +202,7 @@
                           AND T7.DTA_DL_YN = 'N'
                         WHERE 1=1
                           AND T1.DTA_DL_YN = 'N'
-                          AND T1.FEE_ACKMT_BASE_AMT > 0 /* 수수료인정기준금액 */
+                          AND T1.STPL_TP_CD = 'A' /* 약정유형코드 */
 
                           <choose>
                               <when test='@MybatisUtils@equals(dvCd, "01")'> /* 구분 = 01 : 접수 */
@@ -234,7 +248,14 @@
                   AND T1.BASE_YM = SUBSTR(#{rcpDtFrom}, 0, 6) /* 기준년월 */
 
                   <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
-                      AND T1.OG_TP_CD = #{ogTpCd}
+                      <choose>
+                          <when test='@MybatisUtils@equals(ogTpCd, "W99")'> /* 조직구분 = W99 : 기타 */
+                              AND T1.OG_TP_CD NOT IN ('W01', 'W02', 'W03' ,'W04', 'W05') /* 조직유형코드 */
+                          </when>
+                          <otherwise>
+                              AND T1.OG_TP_CD = #{ogTpCd} /* 조직유형코드 */
+                          </otherwise>
+                      </choose>
                   </if>
 
                   <if test='@MybatisUtils@isNotEmpty(ogLevl1)'>
