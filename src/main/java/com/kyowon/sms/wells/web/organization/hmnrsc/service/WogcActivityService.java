@@ -31,11 +31,7 @@ public class WogcActivityService {
      * @return SearchMonthlyActivityRes
      */
     public List<SearchMonthlyActivityRes> searchMonthlyActivities(SearchMonthlyActivityReq dto) {
-        return switch (dto.rsbDvCd()) {
-            case "S" -> wogcActivityMapper.searchMonthlyActivitiesS(dto);
-            case "E" -> wogcActivityMapper.searchMonthlyActivitiesE(dto);
-            default -> wogcActivityMapper.searchMonthlyActivitiesA(dto);
-        };
+        return wogcActivityMapper.searchMonthlyActivities(dto);
     }
 
     /**
@@ -47,11 +43,7 @@ public class WogcActivityService {
     public PagingResult<SearchMonthlyActivityRes> searchMonthlyActivitiesPages(
         SearchMonthlyActivityReq dto, PageInfo pageInfo
     ) {
-        return switch (dto.rsbDvCd()) {
-            case "S" -> wogcActivityMapper.searchMonthlyActivitiesS(dto, pageInfo);
-            case "E" -> wogcActivityMapper.searchMonthlyActivitiesE(dto, pageInfo);
-            default -> wogcActivityMapper.searchMonthlyActivitiesA(dto, pageInfo);
-        };
+        return wogcActivityMapper.searchMonthlyActivities(dto, pageInfo);
     }
 
     /**
