@@ -162,8 +162,8 @@
                 SELECT BASE_YM
                      , PRTNR_NO
                      , OG_TP_CD
-                     , NVL(SUM(CASE WHEN PERF_ATC_CD = 'W02P00103' THEN PERF_VAL END), 0) AS PERF02 /* 가전인정건수 */
-                     , NVL(SUM(CASE WHEN PERF_ATC_CD = 'W02P00104' THEN PERF_VAL END), 0) AS PERF03  /* 가전기변건수 */
+                     , NVL(SUM(CASE WHEN PERF_ATC_CD = 'W02P00002' THEN PERF_VAL END), 0) AS PERF02 /* 가전인정건수 */
+                     , NVL(SUM(CASE WHEN PERF_ATC_CD IN ( 'W00P00014','W00P00018') THEN PERF_VAL END), 0) AS PERF03  /* 가전기변건수 */
                  FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감 */
                 WHERE 1 = 1
                   AND DTA_DL_YN = 'N'
@@ -172,7 +172,7 @@
             --      AND MM_ACU_PERF_AGRG_CRT_DV_CD = '01' /* 접수-00:총주문월누적, 매출-01:순주문월누적 */
                   AND PERF_AGRG_CRT_DV_CD = '201' /*실적집계생성구분코드(101 : P추진단순주문실적생성 , 201: M추진단순주문실적생성 , 301 : 홈마스터순주문실적생성 )*/
                   AND OG_TP_CD = #{dto.ogTpCd} /*조직유형코드(W02: M추진단)*/
-                  AND PERF_ATC_CD IN ('W02P00103', 'W02P00104') /* 실적항목코드(W02P00002: 판매인정건수, W00P00014:기변１건수, W00P00018: 단체할인기변 1, W02P00093: 미팅참석일수) */
+                  AND PERF_ATC_CD IN ('W02P00002', 'W00P00014','W00P00018') /* 실적항목코드  */
                 GROUP BY BASE_YM, PRTNR_NO, OG_TP_CD
             ) PERF
              ON FC.DSB_YM   = PERF.BASE_YM
@@ -573,11 +573,9 @@
                     SELECT BASE_YM
                          , PRTNR_NO
                          , OG_TP_CD
-                         , NVL(SUM(CASE WHEN (PERF_ATC_CD = 'W02P00093') THEN PERF_VAL END), 0) AS PERF01                   /* 미팅참석일수 */
-                         , NVL(SUM(CASE WHEN (PERF_ATC_CD = 'W02P00002') THEN PERF_VAL END), 0) AS PERF02                   /* 조직 - 가전인정건수 */
-                         , NVL(SUM(CASE WHEN (PERF_ATC_CD = 'W02P00103') THEN PERF_VAL END), 0) AS PERF03                   /* 개인 - 가전인정건수 */
-                         , NVL(SUM(CASE WHEN (PERF_ATC_CD = 'W02P00104') THEN PERF_VAL END), 0) AS PERF04                   /* 가전기변건수 */
-
+                         , NVL(SUM(CASE WHEN (PERF_DV_CD = 2 AND PERF_ATC_CD = 'W02P00002') THEN PERF_VAL END), 0) AS PERF02                   /* 조직 - 가전인정건수 */
+                         , NVL(SUM(CASE WHEN (PERF_DV_CD = 0 AND PERF_ATC_CD = 'W02P00002') THEN PERF_VAL END), 0) AS PERF03                   /* 개인 - 가전인정건수 */
+                         , NVL(SUM(CASE WHEN (PERF_DV_CD = 0 AND PERF_ATC_CD IN('W00P00014','W00P00018') ) THEN PERF_VAL END), 0) AS PERF04                   /* 가전기변건수 */
                      FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감 */
                     WHERE 1 = 1
                       AND DTA_DL_YN = 'N'
@@ -586,7 +584,7 @@
                 --      AND MM_ACU_PERF_AGRG_CRT_DV_CD = '01' /* 접수-00:총주문월누적, 매출-01:순주문월누적 */
                       AND PERF_AGRG_CRT_DV_CD = '201' /*실적집계생성구분코드(101 : P추진단순주문실적생성 , 201: M추진단순주문실적생성 , 301 : 홈마스터순주문실적생성 )*/
                       AND OG_TP_CD = #{dto.ogTpCd} /*조직유형코드(W01: P추진단)*/
-                      AND PERF_ATC_CD IN ('W02P00093','W02P00002','W02P00103', 'W02P00104')
+                      AND PERF_ATC_CD IN ('W02P00002', 'W00P00014','W00P00018')
                     GROUP BY BASE_YM, PRTNR_NO, OG_TP_CD
                 ) PERF
                  ON FC.DSB_YM = PERF.BASE_YM
@@ -778,13 +776,13 @@
                         SELECT BASE_YM
                              , PRTNR_NO
                              , OG_TP_CD
-                             , SUM(CASE WHEN (PERF_ATC_CD = 'W01P00001') THEN PERF_VAL END) AS PERF01        /* 조직 - 가전실적금액 */
-                             , SUM(CASE WHEN (PERF_ATC_CD = 'W01P00004') THEN PERF_VAL END) AS PERF02        /* 조직 - 가전외실적금액 */
-                             , SUM(CASE WHEN (PERF_ATC_CD IN('W01P00001','W01P00004') ) THEN PERF_VAL END) AS PERF03   /* 합산1 */
-                             , SUM(CASE WHEN (PERF_ATC_CD = 'W01P00001') THEN PERF_VAL END) AS PERF04   /* 개인 - 가전 */
-                             , SUM(CASE WHEN (PERF_ATC_CD = 'W01P00004') THEN PERF_VAL END) AS PERF05   /* 개인 - 가전외 */
-                             , SUM(CASE WHEN (PERF_ATC_CD IN('W01P00001','W01P00004') ) THEN PERF_VAL END) AS PERF06   /* 합산2 */
-                             , SUM(CASE WHEN (PERF_ATC_CD = 'W00P00028') THEN PERF_VAL END) AS PERF07   /* 개인 - 기변실적금액 */
+                             , SUM(CASE WHEN (PERF_DV_CD = 2 AND PERF_ATC_CD = 'W01P00001') THEN PERF_VAL END) AS PERF01        /* 조직 - 가전실적금액 */
+                             , SUM(CASE WHEN (PERF_DV_CD = 2 AND PERF_ATC_CD = 'W01P00004') THEN PERF_VAL END) AS PERF02        /* 조직 - 가전외실적금액 */
+                             , SUM(CASE WHEN (PERF_DV_CD = 2 AND PERF_ATC_CD IN('W01P00001','W01P00004') ) THEN PERF_VAL END) AS PERF03   /* 합산1 */
+                             , SUM(CASE WHEN (PERF_DV_CD = 0 AND PERF_ATC_CD = 'W01P00001') THEN PERF_VAL END) AS PERF04   /* 개인 - 가전 */
+                             , SUM(CASE WHEN (PERF_DV_CD = 0 AND PERF_ATC_CD = 'W01P00004') THEN PERF_VAL END) AS PERF05   /* 개인 - 가전외 */
+                             , SUM(CASE WHEN (PERF_DV_CD = 0 AND PERF_ATC_CD IN('W01P00001','W01P00004') ) THEN PERF_VAL END) AS PERF06   /* 합산2 */
+                             , SUM(CASE WHEN (PERF_DV_CD = 0 AND PERF_ATC_CD = 'W00P00028') THEN PERF_VAL END) AS PERF07   /* 개인 - 기변실적금액 */
                          FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감 */
                         WHERE 1 = 1
                           AND DTA_DL_YN = 'N'
