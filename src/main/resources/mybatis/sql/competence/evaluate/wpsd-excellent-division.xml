@@ -48,12 +48,12 @@
              , LOWER(EVL_ATC_DV_CD)||NUM AS FIELD_NAME
              , CASE WHEN DV_CD = 1 AND NUM = 1 THEN EVL_ATC_DV_NM
                     WHEN DV_CD = 3 AND NUM = 1 THEN '목표'
-                    WHEN DV_CD = 3 AND NUM = 2 THEN '건수'
+                    WHEN DV_CD = 3 AND NUM = 2 THEN '점수'
                     WHEN DV_CD = 3 AND NUM = 3 THEN '달성률'
                END AS COL_HEADER
-             , CASE WHEN DV_CD = 1 AND NUM = 1 THEN 'cnt'
+             , CASE WHEN DV_CD = 1 AND NUM = 1 THEN 'score'
                     WHEN DV_CD = 3 AND NUM = 1 THEN 'trg'
-                    WHEN DV_CD = 3 AND NUM = 2 THEN 'cnt'
+                    WHEN DV_CD = 3 AND NUM = 2 THEN 'score'
                     WHEN DV_CD = 3 AND NUM = 3 THEN 'rate'
                END AS DATA_TYPE
           FROM
@@ -66,22 +66,45 @@
                     , T3.CALF_CN
                     , T3.CEXP_CN
                     , CASE WHEN TRG_USE_YN = 'Y' THEN '3' ELSE '1' END AS  DV_CD
+                    , T2.SORT_ODR
                FROM TB_PSEV_AWD_EVL_BASE_BAS T1
-               INNER JOIN TB_PSEV_AWD_EVL_BASE_DTL T2
-                 ON T2.EVL_DV_CD = T1.EVL_DV_CD
-                AND T2.EVL_OG_TP_CD = T1.EVL_OG_TP_CD
+               INNER JOIN
+           	       ( SELECT BASE_YM
+                          , EVL_OG_TP_CD
+                          , EVL_DV_CD
+                          , EVL_ATC_DV_CD
+                          , EVL_PD_DV_CD
+                          , EVL_BASE_UNIT_N
+                          , CVT_BASE_PC
+                          , TRG_BASE_PC
+           	              , SORT_ODR
+           	          FROM TB_PSEV_AWD_EVL_BASE_DTL
+           	         WHERE DTA_DL_YN = 'N'
+           	         GROUP BY BASE_YM
+						 , EVL_OG_TP_CD
+						 , EVL_DV_CD
+						 , EVL_ATC_DV_CD
+						 , EVL_PD_DV_CD
+						 , EVL_BASE_UNIT_N
+						 , CVT_BASE_PC
+						 , TRG_BASE_PC
+           	             , SORT_ODR
+				   ) T2
+                  ON T2.EVL_DV_CD = T1.EVL_DV_CD
+                 AND T2.EVL_OG_TP_CD = T1.EVL_OG_TP_CD
+                 AND T2.BASE_YM = T1.BASE_YM
                INNER JOIN TB_PSEV_AWD_EVL_ATC_BASE_BAS T3
-                 ON T3.EVL_OG_TP_CD = T2.EVL_OG_TP_CD
-                AND T3.EVL_ATC_DV_CD = T2.EVL_ATC_DV_CD
+                  ON T3.EVL_OG_TP_CD = T2.EVL_OG_TP_CD
+                 AND T3.EVL_ATC_DV_CD = T2.EVL_ATC_DV_CD
                WHERE T1.EVL_DV_CD = #{evlDvCd}
                  AND T1.EVL_OG_TP_CD = #{evlOgTpCd}
                  AND T1.BASE_YM = #{baseYm}
-                -- AND T3.TRG_USE_YN = 'Y'
              ) T1
          INNER JOIN
              ( SELECT LEVEL NUM
                  FROM DUAL CONNECT BY LEVEL <![CDATA[<=]]> 3) T2
             ON T2.NUM BETWEEN 1 AND T1.DV_CD
+         ORDER BY T1.SORT_ODR, T2.NUM ASC
     </select>
 
 
@@ -125,8 +148,8 @@
                 <foreach collection="config" item="item">
                     <if test='@MybatisUtils@isNotEmpty(item.dataType)'>
                         <choose>
-                            <when test="@MybatisUtils@equals(item.dataType, 'cnt')">
-                                , NVL(( SELECT S1.PERF_PC
+                            <when test="@MybatisUtils@equals(item.dataType, 'score')">
+                                , NVL(( SELECT S1.AWD_BASE_CALC_PC
                                           FROM TB_PSEV_AWD_EVL_IZ S1
                                          WHERE S1.PRTNR_NO = T1.PRTNR_NO
                                            AND S1.EVL_OG_TP_CD = T2.OG_TP_CD
@@ -138,7 +161,7 @@
                                             ), 0) AS ${item.fieldName}
                             </when>
                             <when test="@MybatisUtils@equals(item.dataType, 'trg')">
-                                , NVL(( SELECT TRG_BASE_PC/CVT_BASE_PC
+                                , NVL(( SELECT TRG_BASE_PC
                                           FROM TB_PSEV_AWD_EVL_IZ S1
                                          WHERE S1.PRTNR_NO = T1.PRTNR_NO
                                            AND S1.EVL_OG_TP_CD = T2.OG_TP_CD
@@ -150,7 +173,7 @@
                                             ), 0) AS ${item.fieldName}
                             </when>
                             <when test="@MybatisUtils@equals(item.dataType, 'rate')">
-                                , NVL(( SELECT S1.PERF_PC / (TRG_BASE_PC/CVT_BASE_PC) * 100
+                                , NVL(( SELECT (S1.AWD_BASE_CALC_PC / TRG_BASE_PC) * 100
                                           FROM TB_PSEV_AWD_EVL_IZ S1
                                          WHERE S1.PRTNR_NO = T1.PRTNR_NO
                                            AND S1.EVL_OG_TP_CD = T2.OG_TP_CD
@@ -175,6 +198,14 @@
          WHERE 1=1
            AND T2.BASE_YM = #{param.baseYm}
            AND T2.OG_TP_CD = #{param.evlOgTpCd}
+           <if test='@MybatisUtils@isNotEmpty(param.ctstGrpCd)'>
+           AND EXISTS ( SELECT 1
+                          FROM TB_PSEV_AWD_EVL_IZ
+                         WHERE CTST_GRP_CD = #{param.ctstGrpCd}
+                           AND DTA_DL_YN = 'N'
+                           AND PRTNR_NO = T1.PRTNR_NO
+               )
+           </if>
          ORDER BY T2.OG_CD, T1.PRTNR_NO
     </select>
 

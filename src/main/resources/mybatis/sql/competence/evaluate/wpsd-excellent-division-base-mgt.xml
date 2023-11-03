@@ -207,6 +207,7 @@
                  , T1.CVT_BASE_PC      /* 환산기준점수 */
                  , T1.TRG_BASE_PC      /* 목표기준점수 */
                  , T1.DTA_DL_YN        /* 데이터삭제여부 */
+                 , T1.SORT_ODR
               FROM TB_PSEV_AWD_EVL_BASE_DTL T1
              INNER JOIN TB_PSEV_AWD_EVL_BASE_BAS T2
                 ON T2.BASE_YM = T1.BASE_YM
@@ -225,6 +226,8 @@
                  , T1.CVT_BASE_PC
                  , T1.TRG_BASE_PC
                  , T1.DTA_DL_YN
+                 , T1.SORT_ODR
+             ORDER BY T1.SORT_ODR ASC
     </select>
 
 
@@ -265,6 +268,7 @@
              , T2.CVT_BASE_PC      /* 환산기준점수 */
              , T2.TRG_BASE_PC      /* 목표기준점수 */
              , T2.DTA_DL_YN        /* 데이터삭제여부 */
+		     , T2.SORT_ODR
           FROM TB_PSEV_AWD_EVL_ATC_BASE_BAS T1
          INNER JOIN TB_PSEV_AWD_EVL_BASE_DTL T2 /* 시상평가기준상세 */
             ON T1.EVL_OG_TP_CD = T2.EVL_OG_TP_CD
@@ -283,6 +287,8 @@
              , T2.CVT_BASE_PC
              , T2.TRG_BASE_PC
              , T2.DTA_DL_YN
+             , T2.SORT_ODR
+		 ORDER BY SORT_ODR ASC
     </select>
 
     <update id="updateTargetBase">
@@ -318,6 +324,7 @@
              , EVL_BASE_UNIT_N
              , CVT_BASE_PC
              , DTA_DL_YN
+             , SORT_ODR
                 <include refid="COMMON.insertSystemField" />
              )
 
@@ -342,6 +349,9 @@
                                            ${item.cexpCn}
                                        </where>
                                     </if>
+                                    <if test='@MybatisUtils@isNotEmpty(item.qlfDvCd)'>
+                                    AND QLF_DV_CD = #{item.qlfDvCd}
+                                    </if>
                                 </foreach>
                                )
                            GROUP BY PRTNR_NO
@@ -365,7 +375,12 @@
              , #{param.evlAtcDvCd} AS EVL_ATC_DV_CD    /* 평가항목구분코드 */
              , #{param.evlBaseUnitN} AS EVL_BASE_UNIT_N  /* 평가기준단위수 */
              , #{param.cvtBasePc} AS CVT_BASE_PC      /* 환산기준점수 */
-             , 'N' AS DTA_DL_YN        /* 데이터삭제여부 */
+             , #{param.dtaDlYn} AS DTA_DL_YN        /* 데이터삭제여부 */
+             , ( SELECT NVL(MAX(SORT_ODR), 0) + 1
+                   FROM TB_PSEV_AWD_EVL_BASE_DTL
+                  WHERE EVL_OG_TP_CD = #{param.evlOgTpCd}
+                    AND EVL_DV_CD = #{param.evlDvCd}
+                ) AS SORT_ODR
              <include refid="COMMON.insertSystemFieldValue" />
           FROM TARGET_LIST T1
     </insert>
