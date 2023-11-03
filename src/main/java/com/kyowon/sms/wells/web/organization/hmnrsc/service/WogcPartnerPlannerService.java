@@ -452,4 +452,43 @@ public class WogcPartnerPlannerService {
 
         return processCount;
     }
+
+    /**
+     * 해약매니저 재고 확인 체크
+     *
+     * @param dto
+     * @return
+     */
+    public int getCheckCancellation(WogcPartnerPlannerDto.CheckCancellationReq dto) throws Exception {
+        int processCount = 0;
+
+        WsnaWarehouseCloseCheckDvo warehouseCloseCheckDvo = new WsnaWarehouseCloseCheckDvo();
+        warehouseCloseCheckDvo.setOgTpCd(dto.ogTpCd());
+        warehouseCloseCheckDvo.setPrtnrNo(dto.prtnrNo());
+        List<String> checks = snaWarehouseCloseCheckService.getWarehouseCloseCheck(warehouseCloseCheckDvo);
+
+        if (CollectionUtils.isNotEmpty(checks)) {
+            String result = checks.get(0);
+
+            if ("00".equals(result)) {
+                processCount = 0;
+            } else {
+                if (checks.contains("01")) {
+                    // 1.2 품목입고내역, 서비스품목재고내역 이동재고수량 체크
+                    BizAssert.isTrue(processCount == 1, "MSG_ALT_MMT_STOC_EXST_PROCS_IMPSB");
+                } else if (checks.contains("02")) {
+                    // 1.3 월별품목재고내역 시점재고수량 체크
+                    BizAssert.isTrue(processCount == 1, "MSG_ALT_PITM_STOC_MINUS_EXST_PROCS_IMPSB");
+                } else if (checks.contains("03")) {
+                    // 1.4 고객서비스수행내역 관리고객계정 체크
+                    BizAssert.isTrue(processCount == 1, "MSG_ALT_MNGT_COUNT_PROCS_IMPSB");
+                } else if (checks.contains("04")) {
+                    // 1.5 고객서비스BS배정내역 방문계정 체크
+                    BizAssert.isTrue(processCount == 1, "MSG_ALT_CRT_TRGT_EXP_H_PROCS_IMPSB");
+                }
+            }
+        }
+
+        return processCount;
+    }
 }

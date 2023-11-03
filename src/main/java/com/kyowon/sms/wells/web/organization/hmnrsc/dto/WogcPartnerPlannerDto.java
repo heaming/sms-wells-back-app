@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.dto;
 
-import com.sds.sflex.system.config.masking.MaskRequired;
-import com.sds.sflex.system.config.masking.MaskingType;
 import org.apache.commons.lang.StringUtils;
 
 import com.sds.sflex.common.utils.DbEncUtil;
@@ -256,6 +254,16 @@ public class WogcPartnerPlannerDto {
         String fnlMdfcUsrId,
         String fnlMdfcPrgId,
         String fnlMdfcDeptId
+    ) {
+    }
+
+    @ApiModel(value = "WogcPartnerPlannerDto-CheckCancellationReq")
+    @Builder
+    public record CheckCancellationReq(
+        @NotBlank
+        String prtnrNo, // 파트너번호
+        @NotBlank
+        String ogTpCd // 조직유형코드
     ) {
     }
 }
