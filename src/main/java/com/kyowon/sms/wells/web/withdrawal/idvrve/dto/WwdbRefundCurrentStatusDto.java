@@ -18,7 +18,7 @@ public class WwdbRefundCurrentStatusDto {
         String rveDtFinish, // 환불일자 종료일
 
         String perfDtStart, // 실적일자 시작일
-        
+
         String perfDtFinish, // 실적일자 종료일
         // 일괄생성구분 은 설계자가 테이블 컬럼 매핑하지 못함. 알 수 없음이라고 작성되어 있음.
         String rfndDsbDvCd, // 귀속환불구분
@@ -123,16 +123,17 @@ public class WwdbRefundCurrentStatusDto {
 
     @ApiModel(value = "WwdbRefundCurrentStatusDto-SearchBalanceTransferRefundHistoryRes")
     public record SearchBalanceTransferRefundHistoryRes(
-        String refundDivision, // 전금구분
-        String rtRfndDsbAmt, // 렌탈
-        String lsRfndDsbAmt, // 리스
-        String elRfndDsbAmt, // 환경리스
-        String mbRfndDsbAmt, // 멤버십
-        String hcRfndDsbAmt, // 홈케어멤버십
-        String lnRfndDsbAmt, // 장기할
-        String lmRfndDsbAmt, // 할부금
-        String kmRfndDsbAmt, // K머니
-        String rgRfndDsbAmt, // 정기배송
+        String refundDivision    ,
+        String rtRfndDsbAmt ,/*렌탈*/
+        String lsRfndDsbAmt ,/*리스*/
+        String elRfndDsbAmt ,/*환경리스*/
+        String lnRfndDsbAmt ,/*장기할부*/
+        String evRfndDsbAmt ,/*환경할부*/
+        String mbRfndDsbAmt ,/*맴버십*/
+        String hcRfndDsbAmt ,/*홈케어맴버십*/
+        String lmRfndDsbAmt ,/*할부금*/
+        String kmRfndDsbAmt ,/*K머니*/
+        String rgRfndDsbAmt ,/*정기배송*/
         String sumRfndDsbAmt // 전금합계
 
     ) {
