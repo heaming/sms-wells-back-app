@@ -33,7 +33,7 @@ public class WdccMembershipCnfmGenDto {
     public record SearchRes(
         String cntrNo, /* 계약번호*/
         String cntrSn, /* 계약일련번호*/
-        String cntrNoSn, /* 계약상세번호 */
+        String cntrDtlNo, /* 계약상세번호 */
         String cstKnm, /* 고객명 */
         String sellTpNm, /* 판매유형명*/
         String sellTpDtlNm, /* 판매유형상세코드명*/
@@ -41,12 +41,11 @@ public class WdccMembershipCnfmGenDto {
         String sellOgTpCd, /* 판매자조직유형코드*/
         String basePdCd, /* 기준상품코드*/
         String pdNm, /* 상품명*/
-        String svPdTpNm, /* 용도구분*/
+        String svPdTpCd, /* 용도구분*/
+        String svPdTpNm, /* 용도구분명*/
         String svPrd, /* 서비스주기*/
         String frisuYn, /* 무상여부*/
         String stplPtrm, /* 약정기간*/
-        String hcrDvCd, /* 구분1(홈케어구분코드)*/
-        String dv, /* 상품구분2*/
         String dpTpCd, /* 이체구분코드*/
         String dpTpNm, /* 이체구분*/
         String cntrCstNo, /* 계약고객번호*/

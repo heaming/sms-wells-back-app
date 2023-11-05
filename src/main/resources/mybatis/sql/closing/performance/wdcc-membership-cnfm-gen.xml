@@ -5,7 +5,7 @@
     <select id="selectMembershipConfirmGens" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccMembershipCnfmGenDto$SearchRes">
         SELECT M.CNTR_NO --계약번호
              , M.CNTR_SN  --계약일련번호
-             , M.CNTR_NO || M.CNTR_SN AS CNTR_NO_SN  --계약일련번호
+             , M.CNTR_NO || M.CNTR_SN AS CNTR_DTL_NO  --계약일련번호
              , M.CST_KNM  --고객명
              , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', M.SELL_TP_CD) AS SELL_TP_NM --판매유형
              , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', M.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM --판매유형상세코드
@@ -13,20 +13,17 @@
              , M.SELL_OG_TP_CD --판매자조직유형코드
              , M.BASE_PD_CD --기준상품코드
              , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = M.BASE_PD_CD) AS PD_NM--상품명
-             , F_CMZ_CD_NM('TNT_WELLS', 'SV_PD_TP_CD', T13.SV_PD_TP_CD) AS SV_PD_TP_NM  -- 용도구분
+             , T13.SV_PD_TP_CD  -- 용도구분
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_PD_TP_CD', T13.SV_PD_TP_CD) AS SV_PD_TP_NM  -- 용도구분명
              , M.SV_PRD --서비스주기
              , M.FRISU_YN --무상여부
              , M.STPL_PTRM --약정기간
-             , M.HCR_DV_CD --구분1(홈케어구분코드)
-             , M.HCR_DV_CD AS DV --상품구분2 구분1과 동일한 값이 들어감
-             --, B.LCPRT2 --상품구분2 구분1과 동일한 값이 들어감
              , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', (SELECT DP_TP_CD
                                                        FROM TB_SSCT_CNTR_STLM_REL T14 --계약결제관계
                                                       WHERE T14.DTL_CNTR_NO = M.CNTR_NO
                                                         AND T14.DTL_CNTR_SN = M.CNTR_SN
                                                       ORDER BY CNTR_STLM_REL_ID DESC FETCH FIRST 1 ROWS ONLY)) AS DP_TP_NM  --이체구분
-             , (SELECT DP_TP_CD
-                  FROM TB_SSCT_CNTR_STLM_REL T14 --계약결제관계
+             , (SELECT DP_TP_CD FROM TB_SSCT_CNTR_STLM_REL T14 --계약결제관계
                  WHERE T14.DTL_CNTR_NO = M.CNTR_NO
                    AND T14.DTL_CNTR_SN = M.CNTR_SN
                  ORDER BY CNTR_STLM_REL_ID DESC FETCH FIRST 1 ROWS ONLY) AS DP_TP_CD --이체구분코드
@@ -35,7 +32,8 @@
              , M.CNTR_PD_STRTDT --계약상품시작일자
              , M.IST_DT --설치일자
              , M.SELL_AMT --판매금액
-             , F_CMZ_CD_NM('TNT_WELLS', 'STLM_TP_CD', M.STLM_TP_CD) AS STLM_TP_NM --결제유형코드
+             , M.STLM_TP_CD --결제유형코드
+             , F_CMZ_CD_NM('TNT_WELLS', 'STLM_TP_CD', M.STLM_TP_CD) AS STLM_TP_NM --결제유형코드명
              , M.DSC_AMT --할인금액
              , M.CTT_RS_CD --컨택결과코드
              , F_CMZ_CD_NM('TNT_WELLS', 'LC_CTT_RS_CD', M.CTT_RS_CD) AS CTT_RS_NM --컨택결과코드명
@@ -44,14 +42,14 @@
                   FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
                  WHERE 1 = 1
                    AND PRTNR_NO = M.CTT_PSIC_ID
-                   AND ROWNUM <![CDATA[<=]]> 1) AS CTT_PSIC_NM    --컨택담당자
+                   AND ROWNUM = 1) AS CTT_PSIC_NM    --컨택담당자
              , M.FST_RGST_DTM --최초등록일시
              , M.FST_RGST_USR_ID --최초등록사용자ID
              , (SELECT PRTNR_KNM
                   FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
                  WHERE 1 = 1
                    AND PRTNR_NO = M.FST_RGST_USR_ID
-                   AND ROWNUM <![CDATA[<=]]> 1) AS FST_RGST_USR_NM       --등록자
+                   AND ROWNUM = 1) AS FST_RGST_USR_NM       --등록자
              , M.FST_RGST_PRG_ID --최초등록프로그램ID
              , M.FNL_MDFC_DTM --최종수정일자
              , M.FNL_MDFC_USR_ID --최종수정사용자ID
@@ -59,12 +57,10 @@
                   FROM TB_OGBS_PRTNR_BAS /*파트너기본*/
                  WHERE 1 = 1
                    AND PRTNR_NO = M.FNL_MDFC_USR_ID
-                   AND ROWNUM <![CDATA[<=]]> 1) AS FNL_MDFC_USR_NM   --수정자
+                   AND ROWNUM = 1) AS FNL_MDFC_USR_NM   --수정자
              , M.FNL_MDFC_PRG_ID --최종수정프로그램ID
              , M.CNTR_PD_ENDDT --계약상품종료일자
              , M.CNTR_CNFM_DTM --계약확정일시
-             --,M.CNTR_PD_STRTDT --계약상품시작일자
-             --, KA11.KAETC2
           FROM (SELECT A.CNTR_NO
                      , A.CNTR_SN
                      , T.CST_KNM
@@ -78,7 +74,7 @@
                      , S.HCR_DV_CD  --홈케어구분코드
                      , B.CNTR_CST_NO  --계약고객번호
                      , B.CNTR_RCP_FSH_DTM --계약접수완료일자
-                     , A.CNTR_PD_STRTDT --계약상품시작일자
+                     , D.CNTR_PD_STRTDT --계약상품시작일자
                      , S.IST_DT  --설치일자
                      , A.SELL_AMT --판매금액
                      , A.STLM_TP_CD --결제유형코드
@@ -95,18 +91,18 @@
                      , B.CNTR_CNFM_DTM --계약확정일시
                      , A.SELL_TP_DTL_CD  --판매유형상세코드
                   FROM TB_SSCT_CNTR_DTL A                /*계약상세 - 멤버십*/
-                 INNER JOIN TB_SSCT_CNTR_BAS B           /*계약기본 - 멤버십*/
+                 INNER JOIN TB_SSCT_CNTR_BAS B                /*계약기본 - 멤버십*/
                     ON A.CNTR_NO = B.CNTR_NO
                    AND B.CNTR_CNFM_DTM IS NULL        --멤버십 확정일시 미존재
-                   AND B.CNTR_CAN_DTM IS NULL         --멤버십 취소일시 미존재
-                  LEFT OUTER JOIN TB_CUBS_CST_BAS  T  --고객기본
+                   AND B.CNTR_CAN_DTM IS NULL        --멤버십 취소일시 미존재
+                  LEFT OUTER JOIN TB_CUBS_CST_BAS  T --고객기본
                     ON B.CNTR_CST_NO = T.CST_NO
                    AND T.NUSD_RSON_CD IS NULL
                    AND T.DTA_DL_YN = 'N'
-                 INNER JOIN TB_SSCT_CNTR_REL C           /*계약관계*/
+                 INNER JOIN TB_SSCT_CNTR_REL C                /*계약관계*/
                     ON C.BASE_DTL_CNTR_NO = A.CNTR_NO
                    AND C.BASE_DTL_CNTR_SN = A.CNTR_SN
-                 INNER JOIN TB_SSCT_CNTR_DTL D           /*계약상세 - 렌탈/리스*/
+                 INNER JOIN TB_SSCT_CNTR_DTL D                /*계약상세 - 렌탈/리스*/
                     ON D.CNTR_NO = C.OJ_DTL_CNTR_NO
                    AND D.CNTR_SN = C.OJ_DTL_CNTR_SN
                  INNER JOIN TB_SSCT_CNTR_BAS E                /*계약기본 - 렌탈/리스*/
@@ -119,10 +115,10 @@
                     ON G.CNTR_NO = F.CNTR_NO
                    AND G.CNTR_SN = F.CNTR_SN
                    AND G.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
-                -----------------------------------------------------------------------
-                -- 41. 웰스팜 맴버십 주문 중 전월 미수금 있는 건 조회
-                -- 특이사항 : 웰스팜 기기건만 대상
-                -----------------------------------------------------------------------
+        -----------------------------------------------------------------------
+        -- 41. 웰스팜 맴버십 주문 중 전월 미수금 있는 건 조회
+        -- 특이사항 : 웰스팜 기기건만 대상
+        -----------------------------------------------------------------------
                   LEFT OUTER JOIN (SELECT B.CNTR_NO
                                      FROM TB_SSCT_CNTR_BAS A/*계약기본*/
                                         , TB_PDBS_PD_BAS E/*상품기본*/
@@ -132,7 +128,7 @@
                                        ON C.CNTR_NO = B.CNTR_NO
                                       AND C.CNTR_SN = B.CNTR_SN
                                       AND C.CPS_DT IS NOT NULL /*취소 X*/
-                                  --모종계약 찾기
+                                    --모종계약 찾기
                                     INNER JOIN TB_SSCT_CNTR_REL E/*계약관계 - 216 : 모종결함*/
                                        ON E.OJ_DTL_CNTR_NO = B.CNTR_NO
                                       AND E.OJ_DTL_CNTR_SN = B.CNTR_SN
@@ -143,19 +139,19 @@
                                                            AND CNTR_SN = E.BASE_DTL_CNTR_SN
                                                          ORDER BY SL_CL_YM DESC
                                                          FETCH FIRST 1 ROW ONLY) D
-                                       ON 1 = 1
-                 WHERE 1 = 1
-                   AND A.CNTR_NO = B.CNTR_NO
-                   AND SUBSTR(A.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')/*전월부터 이전 접수건*/
-                   AND B.BASE_PD_CD = E.PD_CD
-                   AND E.PD_CLSF_ID = F.PD_CLSF_ID
-                   AND F.REF_PD_CLSF_VAL LIKE '05001003%'/*웰스팜 기기만*/
-                   AND B.SELL_TP_CD = '3'
-                   AND A.CNTR_CNFM_DTM IS NULL /*계약확정일시 X*/
-                   AND A.CNTR_CAN_DTM  IS NULL/*탈퇴 X*/
-                   AND D.EOT_UC_AMT > 0/*미수금 존재건(오류)*/
-                   AND (D.CNTR_PTRM = '999' OR D.RENTAL_TN > B.CNTR_PTRM + 2)/*모종매출차월이 모종렌탈기간보다 크거나 같은 건(모종은 후불이며 2번에 나누어서 받기 때문에 매출금액 발생 후 2개월 동안 받는다.)*/
-                ) Z
+                                       ON 1=1
+                                    WHERE 1=1
+                                      AND A.CNTR_NO = B.CNTR_NO
+                                      AND SUBSTR(A.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')/*전월부터 이전 접수건*/
+                                      AND B.BASE_PD_CD = E.PD_CD
+                                      AND E.PD_CLSF_ID = F.PD_CLSF_ID
+                                      AND F.REF_PD_CLSF_VAL LIKE '05001003%'/*웰스팜 기기만*/
+                                      AND B.SELL_TP_CD = '3'
+                                      AND A.CNTR_CNFM_DTM IS NULL /*계약확정일시 X*/
+                                      AND A.CNTR_CAN_DTM  IS NULL/*탈퇴 X*/
+                                      AND D.EOT_UC_AMT > 0/*미수금 존재건(오류)*/
+                                      AND (D.CNTR_PTRM = '999' OR D.RENTAL_TN > B.CNTR_PTRM + 2)/*모종매출차월이 모종렌탈기간보다 크거나 같은 건(모종은 후불이며 2번에 나누어서 받기 때문에 매출금액 발생 후 2개월 동안 받는다.)*/
+                                    ) Z
                     ON A.CNTR_NO = Z.CNTR_NO
                      , TB_SSCT_CNTR_WELLS_DTL S /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
                  WHERE 1 = 1
@@ -166,271 +162,14 @@
                    AND A.CNTR_PD_ENDDT = '99991231'    --멤버십 탈퇴일자 미존재
                    AND A.CNTR_PD_STRTDT IS NULL        --멤버십 가입일자 미존재
                    AND ((D.SELL_TP_DTL_CD IN ('21', '23') AND F.RENTAL_TN >= D.CNTR_PTRM) --사용차월, 렌탈차월 비교
-                     OR (D.SELL_TP_DTL_CD NOT IN ('21', '23') AND F.RENTAL_TN >= D.CNTR_PTRM
+                    OR (D.SELL_TP_DTL_CD NOT IN ('21', '23') AND F.RENTAL_TN >= D.CNTR_PTRM
                    AND TO_CHAR(ADD_MONTHS(D.CNTR_PD_STRTDT, D.CNTR_PTRM), 'YYYYMMDD') <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMMDD')))
                    AND NVL(G.DLQ_MCN, 0) <![CDATA[<]]> 2 --연체건수 2개월 미만
                    AND S.CNTR_NO   = A.CNTR_NO
                    AND S.CNTR_SN   = A.CNTR_SN
                    AND S.REQD_DT   IS NULL   --철거일자
                    AND Z.CNTR_NO IS NULL
-               /*조회조건 시작*/
-                   AND SUBSTR(B.CNTR_RCP_FSH_DTM,1,6) BETWEEN #{fromCntrRcpFshDtm} AND #{toCntrRcpFshDtm} --계약접수완료일자
-               <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
-                   AND A.CNTR_NO = #{cntrNo}
-                   AND A.CNTR_SN = #{cntrSn}
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
-                   AND A.SELL_TP_CD = #{sellTpCd}
-               </if>
-               /*화면 조직선택 - 영업부인 경우*/
-               <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'2')">
-                   AND B.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
-               </if>
-               /*화면 조직선택 - 영업부인 경우*/
-               /*화면 조직선택 - 고객센터인 경우*/
-               <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'1')">
-                   AND B.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
-               </if>
-               /*화면 조직선택 - 영업부인 경우*/
-               /*조회조건 종료*/
-                ---------------------------------------------------
-                -- 2.만료고객 멤버십 확정 대상 조회(2020.02.19 추가)
-                ---------------------------------------------------
-                 UNION ALL
-                SELECT A.CNTR_NO
-                     , A.CNTR_SN
-                     , T.CST_KNM
-                     , A.SELL_TP_CD --판매유형
-                     , A.CNTRW_TP_CD  --계약서유형코드
-                     , B.SELL_OG_TP_CD --판매자조직유형코드
-                     , A.BASE_PD_CD --기준상품코드
-                     , A.SV_PRD --서비스주기
-                     , A.FRISU_YN --무상여부
-                     , A.STPL_PTRM  --약정기간
-                     , S.HCR_DV_CD  --홈케어구분코드
-                     , B.CNTR_CST_NO  --계약고객번호
-                     , B.CNTR_RCP_FSH_DTM --계약접수완료일자
-                     , A.CNTR_PD_STRTDT --계약상품시작일자
-                     , S.IST_DT  --설치일자
-                     , A.SELL_AMT --판매금액
-                     , A.STLM_TP_CD --결제유형코드
-                     , A.DSC_AMT --할인금액
-                     , A.CTT_RS_CD --컨택결과코드
-                     , A.CTT_PSIC_ID --컨택담당자ID
-                     , B.FST_RGST_DTM --최초등록일시
-                     , B.FST_RGST_USR_ID --최초등록사용자ID
-                     , B.FST_RGST_PRG_ID --최초등록프로그램ID
-                     , B.FNL_MDFC_DTM --최종수정일자
-                     , B.FNL_MDFC_USR_ID --최종수정사용자ID
-                     , B.FNL_MDFC_PRG_ID --최종수정프로그램ID
-                     , A.CNTR_PD_ENDDT --계약상품종료일자
-                     , B.CNTR_CNFM_DTM --계약확정일시
-                     , A.SELL_TP_DTL_CD  --판매유형상세코드
-                  FROM TB_SSCT_CNTR_DTL A                /*계약상세 - 멤버십*/
-                -----------------------------------------------------------------------
-                -- 41. 웰스팜 맴버십 주문 중 전월 미수금 있는 건 조회
-                -- 특이사항 : 웰스팜 기기건만 대상
-                -----------------------------------------------------------------------
-                  LEFT OUTER JOIN (SELECT B.CNTR_NO
-                                     FROM TB_SSCT_CNTR_BAS A/*계약기본*/
-                                        , TB_PDBS_PD_BAS E/*상품기본*/
-                                        , TB_PDBS_PD_CLSF_BAS F/*상품분류기본*/
-                                        , TB_SSCT_CNTR_DTL B/*계약상세*/
-                                    INNER JOIN TB_SSCT_CNTR_WELLS_DTL C /*계약WELLS상세 [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
-                                       ON C.CNTR_NO = B.CNTR_NO
-                                      AND C.CNTR_SN = B.CNTR_SN
-                                      AND C.CPS_DT IS NOT NULL /*취소 X*/
-                                  --모종계약 찾기
-                                    INNER JOIN TB_SSCT_CNTR_REL E/*계약관계 - 216 : 모종결함*/
-                                       ON E.OJ_DTL_CNTR_NO = B.CNTR_NO
-                                      AND E.OJ_DTL_CNTR_SN = B.CNTR_SN
-                                      AND E.CNTR_REL_DTL_CD = '216'
-                                    INNER JOIN LATERAL (SELECT *
-                                                          FROM TB_CBCL_WELLS_SL_MM_CL_IZ/*WELLS매출월마감내역*/
-                                                         WHERE CNTR_NO = E.BASE_DTL_CNTR_NO
-                                                           AND CNTR_SN = E.BASE_DTL_CNTR_SN
-                                                         ORDER BY SL_CL_YM DESC
-                                                         FETCH FIRST 1 ROW ONLY) D
-                                       ON 1=1
-                                    WHERE 1=1
-                                      AND A.CNTR_NO = B.CNTR_NO
-                                      AND SUBSTR(A.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')/*전월부터 이전 접수건*/
-                                      AND B.BASE_PD_CD = E.PD_CD
-                                      AND E.PD_CLSF_ID = F.PD_CLSF_ID
-                                      AND F.REF_PD_CLSF_VAL LIKE '05001003%'/*웰스팜 기기만*/
-                                      AND B.SELL_TP_CD = '3'
-                                      AND A.CNTR_CNFM_DTM IS NULL /*계약확정일시 X*/
-                                      AND A.CNTR_CAN_DTM  IS NULL/*탈퇴 X*/
-                                      AND D.EOT_UC_AMT > 0/*미수금 존재건(오류)*/
-                                      AND (D.CNTR_PTRM = '999' OR D.RENTAL_TN > B.CNTR_PTRM + 2)/*모종매출차월이 모종렌탈기간보다 크거나 같은 건(모종은 후불이며 2번에 나누어서 받기 때문에 매출금액 발생 후 2개월 동안 받는다.)*/
-                                    ) Z
-                    ON A.CNTR_NO = Z.CNTR_NO
-                     , TB_SSCT_CNTR_BAS B                /*계약기본 - 멤버십*/
-                  LEFT OUTER JOIN TB_CUBS_CST_BAS  T --고객기본
-                    ON B.CNTR_CST_NO = T.CST_NO
-                   AND T.NUSD_RSON_CD IS NULL
-                   AND T.DTA_DL_YN = 'N'
-                     , TB_SSCT_CNTR_REL C                /*계약관계*/
-                     , TB_SSCT_CNTR_DTL D                /*계약상세 - 렌탈/리스*/
-                     , TB_SSCT_CNTR_BAS E                /*계약기본 - 렌탈/리스*/
-                  LEFT OUTER JOIN LATERAL (SELECT * FROM TB_CBCL_WELLS_SL_MM_CL_IZ   /*WELLS매출월마감내역*/
-                 WHERE CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND CNTR_SN = C.OJ_DTL_CNTR_SN
-                 ORDER BY SL_CL_YM DESC
-                 FETCH FIRST 1 ROWS ONLY) F ON 1=1
-                LEFT OUTER JOIN LATERAL (SELECT * FROM TB_CBCL_WELLS_SL_MM_CL_IZ   /*WELLS매출월마감내역*/
-                 WHERE CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND CNTR_SN = C.OJ_DTL_CNTR_SN
-                   AND SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')) H ON 1=1
-                  LEFT OUTER JOIN TB_CBCL_DLQ_BAS G    /*연체기본*/
-                    ON G.CNTR_NO = F.CNTR_NO
-                   AND G.CNTR_SN = F.CNTR_SN
-                   AND G.PERF_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                     , TB_SSCT_CNTR_WELLS_DTL S /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                 WHERE 1 = 1
-                   AND A.CNTR_NO = B.CNTR_NO
-                   AND C.BASE_DTL_CNTR_NO = A.CNTR_NO
-                   AND C.BASE_DTL_CNTR_SN = A.CNTR_SN
-                   AND D.CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND D.CNTR_SN = C.OJ_DTL_CNTR_SN
-                   AND E.CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND A.SELL_TP_DTL_CD <![CDATA[<>]]> '33'         --홈케어 맴버십 제외
-                   AND A.SELL_TP_CD = '3'   --멤버십
-                   AND D.SELL_TP_CD = '2'   --렌탈
-                   AND NOT (D.CNTR_PD_ENDDT != '99991231' AND D.CNTR_DTL_STAT_CD = '301')    --렌탈취소 X
-                   AND B.CNTR_CNFM_DTM IS NULL        --멤버십 확정일시 미존재
-                   AND A.CNTR_PD_ENDDT = '99991231'    --멤버십 탈퇴일자 미존재
-                   AND B.CNTR_CAN_DTM IS NULL        --멤버십 취소일시 미존재
-                   AND A.CNTR_PD_STRTDT IS NULL        --멤버십 가입일자 미존재
-                 --  AND SUBSTR(D.CNTR_PD_ENDDT, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')  --삭제
-                   AND (D.SELL_TP_DTL_CD IN ('21', '23') AND F.RENTAL_TN >= D.CNTR_PTRM)    --사용차월, 렌탈차월 비교
-                   AND NVL(G.DLQ_MCN, 0) = 0        --연체건수가 없는건
-                   AND H.CNTR_NO IS NULL     --전월매출이 없는 건(전월매출이 있는 건은 1번 쿼리에서 조회되기 때문이다.)
-                   AND S.CNTR_NO   = A.CNTR_NO
-                   AND S.CNTR_SN   = A.CNTR_SN
-                   AND S.REQD_DT   IS NULL   --철거일자
-                   AND Z.CNTR_NO IS NULL
                    /*조회조건 시작*/
-                       AND SUBSTR(B.CNTR_RCP_FSH_DTM,1,6) BETWEEN #{fromCntrRcpFshDtm} AND #{toCntrRcpFshDtm} --계약접수완료일자
-                   <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
-                       AND A.CNTR_NO = #{cntrNo}
-                       AND A.CNTR_SN = #{cntrSn}
-                   </if>
-                   <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
-                       AND A.SELL_TP_CD = #{sellTpCd}
-                   </if>
-                   /*화면 조직선택 - 영업부인 경우*/
-                   <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'2')">
-                       AND B.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
-                   </if>
-                   /*화면 조직선택 - 영업부인 경우*/
-                   /*화면 조직선택 - 고객센터인 경우*/
-                   <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'1')">
-                       AND B.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
-                   </if>
-                   /*화면 조직선택 - 영업부인 경우*/
-                   /*조회조건 종료*/
-                ---------------------------------------------------
-                -- 2022.11.25 조상희 수정 : 3. 5. 번 쿼리 병합
-                -- 3. 일반일시불(국고보조금,웰스팜 등) + 즉시멤버십유상 가입건
-                ---------------------------------------------------
-                 UNION ALL
-                SELECT A.CNTR_NO
-                     , A.CNTR_SN
-                     , T.CST_KNM
-                     , A.SELL_TP_CD --판매유형
-                     , A.CNTRW_TP_CD  --계약서유형코드
-                     , B.SELL_OG_TP_CD --판매자조직유형코드
-                     , A.BASE_PD_CD --기준상품코드
-                     , A.SV_PRD --서비스주기
-                     , A.FRISU_YN --무상여부
-                     , A.STPL_PTRM  --약정기간
-                     , S.HCR_DV_CD  --홈케어구분코드
-                     , B.CNTR_CST_NO  --계약고객번호
-                     , B.CNTR_RCP_FSH_DTM --계약접수완료일자
-                     , A.CNTR_PD_STRTDT --계약상품시작일자
-                     , S.IST_DT  --설치일자
-                     , A.SELL_AMT --판매금액
-                     , A.STLM_TP_CD --결제유형코드
-                     , A.DSC_AMT --할인금액
-                     , A.CTT_RS_CD --컨택결과코드
-                     , A.CTT_PSIC_ID --컨택담당자ID
-                     , B.FST_RGST_DTM --최초등록일시
-                     , B.FST_RGST_USR_ID --최초등록사용자ID
-                     , B.FST_RGST_PRG_ID --최초등록프로그램ID
-                     , B.FNL_MDFC_DTM --최종수정일자
-                     , B.FNL_MDFC_USR_ID --최종수정사용자ID
-                     , B.FNL_MDFC_PRG_ID --최종수정프로그램ID
-                     , A.CNTR_PD_ENDDT --계약상품종료일자
-                     , B.CNTR_CNFM_DTM --계약확정일시
-                     , A.SELL_TP_DTL_CD  --판매유형상세코드
-                  FROM TB_SSCT_CNTR_DTL A                /*계약상세 - 멤버십*/
-                -----------------------------------------------------------------------
-                -- 41. 웰스팜 맴버십 주문 중 전월 미수금 있는 건 조회
-                -- 특이사항 : 웰스팜 기기건만 대상
-                -----------------------------------------------------------------------
-                  LEFT OUTER JOIN (SELECT B.CNTR_NO
-                                     FROM TB_SSCT_CNTR_BAS A/*계약기본*/
-                                        , TB_PDBS_PD_BAS E/*상품기본*/
-                                        , TB_PDBS_PD_CLSF_BAS F/*상품분류기본*/
-                                        , TB_SSCT_CNTR_DTL B/*계약상세*/
-                                    INNER JOIN TB_SSCT_CNTR_WELLS_DTL C /*계약WELLS상세 [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
-                                       ON C.CNTR_NO = B.CNTR_NO
-                                      AND C.CNTR_SN = B.CNTR_SN
-                                      AND C.CPS_DT IS NOT NULL /*취소 X*/
-                              --모종계약 찾기
-                                    INNER JOIN TB_SSCT_CNTR_REL E/*계약관계 - 216 : 모종결함*/
-                                       ON E.OJ_DTL_CNTR_NO = B.CNTR_NO
-                                      AND E.OJ_DTL_CNTR_SN = B.CNTR_SN
-                                      AND E.CNTR_REL_DTL_CD = '216'
-                                    INNER JOIN LATERAL (SELECT *
-                                                          FROM TB_CBCL_WELLS_SL_MM_CL_IZ/*WELLS매출월마감내역*/
-                                                         WHERE CNTR_NO = E.BASE_DTL_CNTR_NO
-                                                           AND CNTR_SN = E.BASE_DTL_CNTR_SN
-                                                         ORDER BY SL_CL_YM DESC
-                                                         FETCH FIRST 1 ROW ONLY) D
-                                       ON 1=1
-                                    WHERE 1=1
-                                      AND A.CNTR_NO = B.CNTR_NO
-                                      AND SUBSTR(A.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')/*전월부터 이전 접수건*/
-                                      AND B.BASE_PD_CD = E.PD_CD
-                                      AND E.PD_CLSF_ID = F.PD_CLSF_ID
-                                      AND F.REF_PD_CLSF_VAL LIKE '05001003%'/*웰스팜 기기만*/
-                                      AND B.SELL_TP_CD = '3'
-                                      AND A.CNTR_CNFM_DTM IS NULL /*계약확정일시 X*/
-                                      AND A.CNTR_CAN_DTM  IS NULL/*탈퇴 X*/
-                                      AND D.EOT_UC_AMT > 0/*미수금 존재건(오류)*/
-                                      AND (D.CNTR_PTRM = '999' OR D.RENTAL_TN > B.CNTR_PTRM + 2)/*모종매출차월이 모종렌탈기간보다 크거나 같은 건(모종은 후불이며 2번에 나누어서 받기 때문에 매출금액 발생 후 2개월 동안 받는다.)*/
-                                    ) Z
-                    ON A.CNTR_NO = Z.CNTR_NO
-                     , TB_SSCT_CNTR_BAS B                /*계약기본 - 멤버십*/
-                  LEFT OUTER JOIN TB_CUBS_CST_BAS  T --고객기본
-                    ON B.CNTR_CST_NO = T.CST_NO
-                   AND T.NUSD_RSON_CD IS NULL
-                   AND T.DTA_DL_YN = 'N'
-                     , TB_SSCT_CNTR_REL C                /*계약관계*/
-                     , TB_SSCT_CNTR_DTL D                /*계약상세 - 렌탈/리스*/
-                     , TB_SSCT_CNTR_BAS E                /*계약기본 - 렌탈/리스*/
-                     , TB_SSCT_CNTR_WELLS_DTL S /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                 WHERE 1 = 1
-                   AND A.CNTR_NO = B.CNTR_NO
-                   AND C.BASE_DTL_CNTR_NO = A.CNTR_NO
-                   AND C.BASE_DTL_CNTR_SN = A.CNTR_SN
-                   AND D.CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND D.CNTR_SN = C.OJ_DTL_CNTR_SN
-                   AND E.CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND A.SELL_TP_DTL_CD <![CDATA[<>]]> '33'         --홈케어 맴버십 제외
-                   AND A.SELL_TP_CD = '3'   --멤버십
-                   AND D.SELL_TP_CD = '1'   --일시불
-                   AND D.CNTR_PD_STRTDT IS NOT NULL --일시불 매출일자 존재
-                   AND B.CNTR_CNFM_DTM IS NULL        --멤버십 확정일시 미존재
-                   AND A.CNTR_PD_ENDDT = '99991231'    --멤버십 탈퇴일자 미존재
-                   AND B.CNTR_CAN_DTM IS NULL        --멤버십 취소일시 미존재
-                   AND A.CNTR_PD_STRTDT IS NOT NULL        --매출일자(설치일자)존재
-                   AND S.CNTR_NO   = A.CNTR_NO
-                   AND S.CNTR_SN   = A.CNTR_SN
-                   AND Z.CNTR_NO IS NULL
-               /*조회조건 시작*/
                    AND SUBSTR(B.CNTR_RCP_FSH_DTM,1,6) BETWEEN #{fromCntrRcpFshDtm} AND #{toCntrRcpFshDtm} --계약접수완료일자
                <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
                    AND A.CNTR_NO = #{cntrNo}
@@ -448,140 +187,403 @@
                <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'1')">
                    AND B.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
                </if>
-               /*화면 조직선택 - 영업부인 경우*/
-               /*조회조건 종료*/
-                ---------------------------------------------------
-                -- 4.회사설치 건 확정대상 조회 조건 추가
-                ---------------------------------------------------
-                 UNION ALL
-                SELECT A.CNTR_NO
-                     , A.CNTR_SN
-                     , T.CST_KNM
-                     , A.SELL_TP_CD --판매유형
-                     , A.CNTRW_TP_CD  --계약서유형코드
-                     , B.SELL_OG_TP_CD --판매자조직유형코드
-                     , A.BASE_PD_CD --기준상품코드
-                     , A.SV_PRD --서비스주기
-                     , A.FRISU_YN --무상여부
-                     , A.STPL_PTRM  --약정기간
-                     , S.HCR_DV_CD  --홈케어구분코드
-                     , B.CNTR_CST_NO  --계약고객번호
-                     , B.CNTR_RCP_FSH_DTM --계약접수완료일자
-                     , A.CNTR_PD_STRTDT --계약상품시작일자
-                     , S.IST_DT  --설치일자
-                     , A.SELL_AMT --판매금액
-                     , A.STLM_TP_CD --결제유형코드
-                     , A.DSC_AMT --할인금액
-                     , A.CTT_RS_CD --컨택결과코드
-                     , A.CTT_PSIC_ID --컨택담당자ID
-                     , B.FST_RGST_DTM --최초등록일시
-                     , B.FST_RGST_USR_ID --최초등록사용자ID
-                     , B.FST_RGST_PRG_ID --최초등록프로그램ID
-                     , B.FNL_MDFC_DTM --최종수정일자
-                     , B.FNL_MDFC_USR_ID --최종수정사용자ID
-                     , B.FNL_MDFC_PRG_ID --최종수정프로그램ID
-                     , A.CNTR_PD_ENDDT --계약상품종료일자
-                     , B.CNTR_CNFM_DTM --계약확정일시
-                     , A.SELL_TP_DTL_CD  --판매유형상세코드
-                  FROM TB_SSCT_CNTR_DTL A                /*계약상세 - 멤버십*/
-                -----------------------------------------------------------------------
-                -- 41. 웰스팜 맴버십 주문 중 전월 미수금 있는 건 조회
-                -- 특이사항 : 웰스팜 기기건만 대상
-                -----------------------------------------------------------------------
-                  LEFT OUTER JOIN (SELECT B.CNTR_NO
-                                     FROM TB_SSCT_CNTR_BAS A/*계약기본*/
-                                        , TB_PDBS_PD_BAS E/*상품기본*/
-                                        , TB_PDBS_PD_CLSF_BAS F/*상품분류기본*/
-                                        , TB_SSCT_CNTR_DTL B/*계약상세*/
-                                    INNER JOIN TB_SSCT_CNTR_WELLS_DTL C /*계약WELLS상세 [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
-                                       ON C.CNTR_NO = B.CNTR_NO
-                                      AND C.CNTR_SN = B.CNTR_SN
-                                      AND C.CPS_DT IS NOT NULL /*취소 X*/
-                                  --모종계약 찾기
-                                    INNER JOIN TB_SSCT_CNTR_REL E/*계약관계 - 216 : 모종결함*/
-                                       ON E.OJ_DTL_CNTR_NO = B.CNTR_NO
-                                      AND E.OJ_DTL_CNTR_SN = B.CNTR_SN
-                                      AND E.CNTR_REL_DTL_CD = '216'
-                                    INNER JOIN LATERAL (SELECT *
-                                                          FROM TB_CBCL_WELLS_SL_MM_CL_IZ/*WELLS매출월마감내역*/
-                                                         WHERE CNTR_NO = E.BASE_DTL_CNTR_NO
-                                                           AND CNTR_SN = E.BASE_DTL_CNTR_SN
-                                                         ORDER BY SL_CL_YM DESC
-                                                         FETCH FIRST 1 ROW ONLY) D
-                                       ON 1=1
-                                    WHERE 1=1
-                                      AND A.CNTR_NO = B.CNTR_NO
-                                      AND SUBSTR(A.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')/*전월부터 이전 접수건*/
-                                      AND B.BASE_PD_CD = E.PD_CD
-                                      AND E.PD_CLSF_ID = F.PD_CLSF_ID
-                                      AND F.REF_PD_CLSF_VAL LIKE '05001003%'/*웰스팜 기기만*/
-                                      AND B.SELL_TP_CD = '3'
-                                      AND A.CNTR_CNFM_DTM IS NULL /*계약확정일시 X*/
-                                      AND A.CNTR_CAN_DTM  IS NULL/*탈퇴 X*/
-                                      AND D.EOT_UC_AMT > 0/*미수금 존재건(오류)*/
-                                      AND (D.CNTR_PTRM = '999' OR D.RENTAL_TN > B.CNTR_PTRM + 2)/*모종매출차월이 모종렌탈기간보다 크거나 같은 건(모종은 후불이며 2번에 나누어서 받기 때문에 매출금액 발생 후 2개월 동안 받는다.)*/
-                                    ) Z
-                    ON A.CNTR_NO = Z.CNTR_NO
-                     , TB_SSCT_CNTR_BAS B                /*계약기본 - 멤버십*/
-                  LEFT OUTER JOIN TB_CUBS_CST_BAS  T --고객기본
-                    ON B.CNTR_CST_NO = T.CST_NO
-                   AND T.NUSD_RSON_CD IS NULL
-                   AND T.DTA_DL_YN = 'N'
-                     , TB_SSCT_CNTR_REL C                /*계약관계*/
-                     , TB_SSCT_CNTR_DTL D                /*계약상세 - 렌탈/리스*/
-                     , TB_SSCT_CNTR_BAS E                /*계약기본 - 렌탈/리스*/
-                  LEFT OUTER JOIN LATERAL (SELECT * FROM TB_CBCL_WELLS_SL_MM_CL_IZ     /*WELLS매출월마감내역*/
-                 WHERE CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND CNTR_SN = C.OJ_DTL_CNTR_SN
-                 ORDER BY SL_CL_YM DESC
-                 FETCH FIRST 1 ROWS ONLY) F ON 1=1
-                  LEFT OUTER JOIN TB_CBCL_DLQ_BAS G    /*연체기본*/
-                    ON G.CNTR_NO = F.CNTR_NO
-                   AND G.CNTR_SN = F.CNTR_SN
-                   AND G.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
-                     , TB_SSCT_CNTR_WELLS_DTL S /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
-                 WHERE 1 = 1
-                   AND A.CNTR_NO = B.CNTR_NO
-                   AND C.BASE_DTL_CNTR_NO = A.CNTR_NO
-                   AND C.BASE_DTL_CNTR_SN = A.CNTR_SN
-                   AND D.CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND D.CNTR_SN = C.OJ_DTL_CNTR_SN
-                   AND D.CNTR_PD_STRTDT IS NOT NULL  --회사설치 매출일자 존재
-                   AND E.CNTR_NO = C.OJ_DTL_CNTR_NO
-                   AND A.SELL_TP_DTL_CD = '34'         --회사설치건
-                   AND A.SELL_TP_CD = '3'  --멤버십
-                   AND D.SELL_TP_CD = '4'  --회사설치
-                   AND B.CNTR_CNFM_DTM IS NULL        --멤버십 확정일시 미존재
-                   AND A.CNTR_PD_ENDDT = '99991231'    --멤버십 탈퇴일자 미존재
-                   AND B.CNTR_CAN_DTM IS NULL        --멤버십 취소일시 미존재
-                   AND A.CNTR_PD_STRTDT IS NULL        --멤버십 가입일자 미존재
-                   AND S.CNTR_NO   = A.CNTR_NO
-                   AND S.CNTR_SN   = A.CNTR_SN
-                   AND S.REQD_DT   IS NULL   --철거일자 미존재
-                   AND S.CPS_DT IS NULL   --보상일자 미존재
-                   AND S.CO_IST_DV_CD IS NOT NULL  --회사설치 구분코드가 있는건
-                   AND Z.CNTR_NO IS NULL
-               /*조회조건 시작*/
-                   AND SUBSTR(B.CNTR_RCP_FSH_DTM,1,6) BETWEEN #{fromCntrRcpFshDtm} AND #{toCntrRcpFshDtm} --계약접수완료일자
-               <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
-                   AND A.CNTR_NO = #{cntrNo}
-                   AND A.CNTR_SN = #{cntrSn}
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
-                   AND A.SELL_TP_CD = #{sellTpCd}
-               </if>
-               /*화면 조직선택 - 영업부인 경우*/
-               <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'2')">
-                   AND B.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
-               </if>
-               /*화면 조직선택 - 영업부인 경우*/
                /*화면 조직선택 - 고객센터인 경우*/
-               <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'1')">
-                   AND B.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
-               </if>
-               /*화면 조직선택 - 영업부인 경우*/
                /*조회조건 종료*/
-          ) M
+        ---------------------------------------------------
+        -- 2.만료고객 멤버십 확정 대상 조회(2020.02.19 추가)
+        ---------------------------------------------------
+         UNION ALL
+        SELECT A.CNTR_NO
+             , A.CNTR_SN
+             , T.CST_KNM
+             , A.SELL_TP_CD --판매유형
+             , A.CNTRW_TP_CD  --계약서유형코드
+             , B.SELL_OG_TP_CD --판매자조직유형코드
+             , A.BASE_PD_CD --기준상품코드
+             , A.SV_PRD --서비스주기
+             , A.FRISU_YN --무상여부
+             , A.STPL_PTRM  --약정기간
+             , S.HCR_DV_CD  --홈케어구분코드
+             , B.CNTR_CST_NO  --계약고객번호
+             , B.CNTR_RCP_FSH_DTM --계약접수완료일자
+             , D.CNTR_PD_STRTDT --계약상품시작일자
+             , S.IST_DT  --설치일자
+             , A.SELL_AMT --판매금액
+             , A.STLM_TP_CD --결제유형코드
+             , A.DSC_AMT --할인금액
+             , A.CTT_RS_CD --컨택결과코드
+             , A.CTT_PSIC_ID --컨택담당자ID
+             , B.FST_RGST_DTM --최초등록일시
+             , B.FST_RGST_USR_ID --최초등록사용자ID
+             , B.FST_RGST_PRG_ID --최초등록프로그램ID
+             , B.FNL_MDFC_DTM --최종수정일자
+             , B.FNL_MDFC_USR_ID --최종수정사용자ID
+             , B.FNL_MDFC_PRG_ID --최종수정프로그램ID
+             , A.CNTR_PD_ENDDT --계약상품종료일자
+             , B.CNTR_CNFM_DTM --계약확정일시
+             , A.SELL_TP_DTL_CD  --판매유형상세코드
+          FROM TB_SSCT_CNTR_DTL A                /*계약상세 - 멤버십*/
+       -----------------------------------------------------------------------
+       -- 41. 웰스팜 맴버십 주문 중 전월 미수금 있는 건 조회
+       -- 특이사항 : 웰스팜 기기건만 대상
+       -----------------------------------------------------------------------
+          LEFT OUTER JOIN (SELECT B.CNTR_NO
+                             FROM TB_SSCT_CNTR_BAS A/*계약기본*/
+                                , TB_PDBS_PD_BAS E/*상품기본*/
+                                , TB_PDBS_PD_CLSF_BAS F/*상품분류기본*/
+                                , TB_SSCT_CNTR_DTL B/*계약상세*/
+                            INNER JOIN TB_SSCT_CNTR_WELLS_DTL C /*계약WELLS상세 [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
+                               ON C.CNTR_NO = B.CNTR_NO
+                              AND C.CNTR_SN = B.CNTR_SN
+                              AND C.CPS_DT IS NOT NULL /*취소 X*/
+                          --모종계약 찾기
+                            INNER JOIN TB_SSCT_CNTR_REL E/*계약관계 - 216 : 모종결함*/
+                               ON E.OJ_DTL_CNTR_NO = B.CNTR_NO
+                              AND E.OJ_DTL_CNTR_SN = B.CNTR_SN
+                              AND E.CNTR_REL_DTL_CD = '216'
+                            INNER JOIN LATERAL (SELECT *
+                                                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ/*WELLS매출월마감내역*/
+                                                 WHERE CNTR_NO = E.BASE_DTL_CNTR_NO
+                                                   AND CNTR_SN = E.BASE_DTL_CNTR_SN
+                                                 ORDER BY SL_CL_YM DESC
+                                                 FETCH FIRST 1 ROW ONLY) D
+                               ON 1=1
+                            WHERE 1=1
+                              AND A.CNTR_NO = B.CNTR_NO
+                              AND SUBSTR(A.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')/*전월부터 이전 접수건*/
+                              AND B.BASE_PD_CD = E.PD_CD
+                              AND E.PD_CLSF_ID = F.PD_CLSF_ID
+                              AND F.REF_PD_CLSF_VAL LIKE '05001003%'/*웰스팜 기기만*/
+                              AND B.SELL_TP_CD = '3'
+                              AND A.CNTR_CNFM_DTM IS NULL /*계약확정일시 X*/
+                              AND A.CNTR_CAN_DTM  IS NULL/*탈퇴 X*/
+                              AND D.EOT_UC_AMT > 0/*미수금 존재건(오류)*/
+                              AND (D.CNTR_PTRM = '999' OR D.RENTAL_TN > B.CNTR_PTRM + 2)/*모종매출차월이 모종렌탈기간보다 크거나 같은 건(모종은 후불이며 2번에 나누어서 받기 때문에 매출금액 발생 후 2개월 동안 받는다.)*/
+                            ) Z
+            ON A.CNTR_NO = Z.CNTR_NO
+             , TB_SSCT_CNTR_BAS B                /*계약기본 - 멤버십*/
+          LEFT OUTER JOIN TB_CUBS_CST_BAS  T --고객기본
+            ON B.CNTR_CST_NO = T.CST_NO
+           AND T.NUSD_RSON_CD IS NULL
+           AND T.DTA_DL_YN = 'N'
+             , TB_SSCT_CNTR_REL C                /*계약관계*/
+             , TB_SSCT_CNTR_DTL D                /*계약상세 - 렌탈/리스*/
+             , TB_SSCT_CNTR_BAS E                /*계약기본 - 렌탈/리스*/
+          LEFT OUTER JOIN LATERAL (SELECT * FROM TB_CBCL_WELLS_SL_MM_CL_IZ   /*WELLS매출월마감내역*/
+                                    WHERE CNTR_NO = C.OJ_DTL_CNTR_NO
+                                      AND CNTR_SN = C.OJ_DTL_CNTR_SN
+                                    ORDER BY SL_CL_YM DESC
+                                    FETCH FIRST 1 ROWS ONLY) F ON 1=1
+          LEFT OUTER JOIN LATERAL (SELECT * FROM TB_CBCL_WELLS_SL_MM_CL_IZ   /*WELLS매출월마감내역*/
+                                    WHERE CNTR_NO = C.OJ_DTL_CNTR_NO
+                                      AND CNTR_SN = C.OJ_DTL_CNTR_SN
+                                      AND SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')) H ON 1=1
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS G    /*연체기본*/
+            ON G.CNTR_NO = F.CNTR_NO
+           AND G.CNTR_SN = F.CNTR_SN
+           AND G.PERF_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+             , TB_SSCT_CNTR_WELLS_DTL S /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+         WHERE 1 = 1
+           AND A.CNTR_NO = B.CNTR_NO
+           AND C.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND C.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_NO = C.OJ_DTL_CNTR_NO
+           AND D.CNTR_SN = C.OJ_DTL_CNTR_SN
+           AND E.CNTR_NO = C.OJ_DTL_CNTR_NO
+           AND A.SELL_TP_DTL_CD <![CDATA[<>]]> '33'         --홈케어 맴버십 제외
+           AND A.SELL_TP_CD = '3'   --멤버십
+           AND D.SELL_TP_CD = '2'   --렌탈
+           AND NOT (D.CNTR_PD_ENDDT != '99991231' AND D.CNTR_DTL_STAT_CD = '301')    --렌탈취소 X
+       --  AND F.CNTR_NO = C.OJ_DTL_CNTR_NO  --삭제
+       --  AND F.CNTR_SN = C.OJ_DTL_CNTR_SN  --삭제
+       --  AND F.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')  --삭제
+       --  AND A.SELL_TP_CD = '2'   --렌탈 --삭제
+           AND B.CNTR_CNFM_DTM IS NULL        --멤버십 확정일시 미존재
+           AND A.CNTR_PD_ENDDT = '99991231'    --멤버십 탈퇴일자 미존재
+           AND B.CNTR_CAN_DTM IS NULL        --멤버십 취소일시 미존재
+           AND A.CNTR_PD_STRTDT IS NULL        --멤버십 가입일자 미존재
+           AND (D.SELL_TP_DTL_CD IN ('21', '23') AND F.RENTAL_TN >= D.CNTR_PTRM)    --사용차월, 렌탈차월 비교
+           AND NVL(G.DLQ_MCN, 0) = 0        --연체건수가 없는건
+           AND H.CNTR_NO IS NULL     --전월매출이 없는 건(전월매출이 있는 건은 1번 쿼리에서 조회되기 때문이다.)
+           AND S.CNTR_NO   = A.CNTR_NO
+           AND S.CNTR_SN   = A.CNTR_SN
+           AND S.REQD_DT   IS NULL   --철거일자
+           AND Z.CNTR_NO IS NULL
+       /*조회조건 시작*/
+           AND SUBSTR(B.CNTR_RCP_FSH_DTM,1,6) BETWEEN #{fromCntrRcpFshDtm} AND #{toCntrRcpFshDtm} --계약접수완료일자
+       <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+           AND A.CNTR_NO = #{cntrNo}
+           AND A.CNTR_SN = #{cntrSn}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
+           AND A.SELL_TP_CD = #{sellTpCd}
+       </if>
+       /*화면 조직선택 - 영업부인 경우*/
+       <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'2')">
+           AND B.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+       </if>
+       /*화면 조직선택 - 영업부인 경우*/
+       /*화면 조직선택 - 고객센터인 경우*/
+       <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'1')">
+           AND B.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+       </if>
+       /*화면 조직선택 - 고객센터인 경우*/
+       /*조회조건 종료*/
+        ---------------------------------------------------
+        -- 3. 일반일시불(국고보조금,웰스팜 등) + 즉시멤버십유상 가입건
+        ---------------------------------------------------
+         UNION ALL
+        SELECT A.CNTR_NO
+             , A.CNTR_SN
+             , T.CST_KNM
+             , A.SELL_TP_CD --판매유형
+             , A.CNTRW_TP_CD  --계약서유형코드
+             , B.SELL_OG_TP_CD --판매자조직유형코드
+             , A.BASE_PD_CD --기준상품코드
+             , A.SV_PRD --서비스주기
+             , A.FRISU_YN --무상여부
+             , A.STPL_PTRM  --약정기간
+             , S.HCR_DV_CD  --홈케어구분코드
+             , B.CNTR_CST_NO  --계약고객번호
+             , B.CNTR_RCP_FSH_DTM --계약접수완료일자
+             , D.CNTR_PD_STRTDT --계약상품시작일자
+             , S.IST_DT  --설치일자
+             , A.SELL_AMT --판매금액
+             , A.STLM_TP_CD --결제유형코드
+             , A.DSC_AMT --할인금액
+             , A.CTT_RS_CD --컨택결과코드
+             , A.CTT_PSIC_ID --컨택담당자ID
+             , B.FST_RGST_DTM --최초등록일시
+             , B.FST_RGST_USR_ID --최초등록사용자ID
+             , B.FST_RGST_PRG_ID --최초등록프로그램ID
+             , B.FNL_MDFC_DTM --최종수정일자
+             , B.FNL_MDFC_USR_ID --최종수정사용자ID
+             , B.FNL_MDFC_PRG_ID --최종수정프로그램ID
+             , A.CNTR_PD_ENDDT --계약상품종료일자
+             , B.CNTR_CNFM_DTM --계약확정일시
+             , A.SELL_TP_DTL_CD  --판매유형상세코드
+          FROM TB_SSCT_CNTR_DTL A                /*계약상세 - 멤버십*/
+        -----------------------------------------------------------------------
+        -- 41. 웰스팜 맴버십 주문 중 전월 미수금 있는 건 조회
+        -- 특이사항 : 웰스팜 기기건만 대상
+        -----------------------------------------------------------------------
+          LEFT OUTER JOIN (SELECT B.CNTR_NO
+                             FROM TB_SSCT_CNTR_BAS A/*계약기본*/
+                                , TB_PDBS_PD_BAS E/*상품기본*/
+                                , TB_PDBS_PD_CLSF_BAS F/*상품분류기본*/
+                                , TB_SSCT_CNTR_DTL B/*계약상세*/
+                            INNER JOIN TB_SSCT_CNTR_WELLS_DTL C /*계약WELLS상세 [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
+                               ON C.CNTR_NO = B.CNTR_NO
+                              AND C.CNTR_SN = B.CNTR_SN
+                              AND C.CPS_DT IS NOT NULL /*취소 X*/
+                          --모종계약 찾기
+                            INNER JOIN TB_SSCT_CNTR_REL E/*계약관계 - 216 : 모종결함*/
+                               ON E.OJ_DTL_CNTR_NO = B.CNTR_NO
+                              AND E.OJ_DTL_CNTR_SN = B.CNTR_SN
+                              AND E.CNTR_REL_DTL_CD = '216'
+                            INNER JOIN LATERAL (SELECT *
+                                                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ/*WELLS매출월마감내역*/
+                                                 WHERE CNTR_NO = E.BASE_DTL_CNTR_NO
+                                                   AND CNTR_SN = E.BASE_DTL_CNTR_SN
+                                                 ORDER BY SL_CL_YM DESC
+                                                 FETCH FIRST 1 ROW ONLY) D
+                               ON 1=1
+                            WHERE 1=1
+                              AND A.CNTR_NO = B.CNTR_NO
+                              AND SUBSTR(A.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')/*전월부터 이전 접수건*/
+                              AND B.BASE_PD_CD = E.PD_CD
+                              AND E.PD_CLSF_ID = F.PD_CLSF_ID
+                              AND F.REF_PD_CLSF_VAL LIKE '05001003%'/*웰스팜 기기만*/
+                              AND B.SELL_TP_CD = '3'
+                              AND A.CNTR_CNFM_DTM IS NULL /*계약확정일시 X*/
+                              AND A.CNTR_CAN_DTM  IS NULL/*탈퇴 X*/
+                              AND D.EOT_UC_AMT > 0/*미수금 존재건(오류)*/
+                              AND (D.CNTR_PTRM = '999' OR D.RENTAL_TN > B.CNTR_PTRM + 2)/*모종매출차월이 모종렌탈기간보다 크거나 같은 건(모종은 후불이며 2번에 나누어서 받기 때문에 매출금액 발생 후 2개월 동안 받는다.)*/
+                            ) Z
+            ON A.CNTR_NO = Z.CNTR_NO
+             , TB_SSCT_CNTR_BAS B                /*계약기본 - 멤버십*/
+          LEFT OUTER JOIN TB_CUBS_CST_BAS  T --고객기본
+            ON B.CNTR_CST_NO = T.CST_NO
+           AND T.NUSD_RSON_CD IS NULL
+           AND T.DTA_DL_YN = 'N'
+             , TB_SSCT_CNTR_REL C                /*계약관계*/
+             , TB_SSCT_CNTR_DTL D                /*계약상세 - 렌탈/리스*/
+             , TB_SSCT_CNTR_BAS E                /*계약기본 - 렌탈/리스*/
+             , TB_SSCT_CNTR_WELLS_DTL S /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+         WHERE 1 = 1
+           AND A.CNTR_NO = B.CNTR_NO
+           AND C.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND C.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_NO = C.OJ_DTL_CNTR_NO
+           AND D.CNTR_SN = C.OJ_DTL_CNTR_SN
+           AND E.CNTR_NO = C.OJ_DTL_CNTR_NO
+           AND A.SELL_TP_DTL_CD <![CDATA[<>]]> '33'         --홈케어 맴버십 제외
+           AND A.SELL_TP_CD = '3'   --멤버십
+           AND D.SELL_TP_CD = '1'   --일시불
+           AND D.CNTR_PD_STRTDT IS NOT NULL --일시불 매출일자 존재
+           AND B.CNTR_CNFM_DTM IS NULL        --멤버십 확정일시 미존재
+           AND A.CNTR_PD_ENDDT = '99991231'    --멤버십 탈퇴일자 미존재
+           AND B.CNTR_CAN_DTM IS NULL        --멤버십 취소일시 미존재
+           AND A.CNTR_PD_STRTDT IS NOT NULL        --매출일자(설치일자)존재
+           AND S.CNTR_NO   = A.CNTR_NO
+           AND S.CNTR_SN   = A.CNTR_SN
+           AND Z.CNTR_NO IS NULL
+       /*조회조건 시작*/
+           AND SUBSTR(B.CNTR_RCP_FSH_DTM,1,6) BETWEEN #{fromCntrRcpFshDtm} AND #{toCntrRcpFshDtm} --계약접수완료일자
+       <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+           AND A.CNTR_NO = #{cntrNo}
+           AND A.CNTR_SN = #{cntrSn}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
+           AND A.SELL_TP_CD = #{sellTpCd}
+       </if>
+       /*화면 조직선택 - 영업부인 경우*/
+       <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'2')">
+           AND B.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+       </if>
+       /*화면 조직선택 - 영업부인 경우*/
+       /*화면 조직선택 - 고객센터인 경우*/
+       <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'1')">
+           AND B.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+       </if>
+       /*화면 조직선택 - 고객센터인 경우*/
+       /*조회조건 종료*/
+        ---------------------------------------------------
+        -- 4.회사설치 건 확정대상 조회 조건 추가
+        ---------------------------------------------------
+         UNION ALL
+        SELECT A.CNTR_NO
+             , A.CNTR_SN
+             , T.CST_KNM
+             , A.SELL_TP_CD --판매유형
+             , A.CNTRW_TP_CD  --계약서유형코드
+             , B.SELL_OG_TP_CD --판매자조직유형코드
+             , A.BASE_PD_CD --기준상품코드
+             , A.SV_PRD --서비스주기
+             , A.FRISU_YN --무상여부
+             , A.STPL_PTRM  --약정기간
+             , S.HCR_DV_CD  --홈케어구분코드
+             , B.CNTR_CST_NO  --계약고객번호
+             , B.CNTR_RCP_FSH_DTM --계약접수완료일자
+             , D.CNTR_PD_STRTDT --계약상품시작일자
+             , S.IST_DT  --설치일자
+             , A.SELL_AMT --판매금액
+             , A.STLM_TP_CD --결제유형코드
+             , A.DSC_AMT --할인금액
+             , A.CTT_RS_CD --컨택결과코드
+             , A.CTT_PSIC_ID --컨택담당자ID
+             , B.FST_RGST_DTM --최초등록일시
+             , B.FST_RGST_USR_ID --최초등록사용자ID
+             , B.FST_RGST_PRG_ID --최초등록프로그램ID
+             , B.FNL_MDFC_DTM --최종수정일자
+             , B.FNL_MDFC_USR_ID --최종수정사용자ID
+             , B.FNL_MDFC_PRG_ID --최종수정프로그램ID
+             , A.CNTR_PD_ENDDT --계약상품종료일자
+             , B.CNTR_CNFM_DTM --계약확정일시
+             , A.SELL_TP_DTL_CD  --판매유형상세코드
+          FROM TB_SSCT_CNTR_DTL A                /*계약상세 - 멤버십*/
+        -----------------------------------------------------------------------
+        -- 41. 웰스팜 맴버십 주문 중 전월 미수금 있는 건 조회
+        -- 특이사항 : 웰스팜 기기건만 대상
+        -----------------------------------------------------------------------
+          LEFT OUTER JOIN (SELECT B.CNTR_NO
+                             FROM TB_SSCT_CNTR_BAS A/*계약기본*/
+                                , TB_PDBS_PD_BAS E/*상품기본*/
+                                , TB_PDBS_PD_CLSF_BAS F/*상품분류기본*/
+                                , TB_SSCT_CNTR_DTL B/*계약상세*/
+                            INNER JOIN TB_SSCT_CNTR_WELLS_DTL C /*계약WELLS상세 [AS-IS:LCLIB.LC3000P+LCLIB.LC3500P]*/
+                               ON C.CNTR_NO = B.CNTR_NO
+                              AND C.CNTR_SN = B.CNTR_SN
+                              AND C.CPS_DT IS NOT NULL /*취소 X*/
+                          --모종계약 찾기
+                            INNER JOIN TB_SSCT_CNTR_REL E/*계약관계 - 216 : 모종결함*/
+                               ON E.OJ_DTL_CNTR_NO = B.CNTR_NO
+                              AND E.OJ_DTL_CNTR_SN = B.CNTR_SN
+                              AND E.CNTR_REL_DTL_CD = '216'
+                            INNER JOIN LATERAL (SELECT *
+                                                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ/*WELLS매출월마감내역*/
+                                                 WHERE CNTR_NO = E.BASE_DTL_CNTR_NO
+                                                   AND CNTR_SN = E.BASE_DTL_CNTR_SN
+                                                 ORDER BY SL_CL_YM DESC
+                                                 FETCH FIRST 1 ROW ONLY) D
+                               ON 1=1
+                            WHERE 1=1
+                              AND A.CNTR_NO = B.CNTR_NO
+                              AND SUBSTR(A.CNTR_RCP_FSH_DTM, 1, 6) <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')/*전월부터 이전 접수건*/
+                              AND B.BASE_PD_CD = E.PD_CD
+                              AND E.PD_CLSF_ID = F.PD_CLSF_ID
+                              AND F.REF_PD_CLSF_VAL LIKE '05001003%'/*웰스팜 기기만*/
+                              AND B.SELL_TP_CD = '3'
+                              AND A.CNTR_CNFM_DTM IS NULL /*계약확정일시 X*/
+                              AND A.CNTR_CAN_DTM  IS NULL/*탈퇴 X*/
+                              AND D.EOT_UC_AMT > 0/*미수금 존재건(오류)*/
+                              AND (D.CNTR_PTRM = '999' OR D.RENTAL_TN > B.CNTR_PTRM + 2)/*모종매출차월이 모종렌탈기간보다 크거나 같은 건(모종은 후불이며 2번에 나누어서 받기 때문에 매출금액 발생 후 2개월 동안 받는다.)*/
+                            ) Z
+            ON A.CNTR_NO = Z.CNTR_NO
+             , TB_SSCT_CNTR_BAS B                /*계약기본 - 멤버십*/
+          LEFT OUTER JOIN TB_CUBS_CST_BAS  T --고객기본
+            ON B.CNTR_CST_NO = T.CST_NO
+           AND T.NUSD_RSON_CD IS NULL
+           AND T.DTA_DL_YN = 'N'
+             , TB_SSCT_CNTR_REL C                /*계약관계*/
+             , TB_SSCT_CNTR_DTL D                /*계약상세 - 렌탈/리스*/
+             , TB_SSCT_CNTR_BAS E                /*계약기본 - 렌탈/리스*/
+          LEFT OUTER JOIN LATERAL (SELECT * FROM TB_CBCL_WELLS_SL_MM_CL_IZ     /*WELLS매출월마감내역*/
+                                    WHERE CNTR_NO = C.OJ_DTL_CNTR_NO
+                                      AND CNTR_SN = C.OJ_DTL_CNTR_SN
+                                    ORDER BY SL_CL_YM DESC
+                                    FETCH FIRST 1 ROWS ONLY) F
+            ON 1=1
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS G    /*연체기본*/
+            ON G.CNTR_NO = F.CNTR_NO
+           AND G.CNTR_SN = F.CNTR_SN
+           AND G.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+             , TB_SSCT_CNTR_WELLS_DTL S /*계약WELLS상세 [AS-IS:LCLIB.LCAK10P]*/
+         WHERE 1 = 1
+           AND A.CNTR_NO = B.CNTR_NO
+           AND C.BASE_DTL_CNTR_NO = A.CNTR_NO
+           AND C.BASE_DTL_CNTR_SN = A.CNTR_SN
+           AND D.CNTR_NO = C.OJ_DTL_CNTR_NO
+           AND D.CNTR_SN = C.OJ_DTL_CNTR_SN
+           AND D.CNTR_PD_STRTDT IS NOT NULL  --회사설치 매출일자 존재
+           AND E.CNTR_NO = C.OJ_DTL_CNTR_NO
+       --  AND F.CNTR_NO = C.OJ_DTL_CNTR_NO  --삭제
+       --  AND F.CNTR_SN = C.OJ_DTL_CNTR_SN  --삭제
+       --  AND F.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')  --삭제
+           AND A.SELL_TP_DTL_CD = '34'         --회사설치건
+           AND A.SELL_TP_CD = '3'  --멤버십
+           AND D.SELL_TP_CD = '4'  --회사설치
+           AND B.CNTR_CNFM_DTM IS NULL        --멤버십 확정일시 미존재
+           AND A.CNTR_PD_ENDDT = '99991231'    --멤버십 탈퇴일자 미존재
+           AND B.CNTR_CAN_DTM IS NULL        --멤버십 취소일시 미존재
+           AND A.CNTR_PD_STRTDT IS NULL        --멤버십 가입일자 미존재
+           AND S.CNTR_NO   = A.CNTR_NO
+           AND S.CNTR_SN   = A.CNTR_SN
+           AND S.REQD_DT   IS NULL   --철거일자 미존재
+           AND S.CPS_DT IS NULL   --보상일자 미존재
+           AND S.CO_IST_DV_CD IS NOT NULL  --회사설치 구분코드가 있는건
+           AND Z.CNTR_NO IS NULL
+       /*조회조건 시작*/
+           AND SUBSTR(B.CNTR_RCP_FSH_DTM,1,6) BETWEEN #{fromCntrRcpFshDtm} AND #{toCntrRcpFshDtm} --계약접수완료일자
+       <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+           AND A.CNTR_NO = #{cntrNo}
+           AND A.CNTR_SN = #{cntrSn}
+       </if>
+       <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
+           AND A.SELL_TP_CD = #{sellTpCd}
+       </if>
+       /*화면 조직선택 - 영업부인 경우*/
+       <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'2')">
+           AND B.SELL_INFLW_CHNL_DTL_CD NOT IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+       </if>
+       /*화면 조직선택 - 영업부인 경우*/
+       /*화면 조직선택 - 고객센터인 경우*/
+       <if test="@MybatisUtils@equals(sellInflwChnlDtlCd,'1')">
+           AND B.SELL_INFLW_CHNL_DTL_CD IN ('3010', '4010') /*3010:아웃바운드(SalesTM), 4010:여행특판*/
+       </if>
+       /*화면 조직선택 - 고객센터인 경우*/
+       /*조회조건 종료*/
+             ) M
           LEFT OUTER JOIN TB_SSCT_CNTR_PD_REL T12
             ON T12.CNTR_NO = M.CNTR_NO
            AND T12.CNTR_SN = M.CNTR_SN
@@ -596,6 +598,7 @@
            AND T13.DTA_DL_YN = 'N'
          ORDER BY M.CNTR_NO
     </select>
+
     <update id="updateMembershipCnfmGenJoinDate">
         UPDATE TB_SSCT_CNTR_DTL
            SET CNTR_PD_STRTDT = #{joinDate}
@@ -604,6 +607,7 @@
            AND CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
     </update>
+
     <update id="updateMembershipCnfmGenConfirmDate">
         UPDATE TB_SSCT_CNTR_BAS
            SET CNTR_CNFM_DTM = #{confirmDate}
