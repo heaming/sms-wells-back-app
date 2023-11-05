@@ -22,7 +22,7 @@ public class WdccMembershipCnfmGenDto {
         String toCntrRcpFshDtm, /* 종료접수년월 (계약접수완료일시)*/
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
-        String sellTpCd /* 판매유형 (판매유형코드)*/
+        String sellTpDtlCd /* 판매유형상세코드 */
     ) {}
 
     // *********************************************************
@@ -81,7 +81,7 @@ public class WdccMembershipCnfmGenDto {
         String toCntrRcpFshDtm, /* 종료접수년월 (계약접수완료일시)*/
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
-        String sellTpCd, /* 판매유형 (판매유형코드)*/
+        String sellTpDtlCd, /* 판매유형상세코드 */
         @NotBlank
         String confirmDate, /* 확정일자 */
         @NotBlank
@@ -94,7 +94,7 @@ public class WdccMembershipCnfmGenDto {
                 .toCntrRcpFshDtm(toCntrRcpFshDtm)
                 .cntrNo(cntrNo)
                 .cntrSn(cntrSn)
-                .sellTpCd(sellTpCd)
+                .sellTpDtlCd(sellTpDtlCd)
                 .build();
         }
     }
