@@ -15,113 +15,161 @@
              AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
             WHERE 1=1
         )
-        SELECT T1.CNTR_NO
-             , T1.CNTR_SN
-             , T7.CNTR_RCP_FSH_DTM /*계약접수완료일시*/
-             , T9.LOCARA_TNO       /*지역전화번호*/
-             , T9.EXNO_ENCR        /*전화국번호암호화*/
-             , T9.IDV_TNO          /*개별전화번호*/
-             , T10.NEW_ADR_ZIP     /*신주소우편번호*/
-             , T10.RNADR           /*도로명주소*/
-             , T10.RDADR           /*도로명상세주소*/
-             , P1.SAP_MAT_CD
-             , P1.PD_CD      AS ITM_PD_CD
-             , P1.PD_NM      AS ITM_PD_NM
-             , '1'           AS USE_QTY
-             , '상품명'       AS PD_NM
-             , 'A'           AS PD_GD_CD
-             , '무상서비스'    AS REFRI_DV_NM
-             , '테스트'       AS RCGVP_KNM
-             , '일산지점'     AS EGER_CNR_NM
-             , '작업완료'     AS WK_PRGS_STAT_NM
-             , '2023-10-30'  AS VST_FSH_DT
-             , '2023-10-31'  AS IST_DT
-             , '2023-11-01'  AS VST_CNFMDT
-             , 'TEST'        AS MODEL_NM
-             , '163_BC_NO'   AS FNL_BC_NO
-             , 'AAAAAAAAAAAAAAAAAAAAAAA' AS BC_NO
-             , '설치'         AS SV_BIZ_HCLSF_NM
-             , '윤형준'       AS PRTNR_NM
-             , '이전'         AS AS_LCT_NM
-             , '복원공사'      AS AS_PHN_NM
-             , '단독사용'      AS AS_CAUS_NM
-             , '재설치 외부제품연결,[TUBING 1/4] - 자사정수기연결'     AS SV_PROCS_CN
-             , '1.재설치 원함' AS CNSL_MO_CN
-
-        FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1
-        INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2
-         ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-        INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ T3
-         ON T1.CST_SV_ASN_NO = T3.CST_SV_ASN_NO
-        INNER JOIN TB_OGBS_PRTNR_BAS T4
-         ON T2.WK_PRTNR_NO = T4.PRTNR_NO
-         AND T2.WK_PRTNR_OG_TP_CD = T4.OG_TP_CD
-        INNER JOIN TB_SVST_SV_WK_OSTR_IZ T5
-         ON T1.CST_SV_ASN_NO = T5.CST_SV_ASN_NO
-        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T6
-         ON T1.CNTR_NO = T6.CNTR_NO
-         AND T1.CNTR_SN = T6.CNTR_SN
-        INNER JOIN TB_SSCT_CNTR_BAS T7 /*계약기본*/
-         ON T1.CNTR_NO = T7.CNTR_NO
-        LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T8 /*계약주소관계*/
-         ON T1.CNTR_NO = T8.DTL_CNTR_NO
-         AND T1.CNTR_SN = T8.DTL_CNTR_SN
-         AND T8.ADRPC_TP_CD IN ('2','3')    /*1 계약주소, 2 배달주소,3 설치주소*/
-         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T8.VL_STRT_DTM AND T8.VL_END_DTM
-        LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T9 /*계약주소지기본*/
-         ON T8.CNTR_ADRPC_ID = T9.CNTR_ADRPC_ID
-        LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS T10
-         ON T9.ADR_ID = T10.ADR_ID
-         AND T10.DTA_DL_YN = 'N'
-        LEFT OUTER JOIN PD_INF P1
-         ON T5.ITM_PD_CD = P1.PD_CD
+        , WK_RS_INF AS
+        (
+	        SELECT  T1.CST_SV_ASN_NO
+	              , T1.SV_BIZ_HCLSF_CD
+	              , T1.SV_BIZ_DCLSF_CD
+	              , T1.VST_FSH_DT
+	              , T1.AS_LCT_CD
+	              , T1.AS_PHN_CD
+	              , T1.AS_CAUS_CD
+	              , T1.SV_PROCS_CN
+	              , T1.BC_NO
+	              , T2.FNL_BC_NO
+	              , T2.FNL_ITM_GD_CD   AS PD_GD_CD
+	              , T2.ITM_BIL_AMT
+	              , T2.USE_QTY
+	              , T3.IST_DT
+	              , P1.ITM_KND_CD
+	              , P1.PD_CD AS ITM_PD_CD
+	              , P1.PD_NM AS ITM_PD_NM
+                  , P1.PD_GRP_CD
+	              , P1.SAP_MAT_CD
+	              , P2.PD_CD
+	              , P2.PD_NM
+	             , (CASE WHEN T2.ITM_BIL_AMT > 0
+	                     THEN '2'
+	                     ELSE '1'
+                     END) AS REFRI_DV_CD
+	        FROM TB_SVPD_CST_SV_WK_RS_IZ T1
+	        INNER JOIN TB_SVST_SV_WK_OSTR_IZ T2
+	         ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+	        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3
+	         ON T1.CNTR_NO = T3.CNTR_NO
+	         AND T1.CNTR_SN = T3.CNTR_SN
+	        INNER JOIN PD_INF P1
+	         ON T2.ITM_PD_CD = P1.PD_CD
+	        INNER JOIN PD_INF P2
+	         ON T3.PDCT_PD_CD = P2.PD_CD
+	        WHERE 1=1
+        )
+        , TARGET_INF AS
+        (
+	        SELECT S1.CNTR_NO
+	             , S1.CNTR_SN
+	             , S1.CNSL_MO_CN
+	             , S2.VST_CNFMDT
+	             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', S2.SV_BIZ_HCLSF_CD) AS SV_BIZ_HCLSF_NM
+	             , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', S2.WK_PRGS_STAT_CD, 'ko') AS WK_PRGS_STAT_NM
+	             , S3.*
+	             , F_CMZ_CD_NM('TNT_WELLS', 'REFRI_DV_CD', S3.REFRI_DV_CD, 'ko') AS REFRI_DV_NM
+	             , S7.RCGVP_KNM
+	             , O1.PRTNR_NO
+	             , O1.PRTNR_KNM
+	             , O1.OG_NM
+	        FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1
+	        INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2
+	         ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
+	        INNER JOIN WK_RS_INF S3
+	         ON S1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO
+	 		INNER JOIN TB_OGBS_PRTNR_BAS S4
+	         ON S2.WK_PRTNR_NO = S4.PRTNR_NO
+	         AND S2.WK_PRTNR_OG_TP_CD = S4.OG_TP_CD
+	        INNER JOIN TB_SSCT_CNTR_BAS S5 /*계약기본*/
+	         ON S1.CNTR_NO = S5.CNTR_NO
+	        INNER JOIN TB_SSCT_CNTR_ADR_REL S6 /*계약주소관계*/
+	         ON S1.CNTR_NO = S6.DTL_CNTR_NO
+	         AND S1.CNTR_SN = S6.DTL_CNTR_SN
+	         AND S6.ADRPC_TP_CD IN ('2','3')    /*1 계약주소, 2 배달주소,3 설치주소*/
+	         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S6.VL_STRT_DTM AND S6.VL_END_DTM
+            INNER JOIN TB_SSCT_CNTR_ADRPC_BAS S7
+             ON S7.CNTR_ADRPC_ID = S6.CNTR_ADRPC_ID
+            LEFT OUTER JOIN TB_GBCO_ADR_BAS S8
+             ON S7.ADR_ID = S8.ADR_ID
+            LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ O1
+             ON SUBSTR(S2.WK_EXCN_DT, 1, 6) = O1.BASE_YM
+             AND S2.WK_PRTNR_OG_TP_CD = O1.OG_TP_CD
+             AND S2.WK_PRTNR_NO = O1.PRTNR_NO
+	        WHERE 1=1
+	         AND S2.WK_PRGS_STAT_CD = '20'
+	         AND S3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
+	         AND S3.SV_BIZ_HCLSF_CD != '6'
+	         AND S3.SV_BIZ_DCLSF_CD = '3110'
+	         AND S3.ITM_KND_CD != '4'
+        )
+        SELECT I1.CNTR_NO
+             , I1.CNTR_SN
+             , I1.SAP_MAT_CD
+             , I1.ITM_PD_CD
+             , I1.ITM_PD_NM
+             , I1.USE_QTY
+             , I1.PD_NM
+             , I1.PD_GD_CD
+             , I1.REFRI_DV_NM
+             , I1.RCGVP_KNM
+             , I1.OG_NM  AS EGER_CNR_NM
+             , I1.WK_PRGS_STAT_NM
+             , I1.VST_FSH_DT
+             , I1.IST_DT
+             , I1.VST_CNFMDT
+             , ''             AS MODEL_NM
+             , I1.FNL_BC_NO
+             , I1.BC_NO
+             , I1.SV_BIZ_HCLSF_NM
+             , I1.PRTNR_KNM
+             , F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', I1.AS_LCT_CD) AS AS_LCT_NM /* 위치 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', I1.AS_PHN_CD) AS AS_PHN_NM /* 현상 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', I1.AS_CAUS_CD) AS AS_CAUS_NM /* 원인 */
+             , I1.SV_PROCS_CN   AS SV_PROCS_CN
+             , I1.CNSL_MO_CN    AS CNSL_MO_CN
+        FROM TARGET_INF I1
+		<!-- 검색조건 -->
         WHERE 1=1
-        AND T2.WK_PRGS_STAT_CD = '20'
-        AND T5.SV_BIZ_HCLSF_CD != '6'
-        AND T5.SV_BIZ_DCLSF_CD = '3110'
-        AND P1.ITM_KND_CD != '4'
-
-        <!-- 검색조건 -->
-        AND T3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
         <if test="@MybatisUtils@isNotEmpty(serviceType)">
              /*  서비스 유형 */
             <if test='@MybatisUtils@equals(serviceType, "1") or
                       @MybatisUtils@equals(serviceType, "2") or
                       @MybatisUtils@equals(serviceType, "3")'>
-            AND T3.SV_BIZ_HCLSF_CD = #{serviceType}  /*  서비스 유형 (1:설치 , 2:B/S, 3: A/S) */
+            AND I1.SV_BIZ_HCLSF_CD = #{serviceType}  /*  서비스 유형 (1:설치 , 2:B/S, 3: A/S) */
             </if>
             <if test='@MybatisUtils@equals(serviceType, "4")'>
-            AND T3.SV_BIZ_HCLSF_CD IN ('1,3')        /*  서비스 유형 (4: A/S+설치) */
+            AND I1.SV_BIZ_HCLSF_CD IN ('1,3')        /*  서비스 유형 (4: A/S+설치) */
             </if>
             <if test='@MybatisUtils@equals(serviceType, "5")'>
-            AND T3.SV_BIZ_HCLSF_CD IN ('2,3')        /*  서비스 유형 (5: A/S+B/S) */
+            AND I1.SV_BIZ_HCLSF_CD IN ('2,3')        /*  서비스 유형 (5: A/S+B/S) */
             </if>
             <if test='@MybatisUtils@equals(serviceType, "6")'>
-            AND T3.SV_BIZ_HCLSF_CD IN ('1,2')       /*  서비스 유형 (6: B/S+설치) */
+            AND I1.SV_BIZ_HCLSF_CD IN ('1,2')       /*  서비스 유형 (6: B/S+설치) */
             </if>
         </if>
         <if test="@MybatisUtils@isNotEmpty(ogCd)">
-        AND T4.OG_CD = #{ogCd} /* 서비스센터 조직코드 */
+        AND I1.OG_CD = #{ogCd} /* 서비스센터 조직코드 */
         </if>
         <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
-        AND T4.PRTNR_NO = #{prtnrNo} /* 엔지니어 */
+        AND I1.PRTNR_NO = #{prtnrNo} /* 엔지니어 */
         </if>
         <if test='@MybatisUtils@equals(refriType, "1")'>
-        AND T5.REFRI_DV_CD = #{refriType}
-        AND T5.ITM_BIL_AMT  <![CDATA[<=]]> 0   /* 무상서비스 */
+        AND I1.REFRI_DV_CD = #{refriType}
+        AND I1.ITM_BIL_AMT  <![CDATA[<=]]> 0   /* 무상서비스 */
         </if>
         <if test='@MybatisUtils@equals(refriType, "2")'>
-        AND T5.REFRI_DV_CD = #{refriType}
-        AND T5.ITM_BIL_AMT  <![CDATA[>]]> 0    /* 유상서비스 */
+        AND I1.REFRI_DV_CD = #{refriType}
+        AND I1.ITM_BIL_AMT  <![CDATA[>]]> 0    /* 유상서비스 */
         </if>
         <if test="@MybatisUtils@isNotEmpty(installBase)">
-        AND T6.IST_DT  <![CDATA[ > ]]>  TO_CHAR(ADD_MONTHS(TO_DATE(T3.VST_FSH_DT,'YYYYMM'),-1),'YYYYMM')
+        AND I1.IST_DT  <![CDATA[ > ]]>  TO_CHAR(ADD_MONTHS(TO_DATE(I1.VST_FSH_DT,'YYYYMM'),-1),'YYYYMM')
         </if>
         <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
-        AND P1.ITM_KND_CD = #{itmKndCd}  /* 품목종류 */
+        AND I1.ITM_KND_CD = #{itmKndCd}  /* 품목종류 */
         </if>
         <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
-        AND P1.PD_GRP_CD = #{pdGrpCd}        /* 상품그룹 */
+        AND I1.PD_GRP_CD = #{pdGrpCd}        /* 상품그룹 */
         </if>
+        <if test="@MybatisUtils@isNotEmpty(itmPdCdFrom) or @MybatisUtils@isNotEmpty(itmPdCdTo)">
+        AND I1.ITM_PD_CD BETWEEN NVL(#{itmPdCdFrom},'WM00000000') AND NVL(#{itmPdCdTo},'WM99999999')
+        </if>
+        ORDER BY I1.ITM_PD_CD
+               , I1.CNTR_NO
     </select>
 </mapper>
