@@ -34,4 +34,6 @@ public interface WbncRentalResignExpectedMgtMapper {
     int updateRentalResignExpectedCancel(SaveCancelReq dto);
 
     int updateOvrdAthrTrmtPreExcdAdmn(@Param("baseDt") String baseDt);
+
+    int insertRentalCntrResignExpctCancel(SaveCancelReq dto);
 }
