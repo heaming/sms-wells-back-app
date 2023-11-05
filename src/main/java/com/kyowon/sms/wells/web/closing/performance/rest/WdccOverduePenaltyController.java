@@ -1,17 +1,18 @@
 package com.kyowon.sms.wells.web.closing.performance.rest;
 
+import java.io.IOException;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccOverduePenaltyDto.*;
 import com.kyowon.sms.wells.web.closing.performance.service.WdccOverduePenaltyService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -196,5 +197,29 @@ public class WdccOverduePenaltyController {
         SearchReq req
     ) {
         return service.getAnticipationLeases(req);
+    }
+
+    /**
+     * 상품목록 bulk 엑셀다운로드
+     * @param req
+     * @param response
+     * @return
+     */
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "slClYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "sap상품구분코드명", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세코드", paramType = "query"),
+    })
+    @ApiOperation(value = "영업선수금 주문별 전건 엑셀다운로드", notes = "검색조건을 입력 받아 엑셀다운로드용 영업선수금 주문별 목록을 조회한다.")
+    @PostMapping("/{downLoadUrl}/bulk-excel-download")
+    public void getPointOrdersForBulkExcelDownload(
+        @PathVariable
+        String downLoadUrl,
+        @RequestBody
+        ExcelBulkDownloadDto.DownloadReq req,
+        HttpServletResponse response
+    ) throws IOException {
+        service.getPointOrdersForBulkExcelDownload(req, response, downLoadUrl);
     }
 }
