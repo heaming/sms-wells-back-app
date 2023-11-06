@@ -2,7 +2,181 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvOutOfStorageMgtMapper">
     <select id="selectPcsvOutOfStorages" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageDvo">
-       WITH INQRY_LIST AS
+       WITH INQRY_LIST1 AS
+       (
+          SELECT DISTINCT
+                 S1.AS_IST_OJ_NO  /*접수번호*/
+               , S1.CST_SV_ASN_NO /*배정번호*/
+               , S1.CNTR_NO
+               , S1.CNTR_SN
+               , C1.BASE_PD_CD    /*기준상품코드*/
+               , S6.PDCT_PD_CD    /*제품코드*/
+               , S6.SV_PD_CD      /*서비스코드*/
+               , S1.PD_GD_CD
+               , S1.SV_BIZ_HCLSF_CD
+               , S1.SV_BIZ_DCLSF_CD
+               , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', S1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_NM
+               , S2.WK_PRGS_STAT_CD   /*서비스상태코드 */
+               , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', S2.WK_PRGS_STAT_CD, 'ko') AS WK_PRGS_STAT_NM
+               , S6.IST_DT                /*설치일자*/
+               , S6.REQD_DT               /*철거일자*/
+               , S2.SV_CNR_OG_ID      /*서비스센터조직ID - 배정정보*/
+               , S2.ICHR_OG_TP_CD     /*담당조직유형코드 - 배정정보*/
+               , S2.ICHR_PRTNR_NO     /*담당파트너번호 - 배정정보*/
+               , S3.OG_ID             /*조직ID - 작업자정보*/
+               , S3.OG_TP_CD          /*조직유형코드 - 작업자정보*/
+               , S3.PRTNR_NO          /*파트너번호 - 작업자정보*/
+               , S1.AS_REFRI_DV_CD    /*AS유무상구분코드*/
+               , S1.BFSVC_REFRI_DV_CD /*BS유무상구분코드*/
+               , S1.URGT_DV_CD        /*긴급구분코드*/
+               , S2.RPB_LOCARA_CD     /*책임지역코드*/
+               , S1.PD_USWY_CD        /*상품용도코드*/
+               , S3.VST_FSH_DT        /*방문완료일자(출고완료일자)*/
+                 /*작업결과용*/
+               , NVL(S3.AS_LCT_CD, S5.AS_LCT_CD) AS AS_LCT_CD    /*AS위치코드*/
+               , NVL(S3.AS_PHN_CD, S5.AS_PHN_CD) AS AS_PHN_CD    /*AS현상코드*/
+               , NVL(S3.AS_CAUS_CD, S5.AS_CAUS_CD) AS AS_CAUS_CD /*AS원인코드*/
+               , TRIM(NVL(S2.SITE_AW_SV_TP_CD, S5.SV_TP_CD)) AS SITE_AW_SV_TP_CD      /*현장수당서비스유형코드*/
+               , TRIM(NVL(S2.SITE_AW_ATC_CD, S5.SITE_AW_ATC_CD)) AS SITE_AW_ATC_CD    /*현장수당항목코드*/
+               , S1.FST_RGST_USR_ID  /*접수자사번*/
+               , S7.WARE_NO    /*창고번호*/
+               , S7.WARE_NM    /*창고명*/
+               , S7.WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
+               , (CASE WHEN S7.OG_TP_CD LIKE '@%' THEN 'W06' ELSE S7.OG_TP_CD END) AS WARE_MNGT_PRTNR_OG_TP_CD
+               , C0.CNTR_CNFM_DTM     /*계약확정일*/
+               , L1.OSTR_AK_NO    /*서비스출고요청번호*/
+               , L2.LGST_OSTR_AK_NO   /*물류출고요청번호*/
+               , L1.OSTR_NO    /*물류출고번호*/
+          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1                 /*고객서비스AS설치대상내역, AC211TB*/
+           INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2     /*고객서비스수행배정내역, AC221TB*/
+           ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+           AND S2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3    /*고객서비스작업결과내역, VS106TB*/
+           ON S3.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+           AND S3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVST_SV_WK_OSTR_IZ S4      /*서비스작업출고내역, ST163TB*/
+           ON S4.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+           AND S4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_AS_TP_CD S5           /*AS유형코드, CO460TB*/
+           ON S5.PD_CD = S1.PD_CD
+           AND S5.SV_ANA_HCLSF_CD = S1.SV_BIZ_DCLSF_CD
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN S5.APY_STRTDT AND S5.APY_ENDDT
+           AND S5.DTA_DL_YN = 'N'
+          INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S6          /*고객서비스수행내역*/
+           ON S6.CNTR_NO = S1.CNTR_NO
+           AND S6.CNTR_SN = S1.CNTR_SN
+           AND S6.DTA_DL_YN = 'N'
+          INNER JOIN TB_SVST_MCBY_WARE_IZ S7 /*월별창고내역, KWAS.LC_STOCK_ST102TB 창고조직기본정보*/
+            /* TODO 변경사항  ON T9.WARE_MNGT_PRTNR_NO = NVL(T4.PRTNR_NO, T2.ICHR_PRTNR_NO) */
+            ON (CASE WHEN S7.WARE_MNGT_PRTNR_NO = '71321'
+                     THEN '99992' ELSE S7.WARE_MNGT_PRTNR_NO
+                     END) = NVL(S3.PRTNR_NO, S2.ICHR_PRTNR_NO)
+           AND S7.WARE_NO =  '100002'
+           AND S7.WARE_DTL_DV_CD = '10'  /*창고상세구분코드*/
+           AND S7.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND S7.DTA_DL_YN = 'N'
+          INNER JOIN TB_SSCT_CNTR_BAS C0                /*계약기본*/
+           ON C0.CNTR_NO = S1.CNTR_NO
+           AND C0.DTA_DL_YN = 'N'
+          INNER JOIN TB_SSCT_CNTR_DTL C1                /*계약상세*/
+           ON C1.CNTR_NO = S1.CNTR_NO
+           AND C1.CNTR_SN = S1.CNTR_SN
+           AND C1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C3  /*계약해지처리내역*/
+           ON C3.CNTR_NO = S1.CNTR_NO
+           AND C3.CNTR_SN = S1.CNTR_SN
+           AND C3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_OSTR_AK_PCSV_SEND_DTL L1 /*출고요청택배송신상세*/
+           ON L1.CNTR_NO = S3.CNTR_NO
+           AND L1.CNTR_SN = S3.CNTR_SN
+           AND L1.OSTR_RQDT = S3.VST_FSH_DT
+           AND L1.DTA_DL_YN = 'N'
+           AND ROWNUM = 1
+          LEFT OUTER JOIN TB_IFIN_OSTR_AK_DTL_SEND_ETXT L2 /*출고요청상세송신전문*/
+           ON L2.REL_NO = L1.OSTR_AK_NO
+           AND L2.DTA_DL_YN = 'N'
+           AND ROWNUM = 1
+         WHERE 1=1
+          /* 출고구분 */
+          AND S1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}  /*서비스 업무 세분류 코드 : 1112 제품배송, 1113 제품재배송, 2250 웰컴BS, 3460 택배반품*/
+          /* 0 :전체 1: 작업완료 2: 작업대기 */
+          <if test="@MybatisUtils@equals(findGb, '0')">
+          AND C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
+          </if>
+          <if test="@MybatisUtils@equals(findGb, '1')">
+          AND S2.WK_PRGS_STAT_CD = '20'
+          AND S3.VST_FSH_DT = #{vstFshDt}
+          </if>
+          <if test="@MybatisUtils@equals(findGb, '2')">
+          AND S2.WK_PRGS_STAT_CD IN ('00', '10')
+          AND C3.RSG_FSH_DT IS NULL  /*해지완료일자*/
+          AND C3.RSG_APLC_DT IS NULL /*해지신청일자*/
+          AND C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
+          </if>
+          /*
+          AND S1.CNTR_NO = 'W20234972331'
+          AND S1.CNTR_NO IN ('W20235479631', 'W20235996822', 'W20236057066', 'W20236057294', 'W20236148047')
+          */
+       )
+       , INQRY_LIST2 AS
+       (
+          SELECT DISTINCT
+                 I1.CST_SV_ASN_NO
+               , I1.CNTR_NO
+               , I1.CNTR_SN
+               , COUNT(1) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
+                                ORDER BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
+                                RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS PART_CNT_TOTAL
+               , LISTAGG(C2.OJ_PD_CD , ',')
+                 WITHIN GROUP(ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_LIST
+               , LISTAGG(NVL(P0.PD_NM, P1.PD_PRP_VAL33), '|')
+                 WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_NM_LIST
+               , LISTAGG(C2.PD_QTY, ',')
+                 WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_QTY_LIST
+               , MIN(CASE WHEN P1.PD_PRP_VAL20 IN ('97') THEN 'WE13' /*고객판매_일시불판매 (뷰티기기)*/
+                          WHEN P1.PD_PRP_VAL20 IN ('98') THEN 'WE14' /*고객판매_일시불판매 (커피)*/
+                          WHEN P1.PD_PRP_VAL20 IN ('12') THEN 'WE15' /*고객판매_일시불판매 (홈카페캡슐)*/
+                          WHEN P1.PD_PRP_VAL20 IN ('13', '15', '16') THEN 'WE16' /*고객판매_일시불판매 (건강식품)*/
+                          WHEN P1.PD_PRP_VAL20 IN ('14') THEN 'WE17' /*고객판매_일시불판매 (화장품)*/
+                          WHEN P1.PD_PRP_VAL20 IN ('1', '2', '3', '4') THEN 'WE25'   /*고객판매_환경가전 택배*/
+                          ELSE 'WE99'    /*Wells기타*/
+                     END) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
+                                ORDER BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
+                                RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                     ) AS MIN_LGST_WK_MTHD_CD
+               , MAX(CASE WHEN P1.PD_PRP_VAL20 IN ('97') THEN 'WE13' /*고객판매_일시불판매 (뷰티기기)*/
+                          WHEN P1.PD_PRP_VAL20 IN ('98') THEN 'WE14' /*고객판매_일시불판매 (커피)*/
+                          WHEN P1.PD_PRP_VAL20 IN ('12') THEN 'WE15' /*고객판매_일시불판매 (홈카페캡슐)*/
+                          WHEN P1.PD_PRP_VAL20 IN ('13', '15', '16') THEN 'WE16' /*고객판매_일시불판매 (건강식품)*/
+                          WHEN P1.PD_PRP_VAL20 IN ('14') THEN 'WE17' /*고객판매_일시불판매 (화장품)*/
+                          WHEN P1.PD_PRP_VAL20 IN ('1', '2', '3', '4') THEN 'WE25'   /*고객판매_환경가전 택배*/
+                          ELSE 'WE99'    /*Wells기타*/
+                     END) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
+                                ORDER BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
+                                RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                     ) AS MAX_LGST_WK_MTHD_CD
+          FROM TB_SSCT_CNTR_PD_REL C2             /*계약상품관계*/
+          INNER JOIN TB_PDBS_PD_BAS P0         /*상품각사속성상세*/
+           ON P0.PD_CD = C2.OJ_PD_CD
+           AND P0.DTA_DL_YN = 'N'
+          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1         /*상품각사속성상세*/
+           ON P1.PD_CD = C2.OJ_PD_CD
+           AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND P1.DTA_DL_YN = 'N'
+          INNER JOIN INQRY_LIST1 I1
+           ON C2.CNTR_NO = I1.CNTR_NO
+           AND C2.CNTR_SN = I1.CNTR_SN
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')  BETWEEN C2.VL_STRT_DTM AND C2.VL_END_DTM
+           AND C2.DTA_DL_YN = 'N'
+           AND C2.PD_REL_TP_CD = '05'
+           /*01 복합-기준, 02 기준-기준, 03 기준-서비스, 04 서비스-서비스,
+             05 기준-제품, 06 대체품(Substitution), 07 상품-필터, 08 패키지(Package),
+             09 번들(Bundle), 10 프로모션상품-상품, 11 추가구매, 12 동시구매/기계약상품, 13 혼식불가,
+             14 AS부품, 15 대체모종, 16 멤버십기준상품, 17 구매 불가상품, 18 정기배송 제품명(BS),
+             19 동시구매선택상품, 20 동시구매선택번들상품, 21 패키지구성제품, 22 스마트체인지상품, 23 사은품,
+             24 BS투입제품, 25 구성품*/
+       )
+       , INQRY_LIST AS
        (  /* 택배 대상 */
           SELECT V2.*
           FROM (
@@ -86,185 +260,18 @@
                              , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 10) AS PART_NM_10
                              , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 10) AS PART_QTY_10
                         FROM (
-                                SELECT DISTINCT
-                                       S1.AS_IST_OJ_NO  /*접수번호*/
-                                     , S1.CST_SV_ASN_NO /*배정번호*/
-                                     , S1.CNTR_NO
-                                     , S1.CNTR_SN
-                                     , C1.BASE_PD_CD    /*기준상품코드*/
-                                     , S6.PDCT_PD_CD    /*제품코드*/
-                                     , S6.SV_PD_CD      /*서비스코드*/
-                                     , S1.PD_GD_CD
-                                     , S1.SV_BIZ_HCLSF_CD
-                                     , S1.SV_BIZ_DCLSF_CD
-                                     , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', S1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_NM
-                                     , S2.WK_PRGS_STAT_CD   /*서비스상태코드 */
-                                     , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', S2.WK_PRGS_STAT_CD, 'ko') AS WK_PRGS_STAT_NM
-                                     , S6.IST_DT                /*설치일자*/
-                                     , S6.REQD_DT               /*철거일자*/
-                                     , S2.SV_CNR_OG_ID      /*서비스센터조직ID - 배정정보*/
-                                     , S2.ICHR_OG_TP_CD     /*담당조직유형코드 - 배정정보*/
-                                     , S2.ICHR_PRTNR_NO     /*담당파트너번호 - 배정정보*/
-                                     , S3.OG_ID             /*조직ID - 작업자정보*/
-                                     , S3.OG_TP_CD          /*조직유형코드 - 작업자정보*/
-                                     , S3.PRTNR_NO          /*파트너번호 - 작업자정보*/
-                                     , S1.AS_REFRI_DV_CD    /*AS유무상구분코드*/
-                                     , S1.BFSVC_REFRI_DV_CD /*BS유무상구분코드*/
-                                     , S1.URGT_DV_CD        /*긴급구분코드*/
-                                     , S2.RPB_LOCARA_CD     /*책임지역코드*/
-                                     , S1.PD_USWY_CD        /*상품용도코드*/
-                                     , S3.VST_FSH_DT        /*방문완료일자(출고완료일자)*/
-                                       /*작업결과용*/
-                                     , NVL(S3.AS_LCT_CD, S5.AS_LCT_CD) AS AS_LCT_CD    /*AS위치코드*/
-                                     , NVL(S3.AS_PHN_CD, S5.AS_PHN_CD) AS AS_PHN_CD    /*AS현상코드*/
-                                     , NVL(S3.AS_CAUS_CD, S5.AS_CAUS_CD) AS AS_CAUS_CD /*AS원인코드*/
-                                     , TRIM(NVL(S2.SITE_AW_SV_TP_CD, S5.SV_TP_CD)) AS SITE_AW_SV_TP_CD      /*현장수당서비스유형코드*/
-                                     , TRIM(NVL(S2.SITE_AW_ATC_CD, S5.SITE_AW_ATC_CD)) AS SITE_AW_ATC_CD    /*현장수당항목코드*/
-                                     , S1.FST_RGST_USR_ID  /*접수자사번*/
-                                     , S7.WARE_NO    /*창고번호*/
-                                     , S7.WARE_NM    /*창고명*/
-                                     , S7.WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
-                                     , (CASE WHEN S7.OG_TP_CD LIKE '@%' THEN 'W06' ELSE S7.OG_TP_CD END) AS WARE_MNGT_PRTNR_OG_TP_CD
-                                     , C0.CNTR_CNFM_DTM     /*계약확정일*/
-                                     , L1.OSTR_AK_NO        /*서비스출고요청번호*/
-                                     , L2.LGST_OSTR_AK_NO   /*물류출고요청번호*/
-                                     , L1.OSTR_NO           /*물류출고번호*/
-                                     , COUNT(1) OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
-                                                          ORDER BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
-                                                          RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS PART_CNT_TOTAL
-                                     , SUM(C2.PD_QTY) OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
-                                                                ORDER BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
-                                                                RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) AS PART_SUM_TOTAL
-                                     , LISTAGG(C2.OJ_PD_CD , ',')
-                                       WITHIN GROUP(ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN) AS PART_LIST
-                                     , LISTAGG(P1.PD_PRP_VAL33, '|')
-                                       WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN) AS PART_NM_LIST
-                                     , LISTAGG(C2.PD_QTY, ',')
-                                       WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN) AS PART_QTY_LIST
-                                     , COUNT(1) OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN,
-                                                       (
-                                                        CASE WHEN P1.PD_PRP_VAL20 IN ('97') THEN 'WE13' /*고객판매_일시불판매 (뷰티기기)*/
-                                                             WHEN P1.PD_PRP_VAL20 IN ('98') THEN 'WE14' /*고객판매_일시불판매 (커피)*/
-                                                             WHEN P1.PD_PRP_VAL20 IN ('12') THEN 'WE15' /*고객판매_일시불판매 (홈카페캡슐)*/
-                                                             WHEN P1.PD_PRP_VAL20 IN ('13', '15', '16') THEN 'WE16' /*고객판매_일시불판매 (건강식품)*/
-                                                             WHEN P1.PD_PRP_VAL20 IN ('14') THEN 'WE17' /*고객판매_일시불판매 (화장품)*/
-                                                             WHEN P1.PD_PRP_VAL20 IN ('1', '2', '3', '4') THEN 'WE25'   /*고객판매_환경가전 택배*/
-                                                             ELSE 'WE99'    /*Wells기타*/
-                                                         END
-                                                       )
-                                                       ORDER BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
-                                                       RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-                                                      ) AS LGST_WK_MTHD_CD_CNT
-                                     , MIN(CASE WHEN P1.PD_PRP_VAL20 IN ('97') THEN 'WE13' /*고객판매_일시불판매 (뷰티기기)*/
-                                                WHEN P1.PD_PRP_VAL20 IN ('98') THEN 'WE14' /*고객판매_일시불판매 (커피)*/
-                                                WHEN P1.PD_PRP_VAL20 IN ('12') THEN 'WE15' /*고객판매_일시불판매 (홈카페캡슐)*/
-                                                WHEN P1.PD_PRP_VAL20 IN ('13', '15', '16') THEN 'WE16' /*고객판매_일시불판매 (건강식품)*/
-                                                WHEN P1.PD_PRP_VAL20 IN ('14') THEN 'WE17' /*고객판매_일시불판매 (화장품)*/
-                                                WHEN P1.PD_PRP_VAL20 IN ('1', '2', '3', '4') THEN 'WE25'   /*고객판매_환경가전 택배*/
-                                                ELSE 'WE99'    /*Wells기타*/
-                                           END)
-                                           OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
-                                                      ORDER BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
-                                                      RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-                                           ) AS MIN_LGST_WK_MTHD_CD
-                                     , MAX(CASE WHEN P1.PD_PRP_VAL20 IN ('97') THEN 'WE13' /*고객판매_일시불판매 (뷰티기기)*/
-                                                WHEN P1.PD_PRP_VAL20 IN ('98') THEN 'WE14' /*고객판매_일시불판매 (커피)*/
-                                                WHEN P1.PD_PRP_VAL20 IN ('12') THEN 'WE15' /*고객판매_일시불판매 (홈카페캡슐)*/
-                                                WHEN P1.PD_PRP_VAL20 IN ('13', '15', '16') THEN 'WE16' /*고객판매_일시불판매 (건강식품)*/
-                                                WHEN P1.PD_PRP_VAL20 IN ('14') THEN 'WE17' /*고객판매_일시불판매 (화장품)*/
-                                                WHEN P1.PD_PRP_VAL20 IN ('1', '2', '3', '4') THEN 'WE25'   /*고객판매_환경가전 택배*/
-                                                ELSE 'WE99'    /*Wells기타*/
-                                           END)
-                                           OVER (PARTITION BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
-                                                 ORDER BY S1.CST_SV_ASN_NO, S1.CNTR_NO, S1.CNTR_SN
-                                                 RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-                                           ) AS MAX_LGST_WK_MTHD_CD
-                                FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1            /*고객서비스AS설치대상내역, AC211TB*/
-                                INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2     /*고객서비스수행배정내역, AC221TB*/
-                                 ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
-                                 AND S2.DTA_DL_YN = 'N'
-                                LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3    /*고객서비스작업결과내역, VS106TB*/
-                                 ON S3.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
-                                 AND S3.DTA_DL_YN = 'N'
-                                LEFT OUTER JOIN TB_SVST_SV_WK_OSTR_IZ S4      /*서비스작업출고내역, ST163TB*/
-                                 ON S4.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
-                                 AND S4.DTA_DL_YN = 'N'
-                                LEFT OUTER JOIN TB_SVPD_AS_TP_CD S5           /*AS유형코드, CO460TB*/
-                                 ON S5.PD_CD = S1.PD_CD
-                                 AND S5.SV_ANA_HCLSF_CD = S1.SV_BIZ_DCLSF_CD
-                                 AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN S5.APY_STRTDT AND S5.APY_ENDDT
-                                 AND S5.DTA_DL_YN = 'N'
-                                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S6          /*고객서비스수행내역*/
-                                 ON S6.CNTR_NO = S1.CNTR_NO
-                                 AND S6.CNTR_SN = S1.CNTR_SN
-                                 AND S6.DTA_DL_YN = 'N'
-                                INNER JOIN TB_SVST_MCBY_WARE_IZ S7 /*월별창고내역, KWAS.LC_STOCK_ST102TB 창고조직기본정보*/
-                                  /* TODO 변경사항  ON T9.WARE_MNGT_PRTNR_NO = NVL(T4.PRTNR_NO, T2.ICHR_PRTNR_NO) */
-                                 ON (CASE WHEN S7.WARE_MNGT_PRTNR_NO = '71321'
-                                     THEN '99992' ELSE S7.WARE_MNGT_PRTNR_NO END) = NVL(S3.PRTNR_NO, S2.ICHR_PRTNR_NO)
-                                 AND S7.WARE_DTL_DV_CD = '10'  /*창고상세구분코드*/
-                                 AND S7.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                 AND S7.DTA_DL_YN = 'N'
-                                AND S7.WARE_NO =  #{wkWareNo}
-                                INNER JOIN TB_SSCT_CNTR_BAS C0                /*계약기본*/
-                                 ON C0.CNTR_NO = S1.CNTR_NO
-                                 AND C0.DTA_DL_YN = 'N'
-                                INNER JOIN TB_SSCT_CNTR_DTL C1                /*계약상세*/
-                                 ON C1.CNTR_NO = S1.CNTR_NO
-                                 AND C1.CNTR_SN = S1.CNTR_SN
-                                 AND C1.DTA_DL_YN = 'N'
-                                INNER JOIN TB_SSCT_CNTR_PD_REL C2             /*계약상품관계*/
-                                 ON C2.CNTR_NO = S1.CNTR_NO
-                                 AND C2.CNTR_SN = S1.CNTR_SN
-                                 AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C2.VL_STRT_DTM AND C2.VL_END_DTM
-                                 AND C2.DTA_DL_YN = 'N'
-                                 AND C2.PD_REL_TP_CD = '05'
-                                 /*01 복합-기준, 02 기준-기준, 03 기준-서비스, 04 서비스-서비스,
-                                   05 기준-제품, 06 대체품(Substitution), 07 상품-필터, 08 패키지(Package),
-                                   09 번들(Bundle), 10 프로모션상품-상품, 11 추가구매, 12 동시구매/기계약상품, 13 혼식불가,
-                                   14 AS부품, 15 대체모종, 16 멤버십기준상품, 17 구매 불가상품, 18 정기배송 제품명(BS),
-                                   19 동시구매선택상품, 20 동시구매선택번들상품, 21 패키지구성제품, 22 스마트체인지상품, 23 사은품,
-                                   24 BS투입제품, 25 구성품*/
-
-                                LEFT OUTER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C3  /*계약해지처리내역*/
-                                 ON C3.CNTR_NO = S1.CNTR_NO
-                                 AND C3.CNTR_SN = S1.CNTR_SN
-                                 AND C3.DTA_DL_YN = 'N'
-                                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1         /*상품각사속성상세*/
-                                 ON P1.PD_CD = C2.OJ_PD_CD
-                                 AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
-                                 AND P1.DTA_DL_YN = 'N'
-                                LEFT OUTER JOIN TB_SVPD_OSTR_AK_PCSV_SEND_DTL L1 /*출고요청택배송신상세*/
-                                 ON L1.CNTR_NO = S3.CNTR_NO
-                                 AND L1.CNTR_SN = S3.CNTR_SN
-                                 AND L1.OSTR_RQDT = S3.VST_FSH_DT
-                                 AND L1.DTA_DL_YN = 'N'
-                                 AND ROWNUM = 1
-                                LEFT OUTER JOIN TB_IFIN_OSTR_AK_DTL_SEND_ETXT L2 /*출고요청상세송신전문*/
-                                 ON L2.REL_NO = L1.OSTR_AK_NO
-                                 AND L2.DTA_DL_YN = 'N'
-                                 AND ROWNUM = 1
-                               WHERE 1=1
-                                /* 출고구분 */
-                                AND S1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}  /*서비스 업무 세분류 코드 : 1112 제품배송, 1113 제품재배송, 2250 웰컴BS, 3460 택배반품*/
-                                /* 0 :전체 1: 작업완료 2: 작업대기 */
-                                <if test="@MybatisUtils@equals(findGb, '0')">
-                                AND C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
-                                </if>
-                                <if test="@MybatisUtils@equals(findGb, '1')">
-                                AND S2.WK_PRGS_STAT_CD = '20'
-                                AND S3.VST_FSH_DT = #{vstFshDt}
-                                </if>
-                                <if test="@MybatisUtils@equals(findGb, '2')">
-                                AND S2.WK_PRGS_STAT_CD IN ('00', '10')
-                                AND C3.RSG_FSH_DT IS NULL  /*해지완료일자*/
-                                AND C3.RSG_APLC_DT IS NULL /*해지신청일자*/
-                                AND C0.CNTR_CNFM_DTM BETWEEN #{startDt} || '000000'  AND #{endDt} || '235959'
-                                </if>
-                                /*
-                                AND S1.CNTR_NO = 'W20234972331'
-                                AND S1.CNTR_NO IN ('W20235479631', 'W20235996822', 'W20236057066', 'W20236057294', 'W20236148047')
-                                */
+                                SELECT I1.*
+                                     , I2.PART_CNT_TOTAL
+                                     , I2.PART_LIST
+                                     , I2.PART_NM_LIST
+                                     , I2.PART_QTY_LIST
+                                     , I2.MIN_LGST_WK_MTHD_CD
+                                     , I2.MAX_LGST_WK_MTHD_CD
+                                FROM INQRY_LIST1 I1
+                                INNER JOIN INQRY_LIST2 I2
+                                 ON I2.CST_SV_ASN_NO = I2.CST_SV_ASN_NO
+                                 AND I2.CNTR_NO = I1.CNTR_NO
+                                 AND I2.CNTR_SN = I1.CNTR_SN
                         ) PL1
                         WHERE 1=1
                      ) V1
