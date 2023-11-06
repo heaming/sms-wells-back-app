@@ -52,11 +52,12 @@ public class WfefSellFeeEtPerfController {
         return service.getSellFeeEtPerfs(dto);
     }
 
-    @ApiOperation(value = "수수료 예상 실적 조회 (판매) - 건수실적 및 계정순증", notes = "")
+    @ApiOperation(value = "수수료 예상 실적 조회 (판매) - 판매상세", notes = "")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "inqrStrtDt", value = "조회시작일자", defaultValue = "20230801", paramType = "query", required = true),
         @ApiImplicitParam(name = "inqrEndDt", value = "조회종료일자", defaultValue = "20230801", paramType = "query", required = true),
         @ApiImplicitParam(name = "perfBaseDv", value = "실적기준구분 1: 접수, 2: 매출", defaultValue = "1", paramType = "query", required = true),
+        @ApiImplicitParam(name = "inqrDv", value = "조회대상", defaultValue = "4", paramType = "query", required = true),
         @ApiImplicitParam(name = "dgr1LevlOgCd", value = "총괄단", paramType = "query"),
         @ApiImplicitParam(name = "dgr2LevlOgCd", value = "지역단", paramType = "query"),
         @ApiImplicitParam(name = "dgr3LevlOgCd", value = "지점", paramType = "query"),
@@ -70,11 +71,12 @@ public class WfefSellFeeEtPerfController {
         return service.getSellFeeEtPerfDetails(dto);
     }
 
-    @ApiOperation(value = "수수료 예상 실적 조회 (판매) - 건수실적 및 계정순증", notes = "")
+    @ApiOperation(value = "수수료 예상 실적 조회 (판매) - 계정순증(전월취소 및 순증)", notes = "")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "inqrStrtDt", value = "조회시작일자", defaultValue = "20230801", paramType = "query", required = true),
-        @ApiImplicitParam(name = "inqrEndDt", value = "조회종료일자", defaultValue = "20230801", paramType = "query", required = true),
+        @ApiImplicitParam(name = "inqrStrtDt", value = "조회시작일자", defaultValue = "20230701", paramType = "query", required = true),
+        @ApiImplicitParam(name = "inqrEndDt", value = "조회종료일자", defaultValue = "20230731", paramType = "query", required = true),
         @ApiImplicitParam(name = "perfBaseDv", value = "실적기준구분 1: 접수, 2: 매출", defaultValue = "1", paramType = "query", required = true),
+        @ApiImplicitParam(name = "inqrDv", value = "조회대상", defaultValue = "4", paramType = "query", required = true),
         @ApiImplicitParam(name = "nincDv", value = "순증구분 01: 전월취소 02: 신규판매", paramType = "query"),
         @ApiImplicitParam(name = "dgr1LevlOgCd", value = "총괄단", paramType = "query"),
         @ApiImplicitParam(name = "dgr2LevlOgCd", value = "지역단", paramType = "query"),
