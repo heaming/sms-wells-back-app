@@ -38,4 +38,14 @@ public class WwdcSalesControlDvo {
     private String aug; /* 8월 : Y/N */
     private String sellTpDtlCd; /* 매출판매유형상세코드 */
 
+    /*excel 업로드용*/
+
+    private String controlYear; /*조정년도*/
+    private String controlMonth; /*조정월*/
+    private String orderType; /*주문유형*/
+    private String controlAmount; /*조정금액*/
+    private String controlDivide; /*조정구분*/
+    private String controlType;  /*조정유형*/
+    private String controlReason; /*조정사유*/
+
 }
