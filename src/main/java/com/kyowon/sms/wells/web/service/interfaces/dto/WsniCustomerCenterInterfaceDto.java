@@ -16,8 +16,10 @@ public class WsniCustomerCenterInterfaceDto {
         String cstSvAsnNo,
         @JsonProperty("WK_PRTNR_NO")
         String wkPrtnrNo,
-        @JsonProperty("WK_DT")
-        String wkDt,
+        @JsonProperty("WK_DT_FROM")     /** 2023.11.06(월) 작업 시작일자 수정 홍세기 **/
+        String wkDtFrom,
+        @JsonProperty("WK_DT_TO")       /** 2023.11.06(월) 작업 종료일자 수정 홍세기 **/
+        String wkDtTo,
         @JsonProperty("CNTR_NO")
         String cntrNo,
         @JsonProperty("CNTR_SN")
