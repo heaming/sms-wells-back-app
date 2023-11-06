@@ -37,6 +37,14 @@ import com.sds.sflex.system.config.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * 매출 조정 관리 서비스
+ * </pre>
+ *
+ * @author kimoon.lim
+ * @since 2023-05-25
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -167,6 +175,13 @@ public class WwdcSalesControlService {
 //        //            }
 //        //        }
 //    }
+
+    /**
+     * 매출 조정 엑셀 업로드 유효성 검사
+     * @param lists
+     * @param headerTitle
+     * @return List<ExcelUploadErrorDvo>
+     */
   public List<ExcelUploadErrorDvo> validateExcelAttribute(List<WwdcSalesControlDvo> lists, Map<String, String> headerTitle) {
 
       int row = 2;
@@ -198,14 +213,14 @@ public class WwdcSalesControlService {
                       errorDvo = new ExcelUploadErrorDvo();
                       errorDvo.setErrorRow(row);
                       errorDvo.setHeaderName(headerTitle.get("controlYear"));
-                      errorDvo.setErrorData(messageService.getMessage("적용년도의 형식이 아닙니다."));
+                      errorDvo.setErrorData(messageService.getMessage("MSG_TXT_NOT_APY_Y_MTP")); // 적용년도의 형식이 아닙니다.
                       errorDvos.add(errorDvo);
                   }
               }else{ //숫자 형식이 아닐 경우 오류 체크
                 errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(headerTitle.get("controlYear"));
-                errorDvo.setErrorData(messageService.getMessage("올바른 날짜 형식이 아닙니다."));
+                errorDvo.setErrorData(messageService.getMessage("MSG_TXT_NOT_DATE_FORMAT")); // 올바른 날짜 형식이 아닙니다.
                 errorDvos.add(errorDvo);
               }
           }
@@ -223,14 +238,14 @@ public class WwdcSalesControlService {
                        errorDvo = new ExcelUploadErrorDvo();
                        errorDvo.setErrorRow(row);
                        errorDvo.setHeaderName(headerTitle.get("controlYear"));
-                       errorDvo.setErrorData(messageService.getMessage("조정월의 형식이 아닙니다."));
+                       errorDvo.setErrorData(messageService.getMessage("MSG_TXT_NOT_CTR_MM_MTP")); // 조정월의 형식이 아닙니다.
                        errorDvos.add(errorDvo);
                    }
                }else{ //숫자 형식이 아닐 경우 오류 체크
                  errorDvo = new ExcelUploadErrorDvo();
                  errorDvo.setErrorRow(row);
                  errorDvo.setHeaderName(headerTitle.get("controlYear"));
-                 errorDvo.setErrorData(messageService.getMessage("올바른 날짜 형식이 아닙니다."));
+                 errorDvo.setErrorData(messageService.getMessage("MSG_TXT_NOT_DATE_FORMAT")); // 올바른 날짜 형식이 아닙니다.
                  errorDvos.add(errorDvo);
                }
 
@@ -261,7 +276,7 @@ public class WwdcSalesControlService {
                     errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
                     errorDvo.setHeaderName(headerTitle.get("cntrDtlNo"));
-                    errorDvo.setErrorData(messageService.getMessage("존재하지 않는 계약번호입니다.")); //
+                    errorDvo.setErrorData(messageService.getMessage("MSG_TXT_NEX_CNTR_NO")); //존재하지 않는 계약번호입니다.
                     errorDvos.add(errorDvo);
                   }else{
                       if(mapper.selectSalesControlCount(dvo) > 0){
@@ -287,14 +302,14 @@ public class WwdcSalesControlService {
                       errorDvo = new ExcelUploadErrorDvo();
                       errorDvo.setErrorRow(row);
                       errorDvo.setHeaderName(headerTitle.get("orderType"));
-                      errorDvo.setErrorData(messageService.getMessage("주문유형의 경우 한자리만 입력 가능합니다."));
+                      errorDvo.setErrorData(messageService.getMessage("MSG_TXT_ORD_TP_IN_ONE")); // 주문유형의 경우 한자리만 입력 가능합니다.
                       errorDvos.add(errorDvo);
                   }
               }else{
                   errorDvo = new ExcelUploadErrorDvo();
                   errorDvo.setErrorRow(row);
                   errorDvo.setHeaderName(headerTitle.get("orderType"));
-                  errorDvo.setErrorData(messageService.getMessage("주문유형은 숫자로 입력해주세요."));
+                  errorDvo.setErrorData(messageService.getMessage("MSG_TXT_ORD_TP_NUM_IN")); // 주문유형은 숫자로 입력해주세요.
                   errorDvos.add(errorDvo);
               }
           }
@@ -314,7 +329,7 @@ public class WwdcSalesControlService {
                       errorDvo = new ExcelUploadErrorDvo();
                       errorDvo.setErrorRow(row);
                       errorDvo.setHeaderName(headerTitle.get("controlAmount"));
-                      errorDvo.setErrorData(messageService.getMessage("조정금액의 경우 최소 천원 이상부터 입력 가능합니다.")); //필수값이 누락되어 있습니다.
+                      errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_AMT_MIN_THW_IN")); // 조정금액의 경우 최소 천원 이상부터 입력 가능합니다.
                       errorDvos.add(errorDvo);
                   }
 
@@ -322,7 +337,7 @@ public class WwdcSalesControlService {
                 errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(headerTitle.get("controlAmount"));
-                errorDvo.setErrorData(messageService.getMessage("조정금액의 경우 숫자로 입력해주세요.")); //필수값이 누락되어 있습니다.
+                errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_AMT_NUM_IN")); // 조정금액의 경우 숫자로 입력해주세요.
                 errorDvos.add(errorDvo);
               }
           }
@@ -341,14 +356,14 @@ public class WwdcSalesControlService {
                         errorDvo = new ExcelUploadErrorDvo();
                         errorDvo.setErrorRow(row);
                         errorDvo.setHeaderName(headerTitle.get("controlDivide"));
-                        errorDvo.setErrorData(messageService.getMessage("조정구분의 경우 한자리만 입력 가능합니다."));
+                        errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_DV_IN_ONE")); // 조정구분의 경우 한자리만 입력 가능합니다.
                         errorDvos.add(errorDvo);
                     }
                 }else{
                     errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
                     errorDvo.setHeaderName(headerTitle.get("controlDivide"));
-                    errorDvo.setErrorData(messageService.getMessage("조정구분은 숫자로 입력해주세요."));
+                    errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_DV_NUM_IN")); // 조정구분은 숫자로 입력해주세요.
                     errorDvos.add(errorDvo);
                 }
           }
@@ -366,14 +381,14 @@ public class WwdcSalesControlService {
                       errorDvo = new ExcelUploadErrorDvo();
                       errorDvo.setErrorRow(row);
                       errorDvo.setHeaderName(headerTitle.get("controlType"));
-                      errorDvo.setErrorData(messageService.getMessage("조정유형의 경우 두자리만 입력 가능합니다."));
+                      errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_TP_DIGI2_IN")); // 조정유형의 경우 두 자리만 입력 가능합니다.
                       errorDvos.add(errorDvo);
                   }
               }else{
                   errorDvo = new ExcelUploadErrorDvo();
                   errorDvo.setErrorRow(row);
                   errorDvo.setHeaderName(headerTitle.get("controlType"));
-                  errorDvo.setErrorData(messageService.getMessage("조정유형은 숫자로 입력해주세요."));
+                  errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_TP_NUM_IN")); // 조정유형은 숫자로 입력해주세요.
                   errorDvos.add(errorDvo);
               }
           }
@@ -390,7 +405,8 @@ public class WwdcSalesControlService {
                 errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(headerTitle.get("controlReason"));
-                errorDvo.setErrorData(messageService.getMessage("조정사유의 글이 너무 길어 등록할수 없습니다. 글자 수를 줄여주세요. (최대 333자리)"));
+                errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_RSON_LNTH_RDCT"));
+                // 조정사유의 글이 너무 길어 등록할 수 없습니다. 글자 수를 줄여주세요. (최대 333자리)
                 errorDvos.add(errorDvo);
               }
           }
@@ -402,17 +418,24 @@ public class WwdcSalesControlService {
 
   }
 
+    /**
+     * 매출조정 엑셀 업로드
+     * @param exmpYn
+     * @param file
+     * @return ExcelUploadDto.UploadRes
+     * @throws Exception
+     */
     @Transactional
     public ExcelUploadDto.UploadRes saveSalesControlExcelUpload(String exmpYn, MultipartFile file) throws Exception {
             Map<String, String> headerTitle = new LinkedHashMap<>();
-            headerTitle.put("controlYear", messageService.getMessage("조정년도"));
-            headerTitle.put("controlMonth", messageService.getMessage("조정월"));
-            headerTitle.put("cntrDtlNo", messageService.getMessage("계약상세번호"));
-            headerTitle.put("orderType", messageService.getMessage("주문유형"));
-            headerTitle.put("controlAmount", messageService.getMessage("조정금액"));
-            headerTitle.put("controlDivide", messageService.getMessage("조정구분"));
-            headerTitle.put("controlType", messageService.getMessage("조정유형"));
-            headerTitle.put("controlReason", messageService.getMessage("조정사유"));
+            headerTitle.put("controlYear", messageService.getMessage("MSG_TXT_CTR_Y")); // 조정년도
+            headerTitle.put("controlMonth", messageService.getMessage("MSG_TXT_CTR_MM")); // 조정월
+            headerTitle.put("cntrDtlNo", messageService.getMessage("MSG_TXT_CNTR_DTL_NO")); // 계약상세번호
+            headerTitle.put("orderType", messageService.getMessage("MSG_TXT_ORD_TYP")); // 주문유형
+            headerTitle.put("controlAmount", messageService.getMessage("MSG_TXT_CTR_AMT")); // 조정금액
+            headerTitle.put("controlDivide", messageService.getMessage("MSG_TXT_CTR_DV")); // 조정구분
+            headerTitle.put("controlType", messageService.getMessage("MSG_TXT_CTR_TP")); // 조정유형
+            headerTitle.put("controlReason", messageService.getMessage("MSG_TXT_CTR_RSON")); // 조정사유
 
             String status = "S";
 

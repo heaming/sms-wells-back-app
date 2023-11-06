@@ -36,6 +36,12 @@ import lombok.extern.slf4j.Slf4j;
 public class WwdcSalesControlController {
     private final WwdcSalesControlService service;
 
+    /**
+     * 매출조정 금액 조회 / 페이징
+     * @param dto 매출조정 금액 조회 DTO
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchSalesControlRes>
+     */
     @ApiOperation(value = "[WDC] 매출조정조회", notes = "매출조정 금액을 조회합니다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "sellTp", value = "판매유형", paramType = "query"),
@@ -60,6 +66,11 @@ public class WwdcSalesControlController {
         return service.getSalesControl(dto, pageInfo);
     }
 
+    /**
+     * 매출조정 금액 조회 / 엑셀 다운로드
+     * @param dto 매출조정 금액 조회 DTO
+     * @return List<SearchSalesControlRes>
+     */
     @ApiOperation(value = "[WDC] 매출조정조회 엑셀다운로드", notes = "매출조정 조회결과를 엑셀 다운로드합니다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "sellTp", value = "판매유형", paramType = "query"),
@@ -81,6 +92,12 @@ public class WwdcSalesControlController {
         return service.getSalesControlForExcelDownload(dto);
     }
 
+    /**
+     * 매출조정 데이터 저장
+     * @param dto 매출조정 데이터 저장 DTO
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "매출조정관리 저장", notes = "매출조정 데이터를 수정한다.")
     @PostMapping("/save")
     public SaveResponse saveSalesControl(
@@ -96,6 +113,12 @@ public class WwdcSalesControlController {
             .build();
     }
 
+    /**
+     * 매출조정 데이터 삭제
+     * @param req 매출조정 데이터 삭제 DTO
+     * @return List<RemoveSalesControlReq>
+     * @throws Exception
+     */
     @ApiOperation(value = "매출조정관리 삭제", notes = "매출조정 데이터를 삭제한다.")
     @DeleteMapping("/delete")
     public SaveResponse removeSalesControl(
@@ -107,9 +130,15 @@ public class WwdcSalesControlController {
         return SaveResponse
             .builder()
             .processCount(service.removeSalesControl(req)).build();
-
     }
 
+    /**
+     * 매출조정관리 엑셀 업로드
+     * @param exmpYn
+     * @param file
+     * @return UploadRes
+     * @throws Exception
+     */
     @ApiOperation(value = "매출조정관리 엑셀 업로드", notes = "매출조정관리 데이터를 엑셀 업로드한다.")
     @PostMapping("{exmpYn}/excel-upload")
     public UploadRes saveSalesControlExcelUpload(
