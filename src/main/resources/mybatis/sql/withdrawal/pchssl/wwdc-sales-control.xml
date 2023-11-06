@@ -6,7 +6,7 @@
             resultType="com.kyowon.sms.wells.web.withdrawal.pchssl.dto.WwdcSalesControlDto$SearchSalesControlRes">
          SELECT T1.CNTR_NO /* 계약번호 */
               , T1.CNTR_SN /* 계약일련번호 */
-              , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 */
+              , T1.CNTR_NO ||'-'|| T1.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 */
               , T5.CST_KNM /* 고객명(한글) */
               , T1.SL_CTR_STRT_YM /* 조정시작년월 */
               , T1.SL_CTR_END_YM /* 조정종료년월 */
@@ -52,15 +52,16 @@
                      )
                 ) FNL_MDFC_USR_ID
            FROM TB_RVDW_SL_CTR_BAS T1 /* 매출조정기본 */
+           JOIN TB_SSCT_CNTR_DTL T3 /* 계약상세 */
+             ON T3.CNTR_NO =  T1.CNTR_NO
+            AND T3.CNTR_SN =  T1.CNTR_SN
+            AND T3.DTA_DL_YN = 'N'
            JOIN TB_SSCT_CNTR_BAS T2  /* 계약기본 */
              ON T1.CNTR_NO = T2.CNTR_NO
-            AND T1.DTA_DL_YN = 'N'
             AND T2.DTA_DL_YN = 'N'
-           JOIN TB_SSCT_CNTR_DTL T3 /* 계약상세 */
-             ON T2.CNTR_NO =  T3.CNTR_NO
-            AND T3.DTA_DL_YN = 'N'
            JOIN TB_PDBS_PD_BAS T4 /* 상품기본 */
              ON T3.BASE_PD_CD = T4.PD_CD
+            AND T4.DTA_DL_YN = 'N'
            JOIN TB_CUBS_CST_BAS T5  /* 고객기본 */
              ON T2.CNTR_CST_NO = T5.CST_NO
             AND T5.DTA_DL_YN = 'N'
@@ -111,9 +112,11 @@
            FROM TB_RVDW_SL_CTR_BAS T1 /* 매출조정기본 */
           WHERE 1=1
             AND CNTR_NO = #{cntrNo}
-            AND SL_CTR_STRT_YM = #{slCtrStrtYm}
-            AND SL_CTR_MTR_DV_CD = #{slCtrMtrDvCd}
-            AND SL_CTR_SELL_TP_CD = #{slCtrSellTpCd}
+            AND CNTR_SN = #{cntrSn}
+            AND SL_CTR_SELL_TP_CD = #{orderType}
+            AND SL_CTR_MTR_DV_CD = '1'
+            AND SL_CTR_MTR_TP_CD = '1'
+            AND SL_CTR_STRT_YM = #{controlYear}||#{controlMonth}
     </select>
 
 
@@ -318,4 +321,82 @@
            AND SL_CTR_MTR_TP_CD = #{slCtrMtrTpCd}
            AND SL_CTR_STRT_YM = #{slCtrStrtYm}
     </update>
+
+    <insert id="insertExcelUploadSalesControl">
+        INSERT INTO TB_RVDW_SL_CTR_BAS (
+        	  CNTR_NO
+        	, CNTR_SN
+        	, SL_CTR_SELL_TP_CD
+        	, SL_CTR_MTR_DV_CD
+        	, SL_CTR_MTR_TP_CD
+        	, SL_CTR_STRT_YM
+        	, SL_CTR_END_YM
+        	, SL_CTR_DV_CD
+        	, SL_CTR_DSC_TP_CD
+        	, SL_CTR_AMT
+        	, SL_CTR_RMK_CN
+           <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+        	  #{cntrNo}
+        	, #{cntrSn}
+        	, #{orderType}
+        	, '1'
+        	, '1'
+        	, #{controlYear}||#{controlMonth}
+        	, #{controlYear}||#{controlMonth}
+        	, #{controlDivide}
+        	, #{controlType}
+        	, #{controlAmount}
+        	, #{controlReason}
+          <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+    <insert id="insertExcelUploadSalesControlHistory">
+        INSERT INTO TB_RVDW_SL_CTR_BAS_HIST (
+        	  CNTR_NO
+        	, CNTR_SN
+        	, SL_CTR_SELL_TP_CD
+        	, SL_CTR_MTR_DV_CD
+        	, SL_CTR_MTR_TP_CD
+        	, SL_CTR_STRT_YM
+            , SL_CTR_CH_SN
+        	, SL_CTR_END_YM
+        	, SL_CTR_DV_CD
+        	, SL_CTR_DSC_TP_CD
+        	, SL_CTR_AMT
+        	, SL_CTR_RMK_CN
+           <include refid="COMMON.insertSystemField"/>
+        ) SELECT CNTR_NO
+               , CNTR_SN
+               , SL_CTR_SELL_TP_CD
+               , SL_CTR_MTR_DV_CD
+               , SL_CTR_MTR_TP_CD
+               , SL_CTR_STRT_YM
+               , (SELECT NVL(MAX(SL_CTR_CH_SN),0) + 1
+                    FROM TB_RVDW_SL_CTR_BAS_HIST
+                   WHERE 1 = 1
+                     AND CNTR_NO = #{cntrNo}
+                     AND CNTR_SN = #{cntrSn}
+                     AND SL_CTR_SELL_TP_CD = #{orderType}
+                     AND SL_CTR_MTR_DV_CD = '1'
+                     AND SL_CTR_MTR_TP_CD = '1'
+                     AND SL_CTR_STRT_YM = #{controlYear}||#{controlMonth} )
+               , SL_CTR_END_YM
+               , SL_CTR_DV_CD
+               , SL_CTR_DSC_TP_CD
+               , SL_CTR_AMT
+               , SL_CTR_RMK_CN
+            <include refid="COMMON.insertSystemFieldValue" />
+            FROM TB_RVDW_SL_CTR_BAS
+           WHERE 1 = 1
+             AND CNTR_NO = #{cntrNo}
+             AND CNTR_SN = #{cntrSn}
+             AND SL_CTR_SELL_TP_CD = #{orderType}
+             AND SL_CTR_MTR_DV_CD = '1'
+             AND SL_CTR_MTR_TP_CD = '1'
+             AND SL_CTR_STRT_YM = #{controlYear}||#{controlMonth}
+    </insert>
+
+
 </mapper>
