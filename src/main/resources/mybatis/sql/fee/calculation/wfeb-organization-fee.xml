@@ -534,7 +534,7 @@
              , BIZ_CLTN	/* 업무등록-업무해약월 */
              , PRFMT_MM	/* 승진월-지점장은 승진월, 플래너는 강등월*/
              , PRFMT_NMN /*승진차월*/
-             , NVL(METG_PRSC_DC, 0) AS METG_PRSC_DC	/* 미팅참석일수 */
+             , CASE WHEN RSB_DV_CD = 'W0205' THEN NVL(INDV_METG_PRSC_DC, 0) ELSE NVL(OG_METG_PRSC_DC, 0) END AS METG_PRSC_DC	/* 미팅참석일수 */
              , STRTUP	/* 교육-스타트업 */
              , PRE_STRTUP	/* 교육-프리스타트업 */
              , EDU_CMPF	/* 교육-보수교육최종(129)수료여부 */
@@ -622,7 +622,8 @@
     	                   ELSE SUBSTR(PRTNR.DMTN_DT, 1, 6) END AS PRFMT_MM	/* 승진월-지점장은 승진월 플래너는 강등월 */
                     , CASE WHEN PRTNR.PRFMT_DT IS NOT NULL THEN CEIL(MONTHS_BETWEEN(TO_DATE(PRTNR.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(PRTNR.PRFMT_DT, 'YYYYMMDD')))+1
                            ELSE 0 END AS PRFMT_NMN /*승진차월*/
-                    , NVL(MT.PERF_VAL, 0) AS METG_PRSC_DC	/* 미팅참석일수 */
+                    , NVL(INDVMT.PERF_VAL, 0) AS INDV_METG_PRSC_DC	/* 개인미팅참석일수 */
+                    , NVL(OGMT.PERF_VAL, 0) AS OG_METG_PRSC_DC	/* 지점장미팅참석일수 */
                     , EDU.EDU96_YM AS STRTUP	/* 스타트업 */
                     , EDU.EDU143_YM AS PRE_STRTUP	/* 프리스타트업 */
                     , EDU.EDU17_YM AS TOPMR_SETTLE	/* 수석정착 */
@@ -696,14 +697,26 @@
                    ON PRTNR.BASE_YM = OG.BASE_YM
                   AND PRTNR.OG_ID = OG.OG_ID
                   AND OG.DTA_DL_YN = 'N'
-                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL MT	/* 파트너실적월마감 */
-                   ON PRTNR.BASE_YM = MT.BASE_YM
-                  AND PRTNR.BASE_YM = MT.PERF_YM
-                  AND PRTNR.OG_TP_CD = MT.OG_TP_CD
-                  AND PRTNR.PRTNR_NO = MT.PRTNR_NO
-                  AND MT.FEE_TCNT_DV_CD = #{dto.feeTcntDvCd}
-                  AND MT.PERF_ATC_CD = 'W02P00093'    /*미팅참석일수*/
-                  <!--AND MT.PERF_AGRG_CRT_DV_CD = '201'-->
+                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL INDVMT	/* 파트너실적월마감 */
+                   ON PRTNR.BASE_YM = INDVMT.BASE_YM
+                  AND PRTNR.BASE_YM = INDVMT.PERF_YM
+                  AND PRTNR.OG_TP_CD = INDVMT.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = INDVMT.PRTNR_NO
+                  AND INDVMT.FEE_TCNT_DV_CD = #{dto.feeTcntDvCd}
+                  AND INDVMT.PERF_ATC_CD = 'W02P00093'    /*미팅참석일수*/
+                 LEFT OUTER JOIN
+                 	( SELECT AGRG_YM
+                 		   , OG_TP_CD
+                 		   , PRTNR_NO
+                 		   , METG_PRSC_DC AS PERF_VAL
+                 	    FROM TB_PSCA_MCPTN_METG_AGRG
+                 	   WHERE DTA_DL_YN = 'N'
+                 	     AND AGRG_YM = #{dto.perfYm}
+                 	     AND OG_TP_CD = 'W02'
+                 	) OGMT
+                   ON PRTNR.BASE_YM = OGMT.AGRG_YM
+                  AND PRTNR.OG_TP_CD = OGMT.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = OGMT.PRTNR_NO
                  LEFT OUTER JOIN
                     ( SELECT MIN(STRTDT) AS MNGER_FST_OPNG /* 매니저 최초개시일 */
                            , PRTNR_NO
@@ -1157,7 +1170,7 @@
              , BIZ_CLTN	/* 업무등록-업무해약월 */
              , PRFMT_MM	/* 승진월-지점장은 승진월, 플래너는 강등월*/
              , PRFMT_NMN /*승진차월*/
-             , METG_PRSC_DC	/* 미팅참석일수 */
+             , CASE WHEN RSB_DV_CD = 'W0205' THEN NVL(INDV_METG_PRSC_DC, 0) ELSE NVL(OG_METG_PRSC_DC, 0) END AS METG_PRSC_DC	/* 미팅참석일수 */
              , STRTUP	/* 교육-스타트업 */
              , PRE_STRTUP	/* 교육-프리스타트업 */
              , EDU_CMPF	/* 교육-보수교육최종(129)수료여부 */
@@ -1270,7 +1283,8 @@
     	                   ELSE SUBSTR(PRTNR.DMTN_DT, 1, 6) END AS PRFMT_MM	/* 승진월-지점장은 승진월 플래너는 강등월 */
                     , CASE WHEN PRTNR.PRFMT_DT IS NOT NULL THEN CEIL(MONTHS_BETWEEN(TO_DATE(PRTNR.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(PRTNR.PRFMT_DT, 'YYYYMMDD')))+1
                            ELSE 0 END AS PRFMT_NMN /*승진차월*/
-                    , NVL(MT.PERF_VAL, 0) AS METG_PRSC_DC	/* 미팅참석일수 */
+                    , NVL(INDVMT.PERF_VAL, 0) AS INDV_METG_PRSC_DC	/* 미팅참석일수 */
+                    , NVL(OGMT.PERF_VAL, 0) AS OG_METG_PRSC_DC	/* 미팅참석일수 */
                     , EDU.EDU96_YM AS STRTUP	/* 스타트업 */
                     , EDU.EDU143_YM AS PRE_STRTUP	/* 프리스타트업 */
                     , EDU.EDU17_YM AS TOPMR_SETTLE	/* 수석정착 */
@@ -1391,13 +1405,26 @@
                    ON PRTNR.BASE_YM = OG.BASE_YM
                   AND PRTNR.OG_ID = OG.OG_ID
                   AND OG.DTA_DL_YN = 'N'
-                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL MT	/* 파트너실적월마감 */
-                   ON PRTNR.BASE_YM = MT.BASE_YM
-                  AND PRTNR.BASE_YM = MT.PERF_YM
-                  AND PRTNR.OG_TP_CD = MT.OG_TP_CD
-                  AND PRTNR.PRTNR_NO = MT.PRTNR_NO
-                  AND MT.FEE_TCNT_DV_CD = #{feeTcntDvCd}
-                  AND MT.PERF_ATC_CD = 'W02P00093'    /*미팅참석일수*/
+                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL INDVMT	/* 파트너실적월마감 */
+                   ON PRTNR.BASE_YM = INDVMT.BASE_YM
+                  AND PRTNR.BASE_YM = INDVMT.PERF_YM
+                  AND PRTNR.OG_TP_CD = INDVMT.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = INDVMT.PRTNR_NO
+                  AND INDVMT.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                  AND INDVMT.PERF_ATC_CD = 'W02P00093'    /*미팅참석일수*/
+                 LEFT OUTER JOIN
+                 	( SELECT AGRG_YM
+                 		   , OG_TP_CD
+                 		   , PRTNR_NO
+                 		   , METG_PRSC_DC AS PERF_VAL
+                 	    FROM TB_PSCA_MCPTN_METG_AGRG
+                 	   WHERE DTA_DL_YN = 'N'
+                 	     AND AGRG_YM = #{perfYm}
+                 	     AND OG_TP_CD = 'W02'
+                 	) OGMT
+                   ON PRTNR.BASE_YM = OGMT.AGRG_YM
+                  AND PRTNR.OG_TP_CD = OGMT.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = OGMT.PRTNR_NO
                  LEFT OUTER JOIN
                     ( SELECT MIN(STRTDT) AS MNGER_FST_OPNG /* 매니저 최초개시일 */
                            , PRTNR_NO
