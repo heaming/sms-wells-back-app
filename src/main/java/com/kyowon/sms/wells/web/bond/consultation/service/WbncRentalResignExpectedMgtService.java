@@ -158,8 +158,6 @@ public class WbncRentalResignExpectedMgtService {
         // 직권해지 관리 취소자료 업데이트
         if ("02".equals(dto.confirmDvCd())) {
             SaveCancelReq cancelDto = this.converter.mapSaveReqToCancleDto(dto);
-            // 직권해지 취소자료 등록
-            this.mapper.insertRentalResignExpectedCancel(cancelDto);
             // 계약해지처리내역 등록
             this.mapper.insertRentalCntrResignExpctCancel(cancelDto);
         }
