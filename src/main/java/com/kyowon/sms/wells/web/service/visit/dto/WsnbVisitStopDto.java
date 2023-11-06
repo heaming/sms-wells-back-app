@@ -23,7 +23,7 @@ public class WsnbVisitStopDto {
     @ApiModel(value = "WsnbVisitStopInquiryDto-SearchHistoryRes")
     public record SearchHistoryRes(
         String akDt,
-        String cntrNo,
+        String cntrDtlNo,
         String sppStpDvCd,
         String prtnrKnm,
         String prtnrNo,
