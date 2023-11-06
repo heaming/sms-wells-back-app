@@ -24,6 +24,8 @@ public class WsnbVisitStopDto {
     public record SearchHistoryRes(
         String akDt,
         String cntrDtlNo,
+        String cntrNo,
+        String cntrSn,
         String sppStpDvCd,
         String prtnrKnm,
         String prtnrNo,
