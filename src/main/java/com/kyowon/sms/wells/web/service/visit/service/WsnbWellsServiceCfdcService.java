@@ -210,17 +210,17 @@ public class WsnbWellsServiceCfdcService {
         String baseUrl = "";
         switch (activeProfile) {
             case "dev":
-                baseUrl = "https://d-wsm.kyowon.co.kr";
+                baseUrl = "https://d-cswl.kyowon.co.kr";
                 break;
             case "qa":
-                baseUrl = "https://q-wsm.kyowon.co.kr";
+                baseUrl = "https://q-cswl.kyowon.co.kr";
                 break;
             case "local":
                 baseUrl = "http://localhost:8080";
                 break;
             case "prd":
             default:
-                baseUrl = "https://wsm.kyowon.co.kr";
+                baseUrl = "https://cswl.kyowon.co.kr";
                 break;
         }
         return baseUrl;
