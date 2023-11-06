@@ -399,6 +399,7 @@ public class WogcPartnerPlannerService {
                 SaveAppointReq transferDto = SaveAppointReq.builder()
                     .ogTpCd(qualificationDvo.getOgTpCd())
                     .prtnrNo(qualificationDvo.getPrtnrNo())
+                    .ogId(qualificationDvo.getOgId())
                     .gaoorDvCd(
                         com.kyowon.sms.common.web.organization.zcommon.constants.OgConst.GaoorTpCd.GAOOR_TP_CD_10
                             .getCode()
