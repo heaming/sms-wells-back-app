@@ -326,7 +326,10 @@
             ,'1' AS CCAM_EXMPT_DV_CD   /* 위약금면책구분코드-T1.EXMPT_YN  */
             ,'1' AS CSMB_CS_EXMPT_DV_CD   /* 소모품비용면책구분코드 */
             ,'1' AS REQD_CS_EXMPT_DV_CD   /* 철거비용면책구분코드 */
-            ,0 AS PD_USE_DC   /* 상품사용일수 */
+            ,(LAST_DAY(TO_DATE(#{baseYm} || '01')) - (SELECT TO_DATE(MIN(SLIP_SL_DT)) /* 매출일자 */
+                                                    FROM TB_CBCL_WELLS_SL_CNFM_BAS
+                                                    WHERE CNTR_NO = B.CNTR_NO
+                                                    AND CNTR_SN = B.CNTR_SN)) AS PD_USE_DC   /* 상품사용일수 */
             ,B.PD_GD_CD   /* 상품등급코드 */
             ,D.PRM_RFND_AMT   /* 선납환불금액 */
             ,0 AS PRPD_RFND_AMT   /* 선수환불금액 */
@@ -408,17 +411,15 @@
             AND E.DTA_DL_YN = 'N'
     </insert>
 
-    <update id="updateRegularShippingResignFinalConfirm">
-        /* 직권해지관리 - 정기배송해지 최종확정 */
-        UPDATE TB_CBBO_WELLS_AUTH_RSG_IZ /*T:WELLS직권해지내역*/
-           SET AUTH_RSG_CNFM_YN = 'Y'
-             , AUTH_RSG_CNFMDT = TO_CHAR(SYSDATE,'YYYYMMDD')
-             , AUTH_RSG_CNFM_RGST_PRTNR_NO = #{session.employeeIDNumber}
-         WHERE 1 = 1
-           AND DTA_DL_YN = 'N'
-           AND AUTH_RSG_EXP_YN = 'Y'
-           AND BASE_YM = #{baseYm}
-           AND CNTR_NO = #{cntrNo}
-           AND CNTR_SN = #{cntrSn}
+    <update id="updateRegularShippingSales">
+        /* 직권해지관리 - 정기배송해지 월매출마감 취소일자 업데이트 */
+        UPDATE TB_CBCL_WELLS_SL_MM_CL_IZ /*T:WELLS매출월마감내역*/
+        SET CAN_DT = LAST_DAY(TO_DATE(#{baseYm} || '01'))
+        <include refid="COMMON.updateSystemField"/>
+        WHERE 1 = 1
+            AND SL_CL_YM = #{baseYm}
+            AND CNTR_NO = #{cntrNo}
+            AND CNTR_SN = #{cntrSn}
+            AND DTA_DL_YN = 'N'
     </update>
 </mapper>

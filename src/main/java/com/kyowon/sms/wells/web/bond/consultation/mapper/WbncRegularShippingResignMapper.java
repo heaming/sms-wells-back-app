@@ -13,4 +13,6 @@ public interface WbncRegularShippingResignMapper {
     List<SearchRes> selectRegularShippingResigns(SearchReq dto);
 
     int insertRegularShippingResignsCancel(WbncAuthorityResignIzDvo dvo);
+
+    int updateRegularShippingSales(WbncAuthorityResignIzDvo dvo);
 }
