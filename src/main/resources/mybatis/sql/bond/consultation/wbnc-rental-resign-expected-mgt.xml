@@ -1710,8 +1710,8 @@
                  , T1.DLQ_AMT /* 연체금액 */
                  , T1.RQDT AS RSG_APLC_DT   /* 해지신청일자  */
                  , T1.CAN_DT AS RSG_FSH_DT   /* 해지완료일자  */
-                 , '302' AS CNTR_STAT_CH_RSON_CD   /* 계약상태변경사유코드  */
-                 , T1.EXMPT_YN AS CCAM_EXMPT_DV_CD   /* 위약금면책구분코드  */
+                 , '78' AS CNTR_STAT_CH_RSON_CD   /* 계약상태변경사유코드  */
+                 , '1' AS CCAM_EXMPT_DV_CD   /* 위약금면책구분코드  */
                  , '' AS CSMB_CS_EXMPT_DV_CD   /* 소모품비용면책구분코드  */
                  , '' AS REQD_CS_EXMPT_DV_CD   /* 철거비용면책구분코드  */
                  , '' AS REQD_AK_RCVRY_DV_CD   /* 철거요청복구구분코드  */
@@ -1782,6 +1782,10 @@
                                            AND J1.CNTR_SN = T1.CNTR_SN
                                         ) T4
                  ON 1 = 1
+               LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T5 /*T:WELLS매출월마감내역*/
+                 ON T5.SL_CL_YM = T1.BASE_YM
+                AND T5.CNTR_NO = T1.CNTR_NO
+                AND T5.CNTR_SN = T1.CNTR_SN
              WHERE 1 = 1
                AND T1.SELL_TP_CD IN ('2','6') /* 판매유형코드 */
                AND T1.AUTH_RSG_EXP_YN = 'Y' /* 직권해지예정여부 */
@@ -1790,14 +1794,14 @@
                /* 기존에 등록된 대상 제외 */
                AND NOT EXISTS (
                                 SELECT 1
-                                  FROM TB_CBBO_WELLS_AUTH_RSG_CAN_IZ Z1 /* T:WELLS직권해지취소내역 */
+                                  FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:WELLS직권해지취소내역 */
                                  WHERE 1 = 1
                                    AND DTA_DL_YN = 'N'
                                    AND Z1.CNTR_NO = T1.CNTR_NO
                                    AND Z1.CNTR_SN = T1.CNTR_SN
                               )
                 /* -- 총미납금 0원 제외 */
-               AND T1.TOT_NPD_AMT - (NVL(T1.PRPD_BTD_AMT,0) + NVL(RVE_AMT,0) - NVL(RFND_AMT,0) ) > 0
                AND T1.BASE_YM = TO_CHAR(TO_DATE(#{baseDt}),'YYYYMM')
+	           AND NVL(T5.RENTAL_AMT * 3, 0) <![CDATA[<]]> (NVL(T1.TOT_NPD_AMT,0) - (NVL(T5.BTD_ATAM,0) + NVL(T4.RVE_AMT,0) - NVL(T4.RFND_AMT,0)))   /* 렌탈금액*3 총미납금 */
     </insert>
 </mapper>
