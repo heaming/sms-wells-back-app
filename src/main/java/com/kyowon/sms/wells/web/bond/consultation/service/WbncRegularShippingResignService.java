@@ -57,15 +57,18 @@ public class WbncRegularShippingResignService {
         for (SaveConfirmReq dto : dtos) {
             WbncAuthorityResignIzDvo dvo = this.converter.mapSaveConfirmReqToAuthorityResignIzDvo(dto);
             // 정기배송 해지 최종 확정 시 계약해지처리내역 등록
-            int result = this.mapper.insertRegularShippingResignsCancel(dvo);
-            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
+            int insertResult = this.mapper.insertRegularShippingResignsCancel(dvo);
+            BizAssert.isTrue(insertResult == 1, "MSG_ALT_SVE_ERR");
+
+            // 월매출마감 취소일자 업데이트
+            int updateResult = this.mapper.updateRegularShippingSales(dvo);
+            BizAssert.isTrue(updateResult == 1, "MSG_ALT_SVE_ERR");
 
             // 직권 해지된 계약 건에 대하여 계약 상태를 '연체 해약(302)' 으로 변경
             WctbContractDtlStatCdChDvo wctbContractDtlStatCdChDvo = new WctbContractDtlStatCdChDvo();
             wctbContractDtlStatCdChDvo.setCntrNo(dvo.getCntrNo());
             wctbContractDtlStatCdChDvo.setCntrSn(String.valueOf(dvo.getCntrSn()));
             wctbContractDtlStatCdChDvo.setCntrDtlStatCd(WctzCntrDtlStatCd.CLTN_DLQ.getCode());
-
             try {
                 wctbContractDtlStatCdChService.editContractDtlStatCdCh(wctbContractDtlStatCdChDvo);
             } catch (Exception e) {
