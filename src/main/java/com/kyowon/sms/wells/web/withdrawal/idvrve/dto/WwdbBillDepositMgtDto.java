@@ -77,7 +77,8 @@ public class WwdbBillDepositMgtDto {
     public record SearchDetailReq(
         String bzrno, /* 사업자등록번호 */
         String cntrNo, /* 계약번호 */
-        String cntrSn /* 계약일련번호 */
+        String cntrSn,
+        String itgDpNo/* 계약일련번호 */
     ) {
 
     }
