@@ -212,7 +212,7 @@
                 </otherwise>
             </choose>
           FROM TB_SSCT_CNTR_STLM_REL A1 /*계약결제관계*/
-          JOIN TB_SSCT_CNTR_STLM_BAS B1 /*계약결제기본*/
+          JOIN TB_SSCT_CNTR_STLM_CH_HIST B1 /*계약결제변경이력*/
             ON B1.DTA_DL_YN = 'N'
            AND B1.CNTR_STLM_ID = A1.CNTR_STLM_ID
         <choose>
@@ -223,6 +223,7 @@
                              , A2.AC_FNT_RS_CD FNT_RS_CD
                              , A2.ACNO_ENCR AC_CR_ENCR
                              , 'AC' AS FNT_DV
+                             , ROW_NUMBER() OVER(PARTITION BY C2.CNTR_NO, C2.CNTR_SN ORDER BY B2.BIL_DT DESC) AS ROW_NUM
                           FROM TB_RVCL_AC_FNT_SEND_MTR_IZ A2
                           JOIN TB_RVCL_BIL_FNT_AK_BAS B2
                             ON B2.DTA_DL_YN = 'N'
@@ -243,6 +244,7 @@
                              , A2.CARD_FNT_RS_CD FNT_RS_CD
                              , A2.CRCDNO_ENCR AC_CR_ENCR
                              , 'CA' AS FNT_DV
+                             , ROW_NUMBER() OVER(PARTITION BY C2.CNTR_NO, C2.CNTR_SN ORDER BY B2.BIL_DT DESC) AS ROW_NUM
                           FROM TB_RVCL_CARD_FNT_SEND_MTR_IZ A2
                           JOIN TB_RVCL_BIL_FNT_AK_BAS B2
                             ON B2.DTA_DL_YN = 'N'
@@ -260,6 +262,7 @@
                        ) C1
                     ON C1.CNTR_NO = A1.DTL_CNTR_NO
                    AND C1.CNTR_SN = A1.DTL_CNTR_SN
+                   AND C1.ROW_NUM = 1
             </when>
             <otherwise>
                 <if test='@MybatisUtils@equals(fntDvCd, "01")'>
@@ -268,6 +271,7 @@
                              , C2.CNTR_SN
                              , A2.AC_FNT_RS_CD
                              , A2.ACNO_ENCR
+                             , ROW_NUMBER() OVER(PARTITION BY C2.CNTR_NO, C2.CNTR_SN ORDER BY B2.BIL_DT DESC) AS ROW_NUM
                           FROM TB_RVCL_AC_FNT_SEND_MTR_IZ A2
                           JOIN TB_RVCL_BIL_FNT_AK_BAS B2
                             ON B2.DTA_DL_YN = 'N'
@@ -280,6 +284,7 @@
                        ) C1
                     ON C1.CNTR_NO = A1.DTL_CNTR_NO
                    AND C1.CNTR_SN = A1.DTL_CNTR_SN
+                   AND C1.ROW_NUM = 1
                 </if>
                 <if test='@MybatisUtils@equals(fntDvCd, "02")'>
                   JOIN (
@@ -287,6 +292,7 @@
                              , C2.CNTR_SN
                              , A2.CARD_FNT_RS_CD
                              , A2.CRCDNO_ENCR
+                             , ROW_NUMBER() OVER(PARTITION BY C2.CNTR_NO, C2.CNTR_SN ORDER BY B2.BIL_DT DESC) AS ROW_NUM
                           FROM TB_RVCL_CARD_FNT_SEND_MTR_IZ A2
                           JOIN TB_RVCL_BIL_FNT_AK_BAS B2
                             ON B2.DTA_DL_YN = 'N'
@@ -299,6 +305,7 @@
                        ) C1
                     ON C1.CNTR_NO = A1.DTL_CNTR_NO
                    AND C1.CNTR_SN = A1.DTL_CNTR_SN
+                   AND C1.ROW_NUM = 1
                 </if>
             </otherwise>
         </choose>
