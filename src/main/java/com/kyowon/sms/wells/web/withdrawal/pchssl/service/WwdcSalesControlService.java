@@ -120,11 +120,10 @@ public class WwdcSalesControlService {
 
                         zdcbSalesDiscountCancelService.createSalesDiscountCancelData(zdcbSalesDiscountCancelDvo);
                     }
-//                    processCount += mapper.updateSalesConfirm(dvo); // 매출확정테이블 업데이트(조정금액)
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
                     processCount += mapper.updateSalesControl(dvo); // 매출조정T 수정
-                    processCount += mapper.updateSalesControlHistory(dvo); // 매출조정이력T 수정
+                    processCount += mapper.insertSalesControlHistory(dvo); // 매출조정이력T 삽입
                 }
                 default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
             }
