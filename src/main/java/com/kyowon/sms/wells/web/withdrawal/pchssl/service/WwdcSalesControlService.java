@@ -107,19 +107,24 @@ public class WwdcSalesControlService {
                     processCount += mapper.insertSalesControl(dvo); // 매출조정T 삽입
                     processCount += mapper.insertSalesControlHistory(dvo); // 매출조정이력T 삽입
 
-                    if ("1".equals(dvo.getSlCtrMtrDvCd())) {
-                        zdcbSalesDiscountCancelDvo = new ZdcbSalesDiscountCancelDvo();
-                        zdcbSalesDiscountCancelDvo.setCntrNo(dvo.getCntrNo()); //계약번호
-                        zdcbSalesDiscountCancelDvo.setCntrSn(Integer.parseInt(dvo.getCntrSn())); //계약일련번호
-                        zdcbSalesDiscountCancelDvo.setSlRcogDt(sysDateYmd); //매출인식일자
-                        zdcbSalesDiscountCancelDvo.setKwGrpCoCd(session.getCompanyCode()); //교원코드
-                        zdcbSalesDiscountCancelDvo.setSlRcogDvCd("04"); //매출인식구분코드
-                        if (StringUtil.isNotEmpty(dvo.getSlCtrAmt())) {
-                            zdcbSalesDiscountCancelDvo.setSlCtrAmt(Long.parseLong(dvo.getSlCtrAmt())); //조정금액
-                        }
+                    zdcbSalesDiscountCancelDvo = new ZdcbSalesDiscountCancelDvo();
+                    zdcbSalesDiscountCancelDvo.setCntrNo(dvo.getCntrNo()); //계약번호
+                    zdcbSalesDiscountCancelDvo.setCntrSn(Integer.parseInt(dvo.getCntrSn())); //계약일련번호
+                    zdcbSalesDiscountCancelDvo.setSlRcogDt(sysDateYmd); //매출인식일자
+                    zdcbSalesDiscountCancelDvo.setKwGrpCoCd(session.getCompanyCode()); //교원코드
+                    zdcbSalesDiscountCancelDvo.setSlRcogDvCd("04"); //매출인식구분코드
 
-                        zdcbSalesDiscountCancelService.createSalesDiscountCancelData(zdcbSalesDiscountCancelDvo);
+                    if ("2".equals(dvo.getSlCtrMtrDvCd())) {
+                        zdcbSalesDiscountCancelDvo.setBorCtrYn("A");
+                    }else if("3".equals(dvo.getSlCtrMtrDvCd())){
+                        zdcbSalesDiscountCancelDvo.setBorCtrYn("Y");
                     }
+
+                    if (StringUtil.isNotEmpty(dvo.getSlCtrAmt())) {
+                       zdcbSalesDiscountCancelDvo.setSlCtrAmt(Long.parseLong(dvo.getSlCtrAmt())); //조정금액
+                   }
+
+                   zdcbSalesDiscountCancelService.createSalesDiscountCancelData(zdcbSalesDiscountCancelDvo);
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
                     processCount += mapper.updateSalesControl(dvo); // 매출조정T 수정
