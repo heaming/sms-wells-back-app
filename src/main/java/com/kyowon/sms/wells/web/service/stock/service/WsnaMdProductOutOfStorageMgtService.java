@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaMdProductOutOfStorageMgtConverter;
@@ -32,12 +33,14 @@ public class WsnaMdProductOutOfStorageMgtService {
     public List getMdProductOutOfStorages(SearchReq dto) {
         WsnaMdProdcutOutOfStorageSearchDvo dvo = converter.mapSearchReqToWsnaMdProdcutOutOfStorageSerachDvo(dto);
 
-        // 첫배송 여부가 전체 또는 N차인 경우
-        if ("ALL".equals(dvo.getFirstSppGb()) || "N".equals(dvo.getFirstSppGb())) {
-            // 검색조건 (종료일자) 매월 마지막 영업일이후인경우 해당월 마지막 일자까지 조회
-            String lasyDay = mapper.selectBusinessDays(dvo);
-            if (lasyDay.compareTo(dvo.getEndDt()) <= 0) {
-                dvo.setEndDt(DateUtil.getLastDateOfMonth(dvo.getEndDt()));
+        // 작업구분: (작업대기), 종료일자 존재 , 첫배송 여부가 (전체 또는 N차)인 경우
+        if ("2".equals(dvo.getFindGb()) && StringUtils.isNotEmpty(dvo.getEndDt())) {
+            if ("ALL".equals(dvo.getFirstSppGb()) || "N".equals(dvo.getFirstSppGb())) {
+                // 검색조건 (종료일자) 매월 마지막 영업일이후인경우 해당월 마지막 일자까지 조회
+                String lasyDay = mapper.selectBusinessDays(dvo);
+                if (lasyDay.compareTo(dvo.getEndDt()) <= 0) {
+                    dvo.setEndDt(DateUtil.getLastDateOfMonth(dvo.getEndDt()));
+                }
             }
         }
         return mapper.selectMdProductOutOfStorages(dvo);
