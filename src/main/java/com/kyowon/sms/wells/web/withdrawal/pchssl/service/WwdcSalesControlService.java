@@ -196,73 +196,80 @@ public class WwdcSalesControlService {
 
       for (WwdcSalesControlDvo dvo :lists) {
           ExcelUploadErrorDvo errorDvo;
-          String cntrDtlNo = dvo.getCntrDtlNo().replace("-", "");
 
-          String cntrNo = cntrDtlNo.substring(0, 12);
-          String cntrSn = cntrDtlNo.substring(12);
-          dvo.setCntrNo(cntrNo);
-          dvo.setCntrSn(cntrSn);
-
-          //조정년도가 비어있을경우
-          if(StringUtil.isEmpty(dvo.getControlYear())){
+          //시작년월 비어있을경우
+          if(StringUtil.isEmpty(dvo.getSlCtrStrtYm())){
               errorDvo = new ExcelUploadErrorDvo();
               errorDvo.setErrorRow(row);
-              errorDvo.setHeaderName(headerTitle.get("controlYear"));
+              errorDvo.setHeaderName(headerTitle.get("slCtrStrtYm"));
               errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
               errorDvos.add(errorDvo);
           }else{
-              if(dvo.getControlYear().matches(pattern)){
+              //시작년월
+              String slCtrStrtYm = dvo.getSlCtrStrtYm().replace("-", ""); //시작년월
+
+              if(slCtrStrtYm.matches(pattern)){
                   //날짜 길이가 4자리가 아닌 경우 오류 체크
-                  if(dvo.getControlYear().length() != 4){
+                  if(slCtrStrtYm.length() != 6){
                       errorDvo = new ExcelUploadErrorDvo();
                       errorDvo.setErrorRow(row);
-                      errorDvo.setHeaderName(headerTitle.get("controlYear"));
+                      errorDvo.setHeaderName(headerTitle.get("slCtrStrtYm"));
                       errorDvo.setErrorData(messageService.getMessage("MSG_TXT_NOT_APY_Y_MTP")); // 적용년도의 형식이 아닙니다.
                       errorDvos.add(errorDvo);
                   }
               }else{ //숫자 형식이 아닐 경우 오류 체크
                 errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
-                errorDvo.setHeaderName(headerTitle.get("controlYear"));
+                errorDvo.setHeaderName(headerTitle.get("slCtrStrtYm"));
                 errorDvo.setErrorData(messageService.getMessage("MSG_TXT_NOT_DATE_FORMAT")); // 올바른 날짜 형식이 아닙니다.
                 errorDvos.add(errorDvo);
               }
           }
-          //조정월이 비어있을경우
-          if(StringUtil.isEmpty(dvo.getControlMonth())){
+
+          //종료년월 비어있을경우
+          if(StringUtil.isEmpty(dvo.getSlCtrEndYm())){
               errorDvo = new ExcelUploadErrorDvo();
               errorDvo.setErrorRow(row);
-              errorDvo.setHeaderName(headerTitle.get("controlMonth"));
+              errorDvo.setHeaderName(headerTitle.get("slCtrEndYm"));
               errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
               errorDvos.add(errorDvo);
           }else{
-              if(dvo.getControlMonth().matches(pattern)){
+              //종료년월
+             String slCtrEndYm = dvo.getSlCtrEndYm().replace("-", ""); //종료년월
+
+              if(slCtrEndYm.matches(pattern)){
                    //날짜 길이가 2자리가 아닌 경우 오류 체크
-                   if(dvo.getControlMonth().length() != 2){
+                   if(slCtrEndYm.length() != 6){
                        errorDvo = new ExcelUploadErrorDvo();
                        errorDvo.setErrorRow(row);
-                       errorDvo.setHeaderName(headerTitle.get("controlYear"));
+                       errorDvo.setHeaderName(headerTitle.get("slCtrEndYm"));
                        errorDvo.setErrorData(messageService.getMessage("MSG_TXT_NOT_CTR_MM_MTP")); // 조정월의 형식이 아닙니다.
                        errorDvos.add(errorDvo);
                    }
                }else{ //숫자 형식이 아닐 경우 오류 체크
                  errorDvo = new ExcelUploadErrorDvo();
                  errorDvo.setErrorRow(row);
-                 errorDvo.setHeaderName(headerTitle.get("controlYear"));
+                 errorDvo.setHeaderName(headerTitle.get("slCtrEndYm"));
                  errorDvo.setErrorData(messageService.getMessage("MSG_TXT_NOT_DATE_FORMAT")); // 올바른 날짜 형식이 아닙니다.
                  errorDvos.add(errorDvo);
                }
-
           }
 
           //계약상세번호가 비어있을경우
-          if(StringUtil.isEmpty(cntrDtlNo)){
+          if(StringUtil.isEmpty(dvo.getCntrDtlNo())){
               errorDvo = new ExcelUploadErrorDvo();
               errorDvo.setErrorRow(row);
               errorDvo.setHeaderName(headerTitle.get("cntrDtlNo"));
               errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
               errorDvos.add(errorDvo);
           }else{
+              //계약상세번호
+                String cntrDtlNo = dvo.getCntrDtlNo().replace("-", "");//계약상세번호
+                String cntrNo = cntrDtlNo.substring(0, 12);
+                String cntrSn = cntrDtlNo.substring(12);
+                dvo.setCntrNo(cntrNo);
+                dvo.setCntrSn(cntrSn);
+
               //계약상세번호가 13보다 작거나 17자리보다 클 경우 오류 체크
               if(cntrDtlNo.length() < 13 && cntrDtlNo.length() < 17){
                   errorDvo = new ExcelUploadErrorDvo();
@@ -275,6 +282,8 @@ public class WwdcSalesControlService {
 
                   //계약조회
                   ZwwdbContractDetailInquiryDto.SearchRes cntrRes = zwwdbContractDetailInquiryMapper.selectContractDetailInquiry(cntrDto).get(0);
+
+                  dvo.setSlCtrSellTpCd(cntrRes.sellTpCd());
 
                   if(Objects.isNull(cntrRes)){
                     errorDvo = new ExcelUploadErrorDvo();
@@ -293,46 +302,146 @@ public class WwdcSalesControlService {
                   }
               }
           }
-          //주문유형이 비어있을경우
-          if(StringUtil.isEmpty(dvo.getOrderType())){
+
+          //자료구분이 비어있을경우
+          if(StringUtil.isEmpty(dvo.getSlCtrMtrDvCd())){
               errorDvo = new ExcelUploadErrorDvo();
               errorDvo.setErrorRow(row);
-              errorDvo.setHeaderName(headerTitle.get("orderType"));
+              errorDvo.setHeaderName(headerTitle.get("slCtrMtrDvCd"));
               errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
               errorDvos.add(errorDvo);
           }else{
-              if(dvo.getOrderType().matches(pattern)){
-                  if(dvo.getOrderType().length() != 1){
+              if(dvo.getSlCtrMtrDvCd().matches(pattern)){
+                  if(dvo.getSlCtrMtrDvCd().length() != 1){
                       errorDvo = new ExcelUploadErrorDvo();
                       errorDvo.setErrorRow(row);
-                      errorDvo.setHeaderName(headerTitle.get("orderType"));
-                      errorDvo.setErrorData(messageService.getMessage("MSG_TXT_ORD_TP_IN_ONE")); // 주문유형의 경우 한자리만 입력 가능합니다.
+                      errorDvo.setHeaderName(headerTitle.get("slCtrMtrDvCd"));
+                      errorDvo.setErrorData(messageService.getMessage("자료구분의 경우 한자리만 입력 가능합니다.")); // 자료구분의 경우 한자리만 입력 가능합니다.
                       errorDvos.add(errorDvo);
                   }
               }else{
                   errorDvo = new ExcelUploadErrorDvo();
                   errorDvo.setErrorRow(row);
-                  errorDvo.setHeaderName(headerTitle.get("orderType"));
-                  errorDvo.setErrorData(messageService.getMessage("MSG_TXT_ORD_TP_NUM_IN")); // 주문유형은 숫자로 입력해주세요.
+                  errorDvo.setHeaderName(headerTitle.get("slCtrMtrDvCd"));
+                  errorDvo.setErrorData(messageService.getMessage("자료구분은 숫자로 입력해주세요.")); // 자료구분은 숫자로 입력해주세요.
+                  errorDvos.add(errorDvo);
+              }
+          }
+
+          //조정구분이 비어있을경우
+          if(StringUtil.isEmpty(dvo.getSlCtrDvCd())){
+              errorDvo = new ExcelUploadErrorDvo();
+              errorDvo.setErrorRow(row);
+              errorDvo.setHeaderName(headerTitle.get("slCtrDvCd"));
+              errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+              errorDvos.add(errorDvo);
+          }else{
+              if(dvo.getSlCtrDvCd().matches(pattern)){
+                  if(dvo.getSlCtrDvCd().length() != 1){
+                      errorDvo = new ExcelUploadErrorDvo();
+                      errorDvo.setErrorRow(row);
+                      errorDvo.setHeaderName(headerTitle.get("slCtrDvCd"));
+                      errorDvo.setErrorData(messageService.getMessage("조정구분의 경우 한자리만 입력 가능합니다.")); // 조정구분의 경우 한자리만 입력 가능합니다.
+                      errorDvos.add(errorDvo);
+                  }
+              }else{
+                  errorDvo = new ExcelUploadErrorDvo();
+                  errorDvo.setErrorRow(row);
+                  errorDvo.setHeaderName(headerTitle.get("slCtrDvCd"));
+                  errorDvo.setErrorData(messageService.getMessage("조정구분은 숫자로 입력해주세요.")); // 조정구분은 숫자로 입력해주세요.
+                  errorDvos.add(errorDvo);
+              }
+          }
+
+          //자료유형이 비어있을경우
+          if(StringUtil.isEmpty(dvo.getSlCtrMtrTpCd())){
+              errorDvo = new ExcelUploadErrorDvo();
+              errorDvo.setErrorRow(row);
+              errorDvo.setHeaderName(headerTitle.get("slCtrMtrTpCd"));
+              errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+              errorDvos.add(errorDvo);
+          }else{
+              if(dvo.getSlCtrMtrTpCd().matches(pattern)){
+                  if(dvo.getSlCtrMtrTpCd().length() != 1){
+                      errorDvo = new ExcelUploadErrorDvo();
+                      errorDvo.setErrorRow(row);
+                      errorDvo.setHeaderName(headerTitle.get("slCtrMtrTpCd"));
+                      errorDvo.setErrorData(messageService.getMessage("자료유형의 경우 한자리만 입력 가능합니다.")); // 조정구분의 경우 한자리만 입력 가능합니다.
+                      errorDvos.add(errorDvo);
+                  }
+              }else{
+                  errorDvo = new ExcelUploadErrorDvo();
+                  errorDvo.setErrorRow(row);
+                  errorDvo.setHeaderName(headerTitle.get("slCtrMtrTpCd"));
+                  errorDvo.setErrorData(messageService.getMessage("자료유형은 숫자로 입력해주세요.")); // 조정구분은 숫자로 입력해주세요.
+                  errorDvos.add(errorDvo);
+              }
+          }
+
+          //조정유형 비어있을경우
+          if(StringUtil.isEmpty(dvo.getSlCtrTpCd())){
+              errorDvo = new ExcelUploadErrorDvo();
+              errorDvo.setErrorRow(row);
+              errorDvo.setHeaderName(headerTitle.get("slCtrTpCd"));
+              errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+              errorDvos.add(errorDvo);
+          }else{
+              if(dvo.getSlCtrTpCd().matches(pattern)){
+                  if(dvo.getSlCtrTpCd().length() != 1){
+                      errorDvo = new ExcelUploadErrorDvo();
+                      errorDvo.setErrorRow(row);
+                      errorDvo.setHeaderName(headerTitle.get("slCtrTpCd"));
+                      errorDvo.setErrorData(messageService.getMessage("조정유형의 경우 한자리만 입력 가능합니다.")); // 조정구분의 경우 한자리만 입력 가능합니다.
+                      errorDvos.add(errorDvo);
+                  }
+              }else{
+                  errorDvo = new ExcelUploadErrorDvo();
+                  errorDvo.setErrorRow(row);
+                  errorDvo.setHeaderName(headerTitle.get("slCtrTpCd"));
+                  errorDvo.setErrorData(messageService.getMessage("조정유형은 숫자로 입력해주세요.")); // 조정구분은 숫자로 입력해주세요.
+                  errorDvos.add(errorDvo);
+              }
+          }
+          //할인 비어있을경우
+          if(StringUtil.isEmpty(dvo.getSlCtrDscTpCd())){
+              errorDvo = new ExcelUploadErrorDvo();
+              errorDvo.setErrorRow(row);
+              errorDvo.setHeaderName(headerTitle.get("slCtrDscTpCd"));
+              errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+              errorDvos.add(errorDvo);
+          }else{
+              if(dvo.getSlCtrDscTpCd().matches(pattern)){
+                  if(dvo.getSlCtrDscTpCd().length() != 2){
+                      errorDvo = new ExcelUploadErrorDvo();
+                      errorDvo.setErrorRow(row);
+                      errorDvo.setHeaderName(headerTitle.get("slCtrDscTpCd"));
+                      errorDvo.setErrorData(messageService.getMessage("할인의 경우 한자리만 입력 가능합니다.")); // 조정구분의 경우 한자리만 입력 가능합니다.
+                      errorDvos.add(errorDvo);
+                  }
+              }else{
+                  errorDvo = new ExcelUploadErrorDvo();
+                  errorDvo.setErrorRow(row);
+                  errorDvo.setHeaderName(headerTitle.get("slCtrDscTpCd"));
+                  errorDvo.setErrorData(messageService.getMessage("할인은 숫자로 입력해주세요.")); // 조정구분은 숫자로 입력해주세요.
                   errorDvos.add(errorDvo);
               }
           }
 
           //조정금액이 비어있을경우
-          if(StringUtil.isEmpty(dvo.getControlAmount())){
+          if(StringUtil.isEmpty(dvo.getSlCtrAmt())){
               errorDvo = new ExcelUploadErrorDvo();
               errorDvo.setErrorRow(row);
-              errorDvo.setHeaderName(headerTitle.get("controlAmount"));
+              errorDvo.setHeaderName(headerTitle.get("slCtrAmt"));
               errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
               errorDvos.add(errorDvo);
           }else{
-              if(dvo.getControlAmount().matches(pattern)){
-                  int amt = Integer.parseInt(dvo.getControlAmount());
+              if(dvo.getSlCtrAmt().matches(pattern)){
+                  int amt = Integer.parseInt(dvo.getSlCtrAmt());
 
                   if(amt < 1000){
                       errorDvo = new ExcelUploadErrorDvo();
                       errorDvo.setErrorRow(row);
-                      errorDvo.setHeaderName(headerTitle.get("controlAmount"));
+                      errorDvo.setHeaderName(headerTitle.get("slCtrAmt"));
                       errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_AMT_MIN_THW_IN")); // 조정금액의 경우 최소 천원 이상부터 입력 가능합니다.
                       errorDvos.add(errorDvo);
                   }
@@ -340,75 +449,25 @@ public class WwdcSalesControlService {
               }else{
                 errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
-                errorDvo.setHeaderName(headerTitle.get("controlAmount"));
+                errorDvo.setHeaderName(headerTitle.get("slCtrAmt"));
                 errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_AMT_NUM_IN")); // 조정금액의 경우 숫자로 입력해주세요.
                 errorDvos.add(errorDvo);
               }
           }
 
 
-          //조정구분이 비어있을경우
-          if(StringUtil.isEmpty(dvo.getControlDivide())){
-              errorDvo = new ExcelUploadErrorDvo();
-              errorDvo.setErrorRow(row);
-              errorDvo.setHeaderName(headerTitle.get("controlDivide"));
-              errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
-              errorDvos.add(errorDvo);
-          }else{
-              if(dvo.getControlDivide().matches(pattern)){
-                    if(dvo.getControlDivide().length() != 1){
-                        errorDvo = new ExcelUploadErrorDvo();
-                        errorDvo.setErrorRow(row);
-                        errorDvo.setHeaderName(headerTitle.get("controlDivide"));
-                        errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_DV_IN_ONE")); // 조정구분의 경우 한자리만 입력 가능합니다.
-                        errorDvos.add(errorDvo);
-                    }
-                }else{
-                    errorDvo = new ExcelUploadErrorDvo();
-                    errorDvo.setErrorRow(row);
-                    errorDvo.setHeaderName(headerTitle.get("controlDivide"));
-                    errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_DV_NUM_IN")); // 조정구분은 숫자로 입력해주세요.
-                    errorDvos.add(errorDvo);
-                }
-          }
-
-          //조정유형이 비어있을경우
-          if(StringUtil.isEmpty(dvo.getControlType())){
-              errorDvo = new ExcelUploadErrorDvo();
-              errorDvo.setErrorRow(row);
-              errorDvo.setHeaderName(headerTitle.get("controlType"));
-              errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
-              errorDvos.add(errorDvo);
-          }else {
-            if(dvo.getControlType().matches(pattern)){
-                  if(dvo.getControlType().length() != 2){
-                      errorDvo = new ExcelUploadErrorDvo();
-                      errorDvo.setErrorRow(row);
-                      errorDvo.setHeaderName(headerTitle.get("controlType"));
-                      errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_TP_DIGI2_IN")); // 조정유형의 경우 두 자리만 입력 가능합니다.
-                      errorDvos.add(errorDvo);
-                  }
-              }else{
-                  errorDvo = new ExcelUploadErrorDvo();
-                  errorDvo.setErrorRow(row);
-                  errorDvo.setHeaderName(headerTitle.get("controlType"));
-                  errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_TP_NUM_IN")); // 조정유형은 숫자로 입력해주세요.
-                  errorDvos.add(errorDvo);
-              }
-          }
-
           //조정사유가 비어있을경우
-          if(StringUtil.isEmpty(dvo.getControlReason())){
+          if(StringUtil.isEmpty(dvo.getSlCtrRmkCn())){
               errorDvo = new ExcelUploadErrorDvo();
               errorDvo.setErrorRow(row);
-              errorDvo.setHeaderName(headerTitle.get("controlReason"));
+              errorDvo.setHeaderName(headerTitle.get("slCtrRmkCn"));
               errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
               errorDvos.add(errorDvo);
           }else{
-              if(dvo.getControlReason().length() < 1 && dvo.getControlReason().length() < 333){
+              if(dvo.getSlCtrRmkCn().length() < 1 && dvo.getSlCtrRmkCn().length() < 333){
                 errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
-                errorDvo.setHeaderName(headerTitle.get("controlReason"));
+                errorDvo.setHeaderName(headerTitle.get("slCtrRmkCn"));
                 errorDvo.setErrorData(messageService.getMessage("MSG_TXT_CTR_RSON_LNTH_RDCT"));
                 // 조정사유의 글이 너무 길어 등록할 수 없습니다. 글자 수를 줄여주세요. (최대 333자리)
                 errorDvos.add(errorDvo);
@@ -432,14 +491,24 @@ public class WwdcSalesControlService {
     @Transactional
     public ExcelUploadDto.UploadRes saveSalesControlExcelUpload(String exmpYn, MultipartFile file) throws Exception {
             Map<String, String> headerTitle = new LinkedHashMap<>();
-            headerTitle.put("controlYear", messageService.getMessage("MSG_TXT_CTR_Y")); // 조정년도
-            headerTitle.put("controlMonth", messageService.getMessage("MSG_TXT_CTR_MM")); // 조정월
+
+            String sysDateYmd = DateUtil.getNowDayString();
+            UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+
+
             headerTitle.put("cntrDtlNo", messageService.getMessage("MSG_TXT_CNTR_DTL_NO")); // 계약상세번호
-            headerTitle.put("orderType", messageService.getMessage("MSG_TXT_ORD_TYP")); // 주문유형
-            headerTitle.put("controlAmount", messageService.getMessage("MSG_TXT_CTR_AMT")); // 조정금액
-            headerTitle.put("controlDivide", messageService.getMessage("MSG_TXT_CTR_DV")); // 조정구분
-            headerTitle.put("controlType", messageService.getMessage("MSG_TXT_CTR_TP")); // 조정유형
-            headerTitle.put("controlReason", messageService.getMessage("MSG_TXT_CTR_RSON")); // 조정사유
+            headerTitle.put("slCtrStrtYm", messageService.getMessage("MSG_TXT_STRT_YM")); // 시작년월
+            headerTitle.put("slCtrEndYm", messageService.getMessage("MSG_TXT_END_YM")); // 종료년월
+            headerTitle.put("slCtrMtrDvCd", messageService.getMessage("MSG_TXT_MTR_DV")); // 자료구분
+            headerTitle.put("slCtrDvCd", messageService.getMessage("MSG_TXT_CTR_DV")); // 조정구분
+            headerTitle.put("slCtrMtrTpCd", messageService.getMessage("MSG_TXT_DATA_TP")); // 자료유형
+            headerTitle.put("slCtrTpCd", messageService.getMessage("MSG_TXT_CTR_TP")); // 조정유형
+            headerTitle.put("slCtrDscTpCd", messageService.getMessage("MSG_TXT_DSC")); // 할인
+            headerTitle.put("canAfOjYn", messageService.getMessage("MSG_TXT_CAN_AFT_APY")); // 취소 후 적용
+            headerTitle.put("slCtrAmt", messageService.getMessage("MSG_TXT_CTR_AMT")); // 조정금액
+            headerTitle.put("slCtrWoExmpAmt", messageService.getMessage("MSG_TXT_FULL_EXMP_AMT")); // 전액면제금액
+            headerTitle.put("slCtrPtrmExmpAmt", messageService.getMessage("MSG_TXT_INQR_PTRM_EXMP_AMT")); // 조회 기간 면제 금액
+            headerTitle.put("slCtrRmkCn", messageService.getMessage("MSG_TXT_RSN_FR_ADJ")); // 조정사유
 
             String status = "S";
 
@@ -449,27 +518,47 @@ public class WwdcSalesControlService {
 
             //엑셀 파일 유효성 체크
             List<ExcelUploadErrorDvo> errorDvos = validateExcelAttribute(lists, headerTitle);
+//            List<ExcelUploadErrorDvo> errorDvos = new ArrayList<ExcelUploadErrorDvo>();
 
             if(errorDvos.isEmpty()){
+
+                ZdcbSalesDiscountCancelDvo zdcbSalesDiscountCancelDvo;
+
                 for (WwdcSalesControlDvo dvo : lists) {
+                String cntrNo = dvo.getCntrDtlNo().substring(0, 12);
+                String cntrSn = dvo.getCntrDtlNo().substring(12);
 
-                  String cntrNo = dvo.getCntrDtlNo().substring(0, 12);
-                  String cntrSn = dvo.getCntrDtlNo().substring(12);
-                  dvo.setCntrNo(cntrNo);
-                  dvo.setCntrSn(cntrSn);
-                  mapper.insertExcelUploadSalesControl(dvo);
-                  mapper.insertExcelUploadSalesControlHistory(dvo);
+                ZwwdbContractDetailInquiryDto.SearchReq cntrDto = new ZwwdbContractDetailInquiryDto.SearchReq(null, null,cntrNo , cntrSn ,null , "2000");
 
-                  String sysDateYmd = DateUtil.getNowDayString();
-                  ZdcbSalesDiscountCancelDvo zdcbSalesDiscountCancelDvo = new ZdcbSalesDiscountCancelDvo();
-                  zdcbSalesDiscountCancelDvo.setCntrNo(dvo.getCntrNo()); //계약번호
-                  zdcbSalesDiscountCancelDvo.setCntrSn(Integer.parseInt(dvo.getCntrSn())); //계약일련번호
-                  zdcbSalesDiscountCancelDvo.setSlRcogDt(sysDateYmd); //매출인식일자
-                  zdcbSalesDiscountCancelDvo.setKwGrpCoCd("2000"); //교원코드
-                  zdcbSalesDiscountCancelDvo.setSlRcogDvCd("04"); //매출인식구분코드
-                  zdcbSalesDiscountCancelDvo.setSlCtrAmt(Long.parseLong(dvo.getControlAmount())); //조정금액
-                 zdcbSalesDiscountCancelService.createSalesDiscountCancelData(zdcbSalesDiscountCancelDvo);
+                //계약조회
+                ZwwdbContractDetailInquiryDto.SearchRes cntrRes = zwwdbContractDetailInquiryMapper.selectContractDetailInquiry(cntrDto).get(0);
 
+                dvo.setSlCtrSellTpCd(cntrRes.sellTpCd());
+                dvo.setCntrNo(cntrNo);
+                dvo.setCntrSn(cntrSn);
+
+                mapper.insertSalesControl(dvo); // 매출조정T 삽입
+                mapper.insertSalesControlHistory(dvo); // 매출조정이력T 삽입
+
+                zdcbSalesDiscountCancelDvo = new ZdcbSalesDiscountCancelDvo();
+                zdcbSalesDiscountCancelDvo.setCntrNo(dvo.getCntrNo()); //계약번호
+                zdcbSalesDiscountCancelDvo.setCntrSn(Integer.parseInt(dvo.getCntrSn())); //계약일련번호
+                zdcbSalesDiscountCancelDvo.setSlRcogDt(sysDateYmd); //매출인식일자
+                zdcbSalesDiscountCancelDvo.setKwGrpCoCd(session.getCompanyCode()); //교원코드
+                zdcbSalesDiscountCancelDvo.setSlRcogDvCd("04"); //매출인식구분코드
+
+                if ("2".equals(dvo.getSlCtrMtrDvCd())) {
+                    zdcbSalesDiscountCancelDvo.setBorCtrYn("A");
+                }else if("3".equals(dvo.getSlCtrMtrDvCd())){
+                    zdcbSalesDiscountCancelDvo.setBorCtrYn("Y");
+                }
+
+                if (StringUtil.isNotEmpty(dvo.getSlCtrAmt())) {
+                   zdcbSalesDiscountCancelDvo.setSlCtrAmt(Long.parseLong(dvo.getSlCtrAmt())); //조정금액
+                }
+
+                zdcbSalesDiscountCancelService.createSalesDiscountCancelData(zdcbSalesDiscountCancelDvo);
+//
                 }
             }else{
                 status = "E";
