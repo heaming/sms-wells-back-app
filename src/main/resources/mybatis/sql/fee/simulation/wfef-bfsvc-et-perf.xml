@@ -6,7 +6,7 @@
              , S1.PRTNR_KNM     /*성명*/
              , S1.PRTNR_NO  /*파트너번호*/
              , S3.OPNG_MM   /*개시월*/
-             , S4.EDUC_CPC_ACKMT_YN     /*정착교육*/
+             , NVL(S4.EDUC_CPC_ACKMT_YN, 'N') AS EDUC_CPC_ACKMT_YN  /*정착교육*/
              , NVL(S2.BFSVC_ACKMT_CNT, 0) AS BFSVC_ACKMT_CNT    /*가전인정건수*/
              , NVL(S2.WRFR1_MGT_CNT, 0) AS WRFR1_MGT_CNT    /*정수기1 관리건수*/
              , NVL(S2.WRFR2_MGT_CNT, 0) AS WRFR2_MGT_CNT    /*정수기2 관리건수*/
@@ -169,7 +169,7 @@
                         AND A.PERF_AGRG_CRT_DV_CD = '201'	/*실적집계생성구분코드 201:M추진단순주문실적생성*/
                         AND A.CO_CD = '2000'
                         AND A.PERF_ATC_CD IN ('W00P00011', 'W02P00095', 'W02P00121', 'W02P00122')	/*BS판매인정건수, 처리율, W1처리건수, W2처리건수*/
-                        AND A.PERF_DV_CD = '0'	/*개인실적*/
+                        AND A.PERF_DV_CD = '0'  /* 개인일 때는 0이 맞음 */
                       GROUP BY A.BASE_YM, A.CO_CD, A.OG_TP_CD, A.PRTNR_NO, A.PERF_DV_CD
                   ) T3    /*BS판매인정건수, 처리율, 급지처리건수*/
                  ON T1.BASE_YM = T3.BASE_YM
@@ -219,7 +219,7 @@
              WHERE T1.DTA_DL_YN = 'N'
                AND T1.BASE_YM = SUBSTR(#{strtPerfDt},1,6)
                AND T1.OG_TP_CD = 'W02'
-               AND T1.PSTN_DV_CD = '15' /*판매자 개인실적만 가져옴*/
+               AND T1.PSTN_DV_CD IN ('7', '15')
                <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
                AND T2.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
                </if>
@@ -271,10 +271,11 @@
            ( SELECT D.EDUC_CPC_ACKMT_YN
                FROM TB_PSCA_MCPTN_EDUC_IZ D	/*월별파트너교육내역*/
               WHERE D.DTA_DL_YN = 'N'
-                AND D.EDUC_CRSE_CRT_BASE_YM = S1.BASE_YM
+                AND D.EDUC_CRSE_CRT_BASE_YM <![CDATA[<=]]> S1.BASE_YM
                 AND D.OG_TP_CD = S1.OG_TP_CD
                 AND D.PRTNR_NO = S1.PRTNR_NO
                 AND D.EDUC_CRSE_NO IN ('4', '119', '140')
+              FETCH FIRST ROW ONLY
            ) S4 ON 1=1
        WHERE 1=1
     </select>

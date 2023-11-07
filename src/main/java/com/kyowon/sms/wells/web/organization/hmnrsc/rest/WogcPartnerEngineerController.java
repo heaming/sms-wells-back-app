@@ -58,14 +58,12 @@ public class WogcPartnerEngineerController {
     }
 
     @ApiOperation(value = "엔지니어 출근 관리 목록 저장", notes = "CUD 변경 데이터를 List 형태로 받아 일괄 저장한다.")
-    @PostMapping("/{prtnrNo}")
+    @PostMapping("/attend")
     public SaveResponse saveEngineerAttends(
         @RequestBody @Valid
-        List<WogcPartnerEngineerDto.SaveEngineerAttendReq> dtos,
-        @PathVariable
-        String prtnrNo
+        List<WogcPartnerEngineerDto.SaveEngineerAttendReq> dtos
     ) throws Exception {
-        return SaveResponse.builder().processCount(this.service.saveEngineerAttends(dtos, prtnrNo)).build();
+        return SaveResponse.builder().processCount(this.service.saveEngineerAttends(dtos)).build();
     }
 
     @ApiOperation(value = "엔지니어 휴가상세 조회", notes = "조회 조건에 일치하는 엔지니어 휴가상세 목록을 조회한다.")
@@ -142,6 +140,7 @@ public class WogcPartnerEngineerController {
         @ApiImplicitParam(name = "ogLevlDvCd2", value = "2레벨 조직코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "rsbDvCd", value = "직책", paramType = "query", required = false),
         @ApiImplicitParam(name = "chk", value = "미등록", paramType = "query", required = false),
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = false),
     })
     @GetMapping("/engineer-grade/paging")
     PagingResult<FindEngineerGradeRes> getEngineerGradePages(FindEngineerGradeReq dto, PageInfo pageInfo) {

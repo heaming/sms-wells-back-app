@@ -49,7 +49,8 @@ public class WdccPressurePumpDto {
         String fnlMdfcUsrId, /*수정자*/
         String adnSvStrtYm, /*부가서비스시작년월*/
         String istDuedt, /*설치예정일자*/
-        String svBizHclsfCd
+        String svBizDclsfCd /*업무유형*/
+
     ) {}
 
     @ApiModel(value = "WdccPressurePumpDto-SearchSalesBaseReq")

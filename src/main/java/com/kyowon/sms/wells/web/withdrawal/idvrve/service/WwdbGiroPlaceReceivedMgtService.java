@@ -30,18 +30,21 @@ public class WwdbGiroPlaceReceivedMgtService {
         int processCount = 0;
         WwdbGiroPlaceReceivedMgtDvo dvo = convert.mapSaveWwdbGiroPlaceReceivedDvo(dto);
 
-        switch (dto.state()) {
-            case CommConst.ROW_STATE_CREATED -> {
-                processCount += mapper.insertGiroPlaceReceived(dvo);
-                processCount += mapper.insertGiroPlaceReceivedHistory(dvo);
-            }
-            case CommConst.ROW_STATE_UPDATED -> {
-                processCount += mapper.insertGiroPlaceReceivedHistory(dvo);
-                processCount += mapper.updateGiroPlaceReceived(dvo);
-            }
-            //                case CommConst.ROW_STATE_DELETED -> processCount += mapper.deleteDivReceiveCd(dvo);
-            default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
-        }
+        processCount += mapper.updateGiroPlaceReceived(dvo);
+        processCount += mapper.insertGiroPlaceReceivedHistory(dvo);
+
+//        switch (dto.state()) {
+//            case CommConst.ROW_STATE_CREATED -> {
+//                processCount += mapper.insertGiroPlaceReceived(dvo);
+//                processCount += mapper.insertGiroPlaceReceivedHistory(dvo);
+//            }
+//            case CommConst.ROW_STATE_UPDATED -> {
+//                processCount += mapper.insertGiroPlaceReceivedHistory(dvo);
+//                processCount += mapper.updateGiroPlaceReceived(dvo);
+//            }
+//            //                case CommConst.ROW_STATE_DELETED -> processCount += mapper.deleteDivReceiveCd(dvo);
+//            default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
+//        }
 
         return processCount;
     }

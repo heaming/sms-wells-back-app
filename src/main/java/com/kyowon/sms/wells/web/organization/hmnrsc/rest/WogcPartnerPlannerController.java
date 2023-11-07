@@ -5,13 +5,21 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SaveQulificationReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseDetailRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.CheckCancellationReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.service.WogcPartnerPlannerService;
 import com.kyowon.sms.wells.web.organization.zcommon.constants.OgConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -213,5 +221,24 @@ public class WogcPartnerPlannerController {
         List<SaveQulificationReq> dtos
     ) throws Exception {
         return SaveResponse.builder().processCount(service.editPlannerQualificationPaymentInfo(dtos)).build();
+    }
+
+    @ApiOperation(value = "매니저 재고 확인 체크", notes = "해약매니저 재고 확인 체크한다.")
+    @GetMapping("/{prtnrNo}-{ogTpCd}/check-cancellation")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "path", required = true),
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "path", required = true)
+    })
+    public int getCheckCancellation(
+        @PathVariable
+        String prtnrNo,
+        @PathVariable
+        String ogTpCd
+    ) throws Exception {
+        CheckCancellationReq reqDto = CheckCancellationReq.builder()
+            .prtnrNo(prtnrNo)
+            .ogTpCd(ogTpCd)
+            .build();
+        return service.getCheckCancellation(reqDto);
     }
 }

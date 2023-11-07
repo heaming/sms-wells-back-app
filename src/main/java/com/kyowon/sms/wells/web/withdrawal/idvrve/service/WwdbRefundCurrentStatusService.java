@@ -65,7 +65,7 @@ public class WwdbRefundCurrentStatusService {
      * @return PagingResult<SearchCardRefundHistoryRes>
      */
     public PagingResult<SearchCardRefundHistoryRes> getCardRefundHistoryPages(
-        SearchCardRefundHistoryReq req,
+        SearchRefundHistoryReq req,
         PageInfo pageInfo
     ) {
         return mapper.selectCardRefundHistory(req, pageInfo);
@@ -78,7 +78,7 @@ public class WwdbRefundCurrentStatusService {
      * @return List<SearchCardRefundHistoryRes>
      */
     public List<SearchCardRefundHistoryRes> getCardRefundHistoryExcels(
-        SearchCardRefundHistoryReq req
+        SearchRefundHistoryReq req
     ) {
         return mapper.selectCardRefundHistory(req);
     }
@@ -91,7 +91,7 @@ public class WwdbRefundCurrentStatusService {
      * @return PagingResult<SearchBalanceTransferRefundHistoryRes>
      */
     public PagingResult<SearchBalanceTransferRefundHistoryRes> getBalanceTransferRefundHistoryPages(
-        SearchBalanceTransferRefundHistoryReq req,
+        SearchRefundHistoryReq req,
         PageInfo pageInfo
     ) {
         return mapper.selectBalanceTransferRefundHistory(req, pageInfo);
@@ -104,7 +104,7 @@ public class WwdbRefundCurrentStatusService {
      * @return List<SearchBalanceTransferRefundHistoryRes>
      */
     public List<SearchBalanceTransferRefundHistoryRes> getBalanceTransferRefundHistoryExcels(
-        SearchBalanceTransferRefundHistoryReq req
+        SearchRefundHistoryReq req
     ) {
         return mapper.selectBalanceTransferRefundHistory(req);
     }

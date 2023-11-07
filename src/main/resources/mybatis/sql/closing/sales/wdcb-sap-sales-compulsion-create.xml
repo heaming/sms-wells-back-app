@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSapSalesCompulsionCreateMapper">
+
+    <select id="selectSapMapNm" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSapSalesCompulsionCreateDto$SearchSapMapNmRes">
+        SELECT SAP_MAT_CD, SAP_MAT_NM
+          FROM TB_GBCO_SAP_MAT_RCV_IZ
+         WHERE SAP_MAT_CD = #{zsmtrl}  /*SAP자재코드 - 그리드에서 입력받는 자재코드*/
+           AND ROWNUM = 1
+    </select>
+    <select id="selectSapSales" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSapSalesCompulsionCreateDto$SearchRes">
+        SELECT T1.ZSSLRQ /*매출전표요청번호*/
+             , T1.ZSSLSQ /*일련번호*/
+             , T1.ZSIODT /*입출고일자*/
+             , T1.ZSSLTY /*매출유형*/
+             , T1.ZSORTY /*주문유형*/
+             , T1.ZSMTRL /*SAP자재코드*/
+             , (SELECT SAP_MAT_NM FROM TB_GBCO_SAP_MAT_RCV_IZ WHERE SAP_MAT_CD = T1.ZSMTRL AND ROWNUM = 1 ) AS ZSMTRL_NM  /*자재명*/
+             , T1.ZSQNTT /*수량*/
+             , T1.ZSSAMT /*공급가*/
+             , T1.ZSVAMT /*VAT*/
+             , T1.ZSRTRN /*반품여부*/
+             , T1.ZSFREE /*무상여부*/
+             , T1.ZSPRFT /*사은품여부*/
+             , T1.ZSTAXG /* 과/면세구분*/
+             , T1.ZSBLTY /*세금계산서발행기준*/
+             , T1.ZSMNGR /*담당자코드*/
+             , T1.ZSREAL /*수불여부*/
+             , T1.ZSSASL /*저장위치*/
+             , T1.LGGUBN /*구분*/
+             , T1.LGMGUB /*매출구분*/
+             , T1.LGJDTE /*입력일*/
+             , CASE WHEN T1.ZSIFDT = '0' OR T1.ZSIFDT = ' ' OR T1.ZSIFDT IS NULL
+                    THEN ''
+                    ELSE 'Y' END AS TRANS_YN /*전송여부*/
+             , T1.ZSIFDT /*IF전송일*/
+             , T1.ZSSADT /*SAP반영일*/
+             , T2.ZSSLHQ /*사업부서*/
+             , T2.ZSDEPT /*조직정보*/
+             , T2.ZSCUST /*고객정보ID*/
+             , T2.UPD_ACT_DT /*수정일시*/
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE EPNO = T2.UPD_ACT_ID AND DEPT_NM <![CDATA[<>]]> '1' AND ROWNUM = 1) AS UPD_ACT_ID /*수정자*/
+             , T2.REG_ACT_DT /*등록일시*/
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE EPNO = T2.REG_ACT_ID AND DEPT_NM <![CDATA[<>]]> '1' AND ROWNUM = 1) AS REG_ACT_ID /*등록자*/
+          FROM TB_IFIN_SL_INF_ATC_IZ T1 /*ZA_매출정보항목내역*/
+         INNER JOIN TB_IFIN_SL_INF_HDR_BAS T2 ON (T1.ZSSLRQ = T2.ZSSLRQ)
+         WHERE T1.ZSIODT LIKE #{baseYm} || '%'
+           AND T1.ZSORTY = '00000003010005'
+           AND T1.LGGUBN = 'LNC31'
+           AND T1.ZSSLTY = '3006'
+           AND T1.ZSSASL = '2018'
+           AND T1.ZSBLTY = '4'
+           AND T1.ZSTAXG = '0'
+           AND T1.LGMGUB = '06'
+         ORDER BY T1.ZSSLRQ, T1.ZSSLSQ
+    </select>
+
+    <select id="selectByPK" resultType="String">
+        SELECT 'A' || #{baseYm} || 'L31' ||  NVL(LPAD(TO_CHAR(TO_NUMBER(MAX(SUBSTR(ZSSLRQ,11,5)))+1),5,'0'),'00001') AS ZSSLRQ
+          FROM TB_IFIN_SL_INF_HDR_BAS WHERE ZSSLDT LIKE #{baseYm} || '%'
+    </select>
+
+    <insert id="insertIfinSlInfAtcIz" >
+        INSERT INTO TB_IFIN_SL_INF_ATC_IZ /*ZA_매출정보항목내역*/
+             VALUES (#{zsslrq}   /*매출전표전송번호*/
+                    , (SELECT NVL(MAX(ZSSLSQ),0) + 1 FROM TB_IFIN_SL_INF_ATC_IZ WHERE ZSSLRQ = #{zsslrq} )
+                    , TO_CHAR(LAST_DAY(TO_DATE(#{baseYm} ,'YYYYMM')),'YYYYMMDD')  /*ZSIODT*/
+                    , '3006'
+                    , '00000003010005'
+                    , #{zsmtrl}  /*자재코드*/
+                    , #{zsqntt}  /*수량*/
+                    , #{zssamt}  /*공급가*/
+                    , 0    /*VAT - 모두면세 */
+                    , ''   /*ZSRTRN*/
+                    , ''
+                    , ''
+                    , ''
+                    , ''
+                    , ''
+                    , ''
+                    , ''   /*ZSGIFT*/
+                    , '0'  /*과세면세구분 - 0 */
+                    , '4'  /*세금계산서발행*/
+                    , ''
+                    , 'X'   /*수불*/
+                    , ''
+                    , '2016' /*ZSPLNT*/
+                    , '2018' /*저장위치*/
+                    , '0'    /*전송일자*/
+                    , '0'    /*SAP반영일자*/
+                    , 'LNC31'  /*업무구분코드*/
+                    , '06'     /*LGMGUB*/
+                    , TO_CHAR(SYSDATE,'YYYYMMDD')
+                    , ''
+                    , ''
+                    , TO_CHAR(SYSDATE,'YYYYMMDD')
+                    , TO_CHAR(SYSDATE,'HH24MISS')
+                    , TO_CHAR(SYSDATE,'YYYYMMDD')
+                    , TO_CHAR(SYSDATE,'HH24MISS')
+                    )
+    </insert>
+
+    <insert id="insertIfinSlInfHdrBas" >
+        INSERT INTO TB_IFIN_SL_INF_HDR_BAS
+              VALUES (#{zsslrq}  /*매출전표전송번호*/
+                     , TO_CHAR(LAST_DAY(TO_DATE(#{baseYm} ,'YYYYMM')),'YYYYMMDD')  /*LSSLDT */
+                     , '0000' /*ZSSLHQ*/
+                     , 'Z000000'  /*ZSDEPT*/
+                     , '1000000009' /* ZSCUST*/
+                     , (SELECT SUM(ZSSAMT) FROM TB_IFIN_SL_INF_ATC_IZ WHERE ZSSLRQ = #{zsslrq})  /*공급가액*/
+                     , 0  /*VAT*/
+                     , ''   /*ZSIFCH*/
+                     , '0'    /*ZSIFDT*/
+                     , '0'    /*ZSSADT*/
+                     , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')   /*등록시간*/
+                     , #{session.employeeIDNumber}   /*세션의 EPNO - 등록자*/
+                     , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')   /*변경시간*/
+                     , #{session.employeeIDNumber}   /*세션의 EPNO - 변경자*/
+                     , 'LNC31'  /*SAP업무구분*/
+                     , '06'     /*SAP업무매출구분*/
+                     , TO_CHAR(SYSDATE,'YYYYMMDD')  /*테이블등록일자*/
+              )
+    </insert>
+
+    <update id="updateIfinSlInfAtcIz" >
+        UPDATE TB_IFIN_SL_INF_ATC_IZ /*ZA_매출정보항목내역*/
+           SET ZSMTRL = #{zsmtrl}  /*SAP자재코드*/
+             , ZSQNTT = #{zsqntt}  /*수량*/
+             , ZSSAMT = #{zssamt}  /*공급가*/
+             , LGJDTE = TO_CHAR(SYSDATE,'YYYYMMDD')
+             , FIMYMD = TO_CHAR(SYSDATE,'YYYYMMDD')
+             , FIMHMS = TO_CHAR(SYSDATE,'HH24MISS')
+         WHERE ZSSLRQ = #{zsslrq} /*매출전표요청번호*/
+           AND ZSSLSQ = #{zsslsq} /*일련번호*/
+    </update>
+
+    <update id="updateIfinSlInfHdrBas" >
+        UPDATE TB_IFIN_SL_INF_HDR_BAS
+           SET ZSSAMT = (SELECT SUM(ZSSAMT) FROM TB_IFIN_SL_INF_ATC_IZ WHERE ZSSLRQ = #{zsslrq})  /*공급가*/
+             , UPD_ACT_ID = #{session.employeeIDNumber}  /*세션의 EPNO */
+             , UPD_ACT_DT = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+             , LGJDTE = TO_CHAR(SYSDATE,'YYYYMMDD')
+         WHERE ZSSLRQ = #{zsslrq} /*매출전표요청번호*/
+    </update>
+
+    <delete id="deleteIfinSlInfAtcIz">
+        DELETE FROM TB_IFIN_SL_INF_ATC_IZ /*ZA_매출정보항목내역*/
+         WHERE ZSSLRQ = #{zsslrq} /*매출전표요청번호*/
+           AND ZSSLSQ = #{zsslsq} /*일련번호*/
+    </delete>
+
+    <delete id="deleteIfinSlInfHdrBas">
+        DELETE FROM TB_IFIN_SL_INF_HDR_BAS
+         WHERE ZSSLRQ = #{zsslrq} /*매출전표요청번호*/
+    </delete>
+</mapper>

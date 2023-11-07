@@ -24,12 +24,12 @@ import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoReq;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveCounselReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveUnuitmCnReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchUserInfoReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncCustomerDvo;
 import com.kyowon.sms.wells.web.bond.consultation.mapper.WbncCustomerMapper;
 import com.sds.sflex.system.config.core.service.UserService;
@@ -142,11 +142,14 @@ public class WbncCustomerService {
         processCount = mapper.insertPromise(dvo);
         BizAssert.isTrue(processCount > 0, "MSG_ALT_SVE_ERR");
 
-        user.setUserCustomParam(null);
+        if (user.getUserCustomParam() != null) {
+            user.setUserCustomParam(null);
+        }
+
         return processCount;
     }
 
-    public FindUserInfoRes getUserInfo(FindUserInfoReq dto) {
+    public List<SearchUserInfoRes> getUserInfo(SearchUserInfoReq dto) throws Exception {
         return mapper.selectUserInfo(dto);
     }
 

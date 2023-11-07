@@ -21,13 +21,17 @@ public class WfebOrganizationFeeDto {
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerReq")
     public record SearchMngerReq(
+        @NotBlank
         String perfYm,
-        String rsbTpCd,
+        String rsbDvCd,
+        @NotBlank
         String feeTcntDvCd,
         String prtnrNo,
         String ogLevl1Id,
         String ogLevl2Id,
-        String ogLevl3Id
+        String ogLevl3Id,
+
+        String feeCalcUnitTpCd
     ) {}
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarReq")

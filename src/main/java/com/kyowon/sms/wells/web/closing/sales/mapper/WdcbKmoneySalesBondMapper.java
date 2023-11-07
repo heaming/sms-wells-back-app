@@ -9,6 +9,7 @@ import com.kyowon.sms.wells.web.closing.sales.dto.WdcbKmoneySalesBondDto.SearchC
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbKmoneySalesBondDto.SearchDepositRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface WdcbKmoneySalesBondMapper {
@@ -17,7 +18,9 @@ public interface WdcbKmoneySalesBondMapper {
 
     List<SearchBondRes> selectSalesBondPages(String baseYr);
 
-    List<SearchDepositRes> selectDepositDetails(String baseYm);
+    List<SearchDepositRes> selectDepositDetails(@Param("baseYm")
+    String baseYm, @Param("thisMonthYn")
+    String thisMonthYn);
 
     List<SearchCancelRes> selectCancelDetails(String baseYm);
 }

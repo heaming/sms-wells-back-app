@@ -35,6 +35,11 @@ public class WogcPartnerSellerService {
     private final WogcPartnerSellerMapper mapper;
     private final WogcPartnerSellerConverter converter;
 
+    /**
+     * Wells 주문의 판매자 정보 확인 조회
+     * @param dto 조회정보
+     * @return Wells 주문의 판매자 정보 확인
+     */
     public List<SearchInformationConfirmRes> getInformationConfirms(
         SearchInformationConfirmReq dto
     ) {
@@ -71,8 +76,8 @@ public class WogcPartnerSellerService {
     /**
      * EAI 웰스 WM 정보 조회
      *
-     * @param dto
-     * @return
+     * @param dto 조회정보
+     * @return EAI 웰스 WM 정보 조회
      */
     public List<SearchWMRes> getWM(SearchWMReq dto) {
         List<WogcPartnerSellerInterfaceDvo> dvos = mapper.selectWMs(dto);
@@ -81,6 +86,11 @@ public class WogcPartnerSellerService {
         return converter.mapAllWogcPartnerSellerInterfaceDvoToSearchWMRes(dvos);
     }
 
+    /**
+     * [EAI]최근 계약 판매자 조회
+     * @param dto 조회정보
+     * @return [EAI]최근 계약 판매자 조회
+     */
     public List<SearchRecentContractRes> getSearchRecentContracts(SearchRecentContractReq dto) {
         List<WogcPartnerSellerInterfaceDvo> dvos = mapper.selectRecentContracts(dto);
         dvos = convertDefaultMapping(dvos);
@@ -88,6 +98,10 @@ public class WogcPartnerSellerService {
         return converter.mapAllWogcPartnerSellerInterfaceDvoToSearchRecentContractRes(dvos);
     }
 
+    /**
+     * 계약 판매자 정보
+     * @return 계약 판매자 정보
+     */
     private List<WogcPartnerSellerInterfaceDvo> convertDefaultMapping(
         List<WogcPartnerSellerInterfaceDvo> dvos
     ) {

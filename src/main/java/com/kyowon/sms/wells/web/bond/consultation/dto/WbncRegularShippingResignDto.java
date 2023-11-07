@@ -31,6 +31,7 @@ public class WbncRegularShippingResignDto {
         String authRsgSts, /* 해지상태 */
         String authRsgCnfmYn, /* 직권해지확정여부 */
         String cntrNoSn, /* 계약상세번호 */
+        String cstNo, /* 고객번호 */
         String cstKnm, /* 고객명 */
         String basePdCd, /* 패키지번호 */
         String pdNm, /* 패키지명 */

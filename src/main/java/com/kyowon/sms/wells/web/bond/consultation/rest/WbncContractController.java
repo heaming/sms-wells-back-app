@@ -35,7 +35,7 @@ public class WbncContractController {
         @ApiImplicitParam(name = "schDlqMcntStrt", value = "form 연체개월", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schDlqMcntEnd", value = "to 연체개월", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schIstTno", value = "설치전화번호", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "schCntrNo", value = "계약번호", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "schCntrDtlNo", value = "계약상세번호", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schCstNo", value = "고객번호", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schBizDv", value = "업무구분", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schIstMpno", value = "설치휴대전화번호    ", paramType = "query", example = ""),

@@ -17,7 +17,7 @@ public class WbncContractDto {
         String schIstLocaraTno,
         String schIstExnoEncr,
         String schIstIdvTno, /* 설치전화번호 */
-        String schCntrNo,
+        String schCntrDtlNo,
         String schCstNo,
         String schBizDv,
         String schIstCralLocaraTno,
@@ -93,7 +93,6 @@ public class WbncContractDto {
         String rtlfeIstm2, /* 렌탈료2할 */
         String promDt, /* 약속일자 */
         String dprNm, /* 입금자명 */
-        String cvcpInf, /* 민원정보 */
         String clctamPrtnrNo, /* 집금번호 */
         String clctamIchr, /* 집급담당 */
         String cntrCralLocaraTno,

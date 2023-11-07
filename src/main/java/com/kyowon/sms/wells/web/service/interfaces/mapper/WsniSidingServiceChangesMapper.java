@@ -61,7 +61,8 @@ public interface WsniSidingServiceChangesMapper {
         String asAkDvCd,
         String bfchPdCd,
         String afchPdCd,
-        String mtrProcsStatCd
+        String mtrProcsStatCd,
+        String akChdt
     );
 
     WsniSidingServiceChangesDvo selectBsTarget(

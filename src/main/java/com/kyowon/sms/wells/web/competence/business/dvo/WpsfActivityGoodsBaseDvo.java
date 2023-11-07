@@ -8,7 +8,7 @@ import lombok.Setter;
 public class WpsfActivityGoodsBaseDvo {
     private String ogTpCd; /* 조직유형코드 */
     private String actiGdsCd; /* 활동물품코드 */
-    private Integer actiGdsSn; /* 활동물품일련번호 */
+    private Long actiGdsSn; /* 활동물품일련번호 */
     private String actiGdsNm; /* 활동물품명 */
     private Long actiGdsAmt; /* 활동물품금액 */
     private Integer patDdtnMcn; /* 분할공제개월수 */

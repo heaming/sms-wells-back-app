@@ -17,42 +17,43 @@
              , M.HDWR_YN
              , M.MTR_KEP_EYN
           FROM (
-            SELECT F_CMZ_CD_NM('TNT_WELLS', 'RVE_DV_CD', A.RVE_DV_CD) AS RVE_DV_CD_NM
-                 , CASE WHEN A.DP_DV_CD IN ('1' , '3') THEN B.RVE_DT /* 수납일자(입금) */
-                         END AS RVE_DT /* 수납일자 */
-                 , A.PERF_DT /* 실적일자 */
-                 , CASE WHEN A.DP_DV_CD IN ('2' , '4') THEN B.RVE_DT /* 환불일자(환불) */
-                         END AS RFND_DT /* 환불일자 */
-                 , A.RVE_AMT /* 금액 */
-                 , C.DP_TP_CD
-                 , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', C.DP_TP_CD) AS DP_TP_CD_NM
-                 , CASE WHEN A.DP_MES_CD = '02' THEN C.CRDCD_FNIT_CD
-                        ELSE C.FNIT_CD
-                    END AS FNIT_CD /*금융기관명*/
-                 , CASE WHEN A.DP_MES_CD = '02' THEN C.CRCDNO_ENCR
-                        ELSE C.ACNO_ENCR
-                    END AS AC_CRCD_NO /*카드/계좌번호*/
-                 , H.ISTM_MCN /* 할부개월 */
-                 , CASE WHEN NVL(F.PRM_PTRM_MCN, 0) > 0 THEN 'Y'
-                        ELSE 'N'
-                   END AS PRM_EYN /* 선납유무 */
-                 , 'N' AS HDWR_YN /* 수기여부 */
-                 , 'N' AS MTR_KEP_EYN /* 자료보관 TODO: 확인필요 */
-              FROM TB_RVDW_RVE_DTL A /* 수납상세 */
-             INNER JOIN TB_RVDW_RVE_BAS B /* 수납기본 */
-                ON B.KW_GRP_CO_CD = A.KW_GRP_CO_CD
-               AND B.RVE_NO = A.RVE_NO
-             INNER JOIN TB_RVDW_ITG_DP_BAS C /* 통합입금기본 */
-                ON C.ITG_DP_NO = A.ITG_DP_NO
-             INNER JOIN TB_SSCT_CNTR_DTL H /* 계약상세 */
-                ON H.CNTR_NO = A.CNTR_NO
-               AND H.CNTR_SN = A.CNTR_SN
-             INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /* 계약WELLS상세 */
-                ON F.CNTR_NO = A.CNTR_NO
-               AND F.CNTR_SN = A.CNTR_SN
-             WHERE A.DTA_DL_YN = 'N'
-               AND A.CNTR_NO = #{cntrNo}
-               AND A.CNTR_SN = #{cntrSn}
-          ) M
+                 SELECT F_CMZ_CD_NM('TNT_WELLS', 'RVE_DV_CD', A.RVE_DV_CD) AS RVE_DV_CD_NM
+                      , CASE WHEN A.DP_DV_CD IN ('1' , '3') THEN B.RVE_DT /* 수납일자(입금) */
+                              END AS RVE_DT /* 수납일자 */
+                      , A.PERF_DT /* 실적일자 */
+                      , CASE WHEN A.DP_DV_CD IN ('2' , '4') THEN B.RVE_DT /* 환불일자(환불) */
+                              END AS RFND_DT /* 환불일자 */
+                      , A.RVE_AMT /* 금액 */
+                      , A.DP_TP_CD
+                      , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', A.DP_TP_CD) AS DP_TP_CD_NM
+                      , CASE WHEN A.DP_MES_CD = '02' THEN C.CRDCD_FNIT_CD
+                             ELSE C.FNIT_CD
+                         END AS FNIT_CD /*금융기관명*/
+                      , CASE WHEN A.DP_MES_CD = '02' THEN C.CRCDNO_ENCR
+                             ELSE C.ACNO_ENCR
+                         END AS AC_CRCD_NO /*카드/계좌번호*/
+                      , H.ISTM_MCN /* 할부개월 */
+                      , CASE WHEN NVL(F.PRM_PTRM_MCN, 0) > 0 THEN 'Y'
+                             ELSE 'N'
+                        END AS PRM_EYN /* 선납유무 */
+                      , 'N' AS HDWR_YN /* 수기여부 */
+                      , 'N' AS MTR_KEP_EYN /* 자료보관 TODO: 확인필요 */
+                   FROM TB_RVDW_RVE_DTL A /* 수납상세 */
+                  INNER JOIN TB_RVDW_RVE_BAS B /* 수납기본 */
+                     ON B.KW_GRP_CO_CD = A.KW_GRP_CO_CD
+                    AND B.RVE_NO = A.RVE_NO
+             LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS C /* 통합입금기본 */
+                     ON C.ITG_DP_NO = A.ITG_DP_NO
+                  INNER JOIN TB_SSCT_CNTR_DTL H /* 계약상세 */
+                     ON H.CNTR_NO = A.CNTR_NO
+                    AND H.CNTR_SN = A.CNTR_SN
+                  INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /* 계약WELLS상세 */
+                     ON F.CNTR_NO = A.CNTR_NO
+                    AND F.CNTR_SN = A.CNTR_SN
+                  WHERE A.DTA_DL_YN = 'N'
+                    AND A.CNTR_NO = #{cntrNo}
+                    AND A.CNTR_SN = #{cntrSn}
+               ) M
+      ORDER BY M.PERF_DT DESC
     </select>
 </mapper>

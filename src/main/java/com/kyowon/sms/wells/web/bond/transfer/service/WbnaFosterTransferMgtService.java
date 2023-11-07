@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
 import com.kyowon.sflex.common.common.service.BatchCallService;
 import com.kyowon.sms.common.web.bond.transfer.dvo.ZbnaExcelHistoryMgtDvo;
+import com.kyowon.sms.common.web.bond.transfer.service.ZbnaBondTransferConfirmService;
 import com.kyowon.sms.common.web.bond.transfer.service.ZbnaExcelHistoryMgtService;
 import com.kyowon.sms.wells.web.bond.transfer.converter.WbnaFosterTransferMgtConverter;
 import com.kyowon.sms.wells.web.bond.transfer.dto.WbnaFosterTransferMgtDto.*;
@@ -28,6 +29,14 @@ import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-BN-U-0130M01	위탁 이관 관리
+ * </pre>
+ *
+ * @author gs.piit128 gilyong.han
+ * @since 2023-04-18
+ */
 @Service
 @RequiredArgsConstructor
 public class WbnaFosterTransferMgtService {
@@ -37,22 +46,43 @@ public class WbnaFosterTransferMgtService {
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
     private final ZbnaExcelHistoryMgtService zbnaExcelHistoryMgtService;
+    private final ZbnaBondTransferConfirmService bondTransferConfirmService;
     private static final String MSG_ALT_SVE_ERR_STR = "MSG_ALT_SVE_ERR";
 
+    /**
+     * 위탁 이관 관리 집계 결과 조회
+     * @param dto
+     * @return List<SearchRes>
+     */
     public List<SearchRes> getFosterTransfers(SearchReq dto) {
         return mapper.selectFosterTransfers(this.converter.mapSearchReqToBondContractBaseDvo(dto));
     }
 
+    /**
+     * 위탁 이관 관리 집계 결과 상세 페이징 조회
+     * @param dto, pageInfo
+     * @return PagingResult<SearchDetailRes>
+     */
     public PagingResult<SearchDetailRes> getFosterTransferDetails(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectFosterTransferDetails(dto, pageInfo);
     }
 
+    /**
+     * 위탁 이관 관리 집계 결과 상세 페이징 - summary 조회
+     * @param dto
+     * @return SearchDetailSummaryRes
+     */
     public SearchDetailSummaryRes getPartTransferDetailsSummary(
         SearchReq dto
     ) {
         return mapper.selectFosterTransferDetailsSummary(dto);
     }
 
+    /**
+     * 위탁 이관 관리 발송
+     * @param dto
+     * @return SaveResponse
+     */
     @Transactional
     public SaveResponse confirmFosterDataTransfers(SearchReq dto) throws Exception {
         int processCount = 0;
@@ -74,6 +104,9 @@ public class WbnaFosterTransferMgtService {
 
                 String runId = batchCallService.runJob(batchDvo);
                 BizAssert.isTrue(StringUtils.isNotEmpty(runId), MSG_ALT_SVE_ERR_STR);
+
+                // 위탁이관 가상계좌 발급 관련 배치 호출(우선 성공여부 신경쓰지 않고 호출만)
+                bondTransferConfirmService.runBndVirtualAccountIssueObjJob(dto.baseYm(), "03", "02");
 
                 data = StringUtil.isBlank(runId) ? "S" : "E";
             }
@@ -101,6 +134,11 @@ public class WbnaFosterTransferMgtService {
         return SaveResponse.builder().data(data).processCount(processCount).build();
     }
 
+    /**
+     * 위탁 이관 관리 저장
+     * @param dtos
+     * @return int
+     */
     @Transactional
     public int editFosterDataTransfers(List<SaveReq> dtos) {
         int processCount = 0;
@@ -116,6 +154,11 @@ public class WbnaFosterTransferMgtService {
         return processCount;
     }
 
+    /**
+     * 위탁 이관 관리 집계 결과 상세 엑셀 다운로드
+     * @param dto, downFileName, pageId
+     * @return List<SearchDetailRes>
+     */
     @Transactional
     public List<SearchDetailRes> getFosterTransferDetailsExcelDownload(
         SearchReq dto, String downFileName, String pageId
@@ -138,6 +181,11 @@ public class WbnaFosterTransferMgtService {
         return response;
     }
 
+    /**
+     * 위탁 이관 관리 집계 결과 상세 엑셀 업로드
+     * @param file, baseYm, bzHdqDvCd, clctamDvCd, pageId
+     * @return UploadRes
+     */
     @Transactional
     public UploadRes editFosterTransferDetailsExcelUpload(
         MultipartFile file, String baseYm, String bzHdqDvCd, String clctamDvCd, String pageId
@@ -173,7 +221,7 @@ public class WbnaFosterTransferMgtService {
                     )
                 );
                 excelUploadErrorDvos.add(errorDvo);
-            } else if (cntrDtlNoList.contains(dvo.getCntrDtlNo())) {
+            } else if (!cntrDtlNoList.contains(dvo.getCntrDtlNo())) {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(headerTitle.get("cntrDtlNo"));

@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.fee.calculation.mapper;
 import java.util.HashMap;
 import java.util.List;
 
-import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebOrganizationFeeDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.fee.calculation.dto.WfebOrganizationFeeDto.*;
@@ -19,27 +18,15 @@ public interface WfebOrganizationFeeMapper {
         SearchHmstReq dto
     );
 
-    List<SearchMngerRes> selectManagerFees(
+    List<HashMap<String, Object>> selectManagerFees(
+        SearchMngerReq dto, List<HashMap<String, Object>> feeArticles
+    );
+
+    List<HashMap<String, Object>> selectManagerTotalFees(
         SearchMngerReq dto
     );
 
-    List<SearchMngerBfRes> selectManagerBeforeFees(
-        SearchMngerReq dto
-    );
-
-    List<SearchMngerBrmgrRes> selectManagerBranchManagerFees(
-        SearchMngerReq dto
-    );
-
-    List<SearchMngerBrmgrBfRes> selectManagerBranchManagerBeforeFees(
-        SearchMngerReq dto
-    );
-
-    List<SearchMngerTotalRes> selectManagerTotalFees(
-        SearchMngerReq dto
-    );
-
-    List<SearchMngerTotalBfRes> selectManagerTotalBeforeFees(
+    List<HashMap<String, Object>> selectManagerTotalBeforeFees(
         SearchMngerReq dto
     );
 
@@ -54,7 +41,5 @@ public interface WfebOrganizationFeeMapper {
     List<SearchPlarTotalRes> selectPlannerTotalFees(
         SearchPlarReq dto
     );
-
-    List<SearchWmRes> selectWmFees(SearchWmReq dto);
 
 }

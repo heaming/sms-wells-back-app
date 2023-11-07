@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kyowon.sms.wells.web.competence.educations.dto.WpsbOnlineLinkCourseInqrDto.SearchReq;
 import com.kyowon.sms.wells.web.competence.educations.dto.WpsbOnlineLinkCourseInqrDto.SearchRes;
 import com.kyowon.sms.wells.web.competence.educations.service.WpsbOnlineLinkCourseInqrService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/educations/online-link-course")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/educations/online-link-course")
 public class WpsbOnlineLinkCourseInqrController {
 
     private final WpsbOnlineLinkCourseInqrService service;

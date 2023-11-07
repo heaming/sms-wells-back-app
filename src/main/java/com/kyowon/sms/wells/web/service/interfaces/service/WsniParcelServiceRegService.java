@@ -80,7 +80,7 @@ public class WsniParcelServiceRegService {
                 throw new BizException("MSG_ALT_NO_INFO_SRCH");
             }
 
-            parcelServiceMapper.insertParcelServiceCertKey(CertKey);
+            parcelServiceMapper.insertParcelServiceCertKey(CertKey ,  res.getDATA().getTOKENEXPRTNDTM());
         }
 
         return CertKey;

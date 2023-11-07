@@ -88,20 +88,11 @@
                  , VS115.CST_SV_ASN_NO AS CST_SV_ASN_NO
                  , VS115.BFCH_SV_BIZ_DCLSF_CD AS OLD_SV_BIZ_DCLSF_CD
                  , VS115.AFCH_SV_BIZ_DCLSF_CD AS NEW_SV_BIZ_DCLSF_CD
-              FROM  WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ VS106
-        INNER JOIN WSMDBS.TB_SVPD_PD_CHNG_APR_AK_IZ VS115 /** 상품교체 승인요청내역 **/
+              FROM WSMDBS.TB_SVPD_PD_CHNG_APR_AK_IZ VS115 /* 상품교체 승인요청내역 */
+        LEFT OUTER JOIN WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ VS106   /* 고객서비스작업결과내역 */
                 ON VS115.CNTR_NO = VS106.CNTR_NO
                AND VS115.CNTR_SN = VS106.CNTR_SN
                AND VS115.CST_SV_ASN_NO = VS106.CST_SV_ASN_NO
-           <if test="@MybatisUtils@isNotEmpty(aprAkStatCd) and !@MybatisUtils@equals(aprAkStatCd, 'ALL')">
-               AND VS115.APR_AK_STAT_CD = #{aprAkStatCd}
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(tpChYn) and !@MybatisUtils@equals(tpChYn, 'ALL')">
-               AND VS115.APR_AK_CONF_YN = #{tpChYn}
-           </if>
-           <if test='@MybatisUtils@equals(inqrBaseCd, "wrteDt")'>
-               AND SUBSTR(VS115.FST_RGST_DTM, 1, 8) BETWEEN #{startDt} AND #{endDt} /*작성일자*/
-           </if>
            <if test='@MybatisUtils@equals(inqrBaseCd, "vstCnfmDt")'>
                AND VS106.ASN_DT BETWEEN #{startDt} AND #{endDt} /*방문확정일*/
            </if>
@@ -109,8 +100,8 @@
                AND VS106.VST_FSH_DT BETWEEN #{startDt} AND #{endDt} /*처리일자*/
            </if>
         INNER JOIN  WSMDBS.TB_SSCT_CNTR_DTL T1
-                ON  T1.CNTR_NO = VS106.CNTR_NO
-               AND  T1.CNTR_SN = VS106.CNTR_SN
+                ON  T1.CNTR_NO = VS115.CNTR_NO
+               AND  T1.CNTR_SN = VS115.CNTR_SN
         LEFT OUTER JOIN WSMDBS.TB_SSCT_CNTR_REL T3   /*계약관계*/
                 ON T3.OJ_DTL_CNTR_NO = T1.CNTR_NO   /*멤버십이외원코드*/
                AND T3.OJ_DTL_CNTR_SN = T1.CNTR_SN
@@ -118,10 +109,10 @@
                AND T3.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')    /*유효시작일시*/
                AND T3.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')   /*유효종료일시*/
                AND T3.DTA_DL_YN = 'N'
-        INNER JOIN WSMDBS.TB_SVPD_CST_SVAS_IST_OJ_IZ T5
-                ON T5.CNTR_NO = VS106.CNTR_NO
-               AND T5.CNTR_SN = VS106.CNTR_SN
-               AND T5.CST_SV_ASN_NO = VS106.CST_SV_ASN_NO
+        INNER JOIN WSMDBS.TB_SVPD_CST_SVAS_IST_OJ_IZ T5       /* 고객서비스AS설치대상내역 */
+                ON T5.CNTR_NO = VS115.CNTR_NO
+               AND T5.CNTR_SN = VS115.CNTR_SN
+               AND T5.CST_SV_ASN_NO = VS115.CST_SV_ASN_NO
            <if test='@MybatisUtils@equals(inqrBaseCd, "schdDt")'>
                AND T5.VST_RQDT BETWEEN #{startDt} AND #{endDt} /*예정일자*/
            </if>
@@ -137,17 +128,17 @@
                AND VS115.CHNG_AK_PRTNR_NO = MM_PRTNR.PRTNR_NO
                AND MM_PRTNR.BASE_YM = SUBSTR(#{startDt},1,6)
         INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL ADR_REL /*계약주소관계*/
-                ON VS106.CNTR_NO = ADR_REL.DTL_CNTR_NO
-               AND VS106.CNTR_SN = ADR_REL.DTL_CNTR_SN
-               AND ADR_REL.ADRPC_TP_CD = '3'    /*1 계약주소, 2 배달주소,3 설치주소*/
+                ON VS115.CNTR_NO = ADR_REL.DTL_CNTR_NO
+               AND VS115.CNTR_SN = ADR_REL.DTL_CNTR_SN
+               AND ADR_REL.ADRPC_TP_CD IN ('2','3')    /*1 계약주소, 2 배달주소,3 설치주소*/
                AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN ADR_REL.VL_STRT_DTM AND ADR_REL.VL_END_DTM
         INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS T4 /*계약주소지기본*/
                 ON ADR_REL.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID
-        INNER JOIN TB_PDBS_PD_BAS PD_BAS
-                ON VS106.PDCT_PD_CD = PD_BAS.PD_CD
         INNER JOIN WSMDBS.TB_SVPD_CST_SV_EXCN_IZ AC201
-                ON AC201.CNTR_NO = VS106.CNTR_NO
-               AND AC201.CNTR_SN = VS106.CNTR_SN
+                ON AC201.CNTR_NO = VS115.CNTR_NO
+               AND AC201.CNTR_SN = VS115.CNTR_SN
+        INNER JOIN TB_PDBS_PD_BAS PD_BAS
+                ON AC201.PDCT_PD_CD = PD_BAS.PD_CD
         LEFT OUTER JOIN (SELECT *
                               FROM (SELECT RANK() OVER (PARTITION BY VS106.CNTR_NO ,  VS106.CNTR_SN ORDER BY VS106.VST_FSH_DT DESC, VS106.VST_FSH_HH DESC) AS RANK
                                          , VS106.VST_FSH_DT AS COMP_DT
@@ -162,8 +153,18 @@
                                      WHERE VS106.SV_BIZ_HCLSF_CD = '3'
                                        AND VS115.CST_SV_ASN_NO != VS106.CST_SV_ASN_NO)
                              WHERE RANK = 1) V1
-                         ON VS115.CNTR_NO = V1.CNTR_NO
-                        AND VS115.CNTR_SN = V1.CNTR_SN
+                 ON VS115.CNTR_NO = V1.CNTR_NO
+                AND VS115.CNTR_SN = V1.CNTR_SN
+              WHERE 1=1
+            <if test="@MybatisUtils@isNotEmpty(aprAkStatCd) and !@MybatisUtils@equals(aprAkStatCd, 'ALL')">
+                AND VS115.APR_AK_STAT_CD = #{aprAkStatCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(tpChYn) and !@MybatisUtils@equals(tpChYn, 'ALL')">
+                AND VS115.APR_AK_CONF_YN = #{tpChYn}
+            </if>
+            <if test='@MybatisUtils@equals(inqrBaseCd, "wrteDt")'>
+                AND SUBSTR(VS115.FST_RGST_DTM, 1, 8) BETWEEN #{startDt} AND #{endDt} /*작성일자*/
+            </if>
                         )
             WHERE RN = 1
          ORDER BY DRAT_DTM

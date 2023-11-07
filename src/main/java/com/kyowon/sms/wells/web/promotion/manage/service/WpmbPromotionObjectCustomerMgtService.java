@@ -58,9 +58,9 @@ public class WpmbPromotionObjectCustomerMgtService {
 
     /**
      * 프로모션 대상고객 일괄등록 관리 - 페이징 조회
-     * @param dto
-     * @param pageInfo
-     * @return
+     * @param dto 조회조건 DTO
+     * @param pageInfo 페이징정보
+     * @return 대상고객 일괄등록 목록 페이징 결과
      */
     public PagingResult<SearchRes> getPromotionObjectCustomerPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectPromotionObjectCustomerPages(dto, pageInfo);
@@ -68,8 +68,8 @@ public class WpmbPromotionObjectCustomerMgtService {
 
     /**
      * 프로모션 대상고객 일괄등록 관리 엑셀 다운로드
-     * @param dto
-     * @return
+     * @param dto 조회조건 DTO
+     * @return 대상고객 일괄등록 목록
      */
     public List<SearchRes> getPromotionObjectCustomersForExcelDownload(SearchReq dto) {
         return mapper.selectPromotionObjectCustomerPages(dto);
@@ -77,8 +77,8 @@ public class WpmbPromotionObjectCustomerMgtService {
 
     /**
      * 프로모션 대상고객 일괄등록 관리 다건 수정 (그리드 내에서 수정)
-     * @param dtos
-     * @return
+     * @param dtos 수정용 DTO
+     * @return 수정건수
      */
     @Transactional
     public int savePromotionObjectCustomers(@Valid @NotEmpty List<SaveReq> dtos) {
@@ -97,6 +97,12 @@ public class WpmbPromotionObjectCustomerMgtService {
         return processCount;
     }
 
+    /**
+     * 엑셀 업로드를 통한 프로모션 대상고객 일괄등록 저장
+     * @param file 업로드 파일
+     * @return 업로드 결과정보
+     * @throws Exception 업로드된 파일 정보 Read, 파싱시 발생할 수 있는  Exception
+     */
     @Transactional
     public UploadRes savePromotionObjectCustomersExcelUpload(MultipartFile file) throws Exception {
 
@@ -125,6 +131,10 @@ public class WpmbPromotionObjectCustomerMgtService {
             .build();
     }
 
+    /**
+     * 프로모션 대상고객 일괄등록 엑셀 업로드 Header 정보 설정
+     * @return 프로모션 대상고객 일괄등록 엑셀 업로드 Header 정보
+     */
     private Map<String, String> getHeaderTitle() {
 
         Map<String, String> headerTitle = new LinkedHashMap<>();
@@ -137,6 +147,12 @@ public class WpmbPromotionObjectCustomerMgtService {
         return headerTitle;
     }
 
+    /**
+     * 엑셀업로드 Validation Check
+     * @param headerTitle Header 정보
+     * @param readExcel 엑셀 정보
+     * @return 엑셀업로드 오류 목록
+     */
     private List<ExcelUploadErrorDvo> validateExcelDatas(Map<String, String> headerTitle, List<WpmbPromotionObjectCustomerDvo> readExcel) {
 
         List<ExcelUploadErrorDvo> excelUploadErrorDvos = new ArrayList<>();
@@ -209,6 +225,13 @@ public class WpmbPromotionObjectCustomerMgtService {
         return excelUploadErrorDvos;
     }
 
+    /**
+     * 엑셀 업로드 시 발생하는 에러정보 설정
+     * @param row 엑셀 행 라인
+     * @param header 헤더 티이틀명
+     * @param errorData 에러내용
+     * @return 엑셀업로드 에러정보
+     */
     private ExcelUploadErrorDvo getErrorDvo(int row, String header, String errorData) {
         ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
         errorDvo.setErrorRow(row + EXCEL_DATA_START_ROW_INDEX + 1);
@@ -217,6 +240,12 @@ public class WpmbPromotionObjectCustomerMgtService {
         return errorDvo;
     }
 
+    /**
+     * 계약정보 조회
+     * @param cntrNo 계약번호
+     * @param cntrSn 계약일련번호
+     * @return 계약정보
+     */
     public ContractRes getContractInfo(String cntrNo, int cntrSn) {
         WpmbPromotionObjectCustomerDvo paramDvo = new WpmbPromotionObjectCustomerDvo();
         paramDvo.setCntrNo(cntrNo);
@@ -224,6 +253,11 @@ public class WpmbPromotionObjectCustomerMgtService {
         return converter.mapWpmbPromotionObjectCustomerDvoToContractRes(mapper.selectObjectCustomerContractInfo(paramDvo));
     }
 
+    /**
+     * 프로모션 대상고객 일괄등록 다건 삭제 (그리드 내에서 삭제)
+     * @param dtos 삭제용 DTO
+     * @return 삭제건수
+     */
     public int removePromotionObjectCustomers(List<RemoveReq> dtos) {
         int processCount = 0;
         for (RemoveReq dto : dtos) {

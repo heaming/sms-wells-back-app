@@ -82,7 +82,7 @@ public class WpsfActivityGoodsMgtService {
         for (WpsfActivityGoodsMgtDto.EditReq dto : dtos) {
             int actiGdsSn = mapper.selectMaxActiGdsSn(dto);
             WpsfActivityGoodsBaseDvo dvo = converter.mapSaveActivityReq(dto);
-            dvo.setActiGdsSn(actiGdsSn);
+            dvo.setActiGdsSn(Long.valueOf(actiGdsSn));
             dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
             processCount = mapper.insertActivityGoodsBase(dvo);
         }

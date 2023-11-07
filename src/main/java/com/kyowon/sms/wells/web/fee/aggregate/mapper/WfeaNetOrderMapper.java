@@ -9,55 +9,51 @@ import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaNetOrderDto.*;
 
 @Mapper
 public interface WfeaNetOrderMapper {
-    List<SearchRes> selectNetOrders(
-        SearchReq dto
+    List<SearchDetailRes> selectNetDetailOrders(
+        SearchDetailReq dto
     );
 
-    List<SearchRes> selectAggreateNetOrders(
-        SearchReq dto
+    List<SearchAggregateRes> selectAggregateNetOrders(
+        SearchAggregateReq dto
     );
 
-    List<SearchFeeRes> selectNetOrderFees(
-        SearchReq dto
+    List<SearchStatusRes> selectStatusNetOrders(
+        SearchStatusReq dto
     );
 
-    SearchConfirmRes selectNetAggregateConfirm(
-        SearchReq dto
-    );
+    //    int deleteNetOrders(
+    //        WfeaNetOrderDvo dvo
+    //    );
+    //
+    //    int deleteWelsNetOrders(
+    //        WfeaNetOrderDvo dvo
+    //    );
+    //
+    //    int insertNetOrder(
+    //        WfeaNetOrderDvo dvo
+    //    );
 
-    int deleteNetOrders(
-        WfeaNetOrderDvo dvo
-    );
-
-    int deleteWelsNetOrders(
-        WfeaNetOrderDvo dvo
-    );
-
-    int insertNetOrder(
-        WfeaNetOrderDvo dvo
-    );
-
-    int insertManagerNetOrders(
-        WfeaNetOrderDvo dvo
-    );
-
-    int insertPlannerNetOrders(
-        WfeaNetOrderDvo dvo
-    );
-
-    int insertHomeMasterNetOrders(
-        WfeaNetOrderDvo dvo
-    );
+    //    int insertManagerNetOrders(
+    //        WfeaNetOrderDvo dvo
+    //    );
+    //
+    //    int insertPlannerNetOrders(
+    //        WfeaNetOrderDvo dvo
+    //    );
+    //
+    //    int insertHomeMasterNetOrders(
+    //        WfeaNetOrderDvo dvo
+    //    );
 
     int updateNetOrders(
         WfeaNetOrderDvo dvo
     );
 
     List<SearchProductRes> selectNetAggregateProducts(
-        SearchReq dto
+        SearchProductReq dto
     );
 
-    String selectNetAggregateJobId(
-        SearchReq dto
-    );
+    //    String selectNetAggregateJobId(
+    //        SearchReq dto
+    //    );
 }

@@ -53,7 +53,7 @@ public class WfebAgainDisbursementFeeService {
         // 실적집계서비스.실적집계메소드(baseYm, perfAgrgCrtDvCd.getCodeValidityValue(), cntrPerfCrtDvCd);
 
         /* 취소재지급 서비스 호출 */
-        againDisbursementFeeCalculationService.saveAgainDisbursementOfFeeCalculation(baseYm, perfAgrgCrtDvCd.getCodeValidityValue(), cntrPerfCrtDvCd);
+        againDisbursementFeeCalculationService.saveAgainDisbursementOfFeeCalculation(baseYm, perfAgrgCrtDvCd.getUserDfn02(), perfAgrgCrtDvCd.getCodeValidityValue(), cntrPerfCrtDvCd);
 
         /* 연체재지급 서비스 호출 */
         saveDlqAgainDisbursementOfFees(baseYm, cntrPerfCrtDvCd);

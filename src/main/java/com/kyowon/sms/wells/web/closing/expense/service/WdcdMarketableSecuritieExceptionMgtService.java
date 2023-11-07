@@ -71,7 +71,7 @@ public class WdcdMarketableSecuritieExceptionMgtService {
         for (SaveReq req : reqs) {
             WdcdMarketableSecuritieExceptionDvo dvo = converter.mapSaveReqToWdcdMarketableSecuritieExceptionDvo(req);
             dvo.setOpcsAdjNo(masterDvo.getOpcsAdjNo());
-            if (Integer.valueOf(dvo.getDstAmt()) > 0) {
+            if (Integer.valueOf(dvo.getDstAmt()) != 0) {
                 mapper.insertAccDetail(dvo);
             }
         }

@@ -38,6 +38,8 @@ public class WbncRentalResignConfirmDto {
         String cstKnm, /* 고객명 */
         Long rtrnDbtFnlAmt, /* 반환채무최종금액 */
         Long nrtrnDbtFnlAmt, /* 미반환채무최종금액 */
+        Long rtrnDbtTotAmt, /*반환시총체납액*/
+        Long nrtrnDbtTotAmt, /*미반환시총체납액*/
         Long rsgMmUcAmt, /* 해지월미수금액 */
         Long rsgMmStpCs, /* 해지월중지금액 */
         Long ccam, /* 위약금 */
@@ -48,7 +50,9 @@ public class WbncRentalResignConfirmDto {
         String pdCd, /* 상품코드 */
         String pdNm, /* 상품명 */
         String clctamPrtnrNo, /* 집금파트너번호 */
-        String prtnrKnm /* 집금파트너명 */
+        String prtnrKnm, /* 집금파트너명 */
+        String sellTpDtlCd, /* 판매유형상세코드 */
+        String sellTpDtlNm /* 판매유형상세명 */
     ) {
     }
 }

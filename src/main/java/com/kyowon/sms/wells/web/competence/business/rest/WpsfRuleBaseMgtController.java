@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.competence.business.dto.WpsfRuleBaseMgtDto;
 import com.kyowon.sms.wells.web.competence.business.service.WpsfRuleBaseMgtService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/business/rulebase")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/business/rulebase")
 public class WpsfRuleBaseMgtController {
 
     private final WpsfRuleBaseMgtService service;

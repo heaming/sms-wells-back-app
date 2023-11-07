@@ -38,7 +38,7 @@ public class WbncRentalResignExpectedMgtController {
         @ApiImplicitParam(name = "authRsgCd", value = "확정구분", paramType = "query", required = true),
     })
     @GetMapping
-    public List<SearchRes> getRentalResignExpecteds(
+    public SearchResponse getRentalResignExpecteds(
         @Valid
         SearchReq dto
     ) {
@@ -82,9 +82,11 @@ public class WbncRentalResignExpectedMgtController {
         @RequestParam("file")
         MultipartFile file,
         @RequestParam
-        String baseDt
+        String baseDt,
+        @RequestParam
+        String authRsgCd
     ) throws Exception {
-        return service.saveRentalResignExpectedExcelUpload(baseDt, file);
+        return service.saveRentalResignExpectedExcelUpload(baseDt, authRsgCd, file);
     }
 
     @ApiOperation(value = "직권해지관리 - 렌탈 해지예정 알림톡 발송 확인", notes = "최종확정전 알림톡 발송여부(건수)를 체크한다.")

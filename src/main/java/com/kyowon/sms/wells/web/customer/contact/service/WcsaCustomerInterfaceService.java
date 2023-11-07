@@ -77,7 +77,7 @@ public class WcsaCustomerInterfaceService {
         ifResDvo.setRsMsg(null); //정상의 경우 결과코드(rsCd)만 송신한다.
 
         //  1. 필수값 체크(고객번호 → 필수값 체크)
-        if (dto.CST_NO().isEmpty()) {
+        if (dto.cstNo().isEmpty()) {
             ifResDvo.setRsCd("F");
             Arrays.stream(dto.getClass().getDeclaredFields()).forEach(data -> {
                 ifResDvo.setRsMsg(data.getName() + "가(이) 없습니다 !");
@@ -124,9 +124,9 @@ public class WcsaCustomerInterfaceService {
         ifResDvo.setCstNo("");
         ifResDvo.setRsCd("");
         ifResDvo.setRsMsg(null);
-        String cstNo = dto.CST_NO();
-        String copnDvCd = dto.COPN_DV_CD();
-        String calngDvCd = dto.CALNG_DV_CD();
+        String cstNo = dto.cstNo();
+        String copnDvCd = dto.copnDvCd();
+        String calngDvCd = dto.calngDvCd();
 
         //  1. 필수값 체크(호출구분코드 → 필수값 체크)
         if (cstNo.isEmpty()) {
@@ -150,7 +150,7 @@ public class WcsaCustomerInterfaceService {
         // 4. 고객등록여부 조회
         ZcsaCustomerInfoReqDvo indvDvo = new ZcsaCustomerInfoReqDvo();
         indvDvo.setSearchType("C01");
-        indvDvo.setCstNo(dto.CST_NO());
+        indvDvo.setCstNo(dto.cstNo());
 
         List<ZcsaCustomerInfoResDvo> pextCustomer = zcsaCustomerInfoService.getCustomers(indvDvo);
 

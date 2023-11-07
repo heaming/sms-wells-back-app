@@ -42,6 +42,7 @@
                                   AND A3.BASE_PD_CD = 'WP07110882'  /* 상수-K머니(54만) 일시불 */
                                   AND A3.DTA_DL_YN = 'N'
                                 WHERE A2.DTA_DL_YN = 'N'
+                                  AND A2.RVE_DV_CD IN ('02', '03', '06', '07', '09', '10', '16')
                                   AND A2.PERF_DT <![CDATA[<=]]> #{baseYr} || '1231'  /* 필수변수-기준년 */
                                ) B1
                          GROUP BY B1.BASE_YM
@@ -62,7 +63,6 @@
                          FROM TB_GBMI_ITG_MLG_BAS B2  /* 통합마일리지기본 */
                         WHERE B2.DTA_DL_YN = 'N'
                           AND B2.MLG_TP_CD = '0802'  /* 상수-K머니 */
-                          AND B2.MLG_ALNC_DV_CD = '01'  /* 상수-에듀-웰스제휴 */
                         GROUP BY SUBSTR(B2.MLG_STAT_APY_DT, 1, 6)
                       ) C3
                     ON C3.BASE_YM = C1.BASE_YM
@@ -88,7 +88,14 @@
            AND B2.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CUBS_CST_BAS B3  /* 고객기본 */
             ON B3.CST_NO = B2.CNTR_CST_NO
-         INNER JOIN  /* 당월인 경우 LEFT OUTER JOIN */
+        <choose>
+            <when test="@MybatisUtils@equals(thisMonthYn, 'Y')">
+         LEFT OUTER JOIN  /* 당월인 경우 LEFT OUTER JOIN */
+            </when>
+            <otherwise>
+         INNER JOIN
+            </otherwise>
+        </choose>
               (SELECT A1.CNTR_NO
                     , A1.CNTR_SN
                     , MAX(SUBSTR(A1.PERF_DT, 1, 6)) AS PERF_YM
@@ -103,6 +110,7 @@
                                          ELSE -1 * A1.RVE_AMT END END) AS RVE_AMT
                  FROM TB_RVDW_RVE_DTL A1  /* 수납상세 */
                 WHERE A1.DTA_DL_YN = 'N'
+                  AND A1.RVE_DV_CD IN ('02', '03', '06', '07', '09', '10', '16')
                   AND A1.PERF_DT <![CDATA[<=]]> #{baseYm} || '31'  /* 필수변수-기준년월 */
                 GROUP BY A1.CNTR_NO
                        , A1.CNTR_SN
@@ -117,6 +125,8 @@
                         WHERE X1.CNTR_NO = B1.CNTR_NO
                           AND X1.CNTR_SN = B1.CNTR_SN
                           AND X1.DTA_DL_YN = 'N')
+         ORDER BY SUBSTR(B2.CNTR_RCP_FSH_DTM, 1, 6)
+                , SUBSTR(B1.CNTR_PD_STRTDT, 1, 6)
     </select>
 
     <select id="selectCancelDetails" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbKmoneySalesBondDto$SearchCancelRes">

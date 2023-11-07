@@ -14,6 +14,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 입금집계현황-서비스센터 목록 서비스
+ * </pre>
+ *
+ * @author eunsun.ha
+ * @since 2023-10-31
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbAggregateServiceCenterService {
@@ -22,7 +30,7 @@ public class WwdbAggregateServiceCenterService {
 
     /**
      * 입금집계현황-서비스센터 목록 조회
-     * 
+     *
      * @param req
      * @param pageInfo
      * @return PagingResult
@@ -36,7 +44,7 @@ public class WwdbAggregateServiceCenterService {
 
     /**
      * 입금집계현황-서비스센터 목록 조회 엑셀 다운로드
-     * 
+     *
      * @param req
      * @return SearchAggregateServiceCenterRes
      */
@@ -48,7 +56,7 @@ public class WwdbAggregateServiceCenterService {
 
     /**
      * 입금집계현황-서비스센터 목록 조회
-     * 
+     *
      * @param req
      * @return SearchAggregateEngineerOgRes
      */
@@ -60,7 +68,7 @@ public class WwdbAggregateServiceCenterService {
 
     /**
      * 입금집계현황-서비스센터 목록 합계 조회
-     * 
+     *
      * @param req
      * @return SearchAggregateServiceCenterTotalRes
      */

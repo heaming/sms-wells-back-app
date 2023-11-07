@@ -5,6 +5,7 @@ import lombok.Builder;
 import org.eclipse.jetty.util.StringUtil;
 
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 public class WbncRentalResignExpectedMgtDto {
     // *********************************************************
@@ -99,7 +100,9 @@ public class WbncRentalResignExpectedMgtDto {
         String authRsgCnfmRgstPrtnrNo, /* 직권해지확정등록파트너번호 */
         String bndClctnPrpDvCd, /* 채권추심속성구분코드 */
         String bndClctnPrpRsonCd, /* 채권추심속성사유코드 */
-        String bndStrtYn/* 채권전략팀 여부 */
+        String bndStrtYn, /* 채권전략팀 여부 */
+        String sellTpDtlCd, /* 판매유형상세코드 */
+        String sellTpDtlNm /* 판매유형상세명 */
     ) {
         public SearchRes {
             if (StringUtil.isNotBlank(cralLocaraTno) && StringUtil.isNotBlank(mexnoEncr)
@@ -124,7 +127,7 @@ public class WbncRentalResignExpectedMgtDto {
         String baseDt, /* 직권해지일 */
         String cntrNo,
         int cntrSn,
-        String confirmDvCd /* 예정확정 : '01' , 최종확정 : '02' */
+        String authRsgCd /* 미확정 : '01', 예정확정 : '02' , 최종확정 : '03' */
     ) {
     }
 
@@ -170,4 +173,18 @@ public class WbncRentalResignExpectedMgtDto {
         String baseDt /* 직권해지일 */
     ) {
     }
+
+
+    // *********************************************************
+    // Response Dto
+    // *********************************************************
+    // 직권해지관리 - 렌탈 해지예정 Search Response DTO
+    @Builder
+    @ApiModel("WbncRentalResignExpectedMgtDto-SearchResponse")
+    public record SearchResponse(
+        List<SearchRes> list, // 조회 결과 리스트
+        String authRsgState
+    ) {
+    }
+
 }

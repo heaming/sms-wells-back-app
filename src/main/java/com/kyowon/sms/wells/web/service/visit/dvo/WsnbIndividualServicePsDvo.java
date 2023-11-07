@@ -62,6 +62,7 @@ public class WsnbIndividualServicePsDvo {
     String cstUnuitmCn; /*고객특이사항상세*/
 
     /*처리내역조회*/
+    String gubun; /*작업구분*/
     String svTp; /* 유형*/
     String rcpDt; /* 접수(배정)일자*/
     String svBizDclsf; /*접수(배정)내역*/

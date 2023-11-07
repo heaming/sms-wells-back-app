@@ -2,44 +2,65 @@
 <mapper namespace="com.kyowon.sms.wells.web.fee.aggregate.mapper.WwfeaAccountNetIncreaseMapper">
     <select id='selectLstmmCancels' resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WwfeaAccountNetIncreaseDto$SearchCancelRes">
 
-          SELECT CASE WHEN M1.RENTAL_CAN_CT <![CDATA[>]]> 0 THEN '01'
-   			          WHEN M1.SPAY_RSG_CT <![CDATA[>]]> 0 THEN '02'
-   			          WHEN M1.RENTAL_BOO_CAN_CT <![CDATA[>]]> 0 THEN '03'
-   			          WHEN M1.SPAY_BOO_CAN_CT <![CDATA[>]]> 0 THEN '04'
-   			          WHEN M1.RENTAL_EXN_CT <![CDATA[>]]> 0 THEN '05'
-   			          WHEN M1.MSH_SPR_CT <![CDATA[>]]> 0 THEN '06'
-				       END AS inqrDvCd
+	   SELECT U1.inqrDvCd
+       		, U1.CNTR_DTL_NO /* 계약상세번호 */
+       		, U1.PD_CLSF_NM /* 상품이름 */
+       		, U1.PD_CLSF_ID /* 상품아이디 */
+       		, U1.ICHR_MNGER_NM /* 담당매니저 */
+       		, U1.ICHR_MNGER_NO /* 담당매니저 번호 */
+       		, U1.ICHR_BRMGR_NM /* 담당지점장 */
+       		, U1.ICHR_BRMGR_NO /* 담당지점장 번호 */
+       		, U1.CNTR_CNFM_DTM /* 계약일 */
+            , U1.IST_DT /* 설치일 */
+            , U1.cntrChRcpDtm /* 취소요청일 */
+            , U1.CNTR_CAN_DTM /* 취소일 */
+            , U1.CNTR_PD_ENDDT /* 만료일 */
+            , U1.CNTR_PD_STRTDT /* 사용일 */
+            , U1.CNTR_RCP_FSH_DTM /* 멤버십접수일 */
+            , U1.CNTR_CNFM_APR_DTM /* 멤버십가입일 */
+            , U1.CNTR_CAN_RSON_CD /* 취소사유 */
+            , U1.BZRNO /* 사업자번호 */
+            , U1.b2bYn /*B2B 여부 */
+            , X2.OG_CD AS SELL_OG_YN /* 조직코드 */
+            , X1.PRTNR_KNM as sellPrtnrKnm /* 판매자 */
+            , U1.SELL_PRTNR_NO /* 판매자 번호 */
+            , U1.PERF_EXCD_OJ_YN /* 실적제외여부 */
+            , 'Y' AS APY_OJ_YN /* 적용여부 */
+         FROM
+         	(
+           SELECT CASE WHEN M1.RENTAL_CAN_CT <![CDATA[>]]> 0 THEN '01'
+                  WHEN M1.SPAY_RSG_CT <![CDATA[>]]> 0 THEN '02'
+                  WHEN M1.RENTAL_BOO_CAN_CT <![CDATA[>]]> 0 THEN '03'
+                  WHEN M1.SPAY_BOO_CAN_CT <![CDATA[>]]> 0 THEN '04'
+                  WHEN M1.RENTAL_EXN_CT <![CDATA[>]]> 0 THEN '05'
+                  WHEN M1.MSH_SPR_CT <![CDATA[>]]> 0 THEN '06'
+                   END AS inqrDvCd
                 , C2.CNTR_NO || '-' || C2.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
                 , P1.PD_NM AS PD_CLSF_NM
                 , P1.PD_CD AS PD_CLSF_ID
-                , G2.HOO_PRTNR_NM AS ICHR_MNGER_NM /* 담당매니저 */
-                , G2.HOO_PRTNR_NO AS ICHR_MNGER_NO
-                , G2.DGR2_LEVL_DG_PRTNR_NM AS ICHR_BRMGR_NM /* 담당지점장 */
-                , G2.DGR2_LEVL_DG_PRTNR_NO AS ICHR_BRMGR_NO
+                , G1.PRTNR_KNM AS ICHR_MNGER_NM /* 담당매니저 */
+                , G1.PRTNR_NO AS ICHR_MNGER_NO /* 담당매니저 번호 */
+                , G2.HOO_PRTNR_NM AS ICHR_BRMGR_NM /* 담당지점장 */
+                , G2.HOO_PRTNR_NO AS ICHR_BRMGR_NO /* 담당지점장 번호 */
                 , C1.CNTR_CNFM_DTM /* 계약일 */
                 , C3.IST_DT /* 설치일 */
-                , S5.CNTR_CH_RCP_DTM /* 취소요청일 */
+                , C4.RSG_APLC_DT AS cntrChRcpDtm /* 취소요청일 */
                 , C2.CNTR_PD_ENDDT AS CNTR_CAN_DTM /* 취소일 */
-                , '' AS CNTR_PD_ENDDT /* 만료일 */
+                , TO_CHAR(ADD_MONTHS(TO_DATE(C2.CNTR_PD_STRTDT,'YYYYMMDD'), C2.CNTR_PTRM), 'YYYYMMDD') AS CNTR_PD_ENDDT /* 만료일 */
                 , C2.CNTR_PD_STRTDT /* 사용일 */
                 , C1.CNTR_RCP_FSH_DTM /* 멤버십접수일 */
-                , C1.CNTR_CNFM_APR_DTM /* 멤버십가입일 */
-                , C1.CNTR_CAN_RSON_CD /* 취소사유 */
-                , S3.BZRNO
+                , S1.MSH_J_DT AS CNTR_CNFM_APR_DTM /* 멤버십가입일 */
+                , C4.CNTR_STAT_CH_RSON_CD AS CNTR_CAN_RSON_CD /* 취소사유 */
+                , S3.BZRNO /* 사업자번호 */
                 , CASE WHEN (SELECT COUNT(1) FROM TB_SSCT_SELL_LM_OJ_IZ
                               WHERE TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN VL_STRT_DTM AND VL_END_DTM
                                 AND SELL_LM_RLS_DT IS NULL
                                 AND ( SELL_LM_PRTNR_NO = C1.SELL_PRTNR_NO OR (SELL_LM_CNTR_NO = C2.CNTR_NO AND SELL_LM_CNTR_SN = C2.CNTR_SN)
-                                      OR SELL_LM_BZRNO = S3.BZRNO ))  >  0 THEN 'Y'
+                                      OR SELL_LM_BZRNO = S3.BZRNO ))  <![CDATA[>]]>  0 THEN 'Y'
                         ELSE 'N' END AS b2bYn
-                , DECODE(C1.SELL_PRTNR_NO, NULL, 'N', 'Y') AS SELL_OG_YN
-                , G1.PRTNR_KNM  AS SELL_PRTNR_KNM
                 , C1.SELL_PRTNR_NO
+                , C1.SELL_OG_TP_CD
                 , DECODE(S4.FEE_PERF_EXCD_DV_CD, '03' , 'Y', 'N') AS PERF_EXCD_OJ_YN /* 제외대상 */
-                , CASE  WHEN S4.FEE_PERF_EXCD_DV_CD = '03'
-                            AND  TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN S4.APY_STRT_YM
-                            AND S4.APY_END_YM THEN 'Y'
-                        ELSE 'N' END AS APY_OJ_YN
 	       FROM TB_FEAM_WELS_ACC_NINC_MM_DTL M1
           INNER JOIN TB_SSCT_CNTR_BAS C1 /*계약기본*/
              ON M1.CNTR_NO = C1.CNTR_NO
@@ -53,18 +74,27 @@
              ON M1.CNTR_NO = C3.CNTR_NO
             AND M1.CNTR_SN = C3.CNTR_SN
             AND C3.DTA_DL_YN = 'N'
-          INNER JOIN TB_OGBS_MM_PRTNR_IZ G1 /*월파트너내역*/
-             ON M1.PERF_YM  = G1.BASE_YM
+           LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+             ON C2.BASE_PD_CD = P1.PD_CD
+            AND P1.DTA_DL_YN = 'N'
+           LEFT OUTER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C4 /* 계약해지처리내역 */
+             ON M1.CNTR_NO = C4.CNTR_NO
+            AND M1.CNTR_SN = C4.CNTR_SN
+            AND C4.DTA_DL_YN = 'N'
+           LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S1
+             ON SUBSTR(C2.CNTR_PD_ENDDT, 1, 6) = S1.MNGT_YM
+            AND C2.CNTR_NO = S1.CNTR_NO
+            AND C2.CNTR_SN = S1.CNTR_SN
+            AND S1.DTA_DL_YN = 'N'
+           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ G1 /*월파트너내역*/
+             ON SUBSTR(C2.CNTR_PD_ENDDT, 1, 6)  = G1.BASE_YM
             AND M1.PRTNR_NO = G1.PRTNR_NO
             AND M1.OG_TP_CD = G1.OG_TP_CD
             AND G1.DTA_DL_YN = 'N'
-          INNER JOIN TB_OGBS_MM_OG_IZ G2 /*월조직내역*/
+           LEFT OUTER JOIN TB_OGBS_MM_OG_IZ G2 /*월조직내역*/
              ON G1.BASE_YM = G2.BASE_YM
             AND G1.OG_ID = G2.OG_ID
             AND G2.DTA_DL_YN = 'N'
-          INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
-             ON C2.BASE_PD_CD = P1.PD_CD
-            AND P1.DTA_DL_YN = 'N'
            LEFT OUTER JOIN TB_SSOP_PSPC_CST_BAS S3 /* 가망고객기본 */
              ON C1.PSPC_CST_ID = S3.PSPC_CST_ID
             AND S3.DTA_DL_YN = 'N'
@@ -72,29 +102,28 @@
              ON M1.CNTR_NO = S4.CNTR_NO
             AND M1.CNTR_SN = S4.CNTR_SN
             AND S4.DTA_DL_YN = 'N'
-           LEFT OUTER JOIN TB_SSCT_CNTR_CH_RCP_BAS S5 /* 계약변경접수기본 */
-             ON C1.CNTR_CH_RCP_ID = S5.CNTR_CH_RCP_ID
-            AND S5.CNTR_CH_TP_CD = '402'
-            AND S5.DTA_DL_YN = 'N'
           WHERE 1=1
           	AND M1.PERF_YM = #{perfYm}
           	AND M1.FEE_TCNT_DV_CD = #{feeTcntDvCd}
           	AND M1.OG_TP_CD = #{ogTpCd}
-            <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
-            AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
-            </if>
-            <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
-            AND G2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
-            </if>
-            <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
-            AND G2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
-            </if>
             <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
             AND M1.PRTNR_NO = #{prtnrNo}
             </if>
             <choose>
             <when test='@MybatisUtils@equals(cnclTpCd, "01")'> /* 렌탈 */
             AND M1.RENTAL_CAN_CT <![CDATA[>]]> 0
+                <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+                AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+                AND G2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+                AND G2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                AND M1.PRTNR_NO = #{prtnrNo}
+                </if>
             </when>
             <when test='@MybatisUtils@equals(cnclTpCd, "02")'> /* 일시불 */
             AND M1.SPAY_RSG_CT <![CDATA[>]]> 0
@@ -107,14 +136,99 @@
             </when>
             <when test='@MybatisUtils@equals(cnclTpCd, "05")'> /* 렌탈만료 */
             AND M1.RENTAL_EXN_CT <![CDATA[>]]> 0
+                <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+                AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+                AND G2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+                AND G2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+                </if>
             </when>
             <when test='@MybatisUtils@equals(cnclTpCd, "06")'> /* 멤버십이탈 */
             AND M1.MSH_SPR_CT <![CDATA[>]]> 0
+                <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+                AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+                AND G2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+                AND G2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+                </if>
             </when>
             <when test='@MybatisUtils@equals(cnclTpCd, "ALL")'>
-            AND NVL(M1.RENTAL_CAN_CT,0) + NVL(M1.SPAY_RSG_CT,0) <![CDATA[>]]> 0 /* 전체 */
+            AND NVL(M1.RENTAL_CAN_CT,0) + NVL(M1.SPAY_RSG_CT,0) + NVL(M1.RENTAL_BOO_CAN_CT,0) + NVL(M1.SPAY_BOO_CAN_CT,0)  + NVL(M1.RENTAL_EXN_CT,0) + NVL(M1.MSH_SPR_CT,0)  <![CDATA[>]]> 0 /* 전체 */
+                <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+                AND G2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+                AND G2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+                AND G2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+                </if>
             </when>
             </choose>
+        ) U1
+       LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ X1 /*월파트너내역*/
+         ON SUBSTR(U1.CNTR_CNFM_DTM, 1, 6)  = X1.BASE_YM
+        AND U1.SELL_PRTNR_NO = X1.PRTNR_NO
+        AND U1.SELL_OG_TP_CD = X1.OG_TP_CD
+        AND X1.DTA_DL_YN = 'N'
+       LEFT OUTER JOIN TB_OGBS_MM_OG_IZ X2 /*월조직내역*/
+         ON X1.BASE_YM = X2.BASE_YM
+        AND X1.OG_ID = X2.OG_ID
+        AND X2.DTA_DL_YN = 'N'
+      WHERE 1=1
+        <choose>
+        <when test='@MybatisUtils@equals(cnclTpCd, "02")'> /* 일시불 */
+            <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+            AND X2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+            AND X2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+            AND X2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+            </if>
+        </when>
+        <when test='@MybatisUtils@equals(cnclTpCd, "03")'> /* 렌탈예약취소 */
+            <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+            AND X2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+            AND X2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+            AND X2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+            </if>
+        </when>
+        <when test='@MybatisUtils@equals(cnclTpCd, "04")'> /* 일시불예약취소 */
+            <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+            AND X2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+            AND X2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+            AND X2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+            </if>
+        </when>
+        <when test='@MybatisUtils@equals(cnclTpCd, "ALL")'>
+            <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+            AND X2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+            AND X2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+            AND X2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+            </if>
+        </when>
+        </choose>
+
     </select>
 
     <select id='selectNewSells' resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WwfeaAccountNetIncreaseDto$SearchNewSellRes">

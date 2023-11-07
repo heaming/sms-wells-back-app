@@ -16,19 +16,21 @@
              , B.SL_CTR_RMK_CN                                                                               /*취소조정사유*/
              , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = D.BASE_PD_CD)           AS PD_NM              /*상품명*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'CMN_STAT_CH_RSON_CD', C.CNTR_STAT_CH_RSON_CD) AS STAT_CH_RSON_NM    /*취소사유*/
-             , NVL(F.BOR_AMT, 0) AS EOT_DLQ_AMT/*최종연체금*/
-             , NVL(E.EOT_DLQ_AMT + E.BTD_DLQ_ADD_AMT - E.THM_DLQ_ADD_DP_SUM_AMT - E.THM_CTR_DLQ_ADD_AMT + E.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) AS EOT_BOR_AMT/*최종위약금*/
+            , NVL(E.DLQ_AMT, 0) + NVL(F.EOT_BOR_AMT,0) AS EOT_DLQ_AMT/*최종연체금*/
+            , GREATEST(NVL(F.OC_BOR_AMT - F.LS_RNTF, 0), 0) AS EOT_BOR_AMT/*최종위약금*/
           FROM TB_CBCL_WELLS_SL_MM_CL_IZ A/*WELLS매출월마감내역*/
          INNER JOIN TB_SSCT_CNTR_DTL D/*계약상세*/
             ON A.CNTR_NO = D.CNTR_NO
            AND A.CNTR_SN = D.CNTR_SN
            AND A.SELL_TP_DTL_CD = D.SELL_TP_DTL_CD
            AND D.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS F /*WELLS위약금액기본*/
-            ON F.PERF_YM = A.SL_CL_YM
-           AND F.CNTR_NO = A.CNTR_NO
-           AND F.CNTR_SN = A.CNTR_SN
-           AND F.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (SELECT OC_BOR_AMT, LS_RNTF, EOT_BOR_AMT
+                                     FROM TB_CBCL_WELLS_BOR_AMT_BAS /*WELLS위약금액기본*/
+                                    WHERE CNTR_NO = A.CNTR_NO
+                                      AND CNTR_SN = A.CNTR_SN
+                                      AND DTA_DL_YN = 'N'
+                                      AND PERF_YM = (SELECT MAX(SL_CL_YM) FROM TB_CBCL_WELLS_SL_MM_CL_IZ WHERE CNTR_NO = A.CNTR_NO AND CNTR_SN = A.CNTR_SN)
+                                   ) F ON 1 = 1
           LEFT OUTER JOIN TB_RVDW_SL_CTR_BAS B/*매출조정기본*/
             ON B.CNTR_NO = A.CNTR_NO
            AND B.CNTR_SN = A.CNTR_SN
@@ -39,11 +41,13 @@
             ON C.CNTR_NO = A.CNTR_NO
            AND C.CNTR_SN = A.CNTR_SN
            AND C.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_CBCL_DLQ_BAS E/*연체기본*/
-            ON E.PERF_YM = A.SL_CL_YM
-           AND E.CNTR_NO = A.CNTR_NO
-           AND E.CNTR_SN = A.CNTR_SN
-           AND E.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (SELECT EOT_DLQ_AMT + BTD_DLQ_ADD_AMT - THM_DLQ_ADD_DP_SUM_AMT - THM_CTR_DLQ_ADD_AMT + THM_DLQ_ADD_RFND_SUM_AMT AS DLQ_AMT
+                                     FROM TB_CBCL_DLQ_BAS /*연체기본*/
+                                    WHERE CNTR_NO = A.CNTR_NO
+                                      AND CNTR_SN = A.CNTR_SN
+                                      AND DTA_DL_YN = 'N'
+                                    ORDER BY PERF_YM DESC
+                                    FETCH FIRST 1 ROW ONLY) E ON 1 = 1
           LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST H/*계약상세상태변경이력*/
             ON H.CNTR_NO = A.CNTR_NO
            AND H.CNTR_SN = A.CNTR_SN
@@ -57,7 +61,6 @@
           LEFT OUTER JOIN TB_RVDW_PVDA_PLAN_DTL Y/*현재가치할인차금계획상세*/
             ON X.PVDA_PLAN_NO = Y.PVDA_PLAN_NO
            AND Y.ISTM_TN = A.RENTAL_TN
-           AND Y.MM_MPY_AMT = D.MM_ISTM_AMT
            AND Y.DTA_DL_YN = 'N'
          WHERE A.SL_CL_YM = #{perfYm}
            AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}

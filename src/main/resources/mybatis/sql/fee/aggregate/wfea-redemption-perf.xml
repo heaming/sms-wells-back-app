@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaRedemptionPerfMapper">
+    <insert id="insertContractDataFromNtorp">
+        INSERT INTO TB_FEAM_NTORP_CNTR_MM_CL(
+                                              BASE_YM
+                                            , PERF_YM
+                                            , FEE_TCNT_DV_CD
+                                            , PERF_AGRG_CRT_DV_CD
+                                            , PERF_ATC_CD
+                                            , CO_CD
+                                            , OG_TP_CD
+                                            , PRTNR_NO
+                                            , PERF_DV_CD
+                                            , CNTR_NO
+                                            , CNTR_SN
+                                            , CNTR_PERF_CRT_DV_CD
+                                            , PERF_VAL
+                                            , REDF_ADSB_OJ_PERF_VAL
+                                            <include refid="COMMON.insertSystemField" />
+        )
+        SELECT  #{baseYm}                                    AS BASE_YM
+             , PERF_YM
+             , FEE_TCNT_DV_CD
+             , #{perfAgrgCrtDvCd} AS PERF_AGRG_CRT_DV_CD
+             , PERF_ATC_CD
+             , CO_CD
+             , OG_TP_CD
+             , PRTNR_NO
+             , '0'                                          AS PERF_DV_CD
+             , CNTR_NO
+             , CNTR_SN
+             , CNTR_PERF_CRT_DV_CD
+             , PERF_VAL
+             , REDF_ADSB_OJ_PERF_VAL
+             <include refid="COMMON.insertSystemFieldValue" />
+            FROM  (SELECT T1.PERF_YM
+                     , T1.FEE_TCNT_DV_CD
+                     , T2.PERF_ATC_CD
+                     , T2.CO_CD
+                     , T1.OG_TP_CD
+                     , T1.PRTNR_NO
+                     , T1.CNTR_NO
+                     , T1.CNTR_SN
+                     , T1.CNTR_PERF_CRT_DV_CD
+                     , 0                    AS PERF_VAL
+                     , T2.PERF_VAL               AS REDF_ADSB_OJ_PERF_VAL
+                     , ROW_NUMBER() OVER (PARTITION BY T1.PERF_YM
+                               , T1.FEE_TCNT_DV_CD
+                               , T2.PERF_ATC_CD
+                               , T2.CO_CD
+                               , T1.OG_TP_CD
+                               , T1.PRTNR_NO
+                               , T1.CNTR_NO
+                               , T1.CNTR_SN ORDER BY T2.BASE_YM DESC
+                               , T2.PERF_AGRG_CRT_DV_CD DESC)         AS RN
+                  FROM (SELECT PERF_YM
+                             , FEE_TCNT_DV_CD
+                             , CNTR_NO
+                             , CNTR_SN
+                             , OG_TP_CD
+                             , PRTNR_NO
+                             , CNTR_PERF_CRT_DV_CD
+                             , REDF_ADSB_OJ_AMT
+                          FROM TB_FEAM_WELS_NRCTR_MM_CL
+                         WHERE BASE_YM = #{baseYm}
+                           AND CNTR_PERF_CRT_DV_CD = #{cntrPerfCrtDvCd}     -- 되물림
+                           AND PERF_TP_CD NOT IN ('10', '11') -- 연체, 장기보류는 별도 처리
+                           AND OG_TP_CD = #{ogTpCd}) T1
+                       INNER JOIN TB_FEAM_NTORP_CNTR_MM_CL T2
+                                  ON (T1.PERF_YM = T2.PERF_YM AND
+                                      T1.FEE_TCNT_DV_CD = T2.FEE_TCNT_DV_CD AND
+                                      T1.CNTR_NO = T2.CNTR_NO AND T1.CNTR_SN = T2.CNTR_SN AND
+                                      T1.OG_TP_CD = T2.OG_TP_CD AND
+                                      T1.PRTNR_NO = T2.PRTNR_NO)
+                 WHERE T2.PERF_VAL > 0
+                   AND T2.BASE_YM BETWEEN T1.PERF_YM AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
+                   AND T2.PERF_ATC_CD IN
+                    <foreach item="perfAtcCd" collection="perfAtcCds" open="(" separator="," close=")">
+                            #{perfAtcCd}
+                    </foreach>
+                )
+        WHERE RN = 1
+    </insert>
+
+    <insert id="insertIndivContractDataFromLife">
+        INSERT INTO TB_FEAM_NTORP_CNTR_MM_CL(
+                                              BASE_YM
+                                            , PERF_YM
+                                            , FEE_TCNT_DV_CD
+                                            , PERF_AGRG_CRT_DV_CD
+                                            , PERF_ATC_CD
+                                            , CO_CD
+                                            , OG_TP_CD
+                                            , PRTNR_NO
+                                            , PERF_DV_CD
+                                            , CNTR_NO
+                                            , CNTR_SN
+                                            , CNTR_PERF_CRT_DV_CD
+                                            , PERF_VAL
+                                            <include refid="COMMON.insertSystemField" />
+        )
+        SELECT T2.FEE_REDF_YM    AS BASE_YM
+             , T1.BASE_YM        AS PERF_YM
+             , '02'              AS FEE_TCNT_DV_CD
+             , #{perfAgrgCrtDvCd} AS PERF_AGRG_CRT_DV_CD
+             , #{perfAtcCd}       AS PERF_ATC_CD
+             , '2000'            AS CO_CD
+             , #{ogTpCd}         AS OG_TP_CD
+             , T1.PRTNR_NO
+             , '0'               AS PERF_DV_CD
+             , T1.CNTR_NO
+             , T1.CNTR_SN
+             , '02'              AS CNTR_PERF_CRT_DV_CD
+             , 0                 AS PERF_VAL
+            <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T1
+               INNER JOIN TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T2
+                          ON (T1.CNTR_NO = T2.CNTR_NO AND T1.CNTR_SN = T2.CNTR_SN AND T1.OG_TP_CD = T2.OG_TP_CD)
+         WHERE T2.FEE_REDF_YM = ${baseYm}
+           AND T2.LIF_CNTR_STAT_CD = '1' /* 취소 */
+           AND T1.LIF_CNTR_STAT_CD = '0'
+           AND NVL(T1.FEE_DSB_YM, '0') > '0'
+           AND T1.OG_TP_CD = #{ogTpCd}
+           AND T2.CNFM_YN = 'Y'
+           AND NVL(T1.FEE_DSB_YM, '0') <![CDATA[<]]> NVL(T2.FEE_REDF_YM,'0')
+    </insert>
+
+    <insert id="insertOrgContractDataFromLife">
+        INSERT INTO TB_FEAM_NTORP_CNTR_MM_CL(
+                                                      BASE_YM
+                                                    , PERF_YM
+                                                    , FEE_TCNT_DV_CD
+                                                    , PERF_AGRG_CRT_DV_CD
+                                                    , PERF_ATC_CD
+                                                    , CO_CD
+                                                    , OG_TP_CD
+                                                    , PRTNR_NO
+                                                    , PERF_DV_CD
+                                                    , CNTR_NO
+                                                    , CNTR_SN
+                                                    , CNTR_PERF_CRT_DV_CD
+                                                    , PERF_VAL
+                                                    <include refid="COMMON.insertSystemField" />
+                )
+                SELECT T2.FEE_REDF_YM    AS BASE_YM
+                     , T1.BASE_YM        AS PERF_YM
+                     , '02'              AS FEE_TCNT_DV_CD
+                     , #{perfAgrgCrtDvCd} AS PERF_AGRG_CRT_DV_CD
+                     , #{perfAtcCd}       AS PERF_ATC_CD
+                     , '2000'            AS CO_CD
+                     , #{ogTpCd}         AS OG_TP_CD
+                     , T1.PRTNR_NO
+                     , '0'               AS PERF_DV_CD
+                     , T1.CNTR_NO
+                     , T1.CNTR_SN
+                     , '02'              AS CNTR_PERF_CRT_DV_CD
+                     , 0                 AS PERF_VAL
+                    <include refid="COMMON.insertSystemFieldValue" />
+                  FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T1
+                       INNER JOIN TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T2
+                                  ON (T1.CNTR_NO = T2.CNTR_NO AND T1.CNTR_SN = T2.CNTR_SN AND T1.OG_TP_CD = T2.OG_TP_CD)
+                       INNER JOIN TB_OGBS_MM_PRTNR_IZ T3
+                                  ON (T1.BASE_YM = T3.BASE_YM AND T1.OG_TP_CD = T3.OG_TP_CD AND T1.PRTNR_NO = T3.PRTNR_NO)
+                 WHERE T2.FEE_REDF_YM = ${baseYm}
+                   AND T2.LIF_CNTR_STAT_CD = '1' /* 취소 */
+                   AND T1.LIF_CNTR_STAT_CD = '0'
+                   AND NVL(T1.FEE_DSB_YM, '0') > '0'
+                   AND T1.OG_TP_CD = #{ogTpCd}
+                   AND T3.PSTN_DV_CD != '7' /* 지점장 실적은 제외 */
+                   AND T2.CNFM_YN = 'Y'
+                   AND NVL(T1.FEE_DSB_YM, '0') <![CDATA[<]]> NVL(T2.FEE_REDF_YM,'0')
+    </insert>
+
+    <insert id="insertActiPplNForPorganization">
+        INSERT INTO TB_FEAM_PRTNR_PERF_MM_CL (  /* 파트너실적월마감 */
+                                               BASE_YM             /* 기준년월 */
+                                             , PERF_YM             /* 실적년월 */
+                                             , FEE_TCNT_DV_CD      /* 수수료차수구분코드 */
+                                             , PERF_AGRG_CRT_DV_CD /* 실적집계생성구분코드 */
+                                             , PERF_ATC_CD         /* 실적항목코드 */
+                                             , CO_CD               /* 회사코드 */
+                                             , OG_TP_CD            /* 조직유형코드 */
+                                             , PRTNR_NO            /* 파트너번호 */
+                                             , PERF_VAL            /* 실적값 */
+                                             <include refid="COMMON.insertSystemField" />)
+    SELECT BASE_YM
+         , PERF_YM
+         , FEE_TCNT_DV_CD
+         , #{perfAgrgCrtDvCd}    AS PERF_AGRG_CRT_DV_CD
+         , 'W01P00020' AS PERF_ATC_CD
+         , CO_CD
+         , OG_TP_CD
+         , PRTNR_NO
+         , COUNT(1) AS PERF_VAL
+        <include refid="COMMON.insertSystemFieldValue" />
+      FROM (SELECT T.BASE_YM                                       AS BASE_YM
+                 , C.PERF_YM
+                 , C.FEE_TCNT_DV_CD
+                 , C.PERF_ATC_CD
+                 , C.CO_CD
+                 , C.OG_TP_CD
+                 , B.HOO_PRTNR_NO                                  AS PRTNR_NO
+                 , B.PERF_DV_CD
+                 , C.PERF_VAL
+                 , ROW_NUMBER() OVER (PARTITION BY C.PERF_YM, C.PERF_ATC_CD, C.CO_CD, C.OG_TP_CD, B.PERF_DV_CD, C.PRTNR_NO
+              ORDER BY C.BASE_YM DESC, C.PERF_AGRG_CRT_DV_CD DESC) AS RN
+              FROM (SELECT DISTINCT T1.BASE_YM
+                                  , T1.PERF_YM
+                                  , T1.CO_CD
+                                  , T1.OG_TP_CD
+                                  , T2.HOO_PRTNR_NO
+                                  , T2.PERF_DV_CD
+                                  , T1.FEE_TCNT_DV_CD
+                                  , T1.PERF_ATC_CD
+                      FROM TB_FEAM_NTORP_PERF_MM_CL T1
+                           INNER JOIN TB_FEAM_MM_PRTNR_HOO_IZ T2
+                                      ON T1.PERF_YM = T2.BASE_YM
+                                          AND T1.OG_TP_CD = T2.OG_TP_CD
+                                          AND T1.PRTNR_NO = T2.PRTNR_NO
+                       AND T1.BASE_YM = #{baseYm}
+                       AND T1.PERF_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -60), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
+                       AND T1.PERF_AGRG_CRT_DV_CD = #{perfAgrgCrtDvCd}
+                       AND T1.OG_TP_CD = #{ogTpCd}
+                       AND T1.PERF_ATC_CD = 'W01P00009'
+                       AND T1.PERF_DV_CD = '0'
+                       AND T2.PERF_DV_CD = '2'
+                       AND T1.DTA_DL_YN = 'N'
+                       AND T2.PRTNR_NO != T2.HOO_PRTNR_NO /* 본인이 지국장인 경우 제외 */
+                     WHERE 1 = 1) T
+                   INNER JOIN TB_FEAM_MM_PRTNR_HOO_IZ B
+                              ON T.PERF_YM = B.BASE_YM
+                                  AND T.OG_TP_CD = B.OG_TP_CD
+                                  AND T.HOO_PRTNR_NO = B.HOO_PRTNR_NO
+                                  AND T.PERF_DV_CD = B.PERF_DV_CD
+                   INNER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                              ON T.PERF_YM = C.PERF_YM
+                                  AND T.CO_CD = C.CO_CD
+                                  AND B.OG_TP_CD = C.OG_TP_CD
+                                  AND B.PRTNR_NO = C.PRTNR_NO
+                                  AND T.PERF_ATC_CD = C.PERF_ATC_CD
+                                  AND T.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
+                                  AND C.PERF_DV_CD = '0'
+             WHERE 1 = 1
+               AND C.BASE_YM BETWEEN T.PERF_YM AND T.BASE_YM
+               AND B.PRTNR_NO != B.HOO_PRTNR_NO /* 본인이 지국장인 경우 제외 */) A
+     WHERE A.RN = 1
+       AND PERF_VAL >= 2500000
+    GROUP BY BASE_YM, PERF_YM, FEE_TCNT_DV_CD, PERF_ATC_CD, CO_CD, OG_TP_CD, PRTNR_NO
+    </insert>
+</mapper>
