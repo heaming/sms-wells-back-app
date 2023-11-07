@@ -5,6 +5,13 @@ import lombok.Setter;
 
 @Getter
 @Setter
+/**
+ * <pre>
+ *     프로모션 대상고객 일괄등록 DVO
+ * </pre>
+ * @author domin.pyun
+ * @since 2023-06-07
+ */
 public class WpmbPromotionObjectCustomerDvo {
     private String pmotOjRelId;                     /* 계약번호 */
     private String histStrtDtm;                     /* 이력시작일시 */

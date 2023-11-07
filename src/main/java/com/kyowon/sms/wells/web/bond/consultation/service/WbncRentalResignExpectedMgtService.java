@@ -155,6 +155,13 @@ public class WbncRentalResignExpectedMgtService {
 
         int processCount = 0;
 
+        // 직권해지 관리 취소자료 업데이트
+        if ("02".equals(dto.confirmDvCd())) {
+            SaveCancelReq cancelDto = this.converter.mapSaveReqToCancleDto(dto);
+            // 계약해지처리내역 등록
+            this.mapper.insertRentalCntrResignExpctCancel(cancelDto);
+        }
+
         // 직권해지 렌탈 [예정확정] [최종확정]
         int rentalCount = this.mapper.updateAuthorityResignRentalCnfms(dto);
         BizAssert.isTrue(rentalCount >= 0, MSG_ALT_SVE_ERR_STR); // 저장에 실패 하였습니다.
@@ -168,13 +175,9 @@ public class WbncRentalResignExpectedMgtService {
 
         // 직권해지 확정 조회, 계약상태 변경처리
         if ("02".equals(dto.confirmDvCd())) {
-            SaveCancelReq cancelDto = this.converter.mapSaveReqToCancleDto(dto);
-
-            // 직권해지 취소자료 등록
-            this.mapper.insertRentalResignExpectedCancel(cancelDto);
 
             // 직권해지 관리 취소자료 업데이트
-            this.mapper.updateRentalResignExpectedCancel(cancelDto);
+            this.mapper.updateRentalResignExpectedCancel(this.converter.mapSaveReqToCancleDto(dto));
 
             // 직권해지 계약 조회
             List<WbncAuthorityResignIzDvo> resignConfirms = this.mapper.selectRentalResignConfirms(dto.baseDt());

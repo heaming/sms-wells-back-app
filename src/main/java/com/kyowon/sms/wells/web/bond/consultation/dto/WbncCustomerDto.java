@@ -351,17 +351,17 @@ public class WbncCustomerDto {
         String promFshYn
     ) {}
 
-    @ApiModel(value = "WbncCustomerDto-FindUserInfoReq")
-    public static record FindUserInfoReq(
-        String prtnrNo,
-        String ogTpCd
+    @ApiModel(value = "WbncCustomerDto-SearchUserInfoReq")
+    public static record SearchUserInfoReq(
+        String prtnrNo, /*파트너번호*/
+        String ogTpCd /*조직유형*/
     ) {}
 
-    @ApiModel(value = "WbncCustomerDto-FindUserInfoRes")
-    public static record FindUserInfoRes(
-        String tno1,
-        String tno2,
-        String tno3
+    @ApiModel(value = "WbncCustomerDto-SearchUserInfoRes")
+    public static record SearchUserInfoRes(
+        String tno1, /*전화번호1*/
+        String tno2, /*전화번호2*/
+        String tno3 /*전화번호3*/
     ) {}
 
     @ApiModel(value = "WbncCustomerDto-FindRecIdReq")

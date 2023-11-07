@@ -10,9 +10,7 @@ public class WsnaAsMaterialOutOfStoragePsDto {
     public record SearchReq(
         String startDt,
         String endDt,
-
         String serviceType,
-
         String prtnrNo,
 
         String refriType,
@@ -24,6 +22,10 @@ public class WsnaAsMaterialOutOfStoragePsDto {
         String installBase,
 
         String itmKndCd,
+
+        String itmPdCdFrom,
+
+        String itmPdCdTo,
 
         String svBizDclsfCd
     ) {}
@@ -82,7 +84,7 @@ public class WsnaAsMaterialOutOfStoragePsDto {
 
         String svBizHclsfNm,
 
-        String prtnrNm,
+        String prtnrKnm,
 
         String asLctNm,
 

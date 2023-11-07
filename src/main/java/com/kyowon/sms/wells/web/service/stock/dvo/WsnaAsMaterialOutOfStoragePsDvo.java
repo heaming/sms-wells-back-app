@@ -71,7 +71,7 @@ public class WsnaAsMaterialOutOfStoragePsDvo {
 
     String svBizHclsfNm;
 
-    String prtnrNm;
+    String prtnrKnm;
 
     String asLctNm;
 

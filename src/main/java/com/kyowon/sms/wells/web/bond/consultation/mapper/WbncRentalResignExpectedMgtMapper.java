@@ -25,8 +25,6 @@ public interface WbncRentalResignExpectedMgtMapper {
 
     int updateAuthorityResignRegularShippingCnfms(SaveConfirmReq dto);
 
-    int insertRentalResignExpectedCancel(SaveCancelReq dto);
-
     List<WbncAuthorityResignIzDvo> selectRentalResignConfirms(@Param("baseDt") String baseDt);
 
     Integer selectRentalResignExpectedSmsCount(SmsCheckReq dto);
@@ -34,4 +32,6 @@ public interface WbncRentalResignExpectedMgtMapper {
     int updateRentalResignExpectedCancel(SaveCancelReq dto);
 
     int updateOvrdAthrTrmtPreExcdAdmn(@Param("baseDt") String baseDt);
+
+    int insertRentalCntrResignExpctCancel(SaveCancelReq dto);
 }

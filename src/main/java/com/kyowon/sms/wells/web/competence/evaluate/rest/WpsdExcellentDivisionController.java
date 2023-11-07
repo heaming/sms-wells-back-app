@@ -61,6 +61,17 @@ public class WpsdExcellentDivisionController {
         return service.getExcellentDivisionsForExcelDownload(dto);
     }
 
+    @ApiOperation(value = "우수사업부 현황 - 목표 저장", notes = "목표 저장")
+    @PostMapping
+    public SaveResponse saveExcellentDivision(
+        @Valid
+        @RequestBody
+        List<SaveReq> reqs
+    ){
+        return SaveResponse.builder().processCount(service.saveExcellentDivision(reqs)).build();
+
+    }
+
     @ApiOperation(value = "우수사업부 현황 - 경진조 조회", notes = "경진조 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = true),

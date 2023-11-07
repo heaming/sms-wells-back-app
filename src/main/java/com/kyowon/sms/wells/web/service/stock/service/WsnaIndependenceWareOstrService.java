@@ -214,7 +214,7 @@ public class WsnaIndependenceWareOstrService {
      * @param dtos
      * @return
      */
-    @Transactional
+    @Transactional(timeout = 300)
     public int saveIndependenceWareOstrs(List<SaveReq> dtos) {
 
         int count = 0;

@@ -22,7 +22,6 @@ public class WfefSellFeeEtPerfDto {
         @NotBlank
         String inqrDv, /* 조회구분 1: 건수&실적, 2: 계정순증, 3: 판매상세, 4: 순증상세 */
         String nincDv, /* 순증구분 01: 전월취소, 02: 신규판매 */
-        @NotBlank
         String pstnDvCd, /* 직급구분코드 */
         String dgr1LevlOgCd,
         String dgr2LevlOgCd,
@@ -48,10 +47,13 @@ public class WfefSellFeeEtPerfDto {
         int notElhmAmt,
         int spayNincNwCt,
         int rentalNincNwCt,
-        double rentalCanCt,
+        int rentalCanCt,
         int rentalExnCt,
         int mshSprCt,
-        int spayRsgCt
+        int spayRsgCt,
+        int vstAsnCt,
+        int vstFshCt,
+        double vstProcsRt
     ) {}
 
     // 수수료 예상실적 조회 (판매) 판매상세 Search Result Dto

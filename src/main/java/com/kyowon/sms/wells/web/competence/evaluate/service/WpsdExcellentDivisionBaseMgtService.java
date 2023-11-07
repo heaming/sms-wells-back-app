@@ -183,6 +183,7 @@ public class WpsdExcellentDivisionBaseMgtService {
             WpsdElvDetailDvo dvo = converter.elvMapToDetailDvo(req);
             mapper.deleteEvaluationDetail(dvo);
             List<HashMap<String, Object>> target = mapper.selectTargetList(dvo);
+            BizAssert.isTrue(!target.isEmpty(), "MSG_ALT_UNRG_EVL_OJ");
             int resultCnt = mapper.insertEvaluationDetail(dvo, target);
             BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
             processCount += resultCnt;

@@ -56,7 +56,7 @@ public interface WwdcSalesControlMapper {
     int updateSalesControl(WwdcSalesControlDvo req);
 
     /**
-     * 매출조정이력 수정 
+     * 매출조정이력 수정
      * @param dto
      * @return List
      */
@@ -75,5 +75,19 @@ public interface WwdcSalesControlMapper {
      * @return List
      */
     int deleteSalesControl(WwdcSalesControlDvo req);
+
+    /**
+     * 매출확정 엑셀업로드 저장
+     * @param dto
+     * @return List
+     */
+    int insertExcelUploadSalesControl(WwdcSalesControlDvo dto);
+
+    /**
+     * 매출확정 엑셀업로드 저장 - 이력
+     * @param dto
+     * @return List
+     */
+    int insertExcelUploadSalesControlHistory(WwdcSalesControlDvo dto);
 
 }

@@ -12,5 +12,7 @@ import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncAuthorityResignIzDvo;
 public interface WbncRegularShippingResignMapper {
     List<SearchRes> selectRegularShippingResigns(SearchReq dto);
 
-    int updateRegularShippingResignFinalConfirm(WbncAuthorityResignIzDvo dvo);
+    int insertRegularShippingResignsCancel(WbncAuthorityResignIzDvo dvo);
+
+    int updateRegularShippingSales(WbncAuthorityResignIzDvo dvo);
 }

@@ -4,7 +4,20 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 매출 조정 관리 DTO
+ * </pre>
+ *
+ * @author kimoon.lim
+ * @since 2023-05-25
+ */
 public class WwdcSalesControlDto {
+
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 매출조정 금액 조회 Search Request Dto
 
     // 선납예상금 데이터
     @ApiModel("WwdcSalesControlDto-SearchSalesControlReq")
@@ -15,7 +28,7 @@ public class WwdcSalesControlDto {
         String perfStrtDtm, /* 실적 To*/
         String perfFshDtm, /* 실적 From*/
         String cntrSn, /* 계약일련번호 */
-        String cntrNo, /*계약번호 */
+        String cntrNo, /* 계약번호 */
         String ctrTp, /* 조정유형*/
         String mtrDv, /* 자료구분*/
         String ctrDv, /* 조정구분 */
@@ -25,6 +38,11 @@ public class WwdcSalesControlDto {
         String slCtrPrcsFshDt /* 등록일자 To */
     ) {}
 
+
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 매출조정 금액 조회 Search Result Dto
     @ApiModel("WwdcSalesControlDto-SearchSalesControlRes")
     public record SearchSalesControlRes(
         //
@@ -32,11 +50,11 @@ public class WwdcSalesControlDto {
         String cntrSn, /* 계약일련번호 */
         String cntrDtlNo, /* 계약상세번호 */
         String cstKnm, /* 고객명 */
-        String slCtrStrtYm,
-        String slCtrEndYm,
+        String slCtrStrtYm, /* 매출일자 */
+        String slCtrEndYm, /* 종료년월 - 만료일자 */
         String pdCd, /* 제품코드 */
         String pdNm, /* 제품명 */
-        String slCtrTpCd,
+        String slCtrTpCd, /* 할인 */
         String slCtrSellTpCd, /* 판매유형코드 */
         String sellTpDtlCd, /* 판매유형상세코드 */
         String slCtrMtrDvCd, /* 자료구분코드 */
@@ -53,17 +71,21 @@ public class WwdcSalesControlDto {
         String fnlMdfcUsrId
     ) {}
 
-    // 저장용 데이터
+
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 매출 조정 관리 저장 Save Request Dto
     @ApiModel("WwdcSalesControlDto-SaveSalesControlReq")
     public record SaveSalesControlReq(
         String rowState,
         @NotBlank
-        String cntrNo,
-        String cntrSn,
-        String cntrDtlNo,
-        String cstKnm,
-        String slCtrStrtYm,
-        String slCtrEndYm,
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
+        String cntrDtlNo, /* 계약상세번호 */
+        String cstKnm, /* 고객명 */
+        String slCtrStrtYm, /* 매출일자 */
+        String slCtrEndYm, /* 종료년월 - 만료일자 */
         String slCtrSellTpCd, /* 매출조정판매유형코드 */
         String slCtrMtrDvCd, /* 매출조정자료유형코드 */
         String pdCd, /* 제품코드 */
@@ -83,7 +105,7 @@ public class WwdcSalesControlDto {
         String fnlMdfcUsrId,
 
         String canDt, /* 취소일자 */
-        String apyY,
+        String apyY, /* 적용년도 */
         String jan, /* 1월 : Y/N */
         String feb, /* 2월 : Y/N */
         String jul, /* 7월 : Y/N */
@@ -92,17 +114,22 @@ public class WwdcSalesControlDto {
 
     ) {}
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 매출 조정 관리 삭제 Remove Request Dto
+
     // 저장용 데이터
     @ApiModel("WwdcSalesControlDto-RemoveSalesControlReq")
     public record RemoveSalesControlReq(
         String rowState,
         @NotBlank
-        String cntrNo,
-        String cntrSn,
-        String cntrDtlNo,
-        String cstKnm,
-        String slCtrStrtYm,
-        String slCtrEndYm,
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
+        String cntrDtlNo, /* 계약상세번호 */
+        String cstKnm, /* 고객명 */
+        String slCtrStrtYm, /* 매출일자 */
+        String slCtrEndYm, /* 종료년월 - 만료일자 */
         String slCtrSellTpCd, /* 매출조정판매유형코드 */
         String slCtrMtrDvCd, /* 매출조정자료유형코드 */
         String pdCd, /* 제품코드 */

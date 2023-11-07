@@ -19,4 +19,6 @@ public class WpsdExcellentDivisionDvo {
     private String evlRsbDvNm;
     private String ctstGrpCd;
     private String rowState;
+    private String prtnrNo;
+    private Long trgBasePc;
 }
