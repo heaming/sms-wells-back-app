@@ -259,4 +259,14 @@ public class WogcPartnerPlannerDto {
         String fnlMdfcDeptId
     ) {
     }
+
+    @ApiModel(value = "WogcPartnerPlannerDto-CheckCancellationReq")
+    @Builder
+    public record CheckCancellationReq(
+        @NotBlank
+        String prtnrNo, // 파트너번호
+        @NotBlank
+        String ogTpCd // 조직유형코드
+    ) {
+    }
 }
