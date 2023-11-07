@@ -9,15 +9,31 @@
              , D6.PD_NM                                             AS BASE_PD_NM          /* 기준상품 - 상품명 */
              , D1.CNTR_NO || '-' || D1.CNTR_SN                      AS CONN_CNTR_DTL_NO    /* 연결상품 - 계약상세번호 */
              , D3.PD_NM                                             AS CONN_SDING_PKG_NM   /* 연결상품 - 모종패키지 */
-             , D9.PD_NM                                             AS CONN_SDING_PD_NM    /* 연결상품 - 모종명 */
-             , D2.PART_USE_QTY                                      AS CONN_QTY            /* 연결상품 - 수량 */
+             , D10.PD_NM                                            AS CONN_SDING_PD_NM    /* 연결상품 - 모종명 */
+             , D9.PD_QTY                                            AS CONN_QTY            /* 연결상품 - 수량 */
              , D2.VST_DUEDT                                                                /* 방문예정일자 */
              , TO_CHAR( TO_DATE(D2.VST_DUEDT, 'YYYYMMDD')
-                        - TO_NUMBER(D10.PD_PRP_VAL06), 'YYYYMMDD' ) AS SOW_DT              /* 파종일자 */
+                        - TO_NUMBER(D11.PD_PRP_VAL06), 'YYYYMMDD' ) AS SOW_DT              /* 파종일자 */
              , D4.OJ_DTL_CNTR_NO                                    AS CNTR_NO             /* 계약번호 */
              , D4.OJ_DTL_CNTR_SN                                    AS CNTR_SN             /* 계약일련번호 */
           FROM TB_SVPD_CST_SV_EXCN_IZ D1          /* 고객서비스수행내역 */
-         INNER JOIN TB_SVPD_CST_SV_RGBSPR_IZ D2   /* 고객서비스정기BS주기내역 */
+         INNER JOIN
+             (
+               SELECT CNTR_NO
+                    , CNTR_SN
+                    , VST_DUEDT
+                    , ROW_NUMBER() OVER(PARTITION BY CNTR_NO, CNTR_SN, VST_DUEDT ORDER BY PART_PD_CD) AS RN
+                 FROM TB_SVPD_CST_SV_RGBSPR_IZ   /* 고객서비스정기BS주기내역 */
+                WHERE DTA_DL_YN = 'N'
+                  AND WK_DT IS NULL
+                  AND MTR_CAN_DT IS NULL
+                  AND VST_DUEDT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+                  AND VST_DUEDT BETWEEN #{strtDt} AND #{endDt}
+            <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+                  AND CNTR_NO = #{cntrNo}
+                  AND CNTR_SN = #{cntrSn}
+            </if>
+             ) D2
             ON D2.CNTR_NO = D1.CNTR_NO
            AND D2.CNTR_SN = D1.CNTR_SN
          INNER JOIN TB_PDBS_PD_BAS D3             /* 상품기본-모종패키지 */
@@ -35,35 +51,37 @@
            AND D7.DTL_CNTR_SN = D5.CNTR_SN
          INNER JOIN TB_CUBS_CST_BAS D8            /* 고객기본-웰스팜 */
             ON D8.CST_NO = D7.CST_NO
-         INNER JOIN TB_PDBS_PD_BAS D9             /* 상품기본-모종상품 */
-            ON D9.PD_CD = D2.PART_PD_CD
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D10
-            ON D10.PD_CD = D9.PD_CD
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D11   /* 상품각사속성상세 */
-            ON D11.PD_CD = D3.PD_CD
+         INNER JOIN TB_SSCT_CNTR_PD_REL D9        /* 계약상품관계 */
+            ON D9.CNTR_NO = D1.CNTR_NO
+           AND D9.CNTR_SN = D1.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS D10            /* 상품기본-모종상품 */
+            ON D10.PD_CD = D9.OJ_PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D11   /* 상품각사속성상세-모종상품 */
+            ON D11.PD_CD = D10.PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D12   /* 상품각사속성상세-모종패키지 */
+            ON D12.PD_CD = D3.PD_CD
          WHERE D1.DTA_DL_YN           = 'N'
            AND D1.CNTR_DTL_STAT_CD    = '101'   /* 정상 */
-           AND D2.DTA_DL_YN           = 'N'
+           AND D2.RN                  = 1
            AND D4.DTA_DL_YN           = 'N'
            AND D4.CNTR_REL_DTL_CD     = '216'   /* 모종결합(웰스팜+모종) */
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D4.VL_STRT_DTM AND D4.VL_END_DTM
            AND D5.DTA_DL_YN           = 'N'
            AND D5.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
            AND D7.CNTR_CST_REL_TP_CD  = '10'    /* 계약자 */
-           AND D10.DTA_DL_YN          = 'N'
-           AND D10.PD_EXTS_PRP_GRP_CD = 'PART'
-           AND D10.PD_PRP_VAL20       = '11'         /* 모종 */
-           AND D10.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+           AND D9.DTA_DL_YN           = 'N'
+           AND D9.PD_REL_TP_CD        = '05'    /* 기준-제품 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D9.VL_STRT_DTM AND D9.VL_END_DTM
            AND D11.DTA_DL_YN          = 'N'
            AND D11.PD_EXTS_PRP_GRP_CD = 'PART'
            AND D11.PD_PRP_VAL20       = '11'         /* 모종 */
            AND D11.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
-           AND D2.VST_DUEDT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+           AND D12.DTA_DL_YN          = 'N'
+           AND D12.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D12.PD_PRP_VAL20       = '11'         /* 모종 */
+           AND D12.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
            AND D1.REQD_DT IS NULL
            AND D1.IST_DT IS NOT NULL
-           AND D2.WK_DT IS NULL
-           AND D2.MTR_CAN_DT IS NULL
-           AND D2.VST_DUEDT BETWEEN #{strtDt} AND #{endDt}
         <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
            AND (    ( D1.CNTR_NO = #{cntrNo} AND D1.CNTR_SN = #{cntrSn} )
                  OR ( D4.OJ_DTL_CNTR_NO = #{cntrNo} AND D4.OJ_DTL_CNTR_SN = #{cntrSn} )
