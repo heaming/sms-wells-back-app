@@ -37,5 +37,5 @@ public interface WsnaManagerBsConsumableMapper {
 
     int updateBfsvcCsmbDdlvIzOstrAkNoSn(WsnaManagerBsConsumableDvo dvo);
 
-    int updateBfsvcCsmbDdlvIzDdlvStatCd(String strWareNo, String mngtYm);
+    int updateBfsvcCsmbDdlvIzDdlvStatCd(List<String> strWareNos, String mngtYm);
 }
