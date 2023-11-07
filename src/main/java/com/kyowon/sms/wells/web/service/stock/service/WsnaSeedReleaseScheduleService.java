@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -160,25 +159,21 @@ public class WsnaSeedReleaseScheduleService {
 
             // 설치인 경우
             if (SV_BIZ_HCLSF_CD_INSTL.equals(svBizHclsfCd)) {
-                // 현재일자
-                String curDt = DateUtil.getNowDayString();
+                // 출고확정일 = 설치일자
+                String sppCnfmdt = dvo.getSppCnfmdt();
 
                 String cntrNo = dvo.getCntrNo();
                 int cntrSn = dvo.getCntrSn();
 
                 // 수행내역에 설치일자 저장
-                this.maaper.updateCstSvExcnIzForInstl(cntrNo, cntrSn);
-
-                // 설치일자 조회
-                String istDt = this.maaper.selectCstSvExcnIstDt(cntrNo, cntrSn);
-                istDt = StringUtils.isEmpty(istDt) ? curDt : istDt;
+                this.maaper.updateCstSvExcnIzForInstl(cntrNo, cntrSn, sppCnfmdt);
 
                 // 계약정보 update
                 this.installationReqdDtInService
-                    .saveInstallReqdDt(cntrNo, String.valueOf(cntrSn), istDt, "", "");
+                    .saveInstallReqdDt(cntrNo, String.valueOf(cntrSn), sppCnfmdt, "", "");
 
                 // BS주기표 생성
-                SearchProcessReq visitDto = this.convertVisitPrdProcessReq(cntrNo, String.valueOf(cntrSn), istDt);
+                SearchProcessReq visitDto = this.convertVisitPrdProcessReq(cntrNo, String.valueOf(cntrSn), sppCnfmdt);
                 this.visitPrdService.processVisitPeriodRegen(visitDto);
             }
 
@@ -433,18 +428,14 @@ public class WsnaSeedReleaseScheduleService {
         ValidAssert.hasText(cntrSn);
 
         // 수행내역에 설치일자 저장
-        this.maaper.updateCstSvExcnIzForInstl(cntrNo, Integer.parseInt(cntrSn));
-
-        // 설치일자 조회
-        String istDt = this.maaper.selectCstSvExcnIstDt(cntrNo, Integer.parseInt(cntrSn));
-        istDt = StringUtils.isEmpty(istDt) ? curDt : istDt;
+        this.maaper.updateCstSvExcnIzForInstl(cntrNo, Integer.parseInt(cntrSn), curDt);
 
         // 계약정보 update
         this.installationReqdDtInService
-            .saveInstallReqdDt(cntrNo, cntrSn, istDt, "", "");
+            .saveInstallReqdDt(cntrNo, cntrSn, curDt, "", "");
 
         // BS주기표 생성
-        SearchProcessReq visitDto = this.convertVisitPrdProcessReq(cntrNo, cntrSn, istDt);
+        SearchProcessReq visitDto = this.convertVisitPrdProcessReq(cntrNo, cntrSn, curDt);
         this.visitPrdService.processVisitPeriodRegen(visitDto);
     }
 
