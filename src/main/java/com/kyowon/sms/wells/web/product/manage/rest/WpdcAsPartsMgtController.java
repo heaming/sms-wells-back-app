@@ -28,6 +28,7 @@ import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
 import com.sds.sflex.common.common.service.ExcelReadService;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -213,6 +214,7 @@ public class WpdcAsPartsMgtController {
             .readExcel(file, new ExcelMetaDvo(0, headerTitle));
 
         ArrayList<String> headerKeys = new ArrayList<String>();
+        boolean isError = false;
         if (xlsList.size() >= 4) {
             /* -------------------------------------------------------------
                 0번째 row에서 물리적 DB 컬럼명을 Camel 표기법으로 KEY 추출
@@ -220,6 +222,10 @@ public class WpdcAsPartsMgtController {
             Map<String, Object> headerKeyMap = xlsList.get(0);
             for (int ii = 0; ii < headerKeyMap.size(); ii++) {
                 String key = (String)headerKeyMap.get(Integer.toString(ii));
+                if (StringUtil.isNull(key)) {
+                    isError = true;
+                    break;
+                }
                 headerKeys.add(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, key.trim()));
             }
 
@@ -237,13 +243,16 @@ public class WpdcAsPartsMgtController {
                 convertXlsList.add(convertKeyMap);
             }
 
-        } else {
+        }
+        if (isError || xlsList.size() < 4) {
 
+            String msg = messageResourceService
+                .getMessage(isError ? "MSG_ALT_WRONG_FILE_FORMAT" : "MSG_ALT_NOT_FOUND_XLS_DATA");
             List<ExcelUploadErrorDvo> headerErrors = new ArrayList<ExcelUploadErrorDvo>();
             ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
             errorVo.setHeaderName("");
             errorVo.setErrorRow(0);
-            errorVo.setErrorData(messageResourceService.getMessage("MSG_ALT_NOT_FOUND_XLS_DATA"));
+            errorVo.setErrorData(msg);
             headerErrors.add(errorVo);
 
             return ExcelUploadDto.UploadRes.builder()
