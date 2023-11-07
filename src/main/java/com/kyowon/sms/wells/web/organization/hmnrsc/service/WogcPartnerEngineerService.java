@@ -77,14 +77,14 @@ public class WogcPartnerEngineerService {
      * @return
      */
     @Transactional
-    public int saveEngineerAttends(List<SaveEngineerAttendReq> dtos, String prtnrNo) {
+    public int saveEngineerAttends(List<SaveEngineerAttendReq> dtos) {
         int processCount = 0;
 
         for (SaveEngineerAttendReq dto : dtos) {
             WogcPartnerEngineerDvo engineer = this.wogcPartnerEngineerConverter
                 .mapSaveEngineerAttendReqToWogcPartnerEngineerDvo(dto);
             engineer.setDetail("N");
-            engineer.setPrtnrNo(prtnrNo);
+            //engineer.setPrtnrNo(prtnrNo);
 
             processCount += this.mapper.updateEngineer(engineer);
         }
