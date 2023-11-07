@@ -75,7 +75,8 @@ public class WsniSidingServiceChangesService {
                     req.asAkDvCd(),
                     req.bfchPdCd(),
                     req.afchPdCd(),
-                    req.mtrProcsStatCd()
+                    req.mtrProcsStatCd(),
+                    req.akChdt()
                 );
             }
         }
