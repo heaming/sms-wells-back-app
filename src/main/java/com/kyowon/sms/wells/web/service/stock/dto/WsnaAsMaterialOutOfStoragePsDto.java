@@ -84,7 +84,7 @@ public class WsnaAsMaterialOutOfStoragePsDto {
 
         String svBizHclsfNm,
 
-        String prtnrNm,
+        String prtnrKnm,
 
         String asLctNm,
 
