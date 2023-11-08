@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
-import com.kyowon.sms.common.web.fee.calculation.service.ZfebRedemptionFeeCalculationService;
+import com.kyowon.sms.common.web.fee.calculation.mapper.ZfeaRedfAdsbPerfMapper;
+import com.kyowon.sms.common.web.fee.calculation.service.ZfebRedfAdsbFeeCalculationService;
 import com.kyowon.sms.wells.web.fee.aggregate.service.WfeaRedemptionPerfService;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebRedemptionFeeMapper;
 import com.sds.sflex.common.common.dvo.CodeDetailDvo;
@@ -32,9 +33,11 @@ public class WfebRedemptionFeeService {
     private final CodeService codeService;
 
     private final WfeaRedemptionPerfService redemptionPerfService;
-    private final ZfebRedemptionFeeCalculationService redfOfFeeCalculationService;
+    private final ZfebRedfAdsbFeeCalculationService redfAdsbFeeCalculationService;
 
     private final WfebRedemptionFeeMapper redemptionFeeMapper;
+
+    private final ZfeaRedfAdsbPerfMapper redfAdsbPerfMapper;
 
     @Value("${tenant.defaultId:TNT_BASE}")
     String defaultTenantId;
@@ -63,7 +66,7 @@ public class WfebRedemptionFeeService {
          redemptionPerfService.aggregateRedemptionOfFeePerformance(baseYm, ogTpCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
 
         /* 취소되물림 서비스 호출 */
-        redfOfFeeCalculationService.saveRedemptionOfFeeCalculation(baseYm, ogTpCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
+        redfAdsbFeeCalculationService.saveRedfAdsbCalculation(baseYm, ogTpCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
 
         /* 연체되물림 서비스 호출 */
         saveDlqRedemptionOfFees(baseYm, ogTpCd, cntrPerfCrtDvCd);
@@ -84,10 +87,10 @@ public class WfebRedemptionFeeService {
     public Integer saveDlqRedemptionOfFees(String baseYm, String ogTpCd, String cntrPerfCrtDvCd) {
         int insertCount = 0;
         /* 기생성했던 연체되물림 데이터 삭제 */
-        redemptionFeeMapper.deleteCommonDlqRedemptionOfFees(baseYm, ogTpCd, "TB_FEDD_FEE_REDF_ADSB_BAS");
-        redemptionFeeMapper.deleteCommonDlqRedemptionOfFees(baseYm, ogTpCd, "TB_FEDD_FEE_REDF_ADSB_DTL");
-        redemptionFeeMapper.deleteCommonDlqRedemptionOfFees(baseYm, ogTpCd, "TB_FEDD_FEE_REDF_ADSB_HIST");
-        redemptionFeeMapper.deleteCommonDlqRedemptionOfFees(baseYm, ogTpCd, "TB_FEDD_FEE_REDF_ADSB_DTL_HIST");
+        redfAdsbPerfMapper.deleteCommonRedfAdsbData(baseYm, ogTpCd, "02", "0203", "TB_FEDD_FEE_REDF_ADSB_BAS");
+        redfAdsbPerfMapper.deleteCommonRedfAdsbData(baseYm, ogTpCd, "02", "0203", "TB_FEDD_FEE_REDF_ADSB_DTL");
+        redfAdsbPerfMapper.deleteCommonRedfAdsbData(baseYm, ogTpCd, "02", "0203", "TB_FEDD_FEE_REDF_ADSB_HIST");
+        redfAdsbPerfMapper.deleteCommonRedfAdsbData(baseYm, ogTpCd, "02", "0203", "TB_FEDD_FEE_REDF_ADSB_DTL_HIST");
 
         switch(ogTpCd) {
             case "W01":

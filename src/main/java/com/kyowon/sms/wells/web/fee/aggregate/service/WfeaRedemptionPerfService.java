@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.fee.aggregate.service;
 
-import com.kyowon.sms.common.web.fee.aggregate.mapper.ZfeaRedemptionPerfMapper;
+import com.kyowon.sms.common.web.fee.calculation.mapper.ZfeaRedfAdsbPerfMapper;
 import com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaRedemptionPerfMapper;
 import com.sds.sflex.common.common.dvo.CodeDetailDvo;
 import com.sds.sflex.common.common.service.CodeService;
@@ -26,7 +26,7 @@ public class WfeaRedemptionPerfService {
 
     private final WfeaRedemptionPerfMapper mapper;
 
-    private final ZfeaRedemptionPerfMapper zRedfmapper;
+    private final ZfeaRedfAdsbPerfMapper zRedfAdsbmapper;
 
     private final CodeService codeService;
 
@@ -40,15 +40,15 @@ public class WfeaRedemptionPerfService {
         /* 순주문월마감 테이블에 되물림 데이터 재생성 가능한지 체크 */
         /* 확정데이터가 있으면 확정되어 집계 불가 오류 발생 */
         CodeDetailDvo code = codeService.getCodeDetails("OG_TP_CD").stream().filter(item -> ogTpCd.equals(item.getCodeValidityValue())).findFirst().orElse(null);
-        BizAssert.isTrue(zRedfmapper.selectRedemptionConfirmStatus(baseYm, ogTpCd, perfAgrgCrtDvCd) == 0, "MSG_ALT_CANT_AGRG_BY_CONFIRM", new String[] {baseYm, code.getCodeName()});
+        BizAssert.isTrue(zRedfAdsbmapper.selectRedfAdsbConfirmStatus(baseYm, ogTpCd, perfAgrgCrtDvCd) == 0, "MSG_ALT_CANT_AGRG_BY_CONFIRM", new String[] {baseYm, code.getCodeName()});
 
         /* 되물림상태코드 생성 */
-        zRedfmapper.insertRedemptionStatus(baseYm, ogTpCd, perfAgrgCrtDvCd);
+        zRedfAdsbmapper.insertRedfAdsbStatus(baseYm, ogTpCd, perfAgrgCrtDvCd);
 
         /* 기생성 데이터 삭제 */
-        zRedfmapper.deleteCommonRedempPerfData("TB_FEAM_NTORP_PERF_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
-        zRedfmapper.deleteCommonRedempPerfData("TB_FEAM_NTORP_CNTR_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
-        zRedfmapper.deleteCommonRedempPerfData("TB_FEAM_PRTNR_PERF_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
+        zRedfAdsbmapper.deleteCommonRedfAdsbPerfData("TB_FEAM_NTORP_PERF_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
+        zRedfAdsbmapper.deleteCommonRedfAdsbPerfData("TB_FEAM_NTORP_CNTR_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
+        zRedfAdsbmapper.deleteCommonRedfAdsbPerfData("TB_FEAM_PRTNR_PERF_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
 
         List<String> perfAtcCds = new ArrayList<>();
         /* 조직유형별 실적 생성 */
@@ -93,10 +93,10 @@ public class WfeaRedemptionPerfService {
         }
 
         /* 파트너 개인실적 합계 생성 */
-        zRedfmapper.insertSumOfCntrDataToPrtnrForIndiv(baseYm, ogTpCd, perfAgrgCrtDvCd, perfAtcCds);
+        zRedfAdsbmapper.insertSumOfCntrDataToPrtnrForIndiv(baseYm, ogTpCd, perfAgrgCrtDvCd, perfAtcCds);
 
         /* 조직 합계 생성 */
-        zRedfmapper.insertSumOfCntrDataToPrtnrForOg(baseYm, ogTpCd, perfAgrgCrtDvCd, perfAtcCds, Arrays.asList("2"));
+        zRedfAdsbmapper.insertSumOfCntrDataToPrtnrForOg(baseYm, ogTpCd, perfAgrgCrtDvCd, perfAtcCds, Arrays.asList("2"));
 
         /**
          *  P조직 실활동인원수 되물림실적 생성
