@@ -171,7 +171,8 @@ public class WsnaNewManagerBsConsumableService {
         String ostrAkNo = null;
         String ostrAkRgstDt = DateUtil.getNowDayString();
         String mngtYm = dtos.get(0).mngtYm();
-        List<String> strWareNos = dtos.stream().map(CreateOstrReq::strWareNo).toList();
+        List<String> strWareNos = dtos.stream().map(CreateOstrReq::strWareNo).distinct().toList();
+        List<WsnaBsConsumablesAskReqDvo> tempReqDvos = new ArrayList<>();
 
         for (String strWareNo : strWareNos) {
             List<WsnaNewManagerBsConsumableDvo> dvos = mapper.selectBfsvcCsmbDdlvIzByMngtYm(mngtYm, strWareNo);
@@ -181,8 +182,6 @@ public class WsnaNewManagerBsConsumableService {
                 UserSessionDvo userSession = context.getUserSession();
                 ostrAkNo = mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_BS, ostrAkRgstDt);
                 int ostrAkSn = 1;
-
-                List<WsnaBsConsumablesAskReqDvo> reqDvos = new ArrayList<>(dvos.size());
 
                 for (WsnaNewManagerBsConsumableDvo dvo : dvos) {
                     WsnaBsConsumablesAskReqDvo reqDvo = new WsnaBsConsumablesAskReqDvo();
@@ -201,23 +200,30 @@ public class WsnaNewManagerBsConsumableService {
                     reqDvo.setOstrOjWareNo(OSTR_OJ_WARE_NO_PAJU);
                     reqDvo.setStrWareNo(dvo.getStrWareNo());
                     reqDvo.setOstrAkQty(Integer.parseInt(dvo.getBfsvcCsmbDdlvQty()));
+                    reqDvo.setBldCd(dvo.getBldCd());
 
-                    reqDvos.add(reqDvo);
+                    tempReqDvos.add(reqDvo);
                     ostrAkSn++;
                 }
 
                 // BS소모품배부내역 OSTR_NO, OSTR_SN UPDATE
-                editBfsvcCsmbDdlvIzOstrAkNoSn(reqDvos, mngtYm);
-
-                // 출고요청 및 배송요청
-                bsConsumablesAskService.createBsConsumablesAsk(reqDvos, mngtYm, BFSVC_CSMB_DDLV_OJ_CD_NEW_MNGER);
-
-                // BS소모품배부상태코드 UPDATE
-                editBfsvcCsmbDdlvIzDdlvStatCd(strWareNo, mngtYm);
+                editBfsvcCsmbDdlvIzOstrAkNoSn(tempReqDvos, mngtYm);
             } else {
                 throw new BizException("MSG_TXT_AK_NO_DATA");
             }
         }
+
+        // 출고요청 및 배송요청
+        List<String> bldCds = tempReqDvos.stream().map(WsnaBsConsumablesAskReqDvo::getBldCd).distinct().toList();
+
+        for (String bldCd : bldCds) {
+            List<WsnaBsConsumablesAskReqDvo> askReqDvos = tempReqDvos.stream()
+                .filter(x -> bldCd.equals(x.getBldCd())).toList();
+            bsConsumablesAskService.createBsConsumablesAsk(askReqDvos, mngtYm, BFSVC_CSMB_DDLV_OJ_CD_NEW_MNGER);
+        }
+
+        // BS소모품배부상태코드 UPDATE
+        editBfsvcCsmbDdlvIzDdlvStatCd(strWareNos, mngtYm);
 
         return 1;
     }
@@ -237,8 +243,8 @@ public class WsnaNewManagerBsConsumableService {
         }
     }
 
-    private void editBfsvcCsmbDdlvIzDdlvStatCd(String strWareNo, String mngtYm) {
+    private void editBfsvcCsmbDdlvIzDdlvStatCd(List<String> strWareNos, String mngtYm) {
         // 품목별 단건 update에서 매니저별 일괄 update로 변경
-        mapper.updateBfsvcCsmbDdlvIzDdlvStatCd(strWareNo, mngtYm);
+        mapper.updateBfsvcCsmbDdlvIzDdlvStatCd(strWareNos, mngtYm);
     }
 }
