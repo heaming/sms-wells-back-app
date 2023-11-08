@@ -101,4 +101,15 @@ public class WfeaBsFeeMgtService {
         return jobStatus;
     }
 
+    /**
+     * BS 집계 여부 체크
+     * @param dto
+     * @return 조회결과
+     */
+    public WfeaBsFeeMgtDto.SearchCheckRes getFeeAgrgStat(
+        WfeaBsFeeMgtDto.SearchCheckReq dto
+    ) {
+        return mapper.selectFeeAgrgStat(dto);
+    }
+
 }

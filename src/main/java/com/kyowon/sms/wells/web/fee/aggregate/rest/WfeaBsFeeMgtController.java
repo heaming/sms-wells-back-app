@@ -39,7 +39,7 @@ public class WfeaBsFeeMgtController {
         @ApiImplicitParam(name = "endVstDt", value = "방문일자", paramType = "query", example = "20230430"),
         @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", example = "1673419"),
     })
-    @GetMapping
+    @GetMapping("/list")
     public List<WfeaBsFeeMgtDto.SearchRes> getBsFees(
         WfeaBsFeeMgtDto.SearchReq dto
     ) {
@@ -54,6 +54,21 @@ public class WfeaBsFeeMgtController {
         WfeaBsFeeMgtDto.SaveReq dto
     ) throws Exception {
         return service.saveBsAggregates(dto);
+    }
+
+    @ApiOperation(value = "BS실적 집계 여부 체크", notes = "BS실적 집계 여부 체크한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "feeTcntDvCd", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogTpCd", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "perfAgrgCrtDvCd", value = "", paramType = "query", required = true),
+    })
+    @GetMapping("/check")
+    public WfeaBsFeeMgtDto.SearchCheckRes getFeeNetOrderStat(
+        @Valid
+        WfeaBsFeeMgtDto.SearchCheckReq dto
+    ) {
+        return service.getFeeAgrgStat(dto);
     }
 
 }
