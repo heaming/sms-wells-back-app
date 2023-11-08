@@ -127,11 +127,15 @@ public class WsnbWellsServiceCfdcService {
         WsnbWellsServiceCfdcDvo cstDvo = mapper.selectCustomer(cstSvAsnNo)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
 
-        ReportEntryDvo dvo = new ReportEntryDvo();
-        dvo.setBzopNoYn("N"); //사업자여부
-        dvo.setCustName(cstDvo.getCstNm());
-        dvo.setReturnUrl(SnServiceConst.REPORT_URL_V1 + "/wells-service-cfdc/report/" + cstSvAsnNo + "/auth");
-        return reportService.openReportAuthEntry(dvo);
+        if (cstDvo.getCstBthd() == null) {
+            return openReport(cstSvAsnNo);
+        } else {
+            ReportEntryDvo dvo = new ReportEntryDvo();
+            dvo.setBzopNoYn("N"); //사업자여부
+            dvo.setCustName(cstDvo.getCstNm());
+            dvo.setReturnUrl(SnServiceConst.REPORT_URL_V1 + "/wells-service-cfdc/report/" + cstSvAsnNo + "/auth");
+            return reportService.openReportAuthEntry(dvo);
+        }
     }
 
     public ModelAndView openReportWithAuth(String cstSvAsnNo, String birth) {
