@@ -135,14 +135,16 @@ public class WsnbRegularShippingChangeService {
                 service2.removeRglrBfsvcDl(
                     new WsnbCustomerRglrBfsvcDlDto.SaveReq(
                         bsTargetDvo.getCstSvAsnNo(), //row.getCstSvAsnNo(),
-                        bsTargetDvo.getAsnOjYm()
+//                        bsTargetDvo.getAsnOjYm()
+                        req.akChdt().substring(0, 6)
                     )
                 );
 
                 /*고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)*/
                 service3.processRegularBfsvcAsn(
                     new WsncRegularBfsvcAsnDto.SaveProcessReq(
-                        bsTargetDvo.getAsnOjYm(),
+//                        bsTargetDvo.getAsnOjYm(),
+                        req.akChdt().substring(0, 6),
                         SFLEXContextHolder.getContext().getUserSession().getUserId(),
                         req.cntrNo(),
                         req.cntrSn()
