@@ -1,26 +1,22 @@
 package com.kyowon.sms.wells.web.competence.educations.rest;
 
-import java.util.List;
-
-import javax.validation.Valid;
-
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.kyowon.sms.wells.web.competence.educations.dto.WpsbOnlineLinkCourseInqrDto.SearchReq;
-import com.kyowon.sms.wells.web.competence.educations.dto.WpsbOnlineLinkCourseInqrDto.SearchRes;
+import com.kyowon.sms.wells.web.competence.educations.dto.WpsbOnlineLinkCourseInqrDto.*;
 import com.kyowon.sms.wells.web.competence.educations.service.WpsbOnlineLinkCourseInqrService;
 import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
+import java.util.List;
 
 @Api(tags = "[WSB] 온라인 연계 과정 조회")
 @Validated
@@ -60,4 +56,19 @@ public class WpsbOnlineLinkCourseInqrController {
     ) {
         return service.getOnlineLinkCourseInqrsForExcelDownload(dto);
     }
+
+
+    @ApiOperation(value = "온라인 연계 과정 조회 - 교육 과정 조회", notes = "")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", required = true),
+        @ApiImplicitParam(name = "educSchdYm", value = "교육년월", required = true)
+    })
+    @GetMapping("/education-course")
+    public List<SearchEducRes> getOnlineEducationCourseList(
+        @Valid
+        SearchReq req
+    ){
+        return service.getOnlineEducationCourseList(req);
+    }
+
 }
