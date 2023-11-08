@@ -22,6 +22,14 @@ import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * W-BN-U-0070M01	렌탈CB연체이력조회
+ * </pre>
+ *
+ * @author gs.piit128 gilyong.han
+ * @since 2023-05-19
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -31,12 +39,22 @@ public class WbndRentalCbMgtDelinquentHistoryService {
     private final WbndRentalCbMgtDelinquentHistoryConverter converter;
     private final ZbnzMessageMgtService messageMgtService;
 
+    /**
+     * 렌탈CB연체이력조회 조회
+     * @param dto
+     * @return List<SearchRes>
+     */
     public List<SearchRes> getRentalCbMgtDelinquentHistories(SearchReq dto) {
         return this.converter.listRentalCbDlqIzDvoToSearchRes(
             this.mapper.selectRentalCbMgtDelinquentHistories(this.converter.mapSearchReqToRentalCbDlqIzDvo(dto))
         );
     }
 
+    /**
+     * 렌탈CB연체이력조회 저장
+     * @param dtos
+     * @return int
+     */
     @Transactional
     public int saveRentalCbMgtDelinquentHistories(List<SaveReq> dtos) {
         int processCount = 0;
@@ -56,6 +74,11 @@ public class WbndRentalCbMgtDelinquentHistoryService {
         return processCount;
     }
 
+    /**
+     * 렌탈CB연체이력조회 발송
+     * @param dtos
+     * @return int
+     */
     @Transactional
     public int sendRentalCbMgtDelinquentHistories(List<SendReq> dtos) throws Exception {
         int processCount = 0;
