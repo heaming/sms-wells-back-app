@@ -9,12 +9,15 @@ import io.swagger.annotations.ApiModel;
 public class WsnbCustomerPsByProductDto {
     @ApiModel(value = "WsnbCustomerPsByProductDto-SearchReq")
     public record SearchReq(
-        String pdGrpCd,
-        String pdCd,
+        String baseDt,
+        String bfsvcPrdCd,
+        String cancelOrReqd,
         Integer instOver,
+        String itmKndCd,
+        String pdCd,
+        String pdGrpCd,
         String sellTpCd,
-        String prdMngtTpCd,
-        String bfsvcPrdCd
+        String prdMngtTpCd
     ) {}
 
     @ApiModel(value = "WsnbCustomerPsByProductDto-SearchRes")
@@ -28,7 +31,7 @@ public class WsnbCustomerPsByProductDto {
         String brchOgId,
         String brchOgCd,
         String brchOgNm,
-        String ogNm,
+        String svcOgNm,
         String addr,
         String cralLocaraTno,
         String mexnoEncr,
@@ -47,7 +50,7 @@ public class WsnbCustomerPsByProductDto {
         Integer extFrisuAsMcn,
         Integer svPrd,
         String rcgvpKnm,
-        String hmnrscDeptCd,
+        String ogNm,
         String prtnrKnm,
         String prtnrNo,
         String dlqAcuMcn,
