@@ -13,6 +13,11 @@
              , PRTNR_NO
              , PRTNR_KNM
              , QLF_DV_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'QLF_DV_CD', QLF_DV_CD ) AS QLF_DV_NM
+             , ACKMT_CT
+             <if test="@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, 'W01')">
+             , ACKMT_AMT
+             </if>
              , EDU100 AS TOPMR_PLAR_STMNT
              , EDU127 AS ONLINE_TCNT
              , EDUC017_1 AS OFFL_TCNT1
@@ -30,8 +35,21 @@
                     , T3.PRTNR_NO
                     , T3.PRTNR_KNM
                     , T3.QLF_DV_CD
+                    , 0 AS ACKMT_CT
                     <choose>
-                    <when test="@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, 'W02')">
+                    <when test="@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, 'W01')">
+                    , NVL(( SELECT SUM(FEE_CTR_CNFM_AMT) AS FEE_AMT
+                              FROM TB_FEAM_FEE_CD T1
+                             INNER JOIN TB_FEAM_FEE_CALC_BAS T2
+                                ON (T1.FEE_CD = T2.FEE_CD)
+                             WHERE T1.FEE_CS_DV_CD != '03' /* 01	수수료, 02	수당, 03	시상금 */
+                               AND T2.OG_TP_CD = T3.OG_TP_CD
+                               AND T2.OJ_DSB_YM = #{educSchdYm}
+                               AND T2.FNL_FEE_YN = 'Y'
+                               AND T2.DTA_DL_YN = 'N'
+                               AND PRTNR_NO = T3.PRTNR_NO
+                             GROUP BY PRTNR_NO
+                      ), 0) AS ACKMT_AMT
                     , NVL(( SELECT MAX(S1.EDUC_CPC_ACKMT_DT)
                               FROM TB_PSCA_MCPTN_EDUC_IZ S1
                              WHERE S1.PRTNR_NO = T3.PRTNR_NO
@@ -108,7 +126,7 @@
                                                                  AND D.CD_USE_YN = 'Y' )
                        ), 'N') AS EDUC017_3
                     </when>
-                    <otherwise>
+                    <when test="@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, 'W02')">
                     , NVL(( SELECT MAX(S1.EDUC_CPC_ACKMT_DT)
                              FROM TB_PSCA_MCPTN_EDUC_IZ S1
                             WHERE S1.PRTNR_NO = T3.PRTNR_NO
@@ -184,7 +202,7 @@
                                                                  AND D.DEL_YN = 'N'
                                                                  AND D.CD_USE_YN = 'Y' )
                       ), 'N') AS EDUC017_3
-                    </otherwise>
+                    </when>
                     </choose>
           FROM TB_PSCA_EDUC_RLPPL_BAS T1
          INNER JOIN
@@ -209,7 +227,7 @@
                    </if>
              ) T2
             ON T2.EDUC_CRSE_DTL_ID = T1.EDUC_CRSE_DTL_ID
-          LEFT OUTER JOIN
+         INNER JOIN
              ( SELECT S1.BASE_YM
                     , CASE WHEN S1.OG_TP_CD = 'E01' THEN NVL(S1.DGR3_LEVL_OG_ID, S1.OG_ID)
                            WHEN S1.OG_TP_CD = 'E03' THEN NVL(S1.DGR2_LEVL_OG_ID, S1.OG_ID)
@@ -224,7 +242,7 @@
                     , S2.PRTNR_NO
                     , S2.PRTNR_KNM
                     , S2.PSTN_DV_CD
-                    , F_CMZ_CD_NM(#{session.tenantId}, 'QLF_DV_CD', S2.QLF_DV_CD) AS QLF_DV_CD /* 자격구분코드(1: 수석플래너, 2: 웰스플래너, 3: 웰스매니저, 4: 플래너지점장, 5: 매니저지점장)*/
+                    , S2.QLF_DV_CD
                  FROM TB_OGBS_MM_OG_IZ S1
                 INNER JOIN TB_OGBS_MM_PRTNR_IZ S2
                    ON S2.BASE_YM = S1.BASE_YM
@@ -257,7 +275,6 @@
              ) T3
             ON T1.EDUC_CRSE_CRT_BASE_YM = T3.BASE_YM
            AND T1.EDUC_RLPPL_PRTNR_NO = T3.PRTNR_NO
-
          WHERE 1=1
            <if test='@MybatisUtils@isNotEmpty(educSchdYm)'>
            AND  T1.EDUC_CRSE_CRT_BASE_YM = #{educSchdYm}
@@ -276,6 +293,10 @@
             , DGR3_LEVL_OG_NM
             , PRTNR_NO
             , PRTNR_KNM
+            , ACKMT_CT
+            <if test="@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, 'W01')">
+            , ACKMT_AMT
+            </if>
             , QLF_DV_CD
             , EDU100
             , EDU127
@@ -443,7 +464,7 @@
                     , T3.PRTNR_KNM
                     , T3.QLF_DV_CD
                     <choose>
-                    <when test="@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, 'W02')">
+                    <when test="@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, 'W01')">
                     , NVL(( SELECT MAX(S1.EDUC_CPC_ACKMT_DT)
                              FROM TB_PSCA_MCPTN_EDUC_IZ S1
                             WHERE S1.PRTNR_NO = T3.PRTNR_NO
@@ -554,5 +575,30 @@
             , PRTNR_KNM
             , QLF_DV_CD
             , EDU135
+    </select>
+    <select id="selectOnlineEducationCourseList" resultType="com.kyowon.sms.wells.web.competence.educations.dto.WpsbOnlineLinkCourseInqrDto$SearchEducRes">
+        SELECT T1.EDUC_CRSE_ID                /* 교육과정ID */
+             , T2.EDUC_NM					  /* 교육명 */
+             , T2.EDUC_ABBR_NM				  /* 교육약어명 */
+             , T2.EDUC_DV_CD				  /* 구분코드명 */
+             , T1.OG_TP_CD                    /* 조직유형코드 */
+             , T1.EDUC_CRSE_NO                /* 교육과정번호 */
+             , T1.EDUC_CRSE_CRT_BASE_YM       /* 교육과정생성기준년월 */
+             , T1.EDUC_CRSE_CN                /* 교육과정내용 */
+             , T1.EDUC_CRSE_PLAN_RGST_STRT_DT /* 교육과정계획등록시작일자 */
+             , T1.EDUC_CRSE_PLAN_RGST_END_DT  /* 교육과정계획등록종료일자 */
+          FROM TB_PSCA_EDUC_CRSE_BAS T1 				/* 교육과정기본 */
+          INNER JOIN TB_PSCA_EDUC_SBJ_CD_MNGT_BAS T2		/* 교육과목코드관리기본 */
+            ON T1.OG_TP_CD = T2.OG_TP_CD
+           AND T1.EDUC_CRSE_NO = T2.EDUC_SBJ_CD
+           AND T2.ONL_EDUC_CD IS NOT NULL
+         WHERE T1.DTA_DL_YN = 'N'
+           <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
+           AND T1.OG_TP_CD = #{ogTpCd}                      /* 조직유형코드 */
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(educSchdYm)'>
+           AND T1.EDUC_CRSE_CRT_BASE_YM = #{educSchdYm}     /* 교육년월 ( 교육과정생성기준년월 ) */
+           </if>
+
     </select>
 </mapper>
