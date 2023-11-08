@@ -121,10 +121,12 @@ public class WsnbRegularShippingChangeService {
                 )
             );
 
+            // 정기배송 변경 대상 정보 조회
             WsniSidingServiceChangesDvo bsTargetDvo = mapper2.selectBsTarget(
                 req.cntrNo(),
                 req.cntrSn(),
-                req.akChdt().substring(0, 6)
+                req.akChdt().substring(0, 6),
+                req.afchPdCd()
             );
 
             if (bsTargetDvo != null) {
@@ -149,13 +151,17 @@ public class WsnbRegularShippingChangeService {
 
                 /*알림톡발송*/
                 final Map<String, Object> paramMap = new HashMap<String, Object>();
-                paramMap.put("cntrNo", req.cntrNo());
-                paramMap.put("cntrSn", req.cntrSn());
+                paramMap.put("cntrNo", req.cntrNo());   // 계약번호
+                paramMap.put("cntrSn", req.cntrSn());   // 계약순번
+                paramMap.put("rcgvpKnm", bsTargetDvo.getRcgvpKnm());    // 고객명
+                paramMap.put("afchPdNm", bsTargetDvo.getAfchPdNm());    // 변경상품명
+                paramMap.put("mmMpyAmt", bsTargetDvo.getMmMpyAmt());    // 월이용료
+                paramMap.put("sppDuedt", bsTargetDvo.getSppDuedt());    // 배송예정일 -> 월까지만 ex) 11월
                 smsMessageService.sendMessage(
                     SmsSendReqDvo.withTemplateId()
                         .templateId("Wells18100")
                         .templateParamMap(paramMap)
-                        .destInfo(
+                        .destInfo( // 김동엽^01085237828
                             bsTargetDvo.getRcgvpKnm() + "^" + bsTargetDvo.getCralLocaraTno()
                                 + bsTargetDvo.getMexnoEncr() + bsTargetDvo.getCralIdvTno()
                         )

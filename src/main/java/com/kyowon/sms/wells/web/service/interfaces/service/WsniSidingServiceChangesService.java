@@ -117,7 +117,8 @@ public class WsniSidingServiceChangesService {
             WsniSidingServiceChangesDvo bsTargetDvo = mapper.selectBsTarget(
                 req.cntrNo(),
                 req.cntrSn(),
-                req.akChdt().substring(0, 6)
+                req.akChdt().substring(0, 6),
+                req.afchPdCd()
             );
             if (bsTargetDvo != null) {
                 /*고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/

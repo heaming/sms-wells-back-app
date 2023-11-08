@@ -65,10 +65,19 @@ public interface WsniSidingServiceChangesMapper {
         String akChdt
     );
 
+    /**
+     * 정기배송 변경 대상 정보 조회
+     * @param cntrNo
+     * @param cntrSn
+     * @param asnOjYm
+     * @param afchPdCd
+     * @return
+     */
     WsniSidingServiceChangesDvo selectBsTarget(
         String cntrNo,
         String cntrSn,
-        String asnOjYm
+        String asnOjYm,
+        String afchPdCd
     );
 
     int updateStopNextSiding(String cntrNo, String cntrSn, String akChdt);
