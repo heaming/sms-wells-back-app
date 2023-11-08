@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.common.web.contract.zcommon.utils.CtDateUtils;
 import com.kyowon.sms.common.web.organization.common.dvo.ZogzPartnerDvo;
 import com.kyowon.sms.common.web.organization.common.service.ZogzPartnerService;
 import com.kyowon.sms.common.web.organization.hmnrsc.dto.ZogcTransferPartnerDto.SaveAppointReq;
@@ -40,6 +43,7 @@ import lombok.RequiredArgsConstructor;
  * @author 김동석
  * @since 2023-05-24
  */
+
 @Service
 @RequiredArgsConstructor
 public class WogcPartnerPlannerService {
@@ -144,7 +148,12 @@ public class WogcPartnerPlannerService {
      * @return
      */
     public WogcPartnerPlannerDto.FindRes getTopPlanner(String ogTpCd, String prtnrNo, String mngtYm) {
-        return mapper.selectTopPlannerByPk(ogTpCd, prtnrNo, mngtYm);
+        WogcPartnerPlannerDto.FindRes findRes = mapper.selectTopPlannerByPk(ogTpCd, prtnrNo, mngtYm);
+        if (ObjectUtils.isEmpty(findRes)) {
+            return mapper.selectMmPlannerByPk(ogTpCd, prtnrNo, mngtYm);
+        }
+
+        return findRes;
     }
 
     /**
@@ -162,7 +171,9 @@ public class WogcPartnerPlannerService {
 
         processCount += this.mapper.updateAdMmPartner(planner); // 2. 월파트너내역 파트너등급 UPDATE
 
-        processCount += this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
+        if (StringUtils.equals(dto.mngtYm(), CtDateUtils.thisMonth())) {
+            processCount += this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
+        }
 
         return processCount;
     }
