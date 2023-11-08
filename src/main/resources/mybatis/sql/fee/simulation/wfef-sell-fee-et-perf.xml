@@ -270,7 +270,7 @@
                           FROM TB_FEAM_WELS_SV_FEE_BAS T1
                          WHERE T1.BASE_PD_CD = CD.BASE_PD_CD
                            AND T1.VST_MCN = 0
-                           AND SUBSTR(CB.CNTR_CNFM_DTM,1,6) BETWEEN T1.APY_STRT_YM AND T1.APY_END_YM
+                           AND SUBSTR(#{inqrStrtDt},1,6) BETWEEN T1.APY_STRT_YM AND T1.APY_END_YM
                        )
                     OR EXISTS (
                         SELECT 1
@@ -278,49 +278,54 @@
                           JOIN TB_PDBS_PD_REL T2
                             ON T1.BASE_PD_CD = T2.BASE_PD_CD
                            AND T2.PD_REL_TP_CD = '05'
-                           AND CB.CNTR_CNFM_DTM BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
-                         WHERE VST_MCN = 0
-                           AND SUBSTR(CB.CNTR_CNFM_DTM,1,6) BETWEEN APY_STRT_YM AND APY_END_YM
-                           AND T2.OJ_PD_CD IN (
-                                  SELECT OJ_PD_CD
-                                    FROM TB_PDBS_PD_REL T1
-                                   WHERE T1.BASE_PD_CD = CD.BASE_PD_CD
-                                     AND T1.PD_REL_TP_CD = '05'
-                                     AND CB.CNTR_CNFM_DTM BETWEEN VL_STRT_DTM AND VL_END_DTM
-                               )
-                           AND ROWNUM = 1
+                           AND #{inqrStrtDt} || '000000' BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                           AND T2.DTA_DL_YN = 'N'
+                          JOIN TB_PDBS_PD_REL T3
+                            ON T3.OJ_PD_CD = T2.OJ_PD_CD
+                           AND T3.PD_REL_TP_CD = '05'
+                           AND #{inqrStrtDt} || '000000' BETWEEN T3.VL_STRT_DTM AND T3.VL_END_DTM
+                           AND T3.DTA_DL_YN = 'N'
+                         WHERE T1.VST_MCN = 0
+                           AND SUBSTR(#{inqrStrtDt},1,6) BETWEEN APY_STRT_YM AND APY_END_YM
+                           AND T1.DTA_DL_YN = 'N'
+                           AND T3.BASE_PD_CD = CD.BASE_PD_CD
                        )
                  ) WS ON 1=1
-         WHERE CB.SELL_OG_TP_CD != 'HR1'
+         WHERE CB.SELL_OG_TP_CD IN ('W01', 'W02')
             <choose>
                 <when test="@MybatisUtils@equals(perfBaseDv, '1')">
+           AND (
+                    (CD.SELL_TP_CD = '1' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202', '401'))
+                 OR (CD.SELL_TP_CD = '2' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202'))
+                 OR (CD.SELL_TP_CD = '3' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202') AND CD.CNTRW_TP_CD = '5')
+                 OR (CD.SELL_TP_CD = '6' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202') AND CD.STPL_PTRM >= 6)
+               )
            AND CB.CNTR_CNFM_DTM BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959'
                 </when>
                 <when test="@MybatisUtils@equals(perfBaseDv, '2')">
            AND (
-                (
-                        CD.SELL_TP_CD IN ('1', '2') /* 일시불, 렌탈 */
-                    AND (
-                            (CD.CNTR_PD_STRTDT BETWEEN #{inqrStrtDt} AND #{inqrEndDt} AND CD.BOO_SELL_TP_CD IS NULL) /* 설치, 예약아님 */
-                         OR (CB.CNTR_CNFM_DTM BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959' AND CD.BOO_SELL_TP_CD = '2') /* 접수, 예약 */
-                        )
-                    AND (
-                            CD.CNTR_DTL_STAT_CD NOT IN ('301', '303')
-                         OR SUBSTR(CB.CNTR_CNFM_DTM,1,6) != SUBSTR(NVL(CD.CNTR_PD_ENDDT, '99991231'),1,6) /* 당월취소가 아닌 건 */
-                        )
-                    AND NOT EXISTS (
-                        SELECT 1
-                          FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS  /* 수수료실적제외대상기본 */
-                         WHERE FEE_PERF_EXCD_DV_CD = '01'
-                           AND CNTR_NO = CD.CNTR_NO
-                           AND CNTR_SN = CD.CNTR_SN
-                        )
-                )
-                OR
-                (
-                        CD.SELL_TP_CD = '6' /* 정기배송 */
-                    AND CD.CNTR_PD_STRTDT BETWEEN #{inqrStrtDt} AND #{inqrEndDt} /* 설치일자 */
-                )
+                  (CD.SELL_TP_CD = '1' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202', '401')
+                   AND (
+                       (CD.BOO_SELL_TP_CD IS NULL AND CD.CNTR_PD_STRTDT BETWEEN #{inqrStrtDt} AND #{inqrEndDt})
+                    OR (CD.BOO_SELL_TP_CD = '2' AND CB.CNTR_CNFM_DTM BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959')
+                       )
+                   AND NOT EXISTS (SELECT 1 FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS X WHERE CD.CNTR_NO = X.CNTR_NO AND CD.CNTR_SN = X.CNTR_SN AND X.FEE_PERF_EXCD_DV_CD = '01')
+                  )
+               OR (CD.SELL_TP_CD = '2' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202')
+                   AND (
+                       (CD.BOO_SELL_TP_CD IS NULL AND CD.CNTR_PD_STRTDT BETWEEN #{inqrStrtDt} AND #{inqrEndDt})
+                    OR (CD.BOO_SELL_TP_CD = '2' AND CB.CNTR_CNFM_DTM BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959')
+                       )
+                   AND NOT EXISTS (SELECT 1 FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS X WHERE CD.CNTR_NO = X.CNTR_NO AND CD.CNTR_SN = X.CNTR_SN AND X.FEE_PERF_EXCD_DV_CD = '01')
+                  )
+               OR (CD.SELL_TP_CD = '3' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202')
+                   AND CD.CNTR_PD_STRTDT BETWEEN #{inqrStrtDt} AND #{inqrEndDt}
+                   AND CD.CNTRW_TP_CD = '5'
+                  )
+               OR (CD.SELL_TP_CD = '6' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202')
+                   AND CD.CNTR_PD_STRTDT BETWEEN #{inqrStrtDt} AND #{inqrEndDt}
+                   AND CD.STPL_PTRM >= 6
+                  )
                )
                 </when>
                 <otherwise>
@@ -328,13 +333,6 @@
                 </otherwise>
             </choose>
            AND CB.DTA_DL_YN = 'N'
-           AND CD.CNTR_DTL_STAT_CD NOT IN ('301', '303')  /* 취소계약 제외 */
-           AND (
-               CD.SELL_TP_CD = '1' OR
-               CD.SELL_TP_CD = '2' OR
-               (CD.SELL_TP_CD = '3' AND CD.CNTRW_TP_CD = '5') OR /* 홈케어서비스만 */
-               (CD.SELL_TP_CD = '6' AND CD.STPL_PTRM >= 6) /* 정기배송의 경우 6 이상 */
-               )
            AND CD.DTA_DL_YN = 'N'
          GROUP BY CB.CNTR_NO
              , CB.CNTR_CST_NM
@@ -347,7 +345,7 @@
         /* 재약정내역 */
         SELECT CB.CNTR_NO
              , CB.CNTR_CST_NM
-             , CB.SELL_PRTNR_NO
+             , RR.RCP_PRTNR_NO AS SELL_PRTNR_NO
              , CD.SELL_TP_CD
              , '' AS CNTR_CNFM_DT
              , '' AS CNTR_PD_STRTDT
@@ -385,18 +383,19 @@
                 </otherwise>
             </choose>
            AND RR.FEE_ACKMT_CT > 0
-           AND CB.SELL_OG_TP_CD != 'HR1'
+           AND (RR.STPL_CAN_DTM IS NULL OR SUBSTR(RR.STPL_CAN_DTM, 1, 6) > SUBSTR(#{inqrStrtDt}, 1, 6))
+           AND CB.SELL_OG_TP_CD IN ('W01', 'W02')
            AND CB.DTA_DL_YN = 'N'
            AND (
                   CD.CNTR_DTL_STAT_CD NOT LIKE '3%'
-               OR CD.CNTR_PD_ENDDT > SUBSTR(#{inqrStrtDt}, 1, 8)
+               OR SUBSTR(CD.CNTR_PD_ENDDT, 1, 6) > SUBSTR(#{inqrStrtDt}, 1, 6)
                )
            AND CD.SELL_TP_CD = '2' /* 렌탈 */
            AND CD.DTA_DL_YN = 'N'
            AND PT.FEE_PDCT_TP_CD1 = 'B' /* B:웰스팜 */
          GROUP BY CB.CNTR_NO
              , CB.CNTR_CST_NM
-             , CB.SELL_PRTNR_NO
+             , RR.RCP_PRTNR_NO
              , CD.SELL_TP_CD
              , CD.PD_MCLSF_ID
     </sql>
@@ -514,7 +513,8 @@
                           FROM TB_FEAM_WELS_SV_FEE_BAS T1
                          WHERE T1.BASE_PD_CD = CD.BASE_PD_CD
                            AND T1.VST_MCN = 0
-                           AND SUBSTR(CB.CNTR_CNFM_DTM,1,6) BETWEEN T1.APY_STRT_YM AND T1.APY_END_YM
+                           AND SUBSTR(#{inqrStrtDt},1,6) BETWEEN T1.APY_STRT_YM AND T1.APY_END_YM
+                           AND T1.DTA_DL_YN = 'N'
                        )
                     OR EXISTS (
                         SELECT 1
@@ -522,17 +522,17 @@
                           JOIN TB_PDBS_PD_REL T2
                             ON T1.BASE_PD_CD = T2.BASE_PD_CD
                            AND T2.PD_REL_TP_CD = '05'
-                           AND CB.CNTR_CNFM_DTM BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
-                         WHERE VST_MCN = 0
-                           AND SUBSTR(CB.CNTR_CNFM_DTM,1,6) BETWEEN APY_STRT_YM AND APY_END_YM
-                           AND T2.OJ_PD_CD IN (
-                                  SELECT OJ_PD_CD
-                                    FROM TB_PDBS_PD_REL T1
-                                   WHERE T1.BASE_PD_CD = CD.BASE_PD_CD
-                                     AND T1.PD_REL_TP_CD = '05'
-                                     AND CB.CNTR_CNFM_DTM BETWEEN VL_STRT_DTM AND VL_END_DTM
-                               )
-                           AND ROWNUM = 1
+                           AND #{inqrStrtDt} || '000000' BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                           AND T2.DTA_DL_YN = 'N'
+                          JOIN TB_PDBS_PD_REL T3
+                            ON T3.OJ_PD_CD = T2.OJ_PD_CD
+                           AND T3.PD_REL_TP_CD = '05'
+                           AND #{inqrStrtDt} || '000000' BETWEEN T3.VL_STRT_DTM AND T3.VL_END_DTM
+                           AND T3.DTA_DL_YN = 'N'
+                         WHERE T1.VST_MCN = 0
+                           AND SUBSTR(#{inqrStrtDt},1,6) BETWEEN APY_STRT_YM AND APY_END_YM
+                           AND T1.DTA_DL_YN = 'N'
+                           AND T3.BASE_PD_CD = CD.BASE_PD_CD
                        )
                  ) WS ON 1=1
          WHERE CB.SELL_OG_TP_CD != 'HR1'
@@ -643,7 +643,7 @@
     <sql id="selectSellFeeEtPerfCans-from">
         SELECT M.OG_TP_CD
                -- WM 해약시에는 지국장 파트너번호를 넣고 아닌 경우는 WM 파트너번호 설정
-             , NVL(O2.DGR3_LEVL_DG_PRTNR_NO, M.PRTNR_NO) AS PRTNR_NO
+             , M.PRTNR_NO
              , M.CAN_TP_NM
              , M.CNTR_NO
              , M.CNTR_SN
@@ -735,8 +735,8 @@
                          , C1.SELL_TP_DTL_CD
                          , C1.BOO_SELL_TP_CD
                          , NVL(C1.FEE_FXAM_YN, 'N') AS FEE_FXAM_YN
-                         , NVL(S2.CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S1.FXN_PRTNR_OG_TP_CD, S1.MNGT_PRTNR_OG_TP_CD)) AS OG_TP_CD
-                         , NVL(S2.CNFM_PSIC_PRTNR_NO, NVL(S1.FXN_PRTNR_NO, S1.MNGT_PRTNR_NO)) AS PRTNR_NO
+                         , NVL(S2.OG_TP_CD, S1.OG_TP_CD) AS OG_TP_CD
+                         , NVL(S2.DGR3_LEVL_DG_PRTNR_NO, S1.PRTNR_NO) AS PRTNR_NO
                          , C2.CNTR_CNFM_DTM
                          , C2.SELL_OG_TP_CD  AS ORIG_OG_TP_CD
                          , C2.SELL_PRTNR_NO  AS ORIG_PRTNR_NO
@@ -748,14 +748,27 @@
                 INNER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C3
                         ON C1.CNTR_NO = C3.CNTR_NO
                        AND C1.CNTR_SN = C3.CNTR_SN
-                 LEFT JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S1
-                        ON SUBSTR(C1.CNTR_PD_ENDDT, 1, 6) = S1.MNGT_YM
+                 LEFT JOIN TB_FEAM_WELS_MM_MNGER_IZ S1  /* 웰스월매니저내역, 해약월 기준으로 담당매니저 확인 */
+                        ON SUBSTR(C1.CNTR_PD_ENDDT,1,6) = S1.PERF_YM
                        AND C1.CNTR_NO = S1.CNTR_NO
                        AND C1.CNTR_SN = S1.CNTR_SN
-                 LEFT JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ S2
-                        ON S1.MNGT_YM = S2.ASN_OJ_YM
-                       AND S1.CNTR_NO = S2.CNTR_NO
-                       AND S1.CNTR_SN = S2.CNTR_SN
+                 LEFT JOIN (
+                            /* 해약월의 지점장 조회 */
+                            SELECT R1.OG_TP_CD
+                                 , R1.PRTNR_NO
+                                 , R3.DGR3_LEVL_DG_PRTNR_NO
+                              FROM TB_OGBS_PRTNR_DTL R1
+                              JOIN TB_OGBS_MM_PRTNR_IZ R2
+                                ON R2.BASE_YM = SUBSTR(R1.CLTN_DT, 1, 6)
+                               AND R2.OG_TP_CD = R1.OG_TP_CD
+                               AND R2.PRTNR_NO = R1.PRTNR_NO
+                              JOIN TB_OGBS_MM_OG_IZ R3
+                                ON R3.BASE_YM = R2.BASE_YM
+                               AND R3.OG_ID = R2.OG_ID
+                             WHERE R1.CLTN_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrStrtDt}), -1), 'YYYYMM') || '%'
+                           ) S2
+                        ON S2.OG_TP_CD = S1.OG_TP_CD
+                       AND S2.PRTNR_NO = S1.PRTNR_NO
                 INNER JOIN TB_CUBS_CST_BAS B1
                         ON C2.CNTR_CST_NO = B1.CST_NO
                      WHERE 1 = 1
@@ -798,8 +811,8 @@
                          , C1.SELL_TP_DTL_CD
                          , C1.BOO_SELL_TP_CD
                          , NVL(C1.FEE_FXAM_YN, 'N') AS FEE_FXAM_YN
-                         , NVL(S2.CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S1.FXN_PRTNR_OG_TP_CD, S1.MNGT_PRTNR_OG_TP_CD)) AS OG_TP_CD
-                         , NVL(S2.CNFM_PSIC_PRTNR_NO, NVL(S1.FXN_PRTNR_NO, S1.MNGT_PRTNR_NO)) AS PRTNR_NO
+                         , NVL(S2.OG_TP_CD, S1.OG_TP_CD) AS OG_TP_CD
+                         , NVL(S2.DGR3_LEVL_DG_PRTNR_NO, S1.PRTNR_NO) AS PRTNR_NO
                          , C2.CNTR_CNFM_DTM
                          , C2.SELL_OG_TP_CD  AS ORIG_OG_TP_CD
                          , C2.SELL_PRTNR_NO  AS ORIG_PRTNR_NO
@@ -811,14 +824,27 @@
                 INNER JOIN TB_SSCT_CNTR_WELLS_DTL  C3
                         ON C1.CNTR_NO = C3.CNTR_NO
                        AND C1.CNTR_SN = C3.CNTR_SN
-                 LEFT JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S1
-                        ON SUBSTR(C1.CNTR_PD_ENDDT, 1, 6) = S1.MNGT_YM
+                 LEFT JOIN TB_FEAM_WELS_MM_MNGER_IZ S1  /* 웰스월매니저내역, 해약월 기준으로 담당매니저 확인 */
+                        ON SUBSTR(C1.CNTR_PD_ENDDT,1,6) = S1.PERF_YM
                        AND C1.CNTR_NO = S1.CNTR_NO
                        AND C1.CNTR_SN = S1.CNTR_SN
-                 LEFT JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ S2
-                        ON S1.MNGT_YM = S2.ASN_OJ_YM
-                       AND S1.CNTR_NO = S2.CNTR_NO
-                       AND S1.CNTR_SN = S2.CNTR_SN
+                 LEFT JOIN (
+                            /* 해약월의 지점장 조회 */
+                            SELECT R1.OG_TP_CD
+                                 , R1.PRTNR_NO
+                                 , R3.DGR3_LEVL_DG_PRTNR_NO
+                              FROM TB_OGBS_PRTNR_DTL R1
+                              JOIN TB_OGBS_MM_PRTNR_IZ R2
+                                ON R2.BASE_YM = SUBSTR(R1.CLTN_DT, 1, 6)
+                               AND R2.OG_TP_CD = R1.OG_TP_CD
+                               AND R2.PRTNR_NO = R1.PRTNR_NO
+                              JOIN TB_OGBS_MM_OG_IZ R3
+                                ON R3.BASE_YM = R2.BASE_YM
+                               AND R3.OG_ID = R2.OG_ID
+                             WHERE R1.CLTN_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrStrtDt}), -1), 'YYYYMM') || '%'
+                           ) S2
+                        ON S2.OG_TP_CD = S1.OG_TP_CD
+                       AND S2.PRTNR_NO = S1.PRTNR_NO
                  /* 만료 후 익월 재렌탈시 순수해지 건수에서 제외 */
                  LEFT JOIN TB_SSCT_MCHN_CH_IZ X1
                         ON X1.OJ_CNTR_NO = C1.CNTR_NO
@@ -885,8 +911,8 @@
                     /*전월 순수해지_멤버십탈퇴*/
                     SELECT /*+ ORDERED */
                            '멤버십탈퇴' AS CAN_TP_NM
-                         , C1.CNTR_NO
-                         , C1.CNTR_SN
+                         , C4.OJ_DTL_CNTR_NO
+                         , C4.OJ_DTL_CNTR_SN
                          , C2.CNTR_CST_NM
                          , C1.CNTR_DTL_STAT_CD
                          , C1.CNTR_PD_STRTDT
@@ -896,8 +922,8 @@
                          , C1.SELL_TP_DTL_CD
                          , C1.BOO_SELL_TP_CD
                          , NVL(C1.FEE_FXAM_YN, 'N') AS FEE_FXAM_YN
-                         , NVL(S2.CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S1.FXN_PRTNR_OG_TP_CD, S1.MNGT_PRTNR_OG_TP_CD)) AS OG_TP_CD
-                         , NVL(S2.CNFM_PSIC_PRTNR_NO, NVL(S1.FXN_PRTNR_NO, S1.MNGT_PRTNR_NO)) AS PRTNR_NO
+                         , NVL(S2.OG_TP_CD, S1.OG_TP_CD) AS OG_TP_CD
+                         , NVL(S2.DGR3_LEVL_DG_PRTNR_NO, S1.PRTNR_NO) AS PRTNR_NO
                          , C2.CNTR_CNFM_DTM
                          , C2.SELL_OG_TP_CD  AS ORIG_OG_TP_CD
                          , C2.SELL_PRTNR_NO  AS ORIG_PRTNR_NO
@@ -909,14 +935,31 @@
                 INNER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C3
                         ON C1.CNTR_NO = C3.CNTR_NO
                        AND C1.CNTR_SN = C3.CNTR_SN
-                 LEFT JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S1
-                        ON SUBSTR(C1.CNTR_PD_ENDDT, 1, 6) = S1.MNGT_YM
+                INNER JOIN TB_SSCT_CNTR_REL C4
+                        ON C1.CNTR_NO = C4.BASE_DTL_CNTR_NO
+                       AND C1.CNTR_SN = C4.BASE_DTL_CNTR_SN
+                       AND C4.CNTR_REL_DTL_CD = '212'  /* 멤버십 - 원주문 */
+                 LEFT JOIN TB_FEAM_WELS_MM_MNGER_IZ S1  /* 웰스월매니저내역, 해약월 기준으로 담당매니저 확인 */
+                        ON SUBSTR(C1.CNTR_PD_ENDDT,1,6) = S1.PERF_YM
                        AND C1.CNTR_NO = S1.CNTR_NO
                        AND C1.CNTR_SN = S1.CNTR_SN
-                 LEFT JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ S2
-                        ON S1.MNGT_YM = S2.ASN_OJ_YM
-                       AND S1.CNTR_NO = S2.CNTR_NO
-                       AND S1.CNTR_SN = S2.CNTR_SN
+                 LEFT JOIN (
+                            /* 해약월의 지점장 조회 */
+                            SELECT R1.OG_TP_CD
+                                 , R1.PRTNR_NO
+                                 , R3.DGR3_LEVL_DG_PRTNR_NO
+                              FROM TB_OGBS_PRTNR_DTL R1
+                              JOIN TB_OGBS_MM_PRTNR_IZ R2
+                                ON R2.BASE_YM = SUBSTR(R1.CLTN_DT, 1, 6)
+                               AND R2.OG_TP_CD = R1.OG_TP_CD
+                               AND R2.PRTNR_NO = R1.PRTNR_NO
+                              JOIN TB_OGBS_MM_OG_IZ R3
+                                ON R3.BASE_YM = R2.BASE_YM
+                               AND R3.OG_ID = R2.OG_ID
+                             WHERE R1.CLTN_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{inqrStrtDt}), -1), 'YYYYMM') || '%'
+                           ) S2
+                        ON S2.OG_TP_CD = S1.OG_TP_CD
+                       AND S2.PRTNR_NO = S1.PRTNR_NO
                 INNER JOIN TB_CUBS_CST_BAS B1
                         ON C2.CNTR_CST_NO = B1.CST_NO
                      WHERE 1 = 1
@@ -949,14 +992,10 @@
           LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1
             ON M.BASE_PD_CD = P1.PD_CD
            AND P1.PD_EXTS_PRP_GRP_CD = 'IND'
-          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ O1  /* 관리매니저 월파트너 */
-            ON SUBSTR(M.CNTR_PD_ENDDT, 1, 6) = O1.BASE_YM
-           AND M.OG_TP_CD = O1.OG_TP_CD
-           AND M.PRTNR_NO = O1.PRTNR_NO
-           AND O1.CLTN_DT LIKE SUBSTR(M.CNTR_PD_ENDDT, 1, 6) || '%'
-          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ O2  /* 관리매니저 월조직 */
-            ON O1.BASE_YM = O2.BASE_YM
-           AND O1.OG_ID = O2.OG_ID
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ O1
+            ON O1.BASE_YM = SUBSTR(#{inqrStrtDt}, 1, 6)
+           AND O1.PRTNR_NO = M.PRTNR_NO
+           AND O1.OG_TP_CD = M.OG_TP_CD
           LEFT OUTER JOIN LATERAL (
                 /* BS여부? */
                 SELECT COUNT(1) AS ROW_SCNT
@@ -990,7 +1029,7 @@
                        )
                  ) WS ON 1=1
        WHERE 1 = 1
-         AND NVL(O2.DGR3_LEVL_DG_PRTNR_NO, M.PRTNR_NO) IS NOT NULL /* NULL 오류로 인해서 파트너 not NULL 임시조치 */
+         AND NVL(O1.OG_TP_CD, 'X') IN ('W01', 'W02')
     </sql>
 
     <select id="selectSellFeeEtPerfCans" resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefSellFeeEtPerfDto$SearchCanNincRes">
