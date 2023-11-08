@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.fee.confirm.rest;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -45,8 +46,26 @@ public class WfeeFeeSpecificationController {
         return service.getFeeCodes(dto);
     }
 
+    @ApiOperation(value = "EDU 수수료 지급명세서 리스트 리포트 생성", notes = "")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfDt", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "orgType", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "positionType", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogLevel1", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogLevel2", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogLevel3", value = "", paramType = "query", required = true),
+    })
+    // 수수료코드 가져옴
+    @GetMapping("/fee-codes/report")
+    public List<SearchFeeCdRes> getFeeCodesReport(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getFeeCodes(dto);
+    }
+
     @GetMapping
-    public List<?> getFeeSpecifications(
+    public List<HashMap<String, Object>> getFeeSpecifications(
         @Valid
         SearchReq dto
     ) {
