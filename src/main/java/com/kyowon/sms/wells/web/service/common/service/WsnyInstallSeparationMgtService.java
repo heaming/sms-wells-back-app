@@ -40,6 +40,7 @@ public class WsnyInstallSeparationMgtService {
         return mapper.selectInstallSeparationCosts(dto,pageInfo);
     }
 
+
     /**
      * 설치/분리 비용 엑셀 다운로드
      */
@@ -56,6 +57,7 @@ public class WsnyInstallSeparationMgtService {
         for(SaveReq dto : dtos){
             WsnyInstallSeparationMgtDvo dvo = converter.mapSaveReqToInstallSeparationMgtDvo(dto);
 
+            processCnt += mapper.updateInstallSeparationCosts(dvo);
             processCnt += mapper.insertInstallSeparationCosts(dvo);
         }
         return processCnt;
