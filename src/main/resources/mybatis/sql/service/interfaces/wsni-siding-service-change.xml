@@ -145,6 +145,9 @@
          , SSCT2.CRAL_LOCARA_TNO
          , SSCT2.MEXNO_ENCR
          , SSCT2.CRAL_IDV_TNO
+         , TRIM(TO_CHAR(CNDT.SELL_AMT, '999,999,999')) AS MM_MPY_AMT
+         , PDBS.PD_NM AS AFCH_PD_NM
+         , SUBSTR(#{asnOjYm}, 5, 2) || '월' AS SPP_DUEDT
       FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ SVPD /*고객서비스BS대상내역*/
       JOIN TB_SSCT_CNTR_ADR_REL SSCT1 /*계약주소관계*/
         ON SVPD.CNTR_NO = SSCT1.DTL_CNTR_NO
@@ -152,10 +155,16 @@
        AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN VL_STRT_DTM AND VL_END_DTM
       JOIN TB_SSCT_CNTR_ADRPC_BAS SSCT2 /*계약주소지기본*/
         ON SSCT1.CNTR_ADRPC_ID = SSCT2.CNTR_ADRPC_ID
+      JOIN TB_SSCT_CNTR_DTL CNDT
+        ON CNDT.CNTR_NO = SVPD.CNTR_NO
+       AND CNDT.CNTR_SN = SVPD.CNTR_SN
+       AND CNDT.BASE_PD_CD = #{afchPdCd}
+      JOIN TB_PDBS_PD_BAS PDBS
+        ON PDBS.PD_CD = CNDT.BASE_PD_CD
      WHERE 'N' IN (SVPD.DTA_DL_YN, SSCT1.DTA_DL_YN, SSCT2.DTA_DL_YN)
        AND SVPD.CNTR_NO = #{cntrNo}
        AND SVPD.CNTR_SN = #{cntrSn}
-       AND ASN_OJ_YM = #{asnOjYm}
+       AND SVPD.ASN_OJ_YM = #{asnOjYm}
     </select>
 
     <update id="updateStopNextSiding">
