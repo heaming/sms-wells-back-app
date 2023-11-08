@@ -26,12 +26,7 @@
                WHEN '6' THEN 'S1'
                WHEN '7' THEN 'S2'
                ELSE '*' END AS VST_RGLVL_GD_NM /*방문급지*/
-             , CASE T1.FILT_SELL_TP_CD WHEN '1' THEN ' 할부'
-               WHEN '2' THEN ' 렌탈'
-               WHEN '3' THEN ' 멤버십'
-               WHEN '4' THEN ' 회사'
-               ELSE ' ****'
-               END  AS SELL_TP_NM	/*판매구분*/
+             , (SELECT S1.SELL_TP_CD FROM TB_SSCT_CNTR_DTL S1 WHERE S1.CNTR_NO = T1.CNTR_NO AND S1.CNTR_SN = T1.CNTR_SN) AS SELL_TP_CD
              , T1.PD_USWY_CD || '-' || F_CMZ_CD_NM('TNT_WELLS', 'PD_USWY_CD', T1.PD_USWY_CD) AS USWY_NM	/*용도구분*/
              , CASE WHEN T1.SV_BIZ_DCLSF_CD = '2240' THEN 'Y' ELSE 'N' END AS PRR_VST_YN	/*사전방문여부*/
              , T1.VST_DUEDT	/*방문예정일자*/
@@ -123,7 +118,6 @@
                  LEFT OUTER JOIN TB_SSCT_CNTR_REL C3	/*계약관계*/
                    ON C3.BASE_DTL_CNTR_NO = C1.CNTR_NO
                   AND C3.BASE_DTL_CNTR_SN = C1.CNTR_SN
-                  <!--AND C3.OJ_DTL_CNTR_NO IS NOT NULL-->
                   AND C3.DTA_DL_YN = 'N'
                 INNER JOIN TB_SSCT_CNTR_WELLS_DTL C4	/*계약WELLS상세*/
                    ON C4.CNTR_NO = C1.CNTR_NO
@@ -138,6 +132,7 @@
                   AND C1.CNTR_NO = T1.CNTR_NO
                   AND C1.CNTR_SN = T1.CNTR_SN
                   AND C1.SELL_TP_CD = '2'	/*렌탈/리스*/
+                  AND T2.REF_PD_CLSF_VAL LIKE '05001003%'
                 UNION ALL
                  /*
                   * 할부판매(일시불)
@@ -160,7 +155,6 @@
                  LEFT OUTER JOIN TB_SSCT_CNTR_REL C3	/*계약관계*/
                    ON C3.BASE_DTL_CNTR_NO = C1.CNTR_NO
                   AND C3.BASE_DTL_CNTR_SN = C1.CNTR_SN
-                  <!--AND C3.OJ_DTL_CNTR_NO IS NOT NULL-->
                   AND C3.DTA_DL_YN = 'N'
                 INNER JOIN TB_SSCT_CNTR_WELLS_DTL C4	/*계약WELLS상세*/
                    ON C4.CNTR_NO = C1.CNTR_NO
@@ -170,6 +164,7 @@
                   AND C1.CNTR_NO = T1.CNTR_NO
                   AND C1.CNTR_SN = T1.CNTR_SN
                   AND C1.SELL_TP_CD = '1'	/*일시불*/
+                  AND T2.REF_PD_CLSF_VAL LIKE '05001003%'
                 UNION ALL
                 /*회사설치*/
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1) USE_NL(C1 C2 C3 C4) */
