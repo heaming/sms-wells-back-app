@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -78,6 +79,16 @@ public class WsncRoutineBsPsicAssignStateController {
         SearchReq dto
     ) {
         return service.getRoutineBsPsicAssignStatesForExcelDownload(dto);
+    }
+
+    @ApiOperation(value = "웰스 매니저 조회", notes = "조회조건에 일치하는 웰스매니저 데이터를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "dgr2LevlOgId", value = "지역단", paramType = "query", required = true),
+    })
+    @GetMapping("/wells-manager")
+    public List<HashMap<String, String>> getWellsManager(String dgr2LevlOgId) {
+
+        return service.getWellsManager(dgr2LevlOgId);
     }
 
 }

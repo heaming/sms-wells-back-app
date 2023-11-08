@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.stock.service.WsnaMonthlyByStockPsService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -59,8 +57,8 @@ public class WsnaMonthlyByStockPsController {
         return this.service.getMonthlyStateWareHouses(dto);
     }
 
-    @GetMapping("/paging")
-    @ApiOperation(value = "월별 재고현황 페이징 조회", notes = "월별 재고현황을 조회한다.")
+    @GetMapping
+    @ApiOperation(value = "월별 재고현황 조회", notes = "월별 재고현황을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202308", required = true),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2", required = true),
@@ -76,10 +74,9 @@ public class WsnaMonthlyByStockPsController {
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
     })
-    public PagingResult<SearchRes> getMonthlyByStocksStatePaging(@Valid
-    SearchReq dto, @Valid
-    PageInfo pageInfo) {
-        return this.service.getMonthlyByStocksStatePaging(dto, pageInfo);
+    public List<SearchRes> getMonthlyByStocksStates(@Valid
+    SearchReq dto) {
+        return this.service.getMonthlyByStocksStateExcelDownload(dto);
     }
 
     @GetMapping("/excel-download")

@@ -177,7 +177,7 @@ public class WsnaIndividualWareOstrService {
      * @param dtos
      * @return
      */
-    @Transactional
+    @Transactional(timeout = 300)
     public int saveIndividualWareOstrs(List<SaveReq> dtos) {
 
         int count = 0;

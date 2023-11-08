@@ -75,7 +75,8 @@ public class WsniSidingServiceChangesService {
                     req.asAkDvCd(),
                     req.bfchPdCd(),
                     req.afchPdCd(),
-                    req.mtrProcsStatCd()
+                    req.mtrProcsStatCd(),
+                    req.akChdt()
                 );
             }
         }
@@ -116,21 +117,32 @@ public class WsniSidingServiceChangesService {
             WsniSidingServiceChangesDvo bsTargetDvo = mapper.selectBsTarget(
                 req.cntrNo(),
                 req.cntrSn(),
-                req.akChdt().substring(0, 6)
+                req.akChdt().substring(0, 6),
+                req.afchPdCd()
             );
             if (bsTargetDvo != null) {
                 /*고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/
                 service2.removeRglrBfsvcDl(
+//                    new WsnbCustomerRglrBfsvcDlDto.SaveReq(
+//                        bsTargetDvo.getCstSvAsnNo(), //row.getCstSvAsnNo(),
+//                        bsTargetDvo.getAsnOjYm()
+//                    )
                     new WsnbCustomerRglrBfsvcDlDto.SaveReq(
                         bsTargetDvo.getCstSvAsnNo(), //row.getCstSvAsnNo(),
-                        bsTargetDvo.getAsnOjYm()
+                        req.akChdt().substring(0, 6)
                     )
                 );
                 log.debug("고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)");
                 /*고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)*/
                 service3.processRegularBfsvcAsn(
+//                    new WsncRegularBfsvcAsnDto.SaveProcessReq(
+//                        bsTargetDvo.getAsnOjYm(), //row.getAsnOjYm(),
+//                        SFLEXContextHolder.getContext().getUserSession().getUserId(),
+//                        req.cntrNo(),
+//                        req.cntrSn()
+//                    )
                     new WsncRegularBfsvcAsnDto.SaveProcessReq(
-                        bsTargetDvo.getAsnOjYm(), //row.getAsnOjYm(),
+                        req.akChdt().substring(0, 6),
                         SFLEXContextHolder.getContext().getUserSession().getUserId(),
                         req.cntrNo(),
                         req.cntrSn()

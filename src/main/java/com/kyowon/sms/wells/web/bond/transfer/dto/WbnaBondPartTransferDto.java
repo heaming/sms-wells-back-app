@@ -164,7 +164,7 @@ public class WbnaBondPartTransferDto {
      * @param objAmt 대상금액
      * @param dlqAmt 연체금액
      * @param thmChramAmt 당월금액
-     * @param dlqAddDpAmt 연체가산금액
+     * @param dlqAddAmt 연체가산금액
      * @param rsgBorAmt 위약금액
      * @param ucAmt 미수금
      */
@@ -176,7 +176,7 @@ public class WbnaBondPartTransferDto {
         String objAmt,
         String dlqAmt,
         String thmChramAmt,
-        String dlqAddDpAmt,
+        String dlqAddAmt,
         String rsgBorAmt,
         String ucAmt
     ) {}
@@ -197,7 +197,7 @@ public class WbnaBondPartTransferDto {
      * @param objAmt 대상금액
      * @param dlqAmt 연체금액
      * @param thmChramAmt 당월금액
-     * @param dlqAddDpAmt 연체가산금액
+     * @param dlqAddAmt 연체가산금액
      * @param rsgBorAmt 위약금액
      * @param ucAmt 미수금
      * @param lwmTpCd 법조치유형
@@ -222,7 +222,7 @@ public class WbnaBondPartTransferDto {
         String objAmt,
         String dlqAmt,
         String thmChramAmt,
-        String dlqAddDpAmt,
+        String dlqAddAmt,
         String rsgBorAmt,
         String ucAmt,
         String lwmTpCd,

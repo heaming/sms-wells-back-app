@@ -66,7 +66,10 @@
            AND T1.PRTNR_NO = #{prtnrNo}
            </if>
            <if test="@MybatisUtils@isNotEmpty(qlfDvCd)">
-           AND T2.QLF_DV_CD = #{qlfDvCd}
+           AND T2.QLF_DV_CD IN
+            <foreach collection="qlfDvCd" item="code" separator=", " open="(" close=")">
+                #{code}
+            </foreach>
            </if>
            AND T1.OG_ID IN (
                <include refid="com.kyowon.sms.common.web.organization.common.mapper.ZogzOrganizationSearchMapper.sqlSessionOrganization" />
@@ -765,6 +768,34 @@
                                  AND DTA_DL_YN = 'N')
     </select>
 
+    <!-- 팝업 호출 때 수석플래너신청내역 테이블에 파트너의 해당 Data가 없는 경우 -->
+    <select id="selectMmPlannerByPk" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto$FindRes">
+        SELECT   T1.BASE_YM AS MNGT_YM  --관리년월
+               , T1.PRTNR_NO  --번호
+               , T1.PRTNR_KNM --성명 - 파트너한글명
+               , T1.BASE_YM AS UPGR_YM --승급년월
+               , NULL AS DMTN_YM                      /* 강등년월 */
+               , T1.QLF_DV_CD  --등급 - 자격구분코드 - 1:수석플래너, 2:웰스플래너
+               , T1.BASE_YM AS RFDT   --반영년월
+               , NULL AS CNTR_DT                      /* 계약일자 */
+               , NULL AS CLTN_DT                      /* 해약일자 */
+               , NULL AS UPGR_DMTN_DV_CD              /* 승급강등구분코드 */
+               , NULL AS RCNTR_DT                     /* 재계약일자 */
+               , NULL AS UPGR_MCN                     /* 승급개월수 */
+               , NULL AS RGR_OG_TP_CD                 /* 등록자조직유형코드 */
+               , NULL AS RGST_PRTNR_KNM
+               , NULL AS RGR_PRTNR_NO                 /* 등록자파트너번호 */
+               , NULL AS RGST_DT                      /* 등록일자 */
+               , NULL AS UDR_OG_TP_CD                 /* 수정자조직유형코드 */
+               , NULL AS MDFC_PRTNR_KNM
+               , NULL AS UDR_PRTNR_NO                 /* 수정자파트너번호 */
+               , NULL AS MDFC_DT                      /* 수정일자 */
+          FROM TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역 */
+         WHERE BASE_YM  = #{mngtYm}
+           AND OG_TP_CD = #{ogTpCd}
+           AND PRTNR_NO = #{prtnrNo}
+    </select>
+
     <!-- 자격조정 (수석플래너 테이블 등록) -->
     <insert id="insertAdTopPlanner">
          INSERT INTO TB_OGPS_TOPMR_PLAR_APLC_IZ ( /* 수석플래너신청내역 */
@@ -858,20 +889,20 @@
     </update>
 
     <insert id="insertPlannerQualificationChange">
-        INSERT INTO TB_OGPS_PLAR_QLF_CH_IZ
-             ( OG_TP_CD
-             , PRTNR_NO
-             , QLF_DV_CD
-             , STRTDT
-             , ENDDT
-             , CV_DT
-             , QLF_APLC_DV_CD
-             , PYMDT
-             , DSB_AMT
-             , CHDT
-             , PCP_OG_TP_CD
-             , PCP_PRTNR_NO
-             , PRCSDT
+        INSERT INTO TB_OGPS_PLAR_QLF_CH_IZ   /* 플래너자격변경내역 */
+             ( OG_TP_CD /* 조직유형코드 */
+             , PRTNR_NO /* 파트너번호 */
+             , QLF_DV_CD /* 자격구분코드 */
+             , STRTDT /* 시작일자 */
+             , ENDDT /* 종료일자 */
+             , CV_DT /* 전환일자 */
+             , QLF_APLC_DV_CD /* 자격신청구분코드 */
+             , PYMDT /* 지급일자 */
+             , DSB_AMT /* 지급금액 */
+             , CHDT /* 변경일자 */
+             , PCP_OG_TP_CD /* 처리자조직유형코드 */
+             , PCP_PRTNR_NO /* 처리자파트너번호 */
+             , PRCSDT /* 처리일자 */
         <include refid="COMMON.insertSystemField"/>
 )
         VALUES
@@ -893,7 +924,7 @@
     </insert>
 
     <update id="updatePlannerQualificationChange">
-        UPDATE TB_OGPS_PLAR_QLF_CH_IZ
+        UPDATE TB_OGPS_PLAR_QLF_CH_IZ /* 플래너자격변경내역 */
         <set>
         <if test="@MybatisUtils@isNotEmpty(qlfAplcDvCd)">
              , QLF_APLC_DV_CD = #{qlfAplcDvCd}

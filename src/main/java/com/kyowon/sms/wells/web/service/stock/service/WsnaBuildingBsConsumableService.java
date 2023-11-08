@@ -204,6 +204,7 @@ public class WsnaBuildingBsConsumableService {
                     reqDvo.setItmGdCd(ITM_GD_CD_A);
                     reqDvo.setOstrOjWareNo(OSTR_OJ_WARE_NO_PAJU);
                     reqDvo.setStrWareNo(dvo.getStrWareNo());
+                    reqDvo.setBldCd(dvo.getStrWareNo());
 
                     reqDvos.add(reqDvo);
                     ostrAkSn++;

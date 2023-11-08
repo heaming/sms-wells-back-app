@@ -127,11 +127,15 @@ public class WsnbWellsServiceCfdcService {
         WsnbWellsServiceCfdcDvo cstDvo = mapper.selectCustomer(cstSvAsnNo)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
 
-        ReportEntryDvo dvo = new ReportEntryDvo();
-        dvo.setBzopNoYn("N"); //사업자여부
-        dvo.setCustName(cstDvo.getCstNm());
-        dvo.setReturnUrl(SnServiceConst.REPORT_URL_V1 + "/wells-service-cfdc/report/" + cstSvAsnNo + "/auth");
-        return reportService.openReportAuthEntry(dvo);
+        if (cstDvo.getCstBthd() == null) {
+            return openReport(cstSvAsnNo);
+        } else {
+            ReportEntryDvo dvo = new ReportEntryDvo();
+            dvo.setBzopNoYn("N"); //사업자여부
+            dvo.setCustName(cstDvo.getCstNm());
+            dvo.setReturnUrl(SnServiceConst.REPORT_URL_V1 + "/wells-service-cfdc/report/" + cstSvAsnNo + "/auth");
+            return reportService.openReportAuthEntry(dvo);
+        }
     }
 
     public ModelAndView openReportWithAuth(String cstSvAsnNo, String birth) {
@@ -210,17 +214,17 @@ public class WsnbWellsServiceCfdcService {
         String baseUrl = "";
         switch (activeProfile) {
             case "dev":
-                baseUrl = "https://d-wsm.kyowon.co.kr";
+                baseUrl = "https://d-cswl.kyowon.co.kr";
                 break;
             case "qa":
-                baseUrl = "https://q-wsm.kyowon.co.kr";
+                baseUrl = "https://q-cswl.kyowon.co.kr";
                 break;
             case "local":
                 baseUrl = "http://localhost:8080";
                 break;
             case "prd":
             default:
-                baseUrl = "https://wsm.kyowon.co.kr";
+                baseUrl = "https://cswl.kyowon.co.kr";
                 break;
         }
         return baseUrl;

@@ -17,7 +17,9 @@ public class WdcdRequestCleaningSuppliesMgtDto {
     @ApiModel(value = "WdcdRequestCleaningSuppliesMgtDto-CodeReq")
     public record CodeReq(
         String ogTpCd,
-        String prtnrNo
+        String prtnrNo,
+        String applYm,
+        String bldCd
     ) {}
 
     // *********************************************************

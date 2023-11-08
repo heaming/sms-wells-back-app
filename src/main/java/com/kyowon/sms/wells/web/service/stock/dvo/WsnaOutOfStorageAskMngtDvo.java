@@ -27,7 +27,7 @@ public class WsnaOutOfStorageAskMngtDvo {
     String sapCd; /*SAP코드*/
     String ostrAkRgstDt; /*출고요청등록일자*/
     String itmPdCd; /*품목상품코드*/
-    String itmPdNm; /*품목상품명*/
+    String itmPdNm1; /*품목상품명*/
     String ostrAkSn; /*출고요청순번*/
     String strHopDt; /*입고희망일자*/
     String mngtUnitCd; /*관리단위코드*/

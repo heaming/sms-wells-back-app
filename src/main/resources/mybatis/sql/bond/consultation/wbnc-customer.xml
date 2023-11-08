@@ -1,7 +1,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.bond.consultation.mapper.WbncCustomerMapper">
     <select id="selectBaseYm" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto$FindBaseYmRes">
-        SELECT BASE_YM 
+        SELECT BASE_YM /*기준년월*/
           FROM ( SELECT BASE_YM 
                    FROM TB_CBBO_BND_CNSL_BAS_IZ 
                   WHERE 1=1
@@ -49,7 +49,7 @@
 		             , SUM(RTLFE_ISTM1) OVER(PARTITION BY CST_NO) AS RTLFE_ISTM1 /* 렌탈료1할 */   
 		             , SUM(RTLFE2) OVER(PARTITION BY CST_NO) AS RTLFE2 /* 렌탈료2 */    
 		             , SUM(RTLFE_ISTM2) OVER(PARTITION BY CST_NO) AS RTLFE_ISTM2 /* 렌탈료2할 */
-		             , SUM(CLCTAM_PRTNR_NO) OVER(PARTITION BY CST_NO) AS CLCTAM_PRTNR_NO /* 집금번호 */
+		             , CLCTAM_PRTNR_NO /* 집금번호 */
 		             , CLCTAM_ICHR   /* 집급담당 */
 		             , CRAL_LOCARA_TNO /* 계약휴대전화번호1 */ 
 		             , MEXNO_ENCR /* 계약휴대전화번호2 */ 
@@ -299,10 +299,10 @@
 		     , T1.CNTR_SN AS CNTR_SN /* 계약일련번호 */
 		     , T1.CNTR_NO ||'-'||T1.CNTR_SN AS CNTR_DTL_NO /* 상세계약번호 */
 		     , T2.CST_KNM AS CST_NM /* 고객명 */
-		     , T2.SEX_DV_CD
-		     , F_CMZ_CD_NM('TNT_WELLS', 'SEX_DV_CD', T2.SEX_DV_CD) AS SEX_DV_NM 
-		     , T2.BRYY_MMDD
-		     , T2.COPN_DV_CD
+		     , T2.SEX_DV_CD /* 성별코드 */
+		     , F_CMZ_CD_NM('TNT_WELLS', 'SEX_DV_CD', T2.SEX_DV_CD) AS SEX_DV_NM /* 성별 */
+		     , T2.BRYY_MMDD /* 생년월일 */
+		     , T2.COPN_DV_CD  /* 회사코드 */
 		     , T2.CRAL_LOCARA_TNO AS CNTR_CRAL_LOCARA_TNO  /* 계약처휴대지역전화번호 */
 		     , T2.MEXNO_ENCR  AS CNTR_MEXNO_ENCR           /* 계약처휴대전화국번호암호화 */
 		     , T2.CRAL_IDV_TNO  AS CNTR_CRAL_IDV_TNO       /* 계약처휴대전화번호3 */
@@ -373,7 +373,7 @@
 		           AND (TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT)
 		           AND LOCARA_TNO = T2.CRAL_LOCARA_TNO
 		           AND EXNO_ENCR = T2.MEXNO_ENCR
-		           AND IDV_TNO = T2.CRAL_IDV_TNO) AS TNO_CNT1
+		           AND IDV_TNO = T2.CRAL_IDV_TNO) AS TNO_CNT1 /* 제외번호구분 */
 		     , (SELECT COUNT(1)
 		          FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ TT1 
 		         WHERE TT1.CTNT_EXCD_BND_BIZ_CD = '01' 
@@ -382,7 +382,7 @@
 		           AND (TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT)
 		           AND LOCARA_TNO = T4.LOCARA_TNO
 		           AND EXNO_ENCR = T4.EXNO_ENCR
-		           AND IDV_TNO = T4.IDV_TNO) AS TNO_CNT2
+		           AND IDV_TNO = T4.IDV_TNO) AS TNO_CNT2 /* 제외번호구분 */
 		     , (SELECT COUNT(1)
 		          FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ TT1 
 		         WHERE TT1.CTNT_EXCD_BND_BIZ_CD = '01' 
@@ -391,7 +391,7 @@
 		           AND (TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT)
 		           AND LOCARA_TNO = T4.CRAL_LOCARA_TNO
 		           AND EXNO_ENCR = T4.MEXNO_ENCR
-		           AND IDV_TNO = T4.CRAL_IDV_TNO) AS TNO_CNT3
+		           AND IDV_TNO = T4.CRAL_IDV_TNO) AS TNO_CNT3 /* 제외번호구분 */
 		     , T2.BZRNO /* 사업자번호 */
 		     , T1.BND_BIZ_DV_CD /* 채권업무구분코드 */
 		     , T1.BASE_YM /* 기준년월 */
@@ -409,7 +409,7 @@
 		                   WHERE 1=1
 		                     AND (C.AC_FNT_RS_CD IS NOT NULL OR D.CARD_FNT_RS_CD IS NOT NULL)
 		              ) TT1 
-		          WHERE TT1.RN = 1 AND TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN) AS RS_NM
+		          WHERE TT1.RN = 1 AND TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN) AS RS_NM /* 이체구분 */
 		  FROM TB_CBBO_BND_CNTR_BAS T1 /*채권계약기본*/
 		  LEFT OUTER JOIN TB_CUBS_CST_BAS T2 /* 고객기본 */
 		    ON T1.CST_NO = T2.CST_NO
@@ -611,7 +611,7 @@
 		            WHEN T1.BND_ASN_DT > T2.FST_RGST_DTM AND SUBSTR( T2.TEL_CNSL_RS_CD , 1 ,1 ) = 2 THEN '△'
 		            ELSE 'Ｘ'
 		        END AS CTT /* 이체 */
-		     , T1.BND_BIZ_DV_CD /* 업무구분 */
+		     , T1.BND_BIZ_DV_CD /* 업무구분코드 */
 		     , F_CMZ_CD_NM('TNT_WELLS', 'BND_BIZ_DV_CD', T1.BND_BIZ_DV_CD) AS BND_BIZ_DV_NM /* 업무구분명 */
 		     , T4.PD_CLSF_NM /* 제품군 */
 		     , T4.PD_NM /* 제품명 */
@@ -646,7 +646,7 @@
 		     , ( SELECT NVL(SUM(TT1.RVE_AMT), 0)
                    FROM TB_RVDW_RVE_DTL TT1
                   WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND SUBSTR(TT1.RVE_DT,0,6) = T1.BASE_YM AND TT1.DP_DV_CD IN ('1', '3')
-               ) AS TOT_DP_AMT
+               ) AS TOT_DP_AMT /* 총입금액 */ 
 		     , NVL(T9.SPMT_SL_AMT, 0) AS SPMT_SL /* 추가매출 */ 
 		     , (SELECT NVL(TT1.LS_RNTF, 0) FROM TB_CBCL_WELLS_BOR_AMT_BAS TT1 WHERE TT1.PERF_YM = SUBSTR(T10.CCAM_CMPT_RQDT,0,6) AND TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DTA_DL_YN = 'N') AS LS_RNTF /* 분실손료 */  
 		     , F_CMZ_CD_NM('TNT_BASE', 'VNCO_DV_CD', T11.VAC_VNCO_DV_CD) AS VAC_VNCO_DV_CD /*가상계좌구분*/
@@ -745,7 +745,7 @@
     </select>
     
     <select id="selectUnusualArticles" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto$FindUnusualArticlesRes">
-        SELECT CNSL_UNUITM_CN
+        SELECT CNSL_UNUITM_CN /* 특이사항 */
 		     , ROWNUM
 		  FROM (
 		        SELECT CNSL_UNUITM_CN
@@ -777,17 +777,17 @@
          <include refid="COMMON.updateSystemField"/>
          WHEN NOT MATCHED THEN
            INSERT (
-                  BND_UNUITM_ID
-                , BND_CNTR_TP_CD
-                , BND_BIZ_DV_CD
-                , CST_NO
-                , CNTR_NO
-                , CNTR_SN
-                , CLCTN_OJ_OG_TP_CD
-                , CLCTN_OJ_PRTNR_NO
-                , CNSL_UNUITM_CN
-                , CVCP_CN
-                , DTA_DL_YN
+                  BND_UNUITM_ID /* 채권특이사항ID */
+                , BND_CNTR_TP_CD /* 채권계약유형코드 */
+                , BND_BIZ_DV_CD /* 채권업무구분코드 */
+                , CST_NO /* 고객번호 */
+                , CNTR_NO /* 계약번호 */
+                , CNTR_SN /* 계약일련번호 */
+                , CLCTN_OJ_OG_TP_CD /* 추심대상조직유형코드 */
+                , CLCTN_OJ_PRTNR_NO /* 추심대상파트너번호 */
+                , CNSL_UNUITM_CN /* 상담특이사항내용 */
+                , CVCP_CN /* 민원내용 */
+                , DTA_DL_YN /* 데이터삭제여부 */
                 <include refid="COMMON.insertSystemField"/>
            ) VALUES (
                   ( SELECT TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDhh24miss') || LPAD((SELECT COUNT(1) FROM TB_CBBO_BND_UNUITM_CVCP_DTL WHERE SUBSTR(FST_RGST_DTM, 0,8) = TO_CHAR(SYSTIMESTAMP, 'YYYYMMDD'))+1, 6, '0')
@@ -807,27 +807,27 @@
     
     <insert id="insertCounsel">
         INSERT INTO TB_CBBO_BND_TEL_CNSL_IZ ( /* 채권전화상담내역 */
-               TEL_CNSL_ID
-             , BND_CNTR_TP_CD
-             , BND_BIZ_DV_CD
-             , CST_NO
-             , CNTR_NO
-             , CNTR_SN
-             , CLCTN_OJ_OG_TP_CD
-             , CLCTN_OJ_PRTNR_NO
-             , CLCTN_OJ_PRTNR_BZRNO
-             , CLCTAM_PRTNR_NO
-             , TEL_CNSL_PH_CD
-             , BND_CNSL_MTR_DV_CD
-             , TEL_CNSL_RS_CD
-             , CNSL_CST_PRP_CD
-             , TEL_CNSL_CN
-             , BND_CLN_PSBL_DV_CD
-             , BND_CNSL_CST_STAT_CD
-             , BND_CLN_PRCS_DV_CD
-             , DPR_NM
-             , RDG_ID
-             , DTA_DL_YN
+               TEL_CNSL_ID /* 전화상담ID */
+             , BND_CNTR_TP_CD /* 채권계약유형코드 */
+             , BND_BIZ_DV_CD /* 채권업무구분코드 */
+             , CST_NO /* 고객번호 */
+             , CNTR_NO /* 계약번호 */
+             , CNTR_SN /* 계약일련번호 */
+             , CLCTN_OJ_OG_TP_CD /* 추심대상조직유형코드 */
+             , CLCTN_OJ_PRTNR_NO /* 추심대상파트너번호 */
+             , CLCTN_OJ_PRTNR_BZRNO /* 추심대상파트너사업자등록번호 */
+             , CLCTAM_PRTNR_NO /* 집금파트너번호 */
+             , TEL_CNSL_PH_CD /* 전화상담경로코드 */
+             , BND_CNSL_MTR_DV_CD /* 채권상담자료구분코드 */
+             , TEL_CNSL_RS_CD /* 전화상담결과코드 */
+             , CNSL_CST_PRP_CD /* 상담고객속성코드 */
+             , TEL_CNSL_CN /* 전화상담내용 */
+             , BND_CLN_PSBL_DV_CD /* 채권회수가능성구분코드 */
+             , BND_CNSL_CST_STAT_CD /* 채권상담고객상태코드 */
+             , BND_CLN_PRCS_DV_CD /* 채권회수절차구분코드 */
+             , DPR_NM /* 입금자명 */
+             , RDG_ID /* 녹취ID */
+             , DTA_DL_YN /* 데이터삭제여부 */
              <include refid="COMMON.insertSystemField" /> )
         VALUES (
                ( SELECT TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDhh24miss') || LPAD((SELECT COUNT(1) FROM TB_CBBO_BND_TEL_CNSL_IZ WHERE SUBSTR(FST_RGST_DTM, 0,8) = TO_CHAR(SYSTIMESTAMP, 'YYYYMMDD'))+1, 6, '0')
@@ -858,22 +858,22 @@
     
     <insert id="insertPromise">
         INSERT INTO TB_CBBO_BND_CNSL_PROM_BOO_IZ ( /* 채권상담약속예약내역 */
-               PROM_BOO_ID
-             , BND_CNTR_TP_CD
-             , BND_BIZ_DV_CD
-             , CST_NO
-             , CNTR_NO
-             , CNTR_SN
-             , CLCTN_OJ_OG_TP_CD
-             , CLCTN_OJ_PRTNR_NO
-             , CLCTN_OJ_PRTNR_BZRNO
-             , PROM_DT
-             , PROM_HH
-             , CLCTAM_PROM_TP_CD
-             , CLN_PROM_AMT
-             , PROM_CN
-             , PROM_FSH_YN
-             , DTA_DL_YN 
+               PROM_BOO_ID /* 약속예약ID */
+             , BND_CNTR_TP_CD /* 채권계약유형코드 */
+             , BND_BIZ_DV_CD /* 채권업무구분코드 */
+             , CST_NO /* 고객번호 */
+             , CNTR_NO /* 계약번호 */
+             , CNTR_SN /* 계약일련번호 */
+             , CLCTN_OJ_OG_TP_CD /* 추심대상조직유형코드 */
+             , CLCTN_OJ_PRTNR_NO /* 추심대상파트너번호 */
+             , CLCTN_OJ_PRTNR_BZRNO /* 추심대상파트너사업자등록번호 */
+             , PROM_DT /* 약속일자 */
+             , PROM_HH /* 약속시간 */
+             , CLCTAM_PROM_TP_CD /* 집금약속유형코드 */
+             , CLN_PROM_AMT /* 회수약속금액 */
+             , PROM_CN /* 약속내용 */
+             , PROM_FSH_YN /* 약속완료여부 */
+             , DTA_DL_YN  /* 데이터삭제여부 */
              <include refid="COMMON.insertSystemField" /> )
         VALUES (
                ( SELECT TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDhh24miss') || LPAD((SELECT COUNT(1) FROM TB_CBBO_BND_CNSL_PROM_BOO_IZ  WHERE SUBSTR(FST_RGST_DTM, 0,8) = TO_CHAR(SYSTIMESTAMP, 'YYYYMMDD'))+1, 6, '0')
@@ -898,23 +898,29 @@
     </insert>
     
     <select id="selectCounselHistorys" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto$FindCounselHistoryRes">
-        SELECT T1.TEL_CNSL_ID
-             , T1.FST_RGST_DTM AS IN_DT
-             , (SELECT EPNO FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FST_RGST_USR_ID AND DEL_YN = 'N' ) AS IN_ICHR
-             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FST_RGST_USR_ID AND DEL_YN = 'N') AS IN_ICHR_NM
-             , F_CMZ_CD_NM(#{session.tenantId}, 'TEL_CNSL_PH_CD', T1.TEL_CNSL_PH_CD) AS CNSL_PH  
-             , F_CMZ_CD_NM(#{session.tenantId}, 'TEL_CNSL_RS_CD', T1.TEL_CNSL_RS_CD) AS CRNCY_RS
-             , DPR_NM AS DPR_NM
-             , TEL_CNSL_CN AS CNSL_CN
-          FROM TB_CBBO_BND_TEL_CNSL_IZ T1
+        SELECT T1.TEL_CNSL_ID /* 전화상담ID */
+             , T1.FST_RGST_DTM AS IN_DT /* 입력일시 */
+             , (SELECT EPNO FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FST_RGST_USR_ID AND DEL_YN = 'N' ) AS IN_ICHR /* 등록담당사번 */
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FST_RGST_USR_ID AND DEL_YN = 'N') AS IN_ICHR_NM /* 등록담당자 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'TEL_CNSL_PH_CD', T1.TEL_CNSL_PH_CD) AS CNSL_PH   /* 상담경로 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'TEL_CNSL_RS_CD', T1.TEL_CNSL_RS_CD) AS CRNCY_RS /* 통화결과 */
+             , DPR_NM AS DPR_NM /* 입금자명 */
+             , TEL_CNSL_CN AS CNSL_CN /* 전화상담내용 */
+          FROM TB_CBBO_BND_TEL_CNSL_IZ T1 /* 채권전화상담내역 */
          WHERE T1.CST_NO = #{schCstNo}
          ORDER BY T1.FST_RGST_DTM DESC
     </select>
     
-    <select id="selectUserInfo" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto$FindUserInfoRes">
-        SELECT (SELECT T2.CPHON_LOCARA_TNO ||'-'|| T2.CPHON_EXNO_ENCR ||'-'|| T2.CPHON_IDV_TNO
-                  FROM TB_CBBO_CLCTAM_PRTNR_DTL T1
-                  LEFT OUTER JOIN TB_CBBO_CLCTAM_PRTNR_USTEL_DTL T2
+    <select id="selectUserInfo" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto$SearchUserInfoRes">
+        SELECT TNO1 /* 전화번호1 */
+             , TNO2 /* 전화번호2 */
+             , TNO3 /* 전화번호3 */
+          FROM (
+                SELECT T2.CPHON_LOCARA_TNO AS TNO1 /* 전화번호1 */
+                     , T2.CPHON_EXNO_ENCR AS TNO2 /* 전화번호2 */
+                     , T2.CPHON_IDV_TNO AS TNO3 /* 전화번호3 */
+                  FROM TB_CBBO_CLCTAM_PRTNR_DTL T1 /* 집금파트너상세 */
+                  LEFT OUTER JOIN TB_CBBO_CLCTAM_PRTNR_USTEL_DTL T2 /* 집금파트너사용전화상세 */
                     ON T1.PRTNR_NO = T2.PRTNR_NO
                    AND T1.OG_TP_CD = T2.OG_TP_CD
                    AND T2.TNO_SN = '1'
@@ -922,10 +928,13 @@
                    AND T2.DTA_DL_YN = 'N'
                  WHERE 1 = 1
                    AND T1.PRTNR_NO = #{prtnrNo}
-                   AND T1.OG_TP_CD = #{ogTpCd}) AS TNO1
-             , (SELECT T2.CPHON_LOCARA_TNO ||'-'|| T2.CPHON_EXNO_ENCR ||'-'|| T2.CPHON_IDV_TNO
-                  FROM TB_CBBO_CLCTAM_PRTNR_DTL T1
-                  LEFT OUTER JOIN TB_CBBO_CLCTAM_PRTNR_USTEL_DTL T2
+                   AND T1.OG_TP_CD = #{ogTpCd}
+                 UNION 
+                SELECT T2.CPHON_LOCARA_TNO AS TNO1 /* 전화번호1 */
+                     , T2.CPHON_EXNO_ENCR AS TNO2 /* 전화번호2 */
+                     , T2.CPHON_IDV_TNO AS TNO3 /* 전화번호3 */
+                  FROM TB_CBBO_CLCTAM_PRTNR_DTL T1 /* CPHON_EXNO_ENCR */
+                  LEFT OUTER JOIN TB_CBBO_CLCTAM_PRTNR_USTEL_DTL T2 /* 집금파트너사용전화상세 */
                     ON T1.PRTNR_NO = T2.PRTNR_NO
                    AND T1.OG_TP_CD = T2.OG_TP_CD
                    AND T2.TNO_SN = '2'
@@ -933,10 +942,13 @@
                    AND T2.DTA_DL_YN = 'N'
                  WHERE 1 = 1
                    AND T1.PRTNR_NO = #{prtnrNo}
-                   AND T1.OG_TP_CD = #{ogTpCd}) AS TNO2
-             , (SELECT T2.CPHON_LOCARA_TNO ||'-'|| T2.CPHON_EXNO_ENCR ||'-'|| T2.CPHON_IDV_TNO
-                  FROM TB_CBBO_CLCTAM_PRTNR_DTL T1
-                  LEFT OUTER JOIN TB_CBBO_CLCTAM_PRTNR_USTEL_DTL T2
+                   AND T1.OG_TP_CD = #{ogTpCd}
+                 UNION 
+                SELECT T2.CPHON_LOCARA_TNO AS TNO1 /* 전화번호1 */
+                     , T2.CPHON_EXNO_ENCR AS TNO2 /* 전화번호2 */
+                     , T2.CPHON_IDV_TNO AS TNO3 /* 전화번호3 */
+                  FROM TB_CBBO_CLCTAM_PRTNR_DTL T1 /* CPHON_EXNO_ENCR */
+                  LEFT OUTER JOIN TB_CBBO_CLCTAM_PRTNR_USTEL_DTL T2 /* 집금파트너사용전화상세 */
                     ON T1.PRTNR_NO = T2.PRTNR_NO
                    AND T1.OG_TP_CD = T2.OG_TP_CD
                    AND T2.TNO_SN = '3'
@@ -944,8 +956,9 @@
                    AND T2.DTA_DL_YN = 'N'
                  WHERE 1 = 1
                    AND T1.PRTNR_NO = #{prtnrNo}
-                   AND T1.OG_TP_CD = #{ogTpCd}) AS TNO3
-          FROM DUAL
+                   AND T1.OG_TP_CD = #{ogTpCd}
+             )
+         WHERE 1=1
     </select>
     
     <select id="selectCounselRegistration" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto$FindCounselRegistrationRes">

@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -27,5 +28,10 @@ public class WsncRoutineBsPsicAssignStateService {
 
     public List<SearchRes> getRoutineBsPsicAssignStatesForExcelDownload(SearchReq req) {
         return mapper.selectRoutineBsPsicAssignState(req);
+    }
+    // getWellsManagerList
+
+    public List<HashMap<String, String>> getWellsManager(String dgr2LevlOgId) {
+        return mapper.selectWellsManager(dgr2LevlOgId);
     }
 }

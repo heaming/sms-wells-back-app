@@ -49,6 +49,16 @@ public class WpsdExcellentDivisionService {
         return mapper.selectExcellentDivisionPages(req, config, target);
     }
 
+    public int saveExcellentDivision(List<SaveReq> reqs) {
+        int processCount = 0;
+        for(SaveReq req : reqs){
+            WpsdExcellentDivisionDvo dvo = converter.mapToDvo(req);
+            int result = mapper.updateExcellentDivision(dvo);
+            processCount += result;
+        }
+        return processCount;
+    }
+
     /**
      * 우수사업부 현황 - 경진조 조회
      * @param req
@@ -90,4 +100,6 @@ public class WpsdExcellentDivisionService {
         }
         return processCount;
     }
+
+
 }

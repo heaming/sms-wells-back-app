@@ -57,7 +57,7 @@ public interface WwdbRefundCurrentStatusMapper {
      * @return List<SearchCardRefundHistoryRes>
      */
     List<SearchCardRefundHistoryRes> selectCardRefundHistory(
-        SearchCardRefundHistoryReq req
+        SearchRefundHistoryReq req
     );
 
     /**
@@ -68,7 +68,7 @@ public interface WwdbRefundCurrentStatusMapper {
      * @return PagingResult<SearchBalanceTransferRefundHistoryRes>
      */
     PagingResult<SearchBalanceTransferRefundHistoryRes> selectBalanceTransferRefundHistory(
-        SearchBalanceTransferRefundHistoryReq req,
+        SearchRefundHistoryReq req,
         PageInfo pageInfo
     );
 
@@ -79,6 +79,6 @@ public interface WwdbRefundCurrentStatusMapper {
      * @return List<SearchBalanceTransferRefundHistoryRes>
      */
     List<SearchBalanceTransferRefundHistoryRes> selectBalanceTransferRefundHistory(
-        SearchBalanceTransferRefundHistoryReq req
+        SearchRefundHistoryReq req
     );
 }

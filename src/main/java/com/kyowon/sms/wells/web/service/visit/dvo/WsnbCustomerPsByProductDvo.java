@@ -15,7 +15,7 @@ public class WsnbCustomerPsByProductDvo {
     String brchOgId;
     String brchOgCd;
     String brchOgNm;
-    String ogNm;
+    String svcOgNm;
     String addr;
     String cralLocaraTno;
     String mexnoEncr;
@@ -34,7 +34,7 @@ public class WsnbCustomerPsByProductDvo {
     Integer extFrisuAsMcn;
     Integer svPrd;
     String rcgvpKnm;
-    String hmnrscDeptCd;
+    String ogNm;
     String prtnrKnm;
     String prtnrNo;
     String dlqAcuMcn;

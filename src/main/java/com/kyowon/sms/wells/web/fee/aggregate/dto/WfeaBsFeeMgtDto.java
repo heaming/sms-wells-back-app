@@ -34,6 +34,18 @@ public class WfeaBsFeeMgtDto {
         String endVstDt
     ) {}
 
+    @ApiModel(value = "WfeaBsFeeMgtDto-SearchCheckReq")
+    public record SearchCheckReq(
+        @NotBlank
+        String perfYm,
+        @NotBlank
+        String ogTpCd,
+        @NotBlank
+        String feeTcntDvCd,
+        @NotBlank
+        String perfAgrgCrtDvCd
+    ) {}
+
     @ApiModel(value = "WfeaBsFeeMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
@@ -63,11 +75,16 @@ public class WfeaBsFeeMgtDto {
         String svBizDclsfCd, /*작업유형코드*/
         String vstRglvlGdCd, /*방문급지코드*/
         String vstRglvlGdNm, /*방문급지명*/
-        String sellTpNm, /*판매구분*/
+        String sellTpCd, /*판매구분*/
         String uswyNm, /*용도구분*/
         String prrVstYn, /*사전방문여부*/
         String vstDuedt, /*방문예정일자*/
         String wkExcnDt, /*방문일자*/
         String canYn /*취소여부*/
+    ) {}
+
+    @ApiModel(value = "WfeaBsFeeMgtDto-SearchCheckRes")
+    public record SearchCheckRes(
+        String ogTpCd
     ) {}
 }

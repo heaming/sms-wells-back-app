@@ -1,7 +1,9 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.dto;
 
-import com.sds.sflex.system.config.masking.MaskRequired;
-import com.sds.sflex.system.config.masking.MaskingType;
+import java.util.List;
+
+import javax.validation.constraints.NotBlank;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.sds.sflex.common.utils.DbEncUtil;
@@ -9,15 +11,14 @@ import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
-import javax.validation.constraints.NotBlank;
-
 public class WogcPartnerPlannerDto {
 
     @ApiModel(value = "WogcPartnerPlannerDto-SearchLicenseReq")
+    @Builder
     public record SearchLicenseReq(
         String prtnrKnm, // 파트너한글명
         String prtnrNo, // 파트너번호
-        String qlfDvCd // 자격구분코드
+        List<String> qlfDvCd // 자격구분코드
     ) {
     }
 
@@ -256,6 +257,16 @@ public class WogcPartnerPlannerDto {
         String fnlMdfcUsrId,
         String fnlMdfcPrgId,
         String fnlMdfcDeptId
+    ) {
+    }
+
+    @ApiModel(value = "WogcPartnerPlannerDto-CheckCancellationReq")
+    @Builder
+    public record CheckCancellationReq(
+        @NotBlank
+        String prtnrNo, // 파트너번호
+        @NotBlank
+        String ogTpCd // 조직유형코드
     ) {
     }
 }

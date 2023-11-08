@@ -23,12 +23,12 @@ import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoReq;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveCounselReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveUnuitmCnReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchUserInfoReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.service.WbncCustomerService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -165,8 +165,7 @@ public class WbncCustomerController {
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = true),
     })
-    public FindUserInfoRes getUserInfo(@Valid
-    FindUserInfoReq dto) {
+    public List<SearchUserInfoRes> getUserInfo(SearchUserInfoReq dto) throws Exception {
         return service.getUserInfo(dto);
     }
 

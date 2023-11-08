@@ -8,8 +8,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaMonthlyByStockPsMapper;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
@@ -45,16 +43,6 @@ public class WsnaMonthlyByStockPsService {
      */
     public List<SearchPdRes> getProducts() {
         return this.qomAsnStockService.getProducts();
-    }
-
-    /**
-     * 월별 재고현황 페이징 조회
-     * @param dto
-     * @param pageInfo
-     * @return
-     */
-    public PagingResult<SearchRes> getMonthlyByStocksStatePaging(SearchReq dto, PageInfo pageInfo) {
-        return this.mapper.selectMonthlyByStocksState(dto, pageInfo);
     }
 
     /**

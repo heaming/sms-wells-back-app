@@ -18,7 +18,7 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', T1.SV_BIZ_HCLSF_CD, #{session.langId}) AS RECEIPT_DIV            /* 접수구분 */
              , T1.CNTR_NO                                                                                                   /* 계약번호 */
              , T1.CNTR_NO || '-' || T1.CNTR_SN                                                    AS CNTR_DTL_NO            /* 계약상세번호 */
-             , T10.CST_KNM                                                                        AS CST_NM                 /* 고객명 */
+             , NVL(T10.RCGVP_KNM, T6.CST_KNM)                                                     AS CST_NM                 /* 고객명 */
              , T1.SDING_SPP_NO                                                                    AS SPP_ORD_NO             /* 배송번호 */
              , T4.PD_NM                                                                           AS MCHN_MODEL             /* 기기모델 */
              , T2.OJ_DTL_CNTR_NO                                                                  AS MCHN_CST_NO            /* 기기고객번호 */
@@ -94,7 +94,7 @@
              , T1.DP_EPTT_NM                                                                                                /* 입금예정자명 */
              , T1.OG_TP_CD                                                                                                  /* 조직유형코드 */
              , T1.PRTNR_NO                                                                                                  /* 파트너번호 */
-             , T1.CNTR_ADRPC_ID                                                                                             /* 계약주소지ID */
+             , T9.CNTR_ADRPC_ID                                                                                             /* 계약주소지ID */
              , T1.RECAP_CS_AMT                                                                                              /* 유상비용금액 */
              , T1.ITM_IOST_DV_CD                                                                  AS SPP_DV_CD              /* 배송구분코드 */
              , T1.CST_SV_ASN_NO                                                                                             /* 고객서비스배정번호 */
@@ -126,18 +126,6 @@
                     , D4.OG_TP_CD                                   /* 조직유형코드 */
                     , D4.PRTNR_NO                                   /* 파트너번호 */
                     , D5.SV_PD_CD                                   /* 서비스상품코드 */
-                    , ( SELECT S2.CNTR_ADRPC_ID
-                          FROM TB_SSCT_CNTR_ADR_REL S1
-                         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS S2
-                            ON S2.CNTR_ADRPC_ID = S1.CNTR_ADRPC_ID
-                         WHERE S1.DTL_CNTR_NO  = D2.CNTR_NO
-                           AND S1.DTL_CNTR_SN  = D2.CNTR_SN
-                           AND S2.ADR_ID       = D2.ADR_ID
-                           AND S1.DTA_DL_YN    = 'N'
-                           AND S2.DTA_DL_YN    = 'N'
-                           AND S1.ADRPC_TP_CD IN ('2', '3')
-                           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
-                           AND ROWNUM      = 1 ) AS CNTR_ADRPC_ID   /* 계약주소지ID */
                     , D1.MNGR_DV_CD                                 /* 관리자구분코드 */
                     , D1.DP_EPTT_NM                                 /* 입금예정자명 */
                     , D1.RECAP_CS_AMT                               /* 유상비용금액 */
@@ -169,9 +157,10 @@
 				                  AND S2.PD_TP_CD           = 'M'
 				                  AND S3.DTA_DL_YN          = 'N'
 				                  AND S3.PD_EXTS_PRP_GRP_CD = 'PART'
-				                  AND S3.PD_PRP_VAL01 LIKE ( CASE WHEN D1.ITM_IOST_DV_CD = '1' THEN '6%'
-				                                                  ELSE '%'
-				                                             END )
+                            <if test='@MybatisUtils@equals(sppDvCd, "1")'>
+                                  AND S3.PD_PRP_VAL20       = '11'         /* 모종 */
+                                  AND S3.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                            </if>
                              ) T
                          WHERE T.RN = 1 )        AS SDING_INFO1     /* 모종1 정보 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
@@ -200,9 +189,10 @@
 				                  AND S2.PD_TP_CD           = 'M'
 				                  AND S3.DTA_DL_YN          = 'N'
 				                  AND S3.PD_EXTS_PRP_GRP_CD = 'PART'
-				                  AND S3.PD_PRP_VAL01 LIKE ( CASE WHEN D1.ITM_IOST_DV_CD = '1' THEN '6%'
-				                                                  ELSE '%'
-				                                             END )
+                            <if test='@MybatisUtils@equals(sppDvCd, "1")'>
+                                  AND S3.PD_PRP_VAL20       = '11'         /* 모종 */
+                                  AND S3.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                            </if>
                              ) T
                          WHERE T.RN = 2 )        AS SDING_INFO2     /* 모종2 정보 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
@@ -231,9 +221,10 @@
 				                  AND S2.PD_TP_CD           = 'M'
 				                  AND S3.DTA_DL_YN          = 'N'
 				                  AND S3.PD_EXTS_PRP_GRP_CD = 'PART'
-				                  AND S3.PD_PRP_VAL01 LIKE ( CASE WHEN D1.ITM_IOST_DV_CD = '1' THEN '6%'
-				                                                  ELSE '%'
-				                                             END )
+                            <if test='@MybatisUtils@equals(sppDvCd, "1")'>
+                                  AND S3.PD_PRP_VAL20       = '11'         /* 모종 */
+                                  AND S3.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                            </if>
                              ) T
                          WHERE T.RN = 3 )        AS SDING_INFO3     /* 모종3 정보 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
@@ -262,9 +253,10 @@
 				                  AND S2.PD_TP_CD           = 'M'
 				                  AND S3.DTA_DL_YN          = 'N'
 				                  AND S3.PD_EXTS_PRP_GRP_CD = 'PART'
-				                  AND S3.PD_PRP_VAL01 LIKE ( CASE WHEN D1.ITM_IOST_DV_CD = '1' THEN '6%'
-				                                                  ELSE '%'
-				                                             END )
+                            <if test='@MybatisUtils@equals(sppDvCd, "1")'>
+                                  AND S3.PD_PRP_VAL20       = '11'         /* 모종 */
+                                  AND S3.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                            </if>
                              ) T
                          WHERE T.RN = 4 )        AS SDING_INFO4     /* 모종4 정보 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
@@ -293,9 +285,10 @@
 				                  AND S2.PD_TP_CD           = 'M'
 				                  AND S3.DTA_DL_YN          = 'N'
 				                  AND S3.PD_EXTS_PRP_GRP_CD = 'PART'
-				                  AND S3.PD_PRP_VAL01 LIKE ( CASE WHEN D1.ITM_IOST_DV_CD = '1' THEN '6%'
-				                                                  ELSE '%'
-				                                             END )
+                            <if test='@MybatisUtils@equals(sppDvCd, "1")'>
+                                  AND S3.PD_PRP_VAL20       = '11'         /* 모종 */
+                                  AND S3.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                            </if>
                              ) T
                          WHERE T.RN = 5 )        AS SDING_INFO5    /* 모종5 정보 */
                  FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
@@ -312,8 +305,8 @@
                   AND D4.PRTNR_NO = D3.ICHR_PRTNR_NO
                   AND D4.BASE_YM  = SUBSTR(#{strtDt}, 1, 6)
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5         /* 고객서비스수행내역 */
-                   ON D5.CNTR_NO = D2.CNTR_NO
-                  AND D5.CNTR_SN = D2.CNTR_SN
+                   ON D5.CNTR_NO = D1.CNTR_NO
+                  AND D5.CNTR_SN = D1.CNTR_SN
                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
                    ON D6.PD_CD = D2.PD_CD
                 WHERE D1.DTA_DL_YN          = 'N'
@@ -368,17 +361,15 @@
                </choose>
                </if>
                <if test="@MybatisUtils@isNotEmpty(pkgDvCd)">
-               <choose>
-                <when test='@MybatisUtils@equals(pkgDvCd, "1")'>
-                  AND D6.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
-                </when>
-                <when test='@MybatisUtils@equals(pkgDvCd, "2")'>
-                  AND D6.PD_PRP_VAL01 BETWEEN '60801' AND '60805'
-                </when>
-                <when test='@MybatisUtils@equals(pkgDvCd, "3")'>
-                  AND D6.PD_PRP_VAL01 BETWEEN '60810' AND '60821'
-                </when>
-               </choose>
+                  AND EXISTS ( SELECT 1
+                                 FROM TB_PDBS_PD_REL S1
+                                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                   ON S2.PD_CD = S1.BASE_PD_CD
+                                WHERE S1.DTA_DL_YN          = 'N'
+                                  AND S2.DTA_DL_YN          = 'N'
+                                  AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                  AND S1.OJ_PD_CD           = D2.PD_CD
+                                  AND S2.PD_PRP_VAL12       = #{pkgDvCd} )
                </if>
                <if test='@MybatisUtils@equals(ostrYn, "Y")'>
                   AND D1.OSTR_CNFMDT IS NOT NULL
@@ -391,8 +382,7 @@
                 UNION ALL
             </if>
             <if test='@MybatisUtils@equals(svBizHclsfCd, "2") or @MybatisUtils@isEmpty(svBizHclsfCd)'>
-               SELECT /*+ INDEX(D6 PK_PDBS_PD_ECOM_PRP_DTL) */
-                      D1.CNTR_NO                                     /* 계약번호 */
+               SELECT D1.CNTR_NO                                     /* 계약번호 */
                     , D1.CNTR_SN                                     /* 계약일련번호 */
                     , D1.SV_BIZ_HCLSF_CD                             /* 서비스업무대분류코드 */
                     , D1.SV_BIZ_DCLSF_CD                             /* 서비스업무세분류코드 */
@@ -413,18 +403,6 @@
                     , D4.OG_TP_CD                                    /* 조직유형코드 */
                     , D4.PRTNR_NO                                    /* 파트너번호 */
                     , D5.SV_PD_CD                                    /* 서비스상품코드 */
-                    , ( SELECT S2.CNTR_ADRPC_ID
-                          FROM TB_SSCT_CNTR_ADR_REL S1
-                         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS S2
-                            ON S2.CNTR_ADRPC_ID = S1.CNTR_ADRPC_ID
-                         WHERE S1.DTL_CNTR_NO  = D2.CNTR_NO
-                           AND S1.DTL_CNTR_SN  = D2.CNTR_SN
-                           AND S2.ADR_ID       = D2.ADR_ID
-                           AND S1.DTA_DL_YN    = 'N'
-                           AND S2.DTA_DL_YN    = 'N'
-                           AND S1.ADRPC_TP_CD IN ('2', '3')
-                           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
-                           AND ROWNUM      = 1 )    AS CNTR_ADRPC_ID /* 계약주소지ID */
                     , D1.MNGR_DV_CD                                  /* 관리자구분코드 */
                     , D1.DP_EPTT_NM                                  /* 입금예정자명 */
                     , D1.RECAP_CS_AMT                                /* 유상비용금액 */
@@ -456,9 +434,10 @@
 				                  AND S2.PD_TP_CD           = 'M'
 				                  AND S3.DTA_DL_YN          = 'N'
 				                  AND S3.PD_EXTS_PRP_GRP_CD = 'PART'
-				                  AND S3.PD_PRP_VAL01 LIKE ( CASE WHEN D1.ITM_IOST_DV_CD = '1' THEN '6%'
-				                                                  ELSE '%'
-				                                             END )
+                            <if test='@MybatisUtils@equals(sppDvCd, "1")'>
+                                  AND S3.PD_PRP_VAL20       = '11'         /* 모종 */
+                                  AND S3.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                            </if>
                              ) T
                          WHERE T.RN = 1 )           AS SDING_INFO1   /* 모종1 정보 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
@@ -487,9 +466,10 @@
 				                  AND S2.PD_TP_CD           = 'M'
 				                  AND S3.DTA_DL_YN          = 'N'
 				                  AND S3.PD_EXTS_PRP_GRP_CD = 'PART'
-				                  AND S3.PD_PRP_VAL01 LIKE ( CASE WHEN D1.ITM_IOST_DV_CD = '1' THEN '6%'
-				                                                  ELSE '%'
-				                                             END )
+                            <if test='@MybatisUtils@equals(sppDvCd, "1")'>
+                                  AND S3.PD_PRP_VAL20       = '11'         /* 모종 */
+                                  AND S3.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                            </if>
                              ) T
                          WHERE T.RN = 2 )           AS SDING_INFO2   /* 모종2 정보 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
@@ -518,9 +498,10 @@
 				                  AND S2.PD_TP_CD           = 'M'
 				                  AND S3.DTA_DL_YN          = 'N'
 				                  AND S3.PD_EXTS_PRP_GRP_CD = 'PART'
-				                  AND S3.PD_PRP_VAL01 LIKE ( CASE WHEN D1.ITM_IOST_DV_CD = '1' THEN '6%'
-				                                                  ELSE '%'
-				                                             END )
+                            <if test='@MybatisUtils@equals(sppDvCd, "1")'>
+                                  AND S3.PD_PRP_VAL20       = '11'         /* 모종 */
+                                  AND S3.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                            </if>
                              ) T
                          WHERE T.RN = 3 )           AS SDING_INFO3   /* 모종3 정보 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
@@ -549,9 +530,10 @@
 				                  AND S2.PD_TP_CD           = 'M'
 				                  AND S3.DTA_DL_YN          = 'N'
 				                  AND S3.PD_EXTS_PRP_GRP_CD = 'PART'
-				                  AND S3.PD_PRP_VAL01 LIKE ( CASE WHEN D1.ITM_IOST_DV_CD = '1' THEN '6%'
-				                                                  ELSE '%'
-				                                             END )
+                            <if test='@MybatisUtils@equals(sppDvCd, "1")'>
+                                  AND S3.PD_PRP_VAL20       = '11'         /* 모종 */
+                                  AND S3.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                            </if>
                              ) T
                          WHERE T.RN = 4 )           AS SDING_INFO4   /* 모종4 정보 */
                     , ( SELECT T.SDING_PD_CD || '|' || T.PD_NM || '|' || T.SDING_QTY || '|' || T.SOW_DT
@@ -580,9 +562,10 @@
 				                  AND S2.PD_TP_CD           = 'M'
 				                  AND S3.DTA_DL_YN          = 'N'
 				                  AND S3.PD_EXTS_PRP_GRP_CD = 'PART'
-				                  AND S3.PD_PRP_VAL01 LIKE ( CASE WHEN D1.ITM_IOST_DV_CD = '1' THEN '6%'
-				                                                  ELSE '%'
-				                                             END )
+                            <if test='@MybatisUtils@equals(sppDvCd, "1")'>
+                                  AND S3.PD_PRP_VAL20       = '11'         /* 모종 */
+                                  AND S3.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                            </if>
                              ) T
                          WHERE T.RN = 5 )           AS SDING_INFO5   /* 모종5 정보 */
                  FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
@@ -593,14 +576,15 @@
                   AND D2.CST_SV_ASN_NO   = D1.SDING_SPP_NO
                 INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3     /* 고객서비스BS배정내역 */
                    ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                  AND D3.ASN_OJ_YM     = D2.ASN_OJ_YM
                  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D4       /* 월파트너내역 */
                    ON D4.OG_TP_CD  = D3.CNFM_PSIC_PRTNR_OG_TP_CD
                   AND D4.PRTNR_NO  = D3.CNFM_PSIC_PRTNR_NO
                   AND D4.DTA_DL_YN = 'N'
                   AND D4.BASE_YM   = SUBSTR(#{strtDt}, 1, 6)
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5          /* 고객서비스수행내역 */
-                   ON D5.CNTR_NO = D2.CNTR_NO
-                  AND D5.CNTR_SN = D2.CNTR_SN
+                   ON D5.CNTR_NO = D1.CNTR_NO
+                  AND D5.CNTR_SN = D1.CNTR_SN
                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6         /* 상품각사속성상세 */
                    ON D6.PD_CD = D2.PDCT_PD_CD
                 WHERE D1.DTA_DL_YN          = 'N'
@@ -655,17 +639,15 @@
                 </choose>
                </if>
                <if test="@MybatisUtils@isNotEmpty(pkgDvCd)">
-               <choose>
-                <when test='@MybatisUtils@equals(pkgDvCd, "1")'>
-                  AND D6.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
-                </when>
-                <when test='@MybatisUtils@equals(pkgDvCd, "2")'>
-                  AND D6.PD_PRP_VAL01 BETWEEN '60801' AND '60805'
-                </when>
-                <when test='@MybatisUtils@equals(pkgDvCd, "3")'>
-                  AND D6.PD_PRP_VAL01 BETWEEN '60810' AND '60821'
-                </when>
-                </choose>
+                  AND EXISTS ( SELECT 1
+                                 FROM TB_PDBS_PD_REL S1
+                                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                   ON S2.PD_CD = S1.BASE_PD_CD
+                                WHERE S1.DTA_DL_YN          = 'N'
+                                  AND S2.DTA_DL_YN          = 'N'
+                                  AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                  AND S1.OJ_PD_CD           = D2.PDCT_PD_CD
+                                  AND S2.PD_PRP_VAL12       = #{pkgDvCd} )
                </if>
                <if test='@MybatisUtils@equals(ostrYn, "Y")'>
                   AND D1.OSTR_CNFMDT IS NOT NULL
@@ -692,25 +674,30 @@
             ON T7.PD_CD     = T1.PDCT_PD_CD
          INNER JOIN TB_PDBS_PD_BAS T8                  /* 상품기본-배송패키지 */
             ON T8.PD_CD     = T1.SDING_PKG_PD_CD
-         INNER JOIN TB_SSCT_CNTR_CST_REL T9            /* 계약고객관계-모종패키지 */
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T9            /* 계약주소관계-모종패키지 */
             ON T9.DTL_CNTR_NO = T1.CNTR_NO
            AND T9.DTL_CNTR_SN = T1.CNTR_SN
-         INNER JOIN TB_CUBS_CST_BAS T10                /* 고객기본-모종패키지 */
-            ON T10.CST_NO = T9.CST_NO
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T10   /* 계약주소지기본-모종패키지 */
+            ON T10.CNTR_ADRPC_ID = T9.CNTR_ADRPC_ID
+           AND T10.DTA_DL_YN     = 'N'
           LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T11        /* 파트너기본 */
             ON T11.OG_TP_CD = T1.OG_TP_CD
            AND T11.PRTNR_NO = T1.PRTNR_NO
           LEFT OUTER JOIN TB_GBCO_ADR_BAS T12          /* 주소기본 */
-            ON T12.ADR_ID = T10.ADR_ID
+            ON T12.ADR_ID    = NVL(T10.ADR_ID, T6.ADR_ID)
+           AND T12.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_SVPD_BYZIP_SHPADR_IZ T13  /* 우편번호별배송처내역 */
             ON T13.NEW_ADR_ZIP = T12.NEW_ADR_ZIP
+           AND T13.DTA_DL_YN   = 'N'
          WHERE T2.DTA_DL_YN          = 'N'
-           AND T2.CNTR_REL_DTL_CD    = '216'   /* 모종결합(웰스팜+모종) */
+           AND T2.CNTR_REL_DTL_CD    = '216'              /* 모종결합(웰스팜+모종) */
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
            AND T3.DTA_DL_YN          = 'N'
            AND T3.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
-           AND T5.CNTR_CST_REL_TP_CD = '10'    /* 계약자 */
-           AND T9.CNTR_CST_REL_TP_CD = '10'    /* 계약자 */
+           AND T5.CNTR_CST_REL_TP_CD = '10'               /* 계약자 */
+           AND T9.DTA_DL_YN          = 'N'
+           AND T9.ADRPC_TP_CD       IN ('2', '3')         /* 배달주소, 설치주소 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T9.VL_STRT_DTM AND T9.VL_END_DTM
          ORDER BY T1.CNTR_NO, T1.CNTR_SN, T1.SDING_SPP_NO, T1.SDING_SPP_SN
     </select>
 
@@ -842,18 +829,11 @@
 
     <update id="updateCstSvExcnIzForInstl">
         UPDATE TB_SVPD_CST_SV_EXCN_IZ   /* 고객서비스수행내역 */
-           SET IST_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')   /* 설치일자 */
+           SET IST_DT = #{istDt}
         <include refid="COMMON.updateSystemField"/>
          WHERE CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
     </update>
-
-    <select id="selectCstSvExcnIstDt" resultType="java.lang.String">
-        SELECT IST_DT   /* 설치일자 */
-          FROM TB_SVPD_CST_SV_EXCN_IZ   /* 고객서비스수행내역 */
-         WHERE CNTR_NO = #{cntrNo}
-           AND CNTR_SN = #{cntrSn}
-    </select>
 
     <update id="updateSdingSppPlanIzForCnfm">
         UPDATE TB_SVPD_SDING_SPP_PLAN_IZ   /* 모종배송계획내역 */
@@ -1495,7 +1475,7 @@
                                 AND D5.CNTR_SN = D2.CNTR_SN
                               INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
                                  ON D6.PD_CD = D2.PD_CD
-                              INNER JOIN TB_SSCT_CNTR_REL D7                /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
+                              INNER JOIN TB_SSCT_CNTR_REL D7               /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
                                  ON D7.BASE_DTL_CNTR_NO = D1.CNTR_NO
                                 AND D7.BASE_DTL_CNTR_SN = D1.CNTR_SN
                               WHERE D1.DTA_DL_YN          = 'N'
@@ -1553,17 +1533,15 @@
                             </choose>
                             </if>
                             <if test="@MybatisUtils@isNotEmpty(pkgDvCd)">
-                            <choose>
-                            <when test='@MybatisUtils@equals(pkgDvCd, "1")'>
-                                AND D6.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
-                            </when>
-                            <when test='@MybatisUtils@equals(pkgDvCd, "2")'>
-                                AND D6.PD_PRP_VAL01 BETWEEN '60801' AND '60805'
-                            </when>
-                            <when test='@MybatisUtils@equals(pkgDvCd, "3")'>
-                                AND D6.PD_PRP_VAL01 BETWEEN '60810' AND '60821'
-                            </when>
-                            </choose>
+                                AND EXISTS ( SELECT 1
+                                               FROM TB_PDBS_PD_REL S1
+                                              INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                                 ON S2.PD_CD = S1.BASE_PD_CD
+                                              WHERE S1.DTA_DL_YN          = 'N'
+                                                AND S2.DTA_DL_YN          = 'N'
+                                                AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                                AND S1.OJ_PD_CD           = D2.PD_CD
+                                                AND S2.PD_PRP_VAL12       = #{pkgDvCd} )
                             </if>
                             <if test='@MybatisUtils@equals(ostrYn, "Y")'>
                                 AND D1.OSTR_CNFMDT IS NOT NULL
@@ -1603,7 +1581,7 @@
                               INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5          /* 고객서비스수행내역 */
                                  ON D5.CNTR_NO = D2.CNTR_NO
                                 AND D5.CNTR_SN = D2.CNTR_SN
-                              INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
+                              INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6         /* 상품각사속성상세 */
                                  ON D6.PD_CD = D2.PDCT_PD_CD
                               INNER JOIN TB_SSCT_CNTR_REL D7                /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
                                  ON D7.BASE_DTL_CNTR_NO = D1.CNTR_NO
@@ -1663,17 +1641,15 @@
                             </choose>
                             </if>
                             <if test="@MybatisUtils@isNotEmpty(pkgDvCd)">
-                            <choose>
-                            <when test='@MybatisUtils@equals(pkgDvCd, "1")'>
-                                AND D6.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
-                            </when>
-                            <when test='@MybatisUtils@equals(pkgDvCd, "2")'>
-                                AND D6.PD_PRP_VAL01 BETWEEN '60801' AND '60805'
-                            </when>
-                            <when test='@MybatisUtils@equals(pkgDvCd, "3")'>
-                                AND D6.PD_PRP_VAL01 BETWEEN '60810' AND '60821'
-                            </when>
-                            </choose>
+                                AND EXISTS ( SELECT 1
+                                               FROM TB_PDBS_PD_REL S1
+                                              INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                                 ON S2.PD_CD = S1.BASE_PD_CD
+                                              WHERE S1.DTA_DL_YN          = 'N'
+                                                AND S2.DTA_DL_YN          = 'N'
+                                                AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                                AND S1.OJ_PD_CD           = D2.PDCT_PD_CD
+                                                AND S2.PD_PRP_VAL12       = #{pkgDvCd} )
                             </if>
                             <if test='@MybatisUtils@equals(ostrYn, "Y")'>
                                 AND D1.OSTR_CNFMDT IS NOT NULL

@@ -73,13 +73,14 @@
                               END AS END_SL_DT/*종료*/
                       , T1.CNTR_PTRM AS RENTAL_PTRM /*렌탈기간*/
                       , CASE WHEN T3.CNTR_NO IS NULL THEN 0
+                             WHEN T5.SELL_TP_DTL_CD != '21' THEN NVL(T3.THM_BIL_OC_AMT,0) - NVL(T3.THM_BIL_CTR_AMT, 0) + NVL(T3.THM_OC_SV_SL_AMT , 0)
                              ELSE T3.THM_SL_SUM_AMT
                               END AS THM0_AMT /*0차월*/
                       , T1.RENTAL_AMT /*렌탈료*/
                       , T1.RENTAL_DSC_AMT/*렌탈할인*/
                       , CASE WHEN T1.RENTAL_TN <![CDATA[<=]]> T1.CNTR_PTRM
-                             THEN T1.RENTAL_AMT /* - 재약정할인*/
-<!--                             THEN T1.RENTAL_AMT - T1.RENTAL_DSC_AMT /* - 재약정할인*/-->
+<!--                             THEN T1.RENTAL_AMT /* - 재약정할인*/-->
+                             THEN T1.RENTAL_AMT - T1.RENTAL_DSC_AMT /* - 재약정할인*/
                              ELSE 0
                               END AS PY_AMT /*청규렌탈료*/
                       , 'N' AS LTPAY_YN/*후납여부*/
@@ -129,7 +130,7 @@
                 AND (T1.RENTAL_TN = 1 OR MOD(T1.RENTAL_TN,12)=0)
                 AND T1.RENTAL_TN > 0
                 AND T1.RENTAL_TN <![CDATA[<]]> T1.CNTR_PTRM
-                AND T1.PRM_MCN = 0
+                AND NVL(T1.PRM_MCN,0) = 0
                 AND (T1.SL_STP_YN = 'N' OR T1.SL_STP_YN IS NULL)
                 AND T1.SL_RCOG_DT IS NOT NULL
                 AND T1.CAN_DT IS NULL
@@ -602,9 +603,9 @@
                                                      , T2.HOECHA HOECHA02 --회차
                                                 --       , T5.ISTM_MCN --할부개월수
                                                      , CASE WHEN T2.HOECHA = 0           THEN T1.THM0_AMT /* ０차월         */
-                                                            WHEN T2.HOECHA = T5.ISTM_MCN THEN T1.EXN_NMN_AMT /* ６０차월       */
+                                                            WHEN T2.HOECHA = T1.ISTM_MCN THEN T1.EXN_NMN_AMT /* ６０차월       */
                                                 --            WHEN T2.HOECHA = LC31.LCMON1 THEN CW55.CWAM12 /* １２차월       */
-                                                            WHEN T2.HOECHA <![CDATA[ < ]]> T5.ISTM_MCN THEN T1.ISTM_AMT /* 할부／렌탈１   */
+                                                            WHEN T2.HOECHA <![CDATA[ < ]]> T1.ISTM_MCN THEN T1.ISTM_AMT /* 할부／렌탈１   */
                                                             ELSE T1.PY_AMT /* 월할부／렌탈２ */
                                                              END AS CWQAM3 /* 납입액       */
                                                   FROM TB_RVDW_GIRO_OCR_MNGT_BAS T1  --OCR관리기본

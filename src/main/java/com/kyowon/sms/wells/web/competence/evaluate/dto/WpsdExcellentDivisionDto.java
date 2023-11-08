@@ -108,4 +108,21 @@ public class WpsdExcellentDivisionDto {
         String ctstGrpCd
     ){}
 
+    // *********************************************************
+    // Reqeust Dto
+    // *********************************************************
+    // Save Request Dto
+    @ApiModel("WpsdExcellentDivisionDto")
+    public record SaveReq(
+        String baseYm,
+        String evlOgTpCd,
+        String evlDvCd,
+        String ogId,
+        String evlAtcDvCd,
+        String prtnrNo,
+
+        Long trgBasePc
+
+    ){}
+
 }

@@ -30,12 +30,17 @@
         , TEMP AS ( SELECT CNTR_NO
                          , CNTR_SN
                          , PRTNR_NO
-                     FROM (SELECT RANK() OVER (PARTITION BY T.CNTR_NO, T.CNTR_SN ORDER BY VST_FSH_DT DESC ) RN
-                                , CNTR_NO
-                                , CNTR_SN
-                                , PRTNR_NO
+                         , FRISU_AS_PTRM_N AS EXT_FRISU_AS_MCN
+                     FROM (SELECT RANK() OVER (PARTITION BY T.CNTR_NO, T.CNTR_SN ORDER BY T.VST_FSH_DT DESC ) RN
+                                , T.CNTR_NO
+                                , T.CNTR_SN
+                                , T.PRTNR_NO
+                                , T2.FRISU_AS_PTRM_N
                              FROM TB_SVPD_CST_SV_WK_RS_IZ T
-                            WHERE SV_BIZ_HCLSF_CD = '2'
+                            INNER JOIN TB_SSCT_CNTR_WELLS_DTL T2
+                            	ON T.CNTR_NO = T2.CNTR_NO
+                            	AND T.CNTR_SN = T2.CNTR_SN
+                            WHERE T.SV_BIZ_HCLSF_CD = '2'
                         )
                     WHERE RN = 1
         )
@@ -64,6 +69,82 @@
                                AND T1.OG_TP_CD IN ('HR1', 'W02', 'W03','W06') /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
                                AND T1.DTA_DL_YN = 'N'
         )
+        , ADD_TEMP0 AS ( SELECT /*+ MATERIALIZE */
+                              T1.NEW_ADR_ZIP
+                            , T1.EMD_SN
+                            , T1.FR2P_LGLD_CD
+                            , T1.CTPV_NM
+                            , T1.CTCTY_NM
+                            , T1.LAWC_EMD_NM
+                            , T1.AMTD_NM
+                            , T1.KYNOR_LOCARA_YN
+                            , T1.ILD_YN
+                            , T1.PDLV_NO
+                            , T1.RPB_LOCARA_CD
+                            , T1.LOCARA_SN
+                            , T1.WK_GRP_CD
+                            , T1.IZ_SN
+                            , T1.APY_STRTDT
+                            , T1.APY_ENDDT
+                            , T1.SAT_WRK_YN
+                            , T1.RSTR_CNDT_USE_YN
+                            , T1.UDSN_USE_YN
+                            , T1.RPB_LOCARA_GRP_CD
+                            , T1.VST_DOW_VAL
+                            , T1.MMT_AV_LDTM
+                            , T1.LOCARA_CEN_STRU_ADR
+                            , T1.ICHR_PRTNR_OG_TP_CD
+                            , T1.ICHR_PRTNR_NO
+                        FROM ( SELECT ROW_NUMBER() OVER(PARTITION BY V1.NEW_ADR_ZIP ORDER BY V1.EMD_SN DESC) AS V1_RN
+                                    , V1.NEW_ADR_ZIP, V1.EMD_SN, V1.FR2P_LGLD_CD, V1.CTPV_NM, V1.CTCTY_NM, V1.LAWC_EMD_NM, V1.AMTD_NM, V1.KYNOR_LOCARA_YN, V1.ILD_YN, V1.PDLV_NO
+                                    , V2.RPB_LOCARA_CD, V2.LOCARA_SN
+                                    , V3.WK_GRP_CD, V3.IZ_SN, V3.APY_STRTDT, V3.APY_ENDDT, V3.SAT_WRK_YN, V3.RSTR_CNDT_USE_YN, V3.UDSN_USE_YN, V3.RPB_LOCARA_GRP_CD, V3.VST_DOW_VAL, V3.MMT_AV_LDTM, V3.LOCARA_CEN_STRU_ADR, V3.ICHR_PRTNR_OG_TP_CD, V3.ICHR_PRTNR_NO
+                                 FROM TB_SVPD_EGER_ASN_ADR_IZ V1 /* 엔지니어배정용주소내역 */
+                      LEFT OUTER JOIN ( SELECT M2.RPB_LOCARA_CD, M2.LOCARA_SN, M2.FR2P_LGLD_CD, M2.CTPV_NM, M2.CTCTY_NM, M2.LAWC_EMD_NM, M2.AMTD_NM
+                                             , ROW_NUMBER() OVER(PARTITION BY M2.FR2P_LGLD_CD, M2.CTPV_NM, M2.CTCTY_NM, M2.LAWC_EMD_NM, M2.AMTD_NM ORDER BY M2.ADR_ODR_NO DESC) AS RN
+                                          FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ M2
+                                         WHERE TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN M2.APY_STRTDT AND M2.APY_ENDDT
+                                           AND DTA_DL_YN = 'N') V2 /* 책임지역별관리주소내역 */
+                                   ON V2.FR2P_LGLD_CD = V1.FR2P_LGLD_CD
+                                  AND V2.CTPV_NM = V1.CTPV_NM
+                                  AND V2.CTCTY_NM = V1.CTCTY_NM
+                                  AND V2.LAWC_EMD_NM = V1.LAWC_EMD_NM
+                                  AND V2.AMTD_NM = V1.AMTD_NM
+                                  AND V2.RN = 1
+                      LEFT OUTER JOIN ( SELECT M3.WK_GRP_CD, M3.RPB_LOCARA_CD, M3.IZ_SN, M3.APY_STRTDT, M3.APY_ENDDT, M3.SAT_WRK_YN, M3.RSTR_CNDT_USE_YN, M3.UDSN_USE_YN, M3.RPB_LOCARA_GRP_CD, M3.VST_DOW_VAL, M3.MMT_AV_LDTM, M3.LOCARA_CEN_STRU_ADR, M3.ICHR_PRTNR_OG_TP_CD, M3.ICHR_PRTNR_NO
+                                             , ROW_NUMBER() OVER(PARTITION BY M3.WK_GRP_CD, M3.RPB_LOCARA_CD ORDER BY M3.IZ_SN DESC) AS RN
+                                          FROM TB_SVPD_RPB_LOCARA_PSIC_IZ M3
+                                         WHERE TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRTDT AND APY_ENDDT
+                                           AND DTA_DL_YN = 'N' ) V3
+                                   ON V3.RN = 1
+                                  AND V3.RPB_LOCARA_CD = V2.RPB_LOCARA_CD
+                                WHERE V1.DTA_DL_YN = 'N'
+                        ) T1
+                        WHERE T1.V1_RN = 1
+        )
+        , ADD_TEMP3 AS ( SELECT T1.NEW_ADR_ZIP
+                              , T1.EMD_SN
+                              , T1.FR2P_LGLD_CD
+                              , T1.CTPV_NM
+                              , T1.CTCTY_NM
+                              , T1.LAWC_EMD_NM
+                              , T1.AMTD_NM
+                              , T1.LAWC_EMD_NM || ' / ' || T1.AMTD_NM AS MNGT_AMTD /* 관리행정동 */
+                              , T1.RPB_LOCARA_CD          /* 책임지역코드 */
+                              , T1.RPB_LOCARA_GRP_CD      /* 책임지역그룹코드 */
+                              , T4.OG_NM                  /* 조직명 */
+                              , T1.ICHR_PRTNR_NO          /* 담당파트너번호 */
+                              , T4.PRTNR_KNM              /* 파트너한글명 */
+                              , T1.VST_DOW_VAL            /* 방문요일값 */
+                              , T1.KYNOR_LOCARA_YN        /* 경북지역여부 */
+                              , T1.ILD_YN                 /* 섬여부 */
+                              , T1.PDLV_NO                /* 출고지번호 */
+                          FROM ADD_TEMP0 T1
+               LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4 /* 월파트너내역 */
+                            ON T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                           AND T4.PRTNR_NO = T1.ICHR_PRTNR_NO
+                           AND T4.OG_TP_CD = T1.ICHR_PRTNR_OG_TP_CD
+        )
         SELECT C1.CNTR_NO
              , C1.CNTR_SN
              , PD_INF.SAP_MAT_CD
@@ -77,8 +158,8 @@
              , (SELECT OG_NM
                   FROM TB_OGBS_OG_BAS
                  WHERE B1.BRCH_OG_ID = OG_ID) AS BRCH_OG_NM /* 영업센터이름 (지역단) */
-             , OG_INF_PRTNR.OG_NM /* 서비스센터 */
-             , A1.RDADR||' '||A1.RDADR AS ADDR
+             , ADD_TEMP3.OG_NM AS SVC_OG_NM /* 서비스센터 */
+             , A1.RNADR||' '||A1.RDADR AS ADDR
              , T4.CRAL_LOCARA_TNO
              , T4.MEXNO_ENCR
              , T4.CRAL_IDV_TNO
@@ -93,10 +174,10 @@
              , C1.BC_NO
              , C2.SV_STP_DT
              , C3.CNTR_PTRM
-             , C1.EXT_FRISU_AS_MCN
+             , TEMP.EXT_FRISU_AS_MCN
              , C3.SV_PRD
              , T4.RCGVP_KNM
-             , OG_INF_PRTNR.HMNRSC_DEPT_CD /* 웰스매니저 소속 */
+             , OG_INF_PRTNR.OG_NM /* 웰스매니저 소속 */
              , OG_INF_PRTNR.PRTNR_KNM /* 웰스매니저 */
              , OG_INF_PRTNR.PRTNR_NO /* 웰스매니저 사번 */
              , NVL((SELECT NVL(TO_CHAR(D1.DLQ_ACU_MCN), 'N')
@@ -142,6 +223,9 @@ LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS A1
                   FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ
         ) B1
            ON A1.NEW_ADR_ZIP = B1.NEW_ADR_ZIP
+          AND B1.RN = 1
+   INNER JOIN ADD_TEMP3
+           ON B1.NEW_ADR_ZIP = ADD_TEMP3.NEW_ADR_ZIP
           AND B1.RN = 1
         WHERE 1=1
         <if test="@MybatisUtils@isNotEmpty(instOver)">

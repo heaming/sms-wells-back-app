@@ -69,7 +69,7 @@ public class WwdbRefundCurrentStatusController {
     @ApiOperation(value = "카드사별 환불내역 목록 엑셀 다운로드", notes = "카드사별 환불내역 목록 엑셀 다운로드")
     @GetMapping("/card/excel-download")
     public List<SearchCardRefundHistoryRes> getCardRefundHistoryExcels(
-        SearchCardRefundHistoryReq req
+        SearchRefundHistoryReq req
     ) {
         return service.getCardRefundHistoryExcels(req);
     }
@@ -79,7 +79,7 @@ public class WwdbRefundCurrentStatusController {
     public PagingResult<SearchBalanceTransferRefundHistoryRes> getBalanceTransferRefundHistoryPages(
         @ApiParam
         @Valid
-        SearchBalanceTransferRefundHistoryReq req,
+        SearchRefundHistoryReq req,
         @Valid
         PageInfo pageInfo
     ) {
@@ -89,7 +89,7 @@ public class WwdbRefundCurrentStatusController {
     @ApiOperation(value = "전금내역 목록 엑셀 다운로드", notes = "전금내역 목록 엑셀 다운로드")
     @GetMapping("/balance-transfer/excel-download")
     public List<SearchBalanceTransferRefundHistoryRes> getBalanceTransferRefundHistoryExcels(
-        SearchBalanceTransferRefundHistoryReq req
+        SearchRefundHistoryReq req
     ) {
         return service.getBalanceTransferRefundHistoryExcels(req);
     }

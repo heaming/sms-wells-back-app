@@ -2,11 +2,331 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOutcomeAllowanceMapper">
 
-    <select id="selectOutcomeAllowances" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchRes">
-        SELECT '20230201' AS ST_DT, '09' AS STRT_HH, '20230206' AS ED_DT, '18' AS END_HH, '20230206' AS PERF_DT
+    <select id="selectOutcomeAllowancesManagerThisMonth" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchManagerRes">
+        SELECT C.OG_CD
+             , C.OG_NM
+             , C.PRTNR_KNM
+             , C.PRTNR_NO
+             , C.DTRC_N
+             , C.BASE_DTRC_N
+             , C.BRCH_NINC_CT
+             , C.TRG_CT
+             , C.PERF_CT
+             , C.TRG_ACHV_RT
+             , C.NW_SELL_ACC_CT
+             , C.PUR_SPR_ACC_CT
+             , C.ACC_NINC_CT
+             , C.FEE_ACKMT_CT
+             , C.ELHM_EXCP_PERF_AMT
+             , C.ELHM_EXCP_CT
+             , C.REDF_CT
+             , C.PERF_AGG_AMT
+             , C.MNGR_DANG_GD
+             , C.WM_ACL_ACTI_CT
+             , C.BFSVC_ACL_ACTI_CT
+             , C.ACL_ACTI_BRCH_AV_CT
+             , C.ACTV_BRCH_N
+             , AT.AW_AMT * C.PERF_AGG_AMT - C.MNGR_DANG_GD AS TRG_ACHV_AW_AMT /* 목표달성 수당(인정건수) = 누계 X 목표달성수당 테이블(달성율 and 계정순증) 금액 - 관리자 위험지수 차감액 */
+             , AO.AW_AMT * C.ACTV_BRCH_N AS OG_AW_AMT /* 조직수당 = 활성지점수 X 조직수당 테이블(실활동 매니저 지평 and 지점 순증) */
+             , AT.AW_AMT * C.PERF_AGG_AMT - C.MNGR_DANG_GD + AO.AW_AMT * C.ACTV_BRCH_N AS DSB_AMT /* 지급계 TRG_ACHV_AW_AMT + OG_AW_AMT */
+          FROM (
+                SELECT O.OG_ID /* 소속 */
+                     , O.OG_CD
+                     , O.OG_NM /* 소속명 */
+                     <choose>
+                        <when test='rsbDvCd == "W0202"'>
+                     , O.DGR1_LEVL_DG_PRTNR_NM AS PRTNR_KNM /* 성명 */
+                     , O.DGR1_LEVL_DG_PRTNR_NO AS PRTNR_NO /* 사번 */
+                        </when>
+                        <otherwise>
+                     , O.DGR2_LEVL_DG_PRTNR_NM AS PRTNR_KNM /* 성명 */
+                     , O.DGR2_LEVL_DG_PRTNR_NO  AS PRTNR_NO /* 사번 */
+                        </otherwise>
+                     </choose>
+                     , O.DTRC_N /* 지점수(당월) */
+                     , OB.DTRC_N AS BASE_DTRC_N /* 지점수(고정) 23년4월 지점수 */
+                     , CASE WHEN O.DTRC_N <![CDATA[<]]> OB.DTRC_N THEN 0 ELSE O.DTRC_N - OB.DTRC_N END  AS BRCH_NINC_CT /* 지점순증 = 당월 지점수 - 23년4월1일자 지점수 */
+                     , ST.CNTR_BASE_TRG_IST_CT AS TRG_CT /* 목표(설치?) */
+                     , P.PERF_AGG_AMT AS PERF_CT /* 실적(기변포함) */
+                     , TRUNC(P.PERF_AGG_AMT/ST.CNTR_BASE_TRG_IST_CT * 100, 1) AS TRG_ACHV_RT /* 달성률 = 실적 / 목표 * 100 */
+                     , P.NW_SELL_ACC_CT /* 신규판매 */
+                     , 0 AS PUR_SPR_ACC_CT /* 순수이탈 */
+                     , (P.NW_SELL_ACC_CT - 0) AS ACC_NINC_CT /* 계정순증 */
+                     , P.FEE_ACKMT_CT /* 인정건수 */
+                     , P.ELHM_EXCP_PERF_AMT /* 가전외 실적 금액 */
+                     , TRUNC(P.ELHM_EXCP_PERF_AMT/500000) AS ELHM_EXCP_CT /* 가전외 실적 건수 */
+                     , 0 AS REDF_CT /* 되물림 건수 */
+                     , P.PERF_AGG_AMT + TRUNC(P.ELHM_EXCP_PERF_AMT/500000) AS PERF_AGG_AMT /* 누계 = [인정건수] + [가전외 건수] - [되물림 건수] */
+                     , 0 AS MNGR_DANG_GD /* 관리자 위험등급 */
+                     , P.WM_ACL_ACTI_CT AS WM_ACL_ACTI_CT /* WM */
+                     , P.BFSVC_ACL_ACTI_CT AS BFSVC_ACL_ACTI_CT /* Pre-M(BS) */
+                     , CASE WHEN OB.DTRC_N > 0 THEN TRUNC((P.WM_ACL_ACTI_CT + P.BFSVC_ACL_ACTI_CT) / OB.DTRC_N, 2) ELSE 0 END AS ACL_ACTI_BRCH_AV_CT /* 실활동(지평) = 당월 실활동 인원 ÷ 23년 4월1일 지점수 */
+                     , P.ACTV_BRCH_N AS ACTV_BRCH_N /* 활성 지점 = 당월 실활동 인원 3명 이상 지점수 (프리매니저는 0.5명 적용)*/
+                  FROM (
+                          SELECT OG_ID /* 소속 */
+                               , BASE_YM
+                               , SUM(WM_ACL_ACTI_CT) AS WM_ACL_ACTI_CT /* WM실제활동건수 */
+                               , SUM(BFSVC_ACL_ACTI_CT) AS BFSVC_ACL_ACTI_CT /* BS실제활동건수 */
+                               , SUM(PERF_AGG_AMT) AS PERF_AGG_AMT /* 렌탈순주문건수 총합 */
+                               , SUM(NW_SELL_ACC_CT) AS NW_SELL_ACC_CT /* 신규판매 */
+                               , SUM(CASE WHEN WM_ACL_ACTI_CT+BFSVC_ACL_ACTI_CT >= 3 THEN 1 ELSE 0 END) AS ACTV_BRCH_N /* 활성 지점 */
+                               , SUM(ELHM_EXCP_PERF_AMT) AS ELHM_EXCP_PERF_AMT /* 가전외 실적 금액 */
+                               , SUM(ACC_NINC_CT) AS ACC_NINC_CT /* 계정순증 */
+                               , SUM(FEE_ACKMT_CT) AS FEE_ACKMT_CT /* 인정건수 */
+                            FROM (
+                                      SELECT MO.BASE_YM
+                                          <choose>
+                                              <when test='rsbDvCd == "W0202"'>
+                                           , MO.DGR1_LEVL_OG_ID AS OG_ID
+                                              </when>
+                                              <otherwise>
+                                           , MO.DGR2_LEVL_OG_ID AS OG_ID
+                                              </otherwise>
+                                          </choose>
+                                          , NVL(SUM(CASE WHEN P2.QLF_DV_CD = 3
+                                                          AND P2.BS_CNT >= 50
+                                                          AND (NVL(P1.W00P00012,0) + NVL(P1.W00P00013,0) + NVL(P1.W00P00016,0) + NVL(P1.W00P00017,0)) >= 3
+                                                    THEN 1 ELSE 0 END), 0) AS WM_ACL_ACTI_CT
+                                          , NVL(SUM(CASE WHEN P2.QLF_DV_CD != 3
+                                                          AND P2.BS_CNT >= 20
+                                                          AND (NVL(P1.W00P00012,0) + NVL(P1.W00P00013,0) + NVL(P1.W00P00016,0) + NVL(P1.W00P00017,0)) >= 3
+                                                    THEN 0.5 ELSE 0 END), 0) AS BFSVC_ACL_ACTI_CT
+                                          , NVL(SUM(P1.W00P00036), 0) AS PERF_AGG_AMT
+                                          , NVL(SUM(NVL(P1.W00P00012,0) + NVL(P1.W00P00016,0)), 0) AS NW_SELL_ACC_CT /* 신규주문 */
+                                          , NVL(SUM(NVL(P1.W02P00112,0) + NVL(P1.W02P00027,0)), 0) AS ELHM_EXCP_PERF_AMT /* 가전외 실적금액 */
+                                          , NVL(SUM(NVL(P1.W02P00113,0)), 0) AS ACC_NINC_CT /* 계정순증건수 */
+                                          , NVL(SUM(NVL(P1.W02P00002,0)), 0) AS FEE_ACKMT_CT /* 판매인정건수 */
+                                          , NVL(SUM(CASE WHEN P3.EDUC_CPC_ACKMT_YN IS NOT NULL
+                                                          AND P3.EDUC_CPC_ACKMT_YN = 'Y'
+                                                          AND (NVL(P1.W00P00012,0) + NVL(P1.W00P00013,0) + NVL(P1.W00P00016,0) + NVL(P1.W00P00017,0)) >= 3
+                                                    THEN 1 ELSE 0 END), 0) AS TOPMR_PLAR_NINC /* 당월 수석 플래너 순증 */
+                                       FROM TB_OGBS_MM_PRTNR_IZ MP
+                                      INNER JOIN TB_OGBS_MM_OG_IZ MO
+                                         ON MO.BASE_YM = MP.BASE_YM
+                                        AND MO.OG_ID = MP.OG_ID
+                                        AND MO.OG_TP_CD = MP.OG_TP_CD
+                                       LEFT OUTER JOIN (
+                                              SELECT MP.PRTNR_NO
+                                                   , SUM(CASE WHEN PC.PERF_ATC_CD IS NOT NULL AND PC.PERF_ATC_CD = 'W00P00012' THEN PC.PERF_VAL ELSE 0 END) AS W00P00012 /* 일반건수 LCCN31 */
+                                                   , SUM(CASE WHEN PC.PERF_ATC_CD IS NOT NULL AND PC.PERF_ATC_CD = 'W00P00013' THEN PC.PERF_VAL ELSE 0 END) AS W00P00013 /* 기변３건수 LCCN34 */
+                                                   , SUM(CASE WHEN PC.PERF_ATC_CD IS NOT NULL AND PC.PERF_ATC_CD = 'W00P00016' THEN PC.PERF_VAL ELSE 0 END) AS W00P00016 /* 단체할인일반 LCCN35 */
+                                                   , SUM(CASE WHEN PC.PERF_ATC_CD IS NOT NULL AND PC.PERF_ATC_CD = 'W00P00017' THEN PC.PERF_VAL ELSE 0 END) AS W00P00017 /* 단체할인기변３ LCCN44 */
+                                                   , SUM(CASE WHEN PC.PERF_ATC_CD IS NOT NULL AND PC.PERF_ATC_CD = 'W00P00036' THEN PC.PERF_VAL ELSE 0 END) AS W00P00036 /* 렌탈순주문건수 LCCN49 */
+                                                   , SUM(CASE WHEN PC.PERF_ATC_CD IS NOT NULL AND PC.PERF_ATC_CD = 'W02P00112' THEN PC.PERF_VAL ELSE 0 END) AS W02P00112 /* 가전외인정실적금액 */
+                                                   , SUM(CASE WHEN PC.PERF_ATC_CD IS NOT NULL AND PC.PERF_ATC_CD = 'W02P00027' THEN PC.PERF_VAL ELSE 0 END) AS W02P00027 /* (구)가전외인정실적금액 */
+                                                   , SUM(CASE WHEN PC.PERF_ATC_CD IS NOT NULL AND PC.PERF_ATC_CD = 'W02P00113' THEN PC.PERF_VAL ELSE 0 END) AS W02P00113 /* 계정순증건수 */
+                                                   , SUM(CASE WHEN PC.PERF_ATC_CD IS NOT NULL AND PC.PERF_ATC_CD = 'W02P00002' THEN PC.PERF_VAL ELSE 0 END) AS W02P00002 /* 판매인정건수 */
+                                                FROM TB_OGBS_MM_PRTNR_IZ MP
+                                                LEFT OUTER JOIN TB_FEAM_MACUP_PERF_CL PC
+                                                  ON PC.BASE_YM = MP.BASE_YM
+                                                 AND PC.OG_TP_CD = MP.OG_TP_CD
+                                                 AND PC.PRTNR_NO = MP.PRTNR_NO
+                                                 AND PC.PERF_DV_CD = 0 /* 0 : 개인실적 */
+                                                 AND PC.MM_ACU_PERF_AGRG_CRT_DV_CD = '00' /* 00 : 총주문월누적 */
+                                                 AND PC.PERF_ATC_CD IN ('W00P00012' /* 일반건수 LCCN31 */
+                                                                      , 'W00P00013' /* 기변３건수 LCCN34 */
+                                                                      , 'W00P00016' /* 단체할인일반 LCCN35 */
+                                                                      , 'W00P00017' /* 단체할인기변３ LCCN44 */
+                                                                      , 'W00P00036' /* 렌탈순주문건수 LCCN49 */
+                                                                      , 'W02P00112' /* 가전외인정실적금액 */
+                                                                      , 'W02P00027' /* (구)가전외인정실적금액 */
+                                                                      , 'W02P00002' /* 판매인정건수 */
+                                                                      , 'W02P00113' /* 계정순증건수 */
+                                                                        )
+                                               WHERE 1 = 1
+                                                 AND MP.BASE_YM = #{perfYm}
+                                                 AND MP.OG_TP_CD = 'W02' /* Wells M 조직 고정 */
+                                                 AND TO_NUMBER(MP.PSTN_DV_CD) >= 10
+                                               GROUP BY MP.PRTNR_NO
+                                            ) P1
+                                         ON P1.PRTNR_NO = MP.PRTNR_NO
+                                       LEFT OUTER JOIN (
+                                              SELECT MP.PRTNR_NO
+                                                   , MP.QLF_DV_CD
+                                                   , SUM(NVL(SP.PERF_VAL, 0)) AS BS_CNT /* 방문건수 LCCNT2 + LCCNT3 */
+                                                FROM TB_OGBS_MM_PRTNR_IZ MP
+                                                LEFT OUTER JOIN TB_FEAM_WPTN_SV_PED_AGRG SP
+                                                  ON SP.BASE_YM = MP.BASE_YM
+                                                 AND SP.OG_TP_CD = MP.OG_TP_CD
+                                                 AND SP.PRTNR_NO = MP.PRTNR_NO
+                                                 AND SP.PRTNR_SV_PERF_ATC_CD IN ('SV01999902' /* SV01999902,방문(상품)-합계-합계-방문건수 */
+                                                                               , 'SV01999903') /* SV01999903,방문(상품)-합계-합계-전월건수 */
+                                               WHERE 1 = 1
+                                                 AND MP.BASE_YM = #{perfYm}
+                                                 AND MP.OG_TP_CD = 'W02' /* Wells M 조직 고정 */
+                                                 AND TO_NUMBER(MP.PSTN_DV_CD) >= 10
+                                               GROUP BY MP.PRTNR_NO, MP.QLF_DV_CD
+                                            ) P2
+                                         ON P2.PRTNR_NO = MP.PRTNR_NO
+                                       LEFT OUTER JOIN (
+                                              SELECT TP.PRTNR_NO, ME.EDUC_CPC_ACKMT_YN
+                                                FROM TB_OGPS_TOPMR_PLAR_APLC_IZ TP
+                                               INNER JOIN TB_PSCA_MCPTN_EDUC_IZ ME
+                                                  ON ME.EDUC_CRSE_CRT_BASE_YM = TP.MNGT_YM
+                                                 AND ME.OG_TP_CD = TP.OG_TP_CD
+                                                 AND ME.PRTNR_NO = TP.PRTNR_NO
+                                                 AND ME.EDUC_CRSE_NO = '17' /* 교육구분? */
+                                               WHERE 1 = 1
+                                                 AND TP.MNGT_YM = #{perfYm}
+                                                 AND TP.OG_TP_CD = 'W02' /* Wells M 조직 고정 */
+                                            ) P3 ON P3.PRTNR_NO = MP.PRTNR_NO
+                                      WHERE 1 = 1
+                                        AND MP.BASE_YM = #{perfYm}
+                                        AND MP.OG_TP_CD = 'W02' /* Wells M 조직 고정 */
+                                        AND TO_NUMBER(MP.PSTN_DV_CD) >= 10
+                                      GROUP BY MO.BASE_YM
+                                           <choose>
+                                                <when test='rsbDvCd == "W0202"'>
+                                             , MO.DGR1_LEVL_OG_ID
+                                                </when>
+                                                <otherwise>
+                                             , MO.DGR2_LEVL_OG_ID
+                                                </otherwise>
+                                            </choose>
+                                             , MO.DGR3_LEVL_OG_CD
+                                 )
+                           GROUP BY BASE_YM, OG_ID
+                       ) P
+                 INNER JOIN TB_OGBS_MM_OG_IZ O
+                    ON O.OG_ID = P.OG_ID
+                   AND O.BASE_YM = P.BASE_YM
+                 INNER JOIN (
+                         SELECT T.BASE_YM
+                              , T.GNLR_LEDR_PRTNR_NO AS PRTNR_NO
+                              , SUM(T.CNTR_BASE_TRG_IST_CT) AS CNTR_BASE_TRG_IST_CT
+                              , SUM(T.CNTR_BASE_TRG_RCP_CT) AS CNTR_BASE_TRG_RCP_CT
+                              , SUM(T.WELS_MNGER_TRG_OPTN_PSNO) AS WELS_MNGER_TRG_OPTN_PSNO
+                              , SUM(T.TOPMR_PLAR_TRG_OPTN_PSNO) AS TOPMR_PLAR_TRG_OPTN_PSNO
+                              , SUM(T.WELS_PLAR_TRG_OPTN_PSNO) AS WELS_PLAR_TRG_OPTN_PSNO
+                              , SUM(T.BRMGR_TRG_OPTN_PSNO) AS BRMGR_TRG_OPTN_PSNO
+                           FROM TB_IFIN_WELS_MCBY_SELL_TRG_BAS T
+                          WHERE T.BASE_YM = #{perfYm}
+                          GROUP BY T.BASE_YM, T.GNLR_LEDR_PRTNR_NO
+                       ) ST
+                    ON ST.BASE_YM = P.BASE_YM
+                  <choose>
+                     <when test='rsbDvCd == "W0202"'>
+                   AND ST.PRTNR_NO = O.DGR1_LEVL_DG_PRTNR_NO
+                     </when>
+                     <otherwise>
+                   AND ST.PRTNR_NO = O.DGR2_LEVL_DG_PRTNR_NO
+                     </otherwise>
+                  </choose>
+                 INNER JOIN TB_OGBS_MM_OG_IZ OB
+                    ON OB.OG_ID = P.OG_ID
+                   AND OB.BASE_YM = '202304'
+               ) C
+         INNER JOIN TB_FEAM_MNGR_AW_BASE_INF_IZ AT /* 관리자수당기준정보내역 : 목표수당 */
+            ON AT.MNGR_OUTC_DV_CD = 'TAR'
+           AND AT.RSB_DV_CD = SUBSTR(#{rsbDvCd},4,2)
+           AND AT.ACHV_STRT_RAT <![CDATA[<=]]> C.TRG_ACHV_RT
+           AND AT.ACHV_END_RAT > C.TRG_ACHV_RT
+           AND AT.NINC_STRT_CT <![CDATA[<=]]> C.ACC_NINC_CT
+           AND AT.NINC_END_CT > C.ACC_NINC_CT
+         INNER JOIN TB_FEAM_MNGR_AW_BASE_INF_IZ AO /* 관리자수당기준정보내역 : 조직수당 */
+            ON AO.MNGR_OUTC_DV_CD = 'ORG'
+           AND AO.RSB_DV_CD = SUBSTR(#{rsbDvCd},4,2)
+           AND AO.ACHV_STRT_RAT <![CDATA[<=]]> C.ACL_ACTI_BRCH_AV_CT
+           AND AO.ACHV_END_RAT > C.ACL_ACTI_BRCH_AV_CT
+           AND AO.NINC_STRT_CT <![CDATA[<=]]> C.BRCH_NINC_CT
+           AND AO.NINC_END_CT > C.BRCH_NINC_CT
+         ORDER BY OG_CD
+    </select>
+
+    <select id="selectOutcomeAllowancesManager" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchManagerRes">
+        SELECT MO.OG_CD /* 소속 */
+             , MO.OG_NM  /* 소속명 */
+             , MP.PRTNR_KNM /* 성명 */
+             , MP.PRTNR_NO  /* 파트너번호 */
+             , OA.DTRC_N  /* 지국수 */
+             , OA.TRG_CT  /* 목표건수 */
+             , OA.BASE_DTRC_N  /* 기준지국수 */
+             , OA.PERF_CT  /* 실적건수 */
+             , OA.TRG_ACHV_RT  /* 목표달성율 */
+             , OA.NW_SELL_ACC_CT  /* 신규판매계정수 */
+             , OA.PUR_SPR_ACC_CT  /* 순수이탈계정수 */
+             , OA.ACC_NINC_CT  /* 계정순증건수 */
+             , OA.FEE_ACKMT_CT  /* 수수료인정건수 */
+             , OA.ELHM_EXCP_PERF_AMT  /* 가전외실적금액 */
+             , OA.ELHM_EXCP_CT  /* 가전건수 */
+             , OA.REDF_CT  /* 되물림건수 */
+             , OA.PERF_AGG_AMT  /* 실적누계금액 */
+             , OA.MNGR_DANG_GD  /* 관리자위험등급 */
+             , OA.TRG_ACHV_AW_AMT  /* 목표달성수당금액 */
+             , OA.BRCH_NINC_CT  /* 지점순증건수 */
+             , OA.WM_ACL_ACTI_CT  /* WM실제활동건수 */
+             , OA.BFSVC_ACL_ACTI_CT  /* BS실제활동건수 */
+             , OA.ACL_ACTI_BRCH_AV_CT  /* 실제활동지점평균건수 */
+             , OA.ACTV_BRCH_N  /* 활성지점수 */
+             , OA.OG_AW_AMT  /* 조직수당금액 */
+             , OA.DSB_AMT  /* 지급금액 */
+          FROM TB_FEAM_MOGMNGR_OUTC_AW_MM_IZ OA
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+            ON MP.OG_TP_CD = OA.OG_TP_CD
+           AND MP.BASE_YM = OA.BASE_YM
+           AND MP.PRTNR_NO = OA.PRTNR_NO
+         INNER JOIN TB_OGBS_MM_OG_IZ MO
+            ON MO.BASE_YM = MP.BASE_YM
+           AND MO.OG_ID = MP.OG_ID
+         WHERE 1=1
+           AND OA.BASE_YM = #{perfYm}
+           AND OA.OG_TP_CD = #{ogTpCd}
+           AND OA.RSB_DV_CD = #{rsbDvCd}
+    </select>
+
+    <select id="selectOutcomeAllowancesPlannerThisMonth" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchPlannerRes">
+        SELECT '소속명' AS OG_NM /* 소속 */
+             , '성명' AS PRTNR_KNM /* 성명 */
+             , '사번' AS PRTNR_NO /* 파트너번호 */
+             , 0 AS TRG_CT /* 목표건수 */
+             , 0 AS PERF_CT /* 실적건수 */
+             , 0 AS TRG_ACHV_RT /* 목표달성율 */
+             , 0 AS TRG_ACHV_AW_AMT /* 목표달성수당금액 */
+             , 0 AS THM1_OPTN_TRG_CT /* 1차월가동목표건수 */
+             , 0 AS THM1_OPTN_ACHV_CT /* 1차월가동달성건수 */
+             , 0 AS THM1_OPTN_ACHV_RT /* 1차월가동달성율 */
+             , 0 AS THM1_OPTN_AW_AMT /* 1차월가동수당금액 */
+             , 0 AS ACL_ACTI_TRG_CT /* 실제활동목표건수 */
+             , 0 AS ACL_ACTI_ACHV_CT /* 실제활동달성건수 */
+             , 0 AS ACL_ACTI_ACHV_RT /* 실제활동달성율 */
+             , 0 AS ACL_ACTI_AW_AMT /* 실제활동수당금액 */
+             , 0 AS OG_ACHV_AW_SUM_AMT /* 조직달성수당합계금액 */
+             , 0 AS EJT_AW_AMT /* 배출수당금액 */
+             , 0 AS OUTC_AW_SUM_AMT /* 성과수당합계금액 */
           FROM DUAL
          WHERE 1=1
     </select>
 
-
+    <select id="selectOutcomeAllowancesPlanner" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchPlannerRes">
+        SELECT MO.OG_NM  /* 소속명 */
+             , MP.PRTNR_KNM /* 성명 */
+             , MP.PRTNR_NO /* 파트너번호 */
+             , OA.TRG_CT /* 목표건수 */
+             , OA.PERF_CT /* 실적건수 */
+             , OA.TRG_ACHV_RT /* 목표달성율 */
+             , OA.TRG_ACHV_AW_AMT /* 목표달성수당금액 */
+             , OA.THM1_OPTN_TRG_CT /* 1차월가동목표건수 */
+             , OA.THM1_OPTN_ACHV_CT /* 1차월가동달성건수 */
+             , OA.THM1_OPTN_ACHV_RT /* 1차월가동달성율 */
+             , OA.THM1_OPTN_AW_AMT /* 1차월가동수당금액 */
+             , OA.ACL_ACTI_TRG_CT /* 실제활동목표건수 */
+             , OA.ACL_ACTI_ACHV_CT /* 실제활동달성건수 */
+             , OA.ACL_ACTI_ACHV_RT /* 실제활동달성율 */
+             , OA.ACL_ACTI_AW_AMT /* 실제활동수당금액 */
+             , OA.OG_ACHV_AW_SUM_AMT /* 조직달성수당합계금액 */
+             , OA.EJT_AW_AMT /* 배출수당금액 */
+             , OA.OUTC_AW_SUM_AMT /* 성과수당합계금액 */
+          FROM TB_FEAM_POGMNGR_OUTC_AW_MM_IZ OA
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+            ON MP.OG_TP_CD = OA.OG_TP_CD
+           AND MP.BASE_YM = OA.BASE_YM
+           AND MP.PRTNR_NO = OA.PRTNR_NO
+         INNER JOIN TB_OGBS_MM_OG_IZ MO
+            ON MO.BASE_YM = MP.BASE_YM
+           AND MO.OG_ID = MP.OG_ID
+         WHERE 1=1
+           AND OA.BASE_YM = #{perfYm}
+           AND OA.OG_TP_CD = #{ogTpCd}
+           AND OA.RSB_DV_CD = #{rsbDvCd}
+    </select>
 </mapper>

@@ -25,6 +25,23 @@
          ORDER BY SELL_TP_CD, PD_CD, SEP_IST_CS_ATC_CD, SEP_IST_CS_DTL_CD, APY_STRTDT ASC
     </select>
 
+    <update id="updateInstallSeparationCosts">
+        UPDATE TB_SVPD_RCAS_BAS_CS_BASE_IZ
+           SET APY_ENDDT = TO_CHAR((TO_DATE(#{apyStrtdt},'YYYYMMDD') - 1), 'YYYYMMDD')
+            <include refid="COMMON.updateSystemField"/>
+         WHERE SELL_TP_CD = #{sellTpCd}
+           AND PD_CD = #{pdCd}
+           AND SEP_IST_CS_ATC_CD = #{sepIstCsAtcCd}
+           AND SEP_IST_CS_DTL_CD = #{sepIstCsDtlCd}
+           AND IZ_SN = (SELECT MAX(X.IZ_SN)
+                          FROM TB_SVPD_RCAS_BAS_CS_BASE_IZ X
+                         WHERE SELL_TP_CD = #{sellTpCd}
+                           AND PD_CD = #{pdCd}
+                           AND SEP_IST_CS_ATC_CD = #{sepIstCsAtcCd}
+                           AND SEP_IST_CS_DTL_CD = #{sepIstCsDtlCd}
+                       )
+    </update>
+
     <insert id="insertInstallSeparationCosts">
         INSERT INTO TB_SVPD_RCAS_BAS_CS_BASE_IZ (
                SELL_TP_CD /*판매유형코드*/
@@ -43,7 +60,13 @@
                , #{pdCd} /*상품코드*/
                , #{sepIstCsAtcCd} /*서비스업무중분류코드*/
                , #{sepIstCsDtlCd} /*서비스업무세분류코드*/
-               , NVL((SELECT MAX(IZ_SN) + 1 FROM TB_SVPD_RCAS_BAS_CS_BASE_IZ),1) /*내역일련번호*/
+               , NVL((SELECT MAX(IZ_SN) + 1
+                        FROM TB_SVPD_RCAS_BAS_CS_BASE_IZ
+                       WHERE 1=1
+                         AND SELL_TP_CD = #{sellTpCd }
+                         AND PD_CD = #{pdCd}
+                         AND SEP_IST_CS_ATC_CD = #{sepIstCsAtcCd}
+                         AND SEP_IST_CS_DTL_CD = #{sepIstCsDtlCd}), 1) /*내역일련번호*/
                , #{apyStrtdt} /*적용시작일자*/
                , #{apyEnddt}/*적용종료일자*/
                , #{wkCsAmt} /*작업비용금액*/
@@ -61,6 +84,6 @@
            AND PD_CD = #{pdCd}
            AND SEP_IST_CS_ATC_CD = #{sepIstCsAtcCd}
            AND SEP_IST_CS_DTL_CD = #{sepIstCsDtlCd}
-           AND IZ_SN = ${izSn}
+           AND IZ_SN = TO_NUMBER(#{izSn})
     </update>
 </mapper>
