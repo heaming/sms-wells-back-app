@@ -28,7 +28,7 @@
                      WHERE A.PERF_YM = #{slClYm}
                        AND B.SELL_TP_CD = #{sellTpCd}
                        <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
-                       AND A.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                       AND B.SELL_TP_DTL_CD = #{sellTpDtlCd}
                        </if>
                        <if test="@MybatisUtils@isNotEmpty(sellChnlDtl)">
                        AND B.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDtl}
@@ -93,15 +93,10 @@
                        </if>
                      </if>
         )
-       SELECT <if test="@MybatisUtils@equals(agrgDv, '1')">
-              SUBSTR(PERF_YM,1,4) || '-' || SUBSTR(PERF_YM,5,2) || ( /* 전기이월 + 당월발생 - 당월공제 - 당월입금 + 당월환불 */
+       SELECT SUBSTR(PERF_YM,1,4) || '-' || SUBSTR(PERF_YM,5,2) || ( /* 전기이월 + 당월발생 - 당월공제 - 당월입금 + 당월환불 */
                   CASE WHEN SUM(EOT_DLQ_ADD_AMT) != SUM(BTD_DLQ_ADD_AMT) + SUM(THM_OC_DLQ_ADD_AMT) - SUM(THM_CTR_DLQ_ADD_AMT) - SUM(THM_DLQ_ADD_DP_SUM_AMT) + SUM(THM_DLQ_ADD_RFND_SUM_AMT) THEN ' *'
                        ELSE ''
                   END) AS PERF_YM /* 실적년월 */
-              </if>
-              <if test="@MybatisUtils@equals(agrgDv, '3')">
-              SUBSTR(PERF_YM,1,4) || '-' || SUBSTR(PERF_YM,5,2) AS PERF_YM /* 실적년월 */
-              </if>
             , SELL_TP_CD /* 판매유형 */
             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', SELL_TP_CD) AS SELL_TP_CD_NM
             , SELL_TP_DTL_CD /* 판매유형상세코드 */
@@ -110,7 +105,7 @@
             , ( SELECT MAX(SAP_PD_ATC_NM)
                   FROM TB_CBCL_SAP_PD_DV_CD
                  WHERE SAP_BZ_TERY_CD = '1210' /* SAP_BZ_TERY_CD : WELLS면 1210, EDU면 1110 */
-                   AND SAP_PD_ATC_CD = '00'
+                   AND SAP_PD_ATC_CD = '00' --@@@
                    AND SAP_PD_DV_CD = T1.SAP_PD_DV_CD ) AS SAP_PD_ATC_NM /* SAP상품코드명 */
             <if test="@MybatisUtils@equals(agrgDv, '3')">
             , CNTR_NO || '-' || CNTR_SN AS CNTR_NO /* 계약번호 */
