@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.stock.service.WsnaItemByStockAggregationService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.Api;
@@ -59,8 +57,8 @@ public class WsnaItemByStockAggregationController {
         return this.service.getWareHouses(baseDt, wareDvCd);
     }
 
-    @GetMapping("/paging")
-    @ApiOperation(value = "품목별 재고 집계 페이징 조회", notes = "품목별 재고 집계 데이터를 조회한다.")
+    @GetMapping
+    @ApiOperation(value = "품목별 재고 집계 조회", notes = "품목별 재고 집계 데이터를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseDt", value = "기준일자", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "mgtTypCd", value = "재고유형", paramType = "query", example = "1"),
@@ -75,11 +73,10 @@ public class WsnaItemByStockAggregationController {
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
     })
-    public PagingResult<HashMap<String, Object>> getItemByStockAggsPaging(@Valid
-    SearchReq dto, @Valid
-    PageInfo pageInfo) {
+    public List<HashMap<String, Object>> getItemByStockAggs(@Valid
+    SearchReq dto) {
 
-        return this.service.getItemByStockAggsPaging(dto, pageInfo);
+        return this.service.getItemByStockAggsExcelDownload(dto);
     }
 
     @GetMapping("/excel-download")
