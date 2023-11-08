@@ -2,15 +2,14 @@ package com.kyowon.sms.wells.web.organization.hmnrsc.mapper;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerDvo;
-import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerQualificationDvo;
-
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseDetailRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerPlannerDto.SearchLicenseRes;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerDvo;
+import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerPlannerQualificationDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -50,6 +49,8 @@ public interface WogcPartnerPlannerMapper {
     int updateAdDtlPartner(WogcPartnerPlannerDvo planner);
 
     WogcPartnerPlannerDto.FindRes selectTopPlannerByPk(String ogTpCd, String prtnrNo, String mngtYm);
+
+    WogcPartnerPlannerDto.FindRes selectMmPlannerByPk(String ogTpCd, String prtnrNo, String mngtYm);
 
     PagingResult<SearchLicenseDetailRes> selectPlannerLicenseDetailPages(String prtnrNo, PageInfo pageinfo);
 
