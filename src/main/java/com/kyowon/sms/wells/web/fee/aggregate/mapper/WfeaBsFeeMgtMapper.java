@@ -19,4 +19,6 @@ public interface WfeaBsFeeMgtMapper {
 
     List<WfeaBsFeeMgtDto.SearchRes> selectBsFees(WfeaBsFeeMgtDto.SearchReq dto);
 
+    WfeaBsFeeMgtDto.SearchCheckRes selectFeeAgrgStat(WfeaBsFeeMgtDto.SearchCheckReq dto);
+
 }

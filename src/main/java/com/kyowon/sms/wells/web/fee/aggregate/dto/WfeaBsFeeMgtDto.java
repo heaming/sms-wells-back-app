@@ -34,6 +34,18 @@ public class WfeaBsFeeMgtDto {
         String endVstDt
     ) {}
 
+    @ApiModel(value = "WfeaBsFeeMgtDto-SearchCheckReq")
+    public record SearchCheckReq(
+        @NotBlank
+        String perfYm,
+        @NotBlank
+        String ogTpCd,
+        @NotBlank
+        String feeTcntDvCd,
+        @NotBlank
+        String perfAgrgCrtDvCd
+    ) {}
+
     @ApiModel(value = "WfeaBsFeeMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
@@ -69,5 +81,10 @@ public class WfeaBsFeeMgtDto {
         String vstDuedt, /*방문예정일자*/
         String wkExcnDt, /*방문일자*/
         String canYn /*취소여부*/
+    ) {}
+
+    @ApiModel(value = "WfeaBsFeeMgtDto-SearchCheckRes")
+    public record SearchCheckRes(
+        String ogTpCd
     ) {}
 }
