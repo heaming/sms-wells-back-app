@@ -91,6 +91,7 @@
                 /* 조직 검색조건 */
              <if test='@MybatisUtils@isNotEmpty(mngrDvCd) and @MybatisUtils@equals(mngrDvCd, "1")'>
                 AND O1.OG_TP_CD IN ('W02') /* 매니저 */
+                AND O2.QLF_DV_CD = '3'     /* 웰스매니저만 조회 */
              </if>
              <if test='@MybatisUtils@isNotEmpty(mngrDvCd) and @MybatisUtils@equals(mngrDvCd, "2")'>
                 AND O1.OG_TP_CD IN ('W03','W06') /* 엔지니어 */
@@ -511,5 +512,41 @@
                        ON S3.CNTR_NO = I1.CNTR_NO
                       AND S3.CNTR_SN = I1.CNTR_SN
         ORDER BY CNTR_NO
+    </select>
+    <select id="selectWellsManager" resultType="camelMap">
+        SELECT *
+              FROM (SELECT T1.PRTNR_NO
+                         , T1.PRTNR_KNM || ' (' || T1.PRTNR_NO || ')' AS PRTNR_NO_NM
+                      FROM TB_OGBS_MM_PRTNR_IZ T1
+                     INNER JOIN TB_OGBS_MM_OG_IZ T2
+                        ON T2.BASE_YM = T1.BASE_YM
+                       AND T2.OG_ID = T1.OG_ID
+                       AND T1.DTA_DL_YN = 'N'
+                       AND T2.DTA_DL_YN = 'N'
+                     WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                       AND T1.OG_TP_CD = 'W02'
+                     <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                       AND T2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}   /* 지역단조건(2차레벨조직코드)*/
+                     </if>
+                       AND T1.BZ_STAT_CD = '1'
+                       AND T1.QLF_DV_CD = '3'   /* 웰스매니저 */
+                     UNION
+                    SELECT T1.PRTNR_NO
+                         , T1.PRTNR_KNM || ' (' || T1.PRTNR_NO || ')' AS PRTNR_NO_NM
+                      FROM TB_OGBS_MM_PRTNR_IZ T1
+                     INNER JOIN TB_OGBS_MM_OG_IZ T2
+                        ON T2.BASE_YM = T1.BASE_YM
+                       AND T2.OG_ID = T1.OG_ID
+                       AND T1.DTA_DL_YN = 'N'
+                       AND T2.DTA_DL_YN = 'N'
+                     WHERE T1.BASE_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+                       AND T1.OG_TP_CD = 'W02'
+                     <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                       AND T2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}   /* 지역단조건(2차레벨조직코드)*/
+                     </if>
+                       AND T1.CLTN_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')||'%'
+                       AND T1.QLF_DV_CD = '3'   /* 웰스매니저 */
+                  )
+             ORDER BY PRTNR_NO_NM, PRTNR_NO
     </select>
 </mapper>
