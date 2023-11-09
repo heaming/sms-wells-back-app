@@ -69,7 +69,7 @@ public class WfebAgainDisbursementFeeService {
         String redfAdsbDvCd = "03";
         String redfAdsbTpCd = "0302";
         /* 기생성했던 연체재지급 데이터 삭제 */
-        redfAdsbFeeCalculationService.removeRedfAdsbData(baseYm, ogTpCd, redfAdsbDvCd, redfAdsbTpCd);
+        redfAdsbFeeCalculationService.removeRedfAdsbData(baseYm, ogTpCd, redfAdsbDvCd, redfAdsbTpCd, "Y");
 
         switch (ogTpCd) {
             case "W01":
