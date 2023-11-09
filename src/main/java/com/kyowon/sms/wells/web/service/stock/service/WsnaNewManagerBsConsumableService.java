@@ -158,9 +158,9 @@ public class WsnaNewManagerBsConsumableService {
         List<WsnaNewManagerBsConsumableDvo> dvos = converter.mapCreateReqToNewManagerBsConsumable(dtos);
 
         for (WsnaNewManagerBsConsumableDvo dvo : dvos) {
-            if (Integer.parseInt(dvo.getBfsvcCsmbDdlvQty()) > 0) {
-                mapper.mergeNewManagerBsConsumables(dvo);
-            }
+            // if (Integer.parseInt(dvo.getBfsvcCsmbDdlvQty()) > 0) {
+            mapper.mergeNewManagerBsConsumables(dvo);
+            // }
         }
 
         return 1;
