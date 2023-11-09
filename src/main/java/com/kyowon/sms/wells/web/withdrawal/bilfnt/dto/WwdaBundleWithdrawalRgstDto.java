@@ -39,7 +39,6 @@ public class WwdaBundleWithdrawalRgstDto {
         String unrgRsonCd, // 묶음출금 미등록 코드
         String unrgRson, // 묶음출금 미등록 사유
 
-        String cntrStlmId, // 계약결제ID
         String dgCntr, // 묶음대표번호
         String dgCntrNo, // 기기 주문번호
         String dgCntrSn, // 기기 주문번호 일련번호
@@ -52,8 +51,6 @@ public class WwdaBundleWithdrawalRgstDto {
         String mpyBsdt, // 이체일자
         String bryyMmdd, //이체 인증번호
 
-        String sdingCntrStlmId, // 모종 계약결제ID
-        String sdingCntrStlmRelId, // 모종 계약결제관계ID
         String sdingCntrNo, // 모종 주문번호
         String sdingCntrSn, // 모종 상세번호
         String sdingDpTpCd, // 모종 이체구분
