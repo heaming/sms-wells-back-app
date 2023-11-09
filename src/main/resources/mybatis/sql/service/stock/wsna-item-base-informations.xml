@@ -39,12 +39,25 @@
                     , S1.SVPD_LT          AS LEAD_TIME       /* 리드타임 */
                  FROM ( <include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/> ) S1
             <where>
-                  AND S1.SVPD_USE_YN   = 'Y'
+                  AND S1.SVPD_USE_YN         = 'Y'
+                  AND S1.SVPD_SERVICE_USE_YN = 'Y'
                <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
                   AND S1.SVPD_ITEM_KND = #{itmKndCd}
                </if>
                <if test='@MybatisUtils@isNotEmpty(itmGrpCd)'>
-                  AND S1.SVPD_ITEM_GR  = #{itmGrpCd}
+                  AND (    S1.SVPD_ITEM_GR       = #{itmGrpCd}
+                        OR EXISTS ( SELECT 1
+                                      FROM TB_PDBS_PD_REL T1
+                                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                                        ON T2.PD_CD = T1.BASE_PD_CD
+                                     WHERE T1.DTA_DL_YN          = 'N'
+                                       AND T1.PD_REL_TP_CD       = '14'   /* AS부품 */
+                                       AND T2.DTA_DL_YN          = 'N'
+                                       AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                       AND T1.OJ_PD_CD           = S1.SVPD_PD_CD
+                                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                                       AND T2.PD_PRP_VAL20       = #{itmGrpCd} )
+                      )
                </if>
                <if test='@MybatisUtils@isNotEmpty(svMatGrpCd)'>
                   AND S1.SVPD_PART_GR = #{svMatGrpCd}
@@ -246,9 +259,21 @@
         <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
            AND D2.PD_PRP_VAL19       = #{itmKndCd}
         </if>
-       <if test='@MybatisUtils@isNotEmpty(itmGrpCd)'>
-           AND D2.PD_PRP_VAL20       = #{itmGrpCd}
-       </if>
+        <if test='@MybatisUtils@isNotEmpty(itmGrpCd)'>
+           AND (    D2.PD_PRP_VAL20       = #{itmGrpCd}
+                 OR EXISTS ( SELECT 1
+                               FROM TB_PDBS_PD_REL S1
+                              INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                 ON S2.PD_CD = S1.BASE_PD_CD
+                              WHERE S1.DTA_DL_YN          = 'N'
+                                AND S1.PD_REL_TP_CD       = '14'   /* AS부품 */
+                                AND S2.DTA_DL_YN          = 'N'
+                                AND S2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                AND S1.OJ_PD_CD           = D2.PD_CD
+                                AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
+                                AND S2.PD_PRP_VAL20       = #{itmGrpCd} )
+               )
+        </if>
        <if test='@MybatisUtils@isNotEmpty(svMatGrpCd)'>
            AND D2.PD_PRP_VAL36       = #{svMatGrpCd}
        </if>
