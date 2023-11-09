@@ -41,8 +41,8 @@ public class WwdaBundleWithdrawalRgstService {
     private final BatchCallService batchCallService;
 
     /** 묶음출금 미등록 현황 조회
-     * @param pageInfo 
-     * 
+     * @param pageInfo
+     *
      * @param SearchRes
      * @return PagingResult<SearchUnrgPsRes>
      */
@@ -55,7 +55,7 @@ public class WwdaBundleWithdrawalRgstService {
     }
 
     /** 묶음출금 미등록 현황 엑셀다운로드
-     * 
+     *
      * @param req
      * @return
      */
@@ -66,8 +66,8 @@ public class WwdaBundleWithdrawalRgstService {
     }
 
     /** 묶음 출금 등록 이력 조회
-     * @param pageInfo 
-     * 
+     * @param pageInfo
+     *
      * @param SearchReq
      * @return PagingResult<SearchRgstHistRes>
      */
@@ -79,7 +79,7 @@ public class WwdaBundleWithdrawalRgstService {
     }
 
     /** 묶음 출금 등록 이력 엑셀다운로드
-     * 
+     *
      * @param req
      * @return
      */
@@ -102,7 +102,7 @@ public class WwdaBundleWithdrawalRgstService {
             batchDvo.setJobKey("WSM_WD_OA0001");
             params.put("itgBilBatExcnYn", "Y");
             params.put("cntrNo", dvo.getCntrNo());
-            params.put("cntrSn", dvo.getCntrNo());
+            params.put("cntrSn", dvo.getCntrSn());
             params.put("rcpStrtdt", dvo.getCntrPdStrtdt());
             params.put("rcpEnddt", dvo.getCntrPdEnddt());
 
