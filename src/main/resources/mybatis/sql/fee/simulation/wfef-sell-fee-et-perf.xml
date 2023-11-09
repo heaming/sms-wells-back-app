@@ -131,7 +131,7 @@
                     ON T2.PRTNR_NO = PR.PRTNR_NO
                  WHERE 1=1
                    AND PR.BASE_YM = SUBSTR(#{inqrStrtDt}, 1, 6)
-                   AND PR.OG_TP_CD IN ('W02', 'ALC')
+                   AND PR.OG_TP_CD IN ('W01', 'W02')
                    AND PR.PSTN_DV_CD IN ('7', '10', '15')
                    AND PR.DTA_DL_YN = 'N'
                 <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
@@ -160,7 +160,7 @@
              , SUBSTR(CB.CNTR_CNFM_DTM, 1, 8) AS CNTR_CNFM_DT
              , CD.CNTR_PD_STRTDT
              , CD.PD_MCLSF_ID
-             , MAX(CD.BASE_PD_CD) AS PD_CD
+             , MAX(DECODE(CD.SELL_TP_CD, '6', PR.PD_CD, CD.BASE_PD_CD)) AS PD_CD
              , MAX(CH.MCHN_CH_TP_CD) AS MCHN_CH_TP_CD
              , SUM(CASE
                     WHEN CD.SELL_TP_CD = '1' THEN
@@ -246,6 +246,19 @@
           FROM TB_SSCT_CNTR_BAS CB  /* 계약기본 */
           JOIN TB_SSCT_CNTR_DTL CD  /* 계약상세 */
             ON CD.CNTR_NO = CB.CNTR_NO
+          LEFT JOIN LATERAL (
+                SELECT OJ_PD_CD AS PD_CD
+                  FROM (
+                        SELECT OJ_PD_CD
+                             , RANK() OVER (PARTITION BY X1.CNTR_NO, X1.CNTR_SN ORDER BY X1.CNTR_PD_REL_ID) AS RNK
+                          FROM TB_SSCT_CNTR_PD_REL X1
+                         WHERE X1.CNTR_NO = CD.CNTR_NO
+                           AND X1.CNTR_SN = CD.CNTR_SN
+                           AND X1.PD_REL_TP_CD = '05'
+                       )
+                 WHERE RNK = 1
+               ) PR
+            ON CD.SELL_TP_CD = '6'
           LEFT JOIN LATERAL (
                     SELECT MCHN_CH_TP_CD
                          , CASE WHEN MCHN_CPS_APYR = 0 AND CD.ACKMT_PERF_AMT = 0 THEN 'Y' ELSE 'N' END AS ACKMT_PERF_EXCD_YN
@@ -432,7 +445,7 @@
           ON PD.PD_CD = T1.PD_CD
        WHERE 1=1
          AND PR.BASE_YM = SUBSTR(#{inqrStrtDt}, 1, 6)
-         AND PR.OG_TP_CD IN ('W02', 'ALC')
+         AND PR.OG_TP_CD IN ('W01', 'W02')
         <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
          AND PR.PRTNR_NO = #{prtnrNo}
         </if>
@@ -458,7 +471,7 @@
              , CASE WHEN CD.CNTR_DTL_STAT_CD IN ('301', '303') THEN CD.CNTR_PD_ENDDT END AS CNTR_CAN_DT
              , CD.CNTR_PD_STRTDT
              , CD.PD_MCLSF_ID
-             , MAX(CD.BASE_PD_CD) AS PD_CD
+             , MAX(DECODE(CD.SELL_TP_CD, '6', PR.PD_CD, CD.BASE_PD_CD)) AS PD_CD
              , MAX(CASE
                     WHEN CD.SELL_TP_CD = '1' THEN
                         CASE
@@ -490,13 +503,26 @@
           JOIN TB_SSCT_CNTR_DTL CD  /* 계약상세 */
             ON CD.CNTR_NO = CB.CNTR_NO
           LEFT JOIN LATERAL (
-                    SELECT MCHN_CH_TP_CD
-                         , CASE WHEN MCHN_CPS_APYR = 0 AND CD.ACKMT_PERF_AMT = 0 THEN 'Y' ELSE 'N' END AS ACKMT_PERF_EXCD_YN
-                      FROM TB_SSCT_MCHN_CH_IZ  /* 기기변경내역 */
-                     WHERE BASE_CNTR_NO = CD.CNTR_NO
-                       AND BASE_CNTR_SN = CD.CNTR_SN
-                     ORDER BY MCHN_CH_SN DESC
-                     FETCH FIRST 1 ROW ONLY
+                SELECT OJ_PD_CD AS PD_CD
+                  FROM (
+                        SELECT X1.OJ_PD_CD
+                             , RANK() OVER (PARTITION BY CNTR_NO, CNTR_SN ORDER BY CNTR_PD_REL_ID) AS RNK
+                          FROM TB_SSCT_CNTR_PD_REL X1
+                         WHERE X1.CNTR_NO = CD.CNTR_NO
+                           AND X1.CNTR_SN = CD.CNTR_SN
+                           AND X1.PD_REL_TP_CD = '05'
+                       )
+                 WHERE RNK = 1
+               ) PR
+            ON CD.SELL_TP_CD = '6'   /* 정기배송만 */
+          LEFT JOIN LATERAL (
+                SELECT X1.MCHN_CH_TP_CD
+                     , CASE WHEN X1.MCHN_CPS_APYR = 0 AND CD.ACKMT_PERF_AMT = 0 THEN 'Y' ELSE 'N' END AS ACKMT_PERF_EXCD_YN
+                  FROM TB_SSCT_MCHN_CH_IZ X1 /* 기기변경내역 */
+                 WHERE X1.BASE_CNTR_NO = CD.CNTR_NO
+                   AND X1.BASE_CNTR_SN = CD.CNTR_SN
+                   AND X1.DTA_DL_YN = 'N'
+                 ORDER BY X1.MCHN_CH_SN DESC
                ) CH ON 1=1
           LEFT JOIN LATERAL (
                   SELECT NVL(MAX(PD_PRP_VAL11), 'N') AS ENVR_SFT_YN
@@ -535,10 +561,15 @@
                            AND T3.BASE_PD_CD = CD.BASE_PD_CD
                        )
                  ) WS ON 1=1
-         WHERE CB.SELL_OG_TP_CD != 'HR1'
+         WHERE CB.SELL_OG_TP_CD IN ('W01', 'W02')
         <choose>
             <when test="@MybatisUtils@equals(perfBaseDv, '1')">
            AND CB.CNTR_CNFM_DTM BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959'
+           AND (
+                    CD.SELL_TP_CD = '1'
+                 OR CD.SELL_TP_CD = '2'
+                 OR (CD.SELL_TP_CD = '6' AND CD.STPL_PTRM >= '6')
+               )
             </when>
             <when test="@MybatisUtils@equals(perfBaseDv, '2')">
            AND (
@@ -549,7 +580,7 @@
                          OR (CB.CNTR_CNFM_DTM BETWEEN #{inqrStrtDt} || '000000' AND #{inqrEndDt} || '235959' AND CD.BOO_SELL_TP_CD = '2') /* 접수, 예약 */
                         )
                     AND (
-                            CD.CNTR_DTL_STAT_CD NOT IN ('301', '303')
+                            CD.CNTR_DTL_STAT_CD NOT IN ('301', '302', '303')
                          OR SUBSTR(CB.CNTR_CNFM_DTM,1,6) != SUBSTR(NVL(CD.CNTR_PD_ENDDT, '99991231'),1,6) /* 당월취소가 아닌 건 */
                         )
                     AND NOT EXISTS (
@@ -563,6 +594,7 @@
                 OR
                 (
                         CD.SELL_TP_CD = '6' /* 정기배송 */
+                    AND CD.STPL_PTRM >= 6  /* 6이상 */
                     AND CD.CNTR_PD_STRTDT BETWEEN #{inqrStrtDt} AND #{inqrEndDt} /* 설치일자 */
                 )
                )
@@ -572,11 +604,6 @@
             </otherwise>
         </choose>
            AND CB.DTA_DL_YN = 'N'
-           AND (
-               CD.SELL_TP_CD = '1' OR
-               CD.SELL_TP_CD = '2' OR
-               (CD.SELL_TP_CD = '6' AND CD.STPL_PTRM >= 6) /* 정기배송의 경우 6 이상 */
-               )
            AND CD.DTA_DL_YN = 'N'
          GROUP BY CB.CNTR_NO
              , CB.CNTR_CST_NM
@@ -622,7 +649,7 @@
           ON PD.PD_CD = T1.PD_CD
         WHERE 1=1
           AND PR.BASE_YM = SUBSTR(#{inqrStrtDt}, 1, 6)
-          AND PR.OG_TP_CD IN ('W02', 'ALC')
+          AND PR.OG_TP_CD IN ('W01', 'W02')
         <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
           AND PR.PRTNR_NO = #{prtnrNo}
         </if>
@@ -642,7 +669,6 @@
 
     <sql id="selectSellFeeEtPerfCans-from">
         SELECT M.OG_TP_CD
-               -- WM 해약시에는 지국장 파트너번호를 넣고 아닌 경우는 WM 파트너번호 설정
              , M.PRTNR_NO
              , M.CAN_TP_NM
              , M.CNTR_NO
@@ -850,9 +876,11 @@
                         ON X1.OJ_CNTR_NO = C1.CNTR_NO
                        AND X1.OJ_CNTR_SN = C1.CNTR_SN
                        AND X1.MCHN_CH_TP_CD IN ('15', '16', '19') /* 15(자가관리), 16(멤버십진행), 19(57개월~60) */
+                       AND X1.DTA_DL_YN = 'N'
                  LEFT JOIN TB_SSCT_CNTR_DTL X2
                         ON X2.CNTR_NO = X1.BASE_CNTR_NO
                        AND X2.CNTR_SN = X1.BASE_CNTR_SN
+                       AND X2.DTA_DL_YN = 'N'
                  LEFT JOIN TB_SSCT_CNTR_BAS X3
                         ON X3.CNTR_NO = X2.CNTR_NO
                        AND X3.CNTR_CNFM_DTM LIKE SUBSTR(#{inqrStrtDt}, 1, 6) || '%'
@@ -1069,7 +1097,7 @@
           ON P2.PD_CLSF_ID = P1.PD_MCLSF_ID
        WHERE 1=1
          AND PR.BASE_YM = SUBSTR(#{inqrStrtDt}, 1, 6)
-         AND PR.OG_TP_CD != 'HR1'
+         AND PR.OG_TP_CD IN ('W01', 'W02')
         <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
          AND PR.PRTNR_NO = #{prtnrNo}
         </if>
