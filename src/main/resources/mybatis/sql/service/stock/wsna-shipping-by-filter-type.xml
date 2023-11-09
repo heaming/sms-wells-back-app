@@ -3,9 +3,9 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaShippingByFilterTypeMapper">
 
     <select id="selectShippingByFilterProducts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaShippingByFilterTypeDto$SearchPdRes">
-        SELECT DISTINCT D1.PD_CD              /* 품목코드 */
-             , D1.PD_ABBR_NM   AS PD_NM       /* 품목명 */
-             , D4.PD_PRP_VAL20 AS ITM_GR_CD   /* 품목그룹코드 */
+        SELECT DISTINCT D1.PD_CD                                    /* 품목코드 */
+             , D1.PD_ABBR_NM                         AS PD_NM       /* 품목명 */
+             , NVL(D2.PD_PRP_VAL20, D4.PD_PRP_VAL20) AS ITM_GR_CD   /* 품목그룹코드 */
           FROM TB_PDBS_PD_BAS D1                       /* 상품기본 */
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2         /* 상품각사속성상세 */
             ON D2.PD_CD = D1.PD_CD
@@ -13,11 +13,11 @@
             ON D3.OJ_PD_CD = D1.PD_CD
            AND D3.DTA_DL_YN          = 'N'
            AND D3.PD_REL_TP_CD       = '14'   /* AS부품 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D3.VL_STRT_DTM AND D3.VL_END_DTM
           LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL D4   /* 상품각사속성상세 */
             ON D4.PD_CD              = D3.BASE_PD_CD
            AND D4.DTA_DL_YN          = 'N'
            AND D4.PD_EXTS_PRP_GRP_CD = 'PART'
-           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D3.VL_STRT_DTM AND D3.VL_END_DTM
          WHERE D1.DTA_DL_YN          = 'N'
            AND D1.PD_TP_CD           = 'M'
            AND D2.DTA_DL_YN          = 'N'
@@ -115,17 +115,19 @@
            AND D1.OSTR_CONF_DT       = #{ostrConfDt}
         </if>
         <if test="@MybatisUtils@isNotEmpty(itmGrCd)">
-           AND EXISTS ( SELECT 1
-                          FROM TB_PDBS_PD_REL S1
-                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
-                            ON S2.PD_CD = S1.BASE_PD_CD
-                         WHERE S1.DTA_DL_YN          = 'N'
-                           AND S1.PD_REL_TP_CD       = '14'   /* AS부품 */
-                           AND S2.DTA_DL_YN          = 'N'
-                           AND S2.PD_EXTS_PRP_GRP_CD = 'PART'
-                           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
-                           AND S1.OJ_PD_CD           = D1.ITM_PD_CD
-                           AND S2.PD_PRP_VAL20       = #{itmGrCd} )
+           AND (    D5.PD_PRP_VAL20 = #{itmGrCd}
+                 OR EXISTS ( SELECT 1
+                               FROM TB_PDBS_PD_REL S1
+                              INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                 ON S2.PD_CD = S1.BASE_PD_CD
+                              WHERE S1.DTA_DL_YN          = 'N'
+                                AND S1.PD_REL_TP_CD       = '14'   /* AS부품 */
+                                AND S2.DTA_DL_YN          = 'N'
+                                AND S2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
+                                AND S1.OJ_PD_CD           = D1.ITM_PD_CD
+                                AND S2.PD_PRP_VAL20       = #{itmGrCd} )
+               )
         </if>
          ORDER BY D2.OG_CD, D2.PRTNR_NO, D1.FNL_VST_FSH_DT, D1.CNTR_NO, D1.CNTR_SN, D1.ITM_PD_CD
     </select>
