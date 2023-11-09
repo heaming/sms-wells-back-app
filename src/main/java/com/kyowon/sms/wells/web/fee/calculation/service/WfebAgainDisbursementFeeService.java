@@ -47,8 +47,8 @@ public class WfebAgainDisbursementFeeService {
      */
     public void saveAgainDisbursementOfFees(String baseYm, String cntrPerfCrtDvCd) {
         /* 계약실적생성구분코드로 처리해야 하는 수수료계산단위유형코드 목록, 실적생성생성구분코드 목록 조회 */
-        CodeDetailDvo perfAgrgCrtDvCd = codeService.getCodeDetails("PERF_AGRG_CRT_DV_CD").stream().filter(item -> cntrPerfCrtDvCd.equals(item.getUserDfn03())).findFirst().orElse(null);
-        String ogTpCd = perfAgrgCrtDvCd.getUserDfn02();
+        CodeDetailDvo code = codeService.getCodeDetailByPk("CNTR_PERF_CRT_DV_CD", cntrPerfCrtDvCd);
+        String ogTpCd = code.getUserDfn03();
 
         /* 연체재지급 서비스 호출 */
         saveDlqAgainDisbursementOfFees(baseYm, ogTpCd, cntrPerfCrtDvCd);
@@ -65,18 +65,24 @@ public class WfebAgainDisbursementFeeService {
      * @return
      */
     public Integer saveDlqAgainDisbursementOfFees(String baseYm, String ogTpCd, String cntrPerfCrtDvCd) {
-        Integer insertCount;
+        Integer insertCount = 0;
         String redfAdsbDvCd = "03";
         String redfAdsbTpCd = "0302";
         /* 기생성했던 연체재지급 데이터 삭제 */
-        redfAdsbFeeCalculationService.removeRedfAdsbData(baseYm, ogTpCd, redfAdsbDvCd, redfAdsbTpCd);
+        redfAdsbFeeCalculationService.removeRedfAdsbData(baseYm, ogTpCd, redfAdsbDvCd, redfAdsbTpCd, "Y");
 
-        /* 계약별 연체재지급 데이터 생성 */
-        insertCount = againDisbursementFeeMapper.insertContractDlqAdsbs(baseYm, ogTpCd, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd));
-
+        switch (ogTpCd) {
+            case "W01":
+                /* 상조 연체 재지급 */
+                break;
+            case "W02":
+                /* 계약별 연체재지급 데이터 생성 */
+                insertCount = againDisbursementFeeMapper.insertContractDlqAdsbs(baseYm, ogTpCd, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd));
+                break;
+        }
         /* 파트너별 연체재지급 데이터 생성 */
         if (insertCount > 0) {
-             redfAdsbFeeCalculationService.saveRedfAdsbCntrToBasWithHist(baseYm, ogTpCd, redfAdsbDvCd, redfAdsbTpCd);
+            redfAdsbFeeCalculationService.saveRedfAdsbCntrToBasWithHist(baseYm, ogTpCd, redfAdsbDvCd, redfAdsbTpCd);
         }
         return insertCount;
     }
