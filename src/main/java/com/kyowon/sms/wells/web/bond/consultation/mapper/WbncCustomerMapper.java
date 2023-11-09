@@ -20,6 +20,7 @@ import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchUserInfoReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncCustomerDvo;
+import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncPetitionCreateDvo;
 
 /**
  * <pre>
@@ -53,4 +54,20 @@ public interface WbncCustomerMapper {
     List<SearchUserInfoRes> selectUserInfo(SearchUserInfoReq dto);
 
     FindCounselRegistrationRes selectCounselRegistration(FindCounselRegistrationReq dto);
+
+    WbncPetitionCreateDvo selectPetitionType(String cntrDtlNo, String baseYm);
+
+    int selectPetitionType1(String cntrDtlNo);
+
+    int selectPetitionType2(String cntrDtlNo);
+
+    int selectPetitionType3(String cntrDtlNo);
+
+    int selectPetitionType4(String cntrDtlNo);
+
+    int selectPetitionType5(String cntrDtlNo);
+
+    int selectPetitionType6(String cntrDtlNo);
+
+    int selectPetitionType7(String cntrDtlNo);
 }

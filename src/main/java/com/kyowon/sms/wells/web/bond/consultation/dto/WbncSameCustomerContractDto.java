@@ -33,16 +33,16 @@ public class WbncSameCustomerContractDto {
     // 동일고객 계약 입금정보 조회 Find Result Dto
     @ApiModel(value = "WbncSameCustomerContractDto-FindDepositRes")
     public record FindDepositRes(
-        String perfDt, /* 실적월 */
-        String bilTn, /* 차월 */
-        String slBndAlrpyAmt, /* 매출금액 */
+        String perfYm, /* 실적월 */
+        String rentalTn, /* 차월 */
+        String thmSlSumAmt, /* 매출금액 */
         String dpAmt, /* 입금액 */
         String atamCvAmt, /* 영업선수금액 */
-        String eotDlqAmt, /* 연체금액 */
-        String dlqMcn, /* 연체금액 */
-        String eotDlqAddAmt, /* 연체가산금 */
-        String thmDlqAddDpSumAmt, /* 연체가산입금 */
-        String dlqAddBlam, /* 연체가산입금 */
+        String dlqAmt, /* 연체금액 */
+        String dlqMcn, /* 연체개월 */
+        String dlqAddAmt, /* 연체가산금 */
+        String dlqAddDpAmt, /* 연체가산입금 */
+        String dlqAddBlam, /* 연체가산잔액 */
         String ucAmt /* 미수금액 */
     ) {}
 

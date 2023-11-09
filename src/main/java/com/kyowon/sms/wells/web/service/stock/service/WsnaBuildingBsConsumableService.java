@@ -162,9 +162,9 @@ public class WsnaBuildingBsConsumableService {
     @Transactional
     public int createBuildingBsConsumables(List<CreateReq> dtos) {
         for (CreateReq dto : dtos) {
-            if (Integer.parseInt(dto.bfsvcCsmbDdlvQty()) > 0) {
-                mapper.mergeBuildingBsConsumables(dto);
-            }
+            //if (Integer.parseInt(dto.bfsvcCsmbDdlvQty()) > 0) {
+            mapper.mergeBuildingBsConsumables(dto);
+            //}
         }
 
         return 1;

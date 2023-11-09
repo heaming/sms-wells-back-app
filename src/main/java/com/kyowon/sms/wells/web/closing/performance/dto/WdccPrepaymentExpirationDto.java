@@ -136,7 +136,7 @@ public class WdccPrepaymentExpirationDto {
         String cstKnm, /*고객명*/
         String cstNo, /*고객번호*/
         String cntrNo, /*계약번호*/
-        String cntrSn, /*계약번호*/
+        String cntrSn, /*계약일련번호*/
         String cntrDtlNo, /*계약상세번호*/
         String cntrInfo, /*상품정보*/
         String prmEndYm, /*선납종료년월*/

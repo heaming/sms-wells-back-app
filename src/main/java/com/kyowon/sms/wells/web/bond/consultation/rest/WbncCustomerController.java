@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindBaseYmRes;
@@ -190,5 +191,14 @@ public class WbncCustomerController {
     public FindCounselRegistrationRes getCounselRegistration(@Valid
     FindCounselRegistrationReq dto) {
         return service.getCounselRegistration(dto);
+    }
+
+    @ApiOperation(value = "소장생성 체크", notes = "조회조건에 일치하는 소장생성체크 한다.")
+    @GetMapping("/petition-create-check")
+    public int getPetitionCreateCheck(
+        @RequestParam
+        String cntrDtlNo, String baseYm
+    ) {
+        return service.getPetitionCreateCheck(cntrDtlNo, baseYm);
     }
 }
