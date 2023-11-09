@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.affiars.mapper.WwpseGenenalAffairsElcBizAkPsMapper">
+
+    <select id="selectPsgaRpotBizTpBas" resultType = "com.kyowon.sms.wells.web.competence.affiars.dto.WwpseGenenalAffairsElcBizAkPsDto$businessTypeRes">
+        SELECT RPOT_BIZ_TP_ID    /* 보고서업무유형ID */
+             , RPOT_BIZ_TP_ID AS CODE_ID
+             , RPOT_BIZ_TP_DV_CD /* 보고서업무유형구분코드 */
+             , RPOT_BIZ_TP_NM    /* 보고서업무유형명 */
+             , RPOT_BIZ_TP_NM AS CODE_NAME
+             , CONF_ARTC_USE_YN  /* 확인사항사용여부 */
+             , CONF_ARTC_CN      /* 확인사항내용 */
+             , ATENTN_CN         /* 유의사항내용 */
+             , USE_YN            /* 사용여부 */
+             , SORT_ODR          /* 정렬순서 */
+             , DTA_DL_YN         /* 데이터삭제여부 */
+             , FST_RGST_DTM      /* 최초등록일시 */
+             , FST_RGST_USR_ID   /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID   /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID  /* 최초등록부서ID */
+             , FNL_MDFC_DTM      /* 최종수정일시 */
+             , FNL_MDFC_USR_ID   /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID   /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID  /* 최종수정부서ID */
+          FROM TB_PSGA_RPOT_BIZ_TP_BAS /* 보고서업무유형기본 */
+         WHERE 1 = 1
+           AND RPOT_BIZ_TP_DV_CD = #{rpotBizTpDvCd}
+           <if test='@MybatisUtils@isNotEmpty(rpotBizTpId)'>
+           AND RPOT_BIZ_TP_ID    = #{rpotBizTpId}      /* 보고서업무유형ID */
+           </if>
+    </select>
+
+    <select id="selectGenenalAffairsElcBizAkPsPages" resultType = "com.kyowon.sms.wells.web.competence.affiars.dvo.WwpseGenenalAffairsElcBizAkPsDvo">
+        SELECT PRBAI.RPOT_BIZ_APLC_ID /* 보고서업무신청ID */
+             , PRBAI.RPOT_BIZ_TP_ID   /* 보고서업무유형ID */
+             , PRBAI.APLCNS_PRTNR_NO  /* 신청자파트너번호 */
+             , TO_CHAR(TO_DATE(PRBAI.APLC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS APLC_DTM  /* 신청일시 */
+             , PRBAI.BIZ_AK_CN        /* 업무요청내용 */
+             , PRBAI.APN_FILE_DOC_ID  /* 첨부파일문서ID */
+             , PRBAI.BIZ_AK_BLD_CD    /* 업무요청빌딩코드 */
+             , PRBAI.BIZ_AK_BLD_NM    /* 업무요청빌딩명 */
+             , PRBPI.PROCS_SN               /* 처리일련번호 */
+             , PRBPI.RPOT_BIZ_PROCS_STAT_CD /* 보고서업무처리상태코드 */
+             , PRBPI.PROCS_CN               /* 처리내용 */
+             , PRBPB.PRTNR_NO               /* 담당자 사번 */
+             , OPB.PRTNR_KNM                /* 파트너 한글명 */
+             , OPB.CRAL_LOCARA_TNO          /* 휴대지역전화번호 */
+             , OPB.MEXNO_ENCR               /* 휴대전화국번호암호화 */
+             , OPB.CRAL_IDV_TNO             /* 휴대개별전화번호 */
+             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', TO_CHAR(TO_DATE(PRBPI.FNL_MDFC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD'), '40', TO_CHAR(TO_DATE(PRBPI.FNL_MDFC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD'), '') AS FNL_MDFC_DTM
+             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', CUAM.LOGIN_ID, '40', CUAM.LOGIN_ID, '') AS FNL_MDFC_USR_ID
+             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', CUAM.USR_NM, '40', CUAM.USR_NM, '') AS FNL_MDFC_USR_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RPOT_BIZ_PROCS_STAT_CD', PRBPI.RPOT_BIZ_PROCS_STAT_CD) AS RPOT_BIZ_PROCS_STAT_NM
+             , CUAM.USR_NM AS PROCS_PRTNR_KNM                    /* 파트너 한글명 */
+             , CUAM.CRAL_LOCARA_TNO AS PROCS_CRAL_LOCARA_TNO        /* 휴대지역전화번호 */
+             , CUAM.MEXNO_GBENCR AS PROCS_MEXNO_ENCR                  /* 휴대전화국번호암호화 */
+             , CUAM.CRAL_IDV_TNO AS PROCS_CRAL_IDV_TNO              /* 휴대개별전화번호 */
+             , PRBAI.APLCNS_PRTNR_NO AS RCST_PRTNR_NO               /* 접수자 번호 */
+             , OPB3.PRTNR_KNM AS RCST_PRTNR_NM                    /* 접수자 파트너 한글명 */
+             , OPB3.CRAL_LOCARA_TNO AS RCST_CRAL_LOCARA_TNO        /* 접수자 휴대지역전화번호 */
+             , OPB3.MEXNO_ENCR AS RCST_MEXNO_ENCR                  /* 접수자 휴대전화국번호암호화 */
+             , OPB3.CRAL_IDV_TNO AS RCST_CRAL_IDV_TNO              /* 접수자 휴대개별전화번호 */
+          FROM TB_PSGA_RPOT_BIZ_APLC_IZ PRBAI /* 보고서업무신청내역 */
+          JOIN TB_PSGA_RPOT_BIZ_TP_BAS PRBTB /* 보고서업무유형기본 */
+            ON PRBAI.RPOT_BIZ_TP_ID = PRBTB.RPOT_BIZ_TP_ID
+           AND PRBTB.RPOT_BIZ_TP_DV_CD = '03'
+          JOIN TB_PSGA_RPOT_BIZ_PROCS_IZ PRBPI /* 보고서업무처리내역 */
+            ON PRBAI.RPOT_BIZ_APLC_ID = PRBPI.RPOT_BIZ_APLC_ID
+           AND PRBPI.DTA_DL_YN = 'N'
+          JOIN TB_PSGA_RPOT_BIZ_PSIC_BAS PRBPB /* 보고서업무담당자기본 */
+            ON PRBAI.RPOT_BIZ_TP_ID = PRBPB.RPOT_BIZ_TP_ID
+           AND PRBPB.DG_YN = 'Y'
+          LEFT JOIN TB_OGBS_PRTNR_BAS OPB
+            ON PRBPB.OG_TP_CD = OPB.OG_TP_CD
+           AND PRBPB.PRTNR_NO = OPB.PRTNR_NO
+          LEFT JOIN T_CMP_USR_ACO_M CUAM
+            ON CUAM.USR_ID = PRBPB.FNL_MDFC_USR_ID
+           AND CUAM.DEL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OPB3
+            ON PRBAI.APLCNS_PRTNR_NO = OPB3.PRTNR_NO
+         WHERE 1 = 1
+           AND PRBAI.DTA_DL_YN = 'N'
+           <if test='@MybatisUtils@isNotEmpty(rcpStartDtm)'>
+           AND PRBAI.APLC_DTM BETWEEN #{rcpStartDtm} || '000000' AND #{rcpEndDtm} || '235959'
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(rpotBizTpId)'>
+           AND PRBAI.RPOT_BIZ_TP_ID = #{rpotBizTpId}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(rpotBizAplcId)'>
+           AND PRBAI.RPOT_BIZ_APLC_ID = #{rpotBizAplcId}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(rntAplcTpCd)'>
+           AND PRBAI.RNT_APLC_TP_CD = #{rntAplcTpCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(rpotBizProcsStatCd)'>
+           AND PRBAI.RPOT_BIZ_PROCS_STAT_CD = #{rpotBizProcsStatCd}
+           </if>
+    </select>
+
+</mapper>
