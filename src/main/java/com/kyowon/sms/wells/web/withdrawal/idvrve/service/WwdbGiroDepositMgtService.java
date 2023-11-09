@@ -338,7 +338,7 @@ public class WwdbGiroDepositMgtService {
                     askDvo.setReceiveStatusCode("01"); //수납상태코드 수납완료(02)
                     askDvo.setIncmdcYn("N"); //소득공제여부
                     askDvo.setReceiveAskObjectDrmNumber1(list.dpDt());
-
+                    askDvo.setReceiveCode(rveCd);
                     // 수납요청상세 데이터 생성
                     processCount += zwdzWithdrawalService.createReceiveAskDetail(askDvo);
 
