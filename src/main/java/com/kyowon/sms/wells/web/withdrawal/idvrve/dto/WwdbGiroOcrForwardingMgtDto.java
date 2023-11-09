@@ -110,7 +110,8 @@ public class WwdbGiroOcrForwardingMgtDto {
 
     public record SearchPrintReq(
         String giroOcrPblDtm,
-        String giroOcrPrntStatus
+        String giroOcrPrntStatus,
+        String giroRglrDvCd //정기비정기
     ) {
 
     }
