@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
+import com.kyowon.sms.common.web.fee.calculation.service.ZfebRedfAdsbFeeCalculationService;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebAgainDisbursementFeeMapper;
 import com.sds.sflex.common.common.dvo.CodeDetailDvo;
 import com.sds.sflex.common.common.service.CodeService;
@@ -26,6 +27,8 @@ import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.AGAIN_D
 public class WfebAgainDisbursementFeeService {
 
     private final CodeService codeService;
+
+    private final ZfebRedfAdsbFeeCalculationService redfAdsbFeeCalculationService;
 
     private final WfebAgainDisbursementFeeMapper againDisbursementFeeMapper;
 
@@ -63,22 +66,17 @@ public class WfebAgainDisbursementFeeService {
      */
     public Integer saveDlqAgainDisbursementOfFees(String baseYm, String ogTpCd, String cntrPerfCrtDvCd) {
         Integer insertCount;
+        String redfAdsbDvCd = "03";
+        String redfAdsbTpCd = "0302";
         /* 기생성했던 연체재지급 데이터 삭제 */
-        againDisbursementFeeMapper.deleteCommonDlqAdsbs(baseYm, ogTpCd, cntrPerfCrtDvCd, "TB_FEDD_FEE_REDF_ADSB_BAS");
-        againDisbursementFeeMapper.deleteCommonDlqAdsbs(baseYm, ogTpCd, cntrPerfCrtDvCd, "TB_FEDD_FEE_REDF_ADSB_DTL");
-        againDisbursementFeeMapper.deleteCommonDlqAdsbs(baseYm, ogTpCd, cntrPerfCrtDvCd, "TB_FEDD_FEE_REDF_ADSB_HIST");
-        againDisbursementFeeMapper.deleteCommonDlqAdsbs(baseYm, ogTpCd, cntrPerfCrtDvCd, "TB_FEDD_FEE_REDF_ADSB_DTL_HIST");
+        redfAdsbFeeCalculationService.removeRedfAdsbData(baseYm, ogTpCd, redfAdsbDvCd, redfAdsbTpCd);
+
         /* 계약별 연체재지급 데이터 생성 */
-        insertCount = againDisbursementFeeMapper.insertContractDlqAdsbs(baseYm, ogTpCd, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, "0302"));
+        insertCount = againDisbursementFeeMapper.insertContractDlqAdsbs(baseYm, ogTpCd, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd));
+
         /* 파트너별 연체재지급 데이터 생성 */
         if (insertCount > 0) {
-            /* 파트너별 데이터 생성 */
-            againDisbursementFeeMapper.insertDlqAdsbs(baseYm, cntrPerfCrtDvCd, getRedfAdsbBaseIdPrefix(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, "0302"));
-            /* 계약별 데이터에 부모데이터 ID 업데이트 */
-            againDisbursementFeeMapper.updatePartnerIdCntrDlqAdsbs(baseYm, cntrPerfCrtDvCd);
-            /* 이력데이터 생성 */
-            againDisbursementFeeMapper.insertContractDlqAdsbHistories(baseYm, cntrPerfCrtDvCd);
-            againDisbursementFeeMapper.insertPartnerDlqAdsbHistories(baseYm, cntrPerfCrtDvCd);
+             redfAdsbFeeCalculationService.saveRedfAdsbCntrToBasWithHist(baseYm, ogTpCd, redfAdsbDvCd, redfAdsbTpCd);
         }
         return insertCount;
     }

@@ -13,9 +13,9 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+
 import static com.kyowon.sms.common.web.fee.common.dvo.FeeIdGenerator.getFeeRedemptionDetailIdSql;
-import static com.kyowon.sms.common.web.fee.common.dvo.FeeIdGenerator.getRedfAdsbBaseIdPrefix;
-import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.REDEMPTION_OF_FEE;
 
 /**
  * <pre>
@@ -36,8 +36,6 @@ public class WfebRedemptionFeeService {
     private final ZfebRedfAdsbFeeCalculationService redfAdsbFeeCalculationService;
 
     private final WfebRedemptionFeeMapper redemptionFeeMapper;
-
-    private final ZfeaRedfAdsbPerfMapper redfAdsbPerfMapper;
 
     @Value("${tenant.defaultId:TNT_BASE}")
     String defaultTenantId;
@@ -70,7 +68,9 @@ public class WfebRedemptionFeeService {
         redfAdsbFeeCalculationService.saveRedfAdsbCalculation(baseYm, ogTpCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
 
         /* 연체되물림 서비스 호출 */
-        saveDlqRedemptionOfFees(baseYm, ogTpCd, cntrPerfCrtDvCd);
+        if(Arrays.asList("W02").contains(ogTpCd)) {
+            saveDlqRedemptionOfFees(baseYm, ogTpCd, cntrPerfCrtDvCd);
+        }
     }
 
     /**
@@ -94,7 +94,7 @@ public class WfebRedemptionFeeService {
 
         switch (ogTpCd) {
             case "W01":
-                /* */
+                /* P조직은 연체되물림이 없어 보임 */
                 break;
             case "W02":
                 /* 계약별 연체되물림 데이터 생성 */
@@ -108,5 +108,4 @@ public class WfebRedemptionFeeService {
         }
         return insertCount;
     }
-
 }
