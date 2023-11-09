@@ -21,7 +21,7 @@ class WfebSoleDistributorFeeMgtControllerTest extends SpringTestSupport {
     @Test
     @DisplayName("[총판] 총판 실적생성")
     void aggregateDistributorPerformance() throws Exception {
-        CreateReq dto = new CreateReq("202308", "02");
+        CreateReq dto = new CreateReq("202307", "02");
 
         MockHttpServletRequestBuilder request = post(String.format("%s/aggregate", BASE_URL))
             .contentType(MediaType.APPLICATION_JSON)
