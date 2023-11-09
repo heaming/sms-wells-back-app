@@ -838,9 +838,13 @@ public class WwdbGiroDepositMgtService {
 
         List<WwdbGiroDepositSaveDvo> editPerfDt = new ArrayList<WwdbGiroDepositSaveDvo>();
 
+
+        //오늘 날짜
+                String sysDateYmd = DateUtil.getNowDayString();
+
         for (SaveReq dto : dtos) {
             WwdbGiroDepositSaveDvo wwdbGiroDepositSaveDvo = convert.mapSearchWwwdbGiroDepositSaveDvo(dto);
-            String perfDt = mapper.selectGiroPerfDt(dto.rveDt());
+            String perfDt = mapper.selectGiroPerfDt(sysDateYmd);
             SearchGiroNumberRes searchGiroNumberRes = mapper.selectGiroNumberInquiry(dto.giroInqNo());
 
             if (ObjectUtils.isEmpty(searchGiroNumberRes)) {
@@ -860,7 +864,7 @@ public class WwdbGiroDepositMgtService {
                 wwdbGiroDepositSaveDvo.setCstNo(searchGiroNumberRes.cstNo());
                 wwdbGiroDepositSaveDvo.setCstKnm(searchGiroNumberRes.cstKnm());
                 wwdbGiroDepositSaveDvo.setRveDt(perfDt);
-                wwdbGiroDepositSaveDvo.setFntDt(perfDt);
+                wwdbGiroDepositSaveDvo.setFntDt(sysDateYmd);
             }
 
             editPerfDt.add(wwdbGiroDepositSaveDvo);
