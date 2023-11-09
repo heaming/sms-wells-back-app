@@ -220,6 +220,8 @@ public class WpmbPromotionObjectCustomerMgtService {
                     }
                 }
             }
+        } else {
+            excelUploadErrorDvos.add(getErrorDvo(-2, "", messageResourceService.getMessage("MSG_ALT_NOT_FOUND_XLS_DATA")));
         }
 
         return excelUploadErrorDvos;
