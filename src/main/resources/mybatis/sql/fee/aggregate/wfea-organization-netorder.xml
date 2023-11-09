@@ -180,12 +180,19 @@
                <if test='@MybatisUtils@equals(divCd, "01")'> /* 매출 */
                     AND NVL(CD.BOO_SELL_TP_CD,0) != '2'
                </if>
-               <if test='@MybatisUtils@isNotEmpty(pkgStrtCd)'>
-                    AND CD.HGR_PD_CD &gt;= #{pkgStrtCd}
-               </if>
-               <if test='@MybatisUtils@isNotEmpty(pkgEndCd)'>
-                    AND CD.HGR_PD_CD &lt;= #{pkgEndCd}
-               </if>
+
+               <choose>
+                   <when test='@MybatisUtils@isNotEmpty(pkgStrtCd) and @MybatisUtils@isNotEmpty(pkgEndCd)'>
+                       AND (CD.HGR_PD_CD BETWEEN #{pkgStrtCd} AND #{pkgEndCd} OR CD.HGR_PD_CD BETWEEN #{pkgEndCd} AND #{pkgStrtCd})
+                   </when>
+                   <when test='@MybatisUtils@isNotEmpty(pkgStrtCd)'>
+                       AND CD.HGR_PD_CD &gt;= #{pkgStrtCd}
+                   </when>
+                   <when test='@MybatisUtils@isNotEmpty(pkgEndCd)'>
+                       AND CD.HGR_PD_CD &lt;= #{pkgEndCd}
+                   </when>
+               </choose>
+
                <if test='@MybatisUtils@equals(divCd, "01")'> /* 매출 */
                     AND TO_CHAR(TO_DATE(CD.CNTR_PD_STRTDT),'YYYYMMDD') BETWEEN #{strtDt} AND #{endDt}  /* 매출 확정일자 */
                </if>
@@ -211,12 +218,17 @@
                </if>
                   INNER JOIN TB_PDBS_PD_BAS PP
                      ON CD.BASE_PD_CD = PP.PD_CD
-               <if test='@MybatisUtils@isNotEmpty(pdStrtCd)'>
-                    AND PP.PD_CD &gt;= #{pdStrtCd}
-               </if>
-               <if test='@MybatisUtils@isNotEmpty(pdEndCd)'>
-                    AND PP.PD_CD &lt;=  #{pdEndCd}
-               </if>
+                     <choose>
+                         <when test='@MybatisUtils@isNotEmpty(pdStrtCd) and @MybatisUtils@isNotEmpty(pdEndCd)'>
+                             AND (PP.PD_CD BETWEEN #{pdStrtCd} AND #{pdEndCd} OR PP.PD_CD BETWEEN #{pdEndCd} AND #{pdStrtCd})
+                         </when>
+                         <when test='@MybatisUtils@isNotEmpty(pdStrtCd)'>
+                             AND PP.PD_CD &gt;= #{pdStrtCd}
+                         </when>
+                         <when test='@MybatisUtils@isNotEmpty(pdEndCd)'>
+                             AND PP.PD_CD &lt;=  #{pdEndCd}
+                         </when>
+                     </choose>
                   INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS PD
                      ON CD.BASE_PD_CD = PD.BASE_PD_CD
                     AND SUBSTR(#{strtDt},1,6) BETWEEN APY_STRT_YM AND APY_END_YM
@@ -276,12 +288,20 @@
                <if test='!@MybatisUtils@equals(divCd, "01")'>
                     AND CB.CNTR_CNFM_DTM BETWEEN #{strtDt} AND  #{endDt} /* 계약확정일시 */
                </if>
-               <if test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
-                    AND CB.CNTR_CAN_DTM &gt;= #{cancStrtDt}
-               </if>
-               <if test='@MybatisUtils@isNotEmpty(cancEndDt)'>
-                    AND CB.CNTR_CAN_DTM &lt;= #{cancEndDt}
-               </if>
+
+               <choose>
+                   <when test='@MybatisUtils@isNotEmpty(cancStrtDt) and @MybatisUtils@isNotEmpty(cancEndDt)'>
+                       AND CD.CNTR_DTL_STAT_CD IN ('301','303')
+                       AND (CD.CNTR_PD_ENDDT BETWEEN #{cancStrtDt} AND #{cancEndDt} OR CD.CNTR_PD_ENDDT BETWEEN #{cancEndDt} AND #{cancStrtDt})
+                   </when>
+                   <when test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
+                       AND (CD.CNTR_DTL_STAT_CD IN ('301','303') AND CD.CNTR_PD_ENDDT <![CDATA[>=]]> #{cancStrtDt})
+                   </when>
+                   <when test='@MybatisUtils@isNotEmpty(cancEndDt)'>
+                       AND (CD.CNTR_DTL_STAT_CD IN ('301','303') AND CD.CNTR_PD_ENDDT <![CDATA[<=]]> #{cancEndDt})
+                   </when>
+               </choose>
+
                <if test='@MybatisUtils@equals(sellTpCd, "0") or @MybatisUtils@equals(sellTpCd, "7")'>
                    <if test='!@MybatisUtils@equals(divCd, "02")'>
                   UNION ALL
@@ -345,12 +365,18 @@
                         <if test='@MybatisUtils@equals(divCd, "01")'> /* 매출 */
                              AND SUBSTR(A.STPL_CNFM_DTM,1,6) BETWEEN #{strtDt} AND #{endDt}  /* 매출 확정일자 */
                         </if>
-                        <if test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
-                             AND A.STPL_CAN_DTM &gt;= #{cancStrtDt}
-                        </if>
-                        <if test='@MybatisUtils@isNotEmpty(cancEndDt)'>
-                             AND A.STPL_CAN_DTM &lt;= #{cancEndDt}
-                        </if>
+
+                        <choose>
+                            <when test='@MybatisUtils@isNotEmpty(cancStrtDt) and @MybatisUtils@isNotEmpty(cancEndDt)'>
+                                AND (A.STPL_CAN_DTM BETWEEN #{cancStrtDt} AND #{cancEndDt} OR A.STPL_CAN_DTM BETWEEN #{cancEndDt} AND #{cancStrtDt})
+                            </when>
+                            <when test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
+                                AND A.STPL_CAN_DTM &gt;= #{cancStrtDt}
+                            </when>
+                            <when test='@MybatisUtils@isNotEmpty(cancEndDt)'>
+                                AND A.STPL_CAN_DTM &lt;= #{cancEndDt}
+                            </when>
+                        </choose>
                        )RI
                   INNER JOIN TB_SSCT_CNTR_BAS CB
                      ON RI.CNTR_NO = CB.CNTR_NO
@@ -367,12 +393,19 @@
                         <if test='@MybatisUtils@equals(divCd, "01")'> /* 매출 */
                     AND NVL(CD.BOO_SELL_TP_CD,0) != '2'
                         </if>
-                        <if test='@MybatisUtils@isNotEmpty(pkgStrtCd)'>
-                    AND CD.HGR_PD_CD &gt;= #{pkgStrtCd}
-                        </if>
-                        <if test='@MybatisUtils@isNotEmpty(pkgEndCd)'>
-                    AND CD.HGR_PD_CD &lt;= #{pkgEndCd}
-                        </if>
+
+                       <choose>
+                           <when test='@MybatisUtils@isNotEmpty(pkgStrtCd) and @MybatisUtils@isNotEmpty(pkgEndCd)'>
+                               AND (CD.HGR_PD_CD BETWEEN #{pkgStrtCd} AND #{pkgEndCd} OR CD.HGR_PD_CD BETWEEN #{pkgEndCd} AND #{pkgStrtCd})
+                           </when>
+                           <when test='@MybatisUtils@isNotEmpty(pkgStrtCd)'>
+                               AND CD.HGR_PD_CD &gt;= #{pkgStrtCd}
+                           </when>
+                           <when test='@MybatisUtils@isNotEmpty(pkgEndCd)'>
+                               AND CD.HGR_PD_CD &lt;= #{pkgEndCd}
+                           </when>
+                       </choose>
+
                         <if test='@MybatisUtils@equals(divCd, "01")'> /* 매출 */
                     AND TO_CHAR(TO_DATE(CD.CNTR_PD_STRTDT),'YYYYMMDD') BETWEEN #{strtDt} AND #{endDt}  /* 매출 확정일자 */
                         </if>
@@ -398,12 +431,17 @@
                         </if>
                   INNER JOIN TB_PDBS_PD_BAS PP
                      ON CD.BASE_PD_CD = PP.PD_CD
-                        <if test='@MybatisUtils@isNotEmpty(pdStrtCd)'>
-                    AND PP.PD_CD &gt;= #{pdStrtCd}
-                        </if>
-                        <if test='@MybatisUtils@isNotEmpty(pdEndCd)'>
-                    AND PP.PD_CD &lt;=  #{pdEndCd}
-                        </if>
+                     <choose>
+                         <when test='@MybatisUtils@isNotEmpty(pdStrtCd) and @MybatisUtils@isNotEmpty(pdEndCd)'>
+                             AND (PP.PD_CD BETWEEN #{pdStrtCd} AND #{pdEndCd} OR PP.PD_CD BETWEEN #{pdEndCd} AND #{pdStrtCd})
+                         </when>
+                         <when test='@MybatisUtils@isNotEmpty(pdStrtCd)'>
+                             AND PP.PD_CD &gt;= #{pdStrtCd}
+                         </when>
+                         <when test='@MybatisUtils@isNotEmpty(pdEndCd)'>
+                             AND PP.PD_CD &lt;=  #{pdEndCd}
+                         </when>
+                     </choose>
                   INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS PD
                      ON CD.BASE_PD_CD = PD.BASE_PD_CD
                     AND SUBSTR(#{strtDt},1,6) BETWEEN APY_STRT_YM AND APY_END_YM
@@ -1230,29 +1268,41 @@
              AND A1.FEE_PERF_TP_CD = #{feePerfTpCd} /* 수수료실적유형코드 */
          </if>
 
-         <if test='@MybatisUtils@isNotEmpty(cancDtFrom)'> /* 취소일자 시작 */
-             AND A1.CAN_DT <![CDATA[>=]]> #{cancDtFrom} /* 취소일자 */
-         </if>
+         <choose>
+             <when test='@MybatisUtils@isNotEmpty(cancDtFrom) and @MybatisUtils@isNotEmpty(cancDtTo)'>
+                 AND (A1.CAN_DT BETWEEN #{cancDtFrom} AND #{cancDtTo} OR A1.CAN_DT BETWEEN #{cancDtTo} AND #{cancDtFrom})/* 취소일자 */
+             </when>
+             <when test='@MybatisUtils@isNotEmpty(cancDtFrom)'>
+                 AND A1.CAN_DT <![CDATA[>=]]> #{cancDtFrom} /* 취소일자 */
+             </when>
+             <when test='@MybatisUtils@isNotEmpty(cancDtTo)'>
+                 AND A1.CAN_DT <![CDATA[<=]]> #{cancDtTo} /* 취소일자 */
+             </when>
+         </choose>
 
-         <if test='@MybatisUtils@isNotEmpty(cancDtTo)'> /* 취소일자 종료 */
-             AND A1.CAN_DT <![CDATA[<=]]> #{cancDtTo} /* 취소일자 */
-         </if>
+         <choose>
+             <when test='@MybatisUtils@isNotEmpty(pdCdFrom) and @MybatisUtils@isNotEmpty(pdCdTo)'>
+                 AND (A1.BASE_PD_CD BETWEEN #{pdCdFrom} AND #{pdCdTo} OR A1.BASE_PD_CD BETWEEN #{pdCdTo} AND #{pdCdFrom}) /* 상품코드 */
+             </when>
+             <when test='@MybatisUtils@isNotEmpty(pdCdFrom)'>
+                 AND A1.BASE_PD_CD <![CDATA[>=]]> #{pdCdFrom} /* 상품코드 */
+             </when>
+             <when test='@MybatisUtils@isNotEmpty(pdCdTo)'>
+                 AND A1.BASE_PD_CD <![CDATA[<=]]> #{pdCdTo} /* 상품코드 */
+             </when>
+         </choose>
 
-         <if test='@MybatisUtils@isNotEmpty(pdCdFrom)'> /* 상품코드 시작 */
-             AND A1.BASE_PD_CD <![CDATA[>=]]> #{pdCdFrom} /* 취소일자 */
-         </if>
-
-         <if test='@MybatisUtils@isNotEmpty(pdCdTo)'> /* 상품코드 종료 */
-             AND A1.BASE_PD_CD <![CDATA[<=]]> #{pdCdTo} /* 취소일자 */
-         </if>
-
-         <if test='@MybatisUtils@isNotEmpty(pkgCdFrom)'> /* 패키지코드 시작 */
-             AND A1.PKG_CD <![CDATA[>=]]> #{pkgCdFrom} /* 취소일자 */
-         </if>
-
-         <if test='@MybatisUtils@isNotEmpty(pkgCdTo)'> /* 패키지코드 종료 */
-             AND A1.PKG_CD <![CDATA[<=]]> #{pkgCdTo} /* 취소일자 */
-         </if>
+         <choose>
+             <when test='@MybatisUtils@isNotEmpty(pkgCdFrom) and @MybatisUtils@isNotEmpty(pkgCdTo)'>
+                 AND (A1.PKG_CD BETWEEN #{pkgCdFrom} AND #{pkgCdTo} OR A1.PKG_CD BETWEEN #{pkgCdTo} AND #{pkgCdFrom}) /* 패키지코드 */
+             </when>
+             <when test='@MybatisUtils@isNotEmpty(pkgCdFrom)'>
+                 AND A1.PKG_CD <![CDATA[>=]]> #{pkgCdFrom} /* 패키지코드 */
+             </when>
+             <when test='@MybatisUtils@isNotEmpty(pkgCdTo)'>
+                 AND A1.PKG_CD <![CDATA[<=]]> #{pkgCdTo} /* 패키지코드 */
+             </when>
+         </choose>
 
          <if test='@MybatisUtils@isNotEmpty(feePdctTpCd)'> /* 수수료제품유형코드 */
              AND A1.FEE_PDCT_TP_CD = #{feePdctTpCd} /* 수수료제품유형코드 */
@@ -1976,12 +2026,19 @@
                <if test='@MybatisUtils@equals(divCd, "01")'> /* 매출 */
                     AND NVL(CD.BOO_SELL_TP_CD,0) != '2'
                </if>
-               <if test='@MybatisUtils@isNotEmpty(pkgStrtCd)'>
-                    AND CD.HGR_PD_CD &gt;= #{pkgStrtCd}
-               </if>
-               <if test='@MybatisUtils@isNotEmpty(pkgEndCd)'>
-                    AND CD.HGR_PD_CD &lt;= #{pkgEndCd}
-               </if>
+
+               <choose>
+                   <when test='@MybatisUtils@isNotEmpty(pkgStrtCd) and @MybatisUtils@isNotEmpty(pkgEndCd)'>
+                       AND (CD.HGR_PD_CD BETWEEN #{pkgStrtCd} AND #{pkgEndCd} OR CD.HGR_PD_CD BETWEEN #{pkgEndCd} AND #{pkgStrtCd})
+                   </when>
+                   <when test='@MybatisUtils@isNotEmpty(pkgStrtCd)'>
+                       AND CD.HGR_PD_CD &gt;= #{pkgStrtCd}
+                   </when>
+                   <when test='@MybatisUtils@isNotEmpty(pkgEndCd)'>
+                       AND CD.HGR_PD_CD &lt;= #{pkgEndCd}
+                   </when>
+               </choose>
+
                <if test='@MybatisUtils@equals(divCd, "01")'> /* 매출 */
                     AND TO_CHAR(TO_DATE(CD.CNTR_PD_STRTDT),'YYYYMMDD') BETWEEN #{strtDt} AND #{endDt}  /* 매출 확정일자 */
                </if>
@@ -2007,12 +2064,17 @@
                </if>
                   INNER JOIN TB_PDBS_PD_BAS PP
                      ON CD.BASE_PD_CD = PP.PD_CD
-               <if test='@MybatisUtils@isNotEmpty(pdStrtCd)'>
-                    AND PP.PD_CD &gt;= #{pdStrtCd}
-               </if>
-               <if test='@MybatisUtils@isNotEmpty(pdEndCd)'>
-                    AND PP.PD_CD &lt;=  #{pdEndCd}
-               </if>
+                     <choose>
+                         <when test='@MybatisUtils@isNotEmpty(pdStrtCd) and @MybatisUtils@isNotEmpty(pdEndCd)'>
+                             AND (PP.PD_CD BETWEEN #{pdStrtCd} AND #{pdEndCd} OR PP.PD_CD BETWEEN #{pdEndCd} AND #{pdStrtCd})
+                         </when>
+                         <when test='@MybatisUtils@isNotEmpty(pdStrtCd)'>
+                             AND PP.PD_CD &gt;= #{pdStrtCd}
+                         </when>
+                         <when test='@MybatisUtils@isNotEmpty(pdEndCd)'>
+                             AND PP.PD_CD &lt;=  #{pdEndCd}
+                         </when>
+                     </choose>
                   INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS PD
                      ON CD.BASE_PD_CD = PD.BASE_PD_CD
                     AND SUBSTR(#{strtDt},1,6) BETWEEN APY_STRT_YM AND APY_END_YM
@@ -2056,12 +2118,20 @@
                <if test='!@MybatisUtils@equals(divCd, "01")'>
                     AND CB.CNTR_CNFM_DTM BETWEEN #{strtDt} AND  #{endDt} /* 계약확정일시 */
                </if>
-               <if test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
-                    AND (CD.CNTR_DTL_STAT_CD IN ('301','303') AND SUBSTR(CD.CNTR_PD_ENDDT, 0, 8) <![CDATA[>=]]> #{cancStrtDt})
-               </if>
-               <if test='@MybatisUtils@isNotEmpty(cancEndDt)'>
-                    AND (CD.CNTR_DTL_STAT_CD IN ('301','303') AND SUBSTR(CD.CNTR_PD_ENDDT, 0, 8) <![CDATA[<=]]> #{cancEndDt}
-               </if>
+
+               <choose>
+                   <when test='@MybatisUtils@isNotEmpty(cancStrtDt) and @MybatisUtils@isNotEmpty(cancEndDt)'>
+                       AND CD.CNTR_DTL_STAT_CD IN ('301','303')
+                       AND (CD.CNTR_PD_ENDDT BETWEEN #{cancStrtDt} AND #{cancEndDt} OR CD.CNTR_PD_ENDDT BETWEEN #{cancEndDt} AND #{cancStrtDt})
+                   </when>
+                   <when test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
+                       AND (CD.CNTR_DTL_STAT_CD IN ('301','303') AND CD.CNTR_PD_ENDDT <![CDATA[>=]]> #{cancStrtDt})
+                   </when>
+                   <when test='@MybatisUtils@isNotEmpty(cancEndDt)'>
+                       AND (CD.CNTR_DTL_STAT_CD IN ('301','303') AND CD.CNTR_PD_ENDDT <![CDATA[<=]]> #{cancEndDt})
+                   </when>
+               </choose>
+
                <if test='@MybatisUtils@equals(sellTpCd, "0") or @MybatisUtils@equals(sellTpCd, "7")'>
                     <if test='!@MybatisUtils@equals(divCd, "02")'>
                  UNION ALL
@@ -2126,12 +2196,18 @@
                          <if test='@MybatisUtils@equals(divCd, "01")'> /* 매출 */
                              AND SUBSTR(A.STPL_CNFM_DTM,1,8) BETWEEN #{strtDt} AND #{endDt}  /* 매출 확정일자 */
                          </if>
-                         <if test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
-                             AND A.STPL_CAN_DTM &gt;= #{cancStrtDt}
-                         </if>
-                         <if test='@MybatisUtils@isNotEmpty(cancEndDt)'>
-                             AND A.STPL_CAN_DTM &lt;= #{cancEndDt}
-                         </if>
+
+                         <choose>
+                             <when test='@MybatisUtils@isNotEmpty(cancStrtDt) and @MybatisUtils@isNotEmpty(cancEndDt)'>
+                                 AND (A.STPL_CAN_DTM BETWEEN #{cancStrtDt} AND #{cancEndDt} OR A.STPL_CAN_DTM BETWEEN #{cancEndDt} AND #{cancStrtDt})
+                             </when>
+                             <when test='@MybatisUtils@isNotEmpty(cancStrtDt)'>
+                                 AND A.STPL_CAN_DTM &gt;= #{cancStrtDt}
+                             </when>
+                             <when test='@MybatisUtils@isNotEmpty(cancEndDt)'>
+                                 AND A.STPL_CAN_DTM &lt;= #{cancEndDt}
+                             </when>
+                         </choose>
 						)RI
                   INNER JOIN TB_SSCT_CNTR_BAS CB
                      ON RI.CNTR_NO = CB.CNTR_NO
@@ -2147,12 +2223,19 @@
                         <if test='@MybatisUtils@equals(divCd, "01")'> /* 매출 */
                     AND NVL(CD.BOO_SELL_TP_CD,0) != '2'
                         </if>
-                         <if test='@MybatisUtils@isNotEmpty(pkgStrtCd)'>
-                    AND CD.HGR_PD_CD &gt;= #{pkgStrtCd}
-                         </if>
-                         <if test='@MybatisUtils@isNotEmpty(pkgEndCd)'>
-                    AND CD.HGR_PD_CD &lt;= #{pkgEndCd}
-                         </if>
+
+                        <choose>
+                            <when test='@MybatisUtils@isNotEmpty(pkgStrtCd) and @MybatisUtils@isNotEmpty(pkgEndCd)'>
+                                AND (CD.HGR_PD_CD BETWEEN #{pkgStrtCd} AND #{pkgEndCd} OR CD.HGR_PD_CD BETWEEN #{pkgEndCd} AND #{pkgStrtCd})
+                            </when>
+                            <when test='@MybatisUtils@isNotEmpty(pkgStrtCd)'>
+                                AND CD.HGR_PD_CD &gt;= #{pkgStrtCd}
+                            </when>
+                            <when test='@MybatisUtils@isNotEmpty(pkgEndCd)'>
+                                AND CD.HGR_PD_CD &lt;= #{pkgEndCd}
+                            </when>
+                        </choose>
+
                   INNER JOIN TB_OGBS_MM_PRTNR_IZ MP  /* 월파트너 */
                      ON RI.RCP_PRTNR_NO = MP.PRTNR_NO
                     AND RI.RCP_OG_TP_CD = MP.OG_TP_CD
@@ -2175,12 +2258,17 @@
                          </if>
                   INNER JOIN TB_PDBS_PD_BAS PP
                      ON CD.BASE_PD_CD = PP.PD_CD
-                         <if test='@MybatisUtils@isNotEmpty(pdStrtCd)'>
-                    AND PP.PD_CD &gt;= #{pdStrtCd}
-                         </if>
-                         <if test='@MybatisUtils@isNotEmpty(pdEndCd)'>
-                    AND PP.PD_CD &lt;=  #{pdEndCd}
-                         </if>
+                     <choose>
+                         <when test='@MybatisUtils@isNotEmpty(pdStrtCd) and @MybatisUtils@isNotEmpty(pdEndCd)'>
+                             AND (PP.PD_CD BETWEEN #{pdStrtCd} AND #{pdEndCd} OR PP.PD_CD BETWEEN #{pdEndCd} AND #{pdStrtCd})
+                         </when>
+                         <when test='@MybatisUtils@isNotEmpty(pdStrtCd)'>
+                             AND PP.PD_CD &gt;= #{pdStrtCd}
+                         </when>
+                         <when test='@MybatisUtils@isNotEmpty(pdEndCd)'>
+                             AND PP.PD_CD &lt;=  #{pdEndCd}
+                         </when>
+                     </choose>
                   INNER JOIN TB_FEAM_WELS_FEE_PDCT_TP_BAS PD
                      ON CD.BASE_PD_CD = PD.BASE_PD_CD
                     AND SUBSTR(#{strtDt},1,6) BETWEEN APY_STRT_YM AND APY_END_YM

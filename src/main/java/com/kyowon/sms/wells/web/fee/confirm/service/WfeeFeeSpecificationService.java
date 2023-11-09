@@ -29,8 +29,8 @@ public class WfeeFeeSpecificationService {
     }
 
     //M추진단 / 플래너
-    public List<?> getFeeSpecifications(SearchReq dto) {
-        List<?> resList = new ArrayList<>();
+    public List<HashMap<String, Object>> getFeeSpecifications(SearchReq dto) {
+        List<HashMap<String, Object>> resList = new ArrayList<>();
 
         //수수료 항목들 가져옴
         Map<String, Object> feeCdMap = getFeeCdLists(dto);
@@ -94,10 +94,10 @@ public class WfeeFeeSpecificationService {
                     + item.feeCd()
             )
             .collect(Collectors.joining(","));
-        String feeCdFields = feeLists.stream().map(item -> " NVL(" + item.feeCd() + ",0) AS " + item.feeCd())
+        String feeCdFields = feeLists.stream().map(item -> " NVL(" + item.feeCd() + ",0) AS FEE_" + item.feeCd())
             .collect(Collectors.joining(","));
         String feeSumField = feeLists.stream().map(item -> " NVL(" + item.feeCd() + ",0) ")
-            .collect(Collectors.joining("+")) + " AS FEE_SUM ";
+            .collect(Collectors.joining("+")) + " AS FEE_VAL0 ";
         Map<String, Object> returnMap = new HashMap<String, Object>();
         returnMap.put("feeCdCase", feeCdCase);
         returnMap.put("feeCdFields", feeCdFields);
@@ -105,6 +105,17 @@ public class WfeeFeeSpecificationService {
         returnMap.put("feeCdList", feeLists);
 
         return returnMap;
+    }
+
+    /**
+     *  리포트 생성 - 동적 헤더/body 에 맞춰서 리턴시킴
+     * @param dto
+     * @return
+     */
+    public Map<String, Object> formatReportData(SearchReq dto) {
+
+        List<SearchFeeCdRes> feeLists = mapper.selectFeeCodes(dto);
+        return null;
     }
 
 }
