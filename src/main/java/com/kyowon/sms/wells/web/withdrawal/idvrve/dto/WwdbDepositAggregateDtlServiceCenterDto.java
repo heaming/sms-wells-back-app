@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 
 import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * <pre>
@@ -57,10 +58,20 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
         String stlmDvCd, /*결제구분코드*/
         String iscmpCd, /*결제처*/
         String cardAprno, /*승인번호*/
-        String taxBll /*세금계산서*/
+        String taxBll ,/*세금계산서*/
+
+        /* 팝업전달용 */
+        String crcdonrNm, /*카드주*/
+        String crcdnoEncr, /*카드번호*/
+        String crdcdExpdtYm,
+        String istmMcn  ,
+        String vacNo  ,
+        String vacBnkCd  ,
+        String itgDpNo
     ) {
         public SearchRes {
             mexnoEncr = DbEncUtil.dec(mexnoEncr);
+            crcdnoEncr = StringUtils.isNotEmpty(crcdnoEncr) ? DbEncUtil.dec(crcdnoEncr) : crcdnoEncr;
         }
     }
 

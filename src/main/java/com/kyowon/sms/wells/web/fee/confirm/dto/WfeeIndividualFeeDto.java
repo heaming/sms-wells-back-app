@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.fee.confirm.dto;
 
 import javax.validation.constraints.NotBlank;
 
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
 import org.apache.commons.lang.StringUtils;
 
 import com.sds.sflex.common.utils.DbEncUtil;
@@ -216,6 +218,7 @@ public class WfeeIndividualFeeDto {
         String awdErnWhtx, /* 시상소득원천세 */
         String awdDsbOjAmt, /* 시상실지급액 */
         String bnkNm, /* 은행명 */
+        @MaskRequired(type = MaskingType.ACCOUNT)
         String acnoEncr /* 계좌번호암호화 */
     ) {
         public SearchFeeRes {

@@ -258,14 +258,23 @@
          AND S1.OG_TP_CD = S2.OG_TP_CD
          AND S1.PRTNR_NO =  S2.PRTNR_NO
         LEFT OUTER JOIN LATERAL
-           ( SELECT SUBSTR(MAX(STRTDT), 0, 6) AS OPNG_MM    /*개시월*/
+           ( SELECT SUBSTR(STRTDT, 0, 6) AS OPNG_MM    /*개시월*/
                FROM TB_OGPS_PLAR_QLF_CH_IZ C    /*플래너자격변경내역*/
               WHERE C.DTA_DL_YN = 'N'
                 AND C.OG_TP_CD = S1.OG_TP_CD
                 AND C.PRTNR_NO = S1.PRTNR_NO
                 AND SUBSTR(#{strtPerfDt},1,6) BETWEEN SUBSTR(C.STRTDT, 0, 6) AND SUBSTR(C.ENDDT, 0, 6)
                 AND C.QLF_DV_CD = '3'  /* 웰스매니저 */
-                AND C.QLF_APLC_DV_CD IN ('1', '2')  /* 승급 */
+                AND NVL(C.QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승급 */
+              UNION ALL
+              SELECT SUBSTR(STRTDT, 0, 6) AS OPNG_MM    /*개시월*/
+               FROM TB_OGPS_PLAR_QLF_CH_IZ C    /*플래너자격변경내역*/
+              WHERE C.DTA_DL_YN = 'N'
+                AND C.OG_TP_CD = S1.OG_TP_CD
+                AND C.PRTNR_NO = S1.PRTNR_NO
+                AND SUBSTR(STRTDT, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(#{strtPerfDt},1,6), 'YYYYMM'), 1), 'YYYYMM')
+                AND C.QLF_DV_CD = '3'  /* 웰스매니저 */
+                AND NVL(C.QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승급 */
            ) S3 ON 1 = 1
         LEFT OUTER JOIN LATERAL
            ( SELECT D.EDUC_CPC_ACKMT_YN
@@ -278,6 +287,7 @@
               FETCH FIRST ROW ONLY
            ) S4 ON 1=1
        WHERE 1=1
+       ORDER BY TO_NUMBER(S1.PRTNR_NO)
     </select>
 
 </mapper>
