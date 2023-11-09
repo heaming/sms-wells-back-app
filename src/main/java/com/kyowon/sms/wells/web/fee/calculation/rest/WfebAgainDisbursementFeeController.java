@@ -47,7 +47,7 @@ public class WfebAgainDisbursementFeeController {
     @PostMapping("/delinquent-again-disbursement-fees/{baseYm}-{cntrPerfCrtDvCd}")
     public SaveResponse saveDlqAgainDisbursementOfFees(@PathVariable String baseYm, @PathVariable String cntrPerfCrtDvCd) {
         CodeDetailDvo code = codeService.getCodeDetailByPk("CNTR_PERF_CRT_DV_CD", cntrPerfCrtDvCd);
-        return SaveResponse.builder().processCount(againDisbursementFeeService.saveDlqAgainDisbursementOfFees(baseYm, code.getUserDfn02(), cntrPerfCrtDvCd)).build();
+        return SaveResponse.builder().processCount(againDisbursementFeeService.saveDlqAgainDisbursementOfFees(baseYm, code.getUserDfn03(), cntrPerfCrtDvCd)).build();
     }
 
 }
