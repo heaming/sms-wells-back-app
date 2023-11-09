@@ -27,6 +27,7 @@ public class WbncServiceDto {
         String svProcsCn, /* 서비스처리내용 */
         String bilOjAmt, /* 청구대상금액 */
         String dpSumAmt, /* 입금합계금액 */
-        String blam /* 잔액 */
+        String blam, /* 잔액 */
+        String gubun /* 작업상태구분 */
     ) {}
 }
