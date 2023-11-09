@@ -258,8 +258,8 @@
              , (SELECT SUBSTR(MAX(TT1.RVE_DT),1,4) FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DP_DV_CD = '1') AS FNL_PY_Y  --최근납입일
 			 , (SELECT SUBSTR(MAX(TT1.RVE_DT),5,2) FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DP_DV_CD = '1') AS FNL_PY_MM -- 최종납입월
 			 , (SELECT SUBSTR(MAX(TT1.RVE_DT),7,2) FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DP_DV_CD = '1') AS FNL_PY_D -- 최종납입일
-             , T10.VAC_BNK_CD AS BNK_CD              -- 가상계좌은행
-             , T10.VAC_NO AS VAC_NO                  -- 가상계좌번호
+             , T9.VAC_BNK_CD AS BNK_CD              -- 가상계좌은행
+             , T9.VAC_NO AS VAC_NO                  -- 가상계좌번호
              , '교원프라퍼티' AS ACHLDR_NM            /* 2023-10-23 예금주명 : '교원프라퍼티'*/
              , #{ojPyTmlmDt} AS PY_TMLM_DT          -- 파라미터로 전달받은 납입기한
              , T1.CLCTAM_OG_TP_CD  -- 집금조직유형코드
@@ -285,8 +285,26 @@
           LEFT JOIN TB_SSCT_CNTR_WELLS_DTL T6 ON T6.CNTR_NO = T1.CNTR_NO AND T6.CNTR_SN = T1.CNTR_SN AND T6.DTA_DL_YN = 'N'
           LEFT JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T7 ON T7.SL_CL_YM = T1.BASE_YM AND T7.CNTR_NO = T1.CNTR_NO AND T7.CNTR_SN = T1.CNTR_SN AND T7.DTA_DL_YN = 'N'
           LEFT JOIN TB_SSCT_CNTR_DTL T8 ON T8.CNTR_NO = T1.CNTR_NO AND T8.CNTR_SN = T1.CNTR_SN AND T8.DTA_DL_YN = 'N'
-          LEFT JOIN TB_RVDW_VAC_IS_DTL T9 ON T9.CNTR_NO = T1.CNTR_NO AND T9.CNTR_SN = T1.CNTR_SN AND T9.CST_NO = T1.CST_NO AND T9.DTA_DL_YN = 'N' --AND T9.FNL_MDFC_DTM = (SELECT MAX(FNL_MDFC_DTM) FROM TB_RVDW_VAC_IS_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.CST_NO = T1.CST_NO AND TT1.DTA_DL_YN = 'N')
-          LEFT JOIN TB_RVDW_VAC_IS_IZ T10 ON T9.VAC_IS_ID = T10.VAC_IS_ID AND T10.VAC_IS_DV_CD = '5' AND T10.DTA_DL_YN = 'N'
+          LEFT JOIN (SELECT TT1.CNTR_NO
+          			      , TT1.CNTR_SN
+          			      , TT1.CST_NO
+          			      , TT2.VAC_BNK_CD
+          			      , TT2.VAC_NO
+          		       FROM TB_RVDW_VAC_IS_DTL TT1
+          		      INNER JOIN TB_RVDW_VAC_IS_IZ TT2
+                         ON TT1.VAC_IS_ID = TT2.VAC_IS_ID
+                        AND TT2.VAC_IS_DV_CD = '5'
+                        AND TT2.VAC_STAT_CD = '1'
+                        AND TT2.DTA_DL_YN = 'N'
+          		      WHERE 1=1
+          		       	AND TT1.DTA_DL_YN = 'N'
+          		       	AND TT1.FNL_MDFC_DTM = (SELECT MAX(FNL_MDFC_DTM)
+                                                  FROM TB_RVDW_VAC_IS_DTL TT3
+                                                 WHERE TT3.CNTR_NO = TT1.CNTR_NO
+                                                   AND TT3.CNTR_SN = TT1.CNTR_SN
+                                                   AND TT3.DTA_DL_YN = 'N')) T9
+            ON T9.CNTR_NO = T1.CNTR_NO
+           AND T9.CNTR_SN = T1.CNTR_SN
           LEFT JOIN TB_CBBO_CLCTAM_PRTNR_USTEL_DTL T11 ON T11.OG_TP_CD = T1.CLCTAM_OG_TP_CD AND T11.PRTNR_NO = T1.CLCTAM_PRTNR_NO AND T11.MPHON_YN = 'Y' AND T11.DTA_DL_YN = 'N'
          WHERE 1 = 1
            AND T1.BASE_YM = SUBSTR(#{ojWkDt},1,6)   -- 자료생성 작업일자 파라미터 기준으로 substr로 데이터 잘라서 세팅
@@ -296,7 +314,6 @@
            AND T2.DLQ_MCN BETWEEN #{fromDlqMcn} AND #{toDlqMcn} -- 연체개월 FROM ~ TO 조건
            AND T2.CLCTAM_DV_CD = #{clctamDvCd}      -- 집금구분 01 - 단기 or 02 - 중기 인건만
            AND T1.DTA_DL_YN = 'N'
-           AND T9.FNL_MDFC_DTM = (SELECT MAX(FNL_MDFC_DTM) FROM TB_RVDW_VAC_IS_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.CST_NO = T1.CST_NO AND TT1.DTA_DL_YN = 'N') -- 가상계좌발급상세 다건 방지
            AND NOT EXISTS (SELECT 1
                              FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ TT1
                             WHERE TT1.CTNT_EXCD_BND_BIZ_CD = DECODE(#{ucAmtFwTpCd},'01','04','02','05') -- 발송유형에 따라 안내서 = '04' or 촉구서 = '05'
