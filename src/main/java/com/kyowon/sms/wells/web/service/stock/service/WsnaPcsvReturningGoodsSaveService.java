@@ -48,8 +48,6 @@ public class WsnaPcsvReturningGoodsSaveService {
 
         List<WsnaPcsvReturningGoodsSaveDvo> dvos = converter.mapSaveReqToPcsvReturningGoodsDvo(dtos);
 
-        // 물류수불처리 DVO
-        List<WsnaPcsvReturningGoodsSaveDvo> logisticsDvos = new ArrayList<WsnaPcsvReturningGoodsSaveDvo>();
         for (WsnaPcsvReturningGoodsSaveDvo dvo : dvos) {
             /*
               취소완료(wkPrgsStatCd-10) , 취소일자(NOT NULL)
@@ -67,12 +65,14 @@ public class WsnaPcsvReturningGoodsSaveService {
                 saveMapper.updateSvpdCstSvBfsvcAsnIz(dvo);
                 // 6. 판매시스템 철거일자 업데이트
                 String reqdDt = DateUtil.getNowDayString();
-                // 반품인 경우 설치일자 NULL, 철거일자 NOT NULL
+                // 7. 반품인 경우 설치일자 NULL, 철거일자 NOT NULL
                 reqdDtService
                     .saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), "", reqdDt.substring(0, 8), "");
                 log.info("[판매시스템 철거일자 업데이트] => {}", dvo.getRsgFshDt());
+                // 8. 서비스작업출고내역 저장 및 물류 수불처리
+                saveCount = savePcsvReturningGoodsOstrs(dvo);
+                log.info("[물류 수불처리 건수] => {}", saveCount);
 
-                logisticsDvos.add(dvo);
             } else {
                 /*
                   반품요청(wkPrgsStatCd-00), 반품등록(wkPrgsStatCd-10) 처리
@@ -90,53 +90,44 @@ public class WsnaPcsvReturningGoodsSaveService {
                     log.info("[고객센터 상담정보 연계 실패] => {}", counselRes);
                 }
             }
-            // 8. 서비스작업출고내역 저장 및 물류 수불처리
-            saveCount = savePcsvReturningGoodsOstrs(logisticsDvos);
-            log.info("[물류 수불처리 건수] => {}", saveCount);
-            processCount += 1;
         }
         return processCount;
     }
 
     @Transactional
-    public int savePcsvReturningGoodsOstrs(List<WsnaPcsvReturningGoodsSaveDvo> dvos) {
+    public int savePcsvReturningGoodsOstrs(WsnaPcsvReturningGoodsSaveDvo dvo) {
 
-        int processCount = 1;
+        String ostrDt = DateUtil.getNowDayString();
+        String itmOstrNo = this.mapper.selectNextItmOstrNo(
+            // 택배반품 임시사용 261 사용
+            new WsnaPcsvReturningGoodsMgtDto.FindItmOstrNoReq(RETURN_INSIDE, ostrDt)
+        );
+        log.info("[택배반품 품목출고일련번호] => {}", itmOstrNo);
 
-        for (WsnaPcsvReturningGoodsSaveDvo dvo : dvos) {
-            String ostrDt = DateUtil.getNowDayString();
-            String itmOstrNo = this.mapper.selectNextItmOstrNo(
-                // 택배반품 임시사용 261 사용
-                new WsnaPcsvReturningGoodsMgtDto.FindItmOstrNoReq(RETURN_INSIDE, ostrDt)
-            );
-            log.info("[택배반품 품목출고일련번호] => {}", itmOstrNo);
+        int ostrSn = 1; // 출고일련번호
 
-            int ostrSn = 1; // 출고일련번호
-
-            // 상품정보세팅 필요
-            List<WsnaPcsvReturningGoodsSaveProductDvo> products = dvo.getProducts();
-            log.info("[상품 세부 종류] => {}", products.size());
-            for (WsnaPcsvReturningGoodsSaveProductDvo productsVo : products) {
-                dvo.setOstrTpCd(RETURN_INSIDE);
-                dvo.setOstrDt(ostrDt);
-                dvo.setItmOstrNo(itmOstrNo);
-                dvo.setOstrSn(String.valueOf(ostrSn));
-                dvo.setLogisticsPdCd(productsVo.getPdCd());
-                dvo.setLogisticsPdNm(productsVo.getPdNm());
-                dvo.setLogisticsPdQty(productsVo.getUseQty());
-                // 9. 서비스작업출고내역 저장
-                saveMapper.insertSvstSvWkOstrIz(dvo);
-                // 반품요청 연계(물류서비스) DVO 세팅
-                List<WsnaPcsvReturningGoodsSaveDvo> logisticsVo = new ArrayList<WsnaPcsvReturningGoodsSaveDvo>();
-                logisticsVo.add(dvo);
-                // 10. 반품요청 연계(물류서비스) DVO 변환 및 호출
-                logisticsService.createInStorageAsks(setLogisticsInStorageAskReqDvo(logisticsVo));
-                // 11. 품목 재고 변경 내용 저장 => 물류 연계 배치 처리 후, 품목 재고 변경
-                ostrSn += 1;
-            }
-            processCount += 1;
+        // 상품정보세팅 필요
+        List<WsnaPcsvReturningGoodsSaveProductDvo> products = dvo.getProducts();
+        log.info("[상품 세부 종류] => {}", products.size());
+        for (WsnaPcsvReturningGoodsSaveProductDvo productsVo : products) {
+            dvo.setOstrTpCd(RETURN_INSIDE);
+            dvo.setOstrDt(ostrDt);
+            dvo.setItmOstrNo(itmOstrNo);
+            dvo.setOstrSn(String.valueOf(ostrSn));
+            dvo.setLogisticsPdCd(productsVo.getPdCd());
+            dvo.setLogisticsPdNm(productsVo.getPdNm());
+            dvo.setLogisticsPdQty(productsVo.getUseQty());
+            // 9. 서비스작업출고내역 저장
+            saveMapper.insertSvstSvWkOstrIz(dvo);
+            // 반품요청 연계(물류서비스) DVO 세팅
+            List<WsnaPcsvReturningGoodsSaveDvo> logisticsVo = new ArrayList<WsnaPcsvReturningGoodsSaveDvo>();
+            logisticsVo.add(dvo);
+            // 10. 반품요청 연계(물류서비스) DVO 변환 및 호출
+            logisticsService.createInStorageAsks(setLogisticsInStorageAskReqDvo(logisticsVo));
+            // 11. 품목 재고 변경 내용 저장 => 물류 연계 배치 처리 후, 품목 재고 변경
+            ostrSn += 1;
         }
-        return processCount;
+        return 1;
     }
 
     private List<WsnaLogisticsInStorageAskReqDvo> setLogisticsInStorageAskReqDvo(
