@@ -91,7 +91,7 @@ public class WfebRedemptionFeeService {
         String redfAdsbDvCd = "02";
         String redfAdsbTpCd = "0203";
         /* 기생성했던 연체되물림 데이터 삭제 */
-        redfAdsbFeeCalculationService.removeRedfAdsbData(baseYm, ogTpCd, redfAdsbDvCd, redfAdsbTpCd);
+        redfAdsbFeeCalculationService.removeRedfAdsbData(baseYm, ogTpCd, redfAdsbDvCd, redfAdsbTpCd, "Y");
 
         switch (ogTpCd) {
             case "W01":
