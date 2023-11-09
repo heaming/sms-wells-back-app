@@ -216,7 +216,7 @@ public class WsnaMdProductReturningGoodsSaveService {
 
         reqIvo.setCNSL_CN(cnslCn.toString()); //상담내용
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
-        reqIvo.setREG_USER_ID(session.getUserId()); //입력사용자 ID
+        reqIvo.setREG_USER_ID(session.getEmployeeIDNumber()); //입력사용자 ID
 
         return reqIvo;
     }
