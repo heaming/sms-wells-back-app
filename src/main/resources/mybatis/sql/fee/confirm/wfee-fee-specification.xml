@@ -673,7 +673,8 @@
                   O.BASE_YM             /* 기준년월 */
                 , O.OG_CD
                 , O.PSTN_DV_CD
-                , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_GD_CD', O.PRTNR_GD_CD) AS PRTNR_GD_CD
+                , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_GD_CD', O.PRTNR_GD_CD) AS DEGREE
+                , HMM.HMST_GD_VAL AS DEGREE  /* 급수 */
                 , FC.DSB_YM            /* 실적년월 */
                 , FC.CO_CD              /* 회사코드 */
                 , O.OG_TP_CD            /* 조직유형코드 */
@@ -861,6 +862,9 @@
                     AND FC.CO_CD = DSB.CO_CD
                     AND FC.OG_TP_CD = DSB.OG_TP_CD
                     AND FC.PRTNR_NO = DSB.PRTNR_NO
+            LEFT OUTER JOIN TB_FEAM_HMST_GD_BAS HMM
+             ON FC.DSB_YM = HMM.MNGT_YM
+            AND FC.PRTNR_NO = HMM.PRTNR_NO
             WHERE 1 = 1
               AND FC.DSB_YM = #{dto.perfDt} /* 실적년월 */
           <if test="@MybatisUtils@isNotEmpty(dto.ogLevel1)">
@@ -887,6 +891,7 @@
         SELECT
               O.BASE_YM             /* 기준년월 */
             , O.OG_CD
+            , O.MONTHS              /*  차월수 */
             , O.PSTN_DV_CD
             , FC.DSB_YM             /* 실적년월 */
             , FC.CO_CD              /* 회사코드 */
@@ -898,7 +903,7 @@
             , O.DGR3_LEVL_OG_CD     /* 3차레벨조직코드 - 지점 코드*/
             , O.PRTNR_KNM           /* 파트너명 */
             , O.RSB_DV_CD           /* 파트너 직급 */
-            , HMM.HMST_GD_VAL AS PRTNR_GD_CD  /* 급수 */
+            , HMM.HMST_GD_VAL AS DEGREE  /* 급수 */
             , '0' AS MEET_DATES     /* 미팅참석일수 */
             , ${feeCdFields}
             , ${feeSumField}
@@ -941,6 +946,7 @@
             (
                  SELECT T1.BASE_YM /* 기준년월 */
                       , T1.OG_CD
+                      , CEIL(MONTHS_BETWEEN(T1.BASE_YM || '01', T2.CNTR_DT)) + 1 AS MONTHS    /* 차월 */
                       , T2.PSTN_DV_CD
                       , T2.PRTNR_GD_CD
                       , T1.DGR1_LEVL_OG_ID /* 1차레벨조직ID */
@@ -971,6 +977,7 @@
                                 SELECT  PRTNR_NO
                                       , PRTNR_KNM
                                       , RSB_DV_CD
+                                      , CNTR_DT
                                       , BASE_YM
                                       , OG_TP_CD
                                       , OG_ID
@@ -1056,6 +1063,8 @@
             SELECT
                   O.BASE_YM             /* 기준년월 */
                 , O.OG_CD
+                , O.MONTHS             /* 차월수 */
+                , HMM.HMST_GD_VAL AS DEGREE  /* 급수 */
                 , O.PSTN_DV_CD
                 , O.PRTNR_GD_CD
                 , FC.DSB_YM            /* 실적년월 */
@@ -1110,6 +1119,7 @@
                     (
                         SELECT T1.BASE_YM /* 기준년월 */
                              , T1.OG_CD
+                             , CEIL(MONTHS_BETWEEN(T1.BASE_YM || '01', T2.CNTR_DT)) + 1 AS MONTHS    /* 차월 */
                              , T1.DGR1_LEVL_OG_ID /* 1차레벨조직ID */
                              , T1.DGR1_LEVL_OG_CD /* 1차레벨조직코드 */
                              , T1.DGR1_LEVL_OG_NM /* 1차레벨조직명 */
@@ -1142,6 +1152,7 @@
                                       , RSB_DV_CD
                                       , PRTNR_GD_CD
                                       , BASE_YM
+                                      , CNTR_DT
                                       , OG_TP_CD
                                       , OG_ID
                                       , QLF_DV_CD
@@ -1197,6 +1208,9 @@
                     AND FC.CO_CD = DSB.CO_CD
                     AND FC.OG_TP_CD = DSB.OG_TP_CD
                     AND FC.PRTNR_NO = DSB.PRTNR_NO
+            LEFT OUTER JOIN TB_FEAM_HMST_GD_BAS HMM
+             ON FC.DSB_YM = HMM.MNGT_YM
+            AND FC.PRTNR_NO = HMM.PRTNR_NO
             WHERE 1 = 1
               AND FC.DSB_YM = #{dto.perfDt} /* 실적년월 */
           <if test="@MybatisUtils@isNotEmpty(dto.ogLevel1)">
