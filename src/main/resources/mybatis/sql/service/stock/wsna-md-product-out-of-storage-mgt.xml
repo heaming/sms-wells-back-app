@@ -1,6 +1,103 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMdProductOutOfStorageMgtMapper">
+    <sql id="selectMdUserSql">
+        SELECT DISTINCT
+               EPNO
+             , USR_NM
+             , PDCT_PD_CD       /*제품*/
+             , PDCT_PD_NM       /*제품명*/
+             , PART_NM          /*자재명*/
+             , KIWI_PD_CD
+             , PD_PRP_VAL09
+             , PD_PRP_VAL33
+        FROM (/*기준상품 기준으로 제품 코드 추출*/
+                SELECT DISTINCT
+                       T2.EPNO   AS EPNO
+                     , T2.USR_NM AS USR_NM
+                     , T4.PD_CD                     /*기준상품*/
+                     , T4.PD_NM                     /*기준상품명*/
+                     , T5.OJ_PD_CD AS PDCT_PD_CD    /*제품*/
+                     , T6.PD_NM AS PDCT_PD_NM       /*제품명*/
+                     , T7.PD_PRP_VAL33 AS PART_NM   /*자재명*/
+                     /*, NVL(T6.PD_PRP_VAL33, T4.PD_NM) AS PDCT_PD_NM*/
+                     , T7.PD_PRP_VAL01 || T7.PD_PRP_VAL31 AS KIWI_PD_CD
+                     , T3.PD_PRP_VAL09 AS PD_PRP_VAL09
+                     , T3.PD_PRP_VAL33 AS PD_PRP_VAL33
+                     , DENSE_RANK() OVER(PARTITION BY T5.BASE_PD_CD ORDER BY T5.PD_REL_TP_CD DESC) AS BASE_PD_CD_REL_RAK
+                FROM T_CMY_USR_M T1
+                INNER JOIN T_CMP_USR_ACO_M T2
+                 ON T2.USR_ID = T1.USR_ID
+                INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T3
+                 ON T3.PD_PRP_VAL09 = T2.RSB_CD       /*(웰스 외주상담사의 업체코드 전용 컬럼)*/
+                 AND T3.PD_EXTS_PRP_GRP_CD  = 'SPP'
+                 AND T3.PD_CD != 'WP03200002'  /*엄광섭 프로님 확인 테스트 자료*/
+                INNER JOIN WSMDBS.TB_PDBS_PD_BAS T4
+                 ON T4.PD_CD = T3.PD_CD
+                 AND T4.PD_TP_CD = 'P'
+                INNER JOIN WSMDBS.TB_PDBS_PD_REL T5
+                 ON T5.BASE_PD_CD = T4.PD_CD
+                 AND T5.PD_REL_TP_CD IN ('05' , '18')
+                /*AND TO_CHAR(SYSDATE, 'YYYYMMDD') || '000000' BETWEEN T5.VL_STRT_DTM AND T5.VL_END_DTM*/
+                INNER JOIN WSMDBS.TB_PDBS_PD_BAS T6
+                 ON T6.PD_CD = T5.OJ_PD_CD
+                 AND T6.PD_TP_CD = 'M'
+                LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T7
+                 ON T7.PD_CD = T5.OJ_PD_CD       /*(웰스 외주상담사의 업체코드 전용 컬럼)*/
+                 AND T7.PD_EXTS_PRP_GRP_CD  = 'PART'
+                WHERE 1=1
+                 AND T1.TENANT_ID = 'TNT_WELLS'
+                 AND T1.BASE_RLE_CD = 'W8030'    /*WELLS 상품상담-벤더*/
+                 AND T2.EPNO != '95010'          /*한상문매니저님 확인, 해당 업체 사은품 배송 업체, 기준상품 매핑된거는 제외*/
+                 AND EPNO LIKE '95%'
+                 AND LENGTH(EPNO) = 5
+                UNION ALL
+                /*제품 기준으로 제품 코드 추출*/
+                SELECT T2.EPNO   AS EPNO
+                     , T2.USR_NM AS USR_NM
+                     , T6.PD_CD                     /*기준상품*/
+                     , T6.PD_NM                     /*기준상품명*/
+                     , T4.PD_CD AS PDCT_PD_CD       /*제품*/
+                     , T4.PD_NM AS PDCT_PD_NM       /*제품명*/
+                     , T7.PD_PRP_VAL33 AS PART_NM   /*자재명*/
+                     /*, NVL(T6.PD_PRP_VAL33, T4.PD_NM) AS PDCT_PD_NM*/
+                     , T7.PD_PRP_VAL01 || T7.PD_PRP_VAL31 AS KIWI_PD_CD
+                     , T3.PD_PRP_VAL09 AS PD_PRP_VAL09
+                     , T3.PD_PRP_VAL33 AS PD_PRP_VAL33
+                     , DENSE_RANK() OVER(PARTITION BY T5.BASE_PD_CD ORDER BY T5.PD_REL_TP_CD DESC) AS BASE_PD_CD_REL_RAK
+                FROM T_CMY_USR_M T1
+                INNER JOIN T_CMP_USR_ACO_M T2
+                 ON T2.USR_ID = T1.USR_ID
+                INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T3
+                 ON T3.PD_PRP_VAL01 = T2.RSB_CD              /*(웰스 외주상담사의 업체코드 전용 컬럼)*/
+                 AND T3.PD_EXTS_PRP_GRP_CD  = 'SPP'
+                 AND T3.PD_CD IN ('WM07100019', 'WM07100020') /*한상문매니저님 확인, 사은품배송 이브자리만 추가*/
+                INNER JOIN WSMDBS.TB_PDBS_PD_BAS T4
+                 ON T4.PD_CD = T3.PD_CD
+                 AND T4.PD_TP_CD = 'M'
+                LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_REL T5
+                 ON T5.OJ_PD_CD = T4.PD_CD
+                 AND T5.PD_REL_TP_CD IN ('05' , '18')
+                 /*AND TO_CHAR(SYSDATE, 'YYYYMMDD') || '000000' BETWEEN T5.VL_STRT_DTM AND T5.VL_END_DTM*/
+                LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_BAS T6
+                 ON T6.PD_CD = T5.BASE_PD_CD
+                 AND T6.PD_TP_CD = 'P'
+                LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T7
+                 ON T7.PD_CD = T4.PD_CD         /*(웰스 외주상담사의 업체코드 전용 컬럼)*/
+                 AND T7.PD_EXTS_PRP_GRP_CD  = 'PART'
+                WHERE 1=1
+                 AND T1.TENANT_ID = 'TNT_WELLS'
+                 AND T1.BASE_RLE_CD = 'W8030'    /*WELLS 상품상담-벤더*/
+                 AND EPNO LIKE '95%'
+                 AND LENGTH(EPNO) = 5
+       )
+       WHERE 1=1
+        AND BASE_PD_CD_REL_RAK = '1'
+        /* 파트너업체 검색조건 */
+        <if test="@MybatisUtils@isNotEmpty(prtnrBzsCd)">
+        AND PD_PRP_VAL09 = #{prtnrBzsCd}
+        </if>
+    </sql>
     <select id="selectBusinessDays" resultType="String">
        WITH DAY_INF AS
        (
@@ -180,7 +277,7 @@
           AND S3.BC_NO = #{serialNo} /* 제품시리얼번호 검색 */
           </if>
        )
-       , INQRY_LIST2 AS
+       , INQRY_LIST2_BACKUP AS
        (
           SELECT DISTINCT
                  I1.CST_SV_ASN_NO
@@ -195,6 +292,7 @@
                  WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_NM_LIST
                , LISTAGG(C2.PD_QTY, ',')
                  WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_QTY_LIST
+               , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', P1.PD_PRP_VAL09) AS PRTNR_BZS_NM /*파트너업체*/
           FROM TB_SSCT_CNTR_PD_REL C2             /*계약상품관계*/
           INNER JOIN TB_PDBS_PD_BAS P0         /*상품각사속성상세*/
            ON P0.PD_CD = C2.OJ_PD_CD
@@ -209,17 +307,42 @@
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')  BETWEEN C2.VL_STRT_DTM AND C2.VL_END_DTM
            AND C2.DTA_DL_YN = 'N'
            AND C2.PD_REL_TP_CD = '05'
-           /*01 복합-기준, 02 기준-기준, 03 기준-서비스, 04 서비스-서비스,
-             05 기준-제품, 06 대체품(Substitution), 07 상품-필터, 08 패키지(Package),
-             09 번들(Bundle), 10 프로모션상품-상품, 11 추가구매, 12 동시구매/기계약상품, 13 혼식불가,
-             14 AS부품, 15 대체모종, 16 멤버십기준상품, 17 구매 불가상품, 18 정기배송 제품명(BS),
-             19 동시구매선택상품, 20 동시구매선택번들상품, 21 패키지구성제품, 22 스마트체인지상품, 23 사은품,
-             24 BS투입제품, 25 구성품*/
            WHERE 1=1
             /* 파트너업체 검색조건 */
             <if test="@MybatisUtils@isNotEmpty(prtnrBzsCd)">
             AND P1.PD_PRP_VAL09 = #{prtnrBzsCd} /* 파트너업체 검색 */
             </if>
+       )
+       , MDQRY_LIST AS
+       (
+         <include refid="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMdProductOutOfStorageMgtMapper.selectMdUserSql"/>
+       )
+       , INQRY_LIST2 AS
+       (
+          SELECT DISTINCT
+                 I1.CST_SV_ASN_NO
+               , I1.CNTR_NO
+               , I1.CNTR_SN
+               , COUNT(1) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
+                                ORDER BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
+                                RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS PART_CNT_TOTAL
+               , LISTAGG(C2.OJ_PD_CD , ',')
+                 WITHIN GROUP(ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_LIST
+               , LISTAGG(NVL(M1.PDCT_PD_NM, M1.PD_PRP_VAL33), '|')
+                 WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_NM_LIST /*명칭에 ',' 값이 존재하는 경우가 있어서 구분자 변경*/
+               , LISTAGG(C2.PD_QTY, ',')
+                 WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_QTY_LIST
+               , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', M1.PD_PRP_VAL09) AS PRTNR_BZS_NM /*파트너업체*/
+          FROM TB_SSCT_CNTR_PD_REL C2             /*계약상품관계*/
+          INNER JOIN MDQRY_LIST M1
+           ON M1.PDCT_PD_CD = C2.OJ_PD_CD
+           AND M1.EPNO = '95006'  -- session.loginId
+          INNER JOIN INQRY_LIST1 I1
+           ON C2.CNTR_NO = I1.CNTR_NO
+           AND C2.CNTR_SN = I1.CNTR_SN
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')  BETWEEN C2.VL_STRT_DTM AND C2.VL_END_DTM
+           AND C2.DTA_DL_YN = 'N'
+           AND C2.PD_REL_TP_CD = '05'
        )
        , INQRY_LIST AS
        (  /* 택배 대상 */
@@ -300,14 +423,14 @@
                              , PL1.SPP_PROCS_BZS_CD  /*택배사*/
                              , PL1.BC_NO AS SPP_BZS_PD_ID     /*시리얼번호*/
                              , PL1.SPP_IVC_NO AS SPP_IVC_NO        /*송장번호*/
---                              , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', P1.PD_PRP_VAL09) AS PRTNR_BZS_NM /*파트너업체*/
-
+                             , PL1.PRTNR_BZS_NM                    /*파트너업체*/
                         FROM (
                                 SELECT I1.*
                                      , I2.PART_CNT_TOTAL
                                      , I2.PART_LIST
                                      , I2.PART_NM_LIST
                                      , I2.PART_QTY_LIST
+                                     , I2.PRTNR_BZS_NM
                                 FROM INQRY_LIST1 I1
                                 INNER JOIN INQRY_LIST2 I2
                                  ON I2.CST_SV_ASN_NO = I2.CST_SV_ASN_NO
@@ -622,7 +745,8 @@
        AND C1.CNTR_SN = I1.CNTR_SN
        AND ADRPC_TP_CD_RNK = 1
       INNER JOIN PART_INF P1
-       ON P1.PD_CD = I1.BASE_PD_CD
+--        ON P1.PD_CD = I1.BASE_PD_CD
+          ON P1.PD_CD = I1.PDCT_PD_CD
        AND P1.PD_EXTS_PRP_GRP_CD = 'SPP'
 --       LEFT OUTER JOIN OG_PRTNR_WARE_INF O1 /*물류작업자 사번에 대한 이행 정리가 아직 안되서 LEFT OUTER 로 향후 INNER JOIN 으로 변경 해야 함*/
 --        ON O1.OG_TP_CD = NVL(I1.OG_TP_CD, I1.ICHR_OG_TP_CD)
