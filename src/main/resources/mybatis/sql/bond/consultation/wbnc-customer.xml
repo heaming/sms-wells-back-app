@@ -988,4 +988,177 @@
          WHERE 1=1 
            AND ROWNUM = 1
     </select>
+    
+    <select id="selectPetitionType" resultType="com.kyowon.sms.wells.web.bond.consultation.dvo.WbncPetitionCreateDvo">
+        SELECT B.BND_BIZ_DV_CD              /*채권업무구분코드*/
+             , '02' AS BND_LWS_BIL_DV_CD    /*채권소송청구구분코드*/
+             , '@'  AS BND_BIL_PPS_DV_CD    /*채권청구취지구분코드*/
+             , (CASE WHEN NVL(A.ISTM_MCN,0) > 0 THEN 'Y' ELSE 'N' END) AS ISTM_YN   /*할부여부*/
+             , (CASE WHEN NVL(A.DSC_AMT,0) > 0 THEN 'Y' ELSE 'N' END) AS DSC_YN /*할인여부*/
+             , A.CNTR_DTL_STAT_CD           /*계약상세상태코드*/
+          FROM TB_SSCT_CNTR_DTL A /*T:계약상세*/
+         INNER JOIN TB_CBBO_BND_CNTR_BAS B /*T:채권계약기본*/
+            ON B.CNTR_NO = A.CNTR_NO
+           AND B.CNTR_SN = A.CNTR_SN
+           AND B.BASE_YM = #{baseYm}
+         WHERE 1=1
+           AND B.DTA_DL_YN = 'N'
+           AND B.CNTR_NO = SUBSTR(#{cntrDtlNo},0,12)
+           AND B.CNTR_SN = SUBSTR(#{cntrDtlNo},14,15)
+    </select>
+
+    <select id="selectPetitionType1" resultType="Integer">
+        /* B-2-1 [데이터] */
+        SELECT COUNT(1)
+          FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
+         INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
+            ON B.CNTR_NO = A.CNTR_NO
+         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /*T:WELLS매출월마감내역*/
+            ON C.CNTR_NO = B.CNTR_NO
+           AND C.CNTR_SN = B.CNTR_SN
+           AND C.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM')
+         WHERE 1=1
+           AND B.DTA_DL_YN = 'N'
+           AND B.CNTR_DTL_STAT_CD NOT IN ('301','302','303','401')
+           AND (NVL(C.EOT_UC_AMT,0) + NVL(C.SL_STP_AMT,0)) > 0
+           AND B.CNTR_NO = SUBSTR(#{cntrDtlNo},0,12)
+           AND B.CNTR_SN = SUBSTR(#{cntrDtlNo},14,15)
+    </select>
+    
+    <select id="selectPetitionType2" resultType="Integer">
+        /* B-2-2 [데이터] */
+        SELECT COUNT(1)
+          FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
+         INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
+            ON B.CNTR_NO = A.CNTR_NO
+         WHERE 1=1
+           AND B.DTA_DL_YN = 'N'
+           AND B.CNTR_DTL_STAT_CD NOT IN ('301','302','303','401')
+           AND (NVL(B.FNL_AMT,0)
+                - NVL((SELECT SUM(S1.RVE_AMT)
+                          FROM TB_RVDW_RVE_DTL S1 /*T:수납상세*/
+                         WHERE S1.CNTR_NO = B.CNTR_NO
+                           AND S1.CNTR_SN = B.CNTR_SN
+                           AND S1.DP_DV_CD = '1'    /*입금구분코드-1:입금*/
+                           AND S1.RVE_DV_CD NOT IN ('02','09')  /*수납구분코드-02:연체가산금,09:대손*/
+                     ),0)) > 0
+           AND B.CNTR_NO = SUBSTR(#{cntrDtlNo},0,12)
+           AND B.CNTR_SN = SUBSTR(#{cntrDtlNo},14,15)
+    </select>
+    
+    <select id="selectPetitionType3" resultType="Integer">
+       /* B-2-3 [데이터] */
+       SELECT COUNT(1)
+         FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
+        INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
+           ON B.CNTR_NO = A.CNTR_NO
+        WHERE 1=1
+          AND B.DTA_DL_YN = 'N'
+          AND B.CNTR_DTL_STAT_CD NOT IN ('301','302','303','401')
+          AND (NVL(B.FNL_AMT,0)
+               - (NVL((SELECT SUM(S1.RVE_AMT)
+                         FROM TB_RVDW_RVE_DTL S1 /*T:수납상세*/
+                        WHERE S1.CNTR_NO = B.CNTR_NO
+                          AND S1.CNTR_SN = B.CNTR_SN
+                          AND S1.DP_DV_CD = '1'    /*입금구분코드-1:입금*/
+                          AND S1.RVE_DV_CD NOT IN ('02','09')  /*수납구분코드-02:연체가산금,09:대손*/
+                     ),0)
+                     + (MONTHS_BETWEEN(ADD_MONTHS(SYSDATE,-1), TO_DATE(B.CNTR_PD_STRTDT,'YYYYMMDD')) * NVL(B.DSC_AMT,0) 
+                        + NVL(B.CNTRAM_DSC_AMT,0))
+                 )) > 0
+          AND B.CNTR_NO = SUBSTR(#{cntrDtlNo},0,12)
+          AND B.CNTR_SN = SUBSTR(#{cntrDtlNo},14,15)
+    </select>
+    
+    <select id="selectPetitionType4" resultType="Integer">
+       /* B-2-4 [데이터] */
+       SELECT COUNT(1)
+         FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
+        INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
+           ON B.CNTR_NO = A.CNTR_NO
+        WHERE 1=1
+          AND B.DTA_DL_YN = 'N'
+          AND B.CNTR_DTL_STAT_CD NOT IN ('301','302','303','401')
+          AND (NVL(B.FNL_AMT,0)
+               - NVL((SELECT SUM(S1.RVE_AMT)
+                        FROM TB_RVDW_RVE_DTL S1 /*T:수납상세*/
+                       WHERE S1.CNTR_NO = B.CNTR_NO
+                         AND S1.CNTR_SN = B.CNTR_SN
+                         AND S1.DP_DV_CD = '1'    /*입금구분코드-1:입금*/
+                         AND S1.RVE_DV_CD NOT IN ('02','09')  /*수납구분코드-02:연체가산금,09:대손*/
+                    ),0)) > 0
+          AND B.CNTR_NO = SUBSTR(#{cntrDtlNo},0,12)
+          AND B.CNTR_SN = SUBSTR(#{cntrDtlNo},14,15)
+    </select>
+    
+    <select id="selectPetitionType5" resultType="Integer">
+       /* B-2-5 [데이터] */
+       SELECT COUNT(1)
+         FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
+        INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
+           ON B.CNTR_NO = A.CNTR_NO
+        INNER JOIN TB_CBCL_DLQ_BAS C /*T:연체기본*/
+           ON C.CNTR_NO = B.CNTR_NO
+          AND C.CNTR_SN = B.CNTR_SN
+          AND C.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM')
+        WHERE 1=1
+          AND B.DTA_DL_YN = 'N'
+          AND B.CNTR_DTL_STAT_CD NOT IN ('301','302','303','401')
+          AND NVL(C.EOT_DLQ_AMT,0) > 0
+          AND B.CNTR_NO = SUBSTR(#{cntrDtlNo},0,12)
+          AND B.CNTR_SN = SUBSTR(#{cntrDtlNo},14,15)
+    </select>
+    
+    <select id="selectPetitionType6" resultType="Integer">
+       /* B-2-6 [데이터] */
+       SELECT COUNT(1)
+         FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
+        INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
+           ON B.CNTR_NO = A.CNTR_NO
+        INNER JOIN TB_CBCL_DLQ_BAS C /*T:연체기본*/
+           ON C.CNTR_NO = B.CNTR_NO
+          AND C.CNTR_SN = B.CNTR_SN
+          AND C.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM')
+        WHERE 1=1
+          AND B.DTA_DL_YN = 'N'
+          AND B.CNTR_DTL_STAT_CD IN ('303')
+          AND NVL(C.EOT_DLQ_AMT,0) > 0
+          AND B.CNTR_NO = SUBSTR(#{cntrDtlNo},0,12)
+          AND B.CNTR_SN = SUBSTR(#{cntrDtlNo},14,15)
+    </select>
+    
+    <select id="selectPetitionType7" resultType="Integer">
+       /* B-2-7 [데이터] */
+        SELECT COUNT(1)
+          FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
+         INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
+            ON B.CNTR_NO = A.CNTR_NO
+         INNER JOIN TB_CBBO_WELLS_AUTH_RSG_IZ C /*T:WELLS직권해지내역*/
+            ON C.CNTR_NO = B.CNTR_NO
+           AND C.CNTR_SN = B.CNTR_SN
+           AND C.BASE_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM')
+           AND C.AUTH_RSG_CNFM_YN = 'Y'
+           AND C.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND B.DTA_DL_YN = 'N'
+           AND B.CNTR_DTL_STAT_CD IN ('302')
+           AND (NVL(C.RSG_MM_UC_AMT,0)
+                + NVL(C.TOT_NPD_FNL_AMT,0) - NVL(C.RSG_MM_UC_AMT,0)
+                + NVL(C.RENTAL_RES_BOR_AMT,0)
+                + NVL(C.RENTAL_RGST_COST_BOR_AMT,0)
+                + NVL(C.DSC_CS_BOR_AMT,0)
+                + NVL(C.CSMB_CS_BOR_AMT,0)
+                + NVL(C.RSTL_BOR_AMT,0)
+                + NVL(C.P_BOR_AMT,0)
+                + NVL(C.LS_RNTF,0)
+                - NVL((SELECT SUM((CASE WHEN S1.DP_DV_CD = '1' THEN S1.DP_AMT
+                                        WHEN S1.DP_DV_CD = '2' THEN S1.DP_AMT * -1 END))
+                                   FROM TB_RVDW_RVE_DTL S1 /*T:수납상세*/
+                                  WHERE S1.CNTR_NO = C.CNTR_NO
+                                    AND S1.CNTR_SN = C.CNTR_SN
+                                    AND S1.RVE_DV_CD NOT IN ('09')
+                                    AND S1.RVE_DT > SUBSTR(C.AUTH_RSG_CNFMDT,1,8)),0)) > 0
+           AND B.CNTR_NO = SUBSTR(#{cntrDtlNo},0,12)
+           AND B.CNTR_SN = SUBSTR(#{cntrDtlNo},14,15)
+    </select>
 </mapper>
