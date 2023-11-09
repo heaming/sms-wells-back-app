@@ -464,14 +464,26 @@
                                    ) AS GIRO_NO --지로번호
                                  , GIRO_DP_MTR_DV_CD --구분코드
                                  , DP_SN -- 일련번호
-                                 , FNT_DT --이체일자
-                                 , RVE_DT --수납일자
+                                 , TO_CHAR(SYSDATE , 'YYYYMMDD') AS FNT_DT --이체일자
+                                , <![CDATA[   ( SELECT CASE WHEN SUBSTR(TO_CHAR(SYSDATE,'YYYYMMDD') , 7 , 2) <=   ( SELECT MIN(A2.BASE_D)
+                                                                                                              FROM TB_SVPD_SV_CLND_BAS A2
+                                                                                                             WHERE A2.DTA_DL_YN = 'N'
+                                                                                                               AND NVL(A2.DF_YN, 'N')    <> 'Y'
+                                                                                                               AND NVL(A2.PHLD_YN, 'N')  <> 'Y'
+                                                                                                               AND A2.BASE_Y  = SUBSTR(TO_CHAR(SYSDATE,'YYYYMMDD') , 0 , 4)
+                                                                                                               AND A2.BASE_MM = SUBSTR(TO_CHAR(SYSDATE,'YYYYMMDD') , 5 , 2)
+                                                                                                               AND A2.DOW_DV_CD NOT IN ('1', '7') )
+                                                                      THEN (SELECT A2.BASE_Y || A2.BASE_MM || MAX(A2.BASE_D)
+                                                                              FROM TB_SVPD_SV_CLND_BAS A2
+                                                                             WHERE A2.DTA_DL_YN = 'N'
+                                                                               AND A2.BASE_Y  = TO_CHAR(ADD_MONTHS(TO_CHAR(SYSDATE, 'YYYYMMDD'), -1), 'YYYY')
+                                                                               AND A2.BASE_MM = TO_CHAR(ADD_MONTHS(TO_CHAR(SYSDATE, 'YYYYMMDD'), -1), 'MM')
+                                                                             GROUP BY A2.BASE_Y, A2.BASE_MM )
+                                                                      ELSE TO_CHAR(SYSDATE,'YYYYMMDD')
+                                                                       END
+                                                            FROM DUAL )]]> AS RVE_DT --수납일자
                                  , GIRO_DP_BNK_CD --은행코드
                                  , GIRO_INQNO --지로조회번호
-<!--                                 , CASE WHEN GIRO_RVE_DV_CD IN ( 'R','A' ) OR GIRO_INQNO = ' ' THEN '0'-->
-<!--                                        WHEN SUBSTR(GIRO_INQNO,5,1) = '-'              THEN SUBSTR(GIRO_INQNO,1,4)-->
-<!--                                        WHEN SUBSTR(GIRO_INQNO,1,9) = '000000000'      THEN SUBSTR(GIRO_INQNO,10,4)-->
-<!--                                        ELSE 'W'||SUBSTR(GIRO_INQNO,3,11) END CNTR_NO /*계약번호     */-->
                                  , (SELECT
                                            T1.CNTR_NO
                                       FROM TB_RVDW_GIRO_OCR_PBL_DTL T1

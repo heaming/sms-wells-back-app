@@ -412,6 +412,7 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
         zwdzWithdrawalReceiveAskDvo.setReceiveAskDate(sysDateYmd); //RVE_RQDT	수납요청일자
         zwdzWithdrawalReceiveAskDvo.setReceiveAskStatusCode("02"); //RVE_AK_STAT_CD	수납요청상태코드
         zwdzWithdrawalReceiveAskDvo.setReceiveCompanyCode(session.getCompanyCode()); //RVE_CO_CD	수납회사코드
+        zwdzWithdrawalReceiveAskDvo.setReceiveCode(rveCd);
 
         /*수납요청기본 데이터 생성 (수납요청번호 리턴)*/
         String receiveAskNumber = zwdzWithdrawalService.createReceiveAskBase(zwdzWithdrawalReceiveAskDvo);

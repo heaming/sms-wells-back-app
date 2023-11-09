@@ -144,7 +144,9 @@ public class WwdbGiroOcrForwardingMgtDto {
         @NotBlank
         String wkDt, //작업일자
         @NotBlank
-        String giroOcrPblOjStrtdt
+        String giroOcrPblOjStrtdt,
+        String giroRglrDvCd
+
     ) {
     }
 
