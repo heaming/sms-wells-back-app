@@ -10,4 +10,6 @@ import java.util.List;
 @Mapper
 public interface WsnfAsEnrgMatMngtMapper {
     List<WsnfAsEnrgMatMngtDvo> selectAsEncourageMaterials(SearchReq dto, PageInfo pageInfo);
+
+    List<WsnfAsEnrgMatMngtDvo> selectAsEncourageMaterials(SearchReq dto);
 }
