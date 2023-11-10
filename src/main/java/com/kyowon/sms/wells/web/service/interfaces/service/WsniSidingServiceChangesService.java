@@ -108,7 +108,7 @@ public class WsniSidingServiceChangesService {
                     req.akChdt(),
                     null,
                     req.akChdt(),
-                    req.akChdt(),
+                    req.akChdt(), // 배정년월 설정
                     null,
                     null
                 )
