@@ -46,8 +46,8 @@ public class WdccProductAccountDto {
         String baseYm, /*기준년월*/
         String sellTpCd, /*판매유형*/
         String sellTpDtlCd, /*판매유형상세*/
-        String pdHclsfId, /*상품대분류*/
-        String pdMclsfId, /*상품중분류*/
+        String pdHclsfNm, /*상품대분류*/
+        String pdMclsfNm, /*상품중분류*/
         String pdCd, /*상품코드*/
         String pdNm, /*상품명*/
         String agrgCt1, /*이월*/
