@@ -100,7 +100,7 @@ public class WwdaBundleWithdrawalRgstService {
             Map<String, String> params = new HashMap<String, String>();
 
             batchDvo.setJobKey("WSM_WD_OA0001");
-            params.put("itgBilBatExcnYn", "Y");
+            params.put("itgBilBatExcnYn", "1".equals(dvo.getUnrgRsCd()) ? "Y" : "N"); // 변경대상 여부
             params.put("cntrNo", dvo.getCntrNo());
             params.put("cntrSn", dvo.getCntrSn());
             params.put("rcpStrtdt", dvo.getCntrPdStrtdt());
