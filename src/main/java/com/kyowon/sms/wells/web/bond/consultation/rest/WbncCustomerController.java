@@ -79,7 +79,11 @@ public class WbncCustomerController {
         @ApiImplicitParam(name = "schOjBlamEnd", value = "to 대상잔액", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schCstDv", value = "고객구분", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schCpsnRsgYn", value = "강제해지여부", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "schDv", value = "구분", paramType = "query", example = "")
+        @ApiImplicitParam(name = "schDv1", value = "구분1", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "schDv2", value = "구분2", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "schDv3", value = "구분3", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "schDv4", value = "구분4", paramType = "query", example = ""),
+
     })
     public List<SearchRes> getCustomers(SearchReq dto) throws Exception {
         return service.getCustomers(dto);
