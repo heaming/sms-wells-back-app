@@ -108,7 +108,7 @@ public class WsniSidingServiceChangesService {
                     req.akChdt(),
                     null,
                     req.akChdt(),
-                    null,
+                    req.akChdt(),
                     null,
                     null
                 )
