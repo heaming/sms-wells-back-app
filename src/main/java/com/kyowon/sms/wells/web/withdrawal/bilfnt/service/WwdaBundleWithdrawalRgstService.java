@@ -109,6 +109,15 @@ public class WwdaBundleWithdrawalRgstService {
             batchDvo.setParams(params);
             String runId = batchCallService.runJob(batchDvo);
 
+            while (true) {
+                Thread.sleep(2000);
+                String jobStatus = batchCallService.getLastestJobStatus(runId);
+                if ("Ended OK".equals(jobStatus) || "Ended Not OK".equals(jobStatus)) {
+                    //                success = "S";
+                    break;
+                }
+            }
+
             log.debug("Batch Run Id ::: " + runId);
         }
 
