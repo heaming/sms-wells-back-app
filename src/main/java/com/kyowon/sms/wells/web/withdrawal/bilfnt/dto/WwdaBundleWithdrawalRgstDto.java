@@ -27,7 +27,8 @@ public class WwdaBundleWithdrawalRgstDto {
         String cntrNo, // 계약번호
         String cntrSn, // 계약 일련번호
         String cntrPdStrtdt, // 접수시작일
-        String cntrPdEnddt // 접수종료일
+        String cntrPdEnddt, // 접수종료일,
+        String unrgRsCd // 접수구분,
 
     ) {}
 

@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.fee.calculation.service;
 
 import java.util.List;
 
+import com.sds.sflex.system.config.validation.BizAssert;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,8 +118,8 @@ public class WfebSoleDistributorFeeMgtService {
         // 00. 총판 순주문집계 가능여부 체크
         // 00-1. 수수료일정 갱신 API 체크 > 화면에서해서 일단 페스
         // 00-2. 순주문파트너월마감 확정여부 체크
-        //int checkCount = mapper.selectCheckSoleConfrim(req);
-        //BizAssert.isFalse(checkCount > 0, "MSG_ALT_CNFM_NO_RENEW_DATA"); // 확정된 DATA는 갱신이 불가능합니다.
+        int checkCount = mapper.selectCheckSoleConfrim(req);
+        BizAssert.isFalse(checkCount > 0, "MSG_ALT_CNFM_NO_RENEW_DATA"); // 확정된 DATA는 갱신이 불가능합니다.
 
         // 01. 총판 기존 순주문집계 삭제
         // 01-1. 순주문파트너월마감 삭제

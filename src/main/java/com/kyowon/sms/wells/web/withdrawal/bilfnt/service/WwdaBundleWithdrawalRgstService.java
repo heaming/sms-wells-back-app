@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sds.sflex.common.utils.StringUtil;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,14 +95,13 @@ public class WwdaBundleWithdrawalRgstService {
     public int saveBundleRegistration(
         List<SaveReq> req
     ) throws Exception {
-
         for (SaveReq saveReq : req) {
             WwdaBundleWithdrawalRgstDvo dvo = converter.mapSaveReqToWwdaBundleWithdrawalRgstDvo(saveReq);
             BatchCallReqDvo batchDvo = new BatchCallReqDvo();
-            Map<String, String> params = new HashMap<String, String>();
+            Map<String, String> params = new HashMap<>();
 
             batchDvo.setJobKey("WSM_WD_OA0001");
-            params.put("itgBilBatExcnYn", "Y");
+            params.put("itgBilBatExcnYn", StringUtil.nvl2(dvo.getUnrgRsCd(), "")); // 변경대상 여부
             params.put("cntrNo", dvo.getCntrNo());
             params.put("cntrSn", dvo.getCntrSn());
             params.put("rcpStrtdt", dvo.getCntrPdStrtdt());
@@ -108,6 +109,15 @@ public class WwdaBundleWithdrawalRgstService {
 
             batchDvo.setParams(params);
             String runId = batchCallService.runJob(batchDvo);
+
+            while (true) {
+                Thread.sleep(2000);
+                String jobStatus = batchCallService.getLastestJobStatus(runId);
+                if ("Ended OK".equals(jobStatus) || "Ended Not OK".equals(jobStatus)) {
+                    //                success = "S";
+                    break;
+                }
+            }
 
             log.debug("Batch Run Id ::: " + runId);
         }
