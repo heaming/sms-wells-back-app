@@ -22,14 +22,16 @@ public class WfebOutcomeAllowanceService {
         if (dto.thmInqr()) {
             return mapper.selectOutcomeAllowancesManagerThisMonth(dto);
         }
-        return mapper.selectOutcomeAllowancesManager(dto);
+        //        return mapper.selectOutcomeAllowancesManager(dto);
+        return mapper.selectOutcomeAllowancesManagerThisMonth(dto);
     }
 
     public List<SearchPlannerRes> getOutcomeAllowancesPlanner(SearchReq dto) {
         if (dto.thmInqr()) {
             return mapper.selectOutcomeAllowancesPlannerThisMonth(dto);
         }
-        return mapper.selectOutcomeAllowancesPlanner(dto);
+        //        return mapper.selectOutcomeAllowancesPlanner(dto);
+        return mapper.selectOutcomeAllowancesPlannerThisMonth(dto);
 
     }
 
