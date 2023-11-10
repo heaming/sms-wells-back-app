@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.kyowon.sms.wells.web.service.adrwork.converter.WsnfAsEnrgMatMngtConverter;
 import com.kyowon.sms.wells.web.service.adrwork.dto.WsnfAsEnrgMatMngtDto.*;
+import com.kyowon.sms.wells.web.service.adrwork.dvo.WsnfAsEnrgMatMngtDvo;
 import com.kyowon.sms.wells.web.service.adrwork.mapper.WsnfAsEnrgMatMngtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -37,6 +38,15 @@ public class WsnfAsEnrgMatMngtService {
         pagingResult.setPageInfo(pageInfo);
         return pagingResult;
 
+    }
+
+    /**
+     * AS 유형별 필요자재관리 엑셀 다운로드
+     * @param dto
+     * @return 배정정보 조회 엑셀 다운로드
+     */
+    public List<WsnfAsEnrgMatMngtDvo> getAsEncourageMaterialsForExcelDowload(SearchReq dto) {
+        return mapper.selectAsEncourageMaterials(dto);
     }
 
 }

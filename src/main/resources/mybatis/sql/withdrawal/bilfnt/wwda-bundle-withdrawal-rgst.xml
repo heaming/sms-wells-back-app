@@ -217,10 +217,10 @@
                 WHERE 1 = 1
                   <if test='@MybatisUtils@isNotEmpty(unrgRs)'>
                          <if test='@MybatisUtils@equals(unrgRs, "1")'>
-                  AND T.UNRG_RSON_CD NOT IN ('02','03','12','13')
+                  AND LPAD(T.UNRG_RSON_CD,2,'0') NOT IN ('02','03','12','13')
                          </if>
                          <if test='@MybatisUtils@equals(unrgRs, "2")'>
-                  AND T.UNRG_RSON_CD IN ('02','03','12','13')
+                  AND LPAD(T.UNRG_RSON_CD,2,'0') IN ('02','03','12','13')
                          </if>
                   </if>
                   <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
@@ -236,159 +236,292 @@
     </select>
 
     <select id="selectBundleRgstRsInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaBundleWithdrawalRgstDto$SearchRgstHistRes">
-                             SELECT DG_CNTR.ITG_BIL_PRTC_DTM
-                                  , DG_CNTR.FNL_MDFC_USR_ID
-                                  , DG_CNTR.AFTN_ITG_UNRG_RS_CD
-                                  , DG_CNTR.ERR_CN
-                                  , DG_CNTR.CST_KNM
-                                  , DG_CNTR.PD_NM
-                                  , DG_CNTR.CNTR_PD_STRTDT
-                                  , DG_CNTR.AFTN_ITG_UNRG_RSON_CD
-                                  , DG_CNTR.DG_CNTR_NO AS CNTR_SN
-                                  , DG_CNTR.DG_CNTR_NO AS DG_CNTR_NO
-                                  , DG_CNTR.DG_CNTR_SN AS DG_CNTR_SN
-                                  , DG_CNTR.DP_TP_CD
-                                  , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(CASE WHEN DG_CNTR.DP_TP_CD = '0102' THEN DG_CNTR.BNK_CD ELSE DG_CNTR.CDCO_CD END ,3,0) = FNIT_CD) AS BNK_CD
-                                  , CASE WHEN DG_CNTR.DP_TP_CD = '0102' THEN DG_CNTR.ACNO_ENCR ELSE DG_CNTR.CRCDNO_ENCR END AS ACNO_ENCR
-                                  , DG_CNTR.OWR_KNM
-                                  , DG_CNTR.MPY_BSDT
-                                  , DG_CNTR.BRYY_MMDD
-                                  , SUBOD_CNTR.SUBOD_CNTR_NO AS SDING_CNTR_NO
-                                  , SUBOD_CNTR.SUBOD_CNTR_SN AS SDING_CNTR_SN
-                                  , SUBOD_CNTR.DP_TP_CD AS SDING_DP_TP_CD
-                                  , DG_CNTR.DG_CNTR_NO AS SDING_DG_CNTR_SN
-                                  , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(CASE WHEN SUBOD_CNTR.DP_TP_CD = '0102' THEN SUBOD_CNTR.BNK_CD ELSE SUBOD_CNTR.CDCO_CD END,3,0) = FNIT_CD) AS SDING_BNK_CD
-                                  , CASE WHEN SUBOD_CNTR.DP_TP_CD = '0102' THEN SUBOD_CNTR.ACNO_ENCR ELSE SUBOD_CNTR.CRCDNO_ENCR END AS SDING_ACNO_ENCR
-                                  , SUBOD_CNTR.OWR_KNM  AS SDING_OWR_KNM
-                                  , SUBOD_CNTR.MPY_BSDT AS SDING_MPY_BSDT
-                                  , SUBOD_CNTR.BRYY_MMDD AS SDING_BRYY_MMDD
-                               FROM (
-                                     SELECT CASE WHEN RIEI.DG_CNTR_NO IS NULL THEN RIBO.DG_CNTR_NO ELSE RIEI.DG_CNTR_NO END AS DG_CNTR_NO
-                                          , CASE WHEN RIEI.DG_CNTR_SN IS NULL THEN RIBO.DG_CNTR_SN ELSE RIEI.DG_CNTR_SN END AS DG_CNTR_SN
-                                          , RIBO.SUBOD_CNTR_NO
-                                          , RIBO.SUBOD_CNTR_SN
-                                          , SCSB.DP_TP_CD
-                                          , SCSB.BNK_CD
-                                          , SCSB.CDCO_CD
-                                          , SCSB.ACNO_ENCR
-                                          , SCSB.CRCDNO_ENCR
-                                          , SCSB.OWR_KNM
-                                          , SCSB.MPY_BSDT
-                                          , RIEI.ITG_BIL_PRTC_DTM
-                                          , RIEI.FNL_MDFC_USR_ID
-                                          , RIEI.AFTN_ITG_UNRG_RS_CD
-                                          , RIEI.AFTN_ITG_UNRG_RSON_CD
-                                          , RIEI.ERR_CN
-                                          , RIEI.DG_CNTR_NO AS ERR_DG_CNTR_NO
-                                          , RIEI.DG_CNTR_SN AS ERR_DG_CNTR_SN
-                                          , RIEI.SUBOD_CNTR_NO AS ERR_SUBOD_CNTR_NO
-                                          , RIEI.SUBOD_CNTR_SN AS ERR_SUBOD_CNTR_SN
-                                          , CCB.CST_KNM
-                                          , PPB.PD_NM
-                                          , SCB.CNTR_PD_STRTDT
-                                          , CCB.BRYY_MMDD
-                                       FROM TB_SSCT_CNTR_STLM_REL SCSR
-                                       JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
-                                         ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID
-                                        AND SCSB.DTA_DL_YN = 'N'
-                                        AND SCSR.DTA_DL_YN = 'N'
-                                        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SCSR.VL_STRT_DTM AND SCSR.VL_END_DTM
-                                        AND SCSR.VL_END_DTM = '99991231235959'
-                                       JOIN TB_SSCT_CNTR_DTL SCD
-                                         ON SCSR.DTL_CNTR_NO = SCD.CNTR_NO
-                                        AND SCSR.DTL_CNTR_SN = SCD.CNTR_SN
-                                        AND SCD.DTA_DL_YN = 'N'
-                                       JOIN TB_SSCT_CNTR_BAS SCB
-                                         ON SCB.CNTR_NO = SCD.CNTR_NO
-                                        AND SCB.DTA_DL_YN = 'N'
-                                       JOIN TB_CUBS_CST_BAS CCB
-                                         ON SCB.CNTR_CST_NO = CCB.CST_NO
-                                        AND CCB.DTA_DL_YN = 'N'
-                            LEFT OUTER JOIN TB_PDBS_PD_BAS PPB
-                                         ON PPB.PD_CD = SCD.BASE_PD_CD
-                                        AND PPB.DTA_DL_YN = 'N'
-                            LEFT OUTER JOIN TB_RVCL_ITG_BIL_OJ_HIST RIBO
-                                         ON RIBO.DG_CNTR_NO = SCD.CNTR_NO
-                                        AND RIBO.DG_CNTR_SN = SCD.CNTR_SN
-                                        AND RIBO.DTA_DL_YN = 'N'
-                                        AND RIBO.FNT_DV_CD IN ('01','02')
-                            LEFT OUTER JOIN TB_RVCL_ITG_BIL_OJ_ERR_IZ RIEI
-                                         ON RIEI.DG_CNTR_NO = SCD.CNTR_NO
-                                        AND RIEI.DG_CNTR_SN = SCD.CNTR_SN
-                                        AND RIEI.DTA_DL_YN = 'N'
-                                      WHERE 1 = 1
-                                        <if test='@MybatisUtils@equals(unrgRs, "01")'>
-                                        AND AFTN_ITG_UNRG_RS_CD = '00'
-                                        </if>
-                                        <if test='@MybatisUtils@equals(unrgRs, "02")'>
-                                        AND AFTN_ITG_UNRG_RS_CD != '00'
-                                        </if>
-                                        <if test='@MybatisUtils@isNotEmpty(cntrSnA)'>
-                                        AND SCD.CNTR_NO = #{cntrNoA}
-                                        AND SCD.CNTR_SN = #{cntrSnA}
-                                        </if>
-                                        AND (RIBO.HIST_CH_DTM BETWEEN #{cntrPdStrtdtA} || '000000' AND #{cntrPdEnddtA} || '235999'
-                                           OR RIEI.ITG_BIL_PRTC_DTM BETWEEN #{cntrPdStrtdtA} || '000000' AND #{cntrPdEnddtA} || '235999')
-                                 ) DG_CNTR
-                               JOIN (
-                                     SELECT RIBO.DG_CNTR_NO
-                                          , RIBO.DG_CNTR_SN
-                                          , RIBO.SUBOD_CNTR_NO
-                                          , RIBO.SUBOD_CNTR_SN
-                                          , SCSB.DP_TP_CD
-                                          , SCSB.BNK_CD
-                                          , SCSB.CDCO_CD
-                                          , SCSB.ACNO_ENCR
-                                          , SCSB.CRCDNO_ENCR
-                                          , SCSB.OWR_KNM
-                                          , SCSB.MPY_BSDT
-                                          , RIEI.ITG_BIL_PRTC_DTM
-                                          , RIEI.FNL_MDFC_USR_ID
-                                          , RIEI.AFTN_ITG_UNRG_RS_CD
-                                          , RIEI.AFTN_ITG_UNRG_RSON_CD
-                                          , RIEI.ERR_CN
-                                          , RIEI.DG_CNTR_NO AS ERR_DG_CNTR_NO
-                                          , RIEI.DG_CNTR_SN AS ERR_DG_CNTR_SN
-                                          , RIEI.SUBOD_CNTR_NO AS ERR_SUBOD_CNTR_NO
-                                          , RIEI.SUBOD_CNTR_SN AS ERR_SUBOD_CNTR_SN
-                                          , CCB.BRYY_MMDD
-                                       FROM TB_SSCT_CNTR_STLM_REL SCSR
-                                       JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
-                                         ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID
-                                        AND SCSB.DTA_DL_YN = 'N'
-                                        AND SCSR.DTA_DL_YN = 'N'
-                                        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SCSR.VL_STRT_DTM AND SCSR.VL_END_DTM
-                                        AND SCSR.VL_END_DTM = '99991231235959'
-                                       JOIN TB_SSCT_CNTR_DTL SCD
-                                         ON SCSR.DTL_CNTR_NO = SCD.CNTR_NO
-                                        AND SCSR.DTL_CNTR_SN = SCD.CNTR_SN
-                                        AND SCD.DTA_DL_YN = 'N'
-                                       JOIN TB_SSCT_CNTR_BAS SCB
-                                         ON SCB.CNTR_NO = SCD.CNTR_NO
-                                        AND SCB.DTA_DL_YN = 'N'
-                                       JOIN TB_CUBS_CST_BAS CCB
-                                         ON SCB.CNTR_CST_NO = CCB.CST_NO
-                                        AND CCB.DTA_DL_YN = 'N'
-                            LEFT OUTER JOIN TB_RVCL_ITG_BIL_OJ_HIST RIBO
-                                         ON RIBO.SUBOD_CNTR_NO = SCD.CNTR_NO
-                                        AND RIBO.SUBOD_CNTR_SN = SCD.CNTR_SN
-                                        AND RIBO.DTA_DL_YN = 'N'
-                                        AND RIBO.FNT_DV_CD IN ('01','02')
-                            LEFT OUTER JOIN TB_RVCL_ITG_BIL_OJ_ERR_IZ RIEI
-                                         ON RIEI.SUBOD_CNTR_NO = SCD.CNTR_NO
-                                        AND RIEI.SUBOD_CNTR_SN = SCD.CNTR_SN
-                                        AND RIEI.DTA_DL_YN = 'N'
-                                      WHERE 1 = 1
-                                        <if test='@MybatisUtils@equals(unrgRs, "01")'>
-                                        AND AFTN_ITG_UNRG_RS_CD = '00'
-                                        </if>
-                                        <if test='@MybatisUtils@equals(unrgRs, "02")'>
-                                        AND AFTN_ITG_UNRG_RS_CD != '00'
-                                        </if>
-                                        AND (RIBO.HIST_CH_DTM BETWEEN #{cntrPdStrtdtA} || '000000' AND #{cntrPdEnddtA} || '235999'
-                                           OR RIEI.ITG_BIL_PRTC_DTM BETWEEN #{cntrPdStrtdtA} || '000000' AND '20231109' || '235999')
-                                 ) SUBOD_CNTR
-                                 ON DG_CNTR.DG_CNTR_NO = SUBOD_CNTR.DG_CNTR_NO
-                                AND DG_CNTR.DG_CNTR_SN = SUBOD_CNTR.DG_CNTR_SN
+                                 SELECT DG_CNTR.ITG_BIL_PRTC_DTM
+	                                  , DG_CNTR.FNL_MDFC_USR_ID
+	                                  , DG_CNTR.AFTN_ITG_UNRG_RS_CD
+	                                  , DG_CNTR.ERR_CN
+	                                  , DG_CNTR.CST_KNM
+	                                  , DG_CNTR.PD_NM
+	                                  , DG_CNTR.CNTR_PD_STRTDT
+	                                  , DG_CNTR.AFTN_ITG_UNRG_RSON_CD
+	                                  , DG_CNTR.DG_CNTR_NO AS CNTR_SN
+	                                  , DG_CNTR.DG_CNTR_NO AS DG_CNTR_NO
+	                                  , DG_CNTR.DG_CNTR_SN AS DG_CNTR_SN
+	                                  , DG_CNTR.DP_TP_CD
+	                                  , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(CASE WHEN DG_CNTR.DP_TP_CD = '0102' THEN DG_CNTR.BNK_CD ELSE DG_CNTR.CDCO_CD END ,3,0) = FNIT_CD) AS BNK_CD
+	                                  , CASE WHEN DG_CNTR.DP_TP_CD = '0102' THEN DG_CNTR.ACNO_ENCR ELSE DG_CNTR.CRCDNO_ENCR END AS ACNO_ENCR
+	                                  , DG_CNTR.OWR_KNM
+	                                  , DG_CNTR.MPY_BSDT
+	                                  , DG_CNTR.BRYY_MMDD
+	                                  , SUBOD_CNTR.SUBOD_CNTR_NO AS SDING_CNTR_NO
+	                                  , SUBOD_CNTR.SUBOD_CNTR_SN AS SDING_CNTR_SN
+	                                  , SUBOD_CNTR.DP_TP_CD AS SDING_DP_TP_CD
+	                                  , DG_CNTR.DG_CNTR_NO AS SDING_DG_CNTR_SN
+	                                  , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(CASE WHEN SUBOD_CNTR.DP_TP_CD = '0102' THEN SUBOD_CNTR.BNK_CD ELSE SUBOD_CNTR.CDCO_CD END,3,0) = FNIT_CD) AS SDING_BNK_CD
+	                                  , CASE WHEN SUBOD_CNTR.DP_TP_CD = '0102' THEN SUBOD_CNTR.ACNO_ENCR ELSE SUBOD_CNTR.CRCDNO_ENCR END AS SDING_ACNO_ENCR
+	                                  , SUBOD_CNTR.OWR_KNM  AS SDING_OWR_KNM
+	                                  , SUBOD_CNTR.MPY_BSDT AS SDING_MPY_BSDT
+	                                  , SUBOD_CNTR.BRYY_MMDD AS SDING_BRYY_MMDD
+                                   FROM (
+	                                     SELECT RIBO.DG_CNTR_NO
+	                                          , RIBO.DG_CNTR_SN
+	                                          , RIBO.SUBOD_CNTR_NO
+	                                          , RIBO.SUBOD_CNTR_SN
+	                                          , SCSB.DP_TP_CD
+	                                          , SCSB.BNK_CD
+	                                          , SCSB.CDCO_CD
+	                                          , SCSB.ACNO_ENCR
+	                                          , SCSB.CRCDNO_ENCR
+	                                          , SCSB.OWR_KNM
+	                                          , SCSB.MPY_BSDT
+	                                          , RIBO.HIST_CH_DTM AS ITG_BIL_PRTC_DTM
+	                                          , RIBO.FNL_MDFC_USR_ID
+	                                          , '01' AS AFTN_ITG_UNRG_RS_CD
+	                                          , '' AS AFTN_ITG_UNRG_RSON_CD
+	                                          , '' AS ERR_CN
+	                                          , '' AS ERR_DG_CNTR_NO
+	                                          , '' AS ERR_DG_CNTR_SN
+	                                          , '' AS ERR_SUBOD_CNTR_NO
+	                                          , '' AS ERR_SUBOD_CNTR_SN
+	                                          , CCB.CST_KNM
+	                                          , PPB.PD_NM
+	                                          , SCD.CNTR_PD_STRTDT
+	                                          , CCB.BRYY_MMDD
+	                                       FROM TB_RVCL_ITG_BIL_OJ_HIST RIBO
+	                                       JOIN TB_SSCT_CNTR_STLM_REL SCSR
+	                                         ON RIBO.DG_CNTR_NO = SCSR.DTL_CNTR_NO
+	                                        AND RIBO.DG_CNTR_SN = SCSR.DTL_CNTR_SN
+	                                        AND RIBO.DTA_DL_YN = 'N'
+	                                        AND RIBO.FNT_DV_CD IN ('01','02')
+	                                        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SCSR.VL_STRT_DTM AND SCSR.VL_END_DTM
+	                                        AND SCSR.VL_END_DTM = '99991231235959'
+	                                       JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
+	                                         ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID
+	                                        AND SCSB.DTA_DL_YN = 'N'
+	                                        AND SCSR.DTA_DL_YN = 'N'
+	                                       JOIN TB_SSCT_CNTR_DTL SCD
+	                                         ON SCSR.DTL_CNTR_NO = SCD.CNTR_NO
+	                                        AND SCSR.DTL_CNTR_SN = SCD.CNTR_SN
+	                                        AND SCD.DTA_DL_YN = 'N'
+	                                       JOIN TB_SSCT_CNTR_BAS SCB
+	                                         ON SCB.CNTR_NO = SCD.CNTR_NO
+	                                        AND SCB.DTA_DL_YN = 'N'
+	                                       JOIN TB_CUBS_CST_BAS CCB
+	                                         ON SCB.CNTR_CST_NO = CCB.CST_NO
+	                                        AND CCB.DTA_DL_YN = 'N'
+	                            LEFT OUTER JOIN TB_PDBS_PD_BAS PPB
+	                                         ON PPB.PD_CD = SCD.BASE_PD_CD
+	                                        AND PPB.DTA_DL_YN = 'N'
+	                                      WHERE 1 = 1
+	                                        AND RIBO.HIST_CH_DTM BETWEEN #{cntrPdStrtdtA} || '000000' AND #{cntrPdEnddtA} || '235999'
+	                                 ) DG_CNTR
+	                               JOIN (
+	                                     SELECT RIBO.DG_CNTR_NO
+	                                          , RIBO.DG_CNTR_SN
+	                                          , RIBO.SUBOD_CNTR_NO
+	                                          , RIBO.SUBOD_CNTR_SN
+	                                          , SCSB.DP_TP_CD
+	                                          , SCSB.BNK_CD
+	                                          , SCSB.CDCO_CD
+	                                          , SCSB.ACNO_ENCR
+	                                          , SCSB.CRCDNO_ENCR
+	                                          , SCSB.OWR_KNM
+	                                          , SCSB.MPY_BSDT
+	                                          , RIBO.HIST_CH_DTM AS ITG_BIL_PRTC_DTM
+	                                          , RIBO.FNL_MDFC_USR_ID
+	                                          , '01' AS AFTN_ITG_UNRG_RS_CD
+	                                          , '' AS AFTN_ITG_UNRG_RSON_CD
+	                                          , '' AS ERR_CN
+	                                          , '' AS ERR_DG_CNTR_NO
+	                                          , '' AS ERR_DG_CNTR_SN
+	                                          , '' AS ERR_SUBOD_CNTR_NO
+	                                          , '' AS ERR_SUBOD_CNTR_SN
+	                                          , CCB.CST_KNM
+	                                          , PPB.PD_NM
+	                                          , SCD.CNTR_PD_STRTDT
+	                                          , CCB.BRYY_MMDD
+	                                       FROM TB_RVCL_ITG_BIL_OJ_HIST RIBO
+	                                       JOIN TB_SSCT_CNTR_STLM_REL SCSR
+	                                         ON RIBO.SUBOD_CNTR_NO = SCSR.DTL_CNTR_NO
+	                                        AND RIBO.SUBOD_CNTR_SN = SCSR.DTL_CNTR_SN
+	                                        AND RIBO.DTA_DL_YN = 'N'
+	                                        AND RIBO.FNT_DV_CD IN ('01','02')
+	                                        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SCSR.VL_STRT_DTM AND SCSR.VL_END_DTM
+	                                        AND SCSR.VL_END_DTM = '99991231235959'
+	                                       JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
+	                                         ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID
+	                                        AND SCSB.DTA_DL_YN = 'N'
+	                                        AND SCSR.DTA_DL_YN = 'N'
+	                                       JOIN TB_SSCT_CNTR_DTL SCD
+	                                         ON SCSR.DTL_CNTR_NO = SCD.CNTR_NO
+	                                        AND SCSR.DTL_CNTR_SN = SCD.CNTR_SN
+	                                        AND SCD.DTA_DL_YN = 'N'
+	                                       JOIN TB_SSCT_CNTR_BAS SCB
+	                                         ON SCB.CNTR_NO = SCD.CNTR_NO
+	                                        AND SCB.DTA_DL_YN = 'N'
+	                                       JOIN TB_CUBS_CST_BAS CCB
+	                                         ON SCB.CNTR_CST_NO = CCB.CST_NO
+	                                        AND CCB.DTA_DL_YN = 'N'
+	                            LEFT OUTER JOIN TB_PDBS_PD_BAS PPB
+	                                         ON PPB.PD_CD = SCD.BASE_PD_CD
+	                                        AND PPB.DTA_DL_YN = 'N'
+	                                      WHERE 1 = 1
+	                                        AND RIBO.HIST_CH_DTM BETWEEN #{cntrPdStrtdtA} || '000000' AND #{cntrPdEnddtA} || '235999'
+	                                 ) SUBOD_CNTR
+	                                 ON DG_CNTR.DG_CNTR_NO = SUBOD_CNTR.DG_CNTR_NO
+	                                AND DG_CNTR.DG_CNTR_SN = SUBOD_CNTR.DG_CNTR_SN
+                                    <if test='@MybatisUtils@equals(unrgRs, "01")'>
+                                    AND DG_CNTR.AFTN_ITG_UNRG_RS_CD = '01'
+                                    </if>
+                                    <if test='@MybatisUtils@equals(unrgRs, "02")'>
+                                    AND DG_CNTR.AFTN_ITG_UNRG_RS_CD = '02'
+                                    </if>
+                                    <if test='@MybatisUtils@isNotEmpty(cntrSnA)'>
+                                    AND DG_CNTR.DG_CNTR_NO = #{cntrNoA}
+                                    AND DG_CNTR.DG_CNTR_SN = #{cntrSnA}
+                                    </if>
+                                  UNION
+                                 SELECT DG_CNTR.ITG_BIL_PRTC_DTM
+	                                  , DG_CNTR.FNL_MDFC_USR_ID
+	                                  , DG_CNTR.AFTN_ITG_UNRG_RS_CD
+	                                  , DG_CNTR.ERR_CN
+	                                  , DG_CNTR.CST_KNM
+	                                  , DG_CNTR.PD_NM
+	                                  , DG_CNTR.CNTR_PD_STRTDT
+	                                  , DG_CNTR.AFTN_ITG_UNRG_RSON_CD
+	                                  , DG_CNTR.DG_CNTR_NO AS CNTR_SN
+	                                  , DG_CNTR.DG_CNTR_NO AS DG_CNTR_NO
+	                                  , DG_CNTR.DG_CNTR_SN AS DG_CNTR_SN
+	                                  , DG_CNTR.DP_TP_CD
+	                                  , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(CASE WHEN DG_CNTR.DP_TP_CD = '0102' THEN DG_CNTR.BNK_CD ELSE DG_CNTR.CDCO_CD END ,3,0) = FNIT_CD) AS BNK_CD
+	                                  , CASE WHEN DG_CNTR.DP_TP_CD = '0102' THEN DG_CNTR.ACNO_ENCR ELSE DG_CNTR.CRCDNO_ENCR END AS ACNO_ENCR
+	                                  , DG_CNTR.OWR_KNM
+	                                  , DG_CNTR.MPY_BSDT
+	                                  , DG_CNTR.BRYY_MMDD
+	                                  , SUBOD_CNTR.SUBOD_CNTR_NO AS SDING_CNTR_NO
+	                                  , SUBOD_CNTR.SUBOD_CNTR_SN AS SDING_CNTR_SN
+	                                  , SUBOD_CNTR.DP_TP_CD AS SDING_DP_TP_CD
+	                                  , DG_CNTR.DG_CNTR_NO AS SDING_DG_CNTR_SN
+	                                  , (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE LPAD(CASE WHEN SUBOD_CNTR.DP_TP_CD = '0102' THEN SUBOD_CNTR.BNK_CD ELSE SUBOD_CNTR.CDCO_CD END,3,0) = FNIT_CD) AS SDING_BNK_CD
+	                                  , CASE WHEN SUBOD_CNTR.DP_TP_CD = '0102' THEN SUBOD_CNTR.ACNO_ENCR ELSE SUBOD_CNTR.CRCDNO_ENCR END AS SDING_ACNO_ENCR
+	                                  , SUBOD_CNTR.OWR_KNM  AS SDING_OWR_KNM
+	                                  , SUBOD_CNTR.MPY_BSDT AS SDING_MPY_BSDT
+	                                  , SUBOD_CNTR.BRYY_MMDD AS SDING_BRYY_MMDD
+                                   FROM (
+	                                     SELECT RIBO.DG_CNTR_NO
+	                                          , RIBO.DG_CNTR_SN
+	                                          , RIBO.SUBOD_CNTR_NO
+	                                          , RIBO.SUBOD_CNTR_SN
+	                                          , SCSB.DP_TP_CD
+	                                          , SCSB.BNK_CD
+	                                          , SCSB.CDCO_CD
+	                                          , SCSB.ACNO_ENCR
+	                                          , SCSB.CRCDNO_ENCR
+	                                          , SCSB.OWR_KNM
+	                                          , SCSB.MPY_BSDT
+	                                          , RIBO.ITG_BIL_PRTC_DTM
+	                                          , RIBO.FNL_MDFC_USR_ID
+	                                          , RIBO.AFTN_ITG_UNRG_RS_CD
+	                                          , RIBO.AFTN_ITG_UNRG_RSON_CD
+	                                          , RIBO.ERR_CN
+	                                          , RIBO.DG_CNTR_NO AS ERR_DG_CNTR_NO
+	                                          , RIBO.DG_CNTR_SN AS ERR_DG_CNTR_SN
+	                                          , RIBO.SUBOD_CNTR_NO AS ERR_SUBOD_CNTR_NO
+	                                          , RIBO.SUBOD_CNTR_SN AS ERR_SUBOD_CNTR_SN
+	                                          , CCB.CST_KNM
+	                                          , PPB.PD_NM
+	                                          , SCD.CNTR_PD_STRTDT
+	                                          , CCB.BRYY_MMDD
+	                                       FROM TB_RVCL_ITG_BIL_OJ_ERR_IZ RIBO
+	                                       JOIN TB_SSCT_CNTR_STLM_REL SCSR
+	                                         ON RIBO.SUBOD_CNTR_NO = SCSR.DTL_CNTR_NO
+	                                        AND RIBO.SUBOD_CNTR_SN = SCSR.DTL_CNTR_SN
+	                                        AND RIBO.DTA_DL_YN = 'N'
+	                                        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SCSR.VL_STRT_DTM AND SCSR.VL_END_DTM
+	                                        AND SCSR.VL_END_DTM = '99991231235959'
+	                                       JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
+	                                         ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID
+	                                        AND SCSB.DTA_DL_YN = 'N'
+	                                        AND SCSR.DTA_DL_YN = 'N'
+	                                       JOIN TB_SSCT_CNTR_DTL SCD
+	                                         ON SCSR.DTL_CNTR_NO = SCD.CNTR_NO
+	                                        AND SCSR.DTL_CNTR_SN = SCD.CNTR_SN
+	                                        AND SCD.DTA_DL_YN = 'N'
+	                                       JOIN TB_SSCT_CNTR_BAS SCB
+	                                         ON SCB.CNTR_NO = SCD.CNTR_NO
+	                                        AND SCB.DTA_DL_YN = 'N'
+	                                       JOIN TB_CUBS_CST_BAS CCB
+	                                         ON SCB.CNTR_CST_NO = CCB.CST_NO
+	                                        AND CCB.DTA_DL_YN = 'N'
+	                            LEFT OUTER JOIN TB_PDBS_PD_BAS PPB
+	                                         ON PPB.PD_CD = SCD.BASE_PD_CD
+	                                        AND PPB.DTA_DL_YN = 'N'
+	                                      WHERE 1 = 1
+	                                        AND RIBO.ITG_BIL_PRTC_DTM BETWEEN #{cntrPdStrtdtA} || '000000' AND #{cntrPdEnddtA} || '235999'
+	                                 ) DG_CNTR
+	                               JOIN (
+	                                     SELECT RIBO.DG_CNTR_NO
+	                                          , RIBO.DG_CNTR_SN
+	                                          , RIBO.SUBOD_CNTR_NO
+	                                          , RIBO.SUBOD_CNTR_SN
+	                                          , SCSB.DP_TP_CD
+	                                          , SCSB.BNK_CD
+	                                          , SCSB.CDCO_CD
+	                                          , SCSB.ACNO_ENCR
+	                                          , SCSB.CRCDNO_ENCR
+	                                          , SCSB.OWR_KNM
+	                                          , SCSB.MPY_BSDT
+	                                          , RIBO.ITG_BIL_PRTC_DTM
+	                                          , RIBO.FNL_MDFC_USR_ID
+	                                          , RIBO.AFTN_ITG_UNRG_RS_CD
+	                                          , RIBO.AFTN_ITG_UNRG_RSON_CD
+	                                          , RIBO.ERR_CN
+	                                          , RIBO.DG_CNTR_NO AS ERR_DG_CNTR_NO
+	                                          , RIBO.DG_CNTR_SN AS ERR_DG_CNTR_SN
+	                                          , RIBO.SUBOD_CNTR_NO AS ERR_SUBOD_CNTR_NO
+	                                          , RIBO.SUBOD_CNTR_SN AS ERR_SUBOD_CNTR_SN
+	                                          , CCB.CST_KNM
+	                                          , PPB.PD_NM
+	                                          , SCD.CNTR_PD_STRTDT
+	                                          , CCB.BRYY_MMDD
+	                                       FROM TB_RVCL_ITG_BIL_OJ_ERR_IZ RIBO
+	                                       JOIN TB_SSCT_CNTR_STLM_REL SCSR
+	                                         ON RIBO.SUBOD_CNTR_NO = SCSR.DTL_CNTR_NO
+	                                        AND RIBO.SUBOD_CNTR_SN = SCSR.DTL_CNTR_SN
+	                                        AND RIBO.DTA_DL_YN = 'N'
+	                                        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SCSR.VL_STRT_DTM AND SCSR.VL_END_DTM
+	                                        AND SCSR.VL_END_DTM = '99991231235959'
+	                                       JOIN TB_SSCT_CNTR_STLM_BAS SCSB /* 계약결제기본 */
+	                                         ON SCSR.CNTR_STLM_ID = SCSB.CNTR_STLM_ID
+	                                        AND SCSB.DTA_DL_YN = 'N'
+	                                        AND SCSR.DTA_DL_YN = 'N'
+	                                       JOIN TB_SSCT_CNTR_DTL SCD
+	                                         ON SCSR.DTL_CNTR_NO = SCD.CNTR_NO
+	                                        AND SCSR.DTL_CNTR_SN = SCD.CNTR_SN
+	                                        AND SCD.DTA_DL_YN = 'N'
+	                                       JOIN TB_SSCT_CNTR_BAS SCB
+	                                         ON SCB.CNTR_NO = SCD.CNTR_NO
+	                                        AND SCB.DTA_DL_YN = 'N'
+	                                       JOIN TB_CUBS_CST_BAS CCB
+	                                         ON SCB.CNTR_CST_NO = CCB.CST_NO
+	                                        AND CCB.DTA_DL_YN = 'N'
+	                            LEFT OUTER JOIN TB_PDBS_PD_BAS PPB
+	                                         ON PPB.PD_CD = SCD.BASE_PD_CD
+	                                        AND PPB.DTA_DL_YN = 'N'
+	                                      WHERE 1 = 1
+	                                        AND RIBO.ITG_BIL_PRTC_DTM BETWEEN #{cntrPdStrtdtA} || '000000' AND #{cntrPdEnddtA} || '235999'
+	                                 ) SUBOD_CNTR
+	                                 ON DG_CNTR.DG_CNTR_NO = SUBOD_CNTR.DG_CNTR_NO
+	                                AND DG_CNTR.DG_CNTR_SN = SUBOD_CNTR.DG_CNTR_SN
+	                                <if test='@MybatisUtils@equals(unrgRs, "01")'>
+                                    AND DG_CNTR.AFTN_ITG_UNRG_RS_CD = '01'
+                                    </if>
+                                    <if test='@MybatisUtils@equals(unrgRs, "02")'>
+                                    AND DG_CNTR.AFTN_ITG_UNRG_RS_CD = '02'
+                                    </if>
+                                    <if test='@MybatisUtils@isNotEmpty(cntrSnA)'>
+                                    AND DG_CNTR.DG_CNTR_NO = #{cntrNoA}
+                                    AND DG_CNTR.DG_CNTR_SN = #{cntrSnA}
+                                    </if>
     </select>
 </mapper>
