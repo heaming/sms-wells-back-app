@@ -26,6 +26,16 @@ public class WsnaEngineerToolService {
     }
 
     public PagingResult<SearchRes> getEngineerToolDsbHistPages(SearchReq dto, PageInfo pageInfo) {
+        SearchReq newDto = new SearchReq(
+            dto.pymdt(),
+            dto.ogId(),
+            dto.egerPrtnrNo(),
+            dto.prtnrKnm().replace("%", "\\%"),
+            dto.toolPdCdStrt(),
+            dto.toolPdCdEnd(),
+            dto.sapMatCdStrt(),
+            dto.sapMatCdEnd()
+        );
         return mapper.selectEngineerToolDsbHist(dto, pageInfo);
     }
 

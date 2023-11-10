@@ -20,7 +20,10 @@ public class WsnaItemLocationDto {
         String itmPdCd,
         // 창고번호
         @NotBlank
-        String wareNo
+        String wareNo,
+        // 기준년월
+        @NotBlank
+        String apyYm
 
     ) {}
     @ApiModel("WsnaItemLocationDto-SearchRes")

@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaEngineerToolMapper">
+    <sql id="preAuthSql">
+        <include refid="COMMON.dataAuthUsrWithClause">
+            <property name="paramBaseYm" value="#{pymdt}"/>
+            <property name="paramOgTpCd" value="#{session.ogTpCd}"/>
+        </include>
+    </sql>
+
     <select id="selectEngineerToolDsbHist" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEngineerToolDto$SearchRes">
+        <include refid="preAuthSql"/>
         SELECT T1.OG_TP_CD
              , T1.EGER_PRTNR_NO
              , T1.TOOL_PD_CD
@@ -77,7 +85,7 @@
            AND T2.PRTNR_NO = #{egerPrtnrNo}
            </if>
            <if test='@MybatisUtils@isNotEmpty(prtnrKnm)'>
-           AND T2.PRTNR_KNM LIKE #{prtnrKnm} || '%'
+           AND T2.PRTNR_KNM LIKE #{prtnrKnm} || '%' ESCAPE '\'
            </if>
            <if test='@MybatisUtils@isNotEmpty(toolPdCdStrt)'>
            AND T1.TOOL_PD_CD <![CDATA[>=]]> #{toolPdCdStrt}
@@ -89,8 +97,12 @@
            AND T3.SVPD_SAP_CD <![CDATA[>=]]> #{sapMatCdStrt}
            </if>
            <if test='@MybatisUtils@isNotEmpty(sapMatCdEnd)'>
-           AND T3.SVPD_SAP_CD <![CDATA[>=]]> #{sapMatCdEnd}
+           AND T3.SVPD_SAP_CD <![CDATA[<=]]> #{sapMatCdEnd}
            </if>
+           AND EXISTS (SELECT 1
+                         FROM OBJ_ORG X1
+                        WHERE X1.OG_TP_CD = T1.OG_TP_CD
+                          AND X1.OG_ID =  T2.OG_ID)
          ORDER BY T2.PRTNR_NO, T1.PYMDTS DESC, T1.DSB_SN DESC
     </select>
 
