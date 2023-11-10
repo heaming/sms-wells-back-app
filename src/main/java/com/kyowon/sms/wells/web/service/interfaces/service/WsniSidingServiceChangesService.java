@@ -1,5 +1,12 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbSeedingPackageChangeDto;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbSeedingPackageChangeService;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRegularBfsvcAsnDto;
@@ -15,14 +22,8 @@ import com.kyowon.sms.wells.web.service.visit.service.WsnbIndividualVisitPrdServ
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
 *
@@ -64,7 +65,7 @@ public class WsniSidingServiceChangesService {
             if (mapper.selectSidingAkCount(req.cntrNo(), req.cntrSn(), akSn, req.asAkDvCd(), req.akChdt()) > 0) {
                 mapper.updateSidingAk(
                     req.akChdt(), req.bfchPdCd(), req.afchPdCd(), req.mtrProcsStatCd(), req.cntrNo(), req.cntrSn(),
-                    akSn, req.asAkDvCd()
+                    akSn, req.asAkDvCd(), req.choCapslCn()
                 );
             } else {
                 akSn = mapper.selectAkSnMax(req.cntrNo(), req.cntrSn());
@@ -76,7 +77,8 @@ public class WsniSidingServiceChangesService {
                     req.bfchPdCd(),
                     req.afchPdCd(),
                     req.mtrProcsStatCd(),
-                    req.akChdt()
+                    req.akChdt(),
+                    req.choCapslCn()
                 );
             }
         }
@@ -123,10 +125,10 @@ public class WsniSidingServiceChangesService {
             if (bsTargetDvo != null) {
                 /*고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/
                 service2.removeRglrBfsvcDl(
-//                    new WsnbCustomerRglrBfsvcDlDto.SaveReq(
-//                        bsTargetDvo.getCstSvAsnNo(), //row.getCstSvAsnNo(),
-//                        bsTargetDvo.getAsnOjYm()
-//                    )
+                    //                    new WsnbCustomerRglrBfsvcDlDto.SaveReq(
+                    //                        bsTargetDvo.getCstSvAsnNo(), //row.getCstSvAsnNo(),
+                    //                        bsTargetDvo.getAsnOjYm()
+                    //                    )
                     new WsnbCustomerRglrBfsvcDlDto.SaveReq(
                         bsTargetDvo.getCstSvAsnNo(), //row.getCstSvAsnNo(),
                         req.akChdt().substring(0, 6)
@@ -135,12 +137,12 @@ public class WsniSidingServiceChangesService {
                 log.debug("고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)");
                 /*고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)*/
                 service3.processRegularBfsvcAsn(
-//                    new WsncRegularBfsvcAsnDto.SaveProcessReq(
-//                        bsTargetDvo.getAsnOjYm(), //row.getAsnOjYm(),
-//                        SFLEXContextHolder.getContext().getUserSession().getUserId(),
-//                        req.cntrNo(),
-//                        req.cntrSn()
-//                    )
+                    //                    new WsncRegularBfsvcAsnDto.SaveProcessReq(
+                    //                        bsTargetDvo.getAsnOjYm(), //row.getAsnOjYm(),
+                    //                        SFLEXContextHolder.getContext().getUserSession().getUserId(),
+                    //                        req.cntrNo(),
+                    //                        req.cntrSn()
+                    //                    )
                     new WsncRegularBfsvcAsnDto.SaveProcessReq(
                         req.akChdt().substring(0, 6),
                         SFLEXContextHolder.getContext().getUserSession().getUserId(),
@@ -206,6 +208,7 @@ public class WsniSidingServiceChangesService {
         log.debug("cntrSn: " + req.cntrSn());
         log.debug("chPdCd: " + req.afchPdCd());
         log.debug("consPdList: " + consPdList);
+
         service4.saveSeedingPackageChanges(
             new WctbSeedingPackageChangeDto.SaveReq(
                 "1", req.cntrNo(), req.cntrSn(), req.afchPdCd(), consPdList

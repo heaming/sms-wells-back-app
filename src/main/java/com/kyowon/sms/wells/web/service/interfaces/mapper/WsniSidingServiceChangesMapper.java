@@ -49,7 +49,8 @@ public interface WsniSidingServiceChangesMapper {
         String cntrNo,
         String cntrSn,
         String akSn,
-        String asAkDvCd
+        String asAkDvCd,
+        String choCapslCn
     );
 
     String selectAkSnMax(String cntrNo, String cntrSn);
@@ -62,7 +63,8 @@ public interface WsniSidingServiceChangesMapper {
         String bfchPdCd,
         String afchPdCd,
         String mtrProcsStatCd,
-        String akChdt
+        String akChdt,
+        String choCapslCn
     );
 
     /**
