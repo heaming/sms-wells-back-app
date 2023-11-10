@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
-import com.sds.sflex.common.utils.DbEncUtil;
-
 import io.swagger.annotations.ApiModel;
 
 public class WsnaAsMaterialOutOfStoragePsDto {
@@ -97,9 +95,5 @@ public class WsnaAsMaterialOutOfStoragePsDto {
         String svProcsCn,
 
         String cnslMoCn
-    ) {
-        public SearchRes {
-            exnoEncr = DbEncUtil.dec(exnoEncr);
-        }
-    }
+    ) {}
 }
