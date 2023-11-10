@@ -21,6 +21,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * 현할차 스케줄 현황 조회 서비스
+ * </pre>
+ *
+ * @author sonkiseok
+ * @since 2023-04-19
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -30,9 +38,9 @@ public class WwdbConsumablesRefundService {
     private final WwdbConsumablesRefundConverter converter;
 
     /**
-     * 소모품환불관리 목록
-     * @param pageInfo 
-     * @param SearchConsumablesRefundReq
+     * 소모품환불관리 목록 / 페이징
+     * @param req
+     * @param pageInfo
      * @return PagingResult<SearchConsumablesRefundRes>
      */
     public PagingResult<SearchConsumablesRefundRes> getConsumablesRefundPages(
@@ -44,9 +52,8 @@ public class WwdbConsumablesRefundService {
 
     /**
      * 소모품환불관리 엑셀 다운로드
-     * @param List 
-     * @param SearchConsumablesRefundReq
-     * @return List<SearchConsumablesRefundRes>
+     * @param req List<SearchConsumablesRefundRes>
+     * @return
      */
     public List<SearchConsumablesRefundRes> getConsumablesRefundExcels(
         SearchConsumablesRefundReq req
@@ -54,10 +61,11 @@ public class WwdbConsumablesRefundService {
         return mapper.selectConsumablesRefund(req);
     }
 
-    /** 소모품환불관리 삭제
-     * 
-     * @param List<RemoveReq>
+    /**
+     * 소모품환불관리 삭제
+     * @param req
      * @return int processCount
+     * @throws Exception
      */
     @Transactional
     public int removeConsumablesRefunds(List<RemoveReq> req) throws Exception {
@@ -84,8 +92,9 @@ public class WwdbConsumablesRefundService {
 
     /**
      * 소모품환불관리 등록
-     * @param SaveReq
-     * @return insertConsumablesRefund
+     * @param req
+     * @return int processCount
+     * @throws Exception
      */
     @Transactional
     public int saveConsumablesRefund(SaveReq req) throws Exception {
@@ -104,8 +113,8 @@ public class WwdbConsumablesRefundService {
 
     /**
      * 고객 정보 조회
-     * @param SearchContractInfoRes
-     * @return SearchServiceRefundRes
+     * @param cntrNo
+     * @return SearchContractInfoRes
      */
     public SearchContractInfoRes getContractInfo(
         String cntrNo
@@ -115,7 +124,7 @@ public class WwdbConsumablesRefundService {
 
     /**
      * 카드사 은행사 이름과 코드 조회
-     * @return List<SearchCardBankRes>
+     * @return List<SearchCardRes>
      */
     public List<SearchCardRes> getConsumablesRefundCard() {
         return mapper.selectConsumablesRefundCard();
@@ -123,7 +132,7 @@ public class WwdbConsumablesRefundService {
 
     /**
      * 카드사 은행사 이름과 코드 조회
-     * @return List<SearchCardBankRes>
+     * @return List<SearchBankRes>
      */
     public List<SearchBankRes> getConsumablesRefundBank() {
         return mapper.selectConsumablesRefundBank();
