@@ -98,11 +98,12 @@ public class WsnaReturningGoodsOstrController {
         @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드", paramType = "query", example = "'WM07102143','WM07105938'"),
         @ApiImplicitParam(name = "itmGdCd", value = "품목등급코드", paramType = "query", example = "A")
     })
-    @GetMapping("/{wareNo}")
+    @PostMapping("/{wareNo}")
     public List<SearchPitmStockRes> getPitmStocks(
         @PathVariable
         String wareNo,
         @Valid
+        @RequestBody
         SearchPitmStockReq dto
     ) {
         return this.service.getPitmStocks(wareNo, dto);
