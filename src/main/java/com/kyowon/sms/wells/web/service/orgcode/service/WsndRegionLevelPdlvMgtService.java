@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.orgcode.service;
 import java.util.List;
 import java.util.Objects;
 
+import org.eclipse.jetty.util.StringUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -92,12 +93,17 @@ public class WsndRegionLevelPdlvMgtService {
         for (SaveReq dto : dtos) {
             WsndPlaceOfDeliveryDvo dvo = converter.mapSaveReqToWsndPlaceOfDeliveryDvo(dto);
             int result = 0;
+            // 서비스센터 컬럼 여부에 따라 출고지 구분값 세팅.
+            if (StringUtil.isEmpty(dvo.getPdlvDvCd())) {
+                dvo.setPdlvDvCd(StringUtil.isEmpty(dvo.getCnrOgId()) ? "Z" : "E");
+            }
 
             // pk값으로 조회
-            WsndPlaceOfDeliveryDvo res = mapper.selectPlaceOfDeliveryByPk(dto.pdlvNo(), dto.pdlvDvCd());
+            WsndPlaceOfDeliveryDvo res = mapper.selectPlaceOfDeliveryByPk(dvo.getPdlvNo(), dvo.getPdlvDvCd());
 
             // 중복값 없을때 신규등록
             if (Objects.isNull(res)) {
+
                 result += mapper.insertPlaceOfDelivery(dvo);
                 mapper.insertPlaceOfDeliveryHistory(dvo);
             } else {
