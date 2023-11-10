@@ -134,7 +134,8 @@ public class WwpseGenenalAffairsElcBizAkDto {
         String rcstPrtnrNm,
         String rcstCralLocaraTno,
         String rcstMexnoEncr,
-        String rcstCralIdvTno
+        String rcstCralIdvTno,
+        String rpotBizTpNm
     ) {
     }
 

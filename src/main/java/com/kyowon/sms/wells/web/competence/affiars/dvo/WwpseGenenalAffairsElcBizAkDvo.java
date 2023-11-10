@@ -23,6 +23,7 @@ public class WwpseGenenalAffairsElcBizAkDvo {
     private String mexnoEncr;
     private String cralIdvTno;
     private String prtnrKnm;
+    private String rpotBizTpNm;
 
     private String rpotBizProcsStatCd;
     private String rpotBizProcsStatNm;
