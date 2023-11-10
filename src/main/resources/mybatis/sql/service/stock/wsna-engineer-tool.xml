@@ -8,6 +8,19 @@
         </include>
     </sql>
 
+    <sql id="ePostAuthSql">
+        AND (CASE WHEN #{session.dataFullAuthYn} = 'Y' AND SUBSTR(#{session.baseRleCd}, 1, 2) NOT IN ('W4', 'W6')
+                  THEN 1
+                  ELSE (CASE WHEN (SELECT COUNT(1)
+                                     FROM OBJ_ORG TX
+                                    WHERE TX.OG_TP_CD = T1.OG_TP_CD
+                                      AND TX.OG_ID =  T1.OG_ID) > 0
+                             THEN 1
+                             ELSE 0
+                        END)
+             END) = 1
+    </sql>
+
     <select id="selectEngineerToolDsbHist" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEngineerToolDto$SearchRes">
         <include refid="preAuthSql"/>
         SELECT T1.OG_TP_CD
@@ -99,10 +112,16 @@
            <if test='@MybatisUtils@isNotEmpty(sapMatCdEnd)'>
            AND T3.SVPD_SAP_CD <![CDATA[<=]]> #{sapMatCdEnd}
            </if>
-           AND EXISTS (SELECT 1
-                         FROM OBJ_ORG X1
-                        WHERE X1.OG_TP_CD = T1.OG_TP_CD
-                          AND X1.OG_ID =  T2.OG_ID)
+           AND (CASE WHEN #{session.dataFullAuthYn} = 'Y' AND SUBSTR(#{session.baseRleCd}, 1, 2) NOT IN ('W4', 'W6')
+                     THEN 1
+                     ELSE (CASE WHEN (SELECT COUNT(1)
+                                        FROM OBJ_ORG TX
+                                       WHERE TX.OG_TP_CD = T1.OG_TP_CD
+                                         AND TX.OG_ID =  T2.OG_ID) > 0
+                                THEN 1
+                                ELSE 0
+                           END)
+                END) = 1
          ORDER BY T2.PRTNR_NO, T1.PYMDTS DESC, T1.DSB_SN DESC
     </select>
 
@@ -117,7 +136,8 @@
                               FROM TB_SVST_EGER_TOOL_DSB_IZ A
                              WHERE A.OG_TP_CD = T1.OG_TP_CD
                                AND A.EGER_PRTNR_NO = T1.EGER_PRTNR_NO
-                               AND A.TOOL_PD_CD = T1.TOOL_PD_CD)
+                               AND A.TOOL_PD_CD = T1.TOOL_PD_CD
+                               AND A.DTA_DL_YN = 'N')
     </update>
 
     <select id="selectEngineerToolParts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEngineerToolDto$SearchPartsRes">
