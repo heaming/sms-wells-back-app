@@ -16,6 +16,8 @@ public class WwdbDepositDetailSearchDvo {
     String enClctamPrtnrNo; // 집금담당자 사번 끝
     String stFstRgstUsrId; // 입력담당자 사번 시작
     String enFstRgstUsrId;
+    String stRveCd; // 수납코드 시작
+    String enRveCd; // 수납코드 끝
 
     String dpMesCd; // 입금수단
     String dpTpCd; // 입금유형
