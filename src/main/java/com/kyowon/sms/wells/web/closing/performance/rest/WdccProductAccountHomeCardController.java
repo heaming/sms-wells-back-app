@@ -27,7 +27,7 @@ public class WdccProductAccountHomeCardController {
      * 홈카드 계정순증
      */
     @ApiOperation(value = "홈카드의 계정순증(상품별 계정현황)", notes = "홈카드의 계정순증(상품별 계정현황)")
-    @GetMapping("/homeCard/accNinc")
+    @GetMapping("/home-card/acc-ninc")
     public SearchRes getProductAccountHomeCard() {
         return service.getProductAccountHomeCard();
     }
