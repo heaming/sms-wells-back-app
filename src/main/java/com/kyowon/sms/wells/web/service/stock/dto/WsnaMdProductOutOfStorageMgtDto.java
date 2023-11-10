@@ -1,7 +1,10 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductOutOfStorageSaveProductDvo;
 import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
@@ -79,6 +82,13 @@ public class WsnaMdProductOutOfStorageMgtDto {
         @NotBlank
         String pdctPdCd,
 
-        String istDt
+        @NotBlank
+        String wkWareNo,
+
+        String sellTpCd,
+
+        String istDt,
+
+        List<WsnaMdProductOutOfStorageSaveProductDvo> products
     ) {}
 }
