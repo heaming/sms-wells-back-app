@@ -17,8 +17,7 @@
         )
         , WK_RS_INF AS
         (
-	        SELECT  /*+ INDEX(T2 IX_SVST_SV_WK_OSTR_IZ_06) */
-	                T1.CST_SV_ASN_NO
+	        SELECT  T1.CST_SV_ASN_NO
 	              , T1.SV_BIZ_HCLSF_CD
 	              , T1.SV_BIZ_DCLSF_CD
 	              , T1.VST_FSH_DT
@@ -54,7 +53,50 @@
 	        INNER JOIN PD_INF P2
 	         ON T3.PDCT_PD_CD = P2.PD_CD
 	        WHERE 1=1
+	         AND T1.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
+	         AND T1.SV_BIZ_DCLSF_CD = '3110'
 	         AND T2.SV_BIZ_HCLSF_CD != '6'
+	         AND P1.ITM_KND_CD != '4'
+            <if test="@MybatisUtils@isNotEmpty(serviceType)">
+                 /*  서비스 유형 */
+                <if test='@MybatisUtils@equals(serviceType, "1") or
+                          @MybatisUtils@equals(serviceType, "2") or
+                          @MybatisUtils@equals(serviceType, "3")'>
+                AND T1.SV_BIZ_HCLSF_CD = #{serviceType}  /*  서비스 유형 (1:설치 , 2:B/S, 3: A/S) */
+                </if>
+                <if test='@MybatisUtils@equals(serviceType, "4")'>
+                AND T1.SV_BIZ_HCLSF_CD IN ('1','3')        /*  서비스 유형 (4: A/S+설치) */
+                </if>
+                <if test='@MybatisUtils@equals(serviceType, "5")'>
+                AND T1.SV_BIZ_HCLSF_CD IN ('2','3')        /*  서비스 유형 (5: A/S+B/S) */
+                </if>
+                <if test='@MybatisUtils@equals(serviceType, "6")'>
+                AND T1.SV_BIZ_HCLSF_CD IN ('1','2')       /*  서비스 유형 (6: B/S+설치) */
+                </if>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(svBizDclsfCd)">
+            AND T1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}  /* 업무유형 */
+            </if>
+            <if test='@MybatisUtils@equals(refriType, "1")'>
+            AND T1.REFRI_DV_CD = #{refriType}
+            AND T2.ITM_BIL_AMT  <![CDATA[<=]]> 0   /* 무상서비스 */
+            </if>
+            <if test='@MybatisUtils@equals(refriType, "2")'>
+            AND T1.REFRI_DV_CD = #{refriType}
+            AND T2.ITM_BIL_AMT  <![CDATA[>]]> 0    /* 유상서비스 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
+            AND P1.ITM_KND_CD = #{itmKndCd}  /* 품목종류 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
+            AND P1.PD_GRP_CD = #{pdGrpCd}        /* 상품그룹 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCdFrom) or @MybatisUtils@isNotEmpty(itmPdCdTo)">
+            AND T2.ITM_PD_CD BETWEEN NVL(#{itmPdCdFrom},'WM00000000') AND NVL(#{itmPdCdTo},'WM99999999') /* 상품 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(installBase)">
+            AND T3.IST_DT  <![CDATA[ > ]]>  TO_CHAR(ADD_MONTHS(TO_DATE(T1.VST_FSH_DT,'YYYYMM'),-1),'YYYYMM')  /* 설치기준 */
+            </if>
         )
         , TARGET_INF AS
         (
@@ -80,6 +122,8 @@
 	             , O1.PRTNR_NO
 	             , O1.PRTNR_KNM
 	             , O1.OG_NM
+	             , C1.SELL_TP_CD    /*판매유형코드 : 1 일시불, 2 렌탈/리스, 3 멤버십, 4 회사설치, 5 유지관리, 6 정기배송, 9 필터*/
+                 , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', C1.SELL_TP_CD, 'ko') AS SELL_TP_NM
 	        FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1
 	        INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2
 	         ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
@@ -90,6 +134,10 @@
 	         AND S2.WK_PRTNR_OG_TP_CD = S4.OG_TP_CD
 	        INNER JOIN TB_SSCT_CNTR_BAS S5 /*계약기본*/
 	         ON S1.CNTR_NO = S5.CNTR_NO
+	        INNER JOIN TB_SSCT_CNTR_DTL C1   /*계약상세*/
+	         ON S1.CNTR_NO = C1.CNTR_NO
+             AND S1.CNTR_SN = C1.CNTR_SN
+             AND C1.DTA_DL_YN = 'N'
 	        INNER JOIN TB_SSCT_CNTR_ADR_REL S6 /*계약주소관계*/
 	         ON S1.CNTR_NO = S6.DTL_CNTR_NO
 	         AND S1.CNTR_SN = S6.DTL_CNTR_SN
@@ -105,9 +153,13 @@
              AND S2.WK_PRTNR_NO = O1.PRTNR_NO
 	        WHERE 1=1
 	         AND S2.WK_PRGS_STAT_CD = '20'
-	         AND S3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
-	         AND S3.SV_BIZ_DCLSF_CD = '3110'
-	         AND S3.ITM_KND_CD != '4'
+
+            <if test="@MybatisUtils@isNotEmpty(ogCd)">
+            AND O1.OG_CD = #{ogCd} /* 서비스센터 조직코드 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+            AND O1.PRTNR_NO = #{prtnrNo} /* 엔지니어 */
+            </if>
         )
         SELECT I1.CNTR_NO
              , I1.CNTR_SN
@@ -129,6 +181,7 @@
              , I1.RDADR            /*도로명상세주소*/
              , I1.REFRI_DV_NM
              , I1.RCGVP_KNM
+             , I1.SELL_TP_NM
              , I1.OG_NM  AS EGER_CNR_NM
              , I1.PRTNR_KNM
              , I1.WK_PRGS_STAT_NM
@@ -145,51 +198,6 @@
              , I1.SV_PROCS_CN   AS SV_PROCS_CN
              , I1.CNSL_MO_CN    AS CNSL_MO_CN
         FROM TARGET_INF I1
-		<!-- 검색조건 -->
-        WHERE 1=1
-        <if test="@MybatisUtils@isNotEmpty(serviceType)">
-             /*  서비스 유형 */
-            <if test='@MybatisUtils@equals(serviceType, "1") or
-                      @MybatisUtils@equals(serviceType, "2") or
-                      @MybatisUtils@equals(serviceType, "3")'>
-            AND I1.SV_BIZ_HCLSF_CD = #{serviceType}  /*  서비스 유형 (1:설치 , 2:B/S, 3: A/S) */
-            </if>
-            <if test='@MybatisUtils@equals(serviceType, "4")'>
-            AND I1.SV_BIZ_HCLSF_CD IN ('1,3')        /*  서비스 유형 (4: A/S+설치) */
-            </if>
-            <if test='@MybatisUtils@equals(serviceType, "5")'>
-            AND I1.SV_BIZ_HCLSF_CD IN ('2,3')        /*  서비스 유형 (5: A/S+B/S) */
-            </if>
-            <if test='@MybatisUtils@equals(serviceType, "6")'>
-            AND I1.SV_BIZ_HCLSF_CD IN ('1,2')       /*  서비스 유형 (6: B/S+설치) */
-            </if>
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(ogCd)">
-        AND I1.OG_CD = #{ogCd} /* 서비스센터 조직코드 */
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
-        AND I1.PRTNR_NO = #{prtnrNo} /* 엔지니어 */
-        </if>
-        <if test='@MybatisUtils@equals(refriType, "1")'>
-        AND I1.REFRI_DV_CD = #{refriType}
-        AND I1.ITM_BIL_AMT  <![CDATA[<=]]> 0   /* 무상서비스 */
-        </if>
-        <if test='@MybatisUtils@equals(refriType, "2")'>
-        AND I1.REFRI_DV_CD = #{refriType}
-        AND I1.ITM_BIL_AMT  <![CDATA[>]]> 0    /* 유상서비스 */
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(installBase)">
-        AND I1.IST_DT  <![CDATA[ > ]]>  TO_CHAR(ADD_MONTHS(TO_DATE(I1.VST_FSH_DT,'YYYYMM'),-1),'YYYYMM')
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
-        AND I1.ITM_KND_CD = #{itmKndCd}  /* 품목종류 */
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
-        AND I1.PD_GRP_CD = #{pdGrpCd}        /* 상품그룹 */
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(itmPdCdFrom) or @MybatisUtils@isNotEmpty(itmPdCdTo)">
-        AND I1.ITM_PD_CD BETWEEN NVL(#{itmPdCdFrom},'WM00000000') AND NVL(#{itmPdCdTo},'WM99999999')
-        </if>
         ORDER BY I1.ITM_PD_CD
                , I1.CNTR_NO
     </select>

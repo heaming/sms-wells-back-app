@@ -64,6 +64,8 @@ public class WsnaAsMaterialOutOfStoragePsDto {
 
         String refriDvNm,
 
+        String sellTpNm, // 판매유형명
+
         String rcgvpKnm,
 
         String egerCnrNm,
