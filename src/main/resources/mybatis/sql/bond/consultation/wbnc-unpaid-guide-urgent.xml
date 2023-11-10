@@ -252,8 +252,10 @@
              , T2.DLQ_ADD_AMT AS DLQ_ADD_AMT        -- 연체가산금
              , T7.SPMT_SL_AMT AS SPMT_SL_AMT        -- 추가매출액
              , T2.DLQ_MCN AS DLQ_MCN                -- 연체개월
-             , (T2.DLQ_AMT + T2.DLQ_ADD_AMT) AS TOT_NPD_AMT -- 총연체금액(연체금+연체가산금)
-             , (SELECT TT1.PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS TT1 WHERE TT1.PD_CLSF_ID = (SELECT TT2.PD_CLSF_ID FROM TB_PDBS_PD_BAS TT2 WHERE TT2.PD_CD = T8.BASE_PD_CD)) AS PDGRP_NM -- 제품군
+             , T2.UC_AMT AS TOT_NPD_AMT             -- 총연체금액
+             , CASE WHEN T2.BND_BIZ_DV_CD = 'L60' THEN (SELECT TT1.PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS TT1 WHERE TT1.PD_CLSF_ID = (SELECT TT2.PD_CLSF_ID FROM TB_PDBS_PD_BAS TT2 WHERE TT2.PD_CD = T8.BASE_PD_CD)) --정기배송일경우 소분류
+                    ELSE (SELECT TT1.PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS TT1 WHERE TT1.PD_CLSF_ID = (SELECT TT2.PD_MCLSF_ID FROM TB_PDBS_PD_BAS TT2 WHERE TT2.PD_CD = T8.BASE_PD_CD)) --아닐경우 중분류
+                END AS PDGRP_NM /* 제품군 */
              , (SELECT TT1.PD_NM FROM TB_PDBS_PD_BAS TT1 WHERE TT1.PD_CD = T8.BASE_PD_CD) AS PD_NM -- 제품명
              , (SELECT SUBSTR(MAX(TT1.RVE_DT),1,4) FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DP_DV_CD = '1') AS FNL_PY_Y  --최근납입일
 			 , (SELECT SUBSTR(MAX(TT1.RVE_DT),5,2) FROM TB_RVDW_RVE_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DP_DV_CD = '1') AS FNL_PY_MM -- 최종납입월
@@ -444,15 +446,15 @@
                      , T2.IST_Y    --설치년도
                      , T2.IST_MM    --설치월
                      , T2.IST_D    --설치일
-                     , T2.RENTAL_AMT1    --렌탈금액1
-                     , T2.RENTAL_AMT2    --렌탈금액2
-                     , T2.DLQ_AMT    --연체금액
+                     , T1.RENTAL_AMT1    --렌탈금액1
+                     , T1.RENTAL_AMT2    --렌탈금액2
+                     , T1.DLQ_AMT    --연체금액
                      , T1.NPD_AMT --미납금액
-                     , T2.THM_CHRAM_AMT    --당월요금금액
-                     , T2.DLQ_ADD_AMT    --연체가산금액
-                     , T2.SPMT_SL_AMT    --추가매출금액
+                     , T1.THM_CHRAM_AMT    --당월요금금액
+                     , T1.DLQ_ADD_AMT    --연체가산금액
+                     , T1.SPMT_SL_AMT    --추가매출금액
                      , T2.DLQ_MCN    --연체개월수
-                     , T2.TOT_NPD_AMT    --총미납금액
+                     , T1.TOT_NPD_AMT    --총미납금액
                      , T2.PDGRP_NM    --상품군명
                      , T2.PD_NM    --상품명
                      , T2.FNL_PY_Y    --최종납입년도
@@ -475,6 +477,13 @@
                              , WK_DT
                              , TT1.CST_NO
                              , UC_AMT_FW_TP_CD
+                             , SUM(TT1.RENTAL_AMT1) OVER(PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS RENTAL_AMT1    --렌탈금액1
+                             , SUM(TT1.RENTAL_AMT2) OVER(PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS RENTAL_AMT2    --렌탈금액2
+                             , SUM(TT1.DLQ_AMT) OVER(PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS DLQ_AMT    --연체금액
+                             , SUM(TT1.THM_CHRAM_AMT) OVER(PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS THM_CHRAM_AMT    --당월요금금액
+                             , SUM(TT1.DLQ_ADD_AMT) OVER(PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS DLQ_ADD_AMT    --연체가산금액
+                             , SUM(TT1.SPMT_SL_AMT) OVER(PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS SPMT_SL_AMT    --추가매출금액
+                             , SUM(TT1.TOT_NPD_AMT) OVER(PARTITION BY TT1.WK_DT,TT1.UC_AMT_FW_TP_CD,TT1.CST_NO) AS TOT_NPD_AMT    --총미납금액
                           FROM TB_CBBO_WELLS_UCAM_ADVNT_OJ_IZ TT1
                          INNER JOIN TB_CBBO_BND_CNTR_BAS TT2
                             ON 1 = 1
