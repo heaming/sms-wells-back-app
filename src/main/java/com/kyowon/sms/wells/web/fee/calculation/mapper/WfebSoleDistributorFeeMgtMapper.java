@@ -32,9 +32,10 @@ public interface WfebSoleDistributorFeeMgtMapper {
     int insertAggregateNtorPerfMmCl(CreateReq req);
     // 04-2. 순주문파트너실적월마감 - 조직 생성
     int insertOgAggregateNtorPerfMmCl(CreateReq req);
+    // 00-2. 순주문파트너월마감 확정여부 체크
+    int selectCheckSoleConfrim(CreateReq req);
 
     /* 미사용 */
-    int selectCheckSoleConfrim(CreateReq req);
     int insertAggregateNtorPerfPointMmCl(CreateReq req);
     int updateAggregateNtorMmCl(CreateReq req);
 
