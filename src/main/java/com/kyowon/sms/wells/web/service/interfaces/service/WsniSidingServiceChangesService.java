@@ -99,6 +99,8 @@ public class WsniSidingServiceChangesService {
         /*요청 구분에 따라 처리 - 1: 패키지변경, 4:다음회차 방문 중지*/
         //IF(P_REQ_GB = '1' AND P_DATA_STUS != '3') THEN
         if ("1".equals(req.asAkDvCd()) && !"3".equals(req.mtrProcsStatCd())) {
+            log.debug("req.akChdt 1 : " + req.akChdt());
+            log.debug("req.akChdt.subString 1 : " + req.akChdt().substring(0, 6));
 
             /*방문주기 재생성(SP_LC_SERVICEVISIT_482_LST_I06)*/
             service1.processVisitPeriodRegen(
@@ -122,6 +124,10 @@ public class WsniSidingServiceChangesService {
             );
             if (bsTargetDvo != null) {
                 /*고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/
+
+                log.debug("req.akChdt 2 : " + req.akChdt());
+                log.debug("req.akChdt.subString 2 : " + req.akChdt().substring(0, 6));
+
                 service2.removeRglrBfsvcDl(
 //                    new WsnbCustomerRglrBfsvcDlDto.SaveReq(
 //                        bsTargetDvo.getCstSvAsnNo(), //row.getCstSvAsnNo(),
@@ -133,6 +139,8 @@ public class WsniSidingServiceChangesService {
                     )
                 );
                 log.debug("고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)");
+                log.debug("req.akChdt 3 : " + req.akChdt());
+                log.debug("req.akChdt.subString 3 : " + req.akChdt().substring(0, 6));
                 /*고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)*/
                 service3.processRegularBfsvcAsn(
 //                    new WsncRegularBfsvcAsnDto.SaveProcessReq(
