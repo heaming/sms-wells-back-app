@@ -35,7 +35,10 @@ public class WbncCustomerDto {
         String schOjBlamEnd, /* to 대상잔액 */
         String schCstDv, /* 고객구분 */
         String schCpsnRsgYn, /* 강제해지여부 */
-        String schDv /* 구분 */
+        String schDv1, /* 구분1 */
+        String schDv2, /* 구분2 */
+        String schDv3, /* 구분3 */
+        String schDv4 /* 구분4 */
     ) {
         public SearchReq {
             schMexnoEncr = StringUtils.isNotEmpty(schMexnoEncr) ? DbEncUtil.enc(schMexnoEncr)
