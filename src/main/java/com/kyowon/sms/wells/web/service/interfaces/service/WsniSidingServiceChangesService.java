@@ -108,7 +108,7 @@ public class WsniSidingServiceChangesService {
                     req.akChdt(),
                     null,
                     req.akChdt(),
-                    req.akChdt(), // 배정년월 설정
+                    req.akChdt().substring(0, 6), // 배정년월 설정
                     null,
                     null
                 )
@@ -129,7 +129,7 @@ public class WsniSidingServiceChangesService {
 //                    )
                     new WsnbCustomerRglrBfsvcDlDto.SaveReq(
                         bsTargetDvo.getCstSvAsnNo(), //row.getCstSvAsnNo(),
-                        req.akChdt().substring(0, 6)
+                        bsTargetDvo.getAsnOjYm()
                     )
                 );
                 log.debug("고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)");
