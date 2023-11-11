@@ -48,6 +48,8 @@ public interface WogcPartnerPlannerMapper {
 
     int updateAdDtlPartner(WogcPartnerPlannerDvo planner);
 
+    int updateADTopPlannerUpgradeMonth(WogcPartnerPlannerDvo planner);
+
     WogcPartnerPlannerDto.FindRes selectTopPlannerByPk(String ogTpCd, String prtnrNo, String mngtYm);
 
     WogcPartnerPlannerDto.FindRes selectMmPlannerByPk(String ogTpCd, String prtnrNo, String mngtYm);

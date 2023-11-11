@@ -175,6 +175,10 @@ public class WogcPartnerPlannerService {
             processCount += this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
         }
 
+        if (StringUtils.equals(dto.qlfDvCd(), "1")) {
+            processCount += this.mapper.updateADTopPlannerUpgradeMonth(planner); // 4. 수석플래너신청내역의 당월 이후 승급차월수 UPDATE
+        }
+
         return processCount;
     }
 
