@@ -154,14 +154,6 @@ public class WbncRentalResignExpectedMgtService {
     public int saveRentalResignExpectedCnfms(SaveConfirmReq dto) throws Exception {
 
         int processCount = 0;
-
-        // 직권해지 관리 취소자료 업데이트
-        if ("02".equals(dto.confirmDvCd())) {
-            SaveCancelReq cancelDto = this.converter.mapSaveReqToCancleDto(dto);
-            // 계약해지처리내역 등록
-            this.mapper.insertRentalCntrResignExpctCancel(cancelDto);
-        }
-
         // 직권해지 렌탈 [예정확정] [최종확정]
         int rentalCount = this.mapper.updateAuthorityResignRentalCnfms(dto);
         BizAssert.isTrue(rentalCount >= 0, MSG_ALT_SVE_ERR_STR); // 저장에 실패 하였습니다.
@@ -176,9 +168,11 @@ public class WbncRentalResignExpectedMgtService {
         // 직권해지 확정 조회, 계약상태 변경처리
         if ("02".equals(dto.confirmDvCd())) {
 
+            SaveCancelReq cancelDto = this.converter.mapSaveReqToCancleDto(dto);
             // 직권해지 관리 취소자료 업데이트
-            this.mapper.updateRentalResignExpectedCancel(this.converter.mapSaveReqToCancleDto(dto));
-
+            this.mapper.updateRentalResignExpectedCancel(cancelDto);
+            // 계약해지처리내역 등록
+            this.mapper.insertRentalCntrResignExpctCancel(cancelDto);
             // 직권해지 계약 조회
             List<WbncAuthorityResignIzDvo> resignConfirms = this.mapper.selectRentalResignConfirms(dto.baseDt());
             List<WctbContractDtlStatCdChDvo> resignContractList = getResignContractList(resignConfirms);
@@ -186,7 +180,7 @@ public class WbncRentalResignExpectedMgtService {
                 try {
                     wctbContractDtlStatCdChService.editContractsDtlStatCdCh(resignContractList);
                 } catch (Exception e) {
-                    throw new BizException("계약 상세 상태 변경 실패");
+                    throw new BizException(messageResourceService.getMessage("MSG_ALT_CNTR_CH_FAIL")); // 계약 상태 변경에 실패 하였습니다.
                 }
             }
         }
