@@ -921,6 +921,56 @@
            AND PRTNR_NO  = #{prtnrNo} /* 파트너번호 */
     </update>
 
+    <!-- 자격조정 (당월 이후 승급차월수 업데이트) -->
+    <update id="updateADTopPlannerUpgradeMonth">
+        MERGE INTO TB_OGPS_TOPMR_PLAR_APLC_IZ T1 /* 수석플래너신청내역 */
+        USING (
+           SELECT T0.MNGT_YM, T0.OG_TP_CD, T0.PRTNR_NO, MAX(T0.APLC_SN) MAX_APLC_SN
+           FROM TB_OGPS_TOPMR_PLAR_APLC_IZ          T0
+                INNER JOIN TB_OGBS_MM_PRTNR_IZ      T1 /* 월파트너내역            */
+                 ON T1.BASE_YM   = T0.MNGT_YM
+                AND T1.OG_TP_CD  = T0.OG_TP_CD
+                AND T1.PRTNR_NO  = T0.PRTNR_NO
+                AND T1.QLF_DV_CD = T0.QLF_DV_CD
+           WHERE T0.MNGT_YM   > #{mngtYm}  /* 관리년월 */
+             AND T0.PRTNR_NO  = #{prtnrNo} /* 파트너번호 */
+             AND T0.QLF_DV_CD = '1'        /* 1:수석플래너*/
+             AND T0.DTA_DL_YN = 'N'
+           GROUP BY T0.MNGT_YM, T0.OG_TP_CD, T0.PRTNR_NO
+        ) QLF_DV
+        ON (  T1.MNGT_YM   = QLF_DV.MNGT_YM       /* 관리년월 */
+          AND T1.APLC_SN   = QLF_DV.MAX_APLC_SN   /* 신청일련번호 */
+          AND T1.OG_TP_CD  = QLF_DV.OG_TP_CD      /* 조직유형코드 */
+          AND T1.PRTNR_NO  = QLF_DV.PRTNR_NO      /* 파트너번호 */
+        )
+        WHEN MATCHED THEN
+           /* 직전 승급 자료의 종료일자를 당월말일로 갱신 */
+           UPDATE SET  T1.UPGR_MCN         =
+                                (SELECT T0.UPGR_MCN
+                                       FROM TB_OGPS_TOPMR_PLAR_APLC_IZ T0
+                                 INNER JOIN TB_OGBS_MM_PRTNR_IZ T1
+                                         ON T1.BASE_YM   = T0.MNGT_YM
+                                        AND T1.OG_TP_CD  = T0.OG_TP_CD
+                                        AND T1.PRTNR_NO  = T0.PRTNR_NO
+                                        AND T1.QLF_DV_CD = T0.QLF_DV_CD
+                                      WHERE T0.MNGT_YM = #{mngtYm}
+                                        AND T0.PRTNR_NO = #{prtnrNo}
+                                        AND T0.QLF_DV_CD = '1'
+                                        AND T0.DTA_DL_YN = 'N'
+                                        AND T0.APLC_SN = (SELECT MAX(APLC_SN)
+                                                            FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
+                                                           WHERE MNGT_YM = #{mngtYm}
+                                                             AND PRTNR_NO  = #{prtnrNo}
+                                                             AND QLF_DV_CD = '1'
+                                                             AND DTA_DL_YN = 'N'
+                                                         )
+                               ) + MONTHS_BETWEEN(TO_DATE(QLF_DV.MNGT_YM, 'YYYYMM'), TO_DATE(#{mngtYm}, 'YYYYMM'))
+                      ,T1.FNL_MDFC_DTM     = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                      ,T1.FNL_MDFC_USR_ID  = #{session.userId}
+                      ,T1.FNL_MDFC_PRG_ID  = #{session.pageId}
+                      ,T1.FNL_MDFC_DEPT_ID = NVL(#{session.ogId}, 'NULL')
+    </update>
+
     <insert id="insertPlannerQualificationChange">
         INSERT INTO TB_OGPS_PLAR_QLF_CH_IZ   /* 플래너자격변경내역 */
              ( OG_TP_CD /* 조직유형코드 */
