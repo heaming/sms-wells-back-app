@@ -42,7 +42,7 @@ public interface WwdbRefundApplicationMapper {
         SearchRefundBalanceTransferReq req
     );
 
-    /* TODO: 임시저장 START */
+    /* 임시저장 START */
     String selectRefundPk();
 
     int insertRefundTempSave(WwdbRefundBaseDvo dvo);
@@ -55,9 +55,9 @@ public interface WwdbRefundApplicationMapper {
 
     int deleteBalanceTempSaveDetail(WwdbRefundBltfDvo dvo);
 
-    /* TODO:  임시저장 END*/
+    /* 임시저장 END*/
 
-    /* TODO: 삭제시  */
+    /* 삭제시  */
     int deleteRefundBase(WwdbRefundRemoveDvo dvo);
 
     int deleteRefundCntrDetail(WwdbRefundRemoveDvo dvo);
@@ -66,13 +66,13 @@ public interface WwdbRefundApplicationMapper {
 
     int deleteRefundBalanceDetail(WwdbRefundRemoveDvo dvo);
 
-    /*TODO: 그리드에서 선택하여 조회시 */
+    /* 그리드에서 선택하여 조회시 */
     PagingResult<SearchRefundBaseRes> selectRefundBasePages(
         SearchRefundBaseReq req,
         PageInfo pageInfo
     );
 
-    /* TODO: 상세(P03) -> 컨텍이력조회 선택시 */
+    /*  상세(P03) -> 컨텍이력조회 선택시 */
     PagingResult<SearchRefundApplicationConnectHistoryRes> selectRefundApplicationConnectHistory(
         String cntrNo,
         PageInfo pageInfo
@@ -82,31 +82,31 @@ public interface WwdbRefundApplicationMapper {
         String cntrNo
     );
 
-    /* TODO: 승인(현금) - 환불접수기본*/
+    /* 승인(현금) - 환불접수기본*/
     int insertRefundReceiptBaseCash(WwdbRefundDtlDvo dvo);
 
-    /* TODO: 승인(카드) - 환불접수기본*/
+    /* 승인(카드) - 환불접수기본*/
     int insertRefundReceiptBaseCard(WwdbRefundDtlDvo dvo);
 
-    /* TODO: 승인(전금) - 환불접수기본*/
+    /* 승인(전금) - 환불접수기본*/
     int insertRefundReceiptBaseBltf(WwdbRefundDtlDvo dvo);
 
-    /* TODO: 승인(현금) - 환불접수상세*/
+    /* 승인(현금) - 환불접수상세*/
     int insertRefundReceiptDtlCash(WwdbRefundDtlDvo dvo);
 
-    /* TODO: 승인(카드) - 환불접수상세*/
+    /* 승인(카드) - 환불접수상세*/
     int insertRefundReceiptDtlCard(WwdbRefundDtlDvo dvo);
 
-    /* TODO: 승인(전문) - 환불접수상세*/
-    /* TODO: 환불접수기본 상태값 변경*/
+    /* 승인(전문) - 환불접수상세*/
+    /* 환불접수기본 상태값 변경*/
 
     int updateRefundStatus(WwdbRefundBaseDvo dvo);
 
     int insertRefundReceiptDtlBltf(WwdbRefundDtlDvo dvo);
 
-    /* TODO: 승인 - 환불접수기본 이력*/
+    /* 승인 - 환불접수기본 이력*/
     int insertRefundReceiptBaseHistory(WwdbRefundDtlDvo dvo);
 
-    /* TODO: 승인 - 환불접수상세 이력*/
+    /* 승인 - 환불접수상세 이력*/
     int insertRefundReceiptDtlHistory(WwdbRefundDtlDvo dvo);
 }
