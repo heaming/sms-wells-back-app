@@ -202,10 +202,10 @@
 --                , S1.RPB_LOCARA_CD     /*책임지역코드*/
                , S3.VST_FSH_DT        /*방문완료일자(출고완료일자)*/
                , S1.FST_RGST_USR_ID  /*접수자사번*/
---               , S7.WARE_NO    /*창고번호*/
---               , S7.WARE_NM    /*창고명*/
---               , S7.WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
---               , (CASE WHEN S7.OG_TP_CD LIKE '@%' THEN 'W06' ELSE S7.OG_TP_CD END) AS WARE_MNGT_PRTNR_OG_TP_CD
+               , S7.WARE_NO    /*창고번호*/
+               , S7.WARE_NM    /*창고명*/
+               , S7.WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
+              , (CASE WHEN S7.OG_TP_CD LIKE '@%' THEN 'W06' ELSE S7.OG_TP_CD END) AS WARE_MNGT_PRTNR_OG_TP_CD
                , C0.CNTR_CNFM_DTM     /*계약확정일*/
  		       /* MD */
  		       , S1.SPP_PROCS_BZS_CD
@@ -227,14 +227,11 @@
            ON S6.CNTR_NO = S1.CNTR_NO
            AND S6.CNTR_SN = S1.CNTR_SN
            AND S6.DTA_DL_YN = 'N'
---          INNER JOIN TB_SVST_MCBY_WARE_IZ S7 /*월별창고내역, KWAS.LC_STOCK_ST102TB 창고조직기본정보*/
---            ON (CASE WHEN S7.WARE_MNGT_PRTNR_NO = '71321'
---                     THEN '99992' ELSE S7.WARE_MNGT_PRTNR_NO
---                     END) = NVL(S3.PRTNR_NO, S2.ICHR_PRTNR_NO)
---           AND S7.WARE_NO =  '100002'
---           AND S7.WARE_DTL_DV_CD = '10'  /*창고상세구분코드*/
---           AND S7.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
---           AND S7.DTA_DL_YN = 'N'
+          INNER JOIN TB_SVST_MCBY_WARE_IZ S7 /*월별창고내역, KWAS.LC_STOCK_ST102TB 창고조직기본정보*/
+           ON S7.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND S7.WARE_MNGT_PRTNR_NO = S1.ICHR_PRTNR_NO
+--            AND S7.WARE_DTL_DV_CD = '20'
+           AND S7.DTA_DL_YN = 'N'
           INNER JOIN TB_SSCT_CNTR_BAS C0                /*계약기본*/
            ON C0.CNTR_NO = S1.CNTR_NO
            AND C0.DTA_DL_YN = 'N'
@@ -382,10 +379,10 @@
 --                             , PL1.AS_CAUS_CD        /*AS원인코드*/
 --                             , PL1.SITE_AW_SV_TP_CD  /*현장수당서비스유형코드*/
 --                             , PL1.SITE_AW_ATC_CD    /*현장수당항목코드*/
---                             , PL1.WARE_NO           /*창고번호*/
---                             , PL1.WARE_NM           /*창고명*/
---                             , PL1.WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
---                             , PL1.WARE_MNGT_PRTNR_OG_TP_CD AS WARE_MNGT_PRTNR_OG_TP_CD
+                             , PL1.WARE_NO           /*창고번호*/
+                             , PL1.WARE_NM           /*창고명*/
+                             , PL1.WARE_MNGT_PRTNR_NO /* 창고관리파트너번호 */
+                             , PL1.WARE_MNGT_PRTNR_OG_TP_CD AS WARE_MNGT_PRTNR_OG_TP_CD
                              , PL1.CNTR_CNFM_DTM    /*계약확정일*/
 			                 , PL1.PART_CNT_TOTAL AS PART_CNT_TOTAL    /*투입부품모델수*/
                              , REGEXP_SUBSTR(PL1.PART_LIST,     '[^,]+', 1, 1) AS PART_CD_01
@@ -626,8 +623,8 @@
            AND S1.WARE_MNGT_PRTNR_NO = O2.PRTNR_NO
           WHERE 1 = 1
            /* 익월 bs를 조회시 월조직이 생성이 안되어 있기 때문에 이렇게 처리 */
---          AND S1.WARE_NO = '100002'
             AND O1.DTA_DL_YN = 'N'
+--             AND S1.WARE_MNGT_PRTNR_NO ='95008'   -- session.loginId
           <choose>
             <when test='@MybatisUtils@equals(findGb, "1")'>
             AND O1.BASE_YM = LEAST(SUBSTR(NVL(#{ostrCnfmDt}, SYSDATE),1,6), TO_CHAR(SYSDATE, 'YYYYMM'))
@@ -686,9 +683,9 @@
 --         , O1.PRTNR_KNM
          , TO_CHAR(TO_DATE(I1.VST_FSH_DT ),'YYYY-MM-DD') AS OSTR_CNFRM_DT  /*출고확정일*/
          /* 창고정보 */
---         , I1.WARE_NO  AS WK_WARE_NO
---         , I1.WARE_MNGT_PRTNR_NO        /* 창고관리파트너번호 */
---         , I1.WARE_MNGT_PRTNR_OG_TP_CD  /*창고관리파트너조직유형코드*/
+         , I1.WARE_NO  AS WK_WARE_NO
+         , I1.WARE_MNGT_PRTNR_NO        /* 창고관리파트너번호 */
+         , I1.WARE_MNGT_PRTNR_OG_TP_CD  /*창고관리파트너조직유형코드*/
          /* 작업결과 */
 --         , I1.AS_LCT_CD                 /*AS위치코드*/
 --         , I1.AS_PHN_CD                 /*AS현상코드*/
@@ -744,12 +741,11 @@
        AND C1.CNTR_SN = I1.CNTR_SN
        AND ADRPC_TP_CD_RNK = 1
       INNER JOIN PART_INF P1
---        ON P1.PD_CD = I1.BASE_PD_CD
-          ON P1.PD_CD = I1.PDCT_PD_CD
+       ON P1.PD_CD = I1.PDCT_PD_CD
        AND P1.PD_EXTS_PRP_GRP_CD = 'SPP'
---       LEFT OUTER JOIN OG_PRTNR_WARE_INF O1 /*물류작업자 사번에 대한 이행 정리가 아직 안되서 LEFT OUTER 로 향후 INNER JOIN 으로 변경 해야 함*/
---        ON O1.OG_TP_CD = NVL(I1.OG_TP_CD, I1.ICHR_OG_TP_CD)
---        AND O1.PRTNR_NO = NVL(I1.PRTNR_NO, I1.ICHR_PRTNR_NO)
+      LEFT OUTER JOIN OG_PRTNR_WARE_INF O1 /*물류작업자 사번에 대한 이행 정리가 아직 안되서 LEFT OUTER 로 향후 INNER JOIN 으로 변경 해야 함*/
+       ON O1.OG_TP_CD = NVL(I1.OG_TP_CD, I1.ICHR_OG_TP_CD)
+       AND O1.PRTNR_NO = NVL(I1.PRTNR_NO, I1.ICHR_PRTNR_NO)
       WHERE 1=1
     </select>
 </mapper>

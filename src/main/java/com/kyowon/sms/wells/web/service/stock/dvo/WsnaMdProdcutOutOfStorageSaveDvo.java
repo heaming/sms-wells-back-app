@@ -97,5 +97,5 @@ public class WsnaMdProdcutOutOfStorageSaveDvo {
 
     String wareMngtPrtnrOgTpCd;
 
-    List<WsnaPcsvOutOfStorageSaveProductDvo> products;
+    List<WsnaMdProductOutOfStorageSaveProductDvo> products;
 }
