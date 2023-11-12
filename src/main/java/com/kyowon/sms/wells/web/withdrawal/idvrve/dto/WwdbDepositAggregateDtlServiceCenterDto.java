@@ -26,7 +26,7 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
         String useYn, //대사처리
         String stlmDvCd //결제유형
 
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -58,15 +58,17 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
         String stlmDvCd, /*결제구분코드*/
         String iscmpCd, /*결제처*/
         String cardAprno, /*승인번호*/
-        String taxBll ,/*세금계산서*/
+        String taxBll, /*세금계산서*/
 
         /* 팝업전달용 */
         String crcdonrNm, /*카드주*/
         String crcdnoEncr, /*카드번호*/
-        String crdcdExpdtYm,
-        String istmMcn  ,
-        String vacNo  ,
-        String vacBnkCd  ,
+        String crdcdExpdtYm, /*카드유효기간*/
+        String istmMcn, /*할부기간*/
+        String vacNo, /*가상계좌번호*/
+        String vacBnkCd, /*은행코드*/
+        String csBilNo, /*비용청구번호*/
+        String cstSvAsnNo, /*고객서비스배정번호*/
         String itgDpNo
     ) {
         public SearchRes {
@@ -83,7 +85,7 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
     public record SearchCodeRes(
         String codeId,
         String codeName
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -93,5 +95,5 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
     public record SearchSumRes(
         String bilAmtTot,
         String dpSumAmtTot
-    ) { }
+    ) {}
 }
