@@ -141,7 +141,7 @@ public class WfebB2bFeeMgtService {
         // 00-1. 수수료일정 갱신 API 체크 > 화면에서해서 일단 페스
         // 00-2. 순주문파트너월마감 확정여부 체크
         int checkCount = mapper.selectCheckB2bConfrim(req);
-        BizAssert.isFalse(checkCount == 0, "MSG_ALT_HDQ_PERF_CHECK"); // 본부영업실적집계 [본부실적확정] 후 수수료 실적집계를 진행하세요.
+        BizAssert.isFalse(checkCount == 0, "MSG_ALT_CNFM_NO_RENEW_DATA"); // 본부영업실적집계 [본부실적확정] 후 수수료 실적집계를 진행하세요.
 
         // 01. B2B 기존 순주문집계 삭제
         // 01-1. 순주문파트너월마감 삭제
