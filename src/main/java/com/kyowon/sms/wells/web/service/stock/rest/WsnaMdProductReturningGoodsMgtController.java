@@ -63,11 +63,9 @@ public class WsnaMdProductReturningGoodsMgtController {
         @NotEmpty
         List<SaveReq> dtos
     ) throws Exception {
-        /*
         return SaveResponse.builder()
             .processCount(service.saveMdProductReturningGoods(dtos))
-            .build();*/
-        return null;
+            .build();
     }
 
     @ApiOperation(value = "택배 물류센터 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
