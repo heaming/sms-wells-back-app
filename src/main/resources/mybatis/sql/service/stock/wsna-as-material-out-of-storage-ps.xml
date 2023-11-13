@@ -15,6 +15,55 @@
              AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
             WHERE 1=1
         )
+        , OJ_LIST AS
+        (
+            SELECT T1.CST_SV_ASN_NO    /*배정번호*/
+                 , T1.CNTR_NO
+                 , T1.CNTR_SN
+                 , T1.SV_BIZ_HCLSF_CD
+                 , T1.SV_BIZ_DCLSF_CD
+                 , T2.WK_PRGS_STAT_CD   /*서비스상태코드 */
+                 , T1.CNSL_MO_CN
+                 , T2.SITE_AW_PD_GRP_CD
+                 , T2.WK_PRTNR_NO
+				 , T2.WK_PRTNR_OG_TP_CD
+				 , T2.WK_EXCN_DT
+				 , T2.VST_CNFMDT
+           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1        /* 고객서비스AS설치대상내역 */
+           INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2 /* 고객서비스AS설치배정내역 */
+            ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+           INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ T3
+            ON T1.CST_SV_ASN_NO = T3.CST_SV_ASN_NO
+           WHERE 1=1
+            AND T3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
+            <if test="@MybatisUtils@isNotEmpty(svBizDclsfCd)">
+            AND T1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}  /* 업무유형 */
+            </if>
+           UNION ALL
+           SELECT
+                  T1.CST_SV_ASN_NO
+                , T1.CNTR_NO
+                , T1.CNTR_SN
+                , '2' AS SV_BIZ_HCLSF_CD
+                , T1.SV_BIZ_DCLSF_CD
+                , T2.VST_PRGS_STAT_CD AS WK_PRGS_STAT_CD
+                , T2.CST_CNTC_MO_CN AS CNSL_MO_CN
+                , T2.SITE_AW_PD_GRP_CD
+                , T2.CNFM_PSIC_PRTNR_NO AS WK_PRTNR_NO
+				, T2.CNFM_PSIC_PRTNR_OG_TP_CD AS WK_PRTNR_OG_TP_CD
+				, T2.WK_EXCN_DT
+				, '' AS VST_CNFMDT
+           FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ T1         /* 고객서비스BS대상내역 */
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ T2  /* 고객서비스BS배정내역 */
+            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+           INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ T3
+            ON T1.CST_SV_ASN_NO = T3.CST_SV_ASN_NO
+           WHERE 1=1
+            AND T3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
+            <if test="@MybatisUtils@isNotEmpty(svBizDclsfCd)">
+            AND T1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}  /* 업무유형 */
+            </if>
+        )
         , WK_RS_INF AS
         (
 	        SELECT  T1.CST_SV_ASN_NO
@@ -42,7 +91,9 @@
 	                     THEN '2'
 	                     ELSE '1'
                      END) AS REFRI_DV_CD
-	        FROM TB_SVPD_CST_SV_WK_RS_IZ T1
+	        FROM OJ_LIST T0
+	        INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ T1
+	         ON T0.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
 	        INNER JOIN TB_SVST_SV_WK_OSTR_IZ T2
 	         ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
 	        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3
@@ -92,49 +143,6 @@
             </if>
             <if test="@MybatisUtils@isNotEmpty(installBase)">
             AND T3.IST_DT  <![CDATA[ > ]]>  TO_CHAR(ADD_MONTHS(TO_DATE(T1.VST_FSH_DT,'YYYYMM'),-1),'YYYYMM')  /* 설치기준 */
-            </if>
-        )
-        , OJ_LIST AS
-        (
-            SELECT T1.CST_SV_ASN_NO    /*배정번호*/
-                 , T1.CNTR_NO
-                 , T1.CNTR_SN
-                 , T1.SV_BIZ_HCLSF_CD
-                 , T1.SV_BIZ_DCLSF_CD
-                 , T2.WK_PRGS_STAT_CD   /*서비스상태코드 */
-                 , T1.CNSL_MO_CN
-                 , T2.SITE_AW_PD_GRP_CD
-                 , T2.WK_PRTNR_NO
-				 , T2.WK_PRTNR_OG_TP_CD
-				 , T2.WK_EXCN_DT
-				 , T2.VST_CNFMDT
-           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1        /* 고객서비스AS설치대상내역 */
-           INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2 /* 고객서비스AS설치배정내역 */
-            ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
-           WHERE 1=1
-            <if test="@MybatisUtils@isNotEmpty(svBizDclsfCd)">
-            AND T1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}  /* 업무유형 */
-            </if>
-           UNION ALL
-           SELECT
-                  T1.CST_SV_ASN_NO
-                , T1.CNTR_NO
-                , T1.CNTR_SN
-                , '2' AS SV_BIZ_HCLSF_CD
-                , T1.SV_BIZ_DCLSF_CD
-                , T2.VST_PRGS_STAT_CD AS WK_PRGS_STAT_CD
-                , T2.CST_CNTC_MO_CN AS CNSL_MO_CN
-                , T2.SITE_AW_PD_GRP_CD
-                , T2.CNFM_PSIC_PRTNR_NO AS WK_PRTNR_NO
-				, T2.CNFM_PSIC_PRTNR_OG_TP_CD AS WK_PRTNR_OG_TP_CD
-				, T2.WK_EXCN_DT
-				, '' AS VST_CNFMDT
-           FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ T1         /* 고객서비스BS대상내역 */
-           INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ  T2 /* 고객서비스BS배정내역 */
-            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-           WHERE 1=1
-            <if test="@MybatisUtils@isNotEmpty(svBizDclsfCd)">
-            AND T1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}  /* 업무유형 */
             </if>
         )
         , TARGET_INF AS
