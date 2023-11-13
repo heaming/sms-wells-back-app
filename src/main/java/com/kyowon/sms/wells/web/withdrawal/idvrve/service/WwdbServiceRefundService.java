@@ -4,14 +4,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbIntegrationDepositDvo;
-import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbRefundApplicationReqDvo;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbIntegrationDepositMapper;
-import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbRefundApplicationService;
+import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbRefundApplicationMapper;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.mapper.ZwdzWithdrawalMapper;
 import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbServiceRefundDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundDtlDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbServiceRefundDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbServiceRefundMapper;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
@@ -27,8 +25,9 @@ public class WwdbServiceRefundService {
 
     private final ZwdbIntegrationDepositMapper integrationDepositMapper;
     private final ZwdzWithdrawalMapper zwdzwithdrawalMapper;
+
+    private final ZwdbRefundApplicationMapper refundApplicationMapper;
     private final ZwdzWithdrawalService withdrawalService;
-    private final ZwdbRefundApplicationService zwdbRefundApplicationService;
 
     /**
      * 환불정보수정 수정
@@ -50,14 +49,8 @@ public class WwdbServiceRefundService {
 
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession(); //세션정보
 
-        ZwdbRefundApplicationReqDvo reqDvo = new ZwdbRefundApplicationReqDvo();
-        reqDvo.setKwGrpCoCd(session.getCompanyCode());
-
         // 환불접수번호
-        String refundReceipNo = zwdbRefundApplicationService.getSelectRefundReceiptPk(reqDvo);
-
-        WwdbRefundDtlDvo refundDvo = new WwdbRefundDtlDvo();
-        refundDvo.setRfndRcpNo(refundReceipNo);
+        String refundReceipNo = refundApplicationMapper.selectRefundReceiptPk(session.getCompanyCode());
 
         /*1. 환불접수기본 데이터 생성*/
         WwdbServiceRefundDvo serviceRefundDvo = new WwdbServiceRefundDvo();
