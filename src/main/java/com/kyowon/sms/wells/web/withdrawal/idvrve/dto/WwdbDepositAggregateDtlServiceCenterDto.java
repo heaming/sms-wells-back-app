@@ -69,7 +69,8 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
         String vacBnkCd, /*은행코드*/
         String csBilNo, /*비용청구번호*/
         String cstSvAsnNo, /*고객서비스배정번호*/
-        String itgDpNo
+        String itgDpNo, /*통합입금번호*/
+        String adpBilOjYn /*합산청구여부*/
     ) {
         public SearchRes {
             mexnoEncr = DbEncUtil.dec(mexnoEncr);
