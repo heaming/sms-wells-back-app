@@ -32,11 +32,12 @@ public class WfeeFeeSpecificationController {
     @ApiOperation(value = "EDU 수수료 지급명세서 리스트 조회", notes = "")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfDt", value = "", paramType = "query", required = true),
-        @ApiImplicitParam(name = "orgType", value = "", paramType = "query", required = true),
-        @ApiImplicitParam(name = "positionType", value = "", paramType = "query", required = true),
-        @ApiImplicitParam(name = "ogLevel1", value = "", paramType = "query", required = true),
-        @ApiImplicitParam(name = "ogLevel2", value = "", paramType = "query", required = true),
-        @ApiImplicitParam(name = "ogLevel3", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogTpCd", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rsbDvCd", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevel1", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevel2", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevel3", value = "", paramType = "query", required = false)
     })
     // 수수료코드 가져옴
     @GetMapping("/fee-codes")
@@ -58,11 +59,13 @@ public class WfeeFeeSpecificationController {
     @ApiOperation(value = "EDU 수수료 지급명세서 리스트 리포트 생성", notes = "")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfDt", value = "", paramType = "query", required = true),
-        @ApiImplicitParam(name = "orgType", value = "", paramType = "query", required = true),
-        @ApiImplicitParam(name = "positionType", value = "", paramType = "query", required = true),
-        @ApiImplicitParam(name = "ogLevel1", value = "", paramType = "query", required = true),
-        @ApiImplicitParam(name = "ogLevel2", value = "", paramType = "query", required = true),
-        @ApiImplicitParam(name = "ogLevel3", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "ogTpCd", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rsbDvCd", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "prtnrNo", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevel1", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevel2", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogLevel3", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "isSum", value = "", paramType = "query", required = false)
     })
     // 수수료코드 가져옴
     @GetMapping("/report")

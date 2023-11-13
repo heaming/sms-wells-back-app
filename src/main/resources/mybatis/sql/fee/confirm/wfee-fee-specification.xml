@@ -23,8 +23,54 @@
                  ORDER BY T1.FEE_CD , T1.SRN_MARK_ODR_SN
     </select>
 
-    <!-- M추진단 플래너 -->
+
+
+
+
+
+
+    <!-- M 플래너 조회 -->
     <select id="selectMPlannerFeeSpecifications" resultType="camelMap">
+
+      <choose>
+            <!-- M추진단 플래너 - 합계 -->
+             <when test="@MybatisUtils@equals(dto.isSum ,'Y')">
+
+                SELECT SUM(MEET_DATES) AS MEET_DATES /* 미팅참석일수 */
+                     , SUM(DSB_VAL0) AS  DSB_VAL0    /* 수수료 지급대상금액 */
+
+                     , SUM(PERF_VAL1) AS PERF_VAL1 /* 가전인정건수 */
+                     , SUM(PERF_VAL2) AS PERF_VAL2 /* 가전기변건수 */
+                     , SUM(PERF_VAL0) AS PERF_VAL0 /* 실적 합계  */
+
+                     , SUM(DDTN_VAL1) AS DDTN_VAL1    /* 소득세 */
+                     , SUM(DDTN_VAL2) AS DDTN_VAL2    /* 주민세 */
+                     , SUM(DDTN_VAL3) AS DDTN_VAL3    /* 보증예치금 */
+                     , SUM(DDTN_VAL4) AS DDTN_VAL4    /* 가지급금 */
+                     , SUM(DDTN_VAL5) AS DDTN_VAL5    /* 부담공제 */
+                     , SUM(DDTN_VAL6) AS DDTN_VAL6    /* 고용보험 */
+                     , SUM(DDTN_VAL7) AS DDTN_VAL7    /* 산재보험 */
+                     , SUM(DDTN_VAL0) AS  DDTN_VAL0  /* 공제계 */
+
+                     ,${feeEachSumField}  /* 수수료 각 항목 합계*/
+
+                     , SUM(NVL(FEE_VAL0,0))  AS FEE_VAL0  /*  수수료 합계 */
+                 FROM (
+                        <include refid="mPlannerSql" />
+                     ) TB_ORG
+
+                  GROUP BY BASE_YM
+             </when>
+            <otherwise>
+                 <!-- M추진단 플래너 - 리스트 -->
+                 <include refid="mPlannerSql" />
+            </otherwise>
+      </choose>
+
+    </select>
+
+    <!-- M추진단 플래너 sql -->
+    <sql id="mPlannerSql" >
 
         /* M추진단 - 플래너 조회(동적 컬럼) */
         SELECT
@@ -41,10 +87,10 @@
              , O.PRTNR_NO /* 파트너번호 */
              , O.DGR3_LEVL_OG_CD /* 3차레벨조직코드 - 지점 코드*/
              , O.PRTNR_KNM /* 파트너명 */
-             , O.RSB_DV_CD /* 파트너 직급 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'RSB_DV_CD', O.RSB_DV_CD) AS RSB_DV_CD /* 파트너 직급 */
              , NVL(PERF.PERF02, 0) AS PERF_VAL1 /* 가전인정건수 */
              , NVL(PERF.PERF03, 0) AS PERF_VAL2 /* 가전기변건수 */
-             , (NVL(PERF.PERF02, 0) + NVL(PERF.PERF03, 0)) AS PERF_VAL0
+             , (NVL(PERF.PERF02, 0) + NVL(PERF.PERF03, 0)) AS PERF_VAL0 /* 실적 합계 */
              , NVL(MEET.MEET_DATES, 0) AS MEET_DATES /* 미팅참석일수 */
              , ${feeCdFields}
              , ${feeSumField}
@@ -230,12 +276,75 @@
                 AND O.PRTNR_NO = #{dto.prtnrNo}
             </if>
         ORDER BY O.DGR1_LEVL_OG_CD , O.DGR2_LEVL_OG_CD , O.DGR3_LEVL_OG_CD ,O.PRTNR_NO
+    </sql>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- P추진단 플래너  -->
+    <select id="selectPPlannerFeeSpecifications"  resultType="camelMap">
+
+        <choose>
+            <!-- P추진단 플래너 - 합계 -->
+             <when test="@MybatisUtils@equals(dto.isSum ,'Y')">
+
+                    SELECT  SUM(MEET_DATES) AS MEET_DATES /* 미팅참석일수 */
+                          , SUM(DSB_VAL0) AS DSB_VAL0 /* 수수료 지급대상금액 */
+
+                          , SUM(MEET_DATES) AS MEET_DATES   /* 미팅참석일수 */
+                          , SUM(PERF_VAL1) AS PERF_VAL1   /* 가전 실적 */
+                          , SUM(PERF_VAL2) AS PERF_VAL2   /* 가전외 실적 */
+                          , SUM(PERF_VAL3) AS PERF_VAL3   /* 합산 실적 */
+                          , SUM(PERF_VAL4) AS PERF_VAL4   /* 기변 실적 */
+                          , SUM(PERF_VAL0) AS PERF_VAL0
+
+                          , SUM(DDTN_VAL1) AS DDTN_VAL1 /* 소득세 */
+                          , SUM(DDTN_VAL2) AS DDTN_VAL2 /* 주민세 */
+                          , SUM(DDTN_VAL3) AS DDTN_VAL3 /* 보증예치금 */
+                          , SUM(DDTN_VAL4) AS DDTN_VAL4 /* 가지급금 */
+                          , SUM(DDTN_VAL5) AS DDTN_VAL5 /* 부담공제 */
+                          , SUM(DDTN_VAL6) AS DDTN_VAL6 /* 고용보험 */
+                          , SUM(DDTN_VAL7) AS DDTN_VAL7 /* 산재보험 */
+                          , SUM(DDTN_VAL0) AS DDTN_VAL0 /* 공제계 */
+                          , SUM(DSB_VAL0)  AS DSB_VAL0    /* 수수료 지급대상금액 */
+
+
+                          , ${feeEachSumField}  /* 수수료 각 항목 합계*/
+
+                          , SUM(NVL(FEE_VAL0,0))  AS FEE_VAL0  /*  수수료 합계 */
+                    FROM (
+                        <include refid="pPlannerSql"/>
+                        ) TB_ORG
+                    GROUP BY BASE_YM
+             </when>
+            <otherwise>
+                <!-- P추진단 플래너 - 리스트 -->
+                <include refid="pPlannerSql" />
+            </otherwise>
+        </choose>
+
     </select>
 
 
-    <!-- P추진단 플래너 -->
-    <select id="selectPPlannerFeeSpecifications"
-            resultType="camelMap">
+    <!-- P추진단 플래너 쿼리-->
+    <sql id="pPlannerSql">
 
         /* P추진단 - 플래너 조회(동적 컬럼) */
         SELECT
@@ -446,7 +555,9 @@
                 AND O.PRTNR_NO = #{dto.prtnrNo}
             </if>
            ORDER BY O.DGR1_LEVL_OG_CD , O.DGR2_LEVL_OG_CD , O.DGR3_LEVL_OG_CD ,O.PRTNR_NO
-    </select>
+    </sql>
+
+
 
 
 
@@ -454,9 +565,49 @@
 
 
     <!-- M추진단 지점장 -->
-    <select id="selectMManagerFeeSpecifications"
-            resultType="camelMap">
+    <select id="selectMManagerFeeSpecifications"  resultType="camelMap">
 
+        <choose>
+             <!-- M추진단 지점장 - 합계 -->
+             <when test="@MybatisUtils@equals(dto.isSum ,'Y')">
+                    SELECT  SUM(MEET_DATES) AS MEET_DATES /* 미팅참석일수 */
+                          , SUM(DSB_VAL0) AS DSB_VAL0 /* 수수료 지급대상금액 */
+
+                          , SUM(MEET_DATES) AS MEET_DATES   /* 미팅참석일수 */
+                          , SUM(PERF_VAL1) AS PERF_VAL1    /* 조직 - 가전인정건수 */
+                          , SUM(PERF_VAL2) AS PERF_VAL2    /* 개인 - 가전인정건수 */
+                          , SUM(PERF_VAL3) AS PERF_VAL3    /* 개인 - 가전기변건수 */
+
+                          , SUM(PERF_VAL0) AS PERF_VAL0
+
+                          , SUM(DDTN_VAL1) AS DDTN_VAL1 /* 소득세 */
+                          , SUM(DDTN_VAL2) AS DDTN_VAL2 /* 주민세 */
+                          , SUM(DDTN_VAL3) AS DDTN_VAL3 /* 보증예치금 */
+                          , SUM(DDTN_VAL4) AS DDTN_VAL4 /* 가지급금 */
+                          , SUM(DDTN_VAL5) AS DDTN_VAL5 /* 부담공제 */
+                          , SUM(DDTN_VAL6) AS DDTN_VAL6 /* 고용보험 */
+                          , SUM(DDTN_VAL7) AS DDTN_VAL7 /* 산재보험 */
+                          , SUM(DDTN_VAL0) AS DDTN_VAL0 /* 공제계 */
+                          , SUM(DSB_VAL0)  AS DSB_VAL0    /* 수수료 지급대상금액 */
+
+                          , ${feeEachSumField}  /* 수수료 각 항목 합계*/
+
+                          ,  SUM(NVL(FEE_VAL0,0))  AS FEE_VAL0  /*  수수료 합계 */
+                    FROM (
+                        <include refid="mManagerSql"/>
+                        ) TB_ORG
+                    GROUP BY BASE_YM
+             </when>
+             <otherwise>
+                    <!-- M추진단 지점장 - 리스트 -->
+                    <include refid="mManagerSql" />
+             </otherwise>
+        </choose>
+
+    </select>
+
+    <!-- M추진단 지점장 sql  -->
+    <sql id="mManagerSql">
 
             /* M추진단 - 지점장 조회(동적 컬럼) */
             SELECT /*+ ALL_ROWS  */
@@ -660,13 +811,59 @@
                     AND O.PRTNR_NO = #{dto.prtnrNo}
                 </if>
                ORDER BY O.DGR1_LEVL_OG_CD , O.DGR2_LEVL_OG_CD , O.DGR3_LEVL_OG_CD ,O.PRTNR_NO
+    </sql>
 
 
 
-    </select>
+
     <!-- P추진단 지점장 -->
-    <select id="selectPManagerFeeSpecifications"
-            resultType="camelMap">
+    <select id="selectPManagerFeeSpecifications"  resultType="camelMap">
+
+        <choose>
+             <!-- P추진단 지점장 - 합계 -->
+             <when test="@MybatisUtils@equals(dto.isSum ,'Y')">
+                SELECT  SUM(MEET_DATES) AS MEET_DATES /* 미팅참석일수 */
+                      , SUM(DSB_VAL0) AS DSB_VAL0 /* 수수료 지급대상금액 */
+
+                      , SUM(MEET_DATES) AS MEET_DATES   /* 미팅참석일수 */
+                      , SUM(PERF_VAL1) AS PERF_VAL1   /* 조직 - 가전실적금액 */
+                      , SUM(PERF_VAL2) AS PERF_VAL2   /* 조직 - 가전외실적금액 */
+                      , SUM(PERF_VAL3) AS PERF_VAL3   /* 합산1 */
+                      , SUM(PERF_VAL4) AS PERF_VAL4   /* 개인 - 가전 */
+                      , SUM(PERF_VAL5) AS PERF_VAL5   /* 개인 - 가전외 */
+                      , SUM(PERF_VAL6) AS PERF_VAL6   /* 합산2 */
+                      , SUM(PERF_VAL7) AS PERF_VAL7   /* 개인 - 기변실적금액 */
+                      , SUM(PERF_VAL0) AS PERF_VAL0
+
+                      , SUM(DDTN_VAL1) AS DDTN_VAL1         /* 소득세 */
+                      , SUM(DDTN_VAL2) AS DDTN_VAL2         /* 주민세 */
+                      , SUM(DDTN_VAL3) AS DDTN_VAL3         /* 보증예치금 */
+                      , SUM(DDTN_VAL4) AS DDTN_VAL4         /* 가지급금 */
+                      , SUM(DDTN_VAL5) AS DDTN_VAL5         /* 부담공제 */
+                      , SUM(DDTN_VAL6) AS DDTN_VAL6         /* 고용보험 */
+                      , SUM(DDTN_VAL7) AS DDTN_VAL7         /* 산재보험 */
+
+                      , SUM(DSB_VAL0)  AS DSB_VAL0    /* 수수료 지급대상금액 */
+                      , SUM(DDTN_VAL0) AS DDTN_VAL0   /* 공제계 */
+
+                      , ${feeEachSumField}  /* 수수료 각 항목 합계*/
+
+                      ,  SUM(NVL(FEE_VAL0,0))  AS FEE_VAL0  /*  수수료 합계 */
+                FROM (
+                    <include refid="pManagerSql"/>
+                    ) TB_ORG
+                GROUP BY BASE_YM
+             </when>
+             <otherwise>
+                    <!-- P추진단 지점장 - 리스트 -->
+                    <include refid="pManagerSql"/>
+             </otherwise>
+        </choose>
+    </select>
+
+
+    <!-- P추진단 지점장 쿼리 -->
+    <sql id="pManagerSql" >
 
             /* P추진단 - 지점장 조회(동적 컬럼) */
             SELECT
@@ -880,12 +1077,51 @@
               AND O.PRTNR_NO = #{dto.prtnrNo}
           </if>
             ORDER BY O.DGR1_LEVL_OG_CD , O.DGR2_LEVL_OG_CD , O.DGR3_LEVL_OG_CD ,O.PRTNR_NO
+    </sql>
+
+
+
+
+    <!-- 홈마스터 - 홈마스터  -->
+    <select id="selectHPlannerFeeSpecifications"  resultType="camelMap">
+        <choose>
+             <!-- 홈마스터 - 홈마스터 - 합계 -->
+             <when test="@MybatisUtils@equals(dto.isSum ,'Y')">
+                SELECT  SUM(MEET_DATES) AS MEET_DATES /* 미팅참석일수 */
+                      , SUM(DSB_VAL0) AS DSB_VAL0 /* 수수료 지급대상금액 */
+
+                      , SUM(MEET_DATES) AS MEET_DATES   /* 미팅참석일수 */
+                      , SUM(PERF_VAL0) AS PERF_VAL0
+
+                       , SUM(DDTN_VAL1) AS DDTN_VAL1         /* 보증예치금 */
+                       , SUM(DDTN_VAL2) AS DDTN_VAL2         /* 소득세 */
+                       , SUM(DDTN_VAL3) AS DDTN_VAL3         /* 주민세 */
+                       , SUM(DDTN_VAL4) AS DDTN_VAL4         /* 고용보험 */
+                       , SUM(DDTN_VAL5) AS DDTN_VAL5         /* 가지급금 */
+                       , SUM(DDTN_VAL6) AS DDTN_VAL6         /* 부담공제 */
+                       , SUM(DDTN_VAL7) AS DDTN_VAL7         /* 기타공제 */
+
+                      , SUM(DSB_VAL0)  AS DSB_VAL0    /* 수수료 지급대상금액 */
+                      , SUM(DDTN_VAL0) AS DDTN_VAL0   /* 공제계 */
+
+                      , ${feeEachSumField}  /* 수수료 각 항목 합계*/
+
+
+                      ,  SUM(NVL(FEE_VAL0,0))  AS FEE_VAL0  /*  수수료 합계 */
+                FROM (
+                    <include refid="hPlanagerSql"/>
+                    ) TB_ORG
+                GROUP BY BASE_YM
+             </when>
+              <otherwise>
+                      <include refid="hPlanagerSql"/>
+              </otherwise>
+        </choose>
     </select>
 
 
-
         <!-- 홈마스터  플래너 -->
-    <select id="selectHPlannerFeeSpecifications" resultType="camelMap">
+    <sql id="hPlanagerSql" >
 
         /* 홈마스터 - 플래너 조회(동적 컬럼) */
         SELECT
@@ -1052,12 +1288,54 @@
                 AND O.PRTNR_NO = #{dto.prtnrNo}
             </if>
            ORDER BY O.DGR1_LEVL_OG_CD , O.DGR2_LEVL_OG_CD , O.DGR3_LEVL_OG_CD ,O.PRTNR_NO
+    </sql>
+
+
+
+
+        <!-- 홈마스터 - 지점장  -->
+    <select id="selectHManagerFeeSpecifications"  resultType="camelMap">
+          <choose>
+                     <!-- 홈마스터 - 지점장 - 합계 -->
+              <when test="@MybatisUtils@equals(dto.isSum ,'Y')">
+                    SELECT  SUM(MEET_DATES) AS MEET_DATES /* 미팅참석일수 */
+                          , SUM(DSB_VAL0) AS DSB_VAL0 /* 수수료 지급대상금액 */
+
+                          , SUM(MEET_DATES) AS MEET_DATES   /* 미팅참석일수 */
+                          , SUM(PERF_VAL0) AS PERF_VAL0
+
+                          , SUM(DDTN_VAL1) AS DDTN_VAL1         /* 보증예치금 */
+                          , SUM(DDTN_VAL2) AS DDTN_VAL2         /* 소득세 */
+                          , SUM(DDTN_VAL3) AS DDTN_VAL3         /* 주민세 */
+                          , SUM(DDTN_VAL4) AS DDTN_VAL4         /* 고용보험 */
+                          , SUM(DDTN_VAL5) AS DDTN_VAL5         /* 가지급금 */
+                          , SUM(DDTN_VAL6) AS DDTN_VAL6         /* 부담공제 */
+                          , SUM(DDTN_VAL7) AS DDTN_VAL7         /* 기타공제 */
+                          , SUM(DDTN_VAL8) AS DDTN_VAL8         /* 산재보험 */
+
+                          , SUM(DSB_VAL0)  AS DSB_VAL0    /* 수수료 지급대상금액 */
+                          , SUM(DDTN_VAL0) AS DDTN_VAL0   /* 공제계 */
+
+                          , ${feeEachSumField}  /* 수수료 각 항목 합계*/
+
+                          ,  SUM(NVL(FEE_VAL0,0))  AS FEE_VAL0  /*  수수료 합계 */
+                    FROM (
+                        <include refid="hManagerSql"/>
+                        ) TB_ORG
+                    GROUP BY BASE_YM
+
+              </when>
+              <otherwise>
+                    <!-- 홈마스터 - 지점장 - 리스트 -->
+                    <include refid="hManagerSql"/>
+               </otherwise>
+          </choose>
     </select>
 
 
+
     <!-- 홈마스터 지점장 -->
-    <select id="selectHManagerFeeSpecifications"
-            resultType="camelMap">
+    <sql id="hManagerSql"  >
 
             /* 홈마스터 - 지점장 조회(동적 컬럼) */
             SELECT
@@ -1226,6 +1504,6 @@
               AND O.PRTNR_NO = #{dto.prtnrNo}
           </if>
             ORDER BY O.DGR1_LEVL_OG_CD , O.DGR2_LEVL_OG_CD , O.DGR3_LEVL_OG_CD ,O.PRTNR_NO
-    </select>
+    </sql>
 
 </mapper>
