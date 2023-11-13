@@ -15,6 +15,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 입금집계자료 조회 서비스
+ * </pre>
+ *
+ * @author kimoon.lim
+ * @since 2023-06-14
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbDepositAggregateMaterialService {
@@ -22,9 +30,9 @@ public class WwdbDepositAggregateMaterialService {
     private final WwdbDepositAggregateMaterialMapper mapper;
 
     /**
-     * 입금집계 목록
-     * @param pageInfo 
-     * @param SearchDepositAggregateMaterialReq
+     * 입금집계 목록 조회 / 페이징
+     * @param req
+     * @param pageInfo
      * @return PagingResult<SearchDepositAggregateMaterialRes>
      */
     public PagingResult<SearchDepositAggregateMaterialRes> getDepositAggregateMaterialPages(
@@ -38,7 +46,7 @@ public class WwdbDepositAggregateMaterialService {
 
     /**
      * 입금집계 합계 및 비율 서비스
-     * @param req 
+     * @param req
      * @return SearchDepositAggregateMaterialTotalRes
      */
     public SearchDepositAggregateMaterialTotalRes getDepositAggregateMaterialTotal(
@@ -50,8 +58,7 @@ public class WwdbDepositAggregateMaterialService {
 
     /**
      * 입금집계조회 엑셀다운로드
-     * @param List 
-     * @param SearchDepositAggregateMaterialReq
+     * @param req
      * @return List<SearchDepositAggregateMaterialRes>
      */
     public List<SearchDepositAggregateMaterialRes> getDepositAggregateMaterialExcels(

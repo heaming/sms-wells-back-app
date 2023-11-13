@@ -8,9 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchBalanceTransferRefundHistoryReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchBalanceTransferRefundHistoryRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchCardRefundHistoryReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchCardRefundHistoryRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchRefundHistoryReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchRefundHistoryRes;
@@ -34,6 +32,12 @@ public class WwdbRefundCurrentStatusController {
 
     private final WwdbRefundCurrentStatusService service;
 
+    /**
+     * 환불 내역 목록 조회 / 페이징
+     * @param req
+     * @param pageInfo
+     * @return
+     */
     @ApiOperation(value = "환불 내역", notes = "환불 내역 목록")
     @GetMapping("/paging")
     public PagingResult<SearchRefundHistoryRes> getRefundHistoryPages(
@@ -46,6 +50,11 @@ public class WwdbRefundCurrentStatusController {
         return service.getRefundHistoryPages(req, pageInfo);
     }
 
+    /**
+     * 환불 내역 목록 조회 / 엑셀 다운로드
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "환불 내역 목록 엑셀 다운로드", notes = "환불 내역 목록 엑셀 다운로드")
     @GetMapping("/excel-download")
     public List<SearchRefundHistoryRes> getRefundHistoryExcels(
@@ -54,6 +63,12 @@ public class WwdbRefundCurrentStatusController {
         return service.getRefundHistoryExcels(req);
     }
 
+    /**
+     * 카드사별 환불내역 목록 / 페이징
+     * @param req
+     * @param pageInfo
+     * @return
+     */
     @ApiOperation(value = "카드사별 환불내역 목록", notes = "카드사별 환불내역 목록")
     @GetMapping("/card/paging")
     public PagingResult<SearchCardRefundHistoryRes> getCardRefundHistoryPages(
@@ -66,6 +81,11 @@ public class WwdbRefundCurrentStatusController {
         return service.getCardRefundHistoryPages(req, pageInfo);
     }
 
+    /**
+     * 카드사별 환불내역 목록 / 엑셀 다운로드
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "카드사별 환불내역 목록 엑셀 다운로드", notes = "카드사별 환불내역 목록 엑셀 다운로드")
     @GetMapping("/card/excel-download")
     public List<SearchCardRefundHistoryRes> getCardRefundHistoryExcels(
@@ -74,6 +94,12 @@ public class WwdbRefundCurrentStatusController {
         return service.getCardRefundHistoryExcels(req);
     }
 
+    /**
+     * 전금내역 목록 / 페이징
+     * @param req
+     * @param pageInfo
+     * @return
+     */
     @ApiOperation(value = "전금내역 목록", notes = "전금내역 목록")
     @GetMapping("/balance-transfer/paging")
     public PagingResult<SearchBalanceTransferRefundHistoryRes> getBalanceTransferRefundHistoryPages(
@@ -86,6 +112,11 @@ public class WwdbRefundCurrentStatusController {
         return service.getBalanceTransferRefundHistoryPages(req, pageInfo);
     }
 
+    /**
+     * 전금내역 목록 / 엑셀 다운로드
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "전금내역 목록 엑셀 다운로드", notes = "전금내역 목록 엑셀 다운로드")
     @GetMapping("/balance-transfer/excel-download")
     public List<SearchBalanceTransferRefundHistoryRes> getBalanceTransferRefundHistoryExcels(

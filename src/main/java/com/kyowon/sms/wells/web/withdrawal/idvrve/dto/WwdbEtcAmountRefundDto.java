@@ -7,8 +7,20 @@ import com.sds.sflex.common.utils.StringUtil;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 기타 선수금 환불 목록 DTO
+ * </pre>
+ *
+ * @author Sonkiseok
+ * @since 2023-04-07
+ */
 public class WwdbEtcAmountRefundDto {
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 기타 선수금 환불 목록 조회 Request Dto
     @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundReq")
     public record SearchEtcAmountRefundReq(
         @NotBlank
@@ -20,14 +32,16 @@ public class WwdbEtcAmountRefundDto {
         String perfDtEndDay, // 실적일자 종료일
         String rfndDv, // 환불구분
         String icptSellYn // 불완전판매여부
-    ) {
+    ) { }
 
-    }
-
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 기타 선수금 환불 목록 조회 Result Dto
     @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundRes")
     public record SearchEtcAmountRefundRes(
-        String rfndRcpNo,
-        String rfndRcpDtlSn,
+        String rfndRcpNo, // 환불접수번호
+        String rfndRcpDtlSn, // 환불접수상세일련번호
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
         String cntrDtlNo, /* 계약상세번호 */
@@ -63,6 +77,10 @@ public class WwdbEtcAmountRefundDto {
         }
     }
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 기타 선수금 환불 집계 Request Dto
     @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundAggregateReq")
     public record SearchEtcAmountRefundAggregateReq(
         @NotBlank
@@ -75,10 +93,12 @@ public class WwdbEtcAmountRefundDto {
         String perfDtEndDay, // 실적일자 종료일
         String rfndDv, // 환불구분
         String icptSellYn // 불완전판매여부
-    ) {
+    ) { }
 
-    }
-
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 기타 선수금 환불 집계 Result Dto
     @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundAggregateRes")
     public record SearchEtcAmountRefundAggregateRes(
         String cashRfndDsbAmtSum, // 현금 환불지급금액 합
@@ -103,9 +123,12 @@ public class WwdbEtcAmountRefundDto {
         // k머니 합계
         String rfndBltfSum, /* 확인 필요:전금합계 */
         String rfTotalSum/* 확인 필요:환불 총계 */
-    ) {
-    }
+    ) { }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 기타 선수금 환불 목록 조회 총 합계 Result Dto
     @ApiModel(value = "WwdbEtcAmountRefundDto-SearchEtcAmountRefundSummaryRes")
     public record SearchEtcAmountRefundSummaryRes(
         String cntCstKnm, /* 총 건수*/
@@ -114,6 +137,5 @@ public class WwdbEtcAmountRefundDto {
         String totRfndDsbAmt, /* 환불금액합계 */
         String totRfndDsbPspInt, /* 지연이자합계 */
         String totCardRfndFee /* 카드수수료합계 */
-    ) {
-    }
+    ) { }
 }

@@ -29,6 +29,12 @@ public class WwdbContractRefundController {
 
     private final WwdbContractRefundService service;
 
+    /**
+     * 계약금 환불현황 목록 조회 / 페이징
+     * @param req
+     * @param pageInfo
+     * @return
+     */
     @ApiOperation(value = "계약금 환불현황 목록", notes = "계약금 환불현황 목록")
     @GetMapping("/paging")
     public PagingResult<SearchContractRefundRes> getContractRefundPages(
@@ -41,6 +47,11 @@ public class WwdbContractRefundController {
         return service.getContractRefundPages(req, pageInfo);
     }
 
+    /**
+     * 웰스 환불 목록(카드사별) 조회 / 엑셀 다운로드
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "계약금 환불현황 엑셀 다운로드", notes = "웰스 환불 목록(카드사별) 엑셀 다운로드")
     @GetMapping("/excel-download")
     public List<SearchContractRefundRes> getContractRefundsExcels(
@@ -49,6 +60,11 @@ public class WwdbContractRefundController {
         return service.getContractRefundExcels(req);
     }
 
+    /**
+     * 계약금 환불 내역 집계
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "계약금 환불 집계", notes = "계약금 환불 집계")
     @GetMapping("/aggregate")
     public SearchContractRefundAggregateRes getContractRefundAggregates(
@@ -57,6 +73,11 @@ public class WwdbContractRefundController {
         return service.getContractRefundAggregates(req);
     }
 
+    /**
+     * 계약금 환불 목록의 값 합계
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "계약금 환불 목록 Summary", notes = "계약금 환불 목록의 값을 합하여 출력합니다.")
     @GetMapping("/summary")
     public SearchContractRefundSummaryRes getContractRefundSummary(

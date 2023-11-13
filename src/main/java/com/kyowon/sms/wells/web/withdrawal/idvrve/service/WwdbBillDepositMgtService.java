@@ -421,18 +421,20 @@ public class WwdbBillDepositMgtService {
                 dvo.setErrorCode("2");
                 continue;
             } else {
-                if (dvo.getCntr().length() > 17){ //계약일련번호 초과 시 오류
+                String cntr = dvo.getCntr().replace("-","");
+                if (cntr.length() > 17) { // 계약일련번호 초과 시 오류
                     dvo.setErrorCode("2");
                     continue;
-                } else if (dvo.getCntr().length() < 13){ //계약일련번호까지 안들어오면 오류
+                } else if (cntr.length() < 13) { // 계약일련번호까지 안들어오면 오류
                     dvo.setErrorCode("2");
                     continue;
                 }
 
 //                2. 계약상세번호가 DB에 존재하는지 체크
-                String cntr = dvo.getCntr();
+
                 String cntrNo = cntr.substring(0, 12);
                 String cntrSn = cntr.substring(12);
+                dvo.setCntr(cntr);
                 dvo.setCntrNo(cntrNo);
                 dvo.setCntrSn(cntrSn);
 

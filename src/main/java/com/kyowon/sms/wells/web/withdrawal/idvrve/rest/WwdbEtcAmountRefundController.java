@@ -29,6 +29,12 @@ public class WwdbEtcAmountRefundController {
 
     private final WwdbEtcAmountRefundService service;
 
+    /**
+     * 기타 선수금 환불 목록 조회 / 페이징
+     * @param req
+     * @param pageInfo
+     * @return
+     */
     @ApiOperation(value = "기타 선수금 환불 목록 조회", notes = "기타 선수금 환불 목록 조회")
     @GetMapping("/paging")
     public PagingResult<SearchEtcAmountRefundRes> getEtcAmountRefundPages(
@@ -41,6 +47,11 @@ public class WwdbEtcAmountRefundController {
         return service.getEtcAmountRefundPages(req, pageInfo);
     }
 
+    /**
+     * 기타 선수금 환불 목록 조회 / 엑셀 다운로드
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "기타 선수금 환불 목록 조회", notes = "기타 선수금 환불 엑셀 다운로드")
     @GetMapping("/excel-download")
     public List<SearchEtcAmountRefundRes> getEtcAmountRefundExcels(
@@ -49,6 +60,11 @@ public class WwdbEtcAmountRefundController {
         return service.getEtcAmountRefundExcels(req);
     }
 
+    /**
+     * 기타 선수금 환불 집계
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "기타 선수금 환불 집계", notes = "기타 선수금 환불 집계")
     @GetMapping("/aggregate")
     public SearchEtcAmountRefundAggregateRes getEtcAmountRefundAggregates(
@@ -57,6 +73,11 @@ public class WwdbEtcAmountRefundController {
         return service.getEtcAmountRefundAggregates(req);
     }
 
+    /**
+     * 기타 선수금 환불 목록 조회 총 합계
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "기타 선수금 환불 목록 조회 총 합계", notes = "기타 선수금 환불 목록 조회 총 합계")
     @GetMapping("/summary")
     public SearchEtcAmountRefundSummaryRes getEtcAmountRefundSummaryPages(
