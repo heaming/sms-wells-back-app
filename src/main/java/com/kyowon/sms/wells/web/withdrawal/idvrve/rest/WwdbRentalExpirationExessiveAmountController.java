@@ -31,6 +31,12 @@ public class WwdbRentalExpirationExessiveAmountController {
 
     private final WwdbRentalExpirationExcessiveAmountService service;
 
+    /**
+     * 렌탈만료초과금현황 조회 / 페이징
+     * @param req
+     * @param pageInfo
+     * @return
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "dpDt", value = "입금일자", paramType = "query", required = false),
         @ApiImplicitParam(name = "copnDvCd", value = "계약구분코드", paramType = "query", required = false),
@@ -47,6 +53,11 @@ public class WwdbRentalExpirationExessiveAmountController {
         return service.getRentalExpirationExcessiveAmountPage(req, pageInfo);
     }
 
+    /**
+     * 렌탈만료초과금현황 조회 / 엑셀 다운로드
+     * @param req
+     * @return
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "dpDt", value = "입금일자", paramType = "query", required = false),
         @ApiImplicitParam(name = "copnDvCd", value = "계약구분코드", paramType = "query", required = false),

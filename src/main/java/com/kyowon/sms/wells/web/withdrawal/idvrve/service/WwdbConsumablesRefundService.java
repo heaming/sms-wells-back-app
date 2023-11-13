@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * <pre>
- * 현할차 스케줄 현황 조회 서비스
+ * 소모품환불관리 서비스
  * </pre>
  *
  * @author sonkiseok
