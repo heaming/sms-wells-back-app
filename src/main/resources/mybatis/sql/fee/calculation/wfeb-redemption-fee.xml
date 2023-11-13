@@ -47,8 +47,8 @@
                       , T1.PRTNR_NO
                       , T1.CNTR_NO
                       , T1.CNTR_SN
-                      , T2.FEE_ACKMT_BASE_AMT AS REDF_ADSB_OC_AMT
-                     <include refid="COMMON.insertSystemFieldValue" />
+                      , CASE WHEN T2.SELL_TP_CD = '1' THEN T2.FEE_ACKMT_BASE_AMT * 0.04 -- 할부계약인 경우
+                             ELSE T2.FEE_ACKMT_BASE_AMT * 2 END AS REDF_ADSB_OC_AMT -- 렌탈/정기배송 경우
                    FROM TB_FEAM_WELS_NRCTR_MM_CL T1
                         INNER JOIN TB_SSCT_CNTR_DTL  T2
                         ON (T1.CNTR_NO = T2.CNTR_NO AND T1.CNTR_SN = T2.CNTR_SN)
@@ -58,6 +58,14 @@
                     AND T2.FEE_ACKMT_BASE_AMT > 0
                     AND T1.DTA_DL_YN = 'N'
                     AND T2.DTA_DL_YN = 'N'
+                    AND EXISTS(SELECT 1
+                                 FROM TB_FEAM_FEE_CALC_BAS BAS
+                                WHERE T1.PERF_YM = BAS.BASE_YM
+                                  AND T1.OG_TP_CD = BAS.OG_TP_CD
+                                  AND T1.PRTNR_NO = BAS.PRTNR_NO
+                                  AND BAS.FEE_TCNT_DV_CD = '02'
+                                  AND BAS.SPMT_DSB_DV_CD = '01'
+                                  AND BAS.FEE_CALC_TP_CD = '01')
                  UNION ALL
                  SELECT T1.PERF_YM
                       , '2' AS PERF_DV_CD
@@ -66,8 +74,8 @@
                       , T3.HOO_PRTNR_NO AS PRTNR_NO
                       , T1.CNTR_NO
                       , T1.CNTR_SN
-                      , T2.FEE_ACKMT_BASE_AMT * 0.5 AS REDF_ADSB_OC_AMT /* 최초수수료율 * 대물림대상금액 */
-                     <include refid="COMMON.insertSystemFieldValue" />
+                      , CASE WHEN T2.SELL_TP_CD = '1' THEN T2.FEE_ACKMT_BASE_AMT * 0.02   -- 할부계약인 경우
+                             ELSE T2.FEE_ACKMT_BASE_AMT END AS REDF_ADSB_OC_AMT -- 렌탈/정기배송 경우
                    FROM TB_FEAM_WELS_NRCTR_MM_CL T1
                         INNER JOIN TB_FEAM_MM_PRTNR_HOO_IZ T3
                         ON (T1.PERF_YM = T3.BASE_YM AND T1.OG_TP_CD = T3.OG_TP_CD AND T1.PRTNR_NO = T3.PRTNR_NO)
@@ -80,6 +88,14 @@
                     AND T1.DTA_DL_YN = 'N'
                     AND T2.DTA_DL_YN = 'N'
                     AND T3.PRTNR_NO != T3.HOO_PRTNR_NO
-                    AND T3.PERF_DV_CD = '2')
+                    AND T3.PERF_DV_CD = '2'
+                    AND EXISTS(SELECT 1
+                                 FROM TB_FEAM_FEE_CALC_BAS BAS
+                                WHERE T3.BASE_YM = BAS.BASE_YM
+                                  AND T3.OG_TP_CD = BAS.OG_TP_CD
+                                  AND T3.HOO_PRTNR_NO = BAS.PRTNR_NO
+                                  AND BAS.FEE_TCNT_DV_CD = '02'
+                                  AND BAS.SPMT_DSB_DV_CD = '01'
+                                  AND BAS.FEE_CALC_TP_CD = '01'))
     </insert>
 </mapper>
