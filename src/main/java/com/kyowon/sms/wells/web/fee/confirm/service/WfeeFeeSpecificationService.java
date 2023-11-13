@@ -31,7 +31,7 @@ public class WfeeFeeSpecificationService {
         return mapper.selectFeeCodes(dto);
     }
 
-    //M추진단 / 플래너
+    //수수료지급명세서 리스트
     public List<HashMap<String, Object>> getFeeSpecifications(SearchReq dto) {
         List<HashMap<String, Object>> resList = new ArrayList<>();
 
@@ -43,45 +43,50 @@ public class WfeeFeeSpecificationService {
                     resList = mapper.selectPPlannerFeeSpecifications(
                         dto, String.valueOf(feeCdMap.get("feeCdCase")),
                         String.valueOf(feeCdMap.get("feeCdFields")),
-                        String.valueOf(feeCdMap.get("feeSumField"))
+                        String.valueOf(feeCdMap.get("feeSumField")),
+                        String.valueOf(feeCdMap.get("feeEachSumField"))
                     );
                     break;
                 case "W0104": // P 지점장
                     resList = mapper.selectPManagerFeeSpecifications(
                         dto, String.valueOf(feeCdMap.get("feeCdCase")),
                         String.valueOf(feeCdMap.get("feeCdFields")),
-                        String.valueOf(feeCdMap.get("feeSumField"))
+                        String.valueOf(feeCdMap.get("feeSumField")),
+                        String.valueOf(feeCdMap.get("feeEachSumField"))
                     );
                     break;
                 case "W0205": // M 플래너
                     resList = mapper.selectMPlannerFeeSpecifications(
                         dto, String.valueOf(feeCdMap.get("feeCdCase")),
                         String.valueOf(feeCdMap.get("feeCdFields")),
-                        String.valueOf(feeCdMap.get("feeSumField"))
+                        String.valueOf(feeCdMap.get("feeSumField")),
+                        String.valueOf(feeCdMap.get("feeEachSumField"))
                     );
                     break;
                 case "W0204": // M 지점장
                     resList = mapper.selectMManagerFeeSpecifications(
                         dto, String.valueOf(feeCdMap.get("feeCdCase")),
                         String.valueOf(feeCdMap.get("feeCdFields")),
-                        String.valueOf(feeCdMap.get("feeSumField"))
+                        String.valueOf(feeCdMap.get("feeSumField")),
+                        String.valueOf(feeCdMap.get("feeEachSumField"))
                     );
                     break;
                 case "W0302": // 홈마스터 - 홈마스터
                     resList = mapper.selectHPlannerFeeSpecifications(
                         dto, String.valueOf(feeCdMap.get("feeCdCase")),
                         String.valueOf(feeCdMap.get("feeCdFields")),
-                        String.valueOf(feeCdMap.get("feeSumField"))
+                        String.valueOf(feeCdMap.get("feeSumField")),
+                        String.valueOf(feeCdMap.get("feeEachSumField"))
                     );
                     break;
                 case "W0301": // 홈마스터 - 지점장
                     resList = mapper.selectHManagerFeeSpecifications(
                         dto, String.valueOf(feeCdMap.get("feeCdCase")),
                         String.valueOf(feeCdMap.get("feeCdFields")),
-                        String.valueOf(feeCdMap.get("feeSumField"))
+                        String.valueOf(feeCdMap.get("feeSumField")),
+                        String.valueOf(feeCdMap.get("feeEachSumField"))
                     );
                     break;
-
             }
         }
         return resList;
@@ -89,57 +94,9 @@ public class WfeeFeeSpecificationService {
 
     // 리포트 생성
     public Map<String, Object> getFeeSpecificationsReport(SearchReq dto) {
-        List<HashMap<String, Object>> resList = new ArrayList<>();
 
-        //수수료 항목들 가져옴
-        Map<String, Object> feeCdMap = getFeeCdLists(dto);
-        if (StringUtils.isNotEmpty(String.valueOf(feeCdMap.get("feeCdCase")))) {
-            switch (dto.rsbDvCd()) {
-                case "W0105": // P 플래너
-                    resList = mapper.selectPPlannerFeeSpecifications(
-                        dto, String.valueOf(feeCdMap.get("feeCdCase")),
-                        String.valueOf(feeCdMap.get("feeCdFields")),
-                        String.valueOf(feeCdMap.get("feeSumField"))
-                    );
-                    break;
-                case "W0104": // P 지점장
-                    resList = mapper.selectPManagerFeeSpecifications(
-                        dto, String.valueOf(feeCdMap.get("feeCdCase")),
-                        String.valueOf(feeCdMap.get("feeCdFields")),
-                        String.valueOf(feeCdMap.get("feeSumField"))
-                    );
-                    break;
-                case "W0205": // M 플래너
-                    resList = mapper.selectMPlannerFeeSpecifications(
-                        dto, String.valueOf(feeCdMap.get("feeCdCase")),
-                        String.valueOf(feeCdMap.get("feeCdFields")),
-                        String.valueOf(feeCdMap.get("feeSumField"))
-                    );
-                    break;
-                case "W0204": // M 지점장
-                    resList = mapper.selectMManagerFeeSpecifications(
-                        dto, String.valueOf(feeCdMap.get("feeCdCase")),
-                        String.valueOf(feeCdMap.get("feeCdFields")),
-                        String.valueOf(feeCdMap.get("feeSumField"))
-                    );
-                    break;
-                case "W0302": // 홈마스터 - 홈마스터
-                    resList = mapper.selectHPlannerFeeSpecifications(
-                        dto, String.valueOf(feeCdMap.get("feeCdCase")),
-                        String.valueOf(feeCdMap.get("feeCdFields")),
-                        String.valueOf(feeCdMap.get("feeSumField"))
-                    );
-                    break;
-                case "W0301": // 홈마스터 - 지점장
-                    resList = mapper.selectHManagerFeeSpecifications(
-                        dto, String.valueOf(feeCdMap.get("feeCdCase")),
-                        String.valueOf(feeCdMap.get("feeCdFields")),
-                        String.valueOf(feeCdMap.get("feeSumField"))
-                    );
-                    break;
-
-            }
-        }
+        // #####   메인 데이터 가져옴
+        List<HashMap<String, Object>> resList = getFeeSpecifications(dto);
 
         // 공제 , 실적 부분 header 명칭설정
         HashMap<String, String> ddtnPerfMap = returnDdtnPerfMap(dto.rsbDvCd());
@@ -154,7 +111,6 @@ public class WfeeFeeSpecificationService {
 
         HashMap<String, String> newHMap = new HashMap<>(); //헤더
         List<Map<String, String>> newDMapList = new ArrayList<>(); //데이터
-        HashMap<String, Object> sumMap = new HashMap<>();
 
         for (HashMap<String, Object> dataObj : resList) {
             // body 부분 data key-명칭 매핑
@@ -162,7 +118,6 @@ public class WfeeFeeSpecificationService {
             if (ObjectUtils.isEmpty(newHMap)) {
                 // header 부분 data key-명칭 매핑
                 newHMap = replaceKeyName(dataObj, feeCodeMap);
-                //newHMap.putAll(replaceKeyName(dataObj, ddtnPerfMap));
                 newHMap.putAll(ddtnPerfMap);
             }
         }
@@ -191,11 +146,20 @@ public class WfeeFeeSpecificationService {
             .collect(Collectors.joining(","));
         String feeSumField = feeLists.stream().map(item -> " NVL(" + item.feeCd() + ",0) ")
             .collect(Collectors.joining("+")) + " AS FEE_VAL0 ";
+
+        String feeEachSumField = "";
+        //합계일때 (리포트) - 각 수수료 항목별 전체 합계
+        if ("Y".equals(dto.isSum())) {
+            feeEachSumField = feeLists.stream().map(item -> " SUM(FEE_" + item.feeCd() + ") AS FEE_" + item.feeCd())
+                .collect(Collectors.joining(","));
+        }
+
         Map<String, Object> returnMap = new HashMap<String, Object>();
         returnMap.put("feeCdCase", feeCdCase);
         returnMap.put("feeCdFields", feeCdFields);
         returnMap.put("feeSumField", feeSumField);
         returnMap.put("feeCdList", feeLists);
+        returnMap.put("feeEachSumField", feeEachSumField);
 
         return returnMap;
     }
@@ -252,7 +216,7 @@ public class WfeeFeeSpecificationService {
         } else if ("W0105".equals(rsbDvCd)) { //P 플래너
             ddtnPerfMap.put("perfVal1", "가전실적");
             ddtnPerfMap.put("perfVal2", "가전외실적");
-            ddtnPerfMap.put("perfVal3", "합산");
+            ddtnPerfMap.put("perfVal3", "가전 합산");
             ddtnPerfMap.put("perfVal4", "기변실적");
 
             ddtnPerfMap.put("ddtnVal1", "소득세");
