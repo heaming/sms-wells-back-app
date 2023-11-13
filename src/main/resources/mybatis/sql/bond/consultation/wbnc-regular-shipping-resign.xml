@@ -153,23 +153,20 @@
             AND T1.CAN_DT IS NULL                             /*계약취소일자가 없는 경우*/
             AND T1.SL_RCOG_DT IS NOT NULL                     /*매출인식일자가 존재하는 경우*/
             AND T1.DTA_DL_YN = 'N'                            /*데이터 삭제 여부*/
-            AND NOT EXISTS ( -- 렌탈 계약에 묶인 정기배송건이 아닌 순수 정기배송계약건만 대상으로 제한 --> 계약관계 테이블을 이용하여 식별
-                SELECT 1
-                FROM TB_SSCT_CNTR_REL
-                WHERE BASE_DTL_CNTR_NO = T1.CNTR_NO
-                AND BASE_DTL_CNTR_SN = T1.CNTR_SN
-                AND CNTR_REL_DTL_CD IN ('214','216')
-                AND VL_END_DTM >= T1.SL_CL_YM||'31235959'
-                AND VL_STRT_DTM <![CDATA[<=]]> T1.SL_CL_YM||'31235959'
-                AND DTA_DL_YN = 'N'
-            )
+            AND NOT EXISTS(
+                          SELECT 1
+                            FROM TB_SSCT_CNTR_RSG_PROCS_IZ
+                           WHERE CNTR_NO = T1.CNTR_NO
+                             AND CNTR_SN = T1.CNTR_SN
+                             AND DTA_DL_YN = 'N'
+              )
         <if test='@MybatisUtils@isNotEmpty(clctamDvCd)'>
             AND T6.CLCTAM_DV_CD = #{clctamDvCd}
         </if>
         <if test='@MybatisUtils@isNotEmpty(clctamPrtnrNo)'>
             AND T6.CLCTAM_PRTNR_NO = #{clctamPrtnrNo}
         </if>
-        ORDER BY AUTH_RSG_CNFM_YN
+        ORDER BY T1.CNTR_NO, T1.CNTR_SN
     </select>
 
     <insert id="insertRegularShippingResignsCancel">
@@ -322,7 +319,7 @@
             ,E.BTD_DLQ_AMT AS DLQ_AMT   /* (기초)연체금액-기말-EOT_DLQ_AMT */
             ,TO_CHAR(SYSDATE, 'YYYYMMDD') AS RSG_APLC_DT   /* 해지신청일자 */
             ,TO_CHAR(SYSDATE, 'YYYYMMDD') AS RSG_FSH_DT   /* 해지완료일자 */
-            ,'78' AS CNTR_STAT_CH_RSON_CD   /* 계약상태변경사유코드-'18' */
+            ,'05' AS CNTR_STAT_CH_RSON_CD   /* 계약상태변경사유코드-'05' */
             ,'1' AS CCAM_EXMPT_DV_CD   /* 위약금면책구분코드-T1.EXMPT_YN  */
             ,'1' AS CSMB_CS_EXMPT_DV_CD   /* 소모품비용면책구분코드 */
             ,'1' AS REQD_CS_EXMPT_DV_CD   /* 철거비용면책구분코드 */
