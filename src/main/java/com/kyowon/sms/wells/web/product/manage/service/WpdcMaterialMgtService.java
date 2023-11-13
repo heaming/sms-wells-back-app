@@ -1,10 +1,6 @@
 package com.kyowon.sms.wells.web.product.manage.service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -20,11 +16,7 @@ import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSap
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcRelationMgtDto;
-import com.kyowon.sms.common.web.product.manage.dvo.ZpdcEachCompanyPropDtlDvo;
-import com.kyowon.sms.common.web.product.manage.dvo.ZpdcGbcoSapMatDvo;
-import com.kyowon.sms.common.web.product.manage.dvo.ZpdcProductDetailDvo;
-import com.kyowon.sms.common.web.product.manage.dvo.ZpdcProductDvo;
-import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
+import com.kyowon.sms.common.web.product.manage.dvo.*;
 import com.kyowon.sms.common.web.product.manage.mapper.ZpdcProductMapper;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcHistoryMgtService;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
@@ -241,8 +233,8 @@ public class WpdcMaterialMgtService {
             hisService.createRelationHistory(dvo.getPdCd(), startDtm);
         }
 
-        if (!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())) {
-
+        if (!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(dto.tbPdbsPdBas().tempSaveYn())
+            && dto.isModifiedProp()) {
             hisService.createProductHistory(dvo.getPdCd(), startDtm);
         }
 
@@ -306,9 +298,9 @@ public class WpdcMaterialMgtService {
                     /*
                     if (entry.getKey().equals(PdProductConst.SAP_MAT_CD)
                         && PdProductConst.SAP_MAT_CD.equals(metaVo.getColNm())) {
-                    
+
                         String sapPlntVal = getExcelValue2(excelDataMap, tbPdbsPdBas, PdProductConst.SAP_PLNT_VAL);
-                    
+
                         this.checkExcelValidation(
                             entry, metaVo, rowIndex, dataErrors, PdProductConst.VALIDATION_TARGET_DB, sapPlntVal
                         );
