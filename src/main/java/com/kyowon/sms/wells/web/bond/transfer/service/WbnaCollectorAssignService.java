@@ -78,7 +78,7 @@ public class WbnaCollectorAssignService {
     }
 
     /**
-     * 집금자배정 상세 목록 조회(엑셀다운로드용)
+     * 집금자배정 상세 목록 조회(엑셀다운로드용)-테스트
      * @param dto 검색조건
      * @return 상세목록
      */
