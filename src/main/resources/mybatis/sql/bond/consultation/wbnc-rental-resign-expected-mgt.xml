@@ -636,7 +636,7 @@
            AND C.CNTR_SN = B.CNTR_SN
            AND C.SL_STP_YN = 'Y'    /*매출중지여부*/
            AND C.SL_RCOG_DT	IS NOT NULL	/* 매출인식일자 */
-           AND C.CAN_DT	IS NOT NULL		/* 취소일자 */
+           AND C.CAN_DT	IS NULL		/* 취소일자 */
          INNER JOIN TB_OGBS_MM_PRTNR_IZ D /*T:월파트너내역*/
             ON D.BASE_YM = SUBSTR(#{baseDt},1,6)
            AND D.OG_TP_CD = A.SELL_OG_TP_CD
@@ -920,9 +920,12 @@
          INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
             ON B.CNTR_NO = A.CNTR_NO
          INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /*T:WELLS매출월마감내역*/
-            ON C.SL_CL_YM = SUBSTR(#{baseDt},1,6)
+            ON C.SL_CL_YM = SUBSTR(#{baseDt},1,6) /*실적년월*/
            AND C.CNTR_NO = B.CNTR_NO
            AND C.CNTR_SN = B.CNTR_SN
+           AND C.SL_STP_YN = 'Y'    /*매출중지여부*/
+           AND C.SL_RCOG_DT	IS NOT NULL	/* 매출인식일자 */
+           AND C.CAN_DT	IS NULL		/* 취소일자 */
          INNER JOIN TB_OGBS_MM_PRTNR_IZ D /*T:월파트너내역*/
             ON D.BASE_YM = SUBSTR(#{baseDt},1,6)
            AND D.OG_TP_CD = A.SELL_OG_TP_CD
@@ -946,11 +949,9 @@
            AND A.DTA_DL_YN = 'N'
            AND A.CNTR_PRGS_STAT_CD = '60'   /*계약진행상태코드-60:확정*/
            AND B.CNTRW_TP_CD = '7'  /*계약서유형코드-7:정기배송*/
-           AND C.SL_STP_YN = 'Y'    /*매출중지여부*/
            AND NVL(C.RENTAL_TN,0) <![CDATA[<]]> NVL(B.CNTR_PTRM,0)    /*렌탈회차<![CDATA[<]]>계약기간*/
            AND NOT (A.CNTR_TP_CD = '02' AND SUBSTR(D.HMNRSC_DEPT_CD,1,1) BETWEEN 'W' AND 'Z')   /*법인,신채널 제외*/
            AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
-           AND C.SL_CL_YM = SUBSTR(#{baseDt},1,6)    /*실적년월*/
     </insert>
 
     <update id="updateRentalResignExpected">
@@ -1030,7 +1031,7 @@
                       /* 기존에 취소된 대상 제외 */
                       AND NOT EXISTS (
                                 SELECT 1
-                                  FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:WELLS직권해지취소내역 */
+                                  FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:계약해지처리내역 */
                                  WHERE 1 = 1
                                    AND DTA_DL_YN = 'N'
                                    AND Z1.CNTR_NO = T.CNTR_NO
@@ -1197,7 +1198,7 @@
                       /* 기존에 취소된 대상 제외 */
                       AND NOT EXISTS (
                                 SELECT 1
-                                  FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:WELLS직권해지취소내역 */
+                                  FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:계약해지처리내역 */
                                  WHERE 1 = 1
                                    AND DTA_DL_YN = 'N'
                                    AND Z1.CNTR_NO = T.CNTR_NO
@@ -1259,7 +1260,7 @@
         AND A.AUTH_RSG_CNFM_YN = 'Y'
         AND EXISTS (
                         SELECT 1
-                          FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:WELLS직권해지취소내역 */
+                          FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:계약해지처리내역 */
                          WHERE 1 = 1
                            AND DTA_DL_YN = 'N'
                            AND Z1.CNTR_NO = A.CNTR_NO
@@ -1357,7 +1358,7 @@
         -- 계약해지처리내역 등록
         --------------------------------------------------------------
         */
-        INSERT INTO TB_SSCT_CNTR_RSG_PROCS_IZ (
+        INSERT INTO TB_SSCT_CNTR_RSG_PROCS_IZ ( /* 계약해지처리내역 */
              CNTR_NO   /* 계약번호 */
             ,CNTR_SN   /* 계약일련번호 */
             ,SELL_TP_CD   /* 판매유형코드 */
@@ -1555,7 +1556,7 @@
                /* 기존에 등록된 대상 제외 */
                AND NOT EXISTS (
                                 SELECT 1
-                                  FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:WELLS직권해지취소내역 */
+                                  FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:계약해지처리내역 */
                                  WHERE 1 = 1
                                    AND DTA_DL_YN = 'N'
                                    AND Z1.CNTR_NO = T1.CNTR_NO
