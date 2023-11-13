@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.common.web.service.stock.ivo.EAI_WSVO1009.request.WellsCounselReqIvo;
-import com.kyowon.sms.common.web.service.stock.ivo.EAI_WSVO1009.response.WellsCounselResIvo;
 import com.kyowon.sms.common.web.service.stock.service.ZsnaWellsCounselSevice;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaMdProductReturningGoodsMgtConverter;
@@ -70,14 +69,14 @@ public class WsnaMdProductReturningGoodsSaveService {
                     .saveInstallReqdDt(dvo.getCntrNo(), dvo.getCntrSn(), "", reqdDt.substring(0, 8), "");
                 log.info("[판매시스템 철거일자 업데이트] => {}", dvo.getRsgFshDt());
                 // 8. 서비스작업출고내역 저장 및 물류 수불처리
-                saveCount = saveMdProductReturningGoodsOstrs(dvo);
-                log.info("[물류 수불처리 건수] => {}", saveCount);
+                //                saveCount = saveMdProductReturningGoodsOstrs(dvo);
+                //                log.info("[물류 수불처리 건수] => {}", saveCount);
             } else {
                 /*
                   반품요청(wkPrgsStatCd-00), 반품등록(wkPrgsStatCd-10) 처리
                 */
                 // 1. 고객서비스AS설치배정내역 업데이트
-                WellsCounselResIvo counselRes = counselService
+                /*               WellsCounselResIvo counselRes = counselService
                     .saveWellsCounsel(setMdProductReturnGoodsWellsCounselReqIvoSaveReq(dvo));
                 log.info("[고객센터 상담정보 연계 처리결과 조회] => {}", counselRes);
                 // 성공 시, 다음 단계 진행
@@ -88,6 +87,9 @@ public class WsnaMdProductReturningGoodsSaveService {
                 } else {
                     log.info("[고객센터 상담정보 연계 실패] => {}", counselRes);
                 }
+                */
+                // 2. 고객서비스AS설치배정내역 업데이트
+                saveMapper.updateSvpdCstSvasAsIstAsnIz(dvo);
             }
         }
         return processCount;
