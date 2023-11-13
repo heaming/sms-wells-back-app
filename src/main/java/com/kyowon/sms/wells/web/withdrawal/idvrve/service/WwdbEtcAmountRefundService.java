@@ -11,6 +11,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 기타 선수금 환불 목록 서비스
+ * </pre>
+ *
+ * @author Sonkiseok
+ * @since 2023-04-07
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbEtcAmountRefundService {
@@ -18,10 +26,10 @@ public class WwdbEtcAmountRefundService {
     private final WwdbEtcAmountRefundMapper mapper;
 
     /**
-     * 기타 선수금 환불 목록
+     * 기타 선수금 환불 목록 조회 / 페이징
+     * @param req
      * @param pageInfo
-     * @param SearchEtcAmountRefundReq
-     * @return PagingResult<SearchEtcAmountRefundRes>
+     * @return
      */
     public PagingResult<SearchEtcAmountRefundRes> getEtcAmountRefundPages(
         SearchEtcAmountRefundReq req,
@@ -31,10 +39,9 @@ public class WwdbEtcAmountRefundService {
     }
 
     /**
-     * 기타 선수금 환불 목록 엑셀다운로드
-     * @param List
-     * @param SearchEtcAmountRefundReq
-     * @return List<SearchEtcAmountRefundRes>
+     * 기타 선수금 환불 목록 조회 / 엑셀 다운로드
+     * @param req
+     * @return
      */
     public List<SearchEtcAmountRefundRes> getEtcAmountRefundExcels(
         SearchEtcAmountRefundReq req
@@ -44,8 +51,8 @@ public class WwdbEtcAmountRefundService {
 
     /**
      * 기타 선수금 환불 목록 집계
-     * @param SearchCntramRfndListAgrgReq
-     * @return SearchCntramRfndListAgrgRes
+     * @param req
+     * @return
      */
     public SearchEtcAmountRefundAggregateRes getEtcAmountRefundAggregates(
         SearchEtcAmountRefundAggregateReq req
@@ -54,10 +61,10 @@ public class WwdbEtcAmountRefundService {
     }
 
     /**
-    * 기타 선수금 환불 목록 총합계(Summary)
-    * @param SearchEtcAmountRefundReq
-    * @return SearchEtcAmountRefundSummaryRes
-    */
+     * 기타 선수금 환불 목록 총합계(Summary)
+     * @param req
+     * @return
+     */
     public SearchEtcAmountRefundSummaryRes getEtcAmountRefundSummaryPages(
         SearchEtcAmountRefundReq req
     ) {

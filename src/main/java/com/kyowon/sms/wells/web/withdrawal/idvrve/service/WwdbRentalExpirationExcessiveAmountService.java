@@ -11,6 +11,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 렌탈만료초과금현황 서비스
+ * </pre>
+ *
+ * @author kimoon.lim
+ * @since 2023-05-19
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbRentalExpirationExcessiveAmountService {
@@ -18,9 +26,10 @@ public class WwdbRentalExpirationExcessiveAmountService {
     private final WwdbRentalExpirationExcessiveAmountMapper mapper;
 
     /**
-     * 렌탈만료 초과금 현황
-     * @param SearchReq
-     * @return SearchRes
+     * 렌탈만료초과금현황 조회 / 페이징
+     * @param req
+     * @param pageInfo
+     * @return
      */
     public PagingResult<WwdbRentalExpirationExcessiveAmountDto.SearchRes> getRentalExpirationExcessiveAmountPage(
         WwdbRentalExpirationExcessiveAmountDto.SearchReq req, PageInfo pageInfo
@@ -29,9 +38,9 @@ public class WwdbRentalExpirationExcessiveAmountService {
     }
 
     /**
-     * 렌탈만료 초과금 현황 엑셀다운로드
-     * @param SearchReq
-     * @return SearchRes
+     * 렌탈만료초과금현황 조회 / 엑셀 다운로드
+     * @param req
+     * @return
      */
     public List<WwdbRentalExpirationExcessiveAmountDto.SearchRes> getRentalExpirationExcessiveForExcelDownload(
         WwdbRentalExpirationExcessiveAmountDto.SearchReq req

@@ -11,6 +11,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 계약금 환불 목록 서비스
+ * </pre>
+ *
+ * @author Sonkiseok
+ * @since 2023-04-07
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbContractRefundService {
@@ -18,10 +26,10 @@ public class WwdbContractRefundService {
     private final WwdbContractRefundMapper mapper;
 
     /**
-     * 환불내역 목록
+     * 계약금 환불현황 목록 조회 / 페이징
+     * @param req
      * @param pageInfo
-     * @param SearchContractRefundReq
-     * @return PagingResult<SearchContractRefundRes>
+     * @return
      */
     public PagingResult<SearchContractRefundRes> getContractRefundPages(
         SearchContractRefundReq req,
@@ -31,10 +39,9 @@ public class WwdbContractRefundService {
     }
 
     /**
-     * 환불내역 엑셀다운로드
-     * @param List
-     * @param SearchContractRefundReq
-     * @return List<SearchContractRefundRes>
+     * 웰스 환불 목록(카드사별) 조회 / 엑셀 다운로드
+     * @param req
+     * @return
      */
     public List<SearchContractRefundRes> getContractRefundExcels(
         SearchContractRefundReq req
@@ -43,9 +50,9 @@ public class WwdbContractRefundService {
     }
 
     /**
-     * 환불내역 집계
-     * @param SearchContractRefundAgrgReq
-     * @return SearchContractRefundAgrgRes
+     * 계약금 환불 내역 집계
+     * @param req
+     * @return
      */
     public SearchContractRefundAggregateRes getContractRefundAggregates(
         SearchContractRefundAggregateReq req
@@ -54,9 +61,9 @@ public class WwdbContractRefundService {
     }
 
     /**
-     * 환불내역 집계
-     * @param getContractRefundSummary
-     * @return SearchContractRefundSummaryRes
+     * 계약금 환불 목록의 값 합계
+     * @param req
+     * @return
      */
     public SearchContractRefundSummaryRes getContractRefundSummary(
         SearchContractRefundReq req
