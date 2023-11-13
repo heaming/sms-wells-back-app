@@ -29,7 +29,11 @@ public class WwdbServiceRefundDto {
         String cstSvAsnNo, /* 고객서비스배정번호 */
         String cntrNo, /*계약번호*/
         String cntrSn, /*계약일련번호*/
-        String cstNo /* 고객번호 */
+        String cstNo, /* 고객번호 */
+        String itgDpNo, /*통합입금번호*/
+        String dpDtm, /*결제일*/
+        String cardAprno /*승인번호*/
+
     ) {}
 
     /**
@@ -41,7 +45,7 @@ public class WwdbServiceRefundDto {
      * @param rfndAkAmt
      * @param cardRfndCrcdnoEncr
      * @param cardRfndFnitCd
-     * @param cardRfndFee
+     * @param crdcdFeeSumAmt
      * @param cshRfndFnitCd
      * @param cshRfndAcnoEncr
      * @param rfndRsonCd
@@ -49,6 +53,8 @@ public class WwdbServiceRefundDto {
      * @param cstNm
      */
     public record saveServiceRefundReq(
+        String cshRfndDvCd, /*현금환불구분코드*/
+        String bilAmt, /*청구금액*/
         String rfndRqdt, /*환불일자*/
         String rfndDsbDt, /*지급일자*/
         String rfndDsbDvCd, /*지급구분*/
@@ -60,11 +66,15 @@ public class WwdbServiceRefundDto {
         String cardRfndCrcdnoEncr, /*카드번호*/
         String cardRfndFnitCd, /*카드구분*/
         String crdcdFeeSumAmt, /*수수료액*/
+        String crdcdFeeFer, /*수수료율*/
         String cshRfndFnitCd, /*지급은행*/
         String cshRfndAcnoEncr, /*계좌번호*/
         String rfndRsonCd, /*환불사유코드*/
         String rfndRsonCn, /*환불사유내영(기타일경우 입력)*/
-        String cstNm /*예금주*/
+        String cstNm, /*예금주*/
+        String crdcdExpdtYm, /*crdcdExpdtYm*/
+        String istmMcn, /*할부기간*/
+        String crcdonrNm /*카드주명*/
     ) {
         public saveServiceRefundReq {
             if (!StringUtil.isEmpty(cshRfndAcnoEncr)) {
