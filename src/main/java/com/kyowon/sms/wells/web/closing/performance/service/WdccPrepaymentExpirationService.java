@@ -47,7 +47,7 @@ public class WdccPrepaymentExpirationService {
     public int sendPrepaymentExpirationHistorys(List<SendReq> dtos) throws Exception {
         int processCount = 0;
         // 템플릿정보조회
-        SendTemplateDvo template = templateService.getTemplateByTemplateCode("Wells18038");
+        SendTemplateDvo template = templateService.getTemplateByTemplateCode("W_DCC_B0020");
         for (SendReq dto : dtos) {
             Map<String, Object> paramMap = new HashMap<String, Object>();
 
@@ -74,7 +74,7 @@ public class WdccPrepaymentExpirationService {
             String tno = dto.cntrCralTno1() + dto.cntrCralTno2() + dto.cntrCralTno3();
             sendDvo.setMsgTit("[웰스] 선납만료 안내");
             sendDvo.setMsgCn(templateContent);
-            sendDvo.setBndMsgTpVal1("Wells18038");// 채권메시지유형값1
+            sendDvo.setBndMsgTpVal1("W_DCC_B0020");// 채권메시지유형값1
             sendDvo.setBndMsgTpVal2(dto.prmEndYm());// 채권메시지유형값2
             sendDvo.setBndMsgTpVal3(dto.cstNo());// 채권메시지유형값3
             sendDvo.setBndMsgTpVal4(dto.pdCd());// 채권메시지유형값4
@@ -82,7 +82,7 @@ public class WdccPrepaymentExpirationService {
             sendDvo.setReserved8("N");
             if (dto.cntrCralTno1() != null) {
                 sendDvo.setRcvrTno(tno); // 수신자번호
-                int result = messageMgtService.createMessage(sendDvo, "Wells18038", paramMap);
+                int result = messageMgtService.createMessage(sendDvo, "W_DCC_B0020", paramMap);
                 BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
                 processCount += result;
