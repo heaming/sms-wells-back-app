@@ -63,7 +63,6 @@ public class WsnaMdProductReturningGoodsMgtController {
         @NotEmpty
         List<SaveReq> dtos
     ) throws Exception {
-
         return SaveResponse.builder()
             .processCount(service.saveMdProductReturningGoods(dtos))
             .build();

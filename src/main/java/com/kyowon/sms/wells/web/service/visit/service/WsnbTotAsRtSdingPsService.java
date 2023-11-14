@@ -17,4 +17,12 @@ public class WsnbTotAsRtSdingPsService {
     public List<SearchRes> getTotAsRtSdingPss(SearchReq dto){
         return mapper.selectTotAsRtSdingPss(dto);
     }
+
+    public List<SdingPackageRes> getSdingPackage(){
+        return mapper.selectSdingPackages();
+    }
+
+    public List<SdingDtlRes> getSdingDtlInfo(SdingDtlReq dtlDto){
+        return mapper.selectSdingDtlInfos(dtlDto);
+    }
 }

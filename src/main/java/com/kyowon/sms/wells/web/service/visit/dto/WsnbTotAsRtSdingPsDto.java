@@ -9,7 +9,8 @@ public class WsnbTotAsRtSdingPsDto {
         String svType,          // 서비스유형
         String badDivide,       // 불량구분
         String sdingPkgGrpCd,   // 모종패키지
-        String sdingCausNm       // 모종
+        String sdingCausNm,       // 모종
+        String sdingPkgCd       // 모종
     ){}
 
     @ApiModel(value = "WsnbTotAsRtSdingPsDto-SearchRes")
@@ -33,5 +34,22 @@ public class WsnbTotAsRtSdingPsDto {
         Integer maxval,
         Integer minval,
         Integer avg
+    ){}
+
+    @ApiModel(value = "WsnbTotAsRtSdingPsDto-SdingPackageRes")
+    public record SdingPackageRes(
+        String pkgCode,
+        String pkgCodeName
+    ){}
+
+    @ApiModel(value = "WsnbTotAsRtSdingPsDto-SdingDtlReq")
+    public record SdingDtlReq(
+        String pkgCode
+    ){}
+
+    @ApiModel(value = "WsnbTotAsRtSdingPsDto-SdingDtlRes")
+    public record SdingDtlRes(
+        String code,
+        String codeName
     ){}
 }
