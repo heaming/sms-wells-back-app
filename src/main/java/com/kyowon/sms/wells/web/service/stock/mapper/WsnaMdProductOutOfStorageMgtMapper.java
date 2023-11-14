@@ -5,11 +5,12 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProdcutOutOfStorageSearchDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductOfStorageDvo;
 
 @Mapper
 public interface WsnaMdProductOutOfStorageMgtMapper {
 
     String selectBusinessDays(WsnaMdProdcutOutOfStorageSearchDvo dvo);
 
-    List selectMdProductOutOfStorages(WsnaMdProdcutOutOfStorageSearchDvo dvo);
+    List<WsnaMdProductOfStorageDvo> selectMdProductOutOfStorages(WsnaMdProdcutOutOfStorageSearchDvo dvo);
 }
