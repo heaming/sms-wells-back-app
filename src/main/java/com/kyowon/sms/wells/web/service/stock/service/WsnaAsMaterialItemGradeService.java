@@ -138,8 +138,8 @@ public class WsnaAsMaterialItemGradeService {
 
         int count = 0;
 
-        // 현재년월에 해당하는 창고리스트 조회
-        List<WsnaAsMaterialItemGradeWareDvo> wareDvos = this.mapper.selectMcbyWares();
+        // 기준년월에 해당하는 창고리스트 조회
+        List<WsnaAsMaterialItemGradeWareDvo> wareDvos = this.mapper.selectMcbyWares(baseYm);
         if (CollectionUtils.isNotEmpty(wareDvos)) {
 
             for (WsnaAsMaterialItemGradeWareDvo wareDvo : wareDvos) {
