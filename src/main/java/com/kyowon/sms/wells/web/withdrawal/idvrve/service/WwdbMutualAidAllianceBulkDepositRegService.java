@@ -398,10 +398,10 @@ public class WwdbMutualAidAllianceBulkDepositRegService {
 
         BatchCallReqDvo batchDvo = new BatchCallReqDvo();
 
-        batchDvo.setJobKey("SMS_WD_OA0001");
+        batchDvo.setJobKey("SMS_WD_OZ0003");
         final Map<String, String> params = new HashMap<>();
 
-        params.put("sort", "1");
+//        params.put("sort", "1");
         params.put("itgDpNo", dto.itgDpNo());
         params.put("param1", dto.lifSpptYm());
         params.put("param2", dto.lifAlncDvCd());
