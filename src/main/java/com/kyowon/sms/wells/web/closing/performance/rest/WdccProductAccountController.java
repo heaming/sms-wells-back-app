@@ -5,9 +5,7 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchExcelRes;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchProductRes;
@@ -93,9 +91,9 @@ public class WdccProductAccountController {
         @ApiImplicitParam(name = "prdtCateHigh", value = "상품대분류", paramType = "query"),
         @ApiImplicitParam(name = "prdtCateMid", value = "상품중분류", paramType = "query"),
     })
-    @GetMapping("/excel-download")
+    @PostMapping("/excel-download")
     public List<SearchExcelRes> getProductAccountsExcelDownload(
-        @Valid
+        @RequestBody
         SearchReq dto
     ) {
         return service.getProductAccountsExcelDownload(dto);
