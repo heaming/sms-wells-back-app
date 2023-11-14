@@ -313,6 +313,8 @@
           LEFT OUTER JOIN W2
             ON 1=1
            AND W2.SL_CL_DT = #{slClYm}||'01'
+         WHERE W3.SELL_TP_CD = W2.SELL_TP_CD
+           AND W3.SELL_TP_DTL_CD = W2.SELL_TP_DTL_CD
         UNION ALL
         /*--------------------------------------------------------------*/
         /* 일자별 조회 */
@@ -750,7 +752,7 @@
                     ) T2
                  WHERE 1=1
                    <if test="@MybatisUtils@equals(agrgDv, '4')"> /* 가로계산식 틀린 회원 */
-                   AND TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - TOT_DP_AMT + DP_CNG_AMT + BOR_REM_AMT - BOR_ADJ_AMT - DFA_PROCS_AMT
+                   AND TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - TOT_DP_AMT + DP_CNG_AMT + BOR_REM_AMT - BOR_ADJ_AMT
                    </if>
                  <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계 */
                  GROUP BY SL_CL_YM, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
@@ -763,10 +765,10 @@
     <sql id="accountsReceivableLease">
                SELECT SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || (
                     		<if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계, 일자별*/
-                    	    CASE WHEN SUM(TOT_UC_BLAM) != SUM(PRE_TOT_UC_AMT + TOT_SL_AMT - SL_ADJ_AMT - TOT_DP_AMT- DFA_PROCS_AMT) THEN ' *'
+                    	    CASE WHEN SUM(TOT_UC_BLAM) != SUM(PRE_TOT_UC_AMT + TOT_SL_AMT - SL_ADJ_AMT - TOT_DP_AMT) THEN ' *'
                     	    </if>
                     	    <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 집계, 일자별*/
-                    	    CASE WHEN TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - SL_ADJ_AMT - TOT_DP_AMT - DFA_PROCS_AMT THEN ' *'
+                    	    CASE WHEN TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - SL_ADJ_AMT - TOT_DP_AMT THEN ' *'
                     	    </if>
                     	         ELSE '' END) AS SL_CL_YM /* 실적년월 */
                     , (CASE WHEN #{slClYm} = TO_CHAR(SYSDATE, 'YYYYMM') THEN TO_CHAR(TO_DATE(SYSDATE-1), 'YYYY-MM-DD')
@@ -894,7 +896,7 @@
                             ) T1
                 WHERE 1=1
                   <if test="@MybatisUtils@equals(agrgDv, '4')"> /* 가로계산식 틀린 회원 */
-                  AND T1.TOT_UC_BLAM != T1.PRE_TOT_UC_AMT + T1.TOT_SL_AMT - T1.SL_ADJ_AMT - T1.TOT_DP_AMT - T1.DFA_PROCS_AMT
+                  AND T1.TOT_UC_BLAM != T1.PRE_TOT_UC_AMT + T1.TOT_SL_AMT - T1.SL_ADJ_AMT - T1.TOT_DP_AMT
                   </if>
                 <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계 */
                 GROUP BY T1.SL_CL_YM, T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.SAP_PD_DV_CD
@@ -907,7 +909,7 @@
     <sql id="accountsReceivableMembership">
         SELECT SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) ||
             		(
-            			CASE WHEN TOT_UC_BLAM != PRE_TOT_UC_AMT + THM_SL_SUM_AMT - TOT_DP_AMT - DFA_PROCS_AMT THEN ' *'
+            			CASE WHEN TOT_UC_BLAM != PRE_TOT_UC_AMT + THM_SL_SUM_AMT - TOT_DP_AMT THEN ' *'
             				 ELSE ''
             			END
             		) AS SL_CL_YM /* 실적년월 */
@@ -1047,7 +1049,7 @@
             	) T1
             WHERE 1=1
             <if test="@MybatisUtils@equals(agrgDv, '4')"> /* 가로계산식 틀린 회원 */
-              AND TOT_UC_BLAM != PRE_TOT_UC_AMT + THM_SL_SUM_AMT - TOT_DP_AMT - DFA_PROCS_AMT
+              AND TOT_UC_BLAM != PRE_TOT_UC_AMT + THM_SL_SUM_AMT - TOT_DP_AMT
             </if>
     </sql>
     <select id="selectLumpSumOfAccountsReceivable" resultType="com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesBondDvo">
@@ -1210,10 +1212,10 @@
     <sql id="tradeReceivablesPeriodicDelivery">
        SELECT SUBSTR(SL_CL_YM,1,4) || '-' || SUBSTR(SL_CL_YM,5,2) || (
               <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계, 일자별*/
-        		  CASE WHEN SUM(TOT_UC_BLAM) != SUM(PRE_TOT_UC_AMT) + SUM(TOT_SL_AMT) - SUM(TOT_DP_AMT) - SUM(DFA_PROCS_AMT) THEN ' *'
+        		  CASE WHEN SUM(TOT_UC_BLAM) != SUM(PRE_TOT_UC_AMT) + SUM(TOT_SL_AMT) - SUM(TOT_DP_AMT) THEN ' *'
         		  </if>
         		  <if test="@MybatisUtils@equals(agrgDv, '3') or @MybatisUtils@equals(agrgDv, '4')"> /* 집계, 일자별*/
-        		  CASE WHEN TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - TOT_DP_AMT - DFA_PROCS_AMT THEN ' *'
+        		  CASE WHEN TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - TOT_DP_AMT THEN ' *'
         		  </if>
                        ELSE ''
                   END) AS SL_CL_YM /* 실적년월 */
@@ -1486,7 +1488,7 @@
             ) T2
         WHERE 1=1
           <if test="@MybatisUtils@equals(agrgDv, '4')"> /* 가로계산식 틀린 회원 */
-          AND TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - TOT_DP_AMT - DFA_PROCS_AMT
+          AND TOT_UC_BLAM != PRE_TOT_UC_AMT + TOT_SL_AMT - TOT_DP_AMT
           </if>
         <if test="@MybatisUtils@equals(agrgDv, '1') or @MybatisUtils@equals(agrgDv, '2')"> /* 집계 */
         GROUP BY SL_CL_YM, SELL_TP_CD, SELL_TP_DTL_CD, SAP_PD_DV_CD
