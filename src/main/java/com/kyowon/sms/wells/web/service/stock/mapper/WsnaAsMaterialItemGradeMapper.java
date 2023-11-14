@@ -29,7 +29,7 @@ public interface WsnaAsMaterialItemGradeMapper {
 
     Integer selectCstSvItmGdIzCount(WsnaAsMaterialItemGradeDvo dvo);
 
-    List<WsnaAsMaterialItemGradeWareDvo> selectMcbyWares();
+    List<WsnaAsMaterialItemGradeWareDvo> selectMcbyWares(String baseYm);
 
     int insertCstSvItmGd(WsnaAsMaterialItemGradeDvo dvo);
 
