@@ -19,19 +19,19 @@ public class WfebOutcomeAllowanceService {
     private final WfebOutcomeAllowanceMapper mapper;
 
     public List<SearchManagerRes> getOutcomeAllowancesManager(SearchReq dto) {
-        if (dto.thmInqr()) {
-            return mapper.selectOutcomeAllowancesManagerThisMonth(dto);
+        List<SearchManagerRes> outcomeAllowances = mapper.selectOutcomeAllowancesManager(dto);
+        if (outcomeAllowances.isEmpty()) {
+            outcomeAllowances = mapper.selectOutcomeAllowancesManagerThisMonth(dto);
         }
-        //        return mapper.selectOutcomeAllowancesManager(dto);
-        return mapper.selectOutcomeAllowancesManagerThisMonth(dto);
+        return outcomeAllowances;
     }
 
     public List<SearchPlannerRes> getOutcomeAllowancesPlanner(SearchReq dto) {
-        if (dto.thmInqr()) {
-            return mapper.selectOutcomeAllowancesPlannerThisMonth(dto);
+        List<SearchPlannerRes> outcomeAllowances = mapper.selectOutcomeAllowancesPlanner(dto);
+        if (outcomeAllowances.isEmpty()) {
+            outcomeAllowances = mapper.selectOutcomeAllowancesPlannerThisMonth(dto);
         }
-        //        return mapper.selectOutcomeAllowancesPlanner(dto);
-        return mapper.selectOutcomeAllowancesPlannerThisMonth(dto);
+        return outcomeAllowances;
 
     }
 
