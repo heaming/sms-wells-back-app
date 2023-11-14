@@ -21,7 +21,7 @@ class WfebB2bFeeMgtControllerTest extends SpringTestSupport {
     @Test
     @DisplayName("[B2B] B2B 실적생성")
     void aggregateB2bPerformance() throws Exception {
-        CreateReq dto = new CreateReq("202308", "02");
+        CreateReq dto = new CreateReq("202309", "02");
 
         MockHttpServletRequestBuilder request = post(String.format("%s/aggregate", BASE_URL))
             .contentType(MediaType.APPLICATION_JSON)
