@@ -68,6 +68,8 @@ public class WsnaMdProductOfStorageDvo {
 
     String prtnrNo;
 
+    String pdctPdCd;
+
     /* MD */
     String prtnrBzsNm;
 

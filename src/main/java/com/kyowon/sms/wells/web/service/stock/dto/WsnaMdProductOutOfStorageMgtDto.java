@@ -112,6 +112,8 @@ public class WsnaMdProductOutOfStorageMgtDto {
 
         String prtnrNo,
 
+        String pdctPdCd,
+
         /* MD */
         String prtnrBzsNm,
 
