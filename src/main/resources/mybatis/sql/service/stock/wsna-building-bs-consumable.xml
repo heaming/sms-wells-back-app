@@ -2,48 +2,48 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaBuildingBsConsumableMapper">
     <select id="selectBuildings" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo">
-        SELECT A.BLD_CD
-             , A.BLD_NM
-             , A.RSPP_PRTNR_NO
-             , NVL(C.VST_CST_N, 0) AS VST_CST_N
-          FROM TB_OGBS_BLD_BAS A
-         INNER JOIN (SELECT X.OG_TP_CD
-                          , X.BLD_CD
-                       FROM TB_OGBS_MM_OG_IZ X
-                      WHERE X.BASE_YM = #{mngtYm}
-                        AND X.BLD_CD IS NOT NULL
-                        AND X.OG_TP_CD = 'W02'
-                        AND X.CLO_YN = 'N'
-                        AND X.DTA_DL_YN = 'N'
-                    ) B
-            ON A.OG_TP_CD = B.OG_TP_CD
-           AND A.BLD_CD = B.BLD_CD
-          LEFT OUTER JOIN (SELECT C.BLD_CD
-                                , COUNT(1) AS VST_CST_N
-                             FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ A
-                                , TB_OGBS_MM_PRTNR_IZ B
-                                , TB_OGBS_MM_OG_IZ C
-                            WHERE A.ASN_OJ_YM = B.BASE_YM
-                              AND A.CNFM_PSIC_PRTNR_OG_TP_CD = B.OG_TP_CD
-                              AND A.CNFM_PSIC_PRTNR_NO = B.PRTNR_NO
-                              AND B.BASE_YM = C.BASE_YM
-                              AND B.OG_TP_CD = C.OG_TP_CD
-                              AND B.OG_ID = C.OG_ID
-                              AND A.DTA_DL_YN = 'N'
-                              AND A.ASN_OJ_YM = #{mngtYm}
-                            GROUP BY C.BLD_CD
-                          ) C
-            ON A.BLD_CD = C.BLD_CD
-         WHERE A.DTA_DL_YN = 'N'
+        SELECT O3.BLD_CD
+             , O3.BLD_NM
+             , O3.RSPP_PRTNR_NO
+             , COUNT(1) AS VST_CST_N
+          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.CNTR_SN = T1.CNTR_SN
+           AND T2.MNGT_PRTNR_OG_TP_CD = 'W02'
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS C1
+            ON C1.CNTR_NO = T1.CNTR_NO
+           AND C1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL C2
+            ON C2.CNTR_NO = T1.CNTR_NO
+           AND C2.CNTR_SN = T1.CNTR_SN
+           AND C2.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ O1
+            ON O1.BASE_YM = T1.MNGT_YM
+           AND O1.OG_TP_CD = T2.MNGT_PRTNR_OG_TP_CD
+           AND O1.PRTNR_NO = T2.MNGT_PRTNR_NO
+           AND O1.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_OG_IZ O2
+            ON O2.BASE_YM = O1.BASE_YM
+           AND O2.OG_TP_CD = O1.OG_TP_CD
+           AND O2.OG_ID = O1.OG_ID
+           AND O2.CLO_YN = 'N'
+           AND O2.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_BLD_BAS O3
+            ON O3.OG_TP_CD = O2.OG_TP_CD
+           AND O3.BLD_CD = O2.BLD_CD
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.CNTR_DTL_STAT_CD NOT IN ('401','402')
+           AND T1.MNGT_YM = #{mngtYm}
            <if test='@MybatisUtils@isNotEmpty(bldCds)'>
-           AND A.BLD_CD IN (
-                            <foreach collection="bldCds" item="bldCd" separator=", ">
-                                #{bldCd}
-                            </foreach>
-                           )
+           AND O3.BLD_CD IN (<foreach collection="bldCds" item="bldCd" separator=", ">
+                                 #{bldCd}
+                             </foreach>)
            </if>
-         GROUP BY A.BLD_CD, A.BLD_NM, A.RSPP_PRTNR_NO, C.VST_CST_N
-         ORDER BY A.BLD_NM
+         GROUP BY O3.BLD_CD, O3.BLD_NM, O3.RSPP_PRTNR_NO
+         ORDER BY O3.BLD_NM
     </select>
 
     <select id="selectItemQtys" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo">
@@ -109,8 +109,10 @@
                                                                                                                ON Y.BASE_YM = X.BASE_YM
                                                                                                               AND Y.OG_TP_CD = 'W02'
                                                                                                               AND Y.OG_ID = X.OG_ID
+                                                                                                              AND Y.DTA_DL_YN = 'N'
                                                                                                             WHERE X.BASE_YM = #{mngtYm}
                                                                                                               AND X.BLD_CD = #{strWareNo}
+                                                                                                              AND X.DTA_DL_YN = 'N'
                                                                                                           )
                                                                               )/T1.BFSVC_CSMB_DDLV_UNIT_ACC_N) * T1.BFSVC_CSMB_DDLV_UNIT_QTY), 0)
                 END AS FXN_DDLV_UNIT_QTY
