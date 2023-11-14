@@ -9,4 +9,6 @@ import java.util.List;
 @Mapper
 public interface WsnbTotAsRtSdingPsMapper {
     List<SearchRes> selectTotAsRtSdingPss(SearchReq dto);
+    List<SdingPackageRes> selectSdingPackages();
+    List<SdingDtlRes> selectSdingDtlInfos(SdingDtlReq dtlDto);
 }
