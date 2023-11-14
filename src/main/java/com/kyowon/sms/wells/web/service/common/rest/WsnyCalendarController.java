@@ -27,13 +27,25 @@ public class WsnyCalendarController {
     @ApiOperation(value = "Calendar 관리 화면 - Calendar 관리 조회", notes = "조회조건에 따른 Calendar 관리 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = false),
-        @ApiImplicitParam(name = "serviceCenterCd", value = "서비스센터", paramType = "query", required = false),
+        @ApiImplicitParam(name = "serviceCenterOgId", value = "서비스센터조직ID", paramType = "query", required = false),
     })
     @GetMapping
     public List<WsnyCalendarDto.SearchRes> getCalendars(
         WsnyCalendarDto.SearchReq dto
     ) {
         return wsnyCalendarService.getCalendars(dto);
+    }
+
+    @ApiOperation(value = "Home Card Calendar 관리 화면 - Calendar 관리 조회", notes = "조회조건에 따른 Calendar 관리 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "serviceCenterOgId", value = "서비스센터조직ID", paramType = "query", required = false),
+    })
+    @GetMapping("/homecard-calendars")
+    public List<WsnyCalendarDto.SearchRes> getHomeCardCalendars(
+        WsnyCalendarDto.SearchReq dto
+    ) {
+        return wsnyCalendarService.getHomeCardCalendars(dto);
     }
 
     @ApiOperation(value = "Calendar 등록 팝업 - Calendar 등록 및 수정", notes = "Calendar 등록")

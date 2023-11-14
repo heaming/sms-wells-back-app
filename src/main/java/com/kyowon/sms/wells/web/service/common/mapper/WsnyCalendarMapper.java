@@ -13,6 +13,8 @@ public interface WsnyCalendarMapper {
         WsnyCalendarDto.SearchReq dto
     );
 
+    String selectServiceCenterOgId(WsnyCalendarDto.SearchReq dto);
+
     int updateCalendar(WsnyCalendarDvo dvo);
 
     int saveCalendar(WsnyCalendarDvo dvo);
