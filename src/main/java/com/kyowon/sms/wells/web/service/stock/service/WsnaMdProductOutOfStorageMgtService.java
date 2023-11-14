@@ -10,6 +10,7 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageExcel
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageExcelUploadDto.ValidateRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProdcutOutOfStorageSearchDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaMdProductOutOfStorageMgtMapper;
 import com.sds.sflex.common.utils.DateUtil;
@@ -30,7 +31,7 @@ public class WsnaMdProductOutOfStorageMgtService {
 
     private final WsnaMdProductOutOfStorageExcelUploadService excelUploadService;
 
-    public List getMdProductOutOfStorages(SearchReq dto) {
+    public List<SearchRes> getMdProductOutOfStorages(SearchReq dto) {
         WsnaMdProdcutOutOfStorageSearchDvo dvo = converter.mapSearchReqToWsnaMdProdcutOutOfStorageSerachDvo(dto);
 
         // 작업구분: (작업대기), 종료일자 존재 , 첫배송 여부가 (전체 또는 N차)인 경우
@@ -43,7 +44,8 @@ public class WsnaMdProductOutOfStorageMgtService {
                 }
             }
         }
-        return mapper.selectMdProductOutOfStorages(dvo);
+
+        return converter.mapAllDvoToSearchRes(mapper.selectMdProductOutOfStorages(dvo));
     }
 
     public int saveMdProductOutOfStorages(List<SaveReq> dtos) {
