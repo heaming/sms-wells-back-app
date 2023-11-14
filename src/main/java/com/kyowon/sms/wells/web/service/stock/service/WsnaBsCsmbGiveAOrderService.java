@@ -34,17 +34,11 @@ public class WsnaBsCsmbGiveAOrderService {
 
     public List<SearchRes> getBsCsmbGiveAOrderQty(SearchReq dto) {
         if (Integer.parseInt(DateUtil.getNowDayString().substring(0, 4)) <= Integer.parseInt(dto.mngtYm())) {
-            List<WsnaBsCsmbGiveAOrderDvo> dvos = mapper.selectBsCsmbGiveAOrderQty(dto);
-
-            if (ObjectUtils.isEmpty(dvos)) {
-                List<WsnaBsCsmbGiveAOrderDvo> bfDvos = this.getBeforeBsCsmbGiveAOrderQty(dto);
-
-                return converter.listDvoToBsCsmbGiveAOrderDto(bfDvos);
-            } else {
-                return converter.listDvoToBsCsmbGiveAOrderDto(dvos);
-            }
-        } else {
             List<WsnaBsCsmbGiveAOrderDvo> dvos = this.getBeforeBsCsmbGiveAOrderQty(dto);
+
+            return converter.listDvoToBsCsmbGiveAOrderDto(dvos);
+        } else {
+            List<WsnaBsCsmbGiveAOrderDvo> dvos = mapper.selectBsCsmbGiveAOrderQty(dto);
 
             return converter.listDvoToBsCsmbGiveAOrderDto(dvos);
         }
@@ -62,7 +56,7 @@ public class WsnaBsCsmbGiveAOrderService {
 
             dvos.forEach(dvo -> {
                 pajuStocks.forEach(stock -> {
-                    if (dvo.getCsmbPdCd().equals(stock.getItmPdCd())) {
+                    if (dvo.getCsmbPdCd().equals(stock.getItmPdCd()) && "N".equals(dvo.getRgstYn())) {
                         int pajuLgstCnrStocQty = stock.getLgstAGdQty().intValue() + stock.getLgstBGdQty().intValue()
                             + stock.getLgstCGdQty().intValue() + stock.getLgstEGdQty().intValue()
                             + stock.getLgstRGdQty().intValue();
@@ -79,7 +73,7 @@ public class WsnaBsCsmbGiveAOrderService {
 
                 dvos.forEach(dvo -> {
                     sgsuStocks.forEach(stock -> {
-                        if (dvo.getCsmbPdCd().equals(stock.getItmPdCd())) {
+                        if (dvo.getCsmbPdCd().equals(stock.getItmPdCd()) && "N".equals(dvo.getRgstYn())) {
                             int sgsuLgstCnrStocQty = stock.getLgstAGdQty().intValue() + stock.getLgstBGdQty().intValue()
                                 + stock.getLgstCGdQty().intValue() + stock.getLgstEGdQty().intValue()
                                 + stock.getLgstRGdQty().intValue();
@@ -93,17 +87,21 @@ public class WsnaBsCsmbGiveAOrderService {
 
         // 최종재고 set
         dvos.forEach(dvo -> {
-            dvo.setWoStocQty(dvo.getPajuLgstCnrStocQty() + dvo.getSgsuLgstCnrStocQty());
+            if ("N".equals(dvo.getRgstYn())) {
+                dvo.setWoStocQty(dvo.getPajuLgstCnrStocQty() + dvo.getSgsuLgstCnrStocQty());
+            }
         });
 
         // 재고지속월 set
         dvos.forEach(dvo -> {
-            if (dvo.getWoStocQty() == 0 || dvo.getMmAvDdlvQty() == 0) {
-                dvo.setStocPersMmN(0);
-            } else {
-                dvo.setStocPersMmN(
-                    (float)Math.round(((float)dvo.getWoStocQty() / (float)dvo.getMmAvDdlvQty()) * 10) / 10
-                );
+            if ("N".equals(dvo.getRgstYn())) {
+                if (dvo.getWoStocQty() == 0 || dvo.getMmAvDdlvQty() == 0) {
+                    dvo.setStocPersMmN(0);
+                } else {
+                    dvo.setStocPersMmN(
+                        (float)Math.round(((float)dvo.getWoStocQty() / (float)dvo.getMmAvDdlvQty()) * 10) / 10
+                    );
+                }
             }
         });
 
@@ -115,20 +113,24 @@ public class WsnaBsCsmbGiveAOrderService {
             String baseDay = DateUtil.getNowDayString();
 
             dvos.forEach(dvo -> {
-                try {
-                    dvo.setEtExsDt(DateUtil.addMonths(baseDay, (int)dvo.getStocPersMmN()));
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
+                if ("N".equals(dvo.getRgstYn())) {
+                    try {
+                        dvo.setEtExsDt(DateUtil.addMonths(baseDay, (int)dvo.getStocPersMmN()));
+                    } catch (ParseException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             });
         } else {
             String baseDay = dto.mngtYm() + "01";
 
             dvos.forEach(dvo -> {
-                try {
-                    dvo.setEtExsDt(DateUtil.addMonths(baseDay, (int)dvo.getStocPersMmN()));
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
+                if ("N".equals(dvo.getRgstYn())) {
+                    try {
+                        dvo.setEtExsDt(DateUtil.addMonths(baseDay, (int)dvo.getStocPersMmN()));
+                    } catch (ParseException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             });
         }
@@ -143,41 +145,46 @@ public class WsnaBsCsmbGiveAOrderService {
 
         // 필요량 set
         dvos.forEach(dvo -> {
-            if (dvo.getMmAvDdlvQty() == 0 || dvo.getWoStocQty() == 0) {
-                dvo.setNcstQty(0);
-            } else {
-                dvo.setNcstQty((dvo.getMmAvDdlvQty() * 3) / dvo.getWoStocQty());
+            if ("N".equals(dvo.getRgstYn())) {
+                if (dvo.getMmAvDdlvQty() == 0 || dvo.getWoStocQty() == 0) {
+                    dvo.setNcstQty(0);
+                } else {
+                    dvo.setNcstQty((dvo.getMmAvDdlvQty() * 3) / dvo.getWoStocQty());
+                }
             }
         });
 
         // 발주수량 set
         dvos.forEach(dvo -> {
-            if (dvo.getMinOrdQty() == 0 || dvo.getNcstQty() == 0) {
-                dvo.setGoQty(0);
-            } else {
-                if (dvo.getMinOrdQty() > dvo.getNcstQty()) {
-                    dvo.setGoQty(dvo.getMinOrdQty());
+            if ("N".equals(dvo.getRgstYn())) {
+                if (dvo.getMinOrdQty() == 0 || dvo.getNcstQty() == 0) {
+                    dvo.setGoQty(0);
                 } else {
-                    int i = 1;
+                    if (dvo.getMinOrdQty() > dvo.getNcstQty()) {
+                        dvo.setGoQty(dvo.getMinOrdQty());
+                    } else {
+                        int i = 1;
 
-                    while (dvo.getMinOrdQty() > 0) {
-                        int goQty = dvo.getMinOrdQty() * i;
+                        while (dvo.getMinOrdQty() > 0) {
+                            int goQty = dvo.getMinOrdQty() * i;
 
-                        if (dvo.getNcstQty() >= goQty) {
-                            dvo.setGoQty(goQty);
-                            break;
+                            if (dvo.getNcstQty() >= goQty) {
+                                dvo.setGoQty(goQty);
+                                break;
+                            }
+
+                            i++;
                         }
-
-                        i++;
                     }
                 }
-
             }
         });
 
         // 발주금액 set
         dvos.forEach(dvo -> {
-            dvo.setGoAmt(dvo.getGoQty() * dvo.getGoUprc());
+            if ("N".equals(dvo.getRgstYn())) {
+                dvo.setGoAmt(dvo.getGoQty() * dvo.getGoUprc());
+            }
         });
 
         return dvos;
@@ -187,11 +194,15 @@ public class WsnaBsCsmbGiveAOrderService {
     public int createBsCsmbGiveAOrderQty(List<CreatReq> dtos) {
         int processCount = 0;
 
-        // 해당 관리년월 데이터 존재여부 확인
-        int exstBsCsmbGiveAOrderQtyYn = mapper.selectExistBsCsmbGiveAOrderQtyYn(dtos.get(0).mngtYm());
+        List<String> csmbPdCds = dtos.stream().map(CreatReq::csmbPdCd).toList();
 
-        if (exstBsCsmbGiveAOrderQtyYn > 0) { // 해당월 데이터 존재할경우 모두 삭제 후 insert
-            mapper.deleteBsCsmbGiveAOrderQty(dtos.get(0).mngtYm());
+        // 해당 관리년월 데이터 존재여부 확인
+        int exstBsCsmbGiveAOrderQtyYn = mapper.selectExistBsCsmbGiveAOrderQtyYn(dtos.get(0).mngtYm(), csmbPdCds);
+
+        if (exstBsCsmbGiveAOrderQtyYn > 0) { // 해당월 데이터 존재할경우 품목코드별로 삭제 후 insert
+            for (String csmbPdCd : csmbPdCds) {
+                mapper.deleteBsCsmbGiveAOrderQty(dtos.get(0).mngtYm(), csmbPdCd);
+            }
         }
 
         List<WsnaBsCsmbGiveAOrderDvo> dvos = converter.listCreatReqToBsCsmbGiveAOrderDvos(dtos);

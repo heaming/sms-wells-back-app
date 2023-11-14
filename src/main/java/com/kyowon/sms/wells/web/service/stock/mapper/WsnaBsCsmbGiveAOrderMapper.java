@@ -16,9 +16,9 @@ public interface WsnaBsCsmbGiveAOrderMapper {
 
     int insertBsCsmbGiveAOrderQty(WsnaBsCsmbGiveAOrderDvo dvo);
 
-    int deleteBsCsmbGiveAOrderQty(String mngtYm);
+    int deleteBsCsmbGiveAOrderQty(String mngtYm, String csmbPdCd);
 
-    int selectExistBsCsmbGiveAOrderQtyYn(String mngtYm);
+    int selectExistBsCsmbGiveAOrderQtyYn(String mngtYm, List<String> csmbPdCds);
 
     List<ProdutCodeRes> selectProductCodesByItmKndCd(String itmKndCd);
 }

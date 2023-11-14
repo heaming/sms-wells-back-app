@@ -33,4 +33,5 @@ public class WsnaBsCsmbGiveAOrderDvo {
     int minOrdQty;
     String pypdDc;
     String rmkCn;
+    String rgstYn;
 }
