@@ -22,7 +22,7 @@ public interface WfeaRedemptionPerfMapper {
     int insertIndivContractDataFromLife(String baseYm, String ogTpCd, String perfAtcCd, String cntrPerfCrtDvCd, String perfAgrgCrtDvCd);
 
     /**
-     * P조직 개인 라이프 상조 되물림대상 계약 생성
+     * P조직 조직 라이프 상조 되물림대상 계약 생성
      * @param baseYm
      * @return
      */
