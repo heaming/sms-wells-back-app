@@ -163,11 +163,14 @@ public class WsnaManagerBsConsumableService {
     }
 
     @Transactional
-    public int createManagerBsConsumablesRequest(List<CreateOstrReq> dtos) {
+    public int createManagerBsConsumablesRequest(List<CreateReq> dtos) {
+        // 화면에 입력 후 저장하지 않고 바로 출고요청 하는 경우를 대비해 저장 로직 태워줌
+        this.createManagerBsConsumables(dtos);
+
         String ostrAkNo = null;
         String ostrAkRgstDt = DateUtil.getNowDayString();
         String mngtYm = dtos.get(0).mngtYm();
-        List<String> strWareNos = dtos.stream().map(CreateOstrReq::strWareNo).distinct().toList();
+        List<String> strWareNos = dtos.stream().map(CreateReq::strWareNo).distinct().toList();
         List<WsnaBsConsumablesAskReqDvo> tempReqDvos = new ArrayList<>();
 
         for (String strWareNo : strWareNos) {
@@ -194,6 +197,7 @@ public class WsnaManagerBsConsumableService {
                     reqDvo.setItmPdCd(dvo.getCsmbPdCd());
                     reqDvo.setItmGdCd(ITM_GD_CD_A);
                     reqDvo.setOstrOjWareNo(OSTR_OJ_WARE_NO_PAJU);
+                    reqDvo.setOstrAkQty(Integer.parseInt(dvo.getBfsvcCsmbDdlvQty()));
                     reqDvo.setStrWareNo(dvo.getStrWareNo());
                     reqDvo.setBldCd(dvo.getBldCd());
 

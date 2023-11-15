@@ -75,7 +75,7 @@ public class WsnaBuildingBsConsumableController {
     public SaveResponse createBuildingBsConsumablesRequest(
         @RequestBody
         @Valid
-        List<CreateOstrReq> dtos
+        List<CreateReq> dtos
     ) {
         return SaveResponse.builder()
             .processCount(service.createBuildingBsConsumablesRequest(dtos))
