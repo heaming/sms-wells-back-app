@@ -4,6 +4,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * <pre>
+ * 자동이체 지정 출금 고객 저장 DVO
+ * </pre>
+ *
+ * @author donghyun.yoo
+ * @since 2023-01-30
+ */
 @Getter
 @Setter
 @ToString
