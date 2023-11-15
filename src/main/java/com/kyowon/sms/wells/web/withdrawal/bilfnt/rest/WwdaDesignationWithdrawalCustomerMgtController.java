@@ -36,6 +36,12 @@ public class WwdaDesignationWithdrawalCustomerMgtController {
 
     private final WwdaDesignationWithdrawalCustomerMgtService service;
 
+    /**
+     * 자동이체 지정 출금 고객 조회 / 페이징
+     * @param req
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchAutoFntDsnWdrwCstRes>
+     */
     @ApiOperation(value = "자동이체 지정 출금 고객 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false, example = "W20220086004"),
@@ -52,6 +58,11 @@ public class WwdaDesignationWithdrawalCustomerMgtController {
         return service.getAftnDsnWdrwCstInqrPages(req, pageInfo);
     }
 
+    /**
+     * 자동이체 지정 출금 고객 엑셀다운로드
+     * @param req
+     * @return List<SearchAutoFntDsnWdrwCstRes>
+     */
     @ApiOperation(value = "자동이체 지정 출금 고객 엑셀다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false, example = "W20220086004"),
@@ -66,6 +77,12 @@ public class WwdaDesignationWithdrawalCustomerMgtController {
         return service.getAftnDsnWdrwCstInqrExcels(req);
     }
 
+    /**
+     * 자동이체 지정 출금 고객 저장
+     * @param req
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "자동이체 지정 출금 고객 저장")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "rowState", value = "행 상태", paramType = "query", required = false, example = "created"),
@@ -90,6 +107,11 @@ public class WwdaDesignationWithdrawalCustomerMgtController {
             .build();
     }
 
+    /**
+     * 자동이체 지정 출금 고객 삭제
+     * @param req
+     * @return SaveResponse
+     */
     @ApiOperation(value = "자동이체 지정 출금 고객 삭제")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false, example = "W20220086004"),

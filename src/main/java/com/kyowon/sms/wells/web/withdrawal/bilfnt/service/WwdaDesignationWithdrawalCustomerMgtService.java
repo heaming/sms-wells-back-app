@@ -35,10 +35,10 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
     private final WwdaDesignationWithdrawalCustomerMgtMapper mapper;
     private final WwdaDesignationWithdrawalCustomerMgtConverter converter;
 
-    /** 자동이체 지정 출금 고객 조회
+    /**
+     * 자동이체 지정 출금 고객 조회
      * @param pageInfo
-     *
-     * @param SearchAutoFntDsnWdrwCstReq
+     * @param req
      * @return PagingResult<SearchAutoFntDsnWdrwCstRes>
      */
     public PagingResult<SearchAutoFntDsnWdrwCstRes> getAftnDsnWdrwCstInqrPages(
@@ -49,10 +49,10 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
         return mapper.selectAftnDsnWdrwCstInqrPages(req, pageInfo); // 자동이체 지정 출금 고객 조회
     }
 
-    /** 자동이체 지정 출금 고객 엑셀다운로드
-     *
+    /**
+     * 자동이체 지정 출금 고객 엑셀다운로드
      * @param req
-     * @return
+     * @return List<SearchAutoFntDsnWdrwCstRes>
      */
     public List<SearchAutoFntDsnWdrwCstRes> getAftnDsnWdrwCstInqrExcels(
         SearchAutoFntDsnWdrwCstReq req
@@ -60,10 +60,10 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
         return mapper.selectAftnDsnWdrwCstInqrPages(req);
     }
 
-    /** 자동이체 지정 출금 고객 저장
-     *
+    /**
+     * 자동이체 지정 출금 고객 저장
      * @param req
-     * @return
+     * @return int processCount
      */
     @Transactional
     public int saveAutoFntDsnWdrwCst(
@@ -107,7 +107,7 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
                         //                        processCount += mapper.updateAutoFntDsnWdrwRelByPk(dvo); // 계좌이체지정출금관계 삭제된 데이터 'N'으로 변경 후 처리
                     } else {
                         int count = mapper.selectAcFntDsnWdrwBasCt(dvo); // 계좌 이체 지정 출금 기본 건수 조회
-                        BizAssert.isFalse(count > 0, "MSG_ALT_LINE_ALREADY_RGST_CST", index);
+                        BizAssert.isFalse(count > 0, "MSG_ALT_LINE_ALREADY_RGST_CST", index); // 계약번호 {0}은 이미 등록된 고객입니다！
 
                         processCount += mapper.insertAutoFntDsnWdrwCstBas(dvo); // 계좌이체지정출금기본 저장
                         if ("1".equals(dto.fntYn())) { // 신규이면서 이체구분이 '이체' 이면
@@ -137,9 +137,9 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
     }
 
     /**
-     *
+     * 자동이체 지정 출금 고객 삭제
      * @param req
-     * @return
+     * @return int processCount
      */
     @Transactional
     public int deleteAutoFntDsnWdrwCst(
