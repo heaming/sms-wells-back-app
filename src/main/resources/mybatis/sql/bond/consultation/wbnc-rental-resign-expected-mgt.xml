@@ -623,43 +623,61 @@
              , ''                            AS AUTH_RSG_CNFM_RGST_PRTNR_NO     /*직권해지확정등록파트너번호*/
              , 'N'                           AS DTA_DL_YN                       /*데이터삭제여부*/
         <include refid="COMMON.insertSystemFieldValue"/>
-          FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
-         INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
-            ON B.CNTR_NO = A.CNTR_NO
-           AND A.CNTR_PRGS_STAT_CD = '60'   /*계약진행상태코드-60:확정*/
-           AND A.DTA_DL_YN = 'N'
-           AND B.CNTRW_TP_CD = '3'  /*계약서유형코드-3:렌탈*/
-           AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
-         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /*T:WELLS매출월마감내역*/
-            ON C.SL_CL_YM = SUBSTR(#{baseDt},1,6)	/*실적년월*/
-           AND C.CNTR_NO = B.CNTR_NO
-           AND C.CNTR_SN = B.CNTR_SN
-           AND C.SL_STP_YN = 'Y'    /*매출중지여부*/
-           AND C.SL_RCOG_DT	IS NOT NULL	/* 매출인식일자 */
-           AND C.CAN_DT	IS NULL		/* 취소일자 */
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ D /*T:월파트너내역*/
-            ON D.BASE_YM = SUBSTR(#{baseDt},1,6)
-           AND D.OG_TP_CD = A.SELL_OG_TP_CD
-           AND D.PRTNR_NO = A.SELL_PRTNR_NO
-          LEFT JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
-            ON F.BASE_YM = C.SL_CL_YM
-           AND F.CNTR_NO = C.CNTR_NO
-           AND F.CNTR_SN = C.CNTR_SN
-           AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
-           AND F.BND_CLCTN_PRP_DV_CD IN ('02','03','08')    /* 채권추심속성구분코드 */
-           AND F.BND_CLCTN_PRP_RSON_CD != '3C'				/* 채권추심속성사유코드-위탁관리 */
-          LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
-            ON G.PERF_YM = C.SL_CL_YM
-           AND G.CNTR_NO = C.CNTR_NO
-           AND G.CNTR_SN = C.CNTR_SN
-          LEFT JOIN TB_CBCL_DLQ_BAS H /*T:연체기본*/
-            ON H.PERF_YM = C.SL_CL_YM
-           AND H.CNTR_NO = C.CNTR_NO
-           AND H.CNTR_SN = C.CNTR_SN
-         WHERE 1 = 1
-           AND NVL(C.RENTAL_TN,0)  <![CDATA[<]]> NVL(B.CNTR_PTRM,0)    /*렌탈회차<![CDATA[<]]>계약기간*/
-           AND NOT (A.CNTR_TP_CD = '02' AND SUBSTR(D.HMNRSC_DEPT_CD,1,1) BETWEEN 'W' AND 'Z')   /*법인,신채널 제외*/
-           /* 4.전월 제외대상 익월 예정생성 요건 */
+            FROM TB_CBCL_WELLS_SL_MM_CL_IZ C	/*T:WELLS매출월마감내역*/
+             INNER JOIN TB_SSCT_CNTR_BAS A		/*T:계약기본*/
+                ON A.CNTR_NO = C.CNTR_NO
+               AND A.CNTR_TP_CD IN ('01','02')	/* 개인/법인 - 삭제 */
+             INNER JOIN TB_SSCT_CNTR_DTL B		/*T:계약상세*/
+                ON B.CNTR_NO = A.CNTR_NO
+               AND A.CNTR_PRGS_STAT_CD = '60'   /*계약진행상태코드-60:확정*/
+               AND A.DTA_DL_YN = 'N'
+               AND B.CNTRW_TP_CD = '3'			/*계약서유형코드-3:렌탈,7:정기배송*/
+               AND B.SELL_TP_CD IN ('2')		/*판매유형코드-2:렌탈/리스, 6:정기배송 */
+               AND B.SELL_TP_DTL_CD IN ('21','23')	/* 22:금율리스 제외 */
+               AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
+             INNER JOIN TB_SSCT_CNTR_PRTNR_REL D /*T:계약파트너관계*/
+                ON 1 = 1
+               AND D.CNTR_NO = C.CNTR_NO
+               AND D.OG_TP_CD = A.SELL_OG_TP_CD
+               AND D.PRTNR_NO = A.SELL_PRTNR_NO
+             INNER JOIN TB_CBBO_BND_CNTR_BAS F	/*T:채권계약기본*/
+                ON F.BASE_YM = SUBSTR(#{baseDt},1,6)
+               AND F.CNTR_NO = C.CNTR_NO
+               AND F.CNTR_SN = C.CNTR_SN
+               AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
+               AND F.BND_CLCTN_PRP_DV_CD IN ('02','03','08')    /* 채권추심속성구분코드 */
+               AND F.BND_CLCTN_PRP_RSON_CD != '3C'				/* 채권추심속성사유코드-위탁관리 */
+              LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
+                ON G.PERF_YM = SUBSTR(#{baseDt},1,6)
+               AND G.CNTR_NO = C.CNTR_NO
+               AND G.CNTR_SN = C.CNTR_SN
+              LEFT JOIN TB_CBCL_DLQ_BAS H /*T:연체기본*/
+                ON H.PERF_YM = SUBSTR(#{baseDt},1,6)
+               AND H.CNTR_NO = C.CNTR_NO
+               AND H.CNTR_SN = C.CNTR_SN
+               AND NVL(H.DLQ_ACU_MCN,0) > 6	/* 연체개월수 */
+              LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
+                ON D.PRTNR_NO = T7.PRTNR_NO
+               AND D.OG_TP_CD = T7.OG_TP_CD
+               AND D.OG_ID    = T7.OG_ID
+               AND TO_CHAR(TO_DATE(T7.BASE_YM,'YYYYMM'),'YYYYMM') = SUBSTR(#{baseDt},1,6)
+             WHERE 1 = 1
+               AND C.SL_CL_YM = SUBSTR(#{baseDt},1,6)
+               AND C.SL_STP_YN = 'Y'    /*매출중지여부 - LC50.LCSTOP='Y' */
+               AND NVL(C.RENTAL_TN,0) <![CDATA[<]]> NVL(B.CNTR_PTRM,0)    /*렌탈회차 <![CDATA[<]]> 계약기간*/
+               AND C.SL_RCOG_DT	IS NOT NULL	/* 매출일자 - LC50.LCSLEY>0 */
+               AND C.CAN_DT	IS NULL		/* 취소일자 - LC50.LCCANY=0 */
+               AND NOT (A.CNTR_TP_CD = '02' AND SUBSTR(NVL(T7.OG_CD,'NULL'),1,1) BETWEEN 'W' AND 'Z')   /*법인,신채널 제외*/
+               /* 선납할인제외기본 대상 제외 - LCLIB.LC5870P */
+               AND NOT EXISTS (
+                                SELECT 1
+                                  FROM TB_RVDW_PRM_DSC_EXCD_BAS Z2 /* T:선납할인제외기본 */
+                                 WHERE 1 = 1
+                                   AND SUBSTR(#{baseDt},1,6) BETWEEN Z2.PRM_DSC_EXCD_STRT_YM AND Z2.PRM_DSC_EXCD_END_YM
+                                   AND Z2.CNTR_NO = C.CNTR_NO
+                                   AND Z2.CNTR_SN = C.CNTR_SN
+                                   AND DTA_DL_YN = 'N'
+                              )
     </insert>
     <insert id="insertAuthorityResignRegularShippings">
         /* 직권해지 정기배송 [예정생성] - ASIS : insertOvrdAthrTrmtAdmnShpnList */
@@ -916,42 +934,61 @@
              , ''                            AS AUTH_RSG_CNFM_RGST_PRTNR_NO     /*직권해지확정등록파트너번호*/
              , 'N'                           AS DTA_DL_YN                       /*데이터삭제여부*/
         <include refid="COMMON.insertSystemFieldValue"/>
-          FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
-         INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ C	/*T:WELLS매출월마감내역*/
+         INNER JOIN TB_SSCT_CNTR_BAS A		/*T:계약기본*/
+            ON A.CNTR_NO = C.CNTR_NO
+           AND A.CNTR_TP_CD IN ('01','02')	/* 개인/법인 - 삭제 */
+         INNER JOIN TB_SSCT_CNTR_DTL B		/*T:계약상세*/
             ON B.CNTR_NO = A.CNTR_NO
-         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /*T:WELLS매출월마감내역*/
-            ON C.SL_CL_YM = SUBSTR(#{baseDt},1,6) /*실적년월*/
-           AND C.CNTR_NO = B.CNTR_NO
-           AND C.CNTR_SN = B.CNTR_SN
-           AND C.SL_STP_YN = 'Y'    /*매출중지여부*/
-           AND C.SL_RCOG_DT	IS NOT NULL	/* 매출인식일자 */
-           AND C.CAN_DT	IS NULL		/* 취소일자 */
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ D /*T:월파트너내역*/
-            ON D.BASE_YM = SUBSTR(#{baseDt},1,6)
+           AND A.CNTR_PRGS_STAT_CD = '60'   /*계약진행상태코드-60:확정*/
+           AND A.DTA_DL_YN = 'N'
+           AND B.CNTRW_TP_CD = '7'			/*계약서유형코드-3:렌탈,7:정기배송*/
+           /*--AND B.SELL_TP_CD IN ('2')		판매유형코드-2:렌탈/리스, 6:정기배송 */
+           /*--AND B.SELL_TP_DTL_CD IN ('21','23')	22:금율리스 제외 */
+           AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
+         INNER JOIN TB_SSCT_CNTR_PRTNR_REL D /*T:계약파트너관계*/
+            ON 1 = 1
+           AND D.CNTR_NO = C.CNTR_NO
            AND D.OG_TP_CD = A.SELL_OG_TP_CD
            AND D.PRTNR_NO = A.SELL_PRTNR_NO
-          LEFT JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
-            ON F.BASE_YM = C.SL_CL_YM
+         INNER JOIN TB_CBBO_BND_CNTR_BAS F	/*T:채권계약기본*/
+            ON F.BASE_YM = SUBSTR(#{baseDt},1,6)
            AND F.CNTR_NO = C.CNTR_NO
            AND F.CNTR_SN = C.CNTR_SN
            AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
            AND F.BND_CLCTN_PRP_DV_CD IN ('02','03','08')    /* 채권추심속성구분코드 */
            AND F.BND_CLCTN_PRP_RSON_CD != '3C'				/* 채권추심속성사유코드-위탁관리 */
           LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
-            ON G.PERF_YM = C.SL_CL_YM
+            ON G.PERF_YM = SUBSTR(#{baseDt},1,6)
            AND G.CNTR_NO = C.CNTR_NO
            AND G.CNTR_SN = C.CNTR_SN
           LEFT JOIN TB_CBCL_DLQ_BAS H /*T:연체기본*/
-            ON H.PERF_YM = C.SL_CL_YM
+            ON H.PERF_YM = SUBSTR(#{baseDt},1,6)
            AND H.CNTR_NO = C.CNTR_NO
            AND H.CNTR_SN = C.CNTR_SN
+           /* AND NVL(H.DLQ_ACU_MCN,0) > 6 연체개월수 */
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
+            ON D.PRTNR_NO = T7.PRTNR_NO
+           AND D.OG_TP_CD = T7.OG_TP_CD
+           AND D.OG_ID    = T7.OG_ID
+           AND TO_CHAR(TO_DATE(T7.BASE_YM,'YYYYMM'),'YYYYMM') = SUBSTR(#{baseDt},1,6)
          WHERE 1 = 1
-           AND A.DTA_DL_YN = 'N'
-           AND A.CNTR_PRGS_STAT_CD = '60'   /*계약진행상태코드-60:확정*/
-           AND B.CNTRW_TP_CD = '7'  /*계약서유형코드-7:정기배송*/
-           AND NVL(C.RENTAL_TN,0) <![CDATA[<]]> NVL(B.CNTR_PTRM,0)    /*렌탈회차<![CDATA[<]]>계약기간*/
-           AND NOT (A.CNTR_TP_CD = '02' AND SUBSTR(D.HMNRSC_DEPT_CD,1,1) BETWEEN 'W' AND 'Z')   /*법인,신채널 제외*/
-           AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
+           AND C.SL_CL_YM = SUBSTR(#{baseDt},1,6)
+           AND C.SL_STP_YN = 'Y'    /*매출중지여부 - LC50.LCSTOP='Y' */
+           AND NVL(C.RENTAL_TN,0) <![CDATA[<]]> NVL(B.CNTR_PTRM,0)    /*렌탈회차 <![CDATA[<]]> 계약기간*/
+           AND C.SL_RCOG_DT	IS NOT NULL	/* 매출일자 - LC50.LCSLEY>0 */
+           AND C.CAN_DT	IS NULL		/* 취소일자 - LC50.LCCANY=0 */
+           AND NOT (A.CNTR_TP_CD = '02' AND SUBSTR(NVL(T7.OG_CD,'NULL'),1,1) BETWEEN 'W' AND 'Z')   /*법인,신채널 제외*/
+           /* 선납할인제외기본 대상 제외 - LCLIB.LC5870P */
+           AND NOT EXISTS (
+           				    SELECT 1
+           				      FROM TB_RVDW_PRM_DSC_EXCD_BAS Z2 /* T:선납할인제외기본 */
+           				     WHERE 1 = 1
+           				       AND SUBSTR(#{baseDt},1,6) BETWEEN Z2.PRM_DSC_EXCD_STRT_YM AND Z2.PRM_DSC_EXCD_END_YM
+           				       AND Z2.CNTR_NO = C.CNTR_NO
+           				       AND Z2.CNTR_SN = C.CNTR_SN
+           				       AND DTA_DL_YN = 'N'
+           				  )
     </insert>
 
     <update id="updateRentalResignExpected">
