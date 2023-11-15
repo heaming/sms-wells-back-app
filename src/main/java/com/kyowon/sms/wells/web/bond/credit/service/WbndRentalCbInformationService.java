@@ -111,7 +111,7 @@ public class WbndRentalCbInformationService {
                         //params.put("LCGROP", "1000000212");
                         params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("rntlPrdtCdS5"));
 
-//                        rst = mapper.selectTransErrorCdMsg(params);
+                        //                        rst = mapper.selectTransErrorCdMsg(params);
                         if (StringUtil.isNotBlank(rst)) {
                             ROWDATA_5_REPEAT.get(i).put("rntlPrdtNmS5", rst);
                         }
@@ -121,7 +121,7 @@ public class WbndRentalCbInformationService {
                         //params.put("LCGROP", "1000000211");
                         params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("delyDivCd5"));
 
-//                        rst = mapper.selectTransErrorCdMsg(params);
+                        //                        rst = mapper.selectTransErrorCdMsg(params);
                         if (StringUtil.isNotBlank(rst)) {
                             ROWDATA_5_REPEAT.get(i).put("delyDivNm5", rst);
                         }
@@ -386,10 +386,9 @@ public class WbndRentalCbInformationService {
                 }
                 throw new BizException("[" + rplyCd + "]" + rst);
             }
-        } catch (BizException e) {
-            throw new BizException(e);
         } catch (Exception e) {
-            throw new Exception("내부 서버 오류.[" + e + "]");
+            BizAssert.isFalse(true, "내부 서버 오류.[" + e.getMessage() + "]");
+            //            throw new Exception("내부 서버 오류.[" + e + "]");
         } finally {
             // 렌탈CB 정보 조회 정보 Insert
             int result = mapper.insertCBSearchTrans(paramMap);
