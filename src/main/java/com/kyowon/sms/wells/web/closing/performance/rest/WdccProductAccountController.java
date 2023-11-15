@@ -1,18 +1,20 @@
 package com.kyowon.sms.wells.web.closing.performance.rest;
 
+import java.io.IOException;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchExcelRes;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchProductRes;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchTotalRes;
 import com.kyowon.sms.wells.web.closing.performance.service.WdccProductAccountService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -78,7 +80,7 @@ public class WdccProductAccountController {
 
     /**
      * 상품별 계정 현황 상세내역 다운로드
-     * @param dto
+     * @param req
      * @return
      */
     @ApiOperation(value = "상품별 계정 현황 상세내역 다운로드", notes = "조회조건에 따른 상품별 계정 현황을 조회")
@@ -91,11 +93,12 @@ public class WdccProductAccountController {
         @ApiImplicitParam(name = "prdtCateHigh", value = "상품대분류", paramType = "query"),
         @ApiImplicitParam(name = "prdtCateMid", value = "상품중분류", paramType = "query"),
     })
-    @PostMapping("/excel-download")
-    public List<SearchExcelRes> getProductAccountsExcelDownload(
+    @PostMapping("/bulk-excel-download")
+    public void getProductAccountsExcelDownload(
         @RequestBody
-        SearchReq dto
-    ) {
-        return service.getProductAccountsExcelDownload(dto);
+        ExcelBulkDownloadDto.DownloadReq req,
+        HttpServletResponse response
+    ) throws IOException {
+        service.getProductAccountsExcelDownload(req, response);
     }
 }
