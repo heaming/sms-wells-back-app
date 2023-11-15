@@ -126,7 +126,11 @@
        WHERE ROWNUM = 1
     </select>
     <select id="selectMdProductOutOfStorages" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductOfStorageDvo">
-       WITH OJ_LIST AS
+       WITH MDQRY_LIST AS
+       (
+         <include refid="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMdProductOutOfStorageMgtMapper.selectMdUserSql"/>
+       )
+       , OJ_LIST AS
        (
             <if test="@MybatisUtils@equals(firstSppGb, 'ALL') or @MybatisUtils@equals(firstSppGb, '1')">
             SELECT T1.AS_IST_OJ_NO     /*접수번호*/
@@ -147,6 +151,8 @@
            FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1        /* 고객서비스AS설치대상내역 */
            INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2 /* 고객서비스AS설치배정내역 */
             ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+           WHERE  1=1
+            AND T2.ICHR_PRTNR_NO IN (SELECT EPNO FROM MDQRY_LIST)
            </if>
            <if test="@MybatisUtils@equals(firstSppGb, 'ALL')">
            UNION ALL
@@ -170,6 +176,8 @@
            FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ T1         /* 고객서비스BS대상내역 */
            INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ  T2 /* 고객서비스BS배정내역 */
             ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+           WHERE  1=1
+            AND T2.CNFM_PSIC_PRTNR_NO IN (SELECT EPNO FROM MDQRY_LIST)
            </if>
        )
        , INQRY_LIST1 AS
@@ -309,10 +317,6 @@
             <if test="@MybatisUtils@isNotEmpty(prtnrBzsCd)">
             AND P1.PD_PRP_VAL09 = #{prtnrBzsCd} /* 파트너업체 검색 */
             </if>
-       )
-       , MDQRY_LIST AS
-       (
-         <include refid="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMdProductOutOfStorageMgtMapper.selectMdUserSql"/>
        )
        , INQRY_LIST2 AS
        (
