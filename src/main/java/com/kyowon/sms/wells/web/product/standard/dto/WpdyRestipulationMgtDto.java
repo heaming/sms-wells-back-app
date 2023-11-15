@@ -54,6 +54,9 @@ public class WpdyRestipulationMgtDto {
         String feeFxamYn, /* 수수료정액여부 */
         String rid,
 
+        Integer ognRstlMcn, /* 재약정개월수 */
+        String ognApyEnddt, /* 적용종료일자 */
+
         // Default UserInfo Suit
         String fstRgstDtm, /* 최초등록일시 */
         String fstRgstUsrId, /* 최초등록사용자id */
@@ -118,6 +121,8 @@ public class WpdyRestipulationMgtDto {
         String rstlSellChnlDvCd, /* 재약정판매채널구분코드 */
         @NotBlank
         String apyStrtdt, /* 적용시작일자 */
+        String ognApyEnddt, /* 적용시작일자 */
+
         @Positive
         Integer stplTn, /* 약정회차 */
         String fnlMdfcDtm
