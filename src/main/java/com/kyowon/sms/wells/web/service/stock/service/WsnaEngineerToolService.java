@@ -22,7 +22,17 @@ public class WsnaEngineerToolService {
     private final WsnaEngineerToolConverter converter;
 
     public List<SearchRes> getEngineerToolDsbHist(SearchReq dto) {
-        return mapper.selectEngineerToolDsbHist(dto);
+        SearchReq newDto = new SearchReq(
+            dto.pymdt(),
+            dto.ogId(),
+            dto.egerPrtnrNo(),
+            dto.prtnrKnm().replace("%", "\\%"),
+            dto.toolPdCdStrt(),
+            dto.toolPdCdEnd(),
+            dto.sapMatCdStrt(),
+            dto.sapMatCdEnd()
+        );
+        return mapper.selectEngineerToolDsbHist(newDto);
     }
 
     public PagingResult<SearchRes> getEngineerToolDsbHistPages(SearchReq dto, PageInfo pageInfo) {
@@ -36,7 +46,7 @@ public class WsnaEngineerToolService {
             dto.sapMatCdStrt(),
             dto.sapMatCdEnd()
         );
-        return mapper.selectEngineerToolDsbHist(dto, pageInfo);
+        return mapper.selectEngineerToolDsbHist(newDto, pageInfo);
     }
 
     @Transactional
