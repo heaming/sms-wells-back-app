@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
-import com.sds.sflex.common.utils.DbEncUtil;
-
 import io.swagger.annotations.ApiModel;
 
 public class WsncAsRcpListDto {
@@ -104,10 +102,5 @@ public class WsncAsRcpListDto {
         String wkCanRsonNm,
 
         String wkCanCn
-    ) {
-        public SearchRes {
-            exnoEncr = DbEncUtil.dec(exnoEncr);
-            mexnoEncr = DbEncUtil.dec(mexnoEncr);
-        }
-    }
+    ) {}
 }
