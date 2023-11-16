@@ -17,7 +17,11 @@ public class WsndWorkNoticeDto {
         String edRgstDt,
         String mngrDvCd,
         String ntccnTitNm
-    ) {}
+    ) {
+        public SearchReq {
+            ntccnTitNm = ntccnTitNm.replace("%", "\\%");
+        }
+    }
 
     // 작업공지 Find Request Dto
     @ApiModel(value = "WsndWorkNoticeDto-FindReq")
