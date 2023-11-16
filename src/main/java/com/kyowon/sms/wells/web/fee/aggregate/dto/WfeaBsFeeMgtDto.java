@@ -67,6 +67,7 @@ public class WfeaBsFeeMgtDto {
         String ogCd,
         String prtnrKnm,
         String cntrNo, /*계약번호*/
+        String bfOrdNo, /*이전계약번호*/
         String basePdCd, /*상품코드*/
         String pdNm, /*상품명*/
         String svFeePdDvCd, /*bs상품군*/
