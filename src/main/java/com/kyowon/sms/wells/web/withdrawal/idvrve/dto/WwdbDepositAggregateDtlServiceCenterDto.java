@@ -92,7 +92,7 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
 
     // *********************************************************
     // Result Dto
-    // *********************************************************
+    // ******************************************************** *
     // 입금집계 상세현황 서비스 합계 조회 Search Result Dto
     @ApiModel(value = "WwwdbDepositAggregateDtlServiceCenterDto-SearchSumRes")
     public record SearchSumRes(
