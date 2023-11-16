@@ -171,4 +171,10 @@ public class WwdbGiroOcrForwardingMgtDto {
     ) {
 
     }
+
+    public record SearchPrintCreateRes(
+        String c1 ,
+        String c2 ,
+        String c3
+    ){}
 }

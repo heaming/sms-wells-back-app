@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.rest;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto;
@@ -123,10 +124,11 @@ public class WwdbGiroOcrForwardingMgtController {
     public SaveResponse saveGiroOcrForwardingPrints(
         @RequestBody
         @Valid
-        SavePrintReq dto
+        SavePrintReq dto ,
+        HttpServletResponse response
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveGiroOcrForwardingPrints(dto))
+            .processCount(service.saveGiroOcrForwardingPrints(dto,response))
             .build();
     }
 
