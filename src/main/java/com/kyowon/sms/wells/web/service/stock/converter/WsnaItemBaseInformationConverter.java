@@ -1,17 +1,16 @@
 package com.kyowon.sms.wells.web.service.stock.converter;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemBaseInformationDto;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationSearchDvo;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaItemBaseInformationDto.SearchReq;
+
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import java.util.List;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemBaseInformationSearchDvo;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaItemBaseInformationDto.*;
-
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = {org.apache.commons.lang3.StringUtils.class})
 public interface WsnaItemBaseInformationConverter {
 
+    @Mapping(target = "itmPdNm", expression = "java(StringUtils.isNotEmpty(dto.itmPdNm()) ? dto.itmPdNm().replace(\"%\", \"\\\\%\"): \"\")")
     WsnaItemBaseInformationSearchDvo mapSearchReqToWsnaItemBaseInformationSearchDvo(SearchReq dto);
 
 }
