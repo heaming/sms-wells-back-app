@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -64,39 +66,57 @@ public class WsniEaiCommonService {
 //            map.put("RESULT_CODE", "E");
 //            map.put("RESULT_MSG", "ClassNotFoundException");
 //            map.put("RETURN_OBJECT", null);
-            e.printStackTrace();
+//            e.printStackTrace();
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            log.error(sw.getBuffer().toString());
             throw e;
         } catch (NoSuchMethodException e) {
             log.error("[WsniEaiCommonService.doit] NoSuchMethodException ::: Method invoke error!");
 //            map.put("RESULT_CODE", "E");
 //            map.put("RESULT_MSG", "NoSuchMethodException");
 //            map.put("RETURN_OBJECT", null);
-            e.printStackTrace();
+//            e.printStackTrace();
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            log.error(sw.getBuffer().toString());
             throw e;
         } catch (IllegalAccessException e) {
             log.error("[WsniEaiCommonService.doit] IllegalAccessException ::: Method invoke error!");
 //            map.put("RESULT_CODE", "E");
 //            map.put("RESULT_MSG", "IllegalAccessException");
 //            map.put("RETURN_OBJECT", null);
-            e.printStackTrace();
+//            e.printStackTrace();
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            log.error(sw.getBuffer().toString());
             throw e;
         } catch (InvocationTargetException e){
             log.error("[WsniEaiCommonService.doit] InvocationTargetException ::: Method invoke error!");
 //            map.put("RESULT_CODE", "E");
 //            map.put("RESULT_MSG", "InvocationTargetException");
 //            map.put("RETURN_OBJECT", null);
-            e.printStackTrace();
+//            e.printStackTrace();
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            log.error(sw.getBuffer().toString());
             throw e;
         } catch (BizException e) {
             log.error("[WsniEaiCommonService.doit] BizException ::: Method invoke error!");
-            e.printStackTrace();
+//            e.printStackTrace();
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            log.error(sw.getBuffer().toString());
             throw e;
         } catch (Exception e) {
             log.error("[WsniEaiCommonService.doit] Method invoke error!");
 //            map.put("RESULT_CODE", "E");
 //            map.put("RESULT_MSG", e.getMessage());
 //            map.put("RETURN_OBJECT", null);
-            e.printStackTrace();
+//            e.printStackTrace();
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            log.error(sw.getBuffer().toString());
             throw e;
         }
         return map;
