@@ -23,8 +23,12 @@
                  WHERE 1 = 1
                    AND CST_SV_ASN_NO = T2.CST_SV_ASN_NO
                    AND DTA_DL_YN ='N' )                  AS SV_BIZ_DCLSF_CD /* 고객서비스AS설치배정내역 */  /*서비스유형*/
-             , T0.BIL_OJ_AMT - T0.BIL_CTR_SUM_AMT           AS BIL_AMT         /* 청구금액 */
-             , T2.DP_SUM_AMT                             AS DP_SUM_AMT      /* 대사금액 */
+             , NVL(T0.BIL_OJ_AMT,0) - NVL(T0.BIL_CTR_SUM_AMT,0)           AS BIL_AMT         /* 청구금액 */
+             , NVL(T2.DP_SUM_AMT,0)                             AS DP_SUM_AMT      /* 대사금액 */
+
+             , NVL(T7.TOT_RFND_ET_AMT,0) AS TOT_RFND_ET_AMT                        /* 환불금액 */
+             , (NVL(T2.DP_SUM_AMT,0) - NVL(T7.TOT_RFND_ET_AMT,0)) AS BLAM                 /* 잔액 : 대사금액 - 환불금액 */
+
              , LPAD(T2.STLM_DV_CD,2,0)                   AS STLM_DV_CD      /* 결제구분코드 */
              , LPAD(T2.STLM_DV_CD,2,0)                   AS STLM_DV_NO      /* 입금번호 */
              , T2.ISCMP_CD                                                  /* 결제처 */
@@ -100,6 +104,13 @@
                LEFT OUTER JOIN TB_SVPD_SV_CS_TXINV_IS_IZ T6
                             ON (    T6.CS_BIL_NO = T1.CS_BIL_NO
                                 AND T6.DTA_DL_YN = 'N')
+               LEFT OUTER JOIN TB_RVDW_RFND_RCP_BAS T7 /*환불접수기본*/
+               				ON (    T7.CNTR_NO = T2.CNTR_NO
+                                AND T7.CNTR_SN = T2.CNTR_SN
+                                AND T7.CS_BIL_NO = T2.CS_BIL_NO    /* 20231116 - 현재  데이터 없음 */
+                                AND T7.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                                AND T7.DP_SN = T2.DP_SN   /* 20231116 - 현재  데이터 없음 */
+                                AND T7.DTA_DL_YN = 'N')
         WHERE 1 = 1
         <if test='@MybatisUtils@isNotEmpty(useYn)'>
             <choose>
@@ -131,6 +142,8 @@
         SELECT
                SUM(BIL_AMT) AS BIL_AMT_TOT
              , SUM(DP_SUM_AMT) AS DP_SUM_AMT_TOT
+             , SUM(TOT_RFND_ET_AMT) AS RFND_ET_AMT_TOT
+             , SUM(DP_SUM_AMT) AS BLAM_TOT
           FROM (
                 SELECT T3.VST_FSH_DT                                               /* 설치일자 */
                      , T2.DP_DTM                                                   /* 입금일자 */
@@ -155,6 +168,10 @@
                            AND DTA_DL_YN ='N' )                  AS SV_BIZ_DCLSF_CD /* 고객서비스AS설치배정내역 */  /*서비스유형*/
                      , T0.BIL_OJ_AMT - T0.BIL_CTR_SUM_AMT           AS BIL_AMT         /* 청구금액 */
                      , T2.DP_SUM_AMT                             AS DP_SUM_AMT      /* 대사금액 */
+
+                     , NVL(T7.TOT_RFND_ET_AMT,0) AS TOT_RFND_ET_AMT                        /* 환불금액 */
+                     , (NVL(T2.DP_SUM_AMT,0) - NVL(T7.TOT_RFND_ET_AMT,0)) AS BLAM          /* 잔액 : 대사금액 - 환불금액 */
+
                      , LPAD(T2.STLM_DV_CD,2,0)                   AS STLM_DV_CD      /* 결제구분코드 */
                      , LPAD(T2.STLM_DV_CD,2,0)                   AS STLM_DV_NO      /* 입금번호 */
                      , T2.ISCMP_CD                                                  /* 결제처 */
@@ -219,6 +236,13 @@
                        LEFT OUTER JOIN TB_SVPD_SV_CS_TXINV_IS_IZ T6
                                     ON (    T6.CS_BIL_NO = T1.CS_BIL_NO
                                         AND T6.DTA_DL_YN = 'N')
+                       LEFT OUTER JOIN TB_RVDW_RFND_RCP_BAS T7 /*환불접수기본*/
+               				ON (    T7.CNTR_NO = T2.CNTR_NO
+                                AND T7.CNTR_SN = T2.CNTR_SN
+                                AND T7.CS_BIL_NO = T2.CS_BIL_NO    /* 20231116 - 현재  데이터 없음 */
+                                AND T7.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                                AND T7.DP_SN = T2.DP_SN   /* 20231116 - 현재  데이터 없음 */
+                                AND T7.DTA_DL_YN = 'N')
                 WHERE 1 = 1
                 <if test='@MybatisUtils@isNotEmpty(useYn)'>
                     <choose>
