@@ -93,7 +93,6 @@ public class WsnaBuildingBsConsumableService {
                         }
 
                         case "2" -> { // 신청품목
-                            aplcItemQtys.add(unrgItemInfo.getAplcDdlvUnitQty());
                             int i = 0;
 
                             for (WsnaBuildingBsConsumableDvo rgstItemInfo : rgstItemInfos) {
