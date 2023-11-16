@@ -130,7 +130,7 @@
 	                    NVL(M_6.PD_RVE_AMT,0) - NVL(M_6.RFND_RVE_AMT,0) + NVL(M3_6.PD_RVE_AMT,0) - NVL(M3_6.RFND_RVE_AMT,0)
                    )
                END AS ACU_RVE_AMT          /*총미납금액*/
-             , B.BRYY_MMDD                                  /*생년월일*/
+             , DECODE(C.CNTR_TP_CD, '02', B.BZRNO, B.BRYY_MMDD)  AS BRYY_MMDD  /*생년월일, 법인-사업자번호*/
              , C.CNTR_TP_CD                                 /*계약구분코드*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_TP_CD', C.CNTR_TP_CD , #{session.langId}) AS CNTR_TP_NM /*계약구분명*/
              , A.PD_CD                                      /*제품코드*/
@@ -308,7 +308,7 @@
         </if>
         <if test='@MybatisUtils@equals(sellTpCd, "6")'>
            AND A.SELL_TP_CD = #{sellTpCd}              /*판매유형코드->상품유형*/
-           AND D.SELL_TP_DTL_CD = '62'                 /*렌찰해지예정 상품유형-정기배송 (모종만)*/
+           AND D.SELL_TP_DTL_CD IN ('62','63')         /*렌찰해지예정 상품유형-정기배송 모종/캡슐추가 */
         </if>
         <if test='@MybatisUtils@isNotEmpty(clctamDvCd)'>    -- "집금구분" 선택 시...
            AND A.CLCTAM_DV_CD = #{clctamDvCd}
@@ -942,7 +942,6 @@
             ON B.CNTR_NO = A.CNTR_NO
            AND A.CNTR_PRGS_STAT_CD = '60'   /*계약진행상태코드-60:확정*/
            AND A.DTA_DL_YN = 'N'
-           AND B.CNTRW_TP_CD IN('6','7')	/*계약서유형코드-3:렌탈, 6:모종일시불 7:정기배송*/
            AND B.SELL_TP_CD IN ('6')		/* 판매유형코드-2:렌탈/리스, 6:정기배송 */
            AND B.SELL_TP_DTL_CD IN ('62','63')	/* 62:모종,63:캡슐 */
            AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
