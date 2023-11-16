@@ -6,7 +6,7 @@ import io.swagger.annotations.ApiModel;
 
 /**
  * <pre>
- * 물량배정 품목 조회 Dto
+ * W-SV-U-0141P01 물량배정 품목 조회 Dto
  * </pre>
  *
  * @author SaeRomI.Kim
