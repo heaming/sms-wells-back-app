@@ -18,7 +18,8 @@ public class WfebB2bFeeMgtDto {
 
     public record Performance(
         String baseYm, /* 기준년월 */
-        String coCdNm, // 업체명
+        String coCdNm, // 업체명(지구명)
+        String brchNm, // 지점명
         String prtnrKnm, // 판매자
         String prtnrNo, // 번호
         String cntrNo, // 계약상세번호
@@ -52,6 +53,7 @@ public class WfebB2bFeeMgtDto {
         String coCdNm, /* 업체명 */
         String ogCd, /* 소속코드 */
         String prtnrNo, /* 번호 */
+        String prtnrKnm, /* 업체명 */
         Integer cnt, /* 실적 */
         Long amtW040001, /* 기본수수료 */
         Long amtW040005, /* 알선수수료 */
