@@ -44,10 +44,7 @@ public class WsndWorkNoticeService {
      * @return
      */
     public List<SearchRes> getWorkNotices(SearchReq dto) {
-        SearchReq newdto = new SearchReq(
-            dto.stRgstDt(), dto.edRgstDt(), dto.mngrDvCd(), dto.ntccnTitNm().replace("%", "\\%")
-        );
-        return mapper.selectWorkNotices(newdto);
+        return mapper.selectWorkNotices(dto);
     }
 
     /**
