@@ -38,6 +38,16 @@ public class WsnaSeedingPackageCtrQtyRegController {
 
     private final WsnaSeedingPackageCtrQtyRegService service;
 
+    @GetMapping("/days-of-week")
+    @ApiOperation(value = "센터별 요일 조회", notes = "센터별 출고가능 요일을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "dgGgLctCd", value = "서비스센터", paramType = "query", example = "03", required = true)
+    })
+    public List<String> getCnrSppDowDvCd(@RequestParam(name = "dgGgLctCd")
+    String dgGgLctCd) {
+        return this.service.getCnrSppDowDvCd(dgGgLctCd);
+    }
+
     @GetMapping
     @ApiOperation(value = "모종패키지 조정 수량 조회", notes = "모종패키지 조정 수량 데이터를 조회한다.")
     @ApiImplicitParams(value = {

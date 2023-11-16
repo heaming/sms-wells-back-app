@@ -31,6 +31,15 @@ public class WsnaSeedingPackageCtrQtyRegService {
     private final WsnaSeedingPackageCtrQtyRegConverter converter;
 
     /**
+     * 센터별 요일코드 조회
+     * @param dgGgLctCd
+     * @return
+     */
+    public List<String> getCnrSppDowDvCd(String dgGgLctCd) {
+        return this.mapper.selectCnrSppDowDvCd(dgGgLctCd);
+    }
+
+    /**
      * 모종패키지 조정 수량 조회
      * @param dto
      * @return

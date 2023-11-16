@@ -12,6 +12,8 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedingPackageCtrQtyRegDvo
 @Mapper
 public interface WsnaSeedingPackageCtrQtyRegMapper {
 
+    List<String> selectCnrSppDowDvCd(String dgGgLctCd);
+
     List<SearchRes> selectSeedingPackageCtrQtys(SearchReq dto);
 
     int mergeSdingPkgQtyCtrIz(WsnaSeedingPackageCtrQtyRegDvo dvo);
