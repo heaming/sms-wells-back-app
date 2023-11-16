@@ -118,7 +118,11 @@
                       AND ASN_OJ_YM = T1.SL_CL_YM) AS VST_DT -- 방문일자
                 , T6.DLQ_MCN AS DLQ_MCN -- 연체개월
                 , T6.DLQ_ACU_MCN AS DLQ_ACU_MCN -- 연체누계
-                , NVL(T6.EOT_DLQ_AMT, 0) + NVL(T6.BTD_DLQ_ADD_AMT, 0) - NVL(T6.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T6.THM_CTR_DLQ_ADD_AMT, 0) + NVL(T6.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT -- 연체금액(C50.LCDAMT)
+                , NVL(T6.EOT_DLQ_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) + /* 원금연체 + 위약금 */
+                  (CASE WHEN T21.CL_FSH_YN = 'Y'
+                             THEN NVL(T6.BTD_DLQ_ADD_AMT, 0) - (NVL(T6.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T6.THM_DLQ_ADD_RFND_SUM_AMT, 0)) - NVL(T6.THM_CTR_DLQ_ADD_AMT, 0) /* 기초 - (입금 - 환불) - 공제 */
+                        ELSE GREATEST(NVL(T20.EOT_DLQ_ADD_AMT, 0) - NVL(T20.THM_OC_DLQ_ADD_AMT, 0) - (NVL(T6.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T6.THM_DLQ_ADD_RFND_SUM_AMT, 0)) - NVL(T6.THM_CTR_DLQ_ADD_AMT, 0), 0) /* 당월실제 기초연체가산금 - (입금 - 환불) - 조정 */
+                   END) AS EOT_DLQ_AMT /* 연체금액(마감 전인 경우, 전월 발생 가산금은 제외) */
                 , NVL((SELECT SUM(NVL(DFA_AMT, 0)) FROM TB_CBBO_DFA_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND DTA_DL_YN = 'N'), 0) AS DFA_AMT -- 대손금액
                 , NVL((SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT, 0) ELSE NVL(RVE_AMT*-1, 0) END)
                          FROM TB_CBCL_BZNS_ATAM_BAS
@@ -172,6 +176,16 @@
                   AND T10.CNTR_NO = T1.CNTR_NO
                   AND T10.CNTR_SN = T1.CNTR_SN
                   AND T10.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_CBCL_DLQ_BAS T20 /* 연체기본(전월) */
+                   ON T20.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.SL_CL_YM||'01'), -1), 'YYYYMM')
+                  AND T20.CNTR_NO = T1.CNTR_NO
+                  AND T20.CNTR_SN = T1.CNTR_SN
+                 LEFT OUTER JOIN LATERAL (SELECT (CASE WHEN COUNT(1) > 0 THEN 'N' ELSE 'Y' END) AS CL_FSH_YN
+                                            FROM TB_CBCL_CL_PSIC_BAS
+                                           WHERE CL_BIZ_DV_CD = 'W06'
+                                             AND CL_STAT_CD IN ('1','2') /*1.대기중 , 2.진행중 . 3.완료 */
+                                             AND BASE_YM = T1.SL_CL_YM) T21 /* 마감담당자기본 */
+                   ON 1=1
                  LEFT OUTER JOIN LATERAL (SELECT A.PD_CD AS SV_PD_CD
                         					    				 , (TRIM(AFMDBS.F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', A.SV_PD_TP_CD))  || ' - 방문(' || NVL(B.PD_PRP_VAL02,'0') || ')/택배(' || B.PD_PRP_VAL03 || ')')  AS SV_TP_CD_NM
                         										FROM TB_PDBS_PD_BAS A
@@ -332,9 +346,7 @@
                               END AS PRPD_SL_AMT -- 매출대체금액
                             , T1.SL_BND_ALRPY_AMT AS SL_BND_ALRPY_AMT -- 매출입금액(LC50.LCAM38)
                             , T1.SL_DP_AGG_AMT AS SL_DP_AGG_AMT -- 매출입금누계(LC50.LCAM39)
-                            , CASE WHEN T1.SELL_TP_DTL_CD IN ('21', '23')
-                                        THEN NVL(T1.EOT_UC_AMT, 0) + NVL(T6.EOT_DLQ_ADD_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0)
-                                   ELSE NVL(T1.EOT_BIL_UC_AMT, 0) END AS EOT_UC_AMT -- 미수금액(LC50.LCMAMT) ※렌탈은 매출미수, 리스는 청구미수
+                            , NVL(T1.EOT_UC_AMT, 0) + NVL(T6.EOT_DLQ_ADD_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_UC_AMT -- 미수금액(LC50.LCMAMT)
                             , T1.ATAM_RPLC_PROCS_AMT AS ATAM_RPLC_PROCS_AMT -- 선수대체금액(LC50.LCAM34)
                             , T1.EOT_ATAM + T1.MLG_EOT_PRPD_AMT AS ATAM_TOT_AMT -- 선수총액 (LCAM36 선수기말 + LCAM75 포인트기말)
                             , T1.PRM_BLAM_EOT_AMT AS PRM_BLAM_EOT_AMT -- 선납잔액(LC50.LCAM26)
@@ -375,7 +387,11 @@
                             , '' AS KEEP_AW_TOT_AMT -- @TO-DO 유지수당누계금액 LC50.LCCNT2
                             , T6.DLQ_MCN AS DLQ_MCN -- 연체개월
                             , T6.DLQ_ACU_MCN AS DLQ_ACU_MCN -- 연체누적개월수
-                            , NVL(T6.EOT_DLQ_AMT, 0) + NVL(T6.BTD_DLQ_ADD_AMT, 0) - NVL(T6.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T6.THM_CTR_DLQ_ADD_AMT, 0) + NVL(T6.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT -- 연체금액(C50.LCDAMT)
+                            , NVL(T6.EOT_DLQ_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) + /* 원금연체 + 위약금 */
+                              (CASE WHEN T21.CL_FSH_YN = 'Y'
+                                         THEN NVL(T6.BTD_DLQ_ADD_AMT, 0) - (NVL(T6.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T6.THM_DLQ_ADD_RFND_SUM_AMT, 0)) - NVL(T6.THM_CTR_DLQ_ADD_AMT, 0) /* 기초 - (입금 - 환불) - 공제 */
+                                    ELSE GREATEST(NVL(T20.EOT_DLQ_ADD_AMT, 0) - NVL(T20.THM_OC_DLQ_ADD_AMT, 0) - (NVL(T6.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T6.THM_DLQ_ADD_RFND_SUM_AMT, 0)) - NVL(T6.THM_CTR_DLQ_ADD_AMT, 0), 0) /* 당월실제 기초연체가산금 - (입금 - 환불) - 조정 */
+                               END) AS EOT_DLQ_AMT /* 연체금액(마감 전인 경우, 전월 발생 가산금은 제외) */
                             , (SELECT NVL(SUM(NVL(DFA_AMT, 0)), 0) FROM TB_CBBO_DFA_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND DTA_DL_YN = 'N') AS DFA_AMT -- 대손금액
                             , NVL((SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN NVL(RVE_AMT, 0) ELSE NVL(RVE_AMT*-1, 0) END)
                                      FROM TB_CBCL_BZNS_ATAM_BAS
@@ -445,6 +461,16 @@
                        AND T11.CNTR_SN = T1.CNTR_SN
                        AND T11.ADN_SV_DV_CD = '01'
                        AND T11.ADN_SV_SN = 1
+                      LEFT OUTER JOIN TB_CBCL_DLQ_BAS T20 /* 연체기본(전월) */
+                        ON T20.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.SL_CL_YM||'01'), -1), 'YYYYMM')
+                       AND T20.CNTR_NO = T1.CNTR_NO
+                       AND T20.CNTR_SN = T1.CNTR_SN
+                      LEFT OUTER JOIN LATERAL (SELECT (CASE WHEN COUNT(1) > 0 THEN 'N' ELSE 'Y' END) AS CL_FSH_YN
+                                                 FROM TB_CBCL_CL_PSIC_BAS
+                                                WHERE CL_BIZ_DV_CD = 'W06'
+                                                  AND CL_STAT_CD IN ('1','2') /*1.대기중 , 2.진행중 . 3.완료 */
+                                                  AND BASE_YM = T1.SL_CL_YM) T21 /* 마감담당자기본 */
+                        ON 1=1
                       LEFT OUTER JOIN LATERAL (SELECT A.PD_CD AS SV_PD_CD
                             					    				  , (TRIM(AFMDBS.F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', A.SV_PD_TP_CD))  || ' - 방문(' || NVL(B.PD_PRP_VAL02,'0') || ')/택배(' || B.PD_PRP_VAL03 || ')')  AS SV_TP_CD_NM
                               									 FROM TB_PDBS_PD_BAS A
@@ -582,7 +608,11 @@
                 , T1.ATAM_RPLC_PROCS_AMT AS ATAM_RPLC_PROCS_AMT --선수대체금액(LCAM34)
                 , T1.EOT_ATAM AS EOT_ATAM --선수잔액(LCAM36)
                 , NVL(T1.EOT_UC_AMT, 0) + NVL(T5.EOT_DLQ_ADD_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_UC_AMT --미수총액(LCMAMT)
-                , NVL(T5.EOT_DLQ_AMT, 0) + NVL(T5.BTD_DLQ_ADD_AMT, 0) - NVL(T5.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T5.THM_CTR_DLQ_ADD_AMT, 0) + NVL(T5.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT -- 연체금액(C50.LCDAMT)
+                , NVL(T5.EOT_DLQ_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0) + /* 원금연체 + 위약금 */
+                  (CASE WHEN T21.CL_FSH_YN = 'Y'
+                             THEN NVL(T5.BTD_DLQ_ADD_AMT, 0) - (NVL(T5.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T5.THM_DLQ_ADD_RFND_SUM_AMT, 0)) - NVL(T5.THM_CTR_DLQ_ADD_AMT, 0) /* 기초 - (입금 - 환불) - 공제 */
+                        ELSE GREATEST(NVL(T20.EOT_DLQ_ADD_AMT, 0) - NVL(T20.THM_OC_DLQ_ADD_AMT, 0) - (NVL(T5.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(T5.THM_DLQ_ADD_RFND_SUM_AMT, 0)) - NVL(T5.THM_CTR_DLQ_ADD_AMT, 0), 0) /* 당월실제 기초연체가산금 - (입금 - 환불) - 조정 */
+                   END) AS EOT_DLQ_AMT /* 연체금액(마감 전인 경우, 전월 발생 가산금은 제외) */
                 --------------------------------------------------------------
                 -- 청구미수
                 --------------------------------------------------------------
@@ -645,6 +675,16 @@
                   AND T10.CNTR_NO = T1.CNTR_NO
                   AND T10.CNTR_SN = T1.CNTR_SN
                   AND T10.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_CBCL_DLQ_BAS T20 /* 연체기본(전월) */
+                   ON T20.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.SL_CL_YM||'01'), -1), 'YYYYMM')
+                  AND T20.CNTR_NO = T1.CNTR_NO
+                  AND T20.CNTR_SN = T1.CNTR_SN
+                 LEFT OUTER JOIN LATERAL (SELECT (CASE WHEN COUNT(1) > 0 THEN 'N' ELSE 'Y' END) AS CL_FSH_YN
+                                            FROM TB_CBCL_CL_PSIC_BAS
+                                           WHERE CL_BIZ_DV_CD = 'W06'
+                                             AND CL_STAT_CD IN ('1','2') /*1.대기중 , 2.진행중 . 3.완료 */
+                                             AND BASE_YM = T1.SL_CL_YM) T21 /* 마감담당자기본 */
+                   ON 1=1
                  LEFT OUTER JOIN LATERAL (SELECT BASE_DTL_CNTR_NO
                                                 , BASE_DTL_CNTR_SN
                                                 , OJ_DTL_CNTR_NO

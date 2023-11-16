@@ -31,4 +31,5 @@ public class WdccSalesPerformDvo {
     private String slStpAmt; //매출중지금액
     private String sellTpCd; //판매유형
     private String islease; //리스여부
+    private String thmSlOcAmt; //매출금액
 }
