@@ -5,7 +5,6 @@ import java.util.List;
 import javax.validation.constraints.NotBlank;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductOutOfStorageSaveProductDvo;
-import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
 
@@ -47,11 +46,7 @@ public class WsnaMdProductOutOfStorageMgtDto {
 
         String cralIdvTno
 
-    ) {
-        public SearchReq {
-            mexnoEncr = DbEncUtil.enc(mexnoEncr);
-        }
-    }
+    ) {}
     @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-SearchRes")
     public record SearchRes(
         String cstSvAsnNo,
@@ -116,6 +111,8 @@ public class WsnaMdProductOutOfStorageMgtDto {
 
         /* MD */
         String prtnrBzsNm,
+
+        String pcsvCompDv,
 
         String pcsvCompNm,
 
