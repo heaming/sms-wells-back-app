@@ -37,6 +37,7 @@ public class WsncRpbAreaCodeMgtDto {
         int locaraSn, /* 순번 */
         String zipList, /* 우편번호 List */
         String apyStrtdt, /* 적용시작일자 */
+        String apyStrtdtOrigin, /* 적용시작일자origin */
         String apyEnddt, /* 적용종료일자 */
         String rpbLocaraCd, /* 책임지역코드 */
         String rpbLocaraGrpCd, /* 책임지역그룹코드 */
