@@ -20,6 +20,7 @@ public class WwdbServiceRefundDvo {
     private String rfndDsbDuedt; /*환불완료일자*/
     private String cstSvAsnNo; /*고객서비스배정번호*/
     private String csBilNo; /*비용청구번호*/
+    private String dpSn; /*입금일련번호*/
     private String rfndCshAkAmt; /*환불현금금액*/
     private String rfndCardAkAmt; /*환불카드금액*/
     private String rfndBltfAkAmt; /*환불전금금액*/
