@@ -35,7 +35,8 @@ public class WfeeFeeSpecificationDto {
     public record SearchFeeCdRes(
         String feeNm,
         String feeCd,
-        String feeCalcUnitTpCd
+        String feeCalcUnitTpCd,
+        String feeClsfCd
 
     ) {}
 }
