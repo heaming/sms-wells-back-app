@@ -4,12 +4,16 @@ import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.dvo.SmsSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
 import com.kyowon.sflex.common.message.service.SmsMessageService;
+import com.kyowon.sflex.common.system.service.UrlShortenerService;
+
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbHealthCareSmsDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbHealthCareSmsMapper;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SendTemplateConst;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.common.utils.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -34,6 +38,9 @@ public class WsnbHealthCareSmsService {
     private final WsnbHealthCareSmsMapper mapper;
     private final SmsMessageService smsMessageService;
     private final KakaoMessageService kakaoMessageService;
+    private final UrlShortenerService urlService;
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
 
     /**
      * 안마의자, 웰스팜, 매트리스 등 설치 후 건강케어 고객에게 알림톡으로 발송한다.
@@ -46,28 +53,50 @@ public class WsnbHealthCareSmsService {
         final AtomicInteger updateCount = new AtomicInteger();
         List<WsnbHealthCareSmsDvo> rows = mapper.selectHealthCareSms();
         final Map<String, Object> paramMap = new HashMap<>();
+        final String baseUrl = this.getBaseUrl();
         final String callback = SendTemplateConst.CALL_BACK_4113;
         String templateId = "";
         String templateCode = "";
         for (WsnbHealthCareSmsDvo row : rows) {
             String yn = StringUtil.nvl2(row.getPifThpOfrAgYn(), "N");
+
+            // 오즈리포트 호출 url
+            String url = "/api/v1/anonymous/sms/wells/service/healthcare-application-agreement/report/"
+                + row.getCntrNo() + "-" + row.getCntrSn();
+
             paramMap.clear();
             paramMap.put("cstFnm", row.getAgpNm());
-            paramMap.put("cntrNo", row.getCntrNo());
+            //paramMap.put("cntrNo", row.getCntrNo());
             paramMap.put("callback", callback);
+            paramMap.put("url", baseUrl + urlService.getShortedUrl(url));
 
             templateId = yn.equals("Y") ? SendTemplateConst.TMP_SNB_WELLS18287 : SendTemplateConst.TMP_SNB_WELLS18286;
             templateCode = yn.equals("Y") ? SendTemplateConst.WELLS18287 : SendTemplateConst.WELLS18286;
 
             /* 고객에게 수락취소 문자발송 */
-            smsMessageService.sendMessage(
-                SmsSendReqDvo.withTemplateId()
-                    .templateId(templateId)
+            //            smsMessageService.sendMessage(
+            //                SmsSendReqDvo.withTemplateId()
+            //                    .templateId(templateId)
+            //                    .templateParamMap(paramMap)
+            //                    .destInfo(
+            //                        row.getAgpNm().concat("^")
+            //                            .concat(row.getCralLocaraTno() + row.getMexnoEncr() + row.getCralIdvTno())
+            //                    )
+            //                    .build()
+            //            );
+
+            kakaoMessageService.sendMessage(
+                KakaoSendReqDvo.withTemplateCode()
+                    .templateCode(templateCode)
                     .templateParamMap(paramMap)
-                    .destInfo(row.getAgpNm().concat("^").concat(row.getCralLocaraTno() + row.getMexnoEncr() + row+ row.getCralIdvTno()))
+                    .destInfo(
+                        row.getAgpNm().concat("^")
+                            .concat(row.getCralLocaraTno() + row.getMexnoEncr() + row.getCralIdvTno())
+                    )
+                    .callback(callback)
+                    .userId("admin")
                     .build()
             );
-
 
             // 10.1.60.29:5521/KWDEV 에는 없고 운영에만 존재하는 소스
             // ------------------------------------------------------
@@ -94,19 +123,47 @@ public class WsnbHealthCareSmsService {
             //                , ''                                         /*--p_RESERVED5          여분필드5 (임의로 사용가능) */
             //                , ''                                         /*--p_RESERVED6          여분필드6 (임의로 사용가능) */
             //                , p_RESULT);                                 /*--p_RESULT             결과 리턴*/
-            updateCount.addAndGet(
-                kakaoMessageService.sendMessage(
-                    KakaoSendReqDvo.withTemplateCode()
-                        .templateCode(templateCode)
-                        .templateParamMap(paramMap)
-                        .destInfo(row.getAgpNm().concat("^").concat(row.getCralLocaraTno() + row.getMexnoEncr() + row+ row.getCralIdvTno()))
-                        .callback(callback)
-                        .userId("admin")
-                        .build()
-                )
-            );
+            //            updateCount.addAndGet(
+            //
+            //            );
         }
-        return updateCount.get();
+        //        return updateCount.get();
+
+        //        kakaoMessageService.sendMessage(
+        //            KakaoSendReqDvo.withTemplateCode()
+        //                .templateCode(templateCode)
+        //                .templateParamMap(paramMap)
+        //                .destInfo(
+        //                    row.getAgpNm().concat("^")
+        //                        .concat(row.getCralLocaraTno() + row.getMexnoEncr() + row + row.getCralIdvTno())
+        //                )
+        //                .callback(callback)
+        //                .userId("admin")
+        //                .build()
+        //        );
+        return 1;
+    }
+
+    /**
+     * base Url 생성
+     */
+    public String getBaseUrl() {
+        String baseUrl = "";
+
+        switch (activeProfile) {
+            case SnServiceConst.SERVER_PROFILE_LOCAL, SnServiceConst.SERVER_PROFILE_DEV -> {
+                baseUrl += SnServiceConst.BASE_URL_DEV;
+            }
+            case SnServiceConst.SERVER_PROFILE_QA -> {
+                baseUrl += SnServiceConst.BASE_URL_QA;
+            }
+            case SnServiceConst.SERVER_PROFILE_PRD -> {
+                baseUrl += SnServiceConst.BASE_URL_PRD;
+            }
+            default -> baseUrl += SnServiceConst.BASE_URL_PRD;
+        }
+
+        return baseUrl;
     }
 
 }
