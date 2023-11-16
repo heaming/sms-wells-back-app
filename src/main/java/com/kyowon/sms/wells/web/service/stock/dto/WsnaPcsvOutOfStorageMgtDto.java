@@ -5,7 +5,6 @@ import java.util.List;
 import javax.validation.constraints.NotBlank;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveProductDvo;
-import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
 
@@ -224,12 +223,7 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String partQty10
 
-    ) {
-        public SearchRes {
-            exnoEncr = DbEncUtil.dec(exnoEncr);
-            mexnoEncr = DbEncUtil.dec(mexnoEncr);
-        }
-    }
+    ) {}
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-SaveReq")
     public record SaveReq(

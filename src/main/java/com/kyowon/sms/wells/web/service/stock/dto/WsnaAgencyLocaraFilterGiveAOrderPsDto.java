@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
-import com.sds.sflex.common.utils.DbEncUtil;
-
 import io.swagger.annotations.ApiModel;
 
 public class WsnaAgencyLocaraFilterGiveAOrderPsDto {
@@ -79,12 +77,7 @@ public class WsnaAgencyLocaraFilterGiveAOrderPsDto {
         String adrpcTpCdRnk,
 
         String tn // 발주 회차
-    ) {
-        public SearchRes {
-            exnoEncr = DbEncUtil.dec(exnoEncr);
-            mexnoEncr = DbEncUtil.dec(mexnoEncr);
-        }
-    }
+    ) {}
     @ApiModel(value = "WsnaAgencyLocaraFilterGiveAOrderPsDto-SearchAgrgRes")
     public record SearchAgrgRes(
 
