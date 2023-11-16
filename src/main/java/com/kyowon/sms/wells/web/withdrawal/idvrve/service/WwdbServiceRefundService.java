@@ -69,6 +69,7 @@ public class WwdbServiceRefundService {
         serviceRefundDvo.setRfndDsbDuedt(req.serviceRefundInfo().rfndDsbDt());/*환불완료일자*/
         serviceRefundDvo.setCstSvAsnNo(req.serviceInfo().cstSvAsnNo());/*고객서비스배정번호*/
         serviceRefundDvo.setCsBilNo(req.serviceInfo().csBilNo());/*고객청구번호*/
+        serviceRefundDvo.setDpSn(req.serviceInfo().dpSn());/*입금일련번호*/
         serviceRefundDvo.setRfndCshAkAmt(req.serviceRefundInfo().rfndCshAkSumAmt());/*현금환불금액*/
         serviceRefundDvo.setRfndCardAkAmt(req.serviceRefundInfo().rfndCardAkSumAmt());/*카드환불금액*/
         serviceRefundDvo.setRfndBltfAkAmt(req.serviceRefundInfo().rfndBltfAkSumAmt());/*전금환불금액*/
