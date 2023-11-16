@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * <pre>
- * 물량배정 품목 조회 Controller
+ * W-SV-U-0141P01 물량배정 품목 조회 Controller
  * </pre>
  *
  * @author SaeRomI.Kim
