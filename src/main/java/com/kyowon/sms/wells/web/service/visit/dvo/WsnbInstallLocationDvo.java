@@ -20,6 +20,7 @@ public class WsnbInstallLocationDvo {
     String cntrSn; /* 계약일련번호 */
     String dtlSn; /* 상세일련번호 */
     String istLctDtlCn; /* 설치위치상세 */
+    String ogTpCd; /* 조직유형코드 */
     String wkPrtnrNo; /* 작업파트너번호 */
     String istDt; /* 설치일자 */
     String custNm; /* 고객명 */
