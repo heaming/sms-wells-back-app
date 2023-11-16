@@ -27,6 +27,7 @@ public class WwdbServiceRefundDto {
     public record saveServiceReq(
         String csBilNo, /* 비용청구번호 */
         String cstSvAsnNo, /* 고객서비스배정번호 */
+        String dpSn, /*입금일련번호*/
         String cntrNo, /*계약번호*/
         String cntrSn, /*계약일련번호*/
         String cstNo, /* 고객번호 */
