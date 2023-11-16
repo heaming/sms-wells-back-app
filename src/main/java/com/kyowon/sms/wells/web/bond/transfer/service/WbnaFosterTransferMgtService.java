@@ -196,7 +196,7 @@ public class WbnaFosterTransferMgtService {
         headerTitle.put("clctamPrtnrNo", messageResourceService.getMessage("MSG_TXT_CLCTAM_PSIC_NO_SUB")); // 집금담당자번호
         // file
         List<WbnaBondContractBaseDvo> list = excelReadService
-            .readExcel(file, new ExcelMetaDvo(2, headerTitle), WbnaBondContractBaseDvo.class, false);
+            .readExcel(file, new ExcelMetaDvo(1, headerTitle), WbnaBondContractBaseDvo.class, false);
         List<ExcelUploadErrorDvo> excelUploadErrorDvos = new ArrayList<>();
 
         // 집금담당자 번호가 db에 있는지 check
