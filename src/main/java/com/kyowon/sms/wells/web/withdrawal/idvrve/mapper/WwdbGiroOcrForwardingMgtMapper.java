@@ -65,4 +65,6 @@ public interface WwdbGiroOcrForwardingMgtMapper {
     /* 지로OCR출력관리 출력내역 생성 */
     public int insertGiroPrintDate(WwdbGiroOcrForwardingPrintDvo dvo) throws Exception;
 
+    public List<WwdbGiroOcrForwardingMgtDto.SearchPrintCreateRes> selectGiroPrintCreate(WwdbGiroOcrForwardingPrintDvo dvo);
+
 }
