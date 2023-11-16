@@ -19,6 +19,7 @@ public class WfebSoleDistributorFeeMgtDto {
     public record Performance(
         String baseYm, /* 기준년월 */
         String coCdNm, // 업체명
+        String brchNm, // 지점명
         String prtnrKnm, // 판매자
         String prtnrNo, // 번호
         String cntrNo, // 계약상세번호
@@ -53,6 +54,7 @@ public class WfebSoleDistributorFeeMgtDto {
         String coCdNm, /* 업체명 */
         String ogCd, /* 소속 */
         String prtnrNo, /* 번호 */
+        String prtnrKnm, /* 명 */
         Integer cnt, /* 실적 */
         Long amtW050001, /* 기본수수료 */
         Long amtW050002, /* 장려수수료 */
