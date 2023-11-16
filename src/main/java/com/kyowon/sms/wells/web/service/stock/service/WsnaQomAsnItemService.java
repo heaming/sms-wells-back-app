@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * <pre>
- * 물량배정 품목 조회 서비스
+ * W-SV-U-0141P01 물량배정 품목 조회 서비스
  * </pre>
  *
  * @author SaeRomI.Kim
