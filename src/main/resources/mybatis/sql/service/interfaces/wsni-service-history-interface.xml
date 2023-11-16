@@ -53,7 +53,7 @@
                            WHERE CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
                              AND CNTR_NO = TS1.CNTR_NO
                              AND CNTR_SN = TS1.CNTR_SN
-                             AND DTA_DL_YN = 'N') <![CDATA[>]]> 0 THEN 'Y' ELSE 'N' END AS PART_USE_YN
+                             AND DTA_DL_YN = 'N') > 0 THEN 'Y' ELSE 'N' END AS PART_USE_YN
              , '' AS FILTER_CD_1
              , '' AS FILTER_CD_2
              , '' AS FILTER_CD_3
@@ -259,7 +259,7 @@
                            WHERE CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
                              AND CNTR_NO = TS1.CNTR_NO
                              AND CNTR_SN = TS1.CNTR_SN
-                             AND DTA_DL_YN = 'N') <![CDATA[>]]> 0 THEN 'Y' ELSE 'N' END AS PART_USE_YN
+                             AND DTA_DL_YN = 'N') > 0 THEN 'Y' ELSE 'N' END AS PART_USE_YN
              , TF1.PU_PART_PD_CD AS FILTER_CD_1
              , TF2.PU_PART_PD_CD AS FILTER_CD_2
              , TF3.PU_PART_PD_CD AS FILTER_CD_3
@@ -753,7 +753,7 @@
                            WHERE CNTR_NO = TS1.CNTR_NO
                              AND CNTR_SN = TS1.CNTR_SN
                              AND VST_DUEDT = TS1.VST_DUEDT
-                             AND DTA_DL_YN = 'N') <![CDATA[>]]> 0 THEN 'Y' ELSE 'N' END AS PART_USE_YN
+                             AND DTA_DL_YN = 'N') > 0 THEN 'Y' ELSE 'N' END AS PART_USE_YN
              , TF1.PART_PD_CD AS FILTER_CD_1
              , TF2.PART_PD_CD AS FILTER_CD_2
              , TF3.PART_PD_CD AS FILTER_CD_3
@@ -810,7 +810,26 @@
              , TG1.NEW_ADR_ZIP AS NEW_ADR_ZIP
              , TG1.RNADR AS RNADR
              , TG1.RDADR AS RDADR
-          FROM TB_SVPD_CST_SV_RGBSPR_IZ TS1
+          FROM (
+                SELECT V1.CNTR_NO AS CNTR_NO
+                     , V1.CNTR_SN AS CNTR_SN
+                     , V1.VST_DUEDT AS VST_DUEDT
+                     , MAX(V1.WK_DT) AS WK_DT
+                     , MAX(V1.SV_BIZ_DCLSF_CD) AS SV_BIZ_DCLSF_CD
+                  FROM TB_SVPD_CST_SV_RGBSPR_IZ V1
+                 WHERE 1 = 1
+                   AND V1.CNTR_NO = #{cntrNo}
+                   AND V1.CNTR_SN = #{cntrSn}
+                   AND V1.VST_DUEDT > TO_CHAR(SYSDATE, 'YYYYMM') || '01'
+                   AND V1.VST_DUEDT <![CDATA[<]]> TO_CHAR(ADD_MONTHS(SYSDATE, 24), 'YYYYMM') || '01'
+                   AND (SELECT COUNT(1)
+                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ V2
+                         WHERE 1 = 1
+                           AND V2.CNTR_NO = #{cntrNo}
+                           AND V2.CNTR_SN = #{cntrSn}
+                           AND V2.ASN_OJ_YM >= SUBSTR(V1.VST_DUEDT, 1, 6)) = 0
+                 GROUP BY V1.CNTR_NO, V1.CNTR_SN, V1.VST_DUEDT
+               ) TS1
          INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ TS2
             ON TS2.CNTR_NO = TS1.CNTR_NO
            AND TS2.CNTR_SN = TS1.CNTR_SN
