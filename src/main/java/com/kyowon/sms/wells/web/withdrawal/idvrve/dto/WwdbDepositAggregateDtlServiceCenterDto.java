@@ -53,6 +53,8 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
         String svBizDclsfCd, /*고객서비스as설치배정내역*/ /*서비스유형*/
         String bilAmt, /*청구금액*/
         String dpSumAmt, /*대사금액*/
+        String totRfndEtAmt, /*총환불예상금액 - 환불금액*/
+        String blam, /*잔액 = 대사금액 - 환불금액*/
         String stlmDvNo, /*입금번호*/
 
         String stlmDvCd, /*결제구분코드*/
@@ -90,11 +92,13 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
 
     // *********************************************************
     // Result Dto
-    // *********************************************************
+    // ******************************************************** *
     // 입금집계 상세현황 서비스 합계 조회 Search Result Dto
     @ApiModel(value = "WwwdbDepositAggregateDtlServiceCenterDto-SearchSumRes")
     public record SearchSumRes(
         String bilAmtTot,
-        String dpSumAmtTot
+        String dpSumAmtTot,
+        String rfndEtAmtTot,
+        String blamTot
     ) {}
 }
