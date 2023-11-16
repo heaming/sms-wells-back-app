@@ -49,6 +49,7 @@ public class WdccSalesPerformDto {
      * @param slStpAmt 매출중지금액
      * @param sellTpCd 판매유형
      * @param islease 리스여부
+     * @param thmSlOcAmt 매출금액
      */
     @ApiModel(value = "WdccSalesPerformDto-SearchRes")
     public record SearchRes(
@@ -76,7 +77,8 @@ public class WdccSalesPerformDto {
         String eotDlqAddAmt,
         String slStpAmt,
         String sellTpCd,
-        String islease
+        String islease,
+        String thmSlOcAmt
     ) {}
 
     /**
@@ -113,6 +115,7 @@ public class WdccSalesPerformDto {
     public record SearchSinglePaymentBaseRes(
         String cntrNo, /* 계약번호 */
         Integer cntrSn, /* 계약일련번호 */
+        String slClYm, /*기준년월*/
         String cntrDtlNo, /* 계약상세번호 */
         String sellTpCd, /* 판매유형 */
         String sellTpCdNm, /* 판매유형명 */
