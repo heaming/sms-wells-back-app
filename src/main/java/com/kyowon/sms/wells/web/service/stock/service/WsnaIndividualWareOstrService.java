@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndividualWareOstrDto.*;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,6 +22,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryKssDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndividualWareOstrMapper;
+import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.validation.BizAssert;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
@@ -42,6 +44,9 @@ public class WsnaIndividualWareOstrService {
     private final WsnaIndividualWareOstrMapper mapper;
 
     private final WsnaIndividualWareOstrConverter converter;
+
+    // 메시지 서비스
+    private final MessageResourceService messageService;
 
     // 물량배정 서비스
     private final WsnaQomAsnService qomAsnService;
@@ -172,7 +177,7 @@ public class WsnaIndividualWareOstrService {
      * @param dtos
      * @return
      */
-    @Transactional
+    @Transactional(timeout = 300)
     public int saveIndividualWareOstrs(List<SaveReq> dtos) {
 
         int count = 0;
@@ -181,7 +186,8 @@ public class WsnaIndividualWareOstrService {
 
         // 입고창고 필터링
         List<WsnaIndividualWareOstrDvo> filterDvos = dvos.stream()
-            .filter(distinctByKey(dvo -> dvo.getStrWareNo())).toList();
+            .filter(distinctByKey(dvo -> dvo.getStrWareNo()))
+            .sorted(Comparator.comparing(WsnaIndividualWareOstrDvo::getWareNm)).toList();
 
         for (WsnaIndividualWareOstrDvo filterDvo : filterDvos) {
             // 출고요청번호
@@ -202,6 +208,9 @@ public class WsnaIndividualWareOstrService {
                     dvo.setOstrAkNo(newOstrAkNo);
                 }
 
+                // 물류재고 체크
+                this.validLogisticStockQty(dvo);
+
                 // 출고요청 저장
                 count += this.mapper.mergeItmOstrAkIz(dvo);
 
@@ -216,11 +225,57 @@ public class WsnaIndividualWareOstrService {
     }
 
     /**
+     * 물류창고 재고 유효성 체크
+     * @param dvo
+     */
+    private void validLogisticStockQty(WsnaIndividualWareOstrDvo dvo) {
+
+        // 물류재고
+        BigDecimal logisticQty = dvo.getLogisticStocQty();
+        // 출고수량
+        BigDecimal outQty = dvo.getOutQty();
+        // 출고누계수량
+        BigDecimal ostrAggQty = this.mapper.selectItemByOstrAggQty(dvo);
+
+        // 출고수량 + 출고누계수량 > 물류재고
+        boolean isNotValid = outQty.add(ostrAggQty).compareTo(logisticQty) > 0;
+
+        if (isNotValid) {
+            String wareNm = dvo.getWareNm();
+            String wareTxt = this.messageService.getMessage("MSG_TXT_WARE");
+            String itmPdCd = dvo.getItmPdCd();
+            String itmTxt = this.messageService.getMessage("MSG_TXT_OF_ITM");
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(wareNm).append(" ").append(wareTxt).append(" ").append(itmPdCd).append(" ").append(itmTxt);
+
+            // {0} 상위창고 재고수량이 부족합니다.
+            BizAssert.isFalse(true, "MSG_ALT_HGR_WARE_STOC_STG", new String[] {sb.toString()});
+        }
+    }
+
+    /**
      * distinct 함수
      */
     private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
         Map<Object, Boolean> map = new ConcurrentHashMap<>();
         return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
+    /**
+     * 물류 이관 데이터 조회
+     * @param dto
+     * @return
+     */
+    public List<WsnaIndividualWareOstrDvo> getLogisticsTransferDatas(SearchTranferReq dto) {
+
+        // 물류 이관 데이터 조회
+        List<WsnaIndividualWareOstrDvo> dvos = this.mapper.selectLogisticsTransferDatas(dto);
+
+        // 실시간 물류재고 조회 호출
+        this.getRealTimeLogisticStockQtys(dvos);
+
+        return dvos;
     }
 
     /**

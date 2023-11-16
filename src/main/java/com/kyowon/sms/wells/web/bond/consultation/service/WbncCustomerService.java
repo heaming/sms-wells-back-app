@@ -24,13 +24,14 @@ import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoReq;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveCounselReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveUnuitmCnReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchUserInfoReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncCustomerDvo;
+import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncPetitionCreateDvo;
 import com.kyowon.sms.wells.web.bond.consultation.mapper.WbncCustomerMapper;
 import com.sds.sflex.system.config.core.service.UserService;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -142,11 +143,14 @@ public class WbncCustomerService {
         processCount = mapper.insertPromise(dvo);
         BizAssert.isTrue(processCount > 0, "MSG_ALT_SVE_ERR");
 
-        user.setUserCustomParam(null);
+        if (user.getUserCustomParam() != null) {
+            user.setUserCustomParam(null);
+        }
+
         return processCount;
     }
 
-    public FindUserInfoRes getUserInfo(FindUserInfoReq dto) {
+    public List<SearchUserInfoRes> getUserInfo(SearchUserInfoReq dto) throws Exception {
         return mapper.selectUserInfo(dto);
     }
 
@@ -200,6 +204,74 @@ public class WbncCustomerService {
      */
     public FindCounselRegistrationRes getCounselRegistration(FindCounselRegistrationReq dto) {
         return mapper.selectCounselRegistration(dto);
+    }
+
+    /**
+     * 소장생성 체크
+     * @param cntrDtlNo
+     * @return 소장생성 체크
+     */
+
+    public int getPetitionCreateCheck(String cntrDtlNo, String baseYm) {
+        int returnCount = 0;
+
+        WbncPetitionCreateDvo petitionDvo = mapper.selectPetitionType(cntrDtlNo, baseYm);
+
+        if (petitionDvo != null) {
+            if ("L20".equals(petitionDvo.getBndBizDvCd()) && "02".equals(petitionDvo.getBndLwsBilDvCd())
+                && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "N".equals(petitionDvo.getIstmYn())
+                && "N".equals(petitionDvo.getDscYn()) && !"301".equals(petitionDvo.getCntrDtlStatCd())
+                && !"302".equals(petitionDvo.getCntrDtlStatCd()) && !"303".equals(petitionDvo.getCntrDtlStatCd())
+                && !"401".equals(petitionDvo.getCntrDtlStatCd())) {
+                returnCount = mapper.selectPetitionType1(cntrDtlNo);
+            }
+
+            if ("L21".equals(petitionDvo.getBndBizDvCd()) && "02".equals(petitionDvo.getBndLwsBilDvCd())
+                && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "N".equals(petitionDvo.getIstmYn())
+                && "N".equals(petitionDvo.getDscYn()) && !"301".equals(petitionDvo.getCntrDtlStatCd())
+                && !"302".equals(petitionDvo.getCntrDtlStatCd()) && !"303".equals(petitionDvo.getCntrDtlStatCd())
+                && !"401".equals(petitionDvo.getCntrDtlStatCd())) {
+                returnCount = mapper.selectPetitionType2(cntrDtlNo);
+            }
+
+            if ("L21".equals(petitionDvo.getBndBizDvCd()) && "02".equals(petitionDvo.getBndLwsBilDvCd())
+                && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "Y".equals(petitionDvo.getIstmYn())
+                && "Y".equals(petitionDvo.getDscYn()) && !"301".equals(petitionDvo.getCntrDtlStatCd())
+                && !"302".equals(petitionDvo.getCntrDtlStatCd()) && !"303".equals(petitionDvo.getCntrDtlStatCd())
+                && !"401".equals(petitionDvo.getCntrDtlStatCd())) {
+                returnCount = mapper.selectPetitionType3(cntrDtlNo);
+            }
+
+            if ("L10".equals(petitionDvo.getBndBizDvCd()) && "02".equals(petitionDvo.getBndLwsBilDvCd())
+                && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "Y".equals(petitionDvo.getIstmYn())
+                && "N".equals(petitionDvo.getDscYn()) && !"301".equals(petitionDvo.getCntrDtlStatCd())
+                && !"302".equals(petitionDvo.getCntrDtlStatCd()) && !"303".equals(petitionDvo.getCntrDtlStatCd())
+                && !"401".equals(petitionDvo.getCntrDtlStatCd())) {
+                returnCount = mapper.selectPetitionType4(cntrDtlNo);
+            }
+
+            if (("L30".equals(petitionDvo.getBndBizDvCd()) || "L60".equals(petitionDvo.getBndBizDvCd()))
+                && "02".equals(petitionDvo.getBndLwsBilDvCd()) && "@".equals(petitionDvo.getBndBilPpsDvCd())
+                && "N".equals(petitionDvo.getIstmYn()) && "N".equals(petitionDvo.getDscYn())
+                && !"301".equals(petitionDvo.getCntrDtlStatCd()) && !"302".equals(petitionDvo.getCntrDtlStatCd())
+                && !"303".equals(petitionDvo.getCntrDtlStatCd()) && !"401".equals(petitionDvo.getCntrDtlStatCd())) {
+                returnCount = mapper.selectPetitionType5(cntrDtlNo);
+            }
+
+            if (("L20".equals(petitionDvo.getBndBizDvCd()) || "L21".equals(petitionDvo.getBndBizDvCd())
+                || "L60".equals(petitionDvo.getBndBizDvCd())) && "02".equals(petitionDvo.getBndLwsBilDvCd())
+                && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "N".equals(petitionDvo.getIstmYn())
+                && "N".equals(petitionDvo.getDscYn()) && "303".equals(petitionDvo.getCntrDtlStatCd())) {
+                returnCount = mapper.selectPetitionType6(cntrDtlNo);
+            }
+
+            if ("L20".equals(petitionDvo.getBndBizDvCd()) && "02".equals(petitionDvo.getBndLwsBilDvCd())
+                && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "N".equals(petitionDvo.getIstmYn())
+                && "N".equals(petitionDvo.getDscYn()) && "302".equals(petitionDvo.getCntrDtlStatCd())) {
+                returnCount = mapper.selectPetitionType7(cntrDtlNo);
+            }
+        }
+        return returnCount;
     }
 
 }

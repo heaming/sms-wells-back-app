@@ -1,26 +1,65 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.mapper;
 
-import java.util.List;
-
-import org.apache.ibatis.annotations.Mapper;
-
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbServiceRefundDto.SearchBankRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbServiceRefundDto.SearchCardRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbServiceRefundDto.SearchServiceRefundReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbServiceRefundDto.SearchServiceRefundRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbRefundDtlDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbServiceRefundDvo;
+import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface WwdbServiceRefundMapper {
 
-    SearchServiceRefundRes selectServiceRefundCustomer(
-        SearchServiceRefundReq req
-    );
+    /**
+     * 서비스 환불 접수 기본 생성
+     * @param dvo
+     * @return
+     */
+    int insertServiceRefundReceiptBas(WwdbServiceRefundDvo dvo);
 
-    List<SearchCardRes> selectServiceRefundCard();
+    /**
+     * 서비스 환불 접수 상세 생성
+     * @param dvo
+     * @return
+     */
+    int insertServiceRefundReceiptDtl(WwdbServiceRefundDvo dvo);
 
-    List<SearchBankRes> selectServiceRefundBank();
+    /**
+     * 서비스 환불 수납요청기본 생성
+     * @param dvo
+     * @return
+     */
+    int insertServiceRefundRveAkBas(WwdbServiceRefundDvo dvo);
 
-    int updateServiceRefundCustomer(WwdbServiceRefundDvo dvo);
+    /**
+     * 서비스 환불 수납요청상세 생성
+     * @param dvo
+     * @return
+     */
+    int insertServiceRefundRveAkDtl(WwdbServiceRefundDvo dvo);
 
+    /**
+     * 서비스 환불 통합입금기본 생성
+     * @param dvo
+     * @return
+     */
+    int insertServiceRefundItgDpBas(WwdbServiceRefundDvo dvo);
+
+    /**
+     * 서비스 환불 입금대사기본 생성
+     * @param dvo
+     * @return
+     */
+    int insertServiceRefundDpCprcnfBas(WwdbServiceRefundDvo dvo);
+
+    /**
+     * 서비스 환불 수납기본 생성
+     * @param dvo
+     * @return
+     */
+    int insertServiceRefundRveBas(WwdbServiceRefundDvo dvo);
+
+    /**
+     * 서비스 환불 수납상세 생성
+     * @param dvo
+     * @return
+     */
+    int insertServiceRefundRveDtl(WwdbServiceRefundDvo dvo);
 }

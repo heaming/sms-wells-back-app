@@ -14,19 +14,42 @@ import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-BN-U-0031M01	미납요금 안내/촉구 대상
+ * </pre>
+ *
+ * @author gs.piit128 gilyong.han
+ * @since 2023-07-06
+ */
 @Service
 @RequiredArgsConstructor
 public class WbncUnpaidGuideUrgentService {
     private final WbncUnpaidGuideUrgentMapper mapper;
 
+    /**
+     * 미납요금 안내/촉구 대상 페이징 조회
+     * @param dto, pageInfo
+     * @return PagingResult<SearchRes>
+     */
     public PagingResult<SearchRes> getUnpaidGuideUrgentPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectUnpaidGuideUrgentPages(dto, pageInfo);
     }
 
+    /**
+     * 미납요금 안내/촉구 대상 엑셀 다운로드
+     * @param dto
+     * @return List<SearchRes>
+     */
     public List<SearchRes> getUnpaidGuideUrgentsForExcelDownload(SearchReq dto) {
         return mapper.selectUnpaidGuideUrgentPages(dto);
     }
 
+    /**
+     * 미납요금 안내/촉구 대상 대상별 확정여부 체크
+     * @param dto
+     * @return CheckRes
+     */
     public CheckRes checkUnpaidGuideUrgentObjects(CheckReq dto) {
         String cnfmYn = "N";
         int ojTotalCount;
@@ -44,6 +67,11 @@ public class WbncUnpaidGuideUrgentService {
         return CheckRes.builder().ojTotalCount(ojTotalCount).cnfmYn(cnfmYn).build();
     }
 
+    /**
+     * 미납요금 안내/촉구 대상 고객별 확정여부 체크
+     * @param dto
+     * @return CheckRes
+     */
     public CheckRes checkUnpaidGuideUrgentCustomers(CheckReq dto) {
         String cnfmYn = "N";
         int totalCount = 0;
@@ -61,6 +89,11 @@ public class WbncUnpaidGuideUrgentService {
         return CheckRes.builder().ojTotalCount(ojTotalCount).totalCount(totalCount).cnfmYn(cnfmYn).build();
     }
 
+    /**
+     * 미납요금 안내/촉구 대상 확정
+     * @param dto
+     * @return int
+     */
     @Transactional
     public int saveUnpaidGuideUrgentObjects(SaveObjectReq dto) {
         CheckRes objectRes = this.checkUnpaidGuideUrgentObjects(
@@ -76,6 +109,11 @@ public class WbncUnpaidGuideUrgentService {
         return processCount;
     }
 
+    /**
+     * 미납요금 안내/촉구 대상 대상별 자료생성
+     * @param dto
+     * @return int
+     */
     @Transactional
     public int createUnpaidGuideUrgentObjects(CreateObjectReq dto) {
         this.mapper.deleteAllUnpaidGuideUrgentObjects(dto);
@@ -86,6 +124,11 @@ public class WbncUnpaidGuideUrgentService {
         return processCount;
     }
 
+    /**
+     * 미납요금 안내/촉구 대상 고객별 자료생성
+     * @param dto
+     * @return int
+     */
     @Transactional
     public int createUnpaidGuideUrgentCustomers(CreateCustomerReq dto) {
         this.mapper.deleteAllUnpaidGuideUrgentCustomers(dto);

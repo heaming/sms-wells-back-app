@@ -12,6 +12,7 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageExcel
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageExcelUploadDto.ValidateRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaMdProductOutOfStorageMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -48,7 +49,7 @@ public class WsnaMdProductOutOfStorageMgtController {
         @ApiImplicitParam(name = "serialNo", value = "시리얼번호", paramType = "query"),
     })
     @GetMapping
-    public List getMdProductOutOfStorages(
+    public List<SearchRes> getMdProductOutOfStorages(
         @Valid
         SearchReq dto
     ) {

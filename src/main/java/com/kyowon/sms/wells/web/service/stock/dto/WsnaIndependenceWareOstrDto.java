@@ -149,7 +149,36 @@ public class WsnaIndependenceWareOstrDto {
         // 출고창고파트너번호
         String ostrPrtnrNo,
         // 출고창고파트너조직유형코드
-        String ostrPrtnrOgTpCd
+        String ostrPrtnrOgTpCd,
+        // 물류재고
+        BigDecimal logisticStocQty,
+        // 입고창고명
+        String wareNm
+    ) {}
+
+    @Builder
+    @ApiModel("WsnaIndependenceWareOstrDto-SearchTranferReq")
+    public record SearchTranferReq(
+        // 배정년월
+        @NotBlank
+        String asnOjYm,
+        // 기준년월
+        @NotBlank
+        String apyYm,
+        // 회차
+        @Positive
+        @Max(999999999999L)
+        BigDecimal cnt,
+        // 출고창고
+        @NotBlank
+        String ostrWareNo,
+        // 창고구분
+        @NotBlank
+        String wareDvCd,
+        // 창고상세구분
+        @NotBlank
+        String wareDtlDvCd
+
     ) {}
 
     @Builder

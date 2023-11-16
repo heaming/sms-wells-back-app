@@ -19,7 +19,7 @@ import lombok.Builder;
  * 고객 >> 가망고객 Dto
  * </pre>
  *
- * @author  junho.bae
+ * @author  Hohwanm
  * @since 2023-07-01
  */
 

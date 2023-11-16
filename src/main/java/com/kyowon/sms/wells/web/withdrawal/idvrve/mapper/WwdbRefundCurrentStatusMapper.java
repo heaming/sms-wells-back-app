@@ -4,9 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchBalanceTransferRefundHistoryReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchBalanceTransferRefundHistoryRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchCardRefundHistoryReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchCardRefundHistoryRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchRefundHistoryReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchRefundHistoryRes;
@@ -46,7 +44,7 @@ public interface WwdbRefundCurrentStatusMapper {
      * @return PagingResult<SearchCardRefundHistoryRes>
      */
     PagingResult<SearchCardRefundHistoryRes> selectCardRefundHistory(
-        SearchCardRefundHistoryReq req,
+        SearchRefundHistoryReq req,
         PageInfo pageInfo
     );
 
@@ -57,7 +55,7 @@ public interface WwdbRefundCurrentStatusMapper {
      * @return List<SearchCardRefundHistoryRes>
      */
     List<SearchCardRefundHistoryRes> selectCardRefundHistory(
-        SearchCardRefundHistoryReq req
+        SearchRefundHistoryReq req
     );
 
     /**
@@ -68,7 +66,7 @@ public interface WwdbRefundCurrentStatusMapper {
      * @return PagingResult<SearchBalanceTransferRefundHistoryRes>
      */
     PagingResult<SearchBalanceTransferRefundHistoryRes> selectBalanceTransferRefundHistory(
-        SearchBalanceTransferRefundHistoryReq req,
+        SearchRefundHistoryReq req,
         PageInfo pageInfo
     );
 
@@ -79,6 +77,6 @@ public interface WwdbRefundCurrentStatusMapper {
      * @return List<SearchBalanceTransferRefundHistoryRes>
      */
     List<SearchBalanceTransferRefundHistoryRes> selectBalanceTransferRefundHistory(
-        SearchBalanceTransferRefundHistoryReq req
+        SearchRefundHistoryReq req
     );
 }

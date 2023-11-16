@@ -37,6 +37,12 @@ public class WwdbAdvanceRefundAccountController {
 
     private final WwdbAdvanceRefundAccountService service;
 
+    /**
+     * 선환불계좌조회 목록
+     * @param req
+     * @param pageInfo
+     * @return
+     */
     @ApiOperation(value = "선환불계좌조회 목록", notes = "선환불계좌조회 목록")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "stlmTpCd", value = "대상구분", required = false),
@@ -54,6 +60,11 @@ public class WwdbAdvanceRefundAccountController {
         return service.getAdvanceRefundAccountPages(req, pageInfo);
     }
 
+    /**
+     * 선환불계좌조회 엑셀 다운로드
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "선환불계좌조회 엑셀 다운로드", notes = "선환불계좌조회 엑셀 다운로드")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "stlmTpCd", value = "대상구분", required = false),

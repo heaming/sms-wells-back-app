@@ -33,8 +33,8 @@ public class WsndWorkNoticeController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "stRgstDt", value = "시작 등록일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "edRgstDt", value = "종료 등록일자", paramType = "query", required = true),
-        @ApiImplicitParam(name = "mngrDvCd", value = "관리구분", paramType = "query", required = false),
-        @ApiImplicitParam(name = "ntccnTitNm", value = "제목", paramType = "query", required = false),
+        @ApiImplicitParam(name = "mngrDvCd", value = "관리구분", paramType = "query"),
+        @ApiImplicitParam(name = "ntccnTitNm", value = "제목", paramType = "query"),
     })
     @GetMapping
     public List<SearchRes> getWorkNotices(SearchReq dto) {
@@ -45,8 +45,8 @@ public class WsndWorkNoticeController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "stRgstDt", value = "시작 등록일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "edRgstDt", value = "종료 등록일자", paramType = "query", required = true),
-        @ApiImplicitParam(name = "mngrDvCd", value = "관리구분", paramType = "query", required = false),
-        @ApiImplicitParam(name = "ntccnTitNm", value = "제목", paramType = "query", required = false),
+        @ApiImplicitParam(name = "mngrDvCd", value = "관리구분", paramType = "query"),
+        @ApiImplicitParam(name = "ntccnTitNm", value = "제목", paramType = "query"),
     })
     @GetMapping("/paging")
     public PagingResult<SearchRes> getWorkNoticePages(
@@ -70,7 +70,7 @@ public class WsndWorkNoticeController {
 
     @ApiOperation(value = "상품코드 조회", notes = "상품그룹코드에 따른 상품코드 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "pdGrpCd", value = "상품그룹코드", paramType = "path"),
+        @ApiImplicitParam(name = "pdGrpCd", value = "상품그룹코드", paramType = "query"),
     })
     @GetMapping("/products")
     public List<SearchProductRes> getProductsByProductGroup(

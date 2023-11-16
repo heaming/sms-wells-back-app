@@ -106,24 +106,31 @@
              , NVL(A.REQD_CS_BOR_AMT,0) AS REQD_CS_BOR_AMT  /*철거비*/
              , NVL(A.LS_RNTF,0) AS LS_RNTF                  /*분실손료*/
              , NVL(A.RENTAL_NMN_N,0) AS RENTAL_NMN_N        /*렌탈차월수*/
-             , A.CLCTAM_PRTNR_NO                            /*사번*/
+             , T1.CLCTAM_PRTNR_NO                            /*사번*/
              , (SELECT PRTNR_KNM
                   FROM TB_CBBO_CLCTAM_PRTNR_DTL         /*T:집금파트너상세*/
                  WHERE 1 = 1
-                   AND PRTNR_NO = A.CLCTAM_PRTNR_NO
+                   AND PRTNR_NO = T1.CLCTAM_PRTNR_NO
                    AND ROWNUM <![CDATA[<=]]> 1) AS PRTNR_KNM             /*집금담당자*/
-             , (CASE WHEN A.CLCTAM_PRTNR_NO IS NULL THEN 'N' ELSE 'Y' END) AS CLCTAM_YN /*집금자여부*/
+             , (CASE WHEN T1.CLCTAM_PRTNR_NO IS NULL THEN 'N' ELSE 'Y' END) AS CLCTAM_YN /*집금자여부*/
              , NVL(M_2.PD_RVE_AMT - M_2.RFND_RVE_AMT,0) AS RVE_AMT /*입금액*/
              , A.AUTH_RSG_EXCD_RQR_PRTNR_NO                 /*당월제외사번*/
-             , MAX(A.BASE_YM) OVER(PARTITION BY A.CNTR_NO ,A.CNTR_SN) AS RQR_BASE_YM /* 최초제외월 */
-             ,CASE WHEN A.SELL_TP_CD = '2' THEN (
+             , CASE WHEN A.AUTH_RSG_EXCD_RQR_PRTNR_NO IS NULL THEN ''
+                     ELSE ( SELECT MIN(Z.BASE_YM)
+                           FROM TB_CBBO_WELLS_AUTH_RSG_IZ Z
+                           WHERE Z.CNTR_NO = A.CNTR_NO
+                             AND Z.CNTR_SN = A.CNTR_SN
+                             AND Z.AUTH_RSG_EXCD_RQR_PRTNR_NO IS NOT NULL
+                           )
+               END AS RQR_BASE_YM /* 최초제외월 */
+             , CASE WHEN A.SELL_TP_CD = '2' THEN (
                         NVL(M_2.PD_RVE_AMT,0) - NVL(M_2.RFND_RVE_AMT,0) + NVL(M3_2.PD_RVE_AMT,0) - NVL(M3_2.RFND_RVE_AMT,0)
                    )
                    WHEN A.SELL_TP_CD = '6' THEN (
 	                    NVL(M_6.PD_RVE_AMT,0) - NVL(M_6.RFND_RVE_AMT,0) + NVL(M3_6.PD_RVE_AMT,0) - NVL(M3_6.RFND_RVE_AMT,0)
                    )
-              END AS ACU_RVE_AMT          /*총미납금액*/
-             , B.BRYY_MMDD                                  /*생년월일*/
+               END AS ACU_RVE_AMT          /*총미납금액*/
+             , DECODE(C.CNTR_TP_CD, '02', B.BZRNO, B.BRYY_MMDD)  AS BRYY_MMDD  /*생년월일, 법인-사업자번호*/
              , C.CNTR_TP_CD                                 /*계약구분코드*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_TP_CD', C.CNTR_TP_CD , #{session.langId}) AS CNTR_TP_NM /*계약구분명*/
              , A.PD_CD                                      /*제품코드*/
@@ -170,6 +177,8 @@
                    AND BASE_YM = SUBSTR(#{baseDt},0,6)
                    AND HMNRSC_DEPT_CD = '70202' /* 채권전략팀-70202, param변경가능 */
                    AND PRTNR_NO = A.AUTH_RSG_EXCD_RQR_PRTNR_NO ) AS BND_STRT_YN /* 채권전략팀 여부-CLCTAM_PRTNR_NO-(집금파트너번호),AUTH_RSG_EXCD_RQR_PRTNR_NO(직권해지제외요청자파트너번호) */
+             , D.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세코드 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', D.SELL_TP_DTL_CD , #{session.langId}) AS SELL_TP_DTL_NM /*판매유형상세명*/
           FROM TB_CBBO_WELLS_AUTH_RSG_IZ A              /*T:WELLS직권해지내역*/
           LEFT JOIN TB_CBBO_BND_CNTR_BAS T1 /*T:채권계약기본*/
             ON T1.BASE_YM = A.BASE_YM
@@ -188,8 +197,8 @@
            AND E.CNTR_SN = A.CNTR_SN
           LEFT JOIN TB_OGBS_PRTNR_BAS F               /*T:파트너기본*/
             ON 1 = 1
-           AND F.OG_TP_CD = B.OG_TP_CD
-           AND F.PRTNR_NO = B.PRTNR_NO
+           AND F.OG_TP_CD = C.SELL_OG_TP_CD
+           AND F.PRTNR_NO = C.SELL_PRTNR_NO
           /* 직권해지정보(기기) */
           LEFT OUTER JOIN TB_CBBO_WELLS_AUTH_RSG_IZ R1	/*T:WELLS직권해지내역-직권해지정보(기기)-LB325_J*/
             ON R1.BASE_YM = A.BASE_YM
@@ -299,13 +308,13 @@
         </if>
         <if test='@MybatisUtils@equals(sellTpCd, "6")'>
            AND A.SELL_TP_CD = #{sellTpCd}              /*판매유형코드->상품유형*/
-           AND D.SELL_TP_DTL_CD = '62'                 /*렌찰해지예정 상품유형-정기배송 (모종만)*/
+           AND D.SELL_TP_DTL_CD IN ('62','63')         /*렌찰해지예정 상품유형-정기배송 모종/캡슐추가 */
         </if>
         <if test='@MybatisUtils@isNotEmpty(clctamDvCd)'>    -- "집금구분" 선택 시...
            AND A.CLCTAM_DV_CD = #{clctamDvCd}
         </if>
         <if test='@MybatisUtils@isNotEmpty(clctamPrtnrNo)'> -- "집금담당자" 입력 시...
-           AND A.CLCTAM_PRTNR_NO = #{clctamPrtnrNo}
+           AND T1.CLCTAM_PRTNR_NO = #{clctamPrtnrNo}
         </if>
         <if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">      -- "계약상세번호" 입력 시...
            AND A.CNTR_NO = #{cntrNo}
@@ -321,13 +330,13 @@
         </when>
         <when test='@MybatisUtils@equals(authRsgCd, "02")'> -- "확정구분->예정확정" 선택 시...(필수)
            AND A.AUTH_RSG_EXP_YN = 'Y'
-           AND A.AUTH_RSG_CNFM_YN = 'N'
         </when>
         <when test='@MybatisUtils@equals(authRsgCd, "03")'> -- "확정구분->최종확정" 선택 시...(필수)
            AND A.AUTH_RSG_EXP_YN = 'Y'
            AND A.AUTH_RSG_CNFM_YN = 'Y'
         </when>
         </choose>
+        ORDER BY A.CNTR_NO ,A.CNTR_SN
     </select>
 
     <select id="selectcheckRentalResignExpectedByReq" resultType="integer">
@@ -340,11 +349,14 @@
            AND CNTR_SN = #{cntrSn}
            AND AUTH_RSG_CNFM_YN = 'N'
         </if>
-        <if test='@MybatisUtils@equals(confirmDvCd,"01")'>
-           AND (AUTH_RSG_EXP_YN = 'Y' OR AUTH_RSG_CNFM_YN = 'Y')
+        <if test='@MybatisUtils@equals(authRsgCd,"01")'>
+           AND AUTH_RSG_EXP_YN = 'N' AND AUTH_RSG_CNFM_YN = 'N'
         </if>
-        <if test='@MybatisUtils@equals(confirmDvCd,"02")'>
-           AND AUTH_RSG_CNFM_YN = 'Y'
+        <if test='@MybatisUtils@equals(authRsgCd,"02")'>
+           AND AUTH_RSG_EXP_YN = 'Y' AND AUTH_RSG_CNFM_YN = 'N'
+        </if>
+        <if test='@MybatisUtils@equals(authRsgCd,"03")'>
+           AND AUTH_RSG_EXP_YN = 'Y' AND AUTH_RSG_CNFM_YN = 'Y'
         </if>
            AND DTA_DL_YN = 'N'
     </select>
@@ -611,43 +623,61 @@
              , ''                            AS AUTH_RSG_CNFM_RGST_PRTNR_NO     /*직권해지확정등록파트너번호*/
              , 'N'                           AS DTA_DL_YN                       /*데이터삭제여부*/
         <include refid="COMMON.insertSystemFieldValue"/>
-          FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
-         INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
-            ON B.CNTR_NO = A.CNTR_NO
-           AND A.CNTR_PRGS_STAT_CD = '60'   /*계약진행상태코드-60:확정*/
-           AND A.DTA_DL_YN = 'N'
-           AND B.CNTRW_TP_CD = '3'  /*계약서유형코드-3:렌탈*/
-           AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
-         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /*T:WELLS매출월마감내역*/
-            ON C.SL_CL_YM = SUBSTR(#{baseDt},1,6)	/*실적년월*/
-           AND C.CNTR_NO = B.CNTR_NO
-           AND C.CNTR_SN = B.CNTR_SN
-           AND C.SL_STP_YN = 'Y'    /*매출중지여부*/
-           AND C.SL_RCOG_DT	IS NOT NULL	/* 매출인식일자 */
-           AND C.CAN_DT	IS NOT NULL		/* 취소일자 */
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ D /*T:월파트너내역*/
-            ON D.BASE_YM = SUBSTR(#{baseDt},1,6)
-           AND D.OG_TP_CD = A.SELL_OG_TP_CD
-           AND D.PRTNR_NO = A.SELL_PRTNR_NO
-          LEFT JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
-            ON F.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(C.SL_CL_YM,'YYYYMM'),1),'YYYYMM')	/* 채권.BASE_YM = 재권외.M+1 */
-           AND F.CNTR_NO = C.CNTR_NO
-           AND F.CNTR_SN = C.CNTR_SN
-           AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
-           AND F.BND_CLCTN_PRP_DV_CD IN ('02','03','08')    /* 채권추심속성구분코드 */
-           AND F.BND_CLCTN_PRP_RSON_CD != '3C'				/* 채권추심속성사유코드-위탁관리 */
-          LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
-            ON G.PERF_YM = C.SL_CL_YM
-           AND G.CNTR_NO = C.CNTR_NO
-           AND G.CNTR_SN = C.CNTR_SN
-          LEFT JOIN TB_CBCL_DLQ_BAS H /*T:연체기본*/
-            ON H.PERF_YM = C.SL_CL_YM
-           AND H.CNTR_NO = C.CNTR_NO
-           AND H.CNTR_SN = C.CNTR_SN
-         WHERE 1 = 1
-           AND NVL(C.RENTAL_TN,0)  <![CDATA[<]]> NVL(B.CNTR_PTRM,0)    /*렌탈회차<![CDATA[<]]>계약기간*/
-           AND NOT (A.CNTR_TP_CD = '02' AND SUBSTR(D.HMNRSC_DEPT_CD,1,1) BETWEEN 'W' AND 'Z')   /*법인,신채널 제외*/
-           /* 4.전월 제외대상 익월 예정생성 요건 */
+            FROM TB_CBCL_WELLS_SL_MM_CL_IZ C	/*T:WELLS매출월마감내역*/
+             INNER JOIN TB_SSCT_CNTR_BAS A		/*T:계약기본*/
+                ON A.CNTR_NO = C.CNTR_NO
+               AND A.CNTR_TP_CD IN ('01','02')	/* 개인/법인 - 삭제 */
+             INNER JOIN TB_SSCT_CNTR_DTL B		/*T:계약상세*/
+                ON B.CNTR_NO = A.CNTR_NO
+               AND A.CNTR_PRGS_STAT_CD = '60'   /*계약진행상태코드-60:확정*/
+               AND A.DTA_DL_YN = 'N'
+               AND B.CNTRW_TP_CD = '3'			/*계약서유형코드-3:렌탈,7:정기배송*/
+               AND B.SELL_TP_CD IN ('2')		/*판매유형코드-2:렌탈/리스, 6:정기배송 */
+               AND B.SELL_TP_DTL_CD IN ('21','23')	/* 22:금율리스 제외 */
+               AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
+             INNER JOIN TB_SSCT_CNTR_PRTNR_REL D /*T:계약파트너관계*/
+                ON 1 = 1
+               AND D.CNTR_NO = C.CNTR_NO
+               AND D.OG_TP_CD = A.SELL_OG_TP_CD
+               AND D.PRTNR_NO = A.SELL_PRTNR_NO
+             INNER JOIN TB_CBBO_BND_CNTR_BAS F	/*T:채권계약기본*/
+                ON F.BASE_YM = SUBSTR(#{baseDt},1,6)
+               AND F.CNTR_NO = C.CNTR_NO
+               AND F.CNTR_SN = C.CNTR_SN
+               AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
+               AND F.BND_CLCTN_PRP_DV_CD IN ('02','03','08')    /* 채권추심속성구분코드 */
+               AND F.BND_CLCTN_PRP_RSON_CD != '3C'				/* 채권추심속성사유코드-위탁관리 */
+              LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
+                ON G.PERF_YM = SUBSTR(#{baseDt},1,6)
+               AND G.CNTR_NO = C.CNTR_NO
+               AND G.CNTR_SN = C.CNTR_SN
+              LEFT JOIN TB_CBCL_DLQ_BAS H /*T:연체기본*/
+                ON H.PERF_YM = SUBSTR(#{baseDt},1,6)
+               AND H.CNTR_NO = C.CNTR_NO
+               AND H.CNTR_SN = C.CNTR_SN
+               AND NVL(H.DLQ_ACU_MCN,0) > 6	/* 연체개월수 */
+              LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
+                ON D.PRTNR_NO = T7.PRTNR_NO
+               AND D.OG_TP_CD = T7.OG_TP_CD
+               AND D.OG_ID    = T7.OG_ID
+               AND TO_CHAR(TO_DATE(T7.BASE_YM,'YYYYMM'),'YYYYMM') = SUBSTR(#{baseDt},1,6)
+             WHERE 1 = 1
+               AND C.SL_CL_YM = SUBSTR(#{baseDt},1,6)
+               AND C.SL_STP_YN = 'Y'    /*매출중지여부 - LC50.LCSTOP='Y' */
+               AND NVL(C.RENTAL_TN,0) <![CDATA[<]]> NVL(B.CNTR_PTRM,0)    /*렌탈회차 <![CDATA[<]]> 계약기간*/
+               AND C.SL_RCOG_DT	IS NOT NULL	/* 매출일자 - LC50.LCSLEY>0 */
+               AND C.CAN_DT	IS NULL		/* 취소일자 - LC50.LCCANY=0 */
+               AND NOT (A.CNTR_TP_CD = '02' AND SUBSTR(NVL(T7.OG_CD,'NULL'),1,1) BETWEEN 'W' AND 'Z')   /*법인,신채널 제외*/
+               /* 선납할인제외기본 대상 제외 - LCLIB.LC5870P */
+               AND NOT EXISTS (
+                                SELECT 1
+                                  FROM TB_RVDW_PRM_DSC_EXCD_BAS Z2 /* T:선납할인제외기본 */
+                                 WHERE 1 = 1
+                                   AND SUBSTR(#{baseDt},1,6) BETWEEN Z2.PRM_DSC_EXCD_STRT_YM AND Z2.PRM_DSC_EXCD_END_YM
+                                   AND Z2.CNTR_NO = C.CNTR_NO
+                                   AND Z2.CNTR_SN = C.CNTR_SN
+                                   AND DTA_DL_YN = 'N'
+                              )
     </insert>
     <insert id="insertAuthorityResignRegularShippings">
         /* 직권해지 정기배송 [예정생성] - ASIS : insertOvrdAthrTrmtAdmnShpnList */
@@ -904,41 +934,60 @@
              , ''                            AS AUTH_RSG_CNFM_RGST_PRTNR_NO     /*직권해지확정등록파트너번호*/
              , 'N'                           AS DTA_DL_YN                       /*데이터삭제여부*/
         <include refid="COMMON.insertSystemFieldValue"/>
-          FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
-         INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ C	/*T:WELLS매출월마감내역*/
+         INNER JOIN TB_SSCT_CNTR_BAS A		/*T:계약기본*/
+            ON A.CNTR_NO = C.CNTR_NO
+           AND A.CNTR_TP_CD IN ('01','02')	/* 개인/법인 - 삭제 */
+         INNER JOIN TB_SSCT_CNTR_DTL B		/*T:계약상세*/
             ON B.CNTR_NO = A.CNTR_NO
-         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /*T:WELLS매출월마감내역*/
-            ON C.SL_CL_YM = SUBSTR(#{baseDt},1,6)
-           AND C.CNTR_NO = B.CNTR_NO
-           AND C.CNTR_SN = B.CNTR_SN
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ D /*T:월파트너내역*/
-            ON D.BASE_YM = SUBSTR(#{baseDt},1,6)
+           AND A.CNTR_PRGS_STAT_CD = '60'   /*계약진행상태코드-60:확정*/
+           AND A.DTA_DL_YN = 'N'
+           AND B.SELL_TP_CD IN ('6')		/* 판매유형코드-2:렌탈/리스, 6:정기배송 */
+           AND B.SELL_TP_DTL_CD IN ('62','63')	/* 62:모종,63:캡슐 */
+           AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
+         INNER JOIN TB_SSCT_CNTR_PRTNR_REL D /*T:계약파트너관계*/
+            ON 1 = 1
+           AND D.CNTR_NO = C.CNTR_NO
            AND D.OG_TP_CD = A.SELL_OG_TP_CD
            AND D.PRTNR_NO = A.SELL_PRTNR_NO
-          LEFT JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
-            ON F.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(C.SL_CL_YM,'YYYYMM'),1),'YYYYMM')	/* 채권.BASE_YM = 재권외.M+1 */
+         INNER JOIN TB_CBBO_BND_CNTR_BAS F	/*T:채권계약기본*/
+            ON F.BASE_YM = SUBSTR(#{baseDt},1,6)
            AND F.CNTR_NO = C.CNTR_NO
            AND F.CNTR_SN = C.CNTR_SN
            AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
            AND F.BND_CLCTN_PRP_DV_CD IN ('02','03','08')    /* 채권추심속성구분코드 */
            AND F.BND_CLCTN_PRP_RSON_CD != '3C'				/* 채권추심속성사유코드-위탁관리 */
           LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
-            ON G.PERF_YM = C.SL_CL_YM
+            ON G.PERF_YM = SUBSTR(#{baseDt},1,6)
            AND G.CNTR_NO = C.CNTR_NO
            AND G.CNTR_SN = C.CNTR_SN
           LEFT JOIN TB_CBCL_DLQ_BAS H /*T:연체기본*/
-            ON H.PERF_YM = C.SL_CL_YM
+            ON H.PERF_YM = SUBSTR(#{baseDt},1,6)
            AND H.CNTR_NO = C.CNTR_NO
            AND H.CNTR_SN = C.CNTR_SN
+           /* AND NVL(H.DLQ_ACU_MCN,0) > 6 연체개월수 */
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
+            ON D.PRTNR_NO = T7.PRTNR_NO
+           AND D.OG_TP_CD = T7.OG_TP_CD
+           AND D.OG_ID    = T7.OG_ID
+           AND TO_CHAR(TO_DATE(T7.BASE_YM,'YYYYMM'),'YYYYMM') = SUBSTR(#{baseDt},1,6)
          WHERE 1 = 1
-           AND A.DTA_DL_YN = 'N'
-           AND A.CNTR_PRGS_STAT_CD = '60'   /*계약진행상태코드-60:확정*/
-           AND B.CNTRW_TP_CD = '7'  /*계약서유형코드-7:정기배송*/
-           AND C.SL_STP_YN = 'Y'    /*매출중지여부*/
-           AND NVL(C.RENTAL_TN,0) <![CDATA[<]]> NVL(B.CNTR_PTRM,0)    /*렌탈회차<![CDATA[<]]>계약기간*/
-           AND NOT (A.CNTR_TP_CD = '02' AND SUBSTR(D.HMNRSC_DEPT_CD,1,1) BETWEEN 'W' AND 'Z')   /*법인,신채널 제외*/
-           AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/
-           AND C.SL_CL_YM = SUBSTR(#{baseDt},1,6)    /*실적년월*/
+           AND C.SL_CL_YM = SUBSTR(#{baseDt},1,6)
+           AND C.SL_STP_YN = 'Y'    /*매출중지여부 - LC50.LCSTOP='Y' */
+           AND NVL(C.RENTAL_TN,0) <![CDATA[<]]> NVL(B.CNTR_PTRM,0)    /*렌탈회차 <![CDATA[<]]> 계약기간*/
+           AND C.SL_RCOG_DT	IS NOT NULL	/* 매출일자 - LC50.LCSLEY>0 */
+           AND C.CAN_DT	IS NULL		/* 취소일자 - LC50.LCCANY=0 */
+           AND NOT (A.CNTR_TP_CD = '02' AND SUBSTR(NVL(T7.OG_CD,'NULL'),1,1) BETWEEN 'W' AND 'Z')   /*법인,신채널 제외*/
+           /* 선납할인제외기본 대상 제외 - LCLIB.LC5870P */
+           AND NOT EXISTS (
+           				    SELECT 1
+           				      FROM TB_RVDW_PRM_DSC_EXCD_BAS Z2 /* T:선납할인제외기본 */
+           				     WHERE 1 = 1
+           				       AND SUBSTR(#{baseDt},1,6) BETWEEN Z2.PRM_DSC_EXCD_STRT_YM AND Z2.PRM_DSC_EXCD_END_YM
+           				       AND Z2.CNTR_NO = C.CNTR_NO
+           				       AND Z2.CNTR_SN = C.CNTR_SN
+           				       AND DTA_DL_YN = 'N'
+           				  )
     </insert>
 
     <update id="updateRentalResignExpected">
@@ -989,67 +1038,46 @@
                     INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
                        ON B.CNTR_NO = T.CNTR_NO
                       AND B.CNTR_SN = T.CNTR_SN
-                    INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /*T:WELLS매출월마감내역*/
+                    LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /*T:WELLS매출월마감내역*/
                        ON C.SL_CL_YM = SUBSTR(A.CNTR_CNFM_DTM,1,6)
                       AND C.CNTR_NO = T.CNTR_NO
                       AND C.CNTR_SN = T.CNTR_SN
-                    INNER JOIN TB_OGBS_MM_PRTNR_IZ D /*T:월파트너내역*/
-                       ON D.BASE_YM = SUBSTR(A.CNTR_CNFM_DTM,1,6)
-                      AND D.OG_TP_CD = A.SELL_OG_TP_CD
-                      AND D.PRTNR_NO = A.SELL_PRTNR_NO
                      LEFT JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
                        ON F.BASE_YM = T.BASE_YM
                       AND F.CNTR_NO = T.CNTR_NO
                       AND F.CNTR_SN = T.CNTR_SN
-                     LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
-                       ON G.PERF_YM = T.BASE_YM
-                      AND G.CNTR_NO = T.CNTR_NO
-                      AND G.CNTR_SN = T.CNTR_SN
-                     LEFT JOIN TB_CBCL_DLQ_BAS H /*T:연체기본*/
-                       ON H.PERF_YM = T.BASE_YM
-                      AND H.CNTR_NO = T.CNTR_NO
-                      AND H.CNTR_SN = T.CNTR_SN
-                     LEFT JOIN LATERAL (SELECT SUM((CASE WHEN DP_DV_CD = '1' THEN NVL(RVE_AMT,0) ELSE 0 END)) AS PD_RVE_AMT    /*입금금액*/
-                                             , SUM((CASE WHEN DP_DV_CD = '3' THEN NVL(RVE_AMT,0) ELSE 0 END)) AS RFND_RVE_AMT  /*환불금액*/
+                     LEFT OUTER JOIN LATERAL (SELECT SUM((CASE WHEN DP_DV_CD IN ('1','3') THEN NVL(RVE_AMT,0) ELSE 0 END)) AS PD_RVE_AMT    /*입금금액*/
+                                                   , SUM((CASE WHEN DP_DV_CD IN ('2','4') THEN NVL(RVE_AMT,0) ELSE 0 END)) AS RFND_RVE_AMT  /*환불금액*/
                                           FROM TB_RVDW_RVE_DTL /*T:수납상세*/
                                          WHERE 1 = 1
                                            AND RVE_DT BETWEEN T.BASE_YM || '01' AND T.BASE_YM || '31'
                                            AND CNTR_NO = T.CNTR_NO
                                            AND CNTR_SN = T.CNTR_SN
                                            AND RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
-                                           AND RVE_DT LIKE SUBSTR(#{baseDt},1,6)||'%'   /*수납월*/
+                                           AND RVE_DT BETWEEN SUBSTR(#{baseDt} , 0, 6) || '01' AND SUBSTR(#{baseDt} , 0, 6) || '31' /*수납월*/
                                        ) I
                        ON 1 = 1
-                    <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
-                     /* 변경 - 추가 3개월 입금액 */
-                     LEFT JOIN LATERAL (
-                     					SELECT CNTR_NO, CNTR_SN ,NVL(SUM(RVE_AMT),0) AS RVE_AMT
-                     					  FROM TB_RVDW_RVE_DTL /* 수납상게 */
-                     					 WHERE 1 = 1
-                     					   AND RVE_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}),-3),'YYYYMMDD') AND #{baseDt}
-                     					   AND CNTR_NO = T.CNTR_NO
-                     					   AND CNTR_SN = T.CNTR_SN
-                     					   AND RVE_DV_CD <![CDATA[!=]]> '08' /*수납구분코드-환불금*/
-                     					   AND DTA_DL_YN = 'N'
-                     					  GROUP BY CNTR_NO, CNTR_SN
-                     ) RVE_M3	/* 3개월 수납 */
-                       ON 1 = 1
-                      AND RVE_M3.CNTR_NO = T.CNTR_NO
-                      AND RVE_M3.CNTR_SN = T.CNTR_SN
-                    </if>
                     WHERE 1 = 1
                       AND T.DTA_DL_YN = 'N'
                       AND T.BASE_YM = SUBSTR(#{baseDt},1,6)    /*기준년월*/
                       AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
                     <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
-                      /* 변경 - 추가 */
-                      AND NVL(RVE_M3.RVE_AMT, 0) <![CDATA[<=]]> 0	/* 3개월 입금액 */
+                      AND NVL(C.RENTAL_AMT * 3, 0) <![CDATA[<]]> (NVL(T.TOT_NPD_AMT,0) - (NVL(C.BTD_ATAM,0) + NVL(I.PD_RVE_AMT,0) - NVL(I.RFND_RVE_AMT,0)))   /* 렌탈금액*3 총미납금 */
                     </if>
+                      /* 기존에 취소된 대상 제외 */
+                      AND NOT EXISTS (
+                                SELECT 1
+                                  FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:계약해지처리내역 */
+                                 WHERE 1 = 1
+                                   AND DTA_DL_YN = 'N'
+                                   AND Z1.CNTR_NO = T.CNTR_NO
+                                   AND Z1.CNTR_SN = T.CNTR_SN
+                              )
                   ) X2
                ON (     X2.COL05 = X1.CNTR_NO
                     AND X2.COL07 = X1.BASE_YM
                     AND X1.BASE_YM = SUBSTR(#{baseDt},1,6)
-                    AND X1.SELL_TP_CD = '2'  /*판매유형코드->2:렌탈*/
+                    AND X1.SELL_TP_CD IN ('2')  /*판매유형코드->2:렌탈*/
                     AND X1.AUTH_RSG_EXCD_RQR_PRTNR_NO IS NULL    /*직권해지제외요청자파트너번호*/
                     AND X2.COL06 > 0 /*총미납금*/
         <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
@@ -1181,7 +1209,7 @@
                                            AND S1.RVE_DT BETWEEN T.BASE_YM || '01' AND T.BASE_YM || '31'
                                            AND S1.CNTR_NO = T.LK_CNTR_NO
                                            AND S1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
-                                           AND S1.RVE_DT LIKE SUBSTR(#{baseDt},1,6)||'%'   /*수납월*/
+                                           AND S1.RVE_DT BETWEEN SUBSTR(#{baseDt} , 0, 6) || '01' AND SUBSTR(#{baseDt} , 0, 6) || '31' /*수납월*/
                                            AND S2.SELL_TP_CD = '6'  /*판매유형코드->6:정기배송*/
                                        ) I  /*T:수납상세->정기배송 수납정보*/
                        ON 1 = 1
@@ -1195,7 +1223,7 @@
                                            AND S1.RVE_DT BETWEEN T.BASE_YM || '01' AND T.BASE_YM || '31'
                                            AND S1.CNTR_NO = T.LK_CNTR_NO
                                            AND S1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
-                                           AND S1.RVE_DT LIKE SUBSTR(#{baseDt},1,6)||'%'   /*수납월*/
+                                           AND S1.RVE_DT BETWEEN SUBSTR(#{baseDt} , 0, 6) || '01' AND SUBSTR(#{baseDt} , 0, 6) || '31' /*수납월*/
                                            AND S2.SELL_TP_CD = '2'  /*판매유형코드->2:렌탈*/
                                        ) J  /*T:수납상세->렌탈기기 수납정보*/
                        ON 1 = 1
@@ -1203,6 +1231,15 @@
                       AND T.DTA_DL_YN = 'N'
                       AND T.BASE_YM = SUBSTR(#{baseDt},1,6)    /*실적년월*/
                       AND F.CLCTAM_PRTNR_NO IS NOT NULL    /*집금담당자 미배정 제외*/
+                      /* 기존에 취소된 대상 제외 */
+                      AND NOT EXISTS (
+                                SELECT 1
+                                  FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:계약해지처리내역 */
+                                 WHERE 1 = 1
+                                   AND DTA_DL_YN = 'N'
+                                   AND Z1.CNTR_NO = T.CNTR_NO
+                                   AND Z1.CNTR_SN = T.CNTR_SN
+                              )
                   ) X2
                ON (     X2.COL04 = X1.CNTR_NO
                     AND X2.COL16 = X1.BASE_YM
@@ -1248,233 +1285,6 @@
         </if>
     </update>
 
-    <insert id="insertRentalResignExpectedCancel">
-    --------------------------------------------------------------
-    -- 직권해지 취소자료 등록
-    --------------------------------------------------------------
-        INSERT INTO TB_CBBO_WELLS_AUTH_RSG_CAN_IZ ( /* WELLS직권해지취소내역 */
-               CNTR_NO /* 계약번호 */
-             , CNTR_SN /* 계약일련번호 */
-             , CH_SN /* 변경일련번호 */
-             , CO_CD /* 회사코드 */
-             , RQDT /* 요청일자 */
-             , CAN_DT /* 취소일자 */
-             , SELL_TP_CD /* 판매유형코드 */
-             , PD_CD /* 상품코드 */
-             , SELL_QTY /* 판매수량 */
-             , SELL_AMT /* 판매금액 */
-             , SELL_AMT_VAT /* 판매금액부가가치세 */
-             , BFSVC_PRD_CD /* BS주기코드 */
-             , USWY_TP_CD /* 용도유형코드 */
-             , RENTAL_RGST_COST /* 렌탈등록비 */
-             , RENTAL_RGST_COST_VAT /* 렌탈등록비부가가치세 */
-             , RENTAL_AMT1 /* 렌탈금액1 */
-             , RENTAL_PTRM1 /* 렌탈기간1 */
-             , RENTAL_AMT2 /* 렌탈금액2 */
-             , RENTAL_PTRM2 /* 렌탈기간2 */
-             , TOT_RENTAL_AMT /* 총렌탈금액 */
-             , TOT_RENTAL_PTRM /* 총렌탈기간 */
-             , DSCR /* 할인율 */
-             , DSC_AMT /* 할인금액 */
-             , TOT_CNTR_AMT /* 총계약금액 */
-             , RENTAL_NMN_N /* 렌탈차월수 */
-             , RENTAL_DC /* 렌탈일수 */
-             , SL_DC /* 매출일수 */
-             , EXMPT_YN /* 면책여부 */
-             , CSMB_CS_EXMPT_YN /* 소모품비용면책여부 */
-             , REQD_CS_EXMPT_YN /* 철거비용면책여부 */
-             , REQD_RCVRY_AK_YN /* 철거복구요청여부 */
-             , PRGS_NMN_N /* 진행차월수 */
-             , SPP_NMN_N /* 배송차월수 */
-             , PD_USE_DC /* 상품사용일수 */
-             , PD_GD_CD /* 상품등급코드 */
-             , NOM_SL_AMT /* 정상매출금액 */
-             , SPMT_SL_AMT /* 추가매출금액 */
-             , NOM_DSC_AMT /* 정상할인금액 */
-             , SPMT_DSC_AMT /* 추가할인금액 */
-             , SL_CTR_AMT /* 매출조정금액 */
-             , CAN_CTR_AMT /* 취소조정금액 */
-             , SL_SUM_AMT /* 매출합계금액 */
-             , SL_SUM_VAT /* 매출합계부가가치세 */
-             , SL_AGG_AMT /* 매출누계금액 */
-             , SL_AGG_AMT_VAT /* 매출누계금액부가가치세 */
-             , DSC_AGG_AMT /* 할인누계금액 */
-             , CTR_AGG_AMT /* 조정누계금액 */
-             , PRM_BTD_AMT /* 선납기초금액 */
-             , PRPD_BTD_AMT /* 선수기초금액 */
-             , TOT_PRPD_AMT /* 총선수금액 */
-             , SL_DP_AMT /* 매출입금금액 */
-             , SL_DP_AGG_AMT /* 매출입금누계금액 */
-             , UC_AMT /* 미수금액 */
-             , DLQ_AMT /* 연체금액 */
-             , PRM_RFND_AMT /* 선납환불금액 */
-             , PRPD_RFND_AMT /* 선수환불금액 */
-             , RENTAL_RGST_COST_RFND_AMT /* 렌탈등록비환불금액 */
-             , RENTAL_RGST_COST_RFND_AMT_VAT /* 렌탈등록비환불금액부가가치세 */
-             , BOR_AMT /* 위약금액 */
-             , TOT_RFND_AMT /* 총환불금액 */
-             , LS_RNTF /* 분실손료 */
-             , P_BTD_AMT /* 포인트기초금액 */
-             , P_DP_AMT /* 포인트입금금액 */
-             , P_RFND_AMT /* 포인트환불금액 */
-             , P_SL_AMT /* 포인트매출금액 */
-             , P_EOT_AMT /* 포인트기말금액 */
-             , ADAMT_BTD_AMT /* 가산금기초금액 */
-             , ADAMT_THM_OC_AMT /* 가산금당월발생금액 */
-             , ADAMT_DP_RPLC_AMT /* 가산금입금대체금액 */
-             , ADAMT_EOT_AMT /* 가산금기말금액 */
-             , ADAMT_DDCTAM /* 가산금공제금액 */
-             , ADAMT_RFND_AMT /* 가산금환불금액 */
-             , ADAMT_THM_AMT /* 가산금당월금액 */
-             , RENTAL_RES_BOR_AMT /* 렌탈잔여위약금액 */
-             , RENTAL_RGST_COST_BOR_AMT /* 렌탈등록비위약금액 */
-             , DSC_CS_BOR_AMT /* 할인비용위약금액 */
-             , CSMB_CS_BOR_AMT /* 소모품비용위약금액 */
-             , RSTL_BOR_AMT /* 재약정위약금액 */
-             , P_BOR_AMT /* 포인트위약금액 */
-             , REQD_CS_BOR_AMT /* 철거비용위약금액 */
-             , ETC_BOR_AMT1 /* 기타위약금액1 */
-             , ETC_BOR_AMT2 /* 기타위약금액2 */
-             , THM_ADN_SV_UC_AMT /* 당월부가서비스미수금액 */
-             , ETC_CN1 /* 기타내용1 */
-             , ETC_CN2 /* 기타내용2 */
-             , ETC_CN3 /* 기타내용3 */
-             , AUTO_CRT_YN /* 자동생성여부 */
-             , SL_CTR_AK_PRTNR_NO /* 매출조정요청파트너번호 */
-             , SL_CTR_RSON_CN /* 매출조정사유내용 */
-             , RTNGD_QTY /* 반품수량 */
-             , DTA_DL_YN /* 데이터삭제여부 */
-            <include refid="COMMON.insertSystemField"/>)
-        SELECT T1.CNTR_NO /* 계약번호 */
-             , T1.CNTR_SN /* 계약일련번호 */
-             , 1 AS CH_SN /* CH_SN-변경일련번호_NEW */
-             , '2000' AS CO_CD /* CO_CD-회사코드_NEW */
-             , T1.RQDT /* 요청일자 */
-             , T1.CAN_DT /* 취소일자 */
-             , T1.SELL_TP_CD /* 판매유형코드 */
-             , T1.PD_CD /* 상품코드 */
-             , T1.SELL_QTY /* 판매수량 */
-             , T1.SELL_AMT /* 판매금액 */
-             , T1.SELL_AMT_VAT /* 판매금액부가가치세 */
-             , T1.BFSVC_PRD_CD /* BS주기코드 */
-             , T1.USWY_TP_CD /* 용도유형코드 */
-             , T1.RENTAL_RGST_COST /* 렌탈등록비 */
-             , T1.RENTAL_RGST_COST_VAT /* 렌탈등록비부가가치세 */
-             , T1.RENTAL_AMT1 /* 렌탈금액1 */
-             , T1.RENTAL_PTRM1 /* 렌탈기간1 */
-             , T1.RENTAL_AMT2 /* 렌탈금액2 */
-             , T1.RENTAL_PTRM2 /* 렌탈기간2 */
-             , T1.TOT_RENTAL_AMT /* 총렌탈금액 */
-             , T1.TOT_RENTAL_PTRM /* 총렌탈기간 */
-             , T1.DSCR /* 할인율 */
-             , T1.DSC_AMT /* 할인금액 */
-             , T1.TOT_CNTR_AMT /* 총계약금액 */
-             , T1.RENTAL_NMN_N /* 렌탈차월수 */
-             , T1.RENTAL_DC /* 렌탈일수 */
-             , T1.SL_DC /* 매출일수 */
-             , T1.EXMPT_YN /* 면책여부 */
-             , T1.CSMB_CS_EXMPT_YN /* 소모품비용면책여부 */
-             , T1.REQD_CS_EXMPT_YN /* 철거비용면책여부 */
-             , T1.REQD_RCVRY_AK_YN /* 철거복구요청여부 */
-             , 0 AS PRGS_NMN_N /* PRGS_NMN_N-진행차월수_TO-BE */
-             , 0 AS SPP_NMN_N /* SPP_NMN_N-배송차월수_TO-BE */
-             , T1.PD_USE_DC /* 상품사용일수 */
-             , T1.PD_GD_CD /* 상품등급코드 */
-             , T1.NOM_SL_AMT /* 정상매출금액 */
-             , T1.SPMT_SL_AMT /* 추가매출금액 */
-             , T1.NOM_DSC_AMT /* 정상할인금액 */
-             , T1.SPMT_DSC_AMT /* 추가할인금액 */
-             , T1.SL_CTR_AMT /* 매출조정금액 */
-             , T1.CAN_CTR_AMT /* 취소조정금액 */
-             , T1.SL_SUM_AMT /* 매출합계금액 */
-             , T1.SL_SUM_VAT /* 매출합계부가가치세 */
-             , T1.SL_AGG_AMT /* 매출누계금액 */
-             , T1.SL_AGG_AMT_VAT /* 매출누계금액부가가치세 */
-             , T1.DSC_AGG_AMT /* 할인누계금액 */
-             , T1.CTR_AGG_AMT /* 조정누계금액 */
-             , T1.PRM_BTD_AMT /* 선납기초금액 */
-             , T1.PRPD_BTD_AMT /* 선수기초금액 */
-             , T1.TOT_PRPD_AMT /* 총선수금액 */
-             , T1.SL_DP_AMT /* 매출입금금액 */
-             , T1.SL_DP_AGG_AMT /* 매출입금누계금액 */
-             , T1.UC_AMT /* 미수금액 */
-             , T1.DLQ_AMT /* 연체금액 */
-             , T1.PRM_RFND_AMT /* 선납환불금액 */
-             , T1.PRPD_RFND_AMT /* 선수환불금액 */
-             , T1.RENTAL_RGST_COST_RFND_AMT /* 렌탈등록비환불금액 */
-             , T1.RENTAL_RGST_COST_RFND_AMT_VAT /* 렌탈등록비환불금액부가가치세 */
-             , T1.BOR_AMT /* 위약금액 */
-             , T1.TOT_RFND_AMT /* 총환불금액 */
-             , T1.LS_RNTF /* 분실손료 */
-             , T1.P_BTD_AMT /* 포인트기초금액 */
-             , T1.P_DP_AMT /* 포인트입금금액 */
-             , T1.P_RFND_AMT /* 포인트환불금액 */
-             , T1.P_SL_AMT /* 포인트매출금액 */
-             , T1.P_EOT_AMT /* 포인트기말금액 */
-             , T1.ADAMT_BTD_AMT /* 가산금기초금액 */
-             , T1.ADAMT_THM_OC_AMT /* 가산금당월발생금액 */
-             , T1.ADAMT_DP_RPLC_AMT /* 가산금입금대체금액 */
-             , T1.ADAMT_EOT_AMT /* 가산금기말금액 */
-             , T1.ADAMT_DDCTAM /* 가산금공제금액 */
-             , T1.ADAMT_RFND_AMT /* 가산금환불금액 */
-             , T1.ADAMT_THM_AMT /* 가산금당월금액 */
-             , T1.RENTAL_RES_BOR_AMT /* 렌탈잔여위약금액 */
-             , T1.RENTAL_RGST_COST_BOR_AMT /* 렌탈등록비위약금액 */
-             , T1.DSC_CS_BOR_AMT /* 할인비용위약금액 */
-             , T1.CSMB_CS_BOR_AMT /* 소모품비용위약금액 */
-             , T1.RSTL_BOR_AMT /* 재약정위약금액 */
-             , T1.P_BOR_AMT /* 포인트위약금액 */
-             , T1.REQD_CS_BOR_AMT /* 철거비용위약금액 */
-             , T1.ETC_BOR_AMT1 /* 기타위약금액1 */
-             , T1.ETC_BOR_AMT2 /* 기타위약금액2 */
-             , T1.THM_ADN_SV_UC_AMT /* 당월부가서비스미수금액 */
-             , 'U' AS ETC_CN1 /* ETC_CN1-기타내용1_NEW */
-             , '' AS ETC_CN2 /* ETC_CN2-기타내용2_NEW */
-             , 'KF' AS ETC_CN3 /* ETC_CN3-기타내용3_NEW */
-             , 'N' AS AUTO_CRT_YN /* AUTO_CRT_YN-자동생성여부_TO-BE */
-             , '' AS SL_CTR_AK_PRTNR_NO /* SL_CTR_AK_PRTNR_NO-매출조정요청파트너번호_NEW_조정 요청자 */
-             , '' AS SL_CTR_RSON_CN /* SL_CTR_RSON_CN_매출조정사유내용_NEW */
-             , 0 AS RTNGD_QTY /* RTNGD_QTY_반품수량_TO-BE */
-             , 'N' AS DTA_DL_YN /* DTA_DL_YN-데이터삭제여부 */
-            <include refid="COMMON.insertSystemFieldValue"/>
-          FROM TB_CBBO_WELLS_AUTH_RSG_IZ T1
-        /* 계약기본-상세 */
-         INNER JOIN TB_SSCT_CNTR_DTL T2
-            ON 1 = 1
-           AND T1.CNTR_NO = T2.CNTR_NO
-           AND T1.CNTR_SN = T2.CNTR_SN
-        /* 매출실적 */
-          LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS T3
-            ON T3.PERF_YM = SUBSTR(#{baseDt}, 0, 6) /* 직권해지일자 */
-           AND T1.CNTR_NO = T3.CNTR_NO
-           AND T1.CNTR_SN = T3.CNTR_SN
-        /* 당월입금정보 */
-          LEFT OUTER JOIN LATERAL ( SELECT SUM(CASE WHEN DP_DV_CD = '1' THEN RVE_AMT ELSE 0 END) AS RVE_AMT
-                                         , SUM(CASE WHEN DP_DV_CD = '2' THEN RVE_AMT ELSE 0 END) AS RFND_AMT
-                                      FROM TB_RVDW_RVE_DTL J1 /* 수납상게 */
-                                     WHERE 1 = 1
-                                       AND J1.RVE_DT BETWEEN SUBSTR(#{baseDt} , 0, 6) || '01' AND SUBSTR(#{baseDt} , 0, 6) || '31' /* 직권해지일자 */
-                                       AND J1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
-                                       AND J1.CNTR_NO = T1.CNTR_NO
-                                       AND J1.CNTR_SN = T1.CNTR_SN) T4
-            ON 1 = 1
-         WHERE 1 = 1
-           AND T1.SELL_TP_CD IN ('2','6') /* 판매유형코드 */
-           AND T1.AUTH_RSG_EXP_YN = 'Y' /* 직권해지예정여부 */
-           AND T1.AUTH_RSG_CNFM_YN != 'Y' /* 직권해지확정여부 */
-           AND T1.AUTH_RSG_EXCD_RQR_PRTNR_NO IS NULL /* 직권해지제외요청자파트너번호 */
-        /* 기존에 등록된 대상 제외 */
-           AND NOT EXISTS (SELECT 1
-                             FROM TB_CBBO_WELLS_AUTH_RSG_CAN_IZ Z1 /* T:WELLS직권해지취소내역 */
-                            WHERE 1 = 1
-                              AND DTA_DL_YN = 'N'
-                              AND Z1.CNTR_NO = T1.CNTR_NO
-                              AND Z1.CNTR_SN = T1.CNTR_SN )
-        /* -- 총미납금 0원 제외 */
-           AND T1.TOT_NPD_AMT - (NVL(T1.PRPD_BTD_AMT,0) + NVL(RVE_AMT,0) - NVL(RFND_AMT,0) ) > 0
-           AND T1.BASE_YM = SUBSTR(#{baseDt}, 0, 6) /* 직권해지일자 */
-    </insert>
-
     <select id="selectRentalResignConfirms" resultType="com.kyowon.sms.wells.web.bond.consultation.dvo.WbncAuthorityResignIzDvo">
         SELECT A.CNTR_NO
              , A.CNTR_SN
@@ -1484,6 +1294,14 @@
         AND A.BASE_YM = SUBSTR(#{baseDt},1,6)
         AND A.AUTH_RSG_EXP_YN = 'Y'
         AND A.AUTH_RSG_CNFM_YN = 'Y'
+        AND EXISTS (
+                        SELECT 1
+                          FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:계약해지처리내역 */
+                         WHERE 1 = 1
+                           AND DTA_DL_YN = 'N'
+                           AND Z1.CNTR_NO = A.CNTR_NO
+                           AND Z1.CNTR_SN = A.CNTR_SN
+                      )
     </select>
 
     <select id="selectRentalResignExpectedSmsCount" resultType="Integer">
@@ -1569,4 +1387,216 @@
        UPDATE SET MRG.AUTH_RSG_EXCD_RQR_PRTNR_NO = CASE WHEN SRC.BND_STRT_YN = 'N' THEN SRC.AUTH_RSG_EXCD_RQR_PRTNR_NO ELSE '' END
                  ,MRG.AUTH_RSG_EXCD_RSON_CD = CASE WHEN SRC.BND_STRT_YN = 'N' THEN SRC.AUTH_RSG_EXCD_RSON_CD ELSE '' END
 	</update>
+
+    <insert id="insertRentalCntrResignExpctCancel">
+        /*
+        --------------------------------------------------------------
+        -- 계약해지처리내역 등록
+        --------------------------------------------------------------
+        */
+        INSERT INTO TB_SSCT_CNTR_RSG_PROCS_IZ ( /* 계약해지처리내역 */
+             CNTR_NO   /* 계약번호 */
+            ,CNTR_SN   /* 계약일련번호 */
+            ,SELL_TP_CD   /* 판매유형코드 */
+            ,SELL_TP_DTL_CD   /* 판매유형상세코드 */
+            ,PD_CD   /* 상품코드 */
+            ,PRGS_NMN_N   /* 진행차월수 */
+            ,CNTR_PASG_DC   /* 계약경과일수 */
+            ,SPP_NMN_N   /* 배송차월수 */
+            ,RTNGD_QTY   /* 반품수량 */
+            ,SL_DC   /* 매출일수 */
+            ,NOM_SL_AMT   /* 정상매출금액 */
+            ,SPMT_SL_AMT   /* 추가매출금액 */
+            ,NOM_DSC_AMT   /* 정상할인금액 */
+            ,SPMT_DSC_AMT   /* 추가할인금액 */
+            ,SL_CTR_AMT   /* 매출조정금액 */
+            ,CAN_CTR_AMT   /* 취소조정금액 */
+            ,SL_SUM_AMT   /* 매출합계금액 */
+            ,SL_SUM_VAT   /* 매출합계부가가치세 */
+            ,SL_AGG_AMT   /* 매출누계금액 */
+            ,SL_AGG_AMT_VAT   /* 매출누계금액부가가치세 */
+            ,DSC_AGG_AMT   /* 할인누계금액 */
+            ,CTR_AGG_AMT   /* 조정누계금액 */
+            ,NOM_INT_AMT   /* 정상이자금액 */
+            ,INT_CTR_AMT   /* 이자조정금액 */
+            ,INT_SUM_AMT   /* 이자합계금액 */
+            ,INT_VAT   /* 이자부가가치세 */
+            ,INT_AGG_AMT   /* 이자누계금액 */
+            ,INT_AGG_VAT   /* 이자누계부가가치세 */
+            ,INT_DSC_AGG_AMT   /* 이자할인누계금액 */
+            ,THM_PAIAM   /* 당월원리금 */
+            ,THM_SV_AMT   /* 당월서비스금액 */
+            ,SL_BLAM   /* 매출잔액 */
+            ,ADN_SV_SPMT_SL_AMT   /* 부가서비스추가매출금액 */
+            ,PRM_BTD_AMT   /* 선납기초금액 */
+            ,PRPD_BTD_AMT   /* 선수기초금액 */
+            ,EOT_ATAM   /* 기말선수금 */
+            ,TOT_PRPD_AMT   /* 총선수금액 */
+            ,SL_DP_AMT   /* 매출입금금액 */
+            ,SL_DP_AGG_AMT   /* 매출입금누계금액 */
+            ,UC_AMT   /* 미수금액 */
+            ,DLQ_AMT   /* 연체금액 */
+            ,RSG_APLC_DT   /* 해지신청일자 */
+            ,RSG_FSH_DT   /* 해지완료일자 */
+            ,CNTR_STAT_CH_RSON_CD   /* 계약상태변경사유코드 */
+            ,CCAM_EXMPT_DV_CD   /* 위약금면책구분코드 */
+            ,CSMB_CS_EXMPT_DV_CD   /* 소모품비용면책구분코드 */
+            ,REQD_CS_EXMPT_DV_CD   /* 철거비용면책구분코드 */
+            ,REQD_AK_RCVRY_DV_CD   /* 철거요청복구구분코드 */
+            ,REQD_FSH_RCVRY_DV_CD   /* 철거완료복구구분코드 */
+            ,PD_USE_DC   /* 상품사용일수 */
+            ,PD_GD_CD   /* 상품등급코드 */
+            ,PRM_RFND_AMT   /* 선납환불금액 */
+            ,PRPD_RFND_AMT   /* 선수환불금액 */
+            ,DSC_DDCTAM   /* 할인공제금액 */
+            ,FILT_DDCTAM   /* 필터공제금액 */
+            ,RENTAL_RGST_COST_RFND_AMT   /* 렌탈등록비환불금액 */
+            ,RENTAL_RGST_COST_RFND_AMT_VAT   /* 렌탈등록비환불금액부가가치세 */
+            ,BOR_AMT   /* 위약금액 */
+            ,TOT_RFND_AMT   /* 총환불금액 */
+            ,LS_RNTF   /* 분실손료 */
+            ,MLG_BTD_PRPD_AMT   /* 마일리지기초선수금액 */
+            ,MLG_SL_AMT   /* 마일리지매출금액 */
+            ,MLG_EOT_PRPD_AMT   /* 마일리지기말선수금액 */
+            ,ADAMT_BTD_AMT   /* 가산금기초금액 */
+            ,ADAMT_DP_RPLC_AMT   /* 가산금입금대체금액 */
+            ,ADAMT_EOT_AMT   /* 가산금기말금액 */
+            ,ADAMT_DDCTAM   /* 가산금공제금액 */
+            ,ADAMT_THM_AMT   /* 가산금당월금액 */
+            ,CCAM_RES_AMT1   /* 위약금잔여금액1 */
+            ,RENTAL_RGST_COST_BOR_AMT1   /* 렌탈등록비위약금액1 */
+            ,DSC_CS_BOR_AMT1   /* 할인비용위약금액1 */
+            ,CSMB_COST_BOR_AMT1   /* 소모품비위약금액1 */
+            ,RSTL_BOR_AMT1   /* 재약정위약금액1 */
+            ,P_BOR_AMT1   /* 포인트위약금액1 */
+            ,REQD_CS_BOR_AMT1   /* 철거비용위약금액1 */
+            ,CCAM_RES_AMT2   /* 위약금잔여금액2 */
+            ,RENTAL_RGST_COST_BOR_AMT2   /* 렌탈등록비위약금액2 */
+            ,DSC_CS_BOR_AMT2   /* 할인비용위약금액2 */
+            ,CSMB_COST_BOR_AMT2   /* 소모품비위약금액2 */
+            ,RSTL_BOR_AMT2   /* 재약정위약금액2 */
+            ,P_BOR_AMT2   /* 포인트위약금액2 */
+            ,REQD_CS_BOR_AMT2   /* 철거비용위약금액2 */
+            ,RSG_CRT_DV_CD   /* 해지생성구분코드 */
+            ,BLK_AUTO_CRT_YN   /* 일괄자동생성여부 */
+            ,SL_CTR_RQR_ID   /* 매출조정요청자ID */
+            ,SL_CTR_RMK_CN   /* 매출조정비고내용 */
+            ,CNTR_CH_RCP_ID   /* 계약변경접수ID */
+            ,ICHR_OG_TP_CD   /* 담당조직유형코드 */
+            ,ICHR_PRTNR_NO   /* 담당파트너번호 */
+            ,DTA_DL_YN   /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField"/>)
+            SELECT T1.CNTR_NO /* 계약번호 */
+                 , T1.CNTR_SN /* 계약일련번호 */
+                 , T1.SELL_TP_CD   /* 판매유형코드 */
+                 , T2.SELL_TP_DTL_CD   /* 판매유형상세코드 */
+                 , T1.PD_CD /* 상품코드 */
+                 , 0 AS PRGS_NMN_N /* PRGS_NMN_N-진행차월수_TO-BE */
+                 , 0 AS CNTR_PASG_DC   /* 계약경과일수-  */
+                 , 0 AS SPP_NMN_N /* SPP_NMN_N-배송차월수_TO-BE */
+                 , 0 AS RTNGD_QTY /* RTNGD_QTY_반품수량_TO-BE */
+                 , T1.SL_DC /* 매출일수 */
+                 , T1.NOM_SL_AMT /* 정상매출금액 */
+                 , T1.SPMT_SL_AMT /* 추가매출금액 */
+                 , T1.NOM_DSC_AMT /* 정상할인금액 */
+                 , T1.SPMT_DSC_AMT /* 추가할인금액 */
+                 , T1.SL_CTR_AMT /* 매출조정금액 */
+                 , T1.CAN_CTR_AMT /* 취소조정금액 */
+                 , T1.SL_SUM_AMT /* 매출합계금액 */
+                 , T1.SL_SUM_VAT /* 매출합계부가가치세 */
+                 , T1.SL_AGG_AMT /* 매출누계금액 */
+                 , T1.SL_AGG_AMT_VAT /* 매출누계금액부가가치세 */
+                 , T1.DSC_AGG_AMT /* 할인누계금액 */
+                 , T1.CTR_AGG_AMT /* 조정누계금액 */
+                 ,0 AS NOM_INT_AMT   /* 정상이자금액 */
+                 ,0 AS INT_CTR_AMT   /* 이자조정금액 */
+                 ,0 AS INT_SUM_AMT   /* 이자합계금액 */
+                 ,0 AS INT_VAT   /* 이자부가가치세 */
+                 ,0 AS INT_AGG_AMT   /* 이자누계금액 */
+                 ,0 AS INT_AGG_VAT   /* 이자누계부가가치세 */
+                 ,0 AS INT_DSC_AGG_AMT   /* 이자할인누계금액 */
+                 ,0 AS THM_PAIAM   /* 당월원리금 */
+                 ,0 AS THM_SV_AMT   /* 당월서비스금액 */
+                 ,0 AS SL_BLAM   /* 매출잔액 */
+                 ,0 AS ADN_SV_SPMT_SL_AMT   /* 부가서비스추가매출금액 */
+                 , T1.PRM_BTD_AMT /* 선납기초금액 */
+                 , T1.PRPD_BTD_AMT /* 선수기초금액 */
+                 , 0 AS EOT_ATAM   /* 기말선수금  */
+                 , T1.TOT_PRPD_AMT /* 총선수금액 */
+                 , T1.SL_DP_AMT /* 매출입금금액 */
+                 , T1.SL_DP_AGG_AMT /* 매출입금누계금액 */
+                 , T1.UC_AMT /* 미수금액 */
+                 , T1.DLQ_AMT /* 연체금액 */
+                 , T1.RQDT AS RSG_APLC_DT   /* 해지신청일자  */
+                 , T1.CAN_DT AS RSG_FSH_DT   /* 해지완료일자  */
+                 , '78' AS CNTR_STAT_CH_RSON_CD   /* 계약상태변경사유코드  */
+                 , '1' AS CCAM_EXMPT_DV_CD   /* 위약금면책구분코드  */
+                 , '' AS CSMB_CS_EXMPT_DV_CD   /* 소모품비용면책구분코드  */
+                 , '' AS REQD_CS_EXMPT_DV_CD   /* 철거비용면책구분코드  */
+                 , '' AS REQD_AK_RCVRY_DV_CD   /* 철거요청복구구분코드  */
+                 , '' AS REQD_FSH_RCVRY_DV_CD   /* 철거완료복구구분코드  */
+                 , T1.PD_USE_DC /* 상품사용일수 */
+                 , T1.PD_GD_CD /* 상품등급코드 */
+                 , T1.PRM_RFND_AMT /* 선납환불금액 */
+                 , T1.PRPD_RFND_AMT /* 선수환불금액 */
+                 , 0 AS DSC_DDCTAM   /* 할인공제금액  */
+                 , 0 AS FILT_DDCTAM   /* 필터공제금액  */
+                 , T1.RENTAL_RGST_COST_RFND_AMT /* 렌탈등록비환불금액 */
+                 , T1.RENTAL_RGST_COST_RFND_AMT_VAT /* 렌탈등록비환불금액부가가치세 */
+                 , T1.BOR_AMT /* 위약금액 */
+                 , T1.TOT_RFND_AMT /* 총환불금액 */
+                 , T1.LS_RNTF /* 분실손료 */
+                 , 0 AS MLG_BTD_PRPD_AMT   /* 마일리지기초선수금액  */
+                 , 0 AS MLG_SL_AMT   /* 마일리지매출금액  */
+                 , 0 AS MLG_EOT_PRPD_AMT   /* 마일리지기말선수금액  */
+                 , T1.ADAMT_BTD_AMT /* 가산금기초금액 */
+                 , T1.ADAMT_DP_RPLC_AMT /* 가산금입금대체금액 */
+                 , T1.ADAMT_EOT_AMT /* 가산금기말금액 */
+                 , T1.ADAMT_DDCTAM /* 가산금공제금액 */
+                 , T1.ADAMT_THM_AMT /* 가산금당월금액 */
+                 , 0 AS CCAM_RES_AMT1   /* 위약금잔여금액1 - ASIS_ONLY */
+                 , 0 AS RENTAL_RGST_COST_BOR_AMT1   /* 렌탈등록비위약금액1 - ASIS_ONLY */
+                 , 0 AS DSC_CS_BOR_AMT1   /* 할인비용위약금액1 - ASIS_ONLY */
+                 , 0 AS CSMB_COST_BOR_AMT1   /* 소모품비위약금액1 - ASIS_ONLY */
+                 , 0 AS RSTL_BOR_AMT1   /* 재약정위약금액1 - ASIS_ONLY */
+                 , 0 AS P_BOR_AMT1   /* 포인트위약금액1 - ASIS_ONLY */
+                 , 0 AS REQD_CS_BOR_AMT1   /* 철거비용위약금액1 - ASIS_ONLY */
+                 , 0 AS CCAM_RES_AMT2   /* 위약금잔여금액2 - ASIS_ONLY */
+                 , 0 AS RENTAL_RGST_COST_BOR_AMT2   /* 렌탈등록비위약금액2 - ASIS_ONLY */
+                 , 0 AS DSC_CS_BOR_AMT2   /* 할인비용위약금액2  */
+                 , 0 AS CSMB_COST_BOR_AMT2   /* 소모품비위약금액2  */
+                 , 0 AS RSTL_BOR_AMT2   /* 재약정위약금액2  */
+                 , 0 AS P_BOR_AMT2   /* 포인트위약금액2  */
+                 , 0 AS REQD_CS_BOR_AMT2   /* 철거비용위약금액2  */
+                 , 'KF' AS RSG_CRT_DV_CD   /* 해지생성구분코드  */
+                 , 'U' AS BLK_AUTO_CRT_YN   /* 일괄자동생성여부  */
+                 , '' AS SL_CTR_RQR_ID   /* 매출조정요청자ID  */
+                 , '' AS SL_CTR_RMK_CN   /* 매출조정비고내용  */
+                 , '' AS CNTR_CH_RCP_ID   /* 계약변경접수ID  */
+                 , 'HR1' AS ICHR_OG_TP_CD   /* 담당조직유형코드  */
+                 , #{session.employeeIDNumber} AS ICHR_PRTNR_NO   /* 담당파트너번호  */
+                 , 'N' AS DTA_DL_YN /* DTA_DL_YN-데이터삭제여부 */
+                <include refid="COMMON.insertSystemFieldValue"/>
+              FROM TB_CBBO_WELLS_AUTH_RSG_IZ T1
+             /* 계약기본-상세 */
+             INNER JOIN TB_SSCT_CNTR_DTL T2
+                ON 1 = 1
+               AND T1.CNTR_NO = T2.CNTR_NO
+               AND T1.CNTR_SN = T2.CNTR_SN
+             WHERE 1 = 1
+               AND T1.BASE_YM = TO_CHAR(TO_DATE(#{baseDt}),'YYYYMM')
+               AND T1.SELL_TP_CD IN ('2','6') /* 판매유형코드 */
+               AND T1.AUTH_RSG_EXP_YN = 'Y' /* 직권해지예정여부 */
+               AND T1.AUTH_RSG_CNFM_YN = 'Y' /* 직권해지확정여부 */
+               AND T1.AUTH_RSG_EXCD_RQR_PRTNR_NO IS NULL /* 직권해지제외요청자파트너번호 */
+               /* 기존에 등록된 대상 제외 */
+               AND NOT EXISTS (
+                                SELECT 1
+                                  FROM TB_SSCT_CNTR_RSG_PROCS_IZ Z1 /* T:계약해지처리내역 */
+                                 WHERE 1 = 1
+                                   AND DTA_DL_YN = 'N'
+                                   AND Z1.CNTR_NO = T1.CNTR_NO
+                                   AND Z1.CNTR_SN = T1.CNTR_SN
+                              )
+    </insert>
 </mapper>

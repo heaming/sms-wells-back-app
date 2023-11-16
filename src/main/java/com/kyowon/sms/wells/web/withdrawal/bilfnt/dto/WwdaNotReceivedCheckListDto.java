@@ -54,11 +54,11 @@ public class WwdaNotReceivedCheckListDto {
         String rveAmt,
         String dpMesCd
     ) {
-        public SearchAftnSlPerfCheckInqrRes {
-            if (!StringUtil.isEmpty(cntrNo) && !StringUtil.isEmpty(cntrSn)) {
-                cntr = cntrNo + "-" + cntrSn;
-            }
-        }
+//        public SearchAftnSlPerfCheckInqrRes {
+//            if (!StringUtil.isEmpty(cntrNo) && !StringUtil.isEmpty(cntrSn)) {
+//                cntr = cntrNo + "-" + cntrSn;
+//            }
+//        }
     }
 
     @ApiModel("WwdaNotReceivedCheckListDto-SearchResultBundleErrorRes")

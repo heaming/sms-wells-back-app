@@ -2,33 +2,58 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbGiroPlaceReceivedMgtMapper">
     <select id="selectGiroPlaceReceived" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroPlaceReceivedMgtDto$FindRes">
-       SELECT
-               T1.CNTR_NO
-             , T1.CNTR_SN
-             , T1.GIRO_BIZ_DV_CD --지로업무구분코드 
-             , T1.GIRO_BIZ_TP_CD --지로업무유형코드 판매유형
-             , T1.CST_FNM --고객명                          
-             , T1.GIRO_PLRCV_ADR_ID --주소ID
-             , T1.GIRO_PLRCV_RGST_DT --등록일자
-             , T1.FST_RGST_USR_ID --업무담당  
-             , T2.RNADR AS BAS_ADR /*주소*/          
-             , T2.RDADR AS DTL_ADR /*상세주소*/
-             , T2.NEW_ADR_ZIP AS ZIP /*우편번호*/
-          FROM TB_RVDW_GIRO_PLRCV_BAS T1
-         INNER JOIN TB_GBCO_ADR_BAS T2
-            ON T2.ADR_ID = T1.GIRO_PLRCV_ADR_ID
-         WHERE 1 = 1         
-           AND CNTR_NO = #{cntrNo}
-           AND CNTR_SN = #{cntrSn}
-           AND T1.DTA_DL_YN = 'N'          
-           AND T2.DTA_DL_YN = 'N' 
+          SELECT MM1.CNTR_NO
+               , MM1.CNTR_SN
+               , MM1.GIRO_BIZ_DV_CD
+               , MM1.GIRO_BIZ_TP_CD
+               , MM1.CST_FNM
+               , MM1.GIRO_PLRCV_ADR_ID
+               , MM1.GIRO_PLRCV_RGST_DT
+               , MM1.FST_RGST_USR_ID
+               , MM2.RNADR AS BAS_ADR /*주소*/
+               , MM2.RDADR AS DTL_ADR /*상세주소*/
+               , MM2.NEW_ADR_ZIP AS ZIP /*우편번호*/
+            FROM (
+               SELECT M1.CNTR_NO
+                    , NVL(M2.CNTR_SN , #{cntrSn}) AS CNTR_SN
+                    , NVL(M2.GIRO_BIZ_DV_CD , '2' ) AS GIRO_BIZ_DV_CD  --지로업무구분코드
+                    , NVL(M2.GIRO_BIZ_TP_CD , '2' ) AS GIRO_BIZ_TP_CD --지로업무유형코드 판매유형
+                    , NVL(M2.CST_FNM , M1.RCGVP_KNM) AS CST_FNM --고객명
+                    , NVL(M2.GIRO_PLRCV_ADR_ID , M1.ADR_ID ) AS GIRO_PLRCV_ADR_ID   --주소ID
+                    , NVL(M2.GIRO_PLRCV_RGST_DT , M1.FST_RGST_DTM) AS GIRO_PLRCV_RGST_DT  --등록일자
+                    , NVL(M2.FST_RGST_USR_ID , M1.FST_RGST_USR_ID) AS  FST_RGST_USR_ID --업무담당
+                 FROM (
+                       SELECT S1.CNTR_NO
+                            , S1.ADR_ID
+                            , S1.FST_RGST_DTM
+                            , S1.RCGVP_KNM
+                            , S1.FST_RGST_USR_ID
+                         FROM TB_SSCT_CNTR_ADRPC_BAS S1
+                        WHERE 1 = 1
+                          AND S1.CNTR_NO     = #{cntrNo}
+                          AND (S1.CNTRT_REL_CD IN ('02','00') OR S1.CNTRT_REL_CD IS NULL )
+                          AND S1.DTA_DL_YN = 'N'
+                        ORDER BY S1.ADR_ID DESC
+                 ) M1
+                 LEFT OUTER JOIN TB_RVDW_GIRO_PLRCV_BAS M2
+                   ON M2.CNTR_NO = M1.CNTR_NO
+                  AND M2.CNTR_SN = #{cntrSn}
+                  AND M2.DTA_DL_YN = 'N'
+                 WHERE 1 = 1
+                   AND ROWNUM = 1
+            ) MM1
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS MM2
+           ON MM2.ADR_ID = MM1.GIRO_PLRCV_ADR_ID
+          AND MM2.DTA_DL_YN = 'N'
+
+
     </select>
-    
+
     <insert id="insertGiroPlaceReceived">
         INSERT INTO TB_RVDW_GIRO_PLRCV_BAS(
             CNTR_NO
           , CNTR_SN
-          , GIRO_BIZ_DV_CD --지로업무구분코드 
+          , GIRO_BIZ_DV_CD --지로업무구분코드
           , GIRO_BIZ_TP_CD --지로업무유형코드 판매유형
           , CST_FNM --고객명
           , GIRO_PLRCV_ADR_ID /* 주소 ID*/
@@ -39,27 +64,53 @@
           , #{cntrSn}
           , #{giroBizDvCd}
           , #{giroBizTpCd}
-          , #{cstFnm}   
+          , #{cstFnm}
           , #{giroPlrcvAdrId}
-          , #{giroPlrcvRgstDt}          
+          , #{giroPlrcvRgstDt}
           <include refid="COMMON.insertSystemFieldValue" />
         )
-        
+
     </insert>
-    
+
     <update id="updateGiroPlaceReceived">
-        UPDATE TB_RVDW_GIRO_PLRCV_BAS 
-           SET GIRO_PLRCV_ADR_ID = #{giroPlrcvAdrId} /* 주소 ID*/
-             , GIRO_PLRCV_RGST_DT = #{giroPlrcvRgstDt} /* 등록일자*/
-             <include refid="COMMON.updateSystemField"/>
-         WHERE CNTR_NO = #{cntrNo}
-           AND CNTR_SN = #{cntrSn}
+<!--        UPDATE TB_RVDW_GIRO_PLRCV_BAS-->
+<!--           SET GIRO_PLRCV_ADR_ID = #{giroPlrcvAdrId} /* 주소 ID*/-->
+<!--             , GIRO_PLRCV_RGST_DT = #{giroPlrcvRgstDt} /* 등록일자*/-->
+<!--             <include refid="COMMON.updateSystemField"/>-->
+<!--         WHERE CNTR_NO = #{cntrNo}-->
+<!--           AND CNTR_SN = #{cntrSn}-->
+        MERGE INTO TB_RVDW_GIRO_PLRCV_BAS S
+            USING DUAL
+               ON (    S.CNTR_NO = #{cntrNo}
+                   AND S.CNTR_SN = #{cntrSn})
+            WHEN MATCHED THEN
+                UPDATE SET GIRO_PLRCV_ADR_ID = #{giroPlrcvAdrId} /* 주소 ID*/
+                         , GIRO_PLRCV_RGST_DT = #{giroPlrcvRgstDt} /* 등록일자*/
+                         <include refid="COMMON.updateSystemField"/>
+            WHEN NOT MATCHED THEN
+                INSERT (CNTR_NO
+        	          , CNTR_SN
+        	          , GIRO_BIZ_DV_CD --지로업무구분코드
+        	          , GIRO_BIZ_TP_CD --지로업무유형코드 판매유형
+        	          , CST_FNM --고객명
+        	          , GIRO_PLRCV_ADR_ID /* 주소 ID*/
+        	          , GIRO_PLRCV_RGST_DT /* 등록일자*/
+        	          <include refid="COMMON.insertSystemField"/> )
+                VALUES (
+        	            #{cntrNo}
+        	          , #{cntrSn}
+        	          , #{giroBizDvCd}
+        	          , #{giroBizTpCd}
+        	          , #{cstFnm}
+        	          , #{giroPlrcvAdrId}
+        	          , #{giroPlrcvRgstDt}
+        	          <include refid="COMMON.insertSystemFieldValue" />)
     </update>
     <insert id="insertGiroPlaceReceivedHistory">
         INSERT INTO TB_RVDW_GIRO_PLRCV_BAS_HIST(
             CNTR_NO
           , CNTR_SN
-          , GIRO_BIZ_DV_CD --지로업무구분코드 
+          , GIRO_BIZ_DV_CD --지로업무구분코드
           , GIRO_BIZ_TP_CD --지로업무유형코드 판매유형
           , CST_FNM --고객명
           , GIRO_PLRCV_ADR_ID /* 주소 ID*/
@@ -71,21 +122,21 @@
           , #{cntrSn}
           , #{giroBizDvCd}
           , #{giroBizTpCd}
-          , #{cstFnm}   
+          , #{cstFnm}
           , #{giroPlrcvAdrId}
           , #{giroPlrcvRgstDt}
           , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
           <include refid="COMMON.insertSystemFieldValue" />
         )
-        
+
     </insert>
-    
+
     <select id="selectGiroPlaceDupliCationReceived" resultType="int">
-         SELECT 
-                COUNT(1)  
-           FROM TB_SSCT_CNTR_DTL 
+         SELECT
+                COUNT(1)
+           FROM TB_SSCT_CNTR_DTL
           WHERE CNTR_NO = #{cntrNo}
             AND CNTR_SN = #{cntrSn}
-            AND DTA_DL_YN = 'N'     
+            AND DTA_DL_YN = 'N'
     </select>
 </mapper>

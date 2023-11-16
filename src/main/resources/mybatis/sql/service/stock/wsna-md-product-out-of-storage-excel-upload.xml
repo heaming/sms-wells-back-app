@@ -2,11 +2,30 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMdProductOutOfStorageExcelUploadMapper">
     <select id="selectExistMdProductOutOfStorage" resultType="int">
+        WITH OJ_LIST AS
+        (
+           SELECT T1.CST_SV_ASN_NO    AS CST_SV_ASN_NO
+                , T1.CNTR_NO          AS CNTR_NO
+                , T1.CNTR_SN          AS CNTR_SN
+                , T1.SV_BIZ_DCLSF_CD  AS SV_BIZ_DCLSF_CD
+                , T2.WK_PRGS_STAT_CD  AS WK_PRGS_STAT_CD
+           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1        /* 고객서비스AS설치대상내역 */
+           INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2 /* 고객서비스AS설치배정내역 */
+            ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+            AND T2.DTA_DL_YN = 'N'
+           UNION ALL
+           SELECT T1.CST_SV_ASN_NO    AS CST_SV_ASN_NO
+                , T1.CNTR_NO          AS CNTR_NO
+                , T1.CNTR_SN          AS CNTR_SN
+                , T1.SV_BIZ_DCLSF_CD  AS SV_BIZ_DCLSF_CD
+                , T2.VST_PRGS_STAT_CD AS WK_PRGS_STAT_CD
+           FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ T1         /* 고객서비스BS대상내역 */
+           INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ  T2 /* 고객서비스BS배정내역 */
+            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+            AND T2.DTA_DL_YN = 'N'
+        )
         SELECT COUNT(1) AS CNT
-        FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1            /*고객서비스AS설치대상내역, AC211TB*/
-        INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2     /*고객서비스수행배정내역, AC221TB*/
-         ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
-         AND S2.DTA_DL_YN = 'N'
+        FROM OJ_LIST S1
         INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3         /*고객서비스작업결과내역, VS106TB*/
          ON S3.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
          AND S3.DTA_DL_YN = 'N'
@@ -27,18 +46,10 @@
          AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C2.VL_STRT_DTM AND C2.VL_END_DTM
          AND C2.DTA_DL_YN = 'N'
          AND C2.PD_REL_TP_CD = '05'
-        INNER JOIN T_CMY_USR_M U1                     /* 사용자기본 */
-         ON U1.TENANT_ID = 'TNT_WELLS'
-         AND U1.BASE_RLE_CD = 'W8030'
-         AND U1.USR_ID = S1.FST_RGST_USR_ID
-         AND U1.DEL_YN = 'N'
-        INNER JOIN T_CMP_USR_ACO_M U2                 /* 사용자계정기본 */
-         ON U2.USR_ID = U1.USR_ID
-         AND U2.DEL_YN = 'N'
        WHERE 1=1
         /* 출고구분 */
         AND S1.SV_BIZ_DCLSF_CD ='1112'
-        AND S2.WK_PRGS_STAT_CD = '20'
+        AND S1.WK_PRGS_STAT_CD = '20'
         AND S1.CST_SV_ASN_NO = #{cstSvAsnNo}
         AND S1.CNTR_NO = #{cntrNo}
         AND S1.CNTR_SN = #{cntrSn}

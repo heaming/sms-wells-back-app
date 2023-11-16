@@ -49,7 +49,8 @@ public interface WsniSidingServiceChangesMapper {
         String cntrNo,
         String cntrSn,
         String akSn,
-        String asAkDvCd
+        String asAkDvCd,
+        String choCapslCn
     );
 
     String selectAkSnMax(String cntrNo, String cntrSn);
@@ -61,13 +62,24 @@ public interface WsniSidingServiceChangesMapper {
         String asAkDvCd,
         String bfchPdCd,
         String afchPdCd,
-        String mtrProcsStatCd
+        String mtrProcsStatCd,
+        String akChdt,
+        String choCapslCn
     );
 
+    /**
+     * 정기배송 변경 대상 정보 조회
+     * @param cntrNo
+     * @param cntrSn
+     * @param asnOjYm
+     * @param afchPdCd
+     * @return
+     */
     WsniSidingServiceChangesDvo selectBsTarget(
         String cntrNo,
         String cntrSn,
-        String asnOjYm
+        String asnOjYm,
+        String afchPdCd
     );
 
     int updateStopNextSiding(String cntrNo, String cntrSn, String akChdt);

@@ -10,38 +10,41 @@ public class WbncContractDto {
 
     @ApiModel(value = "WbncContractDto-SearchReq")
     public record SearchReq(
-        String schClctamNo,
-        String schCstNm,
-        String schDlqMcntStrt,
-        String schDlqMcntEnd,
-        String schIstLocaraTno,
-        String schIstExnoEncr,
-        String schIstIdvTno, /* 설치전화번호 */
-        String schCntrNo,
-        String schCstNo,
-        String schBizDv,
-        String schIstCralLocaraTno,
-        String schIstMexnoEncr,
-        String schIstCralIdvTno, /* 설치휴대전화번호 */
-        String schCntrLocaraTno,
-        String schCntrExnoEncr,
-        String schCntrIdvTno, /* 계약전화번호 */
-        String schSfK,
-        String schCstDv,
-        String schOjBlamStrt,
-        String schOjBlamEnd,
-        String schCntrCralLocaraTno,
-        String schCntrMexnoEncr,
-        String schCntrCralIdvTno, /* 계약휴대전화번호 */
-        String schTfDtStrt,
-        String schTfDtEnd,
-        String schFntDv,
-        String schFntDtStrt,
-        String schFntDtEnd,
-        String schBilDv,
-        String schCstThmDp,
-        String schAuthRsgYn,
-        String schDv
+        String schClctamNo, /* 집금번호 */
+        String schCstNm, /* 고객명 */
+        String schDlqMcntStrt, /* form 연체개월 */
+        String schDlqMcntEnd, /* to 연체개월 */
+        String schIstLocaraTno, /* 설치전화번호1 */
+        String schIstExnoEncr, /* 설치전화번호2 */
+        String schIstIdvTno, /* 설치전화번호3 */
+        String schCntrDtlNo, /* 계약상세번호 */
+        String schCstNo, /* 고객번호 */
+        String schBizDv, /* 업무구분 */
+        String schIstCralLocaraTno, /* 설치휴대전화번호1 */
+        String schIstMexnoEncr, /* 설치휴대전화번호2 */
+        String schIstCralIdvTno, /* 설치휴대전화번호3 */
+        String schCntrLocaraTno, /* 전화번호1 */
+        String schCntrExnoEncr, /* 전화번호2 */
+        String schCntrIdvTno, /* 전화번호3 */
+        String schSfK, /* 세이프키 */
+        String schCstDv, /* 고객구분 */
+        String schOjBlamStrt, /* form 대상잔액 */
+        String schOjBlamEnd, /* to 대상잔액 */
+        String schCntrCralLocaraTno, /* 휴대전화번호1 */
+        String schCntrMexnoEncr, /* 휴대전화번호2 */
+        String schCntrCralIdvTno, /* 휴대전화번호3 */
+        String schTfDtStrt, /* from 이관일자 */
+        String schTfDtEnd, /* to 이관일자 */
+        String schFntDv, /* 이체구분 */
+        String schFntDtStrt, /* from 이체일자 */
+        String schFntDtEnd, /* to 이체일자 */
+        String schBilDv, /* 청구구분 */
+        String schCstThmDp, /* 고객당월입금 */
+        String schAuthRsgYn, /* 직권해지여부 */
+        String schDv1, /* 구분1 */
+        String schDv2, /* 구분2 */
+        String schDv3, /* 구분3 */
+        String schDv4 /* 구분4 */
     ) {
         public SearchReq {
             schIstExnoEncr = StringUtils.isNotEmpty(schIstExnoEncr) ? DbEncUtil.enc(schIstExnoEncr) : schIstExnoEncr;
@@ -93,7 +96,6 @@ public class WbncContractDto {
         String rtlfeIstm2, /* 렌탈료2할 */
         String promDt, /* 약속일자 */
         String dprNm, /* 입금자명 */
-        String cvcpInf, /* 민원정보 */
         String clctamPrtnrNo, /* 집금번호 */
         String clctamIchr, /* 집급담당 */
         String cntrCralLocaraTno,

@@ -25,4 +25,7 @@ public class WsniSidingServiceChangesDvo {
     String mexnoEncr;
     String cralIdvTno;
     String pdctPdCd;
+    String afchPdNm;
+    String mmMpyAmt;
+    String sppDuedt;
 }

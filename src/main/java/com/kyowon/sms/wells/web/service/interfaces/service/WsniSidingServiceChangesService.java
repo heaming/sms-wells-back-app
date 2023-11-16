@@ -1,5 +1,12 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbSeedingPackageChangeDto;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbSeedingPackageChangeService;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRegularBfsvcAsnDto;
@@ -15,14 +22,8 @@ import com.kyowon.sms.wells.web.service.visit.service.WsnbIndividualVisitPrdServ
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
 *
@@ -64,7 +65,7 @@ public class WsniSidingServiceChangesService {
             if (mapper.selectSidingAkCount(req.cntrNo(), req.cntrSn(), akSn, req.asAkDvCd(), req.akChdt()) > 0) {
                 mapper.updateSidingAk(
                     req.akChdt(), req.bfchPdCd(), req.afchPdCd(), req.mtrProcsStatCd(), req.cntrNo(), req.cntrSn(),
-                    akSn, req.asAkDvCd()
+                    akSn, req.asAkDvCd(), req.choCapslCn()
                 );
             } else {
                 akSn = mapper.selectAkSnMax(req.cntrNo(), req.cntrSn());
@@ -75,7 +76,9 @@ public class WsniSidingServiceChangesService {
                     req.asAkDvCd(),
                     req.bfchPdCd(),
                     req.afchPdCd(),
-                    req.mtrProcsStatCd()
+                    req.mtrProcsStatCd(),
+                    req.akChdt(),
+                    req.choCapslCn()
                 );
             }
         }
@@ -98,7 +101,6 @@ public class WsniSidingServiceChangesService {
         /*요청 구분에 따라 처리 - 1: 패키지변경, 4:다음회차 방문 중지*/
         //IF(P_REQ_GB = '1' AND P_DATA_STUS != '3') THEN
         if ("1".equals(req.asAkDvCd()) && !"3".equals(req.mtrProcsStatCd())) {
-
             /*방문주기 재생성(SP_LC_SERVICEVISIT_482_LST_I06)*/
             service1.processVisitPeriodRegen(
                 new WsnbIndividualVisitPrdDto.SearchProcessReq(
@@ -107,7 +109,7 @@ public class WsniSidingServiceChangesService {
                     req.akChdt(),
                     null,
                     req.akChdt(),
-                    null,
+                    req.akChdt().substring(0, 6), // 배정년월 설정
                     null,
                     null
                 )
@@ -116,7 +118,8 @@ public class WsniSidingServiceChangesService {
             WsniSidingServiceChangesDvo bsTargetDvo = mapper.selectBsTarget(
                 req.cntrNo(),
                 req.cntrSn(),
-                req.akChdt().substring(0, 6)
+                req.akChdt().substring(0, 6),
+                req.afchPdCd()
             );
             if (bsTargetDvo != null) {
                 /*고객 정기BS 삭제(SP_LC_SERVICEVISIT_482_LST_I07)*/
@@ -130,7 +133,7 @@ public class WsniSidingServiceChangesService {
                 /*고객 정기BS 배정(SP_LC_SERVICEVISIT_482_LST_I03)*/
                 service3.processRegularBfsvcAsn(
                     new WsncRegularBfsvcAsnDto.SaveProcessReq(
-                        bsTargetDvo.getAsnOjYm(), //row.getAsnOjYm(),
+                        req.akChdt().substring(0, 6),
                         SFLEXContextHolder.getContext().getUserSession().getUserId(),
                         req.cntrNo(),
                         req.cntrSn()
@@ -194,6 +197,7 @@ public class WsniSidingServiceChangesService {
         log.debug("cntrSn: " + req.cntrSn());
         log.debug("chPdCd: " + req.afchPdCd());
         log.debug("consPdList: " + consPdList);
+
         service4.saveSeedingPackageChanges(
             new WctbSeedingPackageChangeDto.SaveReq(
                 "1", req.cntrNo(), req.cntrSn(), req.afchPdCd(), consPdList

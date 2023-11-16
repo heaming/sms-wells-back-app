@@ -2,6 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaSeedingPackageCtrQtyRegMapper">
 
+    <select id="selectCnrSppDowDvCd" resultType="java.lang.String">
+        SELECT DISTINCT DOW_DV_CD   /* 요일구분코드, 0: 일요일, 6: 토요일 */
+          FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ   /* 모종센터배송요일내역 */
+         WHERE DTA_DL_YN    = 'N'
+           AND DG_GG_LCT_CD = #{dgGgLctCd}
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
+    </select>
+
     <select id="selectSeedingPackageCtrQtys" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingPackageCtrQtyRegDto$SearchRes">
           WITH TEMP_T AS
              (
@@ -38,8 +46,6 @@
                        INNER JOIN TB_SSCT_CNTR_DTL D7              /* 계약상세-웰스팜 */
                           ON D7.CNTR_NO = D6.OJ_DTL_CNTR_NO
                          AND D7.CNTR_SN = D6.OJ_DTL_CNTR_SN
-                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D8       /* 상품각사속성상세 */
-                          ON D8.PD_CD = D2.PD_CD
                        WHERE D1.DTA_DL_YN          = 'N'
                          AND D1.ITM_IOST_DV_CD     = '1'
                          AND D2.DTA_DL_YN          = 'N'
@@ -54,12 +60,19 @@
                          AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D6.VL_STRT_DTM AND D6.VL_END_DTM
                          AND D7.DTA_DL_YN          = 'N'
                          AND D7.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
-                         AND D8.DTA_DL_YN          = 'N'
-                         AND D8.PD_EXTS_PRP_GRP_CD = 'PART'
-                         AND D8.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
                          AND D1.CAN_DT IS NULL
                          AND D1.OSTR_CNFMDT IS NULL
                          AND D5.REQD_DT IS NULL
+                         AND EXISTS ( SELECT 1
+                                        FROM TB_PDBS_PD_REL S1
+                                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                          ON S2.PD_CD = S1.BASE_PD_CD
+                                       WHERE S1.DTA_DL_YN          = 'N'
+                                         AND S2.DTA_DL_YN          = 'N'
+                                         AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                         AND S2.PD_PRP_VAL12       = '1'   /* 모종 */
+                                         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
+                                         AND S1.OJ_PD_CD           = D2.PD_CD )
                          AND D3.VST_CNFMDT BETWEEN TO_CHAR( TO_DATE(#{ostrDt}, 'YYYYMMDD') + 1, 'YYYYMMDD' )
                                                AND TO_CHAR( TO_DATE(#{ostrDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
                                                                                                  FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
@@ -91,8 +104,6 @@
                        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5        /* 고객서비스수행내역 */
                           ON D5.CNTR_NO = D2.CNTR_NO
                          AND D5.CNTR_SN = D2.CNTR_SN
-                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6       /* 상품각사속성상세 */
-                          ON D6.PD_CD = D2.PDCT_PD_CD
                        INNER JOIN TB_SSCT_CNTR_REL D7              /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
                           ON D7.BASE_DTL_CNTR_NO = D2.CNTR_NO
                          AND D7.BASE_DTL_CNTR_SN = D2.CNTR_SN
@@ -111,9 +122,6 @@
                          AND D4.BASE_YM            = TO_CHAR(SYSDATE, 'YYYYMM')
                          AND D5.DTA_DL_YN          = 'N'
                          AND D5.CNTR_DTL_STAT_CD   = '101'   /* 정상 */
-                         AND D6.DTA_DL_YN          = 'N'
-                         AND D6.PD_EXTS_PRP_GRP_CD = 'PART'
-                         AND D6.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
                          AND D7.DTA_DL_YN          = 'N'
                          AND D7.CNTR_REL_DTL_CD    = '216'   /* 모종결합(웰스팜+모종) */
                          AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D7.VL_STRT_DTM AND D7.VL_END_DTM
@@ -122,6 +130,16 @@
                          AND D1.CAN_DT IS NULL
                          AND D1.OSTR_CNFMDT IS NULL
                          AND D5.REQD_DT IS NULL
+                         AND EXISTS ( SELECT 1
+                                        FROM TB_PDBS_PD_REL S1
+                                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                          ON S2.PD_CD = S1.BASE_PD_CD
+                                       WHERE S1.DTA_DL_YN          = 'N'
+                                         AND S2.DTA_DL_YN          = 'N'
+                                         AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                         AND S2.PD_PRP_VAL12       = '1'   /* 모종 */
+                                         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
+                                         AND S1.OJ_PD_CD           = D2.PDCT_PD_CD )
                          AND D3.VST_CNFMDT BETWEEN TO_CHAR( TO_DATE(#{ostrDt}, 'YYYYMMDD') + 1, 'YYYYMMDD' )
                                                AND TO_CHAR( TO_DATE(#{ostrDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
                                                                                                  FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ

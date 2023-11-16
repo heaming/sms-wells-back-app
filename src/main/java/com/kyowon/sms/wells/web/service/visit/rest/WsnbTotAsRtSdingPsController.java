@@ -37,4 +37,16 @@ public class WsnbTotAsRtSdingPsController {
     public List<SearchRes> getTotAsRtSdingPss(SearchReq dto){
         return service.getTotAsRtSdingPss(dto);
     }
+
+    @ApiOperation(value = "모종 패키지 조회")
+    @GetMapping("/sdingPackage")
+    public List<SdingPackageRes> getSdingPackage(){
+        return service.getSdingPackage();
+    }
+
+    @ApiOperation(value = "모종 상세 조회")
+    @GetMapping("/sdingDtlInfo")
+    public List<SdingDtlRes> getSdingDtlInfo(SdingDtlReq dtlDto){
+        return service.getSdingDtlInfo(dtlDto);
+    }
 }

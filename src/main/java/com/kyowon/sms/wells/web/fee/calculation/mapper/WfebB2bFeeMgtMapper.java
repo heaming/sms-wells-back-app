@@ -37,9 +37,10 @@ public interface WfebB2bFeeMgtMapper {
     int insertAggregateNtorPerfMmCl(CreateReq req);
     // 04-2. 순주문파트너실적월마감 - 조직 생성
     int insertAggregateNtorPerfPointMmCl(CreateReq req);
+    //  00-2. 순주문파트너월마감 확정여부 체크
+    int selectCheckB2bConfrim(CreateReq req);
 
     /* 미사용 */
-    int selectCheckB2bConfrim(CreateReq req);
     int updateAggregateNtorMmCl(CreateReq req);
 
 }

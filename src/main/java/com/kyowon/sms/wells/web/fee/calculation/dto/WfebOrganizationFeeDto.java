@@ -21,13 +21,17 @@ public class WfebOrganizationFeeDto {
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerReq")
     public record SearchMngerReq(
+        @NotBlank
         String perfYm,
-        String rsbTpCd,
+        String rsbDvCd,
+        @NotBlank
         String feeTcntDvCd,
         String prtnrNo,
         String ogLevl1Id,
         String ogLevl2Id,
-        String ogLevl3Id
+        String ogLevl3Id,
+
+        String feeCalcUnitTpCd
     ) {}
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarReq")
@@ -98,6 +102,7 @@ public class WfebOrganizationFeeDto {
         String aksd10, /* 교육 */
         String aksd11, /* 급지 */
         String aksd13, /* 기타지원 */
+        String earlSettleFee, /* 조기정착수수료 */
         String aksd14, /* 재지급 */
         String aksd16, /* 유니폼 */
         String intbsSum, /*과표합계*/

@@ -37,8 +37,11 @@ public class WpsbOnlineLinkCourseInqrDto {
         String dgr2LevlOgNm,
         String dgr3LevlOgNm,
         String rsbDvNm,
+        String qlfDvCd,
+        String qlfDvNm,
         String topmrPlarStmnt,
-        String ackmtCt,
+        Integer ackmtCt,
+        Long ackmtAmt,
         String offlTCnt1,
         String offlTCnt2,
         String offlTCnt3,
@@ -47,4 +50,21 @@ public class WpsbOnlineLinkCourseInqrDto {
         String fshBsAcc
 
     ) {}
+
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 온라인 연계 과정 조회 - 온라인 교육과정 조회 Search Result Dto
+    public record SearchEducRes(
+        String educCrseId,
+        String educNm,
+        String educAbbrNm,
+        String educDvCd,
+        String ogTpCd,
+        String educCrseNo,
+        String educCrseCrtBaseYm,
+        String educCrseCn,
+        String educCrsePlanRgstStrtDt,
+        String educCrsePlanRgstEndDt
+    ){}
 }

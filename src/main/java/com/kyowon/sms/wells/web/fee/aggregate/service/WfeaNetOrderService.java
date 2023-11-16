@@ -46,8 +46,8 @@ public class WfeaNetOrderService {
      * @return 조회된 데이터
      */
 
-    public List<SearchRes> getNetOrders(SearchReq dto) {
-        return this.mapper.selectNetOrders(dto);
+    public List<SearchDetailRes> getNetDetailOrders(SearchDetailReq dto) {
+        return this.mapper.selectNetDetailOrders(dto);
     }
 
     /**
@@ -56,8 +56,8 @@ public class WfeaNetOrderService {
      * @return 조회된 데이터
      */
 
-    public List<SearchRes> getNetAggreateOrders(SearchReq dto) {
-        return this.mapper.selectAggreateNetOrders(dto);
+    public List<SearchAggregateRes> getAggregateNetOrders(SearchAggregateReq dto) {
+        return this.mapper.selectAggregateNetOrders(dto);
     }
 
     /**
@@ -66,18 +66,8 @@ public class WfeaNetOrderService {
      * @return 조회된 데이터
      */
 
-    public List<SearchFeeRes> getNetOrderFees(SearchReq dto) {
-        return this.mapper.selectNetOrderFees(dto);
-    }
-
-    /**
-     * WELLS 월순주문 수수료실적 집계 확정여부 조회
-     * @param 'SearchReq' 검색조건 정보
-     * @return 조회된 데이터
-     */
-
-    public SearchConfirmRes getNetAggregateConfirm(SearchReq dto) {
-        return this.mapper.selectNetAggregateConfirm(dto);
+    public List<SearchStatusRes> getStatusNetOrders(SearchStatusReq dto) {
+        return this.mapper.selectStatusNetOrders(dto);
     }
 
     /**
@@ -147,24 +137,24 @@ public class WfeaNetOrderService {
      * @return 조회된 데이터
      */
 
-    public List<SearchProductRes> getNetAggregateProducts(SearchReq dto) {
+    public List<SearchProductRes> getNetAggregateProducts(SearchProductReq dto) {
         return this.mapper.selectNetAggregateProducts(dto);
     }
 
-    /**
-     * WELLS 월순주문 집계 배치 진행상태 조회
-     * @param 'SearchReq' 검색조건 정보
-     * @return 조회된 데이터
-     */
-
-    public String getEndOfBatch(SearchReq dto) {
-        String jobStatus;
-        try {
-            String jobId = this.mapper.selectNetAggregateJobId(dto);
-            jobStatus = batchCallService.getLastestJobStatus(jobId);
-        } catch (Exception e) {
-            return "Fail";
-        }
-        return jobStatus;
-    }
+    //    /**
+    //     * WELLS 월순주문 집계 배치 진행상태 조회
+    //     * @param 'SearchReq' 검색조건 정보
+    //     * @return 조회된 데이터
+    //     */
+    //
+    //    public String getEndOfBatch(SearchReq dto) {
+    //        String jobStatus;
+    //        try {
+    //            String jobId = this.mapper.selectNetAggregateJobId(dto);
+    //            jobStatus = batchCallService.getLastestJobStatus(jobId);
+    //        } catch (Exception e) {
+    //            return "Fail";
+    //        }
+    //        return jobStatus;
+    //    }
 }

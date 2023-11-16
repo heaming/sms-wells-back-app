@@ -7,7 +7,9 @@ import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdPdBaseDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
+import java.util.HashMap;
 import java.util.List;
 
 @Mapper
@@ -30,6 +32,7 @@ public interface WpsdExcellentDivisionBaseMgtMapper {
 
     PagingResult<EvlSearchRes> selectEvaluationBaseMgtPages(EvlSearchReq req, PageInfo pageInfo);
 
+    int selectEvaluationBase(WpsdElvBaseDvo dvo);
     int updateEvaluationBase(WpsdElvBaseDvo dvo);
 
     int insertEvaluationBase(WpsdElvBaseDvo dvo);
@@ -40,7 +43,8 @@ public interface WpsdExcellentDivisionBaseMgtMapper {
 
     PagingResult<EvlDetailSearchRes> selectEvaluationDetailPages(EvlSearchReq req, PageInfo pageInfo);
 
-    int updateEvaluationDetail(WpsdElvDetailDvo dvo);
+    List<HashMap<String, Object>> selectTargetList(WpsdElvDetailDvo dvo);
+    int insertEvaluationDetail(@Param("param") WpsdElvDetailDvo dvo, @Param("target") List<HashMap<String, Object>> target );
 
     List<EvlArticlesSearchRes> selectEvaluationArticales(EvlSearchReq req);
 
@@ -49,5 +53,5 @@ public interface WpsdExcellentDivisionBaseMgtMapper {
 
     int updateTargetBase(WpsdElvDetailDvo dvo);
 
-
+    int deleteEvaluationDetail(WpsdElvDetailDvo dvo);
 }

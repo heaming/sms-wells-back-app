@@ -33,6 +33,12 @@ public class WwdbAggregateServiceCenterController {
 
     private final WwdbAggregateServiceCenterService service;
 
+    /**
+     * 입금집계현황-서비스센터 목록 조회 / 페이징
+     * @param req 입금집계현황-서비스센터 목록 조회 DTO
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchAggregateServiceCenterRes>
+     */
     @ApiOperation(value = "입금집계현황-서비스센터 목록", notes = "입금집계현황-서비스센터 목록")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "strtSvDt", value = "서비스일자시작", required = true),
@@ -49,6 +55,11 @@ public class WwdbAggregateServiceCenterController {
         return service.getAggregateServiceCenters(req, pageInfo);
     }
 
+    /**
+     * 입금집계현황-서비스센터 목록 - 합계
+     * @param req 입금집계현황-서비스센터 목록 - 합계 DTO
+     * @return SearchAggregateServiceCenterTotalRes
+     */
     @ApiOperation(value = "입금집계현황-서비스센터 목록 - 합계", notes = "입금집계현황-서비스센터 목록 - 합계")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "strtSvDt", value = "서비스일자시작", required = true),
@@ -63,6 +74,11 @@ public class WwdbAggregateServiceCenterController {
         return service.getAggregateServiceCentersTotal(req);
     }
 
+    /**
+     * 입금집계현황-서비스센터 목록 조회 / 엑셀 다운로드
+     * @param req 입금집계현황-서비스센터 목록 조회 DTO
+     * @return List<SearchAggregateServiceCenterRes>
+     */
     @ApiOperation(value = "입금집계현황_서비스센터 엑셀 다운로드", notes = "입금집계현황_서비스센터 엑셀 다운로드")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "strtSvDt", value = "서비스일자시작", required = true),
@@ -77,6 +93,11 @@ public class WwdbAggregateServiceCenterController {
         return service.getAggregateServiceCentersExcels(req);
     }
 
+    /**
+     * 엔지니어 조직 센터 조회
+     * @param req 엔지니어 조직 센터 조회 DTO
+     * @return List<SearchAggregateEngineerOgRes>
+     */
     @ApiOperation(value = "엔지니어 조직 센터 조회", notes = "엔지니어 조직 센터 조회")
     @GetMapping("/service-center")
     public List<SearchAggregateEngineerOgRes> getServiceCenters(

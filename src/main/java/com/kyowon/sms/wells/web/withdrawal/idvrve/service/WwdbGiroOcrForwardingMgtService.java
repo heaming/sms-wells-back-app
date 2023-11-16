@@ -153,6 +153,7 @@ public class WwdbGiroOcrForwardingMgtService {
 
                 dvo.setGiroOcrPblSeqn(selectGiroOcrForwardingPrintInfo.getGiroOcrPblSeqn());
                 dvo.setGiroOcrPblDtm(selectGiroOcrForwardingPrintInfo.getGiroOcrPblDtm());
+                dvo.setGiroRglrDvCd(dtos.giroRglrDvCd());
                 giroOcrForwardingDetailCount = mapper.insertGiroOcrForwardingDetailPrints(dvo);
                 if (giroOcrForwardingDetailCount == 0) {
                     BizAssert.isTrue(giroOcrForwardingDetailCount == 0, "생성할 자료가 없습니다. 작업일을 확인하세요.");

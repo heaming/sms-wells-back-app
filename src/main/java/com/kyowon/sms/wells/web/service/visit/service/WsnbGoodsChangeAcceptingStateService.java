@@ -31,6 +31,10 @@ public class WsnbGoodsChangeAcceptingStateService {
         return mapper.selectGoodsChangeAcceptingState(req, pageInfo);
     }
 
+    public List<SearchRes> getGoodsChangeAcceptingStateExcelDownload(SearchReq req) {
+        return mapper.selectGoodsChangeAcceptingState(req);
+    }
+
     public int saveGoodsChangeAcceptingStateReject(List<SaveReq> dtos) {
         int processCount = 0;
 
@@ -55,9 +59,9 @@ public class WsnbGoodsChangeAcceptingStateService {
             dvo.setAprAkStatCd("03"); // 승인
 
             BizAssert
-                .isTrue(StringUtils.isEmpty(dvo.getOldSvBizDclsfCd()), "변경전 서비스업무세분류코드가 없습니다.");
+                .isTrue(StringUtils.isNotEmpty(dvo.getOldSvBizDclsfCd()), "변경전 서비스업무세분류코드가 없습니다.");
             BizAssert
-                .isTrue(StringUtils.isEmpty(dvo.getNewSvBizDclsfCd()), "변경후 서비스업무세분류코드가 없습니다.");
+                .isTrue(StringUtils.isNotEmpty(dvo.getNewSvBizDclsfCd()), "변경후 서비스업무세분류코드가 없습니다.");
 
             // 고객서비스AS설치대상내역 변경
             mapper.updateCstSvasIstOjIz(dvo);

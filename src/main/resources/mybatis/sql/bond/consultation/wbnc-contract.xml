@@ -38,7 +38,6 @@
 		     , MAX(RTLFE_ISTM2) AS RTLFE_ISTM2 /* 렌탈료2할 */
 		     , MAX(PROM_DT) AS PROM_DT /* 약속일자 */
 		     , MAX(DPR_NM) AS DPR_NM /* 입금자명 */
-		     , MAX(CVCP_INF) AS CVCP_INF /* 민원정보 */
 		     , MAX(CLCTAM_PRTNR_NO) AS CLCTAM_PRTNR_NO /* 집금번호 */
 		     , MAX(CLCTAM_ICHR) AS  CLCTAM_ICHR  /* 집급담당 */
 		     , MAX(CNTR_CRAL_LOCARA_TNO) AS CNTR_CRAL_LOCARA_TNO
@@ -52,7 +51,7 @@
 		     , MAX(IST_CRAL_IDV_TNO) AS IST_CRAL_IDV_TNO /* 설치휴대전화번호 */
 		     , MAX(IST_LOCARA_TNO) AS IST_LOCARA_TNO
 		     , MAX(IST_EXNO_ENCR) AS IST_EXNO_ENCR
-		     , MAX(IST_IDV_TNO) AS IST_IDV_TNO /* 설치휴대전화번호 */
+		     , MAX(IST_IDV_TNO) AS IST_IDV_TNO /* 설치전화번호 */
 		     , CST_NO /* 고객번호 */
 		     , MAX(TF_DT) AS TF_DT /* 이관일자 */
 		     , MAX(BU_NOTI_DT) AS BU_NOTI_DT /* 부담통보일자 */
@@ -110,10 +109,13 @@
 		             , NVL(T3.RSG_BOR_DP_AMT, 0) AS RSG_BOR_DP_AMT /* 해지위약입금금액 */   
 		             , NVL(T3.DLQ_DP_AMT, 0) + NVL(T3.DLQ_ADD_DP_AMT, 0) + NVL(T3.RSG_BOR_DP_AMT, 0) + NVL(T3.THM_CHRAM_DP_AMT, 0) AS UC_DP /* 미수입금 */  
 		             , NVL(T3.UC_AMT, 0) - (NVL(T3.DLQ_DP_AMT, 0) + NVL(T3.DLQ_ADD_DP_AMT, 0) + NVL(T3.RSG_BOR_DP_AMT, 0) + NVL(T3.THM_CHRAM_DP_AMT, 0)) AS UC_BLAM /* 미수금 - 총입금액 = 미수잔액 */
-		             , NVL(T3.DLQ_DP_AMT, 0) + NVL(T3.DLQ_ADD_DP_AMT, 0) + NVL(T3.RSG_BOR_DP_AMT, 0) + NVL(T3.THM_CHRAM_DP_AMT, 0) AS TOT_DP_AMT /* 연체입금금액 + 연체가산입금금액 + 해지위약금입금금액 + 당월요금입금금액 = 총입금액 */
+		             , ( SELECT NVL(SUM(TT1.RVE_AMT), 0)
+                           FROM TB_RVDW_RVE_DTL TT1
+                          WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND SUBSTR(TT1.RVE_DT,0,6) = T1.BASE_YM AND TT1.DP_DV_CD IN ('1', '3')
+                       ) AS TOT_DP_AMT /* 총입금액 */
 		             , NVL(T6.SPMT_SL_AMT, 0) AS SPMT_SL /* 추가매출 */
 		             , NVL(T7.BOR_AMT, 0) AS CCAM /* 위약금 */
-		             , NVL(T7.LS_RNTF, 0) AS LSFE /* 분실료 */    
+		             , (SELECT NVL(TT1.LS_RNTF, 0) FROM TB_CBCL_WELLS_BOR_AMT_BAS TT1 WHERE TT1.PERF_YM = SUBSTR(T7.CCAM_CMPT_RQDT,0,6) AND TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DTA_DL_YN = 'N') AS LSFE/* 분실료 */    
 		             , NVL(T8.RENTAL_AMT, 0) AS RTLFE1 /* 렌탈료1 */     
 		             , NVL(T8.RENTAL_DSC_AMT, 0) AS RTLFE_ISTM1 /* 렌탈료1할 */   
 		             , NVL(T8.RENTAL_AMT2, 0) AS RTLFE2 /* 렌탈료2 */    
@@ -131,7 +133,6 @@
 		                       WHERE CST_NO = CST_NO
 		                       ORDER BY FST_RGST_DTM DESC FETCH FIRST 1 ROW ONLY) T2
 		               ) AS DPR_NM /* 입금자명 */
-		             , T9.CVCP_CN AS CVCP_INF /* 민원정보 */
 		             , T1.CLCTAM_PRTNR_NO /* 집금번호 */
 		             , (SELECT DISTINCT PRTNR_KNM FROM TB_CBBO_CLCTAM_PRTNR_DTL WHERE PRTNR_NO = T1.CLCTAM_PRTNR_NO) AS CLCTAM_ICHR   /* 집급담당 */
 		             , T5.CRAL_LOCARA_TNO AS CNTR_CRAL_LOCARA_TNO
@@ -227,18 +228,18 @@
 		           AND T8.CNTR_NO = T1.CNTR_NO 
 		           AND T8.CNTR_SN = T1.CNTR_SN
 		          LEFT OUTER JOIN (
-		                             SELECT MAX(FNL_MDFC_DTM) AS FNL_MDFC_DTM
-		                                  , CLCTN_OJ_OG_TP_CD
-		                                  , CLCTN_OJ_PRTNR_NO
-		                                  , MAX(CNSL_UNUITM_CN) AS CNSL_UNUITM_CN
-		                                  , MAX(CVCP_CN) AS CVCP_CN
-		                               FROM TB_CBBO_BND_UNUITM_CVCP_DTL
-		                              WHERE BND_CNTR_TP_CD = '02'
-		                                AND DTA_DL_YN = 'N'
-		                              GROUP BY CLCTN_OJ_OG_TP_CD, CLCTN_OJ_PRTNR_NO
-		             ) T9
-		            ON T9.CLCTN_OJ_OG_TP_CD = T1.CLCTN_OJ_OG_TP_CD
-		           AND T9.CLCTN_OJ_PRTNR_NO = T1.CLCTN_OJ_PRTNR_NO
+                                    SELECT CST_NO
+                                         , CNTR_NO
+                                         , CNTR_SN
+                                         , CNSL_UNUITM_CN
+                                         , CVCP_CN
+                                      FROM TB_CBBO_BND_UNUITM_CVCP_DTL
+                                     WHERE BND_CNTR_TP_CD = '01'
+                                       AND DTA_DL_YN = 'N'
+                     ) T9
+                    ON T9.CST_NO = T1.CST_NO 
+                   AND T9.CNTR_NO = T1.CNTR_NO 
+                   AND T9.CNTR_SN = T1.CNTR_SN
 		          LEFT OUTER JOIN (
 		                          SELECT CR.CNTR_ADRPC_ID
 		                                 , CR.DTL_CNTR_NO
@@ -354,8 +355,8 @@
            AND IST_EXNO_ENCR = #{schIstExnoEncr} 
            AND IST_IDV_TNO = #{schIstIdvTno}
          </if>
-         <if test='@MybatisUtils@isNotEmpty(schCntrNo)'>
-           AND CNTR_NO = #{schCntrNo}
+         <if test='@MybatisUtils@isNotEmpty(schCntrDtlNo)'>
+           AND CNTR_NO||'-'||CNTR_SN = #{schCntrDtlNo}
          </if>
          <if test='@MybatisUtils@isNotEmpty(schBizDv)'>
            AND BIZ_DV = #{schBizDv}
@@ -374,7 +375,12 @@
            AND SFK = #{schSfK}
          </if>
          <if test='@MybatisUtils@isNotEmpty(schCstDv)'>
-           AND CNTR_TP_CD = #{schCstDv}
+           <if test="schCstDv == '01'">
+            AND CNTR_TP_CD = 1
+           </if>
+           <if test="schCstDv == '02'">
+            AND CNTR_TP_CD = 2
+           </if>
          </if>
          <if test='@MybatisUtils@isNotEmpty(schOjBlamStrt) and @MybatisUtils@isNotEmpty(schOjBlamEnd)'>
            AND OJ_BLAM BETWEEN #{schOjBlamStrt} AND #{schOjBlamEnd}
@@ -406,22 +412,17 @@
              AND MM_CHRAM_DP <![CDATA[<>]]> 0
            </if>
          </if>
-         <if test='@MybatisUtils@isNotEmpty(schCstDv)'>
-            AND CNTR_TP_CD = #{schCstDv}
+         <if test='@MybatisUtils@isNotEmpty(schDv1)'>
+           AND (DLQ_AMT - DLQ_DP) <![CDATA[<>]]> 0 /*연체잔액0원제외*/
          </if>
-         <if test='@MybatisUtils@isNotEmpty(schDv)'>
-           <if test="schDv == '01'">
-             AND (DLQ_AMT - DLQ_DP) <![CDATA[<>]]> 0 /*연체잔액0원제외*/
-           </if>
-           <if test="schDv == '02'">
-             AND (DLQ_DP + DLQ_ADD_DP + RSG_BOR_DP_AMT + MM_CHRAM_DP) <![CDATA[<>]]> 0 /*입금액0원제외*/
-           </if>
-           <if test="schDv == '03'">
-             AND ((DLQ_AMT + DLQ_ADD_AMT + MM_CHRAM_AMT) - (DLQ_DP + DLQ_ADD_DP + MM_CHRAM_DP)) <![CDATA[<>]]> 0 /*대상잔액0원제외*/
-           </if>
-           <if test="schDv == '04'">
-             AND DLQ_MCNT <![CDATA[<>]]> 0 /*연체개월0개월제외*/
-           </if>
+         <if test='@MybatisUtils@isNotEmpty(schDv2)'>
+           AND (DLQ_DP + DLQ_ADD_DP + RSG_BOR_DP_AMT + MM_CHRAM_DP) <![CDATA[<>]]> 0 /*입금액0원제외*/
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(schDv3)'>
+           AND ((DLQ_AMT + DLQ_ADD_AMT + MM_CHRAM_AMT) - (DLQ_DP + DLQ_ADD_DP + MM_CHRAM_DP)) <![CDATA[<>]]> 0 /*대상잔액0원제외*/
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(schDv4)'>
+           AND DLQ_MCNT <![CDATA[<>]]> 0 /*연체개월0개월제외*/
          </if>
          GROUP BY CST_NO, CNTR_NO, CNTR_SN
     </select>

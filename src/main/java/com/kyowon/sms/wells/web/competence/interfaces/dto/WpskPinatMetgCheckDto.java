@@ -29,10 +29,12 @@ public class WpskPinatMetgCheckDto {
     // 핀앳) 출결앱 미팅 체크 Create Result Dto
     @ApiModel("WpskPinatMetgCheckDto-CreateRes")
     public record CreateRes(
-        @JsonProperty("RSP_CD")
-        String rspCd, /* 응답코드 */
-        @JsonProperty("RSP_MSG")
-        String rspMsg /* 응답메시지 */
+        @JsonProperty("CHEK")
+        String chek,    /* 체크결과 */
+        @JsonProperty("ERCD")
+        String ercd,    /* 결과메시지코드 */
+        @JsonProperty("EMSG")
+        String emsg     /* 결과메시지 */
 
     ) {
     }

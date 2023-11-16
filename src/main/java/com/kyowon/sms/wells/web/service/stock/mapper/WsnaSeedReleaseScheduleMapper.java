@@ -25,9 +25,7 @@ public interface WsnaSeedReleaseScheduleMapper {
 
     int updateCstSvasIstAsnIzForCnfm(String cstSvAsnNo);
 
-    int updateCstSvExcnIzForInstl(String cntrNo, int cntrSn);
-
-    String selectCstSvExcnIstDt(String cntrNo, int cntrSn);
+    int updateCstSvExcnIzForInstl(String cntrNo, int cntrSn, String istDt);
 
     int updateSdingSppPlanIzForCnfm(WsnaSeedReleaseScheduleCnfmDvo dvo);
 

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniWealthContractDetailsMapper">
+
+<select id="selectWsniWealthContractDetails" resultType="com.kyowon.sms.wells.web.service.interfaces.dvo.WsniWealthContractDetailsDvo">
+        SELECT CNTR_DTL.CNTR_NO
+             , CNTR_DTL.CNTR_SN
+             , CNTR_DTL.BASE_PD_CD	/*상품코드*/
+             , PD_BAS.PD_NM			/*상품명*/
+             , CNTR_DTL.SELL_TP_CD 	/*구매유형 1:일시불, 2:렌탈, 3:멤버십, 6:정기배송*/
+             , CASE WHEN CNTR_DTL.SELL_TP_CD = '1' THEN CASE WHEN CNTR_DTL.SELL_TP_DTL_CD = '12' THEN '2' ELSE '1' END
+                    WHEN CNTR_DTL.SELL_TP_CD = '2' THEN CASE WHEN CNTR_DTL.SELL_TP_DTL_CD IN ('22','24') THEN '2'
+                                                       WHEN CNTR_DTL.SELL_TP_DTL_CD IN ('25','26') THEN '3'
+                                                       ELSE '1' END
+                    WHEN CNTR_DTL.SELL_TP_CD = '3' THEN CASE WHEN CNTR_DTL.SELL_TP_DTL_CD = '33' THEN '2' ELSE '1' END
+                    WHEN CNTR_DTL.SELL_TP_CD = '6' THEN CASE WHEN CNTR_DTL.SELL_TP_DTL_CD IN ('61','0') THEN '2'
+                                                       WHEN CNTR_DTL.SELL_TP_DTL_CD IN ('62','1') THEN '3'
+                                                       WHEN CNTR_DTL.SELL_TP_DTL_CD IN ('63','2') THEN '3' END
+                END								AS SELL_TP_DTL_CD /*구매유형상세 일시불(1: 일반, 2:홈케어), 렌탈(1:일반, 2:금융리스, 3:장기할부), 멤버십(1:일반, 2:홈케어), 모종(1:일반)*/
+             , CASE WHEN CNTR_DTL.CNTR_TAM IS NOT NULL THEN CNTR_DTL.CNTR_TAM
+                    WHEN CNTR_PTRM = 0 OR CNTR_PTRM > 99 THEN 0
+                    ELSE CNTR_DTL.FNL_AMT / (CASE WHEN CNTR_DTL.SV_PRD = 0 THEN 1 ELSE CNTR_DTL.SV_PRD END) * CNTR_DTL.CNTR_PTRM
+                END								AS CNTR_TAM /*구매가(총계약금액)*/
+             , CNTR_DTL.CNTR_PD_STRTDT	/*매출일자*/
+             , CNTR_DTL.STPL_PTRM		/*약정개월수*/
+             , CASE WHEN  CNTR_DTL.SELL_TP_CD = '1' AND ISTM_PCAM_AMT > 0
+                       OR CNTR_DTL.SELL_TP_DTL_CD IN ('25','26')	THEN '2'	/*일시불 할부 또는 (렌탈)장기할부*/
+                    WHEN CNTR_DTL.SELL_TP_CD = '1' THEN '1'
+                    ELSE '3'
+                END AS PYMT_DIV		  /*납부구분 1:완납,2:할부,3:월납*/
+             , CASE WHEN CNTR_DTL.SELL_TP_CD = '1' THEN MM_ISTM_AMT
+                    WHEN CNTR_DTL.SELL_TP_CD = '6' THEN CNTR_DTL.FNL_AMT / (CASE WHEN CNTR_DTL.SV_PRD = 0 THEN 1 ELSE CNTR_DTL.SV_PRD END)
+                    ELSE CNTR_DTL.FNL_AMT
+                END AS MNTH_PYMN_AMT				/*월납부금액*/
+             , ADRPC_INT.RCGVP_KNM		           /*설치자명*/
+             , ADRPC_INT.CRAL_LOCARA_TNO AS INSTR_CRAL_LOCARA_TNO  /*설치자연락처1*/
+             , ADRPC_INT.MEXNO_ENCR AS INSTR_MEXNO_ENCR            /*설치자연락처2*/
+             , ADRPC_INT.CRAL_IDV_TNO	AS INSTR_CRAL_IDV_TNO      /*설치자연락처3*/
+             , ADRPC_INT.LOCARA_TNO AS INSTR_LOCARA_TNO            /*설치자전화1*/
+             , ADRPC_INT.EXNO_ENCR AS INSTR_EXNO_ENCR              /*설치자전화2*/
+             , ADRPC_INT.IDV_TNO AS INSTR_IDV_TNO                  /*설치자전화3*/
+             , ADR_BAS_INT.NEW_ADR_ZIP	AS INSTR_NEW_ADR_ZIP       /*설치/배송우편번호*/
+             , ADR_BAS_INT.RNADR	AS INSTR_RNADR	/*설치배송주소1*/
+             , ADR_BAS_INT.RDADR	AS INSTR_RDADR	/*설치배송주소2*/
+             , ''					AS INSTR_WAD3	/*설치배송주소3*/
+             , CST_BAS.CST_KNM				/*계약자명*/
+             , CST_BAS.CRAL_LOCARA_TNO AS CNTRT_CRAL_LOCARA_TNO  /*계약자연락처1*/
+             , CST_BAS.MEXNO_ENCR AS CNTRT_MEXNO_ENCR            /*계약자연락처2*/
+             , CST_BAS.CRAL_IDV_TNO	AS CNTRT_CRAL_IDV_TNO        /*계약자연락처3*/
+             , ADR_BAS_CNTR.NEW_ADR_ZIP	AS CNTRT_NEW_ADR_ZIP     /*계약자우편번호*/
+             , ADR_BAS_CNTR.RNADR	AS CNTRT_RNADR	             /*계약자주소1*/
+             , ADR_BAS_CNTR.RDADR	AS CNTRT_RDADR	             /*계약자주소2*/
+             , ''					AS CNTRT_CAD3	             /*계약자주소3*/
+             , CST_BAS.EMADR				/*계약자이메일*/
+             , CASE WHEN CNTR_DTL.CNTR_DTL_STAT_CD = '101' THEN '1'
+                    WHEN CNTR_DTL.CNTR_DTL_STAT_CD = '202'/*연체정지*/ THEN '6'
+                    WHEN CNTR_DTL.CNTR_DTL_STAT_CD = '301'/*고객요청해약*/ THEN '7'
+                    WHEN CNTR_DTL.CNTR_DTL_STAT_CD = '402'/*계약기간종료*/ THEN '8'
+                    WHEN CNTR_DTL.CNTR_DTL_STAT_CD = '303'/*계약취소*/ THEN '9'
+                    WHEN CNTR_DTL.CNTR_DTL_STAT_CD = '302'/*연체해약*/ THEN '10'
+                END 	AS STAT  	/*계약상태 1:정상,2:보류,3:환불,4:예보,5:일시정지,6:연체정지,7:해지완료,8:기간만료,9:계약취소,10:연체해약,11:미출해약*/
+             , CNTR_WDTL.IST_DT		/*설치일자*/
+             , CASE WHEN CNTR_DTL.CNTR_PD_STRTDT IS NULL THEN 0
+		            ELSE TRUNC(MONTHS_BETWEEN(SYSDATE, TO_DATE(SUBSTR(CNTR_DTL.CNTR_PD_STRTDT,1,8),'YYYY-MM-DD')),0)
+		        END		AS USE_MONTH		/*사용개월*/
+             , CNTR_DTL.CNTR_PD_ENDDT	    /*만기일자*/
+             , PRTNR_BAS.PRTNR_KNM	        /*웰스매니저명*/
+--             , CASE WHEN PRTNR_BAS.CRAL_LOCARA_TNO IS NOT NULL THEN
+--		                 PRTNR_BAS.CRAL_LOCARA_TNO || '-' || '****'/*MEXNO_ENCR*/ || '-' || PRTNR_BAS.CRAL_IDV_TNO
+--		     		 ELSE NULL
+--		     	END/*웰스매니저연락처*/
+		     , PRTNR_BAS.CRAL_LOCARA_TNO AS MANAGER_CRAL_LOCARA_TNO  /*웰스매니저연락처1*/
+		     , PRTNR_BAS.MEXNO_ENCR AS MANAGER_MEXNO_ENCR            /*웰스매니저연락처2*/
+		     , PRTNR_BAS.CRAL_IDV_TNO AS MANAGER_CRAL_IDV_TNO        /*웰스매니저연락처3*/
+             , CASE WHEN DLQ_BAS.PERF_YM IS NULL THEN 0
+                    ELSE DLQ_BAS.BTD_DLQ_AMT /*기말연체금액*/
+                       + BTD_DLQ_ADD_AMT		/*기초연체가산금액*/
+                       - THM_OC_DLQ_ADD_AMT 	/*당월발생연체가산금액*/
+                END 								AS DAMT /*연체금액*/
+          FROM TB_SSCT_CNTR_DTL CNTR_DTL			/*계약상세*/
+         INNER JOIN TB_SSCT_CNTR_BAS CNTR_BAS		/*계약기본*/
+            ON CNTR_BAS.CNTR_NO = CNTR_DTL.CNTR_NO
+           AND CNTR_BAS.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS CST_BAS			/*고객기본*/
+            ON CST_BAS.CST_NO = CNTR_BAS.CNTR_CST_NO
+           AND CST_BAS.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL CNTR_WDTL
+            ON CNTR_WDTL.CNTR_NO = CNTR_DTL.CNTR_NO
+           AND CNTR_WDTL.CNTR_SN = CNTR_DTL.CNTR_SN
+           AND CNTR_WDTL.DTA_DL_YN = 'N'
+		  LEFT OUTER JOIN LATERAL(
+		           SELECT *
+		             FROM (
+		               SELECT CTPLC.*, RANK() OVER (PARTITION BY CST_CTPLC_OJ_DV_CD, CST_CTPLC_OJ_REFK_VAL ORDER BY HIST_STRT_DTM DESC) AS RNK
+		                 FROM TB_CUBS_CST_CTPLC_BAS CTPLC	/*고객연락처기본*/
+		                WHERE 1=1
+		                  AND CST_CTPLC_OJ_REFK_VAL = CST_BAS.CST_NO
+		                  AND CST_CTPLC_OJ_DV_CD = CASE WHEN CST_BAS.COPN_DV_CD = '1' THEN '01' ELSE '03' END  /* 01:고객,02:가구,03:고객관계자 */
+		                  AND CTPLC_TP_CD = CASE WHEN CST_BAS.COPN_DV_CD = '1' THEN '04' ELSE '05' END         /* 01:자택주소,02:직장주소,03:휴대전화,04:자택전화,05:직장전화,06:직장FAX,07:이메일,08:카카오톡) */
+		           )
+		           WHERE RNK = 1
+		       ) PHN
+		    ON PHN.CST_CTPLC_OJ_REFK_VAL = CST_BAS.CST_NO
+		  LEFT OUTER JOIN TB_GBCO_ADR_BAS ADR_BAS_CNTR 		/* 주소기본(계약) */
+			ON CST_BAS.ADR_ID = ADR_BAS_CNTR.ADR_ID
+           AND ADR_BAS_CNTR.DTA_DL_YN = 'N'
+		 INNER JOIN TB_SSCT_CNTR_ADR_REL ADR_REL_INT		/*계약주소관계-설치*/
+		    ON ADR_REL_INT.DTL_CNTR_NO = CNTR_DTL.CNTR_NO
+		   AND ADR_REL_INT.DTL_CNTR_SN = CNTR_DTL.CNTR_SN
+		   AND ADR_REL_INT.ADRPC_TP_CD IN ('2', '3')	/*주소지유형 1:계약주소,2:배달주소,3:설치주소*/
+		   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN ADR_REL_INT.VL_STRT_DTM AND ADR_REL_INT.VL_END_DTM
+		   AND ADR_REL_INT.DTA_DL_YN = 'N'
+		  LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS ADRPC_INT  /* 계약주소지기본 - 설치(배송) */
+			ON ADRPC_INT.CNTR_ADRPC_ID = ADR_REL_INT.CNTR_ADRPC_ID
+		   AND ADRPC_INT.DTA_DL_YN = 'N'
+		  LEFT OUTER JOIN TB_GBCO_ADR_BAS ADR_BAS_INT 		/* 주소기본(설치) */
+			ON ADRPC_INT.ADR_ID = ADR_BAS_INT.ADR_ID
+		   AND ADRPC_INT.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS PD_BAS			/*상품기본*/
+            ON PD_BAS.PD_CD = CNTR_DTL.BASE_PD_CD
+           AND PD_BAS.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ MCBY_CST /*BS담당자*/
+            ON MCBY_CST.CNTR_NO = CNTR_DTL.CNTR_NO
+           AND MCBY_CST.CNTR_SN = CNTR_DTL.CNTR_SN
+           AND MCBY_CST.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+		  LEFT OUTER JOIN TB_OGBS_PRTNR_BAS PRTNR_BAS	/*파트너 기본*/
+		    ON PRTNR_BAS.PRTNR_NO = MCBY_CST.MNGT_PRTNR_NO
+		   AND PRTNR_BAS.OG_TP_CD = MCBY_CST.MNGT_PRTNR_OG_TP_CD
+		  LEFT OUTER JOIN TB_CBCL_DLQ_BAS DLQ_BAS	/*연체기본*/
+		    ON DLQ_BAS.PERF_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+		   AND DLQ_BAS.CNTR_NO = CNTR_DTL.CNTR_NO
+		   AND DLQ_BAS.CNTR_SN = CNTR_DTL.CNTR_SN
+         WHERE CNTR_DTL.DTA_DL_YN = 'N'
+           AND CNTR_DTL.CNTR_NO = #{cntrNo}
+           AND CNTR_DTL.CNTR_SN = #{cntrSn}
+    </select>
+
+
+</mapper>

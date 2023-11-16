@@ -15,27 +15,30 @@ public class WbncCustomerDto {
 
     @ApiModel(value = "WbncCustomerDto-SearchReq")
     public record SearchReq(
-        String schClctamNo,
-        String schCstNo,
+        String schClctamNo, /* 집금번호 */
+        String schCstNo, /* 고객번호 */
         String schCralLocaraTno, /* 계약휴대전화번호1 */
         String schMexnoEncr, /* 계약휴대전화번호2 */
-        String schCralIdvTno, /* 계약휴대전화번호3 */
-        String schCstNm,
-        String schClctamPsic,
-        String schSfK,
+        String schCralIdvTno, /* 계약휴대전화번호 3*/
+        String schCstNm, /* 고객명 */
+        String schClctamPsic, /* 집금담당자 */
+        String schSfK, /* 세이프키 */
         String schIstCralLocaraTno, /* 설치휴대전화번호1 */
         String schIstMexnoEncr, /* 설치휴대전화번호2 */
         String schIstCralIdvTno, /* 설치휴대전화번호3 */
-        String schDlqMcntStrt,
-        String schDlqMcntEnd,
-        String schFntDv,
-        String schFntDtStrt,
-        String schFntDtEnd,
-        String schOjBlamStrt,
-        String schOjBlamEnd,
-        String schCstDv,
-        String schCpsnRsgYn,
-        String schDv
+        String schDlqMcntStrt, /* from 연체개월 */
+        String schDlqMcntEnd, /* to 연체개월 */
+        String schFntDv, /* 이체구분 */
+        String schFntDtStrt, /* from 이체일자 */
+        String schFntDtEnd, /* to 이체일자 */
+        String schOjBlamStrt, /* from 대상잔액 */
+        String schOjBlamEnd, /* to 대상잔액 */
+        String schCstDv, /* 고객구분 */
+        String schCpsnRsgYn, /* 강제해지여부 */
+        String schDv1, /* 구분1 */
+        String schDv2, /* 구분2 */
+        String schDv3, /* 구분3 */
+        String schDv4 /* 구분4 */
     ) {
         public SearchReq {
             schMexnoEncr = StringUtils.isNotEmpty(schMexnoEncr) ? DbEncUtil.enc(schMexnoEncr)
@@ -110,17 +113,17 @@ public class WbncCustomerDto {
 
     @ApiModel(value = "WbncCustomerDto-FindReq")
     public static record FindReq(
-        String schBaseYm,
-        String schCstNo,
-        String schCntrNo,
-        String schCntrSn
+        String schBaseYm, /* 기준년월 */
+        String schCstNo, /* 고객번호 */
+        String schCntrNo, /* 계약번호 */
+        String schCntrSn/* 계약일련번호 */
     ) {}
 
     @ApiModel(value = "WbncCustomerDto-FindRes")
     public static record FindRes(
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
-        String dtlCntrNo, /* 상세계약번호 */
+        String cntrDtlNo, /* 상세계약번호 */
         String cstNm, /* 고객명 */
         String sexDvCd, /* 성별코드 */
         String sexDvNm, /* 성별코드명 */
@@ -169,6 +172,9 @@ public class WbncCustomerDto {
         String dsmnCltnDt, /* 지국장 해약일 */
         String bldCd, /* 소속빌딩코드 */
         String bldNm, /* 소속빌딩명 */
+        String bldLocaraTno,
+        String bldMexnoEncr,
+        String bldIdvTno, /* 빌딩 전화번호 */
         String alncCd, /* 제휴코드 */
         String alncNm, /* 제휴명 */
         String alncStat, /* 제휴상태 */
@@ -190,13 +196,15 @@ public class WbncCustomerDto {
         String tnoCnt2,
         String tnoCnt3,
         String bndBizDvCd, /* 채권업무구분코드 */
-        String baseYm /* 기준년월 */
+        String baseYm, /* 기준년월 */
+        String rsNm /* 이체상태 */
     ) {
         public FindRes {
             cntrMexnoEncr = StringUtils.isNotEmpty(cntrMexnoEncr) ? DbEncUtil.dec(cntrMexnoEncr) : cntrMexnoEncr;
             istExnoEncr = StringUtils.isNotEmpty(istExnoEncr) ? DbEncUtil.dec(istExnoEncr) : istExnoEncr;
             istMexnoEncr = StringUtils.isNotEmpty(istMexnoEncr) ? DbEncUtil.dec(istMexnoEncr) : istMexnoEncr;
             plarMexnoEncr = StringUtils.isNotEmpty(plarMexnoEncr) ? DbEncUtil.dec(plarMexnoEncr) : plarMexnoEncr;
+            bldMexnoEncr = StringUtils.isNotEmpty(bldMexnoEncr) ? DbEncUtil.dec(bldMexnoEncr) : bldMexnoEncr;
             dsmnMexnoEncr = StringUtils.isNotEmpty(dsmnMexnoEncr) ? DbEncUtil.dec(dsmnMexnoEncr) : dsmnMexnoEncr;
             vtAc = StringUtils.isNotEmpty(vtAc) ? DbEncUtil.dec(vtAc) : vtAc;
         }
@@ -205,10 +213,10 @@ public class WbncCustomerDto {
 
     @ApiModel(value = "WbncCustomerDto-FindCustomerDetailReq")
     public static record FindCustomerDetailReq(
-        String schBaseYm,
-        String schCstNo,
-        String schCntrNo,
-        String schCntrSn
+        String schBaseYm, /* 기준년월 */
+        String schCstNo, /* 고객번호 */
+        String schCntrNo, /* 계약번호 */
+        String schCntrSn/* 계약일련번호 */
     ) {}
 
     @ApiModel(value = "WbncCustomerDto-FindCustomerDetailRes")
@@ -220,6 +228,7 @@ public class WbncCustomerDto {
         String pdNm, /* 제품명 */
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
+        String cntrDtlNo, /* 상세계약번호 */
         String cstKnm, /* 고객명 */
         String dlqMcn, /* 연체개월 */
         String authRsgCnfmdt, /* 직권해지일자 */
@@ -262,127 +271,128 @@ public class WbncCustomerDto {
         String prtnrNm, /*집금담당명*/
         String bndTfDt, /* 이관일자 */
         String sfkVal, /* 세이프키*/
-        String cstNo /* 세이프키*/
+        String cstNo, /* 세이프키*/
+        String baseYm /* 기준년월*/
     ) {}
 
     @ApiModel(value = "WbncCustomertDetailDto-FindUnusualArticlesReq")
     public static record FindUnusualArticlesReq(
-        String schBaseYm,
-        String schCstNo,
-        String schCntrNo,
-        String schCntrSn
+        String schBaseYm, /* 기준년월 */
+        String schCstNo, /* 고객번호 */
+        String schCntrNo, /* 계약번호 */
+        String schCntrSn/* 계약일련번호 */
     ) {}
 
     @ApiModel(value = "WbncCustomertDetailDto-FindUnusualArticlesRes")
     public static record FindUnusualArticlesRes(
-        String cnslUnuitmCn
+        String cnslUnuitmCn /* 특이사항 */
     ) {}
 
     @ApiModel(value = "WbncCustomertDetailDto-FindCounselHistoryReq")
     public static record FindCounselHistoryReq(
-        String schBaseYm,
-        String schCstNo,
-        String schCntrNo,
-        String schCntrSn
+        String schBaseYm, /* 기준년월 */
+        String schCstNo, /* 고객번호 */
+        String schCntrNo, /* 계약번호 */
+        String schCntrSn/* 계약일련번호 */
     ) {}
 
     @ApiModel(value = "WbncCustomerDto-FindCounselHistoryRes")
     public static record FindCounselHistoryRes(
-        String telCnslId,
-        String inDt,
-        String inIchr,
-        String inIchrNm,
-        String cnslPh,
-        String crncyRs,
-        String dprNm,
-        String cnslCn
+        String telCnslId, /* 전화상담ID */
+        String inDt, /* 입력일시 */
+        String inIchr, /* 등록담당사번 */
+        String inIchrNm, /* 등록담당자 */
+        String cnslPh, /* 상담경로 */
+        String crncyRs, /* 통화결과 */
+        String dprNm, /* 입금자명 */
+        String cnslCn /* 전화상담내용 */
     ) {}
 
     @ApiModel("WbncCustomerDto-SaveUnuitmCnReq")
     public record SaveUnuitmCnReq(
-        String bndUnuitmId,
-        String bndCntrTpCd,
-        String bndBizDvCd,
-        String cstNo,
-        String cntrNo,
-        String cntrSn,
-        String clctnOjOgTpCd,
-        String clctnOjPrtnrNo,
-        String cnslUnuitmCn,
-        String cvcpCn
+        String bndUnuitmId, /* 채권특이사항ID */
+        String bndCntrTpCd, /* 채권계약유형코드 */
+        String bndBizDvCd, /* 채권업무구분코드 */
+        String cstNo, /* 고객번호 */
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
+        String clctnOjOgTpCd, /* 추심대상조직유형코드 */
+        String clctnOjPrtnrNo, /* 추심대상파트너번호 */
+        String cnslUnuitmCn, /* 상담특이사항내용 */
+        String cvcpCn /* 민원내용 */
     ) {}
 
     @ApiModel("WbncCustomerDto-SaveCounselReq")
     public record SaveCounselReq(
-        String telCnslId,
-        String bndCntrTpCd,
-        String bndBizDvCd,
-        String cstNo,
-        String cntrNo,
-        String cntrSn,
-        String clctnOjOgTpCd,
-        String clctnOjPrtnrNo,
-        String clctnOjPrtnrBzrno,
-        String clctamPrtnrNo,
-        String telCnslPhCd,
-        String bndCnslMtrDvCd,
-        String telCnslRsCd,
-        String cnslCstPrpCd,
-        String telCnslCn,
-        String bndClnPsblDvCd,
-        String bndCnslCstStatCd,
-        String bndClnPrcsDvCd,
-        String dprNm,
-        String rdgId,
+        String telCnslId, /* 전화상담ID */
+        String bndCntrTpCd, /* 채권계약유형코드 */
+        String bndBizDvCd, /* 채권업무구분코드 */
+        String cstNo, /* 고객번호 */
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
+        String clctnOjOgTpCd, /* 추심대상조직유형코드 */
+        String clctnOjPrtnrNo, /* 추심대상파트너번호 */
+        String clctnOjPrtnrBzrno, /* 추심대상파트너사업자등록번호 */
+        String clctamPrtnrNo, /* 집금파트너번호 */
+        String telCnslPhCd, /* 전화상담경로코드 */
+        String bndCnslMtrDvCd, /* 채권상담자료구분코드 */
+        String telCnslRsCd, /* 전화상담결과코드 */
+        String cnslCstPrpCd, /* 상담고객속성코드 */
+        String telCnslCn, /* 전화상담내용 */
+        String bndClnPsblDvCd, /* 채권회수가능성구분코드 */
+        String bndCnslCstStatCd, /* 채권상담고객상태코드 */
+        String bndClnPrcsDvCd, /* 채권회수절차구분코드 */
+        String dprNm, /* 입금자명 */
+        String rdgId, /* 녹취ID */
 
-        String promBooId,
-        String promDt,
-        String promHh,
-        String promTp,
-        String promAmt,
-        String promCn,
-        String promFshYn
+        String promBooId, /* 약속예약ID */
+        String promDt, /* 약속일자 */
+        String promHh, /* 약속시간 */
+        String promTp, /* 집금약속유형코드 */
+        String promAmt, /* 회수약속금액 */
+        String promCn, /* 약속내용 */
+        String promFshYn /* 약속완료여부 */
     ) {}
 
-    @ApiModel(value = "WbncCustomerDto-FindUserInfoReq")
-    public static record FindUserInfoReq(
-        String prtnrNo,
-        String ogTpCd
+    @ApiModel(value = "WbncCustomerDto-SearchUserInfoReq")
+    public static record SearchUserInfoReq(
+        String prtnrNo, /*파트너번호*/
+        String ogTpCd /*조직유형*/
     ) {}
 
-    @ApiModel(value = "WbncCustomerDto-FindUserInfoRes")
-    public static record FindUserInfoRes(
-        String tno1,
-        String tno2,
-        String tno3
+    @ApiModel(value = "WbncCustomerDto-SearchUserInfoRes")
+    public static record SearchUserInfoRes(
+        String tno1, /*전화번호1*/
+        String tno2, /*전화번호2*/
+        String tno3 /*전화번호3*/
     ) {}
 
     @ApiModel(value = "WbncCustomerDto-FindRecIdReq")
     public static record FindRecIdReq(
-        String inlnNo
+        String inlnNo /*파트너번호*/
     ) {}
 
     @ApiModel(value = "WbncCustomerDto-FindRecIdRes")
     public static record FindRecIdRes(
-        String recId
+        String recId /*녹취ID*/
     ) {}
 
     @ApiModel(value = "WbncCustomerDto-FindCounselRegistrationReq")
     public static record FindCounselRegistrationReq(
-        String schCstNo,
-        String schCntrNo,
-        String schCntrSn
+        String schCstNo, /*고객번호*/
+        String schCntrNo, /*계약번호*/
+        String schCntrSn /*계약일련번호*/
     ) {}
 
     @ApiModel(value = "WbncCustomerDto-FindCounselRegistrationRes")
     public static record FindCounselRegistrationRes(
-        String cnslPh,
-        String crncyRs,
-        String cstPrp,
-        String dprNm,
-        String cnslTp,
-        String cstStat,
-        String clnPsbl,
-        String clnPrcs
+        String cnslPh, /*상담경로*/
+        String crncyRs, /*통화결과*/
+        String cstPrp, /*고객속성*/
+        String dprNm, /*입금자*/
+        String cnslTp, /*상담유형*/
+        String cstStat, /*고객상태*/
+        String clnPsbl, /*회수가능성*/
+        String clnPrcs /*회수절차*/
     ) {}
 }

@@ -119,6 +119,9 @@
                    ) PL1
              WHERE 1=1
         )
+        <if test='@MybatisUtils@isNotEmpty(rownum)'>
+            SELECT * FROM (
+        </if>
             SELECT V1.ASN_OJ_YM /* 배정년월 */
                  , V1.CNTR_NO /* 계약번호 */
                  , V1.CNTR_SN /* 계약일련번호 */
@@ -422,10 +425,11 @@
                         END) NOT IN ('00', '10', '20')
                     </if>
                 </if>
-                <if test='@MybatisUtils@isNotEmpty(rownum)'>
-                    AND ROWNUM <![CDATA[<=]]> #{rownum}
-                </if>
             ORDER BY V1.ASN_OJ_YM DESC, V1.CNTR_NO, V1.CNTR_SN
+        <if test='@MybatisUtils@isNotEmpty(rownum)'>
+            )
+            WHERE ROWNUM <![CDATA[<=]]> #{rownum}
+        </if>
     </select>
     <insert id="insertParcelFwInformation">
         INSERT INTO TB_SVPD_OSTR_AK_PCSV_SEND_DTL ( /* 출고요청택배송신상세 */
@@ -591,10 +595,10 @@
              <include refid="COMMON.insertSystemField"/>)
         VALUES (
                #{cstSvAsnNo}
-             , (SELECT MAX(NVL(WK_OSTR_SN, 0)) + 1
+             , NVL((SELECT MAX(WK_OSTR_SN) + 1
                   FROM TB_SVST_SV_WK_OSTR_IZ
                  WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
-               )
+               ),1)
              , #{cntrNo}
              , #{cntrSn}
              , '2'
@@ -947,9 +951,9 @@
              , DTA_DL_YN
              <include refid="COMMON.insertSystemField"/>)
         SELECT D2.CST_SV_ASN_NO
-        	 , (SELECT NVL(MAX(WK_OSTR_SN), 0)
+        	 , NVL((SELECT MAX(WK_OSTR_SN)
                    FROM TB_SVST_SV_WK_OSTR_IZ
-                  WHERE CST_SV_ASN_NO = D2.CST_SV_ASN_NO )
+                  WHERE CST_SV_ASN_NO = D2.CST_SV_ASN_NO), 0)
                + ROWNUM AS WK_OSTR_SN
              , D1.CNTR_NO
              , D1.CNTR_SN

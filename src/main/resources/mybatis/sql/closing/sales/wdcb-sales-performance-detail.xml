@@ -291,7 +291,7 @@
                             , T1.RENTAL_DC AS RENTAL_DC -- 렌탈일수(LC50.LCRDAY)
                             , T1.SL_DC AS SL_DC -- 매출일수(LC50.LCSDAY)
                             , (SELECT PD_USE_DC FROM TB_SSCT_CNTR_RSG_PROCS_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN) AS USE_DC -- 사용일수 LC50.LCCDAY
-                            , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CAN_DT -- 취소일자(LC50.LCCANY)
+                            , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CNTR_CAN_DT -- 취소일자(LC50.LCCANY)
                             , T1.NOM_SL_AMT AS NOM_SL_AMT -- 정상매출금액(LC50.LCAM11)
                             , T1.PVDA_AMT AS PVDA_AMT -- 이자매출(LC50.LCCM11)
                             , T1.NOM_DSC_AMT AS NOM_DSC_AMT -- 정상할인금액(LC50.LCAM13)
@@ -306,13 +306,15 @@
                             , T1.SL_AGG_AMT AS SL_AGG_AMT -- 매출누계금액(LC50.LCAM17)
                             , T1.PVDA_AGG_AMT AS INT_AGG_AMT -- 이자누계액(LC50.LCCM17)
                             , T1.SL_AGG_AMT + T1.PVDA_AGG_AMT AS SUM_SL_AGG_AMT -- 매출누계
-                            , T1.DSC_AGG_AMT AS SUM_DSC_AGG_AMT -- 할인누계액 (ASIS 리스는 원금할인누계금액 + 이자할인누계금액 + 이자추가누계금액(LCAM18 + LCCM18 + LCCM20)) @TODO 매핑정의 수정 * LCCM20은 ASIS데이터 없음
+                            , T1.DSC_AGG_AMT AS DSC_AGG_AMT -- 할인누계액 (ASIS 리스는 원금할인누계금액 + 이자할인누계금액 + 이자추가누계금액(LCAM18 + LCCM18 + LCCM20)) @TODO 매핑정의 수정 * LCCM20은 ASIS데이터 없음
                             , NVL((SELECT SUM(NVL(A.SL_CTR_AMT, 0))
                                      FROM TB_CBCL_WELLS_SL_MM_CL_IZ A
                                     WHERE A.CNTR_NO = T1.CNTR_NO
                                       AND A.CNTR_SN = T1.CNTR_SN
-                                      AND A.SL_CL_YM <![CDATA[<=]]> A.SL_CL_YM), 0) AS SUM_CTR_AGG_AMT -- 조정누계액
-                            , T1.CNTR_TAM - T1.SL_AGG_AMT AS SL_BLAM-- 매출잔액(LC50.LCMJAN)
+                                      AND A.SL_CL_YM <![CDATA[<=]]> A.SL_CL_YM), 0) AS CTR_AGG_AMT -- 조정누계액
+                            , (CASE WHEN T1.SELL_TP_DTL_CD IN ('21', '23') THEN T1.CNTR_TAM - T1.SL_AGG_AMT
+                                   ELSE T1.CNTR_TAM - T1.SL_AGG_AMT - T1.PVDA_AGG_AMT
+                               END) AS SL_BLAM-- 매출잔액(LC50.LCMJAN)
                             ----------------------------------------------------------------
                             -- 선납선수
                             ----------------------------------------------------------------
@@ -329,7 +331,7 @@
                                  ELSE T1.PRM_SL_AMT + T1.PRPD_SL_AMT + T1.MLG_SL_AMT -- LC50.LCAM25(선납매출금액) + LC50.LCAM35(선수매출금액) + LC50.LCAM74(마일리지매출금액)
                               END AS PRPD_SL_AMT -- 매출대체금액
                             , T1.SL_BND_ALRPY_AMT AS SL_BND_ALRPY_AMT -- 매출입금액(LC50.LCAM38)
-                            , T1.SL_DP_AGG_AMT AS SUM_SL_DP_AGG_AMT -- 매출입금누계(LC50.LCAM39)
+                            , T1.SL_DP_AGG_AMT AS SL_DP_AGG_AMT -- 매출입금누계(LC50.LCAM39)
                             , CASE WHEN T1.SELL_TP_DTL_CD IN ('21', '23')
                                         THEN NVL(T1.EOT_UC_AMT, 0) + NVL(T6.EOT_DLQ_ADD_AMT, 0) + NVL(T10.EOT_BOR_AMT, 0)
                                    ELSE NVL(T1.EOT_BIL_UC_AMT, 0) END AS EOT_UC_AMT -- 미수금액(LC50.LCMAMT) ※렌탈은 매출미수, 리스는 청구미수
@@ -531,7 +533,7 @@
                 , T1.SELL_AMT AS SELL_AMT --판매금액(LCTAMT)
                 , T1.RENTAL_AMT AS RENTAL_AMT --추가금액(LCAMT1)
                 , T1.DSC_AMT AS DSC_AMT --할인금액(LCRAMT)
-                , (CASE WHEN T3.STLM_TP_CD IN ('20', '40') -- 할부, 월납
+                , (CASE WHEN T3.STLM_TP_CD IN ('20', '30', '40') -- 할부, 월납
                             THEN (NVL(T1.SELL_AMT, 0) + NVL(T1.RENTAL_AMT, 0) - NVL(T1.DSC_AMT, 0)) / T3.SV_PRD
                         ELSE 0 END) AS MM_ISTM_AMT --월청구금액
                 , TO_CHAR(TO_DATE(T1.CNTR_DT), 'YYYY-MM-DD') AS CNTR_DT -- 접수일자
@@ -540,7 +542,7 @@
                 --------------------------------------------------------------
                 -- 매출사항
                 --------------------------------------------------------------
-                , (CASE WHEN T1.NOM_SL_AMT > 0 THEN 'Y' ELSE '' END) AS SL_OCC_YM --매출발생월(LD50.LCDFLG)
+                , (CASE WHEN T1.NOM_SL_AMT > 0 THEN 'Y' ELSE '' END) AS SL_OCC_YN --매출발생월(LD50.LCDFLG)
                 , (CASE WHEN T1.NOM_SL_AMT > 0 THEN	(SELECT CASE WHEN COUNT(*) = 0 THEN '' ELSE 'Y' END
                                                        FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
                                                       WHERE CNTR_NO = T1.CNTR_NO
@@ -551,10 +553,10 @@
                 , T1.RENTAL_TN AS RENTAL_TN --진행차월(LCRCNT)
                 , T1.SPP_TN AS SPP_TN -- 배송차월(LCDCNT)
                 , T1.RENTAL_DC AS RENTAL_DC --사용일수(LCCDAY)
-                , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CAN_DT -- 취소일자
+                , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CNTR_CAN_DT -- 취소일자
                 , T1.NOM_SL_AMT AS NOM_SL_AMT --정상매출금액(LCAM11)
                 , T1.NOM_DSC_AMT AS NOM_DSC_AMT--정상할인금액(LCAM13)
-                , TO_CHAR(TO_DATE(T1.FULPY_DT), 'YYYY-MM-DD') AS FULPY_DT -- 완료일자
+                , TO_CHAR(TO_DATE(T1.FULPY_DT), 'YYYY-MM-DD') AS FSH_DT -- 완료일자
                 , T1.SPMT_SL_AMT AS SPMT_SL_AMT --추가매출금액(LCAM12)
                 , T1.SPMT_DSC_AMT AS SPMT_DSC_AMT--추가할인금액(LCAM14)
                 , T1.SL_CTR_AMT AS SL_CTR_AMT --매출조정금액(LCAM15)

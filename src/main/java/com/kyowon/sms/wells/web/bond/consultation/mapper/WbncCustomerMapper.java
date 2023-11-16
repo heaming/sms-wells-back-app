@@ -15,11 +15,12 @@ import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoReq;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchUserInfoReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncCustomerDvo;
+import com.kyowon.sms.wells.web.bond.consultation.dvo.WbncPetitionCreateDvo;
 
 /**
  * <pre>
@@ -50,7 +51,23 @@ public interface WbncCustomerMapper {
 
     int insertPromise(WbncCustomerDvo dvo);
 
-    FindUserInfoRes selectUserInfo(FindUserInfoReq dto);
+    List<SearchUserInfoRes> selectUserInfo(SearchUserInfoReq dto);
 
     FindCounselRegistrationRes selectCounselRegistration(FindCounselRegistrationReq dto);
+
+    WbncPetitionCreateDvo selectPetitionType(String cntrDtlNo, String baseYm);
+
+    int selectPetitionType1(String cntrDtlNo);
+
+    int selectPetitionType2(String cntrDtlNo);
+
+    int selectPetitionType3(String cntrDtlNo);
+
+    int selectPetitionType4(String cntrDtlNo);
+
+    int selectPetitionType5(String cntrDtlNo);
+
+    int selectPetitionType6(String cntrDtlNo);
+
+    int selectPetitionType7(String cntrDtlNo);
 }

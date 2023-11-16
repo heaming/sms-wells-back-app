@@ -49,7 +49,8 @@ public class WdccPressurePumpDto {
         String fnlMdfcUsrId, /*수정자*/
         String adnSvStrtYm, /*부가서비스시작년월*/
         String istDuedt, /*설치예정일자*/
-        String svBizHclsfCd
+        String svBizDclsfCd /*업무유형*/
+
     ) {}
 
     @ApiModel(value = "WdccPressurePumpDto-SearchSalesBaseReq")
@@ -79,16 +80,16 @@ public class WdccPressurePumpDto {
 
     @ApiModel("WdccPressurePumpDto-SaveReq")
     public record SaveReq(
-        String cntrNo,
-        String cntrSn,
-        String itmPdCd,
-        String lctamt,
-        String adnSvStrtYm,
-        String rcpdt,
-        String istDuedt,
-        String istDt,
-        String fnlVstFshDt,
-        String svBizHclsfCd
+        String cntrNo, /* 계약번호*/
+        String cntrSn, /* 계약일련번호*/
+        String itmPdCd, /* 제품상품코드*/
+        String lctamt, /* 제품가격*/
+        String adnSvStrtYm, /* 부가서비스시작년월*/
+        String rcpdt, /* 접수일자*/
+        String istDuedt, /* 설치예정일자*/
+        String istDt, /* 설치일자*/
+        String fnlVstFshDt, /* 작업일자*/
+        String svBizHclsfCd /* 사용/회수*/
     ) {}
 
     @ApiModel("WdccPressurePumpDto-RemoveReq")

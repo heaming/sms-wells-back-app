@@ -61,12 +61,11 @@ public class WsnbGoodsChangeAcceptingStateController {
         @ApiImplicitParam(name = "tpChYn", value = "유현변경여부", paramType = "query"),
     })
     @GetMapping("/excel-download")
-    public PagingResult<SearchRes> getGoodsChangeAcceptingStatesExcelDownload(
+    public List<SearchRes> getGoodsChangeAcceptingStatesExcelDownload(
         @Valid
-        SearchReq dto,
-        PageInfo pageInfo
+        SearchReq dto
     ) {
-        return service.getGoodsChangeAcceptingStatePages(dto, pageInfo);
+        return service.getGoodsChangeAcceptingStateExcelDownload(dto);
     }
 
     @ApiOperation(value = "제품교체 접수 현황(반려) 저장", notes = "제품교체 접수 현황(반려)을 저장한다.")

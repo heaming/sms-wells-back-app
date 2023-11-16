@@ -29,6 +29,12 @@ public class WwdbRefundApplicationController {
 
     private final WwdbRefundApplicationService service;
 
+    /**
+     * 환불 신청 현황 목록 조회 / 페이징
+     * @param req 환불 신청 현황 목록 조회 DTO
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRefundApplicationRes>
+     */
     @ApiOperation(value = "환불 신청 현황 목록", notes = "환불 신청 현황 목록 조회")
     @GetMapping("/paging")
     public PagingResult<SearchRefundApplicationRes> getRefundApplicationPages(
@@ -41,6 +47,11 @@ public class WwdbRefundApplicationController {
         return service.getRefundApplicationPages(req, pageInfo);
     }
 
+    /**
+     * 환불 신청 현황 목록 조회 / 엑셀 다운로드
+     * @param req 환불 신청 현황 목록 조회 DTO
+     * @return ist<SearchRefundApplicationRes>
+     */
     @ApiOperation(value = "환불 신청 현황 목록 엑셀 다운로드", notes = "환불 신청 현황 목록 엑셀 다운로드")
     @GetMapping("/excel-download")
     public List<SearchRefundApplicationRes> getRefundApplicationExcels(
@@ -49,6 +60,11 @@ public class WwdbRefundApplicationController {
         return service.getRefundApplicationExcels(req);
     }
 
+    /**
+     * 환불 신청 팝업 (환불기본)
+     * @param req 환불 신청 기본 DTO
+     * @return SearchRefundRes
+     */
     @ApiOperation(value = "환불 신청 팝업 (환불기본)", notes = "환불 신청 팝업 (환불기본)")
     @GetMapping("/reg/refund")
     public SearchRefundRes getRefundApplication(
@@ -57,7 +73,11 @@ public class WwdbRefundApplicationController {
         return service.getRefundApplication(req);
     }
 
-    /* 환불상세 */
+    /**
+     * 환불상세 목록 조회
+     * @param req 환불상세 목록 조회 DTO
+     * @return List<SearchRefundDetailRes>
+     */
     @ApiOperation(value = "환불상세 목록 조회", notes = "환불상세 목록 조회")
     @GetMapping("/reg/refund-detail")
     public List<SearchRefundDetailRes> getRefundDetailPages(
@@ -68,8 +88,11 @@ public class WwdbRefundApplicationController {
         return service.getRefundDetailPages(req);
     }
 
-    //-------- 환불신청현황 화면
-
+    /**
+     * 환불신청현황 화면 - 계약 상세 목록 조회
+     * @param req 계약 상세 목록 조회 DTO
+     * @return List<SearchRefundContractDetailRes>
+     */
     @ApiOperation(value = "환불 신청 팝업 (계약상세)", notes = "환불 신청 팝업 (계약상세) 목록 조회")
     @GetMapping("/reg/paging")
     public List<SearchRefundContractDetailRes> getRefundContractDetailPages(
@@ -80,6 +103,11 @@ public class WwdbRefundApplicationController {
         return service.getRefundContractDetailPages(req);
     }
 
+    /**
+     * 환불신청현황 화면 - 계약 상세 목록 조회 / 엑셀 다운로드
+     * @param req 계약 상세 목록 조회 DTO
+     * @return List<SearchRefundContractDetailRes>
+     */
     @ApiOperation(value = "환불 신청 팝업 (계약상세) 목록 엑셀 다운로드", notes = "환불 신청 팝업 (계약상세) 목록 엑셀 다운로드")
     @GetMapping("/reg/excel-download")
     public List<SearchRefundContractDetailRes> getRefundContractDetailExcels(
@@ -88,7 +116,12 @@ public class WwdbRefundApplicationController {
         return service.getRefundContractDetailExcels(req);
     }
 
-    /* 환불 팝업 저장 */
+    /**
+     * 환불 신청 팝업 저장
+     * @param req 환불 신청 팝업 저장 DTO
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "환불 신청 팝업 저장", notes = "환불 신청 팝업 저장")
     @PostMapping("/reg/save")
     public SaveResponse getRefundTempSave(
@@ -102,6 +135,12 @@ public class WwdbRefundApplicationController {
             .build();
     }
 
+    /**
+     * 환불 신청 팝업 삭제
+     * @param req 환불 신청 팝업 삭제 DTO
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "환불 신청 팝업 삭제", notes = "환불 신청 팝업 삭제")
     @DeleteMapping("/reg/delete")
     public SaveResponse getRefundDelete(
@@ -115,6 +154,12 @@ public class WwdbRefundApplicationController {
     }
     /* 환불저장 END */
 
+    /**
+     * 환불 신청 팝업 (계약상세) 목록 조회 / 페이징
+     * @param req 계약 상세 목록 조회 DTO
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRefundBaseRes>
+     */
     /* 메인그리드에서 호출 */
     /* 환불신청팝업 - 계약상세(메인에서조회) */
     @ApiOperation(value = "환불 신청 팝업 (계약상세)", notes = "환불 신청 팝업 (계약상세) 목록 조회")
@@ -129,6 +174,11 @@ public class WwdbRefundApplicationController {
         return service.getRefundBasePages(req, pageInfo);
     }
 
+    /**
+     * 전금 상세 목록 조회
+     * @param req 전금 상세 목록 조회 DTO
+     * @return List<SearchRefundBalanceTransferRes>
+     */
     /* 환불신청팝업 - 전금상세(메인에서조회) */
     @ApiOperation(value = "환불 신청 팝업 (전금상세)", notes = "환불 신청 팝업 (전금상세) 목록 조회")
     @GetMapping("/reg/balance-transfer")
@@ -140,6 +190,12 @@ public class WwdbRefundApplicationController {
         return service.getRefundBalanceTransferPages(req);
     }
 
+    /**
+     * 환불 신청 컨텍 이력 사항 조회 / 페이징
+     * @param cntrNo 계약 번호
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRefundApplicationConnectHistoryRes>
+     */
     /* 재사용 */
     @ApiOperation(value = "환불 신청 컨텍 이력 사항", notes = "환불 신청 컨텍 이력 사항 조회")
     @GetMapping("/connect-history/paging")
@@ -151,6 +207,11 @@ public class WwdbRefundApplicationController {
         return service.getRefundApplicationConnectHistoryPages(cntrNo, pageInfo);
     }
 
+    /**
+     * 환불 신청 컨텍 이력 사항 조회 / 엑셀 다운로드
+     * @param cntrNo 계약 번호
+     * @return List<SearchRefundApplicationConnectHistoryRes>
+     */
     @ApiOperation(value = "환불 신청 컨텍 이력 사항 엑셀 다운로드", notes = "환불 신청 컨텍 이력 사항 엑셀 다운로드")
     @GetMapping("/connect-history/excel-download")
     public List<SearchRefundApplicationConnectHistoryRes> getRefundApplicationConnectHistorysForExcelDownload(
@@ -160,6 +221,11 @@ public class WwdbRefundApplicationController {
         return service.getRefundApplicationConnectHistorysForExcelDownload(cntrNo);
     }
 
+    /**
+     * 환불 신청 환불 계좌 유효성 체크
+     * @param dto 환불 계좌 유효성 체크 DTO
+     * @return SearchBankEffectivenessCheckRes
+     */
     @ApiOperation(value = "환불 신청 환불계좌 유효성체크", notes = "환불 신청 환불계좌 유효성체크")
     @GetMapping("/bank-effective")
     public WwdaAutoTransferInterfaceDto.SearchBankEffectivenessCheckRes getRefundBankEffectivenessCheck(
@@ -168,7 +234,12 @@ public class WwdbRefundApplicationController {
         return service.getBankEffectivenessCheck(dto);
     }
 
-    /* 환불 승인 저장 */
+    /**
+     * 환불 승인 저장 및 반려 처리
+     * @param req 환불 승인 저장 DTO
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "환불 신청 승인 저장", notes = "환불 신청 팝업 승인 및 반려 처리를 한다.")
     @PostMapping("/reg/approval")
     public SaveResponse getRefundApprovalSave(

@@ -30,6 +30,12 @@ public class WwdbDepositAggregateMaterialController {
 
     private final WwdbDepositAggregateMaterialService service;
 
+    /**
+     * 입금집계자료 목록 조회 / 페이징
+     * @param req
+     * @param pageInfo
+     * @return
+     */
     @ApiOperation(value = "입금집계자료 목록", notes = "입금집계자료 목록")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "dvCd", value = "업무구분", required = false),
@@ -46,6 +52,11 @@ public class WwdbDepositAggregateMaterialController {
         return service.getDepositAggregateMaterialPages(req, pageInfo);
     }
 
+    /**
+     * 입금집계자료 목록 Total 조회
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "입금집계자료 Total ", notes = "입금집계자료 Total 값")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "dvCd", value = "업무구분", required = false),
@@ -59,6 +70,11 @@ public class WwdbDepositAggregateMaterialController {
         return service.getDepositAggregateMaterialTotal(req);
     }
 
+    /**
+     * 입금집계자료 목록 조회 / 엑셀 다운로드
+     * @param req
+     * @return
+     */
     @ApiOperation(value = "입금집계자료 엑셀 다운로드", notes = "입금집계자료 엑셀 다운로드")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "dvCd", value = "업무구분", required = false),

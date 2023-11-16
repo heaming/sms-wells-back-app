@@ -43,7 +43,9 @@ public class WsnaMovementStoreDto {
         String strHopDt, /* 입고희망일자 */
         String ostrDt, /* 출고일자 */
         String itmOstrNo, /* 품목출고번호 */
-        int ostrSn /* 출고순번 */
+        int ostrSn, /* 출고순번 */
+
+        String wareDtlDvCd /* 입고창고상세구분 */
 
     ) {}
 
@@ -59,7 +61,8 @@ public class WsnaMovementStoreDto {
         String ostrWareNo, /*출고창고번호*/
         String ostrWareNm, /*출고창고명*/
         String ostrSn, /*출고일련번호*/
-        String strHopDt /* 입고희망일자 */
+        String strHopDt, /* 입고희망일자 */
+        String wareDtlDvCd /* 입고창고상세구분 */
     ) {}
     @ApiModel("WsnaMovementStrControllerDto-MovementOstrRes")
     public record MovementOstrRes(

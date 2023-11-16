@@ -22,6 +22,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 public interface WsnyInstallSeparationMgtMapper {
     PagingResult<SearchRes> selectInstallSeparationCosts(SearchReq dto, PageInfo pageInfo);
     List<SearchRes> selectInstallSeparationCosts(SearchReq dto);
+    int updateInstallSeparationCosts(WsnyInstallSeparationMgtDvo dvo);
     int insertInstallSeparationCosts(WsnyInstallSeparationMgtDvo dvo);
     int deleteInstallSeparationCosts(WsnyInstallSeparationMgtDvo dvo);
 

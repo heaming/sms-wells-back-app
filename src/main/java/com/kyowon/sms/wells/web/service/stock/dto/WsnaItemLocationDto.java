@@ -20,7 +20,10 @@ public class WsnaItemLocationDto {
         String itmPdCd,
         // 창고번호
         @NotBlank
-        String wareNo
+        String wareNo,
+        // 기준년월
+        @NotBlank
+        String apyYm
 
     ) {}
     @ApiModel("WsnaItemLocationDto-SearchRes")
@@ -89,7 +92,11 @@ public class WsnaItemLocationDto {
         // 품목구분
         String itmKnd,
         // 창고번호
-        String wareNo
+        String wareNo,
+        // 품목그룹
+        String itmGrpCd,
+        // 자재그룹
+        String svMatGrpCd
 
     ) {}
     @ApiModel("WsnaItemLocationDto-SearchLocationRes")
@@ -145,7 +152,9 @@ public class WsnaItemLocationDto {
         // 품목위치자재그룹코드
         String itmLctMatGrpCd,
         // 품목구분
-        String itemKnd
+        String itmKndCd,
+        // 표준미적용 체크
+        String stckStdGb
 
     ) {}
 

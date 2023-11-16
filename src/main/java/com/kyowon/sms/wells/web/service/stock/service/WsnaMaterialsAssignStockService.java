@@ -40,7 +40,12 @@ public class WsnaMaterialsAssignStockService {
      * @return
      */
     public PagingResult<SearchRes> getMaterialsAssignStocksPaging(SearchReq dto, PageInfo pageInfo) {
-        return this.mapper.selectMaterialsAssignStocksPaging(dto, pageInfo);
+        SearchReq searchDto = new SearchReq(
+            dto.baseYm(), dto.wareDvCd(), dto.hgrWareNo(), dto.wareNo(), dto.wareDtlDvCd(),
+            dto.prtnrNo(), dto.prtnrKnm().replace("%", "\\%")
+        );
+
+        return this.mapper.selectMaterialsAssignStocksPaging(searchDto, pageInfo);
     }
 
     /**
@@ -50,7 +55,11 @@ public class WsnaMaterialsAssignStockService {
      * @return
      */
     public List<SearchRes> selectMaterialsAssignStocksExcelDownload(SearchReq dto) {
-        return this.mapper.selectMaterialsAssignStocksPaging(dto);
+        SearchReq searchDto = new SearchReq(
+            dto.baseYm(), dto.wareDvCd(), dto.hgrWareNo(), dto.wareNo(), dto.wareDtlDvCd(),
+            dto.prtnrNo(), dto.prtnrKnm().replace("%", "\\%")
+        );
+        return this.mapper.selectMaterialsAssignStocksPaging(searchDto);
     }
 
     /**

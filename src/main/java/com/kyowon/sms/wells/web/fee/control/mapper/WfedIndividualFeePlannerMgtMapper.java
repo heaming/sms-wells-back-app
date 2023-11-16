@@ -20,7 +20,7 @@ public interface WfedIndividualFeePlannerMgtMapper {
         SearchPlarReq dto
     );
 
-    FindPlarDeductionRes selectPlarDeduction(
+    List<FindPlarDeductionRes> selectPlarDeduction(
         SearchPlarReq dto
     );
 

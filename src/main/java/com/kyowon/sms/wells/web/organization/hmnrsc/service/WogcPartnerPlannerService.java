@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.common.web.contract.zcommon.utils.CtDateUtils;
 import com.kyowon.sms.common.web.organization.common.dvo.ZogzPartnerDvo;
 import com.kyowon.sms.common.web.organization.common.service.ZogzPartnerService;
 import com.kyowon.sms.common.web.organization.hmnrsc.dto.ZogcTransferPartnerDto.SaveAppointReq;
@@ -33,7 +36,6 @@ import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 
 /**
- *
  * <pre>
  *
  * </pre>
@@ -41,6 +43,7 @@ import lombok.RequiredArgsConstructor;
  * @author 김동석
  * @since 2023-05-24
  */
+
 @Service
 @RequiredArgsConstructor
 public class WogcPartnerPlannerService {
@@ -59,6 +62,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 수석플래너 신청관리 조회
+     *
      * @param
      * @return
      */
@@ -70,6 +74,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 수석플래너 신청관리 엑셀 다운로드
+     *
      * @param
      * @return
      */
@@ -79,6 +84,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 순주문 체크
+     *
      * @param dto
      * @return
      */
@@ -93,6 +99,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 자격생성 체크
+     *
      * @param dto
      * @return
      */
@@ -107,6 +114,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 수석플래너 신청관리 자격생성
+     *
      * @param dto
      * @return
      * @throws Exception
@@ -117,33 +125,40 @@ public class WogcPartnerPlannerService {
         WogcPartnerPlannerDvo planner = this.converter.mapSaveReqToWogcPartnerPlannerDvo(dto);
 
         //  1/4. 수석플래너신청내역(TB_OGPS_TOPMR_PLAR_APLC_IZ) 생성 (전월 -> 당월)
-        processCount = this.mapper.insertOneTopPlanner(planner);
+        processCount += this.mapper.insertOneTopPlanner(planner);
 
         //  2/4. 수석플래너신청내역 - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신
-        processCount = this.mapper.insertTwoTopPlanner(planner);
+        processCount += this.mapper.insertTwoTopPlanner(planner);
 
         //  3/4. 월파트너내역(TB_OGBS_MM_PRTNR_IZ) - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신
-        processCount = this.mapper.updateMmPartner(planner);
+        processCount += this.mapper.updateMmPartner(planner);
 
         //  4/4. 파트너상세(TB_OGBS_PRTNR_DTL) - 전월 실적마감 후 당월재직 기준 P조직(W01) 자격 갱신
-        processCount = this.mapper.updateDtlPartner(planner);
+        processCount += this.mapper.updateDtlPartner(planner);
 
         return processCount;
     }
 
     /**
      * 수석플래너 신청관리 자격조정 팝업 조회
+     *
      * @param ogTpCd
      * @param prtnrNo
      * @param mngtYm
      * @return
      */
     public WogcPartnerPlannerDto.FindRes getTopPlanner(String ogTpCd, String prtnrNo, String mngtYm) {
-        return mapper.selectTopPlannerByPk(ogTpCd, prtnrNo, mngtYm);
+        WogcPartnerPlannerDto.FindRes findRes = mapper.selectTopPlannerByPk(ogTpCd, prtnrNo, mngtYm);
+        if (ObjectUtils.isEmpty(findRes)) {
+            return mapper.selectMmPlannerByPk(ogTpCd, prtnrNo, mngtYm);
+        }
+
+        return findRes;
     }
 
     /**
      * 수석플래너 신청관리 자격조정
+     *
      * @param dto
      * @return
      * @throws Exception
@@ -153,13 +168,16 @@ public class WogcPartnerPlannerService {
         WogcPartnerPlannerDvo planner = this.converter.mapEditReqToWogcPartnerPlannerDvo(dto);
 
         int processCount = this.mapper.insertAdTopPlanner(planner); // 1. 수석플래너신청내역 테이블 INSERT
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
 
-        processCount = this.mapper.updateAdMmPartner(planner); // 2. 월파트너내역 파트너등급 UPDATE
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        processCount += this.mapper.updateAdMmPartner(planner); // 2. 월파트너내역 파트너등급 UPDATE
 
-        processCount = this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
-        BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+        if (StringUtils.equals(dto.mngtYm(), CtDateUtils.thisMonth())) {
+            processCount += this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
+        }
+
+        if (StringUtils.equals(dto.qlfDvCd(), "1")) {
+            processCount += this.mapper.updateADTopPlannerUpgradeMonth(planner); // 4. 수석플래너신청내역의 당월 이후 승급차월수 UPDATE
+        }
 
         return processCount;
     }
@@ -178,6 +196,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 매니저 자격관리 보류, 개시 저장
+     *
      * @param dto
      * @return
      * @throws Exception
@@ -298,6 +317,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 매니저 자격관리 당일개시 저장
+     *
      * @param dto
      * @return
      * @throws Exception
@@ -319,7 +339,7 @@ public class WogcPartnerPlannerService {
         int processCount = mapper.insertPlannerQualificationChange(qualificationDvo);
 
         String newStrtdt = DateUtil.getNowDayString();
-        if (detailList.get(0).qlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_1.getCode())) {
+        if (qualificationDvo.getQlfAplcDvCd().equals(QlfAplcDvCd.QLF_APLC_DV_CD_1.getCode())) {
             if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) <= 0
                 && DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).enddt()) >= 0) {
                 // 승급(현재)
@@ -331,7 +351,7 @@ public class WogcPartnerPlannerService {
                 qualificationDvo.setCvDt(null);
                 qualificationDvo.setEnddt(DateUtil.addDays(newStrtdt, -1));
                 mapper.updatePlannerQualificationChange(qualificationDvo);
-            } else if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) <= 0
+            } else if (DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).strtdt()) >= 0
                 && DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).enddt()) >= 0) {
                 // 승급(예정)
 
@@ -366,6 +386,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 매니저 자격관리 해약
+     *
      * @param dto
      * @return
      * @throws Exception
@@ -393,6 +414,7 @@ public class WogcPartnerPlannerService {
                 SaveAppointReq transferDto = SaveAppointReq.builder()
                     .ogTpCd(qualificationDvo.getOgTpCd())
                     .prtnrNo(qualificationDvo.getPrtnrNo())
+                    .ogId(qualificationDvo.getOgId())
                     .gaoorDvCd(
                         com.kyowon.sms.common.web.organization.zcommon.constants.OgConst.GaoorTpCd.GAOOR_TP_CD_10
                             .getCode()
@@ -413,6 +435,12 @@ public class WogcPartnerPlannerService {
                 } else if (checks.contains("02")) {
                     // 1.3 월별품목재고내역 시점재고수량 체크
                     BizAssert.isTrue(processCount == 1, "MSG_ALT_PITM_STOC_MINUS_EXST_PROCS_IMPSB");
+                } else if (checks.contains("03")) {
+                    // 1.4 고객서비스수행내역 관리고객계정 체크
+                    BizAssert.isTrue(processCount == 1, "MSG_ALT_MNGT_COUNT_PROCS_IMPSB");
+                } else if (checks.contains("04")) {
+                    // 1.5 고객서비스BS배정내역 방문계정 체크
+                    BizAssert.isTrue(processCount == 1, "MSG_ALT_CRT_TRGT_EXP_H_PROCS_IMPSB");
                 }
             }
         }
@@ -422,6 +450,7 @@ public class WogcPartnerPlannerService {
 
     /**
      * 매니저 자격관리 변경내역 저장(지급일자, 지급내역)
+     *
      * @param dto
      * @return
      * @throws Exception
@@ -435,6 +464,45 @@ public class WogcPartnerPlannerService {
                 .mapSaveQulificationReqToPartnerPlannerQualificationDvo(dto);
 
             processCount = mapper.updatePlannerQualificationChange(qualificationDvo);
+        }
+
+        return processCount;
+    }
+
+    /**
+     * 해약매니저 재고 확인 체크
+     *
+     * @param dto
+     * @return
+     */
+    public int getCheckCancellation(WogcPartnerPlannerDto.CheckCancellationReq dto) throws Exception {
+        int processCount = 0;
+
+        WsnaWarehouseCloseCheckDvo warehouseCloseCheckDvo = new WsnaWarehouseCloseCheckDvo();
+        warehouseCloseCheckDvo.setOgTpCd(dto.ogTpCd());
+        warehouseCloseCheckDvo.setPrtnrNo(dto.prtnrNo());
+        List<String> checks = snaWarehouseCloseCheckService.getWarehouseCloseCheck(warehouseCloseCheckDvo);
+
+        if (CollectionUtils.isNotEmpty(checks)) {
+            String result = checks.get(0);
+
+            if ("00".equals(result)) {
+                processCount = 0;
+            } else {
+                if (checks.contains("01")) {
+                    // 1.2 품목입고내역, 서비스품목재고내역 이동재고수량 체크
+                    BizAssert.isTrue(processCount == 1, "MSG_ALT_MMT_STOC_EXST_PROCS_IMPSB");
+                } else if (checks.contains("02")) {
+                    // 1.3 월별품목재고내역 시점재고수량 체크
+                    BizAssert.isTrue(processCount == 1, "MSG_ALT_PITM_STOC_MINUS_EXST_PROCS_IMPSB");
+                } else if (checks.contains("03")) {
+                    // 1.4 고객서비스수행내역 관리고객계정 체크
+                    BizAssert.isTrue(processCount == 1, "MSG_ALT_MNGT_COUNT_PROCS_IMPSB");
+                } else if (checks.contains("04")) {
+                    // 1.5 고객서비스BS배정내역 방문계정 체크
+                    BizAssert.isTrue(processCount == 1, "MSG_ALT_CRT_TRGT_EXP_H_PROCS_IMPSB");
+                }
+            }
         }
 
         return processCount;

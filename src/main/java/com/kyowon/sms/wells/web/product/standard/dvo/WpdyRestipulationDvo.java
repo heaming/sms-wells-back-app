@@ -33,6 +33,9 @@ public class WpdyRestipulationDvo {
     private String feeFxamYn; /* 수수료정액여부 */
     private String rid;
 
+    Integer ognRstlMcn; /* 재약정개월수 */
+    String ognApyEnddt; /* 적용종료일자 */
+
     private String dtaDlYn; /* 데이터삭제여부 */
 
     private String pdNm; /* 상품명 */

@@ -33,7 +33,9 @@ public class WsncQuickResponseRpblDto {
         String mngrCd, // 매니저
         // Case3
         String svcCntrCd, // 서비스센터
-        String engineerCd // 엔지니어
+        String engineerCd, // 엔지니어
+
+        String rpblYn // 재발행 여부
     ) {}
 
     // *********************************************************
@@ -57,7 +59,7 @@ public class WsncQuickResponseRpblDto {
         String rdadr,
         String vstYm,
         String bcNo,
-        String fnlMdfcDtm,
+        String dldDt,
         String vstFshDt,
         String vstFshHh,
         String bcInMthdCd,
@@ -68,7 +70,8 @@ public class WsncQuickResponseRpblDto {
         String qrCd,
         String cralLocaraTno,
         String mexnoEncr,
-        String cralIdvTno
+        String cralIdvTno,
+        String bcRpblId
     ) {
         @AutomapConstructor
         public SearchRes(
@@ -88,7 +91,7 @@ public class WsncQuickResponseRpblDto {
             String rdadr,
             String vstYm,
             String bcNo,
-            String fnlMdfcDtm,
+            String dldDt,
             String vstFshDt,
             String vstFshHh,
             String bcInMthdCd,
@@ -99,7 +102,8 @@ public class WsncQuickResponseRpblDto {
             String qrCd,
             String cralLocaraTno,
             String mexnoEncr,
-            String cralIdvTno
+            String cralIdvTno,
+            String bcRpblId
         ) {
             this(
                 mngrDvCd,
@@ -118,7 +122,7 @@ public class WsncQuickResponseRpblDto {
                 rdadr,
                 vstYm,
                 bcNo,
-                fnlMdfcDtm,
+                dldDt,
                 vstFshDt,
                 vstFshHh,
                 bcInMthdCd,
@@ -129,7 +133,8 @@ public class WsncQuickResponseRpblDto {
                 qrCd,
                 cralLocaraTno,
                 StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr,
-                cralIdvTno
+                cralIdvTno,
+                bcRpblId
             );
         }
     }

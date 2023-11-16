@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
-import com.kyowon.sms.common.web.fee.calculation.service.ZfebAgainDisbursementFeeCalculationService;
+import com.kyowon.sms.common.web.fee.calculation.service.ZfebRedfAdsbFeeCalculationService;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebAgainDisbursementFeeMapper;
 import com.sds.sflex.common.common.dvo.CodeDetailDvo;
 import com.sds.sflex.common.common.service.CodeService;
@@ -28,7 +28,7 @@ public class WfebAgainDisbursementFeeService {
 
     private final CodeService codeService;
 
-    private final ZfebAgainDisbursementFeeCalculationService againDisbursementFeeCalculationService;
+    private final ZfebRedfAdsbFeeCalculationService redfAdsbFeeCalculationService;
 
     private final WfebAgainDisbursementFeeMapper againDisbursementFeeMapper;
 
@@ -47,16 +47,11 @@ public class WfebAgainDisbursementFeeService {
      */
     public void saveAgainDisbursementOfFees(String baseYm, String cntrPerfCrtDvCd) {
         /* 계약실적생성구분코드로 처리해야 하는 수수료계산단위유형코드 목록, 실적생성생성구분코드 목록 조회 */
-        CodeDetailDvo perfAgrgCrtDvCd = codeService.getCodeDetails("PERF_AGRG_CRT_DV_CD").stream().filter(item -> cntrPerfCrtDvCd.equals(item.getUserDfn03())).findFirst().orElse(null);
-
-        /* 재지급 실적집계 서비스 호출 */
-        // 실적집계서비스.실적집계메소드(baseYm, perfAgrgCrtDvCd.getCodeValidityValue(), cntrPerfCrtDvCd);
-
-        /* 취소재지급 서비스 호출 */
-        againDisbursementFeeCalculationService.saveAgainDisbursementOfFeeCalculation(baseYm, perfAgrgCrtDvCd.getCodeValidityValue(), cntrPerfCrtDvCd);
+        CodeDetailDvo code = codeService.getCodeDetailByPk("CNTR_PERF_CRT_DV_CD", cntrPerfCrtDvCd);
+        String ogTpCd = code.getUserDfn03();
 
         /* 연체재지급 서비스 호출 */
-        saveDlqAgainDisbursementOfFees(baseYm, cntrPerfCrtDvCd);
+        saveDlqAgainDisbursementOfFees(baseYm, ogTpCd, cntrPerfCrtDvCd);
     }
 
     /**
@@ -69,24 +64,26 @@ public class WfebAgainDisbursementFeeService {
      * @param baseYm
      * @return
      */
-    public Integer saveDlqAgainDisbursementOfFees(String baseYm, String cntrPerfCrtDvCd) {
-        Integer insertCount;
+    public Integer saveDlqAgainDisbursementOfFees(String baseYm, String ogTpCd, String cntrPerfCrtDvCd) {
+        Integer insertCount = 0;
+        String redfAdsbDvCd = "03";
+        String redfAdsbTpCd = "0302";
         /* 기생성했던 연체재지급 데이터 삭제 */
-        againDisbursementFeeMapper.deleteCommonDlqAdsbs(baseYm, cntrPerfCrtDvCd, "TB_FEDD_FEE_REDF_ADSB_BAS");
-        againDisbursementFeeMapper.deleteCommonDlqAdsbs(baseYm, cntrPerfCrtDvCd, "TB_FEDD_FEE_REDF_ADSB_DTL");
-        againDisbursementFeeMapper.deleteCommonDlqAdsbs(baseYm, cntrPerfCrtDvCd, "TB_FEDD_FEE_REDF_ADSB_HIST");
-        againDisbursementFeeMapper.deleteCommonDlqAdsbs(baseYm, cntrPerfCrtDvCd, "TB_FEDD_FEE_REDF_ADSB_DTL_HIST");
-        /* 계약별 연체재지급 데이터 생성 */
-        insertCount = againDisbursementFeeMapper.insertContractDlqAdsbs(baseYm, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, "0302"));
+        redfAdsbFeeCalculationService.removeRedfAdsbData(baseYm, ogTpCd, redfAdsbDvCd, redfAdsbTpCd, "Y");
+
+        switch (ogTpCd) {
+            case "W01":
+                /* 상조 연체 재지급 */
+                insertCount = againDisbursementFeeMapper.insertLifeContractDlqAdsbsForPog(baseYm, ogTpCd, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd));
+                break;
+            case "W02":
+                /* 계약별 연체재지급 데이터 생성 */
+                insertCount = againDisbursementFeeMapper.insertContractDlqAdsbsForMog(baseYm, ogTpCd, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd));
+                break;
+        }
         /* 파트너별 연체재지급 데이터 생성 */
         if (insertCount > 0) {
-            /* 파트너별 데이터 생성 */
-            againDisbursementFeeMapper.insertDlqAdsbs(baseYm, cntrPerfCrtDvCd, getRedfAdsbBaseIdPrefix(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, "0302"));
-            /* 계약별 데이터에 부모데이터 ID 업데이트 */
-            againDisbursementFeeMapper.updatePartnerIdCntrDlqAdsbs(baseYm, cntrPerfCrtDvCd);
-            /* 이력데이터 생성 */
-            againDisbursementFeeMapper.insertContractDlqAdsbHistories(baseYm, cntrPerfCrtDvCd);
-            againDisbursementFeeMapper.insertPartnerDlqAdsbHistories(baseYm, cntrPerfCrtDvCd);
+            redfAdsbFeeCalculationService.saveRedfAdsbCntrToBasWithHist(baseYm, ogTpCd, redfAdsbDvCd, redfAdsbTpCd);
         }
         return insertCount;
     }

@@ -948,6 +948,21 @@
                          AND A.SL_CL_YM = #{slClYm}
                          AND A.SELL_TP_CD = '2'
                          AND A.SELL_TP_DTL_CD IN ('21', '23')
+                         ------------------------------------------------
+                         -- 렌탈 원두상품때문에 판매유형상세는 조건절에서 제외
+                         ------------------------------------------------
+                         <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                         AND A.SAP_PD_DV_CD = #{sapPdDvCd}
+                         </if>
+                         <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+                         AND A.CNTR_NO   = #{cntrNo}   /*계약번호*/
+                         </if>
+                         <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+                         AND A.CNTR_SN   = #{cntrSn}   /*계약상세번호*/
+                         </if>
+                         <if test="@MybatisUtils@isNotEmpty(sellInflwChnlDtlCd) and !@MybatisUtils@equals(sellInflwChnlDtlCd, 'ALL')">
+                         AND B.SELL_INFLW_CHNL_DTL_CD = #{sellInflwChnlDtlCd}
+                         </if>
                         </if>
                       ) T1
                ) T2
@@ -1080,14 +1095,14 @@
                              -- LC505.LCTAMT - LC505.LCRAMT - LC505.LCAM43 + LC505.LCTCHA + LC505.LCAM38 - LC505.LCAM74
                              -------------------------------------------------
                              , (CASE WHEN SUBSTR(H.CNTR_PD_STRTDT, 1, 6) = A.SL_CL_YM THEN NVL(A.CNTR_AMT, 0) ELSE 0 END) AS SL_BND_ALRPY_AMT_1 -- 렌탈등록비-할인금액(LC505.LCTAMT - LC505.LCRAMT)
-                             , NVL(G.SUM_RVE_AMT, 0) AS SL_BND_ALRPY_AMT_3 -- 등록환불
+                             , NVL(A.RENTAL_RGST_COST_RFND_AMT, 0) AS SL_BND_ALRPY_AMT_3 -- 등록환불
                              , NVL(A.RENTAL_RGST_COST_DFAM, 0) AS SL_BND_ALRPY_AMT_4 -- 등록차액
                              , NVL(A.SL_BND_ALRPY_AMT, 0) AS SL_BND_ALRPY_AMT_5 -- 매출입금
                              , NVL(A.MLG_SL_AMT, 0) AS SL_BND_ALRPY_AMT_6 -- 포인트_매출
                              -------------------------------------------------
                              -- 기말선수
                              -------------------------------------------------
-                             , CASE WHEN NVL(A.EOT_ATAM, 0) <![CDATA[<]]> 0 THEN NVL(A.EOT_ATAM, 0)*-1 ELSE NVL(A.EOT_ATAM, 0) END AS EOT_ATAM -- 기말 LCAM36
+                             , NVL(A.EOT_ATAM, 0) AS EOT_ATAM -- 기말 LCAM36
                              -------------------------------------------
                              -- 위약금
                              -------------------------------------------
@@ -1126,19 +1141,6 @@
                            AND F.CNTR_SN = A.CNTR_SN
                            AND F.AUTH_RSG_CNFM_YN = 'Y'
                            AND F.BASE_YM <![CDATA[<=]]> A.SL_CL_YM
-                          LEFT OUTER JOIN (SELECT SUM(NVL(RVE_AMT, 0)) SUM_RVE_AMT
-                                                , SUBSTR(RVE_DT, 1, 6) RVE_YM
-                                                , CNTR_NO
-                                                , CNTR_SN
-                                              FROM TB_CBCL_BZNS_ATAM_BAS -- 영업선수
-                                             WHERE 1=1
-                                               AND DP_DV_CD IN ('2', '4')
-                                               AND RVE_DV_CD = '01'
-                                               AND RVE_DT BETWEEN #{slClYm}||'01' AND TO_CHAR(LAST_DAY(TO_DATE(#{slClYm},'YYYYMM')),'YYYYMMDD')
-                                             GROUP BY CNTR_NO, CNTR_SN, SUBSTR(RVE_DT, 1, 6)) G
-                            ON G.RVE_YM  = A.SL_CL_YM
-                           AND G.CNTR_NO = A.CNTR_NO
-                           AND G.CNTR_SN = A.CNTR_SN
                          WHERE 1=1
                            AND A.SL_CL_YM = #{slClYm}
                            AND A.SELL_TP_CD = '2'

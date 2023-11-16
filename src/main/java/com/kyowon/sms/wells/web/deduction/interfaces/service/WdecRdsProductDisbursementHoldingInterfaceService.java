@@ -10,9 +10,7 @@ import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
 import com.kyowon.sflex.common.common.service.BatchCallService;
 import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingInterfaceDto.FindReq;
 import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingInterfaceDto.FindRes;
-import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingInterfaceDto.OrganizationTypes;
 import com.kyowon.sms.wells.web.deduction.interfaces.dto.WdecRdsProductDisbursementHoldingInterfaceDto.SaveReq;
-import com.kyowon.sms.wells.web.deduction.interfaces.dvo.WdecRdsProductDisbursementHoldingInterfaceDvo;
 import com.kyowon.sms.wells.web.deduction.interfaces.mapper.WdecRdsProductDisbursementHoldingInterfaceMapper;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
@@ -35,24 +33,24 @@ public class WdecRdsProductDisbursementHoldingInterfaceService {
     //배치 및 인터페이스처리 전 선행 대상 등록
     @Transactional
     public int insertRdsProductDisbursementHoldings(SaveReq dto, String wkPrtcDtmVal) throws Exception {
-        WdecRdsProductDisbursementHoldingInterfaceDvo saveDvo = new WdecRdsProductDisbursementHoldingInterfaceDvo();
+        //        WdecRdsProductDisbursementHoldingInterfaceDvo saveDvo = new WdecRdsProductDisbursementHoldingInterfaceDvo();
         int resultCnt = 0;
 
         //리스트로 넘어온 데이터 처리
-        for (OrganizationTypes organizationTypes : dto.data()) {
+        //        for (OrganizationTypes organizationTypes : dto.data()) {
+        //
+        //            saveDvo.setOgTpCdAryVal(organizationTypes.ogTpCdAryVal()); //조직유형코드값
+        //            saveDvo.setPrtnrNO(organizationTypes.prtnrNo()); //파트너번호 셋팅
+        //            saveDvo.setRdsDsbDuedt(dto.rdsDsbDuedt()); //RDS지급예정일자 셋팅
+        //            saveDvo.setWkPrtcDtmVal(wkPrtcDtmVal);
 
-            saveDvo.setOgTpCdAryVal(organizationTypes.ogTpCdAryVal()); //조직유형코드값
-            saveDvo.setPrtnrNO(organizationTypes.prtnrNo()); //파트너번호 셋팅
-            saveDvo.setRdsDsbDuedt(dto.rdsDsbDuedt()); //RDS지급예정일자 셋팅
-            saveDvo.setWkPrtcDtmVal(wkPrtcDtmVal);
+        resultCnt += mapper.insertRdsProductDisbursementHoldings(dto.data(), dto.rdsDsbDuedt(), wkPrtcDtmVal); //계약변경접수기본
 
-            resultCnt += mapper.insertRdsProductDisbursementHoldings(saveDvo); //계약변경접수기본
-
-            //인서트쿼리가 실패하면, 처리
-            //            if (resultCnt <= 0) {
-            //                return new String[] {dto.rdsDsbDuedt(), "F", "데이터 등록이 실패하였습니다."}; //스트링배열로 리턴
-            //            }
-        }
+        //인서트쿼리가 실패하면, 처리
+        //            if (resultCnt <= 0) {
+        //                return new String[] {dto.rdsDsbDuedt(), "F", "데이터 등록이 실패하였습니다."}; //스트링배열로 리턴
+        //            }
+        //        }
         return resultCnt;
     }
 

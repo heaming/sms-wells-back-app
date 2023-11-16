@@ -3,7 +3,7 @@ package com.kyowon.sms.wells.web.competence.evaluate.rest;
 import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto.*;
 import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdPdBaseDvo;
 import com.kyowon.sms.wells.web.competence.evaluate.service.WpsdExcellentDivisionBaseMgtService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
 import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
@@ -32,7 +32,7 @@ import java.util.Map;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/excellent-division-base")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/excellent-division-base")
 public class WpsdExcellentDivisionBaseMgtController {
 
     private final WpsdExcellentDivisionBaseMgtService service;

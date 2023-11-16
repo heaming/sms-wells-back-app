@@ -30,13 +30,13 @@
           LEFT OUTER JOIN TB_SVST_CST_SV_ITM_LCT_IZ D2    /* 고객서비스품목위치내역 */
             ON D2.ITM_PD_CD = D1.PD_CD
            AND D2.DTA_DL_YN = 'N'
-           AND D2.WARE_NO            = CASE WHEN D5.STD_WARE_USE_YN = 'Y' THEN #{wareNo} ELSE '200012' END
+           AND D2.WARE_NO            = CASE WHEN D5.STD_WARE_USE_YN = 'Y' THEN '200012' ELSE #{wareNo} END
          WHERE D1.DTA_DL_YN          = 'N'
            AND D1.PD_TP_CD           = 'M'
            AND D4.DTA_DL_YN          = 'N'
            AND D4.PD_EXTS_PRP_GRP_CD = 'PART'
            AND D5.DTA_DL_YN          = 'N'
-           AND D5.APY_YM             = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND D5.APY_YM             = #{apyYm}
            AND D1.PD_CD              = #{itmPdCd}
            AND D5.WARE_NO            = #{wareNo}
          ORDER BY PD_ABBR_NM, ITM_PD_CD
@@ -99,16 +99,22 @@
     </update>
 
     <select id="selectItemLocationsStockCd" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemLocationDto$SearchStockCdRes">
-         SELECT T1.WARE_NO AS CODE_ID     /* 창고번호 */
-              , T1.WARE_NM AS CODE_NAME   /* 창고명 */
-              , T1.WARE_DV_CD             /* 창고구분 */
+         SELECT T1.WARE_NO        AS CODE_ID     /* 창고번호 */
+              , T1.WARE_NM || CASE WHEN T1.WARE_USE_YN <![CDATA[<>]]> 'Y'   /* 미사용인 경우만 (미사용) 표기 */
+                                   THEN ( SELECT '(' || MLNG_CNTN || ')'
+                                            FROM T_CMZ_MLNG_D
+                                           WHERE TENANT_ID = 'TNT_BASE'
+                                             AND MLNG_ID   = 'MSG_TXT_NUSD'
+                                             AND LNG_ID    = #{session.langId} )
+                              END AS CODE_NAME   /* 창고명 */
+              , T1.WARE_DV_CD                    /* 창고구분 */
            FROM TB_SVST_MCBY_WARE_IZ T1   /* 월별창고내역 */
           WHERE T1.APY_YM         = TO_CHAR(SYSDATE, 'YYYYMM')
             AND T1.DTA_DL_YN      = 'N'
             AND T1.WARE_DV_CD     = '2'
             AND T1.WARE_DTL_DV_CD = '20'
-            AND ( T1.WARE_NM LIKE '%센터' OR T1.WARE_NM LIKE '%지점' )
-          ORDER BY T1.WARE_DV_CD, T1.WARE_USE_YN DESC, T1.WARE_NM ASC, T1.WARE_NO ASC
+            AND ( T1.WARE_NM LIKE '%센터' OR T1.WARE_NM LIKE '%지점' OR T1.WARE_NM LIKE '%기장' )
+          ORDER BY T1.WARE_USE_YN DESC, TO_NUMBER(T1.SORT_DV_VAL), T1.WARE_NM, T1.WARE_NO
     </select>
 
    <select id="selectStockItemLocations" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemLocationDto$SearchLocationRes">
@@ -146,7 +152,7 @@
           LEFT OUTER JOIN TB_SVST_CST_SV_ITM_LCT_IZ D2    /* 고객서비스품목위치내역 */
             ON D2.ITM_PD_CD = D1.PD_CD
            AND D2.DTA_DL_YN          = 'N'
-           AND D2.WARE_NO            = CASE WHEN D5.STD_WARE_USE_YN = 'Y' THEN #{wareNo} ELSE '200012' END
+           AND D2.WARE_NO            = CASE WHEN D5.STD_WARE_USE_YN = 'Y' THEN '200012' ELSE #{wareNo} END
          WHERE D1.DTA_DL_YN          = 'N'
            AND D1.PD_TP_CD           = 'M'
            AND D4.DTA_DL_YN          = 'N'
@@ -159,6 +165,15 @@
        <if test="@MybatisUtils@isNotEmpty(wareNo)">
            AND D5.WARE_NO            = #{wareNo}
        </if>
+       <if test='@MybatisUtils@isNotEmpty(itmKnd)'>
+           AND D4.PD_PRP_VAL19       = #{itmKnd}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(itmGrpCd)'>
+           AND D4.PD_PRP_VAL20       = #{itmGrpCd}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(svMatGrpCd)'>
+           AND D4.PD_PRP_VAL36       = #{svMatGrpCd}
+       </if>
          ORDER BY ITM_PD_CD
     </select>
 
@@ -167,7 +182,8 @@
          USING
              (
             <foreach collection="list" item="item" open="" close="" separator="UNION">
-               SELECT #{item.wareNo}          AS WARE_NO               /* 창고번호 */
+               SELECT ( CASE WHEN #{item.stckStdGb} = 'Y' THEN #{item.wareNo} ELSE '200012'
+                         END )                AS WARE_NO               /* 창고번호 */
                     , #{item.itmPdCd}         AS ITM_PD_CD             /* 품목상품코드 */
                     , #{item.wareTpCd}        AS WARE_TP_CD            /* 창고유형코드 */
                     , #{item.itmLctAngleVal}  AS ITM_LCT_ANGLE_VAL     /* 앵글 */

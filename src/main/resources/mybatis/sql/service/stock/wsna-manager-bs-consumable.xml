@@ -94,96 +94,68 @@
     </select>
 
     <select id="selectBuildings" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaManagerBsConsumableDvo">
-        SELECT M1.BLD_NM
-             , M1.BLD_CD
-             , M1.PRTNR_NO
-             , M1.OG_CD
-             , M1.PRTNR_KNM
-             , M1.VST_CST_N
-             , NVL(M2.WRFR, 0) AS WRFR
-             , NVL(M2.BDT_INDV, 0) AS BDT_INDV
-             , NVL(M2.BDT_CRP, 0) AS BDT_CRP
-             , NVL(M2.ARCLE_INDV, 0) AS ARCLE_INDV
-             , NVL(M2.ARCLE_CRP, 0) AS ARCLE_CRP
-             , NVL(M2.WTR_SFTNR, 0) AS WTR_SFTNR
-             , NVL(M2.CFF_MCHN, 0) AS CFF_MCHN
-             , NVL(M2.MSGCR, 0) AS MSGCR
-             , NVL(M2.DRYR, 0) AS DRYR
-             , NVL(M2.WASH, 0) AS WASH
-             , NVL(M2.ARDRSSR, 0) AS ARDRSSR
-             , NVL(M2.SSCLING, 0) AS SSCLING
-          FROM (SELECT O1.PRTNR_NO
-                     , O1.PRTNR_KNM
-                     , O1.OG_CD
-                     , O3.BLD_CD
-                     , O3.BLD_NM
-                     , COUNT(1) VST_CST_N
-                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1
-                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S2
-                    ON S1.CNTR_NO = S2.CNTR_NO
-                   AND S1.CNTR_SN = S2.CNTR_SN
-                   AND S2.REQD_DT IS NULL
-                   AND S2.CPS_DT IS NULL
-                   AND S2.CNTR_DTL_STAT_CD = '101'
-                 INNER JOIN TB_OGBS_MM_PRTNR_IZ O1
-                    ON S1.CNTC_ICHR_PRTNR_OG_TP_CD = O1.OG_TP_CD
-                   AND S1.CNTC_ICHR_PRTNR_NO = O1.PRTNR_NO
-                   AND O1.BASE_YM = #{mngtYm}
-                 INNER JOIN TB_OGBS_MM_OG_IZ O2
-                    ON O1.OG_ID = O2.OG_ID
-                   AND O1.OG_TP_CD = O2.OG_TP_CD
-                   AND O2.BASE_YM = #{mngtYm}
-                 INNER JOIN TB_OGBS_BLD_BAS O3
-                    ON O2.OG_TP_CD = O3.OG_TP_CD
-                   AND O2.BLD_CD = O3.BLD_CD
-                 WHERE 1 = 1
-                   AND S1.SV_BIZ_DCLSF_CD != '2140'
-                   AND S1.ASN_OJ_YM = #{mngtYm}
-                 <if test='@MybatisUtils@isNotEmpty(bldCds)'>
-                   AND O3.BLD_CD IN (
-                                     <foreach collection="bldCds" item="bldCd" separator=", ">
-                                        #{bldCd}
-                                     </foreach>
-                                    )
-                 </if>
-                 GROUP BY O1.PRTNR_NO, O1.PRTNR_KNM, O1.OG_CD, O3.BLD_CD, O3.BLD_NM
-               ) M1
-          LEFT JOIN (SELECT S1.CNFM_PSIC_PRTNR_OG_TP_CD AS OG_TP_CD
-                          , S1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
-                          , SUM(CASE WHEN P1.PD_PRP_VAL20 = '1' AND S3.COPN_DV_CD = '1' THEN 1 ELSE 0 END) AS BDT_INDV
-                          , SUM(CASE WHEN P1.PD_PRP_VAL20 = '1' AND S3.COPN_DV_CD = '2' THEN 1 ELSE 0 END) AS BDT_CRP
-                          , SUM(CASE WHEN P1.PD_PRP_VAL20 = '2' THEN 1 ELSE 0 END) AS WRFR
-                          , SUM(CASE WHEN P1.PD_PRP_VAL20 = '3' AND S3.COPN_DV_CD = '1' THEN 1 ELSE 0 END) AS ARCLE_INDV
-                          , SUM(CASE WHEN P1.PD_PRP_VAL20 = '3' AND S3.COPN_DV_CD = '2' THEN 1 ELSE 0 END) AS ARCLE_CRP
-                          , SUM(CASE WHEN P1.PD_PRP_VAL20 = '4' THEN 1 ELSE 0 END) AS WTR_SFTNR
-                          , SUM(CASE WHEN P1.PD_PRP_VAL20 = '93' THEN 1 ELSE 0 END) AS MSGCR
-                          , SUM(CASE WHEN P1.PD_PRP_VAL20 = '96' THEN 1 ELSE 0 END) AS CFF_MCHN
-                          , SUM(CASE WHEN P1.PD_CD IN ('WM04100121' , 'WM04100152' , 'WM04100153') THEN 1 ELSE 0 END) AS DRYR /* 건조기 */
-                          , SUM(CASE WHEN P1.PD_CD IN ('WM04100127' , 'WM04100155' , 'WM04100156') THEN 1 ELSE 0 END) AS WASH /* 세탁기 */
-                          , SUM(CASE WHEN P1.PD_CD IN ('WM04100164', 'WM04100166', 'WM04100192', 'WM04100193', 'WM04100194', 'WM07101222') THEN 1 ELSE 0 END) AS ARDRSSR /* 에어드레서 */
-                          , SUM(CASE WHEN P1.PD_CD IN ('WM04100200', 'WM04100201', 'WM04100202') THEN 1 ELSE 0 END) AS SSCLING /* 삼성청소기 */
-                          , COUNT(1) CNT
-                       FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1
-                      INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S2
-                         ON S1.CNTR_NO = S2.CNTR_NO
-                        AND S1.CNTR_SN = S2.CNTR_SN
-                        AND S2.REQD_DT IS NULL
-                        AND S2.CPS_DT IS NULL
-                        AND S2.CNTR_DTL_STAT_CD = '101'
-                      INNER JOIN TB_SSCT_CNTR_BAS S3
-                         ON S1.CNTR_NO = S3.CNTR_NO
-                      INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1
-                         ON S2.PDCT_PD_CD = P1.PD_CD
-                        AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
-                        AND P1.PD_PRP_VAL20 != '11'
-                      WHERE 1 = 1
-                        AND S1.SV_BIZ_DCLSF_CD != '2140'
-                        AND S1.ASN_OJ_YM = #{mngtYm}
-                      GROUP BY S1.CNFM_PSIC_PRTNR_OG_TP_CD, S1.CNFM_PSIC_PRTNR_NO
-                    ) M2
-            ON M1.PRTNR_NO = M2.PRTNR_NO
-         WHERE 1 = 1
-         ORDER BY M1.BLD_NM
+        SELECT O1.PRTNR_NO
+             , O1.PRTNR_KNM
+             , O2.OG_CD
+             , O3.BLD_CD
+             , O3.BLD_NM
+             , COUNT(1) AS VST_CST_N
+             , SUM(CASE WHEN P1.PD_PRP_VAL20 = '1' AND S3.COPN_DV_CD = '1' THEN 1 ELSE 0 END) AS BDT_INDV
+             , SUM(CASE WHEN P1.PD_PRP_VAL20 = '1' AND S3.COPN_DV_CD = '2' THEN 1 ELSE 0 END) AS BDT_CRP
+             , SUM(CASE WHEN P1.PD_PRP_VAL20 = '2' THEN 1 ELSE 0 END) AS WRFR
+             , SUM(CASE WHEN P1.PD_PRP_VAL20 = '3' AND S3.COPN_DV_CD = '1' THEN 1 ELSE 0 END) AS ARCLE_INDV
+             , SUM(CASE WHEN P1.PD_PRP_VAL20 = '3' AND S3.COPN_DV_CD = '2' THEN 1 ELSE 0 END) AS ARCLE_CRP
+             , SUM(CASE WHEN P1.PD_PRP_VAL20 = '4' THEN 1 ELSE 0 END) AS WTR_SFTNR
+             , SUM(CASE WHEN P1.PD_PRP_VAL20 = '93' THEN 1 ELSE 0 END) AS MSGCR
+             , SUM(CASE WHEN P1.PD_PRP_VAL20 = '96' THEN 1 ELSE 0 END) AS CFF_MCHN
+             , SUM(CASE WHEN P1.PD_CD IN ('WM04100121' , 'WM04100152' , 'WM04100153') THEN 1 ELSE 0 END) AS DRYR /* 건조기 */
+             , SUM(CASE WHEN P1.PD_CD IN ('WM04100127' , 'WM04100155' , 'WM04100156') THEN 1 ELSE 0 END) AS WASH /* 세탁기 */
+             , SUM(CASE WHEN P1.PD_CD IN ('WM04100164', 'WM04100166', 'WM04100192', 'WM04100193', 'WM04100194', 'WM07101222') THEN 1 ELSE 0 END) AS ARDRSSR /* 에어드레서 */
+             , SUM(CASE WHEN P1.PD_CD IN ('WM04100200', 'WM04100201', 'WM04100202') THEN 1 ELSE 0 END) AS SSCLING /* 삼성청소기 */
+          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ S1
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S2
+            ON S1.CNTR_NO = S2.CNTR_NO
+           AND S1.CNTR_SN = S2.CNTR_SN
+           AND S2.MNGT_PRTNR_OG_TP_CD = 'W02'
+           AND S2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS S3
+            ON S1.CNTR_NO = S3.CNTR_NO
+           AND S3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL S4
+            ON S4.CNTR_NO = S1.CNTR_NO
+           AND S4.CNTR_SN = S1.CNTR_SN
+           AND S4.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1
+            ON S2.PDCT_PD_CD = P1.PD_CD
+           AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND P1.PD_PRP_VAL20 != '11'
+           AND P1.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ O1
+            ON O1.OG_TP_CD = S2.MNGT_PRTNR_OG_TP_CD
+           AND O1.PRTNR_NO = S2.MNGT_PRTNR_NO
+           AND O1.BASE_YM = S1.MNGT_YM
+           AND O1.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_OG_IZ O2
+            ON O1.OG_ID = O2.OG_ID
+           AND O1.OG_TP_CD = O2.OG_TP_CD
+           AND O2.BASE_YM = S1.MNGT_YM
+           AND O2.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_BLD_BAS O3
+            ON O2.OG_TP_CD = O3.OG_TP_CD
+           AND O2.BLD_CD = O3.BLD_CD
+           AND O3.DTA_DL_YN = 'N'
+         WHERE S1.DTA_DL_YN = 'N'
+           AND S1.CNTR_DTL_STAT_CD NOT IN ('401','402')
+           AND S1.MNGT_YM = #{mngtYm}
+         <if test='@MybatisUtils@isNotEmpty(bldCds)'>
+           AND O3.BLD_CD IN (
+                             <foreach collection="bldCds" item="bldCd" separator=", ">
+                                 #{bldCd}
+                             </foreach>
+                            )
+         </if>
+         GROUP BY O1.OG_TP_CD, O1.PRTNR_NO, O1.PRTNR_KNM, O2.OG_CD, O3.BLD_CD, O3.BLD_NM
+         ORDER BY O3.BLD_NM, O1.PRTNR_KNM
     </select>
 
     <select id="selectItemQtys" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaManagerBsConsumableDvo">
@@ -293,9 +265,9 @@
 
     <select id="selectManagerBsConsumableAplcClose" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaManagerBsConsumableDto$FindTmlmRes">
         SELECT BIZ_STRTDT
-             , BIZ_STRT_HH
+             , SUBSTR(BIZ_STRT_HH, 0, 4) AS BIZ_STRT_HH
              , BIZ_ENDDT
-             , BIZ_END_HH
+             , SUBSTR(BIZ_END_HH, 0, 4) AS BIZ_END_HH
           FROM TB_SVST_BIZ_CL_BAS
          WHERE CL_MNGT_DV_CD = '6'
            AND DTA_DL_YN = 'N'
@@ -419,21 +391,31 @@
     </insert>
 
     <select id="selectBfsvcCsmbDdlvIzByMngtYm" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaManagerBsConsumableDvo">
-        SELECT MNGT_YM
-             , BFSVC_CSMB_DDLV_OJ_CD
-             , STR_WARE_NO
-             , CSMB_PD_CD
-             , SAP_MAT_CD
-             , BFSVC_CSMB_DDLV_QTY
-             , BFSVC_CSMB_DDLV_STAT_CD
-             , OSTR_AK_NO
-             , OSTR_AK_SN
-          FROM TB_SVST_BFSVC_CSMB_DDLV_IZ
-         WHERE BFSVC_CSMB_DDLV_STAT_CD = '20'
-           AND BFSVC_CSMB_DDLV_OJ_CD = '2'
-           AND BFSVC_CSMB_DDLV_QTY > 0
-           AND MNGT_YM = #{mngtYm}
-           AND STR_WARE_NO = #{strWareNo}
+        SELECT T1.MNGT_YM
+             , T1.BFSVC_CSMB_DDLV_OJ_CD
+             , T1.STR_WARE_NO
+             , T1.CSMB_PD_CD
+             , T1.SAP_MAT_CD
+             , T1.BFSVC_CSMB_DDLV_QTY
+             , T1.BFSVC_CSMB_DDLV_STAT_CD
+             , T1.OSTR_AK_NO
+             , T1.OSTR_AK_SN
+             , O2.BLD_CD
+          FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ O1
+            ON O1.BASE_YM = T1.MNGT_YM
+           AND O1.OG_TP_CD = 'W02'
+           AND O1.PRTNR_NO = T1.STR_WARE_NO
+         INNER JOIN TB_OGBS_MM_OG_IZ O2
+            ON O2.BASE_YM = O1.BASE_YM
+           AND O2.OG_TP_CD = O1.OG_TP_CD
+           AND O2.OG_ID = O1.OG_ID
+         WHERE 1 = 1
+           AND T1.BFSVC_CSMB_DDLV_STAT_CD = '20'
+           AND T1.BFSVC_CSMB_DDLV_OJ_CD = '2'
+           AND T1.BFSVC_CSMB_DDLV_QTY > 0
+           AND T1.MNGT_YM = #{mngtYm}
+           AND T1.STR_WARE_NO = #{strWareNo}
     </select>
 
     <select id="selectNewOstrAkNo" resultType="String">
@@ -460,7 +442,9 @@
          WHERE 1 = 1
            AND MNGT_YM = #{mngtYm}
            AND BFSVC_CSMB_DDLV_OJ_CD = '2'
-           AND STR_WARE_NO = #{strWareNo}
+           AND STR_WARE_NO IN (<foreach collection='strWareNos' item='strWareNo' separator=',' >
+                                   #{strWareNo}
+                               </foreach>)
            <!-- AND CSMB_PD_CD = #{csmbPdCd} -->
     </update>
 </mapper>

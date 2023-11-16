@@ -1,14 +1,10 @@
 package com.kyowon.sms.wells.web.competence.evaluate.dto;
 
-import javax.validation.constraints.NotBlank;
-
-import com.sds.sflex.system.config.validation.validator.ValidDate;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.Arrays;
+import javax.validation.constraints.NotBlank;
 
 public class WpsdExcellentDivisionBaseMgtDto {
     // *********************************************************
@@ -142,7 +138,6 @@ public class WpsdExcellentDivisionBaseMgtDto {
         Integer evlBaseUnitN,     /* 평가기준단위수 */
         Long cvtBasePc,           /* 환산기준점수 */
         Long trgBasePc,           /* 목표기준점수 */
-        String ctstGrpCd,         /* 경진그룹코드 */
         String dtaDlYn           /* 데이터삭제여부 */
     ) {
     }
@@ -161,7 +156,6 @@ public class WpsdExcellentDivisionBaseMgtDto {
         Integer evlBaseUnitN,     /* 평가기준단위수 */
         Long cvtBasePc,           /* 환산기준점수 */
         Long trgBasePc,           /* 목표기준점수 */
-        String ctstGrpCd,         /* 경진그룹코드 */
         String dtaDlYn,
         String rowState
     ) {
@@ -181,6 +175,19 @@ public class WpsdExcellentDivisionBaseMgtDto {
         String evlAtcCn,         /* 평가항목내용 */
         String dtaDlYn          /* 데이터삭제여부 */
     ){
+    }
+
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 우수사업부 기준관리 - 상세 평가기준 Delete Request Dto
+    @ApiModel("WpsdExcellentDivisionBaseMgtDto-EvlDetailDeleteReq")
+    public record EvlDetailDeleteReq(
+        String baseYm,
+        String evlOgTpCd,        /* 평가조직유형코드 */
+        String evlDvCd,           /* 평가구분코드 */
+        String evlAtcDvCd       /* 평가항목구분코드 */
+    ) {
     }
 
     // *********************************************************
@@ -214,7 +221,6 @@ public class WpsdExcellentDivisionBaseMgtDto {
         String evlBaseUnitN,
         String cvtBasePc,
         String trgBasePc,
-        String ctstGrpCd,
         String dtaDlYn
     ) {
     }

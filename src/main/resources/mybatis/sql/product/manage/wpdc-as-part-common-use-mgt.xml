@@ -7,7 +7,7 @@
              , T2.PD_ABBR_NM                                                        AS PART_PD_ABBR_NM      /* 부품약어명 */
              , P1.PD_PRP_VAL17                                                      AS AS_MAT_MNG_TP_CD     /* 관리유형코드 */
              , F_CMZ_CD_NM('TNT_WELLS','MAT_MNGT_DV_CD', P1.PD_PRP_VAL17, 'ko')     AS AS_MAT_MNG_TP_NM     /* 관리유형명 */
-             , SUBSTR(T2.SAP_MAT_CD, 10, 9)                                         AS SAP_MAT_CD           /* 자재코드 */
+             , T2.SAP_MAT_CD                                                        AS SAP_MAT_CD           /* 자재코드 */
              , P1.PD_PRP_VAL01 || NVL2(P1.PD_PRP_VAL01, '-', '') || P1.PD_PRP_VAL31 AS AS_ITEM_CD           /* 품목코드 */
              , P1.PD_PRP_VAL19                                                      AS AS_MAT_ITM_KND_CD    /* 품목종류코드 */
              , F_CMZ_CD_NM('TNT_WELLS', 'ITM_KND_CD', P1.PD_PRP_VAL19, 'ko')        AS AS_MAT_ITM_KND_NM    /* 품목종류명 */
@@ -19,48 +19,48 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'CMN_PART_DV_CD', P1.PD_PRP_VAL21, 'ko')    AS AS_MAT_CMN_CLSF_NM   /* AS자재 공통분류명 */
              , P1.PD_PRP_VAL15                                                      AS ORDNY_HV_MAT_YN      /* 상시보유자재여부 */
              , P1.PD_PRP_VAL30                                                      AS TRNOVR_RT_OJ_YN      /* 회전율 대상여부 */
-          FROM TB_PDBS_PD_REL T1
-         INNER JOIN TB_PDBS_PD_BAS T2
-            ON T1.OJ_PD_CD = T2.PD_CD  /* AS부품 */
+          FROM TB_PDBS_PD_REL T1                        /* 상품관계 */
+         INNER JOIN TB_PDBS_PD_BAS T2                   /* 상품기본 */
+            ON T1.OJ_PD_CD = T2.PD_CD                   /* AS부품 */
            AND T2.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1    /* 상품각사속성상세 */
             ON T2.PD_CD = P1.PD_CD
-           AND P1.PD_EXTS_PRP_GRP_CD = 'PART'   /* 'PART' : AS부품 */
+           AND P1.PD_EXTS_PRP_GRP_CD = 'PART'           /* 'PART' : AS부품 */
            AND P1.DTA_DL_YN = 'N'
-         WHERE T1.PD_REL_TP_CD = '14'   /* 14 : AS부품 */
+         WHERE T1.PD_REL_TP_CD = '14'                   /* 14 : AS부품 */
            AND T1.DTA_DL_YN = 'N'
        <if test="@MybatisUtils@isNotEmpty(prdtCateHigh) and !@MybatisUtils@equals(prdtCateHigh, 'ALL')">
-           AND T2.PD_HCLSF_ID = #{prdtCateHigh}
+           AND T2.PD_HCLSF_ID = #{prdtCateHigh}         /* 상품분류 - 대분류 */
        </if>
        <if test="@MybatisUtils@isNotEmpty(prdtCateMid) and !@MybatisUtils@equals(prdtCateMid, 'ALL')">
-           AND T2.PD_MCLSF_ID = #{prdtCateMid}
+           AND T2.PD_MCLSF_ID = #{prdtCateMid}          /* 상품분류 - 중분류 */
        </if>
        <if test="@MybatisUtils@isNotEmpty(prdtCateLow) and !@MybatisUtils@equals(prdtCateLow, 'ALL')">
-           AND T2.PD_LCLSF_ID = #{prdtCateLow}
+           AND T2.PD_LCLSF_ID = #{prdtCateLow}          /* 상품분류 - 소분류 */
        </if>
        <if test='@MybatisUtils@isNotEmpty(asMatItmKndCd)'>
-           AND P1.PD_PRP_VAL19 = #{asMatItmKndCd}
+           AND P1.PD_PRP_VAL19 = #{asMatItmKndCd}       /* 품목종류 */
        </if>
        <if test='@MybatisUtils@isNotEmpty(asMatItmGrpCd)'>
-           AND P1.PD_PRP_VAL20 = #{asMatItmGrpCd}
+           AND P1.PD_PRP_VAL20 = #{asMatItmGrpCd}       /* 품목그룹 */
        </if>
        <if test='@MybatisUtils@isNotEmpty(svMatGrpCd)'>
-           AND P1.PD_PRP_VAL36 = #{svMatGrpCd}
+           AND P1.PD_PRP_VAL36 = #{svMatGrpCd}          /* 자재그룹 */
        </if>
        <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-           AND T2.PD_CD = #{pdCd}
+           AND T2.PD_CD = #{pdCd}                       /* 제품코드 */
        </if>
        <if test='@MybatisUtils@isNotEmpty(pdNm)'>
-           AND UPPER(T2.PD_NM) LIKE '%' || UPPER(#{pdNm}) || '%'
+           AND UPPER(T2.PD_NM) LIKE '%' || UPPER(#{pdNm}) || '%'    /* 제품명 */
        </if>
        <if test='@MybatisUtils@isNotEmpty(sapMatCd)'>
-           AND T2.SAP_MAT_CD LIKE '%' || #{sapMatCd} || '%'
+           AND T2.SAP_MAT_CD LIKE '%' || #{sapMatCd} || '%'         /* 자재코드 */
        </if>
        <if test='@MybatisUtils@isNotEmpty(sapItemCdFrom)'>
-           AND P1.PD_PRP_VAL01 || P1.PD_PRP_VAL31 <![CDATA[>=]]> #{sapItemCdFrom}
+           AND P1.PD_PRP_VAL01 || P1.PD_PRP_VAL31 <![CDATA[>=]]> #{sapItemCdFrom}   /* 품목코드 시작 */
        </if>
        <if test='@MybatisUtils@isNotEmpty(sapItemCdTo)'>
-           AND P1.PD_PRP_VAL01 || P1.PD_PRP_VAL31 <![CDATA[<=]]> #{sapItemCdTo}
+           AND P1.PD_PRP_VAL01 || P1.PD_PRP_VAL31 <![CDATA[<=]]> #{sapItemCdTo}     /* 품목코드 종료 */
        </if>
          ORDER BY T2.PD_CD DESC
     </select>
@@ -69,22 +69,22 @@
         SELECT DISTINCT T2.PD_CD
              , T2.PD_NM
              , T2.PD_ABBR_NM                                                                                /* 상품약어명 */
-             , SUBSTR(T2.SAP_MAT_CD, 10, 9)                                         AS SAP_MAT_CD           /* 자재코드 */
+             , T2.SAP_MAT_CD                                                        AS SAP_MAT_CD           /* 자재코드 */
              , T3.PD_PRP_VAL01 || NVL2(T3.PD_PRP_VAL01,'-','') || T3.PD_PRP_VAL31   AS AS_ITEM_CD           /* 품목코드 */
              , T3.PD_PRP_VAL19                                                      AS AS_MAT_ITM_KND_CD    /* 품목종류코드 */
              , F_CMZ_CD_NM('TNT_WELLS', 'ITM_KND_CD', T3.PD_PRP_VAL19, 'ko')        AS AS_MAT_ITM_KND_NM    /* 품목종류명 */
              , T3.PD_PRP_VAL20                                                      AS AS_MAT_ITM_GRP_CD    /* 품목그룹코드 */
              , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', T3.PD_PRP_VAL20, 'ko')         AS AS_MAT_ITM_GRP_NM    /* 품목그룹명 */
-          FROM TB_PDBS_PD_REL T1
-         INNER JOIN TB_PDBS_PD_BAS T2
+          FROM TB_PDBS_PD_REL T1                        /* 상품관계 */
+         INNER JOIN TB_PDBS_PD_BAS T2                   /* 상품기본 */
             ON T2.PD_CD = T1.BASE_PD_CD
            AND T2.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3    /* 상품각사속성상세 */
             ON T3.PD_CD  = T2.PD_CD
-           AND T3.PD_EXTS_PRP_GRP_CD = 'PART'   /* 'PART' : AS부품 */
+           AND T3.PD_EXTS_PRP_GRP_CD = 'PART'           /* 'PART' : AS부품 */
            AND T3.DTA_DL_YN = 'N'
-         WHERE T1.PD_REL_TP_CD = '14'   /* 14 : AS부품 */
-           AND T1.OJ_PD_CD = #{partPdCd}
+         WHERE T1.PD_REL_TP_CD = '14'                   /* 14 : AS부품 */
+           AND T1.OJ_PD_CD = #{partPdCd}                /* 부품코드 */
            AND T1.DTA_DL_YN = 'N'
          ORDER BY T2.PD_CD DESC
     </select>
@@ -93,38 +93,38 @@
         SELECT DISTINCT T2.PD_CD
              , T2.PD_NM
              , T2.PD_ABBR_NM                                                                                /* 상품약어명 */
-             , SUBSTR(T2.SAP_MAT_CD, 10, 9)                                         AS SAP_MAT_CD           /* 자재코드 */
+             , T2.SAP_MAT_CD                                                        AS SAP_MAT_CD           /* 자재코드 */
              , T3.PD_PRP_VAL01 || NVL2(T3.PD_PRP_VAL01,'-','') || T3.PD_PRP_VAL31   AS AS_ITEM_CD           /* 품목코드 */
              , T3.PD_PRP_VAL19                                                      AS AS_MAT_ITM_KND_CD    /* 품목종류코드 */
              , F_CMZ_CD_NM('TNT_WELLS', 'ITM_KND_CD', T3.PD_PRP_VAL19, 'ko')        AS AS_MAT_ITM_KND_NM    /* 품목종류명 */
              , T3.PD_PRP_VAL20                                                      AS AS_MAT_ITM_GRP_CD    /* 품목그룹코드 */
              , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', T3.PD_PRP_VAL20, 'ko')         AS AS_MAT_ITM_GRP_NM    /* 품목그룹명 */
-          FROM TB_PDBS_PD_REL T1
-         INNER JOIN TB_PDBS_PD_BAS T2
+          FROM TB_PDBS_PD_REL T1                                    /* 상품관계 */
+         INNER JOIN TB_PDBS_PD_BAS T2                               /* 상품기본 */
             ON T2.PD_CD = T1.BASE_PD_CD
            AND T2.DTA_DL_YN = 'N'
-           AND T2.PD_TP_CD = 'M'
+           AND T2.PD_TP_CD = 'M'                                    /* M : 교재제품 */
        <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-           AND T2.PD_CD = #{pdCd}
+           AND T2.PD_CD = #{pdCd}                                   /* 제품코드 */
        </if>
        <if test='@MybatisUtils@isNotEmpty(pdNm)'>
-           AND UPPER(T2.PD_NM) LIKE '%' || UPPER(#{pdNm}) || '%'
+           AND UPPER(T2.PD_NM) LIKE '%' || UPPER(#{pdNm}) || '%'    /* 상품명 */
        </if>
        <if test="@MybatisUtils@isNotEmpty(prdtCateHigh) and !@MybatisUtils@equals(prdtCateHigh, 'ALL')">
-           AND T2.PD_HCLSF_ID = #{prdtCateHigh}
+           AND T2.PD_HCLSF_ID = #{prdtCateHigh}                     /* 상품분류 - 대분류 */
        </if>
        <if test="@MybatisUtils@isNotEmpty(prdtCateMid) and !@MybatisUtils@equals(prdtCateMid, 'ALL')">
-           AND T2.PD_MCLSF_ID = #{prdtCateMid}
+           AND T2.PD_MCLSF_ID = #{prdtCateMid}                      /* 상품분류 - 중분류 */
        </if>
        <if test="@MybatisUtils@isNotEmpty(prdtCateLow) and !@MybatisUtils@equals(prdtCateLow, 'ALL')">
-           AND T2.PD_LCLSF_ID = #{prdtCateLow}
+           AND T2.PD_LCLSF_ID = #{prdtCateLow}                      /* 상품분류 - 소분류 */
        </if>
        <if test='@MybatisUtils@isNotEmpty(sapMatCd)'>
-           AND T2.SAP_MAT_CD LIKE '%' || #{sapMatCd} || '%'
+           AND T2.SAP_MAT_CD LIKE '%' || #{sapMatCd} || '%'         /* 자재코드 */
        </if>
-          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3                /* 상품각사속성상세 */
             ON T3.PD_CD  = T2.PD_CD
-           AND T3.PD_EXTS_PRP_GRP_CD = 'PART'   /* 'PART' : AS부품 */
+           AND T3.PD_EXTS_PRP_GRP_CD = 'PART'                       /* 'PART' : AS부품 */
            AND T3.DTA_DL_YN = 'N'
          WHERE 1 = 1
            AND T1.DTA_DL_YN = 'N'
@@ -137,7 +137,7 @@
              , T2.PD_ABBR_NM                                                        AS PART_PD_ABBR_NM      /* 부품약어명 */
              , P1.PD_PRP_VAL17                                                      AS AS_MAT_MNG_TP_CD     /* 관리유형코드 */
              , F_CMZ_CD_NM('TNT_WELLS','MAT_MNGT_DV_CD', P1.PD_PRP_VAL17, 'ko')     AS AS_MAT_MNG_TP_NM     /* 관리유형명 */
-             , SUBSTR(T2.SAP_MAT_CD, 10, 9)                                         AS SAP_MAT_CD           /* 자재코드 */
+             , T2.SAP_MAT_CD                                                        AS SAP_MAT_CD           /* 자재코드 */
              , P1.PD_PRP_VAL01 || NVL2(P1.PD_PRP_VAL01, '-', '') || P1.PD_PRP_VAL31 AS AS_ITEM_CD           /* 품목코드 */
              , P1.PD_PRP_VAL19                                                      AS AS_MAT_ITM_KND_CD    /* 품목종류코드 */
              , F_CMZ_CD_NM('TNT_WELLS', 'ITM_KND_CD', P1.PD_PRP_VAL19, 'ko')        AS AS_MAT_ITM_KND_NM    /* 품목종류명 */
@@ -149,17 +149,17 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'CMN_PART_DV_CD', P1.PD_PRP_VAL21, 'ko')    AS AS_MAT_CMN_CLSF_NM   /* AS자재 공통분류명 */
              , P1.PD_PRP_VAL15                                                      AS ORDNY_HV_MAT_YN      /* 상시보유자재여부 */
              , P1.PD_PRP_VAL30                                                      AS TRNOVR_RT_OJ_YN      /* 회전율 대상여부 */
-          FROM TB_PDBS_PD_REL T1
-         INNER JOIN TB_PDBS_PD_BAS T2
-            ON T1.OJ_PD_CD = T2.PD_CD  /* AS부품 */
+          FROM TB_PDBS_PD_REL T1                        /* 상품관계 */
+         INNER JOIN TB_PDBS_PD_BAS T2                   /* 상품기본 */
+            ON T1.OJ_PD_CD = T2.PD_CD                   /* AS부품 */
            AND T2.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1    /* 상품각사속성상세 */
             ON T2.PD_CD = P1.PD_CD
-           AND P1.PD_EXTS_PRP_GRP_CD = 'PART'   /* 'PART' : AS부품 */
+           AND P1.PD_EXTS_PRP_GRP_CD = 'PART'           /* 'PART' : AS부품 */
            AND P1.DTA_DL_YN = 'N'
-         WHERE T1.PD_REL_TP_CD = '14'   /* 14 : AS부품 */
+         WHERE T1.PD_REL_TP_CD = '14'                   /* 14 : AS부품 */
            AND T1.DTA_DL_YN = 'N'
-           AND T1.BASE_PD_CD = #{pdCd}
+           AND T1.BASE_PD_CD = #{pdCd}                  /* 제품코드 */
          ORDER BY T2.PD_CD DESC
     </select>
 

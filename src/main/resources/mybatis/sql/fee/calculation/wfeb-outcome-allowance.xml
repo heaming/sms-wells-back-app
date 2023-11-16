@@ -2,11 +2,1359 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOutcomeAllowanceMapper">
 
-    <select id="selectOutcomeAllowances" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchRes">
-        SELECT '20230201' AS ST_DT, '09' AS STRT_HH, '20230206' AS ED_DT, '18' AS END_HH, '20230206' AS PERF_DT
-          FROM DUAL
-         WHERE 1=1
+    <sql id="selectPerformanceSql">
+          SELECT
+           <choose>
+               <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                 MO.DGR1_LEVL_OG_CD AS OG_CD
+               , MO.DGR1_LEVL_OG_ID AS OG_ID
+               , MO.DGR1_LEVL_OG_NM AS OG_NM
+               , MO.DGR1_LEVL_DG_PRTNR_NM AS PRTNR_NM
+               , MO.DGR1_LEVL_DG_PRTNR_NO AS PRTNR_NO
+               </when>
+               <otherwise>
+                 MO.DGR2_LEVL_OG_CD AS OG_CD
+               , MO.DGR2_LEVL_OG_ID AS OG_ID
+               , MO.DGR2_LEVL_OG_NM AS OG_NM
+               , MO.DGR2_LEVL_DG_PRTNR_NM AS PRTNR_NM
+               , MO.DGR2_LEVL_DG_PRTNR_NO AS PRTNR_NO
+               </otherwise>
+           </choose>
+               , SUM(PF.PERF_CT) AS PERF_CT
+               , SUM(PF.ELHM_EXCP_PERF_AMT) AS ELHM_EXCP_PERF_AMT
+               , SUM(PF.FEE_ACKMT_CT) AS FEE_ACKMT_CT
+               , SUM(PF.NW_SELL_ACC_CT) AS NW_SELL_ACC_CT
+               , SUM(PF.BHCNT_IL) AS BHCNT_IL
+               , SUM(PF.OPTN_ACHV_CT) AS OPTN_ACHV_CT
+               , SUM(PF.THM1_OPTN_ACHV_CT) AS THM1_OPTN_ACHV_CT
+               , SUM(PF.WM_ACL_ACTI_CT) AS WM_ACL_ACTI_CT
+               , SUM(PF.BFSVC_ACL_ACTI_CT) AS BFSVC_ACL_ACTI_CT
+               , SUM(CASE WHEN WM_ACL_ACTI_CT+BFSVC_ACL_ACTI_CT >= 3 THEN 1 ELSE 0 END) AS ACTV_BRCH_N
+               , SUM(PF.ACL_ACTI_ACHV_CT) AS ACL_ACTI_ACHV_CT
+          FROM (
+                    SELECT MP.OG_ID
+                         , P.BASE_YM
+                         , SUM(P.PERF_CT) AS PERF_CT
+                         , SUM(P.ELHM_EXCP_PERF_AMT) AS ELHM_EXCP_PERF_AMT
+                         , SUM(P.FEE_ACKMT_CT) AS FEE_ACKMT_CT
+                         , SUM(P.ACNT_CNT) AS NW_SELL_ACC_CT
+                         , SUM(P.BHCNT_IL) AS BHCNT_IL
+                         , COUNT(CASE WHEN P.FEE_ACKMT_CT > 0 THEN MP.PRTNR_NO END) AS OPTN_ACHV_CT /* 가동인원 : 1건이상 판매 */
+                         , COUNT(CASE WHEN P.FEE_ACKMT_CT > 0
+                                       AND MP.CNTR_DT >= TO_CHAR(TO_DATE(P.BASE_YM, 'YYYYMM'), 'YYYYMMDD')
+                                       AND TO_CHAR(ADD_MONTHS(TO_DATE(P.BASE_YM, 'YYYYMM'), 1), 'YYYYMMDD') > MP.CNTR_DT
+                                      THEN MP.PRTNR_NO END) AS THM1_OPTN_ACHV_CT /* 1차월가동인원 : 업무등록 인원이 1건이상 판매 */
+                         , SUM(CASE WHEN P.FEE_ACKMT_CT >= 3
+                                     AND P.BS_CNT >= 50
+                                     AND MP.QLF_DV_CD NOT IN ('2', '6')
+                                    THEN 1 ELSE 0 END) AS WM_ACL_ACTI_CT /* 실활동 웰스매니저 인원 */
+                         , SUM(CASE WHEN P.FEE_ACKMT_CT >= 3
+                                     AND P.BS_CNT >= 20
+                                     AND MP.QLF_DV_CD IN ('2', '6')
+                                    THEN 0.5 ELSE 0 END) AS BFSVC_ACL_ACTI_CT /* 실활동 프리매니저 인원 */
+                         , SUM(CASE WHEN P.FEE_ACKMT_CT >= 3 THEN 1 ELSE 0 END) AS ACL_ACTI_ACHV_CT /* 실활동 달성 인원 */
+                      FROM (
+                             SELECT P1.BASE_YM
+                                  , P1.PRTNR_NO
+                                  , P1.OG_TP_CD
+                                  , SUM(P1.PERF_CT) AS PERF_CT
+                                  , SUM(P1.ACNT_CNT) AS ACNT_CNT
+                                  , SUM(P1.ELHM_EXCP_PERF_AMT) AS ELHM_EXCP_PERF_AMT
+                                  , SUM(P1.BHCNT_IL) AS BHCNT_IL
+                                  , SUM(P1.FEE_ACKMT_CT) AS FEE_ACKMT_CT
+                                  , SUM(P2.BS_CNT) AS BS_CNT
+                               FROM (
+                                       SELECT MP.BASE_YM
+                                            , CB.SELL_OG_TP_CD AS OG_TP_CD
+                                            , CB.SELL_PRTNR_NO AS PRTNR_NO
+                                            , SUM(CASE WHEN CD.SELL_TP_CD = '1'
+                                                   <if test='ogTpCd == "W02"'>
+                                                        AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202', '401')
+                                                   </if>
+                                                       THEN
+                                                          CASE WHEN NVL(PD_PRP.PD_PRP_VAL11, 'N') = 'Y' OR CD.FEE_ACKMT_CT > 0
+                                                       THEN CD.PD_QTY ELSE 0 END
+                                                       WHEN CD.SELL_TP_CD = '2'
+                                                   <if test='ogTpCd == "W02"'>
+                                                        AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202')
+                                                   </if>
+                                                       THEN
+                                                          CASE WHEN NVL(PD_PRP.PD_PRP_VAL11, 'N') = 'Y' THEN CD.PD_QTY ELSE 0 END
+                                                       WHEN CD.SELL_TP_CD = '3'
+                                                   <if test='ogTpCd == "W02"'>
+                                                        AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202')
+                                                   </if>
+                                                       THEN
+                                                          CASE WHEN CD.CNTRW_TP_CD = '5' AND CD.SELL_DSC_TP_CD = 'P1' THEN CD.PD_QTY ELSE 0 END
+                                                       WHEN CD.SELL_TP_CD = '6'
+                                                   <if test='ogTpCd == "W02"'>
+                                                        AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202')
+                                                   </if>
+                                                       THEN
+                                                          CASE WHEN CD.CNTRW_TP_CD != '6' AND MP.OG_ID LIKE 'T%' THEN 1
+                                                               WHEN CD.CNTRW_TP_CD = '6' THEN 0
+                                                               WHEN CD.FEE_ACKMT_CT > 1 THEN CD.FEE_ACKMT_CT
+                                                               ELSE 1 END
+                                                       ELSE 0 END) AS PERF_CT
+                                            , SUM(CASE WHEN CD.SELL_TP_CD = '1'
+                                                        AND (CD.CNTR_DTL_STAT_CD NOT IN ('301', '303') OR SUBSTR(CB.CNTR_CNFM_DTM, 1, 6) != SUBSTR(NVL(CD.CNTR_PD_ENDDT, '99991231'), 1, 6))
+                                                       THEN
+                                                          CASE WHEN CD.SELL_TP_DTL_CD != '12'
+                                                                AND CD.BASE_PD_CD != 'WP05110351'
+                                                                AND NVL(PD_PRP.PD_PRP_VAL11, 'N') = 'Y'
+                                                                AND CD.FEE_ACKMT_CT > 0
+                                                                AND WS.ROW_SCNT > 0
+                                                                AND CD.ACKMT_PERF_AMT > 0 THEN 1
+                                                               ELSE 0 END
+                                                       WHEN CD.SELL_TP_CD = '2'
+                                                        AND (CD.CNTR_DTL_STAT_CD NOT IN ('301', '303') OR SUBSTR(CB.CNTR_CNFM_DTM, 1, 6) != SUBSTR(NVL(CD.CNTR_PD_ENDDT, '99991231'), 1, 6))
+                                                       THEN
+                                                          CASE WHEN CD.BASE_PD_CD IN('WP05120457', 'WP05120458', 'WP05120459') THEN 0
+                                                               WHEN MC.MCHN_CH_TP_CD IS NOT NULL THEN 0
+                                                               WHEN NVL(CASE WHEN MCHN_CPS_APYR = 0 AND CD.ACKMT_PERF_AMT = 0 THEN 'Y' ELSE 'N' END, 'N') = 'Y' THEN 0
+                                                               WHEN CD.FEE_ACKMT_CT = 0 THEN 0
+                                                               WHEN WS.ROW_SCNT = 0 THEN 0
+                                                               WHEN CD.ACKMT_PERF_AMT > 0 THEN 1
+                                                               ELSE 0 END
+                                                       WHEN CD.SELL_TP_CD = '6' THEN
+                                                          CASE WHEN CD.SELL_TP_DTL_CD = '62' AND CD.ACKMT_PERF_AMT > 2 THEN 1 ELSE 0 END
+                                                       ELSE 0 END) AS ACNT_CNT
+                                            , SUM(CASE WHEN CD.SELL_TP_CD = '1' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202', '401') THEN
+                                                          CASE WHEN CD.SELL_TP_DTL_CD != '12'
+                                                                AND NVL(CD.FEE_FXAM_YN, 'N') != 'Y'
+                                                                AND CD.FEE_ACKMT_CT > 0
+                                                                AND NVL(WS.ROW_SCNT, 0) = 0 THEN CD.ACKMT_PERF_AMT
+                                                               ELSE 0 END
+                                                       WHEN CD.SELL_TP_CD = '2' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202') THEN
+                                                          CASE WHEN CD.FEE_ACKMT_CT > 0
+                                                                AND NVL(WS.ROW_SCNT, 0) = 0 THEN CD.ACKMT_PERF_AMT
+                                                               ELSE 0 END
+                                                       WHEN CD.SELL_TP_CD = '6' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202') THEN
+                                                          CASE WHEN CD.SELL_TP_DTL_CD NOT IN('62', '63')
+                                                                AND CD.FEE_ACKMT_CT > 0 THEN CD.ACKMT_PERF_AMT
+                                                               ELSE 0 END
+                                                       ELSE 0 END) AS ELHM_EXCP_PERF_AMT
+                                            , SUM(CASE WHEN CD.SELL_TP_CD = '1' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202', '401') THEN
+                                                          CASE WHEN NVL(PD_PRP.PD_PRP_VAL11, 'N') = 'Y' OR CD.FEE_ACKMT_CT > 0 THEN 1 ELSE 0 END
+                                                       ELSE 0 END) AS BHCNT_IL
+                                            , SUM(CASE WHEN (CD.SELL_TP_CD = '1' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202', '401'))
+                                                         OR (CD.SELL_TP_CD = '2' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202'))
+                                                       THEN
+                                                          CASE WHEN NVL(MC.MCHN_CH_TP_CD, 'X') IN('1', '18') THEN 0
+                                                               ELSE CD.FEE_ACKMT_CT END
+                                                       ELSE CD.FEE_ACKMT_CT END) AS FEE_ACKMT_CT
+                                         FROM TB_SSCT_CNTR_DTL CD /*계약상세T*/
+                                        INNER JOIN TB_SSCT_CNTR_BAS CB /*계약기본T*/
+                                           ON CB.CNTR_NO = CD.CNTR_NO
+                                          AND CB.DTA_DL_YN = 'N'
+                                          AND CB.SELL_OG_TP_CD =#{ogTpCd}
+                                        INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+                                           ON MP.BASE_YM = #{perfYm}
+                                          AND MP.OG_TP_CD = CB.SELL_OG_TP_CD
+                                          AND MP.PRTNR_NO = CB.SELL_PRTNR_NO
+                                         LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PD_PRP
+                                           ON PD_PRP.PD_CD = CD.BASE_PD_CD
+                                          AND PD_PRP.PD_EXTS_PRP_GRP_CD = 'IND'
+                                          AND PD_PRP.DTA_DL_YN = 'N'
+                                         LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ MC
+                                           ON MC.BASE_CNTR_NO = CD.CNTR_NO
+                                          AND MC.BASE_CNTR_SN = CD.CNTR_SN
+                                          AND MC.DTA_DL_YN = 'N'
+                                         LEFT OUTER JOIN LATERAL (
+                                                 SELECT COUNT(1) AS ROW_SCNT
+                                                   FROM DUAL
+                                                  WHERE EXISTS(
+                                                          SELECT 1
+                                                            FROM TB_FEAM_WELS_SV_FEE_BAS T1
+                                                           WHERE T1.BASE_PD_CD = CD.BASE_PD_CD
+                                                             AND T1.VST_MCN = 0
+                                                             AND  #{perfYm} BETWEEN T1.APY_STRT_YM AND T1.APY_END_YM
+                                                             AND T1.DTA_DL_YN = 'N')
+                                                     OR EXISTS(
+                                                          SELECT 1
+                                                            FROM TB_FEAM_WELS_SV_FEE_BAS T1
+                                                            JOIN TB_PDBS_PD_REL T2
+                                                              ON T1.BASE_PD_CD = T2.BASE_PD_CD
+                                                             AND T2.PD_REL_TP_CD = '05'
+                                                             AND  #{perfYm} || '01000000' BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                                                             AND T2.DTA_DL_YN = 'N'
+                                                            JOIN TB_PDBS_PD_REL T3
+                                                              ON T3.OJ_PD_CD = T2.OJ_PD_CD
+                                                             AND T3.PD_REL_TP_CD = '05'
+                                                             AND  #{perfYm} || '01000000' BETWEEN T3.VL_STRT_DTM AND T3.VL_END_DTM
+                                                             AND T3.DTA_DL_YN = 'N'
+                                                           WHERE T1.VST_MCN = 0
+                                                             AND  #{perfYm} BETWEEN APY_STRT_YM AND APY_END_YM
+                                                             AND T1.DTA_DL_YN = 'N'
+                                                             AND T3.BASE_PD_CD = CD.BASE_PD_CD)
+                                              ) WS
+                                           ON 1 = 1
+                                        WHERE 1 = 1
+                                          AND CB.DTA_DL_YN = 'N'
+                                          AND CD.DTA_DL_YN = 'N'
+                                          AND CB.SELL_INFLW_CHNL_DTL_CD != '9020' /* 직원판매 제외 */
+                                    <choose>
+                                        <when test='ogTpCd == "W02"'>
+                                          AND (
+                                                   (
+                                                        CD.SELL_TP_CD IN ('1','2')
+                                                    AND (
+                                                            (
+                                                                 CB.CNTR_CNFM_DTM >= TO_CHAR(TO_DATE( #{perfYm}, 'YYYYMM'), 'YYYYMMDDHH24MISS')
+                                                             AND TO_CHAR(ADD_MONTHS(TO_DATE( #{perfYm}, 'YYYYMM'), 1), 'YYYYMMDDHH24MISS') > CB.CNTR_CNFM_DTM
+                                                             AND CD.BOO_SELL_TP_CD = '2'
+                                                            )
+                                                         OR (
+                                                                 CD.CNTR_PD_STRTDT >= TO_CHAR(TO_DATE( #{perfYm}, 'YYYYMM'), 'YYYYMMDD')
+                                                             AND TO_CHAR(ADD_MONTHS(TO_DATE( #{perfYm}, 'YYYYMM'), 1), 'YYYYMMDD') > CD.CNTR_PD_STRTDT
+                                                             AND CD.BOO_SELL_TP_CD IS NULL
+                                                            )
+                                                        )
+                                                    AND NOT EXISTS (
+                                                            SELECT 1
+                                                            FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS /* 수수료실적제외대상기본 */
+                                                            WHERE FEE_PERF_EXCD_DV_CD = '01'
+                                                              AND CNTR_NO = CD.CNTR_NO
+                                                              AND CNTR_SN = CD.CNTR_SN
+                                                        )
+                                                   )
+                                                OR (
+                                                        (
+                                                            (CD.SELL_TP_CD = '6' AND CD.STPL_PTRM >= 6)
+                                                         OR (CD.SELL_TP_CD = '3' AND CD.CNTRW_TP_CD = '5')
+                                                        )
+                                                    AND CD.CNTR_PD_STRTDT >= TO_CHAR(TO_DATE( #{perfYm}, 'YYYYMM'), 'YYYYMMDD')
+                                                    AND TO_CHAR(ADD_MONTHS(TO_DATE( #{perfYm}, 'YYYYMM'), 1), 'YYYYMMDD') > CD.CNTR_PD_STRTDT
+                                                   )
+                                              )
+                                        </when>
+                                        <otherwise>
+                                          AND CD.CNTR_PD_STRTDT >= TO_CHAR(TO_DATE( #{perfYm}, 'YYYYMM'), 'YYYYMMDD')
+                                          AND TO_CHAR(ADD_MONTHS(TO_DATE( #{perfYm}, 'YYYYMM'), 1), 'YYYYMMDD') > CD.CNTR_PD_STRTDT
+                                        </otherwise>
+                                    </choose>
+                                        GROUP BY MP.BASE_YM
+                                               , CB.SELL_OG_TP_CD
+                                               , CB.SELL_PRTNR_NO
+                                        UNION ALL
+                                       SELECT MP.BASE_YM
+                                            , RR.RCP_OG_TP_CD AS OG_TP_CD
+                                            , RR.RCP_PRTNR_NO AS PRTNR_NO
+                                            , SUM(CASE WHEN RR.FEE_ACKMT_CT > 0 THEN 1 ELSE 0 END) AS PERF_CT
+                                            , 0 AS ACNT_CNT
+                                            , 0 AS ELHM_EXCP_PERF_AMT
+                                            , 0 AS BHCNT_IL
+                                            , SUM(RR.FEE_ACKMT_CT) AS FEE_ACKMT_CT
+                                         FROM TB_SSCT_RENTAL_RSTL_IZ RR
+                                        INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+                                           ON MP.BASE_YM = #{perfYm}
+                                          AND MP.OG_TP_CD = RR.RCP_OG_TP_CD
+                                          AND MP.PRTNR_NO = RR.RCP_PRTNR_NO
+                                         JOIN TB_SSCT_CNTR_DTL CD /* 계약상세 */
+                                           ON CD.CNTR_NO = RR.CNTR_NO
+                                          AND CD.CNTR_SN = RR.CNTR_SN
+                                         JOIN TB_SSCT_CNTR_BAS CB /* 계약기본 */
+                                           ON CB.CNTR_NO = RR.CNTR_NO
+                                         LEFT JOIN LATERAL (
+                                               SELECT *
+                                                 FROM TB_FEAM_WELS_FEE_PDCT_TP_BAS
+                                                WHERE BASE_PD_CD = CD.BASE_PD_CD
+                                                  AND SUBSTR(RR.STPL_CNFM_DTM, 1, 6) BETWEEN APY_STRT_YM AND APY_END_YM
+                                                  AND DTA_DL_YN = 'N'
+                                              ) PT
+                                           ON 1 = 1
+                                        WHERE 1 = 1
+                                        <if test='ogTpCd == "W01"'>
+                                          AND 1 != 1 /* P조직의 경우 재약정 실적 제외 */
+                                        </if>
+                                          AND RR.RCP_OG_TP_CD = #{ogTpCd}
+                                          AND RR.STPL_CNFM_DTM >= TO_CHAR(TO_DATE( #{perfYm}, 'YYYYMM'), 'YYYYMMDDHH24MISS')
+                                          AND RR.FEE_ACKMT_CT > 0
+                                          AND (RR.STPL_CAN_DTM IS NULL OR SUBSTR(RR.STPL_CAN_DTM, 1, 6) >  #{perfYm})
+                                          AND TO_CHAR(ADD_MONTHS(TO_DATE( #{perfYm}, 'YYYYMM'), 1), 'YYYYMMDDHH24MISS') > RR.STPL_CNFM_DTM
+                                          AND CB.DTA_DL_YN = 'N'
+                                          AND (
+                                                  CD.CNTR_DTL_STAT_CD NOT LIKE '3%'
+                                               OR SUBSTR(CD.CNTR_PD_ENDDT, 1, 6) >  #{perfYm}
+                                              )
+                                          AND CD.SELL_TP_CD = '2' /* 렌탈 */
+                                          AND CD.DTA_DL_YN = 'N'
+                                          AND PT.FEE_PDCT_TP_CD1 = 'B' /* B:웰스팜 */
+                                        GROUP BY MP.BASE_YM
+                                               , RR.RCP_OG_TP_CD
+                                               , RR.RCP_PRTNR_NO
+                                    ) P1
+                               LEFT OUTER JOIN (
+                                      SELECT MP.PRTNR_NO
+                                           , MP.QLF_DV_CD
+                                           , SUM(NVL(SP.PERF_VAL, 0)) AS BS_CNT /* 방문건수 LCCNT2 + LCCNT3 */
+                                        FROM TB_OGBS_MM_PRTNR_IZ MP
+                                        LEFT OUTER JOIN TB_FEAM_WPTN_SV_PED_AGRG SP
+                                          ON SP.BASE_YM = MP.BASE_YM
+                                         AND SP.OG_TP_CD = MP.OG_TP_CD
+                                         AND SP.PRTNR_NO = MP.PRTNR_NO
+                                         AND SP.PRTNR_SV_PERF_ATC_CD IN ('SV01999902' /* SV01999902,방문(상품)-합계-합계-방문건수 */
+                                                                       , 'SV01999903') /* SV01999903,방문(상품)-합계-합계-전월건수 */
+                                       WHERE 1 = 1
+                                         AND MP.BASE_YM = #{perfYm}
+                                         AND MP.OG_TP_CD = #{ogTpCd}
+                                         AND TO_NUMBER(MP.PSTN_DV_CD) >= 10
+                                       GROUP BY MP.PRTNR_NO, MP.QLF_DV_CD
+                                    ) P2
+                                 ON P2.PRTNR_NO = P1.PRTNR_NO
+                              GROUP BY P1.BASE_YM
+                                     , P1.PRTNR_NO
+                                     , P1.OG_TP_CD
+                           ) P
+                     INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+                        ON MP.BASE_YM = P.BASE_YM
+                       AND MP.OG_TP_CD = P.OG_TP_CD
+                       AND MP.PRTNR_NO = P.PRTNR_NO
+                     GROUP BY MP.OG_ID
+                            , P.BASE_YM
+               ) PF
+         INNER JOIN TB_OGBS_MM_OG_IZ MO
+            ON MO.BASE_YM = PF.BASE_YM
+           AND MO.OG_ID = PF.OG_ID
+        <choose>
+            <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+         GROUP BY MO.DGR1_LEVL_OG_CD
+                , MO.DGR1_LEVL_OG_ID
+                , MO.DGR1_LEVL_OG_NM
+                , MO.DGR1_LEVL_DG_PRTNR_NM
+                , MO.DGR1_LEVL_DG_PRTNR_NO
+            </when>
+            <otherwise>
+         GROUP BY MO.DGR2_LEVL_OG_CD
+                , MO.DGR2_LEVL_OG_ID
+                , MO.DGR2_LEVL_OG_NM
+                , MO.DGR2_LEVL_DG_PRTNR_NM
+                , MO.DGR2_LEVL_DG_PRTNR_NO
+            </otherwise>
+        </choose>
+    </sql>
+
+    <sql id="selectCancelSql">
+       SELECT /*+ INDEX(O1 PK_OGBS_MM_PRTNR_IZ, MO IX_OGBS_MM_OG_IZ_07) NO_MERGE USE_HASH_AGGREGATION */
+           <choose>
+               <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+              MO.DGR1_LEVL_OG_CD AS OG_CD
+               </when>
+               <otherwise>
+              MO.DGR2_LEVL_OG_CD AS OG_CD
+               </otherwise>
+           </choose>
+            , SUM(CASE WHEN M.PERF_DV_CD = '3' THEN
+                      CASE WHEN WS.ROW_SCNT = 0 THEN 0
+                           WHEN M.BASE_PD_CD IN ('WP05120457', 'WP05120458', 'WP05120459') THEN 0
+                           ELSE 1
+                           END
+                  WHEN M.PERF_DV_CD = '4' THEN
+                      CASE WHEN WS.ROW_SCNT = 0 THEN 0
+                           WHEN M.BASE_PD_CD IN ('WP05120457', 'WP05120458', 'WP05120459') THEN 0
+                           ELSE 1
+                          END
+                  WHEN M.PERF_DV_CD = '5' THEN
+                      CASE WHEN WS.ROW_SCNT = 0 THEN 0 ELSE 1 END
+                  WHEN M.PERF_DV_CD = '2' THEN
+                      CASE WHEN WS.ROW_SCNT = 0 THEN 0
+                           WHEN NVL(P1.PD_PRP_VAL11, 'N') = 'Y' AND M.SELL_TP_DTL_CD != '12' AND M.FEE_FXAM_YN = 'N' AND M.BOO_SELL_TP_CD IS NULL THEN 1
+                           ELSE 0 END
+                  ELSE 0 END) AS PUR_SPR_ACC_CT
+         FROM (
+                /*전월 순수해지_일시불취소 OK */
+                SELECT '순수해지' AS CAN_TP_NM
+                     , C1.CNTR_NO
+                     , C1.CNTR_SN
+                     , C2.CNTR_CST_NM
+                     , C1.CNTR_DTL_STAT_CD
+                     , C1.CNTR_PD_STRTDT
+                     , C1.CNTR_PD_ENDDT
+                     , C1.BASE_PD_CD
+                     , C1.SELL_TP_CD
+                     , C1.SELL_TP_DTL_CD
+                     , C1.BOO_SELL_TP_CD
+                     , NVL(C1.FEE_FXAM_YN, 'N') AS FEE_FXAM_YN
+                     , C2.SELL_OG_TP_CD  AS OG_TP_CD
+                     , C2.SELL_PRTNR_NO  AS PRTNR_NO
+                     , C2.CNTR_CNFM_DTM
+                     , C2.SELL_OG_TP_CD  AS ORIG_OG_TP_CD
+                     , C2.SELL_PRTNR_NO  AS ORIG_PRTNR_NO
+                     , '' AS CNTR_STAT_CH_RSON_CD
+                     , '2' AS PERF_DV_CD
+                  FROM TB_SSCT_CNTR_DTL C1
+                 INNER JOIN TB_SSCT_CNTR_BAS C2
+                    ON C1.CNTR_NO = C2.CNTR_NO
+                 WHERE 1 = 1
+                   AND C1.SELL_TP_CD = '1'
+                   AND C1.CNTR_DTL_STAT_CD LIKE '3%'
+                   AND C1.CNTR_PD_ENDDT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm},'YYYYMM'),-1), 'YYYYMM') || '%'
+                   AND C1.DTA_DL_YN = 'N'
+                   AND C2.DTA_DL_YN = 'N'
+                     /* 웰스팜제외 */
+                   AND NOT EXISTS (
+                         SELECT 1
+                         FROM TB_FEAM_WELS_FEE_PDCT_TP_BAS X1 /*제품유형*/
+                         WHERE C1.BASE_PD_CD = X1.BASE_PD_CD
+                           AND SUBSTR(C1.CNTR_PD_ENDDT, 1, 8) BETWEEN X1.APY_STRT_YM AND X1.APY_END_YM
+                           AND X1.DTA_DL_YN = 'N'
+                           AND X1.FEE_PDCT_TP_CD1 = 'B'
+                       )
+                    /*수수료실적제외대상 제외*/
+                   AND NOT EXISTS (SELECT 1 FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS X WHERE C1.CNTR_NO = X.CNTR_NO AND C1.CNTR_SN = X.CNTR_SN AND X.FEE_PERF_EXCD_DV_CD = '01')
+                 UNION ALL
+                /*전월 순수해지_렌탈취소 OK */
+                SELECT '순수해지' AS CAN_TP_NM
+                     , C1.CNTR_NO
+                     , C1.CNTR_SN
+                     , C2.CNTR_CST_NM
+                     , C1.CNTR_DTL_STAT_CD
+                     , C1.CNTR_PD_STRTDT
+                     , C1.CNTR_PD_ENDDT
+                     , C1.BASE_PD_CD
+                     , C1.SELL_TP_CD
+                     , C1.SELL_TP_DTL_CD
+                     , C1.BOO_SELL_TP_CD
+                     , NVL(C1.FEE_FXAM_YN, 'N') AS FEE_FXAM_YN
+                     , NVL(S2.OG_TP_CD, S1.OG_TP_CD) AS OG_TP_CD
+                     , NVL(S2.DGR3_LEVL_DG_PRTNR_NO, S1.PRTNR_NO) AS PRTNR_NO
+                     , C2.CNTR_CNFM_DTM
+                     , C2.SELL_OG_TP_CD  AS ORIG_OG_TP_CD
+                     , C2.SELL_PRTNR_NO  AS ORIG_PRTNR_NO
+                     , C3.CNTR_STAT_CH_RSON_CD
+                     , '3'  AS PERF_DV_CD
+                  FROM TB_SSCT_CNTR_DTL C1
+                 INNER JOIN TB_SSCT_CNTR_BAS C2
+                    ON C1.CNTR_NO = C2.CNTR_NO
+                 INNER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C3
+                    ON C1.CNTR_NO = C3.CNTR_NO
+                   AND C1.CNTR_SN = C3.CNTR_SN
+                 LEFT JOIN TB_FEAM_WELS_MM_MNGER_IZ S1  /* 웰스월매니저내역, 해약월 기준으로 담당매니저 확인 */
+                   ON SUBSTR(C1.CNTR_PD_ENDDT,1,6) = S1.PERF_YM
+                  AND C1.CNTR_NO = S1.CNTR_NO
+                  AND C1.CNTR_SN = S1.CNTR_SN
+                 LEFT JOIN (
+                        /* 해약월의 지점장 조회 */
+                        SELECT R1.OG_TP_CD
+                             , R1.PRTNR_NO
+                             , R3.DGR3_LEVL_DG_PRTNR_NO
+                          FROM TB_OGBS_PRTNR_DTL R1
+                          JOIN TB_OGBS_MM_PRTNR_IZ R2
+                            ON R2.BASE_YM = SUBSTR(R1.CLTN_DT, 1, 6)
+                           AND R2.OG_TP_CD = R1.OG_TP_CD
+                           AND R2.PRTNR_NO = R1.PRTNR_NO
+                          JOIN TB_OGBS_MM_OG_IZ R3
+                            ON R3.BASE_YM = R2.BASE_YM
+                           AND R3.OG_ID = R2.OG_ID
+                         WHERE R1.CLTN_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm},'YYYYMM'),-1), 'YYYYMM') || '%'
+                      ) S2
+                   ON S2.OG_TP_CD = S1.OG_TP_CD
+                  AND S2.PRTNR_NO = S1.PRTNR_NO
+                INNER JOIN TB_CUBS_CST_BAS B1
+                   ON C2.CNTR_CST_NO = B1.CST_NO
+                WHERE 1 = 1
+                  AND C1.SELL_TP_CD = '2'
+                  AND C1.CNTR_DTL_STAT_CD LIKE '3%'
+                  AND C1.CNTR_PD_ENDDT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm},'YYYYMM'),-1), 'YYYYMM') || '%'
+                  AND C1.DTA_DL_YN = 'N'
+                  AND C2.DTA_DL_YN = 'N'
+                  AND C3.CNTR_STAT_CH_RSON_CD NOT IN ('11','19','22','42','08','09','36','77')
+                  AND C3.PD_GD_CD != 'E'  /* 14일 이내 취소 제외 */
+                    /* 수수료실적제외대상 제외*/
+                  AND NOT EXISTS (SELECT 1 FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS X WHERE C1.CNTR_NO = X.CNTR_NO AND C1.CNTR_SN = X.CNTR_SN AND X.FEE_PERF_EXCD_DV_CD = '03')
+                    /* 웰스팜제외 */
+                  AND NOT EXISTS (
+                        SELECT 1
+                        FROM TB_FEAM_WELS_FEE_PDCT_TP_BAS X1 /*제품유형*/
+                        WHERE C1.BASE_PD_CD = X1.BASE_PD_CD
+                          AND SUBSTR(C1.CNTR_PD_ENDDT, 1, 8) BETWEEN X1.APY_STRT_YM AND X1.APY_END_YM
+                          AND X1.DTA_DL_YN = 'N'
+                          AND X1.FEE_PDCT_TP_CD1 = 'B'
+                      )
+                    /* 판매제한사업자등록번호 제외 */
+                  AND NOT EXISTS (
+                        SELECT 1
+                          FROM TB_SSCT_SELL_LM_OJ_IZ X1 /* 판매제한대상내역 */
+                          WHERE X1.DTA_DL_YN = 'N'
+                            AND X1.SELL_LM_BZRNO = B1.BZRNO
+                            AND X1.SELL_LM_PROCS_TP_CD IS NOT NULL
+                      )
+                UNION ALL
+                /*전월 순수해지_렌탈만료*/
+               SELECT /*+ ORDERED */
+                     '만료' AS CAN_TP_NM
+                    , C1.CNTR_NO
+                    , C1.CNTR_SN
+                    , C2.CNTR_CST_NM
+                    , C1.CNTR_DTL_STAT_CD
+                    , C1.CNTR_PD_STRTDT
+                    , C1.CNTR_PD_ENDDT
+                    , C1.BASE_PD_CD
+                    , C1.SELL_TP_CD
+                    , C1.SELL_TP_DTL_CD
+                    , C1.BOO_SELL_TP_CD
+                    , NVL(C1.FEE_FXAM_YN, 'N') AS FEE_FXAM_YN
+                    , NVL(S2.OG_TP_CD, S1.OG_TP_CD) AS OG_TP_CD
+                    , NVL(S2.DGR3_LEVL_DG_PRTNR_NO, S1.PRTNR_NO) AS PRTNR_NO
+                    , C2.CNTR_CNFM_DTM
+                    , C2.SELL_OG_TP_CD  AS ORIG_OG_TP_CD
+                    , C2.SELL_PRTNR_NO  AS ORIG_PRTNR_NO
+                    , '' AS CNTR_STAT_CH_RSON_CD
+                    , '4'  AS PERF_DV_CD
+                 FROM TB_SSCT_CNTR_DTL C1
+                INNER JOIN TB_SSCT_CNTR_BAS C2
+                   ON C1.CNTR_NO = C2.CNTR_NO
+                INNER JOIN TB_SSCT_CNTR_WELLS_DTL  C3
+                   ON C1.CNTR_NO = C3.CNTR_NO
+                  AND C1.CNTR_SN = C3.CNTR_SN
+                 LEFT JOIN TB_FEAM_WELS_MM_MNGER_IZ S1  /* 웰스월매니저내역, 해약월 기준으로 담당매니저 확인 */
+                   ON SUBSTR(C1.CNTR_PD_ENDDT,1,6) = S1.PERF_YM
+                  AND C1.CNTR_NO = S1.CNTR_NO
+                  AND C1.CNTR_SN = S1.CNTR_SN
+                 LEFT JOIN (
+                        /* 해약월의 지점장 조회 */
+                        SELECT R1.OG_TP_CD
+                             , R1.PRTNR_NO
+                             , R3.DGR3_LEVL_DG_PRTNR_NO
+                          FROM TB_OGBS_PRTNR_DTL R1
+                          JOIN TB_OGBS_MM_PRTNR_IZ R2
+                            ON R2.BASE_YM = SUBSTR(R1.CLTN_DT, 1, 6)
+                           AND R2.OG_TP_CD = R1.OG_TP_CD
+                           AND R2.PRTNR_NO = R1.PRTNR_NO
+                          JOIN TB_OGBS_MM_OG_IZ R3
+                            ON R3.BASE_YM = R2.BASE_YM
+                           AND R3.OG_ID = R2.OG_ID
+                         WHERE R1.CLTN_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm},'YYYYMM'),-1), 'YYYYMM') || '%'
+                      ) S2
+                   ON S2.OG_TP_CD = S1.OG_TP_CD
+                  AND S2.PRTNR_NO = S1.PRTNR_NO
+                    /* 만료 후 익월 재렌탈시 순수해지 건수에서 제외 */
+                 LEFT JOIN TB_SSCT_MCHN_CH_IZ X1
+                   ON X1.OJ_CNTR_NO = C1.CNTR_NO
+                  AND X1.OJ_CNTR_SN = C1.CNTR_SN
+                  AND X1.MCHN_CH_TP_CD IN ('15', '16', '19') /* 15(자가관리), 16(멤버십진행), 19(57개월~60) */
+                 LEFT JOIN TB_SSCT_CNTR_DTL X2
+                   ON X2.CNTR_NO = X1.BASE_CNTR_NO
+                  AND X2.CNTR_SN = X1.BASE_CNTR_SN
+                 LEFT JOIN TB_SSCT_CNTR_BAS X3
+                   ON X3.CNTR_NO = X2.CNTR_NO
+                  AND X3.CNTR_CNFM_DTM LIKE #{perfYm} || '%'
+                WHERE 1 = 1
+                  AND C1.SELL_TP_CD = '2'
+                  AND C1.CNTR_DTL_STAT_CD IN ('401', '402')
+                  AND TO_CHAR(ADD_MONTHS(TO_DATE(C1.CNTR_PD_STRTDT,'YYYYMMDD'), C1.CNTR_PTRM), 'YYYYMM') = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm},'YYYYMM'),-1), 'YYYYMM')
+                  AND C3.REQD_DT IS NULL
+                  AND C1.DTA_DL_YN = 'N'
+                  AND C2.DTA_DL_YN = 'N'
+                    /* 계정순증대상 제외*/
+                  AND NOT EXISTS (SELECT 1 FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS X WHERE C1.CNTR_NO = X.CNTR_NO AND C1.CNTR_SN = X.CNTR_SN AND X.FEE_PERF_EXCD_DV_CD = '03')
+                    /* 웰스팜제외 */
+                  AND NOT EXISTS (
+                        SELECT 1
+                        FROM TB_FEAM_WELS_FEE_PDCT_TP_BAS X1 /*제품유형*/
+                        WHERE C1.BASE_PD_CD = X1.BASE_PD_CD
+                          AND SUBSTR(C1.CNTR_PD_ENDDT, 1, 8) BETWEEN X1.APY_STRT_YM AND X1.APY_END_YM
+                          AND X1.DTA_DL_YN = 'N'
+                          AND X1.FEE_PDCT_TP_CD1 = 'B'
+                      )
+                  AND X3.CNTR_NO IS NULL
+                    /* 멤버십 가입건 예외처리 조건  */
+                  AND NOT EXISTS (
+                        SELECT 1
+                          FROM TB_SSCT_CNTR_REL D2
+                         INNER JOIN TB_SSCT_CNTR_DTL T1
+                            ON D2.BASE_DTL_CNTR_NO = T1.CNTR_NO
+                           AND D2.BASE_DTL_CNTR_SN = T1.CNTR_SN
+                         INNER JOIN TB_SSCT_CNTR_BAS T2
+                            ON T1.CNTR_NO = T2.CNTR_NO
+                         WHERE 1 = 1
+                           AND C1.CNTR_NO = D2.OJ_DTL_CNTR_NO
+                           AND C1.CNTR_SN = D2.OJ_DTL_CNTR_SN
+                           AND D2.CNTR_REL_DTL_CD = '212'
+                           AND T1.CNTR_PD_STRTDT IS NOT NULL
+                           AND T2.SELL_INFLW_CHNL_DTL_CD NOT IN ('1030','1040')
+                      )
+                UNION ALL
+                /*전월 순수해지_멤버십탈퇴*/
+               SELECT /*+ ORDERED */
+                      '멤버십탈퇴' AS CAN_TP_NM
+                    , C4.OJ_DTL_CNTR_NO
+                    , C4.OJ_DTL_CNTR_SN
+                    , C2.CNTR_CST_NM
+                    , C1.CNTR_DTL_STAT_CD
+                    , C1.CNTR_PD_STRTDT
+                    , C1.CNTR_PD_ENDDT
+                    , C1.BASE_PD_CD
+                    , C1.SELL_TP_CD
+                    , C1.SELL_TP_DTL_CD
+                    , C1.BOO_SELL_TP_CD
+                    , NVL(C1.FEE_FXAM_YN, 'N') AS FEE_FXAM_YN
+                    , NVL(S2.OG_TP_CD, S1.OG_TP_CD) AS OG_TP_CD
+                    , NVL(S2.DGR3_LEVL_DG_PRTNR_NO, S1.PRTNR_NO) AS PRTNR_NO
+                    , C2.CNTR_CNFM_DTM
+                    , C2.SELL_OG_TP_CD  AS ORIG_OG_TP_CD
+                    , C2.SELL_PRTNR_NO  AS ORIG_PRTNR_NO
+                    , '' AS CNTR_STAT_CH_RSON_CD
+                    , '5'  AS PERF_DV_CD
+                 FROM TB_SSCT_CNTR_DTL C1
+                INNER JOIN TB_SSCT_CNTR_BAS C2
+                   ON C1.CNTR_NO = C2.CNTR_NO
+                INNER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C3
+                   ON C1.CNTR_NO = C3.CNTR_NO
+                  AND C1.CNTR_SN = C3.CNTR_SN
+                INNER JOIN TB_SSCT_CNTR_REL C4
+                   ON C1.CNTR_NO = C4.BASE_DTL_CNTR_NO
+                  AND C1.CNTR_SN = C4.BASE_DTL_CNTR_SN
+                  AND C4.CNTR_REL_DTL_CD = '212'  /* 멤버십 - 원주문 */
+                LEFT JOIN TB_FEAM_WELS_MM_MNGER_IZ S1  /* 웰스월매니저내역, 해약월 기준으로 담당매니저 확인 */
+                  ON SUBSTR(C1.CNTR_PD_ENDDT,1,6) = S1.PERF_YM
+                 AND C1.CNTR_NO = S1.CNTR_NO
+                 AND C1.CNTR_SN = S1.CNTR_SN
+                LEFT JOIN (
+                        /* 해약월의 지점장 조회 */
+                        SELECT R1.OG_TP_CD
+                             , R1.PRTNR_NO
+                             , R3.DGR3_LEVL_DG_PRTNR_NO
+                          FROM TB_OGBS_PRTNR_DTL R1
+                          JOIN TB_OGBS_MM_PRTNR_IZ R2
+                            ON R2.BASE_YM = SUBSTR(R1.CLTN_DT, 1, 6)
+                           AND R2.OG_TP_CD = R1.OG_TP_CD
+                           AND R2.PRTNR_NO = R1.PRTNR_NO
+                          JOIN TB_OGBS_MM_OG_IZ R3
+                            ON R3.BASE_YM = R2.BASE_YM
+                           AND R3.OG_ID = R2.OG_ID
+                         WHERE R1.CLTN_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm},'YYYYMM'),-1), 'YYYYMM') || '%'
+                     ) S2
+                  ON S2.OG_TP_CD = S1.OG_TP_CD
+                 AND S2.PRTNR_NO = S1.PRTNR_NO
+               INNER JOIN TB_CUBS_CST_BAS B1
+                  ON C2.CNTR_CST_NO = B1.CST_NO
+               WHERE 1 = 1
+                 AND C1.SELL_TP_CD = '3'
+                  /* 렌탈 및 일시불 멤버십 */
+                 AND C1.SELL_TP_DTL_CD IN ('31', '32')
+                 AND C1.CNTR_DTL_STAT_CD LIKE '3%'
+                 AND C1.CNTR_PD_ENDDT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm},'YYYYMM'),-1), 'YYYYMM') || '%'
+                 AND C1.DTA_DL_YN = 'N'
+                 AND C2.DTA_DL_YN = 'N'
+                 AND C3.CNTR_STAT_CH_RSON_CD NOT IN ('11','19','22','42','08','09','36','77')
+                    /* 계정순증대상 제외 */
+                 AND NOT EXISTS (SELECT 1 FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS X WHERE C1.CNTR_NO = X.CNTR_NO AND C1.CNTR_SN = X.CNTR_SN AND X.FEE_PERF_EXCD_DV_CD = '03')
+                    /* 웰스팜제외 */
+                 AND NOT EXISTS (
+                       SELECT 1
+                       FROM TB_FEAM_WELS_FEE_PDCT_TP_BAS X1 /*제품유형*/
+                       WHERE C1.BASE_PD_CD = X1.BASE_PD_CD
+                         AND SUBSTR(C1.CNTR_PD_ENDDT, 1, 8) BETWEEN X1.APY_STRT_YM AND X1.APY_END_YM
+                         AND X1.DTA_DL_YN = 'N'
+                         AND X1.FEE_PDCT_TP_CD1 = 'B'
+                     )
+                    /* 판매제한사업자등록번호 제외 */
+                 AND NOT EXISTS (
+                       SELECT 1
+                         FROM TB_SSCT_SELL_LM_OJ_IZ X1 /* 판매제한대상내역 */
+                         WHERE X1.DTA_DL_YN = 'N'
+                           AND X1.SELL_LM_PROCS_TP_CD IS NOT NULL
+                           AND X1.SELL_LM_BZRNO = B1.BZRNO )
+                     ) M
+               INNER JOIN TB_OGBS_MM_PRTNR_IZ O1
+                  ON O1.BASE_YM = #{perfYm}
+                 AND O1.PRTNR_NO = M.PRTNR_NO
+                 AND O1.OG_TP_CD = M.OG_TP_CD
+               INNER JOIN TB_OGBS_MM_OG_IZ MO
+                  ON MO.BASE_YM = O1.BASE_YM
+                 AND MO.OG_ID = O1.OG_ID
+                LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1
+                  ON M.BASE_PD_CD = P1.PD_CD
+                 AND P1.PD_EXTS_PRP_GRP_CD = 'IND'
+                LEFT OUTER JOIN LATERAL (
+                       /* BS여부 */
+                       SELECT COUNT(1) AS ROW_SCNT
+                         FROM DUAL
+                        WHERE EXISTS (
+                                 SELECT 1
+                                 FROM TB_FEAM_WELS_SV_FEE_BAS T1
+                                 WHERE T1.BASE_PD_CD = M.BASE_PD_CD
+                                   AND T1.VST_MCN = 0
+                                   AND SUBSTR(M.CNTR_PD_ENDDT,1,6) BETWEEN T1.APY_STRT_YM AND T1.APY_END_YM
+                                   AND T1.DTA_DL_YN = 'N'
+                              )
+                           OR EXISTS (
+                                 SELECT 1
+                                   FROM TB_FEAM_WELS_SV_FEE_BAS T1
+                                   JOIN TB_PDBS_PD_REL T2
+                                     ON T1.BASE_PD_CD = T2.BASE_PD_CD
+                                    AND T2.PD_REL_TP_CD = '05'
+                                    AND M.CNTR_PD_ENDDT BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
+                                  WHERE VST_MCN = 0
+                                    AND SUBSTR(M.CNTR_PD_ENDDT,1,6) BETWEEN APY_STRT_YM AND APY_END_YM
+                                    AND T2.OJ_PD_CD IN (
+                                            SELECT OJ_PD_CD
+                                            FROM TB_PDBS_PD_REL T1
+                                            WHERE T1.BASE_PD_CD = M.BASE_PD_CD
+                                              AND T1.PD_REL_TP_CD = '05'
+                                              AND M.CNTR_PD_ENDDT BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                        )
+                                    AND T1.DTA_DL_YN = 'N'
+                                    AND ROWNUM = 1
+                              )
+                     ) WS ON 1=1
+               WHERE 1 = 1
+                 AND MO.OG_TP_CD = #{ogTpCd}
+               <choose>
+                   <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+               GROUP BY MO.DGR1_LEVL_OG_CD
+                   </when>
+                   <otherwise>
+               GROUP BY MO.DGR2_LEVL_OG_CD
+                   </otherwise>
+               </choose>
+    </sql>
+
+    <sql id="selectRedemptionOfFeeSql">
+        WITH MM_CL AS (
+            SELECT B3.CNTR_NO
+                 , B3.CNTR_SN
+                 , B3.PERF_TP_CD
+                 , B3.ACKMT_PERF_AMT
+            FROM (
+                     SELECT B3.CNTR_NO
+                          , B3.CNTR_SN
+                          , B3.CNTR_PERF_CRT_DV_CD
+                          , B3.PERF_TP_CD
+                          , B3.ACKMT_PERF_AMT
+                          , ROW_NUMBER() OVER(PARTITION BY B3.CNTR_NO,B3.CNTR_SN ORDER BY B3.FST_RGST_DTM DESC) AS RN
+                     FROM TB_FEAM_WELS_NRCTR_MM_CL B3
+                     WHERE B3.FEE_TCNT_DV_CD = '02'
+                       AND B3.CNTR_PERF_CRT_DV_CD != '01'
+                 ) B3
+            WHERE B3.RN = 1
+              AND B3.CNTR_PERF_CRT_DV_CD IN ('02','03','04')
+              AND B3.PERF_TP_CD = '10' --연체 /* 연체되물림된건은　재지급　추가　생성 */
+        )
+        SELECT /*+ INDEX(C IX_PDBS_PD_BAS_02) INDEX_FS(D IX_PDBS_PD_CLSF_BAS_02)*/
+             <choose>
+               <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+               MO.DGR1_LEVL_OG_CD AS OG_CD
+               </when>
+               <otherwise>
+               MO.DGR2_LEVL_OG_CD AS OG_CD
+               </otherwise>
+             </choose>
+             , SUM (CASE
+                        WHEN A.SELL_TP_CD = '1' AND
+                           CASE WHEN A.SELL_TP_CD != '1' AND N.CNTR_DTL_STAT_CH_RSON_CD IN ('22', '42', '62', '18', '20', '10') THEN 'N' /*제품　자체　이상으로　취소는　제외, Ｌ＆Ｃ　할부고객일 경우 : WELLS 일시불 제외*/
+                                WHEN A.SELL_TP_CD = '1' AND N.CNTR_DTL_STAT_CH_RSON_CD IN ('18') THEN 'N' /* WELLS 일시불 １８．웰스팜리콜취소 － 되물림　제외*/
+                                WHEN A.SELL_TP_CD = '1' AND NVL(A.FNL_AMT,0) - NVL(A.VAT,0) = 0 THEN 'N' /* WELLS 일시불 */
+                                WHEN A.SELL_TP_CD = '1' AND NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END)  <![CDATA[<]]>  '19970101' THEN 'N' /* WELLS 일시불 */
+                                WHEN NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END) >= '20210301' AND N.CNTR_DTL_STAT_CH_RSON_CD = '36' THEN 'N' /* 고객　사망으로　취소는　제외 */
+                                WHEN NVL(A.BOO_SELL_TP_CD,'N') != 'N' AND SUBSTR(NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END),1,6) = SUBSTR(B.CNTR_CNFM_DTM,1,6) THEN 'N' /* 예약판매일 경우 취소년월과 계약년월이 같으면 제외 */
+                                WHEN NVL(A.BOO_SELL_TP_CD,'N') != 'N' AND SUBSTR(NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END),1,6) = SUBSTR(M.SL_RCOG_DT,1,6) THEN 'N' /* 예약판매일 경우 취소년월과 매출년월이 같으면 제외 */
+                                WHEN A.SELL_TP_CD = '1' AND NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END) >= TO_CHAR(ADD_MONTHS(TO_DATE(M.SL_RCOG_DT,'YYYYMMDD'),12),'YYYYMMDD') THEN 'N' /* WELLS 일시불일 경우 매출　１년內 가 아니면 제외 */
+                                WHEN A.SELL_TP_CD = '1' AND NVL(A.ACKMT_PERF_AMT,0) > 0 AND (NVL((SELECT SUM(Y.RVE_AMT)
+                                                                                                  FROM TB_RVDW_RVE_DTL Y
+                                                                                                  WHERE M.CNTR_NO = Y.RVE_OJ_DRM_NO1
+                                                                                                    AND M.CNTR_SN = Y.RVE_OJ_DRM_NO2
+                                                                                                    AND Y.RVE_DV_CD = '10' /* 손료 */
+                                                                                                    AND Y.DP_DV_CD = '1' /* 입금 */
+                                                                                                 ),0) / A.ACKMT_PERF_AMT) * 100 >= 60 THEN 'N' /* WELLS 일시불일 경우 손료입금　６０％ 이상시　되물림 제외 */
+                                WHEN NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END)  <![CDATA[<]]>  '20160201' AND C.PD_CD IN ('WP03110828','WP03110829') THEN 'N' /* 웰스　백수오수　포함　고객은　제외 */
+                                ELSE 'Y' END = 'Y' THEN 1
+                        WHEN A.SELL_TP_CD = '2'
+                         AND M.CAN_DT IS NOT NULL AND
+                            CASE WHEN N.CNTR_DTL_STAT_CH_RSON_CD IN ('22', '42', '62', '08', '09', '77') THEN 'N' /*제품　자체　이상으로　취소는　제외, 렌탈일 경우*/
+                                WHEN NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END) >= '20210301' AND N.CNTR_DTL_STAT_CH_RSON_CD = '36' THEN 'N' /* 고객　사망으로　취소는　제외 */
+                                WHEN SUBSTR(NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END),1,6) = SUBSTR(B.CNTR_CNFM_DTM,1,6) THEN 'N' /* 취소년월과 계약년월이 같으면 제외 */
+                                WHEN TO_CHAR(ADD_MONTHS(TO_DATE(CASE WHEN SUBSTR(B.CNTR_CNFM_DTM,5,4) = '0229' THEN SUBSTR(B.CNTR_CNFM_DTM,1,4)||'0228' ELSE SUBSTR(B.CNTR_CNFM_DTM,1,8) END,'YYYYMMDD'),12),'YYYYMMDD')  <![CDATA[<=]]>  NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END)
+                                    AND (M.SL_DP_AGG_AMT + /*M.INT_DP_AGG_AMT +*/ M.THM_OC_SV_SL_AGG_AMT + 20) >= (((M.RENTAL_AMT-M.RENTAL_DSC_AMT)*12) - NVL((SELECT S.DSC_AGG_AMT
+                                                                                                                                                               FROM TB_CBCL_WELLS_SL_MM_CL_IZ S /* WELLS매출월마감내역 */
+                                                                                                                                                               WHERE M.CNTR_NO = S.CNTR_NO
+                                                                                                                                                                 AND M.CNTR_SN = S.CNTR_SN
+                                                                                                                                                                 AND S.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(CASE WHEN M.SL_RCOG_DT IS NOT NULL THEN M.SL_RCOG_DT ELSE B.CNTR_CNFM_DTM END,'YYYYMMDD'),12),'YYYYMM') /* 되물림　비율　변경(2011.09~)으로　１년으로　검사 */
+                                                                                                                                                              ),0)) THEN 'N' /* １년경과　＆　입금액이　１년렌탈료　이상이면　되물림제외 *//* １년도래　취소시　매출일할계산에　의한　원단위절사　보정,(설치월10원+ 취소월10원= 20원） */
+                                WHEN NVL(A.BOO_SELL_TP_CD,'N') != 'N' AND SUBSTR(NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END),1,6) = SUBSTR(M.SL_RCOG_DT,1,6) THEN 'N' /* 예약판매일 경우 취소년월과 매출년월이 같으면 제외 */
+                                ELSE 'Y' END = 'Y' THEN 1
+                        WHEN A.SELL_TP_CD = '2'
+                         AND B3.CNTR_NO IS NOT NULl AND
+                             CASE WHEN N.CNTR_DTL_STAT_CH_RSON_CD IN ('22', '42', '62', '08', '09', '77') THEN 'N' /*제품　자체　이상으로　취소는　제외, 렌탈일 경우*/
+                                 WHEN NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END) >= '20210301' AND N.CNTR_DTL_STAT_CH_RSON_CD = '36' THEN 'N' /* 고객　사망으로　취소는　제외 */
+                                 WHEN SUBSTR(NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END),1,6) = SUBSTR(B.CNTR_CNFM_DTM,1,6) THEN 'N' /* 취소년월과 계약년월이 같으면 제외 */
+                                 WHEN TO_CHAR(ADD_MONTHS(TO_DATE(CASE WHEN M.SL_RCOG_DT IS NOT NULL THEN CASE WHEN SUBSTR(M.SL_RCOG_DT,5,4) = '0229' THEN SUBSTR(M.SL_RCOG_DT,1,4)||'0228' ELSE M.SL_RCOG_DT END ELSE CASE WHEN SUBSTR(B.CNTR_CNFM_DTM,5,4) = '0229' THEN SUBSTR(B.CNTR_CNFM_DTM,1,4)||'0228' ELSE SUBSTR(B.CNTR_CNFM_DTM,1,8) END END,'YYYYMMDD'),12),'YYYYMMDD')  <![CDATA[<=]]>  NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END)
+                                     AND (M.SL_DP_AGG_AMT + /*M.INT_DP_AGG_AMT +*/ M.THM_OC_SV_SL_AGG_AMT + 20) >= (((M.RENTAL_AMT-M.RENTAL_DSC_AMT)*12) - NVL((SELECT S.DSC_AGG_AMT
+                                                                                                                                                                FROM TB_CBCL_WELLS_SL_MM_CL_IZ S /* WELLS매출월마감내역 */
+                                                                                                                                                                WHERE M.CNTR_NO = S.CNTR_NO
+                                                                                                                                                                  AND M.CNTR_SN = S.CNTR_SN
+                                                                                                                                                                  AND S.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(CASE WHEN M.SL_RCOG_DT IS NOT NULL THEN M.SL_RCOG_DT ELSE B.CNTR_CNFM_DTM END,'YYYYMMDD'),12),'YYYYMM') /* 되물림　비율　변경(2011.09~)으로　１년으로　검사 */
+                                                                                                                                                               ),0)) THEN 'N' /* １년경과　＆　입금액이　１년렌탈료　이상이면　되물림제외 *//* １년도래　취소시　매출일할계산에　의한　원단위절사　보정,(설치월10원+ 취소월10원= 20원） */
+                                 WHEN NVL(A.BOO_SELL_TP_CD,'N') != 'N' AND SUBSTR(NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END),1,6) = SUBSTR(M.SL_RCOG_DT,1,6) THEN 'N' /* 예약판매일 경우 취소년월과 매출년월이 같으면 제외 */
+                                 ELSE 'Y' END = 'Y'
+                            THEN 1
+                        WHEN A.SELL_TP_CD = '3' AND
+                             CASE WHEN A.SELL_TP_CD = '3' AND N.CNTR_DTL_STAT_CH_RSON_CD IN ('22', '42', '62', '08', '09', '51', '77') THEN 'N' /*제품　자체　이상으로　취소는　제외, 멤버십일 경우, 취소유형이　회사귀책이면　제외 */
+                                     WHEN NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END) >= '20210301' AND N.CNTR_DTL_STAT_CH_RSON_CD = '36' THEN 'N' /* 고객　사망으로　취소는　제외 */
+                                     WHEN SUBSTR(NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END),1,6) = SUBSTR(B.CNTR_CNFM_DTM,1,6) THEN 'N' /* 취소년월과 계약년월이 같으면 제외 */
+                                     WHEN NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END) >= TO_CHAR(ADD_MONTHS(TO_DATE(M.CNTR_DT,'YYYYMMDD'),CASE WHEN A.STPL_PTRM IN (12,24,36,48,60) THEN A.STPL_PTRM ELSE 12 END),'YYYYMMDD') THEN 'N' /* 약정기간　경과면　되물림제외 */
+                                     ELSE 'Y' END = 'Y'
+                            THEN 1
+                    ELSE 0 END
+               ) AS REDF_CT
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ M /*WELLS매출월마감내역*/
+         INNER JOIN TB_SSCT_CNTR_DTL A /*계약상세*/
+            ON M.CNTR_NO = A.CNTR_NO
+           AND M.CNTR_SN = A.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_BAS B /*계약기본*/
+            ON A.CNTR_NO = B.CNTR_NO
+         INNER JOIN TB_PDBS_PD_BAS C /*상품기본*/
+            ON M.PD_CD = C.PD_CD
+         INNER JOIN TB_PDBS_PD_CLSF_BAS D /*상품분류기본*/
+            ON C.PD_CLSF_ID = D.PD_CLSF_ID
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ F /*월파트너내역*/
+            ON M.SL_CL_YM = F.BASE_YM
+           AND B.SELL_PRTNR_NO = F.PRTNR_NO
+           AND B.SELL_OG_TP_CD = F.OG_TP_CD
+         INNER JOIN TB_OGBS_MM_OG_IZ MO
+            ON MO.BASE_YM = F.BASE_YM
+           AND MO.OG_ID = F.OG_ID
+          LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ J /*기기변경내역*/
+            ON M.CNTR_NO = J.BASE_CNTR_NO
+           AND M.CNTR_SN = J.BASE_CNTR_SN
+          LEFT OUTER JOIN MM_CL B3 /* 연체되물림된건은　재지급　추가　생성 */
+            ON B3.CNTR_NO = M.CNTR_NO
+           AND B3.CNTR_SN = M.CNTR_SN
+         INNER JOIN LATERAL (
+                SELECT CNTR_NO
+                     , CNTR_SN
+                     , CNTR_DTL_STAT_CH_RSON_CD
+                     , CNTR_DTL_STAT_CD
+                     , HIST_STRT_DTM
+                     , ROW_NUMBER() OVER(PARTITION BY CNTR_NO, CNTR_SN, HIST_STRT_DTM ORDER BY HIST_STRT_DTM DESC) AS RN
+                FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST /*계약상세상태변경이력*/
+                WHERE 1 = 1
+                  AND M.CNTR_NO = CNTR_NO
+                  AND M.CNTR_SN = CNTR_SN
+                  AND HIST_END_DTM LIKE '9999%'
+                  AND CNTR_DTL_STAT_CD IN ('301', '302', '303')
+               ) N ON N.RN = 1
+         WHERE M.DTA_DL_YN = 'N'
+           AND M.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') /*PARAM: 파라미터로 넘어온 발생년월 전월*/
+           AND SUBSTR(NVL(M.CAN_DT,CASE WHEN A.CNTR_PD_ENDDT LIKE '9999%' THEN '0' ELSE A.CNTR_PD_ENDDT END),1,6) = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') /*PARAM: 파라미터로 넘어온 발생년월 전월*/
+           AND M.OG_TP_CD = #{ogTpCd}
+           AND A.SELL_TP_CD IN ('1','2','3')
+           AND (
+                    (
+                            A.SELL_TP_CD = '1' /* 1일시불 */
+                        AND M.SL_RCOG_DT IS NOT NULL /*매출인식일자가 없는 경우 취소에서 제외, ASIS 기준: 미 매출자료 제외*/
+                     )
+                 OR (
+                            A.SELL_TP_CD = '2' /* 2렌탈 */
+                        AND B.SELL_PRTNR_NO != '1362472' -- 웰스　리퍼판매　고객은　제외（판매자：1362472)
+                        AND (NVL(A.BOO_SELL_TP_CD,'N') != 'N' OR M.SL_RCOG_DT IS NOT NULL) /*예약판매 OR 매출인식일자가 있는 경우 */
+                    )
+                 OR (
+                            A.SELL_TP_CD = '3' /* 3멤버십 */
+                        AND A.SELL_TP_DTL_CD = '12' /* 12홈케어 */
+                    )
+               )
+           AND NOT EXISTS (
+                 SELECT 1
+                 FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS S2 /*수수료실적제외대상기본*/
+                 WHERE 1 = 1
+                   AND M.CNTR_NO = S2.CNTR_NO
+                   AND M.CNTR_SN = S2.CNTR_SN
+                   AND (
+                             S2.FEE_PERF_EXCD_DV_CD = '01' /* 실적제외 */
+                         OR (
+                                     S2.FEE_PERF_EXCD_DV_CD = '02' /* 되물림제외 */
+                                 AND TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM') BETWEEN S2.APY_STRT_YM AND S2.APY_END_YM /*PARAM: 파라미터로 넘어온 발생년월 전월*/
+                             )
+                     )
+               )
+        <choose>
+           <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+         GROUP BY MO.DGR1_LEVL_OG_CD
+           </when>
+           <otherwise>
+         GROUP BY MO.DGR2_LEVL_OG_CD
+           </otherwise>
+        </choose>
+    </sql>
+
+    <sql id="selectOptnTrgSql">
+         SELECT
+                P.OG_ID
+              , ROUND(AVG(P.OPTN_TRG_CT)) AS OPTN_TRG_CT /* 가동목표건수 */
+              , ROUND(AVG(P.THM1_OPTN_TRG_CT)) AS THM1_OPTN_TRG_CT /* 1차월가동목표건수 */
+              , ROUND(AVG(P.ACL_ACTI_TRG_CT)) AS ACL_ACTI_TRG_CT /* 실제활동목표건수 */
+           FROM (
+                  SELECT Y.YM
+                        <choose>
+                           <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                       , MO.DGR1_LEVL_OG_ID AS OG_ID
+                           </when>
+                           <otherwise>
+                       , MO.DGR2_LEVL_OG_ID AS OG_ID
+                           </otherwise>
+                        </choose>
+                       , SUM(CASE WHEN PP.FEE_ACKMT_CT > 0 THEN 1 ELSE 0 END) AS OPTN_TRG_CT /* 가동목표건수 */
+                       , SUM(CASE WHEN PP.FEE_ACKMT_CT > 0
+                                   AND PP.CNTR_DT >= TO_CHAR(TO_DATE(Y.YM, 'YYYYMM'), 'YYYYMMDD')
+                                   AND TO_CHAR(ADD_MONTHS(TO_DATE(Y.YM, 'YYYYMM'), 1), 'YYYYMMDD') > PP.CNTR_DT
+                                  THEN 1 ELSE 0 END) AS THM1_OPTN_TRG_CT /* 1차월가동목표건수 */
+                       , SUM(CASE WHEN PP.FEE_ACKMT_CT >= 3 THEN 1 ELSE 0 END) AS ACL_ACTI_TRG_CT /* 실제활동목표건수 */
+                    FROM (
+                           SELECT TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -LEVEL), 'YYYYMM') AS YM
+                             FROM DUAL
+                          CONNECT BY LEVEL <![CDATA[<=]]> 6
+                         ) Y
+                   INNER JOIN LATERAL (
+                          SELECT MP.BASE_YM
+                               , MP.CNTR_DT
+                               , MP.OG_ID
+                               , CB.SELL_OG_TP_CD AS OG_TP_CD
+                               , CB.SELL_PRTNR_NO AS PRTNR_NO
+                               , SUM(CASE WHEN     (CD.SELL_TP_CD = '1' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202', '401'))
+                                                OR (CD.SELL_TP_CD = '2' AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202'))
+                                          THEN
+                                              CASE WHEN NVL(MC.MCHN_CH_TP_CD, 'X') IN('1', '18') THEN 0
+                                                   ELSE CD.FEE_ACKMT_CT END
+                                          ELSE CD.FEE_ACKMT_CT END) AS FEE_ACKMT_CT
+                            FROM TB_SSCT_CNTR_DTL CD /*계약상세T*/
+                           INNER JOIN TB_SSCT_CNTR_BAS CB /*계약기본T*/
+                              ON CB.CNTR_NO = CD.CNTR_NO
+                             AND CB.DTA_DL_YN = 'N'
+                             AND CB.SELL_OG_TP_CD = #{ogTpCd}
+                           INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+                              ON MP.BASE_YM = Y.YM
+                             AND MP.OG_TP_CD = CB.SELL_OG_TP_CD
+                             AND MP.PRTNR_NO = CB.SELL_PRTNR_NO
+                            LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ MC
+                              ON MC.BASE_CNTR_NO = CD.CNTR_NO
+                             AND MC.BASE_CNTR_SN = CD.CNTR_SN
+                             AND MC.DTA_DL_YN = 'N'
+                           WHERE 1 = 1
+                             AND CB.DTA_DL_YN = 'N'
+                             AND CD.DTA_DL_YN = 'N'
+                             AND CB.SELL_INFLW_CHNL_DTL_CD != '9020' /* 직원판매 제외 */
+                             AND CD.CNTR_PD_STRTDT >= TO_CHAR(TO_DATE(Y.YM, 'YYYYMM'), 'YYYYMMDD')
+                             AND TO_CHAR(ADD_MONTHS(TO_DATE( Y.YM, 'YYYYMM'), 1), 'YYYYMMDD') > CD.CNTR_PD_STRTDT
+                           GROUP BY MP.BASE_YM
+                                  , MP.CNTR_DT
+                                  , MP.OG_ID
+                                  , CB.SELL_OG_TP_CD
+                                  , CB.SELL_PRTNR_NO
+                         ) PP
+                        ON PP.BASE_YM = Y.YM
+                     INNER JOIN TB_OGBS_MM_OG_IZ MO
+                        ON MO.OG_ID = PP.OG_ID
+                       AND MO.BASE_YM = PP.BASE_YM
+                     GROUP BY Y.YM
+                            <choose>
+                                <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                            , MO.DGR1_LEVL_OG_ID
+                                </when>
+                                <otherwise>
+                            , MO.DGR2_LEVL_OG_ID
+                                </otherwise>
+                            </choose>
+               ) P
+           GROUP BY P.OG_ID
+    </sql>
+
+    <sql id="selectLifOrdSql">
+         SELECT
+            <choose>
+                <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                MO.DGR1_LEVL_OG_ID AS OG_ID
+                </when>
+                <otherwise>
+                MO.DGR2_LEVL_OG_ID AS OG_ID
+                </otherwise>
+            </choose>
+              , COUNT(CASE WHEN RE.KLICDE IN ('2178','2180') THEN 1 END) AS PL429CNT
+              , COUNT(CASE WHEN RE.KLICDE IN ('2179','2181') THEN 1 END) AS PL599CNT
+           FROM TB_GBCO_LIF_ORD_RCV_ETXT RE /* ZA_라이프주문수신전문 */
+          INNER JOIN TB_SSCT_CNTR_DTL CD
+             ON CD.CNTR_NO = 'W'|| RE.KLFLG8|| LPAD(RE.KLFLG9, 7, '0')
+            AND CD.CNTR_SN = 1
+            AND CD.SELL_TP_CD = '2'
+          INNER JOIN TB_SSCT_CNTR_BAS CB
+             ON CB.CNTR_NO = CD.CNTR_NO
+          INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+             ON MP.PRTNR_NO = CB.SELL_PRTNR_NO
+            AND MP.BASE_YM = #{perfYm}
+            AND MP.OG_TP_CD = CB.SELL_OG_TP_CD
+          INNER JOIN TB_OGBS_MM_OG_IZ MO
+             ON MO.BASE_YM = MP.BASE_YM
+            AND MO.OG_ID = MP.OG_ID
+          WHERE 1=1
+            AND RE.KLETC6 IN ('51','59')
+            AND CD.ALNCMP_CD = '70'
+            AND CB.SELL_OG_TP_CD = #{ogTpCd}
+            AND CB.DTA_DL_YN = 'N'
+            AND CD.DTA_DL_YN = 'N'
+            AND CB.SELL_INFLW_CHNL_DTL_CD != '9020' /* 직원판매 제외 */
+            AND CD.SELL_TP_CD = '2'
+            AND CD.CNTR_PD_STRTDT >= TO_CHAR(TO_DATE( #{perfYm}, 'YYYYMM'), 'YYYYMMDD')
+            AND TO_CHAR(ADD_MONTHS(TO_DATE( #{perfYm}, 'YYYYMM'), 1), 'YYYYMMDD') > CD.CNTR_PD_STRTDT
+          GROUP BY
+          <choose>
+                <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                MO.DGR1_LEVL_OG_ID
+                </when>
+                <otherwise>
+                MO.DGR2_LEVL_OG_ID
+                </otherwise>
+            </choose>
+    </sql>
+
+    <select id="selectOutcomeAllowancesManagerThisMonth" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchManagerRes">
+        SELECT C.OG_CD /* 소속 */
+             , C.OG_NM /* 소속명 */
+             , C.PRTNR_KNM /* 성명 */
+             , C.PRTNR_NO /* 번호 */
+             , C.DTRC_N /* 지국수(당월) */
+             , C.BASE_DTRC_N /* 지국수(고정) */
+             , C.BRCH_NINC_CT /* 지점순증 */
+             , C.TRG_CT /* 목표 */
+             , C.PERF_CT /* 실적 */
+             , C.TRG_ACHV_RT /* 달성률 */
+             , C.NW_SELL_ACC_CT /* 신규판매 */
+             , C.PUR_SPR_ACC_CT /* 순수이탈 */
+             , C.ACC_NINC_CT /* 계정순증 */
+             , C.FEE_ACKMT_CT /* 인정건수 */
+             , C.ELHM_EXCP_PERF_AMT /* 가전외 금액 */
+             , C.ELHM_EXCP_CT /* 가전외 인정건수 */
+             , C.REDF_CT /* 되물림 건수 */
+             , C.PERF_AGG_AMT /* 누계 */
+             , C.MNGR_DANG_GD /* 관리자위험 등급 */
+             , C.WM_ACL_ACTI_CT /* 웰스매니저 실활동 수 */
+             , C.BFSVC_ACL_ACTI_CT /* 프리매니저 실활동 수 */
+             , C.ACL_ACTI_BRCH_AV_CT /* 실활동(지평) */
+             , C.ACTV_BRCH_N /* 활성지점 */
+             , NVL(AT.AW_AMT,0) * C.PERF_AGG_AMT - C.MNGR_DANG_GD AS TRG_ACHV_AW_AMT /* 목표달성 수당(인정건수) = 누계 X 목표달성수당 테이블(달성율 and 계정순증) 금액 - 관리자 위험지수 차감액 */
+             , NVL(AO.AW_AMT,0) * C.ACTV_BRCH_N AS OG_AW_AMT /* 조직수당 = 활성지점수 X 조직수당 테이블(실활동 매니저 지평 and 지점 순증) */
+             , NVL(AT.AW_AMT,0) * C.PERF_AGG_AMT - C.MNGR_DANG_GD + NVL(AO.AW_AMT,0) * C.ACTV_BRCH_N AS DSB_AMT /* 지급계 TRG_ACHV_AW_AMT + OG_AW_AMT */
+          FROM (
+                SELECT PERF.OG_CD
+                     , PERF.OG_NM
+                     , PERF.PRTNR_NM AS PRTNR_KNM
+                     , PERF.PRTNR_NO
+                     , NVL(MO.DTRC_N, 0) AS DTRC_N
+                     , NVL(OB.DTRC_N, 0) AS BASE_DTRC_N
+                     , NVL(MO.DTRC_N, 0) - NVL(OB.DTRC_N, 0) AS BRCH_NINC_CT /* 지점순증 = 당월 지점수 - 23년4월1일자 지점수 */
+                     , NVL(ST.CNTR_BASE_TRG_IST_CT,0) AS TRG_CT /* 목표(설치) */
+                     , PERF.PERF_CT
+                     , CASE WHEN NVL(ST.CNTR_BASE_TRG_IST_CT, 0) > 0 THEN ROUND(PERF.PERF_CT/ST.CNTR_BASE_TRG_IST_CT * 100, 1) ELSE 0 END AS TRG_ACHV_RT /* 달성률 = 실적 / 목표 * 100 */
+                     , PERF.FEE_ACKMT_CT
+                     , PERF.ELHM_EXCP_PERF_AMT
+                     , ROUND(PERF.ELHM_EXCP_PERF_AMT/500000) AS ELHM_EXCP_CT
+                     , PERF.NW_SELL_ACC_CT
+                     , NVL(CANC.PUR_SPR_ACC_CT,0) AS PUR_SPR_ACC_CT
+                     , PERF.NW_SELL_ACC_CT - NVL(CANC.PUR_SPR_ACC_CT,0) AS ACC_NINC_CT
+                     , PERF.FEE_ACKMT_CT + ROUND(PERF.ELHM_EXCP_PERF_AMT/500000) - NVL(REDF.REDF_CT,0) AS PERF_AGG_AMT /* 누계 = [인정건수] + [가전외 건수] - [되물림 건수] */
+                     , 0 AS MNGR_DANG_GD /* 관리자 위험등급 */
+                     , PERF.WM_ACL_ACTI_CT
+                     , PERF.BFSVC_ACL_ACTI_CT
+                     , (PERF.WM_ACL_ACTI_CT+PERF.BFSVC_ACL_ACTI_CT) AS ACL_ACTI_ACHV_CT
+                     , CASE WHEN NVL(OB.DTRC_N,0) > 0 THEN ROUND((PERF.WM_ACL_ACTI_CT+PERF.BFSVC_ACL_ACTI_CT) / NVL(OB.DTRC_N,0), 2) ELSE 0 END AS ACL_ACTI_BRCH_AV_CT /* 실활동(지평) = 당월 실활동 인원 ÷ 23년 4월1일 지점수 */
+                     , PERF.OPTN_ACHV_CT
+                     , PERF.THM1_OPTN_ACHV_CT
+                     , PERF.ACTV_BRCH_N
+                     , NVL(REDF.REDF_CT,0) AS REDF_CT
+                  FROM (
+                      <include refid="selectPerformanceSql"/>
+                       ) PERF /* 실적 계산 */
+                  LEFT OUTER JOIN (
+                      <include refid="selectCancelSql"/>
+                       ) CANC /* 취소 계산 */
+                    ON PERF.OG_CD = CANC.OG_CD
+                  LEFT OUTER JOIN (
+                      <include refid="selectRedemptionOfFeeSql"/>
+                       ) REDF /* 되물림 계산 */
+                    ON REDF.OG_CD = PERF.OG_CD
+                 INNER JOIN (
+                           SELECT T.BASE_YM
+                               <choose>
+                                   <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                                , T.GNLR_LEDR_PRTNR_NO AS PRTNR_NO
+                                   </when>
+                                   <otherwise>
+                                , T.LCMGR_PRTNR_NO AS PRTNR_NO
+                                   </otherwise>
+                               </choose>
+                                , SUM(T.CNTR_BASE_TRG_IST_CT) AS CNTR_BASE_TRG_IST_CT
+                                , SUM(T.CNTR_BASE_TRG_RCP_CT) AS CNTR_BASE_TRG_RCP_CT
+                                , SUM(T.WELS_MNGER_TRG_OPTN_PSNO) AS WELS_MNGER_TRG_OPTN_PSNO
+                                , SUM(T.TOPMR_PLAR_TRG_OPTN_PSNO) AS TOPMR_PLAR_TRG_OPTN_PSNO
+                                , SUM(T.WELS_PLAR_TRG_OPTN_PSNO) AS WELS_PLAR_TRG_OPTN_PSNO
+                                , SUM(T.BRMGR_TRG_OPTN_PSNO) AS BRMGR_TRG_OPTN_PSNO
+                             FROM TB_IFIN_WELS_MCBY_SELL_TRG_BAS T
+                            WHERE T.BASE_YM = #{perfYm}
+                            GROUP BY T.BASE_YM
+                                   <choose>
+                                       <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                                   , T.GNLR_LEDR_PRTNR_NO
+                                       </when>
+                                       <otherwise>
+                                   , T.LCMGR_PRTNR_NO
+                                       </otherwise>
+                                   </choose>
+                       ) ST /* 단장 목표 (BI 연계 테이블) */
+                    ON ST.PRTNR_NO = PERF.PRTNR_NO
+                 INNER JOIN TB_OGBS_MM_OG_IZ MO
+                    ON MO.OG_ID = PERF.OG_ID
+                   AND MO.BASE_YM = #{perfYm}
+                  LEFT OUTER JOIN TB_OGBS_MM_OG_IZ OB
+                    ON OB.OG_ID = PERF.OG_ID
+                   AND OB.BASE_YM = '202304'
+               ) C
+         INNER JOIN TB_FEAM_MNGR_AW_BASE_INF_IZ AT /* 관리자수당기준정보내역 : 목표수당 */
+            ON AT.MNGR_OUTC_DV_CD = 'TAR'
+           AND AT.RSB_DV_CD = SUBSTR(#{rsbDvCd},4,2)
+           AND AT.ACHV_STRT_RAT <![CDATA[<=]]> C.TRG_ACHV_RT
+           AND AT.ACHV_END_RAT > C.TRG_ACHV_RT
+           AND AT.NINC_STRT_CT <![CDATA[<=]]> CASE WHEN C.ACC_NINC_CT <![CDATA[<]]> 0 THEN 0 WHEN C.ACC_NINC_CT  >  998 THEN 998 ELSE C.ACC_NINC_CT END
+           AND AT.NINC_END_CT > CASE WHEN C.ACC_NINC_CT <![CDATA[<]]> 0 THEN 0 WHEN C.ACC_NINC_CT  >  998 THEN 998 ELSE C.ACC_NINC_CT END
+         INNER JOIN TB_FEAM_MNGR_AW_BASE_INF_IZ AO /* 관리자수당기준정보내역 : 조직수당 */
+            ON AO.MNGR_OUTC_DV_CD = 'ORG'
+           AND AO.RSB_DV_CD = SUBSTR(#{rsbDvCd},4,2)
+           AND AO.ACHV_STRT_RAT <![CDATA[<=]]> CASE WHEN C.ACL_ACTI_BRCH_AV_CT <![CDATA[<]]> 0 THEN 0 ELSE C.ACL_ACTI_BRCH_AV_CT END
+           AND AO.ACHV_END_RAT > CASE WHEN C.ACL_ACTI_BRCH_AV_CT <![CDATA[<]]> 0 THEN 0 ELSE C.ACL_ACTI_BRCH_AV_CT END
+           AND AO.NINC_STRT_CT <![CDATA[<=]]> CASE WHEN C.BRCH_NINC_CT <![CDATA[<]]> 0 THEN 0 ELSE  C.BRCH_NINC_CT END
+           AND AO.NINC_END_CT > CASE WHEN C.BRCH_NINC_CT <![CDATA[<]]> 0 THEN 0 ELSE  C.BRCH_NINC_CT END
+         ORDER BY OG_CD
     </select>
 
+    <select id="selectOutcomeAllowancesManager" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchManagerRes">
+        SELECT MO.OG_CD /* 소속 */
+             , MO.OG_NM  /* 소속명 */
+             , MP.PRTNR_KNM /* 성명 */
+             , MP.PRTNR_NO  /* 파트너번호 */
+             , OA.DTRC_N  /* 지국수 */
+             , OA.TRG_CT  /* 목표건수 */
+             , OA.BASE_DTRC_N  /* 기준지국수 */
+             , OA.PERF_CT  /* 실적건수 */
+             , OA.TRG_ACHV_RT  /* 목표달성율 */
+             , OA.NW_SELL_ACC_CT  /* 신규판매계정수 */
+             , OA.PUR_SPR_ACC_CT  /* 순수이탈계정수 */
+             , OA.ACC_NINC_CT  /* 계정순증건수 */
+             , OA.FEE_ACKMT_CT  /* 수수료인정건수 */
+             , OA.ELHM_EXCP_PERF_AMT  /* 가전외실적금액 */
+             , OA.ELHM_EXCP_CT  /* 가전건수 */
+             , OA.REDF_CT  /* 되물림건수 */
+             , OA.PERF_AGG_AMT  /* 실적누계금액 */
+             , OA.MNGR_DANG_GD  /* 관리자위험등급 */
+             , OA.TRG_ACHV_AW_AMT  /* 목표달성수당금액 */
+             , OA.BRCH_NINC_CT  /* 지점순증건수 */
+             , OA.WM_ACL_ACTI_CT  /* WM실제활동건수 */
+             , OA.BFSVC_ACL_ACTI_CT  /* BS실제활동건수 */
+             , OA.ACL_ACTI_BRCH_AV_CT  /* 실제활동지점평균건수 */
+             , OA.ACTV_BRCH_N  /* 활성지점수 */
+             , OA.OG_AW_AMT  /* 조직수당금액 */
+             , OA.DSB_AMT  /* 지급금액 */
+          FROM TB_FEAM_MOGMNGR_OUTC_AW_MM_IZ OA
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+            ON MP.OG_TP_CD = OA.OG_TP_CD
+           AND MP.BASE_YM = OA.BASE_YM
+           AND MP.PRTNR_NO = OA.PRTNR_NO
+         INNER JOIN TB_OGBS_MM_OG_IZ MO
+            ON MO.BASE_YM = MP.BASE_YM
+           AND MO.OG_ID = MP.OG_ID
+         WHERE 1=1
+           AND OA.BASE_YM = #{perfYm}
+           AND OA.OG_TP_CD = #{ogTpCd}
+           AND OA.RSB_DV_CD = #{rsbDvCd}
+         ORDER BY MO.OG_CD
+    </select>
 
+    <select id="selectOutcomeAllowancesPlannerThisMonth" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchPlannerRes">
+        SELECT C.OG_CD /* 소속 */
+             , C.OG_NM /* 소속명 */
+             , C.PRTNR_KNM /* 성명 */
+             , C.PRTNR_NO /* 번호 */
+             , C.TRG_CT /* 목표 */
+             , C.PERF_CT /* 실적 */
+             , C.TRG_ACHV_RT /* 달성률 */
+             , NVL(AT.AW_AMT,0) * C.PERF_CT AS TRG_ACHV_AW_AMT /* 목표달성 수당(인정건수) = 실적 X 목표달성수당 테이블(달성율 and 계정순증) 금액 */
+             , C.THM1_OPTN_TRG_CT /* 1차월가동목표건수 */
+             , C.THM1_OPTN_ACHV_CT /* 1차월가동달성건수 */
+             , C.THM1_OPTN_ACHV_RT /* 1차월가동달성율 */
+             , NVL(AO1.AW_AMT,0) * C.THM1_OPTN_ACHV_CT AS THM1_OPTN_AW_AMT /* 1차월가동수당금액 = */
+             , C.ACL_ACTI_TRG_CT /* 실제활동목표건수 */
+             , C.ACL_ACTI_ACHV_CT /* 실제활동달성건수 */
+             , C.ACL_ACTI_ACHV_RT /* 실제활동달성율 */
+             , NVL(AO2.AW_AMT,0) * C.ACL_ACTI_ACHV_CT AS ACL_ACTI_AW_AMT /* 실제활동수당금액 */
+             , NVL(AO1.AW_AMT,0) * C.THM1_OPTN_ACHV_CT + NVL(AO2.AW_AMT,0) * C.ACL_ACTI_ACHV_CT AS OG_ACHV_AW_SUM_AMT /* 조직달성수당합계금액 */
+             , 0 AS EJT_AW_AMT /* 배출수당금액 */
+             , NVL(AO1.AW_AMT,0) * C.THM1_OPTN_ACHV_CT + NVL(AO2.AW_AMT,0) * C.ACL_ACTI_ACHV_CT + NVL(AT.AW_AMT,0) * C.PERF_CT AS OUTC_AW_SUM_AMT /* 성과수당합계금액 */
+          FROM (
+                 SELECT PERF.OG_CD
+                      , PERF.OG_NM
+                      , PERF.PRTNR_NM AS PRTNR_KNM
+                      , PERF.PRTNR_NO
+                      , NVL(MO.DTRC_N, 0) AS DTRC_N
+                      , NVL(OB.DTRC_N, 0) AS BASE_DTRC_N
+                      , NVL(MO.DTRC_N, 0) - NVL(OB.DTRC_N, 0) AS BRCH_NINC_CT /* 지점순증 = 당월 지점수 - 23년4월1일자 지점수 */
+                      , NVL(ST.CNTR_BASE_TRG_IST_CT,0) AS TRG_CT /* 목표(설치) */
+                      , PERF.PERF_CT + NVL(LIF.PL429CNT, 0) + NVL(LIF.PL599CNT, 0) AS PERF_CT
+                      , CASE WHEN NVL(ST.CNTR_BASE_TRG_IST_CT, 0) > 0 THEN ROUND((PERF.PERF_CT + NVL(LIF.PL429CNT, 0) + NVL(LIF.PL599CNT, 0))/ST.CNTR_BASE_TRG_IST_CT * 100, 2) ELSE 0 END AS TRG_ACHV_RT /* 달성률 = 실적 / 목표 * 100 */
+                      , PERF.NW_SELL_ACC_CT
+                      , CASE WHEN NVL(OB.DTRC_N,0) > 0 THEN ROUND((PERF.WM_ACL_ACTI_CT+PERF.BFSVC_ACL_ACTI_CT) / NVL(OB.DTRC_N,0), 2) ELSE 0 END AS ACL_ACTI_BRCH_AV_CT /* 실활동(지평) = 당월 실활동 인원 ÷ 23년 4월1일 지점수 */
+                      , PERF.THM1_OPTN_ACHV_CT
+                      , PERF.ACL_ACTI_ACHV_CT
+                      , NVL(TC.ACL_ACTI_TRG_CT, 0) AS ACL_ACTI_TRG_CT
+                      , NVL(TC.THM1_OPTN_TRG_CT, 0) AS THM1_OPTN_TRG_CT
+                      , NVL(TC.OPTN_TRG_CT, 0) AS OPTN_TRG_CT
+                      , CASE WHEN NVL(TC.THM1_OPTN_TRG_CT, 0) > 0 THEN ROUND(PERF.THM1_OPTN_ACHV_CT/TC.THM1_OPTN_TRG_CT * 100, 1) ELSE 0 END AS THM1_OPTN_ACHV_RT /* 달성률 = 실적 / 목표 * 100 */
+                      , CASE WHEN NVL(TC.ACL_ACTI_TRG_CT, 0) > 0 THEN ROUND(PERF.ACL_ACTI_ACHV_CT/TC.ACL_ACTI_TRG_CT * 100, 1) ELSE 0 END AS ACL_ACTI_ACHV_RT /* 달성률 = 실적 / 목표 * 100 */
+                   FROM (
+                       <include refid="selectPerformanceSql"/>
+                        ) PERF /* 실적 계산 */
+                   LEFT OUTER JOIN (
+                      <include refid="selectOptnTrgSql"/>
+                        ) TC /* 실활동, 1차월 가동 목표 */
+                     ON TC.OG_ID = PERF.OG_ID
+                   LEFT OUTER JOIN (
+                       <include refid="selectLifOrdSql"/>
+                        ) LIF /* 연계 상품(라이프) 실적 계산 */
+                     ON LIF.OG_ID = PERF.OG_ID
+                  INNER JOIN (
+                           SELECT T.BASE_YM
+                               <choose>
+                                   <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                                , T.GNLR_LEDR_PRTNR_NO AS PRTNR_NO
+                                   </when>
+                                   <otherwise>
+                                , T.LCMGR_PRTNR_NO AS PRTNR_NO
+                                   </otherwise>
+                               </choose>
+                                , SUM(T.CNTR_BASE_TRG_IST_CT) AS CNTR_BASE_TRG_IST_CT
+                                , SUM(T.CNTR_BASE_TRG_RCP_CT) AS CNTR_BASE_TRG_RCP_CT
+                                , SUM(T.WELS_MNGER_TRG_OPTN_PSNO) AS WELS_MNGER_TRG_OPTN_PSNO
+                                , SUM(T.TOPMR_PLAR_TRG_OPTN_PSNO) AS TOPMR_PLAR_TRG_OPTN_PSNO
+                                , SUM(T.WELS_PLAR_TRG_OPTN_PSNO) AS WELS_PLAR_TRG_OPTN_PSNO
+                                , SUM(T.BRMGR_TRG_OPTN_PSNO) AS BRMGR_TRG_OPTN_PSNO
+                             FROM TB_IFIN_WELS_MCBY_SELL_TRG_BAS T
+                            WHERE T.BASE_YM = #{perfYm}
+                            GROUP BY T.BASE_YM
+                                   <choose>
+                                       <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                                   , T.GNLR_LEDR_PRTNR_NO
+                                       </when>
+                                       <otherwise>
+                                   , T.LCMGR_PRTNR_NO
+                                       </otherwise>
+                                   </choose>
+                        ) ST /* 단장 목표 (BI 연계 테이블) */
+                     ON ST.PRTNR_NO = PERF.PRTNR_NO
+                  INNER JOIN (
+                           SELECT
+                               <choose>
+                                   <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                                  MO.DGR1_LEVL_OG_ID AS OG_ID
+                                   </when>
+                                   <otherwise>
+                                  MO.DGR2_LEVL_OG_ID AS OG_ID
+                                   </otherwise>
+                               </choose>
+                                , COUNT(1) AS DTRC_N
+                             FROM TB_OGBS_MM_OG_IZ MO
+                            WHERE MO.BASE_YM = #{perfYm}
+                              AND MO.OG_TP_CD = #{ogTpCd}
+                              AND MO.OG_LEVL_DV_CD = '3'
+                            GROUP BY
+                                <choose>
+                                   <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                                  MO.DGR1_LEVL_OG_ID
+                                   </when>
+                                   <otherwise>
+                                  MO.DGR2_LEVL_OG_ID
+                                   </otherwise>
+                               </choose>
+                        ) MO
+                     ON MO.OG_ID = PERF.OG_ID
+                   LEFT OUTER JOIN (
+                             SELECT
+                               <choose>
+                                   <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                                    MO.DGR1_LEVL_OG_ID AS OG_ID
+                                   </when>
+                                   <otherwise>
+                                    MO.DGR2_LEVL_OG_ID AS OG_ID
+                                   </otherwise>
+                               </choose>
+                                  , COUNT(1) AS DTRC_N
+                             FROM TB_OGBS_MM_OG_IZ MO
+                             WHERE MO.BASE_YM = '202304'
+                               AND MO.OG_TP_CD = #{ogTpCd}
+                               AND MO.OG_LEVL_DV_CD = '3'
+                             GROUP BY
+                                 <choose>
+                                   <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
+                                  MO.DGR1_LEVL_OG_ID
+                                   </when>
+                                   <otherwise>
+                                  MO.DGR2_LEVL_OG_ID
+                                   </otherwise>
+                               </choose>
+                        ) OB
+                     ON OB.OG_ID = PERF.OG_ID
+               ) C
+         INNER JOIN TB_FEAM_MNGR_AW_BASE_INF_IZ AT /* 관리자수당기준정보내역 : 목표수당 */
+            ON AT.MNGR_OUTC_DV_CD = 'PTAR'
+           AND #{perfYm} BETWEEN AT.APY_STRT_YM AND AT.APY_END_YM
+           AND AT.DTA_DL_YN = 'N'
+           AND AT.RSB_DV_CD = SUBSTR(#{rsbDvCd},4,2)
+           AND AT.ACHV_STRT_RAT <![CDATA[<=]]> C.TRG_ACHV_RT
+           AND AT.ACHV_END_RAT > C.TRG_ACHV_RT
+         INNER JOIN TB_FEAM_MNGR_AW_BASE_INF_IZ AO1 /* 관리자수당기준정보내역 : 1차월 가동목표달성 */
+            ON AO1.MNGR_OUTC_DV_CD = 'OPT'
+           AND #{perfYm} BETWEEN AO1.APY_STRT_YM AND AO1.APY_END_YM
+           AND AO1.DTA_DL_YN = 'N'
+           AND AO1.RSB_DV_CD = SUBSTR(#{rsbDvCd}, 4, 2)
+           AND AO1.ACHV_STRT_RAT <![CDATA[<=]]> C.THM1_OPTN_ACHV_RT
+           AND AO1.ACHV_END_RAT > C.THM1_OPTN_ACHV_RT
+          LEFT JOIN TB_FEAM_MNGR_AW_BASE_INF_IZ AO2 /* 관리자수당기준정보내역 : 실활동목표달성 */
+            ON AO2.MNGR_OUTC_DV_CD = 'ACT'
+           AND #{perfYm} BETWEEN AO2.APY_STRT_YM AND AO2.APY_END_YM
+           AND AO2.DTA_DL_YN = 'N'
+           AND AO2.RSB_DV_CD = SUBSTR(#{rsbDvCd}, 4, 2)
+           AND AO2.ACHV_STRT_RAT <![CDATA[<=]]> C.ACL_ACTI_ACHV_RT
+           AND AO2.ACHV_END_RAT > C.ACL_ACTI_ACHV_RT
+         ORDER BY C.OG_CD
+    </select>
+
+    <select id="selectOutcomeAllowancesPlanner" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchPlannerRes">
+        SELECT MO.OG_NM  /* 소속명 */
+             , MP.PRTNR_KNM /* 성명 */
+             , MP.PRTNR_NO /* 파트너번호 */
+             , OA.TRG_CT /* 목표건수 */
+             , OA.PERF_CT /* 실적건수 */
+             , OA.TRG_ACHV_RT /* 목표달성율 */
+             , OA.TRG_ACHV_AW_AMT /* 목표달성수당금액 */
+             , OA.THM1_OPTN_TRG_CT /* 1차월가동목표건수 */
+             , OA.THM1_OPTN_ACHV_CT /* 1차월가동달성건수 */
+             , OA.THM1_OPTN_ACHV_RT /* 1차월가동달성율 */
+             , OA.THM1_OPTN_AW_AMT /* 1차월가동수당금액 */
+             , OA.ACL_ACTI_TRG_CT /* 실제활동목표건수 */
+             , OA.ACL_ACTI_ACHV_CT /* 실제활동달성건수 */
+             , OA.ACL_ACTI_ACHV_RT /* 실제활동달성율 */
+             , OA.ACL_ACTI_AW_AMT /* 실제활동수당금액 */
+             , OA.OG_ACHV_AW_SUM_AMT /* 조직달성수당합계금액 */
+             , OA.EJT_AW_AMT /* 배출수당금액 */
+             , OA.OUTC_AW_SUM_AMT /* 성과수당합계금액 */
+          FROM TB_FEAM_POGMNGR_OUTC_AW_MM_IZ OA
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+            ON MP.OG_TP_CD = OA.OG_TP_CD
+           AND MP.BASE_YM = OA.BASE_YM
+           AND MP.PRTNR_NO = OA.PRTNR_NO
+         INNER JOIN TB_OGBS_MM_OG_IZ MO
+            ON MO.BASE_YM = MP.BASE_YM
+           AND MO.OG_ID = MP.OG_ID
+         WHERE 1=1
+           AND OA.BASE_YM = #{perfYm}
+           AND OA.OG_TP_CD = #{ogTpCd}
+           AND OA.RSB_DV_CD = #{rsbDvCd}
+         ORDER BY MO.OG_CD
+    </select>
 </mapper>

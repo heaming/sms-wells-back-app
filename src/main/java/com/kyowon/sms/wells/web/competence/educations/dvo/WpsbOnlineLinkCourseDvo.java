@@ -20,9 +20,12 @@ public class WpsbOnlineLinkCourseDvo {
     private String prtnrKnm;
     private String dgr2LevlOgNm;
     private String dgr3LevlOgNm;
+    private String qlfDvCd;
+    private String qlfDvNm;
     private String rsbDvNm;
     private String topmrPlarStmnt;
-    private String ackmtCt;
+    private Integer ackmtCt;
+    private Long ackmtAmt;
     private String offlTCnt1;
     private String offlTCnt2;
     private String offlTCnt3;

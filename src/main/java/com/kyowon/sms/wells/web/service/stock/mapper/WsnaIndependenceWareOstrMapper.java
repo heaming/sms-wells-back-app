@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.stock.mapper;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaIndependenceWareOstrDto.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -26,8 +27,12 @@ public interface WsnaIndependenceWareOstrMapper {
 
     int mergeItmOstrAkIz(WsnaIndependenceWareOstrDvo dvo);
 
+    BigDecimal selectItemByOstrAggQty(WsnaIndependenceWareOstrDvo dvo);
+
     int updateItmQomAsnIz(WsnaIndependenceWareOstrDvo dvo);
 
     List<WsnaLogisticsOutStorageAskReqDvo> selectIndependenceLogisticsTransfer(WsnaLogisticsDeliveryKssDvo dvo);
+
+    List<WsnaIndependenceWareOstrDvo> selectLogisticsTransferDatas(SearchTranferReq dto);
 
 }

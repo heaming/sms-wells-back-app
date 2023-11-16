@@ -75,7 +75,6 @@ public class WsncRpbAreaZipMgtDto {
         String ctctyNm, // 시군구명
         String lawcEmdNm, // 법정읍면동명
         String amtdNm, // 행정동명
-        @NotBlank
         String kynorLocaraYn, // 경북지역여부
         String ildYn, // 섬여부
         String pdlvNo // 출고지번호

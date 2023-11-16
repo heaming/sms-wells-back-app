@@ -12,7 +12,7 @@ import com.kyowon.sms.wells.web.competence.business.dto.WpsfBusinessCardMgtDto;
 import com.kyowon.sms.wells.web.competence.business.dto.WpsfBusinessCardMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.competence.business.dto.WpsfBusinessCardMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.competence.business.service.WpsfBusinessCardMgtService;
-import com.kyowon.sms.wells.web.competence.zcommon.psCompetenceConst;
+import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(psCompetenceConst.REST_URL_V1 + "/business/partner")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/business/partner")
 public class WpsfBusinessCardMgtController {
     private final WpsfBusinessCardMgtService service;
 

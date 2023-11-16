@@ -89,11 +89,11 @@ public class WdcbSalesConfirmCreateService {
         } else {
             spmtDscAmt = dvo.getSpmtDscAmt();
         }
-        //log.info("spmtDscAmt:" + spmtDscAmt);
+        // log.info("spmtDscAmt:" + spmtDscAmt);
         /* 8. 매출금액 (SL_AMT) */
         int slAmt = dvo.getNomSlAmt() + dvo.getSpmtSlAmt() - dvo.getNomDscAmt() - spmtDscAmt
             - dvo.getSlCtrAmt(); // 정상매출금액 + 추가매출금액- 정상할인금액 - 추가할인금액 - 매출조정금액
-        //log.info("slAmt:" + slAmt);
+        // log.info("slAmt:" + slAmt);
         /* 9. 부가가치세(VAT) */
         int vat = 0;
         String vatTpCd = mapper.selectVatTpCd(dvo.getPdCd());
@@ -158,7 +158,7 @@ public class WdcbSalesConfirmCreateService {
         String addCondition = "";
         String slpMapngCdv = "";
 
-        log.info("dvo.getSlRcogClsfCd().substring(1):" + dvo.getSlRcogClsfCd().substring(0, 1));
+        // log.info("dvo.getSlRcogClsfCd().substring(1):" + dvo.getSlRcogClsfCd().substring(0, 1));
         tempSellTpDtlCd = dvo.getSlRcogClsfCd().substring(0, 1).equals("S") ? "ANY" : dvo.getSellTpDtlCd();
 
         tempSlRcogClsfCd = dvo.getSlRcogClsfCd().substring(0, 1).equals("W") ? "W" : dvo.getSlRcogClsfCd();
@@ -273,7 +273,7 @@ public class WdcbSalesConfirmCreateService {
         inputDvo.setNomSlAmt(dvo.getNomSlAmt());
         inputDvo.setSpmtSlAmt(dvo.getSpmtSlAmt());
         inputDvo.setNomDscAmt(dvo.getNomDscAmt());
-        inputDvo.setSpmtDscAmt(dvo.getSpmtDscAmt());
+        inputDvo.setSpmtDscAmt(spmtDscAmt);
         inputDvo.setSlCtrAmt(dvo.getSlCtrAmt());
         inputDvo.setSlCanAmt(dvo.getSlCanAmt());
         inputDvo.setSlStpYn(dvo.getSlStpYn());

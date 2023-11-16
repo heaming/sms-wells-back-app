@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.fee.calculation.service;
 
 import java.util.List;
 
+import com.sds.sflex.system.config.validation.BizAssert;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -114,7 +115,7 @@ public class WfebB2bFeeMgtService {
                 dtlDvo.setFeeDdtnTpCd("01"); // 수수료공제유형코드 : 공제-보증예치금
                 dtlDvo.setFeeTcntDvCd("02"); // 2차
                 dtlDvo.setSpmtDsbDvCd("01"); // 정상지급
-                dtlDvo.setFeeDdtnCrtCd("01"); // 수수료공제유형코드 : 공제-보증예치금
+                dtlDvo.setFeeDdtnCrtCd("W0404"); // 수수료공제유형코드 : 공제-보증예치금
                 dtlDvo.setFeeCtrOgTpCd(session.getOgTpCd());
                 dtlDvo.setFeeCtrPrtnrNo(row.prtnrNo());
                 dtlDvo.setPrtnrNo(row.prtnrNo());
@@ -139,8 +140,8 @@ public class WfebB2bFeeMgtService {
         // 00. B2B 순주문집계 가능여부 체크
         // 00-1. 수수료일정 갱신 API 체크 > 화면에서해서 일단 페스
         // 00-2. 순주문파트너월마감 확정여부 체크
-        //        int checkCount = mapper.selectCheckB2bConfrim(req);
-        //        BizAssert.isFalse(checkCount > 0, "MSG_ALT_CNFM_NO_RENEW_DATA"); // 확정된 DATA는 갱신이 불가능합니다.
+        int checkCount = mapper.selectCheckB2bConfrim(req);
+        BizAssert.isFalse(checkCount == 0, "MSG_ALT_HDQ_PERF_CHECK"); // 본부영업실적집계 [본부실적확정] 후 수수료 실적집계를 진행하세요.
 
         // 01. B2B 기존 순주문집계 삭제
         // 01-1. 순주문파트너월마감 삭제

@@ -7,8 +7,20 @@ import com.sds.sflex.common.utils.StringUtil;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 소모품환불관리 DTO
+ * </pre>
+ *
+ * @author sonkiseok
+ * @since 2023-04-19
+ */
 public class WwdbConsumablesRefundDto {
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 소모품환불관리 Search Request Dto
     @ApiModel(value = "WwdbConsumablesRefundDto-SearchConsumablesRefundReq")
     public record SearchConsumablesRefundReq(
         String rveDvCd, /* 업무구분 */
@@ -17,10 +29,12 @@ public class WwdbConsumablesRefundDto {
         String endDay, /* 처리일자 */
         String cntrNo, /* 계약상세번호 계약번호 */
         String cntrSn /* 계약상세번호 계약일련번호*/
-    ) {
+    ) { }
 
-    }
-
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 소모품환불관리 Search Result Dto
     @ApiModel(value = "WwdbConsumablesRefundDto-SearchConsumablesRefundRes")
     public record SearchConsumablesRefundRes(
         String rfndRcpNo, // 일련번호. 환불접수번호
@@ -63,6 +77,10 @@ public class WwdbConsumablesRefundDto {
         }
     }
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 소모품환불관리 삭제 Request Dto
     @ApiModel(value = "WwdbConsumablesRefundDto-RemoveReq")
     public record RemoveReq(
         @NotBlank
@@ -73,6 +91,10 @@ public class WwdbConsumablesRefundDto {
         String rfndRcpDtlSn // 일련번호. 환불접수일련번호
     ) {}
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 소모품환불관리 등록 Request Dto
     @ApiModel(value = "WwdbConsumablesRefundDto-SaveReq")
     public record SaveReq(
         String kwGrpCoCd, // 교원그룹회사코드

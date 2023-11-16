@@ -50,6 +50,7 @@ public class WsnbInstallLocationMgtDto {
         String adr, /* 주소 */
         String istLctDtlCn, /* 설치위치상세 */
         String ogNm, /* 소속센터 */
+        String ogTpCd, /* 소속조직유형코드 */
         String wkPrtnrNo, /* 등록자사번 */
         String prtnrKnm, /* 등록자명 */
         String regDtm /* 최초등록일자 */
@@ -64,6 +65,7 @@ public class WsnbInstallLocationMgtDto {
         @NotBlank
         String dtlsn, /* 상세일련번호 */
         String istLctDtlCn, /* 설치위치상세 */
+        String ogTpCd, /* 소속조직유형코드 */
         String wkPrtnrNo /* 작업파트너번호 */
     ) {}
 

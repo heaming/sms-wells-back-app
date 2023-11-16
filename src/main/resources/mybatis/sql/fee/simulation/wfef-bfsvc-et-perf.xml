@@ -2,11 +2,16 @@
 <mapper namespace="com.kyowon.sms.wells.web.fee.simulation.mapper.WfefBfsvcEtPerfMapper">
 
     <select id="selectBsEstimatePerformance" resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefBfsvcEtPerfDto$SearchRes">
-        SELECT S1.OG_CD     /*조직코드*/
+        <include refid="COMMON.dataAuthOrgWithClause">
+            <property name="paramOgTpCd" value="'W02'"/>
+            <property name="paramBaseYm" value="SUBSTR(#{strtPerfDt},1,6)"/>
+        </include>
+        SELECT S1.OG_ID     /*조직ID*/
+             , S1.OG_CD     /*조직코드*/
              , S1.PRTNR_KNM     /*성명*/
              , S1.PRTNR_NO  /*파트너번호*/
              , S3.OPNG_MM   /*개시월*/
-             , S4.EDUC_CPC_ACKMT_YN     /*정착교육*/
+             , NVL(S4.EDUC_CPC_ACKMT_YN, 'N') AS EDUC_CPC_ACKMT_YN  /*정착교육*/
              , NVL(S2.BFSVC_ACKMT_CNT, 0) AS BFSVC_ACKMT_CNT    /*가전인정건수*/
              , NVL(S2.WRFR1_MGT_CNT, 0) AS WRFR1_MGT_CNT    /*정수기1 관리건수*/
              , NVL(S2.WRFR2_MGT_CNT, 0) AS WRFR2_MGT_CNT    /*정수기2 관리건수*/
@@ -39,24 +44,28 @@
                     , T1.OG_TP_CD   /* 조직유형코드 */
                     <if test='@MybatisUtils@equals(rsbDvCd, "01")'>
                     /*조회구분: 총괄단*/
+                    , T1.DGR1_LEVL_OG_ID AS OG_ID   /* 총괄단 조직ID */
                     , T1.DGR1_LEVL_OG_CD AS OG_CD   /* 총괄단 조직코드 */
                     , T1.DGR1_LEVL_DG_PRTNR_NO AS PRTNR_NO  /* 총괄단대표파트너번호 */
                     , T1.DGR1_LEVL_DG_PRTNR_NM AS PRTNR_KNM     /* 총괄단대표파트너명 */
                     </if>
                     <if test='@MybatisUtils@equals(rsbDvCd, "02")'>
                     /*조회구분: 지역단*/
+                    , T1.DGR2_LEVL_OG_ID AS OG_ID   /* 지역단 조직ID */
                     , T1.DGR2_LEVL_OG_CD AS OG_CD   /* 지역단 조직코드 */
                     , T1.DGR2_LEVL_DG_PRTNR_NO AS PRTNR_NO  /* 지역단대표파트너번호 */
                     , T1.DGR2_LEVL_DG_PRTNR_NM AS PRTNR_KNM     /* 지역단대표파트너명 */
                     </if>
                     <if test='@MybatisUtils@equals(rsbDvCd, "03")'>
                     /*조회구분: 지점*/
+                    , T1.DGR3_LEVL_OG_ID AS OG_ID   /* 지점 조직ID */
                     , T1.DGR3_LEVL_OG_CD AS OG_CD   /* 지점 조직코드 */
                     , T1.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO  /* 지점대표파트너번호 */
                     , T1.DGR3_LEVL_DG_PRTNR_NM AS PRTNR_KNM     /* 지점대표파트너명 */
                     </if>
                     <if test='@MybatisUtils@equals(rsbDvCd, "04")'>
                     /*조회구분: 개인*/
+                    , T2.OG_ID AS OG_ID   /* 조직ID */
                     , T2.OG_CD AS OG_CD     /* 조직코드 */
                     , T2.PRTNR_NO AS PRTNR_NO   /* 파트너번호 */
                     , T2.PRTNR_KNM AS PRTNR_KNM     /* 파트너명 */
@@ -84,25 +93,25 @@
                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                   AND T1.DGR1_LEVL_DG_PRTNR_NO = #{prtnrNo}
                   </if>
-                GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.DGR1_LEVL_OG_CD, T1.DGR1_LEVL_DG_PRTNR_NO, T1.DGR1_LEVL_DG_PRTNR_NM
+                GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.DGR1_LEVL_OG_ID, T1.DGR1_LEVL_OG_CD, T1.DGR1_LEVL_DG_PRTNR_NO, T1.DGR1_LEVL_DG_PRTNR_NM
                 </if>
                 <if test='@MybatisUtils@equals(rsbDvCd, "02")'>
                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                   AND T1.DGR2_LEVL_DG_PRTNR_NO = #{prtnrNo}
                   </if>
-                GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.DGR2_LEVL_OG_CD, T1.DGR2_LEVL_DG_PRTNR_NO, T1.DGR2_LEVL_DG_PRTNR_NM
+                GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.DGR2_LEVL_OG_ID, T1.DGR2_LEVL_OG_CD, T1.DGR2_LEVL_DG_PRTNR_NO, T1.DGR2_LEVL_DG_PRTNR_NM
                 </if>
                 <if test='@MybatisUtils@equals(rsbDvCd, "03")'>
                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                   AND T1.DGR3_LEVL_DG_PRTNR_NO = #{prtnrNo}
                   </if>
-                GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.DGR3_LEVL_OG_CD, T1.DGR3_LEVL_DG_PRTNR_NO, T1.DGR3_LEVL_DG_PRTNR_NM
+                GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.DGR3_LEVL_OG_ID, T1.DGR3_LEVL_OG_CD, T1.DGR3_LEVL_DG_PRTNR_NO, T1.DGR3_LEVL_DG_PRTNR_NM
                 </if>
                 <if test='@MybatisUtils@equals(rsbDvCd, "04")'>
                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                   AND T2.PRTNR_NO = #{prtnrNo}
                   </if>
-                GROUP BY T1.BASE_YM, T1.OG_TP_CD, T2.OG_CD, T2.PRTNR_NO, T2.PRTNR_KNM
+                GROUP BY T1.BASE_YM, T1.OG_TP_CD, T2.OG_ID, T2.OG_CD, T2.PRTNR_NO, T2.PRTNR_KNM
                 </if>
             ) S1
          LEFT OUTER JOIN
@@ -169,7 +178,7 @@
                         AND A.PERF_AGRG_CRT_DV_CD = '201'	/*실적집계생성구분코드 201:M추진단순주문실적생성*/
                         AND A.CO_CD = '2000'
                         AND A.PERF_ATC_CD IN ('W00P00011', 'W02P00095', 'W02P00121', 'W02P00122')	/*BS판매인정건수, 처리율, W1처리건수, W2처리건수*/
-                        AND A.PERF_DV_CD = '0'	/*개인실적*/
+                        AND A.PERF_DV_CD = '0'  /* 개인일 때는 0이 맞음 */
                       GROUP BY A.BASE_YM, A.CO_CD, A.OG_TP_CD, A.PRTNR_NO, A.PERF_DV_CD
                   ) T3    /*BS판매인정건수, 처리율, 급지처리건수*/
                  ON T1.BASE_YM = T3.BASE_YM
@@ -219,7 +228,7 @@
              WHERE T1.DTA_DL_YN = 'N'
                AND T1.BASE_YM = SUBSTR(#{strtPerfDt},1,6)
                AND T1.OG_TP_CD = 'W02'
-               AND T1.PSTN_DV_CD = '15' /*판매자 개인실적만 가져옴*/
+               AND T1.PSTN_DV_CD IN ('7', '15')
                <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
                AND T2.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
                </if>
@@ -258,25 +267,41 @@
          AND S1.OG_TP_CD = S2.OG_TP_CD
          AND S1.PRTNR_NO =  S2.PRTNR_NO
         LEFT OUTER JOIN LATERAL
-           ( SELECT SUBSTR(MAX(STRTDT), 0, 6) AS OPNG_MM    /*개시월*/
+           ( SELECT SUBSTR(STRTDT, 0, 6) AS OPNG_MM    /*개시월*/
                FROM TB_OGPS_PLAR_QLF_CH_IZ C    /*플래너자격변경내역*/
               WHERE C.DTA_DL_YN = 'N'
                 AND C.OG_TP_CD = S1.OG_TP_CD
                 AND C.PRTNR_NO = S1.PRTNR_NO
                 AND SUBSTR(#{strtPerfDt},1,6) BETWEEN SUBSTR(C.STRTDT, 0, 6) AND SUBSTR(C.ENDDT, 0, 6)
                 AND C.QLF_DV_CD = '3'  /* 웰스매니저 */
-                AND C.QLF_APLC_DV_CD IN ('1', '2')  /* 승급 */
+                AND NVL(C.QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승급 */
+              UNION ALL
+             SELECT SUBSTR(STRTDT, 0, 6) AS OPNG_MM    /*개시월*/
+               FROM TB_OGPS_PLAR_QLF_CH_IZ C    /*플래너자격변경내역*/
+              WHERE C.DTA_DL_YN = 'N'
+                AND C.OG_TP_CD = S1.OG_TP_CD
+                AND C.PRTNR_NO = S1.PRTNR_NO
+                AND SUBSTR(STRTDT, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(#{strtPerfDt},1,6), 'YYYYMM'), 1), 'YYYYMM')
+                AND C.QLF_DV_CD = '3'  /* 웰스매니저 */
+                AND NVL(C.QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승급 */
            ) S3 ON 1 = 1
         LEFT OUTER JOIN LATERAL
            ( SELECT D.EDUC_CPC_ACKMT_YN
                FROM TB_PSCA_MCPTN_EDUC_IZ D	/*월별파트너교육내역*/
               WHERE D.DTA_DL_YN = 'N'
-                AND D.EDUC_CRSE_CRT_BASE_YM = S1.BASE_YM
+                AND D.EDUC_CRSE_CRT_BASE_YM <![CDATA[<=]]> S1.BASE_YM
                 AND D.OG_TP_CD = S1.OG_TP_CD
                 AND D.PRTNR_NO = S1.PRTNR_NO
                 AND D.EDUC_CRSE_NO IN ('4', '119', '140')
+              FETCH FIRST ROW ONLY
            ) S4 ON 1=1
        WHERE 1=1
+         /*로그인한 사용자의 권한에 따라 하위 조직만 조회*/
+         AND EXISTS (SELECT 1
+                       FROM OBJ_ORG X1
+                      WHERE X1.OG_TP_CD = S1.OG_TP_CD
+                        AND X1.OG_ID = S1.OG_ID)
+       ORDER BY TO_NUMBER(S1.PRTNR_NO)
     </select>
 
 </mapper>

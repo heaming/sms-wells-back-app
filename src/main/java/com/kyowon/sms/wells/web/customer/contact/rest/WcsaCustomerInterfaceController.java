@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.CreateCustomerForNaverRentalReq;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.CreateCustomerForNaverRentalRes;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementReq;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementRes;
 import com.kyowon.sms.wells.web.customer.contact.service.WcsaCustomerInterfaceService;
@@ -80,6 +82,20 @@ public class WcsaCustomerInterfaceController {
     ) {
         EaiWrapper<SaveCustomerAgreementRes> resWrapper = reqWrapper.newResInstance();
         resWrapper.setBody(wcsaCustomerInterfaceService.saveCustomerAgreements(reqWrapper.getBody()));
+        return resWrapper;
+    }
+
+    @ApiOperation(value = "(WELLS) 네이버렌탈 고객등록 I/F", notes = "Wells 미인증 고객 등록")
+    @PostMapping("/naverrental-customers")
+    public EaiWrapper createCustomerForNaverRental(
+        @Valid
+        @RequestBody
+        EaiWrapper<CreateCustomerForNaverRentalReq> reqWrapper
+    ) throws Exception {
+        EaiWrapper<CreateCustomerForNaverRentalRes> resWrapper = reqWrapper.newResInstance();
+
+        resWrapper.setBody(wcsaCustomerInterfaceService.createCustomerForNaverRental(reqWrapper.getBody()));
+
         return resWrapper;
     }
 }

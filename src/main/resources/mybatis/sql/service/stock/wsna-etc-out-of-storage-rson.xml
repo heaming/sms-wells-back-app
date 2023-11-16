@@ -5,24 +5,17 @@
 
     <select id="selectEtcOutOfStorageRsons" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto$SearchRes">
             SELECT D1.ITM_PD_CD                                                     AS ITM_PD_CD     /* 품목상품코드 */
-                 , D2.SVPD_SAP_CD                                                   AS SAP_MAT_CD    /* SAP자재코드 */
-                 , D2.SVPD_NM_KOR                                                   AS ITEM_NM       /* 품목명 */
+                 , TO_CHAR(TO_NUMBER(D2.SVPD_SAP_CD))                               AS SAP_MAT_CD    /* SAP자재코드 */
+                 , D2.SVPD_NM_ABBR1                                                 AS ITEM_NM       /* 품목명 */
                  , D1.OSTR_WARE_NO                                                  AS OSTR_WARE_NO  /* 출고창고번호 */
                  , D3.WARE_NM                                                       AS WARE_NM       /* 출고창고번호 */
                  , D1.ITM_GD_CD                                                     AS ITM_GD_CD     /* 품목등급코드 */
                  , D1.OSTR_DT                                                       AS OSTR_DT       /* 출고일자 */
                  , F_CMZ_CD_NM(#{session.tenantId}, 'BIL_RSON_CD', D1.OSTR_RSON_CD) AS OSTR_RSON_CD  /* 출고사유코드 */
                  , D3.SORT_DV_VAL                                                   AS SORT_DV_VAL   /* 정렬구분값 */
-              <if test="@MybatisUtils@equals(wareDvCd, '3')">
-                 , D1.OSTR_QTY                                                      AS OSTR_QTY      /* 출고수량 */
-                 , '0'                                                              AS CSMR_UPRC_AMT /* 소비자단가금액 */
-                 , '0'                                                              AS TOTAL_AMT     /* 총금액 */
-              </if>
-              <if test="@MybatisUtils@equals(wareDvCd, '2')">
                  , SUM(D1.OSTR_QTY)                                                 AS OSTR_QTY      /* 수량 */
-                 , SUM(D4.CSMR_UPRC_AMT)                                            AS CSMR_UPRC_AMT /*소비자가*/
-                 , (SUM(D1.OSTR_QTY) * SUM(D4.CSMR_UPRC_AMT))                       AS TOTAL_AMT     / *총금액 */
-              </if>
+                 , SUM(D4.CSMR_UPRC_AMT)                                            AS CSMR_UPRC_AMT /* 소비자가 */
+                 , (SUM(D1.OSTR_QTY) * SUM(D4.CSMR_UPRC_AMT))                       AS TOTAL_AMT     /* 총금액 */
                  , D1.RMK_CN                                                        AS RMK_CN        /* 비고 */
                  , D6.DEPT_NM2                                                      AS DEPT_NM       /* 부서명 */
               FROM TB_SVST_ITM_OSTR_IZ D1 /* 품목출고내역 */
@@ -31,11 +24,10 @@
              INNER JOIN TB_SVST_MCBY_WARE_IZ D3 /* 월별창고내역 */
                 ON D3.WARE_NO        = D1.OSTR_WARE_NO
                AND D3.APY_YM         = SUBSTR(#{stOstrDt}, 1,6)
-           <if test="@MybatisUtils@equals(wareDvCd, '2')">
-              LEFT OUTER JOIN TB_SVPD_RCAS_ITM_PRC_IZ D4 /* TB_SVPD_RCAS_ITM_PRC_IZ */
+              LEFT OUTER JOIN TB_SVPD_RCAS_ITM_PRC_IZ D4 /* 유상AS품목가격내역 */
                 ON D4.USE_MAT_PD_CD  = D1.ITM_PD_CD
+               AND D1.OSTR_DT BETWEEN D4.APY_STRTDT AND D4.APY_ENDDT
                AND D4.DTA_DL_YN      = 'N'
-           </if>
               LEFT OUTER JOIN TB_GBCO_DEPT_BAS D6 /* 부서기본 */
                 ON D6.DEPT_CD = D1.STR_WARE_NO
                AND D6.DTA_DL_YN      = 'N'
@@ -44,16 +36,6 @@
                AND D3.DTA_DL_YN      = 'N'
                AND D1.OSTR_DT BETWEEN #{stOstrDt} AND #{edOstrDt}
                AND D3.WARE_DV_CD     = #{wareDvCd}
-           <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
-             <choose>
-                  <when test='@MybatisUtils@equals(wareDvCd, "2")'>
-                          AND D3.WARE_DTL_DV_CD = '20'
-                  </when>
-                  <when test='@MybatisUtils@equals(wareDvCd, "3")'>
-                          AND D3.WARE_DTL_DV_CD = '30'
-                  </when>
-             </choose>
-           </if>
            <if test="@MybatisUtils@isNotEmpty(wareNoM)">
                AND ( D3.HGR_WARE_NO = #{wareNoM} OR D3.WARE_NO = #{wareNoM} )
            </if>
@@ -75,13 +57,12 @@
            <if test="@MybatisUtils@isNotEmpty(bilRsonCd)">
                AND D1.OSTR_RSON_CD = #{bilRsonCd}
            </if>
-           <if test="@MybatisUtils@equals(wareDvCd, '2')">
                AND D6.DEPT_DV_VAL = '1'
                AND D6.USE_YN = 'Y'
              GROUP BY D3.SORT_DV_VAL
                     , D1.ITM_PD_CD
                     , D2.SVPD_SAP_CD
-                    , D2.SVPD_NM_KOR
+                    , D2.SVPD_NM_ABBR1
                     , D1.OSTR_WARE_NO
                     , D3.WARE_NM
                     , D1.ITM_GD_CD
@@ -89,7 +70,6 @@
                     , D1.OSTR_RSON_CD
                     , D1.RMK_CN
                     , D6.DEPT_NM2
-           </if>
              ORDER BY D1.ITM_PD_CD, D1.OSTR_DT, D1.ITM_GD_CD
     </select>
 
@@ -138,7 +118,7 @@
      	 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL PRP_DTL /* 상품각사속성상세 */
 			ON PD_BAS.PD_CD = PRP_DTL.PD_CD
 		   AND PRP_DTL.PD_EXTS_PRP_GRP_CD = 'PART'
-        INNER JOIN TB_SVST_MCBY_WARE_IZ WARE_IZ
+        INNER JOIN TB_SVST_MCBY_WARE_IZ WARE_IZ /* 월별창고내역 */
            ON WARE_IZ.WARE_NO        = OSTR_IZ.OSTR_WARE_NO
           AND WARE_IZ.APY_YM         = SUBSTR(OSTR_IZ.OSTR_DT,1,6)
         WHERE OSTR_IZ.DTA_DL_YN      = 'N'

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaQomAsnItemMapper">
+
+    <select id="selectQomAsnItemMasterInfo" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnItemDto$FindRes">
+        SELECT F_CMZ_CD_NM('TNT_WELLS', 'OSTR_TP_CD', D1.OSTR_TP_CD, #{session.langId})  AS OSTR_TP_NM     /* 출고유형 */
+             , D5.WARE_NM                                                                AS OSTR_WARE_NM   /* 출고창고 */
+             , TO_CHAR(TO_DATE(D3.ASN_OJ_YM, 'YYYYMM'), 'YYYY-MM') || '/' || D3.ASN_TN_N AS ASN_INFO       /* 배정정보 */
+             , D4.LGST_OSTR_AK_NO                                                                          /* 물류출고요청번호 */
+             , D1.OSTR_DT                                                                                  /* 출고일자 */
+             , D6.WARE_NM                                                                AS STR_WARE_NM    /* 입고창고 */
+          FROM TB_SVST_ITM_OSTR_IZ D1                  /* 품목출고내역 */
+         INNER JOIN TB_SVST_ITM_OSTR_AK_IZ D2          /* 품목출고요청내역 */
+            ON D2.OSTR_AK_NO = D1.OSTR_AK_NO
+           AND D2.OSTR_AK_SN = D1.OSTR_AK_SN
+         INNER JOIN TB_SVST_ITM_QOM_ASN_IZ D3          /* 품목물량배정내역 */
+            ON D3.ITM_QOM_ASN_NO = D2.ITM_QOM_ASN_NO
+         INNER JOIN TB_IFIN_OSTR_AK_DTL_SEND_ETXT D4   /* 출고요청상세송신전문 */
+            ON D4.REL_NO = D2.OSTR_AK_NO
+           AND D4.REL_SN = D2.OSTR_AK_SN
+         INNER JOIN TB_SVST_MCBY_WARE_IZ D5            /* 월별창고내역(출고) */
+            ON D5.APY_YM  = SUBSTR(D1.OSTR_DT, 1, 6)
+           AND D5.WARE_NO = D1.OSTR_WARE_NO
+         INNER JOIN TB_SVST_MCBY_WARE_IZ D6            /* 월별창고내역(입고) */
+            ON D6.APY_YM  = SUBSTR(D1.OSTR_DT, 1, 6)
+           AND D6.WARE_NO = D1.STR_WARE_NO
+         WHERE D1.DTA_DL_YN   = 'N'
+           AND D2.DTA_DL_YN   = 'N'
+           AND D3.DTA_DL_YN   = 'N'
+           AND D4.DTA_DL_YN   = 'N'
+           AND D5.DTA_DL_YN   = 'N'
+           AND D6.DTA_DL_YN   = 'N'
+           AND D1.ITM_OSTR_NO = #{itmOstrNo}
+           AND ROWNUM         = 1
+    </select>
+
+    <select id="selectQomAsnItems" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnItemDto$FindDetailRes">
+        SELECT TO_CHAR(TO_NUMBER(D2.SAP_MAT_CD))                            AS SAP_MAT_CD   /* SAP코드 */
+             , D1.ITM_PD_CD                                                                 /* 품목코드 */
+             , D2.PD_ABBR_NM                                                                /* 품목명 */
+             , D1.OSTR_QTY                                                                  /* 확정수량 */
+             , NVL(D3.PITM_STOC_A_GD_QTY, 0) - NVL(D3.MMT_STOC_A_GD_QTY, 0) AS STOC_QTY     /* 재고수량(개인) */
+             , D1.STR_CONF_DT                                                               /* 입고확인일자 */
+             , D1.RMK_CN                                                                    /* 비고 */
+          FROM TB_SVST_ITM_OSTR_IZ D1                     /* 품목출고내역 */
+         INNER JOIN TB_PDBS_PD_BAS D2                     /* 상품기본 */
+            ON D2.PD_CD = D1.ITM_PD_CD
+          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ D3   /* 고객서비스품목재고내역(입고) */
+            ON D3.WARE_NO   = D1.STR_WARE_NO
+           AND D3.ITM_PD_CD = D1.ITM_PD_CD
+           AND D3.DTA_DL_YN = 'N'
+         WHERE D1.DTA_DL_YN   = 'N'
+           AND D2.DTA_DL_YN   = 'N'
+           AND D2.PD_TP_CD    = 'M'
+           AND D1.ITM_OSTR_NO = #{itmOstrNo}
+         ORDER BY D1.OSTR_SN
+    </select>
+
+</mapper>

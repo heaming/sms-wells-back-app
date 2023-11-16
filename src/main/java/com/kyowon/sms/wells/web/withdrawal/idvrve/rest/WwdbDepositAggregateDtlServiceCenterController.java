@@ -29,6 +29,12 @@ public class WwdbDepositAggregateDtlServiceCenterController {
 
     private final WwdbDepositAggregateDtlServiceCenterService service;
 
+    /**
+     * 입금집계 상세현황 서비스 조회 / 페이징
+     * @param req 입금집계 상세현황 서비스 조회 DTO
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRes>
+     */
     @ApiOperation(value = "입금집계상세현황 서비스 조회", notes = "입금집계상세현황 서비스 조회")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "ogId", value = "센터코드", paramType = "query", required = false),
@@ -44,6 +50,11 @@ public class WwdbDepositAggregateDtlServiceCenterController {
         return service.getDepositAggregateServiceCenterPages(req, pageInfo);
     }
 
+    /**
+     * 입금집계 상세현황 서비스 조회 / 엑셀 다운로드
+     * @param req 입금집계 상세현황 서비스 조회 DTO
+     * @return List<SearchRes>
+     */
     @ApiOperation(value = "입금집계상세현황 서비스 조회 엑셀 다운로드", notes = "입금집계상세현황 서비스 조회")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "ogId", value = "센터코드", paramType = "query", required = false),
@@ -59,6 +70,11 @@ public class WwdbDepositAggregateDtlServiceCenterController {
         return service.getDepositAggregateServiceCenterExcels(req);
     }
 
+    /**
+     * 입금집계 상세현황 서비스 조회 - 조직 내역
+     * @param req 조직 내역 조회 DTO
+     * @return List<SearchCodeRes>
+     */
     @ApiOperation(value = "입금집계상세현황 서비스 조회", notes = "입금집계상세현황 서비스 조회")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "ogId", value = "센터코드", paramType = "query", required = false),
@@ -74,6 +90,11 @@ public class WwdbDepositAggregateDtlServiceCenterController {
         return service.getCenterCodes(req);
     }
 
+    /**
+     * 입금집계 상세현황 서비스 합계 조회
+     * @param req 입금집계 상세현황 서비스 합계 조회 DTO
+     * @return SearchSumRes
+     */
     @ApiOperation(value = "입금집계상세현황 서비스 합계 조회", notes = "입금집계상세현황 서비스 합계 조회")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "ogId", value = "센터코드", paramType = "query", required = false),

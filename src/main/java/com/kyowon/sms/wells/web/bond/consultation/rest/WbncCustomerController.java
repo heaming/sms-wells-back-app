@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindBaseYmRes;
@@ -23,12 +24,12 @@ import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUnusualArticlesRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoReq;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.FindUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveCounselReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SaveUnuitmCnReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchRes;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchUserInfoReq;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncCustomerDto.SearchUserInfoRes;
 import com.kyowon.sms.wells.web.bond.consultation.service.WbncCustomerService;
 import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -78,7 +79,11 @@ public class WbncCustomerController {
         @ApiImplicitParam(name = "schOjBlamEnd", value = "to 대상잔액", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schCstDv", value = "고객구분", paramType = "query", example = ""),
         @ApiImplicitParam(name = "schCpsnRsgYn", value = "강제해지여부", paramType = "query", example = ""),
-        @ApiImplicitParam(name = "schDv", value = "구분", paramType = "query", example = "")
+        @ApiImplicitParam(name = "schDv1", value = "구분1", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "schDv2", value = "구분2", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "schDv3", value = "구분3", paramType = "query", example = ""),
+        @ApiImplicitParam(name = "schDv4", value = "구분4", paramType = "query", example = ""),
+
     })
     public List<SearchRes> getCustomers(SearchReq dto) throws Exception {
         return service.getCustomers(dto);
@@ -165,8 +170,7 @@ public class WbncCustomerController {
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = true),
     })
-    public FindUserInfoRes getUserInfo(@Valid
-    FindUserInfoReq dto) {
+    public List<SearchUserInfoRes> getUserInfo(SearchUserInfoReq dto) throws Exception {
         return service.getUserInfo(dto);
     }
 
@@ -191,5 +195,14 @@ public class WbncCustomerController {
     public FindCounselRegistrationRes getCounselRegistration(@Valid
     FindCounselRegistrationReq dto) {
         return service.getCounselRegistration(dto);
+    }
+
+    @ApiOperation(value = "소장생성 체크", notes = "조회조건에 일치하는 소장생성체크 한다.")
+    @GetMapping("/petition-create-check")
+    public int getPetitionCreateCheck(
+        @RequestParam
+        String cntrDtlNo, String baseYm
+    ) {
+        return service.getPetitionCreateCheck(cntrDtlNo, baseYm);
     }
 }

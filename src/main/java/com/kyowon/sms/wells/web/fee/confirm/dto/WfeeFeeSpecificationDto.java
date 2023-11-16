@@ -19,12 +19,12 @@ public class WfeeFeeSpecificationDto {
         String perfDt, //실적년월
         String ogTpCd, //조직유형
         String rsbDvCd, //직책유형
-        String feeCalcUnitTpCd, // 수수료 계산단위 유형코드
-        String crtDvCd, // 실적집계생성구분코드
         String prtnrNo,
         String ogLevel1,
         String ogLevel2,
-        String ogLevel3
+        String ogLevel3,
+        String feeCalcUnitTpCd, /* 수수료계산단위유형코드 (101 : P추진단 플래너, 102 : P추진단 지국장, 201 : M추진단-일반(15등급), 202 : M추진단 */
+        String isSum /* 합계 구분 여부 (리포트) */
     ) {}
 
     // *********************************************************
@@ -35,7 +35,8 @@ public class WfeeFeeSpecificationDto {
     public record SearchFeeCdRes(
         String feeNm,
         String feeCd,
-        String feeCalcUnitTpCd
+        String feeCalcUnitTpCd,
+        String feeClsfCd
 
     ) {}
 }

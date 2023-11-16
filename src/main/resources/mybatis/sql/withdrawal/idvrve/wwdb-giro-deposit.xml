@@ -28,23 +28,23 @@
              , T1.GIRO_DP_MTR_DV_CD /*지로입금자료구분코드*/
              , T1.GIRO_DP_SN /*일련번호*/
              , T1.ITG_DP_PROCS_YN /*통합입금처리여부*/
-             , <![CDATA[ ( SELECT CASE WHEN SUBSTR(T1.RVE_DT , 7 , 2) <=   ( SELECT MIN(A2.BASE_D)
-                                                                               FROM TB_SVPD_SV_CLND_BAS A2
-                                                                              WHERE A2.DTA_DL_YN = 'N'
-                                                                                AND NVL(A2.DF_YN, 'N')    <> 'Y'
-                                                                                AND NVL(A2.PHLD_YN, 'N')  <> 'Y'
-                                                                                AND A2.BASE_Y  = SUBSTR(T1.RVE_DT , 0 , 4)
-                                                                                AND A2.BASE_MM = SUBSTR(T1.RVE_DT , 5 , 2)
-                                                                                AND A2.DOW_DV_CD NOT IN ('1', '7') )
-                                       THEN (SELECT A2.BASE_Y || A2.BASE_MM || MAX(A2.BASE_D)
-                                               FROM TB_SVPD_SV_CLND_BAS A2
-                                              WHERE A2.DTA_DL_YN = 'N'
-                                                AND A2.BASE_Y  = TO_CHAR(ADD_MONTHS(TO_CHAR(TO_DATE(T1.RVE_DT), 'YYYYMMDD'), -1), 'YYYY')
-                                                AND A2.BASE_MM = TO_CHAR(ADD_MONTHS(TO_CHAR(TO_DATE(T1.RVE_DT), 'YYYYMMDD'), -1), 'MM')
-                                              GROUP BY A2.BASE_Y, A2.BASE_MM )
-                                       ELSE T1.RVE_DT
-                                        END
-                             FROM DUAL ) ]]> AS DP_DT /* 대사에서 사용할 실적일자 및 입금일자*/
+             , <![CDATA[ ( SELECT CASE WHEN SUBSTR(TO_CHAR(SYSDATE,'YYYYMMDD') , 7 , 2) <=   ( SELECT MIN(A2.BASE_D)
+                                                                                                FROM TB_SVPD_SV_CLND_BAS A2
+                                                                                               WHERE A2.DTA_DL_YN = 'N'
+                                                                                                 AND NVL(A2.DF_YN, 'N')    <> 'Y'
+                                                                                                 AND NVL(A2.PHLD_YN, 'N')  <> 'Y'
+                                                                                                 AND A2.BASE_Y  = SUBSTR(TO_CHAR(SYSDATE,'YYYYMMDD') , 0 , 4)
+                                                                                                 AND A2.BASE_MM = SUBSTR(TO_CHAR(SYSDATE,'YYYYMMDD') , 5 , 2)
+                                                                                                 AND A2.DOW_DV_CD NOT IN ('1', '7') )
+                                                        THEN (SELECT A2.BASE_Y || A2.BASE_MM || MAX(A2.BASE_D)
+                                                                FROM TB_SVPD_SV_CLND_BAS A2
+                                                               WHERE A2.DTA_DL_YN = 'N'
+                                                                 AND A2.BASE_Y  = TO_CHAR(ADD_MONTHS(TO_CHAR(SYSDATE, 'YYYYMMDD'), -1), 'YYYY')
+                                                                 AND A2.BASE_MM = TO_CHAR(ADD_MONTHS(TO_CHAR(SYSDATE, 'YYYYMMDD'), -1), 'MM')
+                                                               GROUP BY A2.BASE_Y, A2.BASE_MM )
+                                                        ELSE TO_CHAR(SYSDATE,'YYYYMMDD')
+                                                         END
+                                              FROM DUAL ) ]]> AS DP_DT /* 대사에서 사용할 실적일자 및 입금일자*/
           FROM TB_RVDW_GIRO_DP_IZ T1 --입금내역
           LEFT OUTER JOIN TB_RVDW_RVE_DTL T2 --수납상세
            /* ON T1.KW_GRP_CO_CD  = T2.KW_GRP_CO_CD*/
@@ -439,7 +439,7 @@
                      , GIRO_DP_BNK_CD --은행코드
                      , GIRO_INQNO --지로조회번호
                      , CNTR_NO --계약번호
-                     , 1 AS CNTR_SN
+                     , CNTR_SN
 <!--                     , (SELECT NVL(CNTR_SN,0)+1 FROM TB_RVDW_GIRO_DP_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = 1) AS CNTR_SN-->
                      --, LPAD(ROW_NUMBER() OVER(PARTITION BY CNTR_NO ORDER BY DP_SN DESC ),5,0) AS CNTR_SN --계약일련번호
                      , PY_TN --회차
@@ -464,18 +464,44 @@
                                    ) AS GIRO_NO --지로번호
                                  , GIRO_DP_MTR_DV_CD --구분코드
                                  , DP_SN -- 일련번호
-                                 , FNT_DT --이체일자
-                                 , RVE_DT --수납일자
+                                 , TO_CHAR(SYSDATE , 'YYYYMMDD') AS FNT_DT --이체일자
+                                , <![CDATA[   ( SELECT CASE WHEN SUBSTR(TO_CHAR(SYSDATE,'YYYYMMDD') , 7 , 2) <=   ( SELECT MIN(A2.BASE_D)
+                                                                                                              FROM TB_SVPD_SV_CLND_BAS A2
+                                                                                                             WHERE A2.DTA_DL_YN = 'N'
+                                                                                                               AND NVL(A2.DF_YN, 'N')    <> 'Y'
+                                                                                                               AND NVL(A2.PHLD_YN, 'N')  <> 'Y'
+                                                                                                               AND A2.BASE_Y  = SUBSTR(TO_CHAR(SYSDATE,'YYYYMMDD') , 0 , 4)
+                                                                                                               AND A2.BASE_MM = SUBSTR(TO_CHAR(SYSDATE,'YYYYMMDD') , 5 , 2)
+                                                                                                               AND A2.DOW_DV_CD NOT IN ('1', '7') )
+                                                                      THEN (SELECT A2.BASE_Y || A2.BASE_MM || MAX(A2.BASE_D)
+                                                                              FROM TB_SVPD_SV_CLND_BAS A2
+                                                                             WHERE A2.DTA_DL_YN = 'N'
+                                                                               AND A2.BASE_Y  = TO_CHAR(ADD_MONTHS(TO_CHAR(SYSDATE, 'YYYYMMDD'), -1), 'YYYY')
+                                                                               AND A2.BASE_MM = TO_CHAR(ADD_MONTHS(TO_CHAR(SYSDATE, 'YYYYMMDD'), -1), 'MM')
+                                                                             GROUP BY A2.BASE_Y, A2.BASE_MM )
+                                                                      ELSE TO_CHAR(SYSDATE,'YYYYMMDD')
+                                                                       END
+                                                            FROM DUAL )]]> AS RVE_DT --수납일자
                                  , GIRO_DP_BNK_CD --은행코드
                                  , GIRO_INQNO --지로조회번호
-                                 , CASE WHEN GIRO_RVE_DV_CD IN ( 'R','A' ) OR GIRO_INQNO = ' ' THEN '0'
-                                        WHEN SUBSTR(GIRO_INQNO,5,1) = '-'              THEN SUBSTR(GIRO_INQNO,1,4)
-                                        WHEN SUBSTR(GIRO_INQNO,1,9) = '000000000'      THEN SUBSTR(GIRO_INQNO,10,4)
-                                        ELSE 'W'||SUBSTR(GIRO_INQNO,3,11) END CNTR_NO /*계약번호     */
---                               , CASE WHEN GIRO_RVE_DV_CD IN ( 'R','A' ) OR GIRO_INQNO = ' ' THEN '0'
---                                      WHEN SUBSTR(GIRO_INQNO,5,1) = '-'              THEN SUBSTR(GIRO_INQNO,1,4)
---                                      WHEN SUBSTR(GIRO_INQNO,1,9) = '000000000'      THEN SUBSTR(GIRO_INQNO,10,4)
---                                      ELSE SUBSTR(GIRO_INQNO,3,12) END CNTR_NO /*계약번호     */
+                                 , (SELECT
+                                           T1.CNTR_NO
+                                      FROM TB_RVDW_GIRO_OCR_PBL_DTL T1
+                                     INNER JOIN TB_SSCT_CNTR_BAS T2
+                                        ON (    T2.CNTR_NO = T1.CNTR_NO
+                                            AND T2.DTA_DL_YN = 'N' )
+                                     WHERE 1 = 1
+                                       AND T1.GIRO_NO = GIRO_INQNO
+                                       AND ROWNUM = 1 ) AS CNTR_NO
+                                 , (SELECT
+                                           T1.CNTR_SN
+                                      FROM TB_RVDW_GIRO_OCR_PBL_DTL T1
+                                     INNER JOIN TB_SSCT_CNTR_BAS T2
+                                        ON (    T2.CNTR_NO = T1.CNTR_NO
+                                            AND T2.DTA_DL_YN = 'N' )
+                                     WHERE 1 = 1
+                                       AND T1.GIRO_NO = GIRO_INQNO
+                                       AND ROWNUM = 1 ) AS CNTR_SN
                                  , CASE WHEN GIRO_RVE_DV_CD IN ( 'R','A' ) OR GIRO_INQNO = ' ' THEN '0'
                                          WHEN SUBSTR(GIRO_INQNO,5,1) = '-'              THEN '0'
                                         WHEN SUBSTR(GIRO_INQNO,1,9) = '000000000'      THEN '0'
@@ -689,10 +715,11 @@
                      , SUM(CASE WHEN ITG_DP_PROCS_YN = 'Y' THEN 1 ELSE 0 END) AS ITG_DP_PROCS_Y_CNT /* 통합입금처리가 되었는지 안되었는지 확인하여 입금처리가 완료 되었으면 더한다.*/
                   FROM TB_RVDW_GIRO_DP_IZ
                  WHERE DTA_DL_YN = 'N'
-                   AND FNT_DT IN
-                   <foreach collection="rveDt" item="code" index="index" separator="," open="(" close=")">
-                      #{code}
-                   </foreach>
+                   AND FNT_DT = TO_CHAR(SYSDATE , 'YYYYMMDD')
+<!--                   AND FNT_DT IN-->
+<!--                   <foreach collection="rveDt" item="code" index="index" separator="," open="(" close=")">-->
+<!--                      #{code}-->
+<!--                   </foreach>-->
                                   /*(SELECT RVE_DT
                                      FROM TB_RVDW_GIRO_DP_LEDG_IZ
                                     WHERE DTA_DL_YN = 'N'
@@ -733,5 +760,25 @@
                                 END
                      FROM DUAL  ]]>  /* 대사에서 사용할 실적일자 및 입금일자*/
     </select>
+
+    <select id="selectGiroNumberInquiry" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto$SearchGiroNumberRes">
+        SELECT T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.CNTR_NO ||'-'|| T1.CNTR_SN AS CNTR
+             , T2.CNTR_CST_NO AS CST_NO
+             , (SELECT S1.CST_KNM
+                  FROM TB_CUBS_CST_BAS S1
+                 WHERE 1 = 1
+                   AND S1.CST_NO = T2.CNTR_CST_NO
+                   AND S1.DTA_DL_YN = 'N' ) AS CST_KNM
+          FROM TB_RVDW_GIRO_OCR_PBL_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON (    T2.CNTR_NO = T1.CNTR_NO
+                AND T2.DTA_DL_YN = 'N' )
+         WHERE 1 = 1
+           AND T1.GIRO_NO = #{giroNo}
+           AND ROWNUM = 1
+    </select>
+
 
 </mapper>

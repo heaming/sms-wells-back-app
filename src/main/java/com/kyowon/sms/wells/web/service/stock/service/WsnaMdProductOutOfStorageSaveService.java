@@ -9,6 +9,7 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdD
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaMdProductOutOfStorageSaveConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProdcutOutOfStorageSaveDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductOutOfStorageSaveProductDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaMdProductOutOfStorageSaveMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
@@ -54,7 +55,16 @@ public class WsnaMdProductOutOfStorageSaveService {
             dvo.setSvProcsCn("MD택배상품 출고완료");
             mapper.insertSvpdCstSvWkRsIz(dvo);
 
-            // 3.출고 확정시 일자(설치일자,배송예정일자) 현재날짜 지정 (판매시스템 연계)
+            // 3.작업출고내역 등록 (TB_SVST_SV_WK_OSTR_IZ)
+            List<WsnaMdProductOutOfStorageSaveProductDvo> products = dvo.getProducts();
+            for (WsnaMdProductOutOfStorageSaveProductDvo product : products) {
+                dvo.setPdCd(product.getPdCd());
+                dvo.setUseQty(product.getUseQty());
+
+                mapper.insertSvstSvWkOstrIz(dvo);
+            }
+
+            // 4.출고 확정시 일자(설치일자,배송예정일자) 현재날짜 지정 (판매시스템 연계)
             String sppDueDt = DateUtil.getNowDayString(); // 배송예정일자
             dvo.setIstDt(DateUtil.getNowDayString()); // 설치일자
 

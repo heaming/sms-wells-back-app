@@ -25,6 +25,14 @@ public class WsnyCalendarService {
         return wsnyCalendarMapper.selectCalendar(dto);
     }
 
+    public List<WsnyCalendarDto.SearchRes> getHomeCardCalendars(
+        WsnyCalendarDto.SearchReq dto
+    ) {
+        String ogId = wsnyCalendarMapper.selectServiceCenterOgId(dto);
+        WsnyCalendarDto.SearchReq newDto = new WsnyCalendarDto.SearchReq(dto.baseYm(), dto.serviceCenterCd(), ogId);
+        return wsnyCalendarMapper.selectCalendar(newDto);
+    }
+
     @Transactional
     public int saveCalendar(WsnyCalendarDto.SaveRegReq dto) throws Exception {
         WsnyCalendarDvo dvo = wsnyCalendarConverter.mapCalendarReqToCalendarDvo(dto);

@@ -22,27 +22,11 @@ import static com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcActivityDto.*
  */
 @Mapper
 public interface WogcActivityMapper {
-    List<SearchMonthlyActivityRes> searchMonthlyActivitiesS(
+    List<SearchMonthlyActivityRes> searchMonthlyActivities(
         SearchMonthlyActivityReq dto
     );
 
-    PagingResult<SearchMonthlyActivityRes> searchMonthlyActivitiesS(
-        SearchMonthlyActivityReq dto, PageInfo pageInfo
-    );
-
-    List<SearchMonthlyActivityRes> searchMonthlyActivitiesE(
-        SearchMonthlyActivityReq dto
-    );
-
-    PagingResult<SearchMonthlyActivityRes> searchMonthlyActivitiesE(
-        SearchMonthlyActivityReq dto, PageInfo pageInfo
-    );
-
-    List<SearchMonthlyActivityRes> searchMonthlyActivitiesA(
-        SearchMonthlyActivityReq dto
-    );
-
-    PagingResult<SearchMonthlyActivityRes> searchMonthlyActivitiesA(
+    PagingResult<SearchMonthlyActivityRes> searchMonthlyActivities(
         SearchMonthlyActivityReq dto, PageInfo pageInfo
     );
 

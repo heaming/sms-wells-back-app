@@ -4,9 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchBalanceTransferRefundHistoryReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchBalanceTransferRefundHistoryRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchCardRefundHistoryReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchCardRefundHistoryRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchRefundHistoryReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchRefundHistoryRes;
@@ -22,7 +20,7 @@ import lombok.RequiredArgsConstructor;
  * </pre>
  *
  * @author Sonkiseok
- * @since $DATE$
+ * @since 2023-05-24
  */
 @Service
 @RequiredArgsConstructor
@@ -65,7 +63,7 @@ public class WwdbRefundCurrentStatusService {
      * @return PagingResult<SearchCardRefundHistoryRes>
      */
     public PagingResult<SearchCardRefundHistoryRes> getCardRefundHistoryPages(
-        SearchCardRefundHistoryReq req,
+        SearchRefundHistoryReq req,
         PageInfo pageInfo
     ) {
         return mapper.selectCardRefundHistory(req, pageInfo);
@@ -78,7 +76,7 @@ public class WwdbRefundCurrentStatusService {
      * @return List<SearchCardRefundHistoryRes>
      */
     public List<SearchCardRefundHistoryRes> getCardRefundHistoryExcels(
-        SearchCardRefundHistoryReq req
+        SearchRefundHistoryReq req
     ) {
         return mapper.selectCardRefundHistory(req);
     }
@@ -91,7 +89,7 @@ public class WwdbRefundCurrentStatusService {
      * @return PagingResult<SearchBalanceTransferRefundHistoryRes>
      */
     public PagingResult<SearchBalanceTransferRefundHistoryRes> getBalanceTransferRefundHistoryPages(
-        SearchBalanceTransferRefundHistoryReq req,
+        SearchRefundHistoryReq req,
         PageInfo pageInfo
     ) {
         return mapper.selectBalanceTransferRefundHistory(req, pageInfo);
@@ -104,7 +102,7 @@ public class WwdbRefundCurrentStatusService {
      * @return List<SearchBalanceTransferRefundHistoryRes>
      */
     public List<SearchBalanceTransferRefundHistoryRes> getBalanceTransferRefundHistoryExcels(
-        SearchBalanceTransferRefundHistoryReq req
+        SearchRefundHistoryReq req
     ) {
         return mapper.selectBalanceTransferRefundHistory(req);
     }

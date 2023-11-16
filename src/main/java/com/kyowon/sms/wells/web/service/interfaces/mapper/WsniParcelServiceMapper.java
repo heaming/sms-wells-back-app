@@ -16,7 +16,7 @@ public interface WsniParcelServiceMapper {
 
     String selectParcelServiceCertKey();
 
-    int insertParcelServiceCertKey(String tokkenKey);
+    int insertParcelServiceCertKey(String tokkenKey , String expdttm);
 
     int insertParcelServiceReg(WsniParcelServiceRegDvo dvo);
 

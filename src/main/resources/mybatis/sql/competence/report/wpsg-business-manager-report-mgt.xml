@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.competence.report.mapper.WwpsgBusinessManagerReportMgtMapper">
+
+    <select id="selectPsgaRpotBizTpBas" resultType = "com.kyowon.sms.wells.web.competence.report.dto.WwpsgBusinessManagerReportMgtDto$businessTypeRes">
+        SELECT RPOT_BIZ_TP_ID    /* 보고서업무유형ID */
+             , RPOT_BIZ_TP_ID AS CODE_ID
+             , RPOT_BIZ_TP_DV_CD /* 보고서업무유형구분코드 */
+             , RPOT_BIZ_TP_NM    /* 보고서업무유형명 */
+             , RPOT_BIZ_TP_NM AS CODE_NAME
+             , CONF_ARTC_USE_YN  /* 확인사항사용여부 */
+             , CONF_ARTC_CN      /* 확인사항내용 */
+             , ATENTN_CN         /* 유의사항내용 */
+             , USE_YN            /* 사용여부 */
+             , SORT_ODR          /* 정렬순서 */
+             , DTA_DL_YN         /* 데이터삭제여부 */
+             , FST_RGST_DTM      /* 최초등록일시 */
+             , FST_RGST_USR_ID   /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID   /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID  /* 최초등록부서ID */
+             , FNL_MDFC_DTM      /* 최종수정일시 */
+             , FNL_MDFC_USR_ID   /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID   /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID  /* 최종수정부서ID */
+          FROM TB_PSGA_RPOT_BIZ_TP_BAS /* 보고서업무유형기본 */
+         WHERE 1 = 1
+           AND RPOT_BIZ_TP_DV_CD = #{rpotBizTpDvCd}
+           <if test='@MybatisUtils@isNotEmpty(rpotBizTpId)'>
+           AND RPOT_BIZ_TP_ID    = #{rpotBizTpId}      /* 보고서업무유형ID */
+           </if>
+    </select>
+
+    <select id="selectOgbsMmOgIz" resultType = "com.kyowon.sms.wells.web.competence.report.dto.WwpsgBusinessManagerReportMgtDto$OptionListRes">
+        SELECT BASE_YM                 /* 기준년월 */
+             , OG_ID                   /* 조직ID */
+             , HGR_OG_ID               /* 상위조직ID */
+             , OG_TP_CD                /* 조직유형코드 */
+             , OG_LEVL_DV_CD           /* 조직레벨구분코드 */
+             , OG_CD                   /* 조직코드 */
+             , OG_NM                   /* 조직명 */
+             , OG_CD AS CODE_ID
+             , OG_NM AS CODE_NAME
+          FROM TB_OGBS_MM_OG_IZ /* 월조직내역 */
+         WHERE 1=1
+           AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND OG_CD IN
+           <foreach collection="ogCds" item="item" index="index" separator="," open="(" close=")">
+           #{item}
+           </foreach>
+    </select>
+
+    <select id="selectOgbsPrtnrBas" resultType = "com.kyowon.sms.wells.web.competence.report.dvo.WwpscBusinessManagerReportMgtDvo">
+        SELECT OMPI.OG_TP_CD                 /* 조직유형코드 */
+             , OMPI.PRTNR_NO                 /* 파트너번호 */
+             , OPB.CRAL_LOCARA_TNO          /* 휴대지역전화번호 */
+             , OPB.MEXNO_ENCR               /* 휴대전화국번호암호화 */
+             , OPB.CRAL_IDV_TNO             /* 휴대개별전화번호 */
+             , OMPI.OG_CD
+             , OMPI.OG_NM
+          FROM TB_OGBS_MM_PRTNR_IZ OMPI
+          LEFT JOIN TB_OGBS_PRTNR_BAS OPB
+            ON OMPI.OG_TP_CD = OPB.OG_TP_CD
+           AND OMPI.PRTNR_NO = OPB.PRTNR_NO
+         WHERE 1 = 1
+           AND OMPI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND OMPI.PRTNR_NO                 = #{prtnrNo}                /* 파트너번호 */
+           AND OMPI.OG_TP_CD                 = #{ogTpCd}
+    </select>
+
+    <select id="selectBusinessManagerReportMgtPages" resultType = "com.kyowon.sms.wells.web.competence.report.dvo.WwpscBusinessManagerReportMgtDvo">
+        SELECT PRBPB.RPOT_BIZ_ASN_ID  /* 보고서업무배정ID */
+             , PRBPB.RPOT_BIZ_TP_ID   /* 보고서업무유형ID */
+             , PRBPB.DG_YN            /* 대표여부 */
+             , PRBPB.OG_TP_CD         /* 조직유형코드 */
+             , PRBPB.PRTNR_NO         /* 파트너번호 */
+             , PRBPB.DTA_DL_YN        /* 데이터삭제여부 */
+             , OPB.CRAL_LOCARA_TNO          /* 휴대지역전화번호 */
+             , OPB.MEXNO_ENCR               /* 휴대전화국번호암호화 */
+             , OPB.CRAL_IDV_TNO             /* 휴대개별전화번호 */
+             , OMPI.PRTNR_KNM                /* 파트너 한글명 */
+             , OMPI.OG_CD
+             , OMPI.OG_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'OG_TP_CD', PRBPB.OG_TP_CD, 'ko') AS OG_TP_NM
+        FROM TB_PSGA_RPOT_BIZ_PSIC_BAS PRBPB /* 보고서업무담당자기본 */
+        JOIN TB_PSGA_RPOT_BIZ_TP_BAS PRBTB/* 보고서업무유형기본 */
+          ON PRBPB.RPOT_BIZ_TP_ID = PRBTB.RPOT_BIZ_TP_ID
+         AND PRBTB.RPOT_BIZ_TP_DV_CD = '01'
+        LEFT JOIN TB_OGBS_PRTNR_BAS OPB
+          ON PRBPB.OG_TP_CD = OPB.OG_TP_CD
+         AND PRBPB.PRTNR_NO = OPB.PRTNR_NO
+        LEFT JOIN TB_OGBS_MM_PRTNR_IZ OMPI
+          ON OMPI.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+         AND PRBPB.OG_TP_CD = OMPI.OG_TP_CD
+         AND PRBPB.PRTNR_NO = OMPI.PRTNR_NO
+       WHERE 1 = 1
+         AND PRBPB.DTA_DL_YN = 'N'
+         <if test='@MybatisUtils@isNotEmpty(ogCd)'>
+         AND OMPI.OG_CD = #{ogCd}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(rpotBizTpId)'>
+         AND PRBPB.RPOT_BIZ_TP_ID = #{rpotBizTpId}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(dgYn)'>
+         AND PRBPB.DG_YN = #{dgYn}
+         </if>
+    </select>
+
+    <update id="updatePsgaRpotBizPsicBas" >
+        MERGE INTO TB_PSGA_RPOT_BIZ_PSIC_BAS T1  /* 보고서업무담당자기본 */
+        USING ( SELECT #{rpotBizAsnId} AS RPOT_BIZ_ASN_ID  /* 보고서업무배정ID */
+                     , #{rpotBizTpId} AS RPOT_BIZ_TP_ID   /* 보고서업무유형ID */
+                     , #{dgYn} AS DG_YN            /* 대표여부 */
+                     , #{ogTpCd} AS OG_TP_CD         /* 조직유형코드 */
+                     , #{prtnrNo} AS PRTNR_NO         /* 파트너번호 */
+                  FROM DUAL  ) T2
+           ON (T1.RPOT_BIZ_ASN_ID = T2.RPOT_BIZ_ASN_ID  /* 보고서업무배정ID */ )
+         WHEN MATCHED THEN
+       UPDATE SET RPOT_BIZ_TP_ID = T2.RPOT_BIZ_TP_ID
+            , DG_YN = T2.DG_YN
+            , OG_TP_CD = T2.OG_TP_CD
+            , PRTNR_NO = T2.PRTNR_NO
+            <include refid="COMMON.updateSystemField"/>
+         WHEN NOT MATCHED THEN
+       INSERT (
+              RPOT_BIZ_ASN_ID
+            , RPOT_BIZ_TP_ID
+            , DG_YN
+            , OG_TP_CD
+            , PRTNR_NO
+            , DTA_DL_YN
+            <include refid="COMMON.insertSystemField" />
+       ) VALUES (
+              (SELECT 'M' ||LPAD(NVL(MAX(TO_NUMBER(SUBSTR(RPOT_BIZ_ASN_ID,2))) + 1, 1), 14, '0')
+                FROM TB_PSGA_RPOT_BIZ_PSIC_BAS)
+            , T2.RPOT_BIZ_TP_ID
+            , T2.DG_YN
+            , T2.OG_TP_CD
+            , T2.PRTNR_NO
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" />  )
+    </update>
+
+    <update id="updatePsgaRpotBizTpBas">
+        UPDATE TB_PSGA_RPOT_BIZ_TP_BAS /* 보고서업무유형기본 */
+           SET CONF_ARTC_USE_YN  = #{confArtcUseYn}    /* 확인사항사용여부 */
+             , CONF_ARTC_CN      = #{confArtcCn}         /* 유의사항내용 */
+             <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND RPOT_BIZ_TP_ID    = #{rpotBizTpId}      /* 보고서업무유형ID */
+    </update>
+
+    <update id="deletePsgaRpotBizPsicBas">
+        UPDATE TB_PSGA_RPOT_BIZ_PSIC_BAS   /* 보고서업무담당자기본 */ /* 보고서업무유형기본 */
+           SET DTA_DL_YN  = 'Y'
+           <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND RPOT_BIZ_ASN_ID    = #{rpotBizAsnId}      /* 보고서업무유형ID */
+    </update>
+
+</mapper>

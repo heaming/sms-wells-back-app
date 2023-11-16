@@ -1,6 +1,8 @@
 package com.kyowon.sms.wells.web.fee.calculation.rest;
 
 import com.kyowon.sms.wells.web.fee.calculation.service.WfebAgainDisbursementFeeService;
+import com.sds.sflex.common.common.dvo.CodeDetailDvo;
+import com.sds.sflex.common.common.service.CodeService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
@@ -25,6 +27,8 @@ public class WfebAgainDisbursementFeeController {
 
     private final WfebAgainDisbursementFeeService againDisbursementFeeService;
 
+        private final CodeService codeService;
+
     @ApiOperation(value = "재지급 생성(집계 + 취소 + 연체)", notes = "기준년월, 계약실적생성구분코드를 파라메터로 재지급 생성")
     @ApiImplicitParams(value = {
             @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "path", required = true),
@@ -42,7 +46,8 @@ public class WfebAgainDisbursementFeeController {
     })
     @PostMapping("/delinquent-again-disbursement-fees/{baseYm}-{cntrPerfCrtDvCd}")
     public SaveResponse saveDlqAgainDisbursementOfFees(@PathVariable String baseYm, @PathVariable String cntrPerfCrtDvCd) {
-        return SaveResponse.builder().processCount(againDisbursementFeeService.saveDlqAgainDisbursementOfFees(baseYm, cntrPerfCrtDvCd)).build();
+        CodeDetailDvo code = codeService.getCodeDetailByPk("CNTR_PERF_CRT_DV_CD", cntrPerfCrtDvCd);
+        return SaveResponse.builder().processCount(againDisbursementFeeService.saveDlqAgainDisbursementOfFees(baseYm, code.getUserDfn03(), cntrPerfCrtDvCd)).build();
     }
 
 }

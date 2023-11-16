@@ -4,11 +4,18 @@ import com.kyowon.sms.wells.web.closing.performance.converter.WdccSalesBondConve
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesBondDto.*;
 import com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesBondDvo;
 import com.kyowon.sms.wells.web.closing.performance.mapper.WdccSalesBondMapper;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
+import com.sds.sflex.common.common.service.ExcelDownloadService;
+import com.sds.sflex.system.config.interceptor.ExcelResultHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -33,7 +40,10 @@ public class WdccSalesBondService {
 
     private final WdccSalesBondMapper mapper;
     private final WdccSalesBondConverter converter;
+    private final ExcelDownloadService excelDownloadService;
+    private final SqlSession priSqlSession;
     private final DateTimeFormatter formatterType = DateTimeFormatter.ofPattern("yyyyMM");
+    private static final String columnNameForsellTpCd = "sellTpCd";
 
     /**
      * 매출채권/선수금 현황 매출채권 조회
@@ -47,7 +57,7 @@ public class WdccSalesBondService {
         param.put("slClYm", req.slClYm());
         param.put("slClEYm", req.slClYm());
         param.put("agrgDv", req.agrgDv());
-        param.put("sellTpCd", req.sellTpCd());
+        param.put(columnNameForsellTpCd, req.sellTpCd());
         param.put("sellTpDtlCd", req.sellTpDtlCd());
         param.put("sellChnlDtl", req.sellChnlDtl());
         param.put("cntrNo", req.cntrNo());
@@ -71,6 +81,39 @@ public class WdccSalesBondService {
         }
 
         return converter.mapAllWdccSalesBondDvoToSearchRes(dvos);
+    }
+
+    /**
+    * 매출채권/선수금 현황 매출채권 bulk 엑셀다운로드
+    * @param req
+    * @param response
+    * @return
+    */
+    public void getSalesBondAggregateForBulkExcelDownload(
+        ExcelBulkDownloadDto.DownloadReq req, HttpServletResponse response
+    )
+        throws IOException {
+        SXSSFWorkbook workbook = new SXSSFWorkbook(-1);
+        HashMap<String, String> param = (HashMap<String, String>)req.parameter();
+        String queryId = "com.kyowon.sms.wells.web.closing.performance.mapper.WdccSalesBondMapper.";
+        if (StringUtils.equals(param.get(columnNameForsellTpCd), "1")) { //일시불
+            queryId += "selectLumpSumOfAccountsReceivable";
+        } else if (StringUtils.equals(param.get(columnNameForsellTpCd), "2")) { //렌탈
+            queryId += "selectAccountsReceivableRental";
+        } else if (StringUtils.equals(param.get(columnNameForsellTpCd), "3")) { //멤버십
+            queryId += "selectAccountsReceivableMembership";
+        } else if (StringUtils.equals(param.get(columnNameForsellTpCd), "6")) { //정기배송
+            queryId += "selectTradeReceivablesPeriodicDelivery";
+        } else if (StringUtils.equals(param.get(columnNameForsellTpCd), "10")) { //리스/할부
+            queryId += "selectAccountsReceivableLease";
+        }
+        priSqlSession.select(
+            queryId,
+            req.parameter(),
+            new ExcelResultHandler(workbook, req.columns(), req.searchCondition())
+        );
+
+        excelDownloadService.downloadBulkExcel(workbook, response);
     }
 
     /**
@@ -98,15 +141,15 @@ public class WdccSalesBondService {
         // selectAccountsReceivableMembership 맴버십
         // selectLumpSumOfAccountsReceivable 일시불
         // selectTradeReceivablesPeriodicDelivery 정기배송
-        if (StringUtils.equals(param.get("sellTpCd").toString(), "1")) { //일시불
+        if (StringUtils.equals(param.get(columnNameForsellTpCd).toString(), "1")) { //일시불
             return mapper.selectLumpSumOfAccountsReceivable(param);
-        } else if (StringUtils.equals(param.get("sellTpCd").toString(), "2")) { //렌탈
+        } else if (StringUtils.equals(param.get(columnNameForsellTpCd).toString(), "2")) { //렌탈
             return mapper.selectAccountsReceivableRental(param);
-        } else if (StringUtils.equals(param.get("sellTpCd").toString(), "3")) { //멤버십
+        } else if (StringUtils.equals(param.get(columnNameForsellTpCd).toString(), "3")) { //멤버십
             return mapper.selectAccountsReceivableMembership(param);
-        } else if (StringUtils.equals(param.get("sellTpCd").toString(), "6")) { //정기배송
+        } else if (StringUtils.equals(param.get(columnNameForsellTpCd).toString(), "6")) { //정기배송
             return mapper.selectTradeReceivablesPeriodicDelivery(param);
-        } else if (StringUtils.equals(param.get("sellTpCd").toString(), "10")) { //리스/할부
+        } else if (StringUtils.equals(param.get(columnNameForsellTpCd).toString(), "10")) { //리스/할부
             return mapper.selectAccountsReceivableLease(param);
         }
         return new ArrayList<>();

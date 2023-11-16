@@ -78,7 +78,7 @@ public class WbnaCollectorAssignService {
     }
 
     /**
-     * 집금자배정 상세 목록 조회(엑셀다운로드용)
+     * 집금자배정 상세 목록 조회(엑셀다운로드용)-테스트
      * @param dto 검색조건
      * @return 상세목록
      */
@@ -256,8 +256,8 @@ public class WbnaCollectorAssignService {
                 dvo.setBaseYm(baseYm);
 
                 result = bondContractBasicHistService
-                    .createBondContractHistoryWithCntrNo(dvo.getBaseYm(), cntrNo, cntrSn);
-                if (result == 0) { // 히스토리 만들지 못한 경우 추가 작업 없이 다음으로
+                    .createBondContractHistoryWithCntrNo(dvo.getBaseYm(), cntrNo, cntrSn, "Y");
+                if (result == 0) { // 히스토리 만들지 못한 경우 추가 작업 없이 다음으로(히스토리 생성시 집금구분 같이 확인(단기~집행))
                     ExcelUploadErrorDvo excelUploadErrorDvo = new ExcelUploadErrorDvo();
                     excelUploadErrorDvo.setErrorRow(loopNumber);
                     excelUploadErrorDvo

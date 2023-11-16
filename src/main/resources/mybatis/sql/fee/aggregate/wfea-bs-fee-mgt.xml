@@ -7,6 +7,7 @@
              , T4.OG_CD     /*조직코드*/
              , T4.PRTNR_KNM     /*파트너명*/
              , T1.CNTR_NO	/*계약번호*/
+             , T3.BF_ORD_NO     /*이전계약번호*/
              , T1.BASE_PD_CD	/*상품코드*/
              , T2.PD_NM /*상품명*/
              , BAS.SV_FEE_PD_DV_CD	/*BS상품군*/
@@ -26,12 +27,7 @@
                WHEN '6' THEN 'S1'
                WHEN '7' THEN 'S2'
                ELSE '*' END AS VST_RGLVL_GD_NM /*방문급지*/
-             , CASE T1.FILT_SELL_TP_CD WHEN '1' THEN ' 할부'
-               WHEN '2' THEN ' 렌탈'
-               WHEN '3' THEN ' 멤버십'
-               WHEN '4' THEN ' 회사'
-               ELSE ' ****'
-               END  AS SELL_TP_NM	/*판매구분*/
+             , (SELECT S1.SELL_TP_CD FROM TB_SSCT_CNTR_DTL S1 WHERE S1.CNTR_NO = T1.CNTR_NO AND S1.CNTR_SN = T1.CNTR_SN) AS SELL_TP_CD
              , T1.PD_USWY_CD || '-' || F_CMZ_CD_NM('TNT_WELLS', 'PD_USWY_CD', T1.PD_USWY_CD) AS USWY_NM	/*용도구분*/
              , CASE WHEN T1.SV_BIZ_DCLSF_CD = '2240' THEN 'Y' ELSE 'N' END AS PRR_VST_YN	/*사전방문여부*/
              , T1.VST_DUEDT	/*방문예정일자*/
@@ -66,6 +62,7 @@
                     , NULL AS HCR_DV_CD	/*홈케어구분코드*/
                     , C2.CNTR_CST_NO	/*계약고객번호*/
                     , CASE WHEN C3.CNTR_REL_DTL_CD = '216'	/*모종결합*/ THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
+                    , C1.BF_ORD_NO  /*이전계약번호*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
                 INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
                    ON C1.CNTR_NO = C2.CNTR_NO
@@ -90,6 +87,7 @@
                     , C3.HCR_DV_CD  /*홈케어구분코드*/
                     , C2.CNTR_CST_NO	/*계약고객번호*/
                     , 'N' AS COMBI_YN	/*결합제외여부*/
+                    , C1.BF_ORD_NO  /*이전계약번호*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
                 INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
                    ON C1.CNTR_NO = C2.CNTR_NO
@@ -116,6 +114,7 @@
                     , NULL AS HCR_DV_CD     /*홈케어구분코드*/
                     , C2.CNTR_CST_NO	/*계약고객번호*/
                     , CASE WHEN T2.REF_PD_CLSF_VAL LIKE '05001003%' AND C3.CNTR_REL_DTL_CD = '216' THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
+                    , C1.BF_ORD_NO  /*이전계약번호*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
                 INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
                    ON C1.CNTR_NO = C2.CNTR_NO
@@ -123,7 +122,6 @@
                  LEFT OUTER JOIN TB_SSCT_CNTR_REL C3	/*계약관계*/
                    ON C3.BASE_DTL_CNTR_NO = C1.CNTR_NO
                   AND C3.BASE_DTL_CNTR_SN = C1.CNTR_SN
-                  <!--AND C3.OJ_DTL_CNTR_NO IS NOT NULL-->
                   AND C3.DTA_DL_YN = 'N'
                 INNER JOIN TB_SSCT_CNTR_WELLS_DTL C4	/*계약WELLS상세*/
                    ON C4.CNTR_NO = C1.CNTR_NO
@@ -138,6 +136,7 @@
                   AND C1.CNTR_NO = T1.CNTR_NO
                   AND C1.CNTR_SN = T1.CNTR_SN
                   AND C1.SELL_TP_CD = '2'	/*렌탈/리스*/
+                  AND T2.REF_PD_CLSF_VAL LIKE '05001003%'
                 UNION ALL
                  /*
                   * 할부판매(일시불)
@@ -153,6 +152,7 @@
                     , C4.HCR_DV_CD  /*홈케어구분코드*/
                     , C2.CNTR_CST_NO	/*계약고객번호*/
                     , CASE WHEN T2.REF_PD_CLSF_VAL LIKE '05001003%' AND C3.CNTR_REL_DTL_CD = '216' THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
+                    , C1.BF_ORD_NO  /*이전계약번호*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
                 INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
                    ON C1.CNTR_NO = C2.CNTR_NO
@@ -160,7 +160,6 @@
                  LEFT OUTER JOIN TB_SSCT_CNTR_REL C3	/*계약관계*/
                    ON C3.BASE_DTL_CNTR_NO = C1.CNTR_NO
                   AND C3.BASE_DTL_CNTR_SN = C1.CNTR_SN
-                  <!--AND C3.OJ_DTL_CNTR_NO IS NOT NULL-->
                   AND C3.DTA_DL_YN = 'N'
                 INNER JOIN TB_SSCT_CNTR_WELLS_DTL C4	/*계약WELLS상세*/
                    ON C4.CNTR_NO = C1.CNTR_NO
@@ -170,6 +169,7 @@
                   AND C1.CNTR_NO = T1.CNTR_NO
                   AND C1.CNTR_SN = T1.CNTR_SN
                   AND C1.SELL_TP_CD = '1'	/*일시불*/
+                  AND T2.REF_PD_CLSF_VAL LIKE '05001003%'
                 UNION ALL
                 /*회사설치*/
                SELECT /*+ INDEX(C1 (CNTR_NO, CNTR_SN, SELL_TP_CD)) LEADING(C1) USE_NL(C1 C2 C3 C4) */
@@ -182,6 +182,7 @@
                     , NULL AS HCR_DV_CD     /*홈케어구분코드*/
                     , C2.CNTR_CST_NO	/*계약고객번호*/
                     , CASE WHEN T2.REF_PD_CLSF_VAL LIKE '05001003%' THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
+                    , C1.BF_ORD_NO  /*이전계약번호*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
                 INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
                    ON C1.CNTR_NO = C2.CNTR_NO
@@ -258,7 +259,27 @@
         <if test='@MybatisUtils@equals(ogTpCd, "W03")'>
           AND T1.SV_BIZ_DCLSF_CD != '4330'  /*홈마스터 방문부재건 제외 결함수정건*/
         </if>
-        ORDER BY T1.PRTNR_NO, T1.CNTR_NO
+        ORDER BY TO_NUMBER(T1.PRTNR_NO), T1.CNTR_NO
+    </select>
+
+    <select id="selectFeeAgrgStat" resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaBsFeeMgtDto$SearchCheckRes">
+        SELECT DISTINCT OG_TP_CD    /* 조직유형코드 */
+          FROM TB_FEAM_NTORP_PERF_MM_CL     /* 순주문파트너실적월마감 */
+         WHERE DTA_DL_YN = 'N'  /* 데이터삭제여부 */
+           AND BASE_YM = #{perfYm}  /* 기준년월 */
+           AND PERF_YM = #{perfYm}  /* 실적년월 */
+           AND FEE_TCNT_DV_CD = #{feeTcntDvCd}  /* 수수료차수구분코드 */
+           AND PERF_AGRG_CRT_DV_CD = #{perfAgrgCrtDvCd}     /* 실적집계생성구분코드 */
+        <if test='@MybatisUtils@equals(ogTpCd, "W02")'>
+           AND PERF_ATC_CD IN ('W02P00083', 'W02P00084', 'W02P00085', 'W02P00095', 'W02P00096', 'W02P00097'
+                               , 'W02P00098' , 'W02P00099', 'W02P00100', 'W02P00101', 'W02P00114', 'W02P00121', 'W02P00122')
+        </if>
+        <if test='@MybatisUtils@equals(ogTpCd, "W03")'>
+           AND PERF_ATC_CD IN ('W03P00085', 'W03P00095', 'W03P00113', 'W03P00114', 'W03P00115'
+                               , 'W03P00117' , 'W03P00118' , 'W03P00119', 'W03P00120', 'W03P00121')
+        </if>
+           AND CO_CD = '2000'   /* 회사코드 */
+           AND OG_TP_CD = #{ogTpCd}     /* 조직유형코드 */
     </select>
 
 </mapper>

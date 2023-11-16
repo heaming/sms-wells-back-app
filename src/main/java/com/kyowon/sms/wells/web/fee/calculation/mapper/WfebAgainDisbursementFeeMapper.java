@@ -4,10 +4,23 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface WfebAgainDisbursementFeeMapper {
-    Integer deleteCommonDlqAdsbs(String baseYm, String cntrPerfCrtDvCd, String tableName);
-    Integer insertContractDlqAdsbs(String baseYm, String cntrPerfCrtDvCd, String feeRedfAdsbDtlId);
-    Integer insertContractDlqAdsbHistories(String baseYm, String cntrPerfCrtDvCd);
-    Integer insertPartnerDlqAdsbHistories(String baseYm, String cntrPerfCrtDvCd);
-    Integer insertDlqAdsbs(String baseYm, String cntrPerfCrtDvCd, String feeRedfAdsbId);
-    Integer updatePartnerIdCntrDlqAdsbs(String baseYm, String cntrPerfCrtDvCd);
+    /**
+     * P조직 상조 연체 재지급 계약데이터 생성
+     * @param baseYm
+     * @param ogTpCd
+     * @param cntrPerfCrtDvCd
+     * @param feeRedfAdsbDtlId
+     * @return
+     */
+    Integer insertLifeContractDlqAdsbsForPog(String baseYm, String ogTpCd, String cntrPerfCrtDvCd, String feeRedfAdsbDtlId);
+
+    /**
+     * M조직 연체재지급 계약 데이터 생성
+     * @param baseYm 기준년월
+     * @param ogTpCd 조직유형코드
+     * @param cntrPerfCrtDvCd 계약실적생성구분코드
+     * @param feeRedfAdsbDtlId 수수료되물림재지급상세ID
+     * @return
+     */
+    Integer insertContractDlqAdsbsForMog(String baseYm, String ogTpCd, String cntrPerfCrtDvCd, String feeRedfAdsbDtlId);
 }

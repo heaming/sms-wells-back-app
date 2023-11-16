@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.deduction.adsb.mapper.WdebAwAdsbMgtMapper">
+
+    <select id="selectAdsbObjecConfirmCheck" resultType="Integer">
+        /* 재지급 대상 생성 전, 확정여부 체크 validation */
+        SELECT COUNT(1) AS CNT
+          FROM TB_FEAM_WELS_NRCTR_MM_CL M
+        INNER JOIN TB_FEAM_NRCTR_MM_CL S /*순주문계약월마감*/
+            ON M.BASE_YM = S.BASE_YM
+           AND M.FEE_TCNT_DV_CD  = S.FEE_TCNT_DV_CD
+           AND M.CNTR_PERF_CRT_DV_CD  = S.CNTR_PERF_CRT_DV_CD
+         WHERE M.DTA_DL_YN = 'N'
+           AND M.BASE_YM = #{baseYm} /*파라미터로 넘어온 반영년월*/
+           AND S.NTOR_CNFM_STAT_CD = '02' /*01: 임시저장, 02: 확정*/
+               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01")'>
+               AND M.CNTR_PERF_CRT_DV_CD = '02' /*02: P추진단 되물림*/
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02")'>
+               AND M.CNTR_PERF_CRT_DV_CD = '03' /*03: M추진단 되물림*/
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W03")'>
+               AND M.CNTR_PERF_CRT_DV_CD = '04' /*04: 홈마스터 되물림*/
+               </if>
+           <if test='@MybatisUtils@isNotEmpty(ogTpCd) and ogTpCd != "ALL"'>
+           AND M.OG_TP_CD = #{ogTpCd}
+           </if>
+    </select>
+
+    <delete id="deleteAdsbObjectTemp">
+        /* 재지급 대상(실적) 생성 전, 임시저장 데이터 삭제 */
+        DELETE FROM
+              TB_FEAM_WELS_NRCTR_MM_CL M
+         WHERE M.BASE_YM = #{baseYm} /*파라미터로 넘어온 발생년월*/
+               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01")'>
+               AND M.CNTR_PERF_CRT_DV_CD = '08' /*08: P추진단 재지급*/
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02")'>
+               AND M.CNTR_PERF_CRT_DV_CD = '09' /*09: M추진단 재지급*/
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W03")'>
+               AND M.CNTR_PERF_CRT_DV_CD = '10 /*10: 홈마스터 재지급*/
+               </if>
+           <if test='@MybatisUtils@isNotEmpty(ogTpCd) and ogTpCd != "ALL"'>
+           AND M.OG_TP_CD = #{ogTpCd}
+           </if>
+    </delete>
+
+    <select id="selectAdsbObjectCreates" resultType="Integer">
+        SELECT COUNT(1)
+          FROM (
+       /* WELLS - 재지급 대상 생성 (렌탈,일시불,리스) */
+      	SELECT #{baseYm} AS BASE_YM      /* 기준년월 */
+	         , X1.PERF_YM                /* 실적년월 */
+	         , X1.FEE_TCNT_DV_CD         /* 수수료차수구분코드 */
+	         , X1.CNTR_NO                /* 계약번호 */
+	         , X1.CNTR_SN                /* 계약일련번호 */
+	         , X1.CO_CD                  /* 회사코드 */
+	         , X1.OG_TP_CD               /* 조직유형코드 */
+	         , X1.PRTNR_NO               /* 파트너번호 */
+	         , X1.CNTR_PERF_CRT_DV_CD    /* 계약실적생성구분코드 */
+	         , X1.PD_CD                  /* 상품코드 */
+	         , X1.REF_PD_CLSF_VAL        /* 참조상품분류값 */
+	         , X1.PERF_TP_CD             /* 실적유형코드 */
+	         , X1.SELL_TP_CD             /* 판매유형코드 */
+	         , X1.SELL_DSC_DV_CD         /* 판매할인구분코드 */
+	         , X1.SELL_DSCR_CD           /* 판매할인율코드 */
+	         , X1.RECAP_DUTY_PTRM_N      /* 유상의무기간수 */
+	         , X1.PMOT_USWY_DV_CD        /* 프로모션용도구분코드 */
+	         , X1.BFSVC_PRD_CD           /* BS주기코드 */
+	         , X1.MCHN_CH_YN             /* 기기변경여부 */
+	         , X1.SELL_DSC_TP_CD         /* 판매할인유형코드 */
+	         , X1.MCHN_CH_TP_CD          /* 기기변경유형코드 */
+	         , X1.RSTL_YN                /* 재약정여부 */
+	         , X1.FEE_ACKMT_DV_CD        /* 수수료인정구분코드 */
+	         , X1.HDQ_OG_ID              /* 본부조직ID */
+	         , X1.VTSEL_SODBT_CHNL_DV_CD /* 방판총판채널구분코드 */
+	         , X1.SELL_AMT               /* 판매금액 */
+	         , X1.SL_AMT                 /* 매출금액 */
+	         , X1.REDF_ADSB_OJ_AMT       /* 되물림재지급대상금액 */
+	         , X1.VAT                    /* 부가가치세 */
+	         , X1.ACKMT_PERF_RT          /* 인정실적율 */
+	         , X1.ACKMT_PERF_AMT         /* 인정실적금액 */
+	         , X1.ACKMT_PERF_CT          /* 인정실적건수 */
+	         , X1.CVT_PERF_AMT           /* 환산실적금액 */
+	         , X1.BOO_SELL_YN            /* 예약판매여부 */
+	         , X1.RCPDT                  /* 접수일자 */
+	         , X1.SL_DT                  /* 매출일자 */
+	         , X1.CAN_DT                 /* 취소일자 */
+	         , X1.ACC_NINC_YN            /* 계정순증여부 */
+	         , X1.STPL_PTRM_MCN          /* 약정기간개월수 */
+	         , X1.FEE_CPSN_REDF_ID       /* 수수료강제되물림ID */
+	         , X1.OJ_PRCSDT              /* 대상처리일자 */
+	         , X1.SRC_CO_CD              /* 원천회사코드 */
+	         , X1.DTA_DL_YN              /* 데이터삭제여부 */
+      	  FROM TB_CBCL_REDF_ADSB_BAS M   /*되물림재지급기본*/
+      	 INNER JOIN LATERAL (
+      	 					SELECT X.BASE_YM                /* 기준년월 */
+						         , X.PERF_YM                /* 실적년월 */
+						         , X.FEE_TCNT_DV_CD         /* 수수료차수구분코드 */
+						         , X.CNTR_NO                /* 계약번호 */
+						         , X.CNTR_SN                /* 계약일련번호 */
+						         , X.CO_CD                  /* 회사코드 */
+						         , X.OG_TP_CD               /* 조직유형코드 */
+						         , X.PRTNR_NO               /* 파트너번호 */
+						         , X.CNTR_PERF_CRT_DV_CD    /* 계약실적생성구분코드 */
+						         , X.PD_CD                  /* 상품코드 */
+						         , X.REF_PD_CLSF_VAL        /* 참조상품분류값 */
+						         , X.PERF_TP_CD             /* 실적유형코드 */
+						         , X.SELL_TP_CD             /* 판매유형코드 */
+						         , X.SELL_DSC_DV_CD         /* 판매할인구분코드 */
+						         , X.SELL_DSCR_CD           /* 판매할인율코드 */
+						         , X.RECAP_DUTY_PTRM_N      /* 유상의무기간수 */
+						         , X.PMOT_USWY_DV_CD        /* 프로모션용도구분코드 */
+						         , X.BFSVC_PRD_CD           /* BS주기코드 */
+						         , X.MCHN_CH_YN             /* 기기변경여부 */
+						         , X.SELL_DSC_TP_CD         /* 판매할인유형코드 */
+						         , X.MCHN_CH_TP_CD          /* 기기변경유형코드 */
+						         , X.RSTL_YN                /* 재약정여부 */
+						         , X.FEE_ACKMT_DV_CD        /* 수수료인정구분코드 */
+						         , X.HDQ_OG_ID              /* 본부조직ID */
+						         , X.VTSEL_SODBT_CHNL_DV_CD /* 방판총판채널구분코드 */
+						         , X.SELL_AMT               /* 판매금액 */
+						         , X.SL_AMT                 /* 매출금액 */
+						         , X.REDF_ADSB_OJ_AMT       /* 되물림재지급대상금액 */
+						         , X.VAT                    /* 부가가치세 */
+						         , X.ACKMT_PERF_RT          /* 인정실적율 */
+						         , X.ACKMT_PERF_AMT         /* 인정실적금액 */
+						         , X.ACKMT_PERF_CT          /* 인정실적건수 */
+						         , X.CVT_PERF_AMT           /* 환산실적금액 */
+						         , X.BOO_SELL_YN            /* 예약판매여부 */
+						         , X.RCPDT                  /* 접수일자 */
+						         , X.SL_DT                  /* 매출일자 */
+						         , X.CAN_DT                 /* 취소일자 */
+						         , X.ACC_NINC_YN            /* 계정순증여부 */
+						         , X.STPL_PTRM_MCN          /* 약정기간개월수 */
+						         , X.FEE_CPSN_REDF_ID       /* 수수료강제되물림ID */
+						         , X.OJ_PRCSDT              /* 대상처리일자 */
+						         , X.SRC_CO_CD              /* 원천회사코드 */
+						         , X.DTA_DL_YN              /* 데이터삭제여부 */
+      	 					  FROM TB_FEAM_WELS_NRCTR_MM_CL X
+      	 					 WHERE 1 = 1
+      	 					   AND X.CNTR_NO = M.CNTR_NO
+      	 					   AND X.CNTR_SN = M.CNTR_SN
+      	 					   AND X.PRTNR_NO = M.PRTNR_NO
+--      	 					   AND X.OG_TP_CD = M.OG_TP_CD /*TODO: 마감 테이블, 되물림재지급기본에 조직유형이 ETC로 들어가있어 조인걸면 데이터 누락됨, 추후 정상 재이행해주시면 수정*/
+      	 					   AND X.CNTR_PERF_CRT_DV_CD BETWEEN '02' AND '06' /*되물림*/
+      	 					   AND X.FEE_TCNT_DV_CD = '02'
+      	 					   AND X.BASE_YM <![CDATA[ < ]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') /*PARAM: 발생년월 전월*/
+      	 					  ORDER BY X.BASE_YM DESC
+      	 					  FETCH FIRST 1 ROWS ONLY
+		 	) X1
+		    ON 1 = 1
+      	 WHERE M.ADSB_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') || '%' /*PARAM: 발생년월 전월*/
+           AND M.OG_TP_CD = #{ogTpCd}
+           )
+    </select>
+
+    <insert id="insertAdsbObjectCreates">
+        INSERT INTO TB_FEAM_WELS_NRCTR_MM_CL (  /* 웰스순주문계약월마감 */
+           BASE_YM                /* 기준년월 */
+         , PERF_YM                /* 실적년월 */
+         , FEE_TCNT_DV_CD         /* 수수료차수구분코드 */
+         , CNTR_NO                /* 계약번호 */
+         , CNTR_SN                /* 계약일련번호 */
+         , CO_CD                  /* 회사코드 */
+         , OG_TP_CD               /* 조직유형코드 */
+         , PRTNR_NO               /* 파트너번호 */
+         , CNTR_PERF_CRT_DV_CD    /* 계약실적생성구분코드 */
+         , PD_CD                  /* 상품코드 */
+         , REF_PD_CLSF_VAL        /* 참조상품분류값 */
+         , PERF_TP_CD             /* 실적유형코드 */
+         , SELL_TP_CD             /* 판매유형코드 */
+         , SELL_DSC_DV_CD         /* 판매할인구분코드 */
+         , SELL_DSCR_CD           /* 판매할인율코드 */
+         , RECAP_DUTY_PTRM_N      /* 유상의무기간수 */
+         , PMOT_USWY_DV_CD        /* 프로모션용도구분코드 */
+         , BFSVC_PRD_CD           /* BS주기코드 */
+         , MCHN_CH_YN             /* 기기변경여부 */
+         , SELL_DSC_TP_CD         /* 판매할인유형코드 */
+         , MCHN_CH_TP_CD          /* 기기변경유형코드 */
+         , RSTL_YN                /* 재약정여부 */
+         , FEE_ACKMT_DV_CD        /* 수수료인정구분코드 */
+         , HDQ_OG_ID              /* 본부조직ID */
+         , VTSEL_SODBT_CHNL_DV_CD /* 방판총판채널구분코드 */
+         , SELL_AMT               /* 판매금액 */
+         , SL_AMT                 /* 매출금액 */
+         , REDF_ADSB_OJ_AMT       /* 되물림재지급대상금액 */
+         , VAT                    /* 부가가치세 */
+         , ACKMT_PERF_RT          /* 인정실적율 */
+         , ACKMT_PERF_AMT         /* 인정실적금액 */
+         , ACKMT_PERF_CT          /* 인정실적건수 */
+         , CVT_PERF_AMT           /* 환산실적금액 */
+         , BOO_SELL_YN            /* 예약판매여부 */
+         , RCPDT                  /* 접수일자 */
+         , SL_DT                  /* 매출일자 */
+         , CAN_DT                 /* 취소일자 */
+         , ACC_NINC_YN            /* 계정순증여부 */
+         , STPL_PTRM_MCN          /* 약정기간개월수 */
+         , FEE_CPSN_REDF_ID       /* 수수료강제되물림ID */
+         , OJ_PRCSDT              /* 대상처리일자 */
+         , SRC_CO_CD              /* 원천회사코드 */
+         , DTA_DL_YN              /* 데이터삭제여부 */
+         <include refid="COMMON.insertSystemField" />)
+       (
+        /* WELLS - 재지급 대상 생성 (렌탈,일시불,리스) */
+      	SELECT #{baseYm} AS BASE_YM      /* 기준년월 */
+	         , X1.PERF_YM                /* 실적년월 */
+	         , X1.FEE_TCNT_DV_CD         /* 수수료차수구분코드 */
+	         , X1.CNTR_NO                /* 계약번호 */
+	         , X1.CNTR_SN                /* 계약일련번호 */
+	         , X1.CO_CD                  /* 회사코드 */
+	         , X1.OG_TP_CD               /* 조직유형코드 */
+	         , X1.PRTNR_NO               /* 파트너번호 */
+             , CASE WHEN X1.OG_TP_CD = 'W01' THEN '08'
+	         		WHEN X1.OG_TP_CD = 'W02' THEN '09'
+	         		WHEN X1.OG_TP_CD = 'W03' THEN '10'
+	         		WHEN X1.OG_TP_CD = 'W04' THEN '12'
+	         		WHEN X1.OG_TP_CD = 'W05' THEN '11'
+	         		ELSE '@'
+	         	  END AS CNTR_PERF_CRT_DV_CD /* 계약실적생성구분코드 */
+	         , X1.PD_CD                  /* 상품코드 */
+	         , X1.REF_PD_CLSF_VAL        /* 참조상품분류값 */
+	         , X1.PERF_TP_CD             /* 실적유형코드 */
+	         , X1.SELL_TP_CD             /* 판매유형코드 */
+	         , X1.SELL_DSC_DV_CD         /* 판매할인구분코드 */
+	         , X1.SELL_DSCR_CD           /* 판매할인율코드 */
+	         , X1.RECAP_DUTY_PTRM_N      /* 유상의무기간수 */
+	         , X1.PMOT_USWY_DV_CD        /* 프로모션용도구분코드 */
+	         , X1.BFSVC_PRD_CD           /* BS주기코드 */
+	         , X1.MCHN_CH_YN             /* 기기변경여부 */
+	         , X1.SELL_DSC_TP_CD         /* 판매할인유형코드 */
+	         , X1.MCHN_CH_TP_CD          /* 기기변경유형코드 */
+	         , X1.RSTL_YN                /* 재약정여부 */
+	         , X1.FEE_ACKMT_DV_CD        /* 수수료인정구분코드 */
+	         , X1.HDQ_OG_ID              /* 본부조직ID */
+	         , X1.VTSEL_SODBT_CHNL_DV_CD /* 방판총판채널구분코드 */
+	         , X1.SELL_AMT               /* 판매금액 */
+	         , X1.SL_AMT                 /* 매출금액 */
+	         , X1.REDF_ADSB_OJ_AMT       /* 되물림재지급대상금액 */
+	         , X1.VAT                    /* 부가가치세 */
+	         , X1.ACKMT_PERF_RT          /* 인정실적율 */
+	         , X1.ACKMT_PERF_AMT         /* 인정실적금액 */
+	         , X1.ACKMT_PERF_CT          /* 인정실적건수 */
+	         , X1.CVT_PERF_AMT           /* 환산실적금액 */
+	         , X1.BOO_SELL_YN            /* 예약판매여부 */
+	         , X1.RCPDT                  /* 접수일자 */
+	         , X1.SL_DT                  /* 매출일자 */
+	         , X1.CAN_DT                 /* 취소일자 */
+	         , X1.ACC_NINC_YN            /* 계정순증여부 */
+	         , X1.STPL_PTRM_MCN          /* 약정기간개월수 */
+	         , X1.FEE_CPSN_REDF_ID       /* 수수료강제되물림ID */
+	         , X1.OJ_PRCSDT              /* 대상처리일자 */
+	         , X1.SRC_CO_CD              /* 원천회사코드 */
+	         , X1.DTA_DL_YN              /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemFieldValue" />
+      	  FROM TB_CBCL_REDF_ADSB_BAS M   /*되물림재지급기본*/
+      	 INNER JOIN LATERAL (
+      	 					SELECT X.BASE_YM                /* 기준년월 */
+						         , X.PERF_YM                /* 실적년월 */
+						         , X.FEE_TCNT_DV_CD         /* 수수료차수구분코드 */
+						         , X.CNTR_NO                /* 계약번호 */
+						         , X.CNTR_SN                /* 계약일련번호 */
+						         , X.CO_CD                  /* 회사코드 */
+						         , X.OG_TP_CD               /* 조직유형코드 */
+						         , X.PRTNR_NO               /* 파트너번호 */
+						         , X.CNTR_PERF_CRT_DV_CD    /* 계약실적생성구분코드 */
+						         , X.PD_CD                  /* 상품코드 */
+						         , X.REF_PD_CLSF_VAL        /* 참조상품분류값 */
+						         , X.PERF_TP_CD             /* 실적유형코드 */
+						         , X.SELL_TP_CD             /* 판매유형코드 */
+						         , X.SELL_DSC_DV_CD         /* 판매할인구분코드 */
+						         , X.SELL_DSCR_CD           /* 판매할인율코드 */
+						         , X.RECAP_DUTY_PTRM_N      /* 유상의무기간수 */
+						         , X.PMOT_USWY_DV_CD        /* 프로모션용도구분코드 */
+						         , X.BFSVC_PRD_CD           /* BS주기코드 */
+						         , X.MCHN_CH_YN             /* 기기변경여부 */
+						         , X.SELL_DSC_TP_CD         /* 판매할인유형코드 */
+						         , X.MCHN_CH_TP_CD          /* 기기변경유형코드 */
+						         , X.RSTL_YN                /* 재약정여부 */
+						         , X.FEE_ACKMT_DV_CD        /* 수수료인정구분코드 */
+						         , X.HDQ_OG_ID              /* 본부조직ID */
+						         , X.VTSEL_SODBT_CHNL_DV_CD /* 방판총판채널구분코드 */
+						         , X.SELL_AMT               /* 판매금액 */
+						         , X.SL_AMT                 /* 매출금액 */
+						         , X.REDF_ADSB_OJ_AMT       /* 되물림재지급대상금액 */
+						         , X.VAT                    /* 부가가치세 */
+						         , X.ACKMT_PERF_RT          /* 인정실적율 */
+						         , X.ACKMT_PERF_AMT         /* 인정실적금액 */
+						         , X.ACKMT_PERF_CT          /* 인정실적건수 */
+						         , X.CVT_PERF_AMT           /* 환산실적금액 */
+						         , X.BOO_SELL_YN            /* 예약판매여부 */
+						         , X.RCPDT                  /* 접수일자 */
+						         , X.SL_DT                  /* 매출일자 */
+						         , X.CAN_DT                 /* 취소일자 */
+						         , X.ACC_NINC_YN            /* 계정순증여부 */
+						         , X.STPL_PTRM_MCN          /* 약정기간개월수 */
+						         , X.FEE_CPSN_REDF_ID       /* 수수료강제되물림ID */
+						         , X.OJ_PRCSDT              /* 대상처리일자 */
+						         , X.SRC_CO_CD              /* 원천회사코드 */
+						         , X.DTA_DL_YN              /* 데이터삭제여부 */
+      	 					  FROM TB_FEAM_WELS_NRCTR_MM_CL X
+      	 					 WHERE 1 = 1
+      	 					   AND X.CNTR_NO = M.CNTR_NO
+      	 					   AND X.CNTR_SN = M.CNTR_SN
+      	 					   AND X.PRTNR_NO = M.PRTNR_NO
+--      	 					   AND X.OG_TP_CD = M.OG_TP_CD /*TODO: 마감 테이블, 되물림재지급기본에 조직유형이 ETC로 들어가있어 조인걸면 데이터 누락됨, 추후 정상 재이행해주시면 수정*/
+      	 					   AND X.CNTR_PERF_CRT_DV_CD BETWEEN '02' AND '06' /*되물림*/
+      	 					   AND X.FEE_TCNT_DV_CD = '02'
+      	 					   AND X.BASE_YM <![CDATA[ < ]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') /*PARAM: 발생년월 전월*/
+      	 					  ORDER BY X.BASE_YM DESC
+      	 					  FETCH FIRST 1 ROWS ONLY
+		 	) X1
+		    ON 1 = 1
+      	 WHERE M.ADSB_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') || '%' /*PARAM: 발생년월 전월*/
+           AND M.OG_TP_CD = #{ogTpCd}
+       )
+    </insert>
+
+    <!--수수료측 서비스 개발 전, 테스트용 UPDATE 쿼리. 추후 개발되면 삭제예정-->
+    <update id="updateAdsbObjectTemp">
+        UPDATE
+        <if test='@MybatisUtils@equals(session.tenantCd, "W")'>
+        /*WELLS*/
+            TB_FEAM_WELS_NRCTR_MM_CL /* 웰스순주문계약월마감 */
+        </if>
+        <if test='@MybatisUtils@equals(session.tenantCd, "E")'>
+            /*EDU*/
+            TB_FEAM_EDU_NRCTR_MM_CL M /*EDU순주문계약월마감*/
+        </if>
+           SET NTOR_CNFM_STAT_CD      = '02'                  /* 순주문확정상태코드 */
+         WHERE 1 = 1
+           AND BASE_YM                = #{baseYm}             /* 기준년월 */
+           AND NTOR_CNFM_STAT_CD      = '01'                  /* 순주문확정상태코드 */
+    </update>
+
+    <!--수수로 측 서비스 개발 전, 재지급 중복 체크용 SELECT. 추후 로직 확인 후, 삭제 예정-->
+    <select id="selectAdsbDupCheck" resultType="Integer">
+        SELECT COUNT(1) AS CNT
+          <if test='@MybatisUtils@equals(session.tenantCd, "W")'>
+          FROM TB_FEAM_WELS_NRCTR_MM_CL M
+          </if>
+          <if test='@MybatisUtils@equals(session.tenantCd, "E")'>
+          FROM TB_FEAM_EDU_NRCTR_MM_CL M
+          </if>
+        INNER JOIN TB_FEAM_NRCTR_MM_CL S /*순주문계약월마감*/
+            ON M.BASE_YM = S.BASE_YM
+           AND M.FEE_TCNT_DV_CD  = S.FEE_TCNT_DV_CD
+           AND M.CNTR_PERF_CRT_DV_CD  = S.CNTR_PERF_CRT_DV_CD
+         WHERE M.DTA_DL_YN = 'N'
+           AND M.BASE_YM = #{baseYm} /*파라미터로 넘어온 반영년월*/
+           AND S.NTOR_CNFM_STAT_CD = '02' /*01: 임시저장, 02: 확정*/
+           <if test='@MybatisUtils@equals(session.tenantCd, "W")'>
+               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01")'>
+               AND M.CNTR_PERF_CRT_DV_CD = '08' /*08: P추진단 재지급*/
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02")'>
+               AND M.CNTR_PERF_CRT_DV_CD = '09' /*09: M추진단 재지급*/
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W03")'>
+               AND M.CNTR_PERF_CRT_DV_CD = '10' /*10: 홈마스터 재지급*/
+               </if>
+           </if>
+           <if test='@MybatisUtils@equals(session.tenantCd, "E")'>
+               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "E01")'>
+               AND M.CNTR_PERF_CRT_DV_CD = '03' /* 02: 영업부 재지급 */
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "E02")'>
+               AND M.CNTR_PERF_CRT_DV_CD = '04' /* 02: 신채널 재지급 */
+               </if>
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(ogTpCd) and ogTpCd != "ALL"'>
+           AND M.OG_TP_CD = #{ogTpCd}
+           </if>
+    </select>
+
+    <update id="updateLifeAdsbObjectWells">
+        /* 상조 되물림 대상 생성(재지급) - WELLS (LIF_CNTR_STAT_CD = '3' ( 재지급 ))*/
+	    UPDATE TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
+	       SET A.FEE_DSB_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{redfAdsbOcYm}, 'YYYYMM'), 1), 'YYYYMM') /* PARAM: 발생년월 + 1월 */
+	     WHERE 1 = 1
+           <!--AND A.BASE_YM = #{redfAdsbOcYm} /*PARAM: 발생년월*/-->
+	       AND NVL(A.CNFM_YN, 'N') = 'N' /* ASIS: A.AKLOCK = 'Y' */
+	       AND A.LIF_CNTR_STAT_CD = '3' /* ASIS: A.AKSGUB = 3 재지급 */
+	       AND A.OG_TP_CD = #{ogTpCd} /*PARAM: 조직유형*/
+    </update>
+
+
+</mapper>
