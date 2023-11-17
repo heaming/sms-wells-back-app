@@ -29,10 +29,6 @@ public interface WsnaReturningGoodsStoreMapper {
 
     String selectUpHgrWareNo(WsnaReturningGoodsStoreDvo dvo);
 
-    int insertItmOstrIz(WsnaReturningGoodsStoreDvo dvo);
-
-    int insertItmStrIz(WsnaReturningGoodsStoreDvo dvo);
-
     int updateSvItmStocIz(WsnaReturningGoodsStoreDvo dvo);
 
     int insertQuantityItmOstrIz(WsnaReturningGoodsStoreDvo dvo);

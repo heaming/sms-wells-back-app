@@ -168,43 +168,6 @@ public class WsnaReturningGoodsStoreService {
                         result += itemStockservice.createStock(didisuseOstrDto);
 
                     }
-
-                    /*물류페기, 리퍼-E급 tt물류폐기일 경우 disuseItmOstrNo 반품요청송신전문*/
-                    //TODO: 추후 삭제 예정(혹시몰라 삭제안함)
-                    //                    if ("10".equals(dvo.getRtngdProcsTpCd()) || "11".equals(dvo.getRtngdProcsTpCd())) {
-                    //
-                    //                        result += this.mapper.insertDiDisuseOstrIz(dvo);
-                    //
-                    //                        String logisticsItmOstrNo = dvo.getDisuseItmOstrNo();
-                    //                        log.debug(logisticsItmOstrNo);
-                    //                        String ostrSn = dvo.getOstrSn();
-                    //
-                    //                        List<WsnaReturningGoodsStoreDvo> logisticsDvo = this.mapper
-                    //                            .selectLogisticsReturningGoodsAskInfo(logisticsItmOstrNo, ostrSn);
-                    //
-                    //                        List<WsnaLogisticsInStorageAskReqDvo> returnDvo = this.converter
-                    //                            .mapAllReturningGoodsStoreDvoToLogisticsInStorageAskReqDvo(logisticsDvo);
-                    //                        logisticsService.createInStorageAsks(returnDvo);
-                    //                    }
-                    //
-                    //                    /*공장 발송일(품질팀+tt특별자재) 경우 quantityItmOstrNo*/
-                    //                    if (List.of("12", "20", "21", "22").contains(dvo.getRtngdProcsTpCd())) {
-                    //
-                    //                        result += this.mapper.insertQuantityItmOstrIz(dvo);
-                    //                        //                                result += this.mapper.insertItmOstrAkIz(dvo);
-                    //                        result += this.mapper.insertQuantityItmStrIz(dvo);
-                    //
-                    //                        /*출고창고의 재고모듈을 실행한다.*/
-                    //                        WsnaItemStockItemizationReqDvo quantityOstrDto = setQuantityOstrWsnaItemStockItemizationDtoSaveReq(
-                    //                            dvo
-                    //                        );
-                    //                        result += itemStockservice.createStock(quantityOstrDto);
-                    //                        /*입고창고 이동재고를 생성*/
-                    //                        WsnaItemStockItemizationReqDvo quantityStrDto = setQuantityStrWsnaItemStockItemizationDtoSaveReq(
-                    //                            dvo
-                    //                        );
-                    //                        result += itemStockservice.saveStockMovement(quantityStrDto);
-                    //                    }
                 }
                 /*출고일자, 스티커 출력 유무, 비고 사항 저장*/
                 result += this.mapper.updateWkOstrIz(dvo);
