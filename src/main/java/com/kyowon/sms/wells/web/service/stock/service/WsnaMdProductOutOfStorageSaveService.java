@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaMdProductOutOfStorageSaveConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProdcutOutOfStorageSaveDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductOutOfStorageSaveProductDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaMdProductOutOfStorageSaveMapper;
@@ -31,6 +32,8 @@ public class WsnaMdProductOutOfStorageSaveService {
 
     private final WctaInstallationReqdDtInService installationReqdDtInService;
 
+    private final WsnaItemStockItemizationService itemStockService;
+
     @Transactional
     public int saveMdProductOutOfStorages(List<SaveReq> dtos) {
         int processCount = 0;
@@ -52,19 +55,22 @@ public class WsnaMdProductOutOfStorageSaveService {
             }
 
             // 2.작업결과 IU
-            dvo.setSvProcsCn("MD택배상품 출고완료");
+            dvo.setSvProcsCn(messageResourceService.getMessage("MSG_ALT_INST_MD_PRODUCT_OSTR_FSH"));
             mapper.insertSvpdCstSvWkRsIz(dvo);
 
-            // 3.작업출고내역 등록 (TB_SVST_SV_WK_OSTR_IZ)
             List<WsnaMdProductOutOfStorageSaveProductDvo> products = dvo.getProducts();
             for (WsnaMdProductOutOfStorageSaveProductDvo product : products) {
                 dvo.setPdCd(product.getPdCd());
                 dvo.setUseQty(product.getUseQty());
 
+                // 3.작업출고내역 등록 (TB_SVST_SV_WK_OSTR_IZ)
                 mapper.insertSvstSvWkOstrIz(dvo);
+
+                // 4.재고변경 (TB_SVST_CST_SV_ITM_STOC_IZ)
+                itemStockService.createStock(setWsnaItemStockItemizationReqDvo(dvo));
             }
 
-            // 4.출고 확정시 일자(설치일자,배송예정일자) 현재날짜 지정 (판매시스템 연계)
+            // 5.출고 확정시 일자(설치일자,배송예정일자) 현재날짜 지정 (판매시스템 연계)
             String sppDueDt = DateUtil.getNowDayString(); // 배송예정일자
             dvo.setIstDt(DateUtil.getNowDayString()); // 설치일자
 
@@ -74,6 +80,7 @@ public class WsnaMdProductOutOfStorageSaveService {
 
             int result = installationReqdDtInService.saveInstallReqdDt(cntrNo, cntrSn, istDt, "", sppDueDt);
             if (result > 0) {
+                // 6.수행내역 설치일자 업데이트 (TB_SVPD_CST_SV_EXCN_IZ)
                 mapper.updateSvpdCstSvExcnIz(dvo);
             }
 
@@ -81,6 +88,27 @@ public class WsnaMdProductOutOfStorageSaveService {
         }
 
         return processCount;
+    }
+
+    /* 재고변경 */
+    private WsnaItemStockItemizationReqDvo setWsnaItemStockItemizationReqDvo(WsnaMdProdcutOutOfStorageSaveDvo vo) {
+        String nowDay = DateUtil.getNowDayString();
+
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(nowDay.substring(0, 6));
+        reqDvo.setProcsDt(nowDay);
+        reqDvo.setWareDv("2"); /*창고구분*/
+        reqDvo.setWareNo(vo.getWkWareNo());
+        reqDvo.setWareMngtPrtnrNo(vo.getPrtnrNo()); //파트너번호
+        reqDvo.setItmPdCd(vo.getPdCd());
+        reqDvo.setQty(String.valueOf(vo.getUseQty()));
+        reqDvo.setIostTp("213");
+        reqDvo.setWorkDiv("A"); /*작업구분 workDiv*/
+        reqDvo.setMngtUnit("10");
+        reqDvo.setItemGd("A");
+
+        return reqDvo;
+
     }
 
 }
