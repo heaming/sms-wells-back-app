@@ -81,6 +81,12 @@ public class WbnaCollectorAssignDto {
      * @param spayThmChramAmt 일시불 당월요금
      * @param spayDlqAddAmt 일시불 연체가산금
      * @param spayRsgBorAmt 일시불 위약금액
+     * @param indvCstCt 개인고객 고개수
+     * @param indvCntrCt 개인고객 계약수
+     * @param indvObjAmt 개인고객 당월대상
+     * @param crpCstCt 법인고객 고개수
+     * @param crpCntrCt 법인고객 계약수
+     * @param crpObjAmt 법인고객 당월대상
      */
     @ApiModel("WbnaCollectorAssignDto-SearchRes")
     public record SearchRes(
@@ -136,7 +142,13 @@ public class WbnaCollectorAssignDto {
         String spayDlqAmt,
         String spayThmChramAmt,
         String spayDlqAddAmt,
-        String spayRsgBorAmt
+        String spayRsgBorAmt,
+        String indvCstCt,
+        String indvCntrCt,
+        String indvObjAmt,
+        String crpCstCt,
+        String crpCntrCt,
+        String crpObjAmt
     ) {}
 
     /**
@@ -186,6 +198,8 @@ public class WbnaCollectorAssignDto {
      * @param cujCd 법원코드
      * @param cujNm 법원명
      * @param indno 사건번호
+     * @param copnDvCd 법인격구분코드
+     * @param cstDv 고객구분
      */
     @ApiModel("WbnaCollectorAssignDto-SearchDetailRes")
     public record SearchDetailRes(
@@ -216,7 +230,9 @@ public class WbnaCollectorAssignDto {
         String addr, /* 주소           */
         String cujCd,
         String cujNm,
-        String indno
+        String indno,
+        String copnDvCd,
+        String cstDv
     ) {}
     /**
      * 집금담당자 상세 합계 응답
