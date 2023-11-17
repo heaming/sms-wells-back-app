@@ -107,4 +107,9 @@ public class WsnaManagerBsConsumableDto {
         @NotBlank
         String strWareNo
     ) {}
+
+    public record SearchLmQtyRes(
+        String sapMatCd,
+        String bfsvcCsmbAplcLmQty
+    ) {}
 }

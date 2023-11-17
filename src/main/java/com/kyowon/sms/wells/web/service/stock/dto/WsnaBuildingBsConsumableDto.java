@@ -92,4 +92,9 @@ public class WsnaBuildingBsConsumableDto {
         @NotBlank
         String strWareNo
     ) {}
+
+    public record SearchLmQtyRes(
+        String sapMatCd,
+        String bfsvcCsmbAplcLmQty
+    ) {}
 }
