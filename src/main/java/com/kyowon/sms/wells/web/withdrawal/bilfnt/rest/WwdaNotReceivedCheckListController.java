@@ -34,6 +34,12 @@ public class WwdaNotReceivedCheckListController {
 
     private final WwdaNotReceivedCheckListService service;
 
+    /**
+     * 자동이체 미수신 체크 목록 / 페이징
+     * @param req
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchAftnBilNrcvListRes>
+     */
     @ApiOperation(value = "자동이체 미수신 체크 목록")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "bilDt", value = "기준일자", paramType = "query", required = false, example = "20230208"),
@@ -49,6 +55,11 @@ public class WwdaNotReceivedCheckListController {
         return service.getAftnBilNrcvListPages(req, pageInfo);
     }
 
+    /**
+     * 자동이체 미수신 체크 엑셀다운로드
+     * @param req
+     * @return List<SearchAftnBilNrcvListRes>
+     */
     @ApiOperation(value = "자동이체 미수신 체크 엑셀다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "bilDt", value = "기준일자", paramType = "query", required = false, example = "20230208"),
@@ -62,6 +73,12 @@ public class WwdaNotReceivedCheckListController {
         return service.getAftnBilNrcvListExcels(req);
     }
 
+    /**
+     * 자동이체 입금 미생성 체크 목록 / 페이징
+     * @param req
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchAftnDpNcrtCheckListRes>
+     */
     @ApiOperation(value = "자동이체 입금 미생성 체크 목록")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "bilDt", value = "기준일자", paramType = "query", required = false, example = "20230208"),
@@ -76,6 +93,11 @@ public class WwdaNotReceivedCheckListController {
         return service.getAftnDpNcrtCheckListPages(req, pageInfo);
     }
 
+    /**
+     * 자동이체 입금 미생성 체크 엑셀다운로드
+     * @param req
+     * @return List<SearchAftnDpNcrtCheckListRes>
+     */
     @ApiOperation(value = "자동이체 입금 미생성 체크 엑셀다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "bilDt", value = "기준일자", paramType = "query", required = false, example = "20230208"),
@@ -89,6 +111,12 @@ public class WwdaNotReceivedCheckListController {
         return service.getAftnDpNcrtCheckListExcels(req);
     }
 
+    /**
+     * 자동이체 매출실적 체크 목록 조회 / 페이징
+     * @param bilYm 기준년월
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchAftnSlPerfCheckInqrRes>
+     */
     @ApiOperation(value = "자동이체 매출실적 체크 목록 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "bilYm", value = "기준년월", paramType = "query", required = false, example = "202302"),
@@ -103,6 +131,11 @@ public class WwdaNotReceivedCheckListController {
         return service.getAftnSlPerfCheckInqrPages(bilYm, pageInfo);
     }
 
+    /**
+     * 자동이체 매출실적 체크 목록 엑셀다운로드
+     * @param bilYm 기준년월
+     * @return List<SearchAftnSlPerfCheckInqrRes>
+     */
     @ApiOperation(value = "자동이체 매출실적 체크 목록 엑셀다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "bilYm", value = "기준년월", paramType = "query", required = false, example = "202302"),
@@ -115,6 +148,12 @@ public class WwdaNotReceivedCheckListController {
         return service.getAftnSlPerfCheckInqrExcels(bilYm);
     }
 
+    /**
+     * 자동이체 결과 묶음 오류 조회 / 페이징
+     * @param dpTpCd 자동이체 체크
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchResultBundleErrorRes>
+     */
     @ApiOperation(value = "자동이체 결과 묶음 오류 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "dpTpCd", value = "자동이체 체크", paramType = "query", required = false, example = "01"),
@@ -129,6 +168,11 @@ public class WwdaNotReceivedCheckListController {
         return service.getAftnRsBndlErrInqrPages(dpTpCd, pageInfo);
     }
 
+    /**
+     * 자동이체 결과 묶음 오류 엑셀다운로드
+     * @param dpTpCd 자동이체 체크
+     * @return List<SearchResultBundleErrorRes>
+     */
     @ApiOperation(value = "자동이체 결과 묶음 오류 엑셀다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "dpTpCd", value = "자동이체 체크", paramType = "query", required = false, example = "01"),

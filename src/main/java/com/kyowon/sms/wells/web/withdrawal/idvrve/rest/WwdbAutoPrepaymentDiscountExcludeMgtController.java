@@ -36,18 +36,34 @@ public class WwdbAutoPrepaymentDiscountExcludeMgtController {
 
     private final WwdbAutoPrepaymentDiscountExcludeMgtService service;
 
+    /**
+     * 자동 선납할인제외 관리 조회 / 페이징
+     * @param dto
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRes>
+     */
     @ApiOperation(value = "자동 선납할인제외 관리 조회", notes = "검색조건을 받아 자동 선납할인제외 관리 목록을 조회한다.")
     @GetMapping("/paging")
     public PagingResult<SearchRes> getAutoPrepaymentDiscountExcludePages(SearchReq dto, PageInfo pageInfo) {
         return service.getAutoPrepaymentDiscountExcludePages(dto, pageInfo);
     }
 
+    /**
+     * 자동 선납할인제외 관리 엑셀 다운로드
+     * @param dto
+     * @return List<SearchRes>
+     */
     @ApiOperation(value = "자동 선납할인제외 관리 엑셀 다운로드", notes = "검색조건을 받아 자동 선납할인제외 관리 목록을 엑셀 다운로드 한다.")
     @GetMapping("/excel-download")
     public List<SearchRes> getAutoPrepaymentDiscountExcludeExcels(SearchReq dto) {
         return service.getAutoPrepaymentDiscountExcludeExcels(dto);
     }
 
+    /**
+     * 자동 선납할인제외 관리 계약정보 조회
+     * @param dto
+     * @return SearchContractRes
+     */
     @ApiOperation(value = "자동 선납할인제외 관리 계약정보 조회", notes = "검색조건을 받아 자동 선납할인제외 관리 계약 정보을 조회한다.")
     @GetMapping("/contracts")
     public SearchContractRes getAutoPrepaymentDiscountExcludeContractInformation(
@@ -56,6 +72,12 @@ public class WwdbAutoPrepaymentDiscountExcludeMgtController {
         return service.getAutoPrepaymentDiscountExcludeContractInformation(dto);
     }
 
+    /**
+     * 자동 선납할인제외 관리 저장
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "자동 선납할인제외 관리 저장", notes = " RDS 적요 자동 선납할인제외 관리 등록 및 수정한다.")
     @PostMapping
     public SaveResponse saveAutoPrepaymentDiscountExcludes(
@@ -68,6 +90,12 @@ public class WwdbAutoPrepaymentDiscountExcludeMgtController {
             .build();
     }
 
+    /**
+     * 자동 선납할인제외 관리 삭제
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "자동 선납할인제외 관리 삭제", notes = "자동 선납할인제외 관리를 삭제한다.")
     @DeleteMapping
     public SaveResponse removeAutoPrepaymentDiscountExcludes(

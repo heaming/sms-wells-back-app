@@ -30,10 +30,10 @@ public class WwdaNotReceivedCheckListService {
 
     private final WwdaNotReceivedCheckListMapper mapper;
 
-    /** 자동이체 미수신 체크 목록
-     * 
+    /**
+     * 자동이체 미수신 체크 목록 / 페이징
      * @param req
-     * @param pageInfo
+     * @param pageInfo 페이징
      * @return PagingResult<SearchAftnBilNrcvListRes>
      */
     public PagingResult<SearchAftnBilNrcvListRes> getAftnBilNrcvListPages(
@@ -43,20 +43,20 @@ public class WwdaNotReceivedCheckListService {
 
     }
 
-    /** 자동이체 미수신 체크 엑셀다운로드
-     * 
+    /**
+     * 자동이체 미수신 체크 엑셀다운로드
      * @param req
-     * @return
+     * @return List<SearchAftnBilNrcvListRes>
      */
     public List<SearchAftnBilNrcvListRes> getAftnBilNrcvListExcels(SearchAftnBilNrcvListReq req) {
         return mapper.selectAftnBilNrcvListPages(req);
     }
 
-    /** 자동이체 입금 미생성 체크 목록
-     * 
+    /**
+     * 자동이체 입금 미생성 체크 목록 / 페이징
      * @param req
-     * @param pageInfo
-     * @return
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchAftnDpNcrtCheckListRes>
      */
     public PagingResult<SearchAftnDpNcrtCheckListRes> getAftnDpNcrtCheckListPages(
         SearchAftnDpNcrtCheckListReq req,
@@ -65,10 +65,10 @@ public class WwdaNotReceivedCheckListService {
         return mapper.selectAftnDpNcrtCheckListPages(req, pageInfo);
     }
 
-    /** 자동이체 입금 미생성 체크 엑셀다운로드
-     * 
+    /**
+     * 자동이체 입금 미생성 체크 엑셀다운로드
      * @param req
-     * @return
+     * @return List<SearchAftnDpNcrtCheckListRes>
      */
     public List<SearchAftnDpNcrtCheckListRes> getAftnDpNcrtCheckListExcels(
         SearchAftnDpNcrtCheckListReq req
@@ -76,11 +76,11 @@ public class WwdaNotReceivedCheckListService {
         return mapper.selectAftnDpNcrtCheckListPages(req);
     }
 
-    /** 자동이체 매출실적 체크 목록 조회
-     * 
-     * @param req
-     * @param pageInfo
-     * @return
+    /**
+     * 자동이체 매출실적 체크 목록 조회 / 페이징
+     * @param bilYm 기준년월
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchAftnSlPerfCheckInqrRes>
      */
     public PagingResult<SearchAftnSlPerfCheckInqrRes> getAftnSlPerfCheckInqrPages(
         String bilYm,
@@ -89,20 +89,20 @@ public class WwdaNotReceivedCheckListService {
         return mapper.selectAftnSlPerfCheckInqrPages(bilYm, pageInfo);
     }
 
-    /** 자동이체 매출실적 체크 목록 엑셀다운로드
-     * 
-     * @param bilYm
-     * @return
+    /**
+     * 자동이체 매출실적 체크 목록 엑셀다운로드
+     * @param bilYm 기준년월
+     * @return List<SearchAftnSlPerfCheckInqrRes>
      */
     public List<SearchAftnSlPerfCheckInqrRes> getAftnSlPerfCheckInqrExcels(String bilYm) {
         return mapper.selectAftnSlPerfCheckInqrPages(bilYm);
     }
 
-    /** 자동이체 결과 묶음 오류 조회
-     * 
-     * @param dpTpCd
-     * @param pageInfo
-     * @return
+    /**
+     * 자동이체 결과 묶음 오류 조회 / 페이징
+     * @param dpTpCd 자동이체 체크
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchResultBundleErrorRes>
      */
     public PagingResult<SearchResultBundleErrorRes> getAftnRsBndlErrInqrPages(
         String dpTpCd,
@@ -111,10 +111,10 @@ public class WwdaNotReceivedCheckListService {
         return mapper.selectAftnRsBndlErrInqrPages(dpTpCd, pageInfo);
     }
 
-    /** 자동이체 결과 묶음 오류 엑셀다운로드
-     * 
-     * @param dpTpCd
-     * @return
+    /**
+     * 자동이체 결과 묶음 오류 엑셀다운로드
+     * @param dpTpCd 자동이체 체크
+     * @return List<SearchResultBundleErrorRes>
      */
     public List<SearchResultBundleErrorRes> getAftnRsBndlErrInqrExcels(String dpTpCd) {
         return mapper.selectAftnRsBndlErrInqrPages(dpTpCd);

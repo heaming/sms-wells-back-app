@@ -3,6 +3,14 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.dvo;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * <pre>
+ * 입금내역조회(모바일) DVO
+ * </pre>
+ *
+ * @author jaehaYeon
+ * @since 2023-06-07
+ */
 @Getter
 @Setter
 public class WwdbDepositItemizationDvo {

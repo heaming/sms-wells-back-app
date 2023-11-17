@@ -26,6 +26,11 @@ public class WwdbServiceRefundController {
 
     private final WwdbServiceRefundService service;
 
+    /**
+     * 환불신청 등록
+     * @param req
+     * @return SaveResponse
+     */
     @ApiOperation(value = "환불신청 등록", notes = "서비스 환불 등록되는 환불신청정보를 등록한다")
     @PostMapping
     public SaveResponse saveServiceRefund(
