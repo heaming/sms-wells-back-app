@@ -26,6 +26,11 @@ public class WwdbDepositRefundItemizationController {
 
     private final WwdbDepositRefundItemizationService service;
 
+    /**
+     * 월별입금/환불금액조회
+     * @param req
+     * @return List<SearchRes>
+     */
     @ApiOperation(value = "월별입금/환불금액조회(W-WD-S-0007)", notes = "월별입금/환불금액조회")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "cstNo", value = "고객번호", paramType = "query", required = true),

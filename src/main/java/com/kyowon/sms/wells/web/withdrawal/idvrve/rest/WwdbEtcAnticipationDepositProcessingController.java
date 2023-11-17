@@ -22,6 +22,12 @@ public class WwdbEtcAnticipationDepositProcessingController {
 
     private final WwdbEtcAnticipationDepositProcessingService service;
 
+    /**
+     * 기타선수금 입금처리
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "기타선수금 입금처리를 한다.")
     @PostMapping
     public SaveResponse saveDepositProcs(

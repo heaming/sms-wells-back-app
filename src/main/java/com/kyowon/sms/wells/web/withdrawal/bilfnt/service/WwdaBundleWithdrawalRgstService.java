@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
  * </pre>
  *
  * @author donghyun.yoo
- * @since 2023-02-01z
+ * @since 2023-02-01
  */
 @Slf4j
 @Service
@@ -42,10 +42,10 @@ public class WwdaBundleWithdrawalRgstService {
 
     private final BatchCallService batchCallService;
 
-    /** 묶음출금 미등록 현황 조회
-     * @param pageInfo
-     *
-     * @param SearchRes
+    /**
+     * 묶음출금 미등록 현황 조회 / 페이징
+     * @param req
+     * @param pageInfo 페이징
      * @return PagingResult<SearchUnrgPsRes>
      */
     public PagingResult<SearchUnrgPsRes> getUnregistrationPsInqrPages(
@@ -56,10 +56,10 @@ public class WwdaBundleWithdrawalRgstService {
         return mapper.selectUnregistrationPsInqrPages(req, pageInfo);
     }
 
-    /** 묶음출금 미등록 현황 엑셀다운로드
-     *
+    /**
+     * 묶음출금 미등록 현황 엑셀다운로드
      * @param req
-     * @return
+     * @return List<SearchUnrgPsRes>
      */
     public List<SearchUnrgPsRes> getUnregistrationPsInqrExcels(
         SearchReq req
@@ -67,10 +67,10 @@ public class WwdaBundleWithdrawalRgstService {
         return mapper.selectUnregistrationPsInqrPages(req);
     }
 
-    /** 묶음 출금 등록 이력 조회
-     * @param pageInfo
-     *
-     * @param SearchReq
+    /**
+     * 묶음 출금 등록 이력 조회 / 페이징
+     * @param req
+     * @param pageInfo 페이징
      * @return PagingResult<SearchRgstHistRes>
      */
     public PagingResult<SearchRgstHistRes> getBundleRgstRsInqrPages(
@@ -80,10 +80,10 @@ public class WwdaBundleWithdrawalRgstService {
         return mapper.selectBundleRgstRsInqrPages(req, pageInfo);
     }
 
-    /** 묶음 출금 등록 이력 엑셀다운로드
-     *
+    /**
+     * 묶음 출금 등록 이력 엑셀다운로드
      * @param req
-     * @return
+     * @return List<SearchRgstHistRes>
      */
     public List<SearchRgstHistRes> getBundleRgstRsInqrPages(
         SearchReq req
@@ -91,6 +91,12 @@ public class WwdaBundleWithdrawalRgstService {
         return mapper.selectBundleRgstRsInqrPages(req);
     }
 
+    /**
+     * 묶음 등록
+     * @param req
+     * @return int
+     * @throws Exception
+     */
     @Transactional
     public int saveBundleRegistration(
         List<SaveReq> req

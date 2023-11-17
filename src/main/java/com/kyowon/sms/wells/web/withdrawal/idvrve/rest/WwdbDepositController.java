@@ -21,6 +21,11 @@ public class WwdbDepositController {
 
     private final WwdbDepositService service;
 
+    /**
+     * 입금처리 - 입금상세
+     * @param dto
+     * @return SaveResponse
+     */
     @ApiOperation(value = "입금상세")
     @PostMapping
     public SaveResponse saveDepositDetails(

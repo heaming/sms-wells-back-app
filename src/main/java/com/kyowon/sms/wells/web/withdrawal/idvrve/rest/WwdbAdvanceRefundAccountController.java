@@ -38,10 +38,10 @@ public class WwdbAdvanceRefundAccountController {
     private final WwdbAdvanceRefundAccountService service;
 
     /**
-     * 선환불계좌조회 목록
+     * 선환불계좌조회 목록 / 페이징
      * @param req
-     * @param pageInfo
-     * @return
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchAdvanceRefundAccountRes>
      */
     @ApiOperation(value = "선환불계좌조회 목록", notes = "선환불계좌조회 목록")
     @ApiImplicitParams({
@@ -63,7 +63,7 @@ public class WwdbAdvanceRefundAccountController {
     /**
      * 선환불계좌조회 엑셀 다운로드
      * @param req
-     * @return
+     * @return List<SearchAdvanceRefundAccountRes>
      */
     @ApiOperation(value = "선환불계좌조회 엑셀 다운로드", notes = "선환불계좌조회 엑셀 다운로드")
     @ApiImplicitParams({

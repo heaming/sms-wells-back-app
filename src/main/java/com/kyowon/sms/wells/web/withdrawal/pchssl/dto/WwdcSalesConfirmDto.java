@@ -2,9 +2,20 @@ package com.kyowon.sms.wells.web.withdrawal.pchssl.dto;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 매출확정관리 DTO
+ * </pre>
+ *
+ * @author limkimoon
+ * @since 2023-05-31
+ */
 public class WwdcSalesConfirmDto {
 
-    // 선납예상금 데이터
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 매출확정관리 조회 Request Dto
     @ApiModel("WwdcSalesConfirmDto-SearchSalesConfirmReq")
     public record SearchSalesConfirmReq(
         String cntrNo,
@@ -19,9 +30,12 @@ public class WwdcSalesConfirmDto {
         String dtTo, // 매출인식일To
         String sellChnl, // 판매채널
         String slRcogDv // 판매인식
-    ) {
-    }
+    ) { }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 매출확정관리 조회 Result Dto
     @ApiModel("WwdcSalesConfirmDto-SearchSalesConfirmRes")
     public record SearchSalesConfirmRes(
         String ogCd,
@@ -51,9 +65,12 @@ public class WwdcSalesConfirmDto {
         String slRcogDt, /* 매출인식일자 */
         String fnlMdfcDtm, /* 변경일자 */
         String fnlMdfcUsrId/* 변경자 */
-    ) {
-    }
+    ) { }
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 매출확정관리 인식상태변경 Request Dto
     @ApiModel("WwdcSalesConfirmDto-SaveSalesConfirmReq")
     public record SaveSalesConfirmReq(
         String ogCd,
@@ -84,7 +101,6 @@ public class WwdcSalesConfirmDto {
         String fnlMdfcDtm, /* 변경일자 */
         String fnlMdfcUsrId, /* 변경자 */
         String state // 임시 상태값 컬럼 추가
-    ) {
-    }
+    ) { }
 
 }

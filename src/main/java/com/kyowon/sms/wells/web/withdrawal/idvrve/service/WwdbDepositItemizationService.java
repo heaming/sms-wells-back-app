@@ -13,6 +13,14 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositItemizationDto.
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 입금내역조회(모바일) 서비스
+ * </pre>
+ *
+ * @author jaehaYeon
+ * @since 2023-06-07
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbDepositItemizationService {
