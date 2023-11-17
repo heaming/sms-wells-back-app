@@ -4,17 +4,29 @@ import org.apache.commons.lang.StringUtils;
 
 import com.sds.sflex.common.utils.DbEncUtil;
 
+/**
+ * <pre>
+ * 통합입금번호 조회 DTO
+ * </pre>
+ *
+ * @author heungjun.lee
+ * @since 2023-04-03
+ */
 public class WwdbIntegrationDepositNumberDto {
-    public record SearchReq(
 
-        String rveCd, /*수납일자*/
-        String dpStartDtm,
-        String dpEndDtm,
-        String dpTpCd,
-        String acnoEncr,
-        String sellPrtnrNo,
-        String crcdnoEncr,
-        String crdcdAprno
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 통합입금번호 목록 조회 Request Dto
+    public record SearchReq(
+        String rveCd, /*수납코드*/
+        String dpStartDtm, // 임급일시-시작
+        String dpEndDtm, // 임급일시-종
+        String dpTpCd, // 입금유형
+        String acnoEncr, // 계좌번호
+        String sellPrtnrNo, // 판매자번호
+        String crcdnoEncr, // 카드번호
+        String crdcdAprno // 승인번호
     ) {
         public SearchReq {
             acnoEncr = StringUtils.isNotEmpty(acnoEncr) ? DbEncUtil.enc(acnoEncr) : acnoEncr; // 계좌번호
@@ -22,6 +34,10 @@ public class WwdbIntegrationDepositNumberDto {
         }
     }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 통합입금번호 목록 조회 Result Dto
     public record SearchRes(
         String itgDpNo, /*통합입금번호*/
         String rveCd, /*수납코드*/

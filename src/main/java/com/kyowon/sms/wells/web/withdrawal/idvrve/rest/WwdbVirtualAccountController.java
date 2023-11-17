@@ -30,6 +30,11 @@ public class WwdbVirtualAccountController {
 
     private final WwdbVirtualAccountService service;
 
+    /**
+     * 가상계좌조회(W-WD-S-0038)
+     * @param req
+     * @return List<SearchRes>
+     */
     @ApiOperation(value = "가상계좌조회(W-WD-S-0038)", notes = "가상계좌조회")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
@@ -41,6 +46,11 @@ public class WwdbVirtualAccountController {
         return service.getVirtualAccounts(req);
     }
 
+    /**
+     * 가상계좌입금내역 조회(W-WD-S-0039)
+     * @param req
+     * @return List<SearchDtlRes>
+     */
     @ApiOperation(value = "가상계좌입금내역 조회(W-WD-S-0039)", notes = "가상계좌입금내역 조회")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "prtnrNo", value = "판매자번호", paramType = "query", required = false),

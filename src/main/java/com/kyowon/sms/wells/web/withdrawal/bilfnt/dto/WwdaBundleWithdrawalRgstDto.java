@@ -6,8 +6,20 @@ import com.sds.sflex.common.utils.DbEncUtil;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 자동이체 묶음 출금 등록 관리 DTO
+ * </pre>
+ *
+ * @author donghyun.yoo
+ * @since 2023-02-01
+ */
 public class WwdaBundleWithdrawalRgstDto {
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 묶음출금 미등록 현황 조회 Request Dto
     @ApiModel("WwdaBundleWithdrawalRgstDto-SearchReq")
     public record SearchReq(
         String unrgRs, // 대상구분, 처리결과
@@ -20,8 +32,12 @@ public class WwdaBundleWithdrawalRgstDto {
         String cntrPdStrtdtA, // 묶음등록 시작일
         String cntrPdEnddtA // 묶음등록 종료일
 
-    ) {}
+    ) { }
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 묶음 등록 Request Dto
     @ApiModel("WwdaBundleWithdrawalRgstDto-SaveReq")
     public record SaveReq(
         String cntrNo, // 계약번호
@@ -30,8 +46,12 @@ public class WwdaBundleWithdrawalRgstDto {
         String cntrPdEnddt, // 접수종료일,
         String unrgRsCd // 접수구분,
 
-    ) {}
+    ) { }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 묶음출금 미등록 현황 엑셀 다운로드 Result Dto
     @ApiModel("WwdaBundleWithdrawalRgstDto-SearchUnrgPsRes")
     public record SearchUnrgPsRes(
         String cstKnm, // 고객명
@@ -71,9 +91,12 @@ public class WwdaBundleWithdrawalRgstDto {
             //            sdingCrcdnoEncr = StringUtils.isNotEmpty(sdingCrcdnoEncr) ? DbEncUtil.dec(sdingCrcdnoEncr)
             //                : sdingCrcdnoEncr;
         }
-
     }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 묶음 출금 등록 이력 조회 Result Dto
     @ApiModel("WwdaBundleWithdrawalRgstDto-SearchRgstHistRes")
     public record SearchRgstHistRes(
         String itgBilPrtcDtm, //등록일시
@@ -113,7 +136,6 @@ public class WwdaBundleWithdrawalRgstDto {
             //            sdingCrcdnoEncr = StringUtils.isNotEmpty(sdingCrcdnoEncr) ? DbEncUtil.dec(sdingCrcdnoEncr)
             //                : sdingCrcdnoEncr;
         }
-
     }
 
 }

@@ -29,6 +29,12 @@ public class WwdbIntegrationDepositNumberController {
 
     private final WwdbIntegrationDepositNumberService service;
 
+    /**
+     * 통합입금번호 목록 조회 / 페이징
+     * @param dto
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRes>
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "rveCd", value = "수납코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "dpStartDtm", value = "임급일시-시작", paramType = "query", required = false),
@@ -45,6 +51,11 @@ public class WwdbIntegrationDepositNumberController {
         return service.getIntegrationDepositNumberPages(dto, pageInfo);
     }
 
+    /**
+     * 통합입금번호 목록 엑셀 다운로드
+     * @param dto
+     * @return List<SearchRes>
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "rveCd", value = "수납코드", paramType = "query", required = false),
         @ApiImplicitParam(name = "dpStartDtm", value = "임급일시-시작", paramType = "query", required = false),

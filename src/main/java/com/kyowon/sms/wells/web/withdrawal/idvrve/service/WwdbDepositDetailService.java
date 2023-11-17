@@ -17,6 +17,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * 입금내역조회(웰스입금상세) 서비스
+ * </pre>
+ *
+ * @author ShinSoJeong
+ * @since 2023-06-16
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -27,10 +35,10 @@ public class WwdbDepositDetailService {
     private final WwdbDepositDetailConvert convert;
 
     /**
-     * 입금내역 조회
+     * 입금내역 조회 / 페이징
      * @param dto
-     * @param pageInfo
-     * @return
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRes>
      */
     @Transactional
     public PagingResult<SearchRes> getDepositDetailPages(SearchReq dto, PageInfo pageInfo) {
@@ -45,7 +53,7 @@ public class WwdbDepositDetailService {
     /**
      * 입금내역 엑셀다운로드
      * @param dto
-     * @return
+     * @return List<SearchRes>
      */
     @Transactional
     public List<SearchRes> getDepositDetailExcels(SearchReq dto) {

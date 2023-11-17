@@ -4,8 +4,20 @@ import org.thymeleaf.util.StringUtils;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 가상계좌 조회 DTO
+ * </pre>
+ *
+ * @author
+ * @since 2023-05-08
+ */
 public class WwdbVirtualAccountDto {
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 가상계좌조회 (모바일) Request Dto
     @ApiModel(value = "WwdbVirtualAccountDto-SearchReq")
     public record SearchReq(
         String prtnrNo, // 판매자번호
@@ -23,6 +35,10 @@ public class WwdbVirtualAccountDto {
         }
     }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 가상계좌조회 (모바일) Result Dto
     @ApiModel(value = "WwdbVirtualAccountDto-SearchRes")
     public record SearchRes(
         String vacBnkCd, // 은행
@@ -35,6 +51,10 @@ public class WwdbVirtualAccountDto {
         String totDpBlam // 총잔액
     ) {}
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 가상계좌입금내역조회 (모바일) Result Dto
     @ApiModel(value = "WwdbVirtualAccountDto-SearchDtlRes")
     public record SearchDtlRes(
         String dpDt, // 입금일
@@ -45,6 +65,5 @@ public class WwdbVirtualAccountDto {
         String useAmt, // 총잔액
         String dpBlam, // 사용금액
         String vacNo // 가상계좌번호
-
     ) {}
 }
