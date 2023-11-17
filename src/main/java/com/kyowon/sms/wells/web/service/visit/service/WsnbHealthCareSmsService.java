@@ -1,25 +1,25 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
-import com.kyowon.sflex.common.message.dvo.SmsSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
 import com.kyowon.sflex.common.message.service.SmsMessageService;
 import com.kyowon.sflex.common.system.service.UrlShortenerService;
-
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbHealthCareSmsDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbHealthCareSmsMapper;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SendTemplateConst;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.common.utils.StringUtil;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -61,14 +61,19 @@ public class WsnbHealthCareSmsService {
             String yn = StringUtil.nvl2(row.getPifThpOfrAgYn(), "N");
 
             // 오즈리포트 호출 url
-            String url = "/api/v1/anonymous/sms/wells/service/healthcare-application-agreement/report/"
+            String url1 = "/api/v1/anonymous/sms/wells/service/healthcare-application-agreement/report/"
                 + row.getCntrNo() + "-" + row.getCntrSn();
+
+            String url2 = yn.equals("Y")
+                ? "http://html.kyowon.co.kr/wells/wells_health/index.html" // WELLS18287
+                : "https://m.kyowonwells.com:4440/voucher/index.html"; // WELLS18286
 
             paramMap.clear();
             paramMap.put("cstFnm", row.getAgpNm());
             //paramMap.put("cntrNo", row.getCntrNo());
             paramMap.put("callback", callback);
-            paramMap.put("url", baseUrl + urlService.getShortedUrl(url));
+            paramMap.put("url1", baseUrl + urlService.getShortedUrl(url1));
+            paramMap.put("url2", url2);
 
             templateId = yn.equals("Y") ? SendTemplateConst.TMP_SNB_WELLS18287 : SendTemplateConst.TMP_SNB_WELLS18286;
             templateCode = yn.equals("Y") ? SendTemplateConst.WELLS18287 : SendTemplateConst.WELLS18286;
