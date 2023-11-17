@@ -35,4 +35,12 @@ public class WsnaNewManagerBsConsumableDvo {
     String ogTpCd;
     String fxnPdCd;
     String aplcPdCd;
+
+    String fxnPckngUnit;
+    String fxnPdNm;
+    String fxnSapMatCd;
+    String aplcPckngUnit;
+    String aplcPdNm;
+    String aplcSapMatCd;
+    String qty;
 }
