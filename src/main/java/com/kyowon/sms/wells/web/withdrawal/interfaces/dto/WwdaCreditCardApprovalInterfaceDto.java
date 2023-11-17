@@ -26,6 +26,8 @@ public class WwdaCreditCardApprovalInterfaceDto {
         String indvEntrpDvCd, /*개인사업자구분*/
         @JsonProperty("BRYY_MMDD_BZOP_NO")
         String bryyMmddBzopNo, /*생년월일/사업자번호*/
+        @JsonProperty("RVE_CD")
+        String rveCd, /*수납코드*/
         @JsonProperty("STLM_AMT")
         String stlmAmt /*결제금액*/
     ) {}
