@@ -39,9 +39,6 @@ public class WdebAwAdsbMgtService {
             * */
             processCount += mapper.updateLifeAdsbObjectWells(req); // WELLS 상조 재지급 대상 생성
 
-            // 수수료쪽 재지급 금액 생성 service
-            // 수수료.금액생성서비스(파라미터);
-
         } else {
 
             /* 재지급 대상 생성 전, 확정여부 확인 validation */
