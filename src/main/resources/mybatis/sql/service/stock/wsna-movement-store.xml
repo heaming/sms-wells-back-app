@@ -201,13 +201,10 @@
              , J1.SVPD_BASE_COLOR_GB              AS BASE_COLOR_GB  /* 기본컬러구분 */
              , T2.STR_HOP_DT                    /* 입고희망일자 */
              , T2.OSTR_CNFM_CD                  /* 출고확정코드 */
-             , ( SELECT NVL(SUM(S1.STR_QTY), 0)
-                   FROM TB_SVST_ITM_STR_IZ S1
-                  WHERE S1.DTA_DL_YN  = 'N'
-                    AND S1.STR_CONF_DT IS NOT NULL
-                    AND S1.ITM_STR_NO = T1.ITM_STR_NO
-                    AND S1.STR_SN     = T1.STR_SN
-               ) AS IN_SUM   /* 입고누계수량 */
+             , CASE WHEN T1.STR_CONF_DT IS NOT NULL
+                    THEN T1.STR_QTY
+                    ELSE 0
+               END AS IN_SUM   /* 입고누계수량, 입고확정한 경우 표기 */
              , T1.STR_CONF_DT /* 입고확인일자*/
              , T3.RMK_CN      /* 비고 */
              , T3.OSTR_SN     /* 출고순번 */
@@ -266,21 +263,21 @@
     </update>
     <update id="saveItemQtyConfirm">
         UPDATE TB_SVST_CST_SV_ITM_STOC_IZ T1 /* 고객서비스품목재고내역 */
-           SET T1.MMT_STOC_A_GD_QTY = CASE WHEN (T1.MMT_STOC_A_GD_QTY - DECODE( #{itmGdCd}, 'A', #{strQty},0)) <![CDATA[<]]> 0
+           SET T1.MMT_STOC_A_GD_QTY = CASE WHEN NVL(T1.MMT_STOC_A_GD_QTY, 0) - DECODE(#{itmGdCd}, 'A', #{strQty}, 0) <![CDATA[<]]> 0
                                            THEN 0
-                                           ELSE (T1.MMT_STOC_A_GD_QTY - DECODE( #{itmGdCd}, 'A', #{strQty},0))
+                                           ELSE NVL(T1.MMT_STOC_A_GD_QTY, 0) - DECODE(#{itmGdCd}, 'A', #{strQty}, 0)
                                        END
-             , T1.MMT_STOC_B_GD_QTY = CASE WHEN (T1.MMT_STOC_B_GD_QTY - DECODE( #{itmGdCd}, 'B', #{strQty},0)) <![CDATA[<]]> 0
+             , T1.MMT_STOC_B_GD_QTY = CASE WHEN NVL(T1.MMT_STOC_B_GD_QTY, 0) - DECODE(#{itmGdCd}, 'B', #{strQty}, 0) <![CDATA[<]]> 0
                                            THEN 0
-                                           ELSE (T1.MMT_STOC_B_GD_QTY - DECODE( #{itmGdCd}, 'B', #{strQty},0))
+                                           ELSE NVL(T1.MMT_STOC_B_GD_QTY, 0) - DECODE(#{itmGdCd}, 'B', #{strQty}, 0)
                                        END
-             , T1.MMT_STOC_E_GD_QTY = CASE WHEN (T1.MMT_STOC_E_GD_QTY - DECODE( #{itmGdCd}, 'E', #{strQty},0)) <![CDATA[<]]> 0
+             , T1.MMT_STOC_E_GD_QTY = CASE WHEN NVL(T1.MMT_STOC_E_GD_QTY, 0) - DECODE(#{itmGdCd}, 'E', #{strQty}, 0) <![CDATA[<]]> 0
                                            THEN 0
-                                           ELSE (T1.MMT_STOC_E_GD_QTY - DECODE( #{itmGdCd}, 'E', #{strQty},0))
+                                           ELSE NVL(T1.MMT_STOC_E_GD_QTY, 0) - DECODE(#{itmGdCd}, 'E', #{strQty}, 0)
                                        END
-             , T1.MMT_STOC_R_GD_QTY = CASE WHEN (T1.MMT_STOC_R_GD_QTY - DECODE( #{itmGdCd}, 'R', #{strQty},0)) <![CDATA[<]]> 0
+             , T1.MMT_STOC_R_GD_QTY = CASE WHEN NVL(T1.MMT_STOC_R_GD_QTY, 0) - DECODE(#{itmGdCd}, 'R', #{strQty}, 0) <![CDATA[<]]> 0
                                            THEN 0
-                                           ELSE (T1.MMT_STOC_R_GD_QTY - DECODE( #{itmGdCd}, 'R', #{strQty},0))
+                                           ELSE NVL(T1.MMT_STOC_R_GD_QTY, 0) - DECODE(#{itmGdCd}, 'R', #{strQty}, 0)
                                        END
              <include refid="COMMON.updateSystemField"/>
          WHERE T1.WARE_NO = #{strWareNo}
