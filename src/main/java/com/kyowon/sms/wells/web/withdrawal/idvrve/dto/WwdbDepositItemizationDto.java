@@ -6,12 +6,24 @@ import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 입금내역조회(모바일) DTO
+ * </pre>
+ *
+ * @author jaehaYeon
+ * @since 2023-06-07
+ */
 public class WwdbDepositItemizationDto {
 
     // *********************************************************
     // Object Dto
     // *********************************************************
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 입금내역조회(모바일) Request Dto
     @ApiModel("WwdbDepositItemizationDto-SearchReq")
     public record SearchReq(
         String cstNo, /*고객번호*/
@@ -19,6 +31,10 @@ public class WwdbDepositItemizationDto {
         String finishDt /*조회종료일*/
     ) {}
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 입금내역조회(모바일) Result Dto
     @ApiModel("WwdbDepositItemizationDto-SearchRes")
     public record SearchRes(
         String dpMesCd, /*입금수단코드*/
@@ -38,6 +54,10 @@ public class WwdbDepositItemizationDto {
 
     ) {}
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 입금내역조회_엔지니어별(모바일) Result Dto
     @ApiModel("WwdbDepositItemizationDto-SearchDepositItemizationsByEngineersRes")
     public record SearchDepositItemizationsByEngineersRes(
         String prtnrNo, /*파트너번호*/

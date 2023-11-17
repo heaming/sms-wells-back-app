@@ -9,6 +9,14 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbDepositRefundItemiz
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 월별입금/환불금액조회 서비스
+ * </pre>
+ *
+ * @author
+ * @since 2023-05-08
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbDepositRefundItemizationService {
@@ -18,7 +26,7 @@ public class WwdbDepositRefundItemizationService {
     /**
      * 월별입금/환불금액조회
      * @param req
-     * @return
+     * @return List<SearchRes>
      */
     public List<WwdbDepositRefundItemizationDto.SearchRes> getDepositRefundItemizations(
         WwdbDepositRefundItemizationDto.SearchReq req

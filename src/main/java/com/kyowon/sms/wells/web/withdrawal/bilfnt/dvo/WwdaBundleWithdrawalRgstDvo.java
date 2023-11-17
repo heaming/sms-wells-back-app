@@ -3,6 +3,14 @@ package com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * <pre>
+ * 묶음 등록 DTO
+ * </pre>
+ *
+ * @author donghyun.yoo
+ * @since 2023-02-01
+ */
 @Getter
 @Setter
 public class WwdaBundleWithdrawalRgstDvo {

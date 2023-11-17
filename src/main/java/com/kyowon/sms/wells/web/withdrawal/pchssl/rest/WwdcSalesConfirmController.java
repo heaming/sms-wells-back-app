@@ -36,6 +36,12 @@ import lombok.extern.slf4j.Slf4j;
 public class WwdcSalesConfirmController {
     private final WwdcSalesConfirmService service;
 
+    /**
+     * 매출확정관리 조회 / 페이징
+     * @param dto
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchSalesConfirmRes>
+     */
     @ApiOperation(value = "[WDC] 매출확정관리 조회", notes = "매출확정 내역을 조회합니다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
@@ -57,7 +63,12 @@ public class WwdcSalesConfirmController {
         return service.getSalesConfirm(dto, pageInfo);
     }
 
-    @ApiOperation(value = "[WDC] 매출확정관리 엑셀다운로드 ", notes = "매출확정 조회 데이터를 엑셀 다운로드합니다.")
+    /**
+     * 매출확정관리 엑셀다운로드
+     * @param dto
+     * @return List<SearchSalesConfirmRes>
+     */
+    @ApiOperation(value = "[WDC] 매출확정관리 엑셀다운로드", notes = "매출확정 조회 데이터를 엑셀 다운로드합니다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
@@ -77,6 +88,12 @@ public class WwdcSalesConfirmController {
         return service.getSalesConfirmForExcelDownload(dto);
     }
 
+    /**
+     * 매출확정관리 인식상태변경
+     * @param req
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "[WDC] 매출확정관리 인식상태변경", notes = "매출확정 인식상태를 변경합니다.")
     @PostMapping("/change-state")
     public SaveResponse getSalesConfirmChangeState(

@@ -21,6 +21,14 @@ import com.sds.sflex.system.config.response.SaveResponse;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 입금처리 - 입금상세 서비스
+ * </pre>
+ *
+ * @author jaehaYeon
+ * @since 2023-05-24
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbDepositService {

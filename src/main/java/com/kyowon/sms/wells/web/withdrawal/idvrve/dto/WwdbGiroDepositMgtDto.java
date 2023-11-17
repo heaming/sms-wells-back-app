@@ -4,18 +4,33 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
+/**
+ * <pre>
+ * 지로입금관리 DTO
+ * </pre>
+ *
+ * @author heungjun.lee
+ * @since 2023-03-21
+ */
+
 public class WwdbGiroDepositMgtDto {
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 지로입금 목록조회 Request Dto
     public record SearchReq(
         String rveDt,
         String fntDt,
         String giroOcrBndlYm,
         String errorChk,
-
         String dgCntrNo,
         String dgCntrSn
-    ) {
-    }
+    ) { }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 지로입금 목록조회 Result Dto
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchRes")
     public record SearchRes(
         String kwGrpCoCd,
@@ -54,9 +69,12 @@ public class WwdbGiroDepositMgtDto {
         //        String sellTpCd, //--판매유형
         //        String procsErrTpCd, // --처리오류유형코드
         //        String dgCntrNo //--대표번호
-    ) {
-    }
+    ) { }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 지로입금 합계 조회 Result Dto
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchRes")
     public record SearchSumRes(
         String rveAmtSum,
@@ -64,6 +82,10 @@ public class WwdbGiroDepositMgtDto {
     ) {
     }
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 지로 입금관리 업로드 Request Dto
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveReq")
     public record SaveReq(
         String giroDpMtrDvCd, // --구분코드
@@ -78,9 +100,12 @@ public class WwdbGiroDepositMgtDto {
         String giroRveDvCd, //--지로수납구분코드
         String giroFeeDvCd, //--지로수수료구분코드
         String rmkCn //--비고
-    ) {
-    }
+    ) { }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 지로 입금관리 업로드 Result Dto
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveReq")
     public record SaveRes(
         String giroDpMtrDvCd, // --구분코드
@@ -95,9 +120,12 @@ public class WwdbGiroDepositMgtDto {
         String giroRveDvCd, //--지로수납구분코드
         String giroFeeDvCd, //--지로수수료구분코드
         String rmkCn //--비고
-    ) {
-    }
+    ) { }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 지로 입금관리 생성 Result Dto
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDepositRes")
     public record SearchDepositRes(
         String itgDpNo,
@@ -118,30 +146,30 @@ public class WwdbGiroDepositMgtDto {
         String giroPrtsDvCd,
         String procsErrTpCd,
         String dtaDlYn
-    ) {
-    }
+    ) { }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDepositReq")
     public record SearchDepositReq(
 
-    ) {
-    }
+    ) { }
+
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDepositCountReq")
     public record SearchDepositCountReq(
         String giroOcrBndlYm,
         String dgCntrNo,
         String dgCntrSn
-    ) {
-    }
+    ) { }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveReq")
     public record SaveBillingReq(
 
-    ) {
+    ) { }
 
-    }
-
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 지로 입금관리 생성 Result Dto - 렌탈고객 조회
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDepositCountReq")
     public record SearchContractDetailRes(
         String cntrNo,
@@ -156,10 +184,12 @@ public class WwdbGiroDepositMgtDto {
         String sellTpCd,
         String sellTpDtlCd,
         String cntrDtlStatCd
-    ) {
-    }
+    ) { }
 
-    /* 지로 입금 설정 금액 및 고객 조회*/
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 지로 입금 설정 금액 및 고객 조회 Result Dto
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDepositSettingRes")
     public record SearchDepositSettingRes(
         String dpSeAmt,
@@ -168,11 +198,12 @@ public class WwdbGiroDepositMgtDto {
         String dpseAmt, /*설정금액*/
         String cntrNo,
         String cntrSn
-    ) {
+    ) { }
 
-    }
-
-    //지로 입금 에러 조회
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 지로입금 에러 조회 Result Dto
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchErrosRes")
     public record SearchErrosRes(
         String itgDpNo, //--통합입금번호
@@ -186,10 +217,12 @@ public class WwdbGiroDepositMgtDto {
         String fnlMdfcUsrId, //--수정아이디
         String dpErrProcsCn,
         String cntrSn
-    ) {
-    }
+    ) { }
 
-    //지로 입금 에러 저장
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    //지로 입금 에러 저장 Request Dto
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveErrosReq")
     public record SaveErrosReq(
         String rowState,
@@ -202,43 +235,54 @@ public class WwdbGiroDepositMgtDto {
         String cntrSn,
         String dpErrProcsCn,
         String cntr
-    ) {
-    }
+    ) { }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 자료 존재여부 체크 Result Dto
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDtlStateRes")
     public record SearchDtlStateRes(
 
         String cntrNo,
         String cntrSn,
         String cntrDtlStatCd //--계약상태코드
-    ) {
-    }
+    ) { }
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDtlStateReq")
     public record SearchDtlStateReq(
 
         String cntrNo,
         String cntrSn
-    ) {
-    }
+    ) { }
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 지로 입금관리 원장 내역 조회 Request Dto
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchLedgerItemizationReq")
     public record SearchLedgerItemizationReq(
         String fntDt,
 
         String giroDpMtrDvCd
 
-    ) {
-    }
+    ) { }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 지로 입금관리 원장 내역 조회 Result Dto
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchLedgerItemizationReq")
     public record SearchLedgerItemizationRes(
         String fntDt,
         int chkCnt,
         int itgDpProcsYCnt
-    ) {
-    }
+    ) { }
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 지로 입금관리 실적일자 조회 Result Dto
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchLedgerItemizationReq")
     public record SearchGiroNumberRes(
         String cntrNo,
@@ -246,8 +290,6 @@ public class WwdbGiroDepositMgtDto {
         String cntr,
         String cstNo,
         String cstKnm
-    ) {
-    }
-
+    ) { }
 
 }

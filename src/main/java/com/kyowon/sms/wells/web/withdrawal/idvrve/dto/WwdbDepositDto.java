@@ -5,12 +5,24 @@ import lombok.Builder;
 
 import javax.validation.constraints.NotBlank;
 
+/**
+ * <pre>
+ * 입금처리 - 입금상세 DTO
+ * </pre>
+ *
+ * @author jaehaYeon
+ * @since 2023-05-24
+ */
 public class WwdbDepositDto {
 
     // *********************************************************
     // Object Dto
     // *********************************************************
 
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 입금상세 저장 Request Dto
     @ApiModel("WwdbDepositDto-SaveReq")
     public record SaveReq(
         @NotBlank
@@ -47,6 +59,10 @@ public class WwdbDepositDto {
 
     ) {}
 
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 입금상세 저장 Result Dto
     @ApiModel("WwdbDepositDto-SaveRes")
     public record SaveRes(
         String rveNo, /*수납번호*/

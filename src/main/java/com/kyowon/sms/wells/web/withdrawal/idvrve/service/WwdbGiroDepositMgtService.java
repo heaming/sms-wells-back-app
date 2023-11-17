@@ -152,7 +152,6 @@ public class WwdbGiroDepositMgtService {
 
     /**
      * 지로 입금관리 생성
-     *
      * @param dto
      * @return
      * @throws Exception
@@ -741,7 +740,6 @@ public class WwdbGiroDepositMgtService {
 
     /**
      * 지로입금 에러 조회
-     *
      * @param dto
      * @param pageInfo
      * @return
@@ -766,7 +764,6 @@ public class WwdbGiroDepositMgtService {
 
     /**
      * 지로입금에러 저장
-     *
      * @param dtos
      * @return
      * @throws Exception
@@ -821,10 +818,7 @@ public class WwdbGiroDepositMgtService {
         List<String> fntDts = dtos.stream().distinct()
             .filter(dto -> "22".equals(dto.giroDpMtrDvCd())).map(dto -> dto.fntDt()).collect(Collectors.toList());
 
-        SearchLedgerItemizationRes itemizationRes = mapper
-            .selectBillingDocumentMgtLedgerItemization(fntDts);
-
-        return itemizationRes;
+        return mapper.selectBillingDocumentMgtLedgerItemization(fntDts);
     }
 
     /**

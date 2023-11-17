@@ -26,12 +26,23 @@ import lombok.extern.slf4j.Slf4j;
 public class WwdbIntegrationDepositController {
     private final WwdbIntegrationDepositService service;
 
+    /**
+     * 통합입금목록 조회 / 페이징
+     * @param dto
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRes>
+     */
     @ApiOperation(value = "통합입금목록 조회", notes = " 검색조건을 받아 통합입금목록을 조회한다.")
     @GetMapping("/paging")
     public PagingResult<SearchRes> getIntegrationDepositPages(SearchReq dto, PageInfo pageInfo) {
         return service.getIntegrationDepositPages(dto, pageInfo);
     }
 
+    /**
+     * 통합입금목록 엑셀다운로드
+     * @param dto
+     * @return List<SearchRes>
+     */
     @ApiOperation(value = "통합입금목록 엑셀다운로드", notes = " 검색조건을 받아 통합입금목록을 엑셀다운로드한다.")
     @GetMapping("/excel-download")
     public List<SearchRes> getIntegrationDepositExcels(SearchReq dto) {
