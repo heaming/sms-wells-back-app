@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsnaInstallationStockPsByDayDvo {
+public class WsnaInstallationStockPsByDayCenterDvo {
     String ogId;
     String ogNm;
     String pdCd;
