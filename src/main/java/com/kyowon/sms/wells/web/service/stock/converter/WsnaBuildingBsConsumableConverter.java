@@ -6,6 +6,7 @@ import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.CreateReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.CreateTmlmReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.SearchItmRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.SearchRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -19,4 +20,6 @@ public interface WsnaBuildingBsConsumableConverter {
     WsnaBuildingBsConsumableDvo mapCreateTmlmReqToCsmbDblv(CreateTmlmReq dto);
 
     WsnaBuildingBsConsumableDvo mapCreateReqToCsmbDblv(CreateReq dto);
+
+    List<SearchItmRes> mapAllDvosToSearchItmRes(List<WsnaBuildingBsConsumableDvo> dvos);
 }

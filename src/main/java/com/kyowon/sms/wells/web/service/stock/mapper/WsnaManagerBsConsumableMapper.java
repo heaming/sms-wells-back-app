@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaManagerBsConsumableDto.FindTmlmRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaManagerBsConsumableDto.SearchItmRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaManagerBsConsumableDto.SearchLmQtyRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaManagerBsConsumableDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaManagerBsConsumableDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -13,7 +13,7 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsnaManagerBsConsumableMapper {
-    List<SearchItmRes> selectItems(String mngtYm);
+    List<WsnaManagerBsConsumableDvo> selectItems(String mngtYm);
 
     List<WsnaManagerBsConsumableDvo> selectBuildings(SearchReq dto);
 
@@ -38,4 +38,6 @@ public interface WsnaManagerBsConsumableMapper {
     int updateBfsvcCsmbDdlvIzOstrAkNoSn(WsnaManagerBsConsumableDvo dvo);
 
     int updateBfsvcCsmbDdlvIzDdlvStatCd(List<String> strWareNos, String mngtYm);
+
+    List<SearchLmQtyRes> selectApplicationLimitQty(String mngtYm);
 }

@@ -82,4 +82,12 @@ public class WsnaManagerBsConsumableController {
             .processCount(service.createManagerBsConsumablesRequest(dtos))
             .build();
     }
+
+    @GetMapping("/{mngtYm}/application-limit-qty")
+    public List<SearchLmQtyRes> getApplicationLimitQty(
+        @PathVariable
+        String mngtYm
+    ) {
+        return service.getApplicationLimitQty(mngtYm);
+    }
 }
