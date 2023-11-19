@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.interfaces.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sds.sflex.common.utils.DbEncUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -144,10 +145,10 @@ public class WsniParcelServiceRegService {
 
         data3.setSENDRNM(dvo.getSendrNm());
         data3.setSENDRTELNO1(dvo.getSendrtelNo1());
-        data3.setSENDRTELNO2(dvo.getSendrtelNo2());
+        data3.setSENDRTELNO2( DbEncUtil.dec(dvo.getSendrtelNo2()));
         data3.setSENDRTELNO3(dvo.getSendrtelNo3());
         data3.setSENDRCELLNO1(dvo.getSendrcellNo1());
-        data3.setSENDRCELLNO2(dvo.getSendrcellNo2());
+        data3.setSENDRCELLNO2(DbEncUtil.dec(dvo.getSendrcellNo2()));
         data3.setSENDRCELLNO3(dvo.getSendrcellNo3());
         data3.setSENDRZIPNO(dvo.getSendrZipNo());
         data3.setSENDRADDR(dvo.getSendrAddr());
