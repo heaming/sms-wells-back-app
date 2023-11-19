@@ -2,175 +2,272 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbIstYOneAcuAsRtSdingPsMapper">
     <select id="selectIstYOneAcuAsRtSdingPss" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIstYOneAcuAsRtSdingPsDto$SearchRes">
-        WITH TB_PD AS (
-                        SELECT DISTINCT T1.PD_CD
-                             , T2.PD_PRP_VAL20
-                          FROM TB_PDBS_PD_BAS T1
-                             , TB_PDBS_PD_ECOM_PRP_DTL T2
-                         WHERE 1=1
-                           AND T1.PD_CD = T2.PD_CD
-                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-                           <if test='@MybatisUtils@isEmpty(pdGrp)'>
-                           AND T2.PD_PRP_VAL20 IN ('5', '7', '8', '9', '91', '93', '95', '96')
-                           </if>
-                           <if test='@MybatisUtils@isNotEmpty(pdGrp)'>
-                           AND T2.PD_PRP_VAL20 = #{pdGrp}
-                           </if>
-                           <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-                           AND T1.PD_CD = #{pdCd}
-                           </if>
-                        )
-           , TB_SV AS (
-                        SELECT SUBSTR(T1.VST_FSH_DT, 1, 6) YYYYMM
-                             , T1.PDCT_PD_CD
-                             , NVL((SELECT SUM(CASE WHEN SV_BIZ_HCLSF_CD = '3' THEN PDCT_UPRC
-                                                    ELSE 0
-                                                END)
-                                      FROM TB_SVST_SV_WK_OSTR_IZ T2
-                                         , TB_PDBS_PD_BAS T3
-                                     WHERE T2.ITM_PD_CD = T3.PD_CD
-                                       AND T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO) , 0) AS PR
-                             , T3.IST_DT
-                          FROM TB_SVPD_CST_SV_WK_RS_IZ T1
-                         INNER JOIN TB_PD T2
-                            ON T1.PDCT_PD_CD = T2.PD_CD
-                          LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ T3
-                            ON T1.CNTR_NO = T3.CNTR_NO
-                           AND T1.CNTR_SN = T3.CNTR_SN
-                         WHERE 1=1
-                           AND (SUBSTR(T1.VST_FSH_DT, 1, 6) LIKE #{baseY}||'%' OR SUBSTR(T1.VST_FSH_DT, 1, 6) LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY},'YYYY'), -12),'YYYY')||'%' )
-                           AND T1.SV_BIZ_HCLSF_CD = '3'
-                           <if test='@MybatisUtils@isEmpty(svType)'>
-                           AND T1.SV_BIZ_DCLSF_CD IN ('3110', '3210')
-                           </if>
-                           <if test='@MybatisUtils@isNotEmpty(svType)'>
-                           AND T1.SV_BIZ_DCLSF_CD = #{svType}
-                           </if>
-                           AND (T1.AS_LCT_CD NOT IN ('A841', 'A805') OR T1.AS_LCT_CD IS NULL)
-        <![CDATA[
-                           AND ((SUBSTR(T1.VST_FSH_DT, 1, 6) < '201901' AND (T1.IMPTA_RSON_CD IN ('1','2','3','4','5','6') OR T1.IMPTA_RSON_CD IS NULL)) OR (SUBSTR(T1.VST_FSH_DT, 1, 6) >= '201901' AND (T1.BAD_DV_CD IN ('100R','300R','400R','700R') OR T1.BAD_DV_CD IS NULL)))
-        ]]>
-                           <if test='@MybatisUtils@isNotEmpty(badDivide)'>
-                           AND T1.BAD_DV_CD = #{badDivide}
-                           </if>
-                        )
-           , TB_SV2 AS (
-                        SELECT SUBSTR(T1.WK_EXCN_DT, 1, 6) YYYYMM
-                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
-                         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2
-                            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-                         INNER JOIN TB_PD T3
-                            ON T2.PD_CD = T3.PD_CD
-                         WHERE 1=1
-                           AND SUBSTR(T1.SV_BIZ_DCLSF_CD, 0, 2) = '11'
-                           AND (T1.WK_EXCN_DT LIKE #{baseY}||'%' OR T1.WK_EXCN_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY},'YYYY'), -12),'YYYY') ||'%')
-                           AND T1.WK_PRGS_STAT_CD = '20'
-                        )
-        SELECT CASE WHEN GB_CD = '1' THEN 'A/S건'
-                    WHEN GB_CD = '2' THEN '렌탈계정(수)'
-                    WHEN GB_CD = '3' THEN 'A/S율(%)'
-                    WHEN GB_CD = '4' THEN '엔지니어비용'
-                    WHEN GB_CD = '5' THEN '부품비용'
-                END ATC_NM
-             , ACOL1+ACOL2+ACOL3+ACOL4+ACOL5+ACOL6+ACOL7+ACOL8+ACOL9+ACOL10+ACOL11+ACOL12 TOTAL_CNT
-             , ACOL1 M01
-             , ACOL2 M02
-             , ACOL3 M03
-             , ACOL4 M04
-             , ACOL5 M05
-             , ACOL6 M06
-             , ACOL7 M07
-             , ACOL8 M08
-             , ACOL9 M09
-             , ACOL10 M10
-             , ACOL11 M11
-             , ACOL12 M12
+        SELECT NM
+             , CASE WHEN NM = '4' THEN  NVL(ACOL1,0)
+               ELSE NVL(ACOL1,0) END AS ACOL1
+             , CASE WHEN NM = '4' THEN  NVL(ACOL2,0)
+               ELSE NVL(ACOL2,0) END AS ACOL2
+             , CASE WHEN NM = '4' THEN  NVL(ACOL3,0)
+               ELSE NVL(ACOL3,0) END AS ACOL3
+             , CASE WHEN NM = '4' THEN  NVL(ACOL4,0)
+               ELSE NVL(ACOL4,0) END AS ACOL4
+             , CASE WHEN NM = '4' THEN  NVL(ACOL5,0)
+               ELSE NVL(ACOL5,0) END AS ACOL5
+             , CASE WHEN NM = '4' THEN  NVL(ACOL6,0)
+               ELSE NVL(ACOL6,0) END AS ACOL6
+             , CASE WHEN NM = '4' THEN  NVL(ACOL7,0)
+               ELSE NVL(ACOL7,0) END AS ACOL7
+             , CASE WHEN NM = '4' THEN  NVL(ACOL8,0)
+               ELSE NVL(ACOL8,0) END AS ACOL8
+             , CASE WHEN NM = '4' THEN  NVL(ACOL9,0)
+               ELSE NVL(ACOL9,0) END AS ACOL9
+             , CASE WHEN NM = '4' THEN  NVL(ACOL10,0)
+               ELSE NVL(ACOL10,0) END AS ACOL10
+             , CASE WHEN NM = '4' THEN  NVL(ACOL11,0)
+               ELSE NVL(ACOL11,0) END AS ACOL11
+             , CASE WHEN NM = '4' THEN  NVL(ACOL12,0)
+               ELSE NVL(ACOL12,0) END AS ACOL12
+             , 0 AS MAXVAL
+             , 0 AS MINVAL
+             , CASE WHEN NM = '4' THEN NVL(ACOL1+ACOL2+ACOL3+ACOL4+ACOL5+ACOL6+ACOL7+ACOL8+ACOL9+ACOL10+ACOL11+ACOL12,0)
+               ELSE NVL(ACOL1+ACOL2+ACOL3+ACOL4+ACOL5+ACOL6+ACOL7+ACOL8+ACOL9+ACOL10+ACOL11+ACOL12,0) END  as TCNT
+             , 0 AS AVG
           FROM (
-        <![CDATA[
-                SELECT '1' GB_CD
-                     , CASE WHEN #{baseY}||'01' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'01','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'01') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'01','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'01') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL1
-                     , CASE WHEN #{baseY}||'02' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'02') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'02') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL2
-                     , CASE WHEN #{baseY}||'03' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'03') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'03') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL3
-                     , CASE WHEN #{baseY}||'04' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'04') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'04') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL4
-                     , CASE WHEN #{baseY}||'05' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'05') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'05') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL5
-                     , CASE WHEN #{baseY}||'06' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'06') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'06') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL6
-                     , CASE WHEN #{baseY}||'07' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'07') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'07') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL7
-                     , CASE WHEN #{baseY}||'08' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'08') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'08') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL8
-                     , CASE WHEN #{baseY}||'09' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'09') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'09') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL9
-                     , CASE WHEN #{baseY}||'10' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'10') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'10') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL10
-                     , CASE WHEN #{baseY}||'11' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'11') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'11') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL11
-                     , CASE WHEN #{baseY}||'12' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'12') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'12') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL12
-                  FROM TB_SV
-        ]]>
-                 UNION ALL
-        <![CDATA[
-                SELECT '2' GB_CD
-                     , CASE WHEN #{baseY}||'01' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'01') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL1
-                     , CASE WHEN #{baseY}||'02' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'02') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL2
-                     , CASE WHEN #{baseY}||'03' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'03') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL3
-                     , CASE WHEN #{baseY}||'04' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'04') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL4
-                     , CASE WHEN #{baseY}||'05' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'05') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL5
-                     , CASE WHEN #{baseY}||'06' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'06') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL6
-                     , CASE WHEN #{baseY}||'07' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'07') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL7
-                     , CASE WHEN #{baseY}||'08' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'08') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL8
-                     , CASE WHEN #{baseY}||'09' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'09') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL9
-                     , CASE WHEN #{baseY}||'10' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'10') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL10
-                     , CASE WHEN #{baseY}||'11' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'11') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL11
-                     , CASE WHEN #{baseY}||'12' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= #{baseY}||'01' AND  YYYYMM <= #{baseY}||'12') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL12
-                  FROM TB_SV2
-        ]]>
-                 UNION ALL
-
-                SELECT '3' GB_CD
-                     , 0 AS ACOL1
-                     , 0 AS ACOL2
-                     , 0 AS ACOL3
-                     , 0 AS ACOL4
-                     , 0 AS ACOL5
-                     , 0 AS ACOL6
-                     , 0 AS ACOL7
-                     , 0 AS ACOL8
-                     , 0 AS ACOL9
-                     , 0 AS ACOL10
-                     , 0 AS ACOL11
-                     , 0 AS ACOL12
-                  FROM DUAL
-
-                 UNION ALL
-        <![CDATA[
-                SELECT '4' GB_CD
-                     , CASE WHEN #{baseY}||'01' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'01','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'01') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'01','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'01') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN 32277 ELSE 0 END) ELSE 0 END),0)) ELSE 0 END AS ACOL1
-                     , CASE WHEN #{baseY}||'02' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'02') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'02') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN 32277 ELSE 0 END) ELSE 0 END),0)) ELSE 0 END AS ACOL2
-                     , CASE WHEN #{baseY}||'03' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'03') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'03') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN 32277 ELSE 0 END) ELSE 0 END),0)) ELSE 0 END AS ACOL3
-                     , CASE WHEN #{baseY}||'04' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'04') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'04') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN 32277 ELSE 0 END) ELSE 0 END),0)) ELSE 0 END AS ACOL4
-                     , CASE WHEN #{baseY}||'05' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'05') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'05') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN 32277 ELSE 0 END) ELSE 0 END),0)) ELSE 0 END AS ACOL5
-                     , CASE WHEN #{baseY}||'06' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'06') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'06') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN 32277 ELSE 0 END) ELSE 0 END),0)) ELSE 0 END AS ACOL6
-                     , CASE WHEN #{baseY}||'07' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'07') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'07') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN 32277 ELSE 0 END) ELSE 0 END),0)) ELSE 0 END AS ACOL7
-                     , CASE WHEN #{baseY}||'08' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'08') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'08') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN 32277 ELSE 0 END) ELSE 0 END),0)) ELSE 0 END AS ACOL8
-                     , CASE WHEN #{baseY}||'09' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'09') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'09') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN 32277 ELSE 0 END) ELSE 0 END),0)) ELSE 0 END AS ACOL9
-                     , CASE WHEN #{baseY}||'10' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'10') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'10') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN 32277 ELSE 0 END) ELSE 0 END),0)) ELSE 0 END AS ACOL10
-                     , CASE WHEN #{baseY}||'11' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'11') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'11') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN 32277 ELSE 0 END) ELSE 0 END),0)) ELSE 0 END AS ACOL11
-                     , CASE WHEN #{baseY}||'12' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'12') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'12') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN 32277 ELSE 0 END) ELSE 0 END),0)) ELSE 0 END AS ACOL12
-                  FROM TB_SV
-        ]]>
-                 UNION ALL
-        <![CDATA[
-                SELECT '5' GB_CD
-                     , CASE WHEN #{baseY}||'01' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'01','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'01') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'01','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'01') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL1
-                     , CASE WHEN #{baseY}||'02' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'02') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'02') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL2
-                     , CASE WHEN #{baseY}||'03' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'03') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'03') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL3
-                     , CASE WHEN #{baseY}||'04' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'04') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'04') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL4
-                     , CASE WHEN #{baseY}||'05' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'05') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'05') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL5
-                     , CASE WHEN #{baseY}||'06' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'06') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'06') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL6
-                     , CASE WHEN #{baseY}||'07' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'07') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'07') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL7
-                     , CASE WHEN #{baseY}||'08' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'08') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'08') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL8
-                     , CASE WHEN #{baseY}||'09' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'09') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'09') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL9
-                     , CASE WHEN #{baseY}||'10' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'10') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'10') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL10
-                     , CASE WHEN #{baseY}||'11' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'11') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'11') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL11
-                     , CASE WHEN #{baseY}||'12' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-11),'YYYYMM') AND  IST_DT <= #{baseY}||'12') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'12') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL12
-                  FROM TB_SV
-        ]]>
-                )
-         ORDER BY GB_CD
+               SELECT '1' AS NM               /* 당월 기준 설치 1년 이내 제품불만 A/S 누적처리건수 */
+                    <![CDATA[
+                    , CASE WHEN #{baseY}||'01' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'01','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'01') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'01','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'01') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL1
+                    , CASE WHEN #{baseY}||'02' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'02') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'02') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL2
+                    , CASE WHEN #{baseY}||'03' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'03') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'03') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL3
+                    , CASE WHEN #{baseY}||'04' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'04') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'04') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL4
+                    , CASE WHEN #{baseY}||'05' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'05') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'05') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL5
+                    , CASE WHEN #{baseY}||'06' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'06') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'06') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL6
+                    , CASE WHEN #{baseY}||'07' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'07') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'07') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL7
+                    , CASE WHEN #{baseY}||'08' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'08') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'08') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL8
+                    , CASE WHEN #{baseY}||'09' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'09') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'09') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL9
+                    , CASE WHEN #{baseY}||'10' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'10') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'10') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL10
+                    , CASE WHEN #{baseY}||'11' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'11') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'11') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL11
+                    , CASE WHEN #{baseY}||'12' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'12') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'12') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL12
+                    ]]>
+                 FROM (
+                      SELECT SUBSTR(SV_BIZ_DCLSF_CD,0,2) AS WRK_TYP
+                           , WK_PRCSDT AS YYYYMM
+                           , SUBSTR(IST_DT, 1, 6) AS INSTDT
+                           , CST_SV_ASN_NO
+                        FROM TB_SVPD_QLTY_MNGT_AS_DTL_IZ VS161
+                       WHERE (WK_PRCSDT LIKE #{baseY}||'%' OR WK_PRCSDT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}, 'YYYY'), -12),'YYYY')||'%' )
+                         AND VS161.PD_GRP_CD = '11'
+                         AND (SELECT CDTL.CNTR_DTL_STAT_CD
+                                FROM TB_SVPD_CST_SV_EXCN_IZ GIGI
+                               INNER JOIN TB_SSCT_CNTR_DTL CDTL
+                                  ON CDTL.CNTR_NO = GIGI.CNTR_NO
+                                 AND CDTL.CNTR_SN = GIGI.CNTR_SN
+                               WHERE GIGI.CNTR_NO = SUBSTR(FN_SVPD_WELSF_CD_01(VS161.CNTR_NO, VS161.CNTR_SN), 1, 12)
+                                 AND GIGI.CNTR_SN = SUBSTR(FN_SVPD_WELSF_CD_01(VS161.CNTR_NO, VS161.CNTR_SN), 13, 1)
+                             ) NOT IN ('401','402')
+                    <if test='@MybatisUtils@isNotEmpty(svType)'>    /* 서비스업무세분류코드 */
+                         AND SV_BIZ_DCLSF_CD = #{svType}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(badDivide)'>    /* 불량구분코드 */
+                           AND BAD_DV_CD = #{badDivide}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(sdingPkgGrpCd)'>
+                           AND PD_CD IN (
+                                        SELECT SDING_PD_CD
+                                          FROM TB_SVPD_SDING_PKG_ITM_IZ
+                                         WHERE SDING_PKG_GRP_CD = #{sdingPkgGrpCd}
+                                        )
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(sdingPkgCd)'>
+                           AND (
+                               SELECT COUNT(1)   /* 2023.11.17(금) 수정 홍세기 */
+                                 FROM TB_SVST_SV_WK_OSTR_IZ ST163
+                                WHERE ST163.CST_SV_ASN_NO = VS161.CST_SV_ASN_NO
+                                  AND ST163.ITM_PD_CD = #{sdingPkgCd}
+                               ) > 0
+                    </if>
+                      )
+               UNION ALL
+              SELECT '2' AS NM       /* 1년(12개월)누적설치수량( 1년: 당월~11개월前설치수량의합) */
+                   <![CDATA[
+                   , CASE WHEN #{baseY}||'01' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'01') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL1
+                   , CASE WHEN #{baseY}||'02' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'02') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL2
+                   , CASE WHEN #{baseY}||'03' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'03') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL3
+                   , CASE WHEN #{baseY}||'04' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'04') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL4
+                   , CASE WHEN #{baseY}||'05' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'05') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL5
+                   , CASE WHEN #{baseY}||'06' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'06') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL6
+                   , CASE WHEN #{baseY}||'07' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'07') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL7
+                   , CASE WHEN #{baseY}||'08' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'08') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL8
+                   , CASE WHEN #{baseY}||'09' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'09') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL9
+                   , CASE WHEN #{baseY}||'10' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'10') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL10
+                   , CASE WHEN #{baseY}||'11' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-12),'YYYYMM') AND  YYYYMM <= #{baseY}||'11') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL11
+                   , CASE WHEN #{baseY}||'12' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (YYYYMM >= #{baseY}||'01' AND  YYYYMM <= #{baseY}||'12') THEN 1 ELSE 0 END),0)) ELSE 0 END AS ACOL12
+                   ]]>
+                FROM (
+                     SELECT '11' AS WRK_TYP
+                          , AC202.MNGT_YM AS YYYYMM
+                          , SUBSTR(IST_DT, 1, 6) AS INSTDT
+                          /*, T2.PD_PRP_VAL20*/
+                          , SV_HSHD_NO
+                       FROM  TB_SVPD_MCBY_CST_SV_OJ_IZ AC202
+                      INNER JOIN TB_PDBS_PD_BAS PBAS
+                         ON PBAS.PD_CD = AC202.PDCT_PD_CD
+                      INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2  /*상품각사속성상세*/ /* TB_PDBS_PD_PRP_META_BAS 테이블에서 각 속성의 의미 파악, TBL_ID = 'TB_PDBS_PD_ECOM_PRP_DTL' AND PD_PRP_GRP_DTL_DV_CD = 'PART'*/
+                         ON PBAS.PD_CD = T2.PD_CD
+                        AND T2.PD_EXTS_PRP_GRP_CD = 'PART'   /*상품확장속성그룹코드*/
+                        AND T2.DTA_DL_YN = 'N'               /*데이터삭제여부*/
+                      WHERE 1=1
+                        AND AC202.MNGT_YM LIKE #{baseY}||'%'
+                        AND (SELECT CDTL.CNTR_DTL_STAT_CD
+                               FROM TB_SVPD_MCBY_CST_SV_OJ_IZ GIGI
+                              INNER JOIN TB_SSCT_CNTR_DTL CDTL
+                                 ON CDTL.CNTR_NO = GIGI.CNTR_NO
+                                AND CDTL.CNTR_SN = GIGI.CNTR_SN
+                              WHERE GIGI.MNGT_YM = AC202.MNGT_YM
+                                AND GIGI.CNTR_NO = SUBSTR(FN_SVPD_WELSF_CD_01(AC202.CNTR_NO, AC202.CNTR_SN), 1, 12)
+                                AND GIGI.CNTR_SN = SUBSTR(FN_SVPD_WELSF_CD_01(AC202.CNTR_NO, AC202.CNTR_SN), 13, 1)
+                            ) NOT IN ('401','402')
+                        AND T2.PD_PRP_VAL20 = '11'
+		<if test='@MybatisUtils@isNotEmpty(sdingPkgGrpCd)'>
+                        AND PBAS.PD_CD IN (
+                                          SELECT SDING_PD_CD
+                                            FROM TB_SVPD_SDING_PKG_ITM_IZ
+                                           WHERE SDING_PKG_GRP_CD = #{sdingPkgGrpCd}
+                                          )
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(sdingCausNm)'>
+                        AND AC202.BASE_PD_CD IN (
+                                                SELECT BASE_PD_CD
+                                                  FROM TB_PDBS_PD_REL
+                                                 WHERE 1=1
+                                                   AND PD_REL_TP_CD = '21'
+                                                   AND DTA_DL_YN  = 'N'
+                                                   AND OJ_PD_CD = #{sdingPkgCd}
+                                                   AND TO_CHAR(SYSDATE, 'YYYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM  AND VL_END_DTM
+                                                )
+        </if>
+                     )
+               UNION ALL
+              SELECT '3' AS NM
+                   , 0 AS ACOL1
+                   , 0 AS ACOL2
+                   , 0 AS ACOL3
+                   , 0 AS ACOL4
+                   , 0 AS ACOL5
+                   , 0 AS ACOL6
+                   , 0 AS ACOL7
+                   , 0 AS ACOL8
+                   , 0 AS ACOL9
+                   , 0 AS ACOL10
+                   , 0 AS ACOL11
+                   , 0 AS ACOL12
+                FROM DUAL
+               UNION ALL
+              SELECT '4' AS NM       /* 1년(12개월)누적설치수량( 1년: 당월~11개월前설치수량의합) */
+				   <![CDATA[
+                   , CASE WHEN #{baseY}||'01' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'01','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'01') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'01','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'01') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4)>=2019 THEN (CASE WHEN PD_GRP_CD NOT IN ('5','7','8','9', '91', '93', '95', '96')  THEN 26748 WHEN PD_GRP_CD IN ('5','7','8','9', '91', '93', '95', '96') THEN 32277  ELSE 0 END) END) ELSE 0 END),0)) ELSE 0 END AS ACOL1
+                   , CASE WHEN #{baseY}||'02' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'02') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'02') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4) >=2019 THEN (CASE WHEN PD_GRP_CD NOT IN ('5','7','8','9', '91', '93', '95', '96')  THEN 26748 WHEN PD_GRP_CD IN ('5','7','8','9', '91', '93', '95', '96') THEN 32277  ELSE 0 END) END) ELSE 0 END),0)) ELSE 0 END AS ACOL2
+                   , CASE WHEN #{baseY}||'03' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'03') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'03') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4) >=2019 THEN (CASE WHEN PD_GRP_CD NOT IN ('5','7','8','9', '91', '93', '95', '96')  THEN 26748 WHEN PD_GRP_CD IN ('5','7','8','9', '91', '93', '95', '96') THEN 32277  ELSE 0 END) END) ELSE 0 END),0)) ELSE 0 END AS ACOL3
+                   , CASE WHEN #{baseY}||'04' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'04') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'04') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4) >=2019 THEN (CASE WHEN PD_GRP_CD NOT IN ('5','7','8','9', '91', '93', '95', '96')  THEN 26748 WHEN PD_GRP_CD IN ('5','7','8','9', '91', '93', '95', '96') THEN 32277  ELSE 0 END) END) ELSE 0 END),0)) ELSE 0 END AS ACOL4
+                   , CASE WHEN #{baseY}||'05' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'05') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'05') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4) >=2019 THEN (CASE WHEN PD_GRP_CD NOT IN ('5','7','8','9', '91', '93', '95', '96')  THEN 26748 WHEN PD_GRP_CD IN ('5','7','8','9', '91', '93', '95', '96') THEN 32277  ELSE 0 END) END) ELSE 0 END),0)) ELSE 0 END AS ACOL5
+                   , CASE WHEN #{baseY}||'06' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'06') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'06') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4) >=2019 THEN (CASE WHEN PD_GRP_CD NOT IN ('5','7','8','9', '91', '93', '95', '96')  THEN 26748 WHEN PD_GRP_CD IN ('5','7','8','9', '91', '93', '95', '96') THEN 32277  ELSE 0 END) END) ELSE 0 END),0)) ELSE 0 END AS ACOL6
+                   , CASE WHEN #{baseY}||'07' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'07') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'07') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4) >=2019 THEN (CASE WHEN PD_GRP_CD NOT IN ('5','7','8','9', '91', '93', '95', '96')  THEN 26748 WHEN PD_GRP_CD IN ('5','7','8','9', '91', '93', '95', '96') THEN 32277  ELSE 0 END) END) ELSE 0 END),0)) ELSE 0 END AS ACOL7
+                   , CASE WHEN #{baseY}||'08' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'08') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'08') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4) >=2019 THEN (CASE WHEN PD_GRP_CD NOT IN ('5','7','8','9', '91', '93', '95', '96')  THEN 26748 WHEN PD_GRP_CD IN ('5','7','8','9', '91', '93', '95', '96') THEN 32277  ELSE 0 END) END) ELSE 0 END),0)) ELSE 0 END AS ACOL8
+                   , CASE WHEN #{baseY}||'09' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'09') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'09') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4) >=2019 THEN (CASE WHEN PD_GRP_CD NOT IN ('5','7','8','9', '91', '93', '95', '96')  THEN 26748 WHEN PD_GRP_CD IN ('5','7','8','9', '91', '93', '95', '96') THEN 32277  ELSE 0 END) END) ELSE 0 END),0)) ELSE 0 END AS ACOL9
+                   , CASE WHEN #{baseY}||'10' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'10') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'10') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4) >=2019 THEN (CASE WHEN PD_GRP_CD NOT IN ('5','7','8','9', '91', '93', '95', '96')  THEN 26748 WHEN PD_GRP_CD IN ('5','7','8','9', '91', '93', '95', '96') THEN 32277  ELSE 0 END) END) ELSE 0 END),0)) ELSE 0 END AS ACOL10
+                   , CASE WHEN #{baseY}||'11' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'11') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'11') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4) >=2019 THEN (CASE WHEN PD_GRP_CD NOT IN ('5','7','8','9', '91', '93', '95', '96')  THEN 26748 WHEN PD_GRP_CD IN ('5','7','8','9', '91', '93', '95', '96') THEN 32277  ELSE 0 END) END) ELSE 0 END),0)) ELSE 0 END AS ACOL11
+                   , CASE WHEN #{baseY}||'12' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'12') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'12') THEN (CASE WHEN SUBSTR(YYYYMM,1,4) <= 2015 THEN  27995 WHEN SUBSTR(YYYYMM,1,4) >=2016 AND SUBSTR(YYYYMM,1,4) <= 2018 THEN  26654 WHEN SUBSTR(YYYYMM,1,4) >=2019 THEN (CASE WHEN PD_GRP_CD NOT IN ('5','7','8','9', '91', '93', '95', '96')  THEN 26748 WHEN PD_GRP_CD IN ('5','7','8','9', '91', '93', '95', '96') THEN 32277  ELSE 0 END) END) ELSE 0 END),0)) ELSE 0 END AS ACOL12
+                   ]]>
+                FROM (
+                     SELECT SUBSTR(SV_BIZ_DCLSF_CD,0,2) AS WRK_TYP
+                          , WK_PRCSDT AS YYYYMM
+                          , SUBSTR(IST_DT, 1, 6) AS INSTDT
+                          , CST_SV_ASN_NO
+                          , PD_CD
+                          , PD_GRP_CD
+                       FROM TB_SVPD_QLTY_MNGT_AS_DTL_IZ VS161
+                      WHERE (WK_PRCSDT LIKE #{baseY}||'%' OR WK_PRCSDT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY},'YYYY'), -12),'YYYY')||'%' )
+                        AND PD_GRP_CD = '11'
+                    <if test='@MybatisUtils@isNotEmpty(svType)'>    /* 서비스업무세분류코드 */
+                        AND SV_BIZ_DCLSF_CD = #{svType}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(badDivide)'>    /* 불량구분코드 */
+                        AND BAD_DV_CD = #{badDivide}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(sdingPkgGrpCd)'>
+                        AND PD_CD IN (
+                                     SELECT SDING_PD_CD
+                                       FROM TB_SVPD_SDING_PKG_ITM_IZ
+                                      WHERE SDING_PKG_GRP_CD = #{sdingPkgGrpCd}
+                                     )
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(sdingPkgCd)'>
+                        AND (
+                            SELECT COUNT(1)
+                              FROM TB_SVST_SV_WK_OSTR_IZ ST163
+                             WHERE ST163.CST_SV_ASN_NO = VS161.CST_SV_ASN_NO
+                               AND ST163.ITM_PD_CD = #{sdingPkgCd}
+                            ) > 0
+                    </if>
+                     )
+               UNION ALL
+              SELECT '5' AS NM       /* 1년(12개월)누적설치수량( 1년: 당월~11개월前설치수량의합) */
+				   <![CDATA[
+                   , CASE WHEN #{baseY}||'01' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'01','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'01') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'01','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'01') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL1
+                   , CASE WHEN #{baseY}||'02' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'02') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'02','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'02') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL2
+                   , CASE WHEN #{baseY}||'03' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'03') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'03','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'03') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL3
+                   , CASE WHEN #{baseY}||'04' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'04') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'04','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'04') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL4
+                   , CASE WHEN #{baseY}||'05' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'05') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'05','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'05') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL5
+                   , CASE WHEN #{baseY}||'06' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'06') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'06','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'06') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL6
+                   , CASE WHEN #{baseY}||'07' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'07') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'07','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'07') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL7
+                   , CASE WHEN #{baseY}||'08' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'08') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'08','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'08') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL8
+                   , CASE WHEN #{baseY}||'09' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'09') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'09','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'09') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL9
+                   , CASE WHEN #{baseY}||'10' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'10') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'10','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'10') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL10
+                   , CASE WHEN #{baseY}||'11' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'11') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'11','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'11') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL11
+                   , CASE WHEN #{baseY}||'12' <= TO_CHAR(SYSDATE,'YYYYMM') THEN (NVL(SUM(CASE WHEN (INSTDT >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-11),'YYYYMM') AND  INSTDT <= #{baseY}||'12') AND (YYYYMM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY}||'12','YYYYMM'),-11),'YYYYMM') AND  YYYYMM <= #{baseY}||'12') THEN PR ELSE 0 END),0)) ELSE 0 END AS ACOL12
+                   ]]>
+                FROM (
+                     SELECT SUBSTR(SV_BIZ_DCLSF_CD,0,2) AS WRK_TYP
+                          , WK_PRCSDT AS YYYYMM
+                          , SUBSTR(IST_DT, 1, 6) AS INSTDT
+                          , NVL((SELECT SUM(CASE WHEN SV_BIZ_HCLSF_CD = '1' OR
+                                                      SV_BIZ_HCLSF_CD = '2' OR
+                                                      SV_BIZ_HCLSF_CD = '3'
+                                                 THEN PDCT_UPRC
+                                            ELSE 0 END
+                                           )
+                                   FROM TB_SVST_SV_WK_OSTR_IZ ST163
+                                      , TB_PDBS_PD_BAS PBAS
+                                  WHERE PBAS.PD_CD = ST163.ITM_PD_CD
+                                    AND VS161.CNTR_NO = ST163.CNTR_NO
+                                    AND VS161.CNTR_SN = ST163.CNTR_SN
+                                    AND VS161.CST_SV_ASN_NO = ST163.CST_SV_ASN_NO) , 0
+                               ) AS PR
+                          , CST_SV_ASN_NO
+                       FROM TB_SVPD_QLTY_MNGT_AS_DTL_IZ VS161
+                      WHERE (WK_PROCS_YM LIKE #{baseY}||'%' OR WK_PROCS_YM LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseY},'YYYY'), -12),'YYYY')||'%' )
+                        AND PD_GRP_CD = '11'
+                    <if test='@MybatisUtils@isNotEmpty(svType)'>    /* 서비스업무세분류코드 */
+                        AND SV_BIZ_DCLSF_CD = #{svType}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(badDivide)'>    /* 불량구분코드 */
+                        AND BAD_DV_CD = #{badDivide}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(sdingPkgGrpCd)'>
+                        AND PD_CD IN (
+                                     SELECT SDING_PD_CD
+                                       FROM TB_SVPD_SDING_PKG_ITM_IZ
+                                      WHERE SDING_PKG_GRP_CD = #{sdingPkgGrpCd}
+                                     )
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(sdingPkgCd)'>
+                        AND (
+                            SELECT COUNT(1)
+                              FROM TB_SVST_SV_WK_OSTR_IZ ST163
+                             WHERE ST163.CST_SV_ASN_NO = VS161.CST_SV_ASN_NO
+                               AND ST163.ITM_PD_CD = #{sdingPkgCd}
+                            ) > 0
+                    </if>
+                     )
+               )
     </select>
 </mapper>

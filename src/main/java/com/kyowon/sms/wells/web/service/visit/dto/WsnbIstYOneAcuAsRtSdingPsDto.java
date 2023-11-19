@@ -9,24 +9,28 @@ public class WsnbIstYOneAcuAsRtSdingPsDto {
         String svType,          // 서비스유형
         String badDivide,       // 불량구분
         String sdingPkgGrpCd,   // 모종패키지
-        String sdingPkgCd       // 모종
+        String sdingCausNm,     // 모종
+        String sdingPkgCd       // 모종..ex)917L 등등
     ){}
 
     @ApiModel(value = "WsnbIstYOneAcuAsRtSdingPsDto-SearchRes")
     public record SearchRes(
-        String atcNm,
-        String m01,
-        String m02,
-        String m03,
-        String m04,
-        String m05,
-        String m06,
-        String m07,
-        String m08,
-        String m09,
-        String m10,
-        String m11,
-        String m12,
-        String totalCnt
+        String nm,
+        Integer acol1,
+        Integer acol2,
+        Integer acol3,
+        Integer acol4,
+        Integer acol5,
+        Integer acol6,
+        Integer acol7,
+        Integer acol8,
+        Integer acol9,
+        Integer acol10,
+        Integer acol11,
+        Integer acol12,
+        Integer maxval,
+        Integer minval,
+        Integer tcnt,   // 총갯수
+        Integer avg     // 평균
     ){}
 }
