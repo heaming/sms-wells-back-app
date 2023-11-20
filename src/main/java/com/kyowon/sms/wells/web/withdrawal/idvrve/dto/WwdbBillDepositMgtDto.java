@@ -23,9 +23,7 @@ public class WwdbBillDepositMgtDto {
         String cntrNo,  /* 계약번호 */
         String billExprDt,  /* 만기일자 */
         String cntr  /* 일련번호 */
-    ) {
-
-    }
+    ) { }
 
     // *********************************************************
     // Result Dto
@@ -51,9 +49,7 @@ public class WwdbBillDepositMgtDto {
         /* 대체전표번호 */
         String sellBzsBzrno, /* 판매업체사업자등록번호 */
         String pblBzsBzrno /* 발행업체사업자등록번호 */
-    ) {
-
-    }
+    ) { }
 
     // *********************************************************
     // Result Dto
@@ -66,9 +62,7 @@ public class WwdbBillDepositMgtDto {
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
         String sellAmt /* 금액 */
-    ) {
-
-    }
+    ) { }
 
     // *********************************************************
     // Request Dto
@@ -79,9 +73,7 @@ public class WwdbBillDepositMgtDto {
         String cntrNo, /* 계약번호 */
         String cntrSn,
         String itgDpNo/* 계약일련번호 */
-    ) {
-
-    }
+    ) { }
 
     // *********************************************************
     // Request Dto
@@ -90,9 +82,7 @@ public class WwdbBillDepositMgtDto {
     public record SaveReq(
         SaveMainReq saveMainReq,
         List<SaveMainDtlReq> SaveMainDtlReq
-    ) {
-
-    }
+    ) { }
 
     // *********************************************************
     // Request Dto
@@ -120,9 +110,7 @@ public class WwdbBillDepositMgtDto {
         String dtaDlYn, /* 삭제여부 */
         String sellAmt, /* 입금금액 */
         String billDpAmt /* 입금금액 */
-    ) {
-
-    }
+    ) { }
 
     // *********************************************************
     // Request Dto
@@ -137,9 +125,7 @@ public class WwdbBillDepositMgtDto {
         String billDpAmt, /* 입금액 */
         String sellBzsBzrno, /* 판매업체사업자등록번호 */
         String pblBzsBzrno /* 발행업체사업자등록번호 */
-    ) {
-
-    }
+    ) { }
 
     // *********************************************************
     // Request Dto
@@ -150,9 +136,7 @@ public class WwdbBillDepositMgtDto {
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
         String billBndNo  /* 어음채권번호 */
-    ) {
-
-    }
+    ) { }
 
     // *********************************************************
     // Result Dto
@@ -169,9 +153,7 @@ public class WwdbBillDepositMgtDto {
         String cntrSn, /* 계약일련번호 */
         String cntr, /* 일련번호 */
         String billDpAmt /* 입금금액 */
-    ) {
-
-    }
+    ) { }
 
     // *********************************************************
     // Request Dto
@@ -186,9 +168,7 @@ public class WwdbBillDepositMgtDto {
 
         String rveDt, /*입금일자(수납일자)*/
         String pyAmt /*입금금액*/
-    ) {
-
-    }
+    ) { }
 
     // *********************************************************
     // Request Dto
@@ -205,9 +185,7 @@ public class WwdbBillDepositMgtDto {
         String sort,
         String resultSum
 
-    ) {
-
-    }
+    ) { }
 
     // *********************************************************
     // Result Dto
@@ -215,9 +193,7 @@ public class WwdbBillDepositMgtDto {
     // 통합입금번호 PK 채번 Result Dto
     public record SearchItgNoRes(
         String itgDpNo /*통합입금번호*/
-    ) {
-
-    }
+    ) { }
 
     // *********************************************************
     // Request Dto
@@ -228,8 +204,6 @@ public class WwdbBillDepositMgtDto {
         String wrbtr, /*금액*/
         String itgDpNo /*통합입금번호*/
 
-    ) {
-
-    }
+    ) { }
 
 }

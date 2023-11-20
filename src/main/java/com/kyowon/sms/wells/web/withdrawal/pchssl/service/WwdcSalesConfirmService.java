@@ -16,6 +16,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * 매출확정관리 서비스
+ * </pre>
+ *
+ * @author limkimoon
+ * @since 2023-05-31
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,9 +33,10 @@ public class WwdcSalesConfirmService {
     private final WwdcSalesConfirmConvert convert;
 
     /**
-     * 매출확정관리
+     * 매출확정관리 조회 / 페이징
      * @param req
-     * @return
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchSalesConfirmRes>
      */
     public PagingResult<SearchSalesConfirmRes> getSalesConfirm(
         SearchSalesConfirmReq req, PageInfo pageInfo
@@ -38,7 +47,7 @@ public class WwdcSalesConfirmService {
     /**
      * 매출확정관리 엑셀다운로드
      * @param req
-     * @return
+     * @return List<SearchSalesConfirmRes>
      */
     public List<SearchSalesConfirmRes> getSalesConfirmForExcelDownload(
         SearchSalesConfirmReq req
@@ -49,7 +58,7 @@ public class WwdcSalesConfirmService {
     /**
      * 매출확정관리 인식상태변경
      * @param req
-     * @return
+     * @return int processCount
      */
     public int getSalesConfirmChangeState(
         List<SaveSalesConfirmReq> req

@@ -30,4 +30,5 @@ public class WwdbCreditCardApprovalInterfaceDvo {
     private String rvePrtnrOgTpCd; // 수납요청파트너조직유형코드
     private String rvePrtnrNo; // 수납요청파트너번호
     private String crdcdDv; // 신용카드법인격구분코드
+    private String rveCd; // 수납코드
 }

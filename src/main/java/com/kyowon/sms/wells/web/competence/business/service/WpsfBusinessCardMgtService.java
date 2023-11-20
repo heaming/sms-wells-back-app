@@ -10,8 +10,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
-import com.kyowon.sflex.common.message.service.KakaoMessageService;
+import com.kyowon.sflex.common.message.dvo.SmsSendReqDvo;
+import com.kyowon.sflex.common.message.service.SmsMessageService;
 import com.kyowon.sflex.common.system.service.UrlShortenerService;
 import com.kyowon.sms.common.web.deduction.zcommon.constant.DeDeductionConst;
 import com.kyowon.sms.wells.web.competence.business.converter.WpsfBusinessCarMgtConverter;
@@ -36,18 +36,19 @@ public class WpsfBusinessCardMgtService {
     private final WpsfBusinessCardMgtMapper mapper;
     private final WpsfBusinessCarMgtConverter converter;
     private final AttachFileService attachFileService;
-    private final KakaoMessageService kakaoMessageService;
     private final UrlShortenerService shorterService;
+    private final SmsMessageService smsMessageService;
     private final static String groupId = "ATG_PSF_BCD_IMG";
 
     public PagingResult<WpsfBusinessCardMgtDto.SearchRes> getPartnerCustomerContactBasePages(
         WpsfBusinessCardMgtDto.SearchReq dto, PageInfo pageInfo
     ) {
-        PagingResult<WpsfPartnerCustomerContactBaseDvo> dvos = mapper.selectPartnerCustomerContactBasePages(dto, pageInfo);
+        PagingResult<WpsfPartnerCustomerContactBaseDvo> dvos = mapper
+            .selectPartnerCustomerContactBasePages(dto, pageInfo);
         PageInfo newPage = dvos.getPageInfo();
         PagingResult<WpsfBusinessCardMgtDto.SearchRes> res = null;
 
-        if ( dvos.getList().size() > 0 ) {
+        if (dvos.getList().size() > 0) {
             for (WpsfPartnerCustomerContactBaseDvo dvo : dvos) {
                 String base64Image = attachFileService.convertAttachFileToBase64(dvo.getFileUid());
                 dvo.setRealFpath(base64Image);
@@ -189,7 +190,7 @@ public class WpsfBusinessCardMgtService {
     }
 
     /**
-     *  내명한 카카오 전송
+     *  내명함 발송
      * @param dtos
      * @return
      * @throws Exception
@@ -197,7 +198,7 @@ public class WpsfBusinessCardMgtService {
     public int sendPartnerContactBase(List<WpsfBusinessCardMgtDto.SendReq> dtos) throws Exception {
         UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
         int result = 0;
-        // 알림톡 메시지 발송
+        // 메시지 발송
 
         String smsUrl = "/anonymous/login?deviceCheck=Y&redirectUrl=";
         String redirectUrl = "/#/competence/wwpsf-business-card-preview?ogTpCd=" + userSession.getOgTpCd()
@@ -213,13 +214,12 @@ public class WpsfBusinessCardMgtService {
             paramMap.put("prtnrKnm", userSession.getUserName());
             paramMap.put("hp", dto.cellphone());
             paramMap.put("preview", preview);
-            KakaoSendReqDvo dvo = KakaoSendReqDvo.withTemplateCode()
-                .templateCode("TMP_PSF_CTPLC_1")
+            SmsSendReqDvo sendReqDvo = SmsSendReqDvo.withTemplateId()
+                .templateId("TMP_PSF_CTPLC_1")
                 .templateParamMap(paramMap)
                 .destInfo(dto.fnm() + "^" + dto.phone())
-                .callback("15884113")
                 .build();
-            result = kakaoMessageService.sendMessage(dvo);
+            result = smsMessageService.sendMessage(sendReqDvo);
         }
 
         return result;

@@ -3,6 +3,14 @@ package com.kyowon.sms.wells.web.withdrawal.pchssl.dvo;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * <pre>
+ * 매출확정관리 인식상태변경 DVO
+ * </pre>
+ *
+ * @author limkimoon
+ * @since 2023-05-31
+ */
 @Getter
 @Setter
 public class WwdcSalesConfirmDvo {

@@ -26,4 +26,6 @@ public interface WsnaQomAsnConverter {
 
     WsnaQomAsnRemoveDvo mapRemoveReqToWsnaQomAsnRemoveDvo(RemoveReq dto);
 
+    WsnaQomAsnRemoveDvo mapCreateReqToWsnaQomAsnRemoveDvo(CreateReq dto);
+
 }

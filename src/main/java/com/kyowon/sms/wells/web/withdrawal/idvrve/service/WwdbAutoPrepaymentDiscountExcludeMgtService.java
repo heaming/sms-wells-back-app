@@ -21,6 +21,14 @@ import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 자동 선납할인제외 관리 서비스
+ * </pre>
+ *
+ * @author heungjun.lee
+ * @since 2023_03-06
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbAutoPrepaymentDiscountExcludeMgtService {
@@ -30,11 +38,10 @@ public class WwdbAutoPrepaymentDiscountExcludeMgtService {
     private final WwdbAutoPrepaymentDiscountExcludeMgtConverter convert;
 
     /**
-     * 자동 선납할인제외 관리 조회 목록조회
-     *
-     * @param req
-     * @param pageInfo
-     * @return PagingResult
+     * 자동 선납할인제외 관리 조회 목록조회 / 페이징
+     * @param dto
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRes>
      */
     @Transactional
     public PagingResult<SearchRes> getAutoPrepaymentDiscountExcludePages(SearchReq dto, PageInfo pageInfo) {
@@ -44,10 +51,8 @@ public class WwdbAutoPrepaymentDiscountExcludeMgtService {
 
     /**
      * 자동 선납할인제외 관리 조회 엑셀 다운로드
-     *
-     * @param req
-     * @param pageInfo
-     * @return PagingResult
+     * @param dto
+     * @return List<SearchRes>
      */
     @Transactional
     public List<SearchRes> getAutoPrepaymentDiscountExcludeExcels(SearchReq dto) {
@@ -57,10 +62,8 @@ public class WwdbAutoPrepaymentDiscountExcludeMgtService {
 
     /**
      * 자동 선납할인제외 관리 계약 정보 조회
-     *
-     * @param req
-     * @param pageInfo
-     * @return PagingResult
+     * @param dto
+     * @return SearchContractRes
      */
     @Transactional
     public SearchContractRes getAutoPrepaymentDiscountExcludeContractInformation(
@@ -72,9 +75,8 @@ public class WwdbAutoPrepaymentDiscountExcludeMgtService {
 
     /**
      * 자동 선납할인제외 관리 저장
-     *
-     * @param SaveReq
-     * @return int
+     * @param dtos
+     * @return int processCount
      */
     @Transactional
     public int saveAutoPrepaymentDiscountExcludes(
@@ -129,6 +131,12 @@ public class WwdbAutoPrepaymentDiscountExcludeMgtService {
         return processCount;
     }
 
+    /**
+     * 자동 선납할인제외 관리 삭제
+     * @param dtos
+     * @return int processCount
+     * @throws Exception
+     */
     @Transactional
     public int removeAutoPrepaymentDiscountExcludes(
         List<SaveReq> dtos
@@ -147,7 +155,6 @@ public class WwdbAutoPrepaymentDiscountExcludeMgtService {
 
             processCount += mapper.deleteAutoPrepaymentDiscountExcludes(dvo);
             processCount += mapper.insertAutoPrepaymentDiscountExcludeHistory(dvo);
-
         }
 
         return processCount;

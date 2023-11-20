@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsnaMdProductOfStorageDvo {
+public class WsnaMdProductOutStorageDvo {
     String cstSvAsnNo;
 
     String cntrNo;
@@ -72,6 +72,8 @@ public class WsnaMdProductOfStorageDvo {
 
     /* MD */
     String prtnrBzsNm;
+
+    String pcsvCompDv;
 
     String pcsvCompNm;
 

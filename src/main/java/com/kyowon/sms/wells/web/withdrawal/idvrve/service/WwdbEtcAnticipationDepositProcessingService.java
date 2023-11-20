@@ -25,6 +25,14 @@ import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 기타선수금 입금처리 서비스
+ * </pre>
+ *
+ * @author heungjun.lee
+ * @since 2023-07-18
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbEtcAnticipationDepositProcessingService {
@@ -43,6 +51,12 @@ public class WwdbEtcAnticipationDepositProcessingService {
 
     //경로 16
 
+    /**
+     * 기타선수금 입금처리
+     * @param dto
+     * @return int processCount
+     * @throws Exception
+     */
     public int saveDepositProcs(ZwdbEtcAnticipationDpProcsDto.SaveDepositProcessingReq dto) throws Exception {
         int processCount = 0;
 
@@ -172,6 +186,19 @@ public class WwdbEtcAnticipationDepositProcessingService {
         return processCount;
     }
 
+    /**
+     * 수납 상세 데이터 생성
+     * @param processCount
+     * @param mainReq
+     * @param session
+     * @param sysDateYmd
+     * @param integrationRes
+     * @param list
+     * @param zwdzWithdrawalReceiveDvo
+     * @param depositComparisonPk
+     * @param receiveAskNumber
+     * @return int
+     */
     private int saveRveDtl(
         int processCount, ZwdbEtcAnticipationDpProcsDto.SaveDepositProcessingMainReq mainReq, UserSessionDvo session,
         String sysDateYmd,
@@ -218,6 +245,17 @@ public class WwdbEtcAnticipationDepositProcessingService {
         return processCount;
     }
 
+    /**
+     * 입금대사기본 데이터 생성
+     * @param mainReq
+     * @param session
+     * @param sysDate
+     * @param sysDateYmd
+     * @param mainDvo
+     * @param integrationRes
+     * @param list
+     * @return String
+     */
     private String saveDeposit(
         ZwdbEtcAnticipationDpProcsDto.SaveDepositProcessingMainReq mainReq, UserSessionDvo session, String sysDate,
         String sysDateYmd,
@@ -282,6 +320,14 @@ public class WwdbEtcAnticipationDepositProcessingService {
         return depositComparisonPk;
     }
 
+    /**
+     * 수납기본 데이터 생성
+     * @param session
+     * @param sysDateYmd
+     * @param list
+     * @param zwdzWithdrawalReceiveAskDvo
+     * @return ZwdzWithdrawalReceiveDvo
+     */
     private ZwdzWithdrawalReceiveDvo saveRveBase(
         UserSessionDvo session, String sysDateYmd, ZwdbEtcAnticipationDpProcsDto.SaveDepositProcessingSubReq list,
         ZwdzWithdrawalReceiveAskDvo zwdzWithdrawalReceiveAskDvo
@@ -301,6 +347,15 @@ public class WwdbEtcAnticipationDepositProcessingService {
         return zwdzWithdrawalReceiveDvo;
     }
 
+    /**
+     * 수납요청상세 데이터 생성
+     * @param processCount
+     * @param session
+     * @param integrationRes
+     * @param list
+     * @param zwdzWithdrawalReceiveAskDvo
+     * @return int
+     */
     private int saveAskDtlDvo(
         int processCount, UserSessionDvo session, ZwdbCorporationDepositDto.SearchIntegrationDepositRes integrationRes,
         ZwdbEtcAnticipationDpProcsDto.SaveDepositProcessingSubReq list,
@@ -340,6 +395,13 @@ public class WwdbEtcAnticipationDepositProcessingService {
         return processCount;
     }
 
+    /**
+     * 수납요청기본 데이터 생성
+     * @param session
+     * @param sysDateYmd
+     * @param list
+     * @return ZwdzWithdrawalReceiveAskDvo
+     */
     private ZwdzWithdrawalReceiveAskDvo saveAskBaseDvo(
         UserSessionDvo session, String sysDateYmd, ZwdbEtcAnticipationDpProcsDto.SaveDepositProcessingSubReq list
     ) {

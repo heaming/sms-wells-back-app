@@ -40,24 +40,46 @@ import lombok.extern.slf4j.Slf4j;
 public class WwdbGiroDepositMgtController {
     private final WwdbGiroDepositMgtService service;
 
+    /**
+     * 지로 입금관리 조회 / 페이징
+     * @param dto
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRes>
+     */
     @ApiOperation(value = "지로 입금관리", notes = " 검색조건을 받아 청구서 관리 목록을 조회한다.")
     @GetMapping("/paging")
     public PagingResult<SearchRes> getBillingDocumentMgtPages(SearchReq dto, PageInfo pageInfo) {
         return service.getBillingDocumentMgtPages(dto, pageInfo);
     }
 
+    /**
+     * 청구서 관리 합계 조회
+     * @param dto
+     * @return SearchSumRes
+     */
     @ApiOperation(value = "지로 입금관리 합계", notes = " 검색조건을 받아 청구서 관리 합계 조회한다.")
     @GetMapping()
     public SearchSumRes getGiroDepositSum(SearchReq dto) {
         return service.getGiroDepositSum(dto);
     }
 
+    /**
+     * 청구서 관리 목록 조회 / 엑셀 다운로드
+     * @param dto
+     * @return List<SearchRes>
+     */
     @ApiOperation(value = "지로 입금관리", notes = " 검색조건을 받아 청구서 관리 목록을 조회한다.")
     @GetMapping("/excel-download")
     public List<SearchRes> getBillingDocumentMgtExcels(SearchReq dto) {
         return service.getBillingDocumentMgtExcels(dto);
     }
 
+    /**
+     * 지로 입금관리 업로드
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "지로 입금관리 업로드")
     @PostMapping
     public SaveResponse saveBillingDocumentMgt(
@@ -70,6 +92,12 @@ public class WwdbGiroDepositMgtController {
             .build();
     }
 
+    /**
+     * 지로 입금관리 생성
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "지로 입금관리 생성")
     @PostMapping("/create")
     public SaveResponse saveBillingCreateDocument(
@@ -82,18 +110,35 @@ public class WwdbGiroDepositMgtController {
             .build();
     }
 
+    /**
+     * 지로 입금관리 에러 조회 / 페이징
+     * @param dto
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchErrosRes>
+     */
     @ApiOperation(value = "지로 입금관리 에러 조회", notes = " 검색조건을 받아 지로 입금관리 에러를 조회한다.")
     @GetMapping("/errors")
     public PagingResult<SearchErrosRes> getBillingDocumentErrorsPages(SearchReq dto, PageInfo pageInfo) {
         return service.getBillingDocumentErrorsPages(dto, pageInfo);
     }
 
+    /**
+     * 지로 입금관리 에러 엑셀다운로드
+     * @param dto
+     * @return List<SearchErrosRes>
+     */
     @ApiOperation(value = "지로 입금관리 에러 엑셀다운로드", notes = " 검색조건을 받아 지로 입금관리 에러를 엑셀다운로드 한다.")
     @GetMapping("/errors/excel-download")
     public List<SearchErrosRes> getBillingDocumentErrorsExcels(SearchReq dto) {
         return service.getBillingDocumentErrorsExcels(dto);
     }
 
+    /**
+     * 지로 입금관리 에러 저장
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "지로 입금관리 에러 저장")
     @PostMapping("/errors")
     public SaveResponse saveBillingDocumentErrors(
@@ -106,6 +151,11 @@ public class WwdbGiroDepositMgtController {
             .build();
     }
 
+    /**
+     * 지로 입금관리 원장 내역 조회
+     * @param dto
+     * @return SearchLedgerItemizationRes
+     */
     @ApiOperation(value = "지로 입금관리 원장 내역 조회", notes = " 검색조건을 받아 지로 입금관리 원장 내역 목록을 조회한다.")
     @PostMapping("/ledg-iz")
     public SearchLedgerItemizationRes getBillingDocumentMgtLedgerItemization(
@@ -116,6 +166,11 @@ public class WwdbGiroDepositMgtController {
         return service.getBillingDocumentMgtLedgerItemization(dto);
     }
 
+    /**
+     * 지로 입금관리 실적일자 조회
+     * @param dto
+     * @return List<WwdbGiroDepositSaveDvo>
+     */
     @ApiOperation(value = "지로 입금관리 실적일자 조회", notes = " 검색조건을 받아 지로 입금관리 실적일자 조회 한다.")
     @PostMapping("/date-chk")
     public List<WwdbGiroDepositSaveDvo> getGiroPerfDt(

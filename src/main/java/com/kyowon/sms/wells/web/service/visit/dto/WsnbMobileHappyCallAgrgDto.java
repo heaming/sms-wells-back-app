@@ -5,7 +5,6 @@ import io.swagger.annotations.ApiModel;
 public class WsnbMobileHappyCallAgrgDto {
     @ApiModel("WsnbMobileHappyCallAgrgDto-SearchReq")
     public record SearchReq(
-
         String searchDateFrom,
         String searchDateTo,
         String ogId,
@@ -43,6 +42,8 @@ public class WsnbMobileHappyCallAgrgDto {
         Integer hcrCnt,             // 홈케어 건수
         Integer lgszElhmCnt,        // 대형가전 건수
         Integer mdimRprCnt,         // 중수리 건수
+        Integer hpcallScore,        // 해피콜 건수
+        Integer grdRplyCnt,         // 응답건 그리드용 건수
         Integer acpnCnt             // 동행 건수
     )
     {}

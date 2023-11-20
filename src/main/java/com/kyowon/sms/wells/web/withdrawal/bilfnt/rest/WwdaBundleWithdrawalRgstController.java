@@ -34,6 +34,12 @@ public class WwdaBundleWithdrawalRgstController {
 
     private final WwdaBundleWithdrawalRgstService service;
 
+    /**
+     * 묶음출금 미등록 현황 조회 / 페이징
+     * @param req
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchUnrgPsRes>
+     */
     @ApiOperation(value = "묶음출금 미등록 현황 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "unrgRs", value = "대상구분, 처리결과", paramType = "query", required = false, example = "1"),
@@ -53,6 +59,12 @@ public class WwdaBundleWithdrawalRgstController {
         return service.getUnregistrationPsInqrPages(req, pageInfo);
     }
 
+    /**
+     * 묶음 등록
+     * @param req
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "묶음 등록")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = false, example = "1"),
@@ -70,6 +82,11 @@ public class WwdaBundleWithdrawalRgstController {
             .build();
     }
 
+    /**
+     * 묶음출금 미등록 현황 엑셀 다운로드
+     * @param req
+     * @return List<SearchUnrgPsRes>
+     */
     @ApiOperation(value = "묶음출금 미등록 현황 엑셀 다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "unrgRs", value = "대상구분, 처리결과", paramType = "query", required = false, example = "1"),
@@ -87,6 +104,12 @@ public class WwdaBundleWithdrawalRgstController {
         return service.getUnregistrationPsInqrExcels(req);
     }
 
+    /**
+     * 묶음 출금 등록 이력 조회 / 페이징
+     * @param req
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRgstHistRes>
+     */
     @ApiOperation(value = "묶음 출금 등록 이력 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "unrgRs", value = "대상구분, 처리결과", paramType = "query", required = false, example = "1"),
@@ -106,6 +129,11 @@ public class WwdaBundleWithdrawalRgstController {
         return service.getBundleRgstRsInqrPages(req, pageInfo);
     }
 
+    /**
+     * 묶음 출금 등록 이력 엑셀다운로드
+     * @param req
+     * @return List<SearchRgstHistRes>
+     */
     @ApiOperation(value = "묶음 출금 등록 이력 엑셀다운로드")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "unrgRs", value = "대상구분, 처리결과", paramType = "query", required = false, example = "1"),

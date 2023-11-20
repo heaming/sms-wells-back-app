@@ -61,12 +61,12 @@ public class WsnbWellsServiceCfdcService {
         );
 
         KakaoSendReqDvo dvo = KakaoSendReqDvo.withTemplateCode()
-            .templateCode("Wells18053")
+            .templateCode("W_SNB_B0021") // Wells18053
             .templateParamMap(paramMap)
             .destInfo(dto.nm() + "^" + dto.receivingNumber())
             .callback(dto.callingNumber())
             .sendDatetime(dto.publishDatetime()) // yyyyMMddHHmmss
-            .reserved2("Wells18053")
+            .reserved2("W_SNB_B0021") // Wells18053
             .reserved3(dto.cstSvAsnNo())
             .build();
 
@@ -96,11 +96,11 @@ public class WsnbWellsServiceCfdcService {
         );
 
         EmailDto.CreateReq emailDto = new EmailDto.CreateReq(
-            templateService.getTemplateByTemplateId("TMP_SNB_WELLS18053").getSendTemplateTitle(),
-            "TMP_SNB_WELLS18053",
+            templateService.getTemplateByTemplateId("TMP_SNZ_W_SNB_B0021").getSendTemplateTitle(), // TMP_SNB_WELLS18053
+            "TMP_SNZ_W_SNB_B0021", // TMP_SNB_WELLS18053
             "<html><body>"
-                + templateService.getTemplateContent("TMP_SNB_WELLS18053", paramMap).replaceAll("(\r\n|\n)", "<br>")
-                + "</body></html>",
+                + templateService.getTemplateContent("TMP_SNZ_W_SNB_B0021", paramMap).replaceAll("(\r\n|\n)", "<br>")
+                + "</body></html>", // TMP_SNB_WELLS18053
             "wellsorder@kyowon.co.kr",
             "",
             "Y",

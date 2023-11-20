@@ -17,6 +17,16 @@ public class SnServiceConst {
 
     public static final String REPORT_URL_V1 = CommConst.REST_URL_V1 + "/anonymous/sms/wells/service";
 
+    /* base Url 정보 */
+    public static final String SERVER_PROFILE_LOCAL = "local";
+    public static final String SERVER_PROFILE_DEV = "dev";
+    public static final String SERVER_PROFILE_QA = "qa";
+    public static final String SERVER_PROFILE_PRD = "prd";
+    public static final String BASE_URL_LOCAL = "http://localhost:3000";
+    public static final String BASE_URL_DEV = "https://d-cswl.kyowon.co.kr";
+    public static final String BASE_URL_QA = "https://q-cswl.kyowon.co.kr";
+    public static final String BASE_URL_PRD = "https://cswl.kyowon.co.kr";
+
     // 급지구분코드 (RGLVL_DV_CD)
     public enum RglvlDvCd {
         REGION_LEVEL1("1", "1급지(이동급지)"),

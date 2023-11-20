@@ -24,34 +24,6 @@
                           AND OG_ID = #{ogId}
                           </if>
                        )
-        , TB_PD_ECOM AS (
-                         SELECT *
-                           FROM TB_PDBS_PD_ECOM_PRP_DTL
-                          WHERE 1=1
-                            AND PD_EXTS_PRP_GRP_CD = 'PART'
-                            AND PD_PRP_VAL20 != '11'
-                            AND DTA_DL_YN = 'N'
-                         )
-        , TB_CST AS (
-                     SELECT T1.CNTR_NO
-                          , T2.CST_KNM
-                          , T2.COPN_DV_CD
-                       FROM TB_SSCT_CNTR_BAS T1
-                          , TB_CUBS_CST_BAS T2
-                      WHERE 1=1
-                        AND T1.CNTR_CST_NO = T2.CST_NO
-                     )
-        , TB_SV3 AS (
-                     SELECT *
-                       FROM TB_SVPD_CST_SV_WK_RS_IZ
-                      WHERE (URGT_DV_CD != '9' OR URGT_DV_CD IS NULL)
-                      <if test="@MybatisUtils@isNotEmpty(svcTpCd)">
-                      AND SV_BIZ_HCLSF_CD = #{svcTpCd}
-                      </if>
-                      <if test="@MybatisUtils@isNotEmpty(engId)">
-                      AND PRTNR_NO = #{engId}
-                      </if>
-                     )
 
     SELECT CNTR_NO
          , CNTR_SN
@@ -96,11 +68,11 @@
                  , PD1.PD_CD
                  , PD1.SAP_MAT_CD
                  , PD1.PD_NM
-                 , CST1.CST_KNM
-                 , SV3.CRAL_LOCARA_TNO
-                 , SV3.MEXNO_ENCR
-                 , SV3.CRAL_IDV_TNO
-                 , CASE WHEN CST1.COPN_DV_CD = '2' THEN '법인'
+                 , ADR2.RCGVP_KNM CST_KNM
+                 , ADR2.CRAL_LOCARA_TNO
+                 , ADR2.MEXNO_ENCR
+                 , ADR2.CRAL_IDV_TNO
+                 , CASE WHEN ADR2.COPN_DV_CD = '2' THEN '법인'
                         ELSE '개인'
                     END COPN_DV
                  , PRT1.OG_NM
@@ -128,47 +100,60 @@
                  , HPC1.HPCALL_STPC_N
                  , WKGRP1.WK_GRP_CD
               FROM TB_SVPD_CST_SVAS_IST_ASN_IZ SV1
-                 , TB_SVPD_CST_SVAS_IST_OJ_IZ SV2
-                 , TB_SV3 SV3
-                 , TB_CST CST1
-                 , TB_PDBS_PD_BAS PD1
-                 , TB_PD_ECOM PD2
-                 , TB_PRTNR PRT1
-                 , TB_SVPD_CST_SV_HPCALL_IZ HPC1
-                 , TB_WK_GRP WKGRP1
+             INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ SV2
+             	ON SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
+               AND SV2.SV_BIZ_DCLSF_CD NOT LIKE '34%'
+               AND SV2.MTR_STAT_CD IN ('1', '2')
+             INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ SV3
+             	ON SV1.CST_SV_ASN_NO = SV3.CST_SV_ASN_NO
+               AND (SV3.URGT_DV_CD != '9' OR SV3.URGT_DV_CD IS NULL)
+               <if test="@MybatisUtils@isNotEmpty(svcTpCd)">
+               AND SV3.SV_BIZ_HCLSF_CD = #{svcTpCd}
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(engId)">
+               AND SV3.PRTNR_NO = #{engId}
+               </if>
+              LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL ADR1
+             	ON ADR1.ADRPC_TP_CD IN ('2', '3')
+	           AND SV1.CNTR_NO = ADR1.DTL_CNTR_NO
+	           AND SV1.CNTR_SN = ADR1.DTL_CNTR_SN
+	          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS ADR2
+	         	ON ADR1.CNTR_ADR_REL_ID = ADR2.CNTR_ADRPC_ID
+	         INNER JOIN TB_PDBS_PD_BAS PD1
+	         	ON SV2.PD_CD = PD1.PD_CD
+	          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PD2
+	         	ON PD1.PD_CD = PD2.PD_CD
+	           AND PD2.PD_EXTS_PRP_GRP_CD = 'PART'
+               AND NOT (SV2.SV_BIZ_DCLSF_CD LIKE '11%' AND PD2.PD_PRP_VAL20 = '11')
+               AND PD2.DTA_DL_YN = 'N'
+	         INNER JOIN TB_PRTNR PRT1
+	         	ON SV3.PRTNR_NO = PRT1.PRTNR_NO
+	          LEFT OUTER JOIN TB_SVPD_CST_SV_HPCALL_IZ HPC1
+	          	ON SV1.CST_SV_ASN_NO = HPC1.CST_SV_ASN_NO
+              LEFT OUTER JOIN TB_WK_GRP WKGRP1
+              	ON SV2.PD_CD = WKGRP1.PD_CD
+               AND SV2.SV_BIZ_DCLSF_CD = WKGRP1.SV_BIZ_DCLSF_CD
              WHERE 1=1
+               AND SV1.WK_PRGS_STAT_CD = '20'
                <if test="@MybatisUtils@equals(inqrBase, '1')">
                AND SV1.WK_EXCN_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
                </if>
                <if test="@MybatisUtils@equals(inqrBase, '2')">
                AND HPC1.RPLY_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
                </if>
-               AND SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
-               AND SV1.CST_SV_ASN_NO = SV3.CST_SV_ASN_NO
-               AND SV1.CNTR_NO = CST1.CNTR_NO
-               AND SV2.PD_CD = PD1.PD_CD
-               AND PD1.PD_CD = PD2.PD_CD
-               AND SV3.PRTNR_NO = PRT1.PRTNR_NO
-               AND SV1.CST_SV_ASN_NO = HPC1.CST_SV_ASN_NO(+)
-               AND SV2.PD_CD = WKGRP1.PD_CD(+)
-               AND SV2.SV_BIZ_DCLSF_CD = WKGRP1.SV_BIZ_DCLSF_CD(+)
-
-               AND SV2.MTR_STAT_CD IN ('1', '2')
-               AND SV1.WK_PRGS_STAT_CD = '20'
-               AND SV2.SV_BIZ_DCLSF_CD NOT LIKE '34%'
 
              UNION ALL
 
-            SELECT SV1.CNTR_NO
+			SELECT SV1.CNTR_NO
                  , SV1.CNTR_SN
                  , PD1.PD_CD
                  , PD1.SAP_MAT_CD
                  , PD1.PD_NM
-                 , CST1.CST_KNM
-                 , SV3.CRAL_LOCARA_TNO
-                 , SV3.MEXNO_ENCR
-                 , SV3.CRAL_IDV_TNO
-                 , CASE WHEN CST1.COPN_DV_CD = '2' THEN '법인'
+                 , ADR2.RCGVP_KNM CST_KNM
+                 , ADR2.CRAL_LOCARA_TNO
+                 , ADR2.MEXNO_ENCR
+                 , ADR2.CRAL_IDV_TNO
+                 , CASE WHEN ADR2.COPN_DV_CD = '2' THEN '법인'
                         ELSE '개인'
                     END COPN_DV
                  , PRT1.OG_NM
@@ -196,33 +181,48 @@
                  , HPC1.HPCALL_STPC_N
                  , WKGRP1.WK_GRP_CD
               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SV1
-                 , TB_SVPD_CST_SV_BFSVC_OJ_IZ SV2
-                 , TB_SV3 SV3
-                 , TB_CST CST1
-                 , TB_PDBS_PD_BAS PD1
-                 , TB_PD_ECOM PD2
-                 , TB_PRTNR PRT1
-                 , TB_SVPD_CST_SV_HPCALL_IZ HPC1
-                 , TB_WK_GRP WKGRP1
+             INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ SV2
+             	ON SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
+             INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ SV3
+             	ON SV1.CST_SV_ASN_NO = SV3.CST_SV_ASN_NO
+               AND (SV3.URGT_DV_CD != '9' OR SV3.URGT_DV_CD IS NULL)
+               <if test="@MybatisUtils@isEmpty(svcTpCd)">
+               AND SV3.SV_BIZ_HCLSF_CD = '2'
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(svcTpCd)">
+               AND SV3.SV_BIZ_HCLSF_CD = #{svcTpCd}
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(engId)">
+               AND SV3.PRTNR_NO = #{engId}
+               </if>
+              LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL ADR1
+             	ON ADR1.ADRPC_TP_CD IN ('2', '3')
+	           AND SV1.CNTR_NO = ADR1.DTL_CNTR_NO
+	           AND SV1.CNTR_SN = ADR1.DTL_CNTR_SN
+	          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS ADR2
+	         	ON ADR1.CNTR_ADR_REL_ID = ADR2.CNTR_ADRPC_ID
+	         INNER JOIN TB_PDBS_PD_BAS PD1
+	         	ON SV2.PDCT_PD_CD = PD1.PD_CD
+	          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PD2
+	         	ON PD1.PD_CD = PD2.PD_CD
+	           AND PD2.PD_EXTS_PRP_GRP_CD = 'PART'
+               AND NOT (SV2.SV_BIZ_DCLSF_CD LIKE '11%' AND PD2.PD_PRP_VAL20 = '11')
+               AND PD2.DTA_DL_YN = 'N'
+	         INNER JOIN TB_PRTNR PRT1
+	         	ON SV3.PRTNR_NO = PRT1.PRTNR_NO
+	          LEFT OUTER JOIN TB_SVPD_CST_SV_HPCALL_IZ HPC1
+	          	ON SV1.CST_SV_ASN_NO = HPC1.CST_SV_ASN_NO
+              LEFT OUTER JOIN TB_WK_GRP WKGRP1
+              	ON SV2.PDCT_PD_CD = WKGRP1.PD_CD
+               AND SV2.SV_BIZ_DCLSF_CD = WKGRP1.SV_BIZ_DCLSF_CD
              WHERE 1=1
+               AND SV1.VST_PRGS_STAT_CD = '20'
                <if test="@MybatisUtils@equals(inqrBase, '1')">
                AND SV1.WK_EXCN_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
                </if>
                <if test="@MybatisUtils@equals(inqrBase, '2')">
                AND HPC1.RPLY_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
                </if>
-               AND SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
-               AND SV1.CST_SV_ASN_NO = SV3.CST_SV_ASN_NO
-               AND SV1.CNTR_NO = CST1.CNTR_NO
-               AND SV2.PDCT_PD_CD = PD1.PD_CD
-               AND PD1.PD_CD = PD2.PD_CD
-               AND SV3.PRTNR_NO = PRT1.PRTNR_NO
-               AND SV1.CST_SV_ASN_NO = HPC1.CST_SV_ASN_NO(+)
-
-               AND SV3.SV_BIZ_HCLSF_CD = '2'
-               AND SV1.VST_PRGS_STAT_CD = '20'
-               AND SV2.PDCT_PD_CD = WKGRP1.PD_CD(+)
-               AND SV2.SV_BIZ_DCLSF_CD = WKGRP1.SV_BIZ_DCLSF_CD(+)
 
              <if test="@MybatisUtils@equals(acpnWrkInc, 'Y')">
             /* 동행건 포함 조회 */
@@ -233,11 +233,11 @@
                  , PD1.PD_CD
                  , PD1.SAP_MAT_CD
                  , PD1.PD_NM
-                 , CST1.CST_KNM
-                 , SV3.CRAL_LOCARA_TNO
-                 , SV3.MEXNO_ENCR
-                 , SV3.CRAL_IDV_TNO
-                 , CASE WHEN CST1.COPN_DV_CD = '2' THEN '법인'
+                 , ADR2.RCGVP_KNM CST_KNM
+                 , ADR2.CRAL_LOCARA_TNO
+                 , ADR2.MEXNO_ENCR
+                 , ADR2.CRAL_IDV_TNO
+                 , CASE WHEN ADR2.COPN_DV_CD = '2' THEN '법인'
                         ELSE '개인'
                     END COPN_DV
                  , PRT1.OG_NM
@@ -265,49 +265,62 @@
                  , HPC1.HPCALL_STPC_N
                  , WKGRP1.WK_GRP_CD
               FROM TB_SVPD_CST_SVAS_IST_ASN_IZ SV1
-                 , TB_SVPD_CST_SVAS_IST_OJ_IZ SV2
-                 , TB_SV3 SV3
-                 , TB_CST CST1
-                 , TB_PDBS_PD_BAS PD1
-                 , TB_PD_ECOM PD2
-                 , TB_PRTNR PRT1
-                 , TB_PRTNR PRT2
-                 , TB_SVPD_CST_SV_HPCALL_IZ HPC1
-                 , TB_WK_GRP WKGRP1
+             INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ SV2
+             	ON SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
+               AND SV2.SV_BIZ_DCLSF_CD NOT LIKE '34%'
+               AND SV2.MTR_STAT_CD IN ('1', '2')
+             INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ SV3
+             	ON SV1.CST_SV_ASN_NO = SV3.CST_SV_ASN_NO
+               AND (SV3.URGT_DV_CD != '9' OR SV3.URGT_DV_CD IS NULL)
+               <if test="@MybatisUtils@isNotEmpty(svcTpCd)">
+               AND SV3.SV_BIZ_HCLSF_CD = #{svcTpCd}
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(engId)">
+               AND SV3.PRTNR_NO = #{engId}
+               </if>
+              LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL ADR1
+             	ON ADR1.ADRPC_TP_CD IN ('2', '3')
+	           AND SV1.CNTR_NO = ADR1.DTL_CNTR_NO
+	           AND SV1.CNTR_SN = ADR1.DTL_CNTR_SN
+	          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS ADR2
+	         	ON ADR1.CNTR_ADR_REL_ID = ADR2.CNTR_ADRPC_ID
+	         INNER JOIN TB_PDBS_PD_BAS PD1
+	         	ON SV2.PD_CD = PD1.PD_CD
+	          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PD2
+	         	ON PD1.PD_CD = PD2.PD_CD
+	           AND PD2.PD_EXTS_PRP_GRP_CD = 'PART'
+               AND NOT (SV2.SV_BIZ_DCLSF_CD LIKE '11%' AND PD2.PD_PRP_VAL20 = '11')
+               AND PD2.DTA_DL_YN = 'N'
+	         INNER JOIN TB_PRTNR PRT1
+	         	ON SV3.PRTNR_NO = PRT1.PRTNR_NO
+             INNER JOIN TB_PRTNR PRT2
+                ON SV3.ACPN_PRTNR_NO = PRT2.PRTNR_NO
+	          LEFT OUTER JOIN TB_SVPD_CST_SV_HPCALL_IZ HPC1
+	          	ON SV1.CST_SV_ASN_NO = HPC1.CST_SV_ASN_NO
+              LEFT OUTER JOIN TB_WK_GRP WKGRP1
+              	ON SV2.PD_CD = WKGRP1.PD_CD
+               AND SV2.SV_BIZ_DCLSF_CD = WKGRP1.SV_BIZ_DCLSF_CD
              WHERE 1=1
+               AND SV1.WK_PRGS_STAT_CD = '20'
                <if test="@MybatisUtils@equals(inqrBase, '1')">
                AND SV1.WK_EXCN_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
                </if>
                <if test="@MybatisUtils@equals(inqrBase, '2')">
                AND HPC1.RPLY_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
                </if>
-               AND SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
-               AND SV1.CST_SV_ASN_NO = SV3.CST_SV_ASN_NO
-               AND SV1.CNTR_NO = CST1.CNTR_NO
-               AND SV2.PD_CD = PD1.PD_CD
-               AND PD1.PD_CD = PD2.PD_CD
-               AND SV3.PRTNR_NO = PRT1.PRTNR_NO
-               AND SV3.ACPN_PRTNR_NO = PRT2.PRTNR_NO
-               AND SV1.CST_SV_ASN_NO = HPC1.CST_SV_ASN_NO(+)
-               AND SV2.PD_CD = WKGRP1.PD_CD(+)
-               AND SV2.SV_BIZ_DCLSF_CD = WKGRP1.SV_BIZ_DCLSF_CD(+)
-
-               AND SV2.MTR_STAT_CD IN ('1', '2')
-               AND SV1.WK_PRGS_STAT_CD = '20'
-               AND SV2.SV_BIZ_DCLSF_CD NOT LIKE '34%'
 
              UNION ALL
 
-            SELECT SV1.CNTR_NO
+			SELECT SV1.CNTR_NO
                  , SV1.CNTR_SN
                  , PD1.PD_CD
                  , PD1.SAP_MAT_CD
                  , PD1.PD_NM
-                 , CST1.CST_KNM
-                 , SV3.CRAL_LOCARA_TNO
-                 , SV3.MEXNO_ENCR
-                 , SV3.CRAL_IDV_TNO
-                 , CASE WHEN CST1.COPN_DV_CD = '2' THEN '법인'
+                 , ADR2.RCGVP_KNM CST_KNM
+                 , ADR2.CRAL_LOCARA_TNO
+                 , ADR2.MEXNO_ENCR
+                 , ADR2.CRAL_IDV_TNO
+                 , CASE WHEN ADR2.COPN_DV_CD = '2' THEN '법인'
                         ELSE '개인'
                     END COPN_DV
                  , PRT1.OG_NM
@@ -335,35 +348,51 @@
                  , HPC1.HPCALL_STPC_N
                  , WKGRP1.WK_GRP_CD
               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SV1
-                 , TB_SVPD_CST_SV_BFSVC_OJ_IZ SV2
-                 , TB_SV3 SV3
-                 , TB_CST CST1
-                 , TB_PDBS_PD_BAS PD1
-                 , TB_PD_ECOM PD2
-                 , TB_PRTNR PRT1
-                 , TB_PRTNR PRT2
-                 , TB_SVPD_CST_SV_HPCALL_IZ HPC1
-                 , TB_WK_GRP WKGRP1
+             INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ SV2
+             	ON SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
+             INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ SV3
+             	ON SV1.CST_SV_ASN_NO = SV3.CST_SV_ASN_NO
+               AND (SV3.URGT_DV_CD != '9' OR SV3.URGT_DV_CD IS NULL)
+               <if test="@MybatisUtils@isEmpty(svcTpCd)">
+               AND SV3.SV_BIZ_HCLSF_CD = '2'
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(svcTpCd)">
+               AND SV3.SV_BIZ_HCLSF_CD = #{svcTpCd}
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(engId)">
+               AND SV3.PRTNR_NO = #{engId}
+               </if>
+              LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL ADR1
+             	ON ADR1.ADRPC_TP_CD IN ('2', '3')
+	           AND SV1.CNTR_NO = ADR1.DTL_CNTR_NO
+	           AND SV1.CNTR_SN = ADR1.DTL_CNTR_SN
+	          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS ADR2
+	         	ON ADR1.CNTR_ADR_REL_ID = ADR2.CNTR_ADRPC_ID
+	         INNER JOIN TB_PDBS_PD_BAS PD1
+	         	ON SV2.PDCT_PD_CD = PD1.PD_CD
+	          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PD2
+	         	ON PD1.PD_CD = PD2.PD_CD
+	           AND PD2.PD_EXTS_PRP_GRP_CD = 'PART'
+               AND NOT (SV2.SV_BIZ_DCLSF_CD LIKE '11%' AND PD2.PD_PRP_VAL20 = '11')
+               AND PD2.DTA_DL_YN = 'N'
+	         INNER JOIN TB_PRTNR PRT1
+	         	ON SV3.PRTNR_NO = PRT1.PRTNR_NO
+             INNER JOIN TB_PRTNR PRT2
+                ON SV3.ACPN_PRTNR_NO = PRT2.PRTNR_NO
+	          LEFT OUTER JOIN TB_SVPD_CST_SV_HPCALL_IZ HPC1
+	          	ON SV1.CST_SV_ASN_NO = HPC1.CST_SV_ASN_NO
+              LEFT OUTER JOIN TB_WK_GRP WKGRP1
+              	ON SV2.PDCT_PD_CD = WKGRP1.PD_CD
+               AND SV2.SV_BIZ_DCLSF_CD = WKGRP1.SV_BIZ_DCLSF_CD
              WHERE 1=1
+               AND SV1.VST_PRGS_STAT_CD = '20'
                <if test="@MybatisUtils@equals(inqrBase, '1')">
                AND SV1.WK_EXCN_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
                </if>
                <if test="@MybatisUtils@equals(inqrBase, '2')">
                AND HPC1.RPLY_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
                </if>
-               AND SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
-               AND SV1.CST_SV_ASN_NO = SV3.CST_SV_ASN_NO
-               AND SV1.CNTR_NO = CST1.CNTR_NO
-               AND SV2.PDCT_PD_CD = PD1.PD_CD
-               AND PD1.PD_CD = PD2.PD_CD
-               AND SV3.PRTNR_NO = PRT1.PRTNR_NO
-               AND SV3.ACPN_PRTNR_NO = PRT2.PRTNR_NO
-               AND SV1.CST_SV_ASN_NO = HPC1.CST_SV_ASN_NO(+)
 
-               AND SV3.SV_BIZ_HCLSF_CD = '2'
-               AND SV1.VST_PRGS_STAT_CD = '20'
-               AND SV2.PDCT_PD_CD = WKGRP1.PD_CD(+)
-               AND SV2.SV_BIZ_DCLSF_CD = WKGRP1.SV_BIZ_DCLSF_CD(+)
              </if>
             ) V1
      ORDER

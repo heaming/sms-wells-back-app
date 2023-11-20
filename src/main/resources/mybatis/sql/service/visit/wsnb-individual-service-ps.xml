@@ -78,11 +78,13 @@
              , NVL2(O1.HOO_PRTNR_NO, O1.OG_CD, '') AS OG_CD/*지점코드*/
              , NVL2(O1.HOO_PRTNR_NO, O1.HOO_PRTNR_NO, '') AS BRMGR_PRTNR_NO /*지점장사번*/
              , NVL2(O1.HOO_PRTNR_NO, O1.HOO_PRTNR_NM, '') AS BRMGR_PRTNR_NM /*지점장*/
-             , (SELECT MAX(DECODE(T1.SV_BIZ_HCLSF_CD,'1', T1.ASN_DT, ''))
+             , (SELECT MAX(NVL(T1.ASN_DT, ''))
                   FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
                  WHERE T1.CNTR_NO = SV1.CNTR_NO
                    AND T1.CNTR_SN = SV1.CNTR_SN
-                   AND T1.DTA_DL_YN = 'N')  AS ASN_DT /*배정일자*/
+                   AND T1.DTA_DL_YN = 'N'
+                   AND T1.SV_BIZ_HCLSF_CD = '1'
+                )  AS ASN_DT /*배정일자*/
              , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SELL_CHNL_DV_CD', NVL(X.SELL_CHNL_DV_CD,0))
                   FROM TB_OGBS_PRTNR_BAS X
                  WHERE X.OG_TP_CD = SP.OG_TP_CD
@@ -104,18 +106,22 @@
                    AND X.DTA_DL_YN = 'N')AS AF_CNTR_NO /*후상대코드*/
              , SV1.IST_DT /*설치일자*/
              , SV1.CHNG_DT /*교체일자*/
-             , (SELECT MAX(DECODE(X.CNTR_DTL_STAT_CD, '303', SUBSTR(X.HIST_STRT_DTM,1,8), ''))
+             , (SELECT MAX(NVL(SUBSTR(X.HIST_STRT_DTM,1,8), ''))
                   FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST X /* 계약상세상태변경이력 */
                  WHERE SV1.CNTR_NO = X.CNTR_NO
                    AND SV1.CNTR_SN = X.CNTR_SN
                    AND SUBSTR(X.HIST_END_DTM,1,8) = '99991231'
-                   AND X.DTA_DL_YN = 'N') AS CAN_DT /*취소일자*/
-             , (SELECT MAX(DECODE(X.CNTR_DTL_STAT_CD, '202', SUBSTR(X.HIST_STRT_DTM,1,8), ''))
+                   AND X.DTA_DL_YN = 'N'
+                   AND X.CNTR_DTL_STAT_CD = '303'
+                ) AS CAN_DT /*취소일자*/
+             , (SELECT MAX(NVL(SUBSTR(X.HIST_STRT_DTM,1,8), ''))
                   FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST X /* 계약상세상태변경이력 */
                  WHERE SV1.CNTR_NO = X.CNTR_NO
                    AND SV1.CNTR_SN = X.CNTR_SN
                    AND SUBSTR(X.HIST_END_DTM,1,8) = '99991231'
-                   AND X.DTA_DL_YN = 'N') AS SV_STP_DT /*중지일자*/
+                   AND X.DTA_DL_YN = 'N'
+                   AND X.CNTR_DTL_STAT_CD = '202'
+                ) AS SV_STP_DT /*중지일자*/
 <!--             , CASE WHEN SC5.CNTR_DTL_STAT_CD = '303' THEN SUBSTR(SC5.HIST_STRT_DTM,1,8) ELSE '' END AS CAN_DT /*취소일자*/-->
 <!--             , CASE WHEN SC5.CNTR_DTL_STAT_CD = '202' THEN SUBSTR(SC5.HIST_STRT_DTM,1,8) ELSE '' END AS SV_STP_DT /*중지일자*/-->
              , (CASE WHEN SV1.IST_DT IS NOT NULL AND TO_NUMBER(SV1.IST_DT) != 0
@@ -123,7 +129,9 @@
                      ELSE ''
                  END) AS AS_EXPR_DT /*AS만기*/
              , (CASE WHEN SV1.IST_DT IS NOT NULL AND TO_NUMBER(SV1.IST_DT) != 0
-                     THEN DECODE(SC4.FRISU_BFSVC_PTRM_N,0,'',TO_CHAR(ADD_MONTHS(SV1.IST_DT,SC4.FRISU_BFSVC_PTRM_N),'YYYYMMDD'))
+                     THEN (CASE WHEN SC4.FRISU_BFSVC_PTRM_N = 0 THEN ''
+                                ELSE TO_CHAR(ADD_MONTHS(SV1.IST_DT,SC4.FRISU_BFSVC_PTRM_N),'YYYYMMDD')
+                            END)
                      ELSE ''
                  END) AS BS_EXPR_DT /*BS만기*/
              , SV1.CPS_DT /*기변일자 - 보상일자*/
@@ -793,8 +801,15 @@
                 , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', S2.SV_BIZ_HCLSF_CD) AS SV_TP /*유형*/
                 , S2.EGER_ASN_DT || S2.EGER_ASN_HH AS RCP_DT /*접수(배정)일자*/
                 , (CASE WHEN S4.CNSL_DTLP_TP_CD IS NULL THEN F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', S2.SV_BIZ_DCLSF_CD)
-                        ELSE S4.CNSL_DTLP_TP_CD
-                    END) AS SV_BIZ_DCLSF /*접수(배정)내역*/
+                        ELSE (/*S4.CNSL_DTLP_TP_CD*/
+                              SELECT X.CNSL_TP_LCSF_CD_NM
+                                FROM CCSDBS.TB_CLASS_C X /*상담분류(소)*/
+                               WHERE X.CNSL_TP_HCSF_CD = S4.CNSL_TP_HCLSF_CD
+                                 AND X.CNSL_TP_MCSF_CD = S4.CNSL_TP_MCLSF_CD
+                                 AND X.CNSL_TP_LCSF_CD = S4.CNSL_TP_LCLSF_CD
+                                 AND X.JOB_CD = 'L001'
+                              )
+                    END)  AS SV_BIZ_DCLSF /*접수(배정)내역*/
                 , S2.VST_DUEDT || S2.VST_EXP_HH AS REQ_DT /*요청약속일자*/
                 , (CASE WHEN S2.WK_PRGS_STAT_CD IN ('71', '72', '73') THEN S2.WK_EXCN_DT || S2.WK_EXCN_HH
                         ELSE ''

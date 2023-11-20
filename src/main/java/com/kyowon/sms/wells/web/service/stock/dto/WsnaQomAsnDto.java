@@ -160,7 +160,10 @@ public class WsnaQomAsnDto {
         String wareDvCd,
         // 창고상세구분
         @NotBlank
-        String wareDtlDvCd
+        String wareDtlDvCd,
+
+        // 재생성여부
+        boolean isRecreate
 
     ) {}
 

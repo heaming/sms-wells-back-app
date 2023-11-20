@@ -5,7 +5,8 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaInstallationStockPsByDayDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaInstallationStockPsByDayDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaInstallationStockPsByDayDto.SearchResCenter;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaInstallationStockPsByDayDto.SearchResPd;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -20,8 +21,12 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsnaInstallationStockPsByDayMapper {
 
-    PagingResult<SearchRes> selectInstallationStockPsByDay(SearchReq dto, PageInfo pageInfo);
+    PagingResult<SearchResCenter> selectInstallationStockPsByDayCenter(SearchReq dto, PageInfo pageInfo);
 
-    List<SearchRes> selectInstallationStockPsByDay(SearchReq dto);
+    List<SearchResCenter> selectInstallationStockPsByDayCenter(SearchReq dto);
+
+    PagingResult<SearchResPd> selectInstallationStockPsByDayPd(SearchReq dto, PageInfo pageInfo);
+
+    List<SearchResPd> selectInstallationStockPsByDayPd(SearchReq dto);
 
 }

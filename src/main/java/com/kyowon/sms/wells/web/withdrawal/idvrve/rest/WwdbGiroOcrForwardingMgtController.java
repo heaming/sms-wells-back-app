@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.rest;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto;
@@ -44,6 +45,12 @@ public class WwdbGiroOcrForwardingMgtController {
 
     private final WwdbGiroOcrForwardingMgtService service;
 
+    /**
+     * 지로OCR발송관리 목록 조회 / 페이징
+     * @param dto
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRes>
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "wkDt", value = "일자", paramType = "query", required = false),
         @ApiImplicitParam(name = "giroRglrDvCd", value = "정기구분", paramType = "query", required = false),
@@ -54,6 +61,11 @@ public class WwdbGiroOcrForwardingMgtController {
         return service.getGiroOcrForwardingPages(dto, pageInfo);
     }
 
+    /**
+     * 지로OCR발송관리 목록 조회 / 엑셀 다운로드
+     * @param dto
+     * @return List<SearchRes>
+     */
     @ApiOperation(value = "지로OCR발송관리 목록 조회", notes = " 검색조건을 받아 지로OCR발송관리 코드관리 목록을 조회한다.")
     @GetMapping("/excel-download")
     public List<SearchRes> getGiroOcrForwardingExcels(SearchReq dto) {
@@ -66,6 +78,12 @@ public class WwdbGiroOcrForwardingMgtController {
         return test;
     }
 
+    /**
+     * 지로OCR발송관리 대상 조회
+     * @param cntr 계약번호
+     * @param wkDt 작업일자
+     * @return List<SearchObjectRes>
+     */
     @ApiOperation(value = "지로OCR발송관리 대상 조회", notes = "지로OCR발송관리 대상 목록을 조회한다.")
     @GetMapping("/objects/{cntr}/{wkDt}")
     public List<SearchObjectRes> getGiroOcrForwardingObjects(
@@ -80,6 +98,12 @@ public class WwdbGiroOcrForwardingMgtController {
         return service.getGiroOcrForwardingObjects(cntr, wkDt);
     }
 
+    /**
+     * 지로OCR발송관리 저장
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "지로OCR발송관리 저장", notes = "지로OCR발송관리 등록 및 수정한다.")
     @PostMapping
     public SaveResponse saveGiroOcrForwardings(
@@ -92,6 +116,12 @@ public class WwdbGiroOcrForwardingMgtController {
             .build();
     }
 
+    /**
+     * 지로OCR발송관리 삭제
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "지로OCR발송관리 삭제", notes = "지로OCR발송관리 삭제한다.")
     @DeleteMapping
     public SaveResponse removeGiroOcrForwardings(
@@ -104,6 +134,12 @@ public class WwdbGiroOcrForwardingMgtController {
             .build();
     }
 
+    /**
+     * 지로OCR발송관리 출력 조회 / 페이징
+     * @param dto
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchPrintRes>
+     */
     @ApiOperation(value = "지로OCR발송관리 출력 조회", notes = "지로OCR발송관리 출력 목록을 조회한다.")
     @GetMapping("/print")
     public PagingResult<SearchPrintRes> getGiroOcrForwardingPrints(SearchPrintReq dto, PageInfo pageInfo) {
@@ -111,6 +147,11 @@ public class WwdbGiroOcrForwardingMgtController {
         return service.getGiroOcrForwardingPrints(dto, pageInfo);
     }
 
+    /**
+     * 지로OCR발송관리 출력 조회 / 엑셀 다운로드
+     * @param dto
+     * @return List<SearchPrintRes>
+     */
     @ApiOperation(value = "지로OCR발송관리 출력 엑셀 다운로드", notes = "지로OCR발송관리 출력 엑셀 다운로드 한다.")
     @GetMapping("/print/excel-download")
     public List<SearchPrintRes> getGiroOcrForwardingExels(SearchPrintReq dto) {
@@ -118,18 +159,32 @@ public class WwdbGiroOcrForwardingMgtController {
         return service.getGiroOcrForwardingExels(dto);
     }
 
+    /**
+     * 지로OCR발송관리 출력 등록
+     * @param dto
+     * @param response
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "지로OCR발송관리 출력 등록", notes = "지로OCR발송관리 출력 등록")
     @PostMapping("/print")
     public SaveResponse saveGiroOcrForwardingPrints(
         @RequestBody
         @Valid
-        SavePrintReq dto
+        SavePrintReq dto ,
+        HttpServletResponse response
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveGiroOcrForwardingPrints(dto))
+            .processCount(service.saveGiroOcrForwardingPrints(dto,response))
             .build();
     }
 
+    /**
+     * 지로OCR발송관리 출력 삭제
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "지로OCR발송관리 출력 삭제", notes = "지로OCR발송관리 출력 목록을 삭제한다.")
     @DeleteMapping("/print")
     public SaveResponse removeGiroOcrForwardingPrints(
@@ -146,6 +201,12 @@ public class WwdbGiroOcrForwardingMgtController {
             .build();
     }
 
+    /**
+     * 지로 출력 업데이트
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "지로 출력 업데이트", notes = "지로 출력 업데이트")
     @PostMapping("/print/date")
     public SaveResponse updateGiroPrintDate(

@@ -130,7 +130,7 @@
 	                    NVL(M_6.PD_RVE_AMT,0) - NVL(M_6.RFND_RVE_AMT,0) + NVL(M3_6.PD_RVE_AMT,0) - NVL(M3_6.RFND_RVE_AMT,0)
                    )
                END AS ACU_RVE_AMT          /*총미납금액*/
-             , B.BRYY_MMDD                                  /*생년월일*/
+             , DECODE(C.CNTR_TP_CD, '02', B.BZRNO, B.BRYY_MMDD)  AS BRYY_MMDD  /*생년월일, 법인-사업자번호*/
              , C.CNTR_TP_CD                                 /*계약구분코드*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_TP_CD', C.CNTR_TP_CD , #{session.langId}) AS CNTR_TP_NM /*계약구분명*/
              , A.PD_CD                                      /*제품코드*/
@@ -148,7 +148,7 @@
              , C.SELL_PRTNR_NO                              /*판매자번호*/
              , F.PRTNR_KNM AS PLAR_KNM                      /*플래너*/
              , (CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN MONTHS_BETWEEN(TO_DATE(A.RQDT,'YYYYMMDD'), TO_DATE(D.CNTR_PD_STRTDT)) <![CDATA[>=]]> 12
-                                                             AND SVCR.DP_AGG_AMT <![CDATA[>=]]> (NVL(D.PD_BASE_AMT,0) - NVL(D.SELL_DSC_CTR_AMT,0)) * 12 - NVL(E.DSC_AGG_AMT,0) THEN 'N'
+                                                             AND SVCR.DP_AGG_AMT <![CDATA[>=]]> (NVL(D.PD_BASE_AMT,0) - NVL(D.FNL_AMT,0)) * 12 - NVL(E.DSC_AGG_AMT,0) THEN 'N'
                                                         ELSE 'Y' END)
                      WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN NOT (SUBSTR(D.CNTR_PD_STRTDT,1,6) <![CDATA[<=]]> '202203' AND D.SELL_TP_DTL_CD != '62' AND D.CNTR_PTRM <![CDATA[>=]]> 6)
                                                              AND NOT (SUBSTR(D.CNTR_PD_STRTDT,1,6) <![CDATA[>=]]> '202203' AND D.CNTR_PTRM <![CDATA[>=]]> 6 AND NOT (F.OG_CD LIKE 'Z95'||'%' AND D.SELL_TP_DTL_CD = '62')) THEN 'N'
@@ -237,17 +237,12 @@
                                 AND C2.CNTR_SN = C1.CNTR_SN
                             ) M3_2 /*3개월입금액*/
             ON 1 = 1
-          LEFT JOIN LATERAL (SELECT NVL(S1.SL_DP_AGG_AMT,0)
-                                    + (SELECT SUM(NVL(DP_SUM_AMT,0))
-                                         FROM TB_SVPD_SV_CS_DP_IZ
-                                        WHERE SUBSTR(DP_DTM,1,6) = S1.SL_CL_YM
-                                          AND CNTR_NO = S1.CNTR_NO
-                                          AND CNTR_SN = S1.CNTR_SN) AS DP_AGG_AMT /*매출입금누계금액+이자입금누계금액+서비스입금누계금액*/
-                               FROM TB_CBCL_WELLS_SL_MM_CL_IZ S1 /*T:WELLS매출월마감내역*/
-                              WHERE S1.SL_CL_YM = A.BASE_YM
-                                AND S1.CNTR_NO = A.CNTR_NO
-                                AND S1.CNTR_SN = A.CNTR_SN
-                            ) SVCR                        /*서비스비용입금내역*/
+            LEFT JOIN LATERAL (SELECT NVL(S1.SL_DP_AGG_AMT,0) AS DP_AGG_AMT /*매출입금누계금액+이자입금누계금액+서비스입금누계금액 */
+                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ S1 /*T:WELLS매출월마감내역*/
+                      WHERE S1.SL_CL_YM = A.BASE_YM
+                        AND S1.CNTR_NO = A.CNTR_NO
+                        AND S1.CNTR_SN = A.CNTR_SN
+                    ) SVCR                        /*서비스비용입금내역*/
             ON 1 = 1
           /* 6:정기배송 */
           /* 당월입금 */
@@ -308,7 +303,7 @@
         </if>
         <if test='@MybatisUtils@equals(sellTpCd, "6")'>
            AND A.SELL_TP_CD = #{sellTpCd}              /*판매유형코드->상품유형*/
-           AND D.SELL_TP_DTL_CD = '62'                 /*렌찰해지예정 상품유형-정기배송 (모종만)*/
+           AND D.SELL_TP_DTL_CD IN ('62','63')         /*렌찰해지예정 상품유형-정기배송 모종/캡슐추가 */
         </if>
         <if test='@MybatisUtils@isNotEmpty(clctamDvCd)'>    -- "집금구분" 선택 시...
            AND A.CLCTAM_DV_CD = #{clctamDvCd}
@@ -942,7 +937,6 @@
             ON B.CNTR_NO = A.CNTR_NO
            AND A.CNTR_PRGS_STAT_CD = '60'   /*계약진행상태코드-60:확정*/
            AND A.DTA_DL_YN = 'N'
-           AND B.CNTRW_TP_CD IN('6','7')	/*계약서유형코드-3:렌탈, 6:모종일시불 7:정기배송*/
            AND B.SELL_TP_CD IN ('6')		/* 판매유형코드-2:렌탈/리스, 6:정기배송 */
            AND B.SELL_TP_DTL_CD IN ('62','63')	/* 62:모종,63:캡슐 */
            AND NVL(B.ALNCMP_CD,'NULL') NOT IN ('45','69')   /*제휴사코드-45:K멤버스,69:카카오SSP*/

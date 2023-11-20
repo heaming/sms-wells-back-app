@@ -190,7 +190,7 @@ public class WdcbSalesConfirmCreateService {
             clssVal = "2";
         }
 
-        if (dvo.getRentalRgstCost() > 0) {
+        if (dvo.getRentalRgstCost() > 0 && ("21".equals(dvo.getSellTpDtlCd()) || "23".equals(dvo.getSellTpDtlCd()))) {
             // 렌탈등록비(RENTAL_RGST_COST) 가 0보다 크면 1
             addCondition = "1";
         } else if (StringUtils.isNotEmpty(dvo.getLgstItmGdCd())

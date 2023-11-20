@@ -28,12 +28,23 @@ import lombok.extern.slf4j.Slf4j;
 public class WwdbGiroPlaceReceivedMgtController {
     private final WwdbGiroPlaceReceivedMgtService service;
 
+    /**
+     * 지로 수신처 조회
+     * @param dto
+     * @return FindRes
+     */
     @ApiOperation(value = "지로 수신처 조회", notes = "일련번호에 해당 하는 지로 수신 상세정보를 조회한다.")
     @GetMapping
     public FindRes getGiroPlaceReceived(FindReq dto) {
         return service.getGiroPlaceReceived(dto);
     }
 
+    /**
+     * 지로 수신처 저장
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "지로 수신처 저장", notes = "지로 수신처 저장한다.")
     @PostMapping
     public SaveResponse saveGiroPlaceReceived(
@@ -47,6 +58,11 @@ public class WwdbGiroPlaceReceivedMgtController {
             .build();
     }
 
+    /**
+     * 계약정보 중복 체크
+     * @param dto
+     * @return int
+     */
     @ApiOperation(value = "계약정보 중복 체크", notes = "계약정보 중복 체크를 한다.")
     @GetMapping("/duplication-check")
     public int getGiroPlaceDupliCationReceived(FindReq dto) {
