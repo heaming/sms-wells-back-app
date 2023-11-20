@@ -30,13 +30,20 @@
              , (NVL(T2.DP_SUM_AMT,0) - NVL(T7.TOT_RFND_ET_AMT,0)) AS BLAM          /* 잔액 : 대사금액 - 환불금액 */
 
              , LPAD(T2.STLM_DV_CD,2,0)                   AS STLM_DV_CD      /* 결제구분코드 */
-             , LPAD(T2.STLM_DV_CD,2,0)                   AS STLM_DV_NO      /* 입금번호 */
-             , T2.ISCMP_CD                                                  /* 결제처 */
+             , T2.DP_SN                                  AS STLM_DV_NO      /* 입금번호 */
+             , CASE WHEN LPAD(T2.STLM_DV_CD,2,0) = '01' THEN NVL(T2.ISCMP_CD, T2.VAC_BNK_CD) /*합산청구*/
+                    WHEN LPAD(T2.STLM_DV_CD,2,0) = '02' THEN T2.ISCMP_CD /*신용카드*/
+                    WHEN LPAD(T2.STLM_DV_CD,2,0) = '03' THEN T2.VAC_BNK_CD /*가상계좌*/
+                END ISCMP_CD                                                 /* 결제처 */
+             , CASE WHEN LPAD(T2.STLM_DV_CD,2,0) = '01' THEN (SELECT A2.FNIT_NM  FROM TB_RVDW_FNIT_CD A2 WHERE A2.FNIT_CD = NVL(T2.ISCMP_CD, T2.VAC_BNK_CD) AND A2.FNIT_DV_CD = NVL('2', '1') ) /*합산청구*/
+                    WHEN LPAD(T2.STLM_DV_CD,2,0) = '02' THEN (SELECT A2.FNIT_NM  FROM TB_RVDW_FNIT_CD A2 WHERE A2.FNIT_CD = T2.ISCMP_CD AND A2.FNIT_DV_CD = '2' ) /*신용카드*/
+                    WHEN LPAD(T2.STLM_DV_CD,2,0) = '03' THEN (SELECT A2.FNIT_NM  FROM TB_RVDW_FNIT_CD A2 WHERE A2.FNIT_CD = T2.VAC_BNK_CD AND A2.FNIT_DV_CD = '1' )  /*가상계좌*/
+                END ISCMP_NM /*결제처명*/
              , CASE WHEN LPAD(T2.STLM_DV_CD,2,0) = '02'
                     THEN T2.CARD_APRNO /*승인번호*/
                      END AS CARD_APRNO
              , NVL2(T6.CS_BIL_NO,'Y','N')                AS TAX_BLL         /*세금계산서*/
-            /* 팝업전달용 */
+             /* 팝업전달용 */
              , T2.CRCDONR_NM /*카드주*/
              , T2.CRCDNO_ENCR /*카드번호*/
              , T2.CRDCD_EXPDT_YM
@@ -134,7 +141,7 @@
         </if>
 
         <if test='@MybatisUtils@isNotEmpty(stlmDvCd)'>
-          AND T1.STLM_DV_CD = #{stlmDvCd}
+          AND LPAD(T2.STLM_DV_CD,2,0) = #{stlmDvCd}
         </if>
         ORDER BY T3.VST_FSH_DT , T4.OG_ID , T2.DP_DTM
     </select>
@@ -266,7 +273,7 @@
                 </if>
 
                 <if test='@MybatisUtils@isNotEmpty(stlmDvCd)'>
-                  AND T1.STLM_DV_CD = #{stlmDvCd}
+                  AND LPAD(T2.STLM_DV_CD,2,0) = #{stlmDvCd}
                 </if>
         )
     </select>
