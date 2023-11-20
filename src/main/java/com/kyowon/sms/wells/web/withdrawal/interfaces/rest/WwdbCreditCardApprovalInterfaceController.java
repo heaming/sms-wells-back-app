@@ -32,7 +32,7 @@ public class WwdbCreditCardApprovalInterfaceController {
         @Valid
         @RequestBody
         EaiWrapper<WwdaCreditCardApprovalInterfaceDto.SaveReq> reqWrapper
-    ) {
+    ) throws Exception {
         // Response용 EaiWrapper 생성
         EaiWrapper<WwdaCreditCardApprovalInterfaceDto.SaveRes> resWrapper = reqWrapper.newResInstance();
         // 서비스 메소드 호출

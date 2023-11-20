@@ -386,6 +386,7 @@ public class WbncCustomerDto {
 
     @ApiModel(value = "WbncCustomerDto-FindCounselRegistrationRes")
     public static record FindCounselRegistrationRes(
+        String cnslId, /* 전화상담ID */
         String cnslPh, /*상담경로*/
         String crncyRs, /*통화결과*/
         String cstPrp, /*고객속성*/

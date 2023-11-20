@@ -763,4 +763,59 @@
                  AND T1.GIRO_OCR_PBL_SEQN = #{giroOcrPblSeqn}
         </insert>
 
+    <select id="selectGiroPrintCreate" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchPrintCreateRes">
+        SELECT 'GR653311903010068 주) 교원       '   || TO_CHAR(SYSDATE, 'YYYYMMDD')
+        	               || '                                                                                                                                                                                                                                                                                       '
+        	            AS C1
+        	,' ' AS C2
+        	,' ' AS C3
+          FROM DUAL
+
+         UNION ALL
+
+        SELECT
+              'GR653322'
+        	|| LPAD(CW55.GIRO_OCR_PBL_SN,7,'0') /* 출력일련번호 */
+        	|| CW55.GIRO_NO /* 지로번호     */
+        	|| '  '
+        	|| LPAD(CW55.PY_AMT,12,'0')   /* 납입액       */
+        	|| LPAD(CW55.PY_AMT,12,'0')   /* 납입액       */
+        	|| 'A'
+            || CW55.SL_DT /* 매출일자       */
+            ||  TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE('20231101') , -1)),'YYYYMMDD')
+            || '3010068'
+        	|| REPLACE(CW55.CNTR_NO,'W','')  /* 고객코드     */
+        	|| '                                 000 '   AS C1
+        	,  TRIM(CW55.CST_FNM) AS C2 /* 고객성명     */
+        	, '　　　　              '
+        	  ||  CASE WHEN SUBSTR(CW55.GIRO_TN,1,2) = '00' THEN SUBSTR(LC31.IST_DT , 0 ,6)
+        	           ELSE TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(LC31.IST_DT) , SUBSTR(GIRO_TN,1,2))),'YYYYMM')
+                        END
+              || '                                                                                  00000000000000                                                           '
+              AS C3
+            FROM TB_RVDW_GIRO_OCR_PBL_DTL CW55
+           INNER JOIN TB_SSCT_CNTR_WELLS_DTL LC31
+              ON (    LC31.CNTR_NO = CW55.CNTR_NO
+                  AND LC31.CNTR_NO = CW55.CNTR_NO
+                  AND LC31.DTA_DL_YN = 'N')
+           WHERE 1 = 1
+             AND GIRO_OCR_PBL_DTM = #{giroOcrPblDtm}
+             AND GIRO_OCR_PBL_SEQN = #{giroOcrPblSeqn}
+<!--           ORDER BY CNTR_NO , CNTR_SN , GIRO_TN-->
+
+           UNION ALL
+
+            SELECT  'GR653333' ||  LPAD( MAX(GIRO_OCR_PBL_SN),7,'0') /* 출력일련번호 */
+        	        ||  LPAD( SUM(PY_AMT),14,'0')      /* 납입액       */
+        	        ||  LPAD( SUM(PY_AMT),14,'0')      /* 납입액       */
+        			||  '                                                                                                                                                                                                                                                                                     '
+        	          AS C1
+        			,' ' AS C2
+        			,' ' AS C3
+        	    FROM TB_RVDW_GIRO_OCR_PBL_DTL CW55 /* 지로발행　출력　상세파일     */
+        	   WHERE 1=1
+        	     AND GIRO_OCR_PBL_DTM = #{giroOcrPblDtm}
+                 AND GIRO_OCR_PBL_SEQN = #{giroOcrPblSeqn}
+        	   ORDER BY C1
+    </select>
 </mapper>

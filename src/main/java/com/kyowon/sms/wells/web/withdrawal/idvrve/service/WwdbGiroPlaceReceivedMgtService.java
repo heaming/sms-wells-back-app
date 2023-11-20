@@ -14,6 +14,14 @@ import com.sds.sflex.system.config.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * 지로 수신처 관리 서비스
+ * </pre>
+ *
+ * @author heungjun.lee
+ * @since 2023-05-19
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -22,10 +30,21 @@ public class WwdbGiroPlaceReceivedMgtService {
 
     private final WwdbGiroPlaceReceivedMgtConverter convert;
 
+    /**
+     * 지로 수신처 조회
+     * @param dto
+     * @return FindRes
+     */
     public FindRes getGiroPlaceReceived(FindReq dto) {
         return mapper.selectGiroPlaceReceived(dto);
     }
 
+    /**
+     * 지로 수신처 저장
+     * @param dto
+     * @return int processCount
+     * @throws Exception
+     */
     public int saveGiroPlaceReceived(SaveReq dto) throws Exception {
         int processCount = 0;
         WwdbGiroPlaceReceivedMgtDvo dvo = convert.mapSaveWwdbGiroPlaceReceivedDvo(dto);
@@ -45,10 +64,14 @@ public class WwdbGiroPlaceReceivedMgtService {
 //            //                case CommConst.ROW_STATE_DELETED -> processCount += mapper.deleteDivReceiveCd(dvo);
 //            default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
 //        }
-
         return processCount;
     }
 
+    /**
+     * 계약정보 중복 체크
+     * @param dto
+     * @return int
+     */
     public int getGiroPlaceDupliCationReceived(FindReq dto) {
         return mapper.selectGiroPlaceDupliCationReceived(dto);
     }

@@ -14,6 +14,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 가상계좌 조회 서비스
+ * </pre>
+ *
+ * @author
+ * @since 2023-05-08
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbVirtualAccountService {

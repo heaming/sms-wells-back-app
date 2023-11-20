@@ -16,16 +16,18 @@ public class WsniCustomerCenterInterfaceDto {
         String cstSvAsnNo,
         @JsonProperty("WK_PRTNR_NO")
         String wkPrtnrNo,
-        @JsonProperty("WK_DT_FROM")     /** 2023.11.06(월) 작업 시작일자 수정 홍세기 **/
+        @JsonProperty("WK_DT_FROM") /** 2023.11.06(월) 작업 시작일자 수정 홍세기 **/
         String wkDtFrom,
-        @JsonProperty("WK_DT_TO")       /** 2023.11.06(월) 작업 종료일자 수정 홍세기 **/
+        @JsonProperty("WK_DT_TO") /** 2023.11.06(월) 작업 종료일자 수정 홍세기 **/
         String wkDtTo,
         @JsonProperty("CNTR_NO")
         String cntrNo,
         @JsonProperty("CNTR_SN")
         String cntrSn,
         @JsonProperty("SV_BIZ_DCLSF_CD")
-        String svBizDclsfCd
+        String svBizDclsfCd,
+        @JsonProperty("WK_DT")
+        String wkDt
     ) {}
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchContactRes")
@@ -56,84 +58,22 @@ public class WsniCustomerCenterInterfaceDto {
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchPromChRes")
     public record SearchPromChRes(
-        @JsonProperty("AS_AK_ID")
-        String asAkId,
-        @JsonProperty("SYS_DV_CD")
-        String sysDvCd,
-        @JsonProperty("SV_BIZ_HCLSF_CD")
-        String svBizHclsfCd,
-        @JsonProperty("SV_BIZ_HCLSF_CD_NM")
-        String svBizHclsfCdNm,
-        @JsonProperty("SV_BIZ_DCLSF_CD")
-        String svBizDclsfCd,
-        @JsonProperty("SV_BIZ_DCLSF_CD_NM")
-        String svBizDclsfCdNm,
-        @JsonProperty("AS_IST_OJ_NO")
-        String asIstOjNo,
-        @JsonProperty("CNTR_NO")
-        String cntrNo,
-        @JsonProperty("CNTR_SN")
-        String cntrSn,
-        @JsonProperty("SELL_TP_CD")
-        String sellTpCd,
-        @JsonProperty("SELL_TP_CD_NM")
-        String sellTpCdNm,
-        @JsonProperty("FST_RGST_USR_ID")
-        String fstRgstUsrId,
-        @JsonProperty("FST_RGST_USR_NM")
-        String fstRgstUsrNm,
-        @JsonProperty("MTR_STAT_CD")
-        String mtrStatCd,
-        @JsonProperty("MTR_STAT_CD_NM")
-        String mtrStatCdNm,
-        @JsonProperty("WK_EXCN_DT")
-        String wkExcnDt,
-        @JsonProperty("WK_EXCN_HH")
-        String wkExcnHh,
-        @JsonProperty("WK_PRGS_STAT_CD")
-        String wkPrgsStatCd,
-        @JsonProperty("WK_PRGS_STAT_CD_NM")
-        String wkPrgsStatCdNm,
-        @JsonProperty("WK_CAN_RSON_CD")
-        String wkCanRsonCd,
-        @JsonProperty("WK_CAN_MO_CN")
-        String wkCanMoCn,
-        @JsonProperty("URGT_YN")
-        String urgtYn,
         @JsonProperty("VST_RQDT")
         String vstRqdt,
         @JsonProperty("VST_AK_HH")
         String vstAkHh,
-        @JsonProperty("CNSL_TP_HCLSF_CD")
-        String cnslTpHclsfCd,
-        @JsonProperty("CNSL_TP_HCLSF_CD_NM")
-        String cnslTpHclsfCdNm,
-        @JsonProperty("CNSL_TP_MCLSF_CD")
-        String cnslTpMclsfCd,
-        @JsonProperty("CNSL_TP_MCLSF_CD_NM")
-        String cnslTpMclsfCdNm,
-        @JsonProperty("CNSL_TP_LCLSF_CD")
-        String cnslTpLclsfCd,
-        @JsonProperty("CNSL_TP_LCLSF_CD_NM")
-        String cnslTpLclsfCdNm,
-        @JsonProperty("CNSL_DTLP_TP_CD")
-        String cnslDtlpTpCd,
-        @JsonProperty("SMS_FW_YN")
-        String smsFwYn,
-        @JsonProperty("DP_DV_CD")
-        String dpDvCd,
-        @JsonProperty("DP_DV_CD_NM")
-        String dpDvCdNm,
-        @JsonProperty("SV_ET_AMT")
-        String svEtAmt,
-        @JsonProperty("SV_CNR_OG_ID")
-        String svCnrOgId,
-        @JsonProperty("SV_CNR_OG_NM")
-        String svCnrOgNm,
+        @JsonProperty("PROM_DT")
+        String promDt,
+        @JsonProperty("PROM_HH")
+        String promHh,
+        @JsonProperty("OG_NM")
+        String ogNm,
         @JsonProperty("WK_PRTNR_NO")
         String wkPrtnrNo,
         @JsonProperty("WK_PRTNR_KNM")
-        String wkPrtnrKnm
+        String wkPrtnrKnm,
+        @JsonProperty("PROM_CH_RSON_CN")
+        String promChRsonCn
     ) {}
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchCancelRes")

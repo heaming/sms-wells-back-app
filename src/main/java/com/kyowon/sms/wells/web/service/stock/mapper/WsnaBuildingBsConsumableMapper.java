@@ -19,7 +19,7 @@ public interface WsnaBuildingBsConsumableMapper {
 
     List<WsnaBuildingBsConsumableDvo> selectItemFirstQtys(String mngtYm, String strWareNo);
 
-    List<SearchItmRes> selectItems(String mngtYm);
+    List<WsnaBuildingBsConsumableDvo> selectItems(String mngtYm);
 
     FindTmlmRes selectBuildingBsConsumableAplcClose(String mngtYm);
 
@@ -38,4 +38,6 @@ public interface WsnaBuildingBsConsumableMapper {
     int updateBfsvcCsmbDdlvIzOstrAkNoSn(WsnaBuildingBsConsumableDvo dvo);
 
     int updateBfsvcCsmbDdlvIzDdlvStatCd(String strWareNo, String mngtYm);
+
+    List<SearchLmQtyRes> selectApplicationLimitQty(String mngtYm);
 }

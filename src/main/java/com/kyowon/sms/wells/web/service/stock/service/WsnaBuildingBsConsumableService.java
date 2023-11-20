@@ -12,6 +12,7 @@ import com.kyowon.sms.wells.web.service.stock.converter.WsnaBuildingBsConsumable
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.*;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsConsumablesAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo;
+import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBuildingBsConsumableMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.context.SFLEXContext;
@@ -30,6 +31,7 @@ public class WsnaBuildingBsConsumableService {
     private final WsnaBuildingBsConsumableMapper mapper;
     private final WsnaBuildingBsConsumableConverter converter;
     private final WsnaBsConsumablesAskService bsConsumablesAskService;
+    private final WsnaItemStockItemizationService stockService;
 
     private static final String OSTR_AK_TP_CD_BS = "380"; // 출고요청유형코드 : BS소모품배부
     private static final String IOST_AK_DV_CD_WELLS = "WE";
@@ -38,6 +40,8 @@ public class WsnaBuildingBsConsumableService {
     private static final String ITM_GD_CD_A = "A";
     private static final String OSTR_OJ_WARE_NO_PAJU = "100002";
     private static final String BFSVC_CSMB_DDLV_OJ_CD_BLD = "3";
+    private static final String SAP_PLNT_CD = "2108"; // 교원프라퍼티파주물류
+    private static final String PAJU_SAP_SAVE_LCT_CD = "21082082"; // 파주창고
 
     public List<SearchRes> getBuildingBsConsumables(SearchReq dto) {
         // 빌딩정보 조회
@@ -93,7 +97,6 @@ public class WsnaBuildingBsConsumableService {
                         }
 
                         case "2" -> { // 신청품목
-                            aplcItemQtys.add(unrgItemInfo.getAplcDdlvUnitQty());
                             int i = 0;
 
                             for (WsnaBuildingBsConsumableDvo rgstItemInfo : rgstItemInfos) {
@@ -135,7 +138,40 @@ public class WsnaBuildingBsConsumableService {
     }
 
     public List<SearchItmRes> getItems(String mngtYm) {
-        return mapper.selectItems(mngtYm);
+        List<WsnaBuildingBsConsumableDvo> dvos = mapper.selectItems(mngtYm);
+
+        if (!ObjectUtils.isEmpty(dvos)) {
+            // 그리드 내 품목명에 파주재고 표시를 위해 로직 추가 - 23.11.17
+            // 파주재고 set
+            List<String> itmPds = dvos.stream().map(WsnaBuildingBsConsumableDvo::getCsmbPdCd).toList();
+
+            List<RealTimeGradeStockResIvo> pajuStocks = stockService
+                .getRealTimeGradeStocks(SAP_PLNT_CD, PAJU_SAP_SAVE_LCT_CD, itmPds);
+
+            dvos.forEach(dvo -> {
+                String fxnPdNm = dvo.getFxnPdNm();
+                String aplcPdNm = dvo.getAplcPdNm();
+
+                dvo.setFxnPdNm(dvo.getFxnPdNm() + "(" + 0 + ")");
+                dvo.setAplcPdNm(dvo.getAplcPdNm() + "(" + 0 + ")");
+
+                pajuStocks.forEach(stock -> {
+                    if (dvo.getCsmbPdCd().equals(stock.getItmPdCd())) {
+                        int pajuLgstCnrStocQty = stock.getLgstAGdQty().intValue() + stock.getLgstBGdQty().intValue()
+                            + stock.getLgstCGdQty().intValue() + stock.getLgstEGdQty().intValue()
+                            + stock.getLgstRGdQty().intValue();
+
+                        if ("1".equals(dvo.getBfsvcCsmbDdlvTpCd())) { // 고정품목
+                            dvo.setFxnPdNm(fxnPdNm + "(" + pajuLgstCnrStocQty + ")");
+                        } else if ("2".equals(dvo.getBfsvcCsmbDdlvTpCd())) { // 신청품목
+                            dvo.setAplcPdNm(aplcPdNm + "(" + pajuLgstCnrStocQty + ")");
+                        }
+                    }
+                });
+            });
+        }
+
+        return converter.mapAllDvosToSearchItmRes(dvos);
     }
 
     public FindTmlmRes getBuildingBsConsumableAplcClose(String mngtYm) {
@@ -248,5 +284,9 @@ public class WsnaBuildingBsConsumableService {
     private void editBfsvcCsmbDdlvIzDdlvStatCd(String strWareNo, String mngtYm) {
         // 품목별 단건 update에서 매니저별 일괄 update로 변경
         mapper.updateBfsvcCsmbDdlvIzDdlvStatCd(strWareNo, mngtYm);
+    }
+
+    public List<SearchLmQtyRes> getApplicationLimitQty(String mngtYm) {
+        return mapper.selectApplicationLimitQty(mngtYm);
     }
 }

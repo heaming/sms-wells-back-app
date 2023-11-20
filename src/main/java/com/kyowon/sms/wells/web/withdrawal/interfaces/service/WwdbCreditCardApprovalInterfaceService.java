@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import com.kyowon.sflex.common.common.service.BatchCallService;
 import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbCreditCardApprovalService;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dto.ZwdzWithdrawalDto;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalContractDvo;
@@ -16,8 +17,8 @@ import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalServic
 import com.kyowon.sms.wells.web.withdrawal.interfaces.converter.WwdbCreditCardApprovalInterfaceConverter;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaCreditCardApprovalInterfaceDto;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbCreditCardApprovalInterfaceDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdbCreditCardApprovalInterfaceMapper;
 import com.sds.sflex.common.utils.DbEncUtil;
-import com.sds.sflex.common.utils.StringUtil;
 import com.ubintis.common.util.DateUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -28,20 +29,24 @@ public class WwdbCreditCardApprovalInterfaceService {
 
     private final ZwdbCreditCardApprovalService cardApprovalService;
     private final ZwdzWithdrawalService withdrawalService;
+    private final BatchCallService batchCallService;
 
     private final ZwdzWithdrawalMapper withdrawalMapper;
     private final WwdbCreditCardApprovalInterfaceConverter converter;
 
+    private final WwdbCreditCardApprovalInterfaceMapper creditCardAprovalInterfaceMapper;
+
     public WwdaCreditCardApprovalInterfaceDto.SaveRes createCreditCardApproval(
         WwdaCreditCardApprovalInterfaceDto.SaveReq dto
-    ) {
+    ) throws Exception {
         /**
          * 1. 수납요청 데이터 생성
          * 2. 수납요청상세 데이터 생성
          * 3. 카드 결제 요청
          */
-        String returnRsCd = "";
-        String returnRsNm = "";
+
+        String returnRsCd = "F";
+        String returnRsNm = "실패";
         ZwdzWithdrawalContractDvo contractDvo = new ZwdzWithdrawalContractDvo();
         contractDvo.setCntrNo(dto.cntrNo());
         contractDvo.setCntrSn(dto.cntrSn());
@@ -100,9 +105,20 @@ public class WwdbCreditCardApprovalInterfaceService {
             receiveAskDvo.setReceiveCompanyCd("2000");
             // 소득공제여부
             receiveAskDvo.setIncmdcYn("N");
+            // 수납코드
+            receiveAskDvo.setReceiveCode(dto.rveCd());
 
             withdrawalService.createReceiveAskDetail(receiveAskDvo);
             withdrawalService.createReceiveAskDetailHistory(receiveAskDvo);
+
+            // 조직유형코드
+            receiveAskDvo.setRvePrtnrOgTpCd(dto.ogTpCd());
+            // 파트너번호
+            receiveAskDvo.setRvePrtnrNo(dto.prtnrNo());
+            // 승인담당자 -> 최초등록자ID
+            receiveAskDvo.setAprPsicId(dto.aprPsicId());
+            creditCardAprovalInterfaceMapper.updateReceiveAskDetail(receiveAskDvo);
+
             WwdbCreditCardApprovalInterfaceDvo aprDvo = new WwdbCreditCardApprovalInterfaceDvo();
             aprDvo.setKwGrpCoCd(receiveAskDvo.getKyowonGroupCompanyCd()); // 교원그룹코드
             aprDvo.setRveAkNo(receiveAskDvo.getReceiveAskNumber()); // 수납요청번호
@@ -121,18 +137,32 @@ public class WwdbCreditCardApprovalInterfaceService {
             aprDvo.setAprAmt(dto.stlmAmt()); // 승인금액
             aprDvo.setRveAkMthdCd(receiveAskDvo.getRveAkMthdCd()); // 수납요청방식코드
             aprDvo.setRveAkPhCd(receiveAskDvo.getRveAkPhCd()); // 수납요청경로코드
-            aprDvo.setRvePrtnrOgTpCd(receiveAskDvo.getRvePrtnrOgTpCd()); // 수납요청파트너조직유형코드
-            aprDvo.setRvePrtnrNo(receiveAskDvo.getRvePrtnrNo()); // 수납요청파트너번호
+            aprDvo.setRvePrtnrOgTpCd(dto.ogTpCd()); // 수납요청파트너조직유형코드
+            aprDvo.setRvePrtnrNo(dto.prtnrNo()); // 수납요청파트너번호
             aprDvo.setCrdcdDv(receiveAskDvo.getCrdcdCopnDvCd()); // 신용카드법인격구분코드
+            aprDvo.setRveCd(dto.rveCd()); //  수납코드
             HashMap<String, Object> paramVal = new HashMap<String, Object>();
             // 신용카드 승인
             paramVal.put("CRDCD_APR_DV", "APR");
+            paramVal.put("RVE_AK_NO", receiveAskDvo.getReceiveAskNumber());
             HashMap<String, Object> returnMap = cardApprovalService.createCreditCardApprovalCancelStep1(
                 converter.mapCreditCardApprovalInterfaceDvoToCreditCardApprovalDtoSaveReq(aprDvo), paramVal
             );
-
-            returnRsCd = StringUtil.isEmpty(returnMap.get("APR_NO").toString()) ? "F" : "S";
-            returnRsNm = StringUtil.isEmpty(returnMap.get("APR_NO").toString()) ? "실패" : "성공";
+            while (true) {
+                Thread.sleep(2000);
+                String batchId = returnMap.get("BATCH_ID").toString();
+                String jobStatus = batchCallService.getLastestJobStatus(batchId);
+                if ("Ended OK".equals(jobStatus) || "Ended Not OK".equals(jobStatus)) {
+                    returnRsCd = "S";
+                    returnRsNm = "성공";
+                    break;
+                }
+            }
+            if ("S".equals(returnRsCd)) {
+                // 통합입금번호
+                receiveAskDvo.setItgDpNo(returnMap.get("ITG_DP_NO").toString());
+                creditCardAprovalInterfaceMapper.updateReceiveDetail(receiveAskDvo);
+            }
         } else {
             returnRsCd = "F";
             // 계약정보를 찾을수 없습니다.

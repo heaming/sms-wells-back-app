@@ -1,9 +1,16 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.common.utils.StringUtil;
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +38,17 @@ import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * <pre>
+ * 지로OCR발송관리 서비스
+ * </pre>
+ *
+ * @author heungjun.lee
+ * @since 2023-02-15
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -40,26 +58,32 @@ public class WwdbGiroOcrForwardingMgtService {
     private final WwdbGiroOcrForwardingMgtConverter convert;
 
     /**
-     * 지로OCR발송관리 목록조회
-     *
-     * @param req
-     * @param pageInfo
-     * @return PagingResult
+     * 지로OCR발송관리 목록조회 / 페이징
+     * @param dto
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRes>
      */
     @Transactional
     public PagingResult<SearchRes> getGiroOcrForwardingPages(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectGiroOcrForwardings(dto, pageInfo);
     }
 
+    /**
+     * 지로OCR발송관리 목록 조회 / 엑셀 다운로드
+     * @param dto
+     * @return List<SearchRes>
+     */
     @Transactional
     public List<SearchRes> getGiroOcrForwardingExcels(SearchReq dto) {
         return mapper.selectGiroOcrForwardings(dto);
     }
 
+
     /**
      * 지로OCR발송관리 대상 조회
-     *
-     * @return List<SearchRes>
+     * @param cntr 계약번호
+     * @param wkDt 작업일자
+     * @return List<SearchObjectRes>
      */
     @Transactional
     public List<SearchObjectRes> getGiroOcrForwardingObjects(String cntr, String wkDt) {
@@ -75,6 +99,12 @@ public class WwdbGiroOcrForwardingMgtService {
         return mapper.selectGiroOcrForwardingObjects(req);
     }
 
+    /**
+     * 지로OCR발송관리 저장
+     * @param dtos
+     * @return int processCount
+     * @throws Exception
+     */
     @Transactional
     public int saveGiroOcrForwardings(List<SaveReq> dtos) throws Exception {
         int processCount = 0;
@@ -105,6 +135,12 @@ public class WwdbGiroOcrForwardingMgtService {
         return processCount;
     }
 
+    /**
+     * 지로OCR발송관리 삭제
+     * @param dtos
+     * @return int processCount
+     * @throws Exception
+     */
     @Transactional
     public int removeGiroOcrForwardings(List<RemoveReq> dtos) throws Exception {
         int processCount = 0;
@@ -114,36 +150,43 @@ public class WwdbGiroOcrForwardingMgtService {
             processCount += mapper.deleteGiroOcrForwardings(dvo);
 
         }
-
         return processCount;
     }
 
     /**
-     * 지로OCR발송관리 출력 조회
-     *
+     * 지로OCR발송관리 출력 조회 / 페이징
      * @param dto
-     * @return List<SearchPrintRes>
+     * @param pageInfo 페이징
+     * @return
      */
     @Transactional
     public PagingResult<SearchPrintRes> getGiroOcrForwardingPrints(SearchPrintReq dto, PageInfo pageInfo) {
         return mapper.selectGiroOcrForwardingPrints(dto, pageInfo);
     }
 
+    /**
+     * 지로OCR발송관리 출력 조회 / 엑셀 다운로드
+     * @param dto
+     * @return List<SearchPrintRes>
+     */
     @Transactional
     public List<SearchPrintRes> getGiroOcrForwardingExels(SearchPrintReq dto) {
         return mapper.selectGiroOcrForwardingPrints(dto);
     }
 
     /**
-     * 지로OCR발송관리 출력 조회
-     *
-     * @param dto
-     * @return List<SearchPrintRes>
+     * 지로OCR발송관리 출력 등록
+     * @param dtos
+     * @param response
+     * @return int processCount
+     * @throws Exception
      */
     @Transactional
-    public int saveGiroOcrForwardingPrints(SavePrintReq dtos) throws Exception {
+    public int saveGiroOcrForwardingPrints(SavePrintReq dtos , HttpServletResponse response) throws Exception {
         int processCount = 0;
         int giroOcrForwardingDetailCount = 0;
+        StringBuffer retStr = new StringBuffer();
+
         WwdbGiroOcrForwardingPrintDvo dvo = convert.mapSaveGiroOcrForwardingPrintDvo(dtos);
         switch (dtos.state()) {
             case CommConst.ROW_STATE_CREATED -> {
@@ -160,12 +203,62 @@ public class WwdbGiroOcrForwardingMgtService {
                 }
                 dvo.setGiroOcrPblTotQty(giroOcrForwardingDetailCount);
                 processCount += mapper.insertGiroOcrForwardingPrints(dvo);
+
+
+                List<WwdbGiroOcrForwardingMgtDto.SearchPrintCreateRes> searchPrintCreateRes = mapper.selectGiroPrintCreate(dvo);
+
+                int selCnt = searchPrintCreateRes.size() - 1;
+
+                int i = 0;
+
+                String fileNm = "GR65"  + dtos.wkDt().substring(4,8)   +   ".TXT" ;
+
+                File file =new File(fileNm);
+
+                for (WwdbGiroOcrForwardingMgtDto.SearchPrintCreateRes dto :searchPrintCreateRes) {
+                    if(i == 0){
+                        retStr.setLength(0);
+                        retStr.append( dto.c1()  ) ;
+
+                    }else if(i == selCnt){
+                        retStr.append(	dto.c1()) ;
+                    }else{
+                        retStr.append(  dto.c1()) ;
+                        retStr.append(  dto.c2());
+                        retStr.append(   dto.c3() );
+                    }
+
+                    i++;
+                }
+
+                if(StringUtil.isNotEmpty(retStr.toString())){
+
+                    try (BufferedWriter writer = new BufferedWriter(
+                     new FileWriter(file , false)
+                 )) {
+
+                        ServletOutputStream output = response.getOutputStream();
+                        writer.write(retStr.toString());
+                        output.flush();
+                        output.close();
+
+                 } catch (IOException ioe) {
+                     log.debug("sendData:" + ioe.getMessage());
+                 }
+
+                }
             }
             default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
         }
         return processCount;
     }
 
+    /**
+     * 지로OCR발송관리 출력 삭제
+     * @param dtos
+     * @return int processCount
+     * @throws Exception
+     */
     @Transactional
     public int removeGiroOcrForwardingPrints(List<removePrintReq> dtos) throws Exception {
         int processCount = 0;
@@ -181,10 +274,15 @@ public class WwdbGiroOcrForwardingMgtService {
             log.info("================");
             processCount += mapper.deleteGiroOcrForwardingPrints(dvo);
         }
-
         return processCount;
     }
 
+    /**
+     * 지로 출력 업데이트
+     * @param dto
+     * @return int processCount
+     * @throws Exception
+     */
     @Transactional
     public int saveGiroPrintDate(WwdbGiroOcrForwardingMgtDto.saveGiroPrintReq dto) throws Exception {
         int processCount = 0;
@@ -200,7 +298,6 @@ public class WwdbGiroOcrForwardingMgtService {
         processCount += mapper.updateGiroPrintDate(dvo);
 
         processCount += mapper.insertGiroPrintDate(dvo);
-
 
         return processCount;
     }

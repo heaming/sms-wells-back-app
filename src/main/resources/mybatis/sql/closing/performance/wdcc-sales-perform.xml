@@ -25,7 +25,7 @@
              , (CASE WHEN A.SELL_TP_DTL_CD NOT IN ('21', '23')                                     /* 리스의 경우 청구금액((LCMAM2 - LCMAM4 + LCMAM5 + LCCAM2 - LCCAM4 + LCCAM5 + LCSAM2 - LCSAM4 + LCSAM5), 렌탈은 매출금액(LC50.LCAM16) */
 	                        THEN NVL(A.THM_BIL_OC_AMT, 0) - NVL(A.THM_BIL_CTR_AMT, 0) + NVL(A.THM_BIL_SPMT_AMT, 0)
 	                   ELSE NVL(A.THM_SL_SUM_AMT, 0) END)                AS THM_SL_SUM_AMT           /* 매출합계(LC50.LCAM16) */
-             , NVL(D.BOR_AMT, 0)                                       AS BOR_AMT                  /* 위약금액(LC50.LCAM44) */
+             , NVL(D.BOR_AMT, 0)                                       AS BOR_AMT                  /* 위약금액(LC50.LCAM44 + LC50.LCAM46으로 이행) */
              , NVL(D.LS_RNTF, 0)                                       AS LS_RNTF                  /* 분실손료(LC50.LCAM46) */
              , NVL(A.THM_ATAM_DP_AMT, 0)                                                           /* 선수입금(LC50.LCAM32) */
                - NVL(A.THM_ATAM_RFND_AMT, 0)                                                       /* 선수환불(LC50.LCAM33) */
@@ -41,10 +41,12 @@
                          THEN NVL(A.EOT_ATAM, 0) + NVL(A.MLG_EOT_PRPD_AMT, 0)                      /* 선수기말(LC50.LCAM36) + 포인트기말(LC50.LCAM75) */
                     ELSE NVL(A.EOT_ATAM, 0)
                END                                                     AS EOT_ATAM                 /* 선수금액 */
-             , (CASE WHEN A.SELL_TP_DTL_CD NOT IN ('21', '23')
-                          THEN NVL(A.EOT_BIL_UC_AMT, 0)
-                     ELSE NVL(A.EOT_UC_AMT, 0) + NVL(C.EOT_DLQ_ADD_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) END) AS EOT_UC_AMT /* 미수금액(LC50.LCMAMT) */
-             , NVL(C.EOT_DLQ_AMT, 0) + NVL(C.BTD_DLQ_ADD_AMT, 0) - NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_CTR_DLQ_ADD_AMT, 0) + NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT /* 연체금액(LC50.LCDAMT) TOBE 렌탈의 경우 위약금에 순수 위약금만 관리 */
+             , NVL(A.EOT_UC_AMT, 0) + NVL(C.EOT_DLQ_ADD_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) AS EOT_UC_AMT /* 미수금액(LC50.LCMAMT) */
+             , NVL(C.EOT_DLQ_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) + /* 원금연체 + 위약금 */
+               (CASE WHEN F.CL_FSH_YN = 'Y'
+                          THEN NVL(C.BTD_DLQ_ADD_AMT, 0) - (NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0)) - NVL(C.THM_CTR_DLQ_ADD_AMT, 0) /* 기초 - (입금 - 환불) - 공제 */
+                     ELSE GREATEST(NVL(E.EOT_DLQ_ADD_AMT, 0) - NVL(E.THM_OC_DLQ_ADD_AMT, 0) - (NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0)) - NVL(C.THM_CTR_DLQ_ADD_AMT, 0), 0) /* 당월실제 기초연체가산금 - (입금 - 환불) - 조정 */
+                END)                                                   AS EOT_DLQ_AMT              /* 연체금액(마감 전인 경우, 전월 발생 가산금은 제외) */
              , NVL(C.DLQ_MCN, 0)                                       AS DLQ_MCN                  /* 연체개월수(LC50.LCDCNT) */
              , NVL(C.BTD_DLQ_ADD_AMT, 0)                               AS BTD_DLQ_ADD_AMT          /* 가산금기초(LC50.LCAM81) */
              , NVL(C.THM_OC_DLQ_ADD_AMT, 0)                            AS THM_OC_DLQ_ADD_AMT       /* 가산금발생(LC50.LCAM82) */
@@ -59,18 +61,31 @@
            AND A.CNTR_SN = B.CNTR_SN
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS C /* 연체기본 */
             ON A.SL_CL_YM = C.PERF_YM
-           AND A.CNTR_NO  = C.CNTR_NO
-           AND A.CNTR_SN  = C.CNTR_SN
+           AND A.CNTR_NO = C.CNTR_NO
+           AND A.CNTR_SN = C.CNTR_SN
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS E /* 연체기본 */
+            ON E.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(A.SL_CL_YM||'01'), -1), 'YYYYMM')
+           AND E.CNTR_NO = A.CNTR_NO
+           AND E.CNTR_SN = A.CNTR_SN
           LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS D /* WELLS위약금액기본 */
             ON A.SL_CL_YM = D.PERF_YM
-           AND A.CNTR_NO  = D.CNTR_NO
-           AND A.CNTR_SN  = D.CNTR_SN
-         WHERE A.CNTR_NO  = #{cntrNo}
-           AND A.CNTR_SN  = #{cntrSn}
-           <if test="@MybatisUtils@isNotEmpty(fromSlClYy) and @MybatisUtils@isNotEmpty(toSlClYy)">
-           AND SUBSTR(A.SL_CL_YM,1,4) BETWEEN #{fromSlClYy}  AND #{toSlClYy} /* (1. 시작,종료 년월이 하나가 비어있으면 동일한 값으로 셋팅, 2. 시작년도가 종료년도보다 큰경우 교체) */
+           AND A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+          LEFT OUTER JOIN LATERAL (SELECT (CASE WHEN COUNT(1) > 0 THEN 'N' ELSE 'Y' END) AS CL_FSH_YN
+                                     FROM TB_CBCL_CL_PSIC_BAS
+                                    WHERE CL_BIZ_DV_CD = 'W06'
+                                      AND CL_STAT_CD IN ('1','2') /*1.대기중 , 2.진행중 . 3.완료 */
+                                      AND BASE_YM = A.SL_CL_YM) F /* 마감담당자기본 */
+            ON 1=1
+         WHERE A.CNTR_NO = #{cntrNo}
+           AND A.CNTR_SN = #{cntrSn}
+           <if test="@MybatisUtils@isNotEmpty(fromSlClYy)">
+           AND SUBSTR(A.SL_CL_YM,1,4) >= #{fromSlClYy}
            </if>
-         ORDER BY A.SL_CL_YM
+           <if test="@MybatisUtils@isNotEmpty(toSlClYy)">
+           AND SUBSTR(A.SL_CL_YM,1,4) <![CDATA[<=]]> #{toSlClYy}
+           </if>
+         ORDER BY A.SL_CL_YM DESC
     </select>
     <select id="selectMembershipSalesPages" resultType="com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesPerformDvo">
         SELECT A.CNTR_NO                                               AS CNTR_NO                  /* 계약번호 */
@@ -91,14 +106,18 @@
                  END                                                   AS DP_AMT                   /* 입금금액 */
              , NVL(A.EOT_ATAM, 0)                                      AS EOT_ATAM                 /* 선수잔액(LC55.LCAM36) */
              , NVL(A.EOT_UC_AMT, 0) + NVL(C.EOT_DLQ_ADD_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) AS EOT_UC_AMT /* 미수금액*/
-             , NVL(C.EOT_DLQ_AMT, 0) + NVL(C.BTD_DLQ_ADD_AMT, 0) - NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_CTR_DLQ_ADD_AMT, 0) + NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT /* 연체금액(LC55.LCDAMT) */
+             , NVL(C.EOT_DLQ_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) + /* 원금연체 + 위약금 */
+               (CASE WHEN F.CL_FSH_YN = 'Y'
+                          THEN NVL(C.BTD_DLQ_ADD_AMT, 0) - (NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0)) - NVL(C.THM_CTR_DLQ_ADD_AMT, 0) /* 기초 - (입금 - 환불) - 공제 */
+                     ELSE GREATEST(NVL(E.EOT_DLQ_ADD_AMT, 0) - NVL(E.THM_OC_DLQ_ADD_AMT, 0) - (NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0)) - NVL(C.THM_CTR_DLQ_ADD_AMT, 0), 0) /* 당월실제 기초연체가산금 - (입금 - 환불) - 조정 */
+                END)                                                   AS EOT_DLQ_AMT              /* 연체금액(마감 전인 경우, 전월 발생 가산금은 제외) */
              , NVL(C.DLQ_MCN, 0)                                       AS DLQ_MCN                  /* 연체개월수 */
              , NVL(C.BTD_DLQ_ADD_AMT, 0)                               AS BTD_DLQ_ADD_AMT          /* 가산금기초(LC55.LCAM81) */
-             , NVL(C.THM_OC_DLQ_ADD_AMT, 0)                            AS THM_OC_DLQ_ADD_AMT       /* 가산금발생(LC55.LCAM82) */
+             , NVL(C.THM_OC_DLQ_ADD_AMT, 0)                            AS THM_OC_DLQ_ADD_AMT       /* 가산금발생(LC50.LCAM82) */
              , NVL(C.THM_CTR_DLQ_ADD_AMT, 0)                           AS THM_CTR_DLQ_ADD_AMT      /* 가산금공제(LC55.LCAM85) */
              , NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0)                        AS THM_DLQ_ADD_DP_SUM_AMT   /* 가산금입금(LC55.LCAM83) */
              , NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0)                      AS THM_DLQ_ADD_RFND_SUM_AMT /* 가산금환불(LC55.LCAM86) */
-             , NVL(C.EOT_DLQ_ADD_AMT, 0)                               AS EOT_DLQ_ADD_AMT          /* 가산금기말(LC55.LCAM84) */
+             , NVL(C.EOT_DLQ_ADD_AMT, 0)                               AS EOT_DLQ_ADD_AMT          /* 가산금기말(LC50.LCAM84) */
              , TRUNC(NVL(A.SL_STP_AMT, 0) * 0.3,-1)                    AS SL_STP_AMT               /* 매출중지금액 */
           FROM TB_CBCL_WELLS_SL_MM_CL_IZ A /* WELLS매출월마감내역 */
          INNER JOIN TB_SSCT_CNTR_DTL B /* 계약상세 */
@@ -106,18 +125,31 @@
            AND A.CNTR_SN = B.CNTR_SN
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS C /* 연체기본 */
             ON A.SL_CL_YM = C.PERF_YM
-           AND A.CNTR_NO  = C.CNTR_NO
-           AND A.CNTR_SN  = C.CNTR_SN
+           AND A.CNTR_NO = C.CNTR_NO
+           AND A.CNTR_SN = C.CNTR_SN
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS E /* 연체기본 */
+            ON E.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(A.SL_CL_YM||'01'), -1), 'YYYYMM')
+           AND E.CNTR_NO = A.CNTR_NO
+           AND E.CNTR_SN = A.CNTR_SN
           LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS D /* WELLS위약금액기본 */
             ON A.SL_CL_YM = D.PERF_YM
-           AND A.CNTR_NO  = D.CNTR_NO
-           AND A.CNTR_SN  = D.CNTR_SN
-         WHERE A.CNTR_NO  = #{cntrNo}
-           AND A.CNTR_SN  = #{cntrSn}
-           <if test="@MybatisUtils@isNotEmpty(fromSlClYy) and @MybatisUtils@isNotEmpty(toSlClYy)">
-           AND SUBSTR(A.SL_CL_YM,1,4) BETWEEN #{fromSlClYy}  AND #{toSlClYy} /* (1. 시작,종료 년월이 하나가 비어있으면 동일한 값으로 셋팅, 2. 시작년도가 종료년도보다 큰경우 교체) */
+           AND A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+          LEFT OUTER JOIN LATERAL (SELECT (CASE WHEN COUNT(1) > 0 THEN 'N' ELSE 'Y' END) AS CL_FSH_YN
+                                     FROM TB_CBCL_CL_PSIC_BAS
+                                    WHERE CL_BIZ_DV_CD = 'W06'
+                                      AND CL_STAT_CD IN ('1','2') /*1.대기중 , 2.진행중 . 3.완료 */
+                                      AND BASE_YM = A.SL_CL_YM) F /* 마감담당자기본 */
+            ON 1=1
+         WHERE A.CNTR_NO = #{cntrNo}
+           AND A.CNTR_SN = #{cntrSn}
+           <if test="@MybatisUtils@isNotEmpty(fromSlClYy)">
+           AND SUBSTR(A.SL_CL_YM,1,4) >= #{fromSlClYy}
            </if>
-         ORDER BY A.SL_CL_YM
+           <if test="@MybatisUtils@isNotEmpty(toSlClYy)">
+           AND SUBSTR(A.SL_CL_YM,1,4) <![CDATA[<=]]> #{toSlClYy}
+           </if>
+         ORDER BY A.SL_CL_YM DESC
     </select>
     <select id="selectRegularShippingSalesPages" resultType="com.kyowon.sms.wells.web.closing.performance.dvo.WdccSalesPerformDvo">
         SELECT A.CNTR_NO                                               AS CNTR_NO                  /* 계약번호 */
@@ -128,12 +160,17 @@
              , A.RENTAL_TN                                             AS RENTAL_TN                /* 렌탈차월(LD50.LCRCNT) */
              , ''                                                      AS SL_CTR_DV_CD             /* 매출조정구분코드(미검색) */
              , A.PRM_MCN                                               AS PRM_MCN                  /* 선납개월 */
-             , NVL(A.THM_BIL_OC_AMT, 0) - NVL(A.THM_BIL_CTR_AMT, 0) + NVL(A.THM_BIL_SPMT_AMT, 0) AS THM_SL_SUM_AMT           /* 매출합계(LD50.LCAM16) NVL(A.THM_SL_SUM_AMT, 0) → 청구금액으로 수정*/
+             , NVL(A.THM_SL_SUM_AMT, 0)                                AS THM_SL_OC_AMT            /* 매출금액(LC55.LCAM16) */
+             , NVL(A.THM_BIL_OC_AMT, 0) - NVL(A.THM_BIL_CTR_AMT, 0) + NVL(A.THM_BIL_SPMT_AMT, 0) AS THM_SL_SUM_AMT /* 발생금액 */
              , NVL(D.BOR_AMT, 0)                                       AS BOR_AMT                  /* 위약금액 */
              , NVL(A.THM_ATAM_DP_AMT, 0) - NVL(A.THM_ATAM_RFND_AMT, 0) AS DP_AMT                   /* 입금금액 : 선수입금(LD55.LCAM32) - 선수환불(LD50.LCAM33) */
              , NVL(A.EOT_ATAM, 0)                                      AS EOT_ATAM                 /* 선수잔액(LD50.LCAM36) */
-             , NVL(A.EOT_BIL_UC_AMT, 0)                                AS EOT_UC_AMT               /* 미수금액(LD50.LCMAMT) NVL(A.EOT_UC_AMT, 0) + NVL(C.EOT_DLQ_ADD_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) → 청구미수로 수정*/
-             , NVL(C.EOT_DLQ_AMT, 0) + NVL(C.BTD_DLQ_ADD_AMT, 0) - NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_CTR_DLQ_ADD_AMT, 0) + NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) AS EOT_DLQ_AMT /* 연체금액(LC55.LCDAMT) */
+             , NVL(A.EOT_UC_AMT, 0) + NVL(C.EOT_DLQ_ADD_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) AS EOT_UC_AMT /* 미수금액 */
+             , NVL(C.EOT_DLQ_AMT, 0) + NVL(D.EOT_BOR_AMT, 0) + /* 원금연체 + 위약금 */
+               (CASE WHEN F.CL_FSH_YN = 'Y'
+                          THEN NVL(C.BTD_DLQ_ADD_AMT, 0) - (NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0)) - NVL(C.THM_CTR_DLQ_ADD_AMT, 0) /* 기초 - (입금 - 환불) - 공제 */
+                     ELSE GREATEST(NVL(E.EOT_DLQ_ADD_AMT, 0) - NVL(E.THM_OC_DLQ_ADD_AMT, 0) - (NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0)) - NVL(C.THM_CTR_DLQ_ADD_AMT, 0), 0) /* 당월실제 기초연체가산금 - (입금 - 환불) - 조정 */
+                END)                                                   AS EOT_DLQ_AMT              /* 연체금액(마감 전인 경우, 전월 발생 가산금은 제외) */
              , NVL(C.DLQ_MCN, 0)                                       AS DLQ_MCN                  /* 연체개월수 */
              , NVL(C.BTD_DLQ_ADD_AMT, 0)                               AS BTD_DLQ_ADD_AMT          /* 가산금기초 */
              , NVL(C.THM_OC_DLQ_ADD_AMT, 0)                            AS THM_OC_DLQ_ADD_AMT       /* 가산금발생 */
@@ -148,18 +185,31 @@
            AND A.CNTR_SN = B.CNTR_SN
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS C /* 연체기본 */
             ON A.SL_CL_YM = C.PERF_YM
-           AND A.CNTR_NO  = C.CNTR_NO
-           AND A.CNTR_SN  = C.CNTR_SN
+           AND A.CNTR_NO = C.CNTR_NO
+           AND A.CNTR_SN = C.CNTR_SN
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS E /* 연체기본 */
+            ON E.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(A.SL_CL_YM||'01'), -1), 'YYYYMM')
+           AND E.CNTR_NO = A.CNTR_NO
+           AND E.CNTR_SN = A.CNTR_SN
           LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS D /* WELLS위약금액기본 */
             ON A.SL_CL_YM = D.PERF_YM
-           AND A.CNTR_NO  = D.CNTR_NO
-           AND A.CNTR_SN  = D.CNTR_SN
-         WHERE A.CNTR_NO  = #{cntrNo}
-           AND A.CNTR_SN  = #{cntrSn}
-           <if test="@MybatisUtils@isNotEmpty(fromSlClYy) and @MybatisUtils@isNotEmpty(toSlClYy)">
-           AND SUBSTR(A.SL_CL_YM,1,4) BETWEEN #{fromSlClYy}  AND #{toSlClYy} /* (1. 시작,종료 년월이 하나가 비어있으면 동일한 값으로 셋팅, 2. 시작년도가 종료년도보다 큰경우 교체) */
+           AND A.CNTR_NO = D.CNTR_NO
+           AND A.CNTR_SN = D.CNTR_SN
+          LEFT OUTER JOIN LATERAL (SELECT (CASE WHEN COUNT(1) > 0 THEN 'N' ELSE 'Y' END) AS CL_FSH_YN
+                                     FROM TB_CBCL_CL_PSIC_BAS
+                                    WHERE CL_BIZ_DV_CD = 'W06'
+                                      AND CL_STAT_CD IN ('1','2') /*1.대기중 , 2.진행중 . 3.완료 */
+                                      AND BASE_YM = A.SL_CL_YM) F /* 마감담당자기본 */
+            ON 1=1
+         WHERE A.CNTR_NO = #{cntrNo}
+           AND A.CNTR_SN = #{cntrSn}
+           <if test="@MybatisUtils@isNotEmpty(fromSlClYy)">
+           AND SUBSTR(A.SL_CL_YM,1,4) >= #{fromSlClYy}
            </if>
-         ORDER BY A.SL_CL_YM
+           <if test="@MybatisUtils@isNotEmpty(toSlClYy)">
+           AND SUBSTR(A.SL_CL_YM,1,4) <![CDATA[<=]]> #{toSlClYy}
+           </if>
+         ORDER BY A.SL_CL_YM DESC
     </select>
 
     <select id="selectSinglePaymentBaseInfo" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccSalesPerformDto$SearchSinglePaymentBaseRes">
@@ -193,7 +243,8 @@
                   ----------------------------------------------------------------
                   -- 계약사항
                   ----------------------------------------------------------------
-              	   T1.CNTR_NO AS CNTR_NO -- 계약번호
+              	   T1.SL_CL_YM AS SL_CL_YM
+              	 , T1.CNTR_NO AS CNTR_NO -- 계약번호
               	 , T1.CNTR_SN AS CNTR_SN
                  , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_DTL_NO
               	 , T1.SELL_TP_CD AS SELL_TP_CD

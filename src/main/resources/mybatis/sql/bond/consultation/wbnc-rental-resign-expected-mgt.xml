@@ -148,7 +148,7 @@
              , C.SELL_PRTNR_NO                              /*판매자번호*/
              , F.PRTNR_KNM AS PLAR_KNM                      /*플래너*/
              , (CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN MONTHS_BETWEEN(TO_DATE(A.RQDT,'YYYYMMDD'), TO_DATE(D.CNTR_PD_STRTDT)) <![CDATA[>=]]> 12
-                                                             AND SVCR.DP_AGG_AMT <![CDATA[>=]]> (NVL(D.PD_BASE_AMT,0) - NVL(D.SELL_DSC_CTR_AMT,0)) * 12 - NVL(E.DSC_AGG_AMT,0) THEN 'N'
+                                                             AND SVCR.DP_AGG_AMT <![CDATA[>=]]> (NVL(D.PD_BASE_AMT,0) - NVL(D.FNL_AMT,0)) * 12 - NVL(E.DSC_AGG_AMT,0) THEN 'N'
                                                         ELSE 'Y' END)
                      WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN NOT (SUBSTR(D.CNTR_PD_STRTDT,1,6) <![CDATA[<=]]> '202203' AND D.SELL_TP_DTL_CD != '62' AND D.CNTR_PTRM <![CDATA[>=]]> 6)
                                                              AND NOT (SUBSTR(D.CNTR_PD_STRTDT,1,6) <![CDATA[>=]]> '202203' AND D.CNTR_PTRM <![CDATA[>=]]> 6 AND NOT (F.OG_CD LIKE 'Z95'||'%' AND D.SELL_TP_DTL_CD = '62')) THEN 'N'
@@ -237,17 +237,12 @@
                                 AND C2.CNTR_SN = C1.CNTR_SN
                             ) M3_2 /*3개월입금액*/
             ON 1 = 1
-          LEFT JOIN LATERAL (SELECT NVL(S1.SL_DP_AGG_AMT,0)
-                                    + (SELECT SUM(NVL(DP_SUM_AMT,0))
-                                         FROM TB_SVPD_SV_CS_DP_IZ
-                                        WHERE SUBSTR(DP_DTM,1,6) = S1.SL_CL_YM
-                                          AND CNTR_NO = S1.CNTR_NO
-                                          AND CNTR_SN = S1.CNTR_SN) AS DP_AGG_AMT /*매출입금누계금액+이자입금누계금액+서비스입금누계금액*/
-                               FROM TB_CBCL_WELLS_SL_MM_CL_IZ S1 /*T:WELLS매출월마감내역*/
-                              WHERE S1.SL_CL_YM = A.BASE_YM
-                                AND S1.CNTR_NO = A.CNTR_NO
-                                AND S1.CNTR_SN = A.CNTR_SN
-                            ) SVCR                        /*서비스비용입금내역*/
+            LEFT JOIN LATERAL (SELECT NVL(S1.SL_DP_AGG_AMT,0) AS DP_AGG_AMT /*매출입금누계금액+이자입금누계금액+서비스입금누계금액 */
+                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ S1 /*T:WELLS매출월마감내역*/
+                      WHERE S1.SL_CL_YM = A.BASE_YM
+                        AND S1.CNTR_NO = A.CNTR_NO
+                        AND S1.CNTR_SN = A.CNTR_SN
+                    ) SVCR                        /*서비스비용입금내역*/
             ON 1 = 1
           /* 6:정기배송 */
           /* 당월입금 */

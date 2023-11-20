@@ -41,6 +41,12 @@ public class WwdbMutualAidAllianceBulkDepositRegController {
 
     private final WwdbMutualAidAllianceBulkDepositRegService service;
 
+    /**
+     * 상조제휴 일괄입금 등록 목록 조회 / 페이징
+     * @param dto
+     * @param pageInfo 페이징
+     * @return PagingResult<SearchRes>
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "lifSpptYm", value = "라이프지원년월", paramType = "query", required = false),
         @ApiImplicitParam(name = "lifAlncDvCd", value = "라이프제휴구분코드", paramType = "query", required = false),
@@ -51,6 +57,11 @@ public class WwdbMutualAidAllianceBulkDepositRegController {
         return service.getMutualAidAllianceBulkDepositRegPages(dto, pageInfo);
     }
 
+    /**
+     * 상조제휴 일괄입금 등록 목록 조회 / 엑셀다운로드
+     * @param dto
+     * @return List<SearchRes>
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "lifSpptYm", value = "라이프지원년월", paramType = "query", required = false),
         @ApiImplicitParam(name = "lifAlncDvCd", value = "라이프제휴구분코드", paramType = "query", required = false),
@@ -61,6 +72,14 @@ public class WwdbMutualAidAllianceBulkDepositRegController {
         return service.getMutualAidAllianceBulkDepositRegExcels(dto);
     }
 
+    /**
+     * 상조제휴 일괄입금 등록 엑셀 업로드
+     * @param lifAlncDvCd 라이프제휴구분코드
+     * @param lifSpptYm 라이프지원년월
+     * @param file 업로드 파일
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "상조제휴 일괄입금 등록 엑셀 업로드", notes = " 검색조건을 받아 상조제휴 일괄입금 등록 엑셀 업로드한다.")
     @PostMapping("{lifAlncDvCd}/{lifSpptYm}/excel-upload")
     public SaveResponse saveMutualAidAllianceBulkDepositRegExcelUpload(
@@ -76,6 +95,11 @@ public class WwdbMutualAidAllianceBulkDepositRegController {
             .build();
     }
 
+    /**
+     * 상조제휴 일괄입금 등록 입금내역 조회
+     * @param dto
+     * @return SearchSumRes
+     */
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "lifSpptYm", value = "라이프지원년월", paramType = "query", required = false),
         @ApiImplicitParam(name = "lifAlncDvCd", value = "라이프제휴구분코드", paramType = "query", required = false),
@@ -86,6 +110,12 @@ public class WwdbMutualAidAllianceBulkDepositRegController {
         return service.getMutualAidAllianceBulkDepositRegsSum(dto);
     }
 
+    /**
+     * 상조제휴 일괄입금 등록 생성
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "상조제휴 일괄입금 등록 생성", notes = "상조제휴 일괄입금 등록 생성한다.")
     @PostMapping
     public SaveResponse saveMutualAidAllianceBulkDepositRegsSum(
@@ -98,6 +128,12 @@ public class WwdbMutualAidAllianceBulkDepositRegController {
             .build();
     }
 
+    /**
+     * 상조제휴 일괄입금 등록 생성
+     * @param dto
+     * @return SaveResponse
+     * @throws Exception
+     */
     @ApiOperation(value = "상조제휴 일괄입금 등록 생성", notes = "상조제휴 일괄입금 등록 생성한다.")
     @PostMapping("/create")
     public SaveResponse saveMutualAidAllianceBulkDepositRegsSum(
