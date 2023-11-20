@@ -104,6 +104,14 @@ public class WsnaQomAsnService {
         BigDecimal cnt = dto.cnt();
         // 창고세부구분코드
         String wareDtlDvCd = dto.wareDtlDvCd();
+        // 재생성여부
+        boolean isRecreate = dto.isRecreate();
+
+        // 재생성일 경우 데이터 삭제
+        if (isRecreate) {
+            WsnaQomAsnRemoveDvo removeDvo = this.converter.mapCreateReqToWsnaQomAsnRemoveDvo(dto);
+            this.mapper.updateQomAsnForRemove(removeDvo);
+        }
 
         int qomAsnNoMax = this.mapper.selectItmQomAsnNoMax(asnOjYm, wareDtlDvCd);
         dvo.setQomAsnNo(qomAsnNoMax);
@@ -129,6 +137,14 @@ public class WsnaQomAsnService {
         String asnOjYm = dto.asnOjYm();
         // 창고세부구분코드
         String wareDtlDvCd = dto.wareDtlDvCd();
+        // 재생성여부
+        boolean isRecreate = dto.isRecreate();
+
+        // 재생성일 경우 데이터 삭제
+        if (isRecreate) {
+            WsnaQomAsnRemoveDvo removeDvo = this.converter.mapCreateReqToWsnaQomAsnRemoveDvo(dto);
+            this.mapper.updateQomAsnForRemove(removeDvo);
+        }
 
         int qomAsnNoMax = this.mapper.selectItmQomAsnNoMax(asnOjYm, wareDtlDvCd);
         dvo.setQomAsnNo(qomAsnNoMax);
