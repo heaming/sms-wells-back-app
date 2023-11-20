@@ -28,6 +28,10 @@ public class WsnaFilterOutOfStorageDetailDto {
 
         String pdGrpCd,
 
+        String itmCdFrom,
+
+        String itmCdTo,
+
         String rgsnYn
     ) {}
     @ApiModel(value = "WsnaFilterOutOfStorageDetailDto-SearchRes")
