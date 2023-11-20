@@ -825,7 +825,18 @@
                         , T2.STPL_PTRM /* 약정기간 */
                         , T2.SV_PRD /* 서비스주기 */
                         , T2.ACKMT_PERF_AMT /* 인정실적금액 */
-                        , T2.FEE_ACKMT_BASE_AMT /* 수수료인정기준금액 */
+                        , CASE WHEN T2.SELL_TP_CD = '6' THEN /* 정기배송 */
+                               CASE WHEN T9.FEE_PDCT_TP_CD = 'B' AND T2.ACKMT_PERF_AMT > 2 THEN
+                                    T2.FEE_ACKMT_BASE_AMT
+                                    ELSE 0
+                               END
+                               WHEN T2.SELL_TP_CD = '2' THEN /* 렌탈/리스 */
+                               CASE WHEN NVL(T13.ROW_SCNT, 0) + NVL(T14.ROW_SCNT, 0) = 0 THEN
+                                    0
+                                    ELSE T2.FEE_ACKMT_BASE_AMT
+                               END
+                               ELSE T2.FEE_ACKMT_BASE_AMT
+                          END AS FEE_ACKMT_BASE_AMT /* 수수료인정기준금액 */
                         , CASE WHEN T9.FEE_PDCT_TP_CD = 'E' THEN
                                (CASE WHEN T2.SELL_TP_CD = '6' THEN NVL((NVL(T2.FNL_AMT, 0)- NVL(T2.CNTRAM_DSC_AMT, 0)) / DECODE(T2.SV_PRD, 0, NULL, T2.SV_PRD), 0) ELSE T2.SELL_AMT END )
                                ELSE 0
@@ -840,14 +851,14 @@
                                WHEN T5.FEE_PDCT_TP_CD1 != 'B' THEN
                                CASE WHEN NVL(T2.FEE_FXAM_YN, 'N') = 'N' AND NVL(T8.MCHN_CH_TP_CD, 'N') = 'N' AND T2.ACKMT_PERF_AMT > 0 THEN
                                     CASE WHEN T2.FEE_ACKMT_CT = 0 THEN 0
-                                         WHEN NVL(T13.ROW_SCNT, 0) = 0 THEN 0
+                                         WHEN NVL(T13.ROW_SCNT, 0) + NVL(T14.ROW_SCNT, 0) = 0 THEN 0
                                          ELSE 1
                                     END
                                     ELSE 0
                                END
                                ELSE 0
                           END AS NW_SELL_CT /* 신규판매건수 */
-                        , CASE WHEN T5.FEE_PDCT_TP_CD1 != 'B' AND NVL(T13.ROW_SCNT, 0) > 0 THEN 'Y' END AS BFSVC_OJ_YN /* BS대상여부 */
+                        , CASE WHEN T5.FEE_PDCT_TP_CD1 != 'B' AND NVL(T13.ROW_SCNT, 0) + NVL(T14.ROW_SCNT, 0) > 0 THEN 'Y' END AS BFSVC_OJ_YN /* BS대상여부 */
                         , '' AS RSTL_YN /* 재약정여부 */
                         , SUBSTR(T1.CNTR_CNFM_DTM, 0, 8) AS CNTR_CNFM_DTM /* 계약확정일시 */
                         , SUBSTR(T2.CNTR_PD_STRTDT, 0, 8) AS SL_DT /* 매출일자 */
@@ -858,7 +869,7 @@
                         , CASE WHEN T2.SELL_TP_CD = '6' THEN NVL((NVL(T2.FNL_AMT, 0)- NVL(T2.CNTRAM_DSC_AMT, 0)) / DECODE(T2.SV_PRD, 0, NULL, T2.SV_PRD), 0)
                                ELSE T2.SELL_AMT
                           END AS SELL_AMT /* 판매금액 */
-                        , T14.PMOT_CD AS PMOT_NO /* 프로모션번호 */
+                        , T15.PMOT_CD AS PMOT_NO /* 프로모션번호 */
                         , T2.HGR_PD_CD AS PKG_CD /* 상위상품코드 */
                         , T11.OJ_DTL_CNTR_NO /* 대상상세계약번호 */
                         , T11.BASE_PD_CD AS MCHN_PD_CD /* 기기상품코드 */
@@ -933,42 +944,39 @@
                      LEFT OUTER JOIN LATERAL
                         (
                           SELECT COUNT(*) AS ROW_SCNT
-                            FROM
+                            FROM TB_FEAM_WELS_SV_FEE_BAS /* 웰스서비스수수료기본 */
+                           WHERE 1=1
+                             AND BASE_PD_CD = T2.BASE_PD_CD /* 기준상품코드 */
+                             AND VST_MCN = 0 /* 방문개월수 */
+                             AND SUBSTR(#{rcpDtFrom}, 0, 6) BETWEEN APY_STRT_YM AND APY_END_YM /* 적용시작년월, 적용종료년월 */
+                             AND DTA_DL_YN = 'N'
+                         ) T13
+                       ON 1=1
+                     LEFT OUTER JOIN LATERAL
+                        (
+                          SELECT COUNT(*) AS ROW_SCNT
+                            FROM TB_FEAM_WELS_SV_FEE_BAS /* 웰스서비스수수료기본 */
+                           WHERE 1=1
+                             AND DTA_DL_YN = 'N'
+                             AND VST_MCN = 0 /* 방문개월수 */
+                             AND SUBSTR(#{rcpDtFrom}, 0, 6) BETWEEN APY_STRT_YM AND APY_END_YM /* 적용시작년월, 적용종료년월 */
+                             AND BASE_PD_CD IN /* 기준상품코드 */
                                (
-                                 SELECT 1 AS ROW_SCNT
-                                   FROM TB_FEAM_WELS_SV_FEE_BAS /* 웰스서비스수수료기본 */
+                                 SELECT S1.PD_CD /* 상품코드 */
+                                   FROM TB_PDBS_PD_BAS S1 /* 상품기본 */
+                                  INNER JOIN TB_PDBS_PD_REL S2 /* 상품관계 */
+                                     ON S2.BASE_PD_CD = S1.PD_CD /* 상품코드 */
+                                    AND S2.PD_REL_TP_CD = '05' /* 상품관계유형코드 = 05 : 기준-제품 */
+                                    AND SUBSTR(#{rcpDtFrom}, 0, 8) BETWEEN S2.VL_STRT_DTM  AND S2.VL_END_DTM /* 유효시작일시, 유효종료일시 */
+                                    AND S2.DTA_DL_YN = 'N'
+                                  INNER JOIN TB_PDBS_PD_BAS S3 /* 상품기본 */
+                                     ON S3.PD_CD = S2.OJ_PD_CD /* 대상상품코드 */
                                   WHERE 1=1
-                                    AND BASE_PD_CD = T2.BASE_PD_CD /* 기준상품코드 */
-                                    AND VST_MCN = 0 /* 방문개월수 */
-                                    AND SUBSTR(#{rcpDtFrom}, 0, 6) BETWEEN APY_STRT_YM AND APY_END_YM /* 적용시작년월, 적용종료년월 */
-                                    AND DTA_DL_YN = 'N'
-
-                                  UNION ALL
-
-                                 SELECT 1 AS ROW_SCNT
-                                   FROM TB_FEAM_WELS_SV_FEE_BAS /* 웰스서비스수수료기본 */
-                                  WHERE 1=1
-                                    AND DTA_DL_YN = 'N'
-                                    AND VST_MCN = 0 /* 방문개월수 */
-                                    AND SUBSTR(#{rcpDtFrom}, 0, 6) BETWEEN APY_STRT_YM AND APY_END_YM /* 적용시작년월, 적용종료년월 */
-                                    AND BASE_PD_CD IN /* 기준상품코드 */
-                                      (
-                                        SELECT S1.PD_CD /* 상품코드 */
-                                          FROM TB_PDBS_PD_BAS S1 /* 상품기본 */
-                                         INNER JOIN TB_PDBS_PD_REL S2 /* 상품관계 */
-                                            ON S2.BASE_PD_CD = S1.PD_CD /* 상품코드 */
-                                           AND S2.PD_REL_TP_CD = '05' /* 상품관계유형코드 = 05 : 기준-제품 */
-                                           AND SUBSTR(#{rcpDtFrom}, 0, 8) BETWEEN S2.VL_STRT_DTM  AND S2.VL_END_DTM /* 유효시작일시, 유효종료일시 */
-                                           AND S2.DTA_DL_YN = 'N'
-                                         INNER JOIN TB_PDBS_PD_BAS S3 /* 상품기본 */
-                                            ON S3.PD_CD = S2.OJ_PD_CD /* 대상상품코드 */
-                                         WHERE 1=1
-                                           AND S3.DTA_DL_YN = 'N'
-                                           AND S3.PD_TP_CD='M' /* 상품유형코드 = M : 교재제품 */
-                                           AND S3.PD_CD = T2.BASE_PD_CD /* 기준상품코드 */
-                                      )
+                                    AND S3.DTA_DL_YN = 'N'
+                                    AND S3.PD_TP_CD='M' /* 상품유형코드 = M : 교재제품 */
+                                    AND S3.PD_CD = T2.BASE_PD_CD /* 기준상품코드 */
                                )
-                        ) T13
+                        ) T14
                        ON 1=1
                      LEFT OUTER JOIN LATERAL
                         (
@@ -979,7 +987,7 @@
                              AND DTL_CNTR_NO = T2.CNTR_NO /* 상세계약번호 */
                              AND DTL_CNTR_SN = T2.CNTR_SN /* 상세계약일련번호 */
                              AND DTA_DL_YN = 'N'
-                        ) T14
+                        ) T15
                        ON 1=1
                       AND RK_NUM = 1
                     WHERE 1=1
@@ -1066,7 +1074,7 @@
                             , T3.STPL_PTRM /* 약정기간 */
                             , T3.SV_PRD /* 서비스주기 */
                             , T3.ACKMT_PERF_AMT /* 인정실적금액 */
-                            , T3.FEE_ACKMT_BASE_AMT /* 수수료인정기준금액 */
+                            , T1.FEE_ACKMT_BASE_AMT /* 수수료인정기준금액 */
                             , CASE WHEN T10.FEE_PDCT_TP_CD = 'E' THEN
                                    (CASE WHEN T3.SELL_TP_CD = '6' THEN (NVL(T3.FNL_AMT, 0)- NVL(T3.CNTRAM_DSC_AMT, 0)) / NVL(T3.SV_PRD, 0) ELSE T3.SELL_AMT END )
                                    ELSE 0
