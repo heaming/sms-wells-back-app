@@ -162,43 +162,40 @@
          ON C0.TENANT_ID  = #{session.tenantId}
         AND C0.CD_ID      = 'CO_CD'    /* 업체명 */
         AND C0.CD_VLD_VAL = T1.CO_CD
-       /* 20230905 수정 */
-       LEFT OUTER JOIN (SELECT A.BASE_YM
-                             , A.CO_CD
-                             , A.OG_TP_CD
-                             , C.HOO_PRTNR_NO AS PRTNR_NO
-                             , COUNT(1) AS CNT
-                          FROM TB_FEAM_FEE_CALC_CNTR_DTL_IZ A
-                          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ B
-                            ON B.BASE_YM = A.BASE_YM
-                           AND B.PRTNR_NO = A.PRTNR_NO
-                           AND B.OG_TP_CD = A.OG_TP_CD
-                          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ C
-                            ON B.BASE_YM = C.BASE_YM
-                           AND B.OG_TP_CD = C.OG_TP_CD
-                           AND B.OG_ID = C.OG_ID
-                         WHERE A.BASE_YM =  #{perfYm}
-                           <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
-                           AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}
-                           </if>
-                           AND A.OG_TP_CD = 'W05'
-                           AND A.FEE_CALC_TP_CD = '01'
-                           AND A.FEE_CD = 'W050001'
-                           AND A.DTA_DL_YN = 'N'
-                         GROUP BY A.BASE_YM, A.CO_CD, A.OG_TP_CD, C.HOO_PRTNR_NO ) T9 /* 계약건수(판매자) */
-          ON T9.BASE_YM        = T1.BASE_YM
-         AND T9.CO_CD          = T1.CO_CD
-         AND T9.OG_TP_CD       = T1.OG_TP_CD
-         AND T9.PRTNR_NO       = T1.PRTNR_NO
-          WHERE T0.BASE_YM =  #{perfYm}
-            <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
-            AND T0.FEE_TCNT_DV_CD      = #{feeTcntDvCd}
-            </if>
-            AND T0.PERF_DV_CD = '2'             /* 지점장 */
-            AND T0.FEE_TCNT_DV_CD      = '02'   /* 확정 */
-            AND T0.PERF_AGRG_CRT_DV_CD = '501'  /* 총판 실적 */
-            AND T0.DTA_DL_YN = 'N'
-            AND T0.PERF_ATC_CD = 'W05P00001'
+        /* 20231120 수정 */
+       LEFT OUTER JOIN ( SELECT X.BASE_YM /* 기준년월 */
+                              , X.CO_CD
+                              , X.OG_TP_CD /* 조직유형코드 */
+                              , TOG.DGR2_LEVL_DG_PRTNR_NO AS PRTNR_NO /* 파트너번호 */
+                              , COUNT(X.PERF_VAL) AS CNT
+                           FROM TB_FEAM_NTORP_CNTR_MM_CL X/* 순주문파트너계약월마감 */
+                          INNER JOIN TB_OGBS_MM_PRTNR_IZ TPT /* 월파트너내역 */
+                             ON (X.PERF_YM = TPT.BASE_YM AND X.BASE_YM = TPT.BASE_YM AND X.PRTNR_NO = TPT.PRTNR_NO AND X.OG_TP_CD = TPT.OG_TP_CD)
+                          INNER JOIN TB_OGBS_MM_OG_IZ TOG /* 월조직내역 */
+                             ON (TPT.BASE_YM = TOG.BASE_YM AND TPT.OG_ID = TOG.OG_ID)
+                          WHERE 1=1
+                            AND X.BASE_YM = X.PERF_YM
+                            AND X.BASE_YM = #{perfYm}
+                            AND X.OG_TP_CD = 'W05'
+                            AND X.PERF_ATC_CD  = 'W05P00001'
+                            <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
+                            AND X.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                            </if>
+                            AND X.PERF_VAL > 0
+                          GROUP BY X.BASE_YM, X.CO_CD, X.OG_TP_CD, TOG.DGR2_LEVL_DG_PRTNR_NO ) T9
+         ON T9.BASE_YM        = T1.BASE_YM
+        AND T9.CO_CD          = T1.CO_CD
+        AND T9.OG_TP_CD       = T1.OG_TP_CD
+        AND T9.PRTNR_NO       = T1.PRTNR_NO
+      WHERE T0.BASE_YM =  #{perfYm}
+        <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
+        AND T0.FEE_TCNT_DV_CD      = #{feeTcntDvCd}
+        </if>
+        AND T0.PERF_DV_CD = '2'             /* 지점장 */
+        AND T0.FEE_TCNT_DV_CD      = '02'   /* 확정 */
+        AND T0.PERF_AGRG_CRT_DV_CD = '501'  /* 총판 실적 */
+        AND T0.DTA_DL_YN = 'N'
+        AND T0.PERF_ATC_CD = 'W05P00001'
       GROUP BY T0.BASE_YM, T0.FEE_TCNT_DV_CD, T0.CO_CD, O1.HOO_PRTNR_NM, T3.OG_CD, T0.PRTNR_NO, T3.PRTNR_KNM
     </select>
 
