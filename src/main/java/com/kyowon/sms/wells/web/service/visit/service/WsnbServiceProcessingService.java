@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.service.visit.service;
 import java.util.Base64;
 import java.util.List;
 
-import com.sds.sflex.system.config.core.util.ObjectUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
@@ -89,6 +88,12 @@ public class WsnbServiceProcessingService {
                 if (!CollectionUtils.sizeIsEmpty(attachFileDvos)) {
                     dvo.setIstCelngPhoPhFileUid(attachFileDvos.get(0).getFileUid());
                 }
+            }
+
+            if (StringUtil.isNotBlank(dvo.getIstEnvrPhoPhFileUid())
+                || StringUtil.isNotBlank(dvo.getIstEnvrPhoPhFileUid())
+                || StringUtil.isNotBlank(dvo.getIstEnvrPhoPhFileUid())) {
+                dvo.setIstImg("Y");
             }
         }
 
