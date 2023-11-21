@@ -145,4 +145,140 @@
            AND SUBSTR(T1.VST_CNFMDT,1,6) = TO_CHAR(SYSDATE, 'YYYYMM')
         </if>
     </select>
+
+    <!-- 홈카드 오늘.내일 일정 -->
+    <select id="selectTodayTomorrowCnt" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyProcPsDto$SearchCnt">
+    SELECT NVL(SUM((CASE WHEN T1.VST_CNFMDT = TO_CHAR(SYSDATE, 'YYYYMMDD') THEN 1 ELSE 0 END)), 0) AS TODAY_CNT
+         , NVL(SUM(CASE WHEN (T1.SV_BIZ_HCLSF_CD = '1' OR SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) = '41') AND T1.VST_CNFMDT = TO_CHAR(SYSDATE, 'YYYYMMDD') THEN 1 ELSE 0 END), 0) AS TODAY_IST_CNT
+         , NVL(SUM(CASE WHEN (T1.SV_BIZ_HCLSF_CD = '2' OR SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) = '42') AND T1.VST_CNFMDT = TO_CHAR(SYSDATE, 'YYYYMMDD') THEN 1 ELSE 0 END), 0) AS TODAY_BS_CNT
+         , NVL(SUM(CASE WHEN (T1.SV_BIZ_HCLSF_CD = '3' OR SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) = '43') AND T1.VST_CNFMDT = TO_CHAR(SYSDATE, 'YYYYMMDD') THEN 1 ELSE 0 END), 0) AS TODAY_AS_CNT
+         , NVL(SUM((CASE WHEN T1.VST_CNFMDT = TO_CHAR(SYSDATE + 1, 'YYYYMMDD') THEN 1 ELSE 0 END)), 0) AS TOMMR_CNT
+         , NVL(SUM(CASE WHEN (T1.SV_BIZ_HCLSF_CD = '1' OR SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) = '41') AND T1.VST_CNFMDT = TO_CHAR(SYSDATE + 1, 'YYYYMMDD') THEN 1 ELSE 0 END), 0) AS TOMMR_IST_CNT
+         , NVL(SUM(CASE WHEN (T1.SV_BIZ_HCLSF_CD = '2' OR SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) = '42') AND T1.VST_CNFMDT = TO_CHAR(SYSDATE + 1, 'YYYYMMDD') THEN 1 ELSE 0 END), 0) AS TOMMR_BS_CNT
+         , NVL(SUM(CASE WHEN (T1.SV_BIZ_HCLSF_CD = '3' OR SUBSTR(T1.SV_BIZ_DCLSF_CD,1,2) = '43') AND T1.VST_CNFMDT = TO_CHAR(SYSDATE + 1, 'YYYYMMDD') THEN 1 ELSE 0 END), 0) AS TOMMR_AS_CNT
+      FROM (SELECT '1' AS AB_DV_CD
+                 , Z1.CNTR_NO
+                 , Z1.CNTR_SN
+                 , Z1.CST_SV_ASN_NO
+                 , Z1.VST_CNFMDT
+                 , Z1.WK_PRGS_STAT_CD AS WK_PRGS_STAT_CD
+                 , Z1.SV_BIZ_HCLSF_CD
+                 , Z1.SV_BIZ_DCLSF_CD
+              FROM TB_SVPD_CST_SVAS_IST_ASN_IZ Z1 /*고객서비스AS설치배정내역*/
+              JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ Z2 /*고객서비스AS설치대상내역*/
+                ON Z1.CST_SV_ASN_NO = Z2.CST_SV_ASN_NO
+             WHERE Z1.DTA_DL_YN = 'N'
+               AND Z2.DTA_DL_YN = 'N'
+               AND Z1.ICHR_OG_TP_CD = #{session.ogTpCd}
+            /*세션 rsbCd 직책코드가 'W0603', 'W0604', 'W0301' 일때*/
+            <if test="@MybatisUtils@equals(rsbCd, 'W0603') or @MybatisUtils@equals(rsbCd, 'W0604') or @MybatisUtils@equals(rsbCd, 'W0301')">
+               AND Z1.ICHR_PRTNR_NO IN (SELECT A.PRTNR_NO
+                                          FROM TB_OGBS_PRTNR_BAS A
+                                          JOIN TB_OGBS_PRTNR_DTL B
+                                            ON A.OG_TP_CD = B.OG_TP_CD
+                                           AND A.PRTNR_NO = B.PRTNR_NO
+                                         WHERE A.OG_ID = #{session.ogId}
+                                      /*세션 rsbCd 직책코드가 'W0603', 'W0604' 일때*/
+                                      <if test="@MybatisUtils@equals(rsbCd, 'W0603') or @MybatisUtils@equals(rsbCd, 'W0604')">
+                                           AND B.RSB_DV_CD IN ('W0601', 'W0602', 'W0603', 'W0604')
+                                      </if>
+                                      /*세션 rsbCd 직책코드가 'W0301' 일때*/
+                                      <if test="@MybatisUtils@equals(rsbCd, 'W0301')">
+                                           AND B.RSB_DV_CD IN ('W0301', 'W0302')
+                                      </if>
+                                           AND B.BZ_STAT_CD = '1'
+                                           AND A.DTA_DL_YN = 'N'
+                                           AND B.DTA_DL_YN = 'N')
+            </if>
+            /*세션 rsbCd 직책코드가 'W0603', 'W0604', 'W0301' 아닐때*/
+            <if test="!@MybatisUtils@equals(rsbCd, 'W0603') and !@MybatisUtils@equals(rsbCd, 'W0604') and !@MybatisUtils@equals(rsbCd, 'W0301')">
+               AND Z1.ICHR_PRTNR_NO = #{session.employeeIDNumber}
+               AND Z1.WK_PRGS_STAT_CD IN ('00', '10', '20')
+               AND (Z1.WK_EXCN_DT IS NULL OR Z1.WK_EXCN_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD'))
+            </if>
+            UNION ALL
+            SELECT '2' AS AB_DV_CD
+                 , Z3.CNTR_NO
+                 , Z3.CNTR_SN
+                 , Z3.CST_SV_ASN_NO
+                 , Z3.VST_CNFMDT
+                 , Z3.VST_PRGS_STAT_CD AS WK_PRGS_STAT_CD
+                 , SUBSTR(Z3.SV_BIZ_DCLSF_CD,1,1) AS SV_BIZ_HCLSF_CD
+                 , Z3.SV_BIZ_DCLSF_CD
+              FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ Z3 /*고객서비스BS배정내역*/
+              JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ Z4 /*고객서비스BS대상내역*/
+                ON Z3.CST_SV_ASN_NO = Z4.CST_SV_ASN_NO
+             WHERE Z3.DTA_DL_YN = 'N'
+               AND Z4.DTA_DL_YN = 'N'
+               AND Z3.CNFM_PSIC_PRTNR_OG_TP_CD = #{session.ogTpCd}
+            /*세션 rsbCd 직책코드가 'W0603', 'W0604', 'W0301' 일때*/
+            <if test="@MybatisUtils@equals(rsbCd, 'W0603') or @MybatisUtils@equals(rsbCd, 'W0604') or @MybatisUtils@equals(rsbCd, 'W0301')">
+               AND Z3.CNFM_PSIC_PRTNR_NO IN (SELECT A.PRTNR_NO
+                                               FROM TB_OGBS_PRTNR_BAS A
+                                               JOIN TB_OGBS_PRTNR_DTL B
+                                                 ON A.OG_TP_CD = B.OG_TP_CD
+                                                AND A.PRTNR_NO = B.PRTNR_NO
+                                              WHERE A.OG_ID = #{session.ogId}
+                                            /*세션 rsbCd 직책코드가 'W0603', 'W0604' 일때*/
+                                            <if test="@MybatisUtils@equals(rsbCd, 'W0603') or @MybatisUtils@equals(rsbCd, 'W0604')">
+                                                AND B.RSB_DV_CD IN ('W0601', 'W0602', 'W0603', 'W0604')
+                                            </if>
+                                            /*세션 rsbCd 직책코드가 'W0301' 일때*/
+                                            <if test="@MybatisUtils@equals(rsbCd, 'W0301')">
+                                                AND B.RSB_DV_CD IN ('W0301', 'W0302')
+                                            </if>
+                                                AND B.BZ_STAT_CD = '1'
+                                                AND A.DTA_DL_YN = 'N'
+                                                AND B.DTA_DL_YN = 'N')
+            </if>
+            /*세션 rsbCd 직책코드가 'W0603', 'W0604', 'W0301' 아닐때*/
+            <if test="!@MybatisUtils@equals(rsbCd, 'W0603') and !@MybatisUtils@equals(rsbCd, 'W0604') and !@MybatisUtils@equals(rsbCd, 'W0301')">
+               AND Z3.CNFM_PSIC_PRTNR_NO = #{session.employeeIDNumber}
+               AND Z3.ASN_OJ_YM IN (TO_CHAR(SYSDATE, 'YYYYMM'), TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM'))
+               AND NOT EXISTS (SELECT 1
+                                 FROM TB_SSCT_CNTR_REL TT1
+                                 JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ TT2
+                                   ON TT2.CNTR_NO = TT1.BASE_DTL_CNTR_NO
+                                  AND TT2.CNTR_SN = TT1.BASE_DTL_CNTR_SN
+                                WHERE TT1.OJ_DTL_CNTR_NO = Z3.CNTR_NO
+                                  AND TT1.OJ_DTL_CNTR_SN = Z3.CNTR_SN
+                                  AND SUBSTR(TT2.VST_CNFMDT, 1, 6) = SUBSTR(Z3.VST_CNFMDT, 1, 6)
+                                  AND TT1.CNTR_REL_DTL_CD IN ('214', '216') /*모종결합*/
+                                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TT1.VL_STRT_DTM AND TT1.VL_END_DTM
+                                  AND TT1.DTA_DL_YN = 'N'
+                                  AND TT2.DTA_DL_YN = 'N')
+            </if>
+      ) T1
+      LEFT JOIN TB_SVPD_CST_SV_WK_RS_IZ T3 /*고객서비스작업결과내역*/
+        ON T1.CST_SV_ASN_NO = T3.CST_SV_ASN_NO
+      JOIN TB_SVPD_CST_SV_EXCN_IZ T4 /*고객서비스수행내역*/
+        ON T1.CNTR_NO = T4.CNTR_NO
+       AND T1.CNTR_SN = T4.CNTR_SN
+      LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+        ON T4.PDCT_PD_CD = P1.PD_CD
+      JOIN TB_SSCT_CNTR_BAS C1 /*계약기본*/
+        ON T1.CNTR_NO = C1.CNTR_NO
+      JOIN TB_SSCT_CNTR_ADR_REL C2 /*계약주소관계*/
+        ON T1.CNTR_NO = C2.DTL_CNTR_NO
+       AND T1.CNTR_SN = C2.DTL_CNTR_SN
+       AND C2.ADRPC_TP_CD IN ('2','3') /*1:계약주소, 2:배달주소, 3:설치주소*/
+       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C2.VL_STRT_DTM AND C2.VL_END_DTM
+      JOIN TB_SSCT_CNTR_ADRPC_BAS C3 /*계약주소지기본*/
+        ON C2.CNTR_ADRPC_ID = C3.CNTR_ADRPC_ID
+      LEFT OUTER JOIN TB_CUBS_CST_DTL A1 /*고객상세*/
+        ON C3.CNTR_CST_NO = A1.CST_NO
+      JOIN TB_GBCO_ADR_BAS G1
+        ON C3.ADR_ID = G1.ADR_ID
+      LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T10 /*상품각사속성상세*/
+        ON T10.PD_CD = P1.PD_CD
+       AND T10.PD_EXTS_PRP_GRP_CD = 'PART'
+      JOIN TB_SSCT_CNTR_WELLS_DTL T5
+        ON T4.CNTR_NO = T5.CNTR_NO
+       AND T4.CNTR_SN = T5.CNTR_SN
+     /*웰스팜.모종 관련 조건*/
+     WHERE (CASE WHEN (T1.AB_DV_CD = '1' AND T10.PD_PRP_VAL20 = '11' AND T1.SV_BIZ_DCLSF_CD LIKE '11%') THEN '2'
+                 ELSE '1' END) = '1'
+     /*배정일자 오늘/내일*/
+       AND T1.VST_CNFMDT BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+    </select>
 </mapper>

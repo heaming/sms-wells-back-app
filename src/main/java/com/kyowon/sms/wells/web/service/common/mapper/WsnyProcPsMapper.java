@@ -20,4 +20,11 @@ public interface WsnyProcPsMapper {
      * @return
      */
     SearchRes selectProcPs(SearchReq dto);
+
+    /**
+     * 홈카드 오늘/내일 배정 건수 조회
+     * @param dto
+     * @return
+     */
+    SearchCnt selectTodayTomorrowCnt(SearchReq dto);
 }

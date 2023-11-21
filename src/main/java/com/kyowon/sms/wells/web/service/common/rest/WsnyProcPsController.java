@@ -35,4 +35,10 @@ public class WsnyProcPsController {
     public SearchRes getHomeCardProcPs(SearchReq dto) {
         return service.selectProcPs(dto);
     }
+
+    @ApiOperation(value = "Home Card 오늘.내일 배정건수 조회", notes = "오늘.내일 배정 건수 조회")
+    @GetMapping("/homecard-search-cnt")
+    public SearchCnt selectTodayTomorrowCnt(SearchReq dto) {
+        return service.selectTodayTomorrowCnt(dto);
+    }
 }
