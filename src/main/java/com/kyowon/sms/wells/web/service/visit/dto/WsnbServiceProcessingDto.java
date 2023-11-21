@@ -146,6 +146,7 @@ public class WsnbServiceProcessingDto {
         String cardStlm, // 결제내역(신용카드)
         String vacStlmAmt, // 결제내역(가상계좌)
         String cstSignCn, // 고객서명
+        String istImg, // 이미지 파일 존재 유무
         String istEnvrPhoPhFileUid, // 설치환경사진 FILE_UID
         String istKitPhoPhFileUid, // 설치키트사진 FILE_UID
         String istCelngPhoPhFileUid, // 설치천장사진 FILE_UID
