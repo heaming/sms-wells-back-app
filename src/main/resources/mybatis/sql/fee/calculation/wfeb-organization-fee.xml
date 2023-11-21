@@ -549,10 +549,11 @@
              , TOPMR_SETTLE	/* 교육-수석정착 */
              , TOPMR_NMN /*교육-수석차월*/
              , MNGER_FST_OPNG	/* 매니저개시사항-최초개시일 */
-             , MNGER_OPNG	/* 매니저개시사항-재개시월 */
+             , SUBSTR(MNGER_OPNG, 1, 6) AS MNGER_OPNG	/* 매니저개시사항-재개시월 */
              , MNGER_FNL_CLTN	/* 매니저개시사항-최종해약월 */
              , MNGER_BIZ_CLTN /* 매니저개시사항-업무해약월 */
-             , MNGER_BLTN_NMN /* 매니저개시사항-매니저 개시차월 */
+             , CASE WHEN MNGER_OPNG IS NOT NULL THEN CEIL(MONTHS_BETWEEN(TO_DATE(BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER_OPNG, 'YYYYMMDD')))+1
+               ELSE 0 END AS MNGER_BLTN_NMN /* 매니저개시사항-매니저 개시차월 */
              , MNGER_SETTLE_DSB_TP /* 매니저개시사항-정착지급유형 */
              , INDV_D5_ASN_CNT  /* 5일배정건수 */
              , INDV_ASN_CNT	/* 개인BS-배정건수 */
@@ -650,15 +651,9 @@
                            ELSE ''
                       END AS EDU2_PRE /*교육-Pre누적교육 */
                     , SUBSTR(MNGER1.MNGER_FST_OPNG, 1, 6) AS MNGER_FST_OPNG	/* 매니저 최초개시일 */
-                    , SUBSTR(MNGER2.MNGER_OPNG, 1, 6) AS MNGER_OPNG	/* 매니저 재개시월 */
+                    , CASE WHEN MNGER2.RESTRT_DT IS NULL THEN MNGER2.FST_CNTR_DT ELSE MNGER2.RESTRT_DT END AS MNGER_OPNG	/* 매니저 재개시월 */
                     , SUBSTR(MNGER3.MNGER_FNL_CLTN, 1, 6) AS MNGER_FNL_CLTN	/* 매니저 최종해약월 */
                     , SUBSTR(MNGER4.MNGER_BIZ_CLTN, 1, 6) AS MNGER_BIZ_CLTN /* 매니저 업무해약월 */
-                    , CASE WHEN (MNGER3.MNGER_FNL_CLTN IS NULL AND MNGER4.MNGER_BIZ_CLTN IS NULL) OR (MNGER3.MNGER_FNL_CLTN <![CDATA[>=]]> #{dto.perfYm} OR MNGER4.MNGER_BIZ_CLTN <![CDATA[>=]]> #{dto.perfYm}) THEN
-                            CASE WHEN MNGER2.MNGER_OPNG IS NOT NULL THEN
-                                 CEIL(MONTHS_BETWEEN(TO_DATE(PRTNR.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER2.MNGER_OPNG, 'YYYYMMDD')))+1
-                            ELSE CEIL(MONTHS_BETWEEN(TO_DATE(PRTNR.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER1.MNGER_FST_OPNG, 'YYYYMMDD')))+1
-                            END
-                       ELSE 0 END AS MNGER_BLTN_NMN /* 매니저 개시차월 */
                     , F_CMZ_CD_NM('TNT_WELLS', 'OPNG_CD', MNGER5.OPNG_CD) AS MNGER_SETTLE_DSB_TP /* 매니저개시 정착지급유형 */
                     , NVL(INDVD5.INDV_D5_ASN_CNT, 0) AS INDV_D5_ASN_CNT     /* 개인BS-5일배정건수 */
                     , NVL(INDVBS.INDV_ASN_CNT, 0) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
@@ -752,31 +747,32 @@
                   ) NMNQLF
                  ON PRTNR.PRTNR_NO = NMNQLF.PRTNR_NO
                 LEFT OUTER JOIN
-                   ( SELECT STRTDT AS MNGER_OPNG /* 매니저 재개시월 */
+                   ( SELECT OG_TP_CD
                           , PRTNR_NO
-                       FROM TB_OGPS_PLAR_QLF_CH_IZ    /* 플래너자격변경내역 */
-                      WHERE DTA_DL_YN = 'N'
-                        AND #{dto.perfYm} BETWEEN SUBSTR(STRTDT, 0, 6) AND SUBSTR(ENDDT, 0, 6)
-                        AND OG_TP_CD = 'W02'
-                        AND QLF_DV_CD IN (3, 6)
-                        AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승격,자격해제(과거)  3: 보류 제외 */
-                        <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
-                        AND PRTNR_NO = #{dto.prtnrNo}
-                        </if>
-                      UNION ALL
-                     SELECT STRTDT AS MNGER_OPNG /* 매니저 재개시월 */
-                          , PRTNR_NO
-                       FROM TB_OGPS_PLAR_QLF_CH_IZ	/* 플래너자격변경내역 */
-                      WHERE DTA_DL_YN = 'N'
-                        AND SUBSTR(STRTDT, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(#{dto.perfYm}, 'YYYYMM'), 1), 'YYYYMM')
-                        AND OG_TP_CD = 'W02'
-                        AND QLF_DV_CD IN (3, 6)
-                        AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승격,자격해제(과거)  3: 보류 제외 */
-                        <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
-                        AND PRTNR_NO = #{dto.prtnrNo}
-                        </if>
+                          , MIN(STRTDT) AS FST_CNTR_DT  /* 최초계약일 */
+                          , MAX(NVL2(STRT_PREV_DT,STRTDT,'')) AS RESTRT_DT    /* 재등록개시일 */
+                       FROM
+                          ( SELECT OG_TP_CD
+                                 , PRTNR_NO
+                                 , STRTDT
+                                 , ENDDT
+                                 , CV_DT
+                                 , DSB_AMT
+                                 , LAG(STRTDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, STRTDT)  AS STRT_PREV_DT
+                                 , LEAD(STRTDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, STRTDT) AS STRT_NEXT_DT
+                                 , LAG(ENDDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, ENDDT)  AS END_PREV_DT
+                                 , LEAD(ENDDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, ENDDT) AS END_NEXT_DT
+                              FROM TB_OGPS_PLAR_QLF_CH_IZ   /* 플래너자격변경내역 */
+                             WHERE DTA_DL_YN = 'N'
+                               AND OG_TP_CD  = 'W02'
+                               AND QLF_DV_CD = 3
+                               AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제  3 : 보류 제외
+                          ) A
+                      WHERE 1=1
+                      GROUP BY OG_TP_CD, PRTNR_NO
                   ) MNGER2
-                 ON PRTNR.PRTNR_NO = MNGER2.PRTNR_NO
+                 ON PRTNR.OG_TP_CD = MNGER2.OG_TP_CD
+                AND PRTNR.PRTNR_NO = MNGER2.PRTNR_NO
                LEFT OUTER JOIN
                   ( SELECT MAX (ENDDT) AS MNGER_FNL_CLTN /* 매니저 최종해약월 */
                          , PRTNR_NO
@@ -1193,10 +1189,11 @@
              , TOPMR_SETTLE	/* 교육-수석정착 */
              , TOPMR_NMN /*교육-수석차월*/
              , MNGER_FST_OPNG	/* 매니저개시사항-최초개시일 */
-             , MNGER_OPNG	/* 매니저개시사항-재개시월 */
+             , SUBSTR(MNGER_OPNG, 1, 6) AS MNGER_OPNG	/* 매니저개시사항-재개시월 */
              , MNGER_FNL_CLTN	/* 매니저개시사항-최종해약월 */
              , MNGER_BIZ_CLTN /* 매니저개시사항-업무해약월 */
-             , MNGER_BLTN_NMN /* 매니저개시사항-매니저 개시차월 */
+             , CASE WHEN MNGER_OPNG IS NOT NULL THEN CEIL(MONTHS_BETWEEN(TO_DATE(BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER_OPNG, 'YYYYMMDD')))+1
+               ELSE 0 END AS MNGER_BLTN_NMN /* 매니저개시사항-매니저 개시차월 */
              , MNGER_SETTLE_DSB_TP /* 매니저개시사항-정착지급유형 */
              , INDV_D5_ASN_CNT  /* 5일배정건수 */
              , INDV_ASN_CNT	/* 개인BS-배정건수 */
@@ -1319,15 +1316,9 @@
                            ELSE ''
                       END AS EDU2_PRE /*교육-Pre누적교육 */
                     , SUBSTR(MNGER1.MNGER_FST_OPNG, 1, 6) AS MNGER_FST_OPNG	/* 매니저 최초개시일 */
-                    , SUBSTR(MNGER2.MNGER_OPNG, 1, 6) AS MNGER_OPNG	/* 매니저 재개시월 */
+                    , CASE WHEN MNGER2.RESTRT_DT IS NULL THEN MNGER2.FST_CNTR_DT ELSE MNGER2.RESTRT_DT END AS MNGER_OPNG    /* 매니저 재개시월 */
                     , SUBSTR(MNGER3.MNGER_FNL_CLTN, 1, 6) AS MNGER_FNL_CLTN	/* 매니저 최종해약월 */
                     , SUBSTR(MNGER4.MNGER_BIZ_CLTN, 1, 6) AS MNGER_BIZ_CLTN /* 매니저 업무해약월 */
-                    , CASE WHEN (MNGER3.MNGER_FNL_CLTN IS NULL AND MNGER4.MNGER_BIZ_CLTN IS NULL) OR (MNGER3.MNGER_FNL_CLTN <![CDATA[>=]]> #{perfYm} OR MNGER4.MNGER_BIZ_CLTN <![CDATA[>=]]> #{perfYm}) THEN
-                            CASE WHEN MNGER2.MNGER_OPNG IS NOT NULL THEN
-                                 CEIL(MONTHS_BETWEEN(TO_DATE(PRTNR.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER2.MNGER_OPNG, 'YYYYMMDD')))+1
-                            ELSE CEIL(MONTHS_BETWEEN(TO_DATE(PRTNR.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER1.MNGER_FST_OPNG, 'YYYYMMDD')))+1
-                            END
-                       ELSE 0 END AS MNGER_BLTN_NMN /* 매니저 개시차월 */
                     , F_CMZ_CD_NM('TNT_WELLS', 'OPNG_CD', MNGER5.OPNG_CD) AS MNGER_SETTLE_DSB_TP /* 매니저개시 정착지급유형 */
                     , NVL(INDVD5.INDV_D5_ASN_CNT, 0) AS INDV_D5_ASN_CNT     /* 개인BS-5일배정건수 */
                     , NVL(INDVBS.INDV_ASN_CNT, 0) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
@@ -1468,31 +1459,32 @@
                   ) NMNQLF
                  ON PRTNR.PRTNR_NO = NMNQLF.PRTNR_NO
                 LEFT OUTER JOIN
-                   ( SELECT STRTDT AS MNGER_OPNG /* 매니저 재개시월 */
+                   ( SELECT OG_TP_CD
                           , PRTNR_NO
-                       FROM TB_OGPS_PLAR_QLF_CH_IZ    /* 플래너자격변경내역 */
-                      WHERE DTA_DL_YN = 'N'
-                        AND #{perfYm} BETWEEN SUBSTR(STRTDT, 0, 6) AND SUBSTR(ENDDT, 0, 6)
-                        AND OG_TP_CD = 'W02'
-                        AND QLF_DV_CD IN (3, 6)
-                        AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승격,자격해제(과거)  3: 보류 제외 */
-                        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                        AND PRTNR_NO = #{prtnrNo}
-                        </if>
-                      UNION ALL
-                     SELECT STRTDT AS MNGER_OPNG /* 매니저 재개시월 */
-                          , PRTNR_NO
-                       FROM TB_OGPS_PLAR_QLF_CH_IZ	/* 플래너자격변경내역 */
-                      WHERE DTA_DL_YN = 'N'
-                        AND SUBSTR(STRTDT, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1), 'YYYYMM')
-                        AND OG_TP_CD = 'W02'
-                        AND QLF_DV_CD IN (3, 6)
-                        AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승격,자격해제(과거)  3: 보류 제외 */
-                        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                        AND PRTNR_NO = #{prtnrNo}
-                        </if>
+                          , MIN(STRTDT) AS FST_CNTR_DT  /* 최초계약일 */
+                          , MAX(NVL2(STRT_PREV_DT,STRTDT,'')) AS RESTRT_DT    /* 재등록개시일 */
+                       FROM
+                          ( SELECT OG_TP_CD
+                                 , PRTNR_NO
+                                 , STRTDT
+                                 , ENDDT
+                                 , CV_DT
+                                 , DSB_AMT
+                                 , LAG(STRTDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, STRTDT)  AS STRT_PREV_DT
+                                 , LEAD(STRTDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, STRTDT) AS STRT_NEXT_DT
+                                 , LAG(ENDDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, ENDDT)  AS END_PREV_DT
+                                 , LEAD(ENDDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, ENDDT) AS END_NEXT_DT
+                              FROM TB_OGPS_PLAR_QLF_CH_IZ   /* 플래너자격변경내역 */
+                             WHERE DTA_DL_YN = 'N'
+                               AND OG_TP_CD  = 'W02'
+                               AND QLF_DV_CD = 3
+                               AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제  3 : 보류 제외
+                          ) A
+                      WHERE 1=1
+                      GROUP BY OG_TP_CD, PRTNR_NO
                   ) MNGER2
-                 ON PRTNR.PRTNR_NO = MNGER2.PRTNR_NO
+                 ON PRTNR.OG_TP_CD = MNGER2.OG_TP_CD
+                AND PRTNR.PRTNR_NO = MNGER2.PRTNR_NO
                LEFT OUTER JOIN
                   ( SELECT MAX (ENDDT) AS MNGER_FNL_CLTN /* 매니저 최종해약월 */
                          , PRTNR_NO
