@@ -54,4 +54,27 @@ public class WsnyProcPsDto {
         int hsTotCnt,    // 홈케어전체건수
         int hsWkCnt      // 홈케어처리건수
     ) {}
+
+    /**
+     * 홈카드 오늘/내일 건수 조회
+     * @param todayCnt
+     * @param todayIstCnt
+     * @param todayBsCnt
+     * @param todayAsCnt
+     * @param tommrCnt
+     * @param tommrIstCnt
+     * @param tommrBsCnt
+     * @param tommrAsCnt
+     */
+    @ApiModel(value = "WsnyProcPsDto-SearchCnt")
+    public record SearchCnt(
+        int todayCnt,       // 오늘전체건수
+        int todayIstCnt,    // 오늘설치건수
+        int todayBsCnt,     // 오늘BS건수
+        int todayAsCnt,     // 오늘AS건수
+        int tommrCnt,       // 내일전체건수
+        int tommrIstCnt,    // 내일설치건수
+        int tommrBsCnt,     // 내일BS건수
+        int tommrAsCnt      // 내일AS건수
+    ) {}
 }
