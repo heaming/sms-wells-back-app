@@ -27,4 +27,13 @@ public class WsnyProcPsService {
     public SearchRes selectProcPs(SearchReq dto) {
         return mapper.selectProcPs(dto);
     }
+
+    /**
+     * 홈카드 - 오늘/내일 배정건수 조회
+     * @param dto
+     * @return
+     */
+    public SearchCnt selectTodayTomorrowCnt(SearchReq dto){
+        return mapper.selectTodayTomorrowCnt(dto);
+    }
 }
