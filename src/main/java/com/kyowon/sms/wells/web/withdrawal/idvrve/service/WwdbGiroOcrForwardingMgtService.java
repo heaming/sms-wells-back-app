@@ -1,9 +1,8 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto;
@@ -189,6 +188,7 @@ public class WwdbGiroOcrForwardingMgtService {
         WwdbGiroOcrForwardingPrintDvo dvo = convert.mapSaveGiroOcrForwardingPrintDvo(dtos);
         switch (dtos.state()) {
             case CommConst.ROW_STATE_CREATED -> {
+                //                int selectGiroOcrPk = mapper.selectGiroOcrPk();
                 WwdbGiroOcrForwardingPrintSeqDvo selectGiroOcrForwardingPrintInfo = mapper
                     .selectGiroOcrForwardingPrintInfo(dtos);
 
@@ -231,14 +231,19 @@ public class WwdbGiroOcrForwardingMgtService {
 
                 if (StringUtil.isNotEmpty(retStr.toString())) {
 
-                    try (BufferedWriter writer = new BufferedWriter(
-                        new FileWriter(file, false)
-                    )) {
+                    try {
 
+                        response.setHeader("Content-Type", "text/html; charset=UTF-8");
+                        String filedownNm = URLEncoder.encode(fileNm, "UTF-8");
+                        response.setHeader("Content-Disposition", "attachment; filename=\"" + filedownNm + "\"");
                         ServletOutputStream output = response.getOutputStream();
+                        Charset charset = Charset.forName("UTF-8");
+
+                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, charset));
+
                         writer.write(retStr.toString());
-                        output.flush();
-                        output.close();
+                        writer.flush();
+                        writer.close();
 
                     } catch (IOException ioe) {
                         log.debug("sendData:" + ioe.getMessage());
