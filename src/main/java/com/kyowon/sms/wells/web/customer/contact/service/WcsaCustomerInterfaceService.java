@@ -354,11 +354,11 @@ public class WcsaCustomerInterfaceService {
     }
 
     /**
-    * (WELLS) 네이버렌탈 고객등록 I/F
+    * (WELLS) 미인증 계약고객등록 I/F
     * @param dto 고객정보
     * @return 고객번호, 세이프키, 가입결과
     */
-    public CreateCustomerForNaverRentalRes createCustomerForNaverRental(
+    public CreateCustomerForNaverRentalRes createCustomerForNoCtfCntrCustomer(
         CreateCustomerForNaverRentalReq dto
     ) throws Exception {
         // 응답코드
