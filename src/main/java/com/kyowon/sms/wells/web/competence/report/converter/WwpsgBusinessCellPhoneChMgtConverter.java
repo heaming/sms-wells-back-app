@@ -17,6 +17,8 @@ public interface WwpsgBusinessCellPhoneChMgtConverter {
 
     WwpsgBusinessCellPhoneChMgtDto.SellPrtnrRes dvoToSellPrtnrRes(WwpsgBusinessCellPhoneChMgtDvo dvo);
 
+    WwpsgBusinessCellPhoneChMgtDto.PopupSearchRes dvoToPopupSearchRes(WwpsgBusinessCellPhoneChMgtDvo dvo);
+
     WwpsgBusinessCellPhoneChMgtDvo reqToWwpsgBusinessCellPhoneChMgtDvo(WwpsgBusinessCellPhoneChMgtDto.SaveReq req);
 
 }
