@@ -32,6 +32,7 @@ public class WogcPartnerPlannerDto {
         String ogTpCd, // 조직유형코드
         String prtnrNo, // 파트너번호
         String prtnrKnm, // 파트너한글명
+        String usrId, // 사용자ID
         String rsbDvCd, // 직책코드
         String rsbDvNm, // 직책명
         String bizUseIdvTno, // 업무사용개별전화번호
