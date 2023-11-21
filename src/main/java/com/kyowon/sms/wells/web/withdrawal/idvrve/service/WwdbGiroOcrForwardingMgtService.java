@@ -78,7 +78,6 @@ public class WwdbGiroOcrForwardingMgtService {
         return mapper.selectGiroOcrForwardings(dto);
     }
 
-
     /**
      * 지로OCR발송관리 대상 조회
      * @param cntr 계약번호
@@ -182,7 +181,7 @@ public class WwdbGiroOcrForwardingMgtService {
      * @throws Exception
      */
     @Transactional
-    public int saveGiroOcrForwardingPrints(SavePrintReq dtos , HttpServletResponse response) throws Exception {
+    public int saveGiroOcrForwardingPrints(SavePrintReq dtos, HttpServletResponse response) throws Exception {
         int processCount = 0;
         int giroOcrForwardingDetailCount = 0;
         StringBuffer retStr = new StringBuffer();
@@ -190,7 +189,6 @@ public class WwdbGiroOcrForwardingMgtService {
         WwdbGiroOcrForwardingPrintDvo dvo = convert.mapSaveGiroOcrForwardingPrintDvo(dtos);
         switch (dtos.state()) {
             case CommConst.ROW_STATE_CREATED -> {
-                //                int selectGiroOcrPk = mapper.selectGiroOcrPk();
                 WwdbGiroOcrForwardingPrintSeqDvo selectGiroOcrForwardingPrintInfo = mapper
                     .selectGiroOcrForwardingPrintInfo(dtos);
 
@@ -204,47 +202,47 @@ public class WwdbGiroOcrForwardingMgtService {
                 dvo.setGiroOcrPblTotQty(giroOcrForwardingDetailCount);
                 processCount += mapper.insertGiroOcrForwardingPrints(dvo);
 
-
-                List<WwdbGiroOcrForwardingMgtDto.SearchPrintCreateRes> searchPrintCreateRes = mapper.selectGiroPrintCreate(dvo);
+                List<WwdbGiroOcrForwardingMgtDto.SearchPrintCreateRes> searchPrintCreateRes = mapper
+                    .selectGiroPrintCreate(dvo);
 
                 int selCnt = searchPrintCreateRes.size() - 1;
 
                 int i = 0;
 
-                String fileNm = "GR65"  + dtos.wkDt().substring(4,8)   +   ".TXT" ;
+                String fileNm = "GR65" + dtos.wkDt().substring(4, 8) + ".TXT";
 
-                File file =new File(fileNm);
+                File file = new File(fileNm);
 
-                for (WwdbGiroOcrForwardingMgtDto.SearchPrintCreateRes dto :searchPrintCreateRes) {
-                    if(i == 0){
+                for (WwdbGiroOcrForwardingMgtDto.SearchPrintCreateRes dto : searchPrintCreateRes) {
+                    if (i == 0) {
                         retStr.setLength(0);
-                        retStr.append( dto.c1()  ) ;
+                        retStr.append(dto.c1());
 
-                    }else if(i == selCnt){
-                        retStr.append(	dto.c1()) ;
-                    }else{
-                        retStr.append(  dto.c1()) ;
-                        retStr.append(  dto.c2());
-                        retStr.append(   dto.c3() );
+                    } else if (i == selCnt) {
+                        retStr.append(dto.c1());
+                    } else {
+                        retStr.append(dto.c1());
+                        retStr.append(dto.c2());
+                        retStr.append(dto.c3());
                     }
 
                     i++;
                 }
 
-                if(StringUtil.isNotEmpty(retStr.toString())){
+                if (StringUtil.isNotEmpty(retStr.toString())) {
 
                     try (BufferedWriter writer = new BufferedWriter(
-                     new FileWriter(file , false)
-                 )) {
+                        new FileWriter(file, false)
+                    )) {
 
                         ServletOutputStream output = response.getOutputStream();
                         writer.write(retStr.toString());
                         output.flush();
                         output.close();
 
-                 } catch (IOException ioe) {
-                     log.debug("sendData:" + ioe.getMessage());
-                 }
+                    } catch (IOException ioe) {
+                        log.debug("sendData:" + ioe.getMessage());
+                    }
 
                 }
             }
@@ -286,7 +284,6 @@ public class WwdbGiroOcrForwardingMgtService {
     @Transactional
     public int saveGiroPrintDate(WwdbGiroOcrForwardingMgtDto.saveGiroPrintReq dto) throws Exception {
         int processCount = 0;
-
 
         WwdbGiroOcrForwardingPrintDvo dvo = convert.mapSaveGiroPrintDvo(dto);
 
