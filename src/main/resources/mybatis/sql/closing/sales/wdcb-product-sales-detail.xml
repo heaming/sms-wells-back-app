@@ -29,11 +29,11 @@
              , SUM(NVL(T1.SL_CAN_AMT,0)) - SUM(NVL(T1.CAN_VAT,0)) AS CAN_SPL_AMT --공급가액-매출취소
              , SUM(NVL(T1.CAN_VAT,0)) AS CAN_VAT --부가세-매출취소
              , SUM(DECODE(NVL(T1.SL_CAN_AMT,0),0,0,T1.PVDA_AMT)) AS CAN_PVDA_AMT --현할차-매출취소
-             , SUM(NVL(T1.SELL_QTY,0)) + SUM(NVL(T1.CH_QTY,0)) + SUM(NVL(T1.CAN_QTY,0)) AS TOT_QTY--판매수량-매출합계
-             , SUM(NVL(T1.THM_SL_SUM_AMT,0)) + SUM(NVL(T1.SL_CH_AMT,0)) + SUM(NVL(T1.SL_CAN_AMT,0)) AS TOT_AMT--매출금액-매출합계
-             , (SUM(NVL(T1.THM_SL_SUM_AMT,0)) + SUM(NVL(T1.SL_CH_AMT,0)) + SUM(NVL(T1.SL_CAN_AMT,0))) - (SUM(NVL(T1.SELL_AMT_VAT,0)) + SUM(NVL(T1.CAN_VAT,0)) + SUM(NVL(T1.CAN_VAT,0))) AS TOT_SPL_AMT--공급가액-매출합계
-             , SUM(NVL(T1.SELL_AMT_VAT,0)) + SUM(NVL(T1.CAN_VAT,0)) + SUM(NVL(T1.CAN_VAT,0)) AS TOT_VAT --부가세-매출합계
-             , SUM(NVL(T1.PVDA_AMT,0)) + SUM(DECODE(NVL(T1.SL_CH_AMT,0),0,0,T1.PVDA_AMT)) + SUM(DECODE(NVL(T1.SL_CAN_AMT,0),0,0,T1.PVDA_AMT)) AS TOT_PVDA_AMT --현할차-매출합계
+             , SUM(NVL(T1.SELL_QTY,0)) + SUM(NVL(T1.CH_QTY,0)) - SUM(NVL(T1.CAN_QTY,0)) AS TOT_QTY--판매수량-매출합계
+             , SUM(NVL(T1.THM_SL_SUM_AMT,0)) + SUM(NVL(T1.SL_CH_AMT,0)) - SUM(NVL(T1.SL_CAN_AMT,0)) AS TOT_AMT--매출금액-매출합계
+             , (SUM(NVL(T1.THM_SL_SUM_AMT,0)) + SUM(NVL(T1.SL_CH_AMT,0)) - SUM(NVL(T1.SL_CAN_AMT,0))) - (SUM(NVL(T1.SELL_AMT_VAT,0)) + SUM(NVL(T1.CAN_VAT,0)) - SUM(NVL(T1.CAN_VAT,0))) AS TOT_SPL_AMT--공급가액-매출합계
+             , SUM(NVL(T1.SELL_AMT_VAT,0)) + SUM(NVL(T1.CAN_VAT,0)) - SUM(NVL(T1.CAN_VAT,0)) AS TOT_VAT --부가세-매출합계
+             , SUM(NVL(T1.PVDA_AMT,0)) + SUM(DECODE(NVL(T1.SL_CH_AMT,0),0,0,T1.PVDA_AMT)) - SUM(DECODE(NVL(T1.SL_CAN_AMT,0),0,0,T1.PVDA_AMT)) AS TOT_PVDA_AMT --현할차-매출합계
           FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
          INNER JOIN TB_PDBS_PD_BAS T2
             ON T1.PD_CD = T2.PD_CD
@@ -41,10 +41,6 @@
             ON T1.CST_NO = T3.CST_NO
            AND T3.NUSD_RSON_CD IS NULL
            AND T3.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS T4 --WELLS매출확정기본
-            ON T1.CNTR_NO = T4.CNTR_NO
-           AND T1.CNTR_SN = T4.CNTR_SN
-           AND T1.SL_RCOG_DT = T4.SL_RCOG_DT
          WHERE T1.SL_RCOG_DT BETWEEN #{baseDtmnFrom} AND #{baseDtmnTo}
            AND SUBSTR(T1.SL_RCOG_DT,1,6) = T1.SL_CL_YM
            AND T1.SELL_TP_CD = DECODE(#{sellTpCd}, '10', '2', #{sellTpCd})
@@ -52,7 +48,7 @@
            AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
            </if>
            <if test="@MybatisUtils@equals(sellTpCd, '10') and @MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-           AND T1.SELL_TP_DTL_CD NOT IN ('22', '24','25','26')
+           AND T1.SELL_TP_DTL_CD IN ('22', '24','25','26')
            </if>
            <if test="@MybatisUtils@isNotEmpty(sellChnlDtl) and !@MybatisUtils@equals(sellChnlDtl, 'ALL')">
            AND SUBSTR(T1.SELL_INFLW_CHNL_DTL_CD,1,2) = #{sellChnlDtl}
@@ -65,9 +61,6 @@
            </if>
            <if test='@MybatisUtils@isNotEmpty(cstNo)'>
            AND T1.CST_NO = #{cstNo}
-           </if>
-           <if test='@MybatisUtils@isNotEmpty(sapSlpno)'>
-           AND T4.SAP_SLPNO = #{sapSlpno}
            </if>
            <if test='@MybatisUtils@isNotEmpty(sapPdDvCd)'>
            AND T1.SAP_PD_DV_CD = #{sapPdDvCd}
@@ -104,10 +97,6 @@
             ON T1.CST_NO = T3.CST_NO
            AND T3.NUSD_RSON_CD IS NULL
            AND T3.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS T4 --WELLS매출확정기본
-            ON T1.CNTR_NO = T4.CNTR_NO
-           AND T1.CNTR_SN = T4.CNTR_SN
-           AND T1.SL_RCOG_DT = T4.SL_RCOG_DT
            /*원두제외*/
           LEFT JOIN (SELECT /*+ USE_NL(SA B C) */
                             SA.CNTR_NO, SA.CNTR_SN, B.PD_CD, B.PD_NM, C.REF_PD_CLSF_VAL
@@ -127,7 +116,7 @@
            AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
            </if>
            <if test="@MybatisUtils@equals(sellTpCd, '2') and @MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-           AND T1.SELL_TP_DTL_CD NOT IN ('21', '23')
+           AND T1.SELL_TP_DTL_CD IN ('21', '23')
            </if>
            <if test="@MybatisUtils@isNotEmpty(sellChnlDtl) and !@MybatisUtils@equals(sellChnlDtl, 'ALL')">
            AND SUBSTR(T1.SELL_INFLW_CHNL_DTL_CD,1,2) = #{sellChnlDtl}
@@ -140,9 +129,6 @@
            </if>
            <if test='@MybatisUtils@isNotEmpty(cstNo)'>
            AND T1.CST_NO = #{cstNo}
-           </if>
-           <if test='@MybatisUtils@isNotEmpty(sapSlpno)'>
-           AND T4.SAP_SLPNO = #{sapSlpno}
            </if>
            <if test='@MybatisUtils@isNotEmpty(sapPdDvCd)'>
            AND T1.SAP_PD_DV_CD = #{sapPdDvCd}
@@ -182,10 +168,6 @@
             ON T1.CST_NO = T3.CST_NO
            AND T3.NUSD_RSON_CD IS NULL
            AND T3.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS T4 --WELLS매출확정기본
-            ON T1.CNTR_NO = T4.CNTR_NO
-           AND T1.CNTR_SN = T4.CNTR_SN
-           AND T1.SL_RCOG_DT = T4.SL_RCOG_DT
          WHERE T1.SL_RCOG_DT BETWEEN #{baseDtmnFrom} AND #{baseDtmnTo}
            AND T1.SELL_TP_CD = '3'  --멤버십
            AND SUBSTR(T1.SL_RCOG_DT,1,6) = T1.SL_CL_YM
@@ -203,9 +185,6 @@
            </if>
            <if test='@MybatisUtils@isNotEmpty(cstNo)'>
            AND T1.CST_NO = #{cstNo}
-           </if>
-           <if test='@MybatisUtils@isNotEmpty(sapSlpno)'>
-           AND T4.SAP_SLPNO = #{sapSlpno}
            </if>
            <if test='@MybatisUtils@isNotEmpty(sapPdDvCd)'>
            AND T1.SAP_PD_DV_CD = #{sapPdDvCd}
