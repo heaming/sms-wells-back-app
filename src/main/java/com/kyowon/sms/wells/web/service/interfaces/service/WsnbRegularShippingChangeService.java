@@ -224,10 +224,11 @@ public class WsnbRegularShippingChangeService {
         log.debug("cntrNo: " + req.cntrNo());
         log.debug("cntrSn: " + req.cntrSn());
         log.debug("chPdCd: " + req.afchPdCd());
+        log.debug("akChdt: " + req.akChdt());
         log.debug("consPdList: " + consPdList);
         service4.saveSeedingPackageChanges(
             new WctbSeedingPackageChangeDto.SaveReq(
-                "1", req.cntrNo(), req.cntrSn(), req.afchPdCd(), consPdList
+                "1", req.cntrNo(), req.cntrSn(), req.afchPdCd(), consPdList, req.akChdt()
             )
         );
 
