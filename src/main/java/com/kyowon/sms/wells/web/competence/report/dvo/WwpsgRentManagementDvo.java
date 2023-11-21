@@ -40,8 +40,8 @@ public class WwpsgRentManagementDvo {
     private String rntAplcTpNm;
     private String procsPrtnrKnm;
     private String procsCralLocaraTno;
-    @DBDecField
-    private String procsMexnoEncr;
+    @DBDecField(common = true)
+    private String procsMexnoGbencr;
     private String procsCralIdvTno;
     private String rcstPrtnrNo;
     private String rcstPrtnrNm;
@@ -49,5 +49,8 @@ public class WwpsgRentManagementDvo {
     @DBDecField
     private String rcstMexnoEncr;
     private String rcstCralIdvTno;
+    private String rpotBizProcsStatCd;
+    private String procsPrtnrNo;
+
     private List<AttachFileDto.AttachFile> attachFiles; /* 첨부 파일 */
 }
