@@ -62,7 +62,7 @@ public class WwpsgBusinessManagerReportMgtService {
     public int saveBusinessManagerReport(List<SaveReq> dtos) {
         int res = 0;
         for (SaveReq dto : dtos) {
-            if (dto.dgYn().equals("Y") && dto.rpotBizTpId().equals("30")) {
+            if (dto.dgYn().equals("Y")) {
                 CheckSearchReq checkSearchReq = new CheckSearchReq(dto.rpotBizTpId(), dto.dgYn());
                 List<SearchRes> list = mapper.selectBusinessManagerReportMgtPages(checkSearchReq);
                 BizAssert.isTrue(list.size() == 0, "MSG_ALT_BIZ_TP_DG_PSB");

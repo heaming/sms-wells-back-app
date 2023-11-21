@@ -46,7 +46,7 @@ public class WwpsgRentManagementService {
     }
 
     public PopupSearchRes getRentManagementPopup(SearchReq dto) {
-        return mapper.selectPsgaRpotbizProcsIz(dto);
+        return converter.dvoToPopupSearchRes(mapper.selectPsgaRpotbizProcsIz(dto));
     }
 
     public Map<String, List> getBaseInfo(BaseSearchReq dto) {

@@ -14,7 +14,7 @@ public interface WwpsgRentManagementConverter {
     PagingResult<WwpsgRentManagementDto.SearchRes> dvoToSearchRes(PagingResult<WwpsgRentManagementDvo> dvo);
     List<WwpsgRentManagementDto.SearchRes> dvoToSearchRes(List<WwpsgRentManagementDvo> dvo);
     WwpsgRentManagementDto.SearchRes dvoToSearchRes(WwpsgRentManagementDvo dvo);
-
+    WwpsgRentManagementDto.PopupSearchRes dvoToPopupSearchRes(WwpsgRentManagementDvo dvo);
     WwpsgRentManagementDvo reqToWwpsgRentManagementDvo(WwpsgRentManagementDto.SaveReq req);
 
 }
