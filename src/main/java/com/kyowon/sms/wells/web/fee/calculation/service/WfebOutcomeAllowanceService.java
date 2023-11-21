@@ -1,13 +1,11 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
-import static com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto.SearchManagerRes;
-import static com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto.SearchReq;
+import static com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto.*;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto.SearchPlannerRes;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOutcomeAllowanceMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -20,7 +18,7 @@ public class WfebOutcomeAllowanceService {
 
     public List<SearchManagerRes> getOutcomeAllowancesManager(SearchReq dto) {
         List<SearchManagerRes> outcomeAllowances = mapper.selectOutcomeAllowancesManager(dto);
-        if (outcomeAllowances.isEmpty()) {
+        if (outcomeAllowances.isEmpty() || dto.rtmInqr()) {
             outcomeAllowances = mapper.selectOutcomeAllowancesManagerThisMonth(dto);
         }
         return outcomeAllowances;
@@ -28,11 +26,34 @@ public class WfebOutcomeAllowanceService {
 
     public List<SearchPlannerRes> getOutcomeAllowancesPlanner(SearchReq dto) {
         List<SearchPlannerRes> outcomeAllowances = mapper.selectOutcomeAllowancesPlanner(dto);
-        if (outcomeAllowances.isEmpty()) {
+        if (outcomeAllowances.isEmpty() || dto.rtmInqr()) {
             outcomeAllowances = mapper.selectOutcomeAllowancesPlannerThisMonth(dto);
         }
         return outcomeAllowances;
 
     }
 
+    public List<AwBaseInfoRes> getOutcomeAllowancesBaseInfo(String perfYm) {
+        return mapper.selectAllowanceBaseInfo(perfYm);
+    }
+
+    public int saveOutcomeAllowancesManager(List<SaveMoReq> dtos) {
+        if (dtos.isEmpty())
+            return 0;
+        String baseYm = dtos.get(0).baseYm();
+        String ogTpCd = dtos.get(0).ogTpCd();
+        String rsbDvCd = dtos.get(0).rsbDvCd();
+        mapper.deleteOutcomeAllowancesManager(baseYm, ogTpCd, rsbDvCd);
+        return mapper.insertOutcomeAllowancesManager(dtos);
+    }
+
+    public int saveOutcomeAllowancesPlanner(List<SavePoReq> dtos) {
+        if (dtos.isEmpty())
+            return 0;
+        String baseYm = dtos.get(0).baseYm();
+        String ogTpCd = dtos.get(0).ogTpCd();
+        String rsbDvCd = dtos.get(0).rsbDvCd();
+        mapper.deleteOutcomeAllowancesPlanner(baseYm, ogTpCd, rsbDvCd);
+        return mapper.insertOutcomeAllowancesPlanner(dtos);
+    }
 }
