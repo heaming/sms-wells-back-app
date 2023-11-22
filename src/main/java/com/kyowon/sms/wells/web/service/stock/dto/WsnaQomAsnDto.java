@@ -166,28 +166,6 @@ public class WsnaQomAsnDto {
         boolean isRecreate
 
     ) {}
-
-    @Builder
-    @ApiModel("WsnaQomAsnDto-RemoveReq")
-    public record RemoveReq(
-        // 배정년월
-        @NotBlank
-        String asnOjYm,
-        // 회차
-        @Positive
-        @Max(999999999999L)
-        BigDecimal cnt,
-        // 출고창고
-        @NotBlank
-        String ostrWareNo,
-        // 창고구분
-        @NotBlank
-        String wareDvCd,
-        // 창고상세구분
-        @NotBlank
-        String wareDtlDvCd
-    ) {}
-
     @Builder
     @ApiModel("WsnaQomAsnDto-EditReq")
     public record EditReq(
