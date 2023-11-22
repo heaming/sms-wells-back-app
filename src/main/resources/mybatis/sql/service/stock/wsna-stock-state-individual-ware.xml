@@ -1,33 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaStockStateIndividualWareMapper">
+    <select id="selectServiceCenter" resultType="camelMap">
+        SELECT S1.WARE_NO /* 창고번호 */
+             , S1.WARE_NM /* 창고명 */
+          FROM TB_SVST_MCBY_WARE_IZ S1 /* 월별창고내역 */
+         WHERE S1.APY_YM = #{baseYm}
+           AND S1.WARE_DV_CD = '2'
+           AND S1.WARE_DTL_DV_CD = '20'
+         ORDER BY WARE_NO, WARE_NM
+    </select>
     <select id="selectMcByWares" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockStateIndividualWareWareDvo">
-          /*창고정보*/
+          /*세부창고정보*/
           SELECT S1.WARE_NO
                , S1.WARE_NM
           FROM WSMDBS.TB_OGBS_MM_OG_IZ O1  /*월조직내역*/
-              LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ S1 /*월별창고내역*/
-                           ON O1.BASE_YM = S1.APY_YM
-                          AND O1.OG_TP_CD = S1.OG_TP_CD
-                          AND O1.OG_ID = S1.OG_ID
-                          AND S1.WARE_DTL_DV_CD LIKE '2%'
-                          AND S1.DTA_DL_YN = 'N'
-          WHERE 1 = 1
-            AND O1.BASE_YM = #{baseYm}
-            /*서비스센터*/
-            AND O1.OG_TP_CD IN ('W03','W06')
-            /*서비스센터조직 창고 선택 값*/
-        <if test="@MybatisUtils@isNotEmpty(wareNo) and !@MybatisUtils@equals(wareNo, 'ALL')">
-            AND (S1.WARE_NO = #{wareNo} OR S1.HGR_WARE_NO = #{wareNo})
-        </if>
-            /*창고사용여부 Y, N 조건 값이 있을 경우, 전체면 조건 제거*/
-        <if test="@MybatisUtils@isNotEmpty(wareUseYn) and !@MybatisUtils@equals(wareUseYn, 'ALL')">
-            AND S1.WARE_USE_YN = #{wareUseYn}
-        </if>
-            AND O1.CLO_DT IS NULL
-            AND O1.DTA_DL_YN = 'N'
-          ORDER BY S1.HGR_WARE_NO ASC
-<!--            ORDER BY O1.BASE_YM, O1.OG_CD-->
+          LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ S1 /*월별창고내역*/
+            ON O1.BASE_YM = S1.APY_YM
+           AND O1.OG_TP_CD = S1.OG_TP_CD
+           AND O1.OG_ID = S1.OG_ID
+           AND S1.WARE_DTL_DV_CD LIKE '2%'
+           AND S1.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND O1.BASE_YM = #{baseYm}
+           /*서비스센터*/
+           AND O1.OG_TP_CD IN ('W03','W06')
+           /*서비스센터조직 이하 개인 창고 사용 여부*/
+        <choose>
+            <when test='@MybatisUtils@equals(wareUseYn, "Y")'>
+              AND (S1.WARE_NO = #{wareNo} OR (S1.HGR_WARE_NO = #{wareNo} AND S1.WARE_USE_YN = 'Y'))
+            </when>
+            <when test='@MybatisUtils@equals(wareUseYn, "N")'>
+              AND (S1.WARE_NO = #{wareNo} OR (S1.HGR_WARE_NO = #{wareNo} AND S1.WARE_USE_YN = 'N'))
+            </when>
+            <otherwise>
+              AND (S1.WARE_NO = #{wareNo} OR S1.HGR_WARE_NO = #{wareNo})
+            </otherwise>
+        </choose>
+           AND O1.CLO_DT IS NULL
+           AND O1.DTA_DL_YN = 'N'
+         ORDER BY S1.WARE_NO
     </select>
     <select id="selectStockStateIndividualWare" resultType="camelMap">
           WITH PART_INF AS (
@@ -78,29 +90,32 @@
                  , S1.HGR_WARE_NO
                  , S1.STD_WARE_USE_YN    /*표준창고사용여부*/
             FROM WSMDBS.TB_OGBS_MM_OG_IZ O1  /*월조직내역*/
-                 LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ S1 /*월별창고내역*/
-                              ON O1.BASE_YM = S1.APY_YM
-                            AND O1.OG_TP_CD = S1.OG_TP_CD
-                            AND O1.OG_ID = S1.OG_ID
-                            AND S1.WARE_DTL_DV_CD LIKE '2%'
-                            --AND S1.WARE_USE_YN = 'Y'  /*미사용창고에서 반품 되는 경우도 있기 때문에*/
-                            AND S1.DTA_DL_YN = 'N'
-            WHERE 1 = 1
-              AND O1.BASE_YM = #{baseYm}
-              /*서비스센터*/
-              AND O1.OG_TP_CD IN ('W03','W06')
-              /*서비스센터조직 창고 선택 값*/
-          <if test="@MybatisUtils@isNotEmpty(wareNo) and !@MybatisUtils@equals(wareNo, 'ALL')">
+            LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ S1 /*월별창고내역*/
+              ON O1.BASE_YM = S1.APY_YM
+             AND O1.OG_TP_CD = S1.OG_TP_CD
+             AND O1.OG_ID = S1.OG_ID
+             AND S1.WARE_DTL_DV_CD LIKE '2%'
+             --AND S1.WARE_USE_YN = 'Y'  /*미사용창고에서 반품 되는 경우도 있기 때문에*/
+             AND S1.DTA_DL_YN = 'N'
+           WHERE 1 = 1
+             AND O1.BASE_YM = #{baseYm}
+             /*서비스센터*/
+             AND O1.OG_TP_CD IN ('W03','W06')
+           /*서비스센터조직 이하 개인 창고 사용 여부*/
+        <choose>
+            <when test='@MybatisUtils@equals(wareUseYn, "Y")'>
+              AND (S1.WARE_NO = #{wareNo} OR (S1.HGR_WARE_NO = #{wareNo} AND S1.WARE_USE_YN = 'Y'))
+            </when>
+            <when test='@MybatisUtils@equals(wareUseYn, "N")'>
+              AND (S1.WARE_NO = #{wareNo} OR (S1.HGR_WARE_NO = #{wareNo} AND S1.WARE_USE_YN = 'N'))
+            </when>
+            <otherwise>
               AND (S1.WARE_NO = #{wareNo} OR S1.HGR_WARE_NO = #{wareNo})
-          </if>
-              /*창고사용여부 Y, N 조건 값이 있을 경우, 전체면 조건 제거*/
-        <if test="@MybatisUtils@isNotEmpty(wareUseYn) and !@MybatisUtils@equals(wareUseYn, 'ALL')">
-            AND S1.WARE_USE_YN = #{wareUseYn}
-        </if>
-              AND O1.CLO_DT IS NULL
-              AND O1.DTA_DL_YN = 'N'
-            ORDER BY S1.HGR_WARE_NO ASC
-<!--            ORDER BY O1.BASE_YM, O1.OG_CD-->
+            </otherwise>
+        </choose>
+             AND O1.CLO_DT IS NULL
+             AND O1.DTA_DL_YN = 'N'
+           ORDER BY S1.WARE_NO
          )
        , BTD_STOC_QTY AS (
              /*창고별 기초재고 + 재고실사입고 + 재고실사 출고*/

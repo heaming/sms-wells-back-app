@@ -35,6 +35,10 @@ public class WsnaStockStateIndividualWareService {
         return mapper.selectMcByWares(dto);
     }
 
+    public List<HashMap<String, String>> getServiceCenter(String baseYm) {
+        return mapper.selectServiceCenter(baseYm);
+    }
+
     // PITVOT 조회
     public WsnaStockStateIndividualWareDvo convertPivotWsnaStockStateIndividualWareDvo(
         SearchReq dto
