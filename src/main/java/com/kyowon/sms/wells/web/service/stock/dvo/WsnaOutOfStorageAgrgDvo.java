@@ -35,5 +35,6 @@ public class WsnaOutOfStorageAgrgDvo {
     String itmKndCd;
     String itmPdCd;
     String matUtlzDvCd;
+    String wareDvCd;
     String useYn;
 }
