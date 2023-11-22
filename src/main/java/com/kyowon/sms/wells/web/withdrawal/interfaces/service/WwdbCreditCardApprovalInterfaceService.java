@@ -74,7 +74,7 @@ public class WwdbCreditCardApprovalInterfaceService {
             // 입금유형코드(0201-개별수납(신용카드))
             receiveAskDvo.setDepositTypeCode("0201");
             // 수납구분코드
-            receiveAskDvo.setReceiveDivideCode("");
+            receiveAskDvo.setReceiveDivideCode(dto.rveDvCd());
             // 계약번호
             receiveAskDvo.setContractNumber(dto.cntrNo());
             // 계약번호
@@ -208,7 +208,7 @@ public class WwdbCreditCardApprovalInterfaceService {
             // 입금유형코드(0201-개별수납(신용카드))
             receiveAskDvo.setDepositTypeCode("0201");
             // 수납구분코드
-            receiveAskDvo.setReceiveDivideCode("");
+            receiveAskDvo.setReceiveDivideCode(dto.rveDvCd());
             // 계약번호
             receiveAskDvo.setContractNumber(dto.cntrNo());
             // 계약번호
@@ -230,6 +230,14 @@ public class WwdbCreditCardApprovalInterfaceService {
 
             withdrawalService.createReceiveAskDetail(receiveAskDvo);
             withdrawalService.createReceiveAskDetailHistory(receiveAskDvo);
+
+            // 조직유형코드
+            receiveAskDvo.setRvePrtnrOgTpCd(dto.ogTpCd());
+            // 파트너번호
+            receiveAskDvo.setRvePrtnrNo(dto.prtnrNo());
+            // 승인담당자 -> 최초등록자ID
+            receiveAskDvo.setAprPsicId(dto.aprPsicId());
+            creditCardAprovalInterfaceMapper.updateReceiveAskDetail(receiveAskDvo);
 
             List<String> kwGrpCoCds = new ArrayList<>();
             kwGrpCoCds.add("2000");
