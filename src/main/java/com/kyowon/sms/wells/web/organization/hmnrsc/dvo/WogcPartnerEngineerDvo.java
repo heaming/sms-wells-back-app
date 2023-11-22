@@ -37,6 +37,7 @@ public class WogcPartnerEngineerDvo {
     String cralIdvTno;
     String dtaDlYn;
     String telNumber;
+    String usrId;
 
     String rolDvCd;
     String rolDvCdNm;
