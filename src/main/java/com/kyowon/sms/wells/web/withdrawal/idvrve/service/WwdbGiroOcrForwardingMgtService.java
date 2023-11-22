@@ -233,13 +233,14 @@ public class WwdbGiroOcrForwardingMgtService {
 
                     try {
 
-                        response.setHeader("Content-Type", "text/html; charset=UTF-8");
-                        String filedownNm = URLEncoder.encode(fileNm, "UTF-8");
-                        response.setHeader("Content-Disposition", "attachment; filename=\"" + filedownNm + "\"");
+                        //                        response.setHeader("Content-Type", "text/html; charset=UTF-8");
+                        //                        String filedownNm = URLEncoder.encode(fileNm, "UTF-8");
+                        //                        response.setHeader("Content-Disposition", "attachment; filename=\"" + filedownNm + "\"");
                         ServletOutputStream output = response.getOutputStream();
-                        Charset charset = Charset.forName("UTF-8");
+                        //                        Charset charset = Charset.forName("UTF-8");
 
-                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, charset));
+                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, "UTF-8"));
+                        //                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, charset));
 
                         writer.write(retStr.toString());
                         writer.flush();
