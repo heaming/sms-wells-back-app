@@ -130,6 +130,7 @@ public class WsnbServiceProcessingDvo {
     String vacStlmAmt; // 결제내역(가상계좌)
     byte[] cstSignCnByte; // 고객서명(byte)
     String cstSignCn; // 고객서명
+    String istImg; // 이미지 파일 존재 유무
     String istEnvrPhoPhDocId; // 설치환경사진 DOC_ID
     String istKitPhoPhDocId; // 설치키트사진 DOC_ID
     String istCelngPhoPhDocId; // 설치천장사진 DOC_ID

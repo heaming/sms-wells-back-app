@@ -50,7 +50,7 @@ public class WwpsgRentManagementDto {
         String procsPrtnrNo,
         String procsPrtnrKnm,
         String procsCralLocaraTno,
-        String procsMexnoEncr,
+        String procsMexnoGbencr,
         String procsCralIdvTno,
         String rpotBizProcsStatNm
     ) {
@@ -115,6 +115,7 @@ public class WwpsgRentManagementDto {
         String procsCn,               /* 처리내용 */
         String rntAplcTpCd,         /* 임차신청유형코드 */
         String rntAplcTpNm,
+        String prtnrNo,
         String prtnrKnm,            /* 파트너 한글명 */
         String fnlMdfcDtm,
         String fnlMdfcUsrId,
@@ -147,6 +148,7 @@ public class WwpsgRentManagementDto {
         String procsSn,
         String rpotBizProcsStatCd,
         String procsCn,
+        String rcstPrtnrNo,
         List<AttachFileDto.AttachFile> attachFiles /* 첨부 파일 */
     ){}
 }

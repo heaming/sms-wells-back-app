@@ -25,6 +25,7 @@ public class WsnaOutOfStorageAgrgDto {
         String itmKndCd,
         String itmPdCd,
         String matUtlzDvCd,
+        String wareDvCd,
         String useYn
     ) {}
     @ApiModel(value = "WsnaOutOfStorageAgrgDto-FindItemRes")

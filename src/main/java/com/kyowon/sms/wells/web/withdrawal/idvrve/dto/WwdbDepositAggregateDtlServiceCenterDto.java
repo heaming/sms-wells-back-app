@@ -59,6 +59,7 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
 
         String stlmDvCd, /*결제구분코드*/
         String iscmpCd, /*결제처*/
+        String iscmpNm, /*결제처명*/
         String cardAprno, /*승인번호*/
         String taxBll, /*세금계산서*/
 

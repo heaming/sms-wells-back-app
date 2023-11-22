@@ -6,11 +6,14 @@
             <property name="paramOgTpCd" value="'W02'"/>
             <property name="paramBaseYm" value="SUBSTR(#{strtPerfDt},1,6)"/>
         </include>
+        <!--개시월이 안나오는 사람들은 AS-IS LC5600P에 없거나 LCGTOT이 0보다 크지 않은 사람들
+        TO-BE에서는 LC5600P 에 대한 조건을 걸 수 없기때문에 전체 다 나옴
+        실적도 마찬가지로 기존에 실적이 안나오던 사람들도 TO-BE에서는 다 나올 수 밖에 없음-->
         SELECT S1.OG_ID     /*조직ID*/
              , S1.OG_CD     /*조직코드*/
              , S1.PRTNR_KNM     /*성명*/
              , S1.PRTNR_NO  /*파트너번호*/
-             , S3.OPNG_MM   /*개시월*/
+             , SUBSTR(S3.FST_CNTR_DT, 0, 6) AS OPNG_MM   /*최초개시월*/
              , NVL(S4.EDUC_CPC_ACKMT_YN, 'N') AS EDUC_CPC_ACKMT_YN  /*정착교육*/
              , NVL(S2.BFSVC_ACKMT_CNT, 0) AS BFSVC_ACKMT_CNT    /*가전인정건수*/
              , NVL(S2.WRFR1_MGT_CNT, 0) AS WRFR1_MGT_CNT    /*정수기1 관리건수*/
@@ -266,25 +269,37 @@
           ON S1.BASE_YM = S2.BASE_YM
          AND S1.OG_TP_CD = S2.OG_TP_CD
          AND S1.PRTNR_NO =  S2.PRTNR_NO
-        LEFT OUTER JOIN LATERAL
-           ( SELECT SUBSTR(STRTDT, 0, 6) AS OPNG_MM    /*개시월*/
-               FROM TB_OGPS_PLAR_QLF_CH_IZ C    /*플래너자격변경내역*/
-              WHERE C.DTA_DL_YN = 'N'
-                AND C.OG_TP_CD = S1.OG_TP_CD
-                AND C.PRTNR_NO = S1.PRTNR_NO
-                AND SUBSTR(#{strtPerfDt},1,6) BETWEEN SUBSTR(C.STRTDT, 0, 6) AND SUBSTR(C.ENDDT, 0, 6)
-                AND C.QLF_DV_CD = '3'  /* 웰스매니저 */
-                AND NVL(C.QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승급 */
-              UNION ALL
-             SELECT SUBSTR(STRTDT, 0, 6) AS OPNG_MM    /*개시월*/
-               FROM TB_OGPS_PLAR_QLF_CH_IZ C    /*플래너자격변경내역*/
-              WHERE C.DTA_DL_YN = 'N'
-                AND C.OG_TP_CD = S1.OG_TP_CD
-                AND C.PRTNR_NO = S1.PRTNR_NO
-                AND SUBSTR(STRTDT, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(#{strtPerfDt},1,6), 'YYYYMM'), 1), 'YYYYMM')
-                AND C.QLF_DV_CD = '3'  /* 웰스매니저 */
-                AND NVL(C.QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승급 */
-           ) S3 ON 1 = 1
+        LEFT OUTER JOIN
+           ( SELECT OG_TP_CD
+                  , PRTNR_NO
+                  , MAX(CASE WHEN TO_CHAR(SYSDATE,'YYYYMM') BETWEEN STRTDT AND ENDDT THEN STRTDT ELSE '' END) AS CUR_CTNR_DT /* 활동여부 확인용 현계약일 */
+                  , MAX(CASE WHEN TO_CHAR(LAST_DAY(TO_DATE('202307','YYYYMM')),'YYYYMMDD') BETWEEN STRTDT AND ENDDT THEN STRTDT ELSE '' END)  AS CNTR_DT /* 계약일 */
+                  , MIN(CASE WHEN ENDDT = '99991231' THEN '' ELSE ENDDT END) AS CLTN_DT   /* 해약일 */
+                  , MIN(STRTDT)                       AS FST_CNTR_DT  /* 최초계약일 */
+                  , MAX(END_PREV_DT)                  AS FNL_CLTN_DT  /* 최종해약일 */
+                  , MAX(NVL2(STRT_PREV_DT,STRTDT,'')) AS RESTRT_DT    /* 재등록개시일 */
+                  , MAX(SUBSTR(CV_DT,1,6))            AS CV_DT        /* WM전환월 */
+               FROM
+                  ( SELECT OG_TP_CD
+                          , PRTNR_NO
+                          , STRTDT
+                          , ENDDT
+                          , CV_DT
+                          , LAG(STRTDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, STRTDT)  AS STRT_PREV_DT
+                          , LEAD(STRTDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, STRTDT) AS STRT_NEXT_DT
+                          , LAG(ENDDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, ENDDT)  AS END_PREV_DT
+                          , LEAD(ENDDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, ENDDT) AS END_NEXT_DT
+                       FROM TB_OGPS_PLAR_QLF_CH_IZ  /* 플래너자격변경내역 */
+                      WHERE DTA_DL_YN = 'N'
+                        AND OG_TP_CD  = 'W02'
+                        AND QLF_DV_CD = '3'
+                        AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제  3 : 보류 제외
+                 ) A
+             WHERE 1=1
+             GROUP BY OG_TP_CD, PRTNR_NO
+           ) S3 /* 웰스매니저 자격 정보 */
+          ON S1.OG_TP_CD = S3.OG_TP_CD
+         AND S1.PRTNR_NO = S3.PRTNR_NO
         LEFT OUTER JOIN LATERAL
            ( SELECT D.EDUC_CPC_ACKMT_YN
                FROM TB_PSCA_MCPTN_EDUC_IZ D	/*월별파트너교육내역*/

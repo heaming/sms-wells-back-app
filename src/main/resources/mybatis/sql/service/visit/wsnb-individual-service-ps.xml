@@ -70,30 +70,30 @@
                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
                  WHERE T2.OJ_DTL_CNTR_NO = SC2.CNTR_NO
                    AND T2.OJ_DTL_CNTR_SN = SC2.CNTR_SN
-                   AND T2.VL_STRT_DTM = (SELECT MAX(X.VL_STRT_DTM)
-                                           FROM TB_SSCT_CNTR_REL X
-                                          WHERE X.OJ_DTL_CNTR_NO = SC2.CNTR_NO
-                                            AND X.OJ_DTL_CNTR_SN = SC2.CNTR_SN)) AS SV_TP_NM  /*관리유형*/
+               ) AS SV_TP_NM  /*관리유형*/
              , SUBSTR(SC1.CNTR_CNFM_DTM,1,8) AS CNTR_DT /*계약일자*/
              , NVL2(O1.HOO_PRTNR_NO, O1.OG_CD, '') AS OG_CD/*지점코드*/
              , NVL2(O1.HOO_PRTNR_NO, O1.HOO_PRTNR_NO, '') AS BRMGR_PRTNR_NO /*지점장사번*/
              , NVL2(O1.HOO_PRTNR_NO, O1.HOO_PRTNR_NM, '') AS BRMGR_PRTNR_NM /*지점장*/
-             , (SELECT MAX(DECODE(T1.SV_BIZ_HCLSF_CD,'1', T1.ASN_DT, ''))
+             , (SELECT MAX(NVL(T1.ASN_DT, ''))
                   FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
                  WHERE T1.CNTR_NO = SV1.CNTR_NO
                    AND T1.CNTR_SN = SV1.CNTR_SN
-                   AND T1.DTA_DL_YN = 'N')  AS ASN_DT /*배정일자*/
+                   AND T1.DTA_DL_YN = 'N'
+                   AND T1.SV_BIZ_HCLSF_CD = '1'
+                )  AS ASN_DT /*배정일자*/
              , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SELL_CHNL_DV_CD', NVL(X.SELL_CHNL_DV_CD,0))
                   FROM TB_OGBS_PRTNR_BAS X
                  WHERE X.OG_TP_CD = SP.OG_TP_CD
                    AND X.PRTNR_NO = SP.PRTNR_NO) AS SELL_CHNL /*판매채널*/
              , SP.PRTNR_NO /*판매자사번*/
              , SP.PRTNR_KNM /*판매자*/
-             , (SELECT MIN(X.BASE_DTL_CNTR_NO || '-' || X.BASE_DTL_CNTR_SN)
+             , (SELECT X.BASE_DTL_CNTR_NO || '-' || X.BASE_DTL_CNTR_SN
                   FROM TB_SSCT_CNTR_REL X
                  WHERE X.OJ_DTL_CNTR_NO = SV1.CNTR_NO
                    AND X.OJ_DTL_CNTR_SN = SV1.CNTR_SN
                    AND X.CNTR_REL_DTL_CD = '212'
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN X.VL_STRT_DTM AND X.VL_END_DTM
                    AND X.DTA_DL_YN = 'N') AS BF_CNTR_NO /*전상대코드*/
              , (SELECT X.OJ_DTL_CNTR_NO || '-' || X.OJ_DTL_CNTR_SN
                   FROM TB_SSCT_CNTR_REL X
@@ -104,18 +104,22 @@
                    AND X.DTA_DL_YN = 'N')AS AF_CNTR_NO /*후상대코드*/
              , SV1.IST_DT /*설치일자*/
              , SV1.CHNG_DT /*교체일자*/
-             , (SELECT MAX(DECODE(X.CNTR_DTL_STAT_CD, '303', SUBSTR(X.HIST_STRT_DTM,1,8), ''))
+             , (SELECT MAX(NVL(SUBSTR(X.HIST_STRT_DTM,1,8), ''))
                   FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST X /* 계약상세상태변경이력 */
                  WHERE SV1.CNTR_NO = X.CNTR_NO
                    AND SV1.CNTR_SN = X.CNTR_SN
                    AND SUBSTR(X.HIST_END_DTM,1,8) = '99991231'
-                   AND X.DTA_DL_YN = 'N') AS CAN_DT /*취소일자*/
-             , (SELECT MAX(DECODE(X.CNTR_DTL_STAT_CD, '202', SUBSTR(X.HIST_STRT_DTM,1,8), ''))
+                   AND X.DTA_DL_YN = 'N'
+                   AND X.CNTR_DTL_STAT_CD = '303'
+                ) AS CAN_DT /*취소일자*/
+             , (SELECT MAX(NVL(SUBSTR(X.HIST_STRT_DTM,1,8), ''))
                   FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST X /* 계약상세상태변경이력 */
                  WHERE SV1.CNTR_NO = X.CNTR_NO
                    AND SV1.CNTR_SN = X.CNTR_SN
                    AND SUBSTR(X.HIST_END_DTM,1,8) = '99991231'
-                   AND X.DTA_DL_YN = 'N') AS SV_STP_DT /*중지일자*/
+                   AND X.DTA_DL_YN = 'N'
+                   AND X.CNTR_DTL_STAT_CD = '202'
+                ) AS SV_STP_DT /*중지일자*/
 <!--             , CASE WHEN SC5.CNTR_DTL_STAT_CD = '303' THEN SUBSTR(SC5.HIST_STRT_DTM,1,8) ELSE '' END AS CAN_DT /*취소일자*/-->
 <!--             , CASE WHEN SC5.CNTR_DTL_STAT_CD = '202' THEN SUBSTR(SC5.HIST_STRT_DTM,1,8) ELSE '' END AS SV_STP_DT /*중지일자*/-->
              , (CASE WHEN SV1.IST_DT IS NOT NULL AND TO_NUMBER(SV1.IST_DT) != 0
@@ -123,7 +127,9 @@
                      ELSE ''
                  END) AS AS_EXPR_DT /*AS만기*/
              , (CASE WHEN SV1.IST_DT IS NOT NULL AND TO_NUMBER(SV1.IST_DT) != 0
-                     THEN DECODE(SC4.FRISU_BFSVC_PTRM_N,0,'',TO_CHAR(ADD_MONTHS(SV1.IST_DT,SC4.FRISU_BFSVC_PTRM_N),'YYYYMMDD'))
+                     THEN (CASE WHEN SC4.FRISU_BFSVC_PTRM_N = 0 THEN ''
+                                ELSE TO_CHAR(ADD_MONTHS(SV1.IST_DT,SC4.FRISU_BFSVC_PTRM_N),'YYYYMMDD')
+                            END)
                      ELSE ''
                  END) AS BS_EXPR_DT /*BS만기*/
              , SV1.CPS_DT /*기변일자 - 보상일자*/
@@ -236,7 +242,10 @@
             ON SC6.CNTR_PD_REL_ID = (SELECT MAX(X.CNTR_PD_REL_ID)
                                        FROM TB_SSCT_CNTR_PD_REL X
                                       WHERE X.CNTR_NO = SC2.CNTR_NO
-                                        AND X.CNTR_SN = SC2.CNTR_SN)
+                                        AND X.CNTR_SN = SC2.CNTR_SN
+                                        AND X.DTA_DL_YN = 'N'
+                                        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN X.VL_STRT_DTM AND X.VL_END_DTM
+                                     )
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ SP  /* 월파트너내역 -판매파트너*/
             ON SP.BASE_YM = SUBSTR(SC1.CNTR_RCP_FSH_DTM,1,6)
            AND SP.OG_TP_CD = SC1.SELL_OG_TP_CD
@@ -362,82 +371,8 @@
            AND SV1.SV_HSHD_NO IS NOT NULL
          ORDER BY SV1.CNTR_NO, SV1.CNTR_SN
     </select>
+
     <select id="selectIndividualServiceContact" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualServicePsDto$SearchContactRes">
-<!--        SELECT GUBUN /*구분*/-->
-<!--             , CNTC_DT/*등록일시*/-->
-<!--             , ABSNC_RSON_KIND/*컨택그룹*/-->
-<!--             , ABSNC_RSON/*컨택구분*/-->
-<!--             , OG_TP_CD/*소속*/-->
-<!--             , PRTNR_NO/*사번*/-->
-<!--             , PRTNR_NM/*성명*/-->
-<!--             , CNTC_CN/*컨택상세*/-->
-<!--             , CST_SV_ASN_NO /*배정번호*/-->
-<!--             , RCP_DT /*접수일자*/-->
-<!--             , CNTR_NO-->
-<!--             , CNTR_SN-->
-<!--          FROM (-->
-<!--                (SELECT 'AS' GUBUN /*구분*/-->
-<!--                      , S1.CNTC_DT || S1.CNTC_HH AS CNTC_DT/*등록일시*/-->
-<!--                      , DECODE(SUBSTR(S1.ABSNC_RSON_CD,1,1), '0', '컨택완료'-->
-<!--                                                           , '1', '고객부재'-->
-<!--                                                           , '2', '방문불가'-->
-<!--                                                           , '3', '고객이관'-->
-<!--                                                           , '') AS ABSNC_RSON_KIND /*컨택그룹*/-->
-<!--                       , F_CMZ_CD_NM('TNT_WELLS', 'ABSNC_RSON_CD', NVL(S1.ABSNC_RSON_CD,0)) AS ABSNC_RSON /*컨택구분*/-->
-<!--                       , DECODE (P1.OG_TP_CD, 'W06', P1.OG_NM, P1.OG_CD) AS OG_TP_CD /*소속*/-->
-<!--                       , NVL(P1.PRTNR_NO, S1.PRTNR_NO) AS PRTNR_NO /*사번*/-->
-<!--                       , P1.PRTNR_KNM AS PRTNR_NM /*성명*/-->
-<!--                       , S1.CNTC_CN /*컨택상세*/-->
-<!--                       , S1.CST_SV_ASN_NO /*배정번호*/-->
-<!--                       , S2.WK_ACPTE_DT || '' || S2.WK_ACPTE_HH AS RCP_DT /*접수일자*/-->
-<!--                       , S2.CNTR_NO-->
-<!--                       , S2.CNTR_SN-->
-<!--                    FROM TB_SVPD_CST_SV_CNTC_IZ S1 /*고객서비스접톡내역*/-->
-<!--                   INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2 /*고객서비스AS설치배정내역*/-->
-<!--                      ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO-->
-<!--                     AND S1.CNTC_DT = S2.ASN_DT-->
-<!--                   INNER JOIN TB_OGBS_MM_PRTNR_IZ P1-->
-<!--                      ON P1.PRTNR_NO = S2.WK_PRTNR_NO-->
-<!--                     AND P1.OG_TP_CD = S2.WK_PRTNR_OG_TP_CD-->
-<!--                     AND P1.BASE_YM = SUBSTR(S2.CST_SV_ASN_NO, 2,6)-->
-<!--                     AND P1.DTA_DL_YN = 'N'-->
-<!--                   WHERE 1=1-->
-<!--                     AND S2.SV_BIZ_HCLSF_CD IN ('1','3')-->
-<!--                 )-->
-<!--                 UNION ALL-->
-<!--                 (SELECT 'BS' GUBUN /*구분*/-->
-<!--                       , S1.CNTC_DT || S1.CNTC_HH AS CNTC_DT/*등록일시*/-->
-<!--                       , DECODE(SUBSTR(S1.ABSNC_RSON_CD,1,1), '0', '컨택완료'-->
-<!--                                                            , '1', '고객부재'-->
-<!--                                                            , '2', '방문불가'-->
-<!--                                                            , '3', '고객이관'-->
-<!--                                                            , '') AS ABSNC_RSON_KIND /*컨택그룹*/-->
-<!--                        , F_CMZ_CD_NM('TNT_WELLS', 'ABSNC_RSON_CD', NVL(S1.ABSNC_RSON_CD,0)) AS ABSNC_RSON /*컨택구분*/-->
-<!--                        , DECODE (P1.OG_TP_CD, 'W06', P1.OG_NM, P1.OG_CD) AS OG_TP_CD /*소속*/-->
-<!--                        , NVL(P1.PRTNR_NO, S1.PRTNR_NO) AS PRTNR_NO /*사번*/-->
-<!--                        , P1.PRTNR_KNM AS PRTNR_NM /*성명*/-->
-<!--                        , S1.CNTC_CN /*컨택상세*/-->
-<!--                        , S1.CST_SV_ASN_NO /*배정번호*/-->
-<!--                        , S2.CNFM_PSIC_ASN_DT || '' || S2.CNFM_PSIC_ASN_HH AS RCP_DT /*접수일자*/-->
-<!--                        , S2.CNTR_NO-->
-<!--                        , S2.CNTR_SN-->
-<!--                    FROM TB_SVPD_CST_SV_CNTC_IZ S1 /*고객서비스접톡내역*/-->
-<!--                   INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ S2 /*고객서비스BS설치배정내역*/-->
-<!--                      ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO-->
-<!--                     AND S1.CNTC_DT = S2.CST_CNTC_DT-->
-<!--                   INNER JOIN TB_OGBS_MM_PRTNR_IZ P1-->
-<!--                      ON P1.PRTNR_NO = S2.CNFM_PSIC_PRTNR_NO-->
-<!--                     AND P1.OG_TP_CD = S2.CNFM_PSIC_PRTNR_OG_TP_CD-->
-<!--                     AND P1.BASE_YM = S2.ASN_OJ_YM-->
-<!--                     AND P1.DTA_DL_YN = 'N'-->
-<!--                   WHERE 1=1-->
-<!--                     AND SUBSTR( S2.CST_SV_ASN_NO, 0, 1)  IN ('2')-->
-<!--                 )-->
-<!--            )-->
-<!--            WHERE 1=1-->
-<!--              AND CNTR_NO = #{cntrNo}-->
-<!--              AND CNTR_SN = #{cntrSn}-->
-<!--            ORDER BY RCP_DT DESC, CST_SV_ASN_NO DESC-->
         SELECT GUBUN /*구분*/
              , CNTC_DT/*등록일시*/
              , ABSNC_RSON_KIND/*컨택그룹*/
@@ -447,7 +382,7 @@
              , PRTNR_NM/*성명*/
              , CNTC_CN/*컨택상세*/
              , CST_SV_ASN_NO /*배정번호*/
-             , RCP_DT /*접수일자*/
+<!--             , RCP_DT /*접수일자*/-->
              , CNTR_NO
              , CNTR_SN
           FROM (
@@ -464,7 +399,7 @@
                        , P1.PRTNR_KNM AS PRTNR_NM /*성명*/
                        , S1.CNTC_CN /*컨택상세*/
                        , S1.CST_SV_ASN_NO /*배정번호*/
-                       , S2.WK_ACPTE_DT || '' || S2.WK_ACPTE_HH AS RCP_DT /*접수일자*/
+<!--                       , S2.WK_ACPTE_DT || '' || S2.WK_ACPTE_HH AS RCP_DT /*접수일자*/-->
                        , S2.CNTR_NO
                        , S2.CNTR_SN
                     FROM TB_SVPD_CST_SV_CNTC_IZ S1 /*고객서비스접톡내역*/
@@ -478,7 +413,7 @@
                                     , ASN_DT
                                  FROM TB_SVPD_CST_SVAS_IST_ASN_IZ )S2
                       ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
-                     AND S1.CNTC_DT = S2.ASN_DT
+<!--                     AND S1.CNTC_DT = S2.ASN_DT-->
                    INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
                       ON P1.PRTNR_NO = S2.WK_PRTNR_NO
                      AND P1.OG_TP_CD = S2.WK_PRTNR_OG_TP_CD
@@ -501,7 +436,7 @@
                         , P1.PRTNR_KNM AS PRTNR_NM /*성명*/
                         , S1.CNTC_CN /*컨택상세*/
                         , S1.CST_SV_ASN_NO /*배정번호*/
-                        , S2.CNFM_PSIC_ASN_DT || '' || S2.CNFM_PSIC_ASN_HH AS RCP_DT /*접수일자*/
+<!--                        , S2.CNFM_PSIC_ASN_DT || '' || S2.CNFM_PSIC_ASN_HH AS RCP_DT /*접수일자*/-->
                         , S2.CNTR_NO
                         , S2.CNTR_SN
                     FROM TB_SVPD_CST_SV_CNTC_IZ S1 /*고객서비스접톡내역*/
@@ -516,7 +451,7 @@
                                     , CST_CNTC_DT
                                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ ) S2
                       ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
-                     AND S1.CNTC_DT = S2.CST_CNTC_DT
+<!--                     AND S1.CNTC_DT = S2.CST_CNTC_DT-->
                    INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
                       ON P1.PRTNR_NO = S2.CNTC_ICHR_PRTNR_NO
                      AND P1.OG_TP_CD = S2.CNTC_ICHR_PRTNR_OG_TP_CD
@@ -529,7 +464,7 @@
             WHERE 1=1
               AND CNTR_NO = #{cntrNo}
               AND CNTR_SN = #{cntrSn}
-            ORDER BY RCP_DT DESC, CST_SV_ASN_NO DESC
+            ORDER BY CNTC_DT DESC, CST_SV_ASN_NO DESC
     </select>
 
     <select id="selectIndividualProcessState" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbIndividualServicePsDvo">
@@ -1027,6 +962,7 @@
                                        )
         ORDER BY RCP_DT DESC, NVL(VST_FSH_DT,NVL(RCP_DT, ASN_DT)) DESC, CST_SV_ASN_NO DESC
     </select>
+
     <select id="selectIndividualFarm" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualServicePsDto$SearchFarmRes">
            SELECT GUBUN /*구분*/
                 , CNTR_DTL /*계약상세번호*/

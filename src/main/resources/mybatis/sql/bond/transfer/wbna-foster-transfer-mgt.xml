@@ -17,7 +17,8 @@
                  , T1.CNTR_NO	                                                            /* 계약번호 */
                  , T1.CNTR_SN	                                                            /* 계약일련번호 */
                  , T1.CST_NO 	                                                            /* 고객번호 */
-                 , NVL(T1.DLQ_AMT, 0) + NVL(T1.DLQ_ADD_AMT, 0) AS DLQ_AMT	                /* 연체금액(=연체금액 + 연체가산금액) */
+                 , NVL(UC_AMT, 0) AS UC_AMT		                                            /* 미수금액 */			--2023.11.17 추가
+	             , NVL(T1.DLQ_AMT, 0) AS DLQ_AMT	                                        /* 연체금액(=연체금액)	*/	--2023.11.17 수정
                  , NVL(T1.THM_CHRAM_AMT, 0) AS THM_CHRAM_AMT	                            /* 당월요금금액 */
                  , NVL(T1.DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT		                            /* 연체가산금액 */
                  , NVL(T1.RSG_BOR_AMT, 0) AS RSG_BOR_AMT		                            /* 위약금액 */
@@ -63,7 +64,8 @@
              , (SELECT PRTNR_KNM FROM TB_CBBO_CLCTAM_PRTNR_DTL TT1 WHERE TT1.OG_TP_CD = 'HR1' AND TT1.PRTNR_NO = CLCTAM_PRTNR_NO) AS CLCTAM_PRTNR_NM /* 집금담당자명 */
              , COUNT(DISTINCT CST_NO) AS WO_CST_CT		/* 전체 고객수 */
              , COUNT(CNTR_NO) AS WO_CNTR_CT				/* 전체 계약수 */
-             , SUM(DLQ_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) AS WO_OBJ_AMT	/* 전체 대상금액 */
+             , SUM(UC_AMT)	AS WO_UC_AMT				/* 전체 미수금  */   --2023.11.17 추가
+             , SUM(DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) AS WO_OBJ_AMT	/* 전체 대상금액 */
              , SUM(DLQ_AMT)	AS WO_DLQ_AMT				/* 전체 연체금액 */
              , SUM(THM_CHRAM_AMT) AS WO_THM_CHRAM_AMT	/* 전체 당월금액 */
              , SUM(DLQ_ADD_AMT)	AS WO_DLQ_ADD_AMT		/* 전체 연체가산금액 */
@@ -71,7 +73,8 @@
              /* 렌탈 */
              , COUNT(DISTINCT CASE WHEN BND_BIZ_DV_CD = 'L20' THEN CST_NO ELSE NULL END) AS RENTAL_CST_CT
              , COUNT(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN CNTR_NO ELSE NULL END) AS RENTAL_CNTR_CT
-             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS RENTAL_OBJ_AMT
+             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN UC_AMT  ELSE 0 END) AS RENTAL_UC_AMT 			--렌탈 미수금
+             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS RENTAL_OBJ_AMT	--렌탈 당월대상
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN DLQ_AMT ELSE 0 END) AS RENTAL_DLQ_AMT
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN THM_CHRAM_AMT ELSE 0 END) AS RENTAL_THM_CHRAM_AMT
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L20' THEN DLQ_ADD_AMT ELSE 0 END) AS RENTAL_DLQ_ADD_AMT
@@ -79,7 +82,8 @@
              /* 금융리스 */
              , COUNT(DISTINCT CASE WHEN BND_BIZ_DV_CD = 'L21' THEN CST_NO ELSE NULL END) AS LEASE_CST_CT
              , COUNT(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN CNTR_NO ELSE NULL END) AS LEASE_CNTR_CT
-             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS LEASE_OBJ_AMT
+             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN UC_AMT ELSE 0 END) AS LEASE_UC_AMT				--금융리스 미수금
+             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS LEASE_OBJ_AMT		--금융리스 당월대상
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN DLQ_AMT ELSE 0 END) AS LEASE_DLQ_AMT
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN THM_CHRAM_AMT ELSE 0 END) AS LEASE_THM_CHRAM_AMT
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L21' THEN DLQ_ADD_AMT ELSE 0 END) AS LEASE_DLQ_ADD_AMT
@@ -87,7 +91,8 @@
              /* 일반멤버십 */
              , COUNT(DISTINCT CASE WHEN BND_BIZ_DV_CD = 'L31' THEN CST_NO ELSE NULL END) AS MSH_CST_CT
              , COUNT(CASE WHEN BND_BIZ_DV_CD = 'L31' THEN CNTR_NO ELSE NULL END) AS MSH_CNTR_CT
-             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L31' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS MSH_OBJ_AMT
+             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L31' THEN UC_AMT ELSE 0 END) AS MSH_UC_AMT				--일반멤버십 미수금
+             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L31' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS MSH_OBJ_AMT		--일반멤버십 당월대상
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L31' THEN DLQ_AMT ELSE 0 END) AS MSH_DLQ_AMT
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L31' THEN THM_CHRAM_AMT ELSE 0 END) AS MSH_THM_CHRAM_AMT
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L31' THEN DLQ_ADD_AMT ELSE 0 END) AS MSH_DLQ_ADD_AMT
@@ -95,7 +100,8 @@
              /* 홈케어멤버십 */
              , COUNT(DISTINCT CASE WHEN BND_BIZ_DV_CD = 'L32' THEN CST_NO ELSE NULL END) AS HCR_CST_CT
              , COUNT(CASE WHEN BND_BIZ_DV_CD = 'L32' THEN CNTR_NO ELSE NULL END) AS HCR_CNTR_CT
-             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L32' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS HCR_OBJ_AMT
+             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L32' THEN UC_AMT ELSE 0 END) AS HCR_UC_AMT				--홈케어멤버십 미수금
+             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L32' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS HCR_OBJ_AMT		--홈케어 당월대상
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L32' THEN DLQ_AMT ELSE 0 END) AS HCR_DLQ_AMT
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L32' THEN THM_CHRAM_AMT ELSE 0 END) AS HCR_THM_CHRAM_AMT
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L32' THEN DLQ_ADD_AMT ELSE 0 END) AS HCR_DLQ_ADD_AMT
@@ -103,7 +109,8 @@
              /* 일시불 */
              , COUNT(DISTINCT CASE WHEN BND_BIZ_DV_CD = 'L10' THEN CST_NO ELSE NULL END) AS SPAY_CST_CT
              , COUNT(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN CNTR_NO ELSE NULL END) AS SPAY_CNTR_CT
-             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS SPAY_OBJ_AMT
+             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN UC_AMT ELSE 0 END) AS SPAY_UC_AMT				--일시불 멤버십
+             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS SPAY_OBJ_AMT		--일시불 당월대상
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN DLQ_AMT ELSE 0 END) AS SPAY_DLQ_AMT
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN THM_CHRAM_AMT ELSE 0 END) AS SPAY_THM_CHRAM_AMT
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L10' THEN DLQ_ADD_AMT ELSE 0 END) AS SPAY_DLQ_ADD_AMT
@@ -111,7 +118,8 @@
              /* 정기배송 */
              , COUNT(DISTINCT CASE WHEN BND_BIZ_DV_CD = 'L60' THEN CST_NO ELSE NULL END) AS RGLR_SPP_CST_CT
              , COUNT(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN CNTR_NO ELSE NULL END) AS RGLR_SPP_CNTR_CT
-             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS RGLR_SPP_OBJ_AMT
+             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN UC_AMT ELSE 0 END) AS RGLR_SPP_UC_AMT			--정기배송 미수금
+             , SUM(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN (DLQ_AMT + DLQ_ADD_AMT + THM_CHRAM_AMT + RSG_BOR_AMT) ELSE 0 END) AS RGLR_SPP_OBJ_AMT	--정기배송 당월대상
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN DLQ_AMT ELSE 0 END) AS RGLR_SPP_DLQ_AMT
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN THM_CHRAM_AMT ELSE 0 END) AS RGLR_SPP_THM_CHRAM_AMT
              , SUM(CASE WHEN BND_BIZ_DV_CD = 'L60' THEN DLQ_ADD_AMT ELSE 0 END) AS RGLR_SPP_DLQ_ADD_AMT
@@ -124,8 +132,9 @@
         SELECT T1.BASE_YM
              , T1.BZ_HDQ_DV_CD
              , T1.CLCTAM_PRTNR_NO
+             , TO_CHAR(SUM(NVL(T1.UC_AMT, 0)), 'FM999,999,999,999') AS UC_AMT 		        		/* 미수금 */
              , TO_CHAR(SUM(NVL(T1.DLQ_AMT, 0) + NVL(T1.DLQ_ADD_AMT, 0) + NVL(T1.THM_CHRAM_AMT, 0) + NVL(T1.RSG_BOR_AMT, 0)), 'FM999,999,999,999') AS TRG_AMT  /* 대상금액 */
-             , TO_CHAR(SUM(NVL(T1.DLQ_AMT, 0) + NVL(T1.DLQ_ADD_AMT, 0)), 'FM999,999,999,999') AS DLQ_AMT                     /* 연체금액 */
+             , TO_CHAR(SUM(NVL(T1.DLQ_AMT, 0)), 'FM999,999,999,999') AS DLQ_AMT                     /* 연체금액 */
              , TO_CHAR(SUM(NVL(T1.THM_CHRAM_AMT, 0)), 'FM999,999,999,999') AS THM_CHRAM_AMT         /* 당월금액 */
              , TO_CHAR(SUM(NVL(T1.DLQ_ADD_AMT, 0)), 'FM999,999,999,999') AS DLQ_ADD_AMT             /* 연체가산금액 */
              , TO_CHAR(SUM(NVL(T1.RSG_BOR_AMT, 0)), 'FM999,999,999,999') AS RSG_BOR_AMT             /* 위약금액 */
@@ -171,19 +180,6 @@
     </select>
 
     <select id="selectFosterTransferDetails" resultType="com.kyowon.sms.wells.web.bond.transfer.dto.WbnaFosterTransferMgtDto$SearchDetailRes">
-        WITH BND_LWM_IZ AS (
-             SELECT T1.*
-               FROM ( SELECT BND_BIZ_DV_CD
-                           , CNTR_NO
-                           , CNTR_SN
-                           , DFLT_DT
-                           , LWM_DT
-                           , LWM_DTL_TP_CD
-                           , LWM_TP_CD
-                           , RANK() OVER (PARTITION BY BND_BIZ_DV_CD, CNTR_NO, CNTR_SN ORDER BY LWM_ID DESC) AS RN
-                        FROM TB_CBBO_BND_LWM_IZ                  /* 채권법조치내역 Talbe */
-                       ) T1
-             WHERE T1.RN <![CDATA[<=]]> 1)
         SELECT F_CMZ_CD_NM('TNT_WELLS', 'CLCO_CD', T1.CLCO_CD) AS FSTR_CO_NM            /* 위탁사명 */
              , T1.CLCTAM_PRTNR_NO	                                                    /* 집금파트너번호 */
              , (SELECT PRTNR_KNM FROM TB_CBBO_CLCTAM_PRTNR_DTL TT1 WHERE TT1.OG_TP_CD = 'HR1' AND TT1.PRTNR_NO = T1.CLCTAM_PRTNR_NO) AS CLCTAM_PRTNR_NM /* 집금담당자명 */
@@ -201,11 +197,14 @@
                          WHEN T3.SELL_TP_DTL_CD IN ('61', '62', '63') THEN 'L60'		/* 정기배송 */
                           END, T1.BND_BIZ_DV_CD) AS PD_NM                               /* 상품구분=채권업무구분코드 */
              , T1.DLQ_MCN	                                                            /* 연체개월 */
-             , NVL(T1.DLQ_AMT, 0) + NVL(DLQ_ADD_AMT, 0) + NVL(T1.THM_CHRAM_AMT, 0) + NVL(T1.RSG_BOR_AMT, 0) AS TRG_AMT	/* 대상금액(=연체금액 + 연체가산금액 + 당월요금 + 위약금액) */
-             , NVL(DLQ_AMT, 0) + NVL(DLQ_ADD_AMT, 0) AS DLQ_AMT		                    /* 연체금액(=연체금액 + 연체가산금액) */
-             , NVL(THM_CHRAM_AMT, 0) AS THM_CHRAM_AMT	                                /* 당월요금 */
-             , NVL(DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT		                                /* 연체가산금 */
-             , NVL(RSG_BOR_AMT, 0) AS RSG_BOR_AMT		                                /* 위약금액 */
+             , NVL(T1.UC_AMT, 0) AS UC_AMT 	                                            /* 미수금 */   --2023.11.17 추가
+             , NVL(T1.DLQ_AMT, 0) + NVL(DLQ_ADD_AMT, 0) + NVL(T1.THM_CHRAM_AMT, 0) + NVL(T1.RSG_BOR_AMT, 0) AS TRG_AMT	/* 대상금액 (=연체금액 + 연체가산금액 + 당월요금 + 위약금액) */
+             , NVL(T1.DLQ_AMT, 0) AS DLQ_AMT				                            /* 연체금액(=연체금액) */ --2023.11.17 수정
+             , NVL(T1.THM_CHRAM_AMT, 0) AS THM_CHRAM_AMT	                            /* 당월요금 */
+             , NVL(T1.DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT		                            /* 연체가산금 */
+             , NVL(T1.RSG_BOR_AMT, 0) AS RSG_BOR_AMT		                            /* 위약금액 */
+             , F_CMZ_CD_NM('TNT_EDU', 'BND_CLCTN_PRP_DV_CD', T1.BND_CLCTN_PRP_DV_CD) AS BND_CLCTN_PRP_DV_NM	        /* 채권추심속성구분 */  --2023.11.17 추가
+             , F_CMZ_CD_NM('TNT_EDU', 'BND_CLCTN_PRP_RSON_CD', T1.BND_CLCTN_PRP_RSON_CD) AS BND_CLCTN_PRP_RSON_NM	/* 채권추심속성사유 */  --2023.11.17 추가
              , F_CMZ_CD_NM('TNT_WELLS', 'LWM_TP_CD', T2.LWM_TP_CD) AS LWM_TP 		    /* 법조치유형 */
              , F_CMZ_CD_NM('TNT_WELLS', 'LWM_DTL_TP_CD', T2.LWM_DTL_TP_CD) AS LWM_DTL_TP_CD /* 법조치상세 */
              , T2.LWM_DT 			                                                    /* 법조치일자 */
@@ -220,10 +219,21 @@
              , T1.CLCTAM_DV_CD                                                          /* 집금구분코드 */
              , T1.FNL_MDFC_DTM                                                          /* 최종수정일시 */
           FROM TB_CBBO_BND_CNTR_BAS T1 	                                                /* 채권계약기본 TABLE */
-          LEFT OUTER JOIN BND_LWM_IZ T2
-            ON T2.CNTR_NO = T1.CNTR_NO
-           AND T2.CNTR_SN = T1.CNTR_SN
-           AND T2.BND_BIZ_DV_CD = T1.BND_BIZ_DV_CD
+          LEFT OUTER JOIN (	--고객의 법조치 내역 중 가장 최근값 조회
+							SELECT ST1.CUJ_CD
+                                 , ST1.INDNO
+                                 , ST1.CST_NO
+                                 , ST1.CNTR_NO
+                                 , ST1.CNTR_SN --법원코드, 사건번호, 고객번호 ....
+                                 , ST1.LWM_TP_CD
+                                 , ST1.LWM_DTL_TP_CD
+                                 , ST1.LWM_DT
+                                 , ST1.DFLT_DT --법조치유형, 법조치상세유형, 법조치일자, 채무불이행일자
+		                         , ROW_NUMBER() OVER(PARTITION BY ST1.CST_NO ORDER BY ST1.LWM_DT DESC) ROW_NUM
+							  FROM TB_CBBO_BND_LWM_IZ ST1		--법조치내역 Table
+		                  ) T2
+		    ON T2.CST_NO = T1.CST_NO
+		   AND T2.ROW_NUM = 1
           LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3	                                        /* 계약상세 TABLE */
             ON T3.CNTR_NO = T1.CNTR_NO
            AND T3.CNTR_SN = T1.CNTR_SN
@@ -231,16 +241,16 @@
             ON T4.PRTNR_NO = T1.BF_CLCTAM_PRTNR_NO
          WHERE T1.BASE_YM = #{baseYm}
            AND T1.BZ_HDQ_DV_CD = #{bzHdqDvCd}
-        <if test="@MybatisUtils@equals(clctamDvCd,'09')">
+       <if test="@MybatisUtils@equals(clctamDvCd,'09')">
            AND CASE WHEN T1.CLCTAM_DV_CD = '09' AND T1.BND_CLCTN_PRP_DV_CD = '03' THEN 1 /* 집금구분코드 : 09.위탁 AND 채권추심속성구분코드 : 03.위탁이관 */
                     WHEN T1.CLCTAM_DV_CD = '99' AND T1.BND_CLCTN_PRP_DV_CD = '07' AND T1.BND_CLCTN_PRP_RSON_CD = '71' THEN 1 /* 집금구분코드 : 99.특수 AND 채권추심속성구분코드 : 07.대손확정 AND 채권추심속성사유코드 : 71.위탁 */
                     ELSE 2
                      END = 1
-        </if>
-        <if test="@MybatisUtils@equals(clctamDvCd,'11')">
+       </if>
+       <if test="@MybatisUtils@equals(clctamDvCd,'11')">
            AND T1.CLCTAM_DV_CD = '11'       		/* 집금구분코드 : 09.위탁, 11.TF, 99.특수 */
            AND T1.BND_CLCTN_PRP_DV_CD = '08'	    /* 채권추심속성구분코드 : 08.TF */
-        </if>
+       </if>
        <if test="@MybatisUtils@isNotEmpty(bndNwDvCd)">
            AND T1.BND_NW_DV_CD = #{bndNwDvCd}                    /* 신규구분 */
        </if>
@@ -266,7 +276,7 @@
            AND T1.CLCTAM_PRTNR_NO IS NULL                        /* 집금담당자번호 */
        </if>
            AND T1.DTA_DL_YN = 'N'
-         ORDER BY T1.FST_RGST_DTM DESC
+         ORDER BY T1.CST_NO
     </select>
 
     <delete id="deleteBondCounselingBasics">
