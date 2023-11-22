@@ -1,10 +1,10 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.rest;
 
+import java.io.IOException;
 import java.util.List;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositDetailDto.SearchReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbDepositDetailDto.SearchRes;
@@ -16,6 +16,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+
+import javax.servlet.http.HttpServletResponse;
 
 @Api(tags = "[WWDB] 입금내역조회(웰스입금상세)")
 @RestController
@@ -38,13 +40,18 @@ public class WwdbDepositDetailController {
     }
 
     /**
-     * 입금내역 엑셀다운로드
-     * @param dto
-     * @return List<SearchRes>
+     * 입금내역 대용량 엑셀 다운로드
+     * @param req
+     * @param response
+     * @throws IOException
      */
-    @ApiOperation(value = "입금내역 엑셀다운로드", notes = "웰스 입금내역 정보를 검색하여 엑셀다운로드한다.")
-    @GetMapping("/excel-download")
-    public List<SearchRes> getDepositDetailExcels(SearchReq dto) {
-        return service.getDepositDetailExcels(dto);
+    @ApiOperation(value = "입금내역 bulk 엑셀다운로드", notes = "웰스 입금내역 정보를 검색하여 엑셀다운로드한다.")
+    @PostMapping("/excel-download")
+    public void getProductsForBulkExcelDownload(
+        @RequestBody
+        ExcelBulkDownloadDto.DownloadReq req,
+        HttpServletResponse response
+    ) throws IOException {
+        service.getDepositDetailExcels(req, response);
     }
 }
