@@ -109,8 +109,7 @@ public class WsnaQomAsnService {
 
         // 재생성일 경우 데이터 삭제
         if (isRecreate) {
-            WsnaQomAsnRemoveDvo removeDvo = this.converter.mapCreateReqToWsnaQomAsnRemoveDvo(dto);
-            this.mapper.updateQomAsnForRemove(removeDvo);
+            this.removeQomAsn(dto);
         }
 
         int qomAsnNoMax = this.mapper.selectItmQomAsnNoMax(asnOjYm, wareDtlDvCd);
@@ -142,8 +141,7 @@ public class WsnaQomAsnService {
 
         // 재생성일 경우 데이터 삭제
         if (isRecreate) {
-            WsnaQomAsnRemoveDvo removeDvo = this.converter.mapCreateReqToWsnaQomAsnRemoveDvo(dto);
-            this.mapper.updateQomAsnForRemove(removeDvo);
+            this.removeQomAsn(dto);
         }
 
         int qomAsnNoMax = this.mapper.selectItmQomAsnNoMax(asnOjYm, wareDtlDvCd);
@@ -158,10 +156,10 @@ public class WsnaQomAsnService {
      * @return
      */
     @Transactional
-    public int removeQomAsn(RemoveReq dto) {
-        WsnaQomAsnRemoveDvo dvo = this.converter.mapRemoveReqToWsnaQomAsnRemoveDvo(dto);
+    public int removeQomAsn(CreateReq dto) {
+        WsnaQomAsnRemoveDvo removeDvo = this.converter.mapCreateReqToWsnaQomAsnRemoveDvo(dto);
 
-        return this.mapper.updateQomAsnForRemove(dvo);
+        return this.mapper.updateQomAsnForRemove(removeDvo);
     }
 
     /**
