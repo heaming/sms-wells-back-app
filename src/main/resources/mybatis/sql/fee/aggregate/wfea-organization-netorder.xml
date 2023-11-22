@@ -552,18 +552,18 @@
                       , MO.DGR3_LEVL_OG_NM
                       , MP.PRTNR_NO  /* 번호 !!!*/
                       , MP.PRTNR_KNM  /* 성명 !!!*/
-                      , CD.SELL_TP_CD /* 판매유형 !!!*/
+                      , NM.SELL_TP_CD /* 판매유형 !!!*/
                       , PF.FEE_PERF_TP_CD  /* 제품유형 !!!*/
                       , CASE WHEN CD.SELL_TP_CD = '6' THEN PSP.RGLR_SPP_PRC_DV_CD END AS RGLR_SPP_PRC_DV_CD  /* 가격유형 !!!*/
-                      , MC.MCHN_CH_TP_CD  /* 기변유형 !!!*/
+                      , DECODE(NM.MCHN_CH_TP_CD, 0, NULL, NM.MCHN_CH_TP_CD) AS MCHN_CH_TP_CD  /* 기변유형 !!!*/
                       , PF.FEE_PDCT_TP_CD  /* 수수료 실적유형 !!!*/
-                      , CD.CNTR_NO||CD.CNTR_SN AS CNTR_DTL_CD   /* 계약상세번호 !!!*/
-                      , CASE WHEN CB.COPN_DV_CD = '2' THEN  '사업' ELSE '개인' END AS LCCGUB    /* 고객구분 !!!*/
+                      , NM.CNTR_NO || '-' || NM.CNTR_SN AS CNTR_DTL_CD   /* 계약상세번호 !!!*/
+                      , CASE WHEN CB.COPN_DV_CD = '2' THEN '사업' ELSE '개인' END AS LCCGUB    /* 고객구분 !!!*/
                       , PP.PD_NM     /* 상품명 !!!*/
                       , PP.PD_CD     /* 상품코드 !!!*/
-                      , CD.SELL_DSC_DV_CD AS LCETC3  /* 할인구분 !!!*/
-                      , CD.SELL_DSCR_CD AS LCETC4  /* 할인유형 !!!*/
-                      , CD.SELL_DSC_TP_CD /* 할인제도 !!!*/
+                      , NM.SELL_DSC_DV_CD AS LCETC3  /* 할인구분 !!!*/
+                      , NM.SELL_DSCR_CD AS LCETC4  /* 할인유형 !!!*/
+                      , NM.SELL_DSC_TP_CD /* 할인제도 !!!*/
                       , CASE WHEN CD.SELL_TP_CD = '2' AND (
                                 SELECT 1
                                   FROM TB_SSCT_CNTR_REL SCR
@@ -579,12 +579,12 @@
                                    AND ROWNUM = 1) > 0
                              THEN 'Y' END AS LCST04 /* 결합구분 !!!*/
                       , CD.ISTM_MCN AS LCMONT   /* 할부 !!!*/
-                      , CASE WHEN CD.SELL_TP_CD = '1' THEN 0
-                             ELSE CD.STPL_PTRM END AS STPL_PTRM /* 약정개월 !!!*/
+                      , CASE WHEN NM.SELL_TP_CD = '1' THEN 0
+                             ELSE NM.STPL_PTRM_MCN END AS STPL_PTRM /* 약정개월 !!!*/
                       , CD.SV_PRD AS LCFLG3           /* 관리주기 !!!*/
-                      , CD.ACKMT_PERF_AMT AS LCPAMT   /* 인정실적 !!!*/
+                      , NM.ACKMT_PERF_AMT AS LCPAMT   /* 인정실적 !!!*/
                       , CD.FEE_ACKMT_BASE_AMT AS LCBAMT   /* 기준가격 !!!*/
-                      , CASE WHEN PF.FEE_PDCT_TP_CD = 'E' THEN ( CASE WHEN CD.SELL_TP_CD = '6' THEN (CD.SELL_AMT- CD.CNTRAM_DSC_AMT) / CD.SV_PRD
+                      , CASE WHEN PF.FEE_PDCT_TP_CD = 'E' THEN ( CASE WHEN CD.SELL_TP_CD = '6' THEN (CD.SELL_AMT - CD.CNTRAM_DSC_AMT) / CD.SV_PRD
                                                                       ELSE CD.SELL_AMT
                                                                  END )
                              ELSE 0
@@ -594,32 +594,10 @@
                         END  AS HOMCARE3_YEAR /* 홈케어멤버십3년 !!!!*/
                       , CD.FEE_FXAM_YN AS LCST13 /* 정액여부 !!!*/
                       , CASE WHEN CD.SELL_TP_DTL_CD IN ('22','24','25') THEN 'Y' ELSE 'N' END AS LEASE_YN  /* 금융리스 !!! */
-                      , CASE WHEN CD.SELL_TP_CD IN ('1', '6') THEN CD.FEE_ACKMT_CT
-                             WHEN CD.SELL_TP_CD = '2' THEN ( CASE WHEN NVL(MC.OJ_CNTR_NO, '0') != '0' AND MC.MCHN_CH_TP_CD IN ('1','18') THEN 0
-                                                                  ELSE CD.FEE_ACKMT_CT
-                                                             END )
-                             WHEN CD.SELL_TP_CD = '3' THEN ( CASE WHEN CD.CNTRW_TP_CD = '5' AND CD.SELL_TP_DTL_CD = '33' AND CP.PMOT_CD = 'P1' THEN 1
-                                                                  ELSE 0
-                                                             END )
-                        END AS LCPCNT /* 가정 인정건수 !!!*/
-                      , CASE WHEN CD.SELL_TP_CD = '1' THEN
-                            CASE WHEN NVL(PD.ENVR_SFT_YN, 'N') = 'Y'
-                                  AND CD.SELL_TP_DTL_CD != '12'
-                                  AND CD.FEE_FXAM_YN = 'N'
-                                  AND CD.ACKMT_PERF_AMT > 0
-                                  AND CD.FEE_ACKMT_CT > 0
-                                  AND NVL(WS.ROW_SCNT, 0) > 0 THEN 1 ELSE 0 END /* 일시불-신규건수 */
-                             WHEN CD.SELL_TP_CD = '2' THEN
-                            CASE WHEN PC.REF_PD_CLSF_VAL NOT IN ('05003002')
-                                AND NVL(EX.EX_SCNT, 0) = 0
-                                AND MC.MCHN_CH_TP_CD IS NULL
-                                AND CD.ACKMT_PERF_AMT > 0
-                                AND CD.FEE_ACKMT_CT > 0
-                                AND NVL(WS.ROW_SCNT, 0) > 0 THEN 1 ELSE 0 END /* 렌탈-신규건수 */
-                             WHEN CD.SELL_TP_CD = '3' THEN 0
-                             ELSE 0 END AS NEW_LCPCNT
+                      , NCM.ELHM_ACKMT_CT AS LCPCNT
+                      , NCM.NW_ACKMT_CT AS NEW_LCPCNT
                       , CASE WHEN WS.ROW_SCNT >= 1 THEN 'Y' END AS BS_DAESANG /* BS대상 !!!!*/
-                      , CD.RSTL_YN            /* 재약정여부 !!!*/
+                      , NM.RSTL_YN            /* 재약정여부 !!!*/
                       , CB.CNTR_CNFM_DTM AS LCCRTT /* 계약일자 !!!*/
                       , SUBSTR(CD.CNTR_PD_STRTDT,1,8) AS LCSLET /* 매출일자 !!!*/
                       , CASE WHEN CD.CNTR_DTL_STAT_CD IN ('301','303') THEN CNTR_PD_ENDDT END AS LCCANT  /* 취소일자 !!!*/
@@ -687,9 +665,6 @@
                    LEFT OUTER JOIN TB_PDBS_SDING_PRC_BAS PSP
                      ON CD.BASE_PD_CD = PSP.PDCT_PD_CD
                     AND CB.CNTR_CNFM_DTM BETWEEN PSP.APY_STRTDT AND PSP.APY_ENDDT
-                   LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ MC
-                     ON CD.CNTR_NO = MC.BASE_CNTR_NO
-                    AND CD.CNTR_SN = MC.BASE_CNTR_SN
                    LEFT OUTER JOIN LATERAL ( SELECT A.PMOT_CD
                                                   , A.PMOT_TP_CD
                                                   , RANK() OVER (PARTITION BY (A.DTL_CNTR_NO || A.DTL_CNTR_SN) ORDER BY CNTR_PMOT_ID DESC) AS RK_NUM
@@ -702,16 +677,37 @@
                    LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL WD
                      ON CD.CNTR_NO = WD.CNTR_NO
                     AND CD.CNTR_SN = WD.CNTR_SN
-                   LEFT OUTER JOIN (
-                            SELECT PD_CD
-                                 , PD_PRP_VAL11 AS ENVR_SFT_YN
-                              FROM TB_PDBS_PD_ECOM_PRP_DTL
-                             WHERE DTA_DL_YN = 'N'
-                               AND PD_EXTS_PRP_GRP_CD = 'IND'
-                        ) PD
-                     ON PD.PD_CD = CD.BASE_PD_CD
                    LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS PC /* 상품분류기본 */
                      ON PC.PD_CLSF_ID = CD.PD_LCLSF_ID
+                   LEFT OUTER JOIN (
+                        SELECT *
+                          FROM (
+                              SELECT NCM1.PRTNR_NO
+                                   , NCM1.CNTR_NO
+                                   , NCM1.CNTR_SN
+                                   , NCM1.PERF_ATC_CD
+                                   , NCM1.PERF_VAL
+                                FROM TB_FEAM_NTORP_CNTR_MM_CL NCM1  /* 순주문파트너계약월마감 */
+                               WHERE NCM1.BASE_YM = #{perfYm}
+                                 AND NCM1.PERF_YM = #{perfYm}
+                                 AND NCM1.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                 AND NCM1.PERF_AGRG_CRT_DV_CD = '301'
+                                 AND NCM1.CO_CD = '2000'
+                                 AND NCM1.OG_TP_CD = 'W03'
+                                 AND NCM1.PERF_DV_CD = '0'
+                                 AND NCM1.CNTR_PERF_CRT_DV_CD = '01'
+                                 AND NCM1.DTA_DL_YN = 'N'
+                               )
+                         PIVOT (
+                                SUM(PERF_VAL) FOR PERF_ATC_CD IN (
+                                    'W00P00011' AS ELHM_ACKMT_CT,  /* BS판매인정건수 */
+                                    'W00P00036' AS NW_ACKMT_CT     /* 렌탈순주문건수 */
+                                )
+                               )
+                        ) NCM
+                     ON NCM.PRTNR_NO = NM.PRTNR_NO
+                    AND NCM.CNTR_NO = NM.CNTR_NO
+                    AND NCM.CNTR_SN = NM.CNTR_SN
                    LEFT OUTER JOIN LATERAL ( SELECT COUNT(1) AS ROW_SCNT
                                                FROM TB_FEAM_WELS_SV_FEE_BAS A
                                               WHERE A.BASE_PD_CD = CD.BASE_PD_CD
@@ -727,6 +723,7 @@
                                            )EX
                      ON 1=1
                   WHERE NM.BASE_YM = #{perfYm}
+                    AND NM.PERF_YM = #{perfYm}
                     AND NM.FEE_TCNT_DV_CD = #{feeTcntDvCd}
                     AND NM.OG_TP_CD = 'W03'  /* W03: 홈마스터 */
                     AND NM.CNTR_PERF_CRT_DV_CD = '01'  /* 01: 순주문생성 */
