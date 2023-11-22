@@ -229,8 +229,7 @@ public class WogcPartnerEngineerService {
                 this.mapper.updatePrtnrGrpCd(dvo); //직책업데이트
             }
             dvo.setMexnoEncr(mexnoEncr);
-            SaveBiztelephoneReq bizDto = SaveBiztelephoneReq
-                .builder()
+            SaveBiztelephoneReq bizDto = SaveBiztelephoneReq.builder()
                 .ogTpCd(dvo.getOgTpCd())
                 .prtnrNo(dvo.getPrtnrNo())
                 .usrId(dvo.getUsrId())
