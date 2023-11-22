@@ -34,8 +34,10 @@ public class WsnaOutOfStorageAgrgService {
     /**
     * 창고 조회 (화면 Header 설정)
     */
-    public List<WsnaOutOfStorageAgrgWareDvo> getWareHouses() {
+    public List<WsnaOutOfStorageAgrgWareDvo> getWareHouses(String baseDt, String wareDvCd) {
         WsnaOutOfStorageAgrgWareDvo wareDvo = new WsnaOutOfStorageAgrgWareDvo();
+        wareDvo.setBaseDt(baseDt);
+        wareDvo.setWareDvCd(wareDvCd);
         wareDvo.setSumFields(true); //합계필드 포함
         return mapper.selectMcByWares(wareDvo);
     }
@@ -53,6 +55,8 @@ public class WsnaOutOfStorageAgrgService {
     public WsnaOutOfStorageAgrgDvo convertPivotOutOfStorageAgrgDvo(WsnaOutOfStorageAgrgDvo dvo) {
         // 창고 리스트 조회
         WsnaOutOfStorageAgrgWareDvo wareDvo = new WsnaOutOfStorageAgrgWareDvo();
+        wareDvo.setBaseDt(dvo.getStartDt());
+        wareDvo.setWareDvCd(dvo.getWareDvCd());
         wareDvo.setSumFields(false); //합계필드 제외
         List<WsnaOutOfStorageAgrgWareDvo> wares = this.mapper.selectMcByWares(wareDvo);
 
