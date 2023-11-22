@@ -36,7 +36,7 @@ public class WwdbDepositDetailDto {
         String dpMesCd, // 입금수단
         String dpTpCd, // 입금유형
         String vncoDvCd, // van사 구분
-        String ogTpCd // 조직유형
+        String[] ogTpCd // 조직유형
     ) {}
 
     // *********************************************************
