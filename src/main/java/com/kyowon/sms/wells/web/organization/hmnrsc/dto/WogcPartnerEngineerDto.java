@@ -20,8 +20,7 @@ public class WogcPartnerEngineerDto {
         String baseDt,
         @NotBlank
         String ogTpCd
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerEngineerDto-SearchEngineerRes")
     public record SearchEngineerRes(
@@ -46,8 +45,7 @@ public class WogcPartnerEngineerDto {
         String pcpPrtnrNm,
         String procsDtm
 
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerEngineerDto-SearchVacationRes")
     public record SearchVacationRes(
@@ -60,22 +58,19 @@ public class WogcPartnerEngineerDto {
         String prtnrKnm,
         String bizAgntPrtnrNo
 
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerEngineerDto-SearchVacationReq")
     public record SearchVacationReq(
         String prtnrNo
 
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerEngineerDto-SearchVacationCntRes")
     public record SearchVacationCntRes(
         String cnt
 
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerEngineerDto-SaveReq")
     public record SaveReq(
@@ -89,8 +84,7 @@ public class WogcPartnerEngineerDto {
         String wrkDt,
         String rowState
 
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerEngineerDto-RemoveReq")
     public record RemoveReq(
@@ -99,8 +93,7 @@ public class WogcPartnerEngineerDto {
         String vcnStrtDt,
         String rowState
 
-    ) {
-    }
+    ) {}
 
     @ApiModel(value = "WogcPartnerEngineerDto-SaveEngineerAttendReq")
     public record SaveEngineerAttendReq(
@@ -126,8 +119,7 @@ public class WogcPartnerEngineerDto {
         String ogLevlDvCd2,
         String procsDtm
 
-    ) {
-    }
+    ) {}
 
     /**
      * 서비스 조 관리 조회 Request dto
@@ -186,6 +178,7 @@ public class WogcPartnerEngineerDto {
      * @param dtaDlYn 데이터삭제여부
      * @param telNumber 전화번호
      * @param ogCd 조직코드
+     * @param usrId 사용자ID
      */
     @ApiModel(value = "WogcPartnerEngineerDto-FindJoeManagementRes")
     @Builder
@@ -216,9 +209,9 @@ public class WogcPartnerEngineerDto {
         String cralIdvTno,
         String dtaDlYn,
         String telNumber,
-        String ogCd
-    ) {
-    }
+        String ogCd,
+        String usrId
+    ) {}
 
     /**
      * 서비스 조 관리 저장 Request dto
@@ -247,6 +240,7 @@ public class WogcPartnerEngineerDto {
      * @param cralIdvTno 업무용전화번호3
      * @param dtaDlYn 데이터삭제여부
      * @param telNumber 전화번호
+     * @param usrId 사용자ID
      */
     @ApiModel(value = "WogcPartnerEngineerDto-SaveJoeManagementReq")
     @Builder
@@ -275,9 +269,9 @@ public class WogcPartnerEngineerDto {
         String mexnoEncr,
         String cralIdvTno,
         String dtaDlYn,
-        String telNumber
-    ) {
-    }
+        String telNumber,
+        String usrId
+    ) {}
 
     /**
      * 엔지니어 등급 관리 조회 Request dto
@@ -295,8 +289,7 @@ public class WogcPartnerEngineerDto {
         String rsbDvCd,
         String chk,
         String baseYm
-    ) {
-    }
+    ) {}
 
     /**
      * 엔지니어 등급 관리 조회 Response dto
@@ -352,8 +345,7 @@ public class WogcPartnerEngineerDto {
         String apySeqn,
         String dtaDlYn,
         String ogCd
-    ) {
-    }
+    ) {}
 
     /**
      * 엔지니어 등급 관리 저장 Request dto
@@ -400,6 +392,5 @@ public class WogcPartnerEngineerDto {
         String cltnDt,
         String apySeqn,
         String dtaDlYn
-    ) {
-    }
+    ) {}
 }
