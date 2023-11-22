@@ -782,6 +782,7 @@
              , A1.SELL_AMT /* 판매금액 */
              , A1.PMOT_NO /* 프로모션번호 */
              , A1.PKG_CD /* 패키지코드 */
+             , A1.PKG_SN /* 패키지일련번호 */
              , A1.CNTR_CNFM_DTM /* 계약확정일시 */
              , A1.SL_DT /* 매출일자 */
              , A1.CAN_DT /* 취소일자 */
@@ -868,6 +869,7 @@
                           END AS SELL_AMT /* 판매금액 */
                         , T15.PMOT_CD AS PMOT_NO /* 프로모션번호 */
                         , T2.HGR_PD_CD AS PKG_CD /* 상위상품코드 */
+                        , T16.CNTR_CST_GRP_ID AS PKG_SN /* 계약고객그룹ID */
                         , T11.OJ_DTL_CNTR_NO /* 대상상세계약번호 */
                         , T11.BASE_PD_CD AS MCHN_PD_CD /* 기기상품코드 */
                         , CASE WHEN NVL(T10.CNTR_NO, 'N') = 'N' THEN 'N'
@@ -988,6 +990,12 @@
                         ) T15
                        ON 1=1
                       AND RK_NUM = 1
+                     LEFT OUTER JOIN TB_SSCT_CNTR_REL T16 /* 계약관계 */
+                       ON T16.BASE_DTL_CNTR_NO = T2.CNTR_NO /* 기준상세계약번호 */
+                      AND T16.BASE_DTL_CNTR_SN = T2.CNTR_SN /* 기준상세계약일련번호 */
+                      AND T16.CNTR_REL_DTL_CD = '22W' /* 계약관계상세코드 = 22W : 패키지상품 */
+                      AND SUBSTR(T1.CNTR_CNFM_DTM, 0, 8) BETWEEN SUBSTR(T16.VL_STRT_DTM, 0 ,8) AND SUBSTR(T16.VL_END_DTM, 0, 8) /* 유효시작일시, 유효종료일시 */
+                      AND T16.DTA_DL_YN = 'N'
                     WHERE 1=1
                       AND T1.DTA_DL_YN = 'N'
                       AND T1.SELL_OG_TP_CD = 'W02' /* 판매조직유형코드 */
@@ -1101,6 +1109,7 @@
                         , NVL(T3.FNL_AMT, 0) - NVL(T1.STPL_DSC_AMT, 0) SELL_AMT /* 판매금액 */
                         , '' AS PMOT_NO /* 프로모션번호 */
                         , T3.HGR_PD_CD AS PKG_CD /* 상위상품코드 */
+                        , T14.CNTR_CST_GRP_ID AS PKG_SN /* 계약고객그룹ID */
                         , T12.OJ_DTL_CNTR_NO /* 대상상세계약번호 */
                         , T12.BASE_PD_CD AS MCHN_PD_CD /* 기기상품코드 */
                         , CASE WHEN NVL(T11.CNTR_NO, 'N') = 'N' THEN 'N'
@@ -1172,27 +1181,33 @@
                              AND S1.DTA_DL_YN  = 'N'
                         ) T12
                        ON 1=1
-                 LEFT OUTER JOIN LATERAL
-                    (
-                      SELECT COUNT(*) AS COMBI_DV_CNT
-                        FROM TB_SSCT_CNTR_REL /* 계약관계 */
-                       WHERE 1=1
-                         AND DTA_DL_YN  = 'N'
-                         AND OJ_DTL_CNTR_NO = T1.CNTR_NO /* 대상상세계약번호 */
-                         AND OJ_DTL_CNTR_SN = T1.CNTR_SN /* 대상상세계약일련번호 */
+                     LEFT OUTER JOIN LATERAL
+                        (
+                          SELECT COUNT(*) AS COMBI_DV_CNT
+                            FROM TB_SSCT_CNTR_REL /* 계약관계 */
+                           WHERE 1=1
+                             AND DTA_DL_YN  = 'N'
+                             AND OJ_DTL_CNTR_NO = T1.CNTR_NO /* 대상상세계약번호 */
+                             AND OJ_DTL_CNTR_SN = T1.CNTR_SN /* 대상상세계약일련번호 */
 
-                         <choose>
-                             <when test='@MybatisUtils@equals(dvCd, "01") or @MybatisUtils@equals(dvCd, "02")'> /* 구분 = 01 : 접수, 02 : 예약 */
-                                 AND SUBSTR(T1.STPL_RCP_DTM, 0, 8) BETWEEN SUBSTR(VL_STRT_DTM, 0 ,8) AND SUBSTR(VL_END_DTM, 0, 8) /* 유효시작일시, 유효종료일시 */
-                             </when>
-                             <when test='@MybatisUtils@equals(dvCd, "03")'>  /* 구분 = 03 : 매출 */
-                                 AND SUBSTR(T1.STPL_CNFM_DTM, 0, 8) BETWEEN SUBSTR(VL_STRT_DTM, 0 ,8) AND SUBSTR(VL_END_DTM, 0, 8) /* 유효시작일시, 유효종료일시 */
-                             </when>
-                         </choose>
+                             <choose>
+                                 <when test='@MybatisUtils@equals(dvCd, "01") or @MybatisUtils@equals(dvCd, "02")'> /* 구분 = 01 : 접수, 02 : 예약 */
+                                     AND SUBSTR(T1.STPL_RCP_DTM, 0, 8) BETWEEN SUBSTR(VL_STRT_DTM, 0 ,8) AND SUBSTR(VL_END_DTM, 0, 8) /* 유효시작일시, 유효종료일시 */
+                                 </when>
+                                 <when test='@MybatisUtils@equals(dvCd, "03")'>  /* 구분 = 03 : 매출 */
+                                     AND SUBSTR(T1.STPL_CNFM_DTM, 0, 8) BETWEEN SUBSTR(VL_STRT_DTM, 0 ,8) AND SUBSTR(VL_END_DTM, 0, 8) /* 유효시작일시, 유효종료일시 */
+                                 </when>
+                             </choose>
 
-                         AND CNTR_REL_DTL_CD = '216' /* 계약관계상세코드 = 216 : 모종결합 */
-                    ) T13
-                   ON 1=1
+                             AND CNTR_REL_DTL_CD = '216' /* 계약관계상세코드 = 216 : 모종결합 */
+                        ) T13
+                       ON 1=1
+                     LEFT OUTER JOIN TB_SSCT_CNTR_REL T14 /* 계약관계 */
+                       ON T14.BASE_DTL_CNTR_NO = T1.CNTR_NO /* 기준상세계약번호 */
+                      AND T14.BASE_DTL_CNTR_SN = T1.CNTR_SN /* 기준상세계약일련번호 */
+                      AND T14.CNTR_REL_DTL_CD = '22W' /* 계약관계상세코드 = 22W : 패키지상품 */
+                      AND SUBSTR(T1.STPL_RCP_DTM, 0, 8) BETWEEN SUBSTR(T14.VL_STRT_DTM, 0 ,8) AND SUBSTR(T14.VL_END_DTM, 0, 8) /* 유효시작일시, 유효종료일시 */
+                      AND T14.DTA_DL_YN = 'N'
                     WHERE 1=1
                       AND T1.DTA_DL_YN = 'N'
                       AND T1.STPL_TP_CD = 'A' /* 약정유형코드 */
@@ -1367,6 +1382,7 @@
              , A1.SELL_AMT /* 판매금액 */
              , A1.PMOT_NO /* 프로모션번호 */
              , A1.PKG_CD /* 패키지코드 */
+             , A1.PKG_SN /* 패키지일련번호 */
              , A1.CNTR_CNFM_DTM /* 계약확정일시 */
              , A1.SL_DT /* 매출일자 */
              , A1.CAN_DT /* 취소일자 */
@@ -1413,14 +1429,14 @@
                            WHEN T6.FEE_PDCT_TP_CD1 != 'B' THEN
                            CASE WHEN NVL(T3.FEE_FXAM_YN, 'N') = 'N' AND NVL(T9.MCHN_CH_TP_CD, 'N') = 'N' AND T3.ACKMT_PERF_AMT > 0 THEN
                                 CASE WHEN T3.FEE_ACKMT_CT = 0 THEN 0
-                                     WHEN NVL(T14.ROW_SCNT, 0) = 0 THEN 0
+                                     WHEN NVL(T14.ROW_SCNT, 0) + NVL(T15.ROW_SCNT, 0) = 0 THEN 0
                                      ELSE 1
                                 END
                                 ELSE 0
                            END
                            ELSE 0
                       END AS NW_SELL_CT /* 신규판매건수 */
-                    , CASE WHEN T6.FEE_PDCT_TP_CD1 != 'B' AND NVL(T14.ROW_SCNT, 0) > 0 THEN 'Y' END AS BFSVC_OJ_YN /* BS대상여부 */
+                    , CASE WHEN T6.FEE_PDCT_TP_CD1 != 'B' AND NVL(T14.ROW_SCNT, 0) + NVL(T15.ROW_SCNT, 0) > 0 THEN 'Y' END AS BFSVC_OJ_YN /* BS대상여부 */
                     , '' AS RSTL_YN /* 재약정여부 */
                     , SUBSTR(T2.CNTR_CNFM_DTM, 0, 8) AS CNTR_CNFM_DTM /* 계약확정일시 */
                     , T1.SL_DT /* 매출일자 */
@@ -1429,8 +1445,9 @@
                     , CASE WHEN T3.SELL_TP_CD = '6' THEN (NVL(T3.FNL_AMT, 0)- NVL(T3.CNTRAM_DSC_AMT, 0)) / NVL(T3.SV_PRD, 0)
                            ELSE T3.SELL_AMT
                       END AS SELL_AMT /* 판매금액 */
-                    , T15.PMOT_CD AS PMOT_NO /* 프로모션번호 */
+                    , T16.PMOT_CD AS PMOT_NO /* 프로모션번호 */
                     , T3.HGR_PD_CD AS PKG_CD /* 상위상품코드 */
+                    , T17.CNTR_CST_GRP_ID AS PKG_SN /* 계약고객그룹ID */
                     , T12.OJ_DTL_CNTR_NO /* 대상상세계약번호 */
                     , T12.BASE_PD_CD AS MCHN_PD_CD /* 기기상품코드 */
                     , CASE WHEN NVL(T11.CNTR_NO, 'N') = 'N' THEN 'N'
@@ -1508,42 +1525,40 @@
                  LEFT OUTER JOIN LATERAL
                     (
                       SELECT COUNT(*) AS ROW_SCNT
-                        FROM
-                           (
-                             SELECT 1 AS ROW_SCNT
-                               FROM TB_FEAM_WELS_SV_FEE_BAS /* 웰스서비스수수료기본 */
-                              WHERE 1=1
-                                AND BASE_PD_CD = T3.BASE_PD_CD /* 기준상품코드 */
-                                AND VST_MCN = 0 /* 방문개월수 */
-                                AND SUBSTR(#{perfYm}, 0, 6) BETWEEN APY_STRT_YM AND APY_END_YM /* 적용시작년월, 적용종료년월 */
-                                AND DTA_DL_YN = 'N'
-
-                              UNION ALL
-
-                             SELECT 1 AS ROW_SCNT
-                               FROM TB_FEAM_WELS_SV_FEE_BAS /* 웰스서비스수수료기본 */
-                              WHERE 1=1
-                                AND DTA_DL_YN = 'N'
-                                AND VST_MCN = 0 /* 방문개월수 */
-                                AND SUBSTR(#{perfYm}, 0, 6) BETWEEN APY_STRT_YM AND APY_END_YM /* 적용시작년월, 적용종료년월 */
-                                AND BASE_PD_CD IN /* 기준상품코드 */
-                                  (
-                                    SELECT S1.PD_CD /* 상품코드 */
-                                      FROM TB_PDBS_PD_BAS S1 /* 상품기본 */
-                                     INNER JOIN TB_PDBS_PD_REL S2 /* 상품관계 */
-                                        ON S2.BASE_PD_CD = S1.PD_CD /* 상품코드 */
-                                       AND S2.PD_REL_TP_CD = '05' /* 상품관계유형코드 = 05 : 기준-제품 */
-                                       AND SUBSTR(#{perfYm}, 0, 6) BETWEEN SUBSTR(S2.VL_STRT_DTM, 0, 6)  AND SUBSTR(S2.VL_END_DTM, 0, 6) /* 유효시작일시, 유효종료일시 */
-                                       AND S2.DTA_DL_YN = 'N'
-                                     INNER JOIN TB_PDBS_PD_BAS S3 /* 상품기본 */
-                                        ON S3.PD_CD = S2.OJ_PD_CD /* 대상상품코드 */
-                                     WHERE 1=1
-                                       AND S3.DTA_DL_YN = 'N'
-                                       AND S3.PD_TP_CD='M' /* 상품유형코드 = M : 교재제품 */
-                                       AND S3.PD_CD = T3.BASE_PD_CD /* 기준상품코드 */
-                                  )
-                           )
+                        FROM TB_FEAM_WELS_SV_FEE_BAS /* 웰스서비스수수료기본 */
+                       WHERE 1=1
+                         AND BASE_PD_CD = T3.BASE_PD_CD /* 기준상품코드 */
+                         AND VST_MCN = 0 /* 방문개월수 */
+                         AND SUBSTR(#{perfYm}, 0, 6) BETWEEN APY_STRT_YM AND APY_END_YM /* 적용시작년월, 적용종료년월 */
+                         AND DTA_DL_YN = 'N'
                     ) T14
+                   ON 1=1
+                 LEFT OUTER JOIN LATERAL
+                    (
+                      SELECT COUNT(*) AS ROW_SCNT
+                        FROM TB_FEAM_WELS_SV_FEE_BAS /* 웰스서비스수수료기본 */
+                       WHERE 1=1
+                         AND DTA_DL_YN = 'N'
+                         AND VST_MCN = 0 /* 방문개월수 */
+                         AND SUBSTR(#{perfYm}, 0, 6) BETWEEN APY_STRT_YM AND APY_END_YM /* 적용시작년월, 적용종료년월 */
+                         AND BASE_PD_CD IN /* 기준상품코드 */
+                           (
+                             SELECT S2.OJ_PD_CD /* 상품코드 */
+                               FROM TB_PDBS_PD_BAS S1 /* 상품기본 */
+                              INNER JOIN TB_PDBS_PD_REL S2 /* 상품관계 */
+                                 ON S2.BASE_PD_CD = S1.PD_CD /* 상품코드 */
+                                AND S2.PD_REL_TP_CD = '05' /* 상품관계유형코드 = 05 : 기준-제품 */
+                                AND SUBSTR(#{perfYm}, 0, 6) BETWEEN SUBSTR(S2.VL_STRT_DTM, 0, 6)  AND SUBSTR(S2.VL_END_DTM, 0, 6) /* 유효시작일시, 유효종료일시 */
+                                AND S2.DTA_DL_YN = 'N'
+                              INNER JOIN TB_PDBS_PD_BAS S3 /* 상품기본 */
+                                 ON S3.PD_CD = S2.OJ_PD_CD /* 대상상품코드 */
+                                AND S3.PD_TP_CD = 'M' /* 상품유형코드 = M : 교재제품 */
+                                AND S3.DTA_DL_YN = 'N'
+                              WHERE 1=1
+                                AND S1.DTA_DL_YN = 'N'
+                                AND S1.PD_CD = T3.BASE_PD_CD /* 기준상품코드 */
+                           )
+                    ) T15
                    ON 1=1
                  LEFT OUTER JOIN LATERAL
                     (
@@ -1554,9 +1569,15 @@
                          AND DTL_CNTR_NO = T1.CNTR_NO /* 상세계약번호 */
                          AND DTL_CNTR_SN = T1.CNTR_SN /* 상세계약일련번호 */
                          AND DTA_DL_YN = 'N'
-                    ) T15
+                    ) T16
                    ON 1=1
                   AND RK_NUM = 1
+                 LEFT OUTER JOIN TB_SSCT_CNTR_REL T17 /* 계약관계 */
+                   ON T17.BASE_DTL_CNTR_NO = T1.CNTR_NO /* 기준상세계약번호 */
+                  AND T17.BASE_DTL_CNTR_SN = T1.CNTR_SN /* 기준상세계약일련번호 */
+                  AND T17.CNTR_REL_DTL_CD = '22W' /* 계약관계상세코드 = 22W : 패키지상품 */
+                  AND SUBSTR(T2.CNTR_CNFM_DTM, 0, 8) BETWEEN SUBSTR(T17.VL_STRT_DTM, 0 ,8) AND SUBSTR(T17.VL_END_DTM, 0, 8) /* 유효시작일시, 유효종료일시 */
+                  AND T17.DTA_DL_YN = 'N'
                 WHERE 1=1
                   AND T1.DTA_DL_YN = 'N'
                   AND NVL(T1.ACC_NINC_YN, 'N') = 'N' /* 계정순증여부 */

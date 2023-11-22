@@ -300,6 +300,7 @@ public class WfeaOrganizationNetOrderDto {
         String sellAmt, /* 판매금액 */
         String pmotNo, /* 프로모션번호 */
         String pkgCd, /* 패키지코드 */
+        String pkgSn, /* 패키지일련번호 */
         String mchnCstCd, /* 기기고객코드 */
         String mchnPdCd, /* 기기상품코드 */
         String perfExcdRgstYn /* 실적제외등록여부 */
