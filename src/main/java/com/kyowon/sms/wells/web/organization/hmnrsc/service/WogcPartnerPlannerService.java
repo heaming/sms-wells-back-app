@@ -419,6 +419,7 @@ public class WogcPartnerPlannerService {
                         com.kyowon.sms.common.web.organization.zcommon.constants.OgConst.GaoorTpCd.GAOOR_TP_CD_10
                             .getCode()
                     )
+                    .gaoorDvDtlCd("10") // 해약사유코드: 10 미활동
                     .chdt(DateUtil.getLastDateOfMonth(DateUtil.getNowDayString()))
                     .aplcStatCd(
                         com.kyowon.sms.common.web.organization.zcommon.constants.OgConst.AplcStatCd.APLC_STAT_CD_20
