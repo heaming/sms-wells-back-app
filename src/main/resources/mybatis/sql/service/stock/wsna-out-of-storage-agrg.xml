@@ -14,10 +14,8 @@
            , SUBSTR(WARE_NM, 1, 5)  AS WARE_NM
            , 0                      AS SORT_DV_VAL
       FROM TB_SVST_MCBY_WARE_IZ
-      WHERE APY_YM = SUBSTR(#{baseDt}, 1, 6)    /* 서비스센터, 영업센터 */
-       <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
-       AND WARE_DV_CD = #{wareDvCd}
-       </if>
+      WHERE APY_YM = SUBSTR(#{baseDt}, 1, 6)
+       AND WARE_DV_CD = #{wareDvCd} /* 서비스센터, 영업센터 */
        AND WARE_DTL_DV_CD IN ('20', '30')
        AND DTA_DL_YN = 'N'
        AND WARE_NM IS NOT NULL
@@ -33,19 +31,22 @@
       )
       UNION ALL                                   /* 엔지니어, LP */
 	  (
+        <if test='@MybatisUtils@equals(wareDvCd, "2")'>
         (
          SELECT '299999'     AS WARE_NO
               , '엔지니어'     AS WARE_NM
               , 0            AS SORT_DV_VAL
          FROM DUAL
         )
-        UNION ALL
+        </if>
+        <if test='@MybatisUtils@equals(wareDvCd, "3")'>
         (
          SELECT '399999'     AS WARE_NO
               , 'LP'         AS WARE_NM
               , 0            AS SORT_DV_VAL
          FROM DUAL
         )
+        </if>
         <if test="@MybatisUtils@equals( isSumFields , true )">
         UNION ALL                                /* 합계 */
         (
@@ -54,7 +55,7 @@
               , 1            AS SORT_DV_VAL
          FROM DUAL
         )
-        <if test='@MybatisUtils@isNotEmpty(wareDvCd) and @MybatisUtils@equals(wareDvCd, "2")'>
+        <if test='@MybatisUtils@equals(wareDvCd, "2")'>
         UNION ALL
         (
          SELECT '200000'    AS WARE_NO
@@ -63,7 +64,7 @@
          FROM DUAL
         )
         </if>
-        <if test='@MybatisUtils@isNotEmpty(wareDvCd) and @MybatisUtils@equals(wareDvCd, "3")'>
+        <if test='@MybatisUtils@equals(wareDvCd, "3")'>
         UNION ALL
         (
          SELECT '300000'     AS WARE_NO
@@ -237,9 +238,14 @@
             , T2.PD_PRP_VAL21  AS SVPD_COMM_GB
             , ${wareNoFields}
             , ${wareLogisticsFieldsSumStr}  AS WARE_100000
+            <if test='@MybatisUtils@equals(wareDvCd, "2")'>
             , ${wareServiceFieldsSumStr}    AS WARE_200000
-            , ${wareBusinessFieldsSumStr}   AS WARE_300000
-            , ${wareLogisticsFieldsSumStr} + ${wareServiceFieldsSumStr} + ${wareBusinessFieldsSumStr} AS WARE_999999
+            , ${wareLogisticsFieldsSumStr} + ${wareServiceFieldsSumStr} AS WARE_999999
+            </if>
+            <if test='@MybatisUtils@equals(wareDvCd, "3")'>
+            , ${wareBusinessFieldsSumStr}    AS WARE_300000
+            , ${wareLogisticsFieldsSumStr} + ${wareBusinessFieldsSumStr} AS WARE_999999
+            </if>
        FROM  (
           SELECT ITM_PD_CD
                , WARE_NO
