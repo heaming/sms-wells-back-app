@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import com.kyowon.sms.common.web.organization.common.service.ZogzPartnerService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,6 @@ import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.S
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchEngineerRes;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchVacationReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcPartnerEngineerDto.SearchVacationRes;
-import com.kyowon.sms.common.web.organization.common.dto.ZogzPartnerDto.SaveBiztelephoneReq;
 import com.kyowon.sms.wells.web.organization.hmnrsc.dvo.WogcPartnerEngineerDvo;
 import com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcPartnerEngineerMapper;
 import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
@@ -58,7 +56,6 @@ public class WogcPartnerEngineerService {
     private final WogcPartnerEngineerConverter wogcPartnerEngineerConverter;
     private final MessageResourceService messageService;
     private final ExcelReadService excelReadService;
-    private final ZogzPartnerService zogzPartnerService;
 
     private final static String KEY_PRTNR_NO = "prtnrNo";
 
@@ -218,7 +215,7 @@ public class WogcPartnerEngineerService {
     @Transactional
     public int saveJoeManagement(List<SaveJoeManagementReq> dtos) {
         int processCnt = 0;
-        List<SaveBiztelephoneReq> bizDtos = new ArrayList<SaveBiztelephoneReq>();
+
         for (SaveJoeManagementReq dto : dtos) {
             WogcPartnerEngineerDvo dvo = this.wogcPartnerEngineerConverter
                 .mapSaveJoeManagementReqToWogcPartnerEngineerDvo(dto);
@@ -229,20 +226,8 @@ public class WogcPartnerEngineerService {
                 this.mapper.updatePrtnrGrpCd(dvo); //직책업데이트
             }
             dvo.setMexnoEncr(mexnoEncr);
-            SaveBiztelephoneReq bizDto = SaveBiztelephoneReq.builder()
-                .ogTpCd(dvo.getOgTpCd())
-                .prtnrNo(dvo.getPrtnrNo())
-                .usrId(dvo.getUsrId())
-                .bizUseIdvTno(dvo.getCralIdvTno())
-                .bizUseExnoEncr(mexnoEncr)
-                .bizUseLocaraTno(dvo.getCralLocaraTno())
-                .build();
-
-            bizDtos.add(bizDto);
+            this.mapper.updatePrtnrBusiness(dvo); //업무용전화번호업데이트
         }
-
-        //업무용 전화번호, 사용자 전화번호 업데이트
-        processCnt += zogzPartnerService.editBiztelephone(bizDtos);
 
         return processCnt;
     }
