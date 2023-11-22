@@ -1,21 +1,23 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.rest;
 
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbDepositRefundInterfaceDto;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbSinglePaymentPerformanceInfoInterfaceDto;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.service.WwdbSinglePaymentPerformanceInfoInterfaceService;
-import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
-import com.sds.sflex.system.config.annotation.InterfaceController;
-import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
+import javax.validation.Valid;
+
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.validation.Valid;
-import java.util.List;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbSinglePaymentPerformanceInfoInterfaceDto;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.service.WwdbSinglePaymentPerformanceInfoInterfaceService;
+import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
+import com.sds.sflex.system.config.annotation.InterfaceController;
+import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 
 @InterfaceController
 @Api(tags = "[WWDB] wells 일시불(할부)- 실적 정보 I/F API")
