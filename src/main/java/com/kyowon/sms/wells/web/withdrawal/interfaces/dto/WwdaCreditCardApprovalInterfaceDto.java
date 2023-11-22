@@ -26,6 +26,8 @@ public class WwdaCreditCardApprovalInterfaceDto {
         String indvEntrpDvCd, /*개인사업자구분*/
         @JsonProperty("BRYY_MMDD_BZOP_NO")
         String bryyMmddBzopNo, /*생년월일/사업자번호*/
+        @JsonProperty("RVE_DV_CD")
+        String rveDvCd, /*수납구분코드*/
         @JsonProperty("RVE_CD")
         String rveCd, /*수납코드*/
         @JsonProperty("OG_TP_CD")
@@ -57,6 +59,16 @@ public class WwdaCreditCardApprovalInterfaceDto {
         String cntrSn, // 계약일련번호
         @JsonProperty("MPNO")
         String mpNo, // 전화번호
+        @JsonProperty("RVE_DV_CD")
+        String rveDvCd, /*수납구분코드*/
+        @JsonProperty("RVE_CD")
+        String rveCd, /*수납코드*/
+        @JsonProperty("OG_TP_CD")
+        String ogTpCd, /*조직유형코드*/
+        @JsonProperty("PRTNR_NO")
+        String prtnrNo, /*파트너번호*/
+        @JsonProperty("APR_PSIC_ID")
+        String aprPsicId, /*승인담당자ID*/
         @JsonProperty("STLM_AMT")
         String stlmAmt /*결제금액*/
     ) {}
