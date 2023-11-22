@@ -3,7 +3,8 @@
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbRefundApplicationMapper">
 
     <select id="selectRefundApplication" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundApplicationRes">
-        SELECT RRAB.RFND_AK_STAT_CD /* 환불상태 */
+        SELECT /*+ push_pred(M2) use_nl(M2) */
+               RRAB.RFND_AK_STAT_CD /* 환불상태 */
              , '상세' AS RFND_AK_DTL_CD /* 환불상세 */
              , TO_CHAR(TO_DATE(RRAB.RFND_AK_DTM, 'YYYYMMDD HH24MISS'), 'YYYYMMDD') AS RFND_AK_DTM /* 접수일자 */
              , RRAB.RFND_AK_NO /* 접수번호 */
@@ -92,7 +93,8 @@
                                              END AS RFND_ALLOW_AMT
                                           , FREE_AMT
                                      FROM (
-                                            SELECT T1.CNTR_NO
+                                            SELECT /*+ push_pred(T6) */
+                                                     T1.CNTR_NO
                                                    , T1.CNTR_SN
                                                    , T11.CNTR_CST_NO
                                                    , T1.MM_ISTM_AMT
@@ -342,16 +344,16 @@
            AND RRAB.DTA_DL_YN = 'N' /* 삭제시 visible 처리 */
         <choose>
           <when test='@MybatisUtils@equals(searchDt, "01")'>  /* 접수일자 */
-           AND SUBSTR(RRAB.RFND_AK_DTM, 0, 8) <![CDATA[>=]]> #{startDay}
-           AND SUBSTR(RRAB.RFND_AK_DTM, 0, 8) <![CDATA[<=]]> #{endDay}
+           AND RRAB.RFND_AK_DTM <![CDATA[>=]]> #{startDay} ||'000000'
+           AND RRAB.RFND_AK_DTM <![CDATA[<=]]> #{endDay}   ||'235959'
           </when>
           <when test='@MybatisUtils@equals(searchDt, "02")'>  /* 실적일자 */
-           AND SUBSTR(RRAB.RFND_PERF_DT, 0, 8) <![CDATA[>=]]> #{startDay}
-           AND SUBSTR(RRAB.RFND_PERF_DT, 0, 8) <![CDATA[<=]]> #{endDay}
+           AND RRAB.RFND_PERF_DT <![CDATA[>=]]> #{startDay}  ||'000000'
+           AND RRAB.RFND_PERF_DT <![CDATA[<=]]> #{endDay}    ||'235959'
           </when>
            <when test='@MybatisUtils@equals(searchDt, "03")'> /* 처리일자 */
-           AND SUBSTR(RRAB.RFND_DSB_DT, 0, 8) <![CDATA[>=]]> #{startDay}
-           AND SUBSTR(RRAB.RFND_DSB_DT, 0, 8) <![CDATA[<=]]> #{endDay}
+           AND RRAB.RFND_DSB_DT <![CDATA[>=]]> #{startDay}||'000000'
+           AND RRAB.RFND_DSB_DT <![CDATA[<=]]> #{endDay}  ||'235959'
           </when>
         </choose>
         <if test='@MybatisUtils@isNotEmpty(rfndStatCd)'>
@@ -549,7 +551,8 @@
                                                 ELSE 	RFND_ALLOW_AMT
                                                 END AS RFND_ALLOW_AMT
                                          FROM (
-                                                SELECT T1.CNTR_NO
+                                                SELECT /*+ push_pred(T6) */
+                                                         T1.CNTR_NO
                                                        , T1.CNTR_SN
                                                        , T11.CNTR_CST_NO
                                                        , T1.MM_ISTM_AMT
