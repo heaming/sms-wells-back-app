@@ -135,12 +135,12 @@
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D4       /* 고객서비스수행내역 */
                    ON D4.CNTR_NO = D1.CNTR_NO
                   AND D4.CNTR_SN = D1.CNTR_SN
-                WHERE D1.DTA_DL_YN = 'N'
-                  AND D2.DTA_DL_YN = 'N'
-                  AND D3.DTA_DL_YN = 'N'
-                  AND D4.DTA_DL_YN = 'N'
+                WHERE D1.DTA_DL_YN        = 'N'
+                  AND D2.DTA_DL_YN        = 'N'
+                  AND D3.DTA_DL_YN        = 'N'
+                  AND D4.DTA_DL_YN        = 'N'
+                  AND D4.CNTR_DTL_STAT_CD = '101'   /* 정상 */
                   AND D1.VST_PRGS_STAT_CD <![CDATA[<>]]> '20'
-                  AND D4.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
                   AND D4.REQD_DT IS NULL
                   AND D4.CPS_DT IS NULL
                   AND D1.ASN_OJ_YM = #{apyYm}
@@ -201,15 +201,17 @@
                     , NVL(STOC.PITM_STOC_A_GD_QTY, 0)        AS CRTL_STOC_QTY
                  FROM
                     (
-                      SELECT /*+ USE_HASH(D1 D2 D3 D4 D5 D6 D7 D8 D9) FULL(D2) INDEX(D3 IX_SVPD_MCBY_CST_SV_OJ_IZ_05) INDEX(D1 IX_SVPD_CST_SV_RGBSPR_IZ_01) */
+                      SELECT /*+ USE_HASH(D1 D2 D3 D4 D5 D6 D7 D8 D9 D12) FULL(D2) INDEX(D3 IX_SVPD_MCBY_CST_SV_OJ_IZ_05) INDEX(D1 IX_SVPD_CST_SV_RGBSPR_IZ_01) */
                              D7.WARE_NO                      AS STR_WARE_NO
                            , D1.PART_PD_CD                   AS ITM_PD_CD
                            , D7.DIDY_DV_CD                   AS SPP_DV_CD
-                           , D3.MNGT_PRTNR_NO                AS WARE_MNGT_PRTNR_NO
-                           , D3.MNGT_PRTNR_OG_TP_CD          AS OG_TP_CD
+                           , D7.WARE_MNGT_PRTNR_NO
+                           , D7.OG_TP_CD
                            , D9.BLD_CD
                            , NVL(D10.ADR_ID, D7.WARE_ADR_ID) AS ADR_ID
-                           , SUM( CASE WHEN D5.COPN_DV_CD = '1' THEN D1.PART_USE_QTY
+                           , SUM( CASE WHEN D5.COPN_DV_CD = '1'
+                                         OR D5.COPN_DV_CD IS NULL
+                                       THEN D1.PART_USE_QTY
                                        ELSE 0
                                   END )                      AS GE_ASN_QOM_CT
                            , SUM( CASE WHEN D5.COPN_DV_CD = '2' THEN D1.PART_USE_QTY
@@ -235,12 +237,12 @@
                           ON D6.PD_CD = D1.PART_PD_CD
                        INNER JOIN TB_SVST_MCBY_WARE_IZ D7         /* 월별창고내역 */
                           ON D7.APY_YM             = D3.MNGT_YM
-                         AND D7.OG_TP_CD           = D3.MNGT_PRTNR_OG_TP_CD
-                         AND D7.WARE_MNGT_PRTNR_NO = D3.MNGT_PRTNR_NO
+                         AND D7.OG_TP_CD           = NVL(D3.FXN_PRTNR_OG_TP_CD, D3.MNGT_PRTNR_OG_TP_CD)
+                         AND D7.WARE_MNGT_PRTNR_NO = NVL(D3.FXN_PRTNR_NO, D3.MNGT_PRTNR_NO)
                        INNER JOIN TB_OGBS_MM_PRTNR_IZ D8          /* 월파트너내역 */
-                          ON D8.BASE_YM  = D3.MNGT_YM
-                         AND D8.OG_TP_CD = D3.MNGT_PRTNR_OG_TP_CD
-                         AND D8.PRTNR_NO = D3.MNGT_PRTNR_NO
+                          ON D8.BASE_YM  = D7.APY_YM
+                         AND D8.OG_TP_CD = D7.OG_TP_CD
+                         AND D8.PRTNR_NO = D7.WARE_MNGT_PRTNR_NO
                        INNER JOIN TB_OGBS_MM_OG_IZ D9             /* 월조직내역 */
                           ON D9.BASE_YM  = D8.BASE_YM
                          AND D9.OG_ID    = D8.OG_ID
@@ -248,8 +250,12 @@
                        INNER JOIN TB_OGBS_BLD_BAS D10             /* 빌딩기본 */
                           ON D10.OG_TP_CD = D9.OG_TP_CD
                          AND D10.BLD_CD   = D9.BLD_CD
+                       INNER JOIN TB_SSCT_CNTR_DTL D12            /* 계약상세 */
+                          ON D12.CNTR_NO = D1.CNTR_NO
+                         AND D12.CNTR_SN = D1.CNTR_SN
                        WHERE D1.DTA_DL_YN          = 'N'
                          AND D2.DTA_DL_YN          = 'N'
+                         AND D2.CNTR_DTL_STAT_CD   = '101'   /* 정상 */
                          AND D3.DTA_DL_YN          = 'N'
                          AND D4.DTA_DL_YN          = 'N'
                          AND D4.CNTR_CST_REL_TP_CD = '10'    /* 계약자 */
@@ -269,7 +275,10 @@
                          AND D1.MTR_CAN_DT IS NULL
                          AND D2.REQD_DT IS NULL
                          AND D2.CPS_DT IS NULL
-                         AND D2.CNTR_DTL_STAT_CD NOT IN ('201', '202', '203', '303')   /* 고객요청정지, 연체정지, 해약접수정지, 계약취소 */
+                         AND (    D2.BFSVC_SPP_STP_RSON_CD IN ('00', '01')
+                               OR ( D2.BFSVC_SPP_STP_RSON_CD = '02' AND D1.SV_BIZ_DCLSF_CD = '2120' )   /* 동양매직건 정기점검외에 필터교체만 배정 되도록 */
+                             )
+                         AND D12.SELL_TP_CD IN ('1', '2', '3', '4', '5')   /* 일시불, 렌탈/리스, 멤버십, 회사설치, 유지관리 */
                          AND D1.PART_PD_CD NOT IN ('WM07105924', 'WM07105925', 'WM07106025', 'WM07106030', 'WM07106035', 'WM07104436', 'WM07105952', 'WM07105745'
                                                  , 'WM07105746', 'WM07105747', 'WM07105748', 'WM07102129', 'WM07105703', 'WM07105704', 'WM07105705')
                          AND ( D6.PD_PRP_VAL20 IS NULL OR D6.PD_PRP_VAL20 <![CDATA[<>]]> '11' )
@@ -289,7 +298,7 @@
                                                                        WHERE CNTR_NO   = S1.CNTR_NO
                                                                          AND CNTR_SN   = S1.CNTR_SN
                                                                          AND DTA_DL_YN = 'N' ) )
-                       GROUP BY D7.WARE_NO, D1.PART_PD_CD, D7.DIDY_DV_CD, D3.MNGT_PRTNR_NO, D3.MNGT_PRTNR_OG_TP_CD, D9.BLD_CD, NVL(D10.ADR_ID, D7.WARE_ADR_ID), D1.ITM_KND_CD
+                       GROUP BY D7.WARE_NO, D1.PART_PD_CD, D7.DIDY_DV_CD, D7.WARE_MNGT_PRTNR_NO, D7.OG_TP_CD, D9.BLD_CD, NVL(D10.ADR_ID, D7.WARE_ADR_ID), D1.ITM_KND_CD
                     ) QOM
                  LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ STOC
                    ON STOC.WARE_NO   = QOM.STR_WARE_NO
@@ -372,11 +381,11 @@
                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D4       /* 고객서비스수행내역 */
                    ON D4.CNTR_NO = D1.CNTR_NO
                   AND D4.CNTR_SN = D1.CNTR_SN
-                WHERE D1.DTA_DL_YN = 'N'
-                  AND D2.DTA_DL_YN = 'N'
-                  AND D3.DTA_DL_YN = 'N'
-                  AND D4.DTA_DL_YN = 'N'
-                  AND D4.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
+                WHERE D1.DTA_DL_YN        = 'N'
+                  AND D2.DTA_DL_YN        = 'N'
+                  AND D3.DTA_DL_YN        = 'N'
+                  AND D4.DTA_DL_YN        = 'N'
+                  AND D4.CNTR_DTL_STAT_CD = '101'   /* 정상 */
                   AND (
                            D1.VST_PRGS_STAT_CD <![CDATA[<>]]> '20'
                         OR (     D1.VST_PRGS_STAT_CD = '20'
@@ -482,7 +491,9 @@
                            , D3.CNFM_PSIC_PRTNR_OG_TP_CD     AS OG_TP_CD
                            , D10.BLD_CD
                            , NVL(D11.ADR_ID, D8.WARE_ADR_ID) AS ADR_ID
-                           , SUM( CASE WHEN D6.COPN_DV_CD = '1' THEN D1.PU_QTY
+                           , SUM( CASE WHEN D6.COPN_DV_CD = '1'
+                                         OR D6.COPN_DV_CD IS NULL
+                                       THEN D1.PU_QTY
                                        ELSE 0
                                   END )                      AS GE_ASN_QOM_CT
                            , SUM( CASE WHEN D6.COPN_DV_CD = '2' THEN D1.PU_QTY
@@ -954,9 +965,9 @@
 	       AND D5.BLD_CD    = D1.BLD_CD
            AND D5.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D6    /* 월파트너내역 */
-            ON D6.BASE_YM   = D1.ASN_OJ_YM
-           AND D6.OG_TP_CD  = D1.OG_TP_CD
-	       AND D6.PRTNR_NO  = D1.WARE_MNGT_PRTNR_NO
+            ON D6.BASE_YM   = D4.APY_YM
+           AND D6.OG_TP_CD  = D4.OG_TP_CD
+           AND D6.PRTNR_NO  = D4.WARE_MNGT_PRTNR_NO
            AND D6.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_GBCO_ADR_BAS D7        /* 주소기본 */
             ON D7.ADR_ID    = D5.ADR_ID
@@ -1027,9 +1038,9 @@
 	       AND D5.BLD_CD    = D1.BLD_CD
            AND D5.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D6    /* 월파트너내역 */
-            ON D6.BASE_YM   = D1.ASN_OJ_YM
-           AND D6.OG_TP_CD  = D1.OG_TP_CD
-	       AND D6.PRTNR_NO  = D1.WARE_MNGT_PRTNR_NO
+            ON D6.BASE_YM   = D4.APY_YM
+           AND D6.OG_TP_CD  = D4.OG_TP_CD
+           AND D6.PRTNR_NO  = D4.WARE_MNGT_PRTNR_NO
            AND D6.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_GBCO_ADR_BAS D7        /* 주소기본 */
             ON D7.ADR_ID    = D5.ADR_ID
