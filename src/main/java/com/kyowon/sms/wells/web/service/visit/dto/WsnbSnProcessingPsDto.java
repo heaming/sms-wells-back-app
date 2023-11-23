@@ -17,6 +17,8 @@ public class WsnbSnProcessingPsDto {
         String startDt,
         String endDt,
         String mngrDvCd,
+        String dgr1LevlOgId,
+        String dgr2LevlOgId,
         String dgr3LevlOgId,
         String ogId,
         String prtnrNo,
