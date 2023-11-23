@@ -133,6 +133,7 @@ public class WsnaMdProductOutOfStorageSaveService {
             // 4.고객서비스작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) 삭제
             mapper.deleteSvpdCstSvWkRsIzCancel(dvo);
 
+            processCount += 1;
         }
         return processCount;
     }
