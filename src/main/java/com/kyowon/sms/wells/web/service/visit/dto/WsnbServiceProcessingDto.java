@@ -145,6 +145,7 @@ public class WsnbServiceProcessingDto {
         String adpBilAmt, // 결제내역(합산청구)
         String cardStlmAmt, // 결제내역(신용카드)
         String vacStlmAmt, // 결제내역(가상계좌)
+        String cashStlmAmt, // 결제내역(현금)
         String cstSignCn, // 고객서명
         String istImg, // 이미지 파일 존재 유무
         String istEnvrPhoPhFileUid, // 설치환경사진 FILE_UID
