@@ -18,6 +18,7 @@
              , NVL(M1.MMS1B_DDLV_QTY, 0) AS MM5_QTY
              , NVL(M1.TLST_MCNT_QTY, 0) AS MM6_QTY
              , M2.VST_ACC_SUM
+             , M2.BDT_INDV
              , M2.BDT_CRP
              , M2.WRFR
              , M2.ARCLE_INDV
@@ -173,7 +174,7 @@
                  WHERE 1 = 1
                  GROUP BY S1.BLD_CD, S1.BLD_NM, S1.SAP_MAT_CD, S1.CSMB_PD_CD, S1.PD_NM, S1.NWCMR, S1.INDV, S1.BLD
                ) M1
-         INNER JOIN (SELECT /*+ ORDERED USE_NL(S1) INDEX(S2 PK_SVPD_CST_SV_EXCN_IZ) */
+         INNER JOIN (SELECT /*+ ORDERED USE_HASH(S1 S2) */
                             O3.BLD_CD
                           , O3.BLD_NM
                           , COUNT(1) AS VST_ACC_SUM
@@ -195,20 +196,20 @@
                         AND S1.CNTR_SN = S2.CNTR_SN
                         AND TRIM(S2.DTA_DL_YN) = 'N'
                       INNER JOIN TB_SSCT_CNTR_BAS S3
-                         ON S3.CNTR_NO = S2.CNTR_NO
+                         ON S3.CNTR_NO = S1.CNTR_NO
                         AND S3.DTA_DL_YN = 'N'
                       INNER JOIN TB_SSCT_CNTR_DTL S4
-                         ON S4.CNTR_NO = S2.CNTR_NO
-                        AND S4.CNTR_SN = S2.CNTR_SN
+                         ON S4.CNTR_NO = S1.CNTR_NO
+                        AND S4.CNTR_SN = S1.CNTR_SN
                         AND TRIM(S4.DTA_DL_YN) = 'N'
                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1
-                         ON S2.PDCT_PD_CD = P1.PD_CD
+                         ON S1.PDCT_PD_CD = P1.PD_CD
                         AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
                         AND P1.PD_PRP_VAL20 != '11'
                         AND P1.DTA_DL_YN = 'N'
                       INNER JOIN TB_OGBS_MM_PRTNR_IZ O1
-                         ON O1.OG_TP_CD = S2.MNGT_PRTNR_OG_TP_CD
-                        AND O1.PRTNR_NO = S2.MNGT_PRTNR_NO
+                         ON O1.OG_TP_CD = S1.MNGT_PRTNR_OG_TP_CD
+                        AND O1.PRTNR_NO = S1.MNGT_PRTNR_NO
                         AND O1.BASE_YM = S1.MNGT_YM
                         AND O1.DTA_DL_YN = 'N'
                       INNER JOIN TB_OGBS_MM_OG_IZ O2
@@ -222,6 +223,7 @@
                         AND O3.DTA_DL_YN = 'N'
                       WHERE S1.DTA_DL_YN = 'N'
                         AND S1.CNTR_DTL_STAT_CD NOT IN ('401','402')
+                        AND S1.MNGT_PRTNR_OG_TP_CD = 'W02'
                         AND S1.MNGT_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
                       GROUP BY O3.BLD_CD, O3.BLD_NM
                     ) M2
