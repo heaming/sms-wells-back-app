@@ -126,7 +126,7 @@ public class WsnbServiceProcessingDvo {
     String rveCsTot; // 청구내역(전체)
     String csBilNo; // 결제내역(비용청구번호)
     String adpBilAmt; // 결제내역(합산청구)
-    String cardStlm; // 결제내역(신용카드)
+    String cardStlmAmt; // 결제내역(신용카드)
     String vacStlmAmt; // 결제내역(가상계좌)
     byte[] cstSignCnByte; // 고객서명(byte)
     String cstSignCn; // 고객서명
