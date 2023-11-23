@@ -3,6 +3,10 @@
 
 
     <select id='selectManagerVisitFees' resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedManagerVisitFeeDto$SearchRes">
+        <include refid="COMMON.dataAuthOrgWithClause">
+            <property name="paramOgTpCd" value="'W02'"/>
+            <property name="paramBaseYm" value="#{baseYm}"/>
+        </include>
         SELECT /*+ USE_NL(T1 T2 T4) LEADING(T1 T2) USE_HASH(BAS) */
              OG.DGR1_LEVL_OG_ID	/*총괄단*/
              , OG.DGR2_LEVL_OG_ID	/*지역단*/
@@ -34,11 +38,11 @@
                WHEN '7' THEN 'S2'
                ELSE '*' END AS VST_RGLVL_GD_NM /*방문급지*/
              , T1.WK_EXCN_DT	/*방문일자*/
-             , CASE WHEN T1.VST_TP_DV_CD = '2' THEN	/*방문취소*/
+             , CASE WHEN T1.VST_TP_DV_CD = '2' THEN
                  CASE WHEN T1.WK_CAN_RSON_CD = '01' THEN '취소'
                       WHEN T1.WK_CAN_RSON_CD = '02' THEN ' 매출중지'
                       WHEN T1.WK_CAN_RSON_CD = '03' THEN ' 배정취소'
-                 ELSE '' END
+                 ELSE '방문취소' END
                ELSE '' END AS CAN_YN	/*취소여부*/
           FROM TB_FEAM_WELS_SV_PERF_IZ T1	/*웰스서비스실적내역*/
           LEFT OUTER JOIN
@@ -203,6 +207,7 @@
             ( SELECT /*+ USE_NL(A B) */
                     A.BASE_YM   /*기준년월*/
                    , A.OG_TP_CD     /*조직유형코드*/
+                   , A.OG_ID    /* 조직ID */
                    , A.DGR1_LEVL_OG_ID  /*총괄단*/
                    , A.DGR2_LEVL_OG_ID  /*지역단*/
                    , A.DGR3_LEVL_OG_ID  /*지점*/
@@ -244,6 +249,11 @@
           <!--AND T1.OG_TP_CD IN ('W02', 'W03')	/*M조직, 홈마스터*/-->
           AND (T1.WK_EXCN_DT IS NOT NULL OR T1.WK_EXCN_DT != '0')	/*작업수행일자*/
           AND NVL(T4.COMBI_YN, ' ') != 'Y' /*모종이고 결합이면 제외, 기기이고 결합이 아니면 제외*/
+          /*로그인한 사용자의 권한에 따라 하위 조직만 조회*/
+          AND EXISTS (SELECT 1
+                        FROM OBJ_ORG X1
+                       WHERE X1.OG_TP_CD = OG.OG_TP_CD
+                         AND X1.OG_ID = OG.OG_ID)
         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
           AND OG.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
         </if>
