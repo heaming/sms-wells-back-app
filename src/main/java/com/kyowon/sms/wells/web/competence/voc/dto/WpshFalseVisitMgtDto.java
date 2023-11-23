@@ -72,6 +72,7 @@ public class WpshFalseVisitMgtDto {
 
     @ApiModel("WpshFalseVisitMngtDto-RemoveReq")
     public record RemoveReq(
+        String ocYm, /* 발생년월 */
         Integer rgstSn /* 등록일련번호 */
 
     ) {}
