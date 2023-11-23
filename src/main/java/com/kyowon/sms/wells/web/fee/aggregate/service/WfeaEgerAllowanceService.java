@@ -51,8 +51,8 @@ public class WfeaEgerAllowanceService {
         Map<String, String> params = new HashMap<String, String>();
         params.put("baseYm", dto.perfYm());
         // 배치로그에 배치 실행한 사람의 정보를 넣음
-        params.put("departmentId", session.getDepartmentId());
-        params.put("userId", session.getEmployeeIDNumber());
+        params.put("sessionDeptId", session.getDepartmentId());
+        params.put("sessionUserId", session.getEmployeeIDNumber());
 
         batchCallReqDvo.setJobKey("WSM_FE_OA0001");
         batchCallReqDvo.setParams(params);
