@@ -5,7 +5,7 @@
     <select id="selectRefundApplication" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundApplicationDto$SearchRefundApplicationRes">
         SELECT /*+ push_pred(M2) use_nl(M2) */
                RRAB.RFND_AK_STAT_CD /* 환불상태 */
-             , '상세' AS RFND_AK_DTL_CD /* 환불상세 */
+             , F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_DTL', #{session.langId}) AS RFND_AK_DTL_CD /* 환불상세 */
              , TO_CHAR(TO_DATE(RRAB.RFND_AK_DTM, 'YYYYMMDD HH24MISS'), 'YYYYMMDD') AS RFND_AK_DTM /* 접수일자 */
              , RRAB.RFND_AK_NO /* 접수번호 */
              , NVL(M2.RFND_ALLOW_AMT , 0 ) - NVL(M2.FREE_AMT , 0) AS RFND_PSB_AMT/* 환불가능금액 */
@@ -13,7 +13,7 @@
              , RRAD.CNTR_NO /* 계약기본 */
              , RRAD.CNTR_SN /* 계약상세 */
              , RRAD.CNTR_NO || RRAD.CNTR_SN AS CNTR_DTL_NO /* 계약상세번호 */
-             , NVL(RRAD.RFND_CSH_AK_AMT, 0) AS RFND_CSH_AK_AMT /* 현금환불금액 */
+             , NVL(RRAD.RFND_CSH_AK_AMT, 0) + NVL(RRAD.CRDCD_FEE_AMT, 0) AS RFND_CSH_AK_AMT /* 현금환불금액 */
              , NVL(RRAD.RFND_CARD_AK_AMT, 0) AS RFND_CARD_AK_AMT/* 카드환불금액 */
              , NVL(RRAD.CRDCD_FEE_AMT, 0) AS CRDCD_FEE_AMT  /* 카드수수료 */
              , NVL(RRAD.RFND_BLTF_AK_AMT, 0) AS RFND_BLTF_AK_AMT /* 전금금액 */
@@ -810,7 +810,16 @@
                , T1.CSH_RFND_ACOWN_NM /* 예금주 */
                , T1.RFND_RVE_DT /* 환불수납일자*/
                , T1.RFND_PERF_DT /* 환불실적일자*/
-               , T1.RFND_DSB_DT /* 환불지급일자 */
+               , CASE WHEN T1.RFND_DSB_DT IS NULL THEN (SELECT MIN(A1.BASE_Y || A1.BASE_MM || A1.BASE_D)
+                                                           FROM TB_SVPD_SV_CLND_BAS A1
+                                                          WHERE A1.DTA_DL_YN = 'N'
+                                                            AND A1.BASE_Y || A1.BASE_MM || A1.BASE_D <![CDATA[>=]]> TO_CHAR(SYSDATE+2, 'YYYYMMDD')
+                                                            AND NVL(A1.DF_YN, 'N')   <![CDATA[<>]]> 'Y'
+                                                            AND NVL(A1.PHLD_YN, 'N') <![CDATA[<>]]> 'Y'
+                                                            AND A1.DOW_DV_CD NOT IN ('1', '7')
+                                                        )
+                      ELSE T1.RFND_DSB_DT
+                  END RFND_DSB_DT /* 환불지급일자 */
                , T1.RFND_PROCS_DV_CD /* 환불처리구분코드 */
                , T1.RFND_PROCS_CN /* 환불처리내용 */
             FROM TB_RVDW_RFND_AK_BAS T1
@@ -946,7 +955,7 @@
                 , T1.DP_AMT
                 , T1.DP_AMT - T1.DLQ_ADD_AMT - T1.MM_ISTM_AMT - T1.BOR_AMT - T1.SV_AMT AS RFND_PSB_AMT /* 입금액 => 환불가능금액 */
                 , T1.BLTF_ADD
-                , T1.RFND_CSH_AK_AMT
+                , T1.RFND_CSH_AK_AMT + T1.CRDCD_FEE_AMT AS RFND_CSH_AK_AMT
                 , T1.RFND_CARD_AK_AMT
                 , T1.CRDCD_FEE_AMT
                 , T1.RFND_BLTF_AK_AMT
@@ -1091,7 +1100,7 @@
 
     <!-- 임시저장 시작 -->
     <select id="selectRefundPk" resultType="java.lang.String">
-        SELECT 'RVR' || TO_CHAR(SYSDATE, 'YYYY') || LPAD(NVL(MAX(SUBSTR(RFND_AK_NO , 9)),0) + 1,12,'0') AS RFND_AK_NO
+        SELECT 'RVR'||TO_CHAR(SYSDATE, 'YYYYMMDD')||LPAD(NVL(MAX(SUBSTR(RFND_AK_NO , -9) + 1),0), 9 , '0') AS RFND_AK_NO
           FROM TB_RVDW_RFND_AK_BAS /* 환불요청기본 */
     </select>
 
@@ -1214,7 +1223,7 @@
               )
          WHEN MATCHED THEN
        UPDATE
-          SET T1.RFND_CSH_AK_AMT = #{rfndCshAkAmt}
+          SET T1.RFND_CSH_AK_AMT = NVL(#{rfndCshAkAmt}, 0) - NVL(#{crdcdFeeAmt}, 0)
             , T1.RFND_CARD_AK_AMT = #{rfndCardAkAmt}
             , T1.CRDCD_FEE_AMT = #{crdcdFeeAmt}
             , T1.RFND_BLTF_AK_AMT = #{rfndBltfAkAmt}
@@ -1248,7 +1257,7 @@
            , #{rveNo}
            , #{rveSn}
            , #{cstNo}
-           , #{rfndCshAkAmt}
+           , NVL(#{rfndCshAkAmt}, 0) - NVL(#{crdcdFeeAmt}, 0)
            , #{rfndCardAkAmt}
            , #{crdcdFeeAmt}
            , #{crdcdFer}

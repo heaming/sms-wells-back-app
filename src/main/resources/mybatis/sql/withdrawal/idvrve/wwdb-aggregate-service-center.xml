@@ -125,6 +125,8 @@
              , SUM(N.VAC_DP_AMT)     AS VAC_DP_AMT_TT
              , SUM(N.CARD_SL_AMT)    AS CARD_SL_AMT_TT
              , SUM(N.CARD_DP_AMT)    AS CARD_DP_AMT_TT
+             , SUM(N.CASH_SL_AMT)    AS CASH_SL_AMT_TT
+             , SUM(N.CASH_DP_AMT)    AS CASH_DP_AMT_TT
              , SUM(N.SL_AMT_SUM)     AS SL_AMT_SUM_TT
              , SUM(N.DP_AMT_SUM)     AS DP_AMT_SUM_TT
           FROM (SELECT M.RECAP_AMT
@@ -135,8 +137,10 @@
                      , M.VAC_DP_AMT
                      , M.CARD_SL_AMT
                      , M.CARD_DP_AMT
-                     , M.ADP_BIL_SL_AMT + M.VAC_SL_AMT + M.CARD_SL_AMT AS SL_AMT_SUM
-                     , M.ADP_BIL_DP_AMT + M.VAC_DP_AMT + M.CARD_DP_AMT AS DP_AMT_SUM
+                     , M.CASH_SL_AMT
+                     , M.CASH_DP_AMT
+                     , M.ADP_BIL_SL_AMT + M.VAC_SL_AMT + M.CARD_SL_AMT + M.CASH_SL_AMT AS SL_AMT_SUM
+                     , M.ADP_BIL_DP_AMT + M.VAC_DP_AMT + M.CARD_DP_AMT + M.CASH_DP_AMT AS DP_AMT_SUM
                   FROM (SELECT SUM(L.BIL_OJ_AMT) AS RECAP_AMT
                              , SUM(L.BIL_CTR_SUM_AMT) AS CTR_AMT
                              , CASE WHEN L.STLM_DV_CD = '01'
@@ -163,6 +167,14 @@
                                  THEN SUM(L.DP_SUM_AMT)
                                  ELSE 0
                                END AS CARD_DP_AMT
+                             , CASE WHEN L.STLM_DV_CD = '04'
+                                 THEN SUM(L.BIL_OJ_AMT) - SUM(L.BIL_CTR_SUM_AMT)
+                                 ELSE 0
+                               END AS CASH_SL_AMT
+                             , CASE WHEN L.STLM_DV_CD = '04'
+                                 THEN SUM(L.DP_SUM_AMT)
+                                 ELSE 0
+                               END AS CASH_DP_AMT
                               FROM (SELECT /*+ LEADING(CBI SWRI MPI) USE_NL(CDI MPI CBB) */
                                        MPI.OG_ID
                                      , MPI.OG_NM
