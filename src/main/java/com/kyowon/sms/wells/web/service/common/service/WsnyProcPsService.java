@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.service.common.service;
 import com.kyowon.sms.wells.web.service.common.dto.WsnyProcPsDto.*;
 import com.kyowon.sms.wells.web.service.common.mapper.WsnyProcPsMapper;
 
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +27,17 @@ public class WsnyProcPsService {
      * @return
      */
     public SearchRes selectProcPs(SearchReq dto) {
-        return mapper.selectProcPs(dto);
+        // 파라미터로 받던 직책코드(rsbCd)가 HR1(임직원)코드를 가져와서 기준역할코드(baseRleCd)를 사용.
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+        String baseRleCd = session.getBaseRleCd();
+        String rsbCd = "";
+
+        if("W6020".equals(baseRleCd) || "W3010".equals(baseRleCd)) rsbCd = "W0603"; // 매니저
+        else if("W6010".equals(baseRleCd)) rsbCd = "W0604";                         // 센터장
+        else if("W3030".equals(baseRleCd)) rsbCd = "W0301";                         // 지점장
+
+        SearchReq newDto = new SearchReq(rsbCd, dto.searchType());
+        return mapper.selectProcPs(newDto);
     }
 
     /**
@@ -34,6 +46,16 @@ public class WsnyProcPsService {
      * @return
      */
     public SearchCnt selectTodayTomorrowCnt(SearchReq dto){
-        return mapper.selectTodayTomorrowCnt(dto);
+        // 파라미터로 받던 직책코드(rsbCd)가 HR1(임직원)코드를 가져와서 기준역할코드(baseRleCd)를 사용.
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+        String baseRleCd = session.getBaseRleCd();
+        String rsbCd = "";
+
+        if("W6020".equals(baseRleCd) || "W3010".equals(baseRleCd)) rsbCd = "W0603"; // 매니저
+        else if("W6010".equals(baseRleCd)) rsbCd = "W0604";                         // 센터장
+        else if("W3030".equals(baseRleCd)) rsbCd = "W0301";                         // 지점장
+
+        SearchReq newDto = new SearchReq(rsbCd, "");
+        return mapper.selectTodayTomorrowCnt(newDto);
     }
 }
