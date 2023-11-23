@@ -80,8 +80,8 @@ public class WfeaBsFeeMgtService {
         params.put("ogTpCd", dto.ogTpCd());
         params.put("clDvCd", dto.feeTcntDvCd());
         // 배치로그에 배치 실행한 사람의 정보를 넣음
-        params.put("departmentId", session.getDepartmentId());
-        params.put("userId", session.getEmployeeIDNumber());
+        params.put("sessionDeptId", session.getDepartmentId());
+        params.put("sessionUserId", session.getEmployeeIDNumber());
 
         batchCallReqDvo.setJobKey("WSM_FE_OA0002");
         batchCallReqDvo.setParams(params);
