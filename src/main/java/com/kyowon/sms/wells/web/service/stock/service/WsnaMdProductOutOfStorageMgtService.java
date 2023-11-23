@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaMdProductOutOfStorageMgtConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageExcelUploadDto.ValidateReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageExcelUploadDto.ValidateRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.RemoveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SearchRes;
@@ -50,6 +51,10 @@ public class WsnaMdProductOutOfStorageMgtService {
 
     public int saveMdProductOutOfStorages(List<SaveReq> dtos) {
         return saveService.saveMdProductOutOfStorages(dtos);
+    }
+
+    public int saveMdProductOutOfStorageCancels(List<RemoveReq> dtos) {
+        return saveService.saveMdProductOutOfStorageCancels(dtos);
     }
 
     public ValidateRes validateMdProductOutOfStoragExcelUpload(

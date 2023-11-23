@@ -18,4 +18,14 @@ public interface WsnaMdProductOutOfStorageSaveMapper {
     void insertSvpdCstSvWkRsIz(WsnaMdProdcutOutOfStorageSaveDvo vo);
 
     void insertSvstSvWkOstrIz(WsnaMdProdcutOutOfStorageSaveDvo vo);
+
+    void updateSvpdCstSvExcnIzCancel(WsnaMdProdcutOutOfStorageSaveDvo vo);
+
+    void updateSvstSvWkOstrIzCancel(WsnaMdProdcutOutOfStorageSaveDvo vo);
+
+    void updateSvpdCstSvasIstAsnIzCancel(WsnaMdProdcutOutOfStorageSaveDvo vo);
+
+    void updateSvpdCstSvBfsvcAsnIzCancel(WsnaMdProdcutOutOfStorageSaveDvo vo);
+
+    void deleteSvpdCstSvWkRsIzCancel(WsnaMdProdcutOutOfStorageSaveDvo vo);
 }

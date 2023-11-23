@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaMdProductOutOfStorageSaveConverter;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.RemoveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProdcutOutOfStorageSaveDvo;
@@ -109,6 +110,31 @@ public class WsnaMdProductOutOfStorageSaveService {
 
         return reqDvo;
 
+    }
+
+    @Transactional
+    public int saveMdProductOutOfStorageCancels(List<RemoveReq> dtos) {
+        int processCount = 0;
+
+        // 1.작업출고내역(TB_SVST_SV_WK_OSTR_IZ) 삭제 여부 업데이트
+        List<WsnaMdProdcutOutOfStorageSaveDvo> dvos = converter.mapRemoveReqToMdProductOutOfStorageSaveDvo(dtos);
+        for (WsnaMdProdcutOutOfStorageSaveDvo dvo : dvos) {
+            mapper.updateSvstSvWkOstrIzCancel(dvo);
+
+            // 2.배정테이블(TB_SVPD_CST_SVAS_IST_ASN_IZ, TB_SVPD_CST_SV_BFSVC_ASN_IZ)업데이트 (작업상태 초기화)
+            if ("2".equals(dvo.getSvBizHclsfCd())) {
+                mapper.updateSvpdCstSvBfsvcAsnIzCancel(dvo);
+            } else {
+                mapper.updateSvpdCstSvasIstAsnIzCancel(dvo);
+            }
+            // 3.수행테이블 (TB_SVPD_CST_SV_EXCN_IZ)  설치일자 초기화
+            mapper.updateSvpdCstSvExcnIzCancel(dvo);
+
+            // 4.고객서비스작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) 삭제
+            mapper.deleteSvpdCstSvWkRsIzCancel(dvo);
+
+        }
+        return processCount;
     }
 
 }

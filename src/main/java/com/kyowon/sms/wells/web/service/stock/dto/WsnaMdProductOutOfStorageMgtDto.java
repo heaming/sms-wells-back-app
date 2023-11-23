@@ -229,4 +229,18 @@ public class WsnaMdProductOutOfStorageMgtDto {
 
         List<WsnaMdProductOutOfStorageSaveProductDvo> products
     ) {}
+    @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-RemoveReq")
+    public record RemoveReq(
+        @NotBlank
+        String cstSvAsnNo,
+
+        @NotBlank
+        String cntrNo,
+
+        @NotBlank
+        String cntrSn,
+
+        @NotBlank
+        String svBizHclsfCd
+    ) {}
 }
