@@ -223,9 +223,15 @@
                        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2       /* 고객서비스수행내역 */
                           ON D2.CNTR_NO = D1.CNTR_NO
                          AND D2.CNTR_SN = D1.CNTR_SN
+                        LEFT OUTER JOIN TB_SSCT_CNTR_REL D11      /* 계약관계 */
+                          ON D11.OJ_DTL_CNTR_NO  = D1.CNTR_NO
+                         AND D11.OJ_DTL_CNTR_SN  = D1.CNTR_SN
+                         AND D11.DTA_DL_YN       = 'N'
+                         AND D11.CNTR_REL_DTL_CD = '212'   /* 멤버십 - 원주문 */
+                         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D11.VL_STRT_DTM AND D11.VL_END_DTM
                        INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ D3    /* 월별고객서비스대상내역 */
-                          ON D3.CNTR_NO = D1.CNTR_NO
-                         AND D3.CNTR_SN = D1.CNTR_SN
+                          ON D3.CNTR_NO = NVL(D11.BASE_DTL_CNTR_NO, D1.CNTR_NO)
+                         AND D3.CNTR_SN = NVL(D11.BASE_DTL_CNTR_SN, D1.CNTR_SN)
                        INNER JOIN TB_SSCT_CNTR_CST_REL D4         /* 계약고객관계 */
                           ON D4.DTL_CNTR_NO = D1.CNTR_NO
                          AND D4.DTL_CNTR_SN = D1.CNTR_SN
@@ -248,8 +254,12 @@
                        INNER JOIN TB_OGBS_BLD_BAS D10             /* 빌딩기본 */
                           ON D10.OG_TP_CD = D9.OG_TP_CD
                          AND D10.BLD_CD   = D9.BLD_CD
+                       INNER JOIN TB_SSCT_CNTR_DTL D12            /* 계약상세 */
+                          ON D12.CNTR_NO = D1.CNTR_NO
+                         AND D12.CNTR_SN = D1.CNTR_SN
                        WHERE D1.DTA_DL_YN          = 'N'
                          AND D2.DTA_DL_YN          = 'N'
+                         AND D2.CNTR_DTL_STAT_CD   = '101'   /* 정상 */
                          AND D3.DTA_DL_YN          = 'N'
                          AND D4.DTA_DL_YN          = 'N'
                          AND D4.CNTR_CST_REL_TP_CD = '10'    /* 계약자 */
@@ -269,7 +279,10 @@
                          AND D1.MTR_CAN_DT IS NULL
                          AND D2.REQD_DT IS NULL
                          AND D2.CPS_DT IS NULL
-                         AND D2.CNTR_DTL_STAT_CD NOT IN ('201', '202', '203', '303')   /* 고객요청정지, 연체정지, 해약접수정지, 계약취소 */
+                         AND (    D2.BFSVC_SPP_STP_RSON_CD IN ('00', '01')
+                               OR ( D2.BFSVC_SPP_STP_RSON_CD = '02' AND D1.SV_BIZ_DCLSF_CD = '2120' )   /* 동양매직건 정기점검외에 필터교체만 배정 되도록 */
+                             )
+                         AND D12.SELL_TP_CD IN ('1', '2', '3', '4', '5')   /* 일시불, 렌탈/리스, 멤버십, 회사설치, 유지관리 */
                          AND D1.PART_PD_CD NOT IN ('WM07105924', 'WM07105925', 'WM07106025', 'WM07106030', 'WM07106035', 'WM07104436', 'WM07105952', 'WM07105745'
                                                  , 'WM07105746', 'WM07105747', 'WM07105748', 'WM07102129', 'WM07105703', 'WM07105704', 'WM07105705')
                          AND ( D6.PD_PRP_VAL20 IS NULL OR D6.PD_PRP_VAL20 <![CDATA[<>]]> '11' )
