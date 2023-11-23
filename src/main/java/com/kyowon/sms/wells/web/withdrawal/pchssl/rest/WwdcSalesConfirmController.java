@@ -53,7 +53,6 @@ public class WwdcSalesConfirmController {
         @ApiImplicitParam(name = "dtFrom", value = "매출인식일From", paramType = "query"),
         @ApiImplicitParam(name = "dtTo", value = "매출인식일To", paramType = "query"),
         @ApiImplicitParam(name = "sellChnl", value = "판매채널", paramType = "query"),
-        @ApiImplicitParam(name = "slRcogDv", value = "판매인식", paramType = "query"),
     })
     @GetMapping("/paging")
     public PagingResult<SearchSalesConfirmRes> getSalesConfirm(
@@ -78,7 +77,6 @@ public class WwdcSalesConfirmController {
         @ApiImplicitParam(name = "dtFrom", value = "매출인식일From", paramType = "query"),
         @ApiImplicitParam(name = "dtTo", value = "매출인식일To", paramType = "query"),
         @ApiImplicitParam(name = "sellChnl", value = "판매채널", paramType = "query"),
-        @ApiImplicitParam(name = "slRcogDv", value = "판매인식", paramType = "query"),
     })
     @GetMapping("/excel-download")
     public List<SearchSalesConfirmRes> getSalesConfirmForExcelDownload(
@@ -97,8 +95,7 @@ public class WwdcSalesConfirmController {
     @ApiOperation(value = "[WDC] 매출확정관리 인식상태변경", notes = "매출확정 인식상태를 변경합니다.")
     @PostMapping("/change-state")
     public SaveResponse getSalesConfirmChangeState(
-        @RequestBody
-        @Valid
+        @RequestBody @Valid
         List<SaveSalesConfirmReq> req
     ) throws Exception {
         return SaveResponse.builder()
