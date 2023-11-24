@@ -56,16 +56,16 @@ public class WsniSidingServiceChangesService {
      */
     public void AsReceiption(SaveReq req) throws Exception {
 
-        String akSn = req.akSn();
+        String akSn = "";
 
         //취소일 경우 삭제
         if ("3".equals(req.mtrProcsStatCd())) {
-            mapper.deleteSdingAskAk(req.cntrNo(), req.cntrSn(), akSn, req.asAkDvCd(), req.akChdt());
+            mapper.deleteSdingAskAk(req.cntrNo(), req.cntrSn(), req.asAkDvCd(), req.akChdt());
         } else {
-            if (mapper.selectSidingAkCount(req.cntrNo(), req.cntrSn(), akSn, req.asAkDvCd(), req.akChdt()) > 0) {
+            if (mapper.selectSidingAkCount(req.cntrNo(), req.cntrSn(), req.asAkDvCd(), req.akChdt()) > 0) {
                 mapper.updateSidingAk(
                     req.akChdt(), req.bfchPdCd(), req.afchPdCd(), req.mtrProcsStatCd(), req.cntrNo(), req.cntrSn(),
-                    akSn, req.asAkDvCd(), req.choCapslCn()
+                    req.asAkDvCd(), req.choCapslCn()
                 );
             } else {
                 akSn = mapper.selectAkSnMax(req.cntrNo(), req.cntrSn());
@@ -83,6 +83,7 @@ public class WsniSidingServiceChangesService {
             }
         }
 
+        akSn = mapper.selectAkSnMax(req.cntrNo(), req.cntrSn());
         mapper.insertSdingAsAkHist(
             req.cntrNo(),
             req.cntrSn(),
@@ -93,7 +94,7 @@ public class WsniSidingServiceChangesService {
             req.bfchPdCd(),
             req.afchPdCd(),
             req.mtrProcsStatCd(),
-            StringUtil.isEmpty(req.choCapslCn()) ? mapper.selectPdctPdCds(req.cntrNo(), req.cntrSn(), akSn)
+            StringUtil.isEmpty(req.choCapslCn()) ? mapper.selectPdctPdCds(req.cntrNo(), req.cntrSn())
                 : req.choCapslCn(),
             ""
         );
@@ -155,7 +156,6 @@ public class WsniSidingServiceChangesService {
 
         log.debug("cntrNo : " + req.cntrNo());
         log.debug("cntrSn : " + req.cntrSn());
-        log.debug("akSn : " + req.akSn());
         log.debug("asAkDvCd : " + req.asAkDvCd());
         log.debug("akChdt : " + req.akChdt());
         log.debug("bfchPdCd : " + req.bfchPdCd());
@@ -167,8 +167,7 @@ public class WsniSidingServiceChangesService {
 
         List<WctbSeedingPackageChangeDto.ConsPdct> consPdList = new ArrayList<>();
         String strPdctPdcds = StringUtil.isEmpty(req.choCapslCn()) ? mapper.selectPdctPdCds(
-            req.cntrNo(), req.cntrSn(),
-            req.akSn()
+            req.cntrNo(), req.cntrSn()
         ) : req.choCapslCn();
         if (StringUtil.isNotEmpty(strPdctPdcds)) {
             String[] arrayPdctPdCds = strPdctPdcds.split("\\|");

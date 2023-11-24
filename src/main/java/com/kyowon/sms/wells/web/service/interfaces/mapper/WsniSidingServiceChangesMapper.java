@@ -23,7 +23,6 @@ public interface WsniSidingServiceChangesMapper {
     int deleteSdingAskAk(
         String cntrNo,
         String cntrSn,
-        String akSn,
         String asAkDvCd,
         String akChdt
     );
@@ -36,7 +35,6 @@ public interface WsniSidingServiceChangesMapper {
     int selectSidingAkCount(
         String cntrNo,
         String cntrSn,
-        String akSn,
         String asAkDvCd,
         String akChdt
     );
@@ -48,7 +46,6 @@ public interface WsniSidingServiceChangesMapper {
         String mtrProcsStatCd,
         String cntrNo,
         String cntrSn,
-        String akSn,
         String asAkDvCd,
         String choCapslCn
     );
@@ -86,7 +83,6 @@ public interface WsniSidingServiceChangesMapper {
 
     String selectPdctPdCds(
         String cntrNo,
-        String cntrSn,
-        String akSn
+        String cntrSn
     );
 }
