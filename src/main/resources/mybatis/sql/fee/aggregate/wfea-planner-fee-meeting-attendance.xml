@@ -21,7 +21,7 @@
                               )
            AND T1.PERF_ATC_CD IN ('W01P00020', 'W01P00035', 'W01P00023', 'W01P00025', 'W01P00027',
                                  'W01P00043', 'W01P00033', 'W01P00012', 'W01P00047', 'W01P00048',
-                                 'W01P00045', 'W01P00041')
+                                 'W01P00045', 'W01P00041', 'W01P00044')
     </delete>
 
     <insert id="insertPlannerFeeMeetingAttendances">
@@ -202,6 +202,38 @@
                    AND O1.OG_TP_CD = 'W01'
                    AND O1.PSTN_DV_CD = '7'
                    AND O1.DTA_DL_YN = 'N'
+                 UNION ALL
+                SELECT Y1.BASE_PRTNR_NO AS PRTNR_NO
+                     , 'W01P00044' AS PERF_ATC_CD /* P추진단- 등급별조직배출수 */
+                     , '1=' || SUM(Y1.OJ_EJT_GD_CD1) || ',2=' || SUM(Y1.OJ_EJT_GD_CD2) || ',3=' || SUM(Y1.OJ_EJT_GD_CD3) || ',4=' || SUM(Y1.OJ_EJT_GD_CD4) || ',5=' || SUM(Y1.OJ_EJT_GD_CD5) AS FEE_PERF_ATC_VAL
+                     , NULL AS PERF_VAL
+                  FROM (
+                            SELECT T1.BASE_PRTNR_NO
+                                 , T1.BASE_PRTNR_PSTN_DV_CD
+                                 , T1.OJ_PRTNR_NO
+                                 , T1.OJ_PRTNR_PSTN_DV_CD
+                                 , DECODE(T1.OG_EJT_GD_CD, '1', 1, 0) AS OJ_EJT_GD_CD1
+                                 , DECODE(T1.OG_EJT_GD_CD, '2', 1, 0) AS OJ_EJT_GD_CD2
+                                 , DECODE(T1.OG_EJT_GD_CD, '3', 1, 0) AS OJ_EJT_GD_CD3
+                                 , DECODE(T1.OG_EJT_GD_CD, '4', 1, 0) AS OJ_EJT_GD_CD4
+                                 , DECODE(T1.OG_EJT_GD_CD, '5', 1, 0) AS OJ_EJT_GD_CD5
+                              FROM TB_OGPS_PRTNR_EJT_REL T1
+                        INNER JOIN TB_OGBS_MM_PRTNR_IZ O1
+                                ON T1.MNGT_YM = O1.BASE_YM
+                               AND T1.OJ_OG_TP_CD = O1.OG_TP_CD
+                               AND T1.OJ_PRTNR_NO = O1.PRTNR_NO
+                             WHERE 1 = 1
+                               AND T1.MNGT_YM = #{perfYm}
+                               AND T1.OG_EJT_DV_CD = '10' -- 피배출자 OJ 피배출자
+                               AND T1.EJT_NMN_N <![CDATA[<=]]> 6 /* 배출후 6개월만 */
+                               AND NVL(T1.ACKMT_YN, 'N') = 'Y'
+                               AND T1.DTA_DL_YN = 'N'
+                               AND T1.OJ_OG_TP_CD = 'W01'
+                               AND T1.BASE_PRTNR_PSTN_DV_CD = '7'
+                               AND SUBSTR(O1.PRFMT_DT, 1, 6) <![CDATA[<=]]> '202301'
+                               AND O1.PRFMT_DMTN_DV_CD = '0' -- 승진
+                        ) Y1
+                GROUP BY Y1.BASE_PRTNR_NO
                  UNION ALL
                 </if>
                  SELECT A.PRTNR_NO
