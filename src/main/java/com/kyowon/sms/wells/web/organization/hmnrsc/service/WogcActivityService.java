@@ -46,6 +46,18 @@ public class WogcActivityService {
         return wogcActivityMapper.searchMonthlyActivities(dto, pageInfo);
     }
 
+        /**
+     * 월별 활동 현황 목록 조회용 순주문 Flag 조회.
+     * @param dto
+     * @return String
+     */
+    public String selectCountFeamCntr(
+        SearchMonthlyActivityReq dto
+    ) {
+        return wogcActivityMapper.selectCountFeamCntr(dto);
+    }
+
+
     /**
      * 누적 활동 현황 목록 조회
      * @param dto

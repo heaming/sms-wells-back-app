@@ -81,6 +81,80 @@
                    , A.OG_TP_CD
                    , A.PRTNR_NO
         )
+,   TEMP_TOT AS (  -- 총주문
+            SELECT /*+ MATERIALIZE */
+                   BASE_YM
+                 , OG_TP_CD
+                 , PRTNR_NO
+                 , SUM(W02P00002) AS ACKMT_CT  -- 인정건수(순주문)
+                 , SUM(W00P00057) AS RSTL_CT -- 웰스팜 재약정 건수
+                 , SUM(CASE WHEN SL_DT IS NOT NULL AND CAN_DT IS NULL THEN (W00P00012 + W00P00013 + W00P00016 + W00P00017) ELSE 0 END) AS RCP_ISP_CT
+                 , SUM(W00P00037 + W00P00043) AS WO_CT -- 전체 건수
+                 , SUM(CASE WHEN SL_DT IS NOT NULL AND CAN_DT IS NULL THEN (W00P00037 + W00P00043) ELSE 0 END) AS RCP_WO_CT -- 접수 설치 건수(전체 기준)
+                 , SUM(CASE WHEN SUBSTR(SL_DT,1,6) = #{baseYm} THEN (W00P00012 + W00P00013 + W00P00016 + W00P00017) ELSE 0 END) AS THM_ACKMT_CT --당월 인정 건수
+                 , SUM(CASE WHEN SUBSTR(SL_DT,1,6) = #{baseYm} THEN (W00P00037 + W00P00043) ELSE 0 END) AS THM_WO_CT  --당월 전체 건수
+                 , SUM(W02P00002) AS W02P00002 --판매인정건수
+                 , SUM(W00P00037) AS W00P00037 --LCCN01
+                 , SUM(W00P00043) AS W00P00043 --LCCN11
+                 , SUM(W00P00012) AS W00P00012 --LCCN31
+                 , SUM(W00P00014) AS W00P00014 --LCCN32
+                 , SUM(W00P00015) AS W00P00015 --LCCN33
+                 , SUM(W00P00013) AS W00P00013 --LCCN34
+                 , SUM(W00P00016) AS W00P00016 --LCCN35
+                 , SUM(W00P00018) AS W00P00018 --LCCN42
+                 , SUM(W00P00019) AS W00P00019 --LCCN43
+                 , SUM(W00P00017) AS W00P00017 --LCCN44
+                 , SUM(W00P00057) AS W00P00057 --LCCN47
+                 , SUM(W00P00036) AS W00P00036 --LCCN49
+              FROM (
+                   SELECT BASE_YM
+                        , OG_TP_CD
+                        , PRTNR_NO
+                        , SL_DT
+                        , CAN_DT
+                        , W02P00002 --판매인정건수
+                        , W00P00037 --LCCN01
+                        , W00P00043 --LCCN11
+                        , W00P00012 --LCCN31
+                        , W00P00014 --LCCN32
+                        , W00P00015 --LCCN33
+                        , W00P00013 --LCCN34
+                        , W00P00016 --LCCN35
+                        , W00P00018 --LCCN42
+                        , W00P00019 --LCCN43
+                        , W00P00017 --LCCN44
+                        , W00P00057 --LCCN47
+                        , W00P00036 --LCCN49
+                     FROM (
+                           SELECT /*+ USE_HASH(A B) */
+                       A.BASE_YM
+                     , A.OG_TP_CD
+                     , A.PRTNR_NO
+                     , B.SL_DT
+                     , B.CAN_DT
+                     , A.PERF_ATC_CD
+                     , A.PERF_VAL
+                  FROM TB_FEAM_MACUP_CNTR_PERF_CL A
+                 INNER JOIN TB_FEAM_WELS_MM_ACU_CNTR_CL B
+                    ON A.MM_ACU_PERF_AGRG_CRT_DV_CD = B.MM_ACU_PERF_AGRG_CRT_DV_CD
+                   AND A.BASE_YM = B.BASE_YM
+                   AND A.CNTR_NO = B.CNTR_NO
+                   AND A.CNTR_SN = B.CNTR_SN
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.MM_ACU_PERF_AGRG_CRT_DV_CD = '00' -- 총주문
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.PERF_ATC_CD IN ('W02P00002','W00P00037','W00P00043','W00P00012','W00P00014','W00P00015','W00P00013','W00P00016','W00P00018','W00P00019','W00P00017','W00P00057','W00P00036')
+            )
+            PIVOT ( SUM(PERF_VAL) FOR PERF_ATC_CD IN ('W02P00002' AS W02P00002,'W00P00037' AS W00P00037,'W00P00043' AS W00P00043,'W00P00012' AS W00P00012,
+                                                                      'W00P00014' AS W00P00014,'W00P00015' AS W00P00015,'W00P00013' AS W00P00013,
+                                                                      'W00P00016' AS W00P00016,'W00P00018' AS W00P00018,'W00P00019' AS W00P00019,
+                                                                      'W00P00017' AS W00P00017,'W00P00057' AS W00P00057,'W00P00036' AS W00P00036))
+                   ) A
+               GROUP BY A.BASE_YM
+                   , A.OG_TP_CD
+                   , A.PRTNR_NO
+            )
         SELECT /*+ no_merge(SV) no_merge(NT) use_hash(QL) use_hash(SV) */
                PM.BASE_YM AS BASE_YM
              , PM.OG_CD   AS OG_CD
@@ -170,7 +244,15 @@
             ON SV.ASN_OJ_YM = PM.BASE_YM
            AND SV.CNFM_PSIC_PRTNR_OG_TP_CD = PM.OG_TP_CD
            AND SV.CNFM_PSIC_PRTNR_NO = PM.PRTNR_NO
-          LEFT OUTER JOIN TEMP_NTORP NT  -- 순주문
+        <if test="@MybatisUtils@isNotEmpty(feamFlag) and @MybatisUtils@equals(feamFlag,'Y')">
+            LEFT OUTER JOIN TEMP_NTORP NT  -- 순주문
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(feamFlag) and @MybatisUtils@equals(feamFlag,'N')">
+            LEFT OUTER JOIN TEMP_TOT NT  -- 총주문
+        </if>
+        <if test="@MybatisUtils@isEmpty(feamFlag)">
+            LEFT OUTER JOIN TEMP_NTORP NT  -- 순주문
+        </if>
             ON NT.BASE_YM  = PM.BASE_YM
            AND NT.OG_TP_CD = PM.OG_TP_CD
            AND NT.PRTNR_NO = PM.PRTNR_NO
@@ -231,6 +313,22 @@
          ORDER BY PM.OG_CD, PM.PRTNR_NO
     </select>
 
+    <select id="selectCountFeamCntr" resultType="string">
+        SELECT COUNT(*)
+          FROM TB_FEAM_NTORP_CNTR_MM_CL A
+         INNER JOIN TB_FEAM_WELS_NRCTR_MM_CL B
+            ON A.BASE_YM = B.BASE_YM
+           AND A.PERF_YM = B.PERF_YM
+           AND A.CNTR_NO = B.CNTR_NO
+           AND A.CNTR_SN = B.CNTR_SN
+           AND A.CNTR_PERF_CRT_DV_CD = B.CNTR_PERF_CRT_DV_CD
+         WHERE 1 = 1
+           AND A.BASE_YM = #{baseYm}
+           AND A.PERF_YM = #{baseYm}
+           AND A.FEE_TCNT_DV_CD = '02'       -- 2차
+           AND A.CNTR_PERF_CRT_DV_CD = '01'  -- 순주문
+           AND A.OG_TP_CD = #{ogTpCd}
+    </select>
     <select
         id="searchAccureActivitiesA"
         resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcActivityDto$SearchAccureActivityRes">
