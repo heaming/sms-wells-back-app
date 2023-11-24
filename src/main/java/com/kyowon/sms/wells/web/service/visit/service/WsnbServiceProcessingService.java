@@ -91,8 +91,8 @@ public class WsnbServiceProcessingService {
             }
 
             if (StringUtil.isNotBlank(dvo.getIstEnvrPhoPhFileUid())
-                || StringUtil.isNotBlank(dvo.getIstEnvrPhoPhFileUid())
-                || StringUtil.isNotBlank(dvo.getIstEnvrPhoPhFileUid())) {
+                || StringUtil.isNotBlank(dvo.getIstKitPhoPhFileUid())
+                || StringUtil.isNotBlank(dvo.getIstCelngPhoPhFileUid())) {
                 dvo.setIstImg("Y");
             }
         }
