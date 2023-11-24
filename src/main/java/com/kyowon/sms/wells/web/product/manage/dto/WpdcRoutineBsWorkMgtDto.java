@@ -50,7 +50,9 @@ public class WpdcRoutineBsWorkMgtDto {
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchStdBaseReq")
     public record SearchStdBaseReq(
         String svPdCd, /* 서비스 코드 */
-        String pdctPdCd /* 필터 코드 */
+        String svPdNm, /* 서비스명 */
+        String pdctPdNm, /* 교재자재 상품명 */
+        String pdctPdCd /* 교재자재 상품코드 */
     ) {}
 
     @ApiModel(value = "WpdcRoutineBsWorkMgtDto-SearchRoutineBsWorkBaseRes")
@@ -58,7 +60,9 @@ public class WpdcRoutineBsWorkMgtDto {
         String partPdNm, /* 제품상품명 */
         String dtlHasYn, /* B/S 투입 상세 데이터 존재 여부 */
         String svPdCd, /* 서비스상품코드 */
+        String svPdNm, /* 서비스상품명 */
         String pdctPdCd, /* 제품상품코드 */
+        String pdctPdNm, /* 제품상품명 */
         Long dtlSn, /* 상세일련번호 */
         String svBizDclsfCd, /* 서비스업무세분류코드 */
         String vstDvCd, /* 방문구분코드 */
