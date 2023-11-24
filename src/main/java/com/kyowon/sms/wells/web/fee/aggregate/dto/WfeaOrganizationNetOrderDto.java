@@ -370,7 +370,6 @@ public class WfeaOrganizationNetOrderDto {
         String elhmAckmtCt, /* 가전인정건수 */
         String rentalBasePrc, /* 렌탈기준가 */
         String snglPmntBasePrc, /* 일시불기준가 */
-        String elhmExcpAckmtPerf, /* 가전외인정실적 */
         String chng, /* 기변 */
         String ninc, /* 순증 */
         String fxamCt, /* 정액건수 */

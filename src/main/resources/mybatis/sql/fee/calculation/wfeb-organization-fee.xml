@@ -557,7 +557,7 @@
                ELSE 0 END AS MNGER_BLTN_NMN /* 매니저개시사항-매니저 개시차월 */
              , MNGER_SETTLE_DSB_TP /* 매니저개시사항-정착지급유형 */
              , INDV_D5_ASN_CNT  /* 5일배정건수 */
-             , INDV_ASN_CNT	/* 개인BS-배정건수 */
+             , (INDV_ASN_CNT - INDV_BS_CAN_CNT) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
              , INDV_FSH_CNT	/* 개인BS-완료건수 */
              , INDV_PROCS_RAT	/* 개인BS-처리율 */
              , CASE WHEN INDV_PROCS_RAT = 0 THEN 0
@@ -567,7 +567,7 @@
                     WHEN INDV_PROCS_RAT <![CDATA[>=]]> 90 THEN 100 END AS INDV_DBS_RAT	/*개인BS-지급률*/
              , INDV_W1_CNT	/* 개인BS-W1급지건수 */
              , INDV_W2_CNT	/* 개인BS-W2급지건수 */
-             , OG_ASN_CNT	/* 조직BS-배정건수 */
+             , (OG_ASN_CNT - OG_BS_CAN_CNT) AS OG_ASN_CNT	/* 조직BS-배정건수 취소건수를 뺀 값 */
              , OG_FSH_CNT	/* 조직BS-완료건수 */
              , CASE WHEN OG_ASN_CNT <![CDATA[>]]> 0 THEN TRUNC(OG_FSH_CNT / (OG_ASN_CNT - OG_BS_CAN_CNT) * 100.00, 1) ELSE 0 END AS OG_PROCS_RAT	/* 조직BS-처리율 */
              , CASE WHEN OG_ASN_CNT <![CDATA[>]]> 0 THEN
@@ -660,6 +660,7 @@
                     , F_CMZ_CD_NM('TNT_WELLS', 'OPNG_CD', MNGER5.OPNG_CD) AS MNGER_SETTLE_DSB_TP /* 매니저개시 정착지급유형 */
                     , NVL(INDVD5.INDV_D5_ASN_CNT, 0) AS INDV_D5_ASN_CNT     /* 개인BS-5일배정건수 */
                     , NVL(INDVBS.INDV_ASN_CNT, 0) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
+                    , NVL(INDVBS.INDV_BS_CAN_CNT, 0) AS INDV_BS_CAN_CNT     /* 개인BS-취소건수 */
                     , NVL(INDVBS.INDV_FSH_CNT, 0) AS INDV_FSH_CNT	/* 개인BS-완료건수 */
                     , NVL(INDVBS.INDV_PROCS_RAT, 0) AS INDV_PROCS_RAT	/* 개인BS-처리율 */
                     , NVL(INDVBS.INDV_W1_CNT, 0) AS INDV_W1_CNT	/* 개인BS-W1급지건수 */
@@ -897,6 +898,7 @@
           LEFT OUTER JOIN
              ( SELECT PRTNR_NO
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999901' THEN PERF_VAL ELSE 0 END ) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
+                    , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01909001' THEN PERF_VAL ELSE 0 END ) AS INDV_BS_CAN_CNT    /* 개인BS-취소건수 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD IN ('SV01999902', 'SV01999903') THEN PERF_VAL ELSE 0 END ) AS INDV_FSH_CNT	/* 개인BS-완료건수 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL ELSE 0 END ) AS INDV_PROCS_RAT	/* 개인BS-처리율 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010102' THEN PERF_VAL ELSE 0 END ) AS INDV_W1_CNT	/* 개인BS-W1급지건수 */
@@ -906,7 +908,7 @@
                   AND BASE_YM = #{dto.perfYm}
                   AND CL_DV_CD = #{dto.feeTcntDvCd}
                   AND OG_TP_CD = 'W02'
-                  AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910', 'SV06010102', 'SV06010103')	/* 배정건수, 당월완료건수, 전월완료건수, 비율, W1급지건수, W2급지건수 */
+                  AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910', 'SV06010102', 'SV06010103', 'SV01909001')	/* 배정건수, 당월완료건수, 전월완료건수, 비율, W1급지건수, W2급지건수 */
                   <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
                   AND PRTNR_NO = #{dto.prtnrNo}
                   </if>
@@ -1227,7 +1229,7 @@
                ELSE 0 END AS MNGER_BLTN_NMN /* 매니저개시사항-매니저 개시차월 */
              , MNGER_SETTLE_DSB_TP /* 매니저개시사항-정착지급유형 */
              , INDV_D5_ASN_CNT  /* 5일배정건수 */
-             , INDV_ASN_CNT	/* 개인BS-배정건수 */
+             , (INDV_ASN_CNT - INDV_BS_CAN_CNT) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
              , INDV_FSH_CNT	/* 개인BS-완료건수 */
              , INDV_PROCS_RAT	/* 개인BS-처리율 */
              , CASE WHEN INDV_PROCS_RAT = 0 THEN 0
@@ -1237,7 +1239,7 @@
                     WHEN INDV_PROCS_RAT <![CDATA[>=]]> 90 THEN 100 END AS INDV_DBS_RAT	/*개인BS-지급률*/
              , INDV_W1_CNT	/* 개인BS-W1급지건수 */
              , INDV_W2_CNT	/* 개인BS-W2급지건수 */
-             , OG_ASN_CNT	/* 조직BS-배정건수 */
+             , (OG_ASN_CNT - OG_BS_CAN_CNT) AS OG_ASN_CNT	/* 조직BS-배정건수 */
              , OG_FSH_CNT	/* 조직BS-완료건수 */
              , CASE WHEN OG_ASN_CNT <![CDATA[>]]> 0 THEN TRUNC(OG_FSH_CNT / (OG_ASN_CNT - OG_BS_CAN_CNT) * 100.00, 1) ELSE 0 END AS OG_PROCS_RAT	/* 조직BS-처리율 */
              , CASE WHEN OG_ASN_CNT <![CDATA[>]]> 0 THEN
@@ -1355,6 +1357,7 @@
                     , F_CMZ_CD_NM('TNT_WELLS', 'OPNG_CD', MNGER5.OPNG_CD) AS MNGER_SETTLE_DSB_TP /* 매니저개시 정착지급유형 */
                     , NVL(INDVD5.INDV_D5_ASN_CNT, 0) AS INDV_D5_ASN_CNT     /* 개인BS-5일배정건수 */
                     , NVL(INDVBS.INDV_ASN_CNT, 0) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
+                    , NVL(INDVBS.INDV_BS_CAN_CNT, 0) AS INDV_BS_CAN_CNT     /* 개인BS-취소건수 */
                     , NVL(INDVBS.INDV_FSH_CNT, 0) AS INDV_FSH_CNT	/* 개인BS-완료건수 */
                     , NVL(INDVBS.INDV_PROCS_RAT, 0) AS INDV_PROCS_RAT	/* 개인BS-처리율 */
                     , NVL(INDVBS.INDV_W1_CNT, 0) AS INDV_W1_CNT	/* 개인BS-W1급지건수 */
@@ -1633,6 +1636,7 @@
           LEFT OUTER JOIN
              ( SELECT PRTNR_NO
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999901' THEN PERF_VAL ELSE 0 END ) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
+                    , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01909001' THEN PERF_VAL ELSE 0 END ) AS INDV_BS_CAN_CNT	/* 개인BS-취소건수 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD IN ('SV01999902', 'SV01999903') THEN PERF_VAL ELSE 0 END ) AS INDV_FSH_CNT	/* 개인BS-완료건수 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL ELSE 0 END ) AS INDV_PROCS_RAT	/* 개인BS-처리율 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010102' THEN PERF_VAL ELSE 0 END ) AS INDV_W1_CNT	/* 개인BS-W1급지건수 */
@@ -1642,7 +1646,7 @@
                   AND BASE_YM = #{perfYm}
                   AND CL_DV_CD = #{feeTcntDvCd}
                   AND OG_TP_CD = 'W02'
-                  AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910', 'SV06010102', 'SV06010103')	/* 배정건수, 당월완료건수, 전월완료건수, 비율, W1급지건수, W2급지건수 */
+                  AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910', 'SV06010102', 'SV06010103', 'SV01909001')	/* 배정건수, 당월완료건수, 전월완료건수, 비율, W1급지건수, W2급지건수 */
                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                   AND PRTNR_NO = #{prtnrNo}
                   </if>
@@ -3131,7 +3135,7 @@
           ON A.BASE_YM = G.EDUC_CRSE_CRT_BASE_YM
          AND A.PRTNR_NO = G.PRTNR_NO
          AND A.OG_TP_CD = G.OG_TP_CD
-         AND G.EDUC_CRSE_NO IN ('14','19')
+         AND G.EDUC_CRSE_NO = '19'
          AND G.EDUC_CPC_ACKMT_YN = 'Y'
         LEFT OUTER JOIN ( SELECT PRTNR_NO
                                , MIN(STRTDT) AS CV_DT
