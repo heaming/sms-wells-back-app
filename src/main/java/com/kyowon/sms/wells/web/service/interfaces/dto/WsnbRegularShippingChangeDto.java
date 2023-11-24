@@ -14,8 +14,6 @@ public class WsnbRegularShippingChangeDto {
         String cntrNo,
         @JsonProperty(value = "CNTR_SN")
         String cntrSn,
-        @JsonProperty(value = "AK_SN")
-        String akSn,
         @JsonProperty(value = "AS_AK_DV_CD") // P_REQ_GB (변경구분 1:패키지변경, 4:차월 방문 중지)
         String asAkDvCd,
         @JsonProperty(value = "AK_CHDT") // P_REQ_DT

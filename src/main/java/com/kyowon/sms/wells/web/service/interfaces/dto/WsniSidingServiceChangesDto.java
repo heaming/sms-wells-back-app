@@ -20,12 +20,6 @@ public class WsniSidingServiceChangesDto {
         @JsonProperty(value = "CNTR_SN")
         String cntrSn,
 
-        //요청일련번호
-        @NotBlank
-        @JsonProperty(value = "AK_SN")
-        @Label(value = "")
-        String akSn,
-
         //AS요청구분코드 (1:패키지변경, 4:차월 방문 중지)
         @NotBlank
         @JsonProperty(value = "AS_AK_DV_CD")
