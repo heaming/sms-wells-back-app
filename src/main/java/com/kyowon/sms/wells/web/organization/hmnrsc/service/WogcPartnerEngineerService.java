@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import com.kyowon.sms.common.web.organization.common.converter.ZogzPartnerConverter;
+import com.kyowon.sms.common.web.organization.common.dto.ZogzPartnerDto.SaveBiztelephoneReq;
+import com.kyowon.sms.common.web.organization.common.dvo.ZogzPartnerDvo;
+import com.kyowon.sms.common.web.organization.common.service.ZogzPartnerService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -56,6 +60,8 @@ public class WogcPartnerEngineerService {
     private final WogcPartnerEngineerConverter wogcPartnerEngineerConverter;
     private final MessageResourceService messageService;
     private final ExcelReadService excelReadService;
+    private final ZogzPartnerService zogzPartnerService;
+    private final ZogzPartnerConverter converter;
 
     private final static String KEY_PRTNR_NO = "prtnrNo";
 
@@ -215,19 +221,47 @@ public class WogcPartnerEngineerService {
     @Transactional
     public int saveJoeManagement(List<SaveJoeManagementReq> dtos) {
         int processCnt = 0;
+        List<SaveBiztelephoneReq> bizPhoneReq = new ArrayList<SaveBiztelephoneReq>();
+
+        List<ZogzPartnerDvo> partnerDvos = new ArrayList<ZogzPartnerDvo>();
 
         for (SaveJoeManagementReq dto : dtos) {
             WogcPartnerEngineerDvo dvo = this.wogcPartnerEngineerConverter
                 .mapSaveJoeManagementReqToWogcPartnerEngineerDvo(dto);
 
-            String mexnoEncr = dvo.getMexnoEncr();
+            String mexnoEncr = dvo.getMexnoEncr(); //암호화된거
             processCnt += this.mapper.insertWkGrpBlgDtl(dvo);
             if (dvo.getVlStrtdt().substring(0, 6).equals(DateUtil.getNowDayString().substring(0, 6))) {
                 this.mapper.updatePrtnrGrpCd(dvo); //직책업데이트
             }
             dvo.setMexnoEncr(mexnoEncr);
-            this.mapper.updatePrtnrBusiness(dvo); //업무용전화번호업데이트
+
+            ZogzPartnerDvo partnerDvo = new ZogzPartnerDvo();
+            partnerDvo.setOgCd(dvo.getOgCd());
+            partnerDvo.setPrtnrNo(dvo.getPrtnrNo());
+            partnerDvo.setUsrId(dvo.getUsrId());
+            partnerDvo.setBizUseLocaraTno(dvo.getCralLocaraTno());
+            partnerDvo.setBizUseExnoEncr(mexnoEncr);
+            partnerDvo.setBizUseIdvTno(dvo.getCralIdvTno());
+
+            /*
+            SaveBiztelephoneReq bizDto = SaveBiztelephoneReq.builder()
+                .ogTpCd(dvo.getOgTpCd())
+                .prtnrNo(dvo.getPrtnrNo())
+                .usrId(dvo.getUsrId())
+                .bizUseIdvTno(dvo.getCralIdvTno())
+                .bizUseExnoEncr(mexnoEncr)
+                .bizUseLocaraTno(dvo.getCralLocaraTno())
+                .build();
+
+            bizDtos.add(bizDto);
+            */
+            partnerDvos.add(partnerDvo);
         }
+
+        bizPhoneReq = converter.mapZogzPartnerDvoToSaveBiztelephoneReq(partnerDvos);
+        //업무용 전화번호, 사용자 전화번호 업데이트
+        processCnt += zogzPartnerService.editBiztelephone(bizPhoneReq);
 
         return processCnt;
     }
