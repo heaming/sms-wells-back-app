@@ -24,12 +24,21 @@ public class WsnaInstallationStockPsByDayDto {
         String svCnr
     ) {}
 
+    @ApiModel(value = "WsnaInstallationStockPsByDayDto-SearchResPsWareStr")
+    public record SearchResPsWareStr(
+        String itmPdCd,
+        Integer qtyPajuSum,
+        Integer qtyCenterSum,
+        Integer qtyEngSum
+    ) {}
+
     @ApiModel(value = "WsnaInstallationStockPsByDayDto-SearchResCenter")
     public record SearchResCenter(
         String ogId,
         String ogNm,
         String pdCd,
         String pdNm,
+        Integer pajuQty,
         Integer prvMng,
         Integer engQty,
         Integer stockTotal,
