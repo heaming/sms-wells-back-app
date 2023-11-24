@@ -77,7 +77,7 @@ public class WwdaNotReceivedCheckListService {
     }
 
     /**
-     * 자동이체 매출실적 체크 목록 조회 / 페이징
+     * 자동이체 매출실적 입금 전용 누락건 조회 / 페이징
      * @param bilYm 기준년월
      * @param pageInfo 페이징
      * @return PagingResult<SearchAftnSlPerfCheckInqrRes>
@@ -90,7 +90,7 @@ public class WwdaNotReceivedCheckListService {
     }
 
     /**
-     * 자동이체 매출실적 체크 목록 엑셀다운로드
+     * 자동이체 매출실적 입금 전용 누락건 엑셀다운로드
      * @param bilYm 기준년월
      * @return List<SearchAftnSlPerfCheckInqrRes>
      */

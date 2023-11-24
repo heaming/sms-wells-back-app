@@ -17,6 +17,14 @@ import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 서비스 환불 등록 서비스
+ * </pre>
+ *
+ * @author sonkiseok
+ * @since 2023-04-13
+ */
 @Service
 @RequiredArgsConstructor
 public class WwdbServiceRefundService {
