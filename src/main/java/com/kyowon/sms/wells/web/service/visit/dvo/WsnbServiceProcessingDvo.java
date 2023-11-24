@@ -126,10 +126,12 @@ public class WsnbServiceProcessingDvo {
     String rveCsTot; // 청구내역(전체)
     String csBilNo; // 결제내역(비용청구번호)
     String adpBilAmt; // 결제내역(합산청구)
-    String cardStlm; // 결제내역(신용카드)
+    String cardStlmAmt; // 결제내역(신용카드)
     String vacStlmAmt; // 결제내역(가상계좌)
+    String cashStlmAmt; // 결제내역(현금)
     byte[] cstSignCnByte; // 고객서명(byte)
     String cstSignCn; // 고객서명
+    String istImg; // 이미지 파일 존재 유무
     String istEnvrPhoPhDocId; // 설치환경사진 DOC_ID
     String istKitPhoPhDocId; // 설치키트사진 DOC_ID
     String istCelngPhoPhDocId; // 설치천장사진 DOC_ID

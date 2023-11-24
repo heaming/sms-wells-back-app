@@ -38,7 +38,7 @@ public interface WwpsgBusinessCellPhoneChMgtMapper {
         WwpsgBusinessCellPhoneChMgtDto.SearchReq dto
     );
 
-    WwpsgBusinessCellPhoneChMgtDto.PopupSearchRes selectPsgaRpotbizProcsIz(
+    WwpsgBusinessCellPhoneChMgtDvo selectPsgaRpotbizProcsIz(
         WwpsgBusinessCellPhoneChMgtDto.SearchReq dto
     );
 

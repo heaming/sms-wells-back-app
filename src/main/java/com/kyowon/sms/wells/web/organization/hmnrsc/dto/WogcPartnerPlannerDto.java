@@ -32,8 +32,12 @@ public class WogcPartnerPlannerDto {
         String ogTpCd, // 조직유형코드
         String prtnrNo, // 파트너번호
         String prtnrKnm, // 파트너한글명
+        String usrId, // 사용자ID
         String rsbDvCd, // 직책코드
         String rsbDvNm, // 직책명
+        String cralLocaraTno, // 휴대지역전화번호
+        String mexnoEncr, // 휴대전화국번호암호화
+        String cralIdvTno, // 휴대개별전화번호
         String bizUseIdvTno, // 업무사용개별전화번호
         String bizUseExnoEncr, // 업무사용전화국번호암호화
         String bizUseLocaraTno, // 업무사용지역전화번호
@@ -46,6 +50,8 @@ public class WogcPartnerPlannerDto {
         String qlfDvNm // 자격구분코드명
     ) {
         public SearchLicenseRes {
+            // 업무사용전화국번호암호화 복호화처리
+            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
             // 업무사용전화국번호암호화 복호화처리
             bizUseExnoEncr = StringUtils.isNotEmpty(bizUseExnoEncr) ? DbEncUtil.dec(bizUseExnoEncr) : bizUseExnoEncr;
         }

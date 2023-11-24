@@ -7,6 +7,7 @@ import javax.validation.Valid;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageAgrgDto.FindItemRes;
@@ -42,6 +43,7 @@ public class WsnaOutOfStorageAgrgController {
         @ApiImplicitParam(name = "itmKndCd", value = "품목구분", paramType = "query", required = true),
         @ApiImplicitParam(name = "itmPdCd", value = "품목", paramType = "query"),
         @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query"),
+        @ApiImplicitParam(name = "wareDvCd", value = "창고구분", paramType = "query"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query"),
     })
     @GetMapping
@@ -54,11 +56,23 @@ public class WsnaOutOfStorageAgrgController {
 
     @GetMapping("/ware-houses")
     @ApiOperation(value = "출고집계현황 창고 조회", notes = "출고집계현황 창고를 조회한다.")
-    public List<WsnaOutOfStorageAgrgWareDvo> getWareHouseNames() {
-        return this.service.getWareHouses();
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseDt", value = "기준년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "wareDvCd", value = "창고구분", paramType = "query", required = true),
+    })
+    public List<WsnaOutOfStorageAgrgWareDvo> getWareHouseNames(
+        @RequestParam(name = "baseDt")
+        String baseDt,
+        @RequestParam(name = "wareDvCd")
+        String wareDvCd
+    ) {
+        return this.service.getWareHouses(baseDt, wareDvCd);
     }
 
     @ApiOperation(value = "조회조건에 해당하는 품목코드 조회", notes = "조회조건에 해당하는 품목코드를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "itmKndCd", value = "품목구분", paramType = "query", required = true),
+    })
     @GetMapping("/filter-items")
     public List<FindItemRes> getItemProductCodes(
         SearchReq dto

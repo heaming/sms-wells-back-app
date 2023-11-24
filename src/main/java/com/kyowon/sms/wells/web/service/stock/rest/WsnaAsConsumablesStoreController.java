@@ -98,4 +98,33 @@ public class WsnaAsConsumablesStoreController {
         return this.service.getItemProductCodes(dto);
     }
 
+    @ApiOperation(value = "그리드에 입력한 창고번호로 창고명 조회", notes = "그리드에 입력한 창고번호로 창고명을 조회한다")
+    @GetMapping("/{apyYm}-{strWareNo}/warehouse")
+    public FindWareNmRes getStrWarehouseName(
+        @PathVariable
+        String apyYm,
+        @PathVariable
+        String strWareNo
+    ) {
+        return this.service.getStrWarehouseName(apyYm, strWareNo);
+    }
+
+    @ApiOperation(value = "그리드에 입력한 SAP코드로 품목코드 품목명 조회", notes = "그리드에 입력한 SAP코드로 품목코드 품목명을 조회한다.")
+    @GetMapping("/{sapCd}/sapcd")
+    public FindItmPdCdNmRes getItmPdCdNm(
+        @PathVariable
+        String sapCd
+    ) {
+        return this.service.getItmPdCdNm(sapCd);
+    }
+
+    @ApiOperation(value = "그리드에 입력한 품목코드로 SAP코드 품목명 조회", notes = "그리드에 입력한 품목코드로 SAP코드 품목명을 조회한다.")
+    @GetMapping("/{itmPdCd}/pdcd")
+    public FindSapCdNmRes getSapCdNm(
+        @PathVariable
+        String itmPdCd
+    ) {
+        return this.service.getSapCdNm(itmPdCd);
+    }
+
 }

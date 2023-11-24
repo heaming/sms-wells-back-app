@@ -50,9 +50,9 @@ public class WwpsgBusinessCellPhoneChMgtDto {
         String procsCn,
         String fnlMdfcDtm,
         String procsPrtnrNo,
-        String procsPrtnrKnm,
+        String procsPrtnrNm,
         String procsCralLocaraTno,
-        String procsMexnoEncr,
+        String procsMexnoGbencr,
         String procsCralIdvTno,
         String rpotBizProcsStatNm
     ) {
@@ -122,6 +122,7 @@ public class WwpsgBusinessCellPhoneChMgtDto {
         String procsCn,               /* 처리내용 */
         String rntAplcTpCd,         /* 임차신청유형코드 */
         String rntAplcTpNm,
+        String prtnrNo,
         String prtnrKnm,            /* 파트너 한글명 */
         String fnlMdfcDtm,
         String fnlMdfcUsrId,
@@ -168,6 +169,7 @@ public class WwpsgBusinessCellPhoneChMgtDto {
         String procsCn,
         String bizCralTelChTpCd,     /* 업무휴대전화변경유형코드 */
         String chRqdt,               /* 변경요청일자 */
+        String rcstPrtnrNo,
         String sellPrtnrNo,          /* 판매파트너번호 */
         String bfchCralLocaraTno,    /* 변경전휴대지역전화번호 */
         String bfchMexnoEncr,        /* 변경전휴대전화국번호암호화 */

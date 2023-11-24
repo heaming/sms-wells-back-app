@@ -548,14 +548,16 @@
              , EDU2_PRE /*교육-Pre누적교육 */
              , TOPMR_SETTLE	/* 교육-수석정착 */
              , TOPMR_NMN /*교육-수석차월*/
-             , MNGER_FST_OPNG	/* 매니저개시사항-최초개시일 */
-             , MNGER_OPNG	/* 매니저개시사항-재개시월 */
+             , SUBSTR(MNGER_FST_OPNG, 1, 6) AS MNGER_FST_OPNG	/* 매니저개시사항-최초개시일 */
+             , SUBSTR(MNGER_OPNG, 1, 6) AS MNGER_OPNG	/* 매니저개시사항-재개시월 */
              , MNGER_FNL_CLTN	/* 매니저개시사항-최종해약월 */
              , MNGER_BIZ_CLTN /* 매니저개시사항-업무해약월 */
-             , MNGER_BLTN_NMN /* 매니저개시사항-매니저 개시차월 */
+             , CASE WHEN MNGER_OPNG IS NOT NULL THEN CEIL(MONTHS_BETWEEN(TO_DATE(BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER_OPNG, 'YYYYMMDD')))+1
+                    WHEN MNGER_FST_OPNG IS NOT NULL THEN CEIL(MONTHS_BETWEEN(TO_DATE(BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER_FST_OPNG, 'YYYYMMDD')))+1
+               ELSE 0 END AS MNGER_BLTN_NMN /* 매니저개시사항-매니저 개시차월 */
              , MNGER_SETTLE_DSB_TP /* 매니저개시사항-정착지급유형 */
              , INDV_D5_ASN_CNT  /* 5일배정건수 */
-             , INDV_ASN_CNT	/* 개인BS-배정건수 */
+             , (INDV_ASN_CNT - INDV_BS_CAN_CNT) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
              , INDV_FSH_CNT	/* 개인BS-완료건수 */
              , INDV_PROCS_RAT	/* 개인BS-처리율 */
              , CASE WHEN INDV_PROCS_RAT = 0 THEN 0
@@ -565,14 +567,15 @@
                     WHEN INDV_PROCS_RAT <![CDATA[>=]]> 90 THEN 100 END AS INDV_DBS_RAT	/*개인BS-지급률*/
              , INDV_W1_CNT	/* 개인BS-W1급지건수 */
              , INDV_W2_CNT	/* 개인BS-W2급지건수 */
-             , OG_ASN_CNT	/* 조직BS-배정건수 */
+             , (OG_ASN_CNT - OG_BS_CAN_CNT) AS OG_ASN_CNT	/* 조직BS-배정건수 취소건수를 뺀 값 */
              , OG_FSH_CNT	/* 조직BS-완료건수 */
-             , OG_PROCS_RAT	/* 조직BS-처리율 */
-             , CASE WHEN OG_PROCS_RAT = 0 THEN 0
-                    WHEN RSB_DV_CD = 'W0204' AND OG_PROCS_RAT <![CDATA[>=]]> 90 AND OG_FSH_CNT <![CDATA[>=]]> 120 THEN 70    /*지점장은 처리율90이상 완료건수 120건이상일 경우 70*/
-                    WHEN RSB_DV_CD = 'W0204' AND OG_PROCS_RAT <![CDATA[<]]> 90 AND OG_FSH_CNT <![CDATA[>=]]> 120 THEN 56    /*지점장은 처리율90미만 완료건수 120건이상일 경우 56*/
-                    WHEN OG_PROCS_RAT <![CDATA[>]]> 0 AND OG_PROCS_RAT <![CDATA[<]]> 90 THEN 80
-                    WHEN OG_PROCS_RAT <![CDATA[>=]]> 90 THEN 100 END AS OG_DBS_RAT	/*조직BS-지급률*/
+             , CASE WHEN OG_ASN_CNT <![CDATA[>]]> 0 THEN TRUNC(OG_FSH_CNT / (OG_ASN_CNT - OG_BS_CAN_CNT) * 100.00, 1) ELSE 0 END AS OG_PROCS_RAT	/* 조직BS-처리율 */
+             , CASE WHEN OG_ASN_CNT <![CDATA[>]]> 0 THEN
+                    CASE WHEN TRUNC(OG_FSH_CNT / (OG_ASN_CNT - OG_BS_CAN_CNT) * 100.00, 1) <![CDATA[>=]]> 90 THEN 100
+                         WHEN TRUNC(OG_FSH_CNT / (OG_ASN_CNT - OG_BS_CAN_CNT) * 100.00, 1) <![CDATA[<]]> 90 THEN 80
+                         ELSE 0
+                    END
+               ELSE 0 END AS OG_DBS_RAT	/*조직BS-순증관리지급률*/
              , INDV_ELHM_ACKMT_CNT	/* 개인실적-가전인정건수 */
              , INDV_RENTAL_BASE_PRC	/* 개인실적-렌잘기준가 */
              , INDV_SPAY_BASE_PRC	/* 개인실적-일시불기준가 */
@@ -582,10 +585,11 @@
              , INDV_LIVE_PAKG_CNT	/* 개인실적-라이브팩건수 */
              , INDV_HCR_MSH_CNT	/* 개인실적-홈케어멤버십건수 */
              , OG_ELHM_ACKMT_CNT	/* 조직실적-가전인정건수 */
+             , OG_ELHM_EXCP_ACKMT_PERF	/* 조직가전외인정실적 */
              , OG_RENTAL_BASE_PRC	/* 조직실적-렌탈기준가 */
              , OG_SPAY_BASE_PRC	/* 조직실적-일시불기준가 */
              , OG_CHDVC_CNT	/* 조직실적-기변건수 */
-             , OG_RENTAL_BASE_PRC + OG_SPAY_BASE_PRC AS OG_PERF_SUM	/*조직실적-계*/
+             , OG_ELHM_EXCP_ACKMT_PERF + OG_RENTAL_BASE_PRC + OG_SPAY_BASE_PRC AS OG_PERF_SUM	/*조직실적-계*/
              , INDV_NW_CNT	/* 개인순증-신규건수*/
              , INDV_CAN_CNT	/* 개인순증-취소건수 */
              , INDV_NW_CNT - INDV_CAN_CNT AS INDV_NINC	/* 개인순증-순증 */
@@ -641,7 +645,7 @@
                     , NVL(EDU2.EDU_PRE3, 'N') AS EDU_PRE3	/* 프리3세일즈(146)수료여부 */
                     , NVL(EDU2.EDU_PRE4, 'N') AS EDU_PRE4	/* 프리4Wells live(147)수료여부 */
                     , NVL(EDU2.EDU_PRE5, 'N') AS EDU_PRE5	/* 프리5Wells live(148)수료여부 */
-                    , EDU.EDU135_YM AS EDU_BRMGR_ONL	/* 지점장교육(135) */
+                    , EDU135.EDU135_YM AS EDU_BRMGR_ONL	/* 지점장교육(135) */
                     , CASE WHEN EDU2.EDU_PRE1 = 'Y' THEN '1'
                            WHEN EDU2.EDU_PRE2 = 'Y' THEN '2'
                            WHEN EDU2.EDU_PRE3 = 'Y' THEN '3'
@@ -649,26 +653,21 @@
                            WHEN EDU2.EDU_PRE5 = 'Y' THEN '5'
                            ELSE ''
                       END AS EDU2_PRE /*교육-Pre누적교육 */
-                    , SUBSTR(MNGER1.MNGER_FST_OPNG, 1, 6) AS MNGER_FST_OPNG	/* 매니저 최초개시일 */
-                    , SUBSTR(MNGER2.MNGER_OPNG, 1, 6) AS MNGER_OPNG	/* 매니저 재개시월 */
+                    , MNGER1.MNGER_FST_OPNG AS MNGER_FST_OPNG	/* 매니저 최초개시일 */
+                    , MNGER2.RESTRT_DT AS MNGER_OPNG	/* 매니저 재개시월 */
                     , SUBSTR(MNGER3.MNGER_FNL_CLTN, 1, 6) AS MNGER_FNL_CLTN	/* 매니저 최종해약월 */
                     , SUBSTR(MNGER4.MNGER_BIZ_CLTN, 1, 6) AS MNGER_BIZ_CLTN /* 매니저 업무해약월 */
-                    , CASE WHEN (MNGER3.MNGER_FNL_CLTN IS NULL AND MNGER4.MNGER_BIZ_CLTN IS NULL) OR (MNGER3.MNGER_FNL_CLTN <![CDATA[>=]]> #{dto.perfYm} OR MNGER4.MNGER_BIZ_CLTN <![CDATA[>=]]> #{dto.perfYm}) THEN
-                            CASE WHEN MNGER2.MNGER_OPNG IS NOT NULL THEN
-                                 CEIL(MONTHS_BETWEEN(TO_DATE(PRTNR.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER2.MNGER_OPNG, 'YYYYMMDD')))+1
-                            ELSE CEIL(MONTHS_BETWEEN(TO_DATE(PRTNR.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER1.MNGER_FST_OPNG, 'YYYYMMDD')))+1
-                            END
-                       ELSE 0 END AS MNGER_BLTN_NMN /* 매니저 개시차월 */
                     , F_CMZ_CD_NM('TNT_WELLS', 'OPNG_CD', MNGER5.OPNG_CD) AS MNGER_SETTLE_DSB_TP /* 매니저개시 정착지급유형 */
                     , NVL(INDVD5.INDV_D5_ASN_CNT, 0) AS INDV_D5_ASN_CNT     /* 개인BS-5일배정건수 */
                     , NVL(INDVBS.INDV_ASN_CNT, 0) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
+                    , NVL(INDVBS.INDV_BS_CAN_CNT, 0) AS INDV_BS_CAN_CNT     /* 개인BS-취소건수 */
                     , NVL(INDVBS.INDV_FSH_CNT, 0) AS INDV_FSH_CNT	/* 개인BS-완료건수 */
                     , NVL(INDVBS.INDV_PROCS_RAT, 0) AS INDV_PROCS_RAT	/* 개인BS-처리율 */
                     , NVL(INDVBS.INDV_W1_CNT, 0) AS INDV_W1_CNT	/* 개인BS-W1급지건수 */
                     , NVL(INDVBS.INDV_W2_CNT, 0) AS INDV_W2_CNT	/* 개인BS-W2급지건수 */
                     , NVL(OGBS.OG_ASN_CNT, 0) AS OG_ASN_CNT	/* 조직BS-배정건수 */
+                    , NVL(OGBS.OG_BS_CAN_CNT, 0) AS OG_BS_CAN_CNT	/* 조직BS-취소건수 */
                     , NVL(OGBS.OG_FSH_CNT, 0) AS OG_FSH_CNT	/* 조직BS-완료건수 */
-                    , NVL(OGBS.OG_PROCS_RAT, 0) AS OG_PROCS_RAT	/* 조직BS-처리율 */
                     , NVL(PERF.INDV_ELHM_ACKMT_CNT, 0) AS INDV_ELHM_ACKMT_CNT	/* 개인실적-가전인정건수 */
                     , NVL(PERF.INDV_RENTAL_BASE_PRC, 0) AS INDV_RENTAL_BASE_PRC	/* 개인실적-렌잘기준가 */
                     , NVL(PERF.INDV_SPAY_BASE_PRC, 0) AS INDV_SPAY_BASE_PRC	/* 개인실적-일시불기준가 */
@@ -678,6 +677,7 @@
                     , NVL(PERF.INDV_LIVE_PAKG_CNT, 0) AS INDV_LIVE_PAKG_CNT	/* 개인실적-라이브팩건수 */
                     , NVL(PERF.INDV_HCR_MSH_CNT, 0) AS INDV_HCR_MSH_CNT	/* 개인실적-홈케어멤버십건수 */
                     , NVL(PERF.OG_ELHM_ACKMT_CNT, 0) AS OG_ELHM_ACKMT_CNT	/* 조직실적-가전인정건수 */
+                    , NVL(PERF.OG_ELHM_EXCP_ACKMT_PERF, 0) AS OG_ELHM_EXCP_ACKMT_PERF	/* 조직가전외인정실적 */
                     , NVL(PERF.OG_RENTAL_BASE_PRC, 0) AS OG_RENTAL_BASE_PRC	/* 조직실적-렌탈기준가 */
                     , NVL(PERF.OG_SPAY_BASE_PRC, 0) AS OG_SPAY_BASE_PRC	/* 조직실적-일시불기준가 */
                     , NVL(PERF.OG_CHDVC_CNT, 0) AS OG_CHDVC_CNT	/* 조직실적-기변건수 */
@@ -752,31 +752,32 @@
                   ) NMNQLF
                  ON PRTNR.PRTNR_NO = NMNQLF.PRTNR_NO
                 LEFT OUTER JOIN
-                   ( SELECT STRTDT AS MNGER_OPNG /* 매니저 재개시월 */
+                   ( SELECT OG_TP_CD
                           , PRTNR_NO
-                       FROM TB_OGPS_PLAR_QLF_CH_IZ    /* 플래너자격변경내역 */
-                      WHERE DTA_DL_YN = 'N'
-                        AND #{dto.perfYm} BETWEEN SUBSTR(STRTDT, 0, 6) AND SUBSTR(ENDDT, 0, 6)
-                        AND OG_TP_CD = 'W02'
-                        AND QLF_DV_CD IN (3, 6)
-                        AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승격,자격해제(과거)  3: 보류 제외 */
-                        <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
-                        AND PRTNR_NO = #{dto.prtnrNo}
-                        </if>
-                      UNION ALL
-                     SELECT STRTDT AS MNGER_OPNG /* 매니저 재개시월 */
-                          , PRTNR_NO
-                       FROM TB_OGPS_PLAR_QLF_CH_IZ	/* 플래너자격변경내역 */
-                      WHERE DTA_DL_YN = 'N'
-                        AND SUBSTR(STRTDT, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(#{dto.perfYm}, 'YYYYMM'), 1), 'YYYYMM')
-                        AND OG_TP_CD = 'W02'
-                        AND QLF_DV_CD IN (3, 6)
-                        AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승격,자격해제(과거)  3: 보류 제외 */
-                        <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
-                        AND PRTNR_NO = #{dto.prtnrNo}
-                        </if>
+                          , MIN(STRTDT) AS FST_CNTR_DT  /* 최초계약일 */
+                          , MAX(NVL2(STRT_PREV_DT,STRTDT,'')) AS RESTRT_DT    /* 재등록개시일 */
+                       FROM
+                          ( SELECT OG_TP_CD
+                                 , PRTNR_NO
+                                 , STRTDT
+                                 , ENDDT
+                                 , CV_DT
+                                 , DSB_AMT
+                                 , LAG(STRTDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, STRTDT)  AS STRT_PREV_DT
+                                 , LEAD(STRTDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, STRTDT) AS STRT_NEXT_DT
+                                 , LAG(ENDDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, ENDDT)  AS END_PREV_DT
+                                 , LEAD(ENDDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, ENDDT) AS END_NEXT_DT
+                              FROM TB_OGPS_PLAR_QLF_CH_IZ   /* 플래너자격변경내역 */
+                             WHERE DTA_DL_YN = 'N'
+                               AND OG_TP_CD  = 'W02'
+                               AND QLF_DV_CD = 3
+                               AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제  3 : 보류 제외
+                          ) A
+                      WHERE 1=1
+                      GROUP BY OG_TP_CD, PRTNR_NO
                   ) MNGER2
-                 ON PRTNR.PRTNR_NO = MNGER2.PRTNR_NO
+                 ON PRTNR.OG_TP_CD = MNGER2.OG_TP_CD
+                AND PRTNR.PRTNR_NO = MNGER2.PRTNR_NO
                LEFT OUTER JOIN
                   ( SELECT MAX (ENDDT) AS MNGER_FNL_CLTN /* 매니저 최종해약월 */
                          , PRTNR_NO
@@ -825,7 +826,6 @@
                       , EDU96_YM
                       , EDU143_YM
                       , EDU17_YM
-                      , EDU135_YM
                       , CASE WHEN NVL(EDU106_YM, 0)  <![CDATA[>]]>  NVL(EDU100_YM, 0) THEN EDU106_YM
                         ELSE EDU100_YM END AS EDU100_YM
                    FROM
@@ -836,19 +836,38 @@
                           FROM TB_PSCA_MCPTN_EDUC_IZ A	/* 월별파트너교육내역 */
                          WHERE A.DTA_DL_YN = 'N'
                            AND A.EDUC_CRSE_CRT_BASE_YM <![CDATA[<=]]> #{dto.perfYm}
-                           AND A.EDUC_CRSE_NO IN ('96','143', '17', '135', '100', '106')
+                           AND A.EDUC_CRSE_NO IN ('96','143', '17', '100', '106')
                            AND A.EDUC_CPC_ACKMT_YN = 'Y'
                      ) A
                  PIVOT ( MAX(EDUC_CRSE_CRT_BASE_YM) FOR EDUC_CRSE_NO IN
                          ( '96' AS EDU96_YM
                           , '143' AS EDU143_YM
                           , '17' AS EDU17_YM
-                          , '135' AS EDU135_YM
                           , '100' AS EDU100_YM
                           , '106' AS EDU106_YM ))
               ) EDU
              ON PRTNR.OG_TP_CD = EDU.OG_TP_CD
             AND PRTNR.PRTNR_NO = EDU.PRTNR_NO
+           LEFT OUTER JOIN
+               ( SELECT OG_TP_CD
+                      , PRTNR_NO
+                      , EDU135_YM
+                   FROM
+                      ( SELECT A.OG_TP_CD
+                             , A.PRTNR_NO
+                             , A.EDUC_CRSE_NO
+                             , A.EDUC_CRSE_CRT_BASE_YM
+                          FROM TB_PSCA_MCPTN_EDUC_IZ A	/* 월별파트너교육내역 */
+                         WHERE A.DTA_DL_YN = 'N'
+                           AND A.EDUC_CRSE_CRT_BASE_YM = #{dto.perfYm}
+                           AND A.EDUC_CRSE_NO = '135'
+                           AND A.EDUC_CPC_ACKMT_YN = 'Y'
+                     ) A
+                 PIVOT ( MAX(EDUC_CRSE_CRT_BASE_YM) FOR EDUC_CRSE_NO IN
+                         ( '135' AS EDU135_YM))
+              ) EDU135
+             ON PRTNR.OG_TP_CD = EDU135.OG_TP_CD
+            AND PRTNR.PRTNR_NO = EDU135.PRTNR_NO
            LEFT OUTER JOIN
               ( SELECT PRTNR_NO
                      , MAX(CASE WHEN PERF_ATC_CD = 'W02P00116' THEN FEE_PERF_ATC_VAL END) AS EDU_CMPF	/* 보수교육최종(129)수료여부 */
@@ -879,6 +898,7 @@
           LEFT OUTER JOIN
              ( SELECT PRTNR_NO
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999901' THEN PERF_VAL ELSE 0 END ) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
+                    , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01909001' THEN PERF_VAL ELSE 0 END ) AS INDV_BS_CAN_CNT    /* 개인BS-취소건수 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD IN ('SV01999902', 'SV01999903') THEN PERF_VAL ELSE 0 END ) AS INDV_FSH_CNT	/* 개인BS-완료건수 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL ELSE 0 END ) AS INDV_PROCS_RAT	/* 개인BS-처리율 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010102' THEN PERF_VAL ELSE 0 END ) AS INDV_W1_CNT	/* 개인BS-W1급지건수 */
@@ -888,7 +908,7 @@
                   AND BASE_YM = #{dto.perfYm}
                   AND CL_DV_CD = #{dto.feeTcntDvCd}
                   AND OG_TP_CD = 'W02'
-                  AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910', 'SV06010102', 'SV06010103')	/* 배정건수, 당월완료건수, 전월완료건수, 비율, W1급지건수, W2급지건수 */
+                  AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910', 'SV06010102', 'SV06010103', 'SV01909001')	/* 배정건수, 당월완료건수, 전월완료건수, 비율, W1급지건수, W2급지건수 */
                   <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
                   AND PRTNR_NO = #{dto.prtnrNo}
                   </if>
@@ -912,22 +932,27 @@
           LEFT OUTER JOIN
              ( SELECT T3.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
                     , SUM(T1.OG_ASN_CNT) AS OG_ASN_CNT	/* 조직BS-배정건수 */
+                    , SUM(T1.OG_BS_CAN_CNT) AS OG_BS_CAN_CNT	/* 조직BS-취소건수 */
                     , SUM(T1.OG_FSH_CNT) AS OG_FSH_CNT	/* 조직BS-완료건수 */
-                    , SUM(T1.OG_PROCS_RAT) AS OG_PROCS_RAT	/* 조직BS-처리율 */
                  FROM
-                    ( SELECT BASE_YM
-                           , OG_TP_CD
-                           , PRTNR_NO
-                           , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999901' THEN PERF_VAL ELSE 0 END ) AS OG_ASN_CNT	/* 조직BS-배정건수 */
-                           , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD IN ('SV01999902', 'SV01999903') THEN PERF_VAL ELSE 0 END ) AS OG_FSH_CNT	/* 조직BS-완료건수 */
-                           , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL ELSE 0 END ) AS OG_PROCS_RAT	/* 조직BS-처리율 */
-                        FROM TB_FEAM_WPTN_SV_PERF_AGRG	/* 웰스파트너서비스실적집계 */
-                       WHERE DTA_DL_YN = 'N'
-                         AND BASE_YM = #{dto.perfYm}
-                         AND CL_DV_CD = #{dto.feeTcntDvCd}
-                         AND OG_TP_CD = 'W02'
-                         AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910')	/* 배정건수, 당월완료건수, 전월완료건수, 비율 */
-                       GROUP BY BASE_YM, OG_TP_CD, PRTNR_NO
+                    ( SELECT A.BASE_YM
+                           , A.OG_TP_CD
+                           , A.PRTNR_NO
+                           , SUM(CASE WHEN A.PRTNR_SV_PERF_ATC_CD = 'SV01999901' THEN A.PERF_VAL ELSE 0 END ) AS OG_ASN_CNT	/* 조직BS-배정건수 */
+                           , SUM(CASE WHEN A.PRTNR_SV_PERF_ATC_CD = 'SV01909001' THEN A.PERF_VAL ELSE 0 END) AS OG_BS_CAN_CNT	/*조직BS-취소건수*/
+                           , SUM(CASE WHEN A.PRTNR_SV_PERF_ATC_CD IN ('SV01999902', 'SV01999903') THEN A.PERF_VAL ELSE 0 END ) AS OG_FSH_CNT	/* 조직BS-완료건수 */
+                        FROM TB_FEAM_WPTN_SV_PERF_AGRG A	/* 웰스파트너서비스실적집계 */
+                       INNER JOIN TB_OGBS_MM_PRTNR_IZ B    /*월파트너내역*/
+                          ON A.BASE_YM = B.BASE_YM
+                         AND A.OG_TP_CD = B.OG_TP_CD
+                         AND A.PRTNR_NO = B.PRTNR_NO
+                       WHERE A.DTA_DL_YN = 'N'
+                         AND A.BASE_YM = #{dto.perfYm}
+                         AND A.CL_DV_CD = #{dto.feeTcntDvCd}
+                         AND A.OG_TP_CD = 'W02'
+                         AND A.PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01909001')	/* 배정건수, 당월완료건수, 전월완료건수, 취소건수 */
+                         AND B.PSTN_DV_CD = '15'   /* 지점장 실적 제외 */
+                       GROUP BY A.BASE_YM, A.OG_TP_CD, A.PRTNR_NO
                    ) T1	/* 파트너별 개인BS */
                INNER JOIN TB_OGBS_MM_PRTNR_IZ T2	/* 월파트너내역 */
                   ON T1.BASE_YM = T2.BASE_YM
@@ -954,6 +979,7 @@
                    , SUM(INDV_LIVE_PAKG_CNT) AS INDV_LIVE_PAKG_CNT  /* 개인라이브팩건수 */
                    , SUM(INDV_HCR_MSH_CNT) AS INDV_HCR_MSH_CNT  /* 개인홈케어멤버십건수 */
                    , SUM(OG_ELHM_ACKMT_CNT) AS OG_ELHM_ACKMT_CNT /* 조직가전인정건수 */
+                   , SUM(OG_ELHM_EXCP_ACKMT_PERF) AS OG_ELHM_EXCP_ACKMT_PERF /* 조직가전외인정실적 */
                    , SUM(OG_RENTAL_BASE_PRC) AS OG_RENTAL_BASE_PRC /* 조직렌탈기준가 */
                    , SUM(OG_SPAY_BASE_PRC) AS OG_SPAY_BASE_PRC /* 조직일시불기준가 */
                    , SUM(OG_CHDVC_CNT) AS OG_CHDVC_CNT /* 조직기변건수 */
@@ -968,6 +994,7 @@
                           , CASE WHEN PERF_ATC_CD IN ('W02P00105', 'W00P00009') THEN PERF_VAL ELSE 0 END AS INDV_LIVE_PAKG_CNT	/* 개인라이브팩건수 */
                           , CASE WHEN PERF_ATC_CD = 'W02P00086' THEN PERF_VAL ELSE 0 END AS INDV_HCR_MSH_CNT	/* 개인홈케어멤버십건수 */
                           , 0 AS OG_ELHM_ACKMT_CNT	/* 조직가전인정건수 */
+                          , 0 AS OG_ELHM_EXCP_ACKMT_PERF	/* 조직가전외인정실적 */
                           , 0 AS OG_RENTAL_BASE_PRC	/* 조직렌탈기준가 */
                           , 0 AS OG_SPAY_BASE_PRC	/* 조직일시불기준가 */
                           , 0 AS OG_CHDVC_CNT	/* 조직기변건수 */
@@ -996,6 +1023,7 @@
                            , 0 AS INDV_LIVE_PAKG_CNT	/* 개인라이브팩건수 */
                            , 0 AS INDV_HCR_MSH_CNT	/* 개인홈케어멤버십건수 */
                            , CASE WHEN PERF_ATC_CD = 'W02P00002' THEN PERF_VAL ELSE 0 END AS OG_ELHM_ACKMT_CNT	/* 조직가전인정건수 */
+                           , CASE WHEN PERF_ATC_CD = 'W02P00112' THEN PERF_VAL ELSE 0 END AS OG_ELHM_EXCP_ACKMT_PERF	/* 조직가전외인정실적 */
                            , CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS OG_RENTAL_BASE_PRC	/* 조직렌탈기준가 */
                            , CASE WHEN PERF_ATC_CD = 'W00P00004' THEN PERF_VAL ELSE 0 END AS OG_SPAY_BASE_PRC	/* 조직일시불기준가 */
                            , CASE WHEN PERF_ATC_CD IN ('W00P00014', 'W00P00018') THEN PERF_VAL ELSE 0 END AS OG_CHDVC_CNT	/* 조직기변건수 */
@@ -1007,7 +1035,7 @@
                          AND PERF_AGRG_CRT_DV_CD = '201'
                          AND PERF_DV_CD = '2'	/* 실적구분코드 2-지점 */
                          AND OG_TP_CD = 'W02'
-                         AND PERF_ATC_CD IN ( 'W02P00002', 'W00P00003', 'W00P00004', 'W00P00014', 'W00P00018')
+                         AND PERF_ATC_CD IN ( 'W02P00002', 'W00P00003', 'W00P00004', 'W00P00014', 'W00P00018', 'W02P00112')
                          <if test='@MybatisUtils@isNotEmpty(dto.prtnrNo)'>
                          AND PRTNR_NO = #{dto.prtnrNo}
                          </if>
@@ -1192,14 +1220,16 @@
              , EDU2_PRE /*교육-Pre누적교육 */
              , TOPMR_SETTLE	/* 교육-수석정착 */
              , TOPMR_NMN /*교육-수석차월*/
-             , MNGER_FST_OPNG	/* 매니저개시사항-최초개시일 */
-             , MNGER_OPNG	/* 매니저개시사항-재개시월 */
+             , SUBSTR(MNGER_FST_OPNG, 1, 6) AS MNGER_FST_OPNG	/* 매니저개시사항-최초개시일 */
+             , SUBSTR(MNGER_OPNG, 1, 6) AS MNGER_OPNG	/* 매니저개시사항-재개시월 */
              , MNGER_FNL_CLTN	/* 매니저개시사항-최종해약월 */
              , MNGER_BIZ_CLTN /* 매니저개시사항-업무해약월 */
-             , MNGER_BLTN_NMN /* 매니저개시사항-매니저 개시차월 */
+             , CASE WHEN MNGER_OPNG IS NOT NULL THEN CEIL(MONTHS_BETWEEN(TO_DATE(BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER_OPNG, 'YYYYMMDD')))+1
+                    WHEN MNGER_FST_OPNG IS NOT NULL THEN CEIL(MONTHS_BETWEEN(TO_DATE(BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER_FST_OPNG, 'YYYYMMDD')))+1
+               ELSE 0 END AS MNGER_BLTN_NMN /* 매니저개시사항-매니저 개시차월 */
              , MNGER_SETTLE_DSB_TP /* 매니저개시사항-정착지급유형 */
              , INDV_D5_ASN_CNT  /* 5일배정건수 */
-             , INDV_ASN_CNT	/* 개인BS-배정건수 */
+             , (INDV_ASN_CNT - INDV_BS_CAN_CNT) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
              , INDV_FSH_CNT	/* 개인BS-완료건수 */
              , INDV_PROCS_RAT	/* 개인BS-처리율 */
              , CASE WHEN INDV_PROCS_RAT = 0 THEN 0
@@ -1209,14 +1239,15 @@
                     WHEN INDV_PROCS_RAT <![CDATA[>=]]> 90 THEN 100 END AS INDV_DBS_RAT	/*개인BS-지급률*/
              , INDV_W1_CNT	/* 개인BS-W1급지건수 */
              , INDV_W2_CNT	/* 개인BS-W2급지건수 */
-             , OG_ASN_CNT	/* 조직BS-배정건수 */
+             , (OG_ASN_CNT - OG_BS_CAN_CNT) AS OG_ASN_CNT	/* 조직BS-배정건수 */
              , OG_FSH_CNT	/* 조직BS-완료건수 */
-             , OG_PROCS_RAT	/* 조직BS-처리율 */
-             , CASE WHEN OG_PROCS_RAT = 0 THEN 0
-                    WHEN RSB_DV_CD = 'W0204' AND OG_PROCS_RAT <![CDATA[>=]]> 90 AND OG_FSH_CNT <![CDATA[>=]]> 120 THEN 70    /*지점장은 처리율90이상 완료건수 120건이상일 경우 70*/
-                    WHEN RSB_DV_CD = 'W0204' AND OG_PROCS_RAT <![CDATA[<]]> 90 AND OG_FSH_CNT <![CDATA[>=]]> 120 THEN 56    /*지점장은 처리율90미만 완료건수 120건이상일 경우 56*/
-                    WHEN OG_PROCS_RAT <![CDATA[>]]> 0 AND OG_PROCS_RAT <![CDATA[<]]> 90 THEN 80
-                    WHEN OG_PROCS_RAT <![CDATA[>=]]> 90 THEN 100 END AS OG_DBS_RAT	/*조직BS-지급률*/
+             , CASE WHEN OG_ASN_CNT <![CDATA[>]]> 0 THEN TRUNC(OG_FSH_CNT / (OG_ASN_CNT - OG_BS_CAN_CNT) * 100.00, 1) ELSE 0 END AS OG_PROCS_RAT	/* 조직BS-처리율 */
+             , CASE WHEN OG_ASN_CNT <![CDATA[>]]> 0 THEN
+                    CASE WHEN TRUNC(OG_FSH_CNT / (OG_ASN_CNT - OG_BS_CAN_CNT) * 100.00, 1) <![CDATA[>=]]> 90 THEN 100
+                         WHEN TRUNC(OG_FSH_CNT / (OG_ASN_CNT - OG_BS_CAN_CNT) * 100.00, 1) <![CDATA[<]]> 90 THEN 80
+                         ELSE 0
+                    END
+               ELSE 0 END AS OG_DBS_RAT	/*조직BS-순증관리지급률*/
              , INDV_ELHM_ACKMT_CNT	/* 개인실적-가전인정건수 */
              , INDV_RENTAL_BASE_PRC	/* 개인실적-렌잘기준가 */
              , INDV_SPAY_BASE_PRC	/* 개인실적-일시불기준가 */
@@ -1226,10 +1257,11 @@
              , INDV_LIVE_PAKG_CNT	/* 개인실적-라이브팩건수 */
              , INDV_HCR_MSH_CNT	/* 개인실적-홈케어멤버십건수 */
              , OG_ELHM_ACKMT_CNT	/* 조직실적-가전인정건수 */
+             , OG_ELHM_EXCP_ACKMT_PERF	/* 조직가전외인정실적 */
              , OG_RENTAL_BASE_PRC	/* 조직실적-렌탈기준가 */
              , OG_SPAY_BASE_PRC	/* 조직실적-일시불기준가 */
              , OG_CHDVC_CNT	/* 조직실적-기변건수 */
-             , OG_RENTAL_BASE_PRC + OG_SPAY_BASE_PRC AS OG_PERF_SUM	/*조직실적-계*/
+             , OG_ELHM_EXCP_ACKMT_PERF + OG_RENTAL_BASE_PRC + OG_SPAY_BASE_PRC AS OG_PERF_SUM	/*조직실적-계*/
              , INDV_NW_CNT	/* 개인순증-신규건수*/
              , INDV_CAN_CNT	/* 개인순증-취소건수 */
              , INDV_NW_CNT - INDV_CAN_CNT AS INDV_NINC	/* 개인순증-순증 */
@@ -1310,7 +1342,7 @@
                     , NVL(EDU2.EDU_PRE3, 'N') AS EDU_PRE3	/* 프리3세일즈(146)수료여부 */
                     , NVL(EDU2.EDU_PRE4, 'N') AS EDU_PRE4	/* 프리4Wells live(147)수료여부 */
                     , NVL(EDU2.EDU_PRE5, 'N') AS EDU_PRE5	/* 프리5Wells live(148)수료여부 */
-                    , EDU.EDU135_YM AS EDU_BRMGR_ONL	/* 지점장교육(135)수료여부 */
+                    , EDU135.EDU135_YM AS EDU_BRMGR_ONL	/* 지점장교육(135)수료여부 */
                     , CASE WHEN EDU2.EDU_PRE1 = 'Y' THEN '1'
                            WHEN EDU2.EDU_PRE2 = 'Y' THEN '2'
                            WHEN EDU2.EDU_PRE3 = 'Y' THEN '3'
@@ -1318,26 +1350,21 @@
                            WHEN EDU2.EDU_PRE5 = 'Y' THEN '5'
                            ELSE ''
                       END AS EDU2_PRE /*교육-Pre누적교육 */
-                    , SUBSTR(MNGER1.MNGER_FST_OPNG, 1, 6) AS MNGER_FST_OPNG	/* 매니저 최초개시일 */
-                    , SUBSTR(MNGER2.MNGER_OPNG, 1, 6) AS MNGER_OPNG	/* 매니저 재개시월 */
+                    , MNGER1.MNGER_FST_OPNG AS MNGER_FST_OPNG	/* 매니저 최초개시일 */
+                    , MNGER2.RESTRT_DT AS MNGER_OPNG    /* 매니저 재개시월 */
                     , SUBSTR(MNGER3.MNGER_FNL_CLTN, 1, 6) AS MNGER_FNL_CLTN	/* 매니저 최종해약월 */
                     , SUBSTR(MNGER4.MNGER_BIZ_CLTN, 1, 6) AS MNGER_BIZ_CLTN /* 매니저 업무해약월 */
-                    , CASE WHEN (MNGER3.MNGER_FNL_CLTN IS NULL AND MNGER4.MNGER_BIZ_CLTN IS NULL) OR (MNGER3.MNGER_FNL_CLTN <![CDATA[>=]]> #{perfYm} OR MNGER4.MNGER_BIZ_CLTN <![CDATA[>=]]> #{perfYm}) THEN
-                            CASE WHEN MNGER2.MNGER_OPNG IS NOT NULL THEN
-                                 CEIL(MONTHS_BETWEEN(TO_DATE(PRTNR.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER2.MNGER_OPNG, 'YYYYMMDD')))+1
-                            ELSE CEIL(MONTHS_BETWEEN(TO_DATE(PRTNR.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(MNGER1.MNGER_FST_OPNG, 'YYYYMMDD')))+1
-                            END
-                       ELSE 0 END AS MNGER_BLTN_NMN /* 매니저 개시차월 */
                     , F_CMZ_CD_NM('TNT_WELLS', 'OPNG_CD', MNGER5.OPNG_CD) AS MNGER_SETTLE_DSB_TP /* 매니저개시 정착지급유형 */
                     , NVL(INDVD5.INDV_D5_ASN_CNT, 0) AS INDV_D5_ASN_CNT     /* 개인BS-5일배정건수 */
                     , NVL(INDVBS.INDV_ASN_CNT, 0) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
+                    , NVL(INDVBS.INDV_BS_CAN_CNT, 0) AS INDV_BS_CAN_CNT     /* 개인BS-취소건수 */
                     , NVL(INDVBS.INDV_FSH_CNT, 0) AS INDV_FSH_CNT	/* 개인BS-완료건수 */
                     , NVL(INDVBS.INDV_PROCS_RAT, 0) AS INDV_PROCS_RAT	/* 개인BS-처리율 */
                     , NVL(INDVBS.INDV_W1_CNT, 0) AS INDV_W1_CNT	/* 개인BS-W1급지건수 */
                     , NVL(INDVBS.INDV_W2_CNT, 0) AS INDV_W2_CNT	/* 개인BS-W2급지건수 */
                     , NVL(OGBS.OG_ASN_CNT, 0) AS OG_ASN_CNT	/* 조직BS-배정건수 */
+                    , NVL(OGBS.OG_BS_CAN_CNT, 0) AS OG_BS_CAN_CNT	/* 조직BS-취소건수 */
                     , NVL(OGBS.OG_FSH_CNT, 0) AS OG_FSH_CNT	/* 조직BS-완료건수 */
-                    , NVL(OGBS.OG_PROCS_RAT, 0) AS OG_PROCS_RAT	/* 조직BS-처리율 */
                     , NVL(PERF.INDV_ELHM_ACKMT_CNT, 0) AS INDV_ELHM_ACKMT_CNT	/* 개인실적-가전인정건수 */
                     , NVL(PERF.INDV_RENTAL_BASE_PRC, 0) AS INDV_RENTAL_BASE_PRC	/* 개인실적-렌잘기준가 */
                     , NVL(PERF.INDV_SPAY_BASE_PRC, 0) AS INDV_SPAY_BASE_PRC	/* 개인실적-일시불기준가 */
@@ -1347,6 +1374,7 @@
                     , NVL(PERF.INDV_LIVE_PAKG_CNT, 0) AS INDV_LIVE_PAKG_CNT	/* 개인실적-라이브팩건수 */
                     , NVL(PERF.INDV_HCR_MSH_CNT, 0) AS INDV_HCR_MSH_CNT	/* 개인실적-홈케어멤버십건수 */
                     , NVL(PERF.OG_ELHM_ACKMT_CNT, 0) AS OG_ELHM_ACKMT_CNT	/* 조직실적-가전인정건수 */
+                    , NVL(PERF.OG_ELHM_EXCP_ACKMT_PERF, 0) AS OG_ELHM_EXCP_ACKMT_PERF	/* 조직가전외인정실적 */
                     , NVL(PERF.OG_RENTAL_BASE_PRC, 0) AS OG_RENTAL_BASE_PRC	/* 조직실적-렌탈기준가 */
                     , NVL(PERF.OG_SPAY_BASE_PRC, 0) AS OG_SPAY_BASE_PRC	/* 조직실적-일시불기준가 */
                     , NVL(PERF.OG_CHDVC_CNT, 0) AS OG_CHDVC_CNT	/* 조직실적-기변건수 */
@@ -1468,31 +1496,32 @@
                   ) NMNQLF
                  ON PRTNR.PRTNR_NO = NMNQLF.PRTNR_NO
                 LEFT OUTER JOIN
-                   ( SELECT STRTDT AS MNGER_OPNG /* 매니저 재개시월 */
+                   ( SELECT OG_TP_CD
                           , PRTNR_NO
-                       FROM TB_OGPS_PLAR_QLF_CH_IZ    /* 플래너자격변경내역 */
-                      WHERE DTA_DL_YN = 'N'
-                        AND #{perfYm} BETWEEN SUBSTR(STRTDT, 0, 6) AND SUBSTR(ENDDT, 0, 6)
-                        AND OG_TP_CD = 'W02'
-                        AND QLF_DV_CD IN (3, 6)
-                        AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승격,자격해제(과거)  3: 보류 제외 */
-                        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                        AND PRTNR_NO = #{prtnrNo}
-                        </if>
-                      UNION ALL
-                     SELECT STRTDT AS MNGER_OPNG /* 매니저 재개시월 */
-                          , PRTNR_NO
-                       FROM TB_OGPS_PLAR_QLF_CH_IZ	/* 플래너자격변경내역 */
-                      WHERE DTA_DL_YN = 'N'
-                        AND SUBSTR(STRTDT, 0, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), 1), 'YYYYMM')
-                        AND OG_TP_CD = 'W02'
-                        AND QLF_DV_CD IN (3, 6)
-                        AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  /* 승격,자격해제(과거)  3: 보류 제외 */
-                        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                        AND PRTNR_NO = #{prtnrNo}
-                        </if>
+                          , MIN(STRTDT) AS FST_CNTR_DT  /* 최초계약일 */
+                          , MAX(NVL2(STRT_PREV_DT,STRTDT,'')) AS RESTRT_DT    /* 재등록개시일 */
+                       FROM
+                          ( SELECT OG_TP_CD
+                                 , PRTNR_NO
+                                 , STRTDT
+                                 , ENDDT
+                                 , CV_DT
+                                 , DSB_AMT
+                                 , LAG(STRTDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, STRTDT)  AS STRT_PREV_DT
+                                 , LEAD(STRTDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, STRTDT) AS STRT_NEXT_DT
+                                 , LAG(ENDDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, ENDDT)  AS END_PREV_DT
+                                 , LEAD(ENDDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, ENDDT) AS END_NEXT_DT
+                              FROM TB_OGPS_PLAR_QLF_CH_IZ   /* 플래너자격변경내역 */
+                             WHERE DTA_DL_YN = 'N'
+                               AND OG_TP_CD  = 'W02'
+                               AND QLF_DV_CD = 3
+                               AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제  3 : 보류 제외
+                          ) A
+                      WHERE 1=1
+                      GROUP BY OG_TP_CD, PRTNR_NO
                   ) MNGER2
-                 ON PRTNR.PRTNR_NO = MNGER2.PRTNR_NO
+                 ON PRTNR.OG_TP_CD = MNGER2.OG_TP_CD
+                AND PRTNR.PRTNR_NO = MNGER2.PRTNR_NO
                LEFT OUTER JOIN
                   ( SELECT MAX (ENDDT) AS MNGER_FNL_CLTN /* 매니저 최종해약월 */
                          , PRTNR_NO
@@ -1541,7 +1570,6 @@
                       , EDU96_YM
                       , EDU143_YM
                       , EDU17_YM
-                      , EDU135_YM
                       , CASE WHEN NVL(EDU106_YM, 0)  <![CDATA[>]]>  NVL(EDU100_YM, 0) THEN EDU106_YM
                         ELSE EDU100_YM END AS EDU100_YM
                    FROM
@@ -1552,13 +1580,32 @@
                           FROM TB_PSCA_MCPTN_EDUC_IZ A	/* 월별파트너교육내역 */
                          WHERE A.DTA_DL_YN = 'N'
                            AND A.EDUC_CRSE_CRT_BASE_YM <![CDATA[<=]]> #{perfYm}
-                           AND A.EDUC_CRSE_NO IN ('96','143', '17', '135', '100', '106')
+                           AND A.EDUC_CRSE_NO IN ('96','143', '17', '100', '106')
                            AND A.EDUC_CPC_ACKMT_YN = 'Y'
                      ) A
-                 PIVOT ( MAX(EDUC_CRSE_CRT_BASE_YM) FOR EDUC_CRSE_NO IN ('96' AS EDU96_YM,'143' AS EDU143_YM, '17' AS EDU17_YM, '135' AS EDU135_YM, '100' AS EDU100_YM, '106' AS EDU106_YM))
+                 PIVOT ( MAX(EDUC_CRSE_CRT_BASE_YM) FOR EDUC_CRSE_NO IN ('96' AS EDU96_YM,'143' AS EDU143_YM, '17' AS EDU17_YM, '100' AS EDU100_YM, '106' AS EDU106_YM))
               ) EDU
              ON PRTNR.OG_TP_CD = EDU.OG_TP_CD
             AND PRTNR.PRTNR_NO = EDU.PRTNR_NO
+           LEFT OUTER JOIN
+               ( SELECT OG_TP_CD
+                      , PRTNR_NO
+                      , EDU135_YM
+                   FROM
+                      ( SELECT A.OG_TP_CD
+                             , A.PRTNR_NO
+                             , A.EDUC_CRSE_NO
+                             , A.EDUC_CRSE_CRT_BASE_YM
+                          FROM TB_PSCA_MCPTN_EDUC_IZ A	/* 월별파트너교육내역 */
+                         WHERE A.DTA_DL_YN = 'N'
+                           AND A.EDUC_CRSE_CRT_BASE_YM = #{perfYm}
+                           AND A.EDUC_CRSE_NO = '135'
+                           AND A.EDUC_CPC_ACKMT_YN = 'Y'
+                     ) A
+                 PIVOT ( MAX(EDUC_CRSE_CRT_BASE_YM) FOR EDUC_CRSE_NO IN ('135' AS EDU135_YM))
+              ) EDU135
+             ON PRTNR.OG_TP_CD = EDU135.OG_TP_CD
+            AND PRTNR.PRTNR_NO = EDU135.PRTNR_NO
            LEFT OUTER JOIN
               ( SELECT PRTNR_NO
                      , MAX(CASE WHEN PERF_ATC_CD = 'W02P00116' THEN FEE_PERF_ATC_VAL END) AS EDU_CMPF	/* 보수교육최종(129)수료여부 */
@@ -1589,6 +1636,7 @@
           LEFT OUTER JOIN
              ( SELECT PRTNR_NO
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999901' THEN PERF_VAL ELSE 0 END ) AS INDV_ASN_CNT	/* 개인BS-배정건수 */
+                    , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01909001' THEN PERF_VAL ELSE 0 END ) AS INDV_BS_CAN_CNT	/* 개인BS-취소건수 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD IN ('SV01999902', 'SV01999903') THEN PERF_VAL ELSE 0 END ) AS INDV_FSH_CNT	/* 개인BS-완료건수 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL ELSE 0 END ) AS INDV_PROCS_RAT	/* 개인BS-처리율 */
                     , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV06010102' THEN PERF_VAL ELSE 0 END ) AS INDV_W1_CNT	/* 개인BS-W1급지건수 */
@@ -1598,7 +1646,7 @@
                   AND BASE_YM = #{perfYm}
                   AND CL_DV_CD = #{feeTcntDvCd}
                   AND OG_TP_CD = 'W02'
-                  AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910', 'SV06010102', 'SV06010103')	/* 배정건수, 당월완료건수, 전월완료건수, 비율, W1급지건수, W2급지건수 */
+                  AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910', 'SV06010102', 'SV06010103', 'SV01909001')	/* 배정건수, 당월완료건수, 전월완료건수, 비율, W1급지건수, W2급지건수 */
                   <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                   AND PRTNR_NO = #{prtnrNo}
                   </if>
@@ -1622,22 +1670,26 @@
           LEFT OUTER JOIN
              ( SELECT T3.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
                     , SUM(T1.OG_ASN_CNT) AS OG_ASN_CNT	/* 조직BS-배정건수 */
+                    , SUM(T1.OG_BS_CAN_CNT) AS OG_BS_CAN_CNT	/* 조직BS-취소건수 */
                     , SUM(T1.OG_FSH_CNT) AS OG_FSH_CNT	/* 조직BS-완료건수 */
-                    , SUM(T1.OG_PROCS_RAT) AS OG_PROCS_RAT	/* 조직BS-처리율 */
                  FROM
-                    ( SELECT BASE_YM
-                           , OG_TP_CD
-                           , PRTNR_NO
-                           , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999901' THEN PERF_VAL ELSE 0 END ) AS OG_ASN_CNT	/* 조직BS-배정건수 */
-                           , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD IN ('SV01999902', 'SV01999903') THEN PERF_VAL ELSE 0 END ) AS OG_FSH_CNT	/* 조직BS-완료건수 */
-                           , SUM(CASE WHEN PRTNR_SV_PERF_ATC_CD = 'SV01999910' THEN PERF_VAL ELSE 0 END ) AS OG_PROCS_RAT	/* 조직BS-처리율 */
-                        FROM TB_FEAM_WPTN_SV_PERF_AGRG	/* 웰스파트너서비스실적집계 */
-                       WHERE DTA_DL_YN = 'N'
-                         AND BASE_YM = #{perfYm}
-                         AND CL_DV_CD = #{feeTcntDvCd}
-                         AND OG_TP_CD = 'W02'
-                         AND PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01999910')	/* 배정건수, 당월완료건수, 전월완료건수, 비율 */
-                       GROUP BY BASE_YM, OG_TP_CD, PRTNR_NO
+                    ( SELECT A.BASE_YM
+                           , A.OG_TP_CD
+                           , A.PRTNR_NO
+                           , SUM(CASE WHEN A.PRTNR_SV_PERF_ATC_CD = 'SV01999901' THEN A.PERF_VAL ELSE 0 END ) AS OG_ASN_CNT	/* 조직BS-배정건수 */
+                           , SUM(CASE WHEN A.PRTNR_SV_PERF_ATC_CD = 'SV01909001' THEN A.PERF_VAL ELSE 0 END) AS OG_BS_CAN_CNT	/*조직BS-취소건수*/
+                           , SUM(CASE WHEN A.PRTNR_SV_PERF_ATC_CD IN ('SV01999902', 'SV01999903') THEN A.PERF_VAL ELSE 0 END ) AS OG_FSH_CNT	/* 조직BS-완료건수 */
+                        FROM TB_FEAM_WPTN_SV_PERF_AGRG A	/* 웰스파트너서비스실적집계 */
+                       INNER JOIN TB_OGBS_MM_PRTNR_IZ B    /*월파트너내역*/
+                          ON A.BASE_YM = B.BASE_YM
+                         AND A.OG_TP_CD = B.OG_TP_CD
+                         AND A.PRTNR_NO = B.PRTNR_NO
+                       WHERE A.DTA_DL_YN = 'N'
+                         AND A.BASE_YM = #{perfYm}
+                         AND A.CL_DV_CD = #{feeTcntDvCd}
+                         AND A.OG_TP_CD = 'W02'
+                         AND A.PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01909001')	/* 배정건수, 당월완료건수, 전월완료건수, 취소건수 */
+                       GROUP BY A.BASE_YM, A.OG_TP_CD, A.PRTNR_NO
                    ) T1	/* 파트너별 개인BS */
                INNER JOIN TB_OGBS_MM_PRTNR_IZ T2	/* 월파트너내역 */
                   ON T1.BASE_YM = T2.BASE_YM
@@ -1664,6 +1716,7 @@
                    , SUM(INDV_LIVE_PAKG_CNT) AS INDV_LIVE_PAKG_CNT  /* 개인라이브팩건수 */
                    , SUM(INDV_HCR_MSH_CNT) AS INDV_HCR_MSH_CNT  /* 개인홈케어멤버십건수 */
                    , SUM(OG_ELHM_ACKMT_CNT) AS OG_ELHM_ACKMT_CNT /* 조직가전인정건수 */
+                   , SUM(OG_ELHM_EXCP_ACKMT_PERF) AS OG_ELHM_EXCP_ACKMT_PERF    /*조직가전외인정실적*/
                    , SUM(OG_RENTAL_BASE_PRC) AS OG_RENTAL_BASE_PRC /* 조직렌탈기준가 */
                    , SUM(OG_SPAY_BASE_PRC) AS OG_SPAY_BASE_PRC /* 조직일시불기준가 */
                    , SUM(OG_CHDVC_CNT) AS OG_CHDVC_CNT /* 조직기변건수 */
@@ -1678,6 +1731,7 @@
                           , CASE WHEN PERF_ATC_CD IN ('W02P00105', 'W00P00009') THEN PERF_VAL ELSE 0 END AS INDV_LIVE_PAKG_CNT	/* 개인라이브팩건수 */
                           , CASE WHEN PERF_ATC_CD = 'W02P00086' THEN PERF_VAL ELSE 0 END AS INDV_HCR_MSH_CNT	/* 개인홈케어멤버십건수 */
                           , 0 AS OG_ELHM_ACKMT_CNT	/* 조직가전인정건수 */
+                          , 0 AS OG_ELHM_EXCP_ACKMT_PERF    /*조직가전외인정실적*/
                           , 0 AS OG_RENTAL_BASE_PRC	/* 조직렌탈기준가 */
                           , 0 AS OG_SPAY_BASE_PRC	/* 조직일시불기준가 */
                           , 0 AS OG_CHDVC_CNT	/* 조직기변건수 */
@@ -1706,6 +1760,7 @@
                            , 0 AS INDV_LIVE_PAKG_CNT	/* 개인라이브팩건수 */
                            , 0 AS INDV_HCR_MSH_CNT	/* 개인홈케어멤버십건수 */
                            , CASE WHEN PERF_ATC_CD = 'W02P00002' THEN PERF_VAL ELSE 0 END AS OG_ELHM_ACKMT_CNT	/* 조직가전인정건수 */
+                           , CASE WHEN PERF_ATC_CD = 'W02P00112' THEN PERF_VAL ELSE 0 END AS OG_ELHM_EXCP_ACKMT_PERF	/* 조직가전외인정실적 */
                            , CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL ELSE 0 END AS OG_RENTAL_BASE_PRC	/* 조직렌탈기준가 */
                            , CASE WHEN PERF_ATC_CD = 'W00P00004' THEN PERF_VAL ELSE 0 END AS OG_SPAY_BASE_PRC	/* 조직일시불기준가 */
                            , CASE WHEN PERF_ATC_CD IN ('W00P00014', 'W00P00018') THEN PERF_VAL ELSE 0 END AS OG_CHDVC_CNT	/* 조직기변건수 */
@@ -1717,7 +1772,7 @@
                          AND PERF_AGRG_CRT_DV_CD = '201'
                          AND PERF_DV_CD = '2'	/* 실적구분코드 2-지점 */
                          AND OG_TP_CD = 'W02'
-                         AND PERF_ATC_CD IN ( 'W02P00002', 'W00P00003', 'W00P00004', 'W00P00014', 'W00P00018')
+                         AND PERF_ATC_CD IN ( 'W02P00002', 'W00P00003', 'W00P00004', 'W00P00014', 'W00P00018', 'W02P00112')
                          <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                          AND PRTNR_NO = #{prtnrNo}
                          </if>
@@ -3080,7 +3135,7 @@
           ON A.BASE_YM = G.EDUC_CRSE_CRT_BASE_YM
          AND A.PRTNR_NO = G.PRTNR_NO
          AND A.OG_TP_CD = G.OG_TP_CD
-         AND G.EDUC_CRSE_NO IN ('14','19')
+         AND G.EDUC_CRSE_NO = '19'
          AND G.EDUC_CPC_ACKMT_YN = 'Y'
         LEFT OUTER JOIN ( SELECT PRTNR_NO
                                , MIN(STRTDT) AS CV_DT

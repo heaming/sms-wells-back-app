@@ -28,9 +28,9 @@ public class WwdcSalesConfirmDto {
         String dgr2LevlOgId, // 조직레벨 2
         String dtFrom, // 매출인식일From
         String dtTo, // 매출인식일To
-        String sellChnl, // 판매채널
-        String slRcogDv // 판매인식
-    ) { }
+        String sellChnl // 판매채널
+        //        String slRcogDv // 판매인식
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -55,7 +55,7 @@ public class WwdcSalesConfirmDto {
         String pvdaAmt, /* 현할차금액*/
         String useDt, /* 렌탈일수 */
         //        String rentalDc, /* 월마감: 렌탈일수 */
-//        String crtErrCn, /* 오류내역 */
+        //        String crtErrCn, /* 오류내역 */
         String slRcogPrdCd, /* 매출인식기준 */
         String slRcogPrdDvCd, /* 매출인식주기*/
         String ostrDtm, /* 출고일자 */
@@ -65,7 +65,7 @@ public class WwdcSalesConfirmDto {
         String slRcogDt, /* 매출인식일자 */
         String fnlMdfcDtm, /* 변경일자 */
         String fnlMdfcUsrId/* 변경자 */
-    ) { }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -101,6 +101,6 @@ public class WwdcSalesConfirmDto {
         String fnlMdfcDtm, /* 변경일자 */
         String fnlMdfcUsrId, /* 변경자 */
         String state // 임시 상태값 컬럼 추가
-    ) { }
+    ) {}
 
 }

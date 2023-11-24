@@ -29,6 +29,9 @@ public interface WogcActivityMapper {
     PagingResult<SearchMonthlyActivityRes> searchMonthlyActivities(
         SearchMonthlyActivityReq dto, PageInfo pageInfo
     );
+    String selectCountFeamCntr(
+        SearchMonthlyActivityReq dto
+    );
 
     List<SearchAccureActivityRes> searchAccureActivitiesA(
         SearchAccureActivityReq dto

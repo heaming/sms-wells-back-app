@@ -41,7 +41,8 @@ public class WwpsgBusinessCellPhoneChMgtService {
     }
 
     public WwpsgBusinessCellPhoneChMgtDto.PopupSearchRes getRentManagementPopup(WwpsgBusinessCellPhoneChMgtDto.SearchReq dto) {
-        return mapper.selectPsgaRpotbizProcsIz(dto);
+
+        return converter.dvoToPopupSearchRes(mapper.selectPsgaRpotbizProcsIz(dto));
     }
 
     public Map<String, List> getBaseInfo(WwpsgBusinessCellPhoneChMgtDto.BaseSearchReq dto) {

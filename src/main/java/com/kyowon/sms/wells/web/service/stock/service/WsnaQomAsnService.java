@@ -17,6 +17,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaQomAsnWareRenewalDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaQomAsnMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.validation.BizAssert;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -109,19 +110,25 @@ public class WsnaQomAsnService {
 
         // 재생성일 경우 데이터 삭제
         if (isRecreate) {
-            WsnaQomAsnRemoveDvo removeDvo = this.converter.mapCreateReqToWsnaQomAsnRemoveDvo(dto);
-            this.mapper.updateQomAsnForRemove(removeDvo);
+            this.removeQomAsn(dto);
         }
 
         int qomAsnNoMax = this.mapper.selectItmQomAsnNoMax(asnOjYm, wareDtlDvCd);
         dvo.setQomAsnNo(qomAsnNoMax);
 
+        int result;
+
         // 1회차 이고 기준년월과 배정년월이 다를 경우
         if (BigDecimal.ONE.equals(cnt) && !apyYm.equals(asnOjYm)) {
-            return this.mapper.insertQomAsnFirstTnIndividuals(dvo);
+            result = this.mapper.insertQomAsnFirstTnIndividuals(dvo);
         } else {
-            return this.mapper.insertQomAsnIndividuals(dvo);
+            result = this.mapper.insertQomAsnIndividuals(dvo);
         }
+
+        // 생성할 데이터가 존재하지 않습니다.
+        BizAssert.isFalse(result == 0, "MSG_ALT_CRT_NO_DATA");
+
+        return result;
     }
 
     /**
@@ -142,14 +149,18 @@ public class WsnaQomAsnService {
 
         // 재생성일 경우 데이터 삭제
         if (isRecreate) {
-            WsnaQomAsnRemoveDvo removeDvo = this.converter.mapCreateReqToWsnaQomAsnRemoveDvo(dto);
-            this.mapper.updateQomAsnForRemove(removeDvo);
+            this.removeQomAsn(dto);
         }
 
         int qomAsnNoMax = this.mapper.selectItmQomAsnNoMax(asnOjYm, wareDtlDvCd);
         dvo.setQomAsnNo(qomAsnNoMax);
 
-        return this.mapper.insertQomAsnIndependence(dvo);
+        int result = this.mapper.insertQomAsnIndependence(dvo);
+
+        // 생성할 데이터가 존재하지 않습니다.
+        BizAssert.isFalse(result == 0, "MSG_ALT_CRT_NO_DATA");
+
+        return result;
     }
 
     /**
@@ -158,10 +169,10 @@ public class WsnaQomAsnService {
      * @return
      */
     @Transactional
-    public int removeQomAsn(RemoveReq dto) {
-        WsnaQomAsnRemoveDvo dvo = this.converter.mapRemoveReqToWsnaQomAsnRemoveDvo(dto);
+    public int removeQomAsn(CreateReq dto) {
+        WsnaQomAsnRemoveDvo removeDvo = this.converter.mapCreateReqToWsnaQomAsnRemoveDvo(dto);
 
-        return this.mapper.updateQomAsnForRemove(dvo);
+        return this.mapper.updateQomAsnForRemove(removeDvo);
     }
 
     /**

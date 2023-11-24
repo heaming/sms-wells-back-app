@@ -51,6 +51,7 @@ public class WwdbRefundApplicationDto {
         String rfndAkAmt, // 환불요청금액
         String cntrNo, // 계약기본
         String cntrSn, // 계약일련번호
+        String cstNo, /*고객번호*/
         String cntrDtlNo, /* 계약상세번호 */
         String rfndCshAkAmt, /* 현금환불금액 */
         String rfndCardAkAmt, /* 카드환불금액 */
@@ -142,13 +143,14 @@ public class WwdbRefundApplicationDto {
         String rfndAkNo, // 접수번호
         String fnitCd, // 금융기관코드
         String fnitNm, // 금융기관명
-        @MaskRequired(type = MaskingType.ACCOUNT)
+        //        @MaskRequired(type = MaskingType.ACCOUNT)
         String acCrNo, // 계좌번호/카드번호
         String cstNo, // 고객번호
         String crdcdFer, // 수수료율 ( 저장 )
         String dpTpCd, // 입금유형코드
+        String dpDvCd, /*입금구분*/
         String rfndRsonCd, // 환불사유
-        String rfndRsonCn  // 환불내용
+        String rfndRsonCn // 환불내용
     ) {
         public SearchRefundDetailRes {
             if (!StringUtil.isEmpty(acCrNo)) {
@@ -166,7 +168,7 @@ public class WwdbRefundApplicationDto {
     public record SearchRefundBalanceTransferReq(
         String cntrNo, // 계약번호
         String cntrSn, // 계약일련번호
-        String rfndAkNo,  // 접수번호
+        String rfndAkNo, // 접수번호
         String rfndAkStatCd // 환불상태
     ) {}
 
@@ -198,7 +200,6 @@ public class WwdbRefundApplicationDto {
         String cstNo // 고객번호
     ) {}
     /* TODO: 전금상세  END*/
-
 
     // TODO:환불신청팝업 P01 Req
     // *********************************************************
@@ -349,7 +350,7 @@ public class WwdbRefundApplicationDto {
         String rfndDsbDvCd, // 환불구분. 환불지급구분코드 01.현금환불, 02.카드환불, 03.전금
         String cshRfndDvCd, // 현금환불 구분. 현금환불구분코드 01.선환불, 02.일반환불, 03.카드현금
         String rfndCshAkAmt, // 현금환불금액
-        String rfndCardAkAmt,  // 환불요청금액(카드)
+        String rfndCardAkAmt, // 환불요청금액(카드)
         String crdcdFeeAmt, // 카드수수료
         String crdcdFer, // 수수료율 ( 저장 )
         String rfndBltfAkAmt, /* 관련 전금요청금액 총 합계 */
@@ -364,7 +365,7 @@ public class WwdbRefundApplicationDto {
         String rfndDsbDt, /*환불지급일자*/
         String rfndProcsCn /*환불처리내용*/
 
-    ) { }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -454,7 +455,7 @@ public class WwdbRefundApplicationDto {
     // 환불신청팝업 - 계약상세(메인에서 조회) Search Result Dto
     @ApiModel(value = "WwdbRefundApplicationDto-SearchRefundBaseRes")
     public record SearchRefundBaseRes(
-        String cntrNo /* ※미수정*/  // 계약번호
+        String cntrNo /* ※미수정*/ // 계약번호
     ) {}
     /* TODO: 그리드에서 팝업진입시 END */
 
@@ -548,7 +549,6 @@ public class WwdbRefundApplicationDto {
     ) {}
 
     // TODO: SaveEnd
-
 
     // *********************************************************
     // Result Dto
@@ -651,5 +651,6 @@ public class WwdbRefundApplicationDto {
         SaveBaseReq saveBaseReq,
         List<SaveDtlReq> saveDtlReqs,
         List<SaveBltfReq> saveBltfReqs
-    ) { }
+    ) {}
+
 }

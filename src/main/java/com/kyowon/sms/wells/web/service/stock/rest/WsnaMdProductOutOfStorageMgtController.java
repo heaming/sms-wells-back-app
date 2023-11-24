@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageExcelUploadDto.ValidateReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageExcelUploadDto.ValidateRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.RemoveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductOutOfStorageMgtDto.SearchRes;
@@ -56,7 +57,7 @@ public class WsnaMdProductOutOfStorageMgtController {
         return service.getMdProductOutOfStorages(dto);
     }
 
-    @ApiOperation(value = "MD상품 출고관리 출고관리 저장", notes = "MD상품 출고관리 정보를 저장한다.")
+    @ApiOperation(value = "MD상품 출고관리 - 저장", notes = "MD상품 출고관리 정보를 저장한다.")
     @PostMapping
     public SaveResponse saveMdProductOutOfStorages(
         @Valid
@@ -87,5 +88,18 @@ public class WsnaMdProductOutOfStorageMgtController {
         List<ValidateReq> dtos
     ) {
         return service.saveMdProductOutOfStoragExcelUpload(dtos);
+    }
+
+    @ApiOperation(value = "MD상품 출고관리 - 출고취소 처리", notes = "MD상품 출고관리 정보를 취소 처리한다.")
+    @DeleteMapping("/cancel")
+    public SaveResponse saveMdProductOutOfStorageCancel(
+        @RequestBody
+        @Valid
+        @NotEmpty
+        List<RemoveReq> dtos
+    ) {
+        return SaveResponse.builder()
+            .processCount(service.saveMdProductOutOfStorageCancels(dtos))
+            .build();
     }
 }

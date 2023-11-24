@@ -25,4 +25,27 @@ public interface WfebOutcomeAllowanceMapper {
         SearchReq dto
     );
 
+    List<AwBaseInfoRes> selectAllowanceBaseInfo(
+        String perfYm
+    );
+
+    void deleteOutcomeAllowancesManager(
+        String baseYm,
+        String ogTpCd,
+        String rsbDvCd
+    );
+
+    int insertOutcomeAllowancesManager(
+        List<SaveMoReq> dtos
+    );
+
+    void deleteOutcomeAllowancesPlanner(
+        String baseYm,
+        String ogTpCd,
+        String rsbDvCd
+    );
+
+    int insertOutcomeAllowancesPlanner(
+        List<SavePoReq> dtos
+    );
 }
