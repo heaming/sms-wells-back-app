@@ -24,7 +24,8 @@ public class WogcActivityDto {
         String ogLevlDvCd1,
         String ogLevlDvCd2,
         String ogLevlDvCd3,
-        String qlfDvCd /* 자격구분 */
+        String qlfDvCd, /* 자격구분 */
+        String feamFlag /*순주문 관련 조회Flag */
     ) {
     }
 

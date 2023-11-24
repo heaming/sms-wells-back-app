@@ -54,6 +54,16 @@ public class WogcActivityController {
         return wogcActivityService.searchMonthlyActivitiesPages(reqDto, pageInfo);
     }
 
+    @ApiOperation(value = "월별 활동 현황 정보 조회용 순주문 Count Flag", notes = "월별 활동 현황 조회용 순주문 Count Flag 기준을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = false),
+        @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = false),
+    })
+    @GetMapping({"/monthly/count-feam-cntr"})
+    public String selectCountFeamCntr(SearchMonthlyActivityReq reqDto) {
+        return wogcActivityService.selectCountFeamCntr(reqDto);
+    }
+
     @ApiOperation(value = "월별 활동 현황 정보 엑셀다운로드", notes = "월별 활동 현황 엑셀다운로드용 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = false),
