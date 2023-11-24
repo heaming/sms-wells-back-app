@@ -121,9 +121,10 @@
           WITH TW_QTY1 AS   /* 금주 수량 계산 */
              (
                SELECT /*+ USE_HASH(D1 D2 D3) */
-                      D1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
-                    , D3.PU_PART_PD_CD      AS PD_CD
-                    , SUM(D3.PU_QTY)        AS QTY
+                      D1.CNFM_PSIC_PRTNR_NO       AS PRTNR_NO
+                    , D1.CNFM_PSIC_PRTNR_OG_TP_CD AS OG_TP_CD
+                    , D3.PU_PART_PD_CD            AS PD_CD
+                    , SUM(D3.PU_QTY)              AS QTY
                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
                 INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2   /* 고객서비스BS대상내역 */
                    ON D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
@@ -144,7 +145,7 @@
                   AND D4.REQD_DT IS NULL
                   AND D4.CPS_DT IS NULL
                   AND D1.ASN_OJ_YM = #{apyYm}
-                GROUP BY D1.CNFM_PSIC_PRTNR_NO, D3.PU_PART_PD_CD
+                GROUP BY D1.CNFM_PSIC_PRTNR_NO, D1.CNFM_PSIC_PRTNR_OG_TP_CD, D3.PU_PART_PD_CD
              )
         SELECT /*+ NO_MERGE(T1) USE_HASH(T1 TW_QTY1) NO_MERGE(TW_QTY1) */
                #{wareDtlDvCd} || #{asnOjYm} || LPAD( #{qomAsnNo} + ROWNUM, 7, '0')         /* 품목물량배정번호 */
@@ -307,6 +308,7 @@
              ) T1
           LEFT OUTER JOIN TW_QTY1
             ON TW_QTY1.PRTNR_NO = T1.WARE_MNGT_PRTNR_NO
+           AND TW_QTY1.OG_TP_CD = T1.OG_TP_CD
            AND TW_QTY1.PD_CD    = T1.ITM_PD_CD
          WHERE NOT EXISTS ( SELECT 1
                               FROM TB_SVST_QOM_ASN_EXCD_IZ   /* 물량배정제외내역 */
@@ -364,6 +366,7 @@
              (
                SELECT /*+ USE_HASH(D1 D2 D3) */
                       D1.CNFM_PSIC_PRTNR_NO                            AS PRTNR_NO
+                    , D1.CNFM_PSIC_PRTNR_OG_TP_CD                      AS OG_TP_CD
                     , D3.PU_PART_PD_CD                                 AS PD_CD
                     , CASE WHEN D1.VST_PRGS_STAT_CD = '20' THEN D1.VST_PRGS_STAT_CD
                            ELSE '21'
@@ -395,7 +398,7 @@
                   AND D4.REQD_DT IS NULL
                   AND D4.CPS_DT IS NULL
                   AND D1.ASN_OJ_YM = #{apyYm}
-                GROUP BY D1.CNFM_PSIC_PRTNR_NO, D3.PU_PART_PD_CD, TO_CHAR(TO_DATE(D1.VST_CNFMDT, 'YYYYMMDD'), 'W')
+                GROUP BY D1.CNFM_PSIC_PRTNR_NO, D1.CNFM_PSIC_PRTNR_OG_TP_CD, D3.PU_PART_PD_CD, TO_CHAR(TO_DATE(D1.VST_CNFMDT, 'YYYYMMDD'), 'W')
                     , CASE WHEN D1.VST_PRGS_STAT_CD = '20' THEN D1.VST_PRGS_STAT_CD
                            ELSE '21'
                       END
@@ -573,49 +576,57 @@
                  LEFT OUTER JOIN
                     (
                       SELECT PRTNR_NO
+                           , OG_TP_CD
                            , PD_CD
                            , SUM(QTY) AS QTY
                         FROM BASE_QTY
                        WHERE VST_PRGS_STAT_CD = '21'
-                       GROUP BY PRTNR_NO, PD_CD
+                       GROUP BY PRTNR_NO, OG_TP_CD, PD_CD
                     ) TW_QTY1   /* 금주 수량 계산 */
                    ON TW_QTY1.PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
+                  AND TW_QTY1.OG_TP_CD = QOM.OG_TP_CD
                   AND TW_QTY1.PD_CD    = QOM.ITM_PD_CD
                  LEFT OUTER JOIN
                     (
                       SELECT PRTNR_NO
+                           , OG_TP_CD
                            , PD_CD
                            , SUM(QTY) AS QTY
                         FROM BASE_QTY
                        WHERE VST_PRGS_STAT_CD = '21'
                          AND VST_WEEK         = TO_CHAR(SYSDATE, 'W')
-                       GROUP BY PRTNR_NO, PD_CD
+                       GROUP BY PRTNR_NO, OG_TP_CD, PD_CD
                     ) TW_QTY2
                    ON TW_QTY2.PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
+                  AND TW_QTY2.OG_TP_CD = QOM.OG_TP_CD
                   AND TW_QTY2.PD_CD    = QOM.ITM_PD_CD
                  LEFT OUTER JOIN
                     (
                       SELECT PRTNR_NO
+                           , OG_TP_CD
                            , PD_CD
                            , SUM(QTY) AS QTY
                         FROM BASE_QTY
                        WHERE VST_PRGS_STAT_CD = '21'
                          AND VST_WEEK         = TO_CHAR(SYSDATE + 7, 'W')
-                       GROUP BY PRTNR_NO, PD_CD
+                       GROUP BY PRTNR_NO, OG_TP_CD, PD_CD
                     ) NW_QTY1
                    ON NW_QTY1.PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
+                  AND NW_QTY1.OG_TP_CD = QOM.OG_TP_CD
                   AND NW_QTY1.PD_CD    = QOM.ITM_PD_CD
                  LEFT OUTER JOIN
                     (
                       SELECT PRTNR_NO
+                           , OG_TP_CD
                            , PD_CD
                            , SUM(QTY) AS QTY
                         FROM BASE_QTY
                        WHERE VST_PRGS_STAT_CD = '20'
                          AND VST_WEEK         = TO_CHAR(SYSDATE, 'W')
-                       GROUP BY PRTNR_NO, PD_CD
+                       GROUP BY PRTNR_NO, OG_TP_CD, PD_CD
                     ) BS_QTY1
                    ON BS_QTY1.PRTNR_NO = QOM.WARE_MNGT_PRTNR_NO
+                  AND BS_QTY1.OG_TP_CD = QOM.OG_TP_CD
                   AND BS_QTY1.PD_CD    = QOM.ITM_PD_CD
              ) T1
          WHERE NOT EXISTS ( SELECT 1
