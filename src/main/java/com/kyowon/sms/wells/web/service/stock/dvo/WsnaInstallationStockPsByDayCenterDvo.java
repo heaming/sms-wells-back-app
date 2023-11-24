@@ -10,6 +10,7 @@ public class WsnaInstallationStockPsByDayCenterDvo {
     String ogNm;
     String pdCd;
     String pdNm;
+    Integer pajuQty;
     Integer prvMng;
     Integer engQty;
     Integer stockTotal;
