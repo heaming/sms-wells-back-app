@@ -116,21 +116,29 @@ public class WsnaMdProductOutOfStorageSaveService {
     public int saveMdProductOutOfStorageCancels(List<RemoveReq> dtos) {
         int processCount = 0;
 
-        // 1.작업출고내역(TB_SVST_SV_WK_OSTR_IZ) 삭제 여부 업데이트
         List<WsnaMdProdcutOutOfStorageSaveDvo> dvos = converter.mapRemoveReqToMdProductOutOfStorageSaveDvo(dtos);
         for (WsnaMdProdcutOutOfStorageSaveDvo dvo : dvos) {
-            mapper.updateSvstSvWkOstrIzCancel(dvo);
 
-            // 2.배정테이블(TB_SVPD_CST_SVAS_IST_ASN_IZ, TB_SVPD_CST_SV_BFSVC_ASN_IZ)업데이트 (작업상태 초기화)
+            // 0.작업출고내역 재고 목록 조회
+            List<WsnaItemStockItemizationReqDvo> cancelDvos = mapper.selectSvstSvWkOstrIzCancel(dvo);
+
+            // 1.작업출고내역(TB_SVST_SV_WK_OSTR_IZ) 삭제 여부 업데이트
+            mapper.updateSvstSvWkOstrIzCancel(dvo);
+            // 2.작업출고내역 기준으로 재고변경 (TB_SVST_CST_SV_ITM_STOC_IZ, TB_SVST_MCITM_STOC_IZ)
+            for (WsnaItemStockItemizationReqDvo cancelDvo : cancelDvos) {
+                itemStockService.removeStock(cancelDvo);
+            }
+
+            // 3.배정테이블(TB_SVPD_CST_SVAS_IST_ASN_IZ, TB_SVPD_CST_SV_BFSVC_ASN_IZ)업데이트 (작업상태 초기화)
             if ("2".equals(dvo.getSvBizHclsfCd())) {
                 mapper.updateSvpdCstSvBfsvcAsnIzCancel(dvo);
             } else {
                 mapper.updateSvpdCstSvasIstAsnIzCancel(dvo);
             }
-            // 3.수행테이블 (TB_SVPD_CST_SV_EXCN_IZ)  설치일자 초기화
+            // 4.수행테이블 (TB_SVPD_CST_SV_EXCN_IZ)  설치일자 초기화
             mapper.updateSvpdCstSvExcnIzCancel(dvo);
 
-            // 4.고객서비스작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) 삭제
+            // 5.고객서비스작업결과내역(TB_SVPD_CST_SV_WK_RS_IZ) 삭제
             mapper.deleteSvpdCstSvWkRsIzCancel(dvo);
 
             processCount += 1;
