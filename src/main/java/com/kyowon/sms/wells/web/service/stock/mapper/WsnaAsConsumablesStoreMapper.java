@@ -1,12 +1,13 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
-import java.util.List;
-
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsConsumablesStoreDvo;
-import org.apache.ibatis.annotations.Mapper;
-
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaAsConsumablesStoreDto.*;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaAsConsumablesStoreDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -55,4 +56,10 @@ public interface WsnaAsConsumablesStoreMapper {
     int deleteMonthlyPitmStocAGdQty(WsnaAsConsumablesStoreDvo dvo);
 
     int deleteMonthlyPitmStocEGdQty(WsnaAsConsumablesStoreDvo dvo);
+
+    Optional<FindWareNmRes> selectStrWarehouseName(String apyYm, String strWareNo);
+
+    Optional<FindItmPdCdNmRes> selectItmPdCdNm(String sapCd);
+
+    Optional<FindSapCdNmRes> selectSapCdNm(String itmPdCd);
 }
