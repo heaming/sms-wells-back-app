@@ -13,7 +13,9 @@
              ), 'Y', 'N') AS DTL_HAS_YN /* B/S 투입 상세 데이터 존재 여부 */
              , PB.PD_NM AS PART_PD_NM /* 필터/부품명 */    
              , T1.SV_PD_CD         /* 서비스상품코드 */
+             , S1.PD_NM AS SV_PD_NM /* 서비스명 */
              , T1.PDCT_PD_CD       /* 제품상품코드 */
+             , P1.PD_NM AS PDCT_PD_NM /* 제품상품명 */
              , T1.DTL_SN           /* 상세일련번호 */
              , T1.SV_BIZ_DCLSF_CD  /* 서비스업무세분류코드 */
              , T1.VST_DV_CD        /* 방문구분코드 */
@@ -40,7 +42,10 @@
           FROM TB_PDBS_RGBS_WK_BASE_BAS T1 /* 정기BS작업기준기본 */
           LEFT OUTER JOIN TB_PDBS_PD_BAS PB
             ON T1.PART_PD_CD = PB.PD_CD
-           <!-- AND PB.DTA_DL_YN = 'N' -->
+          LEFT OUTER JOIN TB_PDBS_PD_BAS S1
+            ON T1.SV_PD_CD = S1.PD_CD
+          LEFT OUTER JOIN TB_PDBS_PD_BAS P1
+            ON T1.PDCT_PD_CD = P1.PD_CD
          WHERE T1.DTA_DL_YN = 'N'
     </sql>
 
@@ -52,11 +57,21 @@
     
     <select id="selectRoutineBsWorkBasePages" resultType="com.kyowon.sms.wells.web.product.manage.dto.WpdcRoutineBsWorkMgtDto$SearchRoutineBsWorkBaseRes">
         <include refid="selectRoutineBsWorkBaseSql"/>
+            <if test='@MybatisUtils@isNotEmpty( svPdNm )'>
+               <bind name="svPdNm" value="'%'+ svPdNm +'%'"/>
+               AND UPPER(S1.PD_NM) LIKE UPPER(#{svPdNm})    /* 서비스명 */
+           </if>
            <if test='@MybatisUtils@isNotEmpty( svPdCd )'>
-               AND SV_PD_CD     = #{svPdCd}         /* 서비스상품코드 */
+              <bind name="svPdCd" value="'%'+ svPdCd +'%'"/>
+               AND UPPER(S1.PD_CD) LIKE UPPER(#{svPdCd})    /* 서비스코드 */
+           </if>
+            <if test='@MybatisUtils@isNotEmpty( pdctPdNm )'>
+               <bind name="pdctPdNm" value="'%'+ pdctPdNm +'%'"/>
+               AND UPPER(P1.PD_NM) LIKE UPPER(#{pdctPdNm})    /* 교재자재명 */
            </if>
            <if test='@MybatisUtils@isNotEmpty( pdctPdCd )'>
-               AND PDCT_PD_CD   = #{pdctPdCd}         /* 서비스상품코드 */
+              <bind name="pdctPdCd" value="'%'+ pdctPdCd +'%'"/>
+               AND UPPER(P1.PD_CD) LIKE UPPER(#{pdctPdCd})    /* 교재자재코드 */
            </if>
     </select>
     
