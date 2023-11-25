@@ -21,7 +21,7 @@
                               )
            AND T1.PERF_ATC_CD IN ('W01P00020', 'W01P00035', 'W01P00023', 'W01P00025', 'W01P00027',
                                  'W01P00043', 'W01P00033', 'W01P00012', 'W01P00047', 'W01P00048',
-                                 'W01P00045', 'W01P00041', 'W01P00044')
+                                 'W01P00045', 'W01P00041', 'W01P00044', 'W01P00049')
     </delete>
 
     <insert id="insertPlannerFeeMeetingAttendances">
@@ -412,6 +412,27 @@
                     ON SUBSTR(O1.FNL_CLTN_DT, 1, 6) = O2.BASE_YM
                    AND O1.OG_TP_CD = O2.OG_TP_CD
                    AND O1.PRTNR_NO = O2.PRTNR_NO
+                 WHERE 1 = 1
+                   AND O1.BASE_YM = #{perfYm}
+                   AND O1.OG_TP_CD = 'W01'
+               <if test='@MybatisUtils@equals(rsbTpCd, "W0105")'>
+                   AND O1.PSTN_DV_CD = '15'
+               </if>
+               <if test='@MybatisUtils@equals(rsbTpCd, "W0104")'>
+                   AND O1.PSTN_DV_CD = '7'
+               </if>
+                 UNION ALL
+                SELECT O1.PRTNR_NO
+                     , 'W01P00049' AS PERF_ATC_CD   /* P추진단 - 배출여부 */
+                     , CASE WHEN O1.NMN_N <![CDATA[<=]]> 6 AND T1.MNGT_YM IS NOT NULL THEN 'Y' ELSE 'N' END AS FEE_PERF_ATC_VAL
+                     , NULL AS PERF_VAL
+                  FROM TB_OGBS_MM_PRTNR_IZ O1
+             LEFT OUTER JOIN TB_OGPS_PRTNR_EJT_REL T1
+                    ON O1.BASE_YM = T1.MNGT_YM
+                   AND O1.OG_TP_CD = T1.OJ_OG_TP_CD
+                   AND O1.PRTNR_NO = T1.OJ_PRTNR_NO
+                   AND T1.OJ_PRTNR_PSTN_DV_CD = '7'
+                   AND T1.DTA_DL_YN = 'N'
                  WHERE 1 = 1
                    AND O1.BASE_YM = #{perfYm}
                    AND O1.OG_TP_CD = 'W01'
