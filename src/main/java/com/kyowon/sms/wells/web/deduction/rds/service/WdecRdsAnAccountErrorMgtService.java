@@ -39,7 +39,6 @@ public class WdecRdsAnAccountErrorMgtService {
     private final ZdecRdsAnAccountErrorMgtConverter converter;
 
     private final ZwdaAutoTransferRealTimeAccountService acService;
-
     private final AttachFileService attachFileService;
     private static final String groupId = "ATG_DEC_BAI_DCMT_FILE";
 
@@ -58,22 +57,20 @@ public class WdecRdsAnAccountErrorMgtService {
     public ZdecRdsAnAccountErrorMgtDvo getRdsAnAccountErrorChk(SearchRdsAnAccountErrorChkReq dto) {
         /*
         기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 X - 기존 계좌 오류 X = 처리 X
-        기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 X - 기존 계좌 오류 O = 기존 계좌 오류정보 삭제처리
-        
-        기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 O - 기존 계좌 오류 X = 입력 계좌 오류정보 저장
-        기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 O - 기존 계좌 오류 O = 처리 X
-        
+        기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 X - 기존 계좌 오류 O = 기존 계좌 오류정보 삭제처리(오류해제)
+
+        기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 O - 기존 계좌 오류 X = 처리 x 오류여부만 리턴
+        기존 계좌 O - 입력 계좌번호와 동일 - 입력 계좌 오류 O - 기존 계좌 오류 O = 처리 X 오류여부만 리턴
+
         기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 X - 기존 계좌 오류 X = 처리 X
         기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 X - 기존 계좌 오류 O = 처리 X
-        
-        기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 O - 기존 계좌 오류 X = 기존 계좌정보 삭제처리, 입력 계좌정보 저장, 입력 계좌 오류정보 저장
-        기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 O - 기존 계좌 오류 O = 기존 계좌정보 삭제처리, 기존 계좌 오류정보 삭제처리, 입력 계좌정보 저장, 입력 계좌 오류정보 저장
+
+        기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 O - 기존 계좌 오류 X = 처리 x 오류여부만 리턴
+        기존 계좌 O - 입력 계좌번호와 다름 - 입력 계좌 오류 O - 기존 계좌 오류 O = 처리 x 오류여부만 리턴
         */
         ZdecRdsAnAccountErrorMgtDvo errorInfo = converter.mapAnAccountChk(dto);
 
-        //        int proccCnt = 0;
-
-        // 계좌 신규 체크
+        // 계좌 신규 체크 N:신규아님(파트너계좌기본에계좌존재), Y:신규(파트너계좌기본에 계좌없음)
         SearchRdsAnAccountErrorNewChkRes newChk = mapper.isRdsAnAccountNewChk(dto);
 
         // 계좌 번호 변경 여부
@@ -89,23 +86,21 @@ public class WdecRdsAnAccountErrorMgtService {
         // 계좌실명인증 서비스 호출
         Map<String, String> accountResult = accountRealNameService(errorInfo);
 
-        // TODO: 계좌확인 서비스 만들어지면 리턴값 확인하고 set
+        // acFntRsCd N:정상계좌, Y:오류계좌
         String errorYn = accountResult.get("acFntRsCd");
-        ; // 임시------ N: 에러가아님, Y:에러
-          //        String rdsAcErrId = "EFEDD151133854700709"; // 임시
-          //        String acErrDvCd = "9";// 임시 RDS계좌오류구분코드, 확인필요
+        //        String rdsAcErrId = "EFEDD151133854700709"; // 임시
+        //        String acErrDvCd = "9";// 임시 RDS계좌오류구분코드, 확인필요
 
-        /* errorInfo.setPrtnrErrAcId(newChk.prtnrAcId());   컬럼삭제로 인한 주석*/
-        /*errorInfo.setPrtnrErrAcIdTmp(newChk.prtnrAcId()); 컬럼삭제로 인한 주석*/
-
+        // 기존 존재하는 오류계좌 존재 체크
         String updateRdsAcErrId = mapper.isRdsAnAccountErrorExist(errorInfo);
-        /*String keyVal = newChk.prtnrAcId(); 컬럼삭제로 인한 주석*/
 
-        // 기존에 계좌가 있고 api호출부에서 에러라고 했을때
+        // 기존에 계좌가 있고 계좌확인api호출부에서 에러라고 했을때
         if ("N".equals(newChk.chkYn()) && "Y".equals(errorYn)) {
+            /*통테결함 테스트용 주석
             // 기존계좌와 입력한 계좌가 다른경우
             if ("Y".equals(errorInfo.getUpdateYn())) {
-                //기존계좌 종료 prtnrAcId; /* 파트너계좌ID */
+
+                //기존계좌 종료 prtnrAcId;
                 mapper.deleteAnAccount(errorInfo);
 
                 String rdsAcErrId1 = mapper.isRdsAnAccountErrorExist(errorInfo);
@@ -121,12 +116,9 @@ public class WdecRdsAnAccountErrorMgtService {
                     mapper.deleteAnAccountInfo(errorInfo);
                 }
 
-                /*keyVal = mapper.selectRdsAnAccountPrtnrAcId(); 컬럼삭제로 인한 주석*/
-                /*errorInfo.setPrtnrAcId(keyVal); 컬럼삭제로 인한 주석*/ // 파트너계좌기본 채번 set
-
-                // 계좌마스터 저장
-                // TODO: [FEDD] 대표계좌여부 set 해주어야 하는지 확인 필요.
-                errorInfo.setDgAcYn("N");
+                // 파트너계좌기본 저장
+                // 대표계좌여부 set
+                errorInfo.setDgAcYn("Y");
 
                 // 유효시작일시 채번
                 String vlStrtDtm = mapper.selectVlStrtDtm();
@@ -135,10 +127,13 @@ public class WdecRdsAnAccountErrorMgtService {
                 mapper.insertAnAccount(errorInfo);
             }
 
+            // 기존계좌와 입력한 계좌가 같은경우 + 체크한계좌가 에러일때
+
             // 위에서, 기존계좌 종료시키고 에러 상세에 에러가 남아있어서 그것도 삭제되고 나서 신규 다시 에러처리위한 체크
+            // 기존에 오류계좌에 존재하는지 체크.
             String rdsAcErrId2 = mapper.isRdsAnAccountErrorExist(errorInfo);
 
-            // 상세 에러에 데이터가 없을 경우 insert
+            // 오류계좌상세 에러에 데이터가 없을 경우 오류등록 insert
             //if (updateRdsAcErrId == null || updateRdsAcErrId.isEmpty()) { //예전것.과장님작성부분
             if (rdsAcErrId2 == null || rdsAcErrId2.isEmpty()) {
 
@@ -148,10 +143,7 @@ public class WdecRdsAnAccountErrorMgtService {
                 errorInfo.setErrVlStrtDtm(errorInfo.getVlStrtDtm()); // 계좌기본에서 받아온 유효시작일시를 오류유효시작일시로 set
                 errorInfo.setRdsAcErrOcDvCd("02"); // RDS계좌오류발생구분코드 set 01:배치, 02:화면, 03:수기
                 errorInfo.setRdsAcErrDvCd("9"); // TODO:계좌확인서비스 호출 후 받는값인지확인필요 임시 9 지정, RDS계좌오류구분코드set 1:해지계좌, 3:예금주다름 9:기타
-                /*errorInfo.setPrtnrErrAcId(keyVal); 컬럼삭제로 인한 주석*/
-                //errorInfo.setDtaDlYn("N"); // 삭제여부 set 테이블기본값으로 인한 주석
-                //errorInfo.setTcalYn("N"); // 전화통화여부 set 테이블기본값으로 인한 주석
-                /*errorInfo.setPrtnrAcId(null);  컬럼삭제로 인한 주석 */ // 오류상세에 오류로 적용해야함으로 파트너계좌ID 컬럼은 null
+                //errorInfo.setPrtnrAcId(null);  컬럼삭제로 인한 주석 오류상세에 오류로 적용해야함으로 파트너계좌ID 컬럼은 null
 
                 // 오류등록일자 set
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
@@ -163,38 +155,34 @@ public class WdecRdsAnAccountErrorMgtService {
                 mapper.insertRdsAnAccountErrorHist(errorInfo);
             }
 
+            */
+            // 오류 여부만 리턴. 계좌저장 시첨에 오류처리.
             errorInfo.setErrYn(errorYn);
+            errorInfo.setRdsAcErrId(updateRdsAcErrId);
+
         } else if ("N".equals(newChk.chkYn()) && "N".equals(errorYn)) { // 기존에 계좌가 있고 api호출부에서 에러가 아니라고 했을경우
 
             // 기존계좌와 입력한 계좌가 같은경우
             if ("N".equals(errorInfo.getUpdateYn())) {
-                // 상세 에러에 데이터가 있을 경우 update
+                // 오류계좌상세 에러에 데이터가 있을 경우 update(기존엔 오류였지만 api에서 에러가아니라고 판별하면 오류해제)
                 if (updateRdsAcErrId != null && !updateRdsAcErrId.isEmpty()) {
                     errorInfo.setRdsAcErrId(updateRdsAcErrId);
-                    /*errorInfo.setPrtnrErrAcId(null);  컬럼삭제로 인한 주석 */
-                    //errorInfo.setDtaDlYn("Y");
 
-                    errorInfo.setNomVlStrtDtm(errorInfo.getVlStrtDtm());
-                    errorInfo.setDtaDlYn("N");
+                    errorInfo.setNomVlStrtDtm(errorInfo.getVlStrtDtm()); // 정상유효시작일시 set
+                    errorInfo.setDtaDlYn("Y");
 
-                    mapper.updateRdsAnAccountError(errorInfo); //
+                    mapper.updateRdsAnAccountError(errorInfo);
                     mapper.insertRdsAnAccountErrorHist(errorInfo);
-
-                    // 삭제처리
-                    //mapper.deleteAnAccountInfo(errorInfo);
                 }
             }
         }
 
         // 파트너계좌id 리턴
-        /*errorInfo.setPrtnrAcIdTmp(newChk.prtnrAcId()); 컬럼삭제로 인한 주석*/
         // 계좌번호 초기화
         // errorInfo.setAcnoEncr("");
         errorInfo.setDtaDlYn("");
         errorInfo.setErrYn(errorYn);
         errorInfo.setCheckPrtnrKnm(accountResult.get("owrKnm"));
-
-        //        BizAssert.isTrue(proccCnt == 1, "MSG_ALT_SVE_ERR");
 
         // 리턴값
         // PrtnrErrAcId, PrtnrErrAcIdTmp, RdsAcErrId, PrtnrAcId, UpdateYn, ChkYn, ErrYn, PrtnrAcIdTmp
