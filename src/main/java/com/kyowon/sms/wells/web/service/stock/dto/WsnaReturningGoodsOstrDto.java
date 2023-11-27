@@ -82,7 +82,6 @@ public class WsnaReturningGoodsOstrDto {
         String ostrDt, // 출고일자
         String ostrSn, // 출고일련번호
         String ostrRsonCd, // 출고사유코드
-        String ostrReqWareNo, // 출고요청창고번호
         String acbDt, // 회계일자
         String evidDvCd, // 증빙구분코드
         String strWareNm, // 입고창고명
