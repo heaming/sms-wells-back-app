@@ -55,11 +55,17 @@ public class WsnaStockStateIndividualWareController {
         return this.service.getWareHouses(dto);
     }
 
-    @GetMapping("/service_center")
+    @GetMapping("/service-center")
     @ApiOperation(value = "서비스센터 조회", notes = "서비스센터를 조회한다.")
     public List<HashMap<String, String>> getServiceCenter(String baseYm) {
 
         return service.getServiceCenter(baseYm);
     }
 
+    @GetMapping("/my-service-center")
+    @ApiOperation(value = "나의 서비스센터 조회", notes = "나의 서비스센터를 조회한다.")
+    public String getMyServiceCenter(String baseYm) {
+
+        return service.getMyServiceCenter(baseYm);
+    }
 }
