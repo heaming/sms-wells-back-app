@@ -297,7 +297,7 @@ public class WsnaBsRegularShippingMgtService {
         stockItem.setProcsDt(now.substring(0, 8));
         stockItem.setWareDv("1");
         stockItem.setWareNo("100002"); // 파주 물류센터
-        stockItem.setWareMngtPrtnrNo("71321");
+        stockItem.setWareMngtPrtnrNo("99992");
         stockItem.setIostTp("213");
         stockItem.setWorkDiv("A");
         stockItem.setItmPdCd(materialDvo.getItmPdCd());
