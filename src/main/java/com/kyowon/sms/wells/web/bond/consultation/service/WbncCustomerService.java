@@ -220,41 +220,36 @@ public class WbncCustomerService {
         if (petitionDvo != null) {
             if ("L20".equals(petitionDvo.getBndBizDvCd()) && "02".equals(petitionDvo.getBndLwsBilDvCd())
                 && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "N".equals(petitionDvo.getIstmYn())
-                && "N".equals(petitionDvo.getDscYn()) && !"301".equals(petitionDvo.getCntrDtlStatCd())
-                && !"302".equals(petitionDvo.getCntrDtlStatCd()) && !"303".equals(petitionDvo.getCntrDtlStatCd())
-                && !"401".equals(petitionDvo.getCntrDtlStatCd())) {
+                && "N".equals(petitionDvo.getDscYn()) && !"302".equals(petitionDvo.getCntrDtlStatCd())
+                && !"303".equals(petitionDvo.getCntrDtlStatCd())) {
                 returnCount = mapper.selectPetitionType1(cntrDtlNo);
             }
 
             if ("L21".equals(petitionDvo.getBndBizDvCd()) && "02".equals(petitionDvo.getBndLwsBilDvCd())
                 && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "N".equals(petitionDvo.getIstmYn())
-                && "N".equals(petitionDvo.getDscYn()) && !"301".equals(petitionDvo.getCntrDtlStatCd())
-                && !"302".equals(petitionDvo.getCntrDtlStatCd()) && !"303".equals(petitionDvo.getCntrDtlStatCd())
-                && !"401".equals(petitionDvo.getCntrDtlStatCd())) {
+                && "N".equals(petitionDvo.getDscYn()) && !"302".equals(petitionDvo.getCntrDtlStatCd())
+                && !"303".equals(petitionDvo.getCntrDtlStatCd())) {
                 returnCount = mapper.selectPetitionType2(cntrDtlNo);
             }
 
             if ("L21".equals(petitionDvo.getBndBizDvCd()) && "02".equals(petitionDvo.getBndLwsBilDvCd())
                 && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "Y".equals(petitionDvo.getIstmYn())
-                && "Y".equals(petitionDvo.getDscYn()) && !"301".equals(petitionDvo.getCntrDtlStatCd())
-                && !"302".equals(petitionDvo.getCntrDtlStatCd()) && !"303".equals(petitionDvo.getCntrDtlStatCd())
-                && !"401".equals(petitionDvo.getCntrDtlStatCd())) {
+                && "Y".equals(petitionDvo.getDscYn()) && !"302".equals(petitionDvo.getCntrDtlStatCd())
+                && !"303".equals(petitionDvo.getCntrDtlStatCd())) {
                 returnCount = mapper.selectPetitionType3(cntrDtlNo);
             }
 
             if ("L10".equals(petitionDvo.getBndBizDvCd()) && "02".equals(petitionDvo.getBndLwsBilDvCd())
                 && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "Y".equals(petitionDvo.getIstmYn())
-                && "N".equals(petitionDvo.getDscYn()) && !"301".equals(petitionDvo.getCntrDtlStatCd())
-                && !"302".equals(petitionDvo.getCntrDtlStatCd()) && !"303".equals(petitionDvo.getCntrDtlStatCd())
-                && !"401".equals(petitionDvo.getCntrDtlStatCd())) {
+                && "N".equals(petitionDvo.getDscYn()) && !"302".equals(petitionDvo.getCntrDtlStatCd())
+                && !"303".equals(petitionDvo.getCntrDtlStatCd())) {
                 returnCount = mapper.selectPetitionType4(cntrDtlNo);
             }
 
             if (("L30".equals(petitionDvo.getBndBizDvCd()) || "L60".equals(petitionDvo.getBndBizDvCd()))
                 && "02".equals(petitionDvo.getBndLwsBilDvCd()) && "@".equals(petitionDvo.getBndBilPpsDvCd())
                 && "N".equals(petitionDvo.getIstmYn()) && "N".equals(petitionDvo.getDscYn())
-                && !"301".equals(petitionDvo.getCntrDtlStatCd()) && !"302".equals(petitionDvo.getCntrDtlStatCd())
-                && !"303".equals(petitionDvo.getCntrDtlStatCd()) && !"401".equals(petitionDvo.getCntrDtlStatCd())) {
+                && !"302".equals(petitionDvo.getCntrDtlStatCd()) && !"303".equals(petitionDvo.getCntrDtlStatCd())) {
                 returnCount = mapper.selectPetitionType5(cntrDtlNo);
             }
 
