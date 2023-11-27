@@ -301,6 +301,7 @@
            AND EVL_ATC_DV_CD = #{evlAtcDvCd}
     </update>
 
+
     <select id="selectTargetList" resultType="camelMap">
         SELECT EVL_OG_TP_CD
              , EVL_RSB_DV_CD
@@ -313,7 +314,6 @@
            AND DTA_DL_YN = 'N'
            AND CALF_CN IS NOT NULL
     </select>
-
 
     <insert id="insertEvaluationDetail">
         INSERT INTO TB_PSEV_AWD_EVL_BASE_DTL
@@ -393,5 +393,78 @@
            AND EVL_DV_CD = #{evlDvCd}
            AND EVL_ATC_DV_CD = #{evlAtcDvCd}
     </delete>
+
+    <select id="selectExcellentDivisionDeadline" resultType="com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto$DeadlineSearchRes">
+        SELECT #{ogTpCd} AS OG_TP_CD
+             , T2.DDLN_ID
+             , T2.BAS_YRMN
+             , T2.START_DT
+             , T2.START_HM
+             , T2.FINS_DT
+             , T2.FINS_HM
+          FROM T_CMS_DDLN_M T1
+         INNER JOIN T_CMS_DDLN_D T2
+            ON T2.TENANT_ID = T1.TENANT_ID
+           AND T2.DDLN_DV_ID = T1.DDLN_DV_ID
+           AND T2.DEL_YN = 'N'
+         WHERE 1=1
+           AND T1.DEL_YN = 'N'
+           AND T2.BAS_YRMN = #{basYrmn}
+           AND T2.TENANT_ID = 'TNT_WELLS'
+           AND T2.DDLN_DV_ID = 'DLD_'||#{ogTpCd}||'_EVL_PERF_CL'
+    </select>
+
+    <select id="selectExcellentDivisionDeadlineCount" resultType="Integer">
+        SELECT COUNT(1)
+          FROM T_CMS_DDLN_M T1
+         INNER JOIN T_CMS_DDLN_D T2
+            ON T2.TENANT_ID = T1.TENANT_ID
+           AND T2.DDLN_DV_ID = T1.DDLN_DV_ID
+           AND T2.DEL_YN = 'N'
+         WHERE 1=1
+           AND T1.DEL_YN = 'N'
+           AND T2.BAS_YRMN = #{basYrmn}
+           AND T2.TENANT_ID = 'TNT_WELLS'
+           AND T2.DDLN_DV_ID = 'DLD_'||#{ogTpCd}||'_EVL_PERF_CL'
+    </select>
+
+    <update id="updateExcellentDivisionDeadline">
+        UPDATE T_CMS_DDLN_D
+           SET START_DT = #{startDt}
+             , START_HM = #{startHm}
+             , FINS_DT = #{finsDt}
+             , FINS_HM = #{finsHm}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE DDLN_ID = #{ddlnId}
+           AND BAS_YRMN = #{basYrmn}
+           AND DDLN_DV_ID = 'DLD_'||#{ogTpCd}||'_EVL_PERF_CL'
+           AND TENANT_ID = #{session.tenantId}
+    </update>
+
+    <insert id="insertExcellentDivisionDeadline">
+        INSERT INTO T_CMS_DDLN_D
+             ( TENANT_ID
+             , DDLN_ID
+             , DDLN_DV_ID
+             , BAS_YRMN
+             , START_DT
+             , START_HM
+             , FINS_DT
+             , FINS_HM
+             , DEL_YN
+             <include refid="COMMON.insertSystemField" /> )
+        VALUES (
+             #{session.tenantId}
+             , (SELECT 'DLN_'||LPAD(ROWNUM + (SELECT MAX(SUBSTR(DDLN_ID, 5, 10)) FROM T_CMS_DDLN_D WHERE TENANT_ID = #{session.tenantId}), 5, '0') FROM DUAL)
+             , 'DLD_'||#{ogTpCd}||'_EVL_PERF_CL'
+             , #{basYrmn}
+             , #{startDt}
+             , #{startHm}
+             , #{finsDt}
+             , #{finsHm}
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
 
 </mapper>
