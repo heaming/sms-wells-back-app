@@ -266,7 +266,7 @@ public class WfeeFeeSpecificationService {
             ddtnPerfMap.put("ddtnVal6", "부담공제");
             ddtnPerfMap.put("ddtnVal7", "기타공제");
             ddtnPerfMap.put("ddtnVal8", "산재보험");
-        } else if ("W0302".equals(rsbDvCd)) { // 홈마스터 지점장
+        } else if ("W0301".equals(rsbDvCd)) { // 홈마스터 지점장
             ddtnPerfMap.put("perfVal1", "가전인정건수");
             ddtnPerfMap.put("perfVal2", "서비스건수");
             ddtnPerfMap.put("perfVal3", "조직인정건수");
