@@ -8,7 +8,6 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductReturningGoodsMgtDto.FindLogisticsCentersRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductReturningGoodsMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductReturningGoodsMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductReturningGoodsMgtDvo;
@@ -66,12 +65,6 @@ public class WsnaMdProductReturningGoodsMgtController {
         return SaveResponse.builder()
             .processCount(service.saveMdProductReturningGoods(dtos))
             .build();
-    }
-
-    @ApiOperation(value = "택배 물류센터 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
-    @GetMapping("/logistics-centers")
-    public List<FindLogisticsCentersRes> getPcsvLogisticsCenters() {
-        return service.getPcsvLogisticsCenters();
     }
 
 }
