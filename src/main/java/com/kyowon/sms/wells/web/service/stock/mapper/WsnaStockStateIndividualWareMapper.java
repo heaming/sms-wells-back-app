@@ -18,4 +18,6 @@ public interface WsnaStockStateIndividualWareMapper {
 
     List<HashMap<String, String>> selectServiceCenter(String baseYm);
 
+    String selectMyServiceCenter(String baseYm);
+
 }
