@@ -37,9 +37,10 @@ public class WfeeIndividualFeePlannerDto {
     // 수수료 개인 상세 Search Result Dto
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPlarRes")
     public record SearchPlarRes(
+        String dgr3LevlDgPrtnrNo, /*지점장파트너번호*/
+        String dgr3LevlDgPrtnrNm, /*지점장파트너명*/
         String prtnrNo, /*파트너번호*/
         String prtnrKnm, /*성명*/
-        String perfAtcNm, /*실적구분*/
         String cntrwTpNm, /*상품구분*/
         String rcpdt, /*접수일자*/
         String slDt, /*매출일자*/
