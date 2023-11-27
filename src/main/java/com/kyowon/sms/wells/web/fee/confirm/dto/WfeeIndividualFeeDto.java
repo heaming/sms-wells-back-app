@@ -3,11 +3,11 @@ package com.kyowon.sms.wells.web.fee.confirm.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import com.sds.sflex.system.config.masking.MaskRequired;
-import com.sds.sflex.system.config.masking.MaskingType;
 import org.apache.commons.lang.StringUtils;
 
 import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.system.config.masking.MaskRequired;
+import com.sds.sflex.system.config.masking.MaskingType;
 
 import io.swagger.annotations.ApiModel;
 
@@ -30,7 +30,8 @@ public class WfeeIndividualFeeDto {
         String perfYm, /* 실적년월 */
         @NotBlank
         String prtnrNo, /* 파트너번호 */
-        String ogTpCd /* 조직유형코드 */
+        String ogTpCd, /* 조직유형코드 */
+        String feeSellPerfDvCd /* 수수료판매실적구분코드 */
     ) {}
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstReq")
     public record SearchHmstReq(
@@ -67,9 +68,15 @@ public class WfeeIndividualFeeDto {
     // Result Dto
     // *********************************************************
     // 수수료 개인 상세 Search Result Dto
+    @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchPrtnrRsbRes")
+    public record SearchPrtnrRsbRes(
+        String rsbDvCd /*직책구분코드*/
+    ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchMngerRes")
     public record SearchMngerRes(
+        String dgr3LevlDgPrtnrNo, /*지점장파트너번호*/
+        String dgr3LevlDgPrtnrNm, /*지점장파트너명*/
         String prtnrNo, /*파트너번호*/
         String prtnrKnm, /*성명*/
         String rcpdt, /*접수일자*/
