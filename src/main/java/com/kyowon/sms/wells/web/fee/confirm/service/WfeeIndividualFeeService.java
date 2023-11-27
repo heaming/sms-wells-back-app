@@ -25,6 +25,19 @@ public class WfeeIndividualFeeService {
     private final WfeeIndividualFeeMapper mapper;
 
     /**
+     * 수수료 개인별 실적 상세 파트너 직책 조회
+     * @param dto : {
+     * perfYm : 실적년월,
+     * no : 번호 }
+     * @return 조회결과
+     */
+    public SearchPrtnrRsbRes getIndividualPerformancePrtnrRsb(
+        SearchReq dto
+    ) {
+        return this.mapper.selectIndividualPerformancePrtnrRsb(dto);
+    }
+
+    /**
      * 수수료 개인별 실적 상세 조회(M조직)
      * @param dto : {
      * perfYm : 실적년월,
@@ -35,19 +48,6 @@ public class WfeeIndividualFeeService {
         SearchReq dto
     ) {
         return this.mapper.selectIndividualPerformanceMngerDetails(dto);
-    }
-
-    /**
-     * 수수료 개인별 실적 상세 조회(홈마스터)
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchHmstRes> getIndividualPerformanceHmstDetails(
-        SearchReq dto
-    ) {
-        return this.mapper.selectIndividualPerformanceHmstDetails(dto);
     }
 
     /**
