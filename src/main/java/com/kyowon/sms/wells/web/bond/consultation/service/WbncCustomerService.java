@@ -255,14 +255,12 @@ public class WbncCustomerService {
 
             if (("L20".equals(petitionDvo.getBndBizDvCd()) || "L21".equals(petitionDvo.getBndBizDvCd())
                 || "L60".equals(petitionDvo.getBndBizDvCd())) && "02".equals(petitionDvo.getBndLwsBilDvCd())
-                && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "N".equals(petitionDvo.getIstmYn())
-                && "N".equals(petitionDvo.getDscYn()) && "303".equals(petitionDvo.getCntrDtlStatCd())) {
+                && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "303".equals(petitionDvo.getCntrDtlStatCd())) {
                 returnCount = mapper.selectPetitionType6(cntrDtlNo);
             }
 
             if ("L20".equals(petitionDvo.getBndBizDvCd()) && "02".equals(petitionDvo.getBndLwsBilDvCd())
-                && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "N".equals(petitionDvo.getIstmYn())
-                && "N".equals(petitionDvo.getDscYn()) && "302".equals(petitionDvo.getCntrDtlStatCd())) {
+                && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "302".equals(petitionDvo.getCntrDtlStatCd())) {
                 returnCount = mapper.selectPetitionType7(cntrDtlNo);
             }
         }
