@@ -194,7 +194,7 @@ public class WsnbRegularShippingChangeService {
         String strPdctPdcds = StringUtil.isEmpty(req.choCapslCn()) ? mapper2.selectPdctPdCds(
             req.cntrNo(), req.cntrSn()
         ) : req.choCapslCn();
-        if (StringUtil.isNotEmpty(strPdctPdcds)) {
+        if (StringUtil.isNotEmpty(strPdctPdcds) && strPdctPdcds.indexOf("|") > 0) {
             String[] arrayPdctPdCds = strPdctPdcds.split("\\|");
             for (String s : arrayPdctPdCds) {
                 log.debug(s);
