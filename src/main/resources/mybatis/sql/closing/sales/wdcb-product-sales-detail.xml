@@ -161,7 +161,7 @@
         SELECT B4.CD_CNTN AS SELL_TP_CD                                                               /* 판매유형명 */
              , B5.CD_CNTN AS SELL_TP_DTL_CD                                                           /* 판매유형상세명 */
              , B1.PD_CD                                                                               /* 상품코드 */
-             , B2.PD_NM                                                                               /* 상품명 */
+             , B1.PD_NM                                                                               /* 상품명 */
              , B6.CD_CNTN AS SELL_INFLW_CHNL_DTL_CD                                                   /* 판매유입채널상세명 */
              , B1.SL_RCOG_DT                                                                          /* 매출인식일자 */
              , B1.CNTR_NO || '-' || B1.CNTR_SN AS CNTR_DTL_NO                                         /* 계약상세번호 */
@@ -187,19 +187,39 @@
                      , A1.CNTR_SN
                      , A1.CST_NO
                      , A1.PD_CD
+                     , A2.PD_NM
                      , A1.SELL_TP_CD
                      , A1.SELL_TP_DTL_CD
                      , A1.SELL_INFLW_CHNL_DTL_CD
                      , A1.SL_RCOG_DT
                      , A1.SAP_PD_DV_CD
-                     , NVL(SUM(CASE WHEN A1.RENTAL_TN = 0 THEN A1.CNTR_AMT END), 0) AS RENTAL_RGST_COST --매출금액-등록비
-                     , NVL(SUM(CASE WHEN A1.RENTAL_TN = 0 THEN A1.RENTAL_RGST_COST_VAT END), 0) AS RENTAL_RGST_COST_VAT --부가세-등록비
+                     , NVL(SUM(CASE WHEN A1.RENTAL_TN = 0 THEN A1.CNTR_AMT END), 0) AS RENTAL_RGST_COST
+                     , NVL(SUM(CASE WHEN A1.RENTAL_TN = 0 THEN A1.RENTAL_RGST_COST_VAT END), 0) AS RENTAL_RGST_COST_VAT
                      , NVL(SUM(A1.THM_SL_SUM_AMT), 0) AS NOM_SL_AMT  --매출금액-렌탈
                      , NVL(SUM(A1.SL_SUM_VAT), 0) AS VAT --부가세-렌탈료
                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ A1  /* WELLS매출춸마감내역 */
+                INNER JOIN TB_PDBS_PD_BAS A2  /* 상품기본 */
+                   ON A2.PD_CD = A1.PD_CD
+                 LEFT OUTER JOIN
+                      (SELECT Z1.CNTR_NO
+                            , Z1.CNTR_SN
+                         FROM TB_SSCT_CNTR_PD_REL Z1  /* 계약상품관계 */
+                        INNER JOIN TB_PDBS_PD_BAS Z2  /* 상품기본 */
+                           ON Z2.PD_CD = Z1.BASE_PD_CD
+                          AND Z2.DTA_DL_YN = 'N'
+                        INNER JOIN TB_PDBS_PD_CLSF_BAS Z3  /* 상품분류기본 */
+                           ON Z3.PD_CLSF_ID = Z2.PD_CLSF_ID
+                          AND Z3.REF_PD_CLSF_VAL IN ('05003002','0A003002')  /*원두제외*/
+                          AND Z3.DTA_DL_YN = 'N'
+                        WHERE Z1.DTA_DL_YN = 'N'
+                      ) A3
+                   ON A3.CNTR_NO = A1.CNTR_NO
+                  AND A3.CNTR_SN = A1.CNTR_SN
                 WHERE A1.SL_RCOG_DT BETWEEN #{baseDtmnFrom} AND #{baseDtmnTo}
                   AND A1.SELL_TP_CD = '2'
                   AND A1.SL_RCOG_DT LIKE A1.SL_CL_YM || '%'
+                  AND A3.CNTR_NO IS NULL
+                  AND A3.CNTR_SN IS NULL
                   <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
                   AND A1.SELL_TP_DTL_CD = #{sellTpDtlCd}
                   </if>
@@ -207,7 +227,7 @@
                   AND A1.SELL_TP_DTL_CD IN ('21', '23')
                   </if>
                   <if test="@MybatisUtils@isNotEmpty(sellChnlDtl) and !@MybatisUtils@equals(sellChnlDtl, 'ALL')">
-                  AND SUBSTR(A1.SELL_INFLW_CHNL_DTL_CD,1,2) = #{sellChnlDtl}
+                  AND A1.SELL_INFLW_CHNL_DTL_CD LIKE #{sellChnlDtl} || '%'
                   </if>
                   <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
                   AND A1.CNTR_NO = #{cntrNo}
@@ -225,6 +245,7 @@
                      , A1.CNTR_SN
                      , A1.CST_NO
                      , A1.PD_CD
+                     , A2.PD_NM
                      , A1.SELL_TP_CD
                      , A1.SELL_TP_DTL_CD
                      , A1.SELL_INFLW_CHNL_DTL_CD
@@ -232,8 +253,6 @@
                      , A1.SL_RCOG_DT
                      , A1.SAP_PD_DV_CD
                ) B1
-         INNER JOIN TB_PDBS_PD_BAS B2  /* 상품기본 */
-            ON B2.PD_CD = B1.PD_CD
           LEFT OUTER JOIN TB_CUBS_CST_BAS B3  /* 고객기본 */
             ON B3.CST_NO = B1.CST_NO
            AND B3.NUSD_RSON_CD IS NULL
@@ -250,19 +269,6 @@
             ON B6.TENANT_ID = #{session.tenantId}
            AND B6.CD_ID = 'SELL_CHNL_DTL_CD'
            AND B6.CD_VLD_VAL = B1.SELL_INFLW_CHNL_DTL_CD
-         WHERE B1.RENTAL_RGST_COST + B1.NOM_SL_AMT != 0
-           AND EXISTS (SELECT 1
-                         FROM TB_SSCT_CNTR_PD_REL Z1  /* 계약상품관계 */
-                        INNER JOIN TB_PDBS_PD_BAS Z2  /* 상품기본 */
-                           ON Z2.PD_CD = Z1.BASE_PD_CD
-                          AND Z2.DTA_DL_YN = 'N'
-                        INNER JOIN TB_PDBS_PD_CLSF_BAS Z3  /* 상품분류기본 */
-                           ON Z3.PD_CLSF_ID = Z2.PD_CLSF_ID
-                          AND NVL(Z3.REF_PD_CLSF_VAL, 'X') NOT IN ('05003002','0A003002')  /*원두제외*/
-                          AND Z3.DTA_DL_YN = 'N'
-                        WHERE Z1.DTA_DL_YN = 'N'
-                          AND Z1.CNTR_NO = B1.CNTR_NO
-                          AND Z1.CNTR_SN = B1.CNTR_SN)
     </select>
 
     <select id="selectProductSalesMembershipDetails" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto$SearchMembershipRes">
