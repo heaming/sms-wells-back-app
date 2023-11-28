@@ -5,7 +5,17 @@
 ## Contents
 
 - [ABOUT](#ABOUT)
+    - 역할
+    - 프로젝트 일정
+    - 기술표준
 - [SAMPLE CODE](#SAMPLE-CODE)
+    - BE & FE 개발
+        1. 모종 출하대차MAP
+            1. DVO
+            2. DTO
+            3. SERVICE
+            4. CONTROLLER
+            5. QUERY
 
 ## ABOUT
 
@@ -25,7 +35,7 @@
 
 ## 프로젝트 일정
 
-![img.png](img.png)
+![image](https://github.com/heaming/sms-wells-back-app/assets/85826542/e139551a-e35a-4a13-a68a-e1e1b10dae14)
 
 ## 기술표준
 
@@ -35,6 +45,7 @@
 * Framework & 도구 :
     * BE : Spring Boot 2.6.11, Spring Framework 5.3.22, MyBatis 3.5.10, Junit 5.8.2, Lego Enterprise 2.0.0, Mave 3.8.6
     * FE : vue 3.2.25, vue-router 4.0.15, vuex 4.0.2, axios 0.27.2, quasar 2.6.6, Vite 2.9, RealGrid2
+    * DB : Oracle
     * 형상관리 : Git, Gitlab
 
 ## SAMPLE CODE
@@ -1514,6 +1525,7 @@ const initLabelGrid = defineGrid((data, view) => {
 
 ```
 
-### 2. 학생관리 - 성적
+### 2. SK렌터카 API 연동 & Spring Batch : 업무차량운행일지 관리
+
 
 
