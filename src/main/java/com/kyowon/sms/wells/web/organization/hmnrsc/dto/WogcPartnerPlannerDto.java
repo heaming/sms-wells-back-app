@@ -71,6 +71,7 @@ public class WogcPartnerPlannerDto {
         String enddt,
         String pymdt,
         String dsbAmt,
+        String cntrSn,
         String cntrDt,
         String prtnrCntrTpCd,
         String pcpOgTpCd,
