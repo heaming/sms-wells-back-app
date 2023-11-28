@@ -56,7 +56,8 @@ public class WsncManagementCstRglvlService {
             }
 
             if (bsAssignInfoDvo.getCnfmPsicPrtnrNo() != null
-                && bsAssignInfoDvo.getCurMnthAlctnMngerRglvlDvCd() != null) {
+                && bsAssignInfoDvo.getCurMnthAlctnMngerRglvlDvCd() != null
+                && bsAssignInfoDvo.getCstSvAsnNo() != null) {
                 processCount += mapper.updateClientServiceBsAssignInfo(bsAssignInfoDvo);
 
                 WsncSvpdAsnRsTfIzDvo wsncSvpdAsnRsTfIzDvo = converter.mapSavePartnerReqToWsncSvpdAsnRsTfIzDvo(dto);
