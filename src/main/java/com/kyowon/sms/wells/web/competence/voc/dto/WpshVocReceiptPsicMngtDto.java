@@ -14,6 +14,7 @@ public class WpshVocReceiptPsicMngtDto {
     public record SearchReq(
         String vocBizTpCd,
         String ipvmProsTpCd,
+        String mattVocDvTpCd,
         String ichrDeptId
     ) {
     }
