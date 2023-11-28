@@ -29,7 +29,6 @@ public class WsncManagementCstRglvlDto {
         String cntrSn,
         String mngtPrtnrNo,
         String mngStdMngerRglvlDvCd,
-        @NotBlank
         String cstSvAsnNo,
         String asnPsicPrtnrNo,
         String cnfmPsicPrtnrNo,
