@@ -55,7 +55,7 @@ public class WsncWellsAsInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "W-SV-I-0004 Wells 인터페이스 맞춤가이드 사용중인 제품 조회")
+    @ApiOperation(value = "EAI_WSVI1024 W-SV-I-0004 Wells 인터페이스 맞춤가이드 사용중인 제품 조회")
     @PostMapping("/using-products")
     public EaiWrapper getUsingProducts(
         @Valid
@@ -79,7 +79,7 @@ public class WsncWellsAsInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "W-SV-I-0003 Wells 인터페이스 맞춤가이드 서비스 내용 조회")
+    @ApiOperation(value = "EAI_WSVI1023 W-SV-I-0003 Wells 인터페이스 맞춤가이드 서비스 내용 조회")
     @PostMapping("/service-contents")
     public EaiWrapper getServiceContents(
         @Valid
@@ -91,7 +91,7 @@ public class WsncWellsAsInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "W-SV-I-0035 고객센터 인터페이스 특이사항 조회")
+    @ApiOperation(value = "EAI_WSVI1039 W-SV-I-0035 고객센터 인터페이스 특이사항 조회")
     @PostMapping("/customer-informations")
     public EaiWrapper getCustomerInformation(
         @Valid
@@ -103,7 +103,7 @@ public class WsncWellsAsInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "W-SV-I-0023 Wells 인터페이스 맞춤가이드 관리자페이지 AS접수 모종변경 조회")
+    @ApiOperation(value = "EAI_WSVI1055 W-SV-I-0023 Wells 인터페이스 맞춤가이드 관리자페이지 AS접수 모종변경 조회")
     @PostMapping("/as-siding-changes")
     public EaiWrapper getAsSidingChanges(
         @Valid
