@@ -9,6 +9,7 @@ import lombok.Setter;
 public class WpshVocReceiptPsicMngtDvo {
     private String vocBizAsnId;
     private String ipvmProsTpCd;
+    private String mattVocDvTpCd;
     private String ichrDeptId;
     private String vocBizTpDtlCd;
     private String dgYn;
