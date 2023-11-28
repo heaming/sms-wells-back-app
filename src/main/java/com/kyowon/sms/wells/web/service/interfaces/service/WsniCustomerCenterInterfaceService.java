@@ -37,9 +37,9 @@ public class WsniCustomerCenterInterfaceService {
     public List<SearchPromChRes> getEngineerPromChHist(SearchReq dto) {
         List<SearchPromChRes> searchRes = mapper.selectEngineerPromChHist(dto);
 
-        if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException("MSG_TXT_NO_DATA_RM");
-        }
+        // if (ObjectUtils.isEmpty(searchRes)) {
+        //     throw new BizException("MSG_TXT_NO_DATA_RM");
+        // }
 
         return searchRes;
     }
