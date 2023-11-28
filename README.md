@@ -10,14 +10,14 @@
     - 기술표준
 - [SAMPLE CODE](#SAMPLE-CODE)
     - BE & FE 개발
-        1. [모종 출하대차MAP](#모종출하대차 MAP)
+        1. [모종 출하대차MAP](#1.-모종출하대차-MAP)
             1. DVO
             2. DTO
             3. SERVICE
             4. CONTROLLER
             5. QUERY
-        2. [#공통 컴포넌트 - 조직(엔지니어/매니저) 조회](#공통 컴포넌트 - 조직(엔지니어/매니저) 조회)
-      
+        2. [공통 컴포넌트 - 조직(엔지니어/매니저) 조회](#2.-공통-컴포넌트-조직(엔지니어/매니저)-조회)
+
 ## ABOUT
 
 모든 고객이 머물면서 모든 것을 해결하는 '장소' **K-station**
@@ -65,6 +65,7 @@
 * cart 1대에 앞/뒤로 각각 16개의 상품을 실을 수 있음
 
 <br/>
+
 **1-1. dvo**
 
 ```java
@@ -134,15 +135,17 @@ public class WsnaSeedingTruckArrangementMapSeedDvo {
 
 ```
 <br/>
+
 **1-2. dto**
+
 ```java
 /* dto */
 
 /**
- * @title 모종 출하대차 MAP dto
- * @author heymi.cho
- * @since 2023-09-07
- */
+* @title 모종 출하대차 MAP dto
+* @author heymi.cho
+* @since 2023-09-07
+  */
 
 public class WsnaSeedingTruckArrangementMapDto {
 
@@ -259,6 +262,7 @@ public class WsnaSeedingTruckArrangementMapDto {
 
 ```
 <br/>
+
 **1-3. service**
 
 ```java
@@ -631,6 +635,7 @@ public class WsnaSeedingTruckArrangementMapService {
 
 ```
 <br/>
+
 **1-4. controller**
 
 ```java
@@ -672,6 +677,7 @@ public class WsnaSeedingTruckArrangementMapController {
 
 ```
 <br/>
+
 **1-5.query(xml)**
 
 ```xml
@@ -679,271 +685,269 @@ public class WsnaSeedingTruckArrangementMapController {
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaSeedingTruckArrangementMapMapper">
-    <select id="selectSeedAggregation"
-            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto$SearchSeedAgg">
+    <select id="selectSeedAggregation" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto$SearchSeedAgg">
         WITH BASE AS ( SELECT SDING_PKG_PD_CD AS SHIP_PKG_ID
-        , T8.PD_NM AS SHIP_PKG /* 배송패키지 */
-        , OG_NM AS VST_CENTER /* 방문센터 */
-        , OG_ID AS VST_CENTER_ID
-        , OG_CD AS VST_CENTER_CD
-        , COUNT(*) AS CNT
-        FROM ( SELECT D1.CNTR_NO
-        , D1.CNTR_SN
-        , D1.SV_BIZ_HCLSF_CD
-        , D1.SV_BIZ_DCLSF_CD
-        , D1.SDING_SPP_NO
-        , D1.SDING_SPP_SN
-        , D1.REFRI_DV_CD
-        , D1.OSTR_CNFMDT
-        , D1.ITM_IOST_DV_CD
-        , D1.SDING_PKG_PD_CD
-        , D5.PDCT_PD_CD
-        , D5.REQD_DT
-        , D2.RCPDT
-        , D3.VST_CNFMDT
-        , D1.OSTR_DUEDT
-        , '' AS BS_FSH_DT
-        , D1.DP_DT
-        , D4.OG_CD
-        , D4.OG_ID
-        , D4.OG_NM
-        , D4.OG_TP_CD
-        , D4.PRTNR_NO
-        , D1.MNGR_DV_CD
-        , D1.DP_EPTT_NM
-        , D1.RECAP_CS_AMT
-        , D3.CST_SV_ASN_NO
-        FROM TB_SVPD_SDING_SPP_PLAN_IZ D1 /* 모종배송계획내역 */
-        INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ D2 /* 고객서비스AS설치대상내역 */
-        ON D2.CNTR_NO = D1.CNTR_NO
-        AND D2.CNTR_SN = D1.CNTR_SN
-        AND D2.SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
-        AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
-        AND D2.CST_SV_ASN_NO = D1.SDING_SPP_NO
-        INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ D3 /* 고객서비스AS설치배정내역 */
-        ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
-        INNER JOIN TB_OGBS_MM_PRTNR_IZ D4 /* 월파트너내역 */
-        ON D4.OG_TP_CD = D3.ICHR_OG_TP_CD
-        AND D4.PRTNR_NO = D3.ICHR_PRTNR_NO
-        AND D4.BASE_YM = SUBSTR(#{baseDt}, 1, 6)
-        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5 /* 고객서비스수행내역 */
-        ON D5.CNTR_NO = D2.CNTR_NO
-        AND D5.CNTR_NO = D2.CNTR_NO
-        INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6 /* 상품각사속성상세 */
-        ON D6.PD_CD = D2.PD_CD
-        INNER JOIN TB_SSCT_CNTR_REL D7 /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
-        ON D7.BASE_DTL_CNTR_NO = D1.CNTR_NO
-        AND D7.BASE_DTL_CNTR_SN = D1.CNTR_SN
-        WHERE D1.DTA_DL_YN = 'N'
-        AND D2.DTA_DL_YN = 'N'
-        AND D3.DTA_DL_YN = 'N'
-        AND D4.DTA_DL_YN = 'N'
-        AND D5.DTA_DL_YN = 'N'
-        AND D5.CNTR_DTL_STAT_CD IN ('101', '201', '202', '203') /* 정상, 고객요청정지, 연체정지, 해약접수정지 */
-        AND D6.DTA_DL_YN = 'N'
-        AND D6.PD_EXTS_PRP_GRP_CD = 'PART'
-        AND D7.DTA_DL_YN = 'N'
-        AND D7.CNTR_REL_DTL_CD = '216' /* 모종결합(웰스팜+모종) */
-        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D7.VL_STRT_DTM AND D7.VL_END_DTM
-        AND D1.CAN_DT IS NULL
-        AND D5.REQD_DT IS NULL
-        AND D6.PD_PRP_VAL20 = '11' /* 모종 */
-        AND D6.PD_PRP_VAL19 IN ('3', '4') /* 모종, 상품 */
-        AND D1.ITM_IOST_DV_CD = '1'
-        AND D1.OSTR_CNFMDT BETWEEN #{baseDt} AND #{baseDt} /* 확정일자 */
-        AND EXISTS ( SELECT 1
-        FROM TB_PDBS_PD_REL S1
-        INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
-        ON S2.PD_CD = S1.BASE_PD_CD
-        WHERE S1.DTA_DL_YN = 'N'
-        AND S2.DTA_DL_YN = 'N'
-        AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
-        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
-        AND S1.OJ_PD_CD = D2.PD_CD
-        AND S2.PD_PRP_VAL12 = '1' )
+                            , T8.PD_NM  AS SHIP_PKG /* 배송패키지 */
+                            , OG_NM AS VST_CENTER /* 방문센터 */
+                            , OG_ID AS VST_CENTER_ID
+                            , OG_CD AS VST_CENTER_CD
+                            , COUNT(*) AS CNT
+                        FROM ( SELECT D1.CNTR_NO
+                                    , D1.CNTR_SN
+                                    , D1.SV_BIZ_HCLSF_CD
+                                    , D1.SV_BIZ_DCLSF_CD
+                                    , D1.SDING_SPP_NO
+                                    , D1.SDING_SPP_SN
+                                    , D1.REFRI_DV_CD
+                                    , D1.OSTR_CNFMDT
+                                    , D1.ITM_IOST_DV_CD
+                                    , D1.SDING_PKG_PD_CD
+                                    , D5.PDCT_PD_CD
+                                    , D5.REQD_DT
+                                    , D2.RCPDT
+                                    , D3.VST_CNFMDT
+                                    , D1.OSTR_DUEDT
+                                    , '' AS BS_FSH_DT
+                                    , D1.DP_DT
+                                    , D4.OG_CD
+                                    , D4.OG_ID
+                                    , D4.OG_NM
+                                    , D4.OG_TP_CD
+                                    , D4.PRTNR_NO
+                                    , D1.MNGR_DV_CD
+                                    , D1.DP_EPTT_NM
+                                    , D1.RECAP_CS_AMT
+                                    , D3.CST_SV_ASN_NO
+                                 FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
+                           INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ D2      /* 고객서비스AS설치대상내역 */
+                                   ON D2.CNTR_NO         = D1.CNTR_NO
+                                  AND D2.CNTR_SN         = D1.CNTR_SN
+                                  AND D2.SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                                  AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                  AND D2.CST_SV_ASN_NO   = D1.SDING_SPP_NO
+                           INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ D3     /* 고객서비스AS설치배정내역 */
+                                   ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                           INNER JOIN TB_OGBS_MM_PRTNR_IZ D4             /* 월파트너내역 */
+                                   ON D4.OG_TP_CD = D3.ICHR_OG_TP_CD
+                                  AND D4.PRTNR_NO = D3.ICHR_PRTNR_NO
+                                  AND D4.BASE_YM  = SUBSTR(#{baseDt}, 1, 6)
+                           INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5         /* 고객서비스수행내역 */
+                                   ON D5.CNTR_NO = D2.CNTR_NO
+                                  AND D5.CNTR_NO = D2.CNTR_NO
+                           INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
+                                   ON D6.PD_CD = D2.PD_CD
+                           INNER JOIN TB_SSCT_CNTR_REL D7               /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
+                                   ON D7.BASE_DTL_CNTR_NO = D1.CNTR_NO
+                                  AND D7.BASE_DTL_CNTR_SN = D1.CNTR_SN
+                                WHERE D1.DTA_DL_YN          = 'N'
+                                  AND D2.DTA_DL_YN          = 'N'
+                                  AND D3.DTA_DL_YN          = 'N'
+                                  AND D4.DTA_DL_YN          = 'N'
+                                  AND D5.DTA_DL_YN          = 'N'
+                                  AND D5.CNTR_DTL_STAT_CD  IN ('101', '201', '202', '203')   /* 정상, 고객요청정지, 연체정지, 해약접수정지 */
+                                  AND D6.DTA_DL_YN          = 'N'
+                                  AND D6.PD_EXTS_PRP_GRP_CD = 'PART'
+                                  AND D7.DTA_DL_YN          = 'N'
+                                  AND D7.CNTR_REL_DTL_CD    = '216'   /* 모종결합(웰스팜+모종) */
+                                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D7.VL_STRT_DTM AND D7.VL_END_DTM
+                                  AND D1.CAN_DT IS NULL
+                                  AND D5.REQD_DT IS NULL
+                                  AND D6.PD_PRP_VAL20       = '11'         /* 모종 */
+                                  AND D6.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                                  AND D1.ITM_IOST_DV_CD = '1'
+                                  AND D1.OSTR_CNFMDT BETWEEN #{baseDt} AND #{baseDt}   /* 확정일자 */
+                                  AND EXISTS ( SELECT 1
+                                                 FROM TB_PDBS_PD_REL S1
+                                           INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                                   ON S2.PD_CD = S1.BASE_PD_CD
+                                                WHERE S1.DTA_DL_YN          = 'N'
+                                                  AND S2.DTA_DL_YN          = 'N'
+                                                  AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
+                                                  AND S1.OJ_PD_CD           = D2.PD_CD
+                                                  AND S2.PD_PRP_VAL12       = '1' )
 
-        UNION ALL
+                            UNION ALL
 
-        SELECT D1.CNTR_NO
-        , D1.CNTR_SN
-        , D1.SV_BIZ_HCLSF_CD
-        , D1.SV_BIZ_DCLSF_CD
-        , D1.SDING_SPP_NO
-        , D1.SDING_SPP_SN
-        , D1.REFRI_DV_CD
-        , D1.OSTR_CNFMDT
-        , D1.ITM_IOST_DV_CD
-        , D1.SDING_PKG_PD_CD
-        , D5.PDCT_PD_CD
-        , D5.REQD_DT
-        , SUBSTR(D2.FST_RGST_DTM, 1, 8) AS RCPDT
-        , D3.VST_CNFMDT
-        , D1.OSTR_DUEDT
-        , D3.WK_EXCN_DT AS BS_FSH_DT
-        , D1.DP_DT
-        , D4.OG_CD
-        , D4.OG_ID
-        , D4.OG_NM
-        , D4.OG_TP_CD
-        , D4.PRTNR_NO
-        , D1.MNGR_DV_CD
-        , D1.DP_EPTT_NM
-        , D1.RECAP_CS_AMT
-        , D3.CST_SV_ASN_NO
-        FROM TB_SVPD_SDING_SPP_PLAN_IZ D1
-        INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2
-        ON D2.CNTR_NO = D1.CNTR_NO
-        AND D2.CNTR_SN = D1.CNTR_SN
-        AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
-        AND D2.CST_SV_ASN_NO = D1.SDING_SPP_NO
-        INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3 /* 고객서비스BS배정내역 */
-        ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
-        LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D4 /* 월파트너내역 */
-        ON D4.OG_TP_CD = D3.CNFM_PSIC_PRTNR_OG_TP_CD
-        AND D4.PRTNR_NO = D3.CNFM_PSIC_PRTNR_NO
-        AND D4.DTA_DL_YN = 'N'
-        AND D4.BASE_YM = SUBSTR(#{baseDt}, 1, 6)
-        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5 /* 고객서비스수행내역 */
-        ON D5.CNTR_NO = D2.CNTR_NO
-        AND D5.CNTR_SN = D2.CNTR_SN
-        INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6 /* 상품각사속성상세 */
-        ON D6.PD_CD = D2.PDCT_PD_CD
-        WHERE D1.DTA_DL_YN = 'N'
-        AND D1.SV_BIZ_HCLSF_CD = '2'
-        AND D2.DTA_DL_YN = 'N'
-        AND D3.DTA_DL_YN = 'N'
-        AND D5.DTA_DL_YN = 'N'
-        AND D5.CNTR_DTL_STAT_CD = '101' /* 정상 */
-        AND D6.DTA_DL_YN = 'N'
-        AND D6.PD_EXTS_PRP_GRP_CD = 'PART'
-        AND D1.CAN_DT IS NULL
-        AND D5.REQD_DT IS NULL
-        AND D6.PD_PRP_VAL01 LIKE '60%'
-        AND D1.OSTR_CNFMDT BETWEEN #{baseDt} AND #{baseDt} /* 확정일자 */
-        AND D1.ITM_IOST_DV_CD = '1'
-        AND D3.VST_PRGS_STAT_CD IN ('00', '10') /* 작업대기, 진행중 */
-        AND D6.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
-        ) T1
-        INNER JOIN TB_PDBS_PD_BAS T8 /* 상품기본-배송패키지 */
-        ON T8.PD_CD = T1.SDING_PKG_PD_CD
-        GROUP BY SDING_PKG_PD_CD
-        , T8.PD_NM
-        , OG_NM
-        , OG_ID
-        , OG_CD
+                               SELECT D1.CNTR_NO
+                                    , D1.CNTR_SN
+                                    , D1.SV_BIZ_HCLSF_CD
+                                    , D1.SV_BIZ_DCLSF_CD
+                                    , D1.SDING_SPP_NO
+                                    , D1.SDING_SPP_SN
+                                    , D1.REFRI_DV_CD
+                                    , D1.OSTR_CNFMDT
+                                    , D1.ITM_IOST_DV_CD
+                                    , D1.SDING_PKG_PD_CD
+                                    , D5.PDCT_PD_CD
+                                    , D5.REQD_DT
+                                    , SUBSTR(D2.FST_RGST_DTM, 1, 8) AS RCPDT
+                                    , D3.VST_CNFMDT
+                                    , D1.OSTR_DUEDT
+                                    , D3.WK_EXCN_DT AS BS_FSH_DT
+                                    , D1.DP_DT
+                                    , D4.OG_CD
+                                    , D4.OG_ID
+                                    , D4.OG_NM
+                                    , D4.OG_TP_CD
+                                    , D4.PRTNR_NO
+                                    , D1.MNGR_DV_CD
+                                    , D1.DP_EPTT_NM
+                                    , D1.RECAP_CS_AMT
+                                    , D3.CST_SV_ASN_NO
+                                FROM TB_SVPD_SDING_SPP_PLAN_IZ D1
+                          INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2
+                                  ON D2.CNTR_NO = D1.CNTR_NO
+                                 AND D2.CNTR_SN         = D1.CNTR_SN
+                                 AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                                 AND D2.CST_SV_ASN_NO   = D1.SDING_SPP_NO
+                          INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3     /* 고객서비스BS배정내역 */
+                                  ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                     LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D4       /* 월파트너내역 */
+                                  ON D4.OG_TP_CD  = D3.CNFM_PSIC_PRTNR_OG_TP_CD
+                                 AND D4.PRTNR_NO  = D3.CNFM_PSIC_PRTNR_NO
+                                 AND D4.DTA_DL_YN = 'N'
+                                 AND D4.BASE_YM   = SUBSTR(#{baseDt}, 1, 6)
+                          INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5          /* 고객서비스수행내역 */
+                                  ON D5.CNTR_NO = D2.CNTR_NO
+                                 AND D5.CNTR_SN = D2.CNTR_SN
+                          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
+                                  ON D6.PD_CD = D2.PDCT_PD_CD
+                               WHERE D1.DTA_DL_YN          = 'N'
+                                 AND D1.SV_BIZ_HCLSF_CD    = '2'
+                                 AND D2.DTA_DL_YN          = 'N'
+                                 AND D3.DTA_DL_YN          = 'N'
+                                 AND D5.DTA_DL_YN          = 'N'
+                                 AND D5.CNTR_DTL_STAT_CD   = '101'   /* 정상 */
+                                 AND D6.DTA_DL_YN          = 'N'
+                                 AND D6.PD_EXTS_PRP_GRP_CD = 'PART'
+                                 AND D1.CAN_DT IS NULL
+                                 AND D5.REQD_DT IS NULL
+                                 AND D6.PD_PRP_VAL01 LIKE '60%'
+                                 AND D1.OSTR_CNFMDT BETWEEN #{baseDt} AND #{baseDt}                            /* 확정일자 */
+                                 AND D1.ITM_IOST_DV_CD = '1'
+                                 AND D3.VST_PRGS_STAT_CD IN ('00', '10')   /* 작업대기, 진행중 */
+                                 AND D6.PD_PRP_VAL01 BETWEEN '60100' AND '60799'
+                        ) T1
+               INNER JOIN TB_PDBS_PD_BAS T8                  /* 상품기본-배송패키지 */
+                       ON T8.PD_CD     = T1.SDING_PKG_PD_CD
+               GROUP BY SDING_PKG_PD_CD
+                      , T8.PD_NM
+                      , OG_NM
+                      , OG_ID
+                      , OG_CD
         )
         , LCT_INF AS ( SELECT DISTINCT
-        DG_GG_LCT_CD
-        , CNR_OG_CD
-        , DG_GG_LCT_NM
-        FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
-        WHERE #{baseDt} BETWEEN APY_STRTDT AND APY_ENDDT
+                              DG_GG_LCT_CD
+                            , CNR_OG_CD
+                            , DG_GG_LCT_NM
+                         FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                        WHERE #{baseDt} BETWEEN APY_STRTDT AND APY_ENDDT
         )
         , T_A AS ( SELECT DG_GG_LCT_CD
-        , SDING_PKG_GRP_CD
-        , SDING_PKG_GRP_CD_NM
-        , DG_GG_LCT_NM
-        , SUM(EXCD_QTY + SPMT_QTY) AS EXTRA_QTY
-        FROM ( SELECT T2.DG_GG_LCT_CD /* 센터코드 */
-        , T1.SDING_PKG_GRP_CD /* 모종패키지그룹코드 */
-        , T1.SDING_PKG_GRP_CD_NM
-        , LCT_INF.DG_GG_LCT_NM
-        , SUM(T2.EXCD_QTY) * T1.SDING_PKG_APY_WTCF * -1 AS EXCD_QTY /* 제외수량 */
-        , SUM(T2.SPMT_QTY) * T1.SDING_PKG_APY_WTCF AS SPMT_QTY /* 추가수량 */
-        FROM ( SELECT SDING_PKG_CD /* 모종패키지코드 */
-        , SDING_PKG_CD_NM /* 모종패키지코드명 */
-        , SDING_PKG_APY_WTCF /* 모종패키지적용가중치 */
-        , SDING_PKG_GRP_CD /* 모종패키지그룹코드 */
-        , SDING_PKG_GRP_CD_NM /* 모종패키지그룹코드명 */
-        , SDING_PD_CD /* 모종상품코드 */
-        , ROW_NUMBER() OVER(PARTITION BY SDING_PKG_CD, SDING_PKG_GRP_CD, SDING_PKG_APY_WTCF ORDER BY SDING_PKG_CD) AS RN
-        FROM TB_SVPD_SDING_PKG_ITM_IZ /* 모종패키지품목내역 */
-        WHERE DTA_DL_YN = 'N'
-        ) T1
-        INNER JOIN ( SELECT S1.DEPT AS DG_GG_LCT_CD
-        , S1.GDS AS SDING_PKG_CD
-        , NVL(S2.EXCD_QTY, 0) AS EXCD_QTY
-        , NVL(S2.SPMT_QTY, 0) AS SPMT_QTY
-        FROM ( SELECT TEMP_DEPT.DEPT
-        , TEMP_GDS.GDS
-        FROM ( SELECT CD_VLD_VAL AS GDS
-        FROM T_CMZ_CD_D
-        WHERE DEL_YN = 'N'
-        AND TENANT_ID = 'TNT_WELLS'
-        AND CD_ID = 'SDING_PKG_CD'
-        ) TEMP_GDS
-        INNER JOIN ( SELECT CD_VLD_VAL AS DEPT
-        FROM T_CMZ_CD_D
-        WHERE DEL_YN = 'N'
-        AND TENANT_ID = 'TNT_WELLS'
-        AND CD_ID = 'GG_LCT_CD'
-        UNION ALL
-        SELECT '17' AS DEPT /* 택배 */
-        FROM DUAL
-        ) TEMP_DEPT
-        ON 1 = 1
-        ) S1
-        LEFT OUTER JOIN ( SELECT DG_GG_LCT_CD /* 대표집하위치코드 */
-        , SDING_PKG_CD /* 모종패키지코드 */
-        , OSTR_DUEDT /* 출고예정일자 */
-        , EXCD_QTY /* 제외수량 */
-        , SPMT_QTY /* 추가수량 */
-        FROM TB_SVPD_SDING_PKG_QTY_CTR_IZ /* 모종패키지수량조정내역 */
-        WHERE DTA_DL_YN = 'N'
-        AND OSTR_DUEDT = #{baseDt}
-        ) S2
-        ON S2.DG_GG_LCT_CD = S1.DEPT
-        AND S2.SDING_PKG_CD = S1.GDS
-        ) T2
-        ON T2.SDING_PKG_CD = T1.SDING_PKG_CD
-        INNER JOIN LCT_INF
-        ON LCT_INF.DG_GG_LCT_CD = T2.DG_GG_LCT_CD
-        WHERE T1.RN = 1
-        GROUP BY T2.DG_GG_LCT_CD
-        , T1.SDING_PKG_GRP_CD
-        , T1.SDING_PKG_APY_WTCF
-        , LCT_INF.DG_GG_LCT_NM
-        , T1.SDING_PKG_GRP_CD_NM
-        )
-        GROUP BY DG_GG_LCT_CD
-        , SDING_PKG_GRP_CD
-        , SDING_PKG_GRP_CD_NM
-        , DG_GG_LCT_NM
+                        , SDING_PKG_GRP_CD
+                        , SDING_PKG_GRP_CD_NM
+                        , DG_GG_LCT_NM
+                        , SUM(EXCD_QTY + SPMT_QTY) AS EXTRA_QTY
+                    FROM ( SELECT T2.DG_GG_LCT_CD                       /* 센터코드 */
+                                , T1.SDING_PKG_GRP_CD                   /* 모종패키지그룹코드 */
+                                , T1.SDING_PKG_GRP_CD_NM
+                                , LCT_INF.DG_GG_LCT_NM
+                                , SUM(T2.EXCD_QTY) * T1.SDING_PKG_APY_WTCF * -1 AS EXCD_QTY          /* 제외수량 */
+                                , SUM(T2.SPMT_QTY) * T1.SDING_PKG_APY_WTCF AS SPMT_QTY          /* 추가수량 */
+                             FROM ( SELECT SDING_PKG_CD          /* 모종패키지코드 */
+                                         , SDING_PKG_CD_NM       /* 모종패키지코드명 */
+                                         , SDING_PKG_APY_WTCF    /* 모종패키지적용가중치 */
+                                         , SDING_PKG_GRP_CD      /* 모종패키지그룹코드 */
+                                         , SDING_PKG_GRP_CD_NM   /* 모종패키지그룹코드명 */
+                                         , SDING_PD_CD           /* 모종상품코드 */
+                                         , ROW_NUMBER() OVER(PARTITION BY SDING_PKG_CD, SDING_PKG_GRP_CD, SDING_PKG_APY_WTCF ORDER BY SDING_PKG_CD) AS RN
+                                NP\      FROM TB_SVPD_SDING_PKG_ITM_IZ   /* 모종패키지품목내역 */
+                                     WHERE DTA_DL_YN = 'N'
+                             ) T1
+                       INNER JOIN ( SELECT S1.DEPT AS DG_GG_LCT_CD
+                                         , S1.GDS              AS SDING_PKG_CD
+                                         , NVL(S2.EXCD_QTY, 0) AS EXCD_QTY
+                                         , NVL(S2.SPMT_QTY, 0) AS SPMT_QTY
+                                      FROM ( SELECT TEMP_DEPT.DEPT
+                                                  , TEMP_GDS.GDS
+                                               FROM ( SELECT CD_VLD_VAL AS GDS
+                                                        FROM T_CMZ_CD_D
+                                                       WHERE DEL_YN    = 'N'
+                                                         AND TENANT_ID = 'TNT_WELLS'
+                                                         AND CD_ID     = 'SDING_PKG_CD'
+                                                   ) TEMP_GDS
+                                         INNER JOIN ( SELECT CD_VLD_VAL AS DEPT
+                                                        FROM T_CMZ_CD_D
+                                                       WHERE DEL_YN    = 'N'
+                                                         AND TENANT_ID = 'TNT_WELLS'
+                                                         AND CD_ID     = 'GG_LCT_CD'
+                                                   UNION ALL
+                                                      SELECT '17'       AS DEPT   /* 택배 */
+                                                        FROM DUAL
+                                                   ) TEMP_DEPT
+                                                 ON 1 = 1
+                                      ) S1
+                         LEFT OUTER JOIN ( SELECT DG_GG_LCT_CD   /* 대표집하위치코드 */
+                                                , SDING_PKG_CD   /* 모종패키지코드 */
+                                                , OSTR_DUEDT     /* 출고예정일자 */
+                                                , EXCD_QTY       /* 제외수량 */
+                                                , SPMT_QTY       /* 추가수량 */
+                                           FROM TB_SVPD_SDING_PKG_QTY_CTR_IZ   /* 모종패키지수량조정내역 */
+                                          WHERE DTA_DL_YN  = 'N'
+                                            AND OSTR_DUEDT = #{baseDt}
+                               ) S2
+                                      ON S2.DG_GG_LCT_CD = S1.DEPT
+                                     AND S2.SDING_PKG_CD = S1.GDS
+                             ) T2
+                           ON T2.SDING_PKG_CD = T1.SDING_PKG_CD
+                   INNER JOIN LCT_INF
+                           ON LCT_INF.DG_GG_LCT_CD = T2.DG_GG_LCT_CD
+                        WHERE T1.RN = 1
+                     GROUP BY T2.DG_GG_LCT_CD
+                            , T1.SDING_PKG_GRP_CD
+                            , T1.SDING_PKG_APY_WTCF
+                            , LCT_INF.DG_GG_LCT_NM
+                            , T1.SDING_PKG_GRP_CD_NM
+                 )
+            GROUP BY DG_GG_LCT_CD
+                   , SDING_PKG_GRP_CD
+                   , SDING_PKG_GRP_CD_NM
+                   , DG_GG_LCT_NM
         )
         SELECT T_A.DG_GG_LCT_CD
-        , T_A.DG_GG_LCT_NM
-        , T_A.SDING_PKG_GRP_CD
-        , T_A.SDING_PKG_GRP_CD_NM
-        , SUM(QTY)+SUM(EXTRA_QTY) AS SDING_QTY
-        FROM T_A
-        INNER JOIN ( SELECT DG_GG_LCT_CD
-        , DG_GG_LCT_NM
-        , SHIP_PKG_ID
-        , P1.*
-        , BASE.CNT * SDING_PKG_APY_WTCF AS QTY
-        FROM BASE
-        INNER JOIN LCT_INF
-        ON BASE.VST_CENTER_CD = LCT_INF.CNR_OG_CD
-        INNER JOIN TB_SVPD_SDING_PKG_ITM_IZ P1 /* 모종패키지품목내역 */
-        ON BASE.SHIP_PKG_ID = P1.SDING_PD_CD
-        ) AGG
-        ON T_A.DG_GG_LCT_CD = AGG.DG_GG_LCT_CD
-        AND T_A.SDING_PKG_GRP_CD = AGG.SDING_PKG_GRP_CD
-        GROUP BY T_A.DG_GG_LCT_CD
-        , T_A.DG_GG_LCT_NM
-        , T_A.SDING_PKG_GRP_CD
-        , T_A.SDING_PKG_GRP_CD_NM
+             , T_A.DG_GG_LCT_NM
+             , T_A.SDING_PKG_GRP_CD
+             , T_A.SDING_PKG_GRP_CD_NM
+             , SUM(QTY)+SUM(EXTRA_QTY) AS SDING_QTY
+          FROM T_A
+    INNER JOIN ( SELECT DG_GG_LCT_CD
+                      , DG_GG_LCT_NM
+                      , SHIP_PKG_ID
+                      , P1.*
+                      , BASE.CNT * SDING_PKG_APY_WTCF AS QTY
+                  FROM BASE
+            INNER JOIN LCT_INF
+                    ON BASE.VST_CENTER_CD = LCT_INF.CNR_OG_CD
+            INNER JOIN TB_SVPD_SDING_PKG_ITM_IZ P1 /* 모종패키지품목내역  */
+                    ON BASE.SHIP_PKG_ID = P1.SDING_PD_CD
+             ) AGG
+           ON T_A.DG_GG_LCT_CD = AGG.DG_GG_LCT_CD
+          AND T_A.SDING_PKG_GRP_CD = AGG.SDING_PKG_GRP_CD
+     GROUP BY T_A.DG_GG_LCT_CD
+            , T_A.DG_GG_LCT_NM
+            , T_A.SDING_PKG_GRP_CD
+            , T_A.SDING_PKG_GRP_CD_NM
         ORDER BY T_A.SDING_PKG_GRP_CD
     </select>
 
-    <select id="selectTodayGgLct"
-            resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto$SearchTodayGgLct">
+    <select id="selectTodayGgLct" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaSeedingTruckArrangementMapDto$SearchTodayGgLct">
         SELECT DISTINCT
-        DG_GG_LCT_CD
-        , DG_GG_LCT_NM
-        FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
-        WHERE TO_NUMBER(TO_CHAR(TO_DATE(#{baseDt}, 'YYYYMMDD'), 'd')) = TO_NUMBER(DOW_DV_CD)+1
-        ORDER BY DG_GG_LCT_CD
+               DG_GG_LCT_CD
+             , DG_GG_LCT_NM
+          FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+         WHERE TO_NUMBER(TO_CHAR(TO_DATE(#{baseDt}, 'YYYYMMDD'), 'd')) = TO_NUMBER(DOW_DV_CD)+1
+      ORDER BY DG_GG_LCT_CD
     </select>
 </mapper>
 
@@ -1525,12 +1529,14 @@ const initLabelGrid = defineGrid((data, view) => {
 
 ```
 <br/>
-###  2. 공통 컴포넌트 - 조직(엔지니어/매니저) 조회
+
+###  2. 공통 컴포넌트 조직(엔지니어/매니저) 조회 ###
 <br/>
+
 ![2023-11-28](https://github.com/heaming/sms-wells-back-app/assets/85826542/89847f72-b7f0-46fb-a432-0c89e5fe6c6a)
 
 * 시스템에서 빈번하게 쓰이는 조직별 사원 조회 기능을 컴포넌트화
-   
+
 ```vue
 <template>
   <kw-search-item
