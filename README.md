@@ -1526,7 +1526,9 @@ const initLabelGrid = defineGrid((data, view) => {
 ```
 <br/>
 ###  2. 공통 컴포넌트 - 조직(엔지니어/매니저) 조회
-![2023-11-28 17 43 40](https://github.com/heaming/sms-wells-back-app/assets/85826542/528ccc7e-810d-465c-915b-1e6637fb3228)
+<br/>
+![2023-11-28](https://github.com/heaming/sms-wells-back-app/assets/85826542/89847f72-b7f0-46fb-a432-0c89e5fe6c6a)
+
 * 시스템에서 빈번하게 쓰이는 조직별 사원 조회 기능을 컴포넌트화
    
 ```vue
