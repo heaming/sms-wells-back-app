@@ -457,7 +457,7 @@ public class WsnaAsConsumablesStoreService {
             if (strItmPdCdCount == 0) {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
-                errorDvo.setHeaderName(headerTitle.get("strWareNo"));
+                errorDvo.setHeaderName(headerTitle.get("itmPdCd"));
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
                         "MSG_ALT_INVLD_ITM_PD_CD" // 잘못된 품목상품코드 입니다.
@@ -488,6 +488,23 @@ public class WsnaAsConsumablesStoreService {
                 }
             }
         }
+
+        // 품목상품등급코드가 A,B,E,R 급이 아닌경우(A급 등등 체크)
+        if (StringUtil.isNotBlank(dvo.getItmGdCd())) {
+            String chkItmGdCd = dvo.getItmGdCd();
+            if (!List.of("A", "B", "E", "R").contains(chkItmGdCd)) {
+                ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+                errorDvo.setErrorRow(row);
+                errorDvo.setHeaderName(headerTitle.get("itmGdCd"));
+                errorDvo.setErrorData(
+                    messageResourceService.getMessage(
+                        "MSG_ALT_ERR_GD_CD" //잘못된 등급코드입니다.
+                    )
+                );
+                excelUploadErrorDvos.add(errorDvo);
+            }
+        }
+
         //입고수량이 마이너스 이거나 0일경우 체크
         if (StringUtil.isNotBlank(dvo.getStrQty())) {
             int validStrQty = Integer.parseInt(dvo.getStrQty());
