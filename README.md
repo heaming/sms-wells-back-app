@@ -1,4 +1,5 @@
 # K-STATION
+![image](https://github.com/heaming/sms-wells-back-app/assets/85826542/6b92f4bb-8b8b-4b89-8dc7-0ff6dd43e6d0)
 
 교원그룹 영업관리시스템 차세대 프로젝트
 
@@ -19,6 +20,7 @@
         2. [2. 공통 컴포넌트 - 조직(엔지니어/매니저) 조회](#2.-공통-컴포넌트-조직(엔지니어/매니저)-조회)
 
 ## ABOUT
+![image](https://github.com/heaming/sms-wells-back-app/assets/85826542/f672c2a7-64d4-4147-bd10-b8c9eb2b042e)
 
 모든 고객이 머물면서 모든 것을 해결하는 '장소' **K-station**
 **K-station**은 교원 그룹사(빨간펜, 구몬, 웰스, 라이프) 사업 부문의 모든 고객이 머물면서 모든 업무를 해결하는 '장소'로, 보다 더 빠른 서비스를 지원하기 위한 영업관리 플랫폼입니다.
