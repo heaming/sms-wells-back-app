@@ -1535,6 +1535,8 @@ const initLabelGrid = defineGrid((data, view) => {
 
 ![2023-11-28](https://github.com/heaming/sms-wells-back-app/assets/85826542/89847f72-b7f0-46fb-a432-0c89e5fe6c6a)
 
+<br/>
+
 * 시스템에서 빈번하게 쓰이는 조직별 사원 조회 기능을 컴포넌트화
 
 ```vue
