@@ -25,10 +25,11 @@ public class WsncAsEngineerAllocateSearchDvo {
     String prgsDvCd;
     String baseDateFrom;
     String baseDateTo;
-    String vstCfrmDt;
-    String cfrmOnlyYn;
+    //    String vstCfrmDt;
+    //    String cfrmOnlyYn;
     String sellTpCd;
     String istConfCd;
+    String inquiryBase;
 
     String cntrNo;
     String cntrSn;
@@ -45,6 +46,7 @@ public class WsncAsEngineerAllocateSearchDvo {
     String mexnoEncr;
     String cralIdvTno;
     String cntrDt;
+    String cntrCnfmAprDtm;
     String sapMatCd;
     String pdctPdCd;
     String pdNm;
