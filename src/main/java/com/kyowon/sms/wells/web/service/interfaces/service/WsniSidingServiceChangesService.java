@@ -169,7 +169,7 @@ public class WsniSidingServiceChangesService {
         String strPdctPdcds = StringUtil.isEmpty(req.choCapslCn()) ? mapper.selectPdctPdCds(
             req.cntrNo(), req.cntrSn()
         ) : req.choCapslCn();
-        if (StringUtil.isNotEmpty(strPdctPdcds)) {
+        if (StringUtil.isNotEmpty(strPdctPdcds) && strPdctPdcds.indexOf("|") > 0) {
             String[] arrayPdctPdCds = strPdctPdcds.split("\\|");
             for (String s : arrayPdctPdCds) {
                 log.debug(s);
