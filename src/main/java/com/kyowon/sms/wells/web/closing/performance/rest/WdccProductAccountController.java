@@ -101,4 +101,20 @@ public class WdccProductAccountController {
     ) throws IOException {
         service.getProductAccountsExcelDownload(req, response);
     }
+
+    /**
+     * 상품별 계정 현황 상세내역 파일 생성
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "상품별 계정 현황 상세내역 파일 생성", notes = "상품별 계정 현황 상세내역 파일 생성")
+    @PostMapping("/make-file")
+    public String createdetailItemizationFile(
+        @Valid
+        @RequestBody
+        SearchReq dto
+    ) throws Exception {
+        return service.createdetailItemizationFile(dto);
+    }
+
 }
