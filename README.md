@@ -46,13 +46,14 @@
 ### 1. 모종출하대차 MAP
 ![image](https://github.com/heaming/sms-wells-back-app/assets/85826542/73655055-557a-437f-8060-6452d56902ec)
 ![image](https://github.com/heaming/sms-wells-back-app/assets/85826542/56d2fbda-1955-4e6a-b70c-9e6282ab36f1)
+![image](https://github.com/heaming/sms-wells-back-app/assets/85826542/4fcc9ac4-7acd-4ff3-b3db-d352bd9e0395)
 
 * 기준일에 출고 확정된 모종 상품 + 집하 센터에서 추가 요청한 모종 상품 - 집하 센터에서 제외 요청한 모종 상품을 계산해 화면으로 보여주는 페이지
 * 집계 현황을 통해 출고 차량에 실을 상품 라벨스티커를 출력할 수 있음
 * 대표집하센터별 출고 요일이 정해져 있음
 * cart 1대에 앞/뒤로 각각 16개의 상품을 실을 수 있음
 
-
+<br/>
 **1-1. dvo**
 
 ```java
@@ -121,7 +122,7 @@ public class WsnaSeedingTruckArrangementMapSeedDvo {
 }
 
 ```
-
+<br/>
 **1-2. dto**
 ```java
 /* dto */
@@ -246,7 +247,7 @@ public class WsnaSeedingTruckArrangementMapDto {
 }
 
 ```
-
+<br/>
 **1-3. service**
 
 ```java
@@ -618,7 +619,7 @@ public class WsnaSeedingTruckArrangementMapService {
 }
 
 ```
-
+<br/>
 **1-4. controller**
 
 ```java
@@ -659,7 +660,7 @@ public class WsnaSeedingTruckArrangementMapController {
 
 
 ```
-
+<br/>
 **1-5.query(xml)**
 
 ```xml
@@ -936,7 +937,7 @@ public class WsnaSeedingTruckArrangementMapController {
 </mapper>
 
 ```
-
+<br/>
 **1-6. Front Page**
 
 ```vue
