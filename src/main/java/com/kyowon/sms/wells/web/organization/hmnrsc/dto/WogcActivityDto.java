@@ -47,6 +47,7 @@ public class WogcActivityDto {
         String akcdq0Sunju,
         String akcdq0,
         String akcdq0Sulchi,
+        String akcdq0Sub,
         String akcdq1Sunju,
         String akcdq1,
         String akcdq1Sulchi,

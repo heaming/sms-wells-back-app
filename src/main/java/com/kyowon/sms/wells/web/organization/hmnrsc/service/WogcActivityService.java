@@ -31,7 +31,11 @@ public class WogcActivityService {
      * @return SearchMonthlyActivityRes
      */
     public List<SearchMonthlyActivityRes> searchMonthlyActivities(SearchMonthlyActivityReq dto) {
-        return wogcActivityMapper.searchMonthlyActivities(dto);
+        if(dto.ogTpCd().equals("W01")){ // P추진
+            return wogcActivityMapper.searchMonthlyActivitiesP(dto);
+        }else{ // M 추진
+            return wogcActivityMapper.searchMonthlyActivitiesM(dto);
+        }
     }
 
     /**
@@ -43,7 +47,11 @@ public class WogcActivityService {
     public PagingResult<SearchMonthlyActivityRes> searchMonthlyActivitiesPages(
         SearchMonthlyActivityReq dto, PageInfo pageInfo
     ) {
-        return wogcActivityMapper.searchMonthlyActivities(dto, pageInfo);
+        if(dto.ogTpCd().equals("W01")){ // P추진
+            return wogcActivityMapper.searchMonthlyActivitiesP(dto, pageInfo);
+        }else{ // M 추진
+            return wogcActivityMapper.searchMonthlyActivitiesM(dto, pageInfo);
+        }
     }
 
         /**
