@@ -421,7 +421,8 @@ public class WfeaOrganizationNetOrderDto {
         String mchnPd,
         String perfExcd,
         String bizRgstMm,
-        String bizRgstNm
+        String bizRgstNm,
+        String hsPrchs
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchPlarSellFeeRes")
@@ -467,7 +468,8 @@ public class WfeaOrganizationNetOrderDto {
         String mchnPd,
         String perfExcd,
         String bizRgstMm,
-        String bizRgstNm
+        String bizRgstNm,
+        String hsPrchs
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchPlarAgrgRes")
