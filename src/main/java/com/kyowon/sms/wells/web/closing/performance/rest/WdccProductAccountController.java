@@ -138,7 +138,7 @@ public class WdccProductAccountController {
 
         String fileName = "W_상품별 계정 현황_" + dto.baseYm() + ".csv";
         File file = new File(
-            "/wsmwld_sdata/tnt_wells/dev/share/WdccSalesInfobyProductExcelJob/" + subFolderPath + "/", fileName
+            "/wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/" + subFolderPath + "/", fileName
         );
         BizAssert.isTrue(file.isFile(), "MSG_ALT_FILE_NOT_FOUND");
 

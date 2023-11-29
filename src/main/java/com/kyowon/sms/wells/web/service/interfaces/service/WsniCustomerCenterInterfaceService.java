@@ -47,9 +47,9 @@ public class WsniCustomerCenterInterfaceService {
     public List<SearchCancelRes> getEngineerCancels(SearchReq dto) {
         List<SearchCancelRes> searchRes = mapper.selectEngineerCancels(dto);
 
-        if (ObjectUtils.isEmpty(searchRes)) {
-            throw new BizException("MSG_TXT_NO_DATA_RM");
-        }
+        // if (ObjectUtils.isEmpty(searchRes)) {
+        //     throw new BizException("MSG_TXT_NO_DATA_RM");
+        // }
 
         return searchRes;
     }
