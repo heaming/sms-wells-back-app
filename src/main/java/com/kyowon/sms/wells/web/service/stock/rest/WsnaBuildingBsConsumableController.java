@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -24,7 +25,7 @@ public class WsnaBuildingBsConsumableController {
     private final WsnaBuildingBsConsumableService service;
 
     @GetMapping
-    public List<SearchRes> getBuildingBsConsumables(SearchReq dto) {
+    public List<HashMap<String, Object>> getBuildingBsConsumables(SearchReq dto) {
         return service.getBuildingBsConsumables(dto);
     }
 

@@ -43,4 +43,10 @@ public class WsnaBuildingBsConsumableDvo {
     String aplcPdNm;
     String aplcSapMatCd;
     String qty;
+
+    List<String> bldCds;
+    // PIVOT 조건
+    private String pivotInStr;
+    // PIVOT 컬럼
+    private String pivotColumns;
 }

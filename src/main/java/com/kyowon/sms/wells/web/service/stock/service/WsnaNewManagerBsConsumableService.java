@@ -1,8 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,6 @@ import com.sds.sflex.system.config.context.SFLEXContext;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.exception.BizException;
-import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,6 +44,11 @@ public class WsnaNewManagerBsConsumableService {
     private static final String SAP_PLNT_CD = "2108"; // 교원프라퍼티파주물류
     private static final String PAJU_SAP_SAVE_LCT_CD = "21082082"; // 파주창고
 
+    /**
+     * 고정, 신청품목 조회(그리드 헤더 표시용)
+     * @param mngtYm
+     * @return
+     */
     public List<SearchItmRes> getItems(String mngtYm) {
         List<WsnaNewManagerBsConsumableDvo> dvos = mapper.selectItems(mngtYm);
 
@@ -81,6 +86,10 @@ public class WsnaNewManagerBsConsumableService {
         return converter.mapAllDvosToSearchItmRes(dvos);
     }
 
+    /**
+     * 빌딩 목록 조회
+     * @return
+     */
     public List<SearchBldRes> selectBuildings() {
         return bldMapper.selectBuildingList();
     }
@@ -89,88 +98,25 @@ public class WsnaNewManagerBsConsumableService {
     //    return null;
     //}
 
-    public List<SearchRes> getNewManagerBsConsumable(SearchReq dto) {
-        List<WsnaNewManagerBsConsumableDvo> bldInfos = mapper.selectBuildings(dto);
-        List<WsnaNewManagerBsConsumableDvo> bldAndItemsInfos = new ArrayList<>();
-        Iterator<WsnaNewManagerBsConsumableDvo> it = bldInfos.iterator();
+    public List<HashMap<String, Object>> getNewManagerBsConsumable(SearchReq dto) {
+        WsnaNewManagerBsConsumableDvo searchDvo = converter.mapSearchReqToNewManagerBsConsumable(dto);
 
-        while (it.hasNext()) {
-            WsnaNewManagerBsConsumableDvo bfBldInfo = it.next();
-            WsnaNewManagerBsConsumableDvo aftBldInfo;
-            List<WsnaNewManagerBsConsumableDvo> rgstItemInfos;
-            List<WsnaNewManagerBsConsumableDvo> unrgItemInfos;
+        // 그리드 헤더상의 품목 조회
+        List<WsnaNewManagerBsConsumableDvo> sapMatCds = mapper.selectItems(searchDvo.getMngtYm());
 
-            aftBldInfo = bfBldInfo;
+        // PIVOT 조건 변환
+        String pivotInStr = sapMatCds.stream().map(obj -> "'" + obj.getSapMatCd() + "' AS QTY_" + obj.getSapMatCd())
+            .collect(Collectors.joining(", "));
 
-            List<String> fxnItemQtys = new ArrayList<>();
-            List<String> aplcItemQtys = new ArrayList<>();
+        // PIVOT 컬럼
+        String pivotColumns = sapMatCds.stream()
+            .map(obj -> "NVL(QTY_" + obj.getSapMatCd() + ", 0) AS QTY_" + obj.getSapMatCd())
+            .collect(Collectors.joining(", "));
 
-            // 매니저 별 기등록 품목 수량 조회
-            rgstItemInfos = mapper.selectItemQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
+        searchDvo.setPivotInStr(pivotInStr);
+        searchDvo.setPivotColumns(pivotColumns);
 
-            // 매니저 별 미등록 품목 계산 수량 조회
-            unrgItemInfos = mapper.selectItemFirstQtys(dto.mngtYm(), bfBldInfo.getPrtnrNo());
-
-            String mngtYear = dto.mngtYm().substring(0, 4);
-            String mngtMonth = "";
-            mngtMonth = dto.mngtYm().substring(4);
-            mngtMonth = mngtMonth.startsWith("0") ? " " + mngtMonth.substring(1) : mngtMonth;
-
-            BizAssert.isTrue(
-                !ObjectUtils.isEmpty(unrgItemInfos), "MSG_ALT_BFSVC_CSMB_DDLV_BASE", new String[] {mngtYear, mngtMonth}
-            );
-
-            for (WsnaNewManagerBsConsumableDvo unrgItemInfo : unrgItemInfos) {
-                switch (unrgItemInfo.getBfsvcCsmbDdlvTpCd()) {
-                    case "1" -> { // 고정품목
-                        int i = 0;
-
-                        for (WsnaNewManagerBsConsumableDvo rgstItemInfo : rgstItemInfos) {
-                            // 기등록 품목에 대한 갯수가 있다면
-                            if (unrgItemInfo.getFxnPdCd().equals(rgstItemInfo.getCsmbPdCd())) {
-                                fxnItemQtys.add(rgstItemInfo.getBfsvcCsmbDdlvQty());
-                                i++;
-                            }
-                        }
-
-                        if (i == 0) { // 기등록 품목이 없으면 미등록 품목 수량을 넣어준다
-                            fxnItemQtys.add(unrgItemInfo.getFxnDdlvUnitQty());
-                        }
-                    }
-
-                    case "2" -> { // 신청품목
-                        int i = 0;
-
-                        for (WsnaNewManagerBsConsumableDvo rgstItemInfo : rgstItemInfos) {
-                            // 기등록 품목에 대한 갯수가 있다면
-                            if (unrgItemInfo.getAplcPdCd().equals(rgstItemInfo.getCsmbPdCd())) {
-                                aplcItemQtys.add(rgstItemInfo.getBfsvcCsmbDdlvQty());
-
-                                i++;
-                            }
-                        }
-
-                        if (i == 0) { // 기등록 품목이 없으면 미등록 품목 수량을 넣어준다
-                            aplcItemQtys.add(unrgItemInfo.getAplcDdlvUnitQty());
-                        }
-                    }
-                }
-            }
-
-            aftBldInfo.setReqYn(
-                ObjectUtils.isEmpty(rgstItemInfos) ? unrgItemInfos.get(0).getReqYn() : rgstItemInfos.get(0).getReqYn()
-            );
-            aftBldInfo.setBfsvcCsmbDdlvStatCd(
-                ObjectUtils.isEmpty(rgstItemInfos) ? "" : rgstItemInfos.get(0).getBfsvcCsmbDdlvStatCd()
-            );
-            aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
-            aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
-            bldAndItemsInfos.add(aftBldInfo);
-        }
-
-        List<SearchRes> rtnDto = converter.mapAllDvoToListSearchRes(bldAndItemsInfos);
-
-        return rtnDto;
+        return mapper.selectNewManagerBsConsumables(searchDvo);
     }
 
     public FindTmlmRes getNewManagerBsConsumableAplcClose(String mngtYm) {
