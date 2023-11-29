@@ -219,8 +219,7 @@ public class WbncCustomerService {
 
         if (petitionDvo != null) {
             if ("L20".equals(petitionDvo.getBndBizDvCd()) && "02".equals(petitionDvo.getBndLwsBilDvCd())
-                && "@".equals(petitionDvo.getBndBilPpsDvCd()) && "N".equals(petitionDvo.getIstmYn())
-                && "N".equals(petitionDvo.getDscYn()) && !"302".equals(petitionDvo.getCntrDtlStatCd())
+                && "@".equals(petitionDvo.getBndBilPpsDvCd()) && !"302".equals(petitionDvo.getCntrDtlStatCd())
                 && !"303".equals(petitionDvo.getCntrDtlStatCd())) {
                 returnCount = mapper.selectPetitionType1(cntrDtlNo);
             }
