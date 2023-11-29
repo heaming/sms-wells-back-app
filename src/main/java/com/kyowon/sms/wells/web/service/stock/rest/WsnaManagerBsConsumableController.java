@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -24,6 +25,11 @@ import lombok.RequiredArgsConstructor;
 public class WsnaManagerBsConsumableController {
     private final WsnaManagerBsConsumableService service;
 
+    /**
+     * 고정, 신청품목 조회(그리드 헤더 표시용)
+     * @param mngtYm
+     * @return
+     */
     @GetMapping("/items/{mngtYm}")
     public List<SearchItmRes> getItems(
         @PathVariable
@@ -32,16 +38,30 @@ public class WsnaManagerBsConsumableController {
         return service.selectItems(mngtYm);
     }
 
+    /**
+     * 빌딩 목록 조회
+     * @return
+     */
     @GetMapping("/building-code")
     public List<SearchBldRes> selectBuildings() {
         return service.selectBuildings();
     }
 
+    /**
+     * 소모품 배부현황 목록 조회
+     * @param dto
+     * @return
+     */
     @GetMapping
-    public List<SearchRes> getManagerBsConsumable(SearchReq dto) {
+    public List<HashMap<String, Object>> getManagerBsConsumable(SearchReq dto) {
         return service.getManagerBsConsumable(dto);
     }
 
+    /**
+     * 등록기간 조회
+     * @param mngtYm
+     * @return
+     */
     @GetMapping("/time-limit/{mngtYm}")
     public FindTmlmRes getManagerBsConsumableAplcClose(
         @PathVariable
@@ -50,6 +70,11 @@ public class WsnaManagerBsConsumableController {
         return service.getManagerBsConsumableAplcClose(mngtYm);
     }
 
+    /**
+     * 등록기간 설정
+     * @param dto
+     * @return
+     */
     @PostMapping("/period-term")
     public SaveResponse createManagerBsConsumableAplcClose(
         @RequestBody
@@ -61,6 +86,11 @@ public class WsnaManagerBsConsumableController {
             .build();
     }
 
+    /**
+     * 소모품 배부현황 저장
+     * @param dtos
+     * @return
+     */
     @PostMapping
     public SaveResponse createManagerBsConsumables(
         @RequestBody
@@ -72,6 +102,11 @@ public class WsnaManagerBsConsumableController {
             .build();
     }
 
+    /**
+     * 소모품 출고요청
+     * @param dtos
+     * @return
+     */
     @PostMapping("/request")
     public SaveResponse createManagerBsConsumablesRequest(
         @RequestBody
@@ -83,6 +118,11 @@ public class WsnaManagerBsConsumableController {
             .build();
     }
 
+    /**
+     * 신청제한수량 조회
+     * @param mngtYm
+     * @return
+     */
     @GetMapping("/{mngtYm}/application-limit-qty")
     public List<SearchLmQtyRes> getApplicationLimitQty(
         @PathVariable

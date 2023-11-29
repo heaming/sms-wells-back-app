@@ -1,8 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +20,6 @@ import com.sds.sflex.system.config.context.SFLEXContext;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.exception.BizException;
-import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,98 +43,25 @@ public class WsnaBuildingBsConsumableService {
     private static final String SAP_PLNT_CD = "2108"; // 교원프라퍼티파주물류
     private static final String PAJU_SAP_SAVE_LCT_CD = "21082082"; // 파주창고
 
-    public List<SearchRes> getBuildingBsConsumables(SearchReq dto) {
-        // 빌딩정보 조회
-        List<WsnaBuildingBsConsumableDvo> bldInfos = mapper.selectBuildings(dto);
+    public List<HashMap<String, Object>> getBuildingBsConsumables(SearchReq dto) {
+        WsnaBuildingBsConsumableDvo searchDvo = converter.mapSearchReqToBuildingBsConsumable(dto);
 
-        if (!ObjectUtils.isEmpty(bldInfos)) {
-            List<WsnaBuildingBsConsumableDvo> bldAndItemsInfos = new ArrayList<>();
-            Iterator<WsnaBuildingBsConsumableDvo> it = bldInfos.iterator();
+        // 그리드 헤더상의 품목 조회
+        List<WsnaBuildingBsConsumableDvo> sapMatCds = mapper.selectItems(searchDvo.getMngtYm());
 
-            while (it.hasNext()) {
-                WsnaBuildingBsConsumableDvo bftBldInfo = it.next();
-                WsnaBuildingBsConsumableDvo aftBldInfo;
-                List<WsnaBuildingBsConsumableDvo> rgstItemInfos;
-                List<WsnaBuildingBsConsumableDvo> unrgItemInfos;
+        // PIVOT 조건 변환
+        String pivotInStr = sapMatCds.stream().map(obj -> "'" + obj.getSapMatCd() + "' AS QTY_" + obj.getSapMatCd())
+            .collect(Collectors.joining(", "));
 
-                aftBldInfo = bftBldInfo;
+        // PIVOT 컬럼
+        String pivotColumns = sapMatCds.stream()
+            .map(obj -> "NVL(QTY_" + obj.getSapMatCd() + ", 0) AS QTY_" + obj.getSapMatCd())
+            .collect(Collectors.joining(", "));
 
-                List<String> fxnItemQtys = new ArrayList<>();
-                List<String> aplcItemQtys = new ArrayList<>();
+        searchDvo.setPivotInStr(pivotInStr);
+        searchDvo.setPivotColumns(pivotColumns);
 
-                // 빌딩 별 기등록 품목 수량 조회
-                rgstItemInfos = mapper.selectItemQtys(dto.mngtYm(), bftBldInfo.getBldCd());
-
-                // 빌딩 별 미등록 품목 계산 수량 조회
-                unrgItemInfos = mapper.selectItemFirstQtys(dto.mngtYm(), bftBldInfo.getBldCd());
-
-                String mngtYear = dto.mngtYm().substring(0, 4);
-                String mngtMonth = "";
-                mngtMonth = dto.mngtYm().substring(4);
-                mngtMonth = mngtMonth.startsWith("0") ? " " + mngtMonth.substring(1) : mngtMonth;
-
-                BizAssert.isTrue(
-                    !ObjectUtils.isEmpty(unrgItemInfos), "MSG_ALT_BFSVC_CSMB_DDLV_BASE",
-                    new String[] {mngtYear, mngtMonth}
-                );
-
-                for (WsnaBuildingBsConsumableDvo unrgItemInfo : unrgItemInfos) {
-                    switch (unrgItemInfo.getBfsvcCsmbDdlvTpCd()) {
-                        case "1" -> { // 고정품목
-                            int i = 0;
-
-                            for (WsnaBuildingBsConsumableDvo rgstItemInfo : rgstItemInfos) {
-                                // 기등록 품목에 대한 갯수가 있다면
-                                if (unrgItemInfo.getFxnPdCd().equals(rgstItemInfo.getCsmbPdCd())) {
-                                    fxnItemQtys.add(rgstItemInfo.getBfsvcCsmbDdlvQty());
-                                    i++;
-                                }
-                            }
-
-                            if (i == 0) { // 기등록 품목이 없으면 미등록 품목 수량을 넣어준다
-                                fxnItemQtys.add(unrgItemInfo.getFxnDdlvUnitQty());
-                            }
-                        }
-
-                        case "2" -> { // 신청품목
-                            int i = 0;
-
-                            for (WsnaBuildingBsConsumableDvo rgstItemInfo : rgstItemInfos) {
-                                // 기등록 품목에 대한 갯수가 있다면
-                                if (unrgItemInfo.getAplcPdCd().equals(rgstItemInfo.getCsmbPdCd())) {
-                                    aplcItemQtys.add(rgstItemInfo.getBfsvcCsmbDdlvQty());
-
-                                    i++;
-                                }
-                            }
-
-                            if (i == 0) { // 기등록 품목이 없으면 미등록 품목 수량을 넣어준다
-                                aplcItemQtys.add(unrgItemInfo.getAplcDdlvUnitQty());
-                            }
-                        }
-                    }
-                }
-
-                aftBldInfo.setReqYn(
-                    ObjectUtils.isEmpty(rgstItemInfos) ? unrgItemInfos.get(0).getReqYn()
-                        : rgstItemInfos.get(0).getReqYn()
-                );
-                aftBldInfo.setBfsvcCsmbDdlvStatCd(
-                    ObjectUtils.isEmpty(rgstItemInfos) ? "" : rgstItemInfos.get(0).getBfsvcCsmbDdlvStatCd()
-                );
-                aftBldInfo.setFxnQtys(fxnItemQtys); // 고정품목
-                aftBldInfo.setAplcQtys(aplcItemQtys); // 신청품목
-                bldAndItemsInfos.add(aftBldInfo);
-            }
-
-            List<SearchRes> rtnDto = converter.mapAllDvoToSearchRes(bldAndItemsInfos);
-
-            return rtnDto;
-        }
-
-        List<SearchRes> rtnDto = converter.mapAllDvoToSearchRes(bldInfos);
-
-        return rtnDto;
+        return mapper.selectBuildingBsConsumables(searchDvo);
     }
 
     public List<SearchItmRes> getItems(String mngtYm) {

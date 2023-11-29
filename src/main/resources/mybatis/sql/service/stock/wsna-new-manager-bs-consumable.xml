@@ -85,6 +85,15 @@
                ) AS APLC_SAP_MAT_CD
              , NULL AS QTY
              , T1.CSMB_PD_CD
+             , (SELECT Y.SAP_MAT_CD
+                  FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
+                     , TB_PDBS_PD_BAS Y
+                 WHERE X.CSMB_PD_CD = Y.PD_CD
+                   AND X.MNGT_YM = T1.MNGT_YM
+                   AND X.CSMB_PD_CD = T1.CSMB_PD_CD
+                   AND X.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
+                   AND X.BFSVC_CSMB_DDLV_ORT_YN = T1.BFSVC_CSMB_DDLV_ORT_YN
+               ) AS SAP_MAT_CD
           FROM TB_SVST_BFSVC_CSMB_BASE_DTL T1
              , TB_PDBS_PD_BAS T2
          WHERE T1.CSMB_PD_CD = T2.PD_CD
@@ -92,6 +101,164 @@
            AND T1.BFSVC_CSMB_DDLV_ORT_YN = 'Y'
            AND T1.MNGT_YM = #{mngtYm}
          ORDER BY T1.BFSVC_CSMB_DDLV_TP_CD, T1.SORT_ODR
+    </select>
+
+    <select id="selectNewManagerBsConsumables" resultType="camelMap">
+        SELECT M1.BFSVC_CSMB_DDLV_STAT_CD  /* BS소모품배부상태코드 */
+             , M1.REQ_YN  /* 신청여부 */
+             , M1.BLD_CD  /* 빌딩코드 */
+             , M1.BLD_NM  /* 빌딩명 */
+             , M1.PRTNR_NM_NO  /* 파트너명사번 */
+             , M1.PRTNR_NO  /* 파트너번호 */
+             , ${pivotColumns} /* PIVOT 컬럼 */
+          FROM (SELECT DISTINCT
+                       A.BLD_CD
+                     , A.BLD_NM
+                     , B.PRTNR_KNM || '(' || B.PRTNR_NO || ')' AS PRTNR_NM_NO
+                     , B.PRTNR_NO
+                     , C.BFSVC_CSMB_DDLV_STAT_CD
+                     , CASE WHEN C.BFSVC_CSMB_DDLV_STAT_CD = '10' THEN '신청'
+                            WHEN C.BFSVC_CSMB_DDLV_STAT_CD = '20' THEN '신청확인'
+                            WHEN C.BFSVC_CSMB_DDLV_STAT_CD = '30' THEN '출고요청완료'
+                            ELSE '미신청'
+                        END AS REQ_YN
+                  FROM TB_OGBS_BLD_BAS A
+                 INNER JOIN (SELECT X.OG_TP_CD
+                                  , X.BLD_CD
+                                  , Y.PRTNR_KNM
+                                  , Y.PRTNR_NO
+                               FROM TB_OGBS_MM_OG_IZ X
+                              INNER JOIN TB_OGBS_MM_PRTNR_IZ Y
+                                 ON X.BASE_YM = Y.BASE_YM
+                                AND X.OG_TP_CD = Y.OG_TP_CD
+                                AND X.OG_ID = Y.OG_ID
+                                AND Y.CNTR_DT BETWEEN TO_CHAR(TO_NUMBER(#{mngtYm}) - 1) || '05' AND #{mngtYm} || '01'
+                              WHERE X.BLD_CD IS NOT NULL
+                                AND X.OG_TP_CD = 'W02'
+                                AND X.CLO_YN = 'N'
+                                AND X.DTA_DL_YN = 'N'
+                                AND X.BASE_YM = #{mngtYm}
+                            ) B
+                    ON A.OG_TP_CD = B.OG_TP_CD
+                   AND A.BLD_CD = B.BLD_CD
+                  LEFT OUTER JOIN TB_SVST_BFSVC_CSMB_DDLV_IZ C
+                    ON C.MNGT_YM = #{mngtYm}
+                   AND C.BFSVC_CSMB_DDLV_OJ_CD = '1'
+                   AND C.STR_WARE_NO = B.PRTNR_NO
+                 WHERE A.DTA_DL_YN = 'N'
+                   AND A.CLO_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+               <if test='@MybatisUtils@isNotEmpty(bldCds)'>
+                   AND A.BLD_CD IN (
+                                    <foreach collection="bldCds" item="bldCd" separator=", ">
+                                        #{bldCd}
+                                    </foreach>
+                                   )
+               </if>
+               ) M1
+          LEFT OUTER JOIN LATERAL
+               (SELECT *
+                  FROM (SELECT NVL(V2.STR_WARE_NO, V1.STR_WARE_NO) AS STR_WARE_NO
+                             , NVL(V2.SAP_MAT_CD, V1.SAP_MAT_CD) AS SAP_MAT_CD
+                             , NVL(V2.BFSVC_CSMB_DDLV_QTY, V1.BFSVC_CSMB_DDLV_UNIT_QTY) AS BFSVC_CSMB_DDLV_UNIT_QTY
+                          FROM (SELECT T1.SORT_ODR
+                                     , T1.BFSVC_CSMB_DDLV_TP_CD
+                                     , T1.BFSVC_CSMB_DDLV_CMPT_BASE_CD
+                                     , '미신청' AS REQ_YN
+                                     , O1.PRTNR_NO AS STR_WARE_NO
+                                     , T1.CSMB_PD_CD
+                                     , (SELECT SAP_MAT_CD FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.CSMB_PD_CD ) AS SAP_MAT_CD
+                                     , CASE WHEN T1.BFSVC_CSMB_DDLV_CMPT_BASE_CD = '2' AND T1.BFSVC_CSMB_DDLV_UNIT_ACC_N != 0 THEN NVL(T1.BFSVC_CSMB_DDLV_UNIT_QTY, 0)
+                                            WHEN T1.BFSVC_CSMB_DDLV_CMPT_BASE_CD = '1' AND T1.BFSVC_CSMB_DDLV_UNIT_ACC_N != 0 THEN NVL((CEIL((SELECT COUNT(1)
+                                                                                                                                                FROM TB_SVPD_MCBY_CST_SV_OJ_IZ A1
+                                                                                                                                               INNER JOIN TB_SVPD_CST_SV_EXCN_IZ A2
+                                                                                                                                                  ON A2.CNTR_NO = A1.CNTR_NO
+                                                                                                                                                 AND A2.CNTR_SN = A1.CNTR_SN
+                                                                                                                                                 AND A2.MNGT_PRTNR_OG_TP_CD = 'W02'
+                                                                                                                                               INNER JOIN TB_SSCT_CNTR_BAS A3
+                                                                                                                                                  ON A1.CNTR_NO = A3.CNTR_NO
+                                                                                                                                                 AND A3.COPN_DV_CD = NVL(T1.BFSVC_CSMB_DDLV_OJ_ACC_TP_CD, A3.COPN_DV_CD)
+                                                                                                                                                 AND A3.DTA_DL_YN = 'N'
+                                                                                                                                               INNER JOIN TB_SSCT_CNTR_DTL A4
+                                                                                                                                                  ON A1.CNTR_NO = A4.CNTR_NO
+                                                                                                                                                 AND A1.CNTR_SN = A4.CNTR_SN
+                                                                                                                                                 AND A4.DTA_DL_YN = 'N'
+                                                                                                                                               INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL A5
+                                                                                                                                                  ON A1.PDCT_PD_CD = A5.PD_CD
+                                                                                                                                                 AND A5.PD_EXTS_PRP_GRP_CD = 'PART'
+                                                                                                                                                 AND A5.PD_PRP_VAL20 = NVL(T1.BFSVC_CSMB_DDLV_OJ_PD_GRP_CD, A5.PD_PRP_VAL20)
+                                                                                                                                                 AND A5.DTA_DL_YN = 'N'
+                                                                                                                                               WHERE A2.MNGT_PRTNR_NO = O1.PRTNR_NO
+                                                                                                                                                 AND A1.DTA_DL_YN = 'N'
+                                                                                                                                                 AND A1.MNGT_YM = T1.MNGT_YM
+                                                                                                                                                 AND A1.CNTR_DTL_STAT_CD NOT IN ('401','402')
+                                                                                                                                             )/T1.BFSVC_CSMB_DDLV_UNIT_ACC_N) * T1.BFSVC_CSMB_DDLV_UNIT_QTY), 0)
+                                            ELSE 0
+                                        END AS BFSVC_CSMB_DDLV_UNIT_QTY
+                                       FROM TB_SVST_BFSVC_CSMB_BASE_DTL T1
+                                       LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ O1
+                                         ON O1.BASE_YM = T1.MNGT_YM
+                                        AND O1.OG_TP_CD = 'W02'
+                                      WHERE 1 = 1
+                                        AND T1.BFSVC_CSMB_DDLV_OJ_CD = '1'
+                                        AND T1.BFSVC_CSMB_DDLV_ORT_YN = 'Y'
+                                        AND T1.BFSVC_CSMB_DDLV_TP_CD = '1'
+                                        AND T1.MNGT_YM = #{mngtYm}
+                                      UNION ALL
+                                     SELECT T1.SORT_ODR
+                                          , T1.BFSVC_CSMB_DDLV_TP_CD
+                                          , T1.BFSVC_CSMB_DDLV_CMPT_BASE_CD
+                                          , '미신청' AS REQ_YN
+                                          , O1.PRTNR_NO AS STR_WARE_NO
+                                          , T1.CSMB_PD_CD
+                                          , (SELECT Y.SAP_MAT_CD
+                                               FROM TB_PDBS_PD_BAS Y
+                                              WHERE Y.PD_CD = T1.CSMB_PD_CD
+                                            ) AS SAP_MAT_CD
+                                          , 0 AS BFSVC_CSMB_DDLV_UNIT_QTY
+                                       FROM TB_SVST_BFSVC_CSMB_BASE_DTL T1
+                                       LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ O1
+                                         ON O1.BASE_YM = T1.MNGT_YM
+                                        AND O1.OG_TP_CD = 'W02'
+                                      WHERE T1.BFSVC_CSMB_DDLV_OJ_CD = '1'
+                                        AND T1.BFSVC_CSMB_DDLV_ORT_YN = 'Y'
+                                        AND T1.BFSVC_CSMB_DDLV_TP_CD = '2'
+                                        AND T1.MNGT_YM = #{mngtYm}
+                                    ) V1
+                               LEFT OUTER JOIN (SELECT T2.SORT_ODR
+                                                     , T1.STR_WARE_NO
+                                                     , T1.CSMB_PD_CD
+                                                     , T1.SAP_MAT_CD
+                                                     , T1.BFSVC_CSMB_DDLV_QTY
+                                                     , T1.BFSVC_CSMB_DDLV_STAT_CD
+                                                     , (CASE WHEN T1.BFSVC_CSMB_DDLV_STAT_CD = '10' THEN '신청'
+                                                             WHEN T1.BFSVC_CSMB_DDLV_STAT_CD = '20' THEN '신청확인'
+                                                             WHEN T1.BFSVC_CSMB_DDLV_STAT_CD = '30' THEN '출고요청완료'
+                                                             ELSE '미신청'
+                                                         END
+                                                       ) AS REQ_YN
+                                                     , T2.BFSVC_CSMB_DDLV_TP_CD
+                                                     , T2.BFSVC_CSMB_DDLV_CMPT_BASE_CD
+                                                  FROM TB_SVST_BFSVC_CSMB_DDLV_IZ T1
+                                                 INNER JOIN TB_SVST_BFSVC_CSMB_BASE_DTL T2
+                                                    ON T2.MNGT_YM = T1.MNGT_YM
+                                                   AND T2.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
+                                                   AND T2.CSMB_PD_CD = T1.CSMB_PD_CD
+                                                   AND T2.BFSVC_CSMB_DDLV_ORT_YN = 'Y'
+                                                 WHERE T1.DTA_DL_YN = 'N'
+                                                   AND T1.BFSVC_CSMB_DDLV_OJ_CD = '1'
+                                                   AND T1.MNGT_YM = #{mngtYm}
+                                               ) V2
+                                            ON V2.CSMB_PD_CD = V1.CSMB_PD_CD
+                                           AND V2.STR_WARE_NO = V1.STR_WARE_NO
+                                         WHERE 1 = 1
+                       ) A
+                  PIVOT(SUM(BFSVC_CSMB_DDLV_UNIT_QTY)
+                        FOR SAP_MAT_CD IN (${pivotInStr})
+                       )
+               ) M2
+            ON M2.STR_WARE_NO = M1.PRTNR_NO
+         WHERE 1 = 1
+         ORDER BY M1.BLD_NM
     </select>
 
     <select id="selectBuildings" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaNewManagerBsConsumableDvo">

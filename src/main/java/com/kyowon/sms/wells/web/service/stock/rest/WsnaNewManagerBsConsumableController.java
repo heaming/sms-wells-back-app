@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -38,7 +39,7 @@ public class WsnaNewManagerBsConsumableController {
     }
 
     @GetMapping
-    public List<SearchRes> getNewManagerBsConsumablePages(SearchReq dto) {
+    public List<HashMap<String, Object>> getNewManagerBsConsumablePages(SearchReq dto) {
         return service.getNewManagerBsConsumable(dto);
     }
 
