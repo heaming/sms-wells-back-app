@@ -4,10 +4,7 @@ import java.util.List;
 
 import org.mapstruct.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.CreateReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.CreateTmlmReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.SearchItmRes;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.SearchRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.*;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNewManagerBsConsumableDvo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -22,4 +19,6 @@ public interface WsnaNewManagerBsConsumableConverter {
     List<WsnaNewManagerBsConsumableDvo> mapCreateReqToNewManagerBsConsumable(List<CreateReq> dtos);
 
     List<SearchItmRes> mapAllDvosToSearchItmRes(List<WsnaNewManagerBsConsumableDvo> dvos);
+
+    WsnaNewManagerBsConsumableDvo mapSearchReqToNewManagerBsConsumable(SearchReq dto);
 }

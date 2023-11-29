@@ -43,4 +43,9 @@ public class WsnaNewManagerBsConsumableDvo {
     String aplcPdNm;
     String aplcSapMatCd;
     String qty;
+    List<String> bldCds;
+    // PIVOT 조건
+    private String pivotInStr;
+    // PIVOT 필드
+    private String pivotColumns;
 }

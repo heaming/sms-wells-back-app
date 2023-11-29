@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -14,6 +15,8 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsnaManagerBsConsumableMapper {
     List<WsnaManagerBsConsumableDvo> selectItems(String mngtYm);
+
+    List<HashMap<String, Object>> selectManagerBsConsumables(WsnaManagerBsConsumableDvo dvo);
 
     List<WsnaManagerBsConsumableDvo> selectBuildings(SearchReq dto);
 
