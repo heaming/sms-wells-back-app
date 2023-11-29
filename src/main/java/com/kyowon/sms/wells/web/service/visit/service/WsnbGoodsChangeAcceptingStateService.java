@@ -64,7 +64,7 @@ public class WsnbGoodsChangeAcceptingStateService {
             dvo.setAprAkStatCd("03"); // 승인
 
             // 서비스업무세분류코드(BFCH_SV_BIZ_DCLSF_CD : 변경전, AFCH_SV_BIZ_DCLSF_CD : 변경후) NULL 처리 => 배정서비스 호출
-            if (StringUtils.isEmpty(dvo.getOldSvBizDclsfCd()) || StringUtils.isEmpty(dvo.getNewSvBizDclsfCd())) {
+            if (StringUtils.isEmpty(dvo.getOldSvBizDclsfCd()) || !"3110".equals(dvo.getOldSvBizDclsfCd())) {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
                 String strHist = sdf.format(new Date());
                 WsnbWorkOrderDvo wkDvo = new WsnbWorkOrderDvo();
@@ -74,17 +74,11 @@ public class WsnbGoodsChangeAcceptingStateService {
                 wkDvo.setInChnlDvCd("2");
                 wkDvo.setSvBizHclsfCd("3");
                 wkDvo.setMtrStatCd("1");
-                // 변경전 코드 없을 경우 3110(제품A/S) 세팅
-                if (StringUtils.isEmpty(dvo.getOldSvBizDclsfCd())) {
-                    wkDvo.setSvBizDclsfCd("3110");
-                    dvo.setOldSvBizDclsfCd("3110");
-                }
-                // 병경후 코드 없을 때 3210(제품원인) 세팅
-                if (StringUtils.isEmpty(dvo.getNewSvBizDclsfCd())) {
-                    wkDvo.setSvBizDclsfCd("3210");
-                    dvo.setNewSvBizDclsfCd("3210");
-                }
-                wkDvo.setUrgtDvCd("2");
+                // 변경전 코드 없거나 3110(제품A/S)이 아닌 경우 세팅
+                wkDvo.setSvBizDclsfCd("3110");
+                dvo.setOldSvBizDclsfCd("3110");
+
+                wkDvo.setUrgtDvCd("1");
                 wkDvo.setAsIstOjNo("");
                 wkDvo.setSmsFwYn("N");
                 UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
@@ -94,6 +88,11 @@ public class WsnbGoodsChangeAcceptingStateService {
 
                 // 배정서비스 호출
                 workOrderService.saveWorkOrders(wkDvo);
+            }
+
+            // 변경후 코드 없을 때 3210(제품원인) 세팅
+            if (StringUtils.isEmpty(dvo.getNewSvBizDclsfCd())) {
+                dvo.setNewSvBizDclsfCd("3210");
             }
 
             // 고객서비스AS설치대상내역 변경
