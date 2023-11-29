@@ -2,7 +2,246 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.organization.hmnrsc.mapper.WogcActivityMapper">
     <select
-        id="searchMonthlyActivities"
+        id="searchMonthlyActivitiesP"
+        resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcActivityDto$SearchMonthlyActivityRes">
+        WITH TEMP_NTORP AS (   -- 순주문
+            SELECT /*+ MATERIALIZE */
+                   BASE_YM
+                 , OG_TP_CD
+                 , PRTNR_NO
+                 , SUM(W01P00001) AS W01P00001  -- 개인 가전실적
+                 , SUM(W01P00004) AS W01P00004 -- 개인 가전외 실적
+                 , SUM(W01P00002) AS W01P00002 -- 기변
+                 , SUM(W01P00010) AS W01P00010 -- 개인 상조실적
+                 , SUM(W01P00018) AS W01P00018 -- 관리상품건수
+              FROM (
+                   SELECT BASE_YM
+                        , OG_TP_CD
+                        , PRTNR_NO
+                        , SL_DT
+                        , CAN_DT
+                        , W01P00001 -- 개인 가전실적
+                        , W01P00004 -- 개인 가전외 실적
+                        , W01P00002 -- 기변
+                        , W01P00010 -- 개인 상조실적
+                        , W01P00018 -- 관리상품건수
+                     FROM (
+                           SELECT /*+ USE_HASH(A B) */
+                                  A.BASE_YM
+                                , A.OG_TP_CD
+                                , A.PRTNR_NO
+                                , B.SL_DT
+                                , B.CAN_DT
+                                , A.PERF_ATC_CD
+                                , A.PERF_VAL
+                             FROM TB_FEAM_NTORP_CNTR_MM_CL A
+                            INNER JOIN TB_FEAM_WELS_NRCTR_MM_CL B
+                               ON A.BASE_YM = B.BASE_YM
+                              AND A.PERF_YM = B.PERF_YM
+                              AND A.CNTR_NO = B.CNTR_NO
+                              AND A.CNTR_SN = B.CNTR_SN
+                              AND A.CNTR_PERF_CRT_DV_CD = B.CNTR_PERF_CRT_DV_CD
+                            WHERE 1 = 1
+                              AND A.BASE_YM = #{baseYm}
+                              AND A.PERF_YM = #{baseYm}
+                              AND A.FEE_TCNT_DV_CD = '02'       -- 2차
+                              AND A.CNTR_PERF_CRT_DV_CD = '01'  -- 순주문
+                              AND A.OG_TP_CD = #{ogTpCd}
+--                              AND A.PRTNR_NO = '1744950'
+                              AND A.PERF_ATC_CD  IN ('W01P00001','W01P00004','W01P00002','W01P00010','W01P00018') /*W01P00001 -- 개인 가전실적, W01P00004 -- 개인 가전외 실적,W01P00002 -- 기변,W01P00010 -- 개인 상조실적,W01P00018 -- 관리상품건수*/
+                            )
+                            PIVOT ( SUM(PERF_VAL) FOR PERF_ATC_CD IN ('W01P00001' AS W01P00001,'W01P00004' AS W01P00004,'W01P00002' AS W01P00002,'W01P00010' AS W01P00010,
+                                                                      'W01P00018' AS W01P00018))
+                   ) A
+               GROUP BY A.BASE_YM
+                   , A.OG_TP_CD
+                   , A.PRTNR_NO
+                )
+        ,   TEMP_TOT AS (  -- 총주문
+                    SELECT /*+ MATERIALIZE */
+                           BASE_YM
+                         , OG_TP_CD
+                         , PRTNR_NO
+                         , SUM(W01P00001) AS W01P00001  -- 개인 가전실적
+                         , SUM(W01P00004) AS W01P00004 -- 개인 가전외 실적
+                         , SUM(W01P00002) AS W01P00002 -- 기변
+                         , SUM(W01P00010) AS W01P00010 -- 개인 상조실적
+                         , SUM(W01P00018) AS W01P00018 -- 관리상품건수
+                      FROM (
+                           SELECT BASE_YM
+                                , OG_TP_CD
+                                , PRTNR_NO
+                                , SL_DT
+                                , CAN_DT
+                                , W01P00001 -- 개인 가전실적
+                                , W01P00004 -- 개인 가전외 실적
+                                , W01P00002 -- 기변
+                                , W01P00010 -- 개인 상조실적
+                                , W01P00018 -- 관리상품건수
+                             FROM (
+                                   SELECT /*+ USE_HASH(A B) */
+                                          A.BASE_YM
+                                        , A.OG_TP_CD
+                                        , A.PRTNR_NO
+                                        , B.SL_DT
+                                        , B.CAN_DT
+                                        , A.PERF_ATC_CD
+                                        , A.PERF_VAL
+                                     FROM TB_FEAM_MACUP_CNTR_PERF_CL A
+                                    INNER JOIN TB_FEAM_WELS_MM_ACU_CNTR_CL B
+                                       ON A.MM_ACU_PERF_AGRG_CRT_DV_CD = B.MM_ACU_PERF_AGRG_CRT_DV_CD
+                                      AND A.BASE_YM = B.BASE_YM
+                                      AND A.CNTR_NO = B.CNTR_NO
+                                      AND A.CNTR_SN = B.CNTR_SN
+                                    WHERE 1 = 1
+                                      AND A.BASE_YM = #{baseYm}
+                                      AND A.MM_ACU_PERF_AGRG_CRT_DV_CD = '00' -- 총주문
+                                      AND A.OG_TP_CD = #{ogTpCd}
+        --			                  AND A.PRTNR_NO = '1744950'
+                                      AND A.PERF_ATC_CD   IN ('W01P00001','W01P00004','W01P00002','W01P00010','W01P00018') /*W01P00001 -- 개인 가전실적, W01P00004 -- 개인 가전외 실적,W01P00002 -- 기변,W01P00010 -- 개인 상조실적,W01P00018 -- 관리상품건수*/
+                    )
+                    PIVOT ( SUM(PERF_VAL) FOR PERF_ATC_CD IN ('W01P00001' AS W01P00001,'W01P00004' AS W01P00004,'W01P00002' AS W01P00002,'W01P00010' AS W01P00010,
+                                                              'W01P00018' AS W01P00018))
+                           ) A
+                       GROUP BY A.BASE_YM
+                           , A.OG_TP_CD
+                           , A.PRTNR_NO
+                           )
+        SELECT /*+ no_merge(SV) no_merge(NT) no_merge(TT) use_hash(QL) use_hash(SV) */
+               PM.BASE_YM AS BASE_YM -- "관리년월"
+             , PM.OG_CD   AS OG_CD -- "소속코드"
+             , PM.PRTNR_KNM AS PRTNR_KNM -- "성명"
+             , PM.PRTNR_NO  AS PRTNR_NO -- "번호"
+             , PM.PSTN_DV_CD  AS PSTN_DV_CD -- "직급"
+             , F_CMZ_CD_NM('TNT_WELLS', 'SEX_DV_CD', PB.SEX_DV_CD) AS SEX_DV_CD -- "성별"
+             , OM.BLD_CD AS BLD_CD --"빌딩코드"
+             , OM.BLD_NM AS BLD_NM -- "빌딩명"
+             , PD.CNTR_DT AS CNTR_DT -- "등록기준일"
+             , QL.UPGR_YM  AS PRFMT_DT -- "승급월"
+             , SUBSTR(PD.FNL_CLTN_DT,1,6) AS FNL_CLTN_DT -- "최종해약월"
+             , OM.HOO_PRTNR_NO AS HOO_PRTNR_NO --"지점장번호"
+             , CASE WHEN PM.PSTN_DV_CD >= '10' THEN F_CMZ_CD_NM('TNT_WELLS', 'PQLF_DV_CD', PM.QLF_DV_CD)
+                    WHEN PM.PSTN_DV_CD = '7'  THEN '플래너지점장'
+               END AS QLF_DV_CD -- "자격"
+             , NVL(NT.W01P00001, 0) AS AKCDQ0_SUNJU -- "개인 가전실적"
+             , NVL(NT.W01P00004, 0) AS AKCDQ0 -- "개인 가전외 실적"
+             , NVL(NT.W01P00002, 0) AS AKCDQ0_SULCHI -- "기변"
+             , NVL(NT.W01P00010, 0) AS AKCDQ0_SUB -- "개인 상조실적"
+             , '' AS AKCDQ1_SUNJU -- M추진 전용 변수로 null 처리
+             , '' AS AKCDQ1 -- M추진 전용 변수로 null 처리
+             , '' AS AKCDQ1_SULCHI -- M추진 전용 변수로 null 처리
+             , '' AS LCCNT0 -- M추진 전용 변수로 null 처리
+             , '' AS LCCNT1 -- M추진 전용 변수로 null 처리
+             , '' AS LCCN47 -- M추진 전용 변수로 null 처리
+             , '' AS METG_PRSC_DC -- M추진 전용 변수로 null 처리
+             , '' AS METG_PRSC_DC_YN -- M추진 전용 변수로 null 처리
+             , '' AS EDU11_YN -- M추진 전용 변수로 null 처리
+             , '' AS EDU17_YN -- M추진 전용 변수로 null 처리
+             , NVL(NT.W01P00018, 0) AS LCVCNT -- "관리상품건수"
+             , (CASE WHEN PD.CNTR_DT <![CDATA[<>]]> PD.FST_CNTR_DT AND MONTHS_BETWEEN(TO_DATE(PD.CNTR_DT,'YYYYMMDD'),TO_DATE(PD.FNL_CLTN_DT,'YYYYMMDD')) <![CDATA[<]]> 3
+                     THEN 'Y'
+                     ELSE ''
+               END) AS FNL_CLTN_DT_YN -- "3개월이내재등록"--THREE_MONTHS_YN
+          FROM TB_OGBS_MM_PRTNR_IZ PM
+         INNER JOIN TB_OGBS_PRTNR_BAS PB
+            ON PB.OG_TP_CD = PM.OG_TP_CD
+           AND PB.PRTNR_NO = PM.PRTNR_NO
+         INNER JOIN TB_OGBS_PRTNR_DTL PD
+            ON PD.OG_TP_CD = PM.OG_TP_CD
+           AND PD.PRTNR_NO = PM.PRTNR_NO
+         INNER JOIN TB_OGBS_MM_OG_IZ OM
+            ON OM.BASE_YM  = PM.BASE_YM
+           AND OM.OG_TP_CD = PM.OG_TP_CD
+           AND OM.OG_ID    = PM.OG_ID
+          LEFT OUTER JOIN TB_OGPS_TOPMR_PLAR_APLC_IZ QL
+            ON QL.OG_TP_CD = PM.OG_TP_CD
+           AND QL.PRTNR_NO = PM.PRTNR_NO
+           AND QL.MNGT_YM  = #{baseYm}
+          LEFT OUTER JOIN TB_PSCA_MCPTN_METG_AGRG MT
+            ON MT.AGRG_YM  = PM.BASE_YM
+           AND MT.OG_TP_CD = PM.OG_TP_CD
+           AND MT.PRTNR_NO = PM.PRTNR_NO
+          LEFT OUTER JOIN
+               (SELECT SV.ASN_OJ_YM
+                     , CNFM_PSIC_PRTNR_OG_TP_CD
+                     , CNFM_PSIC_PRTNR_NO
+                     , COUNT(*) AS BSCNT
+                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SV  /*고객서비스BS배정내역 261TB*/
+                 WHERE SV.ASN_OJ_YM = #{baseYm}
+                   AND SV.CNFM_PSIC_PRTNR_OG_TP_CD = #{ogTpCd}
+                   AND SV.VST_PRGS_STAT_CD = '20'
+                 GROUP BY SV.ASN_OJ_YM
+                     , CNFM_PSIC_PRTNR_OG_TP_CD
+                     , CNFM_PSIC_PRTNR_NO
+               ) SV
+            ON SV.ASN_OJ_YM = PM.BASE_YM
+           AND SV.CNFM_PSIC_PRTNR_OG_TP_CD = PM.OG_TP_CD
+           AND SV.CNFM_PSIC_PRTNR_NO = PM.PRTNR_NO
+        <if test="@MybatisUtils@isNotEmpty(feamFlag) and @MybatisUtils@equals(feamFlag,'Y')">
+            LEFT OUTER JOIN TEMP_NTORP NT  -- 순주문
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(feamFlag) and @MybatisUtils@equals(feamFlag,'N')">
+            LEFT OUTER JOIN TEMP_TOT NT  -- 총주문
+        </if>
+        <if test="@MybatisUtils@isEmpty(feamFlag)">
+            LEFT OUTER JOIN TEMP_NTORP NT  -- 순주문
+        </if>
+            ON NT.BASE_YM  = PM.BASE_YM
+           AND NT.OG_TP_CD = PM.OG_TP_CD
+           AND NT.PRTNR_NO = PM.PRTNR_NO
+          LEFT OUTER JOIN
+               (SELECT MNGT_YM
+                     , BASE_OG_TP_CD
+                     , BASE_PRTNR_NO
+                     , COUNT(*) AS EJT_CT
+                  FROM TB_OGPS_PRTNR_EJT_REL EJ
+                 WHERE EJ.MNGT_YM = #{baseYm}
+                   AND EJ.OG_EJT_DV_CD = '10'
+                   AND EJ.ACKMT_YN = 'Y'
+                   AND EJ.DTA_DL_YN = 'N'
+                 GROUP BY  MNGT_YM
+                     , BASE_OG_TP_CD
+                     , BASE_PRTNR_NO
+               ) EJ
+            ON EJ.MNGT_YM = PM.BASE_YM
+           AND EJ.BASE_OG_TP_CD = PM.OG_TP_CD
+           AND EJ.BASE_PRTNR_NO = PM.PRTNR_NO
+         WHERE PM.BASE_YM = #{baseYm}
+           AND PM.OG_TP_CD = #{ogTpCd}  -- 검색ㅈ건 M W02, P W01
+           AND PM.PSTN_DV_CD = DECODE(#{rsbDvCd},'S','15','E','10','A','7','')   -- 검색조건 판매자 15, 지구장 10, 지점장 7 으로 파라미터 넘기면 됩니다.
+           AND PM.DTA_DL_YN = 'N'
+           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
+           AND PM.OG_ID IN (SELECT T.OG_ID
+                              FROM (SELECT OG_ID, HGR_OG_ID
+                                      FROM TB_OGBS_MM_OG_IZ
+                                     WHERE BASE_YM = #{baseYm}
+                                       AND OG_TP_CD = #{ogTpCd}) T
+                             START WITH T.OG_ID = #{ogLevlDvCd3}
+                           CONNECT BY PRIOR T.OG_ID = T.HGR_OG_ID )
+           </if>
+           <if test='@MybatisUtils@isEmpty(ogLevlDvCd3) and @MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+           AND PM.OG_ID IN (SELECT T.OG_ID
+                              FROM (SELECT OG_ID, HGR_OG_ID
+                                      FROM TB_OGBS_MM_OG_IZ
+                                     WHERE BASE_YM = #{baseYm}
+                                       AND OG_TP_CD = #{ogTpCd}) T
+                             START WITH T.OG_ID = #{ogLevlDvCd2}
+                           CONNECT BY PRIOR T.OG_ID = T.HGR_OG_ID )
+           </if>
+           <if test='@MybatisUtils@isEmpty(ogLevlDvCd3) and @MybatisUtils@isEmpty(ogLevlDvCd2) and @MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+           AND PM.OG_ID IN (SELECT T.OG_ID
+                              FROM (SELECT OG_ID, HGR_OG_ID
+                                      FROM TB_OGBS_MM_OG_IZ
+                                     WHERE BASE_YM = #{baseYm}
+                                       AND OG_TP_CD = #{ogTpCd}) T
+                             START WITH T.OG_ID = #{ogLevlDvCd1}
+                           CONNECT BY PRIOR T.OG_ID = T.HGR_OG_ID )
+           </if>
+         ORDER BY PM.OG_CD, PM.PRTNR_NO
+    </select>
+
+    <select
+        id="searchMonthlyActivitiesM"
         resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcActivityDto$SearchMonthlyActivityRes">
         WITH TEMP_NTORP AS (   -- 순주문
             SELECT /*+ MATERIALIZE */
@@ -175,6 +414,7 @@
              , NVL(NT.ACKMT_CT,0)  AS AKCDQ0_SUNJU-- 인정건수(순주문)
              , NVL(NT.WO_CT,0) AS AKCDQ0-- 웰스팜 재약정 건수
              , NVL(NT.RCP_ISP_CT,0) AS AKCDQ0_SULCHI-- 접수 설치 건수
+             , '' AS AKCDQ0_SUB /* P추진 변수여서 null 처리 */
              , NVL(NT.WO_CT,0) AS AKCDQ1_SUNJU--  전체 건수
              , NVL(NT.RCP_WO_CT,0)  AS AKCDQ1 -- 접수 설치 건수(전체 기준)
              , NVL(NT.RCP_ISP_CT,0) AS AKCDQ1_SULCHI -- 접수 설치 건수
@@ -186,10 +426,10 @@
              , NVL(ED.EDU_11,'N') AS EDU11_YN --EDU11_YN   --플래너스타트업
              , NVL(ED.EDU_17,'N') AS EDU17_YN --EDU17_YN   --수석플래너실전
              , NVL(SV.BSCNT,0) AS LCVCNT
-             , (CASE WHEN PD.CNTR_DT <![CDATA[<>]]> PD.FST_CNTR_DT AND MONTHS_BETWEEN(TO_DATE(PD.CNTR_DT,'YYYYMMDD'),TO_DATE(PD.FST_CNTR_DT,'YYYYMMDD')) <![CDATA[<]]> 3
+             , (CASE WHEN PD.CNTR_DT <![CDATA[<>]]> PD.FST_CNTR_DT AND MONTHS_BETWEEN(TO_DATE(PD.CNTR_DT,'YYYYMMDD'),TO_DATE(PD.FNL_CLTN_DT,'YYYYMMDD')) <![CDATA[<]]> 3
                      THEN 'Y'
                      ELSE ''
-               END) AS FNL_CLTN_DT_YN --THREE_MONTHS_YN
+               END) AS FNL_CLTN_DT_YN --3개월이내 재등록
           FROM TB_OGBS_MM_PRTNR_IZ PM
          INNER JOIN TB_OGBS_PRTNR_BAS PB
             ON PB.OG_TP_CD = PM.OG_TP_CD
