@@ -2,177 +2,205 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbGiroOcrForwardingMgtMapper">
     <select id="selectGiroOcrForwardingObjects" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto$SearchObjectRes">
-        SELECT CNTR_NO /*계약번호*/
-             , CNTR_SN /*계약일련번호*/
-             , CNTR_NO ||'-'|| CNTR_SN AS CNTR /*계약상세번호*/
-             , CST_KNM AS CST_FNM
-             , SL_DT /*매출일자*/
-             , RENTAL_TN/*현재차월*/
-             , RECAP_DUTY_PTRM_N /*약정개월*/
-            <choose>
-                <when test="@MybatisUtils@equals(cntr, 'no')">
-            , START_SL_DT AS STRT_GIRO_TN/*시작*/
-            , CASE WHEN END_SL_DT <![CDATA[<]]> 23 THEN 11
-                   WHEN END_SL_DT BETWEEN 23 AND  34 THEN 23
-                   WHEN END_SL_DT BETWEEN 35 AND  46 THEN 35
-                   WHEN END_SL_DT BETWEEN 47 AND  59 THEN 47
-                   ELSE 60 END AS END_GIRO_TN/*종료*/
-            , CASE WHEN RENTAL_TN + 12 <![CDATA[<]]> ISTM_MCN THEN 0
-                   WHEN RENTAL_TN <![CDATA[<=]]> RENTAL_PTRM AND LCSLED = LST_DD OR LCSLED >= 30 THEN RENTAL_AMT - RENTAL_DSC_AMT /* - 재약정할인*/  /*만료차월*/
-                   WHEN RENTAL_TN <![CDATA[<=]]> RENTAL_PTRM THEN FLOOR((RENTAL_AMT - RENTAL_DSC_AMT) / 30 * LCSLED / 10) * 10
-                   ELSE 0
-                    END AS EXN_NMN_AMT
-                </when>
-                <otherwise>
-            , T7.START_SL_DT AS STRT_GIRO_TN /*시작*/
-            ,CASE WHEN T7.END_SL_DT  <![CDATA[<]]>  23 THEN 11
-                  WHEN T7.END_SL_DT BETWEEN 23 AND  34 THEN 23
-                  WHEN T7.END_SL_DT BETWEEN 35 AND  46 THEN 35
-                  WHEN T7.END_SL_DT BETWEEN 47 AND  59 THEN 47
-                  ELSE 60 END  END_GIRO_TN
-            , <![CDATA[
-              CASE WHEN T7.END_SL_DT < M1.ISTM_MCN THEN 0
-                   WHEN T7.START_SL_DT <= M1.ISTM_MCN AND SUBSTR(M1.SL_DT,7,2) = SUBSTR(T7.LAST_DD,7,2) OR SUBSTR(M1.SL_DT,7,2) >= 30 THEN M1.RENTAL_AMT - M1.RENTAL_DSC_AMT
-                   WHEN T7.START_SL_DT <= M1.ISTM_MCN THEN ROUND((M1.RENTAL_AMT - M1.RENTAL_DSC_AMT) / 30 * SUBSTR(M1.SL_DT,7,2) /10) * 10
-                   ELSE 0
-                    END EXN_NMN_AMT   ]]>
-                </otherwise>
-            </choose>
-             , RENTAL_PTRM AS ISTM_MCN/*렌탈기간*/
-             , THM0_AMT /*0차월*/
-             , RENTAL_AMT AS ISTM_AMT /*렌탈료*/
-             , RENTAL_DSC_AMT AS ISTM_DSC_AMT/*렌탈할인*/
-             , PY_AMT /*청규렌탈료*/
-             , PY_AMT AS STPL_NMN_AMT /*약정차월*/
+        SELECT CNTR_NO
+            , CNTR_SN
+            , CNTR
+            , CST_FNM
+            , SL_DT
+            , RENTAL_TN
+            , RECAP_DUTY_PTRM_N
+            , STRT_GIRO_TN
+            , END_GIRO_TN
+            , EXN_NMN_AMT
+            , ISTM_MCN
+            , THM0_AMT
+            , ISTM_AMT
+            , ISTM_DSC_AMT
+            , PY_AMT
+            , STPL_NMN_AMT
+            , LTPAY_YN
+            , GIRO_BIZ_DV_CD
+            , GIRO_BIZ_TP_CD
+            , SELL_TAM
+            , SUBSC_AMT
+            , TK_AMT
+            , CSH_BLAM
+            , GIRO_FEE_AMT
+            , CNTR_TAM
+          FROM (
+                    SELECT CNTR_NO /*계약번호*/
+                         , CNTR_SN /*계약일련번호*/
+                         , CNTR_NO ||'-'|| CNTR_SN AS CNTR /*계약상세번호*/
+                         , CST_KNM AS CST_FNM
+                         , SL_DT /*매출일자*/
+                         , RENTAL_TN/*현재차월*/
+                         , RECAP_DUTY_PTRM_N /*약정개월*/
+                        <choose>
+                            <when test="@MybatisUtils@equals(cntr, 'no')">
+                        , START_SL_DT AS STRT_GIRO_TN/*시작*/
+                        , CASE WHEN END_SL_DT <![CDATA[<]]> 23 THEN 11
+                               WHEN END_SL_DT BETWEEN 23 AND  34 THEN 23
+                               WHEN END_SL_DT BETWEEN 35 AND  46 THEN 35
+                               WHEN END_SL_DT BETWEEN 47 AND  59 THEN 47
+                               ELSE 60 END AS END_GIRO_TN/*종료*/
+                        , CASE WHEN RENTAL_TN + 12 <![CDATA[<]]> ISTM_MCN THEN 0
+                               WHEN RENTAL_TN <![CDATA[<=]]> RENTAL_PTRM AND LCSLED = LST_DD OR LCSLED >= 30 THEN RENTAL_AMT - NOM_DSC_AMT /* - 재약정할인*/  /*만료차월*/
+                               WHEN RENTAL_TN <![CDATA[<=]]> RENTAL_PTRM THEN FLOOR((RENTAL_AMT - NOM_DSC_AMT) / 30 * LCSLED / 10) * 10
+                               ELSE 0
+                                END AS EXN_NMN_AMT
+                            </when>
+                            <otherwise>
+                        , T7.START_SL_DT AS STRT_GIRO_TN /*시작*/
+                        ,CASE WHEN T7.END_SL_DT  <![CDATA[<]]>  23 THEN 11
+                              WHEN T7.END_SL_DT BETWEEN 23 AND  34 THEN 23
+                              WHEN T7.END_SL_DT BETWEEN 35 AND  46 THEN 35
+                              WHEN T7.END_SL_DT BETWEEN 47 AND  59 THEN 47
+                              ELSE 60 END  END_GIRO_TN
+                        , <![CDATA[
+                          CASE WHEN T7.END_SL_DT < M1.ISTM_MCN THEN 0
+                               WHEN T7.START_SL_DT <= M1.ISTM_MCN AND SUBSTR(M1.SL_DT,7,2) = SUBSTR(T7.LAST_DD,7,2) OR SUBSTR(M1.SL_DT,7,2) >= 30 THEN M1.RENTAL_AMT - M1.NOM_DSC_AMT
+                               WHEN T7.START_SL_DT <= M1.ISTM_MCN THEN ROUND((M1.RENTAL_AMT - M1.NOM_DSC_AMT) / 30 * SUBSTR(M1.SL_DT,7,2) /10) * 10
+                               ELSE 0
+                                END EXN_NMN_AMT   ]]>
+                            </otherwise>
+                        </choose>
+                         , RENTAL_PTRM AS ISTM_MCN/*렌탈기간*/
+                         , THM0_AMT /*0차월*/
+                         , RENTAL_AMT AS ISTM_AMT /*렌탈료*/
+                         , RENTAL_DSC_AMT AS ISTM_DSC_AMT/*렌탈할인*/
+                         , PY_AMT /*청규렌탈료*/
+                         , PY_AMT AS STPL_NMN_AMT /*약정차월*/
 
-             , LTPAY_YN  /*후납여부*/
-             , '2' AS GIRO_BIZ_DV_CD
-             , '2' AS GIRO_BIZ_TP_CD
-             , SELL_TAM
-             , 0 AS SUBSC_AMT
-             , 0 AS TK_AMT
-             , 0 AS CSH_BLAM
-             , 0 AS GIRO_FEE_AMT
-             , CNTR_TAM
-          FROM ( SELECT T1.CNTR_NO /*계약번호*/
-                      , T1.CNTR_SN /*계약일련번호*/
-                      , T1.CNTR_NO || T1.CNTR_SN AS CNTR /*계약상세번호*/
-                      , T4.CST_KNM
-                      , T5.CNTR_PD_STRTDT AS SL_DT /*매출일자*/
-                      , T1.RENTAL_TN/*현재차월*/
-                      , T5.STPL_PTRM AS RECAP_DUTY_PTRM_N /*약정개월*/
-                      , CASE WHEN T1.RENTAL_TN = 1
-                             THEN 0
-                             ELSE T1.RENTAL_TN
-                              END AS START_SL_DT /*시작*/
-                      , CASE WHEN T1.RENTAL_TN = 1
-                             THEN 11
-                             WHEN T1.RENTAL_TN + 12 >= T1.CNTR_PTRM
-                             THEN T1.CNTR_PTRM
-                             ELSE T1.RENTAL_TN + 11
-                              END AS END_SL_DT/*종료*/
-                      , T1.CNTR_PTRM AS RENTAL_PTRM /*렌탈기간*/
-                      , CASE WHEN T3.CNTR_NO IS NULL THEN 0
-                             WHEN T5.SELL_TP_DTL_CD != '21' THEN NVL(T3.THM_BIL_OC_AMT,0) - NVL(T3.THM_BIL_CTR_AMT, 0) + NVL(T3.THM_OC_SV_SL_AMT , 0)
-                             ELSE T3.THM_SL_SUM_AMT
-                              END AS THM0_AMT /*0차월*/
-                      , T1.RENTAL_AMT /*렌탈료*/
-                      , T1.RENTAL_DSC_AMT/*렌탈할인*/
-                      , CASE WHEN T1.RENTAL_TN <![CDATA[<=]]> T1.CNTR_PTRM
-<!--                             THEN T1.RENTAL_AMT /* - 재약정할인*/-->
-                             THEN T1.RENTAL_AMT - T1.RENTAL_DSC_AMT /* - 재약정할인*/
-                             ELSE 0
-                              END AS PY_AMT /*청규렌탈료*/
-                      , 'N' AS LTPAY_YN/*후납여부*/
-                      , T2.FRISU_BFSVC_PTRM_N
-                      , TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(SUBSTR(T5.CNTR_PD_STRTDT,0,6)||'01'), T2.FRISU_BFSVC_PTRM_N)),'DD') AS LST_DD
-                      , T1.CNTR_PTRM AS ISTM_MCN
-                      , SUBSTR(T5.CNTR_PD_STRTDT , -2) AS LCSLED
-                      , T1.CNTR_TAM
-                      , (SELECT NVL(CNTR_AMT,0)
-                           FROM TB_SSCT_CNTR_DTL
-                          WHERE 1 = 1
-                            AND CNTR_NO = T1.CNTR_NO
-                            AND CNTR_SN = T1.CNTR_SN
-                            AND DTA_DL_YN = 'N') AS SELL_TAM
-                   FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1 /*월마감테이블*/
-                   JOIN TB_SSCT_CNTR_WELLS_DTL T2 /*계약WELLS상세*/
-                     ON T2.CNTR_NO = T1.CNTR_NO
-                    AND T2.CNTR_SN = T1.CNTR_SN
-                    AND T2.DTA_DL_YN = 'N'
-                   JOIN TB_SSCT_CNTR_DTL T5
-                     ON T5.CNTR_NO = T1.CNTR_NO
-                    AND T5.CNTR_SN = T1.CNTR_SN
-                    AND T5.DTA_DL_YN = 'N'
-                   LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3 /*월마감테이블*/
-                     ON T3.SL_CL_YM = SUBSTR(T5.CNTR_PD_STRTDT,0,6)  /*매출마감년월    매출일자*/
-                    AND T3.CNTR_NO = T1.CNTR_NO
-                    AND T3.CNTR_SN = T1.CNTR_SN
-                    AND T3.DTA_DL_YN = 'N'
-                   JOIN TB_SSCT_CNTR_BAS T6
-                     ON T6.CNTR_NO = T5.CNTR_NO
-                    AND T6.DTA_DL_YN = 'N'
-                   LEFT OUTER JOIN TB_CUBS_CST_BAS T4
-                     ON T4.CST_NO = T6.CNTR_CST_NO
-                    AND T4.DTA_DL_YN = 'N'
-                  <if test='@MybatisUtils@equals(cntr, "no")'>
-                   JOIN TB_SSCT_CNTR_STLM_REL SCSR
-                     ON T5.CNTR_NO = SCSR.DTL_CNTR_NO
-                    AND T5.CNTR_SN = SCSR.DTL_CNTR_SN
-                    AND SCSR.DP_TP_CD = '0401'
-                    AND SCSR.DTA_DL_YN = 'N'
-                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SCSR.VL_STRT_DTM AND SCSR.VL_END_DTM
-                  </if>
-                  WHERE 1 = 1
-        <choose>
-            <when test="@MybatisUtils@equals(cntr, 'no')">
-                AND T1.DTA_DL_YN = 'N'
-                AND (T1.RENTAL_TN = 1 OR MOD(T1.RENTAL_TN,12)=0)
-                AND T1.RENTAL_TN > 0
-                AND T1.RENTAL_TN <![CDATA[<]]> T1.CNTR_PTRM
-                AND NVL(T1.PRM_MCN,0) = 0
-                AND (T1.SL_STP_YN = 'N' OR T1.SL_STP_YN IS NULL)
-                AND T1.SL_RCOG_DT IS NOT NULL
-                AND T1.CAN_DT IS NULL
-                AND T1.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM')
-            </when>
-            <otherwise>
-            AND T1.CNTR_NO = #{cntrNo}/*계약일련번호*/
-            AND T1.CNTR_SN = #{cntrSn}
-            AND T1.SL_CL_YM = #{wkDt}
-<!--                                 ( SELECT  CASE WHEN  CNT = 1 THEN  TO_CHAR(TO_DATE(#{wkDt}) , 'YYYYMM')-->
-<!--                                                           ELSE  TO_CHAR(ADD_MONTHS(TO_DATE(#{wkDt},'YYYYMM') , -1), 'YYYYMM')-->
-<!--                                                            END-->
-<!--                                         FROM-->
-<!--                                         (-->
-<!--                                           SELECT COUNT(*) CNT-->
-<!--                                             FROM (-->
-<!--                                                   SELECT   *-->
-<!--                                                    FROM TB_CBCL_WELLS_SL_MM_CL_IZ S1-->
-<!--                                                   WHERE SL_CL_YM = TO_CHAR(SYSDATE , 'YYYYMM')-->
-<!--                                                   FETCH FIRST 1 ROWS ONLY-->
-<!--                                                  )-->
-<!--                                         ) )-->
-            </otherwise>
-        </choose>
-        <!--            <choose>-->
-        <!--                <when test="@MybatisUtils@equals(cntr, 'null')">-->
-        <!--                       AND T1.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM') -->
-        <!--                </when>-->
-        <!--                <otherwise>-->
-        <!--                </otherwise>-->
-        <!--            </choose>           -->
+                         , LTPAY_YN  /*후납여부*/
+                         , '2' AS GIRO_BIZ_DV_CD
+                         , '2' AS GIRO_BIZ_TP_CD
+                         , SELL_TAM
+                         , 0 AS SUBSC_AMT
+                         , 0 AS TK_AMT
+                         , 0 AS CSH_BLAM
+                         , 0 AS GIRO_FEE_AMT
+                         , CNTR_TAM
+                      FROM ( SELECT T1.CNTR_NO /*계약번호*/
+                                  , T1.CNTR_SN /*계약일련번호*/
+                                  , T1.CNTR_NO || T1.CNTR_SN AS CNTR /*계약상세번호*/
+                                  , T4.CST_KNM
+                                  , T5.CNTR_PD_STRTDT AS SL_DT /*매출일자*/
+                                  , T1.RENTAL_TN/*현재차월*/
+                                  , T5.STPL_PTRM AS RECAP_DUTY_PTRM_N /*약정개월*/
+                                  , CASE WHEN T1.RENTAL_TN = 1
+                                         THEN 0
+                                         ELSE T1.RENTAL_TN
+                                          END AS START_SL_DT /*시작*/
+                                  , CASE WHEN T1.RENTAL_TN = 1
+                                         THEN 11
+                                         WHEN T1.RENTAL_TN + 12 >= T1.CNTR_PTRM
+                                         THEN T1.CNTR_PTRM
+                                         ELSE T1.RENTAL_TN + 11
+                                          END AS END_SL_DT/*종료*/
+                                  , T1.CNTR_PTRM AS RENTAL_PTRM /*렌탈기간*/
+                                  , CASE WHEN T3.CNTR_NO IS NULL THEN 0
+                                         WHEN T5.SELL_TP_DTL_CD != '21' THEN NVL(T3.THM_BIL_OC_AMT,0) - NVL(T3.THM_BIL_CTR_AMT, 0) + NVL(T3.THM_OC_SV_SL_AMT , 0)
+                                         ELSE T3.THM_SL_SUM_AMT
+                                          END AS THM0_AMT /*0차월*/
+                                  , T1.RENTAL_AMT /*렌탈료*/
+                                  , T1.RENTAL_DSC_AMT/*렌탈할인*/
+                                  , CASE WHEN T1.RENTAL_TN <![CDATA[<=]]> T1.CNTR_PTRM
+            <!--                             THEN T1.RENTAL_AMT /* - 재약정할인*/-->
+                                         THEN T1.RENTAL_AMT - T1.NOM_DSC_AMT /* - 재약정할인*/
+                                         ELSE 0
+                                          END AS PY_AMT /*청규렌탈료*/
+                                  , 'N' AS LTPAY_YN/*후납여부*/
+                                  , T2.FRISU_BFSVC_PTRM_N
+                                  , TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(SUBSTR(T5.CNTR_PD_STRTDT,0,6)||'01'), T2.FRISU_BFSVC_PTRM_N)),'DD') AS LST_DD
+                                  , T1.CNTR_PTRM AS ISTM_MCN
+                                  , SUBSTR(T5.CNTR_PD_STRTDT , -2) AS LCSLED
+                                  , T1.CNTR_TAM
+                                  , (SELECT NVL(CNTR_AMT,0)
+                                       FROM TB_SSCT_CNTR_DTL
+                                      WHERE 1 = 1
+                                        AND CNTR_NO = T1.CNTR_NO
+                                        AND CNTR_SN = T1.CNTR_SN
+                                        AND DTA_DL_YN = 'N') AS SELL_TAM
+                                  , T1.NOM_DSC_AMT
+                               FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1 /*월마감테이블*/
+                               JOIN TB_SSCT_CNTR_WELLS_DTL T2 /*계약WELLS상세*/
+                                 ON T2.CNTR_NO = T1.CNTR_NO
+                                AND T2.CNTR_SN = T1.CNTR_SN
+                                AND T2.DTA_DL_YN = 'N'
+                               JOIN TB_SSCT_CNTR_DTL T5
+                                 ON T5.CNTR_NO = T1.CNTR_NO
+                                AND T5.CNTR_SN = T1.CNTR_SN
+                                AND T5.DTA_DL_YN = 'N'
+                               LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T3 /*월마감테이블*/
+                                 ON T3.SL_CL_YM = SUBSTR(T5.CNTR_PD_STRTDT,0,6)  /*매출마감년월    매출일자*/
+                                AND T3.CNTR_NO = T1.CNTR_NO
+                                AND T3.CNTR_SN = T1.CNTR_SN
+                                AND T3.DTA_DL_YN = 'N'
+                               JOIN TB_SSCT_CNTR_BAS T6
+                                 ON T6.CNTR_NO = T5.CNTR_NO
+                                AND T6.DTA_DL_YN = 'N'
+                               LEFT OUTER JOIN TB_CUBS_CST_BAS T4
+                                 ON T4.CST_NO = T6.CNTR_CST_NO
+                                AND T4.DTA_DL_YN = 'N'
+                              <if test='@MybatisUtils@equals(cntr, "no")'>
+                               JOIN TB_SSCT_CNTR_STLM_REL SCSR
+                                 ON T5.CNTR_NO = SCSR.DTL_CNTR_NO
+                                AND T5.CNTR_SN = SCSR.DTL_CNTR_SN
+                                AND SCSR.DP_TP_CD = '0401'
+                                AND SCSR.DTA_DL_YN = 'N'
+                                AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SCSR.VL_STRT_DTM AND SCSR.VL_END_DTM
+                              </if>
+                              WHERE 1 = 1
+                    <choose>
+                        <when test="@MybatisUtils@equals(cntr, 'no')">
+                            AND T1.DTA_DL_YN = 'N'
+                            AND (T1.RENTAL_TN = 1 OR MOD(T1.RENTAL_TN,12)=0)
+                            AND T1.RENTAL_TN > 0
+                            AND T1.RENTAL_TN <![CDATA[<]]> T1.CNTR_PTRM
+                            AND NVL(T1.PRM_MCN,0) = 0
+                            AND (T1.SL_STP_YN = 'N' OR T1.SL_STP_YN IS NULL)
+                            AND T1.SL_RCOG_DT IS NOT NULL
+                            AND T1.CAN_DT IS NULL
+                            AND T1.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                        </when>
+                        <otherwise>
+                        AND T1.CNTR_NO = #{cntrNo}/*계약일련번호*/
+                        AND T1.CNTR_SN = #{cntrSn}
+                        AND T1.SL_CL_YM = #{wkDt}
+            <!--                                 ( SELECT  CASE WHEN  CNT = 1 THEN  TO_CHAR(TO_DATE(#{wkDt}) , 'YYYYMM')-->
+            <!--                                                           ELSE  TO_CHAR(ADD_MONTHS(TO_DATE(#{wkDt},'YYYYMM') , -1), 'YYYYMM')-->
+            <!--                                                            END-->
+            <!--                                         FROM-->
+            <!--                                         (-->
+            <!--                                           SELECT COUNT(*) CNT-->
+            <!--                                             FROM (-->
+            <!--                                                   SELECT   *-->
+            <!--                                                    FROM TB_CBCL_WELLS_SL_MM_CL_IZ S1-->
+            <!--                                                   WHERE SL_CL_YM = TO_CHAR(SYSDATE , 'YYYYMM')-->
+            <!--                                                   FETCH FIRST 1 ROWS ONLY-->
+            <!--                                                  )-->
+            <!--                                         ) )-->
+                        </otherwise>
+                    </choose>
+                    <!--            <choose>-->
+                    <!--                <when test="@MybatisUtils@equals(cntr, 'null')">-->
+                    <!--                       AND T1.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM') -->
+                    <!--                </when>-->
+                    <!--                <otherwise>-->
+                    <!--                </otherwise>-->
+                    <!--            </choose>           -->
 
-        AND T1.DTA_DL_YN = 'N'
-        ) M1
-        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
-            LEFT OUTER JOIN LATERAL ( SELECT LAST_DAY(ADD_MONTHS(TO_DATE(SUBSTR(M1.SL_DT,0,6)||'01'), M1.ISTM_MCN - M1.FRISU_BFSVC_PTRM_N )) AS LAST_DD
-                                           , M1.RENTAL_TN AS START_SL_DT
-                                           , CASE WHEN M1.RENTAL_TN+12 >= M1.ISTM_MCN THEN M1.ISTM_MCN ELSE M1.RENTAL_TN +11 END  AS END_SL_DT
-                                        FROM DUAL ) T7
-              ON 1 = 1
-        </if>
-        ORDER BY M1.STRT_GIRO_TN , M1.END_GIRO_TN , M1.CNTR_NO , M1.CNTR_SN
+                    AND T1.DTA_DL_YN = 'N'
+                    ) M1
+                    <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+                        LEFT OUTER JOIN LATERAL ( SELECT LAST_DAY(ADD_MONTHS(TO_DATE(SUBSTR(M1.SL_DT,0,6)||'01'), M1.ISTM_MCN - M1.FRISU_BFSVC_PTRM_N )) AS LAST_DD
+                                                       , M1.RENTAL_TN AS START_SL_DT
+                                                       , CASE WHEN M1.RENTAL_TN+12 >= M1.ISTM_MCN THEN M1.ISTM_MCN ELSE M1.RENTAL_TN +11 END  AS END_SL_DT
+                                                    FROM DUAL ) T7
+                          ON 1 = 1
+                    </if>
+                  ) M1
+                    ORDER BY M1.STRT_GIRO_TN , M1.END_GIRO_TN , M1.CNTR_NO , M1.CNTR_SN
 <!--        ORDER BY RENTAL_TN ASC , CNTR_NO ASC , CNTR_SN ASC-->
     </select>
 
