@@ -26,6 +26,7 @@ public class WwpsgBusinessCellPhoneChMgtDvo {
     private String prtnrKnm;
 
     private String rpotBizProcsStatNm;
+    private String rpotBizProcsStatCd;
     private String aplcDtm;
     private String fnlMdfcUsrNm;
     private String fnlMdfcDtm;
@@ -37,10 +38,13 @@ public class WwpsgBusinessCellPhoneChMgtDvo {
     private String rpotBizAplcId;
     private String rntAplcTpCd;
     private String rntAplcTpNm;
-    private String procsPrtnrKnm;
+    private String procsPrtnrNo;
+    private String procsPrtnrNm;
     private String procsCralLocaraTno;
     @DBDecField
     private String procsMexnoEncr;
+    @DBDecField(common = true)
+    private String procsMexnoGbencr;
     private String procsCralIdvTno;
 
     private String rsbDvNm;

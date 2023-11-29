@@ -35,7 +35,7 @@ public interface WwpsgRentManagementMapper {
         SearchReq dto
     );
 
-    PopupSearchRes selectPsgaRpotbizProcsIz(
+    WwpsgRentManagementDvo selectPsgaRpotbizProcsIz(
         SearchReq dto
     );
 

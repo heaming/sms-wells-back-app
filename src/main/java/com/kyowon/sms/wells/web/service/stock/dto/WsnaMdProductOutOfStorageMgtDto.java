@@ -30,7 +30,9 @@ public class WsnaMdProductOutOfStorageMgtDto {
 
         String selCnt,
 
-        String ostrCnfmDt,
+        String wkStartDt,
+
+        String wkEndDt,
 
         String prtnrBzsCd,
 
@@ -228,5 +230,19 @@ public class WsnaMdProductOutOfStorageMgtDto {
         String istDt,
 
         List<WsnaMdProductOutOfStorageSaveProductDvo> products
+    ) {}
+    @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-RemoveReq")
+    public record RemoveReq(
+        @NotBlank
+        String cstSvAsnNo,
+
+        @NotBlank
+        String cntrNo,
+
+        @NotBlank
+        String cntrSn,
+
+        @NotBlank
+        String svBizHclsfCd
     ) {}
 }

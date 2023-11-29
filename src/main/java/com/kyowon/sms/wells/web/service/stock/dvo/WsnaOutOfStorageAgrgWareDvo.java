@@ -15,6 +15,8 @@ import lombok.Setter;
 @Setter
 public class WsnaOutOfStorageAgrgWareDvo {
 
+    String baseDt;
+    String wareDvCd;
     String wareNo;
     String wareNm;
     boolean isSumFields; // 합계 필드 노출 여부

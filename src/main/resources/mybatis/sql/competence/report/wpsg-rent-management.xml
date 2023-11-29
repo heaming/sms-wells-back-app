@@ -14,9 +14,10 @@
              , OPB.CRAL_IDV_TNO             /* 휴대개별전화번호 */
              , OPB.PRTNR_KNM                /* 파트너 한글명 */
           FROM TB_PSGA_RPOT_BIZ_PSIC_BAS PRBPB /* 보고서업무담당자기본 */
-          LEFT JOIN TB_OGBS_PRTNR_BAS OPB
+          JOIN TB_OGBS_PRTNR_BAS OPB
             ON PRBPB.OG_TP_CD = OPB.OG_TP_CD
            AND PRBPB.PRTNR_NO = OPB.PRTNR_NO
+           AND OPB.DTA_DL_YN = 'N'
          WHERE 1 = 1
            AND PRBPB.DTA_DL_YN = 'N'
            AND PRBPB.DG_YN = 'Y'
@@ -61,21 +62,22 @@
            AND DTA_DL_YN = 'N'
     </select>
 
-    <select id="selectPsgaRpotbizProcsIz" resultType = "com.kyowon.sms.wells.web.competence.report.dto.WwpsgRentManagementDto$PopupSearchRes">
+    <select id="selectPsgaRpotbizProcsIz" resultType = "com.kyowon.sms.wells.web.competence.report.dvo.WwpsgRentManagementDvo">
         SELECT PRBPI.RPOT_BIZ_APLC_ID       /* 보고서업무신청ID */
              , PRBPI.PROCS_SN               /* 처리일련번호 */
              , PRBPI.RPOT_BIZ_PROCS_STAT_CD /* 보고서업무처리상태코드 */
              , PRBPI.PROCS_CN               /* 처리내용 */
              , TO_CHAR(TO_DATE(PRBPI.FNL_MDFC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') AS FNL_MDFC_DTM  /* 신청일시 */
-             , PRBPI.FNL_MDFC_USR_ID AS PROCS_PRTNR_NO       /* 최종수정사용자ID */
-             , OPB.PRTNR_KNM AS PROCS_PRTNR_KNM                    /* 파트너 한글명 */
-             , OPB.CRAL_LOCARA_TNO AS PROCS_CRAL_LOCARA_TNO        /* 휴대지역전화번호 */
-             , OPB.MEXNO_ENCR AS PROCS_MEXNO_ENCR                  /* 휴대전화국번호암호화 */
-             , OPB.CRAL_IDV_TNO AS PROCS_CRAL_IDV_TNO              /* 휴대개별전화번호 */
+             , CUAM.LOGIN_ID AS PROCS_PRTNR_NO       /* 최종수정사용자ID */
+             , CUAM.USR_NM AS PROCS_PRTNR_KNM                    /* 파트너 한글명 */
+             , CUAM.CRAL_LOCARA_TNO AS PROCS_CRAL_LOCARA_TNO        /* 휴대지역전화번호 */
+             , CUAM.MEXNO_GBENCR AS PROCS_MEXNO_GBENCR                  /* 휴대전화국번호암호화 */
+             , CUAM.CRAL_IDV_TNO AS PROCS_CRAL_IDV_TNO              /* 휴대개별전화번호 */
              , F_CMZ_CD_NM(#{session.tenantId}, 'RPOT_BIZ_PROCS_STAT_CD', PRBPI.RPOT_BIZ_PROCS_STAT_CD) AS RPOT_BIZ_PROCS_STAT_NM
-          FROM TB_PSGA_RPOT_BIZ_PROCS_IZ PRBPI /* 빌딩기본 */
-          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OPB
-            ON PRBPI.FNL_MDFC_USR_ID = OPB.PRTNR_NO
+          FROM TB_PSGA_RPOT_BIZ_PROCS_IZ PRBPI /* 보고서업무처리내역 */
+          LEFT OUTER JOIN T_CMP_USR_ACO_M CUAM
+            ON CUAM.USR_ID = PRBPI.FNL_MDFC_USR_ID
+           AND CUAM.DEL_YN = 'N'
          WHERE 1 = 1
            AND PRBPI.DTA_DL_YN = 'N'
            AND RPOT_BIZ_APLC_ID = #{rpotBizAplcId}
@@ -97,21 +99,22 @@
              , PRAI.BLD_CD           /* 빌딩코드 */
              , PRAI.BLD_NM           /* 빌딩명 */
              , PRAI.RNT_APLC_TP_CD   /* 임차신청유형코드 */
+             , PRBPB.PRTNR_NO
              , OPB.PRTNR_KNM                /* 파트너 한글명 */
              , OPB.CRAL_LOCARA_TNO          /* 휴대지역전화번호 */
              , OPB.MEXNO_ENCR               /* 휴대전화국번호암호화 */
              , OPB.CRAL_IDV_TNO             /* 휴대개별전화번호 */
              , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', TO_CHAR(TO_DATE(PRBPI.FNL_MDFC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD'), '40', TO_CHAR(TO_DATE(PRBPI.FNL_MDFC_DTM,  'YYYYMMDDHH24MISS'), 'YYYY-MM-DD'), '') AS FNL_MDFC_DTM
-             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', PRBPI.FNL_MDFC_USR_ID, '40', PRBPI.FNL_MDFC_USR_ID, '') AS FNL_MDFC_USR_ID
-             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', OPB2.PRTNR_KNM, '40', OPB2.PRTNR_KNM, '') AS FNL_MDFC_USR_NM
+             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', CUAM.LOGIN_ID, '40', CUAM.LOGIN_ID, '') AS FNL_MDFC_USR_ID
+             , DECODE(PRBPI.RPOT_BIZ_PROCS_STAT_CD, '30', CUAM.USR_NM, '40', CUAM.USR_NM, '') AS FNL_MDFC_USR_NM
              , F_CMZ_CD_NM(#{session.tenantId}, 'RPOT_BIZ_PROCS_STAT_CD', PRBPI.RPOT_BIZ_PROCS_STAT_CD) AS RPOT_BIZ_PROCS_STAT_NM
              , F_CMZ_CD_NM(#{session.tenantId}, 'RNT_APLC_TP_CD', PRAI.RNT_APLC_TP_CD) AS RNT_APLC_TP_NM
-             , OPB2.PRTNR_KNM AS PROCS_PRTNR_KNM                    /* 파트너 한글명 */
-             , OPB2.CRAL_LOCARA_TNO AS PROCS_CRAL_LOCARA_TNO        /* 휴대지역전화번호 */
-             , OPB2.MEXNO_ENCR AS PROCS_MEXNO_ENCR                  /* 휴대전화국번호암호화 */
-             , OPB2.CRAL_IDV_TNO AS PROCS_CRAL_IDV_TNO              /* 휴대개별전화번호 */
-             , PRBAI.FNL_MDFC_USR_ID AS RCST_PRTNR_NO
-             , OPB3.PRTNR_KNM AS RCST_PRTNR_KNM                    /* 파트너 한글명 */
+             , CUAM.USR_NM AS PROCS_PRTNR_KNM                    /* 파트너 한글명 */
+             , CUAM.CRAL_LOCARA_TNO AS PROCS_CRAL_LOCARA_TNO        /* 휴대지역전화번호 */
+             , CUAM.MEXNO_GBENCR AS PROCS_MEXNO_ENCR                  /* 휴대전화국번호암호화 */
+             , CUAM.CRAL_IDV_TNO AS PROCS_CRAL_IDV_TNO              /* 휴대개별전화번호 */
+             , PRBAI.APLCNS_PRTNR_NO AS RCST_PRTNR_NO               /* 접수자 번호 */
+             , OPB3.PRTNR_KNM AS RCST_PRTNR_NM                    /* 파트너 한글명 */
              , OPB3.CRAL_LOCARA_TNO AS RCST_CRAL_LOCARA_TNO        /* 휴대지역전화번호 */
              , OPB3.MEXNO_ENCR AS RCST_MEXNO_ENCR                  /* 휴대전화국번호암호화 */
              , OPB3.CRAL_IDV_TNO AS RCST_CRAL_IDV_TNO              /* 휴대개별전화번호 */
@@ -119,19 +122,20 @@
         LEFT JOIN TB_PSGA_RPOT_BIZ_PROCS_IZ PRBPI /* 보고서업무처리내역 */
           ON PRBAI.RPOT_BIZ_APLC_ID = PRBPI.RPOT_BIZ_APLC_ID
          AND PRBPI.DTA_DL_YN = 'N'
-        LEFT JOIN TB_PSGA_RNT_APLC_IZ PRAI /* 임차신청내역 */
+        JOIN TB_PSGA_RNT_APLC_IZ PRAI /* 임차신청내역 */
           ON PRBAI.RPOT_BIZ_APLC_ID = PRAI.RPOT_BIZ_APLC_ID
          AND PRAI.DTA_DL_YN = 'N'
-        LEFT JOIN TB_PSGA_RPOT_BIZ_PSIC_BAS PRBPB /* 보고서업무담당자기본 */
+        JOIN TB_PSGA_RPOT_BIZ_PSIC_BAS PRBPB /* 보고서업무담당자기본 */
           ON PRBAI.RPOT_BIZ_TP_ID = PRBPB.RPOT_BIZ_TP_ID
          AND PRBPB.DG_YN = 'Y'
-        LEFT JOIN TB_OGBS_PRTNR_BAS OPB
+        JOIN TB_OGBS_PRTNR_BAS OPB
           ON PRBPB.OG_TP_CD = OPB.OG_TP_CD
          AND PRBPB.PRTNR_NO = OPB.PRTNR_NO
-        LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OPB2
-          ON PRBPB.FNL_MDFC_USR_ID = OPB2.PRTNR_NO
+        LEFT JOIN T_CMP_USR_ACO_M CUAM
+          ON CUAM.USR_ID = PRBPI.FNL_MDFC_USR_ID
+         AND CUAM.DEL_YN = 'N'
         LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OPB3
-          ON PRBAI.FNL_MDFC_USR_ID = OPB3.PRTNR_NO
+          ON PRBAI.APLCNS_PRTNR_NO = OPB3.PRTNR_NO
        WHERE 1 = 1
          AND PRBAI.DTA_DL_YN = 'N'
          <if test='@MybatisUtils@isNotEmpty(rcpStartDtm)'>
@@ -149,6 +153,7 @@
          <if test='@MybatisUtils@isNotEmpty(rpotBizProcsStatCd)'>
          AND PRBAI.RPOT_BIZ_PROCS_STAT_CD = #{rpotBizProcsStatCd}
          </if>
+       ORDER BY PRBAI.APLC_DTM DESC
     </select>
 
     <insert id="insertPsgaRpotBizAplcIz" parameterType="com.kyowon.sms.wells.web.competence.report.dvo.WwpsgRentManagementDvo">
@@ -169,7 +174,7 @@
         VALUES (
                #{dvo.rpotBizAplcId}
              , #{dvo.rpotBizTpId}
-             , #{dvo.prtnrNo}
+             , #{dvo.rcstPrtnrNo}
              , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
              , #{dvo.bizAkCn}
              , #{dvo.rpotBizAplcId}

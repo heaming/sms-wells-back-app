@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.performance.mapper.WdccProductAccountHomeCardMapper">
     <select id="selectProductAccountHomeCard" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountHomeCardDto$SearchRes">
+        <if test='@MybatisUtils@equals(session.hcdCd, "HW100")'>
         WITH --#1 : 추출해야할 대상 조직 선정 기준이 되는 환경 셋업 (WELLS 파트너 영업조직만 대상 : P조직, M조직, B2B, 온라인총판, 제휴채널)
              ENV_ORG AS (
              --#3 : 영업파트너 및 기타 역활자인 경우
@@ -28,6 +29,33 @@
                  ON T2.OG_ID    = T1.OG_ID
                 AND T2.OG_TP_CD = T1.OG_TP_CD
                 AND T2.AUTH_LVL = 'BLG_AUTH'
+        </if>
+        <if test='!@MybatisUtils@equals(session.hcdCd, "HW100")'>
+            WITH --#1 : 추출해야할 대상 조직 선정 기준이 되는 환경 셋업 (WELLS 파트너 영업조직만 대상 : P조직, M조직, B2B, 온라인총판, 제휴채널)
+             ENV_ORG AS (
+             --#3 : 영업파트너 및 기타 역활자인 경우
+                         SELECT 'BLG_AUTH'       AS AUTH_LVL  -- 조직접근 유형 (소속조직)
+                   ,OG_ID
+                   ,OG_TP_CD
+               FROM TB_OGBS_MM_PRTNR_IZ T1
+              WHERE 1=1
+                AND T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                AND T1.DTA_DL_YN = 'N'
+                AND T1.OG_TP_CD IN ('W01','W02','W04','W05','ALC')
+                AND T1.OG_TP_CD = #{session.ogTpCd}
+                AND #{session.hcdCd}     = 'HW400'       -- 세션의 홈카드코드 = WELLS_본사
+                AND T1.PRTNR_NO = #{session.employeeIDNumber}
+                )
+        SELECT --WELLS_본사 : 계정 순증 카드 현황
+               SUM(SUM_MM_AGRG_CNT)  AS SUM_SUM_MM_AGRG_CNT   /*당월순증합계*/
+              ,SUM(RENTL_SUM)        AS RENTL_SUM   /*당월렌탈순증합계*/
+              ,SUM(LEASE_SUM)        AS LEASE_SUM   /*당월리스순증합계*/
+              ,SUM(RGLDV_SUM)        AS RGLDV_SUM   /*당월구독(정기배송)순증합계*/
+              ,SUM(MEMBS_SUM)        AS MEMBS_SUM   /*당월멤버십순증합계*/
+          FROM MV_WSM_CBCL_WELLS_CNTR_STAT_CH_BAS_01
+         WHERE 1=1
+           AND LVL = 1
+        </if>
     </select>
 
 </mapper>

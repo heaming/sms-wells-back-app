@@ -204,7 +204,9 @@ public class WsniServiceHistoryInterfaceDto {
         @JsonProperty("RNADR")
         String rnadr,
         @JsonProperty("RDADR")
-        String rdadr
+        String rdadr,
+        @JsonProperty("DEL_YN")
+        String delYn
     ) {
         @AutomapConstructor
         public SearchRes(
@@ -299,7 +301,8 @@ public class WsniServiceHistoryInterfaceDto {
             String cralIdvTno,
             String newAdrZip,
             String rnadr,
-            String rdadr
+            String rdadr,
+            String delYn
         ) {
             this(
                 custNm,
@@ -395,7 +398,8 @@ public class WsniServiceHistoryInterfaceDto {
                 cralIdvTno,
                 newAdrZip,
                 rnadr,
-                rdadr
+                rdadr,
+                delYn
             );
         }
     }

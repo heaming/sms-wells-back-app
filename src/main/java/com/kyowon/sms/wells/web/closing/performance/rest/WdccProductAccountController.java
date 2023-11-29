@@ -1,11 +1,19 @@
 package com.kyowon.sms.wells.web.closing.performance.rest;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import org.springframework.util.FileCopyUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +23,7 @@ import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.Se
 import com.kyowon.sms.wells.web.closing.performance.service.WdccProductAccountService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -101,4 +110,56 @@ public class WdccProductAccountController {
     ) throws IOException {
         service.getProductAccountsExcelDownload(req, response);
     }
+
+    /**
+     * 상품별 계정 현황 상세내역 파일 생성
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "상품별 계정 현황 상세내역 파일 생성", notes = "상품별 계정 현황 상세내역 파일 생성")
+    @PostMapping("/make-file")
+    public String createdetailItemizationFile(
+        @Valid
+        @RequestBody
+        SearchReq dto
+    ) throws Exception {
+        return service.createdetailItemizationFile(dto);
+    }
+
+    @PostMapping("/download")
+    public void getDownload(
+        @RequestBody
+        SearchReq dto,
+        HttpServletResponse response
+    ) throws Exception {
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        String subFolderPath = sdf.format(cal.getTime());
+
+        String fileName = "W_상품별 계정 현황_" + dto.baseYm() + ".csv";
+        File file = new File(
+            "/wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/" + subFolderPath + "/", fileName
+        );
+        BizAssert.isTrue(file.isFile(), "MSG_ALT_FILE_NOT_FOUND");
+
+        String encodeName = "";
+        try {
+            encodeName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+        }
+
+        response.setHeader("Content-Disposition", "attachment;filename=" + encodeName);
+        ServletOutputStream output = response.getOutputStream();
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+            FileCopyUtils.copy(fis, output);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        output.flush();
+        output.close();
+    }
+
 }

@@ -58,7 +58,6 @@ public class WsnbRegularShippingChangeService {
 
         log.debug("cntrNo : " + req.cntrNo());
         log.debug("cntrSn : " + req.cntrSn());
-        log.debug("akSn : " + req.akSn());
         log.debug("asAkDvCd : " + req.asAkDvCd());
         log.debug("akChdt : " + req.akChdt());
         log.debug("bfchPdCd : " + req.bfchPdCd());
@@ -77,7 +76,6 @@ public class WsnbRegularShippingChangeService {
                 req = new SaveReq(
                     req.cntrNo(),
                     req.cntrSn(),
-                    mapper1.selectAkSnMax(req.cntrNo(), req.cntrSn()),
                     req.asAkDvCd(),
                     req.akChdt(),
                     req.bfchPdCd(),
@@ -94,7 +92,6 @@ public class WsnbRegularShippingChangeService {
             new SaveReq(
                 req.cntrNo(),
                 req.cntrSn(),
-                req.akSn(),
                 req.asAkDvCd(),
                 req.akChdt(),
                 req.bfchPdCd(),
@@ -195,10 +192,9 @@ public class WsnbRegularShippingChangeService {
 
         List<WctbSeedingPackageChangeDto.ConsPdct> consPdList = new ArrayList<>();
         String strPdctPdcds = StringUtil.isEmpty(req.choCapslCn()) ? mapper2.selectPdctPdCds(
-            req.cntrNo(), req.cntrSn(),
-            req.akSn()
+            req.cntrNo(), req.cntrSn()
         ) : req.choCapslCn();
-        if (StringUtil.isNotEmpty(strPdctPdcds)) {
+        if (StringUtil.isNotEmpty(strPdctPdcds) && strPdctPdcds.indexOf("|") > 0) {
             String[] arrayPdctPdCds = strPdctPdcds.split("\\|");
             for (String s : arrayPdctPdCds) {
                 log.debug(s);
@@ -224,10 +220,11 @@ public class WsnbRegularShippingChangeService {
         log.debug("cntrNo: " + req.cntrNo());
         log.debug("cntrSn: " + req.cntrSn());
         log.debug("chPdCd: " + req.afchPdCd());
+        log.debug("akChdt: " + req.akChdt());
         log.debug("consPdList: " + consPdList);
         service4.saveSeedingPackageChanges(
             new WctbSeedingPackageChangeDto.SaveReq(
-                "1", req.cntrNo(), req.cntrSn(), req.afchPdCd(), consPdList
+                "1", req.cntrNo(), req.cntrSn(), req.afchPdCd(), consPdList, req.akChdt()
             )
         );
 

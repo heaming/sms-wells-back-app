@@ -19,15 +19,13 @@
                               WHERE DTL_CNTR_NO = T1.CNTR_NO
                                 AND DTL_CNTR_SN = T1.CNTR_SN
                                 AND DTA_DL_YN = 'N'
-                                AND VL_STRT_DTM <![CDATA[<]]>  TO_CHAR(ADD_MONTHS(TO_DATE(T1.SL_CL_YM, 'YYYYMM'), 1), 'YYYYMM')
+                                AND SUBSTR(VL_STRT_DTM, 1, 6) <![CDATA[<=]]> T1.SL_CL_YM
                                 AND SUBSTR(VL_END_DTM, 1, 6) >= T1.SL_CL_YM
-                                AND ROWNUM <![CDATA[<=]]>  1
                           ) T5
                     ON T6.CNTR_STLM_ID = T5.CNTR_STLM_ID
                  WHERE 1=1
-                   /* @@@수정시작 */
                    AND T6.DP_TP_CD = '0102' /* 0102 : 계좌자동이체, 0203 : 카드자동이체 */
-                   /* @@@수정끝 */
+                   AND ROWNUM <![CDATA[<=]]>  1
                ) AS MPY_BSDT
              , TO_CHAR(TO_DATE(T3.CNTR_PD_STRTDT), 'YYYY-MM-DD') AS LCSLE_DT /*매출일자*/
              , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CNTR_CAN_DT /*취소일자*/
@@ -56,11 +54,9 @@
              , T4_2.LOCARA_TNO AS RCGVP_LOCAL_TNO1 /* 설치자전화번호1*/
              , T4_2.EXNO_ENCR AS RCGVP_LOCAL_TNO2 /* 설치자전화번호2*/
              , T4_2.IDV_TNO AS RCGVP_LOCAL_TNO3 /* 설치자전화번호3*/
-             /* @@@수정시작 */
              , T4_2.CRAL_LOCARA_TNO AS RCGVP_CRAL_TNO1 /* 설치자휴대전화번호1*/
              , T4_2.MEXNO_ENCR AS RCGVP_CRAL_TNO2 /* 설치자휴대전화번호2*/
              , T4_2.CRAL_IDV_TNO AS RCGVP_CRAL_TNO3 /* 설치자휴대전화번호3*/
-             /* @@@수정끝 */
              , TO_CHAR(TO_DATE(T7.DP_CL_DT, 'YYYYMMDD'), 'YYYY-MM-DD') AS DP_CL_DT /* 입금일자*/
              , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'DP_TP_CD' AND CD_VLD_VAL = T7.DP_TP_CD) AS DP_TP_CD_NM /* 입금유형*/
              , T7.DP_AMT AS DP_AMT /* 입금액*/
@@ -119,9 +115,7 @@
                                              FROM TB_CBCL_BZNS_ATAM_BAS /* 영업선수기본*/
                                             WHERE CNTR_NO = T1.CNTR_NO
                                               AND CNTR_SN = T1.CNTR_SN
-                                              /* @@@수정시작 */
                                               AND DP_CL_DT BETWEEN #{dpStDt}||'01' AND TO_CHAR(LAST_DAY(TO_DATE(#{dpEdDt}, 'YYYYMM')) ,'YYYYMMDD')
-                                              /* @@@수정끝 */
                                             ORDER BY DP_CL_DT DESC
                                           )
                                     WHERE ROWNUM = 1
@@ -138,13 +132,11 @@
            AND T20.OG_TP_CD = T2.SELL_OG_TP_CD
            AND T20.PRTNR_NO = T2.SELL_PRTNR_NO
            AND T20.DTA_DL_YN = 'N'
-          /* @@@수정시작 */
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T21 /* 월파트너내역 - 판매자 */
             ON T21.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T21.OG_TP_CD = T2.SELL_OG_TP_CD
            AND T21.PRTNR_NO = T2.SELL_PRTNR_NO
            AND T21.DTA_DL_YN = 'N'
-          /* @@@수정끝 */
           LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T10 /* 월조직내역*/
             ON T10.BASE_YM = SUBSTR(T2.CNTR_CNFM_DTM,1,6) 
            AND T10.OG_ID = T20.OG_ID
@@ -240,9 +232,7 @@
                            )
           </if>
           <if test="@MybatisUtils@equals(upYn, 'N')"> /* 조회구분*/
-           /* @@@수정시작 */
            AND T21.PRTNR_NO IS NULL
-           /* @@@수정끝 */
           </if>
          ORDER BY T1.CNTR_NO, T1.CNTR_SN
     </sql>

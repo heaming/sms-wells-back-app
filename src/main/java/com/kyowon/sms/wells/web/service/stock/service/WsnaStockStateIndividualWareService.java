@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaStockStateIndividualWareConverter;
@@ -35,6 +36,14 @@ public class WsnaStockStateIndividualWareService {
         return mapper.selectMcByWares(dto);
     }
 
+    public List<HashMap<String, String>> getServiceCenter(String baseYm) {
+        return mapper.selectServiceCenter(baseYm);
+    }
+
+    public String getMyServiceCenter(String baseYm) {
+        return mapper.selectMyServiceCenter(baseYm);
+    }
+
     // PITVOT 조회
     public WsnaStockStateIndividualWareDvo convertPivotWsnaStockStateIndividualWareDvo(
         SearchReq dto
@@ -59,10 +68,22 @@ public class WsnaStockStateIndividualWareService {
             .map(item -> " NVL(WARE_" + item.getWareNo() + "_AGRG_QTY,0) ")
             .collect(Collectors.joining("+"));
 
-        dvo.setWareNoInStr(wareNoInStr);
-        dvo.setWareNoAgrgQtyFields(wareNoAgrgQtyFields);
-        dvo.setWareNoAgrgQtySumFields(wareNoAgrgQtySumFields);
-
+        // 서비스센터 개인조직창고 NULL 예외 처리
+        if (StringUtils.isEmpty(wareNoInStr)) {
+            dvo.setWareNoInStr("''");
+        } else {
+            dvo.setWareNoInStr(wareNoInStr);
+        }
+        if (StringUtils.isEmpty(wareNoInStr)) {
+            dvo.setWareNoAgrgQtyFields("''");
+        } else {
+            dvo.setWareNoAgrgQtyFields(wareNoAgrgQtyFields);
+        }
+        if (StringUtils.isEmpty(wareNoInStr)) {
+            dvo.setWareNoAgrgQtySumFields("''");
+        } else {
+            dvo.setWareNoAgrgQtySumFields(wareNoAgrgQtySumFields);
+        }
         dvo.setStockDt(dto.stockDt());
         dvo.setBaseYm(dto.baseYm());
         dvo.setWareNo(dto.wareNo());

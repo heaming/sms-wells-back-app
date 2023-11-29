@@ -135,7 +135,7 @@ public class WcsaCustomerInterfaceService {
         String copnDvCd = dto.copnDvCd();
         String calngDvCd = dto.calngDvCd();
 
-        //  1. 필수값 체크(호출구분코드 → 필수값 체크)
+        //  1. 필수값 체크(고객번호 → 필수값 체크)
         if (cstNo.isEmpty()) {
             ifResDvo.setRsCd("F");
             ifResDvo.setRsMsg("CST_NO 가(이) 없습니다 !");
@@ -160,8 +160,14 @@ public class WcsaCustomerInterfaceService {
         indvDvo.setCstNo(dto.cstNo());
 
         List<ZcsaCustomerInfoResDvo> pextCustomer = zcsaCustomerInfoService.getCustomers(indvDvo);
-
         if (pextCustomer.isEmpty()) {
+            ifResDvo.setCstNo(cstNo);
+            ifResDvo.setRsCd("S");
+            ifResDvo.setRsMsg("계약자 정보가 없습니다!");
+            return converter.mapCustomerInfoEditToInterfaceResultRes(ifResDvo);
+        }
+
+        if (!copnDvCd.equals(pextCustomer.get(0).getCopnDvCd())) {
             ifResDvo.setCstNo(cstNo);
             ifResDvo.setRsCd("S");
             ifResDvo.setRsMsg("계약자 정보가 없습니다!");
@@ -354,11 +360,11 @@ public class WcsaCustomerInterfaceService {
     }
 
     /**
-    * (WELLS) 네이버렌탈 고객등록 I/F
+    * (WELLS) 미인증 계약고객등록 I/F
     * @param dto 고객정보
     * @return 고객번호, 세이프키, 가입결과
     */
-    public CreateCustomerForNaverRentalRes createCustomerForNaverRental(
+    public CreateCustomerForNaverRentalRes createCustomerForNoCtfCntrCustomer(
         CreateCustomerForNaverRentalReq dto
     ) throws Exception {
         // 응답코드

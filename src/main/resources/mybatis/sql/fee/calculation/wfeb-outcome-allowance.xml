@@ -1007,7 +1007,27 @@
             </choose>
     </sql>
 
+    <select id="selectAllowanceBaseInfo" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$AwBaseInfoRes">
+        /* com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOutcomeAllowanceMapper.selectAllowanceBaseInfo */
+        SELECT BASE_SN          /* 기준일련번호 */
+             , OG_TP_CD         /* 조직유형코드 */
+             , RSB_DV_CD        /* 직책구분코드 */
+             , MNGR_OUTC_DV_CD  /* 관리자성과구분코드 */
+             , ACHV_STRT_RAT    /* 달성시작비율 */
+             , ACHV_END_RAT     /* 달성종료비율 */
+             , NINC_STRT_CT     /* 순증시작건수 */
+             , NINC_END_CT      /* 순증종료건수 */
+             , APY_STRT_YM      /* 적용시작년월 */
+             , APY_END_YM       /* 적용종료년월 */
+             , AW_AMT           /* 수당금액 */
+          FROM TB_FEAM_MNGR_AW_BASE_INF_IZ /* 관리자수당기준정보내역 */
+         WHERE 1 = 1
+           AND #{perfYm} BETWEEN APY_STRT_YM AND APY_END_YM
+           AND DTA_DL_YN = 'N'
+    </select>
+
     <select id="selectOutcomeAllowancesManagerThisMonth" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchManagerRes">
+        /* com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOutcomeAllowanceMapper.selectOutcomeAllowancesManagerThisMonth */
         SELECT C.OG_CD /* 소속 */
              , C.OG_NM /* 소속명 */
              , C.PRTNR_KNM /* 성명 */
@@ -1047,11 +1067,11 @@
                      , CASE WHEN NVL(ST.CNTR_BASE_TRG_IST_CT, 0) > 0 THEN ROUND(PERF.PERF_CT/ST.CNTR_BASE_TRG_IST_CT * 100, 1) ELSE 0 END AS TRG_ACHV_RT /* 달성률 = 실적 / 목표 * 100 */
                      , PERF.FEE_ACKMT_CT
                      , PERF.ELHM_EXCP_PERF_AMT
-                     , ROUND(PERF.ELHM_EXCP_PERF_AMT/500000) AS ELHM_EXCP_CT
+                     , TRUNC(PERF.ELHM_EXCP_PERF_AMT/500000) AS ELHM_EXCP_CT
                      , PERF.NW_SELL_ACC_CT
                      , NVL(CANC.PUR_SPR_ACC_CT,0) AS PUR_SPR_ACC_CT
                      , PERF.NW_SELL_ACC_CT - NVL(CANC.PUR_SPR_ACC_CT,0) AS ACC_NINC_CT
-                     , PERF.FEE_ACKMT_CT + ROUND(PERF.ELHM_EXCP_PERF_AMT/500000) - NVL(REDF.REDF_CT,0) AS PERF_AGG_AMT /* 누계 = [인정건수] + [가전외 건수] - [되물림 건수] */
+                     , PERF.FEE_ACKMT_CT + TRUNC(PERF.ELHM_EXCP_PERF_AMT/500000) - NVL(REDF.REDF_CT,0) AS PERF_AGG_AMT /* 누계 = [인정건수] + [가전외 건수] - [되물림 건수] */
                      , 0 AS MNGR_DANG_GD /* 관리자 위험등급 */
                      , PERF.WM_ACL_ACTI_CT
                      , PERF.BFSVC_ACL_ACTI_CT
@@ -1072,7 +1092,7 @@
                       <include refid="selectRedemptionOfFeeSql"/>
                        ) REDF /* 되물림 계산 */
                     ON REDF.OG_CD = PERF.OG_CD
-                 INNER JOIN (
+                  LEFT OUTER JOIN (
                            SELECT T.BASE_YM
                                <choose>
                                    <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
@@ -1132,6 +1152,7 @@
     </select>
 
     <select id="selectOutcomeAllowancesManager" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchManagerRes">
+        /* com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOutcomeAllowanceMapper.selectOutcomeAllowancesManager */
         SELECT MO.OG_CD /* 소속 */
              , MO.OG_NM  /* 소속명 */
              , MP.PRTNR_KNM /* 성명 */
@@ -1174,6 +1195,7 @@
     </select>
 
     <select id="selectOutcomeAllowancesPlannerThisMonth" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchPlannerRes">
+        /* com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOutcomeAllowanceMapper.selectOutcomeAllowancesPlannerThisMonth */
         SELECT C.OG_CD /* 소속 */
              , C.OG_NM /* 소속명 */
              , C.PRTNR_KNM /* 성명 */
@@ -1224,7 +1246,7 @@
                        <include refid="selectLifOrdSql"/>
                         ) LIF /* 연계 상품(라이프) 실적 계산 */
                      ON LIF.OG_ID = PERF.OG_ID
-                  INNER JOIN (
+                   LEFT OUTER JOIN (
                            SELECT T.BASE_YM
                                <choose>
                                    <when test='rsbDvCd == "W0202" or rsbDvCd == "W0102"'>
@@ -1334,6 +1356,7 @@
     </select>
 
     <select id="selectOutcomeAllowancesPlanner" resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebOutcomeAllowanceDto$SearchPlannerRes">
+        /* com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOutcomeAllowanceMapper.selectOutcomeAllowancesPlanner */
         SELECT MO.OG_NM  /* 소속명 */
              , MP.PRTNR_KNM /* 성명 */
              , MP.PRTNR_NO /* 파트너번호 */
@@ -1366,4 +1389,130 @@
            AND OA.RSB_DV_CD = #{rsbDvCd}
          ORDER BY MO.OG_CD
     </select>
+
+    <delete id="deleteOutcomeAllowancesManager">
+        /* com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOutcomeAllowanceMapper.deleteOutcomeAllowancesManager */
+        DELETE FROM TB_FEAM_MOGMNGR_OUTC_AW_MM_IZ
+         WHERE BASE_YM = #{baseYm}
+           AND OG_TP_CD = #{ogTpCd}
+           AND RSB_DV_CD = #{rsbDvCd}
+    </delete>
+
+    <delete id="deleteOutcomeAllowancesPlanner">
+        /* com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOutcomeAllowanceMapper.deleteOutcomeAllowancesPlanner */
+        DELETE FROM TB_FEAM_POGMNGR_OUTC_AW_MM_IZ
+         WHERE BASE_YM = #{baseYm}
+           AND OG_TP_CD = #{ogTpCd}
+           AND RSB_DV_CD = #{rsbDvCd}
+    </delete>
+
+    <insert id="insertOutcomeAllowancesManager">
+        /* com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOutcomeAllowanceMapper.insertOutcomeAllowancesManager */
+        INSERT INTO TB_FEAM_MOGMNGR_OUTC_AW_MM_IZ (  /* M조직관리자성과수당월내역 */
+               BASE_YM             /* 기준년월 */
+             , OG_TP_CD            /* 조직유형코드 */
+             , PRTNR_NO            /* 파트너번호 */
+             , RSB_DV_CD           /* 직책구분코드 */
+             , DTRC_N              /* 지국수 */
+             , TRG_CT              /* 목표건수 */
+             , BASE_DTRC_N         /* 기준지국수 */
+             , PERF_CT             /* 실적건수 */
+             , TRG_ACHV_RT         /* 목표달성율 */
+             , NW_SELL_ACC_CT      /* 신규판매계정건수 */
+             , PUR_SPR_ACC_CT      /* 순수이탈계정건수 */
+             , ACC_NINC_CT         /* 계정순증건수 */
+             , FEE_ACKMT_CT        /* 수수료인정건수 */
+             , ELHM_EXCP_PERF_AMT  /* 가전외실적금액 */
+             , ELHM_EXCP_CT        /* 가전외건수 */
+             , REDF_CT             /* 되물림건수 */
+             , PERF_AGG_AMT        /* 실적누계금액 */
+             , MNGR_DANG_GD        /* 관리자위험등급 */
+             , TRG_ACHV_AW_AMT     /* 목표달성수당금액 */
+             , BRCH_NINC_CT        /* 지점순증건수 */
+             , WM_ACL_ACTI_CT      /* WM실제활동건수 */
+             , BFSVC_ACL_ACTI_CT   /* BS실제활동건수 */
+             , ACL_ACTI_BRCH_AV_CT /* 실제활동지점평균건수 */
+             , ACTV_BRCH_N         /* 활성지점수 */
+             , OG_AW_AMT           /* 조직수당금액 */
+             , DSB_AMT             /* 지급금액 */
+         <include refid="COMMON.insertSystemField" />)
+         <foreach collection="dtos" item="item" separator="UNION ALL">
+             SELECT #{item.baseYm}
+                  , #{item.ogTpCd}
+                  , #{item.prtnrNo}
+                  , #{item.rsbDvCd}
+                  , #{item.dtrcN}
+                  , #{item.trgCt}
+                  , #{item.baseDtrcN}
+                  , #{item.perfCt}
+                  , #{item.trgAchvRt}
+                  , #{item.nwSellAccCt}
+                  , #{item.purSprAccCt}
+                  , #{item.accNincCt}
+                  , #{item.feeAckmtCt}
+                  , #{item.elhmExcpPerfAmt}
+                  , #{item.elhmExcpCt}
+                  , #{item.redfCt}
+                  , #{item.perfAggAmt}
+                  , #{item.mngrDangGd}
+                  , #{item.trgAchvAwAmt}
+                  , #{item.brchNincCt}
+                  , #{item.wmAclActiCt}
+                  , #{item.bfsvcAclActiCt}
+                  , #{item.aclActiBrchAvCt}
+                  , #{item.actvBrchN}
+                  , #{item.ogAwAmt}
+                  , #{item.dsbAmt}
+                  <include refid="COMMON.insertSystemFieldValue" />
+               FROM DUAL
+        </foreach>
+
+    </insert>
+    <insert id="insertOutcomeAllowancesPlanner">
+        /* com.kyowon.sms.wells.web.fee.calculation.mapper.WfebOutcomeAllowanceMapper.insertOutcomeAllowancesPlanner */
+        INSERT INTO TB_FEAM_POGMNGR_OUTC_AW_MM_IZ (  /* P조직관리자성과수당월내역 */
+               BASE_YM            /* 기준년월 */
+             , OG_TP_CD           /* 조직유형코드 */
+             , PRTNR_NO           /* 파트너번호 */
+             , RSB_DV_CD          /* 직책구분코드 */
+             , TRG_CT             /* 목표건수 */
+             , PERF_CT            /* 실적건수 */
+             , TRG_ACHV_RT        /* 목표달성율 */
+             , TRG_ACHV_AW_AMT    /* 목표달성수당금액 */
+             , THM1_OPTN_TRG_CT   /* 1차월가동목표건수 */
+             , THM1_OPTN_ACHV_CT  /* 1차월가동달성건수 */
+             , THM1_OPTN_ACHV_RT  /* 1차월가동달성율 */
+             , THM1_OPTN_AW_AMT   /* 1차월가동수당금액 */
+             , ACL_ACTI_TRG_CT    /* 실제활동목표건수 */
+             , ACL_ACTI_ACHV_CT   /* 실제활동달성건수 */
+             , ACL_ACTI_ACHV_RT   /* 실제활동달성율 */
+             , ACL_ACTI_AW_AMT    /* 실제활동수당금액 */
+             , OG_ACHV_AW_SUM_AMT /* 조직달성수당합계금액 */
+             , EJT_AW_AMT         /* 배출수당금액 */
+             , OUTC_AW_SUM_AMT    /* 성과수당합계금액 */
+         <include refid="COMMON.insertSystemField" />)
+        <foreach collection="dtos" item="item" separator="UNION ALL">
+            SELECT #{item.baseYm}
+                 , #{item.ogTpCd}
+                 , #{item.prtnrNo}
+                 , #{item.rsbDvCd}
+                 , #{item.trgCt}
+                 , #{item.perfCt}
+                 , #{item.trgAchvRt}
+                 , #{item.trgAchvAwAmt}
+                 , #{item.thm1OptnTrgCt}
+                 , #{item.thm1OptnAchvCt}
+                 , #{item.thm1OptnAchvRt}
+                 , #{item.thm1OptnAwAmt}
+                 , #{item.aclActiTrgCt}
+                 , #{item.aclActiAchvCt}
+                 , #{item.aclActiAchvRt}
+                 , #{item.aclActiAwAmt}
+                 , #{item.ogAchvAwSumAmt}
+                 , #{item.ejtAwAmt}
+                 , #{item.outcAwSumAmt}
+                 <include refid="COMMON.insertSystemFieldValue" />
+              FROM DUAL
+        </foreach>
+    </insert>
 </mapper>

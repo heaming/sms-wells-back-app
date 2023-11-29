@@ -16,7 +16,7 @@
              ORDER BY T1.WARE_USE_YN DESC, T1.WARE_NM ASC, T1.WARE_NO ASC
     </select>
 
-    <select id="selectStockAcinspRgstMngtPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto$SearchRes">
+    <select id="selectStockAcinspRgstMngtPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto$SearchRes" fetchSize="1000">
         SELECT A1.APY_YM        /*기준년월*/
              , A1.WARE_NO       /*창고번호*/
              , A1.WARE_NM        /*창고명*/
@@ -40,7 +40,7 @@
                      , T1.WARE_NO
                      , T1.WARE_NM
                      , T1.PD_PRP_VAL19 AS ITM_KND
-                     , T1.SAP_MAT_CD AS SAP_CD
+                     , TO_CHAR(TO_NUMBER(T1.SAP_MAT_CD)) AS SAP_CD
                      , T1.PD_CD AS ITM_PD_CD
                      , T1.PD_ABBR_NM
                      , NVL(T2.PITM_STOC_A_GD_QTY,0)-(CASE WHEN TO_CHAR(SYSDATE, 'YYYYMM') != #{baseYm} THEN (CASE WHEN T5.STR_CONF_DT IS NULL THEN NVL(T5.STR_QTY, 0) ELSE 0 END)
@@ -59,13 +59,12 @@
                              ELSE 0
                          END) AS DIFF_QTY
                      , T3.IOST_RFDT /*입출고반영일자*/
-                     , (CASE WHEN T3.FST_RGST_DTM IS NOT NULL AND T3.CNFMDT IS NULL AND T1.WARE_DTL_DV_CD = #{wareDtlDvCd} AND NOT EXISTS (SELECT 1 FROM TB_SVST_STOC_ACINSP_CONF_IZ WHERE STOC_ACINSP_AK_ID = T3.ACINSP_AK_ID) THEN '신청완료'
-                             WHEN T3.FST_RGST_DTM IS NOT NULL AND T3.CNFMDT IS NULL AND T1.WARE_DTL_DV_CD <![CDATA[ <> ]]> #{wareDtlDvCd} AND NOT EXISTS (SELECT 1 FROM TB_SVST_STOC_ACINSP_CONF_IZ WHERE STOC_ACINSP_AK_ID = T3.ACINSP_AK_ID) THEN '신청중'
-                             WHEN T3.FST_RGST_DTM IS NOT NULL AND T3.CNFMDT IS NULL AND EXISTS (SELECT 1 FROM TB_SVST_STOC_ACINSP_CONF_IZ WHERE STOC_ACINSP_AK_ID = ACINSP_AK_ID) AND T3.CNFM_PITM_STR_GAP_QTY = 0 AND T3.CNFM_PITM_OSTR_GAP_QTY = 0 THEN '실사완료'
-                             WHEN T3.FST_RGST_DTM IS NOT NULL AND T3.CNFMDT IS NULL AND EXISTS (SELECT 1 FROM TB_SVST_STOC_ACINSP_CONF_IZ WHERE STOC_ACINSP_AK_ID = ACINSP_AK_ID) AND (  T3.CNFM_PITM_STR_GAP_QTY != 0 OR T3.CNFM_PITM_OSTR_GAP_QTY != 0 ) THEN '신청완료'
+                     , (CASE WHEN T3.FST_RGST_DTM IS NOT NULL AND T3.CNFMDT IS NULL AND T1.WARE_DTL_DV_CD IN ('20', '30') AND NOT EXISTS (SELECT 1 FROM TB_SVST_STOC_ACINSP_CONF_IZ WHERE STOC_ACINSP_AK_ID = T3.ACINSP_AK_ID) THEN '신청완료'
+                             WHEN T3.FST_RGST_DTM IS NOT NULL AND T3.CNFMDT IS NULL AND T1.WARE_DTL_DV_CD NOT IN ('20', '30') AND NOT EXISTS (SELECT 1 FROM TB_SVST_STOC_ACINSP_CONF_IZ WHERE STOC_ACINSP_AK_ID = T3.ACINSP_AK_ID) THEN '신청중'
+                             WHEN T3.FST_RGST_DTM IS NOT NULL AND T3.CNFMDT IS NULL AND EXISTS (SELECT 1 FROM TB_SVST_STOC_ACINSP_CONF_IZ WHERE STOC_ACINSP_AK_ID = T3.ACINSP_AK_ID) AND T3.CNFM_PITM_STR_GAP_QTY = 0 AND T3.CNFM_PITM_OSTR_GAP_QTY = 0 THEN '실사완료'
+                             WHEN T3.FST_RGST_DTM IS NOT NULL AND T3.CNFMDT IS NULL AND EXISTS (SELECT 1 FROM TB_SVST_STOC_ACINSP_CONF_IZ WHERE STOC_ACINSP_AK_ID = T3.ACINSP_AK_ID) AND (  T3.CNFM_PITM_STR_GAP_QTY != 0 OR T3.CNFM_PITM_OSTR_GAP_QTY != 0 ) THEN '신청완료'
                              WHEN T3.CNFMDT IS NOT NULL AND T3.IOST_RFDT IS NULL THEN '실사확정'
                              WHEN T3.CNFMDT IS NOT NULL AND T3.IOST_RFDT IS NOT NULL THEN '재고반영'
-                             ELSE ''
                          END ) AS STATUS_T
                   FROM (
                          SELECT D1.APY_YM
@@ -99,7 +98,7 @@
                             AND ( D1.HGR_WARE_NO = #{hgrWareNo} OR D1.WARE_NO = #{hgrWareNo} )
                         </if>
                         <if test="@MybatisUtils@isNotEmpty(searchWareNo)">
-                            AND D1.WARE_NO            = #{hgrWareNo}
+                            AND D1.WARE_NO            = #{searchWareNo}
                         </if>
                         ) T1
                     LEFT OUTER JOIN TB_SVST_MCITM_STOC_IZ T2 /* 월별창고내역 */
@@ -170,7 +169,7 @@
                  </choose>
                  </if>
                    ) A1
-            ORDER BY A1.WARE_NO, A1.ITM_KND, A1.ITM_PD_CD
+            ORDER BY A1.STATUS_T, A1.WARE_NO, A1.ITM_KND, A1.ITM_PD_CD
 
 
     </select>

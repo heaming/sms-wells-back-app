@@ -1,5 +1,16 @@
 package com.kyowon.sms.wells.web.competence.evaluate.rest;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.validation.Valid;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto.*;
 import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdPdBaseDvo;
 import com.kyowon.sms.wells.web.competence.evaluate.service.WpsdExcellentDivisionBaseMgtService;
@@ -13,20 +24,12 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.response.SaveResponse;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.validation.Valid;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 @Api(tags = "[PSD] 우수사업부 기준관리")
 @Validated
@@ -82,13 +85,13 @@ public class WpsdExcellentDivisionBaseMgtController {
         headerTitle.put("pdCd", messageResourceService.getMessage("MSG_TXT_PRDT_CODE"));
         headerTitle.put("cvtPc", messageResourceService.getMessage("MSG_TXT_CVT_CT"));
         List<WpsdPdBaseDvo> excelData;
-        try{
+        try {
             excelData = excelReadService.readExcel(file, new ExcelMetaDvo(1, headerTitle), WpsdPdBaseDvo.class);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new BizException("MSG_ALT_INVALID_EXCEL_FILE");
         }
         List<ExcelUploadErrorDvo> errList = service.isValidExcelData(excelData);
-        if(CollectionUtils.isNotEmpty(errList)){
+        if (CollectionUtils.isNotEmpty(errList)) {
             return ExcelUploadDto.UploadRes.builder()
                 .status("E")
                 .excelData(excelData)
@@ -96,18 +99,17 @@ public class WpsdExcellentDivisionBaseMgtController {
                 .build();
         }
         return ExcelUploadDto.UploadRes.builder()
-        .status("S")
-        .excelData(excelData)
-        .build();
+            .status("S")
+            .excelData(excelData)
+            .build();
     }
 
     @ApiOperation(value = "우수사업부 기준관리 - 상품기준관리 저장", notes = "상품기준관리 저장")
     @PostMapping("/product")
     public SaveResponse saveProductBase(
-        @Valid
-        @RequestBody
+        @Valid @RequestBody
         List<PdSaveReq> reqs
-    ){
+    ) {
         return SaveResponse.builder().processCount(service.saveProductBase(reqs))
             .build();
     }
@@ -115,14 +117,12 @@ public class WpsdExcellentDivisionBaseMgtController {
     @ApiOperation(value = "우수사업부 기준관리 - 상품기준관리 저장", notes = "상품기준관리 저장")
     @DeleteMapping("/product")
     public SaveResponse removeProductBase(
-        @Valid
-        @RequestBody
+        @Valid @RequestBody
         List<PdSaveReq> reqs
-    ){
+    ) {
         return SaveResponse.builder().processCount(service.removeProductBase(reqs))
             .build();
     }
-
 
     @ApiOperation(value = "우수사업부 기준관리 - 평가기준관리 페이징 조회", notes = "상품기준관리 페이징 조회")
     @ApiImplicitParams(value = {
@@ -142,10 +142,9 @@ public class WpsdExcellentDivisionBaseMgtController {
     @ApiOperation(value = "우수사업부 기준관리 - 평가기준관리 저장", notes = "평가기준관리 저장")
     @PostMapping("/evaluation")
     public SaveResponse saveEvaluationBase(
-        @Valid
-        @RequestBody
+        @Valid @RequestBody
         List<EvlSaveReq> reqs
-    ){
+    ) {
         return SaveResponse.builder().processCount(service.saveEvaluationBase(reqs))
             .build();
     }
@@ -169,10 +168,9 @@ public class WpsdExcellentDivisionBaseMgtController {
     @ApiOperation(value = "우수사업부 기준관리 - 상세 저장", notes = "상세 저장")
     @PostMapping("/evaluation/detail")
     public SaveResponse saveEvaluationDetail(
-        @Valid
-        @RequestBody
+        @Valid @RequestBody
         List<EvlDetailSaveReq> reqs
-    ){
+    ) {
         return SaveResponse.builder().processCount(service.saveEvaluationDetail(reqs))
             .build();
     }
@@ -182,7 +180,7 @@ public class WpsdExcellentDivisionBaseMgtController {
     public List<EvlArticlesSearchRes> getEvaluationArticales(
         @Valid
         EvlSearchReq req
-    ){
+    ) {
         return service.getEvaluationArticales(req);
     }
 
@@ -204,12 +202,29 @@ public class WpsdExcellentDivisionBaseMgtController {
     @ApiOperation(value = "우수사업부 기준관리 - 목표기준관리 저장", notes = "목표기준관리 저장")
     @PostMapping("/target")
     public SaveResponse saveTargetBase(
-        @Valid
-        @RequestBody
+        @Valid @RequestBody
         List<EvlDetailSaveReq> reqs
-    ){
+    ) {
         return SaveResponse.builder().processCount(service.saveTargetBase(reqs))
             .build();
+    }
+
+    @ApiOperation(value = "우수사업부 기준관리 - 마감시간 조회", notes = "마감시간 조회")
+    @GetMapping("/deadline")
+    public DeadlineSearchRes getExcellentDivisionDeadline(
+        @Valid
+        DeadlineSearchReq req
+    ) {
+        return service.getExcellentDivisionDeadline(req);
+    }
+
+    @ApiOperation(value = "우수사업부 기준관리 - 마감시간 저장", notes = "마감시간 저장")
+    @PostMapping("/deadline")
+    public SaveResponse saveExcellentDivisionDeadline(
+        @Valid @RequestBody
+        DeadlineSaveReq req
+    ) {
+        return SaveResponse.builder().processCount(service.saveDeadline(req)).build();
     }
 
 }

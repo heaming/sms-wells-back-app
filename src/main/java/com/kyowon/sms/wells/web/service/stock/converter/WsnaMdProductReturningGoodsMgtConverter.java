@@ -12,6 +12,4 @@ public interface WsnaMdProductReturningGoodsMgtConverter {
 
     List<WsnaMdProductReturningGoodsSaveDvo> mapSaveReqToMdProductReturningGoodsDvo(List<SaveReq> dto);
 
-    //    List<WsnaMdProductReturningGoodsSaveDvo> mapGoodsDvoToSaveGoodsDvo(List<WsnaMdProductReturningGoodsMgtDvo> dvos);
-
 }

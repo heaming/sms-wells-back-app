@@ -90,6 +90,7 @@ public class WfeaNetOrderDto {
         String pdNm, /* 상품명 */
         String basePdCd, /* 기준상품코드 */
         String pkgCd, /* 패키지코드 */
+        String pkgSn, /* 패키지일련번호 */
         String cntrPtrm, /* 계약기간 */
         String stplPtrm, /* 약정기간 */
         String cntrCnfmDtm, /* 계약확정일시 */

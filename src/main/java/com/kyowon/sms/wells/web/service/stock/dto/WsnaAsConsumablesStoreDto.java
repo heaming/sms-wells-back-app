@@ -151,4 +151,26 @@ public class WsnaAsConsumablesStoreDto {
         String codeName
 
     ) {}
+
+    @ApiModel(value = "WsnaAsConsumablesStoreDto-FindWareNmRes")
+    public record FindWareNmRes(
+        // 입고창고명
+        String strWareNm
+    ) {}
+
+    @ApiModel(value = "WsnaAsConsumablesStoreDto-FindItmPdCdNmRes")
+    public record FindItmPdCdNmRes(
+        // 품목상품코드
+        String itmPdCd,
+        // 품목상품명
+        String itmPdNm
+    ) {}
+
+    @ApiModel(value = "WsnaAsConsumablesStoreDto-FindSapCdNmRes")
+    public record FindSapCdNmRes(
+        // 품목상품코드
+        String sapCd,
+        // 품목상품명
+        String itmPdNm
+    ) {}
 }

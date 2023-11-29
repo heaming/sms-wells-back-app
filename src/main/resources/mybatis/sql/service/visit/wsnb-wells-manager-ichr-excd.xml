@@ -9,7 +9,6 @@
                 SELECT T1.MNGT_YM
                      , T3.DGR1_LEVL_OG_CD                        -- 총괄단
                      , T3.DGR2_LEVL_OG_CD                        -- 지역단
-                     , F_CMZ_CD_NM('TNT_WELLS', 'LOCARA_MNGT_DV_CD', T2.MNGR_DV_CD, 'ko') AS OG_TP -- 우편번호 담당자
                      , T1.CNTR_NO
                      , T1.CNTR_SN
                      , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR    -- 계약번호
@@ -19,38 +18,28 @@
                      , T7.SELL_TP_CD                            -- 유형
                      , (CASE WHEN T9.WK_EXCN_DT IS NULL THEN '방문'
                              WHEN T9.WK_EXCN_DT IS NOT NULL THEN '완료'
-                --             WHEN AC202_INST_MTHS <![CDATA[ <= ]]> SUBSTR(AC201_CYCL_TYP,1, INSTR(AC201_CYCL_TYP, 'M')-1) THEN '신규'        -- 주석으로 유지
                              WHEN T9.WK_CAN_RSON_CD IS NOT NULL THEN '취소'
                              ELSE '예정'
                         END) AS VST_DV_CD                        -- 구분
-                     , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', T9.VST_PRGS_STAT_CD, 'ko') AS VST_PRGS_STAT_CD -- 우편번호 담당자
-                     , T2.NEW_ADR_ZIP                            -- 우편번호
+                     , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', T9.VST_PRGS_STAT_CD, 'ko') AS VST_PRGS_STAT_CD
+                     -- , T2.NEW_ADR_ZIP                            -- 우편번호
                      , T6.RNADR || ' ' || T6.RDADR AS ADR        -- 주소
                      , T11.CTPV_NM || ' ' || T11.CTCTY_NM || ' ' ||  T11.EMD_NM AS EMD    -- 읍면동
                      , T9.OG_NM                                -- 지역단,지점 통합하여 센터명
                      , T9.PRTNR_KNM                            -- 담당자
                      , T9.CLSF_CD_SRN_PRNT_CN                    -- 업무유형
                      , T9.EGER_WK_YN        AS EGER_WK                        -- 강제배정
-                     , (SELECT '고정'
+                     , (SELECT DECODE(zz.DTA_DL_YN,'N','고정','')
                           FROM TB_SVPD_CNTR_FXN_PRTNR_IZ zz
                          WHERE zz.CNTR_NO = T1.CNTR_NO
                            AND zz.CNTR_SN = T1.CNTR_SN
-                           AND zz.DTA_DL_YN = 'N'
                            AND zz.CH_SN = (SELECT MAX(CH_SN)
                                                 FROM TB_SVPD_CNTR_FXN_PRTNR_IZ yy
                                                WHERE yy.CNTR_NO = T1.CNTR_NO
                                                  AND yy.CNTR_SN = T1.CNTR_SN))        AS FIX    -- 고정방문
-                     , (SELECT zz.CH_RSON_CN
-                          FROM TB_SVPD_CNTR_FXN_PRTNR_IZ zz
-                         WHERE zz.CNTR_NO = T1.CNTR_NO
-                           AND zz.CNTR_SN = T1.CNTR_SN
-                           AND zz.DTA_DL_YN = 'N'
-                           AND zz.CH_SN = (SELECT MAX(CH_SN)
-                                                FROM TB_SVPD_CNTR_FXN_PRTNR_IZ yy
-                                               WHERE yy.CNTR_NO = T1.CNTR_NO
-                                                 AND yy.CNTR_SN = T1.CNTR_SN))        AS CH_RSON_CN    -- 고정등록 사유 (느리면 위 쿼리에 녹여서 감싸자..)
                   FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
-                     , TB_SVPD_LOCARA_BFSVC_OGMGR_IZ T2
+                     -- , TB_SVPD_LOCARA_BFSVC_OGMGR_IZ T2
+                     , TB_OGBS_MM_PRTNR_IZ T2
                      , TB_OGBS_MM_OG_IZ T3
                      , TB_SSCT_CNTR_ADR_REL T4
                      , TB_SSCT_CNTR_ADRPC_BAS T5
@@ -75,10 +64,13 @@
                              , TB_SVPD_CST_SV_BFSVC_OJ_IZ T10
                              , TB_OGBS_MM_PRTNR_IZ T12
                          WHERE T9.ASN_OJ_YM = #{mngtYm}
+                           AND T12.BASE_YM = T9.ASN_OJ_YM
                            AND T9.CST_SV_ASN_NO = T10.CST_SV_ASN_NO
                            AND T9.CNFM_PSIC_PRTNR_OG_TP_CD = T12.OG_TP_CD
                            AND T9.CNFM_PSIC_PRTNR_NO = T12.PRTNR_NO
                            AND T10.VST_DV_CD <![CDATA[ <> ]]> '20'    -- 택배건 제외
+                           AND T9.CNFM_PSIC_PRTNR_OG_TP_CD IN ('W03','W06')	-- 엔지니어방문계정
+                           AND T9.CNFM_PSIC_PRTNR_NO != '99992'
                            ) T9
                      , TB_GBCO_RNADR_BAS T11
                      , TB_SVPD_CST_SV_RGBSPR_IZ T13
@@ -86,8 +78,10 @@
                    AND T1.MNGT_YM = #{mngtYm}
                    AND T1.CNTR_DTL_STAT_CD = '101'            -- 정상건만 조회
                    AND T1.MNGT_YM = T3.BASE_YM
-                   AND T2.BRCH_OG_ID = T3.OG_ID
-                   AND T2.NEW_ADR_ZIP = T6.NEW_ADR_ZIP
+                   AND T1.MNGT_YM = T2.BASE_YM
+                   AND T1.MNGT_PRTNR_OG_TP_CD = T2.OG_TP_CD
+                   AND T1.MNGT_PRTNR_NO = T2.PRTNR_NO
+                   AND T2.OG_ID = T3.OG_ID
                    AND T4.DTL_CNTR_NO = T1.CNTR_NO
                    AND T4.DTL_CNTR_SN = T1.CNTR_SN
                    AND T4.CNTR_ADRPC_ID = T5.CNTR_ADRPC_ID
@@ -110,19 +104,15 @@
                    AND T1.CNTR_SN = T13.CNTR_SN
                    AND T13.VST_DV_CD IN ('10', '11')        -- 매니저 방문건이 있는 계약건만 조회
                    AND T8.SVPD_ITEM_GR <![CDATA[ <> ]]> '11'        -- 모종계정은 전체 제외
-
+                   -- 물류담당자 제외
+                   AND T1.MNGT_PRTNR_NO != '99992'
                    -- 계정구분: 관리계정이면
-                   AND (T2.MNGR_DV_CD = '2'
-                     OR (T2.MNGR_DV_CD = '1' AND T9.CNFM_PSIC_DV_CD = '2'))
-                   -- 계정구분: 방문계정이면
-                   AND T9.CST_SV_ASN_NO IS NOT NULL
-                   AND T9.CNFM_PSIC_DV_CD = '2'
-
-                  <if test="@MybatisUtils@isNotEmpty(fromAdrZip)">
-                   AND T6.NEW_ADR_ZIP >= #{fromAdrZip}
+                  <if test="@MybatisUtils@isNotEmpty(accountDivCd) and @MybatisUtils@equals(accountDivCd, '0')">
+                   AND T1.MNGT_PRTNR_OG_TP_CD IN ('W03','W06')
                   </if>
-                  <if test="@MybatisUtils@isNotEmpty(toAdrZip)">
-                   AND T6.NEW_ADR_ZIP <![CDATA[ <= ]]> #{toAdrZip}
+                   -- 계정구분: 방문계정이면
+                  <if test="@MybatisUtils@isNotEmpty(accountDivCd) and @MybatisUtils@equals(accountDivCd, '1')">
+                   AND T9.CST_SV_ASN_NO IS NOT NULL
                   </if>
                   -- 웰스팜 제외
                   <if test="@MybatisUtils@isNotEmpty(exceptWellsFarmYn) and @MybatisUtils@equals(exceptWellsFarmYn, 'Y')">

@@ -5,7 +5,7 @@
     <select id="selectManagementCustomerRglvls" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto$SearchRes">
 	SELECT T0.*
     FROM ( SELECT DISTINCT T1.CNTR_NO 																	-- 계약번호
-						 , T1.CNTR_SN 																	-- 계약번호
+						 , T1.CNTR_SN
 			  			 , T3.RCGVP_KNM 																-- 고객명
 						 , T11.SVPD_SAP_CD	                                                            -- SAP코드
 						 , T1.PDCT_PD_CD 																-- 품목코드
@@ -26,7 +26,7 @@
                                 WHEN ( T4.VST_PRGS_STAT_CD = '20' ) THEN '03' --'작업완료'
                                 ELSE '00' -- '예정'
                            END AS RCGVP_DIV 															-- 고객구분
-						 , DECODE(T6.DTA_DL_YN, 'Y', '고정', '') AS FIX									-- 고정
+						 , DECODE(T6.DTA_DL_YN, 'N', '고정', '') AS FIX									-- 고정
 						 , SUBSTR(T5.VST_DUEDT,1,6)	AS VST_DUEDT							            -- 차기방문월
 						 , T9.DGR2_LEVL_OG_CD   AS MNG_STD_DGR2_LEVL_OG_CD								-- 관리기준(관리계정) - 지역단
 						 , T9.DGR3_LEVL_OG_CD   AS MNG_STD_DGR3_LEVL_OG_CD								-- 관리기준(관리계정) - 지점
@@ -56,7 +56,7 @@
 						     , TB_SSCT_CNTR_ADRPC_BAS T2
 						     , TB_GBCO_ADR_BAS T3
 						     , TB_GBCO_RNADR_BAS T4
-						 WHERE T1.ADRPC_TP_CD = '3'
+						 WHERE T1.ADRPC_TP_CD IN ('2','3')
 						   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
 						   AND T1.CNTR_ADRPC_ID = T2.CNTR_ADRPC_ID
 						   AND T2.ADR_ID = T3.ADR_ID
@@ -68,16 +68,16 @@
 			  			   ) T3
 					  	ON T3.DTL_CNTR_NO = T1.CNTR_NO
 					   AND T3.DTL_CNTR_SN = T1.CNTR_SN
-                INNER JOIN (SELECT z2.*
+            LEFT OUTER JOIN (SELECT z2.*
                               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ z2
                             INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ z3
                             ON z2.CST_SV_ASN_NO = z3.CST_SV_ASN_NO
                             AND z3.VST_DV_CD != '20'
+                            AND z2.ASN_OJ_YM = #{manageYm}
+                            AND z2.DTA_DL_YN = 'N'
                             ) T4
                         ON T4.CNTR_NO = T1.CNTR_NO
                        AND T4.CNTR_SN = T1.CNTR_SN
-                       AND T4.ASN_OJ_YM = #{manageYm}
-                       AND T4.DTA_DL_YN = 'N'
 		   LEFT OUTER JOIN (
 			   			SELECT T1.CNTR_NO
 			   				 , T1.CNTR_SN
@@ -95,16 +95,15 @@
 			   				 , T01.DTA_DL_YN
 			   			  FROM TB_SVPD_CNTR_FXN_PRTNR_IZ T01
 			   	    INNER JOIN (
-			   	          SELECT MAX(T02.CH_SN)
+			   	          SELECT MAX(T02.CH_SN) AS CH_SN
 			   	               , T02.CNTR_NO
 			   	               , T02.CNTR_SN
 			   	            FROM TB_SVPD_CNTR_FXN_PRTNR_IZ T02
-			   	           WHERE T02.DTA_DL_YN = 'Y'
 			   	        GROUP BY T02.CNTR_NO, T02.CNTR_SN
 			   	               ) T02
 			   			ON T02.CNTR_NO = T01.CNTR_NO
 			   		   AND T02.CNTR_SN = T01.CNTR_SN
-			   		 WHERE T01.DTA_DL_YN = 'Y'
+                       AND T01.CH_SN = T02.CH_SN
 			   			   ) T6
 		   				ON T6.CNTR_NO = T1.CNTR_NO
 		   			   AND T6.CNTR_SN = T1.CNTR_SN
@@ -128,8 +127,8 @@
 					   AND T10.DTA_DL_YN = 'N'
 		   LEFT OUTER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T11
 			            ON T11.SVPD_PD_CD = T1.PDCT_PD_CD
-                     WHERE T4.ASN_OJ_YM = #{manageYm}
-                       AND T1.DTA_DL_YN = 'N'
+                     WHERE T1.DTA_DL_YN = 'N'
+                       AND T1.CNTR_DTL_STAT_CD IN ('101','201')
                     <if test="@MybatisUtils@isNotEmpty(localGroupOgCd)">
                        AND ( T9.DGR2_LEVL_OG_CD = #{localGroupOgCd}
                           OR T10.DGR2_LEVL_OG_CD = #{localGroupOgCd}

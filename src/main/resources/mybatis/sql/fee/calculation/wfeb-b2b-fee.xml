@@ -152,18 +152,23 @@
             ON C0.TENANT_ID  = #{session.tenantId}
            AND C0.CD_ID      = 'CO_CD'    /* 업체명 */
            AND C0.CD_VLD_VAL = T1.CO_CD
-         /* 20230823 수정 */
-          LEFT OUTER JOIN (SELECT BASE_YM, CO_CD, OG_TP_CD, PRTNR_NO, COUNT(1) CNT
-                             FROM TB_FEAM_FEE_CALC_CNTR_DTL_IZ /* 수수료계산계약상세내역 */
-                            WHERE BASE_YM        = #{perfYm}
-                              <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
-                              AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
-                              </if>
-                              AND OG_TP_CD       = 'W04'     --W05총판
-                              AND FEE_CALC_TP_CD = '01'      --수수료계산 (2023.04.26 추가)
-                              AND FEE_CD         = 'W040001' --W050001기본수수료
-                              AND DTA_DL_YN      = 'N'
-                            GROUP BY BASE_YM, CO_CD, OG_TP_CD, PRTNR_NO) T9 /* 계약건수(판매자) */
+         /* 20231120 수정 */
+          LEFT OUTER JOIN ( SELECT X.BASE_YM
+                                  , X.CO_CD
+                                  , X.OG_TP_CD
+                                  , X.PRTNR_NO
+                                  , COUNT(X.PERF_VAL)  AS CNT
+                               FROM TB_FEAM_NTORP_CNTR_MM_CL X
+                              WHERE 1 = 1
+                                AND X.BASE_YM = X.PERF_YM
+                                AND X.BASE_YM = #{perfYm}
+                                <if test='@MybatisUtils@isNotEmpty(feeTcntDvCd)'>
+                                AND X.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                               </if>
+                                AND X.OG_TP_CD  = 'W04'
+                                AND X.PERF_ATC_CD = 'W04P00001'
+                                AND X.PERF_VAL > 0
+                              GROUP BY X.BASE_YM, X.CO_CD, X.OG_TP_CD, X.PRTNR_NO ) T9
             ON T9.BASE_YM        = T1.BASE_YM
            AND T9.CO_CD          = T1.CO_CD
            AND T9.OG_TP_CD       = T1.OG_TP_CD
@@ -470,6 +475,7 @@
                                        AND N1.OG_TP_CD = 'W04'
                                        AND N1.CNTR_PERF_CRT_DV_CD = '01' --계약실적생성구분코드 - 01순주문
                                        AND N1.FEE_TCNT_DV_CD = NVL(#{feeTcntDvCd}, '02')
+                                       AND NVL(N1.ACKMT_PERF_CT, 0) > 0
                                 ) T1
                     LEFT OUTER JOIN TB_PDBS_PD_BAS P1
                             ON T1.SV_PD_CD = P1.PD_CD

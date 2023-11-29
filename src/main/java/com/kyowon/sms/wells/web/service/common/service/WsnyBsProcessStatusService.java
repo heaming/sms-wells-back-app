@@ -24,7 +24,7 @@ public class WsnyBsProcessStatusService {
         String hcdCd = mapper.selectBsProcessStatusHomeCardCode(dto);
 
         //엔지니어, 매니저가 아닌 경우 Empty Dto return
-        if(!"HW100".equals(hcdCd) && !"HW300".equals(hcdCd)){
+        if(!"HW100".equals(hcdCd) && !"HW300".equals(hcdCd) && !"HW400".equals(hcdCd)){
             return new WsnyBsProcessStatusDto.SearchRes("0", "0", "0", "0");
         }
 
@@ -39,7 +39,7 @@ public class WsnyBsProcessStatusService {
             return mapper.selectBsProcessStatusForOg(dto);
         } else if("HW300".equals(hcdCd)){
             return mapper.selectBsProcessStatusForEngineer(dto);
-        } else if("HW100".equals(hcdCd)){
+        } else if("HW100".equals(hcdCd) || "HW400".equals(hcdCd)){
             return mapper.selectBsProcessStatusForManager(dto);
         } else {
             return new WsnyBsProcessStatusDto.SearchRes("0", "0", "0", "0");

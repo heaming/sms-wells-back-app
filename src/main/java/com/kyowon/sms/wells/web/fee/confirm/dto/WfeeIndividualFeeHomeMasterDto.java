@@ -22,11 +22,14 @@ public class WfeeIndividualFeeHomeMasterDto {
         @NotBlank
         String perfYm,
         @NotBlank
-        String prtnrNo
+        String prtnrNo,
+        String feeSellPerfDvCd /* 수수료판매실적구분코드 */
     ) {}
 
     @ApiModel(value = "WfeeIndividualFeeHomeMasterDto-SearchHmstRes")
     public record SearchHmstRes(
+        String dgr3LevlDgPrtnrNo, /*지점장파트너번호*/
+        String dgr3LevlDgPrtnrNm, /*지점장파트너명*/
         String prtnrNo, /*파트너번호*/
         String prtnrKnm, /*성명*/
         String rcpdt, /*접수일자*/

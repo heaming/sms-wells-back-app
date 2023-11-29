@@ -2,9 +2,10 @@
 <mapper namespace="com.kyowon.sms.wells.web.fee.confirm.mapper.WfeeIndividualFeePlannerMapper">
     <select id='selectIndividualPerformancePlarDetails'
             resultType="com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeePlannerDto$SearchPlarRes">
-        SELECT PRTNR_NO	/*파트너번호*/
+        SELECT DGR3_LEVL_DG_PRTNR_NO    /*파트너번호*/
+             , DGR3_LEVL_DG_PRTNR_NM    /* 파트너명 */
+             , PRTNR_NO	/*파트너번호*/
              , PRTNR_KNM	/*성명*/
-	         , PERF_ATC_NM	/*실적구분*/
 	         , CNTRW_TP_NM	/*상품구분*/
 	         , RCPDT	/*접수일자*/
 	         , SL_DT	/*매출일자*/
@@ -17,12 +18,10 @@
 	         , NVL(PERF_CHNG, 0) AS PERF_CHNG	/*기번*/
 	         , NVL(PERF_ELHM_EXCD, 0) AS PERF_ELHM_EXCD	/*가전외*/
           FROM
-	         ( SELECT A1.PRTNR_NO
-                    , (SELECT C.PRTNR_KNM FROM TB_OGBS_MM_PRTNR_IZ C WHERE C.BASE_YM = #{perfYm} AND C.OG_TP_CD = 'W01' AND C.PRTNR_NO = A1.PRTNR_NO AND C.DTA_DL_YN = 'N') AS PRTNR_KNM
-                    , CASE WHEN A1.PERF_ATC_CD = 'W01P00001' THEN '가전'
-                           WHEN A1.PERF_ATC_CD = 'W01P00002' THEN '기변'
-			               WHEN A1.PERF_ATC_CD = 'W01P00004' THEN '가전 외'
-			               ELSE '' END AS PERF_ATC_NM		/*실적구분*/
+	         ( SELECT OG.DGR3_LEVL_DG_PRTNR_NO
+                    , OG.DGR3_LEVL_DG_PRTNR_NM
+                    , PRTNR.PRTNR_NO
+                    , PRTNR.PRTNR_KNM
 		            , F_CMZ_CD_NM('TNT_WELLS', 'CNTRW_TP_CD', A2.CNTRW_TP_CD ) AS CNTRW_TP_NM	/*상품구분*/
 		            , A1.RCPDT	/*접수일자*/
                     , A1.SL_DT	/*매출일자*/
@@ -35,7 +34,13 @@
 	            	       ELSE '신규' END SALE_DIV		/*판매구분*/
                     , A1.PERF_ATC_CD
                     , NVL(A1.PERF_VAL, 0) AS PERF_VAL	/*실적값*/
-	             FROM
+	             FROM TB_OGBS_MM_PRTNR_IZ PRTNR	/*월파트너내역*/
+                INNER JOIN TB_OGBS_MM_OG_IZ OG	/*월조직내역*/
+                   ON PRTNR.BASE_YM = OG.BASE_YM
+                  AND PRTNR.OG_TP_CD = OG.OG_TP_CD
+                  AND PRTNR.OG_ID = OG.OG_ID
+                  AND OG.DTA_DL_YN = 'N'
+                INNER JOIN
 		            ( SELECT B1.CNTR_NO
                            , B1.CNTR_SN
                            , B1.PRTNR_NO
@@ -64,15 +69,15 @@
                          AND B1.PERF_AGRG_CRT_DV_CD = '101'	/*P조직순주문실적*/
                          AND B1.CO_CD = '2000'	/*교원프라퍼티*/
                          AND B1.OG_TP_CD = 'W01'	/*P조직*/
-                         AND B1.PRTNR_NO = #{prtnrNo}
                          AND B1.PERF_ATC_CD IN ('W01P00001', 'W01P00002', 'W01P00004')	/*가전,기변,가전외실적*/
                          AND B2.SL_DT <![CDATA[>=]]> #{perfYm}||'01'   /*매출일자 과거실적은 조회하지않음. 1566 결함수정*/
 	                ) A1
+                   ON PRTNR.PRTNR_NO = A1.PRTNR_NO
 	             LEFT OUTER JOIN
 		            ( SELECT B1.CNTR_NO
                            , B1.CNTR_CST_NO
                            , B2.CNTRW_TP_CD
-                           , CASE WHEN B2.CNTR_DTL_STAT_CD IN ('301','303') THEN B2.CNTR_PD_ENDDT END CNTR_PD_ENDDT
+                           , CASE WHEN B2.CNTR_DTL_STAT_CD IN ('301','302','303') THEN B2.CNTR_PD_ENDDT END CNTR_PD_ENDDT
                         FROM TB_SSCT_CNTR_BAS B1	/*계약기본*/
                        INNER JOIN TB_SSCT_CNTR_DTL B2 	/*계약상세*/
                           ON B1.CNTR_NO = B2.CNTR_NO
@@ -81,7 +86,16 @@
 			             AND B1.SELL_PRTNR_NO = #{prtnrNo}
 	               ) A2
 	              ON A1.CNTR_NO = A2.CNTR_NO
-               ORDER BY A1.RCPDT, A1.SL_DT
+               WHERE PRTNR.DTA_DL_YN = 'N'
+                 AND PRTNR.BASE_YM = #{perfYm}
+                 AND PRTNR.OG_TP_CD = 'W01'
+                 <if test='@MybatisUtils@equals(feeSellPerfDvCd, "01")'>
+                 AND PRTNR.PRTNR_NO = #{prtnrNo}    /* 개인실적 */
+                 </if>
+                 <if test='@MybatisUtils@equals(feeSellPerfDvCd, "02")'>
+                 AND OG.DGR3_LEVL_DG_PRTNR_NO = #{prtnrNo}  /* 조직실적 */
+                 AND OG.DGR3_LEVL_DG_PRTNR_NO != PRTNR.PRTNR_NO     /* 지점장 본인 실적 제외 */
+                 </if>
             )
         PIVOT
 	        ( SUM(PERF_VAL) FOR PERF_ATC_CD IN
@@ -89,6 +103,7 @@
               , 'W01P00002' AS PERF_CHNG
               , 'W01P00004' AS PERF_ELHM_EXCD )
             )
+        ORDER BY PRTNR_NO, RCPDT, SL_DT
     </select>
 
     <select id='selectPlar'

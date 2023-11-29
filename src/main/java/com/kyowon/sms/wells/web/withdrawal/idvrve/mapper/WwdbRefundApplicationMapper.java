@@ -109,4 +109,14 @@ public interface WwdbRefundApplicationMapper {
 
     /* 승인 - 환불접수상세 이력*/
     int insertRefundReceiptDtlHistory(WwdbRefundDtlDvo dvo);
+
+    /* 승인 - 환불삭제*/
+    int deleteRefunds(String rfndAkNo);
+
+    int deleteDtlRefunds(String rfndAkNo);
+
+    int deleteAskDtlRefunds(String rfndAkNo);
+
+    int deleteAskBalanceTransferRefunds(String rfndAkNo);
+
 }

@@ -1,9 +1,8 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroOcrForwardingMgtDto;
@@ -77,7 +76,6 @@ public class WwdbGiroOcrForwardingMgtService {
     public List<SearchRes> getGiroOcrForwardingExcels(SearchReq dto) {
         return mapper.selectGiroOcrForwardings(dto);
     }
-
 
     /**
      * 지로OCR발송관리 대상 조회
@@ -182,7 +180,7 @@ public class WwdbGiroOcrForwardingMgtService {
      * @throws Exception
      */
     @Transactional
-    public int saveGiroOcrForwardingPrints(SavePrintReq dtos , HttpServletResponse response) throws Exception {
+    public int saveGiroOcrForwardingPrints(SavePrintReq dtos, HttpServletResponse response) throws Exception {
         int processCount = 0;
         int giroOcrForwardingDetailCount = 0;
         StringBuffer retStr = new StringBuffer();
@@ -204,47 +202,53 @@ public class WwdbGiroOcrForwardingMgtService {
                 dvo.setGiroOcrPblTotQty(giroOcrForwardingDetailCount);
                 processCount += mapper.insertGiroOcrForwardingPrints(dvo);
 
-
-                List<WwdbGiroOcrForwardingMgtDto.SearchPrintCreateRes> searchPrintCreateRes = mapper.selectGiroPrintCreate(dvo);
+                List<WwdbGiroOcrForwardingMgtDto.SearchPrintCreateRes> searchPrintCreateRes = mapper
+                    .selectGiroPrintCreate(dvo);
 
                 int selCnt = searchPrintCreateRes.size() - 1;
 
                 int i = 0;
 
-                String fileNm = "GR65"  + dtos.wkDt().substring(4,8)   +   ".TXT" ;
+                String fileNm = "GR65" + dtos.wkDt().substring(4, 8) + ".TXT";
 
-                File file =new File(fileNm);
+                File file = new File(fileNm);
 
-                for (WwdbGiroOcrForwardingMgtDto.SearchPrintCreateRes dto :searchPrintCreateRes) {
-                    if(i == 0){
+                for (WwdbGiroOcrForwardingMgtDto.SearchPrintCreateRes dto : searchPrintCreateRes) {
+                    if (i == 0) {
                         retStr.setLength(0);
-                        retStr.append( dto.c1()  ) ;
+                        retStr.append(dto.c1());
 
-                    }else if(i == selCnt){
-                        retStr.append(	dto.c1()) ;
-                    }else{
-                        retStr.append(  dto.c1()) ;
-                        retStr.append(  dto.c2());
-                        retStr.append(   dto.c3() );
+                    } else if (i == selCnt) {
+                        retStr.append(dto.c1());
+                    } else {
+                        retStr.append(dto.c1());
+                        retStr.append(dto.c2());
+                        retStr.append(dto.c3());
                     }
 
                     i++;
                 }
 
-                if(StringUtil.isNotEmpty(retStr.toString())){
+                if (StringUtil.isNotEmpty(retStr.toString())) {
 
-                    try (BufferedWriter writer = new BufferedWriter(
-                     new FileWriter(file , false)
-                 )) {
+                    try {
 
+                        //                        response.setHeader("Content-Type", "text/html; charset=UTF-8");
+                        //                        String filedownNm = URLEncoder.encode(fileNm, "UTF-8");
+                        //                        response.setHeader("Content-Disposition", "attachment; filename=\"" + filedownNm + "\"");
                         ServletOutputStream output = response.getOutputStream();
-                        writer.write(retStr.toString());
-                        output.flush();
-                        output.close();
+                        //                        Charset charset = Charset.forName("UTF-8");
 
-                 } catch (IOException ioe) {
-                     log.debug("sendData:" + ioe.getMessage());
-                 }
+                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, "UTF-8"));
+                        //                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, charset));
+
+                        writer.write(retStr.toString());
+                        writer.flush();
+                        writer.close();
+
+                    } catch (IOException ioe) {
+                        log.debug("sendData:" + ioe.getMessage());
+                    }
 
                 }
             }
@@ -286,7 +290,6 @@ public class WwdbGiroOcrForwardingMgtService {
     @Transactional
     public int saveGiroPrintDate(WwdbGiroOcrForwardingMgtDto.saveGiroPrintReq dto) throws Exception {
         int processCount = 0;
-
 
         WwdbGiroOcrForwardingPrintDvo dvo = convert.mapSaveGiroPrintDvo(dto);
 

@@ -31,6 +31,7 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
+import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -61,6 +62,7 @@ public class WsnaAsConsumablesStoreService {
 
     /**
      * AS소모품 입고관리(엑셀업로드) 페이징 조회
+     *
      * @param dto
      * @param pageInfo
      * @return
@@ -71,6 +73,7 @@ public class WsnaAsConsumablesStoreService {
 
     /**
      * AS소모품 입고관리(엑셀업로드) 엑셀다운로드
+     *
      * @param dto
      * @return
      */
@@ -80,6 +83,7 @@ public class WsnaAsConsumablesStoreService {
 
     /**
      * AS소모품 입고관리(엑셀업로드) 엑셀업로드
+     *
      * @param file
      * @return
      * @throws Exception
@@ -166,6 +170,7 @@ public class WsnaAsConsumablesStoreService {
 
     /**
      * AS소모품 입고관리 저장
+     *
      * @param dtos
      * @return
      */
@@ -269,6 +274,7 @@ public class WsnaAsConsumablesStoreService {
 
     /**
      * AS소모품 입고관리 삭제
+     *
      * @param dtos
      * @return
      */
@@ -338,6 +344,7 @@ public class WsnaAsConsumablesStoreService {
 
     /**
      * 품목코드 조회
+     *
      * @param dto
      * @return
      */
@@ -347,6 +354,7 @@ public class WsnaAsConsumablesStoreService {
 
     /**
      * 엑셀업로드 유효성 체크
+     *
      * @param validDvo
      */
     private void checkExcelUploadValid(WsnaAsConsumablesStoreValidDvo validDvo) {
@@ -449,7 +457,7 @@ public class WsnaAsConsumablesStoreService {
             if (strItmPdCdCount == 0) {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
-                errorDvo.setHeaderName(headerTitle.get("strWareNo"));
+                errorDvo.setHeaderName(headerTitle.get("itmPdCd"));
                 errorDvo.setErrorData(
                     messageResourceService.getMessage(
                         "MSG_ALT_INVLD_ITM_PD_CD" // 잘못된 품목상품코드 입니다.
@@ -480,6 +488,23 @@ public class WsnaAsConsumablesStoreService {
                 }
             }
         }
+
+        // 품목상품등급코드가 A,B,E,R 급이 아닌경우(A급 등등 체크)
+        if (StringUtil.isNotBlank(dvo.getItmGdCd())) {
+            String chkItmGdCd = dvo.getItmGdCd();
+            if (!List.of("A", "B", "E", "R").contains(chkItmGdCd)) {
+                ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+                errorDvo.setErrorRow(row);
+                errorDvo.setHeaderName(headerTitle.get("itmGdCd"));
+                errorDvo.setErrorData(
+                    messageResourceService.getMessage(
+                        "MSG_ALT_ERR_GD_CD" //잘못된 등급코드입니다.
+                    )
+                );
+                excelUploadErrorDvos.add(errorDvo);
+            }
+        }
+
         //입고수량이 마이너스 이거나 0일경우 체크
         if (StringUtil.isNotBlank(dvo.getStrQty())) {
             int validStrQty = Integer.parseInt(dvo.getStrQty());
@@ -496,5 +521,41 @@ public class WsnaAsConsumablesStoreService {
                 excelUploadErrorDvos.add(errorDvo);
             }
         }
+    }
+
+    /**
+     * 그리드의 창고번호와 조회조건의 년월로 창고명을 조회
+     * @param apyYm
+     * @param strWareNo
+     * @return
+     */
+    public FindWareNmRes getStrWarehouseName(String apyYm, String strWareNo) {
+        ValidAssert.hasText(apyYm);
+        ValidAssert.hasText(strWareNo);
+        //잘못된 창고번호입니다.
+        return this.mapper.selectStrWarehouseName(apyYm, strWareNo)
+            .orElseThrow(() -> new BizException("MSG_ALT_INVLD_WARE_NO"));
+    }
+
+    /**
+     * 그리드의 SAP코드로 품목상품코드와 품목명을 조회
+     * @param sapCd
+     * @return
+     */
+    public FindItmPdCdNmRes getItmPdCdNm(String sapCd) {
+        ValidAssert.hasText(sapCd);
+        // 잘못된 SAP코드입니다.
+        return this.mapper.selectItmPdCdNm(sapCd).orElseThrow(() -> new BizException("MSG_ALT_INVLD_SAP_CD"));
+    }
+
+    /**
+     * 그리드의 품목상품코드로 SAP코드와 품목명을 조회
+     * @param itmPdCd
+     * @return
+     */
+    public FindSapCdNmRes getSapCdNm(String itmPdCd) {
+        ValidAssert.hasText(itmPdCd);
+        // 잘못된 품목상품 코드입니다.
+        return this.mapper.selectSapCdNm(itmPdCd).orElseThrow(() -> new BizException("MSG_ALT_INVLD_ITM_PD_CD"));
     }
 }

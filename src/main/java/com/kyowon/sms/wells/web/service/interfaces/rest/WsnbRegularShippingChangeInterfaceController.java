@@ -30,11 +30,10 @@ public class WsnbRegularShippingChangeInterfaceController {
 
     private final WsnbRegularShippingChangeService service;
 
-    @ApiOperation(value = "홈까패 캡슐 정기배송 변경처리")
+    @ApiOperation(value = "EAI_WSVI1013 W-SV-I-0016 홈카페 캡슐 정기배송 변경처리")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약순번", paramType = "query", required = true),
-        @ApiImplicitParam(name = "akSn", value = "요청일련번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "asAkDvCd", value = "AS요청구분코드 (1:패키지변경, 4:차월 방문 중지)", paramType = "query", required = true),
         @ApiImplicitParam(name = "akChdt", value = "요청변경일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "bfchPdCd", value = "변경전상품코드", paramType = "query", required = true),
