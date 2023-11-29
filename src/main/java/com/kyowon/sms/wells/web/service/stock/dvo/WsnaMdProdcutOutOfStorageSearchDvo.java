@@ -19,7 +19,9 @@ public class WsnaMdProdcutOutOfStorageSearchDvo {
 
     String selCnt;
 
-    String ostrCnfmDt;
+    String wkStartDt;
+
+    String wkEndDt;
 
     String prtnrBzsCd;
 

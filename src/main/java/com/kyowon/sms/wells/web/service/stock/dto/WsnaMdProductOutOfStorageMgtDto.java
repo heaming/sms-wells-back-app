@@ -30,7 +30,9 @@ public class WsnaMdProductOutOfStorageMgtDto {
 
         String selCnt,
 
-        String ostrCnfmDt,
+        String wkStartDt,
+
+        String wkEndDt,
 
         String prtnrBzsCd,
 
