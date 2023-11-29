@@ -32,7 +32,7 @@ public class WsnaBsCsmbDeliveryBaseDto {
         String sapMatCdStrt,
         // 종료 SAP코드
         String sapMatCdEnd,
-        // 품목명리스트
+        // 품목코드 리스트
         List<String> itmKnms
     ) {}
 
