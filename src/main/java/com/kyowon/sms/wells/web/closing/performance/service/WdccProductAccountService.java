@@ -88,7 +88,7 @@ public class WdccProductAccountService {
         String runId = batchCallService.runJob(batchCallReqDvo);
         BizAssert.isTrue(StringUtils.isNotEmpty(runId), "MSG_ALT_SVE_ERR");
 
-        String jobStatus;
+        /*String jobStatus;
         while (true) {
             Thread.sleep(2000);
             jobStatus = batchCallService.getLastestJobStatus(runId);
@@ -96,8 +96,8 @@ public class WdccProductAccountService {
             if (StringUtils.equals(jobStatus, "Ended OK") || StringUtils.equals(jobStatus, "Ended Not OK")) {
                 break;
             }
-        }
+        }*/
 
-        return jobStatus;
+        return runId;
     }
 }
