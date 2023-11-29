@@ -93,10 +93,6 @@
        )
        WHERE 1=1
         AND BASE_PD_CD_REL_RAK = '1'
-        /* 파트너업체 검색조건 */
-        <if test="@MybatisUtils@isNotEmpty(prtnrBzsCd)">
-        AND PD_PRP_VAL09 = #{prtnrBzsCd}
-        </if>
     </sql>
     <select id="selectBusinessDays" resultType="String">
        WITH DAY_INF AS
@@ -124,6 +120,15 @@
        SELECT DATES AS LAST_DATE
        FROM DAY_INF
        WHERE ROWNUM = 1
+    </select>
+    <select id="selectLoginPrtnrBzs" resultType="String">
+      SELECT USE_NM
+      FROM (
+      <include refid="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMdProductOutOfStorageMgtMapper.selectMdUserSql"/>
+      )
+      WHERE 1=1
+       AND ROWNUM = 1
+       AND EPNO = #{session.employeeIDNumber}
     </select>
     <select id="selectMdProductOutOfStorages" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductOutStorageDvo">
        WITH MDQRY_LIST AS
@@ -268,42 +273,6 @@
           AND S3.BC_NO = #{serialNo} /* 제품시리얼번호 검색 */
           </if>
        )
-       , INQRY_LIST2_BACKUP AS
-       (
-          SELECT DISTINCT
-                 I1.CST_SV_ASN_NO
-               , I1.CNTR_NO
-               , I1.CNTR_SN
-               , COUNT(1) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
-                                ORDER BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
-                                RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS PART_CNT_TOTAL
-               , LISTAGG(C2.OJ_PD_CD , ',')
-                 WITHIN GROUP(ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_LIST
-               , LISTAGG(NVL(P0.PD_NM, P1.PD_PRP_VAL33), '|')
-                 WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_NM_LIST
-               , LISTAGG(C2.PD_QTY, ',')
-                 WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_QTY_LIST
-               , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', P1.PD_PRP_VAL09) AS PRTNR_BZS_NM /*파트너업체*/
-          FROM TB_SSCT_CNTR_PD_REL C2             /*계약상품관계*/
-          INNER JOIN TB_PDBS_PD_BAS P0         /*상품각사속성상세*/
-           ON P0.PD_CD = C2.OJ_PD_CD
-           AND P0.DTA_DL_YN = 'N'
-          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1         /*상품각사속성상세*/
-           ON P1.PD_CD = C2.OJ_PD_CD
-           AND P1.PD_EXTS_PRP_GRP_CD = 'SPP'
-           AND P1.DTA_DL_YN = 'N'
-          INNER JOIN INQRY_LIST1 I1
-           ON C2.CNTR_NO = I1.CNTR_NO
-           AND C2.CNTR_SN = I1.CNTR_SN
-           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')  BETWEEN C2.VL_STRT_DTM AND C2.VL_END_DTM
-           AND C2.DTA_DL_YN = 'N'
-           AND C2.PD_REL_TP_CD = '05'
-           WHERE 1=1
-            /* 파트너업체 검색조건 */
-            <if test="@MybatisUtils@isNotEmpty(prtnrBzsCd)">
-            AND P1.PD_PRP_VAL09 = #{prtnrBzsCd} /* 파트너업체 검색 */
-            </if>
-       )
        , INQRY_LIST2 AS
        (
           SELECT DISTINCT
@@ -319,7 +288,7 @@
                  WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_NM_LIST /*명칭에 ',' 값이 존재하는 경우가 있어서 구분자 변경*/
                , LISTAGG(C2.PD_QTY, ',')
                  WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_QTY_LIST
-               , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_BZS_CD', M1.PD_PRP_VAL09) AS PRTNR_BZS_NM /*파트너업체*/
+               , M1.USR_NM AS PRTNR_BZS_NM /*파트너업체*/
           FROM TB_SSCT_CNTR_PD_REL C2             /*계약상품관계*/
           INNER JOIN MDQRY_LIST M1
            ON M1.PDCT_PD_CD = C2.OJ_PD_CD
