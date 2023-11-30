@@ -34,6 +34,7 @@ public class WsncVisitCustomerRglvlStateDvo {
     String mngerRglvlDvCd;
     String hgrOgId;
     String dgr2LevlOgCd;
+    String dgr2LevlOgNm;
     String svpdSapCd;
     String rglvlDstn;
     String cstSvAsnNo;
