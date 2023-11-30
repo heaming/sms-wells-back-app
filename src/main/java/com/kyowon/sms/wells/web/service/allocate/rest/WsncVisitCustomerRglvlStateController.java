@@ -6,11 +6,9 @@ import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncVisitCustomerRglvlStateDto.FindOrganizationRes;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncVisitCustomerRglvlStateDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncVisitCustomerRglvlStateDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncVisitCustomerRglvlStateService;
@@ -54,17 +52,5 @@ public class WsncVisitCustomerRglvlStateController {
         SearchReq dto
     ) {
         return service.getVisitCustomerRglvlStateForExcelDownload(dto);
-    }
-
-    @ApiOperation(value = "사용자 조직 정보 조회")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "ogId", value = "조직 아이디", paramType = "path", example = ""),
-    })
-    @GetMapping("/organization-info/{ogId}")
-    public FindOrganizationRes getOrganizationInfo(
-        @PathVariable
-        String ogId
-    ) {
-        return service.getOrganizationInfo(ogId);
     }
 }
