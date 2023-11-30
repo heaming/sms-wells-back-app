@@ -136,10 +136,11 @@ public class WdccProductAccountController {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String subFolderPath = sdf.format(cal.getTime());
 
-        String fileName = "W_상품별 계정 현황_" + dto.baseYm() + ".csv";
-        File file = new File(
-            "/wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/" + subFolderPath + "/", fileName
-        );
+        String fileName = "/wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/" + subFolderPath + "/"
+            + "W_상품별 계정 현황_" + dto.baseYm() + ".csv";
+        log.info("fileName:" + fileName);
+        // wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/20231129/W_상품별 계정 현황_202311.csv
+        File file = new File(fileName);
         BizAssert.isTrue(file.isFile(), "MSG_ALT_FILE_NOT_FOUND");
 
         String encodeName = "";
