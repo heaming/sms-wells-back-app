@@ -140,7 +140,9 @@ public class WsnaBsCsmbGiveAOrderService {
                     dvo.setStocPersMmN(0);
                     dvo.setNcstQty(0);
                 } else {
-                    dvo.setStocPersMmN(Math.round(woStocQty.divide(mmAvDdlvQty).floatValue()));
+                    dvo.setStocPersMmN(
+                        Math.round(woStocQty.divide(mmAvDdlvQty, 1, BigDecimal.ROUND_CEILING).floatValue())
+                    );
                     // 월평균배부수량 * 3 - 최종재고
                     BigDecimal ncstQty = mmAvDdlvQty.multiply(BigDecimal.valueOf(3L)).subtract(woStocQty);
                     dvo.setNcstQty(BigDecimal.ZERO.compareTo(ncstQty) > 0 ? 0 : ncstQty.intValue());
