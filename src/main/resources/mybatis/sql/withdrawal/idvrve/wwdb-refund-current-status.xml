@@ -154,16 +154,16 @@
 
     <select id="selectCardRefundHistory" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto$SearchCardRefundHistoryRes">
         SELECT SELL_DTL_NM AS REFUND_DIVISION
-             , NVL(SUM(CASE WHEN M1.DP_MES_CD = '01' THEN RFND_CSH_AMT ELSE 0 END),0) AS RFND_DSB_AMT
+             , NVL(SUM(CASE WHEN M1.RFND_DSB_DV_CD = '01' THEN RFND_CSH_AMT ELSE 0 END),0) AS RFND_DSB_AMT
              , NVL(SUM(RFND_DDTN_AMT),0) AS RFND_DDTN_AMT
-             , NVL(SUM( CASE WHEN DP_MES_CD = '02'AND CRDCD_FNIT_CD = '361' THEN RFND_CSH_AMT END),0) AS BC_RFND_DSB_AMT
-             , NVL(SUM( CASE WHEN DP_MES_CD = '02'AND CRDCD_FNIT_CD = '381' THEN RFND_CSH_AMT END),0) AS KB_RFND_DSB_AMT
-             , NVL(SUM( CASE WHEN DP_MES_CD = '02'AND CRDCD_FNIT_CD = '374' THEN RFND_CSH_AMT END),0) AS HN_RFND_DSB_AMT
-             , NVL(SUM( CASE WHEN DP_MES_CD = '02'AND CRDCD_FNIT_CD = '366' THEN RFND_CSH_AMT END),0) AS SH_RFND_DSB_AMT
-             , NVL(SUM( CASE WHEN DP_MES_CD = '02'AND CRDCD_FNIT_CD = '365' THEN RFND_CSH_AMT END),0) AS SS_RFND_DSB_AMT
-             , NVL(SUM( CASE WHEN DP_MES_CD = '02'AND CRDCD_FNIT_CD = '367' THEN RFND_CSH_AMT END),0) AS HD_RFND_DSB_AMT
-             , NVL(SUM( CASE WHEN DP_MES_CD = '02'AND CRDCD_FNIT_CD = '368' THEN RFND_CSH_AMT END),0) AS LT_RFND_DSB_AMT
-             , NVL(SUM( CASE WHEN DP_MES_CD = '02'AND CRDCD_FNIT_CD = '371' THEN RFND_CSH_AMT END),0) AS NH_RFND_DSB_AMT
+             , NVL(SUM( CASE WHEN M1.RFND_DSB_DV_CD = '02'AND CRDCD_FNIT_CD = '361' THEN RFND_CSH_AMT END),0) AS BC_RFND_DSB_AMT
+             , NVL(SUM( CASE WHEN M1.RFND_DSB_DV_CD = '02'AND CRDCD_FNIT_CD = '381' THEN RFND_CSH_AMT END),0) AS KB_RFND_DSB_AMT
+             , NVL(SUM( CASE WHEN M1.RFND_DSB_DV_CD = '02'AND CRDCD_FNIT_CD = '374' THEN RFND_CSH_AMT END),0) AS HN_RFND_DSB_AMT
+             , NVL(SUM( CASE WHEN M1.RFND_DSB_DV_CD = '02'AND CRDCD_FNIT_CD = '366' THEN RFND_CSH_AMT END),0) AS SH_RFND_DSB_AMT
+             , NVL(SUM( CASE WHEN M1.RFND_DSB_DV_CD = '02'AND CRDCD_FNIT_CD = '365' THEN RFND_CSH_AMT END),0) AS SS_RFND_DSB_AMT
+             , NVL(SUM( CASE WHEN M1.RFND_DSB_DV_CD = '02'AND CRDCD_FNIT_CD = '367' THEN RFND_CSH_AMT END),0) AS HD_RFND_DSB_AMT
+             , NVL(SUM( CASE WHEN M1.RFND_DSB_DV_CD = '02'AND CRDCD_FNIT_CD = '368' THEN RFND_CSH_AMT END),0) AS LT_RFND_DSB_AMT
+             , NVL(SUM( CASE WHEN M1.RFND_DSB_DV_CD = '02'AND CRDCD_FNIT_CD = '371' THEN RFND_CSH_AMT END),0) AS NH_RFND_DSB_AMT
              , NVL(SUM(RFND_CSH_AMT),0) AS SUM_RFND_DSB_DDTN_AMT
              , NVL(SUM(RFND_DSB_PSP_INT) , 0 ) AS SUM_RFND_DSB_PSP_INT
           FROM (
@@ -209,6 +209,7 @@
                       , T4.RFND_DDTN_AMT /*공제금액*/
                       , T4.RFND_DSB_PSP_INT /*지연이자*/
                       , T1.DP_TP_CD
+                      , T4.RFND_DSB_DV_CD
                       FROM TB_RVDW_RVE_DTL T1 /*수납상세*/
                      INNER JOIN TB_SSCT_CNTR_DTL T2  /*계약상세*/
                         ON (    T2.CNTR_NO = T1.CNTR_NO /*계약번호*/
@@ -281,8 +282,9 @@
                     </if>
                        AND T1.DP_DV_CD IN ('2')
                        AND T1.DTA_DL_YN  = 'N'
-                       AND DP_MES_CD != 06
-                       AND DP_TP_CD !='0605'
+                       AND T1.DP_MES_CD != 06
+                       AND T1.DP_TP_CD !='0605'
+                       AND T1.RVE_DV_CD != '14' /*서비스입금제외*/
           ) M1
           WHERE 1 = 1
             AND SELL_DTL IS NOT NULL
@@ -403,6 +405,9 @@
                             AND T4.DTA_DL_YN = 'N')
                      WHERE 1 = 1
                        AND M1.KW_GRP_CO_CD = '2000'
+                       AND M1.DP_DV_CD IN ('2', '4')
+                       AND M1.DTA_DL_YN = 'N'
+                       AND M1.RVE_DV_CD != '14' /*서비스입금제외*/
                       <if test='@MybatisUtils@isNotEmpty(rveDtStart)'>
                        AND M1.RVE_DT >= #{rveDtStart} /* 수납일자 */
                       </if>
@@ -435,8 +440,6 @@
                           </otherwise>
                         </choose>
                     </if>
-                       AND M1.DP_DV_CD IN ('2', '4')
-                       AND M1.DTA_DL_YN = 'N'
                        <choose>
                            <when test="@MybatisUtils@isNotEmpty(sellTpCd)">
                        AND M2.SELL_TP_CD = #{sellTpCd}
