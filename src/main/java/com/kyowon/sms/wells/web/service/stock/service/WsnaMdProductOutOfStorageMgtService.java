@@ -32,6 +32,10 @@ public class WsnaMdProductOutOfStorageMgtService {
 
     private final WsnaMdProductOutOfStorageExcelUploadService excelUploadService;
 
+    public String getLoginPrtnrBzs() {
+        return mapper.selectLoginPrtnrBzs();
+    }
+
     public List<SearchRes> getMdProductOutOfStorages(SearchReq dto) {
         WsnaMdProdcutOutOfStorageSearchDvo dvo = converter.mapSearchReqToWsnaMdProdcutOutOfStorageSerachDvo(dto);
 
