@@ -10,6 +10,8 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductOutStorageDvo;
 @Mapper
 public interface WsnaMdProductOutOfStorageMgtMapper {
 
+    String selectLoginPrtnrBzs();
+
     String selectBusinessDays(WsnaMdProdcutOutOfStorageSearchDvo dvo);
 
     List<WsnaMdProductOutStorageDvo> selectMdProductOutOfStorages(WsnaMdProdcutOutOfStorageSearchDvo dvo);
