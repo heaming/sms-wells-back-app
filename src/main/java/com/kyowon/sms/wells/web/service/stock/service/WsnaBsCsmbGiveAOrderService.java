@@ -107,8 +107,8 @@ public class WsnaBsCsmbGiveAOrderService {
                 });
             });
 
-            // 성수재고 포함
-            if ("1".equals(excludeYn)) {
+            // 성수재고 제외가 아닌 경우
+            if (!"1".equals(excludeYn)) {
                 List<RealTimeGradeStockResIvo> sgsuStocks = stockService
                     .getRealTimeGradeStocks(SAP_PLNT_CD, SGSU_SAP_SAVE_LCT_CD, itmPds);
 
