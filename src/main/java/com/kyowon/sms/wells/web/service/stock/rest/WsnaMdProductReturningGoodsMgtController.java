@@ -33,6 +33,12 @@ public class WsnaMdProductReturningGoodsMgtController {
 
     private final WsnaMdProductReturningGoodsMgtService service;
 
+    @ApiOperation(value = "로그인한 사용자의 파트너업체 정보를 조회한다.", notes = "로그인한 사용자의 파트너업체를  가져온다.")
+    @GetMapping("/login-prtnr-bzs")
+    public String getLoginPrtnrBzs() {
+        return service.getLoginPrtnrBzs();
+    }
+
     @ApiOperation(value = "MD상품 반품관리 목록 조회", notes = "조회조건에 일치하는 MD상품 반품관리 데이터를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "findGb", value = "조회구분", paramType = "query", required = true),
