@@ -164,7 +164,7 @@ public class WsnaBsCsmbGiveAOrderService {
                 } else {
                     // 최소수량 < 필요수량
                     int i = 1;
-                    while (minOrdQty.intValue() >= ncstQty) {
+                    while (minOrdQty.intValue() <= ncstQty) {
                         // 최소수량
                         minOrdQty = minOrdQty.multiply(BigDecimal.valueOf(i++));
                     }
