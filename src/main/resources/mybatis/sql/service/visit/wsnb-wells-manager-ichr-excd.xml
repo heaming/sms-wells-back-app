@@ -73,7 +73,6 @@
                            AND T9.CNFM_PSIC_PRTNR_NO != '99992'
                            ) T9
                      , TB_GBCO_RNADR_BAS T11
-                     , TB_SVPD_CST_SV_RGBSPR_IZ T13
                  WHERE 1=1
                    AND T1.MNGT_YM = #{mngtYm}
                    AND T1.CNTR_DTL_STAT_CD = '101'            -- 정상건만 조회
@@ -99,20 +98,25 @@
                    AND T1.CNTR_SN = T9.CNTR_SN(+)
                    AND T6.NEW_ADR_ZIP = T11.NEW_ADR_ZIP
                    AND T11.DTA_DL_YN = 'N'
-                   AND T13.VST_DUEDT LIKE (T1.MNGT_YM || '%')
-                   AND T1.CNTR_NO = T13.CNTR_NO
-                   AND T1.CNTR_SN = T13.CNTR_SN
-                   AND T13.VST_DV_CD IN ('10', '11')        -- 매니저 방문건이 있는 계약건만 조회
+                   AND (T1.CNTR_NO, T1.CNTR_SN) IN
+                        (SELECT CNTR_NO, CNTR_SN
+                           FROM TB_SVPD_CST_SV_RGBSPR_IZ T13
+                          WHERE T13.VST_DUEDT LIKE (T1.MNGT_YM || '%')
+                            AND T13.VST_DV_CD IN ('10', '11') -- 매니저 방문건이 있는 계약건만 조회
+                        )
                    AND T8.SVPD_ITEM_GR <![CDATA[ <> ]]> '11'        -- 모종계정은 전체 제외
                    -- 물류담당자 제외
                    AND T1.MNGT_PRTNR_NO != '99992'
                    -- 계정구분: 관리계정이면
                   <if test="@MybatisUtils@isNotEmpty(accountDivCd) and @MybatisUtils@equals(accountDivCd, '0')">
-                   AND T1.MNGT_PRTNR_OG_TP_CD IN ('W03','W06')
+                   AND (T1.MNGT_PRTNR_OG_TP_CD IN ('W03','W06')
+                      OR (T1.MNGT_PRTNR_OG_TP_CD IN ('HR1','W02') AND T9.CST_SV_ASN_NO IS NOT NULL)
+                      )
                   </if>
                    -- 계정구분: 방문계정이면
                   <if test="@MybatisUtils@isNotEmpty(accountDivCd) and @MybatisUtils@equals(accountDivCd, '1')">
                    AND T9.CST_SV_ASN_NO IS NOT NULL
+                   AND T1.MNGT_PRTNR_OG_TP_CD IN ('HR1','W02')
                   </if>
                   -- 웰스팜 제외
                   <if test="@MybatisUtils@isNotEmpty(exceptWellsFarmYn) and @MybatisUtils@equals(exceptWellsFarmYn, 'Y')">
