@@ -15,9 +15,10 @@ public class WsndBusinessVehiclesOperationJrnlMgtDvo {
     String carNo;
     String vhcOprtnDt;
     Integer vhcOprtnSn;
-    String dptuAcuDstn;
+    Integer dptuAcuDstn;
     Integer arvAcuDstn;
     Integer oprtnDstn;
+    Integer oprtnHh;
     Integer lbrcqVal;
     Float lbrcqPr;
     Double fuelCsmRt;
