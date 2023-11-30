@@ -50,6 +50,7 @@ public class WsnaBsCsmbDeliveryBaseController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "mngtYm", value = "관리년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "goDvCd", value = "발주구분", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "csmbPdCd", value = "품목코드", paramType = "query", example = "WM07101334"),
         @ApiImplicitParam(name = "itmKnms", value = "품목코드 리스트", paramType = "query", example = "[WM07101334]"),
         @ApiImplicitParam(name = "csmbPdCdStrt", value = "시작 품목코드", paramType = "query", example = "WM07101334"),
         @ApiImplicitParam(name = "csmbPdCdEnd", value = "종료 품목코드", paramType = "query", example = "WM07101334"),
@@ -65,7 +66,8 @@ public class WsnaBsCsmbDeliveryBaseController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "mngtYm", value = "관리년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "goDvCd", value = "발주구분", paramType = "query", example = "1"),
-        @ApiImplicitParam(name = "itmKnms", value = "품목명 리스트", paramType = "query", example = "[연속추출호스2M(사각)]"),
+        @ApiImplicitParam(name = "csmbPdCd", value = "품목코드", paramType = "query", example = "WM07101334"),
+        @ApiImplicitParam(name = "itmKnms", value = "품목코드 리스트", paramType = "query", example = "[WM07101334]"),
         @ApiImplicitParam(name = "csmbPdCdStrt", value = "시작 품목코드", paramType = "query", example = "WM07101334"),
         @ApiImplicitParam(name = "csmbPdCdEnd", value = "종료 품목코드", paramType = "query", example = "WM07101334"),
         @ApiImplicitParam(name = "sapMatCdStrt", value = "시작 SAP코드", paramType = "query", example = "300006248"),

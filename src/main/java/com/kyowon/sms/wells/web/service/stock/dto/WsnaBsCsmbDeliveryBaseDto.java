@@ -24,6 +24,8 @@ public class WsnaBsCsmbDeliveryBaseDto {
         String mngtYm,
         // 발주구분
         String goDvCd,
+        // 품목코드
+        String csmbPdCd,
         // 시작 품목코드
         String csmbPdCdStrt,
         // 종료 품목코드

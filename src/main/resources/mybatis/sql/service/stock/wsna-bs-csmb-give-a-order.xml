@@ -1,290 +1,302 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsCsmbGiveAOrderMapper">
+
+    <select id="selectProductCodesByItmKndCd" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbGiveAOrderDto$ProdutCodeRes">
+        SELECT D1.PD_CD AS SVPD_PD_CD
+             , D1.PD_NM AS SVPD_NM_KOR
+          FROM TB_PDBS_PD_BAS D1                 /* 상품기본 */
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
+            ON D2.PD_CD = D1.PD_CD
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D1.PD_TP_CD           = 'M'
+           AND D2.DTA_DL_YN          = 'N'
+           AND D2.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D2.PD_PRP_VAL19       = #{itmKndCd}
+         ORDER BY D1.PD_NM
+    </select>
+
     <select id="selectBeforeBsCsmbGiveAOrderQty" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbGiveAOrderDvo">
-        SELECT #{mngtYm} AS MNGT_YM
-             , M1.GO_DV_CD
-             , M1.GO_DV_NM
-             , M1.SVPD_SAP_CD
-             , M1.CSMB_PD_CD
-             , M1.ITM_KNM
-             , M1.MNGT_UNIT_CD
-             , M1.MMS6B_DDLV_QTY
-             , M1.MMS5B_DDLV_QTY
-             , M1.MMS4B_DDLV_QTY
-             , M1.MMS3B_DDLV_QTY
-             , M1.MMS2B_DDLV_QTY
-             , M1.MMS1B_DDLV_QTY
-             , FLOOR(SUM(M1.MMS1B_DDLV_QTY + M1.MMS2B_DDLV_QTY + M1.MMS3B_DDLV_QTY + M1.MMS4B_DDLV_QTY + M1.MMS5B_DDLV_QTY + M1.MMS6B_DDLV_QTY) / 6) AS MM_AV_DDLV_QTY -- 월평균배부수량
-             , M1.STR_STNB_QTY
-             , M1.GO_UPRC
-             , M1.MIN_ORD_QTY
-             , M1.PYPD_DC
-             , M1.RMK_CN
-             , M1.RGST_YN
-             , M1.PAJU_LGST_CNR_STOC_QTY
-             , M1.SGSU_LGST_CNR_STOC_QTY
-             , M1.WO_STOC_QTY
-             , M1.STOC_PERS_MM_N
-             , M1.ET_EXS_DT
-             , M1.NCST_QTY
-             , M1.GO_QTY
-             , M1.GO_AMT
-          FROM (SELECT NVL(S3.GO_DV_CD, S1.GO_DV_CD) AS GO_DV_CD -- 구분코드
-                     , F_CMZ_CD_NM('TNT_WELLS', 'GO_DV_CD', NVL(S3.GO_DV_CD, S1.GO_DV_CD), 'ko') AS GO_DV_NM -- 구분코드명
-                     , NVL(S3.MNGT_UNIT_CD, S1.MNGT_UNIT_CD) AS MNGT_UNIT_CD
-                     , P1.SVPD_SAP_CD -- SAP코드
-                     , P1.SVPD_PD_CD AS CSMB_PD_CD -- 품목코드
-                     , P1.SVPD_NM_KOR AS ITM_KNM -- 품목명
-                     , NVL(S3.MMS6B_DDLV_QTY, SUM(CASE WHEN S2.MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -6), 'YYYYMM') THEN S2.BFSVC_CSMB_DDLV_QTY ELSE 0 END)) AS MMS6B_DDLV_QTY -- 6개월이전배부수량
-                     , NVL(S3.MMS5B_DDLV_QTY, SUM(CASE WHEN S2.MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -5), 'YYYYMM') THEN S2.BFSVC_CSMB_DDLV_QTY ELSE 0 END)) AS MMS5B_DDLV_QTY -- 5개월이전배부수량
-                     , NVL(S3.MMS4B_DDLV_QTY, SUM(CASE WHEN S2.MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -4), 'YYYYMM') THEN S2.BFSVC_CSMB_DDLV_QTY ELSE 0 END)) AS MMS4B_DDLV_QTY -- 4개월이전배부수량
-                     , NVL(S3.MMS3B_DDLV_QTY, SUM(CASE WHEN S2.MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -3), 'YYYYMM') THEN S2.BFSVC_CSMB_DDLV_QTY ELSE 0 END)) AS MMS3B_DDLV_QTY -- 3개월이전배부수량
-                     , NVL(S3.MMS2B_DDLV_QTY, SUM(CASE WHEN S2.MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -2), 'YYYYMM') THEN S2.BFSVC_CSMB_DDLV_QTY ELSE 0 END)) AS MMS2B_DDLV_QTY -- 2개월이전배부수량
-                     , NVL(S3.MMS2B_DDLV_QTY, SUM(CASE WHEN S2.MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') THEN S2.BFSVC_CSMB_DDLV_QTY ELSE 0 END)) AS MMS1B_DDLV_QTY -- 1개월이전배부수량
-                     , NVL(S3.STR_STNB_QTY, 0) AS STR_STNB_QTY -- 입고대기
-                     , NVL(S3.GO_UPRC, (SELECT X.GO_UPRC
-                                          FROM TB_SVST_BFSVC_CSMB_BASE_BAS X
-                                         WHERE X.CSMB_PD_CD = S1.CSMB_PD_CD
-                                           AND X.ITM_KNM =  S1.ITM_KNM
-                                           AND X.MNGT_UNIT_CD = S1.MNGT_UNIT_CD
-                                           AND X.MNGT_YM = (SELECT MAX(Y.MNGT_YM)
-                                                              FROM TB_SVST_BFSVC_CSMB_BASE_BAS Y
-                                                           )
-                                       )
-                          ) AS GO_UPRC -- 단가
-                     , NVL(S3.MIN_ORD_QTY, TO_NUMBER(NVL(P1.SVPD_MOQ, 0))) AS MIN_ORD_QTY
-                     , NVL(S3.PYPD_DC, TO_NUMBER(NVL(P1.SVPD_LT, 0))) AS PYPD_DC
-                     , NVL(S3.RMK_CN, (SELECT X.RMK_CN
-                                         FROM TB_SVST_BFSVC_CSMB_BASE_BAS X
-                                        WHERE X.CSMB_PD_CD = S1.CSMB_PD_CD
-                                          AND X.ITM_KNM =  S1.ITM_KNM
-                                          AND X.MNGT_UNIT_CD = S1.MNGT_UNIT_CD
-                                          AND X.MNGT_YM = (SELECT MAX(Y.MNGT_YM)
-                                                             FROM TB_SVST_BFSVC_CSMB_BASE_BAS Y
-                                                          )
-                                      )
-                          ) AS RMK_CN
-                     , CASE WHEN S3.CSMB_PD_CD IS NOT NULL THEN 'Y'
-                            ELSE 'N'
-                       END AS RGST_YN
-                     , S3.PAJU_LGST_CNR_STOC_QTY
-                <choose>
-                    <when test='@MybatisUtils@equals(sgsuExcludeYn, "1")'>
-                     , 0 AS SGSU_LGST_CNR_STOC_QTY
-                     , (S3.WO_STOC_QTY - S3.SGSU_LGST_CNR_STOC_QTY) AS WO_STOC_QTY
-                    </when>
-                    <otherwise>
-                     , S3.SGSU_LGST_CNR_STOC_QTY
-                     , S3.WO_STOC_QTY
-                    </otherwise>
-                </choose>
-                     , S3.STOC_PERS_MM_N
-                     , S3.ET_EXS_DT
-                     , S3.NCST_QTY
-                     , S3.GO_QTY
-                     , S3.GO_AMT
-                  FROM TB_SVST_BFSVC_CSMB_BASE_BAS S1
-                 INNER JOIN (SELECT X.PD_CD AS SVPD_PD_CD
-                                  , X.PD_NM AS SVPD_NM_KOR
-                                  , X.SAP_MAT_CD AS SVPD_SAP_CD
-                                  , Y.PD_PRP_VAL07 AS SVPD_MOQ
-                                  , Y.PD_PRP_VAL06 AS SVPD_LT
-                               FROM TB_PDBS_PD_BAS X
-                              INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL Y
-                                 ON X.PD_CD = Y.PD_CD
-                                AND Y.PD_EXTS_PRP_GRP_CD = 'PART'
-                                AND Y.DTA_DL_YN = 'N'
-                                AND Y.PD_PRP_VAL19 = '8'
-                            ) P1
-                    ON S1.CSMB_PD_CD = P1.SVPD_PD_CD
-                 INNER JOIN TB_SVST_BFSVC_CSMB_DDLV_IZ S2
-                    ON P1.SVPD_PD_CD = S2.CSMB_PD_CD
-                   AND S2.BFSVC_CSMB_DDLV_STAT_CD = '30'
-                   --AND S2.MNGT_YM = S1.MNGT_YM
-                  LEFT JOIN TB_SVST_BFSVC_CSMB_GQES_IZ S3
-                    ON S1.MNGT_YM = S3.MNGT_YM
-                   AND P1.SVPD_PD_CD = S3.CSMB_PD_CD
-                 WHERE S1.DTA_DL_YN = 'N'
-                   AND S1.MNGT_YM = #{mngtYm}
-                 GROUP BY S1.GO_DV_CD, S1.MNGT_UNIT_CD, P1.SVPD_SAP_CD, P1.SVPD_PD_CD, P1.SVPD_NM_KOR, S3.STR_STNB_QTY, S1.GO_UPRC,
-                          P1.SVPD_MOQ, P1.SVPD_LT, S1.MNGT_YM, S1.MNGT_UNIT_CD, S1.ITM_KNM, S1.CSMB_PD_CD, S3.GO_DV_CD, S3.MNGT_UNIT_CD,
-                          S3.MMS6B_DDLV_QTY, S3.MMS5B_DDLV_QTY, S3.MMS4B_DDLV_QTY, S3.MMS3B_DDLV_QTY, S3.MMS2B_DDLV_QTY, S3.MMS1B_DDLV_QTY,
-                          S3.GO_UPRC, S3.MIN_ORD_QTY, S3.PYPD_DC, S3.CSMB_PD_CD, S3.PAJU_LGST_CNR_STOC_QTY, S3.SGSU_LGST_CNR_STOC_QTY,
-                          S3.WO_STOC_QTY, S3.STOC_PERS_MM_N, S3.ET_EXS_DT, S3.NCST_QTY, S3.GO_QTY, S3.GO_AMT, S3.RMK_CN
-               ) M1
-         WHERE 1 = 1
-         <if test='@MybatisUtils@isNotEmpty(goDvCd)'>
-           AND M1.GO_DV_CD = #{goDvCd}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(csmbPdCd)'>
-           AND M1.CSMB_PD_CD = #{csmbPdCd}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(csmbPdCdFrom)'>
-           AND M1.CSMB_PD_CD <![CDATA[>=]]> #{csmbPdCdFrom}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(csmbPdCdTo)'>
-           AND M1.CSMB_PD_CD <![CDATA[<=]]> #{csmbPdCdTo}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(sapMatCdFrom)'>
-           AND M1.SVPD_SAP_CD <![CDATA[>=]]> #{sapMatCdFrom}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(sapMatCdTo)'>
-           AND M1.SVPD_SAP_CD <![CDATA[<=]]> #{sapMatCdTo}
-         </if>
-         GROUP BY M1.GO_DV_CD, M1.GO_DV_NM, M1.MNGT_UNIT_CD, M1.SVPD_SAP_CD, M1.CSMB_PD_CD, M1.ITM_KNM, M1.MMS6B_DDLV_QTY, M1.MMS5B_DDLV_QTY, M1.MMS4B_DDLV_QTY,
-                  M1.MMS3B_DDLV_QTY, M1.MMS2B_DDLV_QTY, M1.MMS1B_DDLV_QTY, M1.STR_STNB_QTY, M1.GO_UPRC, M1.MIN_ORD_QTY, M1.PYPD_DC, M1.RMK_CN, M1.RGST_YN,
-                  M1.PAJU_LGST_CNR_STOC_QTY, M1.SGSU_LGST_CNR_STOC_QTY, M1.WO_STOC_QTY, M1.STOC_PERS_MM_N, M1.ET_EXS_DT, M1.NCST_QTY, M1.GO_QTY, M1.GO_AMT
-         ORDER BY M1.CSMB_PD_CD
+        SELECT D1.MNGT_YM                                                                                                         /* 관리년월 */
+             , NVL(D5.GO_DV_CD, D1.GO_DV_CD)                                                          AS GO_DV_CD                 /* 발주구분코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'GO_DV_CD', NVL(D5.GO_DV_CD, D1.GO_DV_CD), #{session.langId}) AS GO_DV_NM                 /* 발주구분 */
+             , TO_CHAR(TO_NUMBER(D2.SAP_MAT_CD))                                                      AS SVPD_SAP_CD              /* SAP코드 */
+             , D1.CSMB_PD_CD                                                                                                      /* 소모품상품코드 */
+             , D2.PD_NM                                                                               AS ITM_KNM                  /* 품목한글명 */
+             , NVL(D5.MNGT_UNIT_CD, D1.MNGT_UNIT_CD)                                                  AS MNGT_UNIT_CD             /* 관리단위코드 */
+             , NVL(D5.MMS6B_DDLV_QTY, NVL(D4.MMS6B_DDLV_QTY, 0))                                      AS MMS6B_DDLV_QTY           /* 6개월 이전 배부수량 */
+             , NVL(D5.MMS5B_DDLV_QTY, NVL(D4.MMS5B_DDLV_QTY, 0))                                      AS MMS5B_DDLV_QTY           /* 5개월 이전 배부수량 */
+             , NVL(D5.MMS4B_DDLV_QTY, NVL(D4.MMS4B_DDLV_QTY, 0))                                      AS MMS4B_DDLV_QTY           /* 4개월 이전 배부수량 */
+             , NVL(D5.MMS3B_DDLV_QTY, NVL(D4.MMS3B_DDLV_QTY, 0))                                      AS MMS3B_DDLV_QTY           /* 3개월 이전 배부수량 */
+             , NVL(D5.MMS2B_DDLV_QTY, NVL(D4.MMS2B_DDLV_QTY, 0))                                      AS MMS2B_DDLV_QTY           /* 2개월 이전 배부수량 */
+             , NVL(D5.MMS1B_DDLV_QTY, NVL(D4.MMS1B_DDLV_QTY, 0))                                      AS MMS1B_DDLV_QTY           /* 1개월 이전 배부수량 */
+             , FLOOR( ( NVL(D5.MMS6B_DDLV_QTY, NVL(D4.MMS6B_DDLV_QTY, 0)) + NVL(D5.MMS5B_DDLV_QTY, NVL(D4.MMS5B_DDLV_QTY, 0))
+                      + NVL(D5.MMS4B_DDLV_QTY, NVL(D4.MMS4B_DDLV_QTY, 0)) + NVL(D5.MMS3B_DDLV_QTY, NVL(D4.MMS3B_DDLV_QTY, 0))
+                      + NVL(D5.MMS2B_DDLV_QTY, NVL(D4.MMS2B_DDLV_QTY, 0)) + NVL(D5.MMS1B_DDLV_QTY, NVL(D4.MMS1B_DDLV_QTY, 0)) )
+                      / 6 )                                                                           AS MM_AV_DDLV_QTY           /* 월평균 배부수량 */
+             , NVL(D5.STR_STNB_QTY, 0)                                                                AS STR_STNB_QTY             /* 입고대기 */
+             , NVL(D5.GO_UPRC, NVL(D1.GO_UPRC, 0))                                                    AS GO_UPRC                  /* 발주단가 */
+             , NVL(D5.MIN_ORD_QTY, NVL(TO_NUMBER(REGEXP_REPLACE(D3.PD_PRP_VAL07, '[^0-9]', '')), 0))  AS MIN_ORD_QTY              /* 최소주문수량 */
+             , NVL(D5.PYPD_DC, NVL(TO_NUMBER(D3.PD_PRP_VAL06), 0))                                    AS PYPD_DC                  /* 납기일수 */
+             , NVL(D5.RMK_CN, D1.RMK_CN)                                                              AS RMK_CN                   /* 비고내용 */
+             , CASE WHEN D5.CSMB_PD_CD IS NOT NULL THEN 'Y'
+                    ELSE 'N'
+               END                                                                                    AS RGST_YN                  /* 등록여부 */
+             , NVL(D5.PAJU_LGST_CNR_STOC_QTY, 0)                                                      AS PAJU_LGST_CNR_STOC_QTY   /* 파주물류센터수량 */
+             , CASE WHEN #{sgsuExcludeYn} = '1' THEN 0
+                    ELSE NVL(D5.SGSU_LGST_CNR_STOC_QTY, 0)
+               END                                                                                    AS SGSU_LGST_CNR_STOC_QTY   /* 성수물류센터재고수량 */
+             , CASE WHEN #{sgsuExcludeYn} = '1' THEN NVL(D5.WO_STOC_QTY, 0) - NVL(D5.SGSU_LGST_CNR_STOC_QTY, 0)
+                    ELSE NVL(D5.WO_STOC_QTY, 0)
+               END                                                                                    AS WO_STOC_QTY              /* 전체재고수량 */
+             , NVL(D5.STOC_PERS_MM_N, 0)                                                              AS STOC_PERS_MM_N           /* 재고지속성월수 */
+             , D5.ET_EXS_DT                                                                                                       /* 예상소진일자 */
+             , NVL(D5.NCST_QTY, 0)                                                                    AS NCST_QTY                 /* 필요수량 */
+             , NVL(D5.GO_QTY, 0)                                                                      AS GO_QTY                   /* 발주수량 */
+             , NVL(D5.GO_AMT, 0)                                                                      AS GO_AMT                   /* 발주금액 */
+          FROM TB_SVST_BFSVC_CSMB_BASE_BAS D1             /* BS소모품기준기본 */
+         INNER JOIN TB_PDBS_PD_BAS D2                     /* 상품기본 */
+            ON D2.PD_CD = D1.CSMB_PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3            /* 상품각사속성상세 */
+            ON D3.PD_CD = D2.PD_CD
+          LEFT OUTER JOIN
+             (
+               SELECT CSMB_PD_CD
+                    , SUM(CASE WHEN MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -6), 'YYYYMM') THEN BFSVC_CSMB_DDLV_QTY END) AS MMS6B_DDLV_QTY   /* 6개월 이전 배부수량 */
+                    , SUM(CASE WHEN MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -5), 'YYYYMM') THEN BFSVC_CSMB_DDLV_QTY END) AS MMS5B_DDLV_QTY   /* 5개월 이전 배부수량 */
+                    , SUM(CASE WHEN MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -4), 'YYYYMM') THEN BFSVC_CSMB_DDLV_QTY END) AS MMS4B_DDLV_QTY   /* 4개월 이전 배부수량 */
+                    , SUM(CASE WHEN MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -3), 'YYYYMM') THEN BFSVC_CSMB_DDLV_QTY END) AS MMS3B_DDLV_QTY   /* 3개월 이전 배부수량 */
+                    , SUM(CASE WHEN MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -2), 'YYYYMM') THEN BFSVC_CSMB_DDLV_QTY END) AS MMS2B_DDLV_QTY   /* 2개월 이전 배부수량 */
+                    , SUM(CASE WHEN MNGT_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') THEN BFSVC_CSMB_DDLV_QTY END) AS MMS1B_DDLV_QTY   /* 1개월 이전 배부수량 */
+                 FROM TB_SVST_BFSVC_CSMB_DDLV_IZ   /* BS소모품배부내역 */
+                WHERE DTA_DL_YN               = 'N'
+                  AND BFSVC_CSMB_DDLV_STAT_CD = '30'   /* 출고요청완료 */
+                  AND MNGT_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -6), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM')
+                GROUP BY CSMB_PD_CD
+             ) D4
+            ON D4.CSMB_PD_CD = D1.CSMB_PD_CD
+          LEFT OUTER JOIN TB_SVST_BFSVC_CSMB_GQES_IZ D5   /* BS소모품발주수량산출내역 */
+            ON D5.MNGT_YM    = D1.MNGT_YM
+           AND D5.CSMB_PD_CD = D1.CSMB_PD_CD
+           AND D5.DTA_DL_YN  = 'N'
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D2.DTA_DL_YN          = 'N'
+           AND D2.PD_TP_CD           = 'M'
+           AND D3.DTA_DL_YN          = 'N'
+           AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D1.MNGT_YM            = #{mngtYm}
+        <if test='@MybatisUtils@isNotEmpty(itmKndCd)'>
+           AND D3.PD_PRP_VAL19       = #{itmKndCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(goDvCd)'>
+           AND D1.GO_DV_CD           = #{goDvCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(csmbPdCd)'>
+           AND D1.CSMB_PD_CD         = #{csmbPdCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(csmbPdCdFrom)'>
+           AND D1.CSMB_PD_CD <![CDATA[>=]]> #{csmbPdCdFrom}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(csmbPdCdTo)'>
+           AND D1.CSMB_PD_CD <![CDATA[<=]]> #{csmbPdCdTo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(sapMatCdFrom)'>
+           AND D2.SAP_MAT_CD <![CDATA[>=]]> LPAD(#{sapMatCdFrom}, 18, '0')
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(sapMatCdTo)'>
+           AND D2.SAP_MAT_CD <![CDATA[<=]]> LPAD(#{sapMatCdTo}, 18, '0')
+        </if>
+         ORDER BY D1.CSMB_PD_CD
     </select>
 
     <select id="selectBsCsmbGiveAOrderQty" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbGiveAOrderDvo">
-        SELECT S1.MNGT_YM
-             , S1.GO_DV_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'GO_DV_CD', S1.GO_DV_CD, 'ko') AS GO_DV_NM
-             , P1.SAP_MAT_CD AS SVPD_SAP_CD
-             , S1.CSMB_PD_CD
-             , S1.ITM_KNM
-             , S1.MNGT_UNIT_CD
-             , S1.MMS6B_DDLV_QTY
-             , S1.MMS5B_DDLV_QTY
-             , S1.MMS4B_DDLV_QTY
-             , S1.MMS3B_DDLV_QTY
-             , S1.MMS2B_DDLV_QTY
-             , S1.MMS1B_DDLV_QTY
-             , S1.STR_STNB_QTY
-             , S1.PAJU_LGST_CNR_STOC_QTY
-        <choose>
-            <when test='@MybatisUtils@equals(sgsuExcludeYn, "1")'>
-             , 0 AS SGSU_LGST_CNR_STOC_QTY
-             , (S1.WO_STOC_QTY - S1.SGSU_LGST_CNR_STOC_QTY) AS WO_STOC_QTY
-            </when>
-            <otherwise>
-             , S1.SGSU_LGST_CNR_STOC_QTY
-             , S1.WO_STOC_QTY
-            </otherwise>
-        </choose>
-             , S1.STOC_PERS_MM_N
-             , S1.ET_EXS_DT
-             , S1.GO_UPRC
-             , S1.NCST_QTY
-             , S1.GO_QTY
-             , S1.GO_AMT
-             , P2.PD_PRP_VAL07 AS MIN_ORD_QTY
-             , P2.PD_PRP_VAL06 AS PYPD_DC
-             , (SELECT X.RMK_CN
-                  FROM TB_SVST_BFSVC_CSMB_BASE_BAS X
-                 WHERE X.CSMB_PD_CD = S1.CSMB_PD_CD
-                   AND X.ITM_KNM =  S1.ITM_KNM
-                   AND X.MNGT_UNIT_CD = S1.MNGT_UNIT_CD
-                   AND X.MNGT_YM = #{mngtYm}
-               ) AS RMK_CN
-          FROM TB_SVST_BFSVC_CSMB_GQES_IZ S1
-         INNER JOIN TB_PDBS_PD_BAS P1
-            ON S1.CSMB_PD_CD = P1.PD_CD
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2
-            ON P1.PD_CD = P2.PD_CD
-           AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
-         WHERE S1.MNGT_YM = #{mngtYm}
-         <if test='@MybatisUtils@isNotEmpty(goDvCd)'>
-           AND S1.GO_DV_CD = #{goDvCd}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(csmbPdCd)'>
-           AND S1.CSMB_PD_CD = #{csmbPdCd}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(csmbPdCdFrom)'>
-           AND S1.CSMB_PD_CD <![CDATA[>=]]> #{csmbPdCdFrom}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(csmbPdCdTo)'>
-           AND S1.CSMB_PD_CD <![CDATA[<=]]> #{csmbPdCdTo}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(sapMatCdFrom)'>
-           AND P1.SAP_MAT_CD <![CDATA[>=]]> #{sapMatCdFrom}
-         </if>
-         <if test='@MybatisUtils@isNotEmpty(sapMatCdTo)'>
-           AND P1.SAP_MAT_CD <![CDATA[<=]]> #{sapMatCdTo}
-         </if>
-         ORDER BY S1.CSMB_PD_CD
+        SELECT D1.MNGT_YM                                                                                       /* 관리년월 */
+             , D1.GO_DV_CD                                                                                      /* 발주구분코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'GO_DV_CD', D1.GO_DV_CD, #{session.langId}) AS GO_DV_NM                 /* 발주구분 */
+             , TO_CHAR(TO_NUMBER(D2.SAP_MAT_CD))                                    AS SVPD_SAP_CD              /* SAP코드 */
+             , D1.CSMB_PD_CD                                                                                    /* 소모품상품코드 */
+             , D1.ITM_KNM                                                                                       /* 품목한글명 */
+             , D1.MNGT_UNIT_CD                                                                                  /* 관리단위코드 */
+             , NVL(D1.MMS6B_DDLV_QTY, 0)                                            AS MMS6B_DDLV_QTY           /* 6개월전배부수량 */
+             , NVL(D1.MMS5B_DDLV_QTY, 0)                                            AS MMS5B_DDLV_QTY           /* 5개월전배부수량 */
+             , NVL(D1.MMS4B_DDLV_QTY, 0)                                            AS MMS4B_DDLV_QTY           /* 4개월전배부수량 */
+             , NVL(D1.MMS3B_DDLV_QTY, 0)                                            AS MMS3B_DDLV_QTY           /* 3개월전배부수량 */
+             , NVL(D1.MMS2B_DDLV_QTY, 0)                                            AS MMS2B_DDLV_QTY           /* 2개월전배부수량 */
+             , NVL(D1.MMS1B_DDLV_QTY, 0)                                            AS MMS1B_DDLV_QTY           /* 1개월전배부수량 */
+             , NVL(D1.STR_STNB_QTY, 0)                                              AS STR_STNB_QTY             /* 입고대기수량 */
+             , NVL(D1.PAJU_LGST_CNR_STOC_QTY, 0)                                    AS PAJU_LGST_CNR_STOC_QTY   /* 파주물류센터재고수량 */
+             , CASE WHEN #{sgsuExcludeYn} = '1' THEN 0
+                    ELSE NVL(D1.SGSU_LGST_CNR_STOC_QTY, 0)
+               END                                                                  AS SGSU_LGST_CNR_STOC_QTY   /* 성수물류센터재고수량 */
+             , CASE WHEN #{sgsuExcludeYn} = '1' THEN NVL(D1.WO_STOC_QTY, 0) - NVL(D1.SGSU_LGST_CNR_STOC_QTY, 0)
+                    ELSE NVL(D1.WO_STOC_QTY, 0)
+               END                                                                  AS WO_STOC_QTY              /* 전체재고수량 */
+             , NVL(D1.STOC_PERS_MM_N, 0)                                            AS STOC_PERS_MM_N           /* 재고지속월수 */
+             , D1.ET_EXS_DT                                                                                     /* 예상소진일자 */
+             , NVL(D1.GO_UPRC, 0)                                                   AS GO_UPRC                  /* 발주단가 */
+             , NVL(D1.NCST_QTY, 0)                                                  AS NCST_QTY                 /* 필요수량 */
+             , NVL(D1.GO_QTY, 0)                                                    AS GO_QTY                   /* 발주수량 */
+             , NVL(D1.GO_AMT, 0)                                                    AS GO_AMT                   /* 발주금액 */
+             , NVL(D1.MIN_ORD_QTY, 0)                                               AS MIN_ORD_QTY              /* 최소주문수량 */
+             , NVL(D1.PYPD_DC, 0)                                                   AS PYPD_DC                  /* 납기일수 */
+             , D1.RMK_CN                                                                                        /* 비고내용 */
+          FROM TB_SVST_BFSVC_CSMB_GQES_IZ D1     /* BS소모품발주수량산출내역 */
+         INNER JOIN TB_PDBS_PD_BAS D2            /* 상품기본 */
+            ON D2.PD_CD = D1.CSMB_PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3   /* 상품각사속성상세 */
+            ON D3.PD_CD = D2.PD_CD
+         WHERE D2.DTA_DL_YN          = 'N'
+           AND D2.PD_TP_CD           = 'M'
+           AND D3.DTA_DL_YN          = 'N'
+           AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D1.MNGT_YM            = #{mngtYm}
+        <if test='@MybatisUtils@isNotEmpty(itmKndCd)'>
+           AND D3.PD_PRP_VAL19       = #{itmKndCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(goDvCd)'>
+           AND D1.GO_DV_CD           = #{goDvCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(csmbPdCd)'>
+           AND D1.CSMB_PD_CD         = #{csmbPdCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(csmbPdCdFrom)'>
+           AND D1.CSMB_PD_CD <![CDATA[>=]]> #{csmbPdCdFrom}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(csmbPdCdTo)'>
+           AND D1.CSMB_PD_CD <![CDATA[<=]]> #{csmbPdCdTo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(sapMatCdFrom)'>
+           AND D2.SAP_MAT_CD <![CDATA[>=]]> LPAD(#{sapMatCdFrom}, 18, '0')
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(sapMatCdTo)'>
+           AND D2.SAP_MAT_CD <![CDATA[<=]]> LPAD(#{sapMatCdTo}, 18, '0')
+        </if>
+         ORDER BY D1.CSMB_PD_CD
     </select>
 
-    <insert id="insertBsCsmbGiveAOrderQty">
-        INSERT INTO TB_SVST_BFSVC_CSMB_GQES_IZ
-             ( MNGT_YM
-             , CSMB_PD_CD
-             , ITM_KNM
-             , MNGT_UNIT_CD
-             , GO_DV_CD
-             , MMS6B_DDLV_QTY
-             , MMS5B_DDLV_QTY
-             , MMS4B_DDLV_QTY
-             , MMS3B_DDLV_QTY
-             , MMS2B_DDLV_QTY
-             , MMS1B_DDLV_QTY
-             , MM_AV_DDLV_QTY
-             , STR_STNB_QTY
-             , PAJU_LGST_CNR_STOC_QTY
-             , SGSU_LGST_CNR_STOC_QTY
-             , WO_STOC_QTY
-             , STOC_PERS_MM_N
-             , ET_EXS_DT
-             , GO_UPRC
-             , MIN_ORD_QTY
-             , PYPD_DC
-             , NCST_QTY
-             , GO_QTY
-             , GO_AMT
-             , RMK_CN
-             , DTA_DL_YN
-             <include refid="COMMON.insertSystemField" />)
+    <insert id="mergeBsCsmbGiveAOrderQty">
+         MERGE INTO TB_SVST_BFSVC_CSMB_GQES_IZ TB_TGT   /* BS소모품발주수량산출내역 */
+         USING
+             (
+               SELECT #{mngtYm}             AS MNGT_YM                  /* 관리년월 */
+                    , #{csmbPdCd}           AS CSMB_PD_CD               /* 소모품상품코드 */
+                    , #{itmKnm}             AS ITM_KNM                  /* 품목한글명 */
+                    , #{mngtUnitCd}         AS MNGT_UNIT_CD             /* 관리단위코드 */
+                    , #{goDvCd}             AS GO_DV_CD                 /* 발주구분코드 */
+                    , #{mms6bDdlvQty}       AS MMS6B_DDLV_QTY           /* 6개월전배부수량 */
+                    , #{mms5bDdlvQty}       AS MMS5B_DDLV_QTY           /* 5개월전배부수량 */
+                    , #{mms4bDdlvQty}       AS MMS4B_DDLV_QTY           /* 4개월전배부수량 */
+                    , #{mms3bDdlvQty}       AS MMS3B_DDLV_QTY           /* 3개월전배부수량 */
+                    , #{mms2bDdlvQty}       AS MMS2B_DDLV_QTY           /* 2개월전배부수량 */
+                    , #{mms1bDdlvQty}       AS MMS1B_DDLV_QTY           /* 1개월전배부수량 */
+                    , #{mmAvDdlvQty}        AS MM_AV_DDLV_QTY           /* 월평균배부수량 */
+                    , #{strStnbQty}         AS STR_STNB_QTY             /* 입고대기수량 */
+                    , #{pajuLgstCnrStocQty} AS PAJU_LGST_CNR_STOC_QTY   /* 파주물류센터재고수량 */
+                    , #{sgsuLgstCnrStocQty} AS SGSU_LGST_CNR_STOC_QTY   /* 성수물류센터재고수량 */
+                    , #{woStocQty}          AS WO_STOC_QTY              /* 전체재고수량 */
+                    , #{stocPersMmN}        AS STOC_PERS_MM_N           /* 재고지속성월수 */
+                    , #{etExsDt}            AS ET_EXS_DT                /* 예상소진일자 */
+                    , #{goUprc}             AS GO_UPRC                  /* 발주단가 */
+                    , #{minOrdQty}          AS MIN_ORD_QTY              /* 최소주문수량 */
+                    , #{pypdDc}             AS PYPD_DC                  /* 납기일수 */
+                    , #{ncstQty}            AS NCST_QTY                 /* 필요수량 */
+                    , #{goQty}              AS GO_QTY                   /* 발주수량 */
+                    , #{goAmt}              AS GO_AMT                   /* 발주금액 */
+                    , #{rmkCn}              AS RMK_CN                   /* 비고내용 */
+                 FROM DUAL
+             ) TB_SRC
+            ON
+             (
+                   TB_TGT.MNGT_YM    = TB_SRC.MNGT_YM
+               AND TB_TGT.CSMB_PD_CD = TB_SRC.CSMB_PD_CD
+             )
+          WHEN MATCHED THEN
+        UPDATE
+           SET TB_TGT.ITM_KNM                = TB_SRC.ITM_KNM
+             , TB_TGT.MNGT_UNIT_CD           = TB_SRC.MNGT_UNIT_CD
+             , TB_TGT.GO_DV_CD               = TB_SRC.GO_DV_CD
+             , TB_TGT.MMS6B_DDLV_QTY         = TB_SRC.MMS6B_DDLV_QTY
+             , TB_TGT.MMS5B_DDLV_QTY         = TB_SRC.MMS5B_DDLV_QTY
+             , TB_TGT.MMS4B_DDLV_QTY         = TB_SRC.MMS4B_DDLV_QTY
+             , TB_TGT.MMS3B_DDLV_QTY         = TB_SRC.MMS3B_DDLV_QTY
+             , TB_TGT.MMS2B_DDLV_QTY         = TB_SRC.MMS2B_DDLV_QTY
+             , TB_TGT.MMS1B_DDLV_QTY         = TB_SRC.MMS1B_DDLV_QTY
+             , TB_TGT.MM_AV_DDLV_QTY         = TB_SRC.MM_AV_DDLV_QTY
+             , TB_TGT.STR_STNB_QTY           = TB_SRC.STR_STNB_QTY
+             , TB_TGT.PAJU_LGST_CNR_STOC_QTY = TB_SRC.PAJU_LGST_CNR_STOC_QTY
+             , TB_TGT.SGSU_LGST_CNR_STOC_QTY = TB_SRC.SGSU_LGST_CNR_STOC_QTY
+             , TB_TGT.WO_STOC_QTY            = TB_SRC.WO_STOC_QTY
+             , TB_TGT.STOC_PERS_MM_N         = TB_SRC.STOC_PERS_MM_N
+             , TB_TGT.ET_EXS_DT              = TB_SRC.ET_EXS_DT
+             , TB_TGT.GO_UPRC                = TB_SRC.GO_UPRC
+             , TB_TGT.MIN_ORD_QTY            = TB_SRC.MIN_ORD_QTY
+             , TB_TGT.PYPD_DC                = TB_SRC.PYPD_DC
+             , TB_TGT.NCST_QTY               = TB_SRC.NCST_QTY
+             , TB_TGT.GO_QTY                 = TB_SRC.GO_QTY
+             , TB_TGT.GO_AMT                 = TB_SRC.GO_AMT
+             , TB_TGT.RMK_CN                 = TB_SRC.RMK_CN
+        <include refid="COMMON.updateSystemField"/>
+          WHEN NOT MATCHED THEN
+        INSERT
+             (
+               TB_TGT.MNGT_YM
+             , TB_TGT.CSMB_PD_CD
+             , TB_TGT.ITM_KNM
+             , TB_TGT.MNGT_UNIT_CD
+             , TB_TGT.GO_DV_CD
+             , TB_TGT.MMS6B_DDLV_QTY
+             , TB_TGT.MMS5B_DDLV_QTY
+             , TB_TGT.MMS4B_DDLV_QTY
+             , TB_TGT.MMS3B_DDLV_QTY
+             , TB_TGT.MMS2B_DDLV_QTY
+             , TB_TGT.MMS1B_DDLV_QTY
+             , TB_TGT.MM_AV_DDLV_QTY
+             , TB_TGT.STR_STNB_QTY
+             , TB_TGT.PAJU_LGST_CNR_STOC_QTY
+             , TB_TGT.SGSU_LGST_CNR_STOC_QTY
+             , TB_TGT.WO_STOC_QTY
+             , TB_TGT.STOC_PERS_MM_N
+             , TB_TGT.ET_EXS_DT
+             , TB_TGT.GO_UPRC
+             , TB_TGT.MIN_ORD_QTY
+             , TB_TGT.PYPD_DC
+             , TB_TGT.NCST_QTY
+             , TB_TGT.GO_QTY
+             , TB_TGT.GO_AMT
+             , TB_TGT.RMK_CN
+             , TB_TGT.DTA_DL_YN
+        <include refid="COMMON.insertSystemField" />
+             )
         VALUES
-             ( #{mngtYm}
-             , #{csmbPdCd}
-             , #{itmKnm}
-             , #{mngtUnitCd}
-             , #{goDvCd}
-             , #{mms6bDdlvQty}
-             , #{mms5bDdlvQty}
-             , #{mms4bDdlvQty}
-             , #{mms3bDdlvQty}
-             , #{mms2bDdlvQty}
-             , #{mms1bDdlvQty}
-             , #{mmAvDdlvQty}
-             , #{strStnbQty}
-             , #{pajuLgstCnrStocQty}
-             , #{sgsuLgstCnrStocQty}
-             , #{woStocQty}
-             , #{stocPersMmN}
-             , #{etExsDt}
-             , #{goUprc}
-             , #{minOrdQty}
-             , #{pypdDc}
-             , #{ncstQty}
-             , #{goQty}
-             , #{goAmt}
-             , #{rmkCn}
+             (
+               TB_SRC.MNGT_YM
+             , TB_SRC.CSMB_PD_CD
+             , TB_SRC.ITM_KNM
+             , TB_SRC.MNGT_UNIT_CD
+             , TB_SRC.GO_DV_CD
+             , TB_SRC.MMS6B_DDLV_QTY
+             , TB_SRC.MMS5B_DDLV_QTY
+             , TB_SRC.MMS4B_DDLV_QTY
+             , TB_SRC.MMS3B_DDLV_QTY
+             , TB_SRC.MMS2B_DDLV_QTY
+             , TB_SRC.MMS1B_DDLV_QTY
+             , TB_SRC.MM_AV_DDLV_QTY
+             , TB_SRC.STR_STNB_QTY
+             , TB_SRC.PAJU_LGST_CNR_STOC_QTY
+             , TB_SRC.SGSU_LGST_CNR_STOC_QTY
+             , TB_SRC.WO_STOC_QTY
+             , TB_SRC.STOC_PERS_MM_N
+             , TB_SRC.ET_EXS_DT
+             , TB_SRC.GO_UPRC
+             , TB_SRC.MIN_ORD_QTY
+             , TB_SRC.PYPD_DC
+             , TB_SRC.NCST_QTY
+             , TB_SRC.GO_QTY
+             , TB_SRC.GO_AMT
+             , TB_SRC.RMK_CN
              , 'N'
-             <include refid="COMMON.insertSystemFieldValue" /> )
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
     </insert>
 
-    <delete id="deleteBsCsmbGiveAOrderQty">
-        DELETE TB_SVST_BFSVC_CSMB_GQES_IZ
-         WHERE MNGT_YM = #{mngtYm}
-           AND CSMB_PD_CD = #{csmbPdCd}
-    </delete>
-
-    <select id="selectExistBsCsmbGiveAOrderQtyYn" resultType="int">
-        SELECT COUNT(1)
-          FROM TB_SVST_BFSVC_CSMB_GQES_IZ
-         WHERE MNGT_YM = #{mngtYm}
-           AND CSMB_PD_CD IN (<foreach collection='csmbPdCds' item='csmbPdCd' separator=',' >
-                                  #{csmbPdCd}
-                              </foreach>)
-    </select>
-
-    <select id="selectProductCodesByItmKndCd" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbGiveAOrderDto$ProdutCodeRes">
-        SELECT P1.SVPD_PD_CD
-             , P1.SVPD_NM_KOR
-          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"></include>) P1
-         WHERE P1.SVPD_ITEM_KND = #{itmKndCd}
-    </select>
 </mapper>
