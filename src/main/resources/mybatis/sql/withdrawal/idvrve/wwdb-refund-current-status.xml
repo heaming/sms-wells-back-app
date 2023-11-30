@@ -16,12 +16,12 @@
                 , T1.RVE_AMT AS RVE_AMT  /*지급금액*/
                 , T1.RVE_AMT AS RFND_DSB_AMT   /*환불금액*/
                 , NVL(T4.RFND_DSB_PSP_INT , 0 ) AS RFND_DSB_PSP_INT  /*지연이자*/
-                , NVL(T4.RFND_DDTN_AMT ,0) AS RFND_DDTN_AMT /*카드공제*/
+                , NVL(T7.RVE_AMT ,0) AS RFND_DDTN_AMT /*카드공제*/
                 , T4.CSH_RFND_FNIT_CD  AS  CSH_RFND_FNIT_CD /*은행/카드사*/
                 , NVL((SELECT FNIT_NM
                          FROM TB_RVDW_FNIT_CD S1
                         WHERE 1 = 1
-                          AND FNIT_CD = T4.CARD_RFND_FNIT_CD
+                          AND FNIT_CD = T4.CSH_RFND_FNIT_CD
                           AND DTA_DL_YN = 'N'),'') AS CSH_FNIT_NM /*은행*/
                 , T4.CARD_RFND_FNIT_CD
                 , NVL((SELECT FNIT_NM
@@ -85,8 +85,27 @@
             LEFT OUTER JOIN TB_SSCT_CNTR_BAS T6
               ON (    T6.CNTR_NO = T4.BLTF_OJ_CNTR_NO
                   AND T6.DTA_DL_YN = 'N')
+            LEFT OUTER JOIN TB_RVDW_RVE_DTL T7
+               ON (   T7.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                  AND T7.RVE_OJ_DRM_NO1 = T1.RVE_OJ_DRM_NO1
+                  AND T7.RVE_OJ_DRM_NO2 = T1.RVE_OJ_DRM_NO2
+                  AND T7.DP_DV_CD = '3'
+                  AND T7.RVE_DV_CD = '17'
+                  )
              WHERE 1 = 1
                AND T1.KW_GRP_CO_CD = '2000'
+               AND T1.DP_DV_CD IN ('2','4')
+               AND T1.DTA_DL_YN  = 'N'
+               /* 전금환불된 수수료 제외 */
+               AND NOT EXISTS (SELECT 'X'
+                                 FROM TB_RVDW_RVE_DTL A2
+                                WHERE A2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                                  AND A2.RVE_OJ_DRM_NO1 = T1.RVE_OJ_DRM_NO1
+                                  AND A2.RVE_OJ_DRM_NO2 = T1.RVE_OJ_DRM_NO2
+                                  AND A2.RVE_AMT = T1.RVE_AMT
+                                  AND A2.DP_DV_CD = '3'
+                                  AND A2.RVE_DV_CD = '17'
+                              )
                <if test='@MybatisUtils@isNotEmpty(rveDtStart)'>
                AND T1.RVE_DT >= #{rveDtStart} /* 수납일자 */
               </if>
@@ -109,8 +128,6 @@
                     </otherwise>
                   </choose>
                </if>
-               AND T1.DP_DV_CD IN ('2','4')
-               AND T1.DTA_DL_YN  = 'N'
             <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
              <choose>
                <when test='@MybatisUtils@equals(dpMesCd,"07")'>
