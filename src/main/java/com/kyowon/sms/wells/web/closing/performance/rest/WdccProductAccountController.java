@@ -137,7 +137,7 @@ public class WdccProductAccountController {
         String subFolderPath = sdf.format(cal.getTime());
 
         String fileName = "/wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/" + subFolderPath + "/"
-            + "W_상품별 계정 현황_" + dto.baseYm() + ".csv";
+            + "W_AccountByProd_" + dto.baseYm() + ".csv";
         log.info("fileName:" + fileName);
         // wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/20231129/W_상품별 계정 현황_202311.csv
         File file = new File(fileName);
