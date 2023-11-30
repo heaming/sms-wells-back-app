@@ -111,7 +111,10 @@
                     , T1.DSB_AMT                                           /* 지급금액 */
                     , RANK() OVER(PARTITION BY T1.STRTDT ORDER BY T3.CNTR_DT DESC) AS RNK1
                     , RANK() OVER(PARTITION BY T1.STRTDT ORDER BY T5.CNTR_DT DESC) AS RNK2
-                    , T5.CNTR_SN
+                    , CASE WHEN T1.QLF_DV_CD != '2' AND T5.CNTR_DT IS NOT NULL AND (T5.CNTR_DT >= T1.STRTDT AND T5.CNTR_DT <= T1.ENDDT)
+                           THEN T5.CNTR_SN
+                           ELSE NULL
+                      END AS CNTR_SN
                     , CASE WHEN T1.QLF_DV_CD = '2' AND T3.CNTR_DT IS NOT NULL AND (T3.CNTR_DT <![CDATA[ >= ]]> T1.STRTDT AND T3.CNTR_DT <![CDATA[ <= ]]> T1.ENDDT)
                            THEN MAX(T3.CNTR_DT) OVER(PARTITION BY T1.STRTDT)
                            WHEN T1.QLF_DV_CD != '2' AND T5.CNTR_DT IS NOT NULL AND (T5.CNTR_DT <![CDATA[ >= ]]> T1.STRTDT AND T5.CNTR_DT <![CDATA[ <= ]]> T1.ENDDT)
@@ -153,7 +156,18 @@
                   AND T4.OG_TP_CD = T1.PCP_OG_TP_CD
                   AND T4.PRTNR_NO = T1.PCP_PRTNR_NO
                   AND T4.DTA_DL_YN = 'N'
-                 LEFT OUTER JOIN TB_OGPS_WELS_MNGER_RCNTR_BAS T5
+                 LEFT OUTER JOIN (SELECT OG_TP_CD
+                                       , PRTNR_NO
+                                       , MAX(CNTR_SN) AS CNTR_SN
+                                       , MAX(CNTR_DT) AS CNTR_DT
+                                       , PRTNR_CNTR_TP_CD
+                                    FROM TB_OGPS_WELS_MNGER_RCNTR_BAS
+                                   WHERE 1=1
+                                     AND DTA_DL_YN = 'N'
+                                   GROUP BY OG_TP_CD
+                                          , PRTNR_NO
+                                          , PRTNR_CNTR_TP_CD
+                                 ) T5
                    ON T5.OG_TP_CD = T1.OG_TP_CD
                   AND T5.PRTNR_NO = T1.PRTNR_NO
                   AND (T5.CNTR_DT <![CDATA[ >= ]]> T1.STRTDT AND T5.CNTR_DT <![CDATA[ <= ]]> T1.ENDDT)
