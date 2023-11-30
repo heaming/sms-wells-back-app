@@ -20,6 +20,10 @@ public class WsnaMdProductReturningGoodsMgtService {
     private final WsnaMdProductReturningGoodsMgtMapper mapper;
     private final WsnaMdProductReturningGoodsSaveService service;
 
+    public String getLoginPrtnrBzs() {
+        return mapper.selectLoginPrtnrBzs();
+    }
+
     public List<WsnaMdProductReturningGoodsMgtDvo> getMdProductReturningGoods(
         SearchReq req
     ) {
