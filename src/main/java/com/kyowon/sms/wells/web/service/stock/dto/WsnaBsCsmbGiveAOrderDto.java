@@ -65,25 +65,25 @@ public class WsnaBsCsmbGiveAOrderDto {
         @NotBlank
         String goDvCd,
         // 6개월전배부수량
-        @NotBlank
+
         BigDecimal mms6bDdlvQty,
         // 5개월전배부수량
-        @NotBlank
+
         BigDecimal mms5bDdlvQty,
         // 4개월전배부수량
-        @NotBlank
+
         BigDecimal mms4bDdlvQty,
         // 3개월전배부수량
-        @NotBlank
+
         BigDecimal mms3bDdlvQty,
         // 2개월전배부수량
-        @NotBlank
+
         BigDecimal mms2bDdlvQty,
         // 1개월전배부수량
-        @NotBlank
+
         BigDecimal mms1bDdlvQty,
         // 월평균배부수량
-        @NotBlank
+
         BigDecimal mmAvDdlvQty,
         // 입고대기수량
         BigDecimal strStnbQty,
