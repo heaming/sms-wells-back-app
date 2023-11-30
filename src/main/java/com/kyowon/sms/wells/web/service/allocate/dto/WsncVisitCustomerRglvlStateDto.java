@@ -11,9 +11,7 @@ public class WsncVisitCustomerRglvlStateDto {
         String visitYm,
         String rcgvpDiv,
         String mngerRglvlDvCd,
-        String executiveGroup,
         String localGroup,
-        String branchOffice,
         String partnerNo
     ) {}
 
@@ -51,16 +49,11 @@ public class WsncVisitCustomerRglvlStateDto {
         String mngerRglvlDvCd,
         String hgrOgId,
         String dgr2LevlOgCd,
+        String dgr2LevlOgNm,
         String svpdSapCd,
         String rglvlDstn,
         String cstSvAsnNo
 
     ) {}
 
-    @ApiModel(value = "WsncVisitCustomerRglvlStateDto-FindOrganizationRes")
-    public record FindOrganizationRes(
-        String dgr1LevlOgId,
-        String dgr2LevlOgId,
-        String dgr3LevlOgId
-    ) {}
 }

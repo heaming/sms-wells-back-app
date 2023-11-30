@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncVisitCustomerRglvlStateConverter;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncVisitCustomerRglvlStateDto.FindOrganizationRes;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncVisitCustomerRglvlStateDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncVisitCustomerRglvlStateDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncVisitCustomerRglvlStateMapper;
@@ -31,9 +30,4 @@ public class WsncVisitCustomerRglvlStateService {
     ) {
         return mapper.selectVisitCustomerRglvlState(dto);
     }
-
-    public FindOrganizationRes getOrganizationInfo(String ogId) {
-        return mapper.selectOrganizationInfo(ogId);
-    }
-
 }
