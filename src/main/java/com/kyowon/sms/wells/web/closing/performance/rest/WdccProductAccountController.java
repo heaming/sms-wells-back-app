@@ -1,22 +1,5 @@
 package com.kyowon.sms.wells.web.closing.performance.rest;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.List;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-
-import org.springframework.util.FileCopyUtils;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchProductRes;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchTotalRes;
@@ -24,13 +7,25 @@ import com.kyowon.sms.wells.web.closing.performance.service.WdccProductAccountSe
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
 import com.sds.sflex.system.config.validation.BizAssert;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Api(tags = "[WDCC] 상품별 계정 현황 - W-CL-U-0032M01")
 @Validated
@@ -43,6 +38,7 @@ public class WdccProductAccountController {
 
     /**
      * 상품별 계정 현황(집계)
+     *
      * @param dto
      * @return
      */
@@ -66,6 +62,7 @@ public class WdccProductAccountController {
 
     /**
      * 상품별 계정 현황(상품)
+     *
      * @param dto
      * @return
      */
@@ -89,6 +86,7 @@ public class WdccProductAccountController {
 
     /**
      * 상품별 계정 현황 상세내역 다운로드
+     *
      * @param req
      * @return
      */
@@ -113,6 +111,7 @@ public class WdccProductAccountController {
 
     /**
      * 상품별 계정 현황 상세내역 파일 생성
+     *
      * @param dto
      * @return
      */
@@ -132,14 +131,10 @@ public class WdccProductAccountController {
         SearchReq dto,
         HttpServletResponse response
     ) throws Exception {
-        Calendar cal = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-        String subFolderPath = sdf.format(cal.getTime());
+        String fileName = service.getDownloadFileName(dto.baseYm());
 
-        String fileName = "/wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/" + subFolderPath + "/"
-            + "W_AccountByProd_" + dto.baseYm() + ".csv";
         log.info("fileName:" + fileName);
-        // wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/20231129/W_상품별 계정 현황_202311.csv
+        // wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/W_AccountByProd_202311.csv
         File file = new File(fileName);
         BizAssert.isTrue(file.isFile(), "MSG_ALT_FILE_NOT_FOUND");
 
