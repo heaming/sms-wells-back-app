@@ -7,6 +7,7 @@ import com.kyowon.sms.common.web.withdrawal.idvrve.dvo.ZwdbIntegrationDepositDvo
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbIntegrationDepositMapper;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbRefundApplicationMapper;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveDvo;
+import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalRefundAskDvo;
 import com.kyowon.sms.common.web.withdrawal.zcommon.mapper.ZwdzWithdrawalMapper;
 import com.kyowon.sms.common.web.withdrawal.zcommon.service.ZwdzWithdrawalService;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbServiceRefundDto.SaveReq;
@@ -60,11 +61,13 @@ public class WwdbServiceRefundService {
         // 환불접수번호
         String refundReceipNo = refundApplicationMapper.selectRefundReceiptPk(session.getCompanyCode());
 
+        // 수납요청번호
+        String rveAkNo = withdrawalService.createReceiveAskNumber(session.getCompanyCode());
         /*1. 환불접수기본 데이터 생성*/
         WwdbServiceRefundDvo serviceRefundDvo = new WwdbServiceRefundDvo();
 
         serviceRefundDvo.setRfndRcpNo(refundReceipNo);/*환불접수번호*/
-        serviceRefundDvo.setRveAkNo(withdrawalService.createReceiveAskNumber(session.getCompanyCode())); /*수납요청번호*/
+        serviceRefundDvo.setRveAkNo(rveAkNo); /*수납요청번호*/
         serviceRefundDvo.setKwGrpCoCd(session.getCompanyCode());/*교원그룹회사코드*/
         serviceRefundDvo.setRveCoCd(session.getCompanyCode());/*수납회사코드*/
         serviceRefundDvo.setRveCd(session.getRveCd()); /*수납코드*/
@@ -167,13 +170,16 @@ public class WwdbServiceRefundService {
 
         ZwdzWithdrawalReceiveDvo dvo = new ZwdzWithdrawalReceiveDvo();
         dvo.setKwGrpCoCd(session.getCompanyCode());
-        String rveAkNo = zwdzwithdrawalMapper.selectReceiveNumber(dvo);
-        serviceRefundDvo.setRveNo(rveAkNo);
+        String rveNo = zwdzwithdrawalMapper.selectReceiveNumber(dvo);
+        serviceRefundDvo.setRveNo(rveNo);
         serviceRefundMapper.insertServiceRefundRveBas(serviceRefundDvo);
         serviceRefundMapper.insertServiceRefundRveDtl(serviceRefundDvo);
-
+        ZwdzWithdrawalRefundAskDvo rendInfo = new ZwdzWithdrawalRefundAskDvo();
+        rendInfo.setKwGrpCoCd(serviceRefundDvo.getKwGrpCoCd());
+        rendInfo.setItgDpNo(serviceRefundDvo.getItgDpNo());
+        rendInfo.setRveAkNo(rveAkNo);
         withdrawalService
-            .NAAfterDepositComparisonComfirmation(serviceRefundDvo.getKwGrpCoCd(), serviceRefundDvo.getItgDpNo());
+            .NAAfterDepositComparisonComfirmation(rendInfo);
 
         return serviceRefundDvo;
     }
