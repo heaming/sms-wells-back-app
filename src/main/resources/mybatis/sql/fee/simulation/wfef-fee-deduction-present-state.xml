@@ -7,16 +7,18 @@
              , T.RSB_DV_CD	--직책구분코드
              , NVL(T.DSB_OJ_AMT, 0) AS DSB_OJ_AMT 	--지급 대상금액
              , NVL(T.DDCTAM, 0) AS DDCTAM 		--공제금액
-             , NVL(T.INTBS_AMT, 0) AS INTBS_AMT
+             , NVL(T.INTBS_AMT, 0) AS INTBS_AMT	--소득과표금액
              , NVL(T.RDS_TAX, 0) AS RDS_TAX	--RDS/TAX
+             , NVL(T.EINSR, 0) AS EINSR			--고용보험
+             , NVL(T.INDD_INSR, 0) AS INDD_INSR		--산재보험
+             , NVL(T.BU_DDTN, 0) AS BU_DDTN		--부담공제
              , NVL(T.TEL_PC, 0) AS TEL_PC	--전화료/PC
              , NVL(T.REDF, 0) AS REDF	--되물림
              , NVL(T.DLQ_REDF, 0) AS DLQ_REDF --연체 되물림
+             , NVL(T.ETC_REDF, 0) AS ETC_REDF --기타 되물림
              , NVL(T.MUTU_REDF, 0) AS MUTU_REDF	--상조되물림
-             , NVL(T.EINSR, 0) AS EINSR			--고용보험
-             , NVL(T.PNPYAM, 0) AS PNPYAM		--가지급금
-             , NVL(T.BU_DDTN, 0) AS BU_DDTN		--부담공제
-             , NVL(T.INDD_INSR, 0) AS INDD_INSR		--산재보험
+             , NVL(T.UC_INDD_INSR, 0) AS UC_INDD_INSR	--미수 산재보험
+             , NVL(T.HDQ_FRNH_EXCP, 0) AS HDQ_FRNH_EXCP	--본부비치외
              , NVL((SELECT SUM(CASE WHEN RDS.RDS_RV_USE_TP_CD BETWEEN '10' AND '19' THEN RDS.RDS_AMT
                                 WHEN RDS.RDS_RV_USE_TP_CD BETWEEN '20' AND '29' THEN -1 * RDS.RDS_AMT
                                 END) AS RDS_RM_AMT --RDS잔액
@@ -42,14 +44,16 @@
                      , EFDI.DDCTAM 		--공제금액
                      , EFDI.INTBS_AMT    --소득과표금액
                      , FFDI.RDS + FFDI.ERNTX + FFDI.RSDNTX AS RDS_TAX	--RDS/TAX
+                     , FFDI.EINSR			--고용보험
+                     , FFDI.INDD_INSR		--산재보험
+                     , FFDI.BU_DDTN		--부담공제
                      , FFDI.TEL + FFDI.PC AS TEL_PC	--전화료/PC
                      , FFDI.REDF	--되물림
                      , FFDI.DLQ_REDF--연체 되물림
+                     , FFDI.ETC_REDF	--기타 가지급금
                      , FFDI.MUTU_REDF	--상조되물림
-                     , FFDI.EINSR			--고용보험
-                     , FFDI.PNPYAM		--가지급금
-                     , FFDI.BU_DDTN		--부담공제
-                     , FFDI.INDD_INSR		--산재보험
+                     , FFDI.UC_INDD_INSR		--미수 산재보험
+                     , FFDI.HDQ_FRNH_EXCP		--본부비치외
                      , (SELECT LISTAGG(TRIM(SOMOI.OG_NM), '/') WITHIN GROUP(ORDER BY LEVEL DESC )
                           FROM TB_OGBS_MM_OG_IZ SOMOI
                          WHERE 1=1
@@ -76,18 +80,20 @@
                   LEFT OUTER JOIN (SELECT AFDI.DDTN_YM
                                         , AFDI.PRTNR_NO
                                         , AFDI.OG_TP_CD
-                                        , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '05', AFDI.FEE_DDTN_CNFM_AMT, 0)) EINSR
-                                        , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '04', AFDI.FEE_DDTN_CNFM_AMT, 0)) PNPYAM
-                                        , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '07', AFDI.FEE_DDTN_CNFM_AMT, 0)) BU_DDTN
-                                        , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '06', AFDI.FEE_DDTN_CNFM_AMT, 0)) INDD_INSR
-                                        , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '08', AFDI.FEE_DDTN_CNFM_AMT, 0)) REDF
+                                        , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '05', AFDI.FEE_DDTN_CNFM_AMT, 0)) EINSR	--고용보험
+                                        , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '07', AFDI.FEE_DDTN_CNFM_AMT, 0)) BU_DDTN	--부담공제
+                                        , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '06', AFDI.FEE_DDTN_CNFM_AMT, 0)) INDD_INSR	--산재보험
                                         , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '01', AFDI.FEE_DDTN_CNFM_AMT, 0)) RDS	--보증예치금
                                         , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '02', AFDI.FEE_DDTN_CNFM_AMT, 0)) ERNTX	--소득세
                                         , SUM(DECODE(AFDI.FEE_DDTN_TP_CD, '03', AFDI.FEE_DDTN_CNFM_AMT, 0)) RSDNTX	--주민세
-                                        , SUM(DECODE(FDDI.PNPYAM_ATC_CD, '2', AFDI.FEE_DDTN_CNFM_AMT, 0)) PC
-                                        , SUM(DECODE(FDDI.PNPYAM_ATC_CD, '10', AFDI.FEE_DDTN_CNFM_AMT, 0)) TEL
-                                        , SUM(DECODE(FDDI.PNPYAM_ATC_CD, '4', AFDI.FEE_DDTN_CNFM_AMT, 0)) DLQ_REDF
-                                        , SUM(DECODE(FDDI.PNPYAM_ATC_CD, '19', AFDI.FEE_DDTN_CNFM_AMT, 0)) MUTU_REDF
+                                        , SUM(DECODE(FDDI.PNPYAM_ATC_CD, '2', FDDI.FEE_DDTN_CNFM_AMT, 0)) PC	--PC
+                                        , SUM(DECODE(FDDI.PNPYAM_ATC_CD, '10', FDDI.FEE_DDTN_CNFM_AMT, 0)) TEL	-- 전화
+                                        , SUM(DECODE(FDDI.PNPYAM_ATC_CD, '18', FDDI.FEE_DDTN_CNFM_AMT, 0)) REDF	--되물림
+                                        , SUM(DECODE(FDDI.PNPYAM_ATC_CD, '4', FDDI.FEE_DDTN_CNFM_AMT, 0)) DLQ_REDF	--연체 되물림
+                                        , SUM(DECODE(FDDI.PNPYAM_ATC_CD, '19', FDDI.FEE_DDTN_CNFM_AMT, 0)) MUTU_REDF	--상조 되물림
+                                        , SUM(DECODE(FDDI.PNPYAM_ATC_CD, '26', FDDI.FEE_DDTN_CNFM_AMT, 0)) ETC_REDF	--기타 가지급금
+                                        , SUM(DECODE(FDDI.PNPYAM_ATC_CD, '20', FDDI.FEE_DDTN_CNFM_AMT, 0)) UC_INDD_INSR	--미수 산재보험
+                                        , SUM(CASE WHEN FDDI.PNPYAM_ATC_CD NOT IN ('20', '26', '19', '4', '18', '2', '10') THEN FDDI.FEE_DDTN_CNFM_AMT ELSE 0 END) HDQ_FRNH_EXCP	--본부비치외
                                      FROM TB_FEAM_FEE_DDTN_IZ AFDI	/* 수수료공제내역 */
                                      LEFT OUTER JOIN TB_FEAM_FEE_DDTN_DTL_IZ FDDI	/* 수수료공제상세내역 */
                                        ON AFDI.DDTN_YM = FDDI.DDTN_YM
