@@ -5,18 +5,16 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.*;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.CreateReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.FindTmlmRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.SearchBldRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.SearchLmQtyRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper
 public interface WsnaBuildingBsConsumableMapper {
-    List<WsnaBuildingBsConsumableDvo> selectBuildings(SearchReq dto);
 
     List<HashMap<String, Object>> selectBuildingBsConsumables(WsnaBuildingBsConsumableDvo dvo);
-
-    PagingResult<WsnaBuildingBsConsumableDvo> selectBuildings(SearchReq dto, PageInfo pageInfo);
 
     List<WsnaBuildingBsConsumableDvo> selectItemQtys(String mngtYm, String bldCd);
 
