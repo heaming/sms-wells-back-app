@@ -1,50 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaBuildingBsConsumableMapper">
-    <select id="selectBuildings" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo">
-        SELECT O3.BLD_CD
-             , O3.BLD_NM
-             , O3.RSPP_PRTNR_NO
-             , COUNT(1) AS VST_CST_N
-          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ T1
-         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T2
-            ON T2.CNTR_NO = T1.CNTR_NO
-           AND T2.CNTR_SN = T1.CNTR_SN
-           AND T2.MNGT_PRTNR_OG_TP_CD = 'W02'
-           AND T2.DTA_DL_YN = 'N'
-         INNER JOIN TB_SSCT_CNTR_BAS C1
-            ON C1.CNTR_NO = T1.CNTR_NO
-           AND C1.DTA_DL_YN = 'N'
-         INNER JOIN TB_SSCT_CNTR_DTL C2
-            ON C2.CNTR_NO = T1.CNTR_NO
-           AND C2.CNTR_SN = T1.CNTR_SN
-           AND C2.DTA_DL_YN = 'N'
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ O1
-            ON O1.BASE_YM = T1.MNGT_YM
-           AND O1.OG_TP_CD = T2.MNGT_PRTNR_OG_TP_CD
-           AND O1.PRTNR_NO = T2.MNGT_PRTNR_NO
-           AND O1.DTA_DL_YN = 'N'
-         INNER JOIN TB_OGBS_MM_OG_IZ O2
-            ON O2.BASE_YM = O1.BASE_YM
-           AND O2.OG_TP_CD = O1.OG_TP_CD
-           AND O2.OG_ID = O1.OG_ID
-           AND O2.CLO_YN = 'N'
-           AND O2.DTA_DL_YN = 'N'
-         INNER JOIN TB_OGBS_BLD_BAS O3
-            ON O3.OG_TP_CD = O2.OG_TP_CD
-           AND O3.BLD_CD = O2.BLD_CD
-           AND O3.DTA_DL_YN = 'N'
-         WHERE T1.DTA_DL_YN = 'N'
-           AND T1.CNTR_DTL_STAT_CD NOT IN ('401','402')
-           AND T1.MNGT_YM = #{mngtYm}
-           <if test='@MybatisUtils@isNotEmpty(bldCds)'>
-           AND O3.BLD_CD IN (<foreach collection="bldCds" item="bldCd" separator=", ">
-                                  #{bldCd}
-                             </foreach>)
-           </if>
-         GROUP BY O3.BLD_CD, O3.BLD_NM, O3.RSPP_PRTNR_NO
-         ORDER BY O3.BLD_NM
-    </select>
 
     <select id="selectBuildingBsConsumables" resultType="camelMap">
         SELECT M1.BFSVC_CSMB_DDLV_STAT_CD /* BS소모품배부상태코드 */
@@ -366,105 +322,49 @@
     </select>
 
     <select id="selectItems" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo">
-        SELECT T1.BFSVC_CSMB_DDLV_TP_CD /* BS소모품배부유형코드 */
-             , (SELECT Y.CSMB_PD_CD
-                  FROM TB_SVST_BFSVC_CSMB_BASE_DTL Y
-                 WHERE Y.MNGT_YM = T1.MNGT_YM
-                   AND Y.CSMB_PD_CD = T1.CSMB_PD_CD
-                   AND Y.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
-                   AND Y.BFSVC_CSMB_DDLV_ORT_YN = T1.BFSVC_CSMB_DDLV_ORT_YN
-                   AND Y.BFSVC_CSMB_DDLV_TP_CD = '1'
-               ) AS FXN_PD_CD /* 고정품목코드 */
-             , (SELECT X.BOX_UNIT_QTY ||
-                       F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', X.MNGT_UNIT_CD, 'ko')
-                  FROM TB_SVST_BFSVC_CSMB_BASE_BAS X
-                     , TB_SVST_BFSVC_CSMB_BASE_DTL Y
-                 WHERE X.MNGT_YM = Y.MNGT_YM
-                   AND X.CSMB_PD_CD = Y.CSMB_PD_CD
-                   AND Y.MNGT_YM = T1.MNGT_YM
-                   AND Y.CSMB_PD_CD = T1.CSMB_PD_CD
-                   AND Y.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
-                   AND Y.BFSVC_CSMB_DDLV_ORT_YN = T1.BFSVC_CSMB_DDLV_ORT_YN
-                   AND Y.BFSVC_CSMB_DDLV_TP_CD = '1'
-               ) AS FXN_PCKNG_UNIT /* 고정포장단위 */
-             , (SELECT Y.PD_NM
-                  FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
-                     , TB_PDBS_PD_BAS Y
-                 WHERE X.CSMB_PD_CD = Y.PD_CD
-                   AND X.CSMB_PD_CD = T1.CSMB_PD_CD
-                   AND X.MNGT_YM = T1.MNGT_YM
-                   AND X.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
-                   AND X.BFSVC_CSMB_DDLV_ORT_YN = T1.BFSVC_CSMB_DDLV_ORT_YN
-                   AND X.BFSVC_CSMB_DDLV_TP_CD = '1'
-               ) AS FXN_PD_NM /* 고정품목명 */
-             , (SELECT Y.SAP_MAT_CD
-                  FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
-                     , TB_PDBS_PD_BAS Y
-                 WHERE X.CSMB_PD_CD = Y.PD_CD
-                   AND X.MNGT_YM = T1.MNGT_YM
-                   AND X.CSMB_PD_CD = T1.CSMB_PD_CD
-                   AND X.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
-                   AND X.BFSVC_CSMB_DDLV_ORT_YN = T1.BFSVC_CSMB_DDLV_ORT_YN
-                   AND X.BFSVC_CSMB_DDLV_TP_CD = '1'
-               ) AS FXN_SAP_MAT_CD /* 고정SAP자재코드 */
-             , (SELECT Y.CSMB_PD_CD
-                  FROM TB_SVST_BFSVC_CSMB_BASE_DTL Y
-                 WHERE Y.MNGT_YM = T1.MNGT_YM
-                   AND Y.CSMB_PD_CD = T1.CSMB_PD_CD
-                   AND Y.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
-                   AND Y.BFSVC_CSMB_DDLV_ORT_YN = T1.BFSVC_CSMB_DDLV_ORT_YN
-                   AND Y.BFSVC_CSMB_DDLV_TP_CD = '2'
-               ) AS APLC_PD_CD /* 신청품목코드 */
-             , (SELECT X.BOX_UNIT_QTY ||
-                       F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', X.MNGT_UNIT_CD, 'ko')
-                  FROM TB_SVST_BFSVC_CSMB_BASE_BAS X
-                     , TB_SVST_BFSVC_CSMB_BASE_DTL Y
-                 WHERE X.MNGT_YM = Y.MNGT_YM
-                   AND X.CSMB_PD_CD = Y.CSMB_PD_CD
-                   AND Y.MNGT_YM = T1.MNGT_YM
-                   AND Y.CSMB_PD_CD = T1.CSMB_PD_CD
-                   AND Y.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
-                   AND Y.BFSVC_CSMB_DDLV_ORT_YN = T1.BFSVC_CSMB_DDLV_ORT_YN
-                   AND Y.BFSVC_CSMB_DDLV_TP_CD = '2'
-               ) AS APLC_PCKNG_UNIT /* 신청포장단위 */
-             , (SELECT Y.PD_NM
-                  FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
-                     , TB_PDBS_PD_BAS Y
-                 WHERE X.CSMB_PD_CD = Y.PD_CD
-                   AND X.CSMB_PD_CD = T1.CSMB_PD_CD
-                   AND X.MNGT_YM = T1.MNGT_YM
-                   AND X.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
-                   AND X.BFSVC_CSMB_DDLV_ORT_YN = T1.BFSVC_CSMB_DDLV_ORT_YN
-                   AND X.BFSVC_CSMB_DDLV_TP_CD = '2'
-               ) AS APLC_PD_NM /* 신청품목명 */
-             , (SELECT Y.SAP_MAT_CD
-                  FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
-                     , TB_PDBS_PD_BAS Y
-                 WHERE X.CSMB_PD_CD = Y.PD_CD
-                   AND X.MNGT_YM = T1.MNGT_YM
-                   AND X.CSMB_PD_CD = T1.CSMB_PD_CD
-                   AND X.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
-                   AND X.BFSVC_CSMB_DDLV_ORT_YN = T1.BFSVC_CSMB_DDLV_ORT_YN
-                   AND X.BFSVC_CSMB_DDLV_TP_CD = '2'
-               ) AS APLC_SAP_MAT_CD /* 신청SAP자재코드 */
-             , NULL AS QTY  /* 수량 */
-             , T1.CSMB_PD_CD  /* 소모품품목코드 */
-             , (SELECT Y.SAP_MAT_CD
-                  FROM TB_SVST_BFSVC_CSMB_BASE_DTL X
-                     , TB_PDBS_PD_BAS Y
-                 WHERE X.CSMB_PD_CD = Y.PD_CD
-                   AND X.MNGT_YM = T1.MNGT_YM
-                   AND X.CSMB_PD_CD = T1.CSMB_PD_CD
-                   AND X.BFSVC_CSMB_DDLV_OJ_CD = T1.BFSVC_CSMB_DDLV_OJ_CD
-                   AND X.BFSVC_CSMB_DDLV_ORT_YN = T1.BFSVC_CSMB_DDLV_ORT_YN
-               ) AS SAP_MAT_CD /* SAP자재코드 */
-          FROM TB_SVST_BFSVC_CSMB_BASE_DTL T1
-             , TB_PDBS_PD_BAS T2
-         WHERE T1.CSMB_PD_CD = T2.PD_CD
-           AND T1.BFSVC_CSMB_DDLV_OJ_CD = '3'
-           AND T1.BFSVC_CSMB_DDLV_ORT_YN = 'Y'
-           AND T1.MNGT_YM = #{mngtYm}
-         ORDER BY T1.BFSVC_CSMB_DDLV_TP_CD, T1.SORT_ODR
+        SELECT D1.BFSVC_CSMB_DDLV_TP_CD   /* 배부유형코드 */
+             , CASE WHEN D1.BFSVC_CSMB_DDLV_TP_CD = '1'
+                    THEN D1.CSMB_PD_CD
+               END  AS FXN_PD_CD          /* 고정품목코드 */
+             , CASE WHEN D1.BFSVC_CSMB_DDLV_TP_CD = '1'
+                    THEN D3.BOX_UNIT_QTY || F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', D3.MNGT_UNIT_CD, #{session.langId})
+               END  AS FXN_PCKNG_UNIT     /* 고정포장단위 */
+             , CASE WHEN D1.BFSVC_CSMB_DDLV_TP_CD = '1'
+                    THEN D2.PD_NM
+               END  AS FXN_PD_NM          /* 고정품목명 */
+             , CASE WHEN D1.BFSVC_CSMB_DDLV_TP_CD = '1'
+                    THEN D2.SAP_MAT_CD
+               END  AS FXN_SAP_MAT_CD     /* 고정SAP자재코드 */
+             , CASE WHEN D1.BFSVC_CSMB_DDLV_TP_CD = '2'
+                    THEN D1.CSMB_PD_CD
+               END  AS APLC_PD_CD         /* 신청품목코드 */
+             , CASE WHEN D1.BFSVC_CSMB_DDLV_TP_CD = '2'
+                    THEN D3.BOX_UNIT_QTY || F_CMZ_CD_NM('TNT_WELLS', 'MNGT_UNIT_CD', D3.MNGT_UNIT_CD, #{session.langId})
+               END  AS APLC_PCKNG_UNIT    /* 신청포장단위 */
+             , CASE WHEN D1.BFSVC_CSMB_DDLV_TP_CD = '2'
+                    THEN D2.PD_NM
+               END  AS APLC_PD_NM         /* 신청품목명 */
+             , CASE WHEN D1.BFSVC_CSMB_DDLV_TP_CD = '2'
+                    THEN D2.SAP_MAT_CD
+               END  AS APLC_SAP_MAT_CD    /* 신청SAP자재코드 */
+             , NULL AS QTY                /* 수량 */
+             , D1.CSMB_PD_CD              /* 소모품상품코드 */
+             , D2.SAP_MAT_CD              /* SAP자재코드 */
+          FROM TB_SVST_BFSVC_CSMB_BASE_DTL D1
+         INNER JOIN TB_PDBS_PD_BAS D2
+            ON D2.PD_CD = D1.CSMB_PD_CD
+         INNER JOIN TB_SVST_BFSVC_CSMB_BASE_BAS D3
+            ON D3.MNGT_YM    = D1.MNGT_YM
+           AND D3.CSMB_PD_CD = D1.CSMB_PD_CD
+         WHERE D1.DTA_DL_YN              = 'N'
+           AND D1.BFSVC_CSMB_DDLV_OJ_CD  = '3'
+           AND D1.BFSVC_CSMB_DDLV_ORT_YN = 'Y'
+           AND D2.DTA_DL_YN              = 'N'
+           AND D2.PD_TP_CD               = 'M'
+           AND D3.DTA_DL_YN              = 'N'
+           AND D1.MNGT_YM                = #{mngtYm}
+           AND D3.MNGT_YM                = #{mngtYm}
+         ORDER BY D1.BFSVC_CSMB_DDLV_TP_CD, D1.SORT_ODR
     </select>
 
     <select id="selectBuildingBsConsumableAplcClose" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto$FindTmlmRes">
@@ -548,23 +448,18 @@
     </insert>
 
     <select id="selectBuildingList" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto$SearchBldRes">
-        SELECT T1.BLD_CD
-             , T1.BLD_NM
-          FROM TB_OGBS_BLD_BAS T1
-             , (SELECT X.OG_TP_CD
-                     , X.BLD_CD
-                  FROM TB_OGBS_MM_OG_IZ X
-                 WHERE X.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                   AND X.BLD_CD IS NOT NULL
-                   AND X.OG_TP_CD = 'W02'
-                   AND X.CLO_YN = 'N'
-                   AND X.DTA_DL_YN = 'N'
-               ) T2
-         WHERE T1.DTA_DL_YN = 'N'
-           AND T1.OG_TP_CD = T2.OG_TP_CD
-           AND T1.BLD_CD = T2.BLD_CD
-         GROUP BY T1.BLD_CD, T1.BLD_NM
-         ORDER BY T1.BLD_NM
+        SELECT DISTINCT D1.BLD_CD
+             , D1.BLD_NM
+          FROM TB_OGBS_BLD_BAS D1         /* 빌딩기본 */
+         INNER JOIN TB_OGBS_MM_OG_IZ D2   /* 월조직내역 */
+            ON D2.OG_TP_CD = D1.OG_TP_CD
+           AND D2.BLD_CD   = D1.BLD_CD
+         WHERE D1.DTA_DL_YN = 'N'
+           AND D2.DTA_DL_YN = 'N'
+           AND D2.BASE_YM   = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND D2.OG_TP_CD  = 'W02'
+           AND D2.CLO_YN    = 'N'
+         ORDER BY D1.BLD_NM
     </select>
 
     <insert id="mergeBuildingBsConsumables">

@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,9 +70,7 @@ public class WsnaManagerBsConsumableService {
 
                 pajuStocks.forEach(stock -> {
                     if (dvo.getCsmbPdCd().equals(stock.getItmPdCd())) {
-                        int pajuLgstCnrStocQty = stock.getLgstAGdQty().intValue() + stock.getLgstBGdQty().intValue()
-                            + stock.getLgstCGdQty().intValue() + stock.getLgstEGdQty().intValue()
-                            + stock.getLgstRGdQty().intValue();
+                        BigDecimal pajuLgstCnrStocQty = stock.getLgstAGdQty();
 
                         if ("1".equals(dvo.getBfsvcCsmbDdlvTpCd())) { // 고정품목
                             dvo.setFxnPdNm(fxnPdNm + "(" + pajuLgstCnrStocQty + ")");
