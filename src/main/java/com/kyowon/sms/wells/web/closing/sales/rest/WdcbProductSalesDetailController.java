@@ -1,13 +1,14 @@
 package com.kyowon.sms.wells.web.closing.sales.rest;
 
+import java.io.IOException;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto.SearchMembershipRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbProductSalesDetailDto.SearchRentalRes;
@@ -160,6 +161,16 @@ public class WdcbProductSalesDetailController {
         SearchReq dto
     ) {
         return service.getProductSalesRentalDetails(dto);
+    }
+
+    @ApiOperation(value = "상품별(렌탈) 매출 현황 대량 엑셀 다운로드", notes = "조회조건에 따른 상품별 매출 목록을 엑셀 다운로드")
+    @PostMapping("/rental/bulk-excel-download")
+    public void getProductSalesRentalDetailsBulkExcelDownload(
+        @RequestBody
+        ExcelBulkDownloadDto.DownloadReq req,
+        HttpServletResponse response
+    ) throws IOException {
+        service.getProductSalesRentalDetailsBulkExcelDownload(req, response);
     }
 
     /**
