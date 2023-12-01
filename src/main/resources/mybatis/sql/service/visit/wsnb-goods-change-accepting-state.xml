@@ -185,7 +185,7 @@
            AND CNTR_SN = #{cntrSn}
     </update>
     <update id="updateCstSvasIstOjIz">
-        UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ T1
+        UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ T1                    /* 고객서비스AS설치대상내역 */
            SET SV_BIZ_HCLSF_CD = SUBSTR(#{newSvBizDclsfCd}, 1, 1)
              , SV_BIZ_DCLSF_CD = #{newSvBizDclsfCd}
              , RCP_SV_BIZ_DCLSF_CD = CASE WHEN (SELECT RCP_SV_BIZ_DCLSF_CD
@@ -199,7 +199,12 @@
                                                    AND DTA_DL_YN = 'N')
                                      END
             <include refid="COMMON.updateSystemField"/>
-         WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+         WHERE CST_SV_ASN_NO = (CASE WHEN (#{asIstOjNo} IS NOT NULL AND LENGTH(#{asIstOjNo}) > 0 )
+                                     THEN (SELECT CST_SV_ASN_NO
+                                             FROM TB_SVPD_CST_SVAS_IST_OJ_IZ
+                                            WHERE AS_IST_OJ_NO = #{asIstOjNo})
+                                     ELSE #{cstSvAsnNo}
+                                 END)
            AND NOT EXISTS (SELECT 1
                              FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
                             WHERE CST_SV_ASN_NO= #{cstSvAsnNo}
@@ -210,7 +215,12 @@
     </update>
     <insert id="insertCstSvasIstOjHist">
         <include refid="com.kyowon.sms.wells.web.service.common.mapper.WsnzHistoryMapper.insertCstSvasIstOjHist" />
-        AND CST_SV_ASN_NO = #{cstSvAsnNo}
+        AND CST_SV_ASN_NO = (CASE WHEN (#{asIstOjNo} IS NOT NULL AND LENGTH(#{asIstOjNo}) > 0 )
+                                  THEN (SELECT CST_SV_ASN_NO
+                                         FROM TB_SVPD_CST_SVAS_IST_OJ_IZ
+                                        WHERE AS_IST_OJ_NO = #{asIstOjNo})
+                                  ELSE #{cstSvAsnNo}
+                             END)
            AND NOT EXISTS (SELECT 1
                              FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
                             WHERE CST_SV_ASN_NO= #{cstSvAsnNo}
@@ -220,11 +230,16 @@
         AND DTA_DL_YN = 'N'
     </insert>
     <update id="updateCstSvAsIstAsnIz">
-        UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ
+        UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ                      /* 고객서비스AS설치배정내역 */
            SET SV_BIZ_HCLSF_CD = SUBSTR(#{newSvBizDclsfCd}, 1, 1)
              , SV_BIZ_DCLSF_CD = #{newSvBizDclsfCd}
             <include refid="COMMON.updateSystemField"/>
-         WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+         WHERE CST_SV_ASN_NO = (CASE WHEN (#{asIstOjNo} IS NOT NULL AND LENGTH(#{asIstOjNo}) > 0 )
+                                     THEN (SELECT CST_SV_ASN_NO
+                                             FROM TB_SVPD_CST_SVAS_IST_OJ_IZ
+                                            WHERE AS_IST_OJ_NO = #{asIstOjNo})
+                                     ELSE #{cstSvAsnNo}
+                                END)
            AND WK_PRGS_STAT_CD = '20'
            AND DTA_DL_YN = 'N'
     </update>
@@ -239,7 +254,12 @@
              , DTA_DL_YN
             <include refid="COMMON.insertSystemField"/>
         ) VALUES (
-               #{cstSvAsnNo}
+               (CASE WHEN (#{asIstOjNo} IS NOT NULL AND LENGTH(#{asIstOjNo}) > 0 )
+                     THEN (SELECT CST_SV_ASN_NO
+                             FROM TB_SVPD_CST_SVAS_IST_OJ_IZ
+                            WHERE AS_IST_OJ_NO = #{asIstOjNo})
+                     ELSE #{cstSvAsnNo}
+                END)
              , NVL((SELECT MAX(CH_SN)
                       FROM TB_SVPD_SV_WK_DCH_IZ
                      WHERE CST_SV_ASN_NO = #{cstSvAsnNo}), 0) + 1
