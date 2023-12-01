@@ -70,7 +70,7 @@ public class WsnaBsCsmbGiveAOrderService {
     }
 
     /**
-     * 이전 BS소모품 발주수량 산출내역 조회
+     * BS소모품 발주수량 산출내역 조회 (미래일자인 경우)
      * @param dto
      * @return
      */
@@ -99,7 +99,7 @@ public class WsnaBsCsmbGiveAOrderService {
 
             dvos.forEach(dvo -> {
                 pajuStocks.forEach(stock -> {
-                    if (dvo.getCsmbPdCd().equals(stock.getItmPdCd()) && "N".equals(dvo.getRgstYn())) {
+                    if (dvo.getCsmbPdCd().equals(stock.getItmPdCd())) {
 
                         // A등급 재고만 셋팅
                         dvo.setPajuLgstCnrStocQty(stock.getLgstAGdQty());
@@ -114,7 +114,7 @@ public class WsnaBsCsmbGiveAOrderService {
 
                 dvos.forEach(dvo -> {
                     sgsuStocks.forEach(stock -> {
-                        if (dvo.getCsmbPdCd().equals(stock.getItmPdCd()) && "N".equals(dvo.getRgstYn())) {
+                        if (dvo.getCsmbPdCd().equals(stock.getItmPdCd())) {
                             // A등급만 셋팅
                             dvo.setSgsuLgstCnrStocQty(stock.getLgstAGdQty());
                         }
@@ -124,71 +124,67 @@ public class WsnaBsCsmbGiveAOrderService {
         }
 
         for (WsnaBsCsmbGiveAOrderDvo dvo : dvos) {
-            // 등록여부
-            String rgstYn = dvo.getRgstYn();
-            if ("N".equals(rgstYn)) {
-                // 전체 재고 = 입고대기 + 파주재고 + 성수재고
-                BigDecimal woStocQty = dvo.getPajuLgstCnrStocQty().add(dvo.getSgsuLgstCnrStocQty())
-                    .add(dvo.getStrStnbQty());
-                // 월평균 배부수량
-                BigDecimal mmAvDdlvQty = dvo.getMmAvDdlvQty();
-                // 전체재고 셋팅
-                dvo.setWoStocQty(woStocQty);
+            // 전체 재고 = 입고대기 + 파주재고 + 성수재고
+            BigDecimal woStocQty = dvo.getPajuLgstCnrStocQty().add(dvo.getSgsuLgstCnrStocQty())
+                .add(dvo.getStrStnbQty());
+            // 월평균 배부수량
+            BigDecimal mmAvDdlvQty = dvo.getMmAvDdlvQty();
+            // 전체재고 셋팅
+            dvo.setWoStocQty(woStocQty);
 
-                // 재고지속월, 필요수량 셋팅
-                if (BigDecimal.ZERO == woStocQty || BigDecimal.ZERO == mmAvDdlvQty) {
-                    dvo.setStocPersMmN(0);
-                    dvo.setNcstQty(0);
-                } else {
-                    dvo.setStocPersMmN(
-                        Math.round(woStocQty.divide(mmAvDdlvQty, 1, BigDecimal.ROUND_CEILING).floatValue())
-                    );
-                    // 월평균배부수량 * 3 - 최종재고
-                    BigDecimal ncstQty = mmAvDdlvQty.multiply(BigDecimal.valueOf(3L)).subtract(woStocQty);
-                    dvo.setNcstQty(BigDecimal.ZERO.compareTo(ncstQty) > 0 ? 0 : ncstQty.intValue());
+            // 재고지속월, 필요수량 셋팅
+            if (BigDecimal.ZERO == woStocQty || BigDecimal.ZERO == mmAvDdlvQty) {
+                dvo.setStocPersMmN(0);
+                dvo.setNcstQty(0);
+            } else {
+                dvo.setStocPersMmN(
+                    Math.round(woStocQty.divide(mmAvDdlvQty, 1, BigDecimal.ROUND_CEILING).floatValue())
+                );
+                // 월평균배부수량 * 3 - 최종재고
+                BigDecimal ncstQty = mmAvDdlvQty.multiply(BigDecimal.valueOf(3L)).subtract(woStocQty);
+                dvo.setNcstQty(BigDecimal.ZERO.compareTo(ncstQty) > 0 ? 0 : ncstQty.intValue());
+            }
+
+            // 최소주문수량
+            BigDecimal minOrdQty = dvo.getMinOrdQty();
+            // 필요수량
+            int ncstQty = dvo.getNcstQty();
+
+            // 발주수량 셋팅
+            if (BigDecimal.ZERO == minOrdQty || ncstQty == 0) {
+                dvo.setGoQty(BigDecimal.ZERO);
+
+                // 최소수량이 필요수량보다 클 경우
+            } else if (minOrdQty.intValue() >= ncstQty) {
+                // 최소수량만큼 발주수량을 셋팅
+                dvo.setGoQty(minOrdQty);
+            } else {
+                // 최소수량 < 필요수량
+                int i = 1;
+                while (minOrdQty.intValue() <= ncstQty) {
+                    // 최소수량
+                    minOrdQty = minOrdQty.multiply(BigDecimal.valueOf(i++));
                 }
+                // 최소수량만큼 발주수량을 셋팅
+                dvo.setGoQty(minOrdQty);
+            }
 
-                // 최소주문수량
-                BigDecimal minOrdQty = dvo.getMinOrdQty();
-                // 필요수량
-                int ncstQty = dvo.getNcstQty();
+            // 발주수량
+            BigDecimal goQty = dvo.getGoQty();
+            // 발주단가
+            BigDecimal goUprc = dvo.getGoUprc();
 
-                // 발주수량 셋팅
-                if (BigDecimal.ZERO == minOrdQty || ncstQty == 0) {
-                    dvo.setGoQty(BigDecimal.ZERO);
+            // 발주금액 셋팅
+            dvo.setGoAmt(goQty.multiply(goUprc));
 
-                    // 최소수량이 필요수량보다 클 경우
-                } else if (minOrdQty.intValue() >= ncstQty) {
-                    // 최소수량만큼 발주수량을 셋팅
-                    dvo.setGoQty(minOrdQty);
-                } else {
-                    // 최소수량 < 필요수량
-                    int i = 1;
-                    while (minOrdQty.intValue() <= ncstQty) {
-                        // 최소수량
-                        minOrdQty = minOrdQty.multiply(BigDecimal.valueOf(i++));
-                    }
-                    // 최소수량만큼 발주수량을 셋팅
-                    dvo.setGoQty(minOrdQty);
-                }
+            // 재고지속월
+            int stocPersMmN = dvo.getStocPersMmN();
 
-                // 발주수량
-                BigDecimal goQty = dvo.getGoQty();
-                // 발주단가
-                BigDecimal goUprc = dvo.getGoUprc();
-
-                // 발주금액 셋팅
-                dvo.setGoAmt(goQty.multiply(goUprc));
-
-                // 재고지속월
-                int stocPersMmN = dvo.getStocPersMmN();
-
-                try {
-                    // 예상소진일자 셋팅
-                    dvo.setEtExsDt(DateUtil.addMonths(baseDay, stocPersMmN));
-                } catch (ParseException e) {
-                    throw new BizException(e);
-                }
+            try {
+                // 예상소진일자 셋팅
+                dvo.setEtExsDt(DateUtil.addMonths(baseDay, stocPersMmN));
+            } catch (ParseException e) {
+                throw new BizException(e);
             }
         }
 
