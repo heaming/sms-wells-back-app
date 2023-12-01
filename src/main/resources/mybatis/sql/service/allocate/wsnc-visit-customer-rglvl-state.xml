@@ -58,9 +58,11 @@
                 AND T1.OG_TP_CD IN ('HR1', 'W02', 'W03', 'W06')
                 AND T1.OG_TP_CD = NVL(S1.CNFM_PSIC_PRTNR_OG_TP_CD, NVL(S2.FXN_PRTNR_OG_TP_CD, S2.MNGT_PRTNR_OG_TP_CD))
                 AND T1.PRTNR_NO = NVL(S1.CNFM_PSIC_PRTNR_NO, NVL(S2.FXN_PRTNR_NO, S2.MNGT_PRTNR_NO))
+                AND T1.DTA_DL_YN = 'N'
              INNER JOIN WSMDBS.TB_OGBS_MM_OG_IZ T2                   /*월조직내역*/
                  ON T1.OG_ID = T2.OG_ID
                 AND T1.BASE_YM = T2.BASE_YM
+                AND T1.OG_TP_CD = T2.OG_TP_CD
                 AND T2.DTA_DL_YN = 'N'
               WHERE 1=1
                 AND S1.ASN_OJ_YM = #{visitYm}
@@ -185,7 +187,7 @@
              INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T2  /*상품각사속성상세*/
                 ON T1.PD_CD = T2.PD_CD
               WHERE 1=1
-               AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT')
+               AND ((T1.PD_TP_CD ='P' AND T2.PD_EXTS_PRP_GRP_CD = 'SPP') OR (T1.PD_TP_CD ='M' AND T2.PD_EXTS_PRP_GRP_CD = 'PDCT') OR (T1.PD_TP_CD ='S' AND T2.PD_EXTS_PRP_GRP_CD = 'SCHD'))
                AND (T1.PD_CD IN (SELECT PDCT_PD_CD FROM CNTR_INF) OR T1.PD_CD IN (SELECT SV_PD_CD FROM CNTR_INF) OR T1.PD_CD IN (SELECT BASE_PD_CD FROM CNTR_INF))
             )
             SELECT I1.CNTR_NO
@@ -241,15 +243,15 @@
                 ON I1.CNTR_NO = C1.CNTR_NO
                AND I1.CNTR_SN = C1.CNTR_SN
                AND C1.ADRPC_TP_CD_RN = '1'              /*ADRPC_TP_CD 값을 rank 함*/
-            LEFT OUTER JOIN PD_INF P1                   /*상품정보 - 원래는 inner join 으로 해야 하는데 데이타 이행이 제대로 안되서*/
+            INNER JOIN PD_INF P1                   /*상품정보 - 원래는 inner join 으로 해야 하는데 데이타 이행이 제대로 안되서*/
                 ON C1.BASE_PD_CD = P1.PD_CD
                AND P1.PD_TP_CD = 'P'                    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
                AND P1.PD_EXTS_PRP_GRP_CD = 'SPP'
-            LEFT OUTER JOIN PD_INF P2                   /*상품정보 - 원래는 inner join 으로 해야 하는데 데이타 이행이 제대로 안되서*/
+            INNER JOIN PD_INF P2                   /*상품정보 - 원래는 inner join 으로 해야 하는데 데이타 이행이 제대로 안되서*/
                 ON C1.PDCT_PD_CD = P2.PD_CD
                AND P2.PD_TP_CD = 'M'                    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
                AND P2.PD_EXTS_PRP_GRP_CD = 'PDCT'
-            LEFT OUTER JOIN PD_INF P3                   /*상품정보 - 원래는 inner join 으로 해야 하는데 데이타 이행이 제대로 안되서*/
+            INNER JOIN PD_INF P3                   /*상품정보 - 원래는 inner join 으로 해야 하는데 데이타 이행이 제대로 안되서*/
                 ON C1.SV_PD_CD = P3.PD_CD
                AND P3.PD_TP_CD = 'S'                    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
                AND P3.PD_EXTS_PRP_GRP_CD = 'SCHD'
