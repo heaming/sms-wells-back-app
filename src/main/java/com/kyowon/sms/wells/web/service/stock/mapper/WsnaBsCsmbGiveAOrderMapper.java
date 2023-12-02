@@ -10,15 +10,13 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbGiveAOrderDvo;
 
 @Mapper
 public interface WsnaBsCsmbGiveAOrderMapper {
+
+    List<ProdutCodeRes> selectProductCodesByItmKndCd(String itmKndCd);
+
     List<WsnaBsCsmbGiveAOrderDvo> selectBeforeBsCsmbGiveAOrderQty(SearchReq dto);
 
     List<WsnaBsCsmbGiveAOrderDvo> selectBsCsmbGiveAOrderQty(SearchReq dto);
 
-    int insertBsCsmbGiveAOrderQty(WsnaBsCsmbGiveAOrderDvo dvo);
+    int mergeBsCsmbGiveAOrderQty(WsnaBsCsmbGiveAOrderDvo dvo);
 
-    int deleteBsCsmbGiveAOrderQty(String mngtYm, String csmbPdCd);
-
-    int selectExistBsCsmbGiveAOrderQtyYn(String mngtYm, List<String> csmbPdCds);
-
-    List<ProdutCodeRes> selectProductCodesByItmKndCd(String itmKndCd);
 }

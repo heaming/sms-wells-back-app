@@ -11,6 +11,8 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductReturningGoodsMgt
 @Mapper
 public interface WsnaMdProductReturningGoodsMgtMapper {
 
+    String selectLoginPrtnrBzs();
+
     List<WsnaMdProductReturningGoodsMgtDvo> selectMdProductReturningGoods(SearchReq dto);
 
     String selectNextItmOstrNo(FindItmOstrNoReq dto);

@@ -58,6 +58,7 @@ public class WsnbGoodsChangeAcceptingStateService {
     @Transactional
     public int saveGoodsChangeAcceptingStateApprove(List<SaveReq> dtos) throws Exception {
         int processCount = 0;
+        String asIstOjNo = "";
 
         for (SaveReq dto : dtos) {
             WsnbGoodsChangeAcceptingStateDvo dvo = converter.mapSaveReqToGoodsChangeAcceptingStateDvo(dto);
@@ -87,7 +88,9 @@ public class WsnbGoodsChangeAcceptingStateService {
                 wkDvo.setRcpOgTpCd("W06");
 
                 // 배정서비스 호출
-                workOrderService.saveWorkOrders(wkDvo);
+                asIstOjNo = workOrderService.saveWorkOrders(wkDvo);
+                // 설치배정번호 세팅
+                dvo.setAsIstOjNo(asIstOjNo);
             }
 
             // 변경후 코드 없을 때 3210(제품원인) 세팅

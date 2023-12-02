@@ -97,17 +97,23 @@
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C1.VL_STRT_DTM AND C1.VL_END_DTM
          INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 		/* T:계약결제기본 */
             ON T4.CNTR_STLM_ID = C1.CNTR_STLM_ID
-		  LEFT JOIN (SELECT *
+		  LEFT JOIN (SELECT CST_NO
+		  				  , FST_RGST_DTM
+		  				  , BND_MSG_TP_VAL1
+		  				  , BND_MSG_TP_VAL2
+		  				  , FW_BIZ_NM
+		  				  , BND_MSG_RELY_ID
+		  				  , FWBOO_DTM
+		  				  , ROW_NUMBER() OVER(PARTITION BY BND_MSG_RELY_ID ORDER BY FST_RGST_DTM DESC) RANK_NUM
 					   FROM TB_CBBO_BND_MSG_RELY_IZ
 					  WHERE FW_BIZ_NM = 'BN_KAKAO_MESSAGE' /*발송업무명*/
 						AND MSG_FW_TP_CD = '01'            /*메시지발송유형코드-01:카카오알림톡*/
 						AND BND_MSG_TP_VAL1 = 'B'          /*채권알림톡업무코드-B:등록관련*/
 						AND BND_MSG_TP_VAL2 = 'B05'        /*채권알림톡업무상세코드-B05:렌탈CB연체정보등록 예고*/
-					  ORDER BY FST_RGST_DTM DESC
-					  FETCH FIRST 1 ROW ONLY
 					) T5 /*T:채권메시지중계내역*/
 			ON T5.CST_NO = X.CST_NO
 		   AND SUBSTR(T5.FST_RGST_DTM,1,8) = X.NOTY_TRS_DT  /*알림전송일자*/
+		   AND T5.RANK_NUM = 1
 		  LEFT OUTER JOIN (SELECT *
 							 FROM ATA_MMT_TRAN
 							WHERE TEMPLATE_CODE = 'wells18153'  /*템플릿코드*/
@@ -127,6 +133,7 @@
 										   AND (RVE_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),1),'YYYYMM')||'01'
 															   AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),1),'YYYYMM')||LPAD(T4.MPY_BSDT,2,'0'))
 									  ),0) > 0
+         ORDER BY X.CST_NO
     </select>
     <update id="updateRentalCbDlqIz" >
         /* 렌탈CB 연체이력 조회 - 저장(NICE발송제외 여부) */
@@ -168,7 +175,7 @@
 		<include refid="COMMON.insertSystemField"/>
         )
         SELECT CNTR_NO                 /*계약번호*/
-             , TO_CHAR(SYSDATE,'YYYYMMDDHH24MMSS')
+             , TO_CHAR(SYSDATE,'YYMMDDHH24MMSS')||LPAD(ROWNUM,2,0) AS HIST_CH_DTM
              , CST_NO                  /*고객번호*/
              , RENTAL_CB_RGST_DV_CD    /*렌탈CB등록구분코드*/
              , DLQ_AMT                 /*연체금액*/
@@ -208,7 +215,6 @@
            AND CST_NO = #{cstNo}
            AND OC_BSDT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')||'%'
            AND NOTY_FW_OJ_YN = 'Y'
-           AND NICE_FW_EXCD_YN = 'N'
            AND DTA_DL_YN = 'N'
     </update>
 </mapper>

@@ -340,15 +340,6 @@ public class WsnaReturningGoodsStoreService {
     }
 
     /**
-     * 반품입고 엑셀다운로드
-     * @param dto
-     * @return
-     */
-    public List<SearchRes> getReturningGoodsStoresExcelDownload(SearchReq dto) {
-        return mapper.selectReturningGoodsStores(dto);
-    }
-
-    /**
      * 반품처리유형코드 저장
      * @param dtos
      * @return
