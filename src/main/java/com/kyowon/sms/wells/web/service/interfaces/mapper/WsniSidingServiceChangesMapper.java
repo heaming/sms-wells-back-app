@@ -72,17 +72,10 @@ public interface WsniSidingServiceChangesMapper {
      * @param afchPdCd
      * @return
      */
-    WsniSidingServiceChangesDvo selectBsTarget(
-        String cntrNo,
-        String cntrSn,
-        String asnOjYm,
-        String afchPdCd
-    );
+    WsniSidingServiceChangesDvo selectBsTarget(String cntrNo, String cntrSn, String asnOjYm, String afchPdCd);
 
     int updateStopNextSiding(String cntrNo, String cntrSn, String akChdt);
 
-    String selectPdctPdCds(
-        String cntrNo,
-        String cntrSn
-    );
+    String selectPdctPdCds(String cntrNo, String cntrSn);
+
 }
