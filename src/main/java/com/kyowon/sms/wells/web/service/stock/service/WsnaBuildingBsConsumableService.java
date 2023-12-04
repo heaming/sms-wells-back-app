@@ -213,7 +213,6 @@ public class WsnaBuildingBsConsumableService {
         // 화면에 입력 후 저장하지 않고 바로 출고요청 하는 경우를 대비해 저장 로직 태워줌
         this.createBuildingBsConsumables(dtos);
 
-        String ostrAkNo;
         String ostrAkRgstDt = DateUtil.getNowDayString();
         String mngtYm = dtos.get(0).mngtYm();
         List<String> strWareNos = dtos.stream().map(CreateReq::strWareNo).distinct().toList();
@@ -225,7 +224,7 @@ public class WsnaBuildingBsConsumableService {
 
                 SFLEXContext context = SFLEXContextHolder.getContext();
                 UserSessionDvo userSession = context.getUserSession();
-                ostrAkNo = mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_BS, ostrAkRgstDt);
+                String ostrAkNo = mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_BS, ostrAkRgstDt);
                 int ostrAkSn = 1;
 
                 List<WsnaBsConsumablesAskReqDvo> reqDvos = new ArrayList<>(dvos.size());
