@@ -26,7 +26,7 @@ public class WfeyNewChannelBaseDto {
         String pmotCd,           /* 프로모션코드 */
         String feecDvCd,         /* 수수료채널구분코드 */
         String sppDvCd,          /* 배송구분코드 */
-        Long svPrd,              /* 서비스주기 */
+        String svPrd,              /* 서비스주기 */
         String hcrDvCd1,          /* 홈케어구분코드 */
         String hcrDvCd2,          /* 홈케어구분코드 */
         String hgrPdCd,          /* 상위상품코드 */
@@ -61,7 +61,7 @@ public class WfeyNewChannelBaseDto {
         String pmotCd,           /* 프로모션코드 */
         String feecDvCd,         /* 수수료채널구분코드 */
         String sppDvCd,          /* 배송구분코드 */
-        Long svPrd,              /* 서비스주기 */
+        String svPrd,              /* 서비스주기 */
         String hcrDvCd1,          /* 홈케어구분코드 */
         String hcrDvCd2,          /* 홈케어구분코드 */
         String hgrPdCd,          /* 상위상품코드 */
