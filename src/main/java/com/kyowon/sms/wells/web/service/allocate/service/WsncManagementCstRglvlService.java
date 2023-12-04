@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.service.allocate.service;
 
 import java.util.List;
 
-import com.sds.sflex.system.config.annotation.LongTransactional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
