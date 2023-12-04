@@ -7,9 +7,14 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.fee.control.dvo.WfedManagerVisitFeeDvo;
+
 @Mapper
 public interface WfedManagerVisitFeeMapper {
+
+    int selectManagerVisitFeeAgrgYn(SearchReq dto);
+
     List<SearchRes> selectManagerVisitFees(
-        SearchReq dto
+        WfedManagerVisitFeeDvo dvo
     );
 }

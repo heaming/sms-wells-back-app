@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncManagementCstRglvlMapper">
 
-    <select id="selectManagementCustomerRglvls" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto$SearchRes">
+    <select id="selectManagementCustomerRglvls" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncManagementCstRglvlDto$SearchRes" fetchSize="200000">
 	SELECT T0.*
     FROM ( SELECT DISTINCT T1.CNTR_NO 																	-- 계약번호
 						 , T1.CNTR_SN
@@ -105,22 +105,20 @@
 			   			   ) T6
 		   				ON T6.CNTR_NO = T1.CNTR_NO
 		   			   AND T6.CNTR_SN = T1.CNTR_SN
-		   LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
+		   LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T7     -- 해약자 나오도록 변경
 		   				ON T7.OG_TP_CD = T1.MNGT_PRTNR_OG_TP_CD
 		   			   AND T7.PRTNR_NO = T1.MNGT_PRTNR_NO
-		   			   AND T7.BASE_YM = #{manageYm}
 					   AND T7.DTA_DL_YN = 'N'
 		   LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T9
-		   				ON T9.BASE_YM = T7.BASE_YM
+		   				ON T9.BASE_YM = #{manageYm}
 		   			   AND T9.OG_ID = T7.OG_ID
 					   AND T9.DTA_DL_YN = 'N'
-		   LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T8
+		   LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T8   -- 해약자 나오도록 변경
 		   				ON T8.OG_TP_CD = T4.CNFM_PSIC_PRTNR_OG_TP_CD
 		   			   AND T8.PRTNR_NO = T4.CNFM_PSIC_PRTNR_NO
-		   			   AND T8.BASE_YM = T4.ASN_OJ_YM
 					   AND T8.DTA_DL_YN = 'N'
 		   LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T10
-		   				ON T10.BASE_YM = T8.BASE_YM
+		   				ON T10.BASE_YM = #{manageYm}
 		   			   AND T10.OG_ID = T8.OG_ID
 					   AND T10.DTA_DL_YN = 'N'
 		   LEFT OUTER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T11
@@ -158,7 +156,7 @@
                            )
                     </if>
                     <if test="@MybatisUtils@equals(exceptWellsManagerYn, 'Y')">
-                       AND T1.MNGT_PRTNR_OG_TP_CD IN ('HR1','W02')  -- 업무담당자 이거나 M조직 인 경우
+                       AND T1.MNGT_PRTNR_OG_TP_CD IN ('HR1','W02')
                     </if>
                     <if test="@MybatisUtils@isNotEmpty(addressZipFrom)">
                        AND T3.NEW_ADR_ZIP >= #{addressZipFrom}
@@ -184,7 +182,7 @@
                          AND (T1.MNGT_PRTNR_OG_TP_CD != 'HR1' AND T4.CNFM_PSIC_PRTNR_OG_TP_CD != 'HR1')
                         </when>
                     </choose>
-                     -- ORDER BY T1.CNTR_NO DESC, T1.CNTR_SN DESC
+                     ORDER BY T1.CNTR_NO ASC, T1.CNTR_SN ASC
         ) T0
        WHERE 1=1
     <if test="@MybatisUtils@isNotEmpty(rcgvpDiv) and !@MybatisUtils@equals(rcgvpDiv, 'ALL')">
