@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@LongTransactional
 public class WsncManagementCstRglvlService {
     private final WsncManagementCstRglvlMapper mapper;
     private final WsncManagementCstRglvlConverter converter;
