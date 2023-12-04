@@ -8,14 +8,14 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndBusinessVehiclesOperationJrnlMgtDvo;
 import com.kyowon.sms.wells.web.service.orgcode.service.WsndBusinessVehiclesOperationJrnlMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -47,4 +47,12 @@ public class WsndBusinessVehiclesOperationJrnlMgtController {
         return service.getBusinessVehiclesOperationJrnl(dto, pageInfo);
     }
 
+    @ApiOperation(value = "주유량, 주유금액 저장", notes = "선택정보에 대한 주유량, 주유금액 저장")
+    @PostMapping
+    public SaveResponse editBusinessVehiclesOperationJrnl(
+        @RequestBody
+        List<WsndBusinessVehiclesOperationJrnlMgtDvo> dvos
+    ) {
+        return SaveResponse.builder().processCount(service.editBusinessVehiclesOperationJrnlMgt(dvos)).build();
+    }
 }
