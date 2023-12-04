@@ -87,10 +87,11 @@ public class WsnaNewManagerBsConsumableService {
 
     /**
      * 빌딩 목록 조회
+     * @param mngtYm
      * @return
      */
-    public List<SearchBldRes> selectBuildings() {
-        return bldMapper.selectBuildingList();
+    public List<SearchBldRes> selectBuildings(String mngtYm) {
+        return bldMapper.selectBuildingList(mngtYm);
     }
 
     public List<HashMap<String, Object>> getNewManagerBsConsumable(SearchReq dto) {

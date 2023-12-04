@@ -33,9 +33,10 @@ public class WsnaNewManagerBsConsumableController {
         return service.getItems(mngtYm);
     }
 
-    @GetMapping("/building-code")
-    public List<SearchBldRes> selectBuildings() {
-        return service.selectBuildings();
+    @GetMapping("/building-code/{mngtYm}")
+    public List<SearchBldRes> selectBuildings(@PathVariable
+    String mngtYm) {
+        return service.selectBuildings(mngtYm);
     }
 
     @GetMapping

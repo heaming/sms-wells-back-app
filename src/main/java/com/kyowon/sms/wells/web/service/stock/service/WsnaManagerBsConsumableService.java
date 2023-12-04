@@ -87,10 +87,11 @@ public class WsnaManagerBsConsumableService {
 
     /**
      * 빌딩 목록 조회
+     * @param mngtYm
      * @return
      */
-    public List<WsnaBuildingBsConsumableDto.SearchBldRes> selectBuildings() {
-        return bldMapper.selectBuildingList();
+    public List<WsnaBuildingBsConsumableDto.SearchBldRes> selectBuildings(String mngtYm) {
+        return bldMapper.selectBuildingList(mngtYm);
     }
 
     /**
