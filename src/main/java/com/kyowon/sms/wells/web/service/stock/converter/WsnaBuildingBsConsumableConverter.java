@@ -3,11 +3,13 @@ package com.kyowon.sms.wells.web.service.stock.converter;
 import java.util.List;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.CreateReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.CreateTmlmReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.SearchItmRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsConsumablesAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo;
 
 @Mapper(componentModel = "spring")
@@ -20,4 +22,9 @@ public interface WsnaBuildingBsConsumableConverter {
     WsnaBuildingBsConsumableDvo mapSearchReqToBuildingBsConsumable(SearchReq dto);
 
     WsnaBuildingBsConsumableDvo mapCreateReqToWsnaBuildingBsConsumableDvo(CreateReq dto);
+
+    @Mapping(source = "itmPdCd", target = "csmbPdCd")
+    WsnaBuildingBsConsumableDvo mapWsnaBsConsumablesAskReqDvoToWsnaBuildingBsConsumableDvo(
+        WsnaBsConsumablesAskReqDvo dvo
+    );
 }

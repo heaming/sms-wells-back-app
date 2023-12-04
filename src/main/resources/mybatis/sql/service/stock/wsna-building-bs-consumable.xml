@@ -176,12 +176,13 @@
              , ${pivotColumns}              /* PIVOT 컬럼 */
           FROM
              (
-               SELECT D6.BFSVC_CSMB_DDLV_STAT_CD
-                    , CASE WHEN D6.BFSVC_CSMB_DDLV_STAT_CD IS NULL THN ( SELECT MLNG_CNTN
-                                                                           FROM T_CMZ_MLNG_D
-                                                                          WHERE MLNG_ID   = 'MSG_TXT_NAPC'   /* 미신청 */
-                                                                            AND TENANT_ID = 'TNT_BASE'
-                                                                            AND LNG_ID    = #{session.langId} )
+               SELECT /*+ ORDERED USE_HASH(D1 D2) */
+                      D6.BFSVC_CSMB_DDLV_STAT_CD
+                    , CASE WHEN D6.BFSVC_CSMB_DDLV_STAT_CD IS NULL THEN ( SELECT MLNG_CNTN
+                                                                            FROM T_CMZ_MLNG_D
+                                                                           WHERE MLNG_ID   = 'MSG_TXT_NAPC'   /* 미신청 */
+                                                                             AND TENANT_ID = 'TNT_BASE'
+                                                                             AND LNG_ID    = #{session.langId} )
                            ELSE F_CMZ_CD_NM('TNT_WELLS', 'BFSVC_CSMB_DDLV_STAT_CD', D6.BFSVC_CSMB_DDLV_STAT_CD, #{session.langId})
                       END      AS REQ_YN
                     , D5.BLD_CD
@@ -199,7 +200,7 @@
                 INNER JOIN TB_OGBS_MM_OG_IZ D4         /* 월조직내역 */
                    ON D4.BASE_YM  = D3.BASE_YM
                   AND D4.OG_TP_CD = D3.OG_TP_CD
-                  AND D4.OG_ID    = D3.IG_ID
+                  AND D4.OG_ID    = D3.OG_ID
                 INNER JOIN TB_OGBS_BLD_BAS D5          /* 빌딩기본 */
                    ON D5.OG_TP_CD = D4.OG_TP_CD
                   AND D5.BLD_CD   = D4.BLD_CD
@@ -218,7 +219,7 @@
                   AND D2.DTA_DL_YN           = 'N'
                   AND D2.MNGT_PRTNR_OG_TP_CD = 'W02'
                   AND D2.CNTR_DTL_STAT_CD NOT IN ('401','402')
-                  AND D3.DTA_DL_Y            = 'N'
+                  AND D3.DTA_DL_YN           = 'N'
                   AND D3.OG_TP_CD            = 'W02'
                   AND D4.DTA_DL_YN           = 'N'
                   AND D4.OG_TP_CD            = 'W02'
@@ -227,7 +228,7 @@
                   AND D1.MNGT_YM             = #{mngtYm}
                   AND D3.BASE_YM             = #{mngtYm}
                   AND D4.BASE_YM             = #{mngtYm}
-                GROUP BY D6.BFSVC_CSMB_DDLV_STAT_CD, D5.BLD_CD, D5.BLD_NM, , D5.RSPP_PRTNR_NO
+                GROUP BY D6.BFSVC_CSMB_DDLV_STAT_CD, D5.BLD_CD, D5.BLD_NM, D5.RSPP_PRTNR_NO
              ) T1
           LEFT OUTER JOIN
              (
@@ -259,7 +260,8 @@
                                 AND D4.BLD_CD   = D1.BLD_CD
                                LEFT OUTER JOIN
                                   (
-                                    SELECT O3.BLD_CD
+                                    SELECT /*+ ORDERED USE_HASH(S1 S2) */
+                                           O3.BLD_CD
                                          , S3.COPN_DV_CD
                                          , S4.PD_PRP_VAL20
                                          , COUNT(1) AS CNT
@@ -315,10 +317,11 @@
                                 AND D4.OG_TP_CD               = 'W02'
                                 AND D1.BASE_YM                = #{mngtYm}
                                 AND D2.MNGT_YM                = #{mngtYm}
-                              GROUP BY D2.SORT_ODR, D2.BFSVC_CSMB_DDLV_TP_CD, D5.BLD_CD, D2.CSMB_PD_CD, D3.SAP_MAT_CD, D2.BFSVC_CSMB_DDLV_CMPT_BASE_CD
-                                  , NVL(D2.BFSVC_CSMB_DDLV_UNIT_QTY, 0), D2.BFSVC_CSMB_DDLV_UNIT_ACC_N, D2.BFSVC_CSMB_DDLV_UNIT_QTY
+                              GROUP BY D4.BLD_CD, D2.CSMB_PD_CD, D3.SAP_MAT_CD, D2.BFSVC_CSMB_DDLV_CMPT_BASE_CD, NVL(D2.BFSVC_CSMB_DDLV_UNIT_QTY, 0)
+                                  , D2.BFSVC_CSMB_DDLV_UNIT_ACC_N, D2.BFSVC_CSMB_DDLV_UNIT_QTY
                               UNION ALL
-                             SELECT D3.BLD_CD AS STR_WARE_NO
+                             SELECT /*+ USE_HASH(D1 D2 D3) */
+                                    D3.BLD_CD AS STR_WARE_NO
                                   , D1.CSMB_PD_CD
                                   , D4.SAP_MAT_CD
                                   , 0         AS BFSVC_CSMB_DDLV_UNIT_QTY
@@ -356,7 +359,7 @@
                            ) S2
                           ON S2.STR_WARE_NO = S1.STR_WARE_NO
                          AND S2.CSMB_PD_CD  = S1.CSMB_PD_CD
-                    ) T
+                    ) DDLV
                 PIVOT
                     (
                           SUM(BFSVC_CSMB_DDLV_UNIT_QTY)
@@ -451,7 +454,7 @@
          WHERE MNGT_YM               = #{mngtYm}
            AND BFSVC_CSMB_DDLV_OJ_CD = #{bfsvcCsmbDdlvOjCd}
            AND STR_WARE_NO           = #{strWareNo}
-           AND CSMB_PD_CD            = #{itmPdCd}
+           AND CSMB_PD_CD            = #{csmbPdCd}
     </update>
 
     <update id="updateBfsvcCsmbDdlvIzDdlvStatCd">

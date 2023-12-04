@@ -8,7 +8,6 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.FindTmlmRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.SearchBldRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.SearchLmQtyRes;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsConsumablesAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBuildingBsConsumableDvo;
 
 @Mapper
@@ -34,7 +33,7 @@ public interface WsnaBuildingBsConsumableMapper {
 
     String selectNewOstrAkNo(String ostrAkTpCd, String ostrAkRgstDt);
 
-    int updateBfsvcCsmbDdlvIzOstrAkNoSn(WsnaBsConsumablesAskReqDvo dvo, String mngtYm, String bfsvcCsmbDdlvOjCd);
+    int updateBfsvcCsmbDdlvIzOstrAkNoSn(WsnaBuildingBsConsumableDvo dvo);
 
     int updateBfsvcCsmbDdlvIzDdlvStatCd(String strWareNo, String mngtYm);
 

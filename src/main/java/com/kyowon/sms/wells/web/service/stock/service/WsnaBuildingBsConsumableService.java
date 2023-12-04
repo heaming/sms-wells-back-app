@@ -158,7 +158,7 @@ public class WsnaBuildingBsConsumableService {
 
         // PIVOT 컬럼
         String pivotColumns = sapMatCds.stream()
-            .map(obj -> "NVL(QTY_" + obj.getSapMatCd() + ", 0) AS QTY_" + obj.getSapMatCd())
+            .map(obj -> "NVL(T2.QTY_" + obj.getSapMatCd() + ", 0) AS QTY_" + obj.getSapMatCd())
             .collect(Collectors.joining(", "));
 
         searchDvo.setPivotInStr(pivotInStr);
@@ -262,7 +262,12 @@ public class WsnaBuildingBsConsumableService {
     @Transactional
     public void editBfsvcCsmbDdlvIzOstrAkNoSn(List<WsnaBsConsumablesAskReqDvo> reqDvos, String mngtYm) {
         for (WsnaBsConsumablesAskReqDvo reqDvo : reqDvos) {
-            mapper.updateBfsvcCsmbDdlvIzOstrAkNoSn(reqDvo, mngtYm, BFSVC_CSMB_DDLV_OJ_CD_BLD);
+            WsnaBuildingBsConsumableDvo dvo = this.converter
+                .mapWsnaBsConsumablesAskReqDvoToWsnaBuildingBsConsumableDvo(reqDvo);
+            dvo.setMngtYm(mngtYm);
+            dvo.setBfsvcCsmbDdlvOjCd(BFSVC_CSMB_DDLV_OJ_CD_BLD);
+
+            mapper.updateBfsvcCsmbDdlvIzOstrAkNoSn(dvo);
         }
     }
 
