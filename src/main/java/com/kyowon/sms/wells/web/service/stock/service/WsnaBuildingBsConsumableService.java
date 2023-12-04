@@ -153,12 +153,27 @@ public class WsnaBuildingBsConsumableService {
         List<WsnaBuildingBsConsumableDvo> sapMatCds = mapper.selectItems(searchDvo.getMngtYm());
 
         // PIVOT 조건 변환
-        String pivotInStr = sapMatCds.stream().map(obj -> "'" + obj.getSapMatCd() + "' AS QTY_" + obj.getSapMatCd())
+        String pivotInStr = sapMatCds.stream()
+            .map(obj -> {
+                String ddlvTpCd = obj.getBfsvcCsmbDdlvTpCd();
+                if ("1".equals(ddlvTpCd)) {
+                    return "'" + obj.getSapMatCd() + "' AS QTY_" + obj.getSapMatCd();
+                } else {
+                    return "'" + obj.getSapMatCd() + "' AS APLC_QTY_" + obj.getSapMatCd();
+                }
+            })
             .collect(Collectors.joining(", "));
 
         // PIVOT 컬럼
         String pivotColumns = sapMatCds.stream()
-            .map(obj -> "NVL(T2.QTY_" + obj.getSapMatCd() + ", 0) AS QTY_" + obj.getSapMatCd())
+            .map(obj -> {
+                String ddlvTpCd = obj.getBfsvcCsmbDdlvTpCd();
+                if ("1".equals(ddlvTpCd)) {
+                    return "NVL(T2.QTY_" + obj.getSapMatCd() + ", 0) AS QTY_" + obj.getSapMatCd();
+                } else {
+                    return "NVL(T2.APLC_QTY_" + obj.getSapMatCd() + ", 0) AS APLC_QTY_" + obj.getSapMatCd();
+                }
+            })
             .collect(Collectors.joining(", "));
 
         searchDvo.setPivotInStr(pivotInStr);
