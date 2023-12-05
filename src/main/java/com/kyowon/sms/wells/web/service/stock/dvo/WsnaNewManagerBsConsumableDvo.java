@@ -29,7 +29,7 @@ public class WsnaNewManagerBsConsumableDvo {
     // 매니저
     String prtnrNmNo;
     // 방문계정수
-    String vstCstN;
+    BigDecimal vstCstN;
     // 파트너번호
     String strWareNo;
     // 소모품 상품코드
