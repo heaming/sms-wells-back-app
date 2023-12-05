@@ -64,7 +64,7 @@ public class WsnaBuildingBsConsumableDto {
         String bizEndHh
     ) {}
 
-    @ApiModel(value = "WsnaBldBfsvcCsmbDdlvDto-FindTmlmRes")
+    @ApiModel(value = "WsnaBldBfsvcCsmbDdlvDto-CreateTmlmReq")
     public record CreateTmlmReq(
         // 관리년월
         @NotBlank
