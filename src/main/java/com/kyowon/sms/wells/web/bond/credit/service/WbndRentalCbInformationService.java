@@ -71,7 +71,7 @@ public class WbndRentalCbInformationService {
 
         try {
             // ONIC2_CBNO1003 (CB렌탈정보 조회 요청) 인터페이스 호출
-            Map body = interfaceService.post(RENTAL_CB_URL, req, Map.class);
+            Map<String, Object> body = interfaceService.post(RENTAL_CB_URL, req, Map.class);
             log.debug("CB렌탈정보 조회 응답 데이터 >>>>>>>>>>>>>>>>>>>>>>>>>>>> {}", body);
 
             Map<String, Object> COMM = (Map<String, Object>)body.get("COMM");
@@ -105,25 +105,25 @@ public class WbndRentalCbInformationService {
                 if (Integer.parseInt(ROWDATA_5.get("respCnt5").toString()) > 0) {
                     Map<String, Object> params;
                     String rst = "";
-                    for (int i = 0; i < ROWDATA_5_REPEAT.size(); i++) {
+                    for (Map<String, Object> repeat5Map : ROWDATA_5_REPEAT) {
                         //렌탈 상품코드(소분류)
                         params = new HashMap<>();
                         //params.put("LCGROP", "1000000212");
-                        params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("rntlPrdtCdS5"));
+                        params.put("dangArbitCd", repeat5Map.get("rntlPrdtCdS5"));
 
                         //                        rst = mapper.selectTransErrorCdMsg(params);
                         if (StringUtil.isNotBlank(rst)) {
-                            ROWDATA_5_REPEAT.get(i).put("rntlPrdtNmS5", rst);
+                            repeat5Map.put("rntlPrdtNmS5", rst);
                         }
 
                         //연체구분코드
                         params = new HashMap<String, Object>();
                         //params.put("LCGROP", "1000000211");
-                        params.put("dangArbitCd", ROWDATA_5_REPEAT.get(i).get("delyDivCd5"));
+                        params.put("dangArbitCd", repeat5Map.get("delyDivCd5"));
 
                         //                        rst = mapper.selectTransErrorCdMsg(params);
                         if (StringUtil.isNotBlank(rst)) {
-                            ROWDATA_5_REPEAT.get(i).put("delyDivNm5", rst);
+                            repeat5Map.put("delyDivNm5", rst);
                         }
 
                     }
@@ -146,10 +146,10 @@ public class WbndRentalCbInformationService {
                     List<Map<String, Object>> SUMMARYITEM_6_REPEAT_LIST = (List<Map<String, Object>>)body
                         .get("SUMMARYITEM_6_REPEAT");
 
-                    for (int i = 0; i < SUMMARYITEM_6_REPEAT_LIST.size(); i++) {
+                    for (Map<String, Object> repeat6Map : SUMMARYITEM_6_REPEAT_LIST) {
                         SUMMARYITEM_6_REPEAT.put(
-                            SUMMARYITEM_6_REPEAT_LIST.get(i).get("siCd6").toString(),
-                            SUMMARYITEM_6_REPEAT_LIST.get(i).get("siVal6").toString()
+                            repeat6Map.get("siCd6").toString(),
+                            repeat6Map.get("siVal6").toString()
                         );
                     }
 
@@ -312,16 +312,20 @@ public class WbndRentalCbInformationService {
                         "RT1200003",
                         "RT1200207", "RT1200103"};
                     for (int i = 0; i < 9; i++) {
-                        WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
-                        cbVo.setType(type[i]);
-                        cbVo.setBaseNm(baseNm[i]);
-                        cbVo.setCrtlTot1(SUMMARYITEM_6_REPEAT.get(crtlTot1[i]).toString());
-                        cbVo.setCrtlTot2(SUMMARYITEM_6_REPEAT.get(crtlTot2[i]).toString());
-                        cbVo.setCrtlTot3(SUMMARYITEM_6_REPEAT.get(crtlTot3[i]).toString());
-                        cbVo.setCrtlTot4(SUMMARYITEM_6_REPEAT.get(crtlTot4[i]).toString());
-                        cbVo.setCrtlTot5(SUMMARYITEM_6_REPEAT.get(crtlTot5[i]).toString());
-                        cbVo.setCrtlTot6(SUMMARYITEM_6_REPEAT.get(crtlTot6[i]).toString());
-                        res.add(cbVo);
+                        try {
+                            WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
+                            cbVo.setType(type[i]);
+                            cbVo.setBaseNm(baseNm[i]);
+                            cbVo.setCrtlTot1(SUMMARYITEM_6_REPEAT.get(crtlTot1[i]).toString());
+                            cbVo.setCrtlTot2(SUMMARYITEM_6_REPEAT.get(crtlTot2[i]).toString());
+                            cbVo.setCrtlTot3(SUMMARYITEM_6_REPEAT.get(crtlTot3[i]).toString());
+                            cbVo.setCrtlTot4(SUMMARYITEM_6_REPEAT.get(crtlTot4[i]).toString());
+                            cbVo.setCrtlTot5(SUMMARYITEM_6_REPEAT.get(crtlTot5[i]).toString());
+                            cbVo.setCrtlTot6(SUMMARYITEM_6_REPEAT.get(crtlTot6[i]).toString());
+                            res.add(cbVo);
+                        } catch (NullPointerException e) {
+                            log.debug("errMsg : {}", e.getMessage());
+                        }
                     }
                 }
                 if (SUMMARYITEM_7_REPEAT.size() != 0) {
@@ -341,17 +345,21 @@ public class WbndRentalCbInformationService {
                     String[] crtlTot_D6 = {"RENTB0036", "RENTB0037", "RENTB0038", "RENTB0039", "RENTB0040", "RENTB0041",
                         "RENTB0042"};
                     for (int i = 0; i < 7; i++) {
-                        WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
-                        cbVo.setType(type_D[i]);
-                        cbVo.setBaseNm(baseNm_D[i]);
-                        cbVo.setPtrmPs(ptrmPs_D[i]);
-                        cbVo.setCrtlTot1(SUMMARYITEM_7_REPEAT.get(crtlTot_D1[i]).toString());
-                        cbVo.setCrtlTot2(SUMMARYITEM_7_REPEAT.get(crtlTot_D2[i]).toString());
-                        cbVo.setCrtlTot3(SUMMARYITEM_7_REPEAT.get(crtlTot_D3[i]).toString());
-                        cbVo.setCrtlTot4(SUMMARYITEM_7_REPEAT.get(crtlTot_D4[i]).toString());
-                        cbVo.setCrtlTot5(SUMMARYITEM_7_REPEAT.get(crtlTot_D5[i]).toString());
-                        cbVo.setCrtlTot6(SUMMARYITEM_7_REPEAT.get(crtlTot_D6[i]).toString());
-                        res.add(cbVo);
+                        try {
+                            WbndRentalCbInformationDvo cbVo = new WbndRentalCbInformationDvo();
+                            cbVo.setType(type_D[i]);
+                            cbVo.setBaseNm(baseNm_D[i]);
+                            cbVo.setPtrmPs(ptrmPs_D[i]);
+                            cbVo.setCrtlTot1(SUMMARYITEM_7_REPEAT.get(crtlTot_D1[i]).toString());
+                            cbVo.setCrtlTot2(SUMMARYITEM_7_REPEAT.get(crtlTot_D2[i]).toString());
+                            cbVo.setCrtlTot3(SUMMARYITEM_7_REPEAT.get(crtlTot_D3[i]).toString());
+                            cbVo.setCrtlTot4(SUMMARYITEM_7_REPEAT.get(crtlTot_D4[i]).toString());
+                            cbVo.setCrtlTot5(SUMMARYITEM_7_REPEAT.get(crtlTot_D5[i]).toString());
+                            cbVo.setCrtlTot6(SUMMARYITEM_7_REPEAT.get(crtlTot_D6[i]).toString());
+                            res.add(cbVo);
+                        } catch (NullPointerException e) {
+                            log.debug("errMsg : {}", e.getMessage());
+                        }
                     }
                 }
                 for (Map<String, Object> cbMap : ROWDATA_5_REPEAT) {
