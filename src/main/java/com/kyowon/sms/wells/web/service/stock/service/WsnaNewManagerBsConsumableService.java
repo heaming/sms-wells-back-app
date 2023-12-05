@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -26,9 +27,19 @@ import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * W-SV-U-0011M01 소모품 배부현황(신입) 서비스
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-12-05
+ */
+
 @Service
 @RequiredArgsConstructor
 public class WsnaNewManagerBsConsumableService {
+
     private final WsnaNewManagerBsConsumableMapper mapper;
     private final WsnaBuildingBsConsumableMapper bldMapper;
     private final WsnaNewManagerBsConsumableConverter converter;
@@ -46,7 +57,18 @@ public class WsnaNewManagerBsConsumableService {
     private static final String PAJU_SAP_SAVE_LCT_CD = "21082082"; // 파주창고
 
     /**
-     * 고정, 신청품목 조회(그리드 헤더 표시용)
+     * 빌딩 목록 조회
+     *
+     * @param mngtYm
+     * @return
+     */
+    public List<SearchBldRes> selectBuildings(String mngtYm) {
+        return bldMapper.selectBuildingList(mngtYm);
+    }
+
+    /**
+     * 활동물품 조회 (그리드 헤더 표시용)
+     *
      * @param mngtYm
      * @return
      */
@@ -86,45 +108,28 @@ public class WsnaNewManagerBsConsumableService {
     }
 
     /**
-     * 빌딩 목록 조회
+     * 신입 소모품 신청 등록기간 조회
+     *
      * @param mngtYm
      * @return
      */
-    public List<SearchBldRes> selectBuildings(String mngtYm) {
-        return bldMapper.selectBuildingList(mngtYm);
-    }
-
-    public List<HashMap<String, Object>> getNewManagerBsConsumable(SearchReq dto) {
-        WsnaNewManagerBsConsumableDvo searchDvo = converter.mapSearchReqToNewManagerBsConsumable(dto);
-
-        // 그리드 헤더상의 품목 조회
-        List<WsnaNewManagerBsConsumableDvo> sapMatCds = mapper.selectItems(searchDvo.getMngtYm());
-
-        // PIVOT 조건 변환
-        String pivotInStr = sapMatCds.stream().map(obj -> "'" + obj.getSapMatCd() + "' AS QTY_" + obj.getSapMatCd())
-            .collect(Collectors.joining(", "));
-
-        // PIVOT 컬럼
-        String pivotColumns = sapMatCds.stream()
-            .map(obj -> "NVL(QTY_" + obj.getSapMatCd() + ", 0) AS QTY_" + obj.getSapMatCd())
-            .collect(Collectors.joining(", "));
-
-        searchDvo.setPivotInStr(pivotInStr);
-        searchDvo.setPivotColumns(pivotColumns);
-
-        return mapper.selectNewManagerBsConsumables(searchDvo);
-    }
-
     public FindTmlmRes getNewManagerBsConsumableAplcClose(String mngtYm) {
         FindTmlmRes res = mapper.selectNewManagerBsConsumableAplcClose(mngtYm);
 
         if (ObjectUtils.isEmpty(res)) {
+            // 업무마감 데이터가 없을 경우 달력의 시작, 종료일자를 조회 (휴일 제외)
             res = mapper.selectNewManagerBsConsumableAplcFirstClose(mngtYm);
         }
 
         return res;
     }
 
+    /**
+     * 등록기간 설정
+     *
+     * @param dto
+     * @return
+     */
     @Transactional
     public int createBuildingBsConsumableAplcClose(CreateTmlmReq dto) {
         WsnaNewManagerBsConsumableDvo dvo = converter.mapCreateTmlmReqToNewManagerBsConsumable(dto);
@@ -132,25 +137,91 @@ public class WsnaNewManagerBsConsumableService {
         return mapper.mergeNewManagerBsConsumableAplcClose(dvo);
     }
 
-    @Transactional
-    public int createNewManagerBsConsumables(List<CreateReq> dtos) {
-        List<WsnaNewManagerBsConsumableDvo> dvos = converter.mapCreateReqToNewManagerBsConsumable(dtos);
-
-        for (WsnaNewManagerBsConsumableDvo dvo : dvos) {
-            // if (Integer.parseInt(dvo.getBfsvcCsmbDdlvQty()) > 0) {
-            mapper.mergeNewManagerBsConsumables(dvo);
-            // }
-        }
-
-        return 1;
+    /**
+     * 신청제한수량 조회
+     *
+     * @param mngtYm
+     * @return
+     */
+    public List<SearchLmQtyRes> getApplicationLimitQty(String mngtYm) {
+        return mapper.selectApplicationLimitQty(mngtYm);
     }
 
+    /**
+     * 신입 소모품 배부현황 조회
+     *
+     * @param dto
+     * @return
+     */
+    public List<HashMap<String, Object>> getNewManagerBsConsumable(SearchReq dto) {
+        WsnaNewManagerBsConsumableDvo searchDvo = converter.mapSearchReqToNewManagerBsConsumable(dto);
+
+        // 그리드 헤더상의 품목 조회
+        List<WsnaNewManagerBsConsumableDvo> sapMatCds = mapper.selectItems(searchDvo.getMngtYm());
+
+        // PIVOT 조건 변환
+        String pivotInStr = sapMatCds.stream().map(obj -> {
+            String ddlvTpCd = obj.getBfsvcCsmbDdlvTpCd();
+            // 고정
+            if ("1".equals(ddlvTpCd)) {
+                return "'" + obj.getSapMatCd() + "' AS QTY_" + obj.getSapMatCd();
+                // 신청
+            } else {
+                return "'" + obj.getSapMatCd() + "' AS APLC_QTY_" + obj.getSapMatCd();
+            }
+        }).collect(Collectors.joining(", "));
+
+        // PIVOT 컬럼
+        String pivotColumns = sapMatCds.stream()
+            .map(obj -> {
+                // 배부유형코드
+                String ddlvTpCd = obj.getBfsvcCsmbDdlvTpCd();
+                // 고정
+                if ("1".equals(ddlvTpCd)) {
+                    return "NVL(T2.QTY_" + obj.getSapMatCd() + ", 0) AS QTY_" + obj.getSapMatCd();
+                    // 신청
+                } else {
+                    return "NVL(T2.APLC_QTY_" + obj.getSapMatCd() + ", 0) AS APLC_QTY_" + obj.getSapMatCd();
+                }
+            }).collect(Collectors.joining(", "));
+
+        searchDvo.setPivotInStr(pivotInStr);
+        searchDvo.setPivotColumns(pivotColumns);
+
+        return mapper.selectNewManagerBsConsumables(searchDvo);
+    }
+
+    /**
+     * 신입 소모품 배부내역 저장
+     *
+     * @param dtos
+     * @return
+     */
+    @Transactional
+    public int createNewManagerBsConsumables(List<CreateReq> dtos) {
+        int count = 0;
+
+        List<WsnaNewManagerBsConsumableDvo> dvos = converter.mapAllCreateReqToNewManagerBsConsumable(dtos);
+
+        for (WsnaNewManagerBsConsumableDvo dvo : dvos) {
+            count += mapper.mergeNewManagerBsConsumables(dvo);
+        }
+
+        return count;
+    }
+
+    /**
+     * 신입 소모품 배부내역 출고요청
+     * @param dtos
+     * @return
+     */
     @Transactional
     public int createNewManagerBsConsumablesRequest(List<CreateReq> dtos) {
+        int count = 0;
+
         // 화면에 입력 후 저장하지 않고 바로 출고요청 하는 경우를 대비해 저장 로직 태워줌
         this.createNewManagerBsConsumables(dtos);
 
-        String ostrAkNo = null;
         String ostrAkRgstDt = DateUtil.getNowDayString();
         String mngtYm = dtos.get(0).mngtYm();
         List<String> strWareNos = dtos.stream().map(CreateReq::strWareNo).distinct().toList();
@@ -159,10 +230,11 @@ public class WsnaNewManagerBsConsumableService {
         for (String strWareNo : strWareNos) {
             List<WsnaNewManagerBsConsumableDvo> dvos = mapper.selectBfsvcCsmbDdlvIzByMngtYm(mngtYm, strWareNo);
 
-            if (!ObjectUtils.isEmpty(dvos)) {
+            if (CollectionUtils.isNotEmpty(dvos)) {
                 SFLEXContext context = SFLEXContextHolder.getContext();
                 UserSessionDvo userSession = context.getUserSession();
-                ostrAkNo = mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_BS, ostrAkRgstDt);
+
+                String ostrAkNo = mapper.selectNewOstrAkNo(OSTR_AK_TP_CD_BS, ostrAkRgstDt);
                 int ostrAkSn = 1;
 
                 for (WsnaNewManagerBsConsumableDvo dvo : dvos) {
@@ -181,7 +253,7 @@ public class WsnaNewManagerBsConsumableService {
                     reqDvo.setItmGdCd(ITM_GD_CD_A);
                     reqDvo.setOstrOjWareNo(OSTR_OJ_WARE_NO_PAJU);
                     reqDvo.setStrWareNo(dvo.getStrWareNo());
-                    reqDvo.setOstrAkQty(Integer.parseInt(dvo.getBfsvcCsmbDdlvQty()));
+                    reqDvo.setOstrAkQty(dvo.getBfsvcCsmbDdlvQty().intValue());
                     reqDvo.setBldCd(dvo.getBldCd());
 
                     tempReqDvos.add(reqDvo);
@@ -189,7 +261,7 @@ public class WsnaNewManagerBsConsumableService {
                 }
 
                 // BS소모품배부내역 OSTR_NO, OSTR_SN UPDATE
-                editBfsvcCsmbDdlvIzOstrAkNoSn(tempReqDvos, mngtYm);
+                this.editBfsvcCsmbDdlvIzOstrAkNoSn(tempReqDvos, mngtYm);
             } else {
                 throw new BizException("MSG_TXT_AK_NO_DATA");
             }
@@ -201,36 +273,32 @@ public class WsnaNewManagerBsConsumableService {
         for (String bldCd : bldCds) {
             List<WsnaBsConsumablesAskReqDvo> askReqDvos = tempReqDvos.stream()
                 .filter(x -> bldCd.equals(x.getBldCd())).toList();
-            bsConsumablesAskService.createBsConsumablesAsk(askReqDvos, mngtYm, BFSVC_CSMB_DDLV_OJ_CD_NEW_MNGER);
+            count += bsConsumablesAskService
+                .createBsConsumablesAsk(askReqDvos, mngtYm, BFSVC_CSMB_DDLV_OJ_CD_NEW_MNGER);
         }
 
         // BS소모품배부상태코드 UPDATE
-        editBfsvcCsmbDdlvIzDdlvStatCd(strWareNos, mngtYm);
+        mapper.updateBfsvcCsmbDdlvIzDdlvStatCd(strWareNos, mngtYm);
 
-        return 1;
+        return count;
     }
 
-    private void editBfsvcCsmbDdlvIzOstrAkNoSn(List<WsnaBsConsumablesAskReqDvo> reqDvos, String mngtYm) {
+    /**
+     * 출고요청번호, 일련번호 업데이트
+     * @param reqDvos
+     * @param mngtYm
+     */
+    @Transactional
+    public void editBfsvcCsmbDdlvIzOstrAkNoSn(List<WsnaBsConsumablesAskReqDvo> reqDvos, String mngtYm) {
         for (WsnaBsConsumablesAskReqDvo reqDvo : reqDvos) {
-            WsnaNewManagerBsConsumableDvo dvo = new WsnaNewManagerBsConsumableDvo();
+            WsnaNewManagerBsConsumableDvo dvo = this.converter
+                .mapWsnaBsConsumablesAskReqDvoToWsnaNewManagerBsConsumableDvo(reqDvo);
 
             dvo.setMngtYm(mngtYm);
-            dvo.setCsmbPdCd(reqDvo.getItmPdCd());
-            dvo.setBfsvcCsmbDdlvOjCd("1");
-            dvo.setStrWareNo(reqDvo.getStrWareNo());
-            dvo.setOstrAkNo(reqDvo.getOstrAkNo());
-            dvo.setOstrAkSn(reqDvo.getOstrAkSn());
+            dvo.setBfsvcCsmbDdlvOjCd(BFSVC_CSMB_DDLV_OJ_CD_NEW_MNGER);
 
             mapper.updateBfsvcCsmbDdlvIzOstrAkNoSn(dvo);
         }
     }
 
-    private void editBfsvcCsmbDdlvIzDdlvStatCd(List<String> strWareNos, String mngtYm) {
-        // 품목별 단건 update에서 매니저별 일괄 update로 변경
-        mapper.updateBfsvcCsmbDdlvIzDdlvStatCd(strWareNos, mngtYm);
-    }
-
-    public List<SearchLmQtyRes> getApplicationLimitQty(String mngtYm) {
-        return mapper.selectApplicationLimitQty(mngtYm);
-    }
 }

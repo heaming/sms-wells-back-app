@@ -3,22 +3,28 @@ package com.kyowon.sms.wells.web.service.stock.converter;
 import java.util.List;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.*;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.CreateReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.CreateTmlmReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.SearchItmRes;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaNewManagerBsConsumableDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsConsumablesAskReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaNewManagerBsConsumableDvo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 @Mapper(componentModel = "spring")
 public interface WsnaNewManagerBsConsumableConverter {
-    PagingResult<SearchRes> mapDvoToSearchRes(List<WsnaNewManagerBsConsumableDvo> dvos);
-
-    List<SearchRes> mapAllDvoToListSearchRes(List<WsnaNewManagerBsConsumableDvo> dvos);
 
     WsnaNewManagerBsConsumableDvo mapCreateTmlmReqToNewManagerBsConsumable(CreateTmlmReq dto);
 
-    List<WsnaNewManagerBsConsumableDvo> mapCreateReqToNewManagerBsConsumable(List<CreateReq> dtos);
+    List<WsnaNewManagerBsConsumableDvo> mapAllCreateReqToNewManagerBsConsumable(List<CreateReq> dtos);
 
     List<SearchItmRes> mapAllDvosToSearchItmRes(List<WsnaNewManagerBsConsumableDvo> dvos);
 
     WsnaNewManagerBsConsumableDvo mapSearchReqToNewManagerBsConsumable(SearchReq dto);
+
+    @Mapping(source = "itmPdCd", target = "csmbPdCd")
+    WsnaNewManagerBsConsumableDvo mapWsnaBsConsumablesAskReqDvoToWsnaNewManagerBsConsumableDvo(
+        WsnaBsConsumablesAskReqDvo dvo
+    );
 }
