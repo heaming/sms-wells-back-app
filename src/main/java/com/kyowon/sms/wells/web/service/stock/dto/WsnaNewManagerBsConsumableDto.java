@@ -104,7 +104,6 @@ public class WsnaNewManagerBsConsumableDto {
         @NotBlank
         String sapMatCd,
         // 배부수량
-        @NotBlank
         BigDecimal bfsvcCsmbDdlvQty,
         // 배부상태코드
         @NotBlank
