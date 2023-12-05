@@ -65,7 +65,7 @@ public class WsnaNewManagerBsConsumableDto {
         String bizEndHh
     ) {}
 
-    @ApiModel(value = "WsnaNewManagerBsConsumableDto-FindTmlmRes")
+    @ApiModel(value = "WsnaNewManagerBsConsumableDto-CreateTmlmReq")
     public record CreateTmlmReq(
         // 관리년월
         @NotBlank
