@@ -19,4 +19,5 @@ public class WdccPressurePumpDvo {
     private String fnlVstFshDt;
     private String gubn;
     private String adnSvSn;
+    private String pdctPdCd; /* 제품상품코드*/
 }
