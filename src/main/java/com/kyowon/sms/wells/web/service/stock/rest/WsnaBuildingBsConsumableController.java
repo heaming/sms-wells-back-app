@@ -90,7 +90,7 @@ public class WsnaBuildingBsConsumableController {
     }
 
     @PostMapping
-    @ApiOperation(value = "빌딩별 소모품 배부현황 저장", notes = "빌딩별 소모품을 저장한다.")
+    @ApiOperation(value = "빌딩별 소모품 배부현황 저장", notes = "빌딩별 소모품 배부내역을 저장한다.")
     public SaveResponse createBuildingBsConsumables(
         @RequestBody
         @Valid
@@ -103,7 +103,7 @@ public class WsnaBuildingBsConsumableController {
     }
 
     @PostMapping("/request")
-    @ApiOperation(value = "빌딩별 소모품 배부현황 출고요청", notes = "빌딩별 소모품을 출고요청한다.")
+    @ApiOperation(value = "빌딩별 소모품 배부현황 출고요청", notes = "빌딩별 소모품 배부내역을 출고요청한다.")
     public SaveResponse createBuildingBsConsumablesRequest(
         @RequestBody
         @Valid

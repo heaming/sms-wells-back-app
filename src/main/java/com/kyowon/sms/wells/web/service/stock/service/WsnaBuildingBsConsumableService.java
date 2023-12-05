@@ -64,7 +64,7 @@ public class WsnaBuildingBsConsumableService {
     }
 
     /**
-     * 활동물품 조회
+     * 활동물품 조회 (그리드 헤더 표시용)
      *
      * @param mngtYm
      * @return
@@ -155,9 +155,12 @@ public class WsnaBuildingBsConsumableService {
         // PIVOT 조건 변환
         String pivotInStr = sapMatCds.stream()
             .map(obj -> {
+                // 배부유형코드
                 String ddlvTpCd = obj.getBfsvcCsmbDdlvTpCd();
+                // 고정
                 if ("1".equals(ddlvTpCd)) {
                     return "'" + obj.getSapMatCd() + "' AS QTY_" + obj.getSapMatCd();
+                    // 신청
                 } else {
                     return "'" + obj.getSapMatCd() + "' AS APLC_QTY_" + obj.getSapMatCd();
                 }
@@ -167,9 +170,12 @@ public class WsnaBuildingBsConsumableService {
         // PIVOT 컬럼
         String pivotColumns = sapMatCds.stream()
             .map(obj -> {
+                // 배부유형코드
                 String ddlvTpCd = obj.getBfsvcCsmbDdlvTpCd();
+                // 고정
                 if ("1".equals(ddlvTpCd)) {
                     return "NVL(T2.QTY_" + obj.getSapMatCd() + ", 0) AS QTY_" + obj.getSapMatCd();
+                    // 신청
                 } else {
                     return "NVL(T2.APLC_QTY_" + obj.getSapMatCd() + ", 0) AS APLC_QTY_" + obj.getSapMatCd();
                 }
