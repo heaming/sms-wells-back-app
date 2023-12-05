@@ -20,6 +20,9 @@ public class WdcdCleanerReqeustDvo {
     private String bldCd;/*빌딩코드*/
     private String aplcDt;    // 신청일자;
     private String aplcnsNm; // 신청자 명
+    private String fmnCoSpptAmt;  // 월간회사지원금액
+    private String fmnBizdSpptAmt;  // 월간영업부지원금액
+    private String clinrUseAmt;  // 청소원사용금액
     private String clinrFxnAmt;  // 청소원고정금액
     private String taxDdctam;  // 세금공제금액
     private String clinrNm; // 청소원 명
