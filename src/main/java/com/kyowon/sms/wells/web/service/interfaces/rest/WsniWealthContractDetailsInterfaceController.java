@@ -21,6 +21,10 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 프로그램 명세서 미 존재로 설명 없음
+ * 프로그램 아이디 : K-W-SS-S-0002
+ * */
 @InterfaceController
 @Api(tags = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve/edicard")
 @RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve/edicard")
