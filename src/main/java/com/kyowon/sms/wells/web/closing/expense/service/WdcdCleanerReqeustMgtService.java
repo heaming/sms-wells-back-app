@@ -87,6 +87,7 @@ public class WdcdCleanerReqeustMgtService {
             WdcdCleanerReqeustDvo saveDvo = mapper.selectCleanerReqeust(clinrRgno);
             FindRes res = converter.mapFindResToWdcdCleanerReqeustDvo(saveDvo);
 
+            // 정규식에 맞지 않으면 기존 데이터 삽입하여 수정하지 못하도록 처리 한것으로 보임..
             String clinrNmS = dvo.getClinrNm();
             boolean clinrNm = Pattern.matches("^[가-힣]*$", clinrNmS);
             boolean rrnoEncr = Pattern.matches("^[0-9]+$", dvo.getRrnoEncr());
@@ -106,7 +107,7 @@ public class WdcdCleanerReqeustMgtService {
             if (dtlAdr) {
                 dvo.setDtlAdr(String.valueOf(res.dtlAdr()));
             }
-            if (acnoEncr) {
+            if (!acnoEncr) {
                 dvo.setAcnoEncr(String.valueOf(res.acnoEncr()));
             }
 
