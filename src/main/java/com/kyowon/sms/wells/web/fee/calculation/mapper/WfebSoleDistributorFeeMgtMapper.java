@@ -12,7 +12,6 @@ public interface WfebSoleDistributorFeeMgtMapper {
     // 1. 실적
     List<Performance> selectDistributorPerformance(SearchPerformanceReq req);
     // 2. 수수료
-
     List<Fee> selectDistributorFee(SearchFeeReq req);
     /* 총판수수료 생성관리 저장(수수료) */
     int updateCalcFee(WfebSoleDistributorFeeDvo dvo);
