@@ -43,7 +43,6 @@ public class WdccSalesBondDto {
      * @param pdCd 상품코드
      * @param pdNm 상품명
      * @param slRcogDt 미정
-     * @param preTotUcAmt 전기이월
      * @param preUcAmt1 미정
      * @param preUcAmt2 미정
      * @param nomSlAmt 정상매출
@@ -57,7 +56,6 @@ public class WdccSalesBondDto {
      * @param totSlAmt 매출합계
      * @param totDpAmt 매출대사
      * @param slBndAlrpyAmt 매출입금
-     * @param totUcBlam 미수금액
      * @param ucBlam1 미정
      * @param ucBlam2 미정
      * @param borRemAmt  위약잔여
@@ -121,6 +119,8 @@ public class WdccSalesBondDto {
      * @param w1Am196 미정
      * @param thmUcBlam 기말미수잔액
      * @param eotBorAmt 당월위약금
+     * @param totBtdUcAmt 전기이월
+     * @param totEotUcAmt 기말미수/미수금액
      */
     @ApiModel(value = "WdccDelinquentDto-SearchRes")
     public record SearchRes(
@@ -138,7 +138,6 @@ public class WdccSalesBondDto {
         String pdCd,
         String pdNm,
         String slRcogDt,
-        String preTotUcAmt,
         String preUcAmt1,
         String preUcAmt2,
         String nomSlAmt,
@@ -152,7 +151,6 @@ public class WdccSalesBondDto {
         String totSlAmt,
         String totDpAmt,
         String slBndAlrpyAmt,
-        String totUcBlam,
         String ucBlam1,
         String ucBlam2,
         String borRemAmt,
@@ -215,6 +213,8 @@ public class WdccSalesBondDto {
         String w1Am195,
         String w1Am196,
         String thmUcBlam,
-        String eotBorAmt
+        String eotBorAmt,
+        String totBtdUcAmt,
+        String totEotUcAmt
     ) {}
 }

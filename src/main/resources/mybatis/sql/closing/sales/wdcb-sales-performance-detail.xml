@@ -20,13 +20,19 @@
                  , (SELECT CD_CNTN FROM T_CMZ_CD_D WHERE TENANT_ID = 'TNT_WELLS' AND CD_ID = 'SELL_TP_DTL_CD' AND CD_VLD_VAL = T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD_NM -- 판매유형상세코드명
                  , T1.PD_CD AS PD_CD -- 상품코드
                  , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_CD) AS PD_NM -- 상품명
-                 , T1.RENTAL_RGST_COST AS RENTAL_RGST_COST -- 월회비(LCTAMT)
+                 , T1.MM_ISTM_AMT AS RENTAL_AMT -- 월회비(LCTAMT)
                  , T1.DSC_AMT AS DSC_AMT -- 할인금액(LCRAMT)
                  , T12.SV_TP_CD_NM AS SV_TP_CD_NM -- 서비스코드(ASIS 용도구분 대신 사용)
                  , TO_CHAR(TO_DATE(T1.CNTR_DT), 'YYYY-MM-DD') AS CNTR_DT -- 계약일자
                  , TO_CHAR(TO_DATE(SUBSTR(T2.CNTR_CNFM_DTM, 1, 8)), 'YYYY-MM-DD') AS CNTR_CNFM_DT  -- 확정일자
                  , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(T3.CNTR_PD_ENDDT, 1, 6) = T1.SL_CL_YM THEN TO_CHAR(TO_DATE(T3.CNTR_PD_ENDDT), 'YYYY-MM-DD') ELSE '' END) AS CNTR_CAN_DT  -- 취소일자
                  , TO_CHAR(TO_DATE(T3.CNTR_PD_STRTDT), 'YYYY-MM-DD') AS LCSLE_DT -- 매출일자
+                 , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('101', '202') -- 취소, 종료건 제외
+                              THEN (CASE WHEN T1.CNTR_PTRM = '999'
+                                              THEN GREATEST(12 - NVL(T1.RENTAL_TN, 0), 0) * (T1.MM_ISTM_AMT - T1.DSC_AMT)
+                                         ELSE GREATEST(T1.CNTR_PTRM - NVL(T1.RENTAL_TN, 0), 0) * (T1.MM_ISTM_AMT - T1.DSC_AMT)
+                                    END)
+                         ELSE 0 END) AS SL_BLAM -- 매출잔액
                  --------------------------------------------------------------
                  -- 선납사항
                  --------------------------------------------------------------
@@ -292,7 +298,7 @@
                  , T1.RENTAL_RGST_COST - T1.CNTR_AMT AS DSC_AMT -- 등록비할인금액(LC50.LCRAMT)
                  , T1.CNTR_TAM AS CNTR_TAM -- 렌탈총액(LC50.LCAMTT)
                  , T1.CNTR_PTRM AS RENTAL_PTRM -- 렌탈기간1(LC50.LCMON1)
-                 , T1.SELL_AMT AS RENTAL_AMT -- 월 렌탈/리스금액1(LC50.LCAMT1)
+                 , T1.RENTAL_AMT AS RENTAL_AMT -- 월 렌탈/리스금액1(LC50.LCAMT1)
                  , T1.RENTAL_DSC_AMT AS RENTAL_DSC_AMT -- 월 렌탈할인금액1(LC50.LCRAM1)
                  , T1.RENTAL_PTRM2 AS RENTAL_PTRM2 -- 렌탈기간2(LC50.LCMON2)
                  , T1.RENTAL_AMT2 AS RENTAL_AMT2 -- 월 렌탈/리스금액2(LC50.LCAMT2)
@@ -346,9 +352,9 @@
                            AND A.CNTR_SN = T1.CNTR_SN
                            AND A.DTA_DL_YN = 'N'
                            AND A.SL_CL_YM <![CDATA[<=]]> A.SL_CL_YM), 0) AS CTR_AGG_AMT -- 조정누계액
-                 , (CASE WHEN T1.SELL_TP_DTL_CD IN ('21', '23') THEN T1.CNTR_TAM - T1.SL_AGG_AMT
-                        ELSE T1.CNTR_TAM - T1.SL_AGG_AMT - T1.PVDA_AGG_AMT
-                    END) AS SL_BLAM-- 매출잔액(LC50.LCMJAN)
+                 , (CASE WHEN T1.SELL_TP_DTL_CD IN ('21', '23') AND T3.CNTR_DTL_STAT_CD IN ('101', '202') -- 취소, 종료건 제외
+                              THEN GREATEST(T1.CNTR_PTRM - NVL(T1.RENTAL_TN, 0), 0) * (T1.RENTAL_AMT - T1.RENTAL_DSC_AMT)
+                         ELSE 0 END) AS SL_BLAM -- 매출잔액
                  ----------------------------------------------------------------
                  -- 선납선수
                  ----------------------------------------------------------------
@@ -603,7 +609,7 @@
                  , T1.RENTAL_AMT AS RENTAL_AMT --추가금액(LCAMT1)
                  , T1.DSC_AMT AS DSC_AMT --할인금액(LCRAMT)
                  , (CASE WHEN (T3.STLM_TP_CD IN ('20', '30', '40') AND T3.SV_PRD IS NOT NULL AND T3.SV_PRD != 0) -- 할부, 월납
-                             THEN (NVL(T1.SELL_AMT, 0) + NVL(T1.RENTAL_AMT, 0) - NVL(T1.DSC_AMT, 0)) / T3.SV_PRD
+                             THEN (NVL(T1.SELL_AMT, 0) + NVL(T1.RENTAL_AMT, 0) - NVL(T1.DSC_AMT, 0)) / T3.SV_PRD -- LCTAMT(판매금액) + LCAMT1(추가금액 : 도서산간 추가택배비) - LCRAMT(할인금액)
                          ELSE 0 END) AS MM_ISTM_AMT --월청구금액
                  , TO_CHAR(TO_DATE(T1.CNTR_DT), 'YYYY-MM-DD') AS CNTR_DT -- 접수일자
                  , TO_CHAR(TO_DATE(T1.SPP_DTM), 'YYYY-MM-DD') AS SPP_DT --최초배송일자
@@ -640,7 +646,12 @@
                            AND A.CNTR_SN = T1.CNTR_SN
                            AND A.DTA_DL_YN = 'N'
                            AND A.SL_CL_YM  <![CDATA[<=]]> A.SL_CL_YM), 0) AS CTR_AGG_AMT --조정누계금액(LCAM19)
-                 , T1.CNTR_TAM - T1.SL_AGG_AMT AS SL_BLAM -- 매출잔액
+                 , (CASE WHEN T3.CNTR_DTL_STAT_CD IN ('101', '202') -- 취소, 종료건 제외
+                              THEN (CASE WHEN T1.CNTR_PTRM = '999'
+                                              THEN TRUNC(GREATEST(12 - NVL(T1.RENTAL_TN, 0), 0) / T1.SV_PRD) * (T1.RENTAL_RGST_COST - T1.DSC_AMT)
+                                         ELSE TRUNC(GREATEST(T1.CNTR_PTRM - NVL(T1.RENTAL_TN, 0), 0)/ T1.SV_PRD) * (T1.RENTAL_RGST_COST - T1.DSC_AMT)
+                                    END)
+                         ELSE 0 END) AS SL_BLAM -- 매출잔액
                  --------------------------------------------------------------
                  -- 선수금액
                  --------------------------------------------------------------
