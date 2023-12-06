@@ -49,4 +49,21 @@ public class WfeaPlannerFeeMeetingAttendanceService {
 
         return processCount;
     }
+
+    public void deletePlannerFeeMeetingAttendances(
+        String ogTpCd, /* 조직유형 */
+        String perfYm, /* 실적년월 */
+        String rsbTpCd, /* 직책유형코드 */
+        String feeTcntDvCd /* 수수료차수구분코드 */
+    ) {
+        WfeaPlannerFeeMeetingAttendanceDvo dvo = converter.mapSaveReqToWfeaPlannerFeeMeetingAttendanceDvo(
+            SaveReq.builder()
+                .ogTpCd(ogTpCd)
+                .perfYm(perfYm)
+                .rsbTpCd(rsbTpCd)
+                .feeTcntDvCd(feeTcntDvCd)
+                .build()
+        );
+        mapper.deletePlannerFeeMeetingAttendances(dvo);
+    }
 }
