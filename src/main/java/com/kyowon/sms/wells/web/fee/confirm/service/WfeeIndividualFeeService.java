@@ -1,9 +1,16 @@
 package com.kyowon.sms.wells.web.fee.confirm.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import com.kyowon.sms.common.web.fee.common.dvo.ZfezDeadLineDvo;
+import com.kyowon.sms.common.web.fee.common.service.ZfezDeadLineService;
+import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto.*;
@@ -22,6 +29,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class WfeeIndividualFeeService {
+
+    private final ZfezDeadLineService zfezDeadLineService;
     private final WfeeIndividualFeeMapper mapper;
 
     /**
@@ -213,6 +222,33 @@ public class WfeeIndividualFeeService {
     public List<SearchFeeRes> getFees(
         SearchFeeReq dto
     ) {
+        boolean dsbSpcshPrnt = false;
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
+
+        ZfezDeadLineDvo zfezDeadLineDvo = zfezDeadLineService.selectDeadLine(dto.ddlnId(), dto.ddlnDvId());
+
+        if (zfezDeadLineDvo == null || StringUtils.isEmpty(zfezDeadLineDvo.getBasYrmn())) {
+            throw new BizException("MSG_ALT_NO_DEADLINE");
+        }
+
+        if (Integer.parseInt(dto.perfYm()) < Integer.parseInt(zfezDeadLineDvo.getBasYrmn())) {
+            dsbSpcshPrnt = true;
+        } else if (Integer.parseInt(dto.perfYm()) == Integer.parseInt(zfezDeadLineDvo.getBasYrmn())) {
+            if (Long.parseLong(sdf.format(new Date())) >= Long
+                .parseLong(zfezDeadLineDvo.getStartDt() + zfezDeadLineDvo.getStartHm()) &&
+                Long.parseLong(sdf.format(new Date())) <= Long
+                    .parseLong(zfezDeadLineDvo.getFinsDt() + zfezDeadLineDvo.getFinsHm())) {
+                dsbSpcshPrnt = true;
+            } else {
+                dsbSpcshPrnt = false;
+            }
+        }
+
+        /* TODO : 해당 메뉴의 관리자는 true로 체크해야함 */
+
+        BizAssert.isTrue(dsbSpcshPrnt, "MSG_ALT_DSB_SPCSH_PRNT_DATE");
+
         return this.mapper.selectFees(dto);
     }
 
