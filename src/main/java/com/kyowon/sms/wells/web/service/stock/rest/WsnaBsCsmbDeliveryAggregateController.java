@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryAggregateDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.SearchItemsRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.SearchBldRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbDeliveryAggregateDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaBsCsmbDeliveryAggregateService;
@@ -44,6 +45,14 @@ public class WsnaBsCsmbDeliveryAggregateController {
     String mngtYmFrom, @RequestParam(name = "mngtYmTo")
     String mngtYmTo) {
         return service.getBuildingList(mngtYmFrom, mngtYmTo);
+    }
+
+    @GetMapping("/item-information")
+    @ApiOperation(value = "상품정보 조회", notes = "상품정보 조회")
+    public List<SearchItemsRes> getAllItemInformation(@RequestParam(name = "mngtYmFrom")
+    String mngtYmFrom, @RequestParam(name = "mngtYmTo")
+    String mngtYmTo) {
+        return service.getAllItemInformation(mngtYmFrom, mngtYmTo);
     }
 
     @GetMapping

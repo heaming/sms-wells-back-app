@@ -3,18 +3,57 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsCsmbDeliveryAggregateMapper">
 
     <select id="selectBuildingList" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto$SearchBldRes">
-        SELECT DISTINCT D1.BLD_CD
+        SELECT D1.BLD_CD
              , D1.BLD_NM
           FROM TB_OGBS_BLD_BAS D1         /* 빌딩기본 */
-         INNER JOIN TB_OGBS_MM_OG_IZ D2   /* 월조직내역 */
-            ON D2.OG_TP_CD = D1.OG_TP_CD
-           AND D2.BLD_CD   = D1.BLD_CD
+         INNER JOIN
+             (
+               SELECT DISTINCT CASE WHEN D1.BFSVC_CSMB_DDLV_OJ_CD = '3' THEN ( SELECT BLD_CD
+                                                                                 FROM TB_OGBS_BLD_BAS
+                                                                                WHERE DTA_DL_YN = 'N'
+                                                                                  AND OG_TP_CD  = 'W02'
+                                                                                  AND BLD_CD    = D1.STR_WARE_NO )
+                                    ELSE ( SELECT S2.BLD_CD
+                                             FROM TB_OGBS_MM_PRTNR_IZ S1
+                                            INNER JOIN TB_OGBS_MM_OG_IZ S2
+                                               ON S2.BASE_YM  = S1.BASE_YM
+                                              AND S2.OG_TP_CD = S1.OG_TP_CD
+                                              AND S2.OG_ID    = S1.OG_ID
+                                            WHERE S1.DTA_DL_YN = 'N'
+                                              AND S1.OG_TP_CD  = 'W02'
+                                              AND S2.DTA_DL_YN = 'N'
+                                              AND S2.OG_TP_CD  = 'W02'
+                                              AND S1.BASE_YM   = D1.MNGT_YM
+                                              AND S1.PRTNR_NO  = D1.STR_WARE_NO )
+                               END AS BLD_CD
+                 FROM TB_SVST_BFSVC_CSMB_DDLV_IZ D1
+                WHERE D1.DTA_DL_YN               = 'N'
+                  AND D1.BFSVC_CSMB_DDLV_STAT_CD = '30'
+                  AND D1.MNGT_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
+             ) D2
+            ON D2.BLD_CD = D1.BLD_CD
          WHERE D1.DTA_DL_YN = 'N'
-           AND D2.DTA_DL_YN = 'N'
-           AND D2.OG_TP_CD  = 'W02'
-           AND D2.CLO_YN    = 'N'
-           AND D2.BASE_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
+           AND D1.OG_TP_CD  = 'W02'
          ORDER BY D1.BLD_NM
+    </select>
+
+    <select id="selectAllItemInformation" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto$SearchItemsRes">
+        SELECT D1.PD_CD
+             , D1.PD_NM
+             , D1.PD_ABBR_NM
+          FROM TB_PDBS_PD_BAS D1
+         INNER JOIN
+             (
+               SELECT DISTINCT CSMB_PD_CD
+                 FROM TB_SVST_BFSVC_CSMB_DDLV_IZ
+                WHERE DTA_DL_YN               = 'N'
+                  AND BFSVC_CSMB_DDLV_STAT_CD = '30'
+                  AND MNGT_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
+             ) D2
+            ON D2.CSMB_PD_CD = D1.PD_CD
+         WHERE D1.DTA_DL_YN = 'N'
+           AND D1.PD_TP_CD  = 'M'
+         ORDER BY D1.PD_NM
     </select>
 
     <select id="selectDeliveryAggregate" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbDeliveryAggregateDvo">

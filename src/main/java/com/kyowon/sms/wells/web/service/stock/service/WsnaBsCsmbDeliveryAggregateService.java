@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryAggregateDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.SearchItemsRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.SearchBldRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbDeliveryAggregateDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaBsCsmbDeliveryAggregateMapper;
@@ -34,6 +35,16 @@ public class WsnaBsCsmbDeliveryAggregateService {
      */
     public List<SearchBldRes> getBuildingList(String mngtYmFrom, String mngtYmTo) {
         return this.mapper.selectBuildingList(mngtYmFrom, mngtYmTo);
+    }
+
+    /**
+     * 품목명 조회
+     * @param mngtYmFrom
+     * @param mngtYmTo
+     * @return
+     */
+    public List<SearchItemsRes> getAllItemInformation(String mngtYmFrom, String mngtYmTo) {
+        return this.mapper.selectAllItemInformation(mngtYmFrom, mngtYmTo);
     }
 
     /**

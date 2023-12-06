@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryAggregateDto.SearchReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaBsCsmbDeliveryBaseDto.SearchItemsRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaBuildingBsConsumableDto.SearchBldRes;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbDeliveryAggregateDvo;
 
@@ -12,6 +13,8 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbDeliveryAggregateDvo
 public interface WsnaBsCsmbDeliveryAggregateMapper {
 
     List<SearchBldRes> selectBuildingList(String mngtYmFrom, String mngtYmTo);
+
+    List<SearchItemsRes> selectAllItemInformation(String mngtYmFrom, String mngtYmTo);
 
     List<WsnaBsCsmbDeliveryAggregateDvo> selectDeliveryAggregate(SearchReq dto);
 
