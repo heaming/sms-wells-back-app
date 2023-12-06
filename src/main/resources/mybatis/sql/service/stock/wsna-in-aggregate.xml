@@ -1,344 +1,572 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaInAggregateMapper">
 
-    <select id="selectInAggregateList" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaInAggregateDvo">
-    SELECT P2.PD_PRP_VAL17	AS MAT_MNGT_DV_CD
-         , P1.SAP_MAT_CD
-         , P1.PD_CD
-         , P1.PD_NM
-         , SUM(TYP_100002) TYP_100002
-         , SUM(TYP_100003) TYP_100003
-         , NVL(SUM(TYP_100002),0)+NVL(SUM(TYP_100003),0) TYP_100000
+    <select id="selectMcByWares" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaInAggregateWareDvo">
+      SELECT WARE_NO                AS WARE_NO
+           , SUBSTR(WARE_NM, 1, 5)  AS WARE_NM
+           , 0                      AS SORT_DV_VAL
+      FROM TB_SVST_MCBY_WARE_IZ
+      WHERE APY_YM = SUBSTR(#{baseDateFrom}, 1, 6)   /* 서비스센터, 영업센터 */
+       AND WARE_DTL_DV_CD IN ('20', '30')
+       AND DTA_DL_YN = 'N'
+       AND WARE_USE_YN = 'Y'
+       AND WARE_NM IS NOT NULL
+       AND WARE_DV_CD = #{wareDvCd}
+      UNION ALL
+      (
+        SELECT WARE_NO               AS WARE_NO
+             , SUBSTR(WARE_NM, 1, 4) AS WARE_NM
+             , 0                     AS SORT_DV_VAL
+        FROM TB_SVST_MCBY_WARE_IZ
+        WHERE WARE_NO  IN ('100002')               /* 물류센터 */
+         AND APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+         AND DTA_DL_YN = 'N'
+         AND WARE_USE_YN = 'Y'
+      )
+      UNION ALL                                   /* 엔지니어, LP */
+	  (
+        <if test='@MybatisUtils@equals(wareDvCd, "2")'>
+        (
+         SELECT '299999'     AS WARE_NO
+              , '엔지니어'     AS WARE_NM
+              , 0            AS SORT_DV_VAL
+         FROM DUAL
+        )
+        </if>
+        <if test='@MybatisUtils@equals(wareDvCd, "3")'>
+        (
+         SELECT '399999'     AS WARE_NO
+              , 'LP'         AS WARE_NM
+              , 0            AS SORT_DV_VAL
+         FROM DUAL
+        )
+        </if>
+        <if test="@MybatisUtils@equals( isSumFields , true )">
+        UNION ALL                                /* 합계 */
+        (
+         SELECT '100000'      AS WARE_NO
+              , '계'         AS WARE_NM         /* 물류센터 합계 */
+              , 1            AS SORT_DV_VAL
+         FROM DUAL
+        )
+        <if test='@MybatisUtils@equals(wareDvCd, "2")'>
+        UNION ALL
+        (
+         SELECT '200000'    AS WARE_NO
+              , '계'        AS WARE_NM         /* 서비스센터 합계 */
+              , 1          AS SORT_DV_VAL
+         FROM DUAL
+        )
+        </if>
+        <if test='@MybatisUtils@equals(wareDvCd, "3")'>
+        UNION ALL
+        (
+         SELECT '300000'     AS WARE_NO
+              , '계'          AS WARE_NM       /* 영업센터 합계 */
+              , 1            AS SORT_DV_VAL
+         FROM DUAL
+        )
+        </if>
+        UNION ALL
+        (
+         SELECT '999999'     AS WARE_NO
+              , '계'         AS WARE_NM         /* 총 합계 */
+              , 1            AS SORT_DV_VAL
+         FROM DUAL
+        )
+        </if>
+      )
+      ORDER BY SORT_DV_VAL ASC , WARE_NO ASC
+    </select>
 
-         , SUM(TYP_200001) TYP_200001
-         , SUM(TYP_200002) TYP_200002
-         , SUM(TYP_200465) TYP_200465
-         , SUM(TYP_200009) TYP_200009
-         , SUM(TYP_200006) TYP_200006
-         , SUM(TYP_200024) TYP_200024
-         , SUM(TYP_200017) TYP_200017
-         , SUM(TYP_200005) TYP_200005
-         , SUM(TYP_200003) TYP_200003
-         , SUM(TYP_200010) TYP_200010
-         , SUM(TYP_200012) TYP_200012
-         , SUM(TYP_200466) TYP_200466
-         , SUM(TYP_200014) TYP_200014
-         , SUM(TYP_200013) TYP_200013
-         , SUM(TYP_200609) TYP_200609
-         , SUM(TYP_200127) TYP_200127
-         , SUM(TYP_200467) TYP_200467
-         , SUM(TYP_200007) TYP_200007
-         , SUM(TYP_200371) TYP_200371
-         , SUM(TYP_200008) TYP_200008
-         , SUM(TYP_200015) TYP_200015
-         , SUM(TYP_200608) TYP_200608
-         , SUM(TYP_200926) TYP_200926
-         , SUM(TYP_200934) TYP_200934
-         , SUM(TYP_200986) TYP_200986
-         , SUM(TYP_299999) TYP_299999
-
-         , NVL(SUM(TYP_200001),0)+NVL(SUM(TYP_200002),0)
-         + NVL(SUM(TYP_200465),0)+NVL(SUM(TYP_200009),0)
-         + NVL(SUM(TYP_200006),0)+NVL(SUM(TYP_200024),0)
-         + NVL(SUM(TYP_200017),0)+NVL(SUM(TYP_200005),0)
-         + NVL(SUM(TYP_200003),0)+NVL(SUM(TYP_200010),0)
-         + NVL(SUM(TYP_200012),0)+NVL(SUM(TYP_200466),0)
-         + NVL(SUM(TYP_200014),0)+NVL(SUM(TYP_200013),0)
-         + NVL(SUM(TYP_200609),0)+NVL(SUM(TYP_200127),0)
-         + NVL(SUM(TYP_200467),0)+NVL(SUM(TYP_200007),0)
-         + NVL(SUM(TYP_200371),0)+NVL(SUM(TYP_200008),0)
-         + NVL(SUM(TYP_200015),0)+NVL(SUM(TYP_200608),0)
-         + NVL(SUM(TYP_200926),0)+NVL(SUM(TYP_200934),0)
-         + NVL(SUM(TYP_200986),0)+NVL(SUM(TYP_299999),0) TYP_200000
-
-         , SUM(TYP_300001) TYP_300001
-         , SUM(TYP_300002) TYP_300002
-         , SUM(TYP_300003) TYP_300003
-         , SUM(TYP_300004) TYP_300004
-         , SUM(TYP_300005) TYP_300005
-         , SUM(TYP_300006) TYP_300006
-         , SUM(TYP_300007) TYP_300007
-         , SUM(TYP_300008) TYP_300008
-         , SUM(TYP_300009) TYP_300009
-         , SUM(TYP_300010) TYP_300010
-         , SUM(TYP_300011) TYP_300011
-         , SUM(TYP_300012) TYP_300012
-         , SUM(TYP_300013) TYP_300013
-         , SUM(TYP_300014) TYP_300014
-         , SUM(TYP_300015) TYP_300015
-         , SUM(TYP_300016) TYP_300016
-         , SUM(TYP_300017) TYP_300017
-         , SUM(TYP_300018) TYP_300018
-         , SUM(TYP_300019) TYP_300019
-         , SUM(TYP_300020) TYP_300020
-         , SUM(TYP_300021) TYP_300021
-         , SUM(TYP_300022) TYP_300022
-         , SUM(TYP_300023) TYP_300023
-         , SUM(TYP_300024) TYP_300024
-         , SUM(TYP_300025) TYP_300025
-         , SUM(TYP_300026) TYP_300026
-         , SUM(TYP_300027) TYP_300027
-         , SUM(TYP_300028) TYP_300028
-         , SUM(TYP_300029) TYP_300029
-         , SUM(TYP_399999) TYP_399999
-
-         , NVL(SUM(TYP_300001),0)+NVL(SUM(TYP_300002),0)
-         + NVL(SUM(TYP_300003),0)+NVL(SUM(TYP_300004),0)
-         + NVL(SUM(TYP_300005),0)+NVL(SUM(TYP_300006),0)
-         + NVL(SUM(TYP_300007),0)+NVL(SUM(TYP_300008),0)
-         + NVL(SUM(TYP_300009),0)+NVL(SUM(TYP_300010),0)
-         + NVL(SUM(TYP_300011),0)+NVL(SUM(TYP_300012),0)
-         + NVL(SUM(TYP_300013),0)+NVL(SUM(TYP_300014),0)
-         + NVL(SUM(TYP_300015),0)+NVL(SUM(TYP_300016),0)
-         + NVL(SUM(TYP_300017),0)+NVL(SUM(TYP_300018),0)
-         + NVL(SUM(TYP_300019),0)+NVL(SUM(TYP_300020),0)
-         + NVL(SUM(TYP_300021),0)+NVL(SUM(TYP_300022),0)
-         + NVL(SUM(TYP_300023),0)+NVL(SUM(TYP_300024),0)
-         + NVL(SUM(TYP_300025),0)+NVL(SUM(TYP_300026),0)
-         + NVL(SUM(TYP_300027),0)+NVL(SUM(TYP_300028),0)
-         + NVL(SUM(TYP_300029),0)+NVL(SUM(TYP_399999),0) TYP_300000
-
-         , NVL(SUM(TYP_100002),0)+NVL(SUM(TYP_100003),0)
-         + NVL(SUM(TYP_200001),0)+NVL(SUM(TYP_200002),0)
-         + NVL(SUM(TYP_200465),0)+NVL(SUM(TYP_200009),0)
-         + NVL(SUM(TYP_200006),0)+NVL(SUM(TYP_200024),0)
-         + NVL(SUM(TYP_200017),0)+NVL(SUM(TYP_200005),0)
-         + NVL(SUM(TYP_200003),0)+NVL(SUM(TYP_200010),0)
-         + NVL(SUM(TYP_200012),0)+NVL(SUM(TYP_200466),0)
-         + NVL(SUM(TYP_200014),0)+NVL(SUM(TYP_200013),0)
-         + NVL(SUM(TYP_200609),0)+NVL(SUM(TYP_200127),0)
-         + NVL(SUM(TYP_200467),0)+NVL(SUM(TYP_200007),0)
-         + NVL(SUM(TYP_200371),0)+NVL(SUM(TYP_200008),0)
-         + NVL(SUM(TYP_200015),0)+NVL(SUM(TYP_200608),0)
-         + NVL(SUM(TYP_200926),0)+NVL(SUM(TYP_200934),0)
-         + NVL(SUM(TYP_200986),0)+NVL(SUM(TYP_299999),0)
-         + NVL(SUM(TYP_300001),0)+NVL(SUM(TYP_300002),0)
-         + NVL(SUM(TYP_300003),0)+NVL(SUM(TYP_300004),0)
-         + NVL(SUM(TYP_300005),0)+NVL(SUM(TYP_300006),0)
-         + NVL(SUM(TYP_300007),0)+NVL(SUM(TYP_300008),0)
-         + NVL(SUM(TYP_300009),0)+NVL(SUM(TYP_300010),0)
-         + NVL(SUM(TYP_300011),0)+NVL(SUM(TYP_300012),0)
-         + NVL(SUM(TYP_300013),0)+NVL(SUM(TYP_300014),0)
-         + NVL(SUM(TYP_300015),0)+NVL(SUM(TYP_300016),0)
-         + NVL(SUM(TYP_300017),0)+NVL(SUM(TYP_300018),0)
-         + NVL(SUM(TYP_300019),0)+NVL(SUM(TYP_300020),0)
-         + NVL(SUM(TYP_300021),0)+NVL(SUM(TYP_300022),0)
-         + NVL(SUM(TYP_300023),0)+NVL(SUM(TYP_300024),0)
-         + NVL(SUM(TYP_300025),0)+NVL(SUM(TYP_300026),0)
-         + NVL(SUM(TYP_300027),0)+NVL(SUM(TYP_300028),0)
-         + NVL(SUM(TYP_300029),0)+NVL(SUM(TYP_399999),0) TYP_999999
-      FROM (
-            SELECT ITM_PD_CD
-                 , DECODE(STCK_CD,'100002',SUM(QTY)) TYP_100002
-                 , DECODE(STCK_CD,'100003',SUM(QTY)) TYP_100003
-                 , DECODE(STCK_CD,'200001',SUM(QTY)) TYP_200001
-                 , DECODE(STCK_CD,'200002',SUM(QTY)) TYP_200002
-                 , DECODE(STCK_CD,'200465',SUM(QTY)) TYP_200465
-                 , DECODE(STCK_CD,'200009',SUM(QTY)) TYP_200009
-                 , DECODE(STCK_CD,'200006',SUM(QTY)) TYP_200006
-                 , DECODE(STCK_CD,'200024',SUM(QTY)) TYP_200024
-                 , DECODE(STCK_CD,'200017',SUM(QTY)) TYP_200017
-                 , DECODE(STCK_CD,'200005',SUM(QTY)) TYP_200005
-                 , DECODE(STCK_CD,'200003',SUM(QTY)) TYP_200003
-                 , DECODE(STCK_CD,'200010',SUM(QTY)) TYP_200010
-                 , DECODE(STCK_CD,'200012',SUM(QTY)) TYP_200012
-                 , DECODE(STCK_CD,'200466',SUM(QTY)) TYP_200466
-                 , DECODE(STCK_CD,'200014',SUM(QTY)) TYP_200014
-                 , DECODE(STCK_CD,'200013',SUM(QTY)) TYP_200013
-                 , DECODE(STCK_CD,'200609',SUM(QTY)) TYP_200609
-                 , DECODE(STCK_CD,'200127',SUM(QTY)) TYP_200127
-                 , DECODE(STCK_CD,'200467',SUM(QTY)) TYP_200467
-                 , DECODE(STCK_CD,'200007',SUM(QTY)) TYP_200007
-                 , DECODE(STCK_CD,'200371',SUM(QTY)) TYP_200371
-                 , DECODE(STCK_CD,'200008',SUM(QTY)) TYP_200008
-                 , DECODE(STCK_CD,'200015',SUM(QTY)) TYP_200015
-
-                 , DECODE(STCK_CD,'200926',SUM(QTY)) TYP_200926
-                 , DECODE(STCK_CD,'200934',SUM(QTY)) TYP_200934
-                 , DECODE(STCK_CD,'200986',SUM(QTY)) TYP_200986
-
-                 , DECODE(STCK_CD,'200608',SUM(QTY)) TYP_200608
-                 , DECODE(STCK_CD,'299999',SUM(QTY)) TYP_299999
-                 , DECODE(STCK_CD,'300001',SUM(QTY)) TYP_300001
-                 , DECODE(STCK_CD,'300002',SUM(QTY)) TYP_300002
-                 , DECODE(STCK_CD,'300003',SUM(QTY)) TYP_300003
-                 , DECODE(STCK_CD,'300004',SUM(QTY)) TYP_300004
-                 , DECODE(STCK_CD,'300005',SUM(QTY)) TYP_300005
-                 , DECODE(STCK_CD,'300006',SUM(QTY)) TYP_300006
-                 , DECODE(STCK_CD,'300007',SUM(QTY)) TYP_300007
-                 , DECODE(STCK_CD,'300008',SUM(QTY)) TYP_300008
-                 , DECODE(STCK_CD,'300009',SUM(QTY)) TYP_300009
-                 , DECODE(STCK_CD,'300010',SUM(QTY)) TYP_300010
-                 , DECODE(STCK_CD,'300011',SUM(QTY)) TYP_300011
-                 , DECODE(STCK_CD,'300012',SUM(QTY)) TYP_300012
-                 , DECODE(STCK_CD,'300013',SUM(QTY)) TYP_300013
-                 , DECODE(STCK_CD,'300014',SUM(QTY)) TYP_300014
-                 , DECODE(STCK_CD,'300015',SUM(QTY)) TYP_300015
-                 , DECODE(STCK_CD,'300016',SUM(QTY)) TYP_300016
-                 , DECODE(STCK_CD,'300017',SUM(QTY)) TYP_300017
-                 , DECODE(STCK_CD,'300018',SUM(QTY)) TYP_300018
-                 , DECODE(STCK_CD,'300019',SUM(QTY)) TYP_300019
-                 , DECODE(STCK_CD,'300020',SUM(QTY)) TYP_300020
-                 , DECODE(STCK_CD,'300021',SUM(QTY)) TYP_300021
-                 , DECODE(STCK_CD,'300022',SUM(QTY)) TYP_300022
-                 , DECODE(STCK_CD,'300023',SUM(QTY)) TYP_300023
-                 , DECODE(STCK_CD,'300024',SUM(QTY)) TYP_300024
-                 , DECODE(STCK_CD,'300025',SUM(QTY)) TYP_300025
-                 , DECODE(STCK_CD,'300026',SUM(QTY)) TYP_300026
-                 , DECODE(STCK_CD,'300027',SUM(QTY)) TYP_300027
-                 , DECODE(STCK_CD,'300028',SUM(QTY)) TYP_300028
-                 , DECODE(STCK_CD,'300029',SUM(QTY)) TYP_300029
-                 , DECODE(STCK_CD,'399999',SUM(QTY)) TYP_399999
-              FROM (
-                    SELECT STR1.ITM_PD_CD
-                         , CASE WHEN W1.WARE_ICHR_NO = '000' THEN W1.WARE_NO
-                                ELSE SUBSTR(W1.WARE_NO, 1, 1)||'99999'
-                            END STCK_CD
-                         , STR1.STR_QTY QTY
-                         , STR_TP_CD IN_TYP
-                      FROM TB_SVST_ITM_STR_IZ STR1
-                         , TB_PDBS_PD_BAS P1
-                         , TB_PDBS_PD_ECOM_PRP_DTL P2
-                         , TB_SVST_MCBY_WARE_IZ W1
-                     WHERE 1=1
-                       AND STR1.ITM_PD_CD = P1.PD_CD
-                       AND P1.PD_CD = P2.PD_CD
-                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-                       AND STR1.ITM_PD_CD = #{pdCd}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(pdGdCd)'>
-                       AND STR1.ITM_GD_CD = #{pdGdCd}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(useYn)'>
-                       AND P2.PD_PRP_VAL32 = #{useYn}
-                       </if>
-                       AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
-                       AND P2.DTA_DL_YN = 'N'
-
-                       AND STR1.STR_RGST_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
-                       AND W1.APY_YM = SUBSTR(STR1.STR_RGST_DT, 1, 6)
-                       AND W1.WARE_NO = STR1.STR_WARE_NO
-                       AND STR1.STR_QTY > 0
-
-                       AND P2.PD_PRP_VAL19 = #{itmKndCd}
-
-                     UNION ALL
-
-                    SELECT STR1.ITM_PD_CD
-                         , CASE WHEN W1.WARE_ICHR_NO = '000' THEN W1.WARE_NO
-                                ELSE SUBSTR(W1.WARE_NO, 1, 1)||'99999'
-                            END STCK_CD
-                         , STR1.USE_QTY
-                         , '162' IN_TYP
-                      FROM TB_SVST_SV_WK_OSTR_IZ STR1
-                         , TB_PDBS_PD_BAS P1
-                         , TB_PDBS_PD_ECOM_PRP_DTL P2
-                         , TB_SVST_MCBY_WARE_IZ W1
-                     WHERE 1=1
-                       AND STR1.ITM_PD_CD = P1.PD_CD
-                       AND P1.PD_CD = P2.PD_CD
-                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-                       AND STR1.ITM_PD_CD = #{pdCd}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(pdGdCd)'>
-                       AND STR1.FNL_ITM_GD_CD = #{pdGdCd}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(useYn)'>
-                       AND P2.PD_PRP_VAL32 = #{useYn}
-                       </if>
-                       AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
-                       AND P2.DTA_DL_YN = 'N'
-
-                       AND STR1.FST_VST_FSH_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
-                       AND STR1.SV_BIZ_HCLSF_CD = '6'
-                       AND W1.APY_YM = SUBSTR(STR1.FST_VST_FSH_DT, 1, 6)
-                       AND W1.WARE_NO = STR1.WK_WARE_NO
-                       AND STR1.USE_QTY > 0
-
-                       AND P2.PD_PRP_VAL19 = #{itmKndCd}
-
-                     UNION ALL
-
-                    SELECT STR1.PD_CD
-                         , CASE WHEN W1.WARE_ICHR_NO = '000' THEN W1.WARE_NO
-                                ELSE SUBSTR(W1.WARE_NO, 1, 1)||'99999'
-                            END STCK_CD
-                         , STR1.CTR_QTY QTY
-                         , '190' IN_TYP
-                      FROM TB_SVST_ITM_GD_CTR_IZ STR1
-                         , TB_PDBS_PD_BAS P1
-                         , TB_PDBS_PD_ECOM_PRP_DTL P2
-                         , TB_SVST_MCBY_WARE_IZ W1
-                     WHERE 1=1
-                       AND STR1.PD_CD = P1.PD_CD
-                       AND P1.PD_CD = P2.PD_CD
-                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-                       AND STR1.PD_CD = #{pdCd}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(pdGdCd)'>
-                       AND STR1.AFCT_ITM_GD_CD = #{pdGdCd}
-                       </if>
-                       <if test='@MybatisUtils@isNotEmpty(useYn)'>
-                       AND P2.PD_PRP_VAL32 = #{useYn}
-                       </if>
-                       AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
-                       AND P2.DTA_DL_YN = 'N'
-
-                       AND STR1.CTR_WK_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
-                       AND W1.APY_YM = SUBSTR(STR1.CTR_WK_DT, 1, 6)
-                       AND W1.WARE_NO = STR1.WARE_NO
-                       AND STR1.CTR_QTY > 0
-
-                       AND P2.PD_PRP_VAL19 = #{itmKndCd}
-                    )
-             WHERE 1=1
-               <if test='@MybatisUtils@isNotEmpty(strTpCd)'>
-               AND IN_TYP = #{strTpCd}
+    <select id="selectInAggregateList" resultType="camelMap">
+WITH TEMP_PD_BAS AS
+		(
+		 SELECT T1.PD_CD
+  		 	  , T1.PD_NM
+  		 	  , T2.PD_PRP_VAL17
+  		 	  , T1.SAP_MAT_CD
+  		   FROM TB_PDBS_PD_BAS T1
+          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+          	 ON T1.PD_CD = T2.PD_CD
+          	AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+            AND T2.DTA_DL_YN = 'N'
+            AND T2.PD_PRP_VAL19 = #{itmKndCd}
+          WHERE T1.DTA_DL_YN ='N'
+           <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           AND T1.PD_CD = #{pdCd}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(useYn)'>
+           AND T2.PD_PRP_VAL32 = #{useYn}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(sapCdFrom)'>
+               <if test='@MybatisUtils@isNotEmpty(sapCdTo)'>
+               AND T1.SAP_MAT_CD >= #{sapCdFrom}
+               AND T1.SAP_MAT_CD &lt;= #{sapCdTo}
                </if>
-             GROUP
-                BY ITM_PD_CD, STCK_CD
-            ) V1
-         , TB_PDBS_PD_BAS P1
-         , TB_PDBS_PD_ECOM_PRP_DTL P2
-     WHERE 1=1
-       AND V1.ITM_PD_CD = P1.PD_CD
-       AND P1.PD_CD = P2.PD_CD
-       AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
-       AND P2.DTA_DL_YN = 'N'
-       <if test='@MybatisUtils@isNotEmpty(sapCdFrom)'>
+               <if test='@MybatisUtils@isEmpty(sapCdTo)'>
+               AND T1.SAP_MAT_CD >= #{sapCdFrom}
+               </if>
+           </if>
+
            <if test='@MybatisUtils@isNotEmpty(sapCdTo)'>
-           AND P1.SAP_MAT_CD >= #{sapCdFrom}
-           AND P1.SAP_MAT_CD &lt;= #{sapCdTo}
+               <if test='@MybatisUtils@isEmpty(sapCdFrom)'>
+               AND T1.SAP_MAT_CD &lt;= #{sapCdTo}
+               </if>
            </if>
-           <if test='@MybatisUtils@isEmpty(sapCdTo)'>
-           AND P1.SAP_MAT_CD >= #{sapCdFrom}
-           </if>
-       </if>
 
-       <if test='@MybatisUtils@isNotEmpty(sapCdTo)'>
-           <if test='@MybatisUtils@isEmpty(sapCdFrom)'>
-           AND P1.SAP_MAT_CD &lt;= #{sapCdTo}
+           <if test='@MybatisUtils@isNotEmpty(pdCdFrom)'>
+               <if test='@MybatisUtils@isNotEmpty(pdCdTo)'>
+               AND T1.PD_CD >= #{pdCdFrom}
+               AND T1.PD_CD &lt;= #{pdCdTo}
+               </if>
+               <if test='@MybatisUtils@isEmpty(sapCdTo)'>
+               AND T1.PD_CD >= #{pdCdFrom}
+               </if>
            </if>
-       </if>
 
-       <if test='@MybatisUtils@isNotEmpty(pdCdFrom)'>
            <if test='@MybatisUtils@isNotEmpty(pdCdTo)'>
-           AND P1.PD_CD >= #{pdCdFrom}
-           AND P1.PD_CD &lt;= #{pdCdTo}
+               <if test='@MybatisUtils@isEmpty(pdCdFrom)'>
+               AND T1.PD_CD &lt;= #{pdCdTo}
+               </if>
            </if>
-           <if test='@MybatisUtils@isEmpty(sapCdTo)'>
-           AND P1.PD_CD >= #{pdCdFrom}
-           </if>
-       </if>
+		 )
 
-       <if test='@MybatisUtils@isNotEmpty(pdCdTo)'>
-           <if test='@MybatisUtils@isEmpty(pdCdFrom)'>
-           AND P1.PD_CD &lt;= #{pdCdTo}
+SELECT T2.PD_PRP_VAL17	AS MAT_MNGT_DV_CD
+     , T1.PD_CD
+     , T2.SAP_MAT_CD
+     , T2.PD_NM
+     , ${wareNoFields}
+     , ${wareLogisticsFieldsSumStr}  AS WARE_100000
+     <if test='@MybatisUtils@equals(wareDvCd, "2")'>
+     , ${wareServiceFieldsSumStr}    AS WARE_200000
+     , ${wareLogisticsFieldsSumStr} + ${wareServiceFieldsSumStr} AS WARE_999999
+     </if>
+     <if test='@MybatisUtils@equals(wareDvCd, "3")'>
+     , ${wareBusinessFieldsSumStr}    AS WARE_300000
+     , ${wareLogisticsFieldsSumStr} + ${wareBusinessFieldsSumStr} AS WARE_999999
+     </if>
+  FROM (
+        SELECT PD_CD
+             , WARE_NO
+             , SUM(QTY) QTY
+          FROM (
+                SELECT STR1.ITM_PD_CD PD_CD
+                     , CASE WHEN W1.WARE_ICHR_NO = '000' THEN W1.WARE_NO
+                            ELSE SUBSTR(W1.WARE_NO, 1, 1)||'99999'
+                        END WARE_NO
+                     , STR1.STR_QTY QTY
+                     , STR_TP_CD IN_TYP
+                  FROM TB_SVST_ITM_STR_IZ STR1
+                 INNER JOIN TEMP_PD_BAS P1
+                    ON STR1.ITM_PD_CD = P1.PD_CD
+                 INNER JOIN TB_SVST_MCBY_WARE_IZ W1
+                    ON STR1.STR_WARE_NO = W1.WARE_NO
+                   AND SUBSTR(STR1.STR_RGST_DT, 1, 6) = W1.APY_YM
+                 WHERE 1=1
+                   AND STR1.STR_RGST_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                   AND STR1.DTA_DL_YN = 'N'
+                   AND STR1.STR_QTY > 0
+                   <if test='@MybatisUtils@isNotEmpty(pdGdCd)'>
+                   AND STR1.ITM_GD_CD = #{pdGdCd}
+                   </if>
+
+                 UNION ALL
+
+                SELECT STR1.ITM_PD_CD
+                     , CASE WHEN W1.WARE_ICHR_NO = '000' THEN W1.WARE_NO
+                            ELSE SUBSTR(W1.WARE_NO, 1, 1)||'99999'
+                        END WARE_NO
+                     , STR1.USE_QTY
+                     , '162' IN_TYP
+                  FROM TB_SVST_SV_WK_OSTR_IZ STR1
+                 INNER JOIN TEMP_PD_BAS P1
+                    ON STR1.ITM_PD_CD = P1.PD_CD
+                 INNER JOIN TB_SVST_MCBY_WARE_IZ W1
+                    ON SUBSTR(STR1.FST_VST_FSH_DT, 1, 6) = W1.APY_YM
+                   AND STR1.WK_WARE_NO = W1.WARE_NO
+                 WHERE 1=1
+                   AND STR1.FST_VST_FSH_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                   AND STR1.SV_BIZ_HCLSF_CD = '6'
+                   AND STR1.DTA_DL_YN = 'N'
+                   AND STR1.USE_QTY > 0
+                   <if test='@MybatisUtils@isNotEmpty(pdGdCd)'>
+                   AND STR1.FNL_ITM_GD_CD = #{pdGdCd}
+                   </if>
+
+                 UNION ALL
+
+                SELECT STR1.PD_CD
+                     , CASE WHEN W1.WARE_ICHR_NO = '000' THEN W1.WARE_NO
+                            ELSE SUBSTR(W1.WARE_NO, 1, 1)||'99999'
+                        END WARE_NO
+                     , STR1.CTR_QTY QTY
+                     , '190' IN_TYP
+                  FROM TB_SVST_ITM_GD_CTR_IZ STR1
+                 INNER JOIN TEMP_PD_BAS P1
+                    ON STR1.PD_CD = P1.PD_CD
+                 INNER JOIN TB_SVST_MCBY_WARE_IZ W1
+                    ON STR1.WARE_NO = W1.WARE_NO
+                   AND SUBSTR(STR1.CTR_WK_DT, 1, 6) = W1.APY_YM
+                 WHERE 1=1
+                   AND STR1.CTR_WK_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
+                   AND STR1.DTA_DL_YN = 'N'
+                   AND STR1.CTR_QTY > 0
+                   <if test='@MybatisUtils@isNotEmpty(pdGdCd)'>
+                   AND STR1.AFCT_ITM_GD_CD = #{pdGdCd}
+                   </if>
+                )
+         WHERE 1=1
+           <if test='@MybatisUtils@isNotEmpty(strTpCd)'>
+           AND IN_TYP = #{strTpCd}
            </if>
-       </if>
-     GROUP
-        BY P2.PD_PRP_VAL17, P1.SAP_MAT_CD, P1.PD_CD, P1.PD_NM
-     ORDER
-        BY P1.PD_CD
+         GROUP
+            BY PD_CD, WARE_NO
+        )
+        PIVOT ( SUM(QTY)
+            FOR WARE_NO IN (${wareNoInStr})
+        ) T1
+    LEFT OUTER JOIN TEMP_PD_BAS T2
+      ON T1.PD_CD = T2.PD_CD
+   ORDER
+      BY T1.PD_CD
+<!--    SELECT P2.PD_PRP_VAL17	AS MAT_MNGT_DV_CD-->
+<!--         , P1.SAP_MAT_CD-->
+<!--         , P1.PD_CD-->
+<!--         , P1.PD_NM-->
+<!--         , SUM(TYP_100002) TYP_100002-->
+<!--         , SUM(TYP_100003) TYP_100003-->
+<!--         , NVL(SUM(TYP_100002),0)+NVL(SUM(TYP_100003),0) TYP_100000-->
+
+<!--         , SUM(TYP_200001) TYP_200001-->
+<!--         , SUM(TYP_200002) TYP_200002-->
+<!--         , SUM(TYP_200465) TYP_200465-->
+<!--         , SUM(TYP_200009) TYP_200009-->
+<!--         , SUM(TYP_200006) TYP_200006-->
+<!--         , SUM(TYP_200024) TYP_200024-->
+<!--         , SUM(TYP_200017) TYP_200017-->
+<!--         , SUM(TYP_200005) TYP_200005-->
+<!--         , SUM(TYP_200003) TYP_200003-->
+<!--         , SUM(TYP_200010) TYP_200010-->
+<!--         , SUM(TYP_200012) TYP_200012-->
+<!--         , SUM(TYP_200466) TYP_200466-->
+<!--         , SUM(TYP_200014) TYP_200014-->
+<!--         , SUM(TYP_200013) TYP_200013-->
+<!--         , SUM(TYP_200609) TYP_200609-->
+<!--         , SUM(TYP_200127) TYP_200127-->
+<!--         , SUM(TYP_200467) TYP_200467-->
+<!--         , SUM(TYP_200007) TYP_200007-->
+<!--         , SUM(TYP_200371) TYP_200371-->
+<!--         , SUM(TYP_200008) TYP_200008-->
+<!--         , SUM(TYP_200015) TYP_200015-->
+<!--         , SUM(TYP_200608) TYP_200608-->
+<!--         , SUM(TYP_200926) TYP_200926-->
+<!--         , SUM(TYP_200934) TYP_200934-->
+<!--         , SUM(TYP_200986) TYP_200986-->
+<!--         , SUM(TYP_299999) TYP_299999-->
+
+<!--         , NVL(SUM(TYP_200001),0)+NVL(SUM(TYP_200002),0)-->
+<!--         + NVL(SUM(TYP_200465),0)+NVL(SUM(TYP_200009),0)-->
+<!--         + NVL(SUM(TYP_200006),0)+NVL(SUM(TYP_200024),0)-->
+<!--         + NVL(SUM(TYP_200017),0)+NVL(SUM(TYP_200005),0)-->
+<!--         + NVL(SUM(TYP_200003),0)+NVL(SUM(TYP_200010),0)-->
+<!--         + NVL(SUM(TYP_200012),0)+NVL(SUM(TYP_200466),0)-->
+<!--         + NVL(SUM(TYP_200014),0)+NVL(SUM(TYP_200013),0)-->
+<!--         + NVL(SUM(TYP_200609),0)+NVL(SUM(TYP_200127),0)-->
+<!--         + NVL(SUM(TYP_200467),0)+NVL(SUM(TYP_200007),0)-->
+<!--         + NVL(SUM(TYP_200371),0)+NVL(SUM(TYP_200008),0)-->
+<!--         + NVL(SUM(TYP_200015),0)+NVL(SUM(TYP_200608),0)-->
+<!--         + NVL(SUM(TYP_200926),0)+NVL(SUM(TYP_200934),0)-->
+<!--         + NVL(SUM(TYP_200986),0)+NVL(SUM(TYP_299999),0) TYP_200000-->
+
+<!--         , SUM(TYP_300001) TYP_300001-->
+<!--         , SUM(TYP_300002) TYP_300002-->
+<!--         , SUM(TYP_300003) TYP_300003-->
+<!--         , SUM(TYP_300004) TYP_300004-->
+<!--         , SUM(TYP_300005) TYP_300005-->
+<!--         , SUM(TYP_300006) TYP_300006-->
+<!--         , SUM(TYP_300007) TYP_300007-->
+<!--         , SUM(TYP_300008) TYP_300008-->
+<!--         , SUM(TYP_300009) TYP_300009-->
+<!--         , SUM(TYP_300010) TYP_300010-->
+<!--         , SUM(TYP_300011) TYP_300011-->
+<!--         , SUM(TYP_300012) TYP_300012-->
+<!--         , SUM(TYP_300013) TYP_300013-->
+<!--         , SUM(TYP_300014) TYP_300014-->
+<!--         , SUM(TYP_300015) TYP_300015-->
+<!--         , SUM(TYP_300016) TYP_300016-->
+<!--         , SUM(TYP_300017) TYP_300017-->
+<!--         , SUM(TYP_300018) TYP_300018-->
+<!--         , SUM(TYP_300019) TYP_300019-->
+<!--         , SUM(TYP_300020) TYP_300020-->
+<!--         , SUM(TYP_300021) TYP_300021-->
+<!--         , SUM(TYP_300022) TYP_300022-->
+<!--         , SUM(TYP_300023) TYP_300023-->
+<!--         , SUM(TYP_300024) TYP_300024-->
+<!--         , SUM(TYP_300025) TYP_300025-->
+<!--         , SUM(TYP_300026) TYP_300026-->
+<!--         , SUM(TYP_300027) TYP_300027-->
+<!--         , SUM(TYP_300028) TYP_300028-->
+<!--         , SUM(TYP_300029) TYP_300029-->
+<!--         , SUM(TYP_399999) TYP_399999-->
+
+<!--         , NVL(SUM(TYP_300001),0)+NVL(SUM(TYP_300002),0)-->
+<!--         + NVL(SUM(TYP_300003),0)+NVL(SUM(TYP_300004),0)-->
+<!--         + NVL(SUM(TYP_300005),0)+NVL(SUM(TYP_300006),0)-->
+<!--         + NVL(SUM(TYP_300007),0)+NVL(SUM(TYP_300008),0)-->
+<!--         + NVL(SUM(TYP_300009),0)+NVL(SUM(TYP_300010),0)-->
+<!--         + NVL(SUM(TYP_300011),0)+NVL(SUM(TYP_300012),0)-->
+<!--         + NVL(SUM(TYP_300013),0)+NVL(SUM(TYP_300014),0)-->
+<!--         + NVL(SUM(TYP_300015),0)+NVL(SUM(TYP_300016),0)-->
+<!--         + NVL(SUM(TYP_300017),0)+NVL(SUM(TYP_300018),0)-->
+<!--         + NVL(SUM(TYP_300019),0)+NVL(SUM(TYP_300020),0)-->
+<!--         + NVL(SUM(TYP_300021),0)+NVL(SUM(TYP_300022),0)-->
+<!--         + NVL(SUM(TYP_300023),0)+NVL(SUM(TYP_300024),0)-->
+<!--         + NVL(SUM(TYP_300025),0)+NVL(SUM(TYP_300026),0)-->
+<!--         + NVL(SUM(TYP_300027),0)+NVL(SUM(TYP_300028),0)-->
+<!--         + NVL(SUM(TYP_300029),0)+NVL(SUM(TYP_399999),0) TYP_300000-->
+
+<!--         , NVL(SUM(TYP_100002),0)+NVL(SUM(TYP_100003),0)-->
+<!--         + NVL(SUM(TYP_200001),0)+NVL(SUM(TYP_200002),0)-->
+<!--         + NVL(SUM(TYP_200465),0)+NVL(SUM(TYP_200009),0)-->
+<!--         + NVL(SUM(TYP_200006),0)+NVL(SUM(TYP_200024),0)-->
+<!--         + NVL(SUM(TYP_200017),0)+NVL(SUM(TYP_200005),0)-->
+<!--         + NVL(SUM(TYP_200003),0)+NVL(SUM(TYP_200010),0)-->
+<!--         + NVL(SUM(TYP_200012),0)+NVL(SUM(TYP_200466),0)-->
+<!--         + NVL(SUM(TYP_200014),0)+NVL(SUM(TYP_200013),0)-->
+<!--         + NVL(SUM(TYP_200609),0)+NVL(SUM(TYP_200127),0)-->
+<!--         + NVL(SUM(TYP_200467),0)+NVL(SUM(TYP_200007),0)-->
+<!--         + NVL(SUM(TYP_200371),0)+NVL(SUM(TYP_200008),0)-->
+<!--         + NVL(SUM(TYP_200015),0)+NVL(SUM(TYP_200608),0)-->
+<!--         + NVL(SUM(TYP_200926),0)+NVL(SUM(TYP_200934),0)-->
+<!--         + NVL(SUM(TYP_200986),0)+NVL(SUM(TYP_299999),0)-->
+<!--         + NVL(SUM(TYP_300001),0)+NVL(SUM(TYP_300002),0)-->
+<!--         + NVL(SUM(TYP_300003),0)+NVL(SUM(TYP_300004),0)-->
+<!--         + NVL(SUM(TYP_300005),0)+NVL(SUM(TYP_300006),0)-->
+<!--         + NVL(SUM(TYP_300007),0)+NVL(SUM(TYP_300008),0)-->
+<!--         + NVL(SUM(TYP_300009),0)+NVL(SUM(TYP_300010),0)-->
+<!--         + NVL(SUM(TYP_300011),0)+NVL(SUM(TYP_300012),0)-->
+<!--         + NVL(SUM(TYP_300013),0)+NVL(SUM(TYP_300014),0)-->
+<!--         + NVL(SUM(TYP_300015),0)+NVL(SUM(TYP_300016),0)-->
+<!--         + NVL(SUM(TYP_300017),0)+NVL(SUM(TYP_300018),0)-->
+<!--         + NVL(SUM(TYP_300019),0)+NVL(SUM(TYP_300020),0)-->
+<!--         + NVL(SUM(TYP_300021),0)+NVL(SUM(TYP_300022),0)-->
+<!--         + NVL(SUM(TYP_300023),0)+NVL(SUM(TYP_300024),0)-->
+<!--         + NVL(SUM(TYP_300025),0)+NVL(SUM(TYP_300026),0)-->
+<!--         + NVL(SUM(TYP_300027),0)+NVL(SUM(TYP_300028),0)-->
+<!--         + NVL(SUM(TYP_300029),0)+NVL(SUM(TYP_399999),0) TYP_999999-->
+<!--      FROM (-->
+<!--            SELECT ITM_PD_CD-->
+<!--                 , DECODE(STCK_CD,'100002',SUM(QTY)) TYP_100002-->
+<!--                 , DECODE(STCK_CD,'100003',SUM(QTY)) TYP_100003-->
+<!--                 , DECODE(STCK_CD,'200001',SUM(QTY)) TYP_200001-->
+<!--                 , DECODE(STCK_CD,'200002',SUM(QTY)) TYP_200002-->
+<!--                 , DECODE(STCK_CD,'200465',SUM(QTY)) TYP_200465-->
+<!--                 , DECODE(STCK_CD,'200009',SUM(QTY)) TYP_200009-->
+<!--                 , DECODE(STCK_CD,'200006',SUM(QTY)) TYP_200006-->
+<!--                 , DECODE(STCK_CD,'200024',SUM(QTY)) TYP_200024-->
+<!--                 , DECODE(STCK_CD,'200017',SUM(QTY)) TYP_200017-->
+<!--                 , DECODE(STCK_CD,'200005',SUM(QTY)) TYP_200005-->
+<!--                 , DECODE(STCK_CD,'200003',SUM(QTY)) TYP_200003-->
+<!--                 , DECODE(STCK_CD,'200010',SUM(QTY)) TYP_200010-->
+<!--                 , DECODE(STCK_CD,'200012',SUM(QTY)) TYP_200012-->
+<!--                 , DECODE(STCK_CD,'200466',SUM(QTY)) TYP_200466-->
+<!--                 , DECODE(STCK_CD,'200014',SUM(QTY)) TYP_200014-->
+<!--                 , DECODE(STCK_CD,'200013',SUM(QTY)) TYP_200013-->
+<!--                 , DECODE(STCK_CD,'200609',SUM(QTY)) TYP_200609-->
+<!--                 , DECODE(STCK_CD,'200127',SUM(QTY)) TYP_200127-->
+<!--                 , DECODE(STCK_CD,'200467',SUM(QTY)) TYP_200467-->
+<!--                 , DECODE(STCK_CD,'200007',SUM(QTY)) TYP_200007-->
+<!--                 , DECODE(STCK_CD,'200371',SUM(QTY)) TYP_200371-->
+<!--                 , DECODE(STCK_CD,'200008',SUM(QTY)) TYP_200008-->
+<!--                 , DECODE(STCK_CD,'200015',SUM(QTY)) TYP_200015-->
+
+<!--                 , DECODE(STCK_CD,'200926',SUM(QTY)) TYP_200926-->
+<!--                 , DECODE(STCK_CD,'200934',SUM(QTY)) TYP_200934-->
+<!--                 , DECODE(STCK_CD,'200986',SUM(QTY)) TYP_200986-->
+
+<!--                 , DECODE(STCK_CD,'200608',SUM(QTY)) TYP_200608-->
+<!--                 , DECODE(STCK_CD,'299999',SUM(QTY)) TYP_299999-->
+<!--                 , DECODE(STCK_CD,'300001',SUM(QTY)) TYP_300001-->
+<!--                 , DECODE(STCK_CD,'300002',SUM(QTY)) TYP_300002-->
+<!--                 , DECODE(STCK_CD,'300003',SUM(QTY)) TYP_300003-->
+<!--                 , DECODE(STCK_CD,'300004',SUM(QTY)) TYP_300004-->
+<!--                 , DECODE(STCK_CD,'300005',SUM(QTY)) TYP_300005-->
+<!--                 , DECODE(STCK_CD,'300006',SUM(QTY)) TYP_300006-->
+<!--                 , DECODE(STCK_CD,'300007',SUM(QTY)) TYP_300007-->
+<!--                 , DECODE(STCK_CD,'300008',SUM(QTY)) TYP_300008-->
+<!--                 , DECODE(STCK_CD,'300009',SUM(QTY)) TYP_300009-->
+<!--                 , DECODE(STCK_CD,'300010',SUM(QTY)) TYP_300010-->
+<!--                 , DECODE(STCK_CD,'300011',SUM(QTY)) TYP_300011-->
+<!--                 , DECODE(STCK_CD,'300012',SUM(QTY)) TYP_300012-->
+<!--                 , DECODE(STCK_CD,'300013',SUM(QTY)) TYP_300013-->
+<!--                 , DECODE(STCK_CD,'300014',SUM(QTY)) TYP_300014-->
+<!--                 , DECODE(STCK_CD,'300015',SUM(QTY)) TYP_300015-->
+<!--                 , DECODE(STCK_CD,'300016',SUM(QTY)) TYP_300016-->
+<!--                 , DECODE(STCK_CD,'300017',SUM(QTY)) TYP_300017-->
+<!--                 , DECODE(STCK_CD,'300018',SUM(QTY)) TYP_300018-->
+<!--                 , DECODE(STCK_CD,'300019',SUM(QTY)) TYP_300019-->
+<!--                 , DECODE(STCK_CD,'300020',SUM(QTY)) TYP_300020-->
+<!--                 , DECODE(STCK_CD,'300021',SUM(QTY)) TYP_300021-->
+<!--                 , DECODE(STCK_CD,'300022',SUM(QTY)) TYP_300022-->
+<!--                 , DECODE(STCK_CD,'300023',SUM(QTY)) TYP_300023-->
+<!--                 , DECODE(STCK_CD,'300024',SUM(QTY)) TYP_300024-->
+<!--                 , DECODE(STCK_CD,'300025',SUM(QTY)) TYP_300025-->
+<!--                 , DECODE(STCK_CD,'300026',SUM(QTY)) TYP_300026-->
+<!--                 , DECODE(STCK_CD,'300027',SUM(QTY)) TYP_300027-->
+<!--                 , DECODE(STCK_CD,'300028',SUM(QTY)) TYP_300028-->
+<!--                 , DECODE(STCK_CD,'300029',SUM(QTY)) TYP_300029-->
+<!--                 , DECODE(STCK_CD,'399999',SUM(QTY)) TYP_399999-->
+<!--              FROM (-->
+<!--                    SELECT STR1.ITM_PD_CD-->
+<!--                         , CASE WHEN W1.WARE_ICHR_NO = '000' THEN W1.WARE_NO-->
+<!--                                ELSE SUBSTR(W1.WARE_NO, 1, 1)||'99999'-->
+<!--                            END STCK_CD-->
+<!--                         , STR1.STR_QTY QTY-->
+<!--                         , STR_TP_CD IN_TYP-->
+<!--                      FROM TB_SVST_ITM_STR_IZ STR1-->
+<!--                         , TB_PDBS_PD_BAS P1-->
+<!--                         , TB_PDBS_PD_ECOM_PRP_DTL P2-->
+<!--                         , TB_SVST_MCBY_WARE_IZ W1-->
+<!--                     WHERE 1=1-->
+<!--                       AND STR1.ITM_PD_CD = P1.PD_CD-->
+<!--                       AND P1.PD_CD = P2.PD_CD-->
+<!--                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>-->
+<!--                       AND STR1.ITM_PD_CD = #{pdCd}-->
+<!--                       </if>-->
+<!--                       <if test='@MybatisUtils@isNotEmpty(pdGdCd)'>-->
+<!--                       AND STR1.ITM_GD_CD = #{pdGdCd}-->
+<!--                       </if>-->
+<!--                       <if test='@MybatisUtils@isNotEmpty(useYn)'>-->
+<!--                       AND P2.PD_PRP_VAL32 = #{useYn}-->
+<!--                       </if>-->
+<!--                       AND P2.PD_EXTS_PRP_GRP_CD = 'PART'-->
+<!--                       AND P2.DTA_DL_YN = 'N'-->
+
+<!--                       AND STR1.STR_RGST_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}-->
+<!--                       AND W1.APY_YM = SUBSTR(STR1.STR_RGST_DT, 1, 6)-->
+<!--                       AND W1.WARE_NO = STR1.STR_WARE_NO-->
+<!--                       AND STR1.STR_QTY > 0-->
+
+<!--                       AND P2.PD_PRP_VAL19 = #{itmKndCd}-->
+
+<!--                     UNION ALL-->
+
+<!--                    SELECT STR1.ITM_PD_CD-->
+<!--                         , CASE WHEN W1.WARE_ICHR_NO = '000' THEN W1.WARE_NO-->
+<!--                                ELSE SUBSTR(W1.WARE_NO, 1, 1)||'99999'-->
+<!--                            END STCK_CD-->
+<!--                         , STR1.USE_QTY-->
+<!--                         , '162' IN_TYP-->
+<!--                      FROM TB_SVST_SV_WK_OSTR_IZ STR1-->
+<!--                         , TB_PDBS_PD_BAS P1-->
+<!--                         , TB_PDBS_PD_ECOM_PRP_DTL P2-->
+<!--                         , TB_SVST_MCBY_WARE_IZ W1-->
+<!--                     WHERE 1=1-->
+<!--                       AND STR1.ITM_PD_CD = P1.PD_CD-->
+<!--                       AND P1.PD_CD = P2.PD_CD-->
+<!--                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>-->
+<!--                       AND STR1.ITM_PD_CD = #{pdCd}-->
+<!--                       </if>-->
+<!--                       <if test='@MybatisUtils@isNotEmpty(pdGdCd)'>-->
+<!--                       AND STR1.FNL_ITM_GD_CD = #{pdGdCd}-->
+<!--                       </if>-->
+<!--                       <if test='@MybatisUtils@isNotEmpty(useYn)'>-->
+<!--                       AND P2.PD_PRP_VAL32 = #{useYn}-->
+<!--                       </if>-->
+<!--                       AND P2.PD_EXTS_PRP_GRP_CD = 'PART'-->
+<!--                       AND P2.DTA_DL_YN = 'N'-->
+
+<!--                       AND STR1.FST_VST_FSH_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}-->
+<!--                       AND STR1.SV_BIZ_HCLSF_CD = '6'-->
+<!--                       AND W1.APY_YM = SUBSTR(STR1.FST_VST_FSH_DT, 1, 6)-->
+<!--                       AND W1.WARE_NO = STR1.WK_WARE_NO-->
+<!--                       AND STR1.USE_QTY > 0-->
+
+<!--                       AND P2.PD_PRP_VAL19 = #{itmKndCd}-->
+
+<!--                     UNION ALL-->
+
+<!--                    SELECT STR1.PD_CD-->
+<!--                         , CASE WHEN W1.WARE_ICHR_NO = '000' THEN W1.WARE_NO-->
+<!--                                ELSE SUBSTR(W1.WARE_NO, 1, 1)||'99999'-->
+<!--                            END STCK_CD-->
+<!--                         , STR1.CTR_QTY QTY-->
+<!--                         , '190' IN_TYP-->
+<!--                      FROM TB_SVST_ITM_GD_CTR_IZ STR1-->
+<!--                         , TB_PDBS_PD_BAS P1-->
+<!--                         , TB_PDBS_PD_ECOM_PRP_DTL P2-->
+<!--                         , TB_SVST_MCBY_WARE_IZ W1-->
+<!--                     WHERE 1=1-->
+<!--                       AND STR1.PD_CD = P1.PD_CD-->
+<!--                       AND P1.PD_CD = P2.PD_CD-->
+<!--                       <if test='@MybatisUtils@isNotEmpty(pdCd)'>-->
+<!--                       AND STR1.PD_CD = #{pdCd}-->
+<!--                       </if>-->
+<!--                       <if test='@MybatisUtils@isNotEmpty(pdGdCd)'>-->
+<!--                       AND STR1.AFCT_ITM_GD_CD = #{pdGdCd}-->
+<!--                       </if>-->
+<!--                       <if test='@MybatisUtils@isNotEmpty(useYn)'>-->
+<!--                       AND P2.PD_PRP_VAL32 = #{useYn}-->
+<!--                       </if>-->
+<!--                       AND P2.PD_EXTS_PRP_GRP_CD = 'PART'-->
+<!--                       AND P2.DTA_DL_YN = 'N'-->
+
+<!--                       AND STR1.CTR_WK_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}-->
+<!--                       AND W1.APY_YM = SUBSTR(STR1.CTR_WK_DT, 1, 6)-->
+<!--                       AND W1.WARE_NO = STR1.WARE_NO-->
+<!--                       AND STR1.CTR_QTY > 0-->
+
+<!--                       AND P2.PD_PRP_VAL19 = #{itmKndCd}-->
+<!--                    )-->
+<!--             WHERE 1=1-->
+<!--               <if test='@MybatisUtils@isNotEmpty(strTpCd)'>-->
+<!--               AND IN_TYP = #{strTpCd}-->
+<!--               </if>-->
+<!--             GROUP-->
+<!--                BY ITM_PD_CD, STCK_CD-->
+<!--            ) V1-->
+<!--         , TB_PDBS_PD_BAS P1-->
+<!--         , TB_PDBS_PD_ECOM_PRP_DTL P2-->
+<!--     WHERE 1=1-->
+<!--       AND V1.ITM_PD_CD = P1.PD_CD-->
+<!--       AND P1.PD_CD = P2.PD_CD-->
+<!--       AND P2.PD_EXTS_PRP_GRP_CD = 'PART'-->
+<!--       AND P2.DTA_DL_YN = 'N'-->
+<!--       <if test='@MybatisUtils@isNotEmpty(sapCdFrom)'>-->
+<!--           <if test='@MybatisUtils@isNotEmpty(sapCdTo)'>-->
+<!--           AND P1.SAP_MAT_CD >= #{sapCdFrom}-->
+<!--           AND P1.SAP_MAT_CD &lt;= #{sapCdTo}-->
+<!--           </if>-->
+<!--           <if test='@MybatisUtils@isEmpty(sapCdTo)'>-->
+<!--           AND P1.SAP_MAT_CD >= #{sapCdFrom}-->
+<!--           </if>-->
+<!--       </if>-->
+
+<!--       <if test='@MybatisUtils@isNotEmpty(sapCdTo)'>-->
+<!--           <if test='@MybatisUtils@isEmpty(sapCdFrom)'>-->
+<!--           AND P1.SAP_MAT_CD &lt;= #{sapCdTo}-->
+<!--           </if>-->
+<!--       </if>-->
+
+<!--       <if test='@MybatisUtils@isNotEmpty(pdCdFrom)'>-->
+<!--           <if test='@MybatisUtils@isNotEmpty(pdCdTo)'>-->
+<!--           AND P1.PD_CD >= #{pdCdFrom}-->
+<!--           AND P1.PD_CD &lt;= #{pdCdTo}-->
+<!--           </if>-->
+<!--           <if test='@MybatisUtils@isEmpty(sapCdTo)'>-->
+<!--           AND P1.PD_CD >= #{pdCdFrom}-->
+<!--           </if>-->
+<!--       </if>-->
+
+<!--       <if test='@MybatisUtils@isNotEmpty(pdCdTo)'>-->
+<!--           <if test='@MybatisUtils@isEmpty(pdCdFrom)'>-->
+<!--           AND P1.PD_CD &lt;= #{pdCdTo}-->
+<!--           </if>-->
+<!--       </if>-->
+<!--     GROUP-->
+<!--        BY P2.PD_PRP_VAL17, P1.SAP_MAT_CD, P1.PD_CD, P1.PD_NM-->
+<!--     ORDER-->
+<!--        BY P1.PD_CD-->
     </select>
 </mapper>
