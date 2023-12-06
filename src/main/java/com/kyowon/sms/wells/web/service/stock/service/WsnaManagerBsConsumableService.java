@@ -208,7 +208,7 @@ public class WsnaManagerBsConsumableService {
      * @param dtos
      * @return
      */
-    @Transactional
+    @Transactional(timeout = 300)
     public int createManagerBsConsumablesRequest(List<CreateReq> dtos) {
         int count = 0;
 
