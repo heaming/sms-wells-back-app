@@ -60,8 +60,10 @@ public class WfeeIndividualFeeDto {
         String ogLevl3, /* 조직레벨3 */
         String ogLevl4, /* 조직레벨4 */
         String ogLevl5, /* 조직레벨5 */
-        String prtnrNo, /*파트너번호*/
-        String feeDsbYn /* 수수료지급여부 */
+        String prtnrNo, /* 번호 */
+        String feeDsbYn, /* 수수료지급여부 */
+        String ddlnId, /* 마감일ID */
+        String ddlnDvId /* 마감일구분ID */
     ) {}
 
     // *********************************************************
