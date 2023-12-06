@@ -212,7 +212,7 @@ public class WsnaBuildingBsConsumableService {
      * @param dtos
      * @return
      */
-    @Transactional
+    @Transactional(timeout = 300)
     public int createBuildingBsConsumablesRequest(List<CreateReq> dtos) {
 
         int count = 0;
