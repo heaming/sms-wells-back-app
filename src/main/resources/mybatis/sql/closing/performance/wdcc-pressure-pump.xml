@@ -265,78 +265,107 @@
     </select>
 
     <insert id = "insertConfirmManagement">
-        /* 가압펌프 등록  */
-		 INSERT INTO TB_SSCT_RENTAL_ADN_SV_IZ (
-		        CNTR_NO --계약번호
-		      , CNTR_SN --계약일련번호
-		      , ADN_SV_DV_CD --부가서비스구분코드
-		      , ADN_SV_SN --부가서비스일련번호
-		      , CH_SN --변경일련번호
-		      , PDCT_PD_CD --제품상품코드
-		      , PD_QTY --상품수량
-		      , SV_MCN --서비스개월수
-		      , DUTY_USE_MCN --의무사용개월수
-		      , ADN_SV_CS_AMT --부가서비스비용금액
-		      , DSC_AMT --할인금액
-		      , IST_MM_BIL_MTHD_TP_CD --설치월청구방식유형코드
-		      , ADN_SV_STRT_YM --부가서비스시작년월
-		      , RCPDT --접수일자
-		      , IST_DUEDT --설치예정일자
-		      , IST_DT --설치일자
-		      , REQD_DT --철거일자
-		      , RSG_DT --해지일자
-		      , NXTM_OJ_YN --차회대상여부
-		      , DTA_DL_YN --데이터삭제여부
-		      <include refid="COMMON.insertSystemField" />
-		)VALUES (
-		        #{cntrNo}
-		      , #{cntrSn}
-		      , '01'
-		      , NVL(( SELECT MAX(ADN_SV_SN)+ 1
-                        FROM TB_SSCT_RENTAL_ADN_SV_IZ
-                       WHERE CNTR_NO = #{cntrNo}
-                         AND ADN_SV_DV_CD = '01' ) , 1)
-		      , 1
-		      , #{pdctPdCd}
-		      , 1
-		      , 60
-		      , 60
-		      , #{lctamt}
-		      , 0
-		      , '1'
-		      , #{adnSvStrtYm}
-		      , #{fnlVstFshDt}
-		      , #{fnlVstFshDt}
-		      , #{fnlVstFshDt}
-		      , NULL
-		      , NULL
-		      , ''
-		      , 'N'
-		      <include refid="COMMON.insertSystemFieldValue" />
-		      )
+        /* WdccPressurePumpMapper.mergeConfirmManagement */
+        MERGE INTO TB_SSCT_RENTAL_ADN_SV_IZ T1
+        USING (SELECT A1.CNTR_NO
+                    , A1.CNTR_SN
+                    , NVL(A3.ADN_SV_DV_CD, '01') AS ADN_SV_DV_CD
+                    , A3.ADN_SV_SN
+                    , NVL(A3.PDCT_PD_CD, #{pdctPdCd}) AS PDCT_PD_CD
+                    , NVL(A3.ADN_SV_STRT_YM, SUBSTR(#{fnlVstFshDt}, 1, 6)) AS ADN_SV_STRT_YM
+                    , CASE WHEN #{svBizHclsfCd} = '6' THEN NVL(A3.RCPDT, SUBSTR(A2.CNTR_CNFM_DTM, 1, 8))
+                           ELSE #{fnlVstFshDt} END AS RCPDT
+                    , CASE WHEN #{svBizHclsfCd} = '6' THEN  NVL(A3.IST_DUEDT, A1.CNTR_PD_STRTDT)
+                           ELSE #{fnlVstFshDt} END AS IST_DUEDT
+                    , CASE WHEN #{svBizHclsfCd} = '6' THEN  NVL(A3.IST_DT, A1.CNTR_PD_STRTDT)
+                           ELSE #{fnlVstFshDt} END AS IST_DT
+                    , CASE WHEN #{svBizHclsfCd} = '6' THEN #{fnlVstFshDt} END AS REQD_DT
+                    , CASE WHEN #{svBizHclsfCd} = '6' THEN #{fnlVstFshDt} END AS RSG_DT
+                    , CASE WHEN #{svBizHclsfCd} = '6' THEN 'Y' END AS NXTM_OJ_YN
+                 FROM TB_SSCT_CNTR_DTL A1
+                 LEFT OUTER JOIN TB_SSCT_CNTR_BAS A2
+                   ON A2.CNTR_NO = A1.CNTR_NO
+                 LEFT OUTER JOIN TB_SSCT_RENTAL_ADN_SV_IZ A3
+                   ON A3.CNTR_NO = A1.CNTR_NO
+                  AND A3.CNTR_SN = A1.CNTR_SN
+                  AND A3.ADN_SV_DV_CD = '01'
+                  AND A3.ADN_SV_SN = #{adnSvSn}
+                  AND A3.DTA_DL_YN = 'N'
+                WHERE A1.CNTR_NO = #{cntrNo}
+                  AND A1.CNTR_SN = #{cntrSn}
+              ) M1
+           ON (M1.CNTR_NO = T1.CNTR_NO
+               AND M1.CNTR_SN = T1.CNTR_SN
+               AND M1.ADN_SV_DV_CD = T1.ADN_SV_DV_CD
+               AND M1.ADN_SV_SN = T1.ADN_SV_SN
+              )
+         WHEN MATCHED THEN
+              UPDATE
+                 SET T1.PDCT_PD_CD = M1.PDCT_PD_CD
+                   , T1.ADN_SV_STRT_YM = M1.ADN_SV_STRT_YM
+                   , T1.RCPDT = M1.RCPDT
+                   , T1.IST_DUEDT = M1.IST_DUEDT
+                   , T1.IST_DT = M1.IST_DT
+                   , T1.REQD_DT = M1.REQD_DT
+                   , T1.RSG_DT = M1.RSG_DT
+                   , T1.NXTM_OJ_YN = M1.NXTM_OJ_YN
+                   <include refid="COMMON.updateSystemField" />
+         WHEN NOT MATCHED THEN
+              INSERT
+                   ( T1.CNTR_NO
+                   , T1.CNTR_SN
+                   , T1.ADN_SV_DV_CD
+                   , T1.ADN_SV_SN
+                   , T1.CH_SN
+                   , T1.PDCT_PD_CD
+                   , T1.PD_QTY
+                   , T1.SV_MCN
+                   , T1.DUTY_USE_MCN
+                   , T1.ADN_SV_CS_AMT
+                   , T1.DSC_AMT
+                   , T1.IST_MM_BIL_MTHD_TP_CD
+                   , T1.ADN_SV_STRT_YM
+                   , T1.RCPDT
+                   , T1.IST_DUEDT
+                   , T1.IST_DT
+                   , T1.REQD_DT
+                   , T1.RSG_DT
+                   , T1.NXTM_OJ_YN
+                   , T1.DTA_DL_YN
+                   <include refid="COMMON.insertSystemField" /> )
+              VALUES
+                   ( M1.CNTR_NO
+                   , M1.CNTR_SN
+                   , M1.ADN_SV_DV_CD
+                   , (SELECT NVL(MAX(X1.ADN_SV_SN), 0) + 1
+                        FROM TB_SSCT_RENTAL_ADN_SV_IZ X1
+                       WHERE X1.CNTR_NO = M1.CNTR_NO
+                         AND X1.CNTR_SN = M1.CNTR_SN
+                         AND X1.ADN_SV_DV_CD = M1.ADN_SV_DV_CD)
+                   , 1
+                   , M1.PDCT_PD_CD
+                   , 1
+                   , 60
+                   , 60
+                   , #{lctamt}
+                   , 0
+                   , '1'
+                   , M1.ADN_SV_STRT_YM
+                   , M1.RCPDT
+                   , M1.IST_DUEDT
+                   , M1.IST_DT
+                   , M1.REQD_DT
+                   , M1.RSG_DT
+                   , M1.NXTM_OJ_YN
+                   , 'N'
+                   <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
-
-    <update id="updateConfirmManagement">
-        /* 가압펌프 회수  */
-        UPDATE TB_SSCT_RENTAL_ADN_SV_IZ
-           SET REQD_DT = #{fnlVstFshDt}
-             , RSG_DT = #{fnlVstFshDt}
-             , NXTM_OJ_YN = 'Y'
-             <include refid="COMMON.updateSystemField" />
-         WHERE CNTR_NO = #{cntrNo}
-           AND PDCT_PD_CD = #{pdctPdCd}
-           AND ADN_SV_DV_CD ='01'
-           AND ADN_SV_SN = ( SELECT MAX(ADN_SV_SN)
-                               FROM TB_SSCT_RENTAL_ADN_SV_IZ
-                              WHERE CNTR_NO = #{cntrNo}
-                                AND ADN_SV_DV_CD = '01'
-                           )
-    </update>
 
     <delete id="deleteConfirmManagement">
         DELETE FROM TB_SSCT_RENTAL_ADN_SV_IZ
          WHERE CNTR_NO = #{cntrNo}
-          AND ADN_SV_SN = #{adnSvSn}
-          AND ADN_SV_DV_CD = '01'
+           AND CNTR_SN = #{cntrSn}
+           AND ADN_SV_SN = #{adnSvSn}
+           AND ADN_SV_DV_CD = '01'
     </delete>
 </mapper>

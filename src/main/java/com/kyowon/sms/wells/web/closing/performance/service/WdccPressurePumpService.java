@@ -39,27 +39,16 @@ public class WdccPressurePumpService {
      * @return processCount
      */
     @Transactional
-    public int saveConfirmManagement(List<SaveReq> dtos) throws Exception {
+    public int saveConfirmManagement(List<SaveReq> dtos) {
         int processCount = 0;
-        int result = 0;
         if (CollectionUtils.isNotEmpty(dtos)) {
             for (SaveReq dto : dtos) {
                 WdccPressurePumpDvo dvo = this.converter.mapSaveReqToWdccPressurePumpDvo(dto);
-                if ("6".equals(dto.svBizHclsfCd())) {
-                    result = this.mapper.updateConfirmManagement(dvo);
-                } else {
-                    result = this.mapper.insertConfirmManagement(dvo);
-                }
-
-                processCount = result;
+                processCount += this.mapper.insertConfirmManagement(dvo);
             }
         }
 
-        if (processCount <= 0) {
-            return processCount;
-        }
         return processCount;
-
     }
 
     /**
