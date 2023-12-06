@@ -19,8 +19,6 @@ public interface WdccPressurePumpMapper {
 
     int insertConfirmManagement(WdccPressurePumpDvo dvo);
 
-    int updateConfirmManagement(WdccPressurePumpDvo dvo);
-
     int deleteConfirmManagement(WdccPressurePumpDvo dvo);
 
 }
