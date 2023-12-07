@@ -24,8 +24,6 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WogcPartnerPlannerMapper {
 
-    PagingResult<SearchLicenseRes> selectPlannerLicensePages(SearchLicenseReq dto, PageInfo pageinfo);
-
     List<SearchLicenseRes> selectPlannerLicensePages(SearchLicenseReq dto);
 
     PagingResult<WogcPartnerPlannerDto.SearchRes> selectTopPlannerPages(
