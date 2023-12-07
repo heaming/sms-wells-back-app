@@ -37,18 +37,30 @@ public class WsnaBsCsmbDeliveryAggregateDvo {
 
     // 배부수량 합계
     BigDecimal ddlvQtySum;
-    // 5개월 전 배부수량
+    // 11개월 전 배부수량
     BigDecimal mm1Qty;
-    // 4개월 전 배부수량
+    // 10개월 전 배부수량
     BigDecimal mm2Qty;
-    // 3개월 전 배부수량
+    // 9개월 전 배부수량
     BigDecimal mm3Qty;
-    // 2개월 전 배부수량
+    // 8개월 전 배부수량
     BigDecimal mm4Qty;
-    // 1개월 전 배부수량
+    // 7개월전 배부수량
     BigDecimal mm5Qty;
-    // 당월 배부수량
+    // 6개월 전 배부수량
     BigDecimal mm6Qty;
+    // 5개월 전 배부수량
+    BigDecimal mm7Qty;
+    // 4개월 전 배부수량
+    BigDecimal mm8Qty;
+    // 3개월 전 배부수량
+    BigDecimal mm9Qty;
+    // 2개월 전 배부수량
+    BigDecimal mm10Qty;
+    // 1개월 전 배부수량
+    BigDecimal mm11Qty;
+    // 당월 배부수량
+    BigDecimal mm12Qty;
 
     // 방문계정 수 합계
     BigDecimal vstAccSum;

@@ -22,6 +22,7 @@ import com.sds.sflex.system.config.context.SFLEXContext;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -149,20 +150,31 @@ public class WsnaBuildingBsConsumableService {
     public List<HashMap<String, Object>> getBuildingBsConsumables(SearchReq dto) {
         WsnaBuildingBsConsumableDvo searchDvo = converter.mapSearchReqToBuildingBsConsumable(dto);
 
+        String mngtYm = searchDvo.getMngtYm();
+
         // 그리드 헤더상의 품목 조회
-        List<WsnaBuildingBsConsumableDvo> sapMatCds = mapper.selectItems(searchDvo.getMngtYm());
+        List<WsnaBuildingBsConsumableDvo> sapMatCds = mapper.selectItems(mngtYm);
+        String mngtYear = mngtYm.substring(0, 4);
+        String mngtMonth = mngtYm.substring(4);
+        mngtMonth = mngtMonth.startsWith("0") ? " " + mngtMonth.substring(1) : mngtMonth;
+        // {0}년 {1}월 배부기준이 없습니다.
+        BizAssert.isFalse(
+            CollectionUtils.isEmpty(sapMatCds), "MSG_ALT_THM_DATA_NOT_EXST", new String[] {mngtYear, mngtMonth}
+        );
 
         // PIVOT 조건 변환
         String pivotInStr = sapMatCds.stream()
             .map(obj -> {
                 // 배부유형코드
                 String ddlvTpCd = obj.getBfsvcCsmbDdlvTpCd();
+                // SAP코드
+                String sapMatcd = obj.getSapMatCd();
                 // 고정
                 if ("1".equals(ddlvTpCd)) {
-                    return "'" + obj.getSapMatCd() + "' AS QTY_" + obj.getSapMatCd();
+                    return "'" + sapMatcd + "' AS QTY_" + sapMatcd;
                     // 신청
                 } else {
-                    return "'" + obj.getSapMatCd() + "' AS APLC_QTY_" + obj.getSapMatCd();
+                    return "'" + sapMatcd + "' AS APLC_QTY_" + sapMatcd;
                 }
             })
             .collect(Collectors.joining(", "));
@@ -172,12 +184,14 @@ public class WsnaBuildingBsConsumableService {
             .map(obj -> {
                 // 배부유형코드
                 String ddlvTpCd = obj.getBfsvcCsmbDdlvTpCd();
+                // SAP코드
+                String sapMatcd = obj.getSapMatCd();
                 // 고정
                 if ("1".equals(ddlvTpCd)) {
-                    return "NVL(T2.QTY_" + obj.getSapMatCd() + ", 0) AS QTY_" + obj.getSapMatCd();
+                    return "NVL(T2.QTY_" + sapMatcd + ", 0) AS QTY_" + sapMatcd;
                     // 신청
                 } else {
-                    return "NVL(T2.APLC_QTY_" + obj.getSapMatCd() + ", 0) AS APLC_QTY_" + obj.getSapMatCd();
+                    return "NVL(T2.APLC_QTY_" + sapMatcd + ", 0) AS APLC_QTY_" + sapMatcd;
                 }
             })
             .collect(Collectors.joining(", "));
