@@ -569,13 +569,278 @@
            AND A.CNTR_PERF_CRT_DV_CD = '01'  -- 순주문
            AND A.OG_TP_CD = #{ogTpCd}
     </select>
-    <select
-        id="searchAccureActivitiesA"
-        resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcActivityDto$SearchAccureActivityRes">
-    </select>
 
-    <select
-        id="searchAccureActivitiesI"
-        resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcActivityDto$SearchAccureActivityRes">
+    <select id="searchAccureActivities" resultType="com.kyowon.sms.wells.web.organization.hmnrsc.dto.WogcActivityDto$SearchAccureActivityRes">
+        --누적활동현황 - P조직 (전체, 수당건수)
+        SELECT T1.DGR1_LEVL_OG_NM                                                          /* 총괄단                          */
+             , T1.DGR2_LEVL_OG_NM                                                          /* 지역단                          */
+             , T1.OG_CD                                                                    /* 소속                            */
+             , T1.BLD_NM                                                                   /* 빌딩명                          */
+             , T0.PRTNR_KNM                                                                /* 성명                            */
+             , T0.PRTNR_NO                                                                 /* 번호                            */
+             , NVL(C1.CD_CNTN, '-')                                          QLF_DV_NM     /* 자격                            */
+             , T0.FST_CNTR_DT                                                              /* 업무등록현황 - 최초등록         */
+             , T0.FNL_CLTN_DT                                                              /* 업무등록현황 - 최종해약         */
+             , T0.RCNTR_DT                                                                 /* 업무등록현황 - 재등록           */
+             , TM.MIN_STRTDT                                                 MIN_STRTDT_M  /* 웰스매니저 현황 - 최초개시      */
+             , TM.MAX_ENDDT                                                  MAX_ENDDT_M   /* 웰스매니저 현황 - 최종해약      */
+             , TM.MAX_STRTDT                                                 MAX_STRTDT_M  /* 웰스매니저 현황 - 재개시        */
+             , T2.MIN_UPGR_YM                                                MIN_UPGR_YM_P /* 수석플래너 현황 - 최초개시      */
+             , CASE WHEN T0.OG_TP_CD = 'W01' THEN T0.FNL_CLTN_DT ELSE '' END FNL_CLTN_DT_P /* 수석플래너 현황 - 최종해약      */
+             , T2.MAX_DMTN_YM                                                MAX_DMTN_YM_P /* 수석플래너 현황 - 강등          */
+             , CASE WHEN T0.OG_TP_CD = 'W01' THEN T0.CLTN_DT     ELSE '' END CLTN_DT_P     /* 수석플래너 현황 - 해약          */
+             , '' RGR_PRTNR_NO                                                             /* 수석플래너 신청자 - 번호 ?      */
+             , '' RGR_PRTNR_NM                                                             /* 수석플래너 신청자 - 성명 ?      */
+             , T3.TOT_SUM                                                                  /* 환경가전 실적 - 누적건수        */
+             , ROUND(T3.M03_SUM / 3, 0) M03_AVG                                            /* 환경가전 실적 - 직전3개월(평균) */
+             , T3.M03_SUM                                                                  /* 환경가전 실적 - 직전3개월       */
+             , T3.CUR_SUM                                                                  /* 환경가전 실적 - 당월            */
+             , T3.ABL_SUM                                                                  /* 환경가전 실적 - 승급건수        */
+             , T6.EDU96                                                                    /* 교육현황 - 스타트업(M)          */
+             , T6.EDU14                                                                    /* 교육현황 - 플래너스타트업(P)    */
+             , T5.RCMDR_CNT                                                                /* 채용현황 - 인원                 */
+             , T4.PRE_CNT                                                                  /* 채용현황 - 전월실동             */
+             , T5.CUR_CNT                                                                  /* 채용현황 - 당월실동             */
+          FROM /*************/ TB_OGBS_MM_PRTNR_IZ T0  /* 월파트너내역 */
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ    T1  /* 월조직내역   */
+            ON T1.BASE_YM      = T0.BASE_YM
+           AND T1.OG_ID        = T0.OG_ID
+          LEFT OUTER JOIN (
+                            SELECT OG_TP_CD
+                                 , PRTNR_NO
+                                 , MIN(UPGR_YM) MIN_UPGR_YM --승급년월
+                                 , MIN(DMTN_YM) MAX_DMTN_YM --강등년월
+                               --, RGR_PRTNR_NO --등록자파트너번호
+                               --, RGST_DT      --등록일자
+                              FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
+                             WHERE MNGT_YM <![CDATA[<=]]> #{baseYm} /* 관리년월 - 파라미터 #############################  */
+                               AND QLF_DV_CD = '1' --상수값:수석플래너
+                               AND DTA_DL_YN = 'N'
+                             GROUP BY OG_TP_CD, PRTNR_NO
+                           ) T2  /* P조직-수석플래너 이력 */
+            ON T2.OG_TP_CD     = T0.OG_TP_CD
+           AND T2.PRTNR_NO     = T0.PRTNR_NO
+          LEFT OUTER JOIN (
+                            SELECT T1.PRTNR_NO
+                                 , MIN(T1.STRTDT) MIN_STRTDT
+                                 , MAX(CASE WHEN T1.ENDDT <![CDATA[<>]]> '99991231' THEN T1.ENDDT ELSE '' END) MAX_ENDDT
+                                 , MAX(T1.STRTDT) MAX_STRTDT
+                              FROM TB_OGPS_PLAR_QLF_CH_IZ T1 /* 플래너자격변경내역 */
+                             WHERE 1 = 1
+                               AND T1.OG_TP_CD    = 'W02' --상수값(조직유형코드) - W02:M조직
+                               AND T1.QLF_DV_CD   = '3'   --상수값(자격구분코드) - 2:프리매니저, 6:BS프리매니저, 3:웰스매니저
+                               AND T1.STRTDT     <![CDATA[<=]]> #{baseYm} ||'01' /* 관리년월 - 파라미터 #############################  */
+                               AND T1.DTA_DL_YN   = 'N'
+                             GROUP BY T1.PRTNR_NO
+                           ) TM  /* M조직-웰스매니저 이력 */
+            ON TM.PRTNR_NO     = T0.PRTNR_NO
+          LEFT OUTER JOIN (
+                            SELECT X1.OG_TP_CD
+                                 , X1.PRTNR_NO
+                                 , SUM(CASE WHEN X1.BASE_YM >= (CASE WHEN SUBSTR(X2.RCNTR_DT, 1, 6) >= '201703' THEN SUBSTR(X2.RCNTR_DT, 1, 6) ELSE '201703' END)
+                                             AND X1.BASE_YM <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) TOT_SUM /* 관리년월 - 파라미터 #############################  */
+                                 , SUM(CASE WHEN X1.BASE_YM  = #{baseYm} THEN X1.PERF_VAL ELSE 0 END) CUR_SUM /* 관리년월 - 파라미터 #############################  */
+                                 , SUM(CASE WHEN X1.BASE_YM <![CDATA[<=]]> #{baseYm}
+                                             AND X1.BASE_YM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) M03_SUM /* 관리년월 - 파라미터 #############################  */
+                                 , SUM(CASE WHEN X1.BASE_YM  = #{baseYm}
+                                            THEN (
+                                                    CASE WHEN #{ogTpCd} = 'W01' /* P조직:W01 - 파라미터 #############################  */
+                                                         THEN (CASE WHEN X1.PERF_ATC_CD = 'W01P00030' THEN X1.PERF_VAL ELSE 0 END)
+                                                         ELSE (CASE WHEN X1.PERF_ATC_CD IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017') THEN X1.PERF_VAL ELSE 0 END)
+                                                     END
+                                                  )
+                                            ELSE 0 END) ABL_SUM /* 관리년월 - 파라미터 #############################  */
+                             FROM TB_FEAM_NTORP_CNTR_MM_CL        X1 /* 순주문파트너계약월마감 */
+                            INNER JOIN TB_OGBS_MM_PRTNR_IZ  X2 /* 월파트너내역        */
+                               ON X2.BASE_YM     = #{baseYm}      /* 관리년월 - 파라미터 #############################  */
+                              AND X2.OG_TP_CD    = X1.OG_TP_CD
+                              AND X2.PRTNR_NO    = X1.PRTNR_NO
+                             --/********** 설치기준 조건이 선택된 경우만 활성화 **********/
+                             -- perfDv    I : 설치기준, A : 수당건수
+                            <if test='@MybatisUtils@isNotEmpty(perfDv) and @MybatisUtils@equals(perfDv, "I")'>
+                            INNER JOIN TB_FEAM_WELS_NRCTR_MM_CL X3
+                               ON X3.BASE_YM              = X1.BASE_YM
+                              AND X3.PERF_YM              = X1.PERF_YM
+                              AND X3.FEE_TCNT_DV_CD       = X1.FEE_TCNT_DV_CD
+                              AND X3.CNTR_NO              = X1.CNTR_NO
+                              AND X3.CNTR_SN              = X1.CNTR_SN
+                              AND X3.CNTR_PERF_CRT_DV_CD  = X1.CNTR_PERF_CRT_DV_CD
+                              AND NVL(X3.ACC_NINC_YN, 'N') = 'N'
+                              AND X3.PRTNR_NO             = X1.PRTNR_NO
+                              AND X3.OG_TP_CD             = X1.OG_TP_CD
+                              AND X3.CO_CD                = X1.CO_CD
+                              AND X3.SL_DT               >= '20170301' /* 상수값 */
+                              AND X3.CAN_DT              IS NULL
+                            </if>
+                             --/***********************************************/
+                            WHERE X1.BASE_YM            <![CDATA[<=]]> #{baseYm} /* 관리년월 - 파라미터 #############################  */
+                              AND X1.BASE_YM            >= SUBSTR(X2.CNTR_DT, 1, 6)
+                              AND X1.OG_TP_CD            = #{ogTpCd}    /* 조직유형 - 파라미터 #############################  */ --P조직:W01. M조직:W02
+                              AND X1.FEE_TCNT_DV_CD      = '02'     /* 수수료차수구분코드 - 02:2차 */
+                            -- W01 - P조직, W02 - M조직
+                            <choose>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01")'>
+                              AND X1.PERF_AGRG_CRT_DV_CD = '101'    /* 생성구분 - 파라미터 #############################  */ --실적집계생성구분코드 - 101:P추진단순주문실적생성, 201:M추진단순주문실적생성
+                                </when>
+                                <otherwise>
+                              AND X1.PERF_AGRG_CRT_DV_CD = '201'    /* 생성구분 - 파라미터 #############################  */ --실적집계생성구분코드 - 101:P추진단순주문실적생성, 201:M추진단순주문실적생성
+                                </otherwise>
+                            </choose>
+                              /********** 검색조건에 따라 선택 적용 **********/
+                            <choose>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01") and @MybatisUtils@isNotEmpty(perfDv)'>
+                              AND X1.PERF_ATC_CD        IN ('W01P00030')              --실적항목코드 - P조직(수당건수 / 설치기준)
+                                </when>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01") and @MybatisUtils@isEmpty(perfDv)'>
+                              AND X1.PERF_ATC_CD        IN ('W01P00030', 'W01P00031') --실적항목코드 - P조직(전체)
+                                </when>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02") and @MybatisUtils@isNotEmpty(perfDv)'>
+                              AND X1.PERF_ATC_CD        IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017') --실적항목코드 - M조직(수당건수 / 설치기준)
+                                </when>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02") and @MybatisUtils@isEmpty(perfDv)'>
+                              AND X1.PERF_ATC_CD        IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017', 'W00P00018', 'W00P00019', 'W00P00014', 'W00P00015') --실적항목코드 - M조직(전체)
+                                </when>
+                            </choose>
+                              /***********************************************/
+                              AND X1.PERF_DV_CD          = '0'                        --실적구분코드 - 0:개인판매
+                              AND X1.DTA_DL_YN           = 'N'
+                            GROUP BY X1.OG_TP_CD, X1.PRTNR_NO ) T3  /* 순주문          */
+            ON T3.OG_TP_CD     = T0.OG_TP_CD
+           AND T3.PRTNR_NO     = T0.PRTNR_NO
+             /* 채용(전월) 건수 */
+          LEFT OUTER JOIN (
+                            SELECT A.RCMDR_PRTNR_NO, COUNT(B.PRTNR_NO) PRE_CNT
+                              FROM (
+                                       SELECT T1.PRTNR_NO, T1.RCMDR_PRTNR_NO
+                                         FROM TB_OGBS_MM_PRTNR_IZ  T1 /* 월파트너내역 */
+                                        WHERE 1 = 1
+                                          AND T1.BASE_YM        = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') /* 관리년월 - 파라미터 #############################  */
+                                          AND T1.RCMDR_OG_TP_CD = #{ogTpCd}    /* 조직유형 - 파라미터 #############################  */ --P조직:W01. M조직:W02
+                                          AND T1.DTA_DL_YN      = 'N'
+                                          AND T1.RCMDR_PRTNR_NO IS NOT NULL /* 추천인 */
+                                    ) A /* 월파트너내역 */
+                              LEFT OUTER JOIN (
+                                                SELECT X1.PRTNR_NO, SUM(X1.PERF_VAL) PERF_VAL_SUM
+                                                  FROM TB_FEAM_NTORP_CNTR_MM_CL X1 /* 순주문파트너계약월마감 */
+                                                 WHERE 1 = 1
+                                                   AND X1.BASE_YM             = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')     /* 관리년월 - 파라미터 #############################  */
+                                                   AND X1.OG_TP_CD            = #{ogTpCd}        /* 조직유형 - 파라미터 #############################  */ --P조직:W01. M조직:W02
+                                                   AND X1.FEE_TCNT_DV_CD      = '02'         /* 수수료차수구분코드 - 02:2차 */
+                                                <choose>
+                                                    <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01")'>
+                                                        AND X1.PERF_AGRG_CRT_DV_CD = '101'    /* 생성구분 - 파라미터 #############################  */ --실적집계생성구분코드 - 101:P추진단순주문실적생성, 201:M추진단순주문실적생성
+                                                    </when>
+                                                    <otherwise>
+                                                        AND X1.PERF_AGRG_CRT_DV_CD = '201'    /* 생성구분 - 파라미터 #############################  */ --실적집계생성구분코드 - 101:P추진단순주문실적생성, 201:M추진단순주문실적생성
+                                                    </otherwise>
+                                                </choose>
+                                                  /********** 검색조건에 따라 선택 적용 **********/
+                                                <choose>
+                                                    <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01")'>
+                                                        AND X1.PERF_ATC_CD         = 'W01P00050'  --실적항목코드 - P조직
+                                                    </when>
+                                                    <otherwise>
+                                                        AND X1.PERF_ATC_CD         = 'W00P00036'  --실적항목코드 - M조직
+                                                    </otherwise>
+                                                </choose>
+                                                  /***********************************************/
+                                                 GROUP BY X1.PRTNR_NO
+                                               ) B  /* 환경가전 순주문건수 */
+                                ON B.PRTNR_NO      = A.PRTNR_NO
+                               AND B.PERF_VAL_SUM >= 2
+                             WHERE 1 =1
+                             GROUP BY RCMDR_PRTNR_NO  ) T4  /* 채용(전월) 건수 */
+            ON T4.RCMDR_PRTNR_NO = T0.PRTNR_NO
+             /* 채용(전체, 당월) 건수 */
+          LEFT OUTER JOIN (
+                            SELECT T1.RCMDR_PRTNR_NO
+                                 , COUNT(1) RCMDR_CNT
+                                 , COUNT(T2.PRTNR_NO) CUR_CNT
+                              FROM (
+                                      SELECT T1.PRTNR_NO
+                                           , T1.RCMDR_PRTNR_NO
+                                        FROM TB_OGBS_MM_PRTNR_IZ  T1 /* 월파트너내역 */
+                                       WHERE 1 = 1
+                                         AND T1.BASE_YM        = #{baseYm}  /* 관리년월 - 파라미터 #############################  */
+                                         AND T1.RCMDR_OG_TP_CD = #{ogTpCd}     /* 조직유형 - 파라미터 #############################  */ --P조직:W01. M조직:W02
+                                         AND T1.DTA_DL_YN      = 'N'
+                                         AND T1.RCMDR_PRTNR_NO IS NOT NULL /* 추천인 */
+                                    ) T1 /* 월파트너내역 */
+                              LEFT OUTER JOIN (
+                                                SELECT X1.PRTNR_NO
+                                                     , SUM(X1.PERF_VAL) PERF_VAL_SUM
+                                                  FROM TB_FEAM_NTORP_CNTR_MM_CL X1 /* 순주문파트너계약월마감 */
+                                                 WHERE 1 = 1
+                                                   AND X1.BASE_YM             = #{baseYm}     /* 관리년월 - 파라미터 #############################  */
+                                                   AND X1.OG_TP_CD            = #{ogTpCd}        /* 조직유형 - 파라미터 #############################  */ --P조직:W01. M조직:W02
+                                                   AND X1.FEE_TCNT_DV_CD      = '02'         /* 수수료차수구분코드 - 02:2차 */
+                                                <choose>
+                                                    <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01")'>
+                                                   AND X1.PERF_AGRG_CRT_DV_CD = '101'    /* 생성구분 - 파라미터 #############################  */ --실적집계생성구분코드 - 101:P추진단순주문실적생성, 201:M추진단순주문실적생성
+                                                    </when>
+                                                    <otherwise>
+                                                   AND X1.PERF_AGRG_CRT_DV_CD = '201'    /* 생성구분 - 파라미터 #############################  */ --실적집계생성구분코드 - 101:P추진단순주문실적생성, 201:M추진단순주문실적생성
+                                                    </otherwise>
+                                                </choose>
+                                                   /********** 검색조건에 따라 선택 적용 **********/
+                                                <choose>
+                                                    <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01")'>
+                                                   AND X1.PERF_ATC_CD        IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017') --실적항목코드 - P조직
+                                                    </when>
+                                                    <otherwise>
+                                                   AND X1.PERF_ATC_CD        IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017', 'W00P00018', 'W00P00019', 'W00P00014', 'W00P00015') --실적항목코드 - M조직
+                                                    </otherwise>
+                                                </choose>
+                                                   /***********************************************/
+                                                 GROUP BY X1.OG_TP_CD, X1.PRTNR_NO  ) T2  /* 환경가전 순주문건수 */
+                                ON T2.PRTNR_NO     = T1.PRTNR_NO
+                               AND T2.PERF_VAL_SUM >= 2
+                             WHERE 1 =1
+                             GROUP BY RCMDR_PRTNR_NO) T5  /* 채용(전체, 당월) 건수 */
+            ON T5.RCMDR_PRTNR_NO = T0.PRTNR_NO
+             /* 월별파트너교육내역 */
+          LEFT OUTER JOIN (
+                            SELECT X1.OG_TP_CD
+                                 , X1.PRTNR_NO
+                                 , MAX(CASE WHEN X1.OG_TP_CD = 'W02' AND X1.EDUC_CRSE_NO = '96' THEN X1.EDUC_CPC_ACKMT_DT ELSE '' END) AS EDU96  /* 스타트업(M) */
+                                 , MAX(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.EDUC_CRSE_NO = '14' THEN X1.EDUC_CPC_ACKMT_DT ELSE '' END) AS EDU14  /* 플래너스타트업(P) */
+                              FROM TB_PSCA_MCPTN_EDUC_IZ          X1 /* 월별파트너교육내역 */
+                             INNER JOIN TB_OGBS_MM_PRTNR_IZ X2 /* 월파트너내역     */
+                                ON X2.BASE_YM    = #{baseYm}      /* 관리년월 - 파라미터 #############################  */
+                               AND X2.OG_TP_CD   = X1.OG_TP_CD
+                               AND X2.PRTNR_NO   = X1.PRTNR_NO
+                               AND X2.PSTN_DV_CD = '15'          /* 15직급 */
+                             WHERE X1.EDUC_CRSE_CRT_BASE_YM <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') /* 파라미터 #############################  */
+                               AND X1.EDUC_CRSE_CRT_BASE_YM >= SUBSTR(X2.CNTR_DT, 1, 6)
+                               AND X1.OG_TP_CD              IN ('W01', 'W02') --상수값
+                               AND X1.EDUC_CRSE_NO          IN ('96', '14')   --교육코드 - 96:스타트업(M), 14:플래너스타트업(P)
+                               AND X1.EDUC_CPC_ACKMT_YN      = 'Y'            --교육수료인정여부
+                               AND X1.DTA_DL_YN              = 'N'
+                             GROUP BY X1.OG_TP_CD, X1.PRTNR_NO      ) T6  /* 월별파트너교육내역  */
+            ON T6.OG_TP_CD     = T0.OG_TP_CD
+           AND T6.PRTNR_NO     = T0.PRTNR_NO
+          LEFT OUTER JOIN AFMDBS.T_CMZ_CD_D C1  /* 공통코드 - 자격구분 */
+            ON C1.TENANT_ID    = #{session.tenantId}   --테넌트ID - 에듀
+           AND C1.CD_ID        = CASE WHEN T0.OG_TP_CD = 'W01' THEN 'PQLF_DV_CD' ELSE 'QLF_DV_CD' END
+           AND C1.CD_VLD_VAL   = T0.QLF_DV_CD
+         WHERE T0.BASE_YM         = #{baseYm} /* 관리년월 - 파라미터 #############################  */
+           AND T0.OG_TP_CD        = #{ogTpCd}    /* 조직유형 - 파라미터 #############################  */ --P조직:W01. M조직:W02
+           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND T0.PRTNR_NO        = #{prtnrNo}
+           </if>
+           AND T0.PSTN_DV_CD      = '15'     /* 15직급 */
+           AND T0.QLF_DV_CD       = #{qlfDvCd}      /* 자격구분 - 파라미터 #############################  */
+           AND T0.PRR_BIZ_RGST_YN = 'N'   --사전업무등록여부 - N:기존영업부 Y:사전업무등록자
+          /* 필요시 조직조건 추가 */
+           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+           AND T1.DGR1_LEVL_OG_CD = #{ogLevlDvCd1}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+           AND T1.DGR2_LEVL_OG_CD = #{ogLevlDvCd2}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
+           AND T1.DGR3_LEVL_OG_CD = #{ogLevlDvCd3}
+           </if>
+           AND T0.DTA_DL_YN       = 'N'
     </select>
 </mapper>
