@@ -17,7 +17,7 @@ public class WpsfRuleBaseMgtDto {
     @Builder
     @ApiModel("WpsfRuleBaseMgtDto-SearchReq")
     public record SearchReq(
-        String urgnYN,
+        String urgnYn,
         String oneDepth,
         String twoDepth,
         String threeDepth,
@@ -47,15 +47,14 @@ public class WpsfRuleBaseMgtDto {
         String orgPath,
         String fnlMdfcUsrNm,
         String fnlMdfcDt,
-
-        String dtaDlYn
+        String unnKey,
+        String fileUid
 
     ) {}
 
     @Builder
     @ApiModel("WpsfRuleBaseMgtDto-SaveReq")
     public record SaveReq(
-        @NotBlank
         String bznsSpptMnalId, /* 영업지원매뉴얼ID */
         String vlStrtDtm, /* 유효시작일시 */
         String vlEndDtm, /* 유효종료일시 */
