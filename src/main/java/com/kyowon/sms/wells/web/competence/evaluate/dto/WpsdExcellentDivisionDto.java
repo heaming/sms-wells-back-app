@@ -101,8 +101,6 @@ public class WpsdExcellentDivisionDto {
         String evlDvNm,
         String ogId,
         String ogNm,
-        String evlAtcDvCd,
-        String evlAtcDvNm,
         String evlRsbDvCd,
         String evlRsbDvNm,
         String ctstGrpCd
