@@ -368,7 +368,17 @@
          , BND_CLN_RS_CD			/* 채권회수결과코드       */
          , BND_ASN_MTH_CD		/* 채권배정형태코드       */
          , BND_CLCTN_PRP_DV_CD
-         , BND_CST_ZIP
+         , NVL((SELECT BND_CST_ZIP
+              FROM TB_CBBO_BND_CNTR_BAS ST1
+             INNER JOIN TB_SSCT_CNTR_BAS ST2
+                ON ST1.CNTR_NO = ST2.CNTR_NO
+             WHERE ST1.BASE_YM = T1.BASE_YM
+               AND ST1.CLCTAM_DV_CD = T1.CLCTAM_DV_CD
+               AND ST1.CST_NO = T1.CST_NO
+               AND ST1.BND_CLCTN_PRP_DV_CD = '02'
+               AND ST1.BND_CST_ZIP IS NOT NULL
+             ORDER BY ST2.CNTR_CNFM_DTM DESC, ST1.DLQ_MCN
+             FETCH FIRST 1 ROW ONLY), T1.BND_CST_ZIP) AS BND_CST_ZIP
          , BF_CLCTAM_PRTNR_NO
          <include refid="COMMON.insertSystemFieldValue"/>
       FROM (<include refid="selectAssignableBonds" />) T1
@@ -392,6 +402,7 @@
            SET CLCTAM_PA_CD = (SELECT CLCTAM_PA_CD FROM TB_CBBO_BND_ASN_IZ WHERE BND_CNTR_ID = T1.BND_CNTR_ID AND BASE_YM = T1.BASE_YM)
              , CLCTAM_DV_CD = (SELECT CLCTAM_DV_CD FROM TB_CBBO_BND_ASN_IZ WHERE BND_CNTR_ID = T1.BND_CNTR_ID AND BASE_YM = T1.BASE_YM)
              , BND_NW_DV_CD = (SELECT BND_NW_DV_CD FROM TB_CBBO_BND_ASN_IZ WHERE BND_CNTR_ID = T1.BND_CNTR_ID AND BASE_YM = T1.BASE_YM)
+             , BND_CST_ZIP = (SELECT BND_CST_ZIP FROM TB_CBBO_BND_ASN_IZ WHERE BND_CNTR_ID = T1.BND_CNTR_ID AND BASE_YM = T1.BASE_YM)
              <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
            AND BASE_YM = #{baseYm}
