@@ -24,6 +24,7 @@ import com.sds.sflex.system.config.context.SFLEXContext;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -156,8 +157,18 @@ public class WsnaNewManagerBsConsumableService {
     public List<HashMap<String, Object>> getNewManagerBsConsumable(SearchReq dto) {
         WsnaNewManagerBsConsumableDvo searchDvo = converter.mapSearchReqToNewManagerBsConsumable(dto);
 
+        String mngtYm = searchDvo.getMngtYm();
+
         // 그리드 헤더상의 품목 조회
         List<WsnaNewManagerBsConsumableDvo> sapMatCds = mapper.selectItems(searchDvo.getMngtYm());
+
+        String mngtYear = mngtYm.substring(0, 4);
+        String mngtMonth = mngtYm.substring(4);
+        mngtMonth = mngtMonth.startsWith("0") ? " " + mngtMonth.substring(1) : mngtMonth;
+        // {0}년 {1}월 배부기준이 없습니다.
+        BizAssert.isFalse(
+            CollectionUtils.isEmpty(sapMatCds), "MSG_ALT_THM_DATA_NOT_EXST", new String[] {mngtYear, mngtMonth}
+        );
 
         // PIVOT 조건 변환
         String pivotInStr = sapMatCds.stream().map(obj -> {
