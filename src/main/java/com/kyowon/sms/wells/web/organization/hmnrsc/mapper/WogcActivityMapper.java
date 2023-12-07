@@ -38,19 +38,11 @@ public interface WogcActivityMapper {
         SearchMonthlyActivityReq dto
     );
 
-    List<SearchAccureActivityRes> searchAccureActivitiesA(
+    List<SearchAccureActivityRes> searchAccureActivities(
         SearchAccureActivityReq dto
     );
 
-    PagingResult<SearchAccureActivityRes> searchAccureActivitiesA(
-        SearchAccureActivityReq dto, PageInfo pageInfo
-    );
-
-    List<SearchAccureActivityRes> searchAccureActivitiesI(
-        SearchAccureActivityReq dto
-    );
-
-    PagingResult<SearchAccureActivityRes> searchAccureActivitiesI(
+    PagingResult<SearchAccureActivityRes> searchAccureActivities(
         SearchAccureActivityReq dto, PageInfo pageInfo
     );
 }
