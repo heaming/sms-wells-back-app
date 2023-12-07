@@ -167,12 +167,14 @@ public class WsnaBuildingBsConsumableService {
             .map(obj -> {
                 // 배부유형코드
                 String ddlvTpCd = obj.getBfsvcCsmbDdlvTpCd();
+                // SAP코드
+                String sapMatcd = obj.getSapMatCd();
                 // 고정
                 if ("1".equals(ddlvTpCd)) {
-                    return "'" + obj.getSapMatCd() + "' AS QTY_" + obj.getSapMatCd();
+                    return "'" + sapMatcd + "' AS QTY_" + sapMatcd;
                     // 신청
                 } else {
-                    return "'" + obj.getSapMatCd() + "' AS APLC_QTY_" + obj.getSapMatCd();
+                    return "'" + sapMatcd + "' AS APLC_QTY_" + sapMatcd;
                 }
             })
             .collect(Collectors.joining(", "));
@@ -182,12 +184,14 @@ public class WsnaBuildingBsConsumableService {
             .map(obj -> {
                 // 배부유형코드
                 String ddlvTpCd = obj.getBfsvcCsmbDdlvTpCd();
+                // SAP코드
+                String sapMatcd = obj.getSapMatCd();
                 // 고정
                 if ("1".equals(ddlvTpCd)) {
-                    return "NVL(T2.QTY_" + obj.getSapMatCd() + ", 0) AS QTY_" + obj.getSapMatCd();
+                    return "NVL(T2.QTY_" + sapMatcd + ", 0) AS QTY_" + sapMatcd;
                     // 신청
                 } else {
-                    return "NVL(T2.APLC_QTY_" + obj.getSapMatCd() + ", 0) AS APLC_QTY_" + obj.getSapMatCd();
+                    return "NVL(T2.APLC_QTY_" + sapMatcd + ", 0) AS APLC_QTY_" + sapMatcd;
                 }
             })
             .collect(Collectors.joining(", "));
