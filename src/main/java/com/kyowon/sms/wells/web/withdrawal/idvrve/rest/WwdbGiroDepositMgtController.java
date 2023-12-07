@@ -4,23 +4,11 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveDvo;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveIntegrationReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveErrosReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SaveRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchErrosRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchSumRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.*;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbGiroDepositMgtService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -75,20 +63,32 @@ public class WwdbGiroDepositMgtController {
     }
 
     /**
+     * 지로 대사여부 확인
+     * @param dto
+     * @return int
+     */
+    @ApiOperation(value = "지로 대사여부 확인", notes = "검색조건 - 입금일자를 받아 대사여부를 체크한다.")
+    @GetMapping("/check")
+    public int getBillingFntDtChk(SearchChkReq dto) {
+        return service.getBillingFntDtChk(dto);
+    }
+
+    /**
      * 지로 입금관리 업로드
      * @param dto
      * @return SaveResponse
      * @throws Exception
      */
     @ApiOperation(value = "지로 입금관리 업로드")
-    @PostMapping
+    @PostMapping("/{date}")
     public SaveResponse saveBillingDocumentMgt(
-        @RequestBody
-        @Valid
-        List<SaveReq> dto
+        @RequestBody @Valid
+        List<SaveReq> dto,
+        @PathVariable(name = "date")
+        String date
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveBillingDocumentMgt(dto))
+            .processCount(service.saveBillingDocumentMgt(dto, date))
             .build();
     }
 
@@ -101,8 +101,7 @@ public class WwdbGiroDepositMgtController {
     @ApiOperation(value = "지로 입금관리 생성")
     @PostMapping("/create")
     public SaveResponse saveBillingCreateDocument(
-        @RequestBody
-        @Valid
+        @RequestBody @Valid
         SaveIntegrationReq dto
     ) throws Exception {
         return SaveResponse.builder()
@@ -142,8 +141,7 @@ public class WwdbGiroDepositMgtController {
     @ApiOperation(value = "지로 입금관리 에러 저장")
     @PostMapping("/errors")
     public SaveResponse saveBillingDocumentErrors(
-        @RequestBody
-        @Valid
+        @RequestBody @Valid
         List<SaveErrosReq> dto
     ) throws Exception {
         return SaveResponse.builder()
@@ -159,8 +157,7 @@ public class WwdbGiroDepositMgtController {
     @ApiOperation(value = "지로 입금관리 원장 내역 조회", notes = " 검색조건을 받아 지로 입금관리 원장 내역 목록을 조회한다.")
     @PostMapping("/ledg-iz")
     public SearchLedgerItemizationRes getBillingDocumentMgtLedgerItemization(
-        @RequestBody
-        @Valid
+        @RequestBody @Valid
         List<SearchLedgerItemizationReq> dto
     ) {
         return service.getBillingDocumentMgtLedgerItemization(dto);
@@ -174,9 +171,9 @@ public class WwdbGiroDepositMgtController {
     @ApiOperation(value = "지로 입금관리 실적일자 조회", notes = " 검색조건을 받아 지로 입금관리 실적일자 조회 한다.")
     @PostMapping("/date-chk")
     public List<WwdbGiroDepositSaveDvo> getGiroPerfDt(
-        @RequestBody
-        @Valid
-        List<SaveReq> dto) {
+        @RequestBody @Valid
+        List<SaveReq> dto
+    ) {
         return service.getGiroPerfDt(dto);
     }
 }
