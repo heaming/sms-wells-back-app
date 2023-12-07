@@ -198,7 +198,7 @@ public class WwdaAutoTransferInterfaceService {
         for (WwdaAutoTransferInfoBundleRegistrationReleasesInterfaceDvo insertData : streamSortDatas) {
             results = new ArrayList<>();
             // 대표계약번호로 데이터가 1개만 들어온 경우 에러 체크
-            long dataCount = streamDatas.stream()
+            long dataCount = streamSortDatas.stream()
                 .filter(
                     data -> insertData.getDgCntrNo().equals(data.getDgCntrNo())
                         && insertData.getDgCntrSn().equals(data.getDgCntrSn())
