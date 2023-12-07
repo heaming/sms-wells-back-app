@@ -79,8 +79,7 @@ public class WsnaBsCsmbDeliveryBaseService {
         // 이월 대상 월 데이터가 없으면
         if (fromMonthBas == 0 && fromMonthDtl == 0) {
             String fromYear = fromYm.substring(0, 4);
-            String fromMonth = "";
-            fromMonth = fromYm.substring(4);
+            String fromMonth = fromYm.substring(4);
             fromMonth = fromMonth.startsWith("0") ? " " + fromMonth.substring(1) : fromMonth;
 
             // {0}년 {1}월 배부기준이 없습니다.
@@ -94,8 +93,7 @@ public class WsnaBsCsmbDeliveryBaseService {
         // 적용 대상 월 데이터가 있으면
         if (toMonthBas > 0 && toMonthDtl > 0) {
             String toYear = toYm.substring(0, 4);
-            String toMonth = "";
-            toMonth = toYm.substring(4);
+            String toMonth = toYm.substring(4);
             toMonth = toMonth.startsWith("0") ? " " + toMonth.substring(1) : toMonth;
 
             // {0}년 {1}월 배부기준은 이미 등록되어 있습니다.
