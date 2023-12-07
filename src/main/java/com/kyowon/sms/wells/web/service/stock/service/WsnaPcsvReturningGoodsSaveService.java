@@ -209,7 +209,7 @@ public class WsnaPcsvReturningGoodsSaveService {
             cnslCn.append("||");
         }
         cnslCn.append("8. 반품운송장 번호 : ");
-        cnslCn.append(dvo.getClnSppIvcNo() + "||");
+        cnslCn.append(dvo.getFwSppIvcNo() + "||");
         cnslCn.append("9. 비고(택배사/반품자) : ");
         cnslCn.append(dvo.getDtmChRsonDtlCn());
 
