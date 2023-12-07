@@ -57,7 +57,8 @@
     </select>
 
     <select id="selectDeliveryAggregate" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaBsCsmbDeliveryAggregateDvo" fetchSize="1000">
-        SELECT T1.BLD_CD                                           /* 빌딩코드 */
+        SELECT /*+ NO_MERGE(T1 T3) */
+               T1.BLD_CD                                           /* 빌딩코드 */
              , T1.BLD_NM                                           /* 빌딩명 */
              , TO_CHAR(TO_NUMBER(T1.SAP_MAT_CD)) AS SAP_MAT_CD     /* SAP코드 */
              , T1.CSMB_PD_CD                                       /* 품목코드 */
@@ -172,7 +173,7 @@
                              END AS BLD               /* 빌딩 배부유형 */
                            , D1.BFSVC_CSMB_DDLV_QTY   /* 배부수량 */
                            , D1.MNGT_YM               /* 관리년월 */
-                        FROM TB_SVST_BFSVC_CSMB_DDLV_IZ D1         /* BS소모품배부내역 */
+                        FROM TB_SVST_BFSVC_CSMB_DDLV_IZ D1               /* BS소모품배부내역 */
                         LEFT OUTER JOIN TB_SVST_BFSVC_CSMB_BASE_DTL D2   /* BS소모품기준상세 */
                           ON D2.MNGT_YM               = D1.MNGT_YM
                          AND D2.CSMB_PD_CD            = D1.CSMB_PD_CD
@@ -209,55 +210,62 @@
              ) T1
          INNER JOIN TB_PDBS_PD_BAS T2   /* 상품기본 */
             ON T2.PD_CD = T1.CSMB_PD_CD
-         INNER JOIN
+          LEFT OUTER JOIN
              (
-               SELECT /*+ ORDERED USE_HASH(D1 D2 D5 D6) */
-                      D6.BLD_CD
+               SELECT /*+ USE_HASH(D1 D2 D3) */
+                      D7.BLD_CD
                     , COUNT(1)                                                                                                                     AS VST_ACC_SUM  /* 방문계정수 */
-                    , COUNT(CASE WHEN D4.PD_PRP_VAL20 = '1' AND D3.COPN_DV_CD = '1' THEN 1 END)                                                    AS BDT_INDV     /* 비데(개인) */
-                    , COUNT(CASE WHEN D4.PD_PRP_VAL20 = '1' AND D3.COPN_DV_CD = '2' THEN 1 END)                                                    AS BDT_CRP      /* 비데(법인) */
-                    , COUNT(CASE WHEN D4.PD_PRP_VAL20 = '2' THEN 1 END)                                                                            AS WRFR         /* 정수기 */
-                    , COUNT(CASE WHEN D4.PD_PRP_VAL20 = '3' AND D3.COPN_DV_CD = '1' THEN 1 END)                                                    AS ARCLE_INDV   /* 공기청정기(개인) */
-                    , COUNT(CASE WHEN D4.PD_PRP_VAL20 = '3' AND D3.COPN_DV_CD = '2' THEN 1 END)                                                    AS ARCLE_CRP    /* 공기청정기(법인) */
-                    , COUNT(CASE WHEN D4.PD_PRP_VAL20 = '4' THEN 1 END)                                                                            AS WTR_SFTNR    /* 연수기 */
-                    , COUNT(CASE WHEN D4.PD_PRP_VAL20 = '93' THEN 1 END)                                                                           AS MSGCR        /* 안마의자 */
-                    , COUNT(CASE WHEN D4.PD_PRP_VAL20 = '96' THEN 1 END)                                                                           AS CFF_MCHN     /* 커피머신 */
-                    , COUNT(CASE WHEN D4.PD_CD IN ('WM04100121' , 'WM04100152' , 'WM04100153') THEN 1 END)                                         AS DRYR         /* 건조기 */
-                    , COUNT(CASE WHEN D4.PD_CD IN ('WM04100127' , 'WM04100155' , 'WM04100156') THEN 1 END)                                         AS WASH         /* 세탁기 */
-                    , COUNT(CASE WHEN D4.PD_CD IN ('WM04100164', 'WM04100166', 'WM04100192', 'WM04100193', 'WM04100194', 'WM07101222') THEN 1 END) AS ARDRSSR      /* 에어드레서 */
-                    , COUNT(CASE WHEN D4.PD_CD IN ('WM04100200', 'WM04100201', 'WM04100202') THEN 1 END)                                           AS SSCLING      /* 삼성청소기 */
-                 FROM TB_SVPD_MCBY_CST_SV_OJ_IZ D1      /* 월별고객서비스대상내역 */
-                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2    /* 고객서비스수행내역 */
-                   ON D2.CNTR_NO = D1.CNTR_NO
-                  AND D2.CNTR_SN = D1.CNTR_SN
-                INNER JOIN TB_SSCT_CNTR_BAS D3          /* 계약기본 */
+                    , COUNT(CASE WHEN D5.PD_PRP_VAL20 = '1' AND D4.COPN_DV_CD = '1' THEN 1 END)                                                    AS BDT_INDV     /* 비데(개인) */
+                    , COUNT(CASE WHEN D5.PD_PRP_VAL20 = '1' AND D4.COPN_DV_CD = '2' THEN 1 END)                                                    AS BDT_CRP      /* 비데(법인) */
+                    , COUNT(CASE WHEN D5.PD_PRP_VAL20 = '2' THEN 1 END)                                                                            AS WRFR         /* 정수기 */
+                    , COUNT(CASE WHEN D5.PD_PRP_VAL20 = '3' AND D4.COPN_DV_CD = '1' THEN 1 END)                                                    AS ARCLE_INDV   /* 공기청정기(개인) */
+                    , COUNT(CASE WHEN D5.PD_PRP_VAL20 = '3' AND D4.COPN_DV_CD = '2' THEN 1 END)                                                    AS ARCLE_CRP    /* 공기청정기(법인) */
+                    , COUNT(CASE WHEN D5.PD_PRP_VAL20 = '4' THEN 1 END)                                                                            AS WTR_SFTNR    /* 연수기 */
+                    , COUNT(CASE WHEN D5.PD_PRP_VAL20 = '93' THEN 1 END)                                                                           AS MSGCR        /* 안마의자 */
+                    , COUNT(CASE WHEN D5.PD_PRP_VAL20 = '96' THEN 1 END)                                                                           AS CFF_MCHN     /* 커피머신 */
+                    , COUNT(CASE WHEN D5.PD_CD IN ('WM04100121' , 'WM04100152' , 'WM04100153') THEN 1 END)                                         AS DRYR         /* 건조기 */
+                    , COUNT(CASE WHEN D5.PD_CD IN ('WM04100127' , 'WM04100155' , 'WM04100156') THEN 1 END)                                         AS WASH         /* 세탁기 */
+                    , COUNT(CASE WHEN D5.PD_CD IN ('WM04100164', 'WM04100166', 'WM04100192', 'WM04100193', 'WM04100194', 'WM07101222') THEN 1 END) AS ARDRSSR      /* 에어드레서 */
+                    , COUNT(CASE WHEN D5.PD_CD IN ('WM04100200', 'WM04100201', 'WM04100202') THEN 1 END)                                           AS SSCLING      /* 삼성청소기 */
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1       /* 고객서비스BS배정내역 */
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2   /* 고객서비스BS대상내역 */
+                   ON D2.ASN_OJ_YM     = D1.ASN_OJ_YM
+                  AND D2.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D3       /* 고객서비스수행내역 */
                    ON D3.CNTR_NO = D1.CNTR_NO
-                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D4   /* 상품각사속성상세 */
-                   ON D4.PD_CD = D2.PDCT_PD_CD
-                INNER JOIN TB_OGBS_MM_PRTNR_IZ D5       /* 월파트너내역 */
-                   ON D5.BASE_YM  = D1.MNGT_YM
-                  AND D5.OG_TP_CD = D1.MNGT_PRTNR_OG_TP_CD
-                  AND D5.PRTNR_NO = D1.MNGT_PRTNR_NO
-                INNER JOIN TB_OGBS_MM_OG_IZ D6          /* 월조직내역 */
-                   ON D6.BASE_YM  = D5.BASE_YM
-                  AND D6.OG_TP_CD = D5.OG_TP_CD
-                  AND D6.OG_ID    = D5.OG_ID
-                WHERE D1.DTA_DL_YN           = 'N'
-                  AND D1.MNGT_PRTNR_OG_TP_CD = 'W02'
-                  AND D2.DTA_DL_YN           = 'N'
-                  AND D2.CNTR_DTL_STAT_CD NOT IN ('301', '302', '303', '401', '402')
-                  AND D3.DTA_DL_YN           = 'N'
-                  AND D4.DTA_DL_YN           = 'N'
-                  AND D4.PD_EXTS_PRP_GRP_CD  = 'PART'
-                  AND D4.PD_PRP_VAL20 <![CDATA[<>]]> '11'   /* 모종제외 */
-                  AND D5.DTA_DL_YN           = 'N'
-                  AND D5.OG_TP_CD            = 'W02'
-                  AND D6.DTA_DL_YN           = 'N'
-                  AND D6.OG_TP_CD            = 'W02'
-                  AND D1.MNGT_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
-                  AND D5.BASE_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
+                  AND D3.CNTR_SN = D1.CNTR_SN
+                INNER JOIN TB_SSCT_CNTR_BAS D4             /* 계약기본 */
+                   ON D4.CNTR_NO = D1.CNTR_NO
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D5      /* 상품각사속성상세 */
+                   ON D5.PD_CD = D2.PDCT_PD_CD
+                INNER JOIN TB_OGBS_MM_PRTNR_IZ D6          /* 월파트너내역 */
+                   ON D6.BASE_YM  = D1.ASN_OJ_YM
+                  AND D6.OG_TP_CD = D1.CNFM_PSIC_PRTNR_OG_TP_CD
+                  AND D6.PRTNR_NO = D1.CNFM_PSIC_PRTNR_NO
+                INNER JOIN TB_OGBS_MM_OG_IZ D7             /* 월조직내역 */
+                   ON D7.BASE_YM  = D6.BASE_YM
+                  AND D7.OG_TP_CD = D6.OG_TP_CD
+                  AND D7.OG_ID    = D6.OG_ID
+                WHERE D1.DTA_DL_YN                = 'N'
+                  AND D1.CNFM_PSIC_PRTNR_OG_TP_CD = 'W02'
+                  AND D2.DTA_DL_YN                = 'N'
+                  AND D3.DTA_DL_YN                = 'N'
+                  AND D4.DTA_DL_YN                = 'N'
+                  AND D5.DTA_DL_YN                = 'N'
+                  AND D5.PD_EXTS_PRP_GRP_CD       = 'PART'
+                  AND D5.PD_PRP_VAL20 <![CDATA[<>]]> '11'   /* 모종제외 */
+                  AND D6.DTA_DL_YN                = 'N'
+                  AND D6.OG_TP_CD                 = 'W02'
+                  AND D7.DTA_DL_YN                = 'N'
+                  AND D7.OG_TP_CD                 = 'W02'
+                  AND (    D1.VST_PRGS_STAT_CD = '20'
+                        OR ( D1.VST_PRGS_STAT_CD = '00' AND D3.CNTR_DTL_STAT_CD = '101' )
+                      )   /* 작업완료이거나 정상인 작업대기 건 */
+                  AND D1.ASN_OJ_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
+                  AND D2.ASN_OJ_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
                   AND D6.BASE_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
-                GROUP BY D6.BLD_CD
+                  AND D7.BASE_YM BETWEEN #{mngtYmFrom} AND #{mngtYmTo}
+                GROUP BY D7.BLD_CD
              ) T3
             ON T3.BLD_CD = T1.BLD_CD
          WHERE T2.DTA_DL_YN = 'N'
