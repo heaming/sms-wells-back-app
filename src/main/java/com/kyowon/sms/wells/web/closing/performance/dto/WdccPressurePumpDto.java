@@ -49,6 +49,7 @@ public class WdccPressurePumpDto {
         String fnlMdfcUsrId, /*수정자*/
         String adnSvStrtYm, /*부가서비스시작년월*/
         String istDuedt, /*설치예정일자*/
+        String svBizHclsfCd, /*사용/회수여부*/
         String svBizDclsfCd, /*업무유형*/
         String pdctPdCd /*제품상품코드*/
 
@@ -91,13 +92,16 @@ public class WdccPressurePumpDto {
         String istDt, /* 설치일자*/
         String fnlVstFshDt, /* 작업일자*/
         String svBizHclsfCd, /* 사용/회수*/
-        String pdctPdCd /* 제품상품코드*/
+        String pdctPdCd, /* 제품상품코드*/
+
+        String adnSvSn /* 부가서비스일련번호 */
 
     ) {}
 
     @ApiModel("WdccPressurePumpDto-RemoveReq")
     public record RemoveReq(
         String cntrNo, /*계약번호*/
+        String cntrSn, /*계약일련번호 */
         String adnSvSn /*부가서비스일련번호*/
     ) {}
 

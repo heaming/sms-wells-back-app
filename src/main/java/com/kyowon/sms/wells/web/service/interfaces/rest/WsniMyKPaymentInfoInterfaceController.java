@@ -22,6 +22,12 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 프로그램 명세서 미 존재로 설명 없음
+ *
+ * 프로그램 아이디 :K-E-WD-S-0050
+ * 인터페이스 아이디 :  EAI_WWDI1031
+ * */
 @InterfaceController
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1 + ": (마이K)웰스 납부 정보 조회")
 @RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve/edicard")

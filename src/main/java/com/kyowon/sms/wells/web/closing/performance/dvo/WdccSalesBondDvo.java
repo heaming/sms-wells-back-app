@@ -6,47 +6,45 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WdccSalesBondDvo {
-    private String slClYm;
-    private String slClDt;
-    private String sellTpCd;
-    private String sellTpCdNm;
-    private String sellTpDtlCd;
-    private String sellTpDtlCdNm;
-    private String sapPdDvCd;
-    private String sapPdAtcNm;
-    private String cntrNo;
-    private String cstNo;
-    private String cstKnm;
-    private String pdCd;
-    private String pdNm;
-    private String slRcogDt;
-    private String preTotUcAmt;
+    private String slClYm; // 실적년월
+    private String slClDt; // 실적일자
+    private String sellTpCd; // 판매유형
+    private String sellTpCdNm; // 판매유형코드명
+    private String sellTpDtlCd; // 판매유형상세
+    private String sellTpDtlCdNm; // 판매유형상세코드명
+    private String sapPdDvCd; // SAP상품구분코드
+    private String sapPdAtcNm; // SAP상품코드명
+    private String cntrNo; // 계약번호
+    private String cstNo; // 고객번호
+    private String cstKnm; // 고객명
+    private String pdCd; // 상품코드
+    private String pdNm; // 상품명
+    private String slRcogDt; // 매출일자
     private String preUcAmt1;
     private String preUcAmt2;
-    private String nomSlAmt;
-    private String nomSlAmt1;
-    private String nomSlAmt2;
-    private String nomSlAmt3;
-    private String nomSlAmt4;
-    private String nomSlAmt5;
-    private String nomSlAmt6;
-    private String slCanAmt;
-    private String totSlAmt;
+    private String nomSlAmt; // 정상매출
+    private String nomSlAmt1; // 렌탈등록비
+    private String nomSlAmt2; // 렌탈할인
+    private String nomSlAmt3; // 렌탈등록비차액
+    private String nomSlAmt4; // 등록환불
+    private String nomSlAmt5; // 원금매출
+    private String nomSlAmt6; // 원금매출
+    private String slCanAmt; // 매출취소
+    private String totSlAmt; // 매출합계
     private String totDpAmt;
-    private String slBndAlrpyAmt;
-    private String totUcBlam;
+    private String slBndAlrpyAmt; // 렌탈입금
     private String ucBlam1;
     private String ucBlam2;
-    private String borRemAmt;
+    private String borRemAmt; // 위약잔여
     private String borRemAmt1;
     private String borRemAmt2;
-    private String borAdjAmt;
+    private String borAdjAmt; // 위약조정
     private String borAdjAmt1;
     private String borAdjAmt2;
     private String borAdjAmt3;
-    private String dpCngAmt;
-    private String dpCngAmt1;
-    private String dfaProcsAmt;
+    private String dpCngAmt; // 선수대체
+    private String dpCngAmt1; // 선수대체입금
+    private String dfaProcsAmt; // 대손금액
     private String slClYm2;
     private String btdDlqAddAmt;
     private String thmOcDlqAddAmt;
@@ -98,4 +96,6 @@ public class WdccSalesBondDvo {
     private String w1Am196;
     private String thmUcBlam;
     private String eotBorAmt;
+    private String totBtdUcAmt; // 전기이월
+    private String totEotUcAmt; // 기말미수-미수금액
 }

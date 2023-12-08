@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,9 +49,10 @@ public class WsnaMdProductReturningGoodsSaveService {
 
         for (WsnaMdProductReturningGoodsSaveDvo dvo : dvos) {
             /*
-              취소완료(wkPrgsStatCd-10) , 취소일자(NOT NULL)
+              취소완료(wkPrgsStatCd : 10) , 계약상세코드(CNTR_DTL_STAT_CD : 301, 302, 303)
             */
-            if ("10".equals(dvo.getWkPrgsStatCd()) && !StringUtils.isEmpty(dvo.getRsgFshDt())) {
+            if ("10".equals(dvo.getWkPrgsStatCd()) && ("301".equals(dvo.getCntrDtlStatCd())
+                || "302".equals(dvo.getCntrDtlStatCd()) || "303".equals(dvo.getCntrDtlStatCd()))) {
                 // 1. 동일 키값으로 작업결과 조회
                 selectExistSvpdCstSvWkRsIz(dvo);
                 // 2. 고객서비스설치배정내역 업데이트
@@ -210,7 +210,7 @@ public class WsnaMdProductReturningGoodsSaveService {
             cnslCn.append("||");
         }
         cnslCn.append("8. 반품운송장 번호 : ");
-        cnslCn.append(dvo.getClnSppIvcNo() + "||");
+        cnslCn.append(dvo.getFwSppIvcNo() + "||");
         cnslCn.append("9. 비고(택배사/반품자) : ");
         cnslCn.append(dvo.getDtmChRsonDtlCn());
 

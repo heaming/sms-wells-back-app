@@ -65,7 +65,7 @@ public class WfeyFeeCalculationEngineerModule extends ZfeyFeeCalculationCommonMo
      * W060001, W060002, W060003, W060004, W060005, W060006, W060007, W060008, W060010, W060011, W060012 수수료 삭제
      *
      */
-    @FeeModuleMethodInfo(methodName = "수당일괄계산 사용자정의 처리", methodExplanation = "W060001 ~ W060012(W060009 제외) 수당일괄계산 사용자정의 처리")
+    @FeeModuleMethodInfo(methodTypeCode =  "01", methodName = "수당일괄계산 사용자정의 처리", methodExplanation = "W060001 ~ W060012(W060009 제외) 수당일괄계산 사용자정의 처리")
     public void runAllowanceBulkCalculation() {
         engineerCalculationMapper.deleteEngineerAllowances(baseYm, feeTcntDvCd, "DATA");
         engineerCalculationMapper.deleteEngineerAllowances(baseYm, feeTcntDvCd, "HISTORY");

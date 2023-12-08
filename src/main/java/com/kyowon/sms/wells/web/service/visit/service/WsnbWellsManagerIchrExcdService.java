@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.visit.service;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsManagerIchrExcdDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWellsManagerIchrExcdDto.SearchRes;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbWellsManagerIchrExcdMapper;
+import com.sds.sflex.system.config.annotation.LongTransactional;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@LongTransactional
 public class WsnbWellsManagerIchrExcdService {
     private final WsnbWellsManagerIchrExcdMapper mapper;
 

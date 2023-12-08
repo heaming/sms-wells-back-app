@@ -17,7 +17,7 @@ public interface WfeyFeeCalculationSqlFor301Mapper {
      * @param feeTcntDvCd 수수료차수구분코드
      * @return 처리개수
      */
-    @SqlMethodInfo(methodName = "홈마스터 파트너 조기정착수수료", methodExplanation = "홈마스터 파트너 조기정착수수료 계산 SQL 매퍼")
+    @SqlMethodInfo(methodTypeCode = "01", methodName = "홈마스터 파트너 조기정착수수료", methodExplanation = "홈마스터 파트너 조기정착수수료 계산 SQL 매퍼")
     Integer insertEarlSettleFee(String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String feeTcntDvCd, String fnlFeeYn);
 
 }

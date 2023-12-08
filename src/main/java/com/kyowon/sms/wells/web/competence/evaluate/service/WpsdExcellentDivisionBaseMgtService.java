@@ -190,7 +190,7 @@ public class WpsdExcellentDivisionBaseMgtService {
             List<HashMap<String, Object>> target = mapper.selectTargetList(dvo);
             BizAssert.isTrue(!target.isEmpty(), "MSG_ALT_UNRG_EVL_OJ");
             int resultCnt = mapper.insertEvaluationDetail(dvo, target);
-            BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
+            BizAssert.isTrue(resultCnt > 0, "MSG_ALT_NTHNG_PROCS_OJ");
             processCount += resultCnt;
         }
         return processCount;
