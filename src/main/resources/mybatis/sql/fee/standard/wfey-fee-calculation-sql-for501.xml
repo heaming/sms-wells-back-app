@@ -1,0 +1,95 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.standard.mapper.WfeyFeeCalculationSqlFor501Mapper">
+
+    <insert id='insertOnlBasFeeRedf'>
+        /* 수수료 정율 되물림계산 SQL : 기본수수료 - 기본수수료(W050001) */
+        INSERT INTO TB_FEDD_FEE_REDF_ADSB_DTL(
+                                               FEE_REDF_ADSB_DTL_ID /* 수수료되물림재지급상세ID */
+                                             , REDF_ADSB_OC_YM /* 되물림재지급발생년월 */
+                                             , PERF_YM /* 실적년월 */
+                                             , PERF_DV_CD /* 실적구분코드 */
+                                             , CO_CD /* 회사코드 */
+                                             , OG_TP_CD /* 조직유형코드 */
+                                             , PRTNR_NO /* 파트너번호 */
+                                             , CNTR_NO /* 계약번호 */
+                                             , CNTR_SN /* 계약일련번호 */
+                                             , FEE_CD /* 수수료코드 */
+                                             , DTA_CRT_FEE_CD /* 데이터생성수수료코드 */
+                                             , REDF_ADSB_DV_CD /* 되물림재지급구분코드 */
+                                             , REDF_ADSB_TP_CD /* 되물림재지급유형코드 */
+                                             , REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
+                                             , REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+            <include refid="COMMON.insertSystemField" />
+        ) /* 최종수정부서ID */
+        WITH DATA AS (SELECT T01.PERF_YM /* 실적년월 */
+                     , T10.PERF_DV_CD /* 실적구분코드 */
+                     , HOO.PERF_DV_CD                           AS HOO_PERF_DV_CD /* 조직장실적구분코드 */
+                     , T01.CO_CD /* 회사코드 */
+                     , T01.OG_TP_CD /* 조직유형코드 */
+                     , T01.PRTNR_NO                             AS HOO_PRTNR_NO /* 조직장파트너번호 */
+                     , T10.PRTNR_NO /* 파트너번호 */
+                     , T10.CNTR_NO /* 계약번호 */
+                     , T10.CNTR_SN /* 계약일련번호 */
+                     , TRUNC(NVL(T10.REDF_ADSB_OJ_PERF_VAL, 0)) AS REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
+                  FROM TB_FEAM_NTORP_CNTR_MM_CL T10/* 순주문파트너계약월마감 */
+                       INNER JOIN TB_FEAM_MM_PRTNR_HOO_IZ HOO /* 월파트너조직장내역 */
+                                  ON (T10.PERF_YM = HOO.BASE_YM AND T10.PRTNR_NO = HOO.PRTNR_NO AND
+                                      T10.OG_TP_CD = HOO.OG_TP_CD)
+                       INNER JOIN TB_FEAM_FEE_CALC_BAS T01 /* 수수료계산계약내역 */
+                                  ON (T01.PERF_YM = T10.PERF_YM AND T01.OJ_DSB_YM = T10.PERF_YM AND
+                                      T01.CO_CD = T10.CO_CD AND
+                                      T01.OG_TP_CD = T10.OG_TP_CD AND T01.FEE_TCNT_DV_CD = T10.FEE_TCNT_DV_CD AND
+                                      HOO.HOO_PRTNR_NO = T01.PRTNR_NO)
+                 WHERE T10.BASE_YM = #{baseYm}
+                   AND T10.OG_TP_CD = #{ogTpCd}
+                   AND T10.PERF_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -60), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
+                   AND T10.PERF_YM BETWEEN #{apyStrtYm} AND #{apyEndYm}
+                   AND T10.PERF_AGRG_CRT_DV_CD = #{perfAgrgCrtDvCd}
+                   AND T10.FEE_TCNT_DV_CD = '02'
+                   AND T10.PERF_ATC_CD = 'W05P00001'
+                   AND T10.DTA_DL_YN = 'N'
+                   AND T01.FEE_CD = 'W050001'
+                   AND T01.BASE_YM BETWEEN #{apyStrtYm} AND #{apyEndYm}
+                   AND T01.FEE_TCNT_DV_CD = '02'
+                   AND T01.FEE_CTR_CNFM_AMT > 0
+                   AND T01.FEE_CALC_TP_CD = '01'
+                   AND T01.DTA_DL_YN = 'N'
+                   AND TRUNC(NVL(T10.REDF_ADSB_OJ_PERF_VAL, 0)) > 0)
+        SELECT 'WFEDD0500030202' || #{baseYm} ||
+               LPAD(SQ_FEDD_FEE_REDF_ADSB_DTL$FEE_REDF_ADSB_DTL_ID.NEXTVAL, 9, '0') AS FEE_REDF_ADSB_DTL_ID /* 수수료되물림재지급상세ID */
+             , #{baseYm}                                                            AS REDF_ADSB_OC_YM /* 되물림재지급발생년월 */
+             , PERF_YM /* 실적년월 */
+             , PERF_DV_CD /* 실적구분코드 */
+             , CO_CD /* 회사코드 */
+             , OG_TP_CD /* 조직유형코드 */
+             , PRTNR_NO /* 파트너번호 */
+             , CNTR_NO /* 계약번호 */
+             , CNTR_SN /* 계약일련번호 */
+             , #{feeCd}                                                            AS FEE_CD /* 수수료코드 */
+             , #{dtaCrtFeeCd}                                                            AS DTA_CRT_FEE_CD /* 데이터생성수수료코드 */
+             , '02'                                                                 AS REDF_ADSB_DV_CD /* 되물림재지급구분코드 */
+             , #{redfDtaTpCd}                                                               AS REDF_ADSB_TP_CD /* 되물림재지급유형코드 */
+             , REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
+             , REDF_ADSB_OC_AMT                                                     AS REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM  (SELECT PERF_YM /* 실적년월 */
+                      , PERF_DV_CD /* 실적구분코드 */
+                      , CO_CD /* 회사코드 */
+                      , OG_TP_CD /* 조직유형코드 */
+                      , PRTNR_NO /* 파트너번호 */
+                      , CNTR_NO /* 계약번호 */
+                      , CNTR_SN /* 계약일련번호 */
+                      , REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
+                   FROM DATA
+                 UNION ALL
+                 SELECT PERF_YM /* 실적년월 */
+                      , HOO_PERF_DV_CD AS PERF_DV_CD/* 조직장실적구분코드 */
+                      , CO_CD /* 회사코드 */
+                      , OG_TP_CD /* 조직유형코드 */
+                      , HOO_PRTNR_NO  AS PRTNR_NO/* 조직장파트너번호 */
+                      , CNTR_NO /* 계약번호 */
+                      , CNTR_SN /* 계약일련번호 */
+                      , REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
+                   FROM DATA)
+    </insert>
+</mapper>

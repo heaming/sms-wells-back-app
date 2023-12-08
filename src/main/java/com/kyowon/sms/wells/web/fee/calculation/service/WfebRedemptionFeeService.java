@@ -1,8 +1,6 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
-import com.kyowon.sms.common.web.fee.calculation.mapper.ZfeaRedfAdsbPerfMapper;
 import com.kyowon.sms.common.web.fee.calculation.service.ZfebRedfAdsbFeeCalculationService;
-import com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst;
 import com.kyowon.sms.wells.web.fee.aggregate.service.WfeaRedemptionPerfService;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebRedemptionFeeMapper;
 import com.sds.sflex.common.common.dvo.CodeDetailDvo;
@@ -96,13 +94,16 @@ public class WfebRedemptionFeeService {
         switch (ogTpCd) {
             case "W01":
                 /* P조직 상조 연체되물림 생성 */
-                insertCount = redemptionFeeMapper.insertContractLifeRedemptionOfFees(baseYm, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd));
+                insertCount = redemptionFeeMapper.insertLifeContractRedf(baseYm, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd));
                 break;
             case "W02":
                 /* 계약별 연체되물림 데이터 생성 */
-                insertCount = redemptionFeeMapper.insertContractDlqRedemptionOfFees(baseYm, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd));
+                insertCount = redemptionFeeMapper.insertContractDlqRedf(baseYm, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd));
                 break;
-        }
+            case "W05":
+                /* 계약별 기본수수료 연체되물림 데이터 생성 */
+                insertCount = redemptionFeeMapper.insertBaseContractDlqRedf(baseYm, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd), ogTpCd);
+                break;}
 
         /* 파트너별 연체되물림 데이터 생성 */
         if (insertCount > 0) {
