@@ -1,11 +1,9 @@
 package com.kyowon.sms.wells.web.competence.educations.dto;
 
-import java.util.List;
-
-import javax.validation.constraints.NotBlank;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
+
+import javax.validation.constraints.NotBlank;
 
 public class WpsbZoomMgtDto {
     // *********************************************************
@@ -37,14 +35,11 @@ public class WpsbZoomMgtDto {
 
         Integer inqrLvTcnt,
 
-        Long expsrOdr, /* 노출순서 */
-
-        String rowState
+        Integer expsrOdr
     ) {}
     @Builder
     @ApiModel("WpsbZoomMgtDto-SaveReq")
     public record SaveReq(
-        @NotBlank
         String svEducMnalId, /* 서비스교육매뉴얼ID */
         @NotBlank
         String hgrSvEducMnalId, /* 상위서비스교육매뉴얼ID */
@@ -53,7 +48,7 @@ public class WpsbZoomMgtDto {
 
         Integer inqrLvTcnt, /* 조회단계차수 */
 
-        Long expsrOdr, /* 노출순서 */
+        Integer expsrOdr, /* 노출순서 */
 
         String svEducCtgNm, /* 서비스교육카테고리명 */
         String svEducMnalCn, /* 서비스교육매뉴얼내용 */
@@ -61,13 +56,6 @@ public class WpsbZoomMgtDto {
         String rsbDvCd, /* 직책구분코드 */
         String dtaDlYn, /* 데이터삭제여부 */
         String rowState
-    ) {}
-
-    @ApiModel(value = "WpsbZoomMgtDto-EditReq")
-    public record EditReq(
-        @NotBlank
-        String hgrSvEducMnalId, /* 상위서비스교육매뉴얼ID */
-        List<SaveReq> treeList
     ) {}
 
     @ApiModel("WpsbZoomMgtDto-RemoveReq")
