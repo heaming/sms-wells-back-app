@@ -1,31 +1,28 @@
 package com.kyowon.sms.wells.web.competence.educations.rest;
 
-import static com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchReq;
-import static com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchRes;
-
-import java.util.List;
-
-import javax.validation.Valid;
-
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
 import com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto;
+import com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SaveReq;
+import com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.competence.educations.service.WpsbZoomMgtService;
 import com.kyowon.sms.wells.web.competence.zcommon.constants.PsCompetenceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
 
 @Api(tags = "[WPSB]  wells 교육관리 알려zoom 관리")
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/educations/zoom-counsel")
+@RequestMapping(PsCompetenceConst.REST_URL_V1 + "/zoom-counsel")
 public class WpsbZoomMgtController {
 
     private final WpsbZoomMgtService service;
@@ -48,7 +45,7 @@ public class WpsbZoomMgtController {
         @RequestBody
         @Valid
         WpsbZoomMgtDto.SaveReq dto
-    ) throws Exception {
+    ) {
         return SaveResponse.builder()
             .processCount(service.saveZoom(dto))
             .build();
@@ -56,13 +53,13 @@ public class WpsbZoomMgtController {
 
     @ApiOperation(value = "wells 교육관리 알려zoom menu 저장", notes = "wells 교육관리 알려zoom menu를 저장한다.")
     @PostMapping("/zooms")
-    public SaveResponse saveAllZoom(
+    public SaveResponse saveZoomList(
         @RequestBody
         @Valid
-        WpsbZoomMgtDto.EditReq dto
-    ) throws Exception {
+        List<SaveReq> req
+    ) {
         return SaveResponse.builder()
-            .processCount(service.saveAllZoom(dto))
+            .processCount(service.saveZoomList(req))
             .build();
     }
 
