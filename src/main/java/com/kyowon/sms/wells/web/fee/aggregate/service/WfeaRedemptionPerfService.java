@@ -7,6 +7,7 @@ import com.sds.sflex.common.common.service.CodeService;
 import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +36,7 @@ public class WfeaRedemptionPerfService {
      *
      * @param baseYm 기준년월
      */
+    @Transactional
     public void aggregateRedemptionOfFeePerformance(String baseYm, String ogTpCd, String perfAgrgCrtDvCd, String cntrPerfCrtDvCd) {
 
         /* 순주문월마감 테이블에 되물림 데이터 재생성 가능한지 체크 */
