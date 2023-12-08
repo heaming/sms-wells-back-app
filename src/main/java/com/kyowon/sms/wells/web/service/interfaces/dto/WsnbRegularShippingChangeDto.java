@@ -27,7 +27,9 @@ public class WsnbRegularShippingChangeDto {
         @JsonProperty(value = "MTR_PROCS_STAT_CD")
         String mtrProcsStatCd,
 
-        String histChDtm
+        String histChDtm,
+
+        String lgnUsrId
     ) {}
 
     @ApiModel(value = "WsnbRegularShippingChDto-SaveRes")
