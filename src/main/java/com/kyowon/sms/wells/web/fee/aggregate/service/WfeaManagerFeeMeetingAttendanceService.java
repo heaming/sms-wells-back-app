@@ -28,12 +28,12 @@ public class WfeaManagerFeeMeetingAttendanceService {
 
     /**
      * 수수료 생성관리-미팅참석집계(매니저) 삭제
-     * @param dto 삭제 및 저장 조건 정보
+     * @param
      * @return 저장 결과
      */
     @Transactional
-    public int deleteManagerFeeMeetingAttendances(SaveReq dto) {
-
+    public int deleteManagerFeeMeetingAttendances(String ogTpCd, String perfYm, String rsbTpCd, String feeTcntDvCd) {
+        SaveReq dto = new SaveReq(ogTpCd,perfYm,rsbTpCd,feeTcntDvCd);
         int processCount = 0;
 
         WfeaManagerFeeMeetingAttendanceDvo dvo = converter.mapSaveReqToWfeaManagerFeeMeetingAttendanceDvo(dto);

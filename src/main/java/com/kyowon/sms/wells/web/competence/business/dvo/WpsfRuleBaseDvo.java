@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.competence.business.dvo;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class WpsfRuleBaseDvo {
@@ -19,4 +21,7 @@ public class WpsfRuleBaseDvo {
     private Long expsrOdr; /* 노출순서 */
     private String apnFileDocId; /* 첨부파일문서ID */
     private String dtaDlYn; /* 데이터삭제여부 */
+    private String urgnYn;
+
+    private List<String> rsbDvCds;
 }

@@ -120,13 +120,11 @@ public class WogcPartnerPlannerController {
         @ApiImplicitParam(name = "prtnrKnm", value = "성명", paramType = "query", required = false),
         @ApiImplicitParam(name = "qlfDvCd", value = "자격구분코드", paramType = "query", required = false)
     })
-    @GetMapping("/planner-license/paging")
-    public PagingResult<SearchLicenseRes> getLicensePages(
-        SearchLicenseReq dto,
-        @Valid
-        PageInfo pageinfo
+    @GetMapping("/planner-license")
+    public List<SearchLicenseRes> getLicenseList(
+        SearchLicenseReq dto
     ) {
-        return service.getPlannerLicensePages(dto, pageinfo);
+        return service.getLicenseList(dto);
     }
 
     @ApiOperation(value = "매니저 자격관리 엑셀다운로드", notes = "검색조건을 입력 받아 엑셀다운로드용 매니저 자격관리를 조회한다.")

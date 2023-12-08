@@ -188,8 +188,20 @@
                , #{item}
                , #{qlfDvCd}
                , (#{evlOgTpCd}||#{evlDvCd}||LPAD('1', 5, '0'))
-               , #{calfCn}
-               , #{cexpCn}
+               , ( SELECT CALF_CN
+                     FROM TB_PSEV_AWD_EVL_RSB_REL
+                    WHERE RGST_SN = ( SELECT MAX(RGST_SN)
+                                        FROM TB_PSEV_AWD_EVL_RSB_REL
+                                       WHERE EVL_OG_TP_CD = #{evlOgTpCd}
+                                         AND EVL_RSB_DV_CD = #{item}
+                                         AND CALF_CN IS NOT NULL  ) )
+               , ( SELECT CEXP_CN
+                     FROM TB_PSEV_AWD_EVL_RSB_REL
+                    WHERE RGST_SN = ( SELECT MAX(RGST_SN)
+                                        FROM TB_PSEV_AWD_EVL_RSB_REL
+                                       WHERE EVL_OG_TP_CD = #{evlOgTpCd}
+                                         AND EVL_RSB_DV_CD = #{item}
+                                         AND CEXP_CN IS NOT NULL  ) )
                , 'N'
                <include refid="COMMON.insertSystemFieldValue" />
                )
@@ -253,6 +265,7 @@
          WHERE 1 = 1
            AND EVL_OG_TP_CD     = #{evlOgTpCd}        /* 평가조직유형코드 */
            AND DTA_DL_YN        ='N'
+         ORDER BY EVL_ATC_DV_CD ASC
     </select>
 
     <select id="selectTargetBaseMgtPages" resultType = "com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto$TrgSearchRes">
@@ -305,6 +318,7 @@
     <select id="selectTargetList" resultType="camelMap">
         SELECT EVL_OG_TP_CD
              , EVL_RSB_DV_CD
+             , RGST_SN
              , QLF_DV_CD
              , EVL_RSB_REL_ID
              , CALF_CN
