@@ -589,8 +589,8 @@
              , CASE WHEN T0.OG_TP_CD = 'W01' THEN T0.FNL_CLTN_DT ELSE '' END FNL_CLTN_DT_P /* 수석플래너 현황 - 최종해약      */
              , T2.MAX_DMTN_YM                                                MAX_DMTN_YM_P /* 수석플래너 현황 - 강등          */
              , CASE WHEN T0.OG_TP_CD = 'W01' THEN T0.CLTN_DT     ELSE '' END CLTN_DT_P     /* 수석플래너 현황 - 해약          */
-             , '' RGR_PRTNR_NO                                                             /* 수석플래너 신청자 - 번호 ?      */
-             , '' RGR_PRTNR_NM                                                             /* 수석플래너 신청자 - 성명 ?      */
+             , '' RGR_PRTNR_NO                                                             /* 수석플래너 신청자 - 번호      */
+             , '' RGR_PRTNR_NM                                                             /* 수석플래너 신청자 - 성명      */
              , T3.TOT_SUM                                                                  /* 환경가전 실적 - 누적건수        */
              , ROUND(T3.M03_SUM / 3, 0) M03_AVG                                            /* 환경가전 실적 - 직전3개월(평균) */
              , T3.M03_SUM                                                                  /* 환경가전 실적 - 직전3개월       */
@@ -656,8 +656,8 @@
                               AND X2.OG_TP_CD    = X1.OG_TP_CD
                               AND X2.PRTNR_NO    = X1.PRTNR_NO
                              --/********** 설치기준 조건이 선택된 경우만 활성화 **********/
-                             -- perfDv    I : 설치기준, A : 수당건수
-                            <if test='@MybatisUtils@isNotEmpty(perfDv) and @MybatisUtils@equals(perfDv, "I")'>
+                             -- perfCd    I : 설치기준, A : 수당건수
+                            <if test='@MybatisUtils@isNotEmpty(perfCd) and @MybatisUtils@equals(perfCd, "I")'>
                             INNER JOIN TB_FEAM_WELS_NRCTR_MM_CL X3
                                ON X3.BASE_YM              = X1.BASE_YM
                               AND X3.PERF_YM              = X1.PERF_YM
@@ -688,16 +688,16 @@
                             </choose>
                               /********** 검색조건에 따라 선택 적용 **********/
                             <choose>
-                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01") and @MybatisUtils@isNotEmpty(perfDv)'>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01") and @MybatisUtils@isNotEmpty(perfCd)'>
                               AND X1.PERF_ATC_CD        IN ('W01P00030')              --실적항목코드 - P조직(수당건수 / 설치기준)
                                 </when>
-                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01") and @MybatisUtils@isEmpty(perfDv)'>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01") and @MybatisUtils@isEmpty(perfCd)'>
                               AND X1.PERF_ATC_CD        IN ('W01P00030', 'W01P00031') --실적항목코드 - P조직(전체)
                                 </when>
-                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02") and @MybatisUtils@isNotEmpty(perfDv)'>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02") and @MybatisUtils@isNotEmpty(perfCd)'>
                               AND X1.PERF_ATC_CD        IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017') --실적항목코드 - M조직(수당건수 / 설치기준)
                                 </when>
-                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02") and @MybatisUtils@isEmpty(perfDv)'>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02") and @MybatisUtils@isEmpty(perfCd)'>
                               AND X1.PERF_ATC_CD        IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017', 'W00P00018', 'W00P00019', 'W00P00014', 'W00P00015') --실적항목코드 - M조직(전체)
                                 </when>
                             </choose>
@@ -833,12 +833,16 @@
            AND T0.PRR_BIZ_RGST_YN = 'N'   --사전업무등록여부 - N:기존영업부 Y:사전업무등록자
           /* 필요시 조직조건 추가 */
            <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
+           AND T1.BASE_YM         = #{baseYm} /* 관리년월 - 파라미터 #############################  */
+           AND T1.OG_TP_CD        = #{ogTpCd}    /* 조직유형 - 파라미터 #############################  */ --P조직:W01. M조직:W02
            AND T1.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
            </if>
            <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd2)'>
+           /* 조직레벨 2 (DGR2_LEVL_OG_ID) 가 있으면 DGR1_LEVL_OG_ID도 있을 것이므로 BASE_YM, OG_TP_CD 조건은 넣지 않음. */
            AND T1.DGR2_LEVL_OG_ID = #{ogLevlDvCd2}
            </if>
            <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd3)'>
+           /* 조직레벨 3 (DGR3_LEVL_OG_ID) 가 있으면 DGR1_LEVL_OG_ID도 있을 것이므로 BASE_YM, OG_TP_CD 조건은 넣지 않음. */
            AND T1.DGR3_LEVL_OG_ID = #{ogLevlDvCd3}
            </if>
            AND T0.DTA_DL_YN       = 'N'

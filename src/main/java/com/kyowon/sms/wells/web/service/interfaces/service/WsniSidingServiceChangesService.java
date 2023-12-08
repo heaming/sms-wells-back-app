@@ -55,7 +55,7 @@ public class WsniSidingServiceChangesService {
      * @author gs.piit122
      * @since 2023.07.18
      */
-    public void saveSidingChanges(SaveReq req) throws Exception {
+    public void saveSidingChanges(SaveReq req, String lgnUsrId) throws Exception {
 
         // 요청일련번호 채번
         String akSn = mapper.selectAkSnMax(req.cntrNo(), req.cntrSn());
@@ -70,7 +70,7 @@ public class WsniSidingServiceChangesService {
                 // 모종AS요청내역 UPDATE
                 mapper.updateSidingAk(
                     req.akChdt(), req.bfchPdCd(), req.afchPdCd(), req.mtrProcsStatCd(), req.cntrNo(), req.cntrSn(),
-                    req.asAkDvCd(), req.choCapslCn()
+                    req.asAkDvCd(), req.choCapslCn(), lgnUsrId
                 );
 
             } else {
@@ -84,7 +84,8 @@ public class WsniSidingServiceChangesService {
                     req.afchPdCd(),
                     req.mtrProcsStatCd(),
                     req.akChdt(),
-                    req.choCapslCn()
+                    req.choCapslCn(),
+                    lgnUsrId
                 );
             }
 
@@ -164,12 +165,14 @@ public class WsniSidingServiceChangesService {
 
     /**
      * 계약 모종 패키지 변경 호출 서비스
+     *
      * @param req
+     * @param lgnUsrId
      * @return
      * @throws Exception
      */
     @Transactional
-    public SaveRes saveSidingPackageOrProductChange(SaveReq req) throws Exception {
+    public SaveRes saveSidingPackageOrProductChange(SaveReq req, String lgnUsrId) throws Exception {
         log.debug("cntrNo : " + req.cntrNo());
         log.debug("cntrSn : " + req.cntrSn());
         log.debug("asAkDvCd : " + req.asAkDvCd());
@@ -178,8 +181,9 @@ public class WsniSidingServiceChangesService {
         log.debug("afchPdCd : " + req.afchPdCd());
         log.debug("choCapslCn : " + req.choCapslCn());
         log.debug("mtrProcsStatCd : " + req.mtrProcsStatCd());
+        log.debug("lgnUsrId: " + lgnUsrId);
 
-        saveSidingChanges(req); // LC_ASREGN_API_I02_T
+        saveSidingChanges(req, lgnUsrId); // LC_ASREGN_API_I02_T
 
         List<WctbSeedingPackageChangeDto.ConsPdct> consPdList = null;
         String strPdctPdCds = req.choCapslCn();
