@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.kyowon.sms.common.web.fee.common.dvo.FeeIdGenerator.getFeeRedemptionDetailIdSql;
 import static com.kyowon.sms.common.web.fee.common.dvo.FeeIdGenerator.getRedfAdsbBaseIdPrefix;
@@ -45,6 +46,7 @@ public class WfebAgainDisbursementFeeService {
      * @param baseYm
      * @param cntrPerfCrtDvCd
      */
+    @Transactional
     public void saveAgainDisbursementOfFees(String baseYm, String cntrPerfCrtDvCd) {
         /* 계약실적생성구분코드로 처리해야 하는 수수료계산단위유형코드 목록, 실적생성생성구분코드 목록 조회 */
         CodeDetailDvo code = codeService.getCodeDetailByPk("CNTR_PERF_CRT_DV_CD", cntrPerfCrtDvCd);
@@ -64,6 +66,7 @@ public class WfebAgainDisbursementFeeService {
      * @param baseYm
      * @return
      */
+    @Transactional
     public Integer saveDlqAgainDisbursementOfFees(String baseYm, String ogTpCd, String cntrPerfCrtDvCd) {
         Integer insertCount = 0;
         String redfAdsbDvCd = "03";
