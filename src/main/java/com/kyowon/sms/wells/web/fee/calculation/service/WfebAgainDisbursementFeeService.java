@@ -80,6 +80,10 @@ public class WfebAgainDisbursementFeeService {
                 /* 계약별 연체재지급 데이터 생성 */
                 insertCount = againDisbursementFeeMapper.insertContractDlqAdsbsForMog(baseYm, ogTpCd, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd));
                 break;
+            case "W05":
+                /* 계약별 기본수수료 연체재지급 데이터 생성 */
+                insertCount = againDisbursementFeeMapper.insertBaseContractDlqAdsbs(baseYm, ogTpCd, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd));
+                break;
         }
         /* 파트너별 연체재지급 데이터 생성 */
         if (insertCount > 0) {
