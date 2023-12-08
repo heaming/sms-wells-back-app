@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 
@@ -50,6 +51,7 @@ public class WfebRedemptionFeeService {
      * @param cntrPerfCrtDvCd
      * @return
      */
+    @Transactional
     public void saveRedemptionOfFees(String baseYm, String cntrPerfCrtDvCd) {
         /* 계약실적생성구분코드로 처리해야 하는 수수료계산단위유형코드 목록, 실적생성생성구분코드 목록 조회 */
         CodeDetailDvo code = codeService.getCodeDetails("PERF_AGRG_CRT_DV_CD").stream().filter(item -> cntrPerfCrtDvCd.equals(item.getUserDfn03())).findFirst().orElse(null);
@@ -84,6 +86,7 @@ public class WfebRedemptionFeeService {
      * @param baseYm
      * @return
      */
+    @Transactional
     public Integer saveDlqRedemptionOfFees(String baseYm, String ogTpCd, String cntrPerfCrtDvCd) {
         int insertCount = 0;
         String redfAdsbDvCd = "02";
