@@ -152,6 +152,118 @@
 
     </select>
 
+    <select id="selectRefundHistorySum" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto$SearchRefundHistoryTotalRes">
+           SELECT /*+ push_pred(T3) use_nl(T1 T2 T6 T3)  */
+                  SUM(NVL(T3.RVE_AMT_DP,0) - NVL(T3.RVE_AMT_RF,0)) AS DP_AMT_SUM /*입금총액*/
+                , SUM(T1.RVE_AMT) AS RVE_AMT_SUM  /*지급금액*/
+                , SUM(T1.RVE_AMT) AS RFND_DSB_AMT_SUM   /*환불금액*/
+              FROM TB_RVDW_RVE_DTL T1 /*수납상세*/
+             INNER JOIN TB_SSCT_CNTR_DTL T2  /*계약상세*/
+                ON (    T2.CNTR_NO = T1.CNTR_NO /*계약번호*/
+                    AND T2.CNTR_SN = T1.CNTR_SN /*계약일련번호*/
+                    AND T2.DTA_DL_YN = 'N' /*삭제여부*/
+                    AND T2.SELL_TP_CD = #{sellTpCd}
+                  <choose>
+                   <when test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+                   AND T2.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
+                   </when>
+                  </choose>
+                    )
+            INNER JOIN (SELECT S1.CNTR_NO /*게약번호*/
+                             , S1.CNTR_SN /*계약일련번호*/
+                             , SUM( CASE WHEN S1.DP_DV_CD IN ('1' , '3') THEN S1.RVE_AMT
+                                          END ) AS RVE_AMT_DP /*입금금액*/
+                             , SUM( CASE WHEN S1.DP_DV_CD IN ('2' , '4') THEN S1.RVE_AMT
+                                          END ) AS RVE_AMT_RF /*환불금액*/
+                          FROM TB_RVDW_RVE_DTL S1  /*수납상세*/
+                         WHERE 1 = 1
+                           AND S1.DTA_DL_YN = 'N'
+                           AND S1.KW_GRP_CO_CD = '2000'
+                           AND S1.RVE_DV_CD IN ('03' , '04' ,'05' ,'09' , '17')
+                         AND S1.DTA_DL_YN  = 'N'
+                         GROUP BY S1.CNTR_NO , S1.CNTR_SN) T3
+              ON (    T3.CNTR_NO = T1.CNTR_NO
+                  AND T3.CNTR_SN = T1.CNTR_SN )
+            LEFT OUTER JOIN TB_RVDW_RFND_RCP_DTL T4
+              ON (    T4.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                  AND T4.RFND_RCP_NO = T1.RVE_OJ_DRM_NO1
+                  AND T4.RFND_RCP_DTL_SN = T1.RVE_OJ_DRM_NO2
+                  AND T4.DTA_DL_YN = 'N' )
+            LEFT OUTER JOIN TB_RVDW_RFND_RCP_BAS T5
+              ON (    T5.KW_GRP_CO_CD = T4.KW_GRP_CO_CD
+                  AND T5.RFND_RCP_NO = T4.RFND_RCP_NO
+                  AND T5.DTA_DL_YN = 'N'
+                  AND T5.RFND_STAT_CD = '03')
+            LEFT OUTER JOIN TB_SSCT_CNTR_BAS T6
+              ON (    T6.CNTR_NO = T4.BLTF_OJ_CNTR_NO
+                  AND T6.DTA_DL_YN = 'N')
+            LEFT OUTER JOIN TB_RVDW_RVE_DTL T7
+               ON (   T7.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                  AND T7.RVE_OJ_DRM_NO1 = T1.RVE_OJ_DRM_NO1
+                  AND T7.RVE_OJ_DRM_NO2 = T1.RVE_OJ_DRM_NO2
+                  AND T7.DP_DV_CD = '3'
+                  AND T7.RVE_DV_CD = '17'
+                  )
+             WHERE 1 = 1
+               AND T1.KW_GRP_CO_CD = '2000'
+               AND T1.DP_DV_CD IN ('2','4')
+               AND T1.DTA_DL_YN  = 'N'
+               /* 전금환불된 수수료 제외 */
+               AND NOT EXISTS (SELECT 'X'
+                                 FROM TB_RVDW_RVE_DTL A2
+                                WHERE A2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                                  AND A2.RVE_OJ_DRM_NO1 = T1.RVE_OJ_DRM_NO1
+                                  AND A2.RVE_OJ_DRM_NO2 = T1.RVE_OJ_DRM_NO2
+                                  AND A2.RVE_AMT = T1.RVE_AMT
+                                  AND A2.DP_DV_CD = '3'
+                                  AND A2.RVE_DV_CD = '17'
+                              )
+               <if test='@MybatisUtils@isNotEmpty(rveDtStart)'>
+               AND T1.RVE_DT >= #{rveDtStart} /* 수납일자 */
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(rveDtFinish)'>
+               AND T1.RVE_DT <![CDATA[<=]]> #{rveDtFinish} /* 수납일자 */
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(perfDtStart)'>
+               AND T1.PERF_DT >= #{perfDtStart} /* 실적일자 */
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(perfDtFinish)'>
+               AND T1.PERF_DT <![CDATA[<=]]> #{perfDtFinish} /* 실적일자 */
+              </if>
+              <if test='@MybatisUtils@isNotEmpty(rfndDsbDvCd)'>
+              <choose>
+                <when test='@MybatisUtils@equals(rfndDsbDvCd,"04")'>
+               AND NVL(T4.RFND_DSB_DV_CD,'') = '04'               /* 환불접수상세.환불지급구분코드 = 04.귀속 */
+                    </when>
+                    <otherwise>
+               AND NVL(T4.RFND_DSB_DV_CD,'') != '04'               /* 환불접수상세.환불지급구분코드 != 04.귀속 */
+                    </otherwise>
+                  </choose>
+               </if>
+            <if test='@MybatisUtils@isNotEmpty(dpMesCd)'> /* 수납상세.입금구분코드 조건 없음 = 전체 */
+             <choose>
+               <when test='@MybatisUtils@equals(dpMesCd,"07")'>
+               AND T1.DP_MES_CD = '06'                     /* 수납상세.입금구분코드 = 06.포인트 */
+               </when>
+               <otherwise>
+               AND T1.DP_MES_CD != '06'                    /* 수납상세.입금구분코드 != 06.포인트 제외 */
+               </otherwise>
+             </choose>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(rveDvCd)">
+                <choose>
+                  <when test='@MybatisUtils@equals(rveDvCd,"09")'>
+               AND (T1.RVE_DV_CD = '09')                   /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 테스트용 임시주석 */
+                  </when>
+                  <otherwise>
+               AND (T1.RVE_DV_CD IN ('03' , '04' ,'05' , '17'))                  /* 수납상세.수납구분코드 != 09.대손이관 = 일반 테스트용 임시주석*/
+                  </otherwise>
+                </choose>
+            </if>
+             ORDER BY T1.RVE_DT , T1.PERF_DT , T1.CNTR_NO , T1.CNTR_SN
+
+    </select>
+
     <select id="selectCardRefundHistory" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto$SearchCardRefundHistoryRes">
         SELECT SELL_DTL_NM AS REFUND_DIVISION
              , NVL(SUM(CASE WHEN M1.RFND_DSB_DV_CD = '01' THEN RFND_CSH_AMT ELSE 0 END),0) AS RFND_DSB_AMT
