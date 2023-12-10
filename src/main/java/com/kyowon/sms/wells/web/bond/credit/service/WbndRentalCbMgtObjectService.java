@@ -1,11 +1,5 @@
 package com.kyowon.sms.wells.web.bond.credit.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kyowon.sms.wells.web.bond.credit.converter.WbndRentalCbMgtObjectConverter;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SaveReq;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchPaymentRes;
@@ -17,9 +11,13 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
 import com.sds.sflex.system.config.validation.ValidAssert;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <pre>
@@ -40,6 +38,7 @@ public class WbndRentalCbMgtObjectService {
 
     /**
      * 렌탈CB 연체대상 관리 조회
+     *
      * @param dto
      * @return List<SearchRes>
      */
@@ -59,6 +58,7 @@ public class WbndRentalCbMgtObjectService {
 
     /**
      * 렌탈CB 연체대상 관리 저장
+     *
      * @param dtos
      * @return int
      */
@@ -82,14 +82,17 @@ public class WbndRentalCbMgtObjectService {
 
     /**
      * 렌탈CB납입정보(팝업) 페이징 조회
-     * @param cstNo, pageInfo
+     *
+     * @param cstNo    고객번호
+     * @param baseYm   기준년월
+     * @param pageInfo 페이지정보
      * @return PagingResult<SearchPaymentRes>
      */
-    public PagingResult<SearchPaymentRes> getRentalCbMgtPaymentInfos(String cstNo, PageInfo pageInfo) {
+    public PagingResult<SearchPaymentRes> getRentalCbMgtPaymentInfos(String cstNo, String baseYm, PageInfo pageInfo) {
         ValidAssert.hasText(cstNo);
         PagingResult<SearchPaymentRes> pagingResult = new PagingResult<>();
 
-        PagingResult<WbndRentalCbDelinquentIzDvo> res = this.mapper.selectRentalCbMgtPaymentInfos(cstNo, pageInfo);
+        PagingResult<WbndRentalCbDelinquentIzDvo> res = this.mapper.selectRentalCbMgtPaymentInfos(cstNo, baseYm, pageInfo);
 
         List<SearchPaymentRes> data = this.converter.listRentalCbDlqIzDvoToSearchPaymentRes(res.getList());
         pagingResult.setPageInfo(res.getPageInfo());
@@ -100,10 +103,12 @@ public class WbndRentalCbMgtObjectService {
 
     /**
      * 렌탈CB납입정보(팝업) 엑셀다운로드
-     * @param cstNo
+     *
+     * @param cstNo  고객번호
+     * @param baseYm 기준년월
      * @return List<SearchPaymentRes>
      */
-    public List<SearchPaymentRes> getRentalCbMgtPaymentInfoForExcelDownload(String cstNo) {
-        return this.converter.listRentalCbDlqIzDvoToSearchPaymentRes(this.mapper.selectRentalCbMgtPaymentInfos(cstNo));
+    public List<SearchPaymentRes> getRentalCbMgtPaymentInfoForExcelDownload(String cstNo, String baseYm) {
+        return this.converter.listRentalCbDlqIzDvoToSearchPaymentRes(this.mapper.selectRentalCbMgtPaymentInfos(cstNo, baseYm));
     }
 }
