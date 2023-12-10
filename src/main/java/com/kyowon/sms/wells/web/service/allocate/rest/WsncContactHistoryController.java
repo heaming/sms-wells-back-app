@@ -16,6 +16,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * [WSNC] 고객 컨택이력
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-06-26
+ */
 @Api(tags = "[WSNC] 고객 컨택이력")
 @RequiredArgsConstructor
 @RestController

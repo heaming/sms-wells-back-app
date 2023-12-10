@@ -14,6 +14,14 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * [WSNF] 월관리 고객 생성
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-06-26
+ */
 @Api(tags = "[WSNF] 월관리 고객 생성")
 @RequiredArgsConstructor
 @RestController

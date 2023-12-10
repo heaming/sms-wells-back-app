@@ -11,16 +11,16 @@ public class WsnfMonthManagementCstDto {
     @ApiModel(value = "WsnfMonthManagementCstDto-CreateReq")
     public record CreateReq(
         @NotBlank
-        String mngtYm,
+        String mngtYm,          /* 관리년월 */
         @NotBlank
-        String createTarget
+        String createTarget     /* 생성대상 */
     ) {}
 
     @ApiModel(value = "WsnfMonthManagementCstDto-RemoveReq")
     public record RemoveReq(
         @NotBlank
-        String mngtYm,
+        String mngtYm,          /* 관리년월 */
         @NotBlank
-        String createTarget
+        String createTarget     /* 생성대상 */
     ) {}
 }

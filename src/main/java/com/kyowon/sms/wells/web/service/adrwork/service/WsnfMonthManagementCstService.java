@@ -18,6 +18,14 @@ import com.sds.sflex.system.config.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * [WSNF] 월관리 고객 생성
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-06-26
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -29,6 +37,9 @@ public class WsnfMonthManagementCstService {
 
     private final WsnfMonthManagementCstMapper mapper;
 
+    /*
+     * 월관리 고객 생성 - 생성
+     */
     @Transactional
     public int createMonthManagementCst(WsnfMonthManagementCstDto.CreateReq dto) throws Exception {
         //FrontEnd Validation을 넘길 경우 강력한 메세지로 대응
@@ -54,6 +65,9 @@ public class WsnfMonthManagementCstService {
         return 1;
     }
 
+    /*
+     * 월관리 고객 생성 - 삭제
+     */
     @Transactional
     public int removeMonthManagementCst(WsnfMonthManagementCstDto.RemoveReq dto) throws Exception {
         //FrontEnd Validation을 넘길 경우 강력한 메세지로 대응

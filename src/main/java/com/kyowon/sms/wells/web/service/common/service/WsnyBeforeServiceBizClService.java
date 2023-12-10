@@ -12,6 +12,14 @@ import com.kyowon.sms.wells.web.service.common.mapper.WsnyBeforeServiceBizClMapp
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * [WSNY] BS 업무시간및 마감관리
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-01-14
+ */
 @Service
 @RequiredArgsConstructor
 public class WsnyBeforeServiceBizClService {

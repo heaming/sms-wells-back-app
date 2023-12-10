@@ -20,6 +20,14 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * [WSNC] 고정방문 관리
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2022-12-26
+ */
 @Api(tags = "[WSNC] 고정방문 관리")
 @RequiredArgsConstructor
 @RestController
