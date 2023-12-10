@@ -11,6 +11,14 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * [WSNC] 고객 QR코드 재발행 내역 조회
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-03-13
+ */
 @Service
 @RequiredArgsConstructor
 public class WsncQuickResponseRpblService {

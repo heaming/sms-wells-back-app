@@ -12,6 +12,14 @@ import com.kyowon.sms.wells.web.service.allocate.mapper.WsncCenterLocalAreaTfMap
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * [WSNC] 센터지역 이관
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-06-26
+ */
 @Service
 @RequiredArgsConstructor
 public class WsncCenterLocalAreaTfService {

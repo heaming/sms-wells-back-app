@@ -19,7 +19,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[WSNF] 센터지역 이관")
+/**
+ * <pre>
+ * [WSNC] 센터지역 이관
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-06-26
+ */
+@Api(tags = "[WSNC] 센터지역 이관")
 @RequiredArgsConstructor
 @RestController
 @Validated
