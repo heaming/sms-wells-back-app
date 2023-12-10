@@ -6,10 +6,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WsnyBeforeServiceBizClDvo {
-    String mngtYm;
-    String strtdt;
-    String strtHh;
-    String enddt;
-    String endHh;
-    String mngtItm;
+    String mngtYm; /* 관리년월 */
+    String strtdt; /* 시작일자 */
+    String strtHh; /* 시작시간 */
+    String enddt; /* 종료일자 */
+    String endHh; /* 종료시간 */
+    String mngtItm; /* 관리항목 */
 }

@@ -13,23 +13,23 @@ public class WsncFixationVisitDto {
 
     @ApiModel(value = "WsncFixationVisitDto-SearchReq")
     public record SearchReq(
-        String baseYm,
-        String fxnPrtnrDvCd,
-        String sellTpCd,
-        String fxnPrtnrNo,
-        String dgr1LevlOgId,
-        String dgr2LevlOgId,
-        String cntrNo,
-        String cntrSn
+        String baseYm, /* 기준년월 */
+        String fxnPrtnrDvCd, /* 관리구분 */
+        String sellTpCd, /* 판매유형 */
+        String fxnPrtnrNo, /* 방문담당자 */
+        String dgr1LevlOgId, /* 총괄단 */
+        String dgr2LevlOgId, /* 지역단 */
+        String cntrNo, /* 계약번호 */
+        String cntrSn /* 계약일련번호 */
     ) {}
 
     @ApiModel(value = "WsncFixationVisitDto-SearchRegReq")
     public record SearchRegReq(
         @NotBlank
-        String cntrNo,
+        String cntrNo, /* 계약번호 */
 
         @NotBlank
-        String cntrSn
+        String cntrSn /* 계약일련번호 */
     ) {}
 
     @ApiModel(value = "WsncFixationVisitDto-SaveRegReq")

@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WsnfMonthManagementCstDvo {
-    String mngtYm;
-    String createTarget;
+    String mngtYm;          /* 관리년월 */
+    String createTarget;    /* 생성대상 */
 }

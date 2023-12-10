@@ -6,6 +6,6 @@ import lombok.Setter;
 @Setter
 @Getter
 public class WsncRegularBfsvcOjDvo {
-    String asnOjYm;
-    String createTarget;
+    String asnOjYm; /* 배정년월 */
+    String createTarget; /* 생성대상 */
 }

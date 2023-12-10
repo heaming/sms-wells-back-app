@@ -12,6 +12,14 @@ import com.kyowon.sms.wells.web.service.common.mapper.WsnyCalendarMapper;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * [WSNY] Calendar 관리
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-01-10
+ */
 @Service
 @RequiredArgsConstructor
 public class WsnyCalendarService {
