@@ -60,7 +60,7 @@ public class WsnbRegularShippingChangeService {
     * PR_KIWI_CAPSULE_CHANGE 홈카페 캡슐 패키지/서비스 변경 처리
     * </pre>
     * */
-    public void capsuleChange(SaveReq req, String lgnUsrId) throws Exception {
+    public void capsuleChange(SaveReq req) throws Exception {
 
         log.debug("cntrNo : " + req.cntrNo());
         log.debug("cntrSn : " + req.cntrSn());
@@ -70,7 +70,8 @@ public class WsnbRegularShippingChangeService {
         log.debug("afchPdCd : " + req.afchPdCd());
         log.debug("choCapslCn : " + req.choCapslCn());
         log.debug("mtrProcsStatCd : " + req.mtrProcsStatCd());
-        log.debug("lgnUsrId : " + lgnUsrId);
+        log.debug("rcpIchrPrtnrNo: " + req.rcpIchrPrtnrNo());
+        log.debug("rcpOgTpCd : " + req.rcpOgTpCd());
 
         // 취소일 경우 삭제
         if ("3".equals(req.mtrProcsStatCd())) {
@@ -91,7 +92,8 @@ public class WsnbRegularShippingChangeService {
                     req.choCapslCn(),
                     req.mtrProcsStatCd(),
                     RandomStringUtils.randomNumeric(6),
-                    lgnUsrId
+                    req.rcpIchrPrtnrNo(),
+                    req.rcpOgTpCd()
                 );
                 regularShippingChangeMapper.insertTbSvpdHcfAsAkIz(req);
             }
@@ -109,7 +111,8 @@ public class WsnbRegularShippingChangeService {
                 req.choCapslCn(),
                 req.mtrProcsStatCd(),
                 RandomStringUtils.randomNumeric(6),
-                lgnUsrId
+                req.rcpIchrPrtnrNo(),
+                req.rcpOgTpCd()
             )
         );
 
@@ -194,9 +197,9 @@ public class WsnbRegularShippingChangeService {
      * @see [홈카페 캡슐 상품/서비스 변경 처리]
      *      environmentController.java > LC_ASREGN_API_005(HttpServletRequest request, HttpServletResponse response)
      */
-    public SaveRes saveRegularShippingChange(SaveReq req, String lgnUsrId) throws Exception {
+    public SaveRes saveRegularShippingChange(SaveReq req) throws Exception {
 
-        capsuleChange(req, lgnUsrId);
+        capsuleChange(req);
 
         List<WctbSeedingPackageChangeDto.ConsPdct> consPdList = null;
         String strPdctPdCds = req.choCapslCn();
