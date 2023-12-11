@@ -253,7 +253,28 @@ public class WfeeIndividualFeeService {
         java.util.List<com.sds.sflex.system.config.core.dvo.RoleIdDvo> roles = userSession.getRoles();
 
         for (int i = 0; i < roles.size(); i++) {
-            if ("ROL_W1580".equals(roles.get(i).getRoleNickName())) { // wells영업지원팀
+            if ("W01".equals(dto.ogTpCd()) &&
+                "ROL_W1580".equals(roles.get(i).getRoleNickName())) { // wells영업지원팀
+                dsbSpcshPrnt = true;
+                break;
+            } else if ("W02".equals(dto.ogTpCd()) &&
+                "ROL_W1580".equals(roles.get(i).getRoleNickName())) { // wells영업지원팀
+                dsbSpcshPrnt = true;
+                break;
+            } else if ("W03".equals(dto.ogTpCd()) &&
+                "ROL_W1560".equals(roles.get(i).getRoleNickName())) { // wellsCS운영팀
+                dsbSpcshPrnt = true;
+                break;
+            } else if ("W04".equals(dto.ogTpCd()) &&
+                "ROL_W1520".equals(roles.get(i).getRoleNickName())) { // wellsB2B사업팀
+                dsbSpcshPrnt = true;
+                break;
+            } else if ("W05".equals(dto.ogTpCd()) &&
+                "ROL_W1510".equals(roles.get(i).getRoleNickName())) { // wells신채널영업팀
+                dsbSpcshPrnt = true;
+                break;
+            } else if ("W06".equals(dto.ogTpCd()) &&
+                "ROL_W1560".equals(roles.get(i).getRoleNickName())) { // wellsCS운영팀
                 dsbSpcshPrnt = true;
                 break;
             }
