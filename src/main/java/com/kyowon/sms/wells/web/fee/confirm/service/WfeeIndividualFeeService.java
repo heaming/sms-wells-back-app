@@ -8,6 +8,8 @@ import java.util.List;
 
 import com.kyowon.sms.common.web.fee.common.dvo.ZfezDeadLineDvo;
 import com.kyowon.sms.common.web.fee.common.service.ZfezDeadLineService;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 import org.apache.commons.lang3.StringUtils;
@@ -222,6 +224,9 @@ public class WfeeIndividualFeeService {
     public List<SearchFeeRes> getFees(
         SearchFeeReq dto
     ) {
+
+        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
+
         boolean dsbSpcshPrnt = false;
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
@@ -245,7 +250,14 @@ public class WfeeIndividualFeeService {
             }
         }
 
-        /* TODO : 해당 메뉴의 관리자는 true로 체크해야함 */
+        java.util.List<com.sds.sflex.system.config.core.dvo.RoleIdDvo> roles = userSession.getRoles();
+
+        for (int i = 0; i < roles.size(); i++) {
+            if ("ROL_W1580".equals(roles.get(i).getRoleNickName())) { // wells영업지원팀
+                dsbSpcshPrnt = true;
+                break;
+            }
+        }
 
         BizAssert.isTrue(dsbSpcshPrnt, "MSG_ALT_DSB_SPCSH_PRNT_DATE");
 
