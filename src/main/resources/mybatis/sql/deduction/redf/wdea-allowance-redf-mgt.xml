@@ -310,7 +310,10 @@
              , M.RCPDT  /*계약일자*/
              , M.SL_DT /*매출일자*/
              , M.CAN_DT /*취소일자*/
-             , NVL(C.REDF_AMT, 0) AS REDF_AMT /*되물림액(총판수수료)*/
+             , (CASE WHEN P1.REDF_ADSB_CTR_CNFM_AMT IS NULL THEN NVL(P1.REDF_ADSB_OC_AMT, 0)
+                     WHEN P1.REDF_ADSB_CTR_CNFM_AMT IS NOT NULL THEN NVL(P1.REDF_ADSB_CTR_CNFM_AMT, 0)
+                     ELSE 0
+                      END) AS REDF_AMT /*되물림 금액*/
           FROM TB_FEAM_WELS_NRCTR_MM_CL M /*웰스순주문계약월마감*/
          INNER JOIN TB_OGBS_PRTNR_BAS A /*파트너기본*/
             ON M.PRTNR_NO = A.PRTNR_NO
@@ -355,50 +358,15 @@
                                 AND D1.OG_TP_CD = #{ogTpCd} /*조직유형*/
                                 </if>
                            ) D /*고객 및 상품 정보*/
-            ON M.CNTR_NO = D.CNTR_NO
-           AND M.CNTR_SN = D.CNTR_SN
-           LEFT OUTER JOIN ( /*TODO: 02: 계약실적생성구분코드 되물림생성이 아직 데이터가 만들어지지않아 아우터조인*/
-                      SELECT DISTINCT
-                             C1.PRTNR_NO /*조인용.파트너번호*/
-                           , C1.OG_TP_CD /*조인용.조직유형*/
-                           , C1.BASE_YM /*조인용.기준년월*/
-                           , C1.PERF_YM /*조인용.실적년월*/
-                           , C1.CO_CD /*조인용.회사코드*/
-                           , C1.FEE_TCNT_DV_CD /*조인용.수수료차수구분코드*/
-                           , C1.CNTR_NO
-                           , C1.CNTR_SN
-                           , C1.CNTR_PERF_CRT_DV_CD /*조인용.계약실적생성구분코드( 되물림 고정 )*/
-                           <if test='@MybatisUtils@equals(ogTpCd, "W05")'>
-                           , NVL((CASE WHEN C1.PERF_ATC_CD = 'W05P00001' THEN C1.PERF_VAL END), 0) AS REDF_AMT /*되물림액(총판수수료)*/
-                           </if>
-                           <if test='@MybatisUtils@equals(ogTpCd, "W04")'>
-                           , NVL((CASE WHEN C1.PERF_ATC_CD = 'W04P00001' THEN C1.PERF_VAL END), 0) AS REDF_AMT /*되물림액(B2B수수료)*/
-                           </if>
-                        FROM TB_FEAM_NTORP_CNTR_MM_CL C1 /*순주문파트너계약월마감*/
-                       WHERE C1.DTA_DL_YN = 'N'
-                         <if test='@MybatisUtils@isNotEmpty(redfAdsbOcYmFrom) and @MybatisUtils@isNotEmpty(redfAdsbOcYmTo)'>
-                         AND C1.BASE_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo}
-                         </if>
-                         <if test='@MybatisUtils@isNotEmpty(slYmFrom) and @MybatisUtils@isNotEmpty(slYmTo)'>
-                         AND C1.PERF_YM BETWEEN #{slYmFrom} AND #{slYmTo}
-                         </if>
-                         AND (CASE WHEN #{ogTpCd} = 'W01' THEN '02'
-			                       WHEN #{ogTpCd} = 'W02' THEN '03'
-			                       WHEN #{ogTpCd} = 'W03' THEN '04'
-			                       WHEN #{ogTpCd} = 'W05' THEN '05'
-			                       WHEN #{ogTpCd} = 'W04' THEN '06'
-			                       WHEN #{ogTpCd} = 'Z02' THEN '07'
-			                    END) = C1.CNTR_PERF_CRT_DV_CD /*계약실적생성구분코드: 되물림*/
-                     ) C
-             ON M.PRTNR_NO = C.PRTNR_NO
-            AND M.OG_TP_CD = C.OG_TP_CD
-            AND M.CNTR_NO = C.CNTR_NO
-            AND M.CNTR_SN = C.CNTR_SN
-            AND M.BASE_YM = C.BASE_YM
-            AND M.PERF_YM = C.PERF_YM
-            AND M.CO_CD = C.CO_CD
-            AND M.FEE_TCNT_DV_CD = C.FEE_TCNT_DV_CD
-            AND M.CNTR_PERF_CRT_DV_CD = C.CNTR_PERF_CRT_DV_CD
+             ON M.CNTR_NO = D.CNTR_NO
+            AND M.CNTR_SN = D.CNTR_SN
+           LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_DTL P1
+             ON M.BASE_YM = P1.REDF_ADSB_OC_YM
+            AND M.PERF_YM = P1.PERF_YM
+            AND M.PRTNR_NO = P1.PRTNR_NO
+            AND M.OG_TP_CD = P1.OG_TP_CD
+            AND M.CNTR_NO = P1.CNTR_NO
+            AND M.CNTR_SN = P1.CNTR_SN
           WHERE M.DTA_DL_YN = 'N'
             <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
             AND M.OG_TP_CD = #{ogTpCd}
