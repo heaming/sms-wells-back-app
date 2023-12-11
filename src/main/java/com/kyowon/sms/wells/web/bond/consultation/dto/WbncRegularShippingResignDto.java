@@ -1,9 +1,9 @@
 package com.kyowon.sms.wells.web.bond.consultation.dto;
 
-import javax.validation.constraints.NotBlank;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
+
+import javax.validation.constraints.NotBlank;
 
 public class WbncRegularShippingResignDto {
     // *********************************************************
@@ -17,7 +17,8 @@ public class WbncRegularShippingResignDto {
         String authRsgDt, /* 직권해지일 */
         String clctamDvCd, /* 집금구분코드 */
         String clctamPrtnrNo /* 집금담당자 */
-    ) {}
+    ) {
+    }
 
     // *********************************************************
     // Result Dto
@@ -46,8 +47,13 @@ public class WbncRegularShippingResignDto {
         Long totRveAmt, /* 입금누계-연체시작일자이후부터 입금된 총금액 */
         String clctamPrtnrNm, /* 집금담당자명 */
         String clctamPrtnrNo, /* 집금담당자번호 */
-        String errCn /* 에러내용 */
-    ) {}
+        String errCn, /* 에러내용 */
+        String bndBizDvCd, /* 채권업무구분코드 */
+        String bndClctnPrpDvCd, /* 채권추심속성구분코드 */
+        String bndClctnPrpRsonCd, /* 채권추심속성사유코드 */
+        String bndClctnPrpChdt /* 채권추심속성변경일자 */
+    ) {
+    }
 
     @ApiModel("WbncRegularShippingResignDto-SaveConfirmReq")
     public record SaveConfirmReq(
@@ -57,5 +63,6 @@ public class WbncRegularShippingResignDto {
         String cntrNo, /* 계약번호 */
         @NotBlank
         String cntrSn /* 계약일련번호 */
-    ) {}
+    ) {
+    }
 }
