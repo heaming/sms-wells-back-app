@@ -17,7 +17,9 @@ public interface WsniSidingServiceChangesMapper {
         String afchPdCd,
         String mtrProcsStatCd,
         String choCapslCn,
-        String csmrUprcAmt
+        String csmrUprcAmt,
+        String rcpIchrPrtnrNo,
+        String rcpOgTpCd
     );
 
     int deleteSdingAskAk(
@@ -47,8 +49,7 @@ public interface WsniSidingServiceChangesMapper {
         String cntrNo,
         String cntrSn,
         String asAkDvCd,
-        String choCapslCn,
-        String lgnUsrId
+        String choCapslCn
     );
 
     String selectAkSnMax(String cntrNo, String cntrSn);
@@ -63,7 +64,8 @@ public interface WsniSidingServiceChangesMapper {
         String mtrProcsStatCd,
         String akChdt,
         String choCapslCn,
-        String lgnUsrId
+        String rcpIchrPrtnrNo,
+        String rcpOgTpCd
     );
 
     /**
