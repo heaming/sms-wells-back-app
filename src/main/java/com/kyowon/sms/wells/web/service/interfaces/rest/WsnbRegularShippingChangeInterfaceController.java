@@ -50,7 +50,7 @@ public class WsnbRegularShippingChangeInterfaceController {
     ) throws Exception {
         EaiWrapper<SaveRes> resEaiWrapper = reqEaiWrapper.newResInstance();
         resEaiWrapper.setBody(
-            service.saveRegularShippingChange(reqEaiWrapper.getBody(), reqEaiWrapper.getHeader().getLgnUsrId())
+            service.saveRegularShippingChange(reqEaiWrapper.getBody())
         );
         return resEaiWrapper;
     }

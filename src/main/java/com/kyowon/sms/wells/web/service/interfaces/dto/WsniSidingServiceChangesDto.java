@@ -10,7 +10,6 @@ public class WsniSidingServiceChangesDto {
 
     @ApiModel(value = "WsniSidingServiceChangesDto-SaveReq")
     public record SaveReq(
-
         @NotBlank
         @JsonProperty(value = "CNTR_NO")
         String cntrNo, // 계약번호
@@ -37,8 +36,13 @@ public class WsniSidingServiceChangesDto {
         String mtrProcsStatCd, // 자료처리상태코드 (1:신규, 2:변경, 3:취소)
 
         @JsonProperty(value = "CHO_CAPSL_CN")
-        String choCapslCn // 자유선택인 경우 제품상품코드목록 (제품상품코드,수량|제품상품코드,수량| ....)
+        String choCapslCn, // 자유선택인 경우 제품상품코드목록 (제품상품코드,수량|제품상품코드,수량| ....)
 
+        @JsonProperty(value = "RCP_ICHR_PRTNR_NO")
+        String rcpIchrPrtnrNo, // 접수담당사번
+
+        @JsonProperty(value = "RCP_OG_TP_CD")
+        String rcpOgTpCd // 접수담당조직유형코드
     ) {}
 
     @ApiModel(value = "WsniSidingServiceChangesDto-SaveRes")
