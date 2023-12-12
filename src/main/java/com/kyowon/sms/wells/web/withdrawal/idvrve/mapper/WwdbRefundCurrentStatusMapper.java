@@ -8,6 +8,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchCardRefundHistoryRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchRefundHistoryReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchRefundHistoryRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchRefundHistoryTotalRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -33,6 +34,16 @@ public interface WwdbRefundCurrentStatusMapper {
      * @return List<SearchRefundHistoryRes>
      */
     List<SearchRefundHistoryRes> selectRefundHistory(
+        SearchRefundHistoryReq req
+    );
+
+    /**
+     * 환불내역 합계
+     *
+     * @param req
+     * @return List<SearchRefundHistoryRes>
+     */
+    SearchRefundHistoryTotalRes selectRefundHistorySum(
         SearchRefundHistoryReq req
     );
 

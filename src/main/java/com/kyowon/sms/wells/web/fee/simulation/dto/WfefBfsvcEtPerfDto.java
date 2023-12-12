@@ -58,6 +58,8 @@ public class WfefBfsvcEtPerfDto {
         int etcMgtCnt, /*기타 관리건수*/
         int sumFxamMgtCnt, /*합계 정액관리건수*/
         int sumMgtCnt, /*합계 관리건수*/
+        int canCnt, /*취소건수*/
+        int sumFhsMgtCnt, /*최종 배정건수 합계*/
         int wrfr1FhsCnt, /*정수기1 완료건수*/
         int wrfr2FhsCnt, /*정수기2 완료건수*/
         int wrfr3FhsCnt, /*정수기3 완료건수*/

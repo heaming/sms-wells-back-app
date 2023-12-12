@@ -60,6 +60,7 @@ public class WsncManagementCstRglvlDto {
         String mngStdDgr3LevlOgCd,
         String mngStdPrtnrKnm,
         String mngStdMngerRglvlDvCd,
+        String mngStdFnlCltnDt,
         String curMnthAlctnDgr2LevlOgCd,
         String curMnthAlctnDgr3LevlOgCd,
         String curMnthAlctnPrtnrKnm,
@@ -67,6 +68,7 @@ public class WsncManagementCstRglvlDto {
         String bfchIchrPrtnrOgTpCd,
         String bfchIchrPrtnrNo,
         String curMnthAlctnMngerRglvlDvCd,
+        String curFnlCltnDt,
         String cstSvAsnNo,
         String mngerRglvlDvCd
     ) {}

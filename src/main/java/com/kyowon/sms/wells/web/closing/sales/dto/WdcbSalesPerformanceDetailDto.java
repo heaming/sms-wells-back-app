@@ -20,7 +20,6 @@ public class WdcbSalesPerformanceDetailDto {
         String sellTpDtlCdNm,
         String pdCd,
         String pdNm,
-        String rentalRgstCost,
         String dscAmt,
         String svTpCdNm,
         String cntrDt,
@@ -96,7 +95,8 @@ public class WdcbSalesPerformanceDetailDto {
         String dpTpCd,
         String dpTpCdNm,
         String mpyBsdt,
-        String fnitAprRsCd
+        String fnitAprRsCd,
+        String rentalAmt
     ) {}
 
     // *********************************************************

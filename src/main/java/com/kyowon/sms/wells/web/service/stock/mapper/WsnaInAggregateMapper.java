@@ -1,12 +1,12 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaInAggregateDto.SearchReq;
-
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaInAggregateDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaInAggregateWareDvo;
 
 /**
  *
@@ -19,11 +19,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaInAggregateDvo;
  */
 @Mapper
 public interface WsnaInAggregateMapper {
-    /**
-     * 입고 집계 조회
-     *
-     * @param searchReq 조회조건
-     * @return 조회결과
-     */
-    List<WsnaInAggregateDvo> selectInAggregateList(SearchReq searchReq);
+    List<WsnaInAggregateWareDvo> selectMcByWares(WsnaInAggregateWareDvo dvo);
+
+    List<HashMap<String, String>> selectInAggregateList(WsnaInAggregateDvo dvo);
 }

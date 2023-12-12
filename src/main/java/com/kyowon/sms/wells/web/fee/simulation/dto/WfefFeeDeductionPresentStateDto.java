@@ -45,13 +45,15 @@ public class WfefFeeDeductionPresentStateDto {
         String ddctam,
         String rdsTax,
         String einsr,
+        String inddInsr,
+        String buDdtn,
         String telPc,
         String redf,
         String dlqRedf,
-        String pnpyam,
-        String buDdtn,
+        String etcRedf,
         String mutuRedf,
-        String inddInsr,
+        String ucInddInsr,
+        String hdqFrnhExcp,
         String rdsBlam,
         String pnpyamBlam
     ) {

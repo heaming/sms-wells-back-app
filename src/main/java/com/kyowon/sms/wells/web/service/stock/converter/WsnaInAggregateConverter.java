@@ -1,9 +1,8 @@
 package com.kyowon.sms.wells.web.service.stock.converter;
 
-import java.util.List;
-
 import org.mapstruct.Mapper;
 
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaInAggregateDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaInAggregateDvo;
 
 /**
@@ -17,6 +16,6 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaInAggregateDvo;
  */
 @Mapper(componentModel = "spring")
 public interface WsnaInAggregateConverter {
-    List<WsnaInAggregateDvo> mapSearchResDvo(List<WsnaInAggregateDvo> dvos);
+    WsnaInAggregateDvo mapSearchResDvo(SearchReq dto);
 
 }

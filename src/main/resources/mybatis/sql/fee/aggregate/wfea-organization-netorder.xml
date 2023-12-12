@@ -817,14 +817,14 @@
                         , T2.SELL_DSC_DV_CD /* 판매할인구분코드 */
                         , T2.SELL_DSCR_CD /* 판매할인율코드 */
                         , T2.SELL_DSC_TP_CD /* 판매할인유형코드 */
-                        , CASE WHEN T12.COMBI_DV_CNT > 0 THEN 'Y'
+                        , CASE WHEN T12.COMBI_DV_CNT <![CDATA[>]]> 0 THEN 'Y'
                           END AS COMBI_DV /* 결합구분코드 */
                         , T2.CNTR_PTRM /* 계약기간 */
                         , T2.STPL_PTRM /* 약정기간 */
                         , T2.SV_PRD /* 서비스주기 */
                         , T2.ACKMT_PERF_AMT /* 인정실적금액 */
                         , CASE WHEN T2.SELL_TP_CD = '6' THEN /* 정기배송 */
-                               CASE WHEN T9.FEE_PDCT_TP_CD = 'B' AND T2.ACKMT_PERF_AMT > 2 THEN
+                               CASE WHEN T9.FEE_PDCT_TP_CD = 'B' AND T2.ACKMT_PERF_AMT <![CDATA[>]]> 2 THEN
                                     T2.FEE_ACKMT_BASE_AMT
                                     ELSE 0
                                END
@@ -844,19 +844,31 @@
                           END AS HCR_MSH_Y3 /* 홈케어맴버십3년 */
                         , T2.FEE_FXAM_YN /* 정액여부 */
                         , CASE WHEN T2.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN 'Y' ELSE 'N' END AS FNN_LEASE /* 금융리스 */
-                        , T2.FEE_ACKMT_CT /* 수수료인정건수 */
-                        , CASE WHEN T5.FEE_PDCT_TP_CD1 = 'B' AND T2.ACKMT_PERF_AMT > 2 THEN 1
-                               WHEN T5.FEE_PDCT_TP_CD1 != 'B' THEN
-                               CASE WHEN NVL(T2.FEE_FXAM_YN, 'N') = 'N' AND NVL(T8.MCHN_CH_TP_CD, 'N') = 'N' AND T2.ACKMT_PERF_AMT > 0 THEN
-                                    CASE WHEN T2.FEE_ACKMT_CT = 0 THEN 0
-                                         WHEN NVL(T13.ROW_SCNT, 0) + NVL(T14.ROW_SCNT, 0) = 0 THEN 0
-                                         ELSE 1
-                                    END
+                        , CASE WHEN T2.SELL_TP_CD = '2' THEN /* 렌탈 */
+                               CASE WHEN T8.MCHN_CH_TP_CD IN (1, 18) THEN 0
+                                    ELSE T2.FEE_ACKMT_CT
+                               END
+                               ELSE T2.FEE_ACKMT_CT
+                          END AS FEE_ACKMT_CT /* 수수료인정건수 */
+                        , CASE WHEN T2.SELL_TP_CD = '1' THEN /* 일시불 */
+                               CASE WHEN T8.MCHN_CH_TP_CD IS NOT NULL AND T2.SELL_TP_DTL_CD != '12'
+                                         AND T2.FEE_FXAM_YN = 'N' AND T2.ACKMT_PERF_AMT <![CDATA[>]]> 0
+                                         AND T2.FEE_ACKMT_CT <![CDATA[>]]> 0 AND NVL(T13.ROW_SCNT, 0) + NVL(T14.ROW_SCNT, 0) <![CDATA[>]]> 0 THEN 1
                                     ELSE 0
                                END
-                               ELSE 0
+                               WHEN T2.SELL_TP_CD = '2' THEN /* 렌탈 */
+                               CASE WHEN T8.MCHN_CH_TP_CD IS NOT NULL OR T2.ACKMT_PERF_AMT = 0
+                                         OR T2.FEE_ACKMT_CT = 0 OR NVL(T13.ROW_SCNT, 0) + NVL(T14.ROW_SCNT, 0) = 0 THEN 0
+                                    ELSE 1
+                               END
+                               WHEN T2.SELL_TP_CD = '6' THEN /* 정기배송 */
+                               CASE WHEN T8.MCHN_CH_TP_CD IS NOT NULL THEN 0
+                                    WHEN T2.SELL_TP_DTL_CD = '62' AND T2.ACKMT_PERF_AMT <![CDATA[>]]> 2 THEN 1
+                                    WHEN T2.ACKMT_PERF_AMT = 0 OR T2.FEE_ACKMT_CT = 0 OR NVL(T13.ROW_SCNT, 0) + NVL(T14.ROW_SCNT, 0) = 0 THEN 0
+                                    ELSE 1
+                               END
                           END AS NW_SELL_CT /* 신규판매건수 */
-                        , CASE WHEN T5.FEE_PDCT_TP_CD1 != 'B' AND NVL(T13.ROW_SCNT, 0) + NVL(T14.ROW_SCNT, 0) > 0 THEN 'Y' END AS BFSVC_OJ_YN /* BS대상여부 */
+                        , CASE WHEN T5.FEE_PDCT_TP_CD1 != 'B' AND NVL(T13.ROW_SCNT, 0) + NVL(T14.ROW_SCNT, 0) <![CDATA[>]]> 0 THEN 'Y' END AS BFSVC_OJ_YN /* BS대상여부 */
                         , '' AS RSTL_YN /* 재약정여부 */
                         , SUBSTR(T1.CNTR_RCP_FSH_DTM, 0, 8) AS CNTR_CNFM_DTM /* 계약접수완료일시 */
                         , SUBSTR(T2.CNTR_PD_STRTDT, 0, 8) AS SL_DT /* 매출일자 */
@@ -1073,7 +1085,7 @@
                         , T3.SELL_DSC_DV_CD /* 판매할인구분코드 */ --할인구분
                         , T3.SELL_DSCR_CD /* 판매할인율코드 */
                         , T3.SELL_DSC_TP_CD /* 판매할인유형코드 */
-                        , CASE WHEN T13.COMBI_DV_CNT > 0 THEN 'Y'
+                        , CASE WHEN T13.COMBI_DV_CNT <![CDATA[>]]> 0 THEN 'Y'
                           END AS COMBI_DV /* 결합구분코드 */
                         , T3.CNTR_PTRM /* 계약기간 */
                         , T3.STPL_PTRM /* 약정기간 */
@@ -1089,7 +1101,7 @@
                           END AS HCR_MSH_Y3 /* 홈케어맴버십3년 */
                         , T3.FEE_FXAM_YN /* 정액여부 */
                         , CASE WHEN T3.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN 'Y' ELSE 'N' END AS FNN_LEASE /* 금융리스 */
-                        , T3.FEE_ACKMT_CT /* 수수료인정건수 */
+                        , T1.FEE_ACKMT_CT /* 수수료인정건수 */
                         , 0 AS NW_SELL_CT /* 신규판매건수 */
                         , '' AS BFSVC_OJ_YN /* BS대상여부 */
                         , 'Y' AS RSTL_YN /* 재약정여부 */
@@ -1374,6 +1386,19 @@
              , A1.FEE_FXAM_YN /* 정액여부 */
              , A1.FNN_LEASE /* 금융리스 */
              , A1.FEE_ACKMT_CT /* 수수료인정건수 */
+             , CASE WHEN A1.SELL_TP_CD IN (1, 2) THEN /* 일시불, 렌탈 */
+                    CASE WHEN A1.FEE_ACKMT_CT = 0 THEN 0
+                         WHEN A1.SELL_TP_CD = '6' OR A1.RSTL_YN = 'Y' THEN A1.FEE_ACKMT_CT
+                         WHEN A1.BS_FEE_ACKMT_CT1 + A1.BS_FEE_ACKMT_CT2 + A1.BS_FEE_ACKMT_CT3 + A1.BS_FEE_ACKMT_CT4 = 0 THEN 0
+                         WHEN NVL(A1.ROW_SCNT1, 0) + NVL(A1.ROW_SCNT2, 0) = 0 THEN 0
+                         ELSE 1
+                    END
+                    WHEN A1.SELL_TP_CD IN (6) THEN /* 정기배송 */
+                         CASE WHEN A1.SELL_TP_DTL_CD = '62' AND A1.ACKMT_PERF_AMT <![CDATA[>]]> 2 THEN 1
+                              ELSE 0
+                         END
+                    ELSE A1.ACKMT_PERF_AMT
+               END AS BS_FEE_ACKMT_CT /* BS수수료인정건수 */
              , A1.NW_SELL_CT /* 신규판매건수 */
              , A1.BFSVC_OJ_YN /* BS대상여부 */
              , A1.RSTL_YN /* 재약정여부 */
@@ -1408,7 +1433,7 @@
                     , T3.SELL_DSC_DV_CD /* 판매할인구분코드 */
                     , T3.SELL_DSCR_CD /* 판매할인율코드 */
                     , T3.SELL_DSC_TP_CD /* 판매할인유형코드 */
-                    , CASE WHEN T13.COMBI_DV_CNT > 0 THEN 'Y'
+                    , CASE WHEN T13.COMBI_DV_CNT <![CDATA[>]]> 0 THEN 'Y'
                       END AS COMBI_DV /* 결합구분코드 */
                     , T3.CNTR_PTRM /* 계약기간 */
                     , T3.STPL_PTRM /* 약정기간 */
@@ -1424,20 +1449,115 @@
                       END AS HCR_MSH_Y3 /* 홈케어맴버십3년 */
                     , T3.FEE_FXAM_YN /* 정액여부 */
                     , CASE WHEN T3.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN 'Y' ELSE 'N' END AS FNN_LEASE /* 금융리스 */
+                    , T3.SELL_TP_DTL_CD /* 판매유형상세코드 */
                     , T3.FEE_ACKMT_CT /* 수수료인정건수 */
-                    , CASE WHEN T6.FEE_PDCT_TP_CD1 = 'B' AND T3.ACKMT_PERF_AMT > 2 THEN 1
-                           WHEN T6.FEE_PDCT_TP_CD1 != 'B' THEN
-                           CASE WHEN NVL(T3.FEE_FXAM_YN, 'N') = 'N' AND NVL(T9.MCHN_CH_TP_CD, 'N') = 'N' AND T3.ACKMT_PERF_AMT > 0 THEN
-                                CASE WHEN T3.FEE_ACKMT_CT = 0 THEN 0
-                                     WHEN NVL(T14.ROW_SCNT, 0) + NVL(T15.ROW_SCNT, 0) = 0 THEN 0
-                                     ELSE 1
-                                END
+                    , CASE WHEN T3.SELL_TP_CD = '1' THEN /* 일시불 */
+                           CASE WHEN T3.SELL_TP_DTL_CD != '12' AND T4.PD_CD != 'WP05110351'
+                                     AND (T10.FEE_PERF_TP_CD = 'EH' OR T3.FEE_ACKMT_CT <![CDATA[>]]> 0)
+                                     AND T3.ACKMT_PERF_AMT <![CDATA[>]]> 0 THEN T3.FEE_ACKMT_CT
                                 ELSE 0
                            END
-                           ELSE 0
+                           WHEN T3.SELL_TP_CD = '2' THEN /* 렌탈 */
+                           CASE WHEN T3.SELL_DSC_DV_CD ='5' AND T3.SELL_DSCR_CD IN ('5','6','9') AND T3.ACKMT_PERF_AMT <![CDATA[>]]> 2 THEN 0
+                                WHEN T10.FEE_PERF_TP_CD != 'EH' THEN 0 /* 환경가전  */
+                                WHEN (
+                                       CASE WHEN T3.SELL_TP_CD = '2' THEN /* 렌탈 */
+                                            CASE WHEN T9.MCHN_CPS_APYR = 0 THEN 'Y'
+                                                 WHEN T1.MCHN_CH_YN = 'Y' AND T3.ACKMT_PERF_AMT = 0 THEN 'Y'
+                                                 ELSE 'N'
+                                            END
+                                       END
+                                     ) = 'N'
+                                     AND T3.SELL_DSC_DV_CD !='5' AND T1.MCHN_CH_YN = 'Y' AND T9.MCHN_CH_TP_CD = '0' AND T3.ACKMT_PERF_AMT <![CDATA[>]]> 0 THEN T3.FEE_ACKMT_CT
+                                WHEN (
+                                       CASE WHEN T3.SELL_TP_CD = '2' THEN /* 렌탈 */
+                                            CASE WHEN T9.MCHN_CPS_APYR = 0 THEN 'Y'
+                                                 WHEN T1.MCHN_CH_YN = 'Y' AND T3.ACKMT_PERF_AMT = 0 THEN 'Y'
+                                                 ELSE 'N'
+                                            END
+                                       END
+                                     ) = 'N'
+                                     AND T3.SELL_DSC_DV_CD !='5' AND T1.MCHN_CH_YN = 'N' AND T3.ACKMT_PERF_AMT <![CDATA[>]]> 0 THEN T3.FEE_ACKMT_CT
+                                ELSE 0
+                           END
+<!--                           WHEN T3.SELL_TP_CD = '3' THEN /* 맴버십 */-->
+<!--                           CASE WHEN T3.SELL_TP_DTL_CD = '33' AND T3.SELL_DSC_TP_CD = 'P1' THEN 1-->
+<!--                                ELSE 0-->
+<!--                           END-->
+<!--                           WHEN T3.SELL_TP_CD = '6' THEN /* 정기배송 */-->
+<!--                           CASE WHEN T3.SELL_TP_DTL_CD != '63' AND T3.ACKMT_PERF_AMT <![CDATA[>]]> 0 THEN T3.FEE_ACKMT_CT-->
+<!--                                ELSE 0-->
+<!--                           END-->
+                      END AS BS_FEE_ACKMT_CT1 /* BS수수료인정건수1 */
+                    , CASE WHEN T3.SELL_TP_CD = '2' THEN /* 렌탈 */
+                           CASE WHEN (
+                                       CASE WHEN T3.SELL_TP_CD = '2' THEN /* 렌탈 */
+                                            CASE WHEN T9.MCHN_CPS_APYR = 0 THEN 'Y'
+                                                 WHEN T1.MCHN_CH_YN = 'Y' AND T3.ACKMT_PERF_AMT = 0 THEN 'Y'
+                                                 ELSE 'N'
+                                            END
+                                       END
+                                     ) = 'N'
+                                     AND T10.FEE_PERF_TP_CD = 'EH' AND T3.SELL_DSC_DV_CD !='5'
+                                     AND T1.MCHN_CH_YN = 'Y'
+                                     AND T9.MCHN_CH_TP_CD IN ('15','16','19') THEN T3.FEE_ACKMT_CT
+                                ELSE 0
+                           END
+                      END AS BS_FEE_ACKMT_CT2 /* BS수수료인정건수2 */
+                    , CASE WHEN T3.SELL_TP_CD = '2' THEN /* 렌탈 */
+                           CASE WHEN (
+                                       CASE WHEN T3.SELL_TP_CD = '2' THEN /* 렌탈 */
+                                            CASE WHEN T9.MCHN_CPS_APYR = 0 THEN 'Y'
+                                                 WHEN T1.MCHN_CH_YN = 'Y' AND T3.ACKMT_PERF_AMT = 0 THEN 'Y'
+                                                 ELSE 'N'
+                                            END
+                                       END
+                                     ) = 'N'
+                                     AND T10.FEE_PERF_TP_CD = 'EH' AND T3.SELL_DSC_DV_CD ='5'
+                                     AND T3.ACKMT_PERF_AMT <![CDATA[>]]> 0
+                                     AND T9.MCHN_CH_TP_CD = '0' THEN T3.FEE_ACKMT_CT
+                                ELSE 0
+                           END
+                      END AS BS_FEE_ACKMT_CT3 /* BS수수료인정건수3 */
+                    , CASE WHEN T3.SELL_TP_CD = '2' THEN /* 렌탈 */
+                           CASE WHEN (
+                                       CASE WHEN T3.SELL_TP_CD = '2' THEN /* 렌탈 */
+                                            CASE WHEN T9.MCHN_CPS_APYR = 0 THEN 'Y'
+                                                 WHEN T1.MCHN_CH_YN = 'Y' AND T3.ACKMT_PERF_AMT = 0 THEN 'Y'
+                                                 ELSE 'N'
+                                            END
+                                       END
+                                     ) = 'N'
+                                     AND T10.FEE_PERF_TP_CD = 'EH' AND T3.SELL_DSC_DV_CD ='5'
+                                     AND T3.ACKMT_PERF_AMT <![CDATA[>]]> 0
+                                     AND T9.MCHN_CH_TP_CD IN ('15','16','19') THEN T3.FEE_ACKMT_CT
+                                ELSE 0
+                           END
+                      END AS BS_FEE_ACKMT_CT4 /* BS수수료인정건수4 */
+                    , CASE WHEN T3.SELL_TP_CD = '1' THEN /* 일시불 */
+                           CASE WHEN T1.MCHN_CH_YN = 'Y' AND T3.SELL_TP_DTL_CD != '12'
+                                     AND T3.FEE_FXAM_YN = 'N' AND T3.ACKMT_PERF_AMT <![CDATA[>]]> 0
+                                     AND T3.FEE_ACKMT_CT <![CDATA[>]]> 0 AND NVL(T14.ROW_SCNT, 0) + NVL(T15.ROW_SCNT, 0) <![CDATA[>]]> 0 THEN 1
+                                ELSE 0
+                           END
+                           WHEN T3.SELL_TP_CD = '2' THEN /* 렌탈 */
+                           CASE WHEN T1.MCHN_CH_YN = 'Y' OR T3.ACKMT_PERF_AMT = 0
+                                     OR T3.FEE_ACKMT_CT = 0 OR NVL(T14.ROW_SCNT, 0) + NVL(T15.ROW_SCNT, 0) = 0 THEN 0
+                                ELSE 1
+                           END
+                           WHEN T3.SELL_TP_CD = '6' THEN /* 정기배송 */
+                           CASE WHEN T1.MCHN_CH_YN = 'Y' THEN 0
+                                WHEN T3.SELL_TP_DTL_CD = '62' AND T3.ACKMT_PERF_AMT <![CDATA[>]]> 2 THEN 1
+                                WHEN T3.ACKMT_PERF_AMT = 0 OR T3.FEE_ACKMT_CT = 0 OR NVL(T14.ROW_SCNT, 0) + NVL(T15.ROW_SCNT, 0) = 0 THEN 0
+                                ELSE 1
+                           END
                       END AS NW_SELL_CT /* 신규판매건수 */
-                    , CASE WHEN T6.FEE_PDCT_TP_CD1 != 'B' AND NVL(T14.ROW_SCNT, 0) + NVL(T15.ROW_SCNT, 0) > 0 THEN 'Y' END AS BFSVC_OJ_YN /* BS대상여부 */
-                    , '' AS RSTL_YN /* 재약정여부 */
+                    , CASE WHEN T9.MCHN_CPS_APYR = 0 THEN 'Y'
+                           WHEN T1.MCHN_CH_YN = 'Y' AND T3.ACKMT_PERF_AMT = 0 THEN 'Y'
+                           ELSE 'N'
+                      END AS ACKMT_PERF_EXCD_YN
+                    , CASE WHEN T6.FEE_PDCT_TP_CD1 != 'B' AND NVL(T14.ROW_SCNT, 0) + NVL(T15.ROW_SCNT, 0) <![CDATA[>]]> 0 THEN 'Y' END AS BFSVC_OJ_YN /* BS대상여부 */
+                    , T1.RSTL_YN /* 재약정여부 */
                     , SUBSTR(T2.CNTR_RCP_FSH_DTM, 0, 8) AS CNTR_CNFM_DTM /* 계약접수완료일시 */
                     , T1.SL_DT /* 매출일자 */
                     , T1.CAN_DT /* 취소일자 */
@@ -1453,6 +1573,8 @@
                     , CASE WHEN NVL(T11.CNTR_NO, 'N') = 'N' THEN 'N'
                            ELSE 'Y'
                       END AS PERF_EXCD_RGST_YN /* 실적제외등록여부 */
+                    , NVL(T14.ROW_SCNT, 0) AS ROW_SCNT1
+                    , NVL(T15.ROW_SCNT, 0) AS ROW_SCNT2
                  FROM TB_FEAM_WELS_NRCTR_MM_CL T1 /* 웰스순주문계약월마감 */
                 INNER JOIN TB_SSCT_CNTR_BAS T2 /* 계약기본 */
                    ON T1.CNTR_NO = T2.CNTR_NO /* 계약번호 */
@@ -1720,7 +1842,7 @@
                          AND T1.OG_TP_CD = 'W02' /* 조직유형코드 */
                          AND T1.FEE_TCNT_DV_CD = #{feeTcntDvCd} /* 수수료차수구분코드 */
                          AND T1.CNTR_PERF_CRT_DV_CD = '01' /* 계약실적생성구분코드 */
-                         AND T1.ACKMT_PERF_CT > 0 /* 인정실적건수 */
+                         AND T1.ACKMT_PERF_CT <![CDATA[>]]> 0 /* 인정실적건수 */
                          AND NVL(T1.ACC_NINC_YN,'N') = 'N' /* 계정순증여부 */
                      ) S1
                  GROUP BY S1.PRTNR_NO
@@ -1768,7 +1890,7 @@
                           AND T1.OG_TP_CD = 'W02' /* 조직유형코드 */
                           AND T1.FEE_TCNT_DV_CD = #{feeTcntDvCd} /* 수수료차수구분코드 */
                           AND T1.CNTR_PERF_CRT_DV_CD = '01' /* 계약실적생성구분코드 */
-                          AND T1.ACKMT_PERF_AMT > 0 /* 인정실적금액 */
+                          AND T1.ACKMT_PERF_AMT <![CDATA[>]]> 0 /* 인정실적금액 */
                           AND NVL(T1.ACC_NINC_YN,'N') = 'N' /* 계정순증여부 */
                      ) S1
                  GROUP BY S1.PRTNR_NO
@@ -1814,7 +1936,7 @@
                           AND T1.FEE_TCNT_DV_CD = #{feeTcntDvCd} /* 수수료차수구분코드 */
                           AND T1.PERF_AGRG_CRT_DV_CD = '201' /* 실적집계생성구분코드 */
                           AND T1.OG_TP_CD = 'W02' /* 조직유형코드 */
-                          AND T1.PERF_VAL > 0 /* 실적값 */
+                          AND T1.PERF_VAL <![CDATA[>]]> 0 /* 실적값 */
                           AND DTA_DL_YN = 'N'
                           AND T1.PERF_DV_CD = '0' /* 실적구분코드 */
 

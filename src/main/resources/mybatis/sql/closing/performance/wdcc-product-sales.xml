@@ -1,538 +1,626 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.performance.mapper.WdccProductSalesMapper">
-    <select id="selectBasicSummary" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto$SearchRes">
-        SELECT '' AS SL_RCOG_DT --매출인식일자
-              ,'' AS SELL_TP_CD --판매유형
-              ,'' AS SELL_TP_DTL_CD --판매유형상세코드
-              ,'' AS PD_CD
-              ,'' AS PD_NM
-              ,'' AS SAP_PD_DV_CD
-              ,'' AS SAP_PD_DV_NM --SAP구분코드명
-              ,TO_CHAR(SUM(NVL(T1.SELL_QTY,0)), 'FM999,999,999,999,990') AS SELL_QTY --판매수량-정상매출
-              <choose>
-                  <when test="@MybatisUtils@equals(sellTpCd, '2')">
-                  ,TO_CHAR(SUM(NVL(T1.THM_SL_SUM_AMT,0))+SUM(NVL(T1.PVDA_AMT,0)), 'FM999,999,999,999,990') AS SELL_AMT  --매출금액-정상매출
-                  ,TO_CHAR(SUM(NVL(T1.THM_SL_SUM_AMT,0))+SUM(NVL(T1.PVDA_AMT,0)), 'FM999,999,999,999,990') AS SELL_SPL_AMT  --공급가액-정상매출
-                  </when>
-                  <otherwise>
-                  ,TO_CHAR(SUM(NVL(T1.THM_SL_SUM_AMT,0)), 'FM999,999,999,999,990') AS SELL_AMT  --매출금액-정상매출
-                  ,TO_CHAR(SUM(NVL(T1.THM_SL_SUM_AMT,0))-SUM(NVL(T1.SL_SUM_VAT,0)), 'FM999,999,999,999,990') AS SELL_SPL_AMT --공급가액-정상매출
-                  </otherwise>
-              </choose>
-              ,TO_CHAR(SUM(NVL(T1.SL_SUM_VAT,0)), 'FM999,999,999,999,990') AS SELL_AMT_VAT --부가세-정상매출
-              ,TO_CHAR(SUM(NVL(T1.PVDA_AMT,0)), 'FM999,999,999,999,990') AS PVDA_AMT --현할차-정상매출
-              ,TO_CHAR(SUM(NVL(T1.CH_QTY,0)), 'FM999,999,999,999,990') AS CH_QTY --판매수량-매출변경
-              ,TO_CHAR(SUM(NVL(T1.SL_CH_AMT,0)), 'FM999,999,999,999,990') AS SL_CH_AMT --매출금액-매출변경
-              ,TO_CHAR(SUM(NVL(T1.SL_CH_AMT,0)) - SUM(NVL(T1.CH_VAT,0)), 'FM999,999,999,999,990') AS CH_SPL_AMT --공급가액-매출변경
-              ,TO_CHAR(SUM(NVL(T1.CH_VAT,0)), 'FM999,999,999,999,990') AS CH_VAT --부가세-매출변경
-              ,TO_CHAR(SUM(DECODE(NVL(T1.SL_CH_AMT,0),0,0,T1.PVDA_AMT)), 'FM999,999,999,999,990') AS CH_PVDA_AMT --현할차-매출변경
-              ,TO_CHAR(SUM(NVL(T1.CAN_QTY,0)), 'FM999,999,999,999,990') AS CAN_QTY --판매수량-매출취소
-              ,TO_CHAR(SUM(NVL(T1.SL_CAN_AMT,0)), 'FM999,999,999,999,990') AS SL_CAN_AMT --매출금액-매출취소
-              ,TO_CHAR(SUM(NVL(T1.SL_CAN_AMT,0)) - SUM(NVL(T1.CAN_VAT,0)), 'FM999,999,999,999,990') AS CAN_SPL_AMT --공급가액-매출취소
-              ,TO_CHAR(SUM(NVL(T1.CAN_VAT,0)), 'FM999,999,999,999,990') AS CAN_VAT --부가세-매출취소
-              ,TO_CHAR(SUM(DECODE(NVL(T1.SL_CAN_AMT,0),0,0,T1.PVDA_AMT)), 'FM999,999,999,999,990') AS CAN_PVDA_AMT --현할차-매출취소
-              ,TO_CHAR(SUM(NVL(T1.SELL_QTY,0)) + SUM(NVL(T1.CH_QTY,0)) - SUM(NVL(T1.CAN_QTY,0)), 'FM999,999,999,999,990') AS TOT_QTY--판매수량-매출합계
-              <choose>
-                  <when test="@MybatisUtils@equals(sellTpCd, '2')">
-                  ,TO_CHAR(SUM(NVL(T1.THM_SL_SUM_AMT,0))+SUM(NVL(T1.PVDA_AMT,0)), 'FM999,999,999,999,990') AS TOT_AMT--매출금액-매출합계
-                  ,TO_CHAR(SUM(NVL(T1.THM_SL_SUM_AMT,0))+SUM(NVL(T1.PVDA_AMT,0)), 'FM999,999,999,999,990') AS TOT_SPL_AMT--공급가액-매출합계
-                  </when>
-                  <otherwise>
-                  ,TO_CHAR(SUM(NVL(T1.THM_SL_SUM_AMT,0)) + SUM(NVL(T1.SL_CH_AMT,0)) - SUM(NVL(T1.SL_CAN_AMT,0)), 'FM999,999,999,999,990') AS TOT_AMT--매출금액-매출합계
-                  ,TO_CHAR(SUM(NVL(T1.THM_SL_SUM_AMT,0)) + SUM(NVL(T1.SL_CH_AMT,0)) - SUM(NVL(T1.SL_CAN_AMT,0)) - SUM(NVL(T1.SL_SUM_VAT,0)) + SUM(NVL(T1.CH_VAT,0)) - SUM(NVL(T1.CAN_VAT,0)), 'FM999,999,999,999,990') AS TOT_SPL_AMT--공급가액-매출합계
-                  </otherwise>
-              </choose>
-              ,TO_CHAR(SUM(NVL(T1.SL_SUM_VAT,0)) + SUM(NVL(T1.CH_VAT,0)) - SUM(NVL(T1.CAN_VAT,0)), 'FM999,999,999,999,990') AS TOT_VAT --부가세-매출합계
-              ,TO_CHAR(SUM(NVL(T1.PVDA_AMT,0)) + SUM(DECODE(NVL(T1.SL_CH_AMT,0),0,0,T1.PVDA_AMT)) - SUM(DECODE(NVL(T1.SL_CAN_AMT,0),0,0,T1.PVDA_AMT)), 'FM999,999,999,999,990') AS TOT_PVDA_AMT --현할차-매출합계
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         INNER JOIN TB_PDBS_PD_BAS T2
-                 ON T1.PD_CD = T2.PD_CD
-         /*원두제외*/
-        LEFT JOIN (SELECT SA.CNTR_NO, SA.CNTR_SN, B.PD_CD, B.PD_NM, C.REF_PD_CLSF_VAL
-                     FROM TB_SSCT_CNTR_PD_REL SA /*계약상품관계*/
-                         ,TB_PDBS_PD_BAS B /*상품기본*/
-                         ,TB_PDBS_PD_CLSF_BAS C /*상품분류기본*/
-                    WHERE SA.BASE_PD_CD = B.PD_CD
-                      AND B.PD_CLSF_ID = C.PD_CLSF_ID
-                      AND C.REF_PD_CLSF_VAL IN ('05003002','0A003002') /*참조상품분류값 = 상품대분류2자리||상품중분류3자리||상품소분류3자리||상품세분류3자리*/
-                  ) T10
-               ON T1.CNTR_NO = T10.CNTR_NO
-              AND T1.CNTR_SN = T10.CNTR_SN
-         WHERE T1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
-           AND T10.CNTR_NO IS NULL
-           AND T10.CNTR_SN IS NULL
-           AND T1.SELL_TP_CD = DECODE(#{sellTpCd}, '10', '2', #{sellTpCd})
-           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-           AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
-           </if>
-           <if test="@MybatisUtils@equals(sellTpCd, '10') and @MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-           AND T1.SELL_TP_DTL_CD IN ('22','24','25','26')
-           </if>
-           AND SUBSTR(SL_RCOG_DT,1,6) = T1.SL_CL_YM
-           <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
-           AND T1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}  /*판매채널*/
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-           AND T1.SAP_PD_DV_CD = #{sapPdDvCd}  --SAP상품구분코드
-           </if>
-    </select>
 
-    <select id="selectBasic" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto$SearchRes">
-        SELECT T1.SL_RCOG_DT AS SL_RCOG_DT --매출인식일자
-              ,1 AS SEQ
-              ,F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_CD --판매유형
-              ,F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD --판매유형상세코드
-              <if test="@MybatisUtils@equals(inqrDv, '1')">
-              ,'' AS PD_CD
-              ,'' AS PD_NM
-              </if>
-              <if test="@MybatisUtils@equals(inqrDv, '2')">
-              ,T1.PD_CD --상품코드
-              ,T2.PD_NM --상품명
-              </if>
-              ,T1.SAP_PD_DV_CD
-              ,(SELECT SAP_PD_DV_NM AS CODE_NAME /*SAP상품항목코드*/
-                  FROM TB_CBCL_SAP_PD_DV_CD
-                 WHERE SAP_BZ_TERY_CD = '1210'   /*에듀는 1110, 웰스는 1210*/
-                   AND SAP_PD_ATC_CD  = '00'     /*상품항목 00 - SAP상품코드인건, 01부터는 SAP항목코드*/
-                   AND SAP_PD_DV_CD   = T1.SAP_PD_DV_CD
-              GROUP BY SAP_PD_DV_CD, SAP_PD_DV_NM ) AS SAP_PD_DV_NM --SAP구분코드명
-              ,SUM(NVL(T1.SELL_QTY,0)) AS SELL_QTY --판매수량-정상매출
-              ,DECODE(T1.SELL_TP_CD ,'2',SUM(NVL(T1.THM_SL_SUM_AMT,0))+SUM(NVL(T1.PVDA_AMT,0)), SUM(NVL(T1.THM_SL_SUM_AMT,0))) AS SELL_AMT  --매출금액-정상매출
-              ,DECODE(T1.SELL_TP_CD ,'2',SUM(NVL(T1.THM_SL_SUM_AMT,0))+SUM(NVL(T1.PVDA_AMT,0)), SUM(NVL(T1.THM_SL_SUM_AMT,0)))-SUM(NVL(T1.SL_SUM_VAT,0)) AS SELL_SPL_AMT  --공급가액-정상매출
-              ,SUM(NVL(T1.SL_SUM_VAT,0)) AS SELL_AMT_VAT --부가세-정상매출
-              ,SUM(NVL(T1.PVDA_AMT,0)) AS PVDA_AMT --현할차-정상매출
-              ,SUM(NVL(T1.CH_QTY,0)) AS CH_QTY --판매수량-매출변경
-              ,SUM(NVL(T1.SL_CH_AMT,0)) AS SL_CH_AMT --매출금액-매출변경
-              ,SUM(NVL(T1.SL_CH_AMT,0)) - SUM(NVL(T1.CH_VAT,0)) AS CH_SPL_AMT --공급가액-매출변경
-              ,SUM(NVL(T1.CH_VAT,0)) AS CH_VAT --부가세-매출변경
-              ,SUM(DECODE(NVL(T1.SL_CH_AMT,0),0,0,T1.PVDA_AMT)) AS CH_PVDA_AMT --현할차-매출변경
-              ,SUM(NVL(T1.CAN_QTY,0)) AS CAN_QTY --판매수량-매출취소
-              ,SUM(NVL(T1.SL_CAN_AMT,0)) AS SL_CAN_AMT --매출금액-매출취소
-              ,SUM(NVL(T1.SL_CAN_AMT,0)) - SUM(NVL(T1.CAN_VAT,0)) AS CAN_SPL_AMT --공급가액-매출취소
-              ,SUM(NVL(T1.CAN_VAT,0)) AS CAN_VAT --부가세-매출취소
-              ,SUM(DECODE(NVL(T1.SL_CAN_AMT,0),0,0,T1.PVDA_AMT)) AS CAN_PVDA_AMT --현할차-매출취소
-              ,SUM(NVL(T1.SELL_QTY,0)) + SUM(NVL(T1.CH_QTY,0)) - SUM(NVL(T1.CAN_QTY,0)) AS TOT_QTY--판매수량-매출합계
-              ,DECODE(T1.SELL_TP_CD ,'2',SUM(NVL(T1.THM_SL_SUM_AMT,0))+SUM(NVL(T1.PVDA_AMT,0)), SUM(NVL(T1.THM_SL_SUM_AMT,0))) + SUM(NVL(T1.SL_CH_AMT,0)) - SUM(NVL(T1.SL_CAN_AMT,0)) AS TOT_AMT--매출금액-매출합계
-              ,(DECODE(T1.SELL_TP_CD ,'2',SUM(NVL(T1.THM_SL_SUM_AMT,0))+SUM(NVL(T1.PVDA_AMT,0)), SUM(NVL(T1.THM_SL_SUM_AMT,0))) + SUM(NVL(T1.SL_CH_AMT,0)) - SUM(NVL(T1.SL_CAN_AMT,0))) - (SUM(NVL(T1.SL_SUM_VAT,0)) + SUM(NVL(T1.CH_VAT,0))- SUM(NVL(T1.CAN_VAT,0))) AS TOT_SPL_AMT--공급가액-매출합계
-              ,SUM(NVL(T1.SL_SUM_VAT,0)) + SUM(NVL(T1.CH_VAT,0)) - SUM(NVL(T1.CAN_VAT,0)) AS TOT_VAT --부가세-매출합계
-              ,SUM(NVL(T1.PVDA_AMT,0)) + SUM(DECODE(NVL(T1.SL_CH_AMT,0),0,0,T1.PVDA_AMT)) - SUM(DECODE(NVL(T1.SL_CAN_AMT,0),0,0,T1.PVDA_AMT)) AS TOT_PVDA_AMT --현할차-매출합계
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         INNER JOIN TB_PDBS_PD_BAS T2
-                 ON T1.PD_CD = T2.PD_CD
-         /*원두제외*/
-        LEFT JOIN (SELECT SA.CNTR_NO, SA.CNTR_SN, B.PD_CD, B.PD_NM, C.REF_PD_CLSF_VAL
-                     FROM TB_SSCT_CNTR_PD_REL SA /*계약상품관계*/
-                         ,TB_PDBS_PD_BAS B /*상품기본*/
-                         ,TB_PDBS_PD_CLSF_BAS C /*상품분류기본*/
-                    WHERE SA.BASE_PD_CD = B.PD_CD
-                      AND B.PD_CLSF_ID = C.PD_CLSF_ID
-                      AND C.REF_PD_CLSF_VAL IN ('05003002','0A003002') /*참조상품분류값 = 상품대분류2자리||상품중분류3자리||상품소분류3자리||상품세분류3자리*/
-                  ) T10
-               ON T1.CNTR_NO = T10.CNTR_NO
-              AND T1.CNTR_SN = T10.CNTR_SN
-         WHERE T1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
-           AND T10.CNTR_NO IS NULL
-           AND T10.CNTR_SN IS NULL
-           AND T1.SELL_TP_CD = DECODE(#{sellTpCd}, '10', '2', #{sellTpCd})
-           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-           AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
-           </if>
-           <if test="@MybatisUtils@equals(sellTpCd, '10') and @MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-           AND T1.SELL_TP_DTL_CD IN ('22','24','25','26')
-           </if>
-           AND SUBSTR(SL_RCOG_DT,1,6) = T1.SL_CL_YM
-           <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
-           AND T1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}  /*판매채널*/
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-           AND T1.SAP_PD_DV_CD = #{sapPdDvCd}  --SAP상품구분코드
-           </if>
-         GROUP BY T1.SL_RCOG_DT, T1.SELL_TP_CD, T1.SELL_TP_DTL_CD,
-                  <if test="@MybatisUtils@equals(inqrDv, '2')">
-                  T1.PD_CD, T2.PD_NM,
-                  </if>
-                  T1.SAP_PD_DV_CD
-         <if test="@MybatisUtils@equals(sellTpCd, '6')">
-         UNION ALL
-            SELECT DECODE(T1.SL_RCOG_DT,NULL,'합계',T1.SL_RCOG_DT) AS SL_RCOG_DT --매출인식일자
-                  ,1 AS SEQ
-                  ,F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_CD --판매유형
-                  ,F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD --판매유형상세코드
-                  <if test="@MybatisUtils@equals(inqrDv, '1')">
-                  ,'' AS PD_CD
-                  ,'' AS PD_NM
-                  </if>
-                  <if test="@MybatisUtils@equals(inqrDv, '2')">
-                  ,T1.PD_CD --상품코드
-                  ,T2.PD_NM --상품명
-                  </if>
-                  ,T1.SAP_PD_DV_CD
-                  ,(SELECT SAP_PD_DV_NM AS CODE_NAME /*SAP상품항목코드*/
-                      FROM TB_CBCL_SAP_PD_DV_CD
-                     WHERE SAP_BZ_TERY_CD = '1210'  /*에듀는 1110, 웰스는 1210*/
-                       AND SAP_PD_ATC_CD = '00'     /*상품항목 00 - SAP상품코드인건, 01부터는 SAP항목코드*/
-                       AND SAP_PD_DV_CD = T1.SAP_PD_DV_CD
-                  GROUP BY SAP_PD_DV_CD, SAP_PD_DV_NM) AS SAP_PD_DV_NM --SAP구분코드명
-                  ,SUM(NVL(T1.SELL_QTY,0)) AS SELL_QTY --판매수량-정상매출
-                  ,SUM(NVL(T1.THM_SL_SUM_AMT,0)) AS SELL_AMT  --매출금액-정상매출
-                  ,SUM(NVL(T1.THM_SL_SUM_AMT,0))-SUM(NVL(T1.SL_SUM_VAT,0)) AS SELL_SPL_AMT  --공급가액-정상매출
-                  ,SUM(NVL(T1.SL_SUM_VAT,0)) AS SELL_AMT_VAT --부가세-정상매출
-                  ,SUM(NVL(T1.PVDA_AMT,0)) AS PVDA_AMT --현할차-정상매출
-                  ,SUM(NVL(T1.CH_QTY,0)) AS CH_QTY --판매수량-매출변경
-                  ,SUM(NVL(T1.SL_CH_AMT,0)) AS SL_CH_AMT --매출금액-매출변경
-                  ,SUM(NVL(T1.SL_CH_AMT,0)) - SUM(NVL(T1.CH_VAT,0)) AS CH_SPL_AMT --공급가액-매출변경
-                  ,SUM(NVL(T1.CH_VAT,0)) AS CH_VAT --부가세-매출변경
-                  ,SUM(DECODE(NVL(T1.SL_CH_AMT,0),0,0,T1.PVDA_AMT)) AS CH_PVDA_AMT --현할차-매출변경
-                  ,SUM(NVL(T1.CAN_QTY,0)) AS CAN_QTY --판매수량-매출취소
-                  ,SUM(NVL(T1.SL_CAN_AMT,0)) AS SL_CAN_AMT --매출금액-매출취소
-                  ,SUM(NVL(T1.SL_CAN_AMT,0)) - SUM(NVL(T1.CAN_VAT,0)) AS CAN_SPL_AMT --공급가액-매출취소
-                  ,SUM(NVL(T1.CAN_VAT,0)) AS CAN_VAT --부가세-매출취소
-                  ,SUM(DECODE(NVL(T1.SL_CAN_AMT,0),0,0,T1.PVDA_AMT)) AS CAN_PVDA_AMT --현할차-매출취소
-                  ,SUM(NVL(T1.SELL_QTY,0)) + SUM(NVL(T1.CH_QTY,0)) - SUM(NVL(T1.CAN_QTY,0)) AS TOT_QTY--판매수량-매출합계
-                  ,SUM(NVL(T1.THM_SL_SUM_AMT,0)) + SUM(NVL(T1.SL_CH_AMT,0)) - SUM(NVL(T1.SL_CAN_AMT,0)) AS TOT_AMT--매출금액-매출합계
-                  ,SUM(NVL(T1.THM_SL_SUM_AMT,0)) + SUM(NVL(T1.SL_CH_AMT,0)) - SUM(NVL(T1.SL_CAN_AMT,0)) - (SUM(NVL(T1.SL_SUM_VAT,0)) + SUM(NVL(T1.CH_VAT,0))- SUM(NVL(T1.CAN_VAT,0))) AS TOT_SPL_AMT--공급가액-매출합계
-                  ,SUM(NVL(T1.SL_SUM_VAT,0)) + SUM(NVL(T1.CH_VAT,0)) - SUM(NVL(T1.CAN_VAT,0)) AS TOT_VAT --부가세-매출합계
-                  ,SUM(NVL(T1.PVDA_AMT,0)) + SUM(DECODE(NVL(T1.SL_CH_AMT,0),0,0,T1.PVDA_AMT)) - SUM(DECODE(NVL(T1.SL_CAN_AMT,0),0,0,T1.PVDA_AMT)) AS TOT_PVDA_AMT --현할차-매출합계
-              FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-             INNER JOIN TB_PDBS_PD_BAS T2
-                     ON T1.PD_CD = T2.PD_CD
-            LEFT JOIN (SELECT SA.CNTR_NO, SA.CNTR_SN
-                         FROM TB_SSCT_CNTR_PD_REL SA /*계약상품관계*/
-                             ,TB_PDBS_PD_BAS B /*상품기본*/
-                             ,TB_PDBS_PD_CLSF_BAS C /*상품분류기본*/
-                        WHERE SA.BASE_PD_CD = B.PD_CD
-                          AND B.PD_CLSF_ID = C.PD_CLSF_ID
-                          AND C.REF_PD_CLSF_VAL IN ('05003002','0A003002') /*참조상품분류값 = 상품대분류2자리||상품중분류3자리||상품소분류3자리||상품세분류3자리*/
-                     GROUP BY SA.CNTR_NO, SA.CNTR_SN
-                     )T10
-                    ON T1.CNTR_NO = T10.CNTR_NO
-                   AND T1.CNTR_SN = T10.CNTR_SN
-             WHERE T1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
-               AND T10.CNTR_NO = T1.CNTR_NO
-               AND T10.CNTR_SN = T1.CNTR_SN
-               AND T1.SELL_TP_CD = DECODE(#{sellTpCd}, '10', '2', #{sellTpCd})
-               AND SUBSTR(SL_RCOG_DT,1,6) = T1.SL_CL_YM
-               <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
-               AND T1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}  /*판매채널*/
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-               AND T1.SAP_PD_DV_CD = #{sapPdDvCd}  --SAP상품구분코드
-               </if>
-          GROUP BY T1.SL_RCOG_DT, T1.SELL_TP_CD, T1.SELL_TP_DTL_CD,
-                   <if test="@MybatisUtils@equals(inqrDv, '2')">
-                   T1.PD_CD, T2.PD_NM,
+    <select id="selectProductSalesSinglePayments" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto$SearchRes">
+        SELECT B1.SL_RCOG_DT                                   /* 매출인식일자 */
+             , B2.CD_CNTN AS SELL_TP_CD                        /* 판매유형명 */
+             , B3.CD_CNTN AS SELL_TP_DTL_CD                    /* 판매유형상세명 */
+           <choose>
+             <when test="@MybatisUtils@equals(inqrDv, '2')">
+             , B1.PD_CD                                        /* 상품코드 *//* 집계선택시제외 */
+             , B5.PD_NM                                        /* 상품명 *//* 집계선택시제외 */
+             </when>
+             <otherwise>
+             , NULL AS PD_CD
+             , NULL AS PD_NM
+             </otherwise>
+           </choose>
+             , B1.SAP_PD_DV_CD                                 /* SAP상품구분코드 */
+             , B4.SAP_PD_DV_NM                 /* SAP상품구분명 */
+             , B1.SELL_QTY                                     /* 판매수량-정상매출 */
+             , B1.SELL_AMT                                     /* 매출금액-정상매출 */
+             , B1.SELL_AMT - B1.SELL_AMT_VAT AS SELL_SPL_AMT   /* 공급가액-정상매출 */
+             , B1.SELL_AMT_VAT                                 /* 부가세-정상매출 */
+             , 0 AS PVDA_AMT                                   /* 현할차-정상매출 */
+             , B1.CH_QTY                                       /* 판매수량-매출변경 */
+             , B1.SL_CH_AMT                                    /* 매출금액-매출변경 */
+             , B1.SL_CH_AMT - B1.CH_VAT AS CH_SPL_AMT          /* 공급가액-매출변경 */
+             , B1.CH_VAT                                       /* 부가세-매출변경 */
+             , 0 AS CH_PVDA_AMT                                /* 현할차-매출변경 */
+             , B1.CAN_QTY                                      /* 판매수량-매출취소 */
+             , B1.SL_CAN_AMT                                   /* 매출금액-매출취소 */
+             , B1.SL_CAN_AMT - B1.CAN_VAT AS CAN_SPL_AMT       /* 공급가액-매출취소 */
+             , B1.CAN_VAT                                      /* 부가세-매출취소 */
+             , 0 AS CAN_PVDA_AMT                               /* 현할차-매출취소 */
+             , B1.TOT_QTY                                      /* 판매수량-매출합계 */
+             , B1.TOT_AMT                                      /* 매출금액-매출합계 */
+             , B1.TOT_AMT - B1.TOT_VAT AS TOT_SPL_AMT          /* 공급가액-매출합계 */
+             , B1.TOT_VAT                                      /* 부가세-매출합계 */
+             , 0 AS TOT_PVDA_AMT                               /* 현할차-매출합계 */
+          FROM (SELECT A1.SL_RCOG_DT
+                     , A1.SELL_TP_CD
+                     , A1.SELL_TP_DTL_CD
+                     , A1.SAP_PD_DV_CD
+                     <if test="@MybatisUtils@equals(inqrDv, '2')">
+                     , A1.PD_CD  /* 집계선택시제외 */
+                     </if>
+                     , NVL(SUM(A1.SL_QTY), 0) AS SELL_QTY
+                     , NVL(SUM(A1.THM_SL_SUM_AMT), 0) - NVL(SUM(A1.SL_CH_AMT), 0) + NVL(SUM(A1.SL_CTR_AMT), 0) + NVL(SUM(A1.SL_CAN_AMT), 0) AS SELL_AMT
+                     , NVL(SUM(A1.SL_SUM_VAT), 0) - NVL(SUM(A1.SL_CH_AMT), 0) + NVL(SUM(A1.CAN_VAT), 0) AS SELL_AMT_VAT
+                     , NVL(SUM(A1.CH_QTY), 0) AS CH_QTY
+                     , NVL(SUM(A1.SL_CH_AMT) ,0) - NVL(SUM(A1.SL_CTR_AMT), 0) AS SL_CH_AMT
+                     , NVL(SUM(A1.CH_VAT), 0) AS CH_VAT
+                     , NVL(SUM(A1.CAN_QTY), 0) AS CAN_QTY
+                     , NVL(SUM(A1.SL_CAN_AMT), 0) AS SL_CAN_AMT
+                     , NVL(SUM(A1.CAN_VAT), 0) AS CAN_VAT
+                     , NVL(SUM(A1.SL_QTY), 0) + NVL(SUM(A1.CH_QTY), 0) - NVL(SUM(A1.CAN_QTY), 0) AS TOT_QTY
+                     , NVL(SUM(A1.THM_SL_SUM_AMT), 0) AS TOT_AMT
+                     , NVL(SUM(A1.SL_SUM_VAT), 0) AS TOT_VAT
+                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ A1  /* WELLS매출월마감내역 */
+                 WHERE A1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
+                   AND A1.SL_RCOG_DT LIKE A1.SL_CL_YM || '%'
+                   AND A1.SELL_TP_CD = '1'
+                   <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                   AND A1.SELL_TP_DTL_CD = #{sellTpDtlCd}
                    </if>
-                   T1.SAP_PD_DV_CD
-        </if>
-        UNION ALL
-        SELECT '' AS SL_RCOG_DT  --법인구분
-              ,2  AS SEQ
-              ,NAME AS SELL_TP_CD --판매유형
-              ,'' AS SELL_TP_DTL_CD --판매유형상세코드
-              ,'' AS PD_CD --상품코드
-              ,'' AS PD_NM --상품명
-              ,'' AS SAP_PD_DV_CD
-              ,'' AS SAP_PD_DV_NM
-              ,NULL AS SELL_QTY --판매수량-정상매출
-              ,NULL AS SELL_AMT  --매출금액-정상매출
-              ,NULL AS SELL_SPL_AMT  --공급가액-정상매출
-              ,NULL AS SELL_AMT_VAT --부가세-정상매출
-              ,NULL AS PVDA_AMT --현할차-정상매출
-              ,NULL AS CH_QTY --판매수량-매출변경
-              ,NULL AS SL_CH_AMT --매출금액-매출변경
-              ,NULL AS CH_SPL_AMT--공급가액-매출변경
-              ,NULL AS CH_VAT --부가세-매출변경
-              ,NULL AS CH_PVDA_AMT --현할차-매출변경
-              ,NULL AS CAN_QTY --판매수량-매출취소
-              ,NULL AS SL_CAN_AMT --매출금액-매출취소
-              ,NULL AS CAN_SPL_AMT--공급가액-매출취소
-              ,NULL AS CAN_VAT --부가세-매출취소
-              ,NULL AS CAN_PVDA_AMT --현할차-매출취소
-              ,NULL AS TOT_QTY --판매수량-매출합계
-              ,SUM(VALUE1) AS TOT_AMT--매출금액-매출합계
-              ,SUM(VALUE2) AS TOT_SPL_AMT --공급가액-매출합계
-              ,SUM(VALUE3) AS TOT_VAT --부가세-매출합계
-              ,NULL AS TOT_PVDA_AMT --현할차-매출합계
-        FROM (
-            SELECT SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z1',DECODE(T1.SELL_TP_CD ,'2',NVL(T1.THM_SL_SUM_AMT,0)+NVL(T1.PVDA_AMT,0), NVL(T1.THM_SL_SUM_AMT,0))+NVL(T1.SL_CH_AMT,0)-NVL(T1.SL_CAN_AMT,0),0)) AS PRDT1 --제품(매출금액)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z1',DECODE(T1.SELL_TP_CD ,'2',NVL(T1.THM_SL_SUM_AMT,0)+NVL(T1.PVDA_AMT,0), NVL(T1.THM_SL_SUM_AMT,0))-NVL(T1.SL_SUM_VAT,0)+NVL(T1.SL_CH_AMT,0)-NVL(T1.CH_VAT,0)-(NVL(T1.SL_CAN_AMT,0)-NVL(T1.CAN_VAT,0)))) AS PRDT2 --제품(공급가액)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z1',NVL(T1.SL_SUM_VAT,0)+NVL(T1.CH_VAT,0)-NVL(T1.CAN_VAT,0))) AS PRDT3 --제품(부가세)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z2',DECODE(T1.SELL_TP_CD ,'2',NVL(T1.THM_SL_SUM_AMT,0)+NVL(T1.PVDA_AMT,0), NVL(T1.THM_SL_SUM_AMT,0))+NVL(T1.SL_CH_AMT,0)-NVL(T1.SL_CAN_AMT,0),0)) AS PRDT5 --상품(매출금액)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z2',DECODE(T1.SELL_TP_CD ,'2',NVL(T1.THM_SL_SUM_AMT,0)+NVL(T1.PVDA_AMT,0), NVL(T1.THM_SL_SUM_AMT,0))-NVL(T1.SL_SUM_VAT,0)+NVL(T1.SL_CH_AMT,0)-NVL(T1.CH_VAT,0)-(NVL(T1.SL_CAN_AMT,0)-NVL(T1.CAN_VAT,0)))) AS PRDT6 --상품(공급가액)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z2',NVL(T1.SL_SUM_VAT,0)+NVL(T1.CH_VAT,0)-NVL(T1.CAN_VAT,0))) AS PRDT7 --상품(부가세)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z7',DECODE(T1.SELL_TP_CD ,'2',NVL(T1.THM_SL_SUM_AMT,0)+NVL(T1.PVDA_AMT,0), NVL(T1.THM_SL_SUM_AMT,0))+NVL(T1.SL_CH_AMT,0)-NVL(T1.SL_CAN_AMT,0),0)) AS PRDT9 --저장품(매출금액)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z7',DECODE(T1.SELL_TP_CD ,'2',NVL(T1.THM_SL_SUM_AMT,0)+NVL(T1.PVDA_AMT,0), NVL(T1.THM_SL_SUM_AMT,0))-NVL(T1.SL_SUM_VAT,0)+NVL(T1.SL_CH_AMT,0)-NVL(T1.CH_VAT,0)-(NVL(T1.SL_CAN_AMT,0)-NVL(T1.CAN_VAT,0)))) AS PRDT10 --저장품(공급가액)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z7',NVL(T1.SL_SUM_VAT,0)+NVL(T1.CH_VAT,0)-NVL(T1.CAN_VAT,0))) AS PRDT11 --저장품(부가세)
-              FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-             INNER JOIN TB_PDBS_PD_BAS T2
-                ON T1.PD_CD = T2.PD_CD
-             /*원두제외*/
-             LEFT JOIN (SELECT SA.CNTR_NO, SA.CNTR_SN, B.PD_CD, B.PD_NM, C.REF_PD_CLSF_VAL
-                          FROM TB_SSCT_CNTR_PD_REL SA /*계약상품관계*/
-                             , TB_PDBS_PD_BAS B /*상품기본*/
-                             , TB_PDBS_PD_CLSF_BAS C /*상품분류기본*/
-                         WHERE SA.BASE_PD_CD = B.PD_CD
-                           AND B.PD_CLSF_ID = C.PD_CLSF_ID
-                           AND C.REF_PD_CLSF_VAL IN ('05003002','0A003002') /*참조상품분류값 = 상품대분류2자리||상품중분류3자리||상품소분류3자리||상품세분류3자리*/
-                       ) T10
-                      ON T1.CNTR_NO = T10.CNTR_NO
-                     AND T1.CNTR_SN = T10.CNTR_SN
-             WHERE T1.DTA_DL_YN = 'N'
-               AND T10.CNTR_NO IS NULL
-               AND T10.CNTR_SN IS NULL
-               AND T1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
-               AND T1.SELL_TP_CD = DECODE(#{sellTpCd}, '10', '2', #{sellTpCd})
-               <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-               AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
-               </if>
-               <if test="@MybatisUtils@equals(sellTpCd, '10') and @MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-               AND T1.SELL_TP_DTL_CD IN ('22','24','25','26')
-               </if>
-               AND SUBSTR(SL_RCOG_DT,1,6) = T1.SL_CL_YM
-               <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
-               AND T1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}  /*판매채널*/
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-               AND T1.SAP_PD_DV_CD = #{sapPdDvCd}  --SAP상품구분코드
-               </if>
-            <if test="@MybatisUtils@equals(sellTpCd, '6')">
-            UNION ALL
-            SELECT SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z1',DECODE(T1.SELL_TP_CD ,'2',NVL(T1.THM_SL_SUM_AMT,0)+NVL(T1.PVDA_AMT,0), NVL(T1.THM_SL_SUM_AMT,0))+NVL(T1.SL_CH_AMT,0)-NVL(T1.SL_CAN_AMT,0),0)) AS PRDT1 --제품(매출금액)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z1',DECODE(T1.SELL_TP_CD ,'2',NVL(T1.THM_SL_SUM_AMT,0)+NVL(T1.PVDA_AMT,0), NVL(T1.THM_SL_SUM_AMT,0))-NVL(T1.SL_SUM_VAT,0)+NVL(T1.SL_CH_AMT,0)-NVL(T1.CH_VAT,0)-(NVL(T1.SL_CAN_AMT,0)-NVL(T1.CAN_VAT,0)))) AS PRDT2 --제품(공급가액)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z1',NVL(T1.SL_SUM_VAT,0)+NVL(T1.CH_VAT,0)-NVL(T1.CAN_VAT,0))) AS PRDT3 --제품(부가세)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z2',DECODE(T1.SELL_TP_CD ,'2',NVL(T1.THM_SL_SUM_AMT,0)+NVL(T1.PVDA_AMT,0), NVL(T1.THM_SL_SUM_AMT,0))+NVL(T1.SL_CH_AMT,0)-NVL(T1.SL_CAN_AMT,0),0)) AS PRDT5 --상품(매출금액)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z2',DECODE(T1.SELL_TP_CD ,'2',NVL(T1.THM_SL_SUM_AMT,0)+NVL(T1.PVDA_AMT,0), NVL(T1.THM_SL_SUM_AMT,0))-NVL(T1.SL_SUM_VAT,0)+NVL(T1.SL_CH_AMT,0)-NVL(T1.CH_VAT,0)-(NVL(T1.SL_CAN_AMT,0)-NVL(T1.CAN_VAT,0)))) AS PRDT6 --상품(공급가액)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z2',NVL(T1.SL_SUM_VAT,0)+NVL(T1.CH_VAT,0)-NVL(T1.CAN_VAT,0))) AS PRDT7 --상품(부가세)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z7',DECODE(T1.SELL_TP_CD ,'2',NVL(T1.THM_SL_SUM_AMT,0)+NVL(T1.PVDA_AMT,0), NVL(T1.THM_SL_SUM_AMT,0))+NVL(T1.SL_CH_AMT,0)-NVL(T1.SL_CAN_AMT,0),0)) AS PRDT9 --저장품(매출금액)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z7',DECODE(T1.SELL_TP_CD ,'2',NVL(T1.THM_SL_SUM_AMT,0)+NVL(T1.PVDA_AMT,0), NVL(T1.THM_SL_SUM_AMT,0))-NVL(T1.SL_SUM_VAT,0)+NVL(T1.SL_CH_AMT,0)-NVL(T1.CH_VAT,0)-(NVL(T1.SL_CAN_AMT,0)-NVL(T1.CAN_VAT,0)))) AS PRDT10 --저장품(공급가액)
-                  ,SUM(DECODE(SUBSTR(SAP_MAT_EVL_CLSS_VAL,1,2),'Z7',NVL(T1.SL_SUM_VAT,0)+NVL(T1.CH_VAT,0)-NVL(T1.CAN_VAT,0))) AS PRDT11 --저장품(부가세)
-            FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-             INNER JOIN TB_PDBS_PD_BAS T2
-                ON T1.PD_CD = T2.PD_CD
-             LEFT JOIN (SELECT SA.CNTR_NO, SA.CNTR_SN
-                          FROM TB_SSCT_CNTR_PD_REL SA /*계약상품관계*/
-                              ,TB_PDBS_PD_BAS B /*상품기본*/
-                              ,TB_PDBS_PD_CLSF_BAS C /*상품분류기본*/
-                         WHERE SA.BASE_PD_CD = B.PD_CD
-                           AND B.PD_CLSF_ID = C.PD_CLSF_ID
-                           AND C.REF_PD_CLSF_VAL IN ('05003002','0A003002') /*참조상품분류값 = 상품대분류2자리||상품중분류3자리||상품소분류3자리||상품세분류3자리*/
-                      GROUP BY SA.CNTR_NO, SA.CNTR_SN
-                      )T10
-                ON T1.CNTR_NO = T10.CNTR_NO
-               AND T1.CNTR_SN = T10.CNTR_SN
-             WHERE T1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
-               AND T10.CNTR_NO = T1.CNTR_NO
-               AND T10.CNTR_SN = T1.CNTR_SN
-               AND T1.SELL_TP_CD = DECODE(#{sellTpCd}, '10', '2', #{sellTpCd})
-               AND SUBSTR(SL_RCOG_DT,1,6) = T1.SL_CL_YM
-               <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
-               AND T1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}  /*판매채널*/
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-               AND T1.SAP_PD_DV_CD = #{sapPdDvCd}  --SAP상품구분코드
-               </if>
-            </if>
-            )
-        UNPIVOT (
-                 (VALUE1,VALUE2,VALUE3)
-                 FOR NAME IN (
-                               (PRDT1,PRDT2,PRDT3) AS '제품',
-                               (PRDT5,PRDT6,PRDT7) AS '상품',
-                               (PRDT9,PRDT10,PRDT11) AS '저장품'
-                             )
-                )
-        GROUP BY NAME
-        ORDER BY 2
+                   <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
+                   AND A1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                   AND A1.SAP_PD_DV_CD = #{sapPdDvCd}
+                   </if>
+                 GROUP BY A1.SL_RCOG_DT
+                        , A1.SELL_TP_CD
+                        , A1.SELL_TP_DTL_CD
+                        , A1.SAP_PD_DV_CD
+                        <if test="@MybatisUtils@equals(inqrDv, '2')">
+                        , A1.PD_CD  /* 집계선택시제외 */
+                        </if>
+                ) B1
+          LEFT OUTER JOIN T_CMZ_CD_D B2  /* 코드상세 */
+            ON B2.TENANT_ID = #{session.tenantId}
+           AND B2.CD_ID = 'SELL_TP_CD'
+           AND B2.CD_VLD_VAL = B1.SELL_TP_CD
+          LEFT OUTER JOIN T_CMZ_CD_D B3  /* 코드상세 */
+            ON B3.TENANT_ID = #{session.tenantId}
+           AND B3.CD_ID = 'SELL_TP_DTL_CD'
+           AND B3.CD_VLD_VAL = B1.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_CBCL_SAP_PD_DV_CD B4  /* SAP상품구분코드 */
+            ON B4.SAP_PD_DV_CD = B1.SAP_PD_DV_CD
+           AND B4.SAP_PD_ATC_CD = '00'
+           AND B4.SAP_PD_ATC_SN = 1
+           AND B4.SAP_BZ_TERY_CD = '1210'
+          <if test="@MybatisUtils@equals(inqrDv, '2')">
+          LEFT OUTER JOIN TB_PDBS_PD_BAS B5  /* 상품기본 *//* 집계선택시제외 */
+            ON B5.PD_CD = B1.PD_CD
+           AND B5.DTA_DL_YN = 'N'
+          </if>
+         ORDER BY B1.SL_RCOG_DT
+                , B1.SELL_TP_CD
+                , B1.SELL_TP_DTL_CD
+                , B1.SAP_PD_DV_CD
+                <if test="@MybatisUtils@equals(inqrDv, '2')">
+                , B1.PD_CD /* 집계선택시제외 */
+                </if>
     </select>
 
-    <select id="selectRentalSummary" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto$SearchRentalRes">
-        SELECT '' AS SL_RCOG_DT --매출인식일자
-              ,'' AS SELL_TP_CD --판매유형
-              ,'' AS SELL_TP_DTL_CD --판매유형상세코드
-              ,'' AS PD_CD
-              ,'' AS PD_NM
-              ,'' AS SAP_PD_DV_CD
-              ,'' AS SAP_PD_DV_NM --SAP구분코드명
-              ,TO_CHAR(SUM(DECODE(T1.RENTAL_TN,0,NVL(T1.CNTR_AMT,0),0)), 'FM999,999,999,999,990') AS RENTAL_RGST_COST --매출금액-등록비
-              ,TO_CHAR(SUM(DECODE(T1.RENTAL_TN,0,NVL(T1.CNTR_AMT,0) - NVL(T1.RENTAL_RGST_COST_VAT,0),0)), 'FM999,999,999,999,990') AS RENTAL_RGST_COST_SPL --공급가액-등록비
-              ,TO_CHAR(SUM(DECODE(T1.RENTAL_TN,0,NVL(T1.RENTAL_RGST_COST_VAT,0),0)), 'FM999,999,999,999,990') AS RENTAL_RGST_COST_VAT --부가세-등록비
-              ,TO_CHAR(SUM(NVL(T1.THM_SL_SUM_AMT,0)), 'FM999,999,999,999,990') AS NOM_SL_AMT  --매출금액-렌탈료
-              ,TO_CHAR(SUM(NVL(T1.THM_SL_SUM_AMT,0)) - SUM(NVL(T1.SL_SUM_VAT,0)), 'FM999,999,999,999,990') AS SPL_AMT --공급가액-렌탈료
-              ,TO_CHAR(SUM(NVL(T1.SL_SUM_VAT,0)), 'FM999,999,999,999,990') AS VAT --부가세-렌탈료
-              ,TO_CHAR(SUM(DECODE(T1.RENTAL_TN,0,NVL(T1.CNTR_AMT,0),0)) + SUM(NVL(T1.THM_SL_SUM_AMT,0)), 'FM999,999,999,999,990') AS TOT_SL_AMT --매출금액-매출합계
-              ,TO_CHAR((SUM(DECODE(T1.RENTAL_TN,0,NVL(T1.CNTR_AMT,0) - NVL(T1.RENTAL_RGST_COST_VAT,0),0))) + (SUM(NVL(T1.THM_SL_SUM_AMT,0)) - SUM(NVL(T1.SL_SUM_VAT,0))), 'FM999,999,999,999,990') AS TOT_SPL --공급가액-매출합계
-              ,TO_CHAR(SUM(DECODE(T1.RENTAL_TN,0,NVL(T1.RENTAL_RGST_COST_VAT,0),0)) + SUM(NVL(T1.SL_SUM_VAT,0)), 'FM999,999,999,999,990') AS TOT_VAT --부가세-매출합계
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         INNER JOIN TB_PDBS_PD_BAS T2
-                 ON T1.PD_CD = T2.PD_CD
-          /*원두제외*/
-          LEFT JOIN (SELECT /*+ USE_NL(SA B C) */
-                            SA.CNTR_NO, SA.CNTR_SN, B.PD_CD, B.PD_NM, C.REF_PD_CLSF_VAL
-                       FROM TB_SSCT_CNTR_PD_REL SA    /*계약상품관계*/
-                          , TB_PDBS_PD_BAS B    /*상품기본*/
-                          , TB_PDBS_PD_CLSF_BAS C    /*상품분류기본*/
-                      WHERE SA.BASE_PD_CD = B.PD_CD
-                        AND B.PD_CLSF_ID = C.PD_CLSF_ID
-                        AND C.REF_PD_CLSF_VAL IN ('05003002','0A003002')    /*참조상품분류값 = 상품대분류2자리||상품중분류3자리||상품소분류3자리||상품세분류3자리*/
-                    )  T7
-            ON T7.CNTR_NO = T1.CNTR_NO
-           AND T7.CNTR_SN = T1.CNTR_SN
-         WHERE T1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
-           AND T1.SELL_TP_CD = #{sellTpCd}
-           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-           AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
-           </if>
-           <if test="@MybatisUtils@equals(sellTpCd, '2') and @MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-           AND T1.SELL_TP_DTL_CD IN ('21','23')
-           </if>
-           AND SUBSTR(SL_RCOG_DT,1,6) = T1.SL_CL_YM
-           <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
-           AND T1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}  /*판매채널*/
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-           AND T1.SAP_PD_DV_CD = #{sapPdDvCd}  --SAP상품구분코드
-           </if>
-           AND T7.CNTR_NO IS NULL
-           AND T7.CNTR_SN IS NULL
+    <select id="selectProductSalesLeases" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto$SearchRes">
+        SELECT B1.SL_RCOG_DT                                   /* 매출인식일자 */
+             , B2.CD_CNTN AS SELL_TP_CD                        /* 판매유형명 */
+             , B3.CD_CNTN AS SELL_TP_DTL_CD                    /* 판매유형상세명 */
+           <choose>
+             <when test="@MybatisUtils@equals(inqrDv, '2')">
+             , B1.PD_CD                                        /* 상품코드 *//* 집계선택시제외 */
+             , B5.PD_NM                                        /* 상품명 *//* 집계선택시제외 */
+             </when>
+             <otherwise>
+             , NULL AS PD_CD
+             , NULL AS PD_NM
+             </otherwise>
+           </choose>
+             , B1.SAP_PD_DV_CD                                 /* SAP상품구분코드 */
+             , B4.SAP_PD_DV_NM                 /* SAP상품구분명 */
+             , B1.SELL_QTY                                     /* 판매수량-정상매출 */
+             , B1.SELL_AMT                                     /* 매출금액-정상매출 */
+             , B1.SELL_AMT - B1.SELL_AMT_VAT AS SELL_SPL_AMT   /* 공급가액-정상매출 */
+             , B1.SELL_AMT_VAT                                 /* 부가세-정상매출 */
+             , B1.PVDA_AMT                                     /* 현할차-정상매출 */
+             , B1.CH_QTY                                       /* 판매수량-매출변경 */
+             , B1.SL_CH_AMT                                    /* 매출금액-매출변경 */
+             , B1.SL_CH_AMT - B1.CH_VAT AS CH_SPL_AMT          /* 공급가액-매출변경 */
+             , B1.CH_VAT                                       /* 부가세-매출변경 */
+             , B1.CH_PVDA_AMT                                  /* 현할차-매출변경 */
+             , B1.CAN_QTY                                      /* 판매수량-매출취소 */
+             , B1.SL_CAN_AMT                                   /* 매출금액-매출취소 */
+             , B1.SL_CAN_AMT - B1.CAN_VAT AS CAN_SPL_AMT       /* 공급가액-매출취소 */
+             , B1.CAN_VAT                                      /* 부가세-매출취소 */
+             , B1.CAN_PVDA_AMT                                 /* 현할차-매출취소 */
+             , B1.TOT_QTY                                      /* 판매수량-매출합계 */
+             , B1.TOT_AMT                                      /* 매출금액-매출합계 */
+             , B1.TOT_AMT - B1.TOT_VAT AS TOT_SPL_AMT          /* 공급가액-매출합계 */
+             , B1.TOT_VAT                                      /* 부가세-매출합계 */
+             , B1.TOT_PVDA_AMT                                 /* 현할차-매출합계 */
+          FROM (SELECT A1.SL_RCOG_DT
+                     , A1.SELL_TP_CD
+                     , A1.SELL_TP_DTL_CD
+                     , A1.SAP_PD_DV_CD
+                     <if test="@MybatisUtils@equals(inqrDv, '2')">
+                     , A1.PD_CD  /* 집계선택시제외 */
+                     </if>
+                     , NVL(SUM(CASE WHEN A1.NOM_SL_AMT != 0 THEN A1.SL_QTY END), 0) AS SELL_QTY
+                     , NVL(SUM(A1.THM_SL_SUM_AMT), 0) + NVL(SUM(A1.SL_CTR_AMT), 0) + NVL(SUM(A1.SL_CAN_AMT), 0) AS SELL_AMT
+                     , NVL(SUM(CASE WHEN A1.NOM_SL_AMT != 0 THEN A1.SL_SUM_VAT END), 0) + NVL(SUM(A1.CAN_VAT), 0) AS SELL_AMT_VAT
+                     , NVL(SUM(CASE WHEN A1.NOM_SL_AMT != 0 THEN A1.PVDA_AMT END), 0) AS PVDA_AMT
+                     , NVL(SUM(CASE WHEN NVL(A1.NOM_SL_AMT, 0) = 0 AND NVL(A1.SL_CAN_AMT, 0) = 0 AND A1.THM_SL_SUM_AMT != 0
+                                    THEN A1.SL_QTY
+                                    WHEN NVL(A1.NOM_SL_AMT, 0) = 0 AND A1.CAN_DT IS NOT NULL AND NVL(A1.CAN_QTY, 0) = 0
+                                    THEN A1.SL_QTY END) ,0) AS CH_QTY
+                     , -1 * NVL(SUM(A1.SL_CTR_AMT), 0) AS SL_CH_AMT
+                     , NVL(SUM(CASE WHEN A1.NOM_SL_AMT = 0 AND A1.SL_CTR_AMT != 0
+                                    THEN A1.SL_SUM_VAT END), 0) + NVL(SUM(A1.CAN_VAT), 0) AS CH_VAT
+                     , NVL(SUM(CASE WHEN A1.NOM_SL_AMT = 0 AND A1.SL_CTR_AMT != 0
+                                    THEN A1.PVDA_AMT END), 0) AS CH_PVDA_AMT
+                     , NVL(SUM(A1.CAN_QTY), 0) AS CAN_QTY
+                     , NVL(SUM(A1.SL_CAN_AMT), 0) AS SL_CAN_AMT
+                     , NVL(SUM(A1.CAN_VAT), 0) AS CAN_VAT
+                     , NVL(SUM(CASE WHEN A1.NOM_SL_AMT = 0 AND A1.SL_CTR_AMT = 0 AND A1.SL_CAN_AMT !=0
+                                    THEN -1 * A1.PVDA_AMT END), 0) AS CAN_PVDA_AMT
+                     , NVL(SUM(A1.SL_QTY), 0) - NVL(SUM(A1.CAN_QTY), 0) AS TOT_QTY
+                     , NVL(SUM(A1.THM_SL_SUM_AMT), 0) + NVL(SUM(A1.PVDA_AMT), 0) AS TOT_AMT
+                     , NVL(SUM(A1.SL_SUM_VAT), 0) AS TOT_VAT
+                     , NVL(SUM(A1.PVDA_AMT), 0) AS TOT_PVDA_AMT
+                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ A1  /* WELLS매출월마감내역 */
+                 WHERE A1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
+                   AND A1.SL_RCOG_DT LIKE A1.SL_CL_YM || '%'
+                   AND A1.SELL_TP_CD = '2'
+                   AND A1.SELL_TP_DTL_CD IN ('22', '24', '25', '26')
+                   <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                   AND A1.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
+                   AND A1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                   AND A1.SAP_PD_DV_CD = #{sapPdDvCd}
+                   </if>
+                 GROUP BY A1.SL_RCOG_DT
+                        , A1.SELL_TP_CD
+                        , A1.SELL_TP_DTL_CD
+                        , A1.SAP_PD_DV_CD
+                        <if test="@MybatisUtils@equals(inqrDv, '2')">
+                        , A1.PD_CD  /* 집계선택시제외 */
+                        </if>
+                ) B1
+          LEFT OUTER JOIN T_CMZ_CD_D B2  /* 코드상세 */
+            ON B2.TENANT_ID = #{session.tenantId}
+           AND B2.CD_ID = 'SELL_TP_CD'
+           AND B2.CD_VLD_VAL = B1.SELL_TP_CD
+          LEFT OUTER JOIN T_CMZ_CD_D B3  /* 코드상세 */
+            ON B3.TENANT_ID = #{session.tenantId}
+           AND B3.CD_ID = 'SELL_TP_DTL_CD'
+           AND B3.CD_VLD_VAL = B1.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_CBCL_SAP_PD_DV_CD B4  /* SAP상품구분코드 */
+            ON B4.SAP_PD_DV_CD = B1.SAP_PD_DV_CD
+           AND B4.SAP_PD_ATC_CD = '00'
+           AND B4.SAP_PD_ATC_SN = 1
+           AND B4.SAP_BZ_TERY_CD = '1210'
+          <if test="@MybatisUtils@equals(inqrDv, '2')">
+          LEFT OUTER JOIN TB_PDBS_PD_BAS B5  /* 상품기본 *//* 집계선택시제외 */
+            ON B5.PD_CD = B1.PD_CD
+           AND B5.DTA_DL_YN = 'N'
+          </if>
+         ORDER BY B1.SL_RCOG_DT
+                , B1.SELL_TP_CD
+                , B1.SELL_TP_DTL_CD
+                , B1.SAP_PD_DV_CD
+                <if test="@MybatisUtils@equals(inqrDv, '2')">
+                , B1.PD_CD /* 집계선택시제외 */
+                </if>
     </select>
 
-    <select id="selectRental" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto$SearchRentalRes">
-        SELECT T1.SL_RCOG_DT AS SL_RCOG_DT --매출인식일자
-              ,F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_CD --판매유형
-              ,F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD --판매유형상세코드
-              <if test="@MybatisUtils@equals(inqrDv, '1')">
-              ,'' AS PD_CD
-              ,'' AS PD_NM
-              </if>
-              <if test="@MybatisUtils@equals(inqrDv, '2')">
-              ,T1.PD_CD --상품코드
-              ,T2.PD_NM --상품명
-              </if>
-              ,T1.SAP_PD_DV_CD
-              ,(SELECT SAP_PD_DV_NM AS CODE_NAME /*SAP상품항목코드*/
-                  FROM TB_CBCL_SAP_PD_DV_CD
-                 WHERE SAP_BZ_TERY_CD = '1210'  /*에듀는 1110, 웰스는 1210*/
-                   AND SAP_PD_ATC_CD = '00'     /*상품항목 00 - SAP상품코드인건, 01부터는 SAP항목코드*/
-                   AND SAP_PD_DV_CD = T1.SAP_PD_DV_CD
-              GROUP BY SAP_PD_DV_CD, SAP_PD_DV_NM) AS SAP_PD_DV_NM --SAP구분코드명
-              ,SUM(DECODE(T1.RENTAL_TN,0,NVL(T1.CNTR_AMT,0),0)) AS RENTAL_RGST_COST --매출금액-등록비
-              ,SUM(DECODE(T1.RENTAL_TN,0,NVL(T1.CNTR_AMT,0) - NVL(T1.RENTAL_RGST_COST_VAT,0),0)) AS RENTAL_RGST_COST_SPL --공급가액-등록비
-              ,SUM(DECODE(T1.RENTAL_TN,0,NVL(T1.RENTAL_RGST_COST_VAT,0),0)) AS RENTAL_RGST_COST_VAT --부가세-등록비
-              ,SUM(NVL(T1.THM_SL_SUM_AMT,0)) AS NOM_SL_AMT  --매출금액-렌탈료
-              ,SUM(NVL(T1.THM_SL_SUM_AMT,0)) - SUM(NVL(T1.SL_SUM_VAT,0)) AS SPL_AMT --공급가액-렌탈료
-              ,SUM(NVL(T1.SL_SUM_VAT,0)) AS VAT --부가세-렌탈료
-              ,SUM(DECODE(T1.RENTAL_TN,0,NVL(T1.CNTR_AMT,0),0)) + SUM(NVL(T1.THM_SL_SUM_AMT,0)) AS TOT_SL_AMT --매출금액-매출합계
-              ,(SUM(DECODE(T1.RENTAL_TN,0,NVL(T1.CNTR_AMT,0) - NVL(T1.RENTAL_RGST_COST_VAT,0),0))) + (SUM(NVL(T1.THM_SL_SUM_AMT,0)) - SUM(NVL(T1.SL_SUM_VAT,0))) AS TOT_SPL --공급가액-매출합계
-              ,SUM(DECODE(T1.RENTAL_TN,0,NVL(T1.RENTAL_RGST_COST_VAT,0),0)) + SUM(NVL(T1.SL_SUM_VAT,0)) AS TOT_VAT --부가세-매출합계
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         INNER JOIN TB_PDBS_PD_BAS T2
-                 ON T1.PD_CD = T2.PD_CD
-          /*원두제외*/
-          LEFT JOIN (SELECT /*+ USE_NL(SA B C) */
-                            SA.CNTR_NO, SA.CNTR_SN, B.PD_CD, B.PD_NM, C.REF_PD_CLSF_VAL
-                       FROM TB_SSCT_CNTR_PD_REL SA    /*계약상품관계*/
-                          , TB_PDBS_PD_BAS B    /*상품기본*/
-                          , TB_PDBS_PD_CLSF_BAS C    /*상품분류기본*/
-                      WHERE SA.BASE_PD_CD = B.PD_CD
-                        AND B.PD_CLSF_ID = C.PD_CLSF_ID
-                        AND C.REF_PD_CLSF_VAL IN ('05003002','0A003002')    /*참조상품분류값 = 상품대분류2자리||상품중분류3자리||상품소분류3자리||상품세분류3자리*/
-                    )  T7
-            ON T7.CNTR_NO = T1.CNTR_NO
-           AND T7.CNTR_SN = T1.CNTR_SN
-         WHERE T1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
-           AND T1.SELL_TP_CD = #{sellTpCd}
-           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-           AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
-           </if>
-           <if test="@MybatisUtils@equals(sellTpCd, '2') and @MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-           AND T1.SELL_TP_DTL_CD IN ('21','23')
-           </if>
-           AND SUBSTR(SL_RCOG_DT,1,6) = T1.SL_CL_YM
-           <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
-           AND T1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}  /*판매채널*/
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-           AND T1.SAP_PD_DV_CD = #{sapPdDvCd}  --SAP상품구분코드
-           </if>
-           AND T7.CNTR_NO IS NULL
-           AND T7.CNTR_SN IS NULL
-         GROUP BY T1.SL_RCOG_DT, T1.SELL_TP_CD, T1.SELL_TP_DTL_CD,
-                  <if test="@MybatisUtils@equals(inqrDv, '2')">
-                  T1.PD_CD, T2.PD_NM,
-                  </if>
-                  T1.SAP_PD_DV_CD
+    <select id="selectProductSalesRegularDeliveries" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto$SearchRes">
+        SELECT B1.SL_RCOG_DT                                   /* 매출인식일자 */
+             , B2.CD_CNTN AS SELL_TP_CD                        /* 판매유형명 */
+             , B3.CD_CNTN AS SELL_TP_DTL_CD                    /* 판매유형상세명 */
+           <choose>
+             <when test="@MybatisUtils@equals(inqrDv, '2')">
+             , B1.PD_CD                                        /* 상품코드 *//* 집계선택시제외 */
+             , B5.PD_NM                                        /* 상품명 *//* 집계선택시제외 */
+             </when>
+             <otherwise>
+             , NULL AS PD_CD
+             , NULL AS PD_NM
+             </otherwise>
+           </choose>
+             , B1.SAP_PD_DV_CD                                 /* SAP상품구분코드 */
+             , B4.SAP_PD_DV_NM                 /* SAP상품구분명 */
+             , B1.SELL_QTY                                     /* 판매수량-정상매출 */
+             , B1.SELL_AMT                                     /* 매출금액-정상매출 */
+             , B1.SELL_AMT - B1.SELL_AMT_VAT AS SELL_SPL_AMT   /* 공급가액-정상매출 */
+             , B1.SELL_AMT_VAT                                 /* 부가세-정상매출 */
+             , 0 AS PVDA_AMT                                   /* 현할차-정상매출 */
+             , B1.CH_QTY                                       /* 판매수량-매출변경 */
+             , B1.SL_CH_AMT                                    /* 매출금액-매출변경 */
+             , B1.SL_CH_AMT - B1.CH_VAT AS CH_SPL_AMT          /* 공급가액-매출변경 */
+             , B1.CH_VAT                                       /* 부가세-매출변경 */
+             , 0 AS CH_PVDA_AMT                                /* 현할차-매출변경 */
+             , B1.CAN_QTY                                      /* 판매수량-매출취소 */
+             , B1.SL_CAN_AMT                                   /* 매출금액-매출취소 */
+             , B1.SL_CAN_AMT - B1.CAN_VAT AS CAN_SPL_AMT       /* 공급가액-매출취소 */
+             , B1.CAN_VAT                                      /* 부가세-매출취소 */
+             , 0 AS CAN_PVDA_AMT                               /* 현할차-매출취소 */
+             , B1.TOT_QTY                                      /* 판매수량-매출합계 */
+             , B1.TOT_AMT                                      /* 매출금액-매출합계 */
+             , B1.TOT_AMT - B1.TOT_VAT AS TOT_SPL_AMT          /* 공급가액-매출합계 */
+             , B1.TOT_VAT                                      /* 부가세-매출합계 */
+             , 0 AS TOT_PVDA_AMT                               /* 현할차-매출합계 */
+          FROM (SELECT A1.SL_RCOG_DT
+                     , A1.SELL_TP_CD
+                     , A1.SELL_TP_DTL_CD
+                     , A1.SAP_PD_DV_CD
+                     <if test="@MybatisUtils@equals(inqrDv, '2')">
+                     , A1.PD_CD  /* 집계선택시제외 */
+                     </if>
+                     , NVL(SUM(CASE WHEN A1.NOM_SL_AMT != 0 THEN A1.SL_QTY END), 0) AS SELL_QTY
+                     , NVL(SUM(A1.THM_SL_SUM_AMT), 0) + NVL(SUM(A1.SL_CTR_AMT), 0) + NVL(SUM(A1.SL_CAN_AMT), 0) AS SELL_AMT
+                     , NVL(SUM(CASE WHEN A1.NOM_SL_AMT != 0 THEN A1.SL_SUM_VAT END), 0) + NVL(SUM(A1.CAN_VAT), 0) AS SELL_AMT_VAT
+                     , NVL(SUM(CASE WHEN NVL(A1.NOM_SL_AMT, 0) = 0 AND NVL(A1.SL_CAN_AMT, 0) = 0 AND A1.THM_SL_SUM_AMT != 0
+                                    THEN A1.SL_QTY
+                                    WHEN NVL(A1.NOM_SL_AMT, 0) = 0 AND A1.CAN_DT IS NOT NULL AND NVL(A1.CAN_QTY, 0) = 0
+                                    THEN A1.SL_QTY END) ,0) AS CH_QTY
+                     , -1 * NVL(SUM(A1.SL_CTR_AMT), 0) AS SL_CH_AMT
+                     , NVL(SUM(CASE WHEN A1.NOM_SL_AMT = 0 AND A1.SL_CTR_AMT != 0
+                                    THEN A1.SL_SUM_VAT END), 0) + NVL(SUM(A1.CAN_VAT), 0) AS CH_VAT
+                     , NVL(SUM(CASE WHEN A1.NOM_SL_AMT = 0 AND A1.SL_CTR_AMT != 0
+                                    THEN A1.PVDA_AMT END), 0) AS CH_PVDA_AMT
+                     , NVL(SUM(A1.CAN_QTY), 0) AS CAN_QTY
+                     , NVL(SUM(A1.SL_CAN_AMT), 0) AS SL_CAN_AMT
+                     , NVL(SUM(A1.CAN_VAT), 0) AS CAN_VAT
+                     , NVL(SUM(A1.SL_QTY), 0) - NVL(SUM(A1.CAN_QTY), 0) AS TOT_QTY
+                     , NVL(SUM(A1.THM_SL_SUM_AMT), 0) + NVL(SUM(A1.PVDA_AMT), 0) AS TOT_AMT
+                     , NVL(SUM(A1.SL_SUM_VAT), 0) AS TOT_VAT
+                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ A1  /* WELLS매출월마감내역 */
+                 WHERE A1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
+                   AND A1.SL_RCOG_DT LIKE A1.SL_CL_YM || '%'
+                   AND A1.SELL_TP_CD = '6'
+                   <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                   AND A1.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
+                   AND A1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}
+                   </if>
+                   <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+                   AND A1.CNTR_NO = #{cntrNo}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                   AND A1.SAP_PD_DV_CD = #{sapPdDvCd}
+                   </if>
+                 GROUP BY A1.SL_RCOG_DT
+                        , A1.SELL_TP_CD
+                        , A1.SELL_TP_DTL_CD
+                        , A1.SAP_PD_DV_CD
+                        <if test="@MybatisUtils@equals(inqrDv, '2')">
+                        , A1.PD_CD  /* 집계선택시제외 */
+                        </if>
+                 UNION ALL
+                SELECT A2.SL_RCOG_DT
+                     , A2.SELL_TP_CD
+                     , A2.SELL_TP_DTL_CD
+                     , A2.SAP_PD_DV_CD
+                     <if test="@MybatisUtils@equals(inqrDv, '2')">
+                     , A2.PD_CD  /* 집계선택시제외 */
+                     </if>
+                     , NVL(SUM(CASE WHEN A2.NOM_SL_AMT != 0 THEN A2.SL_QTY END), 0) AS SELL_QTY
+                     , NVL(SUM(A2.THM_SL_SUM_AMT), 0) + NVL(SUM(A2.SL_CTR_AMT), 0) + NVL(SUM(A2.SL_CAN_AMT), 0) AS SELL_AMT
+                     , NVL(SUM(CASE WHEN A2.NOM_SL_AMT != 0 THEN A2.SL_SUM_VAT END), 0) + NVL(SUM(A2.CAN_VAT), 0) AS SELL_AMT_VAT
+                     , NVL(SUM(CASE WHEN NVL(A2.NOM_SL_AMT, 0) = 0 AND NVL(A2.SL_CAN_AMT, 0) = 0 AND A2.THM_SL_SUM_AMT != 0
+                                    THEN A2.SL_QTY
+                                    WHEN NVL(A2.NOM_SL_AMT, 0) = 0 AND A2.CAN_DT IS NOT NULL AND NVL(A2.CAN_QTY, 0) = 0
+                                    THEN A2.SL_QTY END) ,0) AS CH_QTY
+                     , -1 * NVL(SUM(A2.SL_CTR_AMT), 0) AS SL_CH_AMT
+                     , NVL(SUM(CASE WHEN A2.NOM_SL_AMT = 0 AND A2.SL_CTR_AMT != 0
+                                    THEN A2.SL_SUM_VAT END), 0) + NVL(SUM(A2.CAN_VAT), 0) AS CH_VAT
+                     , NVL(SUM(CASE WHEN A2.NOM_SL_AMT = 0 AND A2.SL_CTR_AMT != 0
+                                    THEN A2.PVDA_AMT END), 0) AS CH_PVDA_AMT
+                     , NVL(SUM(A2.CAN_QTY), 0) AS CAN_QTY
+                     , NVL(SUM(A2.SL_CAN_AMT), 0) AS SL_CAN_AMT
+                     , NVL(SUM(A2.CAN_VAT), 0) AS CAN_VAT
+                     , NVL(SUM(A2.SL_QTY), 0) - NVL(SUM(A2.CAN_QTY), 0) AS TOT_QTY
+                     , NVL(SUM(A2.THM_SL_SUM_AMT), 0) + NVL(SUM(A2.PVDA_AMT), 0) AS TOT_AMT
+                     , NVL(SUM(A2.SL_SUM_VAT), 0) AS TOT_VAT
+                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ A2  /* WELLS매출월마감내역 */
+                 INNER JOIN
+                      (SELECT DISTINCT Z1.CNTR_NO
+                            , Z1.CNTR_SN
+                         FROM TB_SSCT_CNTR_PD_REL Z1  /* 계약상품관계 */
+                        INNER JOIN TB_PDBS_PD_BAS Z2  /* 상품기본 */
+                           ON Z2.PD_CD = Z1.BASE_PD_CD
+                          AND Z2.DTA_DL_YN = 'N'
+                        INNER JOIN TB_PDBS_PD_CLSF_BAS Z3  /* 상품분류기본 */
+                           ON Z3.PD_CLSF_ID = Z2.PD_CLSF_ID
+                          AND Z3.REF_PD_CLSF_VAL IN ('05003002','0A003002')  /*원두제외*/
+                          AND Z3.DTA_DL_YN = 'N'
+                        WHERE Z1.DTA_DL_YN = 'N'
+                      ) A3
+                   ON A3.CNTR_NO = A2.CNTR_NO
+                  AND A3.CNTR_SN = A2.CNTR_SN
+                 WHERE A2.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
+                   AND A2.SL_RCOG_DT LIKE A2.SL_CL_YM || '%'
+                   AND A2.SELL_TP_CD = '2'
+                   <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
+                   AND A2.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                   AND A2.SAP_PD_DV_CD = #{sapPdDvCd}
+                   </if>
+                 GROUP BY A2.SL_RCOG_DT
+                        , A2.SELL_TP_CD
+                        , A2.SELL_TP_DTL_CD
+                        , A2.SAP_PD_DV_CD
+                        <if test="@MybatisUtils@equals(inqrDv, '2')">
+                        , A2.PD_CD  /* 집계선택시제외 */
+                        </if>
+                ) B1
+          LEFT OUTER JOIN T_CMZ_CD_D B2  /* 코드상세 */
+            ON B2.TENANT_ID = #{session.tenantId}
+           AND B2.CD_ID = 'SELL_TP_CD'
+           AND B2.CD_VLD_VAL = B1.SELL_TP_CD
+          LEFT OUTER JOIN T_CMZ_CD_D B3  /* 코드상세 */
+            ON B3.TENANT_ID = #{session.tenantId}
+           AND B3.CD_ID = 'SELL_TP_DTL_CD'
+           AND B3.CD_VLD_VAL = B1.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_CBCL_SAP_PD_DV_CD B4  /* SAP상품구분코드 */
+            ON B4.SAP_PD_DV_CD = B1.SAP_PD_DV_CD
+           AND B4.SAP_PD_ATC_CD = '00'
+           AND B4.SAP_PD_ATC_SN = 1
+           AND B4.SAP_BZ_TERY_CD = '1210'
+          <if test="@MybatisUtils@equals(inqrDv, '2')">
+          LEFT OUTER JOIN TB_PDBS_PD_BAS B5  /* 상품기본 *//* 집계선택시제외 */
+            ON B5.PD_CD = B1.PD_CD
+           AND B5.DTA_DL_YN = 'N'
+          </if>
+         ORDER BY B1.SL_RCOG_DT
+                , B1.SELL_TP_CD
+                , B1.SELL_TP_DTL_CD
+                , B1.SAP_PD_DV_CD
+                <if test="@MybatisUtils@equals(inqrDv, '2')">
+                , B1.PD_CD /* 집계선택시제외 */
+                </if>
     </select>
 
-    <select id="selectMembershipSummary" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto$SearchMembershipRes">
-        SELECT '' AS SL_RCOG_DT --매출인식일자
-              ,'' AS SELL_TP_CD --판매유형
-              ,'' AS SELL_TP_DTL_CD --판매유형상세코드
-              ,'' AS SAP_PD_DV_CD
-              ,'' AS SAP_PD_DV_NM --SAP구분코드명
-              ,TO_CHAR(SUM(DECODE(T1.SELL_TP_CD,'3',T1.THM_SL_SUM_AMT,0)), 'FM999,999,999,999,990') AS SELL_AMT --매출금액-회비
-              ,TO_CHAR(SUM(DECODE(T1.SELL_TP_CD,'3',T1.THM_SL_SUM_AMT-T1.SL_SUM_VAT,0)), 'FM999,999,999,999,990') AS SELL_SPL_AMT --공급가액-회비
-              ,TO_CHAR(SUM(DECODE(T1.SELL_TP_CD,'3',T1.SL_SUM_VAT,0)), 'FM999,999,999,999,990') AS SELL_AMT_VAT --부가세-회비
-              ,TO_CHAR(SUM(DECODE(T1.SELL_TP_CD,'9',T1.THM_SL_SUM_AMT,0)), 'FM999,999,999,999,990') AS FIL_SELL_AMT --매출금액-필터
-              ,TO_CHAR(SUM(DECODE(T1.SELL_TP_CD,'9',T1.SELL_AMT-T1.SL_SUM_VAT,0)), 'FM999,999,999,999,990') AS FIL_SELL_SPL_AMT --공급가액-필터
-              ,TO_CHAR(SUM(DECODE(T1.SELL_TP_CD,'9',T1.SL_SUM_VAT,0)), 'FM999,999,999,999,990') AS FIL_SELL_AMT_VAT --부가세-필터
-              ,TO_CHAR(SUM(T1.THM_SL_SUM_AMT), 'FM999,999,999,999,990') AS TOT_SELL_AMT --매출금액-매출합계
-              ,TO_CHAR(SUM(T1.THM_SL_SUM_AMT-T1.SL_SUM_VAT), 'FM999,999,999,999,990') AS TOT_SELL_SPL_AMT --공급가액-매출합계
-              ,TO_CHAR(SUM(T1.SL_SUM_VAT), 'FM999,999,999,999,990') AS TOT_SELL_AMT_VAT --부가세-매출합계
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         INNER JOIN TB_PDBS_PD_BAS T2
-                 ON T1.PD_CD = T2.PD_CD
-         WHERE T1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
-           AND SUBSTR(SL_RCOG_DT,1,6) = T1.SL_CL_YM
-           AND T1.SELL_TP_CD = #{sellTpCd}
-           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-           AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
-           AND T1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}  /*판매채널*/
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-           AND T1.SAP_PD_DV_CD = #{sapPdDvCd}  --SAP상품구분코드
-           </if>
+    <select id="selectProductSalesRentals" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto$SearchRentalRes">
+        SELECT B1.SL_RCOG_DT                                                                          /* 매출인식일자 */
+             , B2.CD_CNTN AS SELL_TP_CD                                                               /* 판매유형명 */
+             , B3.CD_CNTN AS SELL_TP_DTL_CD                                                           /* 판매유형상세명 */
+           <choose>
+             <when test="@MybatisUtils@equals(inqrDv, '2')">
+             , B1.PD_CD                                        /* 상품코드 *//* 집계선택시제외 */
+             , B5.PD_NM                                        /* 상품명 *//* 집계선택시제외 */
+             </when>
+             <otherwise>
+             , NULL AS PD_CD
+             , NULL AS PD_NM
+             </otherwise>
+           </choose>
+             , B1.SAP_PD_DV_CD                                                                        /* SAP상품구분코드 */
+             , B4.SAP_PD_DV_NM                                                        /* SAP상품구분명 */
+             , B1.RENTAL_RGST_COST                                                                    /* 매출금액-등록비 */
+             , B1.RENTAL_RGST_COST - B1.RENTAL_RGST_COST_VAT AS RENTAL_RGST_COST_SPL                  /* 공급가액-등록비 */
+             , B1.RENTAL_RGST_COST_VAT                                                                /* 부가세-등록비 */
+             , B1.NOM_SL_AMT                                                                          /* 매출금액-렌탈료 */
+             , B1.NOM_SL_AMT - B1.VAT AS SPL_AMT                                                      /* 공급가액-렌탈료 */
+             , B1.VAT                                                                                 /* 부가세-렌탈료 */
+             , B1.RENTAL_RGST_COST + B1.NOM_SL_AMT AS TOT_SL_AMT                                      /* 매출금액-매출합계 */
+             , B1.RENTAL_RGST_COST - B1.RENTAL_RGST_COST_VAT + B1.NOM_SL_AMT - B1.VAT AS TOT_SPL  /* 공급가액-매출합계 */
+             , B1.RENTAL_RGST_COST_VAT + B1.VAT AS TOT_VAT                                            /* 부가세-매출합계 */
+          FROM (SELECT A1.SL_RCOG_DT
+                     , A1.SELL_TP_CD
+                     , A1.SELL_TP_DTL_CD
+                     , A1.SAP_PD_DV_CD
+                     <if test="@MybatisUtils@equals(inqrDv, '2')">
+                     , A1.PD_CD  /* 집계선택시제외 */
+                     </if>
+                     , NVL(SUM(CASE WHEN A1.RENTAL_TN = 0 THEN A1.CNTR_AMT END), 0) AS RENTAL_RGST_COST
+                     , NVL(SUM(CASE WHEN A1.RENTAL_TN = 0 THEN A1.RENTAL_RGST_COST_VAT END), 0) AS RENTAL_RGST_COST_VAT
+                     , NVL(SUM(A1.THM_SL_SUM_AMT), 0) AS NOM_SL_AMT
+                     , NVL(SUM(A1.SL_SUM_VAT), 0) AS VAT
+                 FROM TB_CBCL_WELLS_SL_MM_CL_IZ A1  /* WELLS매출춸마감내역 */
+                 LEFT OUTER JOIN
+                      (SELECT Z1.CNTR_NO
+                            , Z1.CNTR_SN
+                         FROM TB_SSCT_CNTR_PD_REL Z1  /* 계약상품관계 */
+                        INNER JOIN TB_PDBS_PD_BAS Z2  /* 상품기본 */
+                           ON Z2.PD_CD = Z1.BASE_PD_CD
+                          AND Z2.DTA_DL_YN = 'N'
+                        INNER JOIN TB_PDBS_PD_CLSF_BAS Z3  /* 상품분류기본 */
+                           ON Z3.PD_CLSF_ID = Z2.PD_CLSF_ID
+                          AND Z3.REF_PD_CLSF_VAL IN ('05003002','0A003002')  /*원두제외*/
+                          AND Z3.DTA_DL_YN = 'N'
+                        WHERE Z1.DTA_DL_YN = 'N'
+                      ) A3
+                   ON A3.CNTR_NO = A1.CNTR_NO
+                  AND A3.CNTR_SN = A1.CNTR_SN
+                WHERE A1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
+                  AND A1.SL_RCOG_DT LIKE A1.SL_CL_YM || '%'
+                  AND A1.SELL_TP_CD = '2'
+                  AND A1.SELL_TP_DTL_CD IN ('21', '23')
+                  AND A3.CNTR_NO IS NULL
+                  AND A3.CNTR_SN IS NULL
+                   <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                   AND A1.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
+                   AND A1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                   AND A1.SAP_PD_DV_CD = #{sapPdDvCd}
+                   </if>
+                 GROUP BY A1.SL_RCOG_DT
+                        , A1.SELL_TP_CD
+                        , A1.SELL_TP_DTL_CD
+                        , A1.SAP_PD_DV_CD
+                        <if test="@MybatisUtils@equals(inqrDv, '2')">
+                        , A1.PD_CD  /* 집계선택시제외 */
+                        </if>
+               ) B1
+          LEFT OUTER JOIN T_CMZ_CD_D B2  /* 코드상세 */
+            ON B2.TENANT_ID = #{session.tenantId}
+           AND B2.CD_ID = 'SELL_TP_CD'
+           AND B2.CD_VLD_VAL = B1.SELL_TP_CD
+          LEFT OUTER JOIN T_CMZ_CD_D B3  /* 코드상세 */
+            ON B3.TENANT_ID = #{session.tenantId}
+           AND B3.CD_ID = 'SELL_TP_DTL_CD'
+           AND B3.CD_VLD_VAL = B1.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_CBCL_SAP_PD_DV_CD B4  /* SAP상품구분코드 */
+            ON B4.SAP_PD_DV_CD = B1.SAP_PD_DV_CD
+           AND B4.SAP_PD_ATC_CD = '00'
+           AND B4.SAP_PD_ATC_SN = 1
+           AND B4.SAP_BZ_TERY_CD = '1210'
+          <if test="@MybatisUtils@equals(inqrDv, '2')">
+          LEFT OUTER JOIN TB_PDBS_PD_BAS B5  /* 상품기본 *//* 집계선택시제외 */
+            ON B5.PD_CD = B1.PD_CD
+           AND B5.DTA_DL_YN = 'N'
+          </if>
+         ORDER BY B1.SL_RCOG_DT
+                , B1.SELL_TP_CD
+                , B1.SELL_TP_DTL_CD
+                , B1.SAP_PD_DV_CD
+                <if test="@MybatisUtils@equals(inqrDv, '2')">
+                , B1.PD_CD /* 집계선택시제외 */
+                </if>
     </select>
 
-    <select id="selectMembership" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto$SearchMembershipRes">
-        SELECT T1.SL_RCOG_DT AS SL_RCOG_DT --매출인식일자
-              ,F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_CD --판매유형
-              ,F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD --판매유형상세코드
-              ,T1.SAP_PD_DV_CD
-              ,(SELECT SAP_PD_DV_NM AS CODE_NAME /*SAP상품항목코드*/
-                  FROM TB_CBCL_SAP_PD_DV_CD
-                 WHERE SAP_BZ_TERY_CD = '1210'  /*에듀는 1110, 웰스는 1210*/
-                   AND SAP_PD_ATC_CD = '00'     /*상품항목 00 - SAP상품코드인건, 01부터는 SAP항목코드*/
-                   AND SAP_PD_DV_CD = T1.SAP_PD_DV_CD
-              GROUP BY SAP_PD_DV_CD, SAP_PD_DV_NM) AS SAP_PD_DV_NM --SAP구분코드명
-              ,SUM(DECODE(T1.SELL_TP_CD,'3',T1.THM_SL_SUM_AMT,0)) AS SELL_AMT --매출금액-회비
-              ,SUM(DECODE(T1.SELL_TP_CD,'3',T1.THM_SL_SUM_AMT-T1.SL_SUM_VAT,0)) AS SELL_SPL_AMT --공급가액-회비
-              ,SUM(DECODE(T1.SELL_TP_CD,'3',T1.SL_SUM_VAT,0)) AS SELL_AMT_VAT --부가세-회비
-              ,SUM(DECODE(T1.SELL_TP_CD,'9',T1.THM_SL_SUM_AMT,0)) AS FIL_SELL_AMT --매출금액-필터
-              ,SUM(DECODE(T1.SELL_TP_CD,'9',T1.SELL_AMT-T1.SL_SUM_VAT,0)) AS FIL_SELL_SPL_AMT --공급가액-필터
-              ,SUM(DECODE(T1.SELL_TP_CD,'9',T1.SL_SUM_VAT,0)) AS FIL_SELL_AMT_VAT --부가세-필터
-              ,SUM(T1.THM_SL_SUM_AMT) AS TOT_SELL_AMT --매출금액-매출합계
-              ,SUM(T1.THM_SL_SUM_AMT-T1.SL_SUM_VAT) AS TOT_SELL_SPL_AMT --공급가액-매출합계
-              ,SUM(T1.SL_SUM_VAT) AS TOT_SELL_AMT_VAT --부가세-매출합계
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         INNER JOIN TB_PDBS_PD_BAS T2
-                 ON T1.PD_CD = T2.PD_CD
-         WHERE T1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
-           AND SUBSTR(SL_RCOG_DT,1,6) = T1.SL_CL_YM
-           AND T1.SELL_TP_CD = #{sellTpCd}
-           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-           AND T1.SELL_TP_DTL_CD = #{sellTpDtlCd}
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
-           AND T1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}  /*판매채널*/
-           </if>
-           <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-           AND T1.SAP_PD_DV_CD = #{sapPdDvCd}  --SAP상품구분코드
-           </if>
-         GROUP BY T1.SL_RCOG_DT, T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.SAP_PD_DV_CD
+    <select id="selectProductSalesMemberships" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto$SearchMembershipRes">
+        SELECT B1.SL_RCOG_DT                                              /* 매출인식일자 */
+             , B2.CD_CNTN AS SELL_TP_CD                                   /* 판매유형명 */
+             , B3.CD_CNTN AS SELL_TP_DTL_CD                               /* 판매유형상세명 */
+           <choose>
+             <when test="@MybatisUtils@equals(inqrDv, '2')">
+             , B1.PD_CD                                        /* 상품코드 *//* 집계선택시제외 */
+             , B5.PD_NM                                        /* 상품명 *//* 집계선택시제외 */
+             </when>
+             <otherwise>
+             , NULL AS PD_CD
+             , NULL AS PD_NM
+             </otherwise>
+           </choose>
+             , B1.SAP_PD_DV_CD                                            /* SAP상품구분코드 */
+             , B4.SAP_PD_DV_NM                            /* SAP상품구분명 */
+             , B1.SELL_AMT                                                /* 매출금액-회비 */
+             , B1.SELL_AMT - B1.SELL_AMT_VAT AS SELL_SPL_AMT              /* 공급가액-회비 */
+             , B1.SELL_AMT_VAT                                            /* 부가세-회비 */
+             , B1.FIL_SELL_AMT                                            /* 매출금액-필터 */
+             , B1.FIL_SELL_AMT - B1.FIL_SELL_AMT_VAT AS FIL_SELL_SPL_AMT  /* 공급가액-필터 */
+             , B1.FIL_SELL_AMT_VAT                                        /* 부가세-필터 */
+             , B1.TOT_SELL_AMT                                            /* 매출금액-매출합계 */
+             , B1.TOT_SELL_AMT - B1.TOT_SELL_AMT_VAT AS TOT_SELL_SPL_AMT  /* 공급가액-매출합계 */
+             , B1.TOT_SELL_AMT_VAT                                        /* 부가세-매출합계 */
+          FROM (SELECT A1.SL_RCOG_DT
+                     , A1.SELL_TP_CD
+                     , A1.SELL_TP_DTL_CD
+                     , A1.SAP_PD_DV_CD
+                     <if test="@MybatisUtils@equals(inqrDv, '2')">
+                     , A1.PD_CD  /* 집계선택시제외 */
+                     </if>
+                     , NVL(SUM(A1.THM_SL_SUM_AMT), 0) AS SELL_AMT
+                     , NVL(SUM(A1.SL_SUM_VAT), 0) AS SELL_AMT_VAT
+                     , 0 AS FIL_SELL_AMT
+                     , 0 AS FIL_SELL_AMT_VAT
+                     , NVL(SUM(A1.THM_SL_SUM_AMT), 0) AS TOT_SELL_AMT
+                     , NVL(SUM(A1.SL_SUM_VAT), 0) AS TOT_SELL_AMT_VAT
+                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ A1  /* WELLS매출월마감내역 */
+                 WHERE A1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
+                   AND A1.SL_RCOG_DT LIKE A1.SL_CL_YM || '%'
+                   AND A1.SELL_TP_CD = '3'
+                   <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                   AND A1.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
+                   AND A1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                   AND A1.SAP_PD_DV_CD = #{sapPdDvCd}
+                   </if>
+                 GROUP BY A1.SL_RCOG_DT
+                        , A1.SELL_TP_CD
+                        , A1.SELL_TP_DTL_CD
+                        , A1.SAP_PD_DV_CD
+                        <if test="@MybatisUtils@equals(inqrDv, '2')">
+                        , A1.PD_CD  /* 집계선택시제외 */
+                        </if>
+                ) B1
+          LEFT OUTER JOIN T_CMZ_CD_D B2  /* 코드상세 */
+            ON B2.TENANT_ID = #{session.tenantId}
+           AND B2.CD_ID = 'SELL_TP_CD'
+           AND B2.CD_VLD_VAL = B1.SELL_TP_CD
+          LEFT OUTER JOIN T_CMZ_CD_D B3  /* 코드상세 */
+            ON B3.TENANT_ID = #{session.tenantId}
+           AND B3.CD_ID = 'SELL_TP_DTL_CD'
+           AND B3.CD_VLD_VAL = B1.SELL_TP_DTL_CD
+          LEFT OUTER JOIN TB_CBCL_SAP_PD_DV_CD B4  /* SAP상품구분코드 */
+            ON B4.SAP_PD_DV_CD = B1.SAP_PD_DV_CD
+           AND B4.SAP_PD_ATC_CD = '00'
+           AND B4.SAP_PD_ATC_SN = 1
+           AND B4.SAP_BZ_TERY_CD = '1210'
+          <if test="@MybatisUtils@equals(inqrDv, '2')">
+          LEFT OUTER JOIN TB_PDBS_PD_BAS B5  /* 상품기본 *//* 집계선택시제외 */
+            ON B5.PD_CD = B1.PD_CD
+           AND B5.DTA_DL_YN = 'N'
+          </if>
+         ORDER BY B1.SL_RCOG_DT
+                , B1.SELL_TP_CD
+                , B1.SELL_TP_DTL_CD
+                , B1.SAP_PD_DV_CD
+                <if test="@MybatisUtils@equals(inqrDv, '2')">
+                , B1.PD_CD /* 집계선택시제외 */
+                </if>
+    </select>
+
+    <select id="selectProductSalesSapMaterials" resultType="com.kyowon.sms.wells.web.closing.performance.dvo.WdccProductSalesSapMaterialsDvo">
+        SELECT NVL(C1.SAP_MAT_EVL_CD, 'ETC') AS SAP_MAT_EVL_CD                     /* SAP자재평가코드 */
+             , SUM(C1.THM_SL_SUM_AMT) AS SL_SUM_AMT  /* 매출총금액 */
+             , SUM(C1.SL_SUM_VAT) AS SL_SUM_VAT      /* 매출총부가세 */
+         FROM (SELECT B1.CNTR_NO
+                    , B1.CNTR_SN
+                    , B1.THM_SL_SUM_AMT
+                    , B1.SL_SUM_VAT
+                    , MAX(SUBSTR(B3.SAP_MAT_EVL_CLSS_VAL, 1, 2)) AS SAP_MAT_EVL_CD
+                 FROM (SELECT A1.CNTR_NO
+                            , A1.CNTR_SN
+                            , NVL(SUM(A1.THM_SL_SUM_AMT), 0) AS THM_SL_SUM_AMT
+                            , NVL(SUM(A1.SL_SUM_VAT), 0) AS SL_SUM_VAT
+                         FROM TB_CBCL_WELLS_SL_MM_CL_IZ A1  /* WELLS매출월마감내역 */
+                        WHERE A1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
+                          AND A1.SL_RCOG_DT LIKE A1.SL_CL_YM || '%'
+                          AND A1.SELL_TP_CD = '1'
+                          <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                          AND A1.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                          </if>
+                          <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
+                          AND A1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}
+                          </if>
+                          <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                          AND A1.SAP_PD_DV_CD = #{sapPdDvCd}
+                          </if>
+                        GROUP BY A1.CNTR_NO
+                               , A1.CNTR_SN
+                      ) B1
+                 LEFT OUTER JOIN TB_SSCT_CNTR_PD_REL B2  /* 계약상품관계 */
+                   ON B2.CNTR_NO = B1.CNTR_NO
+                  AND B2.CNTR_SN = B1.CNTR_SN
+                  AND B2.PD_REL_TP_CD = '05'
+                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN B2.VL_STRT_DTM AND B2.VL_END_DTM
+                  AND B2.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_PDBS_PD_BAS B3  /* 상품기본 */
+                   ON B3.PD_CD = B2.OJ_PD_CD
+                GROUP BY B1.CNTR_NO
+                       , B1.CNTR_SN
+                       , B1.THM_SL_SUM_AMT
+                       , B1.SL_SUM_VAT
+              ) C1
+         GROUP BY C1.SAP_MAT_EVL_CD
+         ORDER BY C1.SAP_MAT_EVL_CD
     </select>
 
 </mapper>

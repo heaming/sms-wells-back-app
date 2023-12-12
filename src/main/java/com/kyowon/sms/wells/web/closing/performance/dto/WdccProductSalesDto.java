@@ -5,6 +5,8 @@ import javax.validation.constraints.NotBlank;
 import io.swagger.annotations.ApiModel;
 import org.springframework.lang.Nullable;
 
+import java.math.BigDecimal;
+
 public class WdccProductSalesDto {
     @ApiModel("WdccProductSalesDto-SearchReq")
     public record SearchReq(
@@ -86,5 +88,17 @@ public class WdccProductSalesDto {
         String totSellAmt,
         String totSellSplAmt,
         String totSellAmtVat
+    ) {}
+
+    @ApiModel("WdccProductSalesDto-SearchSapMaterialsRes")
+    public record SearchSapMaterialsRes(
+        String pdctSlSumAmt,
+        String pdctSlSumVat,
+        String prdtSlSumAmt,
+        String prdtSlSumVat,
+        String svdtSlSumAmt,
+        String svdtSlSumVat,
+        String etcSlSumAmt,
+        String etcSlSumVat
     ) {}
 }

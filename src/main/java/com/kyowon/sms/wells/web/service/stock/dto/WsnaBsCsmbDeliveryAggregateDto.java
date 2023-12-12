@@ -2,54 +2,39 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
+import io.swagger.annotations.ApiModel;
+
+/**
+ * <pre>
+ * W-SV-U-0294M01 B/S소모품 배부집계 현황 dto
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-12-06
+ */
+
 public class WsnaBsCsmbDeliveryAggregateDto {
+
+    @ApiModel(value = "WsnaBsCsmbDeliveryAggregateDto-SearchReq")
     public record SearchReq(
+        // 조회 시작년월
+        @NotBlank
         String mngtYmFrom,
+        // 조회 종료년월
+        @NotBlank
         String mngtYmTo,
+        // 빌딩코드 리스트
         List<String> bldCds,
-        List<String> itmCds,
+        // 품목코드
+        String itmCd,
+        // 배부대상코드
         String bfsvcCsmbDdlvOjCd,
+        // 시작 SAP코드
         String sapCdFrom,
+        // 종료 SAP코드
         String sapCdTo
     ) {}
 
-    public record SearchRes(
-        String csmbPdCd,
-        String strWareNo,
-        String sapMatCd,
-        String bldNm,
-        String bldCd,
-        String pdNm,
-        String nwcmr,
-        String indv,
-        String bld,
-        String ddlvQtySum,
-        String mm1Qty,
-        String mm2Qty,
-        String mm3Qty,
-        String mm4Qty,
-        String mm5Qty,
-        String mm6Qty,
-        String vstAccSum,
-        String bdtIndv,
-        String bdtCrp,
-        String wrfr,
-        String arcleIndv,
-        String arcleCrp,
-        String wtrSftnr,
-        String msgcr,
-        String cffMchn,
-        String dryr,
-        String wash,
-        String ardrssr,
-        String sscling
-    ) {}
-
-    public record SearchQtysRes(
-        String mngtYm,
-        String csmbPdCd,
-        String bfsvcCsmbDdlvQty,
-        String bldCd,
-        String bldNm
-    ) {}
 }

@@ -1,238 +1,213 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.performance.mapper.WdccPressurePumpMapper">
-    
+
     <select id="selectConfirmManagement" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccPressurePumpDto$SearchConfirmManagementRes">
-        /* 가압펌프 조회  */
-		SELECT * 
-		  FROM (
-		         SELECT (CASE WHEN A.CNFM_YN = '확정' THEN '확정'
-		                      ELSE CASE WHEN A.SV_BIZ_HCLSF_CD = 6 AND UPDATE_YN = 'N' AND A.SV_BIZ_DCLSF_CD != '1121' THEN '오류'
-		                                WHEN A.SV_BIZ_HCLSF_CD = 6 AND UPDATE_CNFM_YN = 'Y' AND A.SV_BIZ_DCLSF_CD != '1121' THEN '오류'
-		                                ELSE A.CNFM_YN
-		                            END
-		                  END ) AS CNFM_YN  --확정여부
-		              , (CASE WHEN A.CNFM_YN = '확정' THEN ''
-		                      ELSE CASE WHEN A.SV_BIZ_HCLSF_CD = 6 AND UPDATE_CNFM_YN = 'Y' AND A.SV_BIZ_DCLSF_CD != '1121' THEN '회수 하지않은 상태로 데이타가 등록되었습니다.'
-		                                WHEN A.SV_BIZ_HCLSF_CD = 6 AND UPDATE_YN = 'N' AND A.SV_BIZ_DCLSF_CD != '1121' THEN '회수할 수 없습니다. 이전 설치 데이타가 존재하지 않습니다.'
-		                            END
-		                  END ) AS ERR_MSG   --오류상세
-		              , A.CNTR_NO --계약번호
-		              , A.CNTR_SN --계약일련번호
-		              , A.CST_KNM --고객명
-		              , A.FILT_SELL_TP_CD --고객유형
-		              , A.ADN_SV_SN --일련번호 
-		              , A.ITM_PD_CD --제품코드 
-		              , A.BASE_PD_CD --제품코드
-		              , A.PD_ABBR_NM --제품명
-		              , A.PD_NM --가압펌프자재
-		              , A.OG_NM --센터
-		              , A.WRK_TYP_NM --업무유형   
-		              , A.GUBN  --사용/회수
-		              , A.LCTAMT       --제품가격
-		              , A.SV_MCN --서비스기간
-		              , A.DUTY_USE_MCN --의무기간        
-		              , A.FNL_VST_FSH_DT --작업일자
-		              , A.RCPDT --접수일자        
-		              , A.IST_DT --설치일자
-		              , A.REQD_DT --철거일자
-		              , A.RSG_DT --해약일자        
-		              , A.FNL_ITM_GD_CD --등급
-		              , A.USE_QTY --수량
-		              , A.CHAG_GB_NM  --구분
-		              , A.PRTNR_KNM  --엔지니어
-		              , A.T_CNT   --누적재고
-		              , A.FST_RGST_DTM --등록일자
-		              , A.FST_RGST_USR_ID --등록자
-		              , A.FNL_MDFC_DTM --수정일자
-		              , A.FNL_MDFC_USR_ID --수정자
-		              , A.ADN_SV_STRT_YM  --부가서비스시작년월
-                      , A.IST_DUEDT --설치예정일자  
-                      , A.SV_BIZ_DCLSF_CD --업무유형
-                      ,( SELECT MAX(BASE_PD_CD) FROM TB_PDBS_PD_REL WHERE OJ_PD_CD = A.ITM_PD_CD AND PD_REL_TP_CD = '05') AS PDCT_PD_CD  --제품상품코드
-		           FROM (
-		                  SELECT (CASE WHEN T1.SV_BIZ_HCLSF_CD = 6 THEN CASE WHEN T1.FNL_VST_FSH_DT = T9.REQD_DT THEN '확정'
-		                                                                     ELSE '미확정'
-		                                                                 END
-		                               ELSE CASE WHEN T1.FNL_VST_FSH_DT = T9.RCPDT THEN '확정'
-		                                         ELSE '미확정'
-		                                     END
-		                           END ) AS CNFM_YN  --확정여부
-		                       , T1.SV_BIZ_HCLSF_CD
-		                       , T9.PDCT_PD_CD
-		                       , T1.CNTR_NO --계약번호
-		                       , T1.CNTR_SN --계약일련번호
-		                       , T6.CST_KNM --고객명
-		                       , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', FNL_SELL_TP_CD) AS FILT_SELL_TP_CD --고객유형
-		                       , T9.ADN_SV_SN --일련번호  
-		                       , T1.ITM_PD_CD --제품코드
-		                       , T10.BASE_PD_CD --제품코드
-		                       , T31.PD_ABBR_NM --제품명
-		                       , T3.PD_CD 
-		                       , T3.PD_ABBR_NM AS PD_NM --가압펌프자재
-		                       , T7.OG_NM --센터
-		                       , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', SV_BIZ_DCLSF_CD) AS WRK_TYP_NM --업무유형   
-		                       , (CASE WHEN SV_BIZ_HCLSF_CD != 6 THEN '사용'
-		                               WHEN SV_BIZ_HCLSF_CD = 6 THEN '회수'
-		                               ELSE ''
-		                           END ) AS GUBN  --사용/회수
-		                       , NVL(T9.ADN_SV_CS_AMT, CASE WHEN T1.ITM_PD_CD ='WM07100081' THEN 2000  -- 2022.04.11 저수형 가압펌프 가격 1700 -> 2000 변경
-		                                                    WHEN T1.ITM_PD_CD ='WM07100080' 
-		                                                    THEN CASE WHEN SV_BIZ_DCLSF_CD IN ( '1110' -- 신규설치
-		                                                                                       ,'1121' -- 자사회수
-		                                                                                       ,'1122' -- 자사미회수
-		                                                                                       ,'1123' -- 타사회수
-		                                                                                       ,'1124' -- 타사미회수
-		                                                                                       ,'3110' -- 제품Ａ／Ｓ
-		                                                                                       ,'3112' -- 특별A/S
-		                                                                                       ,'3320' -- 재설치
-		                                                                                      ) AND TO_DATE(T1.FNL_VST_FSH_DT) >= TO_DATE('20210801') 
-		                                                              THEN 2000  -- 2022.04.18 직수형 가압펌프 가격 1700 -> 2000 변경
-		                                                              ELSE 2000
-		                                                          END
-		                                                    ELSE 0
-		                                                END ) LCTAMT       --제품가격
-		                       , T9.SV_MCN --서비스기간
-		                       , T9.DUTY_USE_MCN --의무기간        
-		                       , FNL_VST_FSH_DT --작업일자
-		                       , T9.RCPDT --접수일자        
-		                       , T9.IST_DT --설치일자
-		                       , T9.REQD_DT --철거일자
-		                       , T9.RSG_DT --해약일자        
-		                       , FNL_ITM_GD_CD --등급
-		                       , USE_QTY --수량
-		                       , DECODE(T1.REFRI_DV_CD,'1','무상','2','유상','무상') AS CHAG_GB_NM  --구분
-		                       , (SELECT A.PRTNR_KNM FROM TB_OGBS_PRTNR_BAS A WHERE T1.ICHR_PRTNR_NO = A.PRTNR_NO AND T1.BRCH_OG_ID = A.OG_ID) AS PRTNR_KNM  --엔지니어
-		                       , (SELECT SUM(CASE WHEN SV_BIZ_HCLSF_CD = 6 THEN -1 ELSE 1 END)
-		                            FROM TB_SVST_SV_WK_OSTR_IZ
-		                           WHERE 1=1
-		                             AND ITM_PD_CD IN ('WM07100081', 'WM07100080')  
-		                             AND FNL_VST_FSH_DT >= '20160901'
-		                             AND CNTR_NO = T1.CNTR_NO) AS T_CNT   --누적재고
-		                       , NVL(T9.FST_RGST_DTM, T1.FST_RGST_DTM) AS FST_RGST_DTM --등록일자
-		                       , NVL(T9.FST_RGST_USR_ID, T1.FST_RGST_USR_ID) AS FST_RGST_USR_ID --등록자
-		                       , NVL(T9.FNL_MDFC_DTM, T1.FNL_MDFC_DTM) AS FNL_MDFC_DTM --수정일자
-		                       , NVL(T9.FNL_MDFC_USR_ID, T1.FNL_MDFC_USR_ID) AS FNL_MDFC_USR_ID --수정자
-		                        ---------------------------------------------------------------
-		                        -- 회수되지 않은데이타가 등록됨.
-		                        ---------------------------------------------------------------
-		                       , CASE WHEN T9.RCPDT = LC70.RCPDT AND  T1.SV_BIZ_HCLSF_CD = '6'
-		                              THEN 'Y'
-		                              ELSE 'N'
-		                          END UPDATE_CNFM_YN
-		                        ---------------------------------------------------------------
-		                        -- 철거일자가 없을경우 회수 가능
-		                        ---------------------------------------------------------------
-		                       , CASE WHEN LC70.REQD_DT  = 0  THEN 'Y' ELSE 'N' END  UPDATE_YN
-		                        ---------------------------------------------------------------
-		                        -- 철거일자가 없을경우 신규설치불가
-		                        ---------------------------------------------------------------
-		                       , CASE WHEN LC70.REQD_DT  = 0  THEN 'N' ELSE 'Y' END  INSERT_YN   
-		                       , T9.ADN_SV_STRT_YM  --부가서비스시작년월
-                               , T9.IST_DUEDT --설치예정일자
-                               , SV_BIZ_DCLSF_CD
-		                    FROM TB_SVST_SV_WK_OSTR_IZ T1  --서비스작업출고내역
-		                   INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T2  --고객서비스수행내역
-		                      ON T1.CNTR_NO = T2.CNTR_NO
-		                     AND T1.CNTR_SN = T2.CNTR_SN  
-		                   INNER JOIN TB_PDBS_PD_BAS T3 --상품기본
-		                      ON T1.ITM_PD_CD = T3.PD_CD
-		                   INNER JOIN TB_PDBS_PD_BAS T31 --상품기본
-		                      ON T1.FST_PD_CD = T31.PD_CD         
-		                   INNER JOIN TB_SSCT_CNTR_BAS T5 --계약기본
-		                      ON T1.CNTR_NO = T5.CNTR_NO        
-		                   INNER JOIN TB_CUBS_CST_BAS T6 --고객기본       
-		                      ON T5.CNTR_CST_NO =  T6.CST_NO
-		                   INNER JOIN TB_OGBS_OG_BAS T7 --조직기본
-		                      ON T1.BRCH_OG_ID = T7.OG_ID
-		                    LEFT JOIN (SELECT A.*, B.OJ_PD_CD  
-							             FROM TB_SSCT_RENTAL_ADN_SV_IZ A --렌탈부가서비스내역
-							            INNER JOIN TB_PDBS_PD_REL B  --상품관계
-							                    ON A.PDCT_PD_CD = B.BASE_PD_CD
-							                   AND B.PD_REL_TP_CD = '05'
-							            WHERE A.ADN_SV_DV_CD = '01'    --01 : 가압펌프            
-							              AND ADN_SV_SN = ( SELECT MAX(ADN_SV_SN)
-							                                  FROM TB_SSCT_RENTAL_ADN_SV_IZ 
-							                                 WHERE CNTR_NO = A.CNTR_NO
-							                                   AND CNTR_SN = A.CNTR_SN
-							                                   AND PDCT_PD_CD = A.PDCT_PD_CD 
-							                                   AND ADN_SV_DV_CD = '01') 
-					           ) T9
-					          ON T1.CNTR_NO = T9.CNTR_NO
-					         AND T1.CNTR_SN = T9.CNTR_SN
-					         AND T1.ITM_PD_CD = T9.OJ_PD_CD
-		                   INNER JOIN TB_SSCT_CNTR_DTL T10 --계약상세
-		                      ON T1.CNTR_NO = T10.CNTR_NO 
-		                     AND T1.CNTR_SN = T10.CNTR_SN 
-		                    LEFT JOIN TB_SSCT_RENTAL_ADN_SV_IZ LC70 
-		                      ON (T1.CNTR_NO = LC70.CNTR_NO
-		                             AND T9.PDCT_PD_CD = LC70.PDCT_PD_CD
-		                             AND LC70.ADN_SV_DV_CD = '01'
-		                             AND LC70.ADN_SV_SN = ( 
-		                                                    SELECT MAX(ADN_SV_SN)
-		                                                      FROM TB_SSCT_RENTAL_ADN_SV_IZ
-		                                                     WHERE CNTR_NO = LC70.CNTR_NO
-		                                                       AND PDCT_PD_CD = LC70.PDCT_PD_CD
-		                                                       AND ADN_SV_DV_CD = '01'
-		                                                  )        
-		                         )        
-		          WHERE 1=1
-		            AND (T1.REFRI_DV_CD != '2' OR T1.REFRI_DV_CD IS NULL)   --유상서비스
-		            AND T1.FST_VST_FSH_DT BETWEEN #{fstVstFshDtFrom} AND #{fstVstFshDtTo}   --작업일자
-		          <choose>
-		             <when test="@MybatisUtils@isEmpty(itmPdCd)">
-		                 AND T1.ITM_PD_CD IN ('WM07100081', 'WM07100080') --제폼코드 (전체, 저수형 가압펌프, 직수형 가압펌프)
-		             </when>
-		             <otherwise>
-		                 AND T1.ITM_PD_CD = #{itmPdCd} --제폼코드 (전체, 저수형 가압펌프, 직수형 가압펌프)
-		             </otherwise>
-		          </choose>
-		          <choose>
-		             <when test="@MybatisUtils@isEmpty(svBizDclsfCd)">
-		                 AND SV_BIZ_DCLSF_CD IN ('1110','1121','1122','1123','1124','3110','3112','3112','3310','3320','3420','9999') --업무유형
-		             </when>
-		             <otherwise>
-		                 <choose>
-		                     <when test="@MybatisUtils@equals(svBizDclsfCd, '9999')">
-		                       AND SV_BIZ_DCLSF_CD <![CDATA[<>]]> ('1110','1121','1122','1123','1124','3110','3112','3112','3310','3320','3420','9999') --업무유형
-		                     </when>
-		                     <otherwise>
-		                       AND SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
-		                     </otherwise>
-		                 </choose>
-		             </otherwise>
-		          </choose>
-		          <if test="@MybatisUtils@isNotEmpty(svBizHclsfCd)"> /* 확정여부*/
-		             <choose>
-		                 <when test="@MybatisUtils@equals(svBizHclsfCd, '6')">
-		                   AND SV_BIZ_HCLSF_CD = '6' --사용/회수 사용(6), 회수(!6)
-		                 </when>
-		                 <otherwise>
-		                   AND SV_BIZ_HCLSF_CD <![CDATA[<>]]> '6' --사용/회수 사용(6), 회수(!6)
-		                 </otherwise>
-		             </choose>
-		          </if>
-		          ORDER BY T1.CNTR_NO, T1.FNL_VST_FSH_DT, GUBN DESC 
-		        ) A
-		     )
-		 WHERE 1=1 
-		 <if test="@MybatisUtils@isNotEmpty(cnfmYn)"> /* 확정여부*/
-		   AND CNFM_YN = #{cnfmYn}  --확정여부 (화면에서 처리 - 조회된 결과 필터링 전체, 확정, 미확정, 오류)
-		 </if>
+        /* 10.가압펌프조회 */
+        SELECT C1.CNFM_YN                                                                   /* 확정여부 */
+             , C1.ERR_MSG                                                                   /* 오류상세 */
+             , C1.CNTR_NO                                                                   /* 계약번호 */
+             , C1.CNTR_SN                                                                   /* 계약일련번호 */
+             , C2.CST_KNM                                                                   /* 고객명 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', C1.FNL_SELL_TP_CD) AS FILT_SELL_TP_CD   /* 판매유형 */
+             , C1.ADN_SV_SN                                                                 /* 일련번호 */
+             , C1.ITM_PD_CD                                                                 /* 제품코드 */
+             , C1.BASE_PD_CD                                                                /* 기준상품코드 */
+             , C1.PD_ABBR_NM                                                                /* 제품명 */
+             , C1.PD_NM                                                                     /* 가압펌프자재 */
+             , C3.OG_NM                                                                     /* 센터 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', C1.SV_BIZ_DCLSF_CD) AS WRK_TYP_NM  /* 업무유형 */
+             , C1.GUBN                                                                      /* 사용/회수 */
+             , CASE WHEN C1.ADN_SV_CS_AMT IS NOT NULL THEN C1.ADN_SV_CS_AMT
+                    WHEN C1.ITM_PD_CD IN ('WM07100081', 'WM07100080') THEN 2000
+                    ELSE 0 END AS LCTAMT                                                    /* 제품가격 */
+             , C1.SV_MCN                                                                    /* 서비스기간 */
+             , C1.DUTY_USE_MCN                                                              /* 의무기간 */
+             , C1.FNL_VST_FSH_DT                                                            /* 작업일자 */
+             , C1.RCPDT                                                                     /* 접수일자 */
+             , C1.IST_DT                                                                    /* 설치일자 */
+             , C1.REQD_DT                                                                   /* 철거일자 */
+             , C1.RSG_DT                                                                    /* 해약일자 */
+             , C1.FNL_ITM_GD_CD                                                             /* 등급 */
+             , C1.USE_QTY --수량
+             , CASE WHEN C1.REFRI_DV_CD = '2' THEN '유상'
+                    ELSE '무상' END AS CHAG_GB_NM                                            /* 구분 */
+             , (SELECT X1.PRTNR_KNM
+                  FROM TB_OGBS_PRTNR_BAS X1  /* 파트너기본 */
+                 WHERE X1.PRTNR_NO = C1.ICHR_PRTNR_NO
+                   AND X1.OG_ID = C1.BRCH_OG_ID
+                   AND ROWNUM = 1) AS PRTNR_KNM                                             /* 엔지니어 */
+             , (SELECT SUM(CASE WHEN X2.SV_BIZ_HCLSF_CD = 6 THEN -1 ELSE 1 END)
+                  FROM TB_SVST_SV_WK_OSTR_IZ X2  /* 서비스작업출고내역 */
+                 WHERE X2.DTA_DL_YN = 'N'
+                   AND X2.ITM_PD_CD IN ('WM07100081', 'WM07100080')
+                   AND X2.FNL_VST_FSH_DT >= '20160901'
+                   AND X2.CNTR_NO = C1.CNTR_NO) AS T_CNT                                    /* 누적재고 */
+             , C1.FST_RGST_DTM                                                              /* 등록일자 */
+             , C1.FST_RGST_USR_ID                                                           /* 등록자 */
+             , C1.FNL_MDFC_DTM                                                              /* 수정일자 */
+             , C1.FNL_MDFC_USR_ID                                                           /* 수정자 */
+             , C1.ADN_SV_STRT_YM                                                            /* 부가서비스시작년월 */
+             , C1.IST_DUEDT                                                                 /* 설치예정일자 */
+             , C1.SV_BIZ_HCLSF_CD                                                           /* 사용/회수여부 */
+             , C1.SV_BIZ_DCLSF_CD                                                           /* 서비스업무세분류코드 */
+             , (SELECT MAX(X3.BASE_PD_CD)
+                  FROM TB_PDBS_PD_REL X3  /* 상품관계 */
+                 WHERE X3.OJ_PD_CD = C1.ITM_PD_CD
+                   AND X3.PD_REL_TP_CD = '05') AS PDCT_PD_CD                                /* 제품상품코드 */
+          FROM (SELECT CASE WHEN B1.CNFM_TMP_YN = '확정' THEN '확정'
+                            WHEN B1.SV_BIZ_HCLSF_CD = 6 AND B1.UPDATE_CNFM_YN = 'Y' AND B1.SV_BIZ_DCLSF_CD != '1121' THEN '오류'
+                            WHEN B1.SV_BIZ_HCLSF_CD = 6 AND B1.UPDATE_YN = 'N' AND B1.SV_BIZ_DCLSF_CD != '1121' THEN '오류'
+                            ELSE B1.CNFM_TMP_YN END AS CNFM_YN
+                     , CASE WHEN B1.SV_BIZ_HCLSF_CD = 6 AND B1.UPDATE_CNFM_YN = 'Y' AND B1.SV_BIZ_DCLSF_CD != '1121'
+                            THEN '회수 하지않은 상태로 데이타가 등록되었습니다.'
+                            WHEN B1.SV_BIZ_HCLSF_CD = 6 AND B1.UPDATE_YN = 'N' AND B1.SV_BIZ_DCLSF_CD != '1121'
+                            THEN '회수할 수 없습니다. 이전 설치 데이타가 존재하지 않습니다.' END AS ERR_MSG   --오류상세
+                     , CASE WHEN B1.SV_BIZ_HCLSF_CD != 6 THEN '사용'
+                            WHEN B1.SV_BIZ_HCLSF_CD = 6 THEN '회수' END AS GUBN  --사용/회수
+                     , B1.*
+                  FROM (SELECT A1.CNTR_NO
+                             , A1.CNTR_SN
+                             , A1.FNL_SELL_TP_CD
+                             , A1.ITM_PD_CD
+                             , A1.SV_BIZ_HCLSF_CD
+                             , A1.SV_BIZ_DCLSF_CD
+                             , A1.FNL_VST_FSH_DT
+                             , A1.REFRI_DV_CD
+                             , A1.BRCH_OG_ID
+                             , A1.ICHR_PRTNR_NO
+                             , A1.FNL_ITM_GD_CD
+                             , A1.USE_QTY
+                             , A2.PD_CD
+                             , A2.PD_ABBR_NM AS PD_NM
+                             , A3.PD_ABBR_NM
+                             , A4.CNTR_CST_NO
+                             , SUBSTR(A4.CNTR_CNFM_DTM, 1, 8) AS RCPDT
+                             , A5.CNTR_PD_STRTDT AS IST_DT
+                             , A5.BASE_PD_CD
+                             , A6.ADN_SV_SN
+                             , A6.SV_MCN
+                             , A6.DUTY_USE_MCN
+                             , A6.REQD_DT
+                             , A6.RSG_DT
+                             , A6.ADN_SV_STRT_YM
+                             , A6.IST_DUEDT
+                             , A6.ADN_SV_CS_AMT
+                             , NVL(A6.FST_RGST_DTM, A1.FST_RGST_DTM) AS FST_RGST_DTM
+                             , NVL(A6.FST_RGST_USR_ID, A1.FST_RGST_USR_ID) AS FST_RGST_USR_ID
+                             , NVL(A6.FNL_MDFC_DTM, A1.FNL_MDFC_DTM) AS FNL_MDFC_DTM
+                             , NVL(A6.FNL_MDFC_USR_ID, A1.FNL_MDFC_USR_ID) AS FNL_MDFC_USR_ID
+                             , CASE WHEN A6.RCPDT = A7.RCPDT AND A1.SV_BIZ_HCLSF_CD = '6' THEN 'Y'
+                                    ELSE 'N' END UPDATE_CNFM_YN
+                             , CASE WHEN A7.REQD_DT IS NULL THEN 'Y' ELSE 'N' END AS UPDATE_YN
+                             , CASE WHEN A1.SV_BIZ_HCLSF_CD = 6 AND A1.FNL_VST_FSH_DT = A6.REQD_DT THEN '확정'
+                                    WHEN A1.SV_BIZ_HCLSF_CD = 6 THEN '미확정'
+                                    WHEN A1.FNL_VST_FSH_DT = A6.RCPDT THEN '확정'
+                                    ELSE '미확정' END AS CNFM_TMP_YN  --확정여부
+                          FROM TB_SVST_SV_WK_OSTR_IZ A1  /* 서비스작업출고내역 */
+                         INNER JOIN TB_PDBS_PD_BAS A2  /* 상품기본 */
+                            ON A2.PD_CD = A1.ITM_PD_CD
+                         INNER JOIN TB_PDBS_PD_BAS A3  /* 상품기본 */
+                            ON A3.PD_CD = A1.FST_PD_CD
+                         INNER JOIN TB_SSCT_CNTR_BAS A4  /* 계약기본 */
+                            ON A4.CNTR_NO = A1.CNTR_NO
+                         INNER JOIN TB_SSCT_CNTR_DTL A5  /* 계약상세 */
+                            ON A5.CNTR_NO = A1.CNTR_NO
+                           AND A5.CNTR_SN = A1.CNTR_SN
+                          LEFT OUTER JOIN
+                               (SELECT Z1.*
+                                     , Z2.OJ_PD_CD
+                                  FROM TB_SSCT_RENTAL_ADN_SV_IZ Z1  /* 렌탈부가서비스내역 */
+                                 INNER JOIN TB_PDBS_PD_REL Z2  /* 상품관계 */
+                                    ON Z2.BASE_PD_CD = Z1.PDCT_PD_CD
+                                   AND Z2.PD_REL_TP_CD = '05'
+                                   AND Z2.DTA_DL_YN = 'N'
+                                 WHERE Z1.ADN_SV_DV_CD = '01'
+                                   AND Z1.ADN_SV_SN = (SELECT MAX(Y1.ADN_SV_SN)
+                                                         FROM TB_SSCT_RENTAL_ADN_SV_IZ Y1 /* 렌탈부가서비스내역 */
+                                                        WHERE Y1.CNTR_NO = Z1.CNTR_NO
+                                                          AND Y1.CNTR_SN = Z1.CNTR_SN
+                                                          AND Y1.PDCT_PD_CD = Z1.PDCT_PD_CD
+                                                          AND Y1.ADN_SV_DV_CD = Z1.ADN_SV_DV_CD
+                                                          AND Y1.DTA_DL_YN = 'N')
+                                   AND Z1.DTA_DL_YN = 'N'
+                               ) A6
+                            ON A6.CNTR_NO = A1.CNTR_NO
+                           AND A6.CNTR_SN = A1.CNTR_SN
+                           AND A6.OJ_PD_CD = A1.ITM_PD_CD
+                          LEFT OUTER JOIN TB_SSCT_RENTAL_ADN_SV_IZ A7
+                            ON A7.CNTR_NO = A1.CNTR_NO
+                           AND A7.PDCT_PD_CD = A6.PDCT_PD_CD
+                           AND A7.ADN_SV_DV_CD = '01'
+                           AND A7.ADN_SV_SN = (SELECT MAX(Y2.ADN_SV_SN)
+                                                 FROM TB_SSCT_RENTAL_ADN_SV_IZ Y2 /* 렌탈부가서비스내역 */
+                                                WHERE Y2.CNTR_NO = A7.CNTR_NO
+                                                  AND Y2.PDCT_PD_CD = A7.PDCT_PD_CD
+                                                  AND Y2.ADN_SV_DV_CD = A7.ADN_SV_DV_CD
+                                                  AND Y2.DTA_DL_YN = 'N')
+                           AND A7.DTA_DL_YN = 'N'
+                         WHERE A1.DTA_DL_YN = 'N'
+                           AND NVL(A1.REFRI_DV_CD, '1') != '2'
+                           AND A1.FST_VST_FSH_DT BETWEEN #{fstVstFshDtFrom} AND #{fstVstFshDtTo}
+                          <choose>
+                             <when test="@MybatisUtils@isEmpty(itmPdCd)">
+                                 AND A1.ITM_PD_CD IN ('WM07100081', 'WM07100080')
+                             </when>
+                             <otherwise>
+                                 AND A1.ITM_PD_CD = #{itmPdCd}
+                             </otherwise>
+                          </choose>
+                          <choose>
+                             <when test="@MybatisUtils@isEmpty(svBizDclsfCd)">
+                                 AND A1.SV_BIZ_DCLSF_CD IN ('1110','1121','1122','1123','1124','3110','3112','3112','3310','3320','3420','9999')
+                             </when>
+                             <otherwise>
+                                 <choose>
+                                     <when test="@MybatisUtils@equals(svBizDclsfCd, '9999')">
+                                       AND A1.SV_BIZ_DCLSF_CD NOT IN ('1110','1121','1122','1123','1124','3110','3112','3112','3310','3320','3420','9999')
+                                     </when>
+                                     <otherwise>
+                                       AND A1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+                                     </otherwise>
+                                 </choose>
+                             </otherwise>
+                          </choose>
+                          <if test="@MybatisUtils@isNotEmpty(svBizHclsfCd)">
+                             <choose>
+                                 <when test="@MybatisUtils@equals(svBizHclsfCd, '6')">
+                                   AND A1.SV_BIZ_HCLSF_CD = '6'
+                                 </when>
+                                 <otherwise>
+                                   AND A1.SV_BIZ_HCLSF_CD != '6'
+                                 </otherwise>
+                             </choose>
+                          </if>
+                       ) B1
+               ) C1
+          LEFT OUTER JOIN TB_CUBS_CST_BAS C2  /* 고객기본 */
+            ON C2.CST_NO = C1.CNTR_CST_NO
+          LEFT OUTER JOIN TB_OGBS_OG_BAS C3  /* 조직기본 */
+            ON C3.OG_ID = C1.BRCH_OG_ID
+        <if test="@MybatisUtils@isNotEmpty(cnfmYn)">
+         WHERE C1.CNFM_YN = #{cnfmYn}
+        </if>
+         ORDER BY C1.CNTR_NO
+                , C1.FNL_VST_FSH_DT
+                , C1.GUBN DESC
     </select>
-    
+
     <select id="selectSalesBase" resultType="com.kyowon.sms.wells.web.closing.performance.dto.WdccPressurePumpDto$SearchSalesBaseRes">
-        /* 가압펌프 매출기준 자료 조회  */  
+        /* 가압펌프 매출기준 자료 조회  */
         SELECT T1.CNTR_NO --계약번호
              , T1.CNTR_SN --계약일련번호
              , T3.PD_NM -- 상품명
              , T1.ADN_SV_CS_AMT --매출금액
-             , CASE WHEN T1.IST_DT = 0 THEN '' 
+             , CASE WHEN T1.IST_DT = 0 THEN ''
                     ELSE TO_CHAR(TO_DATE(T1.IST_DT,'YYYYMMDD'),'YYYY.MM.DD')
-                END AS IST_DT -- 설치일자 
-             , CASE WHEN T1.REQD_DT = 0 THEN '' 
+                END AS IST_DT -- 설치일자
+             , CASE WHEN T1.REQD_DT = 0 THEN ''
                     ELSE TO_CHAR(TO_DATE(T1.REQD_DT,'YYYYMMDD'),'YYYY.MM.DD')
-                END AS REQD_DT -- 철거일자 
+                END AS REQD_DT -- 철거일자
              , T2.MPY_BSDT -- 이체일자
              , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', DP_TP_CD) AS DP_TP_CD -- 이체구분
              , CASE WHEN T22.COPN_DV_CD = '1'  THEN '개인 ' ELSE '법인 '      END AS COPN_DV_CD -- 개인/법인
@@ -240,128 +215,157 @@
              , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'ALNC_STAT_TP_CD', ALNC_STAT_TP_CD) FROM TB_SSCT_ACMPAL_CNTR_IZ   WHERE BASE_CNTR_NO = T1.CNTR_NO) AS ALNC_STAT_TP_CD -- 제휴상태
              , CASE WHEN T5.PRM_MCN > 0 THEN 'Y' ELSE '' END AS LCPGUB -- 선납여부
              , CASE WHEN SUBSTR(T5.SL_RCOG_DT,0,6) = T5.SL_CL_YM  THEN T5.EOT_ATAM
-                    ELSE 0 
+                    ELSE 0
                 END AS LCAM36 -- 선수금
              , CASE WHEN SUBSTR(T5.SL_RCOG_DT,0,6) = T5.SL_CL_YM AND T5.EOT_ATAM > 0 THEN T5.CNTR_PTRM
-                    ELSE 0 
+                    ELSE 0
                 END AS LCMON1 -- 렌탈기간
-             , CASE WHEN SUBSTR(T5.SL_RCOG_DT,0,6) = T5.SL_CL_YM AND T5.EOT_ATAM > 0 THEN T5.RENTAL_AMT 
-                    ELSE 0 
+             , CASE WHEN SUBSTR(T5.SL_RCOG_DT,0,6) = T5.SL_CL_YM AND T5.EOT_ATAM > 0 THEN T5.RENTAL_AMT
+                    ELSE 0
                 END AS LCAMT1 -- 렌탈료
-             , CASE WHEN SUBSTR(T5.SL_RCOG_DT,0,6) = T5.SL_CL_YM AND T5.EOT_ATAM > 0 THEN T5.RENTAL_DSC_AMT 
-                    ELSE 0 
+             , CASE WHEN SUBSTR(T5.SL_RCOG_DT,0,6) = T5.SL_CL_YM AND T5.EOT_ATAM > 0 THEN T5.RENTAL_DSC_AMT
+                    ELSE 0
                 END AS LCRAM1 -- 렌탈할인
-          FROM TB_SSCT_RENTAL_ADN_SV_IZ T1 --렌탈부가서비스내역   
-         INNER JOIN TB_SSCT_RENTAL_ADN_SV_IZ LC70 --렌탈부가서비스내역  
-            ON LC70.CNTR_NO = T1.CNTR_NO  
+          FROM TB_SSCT_RENTAL_ADN_SV_IZ T1 --렌탈부가서비스내역
+         INNER JOIN TB_SSCT_RENTAL_ADN_SV_IZ LC70 --렌탈부가서비스내역
+            ON LC70.CNTR_NO = T1.CNTR_NO
            AND LC70.ADN_SV_SN = T1.ADN_SV_SN
            AND LC70.ADN_SV_SN = (
                                   SELECT ADN_SV_SN
                                     FROM TB_SSCT_RENTAL_ADN_SV_IZ
-                                   WHERE CNTR_NO = LC70.CNTR_NO 
+                                   WHERE CNTR_NO = LC70.CNTR_NO
                                      AND   ADN_SV_DV_CD = 01
-                                   ORDER BY ADN_SV_SN DESC 
+                                   ORDER BY ADN_SV_SN DESC
                                    FETCH FIRST 1 ROWS ONLY
                                 )
           LEFT JOIN TB_SSCT_CNTR_STLM_BAS T2  --계약결제기본
             ON T2.CNTR_NO = T1.CNTR_NO
            AND T2.CNTR_STLM_ID = (
-                                  SELECT CNTR_STLM_ID 
+                                  SELECT CNTR_STLM_ID
                                     FROM  TB_SSCT_CNTR_STLM_REL B
-                                   WHERE T2.CNTR_NO = B.DTL_CNTR_NO 
+                                   WHERE T2.CNTR_NO = B.DTL_CNTR_NO
                                      AND T2.DTA_DL_YN = 'N'
                                      AND SUBSTR(B.VL_STRT_DTM,1,6) <![CDATA[<=]]> #{slYm}
                                      AND SUBSTR(B.VL_END_DTM,1,6) <![CDATA[>=]]> #{slYm}
-                                   ORDER BY SUBSTR(B.VL_END_DTM,1,6) DESC 
-                                   FETCH FIRST 1 ROWS ONLY                                  
-                                 )                                     
-          LEFT JOIN TB_SSCT_CNTR_DTL T21 --계약상세                                 
-            ON T21.CNTR_NO = T1.CNTR_NO 
-           AND T21.CNTR_SN = T1.CNTR_SN    
-          LEFT JOIN TB_SSCT_CNTR_BAS T22 --계약기본                                   
-            ON T22.CNTR_NO = T1.CNTR_NO 
+                                   ORDER BY SUBSTR(B.VL_END_DTM,1,6) DESC
+                                   FETCH FIRST 1 ROWS ONLY
+                                 )
+          LEFT JOIN TB_SSCT_CNTR_DTL T21 --계약상세
+            ON T21.CNTR_NO = T1.CNTR_NO
+           AND T21.CNTR_SN = T1.CNTR_SN
+          LEFT JOIN TB_SSCT_CNTR_BAS T22 --계약기본
+            ON T22.CNTR_NO = T1.CNTR_NO
          INNER JOIN TB_PDBS_PD_BAS T3 --상품기본
-            ON T1.PDCT_PD_CD = T3.PD_CD    
-          LEFT JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T5 --매출월마감_WELLS       
+            ON T1.PDCT_PD_CD = T3.PD_CD
+          LEFT JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T5 --매출월마감_WELLS
             ON T1.CNTR_NO = T5.CNTR_NO
            AND T1.CNTR_SN = T5.CNTR_SN
            AND T5.SL_CL_YM = #{slYm}
-         ORDER BY T1.CNTR_NO   
+         ORDER BY T1.CNTR_NO
     </select>
-    
+
     <insert id = "insertConfirmManagement">
-        /* 가압펌프 등록  */
-		 INSERT INTO TB_SSCT_RENTAL_ADN_SV_IZ (
-		        CNTR_NO --계약번호
-		      , CNTR_SN --계약일련번호
-		      , ADN_SV_DV_CD --부가서비스구분코드
-		      , ADN_SV_SN --부가서비스일련번호
-		      , CH_SN --변경일련번호
-		      , PDCT_PD_CD --제품상품코드
-		      , PD_QTY --상품수량
-		      , SV_MCN --서비스개월수
-		      , DUTY_USE_MCN --의무사용개월수
-		      , ADN_SV_CS_AMT --부가서비스비용금액
-		      , DSC_AMT --할인금액
-		      , IST_MM_BIL_MTHD_TP_CD --설치월청구방식유형코드
-		      , ADN_SV_STRT_YM --부가서비스시작년월
-		      , RCPDT --접수일자
-		      , IST_DUEDT --설치예정일자
-		      , IST_DT --설치일자
-		      , REQD_DT --철거일자
-		      , RSG_DT --해지일자
-		      , NXTM_OJ_YN --차회대상여부
-		      , DTA_DL_YN --데이터삭제여부
-		      <include refid="COMMON.insertSystemField" />
-		)VALUES ( 
-		        #{cntrNo}
-		      , #{cntrSn}
-		      , '01'  
-		      , NVL(( SELECT MAX(ADN_SV_SN)+ 1
-                        FROM TB_SSCT_RENTAL_ADN_SV_IZ
-                       WHERE CNTR_NO = #{cntrNo}
-                         AND ADN_SV_DV_CD = '01' ) , 1)
-		      , 1         
-		      , #{pdctPdCd}
-		      , 1         
-		      , 60        
-		      , 60        
-		      , #{lctamt}
-		      , 0         
-		      , '1'        
-		      , #{adnSvStrtYm}
-		      , #{fnlVstFshDt}
-		      , #{fnlVstFshDt}
-		      , #{fnlVstFshDt}
-		      , 0 
-		      , 0 
-		      , '' 
-		      , 'N' 
-		      <include refid="COMMON.insertSystemFieldValue" /> 
-		      )
+        /* WdccPressurePumpMapper.mergeConfirmManagement */
+        MERGE INTO TB_SSCT_RENTAL_ADN_SV_IZ T1
+        USING (SELECT A1.CNTR_NO
+                    , A1.CNTR_SN
+                    , NVL(A3.ADN_SV_DV_CD, '01') AS ADN_SV_DV_CD
+                    , A3.ADN_SV_SN
+                    , NVL(A3.PDCT_PD_CD, #{pdctPdCd}) AS PDCT_PD_CD
+                    , NVL(A3.ADN_SV_STRT_YM, SUBSTR(#{fnlVstFshDt}, 1, 6)) AS ADN_SV_STRT_YM
+                    , CASE WHEN #{svBizHclsfCd} = '6' THEN NVL(A3.RCPDT, SUBSTR(A2.CNTR_CNFM_DTM, 1, 8))
+                           ELSE #{fnlVstFshDt} END AS RCPDT
+                    , CASE WHEN #{svBizHclsfCd} = '6' THEN  NVL(A3.IST_DUEDT, A1.CNTR_PD_STRTDT)
+                           ELSE #{fnlVstFshDt} END AS IST_DUEDT
+                    , CASE WHEN #{svBizHclsfCd} = '6' THEN  NVL(A3.IST_DT, A1.CNTR_PD_STRTDT)
+                           ELSE #{fnlVstFshDt} END AS IST_DT
+                    , CASE WHEN #{svBizHclsfCd} = '6' THEN #{fnlVstFshDt} END AS REQD_DT
+                    , CASE WHEN #{svBizHclsfCd} = '6' THEN #{fnlVstFshDt} END AS RSG_DT
+                    , CASE WHEN #{svBizHclsfCd} = '6' THEN 'Y' END AS NXTM_OJ_YN
+                 FROM TB_SSCT_CNTR_DTL A1
+                 LEFT OUTER JOIN TB_SSCT_CNTR_BAS A2
+                   ON A2.CNTR_NO = A1.CNTR_NO
+                 LEFT OUTER JOIN TB_SSCT_RENTAL_ADN_SV_IZ A3
+                   ON A3.CNTR_NO = A1.CNTR_NO
+                  AND A3.CNTR_SN = A1.CNTR_SN
+                  AND A3.ADN_SV_DV_CD = '01'
+                  AND A3.ADN_SV_SN = #{adnSvSn}
+                  AND A3.DTA_DL_YN = 'N'
+                WHERE A1.CNTR_NO = #{cntrNo}
+                  AND A1.CNTR_SN = #{cntrSn}
+              ) M1
+           ON (M1.CNTR_NO = T1.CNTR_NO
+               AND M1.CNTR_SN = T1.CNTR_SN
+               AND M1.ADN_SV_DV_CD = T1.ADN_SV_DV_CD
+               AND M1.ADN_SV_SN = T1.ADN_SV_SN
+              )
+         WHEN MATCHED THEN
+              UPDATE
+                 SET T1.PDCT_PD_CD = M1.PDCT_PD_CD
+                   , T1.ADN_SV_STRT_YM = M1.ADN_SV_STRT_YM
+                   , T1.RCPDT = M1.RCPDT
+                   , T1.IST_DUEDT = M1.IST_DUEDT
+                   , T1.IST_DT = M1.IST_DT
+                   , T1.REQD_DT = M1.REQD_DT
+                   , T1.RSG_DT = M1.RSG_DT
+                   , T1.NXTM_OJ_YN = M1.NXTM_OJ_YN
+                   <include refid="COMMON.updateSystemField" />
+         WHEN NOT MATCHED THEN
+              INSERT
+                   ( T1.CNTR_NO
+                   , T1.CNTR_SN
+                   , T1.ADN_SV_DV_CD
+                   , T1.ADN_SV_SN
+                   , T1.CH_SN
+                   , T1.PDCT_PD_CD
+                   , T1.PD_QTY
+                   , T1.SV_MCN
+                   , T1.DUTY_USE_MCN
+                   , T1.ADN_SV_CS_AMT
+                   , T1.DSC_AMT
+                   , T1.IST_MM_BIL_MTHD_TP_CD
+                   , T1.ADN_SV_STRT_YM
+                   , T1.RCPDT
+                   , T1.IST_DUEDT
+                   , T1.IST_DT
+                   , T1.REQD_DT
+                   , T1.RSG_DT
+                   , T1.NXTM_OJ_YN
+                   , T1.DTA_DL_YN
+                   <include refid="COMMON.insertSystemField" /> )
+              VALUES
+                   ( M1.CNTR_NO
+                   , M1.CNTR_SN
+                   , M1.ADN_SV_DV_CD
+                   , (SELECT NVL(MAX(X1.ADN_SV_SN), 0) + 1
+                        FROM TB_SSCT_RENTAL_ADN_SV_IZ X1
+                       WHERE X1.CNTR_NO = M1.CNTR_NO
+                         AND X1.CNTR_SN = M1.CNTR_SN
+                         AND X1.ADN_SV_DV_CD = M1.ADN_SV_DV_CD)
+                   , 1
+                   , M1.PDCT_PD_CD
+                   , 1
+                   , 60
+                   , 60
+                   , #{lctamt}
+                   , 0
+                   , '1'
+                   , M1.ADN_SV_STRT_YM
+                   , M1.RCPDT
+                   , M1.IST_DUEDT
+                   , M1.IST_DT
+                   , M1.REQD_DT
+                   , M1.RSG_DT
+                   , M1.NXTM_OJ_YN
+                   , 'N'
+                   <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
-    
-    <update id="updateConfirmManagement">
-        /* 가압펌프 회수  */
-        UPDATE TB_SSCT_RENTAL_ADN_SV_IZ 
-           SET REQD_DT = #{fnlVstFshDt}
-             , RSG_DT = #{fnlVstFshDt}
-             , NXTM_OJ_YN = 'Y'  
-             <include refid="COMMON.updateSystemField" />
-         WHERE CNTR_NO = #{cntrNo}
-           AND PDCT_PD_CD = #{pdctPdCd}  
-           AND ADN_SV_DV_CD ='01'
-           AND ADN_SV_SN = ( SELECT MAX(ADN_SV_SN)
-                               FROM TB_SSCT_RENTAL_ADN_SV_IZ 
-                              WHERE CNTR_NO = #{cntrNo}
-                                AND ADN_SV_DV_CD = '01'
-                           )
-    </update>
-    
+
     <delete id="deleteConfirmManagement">
         DELETE FROM TB_SSCT_RENTAL_ADN_SV_IZ
          WHERE CNTR_NO = #{cntrNo}
-          AND ADN_SV_SN = #{adnSvSn}
-          AND ADN_SV_DV_CD = '01'
+           AND CNTR_SN = #{cntrSn}
+           AND ADN_SV_SN = #{adnSvSn}
+           AND ADN_SV_DV_CD = '01'
     </delete>
 </mapper>

@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesOperationJrnlMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesOperationJrnlMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndBusinessVehiclesOperationJrnlMgtDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -16,5 +17,7 @@ public interface WsndBusinessVehiclesOperationJrnlMgtMapper {
     );
 
     List<SearchRes> selectBusinessVehiclesOperationJrnl(SearchReq dto);
+
+    int updateBusinessVehiclesOperationJrnl(WsndBusinessVehiclesOperationJrnlMgtDvo dvo);
 
 }

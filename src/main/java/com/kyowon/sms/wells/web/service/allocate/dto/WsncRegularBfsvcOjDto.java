@@ -11,8 +11,8 @@ public class WsncRegularBfsvcOjDto {
     @ApiModel(value = "WsncRegularBfsvcOjDto-CreateReq")
     public record CreateReq(
         @NotBlank
-        String asnOjYm,
+        String asnOjYm, /* 배정년월 */
         @NotBlank
-        String createTarget
+        String createTarget /* 생성대상 */
     ) {}
 }

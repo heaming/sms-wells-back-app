@@ -334,6 +334,7 @@ public class WfeaOrganizationNetOrderDto {
         String feeFxamYn, /* 정액여부 */
         String fnnLease, /* 금융리스 */
         String feeAckmtCt, /* 수수료인정건수 */
+        String bsFeeAckmtCt, /* BS수수료인정건수 */
         String nwSellCt, /* 신규판매건수 */
         String bfsvcOjYn, /* bs대상여부 */
         String rstlYn, /* 재약정여부 */

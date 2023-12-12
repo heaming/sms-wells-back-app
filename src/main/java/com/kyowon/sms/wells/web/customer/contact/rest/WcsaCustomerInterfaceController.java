@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto;
-import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.CreateCustomerForNaverRentalReq;
-import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.CreateCustomerForNaverRentalRes;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementReq;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementRes;
 import com.kyowon.sms.wells.web.customer.contact.service.WcsaCustomerInterfaceService;
@@ -85,22 +83,4 @@ public class WcsaCustomerInterfaceController {
         return resWrapper;
     }
 
-    /**
-    * (WELLS) 미인증 계약고객등록 I/F
-    * @param reqWrapper 고객정보
-    * @return 고객번호, 세이프키, 가입결과
-    */
-    @ApiOperation(value = "(WELLS) 미인증 계약고객등록 I/F", notes = "Wells 미인증 고객 등록")
-    @PostMapping("/noctf-cntr-customers")
-    public EaiWrapper createCustomerForNoCtfCntrCustomer(
-        @Valid
-        @RequestBody
-        EaiWrapper<CreateCustomerForNaverRentalReq> reqWrapper
-    ) throws Exception {
-        EaiWrapper<CreateCustomerForNaverRentalRes> resWrapper = reqWrapper.newResInstance();
-
-        resWrapper.setBody(wcsaCustomerInterfaceService.createCustomerForNoCtfCntrCustomer(reqWrapper.getBody()));
-
-        return resWrapper;
-    }
 }

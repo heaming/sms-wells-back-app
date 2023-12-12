@@ -58,13 +58,15 @@ public class WsnbGoodsChangeAcceptingStateService {
     @Transactional
     public int saveGoodsChangeAcceptingStateApprove(List<SaveReq> dtos) throws Exception {
         int processCount = 0;
+        String asIstOjNo = "";
 
         for (SaveReq dto : dtos) {
             WsnbGoodsChangeAcceptingStateDvo dvo = converter.mapSaveReqToGoodsChangeAcceptingStateDvo(dto);
             dvo.setAprAkStatCd("03"); // 승인
 
             // 서비스업무세분류코드(BFCH_SV_BIZ_DCLSF_CD : 변경전, AFCH_SV_BIZ_DCLSF_CD : 변경후) NULL 처리 => 배정서비스 호출
-            if (StringUtils.isEmpty(dvo.getOldSvBizDclsfCd()) || !"3110".equals(dvo.getOldSvBizDclsfCd())) {
+            if (StringUtils.isEmpty(dvo.getOldSvBizDclsfCd()) || !"20".equals(dvo.getWkPrgsStatCd())) {
+                // 변경전 코드 없거나 3110(제품A/S)이 아닌 경우 세팅
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
                 String strHist = sdf.format(new Date());
                 WsnbWorkOrderDvo wkDvo = new WsnbWorkOrderDvo();
@@ -74,10 +76,10 @@ public class WsnbGoodsChangeAcceptingStateService {
                 wkDvo.setInChnlDvCd("2");
                 wkDvo.setSvBizHclsfCd("3");
                 wkDvo.setMtrStatCd("1");
-                // 변경전 코드 없거나 3110(제품A/S)이 아닌 경우 세팅
-                wkDvo.setSvBizDclsfCd("3110");
-                dvo.setOldSvBizDclsfCd("3110");
-
+                wkDvo.setSvBizDclsfCd("3210");
+                wkDvo.setVstRqdt(dvo.getChangeRqstDt());
+                wkDvo.setVstAkHh("091000");
+                wkDvo.setRcpdt(strHist.substring(0, 8));
                 wkDvo.setUrgtDvCd("1");
                 wkDvo.setAsIstOjNo("");
                 wkDvo.setSmsFwYn("N");
@@ -86,8 +88,12 @@ public class WsnbGoodsChangeAcceptingStateService {
                 wkDvo.setUserId(userId);
                 wkDvo.setRcpOgTpCd("W06");
 
+                dvo.setOldSvBizDclsfCd("3110");
+
                 // 배정서비스 호출
-                workOrderService.saveWorkOrders(wkDvo);
+                asIstOjNo = workOrderService.saveWorkOrders(wkDvo);
+                // 설치배정번호 세팅
+                dvo.setAsIstOjNo(asIstOjNo);
             }
 
             // 변경후 코드 없을 때 3210(제품원인) 세팅
