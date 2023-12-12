@@ -63,7 +63,8 @@ public class WsnbGoodsChangeAcceptingStateDto {
         String procsrNm,
         String cstSvAsnNo,
         String oldSvBizDclsfCd,
-        String newSvBizDclsfCd
+        String newSvBizDclsfCd,
+        String wkPrgsStatCd
 
     ) {}
 
@@ -106,7 +107,8 @@ public class WsnbGoodsChangeAcceptingStateDto {
         String procsrNm,
         String cstSvAsnNo,
         String oldSvBizDclsfCd,
-        String newSvBizDclsfCd
+        String newSvBizDclsfCd,
+        String wkPrgsStatCd
 
     ) {}
 }
