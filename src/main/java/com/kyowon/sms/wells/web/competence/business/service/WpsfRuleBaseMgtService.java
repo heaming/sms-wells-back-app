@@ -31,18 +31,27 @@ public class WpsfRuleBaseMgtService {
      * @param dto
      * @return List<SearchRes>
      */
-    public List<SearchRes> getRuleBase(SearchReq dto) {
+    public List<SearchRes> getRuleBaseList(SearchReq dto) {
         return mapper.selectRuleBaseMgtPages(dto);
+    }
+
+   /**
+     * 규정 및 기준 관리 - 상세 조회
+     * @param bznsSpptMnalId
+     * @return SearchRes
+     */
+    public SearchRes getRuleBaseDetail(String bznsSpptMnalId) {
+        return mapper.selectRuleBaseDetail(bznsSpptMnalId);
     }
 
     /**
      * 규정 및 기준조회 - 리스트 조회
      *
-     * @param dto
+     * @param req
      * @return List<SearchRes>
      */
-    public List<SearchRes> getUserRuleBase(SearchReq dto) {
-        return mapper.selectRuleBase(dto);
+    public List<SearchRes> getUserRuleBase(SearchReq req) {
+        return mapper.selectUserRuleBase(req);
     }
 
     /**
@@ -80,7 +89,7 @@ public class WpsfRuleBaseMgtService {
             mapper.deleteRuleBaseRel(dvo);
             for (String rsbDvCd : dvo.getRsbDvCds()) {
                 wDvo.setBznsSpptMnalId(dvo.getBznsSpptMnalId());
-                wDvo.setOgTpCd(dto.ogTpCd());
+                wDvo.setCstCnrInqrPrmitYn(dvo.getCstCnrInqrPrmitYn());
                 wDvo.setRsbDvCd(rsbDvCd);
                 mapper.insertRuleBaseRel(wDvo);
             }
@@ -109,5 +118,6 @@ public class WpsfRuleBaseMgtService {
         }
         return processCount;
     }
+
 
 }
