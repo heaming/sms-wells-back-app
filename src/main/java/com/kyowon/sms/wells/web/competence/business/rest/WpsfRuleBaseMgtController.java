@@ -28,23 +28,26 @@ public class WpsfRuleBaseMgtController {
 
     @ApiOperation(value = "규정 및 기준관리 - 리스트 조회", notes = "리스트 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "urgnYn", value = "최신버전검색", paramType = "query", required = true),
     })
     @GetMapping
     public List<SearchRes> getRuleBaseList(
-        @Valid
         SearchReq dto
     ) {
         return service.getRuleBaseList(dto);
     }
 
     @ApiOperation(value = "규정 및 기준관리 - 상세 조회", notes = "상세 조회")
-    @GetMapping("/{bznsSpptMnalId}")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "bznsSpptMnalId", value = "영업지원매뉴얼ID", paramType = "query"),
+        @ApiImplicitParam(name = "vlStrtDtm", value = "유효시작일시", paramType = "query"),
+    })
+    @GetMapping("/detail")
     public SearchRes getRuleBase(
         @Valid
-        @PathVariable(name = "bznsSpptMnalId") String bznsSpptMnalId
+        SearchReq req
     ){
-        return service.getRuleBaseDetail(bznsSpptMnalId);
+        return service.getRuleBaseDetail(req);
     }
 
 

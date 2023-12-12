@@ -37,11 +37,11 @@ public class WpsfRuleBaseMgtService {
 
    /**
      * 규정 및 기준 관리 - 상세 조회
-     * @param bznsSpptMnalId
+     * @param req
      * @return SearchRes
      */
-    public SearchRes getRuleBaseDetail(String bznsSpptMnalId) {
-        return mapper.selectRuleBaseDetail(bznsSpptMnalId);
+    public SearchRes getRuleBaseDetail(SearchReq req) {
+        return mapper.selectRuleBaseDetail(req);
     }
 
     /**

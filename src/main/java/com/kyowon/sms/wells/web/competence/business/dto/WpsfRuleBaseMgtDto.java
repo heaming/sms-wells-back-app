@@ -18,11 +18,8 @@ public class WpsfRuleBaseMgtDto {
     @ApiModel("WpsfRuleBaseMgtDto-SearchReq")
     public record SearchReq(
         String urgnYn,
-        String oneDepth,
-        String twoDepth,
-        String threeDepth,
-        String ogTpCd,
-        String rsbDvCd
+        String bznsSpptMnalId, /* 영업지원매뉴얼ID */
+        String vlStrtDtm
 
     ) {}
 
@@ -51,7 +48,8 @@ public class WpsfRuleBaseMgtDto {
         String fileUid,
         String ogTpCd,
         String rsbDvCds,
-        String cstCnrInqrPrmitYn
+        String cstCnrInqrPrmitYn,
+        String psbYn
     ) {}
 
     @Builder
