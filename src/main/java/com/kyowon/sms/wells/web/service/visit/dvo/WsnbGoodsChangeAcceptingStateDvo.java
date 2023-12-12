@@ -46,5 +46,6 @@ public class WsnbGoodsChangeAcceptingStateDvo {
     String newSvBizDclsfCd;
     // 설치배정번호 추가
     String asIstOjNo;
+    String wkPrgsStatCd;
 
 }
