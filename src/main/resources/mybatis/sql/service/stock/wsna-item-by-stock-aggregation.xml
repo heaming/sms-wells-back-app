@@ -310,60 +310,291 @@
     </sql>
 
     <select id="selectItemByStockAggs" resultType="camelMap" fetchSize="1000">
+          WITH TB_QTY AS
+             (
+               SELECT /*+ INDEX(D1 IX_SVST_MCITM_STOC_IZ_01) USE_HASH(D1 D2) */
+                      D1.ITM_PD_CD            /* 품목상품코드 */
+                    , D2.WARE_DV_CD           /* 창고구분 */
+                    , D2.WARE_DTL_DV_CD       /* 창고상세구분 */
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
+                           ELSE D2.HGR_WARE_NO   /* 개인창고인 경우 상위창고 */
+                      END        AS WARE_NO   /* 창고번호 */
+                    , SUM( CASE #{itmGdCd} WHEN 'A' THEN D1.PITM_STOC_A_GD_QTY
+                                           WHEN 'B' THEN D1.PITM_STOC_B_GD_QTY
+                                           WHEN 'E' THEN D1.PITM_STOC_E_GD_QTY
+                                           WHEN 'R' THEN D1.PITM_STOC_R_GD_QTY
+                                           ELSE NVL(D1.PITM_STOC_A_GD_QTY, 0) + NVL(D1.PITM_STOC_B_GD_QTY, 0) + NVL(D1.PITM_STOC_E_GD_QTY, 0) + NVL(D1.PITM_STOC_R_GD_QTY, 0)
+                           END ) AS QTY       /* 기초재고수량 */
+                 FROM TB_SVST_MCITM_STOC_IZ D1       /* 월별품목재고내역 */
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
+                   ON D2.APY_YM  = D1.BASE_YM
+                  AND D2.WARE_NO = D1.WARE_NO
+                WHERE D1.DTA_DL_YN = 'N'
+                  AND D2.DTA_DL_YN = 'N'
+                  AND D1.BASE_YM   = TO_CHAR(ADD_MONTHS( TO_DATE(#{baseDt}, 'YYYYMMDD'), -1 ), 'YYYYMM')
+                  AND D2.APY_YM    = TO_CHAR(ADD_MONTHS( TO_DATE(#{baseDt}, 'YYYYMMDD'), -1 ), 'YYYYMM')
+            <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.ITM_PD_CD IN
+                                <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                       #{itmPdCd}
+                                </foreach>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.ITM_PD_CD = #{itmPdCd}
+            </if>
+                GROUP BY D1.ITM_PD_CD, D2.WARE_DV_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
+                UNION ALL
+               SELECT /*+ INDEX(D1 IX_SVST_MCITM_STOC_IZ_01) USE_HASH(D1 D2) */
+                      D1.ITM_PD_CD            /* 품목상품코드 */
+                    , D2.WARE_DV_CD           /* 창고구분 */
+                    , D2.WARE_DTL_DV_CD       /* 창고상세구분 */
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END        AS WARE_NO   /* 창고번호 */
+                    , SUM( CASE #{itmGdCd} WHEN 'A' THEN NVL(D1.STOC_ACINSP_STR_A_GD_QTY, 0) - NVL(D1.STOC_ACINSP_OSTR_A_GD_QTY, 0)
+                                           WHEN 'B' THEN NVL(D1.STOC_ACINSP_STR_B_GD_QTY, 0) - NVL(D1.STOC_ACINSP_OSTR_B_GD_QTY, 0)
+                                           WHEN 'E' THEN NVL(D1.STOC_ACINSP_STR_E_GD_QTY, 0) - NVL(D1.STOC_ACINSP_OSTR_E_GD_QTY, 0)
+                                           WHEN 'R' THEN NVL(D1.STOC_ACINSP_STR_R_GD_QTY, 0) - NVL(D1.STOC_ACINSP_OSTR_R_GD_QTY, 0)
+                                           ELSE ( NVL(D1.STOC_ACINSP_STR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_STR_R_GD_QTY, 0) )
+                                                - ( NVL(D1.STOC_ACINSP_OSTR_A_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_B_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_E_GD_QTY, 0) + NVL(D1.STOC_ACINSP_OSTR_R_GD_QTY, 0) )
+                           END ) AS QTY       /* 재고실사수량 */
+                 FROM TB_SVST_MCITM_STOC_IZ D1       /* 월별품목재고내역 */
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
+                   ON D2.APY_YM  = D1.BASE_YM
+                  AND D2.WARE_NO = D1.WARE_NO
+                WHERE D1.DTA_DL_YN = 'N'
+                  AND D2.DTA_DL_YN = 'N'
+                  AND D1.BASE_YM   = SUBSTR(#{baseDt}, 1, 6)
+                  AND D2.APY_YM    = SUBSTR(#{baseDt}, 1, 6)
+            <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.ITM_PD_CD IN
+                                <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                       #{itmPdCd}
+                                </foreach>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.ITM_PD_CD = #{itmPdCd}
+            </if>
+                GROUP BY D1.ITM_PD_CD, D2.WARE_DV_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
+                UNION ALL
+               SELECT /*+ USE_HASH(D1 D2) */
+                      D1.ITM_PD_CD                 /* 품목상품코드 */
+                    , D2.WARE_DV_CD                /* 창고구분 */
+                    , D2.WARE_DTL_DV_CD            /* 창고상세구분 */
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.STR_WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END             AS WARE_NO   /* 창고번호 */
+                    , SUM(D1.STR_QTY) AS QTY       /* 입고수량 */
+                 FROM TB_SVST_ITM_STR_IZ D1          /* 품목입고내역 */
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
+                   ON D2.APY_YM  = SUBSTR(D1.STR_RGST_DT, 1, 6)
+                  AND D2.WARE_NO = D1.STR_WARE_NO
+                WHERE D1.DTA_DL_YN = 'N'
+                  AND D2.DTA_DL_YN = 'N'
+                  AND D2.APY_YM    = SUBSTR(#{baseDt}, 1, 6)
+                  AND D1.STR_RGST_DT BETWEEN SUBSTR(#{baseDt}, 1, 6) || '01' AND #{baseDt}
+            <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.ITM_PD_CD IN
+                                <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                       #{itmPdCd}
+                                </foreach>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.ITM_PD_CD = #{itmPdCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                  AND D1.ITM_GD_CD = #{itmGdCd}
+            </if>
+                GROUP BY D1.ITM_PD_CD, D2.WARE_DV_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.STR_WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
+                UNION ALL
+               SELECT /*+ USE_HASH(D1 D2) */
+                      D1.ITM_PD_CD            /* 품목상품코드 */
+                    , D2.WARE_DV_CD           /* 창고구분 */
+                    , D2.WARE_DTL_DV_CD       /* 창고상세구분 */
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WK_WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END        AS WARE_NO   /* 창고번호 */
+                    , SUM( CASE WHEN D1.SV_BIZ_HCLSF_CD = '6' THEN D1.USE_QTY
+                                ELSE D1.USE_QTY * -1
+                           END ) AS QTY       /* 작업수량 */
+                 FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
+                   ON D2.APY_YM  = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
+                  AND D2.WARE_NO = D1.WK_WARE_NO
+                WHERE D1.DTA_DL_YN       = 'N'
+                  AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '4', '6')
+                  AND D1.FNL_MDFC_USR_ID NOT LIKE 'CONV%'
+                  AND D1.FNL_ITM_GD_CD <![CDATA[<>]]> 'X'
+                  AND D2.DTA_DL_YN       = 'N'
+                  AND D2.APY_YM          = SUBSTR(#{baseDt}, 1, 6)
+                  AND D1.FNL_VST_FSH_DT BETWEEN SUBSTR(#{baseDt}, 1, 6) || '01' AND #{baseDt}
+            <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.ITM_PD_CD IN
+                                <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                       #{itmPdCd}
+                                </foreach>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.ITM_PD_CD       = #{itmPdCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                  AND D1.FNL_ITM_GD_CD   = #{itmGdCd}
+            </if>
+                GROUP BY D1.ITM_PD_CD, D2.WARE_DV_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WK_WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
+                UNION ALL
+               SELECT D1.PD_CD        AS ITM_PD_CD   /* 품목상품코드 */
+                    , D2.WARE_DV_CD                  /* 창고구분 */
+                    , D2.WARE_DTL_DV_CD              /* 창고상세구분 */
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END             AS WARE_NO     /* 창고번호 */
+                    , SUM(D1.CTR_QTY) AS QTY         /* 등급조정수량 */
+                 FROM TB_SVST_ITM_GD_CTR_IZ D1       /* 품목등급조정내역 */
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
+                   ON D2.APY_YM  = SUBSTR(D1.STAT_CTR_APY_DT, 1, 6)
+                  AND D2.WARE_NO = D1.WARE_NO
+                WHERE D1.DTA_DL_YN      = 'N'
+                  AND D2.DTA_DL_YN      = 'N'
+                  AND D2.APY_YM         = SUBSTR(#{baseDt}, 1, 6)
+                  AND D1.STAT_CTR_APY_DT BETWEEN SUBSTR(#{baseDt}, 1, 6) || '01' AND #{baseDt}
+            <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.PD_CD IN
+                            <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                   #{itmPdCd}
+                            </foreach>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.PD_CD          = #{itmPdCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                  AND D1.AFCT_ITM_GD_CD = #{itmGdCd}
+            </if>
+                GROUP BY D1.PD_CD, D2.WARE_DV_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
+                UNION ALL
+               SELECT /*+ USE_HASH(D1 D2) */
+                      D1.ITM_PD_CD                       /* 품목상품코드 */
+                    , D2.WARE_DV_CD                      /* 창고구분 */
+                    , D2.WARE_DTL_DV_CD                  /* 창고상세구분 */
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.OSTR_WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END                   AS WARE_NO   /* 창고번호 */
+                    , SUM(D1.OSTR_QTY) * -1 AS QTY       /* 출고수량 */
+                 FROM TB_SVST_ITM_OSTR_IZ D1         /* 품목출고내역 */
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
+                   ON D2.APY_YM  = SUBSTR(D1.OSTR_DT, 1, 6)
+                  AND D2.WARE_NO = D1.OSTR_WARE_NO
+                WHERE D1.DTA_DL_YN = 'N'
+                  AND D1.ITM_GD_CD <![CDATA[<>]]> 'X'
+                  AND D2.DTA_DL_YN = 'N'
+                  AND D2.APY_YM    = SUBSTR(#{baseDt}, 1, 6)
+                  AND D1.OSTR_DT BETWEEN SUBSTR(#{baseDt}, 1, 6) || '01' AND #{baseDt}
+            <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.ITM_PD_CD IN
+                                <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                       #{itmPdCd}
+                                </foreach>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.ITM_PD_CD = #{itmPdCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                  AND D1.ITM_GD_CD = #{itmGdCd}
+            </if>
+                GROUP BY D1.ITM_PD_CD, D2.WARE_DV_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.OSTR_WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
+                UNION ALL
+               SELECT D1.PD_CD             AS ITM_PD_CD   /* 품목상품코드 */
+                    , D2.WARE_DV_CD                       /* 창고구분 */
+                    , D2.WARE_DTL_DV_CD                   /* 창고상세구분 */
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END                  AS WARE_NO     /* 창고번호 */
+                    , SUM(D1.CTR_QTY) * -1 AS QTY         /* 등급조정수량 */
+                 FROM TB_SVST_ITM_GD_CTR_IZ D1       /* 품목등급조정내역 */
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
+                   ON D2.APY_YM  = SUBSTR(D1.STAT_CTR_APY_DT, 1, 6)
+                  AND D2.WARE_NO = D1.WARE_NO
+                WHERE D1.DTA_DL_YN      = 'N'
+                  AND D2.DTA_DL_YN      = 'N'
+                  AND D2.APY_YM         = SUBSTR(#{baseDt}, 1, 6)
+                  AND D1.STAT_CTR_APY_DT BETWEEN SUBSTR(#{baseDt}, 1, 6) || '01' AND #{baseDt}
+            <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND D1.PD_CD IN
+                            <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                   #{itmPdCd}
+                            </foreach>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+                  AND D1.PD_CD          = #{itmPdCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+                  AND D1.BFCT_ITM_GD_CD = #{itmGdCd}
+            </if>
+                GROUP BY D1.PD_CD, D2.WARE_DV_CD, D2.WARE_DTL_DV_CD
+                    , CASE WHEN D2.WARE_DTL_DV_CD IN ('10', '20', '30') THEN D1.WARE_NO
+                           ELSE D2.HGR_WARE_NO
+                      END
+             )
         SELECT TO_CHAR(TO_NUMBER(T1.SAP_MAT_CD)) AS SAP_MAT_CD   /* SAP코드 */
              , T1.PD_CD                                          /* 품목코드 */
              , T1.PD_NM                                          /* 품목명 */
              , T1.CSMR_UPRC_AMT                                  /* 소비자가 */
              , T1.LEAD_TIME                                      /* L/T */
              , T1.MOQ                                            /* MOQ */
-             , T1.QTY_100002                                     /* 파주물류센터 */
-             , T1.QTY_100008                                     /* 성수물류센터 */
-             , T1.QTY_200000                                     /* 서비스센터 */
-             , T1.QTY_299999                                     /* 엔지니어 */
-             , T1.QTY_300000                                     /* 영업센터 */
-             , T1.QTY_999999                                     /* 재고현황 계 */
+             , NVL(T1.QTY_100002, 0)             AS QTY_100002   /* 파주물류센터 */
+             , NVL(T1.QTY_100008, 0)             AS QTY_100008   /* 성수물류센터 */
+             , NVL(T1.QTY_200000, 0)             AS QTY_200000   /* 서비스센터 */
+             , NVL(T1.QTY_299999, 0)             AS QTY_299999   /* 엔지니어 */
+             , NVL(T1.QTY_300000, 0)             AS QTY_300000   /* 영업센터 */
+             , NVL(T1.QTY_999999, 0)             AS QTY_999999   /* 재고현황 계 */
              , ${wareNoFields}                                   /* PIVOT 필드 */
           FROM
              (
-               SELECT /*+ LEADING(T1) USE_NL(T1 D2 D3) NO_MERGE(D3) */
-                      T1.SAP_MAT_CD                                                    /* SAP코드 */
-                    , T1.PD_CD                                                         /* 품목코드 */
-                    , T1.PD_ABBR_NM                                 AS PD_NM           /* 품목명 */
-                    , D2.PD_PRP_VAL06                               AS LEAD_TIME       /* 리드타임 */
-                    , REGEXP_REPLACE(D2.PD_PRP_VAL07, '[^0-9]', '') AS MOQ             /* MOQ */
+               SELECT /*+ NO_MERGE(D3) */
+                      T1.SAP_MAT_CD                                                              /* SAP코드 */
+                    , T1.PD_CD                                                                   /* 품목코드 */
+                    , T1.PD_ABBR_NM                                           AS PD_NM           /* 품목명 */
+                    , D2.PD_PRP_VAL06                                         AS LEAD_TIME       /* 리드타임 */
+                    , REGEXP_REPLACE(D2.PD_PRP_VAL07, '[^0-9]', '')           AS MOQ             /* MOQ */
                     , NVL( ( SELECT CSMR_UPRC_AMT
                                FROM TB_SVPD_RCAS_ITM_PRC_IZ
                               WHERE USE_MAT_PD_CD = T1.PD_CD
                                 AND DTA_DL_YN     = 'N'
                                 AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
-                                AND ROWNUM <![CDATA[<=]]> 1 ), 0 )  AS CSMR_UPRC_AMT   /* 소비자가 */
-                    , NVL(D3.QTY_100002, 0)                         AS QTY_100002      /* 파주물류센터 */
-                    , NVL(D3.QTY_100008, 0)                         AS QTY_100008      /* 성수물류센터 */
-                    , NVL(D3.QTY_200000, 0)                         AS QTY_200000      /* 서비스센터 */
-                    , NVL(D3.QTY_299999, 0)                         AS QTY_299999      /* 엔지니어 */
-                    , NVL(D3.QTY_300000, 0)                         AS QTY_300000      /* 영업센터 */
-                    , NVL(D3.QTY_999999, 0)                         AS QTY_999999      /* 재고현황 계 */
+                                AND ROWNUM <![CDATA[<=]]> 1 ), 0 )            AS CSMR_UPRC_AMT   /* 소비자가 */
+                    , SUM(CASE WHEN D3.WARE_NO = '100002' THEN D3.QTY END)    AS QTY_100002      /* 파주물류센터 */
+                    , SUM(CASE WHEN D3.WARE_NO = '100008'
+                                AND #{itmKndCd} IN ('5', '6') THEN D3.QTY
+                          END)                                                AS QTY_100008      /* 성수물류센터 */
+                    , SUM(CASE WHEN D3.WARE_DTL_DV_CD = '20' THEN D3.QTY END) AS QTY_200000      /* 서비스센터 */
+                    , SUM(CASE WHEN D3.WARE_DTL_DV_CD = '21' THEN D3.QTY END) AS QTY_299999      /* 엔지니어 */
+                    , SUM(CASE WHEN D3.WARE_DV_CD = '3' THEN D3.QTY END)      AS QTY_300000      /* 영업센터 */
+                    , SUM(CASE WHEN D3.WARE_NO IN ('100002', '100003')
+                                 OR D3.WARE_DV_CD IN ('2', '3')
+                                 OR ( D3.WARE_NO = '100008' AND #{itmKndCd} IN ('5', '6') ) THEN D3.QTY
+                          END)                                                AS QTY_999999      /* 재고현황 계 */
                  FROM TB_PDBS_PD_BAS T1                 /* 상품기본 */
                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
                    ON D2.PD_CD = T1.PD_CD
-                 LEFT OUTER JOIN LATERAL
-                    (
-                      SELECT T.ITM_PD_CD
-                           , SUM(CASE WHEN T.WARE_NO = '100002' THEN T.QTY END)    AS QTY_100002   /* 파주물류센터 */
-                           , SUM(CASE WHEN T.WARE_NO = '100008'
-                                       AND #{itmKndCd} IN ('5', '6') THEN T.QTY
-                                 END)                                              AS QTY_100008   /* 성수물류센터 */
-                           , SUM(CASE WHEN T.WARE_DTL_DV_CD = '20' THEN T.QTY END) AS QTY_200000   /* 서비스센터 */
-                           , SUM(CASE WHEN T.WARE_DTL_DV_CD = '21' THEN T.QTY END) AS QTY_299999   /* 엔지니어 */
-                           , SUM(CASE WHEN T.WARE_DV_CD = '3' THEN T.QTY END)      AS QTY_300000   /* 영업센터 */
-                           , SUM(CASE WHEN T.WARE_NO IN ('100002', '100003')
-                                        OR T.WARE_DV_CD IN ('2', '3')
-                                        OR ( T.WARE_NO = '100008' AND #{itmKndCd} IN ('5', '6') ) THEN T.QTY
-                                 END)                                              AS QTY_999999   /* 재고현황 계 */
-                        FROM ( <include refid="selectItemStocks" /> ) T
-                       GROUP BY T.ITM_PD_CD
-                    ) D3
-                   ON 1 = 1
+                 LEFT OUTER JOIN TB_QTY D3              /* WITH절 재고수량 */
+                   ON D3.ITM_PD_CD = T1.PD_CD
                 WHERE T1.DTA_DL_YN          = 'N'
                   AND T1.PD_TP_CD           = 'M'
                   AND D2.DTA_DL_YN          = 'N'
@@ -401,16 +632,18 @@
                 <if test="@MybatisUtils@isNotEmpty(matUtlzDvCd)">
                   AND D2.PD_PRP_VAL21       = #{matUtlzDvCd}
                 </if>
+                GROUP BY T1.SAP_MAT_CD, T1.PD_CD, T1.PD_ABBR_NM, D2.PD_PRP_VAL06, REGEXP_REPLACE(D2.PD_PRP_VAL07, '[^0-9]', '')
              ) T1
-          LEFT OUTER JOIN LATERAL
+          LEFT OUTER JOIN
              (
                SELECT *
                  FROM
                     (
-                      SELECT ITM_PD_CD
+                      SELECT /*+ NO_MERGE(TB_QTY) */
+                             ITM_PD_CD
                            , WARE_NO
                            , QTY
-                        FROM ( <include refid="selectItemStocks" /> )
+                        FROM TB_QTY   /* WITH절 재고수량 */
                        WHERE WARE_DV_CD      = #{wareDvCd}
                 <choose>
                     <when test='@MybatisUtils@equals(wareTpCd, "CORP")'>
@@ -430,7 +663,7 @@
                       FOR WARE_NO IN (${wareNoInStr})
                     )
              ) T2
-            ON 1 = 1
+            ON T2.ITM_PD_CD = T1.PD_CD
          ORDER BY T1.PD_CD
     <if test="@MybatisUtils@isNotEmpty(offSet) and @MybatisUtils@isNotEmpty(size)">
         OFFSET ${offSet} ROW FETCH NEXT ${size} ROW ONLY
