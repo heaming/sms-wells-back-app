@@ -22,6 +22,9 @@
              , '' AS RSB_DV_CDS
              , T3.OG_TP_CD
              , T3.CST_CNR_INQR_PRMIT_YN
+             , CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') <![CDATA[>]]> VL_END_DTM THEN 'N'
+             		ELSE 'Y'
+               END PSB_YN
           FROM
              ( SELECT S1.BZNS_SPPT_MNAL_ID      /* 영업지원매뉴얼ID */
                     , S1.HGR_BZNS_SPPT_MNAL_ID  /* 상위영업지원매뉴얼ID */
@@ -104,6 +107,9 @@
              , T2.RSB_DV_CDS
              , T2.OG_TP_CD
              , T2.CST_CNR_INQR_PRMIT_YN
+             , CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') <![CDATA[>]]> VL_END_DTM THEN 'N'
+             		ELSE 'Y'
+               END PSB_YN
           FROM TB_PSGA_BZNS_SPPT_MNAL_BAS T1
           LEFT OUTER JOIN
              ( SELECT S1.BZNS_SPPT_MNAL_ID
@@ -111,7 +117,8 @@
                     , LISTAGG(DISTINCT  S1.OG_TP_CD, ',') WITHIN GROUP ( ORDER BY S1.BZNS_SPPT_MNAL_ID ) AS OG_TP_CD
                     , LISTAGG(S1.RSB_DV_CD, ',') WITHIN GROUP ( ORDER BY S1.BZNS_SPPT_MNAL_ID ) AS RSB_DV_CDS
                  FROM TB_PSGA_BZNS_SPPT_MNAL_RGH_REL S1
-                WHERE S1.DTA_DL_YN = 'N'
+                WHERE S1.VL_STRT_DTM = #{vlStrtDtm}
+                  AND S1.BZNS_SPPT_MNAL_ID = #{bznsSpptMnalId}
                 GROUP BY S1.BZNS_SPPT_MNAL_ID, S1.CST_CNR_INQR_PRMIT_YN
              ) T2
             ON T1.BZNS_SPPT_MNAL_ID = T2.BZNS_SPPT_MNAL_ID
@@ -120,7 +127,7 @@
            AND T3.DEL_YN = 'N'
          WHERE T1.DTA_DL_YN = 'N'
            AND T1.BZNS_SPPT_MNAL_ID = #{bznsSpptMnalId}
-           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+           AND T1.VL_STRT_DTM = #{vlStrtDtm}
     </select>
 
 
@@ -145,6 +152,9 @@
              , '' AS RSB_DV_CDS
              , T3.CST_CNR_INQR_PRMIT_YN
              , T3.OG_TP_CD
+             , CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') <![CDATA[>]]> T1.VL_END_DTM THEN 'N'
+             		ELSE 'Y'
+               END PSB_YN
           FROM
              ( SELECT S1.BZNS_SPPT_MNAL_ID      /* 영업지원매뉴얼ID */
                     , S1.HGR_BZNS_SPPT_MNAL_ID  /* 상위영업지원매뉴얼ID */
@@ -185,7 +195,7 @@
                                OR
                                'Y' = #{session.dataFullAuthYn}
                                OR
-                               EXISTS( SELECT 1
+                               NOT EXISTS( SELECT 1
                                          FROM TB_PSGA_BZNS_SPPT_MNAL_RGH_REL S1
                                         INNER JOIN
                                             ( SELECT C.RSB_DV_CD, C.OG_TP_CD
@@ -200,7 +210,9 @@
                                             ) S2
                                            ON S1.RSB_DV_CD = S2.RSB_DV_CD
                                           AND S1.OG_TP_CD = S2.OG_TP_CD
-                                        WHERE S1.BZNS_SPPT_MNAL_ID = T1.BZNS_SPPT_MNAL_ID)
+                                        WHERE S1.BZNS_SPPT_MNAL_ID = T1.BZNS_SPPT_MNAL_ID
+                                          AND S1.CST_CNR_INQR_PRMIT_YN = 'N'
+                                        )
                              )
                     ) S1
                 WHERE 1=1

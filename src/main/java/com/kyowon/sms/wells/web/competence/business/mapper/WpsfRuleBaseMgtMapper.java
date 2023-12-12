@@ -17,7 +17,7 @@ public interface WpsfRuleBaseMgtMapper {
         SearchReq dto
     );
 
-    SearchRes selectRuleBaseDetail(String bznsSpptMnalId);
+    SearchRes selectRuleBaseDetail(SearchReq req);
 
     List<SearchRes> selectUserRuleBase(
         SearchReq dto
