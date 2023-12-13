@@ -159,9 +159,8 @@ public class WsnbIndividualServicePsDto {
         String svBizDclsfCd, /* 서비스소분류코드*/
         String procStus, /* 작업진행상태코드*/
         String cntrNo, /*계약번호*/
-        String cntrSn /*계약일련번호*/
-
-
+        String cntrSn, /*계약일련번호*/
+        String taikYn /*배송여부*/
     ){}
 
     /**

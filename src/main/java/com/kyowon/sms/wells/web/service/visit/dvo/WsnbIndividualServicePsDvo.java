@@ -89,5 +89,6 @@ public class WsnbIndividualServicePsDvo {
     String svHshdNoCnt; /* 가구화번호CNT*/
     String svBizHclsfCd; /* 서비스대분류코드*/
     String svBizDclsfCd; /* 서비스소분류코드*/
+    String taikYn; /*배송여부*/
 
 }
