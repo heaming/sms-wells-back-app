@@ -19,7 +19,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[WSNF] BS 업무시간및 마감관리")
+/**
+ * <pre>
+ * [WSNY] BS 업무시간및 마감관리
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-01-14
+ */
+@Api(tags = "[WSNY] BS 업무시간및 마감관리")
 @RequiredArgsConstructor
 @RestController
 @Validated

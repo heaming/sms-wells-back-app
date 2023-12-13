@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,8 +42,7 @@ public class WwdbRefundCurrentStatusController {
     @ApiOperation(value = "환불 내역", notes = "환불 내역 목록")
     @GetMapping("/paging")
     public PagingResult<SearchRefundHistoryRes> getRefundHistoryPages(
-        @ApiParam
-        @Valid
+        @ApiParam @Valid
         SearchRefundHistoryReq req,
         @Valid
         PageInfo pageInfo
@@ -64,6 +64,19 @@ public class WwdbRefundCurrentStatusController {
     }
 
     /**
+     * 환불 내역 목록 조회 / 엑셀 다운로드
+     * @param req
+     * @return
+     */
+    @ApiOperation(value = "환불 내역 목록 합계", notes = "환불 내역 목록 합계를 구한다.")
+    @GetMapping("/sum")
+    public WwdbRefundCurrentStatusDto.SearchRefundHistoryTotalRes getRefundHistorySum(
+        SearchRefundHistoryReq req
+    ) {
+        return service.getRefundHistorySum(req);
+    }
+
+    /**
      * 카드사별 환불내역 목록 / 페이징
      * @param req
      * @param pageInfo
@@ -72,8 +85,7 @@ public class WwdbRefundCurrentStatusController {
     @ApiOperation(value = "카드사별 환불내역 목록", notes = "카드사별 환불내역 목록")
     @GetMapping("/card/paging")
     public PagingResult<SearchCardRefundHistoryRes> getCardRefundHistoryPages(
-        @ApiParam
-        @Valid
+        @ApiParam @Valid
         SearchRefundHistoryReq req,
         @Valid
         PageInfo pageInfo
@@ -103,8 +115,7 @@ public class WwdbRefundCurrentStatusController {
     @ApiOperation(value = "전금내역 목록", notes = "전금내역 목록")
     @GetMapping("/balance-transfer/paging")
     public PagingResult<SearchBalanceTransferRefundHistoryRes> getBalanceTransferRefundHistoryPages(
-        @ApiParam
-        @Valid
+        @ApiParam @Valid
         SearchRefundHistoryReq req,
         @Valid
         PageInfo pageInfo

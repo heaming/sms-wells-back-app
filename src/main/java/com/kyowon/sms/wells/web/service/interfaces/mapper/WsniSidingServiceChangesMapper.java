@@ -17,7 +17,9 @@ public interface WsniSidingServiceChangesMapper {
         String afchPdCd,
         String mtrProcsStatCd,
         String choCapslCn,
-        String csmrUprcAmt
+        String csmrUprcAmt,
+        String rcpIchrPrtnrNo,
+        String rcpOgTpCd
     );
 
     int deleteSdingAskAk(
@@ -61,7 +63,9 @@ public interface WsniSidingServiceChangesMapper {
         String afchPdCd,
         String mtrProcsStatCd,
         String akChdt,
-        String choCapslCn
+        String choCapslCn,
+        String rcpIchrPrtnrNo,
+        String rcpOgTpCd
     );
 
     /**
@@ -72,17 +76,10 @@ public interface WsniSidingServiceChangesMapper {
      * @param afchPdCd
      * @return
      */
-    WsniSidingServiceChangesDvo selectBsTarget(
-        String cntrNo,
-        String cntrSn,
-        String asnOjYm,
-        String afchPdCd
-    );
+    WsniSidingServiceChangesDvo selectBsTarget(String cntrNo, String cntrSn, String asnOjYm, String afchPdCd);
 
     int updateStopNextSiding(String cntrNo, String cntrSn, String akChdt);
 
-    String selectPdctPdCds(
-        String cntrNo,
-        String cntrSn
-    );
+    String selectPdctPdCds(String cntrNo, String cntrSn);
+
 }

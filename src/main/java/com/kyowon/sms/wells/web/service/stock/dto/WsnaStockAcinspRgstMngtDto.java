@@ -61,6 +61,7 @@ public class WsnaStockAcinspRgstMngtDto {
         int minusQty, /* 차이수량 */
         String acinspRmkCn, /* 실사비고 */
         String statusT, /* 상태값 */
+        String stocAcinspAkId, /* 재고실사요청ID */
         String cnfmdt, /* 확정일자 */
         int cnfmPitmEotStocQty, /* 확정시점기말재고수량 */
         int cnfmPitmStrGapQty, /* 확정시점입고차이수량 */

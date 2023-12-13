@@ -227,6 +227,8 @@ public class WwdbCreditCardApprovalInterfaceService {
             receiveAskDvo.setReceiveCompanyCd("2000");
             // 소득공제여부
             receiveAskDvo.setIncmdcYn("N");
+            // 수납코드
+            receiveAskDvo.setReceiveCode(dto.rveCd());
 
             withdrawalService.createReceiveAskDetail(receiveAskDvo);
             withdrawalService.createReceiveAskDetailHistory(receiveAskDvo);

@@ -25,7 +25,7 @@ public interface WfeyAdsbFeeCalculationSqlMapper {
      * @return
      */
 
-    @SqlMethodInfo(methodName = "Wells 재지급수수료 계산", methodExplanation = "WELLS사업부의 재지급수수료 계산")
+    @SqlMethodInfo(methodTypeCode = "02", methodName = "Wells 재지급수수료 계산", methodExplanation = "WELLS사업부의 재지급수수료 계산")
     int insertAgainDisbursementFees(String baseYm, String perfYm, String feeCd, String dtaCrtFeeCd, String coCd, String feeOjExrCndtCn, String feeTcntDvCd);
 
 }

@@ -9,6 +9,14 @@ import com.kyowon.sms.wells.web.service.allocate.mapper.WsncContactHistoryMapper
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * [WSNC] 고객 컨택이력
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-06-26
+ */
 @Service
 @RequiredArgsConstructor
 public class WsncContactHistoryService {

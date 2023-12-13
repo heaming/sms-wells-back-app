@@ -43,34 +43,34 @@ public class WsncQuickResponseRpblDto {
     // *********************************************************
     @ApiModel(value = "WsncQuickResponseRpblDto-SearchRes")
     public record SearchRes(
-        String mngrDvCd,
-        String ogNm,
-        String prtnrNo,
-        String prtnrKnm,
-        String ogId,
-        String ogTpCd,
-        String pdctPdCd,
-        String pdNm,
-        String cntrNo,
-        String cntrSn,
-        String rcgvpKnm,
-        String newAdrZip,
-        String rnadr,
-        String rdadr,
-        String vstYm,
-        String bcNo,
-        String dldDt,
-        String vstFshDt,
-        String vstFshHh,
-        String bcInMthdCd,
-        String cstSignCn,
-        String dnldPrtnrKnm,
-        String publishInfo,
-        String svpdQrType,
-        String qrCd,
-        String cralLocaraTno,
-        String mexnoEncr,
-        String cralIdvTno,
+        String mngrDvCd, /* 구분 */
+        String ogNm, /* 소속 */
+        String prtnrNo, /* 파트너번호 */
+        String prtnrKnm, /* 파트너명 */
+        String ogId, /* 조직ID */
+        String ogTpCd, /* 조직유형코드 */
+        String pdctPdCd, /* 제품상품코드 */
+        String pdNm, /* 제품명 */
+        String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
+        String rcgvpKnm, /* 설치자명 */
+        String newAdrZip, /* 우편번호 */
+        String rnadr, /* 주소1 */
+        String rdadr, /* 주소2 */
+        String vstYm, /* 발행월 */
+        String bcNo, /* 발행바코드 */
+        String dldDt, /* 다운로드일자 */
+        String vstFshDt, /* 처리일자 */
+        String vstFshHh, /* 처리시간 */
+        String bcInMthdCd, /* 스캔 */
+        String cstSignCn, /* 고객서명 */
+        String dnldPrtnrKnm, /* 다운로드담당자 */
+        String publishInfo, /* 발행정보 */
+        String svpdQrType, /* QR유형 */
+        String qrCd, /* QR코드 */
+        String cralLocaraTno, /* 작업파트너 휴대전화번호1 */
+        String mexnoEncr, /* 작업파트너 휴대전화번호2 */
+        String cralIdvTno, /* 작업파트너 휴대전화번호3 */
         String bcRpblId
     ) {
         @AutomapConstructor

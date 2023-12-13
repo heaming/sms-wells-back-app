@@ -1,0 +1,660 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.calculation.mapper.WfebMutualAidFeeManagerMgtMapper">
+
+    <!-- 상조 수수료 조회 개인 -->
+    <select id='selectMutualAidIndividualFee' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidIndividual">
+        SELECT T1.BASE_YM                                          /* 발생월 (기준년월)         */
+             , CASE WHEN T1.LIF_CNTR_STAT_CD = '0' THEN '수수료'
+                    WHEN T1.LIF_CNTR_STAT_CD = '1' THEN '되물림'
+                    WHEN T1.LIF_CNTR_STAT_CD = '2' THEN '연체'
+                    WHEN T1.LIF_CNTR_STAT_CD = '3' THEN '재지급'
+               ELSE 'Error' END CNTR_STAT                          /* 수수료 구분               */
+             , T3.OG_CD                                            /* 소속 (지점CD)             */
+             , T1.PRTNR_NO                                         /* 사번 - 파트너             */
+             , T3.PRTNR_KNM                                        /* 성명 - 파트너             */
+             , T3.RSB_DV_CD                                          /* 직책명 - 파트너           */
+             , T1.BRMGR_PRTNR_NO                                   /* 지점장 번호               */
+             , T1.CNTR_NO                                          /* 계약번호                  */
+             , T5.PD_NM                                            /* Wells 상품명              */
+             , T4.CNTR_PD_STRTDT                                   /* 설치일 (계약상품시작일자) */
+             , T1.LIF_CNTR_NO                                      /* 상조 계약번호             */
+             , CASE WHEN T1.LIF_PD_CD = '2178'
+                    THEN '429'
+                    ELSE '599' END AS LIF_PD_NM                    /* 상조 상품명               */
+             , T1.RCPDT                                            /* 접수일                    */
+             , T1.CNTR_DT                                          /* 계약일(1회출금일)         */
+             , T1.CAN_DT                                           /* 취소일                    */
+             , TF.BASE_FEE         AS SELL_FEE                     /* 판매자 수수료             */
+             , T1.TOT_DSB_OJ_DV_CD                                 /* 총 지급대상               */
+             , T1.LIF_CNTR_OC_TN                                   /* 회차 (라이프계약발생회차) */
+             , T1.SL_OC_ACU_AMT                                    /* 누적발생 매출             */
+             , T1.DP_ACU_AMT                                       /* 누적입금                  */
+             , T1.FLPYM_TN                                         /* 완납 회차                 */
+             , TF.BASE_FEE * NVL(T7.CNT, 0) AS PRE_AMT_SUM         /* 기지급금 (50000 * CNT)    */
+             , CASE WHEN T1.CAN_DT IS NULL
+                    THEN TF.BASE_FEE
+                    ELSE 0 END CUR_AMT                             /* 당월지급  (50000) - 20230703 수정 */
+             , CASE WHEN T1.ET_CNFM_DV_CD = '00'
+                    THEN 'Y' ELSE 'N' END ET_CNFM_DV_NM            /* 라이프 확정               */
+             , T1.FEE_DSB_YM                                       /* 수수료 지급월             */
+             , T1.FEE_REDF_YM                                      /* 수수료 되물림월 - 20230703 수정   */
+         FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ  T1  /* 라이프제휴수수료계약내역 */
+        INNER JOIN       TB_SSCT_CNTR_BAS              T2  /* 계약기본                 */
+           ON T1.CNTR_NO    = T2.CNTR_NO
+        LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ           T3  /* 월파트너                 */
+           ON T1.BASE_YM    = T3.BASE_YM
+          AND T1.PRTNR_NO   = T3.PRTNR_NO
+          AND T1.OG_TP_CD   = T3.OG_TP_CD
+        INNER JOIN       TB_SSCT_CNTR_DTL              T4  /* 계약상세                 */
+           ON T1.CNTR_NO    = T4.CNTR_NO
+          AND T1.CNTR_SN    = T4.CNTR_SN
+        INNER JOIN       TB_PDBS_PD_BAS                T5  /* 상품기본                 */
+           ON T4.BASE_PD_CD = T5.PD_CD
+         LEFT OUTER JOIN  ( SELECT  LIF_CNTR_NO    --라이프계약번호
+                                  , PRTNR_NO       --파트너 번호
+                                  , COUNT(1) CNT   --COUNT
+                            FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ
+                            WHERE BASE_YM  <![CDATA[<]]> #{baseYm}
+                              AND LIF_CNTR_STAT_CD = '0'
+                              AND OG_TP_CD         = 'W02'
+                              AND CAN_DT           IS NULL
+                            GROUP BY LIF_CNTR_NO, PRTNR_NO )       T7  /* 기지급을 위한 지급회수 COUNT */
+           ON T1.LIF_CNTR_NO = T7.LIF_CNTR_NO
+          AND T1.PRTNR_NO    = T7.PRTNR_NO
+        INNER JOIN ( SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
+                       FROM TB_FEAM_FEE_BASE_DTL
+                      WHERE FEE_CD = 'W020125' /* W020125(15직급개인), W020126(조직) */
+                        AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM ) TF /* 상조 FEE 기준금액 */
+           ON  1 = 1
+        WHERE 1 = 1
+          AND T1.BASE_YM          = #{baseYm}
+          AND T1.LIF_CNTR_STAT_CD = '0'                 --20230703 - 라이프계약상태코드 - 0수수료, 3재지급, 2연체, 1되물림
+          AND T1.OG_TP_CD         = 'W02'
+          AND T1.DTA_DL_YN        = 'N'
+         <if test='@MybatisUtils@isNotEmpty(sellPrtnrNo)'>
+          AND T1.PRTNR_NO         = #{sellPrtnrNo}         --20230703 - 파트너번호
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(strtDt) and @MybatisUtils@isNotEmpty(endDt)'>
+          AND T1.CNTR_DT >= #{strtDt}
+          AND T1.CNTR_DT <![CDATA[<=]]> #{endDt}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+          AND CASE WHEN T1.LIF_PD_CD = '2178' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
+         </if>
+        ORDER BY T1.PRTNR_NO, T2.CNTR_CST_NO
+    </select>
+
+    <select id='selectMutualAidIndividualRedf' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidIndividual">
+        SELECT T1.BASE_YM                                          /* 발생월 (기준년월)         */
+             , CASE WHEN T1.LIF_CNTR_STAT_CD = '0' THEN '수수료'
+                    WHEN T1.LIF_CNTR_STAT_CD = '1' THEN '되물림'
+                    WHEN T1.LIF_CNTR_STAT_CD = '2' THEN '연체'
+                    WHEN T1.LIF_CNTR_STAT_CD = '3' THEN '재지급'
+               ELSE 'Error' END CNTR_STAT                          /* 수수료 구분               */
+             , T3.OG_CD                                            /* 소속 (지점CD)             */
+             , T1.PRTNR_NO                                         /* 사번 - 파트너             */
+             , T3.PRTNR_KNM                                        /* 성명 - 파트너             */
+             , T3.RSB_DV_CD                                          /* 직책명 - 파트너           */
+             , T1.BRMGR_PRTNR_NO                                   /* 지점장 번호               */
+             , T1.CNTR_NO                                          /* 계약번호                  */
+             , T5.PD_NM                                            /* Wells 상품명              */
+             , T4.CNTR_PD_STRTDT                                   /* 설치일 (계약상품시작일자) */
+             , T1.LIF_CNTR_NO                                      /* 상조 계약번호             */
+             , CASE WHEN T1.LIF_PD_CD = '2178'
+                    THEN '429'
+                    ELSE '599' END AS LIF_PD_NM                    /* 상조 상품명               */
+             , T1.RCPDT                                            /* 접수일                    */
+             , T1.CNTR_DT                                          /* 계약일(1회출금일)         */
+             , T1.CAN_DT                                           /* 취소일                    */
+             , T4.SELL_FEE                                         /* 판매자 수수료   --삭제 대상 */
+             , T1.TOT_DSB_OJ_DV_CD                                 /* 총 지급대상               */
+             , T1.LIF_CNTR_OC_TN                                   /* 회차 (라이프계약발생회차) */
+             , T1.SL_OC_ACU_AMT                                    /* 누적발생 매출             */
+             , T1.DP_ACU_AMT                                       /* 누적입금                  */
+             , T1.FLPYM_TN                                         /* 완납 회차                 */
+             , TF.BASE_FEE AS PRE_AMT_SUM                          /* 기지급금 (50000)          */
+             , 0 CUR_AMT                                           /* 당월지급                  */
+             , CASE WHEN T1.ET_CNFM_DV_CD = '00'
+                    THEN 'Y' ELSE 'N' END ET_CNFM_DV_NM            /* 라이프 확정               */
+             , T1.FEE_DSB_YM                                       /* 수수료 지급월             */
+             , T1.FEE_REDF_YM                                      /* 수수료 되물림월 - 20230703 수정   */
+          FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ  T1  /* 라이프제휴수수료계약내역 */
+         INNER JOIN       TB_SSCT_CNTR_BAS              T2  /* 계약기본                 */
+            ON T1.CNTR_NO    = T2.CNTR_NO
+         INNER JOIN       TB_OGBS_MM_PRTNR_IZ           T3  /* 월파트너                 */
+            ON T1.BASE_YM    = T3.BASE_YM
+           AND T1.PRTNR_NO   = T3.PRTNR_NO
+           AND T1.OG_TP_CD   = T3.OG_TP_CD  /* 20230502 - 조건절 추가   */
+         INNER JOIN       TB_SSCT_CNTR_DTL              T4  /* 계약상세                 */
+            ON T1.CNTR_NO    = T4.CNTR_NO
+           AND T1.CNTR_SN    = T4.CNTR_SN
+         INNER JOIN       TB_PDBS_PD_BAS                T5  /* 상품기본                 */
+            ON T4.BASE_PD_CD = T5.PD_CD
+         INNER JOIN ( SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
+                        FROM TB_FEAM_FEE_BASE_DTL
+                       WHERE FEE_CD = 'W020125' /* W020125(15직급개인), W020126(조직) */
+                         AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM ) TF /* 상조 FEE 기준금액 */
+            ON 1=1
+         WHERE 1=1
+           AND T1.BASE_YM          = #{baseYm}
+           AND T1.LIF_CNTR_STAT_CD = '1'                        --20230703 - 라이프계약상태코드 - 0수수료, 3재지급, 2연체, 1되물림
+           AND T1.OG_TP_CD         = 'W02'
+           AND T1.CAN_DT           = T1.BASE_YM
+           AND T1.CAN_DT          <![CDATA[<>]]>  SUBSTR(T1.CNTR_DT,1,6)
+          <if test='@MybatisUtils@isNotEmpty(sellPrtnrNo)'>
+           AND T1.PRTNR_NO         = #{sellPrtnrNo}               --파트너번호
+          </if>
+         <if test='@MybatisUtils@isNotEmpty(strtDt) and @MybatisUtils@isNotEmpty(endDt)'>
+           AND T1.CNTR_DT >= #{strtDt}
+           AND T1.CNTR_DT <![CDATA[<=]]> #{endDt}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           AND CASE WHEN T1.LIF_PD_CD = '2178' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
+         </if>
+           AND T1.DTA_DL_YN          = 'N'
+         ORDER BY T1.PRTNR_NO, T2.CNTR_CST_NO
+    </select>
+
+    <select id='selectMutualAidIndividualEtc' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidIndividual">
+        SELECT T1.BASE_YM                                          /* 발생월 (기준년월)         */
+             , CASE WHEN T1.LIF_CNTR_STAT_CD = '0' THEN '수수료'
+                    WHEN T1.LIF_CNTR_STAT_CD = '3' THEN '재지급'
+                    WHEN T1.LIF_CNTR_STAT_CD = '2' THEN '연체'
+                    WHEN T1.LIF_CNTR_STAT_CD = '1' THEN '되물림'
+               ELSE 'Error' END || '[' || CASE WHEN #{clasfctnFee} = '0' THEN '수수료'
+                                               WHEN #{clasfctnFee} = '1' THEN '되물림'
+                                               WHEN #{clasfctnFee} = '2' THEN '연체'
+                                               WHEN #{clasfctnFee} = '3' THEN '재지급' END || ']' AS CNTR_STAT                          /* 수수료 구분               */
+             , T3.OG_CD                                            /* 소속 (지점CD)             */
+             , T1.PRTNR_NO                                         /* 사번 - 파트너             */
+             , T3.PRTNR_KNM                                        /* 성명 - 파트너             */
+             , T3.RSB_DV_CD                                        /* 직책명 - 파트너           */
+             , T1.BRMGR_PRTNR_NO                                   /* 지점장 번호               */
+             , T1.CNTR_NO                                          /* 계약번호                  */
+             , T5.PD_NM                                            /* Wells 상품명              */
+             , T4.CNTR_PD_STRTDT                                   /* 설치일 (계약상품시작일자) */
+             , T1.LIF_CNTR_NO                                      /* 상조 계약번호             */
+             , CASE WHEN T1.LIF_PD_CD = '2178'
+                    THEN '429'
+                    ELSE '599' END AS LIF_PD_NM                    /* 상조 상품명               */
+             , T1.RCPDT                                            /* 접수일                    */
+             , T1.CNTR_DT                                          /* 계약일(1회출금일)         */
+             , T1.CAN_DT                                           /* 취소일                    */
+             , T4.SELL_FEE                                         /* 판매자 수수료   */
+             , T1.TOT_DSB_OJ_DV_CD                                 /* 총 지급대상               */
+             , T1.LIF_CNTR_OC_TN                                   /* 회차 (라이프계약발생회차) */
+             , T1.SL_OC_ACU_AMT                                    /* 누적발생 매출             */
+             , T1.DP_ACU_AMT                                       /* 누적입금                  */
+             , T1.FLPYM_TN                                         /* 완납 회차                 */
+             , TF.BASE_FEE AS PRE_AMT_SUM                          /* 기지급금 (50000)          */
+             , 0 CUR_AMT                                           /* 당월지급                  */
+             , CASE WHEN T1.ET_CNFM_DV_CD = '00'
+                    THEN 'Y' ELSE 'N' END ET_CNFM_DV_NM            /* 라이프 확정               */
+             , T1.FEE_DSB_YM                                       /* 수수료 지급월             */
+             , CASE WHEN T1.LIF_CNTR_STAT_CD = '3' /* 재지급 */
+                    THEN T1.FEE_DSB_YM
+                    ELSE T1.FEE_REDF_YM END FEE_REDF_YM            /* 수수료 되물림월           */
+         FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ  T1  /* 라이프제휴수수료계약내역 */
+        INNER JOIN TB_SSCT_CNTR_BAS              T2  /* 계약기본                 */
+           ON T1.CNTR_NO    = T2.CNTR_NO
+        INNER JOIN       TB_OGBS_MM_PRTNR_IZ           T3  /* 월파트너                 */
+           ON T1.BASE_YM    = T3.BASE_YM
+          AND T1.PRTNR_NO   = T3.PRTNR_NO
+          AND T3.OG_TP_CD   = T2.SELL_OG_TP_CD
+        INNER JOIN       TB_SSCT_CNTR_DTL              T4  /* 계약상세                 */
+           ON T1.CNTR_NO    = T4.CNTR_NO
+          AND T1.CNTR_SN    = T4.CNTR_SN
+        INNER JOIN       TB_PDBS_PD_BAS                T5  /* 상품기본                 */
+           ON T4.BASE_PD_CD = T5.PD_CD
+        INNER JOIN ( SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
+                       FROM TB_FEAM_FEE_BASE_DTL
+                      WHERE FEE_CD = 'W020125' /* W020125(15직급개인), W020126(조직) */
+                        AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM ) TF /* 상조 FEE 기준금액 */
+           ON  1=1
+        INNER JOIN ( SELECT LIF_CNTR_NO    --라이프계약번호
+                          , PRTNR_NO       --파트너 번호
+                       FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ
+                      WHERE BASE_YM          = #{baseYm}
+                        AND LIF_CNTR_STAT_CD = #{clasfctnFee}
+                      GROUP BY LIF_CNTR_NO, PRTNR_NO ) T7
+           ON T1.LIF_CNTR_NO = T7.LIF_CNTR_NO
+          AND T1.PRTNR_NO    = T7.PRTNR_NO
+        WHERE 1=1
+          AND T1.BASE_YM          <![CDATA[<=]]> #{baseYm}
+          AND T1.LIF_CNTR_STAT_CD  = '0'                     --라이프계약상태코드
+          AND T1.OG_TP_CD          = 'W02'
+         <if test='@MybatisUtils@isNotEmpty(sellPrtnrNo)'>
+          AND T1.PRTNR_NO         = #{sellPrtnrNo}               --파트너번호
+         </if>
+         <if test='"3".equals(clasfctnFee)'>
+           AND T1.FEE_DSB_YM        <![CDATA[<]]> #{baseYm}
+           AND T1.FEE_DSB_YM        IS NOT NULL
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(strtDt) and @MybatisUtils@isNotEmpty(endDt)'>
+           AND T1.CNTR_DT >= #{strtDt}
+           AND T1.CNTR_DT <![CDATA[<=]]> #{endDt}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           AND CASE WHEN T1.LIF_PD_CD = '2178' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
+         </if>
+          AND T1.DTA_DL_YN          = 'N'
+        ORDER BY T1.PRTNR_NO, T2.CNTR_CST_NO
+    </select>
+
+
+    <!-- 상조 수수료 조회 조직 -->
+     <select id='selectMutualAidGroupFee' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidGroup">
+        SELECT T1.BASE_YM                                          /* 발생월 (기준년월) */
+             , CASE WHEN T1.LIF_CNTR_STAT_CD = '0' THEN '수수료'
+                    WHEN T1.LIF_CNTR_STAT_CD = '1' THEN '되물림'
+                    WHEN T1.LIF_CNTR_STAT_CD = '2' THEN '연체'
+                    WHEN T1.LIF_CNTR_STAT_CD = '3' THEN '재지급'
+               ELSE 'Error' END CNTR_STAT                          /* 수수료 구분               */
+             , T3.OG_CD                                            /* 소속 (지점CD)             */
+             , T1.BRMGR_PRTNR_NO                                   /* 사번 - 지점장             */
+             , T3.PRTNR_KNM                                        /* 성명 - 지점장             */
+             , T3.RSB_DV_CD                                          /* 직책명 - 지점장           */
+             , COUNT(1) AS BRCH_CT                                 /* 건수 - 지점               */
+             , TF.BASE_FEE * COUNT(1) AS  BRCH_AMT                 /* 금액 - 지점               */
+             , T1.FEE_DSB_YM                                       /* 수수료 지급월             */
+             , T1.FEE_REDF_YM                                      /* 수수료 되물림월           */
+             , CASE WHEN T1.ET_CNFM_DV_CD = '00'
+                    THEN 'Y' ELSE 'N' END  ET_CNFM_DV_NM           /* 라이프 확정               */
+          FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ  T1  /* 라이프제휴수수료계약내역 */
+         INNER JOIN       TB_SSCT_CNTR_BAS              T2  /* 계약기본 20230502 - 조건절을 위해 태이블 추가 */
+            ON T2.CNTR_NO        = T1.CNTR_NO
+         INNER JOIN       TB_OGBS_MM_PRTNR_IZ           T3  /* 월파트너                 */
+            ON T1.BASE_YM        = T3.BASE_YM
+           AND T1.BRMGR_PRTNR_NO = T3.PRTNR_NO
+           AND T1.OG_TP_CD   = T3.OG_TP_CD
+         INNER JOIN ( SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
+                        FROM TB_FEAM_FEE_BASE_DTL
+                       WHERE FEE_CD = 'W020126' /* W020125(15직급개인), W020126(조직) */
+                         AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM ) TF /* 상조 FEE 기준금액 */
+            ON 1=1
+         WHERE 1=1
+           AND T1.BASE_YM             = #{baseYm}
+           AND T1.LIF_CNTR_STAT_CD    = '0'               /* 수수료  라이프계약상태코드 */
+           AND T1.OG_TP_CD            = 'W02'
+           AND T1.LIF_CNTR_OC_TN      = 1                 /* 라이프계약발생회차          */
+           AND T1.PRTNR_NO           != T1.BRMGR_PRTNR_NO /* 판매자사번 != 지점장사번    */
+           <if test='@MybatisUtils@isNotEmpty(strtDt) and @MybatisUtils@isNotEmpty(endDt)'>
+           AND T1.CNTR_DT            >= #{strtDt}
+           AND T1.CNTR_DT   <![CDATA[<=]]> #{endDt}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           AND CASE WHEN T1.LIF_PD_CD = '2178' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
+           </if>
+           AND T1.DTA_DL_YN          = 'N'
+         GROUP BY T1.BASE_YM
+                , T1.LIF_CNTR_STAT_CD
+                , T3.OG_CD
+                , T1.BRMGR_PRTNR_NO
+                , T3.PRTNR_KNM
+                , T3.RSB_DV_CD
+                , T1.FEE_DSB_YM
+                , T1.FEE_REDF_YM
+                , TF.BASE_FEE
+                , T1.ET_CNFM_DV_CD
+    </select>
+
+    <select id='selectMutualAidGroupRedf' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidGroup">
+        SELECT T1.BASE_YM                                          /* 발생월 (기준년월) */
+             , CASE WHEN T1.LIF_CNTR_STAT_CD = '0' THEN '수수료'
+                    WHEN T1.LIF_CNTR_STAT_CD = '1' THEN '되물림'
+                    WHEN T1.LIF_CNTR_STAT_CD = '2' THEN '연체'
+                    WHEN T1.LIF_CNTR_STAT_CD = '3' THEN '재지급'
+               ELSE 'Error' END CNTR_STAT
+             , T3.OG_CD                                            /* 소속 (지점CD)             */
+             , T1.BRMGR_PRTNR_NO                                   /* 사번 - 지점장             */
+             , T3.PRTNR_KNM                                        /* 성명 - 지점장             */
+             , T3.RSB_DV_CD                                          /* 직책명 - 지점장           */
+             , COUNT(1) AS BRCH_CT                                 /* 건수 - 지점               */
+             , TF.BASE_FEE * COUNT(1) AS  BRCH_AMT                 /* 금액 - 지점 (40000 * CNT) */
+             , T1.FEE_DSB_YM                                       /* 수수료 지급월             */
+             , T1.FEE_REDF_YM                                      /* 수수료 되물림월           */
+             , CASE WHEN T1.ET_CNFM_DV_CD = '00'
+                    THEN 'Y' ELSE 'N' END  ET_CNFM_DV_NM           /* 라이프 확정               */
+          FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ  T1  /* 라이프제휴수수료계약내역 */
+         INNER JOIN TB_SSCT_CNTR_BAS              T2  /* 계약기본 20230502 - 조건절을 위해 태이블 추가 */
+            ON T2.CNTR_NO        = T1.CNTR_NO
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ           T3  /* 월파트너                 */
+            ON T1.BASE_YM        = T3.BASE_YM
+           AND T1.BRMGR_PRTNR_NO = T3.PRTNR_NO
+           AND T1.OG_TP_CD   = T3.OG_TP_CD
+         INNER JOIN ( SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
+                        FROM TB_FEAM_FEE_BASE_DTL
+                       WHERE FEE_CD = 'W020126' /* W020125(15직급개인), W020126(조직) */
+                         AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM) TF /* 상조 FEE 기준금액 */
+            ON 1=1
+         INNER JOIN ( SELECT LIF_CNTR_NO    --라이프계약번호
+                           , PRTNR_NO
+                        FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ
+                       WHERE BASE_YM          = #{baseYm}
+                         AND LIF_CNTR_STAT_CD = '1'
+                         AND CAN_DT          <![CDATA[<>]]> SUBSTR(CNTR_DT,1,6)
+                       GROUP BY LIF_CNTR_NO, PRTNR_NO  ) T7   /* 기지급을 구하기 위한 지급회수 COUNT */
+            ON T1.LIF_CNTR_NO    = T7.LIF_CNTR_NO
+           AND T1.PRTNR_NO       = T7.PRTNR_NO
+         WHERE 1=1
+           AND T1.LIF_CNTR_STAT_CD    = '0'  /* 되물림이지만 라이프계약상태코드 수수료로 고정 */
+           AND T1.FLPYM_TN            = 1
+           AND T1.OG_TP_CD            = 'W02'
+           AND T1.PRTNR_NO           != T1.BRMGR_PRTNR_NO
+           <if test='@MybatisUtils@isNotEmpty(strtDt) and @MybatisUtils@isNotEmpty(endDt)'>
+           AND T1.CNTR_DT >= #{strtDt}
+           AND T1.CNTR_DT <![CDATA[<=]]> #{endDt}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           AND CASE WHEN T1.LIF_PD_CD = '2178' THEN '429' ELSE '599' END = #{pdCd}
+           </if>
+           AND T1.DTA_DL_YN          = 'N'
+         GROUP BY T1.BASE_YM
+                , T1.LIF_CNTR_STAT_CD
+                , T3.OG_CD
+                , T1.BRMGR_PRTNR_NO
+                , T3.PRTNR_KNM
+                , T3.RSB_DV_CD
+                , T1.FEE_DSB_YM
+                , T1.FEE_REDF_YM
+                , TF.BASE_FEE
+                , T1.ET_CNFM_DV_CD
+    </select>
+
+    <select id='selectMutualAidGroupEtc' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidGroup">
+        SELECT T1.BASE_YM                                          /* 발생월 (기준년월) */
+             , CASE WHEN T1.LIF_CNTR_STAT_CD = '0' THEN '수수료'
+                    WHEN T1.LIF_CNTR_STAT_CD = '1' THEN '되물림'
+                    WHEN T1.LIF_CNTR_STAT_CD = '2' THEN '연체'
+                    WHEN T1.LIF_CNTR_STAT_CD = '3' THEN '재지급'
+               ELSE 'Error' END CNTR_STAT
+             , T3.OG_CD                                            /* 소속 (지점CD)             */
+             , T1.BRMGR_PRTNR_NO                                   /* 사번 - 지점장             */
+             , T3.PRTNR_KNM                                        /* 성명 - 지점장             */
+             , T3.RSB_DV_CD                                        /* 직책명 - 지점장           */
+             , COUNT(1) AS BRCH_CT                                 /* 건수 - 지점               */
+             , TF.BASE_FEE * COUNT(1) AS  BRCH_AMT                 /* 금액 - 지점 (40000 * CNT) */
+             , T1.FEE_DSB_YM                                       /* 수수료 지급월             */
+             , T1.FEE_REDF_YM                                      /* 수수료 되물림월           */
+             , CASE WHEN T1.ET_CNFM_DV_CD = '00'
+                    THEN 'Y' ELSE 'N' END  ET_CNFM_DV_NM           /* 라이프 확정               */
+         FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ  T1  /* 라이프제휴수수료계약내역 */
+        INNER JOIN       TB_SSCT_CNTR_BAS              T2  /* 계약기본 20230502 - 조건절을 위해 태이블 추가 */
+           ON T2.CNTR_NO        = T1.CNTR_NO
+        INNER JOIN       TB_OGBS_MM_PRTNR_IZ           T3  /* 월파트너                 */
+           ON T1.BASE_YM        = T3.BASE_YM
+          AND T1.BRMGR_PRTNR_NO = T3.PRTNR_NO
+          AND T3.OG_TP_CD       = T2.SELL_OG_TP_CD
+        INNER JOIN ( SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
+                      FROM TB_FEAM_FEE_BASE_DTL
+                     WHERE FEE_CD = 'W020126' /* W020125(15직급개인), W020126(조직) */
+                       AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM ) TF /* 상조 FEE 기준금액 */
+           ON 1=1
+        INNER JOIN ( SELECT LIF_CNTR_NO    --라이프계약번호
+                        --, BRMGR_PRTNR_NO --지점장 파트너 번호
+                          , PRTNR_NO --지점장 파트너 번호
+                       FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ
+                      WHERE BASE_YM          = #{baseYm}
+                        AND LIF_CNTR_STAT_CD = #{clasfctnFee}
+                        AND NVL(CAN_DT, '0') <![CDATA[<>]]>  SUBSTR(CNTR_DT,1,6)
+                      GROUP BY LIF_CNTR_NO, PRTNR_NO ) T7   /* 기지급을 구하기 위한 지급회수 COUNT */
+                  ON T1.LIF_CNTR_NO    = T7.LIF_CNTR_NO
+               --AND T1.BRMGR_PRTNR_NO = T7.BRMGR_PRTNR_NO
+                 AND T1.PRTNR_NO       = T7.PRTNR_NO
+         WHERE 1=1
+           AND T1.LIF_CNTR_STAT_CD    = '0'               /* 수수료 라이프계약상태코드 - 0수수료 */
+           AND T1.FLPYM_TN            = 1                 /* 완납 회차                              */
+           AND T1.PRTNR_NO           != T1.BRMGR_PRTNR_NO /* 판매자사번 != 지점장사번               */
+           AND T1.DTA_DL_YN           = 'N'
+           AND T1.OG_TP_CD            = 'W02'
+           <if test='@MybatisUtils@isNotEmpty(strtDt) and @MybatisUtils@isNotEmpty(endDt)'>
+           AND T1.CNTR_DT >= #{strtDt}
+           AND T1.CNTR_DT <![CDATA[<=]]> #{endDt}
+           </if>
+           <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           AND CASE WHEN T1.LIF_PD_CD = '2178' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
+           </if>
+         GROUP BY T1.BASE_YM
+                , T1.LIF_CNTR_STAT_CD
+                , T3.OG_CD
+                , T1.BRMGR_PRTNR_NO
+                , T3.PRTNR_KNM
+                , T3.RSB_DV_CD
+                , T1.FEE_DSB_YM
+                , T1.FEE_REDF_YM
+                , TF.BASE_FEE
+                , T1.ET_CNFM_DV_CD
+    </select>
+
+    <!-- 수수료 생성 -->
+    <update id="updateMutualAidFee">
+        UPDATE TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
+           SET A.CNFM_YN          = 'Y'
+             , A.FEE_DSB_YM       = #{baseYm}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE A.BASE_YM           = #{baseYm}
+           AND A.ET_CNFM_DV_CD     = '00'
+           AND A.LIF_CNTR_STAT_CD  = '0'
+           AND A.OG_TP_CD          = 'W02'
+           AND A.CAN_DT           IS NULL
+           AND A.FLPYM_TN         <![CDATA[<=]]> A.TOT_DSB_OJ_DV_CD
+           AND 0 = ( SELECT MOD(COUNT(1), 2)
+                       FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ B
+                      WHERE B.LIF_CNTR_STAT_CD IN ('2', '3')
+                        AND B.LIF_CNTR_NO       = A.LIF_CNTR_NO )
+           /* 월파트너 있는놈들만 하게 수정 2023.10.13 > 2023.11.01 AS-IS와 건수맞추기위해 조건다시 주석처리
+           AND EXISTS (SELECT 1
+                         FROM TB_OGBS_MM_PRTNR_IZ X
+                        WHERE A.BASE_YM  = X.BASE_YM
+                          AND A.PRTNR_NO = X.PRTNR_NO
+                          AND A.OG_TP_CD = X.OG_TP_CD
+           )
+          */
+           AND EXISTS (SELECT 1
+                         FROM TB_SSCT_CNTR_BAS X /* 계약기본 */
+                        WHERE X.CNTR_NO = A.CNTR_NO
+           )
+    </update>
+
+    <!-- 미지급 -->
+    <update id="updateMutualAidNpaid">
+        UPDATE TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
+           SET A.CNFM_YN          = 'Y'
+             , A.FEE_DSB_YM       = #{baseYm}
+            <include refid="COMMON.updateSystemField"/>
+         WHERE A.BASE_YM           <![CDATA[<]]> #{baseYm}
+           AND A.ET_CNFM_DV_CD     = '00'
+           AND A.LIF_CNTR_STAT_CD  = '0'
+           AND A.OG_TP_CD          = 'W02'
+           AND A.CAN_DT           IS NULL
+           AND A.FLPYM_TN         <![CDATA[<=]]> A.TOT_DSB_OJ_DV_CD
+           AND A.FEE_DSB_YM       IS NULL
+           AND 0 = (SELECT MOD(COUNT(1), 2)
+                      FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ B
+                     WHERE B.LIF_CNTR_STAT_CD IN ('2', '3')
+                       AND B.LIF_CNTR_NO       = A.LIF_CNTR_NO)
+           /* 월파트너 있는놈들만 하게 수정 2023.10.13 > 2023.11.01 AS-IS와 건수맞추기위해 조건다시 주석처리
+           AND EXISTS (SELECT 1
+                         FROM TB_OGBS_MM_PRTNR_IZ X
+                        WHERE A.BASE_YM  = X.BASE_YM
+                          AND A.PRTNR_NO = X.PRTNR_NO
+                          AND A.OG_TP_CD = X.OG_TP_CD
+           )
+          */
+           AND EXISTS (SELECT 1
+                         FROM TB_SSCT_CNTR_BAS X /* 계약기본 */
+                        WHERE X.CNTR_NO = A.CNTR_NO
+           )
+    </update>
+
+    <!-- 되물림생성 -->
+    <update id="updateRedfMutualAidFee">
+        UPDATE TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
+           SET A.CNFM_YN           = 'Y'
+             , A.FEE_REDF_YM       = #{baseYm}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE A.BASE_YM           = #{baseYm}
+           AND A.ET_CNFM_DV_CD     = '00'
+           AND A.LIF_CNTR_STAT_CD  = '1'
+           AND A.OG_TP_CD          = 'W02'
+           AND A.CAN_DT           <![CDATA[<>]]> SUBSTR(A.CNTR_DT,1,6)
+           AND 0 = ( SELECT COUNT(1)
+                     FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ B
+                     WHERE B.LIF_CNTR_STAT_CD = '2'
+                       AND B.LIF_CNTR_NO      = A.LIF_CNTR_NO )
+           AND EXISTS (SELECT 1 /* 월파트너 있는놈들만 하게 수정 2023.10.13 */
+                         FROM TB_OGBS_MM_PRTNR_IZ X
+                        WHERE A.BASE_YM  = X.BASE_YM
+                          AND A.PRTNR_NO = X.PRTNR_NO
+                          AND A.OG_TP_CD = X.OG_TP_CD
+           )
+    </update>
+
+    <!-- 연체 -->
+    <update id="updateRedfMutualAidDlq">
+        UPDATE TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
+           SET A.CNFM_YN           = 'Y'
+            , A.FEE_REDF_YM        = #{baseYm}
+            <include refid="COMMON.updateSystemField"/>
+        WHERE  A.BASE_YM           = #{baseYm}
+          AND  A.ET_CNFM_DV_CD     = '00'
+          AND  A.LIF_CNTR_STAT_CD  = '2'
+          AND  A.OG_TP_CD          = 'W02'
+          AND EXISTS (SELECT 1 /* 월파트너 있는놈들만 하게 수정 2023.10.13 */
+                         FROM TB_OGBS_MM_PRTNR_IZ X
+                        WHERE A.BASE_YM  = X.BASE_YM
+                          AND A.PRTNR_NO = X.PRTNR_NO
+                          AND A.OG_TP_CD = X.OG_TP_CD
+           )
+
+    </update>
+
+    <!--재지급 -->
+    <update id="updateRedfMutualAidAdsb">
+        UPDATE TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
+           SET A.CNFM_YN           = 'Y'
+             , A.FEE_DSB_YM        = #{baseYm}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE A.BASE_YM           = #{baseYm}
+           AND A.ET_CNFM_DV_CD     = '00'
+           AND A.LIF_CNTR_STAT_CD  = '3'
+           AND A.OG_TP_CD          = 'W02'
+           AND EXISTS (SELECT 1 /* 월파트너 있는놈들만 하게 수정 2023.10.13 */
+                         FROM TB_OGBS_MM_PRTNR_IZ X
+                        WHERE A.BASE_YM  = X.BASE_YM
+                          AND A.PRTNR_NO = X.PRTNR_NO
+                          AND A.OG_TP_CD = X.OG_TP_CD
+           )
+    </update>
+
+    <!-- 상조제휴주문 -->
+    <select id='selectMutualAidOrder' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidOrder">
+       SELECT T0.ALNC_NM
+            , T0.CNTR_NO
+            , T0.LIF_CNTR_NO
+            , T0.CST_KNM
+            , T0.OG_CD
+            , T0.PRTNR_NO
+            , T0.PRTNR_KNM
+            , T0.CD_CNTN
+            , T0.BRMGR_PRTNR_NO
+            , T0.RCPDT
+            , T0.CNTR_DT
+            , T0.DP_DT
+            , T0.WDWL_DT
+            , T0.CAN_DT
+            , T0.FEE_DSB_YM
+            , CASE WHEN (T0.RCPDT   IS NOT NULL) AND (T0.CNTR_DT IS NULL) AND (T0.CAN_DT IS NULL) THEN '접수'
+                   WHEN (T0.CNTR_DT IS NOT NULL) AND (T0.CAN_DT  IS NULL) THEN '계약'
+                   WHEN (T0.CAN_DT  IS NOT NULL)  THEN '취소'
+                   ELSE '' END CNTR_STAT --실적구분
+        FROM ( SELECT CASE WHEN KL30.KLFLG8 != '0' THEN '제휴' ELSE '비제휴' END ALNC_NM        --제휴구분
+                     , CASE WHEN KL30.KLFLG8 = '0' THEN '' ELSE 'W'||KL30.KLFLG8||KL30.KLFLG9 END AS CNTR_NO        --웰스계약번호
+                     , 'L'||KL30.KLYEAR||KL30.KLCODE                AS LIF_CNTR_NO    --상조계약번호
+                     , KL30.KLCNAM                                  AS CST_KNM        --고객명
+                     , T3.OG_CD                                     AS OG_CD          --소속(지점CD)
+                     , TO_CHAR(KL30.KLDCDE)                         AS PRTNR_NO       --파트너번호
+                     , T3.PRTNR_KNM                                 AS PRTNR_KNM      --파트너명
+                     , T9.CD_CNTN                                   AS CD_CNTN        --직책명(파트너)
+                     , TT.HOO_PRTNR_NO                              AS BRMGR_PRTNR_NO --지점장
+                     , CASE WHEN KL30.KLCRTY = '0' THEN '' ELSE KL30.KLCRTY || LPAD(KL30.KLCRTM, 2, '00') || LPAD(KL30.KLCRTD, 2, '00') END AS RCPDT   --접수일자
+                     , CASE WHEN KL30.KLSLEY = '0' THEN '' ELSE KL30.KLSLEY || LPAD(KL30.KLSLEM, 2, '00') || LPAD(KL30.KLSLED, 2, '00') END AS CNTR_DT --계약일자
+                     , CASE WHEN KL30.KLINSY = '0' THEN '' ELSE KL30.KLINSY || LPAD(KL30.KLINSM, 2, '00') || LPAD(KL30.KLINSD, 2, '00') END AS DP_DT   --입금일자
+                     , CASE WHEN KL30.KLREVY = '0' THEN '' ELSE KL30.KLREVY || LPAD(KL30.KLREVM, 2, '00') || LPAD(KL30.KLREVD, 2, '00') END AS WDWL_DT --철회일자
+                     , CASE WHEN KL30.KLCANY = '0' THEN '' ELSE KL30.KLCANY || LPAD(KL30.KLCANM, 2, '00') || LPAD(KL30.KLCAND, 2, '00') END AS CAN_DT  --취소일자
+                     , T7.FEE_DSB_YM
+                  FROM TB_GBCO_LIF_ORD_RCV_ETXT             KL30 /* ZA_라이프주문수신전문 */
+                  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ  T3   /* 월파트너        */
+                    ON #{baseYm} = T3.BASE_YM
+                   /* AND 'W02'    = T3.OG_TP_CD */
+                   AND TO_CHAR(KL30.KLDCDE)    = T3.PRTNR_NO
+                  LEFT OUTER JOIN TB_OGBS_OG_BAS       TT   /* 조직기본        */
+                    ON T3.OG_ID = TT.OG_ID
+                  LEFT OUTER JOIN T_CMZ_CD_D           T9   /* 공통코드 - 직책 */
+                    ON T9.TENANT_ID   = #{session.tenantId}
+                   AND T9.CD_ID       = 'RSB_DV_CD'
+                   AND T9.CD_VLD_VAL  = T3.RSB_DV_CD
+                  LEFT OUTER JOIN TB_IFIN_LIF_ALNC_FEE_CNTR_IZ  T7  /* 라이프제휴수수료계약내역 */
+                    ON T7.BASE_YM       = KL30.KLSLEY || LPAD(KL30.KLSLEM, 2, '00')
+                   AND T7.ET_CNFM_DV_CD = '00'
+                   AND T7.LIF_CNTR_NO   = 'L'||KL30.KLYEAR||KL30.KLCODE
+                   AND T7.CNTR_NO       = 'W'||KL30.KLFLG8||KL30.KLFLG9
+                   AND T7.FLPYM_TN      = 1
+                   AND T7.CNFM_YN       = 'Y'
+                   AND T7.OG_TP_CD      = 'W02'
+                   AND T7.DTA_DL_YN     = 'N'
+                 WHERE KL30.KLETC6 IN ('51', '59')                               --제휴업체
+                    <if test='@MybatisUtils@isNotEmpty(cntrStat)'>
+                    <choose>
+                        <when test='"0".equals(cntrStat)'>
+                        AND  KL30.KLCRTY||LPAD(KL30.KLCRTM, 2, '00') = #{baseYm}        -- 접수년월
+                        </when>
+                        <when test='"1".equals(cntrStat)'>
+                        AND  KL30.KLSLEY||LPAD(KL30.KLSLEM, 2, '00') = #{baseYm}        -- 계약년월
+                        </when>
+                        <when test='"2".equals(cntrStat)'>
+                        AND  KL30.KLCANY||LPAD(KL30.KLCANM, 2, '00') = #{baseYm}        -- 취소년월
+                        </when>
+                    </choose>
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                    AND TO_CHAR(KL30.KLDCDE) = #{prtnrNo}
+                    </if>
+                    <if test='!"0".equals(alncCd)'>
+                      <choose>
+                        <when test='"1".equals(alncCd)'>
+                        AND  KL30.KLFLG8                            != '0'             --제휴만 적용
+                        </when>
+                        <when test='"2".equals(alncCd)'>
+                        AND  KL30.KLFLG8                             = '0'             --비제휴만 적용
+                        </when>
+                      </choose>
+                    </if>
+                    <if test='!"0".equals(rsbDvCd)'>
+                        <choose>
+                            <when test='"15".equals(rsbDvCd)'>
+                            AND  TO_CHAR(KL30.KLDCDE)                   != TT.HOO_PRTNR_NO --직책유형 플래너만 적용
+                            </when>
+                            <when test='"7".equals(rsbDvCd)'>
+                            AND  TO_CHAR(KL30.KLDCDE)                    = TT.HOO_PRTNR_NO --직책유형 지점장만 적용
+                            </when>
+                        </choose>
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(dgr4LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+                        <choose>
+                            <when test='@MybatisUtils@isNotEmpty(dgr4LevlOgId)'>
+                            AND TT.OG_ID = #{dgr4LevlOgId}     /* 조직 - 3레벨 선택 */
+                            </when>
+                            <when test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+                            AND TT.OG_ID = #{dgr3LevlOgId}     /* 조직 - 2레벨 선택 */
+                            </when>
+                            <when test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+                            AND TT.OG_ID = #{dgr2LevlOgId}     /* 조직 - 1레벨 선택 */
+                            </when>
+                        </choose>
+                    </if>
+         ) T0
+         WHERE 1=1
+    </select>
+
+</mapper>

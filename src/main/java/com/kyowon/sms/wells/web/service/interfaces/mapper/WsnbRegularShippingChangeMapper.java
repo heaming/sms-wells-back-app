@@ -4,10 +4,7 @@ import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbRegularShippingChange
 import org.apache.ibatis.annotations.Mapper;
 
 /**
- *
- *
  * W-SV-I-0016 정기배송 변경
- *
  *
  * @author gs.piit122 김동엽
  * @since 2023-04-13

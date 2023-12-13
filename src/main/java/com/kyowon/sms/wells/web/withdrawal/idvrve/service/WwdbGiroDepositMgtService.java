@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.sds.sflex.system.config.validation.BizAssert;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -18,7 +17,6 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.converter.WwdbGiroDepositMgtCo
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto.SaveIntegrationReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.*;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositDeleteInfoDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositErrorSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveInfoDvo;
@@ -104,10 +102,11 @@ public class WwdbGiroDepositMgtService {
      * @throws Exception
      */
     @Transactional
-    public int saveBillingDocumentMgt(List<SaveReq> dtos) throws Exception {
+    public int saveBillingDocumentMgt(List<SaveReq> dtos, String date) {
         int processCount = 0;
 
-        WwdbGiroDepositDeleteInfoDvo deleteDvo = new WwdbGiroDepositDeleteInfoDvo();
+        processCount += mapper.deleteGiroDepositItemization(date); // 지로입금내역 삭제
+        processCount += mapper.deleteGiroDepositItemLedgization(date); // 지로입금원장내역 삭제
 
         String errorChk = ""; //에러체크
 
@@ -120,11 +119,6 @@ public class WwdbGiroDepositMgtService {
                 processCount += mapper.inertGiroDeposit(dvo); //원장내역 저장
 
             }
-
-            deleteDvo.setFntDt(dtos.get(1).fntDt());
-            deleteDvo.setRveDt(dtos.get(1).rveDt());
-
-            processCount += mapper.deleteGiroDepositItemization(deleteDvo);
 
             List<WwdbGiroDepositSaveInfoDvo> dvos = mapper.selectGiroDepositItemizationInfo(); //원장내역 데이터를 가공한다.
 
@@ -144,8 +138,8 @@ public class WwdbGiroDepositMgtService {
                 infoDvo.setProcsErrTpCd(errorChk);
 
                 processCount += mapper.inertGiroDepositItemization(infoDvo); //지로입금내역 저장
-                processCount += mapper.updateGiroDeposit(infoDvo);
             }
+            processCount += mapper.updateGiroDeposit(date);
         }
         return processCount;
     }
@@ -832,9 +826,8 @@ public class WwdbGiroDepositMgtService {
 
         List<WwdbGiroDepositSaveDvo> editPerfDt = new ArrayList<WwdbGiroDepositSaveDvo>();
 
-
         //오늘 날짜
-                String sysDateYmd = DateUtil.getNowDayString();
+        String sysDateYmd = DateUtil.getNowDayString();
 
         for (SaveReq dto : dtos) {
             WwdbGiroDepositSaveDvo wwdbGiroDepositSaveDvo = convert.mapSearchWwwdbGiroDepositSaveDvo(dto);
@@ -865,5 +858,14 @@ public class WwdbGiroDepositMgtService {
         }
 
         return editPerfDt;
+    }
+
+    /**
+     * 지로 대사여부 확인
+     * @param req
+     * @return int
+     */
+    public int getBillingFntDtChk(SearchChkReq req) {
+        return mapper.selectBillingFntDtChk(req);
     }
 }

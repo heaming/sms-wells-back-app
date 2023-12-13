@@ -59,7 +59,7 @@
                         , <![CDATA[
                           CASE WHEN T7.END_SL_DT < M1.ISTM_MCN THEN 0
                                WHEN T7.START_SL_DT <= M1.ISTM_MCN AND SUBSTR(M1.SL_DT,7,2) = SUBSTR(T7.LAST_DD,7,2) OR SUBSTR(M1.SL_DT,7,2) >= 30 THEN M1.RENTAL_AMT - M1.NOM_DSC_AMT
-                               WHEN T7.START_SL_DT <= M1.ISTM_MCN THEN ROUND((M1.RENTAL_AMT - M1.NOM_DSC_AMT) / 30 * SUBSTR(M1.SL_DT,7,2) /10) * 10
+                               WHEN T7.START_SL_DT <= M1.ISTM_MCN THEN FLOOR((M1.RENTAL_AMT - M1.NOM_DSC_AMT) / 30 * SUBSTR(M1.SL_DT,7,2) /10) * 10
                                ELSE 0
                                 END EXN_NMN_AMT   ]]>
                             </otherwise>
@@ -200,7 +200,7 @@
                           ON 1 = 1
                     </if>
                   ) M1
-                    ORDER BY M1.STRT_GIRO_TN , M1.END_GIRO_TN , M1.CNTR_NO , M1.CNTR_SN
+                    ORDER BY M1.CST_FNM , M1.CNTR_NO , M1.CNTR_SN , M1.STRT_GIRO_TN , M1.END_GIRO_TN
 <!--        ORDER BY RENTAL_TN ASC , CNTR_NO ASC , CNTR_SN ASC-->
     </select>
 
@@ -250,7 +250,7 @@
            AND T1.GIRO_RGLR_DV_CD = #{giroRglrDvCd}
          </if>
            AND T1.DTA_DL_YN = 'N'
-         ORDER BY T1.STRT_GIRO_TN  , T1.END_GIRO_TN , T1.CNTR_NO , T1.CNTR_SN
+         ORDER BY T1.CST_FNM , T1.CNTR_NO , T1.CNTR_SN , T1.STRT_GIRO_TN  , T1.END_GIRO_TN
     </select>
 
     <insert id="insertGiroOcrForwardings">
@@ -416,7 +416,7 @@
               FROM (
                         SELECT
                              --  TO_CHAR(SYSDATE, 'HH24MISS') AS GIRO_OCR_PBL_DTM --작업일자
-                               ROW_NUMBER()  OVER ( ORDER BY WK_DT , WK_SN ,T1CNTR_NO ,HOECHA  ) AS GIRO_OCR_PBL_SN--지로OCR발행일련번호
+                               ROW_NUMBER()  OVER ( ORDER BY CST_KNM  ,T1CNTR_NO , CNTR_SN ,HOECHA  ) AS GIRO_OCR_PBL_SN--지로OCR발행일련번호
                              , '2' AS GIRO_BIZ_DV_CD --지로업무구분코드
                              , '2' AS GIRO_BIZ_TP_CD --지로업무유형코드
                              , NVL(CWQAM3,0) AS PY_AMT --납입금액
@@ -442,13 +442,6 @@
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,15,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,16,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,17,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
-
-
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,1 ,1 )   * 1  ,2,'0') ,1,1) AS NUMBER)-->
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,2 ,1 )   * 2  ,2,'0') ,1,1) AS NUMBER)-->
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,1 ,1 )   * 1  ,2,'0') ,1,1) AS NUMBER)-->
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,2 ,1 )   * 2  ,2,'0') ,1,1) AS NUMBER)-->
-
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,1 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,2 ,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,3 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
@@ -462,17 +455,10 @@
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,11,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,12,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,13,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
-
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,14,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,15,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,16,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,17,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
-
-
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,1 ,1 )   * 1  ,2,'0') ,2,1) AS NUMBER)-->
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,2 ,1 )   * 2  ,2,'0') ,2,1) AS NUMBER)-->
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,1 ,1 )   * 1  ,2,'0') ,2,1) AS NUMBER)-->
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,2 ,1 )   * 2  ,2,'0') ,2,1) AS NUMBER)-->
                                  AS FLOAT ) , 10  ) AS NUMBER ) = 0 THEN  0
                                ELSE
                                10 - CAST( MOD( CAST(
@@ -493,12 +479,6 @@
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,15,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,16,1 )      * 1  ,2,'0') ,1,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,17,1 )      * 2  ,2,'0') ,1,1) AS NUMBER)
-
-
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,1 ,1 )   * 1  ,2,'0') ,1,1) AS NUMBER)-->
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,2 ,1 )   * 2  ,2,'0') ,1,1) AS NUMBER)-->
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,1 ,1 )   * 1  ,2,'0') ,1,1) AS NUMBER)-->
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,2 ,1 )   * 2  ,2,'0') ,1,1) AS NUMBER)-->
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,1 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,2 ,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,3 ,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
@@ -516,12 +496,6 @@
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,15,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,16,1 )      * 1  ,2,'0') ,2,1) AS NUMBER)
                                   + CAST( SUBSTR(LPAD(SUBSTR( CWCCDE,17,1 )      * 2  ,2,'0') ,2,1) AS NUMBER)
-
-
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,1 ,1 )   * 1  ,2,'0') ,2,1) AS NUMBER)-->
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSY,2 ,1 )   * 2  ,2,'0') ,2,1) AS NUMBER)-->
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,1 ,1 )   * 1  ,2,'0') ,2,1) AS NUMBER)-->
-<!--                                  + CAST( SUBSTR(LPAD(SUBSTR( SAVE_INSM,2 ,1 )   * 2  ,2,'0') ,2,1) AS NUMBER)-->
                                  AS FLOAT ) , 10  ) AS NUMBER )
                                 END GIRO_NO  /* 지로번호     */
                              , T1CNTR_NO --계약번호
@@ -587,6 +561,8 @@
                                           , IST_DT --설치일자
                                           , CWCCDE --지로번호
                                           , CST_KNM
+                                          , STRT_GIRO_TN
+                                          , END_GIRO_TN
                                        FROM (
                                                 SELECT
                                                        T1.WK_DT --작업년월
@@ -631,7 +607,7 @@
                                                      , CASE WHEN T2.HOECHA = 0           THEN T1.THM0_AMT /* ０차월         */
                                                             WHEN T2.HOECHA = T1.ISTM_MCN THEN T1.EXN_NMN_AMT /* ６０차월       */
                                                 --            WHEN T2.HOECHA = LC31.LCMON1 THEN CW55.CWAM12 /* １２차월       */
-                                                            WHEN T2.HOECHA <![CDATA[ < ]]> T1.ISTM_MCN THEN T1.ISTM_AMT /* 할부／렌탈１   */
+                                                            WHEN T2.HOECHA <![CDATA[ < ]]> T1.ISTM_MCN THEN T1.PY_AMT /* 할부／렌탈１   */
                                                             ELSE T1.PY_AMT /* 월할부／렌탈２ */
                                                              END AS CWQAM3 /* 납입액       */
                                                   FROM TB_RVDW_GIRO_OCR_MNGT_BAS T1  --OCR관리기본
@@ -665,11 +641,6 @@
                                                                       AND ROWNUM = 1
                                                                     ORDER BY S1.ADR_ID DESC ) T7
                                                      ON 1 = 1
-<!--                                                  LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T7 &#45;&#45;계약주소-->
-<!--                                                    ON T7.CNTR_NO = T6.CNTR_NO-->
-<!--                                                   AND T7.CNTR_CST_NO = T6.CNTR_CST_NO-->
-<!--                                                   AND T7.CNTRT_REL_CD = '01'-->
-<!--                                                   AND T7.DTA_DL_YN = 'N'-->
                                                   LEFT OUTER JOIN TB_GBCO_ADR_BAS T8 --주소기본
                                                     ON T8.ADR_ID = T7.ADR_ID
                                                    AND T8.DTA_DL_YN = 'N'
@@ -681,10 +652,8 @@
                                                    AND T1.WK_DT = #{wkDt}
 <!--                                                   AND T1.LTPAY_YN = 'N'-->
                                                    AND T1.DTA_DL_YN = 'N'
-                                                 ORDER BY T1.STRT_GIRO_TN
-                                                        , T1.END_GIRO_TN
-                                                        , T1.CNTR_NO
-                                                        , T1.CNTR_SN  --계약번호
+                                                 ORDER BY T9.CST_KNM , T1.CNTR_NO , T1.CNTR_SN , T1.STRT_GIRO_TN  , T1.END_GIRO_TN
+
                                              ) T02
                                 ) T03
                     )

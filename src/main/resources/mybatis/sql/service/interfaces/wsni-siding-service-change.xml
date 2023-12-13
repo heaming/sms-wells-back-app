@@ -3,193 +3,213 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniSidingServiceChangesMapper">
 
     <insert id="insertSdingAsAkHist">
-    /*모종AS요청이력*/
-    INSERT INTO TB_SVPD_SDING_AS_AK_HIST (
-           CNTR_NO
-         , CNTR_SN
-         , AK_SN
-         , HIST_CH_DTM
-         , RGST_DT
-         , AS_AK_DV_CD
-         , AK_CHDT
-         , BFCH_PD_CD
-         , AFCH_PD_CD
-         , MTR_PROCS_STAT_CD
-         , CNFMDT
-         , CHO_CAPSL_CN
-         , CSMR_UPRC_AMT
-         , DTA_DL_YN
-         <include refid="COMMON.insertSystemField" />
-    ) VALUES (
-           #{cntrNo}
-         , #{cntrSn}
-         , (SELECT NVL(MAX(AK_SN), 0)+1 FROM TB_SVPD_SDING_AS_AK_HIST WHERE CNTR_NO = #{cntrNo} AND CNTR_SN = #{cntrSn})
-         , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') + ${histChDtm}
-         , TO_CHAR(SYSDATE,'YYYYMMDD')
-         , #{asAkDvCd}
-         , #{akChdt}
-         , #{bfchPdCd}
-         , #{afchPdCd}
-         , #{mtrProcsStatCd}
-         , null
-         , #{choCapslCn}
-         , #{csmrUprcAmt}
-         , 'N'
-         <include refid="COMMON.insertSystemFieldValue" />
-    )
+        INSERT INTO TB_SVPD_SDING_AS_AK_HIST ( /* 모종AS요청이력 */
+               CNTR_NO
+             , CNTR_SN
+             , AK_SN
+             , HIST_CH_DTM
+             , RGST_DT
+             , AS_AK_DV_CD
+             , AK_CHDT
+             , BFCH_PD_CD
+             , AFCH_PD_CD
+             , MTR_PROCS_STAT_CD
+             , CNFMDT
+             , CHO_CAPSL_CN
+             , CSMR_UPRC_AMT
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+               #{cntrNo}
+             , #{cntrSn}
+             , #{akSn}
+             , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') + ${histChDtm}
+             , TO_CHAR(SYSDATE,'YYYYMMDD')
+             , #{asAkDvCd}
+             , #{akChdt}
+             , #{bfchPdCd}
+             , #{afchPdCd}
+             , #{mtrProcsStatCd}
+             , null
+             , #{choCapslCn}
+             , #{csmrUprcAmt}
+             , 'N'
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , NVL(#{rcpIchrPrtnrNo}, #{session.userId})
+             , #{session.pageId}
+             , NVL((SELECT OG_ID /* 조직ID */
+                      FROM TB_OGBS_MM_PRTNR_IZ /* 월파트너내역 */
+                     WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                       AND PRTNR_NO = #{rcpIchrPrtnrNo}
+                       AND OG_TP_CD = #{rcpOgTpCd}), NVL(#{session.ogId}, 'NULL'))
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , #{session.userId}
+             , #{session.pageId}
+             , NVL(#{session.ogId}, 'NULL')
+        )
     </insert>
 
     <delete id="deleteSdingAskAk">
-    UPDATE TB_SVPD_SDING_AS_AK_IZ
-       SET DTA_DL_YN = 'Y'
-     WHERE CNTR_NO = #{cntrNo}
-       AND CNTR_SN = #{cntrSn}
-       AND AS_AK_DV_CD = #{asAkDvCd}
-       AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
-       AND CNFMDT IS NULL
+        UPDATE TB_SVPD_SDING_AS_AK_IZ /* 모종AS요청내역 */
+           SET DTA_DL_YN = 'Y'
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND AS_AK_DV_CD = #{asAkDvCd}
+           AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
+           AND CNFMDT IS NULL
     </delete>
 
     <select id="selectCustomer" resultType="com.kyowon.sms.wells.web.service.interfaces.dvo.WsniSidingServiceChangesDvo">
-    SELECT SSCT1.SV_PRD /*방문주기*/
-         , PDBS1.PD_PRP_VAL01 /*상품용도*/
-         , SSCT1.SELL_TP_CD /*관리유형*/
-         , SSCT2.IST_DT /*설치일자*/
-         , CASE WHEN SSCT2.FRISU_BFSVC_PTRM_UNIT_CD = '10' THEN SSCT2.FRISU_BFSVC_PTRM_N / 12
-                WHEN SSCT2.FRISU_BFSVC_PTRM_UNIT_CD = '30' THEN CEIL(SSCT2.FRISU_BFSVC_PTRM_N * 7 / 30)
-                WHEN SSCT2.FRISU_BFSVC_PTRM_UNIT_CD = '40' THEN CEIL(SSCT2.FRISU_BFSVC_PTRM_N / 30)
-                ELSE SSCT2.FRISU_BFSVC_PTRM_N
-           END AS BS_MTHS /*무상 BS 개월수*/
-         , SSCT1.BASE_PD_CD
-      FROM TB_SSCT_CNTR_DTL SSCT1
-      LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL SSCT2
-        ON SSCT1.CNTR_NO = SSCT2.CNTR_NO AND SSCT1.CNTR_SN = SSCT2.CNTR_SN
-      LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PDBS1
-        ON SSCT1.BASE_PD_CD = PDBS1.PD_CD
-     WHERE 'N' IN (SSCT1.DTA_DL_YN, SSCT2.DTA_DL_YN, PDBS1.DTA_DL_YN)
-       AND SSCT1.CNTR_NO = #{cntrNo}
-       AND SSCT1.CNTR_SN = #{cntrSn}
+        SELECT SSCT1.SV_PRD /* 방문주기 */
+             , PDBS1.PD_PRP_VAL01 /* 상품용도 */
+             , SSCT1.SELL_TP_CD /* 관리유형 */
+             , SSCT2.IST_DT /* 설치일자 */
+             , CASE WHEN SSCT2.FRISU_BFSVC_PTRM_UNIT_CD = '10' THEN SSCT2.FRISU_BFSVC_PTRM_N / 12
+                    WHEN SSCT2.FRISU_BFSVC_PTRM_UNIT_CD = '30' THEN CEIL(SSCT2.FRISU_BFSVC_PTRM_N * 7 / 30)
+                    WHEN SSCT2.FRISU_BFSVC_PTRM_UNIT_CD = '40' THEN CEIL(SSCT2.FRISU_BFSVC_PTRM_N / 30)
+                    ELSE SSCT2.FRISU_BFSVC_PTRM_N
+               END AS BS_MTHS /* 무상 BS 개월수 */
+             , SSCT1.BASE_PD_CD
+          FROM TB_SSCT_CNTR_DTL SSCT1
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL SSCT2
+            ON SSCT1.CNTR_NO = SSCT2.CNTR_NO AND SSCT1.CNTR_SN = SSCT2.CNTR_SN
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL PDBS1
+            ON SSCT1.BASE_PD_CD = PDBS1.PD_CD
+         WHERE 'N' IN (SSCT1.DTA_DL_YN, SSCT2.DTA_DL_YN, PDBS1.DTA_DL_YN)
+           AND SSCT1.CNTR_NO = #{cntrNo}
+           AND SSCT1.CNTR_SN = #{cntrSn}
     </select>
 
     <select id="selectSidingAkCount" resultType="java.lang.Integer">
-    SELECT COUNT(*) AS COUNT
-      FROM TB_SVPD_SDING_AS_AK_IZ SVPD1 /*모종AS요청내역*/
-     WHERE SVPD1.DTA_DL_YN = 'N'
-       AND SVPD1.CNTR_NO = #{cntrNo}
-       AND SVPD1.CNTR_SN = #{cntrSn}
-       AND AS_AK_DV_CD = #{asAkDvCd}
-       AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
-       AND CNFMDT IS NULL
+        SELECT COUNT(*) AS COUNT
+          FROM TB_SVPD_SDING_AS_AK_IZ SVPD1 /* 모종AS요청내역 */
+         WHERE SVPD1.DTA_DL_YN = 'N'
+           AND SVPD1.CNTR_NO = #{cntrNo}
+           AND SVPD1.CNTR_SN = #{cntrSn}
+           AND AS_AK_DV_CD = #{asAkDvCd}
+           AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
+           AND CNFMDT IS NULL
     </select>
 
     <update id="updateSidingAk">
-    UPDATE TB_SVPD_SDING_AS_AK_IZ
-       SET AK_CHDT = #{akChdt}
-         , BFCH_PD_CD = #{bfchPdCd}
-         , AFCH_PD_CD = #{afchPdCd}
-         , MTR_PROCS_STAT_CD = #{mtrProcsStatCd}
-         , CHO_CAPSL_CN = #{choCapslCn}
-         <include refid="COMMON.updateSystemField"/>
-     WHERE CNTR_NO = #{cntrNo}
-       AND CNTR_SN = #{cntrSn}
-       AND AS_AK_DV_CD = #{asAkDvCd}
-       AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
-       AND CNFMDT IS NULL
+        UPDATE TB_SVPD_SDING_AS_AK_IZ /* 모종AS요청내역 */
+           SET AK_CHDT = #{akChdt}
+             , BFCH_PD_CD = #{bfchPdCd}
+             , AFCH_PD_CD = #{afchPdCd}
+             , MTR_PROCS_STAT_CD = #{mtrProcsStatCd}
+             , CHO_CAPSL_CN = #{choCapslCn}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND AS_AK_DV_CD = #{asAkDvCd}
+           AND SUBSTR(AK_CHDT, 1, 6) = SUBSTR(#{akChdt}, 1, 6)
+           AND CNFMDT IS NULL
     </update>
 
     <select id="selectAkSnMax" resultType="java.lang.String">
-    SELECT NVL(MAX(AK_SN), 0) + 1 AS MAX_AK_SN
-          FROM TB_SVPD_SDING_AS_AK_IZ
-         WHERE DTA_DL_YN = 'N'
-           AND CNTR_NO = #{cntrNo}
+        SELECT NVL(MAX(AK_SN), 0) + 1 AS MAX_AK_SN
+          FROM TB_SVPD_SDING_AS_AK_IZ /* 모종AS요청내역 */
+         WHERE CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
     </select>
 
     <insert id="insertSidingAk">
-    INSERT INTO TB_SVPD_SDING_AS_AK_IZ (
-           CNTR_NO
-         , CNTR_SN
-         , AK_SN
-         , AS_AK_DV_CD
-         , AK_CHDT
-         , BFCH_PD_CD
-         , AFCH_PD_CD
-         , MTR_PROCS_STAT_CD
-         , CSMR_UPRC_AMT
-         , CHO_CAPSL_CN
-         , DTA_DL_YN
-         <include refid="COMMON.insertSystemField" />
-    ) VALUES (
-           #{cntrNo}
-         , #{cntrSn}
-         , (SELECT NVL(MAX(AK_SN), 0)+1 FROM TB_SVPD_SDING_AS_AK_IZ WHERE CNTR_NO = #{cntrNo} AND CNTR_SN = #{cntrSn})
-         , #{asAkDvCd}
-         , #{akChdt}
-         , #{bfchPdCd}
-         , #{afchPdCd}
-         , #{mtrProcsStatCd}
-         , 0
-         , #{choCapslCn}
-         , 'N'
-         <include refid="COMMON.insertSystemFieldValue" />
-    )
+        INSERT INTO TB_SVPD_SDING_AS_AK_IZ ( /* 모종AS요청내역 */
+               CNTR_NO
+             , CNTR_SN
+             , AK_SN
+             , AS_AK_DV_CD
+             , AK_CHDT
+             , BFCH_PD_CD
+             , AFCH_PD_CD
+             , MTR_PROCS_STAT_CD
+             , CSMR_UPRC_AMT
+             , CHO_CAPSL_CN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+               #{cntrNo}
+             , #{cntrSn}
+             , #{akSn}
+             , #{asAkDvCd}
+             , #{akChdt}
+             , #{bfchPdCd}
+             , #{afchPdCd}
+             , #{mtrProcsStatCd}
+             , 0
+             , #{choCapslCn}
+             , 'N'
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , NVL(#{rcpIchrPrtnrNo}, #{session.userId})
+             , #{session.pageId}
+             , NVL((SELECT OG_ID /* 조직ID */
+                      FROM TB_OGBS_MM_PRTNR_IZ /* 월파트너내역 */
+                     WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                       AND PRTNR_NO = #{rcpIchrPrtnrNo}
+                       AND OG_TP_CD = #{rcpOgTpCd}), NVL(#{session.ogId}, 'NULL'))
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , #{session.userId}
+             , #{session.pageId}
+             , NVL(#{session.ogId}, 'NULL')
+        )
     </insert>
 
     <select id="selectBsTarget" resultType="com.kyowon.sms.wells.web.service.interfaces.dvo.WsniSidingServiceChangesDvo">
-    SELECT SVPD.CNTR_NO
-         , SVPD.CNTR_SN
-         , SVPD.CST_SV_ASN_NO
-         , SVPD.ASN_OJ_YM
-         , SVPD.ADR_ID
-         , SSCT2.CNTR_CST_NO
-         , SSCT2.RCGVP_KNM
-         , SSCT2.CRAL_LOCARA_TNO
-         , SSCT2.MEXNO_ENCR
-         , SSCT2.CRAL_IDV_TNO
-         , TRIM(TO_CHAR(CNDT.SELL_AMT, '999,999,999')) AS MM_MPY_AMT
-         , PDBS.PD_NM AS AFCH_PD_NM
-         , SUBSTR(#{asnOjYm}, 5, 2) || '월' AS SPP_DUEDT
-      FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ SVPD /*고객서비스BS대상내역*/
-      JOIN TB_SSCT_CNTR_ADR_REL SSCT1 /*계약주소관계*/
-        ON SVPD.CNTR_NO = SSCT1.DTL_CNTR_NO
-       AND SSCT1.ADRPC_TP_CD IN ('2','3')
-       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN VL_STRT_DTM AND VL_END_DTM
-      JOIN TB_SSCT_CNTR_ADRPC_BAS SSCT2 /*계약주소지기본*/
-        ON SSCT1.CNTR_ADRPC_ID = SSCT2.CNTR_ADRPC_ID
-      JOIN TB_SSCT_CNTR_DTL CNDT
-        ON CNDT.CNTR_NO = SVPD.CNTR_NO
-       AND CNDT.CNTR_SN = SVPD.CNTR_SN
-       AND CNDT.BASE_PD_CD = #{afchPdCd}
-      JOIN TB_PDBS_PD_BAS PDBS
-        ON PDBS.PD_CD = CNDT.BASE_PD_CD
-     WHERE 'N' IN (SVPD.DTA_DL_YN, SSCT1.DTA_DL_YN, SSCT2.DTA_DL_YN)
-       AND SVPD.CNTR_NO = #{cntrNo}
-       AND SVPD.CNTR_SN = #{cntrSn}
-       AND SVPD.ASN_OJ_YM = #{asnOjYm}
+        SELECT SVPD.CNTR_NO
+             , SVPD.CNTR_SN
+             , SVPD.CST_SV_ASN_NO
+             , SVPD.ASN_OJ_YM
+             , SVPD.ADR_ID
+             , SSCT2.CNTR_CST_NO
+             , SSCT2.RCGVP_KNM
+             , SSCT2.CRAL_LOCARA_TNO
+             , SSCT2.MEXNO_ENCR
+             , SSCT2.CRAL_IDV_TNO
+             , TRIM(TO_CHAR(CNDT.SELL_AMT, '999,999,999')) AS MM_MPY_AMT
+             , PDBS.PD_NM AS AFCH_PD_NM
+             , SUBSTR(#{asnOjYm}, 5, 2) || '월' AS SPP_DUEDT
+          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ SVPD /* 고객서비스BS대상내역 */
+          JOIN TB_SSCT_CNTR_ADR_REL SSCT1 /* 계약주소관계 */
+            ON SVPD.CNTR_NO = SSCT1.DTL_CNTR_NO
+           AND SSCT1.ADRPC_TP_CD IN ('2','3')
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+          JOIN TB_SSCT_CNTR_ADRPC_BAS SSCT2 /* 계약주소지기본 */
+            ON SSCT1.CNTR_ADRPC_ID = SSCT2.CNTR_ADRPC_ID
+          JOIN TB_SSCT_CNTR_DTL CNDT
+            ON CNDT.CNTR_NO = SVPD.CNTR_NO
+           AND CNDT.CNTR_SN = SVPD.CNTR_SN
+           AND CNDT.BASE_PD_CD = #{afchPdCd}
+          JOIN TB_PDBS_PD_BAS PDBS
+            ON PDBS.PD_CD = CNDT.BASE_PD_CD
+         WHERE 'N' IN (SVPD.DTA_DL_YN, SSCT1.DTA_DL_YN, SSCT2.DTA_DL_YN)
+           AND SVPD.CNTR_NO = #{cntrNo}
+           AND SVPD.CNTR_SN = #{cntrSn}
+           AND SVPD.ASN_OJ_YM = #{asnOjYm}
     </select>
 
     <update id="updateStopNextSiding">
-    UPDATE TB_SVPD_CST_SV_RGBSPR_IZ
-       SET MTR_CAN_DT = #{akChdt}-- 취소요청일자
-         , MTR_CAN_RSON_CD = '73'
-     WHERE CNTR_NO = #{cntrNo}-- 변경할 계약번호
-       AND CNTR_SN = #{cntrSn}-- 변경할 계약상세번호
-       AND VST_DUEDT = (SELECT VST_DUEDT
-                          FROM (SELECT DISTINCT VST_DUEDT
-                                  FROM TB_SVPD_CST_SV_RGBSPR_IZ
-                                 WHERE CNTR_NO = #{cntrNo}-- 변경할 계약번호
-                                   AND CNTR_SN = #{cntrSn}-- 변경할 계약상세번호
-                                   /*해당월 이후의 방문예정일(당월배정건 제외)*/
-                                   AND VST_DUEDT <![CDATA[>=]]> TO_CHAR(ADD_MONTHS(to_date(#{akChdt}), 1), 'YYYYMMDD')
-                                 ORDER BY VST_DUEDT ASC)
-                         WHERE rownum = 1)
+        UPDATE TB_SVPD_CST_SV_RGBSPR_IZ /* 고객서비스정기BS주기내역 */
+           SET MTR_CAN_DT = #{akChdt} /* 취소요청일자 */
+             , MTR_CAN_RSON_CD = '73'
+         WHERE CNTR_NO = #{cntrNo} /* 변경할 계약번호 */
+           AND CNTR_SN = #{cntrSn} /* 변경할 계약상세번호 */
+           AND VST_DUEDT = (SELECT VST_DUEDT
+                              FROM (SELECT DISTINCT VST_DUEDT
+                                      FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                                     WHERE CNTR_NO = #{cntrNo} /* 변경할 계약번호 */
+                                       AND CNTR_SN = #{cntrSn} /* 변경할 계약상세번호 */
+                                       /* 해당월 이후의 방문예정일(당월배정건 제외) */
+                                       AND VST_DUEDT <![CDATA[>=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{akChdt}), 1), 'YYYYMMDD')
+                                     ORDER BY VST_DUEDT ASC)
+                             WHERE rownum = 1)
     </update>
 
     <select id="selectPdctPdCds" resultType="java.lang.String">
-    SELECT PDCT_PD_CD
-      FROM TB_SVPD_CST_SV_EXCN_IZ
-     WHERE CNTR_NO = #{cntrNo}
-       AND CNTR_SN = #{cntrSn}
-       AND DTA_DL_YN = 'N'
+        SELECT PDCT_PD_CD
+          FROM TB_SVPD_CST_SV_EXCN_IZ /* 고객서비스수행내역 */
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND DTA_DL_YN = 'N'
     </select>
 
 </mapper>

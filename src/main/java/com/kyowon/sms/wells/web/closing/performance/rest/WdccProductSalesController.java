@@ -13,6 +13,7 @@ import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto.Sear
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto.SearchRentalRes;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductSalesDto.SearchSapMaterialsRes;
 import com.kyowon.sms.wells.web.closing.performance.service.WdccProductSalesService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 
@@ -86,27 +87,21 @@ public class WdccProductSalesController {
         return service.getMembershipList(dto);
     }
 
-    @GetMapping("/basic/summary")
-    public SearchRes getBasicSummary(
+    @ApiOperation(value = "상품별 매출 현황(멤버십)", notes = "조회조건에 따른 상품별 매출 현황을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseDtFrom", value = "매출시작일자", paramType = "query"),
+        @ApiImplicitParam(name = "baseDtTo", value = "매출종료일자", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세", paramType = "query"),
+        @ApiImplicitParam(name = "inqrDv", value = "판매구분", paramType = "query"),
+        @ApiImplicitParam(name = "sellChnlDvCd", value = "판매채널", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분", paramType = "query"),
+    })
+    @GetMapping("/sap-materials")
+    public SearchSapMaterialsRes getProductSalesSapMaterials(
         @Valid
         SearchReq dto
     ) {
-        return service.getBasicSummary(dto);
-    }
-
-    @GetMapping("/rental/summary")
-    public SearchRentalRes getRentalSummary(
-        @Valid
-        SearchReq dto
-    ) {
-        return service.getRentalSummary(dto);
-    }
-
-    @GetMapping("/membership/summary")
-    public SearchMembershipRes getMembershipSummary(
-        @Valid
-        SearchReq dto
-    ) {
-        return service.getMembershipSummary(dto);
+        return service.getProductSalesSapMaterials(dto);
     }
 }
