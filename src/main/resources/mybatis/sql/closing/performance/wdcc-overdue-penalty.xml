@@ -305,7 +305,9 @@
         SELECT
              <if test="@MybatisUtils@equals(agrgDv, '1')">
                SUBSTR(T2.SL_CL_YM,1,4) || '-' || SUBSTR(T2.SL_CL_YM,5,2) || (
-                   CASE WHEN SUM(T2.EOT_ATAM) != SUM(T2.BTD_ATAM + T2.DP_TOT_AMT - T2.SL_BND_ALRPY_AMT - T2.BOR_AMT + T2.ADJ_AMT - T2.ETC_PROFIT)  THEN ' *'
+                   CASE WHEN SUM(T2.EOT_ATAM) != SUM(T2.BTD_ATAM
+                                                   + T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT - (T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT)
+                                                   - T2.SL_BND_ALRPY_AMT - T2.BOR_AMT + T2.ADJ_AMT - T2.ETC_PROFIT)  THEN ' *'
                         ELSE ''
                    END) AS SL_CL_YM -- 실적년월
              </if>
@@ -329,9 +331,13 @@
              , '' AS PD_NM -- 상품명
              , '' AS CNTR_NO
              , SUM(T2.BTD_ATAM) AS BTD_ATAM -- 전기이월
-             , SUM(T2.ATAM_DP_AMT) AS ATAM_DP_AMT -- 선수입금합계 LCAM32 - LCAM83
-             , SUM(T2.THM_ATAM_RFND_AMT) AS THM_ATAM_RFND_AMT -- 선수환불 LCAM33
-             , SUM(T2.DP_TOT_AMT) AS DP_TOT_AMT -- 입금합계 LCAM32 - LCAM83 - LCAM33
+             , SUM(T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT) AS ATAM_DP_AMT -- 선수입금합계 LCAM32 - LCAM83
+             , SUM(T2.THM_ATAM_DP_AMT) AS DP_AMT_1 -- 선수입금
+             , SUM(T2.THM_DLQ_ADD_DP_SUM_AMT) AS DP_AMT_2 -- 가산금입금
+             , SUM(T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT) AS THM_ATAM_RFND_AMT -- 선수환불 LCAM33
+             , SUM(T2.THM_ATAM_RFND_AMT) AS RFND_AMT_1 -- 선수환불
+             , SUM(T2.THM_DLQ_ADD_RFND_SUM_AMT) AS RFND_AMT_2 -- 가산금환불
+             , SUM(T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT - (T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT)) AS DP_TOT_AMT -- 입금합계 LCAM32 - LCAM83 - LCAM33
              , SUM(T2.SL_BND_ALRPY_AMT) AS SL_BND_ALRPY_AMT -- 매출합계
              , SUM(T2.EOT_ATAM) AS EOT_ATAM -- 기말 영업선수금
              , SUM(T2.BOR_AMT) AS BOR_AMT -- 위약금
@@ -345,9 +351,13 @@
              , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T2.PD_CD) AS PD_NM -- 상품명
              , T2.CNTR_NO || '-' || T2.CNTR_SN AS CNTR_NO
              , T2.BTD_ATAM AS BTD_ATAM -- 전기이월
-             , T2.ATAM_DP_AMT AS ATAM_DP_AMT -- 선수입금합계 LCAM32 - LCAM83
-             , T2.THM_ATAM_RFND_AMT AS THM_ATAM_RFND_AMT -- 선수환불 LCAM33
-             , T2.DP_TOT_AMT AS DP_TOT_AMT -- 입금합계 LCAM32 - LCAM83 - LCAM33
+             , T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT AS ATAM_DP_AMT -- 선수입금합계 LCAM32 - LCAM83
+             , T2.THM_ATAM_DP_AMT AS DP_AMT_1 -- 선수입금
+             , T2.THM_DLQ_ADD_DP_SUM_AMT AS DP_AMT_2 -- 가산금입금
+             , T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT AS THM_ATAM_RFND_AMT -- 선수환불 LCAM33
+             , T2.THM_ATAM_RFND_AMT AS RFND_AMT_1 -- 선수환불
+             , T2.THM_DLQ_ADD_RFND_SUM_AMT AS RFND_AMT_2 -- 가산금환불
+             , T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT - (T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT) AS DP_TOT_AMT -- 입금합계 LCAM32 - LCAM83 - LCAM33
              , T2.SL_BND_ALRPY_AMT AS SL_BND_ALRPY_AMT -- 매출합계
              , T2.EOT_ATAM AS EOT_ATAM -- 기말 영업선수금
              , T2.BOR_AMT AS BOR_AMT -- 위약금
@@ -357,7 +367,9 @@
             FROM
             (
                 SELECT T1.*
-                     , CASE WHEN T1.EOT_ATAM != T1.BTD_ATAM + T1.DP_TOT_AMT - T1.SL_BND_ALRPY_AMT - T1.BOR_AMT + T1.ADJ_AMT - T1.ETC_PROFIT THEN 'Y'
+                     , CASE WHEN T1.EOT_ATAM != T1.BTD_ATAM
+                                              + T1.THM_ATAM_DP_AMT - T1.THM_DLQ_ADD_DP_SUM_AMT - (T1.THM_ATAM_RFND_AMT - T1.THM_DLQ_ADD_RFND_SUM_AMT)
+                                              - T1.SL_BND_ALRPY_AMT - T1.BOR_AMT + T1.ADJ_AMT - T1.ETC_PROFIT THEN 'Y'
                             ELSE 'N' END AS ERR_YN
                   FROM (
                             SELECT A.SL_CL_YM AS SL_CL_YM -- 실적년월
@@ -377,17 +389,12 @@
                                  -------------------------------------------------
                                  -- 선수입금
                                  -------------------------------------------------
-                                 , NVL(A.THM_ATAM_DP_AMT, 0) - (CASE WHEN A.SL_CL_YM <![CDATA[<]]> '201605' THEN 0
-                                                                     ELSE NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) -- 가산금 입금-환불
-                                                                END) AS ATAM_DP_AMT -- 선수입금 LCAM32 - LCAM83
-                                 , NVL(A.THM_ATAM_DP_AMT, 0) AS THM_ATAM_DP_AMT -- 선수입금
+                                 , NVL(A.THM_ATAM_DP_AMT, 0) AS THM_ATAM_DP_AMT -- 선수입금 LCAM32
                                  , (CASE WHEN A.SL_CL_YM <![CDATA[<]]> '201605' THEN 0
-                                         ELSE NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) -- 가산금 입금-환불
-                                    END) AS THM_DLQ_ADD_DP_SUM_AMT -- 가산금입금
+                                         ELSE NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) END) AS THM_DLQ_ADD_DP_SUM_AMT -- 가산금입금 LCAM83
                                  , NVL(A.THM_ATAM_RFND_AMT, 0) AS THM_ATAM_RFND_AMT -- 선수환불 LCAM33
-                                 , NVL(A.THM_ATAM_DP_AMT, 0) - NVL(A.THM_ATAM_RFND_AMT, 0) - (CASE WHEN A.SL_CL_YM <![CDATA[<]]> '201605' THEN 0
-                                                                                                   ELSE NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) -- 가산금 입금-환불
-                                                                                              END) AS DP_TOT_AMT-- 입금합계
+                                 , (CASE WHEN A.SL_CL_YM <![CDATA[<]]> '201605' THEN 0
+                                         ELSE NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) END) AS THM_DLQ_ADD_RFND_SUM_AMT -- 가산금환불 LCAM83
                                  -------------------------------------------------
                                  -- 매출
                                  -------------------------------------------------
@@ -624,12 +631,12 @@
                               -------------------------------------------------
                               -- 선수입금
                               -------------------------------------------------
-                              , NVL(A.THM_ATAM_DP_AMT, 0) - (CASE WHEN A.SL_CL_YM <![CDATA[<]]> '201605' THEN 0
-                                                                  ELSE NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) -- 가산금 입금-환불
-                                                             END) AS THM_ATAM_DP_AMT -- 선수입금 LCAM32
-                              , 0 AS THM_DLQ_ADD_DP_SUM_AMT -- 가산금입금 LCAM83
+                              , NVL(A.THM_ATAM_DP_AMT, 0) AS THM_ATAM_DP_AMT -- 선수입금 LCAM32
+                              , (CASE WHEN A.SL_CL_YM <![CDATA[<]]> '201605' THEN 0
+                                      ELSE NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) END) AS THM_DLQ_ADD_DP_SUM_AMT -- 가산금입금 LCAM83
                               , NVL(A.THM_ATAM_RFND_AMT, 0) AS THM_ATAM_RFND_AMT -- 선수환불 LCAM33
-                              , 0 AS THM_DLQ_ADD_RFND_SUM_AMT -- UNION 처리용(미사용항목)
+                              , (CASE WHEN A.SL_CL_YM <![CDATA[<]]> '201605' THEN 0
+                                      ELSE NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) END) AS THM_DLQ_ADD_RFND_SUM_AMT -- 가산금환불
                               -------------------------------------------------
                               -- 매출
                               -------------------------------------------------
@@ -717,7 +724,7 @@
              <if test="@MybatisUtils@equals(agrgDv, '1')">
                SUBSTR(T2.SL_CL_YM,1,4) || '-' || SUBSTR(T2.SL_CL_YM,5,2) || (
                    CASE WHEN SUM(T2.EOT_ATAM) != SUM(T2.BTD_ATAM
-                                                   + T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_AMT - T2.THM_ATAM_RFND_AMT
+                                                   + T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT - (T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT)
                                                    - (T2.SL_BND_ALRPY_AMT_1 - T2.SL_BND_ALRPY_AMT_3 + T2.SL_BND_ALRPY_AMT_4 + T2.SL_BND_ALRPY_AMT_5 - T2.SL_BND_ALRPY_AMT_6)
                                                    - T2.BOR_AMT
                                                    + T2.OVR_CTR_DP_AMT + T2.OVR_CTR_BOR_AMT
@@ -747,11 +754,13 @@
              , SUM(T2.BTD_ATAM) AS BTD_ATAM -- 전기이월
              , SUM(T2.BTD_ATAM_1) AS BTD_ATAM_1
              , SUM(T2.BTD_ATAM_2) AS BTD_ATAM_2
-             , SUM(T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_AMT) AS ATAM_DP_AMT  -- 선수입금
+             , SUM(T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT) AS ATAM_DP_AMT  -- 선수입금
              , SUM(T2.THM_ATAM_DP_AMT) AS ATAM_DP_AMT_1
-             , SUM(T2.THM_DLQ_ADD_DP_AMT) AS ATAM_DP_AMT_2
-             , SUM(T2.THM_ATAM_RFND_AMT) AS THM_ATAM_RFND_AMT  -- 선수환불
-             , SUM(T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_AMT - T2.THM_ATAM_RFND_AMT) AS DP_TOT_AMT -- 입금합계
+             , SUM(T2.THM_DLQ_ADD_DP_SUM_AMT) AS ATAM_DP_AMT_2
+             , SUM(T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT) AS THM_ATAM_RFND_AMT  -- 선수환불
+             , SUM(T2.THM_ATAM_RFND_AMT) AS RFND_AMT_1 -- 선수환불
+          	 , SUM(T2.THM_DLQ_ADD_RFND_SUM_AMT) AS RFND_AMT_2 -- 가산금환불
+             , SUM(T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT - (T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT)) AS DP_TOT_AMT -- 입금합계
              , SUM(T2.SL_BND_ALRPY_AMT_1 - T2.SL_BND_ALRPY_AMT_3 + T2.SL_BND_ALRPY_AMT_4 + T2.SL_BND_ALRPY_AMT_5 - T2.SL_BND_ALRPY_AMT_6) AS SL_BND_ALRPY_AMT -- 매출합계
              , SUM(T2.SL_BND_ALRPY_AMT_1) AS SL_BND_ALRPY_AMT_1
              , SUM(T2.SL_BND_ALRPY_AMT_3) AS SL_BND_ALRPY_AMT_3
@@ -772,11 +781,13 @@
              , T2.BTD_ATAM AS BTD_ATAM -- 전기이월
              , T2.BTD_ATAM_1 AS BTD_ATAM_1
              , T2.BTD_ATAM_2 AS BTD_ATAM_2
-             , T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_AMT AS ATAM_DP_AMT  -- 선수입금
+             , T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT AS ATAM_DP_AMT  -- 선수입금합계
              , T2.THM_ATAM_DP_AMT AS ATAM_DP_AMT_1
-             , T2.THM_DLQ_ADD_DP_AMT AS ATAM_DP_AMT_2
-             , T2.THM_ATAM_RFND_AMT AS THM_ATAM_RFND_AMT  -- 선수환불
-             , T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_AMT - T2.THM_ATAM_RFND_AMT AS DP_TOT_AMT -- 입금합계
+             , T2.THM_DLQ_ADD_DP_SUM_AMT AS ATAM_DP_AMT_2
+             , T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT AS THM_ATAM_RFND_AMT  -- 선수환불합계
+             , T2.THM_ATAM_RFND_AMT AS RFND_AMT_1 -- 선수환불
+          	 , T2.THM_DLQ_ADD_RFND_SUM_AMT AS RFND_AMT_2 -- 가산금환불
+             , T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT - (T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT) AS DP_TOT_AMT -- 입금합계
              , T2.SL_BND_ALRPY_AMT_1 - T2.SL_BND_ALRPY_AMT_3 + T2.SL_BND_ALRPY_AMT_4 + T2.SL_BND_ALRPY_AMT_5 - T2.SL_BND_ALRPY_AMT_6 AS SL_BND_ALRPY_AMT -- 매출합계
              , T2.SL_BND_ALRPY_AMT_1 AS SL_BND_ALRPY_AMT_1
              , T2.SL_BND_ALRPY_AMT_3 AS SL_BND_ALRPY_AMT_3
@@ -792,7 +803,7 @@
                 SELECT
                        T1.*
                      , CASE WHEN T1.EOT_ATAM != T1.BTD_ATAM
-                                              + T1.THM_ATAM_DP_AMT - T1.THM_DLQ_ADD_DP_AMT - T1.THM_ATAM_RFND_AMT
+                                              + T1.THM_ATAM_DP_AMT - T1.THM_DLQ_ADD_DP_SUM_AMT - (T1.THM_ATAM_RFND_AMT - T1.THM_DLQ_ADD_RFND_SUM_AMT)
                                               - (T1.SL_BND_ALRPY_AMT_1 - T1.SL_BND_ALRPY_AMT_3 + T1.SL_BND_ALRPY_AMT_4 + T1.SL_BND_ALRPY_AMT_5 - T1.SL_BND_ALRPY_AMT_6)
                                               - T1.BOR_AMT
                                               + T1.OVR_CTR_DP_AMT + T1.OVR_CTR_BOR_AMT
@@ -818,9 +829,10 @@
                              -------------------------------------------------
                              , NVL(A.THM_ATAM_DP_AMT, 0) AS THM_ATAM_DP_AMT -- 선수입금 LCAM32
                              , (CASE WHEN A.SL_CL_YM <![CDATA[<]]> '201605' THEN 0
-                                     ELSE NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) -- 가산금 입금-환불
-                                END) AS THM_DLQ_ADD_DP_AMT -- 가산금입금 LCAM83
+                                     ELSE NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) END) AS THM_DLQ_ADD_DP_SUM_AMT -- 가산금입금 LCAM83
                              , NVL(A.THM_ATAM_RFND_AMT, 0) AS THM_ATAM_RFND_AMT -- 선수환불 LCAM33
+                             , (CASE WHEN A.SL_CL_YM <![CDATA[<]]> '201605' THEN 0
+                                     ELSE NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) END) AS THM_DLQ_ADD_RFND_SUM_AMT -- 가산금환불
                              -------------------------------------------------
                              -- 매출
                              -- LC505.LCTAMT - LC505.LCRAMT - LC505.LCAM43 + LC505.LCTCHA + LC505.LCAM38 - LC505.LCAM74
@@ -927,7 +939,7 @@
              <if test="@MybatisUtils@equals(agrgDv, '1')">
                SUBSTR(T2.SL_CL_YM,1,4) || '-' || SUBSTR(T2.SL_CL_YM,5,2) || (
                    CASE WHEN SUM(T2.EOT_ATAM) != SUM(T2.BTD_ATAM
-                                                   + T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT - T2.THM_ATAM_RFND_AMT
+                                                   + T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT - (T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT)
                                                    - T2.SL_BND_ALRPY_AMT
                                                    - T2.BOR_AMT
                                                    + T2.OVR_CTR_DP_AMT
@@ -960,8 +972,10 @@
              , SUM(T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT) AS ATAM_DP_AMT  -- 선수입금
              , SUM(T2.THM_ATAM_DP_AMT) AS ATAM_DP_AMT_1
              , SUM(T2.THM_DLQ_ADD_DP_SUM_AMT) AS ATAM_DP_AMT_2
-             , SUM(T2.THM_ATAM_RFND_AMT) AS THM_ATAM_RFND_AMT  -- 선수환불
-             , SUM(T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT - T2.THM_ATAM_RFND_AMT) AS DP_TOT_AMT -- 입금합계
+             , SUM(T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT) AS THM_ATAM_RFND_AMT  -- 선수환불
+             , SUM(T2.THM_ATAM_RFND_AMT) AS RFND_AMT_1 -- 선수환불
+          	 , SUM(T2.THM_DLQ_ADD_RFND_SUM_AMT) AS RFND_AMT_2 -- 가산금환불
+             , SUM(T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT - (T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT)) AS DP_TOT_AMT -- 입금합계
              , SUM(T2.SL_BND_ALRPY_AMT) AS SL_BND_ALRPY_AMT -- 매출합계
              , SUM(T2.BOR_AMT) AS BOR_AMT -- 위약금
              , SUM(T2.OVR_CTR_DP_AMT) AS ADJ_AMT -- 조정금액
@@ -980,8 +994,10 @@
              , T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT AS ATAM_DP_AMT  -- 선수입금
              , T2.THM_ATAM_DP_AMT AS ATAM_DP_AMT_1
              , T2.THM_DLQ_ADD_DP_SUM_AMT AS ATAM_DP_AMT_2
-             , T2.THM_ATAM_RFND_AMT AS THM_ATAM_RFND_AMT  -- 선수환불
-             , T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT - T2.THM_ATAM_RFND_AMT AS DP_TOT_AMT -- 입금합계
+             , (T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT) AS THM_ATAM_RFND_AMT  -- 선수환불
+             , T2.THM_ATAM_RFND_AMT AS RFND_AMT_1 -- 선수환불
+          	 , T2.THM_DLQ_ADD_RFND_SUM_AMT AS RFND_AMT_2 -- 가산금환불
+             , T2.THM_ATAM_DP_AMT - T2.THM_DLQ_ADD_DP_SUM_AMT - (T2.THM_ATAM_RFND_AMT - T2.THM_DLQ_ADD_RFND_SUM_AMT) AS DP_TOT_AMT -- 입금합계
              , T2.SL_BND_ALRPY_AMT AS SL_BND_ALRPY_AMT -- 매출합계
              , T2.BOR_AMT AS BOR_AMT -- 위약금
              , T2.OVR_CTR_DP_AMT AS ADJ_AMT -- 조정금액
@@ -991,7 +1007,7 @@
           FROM (
                 SELECT T1.*
                      , CASE WHEN T1.EOT_ATAM != T1.BTD_ATAM
-                                              + T1.THM_ATAM_DP_AMT - T1.THM_DLQ_ADD_DP_SUM_AMT - T1.THM_ATAM_RFND_AMT
+                                              + T1.THM_ATAM_DP_AMT - T1.THM_DLQ_ADD_DP_SUM_AMT - (T1.THM_ATAM_RFND_AMT - T1.THM_DLQ_ADD_RFND_SUM_AMT)
                                               - T1.SL_BND_ALRPY_AMT
                                               - T1.BOR_AMT
                                               + T1.OVR_CTR_DP_AMT
@@ -1018,6 +1034,7 @@
                              , NVL(A.THM_ATAM_DP_AMT, 0) AS THM_ATAM_DP_AMT -- 선수입금 LCAM32
                              , NVL(C.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT -- 가산금입금 LCAM83
                              , NVL(A.THM_ATAM_RFND_AMT, 0) AS THM_ATAM_RFND_AMT -- 선수환불 LCAM33
+                             , NVL(C.THM_DLQ_ADD_RFND_SUM_AMT, 0) AS THM_DLQ_ADD_RFND_SUM_AMT -- 가산금환불
                              -------------------------------------------------
                              -- 매출
                              -- LC505.LCAM35 + LC505.LCCM35 + LC505.LCSM35
