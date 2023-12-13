@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
+import com.sds.sflex.system.config.annotation.DBEncField;
 import org.apache.commons.lang.StringUtils;
 
 import com.sds.sflex.common.utils.DbEncUtil;
@@ -275,5 +276,69 @@ public class WogcPartnerPlannerDto {
         @NotBlank
         String ogTpCd // 조직유형코드
     ) {
+    }
+
+    @ApiModel(value = "WogcPartnerPlannerDto-SearchWellsPartnerRes")
+    public record SearchWellsPartnerRes(
+       String dgr2LevlOgCd // 지역단
+     , String dgr2LevlOgNm // 지역단명
+     , String ogCd // 현재소속
+     , String ogNm // 현재소속명
+     , String preOgCd // 전월소속
+     , String preOgNm // 전월소속명
+     , String bldNm // 빌딩명
+     , String prtnrNo // 업무등록번호
+     , String prtnrKnm // 이름
+     , String rsbDvNm // 직급
+     , String fullCralLocaraTno
+     , String cralLocaraTno
+     , String mexnoEncr
+     , String cralIdvTno
+     , String fullRrnoFrpsnVal // 주민등록번호전체
+     , String rrnoFrpsnVal // 주민등록번호앞자리
+     , String rrnoEncr // 주민등록번호뒷자리
+     , String fstCntrDt // 업무등록일
+     , String prfmtDt // 승진/강등일
+     , String cntrDt // 재등록일
+     , String cltnDt // 업무해약일
+     , String fnlCltnDt // 최종해약일
+     , String qlfDvCd // 매니저
+     , String conDt // 계약일
+     , String reconDt // 재등록일
+     , String fireDt // 해약일
+     , String rcmdrPrtnrNo // 업무등록번호
+     , String prtnrNm // 이름
+    ) {
+        public SearchWellsPartnerRes {
+            // 전화번호
+            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
+            fullCralLocaraTno = StringUtils.isNotEmpty(cralLocaraTno) ? cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno : "-";
+            rrnoEncr = StringUtils.isNotEmpty(rrnoEncr) ? DbEncUtil.dec(rrnoEncr) : rrnoEncr;
+            fullRrnoFrpsnVal = StringUtils.isNotEmpty(rrnoFrpsnVal) ? rrnoFrpsnVal + "-" + rrnoEncr: "-";
+        }
+    }
+
+    @ApiModel(value = "WogcPartnerPlannerDto-SearchWellsPartnerReq")
+    @Builder
+    public record SearchWellsPartnerReq(
+        String prtnrKnm, // 파트너한글명
+        String prtnrNo, // 파트너번호
+        String ogTpCd, // 자격구분코드
+        String rsbDvCd, //직급코드
+        String wmActiCd, //사용중구분코드
+        String schOjBlamStrt,
+        String schOjBlamEnd,
+        String tno,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String actiYn,
+        String wmYn
+
+
+    ) {
+        public SearchWellsPartnerReq{
+            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.enc(mexnoEncr) : mexnoEncr;
+        }
     }
 }

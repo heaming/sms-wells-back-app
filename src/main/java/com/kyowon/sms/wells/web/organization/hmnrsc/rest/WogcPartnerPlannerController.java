@@ -239,4 +239,50 @@ public class WogcPartnerPlannerController {
             .build();
         return service.getCheckCancellation(reqDto);
     }
+
+    @ApiOperation(value = "웰스플래너 페이징 조회", notes = "조회 조건에 일치하는 웰스플래너 목록을 페이징 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogTpCd", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prntrNo", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prntrKnm", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "rsbDvCd", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "wmActiCd", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schOjBlamStrt", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schOjBlamEnd", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "tno", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "cralLocaraTno", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "mexnoEncr", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "cralIdvTno", value = "", paramType = "query", required = false),
+
+    })
+    @GetMapping("/wells-planner-paging")
+    public PagingResult<WogcPartnerPlannerDto.SearchWellsPartnerRes> getWellsPlannerPages(
+        WogcPartnerPlannerDto.SearchWellsPartnerReq dto,
+        @Valid
+        PageInfo pageinfo
+    ) {
+
+        PagingResult<WogcPartnerPlannerDto.SearchWellsPartnerRes> list = service.getWellsPlannerPages(dto, pageinfo);
+        return list;
+    }
+
+     @ApiOperation(value = "웰스플래너 엑셀다운로드", notes = "검색조건을 입력 받아 엑셀다운로드용 웰스플래너를 조회한다.")
+    @GetMapping("/wells-planner/excel-download")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogTpCd", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prntrNo", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prntrKnm", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "rsbDvCd", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "wmActiCd", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schOjBlamStrt", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "schOjBlamEnd", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "tno", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "cralLocaraTno", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "mexnoEncr", value = "", paramType = "query", required = false),
+        @ApiImplicitParam(name = "cralIdvTno", value = "", paramType = "query", required = false),
+
+    })
+    public List<WogcPartnerPlannerDto.SearchWellsPartnerRes> getPlannerLicenseForExcelDownload(WogcPartnerPlannerDto.SearchWellsPartnerReq dto) {
+        return service.getWellsPlannerForExcelDownload(dto);
+    }
 }
