@@ -187,6 +187,90 @@
         HAVING SUM(AA.AMT_AKSD09) > 0
     </insert>
 
+    <insert id="insertOrganizationEjectFee1">
+    /* 조직배출1 수수료 계산(2023.08~) 기준*/
+     INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산기본 */
+               BASE_YM            /* 기준년월 */
+             , PERF_YM            /* 실적년월 */
+             , OJ_DSB_YM          /* 대상지급년월 */
+             , CO_CD              /* 회사코드 */
+             , OG_TP_CD           /* 조직유형코드 */
+             , PRTNR_NO           /* 파트너번호 */
+             , FEE_CD             /* 수수료코드 */
+             , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+             , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+             , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+             , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+             , FEE_CALC_AMT       /* 수수료계산금액 */
+             , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+             , FNL_FEE_YN         /* 최종수수료여부 */
+             <include refid="COMMON.insertSystemField" />)
+     SELECT AA.BASE_YM
+             , AA.BASE_YM         AS PERF_YM
+             , AA.BASE_YM         AS OJ_DSB_YM
+             , #{coCd}             AS CO_CD
+             , AA.OG_TP_CD
+             , AA.PRTNR_NO
+             , #{feeCd}          AS FEE_CD
+             , #{dtaCrtFeeCd}          AS DTA_CRT_FEE_CD
+             , #{feeTcntDvCd} AS FEE_TCNT_DV_CD
+             , '01'               AS SPMT_DSB_DV_CD -- 추후 확인 필요 01/정상지급, 02/추가지급
+             , '01'               AS FEE_CALC_TP_CD -- 01 / 수수료계산
+             , FEE_CALC_AMT AS FEE_CALC_AMT
+             , FEE_CALC_AMT AS FEE_CTR_CNFM_AMT
+             , #{fnlFeeYn}        AS FNL_FEE_YN
+        <include refid="COMMON.insertSystemFieldValue" />
+        FROM (
+               SELECT T1.BASE_YM
+                     , T1.BASE_YM         AS PERF_YM
+                     , T1.BASE_YM         AS OJ_DSB_YM
+                     , T1.OG_TP_CD
+                     , T1.PRTNR_NO
+                     , CASE WHEN T4.PERF_VAL >= 20 THEN /* 배출자 가전 20개 이상이면 조직배출1지급 */
+                                 CASE WHEN NVL(T3.PERF_VAL, 0) > NVL(T2.PERF_VAL, 0) AND WHEN NVL(T3.PERF_VAL, 0) >= 4 THEN 1500000
+                                      WHEN NVL(T3.PERF_VAL, 0) > NVL(T2.PERF_VAL, 0) AND NVL(T3.PERF_VAL, 0) = 3 THEN 1000000
+                                      WHEN NVL(T3.PERF_VAL, 0) > NVL(T2.PERF_VAL, 0) AND NVL(T3.PERF_VAL, 0) = 2 THEN 500000
+                                      WHEN NVL(T3.PERF_VAL, 0) > NVL(T2.PERF_VAL, 0) AND NVL(T3.PERF_VAL, 0) = 1 THEN 300000
+                                      ELSE
+                                            /* 2023.07 이전 배출수 이하이면 */
+                                            CASE WHEN NVL(T3.PERF_VAL, 0) >= 3 THEN NVL(T3.PERF_VAL, 0) * 100000 + 100000
+                                                 WHEN NVL(T3.PERF_VAL, 0) >= 1 THEN NVL(T3.PERF_VAL, 0) * 100000
+                                                 ELSE 0 END
+                                      END
+                            ELSE 0 END AS FEE_CALC_AMT
+                  FROM TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역 */
+                  LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T2 /* 순주문파트너실적월마감 */
+                    ON T1.BASE_YM = T2.BASE_YM
+                   AND T1.BASE_YM = T2.PERF_YM
+                   AND T2.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND T1.OG_TP_CD = T2.OG_TP_CD
+                   AND T1.PRTNR_NO = T2.PRTNR_NO
+                   AND T2.PERF_ATC_CD = 'W02P00134'     /* 2023.07이전 배출수 */
+                   AND '2' = T2.PERF_DV_CD -- 지점장 집계
+                  LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T3 /* 순주문파트너실적월마감 */
+                    ON T1.BASE_YM = T3.BASE_YM
+                   AND T1.BASE_YM = T3.PERF_YM
+                   AND T3.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND T1.OG_TP_CD = T3.OG_TP_CD
+                   AND T1.PRTNR_NO = T3.PRTNR_NO
+                   AND T3.PERF_ATC_CD = 'W02P00092'     /* 배출수 */
+                   AND '2' = T3.PERF_DV_CD -- 지점장 집계
+                  LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T4 /* 순주문파트너실적월마감 */
+                    ON T1.BASE_YM = T4.BASE_YM
+                   AND T1.BASE_YM = T4.PERF_YM
+                   AND T4.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                   AND T1.OG_TP_CD = T4.OG_TP_CD
+                   AND T1.PRTNR_NO = T4.PRTNR_NO
+                   AND T4.PERF_ATC_CD = 'W02P00002'     /* 인정건수 */
+                   AND '2' = T4.PERF_DV_CD -- 지점장 집계
+                 WHERE 1 = 1
+                   AND A.BASE_YM = #{baseYm}
+                   AND A.OG_TP_CD = #{ogTpCd}
+                   AND A.PSTN_DV_CD = '7'
+                   AND A.PERF_EXCD_OJ_YN = 'N'
+             ) AA
+    </insert>
+
     <insert id="insertNewEstablishmentBranchFee">
         INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산기본 */
                BASE_YM            /* 기준년월 */
