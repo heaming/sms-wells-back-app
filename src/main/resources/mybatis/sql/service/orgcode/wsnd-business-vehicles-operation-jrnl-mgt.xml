@@ -2,18 +2,18 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndBusinessVehiclesOperationJrnlMgtMapper">
     <select id="selectBusinessVehiclesOperationJrnl" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesOperationJrnlMgtDto$SearchRes">
-        WITH HIST AS ( SELECT *
-                         FROM ( SELECT CARNO
-                                     , FUEL_CSM_RT
-                                     , BSPD_TMS
-                                     , SDPD_TMS
-                                     , OPRTN_HH
-                                     , SUBSTR(OPRTN_STRTT,1,8) AS OPRTN_STRTT
-                                     , RANK() OVER (PARTITION BY CARNO, SUBSTR(OPRTN_STRTT,1,8) ORDER BY OPRTN_STRTT DESC) AS RN
-                                  FROM TB_SVPD_OPRTN_HIST
-                                 WHERE SUBSTR(OPRTN_STRTT,1,8) BETWEEN '20231101' AND '20231130'
-                         )
-                        WHERE RN = 1
+        WITH HIST AS ( SELECT CARNO
+--                          , SUM(FUEL_CSM_RT) AS FUEL_CSM_RT
+                            , SUM(BSPD_TMS) AS BSPD_TMS
+                            , SUM(SDPD_TMS) AS SDPD_TMS
+                            , SUM(TO_NUMBER(OPRTN_HH)/60)AS OPRTN_HH
+                            , SUBSTR(OPRTN_STRTT,1,8) AS OPRTN_STRTT
+--                                     , COUNT(*) AS CNT
+--                                     , RANK() OVER (PARTITION BY CARNO, SUBSTR(OPRTN_STRTT,1,8) ORDER BY OPRTN_STRTT DESC) AS RN
+                         FROM TB_SVPD_OPRTN_HIST
+                        WHERE SUBSTR(OPRTN_STRTT,1,8) BETWEEN #{startDt} AND #{endDt}
+                     GROUP BY CARNO
+                           ,  SUBSTR(OPRTN_STRTT,1,8)
         )
 
         SELECT P1.OG_NM /* 소속 */
@@ -21,7 +21,7 @@
              , C1.VHC_MNGT_PRTNR_NO
              , F_CMZ_CD_NM('TNT_WELLS', 'HIR_FOM_CD', P1.HIR_FOM_CD , 'ko') AS HIR_FOM_CD
              , P1.CNTR_DT
-             , '' AS CARNM -- ***
+             , C3.VHC_KND_NM AS CARNM
              , C1.CARNO
              , C1.VHC_OPRTN_DT
              , C1.VHC_OPRTN_SN
@@ -30,25 +30,28 @@
              , C1.OPRTN_DSTN
              , HIST.OPRTN_HH
              , C1.LBRCQ_VAL /*주유량값*/
-             , 0 AS LBRCQ_PR /* 데이터 확인 불가로 임시 - 주유비용 */
-             , FUEL_CSM_RT /* 연비 */
-             , 0 AS OPRTN_CT --/* 운행건수 */ *****
-             , BSPD_TMS --/* 급가속횟수 */ ****
-             , SDPD_TMS-- /* 급감속횟수 */ ****
+             , C1.RFLNG_AMT AS LBRCQ_PR /* 데이터 확인 불가로 임시 - 주유비용 */
+             , C1.FUEL_CSM_RT /* 연비 */
+             , C1.OPRTN_CT AS OPRTN_CT --/* 운행건수 */ *****
+             , HIST.BSPD_TMS --/* 급가속횟수 */ ****
+             , HIST.SDPD_TMS-- /* 급감속횟수 */ ****
              , HIST.BSPD_TMS / 1 AS AVG_BSPD_TMS --HIST.BSPD_TMS / OPRTN_CNT /* 평균가속률 */ ***
-             , 0 AS AV_SFT_IDXT /* 평균안전지수 - 데이터 없음 */
+             , C1.AV_SFT_IDXT AS AV_SFT_IDXT /* 평균안전지수 - 데이터 없음 */
+             , C1.VHC_MNGT_NO
+             , C1.VHC_MNGT_SN
         FROM TB_SVPD_VHC_OPRTN_DTL C1 /* 차량운행상세 */
-                 INNER JOIN TB_SVPD_VHC_DSB_IZ C3 /* 차량지급내역 */
-                            ON C1.VHC_MNGT_NO = C3.VHC_MNGT_NO
-                                AND C1.VHC_MNGT_SN = C3.VHC_MNGT_SN
-                                AND C1.VHC_OPRTN_DT BETWEEN C3.VHC_PYMDT AND C3.DSB_ENDDT
-                 INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
-                            ON P1.BASE_YM = '202311'
-                                AND C1.VHC_MNGT_OG_TP_CD = P1.OG_TP_CD
-                                AND C1.VHC_MNGT_PRTNR_NO = P1.PRTNR_NO
-                 INNER JOIN HIST
-                            ON C1.CARNO = HIST.CARNO
-        WHERE 1=1
+  INNER JOIN TB_SVPD_VHC_DSB_IZ C3 /* 차량지급내역 */
+          ON C1.VHC_MNGT_NO = C3.VHC_MNGT_NO
+         AND C1.VHC_MNGT_SN = C3.VHC_MNGT_SN
+         AND C1.VHC_OPRTN_DT BETWEEN C3.VHC_PYMDT AND C3.DSB_ENDDT
+  INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
+          ON P1.BASE_YM = SUBSTR(#{startDt},1,6)
+         AND C1.VHC_MNGT_OG_TP_CD = P1.OG_TP_CD
+         AND C1.VHC_MNGT_PRTNR_NO = P1.PRTNR_NO
+ INNER JOIN HIST
+          ON C1.CARNO = HIST.CARNO
+         AND C1.VHC_OPRTN_DT = HIST.OPRTN_STRTT
+       WHERE 1=1
         <if test="@MybatisUtils@isNotEmpty(rgstYn)">
             <choose>
                 <when test='@MybatisUtils@equals(rgstYn, "Y")'>
@@ -68,4 +71,16 @@
         AND C1.VHC_OPRTN_DT BETWEEN #{startDt} AND #{endDt}
    ORDER BY P1.OG_NM , P1.PRTNR_NO, C1.VHC_OPRTN_DT DESC
     </select>
+
+    <update id="updateBusinessVehiclesOperationJrnl">
+        UPDATE TB_SVPD_VHC_OPRTN_DTL
+        SET LBRCQ_VAL = #{lbrcqVal}
+          , RFLNG_AMT = #{lbrcqPr}
+        <include refid="COMMON.updateSystemField"/>
+        WHERE VHC_MNGT_NO = #{vhcMngtNo}
+        AND VHC_MNGT_SN = #{vhcMngtSn}
+        AND VHC_OPRTN_DT = #{vhcOprtnDt}
+        AND VHC_OPRTN_SN = #{vhcOprtnSn}
+    </update>
+
 </mapper>

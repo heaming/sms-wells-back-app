@@ -27,14 +27,16 @@ public class WsndBusinessVehiclesOperationJrnlMgtDto {
         Integer arvAcuDstn,
         Integer oprtnDstn,
         Integer oprtnHh,
-        Integer lbrcqVal,
-        Float lbrcqPr,
+        Float lbrcqVal,
+        Integer lbrcqPr,
         Double fuelCsmRt,
         Integer oprtnCt,
         Integer bspdTms,
         Integer sdpdTms,
         Double avgBspdTms,
-        Double avSftIdxt
+        Double avSftIdxt,
+        String vhcMngtNo,
+        Integer vhcMngtSn
     ) {}
 
 }
