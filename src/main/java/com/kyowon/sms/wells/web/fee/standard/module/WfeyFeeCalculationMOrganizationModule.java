@@ -76,7 +76,7 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
      * <p>
      * 웰스서비스실적내역 테이블에 수수료계산금액 업데이트
      */
-    @FeeModuleMethodInfo(methodName = "BS관리(판매자)수수료(W020084) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 수수료계산금액 업데이트")
+    @FeeModuleMethodInfo(methodTypeCode =  "01", methodName = "BS관리(판매자)수수료(W020084) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 수수료계산금액 업데이트")
     public void runBsManagementFeeForSellerPostProcess() {
         mOrganizationCalculationMapper.updateBsManagementFeeForSellerCase1(baseYm, feeCd, feeTcntDvCd, basic.ogTpCd());
         mOrganizationCalculationMapper.updateBsManagementFeeForSellerCase2(baseYm, feeCd, feeTcntDvCd, basic.ogTpCd());
@@ -89,7 +89,7 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
      * <p>
      * 웰스서비스실적내역 테이블에 급지수수료금액 업데이트
      */
-    @FeeModuleMethodInfo(methodName = "WM급지(판매자)수수료(W020085) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 급지수수료금액 업데이트")
+    @FeeModuleMethodInfo(methodTypeCode =  "01", methodName = "WM급지(판매자)수수료(W020085) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 급지수수료금액 업데이트")
     public void runRegionLevelFeeForSellerPostProcess() {
         mOrganizationCalculationMapper.updateRegionLevelFeeForSeller(baseYm, feeCd, feeTcntDvCd, basic.ogTpCd());
     }
@@ -99,7 +99,7 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
      * <p>
      * 웰스서비스실적내역 테이블에 수수료계산금액 업데이트
      */
-    @FeeModuleMethodInfo(methodName = "BS관리(지점장)수수료(W020087) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 수수료계산금액 업데이트")
+    @FeeModuleMethodInfo(methodTypeCode =  "01", methodName = "BS관리(지점장)수수료(W020087) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 수수료계산금액 업데이트")
     public void runBsManagementFeeForBrmgrPostProcess() {
         mOrganizationCalculationMapper.updateBsManagementFeeForBrmgrCase1(baseYm, feeCd, feeTcntDvCd, basic.ogTpCd());
         mOrganizationCalculationMapper.updateBsManagementFeeForBrmgrCase2(baseYm, feeCd, feeTcntDvCd, basic.ogTpCd());
@@ -116,7 +116,7 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
      * <p>
      * 웰스서비스실적내역 테이블에 급지수수료금액 업데이트
      */
-    @FeeModuleMethodInfo(methodName = "WM급지(지점장)수수료(W020088) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 급지수수료금액 업데이트")
+    @FeeModuleMethodInfo(methodTypeCode =  "01", methodName = "WM급지(지점장)수수료(W020088) 후처리", methodExplanation = "웰스서비스실적내역 테이블에 급지수수료금액 업데이트")
     public void runRegionLevelFeeForBrmgrPostProcess() {
         mOrganizationCalculationMapper.updateUnderPerf120RegionLevelFeeForBrmgr(baseYm, feeCd, feeTcntDvCd, basic.ogTpCd());
         mOrganizationCalculationMapper.updateOverPerf120RegionLevelFeeForBrmgr(baseYm, feeCd, feeTcntDvCd, basic.ogTpCd());
@@ -127,7 +127,7 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
      * <p>
      * 계약단위로 생성하여 파트너단위로 SUM하는 되물림 금액 계산
      */
-    @FeeModuleMethodInfo(methodName = "M조직 특화 정액 사용자정의되물림 계산", methodExplanation = "M조직 특화 정액 사용자정의되물림 계산 생성")
+    @FeeModuleMethodInfo(methodTypeCode =  "02", methodName = "M조직 특화 정액 사용자정의되물림 계산", methodExplanation = "M조직 특화 정액 사용자정의되물림 계산 생성")
     public void runFixedAmountRedemptionCalculate() {
         /* 사용자정의되물림인지 확인 */
         BizAssert.isTrue(USER_DEFINE_REDF.getCode().equals(basic.redfDvCd()), "MSG_ALT_WRONG_REDF_TP"); /* 되물림유형이 맞지 않습니다. */
@@ -155,5 +155,4 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
             runInsertionRedfDataHistoriesStep();
         }
     }
-
 }

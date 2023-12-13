@@ -1,13 +1,12 @@
 package com.kyowon.sms.wells.web.bond.credit.mapper;
 
-import java.util.List;
-
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbDelinquentIzDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <pre>
@@ -23,6 +22,7 @@ public interface WbndRentalCbMgtObjectMapper {
 
     /**
      * 렌탈CB 연체대상 관리 조회 - 고객별
+     *
      * @param dvo
      * @return List<WbndRentalCbDelinquentIzDvo>
      */
@@ -32,6 +32,7 @@ public interface WbndRentalCbMgtObjectMapper {
 
     /**
      * 렌탈CB 연체대상 관리 조회 - 계약별
+     *
      * @param dvo
      * @return List<WbndRentalCbDelinquentIzDvo>
      */
@@ -41,6 +42,7 @@ public interface WbndRentalCbMgtObjectMapper {
 
     /**
      * 렌탈CB 연체대상 관리 update
+     *
      * @param dto
      * @return int
      */
@@ -50,6 +52,7 @@ public interface WbndRentalCbMgtObjectMapper {
 
     /**
      * 렌탈CB 연체대상 관리 이력 insert
+     *
      * @param dto
      * @return int
      */
@@ -59,18 +62,20 @@ public interface WbndRentalCbMgtObjectMapper {
 
     /**
      * 렌탈CB납입정보(팝업) 페이징 조회
+     *
      * @param cstNo, pageInfo
      * @return PagingResult<WbndRentalCbDelinquentIzDvo>
      */
     PagingResult<WbndRentalCbDelinquentIzDvo> selectRentalCbMgtPaymentInfos(@Param("cstNo")
-    String cstNo, PageInfo pageInfo);
+                                                                            String cstNo, @Param("baseYm") String baseYm, PageInfo pageInfo);
 
     /**
      * 렌탈CB납입정보(팝업) 엑셀다운로드
+     *
      * @param cstNo
      * @return List<WbndRentalCbDelinquentIzDvo>
      */
     List<WbndRentalCbDelinquentIzDvo> selectRentalCbMgtPaymentInfos(@Param("cstNo")
-    String cstNo);
+                                                                    String cstNo, @Param("baseYm") String baseYm);
 
 }

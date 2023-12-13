@@ -17,6 +17,6 @@ public interface WfeyFeeCalculationSqlFor102Mapper {
      * @param feeTcntDvCd 수수료차수구분코드
      * @return 처리개수
      */
-    @SqlMethodInfo(methodName = "P조직 지점장 정착수수료 정착수수료계산", methodExplanation = "P조직 지점장 정착수수료 정착수수료 계산 SQL 매퍼")
+    @SqlMethodInfo(methodTypeCode = "01", methodName = "P조직 지점장 정착수수료 정착수수료계산", methodExplanation = "P조직 지점장 정착수수료 정착수수료 계산 SQL 매퍼")
     Integer insertSettlementFeesForBrmgr(String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String feeTcntDvCd, String fnlFeeYn);
 }

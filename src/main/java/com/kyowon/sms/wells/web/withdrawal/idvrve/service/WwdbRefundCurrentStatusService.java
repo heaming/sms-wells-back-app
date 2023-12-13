@@ -8,6 +8,7 @@ import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchCardRefundHistoryRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchRefundHistoryReq;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchRefundHistoryRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto.SearchRefundHistoryTotalRes;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbRefundCurrentStatusMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -27,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 public class WwdbRefundCurrentStatusService {
 
     private final WwdbRefundCurrentStatusMapper mapper;
-
 
     /**
      * 환불내역 목록
@@ -53,6 +53,18 @@ public class WwdbRefundCurrentStatusService {
         SearchRefundHistoryReq req
     ) {
         return mapper.selectRefundHistory(req);
+    }
+
+    /**
+     * 환불내역 목록 합계
+     *
+     * @param req
+     * @return SearchRefundHistoryTotalRes
+     */
+    public SearchRefundHistoryTotalRes getRefundHistorySum(
+        SearchRefundHistoryReq req
+    ) {
+        return mapper.selectRefundHistorySum(req);
     }
 
     /**

@@ -17,12 +17,9 @@ public class WpsfRuleBaseMgtDto {
     @Builder
     @ApiModel("WpsfRuleBaseMgtDto-SearchReq")
     public record SearchReq(
-        String urgnYN,
-        String oneDepth,
-        String twoDepth,
-        String threeDepth,
-        String ogTpCd,
-        String rsbDvCd
+        String urgnYn,
+        String bznsSpptMnalId, /* 영업지원매뉴얼ID */
+        String vlStrtDtm
 
     ) {}
 
@@ -47,15 +44,17 @@ public class WpsfRuleBaseMgtDto {
         String orgPath,
         String fnlMdfcUsrNm,
         String fnlMdfcDt,
-
-        String dtaDlYn
-
+        String unnKey,
+        String fileUid,
+        String ogTpCd,
+        String rsbDvCds,
+        String cstCnrInqrPrmitYn,
+        String psbYn
     ) {}
 
     @Builder
     @ApiModel("WpsfRuleBaseMgtDto-SaveReq")
     public record SaveReq(
-        @NotBlank
         String bznsSpptMnalId, /* 영업지원매뉴얼ID */
         String vlStrtDtm, /* 유효시작일시 */
         String vlEndDtm, /* 유효종료일시 */
@@ -70,9 +69,10 @@ public class WpsfRuleBaseMgtDto {
         Integer inqrLvTcnt, /* 조회단계차수 */
         Long expsrOdr, /* 노출순서 */
         String apnFileDocId, /* 첨부파일문서ID */
+        String cstCnrInqrPrmitYn,
         List<String> rsbDvCds, /* 직책구분코드 */
         List<AttachFile> attachFiles,
-        String ogTpCd
+        List<String> ogTpCd
 
     ) {}
 

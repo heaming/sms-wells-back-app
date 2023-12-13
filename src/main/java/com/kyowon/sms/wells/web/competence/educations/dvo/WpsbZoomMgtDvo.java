@@ -10,7 +10,7 @@ public class WpsbZoomMgtDvo {
     private String hgrSvEducMnalId; /* 상위서비스교육매뉴얼ID */
     private String svEducMnalNm; /* 서비스교육매뉴얼명 */
     private Integer inqrLvTcnt; /* 조회단계차수 */
-    private Long expsrOdr; /* 노출순서 */
+    private Integer expsrOdr; /* 노출순서 */
     private String svEducCtgNm; /* 서비스교육카테고리명 */
     private String svEducMnalCn; /* 서비스교육매뉴얼내용 */
     private String rsbDvCd; /* 직책구분코드 */

@@ -168,7 +168,8 @@
     </select>
 
     <select id="selectBuildingBsConsumables" resultType="camelMap">
-        SELECT T1.BFSVC_CSMB_DDLV_STAT_CD   /* BS소모품배부상태코드 */
+        SELECT /*+ NO_MERGE(T1 T2) */
+               T1.BFSVC_CSMB_DDLV_STAT_CD   /* BS소모품배부상태코드 */
              , T1.REQ_YN                    /* 신청여부 */
              , T1.BLD_CD                    /* 빌딩코드 */
              , T1.BLD_NM                    /* 빌딩명 */
@@ -177,34 +178,62 @@
              , ${pivotColumns}              /* PIVOT 컬럼 */
           FROM
              (
-               SELECT /*+ ORDERED USE_HASH(D1 D2) */
-                      D6.BFSVC_CSMB_DDLV_STAT_CD
-                    , CASE WHEN D6.BFSVC_CSMB_DDLV_STAT_CD IS NULL THEN ( SELECT MLNG_CNTN
+               SELECT /*+ INDEX(D1 PK_OGBS_BLD_BAS) NO_MERGE(D2) */
+                      D3.BFSVC_CSMB_DDLV_STAT_CD
+                    , CASE WHEN D3.BFSVC_CSMB_DDLV_STAT_CD IS NULL THEN ( SELECT MLNG_CNTN
                                                                             FROM T_CMZ_MLNG_D
                                                                            WHERE MLNG_ID   = 'MSG_TXT_NAPC'   /* 미신청 */
                                                                              AND TENANT_ID = 'TNT_BASE'
                                                                              AND LNG_ID    = #{session.langId} )
-                           ELSE F_CMZ_CD_NM('TNT_WELLS', 'BFSVC_CSMB_DDLV_STAT_CD', D6.BFSVC_CSMB_DDLV_STAT_CD, #{session.langId})
-                      END      AS REQ_YN
-                    , D5.BLD_CD
-                    , D5.BLD_NM
-                    , D5.RSPP_PRTNR_NO
-                    , COUNT(1) AS VST_CST_N
-                 FROM TB_SVPD_MCBY_CST_SV_OJ_IZ D1     /* 월별고객서비스대상내역 */
-                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2   /* 고객서비스수행내역 */
-                   ON D2.CNTR_NO = D1.CNTR_NO
-                  AND D2.CNTR_SN = D1.CNTR_SN
-                INNER JOIN TB_OGBS_MM_PRTNR_IZ D3      /* 월파트너내역 */
-                   ON D3.BASE_YM  = D1.MNGT_YM
-                  AND D3.OG_TP_CD = D1.MNGT_PRTNR_OG_TP_CD
-                  AND D3.PRTNR_NO = D1.MNGT_PRTNR_NO
-                INNER JOIN TB_OGBS_MM_OG_IZ D4         /* 월조직내역 */
-                   ON D4.BASE_YM  = D3.BASE_YM
-                  AND D4.OG_TP_CD = D3.OG_TP_CD
-                  AND D4.OG_ID    = D3.OG_ID
-                INNER JOIN TB_OGBS_BLD_BAS D5          /* 빌딩기본 */
-                   ON D5.OG_TP_CD = D4.OG_TP_CD
-                  AND D5.BLD_CD   = D4.BLD_CD
+                           ELSE F_CMZ_CD_NM('TNT_WELLS', 'BFSVC_CSMB_DDLV_STAT_CD', D3.BFSVC_CSMB_DDLV_STAT_CD, #{session.langId})
+                      END                  AS REQ_YN
+                    , D1.BLD_CD
+                    , D1.BLD_NM
+                    , D1.RSPP_PRTNR_NO
+                    , NVL(D2.VST_CST_N, 0) AS VST_CST_N
+                 FROM TB_OGBS_BLD_BAS D1   /* 빌딩기본 */
+                 LEFT OUTER JOIN
+                    (
+                      SELECT /*+ USE_HASH(S1 S2 S4 S5) */
+                             S5.BLD_CD
+                           , S5.OG_TP_CD
+                           , COUNT(1) AS VST_CST_N
+                        FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1
+                       INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ S2
+                          ON S2.ASN_OJ_YM     = S1.ASN_OJ_YM
+                         AND S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+                       INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S3
+                          ON S3.CNTR_NO = S1.CNTR_NO
+                         AND S3.CNTR_SN = S1.CNTR_SN
+                       INNER JOIN TB_OGBS_MM_PRTNR_IZ S4
+                          ON S4.BASE_YM  = S1.ASN_OJ_YM
+                         AND S4.OG_TP_CD = S1.CNFM_PSIC_PRTNR_OG_TP_CD
+                         AND S4.PRTNR_NO = S1.CNFM_PSIC_PRTNR_NO
+                       INNER JOIN TB_OGBS_MM_OG_IZ S5
+                          ON S5.BASE_YM  = S4.BASE_YM
+                         AND S5.OG_TP_CD = S4.OG_TP_CD
+                         AND S5.OG_ID    = S4.OG_ID
+                       WHERE S1.DTA_DL_YN                = 'N'
+                         AND S1.CNFM_PSIC_PRTNR_OG_TP_CD = 'W02'
+                         AND S1.VST_PRGS_STAT_CD IN ('00', '20')
+                         AND S2.DTA_DL_YN                = 'N'
+                         AND S3.DTA_DL_YN                = 'N'
+                         AND S4.DTA_DL_YN                = 'N'
+                         AND S4.OG_TP_CD                 = 'W02'
+                         AND S5.DTA_DL_YN                = 'N'
+                         AND S5.OG_TP_CD                 = 'W02'
+                         AND S5.BLD_CD IS NOT NULL
+                         AND (    S1.VST_PRGS_STAT_CD = '20'
+                               OR ( S1.VST_PRGS_STAT_CD = '00' AND S3.CNTR_DTL_STAT_CD = '101' )
+                             )   /* 작업완료이거나 정상인 작업대기 건 */
+                         AND S1.ASN_OJ_YM                = #{mngtYm}
+                         AND S2.ASN_OJ_YM                = #{mngtYm}
+                         AND S4.BASE_YM                  = #{mngtYm}
+                         AND S5.BASE_YM                  = #{mngtYm}
+                       GROUP BY S5.BLD_CD, S5.OG_TP_CD
+                    ) D2
+                   ON D2.BLD_CD   = D1.BLD_CD
+                  AND D2.OG_TP_CD = D1.OG_TP_CD
                  LEFT OUTER JOIN
                     (
                       SELECT STR_WARE_NO
@@ -214,47 +243,38 @@
                          AND BFSVC_CSMB_DDLV_OJ_CD = '3'
                          AND MNGT_YM               = #{mngtYm}
                        GROUP BY STR_WARE_NO
-                    ) D6
-                   ON D6.STR_WARE_NO = D5.BLD_CD
+                    ) D3
+                   ON D3.STR_WARE_NO = D1.BLD_CD
                 WHERE D1.DTA_DL_YN           = 'N'
-                  AND D1.MNGT_PRTNR_OG_TP_CD = 'W02'
-                  AND D2.DTA_DL_YN           = 'N'
-                  AND D2.CNTR_DTL_STAT_CD NOT IN ('301', '302', '303', '401', '402')
-                  AND D3.DTA_DL_YN           = 'N'
-                  AND D3.OG_TP_CD            = 'W02'
-                  AND D4.DTA_DL_YN           = 'N'
-                  AND D4.OG_TP_CD            = 'W02'
-                  AND D5.DTA_DL_YN           = 'N'
-                  AND D5.OG_TP_CD            = 'W02'
-                  AND D1.MNGT_YM             = #{mngtYm}
-                  AND D3.BASE_YM             = #{mngtYm}
-                  AND D4.BASE_YM             = #{mngtYm}
+                  AND D1.OG_TP_CD            = 'W02'
+                  AND D1.RSPP_PRTNR_NO IS NOT NULL
             <if test="@MybatisUtils@isNotEmpty(bldCds)">
-                  AND D5.BLD_CD IN
+                  AND D1.BLD_CD IN
                             <foreach collection="bldCds" item="item" open="(" close=")" separator=",">
                                     #{item}
                             </foreach>
             </if>
-                GROUP BY D6.BFSVC_CSMB_DDLV_STAT_CD, D5.BLD_CD, D5.BLD_NM, D5.RSPP_PRTNR_NO
              ) T1
           LEFT OUTER JOIN
              (
                SELECT *
                  FROM
                     (
-                      SELECT NVL(S2.STR_WARE_NO, S1.STR_WARE_NO)                      AS STR_WARE_NO
+                      SELECT /*+ NO_MERGE(S1) */
+                             NVL(S2.STR_WARE_NO, S1.STR_WARE_NO)                      AS STR_WARE_NO
                            , TO_CHAR(TO_NUMBER(NVL(S2.SAP_MAT_CD, S1.SAP_MAT_CD)))    AS SAP_MAT_CD
                            , NVL(S2.BFSVC_CSMB_DDLV_QTY, S1.BFSVC_CSMB_DDLV_UNIT_QTY) AS BFSVC_CSMB_DDLV_UNIT_QTY
                         FROM
                            (
-                             SELECT D4.BLD_CD AS STR_WARE_NO
+                             SELECT /*+ USE_HASH(D1 D2 D4) NO_MERGE(D4) */
+                                    D1.BLD_CD AS STR_WARE_NO
                                   , D2.CSMB_PD_CD
                                   , D3.SAP_MAT_CD
                                   , CASE WHEN D2.BFSVC_CSMB_DDLV_CMPT_BASE_CD = '2'
                                          THEN NVL(D2.BFSVC_CSMB_DDLV_UNIT_QTY, 0)
                                          WHEN D2.BFSVC_CSMB_DDLV_CMPT_BASE_CD = '1'
                                           AND D2.BFSVC_CSMB_DDLV_UNIT_ACC_N <![CDATA[<>]]> 0
-                                         THEN NVL( CEIL( SUM(D5.CNT) / D2.BFSVC_CSMB_DDLV_UNIT_ACC_N * D2.BFSVC_CSMB_DDLV_UNIT_QTY), 0)
+                                         THEN NVL( CEIL( SUM(D4.CNT) / D2.BFSVC_CSMB_DDLV_UNIT_ACC_N * D2.BFSVC_CSMB_DDLV_UNIT_QTY), 0)
                                          ELSE 0
                                     END       AS BFSVC_CSMB_DDLV_UNIT_QTY
                                FROM TB_OGBS_MM_OG_IZ D1                   /* 월조직내역 */
@@ -262,56 +282,57 @@
                                  ON D2.MNGT_YM = D1.BASE_YM
                               INNER JOIN TB_PDBS_PD_BAS D3                /* 상품기본 */
                                  ON D3.PD_CD = D2.CSMB_PD_CD
-                              INNER JOIN TB_OGBS_BLD_BAS D4               /* 빌딩기본 */
-                                 ON D4.OG_TP_CD = D1.OG_TP_CD
-                                AND D4.BLD_CD   = D1.BLD_CD
                                LEFT OUTER JOIN
                                   (
-                                    SELECT /*+ ORDERED USE_HASH(S1 S2) */
-                                           O3.BLD_CD
-                                         , S3.COPN_DV_CD
-                                         , S4.PD_PRP_VAL20
+                                    SELECT /*+ USE_HASH(S1 S2 O1 O2)  */
+                                           O2.BLD_CD
+                                         , S4.COPN_DV_CD
+                                         , S5.PD_PRP_VAL20
                                          , COUNT(1) AS CNT
-                                      FROM TB_SVPD_CST_SV_EXCN_IZ S1
-                                     INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ S2
-                                        ON S2.CNTR_NO = S1.CNTR_NO
-                                       AND S2.CNTR_SN = S1.CNTR_SN
-                                     INNER JOIN TB_SSCT_CNTR_BAS S3
+                                      FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1       /* 고객서비스BS배정내역 */
+                                     INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ S2   /* 고객서비스BS대상내역 */
+                                        ON S2.ASN_OJ_YM     = S1.ASN_OJ_YM
+                                       AND S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+                                     INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S3       /* 고객서비스수행내역 */
                                         ON S3.CNTR_NO = S1.CNTR_NO
-                                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S4
-                                        ON S4.PD_CD = S2.PDCT_PD_CD
-                                     INNER JOIN TB_OGBS_MM_PRTNR_IZ O1
-                                        ON O1.BASE_YM  = S2.MNGT_YM
-                                       AND O1.OG_TP_CD = S2.MNGT_PRTNR_OG_TP_CD
-                                       AND O1.PRTNR_NO = S2.MNGT_PRTNR_NO
-                                     INNER JOIN TB_OGBS_MM_OG_IZ O2
+                                       AND S3.CNTR_SN = S1.CNTR_SN
+                                     INNER JOIN TB_SSCT_CNTR_BAS S4             /* 계약기본 */
+                                        ON S4.CNTR_NO = S1.CNTR_NO
+                                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S5      /* 상품각사속성상세 */
+                                        ON S5.PD_CD = S2.PDCT_PD_CD
+                                     INNER JOIN TB_OGBS_MM_PRTNR_IZ O1          /* 월파트너내역 */
+                                        ON O1.BASE_YM  = S1.ASN_OJ_YM
+                                       AND O1.OG_TP_CD = S1.CNFM_PSIC_PRTNR_OG_TP_CD
+                                       AND O1.PRTNR_NO = S1.CNFM_PSIC_PRTNR_NO
+                                     INNER JOIN TB_OGBS_MM_OG_IZ O2             /* 월조직내역 */
                                         ON O2.BASE_YM  = O1.BASE_YM
                                        AND O2.OG_TP_CD = O1.OG_TP_CD
                                        AND O2.OG_ID    = O1.OG_ID
-                                     INNER JOIN TB_OGBS_BLD_BAS O3
-                                        ON O3.OG_TP_CD = O2.OG_TP_CD
-                                       AND O3.BLD_CD   = O2.BLD_CD
-                                     WHERE S1.DTA_DL_YN           = 'N'
-                                       AND S1.CNTR_DTL_STAT_CD NOT IN ('301', '302', '303', '401', '402')
-                                       AND S2.DTA_DL_YN           = 'N'
-                                       AND S2.MNGT_PRTNR_OG_TP_CD = 'W02'
-                                       AND S3.DTA_DL_YN           = 'N'
-                                       AND S4.DTA_DL_YN           = 'N'
-                                       AND S4.PD_EXTS_PRP_GRP_CD  = 'PART'
-                                       AND O1.DTA_DL_YN           = 'N'
-                                       AND O1.OG_TP_CD            = 'W02'
-                                       AND O2.DTA_DL_YN           = 'N'
-                                       AND O2.OG_TP_CD            = 'W02'
-                                       AND O3.DTA_DL_YN           = 'N'
-                                       AND O3.OG_TP_CD            = 'W02'
-                                       AND S2.MNGT_YM             = #{mngtYm}
-                                       AND O1.BASE_YM             = #{mngtYm}
-                                       AND O2.BASE_YM             = #{mngtYm}
-                                     GROUP BY O3.BLD_CD, S3.COPN_DV_CD, S4.PD_PRP_VAL20
-                                  ) D5
-                                 ON D5.BLD_CD       = D1.BLD_CD
-                                AND D5.COPN_DV_CD   = NVL(D2.BFSVC_CSMB_DDLV_OJ_ACC_TP_CD, D5.COPN_DV_CD)
-                                AND D5.PD_PRP_VAL20 = NVL(D2.BFSVC_CSMB_DDLV_OJ_PD_GRP_CD, D5.PD_PRP_VAL20)
+                                     WHERE S1.DTA_DL_YN                = 'N'
+                                       AND S1.CNFM_PSIC_PRTNR_OG_TP_CD = 'W02'
+                                       AND S1.VST_PRGS_STAT_CD        IN ('00', '20')
+                                       AND S2.DTA_DL_YN                = 'N'
+                                       AND S3.DTA_DL_YN                = 'N'
+                                       AND S4.DTA_DL_YN                = 'N'
+                                       AND S5.DTA_DL_YN                = 'N'
+                                       AND S5.PD_EXTS_PRP_GRP_CD       = 'PART'
+                                       AND O1.DTA_DL_YN                = 'N'
+                                       AND O1.OG_TP_CD                 = 'W02'
+                                       AND O2.DTA_DL_YN                = 'N'
+                                       AND O2.OG_TP_CD                 = 'W02'
+                                       AND O2.BLD_CD IS NOT NULL
+                                       AND (    S1.VST_PRGS_STAT_CD = '20'
+                                             OR ( S1.VST_PRGS_STAT_CD = '00' AND S3.CNTR_DTL_STAT_CD = '101' )
+                                           )   /* 작업완료이거나 정상인 작업대기 건 */
+                                       AND S1.ASN_OJ_YM                = #{mngtYm}
+                                       AND S2.ASN_OJ_YM                = #{mngtYm}
+                                       AND O1.BASE_YM                  = #{mngtYm}
+                                       AND O2.BASE_YM                  = #{mngtYm}
+                                     GROUP BY O2.BLD_CD, S4.COPN_DV_CD, S5.PD_PRP_VAL20
+                                  ) D4
+                                 ON D4.BLD_CD       = D1.BLD_CD
+                                AND D4.COPN_DV_CD   = NVL(D2.BFSVC_CSMB_DDLV_OJ_ACC_TP_CD, D4.COPN_DV_CD)
+                                AND D4.PD_PRP_VAL20 = NVL(D2.BFSVC_CSMB_DDLV_OJ_PD_GRP_CD, D4.PD_PRP_VAL20)
                               WHERE D1.DTA_DL_YN              = 'N'
                                 AND D1.OG_TP_CD               = 'W02'
                                 AND D2.DTA_DL_YN              = 'N'
@@ -320,26 +341,22 @@
                                 AND D2.BFSVC_CSMB_DDLV_ORT_YN = 'Y'
                                 AND D3.DTA_DL_YN              = 'N'
                                 AND D3.PD_TP_CD               = 'M'
-                                AND D4.DTA_DL_YN              = 'N'
-                                AND D4.OG_TP_CD               = 'W02'
+                                AND D1.BLD_CD IS NOT NULL
                                 AND D1.BASE_YM                = #{mngtYm}
                                 AND D2.MNGT_YM                = #{mngtYm}
-                              GROUP BY D4.BLD_CD, D2.CSMB_PD_CD, D3.SAP_MAT_CD, D2.BFSVC_CSMB_DDLV_CMPT_BASE_CD
+                              GROUP BY D1.BLD_CD, D2.CSMB_PD_CD, D3.SAP_MAT_CD, D2.BFSVC_CSMB_DDLV_CMPT_BASE_CD
                                   , NVL(D2.BFSVC_CSMB_DDLV_UNIT_QTY, 0), D2.BFSVC_CSMB_DDLV_UNIT_ACC_N, D2.BFSVC_CSMB_DDLV_UNIT_QTY
                               UNION ALL
                              SELECT /*+ USE_HASH(D1 D2) */
-                                    D3.BLD_CD AS STR_WARE_NO
+                                    D2.BLD_CD AS STR_WARE_NO
                                   , D1.CSMB_PD_CD
-                                  , D4.SAP_MAT_CD
+                                  , D3.SAP_MAT_CD
                                   , 0         AS BFSVC_CSMB_DDLV_UNIT_QTY
                                FROM TB_SVST_BFSVC_CSMB_BASE_DTL D1   /* BS소모품기준상세 */
                               INNER JOIN TB_OGBS_MM_OG_IZ D2         /* 월조직내역 */
                                  ON D2.BASE_YM  = D1.MNGT_YM
-                              INNER JOIN TB_OGBS_BLD_BAS D3          /* 빌딩기본 */
-                                 ON D3.OG_TP_CD = D2.OG_TP_CD
-                                AND D3.BLD_CD   = D2.BLD_CD
-                              INNER JOIN TB_PDBS_PD_BAS D4           /* 상품기본 */
-                                 ON D4.PD_CD = D1.CSMB_PD_CD
+                              INNER JOIN TB_PDBS_PD_BAS D3           /* 상품기본 */
+                                 ON D3.PD_CD = D1.CSMB_PD_CD
                               WHERE D1.DTA_DL_YN              = 'N'
                                 AND D1.BFSVC_CSMB_DDLV_OJ_CD  = '3'
                                 AND D1.BFSVC_CSMB_DDLV_TP_CD  = '2'
@@ -347,9 +364,8 @@
                                 AND D2.DTA_DL_YN              = 'N'
                                 AND D2.OG_TP_CD               = 'W02'
                                 AND D3.DTA_DL_YN              = 'N'
-                                AND D3.OG_TP_CD               = 'W02'
-                                AND D4.DTA_DL_YN              = 'N'
-                                AND D4.PD_TP_CD               = 'M'
+                                AND D3.PD_TP_CD               = 'M'
+                                AND D2.BLD_CD IS NOT NULL
                                 AND D1.MNGT_YM                = #{mngtYm}
                                 AND D2.BASE_YM                = #{mngtYm}
                            ) S1

@@ -11,20 +11,20 @@ public class WsnyBeforeServiceBizClDto {
     @ApiModel(value = "WsnyBeforeServiceBizClDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String managementYear,
-        String managementItem
+        String managementYear, /* 관리년도 */
+        String managementItem /* 관리항목 */
     ) {}
 
     @ApiModel(value = "WsnyBeforeServiceBizClDto-SaveReq")
     public record SaveReq(
         @NotBlank
-        String mngtYm,
+        String mngtYm, /* 관리년월 */
         @NotBlank
-        String mngtItm,
-        String strtdt,
-        String strtHh,
-        String enddt,
-        String endHh
+        String mngtItm, /* 관리항목 */
+        String strtdt, /* 시작일자 */
+        String strtHh, /* 시작시간 */
+        String enddt, /* 종료일자 */
+        String endHh /* 종료시간 */
     ) {}
 
     // *********************************************************
@@ -32,11 +32,11 @@ public class WsnyBeforeServiceBizClDto {
     // *********************************************************
     @ApiModel(value = "WsnyBeforeServiceBizClDto-SearchRes")
     public record SearchRes(
-        String mngtYm,
-        String strtdt,
-        String strtHh,
-        String enddt,
-        String endHh,
-        String mngtItm
+        String mngtYm, /* 관리년월 */
+        String strtdt, /* 시작일자 */
+        String strtHh, /* 시작시간 */
+        String enddt, /* 종료일자 */
+        String endHh, /* 종료시간 */
+        String mngtItm /* 관리항목 */
     ) {}
 }

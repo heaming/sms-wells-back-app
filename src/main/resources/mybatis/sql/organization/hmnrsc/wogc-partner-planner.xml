@@ -222,11 +222,11 @@
                      , NVL(T2.FNL_CLTN_DT, '') FNL_CLTN_DT    /* P조직 - 최종해약월         */
                      , NVL(T2.RCNTR_DT, '') RCNTR_DT          /* P조직 - 재등록월           */
                      , T5.EDU14                               /* P조직 - 스타트업수료월      */
-                     , (TP.CUR_SUM + TP.PRE_SUM) TWO_SUM      /* P조직 - 직전2개월누적실적   */
+                     , (TP.PRE_SUM + TP.PRE_SUM2) TWO_SUM   /* P조직 - 직전2개월누적실적   */
                      , TP.CUR_SUM                             /* P조직 - 당월실적          */
                      , NVL(TP.TOT_CNT * 1000000, 0) M_TOT_SUM /* P조직 - M조직환산실적      */
                      , TP.CUR_BS                              /* P조직 - 관리상품건수 ???   */
-                     , NVL(TP.TOT_SUM, 0) TOT_SUM             /* P조직 - 누적실적          */
+                     , NVL(TP.TOT_CNT * 1000000, 0) + NVL(TP.TOT_SUM, 0) TOT_SUM             /* P조직 - 누적실적          */
                     -- , NVL(T3.PRFMT_DT, '') PRFMT_DT        /* P조직 - 수석승급월         */
                     -- , NVL(T3.DMTN_DT, '') DMTN_DT          /* P조직 - 강등일자          */
                      , NVL(T7.LAST_UPGR_YMD, '') PRFMT_DT     /* P조직 - 수석승급월         */
@@ -237,7 +237,7 @@
                      , NVL(TX.ENDDT , '') FNL_ENDDT           /* M조직 - 최종해약월         */
                     -- , NVL(TX.CV_DT , '') CV_DT               /* M조직 - 재등록월          */
         		     , NVL(TX.RCNTR_DT, '') CV_DT             /* M조직 - 재등록월 - 재계약일자  */
-                     , NVL(TX.ENDDT , '') ENDDT               /* M조직 - 해약월            */
+                     , NVL(TX.ENDDT2, '') ENDDT               /* M조직 - 해약월            */
                      , NVL(TX.QLF_DV_CD, '') M_QLF_DV_CD      /* M조직 - 해약월자격         */
                      , NVL(C2.CD_CNTN, '') M_QLF_DV_NM        /* M조직 - 해약월자격명       */
                      , NVL(TP.TOT_CNT, 0) M_TOT_CNT           /* M조직 - 누적인정건수       */
@@ -261,8 +261,6 @@
                                     INNER JOIN TB_OGPS_TOPMR_PLAR_APLC_IZ T2 --수석플래너신청내역
                                        ON T2.OG_TP_CD  = T1.OG_TP_CD
                                       AND T2.PRTNR_NO  = T1.PRTNR_NO
-                                      AND T2.RFDT     >= T1.CNTR_DT
-                                      AND SUBSTR(T2.RFDT, 1, 6) <![CDATA[<=]]> #{mngtYm}
                                     WHERE T1.BASE_YM         = #{mngtYm} /* 파라미터 #############################  */
                                       AND T1.OG_TP_CD        = 'W01' --조직유형코드 - W01:P조직
                                       AND T1.PSTN_DV_CD      = '15'
@@ -307,16 +305,16 @@
                   /* 순주문(P조직, M조직) */
                   LEFT OUTER JOIN  ( SELECT X0.PRTNR_NO -- 파트너번호
                                           , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM  = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -1), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) PRE_SUM /* P조직 전월 - 순주문실적금액 */
+                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM  = TO_CHAR(ADD_MONTHS(TO_DATE(#{mngtYm}, 'YYYYMM'), -2), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) PRE_SUM2 /* P조직 전월 - 순주문실적금액 */
                                           , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM  = #{mngtYm}  THEN X1.PERF_VAL ELSE 0 END) CUR_SUM      /* P조직 당월 - 순주문실적금액 */
                                           , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009'                              THEN X1.PERF_VAL ELSE 0 END) TOT_SUM      /* P조직 누적 - 순주문실적금액 */
-                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00018' AND X1.BASE_YM  = #{mngtYm}  THEN X1.PERF_VAL ELSE 0 END) CUR_BS       /* P조직 당월 - BS관리상품 판매수 */
+                                          , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00018'                              THEN X1.PERF_VAL ELSE 0 END) CUR_BS       /* P조직 당월 - BS관리상품 판매수 */
                                           , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00009' AND X1.BASE_YM >= X2.LAST_DMTN_YMD THEN X1.PERF_VAL ELSE 0 END) DMTN_TOT_SUM /* P조직 강등후누적 - 순주문실적금액 */
                                           , SUM(CASE WHEN X1.OG_TP_CD = 'W01' AND X1.PERF_AGRG_CRT_DV_CD = '101' AND X1.PERF_ATC_CD = 'W01P00018' AND X1.BASE_YM >= X2.LAST_DMTN_YMD THEN X1.PERF_VAL ELSE 0 END) DMTN_CUR_BS  /* P조직 강등후누적 - BS관리상품 판매수 */
                                           , SUM(CASE WHEN X1.OG_TP_CD = 'W02' AND X1.PERF_AGRG_CRT_DV_CD = '201' AND X1.PERF_ATC_CD = 'W02P00002'                              THEN X1.PERF_VAL ELSE 0 END) TOT_CNT      /* M조직 누적 - 판매인정건수 */
                                        FROM /*************/ TB_OGBS_MM_PRTNR_IZ X0 /* 월파트너내역 */
                                        LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL X1 /* 순주문파트너실적월마감 */
                                          ON X1.BASE_YM <![CDATA[<=]]> X0.BASE_YM
-                 					    AND X1.BASE_YM >= SUBSTR(X0.CNTR_DT, 1, 6)
                                         AND X1.OG_TP_CD IN ('W01', 'W02') /* 조직유형코드 - W01:P조직, W02:M조직 */
                                         AND X1.PRTNR_NO = X0.PRTNR_NO
                                         AND X1.FEE_TCNT_DV_CD = '02' /* 수수료차수구분코드 - 02:2차 */
@@ -354,26 +352,33 @@
                                     GROUP BY X0.PRTNR_NO) TP /* 순주문파트너실적월마감 */
                     ON TP.PRTNR_NO = T3.PRTNR_NO
                  /* 플래너자격변경내역(M조직) */
-                 LEFT OUTER JOIN  ( SELECT   X1.PRTNR_NO
-                                           , X1.STRTDT      --자격시작일자
-                                           , X1.ENDDT       --자격종료일자
-                                           , X1.CV_DT       --자격전환일자
-                                           , X1.QLF_DV_CD   --자격구분코드
-                                           , X3.RCNTR_DT    --재계약일자
-                                    FROM /*************/  TB_OGPS_PLAR_QLF_CH_IZ  X1
-                                         INNER JOIN       ( SELECT PRTNR_NO, MAX(STRTDT) MAX_STRTDT
+                 LEFT OUTER JOIN  ( SELECT   T1.PRTNR_NO
+                                           , MIN(T1.STRTDT)      STRTDT --자격시작일자
+                                         --, MAX(T1.ENDDT)       ENDDT  --최종해약일자일자
+                                           , MAX(T3.FNL_CLTN_DT) ENDDT  --최종해약일자일자
+                                           , MAX(T1.CV_DT)       CV_DT  --자격전환일자
+                                           , MAX(CASE WHEN T2.MAX_STRTDT IS NOT NULL THEN T1.QLF_DV_CD ELSE '' END) QLF_DV_CD  --자격구분코드
+                                           , MAX(T3.RCNTR_DT) RCNTR_DT    --재계약일자
+                                           , MAX(T1.ENDDT)    ENDDT2      --해약일자
+                                    FROM TB_OGPS_PLAR_QLF_CH_IZ                   T1 /* 플래너자격변경내역 */
+                                         LEFT OUTER JOIN  ( SELECT PRTNR_NO, MAX(STRTDT) MAX_STRTDT
                                                              FROM TB_OGPS_PLAR_QLF_CH_IZ /* 플래너자격변경내역 */
-                                                            WHERE OG_TP_CD       = 'W02' --조직유형코드     - W02:M조직
+                                                            WHERE OG_TP_CD       = 'W02' --조직유형코드    - W02:M조직
                                                               AND QLF_APLC_DV_CD = '2'   --자격신청구분코드 - 2:자격해제
                                                               AND DTA_DL_YN      = 'N'
-                                                            GROUP BY PRTNR_NO   ) X2
-                                            ON X1.OG_TP_CD = 'W02'  --조직유형코드 - W02:M조직
-                                           AND X1.PRTNR_NO = X2.PRTNR_NO
-                                           AND X1.STRTDT   = X2.MAX_STRTDT
-                                         LEFT OUTER JOIN  TB_OGBS_MM_PRTNR_IZ     X3 /* 월파트너내역 */
-                                            ON X3.BASE_YM   = SUBSTR(X2.MAX_STRTDT, 1, 6)
-                                           AND X3.OG_TP_CD  = 'W02'
-                                           AND X3.PRTNR_NO  = X2.PRTNR_NO ) TX
+                                                            GROUP BY PRTNR_NO   ) T2
+                                            ON T1.OG_TP_CD = 'W02'  --조직유형코드 - W02:M조직
+                                           AND T1.PRTNR_NO = T2.PRTNR_NO
+                                           AND T1.STRTDT   = T2.MAX_STRTDT
+                                         LEFT OUTER JOIN  TB_OGBS_MM_PRTNR_IZ     T3 /* 월파트너내역 */
+                                            ON T3.BASE_YM   = SUBSTR(T2.MAX_STRTDT, 1, 6)
+                                           AND T3.OG_TP_CD  = 'W02'
+                                           AND T3.PRTNR_NO  = T2.PRTNR_NO
+                                    WHERE 1 = 1
+                                      AND T1.OG_TP_CD    = 'W02' --상수값(조직유형코드) - W02:M조직
+                                      AND T1.STRTDT     <![CDATA[<=]]> #{mngtYm}||'01' /* 관리년월 - 파라미터 #############################  */
+                                      AND T1.DTA_DL_YN   = 'N'
+                                    GROUP BY T1.PRTNR_NO            ) TX
                          ON TX.PRTNR_NO = T3.PRTNR_NO
                   LEFT OUTER JOIN  AFMDBS.T_CMZ_CD_D  C1  /* 공통코드 - 자격구분 (P조직 ) */
                     ON  C1.TENANT_ID  = 'TNT_WELLS'   --테넌트ID - 에듀

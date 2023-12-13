@@ -17,7 +17,15 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Api(tags = "[WSNF] 정기 B/S 대상 선정")
+/**
+ * <pre>
+ * [WSNC] 정기 B/S 대상 선정
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2022-12-29
+ */
+@Api(tags = "[WSNC] 정기 B/S 대상 선정")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/regular-bs-object")

@@ -13,6 +13,7 @@ public class WpsfRuleBaseInquiryDvo {
     private String ogTpCd; /* 조직유형코드 */
     private String rsbDvCd; /* 직책유형코드 */
     private String bznsSpptMnalRghCd; /* 영업지원매뉴얼권한코드 */
+    private String cstCnrInqrPrmitYn;
     private String mnalRghRelId; /* 매뉴얼권한관계ID */
     private String dtaDlYn; /* 데이터삭제여부 */
 }

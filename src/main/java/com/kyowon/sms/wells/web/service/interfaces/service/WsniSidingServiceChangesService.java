@@ -84,7 +84,9 @@ public class WsniSidingServiceChangesService {
                     req.afchPdCd(),
                     req.mtrProcsStatCd(),
                     req.akChdt(),
-                    req.choCapslCn()
+                    req.choCapslCn(),
+                    req.rcpIchrPrtnrNo(),
+                    req.rcpOgTpCd()
                 );
             }
 
@@ -102,7 +104,9 @@ public class WsniSidingServiceChangesService {
             req.afchPdCd(),
             req.mtrProcsStatCd(),
             req.choCapslCn(),
-            ""
+            "",
+            req.rcpIchrPrtnrNo(),
+            req.rcpOgTpCd()
         );
 
         // 요청 구분에 따라 처리 - 1: 패키지변경, 4: 다음회차 방문 중지
@@ -164,6 +168,7 @@ public class WsniSidingServiceChangesService {
 
     /**
      * 계약 모종 패키지 변경 호출 서비스
+     *
      * @param req
      * @return
      * @throws Exception
@@ -178,6 +183,8 @@ public class WsniSidingServiceChangesService {
         log.debug("afchPdCd : " + req.afchPdCd());
         log.debug("choCapslCn : " + req.choCapslCn());
         log.debug("mtrProcsStatCd : " + req.mtrProcsStatCd());
+        log.debug("rcpIchrPrtnrNo: " + req.rcpIchrPrtnrNo());
+        log.debug("rcpOgTpCd: " + req.rcpOgTpCd());
 
         saveSidingChanges(req); // LC_ASREGN_API_I02_T
 

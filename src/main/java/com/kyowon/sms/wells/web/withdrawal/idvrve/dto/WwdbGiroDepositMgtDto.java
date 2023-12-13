@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 
-import javax.validation.constraints.NotBlank;
-
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -25,7 +23,7 @@ public class WwdbGiroDepositMgtDto {
         String errorChk,
         String dgCntrNo,
         String dgCntrSn
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -69,7 +67,7 @@ public class WwdbGiroDepositMgtDto {
         //        String sellTpCd, //--판매유형
         //        String procsErrTpCd, // --처리오류유형코드
         //        String dgCntrNo //--대표번호
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -79,8 +77,7 @@ public class WwdbGiroDepositMgtDto {
     public record SearchSumRes(
         String rveAmtSum,
         String giroFeeSum
-    ) {
-    }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -100,7 +97,7 @@ public class WwdbGiroDepositMgtDto {
         String giroRveDvCd, //--지로수납구분코드
         String giroFeeDvCd, //--지로수수료구분코드
         String rmkCn //--비고
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -120,7 +117,7 @@ public class WwdbGiroDepositMgtDto {
         String giroRveDvCd, //--지로수납구분코드
         String giroFeeDvCd, //--지로수수료구분코드
         String rmkCn //--비고
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -146,25 +143,24 @@ public class WwdbGiroDepositMgtDto {
         String giroPrtsDvCd,
         String procsErrTpCd,
         String dtaDlYn
-    ) { }
+    ) {}
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDepositReq")
     public record SearchDepositReq(
 
-    ) { }
-
+    ) {}
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDepositCountReq")
     public record SearchDepositCountReq(
         String giroOcrBndlYm,
         String dgCntrNo,
         String dgCntrSn
-    ) { }
+    ) {}
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SaveReq")
     public record SaveBillingReq(
 
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -184,7 +180,7 @@ public class WwdbGiroDepositMgtDto {
         String sellTpCd,
         String sellTpDtlCd,
         String cntrDtlStatCd
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -198,7 +194,7 @@ public class WwdbGiroDepositMgtDto {
         String dpseAmt, /*설정금액*/
         String cntrNo,
         String cntrSn
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -217,7 +213,7 @@ public class WwdbGiroDepositMgtDto {
         String fnlMdfcUsrId, //--수정아이디
         String dpErrProcsCn,
         String cntrSn
-    ) { }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -235,7 +231,7 @@ public class WwdbGiroDepositMgtDto {
         String cntrSn,
         String dpErrProcsCn,
         String cntr
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -247,14 +243,14 @@ public class WwdbGiroDepositMgtDto {
         String cntrNo,
         String cntrSn,
         String cntrDtlStatCd //--계약상태코드
-    ) { }
+    ) {}
 
     @ApiModel(value = "WwwdbGiroDepositMgtDto-SearchDtlStateReq")
     public record SearchDtlStateReq(
 
         String cntrNo,
         String cntrSn
-    ) { }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -266,7 +262,7 @@ public class WwdbGiroDepositMgtDto {
 
         String giroDpMtrDvCd
 
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -277,7 +273,7 @@ public class WwdbGiroDepositMgtDto {
         String fntDt,
         int chkCnt,
         int itgDpProcsYCnt
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -290,6 +286,14 @@ public class WwdbGiroDepositMgtDto {
         String cntr,
         String cstNo,
         String cstKnm
-    ) { }
+    ) {}
+
+    // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 지로입금 대사여부 조회 Request Dto
+    public record SearchChkReq(
+        String fntDt
+    ) {}
 
 }

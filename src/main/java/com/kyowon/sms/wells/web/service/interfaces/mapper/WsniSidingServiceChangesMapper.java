@@ -17,7 +17,9 @@ public interface WsniSidingServiceChangesMapper {
         String afchPdCd,
         String mtrProcsStatCd,
         String choCapslCn,
-        String csmrUprcAmt
+        String csmrUprcAmt,
+        String rcpIchrPrtnrNo,
+        String rcpOgTpCd
     );
 
     int deleteSdingAskAk(
@@ -61,7 +63,9 @@ public interface WsniSidingServiceChangesMapper {
         String afchPdCd,
         String mtrProcsStatCd,
         String akChdt,
-        String choCapslCn
+        String choCapslCn,
+        String rcpIchrPrtnrNo,
+        String rcpOgTpCd
     );
 
     /**

@@ -47,7 +47,9 @@ public class WsniSidingServiceChangesController {
         EaiWrapper<SaveReq> reqEaiWrapper
     ) throws Exception {
         EaiWrapper<SaveRes> resEaiWrapper = reqEaiWrapper.newResInstance();
-        resEaiWrapper.setBody(service.saveSidingPackageOrProductChange(reqEaiWrapper.getBody()));
+        resEaiWrapper.setBody(
+            service.saveSidingPackageOrProductChange(reqEaiWrapper.getBody())
+        );
         return resEaiWrapper;
     }
 
