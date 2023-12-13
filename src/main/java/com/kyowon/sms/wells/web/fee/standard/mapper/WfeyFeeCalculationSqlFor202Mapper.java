@@ -33,7 +33,7 @@ public interface WfeyFeeCalculationSqlFor202Mapper {
     * @return 처리개수
     */
     @SqlMethodInfo(methodTypeCode = "01", methodName = "M조직 지국장 조직배출수수료(202308)", methodExplanation = "M조직 지국장 조직배출수수료 계산 SQL 매퍼")
-    Integer insertOrganizationEjectFee2308(
+    Integer insertOrganizationEjectFeeNewBase(
         String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String feeTcntDvCd, String fnlFeeYn
     );
 
