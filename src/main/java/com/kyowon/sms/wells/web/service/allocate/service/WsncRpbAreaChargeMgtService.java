@@ -53,7 +53,7 @@ public class WsncRpbAreaChargeMgtService {
 
         for (CreateReq dto : dtos) {
             WsncRpbAreaChargeDvo rpbLocaraPsic = this.converter.mapCreateReqToWsncRpbAreaChargeDvo(dto);
-            this.mapper.updatePersonInCharge(rpbLocaraPsic);
+            // this.mapper.updatePersonInCharge(rpbLocaraPsic);
             processCount += this.mapper.insertPersonInCharge(rpbLocaraPsic);
         }
 
