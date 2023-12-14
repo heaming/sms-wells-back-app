@@ -225,7 +225,6 @@ public class WpdcMaterialMgtService {
         BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
         productService.saveEachCompanyPropDtl(dvo.getPdCd(), dto.tbPdbsPdEcomPrpDtl());
 
-        // this.editEachTbPdbsPdRel(dvo.getPdCd(), dto.tbPdbsPdRel(), dto.tbPdbsPdBas().tempSaveYn());
         // 연결 상품 저장
         if (dto.isModifiedRelation()) {
             relService.saveProductRelations(dvo.getPdCd(), dto.tbPdbsPdRel(), startDtm);
