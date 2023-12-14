@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaAsConsumablesStoreDto.*;
 import static com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,6 +58,7 @@ public class WsnaAsConsumablesStoreService {
     private final WsnaAsConsumablesStoreConverter converter;
 
     private static final String MSG_ALT_SVE_ERR = "MSG_ALT_SVE_ERR";
+    private static final String MSG_ALT_DEL_ERR = "MSG_ALT_DEL_ERR";
 
     private static final String ETC_STR = "117";
 
@@ -130,9 +132,7 @@ public class WsnaAsConsumablesStoreService {
 
                 for (String strRgstDt : strRgstDts) {
                     // seq 따고
-                    String strTpCd = "117"; //기타입고
-                    String itmStrNo = null;
-                    itmStrNo = mapper.selectNextItmStrNo(strTpCd, strRgstDt);
+                    String itmStrNo = mapper.selectNextItmStrNo(ETC_STR, strRgstDt);
 
                     List<WsnaAsConsumablesStoreDvo> dvos = list.stream()
                         .filter(data -> strRgstDt.equals(data.getStrRgstDt())).toList();
@@ -140,7 +140,7 @@ public class WsnaAsConsumablesStoreService {
                     for (WsnaAsConsumablesStoreDvo insertDvo : dvos) {
                         insertDvo.setItmStrSn(seq++);
                         insertDvo.setItmStrNo(itmStrNo);
-                        insertDvo.setStrTpCd(strTpCd);
+                        insertDvo.setStrTpCd(ETC_STR);
 
                         int result = mapper.insertAsConsumablesStore(insertDvo);
                         BizAssert.isTrue(result == 1, MSG_ALT_SVE_ERR);
@@ -149,7 +149,7 @@ public class WsnaAsConsumablesStoreService {
                         insertDvo.setProcsDt(insertDvo.getStrRgstDt());
                         insertDvo.setWareDv("2");
                         insertDvo.setWareNo(insertDvo.getStrWareNo());
-                        insertDvo.setIostTp("117");
+                        insertDvo.setIostTp(ETC_STR);
                         insertDvo.setWorkDiv("A");
                         insertDvo.setItemGd(insertDvo.getItmGdCd());
                         insertDvo.setQty(insertDvo.getStrQty());
@@ -246,7 +246,7 @@ public class WsnaAsConsumablesStoreService {
                     dvo.setProcsYm(StringUtils.substring(dvo.getStrRgstDt(), 0, 6));
                     dvo.setProcsDt(dvo.getStrRgstDt());
                     dvo.setWareDv("2");
-                    dvo.setIostTp("117");
+                    dvo.setIostTp(ETC_STR);
                     dvo.setWorkDiv("A");
                     dvo.setWareNo(dvo.getStrWareNo());
                     dvo.setItemGd(dvo.getItmGdCd());
@@ -321,20 +321,20 @@ public class WsnaAsConsumablesStoreService {
             if ("A".equals(dvo.getItmGdCd())) {
                 //STEP02 : 고객서비스품목재고내역에서 입력한 수량 뺀 시점재고 UPDATE 실시
                 int delResult = this.mapper.deletePitmStocAGdQty(dvo);
-                BizAssert.isTrue(delResult == 1, MSG_ALT_SVE_ERR);
+                BizAssert.isTrue(delResult == 1, MSG_ALT_DEL_ERR);
                 int monthlyResult = this.mapper.deleteMonthlyPitmStocAGdQty(dvo);
-                BizAssert.isTrue(monthlyResult == 1, MSG_ALT_SVE_ERR);
+                BizAssert.isTrue(monthlyResult == 1, MSG_ALT_DEL_ERR);
 
             } else {
                 int delResult = this.mapper.deletePitmStocEGdQty(dvo);
-                BizAssert.isTrue(delResult == 1, MSG_ALT_SVE_ERR);
+                BizAssert.isTrue(delResult == 1, MSG_ALT_DEL_ERR);
                 int monthlyResult = this.mapper.deleteMonthlyPitmStocEGdQty(dvo);
-                BizAssert.isTrue(monthlyResult == 1, MSG_ALT_SVE_ERR);
+                BizAssert.isTrue(monthlyResult == 1, MSG_ALT_DEL_ERR);
             }
 
             //STEP03 : 입고내역에 등록된 품목입고번호로 삭제
             int result = this.mapper.deleteAsConsumablesStores(dvo);
-            BizAssert.isTrue(result == 1, MSG_ALT_SVE_ERR);
+            BizAssert.isTrue(result == 1, MSG_ALT_DEL_ERR);
             processCount += result;
 
         }
@@ -364,35 +364,29 @@ public class WsnaAsConsumablesStoreService {
         Map<String, String> headerTitle = validDvo.getHeaderTitle();
         List<ExcelUploadErrorDvo> excelUploadErrorDvos = validDvo.getErrorDvos();
 
-        String[] nullColumnName = new String[8];
+        String[] nullColumnName = new String[6];
         if (StringUtil.isBlank(dvo.getStrWareNo())) {
             nullColumnName[0] = "strWareNo";
         }
-        if (StringUtil.isBlank(dvo.getStrWareNo())) {
-            nullColumnName[1] = "wareNm";
-        }
 
         if (StringUtil.isBlank(dvo.getStrRgstDt())) {
-            nullColumnName[2] = "strRgstDt";
-        }
-        if (StringUtil.isBlank(dvo.getItmPdCd())) {
-            nullColumnName[3] = "itmPdCd";
+            nullColumnName[1] = "strRgstDt";
         }
 
-        if (StringUtil.isBlank(dvo.getItmPdNm())) {
-            nullColumnName[4] = "itmPdNm";
+        if (StringUtil.isBlank(dvo.getItmPdCd())) {
+            nullColumnName[2] = "itmPdCd";
         }
 
         if (StringUtil.isBlank(dvo.getItmGdCd())) {
-            nullColumnName[5] = "itmGdCd";
+            nullColumnName[3] = "itmGdCd";
         }
 
         if (StringUtil.isBlank(dvo.getStrQty())) {
-            nullColumnName[6] = "strQty";
+            nullColumnName[4] = "strQty";
         }
 
         if (StringUtil.isBlank(dvo.getRmkCn())) {
-            nullColumnName[7] = "rmkCn";
+            nullColumnName[5] = "rmkCn";
         }
 
         for (String column : nullColumnName) {
@@ -425,7 +419,6 @@ public class WsnaAsConsumablesStoreService {
                 );
                 excelUploadErrorDvos.add(errorDvo);
             }
-
         }
 
         //입고창고번호 검증
@@ -507,18 +500,47 @@ public class WsnaAsConsumablesStoreService {
 
         //입고수량이 마이너스 이거나 0일경우 체크
         if (StringUtil.isNotBlank(dvo.getStrQty())) {
-            int validStrQty = Integer.parseInt(dvo.getStrQty());
+            String strQty = dvo.getStrQty();
+            String headerTit = headerTitle.get("strQty");
 
-            if (validStrQty <= 0) {
+            // 숫자체크
+            boolean isValidNumber = strQty.matches("[-+]?\\d*");
+            if (!isValidNumber) {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
-                errorDvo.setHeaderName(headerTitle.get("strQty"));
-                errorDvo.setErrorData(
-                    messageResourceService.getMessage(
-                        "MSG_ALT_MINUS_ZR_VAL_INC" //값이 0이거나 마이너스입니다.
-                    )
-                );
+                errorDvo.setHeaderName(headerTit);
+                // 숫자만 입력 가능합니다.
+                errorDvo.setErrorData(this.messageResourceService.getMessage("MSG_ALT_ONLY_NUMBER"));
                 excelUploadErrorDvos.add(errorDvo);
+            } else {
+                BigDecimal qty = new BigDecimal(strQty);
+
+                // qty <= 0
+                if (qty.compareTo(BigDecimal.ZERO) <= 0) {
+                    ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+                    errorDvo.setErrorRow(row);
+                    errorDvo.setHeaderName(headerTit);
+                    errorDvo.setErrorData(
+                        messageResourceService.getMessage(
+                            "MSG_ALT_MINUS_ZR_VAL_INC" //값이 0이거나 마이너스입니다.
+                        )
+                    );
+                    excelUploadErrorDvos.add(errorDvo);
+                } else if (qty.compareTo(BigDecimal.valueOf(999999L)) > 0) {
+                    String[] texts = new String[2];
+                    texts[0] = headerTit;
+                    texts[1] = String.format("%,d", 999999L);
+
+                    ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+                    errorDvo.setErrorRow(row);
+                    errorDvo.setHeaderName(headerTit);
+                    // {0} 항목의 값은 {1} 이하여야 합니다.
+                    errorDvo.setErrorData(
+                        this.messageResourceService
+                            .getMessage("MSG_ALT_VALUE_OVER", texts)
+                    );
+                    excelUploadErrorDvos.add(errorDvo);
+                }
             }
         }
     }
