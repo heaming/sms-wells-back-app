@@ -52,8 +52,10 @@
                          INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
                             ON T2.BASE_YM = #{metgStartDt}
                            AND T1.PRTNR_NO = T2.PRTNR_NO
+                           AND T2.CLTN_DT IS NULL
+                           AND T2.OG_TP_CD = 'W02'
+                           AND T2.QLF_DV_CD = '3'
                            AND T2.DTA_DL_YN = 'N'
-                           AND FNL_CLTN_DT IS NULL
                          INNER JOIN TB_OGBS_MM_OG_IZ T3
                             ON T3.BASE_YM = #{metgStartDt}
                            AND T3.CLO_DT IS NULL
@@ -61,7 +63,7 @@
                            AND T3.DTA_DL_YN = 'N'
                          WHERE 1=1
                            AND T1.OG_TP_CD IN ('W02')
-                           AND T1.OG_CD NOT LIKE '7%'
+<!--                           AND T1.OG_CD NOT LIKE '7%'-->
                            AND T1.DTA_DL_YN = 'N'
                         )
         SELECT DGR1_LEVL_OG_CD
@@ -143,35 +145,41 @@
                                      , SUM(CASE WHEN SV1.VST_PRGS_STAT_CD = '20' THEN 1 ELSE 0 END) VISIT_COMPLETE
                                   FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SV1
                                      , TB_SVPD_CST_SV_BFSVC_OJ_IZ SV2
-                                     , TB_PD PD1
+                                     , TB_PDBS_PD_ECOM_PRP_DTL PD1
                                      , TB_CST CST1
                                  WHERE 1=1
-                                   AND SV1.CNFM_PSIC_DV_CD = '1'
-                                   AND SV1.CNFM_PSIC_PRTNR_NO IS NOT NULL
-                                   AND SV1.SV_BIZ_MCLSF_CD LIKE '2%'
                                    AND SV1.ASN_OJ_YM = #{metgStartDt}
+                                   AND SV1.CNFM_PSIC_PRTNR_NO IS NOT NULL
+                                   AND SV1.CNFM_PSIC_DV_CD = '1'
+<!--                                   AND SV1.SV_BIZ_MCLSF_CD LIKE '2%'-->
                                    AND SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
                                    AND SV2.PDCT_PD_CD = PD1.PD_CD
                                    AND PD1.PD_PRP_VAL20 != '11'
+                                   AND PD1.PD_EXTS_PRP_GRP_CD = 'PART'
                                    AND SV1.CNTR_NO = CST1.CNTR_NO
                                    AND SV1.CNTR_SN = CST1.CNTR_SN
                                    AND (SV1.SV_BIZ_DCLSF_CD NOT IN ('2110','2140','2164')
-                                     OR (CASE WHEN SV2.PDCT_PD_CD IN ('WM05106251', 'WM05106364', 'WM05106365', 'WM05106366', 'WM05106367', 'WM05106368', 'WM05106369', 'WM05106370', 'WM05106371') THEN '2120'
+                                     OR (CASE WHEN SV2.PDCT_PD_CD IN ('WM05106251', 'WM05106364', 'WM05106365', 'WM05106366', 'WM05106367', 'WM05106368', 'WM05106369', 'WM05106370', 'WM05106371') THEN '2110'
                                               ELSE SV1.SV_BIZ_DCLSF_CD
-                                          END) = '2120')
-                                   AND (SV1.VST_PRGS_STAT_CD = '20'
-                                    OR (SV1.VST_PRGS_STAT_CD = '00'
-                                    AND CST1.REQD_DT IS NULL
-                                    AND CST1.CAN_DT IS NULL
-                                    AND CST1.CPS_DT IS NULL
-                                    AND (CST1.MSH_WDWAL_DT IS NULL
-                                     OR CST1.MSH_WDWAL_DT NOT LIKE #{metgStartDt}||'%')))
+                                          END) = '2110')
+                                   AND CST1.REQD_DT IS NULL
+                                   AND CST1.CAN_DT IS NULL
+								   AND CST1.CPS_DT IS NULL
+                                   AND (CST1.MSH_WDWAL_DT IS NULL
+                                    OR CST1.MSH_WDWAL_DT NOT LIKE #{metgStartDt}||'%')
+<!--                                   AND (SV1.VST_PRGS_STAT_CD = '20'-->
+<!--                                    OR (SV1.VST_PRGS_STAT_CD = '00'-->
+<!--                                    AND CST1.REQD_DT IS NULL-->
+<!--                                    AND CST1.CAN_DT IS NULL-->
+<!--                                    AND CST1.CPS_DT IS NULL-->
+<!--                                    AND (CST1.MSH_WDWAL_DT IS NULL-->
+<!--                                     OR CST1.MSH_WDWAL_DT NOT LIKE #{metgStartDt}||'%')))-->
                                  GROUP
                                     BY SV1.CNFM_PSIC_PRTNR_NO
                                 ) V1
                              , TB_PRTNR PRT1
                          WHERE 1=1
-                           AND V1.CNFM_PSIC_PRTNR_NO = PRT1.PRTNR_NO
+                           AND PRT1.PRTNR_NO = V1.CNFM_PSIC_PRTNR_NO(+)
                         ) V2
                  GROUP
                     BY ROLLUP(DGR1_LEVL_OG_CD)
@@ -233,8 +241,9 @@
    					 INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
    					 	ON T2.BASE_YM = #{metgStartDt}
    					   AND T1.PRTNR_NO = T2.PRTNR_NO
-   					   AND T2.DTA_DL_YN = 'N'
-   					   AND FNL_CLTN_DT IS NULL
+                       AND T2.OG_TP_CD = 'W02'
+                       AND T2.QLF_DV_CD = '3'
+                       AND T2.DTA_DL_YN = 'N'
    					 INNER JOIN TB_OGBS_MM_OG_IZ T3
    					 	ON T3.BASE_YM = #{metgStartDt}
    					   AND T3.CLO_DT IS NULL
@@ -242,7 +251,7 @@
    					   AND T3.DTA_DL_YN = 'N'
    					 WHERE 1=1
    					   AND T1.OG_TP_CD IN ('W02')
-   					   AND T1.OG_CD NOT LIKE '7%'
+<!--   					   AND T1.OG_CD NOT LIKE '7%'-->
    					   AND T1.DTA_DL_YN = 'N'
    					)
 		SELECT CASE WHEN DGR1_LEVL_OG_CD IS NOT NULL AND DGR2_LEVL_OG_CD IS NULL THEN DGR1_LEVL_OG_CD||' 계'
@@ -324,35 +333,34 @@
 									 , SUM(CASE WHEN SV1.VST_PRGS_STAT_CD = '20' THEN 1 ELSE 0 END) VISIT_COMPLETE
 								  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SV1
 								  	 , TB_SVPD_CST_SV_BFSVC_OJ_IZ SV2
-								  	 , TB_PD PD1
+								  	 , TB_PDBS_PD_ECOM_PRP_DTL PD1
 								  	 , TB_CST CST1
 								 WHERE 1=1
-								   AND SV1.CNFM_PSIC_DV_CD = '1'
-								   AND SV1.CNFM_PSIC_PRTNR_NO IS NOT NULL
-								   AND SV1.SV_BIZ_MCLSF_CD LIKE '2%'
 								   AND SV1.ASN_OJ_YM = #{metgStartDt}
+                                   AND SV1.CNFM_PSIC_PRTNR_NO IS NOT NULL
+                                   AND SV1.CNFM_PSIC_DV_CD = '1'
+<!--								   AND SV1.SV_BIZ_MCLSF_CD LIKE '2%'-->
 								   AND SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
 								   AND SV2.PDCT_PD_CD = PD1.PD_CD
-								   AND PD1.PD_PRP_VAL20 != '11'
+                                   AND PD1.PD_PRP_VAL20 != '11'
+                                   AND PD1.PD_EXTS_PRP_GRP_CD = 'PART'
 								   AND SV1.CNTR_NO = CST1.CNTR_NO
 								   AND SV1.CNTR_SN = CST1.CNTR_SN
 								   AND (SV1.SV_BIZ_DCLSF_CD NOT IN ('2110','2140','2164')
-								   	 OR (CASE WHEN SV2.PDCT_PD_CD IN ('WM05106251', 'WM05106364', 'WM05106365', 'WM05106366', 'WM05106367', 'WM05106368', 'WM05106369', 'WM05106370', 'WM05106371') THEN '2120'
+								   	 OR (CASE WHEN SV2.PDCT_PD_CD IN ('WM05106251', 'WM05106364', 'WM05106365', 'WM05106366', 'WM05106367', 'WM05106368', 'WM05106369', 'WM05106370', 'WM05106371') THEN '2110'
 								   	 		  ELSE SV1.SV_BIZ_DCLSF_CD
-								   	 	  END) = '2120')
-								   AND (SV1.VST_PRGS_STAT_CD = '20'
-									OR (SV1.VST_PRGS_STAT_CD = '00'
-									AND CST1.REQD_DT IS NULL
-									AND CST1.CAN_DT IS NULL
-									AND CST1.CPS_DT IS NULL
-									AND (CST1.MSH_WDWAL_DT IS NULL
-									 OR CST1.MSH_WDWAL_DT NOT LIKE #{metgStartDt}||'%')))
+								   	 	  END) = '2110')
+								   AND CST1.REQD_DT IS NULL
+                                   AND CST1.CAN_DT IS NULL
+								   AND CST1.CPS_DT IS NULL
+                                   AND (CST1.MSH_WDWAL_DT IS NULL
+                                    OR CST1.MSH_WDWAL_DT NOT LIKE #{metgStartDt}||'%')
 								 GROUP
 								 	BY SV1.CNFM_PSIC_PRTNR_NO
 						  		) V1
 						  	 , TB_PRTNR PRT1
 						 WHERE 1=1
-						   AND V1.CNFM_PSIC_PRTNR_NO = PRT1.PRTNR_NO
+						   AND PRT1.PRTNR_NO = V1.CNFM_PSIC_PRTNR_NO(+)
 				  		) V2
 				 GROUP
 				 	BY ROLLUP(DGR1_LEVL_OG_CD, DGR2_LEVL_OG_CD)
