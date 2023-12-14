@@ -65,7 +65,7 @@ public class WsnbGoodsChangeAcceptingStateService {
             dvo.setAprAkStatCd("03"); // 승인
 
             // 서비스업무세분류코드(BFCH_SV_BIZ_DCLSF_CD : 변경전, AFCH_SV_BIZ_DCLSF_CD : 변경후) NULL 처리 => 배정서비스 호출
-            if (StringUtils.isEmpty(dvo.getOldSvBizDclsfCd()) || !"20".equals(dvo.getWkPrgsStatCd())) {
+            if (StringUtils.isEmpty(dvo.getOldSvBizDclsfCd()) || "20".equals(dvo.getWkPrgsStatCd())) {
                 // 변경전 코드 없거나 3110(제품A/S)이 아닌 경우 세팅
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
                 String strHist = sdf.format(new Date());
