@@ -508,4 +508,18 @@ public class WogcPartnerPlannerService {
 
         return processCount;
     }
+
+    /**
+     * 웰스플래너 목록 조회
+     *
+     * @param dto
+     * @return
+     */
+    public PagingResult<WogcPartnerPlannerDto.SearchWellsPartnerRes> getWellsPlannerPages(WogcPartnerPlannerDto.SearchWellsPartnerReq dto, PageInfo pageinfo) {
+        return mapper.selectWellsPlannerPages(dto, pageinfo);
+    }
+
+    public List<WogcPartnerPlannerDto.SearchWellsPartnerRes> getWellsPlannerForExcelDownload(WogcPartnerPlannerDto.SearchWellsPartnerReq dto) {
+        return mapper.selectWellsPlannerPages(dto);
+    }
 }

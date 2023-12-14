@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.competence.business.rest;
 
-import com.kyowon.sms.wells.web.competence.business.dto.WpsfRuleBaseMgtDto;
 import com.kyowon.sms.wells.web.competence.business.dto.WpsfRuleBaseMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.competence.business.dto.WpsfRuleBaseMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.competence.business.dto.WpsfRuleBaseMgtDto.SearchRes;
@@ -27,17 +26,30 @@ public class WpsfRuleBaseMgtController {
 
     private final WpsfRuleBaseMgtService service;
 
-    @ApiOperation(value = "규정 및 기준관리 조회", notes = "")
+    @ApiOperation(value = "규정 및 기준관리 - 리스트 조회", notes = "리스트 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "urgnYn", value = "최신버전검색", paramType = "query", required = true),
     })
     @GetMapping
-    public List<SearchRes> getRuleBase(
-        @Valid
+    public List<SearchRes> getRuleBaseList(
         SearchReq dto
     ) {
-        return service.getRuleBase(dto);
+        return service.getRuleBaseList(dto);
     }
+
+    @ApiOperation(value = "규정 및 기준관리 - 상세 조회", notes = "상세 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "bznsSpptMnalId", value = "영업지원매뉴얼ID", paramType = "query"),
+        @ApiImplicitParam(name = "vlStrtDtm", value = "유효시작일시", paramType = "query"),
+    })
+    @GetMapping("/detail")
+    public SearchRes getRuleBase(
+        @Valid
+        SearchReq req
+    ){
+        return service.getRuleBaseDetail(req);
+    }
+
 
     @ApiOperation(value = "규정 및 기준관리 조회", notes = "")
     @ApiImplicitParams(value = {
@@ -57,7 +69,7 @@ public class WpsfRuleBaseMgtController {
     public SaveResponse saveRuleBase(
         @RequestBody
         @Valid
-        WpsfRuleBaseMgtDto.SaveReq dto
+        SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveRuleBase(dto))

@@ -15,39 +15,7 @@ public interface WsncFixationVisitMapper {
         WsncFixationVisitDto.SearchReq dto, PageInfo pageInfo
     );
 
-    PagingResult<WsncFixationVisitDto.SearchRes> selectFixationVisits2(
-        WsncFixationVisitDto.SearchReq dto, PageInfo pageInfo
-    );
-
-    List<WsncFixationVisitDto.SearchRes> selectFixationVisits3(
-        WsncFixationVisitDto.SearchReq dto, PageInfo pageInfo
-    );
-
-    List<WsncFixationVisitDto.SearchRes> selectFixationVisits4(
-        WsncFixationVisitDto.SearchReq dto, PageInfo pageInfo
-    );
-
-    PagingResult<WsncFixationVisitDto.SearchRes> selectFixationVisits5(
-        WsncFixationVisitDto.SearchReq dto, PageInfo pageInfo
-    );
-
     List<WsncFixationVisitDto.SearchRes> selectFixationVisits(
-        WsncFixationVisitDto.SearchReq dto
-    );
-
-    PagingResult<WsncFixationVisitDto.SearchRes> selectFixationVisits2(
-        WsncFixationVisitDto.SearchReq dto
-    );
-
-    List<WsncFixationVisitDto.SearchRes> selectFixationVisits3(
-        WsncFixationVisitDto.SearchReq dto
-    );
-
-    List<WsncFixationVisitDto.SearchRes> selectFixationVisits4(
-        WsncFixationVisitDto.SearchReq dto
-    );
-
-    List<WsncFixationVisitDto.SearchRes> selectFixationVisits6(
         WsncFixationVisitDto.SearchReq dto
     );
 

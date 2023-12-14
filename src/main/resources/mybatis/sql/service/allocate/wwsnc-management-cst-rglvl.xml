@@ -10,6 +10,8 @@
 						 , T11.SVPD_SAP_CD	                                                            -- SAP코드
 						 , T1.PDCT_PD_CD 																-- 품목코드
 						 , T11.SVPD_NM_ABBR1	                                                        -- 상품명
+                         , T12.SELL_TP_CD                                                               -- 판매유형코드
+                         , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T12.SELL_TP_CD, 'ko') AS SELL_TP_CD_NM    -- 판매유형코드명
 						 , T1.IST_DT 																	-- 설치일자
 						 , T3.NEW_ADR_ZIP 																-- 우편번호
 						 , T3.RNADR || ' ' || T3.RDADR AS ADR 											-- 주소
@@ -17,7 +19,7 @@
 						 , CASE WHEN (
                                     (SELECT NVL(MAX(1),0) CNT
                                        FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ z1
-                                      WHERE z1.ASN_OJ_YM <![CDATA[<]]> #{manageYm}
+                                      WHERE z1.ASN_OJ_YM <![CDATA[<=]]> #{manageYm}
                                         AND z1.CNTR_NO = T1.CNTR_NO
                                         AND z1.CNTR_SN = T1.CNTR_SN
                                     ) = 0 ) THEN '01' --'신규'
@@ -61,11 +63,11 @@
 						   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
 						   AND T1.CNTR_ADRPC_ID = T2.CNTR_ADRPC_ID
 						   AND T2.ADR_ID = T3.ADR_ID
-						   AND T4.STRU_MNGT_NO = T3.STRU_MNGT_NO
+						   AND T4.STRU_MNGT_NO(+) = T3.STRU_MNGT_NO
 						   AND T1.DTA_DL_YN = 'N'
 						   AND T2.DTA_DL_YN = 'N'
 						   AND T3.DTA_DL_YN = 'N'
-						   AND T4.DTA_DL_YN = 'N'
+						   AND T4.DTA_DL_YN(+) = 'N'
 			  			   ) T3
 					  	ON T3.DTL_CNTR_NO = T1.CNTR_NO
 					   AND T3.DTL_CNTR_SN = T1.CNTR_SN
@@ -131,7 +133,11 @@
 					   AND T10.DTA_DL_YN = 'N'
 		   LEFT OUTER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T11
 			            ON T11.SVPD_PD_CD = T1.PDCT_PD_CD
+           INNER JOIN TB_SSCT_CNTR_DTL T12
+                        ON T12.CNTR_NO = T1.CNTR_NO
+                       AND T12.CNTR_SN = T1.CNTR_SN
                      WHERE T1.CNTR_DTL_STAT_CD IN ('101','201', '202', '203')
+                       AND T1.IST_DT IS NOT NULL
                     <if test="@MybatisUtils@isNotEmpty(localGroupOgCd)">
                        AND ( T9.DGR2_LEVL_OG_CD = #{localGroupOgCd}
                           OR T10.DGR2_LEVL_OG_CD = #{localGroupOgCd}
@@ -165,6 +171,7 @@
                     </if>
                     <if test="@MybatisUtils@equals(exceptWellsManagerYn, 'Y')">
                        AND T1.MNGT_PRTNR_OG_TP_CD IN ('HR1','W02')
+                       AND T11.SVPD_ITEM_GR NOT IN ('5','6','7','8','10','11','12','13','14','15','16','91','95','97','98')
                     </if>
                     <if test="@MybatisUtils@isNotEmpty(addressZipFrom)">
                        AND T3.NEW_ADR_ZIP >= #{addressZipFrom}

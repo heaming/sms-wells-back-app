@@ -19,6 +19,12 @@
              , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FNL_MDFC_USR_ID AND DEL_YN = 'N') AS FNL_MDFC_USR_NM
              , TO_CHAR(TO_DATE(T1.FNL_MDFC_DTM,'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS FNL_MDFC_DT /* 최종수정일자 [수정일] */
              , T2.FILE_UID
+             , '' AS RSB_DV_CDS
+             , T3.OG_TP_CD
+             , T3.CST_CNR_INQR_PRMIT_YN
+             , CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') <![CDATA[>]]> VL_END_DTM THEN 'N'
+             		ELSE 'Y'
+               END PSB_YN
           FROM
              ( SELECT S1.BZNS_SPPT_MNAL_ID      /* 영업지원매뉴얼ID */
                     , S1.HGR_BZNS_SPPT_MNAL_ID  /* 상위영업지원매뉴얼ID */
@@ -63,12 +69,69 @@
           LEFT OUTER JOIN T_CMD_ATTH_FILE_D T2
             ON T2.ATTH_DOC_ID = T1.APN_FILE_DOC_ID
            AND T2.DEL_YN = 'N'
+          LEFT OUTER JOIN
+             ( SELECT S1.BZNS_SPPT_MNAL_ID
+                    , S1.CST_CNR_INQR_PRMIT_YN
+                    , LISTAGG(DISTINCT  S1.OG_TP_CD, ',') WITHIN GROUP ( ORDER BY S1.BZNS_SPPT_MNAL_ID ) AS OG_TP_CD
+                    , LISTAGG(S1.RSB_DV_CD, ',') WITHIN GROUP ( ORDER BY S1.BZNS_SPPT_MNAL_ID ) AS RSB_DV_CDS
+                 FROM TB_PSGA_BZNS_SPPT_MNAL_RGH_REL S1
+                WHERE DTA_DL_YN = 'N'
+                GROUP BY S1.BZNS_SPPT_MNAL_ID, S1.CST_CNR_INQR_PRMIT_YN
+             ) T3
+            ON T3.BZNS_SPPT_MNAL_ID = T1.BZNS_SPPT_MNAL_ID
          WHERE 1=1
            AND HGR_BZNS_SPPT_MNAL_ID != 'ROOT'
-         ORDER BY HGR_BZNS_SPPT_MNAL_ID, EXPSR_ODR, BZNS_SPPT_MNAL_ID  ASC, VL_STRT_DTM DESC
+         ORDER BY HGR_BZNS_SPPT_MNAL_ID, TO_NUMBER(EXPSR_ODR), BZNS_SPPT_MNAL_ID  ASC, VL_STRT_DTM DESC
     </select>
 
-    <select id="selectRuleBase" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfRuleBaseMgtDto$SearchRes">
+    <select id="selectRuleBaseDetail" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfRuleBaseMgtDto$SearchRes">
+        SELECT T1.BZNS_SPPT_MNAL_ID      /* 영업지원매뉴얼ID */
+             , T1.HGR_BZNS_SPPT_MNAL_ID  /* 상위영업지원매뉴얼ID */
+             , T1.VL_STRT_DTM            /* 유효시작일시 */
+             , T1.VL_END_DTM             /* 유효종료일시 */
+             , T1.BZNS_SPPT_MNAL_NM      /* 영업지원매뉴얼명 */
+             , T1.BZNS_SPPT_MNAL_RGST_CD /* 영업지원매뉴얼등록코드 */
+             , T1.BZNS_SPPT_MNAL_CH_CN   /* 영업지원매뉴얼변경내용 */
+             , T1.BZNS_SPPT_MNAL_MPBL_DV_CD
+             , T1.MNAL_RGH_REL_ID        /* 매뉴얼권한관계ID */
+             , T1.INQR_LV_TCNT           /* 조회단계차수 */
+             , T1.EXPSR_ODR /* 노출순서 */
+             , T1.APN_FILE_DOC_ID        /* 첨부파일문서ID */
+             , T1.FNL_MDFC_DTM
+             , T1.FNL_MDFC_USR_ID
+             , '' AS ORG_PATH
+             , T1.BZNS_SPPT_MNAL_ID||T1.HGR_BZNS_SPPT_MNAL_ID||T1.EXPSR_ODR AS UNN_KEY
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FNL_MDFC_USR_ID AND DEL_YN = 'N') AS FNL_MDFC_USR_NM
+             , TO_CHAR(TO_DATE(T1.FNL_MDFC_DTM,'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS FNL_MDFC_DT /* 최종수정일자 [수정일] */
+             , T3.FILE_UID
+             , T2.RSB_DV_CDS
+             , T2.OG_TP_CD
+             , T2.CST_CNR_INQR_PRMIT_YN
+             , CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') <![CDATA[>]]> VL_END_DTM THEN 'N'
+             		ELSE 'Y'
+               END PSB_YN
+          FROM TB_PSGA_BZNS_SPPT_MNAL_BAS T1
+          LEFT OUTER JOIN
+             ( SELECT S1.BZNS_SPPT_MNAL_ID
+                    , S1.CST_CNR_INQR_PRMIT_YN
+                    , LISTAGG(DISTINCT  S1.OG_TP_CD, ',') WITHIN GROUP ( ORDER BY S1.BZNS_SPPT_MNAL_ID ) AS OG_TP_CD
+                    , LISTAGG(S1.RSB_DV_CD, ',') WITHIN GROUP ( ORDER BY S1.BZNS_SPPT_MNAL_ID ) AS RSB_DV_CDS
+                 FROM TB_PSGA_BZNS_SPPT_MNAL_RGH_REL S1
+                WHERE S1.VL_STRT_DTM = #{vlStrtDtm}
+                  AND S1.BZNS_SPPT_MNAL_ID = #{bznsSpptMnalId}
+                GROUP BY S1.BZNS_SPPT_MNAL_ID, S1.CST_CNR_INQR_PRMIT_YN
+             ) T2
+            ON T1.BZNS_SPPT_MNAL_ID = T2.BZNS_SPPT_MNAL_ID
+          LEFT OUTER JOIN T_CMD_ATTH_FILE_D T3
+            ON T3.ATTH_DOC_ID = T1.APN_FILE_DOC_ID
+           AND T3.DEL_YN = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.BZNS_SPPT_MNAL_ID = #{bznsSpptMnalId}
+           AND T1.VL_STRT_DTM = #{vlStrtDtm}
+    </select>
+
+
+    <select id="selectUserRuleBase" resultType="com.kyowon.sms.wells.web.competence.business.dto.WpsfRuleBaseMgtDto$SearchRes">
         SELECT T1.BZNS_SPPT_MNAL_ID      /* 영업지원매뉴얼ID */
              , T1.HGR_BZNS_SPPT_MNAL_ID  /* 상위영업지원매뉴얼ID */
              , T1.VL_STRT_DTM            /* 유효시작일시 */
@@ -86,6 +149,12 @@
              , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FNL_MDFC_USR_ID AND DEL_YN = 'N') AS FNL_MDFC_USR_NM
              , TO_CHAR(TO_DATE(T1.FNL_MDFC_DTM,'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS FNL_MDFC_DT /* 최종수정일자 [수정일] */
              , T2.FILE_UID
+             , '' AS RSB_DV_CDS
+             , T3.CST_CNR_INQR_PRMIT_YN
+             , T3.OG_TP_CD
+             , CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') <![CDATA[>]]> T1.VL_END_DTM THEN 'N'
+             		ELSE 'Y'
+               END PSB_YN
           FROM
              ( SELECT S1.BZNS_SPPT_MNAL_ID      /* 영업지원매뉴얼ID */
                     , S1.HGR_BZNS_SPPT_MNAL_ID  /* 상위영업지원매뉴얼ID */
@@ -126,7 +195,7 @@
                                OR
                                'Y' = #{session.dataFullAuthYn}
                                OR
-                               EXISTS( SELECT 1
+                               NOT EXISTS( SELECT 1
                                          FROM TB_PSGA_BZNS_SPPT_MNAL_RGH_REL S1
                                         INNER JOIN
                                             ( SELECT C.RSB_DV_CD, C.OG_TP_CD
@@ -141,7 +210,9 @@
                                             ) S2
                                            ON S1.RSB_DV_CD = S2.RSB_DV_CD
                                           AND S1.OG_TP_CD = S2.OG_TP_CD
-                                        WHERE S1.BZNS_SPPT_MNAL_ID = T1.BZNS_SPPT_MNAL_ID)
+                                        WHERE S1.BZNS_SPPT_MNAL_ID = T1.BZNS_SPPT_MNAL_ID
+                                          AND S1.CST_CNR_INQR_PRMIT_YN = 'N'
+                                        )
                              )
                     ) S1
                 WHERE 1=1
@@ -151,12 +222,28 @@
           LEFT OUTER JOIN T_CMD_ATTH_FILE_D T2
             ON T2.ATTH_DOC_ID = T1.APN_FILE_DOC_ID
            AND T2.DEL_YN = 'N'
+          LEFT OUTER JOIN
+             ( SELECT S1.BZNS_SPPT_MNAL_ID
+                    , S1.CST_CNR_INQR_PRMIT_YN
+                    , LISTAGG(DISTINCT  S1.OG_TP_CD, ',') WITHIN GROUP ( ORDER BY S1.BZNS_SPPT_MNAL_ID ) AS OG_TP_CD
+                    , LISTAGG(S1.RSB_DV_CD, ',') WITHIN GROUP ( ORDER BY S1.BZNS_SPPT_MNAL_ID ) AS RSB_DV_CDS
+                 FROM TB_PSGA_BZNS_SPPT_MNAL_RGH_REL S1
+                WHERE DTA_DL_YN = 'N'
+                GROUP BY S1.BZNS_SPPT_MNAL_ID, S1.CST_CNR_INQR_PRMIT_YN
+             ) T3
+            ON T3.BZNS_SPPT_MNAL_ID = T1.BZNS_SPPT_MNAL_ID
          WHERE 1=1
            AND HGR_BZNS_SPPT_MNAL_ID != 'ROOT'
-         ORDER BY HGR_BZNS_SPPT_MNAL_ID, EXPSR_ODR, BZNS_SPPT_MNAL_ID ASC
+         ORDER BY HGR_BZNS_SPPT_MNAL_ID, TO_NUMBER(EXPSR_ODR), BZNS_SPPT_MNAL_ID ASC
     </select>
 
     <insert id="insertRuleBase">
+        <selectKey keyProperty="dvo.bznsSpptMnalId" resultType="String" order="BEFORE">
+            SELECT CASE WHEN #{dvo.bznsSpptMnalId} IS NULL THEN ( SELECT LPAD(MAX(BZNS_SPPT_MNAL_ID)+1,5,0) FROM TB_PSGA_BZNS_SPPT_MNAL_BAS )
+                   ELSE #{dvo.bznsSpptMnalId} END
+            FROM DUAL
+        </selectKey>
+
         INSERT INTO TB_PSGA_BZNS_SPPT_MNAL_BAS (  /* 영업지원매뉴얼기본 */
               BZNS_SPPT_MNAL_ID      /* 영업지원매뉴얼ID */
             , VL_STRT_DTM            /* 유효시작일시 */
@@ -173,21 +260,19 @@
             , DTA_DL_YN              /* 데이터삭제여부 */
             <include refid="COMMON.insertSystemField" />
        ) VALUES (
-              CASE WHEN #{bznsSpptMnalId} IS NULL THEN ( SELECT LPAD(MAX(BZNS_SPPT_MNAL_ID)+1,5,0) FROM TB_PSGA_BZNS_SPPT_MNAL_BAS )
-                   ELSE #{bznsSpptMnalId} END
+              #{dvo.bznsSpptMnalId}
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
             , '99991231235959'
-            , #{bznsSpptMnalNm}
-            , #{hgrBznsSpptMnalId}
-            , #{bznsSpptMnalRgstCd}
-            , #{bznsSpptMnalChCn}
-            , #{bznsSpptMnalMpblDvCd}
-            , CASE WHEN #{bznsSpptMnalId} IS NULL THEN ( SELECT LPAD(MAX(BZNS_SPPT_MNAL_ID)+1,5,0) FROM TB_PSGA_BZNS_SPPT_MNAL_BAS )
-                   ELSE #{bznsSpptMnalId} END
-            , #{inqrLvTcnt}
-            , #{expsrOdr}
-            , #{apnFileDocId}
-            , #{dtaDlYn}
+            , #{dvo.bznsSpptMnalNm}
+            , #{dvo.hgrBznsSpptMnalId}
+            , #{dvo.bznsSpptMnalRgstCd}
+            , #{dvo.bznsSpptMnalChCn}
+            , #{dvo.bznsSpptMnalMpblDvCd}
+            , #{dvo.bznsSpptMnalId}
+            , #{dvo.inqrLvTcnt}
+            , #{dvo.expsrOdr}
+            , #{dvo.hgrBznsSpptMnalId}||#{dvo.bznsSpptMnalId}
+            , 'N'
             <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
 
@@ -246,6 +331,7 @@
             , RSB_DV_CD             /* 직책유형코드 */
             , BZNS_SPPT_MNAL_RGH_CD /* 영업지원매뉴얼권한코드 */
             , MNAL_RGH_REL_ID       /* 매뉴얼권한관계ID */
+            , CST_CNR_INQR_PRMIT_YN /* 고객센터조회허용여부 */
             , DTA_DL_YN             /* 데이터삭제여부 */
             <include refid="COMMON.insertSystemField" />
           )
@@ -253,10 +339,11 @@
           , BZNS_SPPT_MNAL_ID
           , MAX(VL_STRT_DTM)
           , MAX(VL_END_DTM)
-          , #{ogTpCd}
-          , #{rsbDvCd}
-          , '2'
+          , SUBSTR(#{rsbDvCd},0,3) AS OG_TP_CD
+          , #{rsbDvCd} AS RSB_DV_CD
+          , '2' AS BZNS_SPPT_MNAL_RGH_CD
           , BZNS_SPPT_MNAL_ID
+          , NVL(#{cstCnrInqrPrmitYn}, 'Y')
           , 'N'
           <include refid="COMMON.insertSystemFieldValue" />
        FROM TB_PSGA_BZNS_SPPT_MNAL_BAS
@@ -269,7 +356,7 @@
            SET DTA_DL_YN             = 'Y'
             <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
-           AND BZNS_SPPT_MNAL_ID     = #{bznsSpptMnalRghCd}
+           AND BZNS_SPPT_MNAL_ID     = #{bznsSpptMnalId}
     </update>
 
 </mapper>

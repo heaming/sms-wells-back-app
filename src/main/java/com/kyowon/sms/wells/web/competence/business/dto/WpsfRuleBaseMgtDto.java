@@ -18,11 +18,8 @@ public class WpsfRuleBaseMgtDto {
     @ApiModel("WpsfRuleBaseMgtDto-SearchReq")
     public record SearchReq(
         String urgnYn,
-        String oneDepth,
-        String twoDepth,
-        String threeDepth,
-        String ogTpCd,
-        String rsbDvCd
+        String bznsSpptMnalId, /* 영업지원매뉴얼ID */
+        String vlStrtDtm
 
     ) {}
 
@@ -48,8 +45,11 @@ public class WpsfRuleBaseMgtDto {
         String fnlMdfcUsrNm,
         String fnlMdfcDt,
         String unnKey,
-        String fileUid
-
+        String fileUid,
+        String ogTpCd,
+        String rsbDvCds,
+        String cstCnrInqrPrmitYn,
+        String psbYn
     ) {}
 
     @Builder
@@ -69,9 +69,10 @@ public class WpsfRuleBaseMgtDto {
         Integer inqrLvTcnt, /* 조회단계차수 */
         Long expsrOdr, /* 노출순서 */
         String apnFileDocId, /* 첨부파일문서ID */
+        String cstCnrInqrPrmitYn,
         List<String> rsbDvCds, /* 직책구분코드 */
         List<AttachFile> attachFiles,
-        String ogTpCd
+        List<String> ogTpCd
 
     ) {}
 

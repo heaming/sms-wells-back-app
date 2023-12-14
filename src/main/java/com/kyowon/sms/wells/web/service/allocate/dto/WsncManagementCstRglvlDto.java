@@ -49,6 +49,8 @@ public class WsncManagementCstRglvlDto {
         String svpdSapCd,
         String pdctPdCd,
         String svpdNmAbbr1,
+        String sellTpCd,
+        String sellTpCdNm,
         String istDt,
         String newAdrZip,
         String adr,

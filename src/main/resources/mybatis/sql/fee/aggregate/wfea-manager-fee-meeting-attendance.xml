@@ -172,99 +172,139 @@
                     AND T1.BASE_YM = #{perfYm}
                     AND T1.PSTN_DV_CD = '7'
                </if>
-                  UNION ALL
                <if test='@MybatisUtils@equals(rsbTpCd, "W0204")'>
-                 SELECT T1.PRTNR_NO
-                      , 'W02P00092' AS PERF_ATC_CD   /* 배출자 인원수 */
+                 UNION ALL
+                 /* 2023.07이전 배출건수 */
+                SELECT T1.PRTNR_NO
+                      , 'W02P00134' AS PERF_ATC_CD   /* 2023.07이전 배출수 */
                       , '' AS FEE_PERF_ATC_VAL
-                      , SUM( CASE WHEN T2.OJ_PRTNR_PSTN_DV_CD IN ('4','6','7') THEN 1 ELSE 0 END ) AS PERF_VAL
+                      , SUM(CASE WHEN T2.OJ_PRTNR_PSTN_DV_CD IN ('4','6','7') AND T2.EJT_YM <![CDATA[<=]]> '202307' THEN 1 ELSE 0 END ) AS PERF_VAL
                    FROM TB_OGBS_MM_PRTNR_IZ T1
-                   LEFT OUTER JOIN TB_OGPS_PRTNR_EJT_REL T2
+                   LEFT OUTER JOIN TB_OGPS_PRTNR_EJT_REL T2	/* 배출정보 */
                      ON T1.BASE_YM  = T2.MNGT_YM
                     AND T1.OG_TP_CD = T2.BASE_OG_TP_CD
                     AND T1.PRTNR_NO = T2.BASE_PRTNR_NO
                     AND T2.OG_EJT_DV_CD = '10'
+                    AND T2.ACKMT_YN = 'Y'	/* 인정여부 */
                   WHERE T1.OG_TP_CD = 'W02'
                     AND T1.BASE_YM = #{perfYm}
                     AND T1.PSTN_DV_CD = '7'
                   GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.PRTNR_NO
-                  UNION ALL
-                 SELECT T1.PRTNR_NO
-                      , 'W02P00123' AS PERF_ATC_CD   /* 23년한정배출자인원수 */
+                UNION ALL
+                /* 배출건수 */
+                SELECT T1.PRTNR_NO
+                      , 'W02P00092' AS PERF_ATC_CD   /* 배출수 */
                       , '' AS FEE_PERF_ATC_VAL
-                      , SUM( CASE WHEN T2.OJ_PRTNR_PSTN_DV_CD IN ('4','6','7')
-                                       AND T2.OG_EJT_GD_CD IN ('6','7')
-                                       AND T2.EJT_YM BETWEEN '202304' AND '202312'
-                                       THEN 1
-                                  ELSE 0
-                             END
-                           ) AS PERF_VAL
-                   FROM TB_OGBS_MM_PRTNR_IZ T1
-                   LEFT OUTER JOIN TB_OGPS_PRTNR_EJT_REL T2
+                      , SUM(CASE WHEN T2.OJ_PRTNR_PSTN_DV_CD <![CDATA[<=]]> 4 THEN 1	/* 피배출자 4직급(지역단장) 이상이면 인정 */
+                                 WHEN T2.OJ_PRTNR_PSTN_DV_CD IN ('6','7') THEN
+                                      CASE WHEN T2.OJ_OG_TP_CD = 'W01' AND T2.MNGT_YM >= '202401' THEN /* 피배출자 P지점장 실적년월 2024.01이후 */
+                                            CASE WHEN T4.PERF_VAL >= 15000000 THEN 1 /* 인정실적 1500만이상이면 인정 */
+                                                 ELSE 0 END
+                                      ELSE
+                                            CASE WHEN T2.EJT_YM <![CDATA[<=]]> '202307' AND T2.MNGT_YM <![CDATA[<]]> '202401'
+                                                      THEN 1 /*  2023.07이전 피배출자 2024.01이전 인정 */
+                                                 WHEN T2.EJT_YM <![CDATA[<=]]> '202307' AND T2.MNGT_YM <![CDATA[>=]]> '202401' AND T3.PERF_VAL <![CDATA[>=]]> 20
+                                                      THEN 1 /* 2023.07이전 피배출자 2024.01이후 가전 20이상이면 인정 */
+                                                 WHEN T2.EJT_YM <![CDATA[>]]> '202307'  AND T3.PERF_VAL <![CDATA[>=]]> 20
+                                                      THEN 1 /* 2023.08이후 피배출자 가전 20이상이면 인정 */
+                                                 ELSE 0 END
+                                      END
+                                 ELSE 0 END)  AS PERF_VAL
+                    FROM TB_OGBS_MM_PRTNR_IZ T1
+                   LEFT OUTER JOIN TB_OGPS_PRTNR_EJT_REL T2	/* 배출정보 */
                      ON T1.BASE_YM  = T2.MNGT_YM
                     AND T1.OG_TP_CD = T2.BASE_OG_TP_CD
                     AND T1.PRTNR_NO = T2.BASE_PRTNR_NO
                     AND T2.OG_EJT_DV_CD = '10'
-                    AND T2.ACKMT_YN = 'Y'
+                    AND T2.ACKMT_YN = 'Y'	/* 인정여부 */
+                   LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T3	/* 순주문파트너 실적월마감 (피배출자 실적) */
+                     ON T2.MNGT_YM = T3.BASE_YM
+                    AND T2.OJ_OG_TP_CD = T3.OG_TP_CD 	/* 피배출자 조직코드 */
+                    AND T2.OJ_PRTNR_NO = T3.PRTNR_NO 	/* 피배출자 */
+                    AND T3.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                    AND T3.PERF_AGRG_CRT_DV_CD = '201'
+                    AND T3.PERF_ATC_CD = 'W02P00002'      /* 판매인정건수  */
+                    AND T3.PERF_DV_CD = '2'	/* 지점판매실적 */
+                   LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T4	/* 순주문파트너 실적월마감 (피배출자 실적) */
+                     ON T2.MNGT_YM = T4.BASE_YM
+                    AND T2.OJ_OG_TP_CD = T4.OG_TP_CD 	/* 피배출자 조직코드 */
+                    AND T2.OJ_PRTNR_NO = T4.PRTNR_NO 	/* 피배출자 */
+                    AND T4.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                    AND T4.PERF_AGRG_CRT_DV_CD = '201'
+                    AND T4.PERF_ATC_CD = 'W02P00112'      /* 판매인정실적  */
+                    AND T4.PERF_DV_CD = '2'	/* 지점판매실적 */
                   WHERE T1.OG_TP_CD = 'W02'
                     AND T1.BASE_YM = #{perfYm}
                     AND T1.PSTN_DV_CD = '7'
                   GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.PRTNR_NO
-                  UNION ALL
+               </if>
+               <if test='@MybatisUtils@equals(rsbTpCd, "W0204")'>
+                /* 2023.07~ 지점실황동인원수 (W02P00111) 개인과 동일함 */
+                UNION ALL
                  SELECT T1.PRTNR_NO
-                      , 'W02P00111' AS PERF_ATC_CD   /* 지점실활동인원수 */
+                      , 'W02P00111' AS PERF_ATC_CD   /* 지점실활동인원수 실적코드 */
                       , '' AS FEE_PERF_ATC_VAL
-                      , NVL(T2.PERF_VAL, 0) AS PERF_VAL
+                      , NVL(T2.PERF_VAL, 0) AS PERF_VAL     /* 실활동인원수 */
                    FROM TB_OGBS_MM_PRTNR_IZ T1
-       LEFT OUTER JOIN (
+                   LEFT OUTER JOIN (
                             SELECT O1.BASE_YM
                                  , O1.OG_TP_CD
                                  , O1.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
-                                 , SUM(CASE WHEN X1.SELL_CNT >= 3 AND X1.BS_CNT >= 50 AND X1.EDU_YN = 'Y' THEN 1 ELSE 0 END) PERF_VAL
+                                 , SUM(CASE WHEN X1.SELL_CNT >= 3 AND X1.BS_CNT >= 50 AND X1.PERF_VAL > 0 THEN 1 ELSE 0 END) PERF_VAL
                               FROM TB_OGBS_MM_OG_IZ O1
-                        INNER JOIN (
+                             INNER JOIN (
                                          SELECT O1.BASE_YM
                                               , O1.OG_TP_CD
                                               , O1.PRTNR_NO
                                               , MAX(O1.OG_ID) OG_ID
                                               , SUM(NVL(P1.PERF_VAL , 0)) AS SELL_CNT
                                               , SUM(NVL(P2.PERF_VAL , 0)) AS BS_CNT
-                                              , NVL(MAX(P3.EDUC_CPC_ACKMT_YN), 'N') AS EDU_YN
-                                           FROM TB_OGBS_MM_PRTNR_IZ O1
-                                LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL P1
-                                             ON O1.BASE_YM = P1.BASE_YM
-                                            AND O1.OG_TP_CD = P1.OG_TP_CD
-                                            AND O1.PRTNR_NO = P1.PRTNR_NO
-                                            AND P1.FEE_TCNT_DV_CD = #{feeTcntDvCd}
-                                            AND P1.PERF_AGRG_CRT_DV_CD = '201'
-                                            AND P1.PERF_ATC_CD = 'W02P00002'      /* 판매인정건수  */
-                                            AND P1.PERF_DV_CD = '0'
-                                LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL P2
-                                             ON O1.BASE_YM = P2.BASE_YM
-                                            AND O1.OG_TP_CD = P2.OG_TP_CD
-                                            AND O1.PRTNR_NO = P2.PRTNR_NO
-                                            AND P2.FEE_TCNT_DV_CD = #{feeTcntDvCd}
-                                            AND P2.PERF_AGRG_CRT_DV_CD = '201'
-                                            AND P2.PERF_ATC_CD = 'W02P00085'      /* BS 실적건수  */
-                                            AND P2.PERF_DV_CD = '0'
-                                LEFT OUTER JOIN TB_PSCA_MCPTN_EDUC_IZ P3
-                                             ON O1.BASE_YM  = P3.EDUC_CRSE_CRT_BASE_YM
-                                            AND O1.OG_TP_CD = P3.OG_TP_CD
-                                            AND O1.PRTNR_NO = P3.PRTNR_NO
-                                            AND P3.EDUC_CRSE_NO = '129'      /*  보수교육최종(129)수료여부 */
+                                              , MAX(NVL(T2.METG_PTCP_ACKMT_YN, 'N')) AS METG_PTCP_ACKMT_YN
+                                              , CASE WHEN SUM(NVL(P1.PERF_VAL , 0)) >= 3 AND SUM(NVL(P2.PERF_VAL , 0)) >= 50
+                                                            AND MAX(NVL(T2.METG_PTCP_ACKMT_YN, 'N')) = 'Y' THEN 1
+                                                      ELSE 0 END AS PERF_VAL
+                                         FROM TB_OGBS_MM_PRTNR_IZ O1
+                                        LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL P1
+                                                     ON O1.BASE_YM = P1.BASE_YM
+                                                    AND O1.OG_TP_CD = P1.OG_TP_CD
+                                                    AND O1.PRTNR_NO = P1.PRTNR_NO
+                                                    AND P1.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                                    AND P1.PERF_AGRG_CRT_DV_CD = '201'
+                                                    AND P1.PERF_ATC_CD = 'W02P00002'      /* 판매인정건수  */
+                                                    AND P1.PERF_DV_CD = '0'
+                                        LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL P2
+                                                     ON O1.BASE_YM = P2.BASE_YM
+                                                    AND O1.OG_TP_CD = P2.OG_TP_CD
+                                                    AND O1.PRTNR_NO = P2.PRTNR_NO
+                                                    AND P2.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                                                    AND P2.PERF_AGRG_CRT_DV_CD = '201'
+                                                    AND P2.PERF_ATC_CD = 'W02P00085'      /* BS 실적건수  */
+                                                    AND P2.PERF_DV_CD = '0'
+                                         LEFT OUTER JOIN TB_PSCA_MCPTN_METG_AGRG T2
+                                                 ON O1.BASE_YM = T2.AGRG_YM
+                                                AND O1.OG_TP_CD = T2.OG_TP_CD
+                                                AND O1.PRTNR_NO = T2.PRTNR_NO
+                                                AND O1.DTA_DL_YN = 'N'
+                                           LEFT OUTER JOIN TB_PSCA_PRTNR_METG_BASE_BAS T3 /* 파트너미팅기준기본 */
+                                             ON SUBSTR(T3.VL_STRTDT,1,6) <![CDATA[<=]]> O1.BASE_YM
+                                            AND SUBSTR(T3.VL_ENDDT,1,6) <![CDATA[>=]]> O1.BASE_YM
+                                            AND T3.OG_TP_CD= O1.OG_TP_CD
+                                            AND T3.RSB_DV_CD = O1.RSB_DV_CD
+                                            AND T3.QLF_DV_CD = O1.QLF_DV_CD
                                           WHERE O1.OG_TP_CD ='W02'
                                             AND O1.BASE_YM = #{perfYm}
                                             AND O1.PSTN_DV_CD = '15'
+                                            AND O1.QLF_DV_CD = '3'  /* BS프리메니저 실활동제외(WM만인정) */
                                         GROUP BY O1.BASE_YM, O1.OG_TP_CD, O1.PRTNR_NO
                                     ) X1
-                            ON O1.BASE_YM = X1.BASE_YM
-                           AND O1.OG_TP_CD = X1.OG_TP_CD
-                           AND O1.OG_ID = X1.OG_ID
-                         WHERE 1 = 1
-                           AND O1.BASE_YM = #{perfYm}
-                           AND O1.OG_TP_CD = 'W02'
-                           AND O1.DTA_DL_YN = 'N'
-                        GROUP BY O1.BASE_YM, O1.OG_TP_CD, O1.DGR3_LEVL_DG_PRTNR_NO
+                                ON O1.BASE_YM = X1.BASE_YM
+                               AND O1.OG_TP_CD = X1.OG_TP_CD
+                               AND O1.OG_ID = X1.OG_ID
+                             WHERE 1 = 1
+                               AND O1.BASE_YM = #{perfYm}
+                               AND O1.OG_TP_CD = 'W02'
+                               AND O1.DTA_DL_YN = 'N'
+                             GROUP BY O1.BASE_YM, O1.OG_TP_CD, O1.DGR3_LEVL_DG_PRTNR_NO
                        ) T2
                      ON T1.BASE_YM  = T2.BASE_YM
                     AND T1.OG_TP_CD = T2.OG_TP_CD
@@ -272,8 +312,50 @@
                   WHERE T1.OG_TP_CD = 'W02'
                     AND T1.BASE_YM = #{perfYm}
                     AND T1.PSTN_DV_CD = '7'
-                  UNION ALL
                </if>
+               <if test='@MybatisUtils@equals(rsbTpCd, "W0205")'>
+                  /* 2023.07~ 개인실황동인원수 (W02P00111) 지점과 동일함 */
+                  UNION ALL
+                 SELECT O1.PRTNR_NO
+                      , 'W02P00111' AS PERF_ATC_CD   /* 지점실활동인원수 실적코드 */
+                      , '' AS FEE_PERF_ATC_VAL
+                      , CASE WHEN NVL(P1.PERF_VAL , 0) >= 3 AND NVL(P2.PERF_VAL , 0) >= 50
+                                  AND NVL(T2.METG_PTCP_ACKMT_YN, 'N') = 'Y'
+                                  AND O1.QLF_DV_CD = '3' /* WM이면 */ THEN 1
+                             ELSE 0 END AS PERF_VAL
+                FROM TB_OGBS_MM_PRTNR_IZ O1
+                LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL P1
+                             ON O1.BASE_YM = P1.BASE_YM
+                            AND O1.OG_TP_CD = P1.OG_TP_CD
+                            AND O1.PRTNR_NO = P1.PRTNR_NO
+                            AND P1.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                            AND P1.PERF_AGRG_CRT_DV_CD = '201'
+                            AND P1.PERF_ATC_CD = 'W02P00002'      /* 판매인정건수  */
+                            AND P1.PERF_DV_CD = '0'
+                LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL P2
+                             ON O1.BASE_YM = P2.BASE_YM
+                            AND O1.OG_TP_CD = P2.OG_TP_CD
+                            AND O1.PRTNR_NO = P2.PRTNR_NO
+                            AND P2.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                            AND P2.PERF_AGRG_CRT_DV_CD = '201'
+                            AND P2.PERF_ATC_CD = 'W02P00085'      /* BS 실적건수  */
+                            AND P2.PERF_DV_CD = '0'
+                 LEFT OUTER JOIN TB_PSCA_MCPTN_METG_AGRG T2
+                         ON O1.BASE_YM = T2.AGRG_YM
+                        AND O1.OG_TP_CD = T2.OG_TP_CD
+                        AND O1.PRTNR_NO = T2.PRTNR_NO
+                        AND O1.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN TB_PSCA_PRTNR_METG_BASE_BAS T3 -- 파트너미팅기준기본
+                     ON SUBSTR(T3.VL_STRTDT,1,6) <![CDATA[<=]]> O1.BASE_YM
+                    AND SUBSTR(T3.VL_ENDDT,1,6) <![CDATA[>=]]> O1.BASE_YM
+                    AND T3.OG_TP_CD= O1.OG_TP_CD
+                    AND T3.RSB_DV_CD = O1.RSB_DV_CD
+                    AND T3.QLF_DV_CD = O1.QLF_DV_CD
+                  WHERE O1.OG_TP_CD ='W02'
+                    AND O1.BASE_YM =  #{perfYm}
+                    AND O1.PSTN_DV_CD = '15'
+              </if>
+                 UNION ALL
                  SELECT T1.PRTNR_NO
                       , 'W02P00124' AS PERF_ATC_CD   /* 매니저정착1(4)수료여부 */
                       , NVL(T2.EDUC_CPC_ACKMT_YN,'N') AS FEE_PERF_ATC_VAL

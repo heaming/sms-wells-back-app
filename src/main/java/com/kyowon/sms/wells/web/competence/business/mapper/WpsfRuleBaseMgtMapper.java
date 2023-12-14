@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.competence.business.mapper;
 import com.kyowon.sms.wells.web.competence.business.dvo.WpsfRuleBaseDvo;
 import com.kyowon.sms.wells.web.competence.business.dvo.WpsfRuleBaseInquiryDvo;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -16,7 +17,9 @@ public interface WpsfRuleBaseMgtMapper {
         SearchReq dto
     );
 
-    List<SearchRes> selectRuleBase(
+    SearchRes selectRuleBaseDetail(SearchReq req);
+
+    List<SearchRes> selectUserRuleBase(
         SearchReq dto
     );
 
@@ -29,7 +32,7 @@ public interface WpsfRuleBaseMgtMapper {
     int updateRuleBaseTree(WpsfRuleBaseDvo dvo);
 
     int updatePrevRuleBase(WpsfRuleBaseDvo dvo);
-    int insertRuleBase(WpsfRuleBaseDvo dvo);
+    int insertRuleBase(@Param("dvo") WpsfRuleBaseDvo dvo);
 
     int deleteRuleBaseRel(WpsfRuleBaseDvo dvo);
 
