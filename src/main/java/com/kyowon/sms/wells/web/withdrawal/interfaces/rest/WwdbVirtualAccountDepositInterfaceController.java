@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @InterfaceController
 @Api(tags = "[WWDB] wells 가상계좌 입금 처리 I/F API")
-@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve/batch-service")
+@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve")
 @RequiredArgsConstructor
 @Validated
 public class WwdbVirtualAccountDepositInterfaceController {
