@@ -8,7 +8,17 @@
              , C1.ERR_MSG                                                                   /* 오류상세 */
              , C1.CNTR_NO                                                                   /* 계약번호 */
              , C1.CNTR_SN                                                                   /* 계약일련번호 */
-             , C2.CST_KNM                                                                   /* 고객명 */
+             , (SELECT Z2.RCGVP_KNM
+                  FROM TB_SSCT_CNTR_ADR_REL Z1  /* 계약주소관계 */
+                 INNER JOIN TB_SSCT_CNTR_ADRPC_BAS Z2  /* 계약주소지기본 */
+                    ON Z2.CNTR_ADRPC_ID  = Z1.CNTR_ADRPC_ID
+                   AND Z2.DTA_DL_YN = 'N'
+                 WHERE Z1.DTA_DL_YN = 'N'
+                   AND Z1.ADRPC_TP_CD = '3'
+                   AND Z1.DTL_CNTR_NO = C1.CNTR_NO
+                   AND Z1.DTL_CNTR_SN = C1.CNTR_SN
+                   AND C1.FNL_VST_FSH_DT BETWEEN Z1.VL_STRT_DTM AND Z1.VL_END_DTM
+                   AND ROWNUM = 1) AS CST_KNM                                               /* 고객명 */
              , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', C1.FNL_SELL_TP_CD) AS FILT_SELL_TP_CD   /* 판매유형 */
              , C1.ADN_SV_SN                                                                 /* 일련번호 */
              , C1.ITM_PD_CD                                                                 /* 제품코드 */
@@ -157,21 +167,16 @@
                                  AND A1.ITM_PD_CD = #{itmPdCd}
                              </otherwise>
                           </choose>
-                          <choose>
-                             <when test="@MybatisUtils@isEmpty(svBizDclsfCd)">
-                                 AND A1.SV_BIZ_DCLSF_CD IN ('1110','1121','1122','1123','1124','3110','3112','3112','3310','3320','3420','9999')
-                             </when>
-                             <otherwise>
-                                 <choose>
-                                     <when test="@MybatisUtils@equals(svBizDclsfCd, '9999')">
-                                       AND A1.SV_BIZ_DCLSF_CD NOT IN ('1110','1121','1122','1123','1124','3110','3112','3112','3310','3320','3420','9999')
-                                     </when>
-                                     <otherwise>
-                                       AND A1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
-                                     </otherwise>
-                                 </choose>
-                             </otherwise>
-                          </choose>
+                          <if test="@MybatisUtils@isNotEmpty(svBizDclsfCd)">
+                              <choose>
+                                  <when test="@MybatisUtils@equals(svBizDclsfCd, '9999')">
+                                    AND A1.SV_BIZ_DCLSF_CD NOT IN ('1110','1121','1122','1123','1124','3110','3112','3112','3310','3320','3420','9999')
+                                  </when>
+                                  <otherwise>
+                                    AND A1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+                                  </otherwise>
+                              </choose>
+                          </if>
                           <if test="@MybatisUtils@isNotEmpty(svBizHclsfCd)">
                              <choose>
                                  <when test="@MybatisUtils@equals(svBizHclsfCd, '6')">
@@ -184,8 +189,6 @@
                           </if>
                        ) B1
                ) C1
-          LEFT OUTER JOIN TB_CUBS_CST_BAS C2  /* 고객기본 */
-            ON C2.CST_NO = C1.CNTR_CST_NO
           LEFT OUTER JOIN TB_OGBS_OG_BAS C3  /* 조직기본 */
             ON C3.OG_ID = C1.BRCH_OG_ID
         <if test="@MybatisUtils@isNotEmpty(cnfmYn)">
