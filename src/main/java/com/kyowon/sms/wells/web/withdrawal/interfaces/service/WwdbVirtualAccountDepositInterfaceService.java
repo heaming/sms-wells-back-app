@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.service;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbVirtualAccountDepositInterfaceDto.SearchReq;
@@ -16,7 +14,7 @@ public class WwdbVirtualAccountDepositInterfaceService {
 
     private final WwdbVirtualAccountDepositInterfaceMapper mapper;
 
-    public List<SearchRes> saveVirtualAccountDeposit(
+    public SearchRes saveVirtualAccountDeposit(
         SearchReq dto
     ) {
         if ("KICC".equals(dto.vacDvCd())) {
@@ -29,6 +27,6 @@ public class WwdbVirtualAccountDepositInterfaceService {
         if ("STL".equals(dto.vacDvCd())) {
             mapper.updateVirtualAccountSettleBankDepositFinish(dto);
         }
-        return List.of(new SearchRes("Y"));
+        return new SearchRes("Y");
     }
 }

@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.rest;
 
-import java.util.List;
-
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
@@ -37,9 +35,9 @@ public class WwdbVirtualAccountDepositInterfaceController {
         EaiWrapper<SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<SearchRes> resWrapper = reqWrapper.newResInstance();
         // 서비스 메소드 호출
-        List<SearchRes> res = service.saveVirtualAccountDeposit(reqWrapper.getBody());
+        SearchRes res = service.saveVirtualAccountDeposit(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);
