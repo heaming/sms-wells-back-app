@@ -16,7 +16,6 @@ import com.google.common.collect.Maps;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapRes;
-import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.dvo.ZpdcPropertyMetaDvo;
 import com.kyowon.sms.common.web.product.manage.service.ZpdcProductService;
@@ -350,12 +349,12 @@ public class WpdcMaterialMgtController {
      * @param dto 체크할 유효성 관련 정보
      * @return 체크된 유효성 정보
      */
-    @GetMapping("/check-validation")
-    public String checkValidation(
-        ValidationReq dto
-    ) {
-        return this.service.checkValidation(dto);
-    }
+    //    @GetMapping("/check-validation")
+    //    public String checkValidation(
+    //        ValidationReq dto
+    //    ) {
+    //        return this.service.checkValidation(dto);
+    //    }
 
     //    @ApiOperation(value = "교재/자재 엑셀 업로드를 통한 일괄등록")
     //    @PostMapping("/excel-upload")

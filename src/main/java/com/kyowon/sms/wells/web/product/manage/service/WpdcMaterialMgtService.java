@@ -13,7 +13,6 @@ import com.kyowon.sms.common.web.product.manage.converter.ZpdcProductConverter;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.SearchSapRes;
-import com.kyowon.sms.common.web.product.manage.dto.ZpdcMaterialMgtDto.ValidationReq;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcProductDto;
 import com.kyowon.sms.common.web.product.manage.dto.ZpdcRelationMgtDto;
 import com.kyowon.sms.common.web.product.manage.dvo.*;
@@ -423,7 +422,7 @@ public class WpdcMaterialMgtService {
             dataErrors.add(errorVo);
         }
 
-        // TODO 20230907 날쪼포맷 체크 추가
+        // #3. Date Format Check
         if (PdProductConst.DTA_TP_DATE.equals(metaVo.getDtaTpCd())
             && !compareValue.matches("^[\\d]{4}(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$")) {
             ExcelUploadErrorDvo errorVo = new ExcelUploadErrorDvo();
@@ -433,7 +432,7 @@ public class WpdcMaterialMgtService {
             dataErrors.add(errorVo);
         }
 
-        // #3. Length Check - 입력 가능 길이를 초과하였습니다 (최대: {0}, 입력: {1})
+        // #4. Length Check - 입력 가능 길이를 초과하였습니다 (최대: {0}, 입력: {1})
         if (null != metaVo.getDtaLnth() && null != entry.getValue()
             && metaVo.getDtaLnth().intValue() < compareValue.length()) {
             String[] lengthMsgStrArr = new String[2];
@@ -605,8 +604,6 @@ public class WpdcMaterialMgtService {
                 propertyVo.setPdCd(dvo.getPdCd());
                 if (null != propertyVo.getPdExtsPrpGrpCd()) {
                     productService.saveEachCompanyPropDtl(propertyVo);
-                    // 소나큐브 대응. 불필요한 초기화 제거
-                    //                    propertyMap = new HashMap<String, Object>();
                 }
 
             }
@@ -617,40 +614,6 @@ public class WpdcMaterialMgtService {
 
     }
 
-    //    public String getExcelValue2(
-    //        Map<String, Object> excelDataMap,
-    //        List<ZpdcPropertyMetaDvo> tbPdbsPdBas,
-    //        String ColumnValue
-    //    ) {
-    //        String compareValue = null;
-    //        for (Entry<String, Object> entry : excelDataMap.entrySet()) {
-    //            for (ZpdcPropertyMetaDvo metaVo : tbPdbsPdBas) {
-    //
-    //                if (PdProductConst.SAP_PLNT_VAL.equals(metaVo.getColNm())) {
-    //                    if (ColumnValue.equals(metaVo.getColNm())) {
-    //
-    //                        StringUtil.nvl2(entry.getValue().toString(), "");
-    //                        if (compareValue.split("\\|").length > 1) {
-    //                            compareValue = compareValue.split("\\|")[1].trim();
-    //                        }
-    //
-    //                    }
-    //                }
-    //            }
-    //        }
-    //
-    //        return compareValue;
-    //    }
-
-    /**
-     * 유효성 체크 조회
-     * @param dto 유효성 체크할 대상 정보
-     * @return 유효성 체크 결과
-     */
-    public String checkValidation(ValidationReq dto) {
-        return this.mapper.selectValidation(dto);
-    }
-
     public String getExcelValue(Object obj) {
         String compareValue = StringUtil.nvl2(obj.toString(), "");
         if (compareValue.split("\\|").length > 1) {
@@ -658,4 +621,5 @@ public class WpdcMaterialMgtService {
         }
         return compareValue;
     }
+
 }
