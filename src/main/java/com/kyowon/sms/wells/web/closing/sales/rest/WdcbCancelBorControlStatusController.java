@@ -35,7 +35,7 @@ public class WdcbCancelBorControlStatusController {
         @ApiImplicitParam(name = "sellTpDtlCd", value = "판매유형상세코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true)
     })
-    @GetMapping()
+    @GetMapping
     public List<SearchRes> getAdjustCancellationPages(
         @Valid
         SearchReq req
