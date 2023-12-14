@@ -3,20 +3,11 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.mapper;
 import java.util.List;
 import java.util.Map;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto;
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchContractDetailRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchDepositRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchDepositSettingRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchDtlStateRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchErrosRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchLedgerItemizationRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.SearchSumRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositDeleteInfoDvo;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillDepositMgtDto;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbGiroDepositMgtDto.*;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositErrorSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveDvo;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.dvo.WwdbGiroDepositSaveInfoDvo;
@@ -45,10 +36,13 @@ public interface WwdbGiroDepositMgtMapper {
     int inertGiroDepositItemization(WwdbGiroDepositSaveInfoDvo dvo);
 
     /* 지로 입금 수정 - 지로입금내역 */
-    int updateGiroDeposit(WwdbGiroDepositSaveInfoDvo dvo);
+    int updateGiroDeposit(String date);
 
     /* 지로 입금 삭제 - 지로입금내역 */
-    int deleteGiroDepositItemization(WwdbGiroDepositDeleteInfoDvo dvo);
+    int deleteGiroDepositItemization(String date);
+
+    /* 지로 입금 삭제 - 지로입금원장내역 */
+    int deleteGiroDepositItemLedgization(String date);
 
     /* 지로 입금 등록 - 통합내역 */
     int inertIntegrationItemization(Map<String, Object> dto);
@@ -102,4 +96,6 @@ public interface WwdbGiroDepositMgtMapper {
     String selectGiroPerfDt(String rveDt);
 
     WwdbGiroDepositMgtDto.SearchGiroNumberRes selectGiroNumberInquiry(String giroNo);
+
+    int selectBillingFntDtChk(SearchChkReq req);
 }

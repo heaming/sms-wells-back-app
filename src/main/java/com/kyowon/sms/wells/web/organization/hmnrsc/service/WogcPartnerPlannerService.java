@@ -182,8 +182,8 @@ public class WogcPartnerPlannerService {
         return processCount;
     }
 
-    public PagingResult<SearchLicenseRes> getPlannerLicensePages(SearchLicenseReq dto, PageInfo pageinfo) {
-        return mapper.selectPlannerLicensePages(dto, pageinfo);
+    public List<SearchLicenseRes> getLicenseList(SearchLicenseReq dto) {
+        return mapper.selectPlannerLicensePages(dto);
     }
 
     public List<SearchLicenseRes> getPlannerLicenseForExcelDownload(SearchLicenseReq dto) {
@@ -507,5 +507,19 @@ public class WogcPartnerPlannerService {
         }
 
         return processCount;
+    }
+
+    /**
+     * 웰스플래너 목록 조회
+     *
+     * @param dto
+     * @return
+     */
+    public PagingResult<WogcPartnerPlannerDto.SearchWellsPartnerRes> getWellsPlannerPages(WogcPartnerPlannerDto.SearchWellsPartnerReq dto, PageInfo pageinfo) {
+        return mapper.selectWellsPlannerPages(dto, pageinfo);
+    }
+
+    public List<WogcPartnerPlannerDto.SearchWellsPartnerRes> getWellsPlannerForExcelDownload(WogcPartnerPlannerDto.SearchWellsPartnerReq dto) {
+        return mapper.selectWellsPlannerPages(dto);
     }
 }

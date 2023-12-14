@@ -23,6 +23,7 @@ public class WfefBfsvcEtPerfDto {
         String strtPerfDt,
         @NotBlank
         String endPerfDt,
+        String baseYm,
         String prtnrNo,
         @NotBlank
         String rsbDvCd,
@@ -55,7 +56,10 @@ public class WfefBfsvcEtPerfDto {
         int otscMgtCnt, /*아웃소싱 관리건수*/
         int bdtMgtCnt, /*비데연수기 관리건수*/
         int etcMgtCnt, /*기타 관리건수*/
+        int sumFxamMgtCnt, /*합계 정액관리건수*/
         int sumMgtCnt, /*합계 관리건수*/
+        int canCnt, /*취소건수*/
+        int sumFhsMgtCnt, /*최종 배정건수 합계*/
         int wrfr1FhsCnt, /*정수기1 완료건수*/
         int wrfr2FhsCnt, /*정수기2 완료건수*/
         int wrfr3FhsCnt, /*정수기3 완료건수*/
@@ -66,6 +70,7 @@ public class WfefBfsvcEtPerfDto {
         int otscFhsCnt, /*아웃소싱 완료건수*/
         int bdtFhsCnt, /*비데연수기 완료건수*/
         int etcFhsCnt, /*기타 완료건수*/
+        int sumFxamFhsCnt, /*완료 정액건수*/
         int sumFhsCnt, /*합계 완료건수*/
         int bsFee /*BS관리수수료*/
     ) {}

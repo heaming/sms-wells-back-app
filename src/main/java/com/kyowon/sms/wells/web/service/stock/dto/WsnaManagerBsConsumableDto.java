@@ -1,115 +1,91 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
-import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
+
+/**
+ * <pre>
+ * W-SV-U-0012M01 소모품 배부현황(개인) dto
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-12-05
+ */
 
 public class WsnaManagerBsConsumableDto {
 
     @ApiModel(value = "WsnaManagerBsConsumableDto-SearchReq")
     public record SearchReq(
-        String mngtYm,
-        List<String> bldCds
-    ) {}
-
-    @ApiModel(value = "WsnaManagerBsConsumableDto-SearchRes")
-    public record SearchRes(
-        String bldCd,
-        String bldNm,
-        String prtnrKnm,
-        String prtnrNo,
-        String reqYn,
-        String ogCd,
-        String vstCstN,
-        String bfsvcCsmbDdlvStatCd,
-        String wrfr,
-        String bdtIndv,
-        String bdtCrp,
-        String arcleIndv,
-        String arcleCrp,
-        String wtrSftnr,
-        String cffMchn,
-        String msgcr,
-        String dryr,
-        String wash,
-        String ardrssr,
-        String sscling,
-        List<String> fxnQtys,
-        List<String> aplcQtys
+        @NotBlank
+        String mngtYm, /* 관리년월 */
+        List<String> bldCds /* 빌딩코드 리스트 */
     ) {}
 
     @ApiModel(value = "WsnaManagerBsConsumableDto-SearchItmRes")
     public record SearchItmRes(
-        String bfsvcCsmbDdlvTpCd,
-        String fxnPdCd,
-        String fxnPckngUnit,
-        String fxnPdNm,
-        String fxnSapMatCd,
-        String aplcPdCd,
-        String aplcPckngUnit,
-        String aplcPdNm,
-        String aplcSapMatCd,
-        String qty
+        String bfsvcCsmbDdlvTpCd, /* BS소모품배부상태코드 */
+        String fxnPdCd, /* 고정품목코드 */
+        String fxnPckngUnit, /* 고정포장단위 */
+        String fxnPdNm, /* 고정품목명 */
+        String fxnSapMatCd, /* 고정SAP코드 */
+        String aplcPdCd, /* 신청품목코드 */
+        String aplcPckngUnit, /* 신청포장단위 */
+        String aplcPdNm, /* 신청품목명 */
+        String aplcSapMatCd, /* 신청SAP코드 */
+        BigDecimal qty /* 수량 */
     ) {}
 
     @ApiModel(value = "WsnaManagerBsConsumableDto-FindTmlmRes")
     public record FindTmlmRes(
-        String bizStrtdt,
-        String bizStrtHh,
-        String bizEnddt,
-        String bizEndHh
+        String bizStrtdt, /* 업무시작일자 */
+        String bizStrtHh, /* 업무시작시간 */
+        String bizEnddt, /* 업무종료일자 */
+        String bizEndHh /* 업무종료시간 */
     ) {}
 
-    @ApiModel(value = "WsnaManagerBsConsumableDto-FindTmlmRes")
+    @ApiModel(value = "WsnaManagerBsConsumableDto-CreateTmlmReq")
     public record CreateTmlmReq(
         @NotBlank
-        String mngtYm,
+        String mngtYm, /* 관리년월 */
         @NotBlank
-        String bizStrtdt,
+        @ValidDate
+        String bizStrtdt, /* 업무시작일자 */
         @NotBlank
-        String bizStrtHh,
+        String bizStrtHh, /* 업무시작시간 */
         @NotBlank
-        String bizEnddt,
+        @ValidDate
+        String bizEnddt, /* 업무종료일자 */
         @NotBlank
-        String bizEndHh
+        String bizEndHh /* 업무종료시간 */
     ) {}
 
     @ApiModel(value = "WsnaManagerBsConsumableDto-CreateReq")
     public record CreateReq(
         @NotBlank
-        String mngtYm,
+        String mngtYm, /* 관리년월 */
         @NotBlank
-        String bfsvcCsmbDdlvOjCd,
+        String bfsvcCsmbDdlvOjCd, /* BS소모품배부대상코드 */
         @NotBlank
-        String strWareNo,
+        String strWareNo, /* 입고창고번호(파트너번호 or 빌딩코드) */
         @NotBlank
-        String csmbPdCd,
+        String csmbPdCd, /* 소모품상품코드 */
         @NotBlank
-        String sapMatCd,
-        // @NotBlank
-        String bfsvcCsmbDdlvQty,
-        @NotBlank
-        String bfsvcCsmbDdlvStatCd
-    ) {
-        public CreateReq {
-            bfsvcCsmbDdlvQty = StringUtil.isEmpty(bfsvcCsmbDdlvQty) ? "0" : bfsvcCsmbDdlvQty;
-        }
-    }
+        String sapMatCd, /* SAP자재코드 */
 
-    @ApiModel(value = "WsnaManagerBsConsumableDto-CreateOstrReq")
-    public record CreateOstrReq(
+        BigDecimal bfsvcCsmbDdlvQty, /* BS소모품배부수량 */
         @NotBlank
-        String mngtYm,
-        @NotBlank
-        String strWareNo
+        String bfsvcCsmbDdlvStatCd /* BS소모품배부상태코드 */
     ) {}
 
+    @ApiModel(value = "WsnaManagerBsConsumableDto-SearchLmQtyRes")
     public record SearchLmQtyRes(
-        String sapMatCd,
-        String bfsvcCsmbAplcLmQty
+        String sapMatCd, /* SAP자재코드 */
+        BigDecimal bfsvcCsmbAplcLmQty /* BS소모품신청제한수량 */
     ) {}
 }

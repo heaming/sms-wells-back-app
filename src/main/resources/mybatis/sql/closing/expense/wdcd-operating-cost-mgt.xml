@@ -96,7 +96,6 @@
              , X.OPCS_ADJ_NO    /*운영비정산번호*/
              , X.ADJ_YN         /*정산여부*/
     </select>
-
     <select id="selectSummary" resultType="com.kyowon.sms.wells.web.closing.expense.dto.WdcdOperatingCostMgtDto$SearchSummaryRes">
         /* 운영비 등록관리 - grid WELLS 운영비 적요 현황 */
         SELECT OPCS_CARD_ID
@@ -104,13 +103,30 @@
              , OPCS_SMRY_N_CNT
              , ATTH_DOC_ID
              , (SELECT COUNT(1) FROM T_CMD_ATTH_FILE_D WHERE DEL_YN = 'N' AND TENANT_ID = #{session.tenantId} AND ATTH_DOC_ID = T1.ATTH_DOC_ID) AS ATTH_DOC_ID_NUMBER_OF_FILES
+             , (SELECT COUNT(1)
+                 FROM TB_CBCL_OPCS_CARD_USE_IZ SA /*T:운영비카드사용내역*/
+                INNER JOIN TB_CBCL_OPCS_ADJ_CARD_IZ SB /*T:운영비정산카드내역*/
+                   ON SB.CRCDNO_ENCR = SA.CRCDNO_ENCR
+                  AND SB.BASE_YM = SA.BASE_YM
+                INNER JOIN TB_OGBS_MM_OG_IZ C /*T:월조직내역*/
+                   ON C.BASE_YM = SB.BASE_YM
+                  AND C.OG_ID = SB.ADJ_OG_ID
+                WHERE 1=1
+                  AND SA.DTA_DL_YN = 'N'
+                  AND SB.USE_YN = 'Y'
+                  AND SB.BASE_YM = #{baseYm}
+                  AND NOT EXISTS(SELECT 1 FROM TB_CBCL_OPCS_ADJ_USE_REL S1 WHERE S1.OPCS_CARD_USE_IZ_ID = SA.OPCS_CARD_USE_IZ_ID)
+                  AND SB.ADJ_OG_ID = T1.ADJ_OG_ID
+                ) AS NOT_ADJ_CNT /*미정산 건수*/
           FROM (
             SELECT X.OPCS_CARD_ID
+                 , MAX(X.ADJ_OG_ID) AS ADJ_OG_ID
                  , MAX(X.TOT_CNTS) AS OPCS_ADJ_CNT    /*운영비총사용건수*/
                  , SUM(X.NOT_SMRY_CNTS) AS OPCS_SMRY_N_CNT    /*미적요*/
                  , MAX(X.MSCR_WHTX_CFDC_APN_FILE_ID) AS ATTH_DOC_ID      /*운영비원천세확인서첨부파일ID*/
               FROM (
                 SELECT B.OPCS_CARD_ID
+                     , B.ADJ_OG_ID
                      , ROWNUM AS TOT_CNTS
                      , (CASE WHEN A.OJ_APY_CN IS NOT NULL THEN 0 ELSE 1 END) AS NOT_SMRY_CNTS
                      , B.MSCR_WHTX_CFDC_APN_FILE_ID

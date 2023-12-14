@@ -24,8 +24,6 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WogcPartnerPlannerMapper {
 
-    PagingResult<SearchLicenseRes> selectPlannerLicensePages(SearchLicenseReq dto, PageInfo pageinfo);
-
     List<SearchLicenseRes> selectPlannerLicensePages(SearchLicenseReq dto);
 
     PagingResult<WogcPartnerPlannerDto.SearchRes> selectTopPlannerPages(
@@ -66,4 +64,7 @@ public interface WogcPartnerPlannerMapper {
 
     int selectQuaCreateCnt(WogcPartnerPlannerDto.SearchCheckReq dto);
 
+    PagingResult<WogcPartnerPlannerDto.SearchWellsPartnerRes> selectWellsPlannerPages(WogcPartnerPlannerDto.SearchWellsPartnerReq dto, PageInfo pageinfo);
+
+    List<WogcPartnerPlannerDto.SearchWellsPartnerRes> selectWellsPlannerPages(WogcPartnerPlannerDto.SearchWellsPartnerReq dto);
 }

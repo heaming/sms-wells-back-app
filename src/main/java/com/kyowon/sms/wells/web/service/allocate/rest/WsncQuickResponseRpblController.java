@@ -20,6 +20,14 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <pre>
+ * [WSNC] 고객 QR코드 재발행 내역 조회
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-03-13
+ */
 @Api(tags = "[WSNC] 고객 QR코드 재발행 내역 조회")
 @RequiredArgsConstructor
 @RestController

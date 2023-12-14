@@ -1,92 +1,116 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.math.BigDecimal;
+
 import javax.validation.constraints.NotBlank;
 
+import io.swagger.annotations.ApiModel;
+
+/**
+ * <pre>
+ * W-SV-U-0014M01 BS소모품 발주수량 산출 dto
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2023-11-30
+ */
+
 public class WsnaBsCsmbGiveAOrderDto {
+
+    @ApiModel(value = "WsnaBsCsmbGiveAOrderDto-ProdutCodeRes")
+    public record ProdutCodeRes(
+        // 품목코드
+        String svpdPdCd,
+        // 품목명
+        String svpdNmKor
+    ) {}
+    @ApiModel(value = "WsnaBsCsmbGiveAOrderDto-SearchReq")
     public record SearchReq(
+        // 관리년월
         @NotBlank
         String mngtYm,
+        // 발주구분
         String goDvCd,
+        // 품목종류
+        String itmKndCd,
+        // 품목코드
         String csmbPdCd,
+        // 시작 품목코드
         String csmbPdCdFrom,
+        // 종료 품목코드
         String csmbPdCdTo,
+        // 시작 SAP 코드
         String sapMatCdFrom,
+        // 종료 SAP코드
         String sapMatCdTo,
+        // 성수재고
         String sgsuExcludeYn
     ) {}
 
-    public record SearchRes(
+    @ApiModel(value = "WsnaBsCsmbGiveAOrderDto-CreateReq")
+    public record CreateReq(
+        // 관리년월
+        @NotBlank
         String mngtYm,
-        String goDvCd,
-        String goDvNm,
-        String svpdSapCd,
+        // 소모품상품코드
+        @NotBlank
         String csmbPdCd,
+        // 품목명
+        @NotBlank
         String itmKnm,
+        // 관리단위코드
+        @NotBlank
         String mngtUnitCd,
-        String mms6bDdlvQty,
-        String mms5bDdlvQty,
-        String mms4bDdlvQty,
-        String mms3bDdlvQty,
-        String mms2bDdlvQty,
-        String mms1bDdlvQty,
-        String mmAvDdlvQty,
-        String strStnbQty,
-        String pajuLgstCnrStocQty,
-        String sgsuLgstCnrStocQty,
-        String woStocQty,
-        String stocPersMmN,
+        // 발주구분코드
+        @NotBlank
+        String goDvCd,
+        // 6개월전배부수량
+
+        BigDecimal mms6bDdlvQty,
+        // 5개월전배부수량
+
+        BigDecimal mms5bDdlvQty,
+        // 4개월전배부수량
+
+        BigDecimal mms4bDdlvQty,
+        // 3개월전배부수량
+
+        BigDecimal mms3bDdlvQty,
+        // 2개월전배부수량
+
+        BigDecimal mms2bDdlvQty,
+        // 1개월전배부수량
+
+        BigDecimal mms1bDdlvQty,
+        // 월평균배부수량
+
+        BigDecimal mmAvDdlvQty,
+        // 입고대기수량
+        BigDecimal strStnbQty,
+        // 파주물류센터재고수량
+        BigDecimal pajuLgstCnrStocQty,
+        // 성수물류센터재고수량
+        BigDecimal sgsuLgstCnrStocQty,
+        // 전체재고수량
+        BigDecimal woStocQty,
+        // 재고지속성월수
+        int stocPersMmN,
+        // 예상소진일자
         String etExsDt,
-        String goUprc,
-        String ncstQty,
-        String goQty,
-        String goAmt,
-        String minOrdQty,
-        String pypdDc,
+        // 발주단가
+        BigDecimal goUprc,
+        // 최소주문수량
+        BigDecimal minOrdQty,
+        // 납기일수
+        BigDecimal pypdDc,
+        // 필요수량
+        int ncstQty,
+        // 발주수량
+        BigDecimal goQty,
+        // 발주금액
+        BigDecimal goAmt,
+        // 비고내용
         String rmkCn
     ) {}
 
-    public record CreatReq(
-        @NotBlank
-        String mngtYm,
-        @NotBlank
-        String csmbPdCd,
-        @NotBlank
-        String itmKnm,
-        @NotBlank
-        String mngtUnitCd,
-        @NotBlank
-        String goDvCd,
-        @NotBlank
-        String mms6bDdlvQty,
-        @NotBlank
-        String mms5bDdlvQty,
-        @NotBlank
-        String mms4bDdlvQty,
-        @NotBlank
-        String mms3bDdlvQty,
-        @NotBlank
-        String mms2bDdlvQty,
-        @NotBlank
-        String mms1bDdlvQty,
-        @NotBlank
-        String mmAvDdlvQty,
-        String strStnbQty,
-        String pajuLgstCnrStocQty,
-        String sgsuLgstCnrStocQty,
-        String woStocQty,
-        String stocPersMmN,
-        String etExsDt,
-        String goUprc,
-        String minOrdQty,
-        String pypdDc,
-        String ncstQty,
-        String goQty,
-        String goAmt,
-        String rmkCn
-    ) {}
-
-    public record ProdutCodeRes(
-        String svpdPdCd,
-        String svpdNmKor
-    ) {}
 }

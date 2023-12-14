@@ -8,7 +8,6 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductReturningGoodsMgtDto.FindLogisticsCentersRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductReturningGoodsMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductReturningGoodsMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductReturningGoodsMgtDvo;
@@ -33,6 +32,12 @@ import lombok.extern.slf4j.Slf4j;
 public class WsnaMdProductReturningGoodsMgtController {
 
     private final WsnaMdProductReturningGoodsMgtService service;
+
+    @ApiOperation(value = "로그인한 사용자의 파트너업체 정보를 조회한다.", notes = "로그인한 사용자의 파트너업체를  가져온다.")
+    @GetMapping("/login-prtnr-bzs")
+    public String getLoginPrtnrBzs() {
+        return service.getLoginPrtnrBzs();
+    }
 
     @ApiOperation(value = "MD상품 반품관리 목록 조회", notes = "조회조건에 일치하는 MD상품 반품관리 데이터를 조회한다.")
     @ApiImplicitParams(value = {
@@ -66,12 +71,6 @@ public class WsnaMdProductReturningGoodsMgtController {
         return SaveResponse.builder()
             .processCount(service.saveMdProductReturningGoods(dtos))
             .build();
-    }
-
-    @ApiOperation(value = "택배 물류센터 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
-    @GetMapping("/logistics-centers")
-    public List<FindLogisticsCentersRes> getPcsvLogisticsCenters() {
-        return service.getPcsvLogisticsCenters();
     }
 
 }

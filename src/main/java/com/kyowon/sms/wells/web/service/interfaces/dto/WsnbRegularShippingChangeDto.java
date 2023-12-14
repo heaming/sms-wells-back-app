@@ -1,9 +1,10 @@
 package com.kyowon.sms.wells.web.service.interfaces.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-
 import javax.validation.constraints.NotBlank;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.swagger.annotations.ApiModel;
 
 public class WsnbRegularShippingChangeDto {
 
@@ -27,7 +28,13 @@ public class WsnbRegularShippingChangeDto {
         @JsonProperty(value = "MTR_PROCS_STAT_CD")
         String mtrProcsStatCd,
 
-        String histChDtm
+        String histChDtm,
+
+        @JsonProperty(value = "RCP_ICHR_PRTNR_NO")
+        String rcpIchrPrtnrNo, // 접수담당사번
+
+        @JsonProperty(value = "RCP_OG_TP_CD")
+        String rcpOgTpCd // 접수담당조직유형코드
     ) {}
 
     @ApiModel(value = "WsnbRegularShippingChDto-SaveRes")

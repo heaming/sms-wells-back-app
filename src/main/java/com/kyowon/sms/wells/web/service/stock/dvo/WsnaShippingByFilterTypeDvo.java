@@ -5,7 +5,7 @@ import lombok.Setter;
 
 /**
  * <pre>
- * W-SV-U-01261M01 필터 종류별 출고내역 dvo
+ * W-SV-U-0261M01 필터 종류별 출고내역 dvo
  * </pre>
  *
  * @author SaeRomI.Kim

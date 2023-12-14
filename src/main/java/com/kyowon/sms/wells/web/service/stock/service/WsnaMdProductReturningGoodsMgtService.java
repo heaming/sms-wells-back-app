@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductReturningGoodsMgtDto.FindLogisticsCentersRes;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductReturningGoodsMgtDto.SaveReq;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMdProductReturningGoodsMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMdProductReturningGoodsMgtDvo;
@@ -21,14 +20,14 @@ public class WsnaMdProductReturningGoodsMgtService {
     private final WsnaMdProductReturningGoodsMgtMapper mapper;
     private final WsnaMdProductReturningGoodsSaveService service;
 
+    public String getLoginPrtnrBzs() {
+        return mapper.selectLoginPrtnrBzs();
+    }
+
     public List<WsnaMdProductReturningGoodsMgtDvo> getMdProductReturningGoods(
         SearchReq req
     ) {
         return mapper.selectMdProductReturningGoods(req);
-    }
-
-    public List<FindLogisticsCentersRes> getPcsvLogisticsCenters() {
-        return mapper.selectPcsvLogisticsCenters();
     }
 
     @Transactional

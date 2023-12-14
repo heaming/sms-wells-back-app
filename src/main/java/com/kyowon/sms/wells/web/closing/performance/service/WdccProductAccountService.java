@@ -1,14 +1,7 @@
 package com.kyowon.sms.wells.web.closing.performance.service;
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.ibatis.session.SqlSession;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.stereotype.Service;
-
+import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
+import com.kyowon.sflex.common.common.service.BatchCallService;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchProductRes;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchTotalRes;
@@ -16,9 +9,22 @@ import com.kyowon.sms.wells.web.closing.performance.mapper.WdccProductAccountMap
 import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
 import com.sds.sflex.common.common.service.ExcelDownloadService;
 import com.sds.sflex.system.config.interceptor.ExcelResultHandler;
-
+import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -27,9 +33,14 @@ public class WdccProductAccountService {
     private final WdccProductAccountMapper mapper;
     private final ExcelDownloadService excelDownloadService;
     private final SqlSession priSqlSession;
+    private final BatchCallService batchCallService;
+
+    @Value("${sharedFile.path.app:none}")
+    private String filePathShare;
 
     /**
      * 상품별 계정 현황 상세내역 다운로드
+     *
      * @param dto
      * @return
      */
@@ -39,6 +50,7 @@ public class WdccProductAccountService {
 
     /**
      * 상품별 계정 현황(상품)
+     *
      * @param dto
      * @return
      */
@@ -48,8 +60,9 @@ public class WdccProductAccountService {
 
     /**
      * 상품별 계정 현황 상세내역 다운로드
+     *
      * @param req
-    * @param response
+     * @param response
      * @return
      */
     public void getProductAccountsExcelDownload(ExcelBulkDownloadDto.DownloadReq req, HttpServletResponse response)
@@ -62,5 +75,44 @@ public class WdccProductAccountService {
         );
 
         excelDownloadService.downloadBulkExcel(workbook, response);
+    }
+
+    @Transactional
+    public String createdetailItemizationFile(SearchReq dto) throws Exception {
+        // 배치 dvo 생성
+        BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
+
+        // 배치 parameter
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("baseYm", dto.baseYm());
+
+        log.info("params:" + params);
+        batchCallReqDvo.setJobKey("WSM_DC_OA0005");
+        batchCallReqDvo.setParams(params);
+
+        String runId = batchCallService.runJob(batchCallReqDvo);
+        BizAssert.isTrue(StringUtils.isNotEmpty(runId), "MSG_ALT_SVE_ERR");
+
+        /*String jobStatus;
+        while (true) {
+            Thread.sleep(2000);
+            jobStatus = batchCallService.getLastestJobStatus(runId);
+            log.info("jobStatus:" + jobStatus);
+            if (StringUtils.equals(jobStatus, "Ended OK") || StringUtils.equals(jobStatus, "Ended Not OK")) {
+                break;
+            }
+        }*/
+
+        return runId;
+    }
+
+    /**
+     * 상품별 계정 현황 다운로드 파일 명
+     *
+     * @param baseYm
+     * @return filename
+     */
+    public String getDownloadFileName(String baseYm) {
+        return Paths.get(this.filePathShare, "WdccSalesInfobyProductExcelJob", "W_AccountByProd_" + baseYm + ".csv").toString();
     }
 }

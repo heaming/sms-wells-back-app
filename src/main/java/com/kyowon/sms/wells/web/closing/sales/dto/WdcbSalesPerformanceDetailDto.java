@@ -20,7 +20,6 @@ public class WdcbSalesPerformanceDetailDto {
         String sellTpDtlCdNm,
         String pdCd,
         String pdNm,
-        String rentalRgstCost,
         String dscAmt,
         String svTpCdNm,
         String cntrDt,
@@ -96,7 +95,8 @@ public class WdcbSalesPerformanceDetailDto {
         String dpTpCd,
         String dpTpCdNm,
         String mpyBsdt,
-        String fnitAprRsCd
+        String fnitAprRsCd,
+        String rentalAmt
     ) {}
 
     // *********************************************************
@@ -378,7 +378,8 @@ public class WdcbSalesPerformanceDetailDto {
         String dpTpCdNm,
         String mpyBsdt,
         String fnitAprRsCd,
-        String pvdaAmt /*이자매출*/
+        String pvdaAmt, /*이자매출*/
+        String eotBilUcSumAmt /*발생미수금액*/
     ) {}
 
     // *********************************************************
@@ -470,6 +471,7 @@ public class WdcbSalesPerformanceDetailDto {
      * @param dpTpCdNm
      * @param mpyBsdt 이체일자
      * @param fnitAprRsCd 금융기관승인결과코드
+     * @param eotBilUcSumAmt 발생미수합계
      */
     @ApiModel("WdcbSalesPerformanceDetailDto-SearchRegularRes")
     public record SearchRegularRes(
@@ -554,6 +556,7 @@ public class WdcbSalesPerformanceDetailDto {
         String dpTpCd,
         String dpTpCdNm,
         String mpyBsdt,
-        String fnitAprRsCd
+        String fnitAprRsCd,
+        String eotBilUcSumAmt
     ) {}
 }

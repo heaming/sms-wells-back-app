@@ -6,7 +6,7 @@
         SELECT
                /*T1.KW_GRP_CO_CD*/
                T2.KW_GRP_CO_CD
-             , T1.CNTR_NO||T1.CNTR_SN AS CNTR --계약번호
+             , T1.CNTR_NO||'-' ||T1.CNTR_SN AS CNTR --계약번호
              , T1.CNTR_NO
              , T1.CNTR_SN
              , T7.CST_KNM  --고객명
@@ -184,7 +184,8 @@
         UPDATE TB_RVDW_GIRO_DP_LEDG_IZ
            SET GIRO_DP_ULD_PROCS_YN = 'Y'
          WHERE 1 = 1
-           AND FNT_DT = #{fntDt}
+           AND FST_RGST_DTM <![CDATA[>=]]> #{date} ||'000000'
+           AND FST_RGST_DTM <![CDATA[<=]]> #{date} ||'235959'
            AND DTA_DL_YN = 'N'
            AND GIRO_DP_ULD_PROCS_YN = 'N'
     </update>
@@ -238,14 +239,34 @@
 
     </insert>
 
+<!--    <delete id="deleteGiroDepositItemization">-->
+<!--        DELETE-->
+<!--          FROM-->
+<!--               TB_RVDW_GIRO_DP_IZ-->
+<!--         WHERE ITG_DP_PROCS_YN = 'N'-->
+<!--           AND DTA_DL_YN = 'N'-->
+<!--           AND FNT_DT = #{fntDt}-->
+<!--           AND RVE_DT = #{rveDt}-->
+<!--    </delete>-->
+
     <delete id="deleteGiroDepositItemization">
         DELETE
           FROM
-               TB_RVDW_GIRO_DP_IZ
+               TB_RVDW_GIRO_DP_IZ /* 지로입금내역 */
          WHERE ITG_DP_PROCS_YN = 'N'
            AND DTA_DL_YN = 'N'
-           AND FNT_DT = #{fntDt}
-           AND RVE_DT = #{rveDt}
+           AND FST_RGST_DTM <![CDATA[>=]]> #{date} ||'000000'
+           AND FST_RGST_DTM <![CDATA[<=]]> #{date} ||'235959'
+    </delete>
+
+    <delete id="deleteGiroDepositItemLedgization">
+        DELETE
+          FROM
+               TB_RVDW_GIRO_DP_LEDG_IZ /* 지로입금원장내역 */
+         WHERE 1 = 1
+           AND DTA_DL_YN = 'N'
+           AND FST_RGST_DTM <![CDATA[>=]]> #{date} ||'000000'
+           AND FST_RGST_DTM <![CDATA[<=]]> #{date} ||'235959'
     </delete>
 
     <insert id="inertIntegrationItemizationTest">
@@ -789,5 +810,12 @@
            AND ROWNUM = 1
     </select>
 
-
+    <select id="selectBillingFntDtChk" resultType="int">
+        SELECT COUNT(*) AS COUNT_TEST
+          FROM TB_RVDW_GIRO_DP_IZ /*지로입금내역*/
+         WHERE 1 = 1
+           AND FST_RGST_DTM <![CDATA[>=]]> #{fntDt} ||'000000'
+           AND FST_RGST_DTM <![CDATA[<=]]> #{fntDt} ||'235959'
+           AND ITG_DP_PROCS_YN = 'Y'
+    </select>
 </mapper>

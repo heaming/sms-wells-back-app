@@ -206,17 +206,17 @@
                                 AND ITM_PD_CD = QOM.ITM_PD_CD ), 0 )   AS CRTL_STOC_QTY
                  FROM
                     (
-                      SELECT /*+ USE_HASH(D1 D2 D3 D4 D5 D6 D7) FULL(D2) INDEX(D3 IX_SVPD_MCBY_CST_SV_OJ_IZ_05) INDEX(D1 IX_SVPD_CST_SV_RGBSPR_IZ_01) */
+                      SELECT /*+ USE_HASH(D1 D2 D3 D4 D5 D6) FULL(D2) INDEX(D3 IX_SVPD_MCBY_CST_SV_OJ_IZ_05) INDEX(D1 IX_SVPD_CST_SV_RGBSPR_IZ_01) */
                              D1.PART_PD_CD AS ITM_PD_CD
-                           , CASE WHEN D5.COPN_DV_CD = '1'
-                                    OR D5.COPN_DV_CD IS NULL
+                           , CASE WHEN D4.COPN_DV_CD = '1'
+                                    OR D4.COPN_DV_CD IS NULL
                                   THEN D1.PART_USE_QTY
                                   ELSE 0
                              END           AS GE_ASN_QOM_CT
-                           , CASE WHEN D5.COPN_DV_CD = '2' THEN D1.PART_USE_QTY
+                           , CASE WHEN D4.COPN_DV_CD = '2' THEN D1.PART_USE_QTY
                                   ELSE 0
                              END           AS CRP_ASN_QOM_CT
-                           , CASE WHEN D1.PART_PD_CD IN ('WM07103020', 'WM07105668') THEN NVL(TO_NUMBER(D6.PD_PRP_VAL12), 0)
+                           , CASE WHEN D1.PART_PD_CD IN ('WM07103020', 'WM07105668') THEN NVL(TO_NUMBER(D5.PD_PRP_VAL12), 0)
                                   ELSE 0
                              END           AS BOX_QTY
                            , D1.ITM_KND_CD
@@ -264,25 +264,21 @@
                        INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ D3    /* 월별고객서비스대상내역 */
                           ON D3.CNTR_NO = D1.CNTR_NO
                          AND D3.CNTR_SN = D1.CNTR_SN
-                       INNER JOIN TB_SSCT_CNTR_CST_REL D4         /* 계약고객관계 */
-                          ON D4.DTL_CNTR_NO = D1.CNTR_NO
-                         AND D4.DTL_CNTR_SN = D1.CNTR_SN
-                       INNER JOIN TB_CUBS_CST_BAS D5              /* 고객기본 */
-                          ON D5.CST_NO = D4.CST_NO
-                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6      /* 상품각사속성상세 */
-                          ON D6.PD_CD = D1.PART_PD_CD
-                       INNER JOIN TB_SSCT_CNTR_DTL D7             /* 계약상세 */
-                          ON D7.CNTR_NO = D1.CNTR_NO
-                         AND D7.CNTR_SN = D1.CNTR_SN
+                       INNER JOIN TB_SSCT_CNTR_BAS D4             /* 계약기본 */
+                          ON D4.CNTR_NO = D1.CNTR_NO
+                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D5      /* 상품각사속성상세 */
+                          ON D5.PD_CD = D1.PART_PD_CD
+                       INNER JOIN TB_SSCT_CNTR_DTL D6             /* 계약상세 */
+                          ON D6.CNTR_NO = D1.CNTR_NO
+                         AND D6.CNTR_SN = D1.CNTR_SN
                        WHERE D1.DTA_DL_YN          = 'N'
                          AND D2.DTA_DL_YN          = 'N'
                          AND D2.CNTR_DTL_STAT_CD   = '101'   /* 정상 */
                          AND D3.DTA_DL_YN          = 'N'
                          AND D4.DTA_DL_YN          = 'N'
-                         AND D4.CNTR_CST_REL_TP_CD = '10'    /* 계약자 */
                          AND D5.DTA_DL_YN          = 'N'
+                         AND D5.PD_EXTS_PRP_GRP_CD = 'PART'
                          AND D6.DTA_DL_YN          = 'N'
-                         AND D6.PD_EXTS_PRP_GRP_CD = 'PART'
                          AND D1.VST_DV_CD LIKE '1%'
                          AND D1.VST_DV_CD <![CDATA[<>]]> '13'
                          AND D1.PART_USE_QTY <![CDATA[>]]> 0
@@ -292,10 +288,10 @@
                          AND (    D2.BFSVC_SPP_STP_RSON_CD IN ('00', '01')
                                OR ( D2.BFSVC_SPP_STP_RSON_CD = '02' AND D1.SV_BIZ_DCLSF_CD = '2120' )   /* 동양매직건 정기점검외에 필터교체만 배정 되도록 */
                              )
-                         AND D7.SELL_TP_CD IN ('1', '2', '3', '4', '5')   /* 일시불, 렌탈/리스, 멤버십, 회사설치, 유지관리 */
+                         AND D6.SELL_TP_CD IN ('1', '2', '3', '4', '5')   /* 일시불, 렌탈/리스, 멤버십, 회사설치, 유지관리 */
                          AND D1.PART_PD_CD NOT IN ('WM07105924', 'WM07105925', 'WM07106025', 'WM07106030', 'WM07106035', 'WM07104436', 'WM07105952', 'WM07105745'
                                                  , 'WM07105746', 'WM07105747', 'WM07105748', 'WM07102129', 'WM07105703', 'WM07105704', 'WM07105705')
-                         AND ( D6.PD_PRP_VAL20 IS NULL OR D6.PD_PRP_VAL20 <![CDATA[<>]]> '11' )
+                         AND ( D5.PD_PRP_VAL20 IS NULL OR D5.PD_PRP_VAL20 <![CDATA[<>]]> '11' )
                          AND D3.MNGT_YM            = #{apyYm}
                          AND D1.VST_DUEDT LIKE #{asnOjYm} || '%'
                          AND NOT EXISTS ( SELECT /*+ NO_UNNEST */ 1
@@ -785,8 +781,9 @@
                     , QOM.ETN_WTCF_APY_QTY
                     , QOM.CRTL_STOC_QTY
                     , CASE WHEN QOM.ETN_WTCF_APY_QTY <![CDATA[<]]> QOM.CRTL_STOC_QTY THEN 0
+                           WHEN WARE.WARE_DTL_DV_CD <![CDATA[<>]]> '30'              THEN GREATEST(NVL(QOM.ETN_WTCF_APY_QTY, 0) - NVL(QOM.CRTL_STOC_QTY, 0), 0)
                            WHEN QOM.ETN_WTCF_APY_QTY = QOM.CRTL_STOC_QTY             THEN 1
-                           ELSE NVL(QOM.ETN_WTCF_APY_QTY, 0) - NVL(QOM.CRTL_STOC_QTY, 0)
+                           ELSE GREATEST(NVL(QOM.ETN_WTCF_APY_QTY, 0) - NVL(QOM.CRTL_STOC_QTY, 0), 0)
                       END              AS THWK_EXP_QTY
                     , CASE WHEN WARE.WARE_DTL_DV_CD <![CDATA[<>]]> '30' THEN GREATEST(NVL(QOM.WO_ASN_QOM_CT, 0) - NVL(QOM.CRTL_STOC_QTY, 0), 0)
                            ELSE CASE WHEN NVL(QOM.BOX_QTY, 0) <![CDATA[>]]> 0

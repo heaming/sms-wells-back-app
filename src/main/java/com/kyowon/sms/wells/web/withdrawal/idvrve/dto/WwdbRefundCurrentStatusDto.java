@@ -35,9 +35,9 @@ public class WwdbRefundCurrentStatusDto {
         String rfndDsbDvCd, // 귀속환불구분
         String sellTpCd, // 판매유형
         String sellTpDtlCd, // 판매유형상세
-        // String rveDvCd, // 대손구분
+        String rveDvCd, // 대손구분
         String dpMesCd // 포인트구분
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -61,7 +61,7 @@ public class WwdbRefundCurrentStatusDto {
         String cshRfndAcnoEncr, // 계좌번호
         String cardRfndCrcdnoEncr, // 카드번호
         String cshRfndAcownNm, // 예금주현금
-//        String cardRfndCrdcdAprno, // 예금주카드
+        //        String cardRfndCrdcdAprno, // 예금주카드
         String sellTpDtlCd, // 판매유형.알수없음으로작성되어있음.
         String rveDvCd, // 입금유형
         String cstNo, // 전금고객번호
@@ -75,6 +75,18 @@ public class WwdbRefundCurrentStatusDto {
                 cardRfndCrcdnoEncr = DbEncUtil.dec(cardRfndCrcdnoEncr); // 카드번호 복호화
             }
         }
+    }
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 환불 내역 목록 Search Result Dto
+    @ApiModel(value = "WwdbRefundCurrentStatusDto-SearchRefundHistoryTotalRes")
+    public record SearchRefundHistoryTotalRes(
+        String dpAmtSum,
+        String rveAmtSum,
+        String rfndDsbAmtSum
+    ) {
+
     }
 
     // *********************************************************
@@ -96,7 +108,7 @@ public class WwdbRefundCurrentStatusDto {
         String nhRfndDsbAmt, // 농협
         String sumRfndDsbDdtnAmt, // 환불총계
         String sumRfndDsbPspInt // 지연이자
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -105,16 +117,16 @@ public class WwdbRefundCurrentStatusDto {
     @ApiModel(value = "WwdbRefundCurrentStatusDto-SearchBalanceTransferRefundHistoryRes")
     public record SearchBalanceTransferRefundHistoryRes(
         String refundDivision,
-        String rtRfndDsbAmt,/*렌탈*/
-        String lsRfndDsbAmt,/*리스*/
-        String elRfndDsbAmt,/*환경리스*/
-        String lnRfndDsbAmt,/*장기할부*/
-        String evRfndDsbAmt,/*환경할부*/
-        String mbRfndDsbAmt,/*맴버십*/
-        String hcRfndDsbAmt,/*홈케어맴버십*/
-        String lmRfndDsbAmt,/*할부금*/
-        String kmRfndDsbAmt,/*K머니*/
-        String rgRfndDsbAmt,/*정기배송*/
+        String rtRfndDsbAmt, /*렌탈*/
+        String lsRfndDsbAmt, /*리스*/
+        String elRfndDsbAmt, /*환경리스*/
+        String lnRfndDsbAmt, /*장기할부*/
+        String evRfndDsbAmt, /*환경할부*/
+        String mbRfndDsbAmt, /*맴버십*/
+        String hcRfndDsbAmt, /*홈케어맴버십*/
+        String lmRfndDsbAmt, /*할부금*/
+        String kmRfndDsbAmt, /*K머니*/
+        String rgRfndDsbAmt, /*정기배송*/
         String sumRfndDsbAmt // 전금합계
-    ) { }
+    ) {}
 }

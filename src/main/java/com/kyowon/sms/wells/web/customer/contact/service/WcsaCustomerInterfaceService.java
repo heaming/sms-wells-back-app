@@ -8,11 +8,8 @@ import java.util.Objects;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
-import com.kyowon.sflex.common.common.dvo.FormatAddressDvo;
 import com.kyowon.sflex.common.common.service.SujiewonService;
-import com.kyowon.sflex.common.zcommon.constants.CmSujiewonConst;
 import com.kyowon.sms.common.web.customer.common.dvo.ZcsaCustomerInfoByEccDvo;
 import com.kyowon.sms.common.web.customer.common.dvo.ZcsaCustomerInfoDvo;
 import com.kyowon.sms.common.web.customer.common.dvo.ZcsaCustomerInfoReqDvo;
@@ -22,11 +19,13 @@ import com.kyowon.sms.common.web.customer.common.mapper.ZcscTermsMapper;
 import com.kyowon.sms.common.web.customer.common.service.ZcsaCustomerInfoService;
 import com.kyowon.sms.common.web.customer.common.service.ZcsaCustomersService;
 import com.kyowon.sms.common.web.customer.contact.dvo.ZcsaCstCtplcBasDvo;
-import com.kyowon.sms.common.web.customer.contact.dvo.ZcsaCustomerDvo;
 import com.kyowon.sms.common.web.customer.contact.mapper.ZcsaCustomerMapper;
 import com.kyowon.sms.wells.web.customer.contact.converter.WcsaCustomerInterfaceConverter;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto;
-import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.*;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementReq;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SaveCustomerAgreementRes;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SearchCustomerInfoReq;
+import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SearchCustomerRes;
 import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaCustomerAgreementDvo;
 import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaCustomerAgreementResultDvo;
 import com.kyowon.sms.wells.web.customer.contact.dvo.WcsaInterfaceResultDvo;
@@ -135,7 +134,7 @@ public class WcsaCustomerInterfaceService {
         String copnDvCd = dto.copnDvCd();
         String calngDvCd = dto.calngDvCd();
 
-        //  1. 필수값 체크(호출구분코드 → 필수값 체크)
+        //  1. 필수값 체크(고객번호 → 필수값 체크)
         if (cstNo.isEmpty()) {
             ifResDvo.setRsCd("F");
             ifResDvo.setRsMsg("CST_NO 가(이) 없습니다 !");
@@ -160,8 +159,14 @@ public class WcsaCustomerInterfaceService {
         indvDvo.setCstNo(dto.cstNo());
 
         List<ZcsaCustomerInfoResDvo> pextCustomer = zcsaCustomerInfoService.getCustomers(indvDvo);
-
         if (pextCustomer.isEmpty()) {
+            ifResDvo.setCstNo(cstNo);
+            ifResDvo.setRsCd("S");
+            ifResDvo.setRsMsg("계약자 정보가 없습니다!");
+            return converter.mapCustomerInfoEditToInterfaceResultRes(ifResDvo);
+        }
+
+        if (!copnDvCd.equals(pextCustomer.get(0).getCopnDvCd())) {
             ifResDvo.setCstNo(cstNo);
             ifResDvo.setRsCd("S");
             ifResDvo.setRsMsg("계약자 정보가 없습니다!");
@@ -350,111 +355,6 @@ public class WcsaCustomerInterfaceService {
             true, CsCustomerConst.IF_RETURN_CODE_SUCCESS, messageService.getMessage("MSG_ALT_PRGS_OK")
         );
         return converter.mapWcsaCustomerAgreementResultDvoToSaveCustomerAgreementRes(resultDvo);
-
-    }
-
-    /**
-    * (WELLS) 미인증 계약고객등록 I/F
-    * @param dto 고객정보
-    * @return 고객번호, 세이프키, 가입결과
-    */
-    public CreateCustomerForNaverRentalRes createCustomerForNoCtfCntrCustomer(
-        CreateCustomerForNaverRentalReq dto
-    ) throws Exception {
-        // 응답코드
-        WcsaInterfaceResultDvo ifResDvo = new WcsaInterfaceResultDvo();
-        ifResDvo.setCstNo("");
-        ifResDvo.setRsCd("1"); //정상
-        ifResDvo.setRsMsg("정상 처리되었습니다.");
-        //  1. 필수값 체크(사업부코드 → 필수값 체크)
-        if (dto.coCd().isEmpty()) {
-            ifResDvo.setRsCd("2");
-            ifResDvo.setRsMsg("회사코드가 없습니다 !");
-            return converter.mapCustomerForHomepageToCustomerRes(ifResDvo);
-        }
-        //  2. 필수값 체크(생년월일 → 필수값 체크)
-        if (dto.bryyMmdd().isEmpty()) {
-            ifResDvo.setRsCd("2");
-            ifResDvo.setRsMsg("생년월일(이) 없습니다 !");
-            return converter.mapCustomerForHomepageToCustomerRes(ifResDvo);
-        }
-
-        // 3. 필수값 체크(성별구분코드 → 필수값 체크)
-        if (dto.sexDvCd().isEmpty()) {
-            ifResDvo.setRsCd("2");
-            ifResDvo.setRsMsg("성별이 없습니다 !");
-            return converter.mapCustomerForHomepageToCustomerRes(ifResDvo);
-        }
-
-        //  4. 필수값 체크(고객명 → 필수값 체크)
-        if (dto.cstKnm().isEmpty()) {
-            ifResDvo.setRsCd("2");
-            ifResDvo.setRsMsg("고객한글명이 없습니다 !");
-            return converter.mapCustomerForHomepageToCustomerRes(ifResDvo);
-        }
-
-        //  5. 필수값 체크(사업부코드 → 필수값 체크)
-        if (dto.cralLocaraTno().isEmpty() || dto.meno().isEmpty() || dto.cralIdvTno().isEmpty()) {
-            ifResDvo.setRsCd("2");
-            ifResDvo.setRsMsg("휴대전화번호가(이) 없습니다 !");
-            return converter.mapCustomerForHomepageToCustomerRes(ifResDvo);
-        }
-        FormatAddressDvo addressDvo = new FormatAddressDvo();
-        String inputAddress;
-        if (!(dto.basAdr().isEmpty() && dto.dtlAdr1().isEmpty())) {
-            if (dto.dtlAdr2().isEmpty()) {
-                inputAddress = dto.basAdr() + " " + dto.dtlAdr1();
-            } else {
-                inputAddress = dto.basAdr() + " " + dto.dtlAdr1() + " " + dto.dtlAdr2();
-            }
-
-            String adrZip = "";
-            if (StringUtils.isNotEmpty(dto.zip1())) {
-                adrZip = adrZip + dto.zip1().trim();
-            }
-            if (StringUtils.isNotEmpty(dto.zip1()) && StringUtils.isNotEmpty(dto.zip2())) {
-                adrZip = adrZip + dto.zip2().trim();
-            }
-
-            //수지원넷 주소정제
-            addressDvo = sujiewonService
-                .getFormattedAddressForIFWithAdrZip(inputAddress, CmSujiewonConst.FORMAT_TYPE_ROAD_ADDRESS, adrZip);
-            if (!ObjectUtils.isEmpty(addressDvo)) {
-                log.info("주소ID채번 성공");
-            } else {
-                ifResDvo.setRsCd("2");
-                ifResDvo.setRsMsg("주소ID 채번오류!. 고객번호가 채번되지 않았습니다.");
-                return converter.mapCustomerForHomepageToCustomerRes(ifResDvo);
-            }
-        }
-        ZcsaCustomerDvo dvo = converter.mapCustomerToCustomerForHomepage(dto, addressDvo);
-
-        //고객등록 서비스 호출
-        if (dto.copnDvCd().isEmpty()) {
-            dvo.setCopnDvCd("1");
-        }
-
-        //고객정보유입경로
-        if (StringUtil.isEmpty(dto.akPrg())) {
-            log.info("고객정보유입경로1");
-            dvo.setCstInflwPhDvCd("02");
-        } else {
-            log.info("고객정보유입경로2");
-            dvo.setCstInflwPhDvCd(dto.akPrg());
-        }
-
-        String result = zcsaCustomersService.saveCustomer(dvo);
-
-        if ("2".equals(result)) {
-            ifResDvo.setRsCd("2");
-            ifResDvo.setRsMsg("성명/생년월일/성별/휴대전화번호가 동일한 고객이 1건 이상 존재합니다!.");
-        } else if ("".equals(result)) {
-            ifResDvo.setRsCd("2");
-            ifResDvo.setRsMsg("고객정보 변경처리에 실패했습니다.");
-        } else {
-            ifResDvo.setCstNo(result);
-        }
-        return converter.mapCustomerForHomepageToCustomerRes(ifResDvo);
 
     }
 

@@ -29,7 +29,6 @@ public class WsncManagementCstRglvlDto {
         String cntrSn,
         String mngtPrtnrNo,
         String mngStdMngerRglvlDvCd,
-        @NotBlank
         String cstSvAsnNo,
         String asnPsicPrtnrNo,
         String cnfmPsicPrtnrNo,
@@ -50,6 +49,8 @@ public class WsncManagementCstRglvlDto {
         String svpdSapCd,
         String pdctPdCd,
         String svpdNmAbbr1,
+        String sellTpCd,
+        String sellTpCdNm,
         String istDt,
         String newAdrZip,
         String adr,
@@ -61,6 +62,7 @@ public class WsncManagementCstRglvlDto {
         String mngStdDgr3LevlOgCd,
         String mngStdPrtnrKnm,
         String mngStdMngerRglvlDvCd,
+        String mngStdFnlCltnDt,
         String curMnthAlctnDgr2LevlOgCd,
         String curMnthAlctnDgr3LevlOgCd,
         String curMnthAlctnPrtnrKnm,
@@ -68,6 +70,7 @@ public class WsncManagementCstRglvlDto {
         String bfchIchrPrtnrOgTpCd,
         String bfchIchrPrtnrNo,
         String curMnthAlctnMngerRglvlDvCd,
+        String curFnlCltnDt,
         String cstSvAsnNo,
         String mngerRglvlDvCd
     ) {}

@@ -1097,6 +1097,8 @@
                       , SUM(DSB_VAL0) AS DSB_VAL0 /* 수수료 지급대상금액 */
 
                       , SUM(MEET_DATES) AS MEET_DATES   /* 미팅참석일수 */
+                      , SUM(PERF_VAL1) AS PERF_VAL1 /* 가전인정건수 */
+                      , SUM(PERF_VAL2) AS PERF_VAL2 /* 서비스건수 */
                       , SUM(PERF_VAL0) AS PERF_VAL0
 
                        , SUM(DDTN_VAL1) AS DDTN_VAL1         /* 보증예치금 */
@@ -1147,9 +1149,11 @@
             , O.RSB_DV_CD           /* 파트너 직급 */
             , HMM.HMST_GD_VAL AS DEGREE  /* 급수 */
             , '0' AS MEET_DATES     /* 미팅참석일수 */
+            , NVL(PERF.PERF02, 0) AS PERF_VAL1    /* 가전인정건수 */
+            , NVL(PERF.PERF03, 0) AS PERF_VAL2    /* 서비스건수 */
+            , ( NVL(PERF.PERF02, 0) + NVL(PERF.PERF03, 0) ) AS PERF_VAL0
             , ${feeCdFields}
             , ${feeSumField}
-            , 0 AS PERF_VAL0
             , NVL(D.DDTN01, 0) AS DDTN_VAL1         /* 보증예치금 */
             , NVL(D.DDTN02, 0) AS DDTN_VAL2         /* 소득세 */
             , NVL(D.DDTN03, 0) AS DDTN_VAL3         /* 주민세 */
@@ -1263,6 +1267,31 @@
                  ON O.BASE_YM = D.DDTN_YM
                 AND O.PRTNR_NO = D.PRTNR_NO
                 AND O.OG_TP_CD = D.OG_TP_CD
+         LEFT OUTER JOIN
+            (
+             	            /*홈마스터가전서비스건수*/
+				 SELECT BASE_YM
+					  , PRTNR_NO
+					  , OG_TP_CD
+				      , NVL(SUM(CASE WHEN PERF_ATC_CD = 'W03P00002' THEN PERF_VAL END), 0) AS PERF02 /*가전인정건수*/
+				      , NVL(SUM(CASE WHEN PERF_ATC_CD = 'W03P00085' THEN PERF_VAL END), 0) AS PERF03 /*서비스건수*/
+
+				FROM TB_FEAM_NTORP_PERF_MM_CL
+				WHERE 1 = 1
+				  AND BASE_YM = #{dto.perfDt}
+				  AND PERF_YM = #{dto.perfDt}
+				  AND FEE_TCNT_DV_CD = '02'
+				  AND PERF_AGRG_CRT_DV_CD = '301' /*실적집계생성구분코드(101 : P추진단순주문실적생성 , 201: M추진단순주문실적생성 , 301 : 홈마스터순주문실적생성 )*/
+				  AND OG_TP_CD = #{dto.ogTpCd} /*조직유형코드(W02: M추진단,W03: 홈마스터)*/
+				  AND PERF_ATC_CD IN ('W03P00085','W03P00002')
+				  AND PERF_DV_CD = '0' /* 2 : 지점장, 0 : 개인 */
+				  AND DTA_DL_YN = 'N'
+				GROUP BY BASE_YM, PRTNR_NO, OG_TP_CD
+
+              ) PERF
+             ON FC.DSB_YM   = PERF.BASE_YM
+            AND FC.PRTNR_NO = PERF.PRTNR_NO
+            AND FC.OG_TP_CD = PERF.OG_TP_CD
            LEFT OUTER JOIN (
                             SELECT DSB_YM , CO_CD , OG_TP_CD ,PRTNR_NO, DSB_OJ_AMT
                               FROM TB_FEAM_FEE_DSB_IZ   /* 수수료지급내역 */
@@ -1309,6 +1338,10 @@
                           , SUM(DSB_VAL0) AS DSB_VAL0 /* 수수료 지급대상금액 */
 
                           , SUM(MEET_DATES) AS MEET_DATES   /* 미팅참석일수 */
+                          , SUM(PERF_VAL1) AS PERF_VAL1 /* 가전인정건수 */
+                          , SUM(PERF_VAL2) AS PERF_VAL2 /* 서비스건수 */
+                          , SUM(PERF_VAL3) AS PERF_VAL3 /* 조직인정건수 */
+                          , SUM(PERF_VAL4) AS PERF_VAL4 /* 조직서비스건수 */
                           , SUM(PERF_VAL0) AS PERF_VAL0
 
                           , SUM(DDTN_VAL1) AS DDTN_VAL1         /* 보증예치금 */
@@ -1363,7 +1396,11 @@
                 , O.PRTNR_KNM           /* 파트너명 */
                 , O.RSB_DV_CD           /* 파트너 직급 */
                 , '0' AS MEET_DATES /* 미팅참석일수 */
-                , '0' AS PERF_VAL0
+                , NVL(PERF.PERF02, 0) AS PERF_VAL1    /* 가전인정건수 */
+                , NVL(PERF.PERF03, 0) AS PERF_VAL2    /* 서비스건수 */
+                , NVL(PERF.PERF04, 0) AS PERF_VAL3    /* 가전인정건수 */
+                , NVL(PERF.PERF05, 0) AS PERF_VAL4    /* 서비스건수 */
+                , ( NVL(PERF.PERF02, 0) + NVL(PERF.PERF03, 0) + NVL(PERF.PERF04, 0) + NVL(PERF.PERF05, 0) ) AS PERF_VAL0
                 , ${feeCdFields}
                 , ${feeSumField}
                 , NVL(D.DDTN01, 0) AS DDTN_VAL1         /* 보증예치금 */
@@ -1480,19 +1517,47 @@
                      ON O.BASE_YM = D.DDTN_YM
                     AND O.PRTNR_NO = D.PRTNR_NO
                     AND O.OG_TP_CD = D.OG_TP_CD
-                   LEFT OUTER JOIN (
-                                    SELECT DSB_YM , CO_CD , OG_TP_CD ,PRTNR_NO, DSB_OJ_AMT
-                                      FROM TB_FEAM_FEE_DSB_IZ   /* 수수료지급내역 */
-                                     WHERE 1=1
-                                       AND DTA_DL_YN = 'N'
-                                       AND DSB_YM = #{dto.perfDt}
-                                       AND OG_TP_CD = #{dto.ogTpCd}
-                                       AND SPMT_DSB_DV_CD = '01'
-                                    ) DSB
-                     ON FC.DSB_YM = DSB.DSB_YM
-                    AND FC.CO_CD = DSB.CO_CD
-                    AND FC.OG_TP_CD = DSB.OG_TP_CD
-                    AND FC.PRTNR_NO = DSB.PRTNR_NO
+            LEFT OUTER JOIN
+               (
+				 SELECT BASE_YM
+					  , PRTNR_NO
+					  , OG_TP_CD
+				      , NVL(SUM(CASE WHEN PERF_DV_CD = '0' AND PERF_ATC_CD = 'W03P00002' THEN PERF_VAL END), 0) AS PERF02 /*가전인정건수*/
+                      , NVL(SUM(CASE WHEN PERF_DV_CD = '0' AND PERF_ATC_CD = 'W03P00085' THEN PERF_VAL END), 0) AS PERF03 /*서비스건수*/
+                      , NVL(SUM(CASE WHEN PERF_DV_CD = '2' AND PERF_ATC_CD = 'W03P00002' THEN PERF_VAL END), 0)
+                        - NVL(SUM(CASE WHEN PERF_DV_CD = '0' AND PERF_ATC_CD = 'W03P00002' THEN PERF_VAL END), 0) AS PERF04 /*조직인정건수*/
+                      , NVL(SUM(CASE WHEN PERF_DV_CD = '2' AND PERF_ATC_CD = 'W03P00085' THEN PERF_VAL END), 0)
+                        - NVL(SUM(CASE WHEN PERF_DV_CD = '0' AND PERF_ATC_CD = 'W03P00085' THEN PERF_VAL END), 0) AS PERF05 /*조직서비스건수*/
+				FROM TB_FEAM_NTORP_PERF_MM_CL
+				WHERE 1 = 1
+				  AND BASE_YM = #{dto.perfDt}
+				  AND PERF_YM = #{dto.perfDt}
+				  AND FEE_TCNT_DV_CD = '02'
+				  AND PERF_AGRG_CRT_DV_CD = '301' /*실적집계생성구분코드(101 : P추진단순주문실적생성 , 201: M추진단순주문실적생성 , 301 : 홈마스터순주문실적생성 )*/
+				  AND OG_TP_CD = #{dto.ogTpCd} /*조직유형코드(W02: M추진단,W03: 홈마스터)*/
+				  AND PERF_ATC_CD IN ('W03P00085','W03P00002')
+				  AND PERF_DV_CD IN ('0', '2') /* 2 : 지점장, 0 : 개인 */
+
+				  AND DTA_DL_YN = 'N'
+				GROUP BY BASE_YM, PRTNR_NO, OG_TP_CD
+
+               ) PERF
+              ON FC.DSB_YM   = PERF.BASE_YM
+             AND FC.PRTNR_NO = PERF.PRTNR_NO
+             AND FC.OG_TP_CD = PERF.OG_TP_CD
+            LEFT OUTER JOIN (
+                            SELECT DSB_YM , CO_CD , OG_TP_CD ,PRTNR_NO, DSB_OJ_AMT
+                              FROM TB_FEAM_FEE_DSB_IZ   /* 수수료지급내역 */
+                             WHERE 1=1
+                               AND DTA_DL_YN = 'N'
+                               AND DSB_YM = #{dto.perfDt}
+                               AND OG_TP_CD = #{dto.ogTpCd}
+                               AND SPMT_DSB_DV_CD = '01'
+                            ) DSB
+              ON FC.DSB_YM = DSB.DSB_YM
+             AND FC.CO_CD = DSB.CO_CD
+             AND FC.OG_TP_CD = DSB.OG_TP_CD
+             AND FC.PRTNR_NO = DSB.PRTNR_NO
             LEFT OUTER JOIN TB_FEAM_HMST_GD_BAS HMM
              ON FC.DSB_YM = HMM.MNGT_YM
             AND FC.PRTNR_NO = HMM.PRTNR_NO
@@ -1510,6 +1575,7 @@
           <if test="@MybatisUtils@isNotEmpty(dto.prtnrNo)">
               AND O.PRTNR_NO = #{dto.prtnrNo}
           </if>
+              AND DSB.DSB_OJ_AMT > 0
             ORDER BY O.DGR1_LEVL_OG_CD , O.DGR2_LEVL_OG_CD , O.DGR3_LEVL_OG_CD ,O.PRTNR_NO
     </sql>
 

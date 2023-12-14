@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaStockStateIndividualWareMapper">
+    <select id="selectMyServiceCenter" resultType="string">
+        /*로그인ID로 소속 센터 조회*/
+        SELECT S1.WARE_NO AS WARE_NO
+          FROM TB_OGBS_MM_PRTNR_IZ P1
+         INNER JOIN TB_SVST_MCBY_WARE_IZ S1 /* 월별창고내역 */
+            ON P1.OG_ID = S1.OG_ID
+           AND P1.BASE_YM = S1.APY_YM
+         WHERE 1=1
+           AND P1.BASE_YM = #{baseYm}
+           AND P1.PRTNR_NO = (SELECT EPNO
+						 	    FROM T_CMP_USR_ACO_M
+						       WHERE LOGIN_ID = #{session.loginId}
+                              )
+           AND P1.OG_TP_CD IN ('W03','W06')
+           AND S1.WARE_DV_CD = '2'
+           AND S1.WARE_DTL_DV_CD = '20'
+           AND S1.WARE_USE_YN = 'Y'
+           AND ROWNUM = 1
+    </select>
     <select id="selectServiceCenter" resultType="camelMap">
         SELECT S1.WARE_NO /* 창고번호 */
              , S1.WARE_NM /* 창고명 */
@@ -67,7 +86,9 @@
              WHERE 1=1
                AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
                /*품목종류 구분값이 있을 경우, 전체면 조건 제거*/
+           <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
                AND P1.PD_PRP_VAL19 = #{itmKndCd}    /*AS자재 품목종류, AS_MAT_ITM_KND_CD, ITM_KND_CD*/
+           </if>
                /*사용여부 Y, N 조건 값이 있을 경우, 전체면 조건 제거*/
            <if test="@MybatisUtils@isNotEmpty(useYn) and !@MybatisUtils@equals(useYn, 'ALL')">
                AND P1.PD_PRP_VAL32 = #{useYn}
@@ -95,12 +116,6 @@
              AND O1.OG_TP_CD = S1.OG_TP_CD
              AND O1.OG_ID = S1.OG_ID
              AND S1.WARE_DTL_DV_CD LIKE '2%'
-             --AND S1.WARE_USE_YN = 'Y'  /*미사용창고에서 반품 되는 경우도 있기 때문에*/
-             AND S1.DTA_DL_YN = 'N'
-           WHERE 1 = 1
-             AND O1.BASE_YM = #{baseYm}
-             /*서비스센터*/
-             AND O1.OG_TP_CD IN ('W03','W06')
            /*서비스센터조직 이하 개인 창고 사용 여부*/
         <choose>
             <when test='@MybatisUtils@equals(wareUseYn, "Y")'>
@@ -113,6 +128,11 @@
               AND (S1.WARE_NO = #{wareNo} OR S1.HGR_WARE_NO = #{wareNo})
             </otherwise>
         </choose>
+             AND S1.DTA_DL_YN = 'N'
+           WHERE 1 = 1
+             AND O1.BASE_YM = #{baseYm}
+             /*서비스센터*/
+             AND O1.OG_TP_CD IN ('W03','W06')
              AND O1.CLO_DT IS NULL
              AND O1.DTA_DL_YN = 'N'
            ORDER BY S1.WARE_NO
@@ -294,18 +314,21 @@
                AND Q1.AGRG_QTY != 0
           ORDER BY SAP_MAT_CD, PD_CD, WARE_NO
         )
-        SELECT SAP_MAT_CD
-             , KIWI_PD_CD
-             , PD_NM
-             , LCT_NM
-             , ORDNY_HV_MAT_YN                   /*기초자재 필터*/
-             , CMN_PART_DV_CD                    /*중수리 필터*/
-             , ${wareNoAgrgQtyFields}
-             , ${wareNoAgrgQtySumFields} AS WARE_NO_AGRG_QTY_SUM_FIELDS
-          FROM BASE_GROUP
-               PIVOT( SUM(AGRG_QTY) AS AGRG_QTY
-                         FOR WARE_NO
-                         IN (${wareNoInStr})
-               ) T1
+        SELECT * FROM (
+            SELECT SAP_MAT_CD
+                 , KIWI_PD_CD
+                 , PD_NM
+                 , LCT_NM
+                 , ORDNY_HV_MAT_YN                   /*기초자재 필터*/
+                 , CMN_PART_DV_CD                    /*중수리 필터*/
+                 , ${wareNoAgrgQtyFields}
+                 , ${wareNoAgrgQtySumFields} AS WARE_NO_AGRG_QTY_SUM_FIELDS
+              FROM BASE_GROUP
+                   PIVOT( SUM(AGRG_QTY) AS AGRG_QTY
+                             FOR WARE_NO
+                             IN (${wareNoInStr})
+                   ) T1
+        )
+         WHERE WARE_NO_AGRG_QTY_SUM_FIELDS != 0
     </select>
 </mapper>

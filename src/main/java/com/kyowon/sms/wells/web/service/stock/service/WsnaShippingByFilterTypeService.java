@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * <pre>
- * W-SV-U-01261M01 필터 종류별 출고내역 서비스
+ * W-SV-U-0261M01 필터 종류별 출고내역 서비스
  * </pre>
  *
  * @author SaeRomI.Kim

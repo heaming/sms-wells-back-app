@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.fee.confirm.service;
 
+import static com.kyowon.sms.wells.web.fee.confirm.dto.WfeeFeeSpecificationDto.SearchFeeCdRes;
+import static com.kyowon.sms.wells.web.fee.confirm.dto.WfeeFeeSpecificationDto.SearchReq;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,19 +10,14 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import com.sds.sflex.common.utils.StringUtil;
-import com.sds.sflex.system.config.constant.CommConst;
-import com.sds.sflex.system.config.exception.BizException;
-import com.sds.sflex.system.config.validation.BizAssert;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import com.kyowon.sms.wells.web.fee.confirm.mapper.WfeeFeeSpecificationMapper;
-
-import static com.kyowon.sms.wells.web.fee.confirm.dto.WfeeFeeSpecificationDto.*;
+import com.sds.sflex.common.utils.StringUtil;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.util.ObjectUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -257,6 +255,8 @@ public class WfeeFeeSpecificationService {
             ddtnPerfMap.put("ddtnVal7", "고용보험");
             ddtnPerfMap.put("ddtnVal8", "산재보험");
         } else if ("W0302".equals(rsbDvCd)) { // 홈마스터 플래너
+            ddtnPerfMap.put("perfVal1", "가전인정건수");
+            ddtnPerfMap.put("perfVal2", "서비스건수");
 
             ddtnPerfMap.put("ddtnVal1", "보증예치금");
             ddtnPerfMap.put("ddtnVal2", "소득세");
@@ -266,7 +266,11 @@ public class WfeeFeeSpecificationService {
             ddtnPerfMap.put("ddtnVal6", "부담공제");
             ddtnPerfMap.put("ddtnVal7", "기타공제");
             ddtnPerfMap.put("ddtnVal8", "산재보험");
-        } else if ("W0302".equals(rsbDvCd)) { // 홈마스터 지점장
+        } else if ("W0301".equals(rsbDvCd)) { // 홈마스터 지점장
+            ddtnPerfMap.put("perfVal1", "가전인정건수");
+            ddtnPerfMap.put("perfVal2", "서비스건수");
+            ddtnPerfMap.put("perfVal3", "조직인정건수");
+            ddtnPerfMap.put("perfVal4", "조직서비스건수");
 
             ddtnPerfMap.put("ddtnVal1", "보증예치금");
             ddtnPerfMap.put("ddtnVal2", "소득세");

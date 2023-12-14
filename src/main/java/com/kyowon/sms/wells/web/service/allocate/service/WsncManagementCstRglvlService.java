@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.allocate.service;
 
 import java.util.List;
 
+import com.sds.sflex.system.config.annotation.LongTransactional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@LongTransactional
 public class WsncManagementCstRglvlService {
     private final WsncManagementCstRglvlMapper mapper;
     private final WsncManagementCstRglvlConverter converter;
@@ -56,7 +58,8 @@ public class WsncManagementCstRglvlService {
             }
 
             if (bsAssignInfoDvo.getCnfmPsicPrtnrNo() != null
-                && bsAssignInfoDvo.getCurMnthAlctnMngerRglvlDvCd() != null) {
+                && bsAssignInfoDvo.getCurMnthAlctnMngerRglvlDvCd() != null
+                && bsAssignInfoDvo.getCstSvAsnNo() != null) {
                 processCount += mapper.updateClientServiceBsAssignInfo(bsAssignInfoDvo);
 
                 WsncSvpdAsnRsTfIzDvo wsncSvpdAsnRsTfIzDvo = converter.mapSavePartnerReqToWsncSvpdAsnRsTfIzDvo(dto);

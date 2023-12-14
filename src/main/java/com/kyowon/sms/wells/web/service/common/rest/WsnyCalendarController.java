@@ -17,7 +17,15 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[WSNF] Calendar 관리")
+/**
+ * <pre>
+ * [WSNY] Calendar 관리
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-01-10
+ */
+@Api(tags = "[WSNY] Calendar 관리")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/calendars")

@@ -40,6 +40,10 @@ public class WsnaStockStateIndividualWareService {
         return mapper.selectServiceCenter(baseYm);
     }
 
+    public String getMyServiceCenter(String baseYm) {
+        return mapper.selectMyServiceCenter(baseYm);
+    }
+
     // PITVOT 조회
     public WsnaStockStateIndividualWareDvo convertPivotWsnaStockStateIndividualWareDvo(
         SearchReq dto

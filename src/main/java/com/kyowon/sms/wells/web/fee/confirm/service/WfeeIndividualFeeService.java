@@ -1,9 +1,18 @@
 package com.kyowon.sms.wells.web.fee.confirm.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import com.kyowon.sms.common.web.fee.common.dvo.ZfezDeadLineDvo;
+import com.kyowon.sms.common.web.fee.common.service.ZfezDeadLineService;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import com.sds.sflex.system.config.exception.BizException;
+import com.sds.sflex.system.config.validation.BizAssert;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.fee.confirm.dto.WfeeIndividualFeeDto.*;
@@ -22,7 +31,22 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class WfeeIndividualFeeService {
+
+    private final ZfezDeadLineService zfezDeadLineService;
     private final WfeeIndividualFeeMapper mapper;
+
+    /**
+     * 수수료 개인별 실적 상세 파트너 직책 조회
+     * @param dto : {
+     * perfYm : 실적년월,
+     * no : 번호 }
+     * @return 조회결과
+     */
+    public SearchPrtnrRsbRes getIndividualPerformancePrtnrRsb(
+        SearchReq dto
+    ) {
+        return this.mapper.selectIndividualPerformancePrtnrRsb(dto);
+    }
 
     /**
      * 수수료 개인별 실적 상세 조회(M조직)
@@ -35,19 +59,6 @@ public class WfeeIndividualFeeService {
         SearchReq dto
     ) {
         return this.mapper.selectIndividualPerformanceMngerDetails(dto);
-    }
-
-    /**
-     * 수수료 개인별 실적 상세 조회(홈마스터)
-     * @param dto : {
-     * perfYm : 실적년월,
-     * no : 번호 }
-     * @return 조회결과
-     */
-    public List<SearchHmstRes> getIndividualPerformanceHmstDetails(
-        SearchReq dto
-    ) {
-        return this.mapper.selectIndividualPerformanceHmstDetails(dto);
     }
 
     /**
@@ -213,6 +224,64 @@ public class WfeeIndividualFeeService {
     public List<SearchFeeRes> getFees(
         SearchFeeReq dto
     ) {
+
+        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
+
+        boolean dsbSpcshPrnt = false;
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
+
+        ZfezDeadLineDvo zfezDeadLineDvo = zfezDeadLineService.selectDeadLine(dto.ddlnId(), dto.ddlnDvId());
+
+        if (zfezDeadLineDvo == null || StringUtils.isEmpty(zfezDeadLineDvo.getBasYrmn())) {
+            throw new BizException("MSG_ALT_NO_DEADLINE");
+        }
+
+        if (Integer.parseInt(dto.perfYm()) < Integer.parseInt(zfezDeadLineDvo.getBasYrmn())) {
+            dsbSpcshPrnt = true;
+        } else if (Integer.parseInt(dto.perfYm()) == Integer.parseInt(zfezDeadLineDvo.getBasYrmn())) {
+            if (Long.parseLong(sdf.format(new Date())) >= Long
+                .parseLong(zfezDeadLineDvo.getStartDt() + zfezDeadLineDvo.getStartHm()) &&
+                Long.parseLong(sdf.format(new Date())) <= Long
+                    .parseLong(zfezDeadLineDvo.getFinsDt() + zfezDeadLineDvo.getFinsHm())) {
+                dsbSpcshPrnt = true;
+            } else {
+                dsbSpcshPrnt = false;
+            }
+        }
+
+        java.util.List<com.sds.sflex.system.config.core.dvo.RoleIdDvo> roles = userSession.getRoles();
+
+        for (int i = 0; i < roles.size(); i++) {
+            if ("W01".equals(dto.ogTpCd()) &&
+                "ROL_W1580".equals(roles.get(i).getRoleNickName())) { // wells영업지원팀
+                dsbSpcshPrnt = true;
+                break;
+            } else if ("W02".equals(dto.ogTpCd()) &&
+                "ROL_W1580".equals(roles.get(i).getRoleNickName())) { // wells영업지원팀
+                dsbSpcshPrnt = true;
+                break;
+            } else if ("W03".equals(dto.ogTpCd()) &&
+                "ROL_W1560".equals(roles.get(i).getRoleNickName())) { // wellsCS운영팀
+                dsbSpcshPrnt = true;
+                break;
+            } else if ("W04".equals(dto.ogTpCd()) &&
+                "ROL_W1520".equals(roles.get(i).getRoleNickName())) { // wellsB2B사업팀
+                dsbSpcshPrnt = true;
+                break;
+            } else if ("W05".equals(dto.ogTpCd()) &&
+                "ROL_W1510".equals(roles.get(i).getRoleNickName())) { // wells신채널영업팀
+                dsbSpcshPrnt = true;
+                break;
+            } else if ("W06".equals(dto.ogTpCd()) &&
+                "ROL_W1560".equals(roles.get(i).getRoleNickName())) { // wellsCS운영팀
+                dsbSpcshPrnt = true;
+                break;
+            }
+        }
+
+        BizAssert.isTrue(dsbSpcshPrnt, "MSG_ALT_DSB_SPCSH_PRNT_DATE");
+
         return this.mapper.selectFees(dto);
     }
 

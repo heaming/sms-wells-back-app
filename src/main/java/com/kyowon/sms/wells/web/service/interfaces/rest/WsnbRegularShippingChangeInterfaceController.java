@@ -1,24 +1,25 @@
 package com.kyowon.sms.wells.web.service.interfaces.rest;
 
+import javax.validation.Valid;
+
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbRegularShippingChangeDto.SaveReq;
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbRegularShippingChangeDto.SaveRes;
 import com.kyowon.sms.wells.web.service.interfaces.service.WsnbRegularShippingChangeService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-
-import javax.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 @InterfaceController
 @RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/regular-shipping-change")
@@ -30,7 +31,7 @@ public class WsnbRegularShippingChangeInterfaceController {
 
     private final WsnbRegularShippingChangeService service;
 
-    @ApiOperation(value = "홈까패 캡슐 정기배송 변경처리")
+    @ApiOperation(value = "EAI_WSVI1013 W-SV-I-0016 홈카페 캡슐 정기배송 변경처리")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약순번", paramType = "query", required = true),
@@ -48,7 +49,9 @@ public class WsnbRegularShippingChangeInterfaceController {
         EaiWrapper<SaveReq> reqEaiWrapper
     ) throws Exception {
         EaiWrapper<SaveRes> resEaiWrapper = reqEaiWrapper.newResInstance();
-        resEaiWrapper.setBody(service.saveRegularShippingChange(reqEaiWrapper.getBody()));
+        resEaiWrapper.setBody(
+            service.saveRegularShippingChange(reqEaiWrapper.getBody())
+        );
         return resEaiWrapper;
     }
 }

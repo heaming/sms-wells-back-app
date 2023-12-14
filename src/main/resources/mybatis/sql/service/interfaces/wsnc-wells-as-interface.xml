@@ -3,70 +3,120 @@
 
     <!-- W-SV-I-0021 > LC_ASREGN_API_S13 -->
     <select id='selectCustomerInformations' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsInterfaceCustInfoDvo">
-        SELECT DISTINCT
-           SSCT1.CNTR_NO -- 계약번호
+    SELECT SSCT1.CNTR_NO -- 계약번호
          , CUBS1.CST_NO -- 고객번호
-         , CUBS1.CST_KNM -- 고객한글명
+         , SSCT4.RCGVP_KNM AS CST_KNM -- 고객한글명
          , SSCT1.CNTR_CNFM_DTM AS CNTR_DT -- 계약일자
          , PDBS1.PD_CD -- 상품코드
          , PDBS1.PD_NM -- 상품명
-         , SSCT3.CRAL_LOCARA_TNO -- 휴대지역전화번호
-         , SSCT3.MEXNO_ENCR -- 휴대전화국번호암호화
-         , SSCT3.CRAL_IDV_TNO -- 휴대개별전화번호
-         , SSCT3.LOCARA_TNO -- 지역전화번호
-         , SSCT3.EXNO_ENCR -- 전화국번호암호화
-         , SSCT3.IDV_TNO -- 개별전화번호
+         , SSCT4.CRAL_LOCARA_TNO -- 휴대지역전화번호
+         , SSCT4.MEXNO_ENCR -- 휴대전화국번호암호화
+         , SSCT4.CRAL_IDV_TNO -- 휴대개별전화번호
+         , SSCT4.LOCARA_TNO -- 지역전화번호
+         , SSCT4.EXNO_ENCR -- 전화국번호암호화
+         , SSCT4.IDV_TNO -- 개별전화번호
          , GBCO1.NEW_ADR_ZIP -- 신주소우편번호
          , GBCO1.RNADR -- 도로명주소
          , GBCO1.RDADR -- 도로명상세주소
-         , SSCT3.ADR_DV_CD -- 주소구분코드
+         , SSCT4.ADR_DV_CD -- 주소구분코드
          , GBCO1.LTN_ADR AS ADDR
-         , SSCT3.RCGVP_KNM -- 수령자한글명
+         , SSCT4.RCGVP_KNM -- 수령자한글명
          , CUBS1.BRYY_MMDD -- 생년월일
          , CUBS1.SEX_DV_CD -- 성별구분코드
          , SSCT1.CNTR_CST_NO-- 계약고객번호
       FROM TB_SSCT_CNTR_BAS SSCT1 /*계약기본*/
      INNER JOIN TB_SSCT_CNTR_DTL SSCT2 /*계약상세*/
         ON SSCT1.CNTR_NO = SSCT2.CNTR_NO
-      LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS SSCT3 /*계약주소지기본*/
-        ON SSCT3.CNTR_NO = SSCT1.CNTR_NO
-       AND SSCT3.CNTR_CST_NO = SSCT1.CNTR_CST_NO
-      LEFT OUTER JOIN TB_CUBS_CST_BAS CUBS1 /*고객기본*/
-        ON CUBS1.CST_NO = SSCT1.CNTR_CST_NO
-      LEFT OUTER JOIN TB_PDBS_PD_BAS PDBS1 /*상품기본*/
-        ON PDBS1.PD_CD = SSCT2.BASE_PD_CD
-      LEFT OUTER JOIN TB_PDBS_PD_REL PDBS2 /*상품관계*/
-        ON PDBS2.BASE_PD_CD = SSCT2.BASE_PD_CD
-      LEFT OUTER JOIN TB_GBCO_ADR_BAS GBCO1/*주소기본*/
-        ON CUBS1.ADR_ID = GBCO1.ADR_ID
+     INNER JOIN TB_SSCT_CNTR_ADR_REL SSCT3 /* 계약주소관계 */
+        ON SSCT3.DTL_CNTR_NO = SSCT2.CNTR_NO
+       AND SSCT3.DTL_CNTR_SN = SSCT2.CNTR_SN
+       AND SSCT3.ADRPC_TP_CD IN ('2','3')
+       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SSCT3.VL_STRT_DTM AND SSCT3.VL_END_DTM
+       AND SSCT3.DTA_DL_YN = 'N'
+     INNER JOIN TB_SSCT_CNTR_ADRPC_BAS SSCT4 /*계약주소지기본*/
+        ON SSCT4.CNTR_ADRPC_ID = SSCT3.CNTR_ADRPC_ID
+       AND SSCT4.DTA_DL_YN = 'N'
+     INNER JOIN TB_SSCT_CNTR_PD_REL SSCT5 /*계약상품관계*/
+        ON SSCT5.CNTR_NO = SSCT2.CNTR_NO
+       AND SSCT5.CNTR_SN = SSCT2.CNTR_SN
+       AND SSCT5.BASE_PD_CD = SSCT2.BASE_PD_CD
+       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SSCT5.VL_STRT_DTM AND SSCT5.VL_END_DTM
+       AND SSCT5.PD_REL_TP_CD = '05'
+       AND SSCT5.DTA_DL_YN = 'N'
+     INNER JOIN TB_CUBS_CST_BAS CUBS1 /*고객기본*/
+        ON CUBS1.CST_NO = SSCT4.CNTR_CST_NO
+     INNER JOIN TB_PDBS_PD_BAS PDBS1 /*상품기본*/
+        ON PDBS1.PD_CD = SSCT5.OJ_PD_CD
+     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL PDBS2 /*상품각사속성상세*/
+        ON PDBS2.PD_CD = PDBS1.PD_CD
+       AND PDBS2.PD_EXTS_PRP_GRP_CD = 'PART'
+       AND PDBS2.DTA_DL_YN = 'N'
+     INNER JOIN TB_GBCO_ADR_BAS GBCO1 /*주소기본*/
+        ON GBCO1.ADR_ID = SSCT4.ADR_ID
+     INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ SVPD1 /*월별고객서비스대상내역*/
+        ON SVPD1.CNTR_NO = SSCT2.CNTR_NO
+       AND SVPD1.CNTR_SN = SSCT2.CNTR_SN
+       AND SVPD1.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
      WHERE SSCT1.DTA_DL_YN = 'N'
-       <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-       AND SSCT1.CNTR_NO = #{cntrNo}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(cntrSn)">
-       AND SSCT2.CNTR_SN = #{cntrSn}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(cntrCstNo)">
-       AND SSCT1.CNTR_CST_NO = #{cntrCstNo}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(cstKnm)">
-       AND CUBS1.CST_KNM = #{cstKnm}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
-       AND SSCT3.CRAL_LOCARA_TNO = #{cralLocaraTno}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
-       AND SSCT3.MEXNO_ENCR = #{mexnoEncr}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
-       AND SSCT3.CRAL_IDV_TNO = #{cralIdvTno}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(pdGrpId)">
-       AND PDBS2.PD_GRP_ID = #{pdGrpId}
-       </if>
-       <if test="@MybatisUtils@isNotEmpty(adrId)">
-       AND CUBS1.ADR_ID = #{adrId}
-       </if>
+       AND SSCT2.SELL_TP_CD != '9' /*필터제외*/
+       AND PDBS2.PD_PRP_VAL20 IN ('1','2','3','4','92','11') /*PD_GRP_CD(상품그룹코드)*/
+       AND SVPD1.IST_DT IS NOT NULL
+       AND SVPD1.REQD_DT IS NULL
+       AND SVPD1.CAN_DT IS NULL
+       AND SVPD1.MSH_WDWAL_DT IS NULL
+       AND SVPD1.CNTR_CST_NO IN (SELECT S1.CNTR_CST_NO -- '041339241'
+                                   FROM TB_SVPD_MCBY_CST_SV_OJ_IZ S1 /*월별고객서비스대상내역*/
+                                  INNER JOIN TB_PDBS_PD_BAS S2 /*상품기본*/
+                                     ON S2.PD_CD = S1.PDCT_PD_CD
+                                  INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S3 /*상품각사속성상세*/
+                                     ON S3.PD_CD = S2.PD_CD
+                                    AND S3.PD_EXTS_PRP_GRP_CD = 'PART'
+                                    AND S3.DTA_DL_YN = 'N'
+                                  INNER JOIN TB_SSCT_CNTR_ADR_REL S4 /* 계약주소관계 */
+                                     ON S4.DTL_CNTR_NO = S1.CNTR_NO
+                                    AND S4.DTL_CNTR_SN = S1.CNTR_SN
+                                    AND S4.ADRPC_TP_CD IN ('2','3')
+                                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S4.VL_STRT_DTM AND S4.VL_END_DTM
+                                    AND S4.DTA_DL_YN = 'N'
+                                  INNER JOIN TB_SSCT_CNTR_ADRPC_BAS S5 /*계약주소지기본*/
+                                     ON S5.CNTR_ADRPC_ID = S4.CNTR_ADRPC_ID
+                                    AND S5.DTA_DL_YN = 'N'
+                                  INNER JOIN TB_GBCO_ADR_BAS S6 /*주소기본*/
+                                     ON S6.ADR_ID = S5.ADR_ID
+                                  WHERE S1.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                    AND S1.SELL_TP_CD != '9' /*필터제외*/
+                                    AND S1.IST_DT IS NOT NULL
+                                    AND S1.REQD_DT IS NULL
+                                    AND S1.CAN_DT IS NULL
+                                    AND S1.MSH_WDWAL_DT IS NULL
+                                <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+                                    AND S1.CNTR_NO = #{cntrNo}
+                                </if>
+                                <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+                                    AND S1.CNTR_SN = #{cntrSn}
+                                </if>
+                                <if test="@MybatisUtils@isNotEmpty(pdGrpId)">
+                                    AND S3.PD_PRP_VAL20 = #{pdGrpId}
+                                </if>
+                                <if test="@MybatisUtils@isNotEmpty(cstKnm)">
+                                    AND TRIM(S5.RCGVP_KNM) = #{cstKnm}
+                                </if>
+                                <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
+                                    AND TRIM(S5.CRAL_LOCARA_TNO) = #{cralLocaraTno}
+                                </if>
+                                <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
+                                    AND TRIM(S5.MEXNO_ENCR) = #{mexnoEncr}
+                                </if>
+                                <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
+                                    AND TRIM(S5.CRAL_IDV_TNO) = #{cralIdvTno}
+                                </if>
+                                <if test="@MybatisUtils@isNotEmpty(adrId)">
+                                   AND S6.ADR_ID = #{adrId}
+                               </if>
+                               <if test="@MybatisUtils@isNotEmpty(cntrCstNo)">
+                                   AND S1.CNTR_CST_NO = #{cntrCstNo}
+                               </if>
+                                )
     </select>
 
     <!--W-SV-I-0022 > LC_ASREGN_API_S14 -->

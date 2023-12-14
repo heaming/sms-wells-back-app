@@ -63,11 +63,11 @@ public class WbndRentalCbMgtDelinquentHistoryService {
             WbndRentalCbDelinquentIzDvo dvo = this.converter.mapSaveReqToRentalCbDlqIzDvo(dto);
             // 연체내역 update
             int resultIz = this.mapper.updateRentalCbDlqIz(dvo);
-            BizAssert.isTrue(resultIz == 1, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(resultIz >= 1, "MSG_ALT_SVE_ERR");
             processCount += resultIz;
             // 연체이력 insert
             int resultHist = this.mapper.insertRentalCbDlqHistory(dvo);
-            BizAssert.isTrue(resultHist == 1, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(resultHist >= 1, "MSG_ALT_SVE_ERR");
             processCount += resultHist;
         }
 
@@ -109,7 +109,7 @@ public class WbndRentalCbMgtDelinquentHistoryService {
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
 
             int resultIz = this.mapper.updateMessageSendDate(dto.cstNo(), dto.baseYm());
-            BizAssert.isTrue(resultIz == 1, "MSG_ALT_SVE_ERR");
+            BizAssert.isTrue(resultIz >= 1, "MSG_ALT_SVE_ERR");
 
             processCount += result;
         }

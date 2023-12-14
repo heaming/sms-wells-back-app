@@ -3,22 +3,22 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaAsConsumablesStoreMapper">
 
     <select id="selectAsConsumablesStorePages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaAsConsumablesStoreDto$SearchRes">
-        SELECT T1.STR_WARE_NO /*입고창고번호*/
-             , T1.ITM_STR_NO /*품목입고번호*/
-             , T1.STR_SN AS ITM_STR_SN /*입고순번*/
-             , T2.WARE_NM  /*창고명*/
-             , T1.STR_RGST_DT /*입고등록일자*/
-             , P1.SVPD_SAP_CD AS SAP_CD /*SAP코드*/
-             , T1.ITM_PD_CD /*품목상품코드*/
-             , T1.MNGT_UNIT_CD /*관리단위코드*/
-             , P1.SVPD_NM_ABBR1 AS ITM_PD_NM /* 품목명 */
-             , T1.ITM_GD_CD /*품목등급코드*/
-             , T1.STR_QTY /*입고수량*/
-             , T1.RMK_CN  /*입고사유*/
+        SELECT T1.STR_WARE_NO                                   /* 입고창고번호 */
+             , T1.ITM_STR_NO                                    /* 품목입고번호 */
+             , T1.STR_SN                          AS ITM_STR_SN /* 입고순번 */
+             , T2.WARE_NM                                       /* 창고명 */
+             , T1.STR_RGST_DT                                   /* 입고등록일자 */
+             , TO_CHAR(TO_NUMBER(P1.SVPD_SAP_CD)) AS SAP_CD     /* SAP코드 */
+             , T1.ITM_PD_CD                                     /* 품목상품코드 */
+             , T1.MNGT_UNIT_CD                                  /* 관리단위코드 */
+             , P1.SVPD_NM_ABBR1                   AS ITM_PD_NM  /* 품목명 */
+             , T1.ITM_GD_CD                                     /* 품목등급코드 */
+             , T1.STR_QTY                                       /* 입고수량 */
+             , T1.RMK_CN                                        /* 입고사유 */
           FROM TB_SVST_ITM_STR_IZ T1        /* 품목입고내역 */
          INNER JOIN TB_SVST_MCBY_WARE_IZ T2 /* 월별창고내역 */
             ON T1.STR_WARE_NO = T2.WARE_NO
-           AND T2.APY_YM = #{strRgstDt}
+           AND T2.APY_YM      = #{strRgstDt}
          INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) P1
              ON P1.SVPD_PD_CD = T1.ITM_PD_CD
          WHERE 1 = 1
@@ -31,9 +31,7 @@
            AND T1.DTA_DL_YN = 'N'
            AND T2.DTA_DL_YN = 'N'
            AND T2.WARE_USE_YN = 'Y'
-         ORDER BY T1.ITM_STR_NO
-                , T1.STR_SN
-
+         ORDER BY T1.ITM_STR_NO, T1.STR_SN
     </select>
 
     <select id="selectMcbyWareIzCount" resultType="Integer">
@@ -306,32 +304,31 @@
     </select>
 
     <select id="selectItmPdCdNm" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaAsConsumablesStoreDto$FindItmPdCdNmRes">
-
-        SELECT T1.PD_CD AS ITM_PD_CD
+        SELECT T1.PD_CD      AS ITM_PD_CD
              , T1.PD_ABBR_NM AS ITM_PD_NM
           FROM TB_PDBS_PD_BAS T1
-          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-             ON T1.PD_CD = T2.PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+            ON T2.PD_CD = T1.PD_CD
+          WHERE T1.DTA_DL_YN          = 'N'
+            AND T1.PD_TP_CD           = 'M'
+            AND T2.DTA_DL_YN          = 'N'
             AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-          WHERE 1 = 1
-            AND T1.PD_TP_CD   = 'M'
-            AND T1.DTA_DL_YN  = 'N'
-            AND T2.DTA_DL_YN  = 'N'
-            AND T1.SAP_MAT_CD = #{sapCd}
+            AND T2.PD_PRP_VAL19       = '7'
+            AND T1.SAP_MAT_CD         = LPAD(#{sapCd}, 18, '0')
     </select>
 
     <select id="selectSapCdNm" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaAsConsumablesStoreDto$FindSapCdNmRes">
-            SELECT T1.SAP_MAT_CD AS SAP_CD
-                 , T1.PD_ABBR_NM AS ITM_PD_NM
+            SELECT TO_CHAR(TO_NUMBER(T1.SAP_MAT_CD)) AS SAP_CD
+                 , T1.PD_ABBR_NM                     AS ITM_PD_NM
               FROM TB_PDBS_PD_BAS T1
              INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-                ON T1.PD_CD = T2.PD_CD
+                ON T2.PD_CD = T1.PD_CD
+             WHERE T1.DTA_DL_YN          = 'N'
+               AND T1.PD_TP_CD           = 'M'
+               AND T2.DTA_DL_YN          = 'N'
                AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-             WHERE 1 = 1
-               AND T1.PD_TP_CD   = 'M'
-               AND T1.DTA_DL_YN  = 'N'
-               AND T2.DTA_DL_YN  = 'N'
-               AND T1.PD_CD = #{itmPdCd}
+               AND T2.PD_PRP_VAL19       = '7'
+               AND T1.PD_CD              = #{itmPdCd}
     </select>
 
 </mapper>

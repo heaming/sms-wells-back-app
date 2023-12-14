@@ -24,7 +24,6 @@ public class WsnbWellsManagerIchrExcdDto {
         String mngtYm,
         String dgr1LevlOgCd,
         String dgr2LevlOgCd,
-        String ogTp,
         String cntrNo,
         String cntrSn,
         String cntr,
@@ -34,14 +33,12 @@ public class WsnbWellsManagerIchrExcdDto {
         String sellTpCd,
         String vstDvCd,
         String vstPrgsStatCd,
-        String newAdrZip,
         String adr,
         String emd,
         String ogNm,
         String prtnrKnm,
         String clsfCdSrnPrntCn,
         String egerWk,
-        String fix,
-        String chRsonCn
+        String fix
     ) {}
 }

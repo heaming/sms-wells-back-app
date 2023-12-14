@@ -9,6 +9,14 @@ import com.kyowon.sms.wells.web.service.allocate.mapper.WsncTransferHistoryMappe
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * [WSNC] 이관이력 조회
+ * </pre>
+ *
+ * @author  juno.cha
+ * @since 2023-05-03
+ */
 @Service
 @RequiredArgsConstructor
 public class WsncTransferHistoryService {

@@ -447,11 +447,12 @@
                          GROUP BY A.PRTNR_NO
                       )F
         ON A.PRTNR_NO = F.PRTNR_NO
-      LEFT OUTER JOIN ( SELECT AK05.PRTNR_NO /* 지점장 사번 */
+      LEFT OUTER JOIN ( SELECT AK05.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO /* 지점장 사번 */
                              , COUNT(CASE WHEN AK17.AKDEQ0 > 0 AND BS.SERCNT <![CDATA[>=]]> 50 THEN 1 END) GADCNT   /* 실가동 인원 */
                              , SUM(NVL(AK17.AKDEQ0,0)) J_AKDEQ0 /* 지점 실적 */
                              , SUM(NVL(BS.SERCNT,0)) J_SERCNT   /* 지점 서비스 횟수 */
-                          FROM ( SELECT B.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                          FROM ( SELECT B.DGR3_LEVL_DG_PRTNR_NO
+                                      , A.PRTNR_NO
                                    FROM TB_OGBS_MM_PRTNR_IZ A
                                   INNER JOIN TB_OGBS_MM_OG_IZ B
                                      ON A.BASE_YM = B.BASE_YM
@@ -462,14 +463,14 @@
                                 </if>
                                     AND A.OG_TP_CD = 'W03'
                                     AND A.PSTN_DV_CD = 15
-                                  GROUP BY B.DGR3_LEVL_DG_PRTNR_NO
+                                  GROUP BY B.DGR3_LEVL_DG_PRTNR_NO, A.PRTNR_NO
                                )AK05
                           LEFT OUTER JOIN ( SELECT PRTNR_NO
                                                  , SUM(PERF_VAL) AS AKDEQ0
                                               FROM TB_FEAM_NTORP_PERF_MM_CL   /*순주문 파트너 실적 월마감*/
                                              WHERE FEE_TCNT_DV_CD = #{feeTcntDvCd}
                                                AND BASE_YM = #{perfYm}
-                                               AND PERF_DV_CD = 2   /*개인판매*/
+                                               AND PERF_DV_CD = 0   /*개인판매*/
                                            <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                                                AND PRTNR_NO = #{prtnrNo}
                                            </if>
@@ -487,10 +488,11 @@
                                            </if>
                                                AND CL_DV_CD = '02'
                                                AND OG_TP_CD = 'W03'
+                                               AND PRTNR_SV_PERF_ATC_CD IN ('HM01999902','HM01999903') /* 홈마스터방문-합계-합계-방문건수, 홈마스터방문-합계-합계-전월건수 */
                                              GROUP BY PRTNR_NO
                                           )BS
                             ON AK05.PRTNR_NO = BS.PRTNR_NO
-                         GROUP BY AK05.PRTNR_NO
+                         GROUP BY AK05.DGR3_LEVL_DG_PRTNR_NO
                       )G
         ON A.PRTNR_NO = G.PRTNR_NO
       LEFT OUTER JOIN TB_PSCA_MCPTN_EDUC_IZ H
@@ -1689,6 +1691,7 @@
                          AND A.CL_DV_CD = #{feeTcntDvCd}
                          AND A.OG_TP_CD = 'W02'
                          AND A.PRTNR_SV_PERF_ATC_CD IN ('SV01999901', 'SV01999902', 'SV01999903', 'SV01909001')	/* 배정건수, 당월완료건수, 전월완료건수, 취소건수 */
+                         AND B.PSTN_DV_CD = '15'   /* 지점장 실적 제외 */
                        GROUP BY A.BASE_YM, A.OG_TP_CD, A.PRTNR_NO
                    ) T1	/* 파트너별 개인BS */
                INNER JOIN TB_OGBS_MM_PRTNR_IZ T2	/* 월파트너내역 */
@@ -2630,6 +2633,7 @@
              , NVL(D.AKSD05, 0) AS AKSD05  /* 정착    */
              , NVL(D.AKSD20, 0) AS AKSD20  /* 재지급    */
              , NVL(D.AKSD30, 0) AS AKSD30  /* 기타지원  */
+             , NVL(D.AKSD26, 0) AS AKSD26  /* BS관리수수료  */
              , NVL(C.INTBS_AMT, 0) AS AKSD99 /* 과표합계 */
           FROM TB_OGBS_MM_PRTNR_IZ A
          INNER JOIN TB_OGBS_MM_OG_IZ O
@@ -2704,6 +2708,7 @@
                                  , NVL(SUM(AKSD05),0) AS AKSD05  /* 정착    */
                                  , NVL(SUM(AKSD20),0) AS AKSD20  /* 재지급    */
                                  , NVL(SUM(AKSD30),0) AS AKSD30  /* 기타수수료  */
+                                 , NVL(SUM(AKSD26),0) AS AKSD26  /* BS관리수수료  */
                                  , NVL(SUM(AKSD23),0) AS AKSD23  /* 정액 수당  */
                                  , NVL(SUM(AKSD24),0) AS AKSD24  /* 라이브팩 수당 */
                                  , NVL(SUM(AKSD25),0) AS AKSD25  /* 홈케어 수장  */
@@ -2721,6 +2726,7 @@
                                           , CASE WHEN (FEE_CD = 'W010005' OR FEE_CD = 'W010105') THEN FEE_ATC_VAL ELSE 0 END AS AKSD05  /* 정착    */
                                           , CASE WHEN (FEE_CD = 'W010020' OR FEE_CD = 'W010120') THEN FEE_ATC_VAL ELSE 0 END AS AKSD20  /* 재지급    */
                                           , CASE WHEN (FEE_CD = 'W010030' OR FEE_CD = 'W010130') THEN FEE_ATC_VAL ELSE 0 END AS AKSD30  /* 기타수수료  */
+                                          , CASE WHEN (FEE_CD = 'W010031' OR FEE_CD = 'W010131') THEN FEE_ATC_VAL ELSE 0 END AS AKSD26  /* BS관리수수료  */
                                           , CASE WHEN (FEE_CD = 'W010023' OR FEE_CD = 'W010123') THEN FEE_ATC_VAL ELSE 0 END AS AKSD23  /* 정액 수당  */
                                           , CASE WHEN (FEE_CD = 'W010024' OR FEE_CD = 'W010124') THEN FEE_ATC_VAL ELSE 0 END AS AKSD24  /* 라이브팩 수당 */
                                           , CASE WHEN (FEE_CD = 'W010025' OR FEE_CD = 'W010125') THEN FEE_ATC_VAL ELSE 0 END AS AKSD25  /* 홈케어 수장  */
@@ -2734,7 +2740,7 @@
                                     </if>
                                         AND FEE_CD IN ('W010001', 'W010101', 'W010002', 'W010102', 'W010003', 'W010103', 'W010021', 'W010121'
                                                      , 'W010004', 'W010005', 'W010105', 'W010020', 'W010120', 'W010030', 'W010130', 'W010023'
-                                                     , 'W010123', 'W010024', 'W010124', 'W010025', 'W010125')
+                                                     , 'W010123', 'W010024', 'W010124', 'W010025', 'W010125', 'W010031', 'W010131')
                                     )
                              GROUP BY PRTNR_NO, DSB_YM, CO_CD, OG_TP_CD, FEE_TCNT_DV_CD, SPMT_DSB_DV_CD
                            )D
@@ -2917,6 +2923,7 @@
              , NVL(D.AKSD21, 0) AS AKSD21  /* 개인상조   */
              , NVL(D.AKSD22, 0) AS AKSD22  /* 지점장상조   */
              , NVL(D.AKSD30, 0) AS AKSD30  /* 기타지원  */
+             , NVL(D.AKSD26, 0) AS AKSD26  /* BS관리수수료  */
              , NVL(C.INTBS_AMT, 0) AS AKSD99 /* 과표합계 */
           FROM TB_OGBS_MM_PRTNR_IZ A
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ AA
@@ -3036,6 +3043,7 @@
                                , NVL(SUM(AKSD21),0) AS AKSD21  /* 개인상조   */
                                , NVL(SUM(AKSD22),0) AS AKSD22  /* 지점장상조   */
                                , NVL(SUM(AKSD30),0) AS AKSD30  /* 기타수수료  */
+                               , NVL(SUM(AKSD26),0) AS AKSD26  /* BS관리수수료  */
                             FROM ( SELECT PRTNR_NO
                                         , DSB_YM
                                         , CO_CD
@@ -3060,6 +3068,7 @@
                                         , CASE WHEN (FEE_CD = 'W010121' OR FEE_CD = 'W010121') THEN FEE_ATC_VAL ELSE 0 END AS AKSD21  /* 개인상조   */
                                         , CASE WHEN FEE_CD = 'W010022' THEN FEE_ATC_VAL ELSE 0 END  AS AKSD22                         /* 지점장상조  */
                                         , CASE WHEN (FEE_CD = 'W010030' OR FEE_CD = 'W010130') THEN FEE_ATC_VAL ELSE 0 END AS AKSD30  /* 기타수수료  */
+                                        , CASE WHEN (FEE_CD = 'W010031' OR FEE_CD = 'W010131') THEN FEE_ATC_VAL ELSE 0 END AS AKSD26  /* BS관리수수료  */
                                      FROM TB_FEAM_FEE_DSB_DTL_IZ
                                     WHERE DSB_YM = #{perfYm}
                                       AND OG_TP_CD = 'W01'
@@ -3070,8 +3079,8 @@
                                  </if>
                                       AND FEE_CD IN ('W010023', 'W010123', 'W010024', 'W010124', 'W010025', 'W010125', 'W010001', 'W010101', 'W010118'
                                                    , 'W010002', 'W010102', 'W010003', 'W010103', 'W010011', 'W010012', 'W010013', 'W010016', 'W010018'
-                                                   , 'W010017', 'W010015',  'W010020', 'W010120', 'W010121', 'W010121', 'W010022', 'W010030', 'W010130'
-                                                   , 'W010005', 'W010105' )
+                                                   , 'W010017', 'W010015', 'W010020', 'W010120', 'W010121', 'W010121', 'W010022', 'W010030', 'W010130'
+                                                   , 'W010005', 'W010105', 'W010031', 'W010131' )
                                  )
                            GROUP BY PRTNR_NO, DSB_YM, CO_CD, OG_TP_CD, FEE_TCNT_DV_CD, SPMT_DSB_DV_CD
                         )D
@@ -3264,6 +3273,7 @@
              , NVL(D.AKSD05, 0) AS AKSD05  /* 정착    */
              , NVL(D.AKSD20, 0) AS AKSD20  /* 재지급    */
              , NVL(D.AKSD30, 0) AS AKSD30  /* 기타지원  */
+             , NVL(D.AKSD26, 0) AS AKSD26  /* BS관리수수료  */
              , NVL(D.AKSD11, 0) AS AKSD11  /* 가전조직비례 */
              , NVL(D.AKSD12, 0) AS AKSD12  /* 가전조직외 비례 */
              , NVL(D.AKSD13, 0) AS AKSD13  /* 조직판매장려 */
@@ -3380,6 +3390,7 @@
                                  , NVL(SUM(AKSD05),0) AS AKSD05  /* 정착    */
                                  , NVL(SUM(AKSD20),0) AS AKSD20  /* 재지급    */
                                  , NVL(SUM(AKSD30),0) AS AKSD30  /* 기타수수료  */
+                                 , NVL(SUM(AKSD26),0) AS AKSD26  /* BS관리수수료  */
                                  , NVL(SUM(AKSD24),0) AS AKSD24  /* 라이브팩 수당 */
                                  , NVL(SUM(AKSD25),0) AS AKSD25  /* 홈케어 수장  */
                                  , NVL(SUM(AKSD11),0) AS AKSD11  /* 조직비례 가전 */
@@ -3405,6 +3416,7 @@
                                           , CASE WHEN (FEE_CD = 'W010005' OR FEE_CD = 'W010105') THEN FEE_ATC_VAL ELSE 0 END AS AKSD05  /* 정착    */
                                           , CASE WHEN (FEE_CD = 'W010020' OR FEE_CD = 'W010120') THEN FEE_ATC_VAL ELSE 0 END AS AKSD20  /* 재지급    */
                                           , CASE WHEN (FEE_CD = 'W010030' OR FEE_CD = 'W010130') THEN FEE_ATC_VAL ELSE 0 END AS AKSD30  /* 기타수수료  */
+                                          , CASE WHEN (FEE_CD = 'W010031' OR FEE_CD = 'W010131') THEN FEE_ATC_VAL ELSE 0 END AS AKSD26  /* BS관리수수료  */
                                           , CASE WHEN (FEE_CD = 'W010024' OR FEE_CD = 'W010124') THEN FEE_ATC_VAL ELSE 0 END AS AKSD24  /* 라이브팩 수당 */
                                           , CASE WHEN (FEE_CD = 'W010025' OR FEE_CD = 'W010125') THEN FEE_ATC_VAL ELSE 0 END AS AKSD25  /* 홈케어 수장  */
                                           , CASE WHEN FEE_CD = 'W010011' THEN FEE_ATC_VAL ELSE 0 END  AS AKSD11                         /* 조직비례 가전    */
@@ -3427,7 +3439,7 @@
                                         AND FEE_CD IN ('W010001', 'W010101', 'W010002', 'W010102', 'W010003', 'W010103', 'W010021', 'W010121'
                                                      , 'W010004', 'W010005', 'W010105', 'W010020', 'W010120', 'W010030', 'W010130', 'W010024'
                                                      , 'W010124', 'W010025', 'W010125', 'W010011', 'W010012', 'W010013', 'W010016', 'W010017'
-                                                     , 'W010015',  'W010022', 'W010023', 'W010123', 'W010018', 'W010118')
+                                                     , 'W010015', 'W010022', 'W010023', 'W010123', 'W010018', 'W010118', 'W010031', 'W010131')
                                     )
                              GROUP BY PRTNR_NO, DSB_YM, CO_CD, OG_TP_CD, FEE_TCNT_DV_CD, SPMT_DSB_DV_CD
                            )D

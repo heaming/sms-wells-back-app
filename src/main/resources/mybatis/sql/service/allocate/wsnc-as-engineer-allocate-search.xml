@@ -30,6 +30,14 @@
          , ADR2.MEXNO_ENCR
          , ADR2.CRAL_IDV_TNO
          , TO_CHAR(TO_DATE(SUBSTR(SSCT1.CNTR_CNFM_DTM, 1, 8), 'YYYYMMDD'), 'YYYY-MM-DD') CNTR_DT
+         , (SELECT TO_CHAR(TO_DATE(SUBSTR(T1.CNTC_DT, 1, 8), 'YYYYMMDD'), 'YYYY-MM-DD')
+              FROM (SELECT CNTC_DT
+                         , CNTC_HH
+                         , RANK() OVER(ORDER BY CNTC_DT DESC, CNTC_HH DESC) RN
+                      FROM TB_SVPD_CST_SV_CNTC_IZ T1
+                     WHERE CST_SV_ASN_NO = SV1.CST_SV_ASN_NO
+                    ) T1
+             WHERE RN = 1) CNTR_CNFM_APR_DTM
          , PD1.SAP_MAT_CD
          , CST1.PDCT_PD_CD
          , PD1.PD_NM
@@ -129,16 +137,32 @@
       LEFT OUTER JOIN TB_FGPT FGPT1
         ON SV1.CNTR_NO = FGPT1.CNTR_NO
      WHERE 1=1
-       <if test="@MybatisUtils@equals(cfrmOnlyYn, 'N')">
-       AND SV1.EGER_ASN_DT >= #{baseDateFrom}
-       AND SV1.EGER_ASN_DT &lt;= #{baseDateTo}
+       <if test="@MybatisUtils@equals(inquiryBase, '1')">
+           -- 접수일자
+       AND SV2.FNL_RCPDT >= #{baseDateFrom}
+       AND SV2.FNL_RCPDT &lt;= #{baseDateTo}
        </if>
-       <if test='@MybatisUtils@isNotEmpty(vstCfrmDt)'>
-       AND SV1.VST_CNFMDT = #{vstCfrmDt}
+       <if test="@MybatisUtils@equals(inquiryBase, '2')">
+           -- 처리일자
+       AND SV1.WK_EXCN_DT >= #{baseDateFrom}
+       AND SV1.WK_EXCN_DT &lt;= #{baseDateTo}
        </if>
-       <if test="@MybatisUtils@equals(cfrmOnlyYn, 'Y')">
-       AND SV1.VST_CNFMDT = #{vstCfrmDt}
+       <if test="@MybatisUtils@equals(inquiryBase, '3')">
+           -- 방문확정일자
+       AND SV1.VST_CNFMDT >= #{baseDateFrom}
+       AND SV1.VST_CNFMDT &lt;= #{baseDateTo}
        </if>
+       <if test="@MybatisUtils@equals(inquiryBase, '4')">
+           -- 예정일자
+       AND SV1.VST_DUEDT >= #{baseDateFrom}
+       AND SV1.VST_DUEDT &lt;= #{baseDateTo}
+       </if>
+<!--       <if test='@MybatisUtils@isNotEmpty(vstCfrmDt)'>-->
+<!--       AND SV1.VST_CNFMDT = #{vstCfrmDt}-->
+<!--       </if>-->
+<!--       <if test="@MybatisUtils@equals(cfrmOnlyYn, 'Y')">-->
+<!--       AND SV1.VST_CNFMDT = #{vstCfrmDt}-->
+<!--       </if>-->
 
        <if test='@MybatisUtils@isNotEmpty(ogId)'>
        AND SV1.SV_CNR_OG_ID = #{ogId}

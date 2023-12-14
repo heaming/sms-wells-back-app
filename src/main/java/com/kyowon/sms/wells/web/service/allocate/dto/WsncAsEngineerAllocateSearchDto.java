@@ -22,10 +22,11 @@ public class WsncAsEngineerAllocateSearchDto {
         String prgsDvCd,
         String baseDateFrom,
         String baseDateTo,
-        String vstCfrmDt,
-        String cfrmOnlyYn,
+        //        String vstCfrmDt,
+        //        String cfrmOnlyYn,
         String sellTpCd,
-        String istConfCd
+        String istConfCd,
+        String inquiryBase
     ) {}
 
     @ApiModel(value = "WsncAsEngineerAllocateSearchDto-SearchRes")
@@ -43,6 +44,7 @@ public class WsncAsEngineerAllocateSearchDto {
         String mexnoEncr,
         String cralIdvTno,
         String cntrDt,
+        String cntrCnfmAprDtm,
         String sapMatCd,
         String pdctPdCd,
         String pdNm,
