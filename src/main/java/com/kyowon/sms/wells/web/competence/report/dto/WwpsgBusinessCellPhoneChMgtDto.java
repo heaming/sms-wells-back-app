@@ -37,7 +37,8 @@ public class WwpsgBusinessCellPhoneChMgtDto {
         String rntAplcTpCd,
         String rpotBizProcsStatCd,
         String rpotBizAplcId,
-        String procsSn
+        String procsSn,
+        String prtnrNo
 
     ) {
     }
