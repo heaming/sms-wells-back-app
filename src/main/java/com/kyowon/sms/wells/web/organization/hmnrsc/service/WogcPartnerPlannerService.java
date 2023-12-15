@@ -1,14 +1,5 @@
 package com.kyowon.sms.wells.web.organization.hmnrsc.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kyowon.sms.common.web.contract.zcommon.utils.CtDateUtils;
 import com.kyowon.sms.common.web.organization.common.dvo.ZogzPartnerDvo;
 import com.kyowon.sms.common.web.organization.common.service.ZogzPartnerService;
@@ -32,8 +23,15 @@ import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.validation.BizAssert;
-
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <pre>
@@ -355,13 +353,12 @@ public class WogcPartnerPlannerService {
                 && DateUtil.getDays(DateUtil.getNowDayString(), detailList.get(0).enddt()) >= 0) {
                 // 승급(예정)
 
-                // 삭제처리
-                qualificationDvo.setQlfAplcDvCd(null);
+                // 보류처리
+                qualificationDvo.setQlfAplcDvCd(QlfAplcDvCd.QLF_APLC_DV_CD_3.getCode());
                 qualificationDvo.setQlfDvCd(detailList.get(0).qlfDvCd());
                 qualificationDvo.setStrtdt(detailList.get(0).strtdt());
                 qualificationDvo.setEnddt(null);
                 qualificationDvo.setCvDt(null);
-                qualificationDvo.setDtaDlYn("Y");
                 mapper.updatePlannerQualificationChange(qualificationDvo);
 
                 // 종료처리
@@ -507,5 +504,19 @@ public class WogcPartnerPlannerService {
         }
 
         return processCount;
+    }
+
+    /**
+     * 웰스플래너 목록 조회
+     *
+     * @param dto
+     * @return
+     */
+    public PagingResult<WogcPartnerPlannerDto.SearchWellsPartnerRes> getWellsPlannerPages(WogcPartnerPlannerDto.SearchWellsPartnerReq dto, PageInfo pageinfo) {
+        return mapper.selectWellsPlannerPages(dto, pageinfo);
+    }
+
+    public List<WogcPartnerPlannerDto.SearchWellsPartnerRes> getWellsPlannerForExcelDownload(WogcPartnerPlannerDto.SearchWellsPartnerReq dto) {
+        return mapper.selectWellsPlannerPages(dto);
     }
 }

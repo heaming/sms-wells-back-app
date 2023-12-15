@@ -8,8 +8,8 @@
              , T4.OG_NM                                                    /* 센터명 */
              , T1.ICHR_PRTNR_NO                                            /* 담당파트너번호 */
              , T4.PRTNR_KNM                                                /* 담당파트너명 */
-             , T2.CNTR_NO
-             , T2.CNTR_SN
+             , T0.CNTR_NO
+             , T0.CNTR_SN
              , T5.CNTR_CST_NO                                               /* 고객번호 */
              , T5.CST_KNM                                                   /* 고객명 */
              , T5.CRAL_LOCARA_TNO                                           /* 휴대폰 앞자리 */
@@ -21,19 +21,19 @@
              , (SELECT SV_BIZ_DCLSF_CD
                   FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
                  WHERE 1 = 1
-                   AND CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-                   AND DTA_DL_YN ='N' )                  AS SV_BIZ_DCLSF_CD /* 고객서비스AS설치배정내역 */  /*서비스유형*/
-             , NVL(T0.BIL_OJ_AMT,0) - NVL(T0.BIL_CTR_SUM_AMT,0)           AS BIL_AMT         /* 청구금액 */
-             , NVL(T2.DP_SUM_AMT,0)                             AS DP_SUM_AMT      /* 대사금액 */
+                   AND CST_SV_ASN_NO = T0.CST_SV_ASN_NO
+                   AND DTA_DL_YN ='N' )                           AS SV_BIZ_DCLSF_CD /* 고객서비스AS설치배정내역 */  /*서비스유형*/
+             , NVL(T0.BIL_OJ_AMT,0) - NVL(T0.BIL_CTR_SUM_AMT,0)   AS BIL_AMT         /* 청구금액 */
+             , NVL(T2.DP_SUM_AMT,0)                               AS DP_SUM_AMT      /* 대사금액 */
 
-             , NVL(T7.TOT_RFND_ET_AMT,0) AS TOT_RFND_ET_AMT                        /* 환불금액 */
-             , (NVL(T2.DP_SUM_AMT,0) - NVL(T7.TOT_RFND_ET_AMT,0)) AS BLAM          /* 잔액 : 대사금액 - 환불금액 */
+             , NVL(T7.TOT_RFND_ET_AMT,0) AS TOT_RFND_ET_AMT                          /* 환불금액 */
+             , (NVL(T2.DP_SUM_AMT,0) - NVL(T7.TOT_RFND_ET_AMT,0)) AS BLAM            /* 잔액 : 대사금액 - 환불금액 */
 
-             , LPAD(T2.STLM_DV_CD,2,0)                   AS STLM_DV_CD      /* 결제구분코드 */
-             , T2.DP_SN                                  AS STLM_DV_NO      /* 입금번호 */
+             , LPAD(T2.STLM_DV_CD,2,0)                            AS STLM_DV_CD      /* 결제구분코드 */
+             , T2.DP_SN                                           AS STLM_DV_NO      /* 입금번호 */
              , CASE WHEN LPAD(T2.STLM_DV_CD,2,0) = '01' THEN NVL(T2.ISCMP_CD, T2.VAC_BNK_CD) /*합산청구*/
-                    WHEN LPAD(T2.STLM_DV_CD,2,0) = '02' THEN T2.ISCMP_CD /*신용카드*/
-                    WHEN LPAD(T2.STLM_DV_CD,2,0) = '03' THEN T2.VAC_BNK_CD /*가상계좌*/
+                    WHEN LPAD(T2.STLM_DV_CD,2,0) = '02' THEN T2.ISCMP_CD     /*신용카드*/
+                    WHEN LPAD(T2.STLM_DV_CD,2,0) = '03' THEN T2.VAC_BNK_CD   /*가상계좌*/
                 END ISCMP_CD                                                 /* 결제처 */
              , CASE WHEN LPAD(T2.STLM_DV_CD,2,0) = '01' THEN (SELECT A2.FNIT_NM  FROM TB_RVDW_FNIT_CD A2 WHERE A2.FNIT_CD = NVL(T2.ISCMP_CD, T2.VAC_BNK_CD) AND A2.FNIT_DV_CD = NVL('2', '1') ) /*합산청구*/
                     WHEN LPAD(T2.STLM_DV_CD,2,0) = '02' THEN (SELECT A2.FNIT_NM  FROM TB_RVDW_FNIT_CD A2 WHERE A2.FNIT_CD = T2.ISCMP_CD AND A2.FNIT_DV_CD = '2' ) /*신용카드*/
@@ -44,8 +44,8 @@
                      END AS CARD_APRNO
              , NVL2(T6.CS_BIL_NO,'Y','N')                AS TAX_BLL         /*세금계산서*/
              /* 팝업전달용 */
-             , T2.CRCDONR_NM /*카드주*/
-             , T2.CRCDNO_ENCR /*카드번호*/
+             , T2.CRCDONR_NM                                                /*카드주*/
+             , T2.CRCDNO_ENCR                                               /*카드번호*/
              , T2.CRDCD_EXPDT_YM
              , T2.ISTM_MCN
              , T2.VAC_NO
@@ -56,43 +56,43 @@
              , T2.DP_SN
              , T0.ADP_BIL_OJ_YN
           FROM TB_SVPD_SV_CS_BIL_BAS T1  /*서비스비용청구기본*/
-               INNER JOIN TB_SVPD_SV_CS_BIL_IZ T0
+               LEFT OUTER JOIN TB_SVPD_SV_CS_BIL_IZ T0
                        ON (T1.CS_BIL_NO = T0.CS_BIL_NO)
-               INNER JOIN TB_SVPD_SV_CS_DP_IZ T2 /*서비스비용입금내역*/
+               LEFT OUTER JOIN TB_SVPD_SV_CS_DP_IZ T2 /*서비스비용입금내역*/
                        ON (    T2.CS_BIL_NO     = T0.CS_BIL_NO
                            AND T2.CST_SV_ASN_NO = T0.CST_SV_ASN_NO
                            AND T2.DTA_DL_YN = 'N'
                            AND T2.CAN_DV_CD IS NULL)
-               INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ T3  /*고객서비스작업결과내역*/
+               LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ T3  /*고객서비스작업결과내역*/
                        ON (    T3.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
                            AND T3.DTA_DL_YN     = 'N')
-               LEFT OUTER JOIN (SELECT  TS1.OG_ID /* 센터 */
-                                      , TS1.OG_NM /* 센터 ID */
+               LEFT OUTER JOIN (SELECT  TS1.OG_ID     /* 센터 */
+                                      , TS1.OG_NM     /* 센터 ID */
                                       , TS2.PRTNR_KNM /* 성명 */
-                                      , TS2.PRTNR_NO /* 번호 */
+                                      , TS2.PRTNR_NO  /* 번호 */
                                       , TS1.OG_TP_CD
                                       , TS1.BASE_YM
-                                  FROM  TB_OGBS_MM_OG_IZ TS1 /* 월조직내역 */
+                                  FROM  TB_OGBS_MM_OG_IZ TS1              /* 월조직내역 */
                                         LEFT JOIN TB_OGBS_MM_PRTNR_IZ TS2 /* 월파트너내역 */
-                                                  ON TS2.BASE_YM = TS1.BASE_YM /* 기준년월 */
+                                                  ON TS2.BASE_YM = TS1.BASE_YM       /* 기준년월 */
                                                      AND TS2.OG_TP_CD = TS1.OG_TP_CD /* 조직유형코드 */
-                                                     AND TS2.OG_ID = TS1.OG_ID /* 조직ID */
+                                                     AND TS2.OG_ID = TS1.OG_ID       /* 조직ID */
                                                      AND TS2.DTA_DL_YN = 'N'
                                  WHERE  1 = 1
                                    AND TS1.DTA_DL_YN  = 'N'
                                    AND TS1.BASE_YM <![CDATA[>=]]> SUBSTR(#{startDt},0,6)
                                    AND TS1.BASE_YM <![CDATA[<=]]> SUBSTR(#{endDt},0,6)
                                ) T4
-                            ON (    SUBSTR(T3.VST_FSH_DT,0,6) = T4.BASE_YM
-                                AND T4.PRTNR_NO               = T1.ICHR_PRTNR_NO
-                                AND T4.OG_TP_CD               = T1.OG_TP_CD)
+                            ON (    T4.BASE_YM  = SUBSTR(T1.CS_BIL_DT,0,6)
+                                AND T4.PRTNR_NO = T1.ICHR_PRTNR_NO
+                                AND T4.OG_TP_CD = T1.OG_TP_CD)
                LEFT OUTER JOIN (SELECT SS1.CNTR_NO                                    /* 계약번호 */
                                      , SS1.CNTR_SN                                    /* 계약일련번호 */
                                      , SS3.CNTR_CST_NO                                /* 고객번호 */
                                      , SS4.CST_KNM             AS CST_KNM
-                                     , SS4.CRAL_LOCARA_TNO                                /* 휴대폰 앞자리 */
-                                     , SS4.MEXNO_ENCR                                     /* 휴대폰 중간자리 */
-                                     , SS4.CRAL_IDV_TNO                                   /* 휴대폰 끝자리 */
+                                     , SS4.CRAL_LOCARA_TNO                            /* 휴대폰 앞자리 */
+                                     , SS4.MEXNO_ENCR                                 /* 휴대폰 중간자리 */
+                                     , SS4.CRAL_IDV_TNO                               /* 휴대폰 끝자리 */
                                      , SS2.PD_CD                                      /* 상품코드 */
                                      , SS2.PD_NM                                      /* 상품이름 */
                                      , SS2.SELL_TP_CD                                 /* 고객구분 */
@@ -108,14 +108,14 @@
                                  WHERE 1 = 1
                                    AND SS1.DTA_DL_YN ='N'
                                ) T5 /*고객정보 뽑기*/
-                            ON (    T5.CNTR_NO = T2.CNTR_NO
-                                AND T5.CNTR_SN = T2.CNTR_SN)
+                            ON (    T5.CNTR_NO = T0.CNTR_NO
+                                AND T5.CNTR_SN = T0.CNTR_SN)
                LEFT OUTER JOIN TB_SVPD_SV_CS_TXINV_IS_IZ T6
                             ON (    T6.CS_BIL_NO = T1.CS_BIL_NO
                                 AND T6.DTA_DL_YN = 'N')
                LEFT OUTER JOIN TB_RVDW_RFND_RCP_BAS T7 /*환불접수기본*/
-               				ON (    T7.CNTR_NO = T2.CNTR_NO
-                                AND T7.CNTR_SN = T2.CNTR_SN
+               				ON (    T7.CNTR_NO = T0.CNTR_NO
+                                AND T7.CNTR_SN = T0.CNTR_SN
                                 AND T7.CS_BIL_NO = T2.CS_BIL_NO    /* 20231116 - 현재  데이터 없음 */
                                 AND T7.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
                                 AND T7.DP_SN = T2.DP_SN   /* 20231116 - 현재  데이터 없음 */
@@ -142,7 +142,7 @@
         </if>
 
         <if test='@MybatisUtils@isNotEmpty(stlmDvCd)'>
-          AND LPAD(T2.STLM_DV_CD,2,0) = #{stlmDvCd}
+          AND LPAD(T1.STLM_DV_CD,2,0) = #{stlmDvCd}
         </if>
         ORDER BY T3.VST_FSH_DT , T4.OG_ID , T2.DP_DTM
     </select>
@@ -160,8 +160,8 @@
                      , T4.OG_NM                                                    /* 센터명 */
                      , T1.ICHR_PRTNR_NO                                            /* 담당파트너번호 */
                      , T4.PRTNR_KNM                                                /* 담당파트너명 */
-                     , T2.CNTR_NO
-                     , T2.CNTR_SN
+                     , T0.CNTR_NO
+                     , T0.CNTR_SN
                      , T5.CNTR_CST_NO                                               /* 고객번호 */
                      , T5.CST_KNM                                                   /* 고객명 */
                      , T5.CRAL_LOCARA_TNO                                           /* 휴대폰 앞자리 */
@@ -173,7 +173,7 @@
                      , (SELECT SV_BIZ_DCLSF_CD
                           FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
                          WHERE 1 = 1
-                           AND CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                           AND CST_SV_ASN_NO = T0.CST_SV_ASN_NO
                            AND DTA_DL_YN ='N' )                  AS SV_BIZ_DCLSF_CD /* 고객서비스AS설치배정내역 */  /*서비스유형*/
                      , T0.BIL_OJ_AMT - T0.BIL_CTR_SUM_AMT           AS BIL_AMT         /* 청구금액 */
                      , T2.DP_SUM_AMT                             AS DP_SUM_AMT      /* 대사금액 */
@@ -189,14 +189,14 @@
                              END AS CARD_APRNO
                      , NVL2(T6.CS_BIL_NO,'Y','N')                AS TAX_BLL         /*세금계산서*/
                   FROM TB_SVPD_SV_CS_BIL_BAS T1  /*서비스비용청구기본*/
-                       INNER JOIN TB_SVPD_SV_CS_BIL_IZ T0
+                       LEFT OUTER JOIN TB_SVPD_SV_CS_BIL_IZ T0
                                ON (T1.CS_BIL_NO = T0.CS_BIL_NO)
-                       INNER JOIN TB_SVPD_SV_CS_DP_IZ T2 /*서비스비용입금내역*/
+                       LEFT OUTER JOIN TB_SVPD_SV_CS_DP_IZ T2 /*서비스비용입금내역*/
                                ON (    T2.CS_BIL_NO     = T0.CS_BIL_NO
                                    AND T2.CST_SV_ASN_NO = T0.CST_SV_ASN_NO
                                    AND T2.DTA_DL_YN = 'N'
                                    AND T2.CAN_DV_CD IS NULL)
-                       INNER JOIN TB_SVPD_CST_SV_WK_RS_IZ T3  /*고객서비스작업결과내역*/
+                       LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ T3  /*고객서비스작업결과내역*/
                                ON (    T3.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
                                    AND T3.DTA_DL_YN     = 'N')
                        LEFT OUTER JOIN (SELECT  TS1.OG_ID /* 센터 */
@@ -216,9 +216,9 @@
                                            AND TS1.BASE_YM <![CDATA[>=]]> SUBSTR(#{startDt},0,6)
                                            AND TS1.BASE_YM <![CDATA[<=]]> SUBSTR(#{endDt},0,6)
                                        ) T4
-                                    ON (    SUBSTR(T3.VST_FSH_DT,0,6) = T4.BASE_YM
-                                        AND T4.PRTNR_NO               = T1.ICHR_PRTNR_NO
-                                        AND T4.OG_TP_CD               = T1.OG_TP_CD)
+                                    ON (    T4.BASE_YM   =  SUBSTR(T1.CS_BIL_DT,0,6)
+                                        AND T4.PRTNR_NO  = T1.ICHR_PRTNR_NO
+                                        AND T4.OG_TP_CD  = T1.OG_TP_CD)
                        LEFT OUTER JOIN (SELECT SS1.CNTR_NO                                    /* 계약번호 */
                                              , SS1.CNTR_SN                                    /* 계약일련번호 */
                                              , SS3.CNTR_CST_NO                                /* 고객번호 */
@@ -241,14 +241,14 @@
                                          WHERE 1 = 1
                                            AND SS1.DTA_DL_YN ='N'
                                        ) T5 /*고객정보 뽑기*/
-                                    ON (    T5.CNTR_NO = T2.CNTR_NO
-                                        AND T5.CNTR_SN = T2.CNTR_SN)
+                                    ON (    T5.CNTR_NO = T0.CNTR_NO
+                                        AND T5.CNTR_SN = T0.CNTR_SN)
                        LEFT OUTER JOIN TB_SVPD_SV_CS_TXINV_IS_IZ T6
                                     ON (    T6.CS_BIL_NO = T1.CS_BIL_NO
                                         AND T6.DTA_DL_YN = 'N')
                        LEFT OUTER JOIN TB_RVDW_RFND_RCP_BAS T7 /*환불접수기본*/
-               				ON (    T7.CNTR_NO = T2.CNTR_NO
-                                AND T7.CNTR_SN = T2.CNTR_SN
+               				ON (    T7.CNTR_NO = T0.CNTR_NO
+                                AND T7.CNTR_SN = T0.CNTR_SN
                                 AND T7.CS_BIL_NO = T2.CS_BIL_NO    /* 20231116 - 현재  데이터 없음 */
                                 AND T7.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
                                 AND T7.DP_SN = T2.DP_SN   /* 20231116 - 현재  데이터 없음 */
@@ -275,7 +275,7 @@
                 </if>
 
                 <if test='@MybatisUtils@isNotEmpty(stlmDvCd)'>
-                  AND LPAD(T2.STLM_DV_CD,2,0) = #{stlmDvCd}
+                  AND LPAD(T1.STLM_DV_CD,2,0) = #{stlmDvCd}
                 </if>
         )
     </select>

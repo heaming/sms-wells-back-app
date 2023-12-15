@@ -93,7 +93,7 @@ public class WsnaStockAcinspRgstMngtDto {
         int cnfmPitmOstrGapQty, /* 확정시점출고차이수량 */
         int diffQty, /* 확정차이수량 */
         String iostRfdt, /* 입출고반영일자 */
-        String acinspAkId /* 실사요청ID */
+        String stocAcinspAkId /* 재고실사요청ID */
     ) {}
 
     @ApiModel("WsnaStockAcinspRgstMngtDto-SaveAcinspCnfmReq")

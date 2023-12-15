@@ -55,7 +55,7 @@
                      , A.CLCTAM_PRTNR_NO
                      , A.NICE_FW_EXCD_YN
                ) X
-         LEFT JOIN (SELECT CST_NO
+          LEFT JOIN (SELECT CST_NO
                        FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ /*T:채권접촉제외대상내역*/
                        WHERE CTNT_EXCD_BND_BIZ_CD = '02'           /*연락제외채권업무코드-02:렌탈CB*/
                          AND CTNT_EXCD_OJ_TP_CD = '01'             /*연락제외대상유형코드-01:고객번호*/
@@ -116,7 +116,7 @@
                   FROM (SELECT TT1.MPY_BSDT
                              , ROWNUM
                           FROM TB_SSCT_CNTR_STLM_BAS TT1
-                         WHERE TT1.CST_NO = T3.CNTR_CST_NO
+                         WHERE TT1.CST_NO = T3.CST_NO
                            AND TT1.CNTR_NO = T3.CNTR_NO
                          ORDER BY TT1.FNL_MDFC_DTM DESC)
                  WHERE ROWNUM = 1) AS MPY_BSDT /*자동이체 약정일자*/
@@ -143,36 +143,45 @@
              , '1588-4113' AS DSPH_TNO              /*발신번호*/
              , (CASE WHEN X.NICE_FW_EXCD_YN = 'N' THEN TO_CHAR(TO_DATE(SUBSTR(T8.FWBOO_DTM,1,8),'YYYYMMDD')+4,'YYYYMMDD') ELSE '' END) AS RGST_SCH_DT /*NICE등록예정일자-알림톡발송일자+4일*/
           FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X /*T:WELLS렌탈CB연체내역*/
-          INNER JOIN TB_CUBS_CST_BAS T2 /*T:고객기본*/
-             ON T2.CST_NO = X.CST_NO
-          INNER JOIN TB_SSCT_CNTR_BAS T3 /*T:계약기본*/
-             ON T3.CNTR_NO = X.CNTR_NO
-            AND T3.CNTR_CST_NO = X.CST_NO
-          INNER JOIN TB_SSCT_CNTR_DTL T5 /*T:계약상세*/
-             ON T5.CNTR_NO = T3.CNTR_NO
-           LEFT JOIN TB_PDBS_PD_BAS T6 /*T:상품기본*/
-             ON T6.PD_CD = T5.BASE_PD_CD
-           LEFT JOIN TB_PDBS_PD_CLSF_BAS T7 /*T:상품분류기본*/
-             ON T7.PD_CLSF_ID = T6.PD_CLSF_ID
-           LEFT JOIN TB_CBBO_BND_MSG_RELY_IZ T8 /*T:채권메시지중계내역*/
-             ON T8.CST_NO = X.CST_NO
-            AND T8.FW_BIZ_NM = 'BN_KAKAO_MESSAGE'    /*발송업무명*/
-            AND T8.MSG_FW_TP_CD = '01'               /*메시지발송유형코드-01:카카오알림톡*/
-            AND T8.BND_MSG_TP_VAL1 = 'B'             /*채권알림톡업무코드-B:예고관련*/
-            AND T8.BND_MSG_TP_VAL2 = 'B05'           /*채권알림톡업무상세코드-B05:렌탈CB연체정보등록 예고*/
-            AND SUBSTR(T5.FST_RGST_DTM,1,8) = X.NOTY_TRS_DT  /*알림전송일자*/
-           LEFT JOIN ATA_MMT_TRAN T9 /*T:알림톡전송*/
-             ON T9.TEMPLATE_CODE = 'wells18153'      /*템플릿코드*/
-            AND T9.RESERVED2 = T8.BND_MSG_RELY_ID            /*채권메시지중계ID*/
-            AND T9.RESERVED3 = T8.FW_BIZ_NM                  /*발송업무명*/
-            AND T9.RESERVED4 = T8.BND_MSG_TP_VAL1            /*채권알림톡업무코드*/
-            AND T9.RESERVED5 = T8.BND_MSG_TP_VAL2            /*채권알림톡업무상세코드*/
-          WHERE 1 = 1
-            AND X.RENTAL_CB_RGST_DV_CD IN ('1','3')  /*렌탈CB등록구분코드-1:발생,3:변동*/
-            AND T5.SELL_TP_DTL_CD IN ('22','24')
-            AND NVL(X.DLQ_BLAM,0) > 0               /*연체잔액*/
-            AND X.DTA_DL_YN = 'N'
-            AND SUBSTR(X.OC_BSDT,1,6) LIKE #{baseYm}||'%' /*발생기준일자*/
+         INNER JOIN TB_CUBS_CST_BAS T2 /*T:고객기본*/
+            ON T2.CST_NO = X.CST_NO
+         INNER JOIN (SELECT *
+                       FROM TB_CBBO_BND_CNTR_BAS
+                      WHERE BND_BIZ_DV_CD IN ('L20','L21')  /*채권업무구분코드- L20:렌탈 L21:리스 */
+                        AND BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')
+                        AND DTA_DL_YN = 'N'
+                    )T3 /*T:채권계약기본*/
+            ON T3.CST_NO = X.CST_NO
+           AND T3.CNTR_NO = X.CNTR_NO
+         INNER JOIN TB_SSCT_CNTR_DTL T5 /*T:계약상세*/
+            ON T5.CNTR_NO = T3.CNTR_NO
+           AND T5.CNTR_SN = T3.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS T6 /*T:상품기본*/
+            ON T6.PD_CD = T5.BASE_PD_CD
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T7 /*T:상품분류기본*/
+            ON T7.PD_CLSF_ID = T6.PD_CLSF_ID
+          LEFT OUTER JOIN (SELECT *
+                             FROM TB_CBBO_BND_MSG_RELY_IZ
+                            WHERE FW_BIZ_NM = 'BN_KAKAO_MESSAGE'    /*발송업무명*/
+                              AND MSG_FW_TP_CD = '01'               /*메시지발송유형코드-01:카카오알림톡*/
+                              AND BND_MSG_TP_VAL1 = 'B'             /*채권알림톡업무코드-B:예고관련*/
+                              AND BND_MSG_TP_VAL2 = 'B05'           /*채권알림톡업무상세코드-B05:렌탈CB연체정보등록 예고*/
+                          ) T8 /*T:채권메시지중계내역*/
+            ON T8.CST_NO = X.CST_NO
+           AND SUBSTR(T5.FST_RGST_DTM,1,8) = X.NOTY_TRS_DT  /*알림전송일자*/
+          LEFT OUTER JOIN (SELECT *
+                             FROM ATA_MMT_TRAN
+                            WHERE TEMPLATE_CODE = 'wells18153'      /*템플릿코드*/
+                          ) T9 /*T:알림톡전송*/
+            ON T9.RESERVED2 = T8.BND_MSG_RELY_ID            /*채권메시지중계ID*/
+           AND T9.RESERVED3 = T8.FW_BIZ_NM                  /*발송업무명*/
+           AND T9.RESERVED4 = T8.BND_MSG_TP_VAL1            /*채권알림톡업무코드*/
+           AND T9.RESERVED5 = T8.BND_MSG_TP_VAL2            /*채권알림톡업무상세코드*/
+         WHERE 1 = 1
+           AND X.RENTAL_CB_RGST_DV_CD IN ('1','3')  /*렌탈CB등록구분코드-1:발생,3:변동*/
+           AND NVL(X.DLQ_BLAM,0) > 0               /*연체잔액*/
+           AND X.DTA_DL_YN = 'N'
+           AND SUBSTR(X.OC_BSDT,1,6) LIKE #{baseYm}||'%' /*발생기준일자*/
         <if test="@MybatisUtils@isNotEmpty(cstNo)">
            AND X.CST_NO = #{cstNo}                  /*고객번호*/
         </if>
@@ -189,14 +198,23 @@
 
     <update id="updateMessageObjectYn" >
         /* 렌탈CB 연체정보 조회 - 저장(알림톡 대상 선정) */
-        UPDATE TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ
-           SET NOTY_FW_OJ_YN = 'Y'
-        <include refid="COMMON.updateSystemField"/>
-         WHERE 1 = 1
-           AND CST_NO = #{cstNo}
-           AND OC_BSDT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')||'%'
-           AND NVL(NOTY_RCV_YN,'N') = 'N'
+        UPDATE TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ A /*T:WELLS렌탈CB연체내역*/
+           SET A.NOTY_TRS_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND A.CST_NO = #{cstNo}
+           AND A.OC_BSDT LIKE #{baseYm}||'%'
+           AND A.NOTY_FW_OJ_YN = 'Y'
+           AND A.DTA_DL_YN = 'N'
+           AND NOT EXISTS (SELECT 1
+                             FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ /*T:채권접촉제외대상내역*/
+                            WHERE CST_NO = A.CST_NO
+                              AND CTNT_EXCD_BND_BIZ_CD = '02'           /*연락제외채권업무코드-02:렌탈CB*/
+                              AND CTNT_EXCD_OJ_TP_CD = '01'             /*연락제외대상유형코드-01:고객번호*/
+                              AND CTNT_EXCD_MEDI_TP_CD IN ('02','03')   /*연락제외매체유형코드-02:문자,03:알림톡*/
+                              AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT /*적용시작일자~종료일자*/)
     </update>
+
     <insert id="insertMessageObjectHist" >
         /* 렌탈CB 연체정보 조회 - 저장(이력) */
         INSERT INTO TB_CBBO_RENTAL_CB_DLQ_HIST ( /*T:렌탈CB연체이력*/
@@ -256,7 +274,7 @@
           FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ /*T:WELLS렌탈CB연체내역*/
          WHERE 1 = 1
            AND CST_NO = #{cstNo}
-           AND OC_BSDT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')||'%'
+           AND OC_BSDT LIKE #{baseYm}||'%'
            AND NOTY_FW_OJ_YN = 'Y'
     </insert>
 
@@ -296,20 +314,14 @@
                          AND X6.RVE_PROCS_YN = 'Y'  /* 수납처리여부 */
                          AND X6.DP_DV_CD IN ('1','3')  /* 입금구분코드-1:입금,3:전금입금 */
                          AND X6.DP_MES_CD IN ('01','02')  /* 입금수단코드-01:현금,02:신용카드 */
-                         AND X6.RVE_DT <![CDATA[>=]]> TO_CHAR(ADD_MONTHS(TO_DATE(B1.OC_BSDT, 'YYYYMMDD'),-1), 'YYYYMM') ||'01'
-                     ),0) AS DLQ_BLAM              /* 연체잔액 */
-             , (SELECT S1.CLCTAM_PRTNR_NO
-                  FROM TB_CBBO_BND_CNTR_BAS S1 /*T:채권계약기본*/
-                 WHERE S1.BASE_YM = SUBSTR(B1.OC_BSDT,1,6)
-                   AND S1.CNTR_NO = B1.CNTR_NO
-                   AND ROWNUM = 1) AS CLCTAM_PRTNR_NO                                                                /*집금담당자번호*/
-             , (SELECT S1.PRTNR_KNM
-                  FROM TB_CBBO_CLCTAM_PRTNR_DTL S1 /*T:집금파트너상세*/
-                 WHERE S1.PRTNR_NO = (SELECT S1.CLCTAM_PRTNR_NO FROM TB_CBBO_BND_CNTR_BAS S1 /*T:채권계약기본*/
-                                       WHERE S1.BASE_YM = SUBSTR(B1.OC_BSDT,1,6)
-                                         AND S1.CNTR_NO = B1.CNTR_NO
-                                         AND ROWNUM = 1)
-                   AND ROWNUM = 1) AS PRTNR_KNM                                                                      /*집금담당자명*/
+                         AND X6.RVE_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(B1.OC_BSDT, 'YYYYMMDD'),-1), 'YYYYMM') ||'01'
+                                           AND TO_CHAR(ADD_MONTHS(TO_DATE(B1.OC_BSDT,'YYYYMMDD'),-1), 'YYYYMM')
+                                               || LPAD(NVL(B1.MPY_BSDT, '31'), 2, '0')), 0) AS DLQ_BLAM              /* 연체잔액 */
+              , B1.CLCTAM_PRTNR_NO                                                                                   /* 집금담당자번호 */
+              , (SELECT X5.PRTNR_KNM
+                   FROM TB_CBBO_CLCTAM_PRTNR_DTL X5  /* 집금파트너상세 */
+                  WHERE X5.PRTNR_NO = B1.CLCTAM_PRTNR_NO
+                    AND X5.OG_TP_CD = 'HR1') AS PRTNR_KNM                                                            /* 집금담당자명 */
               , '1588-4113' AS DSPH_TNO                                                                              /* 발신번호 */
               , TO_CHAR(TO_DATE(B1.FWBOO_DT, 'YYYYMMDD') + 4,'YYYYMMDD') AS RGST_SCH_DT                              /* 등록예정일자-알림톡발송일자+4일 */
               , B1.NICE_FW_EXCD_YN                                                                                   /* NICE발송제외여부 */
@@ -380,6 +392,6 @@
                   AND A1.CST_NO = #{cstNo}
                   AND A1.OC_BSDT LIKE #{baseYm}||'%' /*발생기준일자*/
               ) B1
-        WHERE 1=1
+         WHERE 1=1
     </select>
 </mapper>

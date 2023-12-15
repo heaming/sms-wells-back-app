@@ -28,7 +28,7 @@ public class WsnaStockAcinspRgstMngtDvo {
     String wareDtlDvCd; /* 창고상세구분코드 */
     String searchWareNo; /* 조회창고번호 */
     String useYn; /* 사용여부 */
-    String acinspAkId; /* 실사요청ID */
+    String stocAcinspAkId; /*재고실사요청ID*/
 
     String pdCd; /* 상품코드 */
     String pitmStocAGdQty; /* 시점재고A등급수량 */

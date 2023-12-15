@@ -72,7 +72,7 @@ public class WwdbDepositAggregateDtlServiceCenterDto {
         String vacBnkCd, /*은행코드*/
         String csBilNo, /*비용청구번호*/
         String cstSvAsnNo, /*고객서비스배정번호*/
-        int dpSn, /*입금일련번호*/
+        String dpSn, /*입금일련번호*/
         String itgDpNo, /*통합입금번호*/
         String adpBilOjYn /*합산청구여부*/
     ) {

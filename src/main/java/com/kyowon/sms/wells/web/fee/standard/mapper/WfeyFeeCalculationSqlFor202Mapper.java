@@ -24,7 +24,21 @@ public interface WfeyFeeCalculationSqlFor202Mapper {
     );
 
     /**
-    * M조직 지국장 조직배출수수료계산 SQL Mapper (W020016, 5)
+    * M조직 지국장 조직배출수수료계산 SQL Mapper (W020015, 7)
+    *
+    * @param baseYm      기준년월
+    * @param ogTpCd      조직유형코드
+    * @param feeCd       수수료코드
+    * @param feeTcntDvCd 수수료차수구분코드
+    * @return 처리개수
+    */
+    @SqlMethodInfo(methodTypeCode = "01", methodName = "M조직 지국장 조직배출1 수수료(202308)", methodExplanation = "M조직 지국장 조직배출1 수수료 계산 SQL 매퍼")
+    Integer insertOrganizationEjectFee1(
+        String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String feeTcntDvCd, String fnlFeeYn
+    );
+
+    /**
+    * M조직 지국장 조직배출1(202308) SQL Mapper (W020016, 5)
     *
     * @param baseYm      기준년월
     * @param ogTpCd      조직유형코드
@@ -33,7 +47,7 @@ public interface WfeyFeeCalculationSqlFor202Mapper {
     * @return 처리개수
     */
     @SqlMethodInfo(methodTypeCode = "01", methodName = "M조직 지국장 조직배출수수료(202308)", methodExplanation = "M조직 지국장 조직배출수수료 계산 SQL 매퍼")
-    Integer insertOrganizationEjectFee2308(
+    Integer insertOrganizationEjectFeeNewBase(
         String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String feeTcntDvCd, String fnlFeeYn
     );
 

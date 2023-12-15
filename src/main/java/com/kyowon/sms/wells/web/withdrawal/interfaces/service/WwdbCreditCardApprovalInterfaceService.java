@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import com.kyowon.sflex.common.common.service.BatchCallService;
+import com.kyowon.sms.common.web.withdrawal.common.dto.ZwwdbFinanceCodesDto;
+import com.kyowon.sms.common.web.withdrawal.common.mapper.ZwwdbFinanceCodesMapper;
 import com.kyowon.sms.common.web.withdrawal.idvrve.service.ZwdbCreditCardApprovalService;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dto.ZwdzWithdrawalDto;
 import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalContractDvo;
@@ -19,6 +21,7 @@ import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaCreditCardApproval
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdbCreditCardApprovalInterfaceDvo;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdbCreditCardApprovalInterfaceMapper;
 import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.common.utils.StringUtil;
 import com.ubintis.common.util.DateUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +38,7 @@ public class WwdbCreditCardApprovalInterfaceService {
     private final WwdbCreditCardApprovalInterfaceConverter converter;
 
     private final WwdbCreditCardApprovalInterfaceMapper creditCardAprovalInterfaceMapper;
+    private final ZwwdbFinanceCodesMapper financeCodesMapper;
 
     public WwdaCreditCardApprovalInterfaceDto.SaveRes createCreditCardApproval(
         WwdaCreditCardApprovalInterfaceDto.SaveReq dto
@@ -47,6 +51,82 @@ public class WwdbCreditCardApprovalInterfaceService {
 
         String returnRsCd = "F";
         String returnRsNm = "실패";
+
+        /* 데이터 존재 여부 확인 */
+        if (StringUtil.isEmpty(dto.cntrNo())) {
+            returnRsCd = "F";
+            returnRsNm = "계약번호는 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        }
+        if (StringUtil.isEmpty(dto.cntrSn())) {
+            returnRsCd = "F";
+            returnRsNm = "계약일련번호는 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        }
+        if (StringUtil.isEmpty(dto.fnitCd())) {
+            returnRsCd = "F";
+            returnRsNm = "금융기관코드는 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        } else {
+            ZwwdbFinanceCodesDto.SearchReq searchReq = new ZwwdbFinanceCodesDto.SearchReq("2", "003");
+            List<ZwwdbFinanceCodesDto.SearchRes> fintInfos = financeCodesMapper.selectFinanceBureauCodes(searchReq);
+            if (fintInfos.stream().filter(item -> dto.fnitCd().equals(item.codeId())).count() < 1) {
+                returnRsCd = "F";
+                returnRsNm = "유효하지 않은 금융기관코드 입니다.";
+                return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+            }
+        }
+        if (StringUtil.isEmpty(dto.rveDvCd())) {
+            returnRsCd = "F";
+            returnRsNm = "수납구분코드는 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        }
+        if (StringUtil.isEmpty(dto.indvEntrpDvCd())) {
+            returnRsCd = "F";
+            returnRsNm = "개인사업자구분은 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        }
+        if ("J".equals(dto.indvEntrpDvCd()) && StringUtil.isEmpty(dto.bryyMmddBzopNo())) {
+            returnRsCd = "F";
+            returnRsNm = "개인의 경우 생년월일은 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        }
+        if ("S".equals(dto.indvEntrpDvCd()) && StringUtil.isEmpty(dto.bryyMmddBzopNo())) {
+            returnRsCd = "F";
+            returnRsNm = "사업자의 경우 사업자번호는 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        }
+        if (StringUtil.isEmpty(dto.cardNo())) {
+            returnRsCd = "F";
+            returnRsNm = "카드번호는 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        }
+        if (StringUtil.isEmpty(dto.crdcdExpdtYm())) {
+            returnRsCd = "F";
+            returnRsNm = "카드 유효기간은 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        }
+        if (StringUtil.isEmpty(dto.rveCd())) {
+            returnRsCd = "F";
+            returnRsNm = "수납코드는 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        }
+        if (StringUtil.isEmpty(dto.ogTpCd())) {
+            returnRsCd = "F";
+            returnRsNm = "파트너의 조직유형코드는 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        }
+        if (StringUtil.isEmpty(dto.prtnrNo())) {
+            returnRsCd = "F";
+            returnRsNm = "파트너번호는 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        }
+        if (StringUtil.isEmpty(dto.aprPsicId())) {
+            returnRsCd = "F";
+            returnRsNm = "승인담당자 필수 입니다.";
+            return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+        }
+
         ZwdzWithdrawalContractDvo contractDvo = new ZwdzWithdrawalContractDvo();
         contractDvo.setCntrNo(dto.cntrNo());
         contractDvo.setCntrSn(dto.cntrSn());
