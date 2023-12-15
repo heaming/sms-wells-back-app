@@ -1,12 +1,12 @@
 package com.kyowon.sms.wells.web.service.stock.converter;
 
-import org.mapstruct.Mapper;
-
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto.*;
 
 import java.util.List;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto.*;
+import org.mapstruct.Mapper;
+
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo;
 
 @Mapper(componentModel = "spring")
 public interface WsnaStockAcinspRgstMngtConverter {
@@ -20,9 +20,5 @@ public interface WsnaStockAcinspRgstMngtConverter {
     List<WsnaStockAcinspRgstMngtDvo> mapAllDeleteAcinspReqToWsnaStockAcinspRgstMngtDvo(List<SaveCancelReq> dtos);
 
     List<WsnaStockAcinspRgstMngtDvo> mapAllDeleteApplAcinspReqToWsnaStockAcinspRgstMngtDvo(List<RemoveReq> dtos);
-
-    //    List<WsnaStockAcinspRgstMngtDvo> mapAllSaveAcinspCnfmReReqToWsnaStockAcinspRgstMngtDvo(
-    //        List<WsnaStockAcinspRgstMngtDvo> reSearchDvo
-    //    );
 
 }
