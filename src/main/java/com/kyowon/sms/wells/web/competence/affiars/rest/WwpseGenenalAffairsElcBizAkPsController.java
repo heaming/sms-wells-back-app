@@ -44,7 +44,7 @@ public class WwpseGenenalAffairsElcBizAkPsController {
         return service.getGenenalAffairsElcBizAkPsPages(dto, pageInfo);
     }
 
-    @ApiOperation(value = "총무전자업무요청 업무요청타입", notes = "")
+    @ApiOperation(value = "총무전자업무요청 현황 업무요청타입", notes = "")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
