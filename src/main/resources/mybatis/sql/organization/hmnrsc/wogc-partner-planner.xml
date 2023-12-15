@@ -1161,7 +1161,7 @@
             <if test="@MybatisUtils@isNotEmpty(rsbDvCd)">
              AND D1.RSB_DV_CD = #{rsbDvCd}  -- 공통코드 RSB_DV_CD 전체시 전체조회
             </if>
-             AND ('Y' = 'Y' OR 'ALL' = 'Y' ) -- 활동 체크박스 미체크 : ALL, 체크 Y 으로 쿼리에서 분기 하시면 쉽습니다. 즉, ALL 은 UNION ALL 먹고, 활동 Y 는 위 쿼리만 실행
+             AND ('Y' = #{actiYn} OR 'ALL' = #{actiYn} ) -- 활동 체크박스 미체크 : ALL, 체크 Y 으로 쿼리에서 분기 하시면 쉽습니다. 즉, ALL 은 UNION ALL 먹고, 활동 Y 는 위 쿼리만 실행
               /*즉, 'Y' =  OR 'ALL' =  는 픽스이고 뒤에 'Y' 는 파라미터*/
             <if test='@MybatisUtils@equals(wmYn,"3")'>
                 AND NVL(I2.QLF_DV_CD, 'X') = '3'-- 화면에서 WM 체크시 '3' 을 넣고 NULL 이면 그대로 매핑
@@ -1178,95 +1178,95 @@
         <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
             AND B1.CRAL_IDV_TNO = #{cralIdvTno}
         </if>
-        <if test='@MybatisUtils@equals(actiYn,"Y")'>
-            UNION ALL
-            SELECT  /*+ no_merge(T) use_hash(T) */
-                   NVL(I1.DGR2_LEVL_OG_CD, I1.OG_CD)  AS DGR2_LEVL_OG_CD --"지역단"
-                 , NVL(I1.DGR2_LEVL_OG_NM, I1.OG_NM)  AS DGR2_LEVL_OG_NM --"지역단명"
-                 , I1.OG_CD AS OG_CD --"현재소속"
-                 , I1.OG_NM AS OG_NM --"현재소속명"
-                 , NVL(I2.OG_CD, I1.OG_CD) AS PRE_OG_CD --"전월소속"
-                 , NVL(I2.OG_NM, I1.OG_NM) AS PRE_OG_NM --"전월소속명"
-                 , I1.BLD_NM AS BLD_NM --"빌딩명"
-                 , B1.PRTNR_NO  AS PRTNR_NO --"업무등록번호"
-                 , B1.PRTNR_KNM AS PRTNR_KNM --"이름"
-                 , NVL(CASE WHEN B1.OG_TP_CD = 'W01' AND D1.PSTN_DV_CD = '15' THEN F_CMZ_CD_NM('TNT_WELLS', 'PQLF_DV_CD', I2.QLF_DV_CD)
-                            WHEN B1.OG_TP_CD <![CDATA[<>]]> 'W01' AND D1.PSTN_DV_CD = '15' THEN F_CMZ_CD_NM('TNT_WELLS', 'QLF_DV_CD', I2.QLF_DV_CD)
-                        END ,  F_CMZ_CD_NM('TNT_WELLS', 'RSB_DV_CD', I2.RSB_DV_CD)
-                   ) AS RSB_DV_NM --"직급"
-                 , CASE WHEN B1.CRAL_LOCARA_TNO IS NOT NULL THEN B1.CRAL_LOCARA_TNO || '-' || B1.MEXNO_ENCR || '-' || B1.CRAL_IDV_TNO
-                   ELSE NULL
-                   END AS FULL_CRAL_LOCARA_TNO --"연락처"  -- 연락처 중간자리는 암호화 컬럼에 따라 JAVA 에서 복호화 해서 보여줘야 합니다.
-                 , B1.CRAL_LOCARA_TNO
-                 , B1.MEXNO_ENCR
-                 , B1.CRAL_IDV_TNO
-                 , CASE WHEN B1.RRNO_FRPSN_VAL IS NOT NULL THEN B1.RRNO_FRPSN_VAL || '-' || B1.RRNO_ENCR
-                   ELSE NULL
-                   END AS FULL_RRNO_FRPSN_VAL --"주민등록번호"
-                 , B1.RRNO_FRPSN_VAL
-                 , B1.RRNO_ENCR
-                 , D1.FST_CNTR_DT AS FST_CNTR_DT --"업무등록일"
-                 , NVL(D1.PRFMT_DT, D1.DMTN_DT) AS PRFMT_DT --"승진/강등일"
-                 , D1.CNTR_DT AS CNTR_DT --"재등록일"
-                 , D1.CLTN_DT AS --"업무해약일"
-                 , D1.FNL_CLTN_DT AS FNL_CLTN_DT --"최종해약일"
-                 , CASE WHEN I2.QLF_DV_CD  = '3' THEN 'Y' ELSE 'N' END AS QLF_DV_CD -- "매니저"
-                 , T.CON_DT AS CON_DT --"계약일"
-                 , CASE WHEN T.CON_DT = T.RECON_DT THEN CASE WHEN T.RECON_DT2 = T.RECON_DT THEN NULL ELSE T.RECON_DT2 END
-                   ELSE T.RECON_DT
-                   END AS RECON_DT --"재등록일"
-                 , CASE WHEN T.FIRE_DT = '99991231' THEN NULL
-                   ELSE T.FIRE_DT
-                   END AS FIRE_DT --"해약일"
-                 , I3.RCMDR_PRTNR_NO AS RCMDR_PRTNR_NO --"업무등록번호"
-                 , B2.PRTNR_KNM      AS PRTNR_NM --"이름"
-              FROM TB_OGBS_PRTNR_BAS B1
-             INNER JOIN TB_OGBS_PRTNR_DTL D1 ON D1.OG_TP_CD = B1.OG_TP_CD AND D1.PRTNR_NO = B1.PRTNR_NO
-             INNER JOIN TB_OGBS_MM_OG_IZ I1 ON I1.BASE_YM = SUBSTR(D1.CLTN_DT, 1, 6) AND I1.OG_ID = B1.OG_ID
-             INNER JOIN TB_OGBS_MM_PRTNR_IZ I2 ON I2.BASE_YM = TO_CHAR(ADD_MONTHS(D1.CLTN_DT,  -1),'YYYYMM') AND I2.OG_TP_CD = B1.OG_TP_CD  AND I2.PRTNR_NO = B1.PRTNR_NO
-             LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ I3 ON I3.BASE_YM = SUBSTR(D1.CLTN_DT, 1, 6) AND I3.OG_TP_CD = B1.OG_TP_CD  AND I3.PRTNR_NO = B1.PRTNR_NO
-             LEFT OUTER JOIN TB_OGBS_PRTNR_BAS B2 ON B2.OG_TP_CD = I3.OG_TP_CD  AND B2.PRTNR_NO = I3.RCMDR_PRTNR_NO
-             LEFT OUTER JOIN (
-             SELECT OG_TP_CD
-                 , PRTNR_NO
-                 , MIN(STRTDT) AS CON_DT
-                 , MAX(STRTDT) AS RECON_DT
-                 , CASE WHEN MAX(PYMDT) = '0' THEN NULL ELSE MAX(PYMDT) END  AS RECON_DT2
-                 , MAX(ENDDT)  AS FIRE_DT
-              FROM TB_OGPS_PLAR_QLF_CH_IZ
-             WHERE QLF_DV_CD = '3'
-            GROUP BY OG_TP_CD
-                 , PRTNR_NO
-                             ) T ON T.OG_TP_CD = B1.OG_TP_CD AND T.PRTNR_NO = B1.PRTNR_NO
-             WHERE 1 =1
-                 AND D1.CLTN_DT IS NOT NULL
-                <if test="@MybatisUtils@isNotEmpty(prtnrKnm)">
-                AND B1.PRTNR_KNM LIKE #{prtnrKnm} || '%'
-                 </if>
-                <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
-                AND B1.PRTNR_NO = #{prtnrNo}
-                </if>
-                 <if test="@MybatisUtils@isNotEmpty(rsbDvCd)"  >
-                 AND D1.RSB_DV_CD = #{rsbDvCd}  -- 공통코드 RSB_DV_CD , 전체시 전체조회
-                 </if>
-                 AND 'ALL' =  'Y' -- 활동 체크박스 미체크 : ALL, 체크 Y 으로 쿼리에서 분기 하시면 쉽습니다. 즉, ALL 은 UNION ALL 먹고, 활동 Y 는 위 쿼리만 실행
-                 /*즉, 'ALL' = 는 픽스이고 뒤에 'Y' 는 파라미터*/
-                <if test='@MybatisUtils@equals(wmYn,"3")'>
-                AND NVL(I2.QLF_DV_CD, 'X') = '3'-- 화면에서 WM 체크시 '3' 을 넣고 NULL 이면 그대로 매핑
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(schOjBlamStrt)">
-                    AND ( I1.OG_CD >= #{schOjBlamStrt} AND I1.OG_CD<![CDATA[ <= ]]>NVL(#{schOjBlamEnd},#{schOjBlamStrt} ) )
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
-                    AND  B1.CRAL_LOCARA_TNO = #{cralLocaraTno}
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
-                    AND B1.MEXNO_ENCR = #{mexnoEncr}
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
-                    AND B1.CRAL_IDV_TNO = #{cralIdvTno}
-                </if>
-        </if>
+
+        UNION ALL
+        SELECT  /*+ no_merge(T) use_hash(T) */
+               NVL(I1.DGR2_LEVL_OG_CD, I1.OG_CD)  AS DGR2_LEVL_OG_CD --"지역단"
+             , NVL(I1.DGR2_LEVL_OG_NM, I1.OG_NM)  AS DGR2_LEVL_OG_NM --"지역단명"
+             , I1.OG_CD AS OG_CD --"현재소속"
+             , I1.OG_NM AS OG_NM --"현재소속명"
+             , NVL(I2.OG_CD, I1.OG_CD) AS PRE_OG_CD --"전월소속"
+             , NVL(I2.OG_NM, I1.OG_NM) AS PRE_OG_NM --"전월소속명"
+             , I1.BLD_NM AS BLD_NM --"빌딩명"
+             , B1.PRTNR_NO  AS PRTNR_NO --"업무등록번호"
+             , B1.PRTNR_KNM AS PRTNR_KNM --"이름"
+             , NVL(CASE WHEN B1.OG_TP_CD = 'W01' AND D1.PSTN_DV_CD = '15' THEN F_CMZ_CD_NM('TNT_WELLS', 'PQLF_DV_CD', I2.QLF_DV_CD)
+                        WHEN B1.OG_TP_CD <![CDATA[<>]]> 'W01' AND D1.PSTN_DV_CD = '15' THEN F_CMZ_CD_NM('TNT_WELLS', 'QLF_DV_CD', I2.QLF_DV_CD)
+                    END ,  F_CMZ_CD_NM('TNT_WELLS', 'RSB_DV_CD', I2.RSB_DV_CD)
+               ) AS RSB_DV_NM --"직급"
+             , CASE WHEN B1.CRAL_LOCARA_TNO IS NOT NULL THEN B1.CRAL_LOCARA_TNO || '-' || B1.MEXNO_ENCR || '-' || B1.CRAL_IDV_TNO
+               ELSE NULL
+               END AS FULL_CRAL_LOCARA_TNO --"연락처"  -- 연락처 중간자리는 암호화 컬럼에 따라 JAVA 에서 복호화 해서 보여줘야 합니다.
+             , B1.CRAL_LOCARA_TNO
+             , B1.MEXNO_ENCR
+             , B1.CRAL_IDV_TNO
+             , CASE WHEN B1.RRNO_FRPSN_VAL IS NOT NULL THEN B1.RRNO_FRPSN_VAL || '-' || B1.RRNO_ENCR
+               ELSE NULL
+               END AS FULL_RRNO_FRPSN_VAL --"주민등록번호"
+             , B1.RRNO_FRPSN_VAL
+             , B1.RRNO_ENCR
+             , D1.FST_CNTR_DT AS FST_CNTR_DT --"업무등록일"
+             , NVL(D1.PRFMT_DT, D1.DMTN_DT) AS PRFMT_DT --"승진/강등일"
+             , D1.CNTR_DT AS CNTR_DT --"재등록일"
+             , D1.CLTN_DT AS --"업무해약일"
+             , D1.FNL_CLTN_DT AS FNL_CLTN_DT --"최종해약일"
+             , CASE WHEN I2.QLF_DV_CD  = '3' THEN 'Y' ELSE 'N' END AS QLF_DV_CD -- "매니저"
+             , T.CON_DT AS CON_DT --"계약일"
+             , CASE WHEN T.CON_DT = T.RECON_DT THEN CASE WHEN T.RECON_DT2 = T.RECON_DT THEN NULL ELSE T.RECON_DT2 END
+               ELSE T.RECON_DT
+               END AS RECON_DT --"재등록일"
+             , CASE WHEN T.FIRE_DT = '99991231' THEN NULL
+               ELSE T.FIRE_DT
+               END AS FIRE_DT --"해약일"
+             , I3.RCMDR_PRTNR_NO AS RCMDR_PRTNR_NO --"업무등록번호"
+             , B2.PRTNR_KNM      AS PRTNR_NM --"이름"
+          FROM TB_OGBS_PRTNR_BAS B1
+         INNER JOIN TB_OGBS_PRTNR_DTL D1 ON D1.OG_TP_CD = B1.OG_TP_CD AND D1.PRTNR_NO = B1.PRTNR_NO
+         INNER JOIN TB_OGBS_MM_OG_IZ I1 ON I1.BASE_YM = SUBSTR(D1.CLTN_DT, 1, 6) AND I1.OG_ID = B1.OG_ID
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ I2 ON I2.BASE_YM = TO_CHAR(ADD_MONTHS(D1.CLTN_DT,  -1),'YYYYMM') AND I2.OG_TP_CD = B1.OG_TP_CD  AND I2.PRTNR_NO = B1.PRTNR_NO
+         LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ I3 ON I3.BASE_YM = SUBSTR(D1.CLTN_DT, 1, 6) AND I3.OG_TP_CD = B1.OG_TP_CD  AND I3.PRTNR_NO = B1.PRTNR_NO
+         LEFT OUTER JOIN TB_OGBS_PRTNR_BAS B2 ON B2.OG_TP_CD = I3.OG_TP_CD  AND B2.PRTNR_NO = I3.RCMDR_PRTNR_NO
+         LEFT OUTER JOIN (
+         SELECT OG_TP_CD
+             , PRTNR_NO
+             , MIN(STRTDT) AS CON_DT
+             , MAX(STRTDT) AS RECON_DT
+             , CASE WHEN MAX(PYMDT) = '0' THEN NULL ELSE MAX(PYMDT) END  AS RECON_DT2
+             , MAX(ENDDT)  AS FIRE_DT
+          FROM TB_OGPS_PLAR_QLF_CH_IZ
+         WHERE QLF_DV_CD = '3'
+        GROUP BY OG_TP_CD
+             , PRTNR_NO
+                         ) T ON T.OG_TP_CD = B1.OG_TP_CD AND T.PRTNR_NO = B1.PRTNR_NO
+         WHERE 1 =1
+             AND D1.CLTN_DT IS NOT NULL
+            <if test="@MybatisUtils@isNotEmpty(prtnrKnm)">
+            AND B1.PRTNR_KNM LIKE #{prtnrKnm} || '%'
+             </if>
+            <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+            AND B1.PRTNR_NO = #{prtnrNo}
+            </if>
+             <if test="@MybatisUtils@isNotEmpty(rsbDvCd)"  >
+             AND D1.RSB_DV_CD = #{rsbDvCd}  -- 공통코드 RSB_DV_CD , 전체시 전체조회
+             </if>
+             AND 'ALL' =  #{actiYn} -- 활동 체크박스 미체크 : ALL, 체크 Y 으로 쿼리에서 분기 하시면 쉽습니다. 즉, ALL 은 UNION ALL 먹고, 활동 Y 는 위 쿼리만 실행
+             /*즉, 'ALL' = 는 픽스이고 뒤에 'Y' 는 파라미터*/
+            <if test='@MybatisUtils@equals(wmYn,"3")'>
+            AND NVL(I2.QLF_DV_CD, 'X') = '3'-- 화면에서 WM 체크시 '3' 을 넣고 NULL 이면 그대로 매핑
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(schOjBlamStrt)">
+                AND ( I1.OG_CD >= #{schOjBlamStrt} AND I1.OG_CD<![CDATA[ <= ]]>NVL(#{schOjBlamEnd},#{schOjBlamStrt} ) )
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
+                AND  B1.CRAL_LOCARA_TNO = #{cralLocaraTno}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
+                AND B1.MEXNO_ENCR = #{mexnoEncr}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
+                AND B1.CRAL_IDV_TNO = #{cralIdvTno}
+            </if>
+        ORDER BY 1,2,3,5
 
     </select>
 </mapper>
