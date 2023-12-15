@@ -227,7 +227,7 @@
                      , T1.OG_TP_CD
                      , T1.PRTNR_NO
                      , CASE WHEN T4.PERF_VAL >= 20 THEN /* 배출자 가전 20개 이상이면 조직배출1지급 */
-                                 CASE WHEN NVL(T3.PERF_VAL, 0) > NVL(T2.PERF_VAL, 0) AND WHEN NVL(T3.PERF_VAL, 0) >= 4 THEN 1500000
+                                 CASE WHEN NVL(T3.PERF_VAL, 0) > NVL(T2.PERF_VAL, 0) AND NVL(T3.PERF_VAL, 0) >= 4 THEN 1500000
                                       WHEN NVL(T3.PERF_VAL, 0) > NVL(T2.PERF_VAL, 0) AND NVL(T3.PERF_VAL, 0) = 3 THEN 1000000
                                       WHEN NVL(T3.PERF_VAL, 0) > NVL(T2.PERF_VAL, 0) AND NVL(T3.PERF_VAL, 0) = 2 THEN 500000
                                       WHEN NVL(T3.PERF_VAL, 0) > NVL(T2.PERF_VAL, 0) AND NVL(T3.PERF_VAL, 0) = 1 THEN 300000
@@ -264,10 +264,10 @@
                    AND T4.PERF_ATC_CD = 'W02P00002'     /* 인정건수 */
                    AND '2' = T4.PERF_DV_CD -- 지점장 집계
                  WHERE 1 = 1
-                   AND A.BASE_YM = #{baseYm}
-                   AND A.OG_TP_CD = #{ogTpCd}
-                   AND A.PSTN_DV_CD = '7'
-                   AND A.PERF_EXCD_OJ_YN = 'N'
+                   AND T1.BASE_YM = #{baseYm}
+                   AND T1.OG_TP_CD = #{ogTpCd}
+                   AND T1.PSTN_DV_CD = '7'
+                   AND T1.PERF_EXCD_OJ_YN = 'N'
              ) AA
     </insert>
 
@@ -411,11 +411,12 @@
            SELECT ZZ.BASE_YM
                  ,ZZ.OG_TP_CD
                  ,ZZ.PRTNR_NO
-                 TRUNC(CASE WHEN ZZ.AB80_CNT >= ZZ.KIZUN_CNT THEN /* 실활동 인원이 기준인원수 보다 큰 경우  */
+                 ,TRUNC(CASE WHEN ZZ.AB80_CNT >= ZZ.KIZUN_CNT THEN /* 실활동 인원이 기준인원수 보다 큰 경우  */
                             CASE WHEN ZZ.LINK_DEQ02 >= 10 THEN /* 순증건수 10이상시 순증건만으로 수당 지급 */
                                       CASE WHEN ZZ.LINK_DEQ02 >= 20  THEN ZZ.DEQ2_CNT * 3000     /* 순증 급간으로 BS건수 활용 수수료 계산   */
                                            WHEN ZZ.LINK_DEQ02 >= 15  THEN ZZ.DEQ2_CNT * 2400
-                                           WHEN ZZ.LINK_DEQ02 >= 10  THEN ZZ.DEQ2_CNT * 1800 END
+                                           WHEN ZZ.LINK_DEQ02 >= 10  THEN ZZ.DEQ2_CNT * 1800
+                                           ELSE 0 END
                                  ELSE
                                       CASE WHEN ZZ.LINK_DEQ02 >= 5 OR ZZ.LINK_DEQ06 >= 50 THEN ZZ.DEQ2_CNT * 1400    /* 순증급간 OR 신규건수로 BS건수 활용 수수료 계산   */
                                            WHEN ZZ.LINK_DEQ02 >= 0 OR ZZ.LINK_DEQ06 >= 40 THEN ZZ.DEQ2_CNT * 1000
