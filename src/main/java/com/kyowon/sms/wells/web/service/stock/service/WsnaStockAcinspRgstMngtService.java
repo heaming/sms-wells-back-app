@@ -200,6 +200,12 @@ public class WsnaStockAcinspRgstMngtService {
             ValidAssert.hasText(dvo.getItmPdCd());
             ValidAssert.hasText(dvo.getWareNo());
 
+            //재조회 확정시점입고차이수량 , 재조회 확정시점출고차이수량
+            WsnaStockAcinspRgstMngtDvo reDvo = this.mapper.selectReAcinspRgst(dvo);
+
+            dvo.setReCnfmPitmOstrGapQty(reDvo.getReCnfmPitmOstrGapQty());
+            dvo.setReCnfmPitmStrGapQty(reDvo.getReCnfmPitmStrGapQty());
+
             processCount += this.mapper.insertStockAcinsp(dvo);
 
         }
@@ -230,7 +236,15 @@ public class WsnaStockAcinspRgstMngtService {
             //이미 모든 자료가 확정 상태입니다.
             BizAssert.isTrue(chkCount > 0, "MSG_ALT_ALL_MTR_CNFM_STAT");
 
-            this.mapper.updateStockAcinspIzCnfm(reSearchDvo);
+            //창고상세구분코드
+            String chkWareDtlDvCd = reSearchDvo.get(0).getWareDtlDvCd();
+
+            //조회해온 창고상세구분코드가 조직창고, 영업센터인경우 분기처리
+            if ("20".equals(chkWareDtlDvCd) || "30".equals(chkWareDtlDvCd)) {
+                this.mapper.updateStockAcinspIzCnfm(reSearchDvo);
+            } else {
+                this.mapper.updateStockAcinspIzCnfmIndv(reSearchDvo);
+            }
 
             processCount++;
 
