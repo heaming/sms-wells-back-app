@@ -11,13 +11,13 @@
     - 기술표준
 - [SAMPLE CODE](#SAMPLE-CODE)
     - BE & FE 개발
-        1. [1. 모종 출하대차MAP](#1.-모종출하대차-MAP)
+        1. [모종 출하대차MAP](#1.-모종출하대차-MAP)
             1. DVO
             2. DTO
             3. SERVICE
             4. CONTROLLER
             5. QUERY
-        2. [2. 공통 컴포넌트 - 조직(엔지니어/매니저) 조회](#2.-공통-컴포넌트-조직(엔지니어/매니저)-조회)
+        2. [공통 컴포넌트 - 조직(엔지니어/매니저) 조회](#2.-공통-컴포넌트-조직(엔지니어/매니저)-조회)
 
 ## ABOUT
 ![image](https://github.com/heaming/sms-wells-back-app/assets/85826542/f672c2a7-64d4-4147-bd10-b8c9eb2b042e)
