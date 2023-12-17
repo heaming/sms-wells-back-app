@@ -284,7 +284,7 @@
         /*수당(실적) 되물림 관리_WELLS 총판, B2B*/
         SELECT M.BASE_YM /*발생년월*/
              , M.PERF_YM AS SL_YM /*매출년월*/
-             , A.OG_NM /*업체명*/
+             , A.PRTNR_KNM AS OG_NM /*업체명*/
              , A.OG_CD /*소속코드*/
              , A.PRTNR_KNM /*판매자명*/
              , M.PRTNR_NO /*파트너번호*/
@@ -295,14 +295,16 @@
              , M.PD_CD /*제품코드(상품코드)*/
              , D.PD_CLSF_NM /*제품명(상품명)*/
              , D.MODEL_NO /*모델명*/
-             , (CASE WHEN M.SELL_DSC_DV_CD IS NOT NULL AND M.SELL_DSC_TP_CD IS NOT NULL THEN
-             			  M.SELL_DSC_DV_CD || '-' || M.SELL_DSC_TP_CD
-         			 ELSE ''
-         		  END)  AS SELL_DSC_DV_CD /*할인구분(ASIS: D-C)*/
-             , (CASE WHEN M.SELL_DSC_DV_CD IS NOT NULL AND M.SELL_DSC_TP_CD IS NOT NULL THEN
-             			  M.SELL_DSC_DV_CD || '-' || M.SELL_DSC_TP_CD
-     			     ELSE ''
-         		  END) AS SELL_DSC_TP_CD /*할인유형(ASIS: P)*/
+             , D.SELL_DSC_DV_CD /*할인구분(ASIS: D-C), TODO: D는 데이터가 이행되어있으나 C는 안되어있음 문의예정*/
+             , D.SELL_DSC_DV_CD AS SELL_DSC_TP_CD /*할인유형(ASIS: P), D-C와 동일한 데이터를 뽑고있음*/
+--             , (CASE WHEN D.SELL_DSC_DV_CD IS NOT NULL AND D.SELL_DSC_TP_CD IS NOT NULL THEN
+--             			  D.SELL_DSC_DV_CD || '-' || D.SELL_DSC_TP_CD
+--         			 ELSE ''
+--         		  END)  AS SELL_DSC_DV_CD /*할인구분(ASIS: D-C)*/
+--             , (CASE WHEN D.SELL_DSC_DV_CD IS NOT NULL AND D.SELL_DSC_TP_CD IS NOT NULL THEN
+--             			  D.SELL_DSC_DV_CD || '-' || D.SELL_DSC_TP_CD
+--     			     ELSE ''
+--         		  END) AS SELL_DSC_TP_CD /*할인유형(ASIS: P)*/
              , M.PMOT_USWY_DV_CD /*업소*/
              , M.BFSVC_PRD_CD /*주기*/
              , B1.MCHN_CH_TP_CD AS MCHN_CH1 /*기변영*/
@@ -336,14 +338,19 @@
                                   , D3.CST_NO /*고객번호*/
                                   , D3.CST_KNM /*고객명*/
                                   , D4.MODEL_NO /*모델번호(모델명)*/
-                                  , D5.PD_CLSF_NM /*상품분류명*/
+                                  , D4.CST_BASE_PD_ABBR_NM AS PD_CLSF_NM /*제품명*/
+                                  , D6.SELL_DSC_DV_CD
+                                  , D6.SELL_DSC_TP_CD
                                FROM TB_FEAM_WELS_NRCTR_MM_CL D1 /*웰스순주문계약월마감*/
                               INNER JOIN TB_SSCT_CNTR_BAS D2 /*계약기본*/
                                  ON D1.CNTR_NO = D2.CNTR_NO
+                              INNER JOIN TB_SSCT_CNTR_DTL D6
+                                 ON D1.CNTR_NO = D6.CNTR_NO
+                                AND D1.CNTR_SN = D6.CNTR_SN
                               INNER JOIN TB_CUBS_CST_BAS D3 /*고객기본*/
                                  ON D2.CNTR_CST_NO = D3.CST_NO
                                LEFT OUTER JOIN TB_PDBS_PD_BAS D4 /*상품기본*/
-                                 ON D1.PD_CD = D4.PD_CD
+                                 ON D6.BASE_PD_CD = D4.PD_CD
                                LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS D5 /*상품분류기본*/
                                  ON D4.PD_MCLSF_ID = D5.PD_CLSF_ID /*상품기본.중분류ID = 상품분류기본.상품분류ID*/
                                 AND D5.PD_TP_CD = 'P'  /* 상품유형코드 = 'P'(기준상품) */
