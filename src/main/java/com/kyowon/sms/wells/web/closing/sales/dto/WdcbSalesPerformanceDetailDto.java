@@ -223,8 +223,6 @@ public class WdcbSalesPerformanceDetailDto {
         // *********************************************************
         // 연체사항
         // *********************************************************
-        Long keepAwAmt, /* 유지수당 LC50.LCCNT1 * ASIS 월마감시 0 셋팅 */
-        Long keepAwTotAmt, /* 유지수당누계금액 LC50.LCCNT2 * ASIS 월마감시 0 셋팅 */
         Integer dlqMcn, /* 연체개월 */
         Integer dlqAcuMcn, /* 연체누적개월수 */
         Long eotDlqAmt, /* 연체금액(C50.LCDAMT) */
@@ -242,7 +240,6 @@ public class WdcbSalesPerformanceDetailDto {
         // *********************************************************
         // 기타정보
         // *********************************************************
-        String exnTp, /* 만료유형(LC31.LCMGU2) @TO-DO 계약에서 코드 확인해주기로 함(앱코드만 존재) */
         String redfDt, /* 되물림일자(LC503.LCSMLY) */
         String adsbDt, /* 재지급일자(LC503.LCSJGY) */
         String alncmpCd, /* 제휴사코드(LC31.LCETC8) */
@@ -349,8 +346,6 @@ public class WdcbSalesPerformanceDetailDto {
         String thmDlqAddDpSumAmt,
         String thmDlqAddRfndSumAmt,
         String eotDlqAddAmt,
-        String keepAwAmt,
-        String keepAwTotAmt,
         String dlqMcn,
         String dlqAcuMcn,
         String eotDlqAmt,
@@ -366,7 +361,6 @@ public class WdcbSalesPerformanceDetailDto {
         String clctamPrtnrNo,
         String clctamPrtnrNm,
         String clcoTfDt,
-        String exnTp,
         String redfDt,
         String adsbDt,
         String alncmpCd,

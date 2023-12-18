@@ -273,31 +273,43 @@ public class WsnaSeedingOstrQtyService {
 
         // 가능수량 검증
         if (StringUtils.isNotBlank(limQty)) {
-            BigDecimal qty = new BigDecimal(limQty);
             String headerTit = headerTitle.get("limQty");
 
-            // qty < 1
-            if (qty.compareTo(BigDecimal.ZERO) < 0) {
+            // 숫자체크
+            boolean isValidNumber = limQty.matches("[-+]?\\d*");
+            if (!isValidNumber) {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(headerTit);
-                // 값이 마이너스입니다.
-                errorDvo.setErrorData(this.messageService.getMessage("MSG_ALT_MINUS_VAL_INC"));
+                // 숫자만 입력 가능합니다.
+                errorDvo.setErrorData(this.messageService.getMessage("MSG_ALT_ONLY_NUMBER"));
                 errorDvos.add(errorDvo);
-                // qty > 999,999,999,999
-            } else if (qty.compareTo(BigDecimal.valueOf(MAX_VALUE)) > 0) {
-                texts[0] = headerTit;
-                texts[1] = String.format("%,d", MAX_VALUE);
+            } else {
+                BigDecimal qty = new BigDecimal(limQty);
 
-                ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
-                errorDvo.setErrorRow(row);
-                errorDvo.setHeaderName(headerTit);
-                // {0} 항목의 값은 {1} 이하여야 합니다.
-                errorDvo.setErrorData(
-                    this.messageService
-                        .getMessage("MSG_ALT_VALUE_OVER", texts)
-                );
-                errorDvos.add(errorDvo);
+                // qty < 1
+                if (qty.compareTo(BigDecimal.ZERO) < 0) {
+                    ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+                    errorDvo.setErrorRow(row);
+                    errorDvo.setHeaderName(headerTit);
+                    // 값이 마이너스입니다.
+                    errorDvo.setErrorData(this.messageService.getMessage("MSG_ALT_MINUS_VAL_INC"));
+                    errorDvos.add(errorDvo);
+                    // qty > 999,999,999,999
+                } else if (qty.compareTo(BigDecimal.valueOf(MAX_VALUE)) > 0) {
+                    texts[0] = headerTit;
+                    texts[1] = String.format("%,d", MAX_VALUE);
+
+                    ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+                    errorDvo.setErrorRow(row);
+                    errorDvo.setHeaderName(headerTit);
+                    // {0} 항목의 값은 {1} 이하여야 합니다.
+                    errorDvo.setErrorData(
+                        this.messageService
+                            .getMessage("MSG_ALT_VALUE_OVER", texts)
+                    );
+                    errorDvos.add(errorDvo);
+                }
             }
         }
     }

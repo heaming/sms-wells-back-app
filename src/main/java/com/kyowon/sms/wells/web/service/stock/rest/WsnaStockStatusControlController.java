@@ -17,8 +17,6 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
@@ -49,10 +47,7 @@ public class WsnaStockStatusControlController {
         return service.getStockStatusControlPages(dto, pageInfo);
     }
 
-    @ApiOperation(value = "재고상태조정 관리 엑셀 다운로드", notes = "")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
-    })
+    @ApiOperation(value = "재고상태조정 관리 엑셀 다운로드", notes = "재고상태조정 관리 데이터를 엑셀 다운로드 한다.")
     @GetMapping("/excel-download")
     public List<SearchRes> getStockStatusControlsForExcelDownload(
         @Valid

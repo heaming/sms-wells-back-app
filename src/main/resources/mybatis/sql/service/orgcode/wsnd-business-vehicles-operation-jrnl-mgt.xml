@@ -2,18 +2,18 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndBusinessVehiclesOperationJrnlMgtMapper">
     <select id="selectBusinessVehiclesOperationJrnl" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesOperationJrnlMgtDto$SearchRes">
-        WITH HIST AS ( SELECT *
-                         FROM ( SELECT CARNO
-                                     , FUEL_CSM_RT
-                                     , BSPD_TMS
-                                     , SDPD_TMS
-                                     , OPRTN_HH
-                                     , SUBSTR(OPRTN_STRTT,1,8) AS OPRTN_STRTT
-                                     , RANK() OVER (PARTITION BY CARNO, SUBSTR(OPRTN_STRTT,1,8) ORDER BY OPRTN_STRTT DESC) AS RN
-                                  FROM TB_SVPD_OPRTN_HIST
-                                 WHERE SUBSTR(OPRTN_STRTT,1,8) BETWEEN #{startDt} AND #{endDt}
-                         )
-                        WHERE RN = 1
+        WITH HIST AS ( SELECT CARNO
+--                          , SUM(FUEL_CSM_RT) AS FUEL_CSM_RT
+                            , SUM(BSPD_TMS) AS BSPD_TMS
+                            , SUM(SDPD_TMS) AS SDPD_TMS
+                            , SUM(TO_NUMBER(OPRTN_HH)/60)AS OPRTN_HH
+                            , SUBSTR(OPRTN_STRTT,1,8) AS OPRTN_STRTT
+--                                     , COUNT(*) AS CNT
+--                                     , RANK() OVER (PARTITION BY CARNO, SUBSTR(OPRTN_STRTT,1,8) ORDER BY OPRTN_STRTT DESC) AS RN
+                         FROM TB_SVPD_OPRTN_HIST
+                        WHERE SUBSTR(OPRTN_STRTT,1,8) BETWEEN #{startDt} AND #{endDt}
+                     GROUP BY CARNO
+                           ,  SUBSTR(OPRTN_STRTT,1,8)
         )
 
         SELECT P1.OG_NM /* 소속 */
@@ -42,15 +42,16 @@
         FROM TB_SVPD_VHC_OPRTN_DTL C1 /* 차량운행상세 */
   INNER JOIN TB_SVPD_VHC_DSB_IZ C3 /* 차량지급내역 */
           ON C1.VHC_MNGT_NO = C3.VHC_MNGT_NO
-        AND C1.VHC_MNGT_SN = C3.VHC_MNGT_SN
-        AND C1.VHC_OPRTN_DT BETWEEN C3.VHC_PYMDT AND C3.DSB_ENDDT
+         AND C1.VHC_MNGT_SN = C3.VHC_MNGT_SN
+         AND C1.VHC_OPRTN_DT BETWEEN C3.VHC_PYMDT AND C3.DSB_ENDDT
   INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
           ON P1.BASE_YM = SUBSTR(#{startDt},1,6)
-                AND C1.VHC_MNGT_OG_TP_CD = P1.OG_TP_CD
-                AND C1.VHC_MNGT_PRTNR_NO = P1.PRTNR_NO
+         AND C1.VHC_MNGT_OG_TP_CD = P1.OG_TP_CD
+         AND C1.VHC_MNGT_PRTNR_NO = P1.PRTNR_NO
  INNER JOIN HIST
-            ON C1.CARNO = HIST.CARNO
-        WHERE 1=1
+          ON C1.CARNO = HIST.CARNO
+         AND C1.VHC_OPRTN_DT = HIST.OPRTN_STRTT
+       WHERE 1=1
         <if test="@MybatisUtils@isNotEmpty(rgstYn)">
             <choose>
                 <when test='@MybatisUtils@equals(rgstYn, "Y")'>

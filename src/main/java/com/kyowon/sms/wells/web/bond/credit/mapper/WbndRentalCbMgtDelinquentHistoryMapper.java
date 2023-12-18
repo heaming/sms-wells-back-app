@@ -28,6 +28,16 @@ public interface WbndRentalCbMgtDelinquentHistoryMapper {
     );
 
     /**
+     * 렌탈CB연체이력조회 당월 알림톡 발송 COUNT
+     * @param dvo
+     * @return int
+     */
+    int selectRentalCbDlqIzSendThisMonthCount(
+        @Param("baseYm")
+        String baseYm
+    );
+
+    /**
      * 렌탈CB연체이력조회 update Iz
      * @param dvo
      * @return int

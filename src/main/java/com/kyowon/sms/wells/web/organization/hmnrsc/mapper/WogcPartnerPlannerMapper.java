@@ -64,4 +64,7 @@ public interface WogcPartnerPlannerMapper {
 
     int selectQuaCreateCnt(WogcPartnerPlannerDto.SearchCheckReq dto);
 
+    PagingResult<WogcPartnerPlannerDto.SearchWellsPartnerRes> selectWellsPlannerPages(WogcPartnerPlannerDto.SearchWellsPartnerReq dto, PageInfo pageinfo);
+
+    List<WogcPartnerPlannerDto.SearchWellsPartnerRes> selectWellsPlannerPages(WogcPartnerPlannerDto.SearchWellsPartnerReq dto);
 }

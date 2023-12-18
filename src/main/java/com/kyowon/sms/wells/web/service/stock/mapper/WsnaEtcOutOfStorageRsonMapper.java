@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto.*;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto.SearchReq;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageRsonDto.SearchRes;
 
 import java.util.List;
 
@@ -15,11 +16,5 @@ public interface WsnaEtcOutOfStorageRsonMapper {
     PagingResult<SearchRes> selectEtcOutOfStorageRsons(SearchReq dto, PageInfo pageInfo);
 
     List<SearchRes> selectEtcOutOfStorageRsons(SearchReq dto);
-
-    List<CenterRes> selectServiceCenters(SearchReq dto);
-
-    List<BusinessRes> selectBusinessCenter(SearchReq dto);
-
-    List<SearchRes> selectEtcOutOfStorageRsonBusiness(SearchReq dto);
 
 }

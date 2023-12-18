@@ -155,7 +155,8 @@ public class WdcbSalesConfirmCreateService {
         String sapSlTpCd = "";
         String slTpDvCd = "";
         String clssVal = "";
-        String addCondition = "";
+        String addConditionSlTp = "0";
+        String addConditionBizDv = "0";
         String slpMapngCdv = "";
 
         // log.info("dvo.getSlRcogClsfCd().substring(1):" + dvo.getSlRcogClsfCd().substring(0, 1));
@@ -190,31 +191,37 @@ public class WdcbSalesConfirmCreateService {
             clssVal = "2";
         }
 
-        if (dvo.getRentalRgstCost() > 0 && ("21".equals(dvo.getSellTpDtlCd()) || "23".equals(dvo.getSellTpDtlCd()))) {
+        if (dvo.getRentalRgstCost() > 0) {
             // 렌탈등록비(RENTAL_RGST_COST) 가 0보다 크면 1
-            addCondition = "1";
+            addConditionSlTp = "1";
+            addConditionBizDv = "1";
         } else if (StringUtils.isNotEmpty(dvo.getLgstItmGdCd())
             && "E".equals(dvo.getLgstItmGdCd()) || "R".equals(dvo.getLgstItmGdCd())) {
             // 14일이내 취소건 : 물류품목등급코드(LGST_ITM_GD_CD) 가 E 또는 R 이면 2
-            addCondition = "2";
-        } else if ("PDC000000000068".equals(dvo.getPdMclsfId()) || "PDC000000000070".equals(dvo.getPdMclsfId())) {
+            addConditionSlTp = "2";
+            addConditionBizDv = "2";
+        } else if ("Y".equals(mapper.selectProductValueYn(dvo.getPdCd()))) {
             // VO에 들어온 상품중분류코드 (PD_MCLSF_ID) 가 PDC000000000068,PDC000000000070 이면 3
-            addCondition = "3";
+            addConditionSlTp = "3";
+            addConditionBizDv = "0";
         } else if (StringUtils.isNotEmpty(dvo.getCanDt()) || dvo.getSlCanAmt() != 0) {
             // VO의 취소일자(CAN_DT) 가 널이 아니거나,  또는 취소금액(SL_CAN_AMT) 이 0이 아닌경우.  4
-            addCondition = "4";
+            addConditionSlTp = "4";
+            addConditionBizDv = "4";
         } else {
             // 모두에 해당하지 않으면 0
-            addCondition = "0";
+            addConditionSlTp = "0";
+            addConditionBizDv = "0";
         }
 
-        slpMapngCdv = mapper.selectSlpMapngCdv(tempSellTpDtlCd, tempSlRcogClsfCd, clssVal, slTpDvCd, addCondition);
+        slpMapngCdv = mapper.selectSlpMapngCdv(tempSellTpDtlCd, tempSlRcogClsfCd, clssVal, slTpDvCd, addConditionSlTp);
         sapSlTpCd = StringUtil.isEmpty(slpMapngCdv) ? "ERR" : slpMapngCdv;
 
         String tmpSapBizDvCd = mapper.selectSapBizDvCd(tempSellTpDtlCd, tempSlRcogClsfCd, addCondition);
         if ("PDC000000000131".equals(dvo.getPdLclsfId())) {
             tmpSapBizDvCd = "LNC49";
         }
+        String tmpSapBizDvCd = mapper.selectSapBizDvCd(tempSellTpDtlCd, tempSlRcogClsfCd, addConditionBizDv);
         String sapBizDvCd = StringUtil.isEmpty(tmpSapBizDvCd) ? "ERR" : tmpSapBizDvCd;
 
         /* 매핑 값 셋팅 */

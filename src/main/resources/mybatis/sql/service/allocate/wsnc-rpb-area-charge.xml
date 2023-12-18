@@ -23,16 +23,21 @@
                                   AND V2.LAWC_EMD_NM = V1.LAWC_EMD_NM
                                   AND V2.AMTD_NM = V1.AMTD_NM
                                   AND V2.RN = 1
-                                INNER JOIN (SELECT M3.WK_GRP_CD, M3.RPB_LOCARA_CD, M3.IZ_SN, M3.APY_STRTDT, M3.APY_ENDDT, M3.SAT_WRK_YN, M3.RSTR_CNDT_USE_YN, M3.UDSN_USE_YN, M3.RPB_LOCARA_GRP_CD, M3.VST_DOW_VAL, M3.MMT_AV_LDTM, M3.LOCARA_CEN_STRU_ADR, M3.ICHR_PRTNR_OG_TP_CD, M3.ICHR_PRTNR_NO, M3.PPRN_ICHR_PRTNR_OG_TP_CD, M3.PPRN_ICHR_PRTNR_NO1, M3.PPRN_ICHR_PRTNR_NO2, M3.PPRN_ICHR_PRTNR_NO3, M3.PPRN_ICHR_PRTNR_NO4, M3.PPRN_ICHR_PRTNR_NO5
-                                                 , ROW_NUMBER() OVER(PARTITION BY M3.WK_GRP_CD, M3.RPB_LOCARA_CD ORDER BY M3.IZ_SN DESC) AS RN
-                                              FROM TB_SVPD_RPB_LOCARA_PSIC_IZ M3
-                                             WHERE #{applyDate} BETWEEN APY_STRTDT AND APY_ENDDT
-                                               AND DTA_DL_YN = 'N'
-                                    ) V3
-                                   ON V3.RN = 1
-                                  AND V3.RPB_LOCARA_CD = V2.RPB_LOCARA_CD
+                                INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ V3 /*책임지역담당자*/
+                                   ON V3.RPB_LOCARA_CD = V2.RPB_LOCARA_CD
                                   AND V3.WK_GRP_CD = #{wkGrpCd}
-                                WHERE V1.DTA_DL_YN = 'N'
+                                  AND #{applyDate} BETWEEN V3.APY_STRTDT AND V3.APY_ENDDT
+                                  AND V3.DTA_DL_YN = 'N'
+                                  AND V3.IZ_SN = (SELECT MAX(IZ_SN)
+                                                    FROM TB_SVPD_RPB_LOCARA_PSIC_IZ TT2
+                                                   WHERE RPB_LOCARA_CD = V3.RPB_LOCARA_CD
+                                                     AND WK_GRP_CD = V3.WK_GRP_CD
+                                                     AND #{applyDate} BETWEEN APY_STRTDT AND APY_ENDDT
+                                                     AND (APY_ENDDT - APY_STRTDT) = (SELECT MIN(PIC.APY_ENDDT - PIC.APY_STRTDT)
+                                                                                       FROM TB_SVPD_RPB_LOCARA_PSIC_IZ PIC
+                                                                                      WHERE PIC.RPB_LOCARA_CD = TT2.RPB_LOCARA_CD
+                                                                                        AND PIC.WK_GRP_CD = TT2.WK_GRP_CD
+                                                                                        AND #{applyDate} BETWEEN PIC.APY_STRTDT AND PIC.APY_ENDDT))
                             ) T1
                         WHERE T1.V1_RN = 1
                           AND T1.WK_GRP_CD = #{wkGrpCd}

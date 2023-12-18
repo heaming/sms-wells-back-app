@@ -580,6 +580,8 @@
                   , X2.RCNTR_DT
                   , X1.PERF_ATC_CD
                   , X1.PERF_VAL
+                  , X1.CNTR_NO
+                  , X1.CNTR_SN
            FROM TB_FEAM_NTORP_CNTR_MM_CL        X1 /* 순주문파트너계약월마감 */
                 INNER JOIN TB_OGBS_MM_PRTNR_IZ  X2 /* 월파트너내역        */
                    ON X2.BASE_YM     = #{baseYm}       /* 관리년월 - 파라미터 #############################  */
@@ -608,24 +610,6 @@
                  /* 조직레벨 3 (DGR3_LEVL_OG_ID) 가 있으면 DGR1_LEVL_OG_ID도 있을 것이므로 BASE_YM, OG_TP_CD 조건은 넣지 않음. */
                  AND T1.DGR3_LEVL_OG_ID = #{ogLevlDvCd3}
            </if>
-             --/********** 설치기준 조건이 선택된 경우만 활성화 **********/
-             -- perfCd    I : 설치기준, A : 수당건수
-            <if test='@MybatisUtils@isNotEmpty(perfCd) and @MybatisUtils@equals(perfCd, "I")'>
-                INNER JOIN TB_FEAM_WELS_NRCTR_MM_CL X3
-                   ON X3.BASE_YM              = X1.BASE_YM
-                  AND X3.PERF_YM              = X1.PERF_YM
-                  AND X3.FEE_TCNT_DV_CD       = X1.FEE_TCNT_DV_CD
-                  AND X3.CNTR_NO              = X1.CNTR_NO
-                  AND X3.CNTR_SN              = X1.CNTR_SN
-                  AND X3.CNTR_PERF_CRT_DV_CD  = X1.CNTR_PERF_CRT_DV_CD
-                  AND NVL(X3.ACC_NINC_YN,'N') = 'N'
-                  AND X3.PRTNR_NO             = X1.PRTNR_NO
-                  AND X3.OG_TP_CD             = X1.OG_TP_CD
-                  AND X3.CO_CD                = X1.CO_CD
-                  AND X3.SL_DT               >= '20170301' /* 상수값 */
-                  AND X3.CAN_DT              IS NULL
-            </if>
-                --/***********************************************/
            WHERE X1.BASE_YM            <![CDATA[<=]]> #{baseYm} /* 관리년월 - 파라미터 #############################  */
              AND X1.BASE_YM            >= SUBSTR(X2.CNTR_DT, 1, 6)
              AND X1.OG_TP_CD            = #{ogTpCd}    /* 조직유형 - 파라미터 #############################  */ --P조직:W01. M조직:W02
@@ -640,12 +624,18 @@
             </choose>
              /********** 검색조건에 따라 선택 적용 **********/
             <choose>
-                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01")'>
-               AND X1.PERF_ATC_CD        IN ('W01P00030', 'W01P00031', 'W01P00050') --실적항목코드 - P조직
+                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01") and @MybatisUtils@isEmpty(perfCd)'>
+               AND X1.PERF_ATC_CD        IN ('W01P00030', 'W01P00031', 'W01P00050') --실적항목코드 - 조직유형 = P조직, 실적구분 = 전체
                 </when>
-                <otherwise>
-               AND X1.PERF_ATC_CD        IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017', 'W00P00018', 'W00P00019', 'W00P00014', 'W00P00015', 'W00P00036') --실적항목코드 - M조직
-                </otherwise>
+                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01") and @MybatisUtils@isNotEmpty(perfCd)'>
+               AND X1.PERF_ATC_CD        IN ('W01P00030', 'W01P00050') --실적항목코드 - 조직유형 = P조직, 실적구분 = 수당건수/설치기준
+                </when>
+                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02") and @MybatisUtils@isEmpty(perfCd)'>
+               AND X1.PERF_ATC_CD        IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017', 'W00P00018', 'W00P00019', 'W00P00014', 'W00P00015', 'W00P00036') --실적항목코드 - 조직유형 = M조직, 실적구분 = 전체
+                </when>
+                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02") and @MybatisUtils@isNotEmpty(perfCd)'>
+               AND X1.PERF_ATC_CD        IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017', 'W00P00018', 'W00P00036') --실적항목코드 - 조직유형 = M조직, 실적구분 = 수당건수/설치기준
+                </when>
             </choose>
              /***********************************************/
              AND X1.PERF_DV_CD          = '0'      /* 실적구분코드 - 0:개인판매 */
@@ -672,10 +662,10 @@
              , '' RGR_PRTNR_NO                                                             /* 수석플래너 신청자 - 번호      */
              , '' RGR_PRTNR_NM                                                             /* 수석플래너 신청자 - 성명      */
              , T3.TOT_SUM                                                                  /* 환경가전 실적 - 누적건수        */
-             , ROUND(T3.M03_SUM / 3, 0) M03_AVG                                            /* 환경가전 실적 - 직전3개월(평균) */
+             , TRUNC(T3.M03_SUM / 3, 0) M03_AVG                                            /* 환경가전 실적 - 직전3개월(평균) */
              , T3.M03_SUM                                                                  /* 환경가전 실적 - 직전3개월       */
              , T3.CUR_SUM                                                                  /* 환경가전 실적 - 당월            */
-             , T3.ABL_SUM                                                                  /* 환경가전 실적 - 승급건수        */
+             , TX.LCCNT1 + TX.LCCNT2 + TX.LCCNT3 ABL_SUM                                   /* 환경가전 실적 - 승급건수        */
              , T6.EDU96                                                                    /* 교육현황 - 스타트업(M)          */
              , T6.EDU14                                                                    /* 교육현황 - 플래너스타트업(P)    */
              , NVL(T5.RCMDR_CNT, 0) RCMDR_CNT                                              /* 채용현황 - 인원                 */
@@ -714,14 +704,15 @@
                              GROUP BY T1.PRTNR_NO
                            ) TM  /* M조직-웰스매니저 이력 */
             ON TM.PRTNR_NO     = T0.PRTNR_NO
+          /* 순주문 */
           LEFT OUTER JOIN (
                             SELECT X1.OG_TP_CD
                                  , X1.PRTNR_NO
                                  , SUM(CASE WHEN X1.BASE_YM >= (CASE WHEN SUBSTR(X1.RCNTR_DT, 1, 6) >= '201703' THEN SUBSTR(X1.RCNTR_DT, 1, 6) ELSE '201703' END)
                                              AND X1.BASE_YM <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) TOT_SUM /* 관리년월 - 파라미터 #############################  */
                                  , SUM(CASE WHEN X1.BASE_YM  = #{baseYm} THEN X1.PERF_VAL ELSE 0 END) CUR_SUM /* 관리년월 - 파라미터 #############################  */
-                                 , SUM(CASE WHEN X1.BASE_YM <![CDATA[<=]]> #{baseYm}
-                                             AND X1.BASE_YM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) M03_SUM /* 관리년월 - 파라미터 #############################  */
+                                 , SUM(CASE WHEN X1.BASE_YM <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
+                                             AND X1.BASE_YM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) M03_SUM /* 관리년월 - 파라미터 #############################  */
                                  , SUM(CASE WHEN X1.BASE_YM  = #{baseYm}
                                             THEN (
                                                     CASE WHEN #{ogTpCd} = 'W01' /* P조직:W01 - 파라미터 #############################  */
@@ -751,6 +742,40 @@
                             GROUP BY X1.OG_TP_CD, X1.PRTNR_NO ) T3  /* 순주문          */
             ON T3.OG_TP_CD     = T0.OG_TP_CD
            AND T3.PRTNR_NO     = T0.PRTNR_NO
+          /* 순주문 - 환경가전 실적(승급건수) - 20231215 추가 */ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+          LEFT OUTER JOIN ( SELECT X1.OG_TP_CD
+                                 , X1.PRTNR_NO
+                                 , SUM( CASE WHEN T1.BASE_PD_CD     = 'WP05120037' THEN 1 ELSE 0 END) LCCNT4 /* 새싹재배기 */
+                                 , SUM( CASE WHEN T1.SELL_TP_DTL_CD = '13' AND
+                                                  T1.BASE_PD_CD    IN ('WP01120268', 'WP01120275', 'WP01120260', 'WP01120287', 'WP01120254', 'WP01120283') THEN 2 ELSE 0 END) LCCNT1 /* 더원,웰스팜    */
+                                 , SUM( CASE WHEN T1.BASE_PD_CD    <![CDATA[<>]]> 'WP05120037' AND T1.ALNCMP_CD IN ('54', '55') THEN 1 ELSE 0 END)                            LCCNT2 /* 렌탈:포인트플러스 */
+                                 , SUM( CASE WHEN T1.BASE_PD_CD    <![CDATA[<>]]> 'WP05120037' AND
+                                                ( T1.SELL_TP_DTL_CD <![CDATA[<>]]> '13' OR T1.BASE_PD_CD NOT IN ('WP01120268', 'WP01120275', 'WP01120260', 'WP01120287', 'WP01120254', 'WP01120283') ) AND
+                                                  T1.ALNCMP_CD  NOT IN ('54', '55') THEN X1.PERF_VAL ELSE 0 END)                                                              LCCNT3
+                            FROM ZZ                          X1 /* 순주문파트너계약월마감 */
+                            LEFT OUTER JOIN TB_SSCT_CNTR_DTL T1 /* 계약상세 */
+                              ON T1.CNTR_NO = X1.CNTR_NO
+                             AND T1.CNTR_SN = X1.CNTR_SN
+                           WHERE 1 = 1
+                              /********** 검색조건에 따라 선택 적용 **********/
+                            <choose>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01") and @MybatisUtils@isNotEmpty(perfCd)'>
+                             AND X1.PERF_ATC_CD        IN ('W01P00030')              --실적항목코드 - P조직(수당건수 / 설치기준)
+                                </when>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01") and @MybatisUtils@isEmpty(perfCd)'>
+                             AND X1.PERF_ATC_CD        IN ('W01P00030', 'W01P00031') --실적항목코드 - P조직(전체)
+                                </when>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02") and @MybatisUtils@isNotEmpty(perfCd)'>
+                             AND X1.PERF_ATC_CD        IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017') --실적항목코드 - M조직(수당건수 / 설치기준)
+                                </when>
+                                <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W02") and @MybatisUtils@isEmpty(perfCd)'>
+                             AND X1.PERF_ATC_CD        IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017', 'W00P00018', 'W00P00019', 'W00P00014', 'W00P00015') --실적항목코드 - M조직(전체)
+                                </when>
+                            </choose>
+                              /***********************************************/
+                        GROUP BY X1.OG_TP_CD, X1.PRTNR_NO ) TX  /* 순주문          */
+        ON TX.OG_TP_CD     = T0.OG_TP_CD
+       AND TX.PRTNR_NO     = T0.PRTNR_NO
              /* 채용(전월) 건수 */
           LEFT OUTER JOIN (
                             SELECT A.RCMDR_PRTNR_NO, COUNT(B.PRTNR_NO) PRE_CNT

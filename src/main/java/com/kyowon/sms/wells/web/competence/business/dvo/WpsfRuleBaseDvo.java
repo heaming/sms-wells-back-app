@@ -23,5 +23,7 @@ public class WpsfRuleBaseDvo {
     private String dtaDlYn; /* 데이터삭제여부 */
     private String urgnYn;
 
+    private String cstCnrInqrPrmitYn; /* 고객센터조회허용여부 */
+
     private List<String> rsbDvCds;
 }

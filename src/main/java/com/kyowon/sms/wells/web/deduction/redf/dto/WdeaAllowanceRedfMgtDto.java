@@ -85,13 +85,11 @@ public class WdeaAllowanceRedfMgtDto {
         String slYm, /*매출년월*/
         String ogNm, /*업체명*/
         String ogCd, /*소속코드*/
-        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, /*판매자명*/
         String prtnrNo, /*파트너번호*/
         String cntrNo, /*계약번호*/
         String cntrSn, /*계약일련번호*/
         String cntrNoSn, /*계약상세번호*/
-        @MaskRequired(type = MaskingType.NAME)
         String cstKnm, /*고객명*/
         String pdCd, /*제품코드*/
         String pdClsfNm, /*제품명*/

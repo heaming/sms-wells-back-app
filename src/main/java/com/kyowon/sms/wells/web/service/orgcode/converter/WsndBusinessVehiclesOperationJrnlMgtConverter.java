@@ -8,5 +8,5 @@ import com.kyowon.sms.wells.web.service.orgcode.dvo.WsndBusinessVehiclesOperatio
 public interface WsndBusinessVehiclesOperationJrnlMgtConverter {
     WsndBusinessVehiclesOperationJrnlMgtDvo mapEditBusinessVehiclesOperationJrnlMgt(
         WsndBusinessVehiclesOperationJrnlMgtDvo dvo
-    ); // 
+    );
 }

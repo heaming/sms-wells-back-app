@@ -21,14 +21,17 @@ public class WsnaStockAcinspRgstMngtDvo {
     int cnfmPitmEotStocQty; /* 확정시점기말재고수량 */
     int cnfmPitmStrGapQty; /* 확정시점입고차이수량 */
     int cnfmPitmOstrGapQty; /* 확정시점출고차이수량 */
+    int reCnfmPitmStrGapQty; /* 재조회 확정시점입고차이수량 */
+    int reCnfmPitmOstrGapQty; /* 재조회 확정시점출고차이수량 */
     String diffQty; /* 확정차이수량 */
     String iostRfdt; /* 입출고반영일자 */
     String baseYm; /* 기준년월 */
     String wareDvCd; /* 창고구분코드 */
     String wareDtlDvCd; /* 창고상세구분코드 */
+    String hgrWareNo; /* 상위창고번호 */
     String searchWareNo; /* 조회창고번호 */
     String useYn; /* 사용여부 */
-    String acinspAkId; /* 실사요청ID */
+    String stocAcinspAkId; /*재고실사요청ID*/
 
     String pdCd; /* 상품코드 */
     String pitmStocAGdQty; /* 시점재고A등급수량 */
