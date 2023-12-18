@@ -27,4 +27,6 @@ public interface WdcbSapSalesCompulsionCreateMapper {
     int deleteIfinSlInfAtcIz(WdcbSapSalesCompulsionCreateDvo dvo);
 
     int deleteIfinSlInfHdrBas(WdcbSapSalesCompulsionCreateDvo dvo);
+
+    int selectIfinSlInfAtcIzCount(WdcbSapSalesCompulsionCreateDvo dvo);
 }
