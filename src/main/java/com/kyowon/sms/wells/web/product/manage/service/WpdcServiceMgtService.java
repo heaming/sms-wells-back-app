@@ -46,21 +46,23 @@ public class WpdcServiceMgtService {
         String startDtm = DateUtil.getDate(new Date());
         String pdCd = dto.pdCd();
         if (isCreate || dto.isModifiedProp()) {
+            // 최초생성이거나 상품 속성이 수정된 경우
             ZpdcProductDvo prd = pdService.saveProductBase(dto.tbPdbsPdBas(), isCreate, startDtm);
             pdCd = prd.getPdCd();
             pdService.saveEachCompanyPropDtl(pdCd, dto.tbPdbsPdEcomPrpDtl());
             if ((!dto.isOnlyFileModified() && PdProductConst.TEMP_SAVE_N.equals(prd.getTempSaveYn()))
                 || isCreate) {
-                // 상품 정보 이력 저장 (가격 X)
+                // 최초생성, 첨부파일만 수정이 아닌경우, 임시저장이 아닌경우 상품 이력 저장 (가격 X)
                 hisService.createProductHistory(pdCd, startDtm);
             }
         } else {
-            // 동시 저장을 방지하기 위해, 상풍수정일 저장
             if (StringUtil.isNotBlank(pdCd)) {
+                // 동시 저장을 방지하기 위해, 상풍수정일 저장
                 pdService.saveProductBaseFinalDtm(dto.pdCd());
             }
         }
         if (isCreate || dto.isModifiedRelation()) {
+            // 최초생성이거나 가격 속성이 수정된 경우
             relService.saveProductRelations(pdCd, dto.tbPdbsPdRel(), startDtm);
             hisService.createRelationHistory(pdCd, startDtm);
         }

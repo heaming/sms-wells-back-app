@@ -80,14 +80,15 @@ public class WpdcRoutineBsWorkMgtService {
         int cnt = 0;
         cnt += mapper.deleteRoutineBsWorkBase(dto.svPdCd(), dto.pdctPdCd());
         cnt += mapper.deleteRoutineBsWorkDetail(dto.svPdCd(), dto.pdctPdCd());
-        //cnt += mapper.deleteLifeCustomFilterStd(dto.svPdCd(), dto.pdctPdCd(), null);
         if (CollectionUtils.isNotEmpty(dto.bases())) {
+            // 작업기준 저장
             List<WpdcRoutineBsWorkBaseDvo> bases = converter.mapAllBsWorkBaseDtoToBsWorkBaseDvo(dto.bases());
             for (WpdcRoutineBsWorkBaseDvo base : bases) {
                 cnt += mapper.isnertRoutineBsWorkBase(base);
             }
         }
         if (CollectionUtils.isNotEmpty(dto.details())) {
+            // 작업상세 저장
             List<WpdcRoutineBsWorkDetailDvo> details = converter.mapAllBsWorkDetailDtoToBsWorkDetailDvo(dto.details());
             for (WpdcRoutineBsWorkDetailDvo detail : details) {
                 cnt += mapper.isnertRoutineBsWorkDetail(detail);
@@ -155,6 +156,7 @@ public class WpdcRoutineBsWorkMgtService {
         for (WpdcLifeCustomFilterBaseDvo filter : filters) {
             cnt += mapper.deleteLifeCustomFilterStd(filter);
             if (svPdCd == null) {
+                // 서비스 상품 코드 값은 동일하기 때문에 첫번째 ROW에서 추출
                 svPdCd = filter.getSvPdCd();
                 pdctPdCd = filter.getPdctPdCd();
                 partPdCd = filter.getPartPdCd();
@@ -185,6 +187,7 @@ public class WpdcRoutineBsWorkMgtService {
         for (WpdcLifeCustomFilterBaseDvo base : bases) {
             duplicationKey = mapper.selectLifeFilterDuplication(base);
             if (StringUtil.isNotBlank(duplicationKey)) {
+                // 중복 검사 첫번째 중복만 반환, 이후 중단
                 break;
             }
         }

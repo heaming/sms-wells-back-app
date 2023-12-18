@@ -63,10 +63,13 @@ public class WpdySeedlingPriceMgtService {
         int cnt = 0;
         List<WpdySeedlingPriceBaseDvo> bases = converter.mapAllSeedlingPriceBaseDtoToSeedlingPriceBaseDvo(dto.bases());
         for (WpdySeedlingPriceBaseDvo base : bases) {
+            // 모종제품가격 정보 저장 - 저장전 기본정보
             setSeedlingPrice(base, true);
             if (StringUtil.isEmpty(base.getRglrSppSdingPrcId())) {
+                // 최초 저장
                 cnt += mapper.insertSeedlingPriceBase(base);
             } else {
+                // 수정
                 cnt += mapper.updateSeedlingPriceBase(base);
             }
             mapper.insertSeedlingPriceHistory(base);
@@ -104,11 +107,14 @@ public class WpdySeedlingPriceMgtService {
         base.setHistEndDtm(histEndDtm);
         if (isSave) {
             if (StringUtil.isEmpty(base.getRglrSppSdingPrcId())) {
+                // 생성 초기값 = 1
                 base.setPdPrcTcnt((long)1);
             } else {
                 if (base.getPdPrcTcnt() == null) {
+                    // 수정, 값이 없으면 2
                     base.setPdPrcTcnt((long)2);
                 } else {
+                    // 기존 차수 증가
                     base.setPdPrcTcnt(base.getPdPrcTcnt() + 1);
                 }
             }
@@ -122,6 +128,7 @@ public class WpdySeedlingPriceMgtService {
      */
     public String checkDuplication(List<WpdySeedlingPriceMgtDto.SeedlingPriceBase> dtos) {
         List<WpdySeedlingPriceBaseDvo> bases = converter.mapAllSeedlingPriceBaseDtoToSeedlingPriceBaseDvo(dtos);
+        // 저장 ID 목록
         List<String> idList = bases.stream()
             .map(base -> base.getRglrSppSdingPrcId())
             .filter(value -> StringUtil.isNotBlank(value))
@@ -130,6 +137,7 @@ public class WpdySeedlingPriceMgtService {
         for (WpdySeedlingPriceBaseDvo base : bases) {
             duplicationKey = mapper.selectSeedlingPriceDuplication(base, idList);
             if (StringUtil.isNotBlank(duplicationKey)) {
+                // 중복 검사 첫번째 중복만 반환, 이후 중단
                 break;
             }
         }
