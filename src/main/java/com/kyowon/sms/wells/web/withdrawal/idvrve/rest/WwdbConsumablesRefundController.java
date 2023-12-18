@@ -4,21 +4,9 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbConsumablesRefundDto.RemoveReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbConsumablesRefundDto.SaveReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbConsumablesRefundDto.SearchBankRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbConsumablesRefundDto.SearchCardRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbConsumablesRefundDto.SearchConsumablesRefundReq;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbConsumablesRefundDto.SearchConsumablesRefundRes;
-import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbConsumablesRefundDto.SearchContractInfoRes;
+import com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbConsumablesRefundDto.*;
 import com.kyowon.sms.wells.web.withdrawal.idvrve.service.WwdbConsumablesRefundService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -86,8 +74,7 @@ public class WwdbConsumablesRefundController {
     @ApiOperation(value = "소모품환불관리 삭제", notes = " 소모품환불관리 삭제")
     @DeleteMapping
     public SaveResponse removeConsumablesRefunds(
-        @RequestBody
-        @Valid
+        @RequestBody @Valid
         List<RemoveReq> req
     ) throws Exception {
         log.info("req:" + req);
@@ -112,7 +99,7 @@ public class WwdbConsumablesRefundController {
     }
 
     /**
-     * 환불 은행사 조회
+     * 환불 카드사 조회
      * @return List<SearchCardRes>
      */
     @ApiOperation(value = "환불 은행사 조회", notes = "지급 구분에 따른 환불 카드사 조회")
@@ -122,7 +109,7 @@ public class WwdbConsumablesRefundController {
     }
 
     /**
-     * 환불 카드사 조회
+     * 환불 은행사 조회
      * @return List<SearchBankRes>
      */
     @ApiOperation(value = "환불 카드사 조회", notes = "지급 구분에 따른 환불 은행사 조회")
@@ -140,8 +127,7 @@ public class WwdbConsumablesRefundController {
     @ApiOperation(value = "소모품환불관리 등록", notes = " 소모품환불관리 등록")
     @PostMapping
     public SaveResponse saveConsumablesRefund(
-        @RequestBody
-        @Valid
+        @RequestBody @Valid
         SaveReq dto
     ) throws Exception {
         log.info("req:" + dto);
