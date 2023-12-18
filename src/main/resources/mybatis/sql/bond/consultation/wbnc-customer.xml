@@ -518,7 +518,7 @@
 		                         , TB2.CRAL_LOCARA_TNO
 		                         , TB2.MEXNO_ENCR
 		                         , TB2.CRAL_IDV_TNO
-		                         , TB2.PRTNR_KNM
+		                         , TB2.PRTNR_KNM||'('||TB2.PRTNR_NO||')' AS PRTNR_KNM
 		                      FROM TB_SSCT_CNTR_BAS TB1 /* 계약기본 */
 		                      INNER JOIN TB_OGBS_PRTNR_BAS TB2 /* 파트너기본 */
 		                        ON TB1.SELL_PRTNR_NO = TB2.PRTNR_NO
@@ -526,8 +526,8 @@
 		    ON T1.CNTR_NO = T12.CNTR_NO
 		   LEFT OUTER JOIN (
 		                    SELECT B1.CNTR_NO /*계약번호*/
-		                         , B4.PRTNR_KNM /*지국장명*/
-		                         , B4.CRAL_LOCARA_TNO /*지국장휴대전화번호 앞*/
+		                         , B4.PRTNR_KNM||'('||B4.PRTNR_NO||')' AS PRTNR_KNM /*지국장명*/
+                                 , B4.CRAL_LOCARA_TNO /*지국장휴대전화번호 앞*/
 		                         , B4.MEXNO_ENCR /*지국장휴대전화번호 중간*/
 		                         , B4.CRAL_IDV_TNO /*지국장휴대전화번호 뒤*/
 		                         , B5.CLTN_DT /*지국장 해약일자*/
@@ -654,6 +654,7 @@
 		     , NVL(T1.DLQ_ADD_AMT, 0) AS DLQ_ADD_AMT /* 연체가산금액 */
 		     , NVL(T1.DLQ_ADD_DP_AMT, 0) AS DLQ_ADD_DP /* 연체가산입금 */
 		     , NVL(T1.DLQ_ADD_AMT, 0) - NVL(T1.DLQ_ADD_DP_AMT, 0) AS DLQ_ADAMT_BLAM /* 연체가산금액 - 연체가산금입금금액 = 연체가산금잔액 */
+             , NVL(T12.THM_OC_DLQ_ADD_AMT, 0) AS THM_OC_DLQ_ADD_AMT /*당월발생연체가산금액*/
 		     , NVL(T8.SV_CS, 0) AS SV_CS /*서비스비용*/
 		     , NVL(T8.SV_DP, 0) AS SV_DP /*서비스입금*/
 		     , (NVL(T8.SV_CS, 0) - NVL(T8.SV_DP, 0)) AS SV_BLAM /*서비스잔액*/
@@ -758,6 +759,10 @@
 		                INNER JOIN TB_RVDW_VAC_BAS TT2 ON TT2.VAC_IS_ID = TT1.VAC_IS_ID AND TT2.VAC_IS_DV_CD = '5'/*가상계좌발급구분코드 = 연체집금용*/ AND TT2.VAC_STAT_CD = '1'/*가상계좌상태코드 = 할당*/
 		     ) T11
 		    ON T11.RN = 1 AND T11.CST_NO = T1.CST_NO AND T11.CNTR_NO = T1.CNTR_NO AND T11.CNTR_SN = T1.CNTR_SN
+          LEFT JOIN TB_CBCL_DLQ_BAS T12 /*연체기본*/
+                    ON T12.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.BASE_YM, 'YYYYMM'), -1), 'YYYYMM')
+                        AND T12.CNTR_NO = T1.CNTR_NO
+                        AND T12.CNTR_SN = T1.CNTR_SN
 		 WHERE 1=1
 		   AND T1.BASE_YM = (SELECT BASE_YM FROM (SELECT BASE_YM FROM TB_CBBO_BND_CNSL_BAS_IZ WHERE BND_CNTR_TP_CD = '01' ORDER BY BASE_YM DESC) WHERE ROWNUM = 1)
 		   AND T1.CST_NO = #{schCstNo}
