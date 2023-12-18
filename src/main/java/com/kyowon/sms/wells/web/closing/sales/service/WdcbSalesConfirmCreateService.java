@@ -217,11 +217,10 @@ public class WdcbSalesConfirmCreateService {
         slpMapngCdv = mapper.selectSlpMapngCdv(tempSellTpDtlCd, tempSlRcogClsfCd, clssVal, slTpDvCd, addConditionSlTp);
         sapSlTpCd = StringUtil.isEmpty(slpMapngCdv) ? "ERR" : slpMapngCdv;
 
-        String tmpSapBizDvCd = mapper.selectSapBizDvCd(tempSellTpDtlCd, tempSlRcogClsfCd, addCondition);
+        String tmpSapBizDvCd = mapper.selectSapBizDvCd(tempSellTpDtlCd, tempSlRcogClsfCd, addConditionBizDv);
         if ("PDC000000000131".equals(dvo.getPdLclsfId())) {
             tmpSapBizDvCd = "LNC49";
         }
-        String tmpSapBizDvCd = mapper.selectSapBizDvCd(tempSellTpDtlCd, tempSlRcogClsfCd, addConditionBizDv);
         String sapBizDvCd = StringUtil.isEmpty(tmpSapBizDvCd) ? "ERR" : tmpSapBizDvCd;
 
         /* 매핑 값 셋팅 */
