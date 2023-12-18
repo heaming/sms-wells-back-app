@@ -89,6 +89,7 @@ public class WpdySalesTypeVariableMgtService {
         for (WpdyTypeVariableBaseDvo base : bases) {
             duplicationKey = mapper.selectSalesTypeVariableDuplication(base);
             if (StringUtil.isNotBlank(duplicationKey)) {
+                // 중복 검사 첫번째 중복만 반환, 이후 중단
                 break;
             }
         }
