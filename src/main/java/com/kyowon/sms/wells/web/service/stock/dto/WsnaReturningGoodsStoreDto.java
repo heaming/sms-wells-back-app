@@ -25,7 +25,8 @@ public class WsnaReturningGoodsStoreDto {
         String strConfYnCd, /*입고확인여부코드*/
         String stRtngdProcsTpCd, /*반품처리유형코드*/
         String stOstrConfDt, /*확인일자*/
-        String chkErrorCheck /*등급오류체크*/
+        String chkErrorCheck, /*등급오류체크*/
+        String barCode /*바코드필터링값*/
 
     ) {}
 
