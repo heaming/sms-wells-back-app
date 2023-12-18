@@ -241,6 +241,7 @@ public class WbncCustomerDto {
         String dlqAmt, /* 연체금액 */
         String dlqDp, /* 연체입금 */
         String dlqBlam, /* 연체금액 - 연체입금 = 연체잔액 */
+        String thmOcDlqAddAmt, /* 당월발생연체가산금액 */
         String mmChramAmt, /* 월요금액 */
         String mmChramDp, /* 월요금입금 */
         String mmChramBlam, /* 당월요금금액 - 당월요금입금금액 = 월요금잔액 */
