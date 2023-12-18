@@ -12,11 +12,19 @@
              , T2.CRAL_IDV_TNO      /*휴대폰번호3*/
              , X.DLQ_AMT            /*연체금액*/
              , X.DLQ_BLAM           /*연체잔액*/
-             , X.CLCTAM_PRTNR_NO   /*집금담당자번호*/
+             , (SELECT CLCTAM_PRTNR_NO
+                  FROM TB_CBBO_BND_CNTR_BAS
+                 WHERE CST_NO = X.CST_NO
+                   AND BASE_YM = X.OC_BSYM
+                   AND ROWNUM = 1) AS CLCTAM_PRTNR_NO   /*집금담당자번호*/
              , (SELECT PRTNR_KNM
                   FROM TB_CBBO_CLCTAM_PRTNR_DTL /*T:집금파트너상세*/
-                 WHERE PRTNR_NO = X.CLCTAM_PRTNR_NO
-                   AND ROWNUM <![CDATA[<=]]> 1) AS PRTNR_KNM     /*집금담당자명*/
+                 WHERE PRTNR_NO = (SELECT CLCTAM_PRTNR_NO
+                                     FROM TB_CBBO_BND_CNTR_BAS
+                                    WHERE CST_NO = X.CST_NO
+                                      AND BASE_YM = X.OC_BSYM
+                                      AND ROWNUM = 1)
+                   AND ROWNUM = 1) AS PRTNR_KNM     /*집금담당자명*/
              , '1588-4113' AS DSPH_TNO              /*발신번호*/
              , (CASE WHEN X.NICE_FW_EXCD_YN = 'N' THEN TO_CHAR(TO_DATE(SUBSTR(T5.FWBOO_DTM,1,8),'YYYYMMDD')+4,'YYYYMMDD') ELSE '' END) AS RGST_SCH_DT /*NICE등록예정일자-알림톡발송일자+4일*/
              , NVL((SELECT NOTY_RCV_YN
@@ -26,7 +34,6 @@
                        AND ROWNUM <![CDATA[<=]]> 1),'N') AS NOTY_RCV_YN  /*알림수신여부*/
           FROM (SELECT SUBSTR(A.OC_BSDT,1,6) AS OC_BSYM
                      , A.CST_NO
-                     , A.CLCTAM_PRTNR_NO
                      , A.NICE_FW_EXCD_YN
                      , SUM(NVL(A.DLQ_AMT,0))  AS DLQ_AMT
                      , SUM(NVL(A.DLQ_BLAM,0)) AS DLQ_BLAM
@@ -52,7 +59,6 @@
         </if>
                  GROUP BY SUBSTR(A.OC_BSDT,1,6)
                      , A.CST_NO
-                     , A.CLCTAM_PRTNR_NO
                      , A.NICE_FW_EXCD_YN
                ) X
           LEFT JOIN (SELECT CST_NO
