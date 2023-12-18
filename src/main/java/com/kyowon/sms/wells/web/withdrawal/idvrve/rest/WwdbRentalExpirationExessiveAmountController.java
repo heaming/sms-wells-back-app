@@ -14,11 +14,7 @@ import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,8 +42,7 @@ public class WwdbRentalExpirationExessiveAmountController {
     @ApiOperation(value = "렌탈만료초과금현황 조회", notes = "렌탈 상품이 만료되어 초과금이 발생되는 정보를 검색한다.")
     @GetMapping("/paging")
     public PagingResult<WwdbRentalExpirationExcessiveAmountDto.SearchRes> getRentalExpirationExcessiveAmountPage(
-        @ApiParam
-        @Valid
+        @ApiParam @Valid
         WwdbRentalExpirationExcessiveAmountDto.SearchReq req, PageInfo pageInfo
     ) {
         return service.getRentalExpirationExcessiveAmountPage(req, pageInfo);
@@ -67,11 +62,30 @@ public class WwdbRentalExpirationExessiveAmountController {
     @ApiOperation(value = "렌탈만료초과금현황 엑셀다운로드", notes = "렌탈 상품이 만료되어 초과금이 발생되는 정보를 검색하여 엑셀다운로드한다.")
     @GetMapping("/excel-download")
     public List<WwdbRentalExpirationExcessiveAmountDto.SearchRes> getRentalExpirationExcessiveForExcelDownload(
-        @ApiParam
-        @Valid
+        @ApiParam @Valid
         WwdbRentalExpirationExcessiveAmountDto.SearchReq req
     ) {
         return service.getRentalExpirationExcessiveForExcelDownload(req);
+    }
+
+    /**
+     * 렌탈만료초과금현황 합계 조회
+     * @param req
+     * @return SearchTotalSumRes
+     * @throws Exception
+     */
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "dpDt", value = "입금일자", paramType = "query", required = false),
+        @ApiImplicitParam(name = "copnDvCd", value = "계약구분코드", paramType = "query", required = false),
+        @ApiImplicitParam(name = "cntrPdEnddt", value = "계약상품종료일자", paramType = "query", required = false),
+        @ApiImplicitParam(name = "cntrDtlStatCd", value = "종료구분코드", paramType = "query", required = false),
+    })
+    @ApiOperation(value = "렌탈만료초과금현황 합계 조회", notes = "렌탈 상품이 만료되어 초과금이 발생되는 정보를 검색하여 전체 합계를 조회한다.")
+    @GetMapping("/sum")
+    public WwdbRentalExpirationExcessiveAmountDto.SearchTotalSumRes getRentalExpirationExcessiveAmountTotalSum(
+        WwdbRentalExpirationExcessiveAmountDto.SearchReq req
+    ) throws Exception {
+        return service.getRentalExpirationExcessiveAmountTotalSum(req);
     }
 
 }
