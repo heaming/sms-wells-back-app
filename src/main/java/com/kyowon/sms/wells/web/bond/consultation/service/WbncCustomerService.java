@@ -167,10 +167,10 @@ public class WbncCustomerService {
             conn.setDoOutput(true);
             conn.setRequestMethod("GET");
 
-            // 연결 타임아웃 설정 
-            conn.setConnectTimeout(30000); // 10초 
+            // 연결 타임아웃 설정
+            conn.setConnectTimeout(30000); // 10초
 
-            // 읽기 타임아웃 설정 
+            // 읽기 타임아웃 설정
             conn.setReadTimeout(30000); // 10초
 
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
@@ -247,7 +247,6 @@ public class WbncCustomerService {
 
             if (("L30".equals(petitionDvo.getBndBizDvCd()) || "L60".equals(petitionDvo.getBndBizDvCd()))
                 && "02".equals(petitionDvo.getBndLwsBilDvCd()) && "@".equals(petitionDvo.getBndBilPpsDvCd())
-                && "N".equals(petitionDvo.getIstmYn()) && "N".equals(petitionDvo.getDscYn())
                 && !"302".equals(petitionDvo.getCntrDtlStatCd()) && !"303".equals(petitionDvo.getCntrDtlStatCd())) {
                 returnCount = mapper.selectPetitionType5(cntrDtlNo);
             }
