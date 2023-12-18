@@ -116,7 +116,8 @@ public class WdcbSapSalesCompulsionCreateService {
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
             processCount += result;
 
-            if (cnt == dtos.size()) {
+            int ifinSlInfAtcIzCount = mapper.selectIfinSlInfAtcIzCount(dvo);
+            if (ifinSlInfAtcIzCount == 0) {
                 result = mapper.deleteIfinSlInfHdrBas(dvo);
                 BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
             }
