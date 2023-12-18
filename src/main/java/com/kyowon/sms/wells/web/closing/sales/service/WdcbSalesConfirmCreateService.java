@@ -212,6 +212,9 @@ public class WdcbSalesConfirmCreateService {
         sapSlTpCd = StringUtil.isEmpty(slpMapngCdv) ? "ERR" : slpMapngCdv;
 
         String tmpSapBizDvCd = mapper.selectSapBizDvCd(tempSellTpDtlCd, tempSlRcogClsfCd, addCondition);
+        if ("PDC000000000131".equals(dvo.getPdLclsfId())) {
+            tmpSapBizDvCd = "LNC49";
+        }
         String sapBizDvCd = StringUtil.isEmpty(tmpSapBizDvCd) ? "ERR" : tmpSapBizDvCd;
 
         /* 매핑 값 셋팅 */
