@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class WsnaStockAcinspRgstMngtDvo {
     String apyYm; /* 적용년월 */
+    String statusT; /* 상태값 */
     String wareNo; /* 창고번호 */
     String wareNm; /* 창고명 */
     String itmKnd; /* 품목구분 */
