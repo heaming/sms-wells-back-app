@@ -142,11 +142,18 @@ public class WbnaFosterTransferMgtService {
     @Transactional
     public int editFosterDataTransfers(List<SaveReq> dtos) {
         int processCount = 0;
+        int insertResult = 0;
+        int updateResult = 0;
 
         for (SaveReq dto : dtos) {
             WbnaBondContractBaseDvo dvo = this.converter.mapSaveReqToBondContractBaseDvo(dto);
-            int insertResult = this.mapper.insertBondContractHistories(dvo);
-            int updateResult = this.mapper.updateFosterTransfer(dvo);
+            if (StringUtil.isBlank(dvo.getClctamPrtnrNo())) {
+                insertResult = this.mapper.insertBondContractHistories(dvo);
+                updateResult = this.mapper.updateNoAssignFosterTransfer(dvo);
+            } else {
+                insertResult = this.mapper.insertBondContractHistories(dvo);
+                updateResult = this.mapper.updateFosterTransfer(dvo);
+            }
 
             BizAssert.isTrue(updateResult == 1 && insertResult == 1, MSG_ALT_SVE_ERR_STR);
             processCount += updateResult;
