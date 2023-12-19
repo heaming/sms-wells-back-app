@@ -138,8 +138,10 @@ public class WsnaAsConsumablesStoreService {
                         .filter(data -> strRgstDt.equals(data.getStrRgstDt())).toList();
                     int seq = 1;
                     for (WsnaAsConsumablesStoreDvo insertDvo : dvos) {
+                        String chkItmGdCd = insertDvo.getItmGdCd().replaceAll("[^A-z]", "").toUpperCase();
                         insertDvo.setItmStrSn(seq++);
                         insertDvo.setItmStrNo(itmStrNo);
+                        insertDvo.setItmGdCd(chkItmGdCd);
                         insertDvo.setStrTpCd(ETC_STR);
 
                         int result = mapper.insertAsConsumablesStore(insertDvo);
@@ -484,7 +486,7 @@ public class WsnaAsConsumablesStoreService {
 
         // 품목상품등급코드가 A,B,E,R 급이 아닌경우(A급 등등 체크)
         if (StringUtil.isNotBlank(dvo.getItmGdCd())) {
-            String chkItmGdCd = dvo.getItmGdCd();
+            String chkItmGdCd = dvo.getItmGdCd().replaceAll("[^A-z]", "").toUpperCase();
             if (!List.of("A", "B", "E", "R").contains(chkItmGdCd)) {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
