@@ -68,9 +68,9 @@ public class WbndRentalCbMgtObjectService {
 
         for (SaveReq dto : dtos) {
             WbndRentalCbDelinquentIzDvo dvo = this.converter.mapSaveReqToRentalCbDlqIzDvo(dto);
-            int resultYn = this.mapper.updateMessageObjectYn(dvo);
-            BizAssert.isTrue(resultYn > 0, "MSG_ALT_SVE_ERR");
-            processCount += resultYn;
+            this.mapper.updateMessageObjectYn(dvo);
+            // BizAssert.isTrue(resultYn > 0, "MSG_ALT_SVE_ERR");
+            // processCount += resultYn;
 
             int resultHist = this.mapper.insertMessageObjectHist(dvo);
             BizAssert.isTrue(resultHist > 0, "MSG_ALT_SVE_ERR");
