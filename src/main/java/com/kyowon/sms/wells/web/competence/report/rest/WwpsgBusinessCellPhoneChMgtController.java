@@ -43,7 +43,7 @@ public class WwpsgBusinessCellPhoneChMgtController {
         return service.getBusinessCellPhoneChMgtPages(dto, pageInfo);
     }
 
-    @ApiOperation(value = "임차관리 팝업", notes = "")
+    @ApiOperation(value = "업무폰변경 관리 팝업", notes = "")
     @GetMapping("/rent-popup")
     public WwpsgBusinessCellPhoneChMgtDto.PopupSearchRes getRentManagementPopup(
         @Valid
@@ -52,7 +52,7 @@ public class WwpsgBusinessCellPhoneChMgtController {
         return service.getRentManagementPopup(dto);
     }
 
-    @ApiOperation(value = "임차관리 기본정보", notes = "")
+    @ApiOperation(value = "업무폰변경 관리 기본정보", notes = "")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
@@ -64,7 +64,7 @@ public class WwpsgBusinessCellPhoneChMgtController {
         return service.getBaseInfo(dto);
     }
 
-    @ApiOperation(value = "판매자 파트너 정보", notes = "")
+    @ApiOperation(value = "업무폰 관리 판매자 파트너 정보", notes = "")
     @GetMapping("/prtnr-info")
     public SellPrtnrRes getPrtnrInfo(
         @Valid

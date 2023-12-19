@@ -18,7 +18,8 @@ public class WsnyAsVisitCostMgtDto {
 
     @ApiModel(value = "WsnyAsVisitCostMgtDto-SearchReq")
     public record SearchReq(
-        String pdCd,
+        String pdGrpCd, /* 상품그룹 */
+        String pdCd, /* 상품코드 */
         String izSn,
         String bstrCsAmt,
         String apyStrtdt,

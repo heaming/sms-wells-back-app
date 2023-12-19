@@ -22,7 +22,7 @@
            AND T1.PERF_ATC_CD IN ( 'W02P00001', 'W02P00093', 'W02P00115', 'W02P00116', 'W02P00117',
                                    'W02P00120', 'W02P00092', 'W02P00123', 'W02P00111', 'W02P00124',
                                    'W02P00125', 'W02P00126', 'W02P00127', 'W02P00128', 'W02P00129',
-                                   'W02P00130', 'W02P00131')
+                                   'W02P00130', 'W02P00131', 'W02P00134')
     </delete>
 
     <insert id="insertManagerFeeMeetingAttendances">
@@ -178,14 +178,14 @@
                 SELECT T1.PRTNR_NO
                       , 'W02P00134' AS PERF_ATC_CD   /* 2023.07이전 배출수 */
                       , '' AS FEE_PERF_ATC_VAL
-                      , SUM(CASE WHEN T2.OJ_PRTNR_PSTN_DV_CD IN ('4','6','7') AND T2.EJT_YM <![CDATA[<=]]> '202307' THEN 1 ELSE 0 END ) AS PERF_VAL
+                      , SUM(CASE WHEN T2.OJ_PRTNR_PSTN_DV_CD IN ('4','6','7') THEN 1 ELSE 0 END ) AS PERF_VAL
                    FROM TB_OGBS_MM_PRTNR_IZ T1
                    LEFT OUTER JOIN TB_OGPS_PRTNR_EJT_REL T2	/* 배출정보 */
-                     ON T1.BASE_YM  = T2.MNGT_YM
-                    AND T1.OG_TP_CD = T2.BASE_OG_TP_CD
+                     ON T1.OG_TP_CD = T2.BASE_OG_TP_CD
                     AND T1.PRTNR_NO = T2.BASE_PRTNR_NO
                     AND T2.OG_EJT_DV_CD = '10'
-                    AND T2.ACKMT_YN = 'Y'	/* 인정여부 */
+                    AND T2.MNGT_YM = '202307'   /* 2023.07-배출수 */
+                   -- AND T2.ACKMT_YN = 'Y'	/* 인정여부 */
                   WHERE T1.OG_TP_CD = 'W02'
                     AND T1.BASE_YM = #{perfYm}
                     AND T1.PSTN_DV_CD = '7'
@@ -216,7 +216,7 @@
                     AND T1.OG_TP_CD = T2.BASE_OG_TP_CD
                     AND T1.PRTNR_NO = T2.BASE_PRTNR_NO
                     AND T2.OG_EJT_DV_CD = '10'
-                    AND T2.ACKMT_YN = 'Y'	/* 인정여부 */
+                    --AND T2.ACKMT_YN = 'Y'	/* 인정여부 */
                    LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T3	/* 순주문파트너 실적월마감 (피배출자 실적) */
                      ON T2.MNGT_YM = T3.BASE_YM
                     AND T2.OJ_OG_TP_CD = T3.OG_TP_CD 	/* 피배출자 조직코드 */
@@ -235,6 +235,28 @@
                     AND T4.PERF_DV_CD = '2'	/* 지점판매실적 */
                   WHERE T1.OG_TP_CD = 'W02'
                     AND T1.BASE_YM = #{perfYm}
+                    AND T1.PSTN_DV_CD = '7'
+                  GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.PRTNR_NO
+                 UNION ALL
+                 SELECT T1.PRTNR_NO
+                      , 'W02P00123' AS PERF_ATC_CD   /* 23년한정배출자인원수 */
+                      , '' AS FEE_PERF_ATC_VAL
+                      , SUM( CASE WHEN T2.OJ_PRTNR_PSTN_DV_CD IN ('4','6','7')
+                                       AND T2.OG_EJT_GD_CD IN ('6','7')
+                                       AND T2.EJT_YM BETWEEN '202304' AND '202307'
+                                       THEN 1
+                                  ELSE 0
+                             END
+                           ) AS PERF_VAL
+                   FROM TB_OGBS_MM_PRTNR_IZ T1
+                   LEFT OUTER JOIN TB_OGPS_PRTNR_EJT_REL T2
+                     ON T1.BASE_YM  = T2.MNGT_YM
+                    AND T1.OG_TP_CD = T2.BASE_OG_TP_CD
+                    AND T1.PRTNR_NO = T2.BASE_PRTNR_NO
+                    AND T2.OG_EJT_DV_CD = '10'
+                    AND T2.ACKMT_YN = 'Y'
+                  WHERE T1.OG_TP_CD ='W02'
+                    AND T1.BASE_YM = '202307'
                     AND T1.PSTN_DV_CD = '7'
                   GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.PRTNR_NO
                </if>

@@ -33,6 +33,10 @@ public class WpsdExclDivAwdErnWhtxRgstService {
         return mapper.selectExclDivAwdErnWhtxRgstPages(dto, pageInfo);
     }
 
+    public List<SearchRes> getExclDivAwdErnWhtxRgstExcelDownload(SearchReq dto) {
+        return mapper.selectExclDivAwdErnWhtxRgstPages(dto);
+    }
+
     @Transactional
     public ExcelUploadDto.UploadRes exclDivAwdErnWhtxRgstExcelUpload(MultipartFile file) throws Exception {
         Map<String, String> headerTitle = new LinkedHashMap<>();
@@ -40,7 +44,6 @@ public class WpsdExclDivAwdErnWhtxRgstService {
         headerTitle.put("ogTpCd", messageService.getMessage("MSG_TXT_OG_TP_CD"));
         headerTitle.put("prtnrNo", messageService.getMessage("MSG_TXT_PRTNR_NUMBER"));
         headerTitle.put("awdDvCd", messageService.getMessage("MSG_TXT_DV_CD"));
-        headerTitle.put("awdPerfSn", messageService.getMessage("AWD_PERF_SN"));
         headerTitle.put("awdNm", messageService.getMessage("MSG_TXT_AWD_NM"));
         headerTitle.put("awdIntbsAmt", messageService.getMessage("MSG_TXT_AWD_INTBS_AMT"));
         headerTitle.put("awdErnWhtx", messageService.getMessage("AWD_ERN_WHTX"));

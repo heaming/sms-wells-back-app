@@ -65,6 +65,7 @@ public class WpdyRentalLeasePenaltyMgtService {
         String startDtm = DateUtil.getDate(new Date());
         for (WpdyCancelChargeBaseDvo base : bases) {
             if (StringUtil.isEmpty(base.getCcamId())) {
+                // 렌탈리스 테이블 시퀀스 키 입력
                 base.setCcamId(mapper.selectRentalLeasePenaltyId());
                 base.setHistStrtDtm(startDtm);
                 base.setHistEndDtm(PdProductConst.END_DATE_STR);
@@ -105,6 +106,7 @@ public class WpdyRentalLeasePenaltyMgtService {
         for (WpdyCancelChargeBaseDvo base : bases) {
             duplicationKey = mapper.selectRentalLeasePenaltyDuplication(base, idList);
             if (StringUtil.isNotBlank(duplicationKey)) {
+                // 중복 검사 첫번째 중복만 반환, 이후 중단
                 break;
             }
         }

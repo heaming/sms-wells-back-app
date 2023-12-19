@@ -93,7 +93,9 @@ public class WfeeIndividualFeeDto {
         int perfSnglPmnt, /*환경가전일시불*/
         int perfFxam, /*환경가전정액*/
         int perfBsPdAccCnt, /*가전인정건수*/
-        int perfElhmExcpAckmt /*가전외인정실적*/
+        int perfElhmExcpAckmt, /*가전외인정실적*/
+        int nincCnt, /*순증건수*/
+        int perfElhmExcpFxam /*가전외정액*/
     ) {}
 
     @ApiModel(value = "WfeeFeeIndividualDetailDto-SearchHmstRes")

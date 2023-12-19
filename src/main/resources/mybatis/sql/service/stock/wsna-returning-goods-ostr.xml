@@ -267,21 +267,21 @@
           FROM DUAL
     </insert>
 
-    <delete id="deleteItemForwardingHistory">
+    <update id="deleteItemForwardingHistory">
         UPDATE TB_SVST_ITM_OSTR_IZ /* 품목출고내역 */
            SET DTA_DL_YN = 'Y'
            <include refid="COMMON.updateSystemField"/>
          WHERE ITM_OSTR_NO = #{itmOstrNo}
            AND OSTR_SN = ${ostrSn}
-    </delete>
+    </update>
 
-    <delete id="deleteItemReceivingHistory">
+    <update id="deleteItemReceivingHistory">
         UPDATE TB_SVST_ITM_STR_IZ /* 품목입고내역 */
            SET DTA_DL_YN = 'Y'
            <include refid="COMMON.updateSystemField"/>
          WHERE ITM_STR_NO = #{itmStrNo}
            AND STR_SN = ${strSn}
-    </delete>
+    </update>
 
     <select id="selectLogisticsReturningGoodsAskInfo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaReturningGoodsDvo">
         SELECT T1.ITM_OSTR_NO                  AS OSTR_AK_NO                    /* 출고요청번호 */
@@ -370,16 +370,12 @@
 
         SELECT D1.PD_CD   AS ITM_PD_CD /* 품목상품코드 */
              , #{itmGdCd} AS ITM_GD_CD /* 품목등급코드*/
-             , NVL(DECODE(#{itmGdCd}, 'A', D2.PITM_STOC_A_GD_QTY
-                                    , 'B', D2.PITM_STOC_B_GD_QTY
-                                    , 'E', D2.PITM_STOC_E_GD_QTY
-                                    , 'R', D2.PITM_STOC_R_GD_QTY
-                                    , 0)
-                 - DECODE(#{itmGdCd}, 'A', D2.MMT_STOC_A_GD_QTY
-                                    , 'B', D2.MMT_STOC_B_GD_QTY
-                                    , 'E', D2.MMT_STOC_E_GD_QTY
-                                    , 'R', D2.MMT_STOC_R_GD_QTY
-                                    , 0), 0) AS PITM_QTY /* 시점재고수량 */
+             , CASE #{itmGdCd} WHEN 'A' THEN NVL(D2.PITM_STOC_A_GD_QTY, 0) - NVL(D2.MMT_STOC_A_GD_QTY, 0)
+                               WHEN 'B' THEN NVL(D2.PITM_STOC_B_GD_QTY, 0) - NVL(D2.MMT_STOC_B_GD_QTY, 0)
+                               WHEN 'E' THEN NVL(D2.PITM_STOC_E_GD_QTY, 0) - NVL(D2.MMT_STOC_E_GD_QTY, 0)
+                               WHEN 'R' THEN NVL(D2.PITM_STOC_R_GD_QTY, 0) - NVL(D2.MMT_STOC_R_GD_QTY, 0)
+                               ELSE 0
+               END        AS PITM_QTY /* 시점재고수량 */
           FROM TB_PDBS_PD_BAS D1
          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ D2 /* 고객서비스품목재고내역 */
            ON D2.ITM_PD_CD = D1.PD_CD

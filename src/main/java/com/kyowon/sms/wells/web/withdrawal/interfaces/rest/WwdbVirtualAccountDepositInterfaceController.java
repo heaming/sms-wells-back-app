@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.withdrawal.interfaces.rest;
 
-import java.util.List;
-
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
@@ -22,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @InterfaceController
 @Api(tags = "[WWDB] wells 가상계좌 입금 처리 I/F API")
-@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve/batch-service")
+@RequestMapping(value = WdWithdrawalConst.INTERFACE_URL_V1 + "/idvrve")
 @RequiredArgsConstructor
 @Validated
 public class WwdbVirtualAccountDepositInterfaceController {
@@ -37,9 +35,9 @@ public class WwdbVirtualAccountDepositInterfaceController {
         EaiWrapper<SearchReq> reqWrapper
     ) {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<SearchRes>> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<SearchRes> resWrapper = reqWrapper.newResInstance();
         // 서비스 메소드 호출
-        List<SearchRes> res = service.saveVirtualAccountDeposit(reqWrapper.getBody());
+        SearchRes res = service.saveVirtualAccountDeposit(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);

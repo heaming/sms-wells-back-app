@@ -47,7 +47,7 @@ public class WwpsgBusinessSpptMngerRpotMgtController {
         return service.getBusinessSpptMngerRpotMgtPages(dto, pageInfo);
     }
 
-    @ApiOperation(value = "BM보고서 관리 업무유형 내용", notes = "")
+    @ApiOperation(value = "업무지원매니저 보고서 관리 업무유형 내용", notes = "")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
@@ -59,7 +59,7 @@ public class WwpsgBusinessSpptMngerRpotMgtController {
         return service.getBusinessTypeContent(dto);
     }
 
-    @ApiOperation(value = "BM보고서 관리 업무유형", notes = "")
+    @ApiOperation(value = "업무지원매니저 보고서 관리 업무유형", notes = "")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
@@ -71,7 +71,7 @@ public class WwpsgBusinessSpptMngerRpotMgtController {
         return service.getBusinessType(dto);
     }
 
-    @ApiOperation(value = "BM보고서 관리 파트너 연락처", notes = "")
+    @ApiOperation(value = "업무지원매니저 보고서 관리 파트너 연락처", notes = "")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
@@ -83,7 +83,7 @@ public class WwpsgBusinessSpptMngerRpotMgtController {
         return service.getPrtnrInfo(dto);
     }
 
-    @ApiOperation(value = "BM보고서 관리 저장", notes = "")
+    @ApiOperation(value = "업무지원매니저 보고서 관리 저장", notes = "")
     @PostMapping("/business-manager-report")
     public SaveResponse saveBusinessManagerReport(
         @RequestBody
@@ -93,7 +93,7 @@ public class WwpsgBusinessSpptMngerRpotMgtController {
         return SaveResponse.builder().processCount(this.service.saveBusinessManagerReport(dtos)).build();
     }
 
-    @ApiOperation(value = "보고서 업무 유형 저장", notes = "")
+    @ApiOperation(value = "업무지원매니저 보고서 관리 업무 유형 저장", notes = "")
     @PostMapping("/report-business-type")
     public SaveResponse saveReportBusinessType(
         @RequestBody
@@ -103,7 +103,7 @@ public class WwpsgBusinessSpptMngerRpotMgtController {
         return SaveResponse.builder().processCount(this.service.saveReportBusinessType(dto)).build();
     }
 
-    @ApiOperation(value = "BM보고서 관리 삭제", notes = "")
+    @ApiOperation(value = "업무지원매니저 보고서 관리 삭제", notes = "")
     @DeleteMapping("/")
     public SaveResponse removeSpectxBlkPrnts(
         @RequestBody
