@@ -49,6 +49,20 @@ public class WsnaEngineerToolService {
         return mapper.selectEngineerToolDsbHist(newDto, pageInfo);
     }
 
+    public List<SearchRes> getExcelDownloadEngineerToolDsbHist(SearchReq dto) {
+        SearchReq newDto = new SearchReq(
+            dto.pymdt(),
+            dto.ogId(),
+            dto.egerPrtnrNo(),
+            dto.prtnrKnm().replace("%", "\\%"),
+            dto.toolPdCdStrt(),
+            dto.toolPdCdEnd(),
+            dto.sapMatCdStrt(),
+            dto.sapMatCdEnd()
+        );
+        return mapper.selectEngineerToolDsbHist(newDto);
+    }
+
     @Transactional
     public int removeEngineerTools(List<RemoveReq> dtos) {
         int processCount = 0;
