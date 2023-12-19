@@ -47,14 +47,10 @@ public class WdeaAllowanceRedfMgtDto {
         @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, /*판매자성명*/
         String prtnrNo, /*파트너번호*/
-        @MaskRequired(type = MaskingType.NAME)
-        String gnlrLedr, /*총괄단장, TODO: 조직쪽에서 정리되면 추가*/
-        @MaskRequired(type = MaskingType.NAME)
-        String localAreaManager, /*지역단장, TODO: 조직쪽에서 정리되면 추가*/
-        @MaskRequired(type = MaskingType.NAME)
-        String branchManager, /*지점장, TODO: 조직쪽에서 정리되면 추가*/
-        @MaskRequired(type = MaskingType.NAME)
-        String dstrcManager, /*지구장, TODO: 조직쪽에서 정리되면 추가*/
+        String gnlrLedrNo, /*총괄단장*/
+        String localAreaManagerNo, /*지역단장*/
+        String branchManagerNo, /*지점장*/
+        String dstrcManagerNo, /*지구장*/
         String perfTpCd, /*처리유형(실적유형코드) 01: 취소, 10: 연체*/
         String thmOcDlqAmt, /*연체금액, 당월발생연체금액*/
         String cntrDtlStatChRsonNm, /*취소유형*/
