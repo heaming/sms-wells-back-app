@@ -128,6 +128,7 @@ public class WsnaItemLocationDto {
         // 위치코드
         String locationCd,
         // 품목앵글값
+        String itmLctAngleVal,
         // 앵글명
         String angleValNm,
         // 층수
