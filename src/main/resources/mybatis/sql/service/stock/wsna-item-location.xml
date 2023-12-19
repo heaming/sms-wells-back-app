@@ -2,22 +2,28 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemLocationMapper">
 
     <select id="selectItemLocations" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemLocationDto$SearchRes">
-        SELECT D1.PD_CD                                                                                               AS ITM_PD_CD           /* 품목코드 */
-             , D1.PD_ABBR_NM                                                                                          AS PD_ABBR_NM          /* 품목명 */
-             , TO_CHAR(TO_NUMBER(D1.SAP_MAT_CD))                                                                      AS SAP_MAT_CD          /* SAP코드 */
-             , D4.PD_PRP_VAL19                                                                                        AS ITM_KND_CD          /* 품목종류코드 */
-             , D5.WARE_NO                                                                                                                    /* 창고번호 */
-             , D5.WARE_NM                                                                                                                    /* 창고명 */
-             , D5.STD_WARE_USE_YN                                                                                                            /* 표준적용여부 */
-             , NVL(D3.PITM_STOC_A_GD_QTY, 0)                                                                          AS PITM_STOC_A_GD_QTY  /* 재고 */
-             , TRIM(D2.ITM_LCT_ANGLE_VAL)                                                                             AS ITM_LCT_ANGLE_VAL   /* 앵글 */
-             , D2.ITM_LCT_COF_VAL                                                                                                            /* 층수 */
-             , D2.ITM_LCT_FLOR_NO_VAL                                                                                                        /* 층번호 */
-             , D2.ITM_LCT_MAT_GRP_CD                                                                                                         /* 그룹 */
+        SELECT D1.PD_CD                                                                                        AS ITM_PD_CD           /* 품목코드 */
+             , D1.PD_ABBR_NM                                                                                   AS PD_ABBR_NM          /* 품목명 */
+             , TO_CHAR(TO_NUMBER(D1.SAP_MAT_CD))                                                               AS SAP_MAT_CD          /* SAP코드 */
+             , D4.PD_PRP_VAL19                                                                                 AS ITM_KND_CD          /* 품목종류코드 */
+             , D5.WARE_NO                                                                                                             /* 창고번호 */
+             , D5.WARE_NM                                                                                                             /* 창고명 */
+             , D5.STD_WARE_USE_YN                                                                                                     /* 표준적용여부 */
+             , NVL(D3.PITM_STOC_A_GD_QTY, 0)                                                                   AS PITM_STOC_A_GD_QTY  /* 재고 */
+             , TRIM(D2.ITM_LCT_ANGLE_VAL)                                                                      AS ITM_LCT_ANGLE_VAL   /* 앵글 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', D2.ITM_LCT_ANGLE_VAL, #{session.langId})               AS ANGLE_VAL_NM        /* 앵글명 */
+             , D2.ITM_LCT_COF_VAL                                                                                                     /* 층수 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', D2.ITM_LCT_COF_VAL, #{session.langId})                   AS COF_VAL_NM          /* 층수명 */
+             , D2.ITM_LCT_FLOR_NO_VAL                                                                                                 /* 층번호 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', D2.ITM_LCT_FLOR_NO_VAL, #{session.langId})           AS FLOR_NO_VAL_NM      /* 층번호명 */
+             , D2.ITM_LCT_MAT_GRP_CD                                                                                                  /* 그룹 */
              , TRIM( F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', D2.ITM_LCT_ANGLE_VAL, #{session.langId})
-                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', D2.ITM_LCT_COF_VAL, #{session.langId})
-                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', D2.ITM_LCT_FLOR_NO_VAL, #{session.langId})
-                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', D2.ITM_LCT_MAT_GRP_CD, #{session.langId}) ) AS ITM_LCT_NM          /* 품목위치 */
+                     || CASE WHEN D2.ITM_LCT_ANGLE_VAL IS NOT NULL AND D2.ITM_LCT_COF_VAL IS NOT NULL THEN '-' ELSE '' END
+                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', D2.ITM_LCT_COF_VAL, #{session.langId})
+                     || CASE WHEN D2.ITM_LCT_COF_VAL IS NOT NULL AND D2.ITM_LCT_FLOR_NO_VAL IS NOT NULL THEN '-' ELSE '' END
+                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', D2.ITM_LCT_FLOR_NO_VAL, #{session.langId})
+                     || CASE WHEN D2.ITM_LCT_FLOR_NO_VAL IS NOT NULL AND D2.ITM_LCT_MAT_GRP_CD IS NOT NULL THEN '-' ELSE '' END
+                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', D2.ITM_LCT_MAT_GRP_CD, #{session.langId}) ) AS ITM_LCT_NM          /* 품목위치 */
           FROM TB_PDBS_PD_BAS D1                          /* 상품기본 */
           LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ D3   /* 고객서비스품목재고내역 */
             ON D3.ITM_PD_CD = D1.PD_CD
@@ -118,26 +124,33 @@
     </select>
 
    <select id="selectStockItemLocations" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemLocationDto$SearchLocationRes">
-        SELECT D1.PD_CD                                                                                               AS ITM_PD_CD            /* 품목코드 */
-             , D1.PD_ABBR_NM                                                                                          AS PD_ABBR_NM           /* 품목명 */
-             , TO_CHAR(TO_NUMBER(D1.SAP_MAT_CD))                                                                      AS SAP_MAT_CD           /* SAP코드 */
-             , D4.PD_PRP_VAL19                                                                                        AS ITM_KND_CD           /* 품목종류코드 */
-             , D5.WARE_NO                                                                                                                     /* 창고번호 */
-             , D5.WARE_NM                                                                                                                     /* 창고명 */
-             , D5.STD_WARE_USE_YN                                                                                                             /* 표준창고사용여부 */
-             , NVL(D3.PITM_STOC_A_GD_QTY, 0)                                                                          AS PITM_STOC_A_GD_QTY   /* 재고 */
-             , D2.WARE_TP_CD                                                                                                                  /* 창고유형코드 */
-             , TRIM(D2.ITM_LCT_ANGLE_VAL)                                                                             AS ITM_LCT_ANGLE_VAL    /* 앵글 */
-             , D2.ITM_LCT_COF_VAL                                                                                                             /* 층수 */
-             , D2.ITM_LCT_FLOR_NO_VAL                                                                                                         /* 층번호 */
-             , D2.ITM_LCT_MAT_GRP_CD                                                                                                          /* 그룹 */
+        SELECT D1.PD_CD                                                                                        AS ITM_PD_CD           /* 품목코드 */
+             , D1.PD_ABBR_NM                                                                                   AS PD_ABBR_NM          /* 품목명 */
+             , TO_CHAR(TO_NUMBER(D1.SAP_MAT_CD))                                                               AS SAP_MAT_CD          /* SAP코드 */
+             , D4.PD_PRP_VAL19                                                                                 AS ITM_KND_CD          /* 품목종류코드 */
+             , D5.WARE_NO                                                                                                             /* 창고번호 */
+             , D5.WARE_NM                                                                                                             /* 창고명 */
+             , D5.STD_WARE_USE_YN                                                                                                     /* 표준창고사용여부 */
+             , NVL(D3.PITM_STOC_A_GD_QTY, 0)                                                                   AS PITM_STOC_A_GD_QTY  /* 재고 */
+             , D2.WARE_TP_CD                                                                                                          /* 창고유형코드 */
+             , TRIM(D2.ITM_LCT_ANGLE_VAL)                                                                      AS ITM_LCT_ANGLE_VAL   /* 앵글 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', D2.ITM_LCT_ANGLE_VAL, #{session.langId})               AS ANGLE_VAL_NM        /* 앵글명 */
+             , D2.ITM_LCT_COF_VAL                                                                                                     /* 층수 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', D2.ITM_LCT_COF_VAL, #{session.langId})                   AS COF_VAL_NM          /* 층수명 */
+             , D2.ITM_LCT_FLOR_NO_VAL                                                                                                 /* 층번호 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', D2.ITM_LCT_FLOR_NO_VAL, #{session.langId})           AS FLOR_NO_VAL_NM      /* 층번호명 */
+             , D2.ITM_LCT_MAT_GRP_CD                                                                                                  /* 그룹 */
              , D2.WARE_TP_CD || TRIM(D2.ITM_LCT_ANGLE_VAL) || D2.ITM_LCT_COF_VAL
-               || D2.ITM_LCT_FLOR_NO_VAL || D2.ITM_LCT_MAT_GRP_CD                                                     AS LOCATION_CD          /* 위치코드 */
+               || D2.ITM_LCT_FLOR_NO_VAL || D2.ITM_LCT_MAT_GRP_CD                                              AS LOCATION_CD         /* 위치코드 */
              , TRIM( F_CMZ_CD_NM('TNT_WELLS', 'WARE_TP_CD', D2.WARE_TP_CD, #{session.langId})
-                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', D2.ITM_LCT_ANGLE_VAL, #{session.langId})
-                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', D2.ITM_LCT_COF_VAL, #{session.langId})
-                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', D2.ITM_LCT_FLOR_NO_VAL, #{session.langId})
-                     || ' ' || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', D2.ITM_LCT_MAT_GRP_CD, #{session.langId}) ) AS ITM_LCT_NM           /* 위치명 */
+                     || CASE WHEN D2.WARE_TP_CD IS NOT NULL AND D2.ITM_LCT_ANGLE_VAL IS NOT NULL THEN '-' ELSE '' END
+                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', D2.ITM_LCT_ANGLE_VAL, #{session.langId})
+                     || CASE WHEN D2.ITM_LCT_ANGLE_VAL IS NOT NULL AND D2.ITM_LCT_COF_VAL IS NOT NULL THEN '-' ELSE '' END
+                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', D2.ITM_LCT_COF_VAL, #{session.langId})
+                     || CASE WHEN D2.ITM_LCT_COF_VAL IS NOT NULL AND D2.ITM_LCT_FLOR_NO_VAL IS NOT NULL THEN '-' ELSE '' END
+                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', D2.ITM_LCT_FLOR_NO_VAL, #{session.langId})
+                     || CASE WHEN D2.ITM_LCT_FLOR_NO_VAL IS NOT NULL AND D2.ITM_LCT_MAT_GRP_CD IS NOT NULL THEN '-' ELSE '' END
+                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', D2.ITM_LCT_MAT_GRP_CD, #{session.langId}) ) AS ITM_LCT_NM          /* 위치명 */
           FROM TB_PDBS_PD_BAS D1                          /* 상품기본 */
           LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ D3   /* 고객서비스품목재고내역 */
             ON D3.ITM_PD_CD = D1.PD_CD
