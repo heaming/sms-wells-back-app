@@ -1,17 +1,14 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaInstallationStockPsByDayDto.SearchReq;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaInstallationStockPsByDayDto.SearchResPsWareStr;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaInstallationStockPsByDayCenterDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaInstallationStockPsByDayCenterValueDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaInstallationStockPsByDayPdDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaInstallationStockPsByDayPdValueDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaInstallationStockPsByDayMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -36,56 +33,504 @@ public class WsnaInstallationStockPsByDayService {
     public PagingResult<WsnaInstallationStockPsByDayCenterDvo> getInstallationStockPsByDayCenter(
         SearchReq dto, PageInfo pageInfo
     ) {
-        Map<String, SearchResPsWareStr> wareStrMap = mapper.selectPsWareStr(dto).stream()
-            .collect(Collectors.toMap(SearchResPsWareStr::itmPdCd, Function.identity()));
+        List<WsnaInstallationStockPsByDayCenterValueDvo> queryResult = mapper
+            .selectInstallationStockPsByDayCenter(dto);
+        Map<String, WsnaInstallationStockPsByDayCenterDvo> map = new HashMap<>();
 
-        PagingResult<WsnaInstallationStockPsByDayCenterDvo> list = mapper
-            .selectInstallationStockPsByDayCenter(dto, pageInfo);
-        List<WsnaInstallationStockPsByDayCenterDvo> dvoList = new ArrayList<>();
+        for (int i = 0; i < queryResult.size(); i++) {
+            WsnaInstallationStockPsByDayCenterValueDvo item = queryResult.get(i);
 
-        for (int i = 0; i < list.getList().size(); i++) {
-            WsnaInstallationStockPsByDayCenterDvo item = list.getList().get(i);
-            SearchResPsWareStr wareStr = wareStrMap.get(item.getPdCd());
-            item.setPajuQty(wareStr.qtyPajuSum());
-            //item.setEngQty(wareStr.qtyEngSum());
-            //item.setPrvMng(wareStr.qtyCenterSum());
-            dvoList.add(item);
+            WsnaInstallationStockPsByDayCenterDvo dvo = map
+                .getOrDefault(item.getOgCd(), new WsnaInstallationStockPsByDayCenterDvo());
+
+            int rn = item.getRn();
+
+            switch (rn) {
+                case 1:
+                    dvo.setStockdate1(item.getDateQty());
+                    dvo.setInstalldate1(item.getAsnQty());
+                    break;
+                case 2:
+                    dvo.setStockdate2(item.getDateQty());
+                    dvo.setInstalldate2(item.getAsnQty());
+                    break;
+                case 3:
+                    dvo.setStockdate3(item.getDateQty());
+                    dvo.setInstalldate3(item.getAsnQty());
+                    break;
+                case 4:
+                    dvo.setStockdate4(item.getDateQty());
+                    dvo.setInstalldate4(item.getAsnQty());
+                    break;
+                case 5:
+                    dvo.setStockdate5(item.getDateQty());
+                    dvo.setInstalldate5(item.getAsnQty());
+                    break;
+                case 6:
+                    dvo.setStockdate6(item.getDateQty());
+                    dvo.setInstalldate6(item.getAsnQty());
+                    break;
+                case 7:
+                    dvo.setStockdate7(item.getDateQty());
+                    dvo.setInstalldate7(item.getAsnQty());
+                    break;
+                case 8:
+                    dvo.setStockdate8(item.getDateQty());
+                    dvo.setInstalldate8(item.getAsnQty());
+                    break;
+                case 9:
+                    dvo.setStockdate9(item.getDateQty());
+                    dvo.setInstalldate9(item.getAsnQty());
+                    break;
+                case 10:
+                    dvo.setStockdate10(item.getDateQty());
+                    dvo.setInstalldate10(item.getAsnQty());
+                    break;
+                case 11:
+                    dvo.setStockdate11(item.getDateQty());
+                    dvo.setInstalldate11(item.getAsnQty());
+                    break;
+                case 12:
+                    dvo.setStockdate12(item.getDateQty());
+                    dvo.setInstalldate12(item.getAsnQty());
+                    break;
+                case 13:
+                    dvo.setStockdate13(item.getDateQty());
+                    dvo.setInstalldate13(item.getAsnQty());
+                    break;
+                case 14:
+                    dvo.setStockdate14(item.getDateQty());
+                    dvo.setInstalldate14(item.getAsnQty());
+                    break;
+                case 15:
+                    dvo.setStockdate15(item.getDateQty());
+                    dvo.setInstalldate15(item.getAsnQty());
+                    break;
+                case 16:
+                    dvo.setStockdate16(item.getDateQty());
+                    dvo.setInstalldate16(item.getAsnQty());
+
+                    dvo.setOgCd(item.getOgCd());
+                    dvo.setOgNm(item.getOgNm());
+                    dvo.setPdCd(item.getPdCd());
+                    dvo.setSapMatCd(item.getSapMatCd());
+                    dvo.setPdNm(item.getPdNm());
+                    dvo.setSumQtyCenter(item.getSumQtyCenter());
+                    dvo.setSumQtyEng(item.getSumQtyEng());
+                    dvo.setSumQtyTot(item.getSumQtyTot());
+                    //                    dvo.setAsnDate(item.getAsnDate());
+                    dvo.setAggAsnCnt(item.getAggAsnCnt());
+                    //                    dvo.setDateQty(item.getDateQty());
+                    dvo.setRn(item.getRn());
+                    break;
+                default:
+                    dvo.setOgCd(item.getOgCd());
+                    dvo.setOgNm(item.getOgNm());
+                    dvo.setPdCd(item.getPdCd());
+                    dvo.setSapMatCd(item.getSapMatCd());
+                    dvo.setPdNm(item.getPdNm());
+                    dvo.setSumQtyCenter(item.getSumQtyCenter());
+                    dvo.setSumQtyEng(item.getSumQtyEng());
+                    dvo.setSumQtyTot(item.getSumQtyTot());
+                    //                    dvo.setAsnDate(item.getAsnDate());
+                    dvo.setAggAsnCnt(item.getAggAsnCnt());
+                    //                    dvo.setDateQty(item.getDateQty());
+                    dvo.setRn(item.getRn());
+                    break;
+            }
+
+            map.put(item.getOgCd(), dvo);
         }
+        List<WsnaInstallationStockPsByDayCenterDvo> sortList = new ArrayList<>(map.values());
 
-        list.setList(dvoList);
+        sortList.sort(
+            Comparator.comparing(WsnaInstallationStockPsByDayCenterDvo::getOgCd)
+            //                .thenComparing(WsnaInstallationStockPsByDayCenterDvo::getPdCd)
+            //                .thenComparing(WsnaInstallationStockPsByDayCenterDvo::getAsnDate)
+        );
+        pageInfo.setTotalCount(Long.valueOf(sortList.size()));
+        pageInfo.setPageSize(sortList.size());
 
-        return list;
+        PagingResult<WsnaInstallationStockPsByDayCenterDvo> result = new PagingResult<>(sortList, pageInfo);
+
+        return result;
     }
 
     public List<WsnaInstallationStockPsByDayCenterDvo> getInstallationStockPsByDayCenter(SearchReq dto) {
-        return mapper.selectInstallationStockPsByDayCenter(dto);
+        List<WsnaInstallationStockPsByDayCenterValueDvo> queryResult = mapper
+            .selectInstallationStockPsByDayCenter(dto);
+        Map<String, WsnaInstallationStockPsByDayCenterDvo> map = new HashMap<>();
+
+        for (int i = 0; i < queryResult.size(); i++) {
+
+            WsnaInstallationStockPsByDayCenterValueDvo item = queryResult.get(i);
+
+            WsnaInstallationStockPsByDayCenterDvo dvo = map
+                .getOrDefault(item.getOgCd(), new WsnaInstallationStockPsByDayCenterDvo());
+
+            int rn = item.getRn();
+
+            switch (rn) {
+                case 1:
+                    dvo.setStockdate1(item.getDateQty());
+                    dvo.setInstalldate1(item.getAsnQty());
+                    break;
+                case 2:
+                    dvo.setStockdate2(item.getDateQty());
+                    dvo.setInstalldate2(item.getAsnQty());
+                    break;
+                case 3:
+                    dvo.setStockdate3(item.getDateQty());
+                    dvo.setInstalldate3(item.getAsnQty());
+                    break;
+                case 4:
+                    dvo.setStockdate4(item.getDateQty());
+                    dvo.setInstalldate4(item.getAsnQty());
+                    break;
+                case 5:
+                    dvo.setStockdate5(item.getDateQty());
+                    dvo.setInstalldate5(item.getAsnQty());
+                    break;
+                case 6:
+                    dvo.setStockdate6(item.getDateQty());
+                    dvo.setInstalldate6(item.getAsnQty());
+                    break;
+                case 7:
+                    dvo.setStockdate7(item.getDateQty());
+                    dvo.setInstalldate7(item.getAsnQty());
+                    break;
+                case 8:
+                    dvo.setStockdate8(item.getDateQty());
+                    dvo.setInstalldate8(item.getAsnQty());
+                    break;
+                case 9:
+                    dvo.setStockdate9(item.getDateQty());
+                    dvo.setInstalldate9(item.getAsnQty());
+                    break;
+                case 10:
+                    dvo.setStockdate10(item.getDateQty());
+                    dvo.setInstalldate10(item.getAsnQty());
+                    break;
+                case 11:
+                    dvo.setStockdate11(item.getDateQty());
+                    dvo.setInstalldate11(item.getAsnQty());
+                    break;
+                case 12:
+                    dvo.setStockdate12(item.getDateQty());
+                    dvo.setInstalldate12(item.getAsnQty());
+                    break;
+                case 13:
+                    dvo.setStockdate13(item.getDateQty());
+                    dvo.setInstalldate13(item.getAsnQty());
+                    break;
+                case 14:
+                    dvo.setStockdate14(item.getDateQty());
+                    dvo.setInstalldate14(item.getAsnQty());
+                    break;
+                case 15:
+                    dvo.setStockdate15(item.getDateQty());
+                    dvo.setInstalldate15(item.getAsnQty());
+                    break;
+                case 16:
+                    dvo.setStockdate16(item.getDateQty());
+                    dvo.setInstalldate16(item.getAsnQty());
+
+                    dvo.setOgCd(item.getOgCd());
+                    dvo.setOgNm(item.getOgNm());
+                    dvo.setPdCd(item.getPdCd());
+                    dvo.setSapMatCd(item.getSapMatCd());
+                    dvo.setPdNm(item.getPdNm());
+                    dvo.setSumQtyCenter(item.getSumQtyCenter());
+                    dvo.setSumQtyEng(item.getSumQtyEng());
+                    dvo.setSumQtyTot(item.getSumQtyTot());
+                    //                    dvo.setAsnDate(item.getAsnDate());
+                    dvo.setAggAsnCnt(item.getAggAsnCnt());
+                    //                    dvo.setDateQty(item.getDateQty());
+                    dvo.setRn(item.getRn());
+                    break;
+                default:
+                    dvo.setOgCd(item.getOgCd());
+                    dvo.setOgNm(item.getOgNm());
+                    dvo.setPdCd(item.getPdCd());
+                    dvo.setSapMatCd(item.getSapMatCd());
+                    dvo.setPdNm(item.getPdNm());
+                    dvo.setSumQtyCenter(item.getSumQtyCenter());
+                    dvo.setSumQtyEng(item.getSumQtyEng());
+                    dvo.setSumQtyTot(item.getSumQtyTot());
+                    //                    dvo.setAsnDate(item.getAsnDate());
+                    dvo.setAggAsnCnt(item.getAggAsnCnt());
+                    //                    dvo.setDateQty(item.getDateQty());
+                    dvo.setRn(item.getRn());
+                    break;
+            }
+            map.put(item.getOgCd(), dvo);
+        }
+
+        List<WsnaInstallationStockPsByDayCenterDvo> sortList = new ArrayList<>(map.values());
+
+        sortList.sort(
+            Comparator.comparing(WsnaInstallationStockPsByDayCenterDvo::getOgCd)
+            //                .thenComparing(WsnaInstallationStockPsByDayCenterDvo::getPdCd)
+            //                .thenComparing(WsnaInstallationStockPsByDayCenterDvo::getAsnDate)
+        );
+
+        return sortList;
     }
 
     public PagingResult<WsnaInstallationStockPsByDayPdDvo> getInstallationStockPsByDayPd(
         SearchReq dto, PageInfo pageInfo
     ) {
+        List<WsnaInstallationStockPsByDayPdValueDvo> queryResult = mapper
+            .selectInstallationStockPsByDayPd(dto);
 
-        Map<String, SearchResPsWareStr> wareStrMap = mapper.selectPsWareStr(dto).stream()
-            .collect(Collectors.toMap(SearchResPsWareStr::itmPdCd, Function.identity()));
+        Map<String, WsnaInstallationStockPsByDayPdDvo> map = new HashMap<>();
 
-        PagingResult<WsnaInstallationStockPsByDayPdDvo> list = mapper.selectInstallationStockPsByDayPd(dto, pageInfo);
-        List<WsnaInstallationStockPsByDayPdDvo> dvoList = new ArrayList<>();
+        //        List<WsnaInstallationStockPsByDayPdDvo> sortList = new ArrayList<>();
 
-        for (int i = 0; i < list.getList().size(); i++) {
-            WsnaInstallationStockPsByDayPdDvo item = list.getList().get(i);
-            SearchResPsWareStr wareStr = wareStrMap.get(item.getPdCd());
-            item.setCenterQty(wareStr.qtyCenterSum());
-            item.setEngQty(wareStr.qtyEngSum());
-            item.setPajuQty(wareStr.qtyPajuSum());
-            dvoList.add(item);
+        for (int i = 0; i < queryResult.size(); i++) {
+            WsnaInstallationStockPsByDayPdValueDvo item = queryResult.get(i);
+
+            WsnaInstallationStockPsByDayPdDvo dvo = map
+                .getOrDefault(item.getPdCd(), new WsnaInstallationStockPsByDayPdDvo());
+
+            int rn = item.getRn();
+
+            switch (rn) {
+                case 1:
+                    dvo.setStockdate1(item.getDateQty());
+                    dvo.setInstalldate1(item.getAsnQty());
+                    break;
+                case 2:
+                    dvo.setStockdate2(item.getDateQty());
+                    dvo.setInstalldate2(item.getAsnQty());
+                    break;
+                case 3:
+                    dvo.setStockdate3(item.getDateQty());
+                    dvo.setInstalldate3(item.getAsnQty());
+                    break;
+                case 4:
+                    dvo.setStockdate4(item.getDateQty());
+                    dvo.setInstalldate4(item.getAsnQty());
+                    break;
+                case 5:
+                    dvo.setStockdate5(item.getDateQty());
+                    dvo.setInstalldate5(item.getAsnQty());
+                    break;
+                case 6:
+                    dvo.setStockdate6(item.getDateQty());
+                    dvo.setInstalldate6(item.getAsnQty());
+                    break;
+                case 7:
+                    dvo.setStockdate7(item.getDateQty());
+                    dvo.setInstalldate7(item.getAsnQty());
+                    break;
+                case 8:
+                    dvo.setStockdate8(item.getDateQty());
+                    dvo.setInstalldate8(item.getAsnQty());
+                    break;
+                case 9:
+                    dvo.setStockdate9(item.getDateQty());
+                    dvo.setInstalldate9(item.getAsnQty());
+                    break;
+                case 10:
+                    dvo.setStockdate10(item.getDateQty());
+                    dvo.setInstalldate10(item.getAsnQty());
+                    break;
+                case 11:
+                    dvo.setStockdate11(item.getDateQty());
+                    dvo.setInstalldate11(item.getAsnQty());
+                    break;
+                case 12:
+                    dvo.setStockdate12(item.getDateQty());
+                    dvo.setInstalldate12(item.getAsnQty());
+                    break;
+                case 13:
+                    dvo.setStockdate13(item.getDateQty());
+                    dvo.setInstalldate13(item.getAsnQty());
+                    break;
+                case 14:
+                    dvo.setStockdate14(item.getDateQty());
+                    dvo.setInstalldate14(item.getAsnQty());
+                    break;
+                case 15:
+                    dvo.setStockdate15(item.getDateQty());
+                    dvo.setInstalldate15(item.getAsnQty());
+                    break;
+                case 16:
+                    dvo.setStockdate16(item.getDateQty());
+                    dvo.setInstalldate16(item.getAsnQty());
+
+                    dvo.setOgCd(item.getOgCd());
+                    dvo.setOgNm(item.getOgNm());
+                    dvo.setPdCd(item.getPdCd());
+                    dvo.setSapMatCd(item.getSapMatCd());
+                    dvo.setPdNm(item.getPdNm());
+                    dvo.setSumQtyCenter(item.getSumQtyCenter());
+                    dvo.setSumQtyEng(item.getSumQtyEng());
+                    dvo.setSumQtyTot(item.getSumQtyTot());
+                    //                    dvo.setAsnDate(item.getAsnDate());
+                    dvo.setAggAsnCnt(item.getAggAsnCnt());
+                    //                    dvo.setDateQty(item.getDateQty());
+                    dvo.setRn(item.getRn());
+                    dvo.setLgstQty(item.getLgstQty());
+
+                    //                    sortList.add(dvo);
+                    //                    log.debug(dvo.toString());
+                    break;
+                default:
+                    dvo.setOgCd(item.getOgCd());
+                    dvo.setOgNm(item.getOgNm());
+                    dvo.setPdCd(item.getPdCd());
+                    dvo.setSapMatCd(item.getSapMatCd());
+                    dvo.setPdNm(item.getPdNm());
+                    dvo.setSumQtyCenter(item.getSumQtyCenter());
+                    dvo.setSumQtyEng(item.getSumQtyEng());
+                    dvo.setSumQtyTot(item.getSumQtyTot());
+                    //                    dvo.setAsnDate(item.getAsnDate());
+                    dvo.setAggAsnCnt(item.getAggAsnCnt());
+                    dvo.setDateQty(item.getDateQty());
+                    dvo.setRn(item.getRn());
+                    dvo.setLgstQty(item.getLgstQty());
+
+                    //                                        sortList.add(dvo);
+                    break;
+            }
+            map.put(item.getPdCd(), dvo);
         }
 
-        list.setList(dvoList);
+        List<WsnaInstallationStockPsByDayPdDvo> sortList = new ArrayList<>(map.values());
 
-        return list;
+        sortList.sort(
+            Comparator.comparing(WsnaInstallationStockPsByDayPdDvo::getPdCd)
+            //                .thenComparing(WsnaInstallationStockPsByDayPdDvo::getOgCd)
+            //                .thenComparing(WsnaInstallationStockPsByDayCenterDvo::getAsnDate)
+        );
+
+        pageInfo.setTotalCount(Long.valueOf(sortList.size()));
+        pageInfo.setPageSize(sortList.size());
+
+        PagingResult<WsnaInstallationStockPsByDayPdDvo> result = new PagingResult<>(sortList, pageInfo);
+
+        return result;
     }
 
     public List<WsnaInstallationStockPsByDayPdDvo> getInstallationStockPsByDayPd(SearchReq dto) {
-        return mapper.selectInstallationStockPsByDayPd(dto);
+        List<WsnaInstallationStockPsByDayPdValueDvo> queryResult = mapper
+            .selectInstallationStockPsByDayPd(dto);
+        Map<String, WsnaInstallationStockPsByDayPdDvo> map = new HashMap<>();
+
+        for (int i = 0; i < queryResult.size(); i++) {
+            WsnaInstallationStockPsByDayPdValueDvo item = queryResult.get(i);
+            WsnaInstallationStockPsByDayPdDvo dvo = map
+                .getOrDefault(item.getPdCd(), new WsnaInstallationStockPsByDayPdDvo());
+
+            int rn = item.getRn();
+
+            switch (rn) {
+                case 1:
+                    dvo.setStockdate1(item.getDateQty());
+                    dvo.setInstalldate1(item.getAsnQty());
+                    break;
+                case 2:
+                    dvo.setStockdate2(item.getDateQty());
+                    dvo.setInstalldate2(item.getAsnQty());
+                    break;
+                case 3:
+                    dvo.setStockdate3(item.getDateQty());
+                    dvo.setInstalldate3(item.getAsnQty());
+                    break;
+                case 4:
+                    dvo.setStockdate4(item.getDateQty());
+                    dvo.setInstalldate4(item.getAsnQty());
+                    break;
+                case 5:
+                    dvo.setStockdate5(item.getDateQty());
+                    dvo.setInstalldate5(item.getAsnQty());
+                    break;
+                case 6:
+                    dvo.setStockdate6(item.getDateQty());
+                    dvo.setInstalldate6(item.getAsnQty());
+                    break;
+                case 7:
+                    dvo.setStockdate7(item.getDateQty());
+                    dvo.setInstalldate7(item.getAsnQty());
+                    break;
+                case 8:
+                    dvo.setStockdate8(item.getDateQty());
+                    dvo.setInstalldate8(item.getAsnQty());
+                    break;
+                case 9:
+                    dvo.setStockdate9(item.getDateQty());
+                    dvo.setInstalldate9(item.getAsnQty());
+                    break;
+                case 10:
+                    dvo.setStockdate10(item.getDateQty());
+                    dvo.setInstalldate10(item.getAsnQty());
+                    break;
+                case 11:
+                    dvo.setStockdate11(item.getDateQty());
+                    dvo.setInstalldate11(item.getAsnQty());
+                    break;
+                case 12:
+                    dvo.setStockdate12(item.getDateQty());
+                    dvo.setInstalldate12(item.getAsnQty());
+                    break;
+                case 13:
+                    dvo.setStockdate13(item.getDateQty());
+                    dvo.setInstalldate13(item.getAsnQty());
+                    break;
+                case 14:
+                    dvo.setStockdate14(item.getDateQty());
+                    dvo.setInstalldate14(item.getAsnQty());
+                    break;
+                case 15:
+                    dvo.setStockdate15(item.getDateQty());
+                    dvo.setInstalldate15(item.getAsnQty());
+                    break;
+                case 16:
+                    dvo.setStockdate16(item.getDateQty());
+                    dvo.setInstalldate16(item.getAsnQty());
+
+                    dvo.setOgCd(item.getOgCd());
+                    dvo.setOgNm(item.getOgNm());
+                    dvo.setPdCd(item.getPdCd());
+                    dvo.setSapMatCd(item.getSapMatCd());
+                    dvo.setPdNm(item.getPdNm());
+                    dvo.setSumQtyCenter(item.getSumQtyCenter());
+                    dvo.setSumQtyEng(item.getSumQtyEng());
+                    dvo.setSumQtyTot(item.getSumQtyTot());
+                    //                    dvo.setAsnDate(item.getAsnDate());
+                    dvo.setAggAsnCnt(item.getAggAsnCnt());
+                    //                    dvo.setDateQty(item.getDateQty());
+                    dvo.setRn(item.getRn());
+                    dvo.setLgstQty(item.getLgstQty());
+                    break;
+                default:
+                    dvo.setOgCd(item.getOgCd());
+                    dvo.setOgNm(item.getOgNm());
+                    dvo.setPdCd(item.getPdCd());
+                    dvo.setSapMatCd(item.getSapMatCd());
+                    dvo.setPdNm(item.getPdNm());
+                    dvo.setSumQtyCenter(item.getSumQtyCenter());
+                    dvo.setSumQtyEng(item.getSumQtyEng());
+                    dvo.setSumQtyTot(item.getSumQtyTot());
+                    //                    dvo.setAsnDate(item.getAsnDate());
+                    dvo.setAggAsnCnt(item.getAggAsnCnt());
+                    //                    dvo.setDateQty(item.getDateQty());
+                    dvo.setRn(item.getRn());
+                    dvo.setLgstQty(item.getLgstQty());
+                    break;
+            }
+            map.put(item.getOgCd(), dvo);
+        }
+
+        List<WsnaInstallationStockPsByDayPdDvo> sortList = new ArrayList(map.values());
+        sortList.sort(
+            Comparator.comparing(WsnaInstallationStockPsByDayPdDvo::getPdCd)
+            //                .thenComparing(WsnaInstallationStockPsByDayPdDvo::getPdCd)
+            //                .thenComparing(WsnaInstallationStockPsByDayCenterDvo::getAsnDate)
+        );
+
+        return sortList;
     }
 }
