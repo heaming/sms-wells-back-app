@@ -6,12 +6,13 @@ public class WsnbCenterCustomerAgrgByProductDto {
     @ApiModel(value = "WsnbCenterCustomerAgrgByProductDto-SearchReq")
     public record SearchReq(
         String baseYm,
-        String sellTpCd
+        String sellTpCd,
+        String totalCsmr
     ) {}
 
     @ApiModel(value = "WsnbCenterCustomerAgrgByProductDto-SearchRes")
     public record SearchRes(
-        String SapMatCd,
+        String sapMatCd,
         String pdCd,
         String pdNm,
         Integer S71350,
@@ -38,7 +39,6 @@ public class WsnbCenterCustomerAgrgByProductDto {
         Integer S71387,
         Integer S71448,
         Integer S71447,
-        Integer S91358,
         Integer total
     ) {}
 
