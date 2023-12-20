@@ -34,6 +34,7 @@ public class WsncRoutineBsPsicAssignStateDvo {
     String newAdrZip;
     String rndadr;
     String dgr2LevlOgId;
+    String dgr2LevlOgNm;
     String svBizMclsfCd;
     String svBizDclsfCd;
     String svBizDclsfNm;
