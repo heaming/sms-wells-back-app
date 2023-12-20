@@ -44,6 +44,8 @@ public class WsnaItemLocationDto {
         String stdWareUseYn,
         // 재고수량
         String pitmStocAGdQty,
+        // 창고유형
+        String wareTpCd,
         // 앵글
         String itmLctAngleVal,
         // 앵글명
@@ -70,6 +72,8 @@ public class WsnaItemLocationDto {
         // 품목코드
         @NotBlank
         String itmPdCd,
+        // 창고유형
+        String wareTpCd,
         // 앵글
         String itmLctAngleVal,
         // 층수
