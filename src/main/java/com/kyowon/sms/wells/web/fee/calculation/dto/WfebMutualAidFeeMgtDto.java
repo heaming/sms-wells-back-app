@@ -72,7 +72,8 @@ public class WfebMutualAidFeeMgtDto {
         String dgr3LevlOgId,
         String dgr4LevlOgId,
         String prtnrNo, // 번호
-        String prtnrNm
+        String prtnrNm,
+        String ogTpCd
     ) {}
     public record AidOrder(
         String alncNm, /* 제휴구분 */

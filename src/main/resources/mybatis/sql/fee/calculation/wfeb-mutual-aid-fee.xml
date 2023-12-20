@@ -604,10 +604,14 @@
                   FROM TB_GBCO_LIF_ORD_RCV_ETXT             KL30 /* ZA_라이프주문수신전문 */
                   LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ  T3   /* 월파트너        */
                     ON #{baseYm} = T3.BASE_YM
-                   /* AND 'W01'    = T3.OG_TP_CD */
                    AND TO_CHAR(KL30.KLDCDE)    = T3.PRTNR_NO
-                  LEFT OUTER JOIN TB_OGBS_OG_BAS       TT   /* 조직기본        */
-                    ON T3.OG_ID = TT.OG_ID
+                   /* AND 'W01'    = T3.OG_TP_CD */
+                   /*  LEFT OUTER JOIN TB_OGBS_OG_BAS TT  조직기본 123단계없어서 월조직으로 변경함 20231220
+                    ON T3.OG_ID = TT.OG_ID    */
+                  LEFT OUTER JOIN TB_OGBS_MM_OG_IZ TT /* 월조직 */
+                    ON TT.BASE_YM = T3.BASE_YM
+                   AND TT.OG_TP_CD = T3.OG_TP_CD
+                   AND TT.OG_ID = T3.OG_ID
                   LEFT OUTER JOIN T_CMZ_CD_D           T9   /* 공통코드 - 직책 */
                     ON T9.TENANT_ID   = #{session.tenantId}
                    AND T9.CD_ID       = 'RSB_DV_CD'
@@ -619,7 +623,7 @@
                    AND T7.CNTR_NO       = 'W'||KL30.KLFLG8||KL30.KLFLG9
                    AND T7.FLPYM_TN      = 1
                    AND T7.CNFM_YN       = 'Y'
-                   AND T7.OG_TP_CD      = 'W01'
+                   AND T7.OG_TP_CD      = #{ogTpCd}
                    AND T7.DTA_DL_YN     = 'N'
                  WHERE KL30.KLETC6 IN ('51', '59')                               --제휴업체
                     <if test='@MybatisUtils@isNotEmpty(cntrStat)'>
@@ -661,13 +665,13 @@
                     <if test='@MybatisUtils@isNotEmpty(dgr4LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
                         <choose>
                             <when test='@MybatisUtils@isNotEmpty(dgr4LevlOgId)'>
-                            AND TT.OG_ID = #{dgr4LevlOgId}     /* 조직 - 3레벨 선택 */
+                            AND TT.DGR3_LEVL_OG_ID = #{dgr4LevlOgId}     /* 조직 - 3레벨 선택 */
                             </when>
                             <when test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
-                            AND TT.OG_ID = #{dgr3LevlOgId}     /* 조직 - 2레벨 선택 */
+                            AND TT.DGR2_LEVL_OG_ID = #{dgr3LevlOgId}     /* 조직 - 2레벨 선택 */
                             </when>
                             <when test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
-                            AND TT.OG_ID = #{dgr2LevlOgId}     /* 조직 - 1레벨 선택 */
+                            AND TT.DGR1_LEVL_OG_ID = #{dgr2LevlOgId}     /* 조직 - 1레벨 선택 */
                             </when>
                         </choose>
                     </if>
