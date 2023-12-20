@@ -2,20 +2,20 @@ package com.kyowon.sms.wells.web.service.stock.rest;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto.*;
 
+import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaStockAcinspRgstMngtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -83,18 +83,13 @@ public class WsnaStockAcinspRgstMngtController {
         @ApiImplicitParam(name = "wareNo", value = "창고번호", paramType = "query", example = "201453"),
         @ApiImplicitParam(name = "useYn", value = "상태구분", paramType = "query", example = "1")
     })
-    @PostMapping("/excel-download")
+    @PostMapping("/bulk-excel-download")
     public void getStockAcinspRgstMngtsForExcelDownload(
-        @Valid
         @RequestBody
-        SearchReq dto, HttpServletResponse response
-    ) throws Exception {
-        SXSSFWorkbook sxssfWorkbook = service.getStockAcinspRgstMngtsForExcelDownload(dto);
-        response.setContentType("application/vnd.ms-excel");
-        ServletOutputStream output = response.getOutputStream();
-        sxssfWorkbook.write(output);
-        output.flush();
-        output.close();
+        ExcelBulkDownloadDto.DownloadReq req,
+        HttpServletResponse response
+    ) throws IOException {
+        service.getStockAcinspRgstMngtsForExcelDownload(req, response);
     }
 
     @ApiOperation(value = "월별 재고실사 등록 관리 재고적용 버튼클릭 이벤트", notes = "월별 재고실사 등록관리 재고적용 버튼클릭 이벤트")

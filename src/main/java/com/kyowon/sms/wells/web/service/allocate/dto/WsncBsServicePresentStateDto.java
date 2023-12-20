@@ -11,29 +11,31 @@ public class WsncBsServicePresentStateDto {
         String branch,      /* 지점 */
         String pstnDvCd,    /* 직급 */
         String prtnrNo,     /* 사번 */
-        String prtnrNm      /* 성명 */
+        String prtnrNm,      /* 성명 */
+        String baseDateFrom,
+        String baseDateTo
     ) {}
 
     @ApiModel(value = "WsncBsServicePresentStateDto-SearchResList")
     public record SearchResList(
         String asnOjYm,      /* 관리년월 */
-        String dgr3LevlOgCd,      /* 소속 */
-        String dgr3LevlOgNm,    /* 상주빌딩 */
+        String ogNm,      /* 소속 */
+        String bldNm,    /* 상주빌딩 */
         String prtnrNo,     /* 사번 */
         String prtnrKnm,     /* 성명 */
-        String qlfDvCd,    /* 직급 */
-        String pdctPdCd,        /* 관리 */
-        String vstDuedt,         /* 방문 */
-        String cntcDt,         /* 완료 */
-        String compRate,     /* 처리율(%) */
-        String npPtrm   /* B/S 관리일정 */
+        String pstnDvCdNm,    /* 직급 */
+        String mngtAcc,        /* 관리 */
+        String vstAcc,         /* 방문 */
+        String fshAcc,         /* 완료 */
+        String svcProc,     /* 처리율(%) */
+        String mngtSchd   /* B/S 관리일정 */
     ) {}
 
     @ApiModel(value = "WsncBsServicePresentStateDto-SearchResInfo")
     public record SearchResInfo(
-        String ogCd,
-        String ogNm,
-        String prtnrNo,
-        String sapDlpnrCd
+        String mngtAcc,
+        String vstAcc,
+        String fshAcc,
+        String svcProc
     ) {}
 }

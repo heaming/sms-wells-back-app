@@ -115,9 +115,6 @@ public class WsnaMovementStoreController {
     }
 
     @ApiOperation(value = "이동입고 등록 조회", notes = "조회조건에 해당하는 이동입고 등록 페이지를  한다.")
-    @ApiImplicitParams(value = {
-
-    })
     @GetMapping("/registration")
     public PagingResult<MovementOstrMngtRes> getMovementStoresReg(
         MovementOstrMngtReq dto,
@@ -138,9 +135,6 @@ public class WsnaMovementStoreController {
     }
 
     @ApiOperation(value = "이동입고 등록 엑셀 다운로드", notes = "조회조건에 해당하는 이동입고 등록을 엑셀다운로드 한다.")
-    @ApiImplicitParams(value = {
-
-    })
     @GetMapping("/registration/excel-download")
     public List<MovementOstrMngtRes> getMovementStoresRegExcelDownload(
         MovementOstrMngtReq dto

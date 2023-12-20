@@ -24,7 +24,7 @@ public class WwdbRentalExpirationExcessiveAmountDto {
         String copnDvCd, /* 계약구분코드 */
         String cntrPdEnddt, /* 만료취소년월 */
         String cntrDtlStatCd /* 종료구분코드 */
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -52,4 +52,12 @@ public class WwdbRentalExpirationExcessiveAmountDto {
             }
         }
     }
+
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 렌탈만료초과금현황 합계 조회 Search Result Dto
+    public record SearchTotalSumRes(
+        String dpAmt /* 선수금 */
+    ) {}
 }

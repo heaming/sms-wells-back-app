@@ -4,19 +4,9 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SearchBusinessToBusinessPrtnrRes;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SearchSoleDistributorContractRes;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SearchSoleDistributorCreateReq;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SearchSoleDistributorMgtReq;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SearchSoleDistributorMgtRes;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SearchSoleDistributorPrtnrRes;
+import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.*;
 import com.kyowon.sms.wells.web.deduction.redf.service.WdeaSoleDistributorMgtService;
 import com.kyowon.sms.wells.web.deduction.zcommon.constants.DeDeductionConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -147,8 +137,7 @@ public class WdeaSoleDistributorMgtController {
 
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = false, example = ""),
-        @ApiImplicitParam(name = "redfAdsbOcYmFrom", value = "관리년월(From)", paramType = "query", required = false, example = ""),
-        @ApiImplicitParam(name = "redfAdsbOcYmTo", value = "관리년월(To)", paramType = "query", required = false, example = ""),
+        @ApiImplicitParam(name = "redfAdsbOcYm", value = "관리년월", paramType = "query", required = false, example = ""),
     })
     @ApiOperation(value = "총판/B2B 되물림 관리 - 2번탭", notes = " 검색조건을 받아 총판/B2B 되물림 관리 목록을 조회한다.")
     @GetMapping("/management/paging")

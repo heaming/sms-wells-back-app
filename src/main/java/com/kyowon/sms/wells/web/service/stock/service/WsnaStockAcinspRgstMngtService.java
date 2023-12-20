@@ -2,8 +2,12 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto.*;
 
+import java.io.IOException;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.ibatis.session.SqlSession;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,11 +16,11 @@ import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaStockAcinspRgstMngtConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaStockAcinspRgstMngtMapper;
-import com.sds.sflex.common.common.dvo.ExcelFieldDvo;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
 import com.sds.sflex.common.common.service.ExcelDownloadService;
-import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.interceptor.ExcelResultHandler;
 import com.sds.sflex.system.config.validation.BizAssert;
 import com.sds.sflex.system.config.validation.ValidAssert;
 
@@ -40,6 +44,8 @@ public class WsnaStockAcinspRgstMngtService {
 
     private final ExcelDownloadService excelDownloadService;
 
+    private final SqlSession priSqlSession;
+
     /**
      * 월별재고 실사 페이징 조회
      * @param dto
@@ -52,83 +58,21 @@ public class WsnaStockAcinspRgstMngtService {
 
     /**
      * 월별재고실사 대용량 엑셀다운로드
-     * @param dto
-     * @return
-     * @throws Exception
+     * @param req
+     * @param response
+     * @throws IOException
      */
-    public SXSSFWorkbook getStockAcinspRgstMngtsForExcelDownload(SearchReq dto)
-        throws Exception {
-        List<SearchRes> results = mapper.selectStockAcinspRgstMngtPages(dto);
-
-        List<ExcelFieldDvo> fields = List.of(
-            ExcelFieldDvo.builder().headerName("신청상태")
-                .fieldName("statusT")
-                .width("15")
-                .align(CommConst.EXCEL_ALIGN_CENTER)
-                .build(),
-            ExcelFieldDvo.builder().headerName("창고코드")
-                .fieldName("wareNo")
-                .width("15")
-                .align(CommConst.EXCEL_ALIGN_CENTER)
-                .build(),
-            ExcelFieldDvo.builder().headerName("빌딩명")
-                .fieldName("wareNm")
-                .width("15")
-                .align(CommConst.EXCEL_ALIGN_CENTER)
-                .build(),
-            ExcelFieldDvo.builder().headerName("SAP코드")
-                .fieldName("sapCd")
-                .width("25")
-                .align(CommConst.EXCEL_ALIGN_CENTER)
-                .build(),
-            ExcelFieldDvo.builder().headerName("품목코드")
-                .fieldName("itmPdCd")
-                .width("15")
-                .align(CommConst.EXCEL_ALIGN_CENTER)
-                .build(),
-            ExcelFieldDvo.builder().headerName("품목명")
-                .fieldName("pdAbbrNm")
-                .width("30")
-                .align(CommConst.EXCEL_ALIGN_LEFT)
-                .build(),
-            ExcelFieldDvo.builder().headerName("기말재고")
-                .fieldName("eotStoc")
-                .width("10")
-                .align(CommConst.EXCEL_ALIGN_RIGHT)
-                .build(),
-            ExcelFieldDvo.builder().headerName("실사재고")
-                .fieldName("acinspQty")
-                .width("22")
-                .align(CommConst.EXCEL_ALIGN_RIGHT)
-                .build(),
-            ExcelFieldDvo.builder().headerName("재고차이")
-                .fieldName("minusQty")
-                .width("8")
-                .align(CommConst.EXCEL_ALIGN_RIGHT)
-                .build(),
-            ExcelFieldDvo.builder().headerName("비고")
-                .fieldName("acinspRmkCn")
-                .width("30")
-                .align(CommConst.EXCEL_ALIGN_CENTER)
-                .build(),
-            ExcelFieldDvo.builder().headerName("확정일자")
-                .fieldName("cnfmdt")
-                .width("10")
-                .align(CommConst.EXCEL_ALIGN_CENTER)
-                .build(),
-            ExcelFieldDvo.builder().headerName("확정차이")
-                .fieldName("cnfmPitmEotStocQty")
-                .width("10")
-                .align(CommConst.EXCEL_ALIGN_RIGHT)
-                .build(),
-            ExcelFieldDvo.builder().headerName("반영일자")
-                .fieldName("iostRfdt")
-                .width("8")
-                .align(CommConst.EXCEL_ALIGN_CENTER)
-                .build()
-
+    public void getStockAcinspRgstMngtsForExcelDownload(
+        ExcelBulkDownloadDto.DownloadReq req, HttpServletResponse response
+    )
+        throws IOException {
+        SXSSFWorkbook workbook = new SXSSFWorkbook(-1);
+        priSqlSession.select(
+            "com.kyowon.sms.wells.web.service.stock.mapper.WsnaStockAcinspRgstMngtMapper.selectStockAcinspRgstMngtBulk",
+            req.parameter(),
+            new ExcelResultHandler(workbook, req.columns(), req.searchCondition())
         );
-        return excelDownloadService.createExcel(fields, results);
+        excelDownloadService.downloadBulkExcel(workbook, response);
     }
 
     /**
@@ -200,6 +144,12 @@ public class WsnaStockAcinspRgstMngtService {
             ValidAssert.hasText(dvo.getItmPdCd());
             ValidAssert.hasText(dvo.getWareNo());
 
+            //재조회 확정시점입고차이수량 , 재조회 확정시점출고차이수량
+            WsnaStockAcinspRgstMngtDvo reDvo = this.mapper.selectReAcinspRgst(dvo);
+
+            dvo.setReCnfmPitmOstrGapQty(reDvo.getReCnfmPitmOstrGapQty());
+            dvo.setReCnfmPitmStrGapQty(reDvo.getReCnfmPitmStrGapQty());
+
             processCount += this.mapper.insertStockAcinsp(dvo);
 
         }
@@ -230,7 +180,15 @@ public class WsnaStockAcinspRgstMngtService {
             //이미 모든 자료가 확정 상태입니다.
             BizAssert.isTrue(chkCount > 0, "MSG_ALT_ALL_MTR_CNFM_STAT");
 
-            this.mapper.updateStockAcinspIzCnfm(reSearchDvo);
+            //창고상세구분코드
+            String chkWareDtlDvCd = reSearchDvo.get(0).getWareDtlDvCd();
+
+            //조회해온 창고상세구분코드가 조직창고, 영업센터인경우 분기처리
+            if ("20".equals(chkWareDtlDvCd) || "30".equals(chkWareDtlDvCd)) {
+                this.mapper.updateStockAcinspIzCnfm(reSearchDvo);
+            } else {
+                this.mapper.updateStockAcinspIzCnfmIndv(reSearchDvo);
+            }
 
             processCount++;
 

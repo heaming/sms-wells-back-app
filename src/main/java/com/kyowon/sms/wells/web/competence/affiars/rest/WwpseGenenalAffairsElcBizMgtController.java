@@ -47,7 +47,7 @@ public class WwpseGenenalAffairsElcBizMgtController {
         return service.getGenenalAffairsElcBizMgtPages(dto, pageInfo);
     }
 
-    @ApiOperation(value = "BM보고서 관리 업무유형 내용", notes = "")
+    @ApiOperation(value = "총무전자업무관리 업무유형 내용", notes = "")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
@@ -93,7 +93,7 @@ public class WwpseGenenalAffairsElcBizMgtController {
         return SaveResponse.builder().processCount(this.service.saveBusinessManagerReport(dtos)).build();
     }
 
-    @ApiOperation(value = "업무 유형 저장", notes = "")
+    @ApiOperation(value = "총무전자업무관리 업무 유형 저장", notes = "")
     @PostMapping("/report-business-type")
     public SaveResponse saveReportBusinessType(
         @RequestBody

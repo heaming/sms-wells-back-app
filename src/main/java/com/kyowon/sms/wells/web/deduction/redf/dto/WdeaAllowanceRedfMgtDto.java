@@ -47,14 +47,10 @@ public class WdeaAllowanceRedfMgtDto {
         @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, /*판매자성명*/
         String prtnrNo, /*파트너번호*/
-        @MaskRequired(type = MaskingType.NAME)
-        String gnlrLedr, /*총괄단장, TODO: 조직쪽에서 정리되면 추가*/
-        @MaskRequired(type = MaskingType.NAME)
-        String localAreaManager, /*지역단장, TODO: 조직쪽에서 정리되면 추가*/
-        @MaskRequired(type = MaskingType.NAME)
-        String branchManager, /*지점장, TODO: 조직쪽에서 정리되면 추가*/
-        @MaskRequired(type = MaskingType.NAME)
-        String dstrcManager, /*지구장, TODO: 조직쪽에서 정리되면 추가*/
+        String gnlrLedrNo, /*총괄단장*/
+        String localAreaManagerNo, /*지역단장*/
+        String branchManagerNo, /*지점장*/
+        String dstrcManagerNo, /*지구장*/
         String perfTpCd, /*처리유형(실적유형코드) 01: 취소, 10: 연체*/
         String thmOcDlqAmt, /*연체금액, 당월발생연체금액*/
         String cntrDtlStatChRsonNm, /*취소유형*/
@@ -85,13 +81,11 @@ public class WdeaAllowanceRedfMgtDto {
         String slYm, /*매출년월*/
         String ogNm, /*업체명*/
         String ogCd, /*소속코드*/
-        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, /*판매자명*/
         String prtnrNo, /*파트너번호*/
         String cntrNo, /*계약번호*/
         String cntrSn, /*계약일련번호*/
         String cntrNoSn, /*계약상세번호*/
-        @MaskRequired(type = MaskingType.NAME)
         String cstKnm, /*고객명*/
         String pdCd, /*제품코드*/
         String pdClsfNm, /*제품명*/

@@ -62,6 +62,7 @@ public class WpdyWellsAllianceMgtService {
         List<WpdyAllianceBaseDvo> bases = converter.mapAllAllianceBaseDtoToAllianceBaseDvo(dto.bases());
         for (WpdyAllianceBaseDvo base : bases) {
             if (StringUtil.isEmpty(base.getPdAlncmpBaseId())) {
+                // 웰스 제휴 관리 시퀀스 저장
                 base.setPdAlncmpBaseId(mapper.selectWellsAllianceId());
             }
             cnt += mapper.mergeWellsAllianceBase(base);
@@ -90,6 +91,7 @@ public class WpdyWellsAllianceMgtService {
      */
     public String checkDuplication(List<WpdyWellsAllianceMgtDto.AllianceBase> dtos) {
         List<WpdyAllianceBaseDvo> bases = converter.mapAllAllianceBaseDtoToAllianceBaseDvo(dtos);
+        // 저장 ID 목록
         List<String> idList = bases.stream()
             .map(base -> base.getPdAlncmpBaseId())
             .filter(value -> StringUtil.isNotBlank(value))
@@ -98,6 +100,7 @@ public class WpdyWellsAllianceMgtService {
         for (WpdyAllianceBaseDvo base : bases) {
             duplicationKey = mapper.selectWellsAllianceDuplication(base, idList);
             if (StringUtil.isNotBlank(duplicationKey)) {
+                // 중복 검사 첫번째 중복만 반환, 이후 중단
                 break;
             }
         }
@@ -116,6 +119,7 @@ public class WpdyWellsAllianceMgtService {
         for (WpdyAllianceBaseDvo base : bases) {
             validResult = mapper.selectWellsAllianceValidation(base);
             if (StringUtil.isBlank(validResult)) {
+                // 중복 검사 첫번째 중복 정보만 반환, 이후 중단
                 validationIssueKey = base.getPdCd() + PdProductConst.COMMA + StringUtil.nonNull(base.getSvPdCd()) + PdProductConst.COMMA + StringUtil.nonNull(base.getStplPrdCd());
                 break;
             }

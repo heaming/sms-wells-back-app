@@ -135,12 +135,23 @@
                        WHERE FEE_CD = 'W020125' /* W020125(15직급개인), W020126(조직) */
                          AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM ) TF /* 상조 FEE 기준금액 */
             ON 1=1
+         INNER JOIN ( SELECT A.LIF_CNTR_NO    --라이프계약번호
+                           , A.PRTNR_NO       --파트너 번호
+                        FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
+                       WHERE A.BASE_YM          = #{baseYm}
+                         AND A.LIF_CNTR_STAT_CD = #{clasfctnFee}
+                         AND A.OG_TP_CD         = 'W02'
+                         AND 0 = (SELECT MOD(COUNT(1),2) FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ B
+                                  WHERE B.LIF_CNTR_STAT_CD IN ('2','3')
+                                    AND A.LIF_CNTR_NO = B.LIF_CNTR_NO
+                                    AND B.OG_TP_CD = 'W02'
+                                 )
+                       GROUP BY A.LIF_CNTR_NO, A.PRTNR_NO ) T7
+           ON T1.LIF_CNTR_NO = T7.LIF_CNTR_NO
+          AND T1.PRTNR_NO    = T7.PRTNR_NO
          WHERE 1=1
-           AND T1.BASE_YM          = #{baseYm}
-           AND T1.LIF_CNTR_STAT_CD = '1'                        --20230703 - 라이프계약상태코드 - 0수수료, 3재지급, 2연체, 1되물림
+           AND T1.LIF_CNTR_STAT_CD = '0'                        --20230703 - 라이프계약상태코드 - 0수수료, 3재지급, 2연체, 1되물림
            AND T1.OG_TP_CD         = 'W02'
-           AND T1.CAN_DT           = T1.BASE_YM
-           AND T1.CAN_DT          <![CDATA[<>]]>  SUBSTR(T1.CNTR_DT,1,6)
           <if test='@MybatisUtils@isNotEmpty(sellPrtnrNo)'>
            AND T1.PRTNR_NO         = #{sellPrtnrNo}               --파트너번호
           </if>
@@ -327,13 +338,18 @@
                        WHERE FEE_CD = 'W020126' /* W020125(15직급개인), W020126(조직) */
                          AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM) TF /* 상조 FEE 기준금액 */
             ON 1=1
-         INNER JOIN ( SELECT LIF_CNTR_NO    --라이프계약번호
-                           , PRTNR_NO
-                        FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ
-                       WHERE BASE_YM          = #{baseYm}
-                         AND LIF_CNTR_STAT_CD = '1'
-                         AND CAN_DT          <![CDATA[<>]]> SUBSTR(CNTR_DT,1,6)
-                       GROUP BY LIF_CNTR_NO, PRTNR_NO  ) T7   /* 기지급을 구하기 위한 지급회수 COUNT */
+         INNER JOIN ( SELECT A.LIF_CNTR_NO    --라이프계약번호
+                           , A.PRTNR_NO
+                        FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
+                       WHERE A.BASE_YM          = #{baseYm}
+                         AND A.LIF_CNTR_STAT_CD = '1'
+                         AND A.CAN_DT          <![CDATA[<>]]> SUBSTR(CNTR_DT,1,6)
+                         AND 0 = (SELECT MOD(COUNT(1),2) FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ B
+                                   WHERE B.LIF_CNTR_STAT_CD IN ('2','3')
+                                     AND A.LIF_CNTR_NO = B.LIF_CNTR_NO
+                                     AND B.OG_TP_CD = 'W02'
+                                  )
+                       GROUP BY A.LIF_CNTR_NO, A.PRTNR_NO  ) T7   /* 기지급을 구하기 위한 지급회수 COUNT */
             ON T1.LIF_CNTR_NO    = T7.LIF_CNTR_NO
            AND T1.PRTNR_NO       = T7.PRTNR_NO
          WHERE 1=1
@@ -441,6 +457,7 @@
            AND 0 = ( SELECT MOD(COUNT(1), 2)
                        FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ B
                       WHERE B.LIF_CNTR_STAT_CD IN ('2', '3')
+                        AND B.OG_TP_CD          = 'W02'
                         AND B.LIF_CNTR_NO       = A.LIF_CNTR_NO )
            /* 월파트너 있는놈들만 하게 수정 2023.10.13 > 2023.11.01 AS-IS와 건수맞추기위해 조건다시 주석처리
            AND EXISTS (SELECT 1
@@ -472,6 +489,7 @@
            AND 0 = (SELECT MOD(COUNT(1), 2)
                       FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ B
                      WHERE B.LIF_CNTR_STAT_CD IN ('2', '3')
+                       AND B.OG_TP_CD          = 'W02'
                        AND B.LIF_CNTR_NO       = A.LIF_CNTR_NO)
            /* 월파트너 있는놈들만 하게 수정 2023.10.13 > 2023.11.01 AS-IS와 건수맞추기위해 조건다시 주석처리
            AND EXISTS (SELECT 1
@@ -498,10 +516,11 @@
            AND A.LIF_CNTR_STAT_CD  = '1'
            AND A.OG_TP_CD          = 'W02'
            AND A.CAN_DT           <![CDATA[<>]]> SUBSTR(A.CNTR_DT,1,6)
-           AND 0 = ( SELECT COUNT(1)
+           AND 0 = ( SELECT MOD(COUNT(1),2)
                      FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ B
-                     WHERE B.LIF_CNTR_STAT_CD = '2'
-                       AND B.LIF_CNTR_NO      = A.LIF_CNTR_NO )
+                     WHERE B.LIF_CNTR_STAT_CD IN ('2', '3')
+                       AND B.OG_TP_CD          = 'W02'
+                       AND B.LIF_CNTR_NO       = A.LIF_CNTR_NO )
            AND EXISTS (SELECT 1 /* 월파트너 있는놈들만 하게 수정 2023.10.13 */
                          FROM TB_OGBS_MM_PRTNR_IZ X
                         WHERE A.BASE_YM  = X.BASE_YM

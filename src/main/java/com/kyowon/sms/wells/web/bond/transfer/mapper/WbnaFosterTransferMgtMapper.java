@@ -94,6 +94,13 @@ public interface WbnaFosterTransferMgtMapper {
     int updateFosterTransfer(WbnaBondContractBaseDvo dvo);
 
     /**
+     * 미배정 위탁 이관 관리 저장
+     * @param dvo
+     * @return int
+     */
+    int updateNoAssignFosterTransfer(WbnaBondContractBaseDvo dvo);
+
+    /**
      * 위탁 이관 관리 집금담당자 전체 조회
      * @param baseYm, bzHdqDvCd, clctamDvCd
      * @return List<String>

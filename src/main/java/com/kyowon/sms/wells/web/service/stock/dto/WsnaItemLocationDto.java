@@ -46,10 +46,16 @@ public class WsnaItemLocationDto {
         String pitmStocAGdQty,
         // 앵글
         String itmLctAngleVal,
+        // 앵글명
+        String angleValNm,
         // 층수
         String itmLctCofVal,
+        // 층수명
+        String cofValNm,
         // 층번호
         String itmLctFlorNoVal,
+        // 층번호명
+        String florNoValNm,
         // 그룹
         String itmLctMatGrpCd,
         // 위치
@@ -123,10 +129,16 @@ public class WsnaItemLocationDto {
         String locationCd,
         // 품목앵글값
         String itmLctAngleVal,
-        // 품목층수값
+        // 앵글명
+        String angleValNm,
+        // 층수
         String itmLctCofVal,
-        // 품목위치층번호값
+        // 층수명
+        String cofValNm,
+        // 층번호
         String itmLctFlorNoVal,
+        // 층번호명
+        String florNoValNm,
         // 품목위치자재그룹코드
         String itmLctMatGrpCd,
         // 품목위치명

@@ -5,6 +5,7 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnDto;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +37,11 @@ public class WsnaEngineerToolController {
     @GetMapping("/paging")
     public PagingResult<SearchRes> getEngineerToolDsbHistPages(SearchReq dto, PageInfo pageInfo) {
         return service.getEngineerToolDsbHistPages(dto, pageInfo);
+    }
+
+    @GetMapping("/excel-download")
+    public List<SearchRes> getExcelDownloadEngineerToolDsbHist(SearchReq dto) {
+        return service.getExcelDownloadEngineerToolDsbHist(dto);
     }
 
     @DeleteMapping

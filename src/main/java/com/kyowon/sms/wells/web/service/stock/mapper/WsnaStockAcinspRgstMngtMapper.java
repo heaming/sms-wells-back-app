@@ -19,7 +19,7 @@ public interface WsnaStockAcinspRgstMngtMapper {
         PageInfo pageInfo
     );
 
-    List<SearchRes> selectStockAcinspRgstMngtPages(
+    List<WsnaStockAcinspRgstMngtDvo> selectStockAcinspRgstMngtBulk(
         SearchReq dto
     );
 
@@ -50,4 +50,8 @@ public interface WsnaStockAcinspRgstMngtMapper {
     int updateStockAcinspIzCancel(List<WsnaStockAcinspRgstMngtDvo> reDeleteDvo);
 
     int deleteApplAcinsp(WsnaStockAcinspRgstMngtDvo dvo);
+
+    int updateStockAcinspIzCnfmIndv(List<WsnaStockAcinspRgstMngtDvo> reSearchDvo);
+
+    WsnaStockAcinspRgstMngtDvo selectReAcinspRgst(WsnaStockAcinspRgstMngtDvo dvo);
 }

@@ -142,11 +142,18 @@ public class WbnaFosterTransferMgtService {
     @Transactional
     public int editFosterDataTransfers(List<SaveReq> dtos) {
         int processCount = 0;
+        int insertResult = 0;
+        int updateResult = 0;
 
         for (SaveReq dto : dtos) {
             WbnaBondContractBaseDvo dvo = this.converter.mapSaveReqToBondContractBaseDvo(dto);
-            int insertResult = this.mapper.insertBondContractHistories(dvo);
-            int updateResult = this.mapper.updateFosterTransfer(dvo);
+            if (StringUtil.isBlank(dvo.getClctamPrtnrNo())) {
+                insertResult = this.mapper.insertBondContractHistories(dvo);
+                updateResult = this.mapper.updateNoAssignFosterTransfer(dvo);
+            } else {
+                insertResult = this.mapper.insertBondContractHistories(dvo);
+                updateResult = this.mapper.updateFosterTransfer(dvo);
+            }
 
             BizAssert.isTrue(updateResult == 1 && insertResult == 1, MSG_ALT_SVE_ERR_STR);
             processCount += updateResult;
@@ -233,17 +240,7 @@ public class WbnaFosterTransferMgtService {
                 excelUploadErrorDvos.add(errorDvo);
             }
 
-            if (StringUtil.isBlank(dvo.getClctamPrtnrNo())) {
-                ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
-                errorDvo.setErrorRow(row);
-                errorDvo.setHeaderName(headerTitle.get("clctamPrtnrNo"));
-                errorDvo.setErrorData(
-                    messageResourceService.getMessage(
-                        "MSG_ALT_NO_EXPORT_DATA" // 엑셀 파일로 내보낼 데이터가 없습니다.
-                    )
-                );
-                excelUploadErrorDvos.add(errorDvo);
-            } else if (!prtnrList.contains(dvo.getClctamPrtnrNo())) {
+            if (StringUtil.isNotBlank(dvo.getClctamPrtnrNo()) && !prtnrList.contains(dvo.getClctamPrtnrNo())) {
                 ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                 errorDvo.setErrorRow(row);
                 errorDvo.setHeaderName(headerTitle.get("clctamPrtnrNo"));
@@ -254,6 +251,7 @@ public class WbnaFosterTransferMgtService {
                 );
                 excelUploadErrorDvos.add(errorDvo);
             }
+
             row++;
         }
 
@@ -264,8 +262,15 @@ public class WbnaFosterTransferMgtService {
                 data.setCntrSn(Integer.parseInt(cntrList[1]));
                 data.setBaseYm(baseYm);
 
-                int insertResult = this.mapper.insertBondContractHistories(data);
-                int updateResult = this.mapper.updateFosterTransfer(data);
+                int insertResult = 0;
+                int updateResult = 0;
+                if (StringUtil.isBlank(data.getClctamPrtnrNo())) {
+                    insertResult = this.mapper.insertBondContractHistories(data);
+                    updateResult = this.mapper.updateNoAssignFosterTransfer(data);
+                } else {
+                    insertResult = this.mapper.insertBondContractHistories(data);
+                    updateResult = this.mapper.updateFosterTransfer(data);
+                }
 
                 BizAssert.isTrue(insertResult == 1 && updateResult == 1, MSG_ALT_SVE_ERR_STR);
             }

@@ -93,7 +93,14 @@ public class WsnaStockAcinspRgstMngtDto {
         int cnfmPitmOstrGapQty, /* 확정시점출고차이수량 */
         int diffQty, /* 확정차이수량 */
         String iostRfdt, /* 입출고반영일자 */
-        String acinspAkId /* 실사요청ID */
+        String stocAcinspAkId, /* 재고실사요청ID */
+        //조회조건 데이터 매핑
+        String baseYm, /* 기준년월 */
+        String wareDvCd, /* 창고구분코드 */
+        String wareDtlDvCd, /* 창고상세구분코드 */
+        String hgrWareNo, /* 조회상위창고번호*/
+        String searchWareNo, /* 조회창고번호 */
+        String useYn /* 사용여부 */
     ) {}
 
     @ApiModel("WsnaStockAcinspRgstMngtDto-SaveAcinspCnfmReq")
@@ -122,6 +129,7 @@ public class WsnaStockAcinspRgstMngtDto {
         String baseYm, /* 기준년월 */
         String wareDvCd, /* 창고구분코드 */
         String wareDtlDvCd, /* 창고상세구분코드 */
+        String hgrWareNo, /* 조회상위창고번호*/
         String searchWareNo, /* 조회창고번호 */
         String useYn /* 사용여부 */
     ) {}

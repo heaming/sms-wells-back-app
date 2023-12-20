@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @Api(tags = "[PSD] 우수사업부 시상소득원천세 등록")
 @Validated
@@ -39,6 +40,18 @@ public class WpsdExclDivAwdErnWhtxRgstController {
         PageInfo pageInfo
     ) {
         return service.getExclDivAwdErnWhtxRgstPages(dto, pageInfo);
+    }
+
+    @ApiOperation(value = "우수사업부 시상소득원천세 등록 엑셀 다운로드", notes = "")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+    })
+    @GetMapping("/excel-download")
+    public List<SearchRes> getExclDivAwdErnWhtxRgstExcelDownload(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getExclDivAwdErnWhtxRgstExcelDownload(dto);
     }
 
     @ApiOperation(value = "우수사업부 시상소득원천세 등록 엑셀 업로드", notes = "")
