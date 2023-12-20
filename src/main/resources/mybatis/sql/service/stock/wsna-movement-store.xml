@@ -162,43 +162,26 @@
              , TO_CHAR(TO_NUMBER(J1.SVPD_SAP_CD)) AS SAP_MAT_CD     /* SAP자재코드 */
              , T1.ITM_PD_CD                                         /* 품목상품코드 */
              , J1.SVPD_NM_ABBR1                   AS ITM_PD_NM      /* 품목상품명 */
-             , ( SELECT TRIM( F_CMZ_CD_NM('TNT_WELLS', 'WARE_TP_CD', WARE_TP_CD, #{session.langId})
-                     || CASE WHEN WARE_TP_CD IS NOT NULL
-                              AND (    ITM_LCT_ANGLE_VAL IS NOT NULL
-                                    OR ( ITM_LCT_ANGLE_VAL IS NULL AND ITM_LCT_COF_VAL IS NOT NULL )
-                                    OR ( ITM_LCT_ANGLE_VAL IS NULL AND ITM_LCT_COF_VAL IS NULL AND ITM_LCT_FLOR_NO_VAL IS NOT NULL )
-                                    OR ( ITM_LCT_ANGLE_VAL IS NULL AND ITM_LCT_COF_VAL IS NULL AND ITM_LCT_FLOR_NO_VAL IS NULL AND ITM_LCT_MAT_GRP_CD IS NOT NULL )
-                                  )
-                             THEN '-'
-                             ELSE ''
-                        END
-                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', ITM_LCT_ANGLE_VAL, #{session.langId})
-                     || CASE WHEN ITM_LCT_ANGLE_VAL IS NOT NULL
-                              AND (    ITM_LCT_COF_VAL IS NOT NULL
-                                    OR ( ITM_LCT_COF_VAL IS NULL AND ITM_LCT_FLOR_NO_VAL IS NOT NULL )
-                                    OR ( ITM_LCT_COF_VAL IS NULL AND ITM_LCT_FLOR_NO_VAL IS NULL AND ITM_LCT_MAT_GRP_CD IS NOT NULL )
-                                  )
-                             THEN '-'
-                             ELSE ''
-                        END
-                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', ITM_LCT_COF_VAL, #{session.langId})
-                     || CASE WHEN ITM_LCT_COF_VAL IS NOT NULL
-                              AND (    ITM_LCT_FLOR_NO_VAL IS NOT NULL
-                                    OR ( ITM_LCT_FLOR_NO_VAL IS NULL AND ITM_LCT_MAT_GRP_CD IS NOT NULL )
-                                  )
-                             THEN '-'
-                             ELSE ''
-                        END
-                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', ITM_LCT_FLOR_NO_VAL, #{session.langId})
-                     || CASE WHEN ITM_LCT_FLOR_NO_VAL IS NOT NULL AND ITM_LCT_MAT_GRP_CD IS NOT NULL THEN '-' ELSE '' END
-                     || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', ITM_LCT_MAT_GRP_CD, #{session.langId}))
-                   FROM TB_SVST_CST_SV_ITM_LCT_IZ   /* 고객서비스품목위치내역 */
-                  WHERE ITM_PD_CD = T1.ITM_PD_CD
-                    AND DTA_DL_YN = 'N'
-                    AND WARE_NO   = CASE WHEN T5.STD_WARE_USE_YN = 'Y'
-                    					 THEN '200012'   /* 표준적용 */
-                                         ELSE T1.STR_WARE_NO
-                                    END )         AS ITEM_LOC       /* 품목위치 */
+             , NVL( ( SELECT F_CMZ_CD_NM('TNT_WELLS', 'WARE_TP_CD', WARE_TP_CD, #{session.langId})
+                             || CASE WHEN WARE_TP_CD IS NOT NULL THEN '-' ELSE '' END
+                             || CASE WHEN ITM_LCT_ANGLE_VAL IS NULL THEN ' '
+                                     ELSE F_CMZ_CD_NM('TNT_WELLS', 'LCT_ANGLE_CD', ITM_LCT_ANGLE_VAL, #{session.langId})
+                                END || '-'
+                             || CASE WHEN ITM_LCT_COF_VAL IS NULL THEN ' '
+                                     ELSE F_CMZ_CD_NM('TNT_WELLS', 'LCT_COF_CD', ITM_LCT_COF_VAL, #{session.langId})
+                                END || '-'
+                             || CASE WHEN ITM_LCT_FLOR_NO_VAL IS NULL THEN ' '
+                                     ELSE F_CMZ_CD_NM('TNT_WELLS', 'LCT_FLOR_NO_CD', ITM_LCT_FLOR_NO_VAL, #{session.langId})
+                                END
+                             || CASE WHEN ITM_LCT_MAT_GRP_CD IS NOT NULL THEN '-' ELSE '' END
+                             || F_CMZ_CD_NM('TNT_WELLS', 'LCT_MAT_GRP_CD', ITM_LCT_MAT_GRP_CD, #{session.langId})
+                           FROM TB_SVST_CST_SV_ITM_LCT_IZ   /* 고객서비스품목위치내역 */
+                          WHERE ITM_PD_CD = T1.ITM_PD_CD
+                            AND DTA_DL_YN = 'N'
+                            AND WARE_NO   = CASE WHEN T5.STD_WARE_USE_YN = 'Y'
+                                                 THEN '200012'   /* 표준적용 */
+                                                 ELSE T1.STR_WARE_NO
+                                            END ), ' - - ' ) AS ITEM_LOC       /* 품목위치 */
              , NVL((SELECT (CASE T1.ITM_GD_CD
                                  WHEN 'A' THEN NVL(S3.PITM_STOC_A_GD_QTY, 0) - NVL(S3.MMT_STOC_A_GD_QTY, 0)
                                  WHEN 'B' THEN NVL(S3.PITM_STOC_B_GD_QTY, 0) - NVL(S3.MMT_STOC_B_GD_QTY, 0)
