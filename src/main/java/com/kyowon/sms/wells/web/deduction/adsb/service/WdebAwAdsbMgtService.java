@@ -66,19 +66,21 @@ public class WdebAwAdsbMgtService {
                 //                mapper.updateAdsbObjectTemp(req);
             }
 
-            // TODO: 수수료 측 서비스 call 예정 ( 금액 생성 )
-            if ("W01".equals(req.getOgTpCd())) {
-                req.setCntrPerfCrtDvCd("08"); // P추진단 재지급
-            } else if ("W02".equals(req.getOgTpCd())) {
-                req.setCntrPerfCrtDvCd("09"); // M추진단 재지급
-            } else if ("W03".equals(req.getOgTpCd())) {
-                req.setCntrPerfCrtDvCd("10"); // 홈마스터 재지급
-            } else if ("W04".equals(req.getOgTpCd())) {
-                req.setCntrPerfCrtDvCd("12"); // B2B 재지급
-            } else if ("W05".equals(req.getOgTpCd())) {
-                req.setCntrPerfCrtDvCd("11"); // 총판 재지급
+            if (adsbChk > 0) {
+                // TODO: 수수료 측 서비스 call 예정 ( 금액 생성 )
+                if ("W01".equals(req.getOgTpCd())) {
+                    req.setCntrPerfCrtDvCd("08"); // P추진단 재지급
+                } else if ("W02".equals(req.getOgTpCd())) {
+                    req.setCntrPerfCrtDvCd("09"); // M추진단 재지급
+                } else if ("W03".equals(req.getOgTpCd())) {
+                    req.setCntrPerfCrtDvCd("10"); // 홈마스터 재지급
+                } else if ("W04".equals(req.getOgTpCd())) {
+                    req.setCntrPerfCrtDvCd("12"); // B2B 재지급
+                } else if ("W05".equals(req.getOgTpCd())) {
+                    req.setCntrPerfCrtDvCd("11"); // 총판 재지급
+                }
+                feeService.saveAgainDisbursementOfFees(req.getBaseYm(), req.getCntrPerfCrtDvCd());
             }
-            feeService.saveAgainDisbursementOfFees(req.getBaseYm(), req.getCntrPerfCrtDvCd());
 
         }
         return processCount;
