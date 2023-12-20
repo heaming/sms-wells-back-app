@@ -87,7 +87,7 @@ public class WdcbSalesConfirmCreateService {
         /* W01 : 렌탈 2023-12-18 정승현P */
         if ("W01".equals(dvo.getSlRcogClsfCd()) && StringUtils.isNotEmpty(dvo.getSlStpYn())
             && "Y".equals(dvo.getSlStpYn())) {
-            spmtDscAmt = (int)(Math.floor(((dvo.getNomSlAmt() - dvo.getNomDscAmt()) * 0.7) / 10) * 10)
+            spmtDscAmt = (int)(Math.ceil(((dvo.getNomSlAmt() - dvo.getNomDscAmt()) * 0.7) / 10) * 10)
                 + dvo.getSpmtDscAmt();
         } else {
             spmtDscAmt = dvo.getSpmtDscAmt();
