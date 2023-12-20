@@ -2,21 +2,25 @@ package com.kyowon.sms.wells.web.service.stock.dvo;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
-public class WsnaInstallationStockPsByDayPdDvo {
+@ToString
+public class WsnaInstallationStockPsByDayPdValueDvo {
     private String ogCd;
     private String ogNm;
     private String sapMatCd;
     private String pdCd;
     private String pdNm;
+    private Integer dateQty;
+    private Integer asnQty;
     private Integer lgstQty;
     private Integer sumQtyCenter;
-    private Integer sumQtyTot; // 센터 + 엔지니어 재고
+    private Integer sumQtyTot;
     private Integer sumQtyEng;
-    private Integer aggAsnCnt; //  총 설치수
-    private Integer dateQty; // 총 재고 - 설치 수
+    private String asnDate;
+    private Integer aggAsnCnt;
     private Integer stockdate1;
     private Integer stockdate2;
     private Integer stockdate3;
@@ -31,8 +35,6 @@ public class WsnaInstallationStockPsByDayPdDvo {
     private Integer stockdate12;
     private Integer stockdate13;
     private Integer stockdate14;
-    private Integer stockdate15;
-    private Integer stockdate16;
     private Integer installdate1;
     private Integer installdate2;
     private Integer installdate3;
@@ -47,7 +49,5 @@ public class WsnaInstallationStockPsByDayPdDvo {
     private Integer installdate12;
     private Integer installdate13;
     private Integer installdate14;
-    private Integer installdate15;
-    private Integer installdate16;
     private Integer rn;
 }
