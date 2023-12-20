@@ -41,7 +41,6 @@ public class WsnbCenterCustomerAgrgByProductDvo {
     Integer S71387;
     Integer S71448;
     Integer S71447;
-    Integer S91358;
     Integer total;
 
 }
