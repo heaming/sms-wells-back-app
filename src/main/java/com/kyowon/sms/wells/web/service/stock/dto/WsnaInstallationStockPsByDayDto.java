@@ -34,7 +34,7 @@ public class WsnaInstallationStockPsByDayDto {
 
     @ApiModel(value = "WsnaInstallationStockPsByDayDto-SearchResCenter")
     public record SearchResCenter(
-        String ogId,
+        String ogCd,
         String ogNm,
         String pdCd,
         String pdNm,
