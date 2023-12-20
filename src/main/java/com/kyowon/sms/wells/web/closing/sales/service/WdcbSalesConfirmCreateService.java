@@ -84,8 +84,11 @@ public class WdcbSalesConfirmCreateService {
         String sapBzHdqInfCd = "0003";
         /* 8-0 . 추가할인금액 : 매출중지 시 매출의 30프로만 점유비매출로 매출금엑에 떠야하는 상황이라,  추가할인금액에 정상매출의 70프로를 띄워놓음.  */
         int spmtDscAmt = 0;
-        if (StringUtils.isNotEmpty(dvo.getSlStpYn()) && "Y".equals(dvo.getSlStpYn())) {
-            spmtDscAmt = (int)(dvo.getNomSlAmt() * 0.7) + dvo.getSpmtDscAmt();
+        /* W01 : 렌탈 2023-12-18 정승현P */
+        if ("W01".equals(dvo.getSlRcogClsfCd()) && StringUtils.isNotEmpty(dvo.getSlStpYn())
+            && "Y".equals(dvo.getSlStpYn())) {
+            spmtDscAmt = (int)(Math.floor(((dvo.getNomSlAmt() - dvo.getNomDscAmt()) * 0.7) / 10) * 10)
+                + dvo.getSpmtDscAmt();
         } else {
             spmtDscAmt = dvo.getSpmtDscAmt();
         }
@@ -164,12 +167,10 @@ public class WdcbSalesConfirmCreateService {
 
         tempSlRcogClsfCd = dvo.getSlRcogClsfCd().substring(0, 1).equals("W") ? "W" : dvo.getSlRcogClsfCd();
 
-        if (StringUtils.isEmpty(dvo.getRtngdYn()) || "N".equals(dvo.getRtngdYn())) {
-            // 반품여부(RTNGD_YN) N 또는 NULL 이면 1
-            slTpDvCd = "1";
-        } else if (StringUtils.isNotEmpty(dvo.getRtngdYn()) && "Y".equals(dvo.getRtngdYn())) {
-            // 반품여부(RTNGD_YN) Y이면 2
+        if ("Y".equals(dvo.getRtngdYn())) {
             slTpDvCd = "2";
+        } else {
+            slTpDvCd = "1";
         }
 
         if (StringUtils.isNotEmpty(sapMatEvlClssVal)) {
@@ -187,11 +188,16 @@ public class WdcbSalesConfirmCreateService {
                 clssVal = "2";
             }
         } else {
-            // SAP저장위치가 없으면 2로 셋팅
-            clssVal = "2";
+            // SAP저장위치가 없으면 1로 셋팅
+            /* 1로 설정해야 값이 맞는것 같은데?? 2023-12-15 정승현P */
+            clssVal = "1";
         }
 
-        if (dvo.getRentalRgstCost() > 0) {
+        if ("N".equals(mapper.selectProductEnvrYn(dvo.getPdCd()))) {
+            /* 환경가전이 아니면 모두 BH상품 적용. 2023-12-15 정승현P */
+            addConditionSlTp = "3";
+            addConditionBizDv = "0";
+        } else if (dvo.getRentalRgstCost() > 0) {
             // 렌탈등록비(RENTAL_RGST_COST) 가 0보다 크면 1
             addConditionSlTp = "1";
             addConditionBizDv = "1";
@@ -200,10 +206,6 @@ public class WdcbSalesConfirmCreateService {
             // 14일이내 취소건 : 물류품목등급코드(LGST_ITM_GD_CD) 가 E 또는 R 이면 2
             addConditionSlTp = "2";
             addConditionBizDv = "2";
-        } else if ("Y".equals(mapper.selectProductValueYn(dvo.getPdCd()))) {
-            // VO에 들어온 상품중분류코드 (PD_MCLSF_ID) 가 PDC000000000068,PDC000000000070 이면 3
-            addConditionSlTp = "3";
-            addConditionBizDv = "0";
         } else if (StringUtils.isNotEmpty(dvo.getCanDt()) || dvo.getSlCanAmt() != 0) {
             // VO의 취소일자(CAN_DT) 가 널이 아니거나,  또는 취소금액(SL_CAN_AMT) 이 0이 아닌경우.  4
             addConditionSlTp = "4";
@@ -214,11 +216,16 @@ public class WdcbSalesConfirmCreateService {
             addConditionBizDv = "0";
         }
 
+        /* 렌탈 상품소분류가 원두(PDC000000000131) 인 경우, 정기구매(커피원두)로 강제 설정, 2023-12-15 정승현P */
+        if ("W01".equals(dvo.getSlRcogClsfCd()) && "PDC000000000131".equals(dvo.getPdLclsfId())) {
+            tempSellTpDtlCd = "63";
+        }
         slpMapngCdv = mapper.selectSlpMapngCdv(tempSellTpDtlCd, tempSlRcogClsfCd, clssVal, slTpDvCd, addConditionSlTp);
         sapSlTpCd = StringUtil.isEmpty(slpMapngCdv) ? "ERR" : slpMapngCdv;
 
         String tmpSapBizDvCd = mapper.selectSapBizDvCd(tempSellTpDtlCd, tempSlRcogClsfCd, addConditionBizDv);
-        if ("PDC000000000131".equals(dvo.getPdLclsfId())) {
+        /* 렌탈 상품소분류가 원두(PDC000000000131) 인 경우, 정기구매(커피원두)로 강제 설정, 2023-12-15 정승현P */
+        if ("W01".equals(dvo.getSlRcogClsfCd()) && "PDC000000000131".equals(dvo.getPdLclsfId())) {
             tmpSapBizDvCd = "LNC49";
         }
         String sapBizDvCd = StringUtil.isEmpty(tmpSapBizDvCd) ? "ERR" : tmpSapBizDvCd;
