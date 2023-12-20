@@ -78,7 +78,12 @@
                          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
                             ON T1.PD_CD = T2.PD_CD
                            AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-                           AND (T2.PD_PRP_VAL19 = '5' OR (T2.PD_PRP_VAL19 = '6' AND T2.PD_PRP_VAL04 = 'Y'))
+                           <if test='@MybatisUtils@isEmpty(itmKndCd)'>
+                            AND (T2.PD_PRP_VAL19 = '5' OR (T2.PD_PRP_VAL19 = '6' AND T2.PD_PRP_VAL04 = 'Y'))
+                           </if>
+                           <if test='@MybatisUtils@isNotEmpty(itmKndCd)'>
+                               AND T2.PD_PRP_VAL19 = #{itmKndCd} /* 상품그룹 */
+                           </if>
                            AND T2.PD_PRP_VAL32 = 'Y'
                            AND T2.DTA_DL_YN = 'N'
                          WHERE T1.DTA_DL_YN = 'N'
@@ -87,24 +92,21 @@
                                              WHERE ITM_PD_CD = T1.PD_CD
                                                AND ASN_EXCD_DV_CD = '0' AND STR_WARE_NO = '300000')
 
-                        <if test='@MybatisUtils@isNotEmpty(itmKndCd)'>
-                           AND T2.PD_PRP_VAL20 = #{itmKndCd} /* 상품그룹 */
-                        </if>
-                        <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
-                           AND T1.PD_CD = #{itmPdCds} /* 상품코드 */
-                        </if>
-                        <if test='@MybatisUtils@isNotEmpty(sapItemCdFrom)'>
-                           AND T1.PD_CD >= #{sapItemCdFrom}
-                        </if>
-                        <if test='@MybatisUtils@isNotEmpty(sapItemCdTo)'>
-                           AND T1.PD_CD <![CDATA[ <= ]]> #{sapItemCdTo}
-                        </if>
-                        <if test='@MybatisUtils@isNotEmpty(strtSapCd)'>
-                           AND T1.SAP_MAT_CD >= #{strtSapCd}
-                        </if>
-                        <if test='@MybatisUtils@isNotEmpty(endSapCd)'>
-                           AND T1.SAP_MAT_CD <![CDATA[ <= ]]> #{endSapCd}
-                        </if>
+                       <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                          AND T1.PD_CD = #{itmPdCds} /* 상품코드 */
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(sapItemCdFrom)'>
+                          AND T1.PD_CD >= #{sapItemCdFrom}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(sapItemCdTo)'>
+                          AND T1.PD_CD <![CDATA[ <= ]]> #{sapItemCdTo}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(strtSapCd)'>
+                          AND T1.SAP_MAT_CD >= #{strtSapCd}
+                       </if>
+                       <if test='@MybatisUtils@isNotEmpty(endSapCd)'>
+                          AND T1.SAP_MAT_CD <![CDATA[ <= ]]> #{endSapCd}
+                       </if>
                         )
            , TB_STOCK AS (
                         SELECT *
@@ -305,7 +307,7 @@
                                      , SUM(CASE WHEN VST_DUEYM = '11' THEN PART_USE_QTY ELSE 0 END) PART_USE_QTY_11
                                      , SUM(CASE WHEN VST_DUEYM = '12' THEN PART_USE_QTY ELSE 0 END) PART_USE_QTY_12
                                   FROM (
-                                        SELECT T5.PD_CD
+                                        SELECT T1.PART_PD_CD PD_CD
                                              , T1.PART_USE_QTY
                                              , SUBSTR(T1.VST_DUEDT, 5, 2) VST_DUEYM
                                              , T4.WARE_NO
@@ -313,33 +315,33 @@
                                          INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T2
                                             ON T2.CNTR_NO = T1.CNTR_NO
                                            AND T2.CNTR_SN = T1.CNTR_SN
-                                           AND T2.REQD_DT IS NULL
-                                           AND T2.CPS_DT IS NULL
-                                           AND T2.DTA_DL_YN = 'N'
                                          INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ T3
                                             ON T3.CNTR_NO = T1.CNTR_NO
                                            AND T3.CNTR_SN = T1.CNTR_SN
-                                           AND T3.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                                           AND T3.MNGR_DV_CD = '1'
-                                           AND T3.DTA_DL_YN = 'N'
                                          INNER JOIN TB_SVST_MCBY_WARE_IZ T4
                                             ON T4.APY_YM = T3.MNGT_YM
                                            AND T4.OG_TP_CD = T3.MNGT_PRTNR_OG_TP_CD
                                            AND T4.WARE_MNGT_PRTNR_NO = T3.MNGT_PRTNR_NO
                                            AND T4.WARE_DTL_DV_CD != '30'
                                            AND T4.WARE_USE_YN = 'Y'
-                                           AND T4.DTA_DL_YN = 'N'
                                          INNER JOIN TB_PD T5
                                             ON T5.PD_CD = T1.PART_PD_CD
                                          WHERE 1=1
                                            AND T1.DTA_DL_YN = 'N'
+                                           AND T2.DTA_DL_YN = 'N'
+                                           AND T3.DTA_DL_YN = 'N'
+                                           AND T4.DTA_DL_YN = 'N'
+                                           AND T2.CNTR_DTL_STAT_CD   = '101'   /* 정상 */
+                                           AND T3.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                           AND T3.MNGR_DV_CD = '1'
                                            AND T1.VST_DV_CD LIKE '1%'
                                            AND T1.VST_DV_CD != '13'
                                            AND T1.VST_DUEDT >= #{strtDt}
                                            AND T1.VST_DUEDT <![CDATA[ <= ]]> #{endDt}
                                            AND T1.PART_PD_CD IS NOT NULL
                                            AND T1.PART_USE_QTY > 0
-
+                                           AND T2.REQD_DT IS NULL
+                                           AND T2.CPS_DT IS NULL
                                            AND NOT EXISTS (SELECT /*+ NO_UNNEST */ 1
                                                              FROM TB_SVPD_SLF_MNGT_SPP_STP_AK_IZ S1   /* 자가관리배송중지요청내역 */
                                                             WHERE S1.CNTR_NO       = T1.CNTR_NO
