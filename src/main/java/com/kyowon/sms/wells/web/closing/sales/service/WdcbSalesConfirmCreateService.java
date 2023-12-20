@@ -209,7 +209,11 @@ public class WdcbSalesConfirmCreateService {
         } else if (StringUtils.isNotEmpty(dvo.getCanDt()) || dvo.getSlCanAmt() != 0) {
             // VO의 취소일자(CAN_DT) 가 널이 아니거나,  또는 취소금액(SL_CAN_AMT) 이 0이 아닌경우.  4
             addConditionSlTp = "4";
-            addConditionBizDv = "4";
+            if ("2".equals(dvo.getSellTpCd())) { // 판매유형코드 2인 경우, 업무구분코드 4
+                addConditionBizDv = "4";
+            } else {
+                addConditionBizDv = "0";
+            }
         } else {
             // 모두에 해당하지 않으면 0
             addConditionSlTp = "0";
