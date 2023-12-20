@@ -33,9 +33,9 @@ public class WsncBsServicePresentStateDto {
 
     @ApiModel(value = "WsncBsServicePresentStateDto-SearchResInfo")
     public record SearchResInfo(
-        String ogCd,
-        String ogNm,
-        String prtnrNo,
-        String sapDlpnrCd
+        String mngtAcc,
+        String vstAcc,
+        String fshAcc,
+        String svcProc
     ) {}
 }
