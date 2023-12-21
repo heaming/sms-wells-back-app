@@ -72,6 +72,7 @@ public class WfeaBsFeeMgtDto {
         String pdNm, /*상품명*/
         String svFeePdDvCd, /*bs상품군*/
         int svFeeBaseAmt, /*bs기본수수료*/
+        int feeUprcAmt, /*집계수수료*/
         int feeCalcAmt, /*방문수수료*/
         String svBizDclsfCd, /*작업유형코드*/
         String vstRglvlGdCd, /*방문급지코드*/
