@@ -54,6 +54,7 @@ public class WsnyPaidAsCostMgtService {
         for(SaveReq dto : dtos){
             WsnyPaidAsCostMgtDvo dvo = converter.mapSaveReqToWsnyPaidAsCostMgtDvo(dto);
             proccessCount += mapper.updatePaidAsCostMgts(dvo);
+            proccessCount += mapper.insertPaidAsCostMgts(dvo);
         }
         return proccessCount;
     }
