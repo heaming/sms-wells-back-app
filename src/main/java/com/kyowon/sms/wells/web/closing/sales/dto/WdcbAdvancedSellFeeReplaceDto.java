@@ -35,6 +35,7 @@ public class WdcbAdvancedSellFeeReplaceDto {
         String feeOcYm,
         String piaFeeOcAmt,
         String slRcogDt,
+        String pasgTn,
         String stplTn,
         String slAmt,
         String cntrPdEnddt,
