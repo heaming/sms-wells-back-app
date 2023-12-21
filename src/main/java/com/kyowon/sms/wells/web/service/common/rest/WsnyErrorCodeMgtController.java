@@ -1,8 +1,7 @@
 
 package com.kyowon.sms.wells.web.service.common.rest;
 
-import static com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.DeleteReq;
-import static com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.SaveReq;
+import static com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.*;
 
 import java.util.List;
 
@@ -12,8 +11,7 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.*;
 import com.kyowon.sms.wells.web.service.common.service.WsnyErrorCodeMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -82,5 +80,13 @@ public class WsnyErrorCodeMgtController {
         SaveReq req
     ) throws Exception {
         return SaveResponse.builder().processCount(service.saveErrorCode(req)).build();
+    }
+
+    @ApiOperation(value = "상품 조회", notes = "특정 상품군에 속한 상품 목록을 조회한다.")
+    @ApiImplicitParam(name = "pdGrpCd", value = "상품그룹코드", paramType = "query", example = "1")
+    @GetMapping("/products")
+    public List<FindProductRes> getProducts(@RequestParam
+    String pdGrpCd) {
+        return this.service.getProducts(pdGrpCd);
     }
 }
