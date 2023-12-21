@@ -15,7 +15,7 @@ public class WsnaChangeOfRentalStatusDto {
         String itmPdCd, // 품목상품코드
         String inqrYm, //
         String rentalRtngdProcsTp, // 렌탈상태구분
-        String wareNo //창고번호
+        String svnCd //창고번호
 
     ) {}
 
