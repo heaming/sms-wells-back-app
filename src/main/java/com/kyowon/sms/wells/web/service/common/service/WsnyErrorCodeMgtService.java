@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.common.service;
 
-import static com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.DeleteReq;
-import static com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.SaveReq;
+import static com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.*;
 
 import java.util.List;
 
@@ -9,8 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.common.converter.WsnyErrorCodeMgtConverter;
-import com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.*;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnyErrorCodeMgtDvo;
 import com.kyowon.sms.wells.web.service.common.mapper.WsnyErrorCodeMgtMapper;
 import com.sds.sflex.common.docs.service.AttachFileService;
@@ -84,14 +82,27 @@ public class WsnyErrorCodeMgtService {
 
         WsnyErrorCodeMgtDvo dvo = this.converter.mapSaveReqToWsnyErrorCodeMgtDvo(req);
         String fileId = groupId + "_BAS" + dvo.getPdCd() + dvo.getErrCn();
-        dvo.setErrImageDocId(fileId);
+        if (!dvo.getAttachFiles().isEmpty()) {
+            if (!dvo.getAttachFiles().equals(dvo.getAttachFilesBefore())) {
+                dvo.setErrImageDocId(fileId);
+            }
+        }
         if (dvo.getFlag().equals("I")) {
             mapper.insertErrorCode(dvo);
         } else {
             mapper.updateErrorCode(dvo);
         }
 
-        attachFileService.saveAttachFiles(groupId, fileId, dvo.getAttachFiles());
+        if (!dvo.getAttachFiles().isEmpty()) {
+            if (!dvo.getAttachFiles().equals(dvo.getAttachFilesBefore())) {
+                attachFileService.saveAttachFiles(groupId, fileId, dvo.getAttachFiles());
+            }
+        }
+
         return count;
+    }
+
+    public List<FindProductRes> getProducts(String pdGrpCd) {
+        return this.mapper.selectProducts(pdGrpCd);
     }
 }
