@@ -354,7 +354,8 @@ public class WwdbGiroDepositMgtService {
                     if (!StringUtils.isEmpty(list.itgDpNo())) {
 
                         //입금대사 서비스 호출
-                        depositComparisonComfirmationService.createDepositComparisonComfirmation(list.itgDpNo(), null);
+                        depositComparisonComfirmationService
+                            .createDepositComparisonComfirmation(list.itgDpNo(), null, "Y");
 
                         //                        ZwdbEtcDepositProcessingDvo processingDvo = new ZwdbEtcDepositProcessingDvo();
                         //                        processingDvo.setRveNo(comfirmation.get("RVE_NO").toString());
