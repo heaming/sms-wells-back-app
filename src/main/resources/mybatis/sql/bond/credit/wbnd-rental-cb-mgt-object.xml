@@ -122,8 +122,10 @@
              , ZZ.PRTNR_KNM         /*집금담당자명*/
              , ZZ.DSPH_TNO          /*발신번호*/
              , ZZ.RGST_SCH_DT       /*NICE등록예정일자-알림톡발송일자+4일*/
+             , ZZ.NOTY_RCV_YN       /*알림수신여부*/
           FROM (SELECT DISTINCT TT.CST_NO        /*고객번호*/
                      , TT2.CST_KNM               /*고객명*/
+                     , TT.CNTR_NO                /*고객번호*/
                      , TT2.COPN_DV_CD            /*법인격구분코드*/
                      , F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', TT2.COPN_DV_CD) AS COPN_DV_NM /*법인격구분명*/
                      , TT2.CRAL_LOCARA_TNO       /*휴대폰번호1*/
@@ -146,6 +148,7 @@
                            AND ROWNUM = 1) AS PRTNR_KNM     /*집금담당자명*/
                      , '1588-4113' AS DSPH_TNO              /*발신번호*/
                      , (CASE WHEN TT4.NICE_FW_EXCD_YN = 'N' THEN TO_CHAR(TO_DATE(SUBSTR(TT8.FWBOO_DTM,1,8),'YYYYMMDD')+4,'YYYYMMDD') ELSE '' END) AS RGST_SCH_DT /*NICE등록예정일자-알림톡발송일자+4일*/
+                     , TT.FN_SMS_YN AS NOTY_RCV_YN  /*알림수신여부*/
                   FROM (SELECT LC50.CST_NO
                              , LC50.CNTR_NO
                             , LC50.SELL_TP_DTL_CD
@@ -660,7 +663,7 @@
         <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
           AND TT2.MEXNO_ENCR = #{mexnoEncr}          /*휴대폰번호2-입력된값을 암호화하여 대입*/
         </if>
-        <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
+        <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
           AND TT2.CRAL_IDV_TNO = #{cralIdvTno}       /*휴대폰번호3*/
         </if>
         ORDER BY TT.CST_NO, CNTR_DTL_NO
@@ -782,7 +785,6 @@
                     , SRC.DLQ_BLAM             /*연체잔액*/
                     , SRC.DLQ_BLAM_SUM         /*고객별연체잔액합계*/
                     , SRC.CRAL_LOCARA_TNO      /*휴대폰번호1*/
-                    , SRC.DLQ_BLAM_SUM         /*고객별연체잔액합계*/
                     , SRC.CLCTAM_PRTNR_NO      /*집금담당자번호*/
                     , SRC.OC_BSDT              /*발생일자*/
                     , SRC.RENTAL_CB_RGST_DV_CD /*렌탈CB등록구분코드*/
@@ -793,7 +795,6 @@
                            , TTT.DLQ_BLAM             /*연체잔액*/
                            , SUM(TTT.DLQ_BLAM) OVER(PARTITION BY TTT.CST_NO) AS DLQ_BLAM_SUM /*고객별연체잔액합계*/
                            , TTT.CRAL_LOCARA_TNO      /*휴대폰번호1*/
-                           , TTT.DLQ_BLAM_SUM         /*고객별연체잔액합계*/
                            , TTT.CLCTAM_PRTNR_NO      /*집금담당자번호*/
                            , TTT.OC_BSDT              /*발생일자*/
                            , TTT.RENTAL_CB_RGST_DV_CD /*렌탈CB등록구분코드*/
@@ -803,7 +804,6 @@
                                    , TT2.CRAL_LOCARA_TNO       /*휴대폰번호1*/
                                    , TT.BTD_DLQ_AMT AS DLQ_AMT /*연체금액*/
                                    , (CASE WHEN TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT END) AS DLQ_BLAM /*연체잔액*/
-                                   , SUM((CASE WHEN TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT END)) OVER(PARTITION BY TT.CST_NO) AS DLQ_BLAM_SUM /*고객별연체잔액합계*/
                                    , (SELECT CLCTAM_PRTNR_NO
                                         FROM TB_CBBO_BND_CNTR_BAS
                                        WHERE CST_NO = TT.CST_NO
@@ -990,11 +990,12 @@
                                   WHERE CST_NO = SRC.CST_NO
                                     AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
                                 )
-           ON (MRG_CB.CNTR_NO = SRC.CNTR_NO)
+               ) SRC2
+           ON (MRG_CB.CNTR_NO = SRC2.CNTR_NO AND MRG_CB.CST_NO = SRC2.CST_NO)
          WHEN MATCHED THEN
             UPDATE
-               SET MRG_CB.DLQ_AMT = SRC.DLQ_AMT     /*연체금액*/
-                 , MRG_CB.DLQ_BLAM = SRC.DLQ_BLAM   /*연체잔액*/
+               SET MRG_CB.DLQ_AMT = SRC2.DLQ_AMT     /*연체금액*/
+                 , MRG_CB.DLQ_BLAM = SRC2.DLQ_BLAM   /*연체잔액*/
                  , MRG_CB.OC_BSDT = (CASE WHEN MRG_CB.RENTAL_CB_RGST_DV_CD = '1' THEN TO_CHAR(SYSDATE,'YYYYMM')||'01'
                                           WHEN MRG_CB.RENTAL_CB_RGST_DV_CD = '2' THEN TO_CHAR(SYSDATE,'YYYYMMDD')
                                           ELSE MRG_CB.OC_BSDT
@@ -1014,7 +1015,7 @@
                  , MRG_CB.RLS_FILE_CRT_DT = (CASE WHEN MRG_CB.RENTAL_CB_RGST_DV_CD = '2' /*등록 구분  해제*/ THEN ''
                                                   ELSE MRG_CB.RLS_FILE_CRT_DT
                                              END) /*해제파일생성일*/
-                 , MRG_CB.CLCTAM_PRTNR_NO= SRC.CLCTAM_PRTNR_NO
+                 , MRG_CB.CLCTAM_PRTNR_NO= SRC2.CLCTAM_PRTNR_NO
                  , MRG_CB.NOTY_FW_OJ_YN = 'Y'     /*알림톡발송대상여부*/
                  <include refid="COMMON.updateSystemField"/>
          WHEN NOT MATCHED THEN
@@ -1038,13 +1039,13 @@
                , MRG_CB.NOTY_FW_OJ_YN           /*알림톡발송대상여부*/
                <include refid="COMMON.insertSystemField"/>
             ) VALUES (
-                 SRC.CNTR_NO                    /*계약번호*/
-               , SRC.CST_NO                     /*고객번호*/
+                 SRC2.CNTR_NO                    /*계약번호*/
+               , SRC2.CST_NO                     /*고객번호*/
                , '1'                            /*렌탈DB등록구분코드*/
-               , SRC.DLQ_AMT                    /*연체금액*/
-               , SRC.DLQ_BLAM                   /*연체잔액*/
-               , SRC.OC_BSDT                    /*최초발생일자*/
-               , SRC.OC_BSDT                    /*발생기준일자*/
+               , SRC2.DLQ_AMT                    /*연체금액*/
+               , SRC2.DLQ_BLAM                   /*연체잔액*/
+               , SRC2.OC_BSDT                    /*최초발생일자*/
+               , SRC2.OC_BSDT                    /*발생기준일자*/
                , TO_CHAR(SYSDATE,'YYYYMMDD')    /*발생생성일자*/
                , ''                             /*발생파일생성일자*/
                , ''                             /*변동파일생성일자*/
@@ -1053,7 +1054,7 @@
                , ''                             /*해제일자*/
                , ''                             /*삭제일자*/
                , ''                             /*집금조직유형코드*/
-               , SRC.CLCTAM_PRTNR_NO            /*집금파트너번호*/
+               , SRC2.CLCTAM_PRTNR_NO            /*집금파트너번호*/
                , 'Y'                            /*알림톡발송대상여부*/
                <include refid="COMMON.insertSystemFieldValue"/>
             )

@@ -33,5 +33,5 @@ public interface WfeaRedemptionPerfMapper {
      * @param baseYm
      * @return
      */
-    int insertActiPplNForPorganization(String baseYm, String ogTpCd, String perfAtcCd);
+    int insertActiPplNForPorganization(String baseYm, String ogTpCd, String perfAgrgCrtDvCd);
 }

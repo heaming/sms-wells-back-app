@@ -19,7 +19,7 @@ public interface WsnaStockAcinspRgstMngtMapper {
         PageInfo pageInfo
     );
 
-    List<SearchRes> selectStockAcinspRgstMngtPages(
+    List<WsnaStockAcinspRgstMngtDvo> selectStockAcinspRgstMngtBulk(
         SearchReq dto
     );
 

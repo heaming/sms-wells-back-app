@@ -40,5 +40,5 @@ public interface WdcbSalesConfirmCreateMapper {
 
     String selectSapBizDvCd(String tempSellTpDtlCd, String tempSlRcogClsfCd, String addCondition);
 
-    String selectProductValueYn(String pdCd);
+    String selectProductEnvrYn(String pdCd);
 }

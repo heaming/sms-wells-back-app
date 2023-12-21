@@ -8,8 +8,10 @@ import com.kyowon.sms.wells.web.fee.standard.dvo.WfeySellProductTypeDvo;
 import com.kyowon.sms.wells.web.fee.standard.mapper.WfeySellProductTypeMapper;
 
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
+import com.sds.sflex.common.common.dvo.CodeDetailDvo;
 import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
+import com.sds.sflex.common.common.service.CodeService;
 import com.sds.sflex.common.common.service.ExcelReadService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
@@ -37,7 +39,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class WfeySellProductTypeService {
-
+    private final CodeService codeService;
     private final WfeySellProductTypeMapper mapper;
     private final WfeySellProductTypeConverter converter;
     private final MessageResourceService messageService;
@@ -111,6 +113,8 @@ public class WfeySellProductTypeService {
         List<WfeySellProductTypeDvo> lists = excelReadService.readExcel(file, meta, WfeySellProductTypeDvo.class);
         List<ExcelUploadErrorDvo> errorDvos = new ArrayList<>();
 
+         List<CodeDetailDvo> codes = codeService.getCodeDetails("FEE_PDCT_TP_CD");
+
         for (WfeySellProductTypeDvo list : lists) {
             ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
             Map<String, Object> check = new HashMap<>();
@@ -122,6 +126,25 @@ public class WfeySellProductTypeService {
                 errorDvo.setErrorRow(finalRow);
                 errorDvo.setHeaderName(headerTitle.get("basePdCd"));
                 errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
+            }
+            if (StringUtils.isNotEmpty(list.getBasePdCd()) && list.getBasePdCd().length() > 10) {
+                errorDvo.setErrorRow(finalRow);
+                errorDvo.setHeaderName(headerTitle.get("basePdCd"));
+                errorDvo.setErrorData(messageService.getMessage("MSG_ALT_INVALID_DATA")); // 데이터가 유효하지않습니다.
+            }
+            if (StringUtils.isNotEmpty(list.getFeePdctTpCd1())) {
+                if (codes.stream().filter(item -> list.getFeePdctTpCd1().toString().equals(item.getCodeValidityValue())).findFirst().orElse(null) == null) {
+                    errorDvo.setErrorRow(finalRow);
+                    errorDvo.setHeaderName(headerTitle.get("feePdctTpCd1"));
+                    errorDvo.setErrorData(messageService.getMessage("MSG_ALT_INVALID_DATA")); // 데이터가 유효하지않습니다.
+                }
+            }
+            if (StringUtils.isNotEmpty(list.getFeePdctTpCd2())) {
+                if (codes.stream().filter(item -> list.getFeePdctTpCd2().toString().equals(item.getCodeValidityValue())).findFirst().orElse(null) == null) {
+                    errorDvo.setErrorRow(finalRow);
+                    errorDvo.setHeaderName(headerTitle.get("feePdctTpCd2"));
+                    errorDvo.setErrorData(messageService.getMessage("MSG_ALT_INVALID_DATA")); // 데이터가 유효하지않습니다.
+                }
             }
             if (StringUtils.isEmpty(list.getApyStrtYm())) {
                 errorDvo.setErrorRow(finalRow);

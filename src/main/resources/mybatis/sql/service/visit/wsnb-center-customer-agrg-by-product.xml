@@ -20,70 +20,94 @@
                           WHERE 1=1
                             AND T2.PD_PRP_VAL19 = '4' )
 
-        SELECT SAP_MAT_CD
-             , PD_CD
-             , PD_NM
-             , SUM(DECODE(OG_CD, '71350', 1)) AS S_71350 /* 수원 */
-             , SUM(DECODE(OG_CD, '71351', 1)) AS S_71351 /* 성수 */
-             , SUM(DECODE(OG_CD, '71352', 1)) AS S_71352 /* 일산 */
-             , SUM(DECODE(OG_CD, '71353', 1)) AS S_71353 /* 광명 */
-             , SUM(DECODE(OG_CD, '71354', 1)) AS S_71354 /* 안양 */
-             , SUM(DECODE(OG_CD, '71355', 1)) AS S_71355 /* 인천 */
-             , SUM(DECODE(OG_CD, '71356', 1)) AS S_71356 /* 수원 */
-             , SUM(DECODE(OG_CD, '71357', 1)) AS S_71357 /* 부산 */
-             , SUM(DECODE(OG_CD, '71358', 1)) AS S_71358 /* 창원 */
-             , SUM(DECODE(OG_CD, '71359', 1)) AS S_71359 /* 원주 */
-             , SUM(DECODE(OG_CD, '71360', 1)) AS S_71360 /* 청주 */
-             , SUM(DECODE(OG_CD, '71361', 1)) AS S_71361 /* 서대구 */
-             , SUM(DECODE(OG_CD, '71362', 1)) AS S_71362 /* 대전 */
-             , SUM(DECODE(OG_CD, '71363', 1)) AS S_71363 /* 광주 */
-             , SUM(DECODE(OG_CD, '71364', 1)) AS S_71364 /* 전주 */
-             , SUM(DECODE(OG_CD, '71365', 1)) AS S_71365 /* 제주 */
-             , SUM(DECODE(OG_CD, '71366', 1)) AS S_71366 /* 김해 */
-             , SUM(DECODE(OG_CD, '71367', 1)) AS S_71367 /* 남양주 */
-             , SUM(DECODE(OG_CD, '71368', 1)) AS S_71368 /* 천안 */
-             , SUM(DECODE(OG_CD, '71369', 1)) AS S_71369 /* 동대구 */
-             , SUM(DECODE(OG_CD, '71386', 1)) AS S_71386 /* 순천 */
-             , SUM(DECODE(OG_CD, '71387', 1)) AS S_71387 /* 포항 */
-             , SUM(DECODE(OG_CD, '71448', 1)) AS S_71448 /* 강서 */
-             , SUM(DECODE(OG_CD, '71447', 1)) AS S_71447 /* 진주 */
-             , SUM(DECODE(OG_CD, '91358', 1)) AS S_91358 /* 진주 */
-             , COUNT(*) AS TOTAL
-        FROM ( SELECT PD_INF.SAP_MAT_CD
-                    , PD_INF.PD_CD
-                    , PD_INF.PD_NM
-                    , P1.OG_CD
-                    , P1.OG_NM
-                 FROM TB_SVPD_MCBY_CST_SV_OJ_IZ S1 /* 월별고객서비스대상내역 AC202 */
-           INNER JOIN TB_SSCT_CNTR_DTL S2 /* 계약 상세 */
-                   ON S1.CNTR_NO = S2.CNTR_NO
-                  AND S1.CNTR_SN = S2.CNTR_SN
-                  AND S1.MNGT_YM = #{baseYm}
-           INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
-                   ON S1.MNGT_YM = P1.BASE_YM
-                  AND P1.OG_TP_CD IN ('W01','W06') /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
-                  AND P1.DTA_DL_YN = 'N'
-                  AND S1.FXN_PRTNR_OG_TP_CD = P1.OG_TP_CD
-                  AND S1.FXN_PRTNR_NO = P1.PRTNR_NO
-           INNER JOIN PD_INF
-                   ON S1.PDCT_PD_CD = PD_INF.PD_CD
-                WHERE S1.PDCT_PD_CD IS NOT NULL
-                <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
-                  AND S2.SELL_TP_CD = #{sellTpCd}
-                </if>
-                <if test='@MybatisUtils@equals(totalCsmr, "N")'>
-                  AND S1.FXN_PRTNR_NO IS NOT NULL
-                  AND BFSVC_SPP_STP_RSON_CD = '00'
-                  AND BFSVC_TP_CD = '1'
-                  AND S2.SELL_TP_CD != '9'
-                </if>
-                  AND S1.REQD_DT IS NULL
-                  AND S1.CAN_DT IS NULL
-                  AND S1.CPS_DT IS NULL
-        )
-        GROUP BY SAP_MAT_CD
-               , PD_CD
-               , PD_NM
+        SELECT V.*
+             , (  S_71350
+                + S_71351
+                + S_71352
+                + S_71353
+                + S_71354
+                + S_71355
+                + S_71356
+                + S_71357
+                + S_71358
+                + S_71359
+                + S_71360
+                + S_71361
+                + S_71362
+                + S_71363
+                + S_71364
+                + S_71365
+                + S_71366
+                + S_71367
+                + S_71368
+                + S_71369
+                + S_71386
+                + S_71387
+                + S_71448
+                + S_71447 ) AS TOTAL
+        FROM ( SELECT SAP_MAT_CD
+                     , PD_CD
+                     , PD_NM
+                     , NVL(SUM(DECODE(OG_CD, '71350', 1)),0) AS S_71350 /* 수원 */
+                     , NVL(SUM(DECODE(OG_CD, '71351', 1)),0) AS S_71351 /* 성수 */
+                     , NVL(SUM(DECODE(OG_CD, '71352', 1)),0) AS S_71352 /* 일산 */
+                     , NVL(SUM(DECODE(OG_CD, '71353', 1)),0) AS S_71353 /* 광명 */
+                     , NVL(SUM(DECODE(OG_CD, '71354', 1)),0) AS S_71354 /* 안양 */
+                     , NVL(SUM(DECODE(OG_CD, '71355', 1)),0) AS S_71355 /* 인천 */
+                     , NVL(SUM(DECODE(OG_CD, '71356', 1)),0) AS S_71356 /* 수원 */
+                     , NVL(SUM(DECODE(OG_CD, '71357', 1)),0) AS S_71357 /* 부산 */
+                     , NVL(SUM(DECODE(OG_CD, '71358', 1)),0) AS S_71358 /* 창원 */
+                     , NVL(SUM(DECODE(OG_CD, '71359', 1)),0) AS S_71359 /* 원주 */
+                     , NVL(SUM(DECODE(OG_CD, '71360', 1)),0) AS S_71360 /* 청주 */
+                     , NVL(SUM(DECODE(OG_CD, '71361', 1)),0) AS S_71361 /* 서대구 */
+                     , NVL(SUM(DECODE(OG_CD, '71362', 1)),0) AS S_71362 /* 대전 */
+                     , NVL(SUM(DECODE(OG_CD, '71363', 1)),0) AS S_71363 /* 광주 */
+                     , NVL(SUM(DECODE(OG_CD, '71364', 1)),0) AS S_71364 /* 전주 */
+                     , NVL(SUM(DECODE(OG_CD, '71365', 1)),0) AS S_71365 /* 제주 */
+                     , NVL(SUM(DECODE(OG_CD, '71366', 1)),0) AS S_71366 /* 김해 */
+                     , NVL(SUM(DECODE(OG_CD, '71367', 1)),0) AS S_71367 /* 남양주 */
+                     , NVL(SUM(DECODE(OG_CD, '71368', 1)),0) AS S_71368 /* 천안 */
+                     , NVL(SUM(DECODE(OG_CD, '71369', 1)),0) AS S_71369 /* 동대구 */
+                     , NVL(SUM(DECODE(OG_CD, '71386', 1)),0) AS S_71386 /* 순천 */
+                     , NVL(SUM(DECODE(OG_CD, '71387', 1)),0) AS S_71387 /* 포항 */
+                     , NVL(SUM(DECODE(OG_CD, '71448', 1)),0) AS S_71448 /* 강서 */
+                     , NVL(SUM(DECODE(OG_CD, '71447', 1)),0) AS S_71447 /* 진주 */
+                FROM ( SELECT PD_INF.SAP_MAT_CD
+                            , PD_INF.PD_CD
+                            , PD_INF.PD_NM
+                            , P1.OG_CD
+                            , P1.OG_NM
+                         FROM TB_SVPD_MCBY_CST_SV_OJ_IZ S1 /* 월별고객서비스대상내역 AC202 */
+                   INNER JOIN TB_SSCT_CNTR_DTL S2 /* 계약 상세 */
+                           ON S1.CNTR_NO = S2.CNTR_NO
+                          AND S1.CNTR_SN = S2.CNTR_SN
+                          AND S1.MNGT_YM = #{baseYm}
+                   INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
+                           ON S1.MNGT_YM = P1.BASE_YM
+                          AND P1.OG_TP_CD IN ('W01','W06') /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
+                          AND P1.DTA_DL_YN = 'N'
+                          AND S1.FXN_PRTNR_OG_TP_CD = P1.OG_TP_CD
+                          AND S1.FXN_PRTNR_NO = P1.PRTNR_NO
+                   INNER JOIN PD_INF
+                           ON S1.PDCT_PD_CD = PD_INF.PD_CD
+                        WHERE S1.PDCT_PD_CD IS NOT NULL
+                        <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
+                          AND S2.SELL_TP_CD = #{sellTpCd}
+                        </if>
+                        <if test='@MybatisUtils@equals(totalCsmr, "N")'>
+                          AND S1.FXN_PRTNR_NO IS NOT NULL
+                          AND BFSVC_SPP_STP_RSON_CD = '00'
+                          AND BFSVC_TP_CD = '1'
+                          AND S2.SELL_TP_CD != '9'
+                        </if>
+                          AND S1.REQD_DT IS NULL
+                          AND S1.CAN_DT IS NULL
+                          AND S1.CPS_DT IS NULL
+                )
+                GROUP BY SAP_MAT_CD
+                       , PD_CD
+                       , PD_NM
+        ) V
         ORDER BY PD_CD
     </select>
 </mapper>

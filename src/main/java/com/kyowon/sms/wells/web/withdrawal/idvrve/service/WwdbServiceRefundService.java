@@ -111,6 +111,7 @@ public class WwdbServiceRefundService {
             serviceRefundDvo.setCardRfndCrdcdAprEndDt("");/*카드환불신용카드승인종료일자*/
             serviceRefundDvo.setCardRfndCrcdnoEncr("");/*카드환불신용카드번호암호화*/
             serviceRefundDvo.setCardRfndCrdcdIstmMcn("");/*카드환불신용카드할부개월수*/
+            serviceRefundDvo.setCardRfndCrdcdExpdtYm(""); /*신용카드유효기간*/
             serviceRefundDvo.setCardRfndCrcdonrNm("");/*카드환불신용카드주명*/
             serviceRefundDvo.setCardRfndCrdcdAprno("");/*카드환불신용카드승인번호*/
             serviceRefundDvo.setCardRfndCrdcdAprAmt("");/*카드환불신용카드승인금액*/
@@ -150,6 +151,7 @@ public class WwdbServiceRefundService {
             serviceRefundDvo.setCardRfndCrdcdAprStrtDt(req.serviceInfo().dpDtm());/*카드환불신용카드승인시작일자*/
             serviceRefundDvo.setCardRfndCrdcdAprEndDt(req.serviceInfo().dpDtm());/*카드환불신용카드승인종료일자*/
             serviceRefundDvo.setCardRfndCrcdnoEncr(req.serviceRefundInfo().cardRfndCrcdnoEncr());/*카드환불신용카드번호암호화*/
+            serviceRefundDvo.setCardRfndCrdcdExpdtYm(req.serviceRefundInfo().crdcdExpdtYm()); /*신용카드유효기간*/
             serviceRefundDvo.setCardRfndCrdcdIstmMcn(req.serviceRefundInfo().istmMcn());/*카드환불신용카드할부개월수*/
             serviceRefundDvo.setCardRfndCrcdonrNm(req.serviceRefundInfo().crcdonrNm());/*카드환불신용카드주명*/
             serviceRefundDvo.setCardRfndCrdcdAprno(req.serviceInfo().cardAprno());/*카드환불신용카드승인번호*/

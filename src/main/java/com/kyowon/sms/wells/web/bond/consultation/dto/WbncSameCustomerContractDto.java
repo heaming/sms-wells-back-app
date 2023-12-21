@@ -101,14 +101,16 @@ public class WbncSameCustomerContractDto {
     @ApiModel(value = "EbncSameCustomerContractDto-FindSalesRes")
     public record FindSalesRes(
         String rentalRgstCost, /*등록비용*/
-        String rentalAmt, /*렌탈료1월요금 - 렌탈료1개월*/
+        String rentalAmt, /*렌탈료1월요금*/
         String dutyUseMcn, /*렌탈료의무기간(일)*/
+        String stplPtrm, /*의무기간(개월)*/
         String reqdDtm, /*철거요청일자*/
         String rgstDsc, /*등록비할인*/
         String rentalDscAmt, /*렌탈료1할인*/
         String sellDscDvCd, /*할인구분코드*/
         String sellDscDvNm, /*할인구분명*/
         String canDt, /*취소일자 - 탈퇴일자*/
+        String cntrPdEnddt, /*계약상품종료일자*/
         String cntrTam, /*렌탈총액*/
         String sellDscTpCd, /*할인유형*/
         String sellDscTpNm, /*할인유형명*/
@@ -120,11 +122,11 @@ public class WbncSameCustomerContractDto {
         String rentalDscAmt2, /*렌탈료2할인*/
         String sdingDtlCntrNo, /*모종계약*/
         String alncLinkDtlCntrNo, /*제휴연계계약*/
+        String rentalPtrm, /*렌탈료1개월*/
         String rentalPtrm2, /*렌탈료2개월*/
         String slRcogDt, /*매출일자*/
         String sellAmt, /*월회비 - 판매금액*/
         String svPrd2, /*서비스주기 - 관리주기*/
-        String stplPtrm, /*약정개월*/
         String dscAmt, /*할인금액*/
         String sppDuedt, /*방문일자*/
         String cntrDt, /*가입일자*/

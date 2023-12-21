@@ -169,7 +169,7 @@ public class WogcPartnerPlannerService {
 
         processCount += this.mapper.updateAdMmPartner(planner); // 2. 월파트너내역 파트너등급 UPDATE
 
-        if (StringUtils.equals(dto.mngtYm(), CtDateUtils.thisMonth())) {
+        if (StringUtils.equals(dto.mngtYm(), CtDateUtils.thisMonth()) || StringUtils.equals(dto.qlfDvCd(), "1")) {
             processCount += this.mapper.updateAdDtlPartner(planner); // 3. 파트너상세의 파트너등급 UPDATE
         }
 

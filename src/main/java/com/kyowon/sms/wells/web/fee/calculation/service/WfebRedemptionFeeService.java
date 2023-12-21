@@ -69,7 +69,7 @@ public class WfebRedemptionFeeService {
         redfAdsbFeeCalculationService.saveRedfAdsbCalculation(baseYm, ogTpCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
 
         /* 연체되물림 서비스 호출 */
-        if(Arrays.asList("W02").contains(ogTpCd)) {
+        if(Arrays.asList("W01", "W02", "W03").contains(ogTpCd)) {
             saveDlqRedemptionOfFees(baseYm, ogTpCd, cntrPerfCrtDvCd);
         }
     }
