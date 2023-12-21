@@ -91,7 +91,8 @@ public class WsnaReturningGoodsStoreDto {
         String itemKnd, /*품목구분*/
         String badDvNm, /*불량구분*/
         String mgtUnt, /*관리단위*/
-        String errorCheck /*등급오류*/
+        String errorCheck, /*등급오류*/
+        String rtngdConfYn1 /*기존반품확인여부*/
 
     ) {}
 
