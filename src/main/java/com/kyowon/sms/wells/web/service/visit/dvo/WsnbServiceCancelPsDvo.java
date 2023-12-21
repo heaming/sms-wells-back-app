@@ -38,4 +38,5 @@ public class WsnbServiceCancelPsDvo {
     String istImpPhoApnFileUid2;     // 설치불가환경 이미지 2
     String istImpPhoApnFileUid3;     // 설치불가환경 이미지 3
     String cstSvAsnNo;                  // 고객서비스배정번호
+    String wkPrgsStatCdGubun;           // 작업상태 구분값
 }
