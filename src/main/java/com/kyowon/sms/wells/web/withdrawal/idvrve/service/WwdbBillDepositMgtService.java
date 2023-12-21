@@ -204,23 +204,22 @@ public class WwdbBillDepositMgtService {
             case CommConst.ROW_STATE_CREATED -> {
                 //통합입금기본 데이터 생성
                 ZwdbIntegrationDepositDvo depoDvo = new ZwdbIntegrationDepositDvo();
-                depoDvo.setItgDpNo(dvo.getItgDpNo());    /*통합입금번호*/
-                depoDvo.setKwGrpCoCd("2000");    /*교원그룹회사코드*/
-                depoDvo.setRveCoCd("2000");    /*수납회사코드*/
+                depoDvo.setItgDpNo(dvo.getItgDpNo()); /*통합입금번호*/
+                depoDvo.setKwGrpCoCd("2000"); /*교원그룹회사코드*/
+                depoDvo.setRveCoCd("2000"); /*수납회사코드*/
 
                 //        depoDvo.setCstNo(dvo.);    /*고객번호*/
-                depoDvo.setDpDvCd("1");    /*입금구분코드*/
-                depoDvo.setDpMesCd("03");    /*입금수단코드*/
-                depoDvo.setDpTpCd("0301");    /*입금유형코드*/
-                depoDvo.setDpDtm(sysDateYmd);    /*입금일시*/
-                depoDvo.setPerfDt(sysDate);    /*실적일자*/
+                depoDvo.setDpDvCd("1"); /*입금구분코드*/
+                depoDvo.setDpMesCd("03"); /*입금수단코드*/
+                depoDvo.setDpTpCd("0301"); /*입금유형코드*/
+                depoDvo.setDpDtm(sysDateYmd); /*입금일시*/
+                depoDvo.setPerfDt(sysDate); /*실적일자*/
                 //        depoDvo.setDprNm();    /*입금자명*/
-                depoDvo.setDpAmt(Integer.toString(sumAmt));    /*입금금액*/
+                depoDvo.setDpAmt(Integer.toString(sumAmt)); /*입금금액*/
 
-                depoDvo.setDpBlam(Integer.toString(sumAmt));    /*입금잔액*/
+                depoDvo.setDpBlam(Integer.toString(sumAmt)); /*입금잔액*/
 
-                depoDvo.setIncmdcYn("N");    /*소득공제여부*/
-
+                depoDvo.setIncmdcYn("N"); /*소득공제여부*/
 
                 zwdbIntegrationDepositMapper.insertIntegrationDeposit(depoDvo);
                 zwdbIntegrationDepositMapper.insertIntegrationDepositHistory(depoDvo);
@@ -293,7 +292,6 @@ public class WwdbBillDepositMgtService {
         zwdzWithdrawalReceiveAskDvo.setReceiveAskNumber(receiveAskNumber);
         for (WwdbBillDepositMgtDto.SaveDepositSlip list : dto) {
 
-
             //통합입금 업데이트
             ZwdbEtcDepositProcessingDvo itgDvo = new ZwdbEtcDepositProcessingDvo();
 
@@ -317,27 +315,27 @@ public class WwdbBillDepositMgtService {
 
             sumResult += Integer.parseInt(list.billDpAmt());
 
-
         }
 
         if (!StringUtils.isEmpty(dto.get(0).itgDpNo())) {
 
             //입금대사 서비스 호출
-            depositComparisonComfirmationService.createDepositComparisonComfirmation(dto.get(0).itgDpNo(), null);
+            depositComparisonComfirmationService.createDepositComparisonComfirmation(dto.get(0).itgDpNo(), null, "Y");
 
         }
 
-
         //전표발행
 
-//        String dpCprcnfDtm = zwdzWithdrawalReceiveAskDvo.getReceiveAskDate();
+        //        String dpCprcnfDtm = zwdzWithdrawalReceiveAskDvo.getReceiveAskDate();
 
         WwdbBillDepositMgtDvo wwdbBillDepositMgtDvo = convert.mapSaveDepositSlipDvo(dto.get(0));
         wwdbBillDepositMgtDvo.setBillDpSapSlpno(zzsnum);
 
         processCount += mapper.updateSlipRegistration(wwdbBillDepositMgtDvo);
 
-        WwdbBillDepositMgtDto.SearchSlipReq slipReq = new WwdbBillDepositMgtDto.SearchSlipReq(zzsnum, Integer.toString(sumResult), dto.get(0).itgDpNo());
+        WwdbBillDepositMgtDto.SearchSlipReq slipReq = new WwdbBillDepositMgtDto.SearchSlipReq(
+            zzsnum, Integer.toString(sumResult), dto.get(0).itgDpNo()
+        );
 
         List<WwdbBillDepositSlipProcessingDvo> slipProcessingDvo = mapper.selectSlipProcessings(slipReq);
         log.info("service==========================");
@@ -346,7 +344,6 @@ public class WwdbBillDepositMgtService {
         for (WwdbBillDepositSlipProcessingDvo list : slipProcessingDvo) {
             processCount += mapper.insertSlipProcessings(list);
         }
-
 
         return processCount;
 
@@ -375,7 +372,9 @@ public class WwdbBillDepositMgtService {
         String month = sysDateYmd.substring(4, 6);
 
         String zzsnum = slpnoService.getNumberingSlpno("FE", Integer.parseInt(year), Integer.parseInt(month));
-        WwdbBillDepositMgtDto.SearchSlipReq slipReq = new WwdbBillDepositMgtDto.SearchSlipReq(zzsnum, Integer.toString(sumResult), dto.get(0).itgDpNo());
+        WwdbBillDepositMgtDto.SearchSlipReq slipReq = new WwdbBillDepositMgtDto.SearchSlipReq(
+            zzsnum, Integer.toString(sumResult), dto.get(0).itgDpNo()
+        );
 
         List<WwdbBillDepositSlipProcessingDvo> slipProcessingDvo = mapper.selectReplacementSlipProcessing(slipReq);
 
@@ -387,7 +386,6 @@ public class WwdbBillDepositMgtService {
         wwdbBillDepositMgtDvo.setBillRplcSapSlpno(zzsnum);
 
         processCount += mapper.updateSlipRegistration(wwdbBillDepositMgtDvo);
-
 
         return processCount;
 
@@ -407,21 +405,22 @@ public class WwdbBillDepositMgtService {
         headerTitle.put("sellAmt", messageResourceService.getMessage("MSG_TXT_AMT_WON")); // 계약상세번호
 
         // File 데이터 Read
-        List<WwdbBillDepositExcelUploadDvo> readExcel = excelReadService.readExcel(file, new ExcelMetaDvo(1, headerTitle), WwdbBillDepositExcelUploadDvo.class);
+        List<WwdbBillDepositExcelUploadDvo> readExcel = excelReadService
+            .readExcel(file, new ExcelMetaDvo(1, headerTitle), WwdbBillDepositExcelUploadDvo.class);
 
         // Validation Check
         List<ExcelUploadErrorDvo> errorDvos = new ArrayList<>();
 
         List<WwdbBillDepositExcelUploadDvo> returnDvos = new ArrayList<WwdbBillDepositExcelUploadDvo>();
 
-//        int row = 1;
-        for (WwdbBillDepositExcelUploadDvo dvo: readExcel) {
+        //        int row = 1;
+        for (WwdbBillDepositExcelUploadDvo dvo : readExcel) {
 
-            if (StringUtil.isEmpty(dvo.getCntr())){ //계약상세번호 칸이 비어있을경우
+            if (StringUtil.isEmpty(dvo.getCntr())) { //계약상세번호 칸이 비어있을경우
                 dvo.setErrorCode("2");
                 continue;
             } else {
-                String cntr = dvo.getCntr().replace("-","");
+                String cntr = dvo.getCntr().replace("-", "");
                 if (cntr.length() > 17) { // 계약일련번호 초과 시 오류
                     dvo.setErrorCode("2");
                     continue;
@@ -430,7 +429,7 @@ public class WwdbBillDepositMgtService {
                     continue;
                 }
 
-//                2. 계약상세번호가 DB에 존재하는지 체크
+                //                2. 계약상세번호가 DB에 존재하는지 체크
 
                 String cntrNo = cntr.substring(0, 12);
                 String cntrSn = cntr.substring(12);
@@ -440,7 +439,7 @@ public class WwdbBillDepositMgtService {
 
                 int humanChk = mapper.selectValidationCntr(dvo); // 계약 상세 번호 존재여부
 
-                if (humanChk < 1){ // 계약 번호가 없을 경우
+                if (humanChk < 1) { // 계약 번호가 없을 경우
                     dvo.setErrorCode("2");
                     continue;
                 } else {
@@ -448,21 +447,21 @@ public class WwdbBillDepositMgtService {
                 }
             }
 
-            if (StringUtil.isEmpty(dvo.getSellAmt())){ // 금액 비어있을 경우
+            if (StringUtil.isEmpty(dvo.getSellAmt())) { // 금액 비어있을 경우
                 dvo.setSellAmt("0"); // 0 설정
-//                BizAssert.hasText(
-//                    dvo.getSellAmt().toString(), MSG_ALT_INVALID_UPLOAD_DATA,
-//                    new String[] {String.valueOf(row), headerTitle.get("sellAmt"), dvo.getSellAmt().toString()}
-//                );
+                //                BizAssert.hasText(
+                //                    dvo.getSellAmt().toString(), MSG_ALT_INVALID_UPLOAD_DATA,
+                //                    new String[] {String.valueOf(row), headerTitle.get("sellAmt"), dvo.getSellAmt().toString()}
+                //                );
                 continue;
             }
             returnDvos.add(dvo);
-//            row++;
+            //            row++;
         }
         // Upload 결과 리턴
         return UploadRes.builder()
             .status(returnDvos.isEmpty() ? "S" : "E")
-//            .errorInfo(returnDvos)
+            //            .errorInfo(returnDvos)
             .excelData(readExcel)
             .build();
     }
@@ -478,7 +477,7 @@ public class WwdbBillDepositMgtService {
     ) {
         List<ExcelUploadErrorDvo> excelUploadErrorDvos = new ArrayList<>();
         int row = 1;
-        for(int i = 0; i < dvos.size(); i++) {
+        for (int i = 0; i < dvos.size(); i++) {
             WwdbBillDepositExcelUploadDvo dvo = dvos.get(i);
 
             // 데이터 검증
@@ -502,43 +501,43 @@ public class WwdbBillDepositMgtService {
         }
 
         // 1.필수값 체크(계약상세번호, 금액 null check)
-//        int row = 1;
-//        for (WwdbBillDepositExcelUploadDvo dvo : readExcel) {
-//            Map<String, String> headerTitleValidation = Map.of(
-//                "cntr", dvo.getCntr(),
-//                "sellAmt", dvo.getSellAmt()
-//            );
-//
-//            for (String key : headerTitleValidation.keySet()) {
-//                if(StringUtil.isBlank(headerTitleValidation.get(key))) {
-//                    ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
-//                    errorDvo.setErrorRow(row);
-//                    errorDvo.setHeaderName(headerTitle.get(key));
-//                    errorDvo.setErrorData(
-//                        messageResourceService.getMessage(
-//                        "MSG_ALT_NO_EXPORT_DATA" // 엑셀 파일로 내보낼 데이터가 없습니다.
-//                        )
-//                    );
-//                    excelUploadErrorDvos.add(errorDvo);
-//                }
-//            }
-//            row++;
-//        }
-//
-//        for(WwdbBillDepositExcelUploadDvo uploadDvo : readExcel) {
-//            String cntrNo = uploadDvo.getCntr().
-//
-//            // 2. 계약상세번호가 DB에 존재하는지 체크
-//            int row2 = 1;
-//
-//            for (WwdbBillDepositExcelUploadDvo dvo : readExcel) {
-//                int existCntr = mapper.selectValidationCntr(dvo.getCntr());
-//
-//            int(existCntr == 0) {
-//
-//                }
-//            }
-//        }
+        //        int row = 1;
+        //        for (WwdbBillDepositExcelUploadDvo dvo : readExcel) {
+        //            Map<String, String> headerTitleValidation = Map.of(
+        //                "cntr", dvo.getCntr(),
+        //                "sellAmt", dvo.getSellAmt()
+        //            );
+        //
+        //            for (String key : headerTitleValidation.keySet()) {
+        //                if(StringUtil.isBlank(headerTitleValidation.get(key))) {
+        //                    ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
+        //                    errorDvo.setErrorRow(row);
+        //                    errorDvo.setHeaderName(headerTitle.get(key));
+        //                    errorDvo.setErrorData(
+        //                        messageResourceService.getMessage(
+        //                        "MSG_ALT_NO_EXPORT_DATA" // 엑셀 파일로 내보낼 데이터가 없습니다.
+        //                        )
+        //                    );
+        //                    excelUploadErrorDvos.add(errorDvo);
+        //                }
+        //            }
+        //            row++;
+        //        }
+        //
+        //        for(WwdbBillDepositExcelUploadDvo uploadDvo : readExcel) {
+        //            String cntrNo = uploadDvo.getCntr().
+        //
+        //            // 2. 계약상세번호가 DB에 존재하는지 체크
+        //            int row2 = 1;
+        //
+        //            for (WwdbBillDepositExcelUploadDvo dvo : readExcel) {
+        //                int existCntr = mapper.selectValidationCntr(dvo.getCntr());
+        //
+        //            int(existCntr == 0) {
+        //
+        //                }
+        //            }
+        //        }
         return excelUploadErrorDvos;
     }
 
