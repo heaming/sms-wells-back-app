@@ -37,4 +37,6 @@ public class WsnyErrorCodeMgtDvo {
     String errImageDocId;
     List<AttachFile> attachFiles;
     String flag;
+    String errCnBefore;
+    List<AttachFile> attachFilesBefore;
 }
