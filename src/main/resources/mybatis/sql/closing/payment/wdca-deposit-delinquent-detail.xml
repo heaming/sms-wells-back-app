@@ -31,7 +31,7 @@
                         , CASE WHEN LEAST(FLOOR(CASE WHEN NVL(SUM(UCAM_TAM - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP - DLQ_DP_AMT) / SUM(UCAM_TAM - DLQ_AMT) END * 1000) / 10, 100)  <![CDATA[<]]>  0 THEN 100
                                 ELSE LEAST(FLOOR(CASE WHEN NVL(SUM(UCAM_TAM - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP - DLQ_DP_AMT) / SUM(UCAM_TAM - DLQ_AMT) END * 1000) / 10, 100) END AS NOM_DP_RT
                         , SUM(DLQ_AMT) AS DLQ_AMT
-                        , SUM(CASE WHEN DLQ_AMT > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
+                        , SUM(CASE WHEN DLQ_AMT2 > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/ --수정!!
                         , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
                         /*------연체율-----*/
                         , CASE WHEN T.SELL_TP_CD = '6' THEN CASE WHEN SUM(OVRT_BAS1) = 0 OR SUM(OVRT_VAL2) = 0 THEN 0 ELSE FLOOR(SUM(CASE WHEN OVRT_BAS2 <![CDATA[<]]>  0 THEN 0 ELSE OVRT_VAL1 END)/SUM(OVRT_VAL2) * 1000) / 10 END
@@ -73,11 +73,14 @@
                                     , A.SELL_TP_DTL_CD
                                     /*-----총계정수-----*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 1 ELSE 0 END)
-                                            WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                THEN 1 ELSE 0 END)
-                                            ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
+                                           WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                                     AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                                     AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                              THEN 1 ELSE 0 END)
+                                           ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
                                     /*-----총계정수-----*/
                                     , CASE WHEN SUBSTR(B.CNTR_RCP_FSH_DTM, 1, 6) = #{perfYm} OR SUBSTR(A.CNTR_PD_STRTDT, 1, 6) = #{perfYm} THEN 1 ELSE 0 END AS THM_NW_ACC_N	/*당월계정수*/
                                     , CASE WHEN A.SELL_TP_CD = '6' OR A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN NVL(G3.THM_BIL_DP_AMT - G3.SV_DP_AMT, 0)
@@ -97,6 +100,11 @@
                                                     NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                             ELSE NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                             END AS DLQ_AMT	/*연체금액*/
+                                    , CASE WHEN A.SELL_TP_CD = '1' THEN NVL(G2.EOT_UC_AMT,0)    --수정!!
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD != '33' THEN NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0)
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                           ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
+                                           END AS DLQ_AMT2	/*당월연체금액*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
@@ -114,17 +122,24 @@
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
-                                    , CASE WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
-                                                                                                                THEN 1 ELSE 0 END)
+                                    , CASE WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              WHEN (CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                                                                         ELSE NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0) END) <![CDATA[>]]> 0 THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                            AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                            AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                                            AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
+                                                                                            THEN 1 ELSE 0 END)
                                             WHEN A.SELL_TP_CD = '1' THEN (CASE WHEN G2.CAN_DT IS NULL AND NVL(D.EOT_DLQ_AMT,0) = 0 THEN 1 ELSE 0 END)
                                             ELSE (  (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL AND (NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)) = 0 THEN 1 ELSE 0 END)
                                                     - (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 0 ELSE 1 END))
                                             END AS NOM_ACC_N	/*정상계정수*/
                                     /*-----정상계정수-----*/
-                                    , NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) AS SL_AGG_AMT
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('31', '32', '34') THEN G2.SL_AGG_AMT
+                                           WHEN A.SELL_TP_DTL_CD = '33' THEN G.SL_AGG_AMT
+                                           ELSE NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) END AS SL_AGG_AMT
                                     , NVL(G2.SL_DP_AGG_AMT, 0) AS SL_DP_AGG_AMT
                                     /*----------정기배송 연체율 계산 재료------------*/
                                     ,NVL(H.BTD_UC_AMT,0)                                                                                  AS OVRT_BAS1    /*연체율 연산 기준1*/
@@ -165,8 +180,8 @@
                                 AND D.CNTR_SN = A.CNTR_SN
                                 AND D.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}||'01', 'YYYYMMDD'), -1), 'YYYYMM')
                                 LEFT OUTER JOIN TB_CBCL_DLQ_BAS D2 /*연체기본-당월입금*/
-                                ON D2.CNTR_NO = D.CNTR_NO
-                                AND D2.CNTR_SN = D.CNTR_SN
+                                ON D2.CNTR_NO = A.CNTR_NO
+                                AND D2.CNTR_SN = A.CNTR_SN
                                 AND D2.PERF_YM = #{perfYm}
                                 LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS F /*위약금액기본*/
                                 ON F.CNTR_NO = A.CNTR_NO
@@ -240,7 +255,7 @@
                         , CASE WHEN LEAST(FLOOR(CASE WHEN NVL(SUM(UCAM_TAM - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP - DLQ_DP_AMT) / SUM(UCAM_TAM - DLQ_AMT) END * 1000) / 10, 100) <![CDATA[<]]> 0 THEN 100
                                 ELSE LEAST(FLOOR(CASE WHEN NVL(SUM(UCAM_TAM - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP - DLQ_DP_AMT) / SUM(UCAM_TAM - DLQ_AMT) END * 1000) / 10, 100) END AS NOM_DP_RT
                         , SUM(DLQ_AMT) AS DLQ_AMT
-                        , SUM(CASE WHEN DLQ_AMT > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
+                        , SUM(CASE WHEN DLQ_AMT2 > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
                         , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
                         /*------연체율-----*/
                         , CASE WHEN T.SELL_TP_CD = '6' THEN CASE WHEN SUM(OVRT_BAS1) = 0 OR SUM(OVRT_VAL2) = 0 THEN 0 ELSE FLOOR(SUM(CASE WHEN OVRT_BAS2 <![CDATA[<]]>  0 THEN 0 ELSE OVRT_VAL1 END)/SUM(OVRT_VAL2) * 1000) / 10 END
@@ -266,33 +281,36 @@
                         /*---------------------------*/
                     FROM (
                                 SELECT /*+ LEADING(E C) */
-                                      CASE WHEN LENGTH(E.DGR1_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR1_LEVL_OG_CD, 1, 1) = 'Z' THEN 'Z000000'
-                                            WHEN LENGTH(E.DGR1_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR1_LEVL_OG_CD, 2, 1) = '0' THEN E.DGR1_LEVL_OG_CD
-                                            ELSE '기타(본사)' END AS DGR1_LEVL_OG_CD
+                                     CASE WHEN LENGTH(E.DGR1_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR1_LEVL_OG_CD, 1, 1) = 'Z' THEN 'Z000000'
+                                          WHEN LENGTH(E.DGR1_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR1_LEVL_OG_CD, 2, 1) = '0' THEN E.DGR1_LEVL_OG_CD
+                                          ELSE '기타(본사)' END AS DGR1_LEVL_OG_CD
                                     , CASE WHEN LENGTH(E.DGR1_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR1_LEVL_OG_CD, 1, 1) = 'Z' THEN '채널팀 총괄단'
-                                        WHEN LENGTH(E.DGR1_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR1_LEVL_OG_CD, 2, 1) = '0' THEN E.DGR1_LEVL_OG_NM
-                                        ELSE '기타(본사)' END AS DGR1_LEVL_OG_NM
+                                           WHEN LENGTH(E.DGR1_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR1_LEVL_OG_CD, 2, 1) = '0' THEN E.DGR1_LEVL_OG_NM
+                                           ELSE '기타(본사)' END AS DGR1_LEVL_OG_NM
                                     , CASE WHEN LENGTH(E.DGR1_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR1_LEVL_OG_CD, 1, 1) = 'Z' AND SUBSTR(E.DGR1_LEVL_OG_CD, 2, 6) <![CDATA[<>]]> '000000' THEN E.DGR1_LEVL_OG_CD
-                                        WHEN LENGTH(E.DGR2_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR2_LEVL_OG_CD, 4, 4) = '0000' THEN E.DGR2_LEVL_OG_CD
-                                        ELSE '기타(본사)' END AS DGR2_LEVL_OG_CD
+                                           WHEN LENGTH(E.DGR2_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR2_LEVL_OG_CD, 4, 4) = '0000' THEN E.DGR2_LEVL_OG_CD
+                                           ELSE '기타(본사)' END AS DGR2_LEVL_OG_CD
                                     , CASE WHEN LENGTH(E.DGR1_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR1_LEVL_OG_CD, 1, 1) = 'Z' AND SUBSTR(E.DGR1_LEVL_OG_CD, 2, 6) <![CDATA[<>]]> '000000' THEN E.DGR1_LEVL_OG_NM
-                                        WHEN LENGTH(E.DGR2_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR2_LEVL_OG_CD, 4, 4) = '0000' THEN E.DGR2_LEVL_OG_NM
-                                        ELSE '기타(본사)' END AS DGR2_LEVL_OG_NM
+                                           WHEN LENGTH(E.DGR2_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR2_LEVL_OG_CD, 4, 4) = '0000' THEN E.DGR2_LEVL_OG_NM
+                                           ELSE '기타(본사)' END AS DGR2_LEVL_OG_NM
                                     , CASE WHEN LENGTH(E.DGR1_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR1_LEVL_OG_CD, 1, 1) = 'Z' AND SUBSTR(E.DGR1_LEVL_OG_CD, 2, 6) <![CDATA[<>]]> '000000' THEN E.DGR1_LEVL_DG_PRTNR_NO
-                                    WHEN LENGTH(E.DGR2_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR2_LEVL_OG_CD, 4, 4) = '0000' THEN E.DGR2_LEVL_DG_PRTNR_NO
-                                        ELSE '' END AS DGR2_LEVL_DG_PRTNR_NO
+                                           WHEN LENGTH(E.DGR2_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR2_LEVL_OG_CD, 4, 4) = '0000' THEN E.DGR2_LEVL_DG_PRTNR_NO
+                                           ELSE '' END AS DGR2_LEVL_DG_PRTNR_NO
                                     , CASE WHEN LENGTH(E.DGR1_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR1_LEVL_OG_CD, 1, 1) = 'Z'  AND SUBSTR(E.DGR1_LEVL_OG_CD, 2, 6) <![CDATA[<>]]> '000000' THEN E.DGR1_LEVL_DG_PRTNR_NM
-                                        WHEN LENGTH(E.DGR2_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR2_LEVL_OG_CD, 4, 4) = '0000' THEN E.DGR2_LEVL_DG_PRTNR_NM
-                                        ELSE '' END AS DGR2_LEVL_DG_PRTNR_NM
+                                           WHEN LENGTH(E.DGR2_LEVL_OG_CD) = 7 AND SUBSTR(E.DGR2_LEVL_OG_CD, 4, 4) = '0000' THEN E.DGR2_LEVL_DG_PRTNR_NM
+                                           ELSE '' END AS DGR2_LEVL_DG_PRTNR_NM
                                     , A.SELL_TP_CD
                                     , A.SELL_TP_DTL_CD
                                     /*-----총계정수-----*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 1 ELSE 0 END)
-                                            WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                THEN 1 ELSE 0 END)
-                                            ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
+                                           WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                                     AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                                     AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                              THEN 1 ELSE 0 END)
+                                           ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
                                     /*-----총계정수-----*/
                                     , CASE WHEN SUBSTR(B.CNTR_RCP_FSH_DTM, 1, 6) = #{perfYm} OR SUBSTR(A.CNTR_PD_STRTDT, 1, 6) = #{perfYm} THEN 1 ELSE 0 END AS THM_NW_ACC_N	/*당월계정수*/
                                     , CASE WHEN A.SELL_TP_CD = '6' OR A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN NVL(G3.THM_BIL_DP_AMT - G3.SV_DP_AMT, 0)
@@ -312,6 +330,11 @@
                                                     NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                             ELSE NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                             END AS DLQ_AMT	/*연체금액*/
+                                    , CASE WHEN A.SELL_TP_CD = '1' THEN NVL(G2.EOT_UC_AMT,0)    --수정!!
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD != '33' THEN NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0)
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                           ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
+                                           END AS DLQ_AMT2	/*당월연체금액*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
@@ -329,17 +352,24 @@
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
-                                    , CASE WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
-                                                                                                                THEN 1 ELSE 0 END)
+                                    , CASE WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              WHEN (CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                                                                         ELSE NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0) END) <![CDATA[>]]> 0 THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                            AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                            AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                                            AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
+                                                                                            THEN 1 ELSE 0 END)
                                             WHEN A.SELL_TP_CD = '1' THEN (CASE WHEN G2.CAN_DT IS NULL AND NVL(D.EOT_DLQ_AMT,0) = 0 THEN 1 ELSE 0 END)
                                             ELSE (  (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL AND (NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)) = 0 THEN 1 ELSE 0 END)
                                                     - (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 0 ELSE 1 END))
                                             END AS NOM_ACC_N	/*정상계정수*/
                                     /*-----정상계정수-----*/
-                                    , NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) AS SL_AGG_AMT
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('31', '32', '34') THEN G2.SL_AGG_AMT
+                                           WHEN A.SELL_TP_DTL_CD = '33' THEN G.SL_AGG_AMT
+                                           ELSE NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) END AS SL_AGG_AMT
                                     , NVL(G2.SL_DP_AGG_AMT, 0) AS SL_DP_AGG_AMT
                                     /*----------정기배송 연체율 계산 재료------------*/
                                     ,NVL(H.BTD_UC_AMT,0)                                                                                  AS OVRT_BAS1    /*연체율 연산 기준1*/
@@ -455,7 +485,7 @@
                         , CASE WHEN LEAST(FLOOR(CASE WHEN NVL(SUM(UCAM_TAM - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP - DLQ_DP_AMT) / SUM(UCAM_TAM - DLQ_AMT) END * 1000) / 10, 100) <![CDATA[<]]> 0 THEN 100
                                 ELSE LEAST(FLOOR(CASE WHEN NVL(SUM(UCAM_TAM - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP - DLQ_DP_AMT) / SUM(UCAM_TAM - DLQ_AMT) END * 1000) / 10, 100) END AS NOM_DP_RT
                         , SUM(DLQ_AMT) AS DLQ_AMT
-                        , SUM(CASE WHEN DLQ_AMT > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
+                        , SUM(CASE WHEN DLQ_AMT2 > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
                         , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
                         /*------연체율-----*/
                         , CASE WHEN T.SELL_TP_CD = '6' THEN CASE WHEN SUM(OVRT_BAS1) = 0 OR SUM(OVRT_VAL2) = 0 THEN 0 ELSE FLOOR(SUM(CASE WHEN OVRT_BAS2 <![CDATA[<]]>  0 THEN 0 ELSE OVRT_VAL1 END)/SUM(OVRT_VAL2) * 1000) / 10 END
@@ -508,11 +538,14 @@
                                     , A.SELL_TP_DTL_CD
                                     /*-----총계정수-----*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 1 ELSE 0 END)
-                                            WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                THEN 1 ELSE 0 END)
-                                            ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
+                                           WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                                     AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                                     AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                              THEN 1 ELSE 0 END)
+                                           ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
                                     /*-----총계정수-----*/
                                     , CASE WHEN SUBSTR(B.CNTR_RCP_FSH_DTM, 1, 6) = #{perfYm} OR SUBSTR(A.CNTR_PD_STRTDT, 1, 6) = #{perfYm} THEN 1 ELSE 0 END AS THM_NW_ACC_N	/*당월계정수*/
                                     , CASE WHEN A.SELL_TP_CD = '6' OR A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN NVL(G3.THM_BIL_DP_AMT - G3.SV_DP_AMT, 0)
@@ -532,6 +565,11 @@
                                                     NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                             ELSE NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                             END AS DLQ_AMT	/*연체금액*/
+                                    , CASE WHEN A.SELL_TP_CD = '1' THEN NVL(G2.EOT_UC_AMT,0)    --수정!!
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD != '33' THEN NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0)
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                           ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
+                                           END AS DLQ_AMT2	/*당월연체금액*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
@@ -549,17 +587,24 @@
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
-                                    , CASE WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
-                                                                                                                THEN 1 ELSE 0 END)
+                                    , CASE WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              WHEN (CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                                                                         ELSE NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0) END) <![CDATA[>]]> 0 THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                            AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                            AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                                            AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
+                                                                                            THEN 1 ELSE 0 END)
                                             WHEN A.SELL_TP_CD = '1' THEN (CASE WHEN G2.CAN_DT IS NULL AND NVL(D.EOT_DLQ_AMT,0) = 0 THEN 1 ELSE 0 END)
                                             ELSE (  (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL AND (NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)) = 0 THEN 1 ELSE 0 END)
                                                     - (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 0 ELSE 1 END))
                                             END AS NOM_ACC_N	/*정상계정수*/
                                     /*-----정상계정수-----*/
-                                    , NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) AS SL_AGG_AMT
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('31', '32', '34') THEN G2.SL_AGG_AMT
+                                           WHEN A.SELL_TP_DTL_CD = '33' THEN G.SL_AGG_AMT
+                                           ELSE NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) END AS SL_AGG_AMT
                                     , NVL(G2.SL_DP_AGG_AMT, 0) AS SL_DP_AGG_AMT
                                     /*----------정기배송 연체율 계산 재료------------*/
                                     ,NVL(H.BTD_UC_AMT,0)                                                                                  AS OVRT_BAS1    /*연체율 연산 기준1*/
@@ -714,11 +759,14 @@
                                     , A.SELL_TP_DTL_CD
                                     /*-----총계정수-----*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 1 ELSE 0 END)
-                                            WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                THEN 1 ELSE 0 END)
-                                            ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
+                                           WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                                     AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                                     AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                              THEN 1 ELSE 0 END)
+                                           ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
                                     /*-----총계정수-----*/
                                     , CASE WHEN SUBSTR(B.CNTR_RCP_FSH_DTM, 1, 6) = #{perfYm} OR SUBSTR(A.CNTR_PD_STRTDT, 1, 6) = #{perfYm} THEN 1 ELSE 0 END AS THM_NW_ACC_N	/*당월계정수*/
                                     , CASE WHEN A.SELL_TP_CD = '6' OR A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN NVL(G3.THM_BIL_DP_AMT - G3.SV_DP_AMT, 0)
@@ -738,6 +786,11 @@
                                                     NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                             ELSE NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                             END AS DLQ_AMT	/*연체금액*/
+                                    , CASE WHEN A.SELL_TP_CD = '1' THEN NVL(G2.EOT_UC_AMT,0)    --수정!!
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD != '33' THEN NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0)
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                           ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
+                                           END AS DLQ_AMT2	/*당월연체금액*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
@@ -755,17 +808,24 @@
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
-                                    , CASE WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
-                                                                                                                THEN 1 ELSE 0 END)
+                                    , CASE WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              WHEN (CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                                                                         ELSE NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0) END) <![CDATA[>]]> 0 THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                            AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                            AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                                            AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
+                                                                                            THEN 1 ELSE 0 END)
                                             WHEN A.SELL_TP_CD = '1' THEN (CASE WHEN G2.CAN_DT IS NULL AND NVL(D.EOT_DLQ_AMT,0) = 0 THEN 1 ELSE 0 END)
                                             ELSE (  (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL AND (NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)) = 0 THEN 1 ELSE 0 END)
                                                     - (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 0 ELSE 1 END))
                                             END AS NOM_ACC_N	/*정상계정수*/
                                     /*-----정상계정수-----*/
-                                    , NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) AS SL_AGG_AMT
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('31', '32', '34') THEN G2.SL_AGG_AMT
+                                           WHEN A.SELL_TP_DTL_CD = '33' THEN G.SL_AGG_AMT
+                                           ELSE NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) END AS SL_AGG_AMT
                                     , NVL(G2.SL_DP_AGG_AMT, 0) AS SL_DP_AGG_AMT
                                     /*----------정기배송 연체율 계산 재료------------*/
                                     ,NVL(H.BTD_UC_AMT,0)                                                                                  AS OVRT_BAS1    /*연체율 연산 기준1*/
@@ -1140,11 +1200,14 @@
                                     , A.SELL_TP_DTL_CD
                                     /*-----총계정수-----*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 1 ELSE 0 END)
-                                            WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                THEN 1 ELSE 0 END)
-                                            ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
+                                           WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                                     AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                                     AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                              THEN 1 ELSE 0 END)
+                                           ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
                                     /*-----총계정수-----*/
                                     , CASE WHEN SUBSTR(B.CNTR_RCP_FSH_DTM, 1, 6) = #{perfYm} OR SUBSTR(A.CNTR_PD_STRTDT, 1, 6) = #{perfYm} THEN 1 ELSE 0 END AS THM_NW_ACC_N	/*당월계정수*/
                                     , CASE WHEN A.SELL_TP_CD = '6' OR A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN NVL(G3.THM_BIL_DP_AMT - G3.SV_DP_AMT, 0)
@@ -1164,6 +1227,11 @@
                                                     NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                             ELSE NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                             END AS DLQ_AMT	/*연체금액*/
+                                    , CASE WHEN A.SELL_TP_CD = '1' THEN NVL(G2.EOT_UC_AMT,0)    --수정!!
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD != '33' THEN NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0)
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                           ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
+                                           END AS DLQ_AMT2	/*당월연체금액*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
@@ -1181,17 +1249,24 @@
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
-                                    , CASE WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
-                                                                                                                THEN 1 ELSE 0 END)
+                                    , CASE WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              WHEN (CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                                                                         ELSE NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0) END) <![CDATA[>]]> 0 THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                            AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                            AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                                            AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
+                                                                                            THEN 1 ELSE 0 END)
                                             WHEN A.SELL_TP_CD = '1' THEN (CASE WHEN G2.CAN_DT IS NULL AND NVL(D.EOT_DLQ_AMT,0) = 0 THEN 1 ELSE 0 END)
                                             ELSE (  (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL AND (NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)) = 0 THEN 1 ELSE 0 END)
                                                     - (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 0 ELSE 1 END))
                                             END AS NOM_ACC_N	/*정상계정수*/
                                     /*-----정상계정수-----*/
-                                    , NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) AS SL_AGG_AMT
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('31', '32', '34') THEN G2.SL_AGG_AMT
+                                           WHEN A.SELL_TP_DTL_CD = '33' THEN G.SL_AGG_AMT
+                                           ELSE NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) END AS SL_AGG_AMT
                                     , NVL(G2.SL_DP_AGG_AMT, 0) AS SL_DP_AGG_AMT
                                     /*----------정기배송 연체율 계산 재료------------*/
                                     ,NVL(H.BTD_UC_AMT,0)                                                                                  AS OVRT_BAS1    /*연체율 연산 기준1*/
@@ -1308,7 +1383,7 @@
                         , 0 AS NOM_DP_AMT
                         , 0 AS NOM_DP_RT
                         , SUM(DLQ_AMT) AS DLQ_AMT
-                        , SUM(CASE WHEN DLQ_AMT > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
+                        , SUM(CASE WHEN DLQ_AMT2 > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
                         , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
                         /*------연체율-----*/
                         , CASE WHEN T.SELL_TP_CD = '6' THEN CASE WHEN SUM(OVRT_BAS1) = 0 OR SUM(OVRT_VAL2) = 0 THEN 0 ELSE FLOOR(SUM(CASE WHEN OVRT_BAS2 <![CDATA[<]]>  0 THEN 0 ELSE OVRT_VAL1 END)/SUM(OVRT_VAL2) * 1000) / 10 END
@@ -1349,11 +1424,14 @@
                                     , A.SELL_TP_DTL_CD
                                     /*-----총계정수-----*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 1 ELSE 0 END)
-                                            WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                THEN 1 ELSE 0 END)
-                                            ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
+                                           WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                                     AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                                     AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                              THEN 1 ELSE 0 END)
+                                           ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
                                     /*-----총계정수-----*/
                                     , CASE WHEN SUBSTR(B.CNTR_RCP_FSH_DTM, 1, 6) = #{perfYm} OR SUBSTR(A.CNTR_PD_STRTDT, 1, 6) = #{perfYm} THEN 1 ELSE 0 END AS THM_NW_ACC_N	/*당월계정수*/
                                     , CASE WHEN A.SELL_TP_CD = '6' OR A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN NVL(G3.THM_BIL_DP_AMT - G3.SV_DP_AMT, 0)
@@ -1373,6 +1451,11 @@
                                                     NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                             ELSE NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                             END AS DLQ_AMT	/*연체금액*/
+                                    , CASE WHEN A.SELL_TP_CD = '1' THEN NVL(G2.EOT_UC_AMT,0)    --수정!!
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD != '33' THEN NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0)
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                           ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
+                                           END AS DLQ_AMT2	/*당월연체금액*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
@@ -1390,17 +1473,24 @@
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
-                                    , CASE WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
-                                                                                                                THEN 1 ELSE 0 END)
+                                    , CASE WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              WHEN (CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                                                                         ELSE NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0) END) <![CDATA[>]]> 0 THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                            AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                            AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                                            AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
+                                                                                            THEN 1 ELSE 0 END)
                                             WHEN A.SELL_TP_CD = '1' THEN (CASE WHEN G2.CAN_DT IS NULL AND NVL(D.EOT_DLQ_AMT,0) = 0 THEN 1 ELSE 0 END)
                                             ELSE (  (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL AND (NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)) = 0 THEN 1 ELSE 0 END)
                                                     - (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 0 ELSE 1 END))
                                             END AS NOM_ACC_N	/*정상계정수*/
                                     /*-----정상계정수-----*/
-                                    , NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) AS SL_AGG_AMT
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('31', '32', '34') THEN G2.SL_AGG_AMT
+                                           WHEN A.SELL_TP_DTL_CD = '33' THEN G.SL_AGG_AMT
+                                           ELSE NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) END AS SL_AGG_AMT
                                     , NVL(G2.SL_DP_AGG_AMT, 0) AS SL_DP_AGG_AMT
                                     /*----------정기배송 연체율 계산 재료------------*/
                                     ,NVL(H.BTD_UC_AMT,0)                                                                                  AS OVRT_BAS1    /*연체율 연산 기준1*/
@@ -1528,7 +1618,7 @@
                         , 0 AS NOM_DP_AMT
                         , 0 AS NOM_DP_RT
                         , SUM(DLQ_AMT) AS DLQ_AMT
-                        , SUM(CASE WHEN DLQ_AMT > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
+                        , SUM(CASE WHEN DLQ_AMT2 > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
                         , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
                         /*------연체율-----*/
                         , CASE WHEN T.SELL_TP_CD = '6' THEN CASE WHEN SUM(OVRT_BAS1) = 0 OR SUM(OVRT_VAL2) = 0 THEN 0 ELSE FLOOR(SUM(CASE WHEN OVRT_BAS2 <![CDATA[<]]>  0 THEN 0 ELSE OVRT_VAL1 END)/SUM(OVRT_VAL2) * 1000) / 10 END
@@ -1575,11 +1665,14 @@
                                     , A.SELL_TP_DTL_CD
                                     /*-----총계정수-----*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 1 ELSE 0 END)
-                                            WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                THEN 1 ELSE 0 END)
-                                            ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
+                                           WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                                     AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                                     AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                              THEN 1 ELSE 0 END)
+                                           ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
                                     /*-----총계정수-----*/
                                     , CASE WHEN SUBSTR(B.CNTR_RCP_FSH_DTM, 1, 6) = #{perfYm} OR SUBSTR(A.CNTR_PD_STRTDT, 1, 6) = #{perfYm} THEN 1 ELSE 0 END AS THM_NW_ACC_N	/*당월계정수*/
                                     , CASE WHEN A.SELL_TP_CD = '6' OR A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN NVL(G3.THM_BIL_DP_AMT - G3.SV_DP_AMT, 0)
@@ -1599,6 +1692,11 @@
                                                     NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                             ELSE NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                             END AS DLQ_AMT	/*연체금액*/
+                                    , CASE WHEN A.SELL_TP_CD = '1' THEN NVL(G2.EOT_UC_AMT,0)    --수정!!
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD != '33' THEN NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0)
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                           ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
+                                           END AS DLQ_AMT2	/*당월연체금액*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
@@ -1616,17 +1714,24 @@
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
-                                    , CASE WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
-                                                                                                                THEN 1 ELSE 0 END)
+                                    , CASE WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              WHEN (CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                                                                         ELSE NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0) END) <![CDATA[>]]> 0 THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                            AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                            AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                                            AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
+                                                                                            THEN 1 ELSE 0 END)
                                             WHEN A.SELL_TP_CD = '1' THEN (CASE WHEN G2.CAN_DT IS NULL AND NVL(D.EOT_DLQ_AMT,0) = 0 THEN 1 ELSE 0 END)
                                             ELSE (  (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL AND (NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)) = 0 THEN 1 ELSE 0 END)
                                                     - (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 0 ELSE 1 END))
                                             END AS NOM_ACC_N	/*정상계정수*/
                                     /*-----정상계정수-----*/
-                                    , NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) AS SL_AGG_AMT
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('31', '32', '34') THEN G2.SL_AGG_AMT
+                                           WHEN A.SELL_TP_DTL_CD = '33' THEN G.SL_AGG_AMT
+                                           ELSE NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) END AS SL_AGG_AMT
                                     , NVL(G2.SL_DP_AGG_AMT, 0) AS SL_DP_AGG_AMT
                                     /*----------정기배송 연체율 계산 재료------------*/
                                     ,NVL(H.BTD_UC_AMT,0)                                                                                  AS OVRT_BAS1    /*연체율 연산 기준1*/
@@ -1754,7 +1859,7 @@
                         , 0 AS NOM_DP_AMT
                         , 0 AS NOM_DP_RT
                         , SUM(DLQ_AMT) AS DLQ_AMT
-                        , SUM(CASE WHEN DLQ_AMT > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
+                        , SUM(CASE WHEN DLQ_AMT2 > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
                         , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
                         /*------연체율-----*/
                         , CASE WHEN T.SELL_TP_CD = '6' THEN CASE WHEN SUM(OVRT_BAS1) = 0 OR SUM(OVRT_VAL2) = 0 THEN 0 ELSE FLOOR(SUM(CASE WHEN OVRT_BAS2 <![CDATA[<]]>  0 THEN 0 ELSE OVRT_VAL1 END)/SUM(OVRT_VAL2) * 1000) / 10 END
@@ -1807,11 +1912,14 @@
                                     , A.SELL_TP_DTL_CD
                                     /*-----총계정수-----*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 1 ELSE 0 END)
-                                            WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                THEN 1 ELSE 0 END)
-                                            ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
+                                           WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                                     AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                                     AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                              THEN 1 ELSE 0 END)
+                                           ELSE (CASE WHEN G2.CAN_DT IS NULL THEN 1 ELSE 0 END) END AS TOT_ACC_N	/*총계정수*/
                                     /*-----총계정수-----*/
                                     , CASE WHEN SUBSTR(B.CNTR_RCP_FSH_DTM, 1, 6) = #{perfYm} OR SUBSTR(A.CNTR_PD_STRTDT, 1, 6) = #{perfYm} THEN 1 ELSE 0 END AS THM_NW_ACC_N	/*당월계정수*/
                                     , CASE WHEN A.SELL_TP_CD = '6' OR A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN NVL(G3.THM_BIL_DP_AMT - G3.SV_DP_AMT, 0)
@@ -1831,6 +1939,11 @@
                                                     NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                             ELSE NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                             END AS DLQ_AMT	/*연체금액*/
+                                    , CASE WHEN A.SELL_TP_CD = '1' THEN NVL(G2.EOT_UC_AMT,0)    --수정!!
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD != '33' THEN NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0)
+                                           WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                           ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
+                                           END AS DLQ_AMT2	/*당월연체금액*/
                                     , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
@@ -1848,17 +1961,24 @@
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
-                                    , CASE WHEN A.SELL_TP_CD IN ('3', '6') THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
-                                                                                                                AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(#{perfYm}, 'YYYYMM'))
-                                                                                                                AND (A.STPL_PTRM > 0 OR A.CNTR_PTRM > 1 OR A.CNTR_DTL_STAT_CD = '402')
-                                                                                                                AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
-                                                                                                                THEN 1 ELSE 0 END)
+                                    , CASE WHEN A.SELL_TP_CD = '3' THEN (CASE WHEN A.CNTR_DTL_STAT_CD IN ('301', '302', '303') AND SUBSTR(A.CNTR_PD_ENDDT,1,6) <![CDATA[<=]]> :perfYm THEN 0    --수정!!
+                                                                              WHEN A.CNTR_PD_STRTDT IS NULL OR SUBSTR(B.CNTR_CNFM_DTM, 1, 6) <![CDATA[>]]> :perfYm  THEN 0
+                                                                              WHEN (CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
+                                                                                         ELSE NVL(G2.EOT_UC_AMT, 0) + NVL(D2.EOT_DLQ_ADD_AMT, 0) END) <![CDATA[>]]> 0 THEN 0
+                                                                              ELSE 1 END)
+                                           WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN G2.CAN_DT IS NULL AND G2.FULPY_DT IS NULL AND A.CNTR_PD_STRTDT IS NOT NULL
+                                                                                            AND G2.CNTR_DT <![CDATA[<=]]> LAST_DAY(TO_DATE(:perfYm, 'YYYYMM'))
+                                                                                            AND (A.STPL_PTRM <![CDATA[>]]> 0 OR A.CNTR_PTRM <![CDATA[>]]> 1 OR A.CNTR_DTL_STAT_CD = '402')
+                                                                                            AND NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0
+                                                                                            THEN 1 ELSE 0 END)
                                             WHEN A.SELL_TP_CD = '1' THEN (CASE WHEN G2.CAN_DT IS NULL AND NVL(D.EOT_DLQ_AMT,0) = 0 THEN 1 ELSE 0 END)
                                             ELSE (  (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL AND (NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)) = 0 THEN 1 ELSE 0 END)
                                                     - (CASE WHEN A.CNTR_PTRM > G.RENTAL_TN AND G.CAN_DT IS NULL AND G.REQD_DTM IS NULL AND G.SL_RCOG_DT IS NOT NULL THEN 0 ELSE 1 END))
                                             END AS NOM_ACC_N	/*정상계정수*/
                                     /*-----정상계정수-----*/
-                                    , NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) AS SL_AGG_AMT
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('31', '32', '34') THEN G2.SL_AGG_AMT
+                                           WHEN A.SELL_TP_DTL_CD = '33' THEN G.SL_AGG_AMT
+                                           ELSE NVL(G2.SL_AGG_AMT - G2.THM_SL_SUM_AMT, 0) + NVL(G.PVDA_AGG_AMT - G.EOT_PCAM_BLAM - G.EOT_PCAM_INT_BLAM, 0) END AS SL_AGG_AMT
                                     , NVL(G2.SL_DP_AGG_AMT, 0) AS SL_DP_AGG_AMT
                                     /*----------정기배송 연체율 계산 재료------------*/
                                     ,NVL(H.BTD_UC_AMT,0)                                                                                  AS OVRT_BAS1    /*연체율 연산 기준1*/
