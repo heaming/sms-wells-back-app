@@ -19,6 +19,7 @@ public class WsncBsServicePresentStateDto {
     @ApiModel(value = "WsncBsServicePresentStateDto-SearchResList")
     public record SearchResList(
         String asnOjYm,      /* 관리년월 */
+        String ogId,      /* 관리년월 */
         String ogNm,      /* 소속 */
         String bldNm,    /* 상주빌딩 */
         String prtnrNo,     /* 사번 */
