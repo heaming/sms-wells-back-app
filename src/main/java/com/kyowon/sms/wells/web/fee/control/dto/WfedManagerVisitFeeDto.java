@@ -43,6 +43,7 @@ public class WfedManagerVisitFeeDto {
         String pdNm, /*상품명*/
         String svFeePdDvCd, /*bs상품군*/
         int svFeeBaseAmt, /*bs기본수수료*/
+        int feeUprcAmt, /*집계수수료*/
         int feeCalcAmt, /*방문수수료*/
         String vstRglvlGdCd, /*방문급지*/
         String vstRglvlGdNm, /*방문급지*/
