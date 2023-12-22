@@ -2,7 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndBusinessVehiclesOperationJrnlMgtMapper">
     <select id="selectBusinessVehiclesOperationJrnl" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesOperationJrnlMgtDto$SearchRes">
-        WITH HIST AS ( SELECT CARNO
+        WITH HIST AS ( SELECT SUBSTR(CARNO,1, DECODE(INSTR(CARNO, '_'), 0, LENGTH(CARNO) ,  INSTR(CARNO, '_')-1)) AS CARNO
+                            , VHC_KND_NM
 --                          , SUM(FUEL_CSM_RT) AS FUEL_CSM_RT
                             , SUM(BSPD_TMS) AS BSPD_TMS
                             , SUM(SDPD_TMS) AS SDPD_TMS
@@ -13,7 +14,8 @@
                          FROM TB_SVPD_OPRTN_HIST
                         WHERE SUBSTR(OPRTN_STRTT,1,8) BETWEEN #{startDt} AND #{endDt}
                      GROUP BY CARNO
-                           ,  SUBSTR(OPRTN_STRTT,1,8)
+                            , VHC_KND_NM
+                            , SUBSTR(OPRTN_STRTT,1,8)
         )
 
         SELECT P1.OG_NM /* 소속 */
@@ -21,7 +23,7 @@
              , C1.VHC_MNGT_PRTNR_NO
              , F_CMZ_CD_NM('TNT_WELLS', 'HIR_FOM_CD', P1.HIR_FOM_CD , 'ko') AS HIR_FOM_CD
              , P1.CNTR_DT
-             , C3.VHC_KND_NM AS CARNM
+             , HIST.VHC_KND_NM AS CARNM
              , C1.CARNO
              , C1.VHC_OPRTN_DT
              , C1.VHC_OPRTN_SN
