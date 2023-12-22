@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.closing.clearing.mapper.WdchClearingDataCreateMapper">
+    <select id="selectWdchEduSlCnfmBass" resultType="com.kyowon.sms.wells.web.closing.clearing.dvo.WdchEduSlCnfmBasDvo">
+        SELECT T1.CNTR_NO                /*계약번호*/
+             , T1.CNTR_SN                /*계약일련번호*/
+             , T1.KW_GRP_CO_CD           /*교원그룹회사코드*/
+             , T1.SELL_TP_CD             /*판매유형코드*/
+             , T1.SELL_TP_DTL_CD         /*판매유형상세코드*/
+             , T1.SELL_INFLW_CHNL_DTL_CD  /*판매유입채널상세코드*/
+             , T1.SAP_PD_DV_CD           /*SAP상품구분코드*/
+             , T1.DG_CST_ID              /*대표고객ID*/
+             , T1.CST_NO                 /*고객번호*/
+             , T1.PD_CD                  /*상품코드*/
+             , NVL(T1.SL_AMT, 0) AS SL_AMT         /*매출금액*/
+             , NVL(T1.SL_CAN_AMT, 0) AS SL_CAN_AMT /*매출취소금액*/
+             , T1.SL_RCOG_DT             /*매출인식일자*/
+             , T1.SAP_SLPNO              /*SAP매출전표번호*/
+             , NVL(SUM(T1.SL_AMT) OVER(PARTITION BY T1.CNTR_NO, T1.CNTR_SN), 0) AS SL_AMT_SUM   /*매출금액합계*/
+             , T2.THM_OC_DLQ_ADD_AMT  /*당월발생연체가산금 -> 정기배송에서 사용*/
+             , T3.OC_BOR_AMT   /*발생위약금액 -> 정기배송에서 사용*/
+          FROM TB_CBCL_WELLS_SL_CNFM_BAS T1  /*WELLS 매출확정*/
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS T2/*연체기본*/
+            ON (T2.PERF_YM = #{baseYm}
+           AND T1.CNTR_NO = T2.CNTR_NO
+           AND T1.CNTR_SN = T2.CNTR_SN)
+          LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS  T3/*WELLS위약금액기본*/
+            ON (T3.PERF_YM = #{baseYm}
+           AND T1.CNTR_NO = T3.CNTR_NO
+           AND T1.CNTR_SN = T3.CNTR_SN)
+         WHERE 1=1
+           <if test='@MybatisUtils@equals(flagYm, "1") or @MybatisUtils@equals(flagYm, "3")'>
+           AND SUBSTR(SL_RCOG_DT,1,6) = #{baseYm}
+           </if>
+           <if test='@MybatisUtils@equals(flagYm, "2") or @MybatisUtils@equals(flagYm, "4")'>
+           AND SUBSTR(SL_RCOG_DT,1,6) = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'yyyyMM'), -1), 'yyyyMM')
+           </if>
+           <if test='!@MybatisUtils@equals(flagYm, "3") and !@MybatisUtils@equals(flagYm, "4")'>
+           AND (SLP_AK_NO IS NOT NULL OR SLP_AK_NO != '')
+           </if>
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+         ORDER BY T1.CNTR_NO, T1.CNTR_SN, T1.SL_RCOG_DT
+    </select>
+
+    <select id="selectBznsAtamBas" resultType="com.kyowon.sms.wells.web.closing.clearing.dvo.WdchBznsAtamBasDvo">
+        SELECT CNTR_NO
+             , CNTR_SN
+             , KW_GRP_CO_CD           /*교원그룹회사코드*/
+             , SELL_TP_CD             /*판매유형코드*/
+             , SELL_TP_DTL_CD         /*판매유형상세코드*/
+             , SAP_PD_DV_CD           /*SAP상품구분코드*/
+             , DG_CST_ID              /*대표고객ID*/
+             , CST_NO                 /*고객번호*/
+             , PD_CD                  /*상품코드*/
+             , RVE_NO                 /*수납번호*/
+             , RVE_SN                 /*수납일련번호*/
+             , DP_CL_DT               /*입금마감일자*/
+             , NVL(RVE_AMT, 0) AS RVE_AMT               /*수납금액*/
+             , NVL(BZNS_ATAM_BLAM, 0) AS BZNS_ATAM_BLAM        /*영업선수금잔액*/
+             , RVE_DV_CD              /*수납구분코드*/
+             , SAP_SLPNO              /*SAP입금전표번호*/
+          FROM TB_CBCL_BZNS_ATAM_BAS T1  /*영업선수금기본*/
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND SUBSTR(DP_CL_DT,1,6) = #{baseYm}
+           AND DTA_DL_YN  = 'N'
+           AND RVE_DV_CD IN ('01','02','03','04','05','07','19') /* 01계약금, 02연체가산금, 03월납입액(할부금,렌탈료), 04멤버십회비, 05정기배송회비, 07위약금, 19대손입금 */
+         ORDER BY CNTR_NO, CNTR_SN, DP_CL_DT
+    </select>
+
+    <select id="selectSlBndAlrpyBasBeforeMonth" resultType="com.kyowon.sms.wells.web.closing.clearing.dvo.WdchSlBndAlrpyBasBeforeMonthDvo">
+        SELECT NVL(DP_BLAM, 0) AS DP_BLAM   /*선수금(입금잔액)*/
+             , NVL(DP_ACU_AMT, 0) AS DP_ACU_AMT   /*입금누적금액(입금총액)*/
+             , NVL(TOT_SL_AMT, 0) AS TOT_SL_AMT       /*총매출금액(매출총액)*/
+             , NVL(UC_AMT, 0) AS UC_AMT           /*미수금액(매출잔액)*/
+          FROM TB_CBCL_SL_BND_ALRPY_BAS
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'yyyyMM'), -1), 'yyyyMM')
+    </select>
+
+    <select id="selectDepositConfirmation" resultType="com.kyowon.sms.wells.web.closing.clearing.dvo.WdchDepositConfirmationDvo">
+        SELECT SELL_TP_CD
+             , SELL_TP_DTL_CD
+             , RVE_DV_CD
+             , SUM(DP_AMT) - SUM(RF_AMT) AS AMT
+          FROM (
+                    SELECT SELL_TP_CD  /*1.일시불 2.렌탈리스. 3.멤버십 6.정기배송*/
+                         , SELL_TP_DTL_CD
+                         , RVE_DV_CD  /*01계약금, 02 연체가산금, 03 월납입액(할부금,렌탈료), 04 멤버십회비, 05(정기배송회비), 07(위약금), 19(대손입금) */
+                         , CASE WHEN DP_DV_CD IN ('1','3')
+                           THEN SUM(RVE_AMT) ELSE 0 END AS DP_AMT  /*입금금액*/
+                         , CASE WHEN DP_DV_CD IN ('2','4')
+                           THEN SUM(RVE_AMT) ELSE 0 END AS RF_AMT  /*환불금액*/
+                      FROM TB_CBCL_BZNS_ATAM_BAS
+                     WHERE 1=1
+                       AND DP_CL_DT LIKE #{baseYm} || '%'
+                       AND CNTR_NO = #{cntrNo}
+                       AND CNTR_SN = #{cntrSn}
+                       AND DTA_DL_YN  = 'N'
+                       AND RVE_DV_CD IN ('01','02','03','04','05','07','19')
+                     GROUP BY SELL_TP_CD, SELL_TP_DTL_CD, RVE_DV_CD, DP_DV_CD
+              )
+        GROUP BY SELL_TP_CD, SELL_TP_DTL_CD,  RVE_DV_CD
+    </select>
+
+    <select id="selectWdchEduSlCnfmBasCount" resultType="int">
+        SELECT COUNT(1)
+          FROM TB_CBCL_WELLS_SL_CNFM_BAS  /*WELLS 매출확정*/
+         WHERE SUBSTR(SL_RCOG_DT,1,6) = #{baseYm}
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectWdchNonEduSlCnfmBasCount" resultType="int">
+        SELECT COUNT(1)
+          FROM (
+                SELECT T1.CNTR_NO , T1.CNTR_SN, COUNT(T2.CNTR_NO) AS COUNT1
+                  FROM TB_CBCL_SL_BND_ALRPY_BAS T1
+                  LEFT OUTER JOIN TB_CBCL_WELLS_SL_CNFM_BAS T2
+                    ON ( T1.CNTR_NO = T2.CNTR_NO AND T1.CNTR_SN = T2.CNTR_SN AND SUBSTR(T2.SL_RCOG_DT,1,6) = #{baseYm})  /*이번달의 매출*/
+                 WHERE T1.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'yyyyMM'), -1), 'yyyyMM')  /*지난달의 미수금찾기*/
+                   AND T1.UC_AMT > 0   /*미수금이 남음*/
+                   AND T1.CNTR_NO = #{cntrNo}
+                   AND T1.CNTR_SN = #{cntrSn}
+                 GROUP BY T1.CNTR_NO, T1.CNTR_SN
+               ) WHERE COUNT1 = 0
+    </select>
+
+    <select id="selectSlBndAlrpyBasBeforeOneMonth" resultType="com.kyowon.sms.wells.web.closing.clearing.dvo.WdchSlBndAlrpyBasDvo">
+            SELECT CNTR_NO
+                 , CNTR_SN
+                 , BASE_YM
+                 , KW_GRP_CO_CD
+                 , SELL_TP_CD
+                 , SELL_TP_DTL_CD
+                 , SELL_INFLW_CHNL_DTL_CD
+                 , SAP_PD_DV_CD
+                 , DG_CST_ID
+                 , CST_NO
+                 , PD_CD
+                 , SL_BND_ALRPY_DT
+                 , SL_BND_ALRPY_AMT
+                 , RVE_NO
+                 , RVE_SN
+                 , DP_CL_DT
+                 , RVE_AMT
+                 , RVE_DV_CD
+                 , SAP_DP_SLPNO
+                 , BTD_ATAM
+                 , DP_BLAM
+                 , ATAM_RPLC_PROCS_AMT
+                 , ATAM_CV_AMT
+                 , SL_RCOG_DT
+                 , SL_BND_OC_AMT
+                 , SL_CAN_AMT
+                 , SPMT_UC_OC_AMT
+                 , SAP_SL_SLPNO
+                 , TOT_SL_AMT
+                 , BTD_UC_AMT
+                 , UC_AMT
+              FROM TB_CBCL_SL_BND_ALRPY_BAS
+             WHERE CNTR_NO = #{cntrNo}
+               AND CNTR_SN = #{cntrSn}
+               AND BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'yyyyMM'), -1), 'yyyyMM')
+    </select>
+</mapper>
