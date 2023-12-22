@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto.SearchRes;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRoutineBsPsicAssignStateMngrInfoDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncRoutineBsPsicAssignStateMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -33,5 +34,9 @@ public class WsncRoutineBsPsicAssignStateService {
 
     public List<HashMap<String, String>> getWellsManager(String dgr2LevlOgId) {
         return mapper.selectWellsManager(dgr2LevlOgId);
+    }
+
+    public WsncRoutineBsPsicAssignStateMngrInfoDvo getManagerInfo(SearchReq req) {
+        return mapper.selectManagerInfo(req);
     }
 }
