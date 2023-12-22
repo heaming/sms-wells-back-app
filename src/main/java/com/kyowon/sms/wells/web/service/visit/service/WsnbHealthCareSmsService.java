@@ -58,7 +58,12 @@ public class WsnbHealthCareSmsService {
         String templateId = "";
         String templateCode = "";
         for (WsnbHealthCareSmsDvo row : rows) {
-            String yn = StringUtil.nvl2(row.getPifThpOfrAgYn(), "N");
+            String yn = "";
+            String pifyn = StringUtil.nvl2(row.getPifThpOfrAgYn(), "N");
+            String spmtyn = StringUtil.nvl2(row.getSpmtCstSvUAgYn(), "N");
+
+            if(pifyn.equals("Y") && spmtyn.equals("Y")) yn = "Y";
+            else yn = "N";
 
             // 오즈리포트 호출 url
             String url1 = "/api/v1/anonymous/sms/wells/service/healthcare-application-agreement/report/"

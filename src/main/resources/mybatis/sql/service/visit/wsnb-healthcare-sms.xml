@@ -4,9 +4,9 @@
     <select id="selectHealthCareSms" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbHealthCareSmsDvo">
         SELECT AC211.CNTR_NO
              , AC211.CNTR_SN
-             , SPMT_CST_SV_U_AG_YN /*건강케어서비스 이용동의*/
-             , PIF_THP_OFR_AG_YN /*개인정보 제3자 제공 동의*/
-             , AGP_NM /*동의자 성명*/
+             , NVL(VS172.SPMT_CST_SV_U_AG_YN,'N') AS SPMT_CST_SV_U_AG_YN /*건강케어서비스 이용동의*/
+             , NVL(VS172.PIF_THP_OFR_AG_YN,'N') AS PIF_THP_OFR_AG_YN /*개인정보 제3자 제공 동의*/
+             , NVL(VS172.AGP_NM,SSCT4.RCGVP_KNM) AS AGP_NM/*동의자 성명*/
              , SSCT4.RCGVP_KNM AS CST_NM
              , SSCT4.CRAL_LOCARA_TNO
              , SSCT4.MEXNO_ENCR
@@ -16,15 +16,10 @@
          INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /*고객서비스AS설치배정내역*/
             ON AC221.DTA_DL_YN = 'N'
            AND AC211.CST_SV_ASN_NO = AC221.CST_SV_ASN_NO
-          LEFT OUTER JOIN TB_SVPD_CST_SV_NOTAK_FW_IZ SVPD3 /*고객서비스알림톡발송내역*/
-            ON SVPD3.DTA_DL_YN = 'N'
-           AND AC211.CST_SV_ASN_NO = SVPD3.CST_SV_ASN_NO
-           AND CHAR_FW_DTM IS NULL /*문자발송일시*/
-         INNER JOIN TB_SSCT_CNTR_WELLS_DTL SSCT1 /*계약WELLS상세*/
-            ON SSCT1.DTA_DL_YN = 'N'
-           AND AC211.CNTR_NO = SSCT1.CNTR_NO
-           AND AC211.CNTR_SN = SSCT1.CNTR_SN
-         INNER JOIN TB_SVPD_SPMT_SV_PIF_U_AG_IZ VS172 /*추가서비스개인정보이용동의내역*/
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ AC201
+            ON AC201.CNTR_NO = AC221.CNTR_NO
+           AND AC201.CNTR_SN = AC221.CNTR_SN
+          LEFT OUTER JOIN TB_SVPD_SPMT_SV_PIF_U_AG_IZ VS172 /*추가서비스개인정보이용동의내역*/
             ON VS172.DTA_DL_YN = 'N'
            AND AC211.CNTR_NO = VS172.CNTR_NO
            AND AC211.CNTR_SN = VS172.CNTR_SN
@@ -35,7 +30,7 @@
            AND AC211.CNTR_SN = SSCT2.CNTR_SN
          INNER JOIN TB_SSCT_CNTR_ADR_REL SSCT3 /*계약주소관계*/
             ON SSCT3.DTA_DL_YN = 'N'
-           AND AC211.CNTR_NO = SSCT3.CNTR_NO
+           AND AC211.CNTR_NO = SSCT3.DTL_CNTR_NO
            AND SSCT3.ADRPC_TP_CD IN ('2','3') /*설치주소*/
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SSCT3.VL_STRT_DTM AND SSCT3.VL_END_DTM
          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS SSCT4
@@ -44,17 +39,14 @@
          WHERE AC211.DTA_DL_YN = 'N'
            AND AC221.WK_PRGS_STAT_CD = '20' /*작업완료*/
            AND AC211.SV_BIZ_DCLSF_CD LIKE '11%'
-           AND SVPD3.CHAR_FW_DTM IS NULL /*문자발송일시*/
-           AND SSCT1.IST_DT = TO_CHAR(SYSDATE - 1, 'YYYYMMDD')
-           ---------------------------------------------------------------------------------------------------------------------------------------------------------
-           AND SSCT2.BASE_PD_CD IN ('WM04100842', 'WM04100843', 'WM04100844', 'WM04100845', 'WM04100846', 'WM04100847', 'WM04100857', 'WM04100858', 'WM04100856')
-           ---------------------------------------------------------------------------------------------------------------------------------------------------------
+           AND AC201.IST_DT = TO_CHAR(SYSDATE - 1, 'YYYYMMDD')
+           AND AC201.PDCT_PD_CD IN ('WM04100842', 'WM04100843', 'WM04100844', 'WM04100845', 'WM04100846', 'WM04100847', 'WM04100857', 'WM04100858', 'WM04100856')
         UNION ALL
         SELECT AC211.CNTR_NO
              , AC211.CNTR_SN
-             , SPMT_CST_SV_U_AG_YN /*건강케어서비스 이용동의*/
-             , PIF_THP_OFR_AG_YN /*개인정보 제3자 제공 동의*/
-             , AGP_NM /*동의자 성명*/
+             , NVL(VS172.SPMT_CST_SV_U_AG_YN,'N') AS SPMT_CST_SV_U_AG_YN /*건강케어서비스 이용동의*/
+             , NVL(VS172.PIF_THP_OFR_AG_YN,'N') AS PIF_THP_OFR_AG_YN /*개인정보 제3자 제공 동의*/
+             , NVL(VS172.AGP_NM,SSCT4.RCGVP_KNM) AS AGP_NM/*동의자 성명*/
              , SSCT4.RCGVP_KNM AS CST_NM
              , SSCT4.CRAL_LOCARA_TNO
              , SSCT4.MEXNO_ENCR
@@ -64,15 +56,10 @@
          INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /*고객서비스AS설치배정내역*/
             ON AC221.DTA_DL_YN = 'N'
            AND AC211.CST_SV_ASN_NO = AC221.CST_SV_ASN_NO
-          LEFT OUTER JOIN TB_SVPD_CST_SV_NOTAK_FW_IZ SVPD3 /*고객서비스알림톡발송내역*/
-            ON SVPD3.DTA_DL_YN = 'N'
-           AND AC211.CST_SV_ASN_NO = SVPD3.CST_SV_ASN_NO
-           AND CHAR_FW_DTM IS NULL /*문자발송일시*/
-         INNER JOIN TB_SSCT_CNTR_WELLS_DTL SSCT1 /*계약WELLS상세*/
-            ON SSCT1.DTA_DL_YN = 'N'
-           AND AC211.CNTR_NO = SSCT1.CNTR_NO
-           AND AC211.CNTR_SN = SSCT1.CNTR_SN
-         INNER JOIN TB_SVPD_SPMT_SV_PIF_U_AG_IZ VS172 /*추가서비스개인정보이용동의내역*/
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ AC201
+            ON AC201.CNTR_NO = AC221.CNTR_NO
+           AND AC201.CNTR_SN = AC221.CNTR_SN
+          LEFT OUTER JOIN TB_SVPD_SPMT_SV_PIF_U_AG_IZ VS172 /*추가서비스개인정보이용동의내역*/
             ON VS172.DTA_DL_YN = 'N'
            AND AC211.CNTR_NO = VS172.CNTR_NO
            AND AC211.CNTR_SN = VS172.CNTR_SN
@@ -89,25 +76,22 @@
          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS SSCT4
             ON SSCT4.DTA_DL_YN = 'N'
            AND SSCT3.CNTR_ADRPC_ID = SSCT4.CNTR_ADRPC_ID
-         INNER JOIN TB_PDBS_PD_REL PDBS1
-            ON PDBS1.DTA_DL_YN = 'N'
-           AND PDBS1.BASE_PD_CD = SSCT2.BASE_PD_CD
-           AND DECODE(SSCT2.SELL_TP_CD, '6', '18', '05')  = PDBS1.PD_REL_TP_CD /*6: 정기배송, 18: 정기배송, 05: 기준-제품*/
-         WHERE AC211.DTA_DL_YN = 'N'
-           AND AC221.WK_PRGS_STAT_CD = '20' /*작업완료*/
-           AND AC211.SV_BIZ_DCLSF_CD LIKE '11%'
-           AND SVPD3.CHAR_FW_DTM IS NULL /*문자발송일시*/
-           AND SSCT1.IST_DT = TO_CHAR(SYSDATE - 1, 'YYYYMMDD')
-           ---------------------------------------------------
-           AND (SELECT PD_PRP_VAL20
-                  FROM TB_PDBS_PD_BAS T1
-                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-                    ON T1.PD_CD = T2.PD_CD
-                   AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-                   AND T2.DTA_DL_YN = 'N'
-                 WHERE T1.PD_CD = SSCT2.BASE_PD_CD) IN ('93', '92')
-           --    AND '7989' IN (cwgc01, cwgc02, cwgc03, cwgc04, cwgc05) /*녹십자 3개월 무료*/
-           AND PD_CD = 'WM07101015' /*녹십자 3개월 무료*/
+        WHERE AC221.DTA_DL_YN = 'N'
+          AND AC221.WK_PRGS_STAT_CD = '20' /*작업완료*/
+          AND AC221.SV_BIZ_DCLSF_CD LIKE '11%'
+          AND AC201.IST_DT = TO_CHAR(SYSDATE - 1, 'YYYYMMDD')
+          AND (SELECT PD_PRP_VAL20
+               FROM TB_PDBS_PD_BAS T1
+                        INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                                   ON T1.PD_CD = T2.PD_CD
+                                       AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                       AND T2.DTA_DL_YN = 'N'
+               WHERE T1.PD_CD = AC201.PDCT_PD_CD) IN ('92','93')
+          AND EXISTS  (SELECT 1
+                       FROM TB_SSCT_FGPT_RCP_IZ A1
+                       WHERE A1.DTL_CNTR_NO = AC201.CNTR_NO
+                         AND A1.DTL_CNTR_SN = AC201.CNTR_SN
+                         AND A1.FGPT_PD_CD = 'WM07101015')
     </select>
 
 </mapper>
