@@ -17,4 +17,12 @@ public class WdccProductAccountHomeCardDto {
         String rgldvSum, /*구독*/
         String membsSum /*멤버십*/
     ) {}
+
+    @Builder
+    @ApiModel("WdccProductAccountHomeCardDto-PercentageSearchRes")
+    public record PercentageSearchRes(
+        String sumAllAgrgCnt, /* 계정 누적정보 */
+        String sumSumMmAgrgCnt, /* 당월순증합계 */
+        String etExitRate /* 순수이탈율 */
+    ) {}
 }
