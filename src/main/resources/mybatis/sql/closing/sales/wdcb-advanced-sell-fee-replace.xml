@@ -337,7 +337,7 @@
              , 0 AS CS_RPLC_AMT    /*비용대체금액*/
              , CASE WHEN 'N' = #{feeChk}   /*수수료구분 상세에 미체크 했을때 */
                     THEN ''
-                    ELSE (SELECT SRN_MARK_FEE_NM FROM TB_FEAM_FEE_BASE_DTL WHERE FEE_CD = T2.FEE_CD) END  AS FEE_NM        /*수수료코드(구분)*/
+                    ELSE (SELECT DISTINCT SRN_MARK_FEE_NM FROM TB_FEAM_FEE_BASE_DTL WHERE FEE_CD = T2.FEE_CD) END  AS FEE_NM        /*수수료코드(구분)*/
              , '' AS DP_SLIP_TRS_NO  /*입금전표전송번호*/
              , '' AS SAP_SLPNO       /*선급판매수수료전표번호*/
              , T2.FEE_CTR_CNFM_AMT  AS TTRM_CS_AMT  /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
@@ -723,13 +723,18 @@
     </select>
 
     <select id="selectFeeGubunCodes" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchCodeRes">
-        SELECT FEE_CD AS CODE_ID /*수수료코드*/
-             , FEE_CD || '(' || SRN_MARK_FEE_NM || ')' AS CODE_NAME   /*수수료명*/
-          FROM TB_FEAM_FEE_BASE_DTL
-         WHERE PIA_FEE_OJ_YN = 'Y'
-           AND (TO_CHAR(SYSDATE,'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM)
-           AND DTA_DL_YN = 'N'
-      ORDER BY FEE_CD
+        SELECT T1.FEE_CD AS CODE_ID
+             , T1.FEE_CD || '(' || FEE_NM || ')' AS CODE_NAME   /*수수료명*/
+             , 2 AS SEQ
+          FROM TB_FEAM_FEE_CD T1
+         INNER JOIN TB_FEAM_FEE_BASE_DTL T2
+            ON T1.FEE_CD = T2.FEE_CD
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE,'YYYYMM') BETWEEN T2.APY_STRT_YM AND T2.APY_END_YM
+           AND T2.FEE_BASE_STAT_CD = '02'
+         ORDER BY CODE_ID
     </select>
 
     <select id="selectPop" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchPopRes">
