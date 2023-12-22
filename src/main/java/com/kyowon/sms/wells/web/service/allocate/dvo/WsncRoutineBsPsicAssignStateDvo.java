@@ -2,6 +2,11 @@ package com.kyowon.sms.wells.web.service.allocate.dvo;
 
 import com.sds.sflex.system.config.annotation.DBDecField;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class WsncRoutineBsPsicAssignStateDvo {
 
     String snRpblYn;

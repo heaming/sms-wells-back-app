@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto.SearchRes;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRoutineBsPsicAssignStateMngrInfoDvo;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncRoutineBsPsicAssignStateService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -89,6 +90,16 @@ public class WsncRoutineBsPsicAssignStateController {
     public List<HashMap<String, String>> getWellsManager(String dgr2LevlOgId) {
 
         return service.getWellsManager(dgr2LevlOgId);
+    }
+
+    @ApiOperation(value = "매니저 정보 조회", notes = "조회조건에 일치하는 매니저 정보 데이터를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "배정기준일", paramType = "query", required = true),
+    })
+    @GetMapping("/manager-info")
+    public WsncRoutineBsPsicAssignStateMngrInfoDvo getManagerInfo(SearchReq dto) {
+
+        return service.getManagerInfo(dto);
     }
 
 }
