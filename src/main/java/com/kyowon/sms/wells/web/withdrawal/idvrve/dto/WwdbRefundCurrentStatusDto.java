@@ -65,7 +65,12 @@ public class WwdbRefundCurrentStatusDto {
         String sellTpDtlCd, // 판매유형.알수없음으로작성되어있음.
         String rveDvCd, // 입금유형
         String cstNo, // 전금고객번호
-        String tmp2 // 전금고객명.작성되어있지않음.전금고객번호가잘못잘성되어있는것으로판단되어고객명으로사용하지않음.
+        String tmp2, // 전금고객명.작성되어있지않음.전금고객번호가잘못잘성되어있는것으로판단되어고객명으로사용하지않음.
+
+        String bltfSellTpDtlCd, /*전금 판매유형*/
+        String bltfCntrNo,
+        String bltfCntrSn,
+        String bltfCntrDtlNo
     ) {
         public SearchRefundHistoryRes {
             if (!StringUtil.isEmpty(cshRfndAcnoEncr)) {

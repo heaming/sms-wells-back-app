@@ -26,5 +26,6 @@ public interface WsnyPaidAsCostMgtMapper {
 
     List<SearchRes> selectPaidAsCostMgts(SearchReq dto);
 
+    int insertPaidAsCostMgts(WsnyPaidAsCostMgtDvo dvo);
     int updatePaidAsCostMgts(WsnyPaidAsCostMgtDvo dvo);
 }

@@ -57,6 +57,14 @@ public class WsnyErrorCodeMgtDto {
         String errImageUId,
         String errImageDocId,
         List<AttachFile> attachFiles,
-        String flag
+        String flag,
+        String errCnBefore,
+        List<AttachFile> attachFilesBefore
+    ) {}
+
+    @ApiModel("WsnyErrorCodeMgtDto-FindProductRes")
+    public record FindProductRes(
+        String codeId, // 코드ID(상품코드)
+        String codeName // 코드명(상품명)
     ) {}
 }
