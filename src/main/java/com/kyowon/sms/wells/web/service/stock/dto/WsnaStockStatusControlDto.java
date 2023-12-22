@@ -50,7 +50,8 @@ public class WsnaStockStatusControlDto {
         String itmGdCtrRsonCd, /* 품목등급조정사유코드 */
         String itmGdCtrRsonNm, /* 품목등급조정사유명 */
         String ctrSn, /* 조정일련번호 */
-        String rmkCn /* 비고 */
+        String rmkCn, /* 비고 */
+        String sapCd /* SAP코드*/
     ) {}
 
     @ApiModel("WsnaStockStatusControlDto-SearchWarehouseReq")
