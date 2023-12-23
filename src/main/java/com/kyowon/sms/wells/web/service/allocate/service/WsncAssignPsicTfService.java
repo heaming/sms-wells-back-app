@@ -33,7 +33,7 @@ public class WsncAssignPsicTfService {
         //기준 : 1. 방문 일자 기준으로 책임지역담당(업무대행)으로 업데이트
         for(WsncAssignPsicTfDvo tfDvo : assignPsicTfList){
             if(valueOfEmptyStr(tfDvo.getCstSvAsnNo()).startsWith("2")){
-                mapper.updateAssignPsicTfBs(tfDvo);       //cherro ::: AC261_BIZ_CD_A 컬럼 매핑이 안됨. OG_ID 매핑해야되는데...
+                mapper.updateAssignPsicTfBs(tfDvo);
                 wsnzHistoryService.insertCstSvBfsvcAsnHistByPk(tfDvo.getCstSvAsnNo()); //Logging
             } else {
                 mapper.updateAssignPsicTfAs(tfDvo);
