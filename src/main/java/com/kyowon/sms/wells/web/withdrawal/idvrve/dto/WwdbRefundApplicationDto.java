@@ -31,7 +31,7 @@ public class WwdbRefundApplicationDto {
         String startDay, // 접수일자 시작일
         String endDay, // 접수일자 종료일
         String rfndStatCd, // 환불상태
-        String rfndDsbDvCdCshBltf, // 처리구분
+        //        String rfndDsbDvCdCshBltf, // 처리구분 2023-12-23 조건삭제처리
         String cntrNo, // 계약번호
         String cntrSn, // 계약일련번호
         String cstNo // 고객번호
