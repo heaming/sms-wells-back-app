@@ -1,7 +1,155 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncAssignPsicTfMapper">
-    <select id="selectAssignPsicTf"
+    <select id="selectAssignPsicTf" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAssignPsicTfDvo">
+        SELECT CST_SV_ASN_NO
+             , T4.RPB_LOCARA_CD AS RPB_LOCARA_CD
+             , DECODE(NVL(T1.NEW_PRTNR_NO, T1.PRTNR_NO), T1.PRTNR_NO, T1.OG_ID, T2.OG_ID) AS OG_ID
+             , DECODE(NVL(T1.NEW_PRTNR_NO, T1.PRTNR_NO), T1.PRTNR_NO, T1.OG_TP_CD, T2.OG_TP_CD) AS NEW_OG_TP_CD
+             , T1.NEW_PRTNR_NO AS NEW_PRTNR_NO
+          FROM (
+                SELECT CST_SV_ASN_NO
+                     , SV_BIZ_DCLSF_CD
+                     , NEW_ADR_ZIP
+                     , OG_ID
+                     , OG_TP_CD
+                     , PRTNR_NO
+                     , NVL(FN_SVPD_LOCARA_PRTNR_01(NEW_ADR_ZIP, PDCT_PD_CD, SV_BIZ_DCLSF_CD, TO_CHAR(SYSDATE,'YYYYMMDD')), PRTNR_NO) AS NEW_PRTNR_NO
+                  FROM (
+                        SELECT TB_1.CST_SV_ASN_NO AS CST_SV_ASN_NO /* CST_SV_ASN_NO (고객서비스배정번호) */
+                             , TB_2.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD /* SV_BIZ_DCLSF_CD */
+                             , TB_1.SV_CNR_OG_ID AS OG_ID
+                             , TB_1.ICHR_OG_TP_CD AS OG_TP_CD
+                             , TB_1.ICHR_PRTNR_NO AS PRTNR_NO /* ICHR_OG_TP_CD, ICHR_PRTNR_NO */
+                             , TB_5.NEW_ADR_ZIP AS NEW_ADR_ZIP
+                             , TB_6.PDCT_PD_CD
+                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ TB_1
+                         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ TB_2
+                        ON (
+                            TB_1.CST_SV_ASN_NO = TB_2.CST_SV_ASN_NO
+                        )
+                        INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TB_6
+                        ON (
+                            TB_6.CNTR_NO = TB_1.CNTR_NO
+                        AND TB_6.CNTR_SN = TB_1.CNTR_SN
+                        )
+                        LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS TB_4
+                        ON (
+                            TB_4.CNTR_ADRPC_ID = (
+                                                    SELECT TEMP.CNTR_ADRPC_ID AS CNTR_ADRPC_ID
+                                                    FROM TB_SSCT_CNTR_ADR_REL TEMP
+                                                    WHERE 1=1
+                                                    AND TEMP.DTL_CNTR_NO = TB_1.CNTR_NO
+                                                    AND TEMP.DTL_CNTR_SN = TB_1.CNTR_SN
+                                                    AND TEMP.ADRPC_TP_CD IN ('2','3')
+                                                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TEMP.VL_STRT_DTM AND TEMP.VL_END_DTM
+                                                    AND ROWNUM = 1
+                                                )
+                            )
+                        LEFT OUTER JOIN TB_GBCO_ADR_BAS TB_5
+                        ON (
+                            TB_4.ADR_ID = TB_5.ADR_ID
+                        )
+                    WHERE 1=1
+                      AND TB_1.VST_CNFMDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                      AND TB_1.VST_CNFMDT >= '20191010'
+                      AND TB_1.WK_PRGS_STAT_CD IN ('00', '10')
+                      <if test='@MybatisUtils@isNotEmpty(cstSvAsnNo)'>
+                      AND TB_1.CST_SV_ASN_NO = #{cstSvAsnNo}
+                      </if>
+                    )
+                UNION ALL
+                /*********************** BS 추가 **************/
+                SELECT TB_1.CST_SV_ASN_NO AS CST_SV_ASN_NO
+                     , TB_1.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+                     , TB_5.NEW_ADR_ZIP AS NEW_ADR_ZIP
+                     , '' AS OG_ID		-- 미사용
+                     , TB_1.CNFM_PSIC_PRTNR_OG_TP_CD AS OG_TP_CD
+                     , TB_1.CNFM_PSIC_PRTNR_NO AS PRTNR_NO
+                     , NVL(FN_SVPD_LOCARA_PRTNR_01(TB_5.NEW_ADR_ZIP, TB_6.PDCT_PD_CD, TB_1.SV_BIZ_DCLSF_CD, TO_CHAR(SYSDATE,'YYYYMMDD')), TB_1.CNFM_PSIC_PRTNR_NO) AS NEW_PRTNR_NO
+                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ TB_1
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ TB_7
+                ON (
+                    TB_1.CST_SV_ASN_NO = TB_7.CST_SV_ASN_NO
+                )
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TB_6
+                ON (
+                    TB_6.CNTR_NO = TB_1.CNTR_NO
+                AND TB_6.CNTR_SN = TB_1.CNTR_SN
+                )
+                LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS TB_4
+                ON (
+                    TB_4.CNTR_ADRPC_ID = (
+                                            SELECT TEMP.CNTR_ADRPC_ID AS CNTR_ADRPC_ID
+                                              FROM TB_SSCT_CNTR_ADR_REL TEMP
+                                             WHERE 1=1
+                                               AND TEMP.DTL_CNTR_NO = TB_1.CNTR_NO
+                                               AND TEMP.DTL_CNTR_SN = TB_1.CNTR_SN
+                                               AND TEMP.ADRPC_TP_CD IN ('2','3')
+                                               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TEMP.VL_STRT_DTM AND TEMP.VL_END_DTM
+                                               AND ROWNUM = 1
+                                         )
+                )
+                LEFT OUTER JOIN TB_GBCO_ADR_BAS TB_5
+                ON (
+                    TB_4.ADR_ID = TB_5.ADR_ID
+                )
+                 WHERE 1=1
+                   AND TB_1.CNFM_PSIC_DV_CD = '2'
+                   AND TB_1.ASN_OJ_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND TB_1.VST_CNFMDT IS NOT NULL
+                   AND TB_1.VST_PRGS_STAT_CD IN ('00', '10')
+                   AND (TB_1.ASN_TF_DV_CD IS NULL --이관기록이 없고
+                   OR TB_1.ASN_TF_DV_CD = '411')
+                   AND TB_1.VST_CNFMDT >= '20191010'
+                   AND TB_7.VST_DV_CD != '20'
+                 <if test='@MybatisUtils@isNotEmpty(cstSvAsnNo)'>
+                   AND TB_1.CST_SV_ASN_NO = #{cstSvAsnNo} /* 고객서비스배정번호 */
+                 </if>
+            ) T1
+            INNER JOIN (SELECT DISTINCT PRTNR_NO
+                             , FIRST_VALUE(OG_ID) OVER(ORDER BY DECODE(OG_TP_CD, 'W06', 1, 'W03', 2, 'W02', 3, 'HR1', 4, 5)) AS OG_ID
+                             , FIRST_VALUE(OG_TP_CD) OVER(ORDER BY DECODE(OG_TP_CD, 'W06', 1, 'W03', 2, 'W02', 3, 'HR1', 4, 5)) AS OG_TP_CD
+                          FROM TB_OGBS_MM_PRTNR_IZ
+                         WHERE BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+            ) T2
+            ON (
+                T2.PRTNR_NO = T1.NEW_PRTNR_NO
+            )
+            LEFT OUTER JOIN TB_SVPD_EGER_ASN_ADR_IZ T3
+            ON (
+                (T3.NEW_ADR_ZIP, T3.EMD_SN) = (
+                                                SELECT TEMP.NEW_ADR_ZIP
+                                                     , MAX(TEMP.EMD_SN) AS EMD_SN
+                                                  FROM TB_SVPD_EGER_ASN_ADR_IZ TEMP
+                                                 WHERE 1=1
+                                                   AND TEMP.NEW_ADR_ZIP = T1.NEW_ADR_ZIP
+                                                 GROUP BY TEMP.NEW_ADR_ZIP
+                                                )
+            )
+            LEFT OUTER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T4
+            ON (
+                (T4.FR2P_LGLD_CD, T4.CTPV_NM, T4.CTCTY_NM, T4.LAWC_EMD_NM, T4.AMTD_NM, T4.ADR_ODR_NO) = (
+                    SELECT TEMP.FR2P_LGLD_CD
+                         , TEMP.CTPV_NM
+                         , TEMP.CTCTY_NM
+                         , TEMP.LAWC_EMD_NM
+                         , TEMP.AMTD_NM
+                         , MAX(TEMP.ADR_ODR_NO) AS ADR_ODR_NO
+                      FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ TEMP
+                     WHERE 1=1
+                       AND TEMP.FR2P_LGLD_CD = T3.FR2P_LGLD_CD
+                       AND TEMP.CTPV_NM = T3.CTPV_NM
+                       AND TEMP.CTCTY_NM = T3.CTCTY_NM
+                       AND TEMP.LAWC_EMD_NM = T3.LAWC_EMD_NM
+                       AND TEMP.AMTD_NM = T3.AMTD_NM
+                     GROUP BY TEMP.FR2P_LGLD_CD, TEMP.CTPV_NM, TEMP.CTCTY_NM, TEMP.LAWC_EMD_NM, TEMP.AMTD_NM
+                    )
+            )
+    </select>
+
+
+    <select id="selectAssignPsicTf2"
             resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAssignPsicTfDvo">
         SELECT *
           FROM (
