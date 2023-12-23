@@ -220,56 +220,77 @@
     <select id="selectBranchsAndServiceCenters" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsPeriodCustomerTfDto$BranchsAndServiceCentersRes">
         SELECT T3.*
         FROM (
+                SELECT '' AS OG_ID
+                     , '' AS OG_TP_CD
+                     , '' AS OG_CD
+                     , '' AS OG_NM
+                     , '' AS OG_CD_NM
+                     , '' AS HGR_OG_ID
+                  FROM DUAL
+                 WHERE 1=2
                 <if test="@MybatisUtils@isEmpty(ogId)">
-        		SELECT TEMP.OG_ID
-				     , TEMP.OG_TP_CD
-				     , TEMP.OG_CD
-				     , TEMP.OG_NM
-				     , TEMP.OG_NM || ' (' || TEMP.OG_CD || ')' AS OG_CD_NM
-				     , TEMP.HGR_OG_ID
-				  FROM TB_OGBS_MM_OG_IZ TEMP
-				 WHERE 1=1
-				   AND TEMP.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-				   AND OG_ID IN ('OG00098159', 'OG00098160', 'OG00098161', 'OG00098163')
-				  UNION
-                SELECT T2.OG_ID
-                     , T2.OG_TP_CD
-                     , T2.OG_CD
-                     , T2.OG_NM
-                     , T2.OG_NM || ' (' || T2.OG_CD || ')' AS OG_CD_NM
-                     , T2.HGR_OG_ID
-                  FROM TB_OGBS_MM_OG_IZ T2
-                 WHERE T2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
---                   AND ((T2.OG_TP_CD = 'W03' AND T2.OG_LEVL_DV_CD = '3')
---                           OR (T2.OG_TP_CD = 'W06' AND T2.OG_LEVL_DV_CD = '1'))
-                   AND T2.OG_TP_CD = 'W06'
-                   AND T2.OG_LEVL_DV_CD = '1'
-                   AND T2.CLO_YN = 'N'
-                   AND T2.DTA_DL_YN = 'N'
-                 UNION
+                UNION ALL
+                SELECT * FROM (
+                    SELECT TEMP.OG_ID
+                         , TEMP.OG_TP_CD
+                         , TEMP.OG_CD
+                         , TEMP.OG_NM
+                         , TEMP.OG_NM || ' (' || TEMP.OG_CD || ')' AS OG_CD_NM
+                         , TEMP.HGR_OG_ID
+                      FROM TB_OGBS_MM_OG_IZ TEMP
+                     WHERE 1=1
+                       AND TEMP.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                       AND OG_ID IN ('OG00098159', 'OG00098160', 'OG00098161', 'OG00098163')
+                       AND #{session.baseRleCd} IN ('W6010', 'W6020', 'W1020', 'W1030')
+                     ORDER BY OG_CD ASC
+                )
+				UNION ALL
+                SELECT * FROM (
+                    SELECT T2.OG_ID
+                         , T2.OG_TP_CD
+                         , T2.OG_CD
+                         , T2.OG_NM
+                         , T2.OG_NM || ' (' || T2.OG_CD || ')' AS OG_CD_NM
+                         , T2.HGR_OG_ID
+                      FROM TB_OGBS_MM_OG_IZ T2
+                     WHERE T2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                       AND T2.OG_TP_CD = 'W06'
+                       AND T2.OG_LEVL_DV_CD = '1'
+                       AND T2.CLO_YN = 'N'
+                       AND T2.DTA_DL_YN = 'N'
+                       AND #{session.baseRleCd} IN ('W6010', 'W6020', 'W1020', 'W1030')
+                     ORDER BY SORT_ODR ASC, OG_CD ASC
+                    )
                 </if>
-                SELECT T1.OG_ID
-                     , T1.OG_TP_CD
-                     , T1.OG_CD
-                     , T1.OG_NM
-                     , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
-                     , T1.HGR_OG_ID
-                  FROM TB_OGBS_MM_OG_IZ T1
-                 WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                   AND T1.OG_TP_CD IN ('W02', 'ALC')
-                   AND T1.OG_LEVL_DV_CD = '3'
-                   AND T1.DTA_DL_YN = 'N'
-             <if test="@MybatisUtils@isNotEmpty(managerAuthYn) and @MybatisUtils@equals(managerAuthYn, 'Y')">
-                 <if test="@MybatisUtils@isNotEmpty(bznsSpptRsbDvCd) and @MybatisUtils@equals(bznsSpptRsbDvCd, 'W0206')">
-                   -- 업무지원매니저(W0206)인 경우만
-                   --AND T1.OG_LEVL_DV_CD = '1'
-                   AND T1.DGR2_LEVL_OG_ID = #{manageOgId}
-                 </if>
-                 <if test="@MybatisUtils@isNotEmpty(bznsSpptRsbDvCd) and @MybatisUtils@equals(bznsSpptRsbDvCd, 'W0207')">
-                   -- 영업지원매니저-BM(W0207)인 경우만
-                   --AND T1.OG_LEVL_DV_CD = '2'
-                   AND T1.DGR1_LEVL_OG_ID = #{manageOgId}
-                 </if>
+                UNION ALL
+                SELECT * FROM (
+                    SELECT T1.OG_ID
+                         , T1.OG_TP_CD
+                         , T1.OG_CD
+                         , T1.OG_NM
+                         , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
+                         , T1.HGR_OG_ID
+                      FROM TB_OGBS_MM_OG_IZ T1
+                     WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                       AND T1.OG_TP_CD IN ('W02', 'ALC')
+                       AND T1.OG_LEVL_DV_CD = '3'
+                       AND T1.DTA_DL_YN = 'N'
+                       AND ((#{session.baseRleCd} IN ('W1560', 'W1580')) OR (#{bznsSpptRsbDvCd IN ('W0206', 'W0207')))
+                       AND T1.OG_CD NOT LIKE ('Y%')
+                       AND T1.OG_CD NOT LIKE ('Z%')
+                 <if test="@MybatisUtils@isNotEmpty(managerAuthYn) and @MybatisUtils@equals(managerAuthYn, 'Y')">
+                     <if test="@MybatisUtils@isNotEmpty(bznsSpptRsbDvCd) and @MybatisUtils@equals(bznsSpptRsbDvCd, 'W0206')">
+                       -- 업무지원매니저(W0206)인 경우만
+                       --AND T1.OG_LEVL_DV_CD = '1'
+                       AND T1.DGR2_LEVL_OG_ID = #{manageOgId}
+                     </if>
+                     <if test="@MybatisUtils@isNotEmpty(bznsSpptRsbDvCd) and @MybatisUtils@equals(bznsSpptRsbDvCd, 'W0207')">
+                       -- 영업지원매니저-BM(W0207)인 경우만
+                       --AND T1.OG_LEVL_DV_CD = '2'
+                       AND T1.DGR1_LEVL_OG_ID = #{manageOgId}
+                     </if>
+                     ORDER BY OG_CD ASC
+                 )
              </if>
               ) T3
         WHERE 1=1
