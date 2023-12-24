@@ -44,7 +44,8 @@ public class WdchClearingDataCreateService {
         BigDecimal totSlAmt = BigDecimal.ZERO; /*총매출금액(매출총액)*/
         BigDecimal ucAmt = BigDecimal.ZERO; /*미수금액(매출잔액)*/
 
-        BigDecimal spmtUcOcAmt = ObjectUtils.defaultIfNull(tmpSlDvo.getOcBorAmt(), BigDecimal.ZERO); // 추가미수발생금액
+        BigDecimal spmtUcOcAmt = ObjectUtils.defaultIfNull(tmpSlDvo.getThmOcDlqAddAmt(), BigDecimal.ZERO)
+            .add(ObjectUtils.defaultIfNull(tmpSlDvo.getOcBorAmt(), BigDecimal.ZERO)); // 추가미수발생금액 = 발생연체가산금액 + 발생위약금액
         BigDecimal slCanAmt = ObjectUtils.defaultIfNull(tmpSlDvo.getSlCanAmt(), BigDecimal.ZERO); // 매출취소금액
         if (!ObjectUtils.isEmpty(banjeDvo)) {
             dpBlam = ObjectUtils.defaultIfNull(banjeDvo.getDpBlam(), BigDecimal.ZERO); // 선수금(입금잔액)
