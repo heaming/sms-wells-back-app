@@ -234,6 +234,13 @@ public class WdchClearingDataCreateService {
             }
 
             if (CollectionUtils.isNotEmpty(edchEduSlCnfmBases) && CollectionUtils.isEmpty(bznsAtamBases)) {
+                // 전월 채권반제기본 조회
+                WdchSlBndAlrpyBasBeforeMonthDvo lstMmSlBndAlrpyBasDvo = wdchClearingDataCreateMapper
+                    .selectSlBndAlrpyBasBeforeMonth(dvo);
+                if (ObjectUtils.isEmpty(lstMmSlBndAlrpyBasDvo)) {
+                    lstMmSlBndAlrpyBasDvo = new WdchSlBndAlrpyBasBeforeMonthDvo();
+                }
+
                 WdchEduSlCnfmBasDvo tmpSlDvo = edchEduSlCnfmBases.get(edchEduSlCnfmBases.size() - 1);
 
                 WdchSlBndAlrpyBasDvo returnDvo = new WdchSlBndAlrpyBasDvo();
@@ -266,11 +273,25 @@ public class WdchClearingDataCreateService {
                 returnDvo.setSlRcogDt(tmpSlDvo.getSlRcogDt());
                 returnDvo.setSlBndOcAmt(ObjectUtils.defaultIfNull(tmpSlDvo.getSlAmtSum(), BigDecimal.ZERO));
                 returnDvo.setSlCanAmt(BigDecimal.ZERO);
-                returnDvo.setSpmtUcOcAmt(BigDecimal.ZERO);
+                // 추가미수발생금액 = 발생연체가산금액 + 발생위약금액
+                returnDvo.setSpmtUcOcAmt(
+                    ObjectUtils.defaultIfNull(tmpSlDvo.getThmOcDlqAddAmt(), BigDecimal.ZERO).add(
+                        ObjectUtils.defaultIfNull(tmpSlDvo.getOcBorAmt(), BigDecimal.ZERO)
+                    )
+                );
                 returnDvo.setSapSlSlpno(tmpSlDvo.getSapSlpno());
-                returnDvo.setTotSlAmt(BigDecimal.ZERO);
-                returnDvo.setBtdUcAmt(BigDecimal.ZERO);
-                returnDvo.setUcAmt(BigDecimal.ZERO);
+                // 총매출금액 = 전월 총매출금액 + 매출
+                returnDvo.setTotSlAmt(
+                    ObjectUtils.defaultIfNull(lstMmSlBndAlrpyBasDvo.getTotSlAmt(), BigDecimal.ZERO)
+                        .add(tmpSlDvo.getSlAmtSum())
+                );
+                // 기초미수금액 = 전월 미수금
+                returnDvo.setBtdUcAmt(ObjectUtils.defaultIfNull(lstMmSlBndAlrpyBasDvo.getUcAmt(), BigDecimal.ZERO));
+                // 미수금액 = 전월 미수금 + 매출 - 반제금액(0:생략)
+                returnDvo.setUcAmt(
+                    ObjectUtils.defaultIfNull(lstMmSlBndAlrpyBasDvo.getUcAmt(), BigDecimal.ZERO)
+                        .add(tmpSlDvo.getSlAmtSum())
+                );
 
                 return returnDvo;
             } else {
