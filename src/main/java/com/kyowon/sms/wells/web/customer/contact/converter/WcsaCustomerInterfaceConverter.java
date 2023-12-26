@@ -7,6 +7,7 @@ import org.mapstruct.Mapping;
 import com.kyowon.sms.common.web.customer.common.dvo.ZcsaCustomerInfoByEccDvo;
 import com.kyowon.sms.common.web.customer.common.dvo.ZcsaCustomerInfoDvo;
 import com.kyowon.sms.common.web.customer.common.dvo.ZcsaCustomerInfoReqDvo;
+import com.kyowon.sms.common.web.customer.contact.dvo.ZcsaCstBasDvo;
 import com.kyowon.sms.common.web.customer.contact.dvo.ZcsaCstCtplcBasDvo;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto;
 import com.kyowon.sms.wells.web.customer.contact.dto.WcsaCustomerInterfaceDto.SearchCustomerInfoReq;
@@ -102,6 +103,16 @@ public interface WcsaCustomerInterfaceConverter {
 
     WcsaCustomerInterfaceDto.SaveCustomerAgreementRes mapWcsaCustomerAgreementResultDvoToSaveCustomerAgreementRes(
         WcsaCustomerAgreementResultDvo resultDvo
+    );
+
+    @BeanMapping(ignoreByDefault = true)
+    @Mapping(target = "dtaDlYn", constant = "N")
+    @Mapping(source = "cstNo", target = "cstNo")
+    @Mapping(source = "cralLocaraTno", target = "cralLocaraTno")
+    @Mapping(source = "mexno", target = "mexnoEncr")
+    @Mapping(source = "cralIdvTno", target = "cralIdvTno")
+    ZcsaCstBasDvo mapCstBasToCustomerInfoByEcc(
+        ZcsaCustomerInfoByEccDvo dvo
     );
 
 }
