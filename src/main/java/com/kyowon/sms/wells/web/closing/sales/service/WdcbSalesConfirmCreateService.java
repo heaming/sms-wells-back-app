@@ -151,8 +151,8 @@ public class WdcbSalesConfirmCreateService {
         String tempSlRcogClsfCd = ""; /*매출인식분류코드*/
         String sapSlTpCd = ""; // SAP매출유형코드
         String sapBizDvCd = ""; // SAP업무구분코드
-        String slTpDvCd = "";
-        String clssVal = "";
+        String slTpDvCd = "1";
+        String clssVal = "1";
         String addConditionSlTp = "0";
         String addConditionBizDv = "0";
 
