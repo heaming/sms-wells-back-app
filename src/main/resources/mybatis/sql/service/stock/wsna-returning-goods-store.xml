@@ -89,10 +89,11 @@
                      , (CASE WHEN SUBSTR(T1.SV_BIZ_DCLSF_CD, 0, 2) = '34' AND T5.SVPD_ITEM_KND = '4' AND T1.FNL_ITM_GD_CD = 'X' THEN ''
                              WHEN X2.FRISU_YN = 'Y' THEN ''
                              WHEN SUBSTR(T1.SV_BIZ_DCLSF_CD, 0, 2) = '34' AND T5.SVPD_ITEM_KND = '4' AND (CASE WHEN X2.SELL_TP_CD = '1' THEN 'E' /*일시불(할부)판매고객*/
-                                                                                                               WHEN T9.USE_DAYS <![CDATA[<=]]> 7 AND X2.ALNCMP_CD = '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'E' /*K멤버스 7일 이하*/
-                                                                                                               WHEN T9.USE_DAYS > 7 AND X2.ALNCMP_CD = '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'R' /*K멤버스 7일 초과*/
-                                                                                                               WHEN T9.USE_DAYS <![CDATA[<=]]> 14 AND X2.ALNCMP_CD <![CDATA[<>]]> '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'E' /*K멤버스외 14일 이하*/
-                                                                                                               WHEN T9.USE_DAYS > 14 AND X2.ALNCMP_CD <![CDATA[<>]]> '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'R' /*K멤버스외 14일 초과*/
+                                                                                                               /* ASIS에서는 ALNCMP_CD(제휴사코드)가 없을경우 '' 처리가 되었는데 TOBE에서는 빈값이 아니라 NULL로 처리되어 있어서 값 비교를 위해 NVL처리를 함 */
+                                                                                                               WHEN T9.USE_DAYS <![CDATA[<=]]> 7 AND NVL(X2.ALNCMP_CD, ' ') = '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'E' /*K멤버스 7일 이하*/
+                                                                                                               WHEN T9.USE_DAYS > 7 AND NVL(X2.ALNCMP_CD, ' ') = '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'R' /*K멤버스 7일 초과*/
+                                                                                                               WHEN T9.USE_DAYS <![CDATA[<=]]> 14 AND NVL(X2.ALNCMP_CD, ' ') <![CDATA[<>]]> '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'E' /*K멤버스외 14일 이하*/
+                                                                                                               WHEN T9.USE_DAYS > 14 AND NVL(X2.ALNCMP_CD, ' ') <![CDATA[<>]]> '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'R' /*K멤버스외 14일 초과*/
                                                                                                           ELSE 'R'
                                                                                                            END ) <![CDATA[<>]]> T1.FNL_ITM_GD_CD THEN '1'
                          ELSE ''
@@ -111,7 +112,7 @@
                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', X2.SELL_TP_CD) AS SELL_TP_NM /*판매유형명*/
                      , F_CMZ_CD_NM('TNT_WELLS', 'PRD_MNGT_TP_CD', X2.SELL_TP_CD) AS MNGT_UNIT_NM /* 관리단위 */
                      , (CASE WHEN X2.FRISU_YN = 'Y' THEN '무료체험'
-                             WHEN X2.ALNCMP_CD = '45' THEN F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', X2.ALNCMP_CD)
+                             WHEN NVL(X2.ALNCMP_CD, ' ') = '45' THEN F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', X2.ALNCMP_CD)
                              ELSE ''
                         END) AS REFER_ARTC /*참고사항*/
                      , T1.SV_BIZ_DCLSF_CD /*서비스업무세분류코드 BA04*/
