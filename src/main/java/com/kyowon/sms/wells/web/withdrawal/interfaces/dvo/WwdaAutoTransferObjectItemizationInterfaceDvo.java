@@ -9,6 +9,7 @@ import lombok.Setter;
 @Setter
 public class WwdaAutoTransferObjectItemizationInterfaceDvo {
 
+    private String cntrStlmId; /*계약결제ID*/
     private String cstNo; /*고객번호*/
     private String sellTpCd; /*판매유형코드*/
     private String cntrNo; /*계약번호*/
