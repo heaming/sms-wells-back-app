@@ -281,6 +281,27 @@ public class WdccMonthlySalesClosingAggregationService {
                 }
             }
 
+            /*
+            IF(정기배송 or 리스) {
+
+              당월납 or 리스인 경우
+              IF(기초청구미수금액 + 당월청구발생금액 < 선수기초 + 선수입금) {
+                당월청구입금금액 = 기초청구미수금액 + 당월청구발생금액
+              } ELSE {
+                당월청구입금금액 = 선수기초 + 선수입금
+              }
+
+              후납인 경우
+              IF(기초청구미수금액 < 선수기초 + 선수입금) {
+                당월청구입금금액 = 기초청구미수금액
+              } ELSE {
+                당월청구입금금액 = 선수기초 + 선수입금
+              }
+
+            선수기말 = (선수기초 + 선수입금) - 당월청구입금금액
+            기말청구미수금액 = 기초청구미수 + 당월청구발생 - 당월청구입금 - 당월청구조정 + 당월청구추가
+            }
+            */
             if (StringUtils.equals(sellTpCd, "6")
                 || StringUtils.equals(sellTpDtlCd, "22")
                 || StringUtils.equals(sellTpDtlCd, "24")
@@ -314,6 +335,87 @@ public class WdccMonthlySalesClosingAggregationService {
                 );
             }
 
+            /*
+            정기배송
+
+            IF 당월청구조정금액 = 0
+            IF 당월납
+            IF 기초청구미수금액 + 당월청구발생금액 <= 선수기초 + 선수입금
+            당월청구입금금액 = 기초청구미수금액 + 당월청구발생금액
+            기말청구미수금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
+            기말선수금액 = 선수기초 + 선수입금 - 기초청구미수금액 + 당월청구발생금액
+            ELSE
+            당월청구입금금액 = 선수기초 + 선수입금
+            기말청구미수금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
+            기말선수금액 = 0
+            ELSE --후납
+            IF 기초청구미수금액 <= 선수기초 + 선수입금
+            당월청구입금금액 = 기초청구미수금액
+            기말청구미수금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
+            기말선수금액 = 선수기초 + 선수입금 - 기초청구미수금액
+            ELSE
+            당월청구입금금액 = 선수기초 + 선수입금
+            기말청구미수금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
+            기말선수금액 = 0
+
+            IF 당월청구조정금액 > 0
+            IF 당월납
+            IF 기초청구미수금액 + 당월청구발생금액 <= 선수기초 + 선수입금
+            당월청구입금금액 = 기초청구미수금액 + 당월청구발생금액
+            당월청구조정금액 = 0
+            IF 차월청구미수예정금액 > 0
+            차월청구미수예정금액 = 차월청구미수예정금액 - 당월청구조정금액
+            IF 차월청구미수예정금액 > 0
+            기말선수금액 0
+            ELSE IF 차차월청구미수예정금액 >0
+                 차차월청구미수예정금액 = 차차월청구미수예정금액 - (차월청구미수예정금액 - 당월청구조정금액)
+                  IF 차차월청구미수예정금액 > 0
+                     차월청구예정금액 = 0
+                     기말선수금 = 0
+                  ELSE
+                      차월청구예정금액 = 0
+                      차차월청구예정금액 = 0
+                      초과조정입금금액 = 당월청구조정금액 - 차월청구미수예정금액 - 차차월청구미수예정금액
+                      기말선수금 = 당월청구조정금액 - 차월청구미수예정금액 - 차차월청구미수예정금액
+            ELSE
+            초과조정입금금액 = 매출조정금액
+            기말선수금 = 매출조정금액
+            ELSE
+            당월청구입금금액 = 선수기초금액 + 선수입금금액
+            IF 당월청구조정금액 > 기초청구미수금액 + 당월청구발생금액 - 선수기초금액 + 선수입금금액
+            초과조정입금금액 = 기초청구미수금액 + 당월청구발생금액 - 선수기초금액 + 선수입금금액
+            기말선수금 = 기초청구미수금액 + 당월청구발생금액 - 선수기초금액 + 선수입금금액
+            당월청구조정금액 = 기초청구미수금액 + 당월청구발생금액 - 선수기초금액 + 선수입금금액
+            기말청구미수금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
+            ELSE  --후납
+            IF 기초청구미수금액 <= 선수기초 + 선수입금
+            당월청구입금금액 = 기초청구미수금액
+            당월청구조정금액 = 0
+            IF 차월청구미수예정금액 > 0
+            차월청구미수예정금액 = 차월청구미수예정금액 - 당월청구조정금액
+            IF 차월청구미수예정금액 > 0
+            기말선수금액 0
+            ELSE IF 차차월청구미수예정금액 >0
+                 차차월청구미수예정금액 = 차차월청구미수예정금액 - (차월청구미수예정금액 - 당월청구조정금액)
+                  IF 차차월청구미수예정금액 > 0
+                     차월청구예정금액 = 0
+                     기말선수금 = 0
+                  ELSE
+                      차월청구예정금액 = 0
+                      차차월청구예정금액 = 0
+                      초과조정입금금액 = 당월청구조정금액 - 차월청구미수예정금액 - 차차월청구미수예정금액
+                      기말선수금 = 당월청구조정금액 - 차월청구미수예정금액 - 차차월청구미수예정금액
+            ELSE
+            초과조정입금금액 = 매출조정금액
+            기말선수금 = 매출조정금액
+            ELSE
+            당월청구입금금액 = 선수기초금액 + 선수입금금액
+            IF 당월청구조정금액 > 기초청구미수금액 - 선수기초금액 + 선수입금금액
+            초과조정입금금액 = 기초청구미수금액 - 선수기초금액 + 선수입금금액
+            기말선수금 = 기초청구미수금액 - 선수기초금액 + 선수입금금액
+            당월청구조정금액 = 기초청구미수금액 - 선수기초금액 + 선수입금금액
+            기말청구미수금액 = 기초청구미수금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
+             */
             thmBilCtrAmt = Integer
                 .parseInt(StringUtils.defaultIfEmpty(dvo.getThmBilCtrAmt(), "0")); //당월청구조정금액
             btdBilUcAmt = Integer
@@ -331,11 +433,13 @@ public class WdccMonthlySalesClosingAggregationService {
             int tsmBilUcExpAmt = Integer
                 .parseInt(StringUtils.defaultIfEmpty(dvo.getTsmBilUcExpAmt(), "0")); //차차월청구미수예정금액
 
-            int thmBilCtrAmtTmp = 0; //당월청구조정금액tmp
-            int nmnBilUcExpAmtTmp = 0; //차월청구예정금액tmp
-            int tsmBilUcExpAmtTmp = 0; //차차월청구예정금액tmp
+            int thmBilCtrAmtTmp = thmBilCtrAmt; //당월청구조정금액tmp
+            int nmnBilUcExpAmtTmp = nmnBilUcExpAmt; //차월청구예정금액tmp
+            int tsmBilUcExpAmtTmp = tsmBilUcExpAmt; //차차월청구예정금액tmp
             int eotBilUcAmt = 0; //기말청구미수금액
             int thmBilDpAmt = 0; //당월청구입금금액
+            // eotAtam = 0; //기말선수금
+            // int ovrCtrDpAmt = 0; //초과조정입금금액
 
             if (StringUtils.equals(sellTpCd, "6")) {
                 eotAtam = 0; //기말선수금
@@ -394,6 +498,9 @@ public class WdccMonthlySalesClosingAggregationService {
                                 ovrCtrDpAmt = btdBilUcAmt + thmBilOcAmt - btdAtam + thmAtamDpAmt; //초과조정입금금액 = 기초청구미수금액 + 당월청구발생금액 - 선수기초금액 + 선수입금금액
                                 eotAtam = btdBilUcAmt + thmBilOcAmt - btdAtam + thmAtamDpAmt; //기말선수금 = 기초청구미수금액 + 당월청구발생금액 - 선수기초금액 + 선수입금금액
                                 thmBilCtrAmtTmp = btdBilUcAmt + thmBilOcAmt - btdAtam + thmAtamDpAmt; //당월청구조정금액 = 기초청구미수금액 + 당월청구발생금액 - 선수기초금액 + 선수입금금액
+                                eotBilUcAmt = btdBilUcAmt + thmBilOcAmt - thmBilDpAmt - thmBilCtrAmtTmp + thmBilSpmtAmt; //기말청구미수금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
+                            } else {
+                                thmBilCtrAmtTmp = thmBilCtrAmt;
                                 eotBilUcAmt = btdBilUcAmt + thmBilOcAmt - thmBilDpAmt - thmBilCtrAmt + thmBilSpmtAmt; //기말청구미수금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
                             }
                         }
@@ -437,6 +544,7 @@ public class WdccMonthlySalesClosingAggregationService {
                     dvo.setThmBilCtrAmt(String.valueOf(thmBilCtrAmtTmp));
                     dvo.setTsmBilUcExpAmt(String.valueOf(tsmBilUcExpAmtTmp));
                     dvo.setNmnBilUcExpAmt(String.valueOf(nmnBilUcExpAmtTmp));
+                    // dvo.setOvrCtrDpAmt(String.valueOf(ovrCtrDpAmt));
                 }
             }
             dvo.setOvrCtrDpAmt(String.valueOf(ovrCtrDpAmt));
