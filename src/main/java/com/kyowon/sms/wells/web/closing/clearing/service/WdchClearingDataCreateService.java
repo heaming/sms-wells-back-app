@@ -57,14 +57,13 @@ public class WdchClearingDataCreateService {
         BigDecimal depositAmount = BigDecimal.ZERO; // 입금금액
         BigDecimal atamRplcProcsAmt = BigDecimal.ZERO; // 선수금대체처리금액
 
-        String rveDvCd = basDvo.getRveDvCd();
-        String sellTpCd = basDvo.getSellTpCd();
-        String sellTpDtlCd = basDvo.getSellTpDtlCd();
-
         /* 영업선수금기본 조회 */
         List<WdchDepositConfirmationDvo> wdchDepositConfirmationDvoList = wdchClearingDataCreateMapper
             .selectDepositConfirmation(dvo);
         for (WdchDepositConfirmationDvo wdchDepositConfirmationDvo : wdchDepositConfirmationDvoList) {
+            String rveDvCd = wdchDepositConfirmationDvo.getRveDvCd();
+            String sellTpCd = wdchDepositConfirmationDvo.getSellTpCd();
+            String sellTpDtlCd = wdchDepositConfirmationDvo.getSellTpDtlCd();
             BigDecimal amt = wdchDepositConfirmationDvo.getAmt();
 
             switch (sellTpCd) {
