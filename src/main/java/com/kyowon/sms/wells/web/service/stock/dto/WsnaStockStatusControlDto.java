@@ -95,6 +95,7 @@ public class WsnaStockStatusControlDto {
         String codeId, /* CODEID */
         String codeName, /* CODENAME */
         String itmKnd, /* 품목구분 */
+        String sapCd, /* SAP코드 */
         String wareNo /* 창고번호 */
     ) {}
 
