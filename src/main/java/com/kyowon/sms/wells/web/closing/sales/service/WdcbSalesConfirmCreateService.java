@@ -115,18 +115,16 @@ public class WdcbSalesConfirmCreateService {
         /* 11. 코스트센터코드, WBS코드, SAP목적자재코드 */
         /* ASIS의 ZS2200P 테이블에도 모든 값이 공백임. 공백 넣을것 */
         /* 12. SAP과세면세구분코드 */
-        //String sapTxnDtfrCd = dvo.getPvdaAmt() > 0 ? "3" : vat > 0 ? "1" : "0";
         String sapTxnDtfrCd = "";
         if (dvo.getPvdaAmt() > 0) {
             // 현할차금액(PVDA_AMT) 있으면 3
             sapTxnDtfrCd = "3";
-        } else if (vat > 0) {
-            // VAT있으면 1
+        } else if ("10".equals(vatTpCd)) { // VAT_TP_CD - 10:과세
             sapTxnDtfrCd = "1";
-        } else {
-            // 없으면 0
+        } else { // VAT_TP_CD - 20:영세, 30:면세
             sapTxnDtfrCd = "0";
         }
+
         /* 13. SAP세금계산서발행기준코드 */
         String sapTxinvPblBaseCd = "";
         if (StringUtils.isNotEmpty(sapPdDvCd) && ("B1".equals(sapPdDvCd) || "B2".equals(sapPdDvCd))) {
