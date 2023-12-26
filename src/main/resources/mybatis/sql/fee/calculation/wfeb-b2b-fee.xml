@@ -412,99 +412,213 @@
              , DTA_DL_YN
               <include refid="COMMON.insertSystemField" />
         )
-        SELECT T1.BASE_YM
-             , T1.PERF_YM
-             , T1.FEE_TCNT_DV_CD
+        SELECT U.BASE_YM
+             , U.PERF_YM
+             , U.FEE_TCNT_DV_CD
              , '401'                    AS PERF_AGRG_CRT_DV_CD
-             , 'W04P00001'              AS PERF_ATC_CD
+             , U.PERF_ATC_CD            AS PERF_ATC_CD
              , '2000'    AS CO_CD
-             , T1.OG_TP_CD
-             , T1.PRTNR_NO
+             , U.OG_TP_CD
+             , U.PRTNR_NO
              , '0'  AS PERF_DV_CD
-             , T1.CNTR_NO
-             , T1.CNTR_SN
-             , T1.CNTR_PERF_CRT_DV_CD
-             , T1.PERF_VAL
+             , U.CNTR_NO
+             , U.CNTR_SN
+             , U.CNTR_PERF_CRT_DV_CD
+             , U.PERF_VAL
              , 'N'                      AS DTA_DL_YN
              <include refid="COMMON.insertSystemFieldValue" />
-          FROM (
-                SELECT *
-                  FROM (
+            FROM (
+                SELECT T1.BASE_YM
+                     , T1.PERF_YM
+                     , T1.FEE_TCNT_DV_CD
+                     , T1.OG_TP_CD
+                     , T1.PRTNR_NO
+                     , T1.CNTR_NO
+                     , T1.CNTR_SN
+                     , T1.CNTR_PERF_CRT_DV_CD
+                     , T1.PERF_VAL AS W04P00001 /*기본수수료*/
+                     , (CASE WHEN T1.SODM IS NOT NULL THEN T1.LCCN31 ELSE 0 END) AS W04P00002 /*삼성ODM수량*/
+                     , T1.LCCN31 AS W04P00003 /*일반건수(렌탈수량)*/
+                     , T1.LCCN32 AS W04P00004 /*기변１건수*/
+                     , T1.LCCN33 AS W04P00005 /*기변2건수*/
+                     , T1.LCCN34 AS W04P00006 /*기변3건수*/
+                     , T1.LCCN35 AS W04P00007 /*단체할인일반*/
+                     , T1.LCCN51 AS W04P00008 /*홈케어일시수*/
+                     , T1.LCCN52 AS W04P00009 /*홈케어멤버수*/
+                     , (T1.LCCN31 + T1.LCCN35 + T1.LCCN51 + T1.LCCN52) AS W04P00010 /*총건수*/
+                FROM (
                         SELECT T1.*
-                             , NVL(F1.SELL_FEE, 0) AS PERF_VAL   -- 판매수수료(총판) - As-Is의 LC1250P.LCAM01
-                             , ROW_NUMBER() OVER(PARTITION BY T1.CNTR_NO, T1.CNTR_SN ORDER BY NVL(F1.HGR_PD_CD, '0') DESC, F1.SV_PRD DESC, F1.FST_RGST_DTM DESC) SEQ
+                             , (CASE WHEN T1.SELL_TP_CD = '1' THEN
+                                        (CASE WHEN T1.SELL_DSC_DV_CD ='9' AND T1.SELL_DSCR_CD ='99' THEN 0
+                                              WHEN T1.SELL_DSC_DV_CD ='5' AND T1.SELL_DSCR_CD IN ('11','12','13','14') AND T1.ACKMT_PERF_AMT > 0 THEN 0
+                                              WHEN T1.ENVR_ELHM_YN = 'Y' /* 환경가전여부 = Y  */
+                                               AND T1.SELL_TP_DTL_CD != '12'
+                                               AND T1.FEE_FXAM_YN = 'N'
+                                               AND T1.ACKMT_PERF_AMT > 0 THEN T1.ACKMT_PERF_CT
+                                              ELSE 0 END)
+                                     WHEN T1.SELL_TP_CD = '2' THEN
+                                        (CASE WHEN T1.SELL_DSC_DV_CD ='5' AND T1.SELL_DSCR_CD IN ('5','6','9') AND T1.ACKMT_PERF_AMT > 2 THEN 0
+                                              WHEN T1.PD_CD IN ('WP05120457', 'WP05120458', 'WP05120459') THEN 0 /*커피원두*/
+                                              WHEN T1.ACKMT_PERF_EXCD_YN = 'N' AND T1.SELL_DSC_DV_CD !='5' AND T1.MCHN_CH_YN = 'Y' AND T1.MCHN_CH_TP_CD = '0' AND T1.ACKMT_PERF_AMT > 0 THEN T1.FEE_ACKMT_CT
+                                              WHEN T1.ACKMT_PERF_EXCD_YN = 'N' AND T1.SELL_DSC_DV_CD !='5' AND T1.MCHN_CH_YN = 'N' AND T1.ACKMT_PERF_AMT > 0 THEN T1.FEE_ACKMT_CT
+                                              ELSE 0 END)
+                                     WHEN T1.SELL_TP_CD = '3' THEN
+                                        (CASE WHEN T1.SELL_TP_DTL_CD = '33' AND T1.SELL_DSC_TP_CD = 'P1' THEN 1 ELSE 0 END)
+                                     ELSE 0 END) AS LCCN31 /*일반건수(렌탈수량)*/
+                             , (CASE WHEN T1.SELL_TP_CD = '1' THEN 0
+                                     WHEN T1.SELL_TP_CD = '2' THEN
+                                        (CASE WHEN T1.ACKMT_PERF_EXCD_YN = 'N'
+                                               AND T1.SELL_DSC_DV_CD !='5'
+                                               AND T1.MCHN_CH_YN = 'Y'
+                                               AND T1.MCHN_CH_TP_CD = '18' THEN T1.FEE_ACKMT_CT
+                                              ELSE 0 END)
+                                     WHEN T1.SELL_TP_CD = '3' THEN 0
+                                     ELSE 0 END) AS LCCN32 /*기변１건수*/
+                             , (CASE WHEN T1.SELL_TP_CD = '1' THEN 0
+                                     WHEN T1.SELL_TP_CD = '2' THEN
+                                        (CASE WHEN T1.ACKMT_PERF_EXCD_YN = 'N'
+                                               AND T1.SELL_DSC_DV_CD !='5'
+                                               AND T1.MCHN_CH_YN = 'Y'
+                                               AND T1.MCHN_CH_TP_CD = '1' THEN T1.FEE_ACKMT_CT
+                                              ELSE 0 END)
+                                     WHEN T1.SELL_TP_CD = '3' THEN 0
+                                     ELSE 0 END) AS LCCN33 /*기변2건수*/
+                             , (CASE WHEN T1.SELL_TP_CD = '1' THEN 0
+                                     WHEN T1.SELL_TP_CD = '2' THEN
+                                        (CASE WHEN T1.ACKMT_PERF_EXCD_YN = 'N'
+                                               AND T1.SELL_DSC_DV_CD !='5'
+                                               AND T1.MCHN_CH_YN = 'Y'
+                                               AND T1.MCHN_CH_TP_CD IN ('15','16','19') THEN T1.FEE_ACKMT_CT
+                                              ELSE 0 END)
+                                     WHEN T1.SELL_TP_CD = '3' THEN 0
+                                     ELSE 0 END) AS LCCN34 /*기변3건수*/
+                             , (CASE WHEN T1.SELL_TP_CD = '1' THEN 0
+                                     WHEN T1.SELL_TP_CD = '2' THEN
+                                        (CASE WHEN T1.ACKMT_PERF_EXCD_YN = 'N'
+                                               AND T1.SELL_DSC_DV_CD ='5'
+                                               AND T1.ACKMT_PERF_AMT > 0
+                                               AND T1.MCHN_CH_TP_CD = '0' THEN T1.FEE_ACKMT_CT
+                                              ELSE 0 END)
+                                     WHEN T1.SELL_TP_CD = '3' THEN 0
+                                     ELSE 0 END) AS LCCN35 /*단체할인일반*/
+                             , (CASE WHEN T1.SELL_TP_CD = '1' THEN (CASE WHEN T1.SELL_TP_DTL_CD = '12' THEN 1 ELSE 0 END)
+                                     WHEN T1.SELL_TP_CD = '2' THEN 0
+                                     WHEN T1.SELL_TP_CD = '3' THEN 0
+                                     ELSE 0 END) AS LCCN51 /*홈케어일시수*/
+                             , (CASE WHEN T1.SELL_TP_CD = '1' THEN 0
+                                     WHEN T1.SELL_TP_CD = '2' THEN 0
+                                     WHEN T1.SELL_TP_CD = '3' THEN 1
+                                     ELSE 0 END) AS LCCN52 /*홈케어멤버수*/
+                             , T4.PD_PRP_VAL02 AS SODM /*삼성ODM*/
                           FROM (
-                                    SELECT N1.BASE_YM
-                                         , N1.PERF_YM
-                                         , N1.CNTR_PERF_CRT_DV_CD
-                                         , N1.FEE_TCNT_DV_CD
-                                         , N1.CNTR_NO
-                                         , N1.CNTR_SN
-                                         , N1.SELL_TP_CD
-                                         , N1.PD_CD
-                                         , N1.OG_TP_CD
-                                         , N1.PRTNR_NO
-                                         , C2.FEE_ACKMT_BASE_AMT
-                                         , C2.SELL_AMT
-                                         , C2.SELL_FEE
-                                         , C2.ACKMT_PERF_AMT
-                                         , C2.HGR_PD_CD
-                                         , (SELECT X1.OJ_PD_CD
-                                              FROM TB_SSCT_CNTR_PD_REL X1
-                                             WHERE N1.CNTR_NO = X1.CNTR_NO
-                                               AND N1.CNTR_SN = X1.CNTR_SN
-                                               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN X1.VL_STRT_DTM AND X1.VL_END_DTM
-                                               AND X1.PD_REL_TP_CD = '03'
-                                               AND X1.BASE_PD_CD = N1.PD_CD) AS SV_PD_CD
-                                         , C2.SELL_DSC_TP_CD
-                                         , C2.SELL_DSC_DV_CD
-                                         , N1.SELL_DSCR_CD
-                                         , N1.BFSVC_PRD_CD AS SV_PRD
-                                         , C3.HCR_DV_CD
-                                      FROM TB_FEAM_WELS_NRCTR_MM_CL N1
-                                INNER JOIN TB_SSCT_CNTR_BAS C1
-                                        ON N1.CNTR_NO = C1.CNTR_NO
-                                INNER JOIN TB_SSCT_CNTR_DTL C2
-                                        ON N1.CNTR_NO = C2.CNTR_NO
-                                       AND N1.CNTR_SN = C2.CNTR_SN
-                                INNER JOIN TB_SSCT_CNTR_WELLS_DTL C3
-                                        ON N1.CNTR_NO = C3.CNTR_NO
-                                       AND N1.CNTR_SN = C3.CNTR_SN
-                                     WHERE 1 = 1
-                                       AND N1.BASE_YM = #{perfYm}
-                                       AND N1.OG_TP_CD = 'W04'
-                                       AND N1.CNTR_PERF_CRT_DV_CD = '01' --계약실적생성구분코드 - 01순주문
-                                       AND N1.FEE_TCNT_DV_CD = NVL(#{feeTcntDvCd}, '02')
-                                       AND NVL(N1.ACKMT_PERF_CT, 0) > 0
-                                ) T1
-                    LEFT OUTER JOIN TB_PDBS_PD_BAS P1
-                            ON T1.SV_PD_CD = P1.PD_CD
-                    LEFT OUTER JOIN TB_FEAM_NCHN_FEE_BAS F1  --신채널수수료기본
-                            ON T1.SELL_TP_CD = F1.SELL_TP_CD
-                           AND T1.PD_CD = F1.PD_CD
-                           /* 상위상품코드는 판매유형코드(SELL_TP_CD)가 렌탈(2)인 경우만 적용 */
-                           AND (
-                                    ( T1.SELL_TP_CD != '2' AND 1 = 1 )
-                                 OR ( T1.SELL_TP_CD = '2' AND ( T1.HGR_PD_CD = F1.HGR_PD_CD OR F1.HGR_PD_CD IS NULL ) )
-                               )
-                           -- AND NVL(P1.SV_PD_TP_CD, 'X') = NVL(F1.USWY_TP_CD, 'X')
-                           AND F1.USWY_TP_CD IN (NVL(P1.SV_PD_TP_CD,'0'), 'A')
-                           AND NVL(T1.SELL_DSC_TP_CD, 'X') = NVL(F1.PMOT_CD, 'X')
-                           AND NVL(T1.SELL_DSC_DV_CD, 'X') = NVL(F1.SELL_DSC_DV_CD, 'X')
-                           AND NVL(T1.SELL_DSCR_CD, 'X') = NVL(F1.SELL_DSCR_CD, 'X')
-                           AND F1.SV_PRD IN (T1.SV_PRD, '0')
-                           AND F1.FEEC_DV_CD = 'W' --WB2B
-                           AND #{perfYm} BETWEEN SUBSTR(F1.APY_STRTDT, 1, 6) AND SUBSTR(F1.APY_ENDDT, 1, 6)
-                         WHERE 1 = 1
-                      ) Y1
-                WHERE 1 = 1
-                  AND Y1.SEQ = 1
-              ) T1
-          INNER JOIN TB_FEAM_NRCTR_MM_CL T2  /* 순주문계약월마감     */
-             ON T2.BASE_YM             = T1.BASE_YM
-            AND T2.FEE_TCNT_DV_CD      = T1.FEE_TCNT_DV_CD
-            AND T2.CNTR_PERF_CRT_DV_CD = T1.CNTR_PERF_CRT_DV_CD
-            AND T2.NTOR_CNFM_STAT_CD   = '02'   -- 순주문확정상태코드 - 01임시저장, 02확정
+                                SELECT A.*
+                                     , NVL(P3.PD_PRP_VAL11, 'N') AS ENVR_ELHM_YN
+                                     , CASE WHEN D.MCHN_CPS_APYR = 0 THEN 'Y'
+                                            WHEN A.MCHN_CH_YN = 'Y' AND A.ACKMT_PERF_AMT = 0 THEN 'Y'
+                                            ELSE 'N'
+                                            END ACKMT_PERF_EXCD_YN /*실적제외여부*/
+                                  FROM (
+                                        SELECT *
+                                          FROM (
+                                                SELECT T1.*
+                                                     , NVL(F1.SELL_FEE, 0) AS PERF_VAL   -- 판매수수료(총판) - As-Is의 LC1250P.LCAM01
+                                                     , ROW_NUMBER() OVER(PARTITION BY T1.CNTR_NO, T1.CNTR_SN ORDER BY NVL(F1.HGR_PD_CD, '0') DESC, F1.SV_PRD DESC, F1.FST_RGST_DTM DESC) SEQ
+                                                  FROM (
+                                                            SELECT N1.BASE_YM
+                                                                 , N1.PERF_YM
+                                                                 , N1.CNTR_PERF_CRT_DV_CD
+                                                                 , N1.FEE_TCNT_DV_CD
+                                                                 , N1.CNTR_NO
+                                                                 , N1.CNTR_SN
+                                                                 , N1.SELL_TP_CD
+                                                                 , N1.PD_CD
+                                                                 , N1.OG_TP_CD
+                                                                 , N1.PRTNR_NO
+                                                                 , C2.FEE_ACKMT_BASE_AMT
+                                                                 , C2.SELL_AMT
+                                                                 , C2.SELL_FEE
+                                                                 , C2.ACKMT_PERF_AMT
+                                                                 , C2.HGR_PD_CD
+                                                                 , (SELECT X1.OJ_PD_CD
+                                                                      FROM TB_SSCT_CNTR_PD_REL X1
+                                                                     WHERE N1.CNTR_NO = X1.CNTR_NO
+                                                                       AND N1.CNTR_SN = X1.CNTR_SN
+                                                                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN X1.VL_STRT_DTM AND X1.VL_END_DTM
+                                                                       AND X1.PD_REL_TP_CD = '03'
+                                                                       AND X1.BASE_PD_CD = N1.PD_CD) AS SV_PD_CD
+                                                                 , C2.SELL_DSC_TP_CD
+                                                                 , C2.SELL_DSC_DV_CD
+                                                                 , N1.SELL_DSCR_CD
+                                                                 , N1.BFSVC_PRD_CD AS SV_PRD
+                                                                 , C3.HCR_DV_CD
+                                                                 , NVL(C2.FEE_FXAM_YN, 'N') AS FEE_FXAM_YN
+                                                                 , NVL(N1.MCHN_CH_TP_CD,'0') AS MCHN_CH_TP_CD
+                                                                 , NVL(N1.MCHN_CH_YN, 'N') AS MCHN_CH_YN
+                                                                 , C2.SELL_TP_DTL_CD
+                                                                 , C2.FEE_ACKMT_CT
+                                                                 , N1.ACKMT_PERF_CT
+                                                              FROM TB_FEAM_WELS_NRCTR_MM_CL N1
+                                                        INNER JOIN TB_SSCT_CNTR_BAS C1
+                                                                ON N1.CNTR_NO = C1.CNTR_NO
+                                                        INNER JOIN TB_SSCT_CNTR_DTL C2
+                                                                ON N1.CNTR_NO = C2.CNTR_NO
+                                                               AND N1.CNTR_SN = C2.CNTR_SN
+                                                        INNER JOIN TB_SSCT_CNTR_WELLS_DTL C3
+                                                                ON N1.CNTR_NO = C3.CNTR_NO
+                                                               AND N1.CNTR_SN = C3.CNTR_SN
+                                                             WHERE 1 = 1
+                                                               AND N1.BASE_YM = #{perfYm}
+                                                               AND N1.OG_TP_CD = 'W04'
+                                                               AND N1.CNTR_PERF_CRT_DV_CD = '01' --계약실적생성구분코드 - 01순주문
+                                                               AND N1.FEE_TCNT_DV_CD = NVL(#{feeTcntDvCd}, '02')
+                                                               AND NVL(N1.ACKMT_PERF_CT, 0) > 0
+                                                        ) T1
+                                            LEFT OUTER JOIN TB_PDBS_PD_BAS P1
+                                                    ON T1.SV_PD_CD = P1.PD_CD
+                                            LEFT OUTER JOIN TB_FEAM_NCHN_FEE_BAS F1  --신채널수수료기본
+                                                    ON T1.SELL_TP_CD = F1.SELL_TP_CD
+                                                   AND T1.PD_CD = F1.PD_CD
+                                                   /* 상위상품코드는 판매유형코드(SELL_TP_CD)가 렌탈(2)인 경우만 적용 */
+                                                   AND (
+                                                            ( T1.SELL_TP_CD != '2' AND 1 = 1 )
+                                                         OR ( T1.SELL_TP_CD = '2' AND ( T1.HGR_PD_CD = F1.HGR_PD_CD OR F1.HGR_PD_CD IS NULL ) )
+                                                       )
+                                                   -- AND NVL(P1.SV_PD_TP_CD, 'X') = NVL(F1.USWY_TP_CD, 'X')
+                                                   AND F1.USWY_TP_CD IN (NVL(P1.SV_PD_TP_CD,'0'), 'A')
+                                                   AND NVL(T1.SELL_DSC_TP_CD, 'X') = NVL(F1.PMOT_CD, 'X')
+                                                   AND NVL(T1.SELL_DSC_DV_CD, 'X') = NVL(F1.SELL_DSC_DV_CD, 'X')
+                                                   AND NVL(T1.SELL_DSCR_CD, 'X') = NVL(F1.SELL_DSCR_CD, 'X')
+                                                   AND F1.SV_PRD IN (T1.SV_PRD, '0')
+                                                   AND F1.FEEC_DV_CD = 'W' --WB2B
+                                                   AND #{perfYm} BETWEEN SUBSTR(F1.APY_STRTDT, 1, 6) AND SUBSTR(F1.APY_ENDDT, 1, 6)
+                                                 WHERE 1 = 1
+                                              ) Y1
+                                        WHERE 1 = 1
+                                          AND Y1.SEQ = 1
+                                ) A
+                                LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL P3
+                                             ON A.PD_CD = P3.PD_CD
+                                            AND P3.PD_EXTS_PRP_GRP_CD = 'IND'
+                                LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ D  /*T기기변경내역T*/
+                                             ON A.CNTR_NO = D.BASE_CNTR_NO
+                                            AND A.CNTR_SN = D.BASE_CNTR_SN
+                          ) T1
+                      INNER JOIN TB_FEAM_NRCTR_MM_CL T2  /* 순주문계약월마감 */
+                         ON T2.BASE_YM             = T1.BASE_YM
+                        AND T2.FEE_TCNT_DV_CD      = T1.FEE_TCNT_DV_CD
+                        AND T2.CNTR_PERF_CRT_DV_CD = T1.CNTR_PERF_CRT_DV_CD
+                        AND T2.NTOR_CNFM_STAT_CD   = '02'   -- 순주문확정상태코드 - 01임시저장, 02확정
+                     LEFT JOIN TB_PDBS_PD_ECOM_PRP_DTL T4
+                            ON T4.PD_CD = T1.PD_CD
+                           AND T4.PD_EXTS_PRP_GRP_CD = 'SPP'
+                           AND T4.PD_PRP_VAL02 = 'S'
+                           AND T4.DTA_DL_YN = 'N'
+          ) T1
+       )
+       UNPIVOT ( PERF_VAL FOR PERF_ATC_CD IN ( W04P00001 AS 'W04P00001', W04P00002 AS 'W04P00002', W04P00003 AS 'W04P00003', W04P00004 AS 'W04P00004', W04P00005 AS 'W04P00005'
+                                             , W04P00006 AS 'W04P00006', W04P00007 AS 'W04P00007', W04P00008 AS 'W04P00008', W04P00009 AS 'W04P00009', W04P00010 AS 'W04P00010'
+                                             )
+               ) U
     </insert>
 
     <insert id="insertAggregateNtorPerfMmCl">
@@ -538,7 +652,7 @@
          WHERE T1.BASE_YM             = #{perfYm}
            AND T1.FEE_TCNT_DV_CD      =  NVL(#{feeTcntDvCd}, '02')
            AND T1.PERF_AGRG_CRT_DV_CD = '401'
-           AND T1.PERF_ATC_CD         = 'W04P00001'
+           /* AND T1.PERF_ATC_CD         = 'W04P00001' 2023.12.26*/
            AND T1.OG_TP_CD            = 'W04'
            AND T1.PERF_DV_CD          = '0'
          GROUP BY T1.BASE_YM
@@ -589,7 +703,7 @@
          WHERE T1.BASE_YM             = #{perfYm}
            AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
            AND T1.PERF_AGRG_CRT_DV_CD = '401'
-           AND T1.PERF_ATC_CD         = 'W04P00001'
+           /* AND T1.PERF_ATC_CD         = 'W04P00001' 2023.12.26 */
            AND T1.OG_TP_CD            = 'W04'
            AND T1.PERF_DV_CD          = '0'
         GROUP BY T1.BASE_YM
@@ -643,7 +757,7 @@
          WHERE T1.BASE_YM             = #{perfYm}
            AND T1.FEE_TCNT_DV_CD      = NVL(#{feeTcntDvCd}, '02')
            AND T1.PERF_AGRG_CRT_DV_CD = '401'
-           AND T1.PERF_ATC_CD         = 'W04P00001'
+           /* AND T1.PERF_ATC_CD         = 'W04P00001' 2023.12.26 */
         -- AND T1.CO_CD               = '2000'
            AND T1.OG_TP_CD            = 'W04'
            AND T1.PERF_DV_CD          = '0'
