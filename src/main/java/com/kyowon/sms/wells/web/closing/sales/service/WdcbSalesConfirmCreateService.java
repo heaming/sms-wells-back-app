@@ -104,6 +104,11 @@ public class WdcbSalesConfirmCreateService {
             int slQty = dvo.getSlQty() == 0 ? 1 : dvo.getSlQty();
             vat = slAmt - (int)(Math.ceil((double)(slAmt / slQty) / 1.1) * slQty); // VAT 계산식 변경 - 2023.12.26
         }
+        /* 9-1. 무상여부 - 2023.12.26 */
+        String frisuYn = "N";
+        if (slAmt == 0) {
+            frisuYn = "Y";
+        }
 
         /* 10. CO주문유형 */
         String ctrlOrdTpCd = mapper.selectCtrlOrdTpCd(sapPdDvCd, dvo.getSellInflwChnlDtlCd(), dvo.getOgTpCd());
@@ -323,7 +328,7 @@ public class WdcbSalesConfirmCreateService {
         inputDvo.setSapMatCd(sapMatCd);
         inputDvo.setSlQty(dvo.getSlQty());
         inputDvo.setRtngdYn(dvo.getRtngdYn());
-        inputDvo.setFrisuYn(dvo.getFrisuYn());
+        inputDvo.setFrisuYn(frisuYn);
         inputDvo.setCscnCd("");
         inputDvo.setWbsCd("");
         inputDvo.setSapPurpMatCd("");
