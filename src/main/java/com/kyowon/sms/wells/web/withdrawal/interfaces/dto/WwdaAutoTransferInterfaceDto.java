@@ -149,6 +149,9 @@ public class WwdaAutoTransferInterfaceDto {
     /* WELLS 자동이체 대상 목록 Response Dto */
     @ApiModel("WwdaAutoTransferInterfaceDto-SearchObjectRes")
     public record SearchObjectRes(
+
+        @JsonProperty("CNTR_STLM_ID")
+        String cntrStlmId, /*계약결제ID*/
         @JsonProperty("CST_NO")
         String cstNo, /*고객번호*/
         @JsonProperty("SELL_TP_CD")
@@ -400,7 +403,11 @@ public class WwdaAutoTransferInterfaceDto {
         @JsonProperty("CRP_SPMT_DRM_NM")
         String crpSpmtDrmNm, /*법인추가식별명*/
         @JsonProperty("MPNO")
-        String mpno /*휴대전화번호*/
+        String mpno, /*휴대전화번호*/
+        @JsonProperty("CH_RCP_USR_ID")
+        String chRcpUsrId, /*번경접수사용자ID*/
+        @JsonProperty("CNTRT_REL_CD")
+        String cntrtRelCd /*계약자관계코드 01 본인, 02 자녀, 03 부(아버지), 04 모(어머니), 05 조부모, 06 친척, 07 지인, 08 법인, 09 배우자, 10 제휴판매고객 */
 
     ) {
         public SaveBulkRegistrationReleaseReq {
