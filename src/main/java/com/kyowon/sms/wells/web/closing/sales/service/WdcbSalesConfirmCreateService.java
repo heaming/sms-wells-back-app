@@ -97,6 +97,10 @@ public class WdcbSalesConfirmCreateService {
         /* 8. 매출금액 (SL_AMT) */
         int slAmt = dvo.getNomSlAmt() + dvo.getSpmtSlAmt() - dvo.getNomDscAmt() - spmtDscAmt
             - dvo.getSlCtrAmt(); // 정상매출금액 + 추가매출금액- 정상할인금액 - 추가할인금액 - 매출조정금액
+        /* 8-1 매출수량 (SL_QTY) */
+        if (dvo.getSlQty() == 0) {
+            dvo.setSlQty(1);
+        }
         /* 9. 부가가치세(VAT) */
         int vat = 0;
         String vatTpCd = mapper.selectVatTpCd(dvo.getPdCd());
