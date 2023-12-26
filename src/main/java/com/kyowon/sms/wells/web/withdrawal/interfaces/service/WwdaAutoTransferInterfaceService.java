@@ -343,7 +343,6 @@ public class WwdaAutoTransferInterfaceService {
      * 자동이체 일괄 등록/해제
      * @param dto
      * @return
-     */
     public List<WwdaAutoTransferInterfaceDto.SaveBundleRegistrationReleaseRes> saveBulkRegistrationReleases(
         WwdaAutoTransferInterfaceDto.SaveReq dto
     ) throws Exception {
@@ -559,6 +558,7 @@ public class WwdaAutoTransferInterfaceService {
                 continue;
             }
 
+
             // 1.6 현재 청구중인지 확인
             List<WwdaBillingScheduleReceiveInterfaceDvo> billingScheduleReceives = mapper
                 .selectBillingScheduleReceive(bulk.getCntrNo(), bulk.getCntrSn());
@@ -598,10 +598,34 @@ public class WwdaAutoTransferInterfaceService {
                 continue;
             }
 
+            // 1.8 입력 계약자관계코드
+            if (StringUtils.isEmpty(bulk.getCntrtRelCd())) {
+                reslCd = "E";
+                reslCntn = messageResourceService
+                    .getMessage(MSG_ALT_CHK_NCSR, messageResourceService.getMessage("MSG_TXT_CNTRT_RLT_CD")); // 계약자관계코드 을(를) 입력하세요.
+
+                result.setReslCd(reslCd);
+                result.setPcsRsltCn(reslCntn);
+                results.add(result);
+                continue;
+            }
+
+            // 1.9 입력 변경접수사용자ID
+            if (StringUtils.isEmpty(bulk.getChRcpUsrId())) {
+                reslCd = "E";
+                reslCntn = messageResourceService
+                    .getMessage(MSG_ALT_CHK_NCSR, messageResourceService.getMessage("MSG_TXT_CH_RCP_USR_ID")); // 변경접수사용자ID 을(를) 입력하세요.
+
+                result.setReslCd(reslCd);
+                result.setPcsRsltCn(reslCntn);
+                results.add(result);
+                continue;
+            }
+
             List<WwdaBillingScheduleReceiveInterfaceDvo> contracts = mapper
                 .selectContractInfo(bulk.getCntrNo());
 
-            String prtnrNo = contracts.isEmpty() ? "" : contracts.get(0).getSellPrtnrNo();
+            String prtnrNo = ObjectUtils.isEmpty(contracts) ? "" : contracts.get(0).getSellPrtnrNo();
 
             String urlParams = "vstYn=N&akChdt=" + DateUtil.getNowString()
                 + "&chRqrDvCd=2&aftnThpChYn=Y&clctamMngtYn=N&cntrChPrtnrNo="
@@ -631,6 +655,7 @@ public class WwdaAutoTransferInterfaceService {
 
         return converter.mapSaveBulkRegistrationReleasesResToWwdaAutoTransferDvo(results);
     }
+     */
 
     /**
      * 자동이체 계좌 실명인증
