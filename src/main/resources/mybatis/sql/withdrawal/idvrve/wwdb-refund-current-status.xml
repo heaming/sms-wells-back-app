@@ -411,7 +411,8 @@
 
     </select>
 
-    <select id="selectBalanceTransferRefundHistory" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto$SearchBalanceTransferRefundHistoryRes">
+    <select id="selectBalanceTransferRefundHistory"
+            resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto$SearchBalanceTransferRefundHistoryRes">
         SELECT CASE WHEN REFUND_DIVISION IN  '21' THEN '렌탈'
                      WHEN REFUND_DIVISION = '22' THEN '리스'
                      WHEN REFUND_DIVISION = '24' THEN '환경리스'
@@ -421,6 +422,7 @@
                      WHEN REFUND_DIVISION IN ('33','34') THEN '케어'
                      ELSE '정기배송'
                       END AS REFUND_DIVISION
+             , SUM(SPAY_AMT      ) AS SP_RFND_DSB_AMT /*일시불*/
              , SUM(RENTAL_AMT    ) AS RT_RFND_DSB_AMT /*렌탈*/
              , SUM(LEASE_AMT     ) AS LS_RFND_DSB_AMT /*리스*/
              , SUM(ENVR_LEASE_AMT) AS EL_RFND_DSB_AMT /*환경리스*/
@@ -431,7 +433,8 @@
              , SUM(INTAM_AMT     ) AS LM_RFND_DSB_AMT /*할부금*/
              , SUM(KMONEY_AMT    ) AS KM_RFND_DSB_AMT /*K머니*/
              , SUM(RGLR_SPP_AMT  ) AS RG_RFND_DSB_AMT /*정기배송*/
-             , SUM(RENTAL_AMT    )
+             , SUM(SPAY_AMT      )
+              +SUM(RENTAL_AMT    )
               +SUM(LEASE_AMT     )
               +SUM(ENVR_LEASE_AMT)
               +SUM(LTM_ISTM_AMT  )
@@ -445,6 +448,9 @@
                     SELECT
                            M2.SELL_TP_CD AS SELL_TP_CD
                          , M2.SELL_TP_DTL_CD
+                         , SUM( CASE WHEN T4.SELL_TP_CD = '1' THEN RFND_DSB_AMT
+                                     ELSE 0
+                                      END ) AS SPAY_AMT /*일시불*/
                          , SUM( CASE WHEN T4.SELL_TP_CD = '2' THEN CASE WHEN T4.SELL_TP_DTL_CD IN ('21' , '23') THEN RFND_DSB_AMT
                                                                         ELSE 0
                                                                          END

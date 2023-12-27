@@ -122,6 +122,7 @@ public class WwdbRefundCurrentStatusDto {
     @ApiModel(value = "WwdbRefundCurrentStatusDto-SearchBalanceTransferRefundHistoryRes")
     public record SearchBalanceTransferRefundHistoryRes(
         String refundDivision,
+        String spRfndDsbAmt, /*일시불*/
         String rtRfndDsbAmt, /*렌탈*/
         String lsRfndDsbAmt, /*리스*/
         String elRfndDsbAmt, /*환경리스*/
