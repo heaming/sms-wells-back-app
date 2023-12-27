@@ -7,15 +7,18 @@ public class WsnaAsMaterialOutOfStoragePsDto {
     @ApiModel(value = "WsnaAsMaterialOutOfStoragePsDto-SearchReq")
     public record SearchReq(
         String startDt,
+
         String endDt,
+
         String serviceType,
+
         String prtnrNo,
 
         String refriType,
 
         String pdGrpCd,
 
-        String ogCd,
+        String ogId,
 
         String installBase,
 
