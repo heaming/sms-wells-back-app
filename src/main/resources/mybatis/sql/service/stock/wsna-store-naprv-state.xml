@@ -2,10 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaStoreNaprvStateMapper">
     <select id="selectStoreNaprvState" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStoreNaprvStateDto$SearchRes">
+        WITH WARE_INF AS ( SELECT *
+                             FROM TB_SVST_MCBY_WARE_IZ
+                            WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+        )
+
         SELECT T1.STR_WARE_NO
              , W_IN.WARE_NM AS STR_WARE_NM/* 입고창고명 */
              , T1.ITM_PD_CD
-             , T1.SVPD_NM_KOR AS PD_NM
+             , T1.SVPD_NM_ABBR1 AS PD_NM
              , T1.NAPRV_QTY
              , T1.STR_RGST_DT /* 입고일자 */
              , T1.OSTR_WARE_NO
@@ -13,7 +18,7 @@
              , W_OUT.WARE_NM AS OSTR_WARE_NM /* 출고창고명 */
          FROM ( SELECT S1.STR_WARE_NO /* 입고창고코드 */
                      , S1.ITM_PD_CD /* 자재코드 */
-                     , P1.SVPD_NM_KOR /* 자재명 */
+                     , P1.SVPD_NM_ABBR1 /* 자재명 */
                      , S1.STR_RGST_DT /* 입고일자 */
                      , S1.OSTR_WARE_NO
                      , F_CMZ_CD_NM('TNT_WELLS', 'STR_TP_CD', S1.STR_TP_CD, 'ko') AS STR_TP_CD  /* 입고유형 */
@@ -23,9 +28,9 @@
                    ON S1.ITM_PD_CD = P1.SVPD_PD_CD
                 WHERE 1=1
                   AND S1.STR_CONF_DT IS NULL
-                  <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
+                  AND S1.STR_QTY &gt; 0
+                  /* 1 물류 2 서비스센터 3 영업센터 wareDtlDvCd 10 20 21 30 31 32  */
                   AND S1.STR_WARE_DV_CD = #{strWareDvCd}
-                  </if>
                   <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
                   AND (S1.STR_WARE_NO = #{strWareNoM} OR S1.STR_WARE_NO IN (SELECT TEMP.WARE_NO FROM TB_SVST_MCBY_WARE_IZ TEMP WHERE TEMP.HGR_WARE_NO = #{strWareNoM} AND SUBSTR(S1.STR_RGST_DT, 1, 6) = TEMP.APY_YM))
                   </if>
@@ -34,24 +39,36 @@
                   </if>
              GROUP BY S1.STR_WARE_NO
                     , S1.ITM_PD_CD
-                    , P1.SVPD_NM_KOR
+                    , P1.SVPD_NM_ABBR1
                     , S1.STR_RGST_DT
                     , S1.OSTR_WARE_NO
                     , F_CMZ_CD_NM('TNT_WELLS', 'STR_TP_CD', S1.STR_TP_CD, 'ko')
-         ) T1
-INNER JOIN TB_SVST_CST_SV_ITM_STOC_IZ S2
-        ON T1.STR_WARE_NO = S2.WARE_NO
-       AND T1.ITM_PD_CD = S2.ITM_PD_CD
-LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ W_IN
-        ON T1.STR_WARE_NO = W_IN.WARE_NO
-       AND SUBSTR(T1.STR_RGST_DT, 1, 6) = W_IN.APY_YM
-LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ W_OUT
-        ON T1.OSTR_WARE_NO = W_OUT.WARE_NO
-       AND SUBSTR(T1.STR_RGST_DT, 1, 6) = W_OUT.APY_YM
-     WHERE T1.NAPRV_QTY = S2.MMT_STOC_A_GD_QTY
-       AND T1.NAPRV_QTY > 0
-       <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
-       AND W_IN.WARE_DTL_DV_CD = #{wareDtlDvCd}
-       </if>
+         ) T1 /* ST141 품목입고내역 */
+    INNER JOIN TB_SVST_CST_SV_ITM_STOC_IZ S2 /* ST121고객서비스품목재고내역 */
+            ON T1.STR_WARE_NO = S2.WARE_NO
+           AND T1.ITM_PD_CD = S2.ITM_PD_CD
+    INNER JOIN WARE_INF W_IN
+            ON T1.STR_WARE_NO = W_IN.WARE_NO
+        /* 전체, 조직창고20 30 인 경우, 개인창고21 31인 경우 */
+<if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
+    <choose>
+        <when test='@MybatisUtils@equals(wareDtlDvCd, "10") or @MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "30")'>
+            AND W_IN.WARE_ICHR_NO = '000'
+            AND W_IN.WARE_DTL_DV_CD = #{wareDtlDvCd}
+        </when>
+        <when test='@MybatisUtils@equals(wareDtlDvCd, "21") or @MybatisUtils@equals(wareDtlDvCd, "31")'>
+            AND W_IN.WARE_ICHR_NO != '000'
+            AND W_IN.WARE_DTL_DV_CD = #{wareDtlDvCd}
+        </when>
+    </choose>
+</if>
+LEFT OUTER JOIN WARE_INF W_OUT
+             ON T1.OSTR_WARE_NO = W_OUT.WARE_NO
+          WHERE 1=1
+            <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
+            AND T1.NAPRV_QTY = S2.MMT_STOC_A_GD_QTY
+            </if>
+            AND T1.NAPRV_QTY &gt; 0
+      ORDER BY T1.STR_RGST_DT DESC, T1.ITM_PD_CD
     </select>
 </mapper>
