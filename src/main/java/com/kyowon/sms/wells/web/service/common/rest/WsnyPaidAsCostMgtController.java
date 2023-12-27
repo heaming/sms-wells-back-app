@@ -58,11 +58,11 @@ public class WsnyPaidAsCostMgtController {
 
     @ApiOperation(value="유상 A/S 서비스비용 관리 저장", notes="유상 A/S 서비스 수행시 품목별 비용(소비자가, 도매단가, 내부단가, 기술료 등)을 저장")
     @PostMapping
-    public SaveResponse savePaidAsCostMgts(
+    public SaveResponse savePaidAsCostMgts (
         @Valid
         @RequestBody
         List<SaveReq> dtos
-    ){
+    ) throws Exception {
         return SaveResponse.builder().processCount(this.service.savePaidAsCostMgts(dtos)).build();
     }
 }
