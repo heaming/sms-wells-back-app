@@ -4,25 +4,71 @@
     <select id="selectExistMdProductOutOfStorage" resultType="int">
         WITH OJ_LIST AS
         (
-           SELECT T1.CST_SV_ASN_NO    AS CST_SV_ASN_NO
-                , T1.CNTR_NO          AS CNTR_NO
-                , T1.CNTR_SN          AS CNTR_SN
-                , T1.SV_BIZ_DCLSF_CD  AS SV_BIZ_DCLSF_CD
-                , T2.WK_PRGS_STAT_CD  AS WK_PRGS_STAT_CD
-           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1        /* 고객서비스AS설치대상내역 */
-           INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2 /* 고객서비스AS설치배정내역 */
-            ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
-            AND T2.DTA_DL_YN = 'N'
-           UNION ALL
-           SELECT T1.CST_SV_ASN_NO    AS CST_SV_ASN_NO
-                , T1.CNTR_NO          AS CNTR_NO
-                , T1.CNTR_SN          AS CNTR_SN
-                , T1.SV_BIZ_DCLSF_CD  AS SV_BIZ_DCLSF_CD
-                , T2.VST_PRGS_STAT_CD AS WK_PRGS_STAT_CD
-           FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ T1         /* 고객서비스BS대상내역 */
-           INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ  T2 /* 고객서비스BS배정내역 */
-            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-            AND T2.DTA_DL_YN = 'N'
+            SELECT T1.AS_IST_OJ_NO     /*접수번호*/
+                 , T1.CST_SV_ASN_NO    /*배정번호*/
+                 , T1.CNTR_NO
+                 , T1.CNTR_SN
+                 , T1.SV_BIZ_HCLSF_CD
+                 , T1.SV_BIZ_DCLSF_CD
+                 , T2.WK_PRGS_STAT_CD   /*서비스상태코드 */
+                 , T1.FST_RGST_USR_ID   /*접수자사번*/
+                 , T1.PD_GD_CD
+                 , T2.SV_CNR_OG_ID      /*서비스센터조직ID - 배정정보*/
+                 , T2.ICHR_OG_TP_CD     /*담당조직유형코드 - 배정정보*/
+                 , T2.ICHR_PRTNR_NO     /*담당파트너번호 - 배정정보*/
+                 , T2.DTM_CH_RSON_DTL_CN AS SPP_PROCS_BZS_CD  /*택배사*/
+                 , '1' AS CNTR_DV_CD
+              FROM TB_SVPD_CST_SVAS_IST_OJ_IZ T1        /* 고객서비스AS설치대상내역 */
+                   INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2 /* 고객서비스AS설치배정내역 */
+                           ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                   INNER JOIN TB_SSCT_CNTR_BAS C0                /*계약기본*/
+                           ON C0.CNTR_NO = T1.CNTR_NO
+                          AND C0.DTA_DL_YN = 'N'
+                   INNER JOIN TB_SSCT_CNTR_DTL C1                /*계약상세*/
+                           ON C1.CNTR_NO = T1.CNTR_NO
+                          AND C1.CNTR_SN = T1.CNTR_SN
+                          AND C1.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C3  /*계약해지처리내역*/
+                           ON C3.CNTR_NO = T1.CNTR_NO
+                          AND C3.CNTR_SN = T1.CNTR_SN
+                          AND C3.DTA_DL_YN = 'N'
+             WHERE 1=1
+              AND T2.ICHR_PRTNR_NO = #{session.employeeIDNumber}
+               /* 1: 작업완료 2: 작업대기 */
+              AND T2.WK_PRGS_STAT_CD = '20'
+              AND T2.WK_EXCN_DT BETWEEN #{wkStartDt} AND #{wkEndDt}
+          UNION ALL
+          SELECT '' AS AS_IST_OJ_NO
+             , T1.CST_SV_ASN_NO AS CST_SV_ASN_NO
+             , T1.CNTR_NO AS CNTR_NO
+             , T1.CNTR_SN AS CNTR_SN
+             , '2' AS SV_BIZ_HCLSF_CD
+             , T1.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+             , T2.VST_PRGS_STAT_CD AS WK_PRGS_STAT_CD
+             , T1.FST_RGST_USR_ID
+             , 'A' AS PD_GD_CD
+             , T2.CNFM_PSIC_PRTNR_OG_TP_CD || '-' || T2.CNFM_PSIC_PRTNR_NO AS SV_CNR_OG_ID
+             , T2.CNFM_PSIC_PRTNR_OG_TP_CD AS ICHR_OG_TP_CD
+             , T2.CNFM_PSIC_PRTNR_NO AS ICHR_PRTNR_NO
+             , '' AS SPP_PROCS_BZS_CD /* BS 택배사 확인 필요 */
+             , 'N' AS CNTR_DV_CD
+          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ T1         /* 고객서비스BS대상내역 */
+               INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ  T2 /* 고객서비스BS배정내역 */
+                       ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+               INNER JOIN TB_SSCT_CNTR_BAS C0                /*계약기본*/
+                       ON C0.CNTR_NO = T1.CNTR_NO
+                      AND C0.DTA_DL_YN = 'N'
+               INNER JOIN TB_SSCT_CNTR_DTL C1                /*계약상세*/
+                       ON C1.CNTR_NO = T1.CNTR_NO
+                      AND C1.CNTR_SN = T1.CNTR_SN
+                      AND C1.DTA_DL_YN = 'N'
+               LEFT OUTER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C3  /*계약해지처리내역*/
+                       ON C3.CNTR_NO = T1.CNTR_NO
+                      AND C3.CNTR_SN = T1.CNTR_SN
+                      AND C3.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T2.CNFM_PSIC_PRTNR_NO = #{session.employeeIDNumber}
+           AND T2.VST_PRGS_STAT_CD = '20'
         )
         SELECT COUNT(1) AS CNT
         FROM OJ_LIST S1
@@ -33,23 +79,8 @@
          ON S6.CNTR_NO = S1.CNTR_NO
          AND S6.CNTR_SN = S1.CNTR_SN
          AND S6.DTA_DL_YN = 'N'
-        INNER JOIN TB_SSCT_CNTR_BAS C0                /*계약기본*/
-         ON C0.CNTR_NO = S1.CNTR_NO
-         AND C0.DTA_DL_YN = 'N'
-        INNER JOIN TB_SSCT_CNTR_DTL C1                /*계약상세*/
-         ON C1.CNTR_NO = S1.CNTR_NO
-         AND C1.CNTR_SN = S1.CNTR_SN
-         AND C1.DTA_DL_YN = 'N'
-        INNER JOIN TB_SSCT_CNTR_PD_REL C2             /*계약상품관계*/
-         ON C2.CNTR_NO = S1.CNTR_NO
-         AND C2.CNTR_SN = S1.CNTR_SN
-         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C2.VL_STRT_DTM AND C2.VL_END_DTM
-         AND C2.DTA_DL_YN = 'N'
-         AND C2.PD_REL_TP_CD = '05'
        WHERE 1=1
         /* 출고구분 */
-        AND S1.SV_BIZ_DCLSF_CD ='1112'
-        AND S1.WK_PRGS_STAT_CD = '20'
         AND S1.CST_SV_ASN_NO = #{cstSvAsnNo}
         AND S1.CNTR_NO = #{cntrNo}
         AND S1.CNTR_SN = #{cntrSn}
@@ -58,7 +89,8 @@
         SELECT COUNT(1) AS CNT
         FROM TB_SVPD_CST_SV_WK_RS_IZ
         WHERE 1=1
-         AND SV_BIZ_DCLSF_CD  ='1112'  /* MD 출고인경우*/
+         AND PRTNR_NO  = #{session.employeeIDNumber}
+         AND CST_SV_ASN_NO = #{cstSvAsnNo}
          AND CNTR_NO = #{cntrNo}
          AND CNTR_SN = #{cntrSn}
          AND SPP_IVC_NO = #{sppIvcNo}
