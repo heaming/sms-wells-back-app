@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.closing.sales.service;
 
 import java.util.List;
 
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,12 +41,30 @@ public class WdcbBusinessAtamAdjustMgtService {
     }
 
     /**
+     * 영업선수금 정산 관리(집계) 페이징
+     * @param dto
+     * @return
+     */
+    public PagingResult<SearchTotalRes> getBusinessAtamTotalsPaging(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectBusinessAtamTotals(dto, pageInfo);
+    }
+
+    /**
      * 영업선수금 정산 관리(상세)
      * @param dto
      * @return
      */
     public List<SearchDetailRes> getBusinessAtamDetails(SearchReq dto) {
         return mapper.selectBusinessAtamDetails(dto);
+    }
+
+    /**
+     * 영업선수금 정산 관리(상세) 페이징
+     * @param dto
+     * @return
+     */
+    public PagingResult<SearchDetailRes> getBusinessAtamDetailsPaging(SearchReq dto, PageInfo pageInfo) {
+        return mapper.selectBusinessAtamDetails(dto, pageInfo);
     }
 
     /**
