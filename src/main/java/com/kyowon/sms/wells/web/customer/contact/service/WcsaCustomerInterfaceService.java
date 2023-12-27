@@ -211,11 +211,6 @@ public class WcsaCustomerInterfaceService {
         ZcsaCstBasDvo dtlDvo = converter.mapCstBasToCustomerInfoByEcc(dvo);
         int cnt = zcsaCustomerMapper.selectPhoneChangeCheck(dtlDvo);
 
-        // cnt > 0 이면 변경
-        if (cnt > 0) {
-            dtlDvo.setChangePhoneYn("N");
-        }
-
         int result;
         // 고객정보변경
         result = mapper.updateIndvCstBasEai(dvo);
@@ -226,10 +221,14 @@ public class WcsaCustomerInterfaceService {
         result = zcsaCustomerMapper.insertIndvCstBasInfoHistory(cstNo, strDate); // 고객정보변경이력 생성
         BizAssert.isTrue(result == 1, ERROR_MESSAGE);
 
-        //고객상세 본인인증 여부 업데이트
-        zcsaCustomerMapper.updateIndvCstDtlInfo(dtlDvo); //  개인고객 상세정보 업데이트
-        zcsaCustomerMapper.updateLastIndvCstDtlInfoHistory(cstNo, endDate); // 개인고객 상세정보 이력 업데이트
-        zcsaCustomerMapper.insertIndvCstDtlInfoHistory(cstNo, strDate); //  개인고객 상세정보 이력 생성
+        // cnt > 0 이면 변경
+        if (cnt > 0) {
+            dtlDvo.setChangePhoneYn("N");
+            //고객상세 본인인증 여부 업데이트
+            zcsaCustomerMapper.updateIndvCstDtlInfo(dtlDvo); //  개인고객 상세정보 업데이트
+            zcsaCustomerMapper.updateLastIndvCstDtlInfoHistory(cstNo, endDate); // 개인고객 상세정보 이력 업데이트
+            zcsaCustomerMapper.insertIndvCstDtlInfoHistory(cstNo, strDate); //  개인고객 상세정보 이력 생성
+        }
 
         // 연락처-주소
         if (StringUtils.isNotEmpty(dvo.getAdrId())) {
