@@ -49,7 +49,7 @@ public class WsnyPaidAsCostMgtService {
     /**
      * 유상 A/S 서비스 비용 수정
      */
-    public int savePaidAsCostMgts(List<SaveReq> dtos){
+    public int savePaidAsCostMgts(List<SaveReq> dtos) throws Exception{
         int proccessCount = 0;
         for(SaveReq dto : dtos){
             WsnyPaidAsCostMgtDvo dvo = converter.mapSaveReqToWsnyPaidAsCostMgtDvo(dto);
