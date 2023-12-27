@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.closing.sales.mapper;
 
 import java.util.List;
 
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.SearchDetailRes;
@@ -17,7 +19,11 @@ public interface WdcbBusinessAtamAdjustMgtMapper {
 
     List<SearchTotalRes> selectBusinessAtamTotals(SearchReq dto);
 
+    PagingResult<SearchTotalRes> selectBusinessAtamTotals(SearchReq dto, PageInfo pageInfo);
+
     List<SearchDetailRes> selectBusinessAtamDetails(SearchReq dto);
+
+    PagingResult<SearchDetailRes> selectBusinessAtamDetails(SearchReq dto, PageInfo pageInfo);
 
     List<SearchSlpnoRes> selectSapAlrpySlpnos(String sapAlrpySlpno);
 
