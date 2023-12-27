@@ -153,6 +153,7 @@
                          AND D2.ITM_KND_CD = D1.ITM_KND_CD
                        INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
                           ON D3.WARE_NO = D1.OSTR_WARE_NO
+                         AND D3.APY_YM  = SUBSTR(D1.OSTR_DT, 1, 6)
                        WHERE D1.OSTR_TP_CD     = '217'         /* 기타출고 */
                          AND D1.ITM_GD_CD      = 'A'
                          AND D1.DTA_DL_YN      = 'N'
@@ -160,21 +161,15 @@
                          AND D3.WARE_USE_YN    = 'Y'
                          AND D3.APY_YM         = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
                          AND D3.WARE_DV_CD     = #{wareDvCd}   /* 서비스센터 */
-                         AND D3.WARE_DTL_DV_CD = #{wareDtlDvCd}
-                         AND D1.OSTR_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'MM'), 'YYYYMMDD')
-                                            AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1)), 'YYYYMMDD')
+                         AND D1.OSTR_DT LIKE TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'MM'), 'YYYYMM') || '%'
                     <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                          AND D1.ITM_PD_CD      = #{itmPdCd}
                     </if>
+                    <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
+                         AND D3.WARE_DTL_DV_CD = #{wareDtlDvCd}
+                    </if>
                     <if test="@MybatisUtils@isNotEmpty(wareNo)">
-                    <choose>
-                    <when test='@MybatisUtils@equals(wareDtlDvCd, "20")'>
-                         AND D3.WARE_NO        = #{wareNo}
-                    </when>
-                    <when test='@MybatisUtils@equals(wareDtlDvCd, "21")'>
-                         AND D3.HGR_WARE_NO    = #{wareNo}   /* 개인창고일 경우 상위창고번호 */
-                    </when>
-                    </choose>
+                         AND ( D3.HGR_WARE_NO = #{wareNo} OR D3.WARE_NO = #{wareNo} )
                     </if>
                        UNION ALL
                       SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
@@ -185,6 +180,7 @@
                           ON D2.ITM_PD_CD  = D1.ITM_PD_CD
                        INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
                           ON D3.WARE_NO = D1.WK_WARE_NO
+                         AND D3.APY_YM  = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
                        WHERE D1.FNL_ITM_GD_CD    = 'A'
                          AND D1.DTA_DL_YN        = 'N'
                          AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3')   /* 설치, B/S, A/S */
@@ -193,21 +189,15 @@
                          AND D3.WARE_USE_YN      = 'Y'
                          AND D3.APY_YM           = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
                          AND D3.WARE_DV_CD       = #{wareDvCd}       /* 서비스센터 */
-                         AND D3.WARE_DTL_DV_CD   = #{wareDtlDvCd}
-                         AND D1.FNL_VST_FSH_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'MM'), 'YYYYMMDD')
-                                                   AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1)), 'YYYYMMDD')
+                         AND D1.FNL_VST_FSH_DT LIKE TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'MM'), 'YYYYMM') || '%'
                     <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                          AND D1.ITM_PD_CD        = #{itmPdCd}
                     </if>
+                    <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
+                         AND D3.WARE_DTL_DV_CD = #{wareDtlDvCd}
+                    </if>
                     <if test="@MybatisUtils@isNotEmpty(wareNo)">
-                    <choose>
-                    <when test='@MybatisUtils@equals(wareDtlDvCd, "20")'>
-                         AND D3.WARE_NO        = #{wareNo}
-                    </when>
-                    <when test='@MybatisUtils@equals(wareDtlDvCd, "21")'>
-                         AND D3.HGR_WARE_NO    = #{wareNo}   /* 개인창고일 경우 상위창고번호 */
-                    </when>
-                    </choose>
+                         AND ( D3.HGR_WARE_NO = #{wareNo} OR D3.WARE_NO = #{wareNo} )
                     </if>
                        UNION ALL
                       SELECT D1.ITM_PD_CD
@@ -218,6 +208,7 @@
                          AND D2.ITM_KND_CD = D1.ITM_KND_CD
                        INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
                           ON D3.WARE_NO = D1.OSTR_WARE_NO
+                         AND D3.APY_YM  = SUBSTR(D1.OSTR_DT, 1, 6)
                        WHERE D1.OSTR_TP_CD     = '217'         /* 기타출고 */
                          AND D1.ITM_GD_CD      = 'A'
                          AND D1.DTA_DL_YN      = 'N'
@@ -225,21 +216,15 @@
                          AND D3.WARE_USE_YN    = 'Y'
                          AND D3.APY_YM         = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'YYYYMM')
                          AND D3.WARE_DV_CD     = #{wareDvCd}   /* 서비스센터 */
-                         AND D3.WARE_DTL_DV_CD = #{wareDtlDvCd}
-                         AND D1.OSTR_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'MM'), 'YYYYMMDD')
-                                            AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2)), 'YYYYMMDD')
+                         AND D1.OSTR_DT LIKE TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'MM'), 'YYYYMM') || '%'
                     <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                          AND D1.ITM_PD_CD      = #{itmPdCd}
                     </if>
+                    <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
+                         AND D3.WARE_DTL_DV_CD = #{wareDtlDvCd}
+                    </if>
                     <if test="@MybatisUtils@isNotEmpty(wareNo)">
-                    <choose>
-                    <when test='@MybatisUtils@equals(wareDtlDvCd, "20")'>
-                         AND D3.WARE_NO        = #{wareNo}
-                    </when>
-                    <when test='@MybatisUtils@equals(wareDtlDvCd, "21")'>
-                         AND D3.HGR_WARE_NO    = #{wareNo}   /* 개인창고일 경우 상위창고번호 */
-                    </when>
-                    </choose>
+                         AND ( D3.HGR_WARE_NO = #{wareNo} OR D3.WARE_NO = #{wareNo} )
                     </if>
                        UNION ALL
                       SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
@@ -250,6 +235,7 @@
                           ON D2.ITM_PD_CD  = D1.ITM_PD_CD
                        INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
                           ON D3.WARE_NO = D1.WK_WARE_NO
+                         AND D3.APY_YM  = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
                        WHERE D1.FNL_ITM_GD_CD    = 'A'
                          AND D1.DTA_DL_YN        = 'N'
                          AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3')   /* 설치, B/S, A/S */
@@ -258,21 +244,15 @@
                          AND D3.WARE_USE_YN      = 'Y'
                          AND D3.APY_YM           = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'YYYYMM')
                          AND D3.WARE_DV_CD       = #{wareDvCd}       /* 서비스센터 */
-                         AND D3.WARE_DTL_DV_CD   = #{wareDtlDvCd}
-                         AND D1.FNL_VST_FSH_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'MM'), 'YYYYMMDD')
-                                                   AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2)), 'YYYYMMDD')
+                         AND D1.FNL_VST_FSH_DT LIKE TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'MM'), 'YYYYMM') || '%'
                     <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                          AND D1.ITM_PD_CD        = #{itmPdCd}
                     </if>
+                    <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
+                         AND D3.WARE_DTL_DV_CD = #{wareDtlDvCd}
+                    </if>
                     <if test="@MybatisUtils@isNotEmpty(wareNo)">
-                    <choose>
-                    <when test='@MybatisUtils@equals(wareDtlDvCd, "20")'>
-                         AND D3.WARE_NO        = #{wareNo}
-                    </when>
-                    <when test='@MybatisUtils@equals(wareDtlDvCd, "21")'>
-                         AND D3.HGR_WARE_NO    = #{wareNo}   /* 개인창고일 경우 상위창고번호 */
-                    </when>
-                    </choose>
+                         AND ( D3.HGR_WARE_NO = #{wareNo} OR D3.WARE_NO = #{wareNo} )
                     </if>
                        UNION ALL
                       SELECT D1.ITM_PD_CD
@@ -283,6 +263,7 @@
                          AND D2.ITM_KND_CD = D1.ITM_KND_CD
                        INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
                           ON D3.WARE_NO = D1.OSTR_WARE_NO
+                         AND D3.APY_YM  = SUBSTR(D1.OSTR_DT, 1, 6)
                        WHERE D1.OSTR_TP_CD     = '217'         /* 기타출고 */
                          AND D1.ITM_GD_CD      = 'A'
                          AND D1.DTA_DL_YN      = 'N'
@@ -290,21 +271,15 @@
                          AND D3.WARE_USE_YN    = 'Y'
                          AND D3.APY_YM         = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'YYYYMM')
                          AND D3.WARE_DV_CD     = #{wareDvCd}   /* 서비스센터 */
-                         AND D3.WARE_DTL_DV_CD = #{wareDtlDvCd}
-                         AND D1.OSTR_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'MM'), 'YYYYMMDD')
-                                            AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3)), 'YYYYMMDD')
+                         AND D1.OSTR_DT LIKE TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'MM'), 'YYYYMM') || '%'
                     <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                          AND D1.ITM_PD_CD      = #{itmPdCd}
                     </if>
+                    <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
+                         AND D3.WARE_DTL_DV_CD = #{wareDtlDvCd}
+                    </if>
                     <if test="@MybatisUtils@isNotEmpty(wareNo)">
-                    <choose>
-                    <when test='@MybatisUtils@equals(wareDtlDvCd, "20")'>
-                         AND D3.WARE_NO        = #{wareNo}
-                    </when>
-                    <when test='@MybatisUtils@equals(wareDtlDvCd, "21")'>
-                         AND D3.HGR_WARE_NO    = #{wareNo}   /* 개인창고일 경우 상위창고번호 */
-                    </when>
-                    </choose>
+                         AND ( D3.HGR_WARE_NO = #{wareNo} OR D3.WARE_NO = #{wareNo} )
                     </if>
                        UNION ALL
                       SELECT /*+ INDEX(D1 IX_SVST_SV_WK_OSTR_IZ_01) */
@@ -315,6 +290,7 @@
                           ON D2.ITM_PD_CD  = D1.ITM_PD_CD
                        INNER JOIN TB_SVST_MCBY_WARE_IZ D3   /* 월별창고내역 */
                           ON D3.WARE_NO = D1.WK_WARE_NO
+                         AND D3.APY_YM  = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
                        WHERE D1.FNL_ITM_GD_CD    = 'A'
                          AND D1.DTA_DL_YN        = 'N'
                          AND D1.SV_BIZ_HCLSF_CD IN ('1', '2', '3')   /* 설치, B/S, A/S */
@@ -323,21 +299,15 @@
                          AND D3.WARE_USE_YN      = 'Y'
                          AND D3.APY_YM           = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'YYYYMM')
                          AND D3.WARE_DV_CD       = #{wareDvCd}       /* 서비스센터 */
-                         AND D3.WARE_DTL_DV_CD   = #{wareDtlDvCd}
-                         AND D1.FNL_VST_FSH_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'MM'), 'YYYYMMDD')
-                                                   AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3)), 'YYYYMMDD')
+                         AND D1.FNL_VST_FSH_DT LIKE TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'MM'), 'YYYYMM') || '%'
                     <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                          AND D1.ITM_PD_CD        = #{itmPdCd}
                     </if>
+                    <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
+                         AND D3.WARE_DTL_DV_CD = #{wareDtlDvCd}
+                    </if>
                     <if test="@MybatisUtils@isNotEmpty(wareNo)">
-                    <choose>
-                    <when test='@MybatisUtils@equals(wareDtlDvCd, "20")'>
-                         AND D3.WARE_NO        = #{wareNo}
-                    </when>
-                    <when test='@MybatisUtils@equals(wareDtlDvCd, "21")'>
-                         AND D3.HGR_WARE_NO    = #{wareNo}   /* 개인창고일 경우 상위창고번호 */
-                    </when>
-                    </choose>
+                         AND ( D3.HGR_WARE_NO = #{wareNo} OR D3.WARE_NO = #{wareNo} )
                     </if>
                     ) T
                 GROUP BY T.ITM_PD_CD
@@ -517,8 +487,7 @@
                          AND D3.DTA_DL_YN  = 'N'
                          AND D3.WARE_DV_CD = '2'     /* 서비스센터 */
                          AND D3.APY_YM     = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
-                         AND D1.OSTR_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'MM'), 'YYYYMMDD')
-                                            AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1)), 'YYYYMMDD')
+                         AND D1.OSTR_DT LIKE TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'MM'), 'YYYYMM') || '%'
                       <if test='!@MybatisUtils@equals(wareNo, "000001")'>
                          AND ( D3.WARE_NO = #{wareNo} OR D3.HGR_WARE_NO = #{wareNo} )
                       </if>
@@ -539,8 +508,7 @@
                          AND D3.DTA_DL_YN     = 'N'
                          AND D3.WARE_DV_CD    = '2'                  /* 서비스센터 */
                          AND D3.APY_YM        = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
-                         AND D1.FNL_VST_FSH_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'MM'), 'YYYYMMDD')
-                                                   AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1)), 'YYYYMMDD')
+                         AND D1.FNL_VST_FSH_DT LIKE TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'MM'), 'YYYYMM') || '%'
                       <if test='!@MybatisUtils@equals(wareNo, "000001")'>
                          AND ( D3.WARE_NO = #{wareNo} OR D3.HGR_WARE_NO = #{wareNo} )
                       </if>
@@ -560,8 +528,7 @@
                          AND D3.DTA_DL_YN  = 'N'
                          AND D3.WARE_DV_CD = '2'     /* 서비스센터 */
                          AND D3.APY_YM     = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'YYYYMM')
-                         AND D1.OSTR_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'MM'), 'YYYYMMDD')
-                                            AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2)), 'YYYYMMDD')
+                         AND D1.OSTR_DT LIKE TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'MM'), 'YYYYMM') || '%'
                       <if test='!@MybatisUtils@equals(wareNo, "000001")'>
                          AND ( D3.WARE_NO = #{wareNo} OR D3.HGR_WARE_NO = #{wareNo} )
                       </if>
@@ -581,8 +548,7 @@
                          AND D3.DTA_DL_YN     = 'N'
                          AND D3.WARE_DV_CD    = '2'                  /* 서비스센터 */
                          AND D3.APY_YM        = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'YYYYMM')
-                         AND D1.FNL_VST_FSH_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'MM'), 'YYYYMMDD')
-                                                   AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2)), 'YYYYMMDD')
+                         AND D1.FNL_VST_FSH_DT LIKE TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'MM'), 'YYYYMM') || '%'
                       <if test='!@MybatisUtils@equals(wareNo, "000001")'>
                          AND ( D3.WARE_NO = #{wareNo} OR D3.HGR_WARE_NO = #{wareNo} )
                       </if>
@@ -602,8 +568,7 @@
                          AND D3.DTA_DL_YN  = 'N'
                          AND D3.WARE_DV_CD = '2'     /* 서비스센터 */
                          AND D3.APY_YM     = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'YYYYMM')
-                         AND D1.OSTR_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'MM'), 'YYYYMMDD')
-                                            AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3)), 'YYYYMMDD')
+                         AND D1.OSTR_DT LIKE TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'MM'), 'YYYYMM') || '%'
                       <if test='!@MybatisUtils@equals(wareNo, "000001")'>
                          AND ( D3.WARE_NO = #{wareNo} OR D3.HGR_WARE_NO = #{wareNo} )
                       </if>
@@ -624,8 +589,7 @@
                          AND D3.DTA_DL_YN     = 'N'
                          AND D3.WARE_DV_CD    = '2'                  /* 서비스센터 */
                          AND D3.APY_YM        = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'YYYYMM')
-                         AND D1.FNL_VST_FSH_DT BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'MM'), 'YYYYMMDD')
-                                                   AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3)), 'YYYYMMDD')
+                         AND D1.FNL_VST_FSH_DT LIKE TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'MM'), 'YYYYMM') || '%'
                       <if test='!@MybatisUtils@equals(wareNo, "000001")'>
                          AND ( D3.WARE_NO = #{wareNo} OR D3.HGR_WARE_NO = #{wareNo} )
                       </if>
