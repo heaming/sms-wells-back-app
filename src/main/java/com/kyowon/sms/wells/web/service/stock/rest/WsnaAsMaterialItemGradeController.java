@@ -50,7 +50,8 @@ public class WsnaAsMaterialItemGradeController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2", required = true),
-        @ApiImplicitParam(name = "wareDtlDvCd", value = "창고세부구분코드", paramType = "query", example = "20")
+        @ApiImplicitParam(name = "wareDtlDvCd", value = "창고세부구분코드", paramType = "query", example = "20", required = true),
+        @ApiImplicitParam(name = "hgrWareNo", value = "상위창고번호", paramType = "query", example = "200001"),
     })
     public List<WsnzWellsCodeWareHouseDvo> getWareHouses(@Valid
     SearchWareReq dto) {
@@ -63,7 +64,8 @@ public class WsnaAsMaterialItemGradeController {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2", required = true),
         @ApiImplicitParam(name = "wareDtlDvCd", value = "창고세부구분코드", paramType = "query", example = "20"),
-        @ApiImplicitParam(name = "wareNo", value = "창고번호", paramType = "query", example = "200001"),
+        @ApiImplicitParam(name = "hgrWareNo", value = "상위창고번호", paramType = "query", example = "200001"),
+        @ApiImplicitParam(name = "wareNo", value = "창고번호", paramType = "query", example = "201281"),
         @ApiImplicitParam(name = "itmMngtGdCd", value = "품목관리등급", paramType = "query", example = "S"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "itmKndCd", value = "품목구분", paramType = "query", example = "6", required = true),
@@ -82,7 +84,8 @@ public class WsnaAsMaterialItemGradeController {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2", required = true),
         @ApiImplicitParam(name = "wareDtlDvCd", value = "창고세부구분코드", paramType = "query", example = "20"),
-        @ApiImplicitParam(name = "wareNo", value = "창고번호", paramType = "query", example = "200001"),
+        @ApiImplicitParam(name = "hgrWareNo", value = "상위창고번호", paramType = "query", example = "200001"),
+        @ApiImplicitParam(name = "wareNo", value = "창고번호", paramType = "query", example = "201281"),
         @ApiImplicitParam(name = "itmMngtGdCd", value = "품목관리등급", paramType = "query", example = "S"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "itmKndCd", value = "품목구분", paramType = "query", example = "6", required = true),
