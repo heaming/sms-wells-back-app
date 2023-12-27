@@ -5,7 +5,7 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaAsMaterialItemGrade
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,9 +63,11 @@ public class WsnaAsMaterialItemGradeService {
 
         // 창고세부구분코드
         String wareDtlDvCd = dto.wareDtlDvCd();
+        // 창고번호
+        String wareNo = dto.wareNo();
 
-        // 창고세부구분코드가 전체인 경우
-        if (StringUtils.isEmpty(wareDtlDvCd)) {
+        // 창고세부구분, 창고번호가 전체인 경우
+        if (StringUtils.isEmpty(wareDtlDvCd) && StringUtils.isEmpty(wareNo)) {
             return this.mapper.selectAsMaterialItemGradePages(dto, pageInfo);
         } else {
             return this.mapper.selectAsMaterialItemGradePagesForWare(dto, pageInfo);
@@ -88,9 +90,11 @@ public class WsnaAsMaterialItemGradeService {
 
         // 창고세부구분코드
         String wareDtlDvCd = dto.wareDtlDvCd();
+        // 창고번호
+        String wareNo = dto.wareNo();
 
-        // 창고세부구분코드가 전체인 경우
-        if (StringUtils.isEmpty(wareDtlDvCd)) {
+        // 창고세부구분, 창고번호가 전체인 경우
+        if (StringUtils.isEmpty(wareDtlDvCd) && StringUtils.isEmpty(wareNo)) {
             return this.mapper.selectAsMaterialItemGradePages(dto);
         } else {
             return this.mapper.selectAsMaterialItemGradePagesForWare(dto);

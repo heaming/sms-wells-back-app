@@ -53,6 +53,8 @@ public class WsnaAsMaterialItemGradeDto {
 
         // 창고세부구분코드
         String wareDtlDvCd,
+        // 상위창고번호
+        String hgrWareNo,
 
         // 창고번호
         String wareNo,
