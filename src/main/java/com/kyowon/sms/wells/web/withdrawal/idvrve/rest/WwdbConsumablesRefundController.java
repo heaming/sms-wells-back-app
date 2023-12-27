@@ -102,7 +102,7 @@ public class WwdbConsumablesRefundController {
      * 환불 카드사 조회
      * @return List<SearchCardRes>
      */
-    @ApiOperation(value = "환불 은행사 조회", notes = "지급 구분에 따른 환불 카드사 조회")
+    @ApiOperation(value = "환불 카드사 조회", notes = "지급 구분에 따른 환불 카드사 조회")
     @GetMapping("/card")
     public List<SearchCardRes> getConsumablesRefundCard() {
         return service.getConsumablesRefundCard();
@@ -112,7 +112,7 @@ public class WwdbConsumablesRefundController {
      * 환불 은행사 조회
      * @return List<SearchBankRes>
      */
-    @ApiOperation(value = "환불 카드사 조회", notes = "지급 구분에 따른 환불 은행사 조회")
+    @ApiOperation(value = "환불 은행사 조회", notes = "지급 구분에 따른 환불 은행사 조회")
     @GetMapping("/bank")
     public List<SearchBankRes> getConsumablesRefundBank() {
         return service.getConsumablesRefundBank();
