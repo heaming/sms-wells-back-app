@@ -5,6 +5,8 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.common.web.closing.sales.dto.ZdchClearingSlipCreateDto;
@@ -46,6 +48,28 @@ public class WdcbBusinessAtamAdjustMgtController {
      * @param dto
      * @return
      */
+    @ApiOperation(value = "영업선수금 정산 관리(집계) 엑셀다운로드", notes = "조회조건에 따른 영업선수금 내역을 엑셀다운로드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "dpKndCd", value = "조회구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapAlrpySlpno", value = "SAP전표번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
+    })
+    @GetMapping("/total/excel-download")
+    public List<SearchTotalRes> getBusinessAtamTotals(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getBusinessAtamTotals(dto);
+    }
+
+    /**
+     * 영업선수금 정산 관리(집계)
+     * @param dto
+     * @return
+     */
     @ApiOperation(value = "영업선수금 정산 관리(집계)", notes = "조회조건에 따른 영업선수금 내역을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
@@ -55,12 +79,35 @@ public class WdcbBusinessAtamAdjustMgtController {
         @ApiImplicitParam(name = "sapAlrpySlpno", value = "SAP전표번호", paramType = "query"),
         @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
     })
-    @GetMapping("/total")
-    public List<SearchTotalRes> getBusinessAtamTotals(
+    @GetMapping("/total/paging")
+    public PagingResult<SearchTotalRes> getBusinessAtamTotalsPaging(
+        @Valid
+        SearchReq dto,
+        PageInfo pageInfo
+    ) {
+        return service.getBusinessAtamTotalsPaging(dto, pageInfo);
+    }
+
+    /**
+     * 영업선수금 정산 관리(상세)
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "영업선수금 정산 관리(상세) 엑셀다운로드", notes = "조회조건에 따른 영업선수금 내역을 엑셀다운로드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "dpKndCd", value = "조회구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapAlrpySlpno", value = "SAP전표번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
+    })
+    @GetMapping("/detail/excel-download")
+    public List<SearchDetailRes> getBusinessAtamDetails(
         @Valid
         SearchReq dto
     ) {
-        return service.getBusinessAtamTotals(dto);
+        return service.getBusinessAtamDetails(dto);
     }
 
     /**
@@ -77,12 +124,13 @@ public class WdcbBusinessAtamAdjustMgtController {
         @ApiImplicitParam(name = "sapAlrpySlpno", value = "SAP전표번호", paramType = "query"),
         @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
     })
-    @GetMapping("/detail")
-    public List<SearchDetailRes> getBusinessAtamDetails(
+    @GetMapping("/detail/paging")
+    public PagingResult<SearchDetailRes> getBusinessAtamDetailsPaging(
         @Valid
-        SearchReq dto
+        SearchReq dto,
+        PageInfo pageInfo
     ) {
-        return service.getBusinessAtamDetails(dto);
+        return service.getBusinessAtamDetailsPaging(dto, pageInfo);
     }
 
     /**
