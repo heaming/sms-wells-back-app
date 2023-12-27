@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmCreateDvo;
-import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmReceivingAndPayingDvo;
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmSapMatDvo;
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSlCnfmBasDvo;
 import com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesConfirmCreateMapper;
@@ -45,12 +44,13 @@ public class WdcbSalesConfirmCreateService {
 
         WdcbSlCnfmBasDvo inputDvo = new WdcbSlCnfmBasDvo();
 
+        // 0.대표고객, SAP상품구분코드 등 DB에서 조회되지 않은 값에 대한 빈값 "" 예외처리(exception) 로직 삭제, 매핑되지 않는 경우 데이터 오류지만 스킵 - 2023.12.26 (by. 박정교P)
         /* 1.매출확정일련번호 채번 */
         int slCnfmSn = mapper.selectSalesConfirmSerialNumber(dvo);
         /* 2.대표고객 매핑 */
         String dgCstId = mapper.selectDgCstId(dvo);
         /* 3.SAP상품구분코드 매핑 */
-        String sapPdDvCd = StringUtils.isNotEmpty(mapper.selectSapPdDvCd(dvo)) ? mapper.selectSapPdDvCd(dvo) : "";
+        String sapPdDvCd = mapper.selectSapPdDvCd(dvo);
         /* 4. 렌탈등록비부가가치세(RENTAL_RGST_COST_VAT)  */
         int rentalRgstCostVat = (int)Math.floor(dvo.getRentalRgstCost() * 0.0909);
         /* 5. 이자부가가치세 (INT_VAT) : VO에 있는 정상이자금액 NON_INT_AMT * 0.0909 값을 넣어줌.  (소수점 TRUNC) */
@@ -59,10 +59,10 @@ public class WdcbSalesConfirmCreateService {
         String sapMatEvlClssVal = "";
         String sapMatCd = "";
         String saveGdsYn = "";
-        WdcbSalesConfirmSapMatDvo edcbSapMatDvo = mapper.selectSapMat(dvo);
-        if (!ObjectUtils.isEmpty(edcbSapMatDvo)) {
-            sapMatEvlClssVal = edcbSapMatDvo.getSapMatEvlClssVal();
-            sapMatCd = edcbSapMatDvo.getSapMatCd();
+        WdcbSalesConfirmSapMatDvo wdcbSapMatDvo = mapper.selectSapMat(dvo);
+        if (!ObjectUtils.isEmpty(wdcbSapMatDvo)) {
+            sapMatEvlClssVal = wdcbSapMatDvo.getSapMatEvlClssVal();
+            sapMatCd = wdcbSapMatDvo.getSapMatCd();
             /* 6-1.저장물품여부(SAVE_GDS_YN) */
             /*saveGdsYn = StringUtils.isNotEmpty(sapMatEvlClssVal)
                 ? sapMatEvlClssVal.substring(0, 2).equals("Z7") ? "Y" : "N" : "";*/
@@ -76,10 +76,12 @@ public class WdcbSalesConfirmCreateService {
                 }
             } else {
                 // 아니면 N 으로 셋팅
-                saveGdsYn = "";
+                saveGdsYn = "N";
             }
         }
 
+        /* 7-0. 사업본부구분코드(BZ_HDQ_DV_CD) - 10:에듀, 20:웰스 강제 설정, 2023.12.26 */
+        String bzHdqDvCd = "20";
         /* 7. SAP사업본부정보코드(SAP_BZ_HDQ_INF_CD) */
         String sapBzHdqInfCd = "0003";
         /* 8-0 . 추가할인금액 : 매출중지 시 매출의 30프로만 점유비매출로 매출금엑에 떠야하는 상황이라,  추가할인금액에 정상매출의 70프로를 띄워놓음.  */
@@ -92,39 +94,41 @@ public class WdcbSalesConfirmCreateService {
         } else {
             spmtDscAmt = dvo.getSpmtDscAmt();
         }
-        // log.info("spmtDscAmt:" + spmtDscAmt);
         /* 8. 매출금액 (SL_AMT) */
         int slAmt = dvo.getNomSlAmt() + dvo.getSpmtSlAmt() - dvo.getNomDscAmt() - spmtDscAmt
             - dvo.getSlCtrAmt(); // 정상매출금액 + 추가매출금액- 정상할인금액 - 추가할인금액 - 매출조정금액
-        // log.info("slAmt:" + slAmt);
+        /* 8-1 매출수량 (SL_QTY) */
+        if (dvo.getSlQty() == 0) {
+            dvo.setSlQty(1);
+        }
         /* 9. 부가가치세(VAT) */
         int vat = 0;
         String vatTpCd = mapper.selectVatTpCd(dvo.getPdCd());
-        if (StringUtils.isNotEmpty(vatTpCd) && "10".equals(vatTpCd)) {
-            vat = (int)Math.floor(slAmt * 0.0909);
+        if ("10".equals(vatTpCd)) {
+            int slQty = dvo.getSlQty() == 0 ? 1 : dvo.getSlQty();
+            vat = slAmt - (int)(Math.ceil((double)(slAmt / slQty) / 1.1) * slQty); // VAT 계산식 변경 - 2023.12.26
+        }
+        /* 9-1. 무상여부 - 2023.12.26 */
+        String frisuYn = "N";
+        if (slAmt == 0) {
+            frisuYn = "Y";
         }
 
         /* 10. CO주문유형 */
-        String ctrlOrdTpCd = StringUtils
-            .isNotEmpty(mapper.selectCtrlOrdTpCd(sapPdDvCd, dvo.getSellInflwChnlDtlCd(), dvo.getOgTpCd()))
-                ? mapper.selectCtrlOrdTpCd(sapPdDvCd, dvo.getSellInflwChnlDtlCd(), dvo.getOgTpCd()) : "";
+        String ctrlOrdTpCd = mapper.selectCtrlOrdTpCd(sapPdDvCd, dvo.getSellInflwChnlDtlCd(), dvo.getOgTpCd());
         /* 11. 코스트센터코드, WBS코드, SAP목적자재코드 */
         /* ASIS의 ZS2200P 테이블에도 모든 값이 공백임. 공백 넣을것 */
         /* 12. SAP과세면세구분코드 */
-        //String sapTxnDtfrCd = dvo.getPvdaAmt() > 0 ? "3" : vat > 0 ? "1" : "0";
         String sapTxnDtfrCd = "";
         if (dvo.getPvdaAmt() > 0) {
             // 현할차금액(PVDA_AMT) 있으면 3
             sapTxnDtfrCd = "3";
-        } else {
-            if (vat > 0) {
-                // VAT있으면 1
-                sapTxnDtfrCd = "1";
-            } else {
-                // 없으면 0
-                sapTxnDtfrCd = "0";
-            }
+        } else if ("10".equals(vatTpCd)) { // VAT_TP_CD - 10:과세
+            sapTxnDtfrCd = "1";
+        } else { // VAT_TP_CD - 20:영세, 30:면세
+            sapTxnDtfrCd = "0";
         }
+
         /* 13. SAP세금계산서발행기준코드 */
         String sapTxinvPblBaseCd = "";
         if (StringUtils.isNotEmpty(sapPdDvCd) && ("B1".equals(sapPdDvCd) || "B2".equals(sapPdDvCd))) {
@@ -139,34 +143,29 @@ public class WdcbSalesConfirmCreateService {
             sapTxinvPblBaseCd = "3";
         }
         /* 14. 물류배송방식코드, SAP플랜트코드, SAP저장위치값. */
+        // 물류배송방식코드: EDU만 사용
         String lgstSppMthdCd = "";
-        String sapPlntCd = "";
-        String sapSaveLctCd = "";
-        if (StringUtils.isNotEmpty(dvo.getRvpyYn()) && "Y".equals(dvo.getRvpyYn())) {
-            WdcbSalesConfirmReceivingAndPayingDvo wdcbSalesConfirmReceivingAndPayingDvo = mapper
-                .selectReceivingAndPaying(dvo);
-            if (!ObjectUtils.isEmpty(wdcbSalesConfirmReceivingAndPayingDvo)) {
-                lgstSppMthdCd = wdcbSalesConfirmReceivingAndPayingDvo.getSppMthdTpCd();
-                sapPlntCd = wdcbSalesConfirmReceivingAndPayingDvo.getSapPlntCd();
-                sapSaveLctCd = wdcbSalesConfirmReceivingAndPayingDvo.getSapSaveLctCd();
-            }
-        }
+        // SAP플랜트코드 조회 - 2023.12.26
+        String sapPlntCd = mapper.selectSapPlantCode(dvo);
+        // SAP저장위치값 조회 - 2023.12.26
+        String sapSaveLctCd = mapper.selectSapSaveLocationCode(dvo);
 
         /* 15. SAP매출유형코드 */
         String tempSellTpDtlCd = ""; /*판매유형상세코드*/
         String tempSlRcogClsfCd = ""; /*매출인식분류코드*/
-        String sapSlTpCd = "";
-        String slTpDvCd = "";
-        String clssVal = "";
+        String sapSlTpCd = ""; // SAP매출유형코드
+        String sapBizDvCd = ""; // SAP업무구분코드
+        String slTpDvCd = "1";
+        String clssVal = "1";
         String addConditionSlTp = "0";
         String addConditionBizDv = "0";
-        String slpMapngCdv = "";
 
-        // log.info("dvo.getSlRcogClsfCd().substring(1):" + dvo.getSlRcogClsfCd().substring(0, 1));
+        // 판매유형상세코드: S% -> "ANY"
         tempSellTpDtlCd = dvo.getSlRcogClsfCd().substring(0, 1).equals("S") ? "ANY" : dvo.getSellTpDtlCd();
-
+        // 매출인식분류코드: W% -> "W"
         tempSlRcogClsfCd = dvo.getSlRcogClsfCd().substring(0, 1).equals("W") ? "W" : dvo.getSlRcogClsfCd();
 
+        // 매출유형구분 - 취소/반품인 경우 2, 매출인식인 경우 1
         if ("Y".equals(dvo.getRtngdYn())) {
             slTpDvCd = "2";
         } else {
@@ -184,8 +183,8 @@ public class WdcbSalesConfirmCreateService {
                 // SAP저장위치값 앞2자리가 Z7 이면 3
                 clssVal = "3";
             } else {
-                // SAP저장위치가 없으면 2로 셋팅
-                clssVal = "2";
+                // SAP저장위치가 없으면 1로 셋팅
+                clssVal = "1";
             }
         } else {
             // SAP저장위치가 없으면 1로 셋팅
@@ -220,19 +219,20 @@ public class WdcbSalesConfirmCreateService {
             addConditionBizDv = "0";
         }
 
+        String tmpSapSlTpCd = mapper
+            .selectSapSlTpCd(tempSellTpDtlCd, tempSlRcogClsfCd, clssVal, slTpDvCd, addConditionSlTp);
         /* 렌탈 상품소분류가 원두(PDC000000000131) 인 경우, 정기구매(커피원두)로 강제 설정, 2023-12-15 정승현P */
         if ("W01".equals(dvo.getSlRcogClsfCd()) && "PDC000000000131".equals(dvo.getPdLclsfId())) {
-            tempSellTpDtlCd = "63";
+            tmpSapSlTpCd = "3016";
         }
-        slpMapngCdv = mapper.selectSlpMapngCdv(tempSellTpDtlCd, tempSlRcogClsfCd, clssVal, slTpDvCd, addConditionSlTp);
-        sapSlTpCd = StringUtil.isEmpty(slpMapngCdv) ? "ERR" : slpMapngCdv;
+        sapSlTpCd = StringUtil.isEmpty(tmpSapSlTpCd) ? "ERR" : tmpSapSlTpCd;
 
         String tmpSapBizDvCd = mapper.selectSapBizDvCd(tempSellTpDtlCd, tempSlRcogClsfCd, addConditionBizDv);
         /* 렌탈 상품소분류가 원두(PDC000000000131) 인 경우, 정기구매(커피원두)로 강제 설정, 2023-12-15 정승현P */
         if ("W01".equals(dvo.getSlRcogClsfCd()) && "PDC000000000131".equals(dvo.getPdLclsfId())) {
             tmpSapBizDvCd = "LNC49";
         }
-        String sapBizDvCd = StringUtil.isEmpty(tmpSapBizDvCd) ? "ERR" : tmpSapBizDvCd;
+        sapBizDvCd = StringUtil.isEmpty(tmpSapBizDvCd) ? "ERR" : tmpSapBizDvCd;
 
         /* 매핑 값 셋팅 */
         inputDvo.setCntrNo(dvo.getCntrNo());
@@ -240,7 +240,7 @@ public class WdcbSalesConfirmCreateService {
         inputDvo.setSlRcogDt(dvo.getSlRcogDt());
         inputDvo.setSlCnfmSn(slCnfmSn);
         inputDvo.setKwGrpCoCd(dvo.getKwGrpCoCd());
-        inputDvo.setBzHdqDvCd(dvo.getBzHdqDvCd());
+        inputDvo.setBzHdqDvCd(bzHdqDvCd);
         inputDvo.setOgTpCd(dvo.getOgTpCd());
         inputDvo.setPrtnrNo(dvo.getPrtnrNo());
         inputDvo.setPdHclsfId(dvo.getPdHclsfId());
@@ -330,7 +330,7 @@ public class WdcbSalesConfirmCreateService {
         inputDvo.setSapMatCd(sapMatCd);
         inputDvo.setSlQty(dvo.getSlQty());
         inputDvo.setRtngdYn(dvo.getRtngdYn());
-        inputDvo.setFrisuYn(dvo.getFrisuYn());
+        inputDvo.setFrisuYn(frisuYn);
         inputDvo.setCscnCd("");
         inputDvo.setWbsCd("");
         inputDvo.setSapPurpMatCd("");
