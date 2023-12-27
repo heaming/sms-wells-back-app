@@ -54,13 +54,13 @@ public class WsniCustomerCenterInterfaceService {
         return searchRes;
     }
 
+    /**
+     * 모종 정기배송 제품 조회
+     * @param dto cntrNo 계약번호
+     * @param dto cntrSn 계약일련번호
+     * @return
+     */
     public List<SearchSppPdctRes> getSeedingRegularShippingPdct(SearchReq dto) {
-        //        List<SearchSppPdctRes> searchRes = mapper.selectSeedingRegularShippingPdct(dto);
-
-        //        if (ObjectUtils.isEmpty(searchRes)) {
-        //            throw new BizException("MSG_TXT_NO_DATA_RM");
-        //        }
-
         return mapper.selectSeedingRegularShippingPdct(dto);
     }
 

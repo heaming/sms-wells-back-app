@@ -68,7 +68,7 @@ public class WsniCustomerCenterInterfaceController {
         return resWrapper;
     }
 
-    @ApiOperation(value = "모종 정기배송 제품 조회", notes = "고객센터에서 모종 정기배송 제품을 조회하는 인터페이스")
+    @ApiOperation(value = "[EAI_WSVI1049] 모종 정기배송 제품 조회", notes = "고객센터에서 모종 정기배송 제품을 조회하는 인터페이스")
     @PostMapping("/seeding-product")
     public EaiWrapper getSeedingRegularShippingPdct(
         @RequestBody

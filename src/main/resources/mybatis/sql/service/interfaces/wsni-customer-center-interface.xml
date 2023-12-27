@@ -162,41 +162,124 @@
     </select>
 
     <select id="selectSeedingRegularShippingPdct" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniCustomerCenterInterfaceDto$SearchSppPdctRes">
-        SELECT T1.CNTR_NO
-             , T1.CNTR_SN
-             , T1.SV_BIZ_HCLSF_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', T1.SV_BIZ_HCLSF_CD) AS SV_BIZ_HCLSF_NM
-             , T1.SDING_SPP_NO
-             , T1.SDING_PD_CD1
-             , P1.PD_NM AS SDING_PD_NM1
-             , T1.SDING_QTY1
-             , T1.SDING_PD_CD2
-             , P2.PD_NM AS SDING_PD_NM2
-             , T1.SDING_QTY2
-             , T1.SDING_PD_CD3
-             , P3.PD_NM AS SDING_PD_NM3
-             , T1.SDING_QTY3
-             , T1.SDING_PD_CD4
-             , P4.PD_NM AS SDING_PD_NM4
-             , T1.SDING_QTY4
-             , T1.SDING_PD_CD5
-             , P5.PD_NM AS SDING_PD_NM5
-             , T1.SDING_QTY5
-             , T1.VST_DT
-          FROM TB_SVPD_SDING_SPP_CNFM_IZ T1
-         INNER JOIN TB_PDBS_PD_BAS P1
-            ON T1.SDING_PD_CD1 = P1.PD_CD
-         INNER JOIN TB_PDBS_PD_BAS P2
-            ON T1.SDING_PD_CD2 = P2.PD_CD
-         INNER JOIN TB_PDBS_PD_BAS P3
-            ON T1.SDING_PD_CD3 = P3.PD_CD
-         INNER JOIN TB_PDBS_PD_BAS P4
-            ON T1.SDING_PD_CD4 = P4.PD_CD
-         INNER JOIN TB_PDBS_PD_BAS P5
-            ON T1.SDING_PD_CD5 = P5.PD_CD
-         WHERE 1 = 1
-           AND T1.CNTR_NO = #{cntrNo}
-           AND T1.CNTR_SN = TO_NUMBER(#{cntrSn})
+        SELECT CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_HCLSF_CD
+             , SV_BIZ_HCLSF_NM
+             , SDING_SPP_NO
+             , MAX(CASE WHEN SDING_SN = 1 THEN ITM_PD_CD ELSE '' END) AS SDING_PD_CD1
+             , MAX(CASE WHEN SDING_SN = 1 THEN PD_NM ELSE '' END) AS SDING_PD_NM1
+             , MAX(CASE WHEN SDING_SN = 1 THEN ITM_QTY ELSE NULL END) AS SDING_QTY1
+             , MAX(CASE WHEN SDING_SN = 2 THEN ITM_PD_CD ELSE '' END) AS SDING_PD_CD2
+             , MAX(CASE WHEN SDING_SN = 2 THEN PD_NM ELSE '' END) AS SDING_PD_NM2
+             , MAX(CASE WHEN SDING_SN = 2 THEN ITM_QTY ELSE NULL END) AS SDING_QTY2
+             , MAX(CASE WHEN SDING_SN = 3 THEN ITM_PD_CD ELSE '' END) AS SDING_PD_CD3
+             , MAX(CASE WHEN SDING_SN = 3 THEN PD_NM ELSE '' END) AS SDING_PD_NM3
+             , MAX(CASE WHEN SDING_SN = 3 THEN ITM_QTY ELSE NULL END) AS SDING_QTY3
+             , MAX(CASE WHEN SDING_SN = 4 THEN ITM_PD_CD ELSE '' END) AS SDING_PD_CD4
+             , MAX(CASE WHEN SDING_SN = 4 THEN PD_NM ELSE '' END) AS SDING_PD_NM4
+             , MAX(CASE WHEN SDING_SN = 4 THEN ITM_QTY ELSE NULL END) AS SDING_QTY4
+             , MAX(CASE WHEN SDING_SN = 5 THEN ITM_PD_CD ELSE '' END) AS SDING_PD_CD5
+             , MAX(CASE WHEN SDING_SN = 5 THEN PD_NM ELSE '' END) AS SDING_PD_NM5
+             , MAX(CASE WHEN SDING_SN = 5 THEN ITM_QTY ELSE NULL END) AS SDING_QTY5
+             , WK_DT
+             , MAX(SV_STP_DT) AS BSSVC_SPP_STP_DT
+        FROM (
+               SELECT FA101.CNTR_NO
+                    , FA101.CNTR_SN
+                    , FA101.SV_BIZ_HCLSF_CD
+                    , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', FA101.SV_BIZ_HCLSF_CD) AS SV_BIZ_HCLSF_NM
+                    , FA101.SDING_SPP_NO
+                    , FA102.SDING_PD_CD AS ITM_PD_CD
+                    , ST101.PD_NM
+                    , FA102.SDING_QTY AS ITM_QTY
+                    , FA101.WK_DT
+                    , AC202.SV_STP_DT
+                    , FA102.SDING_SN
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261 /* 고객서비스수행배정내역 */
+                INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ AC202
+                   ON AC261.ASN_OJ_YM = AC202.MNGT_YM
+                  AND AC261.CNTR_NO = AC202.CNTR_NO
+                  AND AC261.CNTR_SN = AC202.CNTR_SN
+                INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T3 /*상품각사속성상세*/
+                   ON AC202.PDCT_PD_CD = T3.PD_CD
+                  AND T3.PD_EXTS_PRP_GRP_CD = 'PART'
+                INNER JOIN TB_SVPD_SDING_SPP_PLAN_IZ FA101 /* 모종배송계획내역 */
+                   ON AC261.CNTR_NO = FA101.CNTR_NO
+                  AND AC261.CNTR_SN = FA101.CNTR_SN
+                  AND AC261.SV_BIZ_DCLSF_CD = FA101.SV_BIZ_DCLSF_CD
+                  AND AC261.CST_SV_ASN_NO = FA101.SDING_SPP_NO
+                INNER JOIN TB_SVPD_SDING_SPP_EXP_IZ FA102 /* 모종배송예정내역 */
+                   ON FA101.CNTR_NO = FA102.CNTR_NO
+                  AND FA101.CNTR_SN = FA102.CNTR_SN
+                  AND FA101.SV_BIZ_HCLSF_CD = FA102.SV_BIZ_HCLSF_CD
+                  AND FA101.SV_BIZ_DCLSF_CD = FA102.SV_BIZ_DCLSF_CD
+                  AND FA101.SDING_SPP_NO = FA102.SDING_SPP_NO
+                  AND FA101.SDING_SPP_SN = FA102.SDING_SPP_SN
+                INNER JOIN TB_PDBS_PD_BAS ST101
+                   ON ST101.PD_CD = FA102.SDING_PD_CD
+                  AND ST101.DTA_DL_YN = 'N'
+                WHERE AC261.ASN_OJ_YM = (SELECT MAX(SUB1.ASN_OJ_YM)
+                                           FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB1
+                                          WHERE SUB1.CNTR_NO = AC261.CNTR_NO
+                                            AND SUB1.CNTR_SN = AC261.CNTR_SN)
+                  AND AC261.CNTR_NO = #{cntrNo}
+                  AND AC261.CNTR_SN = #{cntrSn}
+                  AND FA102.SDING_SPP_SN = (SELECT MAX(X1.SDING_SPP_SN)
+                                              FROM TB_SVPD_SDING_SPP_PLAN_IZ X1 /* 모종배송계획내역 */
+                                             WHERE FA102.CNTR_NO = X1.CNTR_NO
+                                               AND FA102.CNTR_SN = X1.CNTR_SN
+                                               AND FA102.SV_BIZ_HCLSF_CD = X1.SV_BIZ_HCLSF_CD
+                                               AND FA102.SV_BIZ_DCLSF_CD = X1.SV_BIZ_DCLSF_CD
+                                               AND FA102.SDING_SPP_NO = X1.SDING_SPP_NO
+                                               AND X1.DTA_DL_YN = 'N')
+                  AND T3.PD_PRP_VAL20 = '11'
+                UNION ALL
+               SELECT AC261.CNTR_NO
+                    , AC261.CNTR_SN
+                    , AC261.SV_BIZ_MCLSF_CD
+                    , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_MCLSF_CD', AC261.SV_BIZ_MCLSF_CD) AS SV_BIZ_HCLSF_CD_NM
+                    , AC261.CST_SV_ASN_NO
+                    , AC252.PDCT_PD_CD AS ITM_PD_CD
+                    , ST101.PD_NM
+                    , AC252.PU_QTY AS ITM_QTY
+                    , AC261.WK_EXCN_DT
+                    , AC202.SV_STP_DT
+                    , AC252.WK_SN
+                 FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261 /* 고객서비스수행배정내역 */
+                INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ AC202
+                   ON AC261.ASN_OJ_YM = AC202.MNGT_YM
+                  AND AC261.CNTR_NO = AC202.CNTR_NO
+                  AND AC261.CNTR_SN = AC202.CNTR_SN
+                INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T3 /*상품각사속성상세*/
+                   ON AC202.PDCT_PD_CD = T3.PD_CD
+                  AND T3.PD_EXTS_PRP_GRP_CD = 'PART'
+                INNER JOIN TB_SSCT_CNTR_DTL C /*계약상세*/
+                   ON AC261.CNTR_NO = C.CNTR_NO
+                  AND AC261.CNTR_SN = C.CNTR_SN
+                INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ AC252
+                   ON AC261.ASN_OJ_YM = AC252.ASN_OJ_YM
+                  AND AC261.CNTR_NO = AC252.CNTR_NO
+                  AND AC261.CNTR_SN = AC252.CNTR_SN
+                /**  2023.12.27(수) 마지막 발송 내역을 보여주면됨 박누리M 협의완료
+                INNER JOIN WSMDBS.TB_PDBS_PD_REL T2
+                   ON T2.BASE_PD_CD = C.BASE_PD_CD
+                  AND T2.PD_REL_TP_CD = '05'
+                  AND T2.DTA_DL_YN  = 'N'
+                  AND TO_CHAR(SYSDATE, 'YYYYYMMDDHH24MISS') BETWEEN T2.VL_STRT_DTM  AND T2.VL_END_DTM
+                 **/
+                INNER JOIN TB_PDBS_PD_BAS ST101
+                   ON ST101.PD_CD = AC252.PU_PART_PD_CD
+                  AND ST101.DTA_DL_YN = 'N'
+                WHERE AC261.ASN_OJ_YM = (SELECT MAX(SUB1.ASN_OJ_YM)
+                                           FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB1
+                                          WHERE SUB1.CNTR_NO = AC261.CNTR_NO
+                                            AND SUB1.CNTR_SN = AC261.CNTR_SN)
+                   AND AC261.CNTR_NO = #{cntrNo}
+                   AND AC261.CNTR_SN = #{cntrSn}
+                   AND T3.PD_PRP_VAL20 IN ('12','13','14','15','16')
+             )
+         GROUP BY CNTR_NO, CNTR_SN,  SV_BIZ_HCLSF_CD, SV_BIZ_HCLSF_NM, SDING_SPP_NO, WK_DT
     </select>
 
     <select id="selectSeedingRegularShippingVst" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniCustomerCenterInterfaceDto$SearchSppVstRes">
