@@ -34,7 +34,7 @@ public class WsnaAsMaterialOutOfStoragePsController {
         @ApiImplicitParam(name = "endDt", value = "처리종료일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "refriType", value = "유무상구분", paramType = "query", required = true),
         @ApiImplicitParam(name = "serviceType", value = "서비스유형", paramType = "query"),
-        @ApiImplicitParam(name = "ogCd", value = "서비스센터", paramType = "query"),
+        @ApiImplicitParam(name = "ogId", value = "서비스센터", paramType = "query"),
         @ApiImplicitParam(name = "prtnrNo", value = "엔지니어", paramType = "query"),
         @ApiImplicitParam(name = "itmKndCd", value = "품목구분", paramType = "query"),
         @ApiImplicitParam(name = "pdGrpCd", value = "상품그룹코드", paramType = "query"),
