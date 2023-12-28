@@ -963,31 +963,51 @@
                              AND DTA_DL_YN = 'N'
                          ) T13
                        ON 1=1
+<!--                     LEFT OUTER JOIN LATERAL-->
+<!--                        (-->
+<!--                          SELECT COUNT(*) AS ROW_SCNT-->
+<!--                            FROM TB_FEAM_WELS_SV_FEE_BAS /* 웰스서비스수수료기본 */-->
+<!--                           WHERE 1=1-->
+<!--                             AND DTA_DL_YN = 'N'-->
+<!--                             AND VST_MCN = 0 /* 방문개월수 */-->
+<!--                             AND SUBSTR(#{rcpDtFrom}, 0, 6) BETWEEN APY_STRT_YM AND APY_END_YM /* 적용시작년월, 적용종료년월 */-->
+<!--                             AND BASE_PD_CD IN /* 기준상품코드 */-->
+<!--                               (-->
+<!--                                 SELECT S2.OJ_PD_CD /* 상품코드 */-->
+<!--                                   FROM TB_PDBS_PD_BAS S1 /* 상품기본 */-->
+<!--                                  INNER JOIN TB_PDBS_PD_REL S2 /* 상품관계 */-->
+<!--                                     ON S2.BASE_PD_CD = S1.PD_CD /* 상품코드 */-->
+<!--                                    AND S2.PD_REL_TP_CD = '05' /* 상품관계유형코드 = 05 : 기준-제품 */-->
+<!--                                    AND SUBSTR(#{rcpDtFrom}, 0, 8) BETWEEN S2.VL_STRT_DTM  AND S2.VL_END_DTM /* 유효시작일시, 유효종료일시 */-->
+<!--                                    AND S2.DTA_DL_YN = 'N'-->
+<!--                                  INNER JOIN TB_PDBS_PD_BAS S3 /* 상품기본 */-->
+<!--                                     ON S3.PD_CD = S2.OJ_PD_CD /* 대상상품코드 */-->
+<!--                                    AND S3.DTA_DL_YN = 'N'-->
+<!--                                    AND S3.PD_TP_CD='M' /* 상품유형코드 = M : 교재제품 */-->
+<!--                                  WHERE 1=1-->
+<!--                                    AND S1.DTA_DL_YN = 'N'-->
+<!--                                    AND S1.PD_CD = T2.BASE_PD_CD /* 기준상품코드 */-->
+<!--                               )-->
+<!--                        ) T14-->
+<!--                       ON 1=1-->
                      LEFT OUTER JOIN LATERAL
                         (
-                          SELECT COUNT(*) AS ROW_SCNT
-                            FROM TB_FEAM_WELS_SV_FEE_BAS /* 웰스서비스수수료기본 */
+                          SELECT /*+ leading(S1 S2 FEE) index(TB_FEAM_WELS_SV_FEE_BAS PK_FEAM_WELS_SV_FEE_BAS) */
+                                 COUNT(*) AS ROW_SCNT
+                            FROM TB_FEAM_WELS_SV_FEE_BAS FEE/* 웰스서비스수수료기본 */
+                           INNER JOIN TB_PDBS_PD_REL S2
+                              ON FEE.BASE_PD_CD = S2.OJ_PD_CD
+                           INNER JOIN TB_PDBS_PD_BAS S1 /* 상품기본 */
+                              ON S2.BASE_PD_CD = S1.PD_CD /* 상품코드 */
+                             AND S2.PD_REL_TP_CD = '05' /* 상품관계유형코드 = 05 : 기준-제품 */
+                             AND SUBSTR(#{rcpDtFrom}, 0, 8) BETWEEN S2.VL_STRT_DTM  AND S2.VL_END_DTM /* 유효시작일시, 유효종료일시 */
+                             AND S2.DTA_DL_YN = 'N'
                            WHERE 1=1
-                             AND DTA_DL_YN = 'N'
-                             AND VST_MCN = 0 /* 방문개월수 */
-                             AND SUBSTR(#{rcpDtFrom}, 0, 6) BETWEEN APY_STRT_YM AND APY_END_YM /* 적용시작년월, 적용종료년월 */
-                             AND BASE_PD_CD IN /* 기준상품코드 */
-                               (
-                                 SELECT S2.OJ_PD_CD /* 상품코드 */
-                                   FROM TB_PDBS_PD_BAS S1 /* 상품기본 */
-                                  INNER JOIN TB_PDBS_PD_REL S2 /* 상품관계 */
-                                     ON S2.BASE_PD_CD = S1.PD_CD /* 상품코드 */
-                                    AND S2.PD_REL_TP_CD = '05' /* 상품관계유형코드 = 05 : 기준-제품 */
-                                    AND SUBSTR(#{rcpDtFrom}, 0, 8) BETWEEN S2.VL_STRT_DTM  AND S2.VL_END_DTM /* 유효시작일시, 유효종료일시 */
-                                    AND S2.DTA_DL_YN = 'N'
-                                  INNER JOIN TB_PDBS_PD_BAS S3 /* 상품기본 */
-                                     ON S3.PD_CD = S2.OJ_PD_CD /* 대상상품코드 */
-                                    AND S3.DTA_DL_YN = 'N'
-                                    AND S3.PD_TP_CD='M' /* 상품유형코드 = M : 교재제품 */
-                                  WHERE 1=1
-                                    AND S1.DTA_DL_YN = 'N'
-                                    AND S1.PD_CD = T2.BASE_PD_CD /* 기준상품코드 */
-                               )
+                             AND S1.DTA_DL_YN = 'N'
+                             AND S1.PD_CD = T2.BASE_PD_CD /* 기준상품코드 */
+                             AND FEE.DTA_DL_YN = 'N'
+                             AND FEE.VST_MCN = 0 /* 방문개월수 */
+                             AND SUBSTR(#{rcpDtFrom}, 0, 6) BETWEEN FEE.APY_STRT_YM AND FEE.APY_END_YM /* 적용시작년월, 적용종료년월 */
                         ) T14
                        ON 1=1
                      LEFT OUTER JOIN LATERAL
@@ -1655,31 +1675,51 @@
                          AND DTA_DL_YN = 'N'
                     ) T14
                    ON 1=1
+<!--                 LEFT OUTER JOIN LATERAL-->
+<!--                    (-->
+<!--                      SELECT COUNT(*) AS ROW_SCNT-->
+<!--                        FROM TB_FEAM_WELS_SV_FEE_BAS /* 웰스서비스수수료기본 */-->
+<!--                       WHERE 1=1-->
+<!--                         AND DTA_DL_YN = 'N'-->
+<!--                         AND VST_MCN = 0 /* 방문개월수 */-->
+<!--                         AND SUBSTR(#{perfYm}, 0, 6) BETWEEN APY_STRT_YM AND APY_END_YM /* 적용시작년월, 적용종료년월 */-->
+<!--                         AND BASE_PD_CD IN /* 기준상품코드 */-->
+<!--                           (-->
+<!--                             SELECT S2.OJ_PD_CD /* 상품코드 */-->
+<!--                               FROM TB_PDBS_PD_BAS S1 /* 상품기본 */-->
+<!--                              INNER JOIN TB_PDBS_PD_REL S2 /* 상품관계 */-->
+<!--                                 ON S2.BASE_PD_CD = S1.PD_CD /* 상품코드 */-->
+<!--                                AND S2.PD_REL_TP_CD = '05' /* 상품관계유형코드 = 05 : 기준-제품 */-->
+<!--                                AND SUBSTR(#{perfYm}, 0, 6) BETWEEN SUBSTR(S2.VL_STRT_DTM, 0, 6)  AND SUBSTR(S2.VL_END_DTM, 0, 6) /* 유효시작일시, 유효종료일시 */-->
+<!--                                AND S2.DTA_DL_YN = 'N'-->
+<!--                              INNER JOIN TB_PDBS_PD_BAS S3 /* 상품기본 */-->
+<!--                                 ON S3.PD_CD = S2.OJ_PD_CD /* 대상상품코드 */-->
+<!--                                AND S3.PD_TP_CD = 'M' /* 상품유형코드 = M : 교재제품 */-->
+<!--                                AND S3.DTA_DL_YN = 'N'-->
+<!--                              WHERE 1=1-->
+<!--                                AND S1.DTA_DL_YN = 'N'-->
+<!--                                AND S1.PD_CD = T3.BASE_PD_CD /* 기준상품코드 */-->
+<!--                           )-->
+<!--                    ) T15-->
+<!--                   ON 1=1-->
                  LEFT OUTER JOIN LATERAL
                     (
-                      SELECT COUNT(*) AS ROW_SCNT
-                        FROM TB_FEAM_WELS_SV_FEE_BAS /* 웰스서비스수수료기본 */
+                      SELECT /*+ leading(S1 S2 FEE) index(TB_FEAM_WELS_SV_FEE_BAS PK_FEAM_WELS_SV_FEE_BAS) */
+                             COUNT(*) AS ROW_SCNT
+                        FROM TB_FEAM_WELS_SV_FEE_BAS FEE/* 웰스서비스수수료기본 */
+                       INNER JOIN TB_PDBS_PD_REL S2
+                          ON FEE.BASE_PD_CD = S2.OJ_PD_CD
+                       INNER JOIN TB_PDBS_PD_BAS S1 /* 상품기본 */
+                          ON S2.BASE_PD_CD = S1.PD_CD /* 상품코드 */
+                         AND S2.PD_REL_TP_CD = '05' /* 상품관계유형코드 = 05 : 기준-제품 */
+                         AND SUBSTR(#{perfYm}, 0, 8) BETWEEN S2.VL_STRT_DTM  AND S2.VL_END_DTM /* 유효시작일시, 유효종료일시 */
+                         AND S2.DTA_DL_YN = 'N'
                        WHERE 1=1
-                         AND DTA_DL_YN = 'N'
-                         AND VST_MCN = 0 /* 방문개월수 */
-                         AND SUBSTR(#{perfYm}, 0, 6) BETWEEN APY_STRT_YM AND APY_END_YM /* 적용시작년월, 적용종료년월 */
-                         AND BASE_PD_CD IN /* 기준상품코드 */
-                           (
-                             SELECT S2.OJ_PD_CD /* 상품코드 */
-                               FROM TB_PDBS_PD_BAS S1 /* 상품기본 */
-                              INNER JOIN TB_PDBS_PD_REL S2 /* 상품관계 */
-                                 ON S2.BASE_PD_CD = S1.PD_CD /* 상품코드 */
-                                AND S2.PD_REL_TP_CD = '05' /* 상품관계유형코드 = 05 : 기준-제품 */
-                                AND SUBSTR(#{perfYm}, 0, 6) BETWEEN SUBSTR(S2.VL_STRT_DTM, 0, 6)  AND SUBSTR(S2.VL_END_DTM, 0, 6) /* 유효시작일시, 유효종료일시 */
-                                AND S2.DTA_DL_YN = 'N'
-                              INNER JOIN TB_PDBS_PD_BAS S3 /* 상품기본 */
-                                 ON S3.PD_CD = S2.OJ_PD_CD /* 대상상품코드 */
-                                AND S3.PD_TP_CD = 'M' /* 상품유형코드 = M : 교재제품 */
-                                AND S3.DTA_DL_YN = 'N'
-                              WHERE 1=1
-                                AND S1.DTA_DL_YN = 'N'
-                                AND S1.PD_CD = T3.BASE_PD_CD /* 기준상품코드 */
-                           )
+                         AND S1.DTA_DL_YN = 'N'
+                         AND S1.PD_CD = T3.BASE_PD_CD /* 기준상품코드 */
+                         AND FEE.DTA_DL_YN = 'N'
+                         AND FEE.VST_MCN = 0 /* 방문개월수 */
+                         AND SUBSTR(#{perfYm}, 0, 6) BETWEEN FEE.APY_STRT_YM AND FEE.APY_END_YM /* 적용시작년월, 적용종료년월 */
                     ) T15
                    ON 1=1
                  LEFT OUTER JOIN LATERAL
