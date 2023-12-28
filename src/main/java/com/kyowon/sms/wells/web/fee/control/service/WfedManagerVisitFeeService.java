@@ -13,6 +13,14 @@ import com.kyowon.sms.wells.web.fee.control.mapper.WfedManagerVisitFeeMapper;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * <pre>
+ * 웰스매니저 방문수수료 현황
+ * </pre>
+ *
+ * @author gs.piit56
+ * @since 2023.05.22
+ */
 @Service
 @RequiredArgsConstructor
 public class WfedManagerVisitFeeService {

@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WfeaEgerAllowanceDvo {
-    private String perfYm;
-    private String rsbTpCd;
+    private String perfYm; /*실적년월*/
+    private String rsbTpCd; /*직책유형코드*/
 }

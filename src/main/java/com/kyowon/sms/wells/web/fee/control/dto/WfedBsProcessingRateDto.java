@@ -21,20 +21,20 @@ public class WfedBsProcessingRateDto {
     @ApiModel(value = "WfedBsProcessingRateDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String perfYm,
-        String prtnrNo
+        String perfYm, /*실적년월*/
+        String prtnrNo /*파트너번호*/
     ) {}
 
     @ApiModel(value = "WfedBsProcessingRateDto-SaveReq")
     public record SaveReq(
         @NotBlank
-        String baseYm,
+        String baseYm, /*기준년월*/
         @NotBlank
-        String ogTpCd,
+        String ogTpCd, /*조직유형코드*/
         @NotBlank
-        String prtnrNo,
+        String prtnrNo, /*파트너번호*/
         @NotBlank
-        String rowState,
+        String rowState, /*행상태*/
         @NotNull
         double sv01999909, /*처리율*/
         @NotNull
@@ -47,12 +47,12 @@ public class WfedBsProcessingRateDto {
     // BS처리율 조정 관리 Search Result Dto
     @ApiModel(value = "WfedBsProcessingRateDto-SearchRes")
     public record SearchRes(
-        String baseYm,
-        String ogTpCd,
-        String prtnrNo,
-        String ogCd,
-        String prtnrKnm,
-        String rsbDvCd,
+        String baseYm, /*기준년월*/
+        String ogTpCd, /*조직유형코드*/
+        String prtnrNo, /*파트너번호*/
+        String ogCd, /*조직코드*/
+        String prtnrKnm, /*파트너명*/
+        String rsbDvCd, /*직책구분코드*/
         Integer sv01999901, /*관리건수*/
         Integer sv01999902, /*방문건수*/
         Integer sv01999903, /*전월건수*/
