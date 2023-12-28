@@ -1,16 +1,12 @@
 package com.kyowon.sms.wells.web.competence.voc.service;
 
-import static com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMgtDto.SearchReq;
-import static com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMgtDto.SearchRes;
-
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kyowon.sms.common.web.deduction.zcommon.constant.DeDeductionConst;
 import com.kyowon.sms.wells.web.competence.voc.converter.WpshFalsehoodMgtConverter;
 import com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMgtDto;
+import com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMgtDto.SearchBranchManagerReq;
+import com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMgtDto.SearchBranchManagerRes;
+import com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.competence.voc.dto.WpshFalseVisitMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.competence.voc.dvo.WpshFalseVisitMgtDvo;
 import com.kyowon.sms.wells.web.competence.voc.mapper.WpshFalseVisitMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
@@ -18,8 +14,11 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +26,6 @@ public class WpshFalsehoodMgtService {
 
     private final WpshFalseVisitMgtMapper mapper;
     private final WpshFalsehoodMgtConverter converter;
-
-    private final static int LENGTH_12_INT_RADIX = 11;
 
     /**
      * wells 허위방문관리 목록조회
@@ -90,5 +87,9 @@ public class WpshFalsehoodMgtService {
             processCount = mapper.removeFalsevisit(dvo);
         }
         return processCount;
+    }
+
+    public SearchBranchManagerRes getBranchManager(SearchBranchManagerReq req) {
+        return mapper.selectBranchManager(req);
     }
 }
