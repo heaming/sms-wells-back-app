@@ -8,8 +8,8 @@ import java.util.Map;
 import com.kyowon.sms.wells.web.closing.clearing.dvo.WdchEduSlSalesDataDvo;
 import com.kyowon.sms.wells.web.closing.clearing.dvo.WdchSlBndAlrpyBasDvo;
 import com.kyowon.sms.wells.web.closing.clearing.service.WdchClearingDataCreateService;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -187,28 +187,12 @@ public class WdccMonthlySalesClosingAggregationService {
                 String.valueOf(ObjectUtils.defaultIfNull(rtnDvo.getAtamRplcProcsAmt(), BigDecimal.ZERO))
             ); //선수금대체처리금액
 
-            /* *
-            SL_BND_ALRPY_AMT (매출채권반제금액) = 반제금액
-            EOT_ATAM (기말선수금) = 기말선수금
-            EOT_UC_AMT (기말미수금) = 기말미수금
-            PRPD_SL_AMT (선수매출금액) = 반제금액
-            SL_DP_AGG_AMT (매출입금누계금액) = SL_DP_AGG_AMT (매출입금누계금액) + 반제금액  (매출입금누계금액은 반제금액의 누계금액 임)
-            * */
             dvo.setSlBndAlrpyAmt(String.valueOf(alrpyAmt));
             dvo.setEotAtam(String.valueOf(eotAtam));
             dvo.setEotUcAmt(String.valueOf(eotUcAmt));
             dvo.setPrpdSlAmt(String.valueOf(alrpyAmt));
             dvo.setSlDpAggAmt(String.valueOf(slDpAggAmt + alrpyAmt));
 
-            /*
-            해당건이 선납기간 인 경우
-            매출채권반제금액 - 선납금액 이 0보다 크면 매출채권반제금액을 선납매출에 넣어주고, 매출채권반제 - 선납 금액을 선수매출금액에 넣어줌
-            매출채권반제금액 - 선납금액 이 0보다 작으면 매출채권반제금액을 선납매출 넣어줌
-            int 선납금액 = PRM_BLAM_BTD_AMT(선납잔액기초금액) + PRM_DP_AMT(선납입금금액) - PRM_RFND_AMT(선납환불)
-            선납입금금액1 = 정상매출 * 선납할인율
-            기초선수 = 0
-            선납잔액기말금액 = 선납잔액기초금액 + 선납입금금액 - 선납매출금액
-             */
             int prmAmt = prmBlamBtdAmt + prmDpAmt - prmRfndAmt;
             int prmDpAmt1 = 0;
 
@@ -229,14 +213,6 @@ public class WdccMonthlySalesClosingAggregationService {
                 dvo.setPrmBlamEotAmt(String.valueOf(prmBlamEotAmt));
             }
 
-            /*
-            리스이고 조정인 경우
-            추가할인금액, 매출조정금액 은 0 으로 처리
-            리스매출조정금액, 당월청구조정금액 은 추가할인금액 + 매출조정금액 을 넣어줌
-            리스이고 취소인 경우
-            정상매출금액, 매출취소금액을 비교해서 금액이 같으면 매출취소금액 그대로 유지, 리스매출취소금액 0
-            정상매출금액, 매출취소금액이 다르면 매출취소금액은 0 으로 넣어주고, 리스매출취소금액에 매출취소금액을 넣어줌
-            */
             if (StringUtils.equals(sellTpDtlCd, "22")
                 || StringUtils.equals(sellTpDtlCd, "24")
                 || StringUtils.equals(sellTpDtlCd, "25")
@@ -281,37 +257,16 @@ public class WdccMonthlySalesClosingAggregationService {
                 }
             }
 
-            /*
-            IF(정기배송 or 리스) {
-
-              당월납 or 리스인 경우
-              IF(기초청구미수금액 + 당월청구발생금액 < 선수기초 + 선수입금) {
-                당월청구입금금액 = 기초청구미수금액 + 당월청구발생금액
-              } ELSE {
-                당월청구입금금액 = 선수기초 + 선수입금
-              }
-
-              후납인 경우
-              IF(기초청구미수금액 < 선수기초 + 선수입금) {
-                당월청구입금금액 = 기초청구미수금액
-              } ELSE {
-                당월청구입금금액 = 선수기초 + 선수입금
-              }
-
-            선수기말 = (선수기초 + 선수입금) - 당월청구입금금액
-            기말청구미수금액 = 기초청구미수 + 당월청구발생 - 당월청구입금 - 당월청구조정 + 당월청구추가
-            }
-            */
             if (StringUtils.equals(sellTpCd, "6")
                 || StringUtils.equals(sellTpDtlCd, "22")
                 || StringUtils.equals(sellTpDtlCd, "24")
                 || StringUtils.equals(sellTpDtlCd, "25")
-                || StringUtils.equals(sellTpDtlCd, "26")) { //정기배송 or 리스  ==> 20231222
+                || StringUtils.equals(sellTpDtlCd, "26")) { //정기배송 or 리스
                 if (StringUtils.equals(sellTpDtlCd, "61")
                     || StringUtils.equals(sellTpDtlCd, "22")
                     || StringUtils.equals(sellTpDtlCd, "24")
                     || StringUtils.equals(sellTpDtlCd, "25")
-                    || StringUtils.equals(sellTpDtlCd, "26")) { //당월납 or 리스  ==> 20231222
+                    || StringUtils.equals(sellTpDtlCd, "26")) { //당월납 or 리스
                     if ((btdBilUcAmt + thmBilOcAmt) < (btdAtam + thmAtamDpAmt)) {
                         dvo.setThmBilDpAmt(String.valueOf(btdBilUcAmt + thmBilOcAmt));
                     } else {
@@ -335,87 +290,6 @@ public class WdccMonthlySalesClosingAggregationService {
                 );
             }
 
-            /*
-            정기배송
-
-            IF 당월청구조정금액 = 0
-            IF 당월납
-            IF 기초청구미수금액 + 당월청구발생금액 <= 선수기초 + 선수입금
-            당월청구입금금액 = 기초청구미수금액 + 당월청구발생금액
-            기말청구미수금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
-            기말선수금액 = 선수기초 + 선수입금 - 기초청구미수금액 + 당월청구발생금액
-            ELSE
-            당월청구입금금액 = 선수기초 + 선수입금
-            기말청구미수금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
-            기말선수금액 = 0
-            ELSE --후납
-            IF 기초청구미수금액 <= 선수기초 + 선수입금
-            당월청구입금금액 = 기초청구미수금액
-            기말청구미수금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
-            기말선수금액 = 선수기초 + 선수입금 - 기초청구미수금액
-            ELSE
-            당월청구입금금액 = 선수기초 + 선수입금
-            기말청구미수금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
-            기말선수금액 = 0
-
-            IF 당월청구조정금액 > 0
-            IF 당월납
-            IF 기초청구미수금액 + 당월청구발생금액 <= 선수기초 + 선수입금
-            당월청구입금금액 = 기초청구미수금액 + 당월청구발생금액
-            당월청구조정금액 = 0
-            IF 차월청구미수예정금액 > 0
-            차월청구미수예정금액 = 차월청구미수예정금액 - 당월청구조정금액
-            IF 차월청구미수예정금액 > 0
-            기말선수금액 0
-            ELSE IF 차차월청구미수예정금액 >0
-                 차차월청구미수예정금액 = 차차월청구미수예정금액 - (차월청구미수예정금액 - 당월청구조정금액)
-                  IF 차차월청구미수예정금액 > 0
-                     차월청구예정금액 = 0
-                     기말선수금 = 0
-                  ELSE
-                      차월청구예정금액 = 0
-                      차차월청구예정금액 = 0
-                      초과조정입금금액 = 당월청구조정금액 - 차월청구미수예정금액 - 차차월청구미수예정금액
-                      기말선수금 = 당월청구조정금액 - 차월청구미수예정금액 - 차차월청구미수예정금액
-            ELSE
-            초과조정입금금액 = 매출조정금액
-            기말선수금 = 매출조정금액
-            ELSE
-            당월청구입금금액 = 선수기초금액 + 선수입금금액
-            IF 당월청구조정금액 > 기초청구미수금액 + 당월청구발생금액 - 선수기초금액 + 선수입금금액
-            초과조정입금금액 = 기초청구미수금액 + 당월청구발생금액 - 선수기초금액 + 선수입금금액
-            기말선수금 = 기초청구미수금액 + 당월청구발생금액 - 선수기초금액 + 선수입금금액
-            당월청구조정금액 = 기초청구미수금액 + 당월청구발생금액 - 선수기초금액 + 선수입금금액
-            기말청구미수금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
-            ELSE  --후납
-            IF 기초청구미수금액 <= 선수기초 + 선수입금
-            당월청구입금금액 = 기초청구미수금액
-            당월청구조정금액 = 0
-            IF 차월청구미수예정금액 > 0
-            차월청구미수예정금액 = 차월청구미수예정금액 - 당월청구조정금액
-            IF 차월청구미수예정금액 > 0
-            기말선수금액 0
-            ELSE IF 차차월청구미수예정금액 >0
-                 차차월청구미수예정금액 = 차차월청구미수예정금액 - (차월청구미수예정금액 - 당월청구조정금액)
-                  IF 차차월청구미수예정금액 > 0
-                     차월청구예정금액 = 0
-                     기말선수금 = 0
-                  ELSE
-                      차월청구예정금액 = 0
-                      차차월청구예정금액 = 0
-                      초과조정입금금액 = 당월청구조정금액 - 차월청구미수예정금액 - 차차월청구미수예정금액
-                      기말선수금 = 당월청구조정금액 - 차월청구미수예정금액 - 차차월청구미수예정금액
-            ELSE
-            초과조정입금금액 = 매출조정금액
-            기말선수금 = 매출조정금액
-            ELSE
-            당월청구입금금액 = 선수기초금액 + 선수입금금액
-            IF 당월청구조정금액 > 기초청구미수금액 - 선수기초금액 + 선수입금금액
-            초과조정입금금액 = 기초청구미수금액 - 선수기초금액 + 선수입금금액
-            기말선수금 = 기초청구미수금액 - 선수기초금액 + 선수입금금액
-            당월청구조정금액 = 기초청구미수금액 - 선수기초금액 + 선수입금금액
-            기말청구미수금액 = 기초청구미수금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
-             */
             thmBilCtrAmt = Integer
                 .parseInt(StringUtils.defaultIfEmpty(dvo.getThmBilCtrAmt(), "0")); //당월청구조정금액
             btdBilUcAmt = Integer
@@ -467,28 +341,40 @@ public class WdccMonthlySalesClosingAggregationService {
                     dvo.setEotAtam(String.valueOf(eotAtam));
                     dvo.setEotBilUcAmt(String.valueOf(eotBilUcAmt));
                 }
-                if (thmBilCtrAmt > 0) { //당월청구조정금액 = 0
+                if (thmBilCtrAmt > 0) { //당월청구조정금액 > 0
                     if (StringUtils.equals(sellTpDtlCd, "61")) { //당월납
                         if (btdBilUcAmt + thmBilOcAmt <= btdAtam + thmAtamDpAmt) {
                             thmBilDpAmt = btdBilUcAmt + thmBilOcAmt; //당월청구입금금액
-                            thmBilCtrAmtTmp = 0; //당월청구조정금액
+
+                            if (btdBilUcAmt + thmBilOcAmt <= slCtrAmt) { // 기초청구미수금액 + 당월청구발생금액 <= 당월청구조정금액
+                                thmBilCtrAmtTmp = btdBilUcAmt + thmBilOcAmt; //당월청구조정금액
+                            } else {
+                                thmBilCtrAmtTmp = slCtrAmt;
+                                if (btdBilUcAmt + thmBilOcAmt - thmBilCtrAmtTmp <= thmAtamDpAmt) { //기초청구미수금액 + 당월청구발생금액 - 당월청구조정금액 <= 당월선수금입금금액
+                                    thmBilDpAmt = btdBilUcAmt + thmBilOcAmt - thmBilCtrAmtTmp;//당월청구입금금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구조정금액
+                                } else {
+                                    thmBilDpAmt = thmAtamDpAmt;//당월청구입금금액 = 당월선수금입금금액
+                                }
+                            }
+
                             if (nmnBilUcExpAmt > 0) { //차월청구미수예정금액 > 0
                                 nmnBilUcExpAmtTmp = nmnBilUcExpAmt - thmBilCtrAmt;
                                 if (nmnBilUcExpAmtTmp > 0) {
                                     eotAtam = 0; //기말선수금액
                                 } else if (tsmBilUcExpAmt > 0) { //차차월청구미수예정금액
-                                    tsmBilUcExpAmtTmp = tsmBilUcExpAmt - nmnBilUcExpAmtTmp;
-                                    if (tsmBilUcExpAmt > 0) {
+                                    tsmBilUcExpAmtTmp = tsmBilUcExpAmt - abs(nmnBilUcExpAmtTmp);
+                                    if (tsmBilUcExpAmtTmp > 0) {
                                         nmnBilUcExpAmtTmp = 0;
                                         eotAtam = 0; //기말선수금액
                                     } else {
                                         nmnBilUcExpAmtTmp = 0;
                                         tsmBilUcExpAmtTmp = 0;
-                                        ovrCtrDpAmt = thmBilCtrAmt - nmnBilUcExpAmt - tsmBilUcExpAmt; //초과조정입금금액
-                                        eotAtam = thmBilCtrAmt - nmnBilUcExpAmt - tsmBilUcExpAmt; //기말선수금액
+                                        eotUcAmt = 0;
+                                        ovrCtrDpAmt = slCtrAmt - thmBilOcAmt - nmnBilUcExpAmt - tsmBilUcExpAmt; //초과조정입금금액
+                                        eotAtam = slCtrAmt - thmBilOcAmt - nmnBilUcExpAmt - tsmBilUcExpAmt; //기말선수금액
                                     }
                                 } else {
-                                    ovrCtrDpAmt = thmBilCtrAmt; //초과조정입금금액
+                                    ovrCtrDpAmt = slCtrAmt; //초과조정입금금액
                                     eotAtam = thmBilCtrAmt; //기말선수금액
                                 }
                             }
@@ -507,34 +393,44 @@ public class WdccMonthlySalesClosingAggregationService {
                     } else { //후납
                         if (btdBilUcAmt <= btdAtam + thmAtamDpAmt) {
                             thmBilDpAmt = btdBilUcAmt; //당월청구입금금액
-                            thmBilCtrAmtTmp = 0; //당월청구조정금액
+                            if (btdBilUcAmt + thmBilOcAmt <= slCtrAmt) { // 기초청구미수금액 + 당월청구발생금액 <= 당월청구조정금액
+                                thmBilCtrAmtTmp = btdBilUcAmt + thmBilOcAmt; //당월청구조정금액 = 기초청구미수금액 + 당월청구발생금액
+                            } else {
+                                thmBilCtrAmtTmp = slCtrAmt; //당월청구조정금액 = 매출조정금액
+                                if (btdBilUcAmt + thmBilOcAmt - thmBilCtrAmtTmp <= thmAtamDpAmt) { //기초청구미수금액 + 당월청구발생금액 - 당월청구조정금액 <= 당월선수금입금금액
+                                    thmBilDpAmt = btdBilUcAmt + thmBilOcAmt - thmBilCtrAmtTmp;//당월청구입금금액 = 기초청구미수금액 + 당월청구발생금액 - 당월청구조정금액
+                                } else {
+                                    thmBilDpAmt = thmAtamDpAmt;//당월청구입금금액 = 당월선수금입금금액
+                                }
+                            }
                             if (nmnBilUcExpAmt > 0) { //차월청구미수예정금액 > 0
-                                nmnBilUcExpAmtTmp = nmnBilUcExpAmt - thmBilCtrAmt;
+                                nmnBilUcExpAmtTmp = nmnBilUcExpAmt - slCtrAmt;
                                 if (nmnBilUcExpAmtTmp > 0) {
                                     eotAtam = 0; //기말선수금액
                                 } else if (tsmBilUcExpAmt > 0) { //차차월청구미수예정금액
-                                    tsmBilUcExpAmtTmp = tsmBilUcExpAmt - nmnBilUcExpAmtTmp;
-                                    if (tsmBilUcExpAmt > 0) {
+                                    tsmBilUcExpAmtTmp = tsmBilUcExpAmt - abs(nmnBilUcExpAmtTmp);
+                                    if (tsmBilUcExpAmtTmp > 0) {
                                         nmnBilUcExpAmtTmp = 0;
                                         eotAtam = 0; //기말선수금액
                                     } else {
                                         nmnBilUcExpAmtTmp = 0;
                                         tsmBilUcExpAmtTmp = 0;
-                                        ovrCtrDpAmt = thmBilCtrAmt - nmnBilUcExpAmt - tsmBilUcExpAmt; //초과조정입금금액
-                                        eotAtam = thmBilCtrAmt - nmnBilUcExpAmt - tsmBilUcExpAmt; //기말선수금액
+                                        eotUcAmt = 0;
+                                        ovrCtrDpAmt = slCtrAmt - thmBilOcAmt - nmnBilUcExpAmt - tsmBilUcExpAmt; //초과조정입금금액
+                                        eotAtam = slCtrAmt - thmBilOcAmt - nmnBilUcExpAmt - tsmBilUcExpAmt; //기말선수금액
                                     }
                                 } else {
-                                    ovrCtrDpAmt = thmBilCtrAmt; //초과조정입금금액
-                                    eotAtam = thmBilCtrAmt; //기말선수금액
+                                    ovrCtrDpAmt = slCtrAmt; //초과조정입금금액
+                                    eotAtam = slCtrAmt; //기말선수금액
                                 }
                             }
                         } else {
                             thmBilDpAmt = btdAtam + thmAtamDpAmt; //당월청구입금금액 = 선수기초금액 + 선수입금금액
-                            if (thmBilCtrAmt > btdBilUcAmt - btdAtam + thmAtamDpAmt) {
+                            if (slCtrAmt > btdBilUcAmt - btdAtam + thmAtamDpAmt) {
                                 ovrCtrDpAmt = btdBilUcAmt - btdAtam + thmAtamDpAmt; //초과조정입금금액 = 기초청구미수금액 - 선수기초금액 + 선수입금금액
                                 eotAtam = btdBilUcAmt - btdAtam + thmAtamDpAmt; //기말선수금 = 기초청구미수금액 - 선수기초금액 + 선수입금금액
                                 thmBilCtrAmtTmp = btdBilUcAmt - btdAtam + thmAtamDpAmt; //당월청구조정금액 = 기초청구미수금액 - 선수기초금액 + 선수입금금액
-                                eotBilUcAmt = btdBilUcAmt + thmBilOcAmt - thmAtamDpAmt - thmBilCtrAmt + thmBilSpmtAmt; //기말청구미수금액 = 기초청구미수금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
+                                eotBilUcAmt = btdBilUcAmt + thmBilOcAmt - thmAtamDpAmt - slCtrAmt + thmBilSpmtAmt; //기말청구미수금액 = 기초청구미수금액 - 당월청구입금금액 - 당월청구조정금액 + 당월청구추가금액
                             }
                         }
                     }
@@ -544,6 +440,7 @@ public class WdccMonthlySalesClosingAggregationService {
                     dvo.setThmBilCtrAmt(String.valueOf(thmBilCtrAmtTmp));
                     dvo.setTsmBilUcExpAmt(String.valueOf(tsmBilUcExpAmtTmp));
                     dvo.setNmnBilUcExpAmt(String.valueOf(nmnBilUcExpAmtTmp));
+                    dvo.setEotUcAmt(String.valueOf(eotUcAmt)); //  ==> 20231227
                     // dvo.setOvrCtrDpAmt(String.valueOf(ovrCtrDpAmt));
                 }
             }
