@@ -77,14 +77,14 @@
              , C1.CST_KNM /*고객성명*/
              , D.PRTNR_KNM /*판매자*/
              , M.PRTNR_NO /*판매자번호*/
-             , T1.PRTNR_NO AS GNLR_LEDR_NO /*총괄단장*/
-             , T1.PRTNR_KNM AS GNLR_LEDR /*총괄단장 성명*/
-             , T2.PRTNR_NO AS LOCAL_AREA_MANAGER_NO /*지역단장*/
-             , T2.PRTNR_KNM AS LOCAL_AREA_MANAGER /*지역단장 성명*/
-             , T3.PRTNR_NO AS BRANCH_MANAGER_NO /*지점장*/
-             , T3.PRTNR_KNM AS BRANCH_MANAGER /*지점장 성명*/
-             , T4.PRTNR_NO AS DSTRC_MANAGER_NO /*지구장*/
-             , T4.PRTNR_KNM AS DSTRC_MANAGER /*지구장 성명*/
+             , OG.GNLR_LEDR_NO /*총괄단장*/
+             , OG.GNLR_LEDR /*총괄단장 성명*/
+             , OG.LOCAL_AREA_MANAGER_NO /*지역단장*/
+             , OG.LOCAL_AREA_MANAGER /*지역단장 성명*/
+             , OG.BRANCH_MANAGER_NO /*지점장*/
+             , OG.BRANCH_MANAGER /*지점장 성명*/
+             , OG.DSTRC_MANAGER_NO /*지구장*/
+             , OG.DSTRC_MANAGER /*지구장 성명*/
              , (CASE WHEN M.PERF_TP_CD = '3' THEN '매변'
              		 WHEN M.PERF_TP_CD IN ('0', '1') THEN '취소'
              		 WHEN M.PERF_TP_CD = '10' THEN '연체'
@@ -164,66 +164,35 @@
             ON D.BASE_YM = M.PERF_YM
            AND D.PRTNR_NO = M.PRTNR_NO
            AND D.OG_TP_CD = M.OG_TP_CD
-          LEFT OUTER JOIN (
-                           SELECT A.BASE_YM
-                                , A.OG_TP_CD
-                                , A.PRTNR_NO
-                                , A.PRTNR_KNM
-                                , A.OG_ID
-                                , A.OG_CD
-                                , A.OG_NM
-                            FROM TB_OGBS_MM_PRTNR_IZ A  /*월파트너내역*/
-                           WHERE A.PSTN_DV_CD = '2'  /*총괄단장*/
-                             AND A.DTA_DL_YN = 'N'
-                             ) T1  /* 총괄단장 */
-             ON T1.BASE_YM = M.PERF_YM
-            AND D.OG_ID = T1.OG_ID
-            AND D.OG_CD = T1.OG_CD
-           LEFT OUTER JOIN (
-                           SELECT A.BASE_YM
-                                , A.OG_TP_CD
-                                , A.PRTNR_NO
-                                , A.PRTNR_KNM
-                                , A.OG_ID
-                                , A.OG_CD
-                                , A.OG_NM
-                            FROM TB_OGBS_MM_PRTNR_IZ A  /*월파트너내역*/
-                           WHERE A.PSTN_DV_CD = '4'  /*지역단장*/
-                             AND A.DTA_DL_YN = 'N'
-                             ) T2  /* 지역단장 */
-             ON T2.BASE_YM = M.PERF_YM
-            AND D.OG_ID = T2.OG_ID
-            AND D.OG_CD = T2.OG_CD
-           LEFT OUTER JOIN (
-                           SELECT A.BASE_YM
-                                , A.OG_TP_CD
-                                , A.PRTNR_NO
-                                , A.PRTNR_KNM
-                                , A.OG_ID
-                                , A.OG_CD
-                                , A.OG_NM
-                            FROM TB_OGBS_MM_PRTNR_IZ A  /*월파트너내역*/
-                           WHERE A.PSTN_DV_CD = '7'  /*지점장 */
-                             AND A.DTA_DL_YN = 'N'
-                             ) T3  /* 지점장 */
-             ON T3.BASE_YM = M.PERF_YM
-            AND D.OG_ID = T3.OG_ID
-            AND D.OG_CD = T3.OG_CD
-           LEFT OUTER JOIN (
-                           SELECT A.BASE_YM
-                                , A.OG_TP_CD
-                                , A.PRTNR_NO
-                                , A.PRTNR_KNM
-                                , A.OG_ID
-                                , A.OG_CD
-                                , A.OG_NM
-                            FROM TB_OGBS_MM_PRTNR_IZ A  /*월파트너내역*/
-                           WHERE A.PSTN_DV_CD = '10'  /*지구장*/
-                             AND A.DTA_DL_YN = 'N'
-                             ) T4  /* 지구장 */
-            ON T4.BASE_YM = M.PERF_YM
-           AND D.OG_ID = T4.OG_ID
-           AND D.OG_CD = T4.OG_CD
+          LEFT OUTER JOIN LATERAL (
+		          SELECT A.BASE_YM   /*기준년월*/
+	                   , A.OG_TP_CD     /*조직유형코드*/
+	                   , A.OG_ID    /* 조직ID */
+	                   , A.DGR1_LEVL_OG_ID  /*총괄단*/
+	                   , A.DGR2_LEVL_OG_ID  /*지역단*/
+	                   , A.DGR3_LEVL_OG_ID  /*지점*/
+	                   , A.DGR1_LEVL_DG_PRTNR_NO AS GNLR_LEDR_NO    /*총괄단대표파트너번호*/
+	                   , A.DGR1_LEVL_DG_PRTNR_NM AS GNLR_LEDR    /*총괄단대표파트너번호*/
+	                   , A.DGR2_LEVL_DG_PRTNR_NO AS LOCAL_AREA_MANAGER_NO   /*지역단대표파트너번호*/
+	                   , A.DGR2_LEVL_DG_PRTNR_NM AS LOCAL_AREA_MANAGER   /*지역단대표파트너번호*/
+	                   , A.DGR3_LEVL_DG_PRTNR_NO AS BRANCH_MANAGER_NO   /*지점대표파트너번호*/
+	                   , A.DGR3_LEVL_DG_PRTNR_NM AS BRANCH_MANAGER   /*지점대표파트너번호*/
+	                   , A.DGR4_LEVL_DG_PRTNR_NO AS DSTRC_MANAGER_NO
+	                   , A.DGR4_LEVL_DG_PRTNR_NM AS DSTRC_MANAGER
+	                   , B.PRTNR_NO     /*파트너번호*/
+	                   , B.PRTNR_KNM    /*파트너명*/
+	                FROM TB_OGBS_MM_OG_IZ A /* 월조직내역 */
+	               INNER JOIN TB_OGBS_MM_PRTNR_IZ B /* 월파트너내역 */
+	                  ON A.BASE_YM = B.BASE_YM
+	                 AND A.OG_TP_CD = B.OG_TP_CD
+	                 AND A.OG_ID = B.OG_ID
+	                 AND B.DTA_DL_YN = 'N'
+	               WHERE A.DTA_DL_YN = 'N'
+	                 AND A.BASE_YM = M.PERF_YM
+			         AND M.OG_TP_CD = B.OG_TP_CD
+			         AND M.PRTNR_NO = B.PRTNR_NO
+             ) OG
+            ON 1 = 1
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS E /*연체기본*/
     	   ON M.CNTR_NO = E.CNTR_NO
     	  AND M.CNTR_SN = E.CNTR_SN
