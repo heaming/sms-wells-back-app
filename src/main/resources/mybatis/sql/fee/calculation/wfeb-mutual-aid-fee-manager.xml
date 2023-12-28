@@ -18,7 +18,7 @@
              , T5.PD_NM                                            /* Wells 상품명              */
              , T4.CNTR_PD_STRTDT                                   /* 설치일 (계약상품시작일자) */
              , T1.LIF_CNTR_NO                                      /* 상조 계약번호             */
-             , CASE WHEN T1.LIF_PD_CD = '2178'
+             , CASE WHEN T1.LIF_PD_CD = '2180'
                     THEN '429'
                     ELSE '599' END AS LIF_PD_NM                    /* 상조 상품명               */
              , T1.RCPDT                                            /* 접수일                    */
@@ -79,7 +79,7 @@
           AND T1.CNTR_DT <![CDATA[<=]]> #{endDt}
          </if>
          <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-          AND CASE WHEN T1.LIF_PD_CD = '2178' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
+          AND CASE WHEN T1.LIF_PD_CD = '2180' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
          </if>
         ORDER BY T1.PRTNR_NO, T2.CNTR_CST_NO
     </select>
@@ -100,7 +100,7 @@
              , T5.PD_NM                                            /* Wells 상품명              */
              , T4.CNTR_PD_STRTDT                                   /* 설치일 (계약상품시작일자) */
              , T1.LIF_CNTR_NO                                      /* 상조 계약번호             */
-             , CASE WHEN T1.LIF_PD_CD = '2178'
+             , CASE WHEN T1.LIF_PD_CD = '2180'
                     THEN '429'
                     ELSE '599' END AS LIF_PD_NM                    /* 상조 상품명               */
              , T1.RCPDT                                            /* 접수일                    */
@@ -117,7 +117,7 @@
              , CASE WHEN T1.ET_CNFM_DV_CD = '00'
                     THEN 'Y' ELSE 'N' END ET_CNFM_DV_NM            /* 라이프 확정               */
              , T1.FEE_DSB_YM                                       /* 수수료 지급월             */
-             , T1.FEE_REDF_YM                                      /* 수수료 되물림월 - 20230703 수정   */
+             , T7.FEE_REDF_YM                                      /* 수수료 되물림월 - 20230703 수정   */
           FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ  T1  /* 라이프제휴수수료계약내역 */
          INNER JOIN       TB_SSCT_CNTR_BAS              T2  /* 계약기본                 */
             ON T1.CNTR_NO    = T2.CNTR_NO
@@ -137,6 +137,7 @@
             ON 1=1
          INNER JOIN ( SELECT A.LIF_CNTR_NO    --라이프계약번호
                            , A.PRTNR_NO       --파트너 번호
+                           , A.FEE_REDF_YM    --되물림 수수료월
                         FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
                        WHERE A.BASE_YM          = #{baseYm}
                          AND A.LIF_CNTR_STAT_CD = #{clasfctnFee}
@@ -146,7 +147,7 @@
                                     AND A.LIF_CNTR_NO = B.LIF_CNTR_NO
                                     AND B.OG_TP_CD = 'W02'
                                  )
-                       GROUP BY A.LIF_CNTR_NO, A.PRTNR_NO ) T7
+                       GROUP BY A.LIF_CNTR_NO, A.PRTNR_NO, A.FEE_REDF_YM ) T7
            ON T1.LIF_CNTR_NO = T7.LIF_CNTR_NO
           AND T1.PRTNR_NO    = T7.PRTNR_NO
          WHERE 1=1
@@ -160,7 +161,7 @@
            AND T1.CNTR_DT <![CDATA[<=]]> #{endDt}
          </if>
          <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-           AND CASE WHEN T1.LIF_PD_CD = '2178' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
+           AND CASE WHEN T1.LIF_PD_CD = '2180' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
          </if>
            AND T1.DTA_DL_YN          = 'N'
          ORDER BY T1.PRTNR_NO, T2.CNTR_CST_NO
@@ -185,7 +186,7 @@
              , T5.PD_NM                                            /* Wells 상품명              */
              , T4.CNTR_PD_STRTDT                                   /* 설치일 (계약상품시작일자) */
              , T1.LIF_CNTR_NO                                      /* 상조 계약번호             */
-             , CASE WHEN T1.LIF_PD_CD = '2178'
+             , CASE WHEN T1.LIF_PD_CD = '2180'
                     THEN '429'
                     ELSE '599' END AS LIF_PD_NM                    /* 상조 상품명               */
              , T1.RCPDT                                            /* 접수일                    */
@@ -202,9 +203,9 @@
              , CASE WHEN T1.ET_CNFM_DV_CD = '00'
                     THEN 'Y' ELSE 'N' END ET_CNFM_DV_NM            /* 라이프 확정               */
              , T1.FEE_DSB_YM                                       /* 수수료 지급월             */
-             , CASE WHEN T1.LIF_CNTR_STAT_CD = '3' /* 재지급 */
-                    THEN T1.FEE_DSB_YM
-                    ELSE T1.FEE_REDF_YM END FEE_REDF_YM            /* 수수료 되물림월           */
+             , CASE WHEN T7.LIF_CNTR_STAT_CD = '3' /* 재지급 */
+                    THEN T7.FEE_DSB_YM
+                    ELSE T7.FEE_REDF_YM END FEE_REDF_YM            /* 수수료 되물림월           */
          FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ  T1  /* 라이프제휴수수료계약내역 */
         INNER JOIN TB_SSCT_CNTR_BAS              T2  /* 계약기본                 */
            ON T1.CNTR_NO    = T2.CNTR_NO
@@ -224,10 +225,14 @@
            ON  1=1
         INNER JOIN ( SELECT LIF_CNTR_NO    --라이프계약번호
                           , PRTNR_NO       --파트너 번호
+                          , FEE_REDF_YM    --되물림 수수료월
+                          , FEE_DSB_YM     -- 수수료 지급월
+                          , LIF_CNTR_STAT_CD  -- 상태
                        FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ
                       WHERE BASE_YM          = #{baseYm}
                         AND LIF_CNTR_STAT_CD = #{clasfctnFee}
-                      GROUP BY LIF_CNTR_NO, PRTNR_NO ) T7
+                      --GROUP BY LIF_CNTR_NO, PRTNR_NO
+                    ) T7
            ON T1.LIF_CNTR_NO = T7.LIF_CNTR_NO
           AND T1.PRTNR_NO    = T7.PRTNR_NO
         WHERE 1=1
@@ -246,7 +251,7 @@
            AND T1.CNTR_DT <![CDATA[<=]]> #{endDt}
          </if>
          <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-           AND CASE WHEN T1.LIF_PD_CD = '2178' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
+           AND CASE WHEN T1.LIF_PD_CD = '2180' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
          </if>
           AND T1.DTA_DL_YN          = 'N'
         ORDER BY T1.PRTNR_NO, T2.CNTR_CST_NO
@@ -294,7 +299,7 @@
            AND T1.CNTR_DT   <![CDATA[<=]]> #{endDt}
            </if>
            <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-           AND CASE WHEN T1.LIF_PD_CD = '2178' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
+           AND CASE WHEN T1.LIF_PD_CD = '2180' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
            </if>
            AND T1.DTA_DL_YN          = 'N'
          GROUP BY T1.BASE_YM
@@ -362,7 +367,7 @@
            AND T1.CNTR_DT <![CDATA[<=]]> #{endDt}
            </if>
            <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-           AND CASE WHEN T1.LIF_PD_CD = '2178' THEN '429' ELSE '599' END = #{pdCd}
+           AND CASE WHEN T1.LIF_PD_CD = '2180' THEN '429' ELSE '599' END = #{pdCd}
            </if>
            AND T1.DTA_DL_YN          = 'N'
          GROUP BY T1.BASE_YM
@@ -428,7 +433,7 @@
            AND T1.CNTR_DT <![CDATA[<=]]> #{endDt}
            </if>
            <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-           AND CASE WHEN T1.LIF_PD_CD = '2178' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
+           AND CASE WHEN T1.LIF_PD_CD = '2180' THEN '429' ELSE '599' END = #{pdCd}   /* 라이프상품명 */
            </if>
          GROUP BY T1.BASE_YM
                 , T1.LIF_CNTR_STAT_CD

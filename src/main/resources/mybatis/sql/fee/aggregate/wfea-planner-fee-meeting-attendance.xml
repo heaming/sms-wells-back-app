@@ -294,9 +294,8 @@
                  SELECT A.PRTNR_NO
                       , 'W01P00012' AS PERF_ATC_CD   /* 미팅참석일수 */
                       , '' AS FEE_PERF_ATC_VAL
-                      , CASE WHEN B.METG_PTCP_ACKMT_YN = 'Y'
-                                  AND B.METG_PRSC_DC &lt; C.METG_BASE_DC
-                                  THEN  NVL(C.METG_BASE_DC,0)
+                      , CASE WHEN NVL(B.METG_PRSC_DC,0) &lt; NVL(C.METG_BASE_DC,10) AND E.EDUC_CRSE_NO IS NOT NULL THEN  NVL(C.METG_BASE_DC,10) /* 출석일수가  기준일보다 작고 and 교육존재하면, 미팅참석일수 = 기준일부여 */
+                             WHEN NVL(B.METG_PRSC_DC,0) &lt; NVL(C.METG_BASE_DC,10) AND NVL(B.LDSTC_METG_PRSC_YN,'N') = 'Y' THEN NVL(C.METG_BASE_DC,10) /* 출석일수가 기준일보다 작고 and 원거리이면, 미팅참석일수 = 기준일부여 */
                              ELSE NVL(B.METG_PRSC_DC,0)
                         END AS PERF_VAL
                    FROM TB_OGBS_MM_PRTNR_IZ A
@@ -310,7 +309,13 @@
                     AND SUBSTR(C.VL_ENDDT,1,6) &gt;= A.BASE_YM
                     AND C.OG_TP_CD= A.OG_TP_CD
                     AND C.RSB_DV_CD = A.RSB_DV_CD
-                    AND C.QLF_DV_CD = A.QLF_DV_CD
+                    AND NVL (C.QLF_DV_CD,'Z') = NVL(A.QLF_DV_CD,'Z')   /* NULL간의 JOIN시 연결이 안되서, 'Z' 로 치환하여 처리함 */
+        LEFT OUTER JOIN TB_PSCA_MCPTN_EDUC_IZ E
+                     ON E.EDUC_CRSE_CRT_BASE_YM = A.BASE_YM
+                    AND E.OG_TP_CD = A.OG_TP_CD
+                    AND E.PRTNR_NO = A.PRTNR_NO
+                    AND E.EDUC_CRSE_NO = '14'
+                    AND NVL(E.EDUC_CPC_ACKMT_YN,'N') = 'Y'
                   WHERE A.OG_TP_CD ='W01'
                     AND A.BASE_YM = #{perfYm}
                 <if test='@MybatisUtils@equals(rsbTpCd, "W0105")'>

@@ -2,18 +2,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.orgcode.mapper.WsndBusinessVehiclesOperationJrnlMgtMapper">
     <select id="selectBusinessVehiclesOperationJrnl" resultType="com.kyowon.sms.wells.web.service.orgcode.dto.WsndBusinessVehiclesOperationJrnlMgtDto$SearchRes">
-        WITH HIST AS ( SELECT CARNO
+        WITH HIST AS ( SELECT SUBSTR(CARNO,1, DECODE(INSTR(CARNO, '_'), 0, LENGTH(CARNO) ,  INSTR(CARNO, '_')-1)) AS CARNO
+                            , VHC_KND_NM
 --                          , SUM(FUEL_CSM_RT) AS FUEL_CSM_RT
                             , SUM(BSPD_TMS) AS BSPD_TMS
                             , SUM(SDPD_TMS) AS SDPD_TMS
                             , SUM(TO_NUMBER(OPRTN_HH)/60)AS OPRTN_HH
                             , SUBSTR(OPRTN_STRTT,1,8) AS OPRTN_STRTT
---                                     , COUNT(*) AS CNT
+                            , COUNT(*) AS CNT
 --                                     , RANK() OVER (PARTITION BY CARNO, SUBSTR(OPRTN_STRTT,1,8) ORDER BY OPRTN_STRTT DESC) AS RN
                          FROM TB_SVPD_OPRTN_HIST
                         WHERE SUBSTR(OPRTN_STRTT,1,8) BETWEEN #{startDt} AND #{endDt}
                      GROUP BY CARNO
-                           ,  SUBSTR(OPRTN_STRTT,1,8)
+                            , VHC_KND_NM
+                            , SUBSTR(OPRTN_STRTT,1,8)
         )
 
         SELECT P1.OG_NM /* 소속 */
@@ -21,7 +23,7 @@
              , C1.VHC_MNGT_PRTNR_NO
              , F_CMZ_CD_NM('TNT_WELLS', 'HIR_FOM_CD', P1.HIR_FOM_CD , 'ko') AS HIR_FOM_CD
              , P1.CNTR_DT
-             , C3.VHC_KND_NM AS CARNM
+             , HIST.VHC_KND_NM AS CARNM
              , C1.CARNO
              , C1.VHC_OPRTN_DT
              , C1.VHC_OPRTN_SN
@@ -32,7 +34,7 @@
              , C1.LBRCQ_VAL /*주유량값*/
              , C1.RFLNG_AMT AS LBRCQ_PR /* 데이터 확인 불가로 임시 - 주유비용 */
              , C1.FUEL_CSM_RT /* 연비 */
-             , C1.OPRTN_CT AS OPRTN_CT --/* 운행건수 */ *****
+             , HIST.CNT AS OPRTN_CT --/* 운행건수 */ *****
              , HIST.BSPD_TMS --/* 급가속횟수 */ ****
              , HIST.SDPD_TMS-- /* 급감속횟수 */ ****
              , HIST.BSPD_TMS / 1 AS AVG_BSPD_TMS --HIST.BSPD_TMS / OPRTN_CNT /* 평균가속률 */ ***

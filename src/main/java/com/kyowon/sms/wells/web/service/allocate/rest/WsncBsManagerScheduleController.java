@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsManagerScheduleDto;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsManagerScheduleDvo;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncBsManagerScheduleService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -46,7 +47,7 @@ public class WsncBsManagerScheduleController {
         @ApiImplicitParam(name = "baseDateTo", value = "관리년월To", paramType = "query", required = true),
     })
     @GetMapping("/dt-paging")
-    public List<WsncBsManagerScheduleDto.SearchRes> getBsScheduleDatePages(
+    public List<WsncBsManagerScheduleDvo> getBsScheduleDatePages(
         WsncBsManagerScheduleDto.SearchReq dto, @Valid
         PageInfo pageInfo
     ) {

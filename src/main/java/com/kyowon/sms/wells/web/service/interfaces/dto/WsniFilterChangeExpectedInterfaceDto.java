@@ -34,7 +34,9 @@ public class WsniFilterChangeExpectedInterfaceDto {
         @JsonProperty(value = "NEXT_VST_DT")
         String nextVstDt,
         @JsonProperty(value = "CHAGE_YN")
-        String chageYn
+        String chageYn,
+        @JsonProperty(value = "CSMR_UPRC_AMT")
+        Integer csmrUprcAmt
     ) {
 
     }

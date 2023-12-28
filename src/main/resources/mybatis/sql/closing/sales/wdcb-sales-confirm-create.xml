@@ -12,73 +12,187 @@
     </select>
 
     <select id="selectDgCstId" resultType="string">
-        SELECT MAX(DG_CST_ID) AS DG_CST_ID
-          FROM TB_CBCL_DG_CST_ID_BAS
-         WHERE SELL_TP_CD = #{sellTpCd}
-           AND SELL_TP_DTL_CD = #{sellTpDtlCd}
-           AND SAP_BZ_TERY_CD = '1210'
-           AND DTA_DL_YN = 'N'
+        SELECT /*+ INDEX(T IX_CBCL_DG_CST_ID_BAS_02) */
+               T.DG_CST_ID
+          FROM TB_CBCL_DG_CST_ID_BAS T
+         WHERE T.SELL_TP_CD = #{sellTpCd}
+           AND T.SELL_TP_DTL_CD = #{sellTpDtlCd}
+           AND T.SAP_BZ_TERY_CD = '1210'
+           AND T.DTA_DL_YN = 'N'
+           AND ROWNUM = 1
     </select>
 
     <select id="selectSapPdDvCd" resultType="string">
-        SELECT MAX(SAP_PD_DV_CD) AS SAP_PD_DV_CD
-          FROM TB_CBCL_SAP_PD_DV_CD
-         WHERE SELL_TP_CD = #{sellTpCd}
-           AND SELL_TP_DTL_CD = #{sellTpDtlCd}
-           AND DTA_DL_YN = 'N'
+        SELECT /*+ INDEX(T IX_CBCL_SAP_PD_DV_CD_02) */
+               T.SAP_PD_DV_CD
+          FROM TB_CBCL_SAP_PD_DV_CD T
+         WHERE T.SELL_TP_CD = #{sellTpCd}
+           AND T.SELL_TP_DTL_CD = #{sellTpDtlCd}
+           AND T.DTA_DL_YN = 'N'
+           AND ROWNUM = 1
     </select>
 
     <select id="selectSapMat" resultType="com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmSapMatDvo">
-        SELECT /*+ USE_NL(S1 S2 S3 S4) INDEX(S4) */
+        SELECT /*+ USE_NL(S1 S2 S3) */
                S1.PD_CD
-             , S3.SAP_MAT_EVL_CLSS_VAL AS SAP_MAT_EVL_CLSS_VAL /*SAP자재평가클래스*/
+             , S3.SAP_MAT_EVL_CLSS_VAL /*SAP자재평가클래스*/
              , S3.SAP_MAT_CD /*SAP자재코드*/
           FROM TB_PDBS_PD_BAS S1
          INNER JOIN TB_PDBS_PD_REL S2
-            ON S1.PD_CD =S2.BASE_PD_CD
-           AND S2.PD_REL_TP_CD  ='05' /* 기준상품  - 제품 */
-           AND S2.DTA_DL_YN  = 'N'
+            ON S1.PD_CD = S2.BASE_PD_CD
+           AND S2.PD_REL_TP_CD = '05' /* 기준상품  - 제품 */
+           AND S2.DTA_DL_YN = 'N'
          INNER JOIN TB_PDBS_PD_BAS S3
             ON S2.OJ_PD_CD = S3.PD_CD
-           AND S3.DTA_DL_YN  = 'N'
-         INNER JOIN TB_GBCO_SAP_MAT_RCV_IZ S4
-            ON S3.SAP_MAT_CD = S4.SAP_MAT_CD
-           AND S4.DTA_DL_YN  = 'N'
+           AND S3.DTA_DL_YN = 'N'
          WHERE S1.PD_CD = #{pdCd}   /*VO에 들어온 상품코드 EX) EP01100317'*/
-           AND ROWNUM <![CDATA[<=]]> 1
+           AND ROWNUM = 1
     </select>
 
     <select id="selectCtrlOrdTpCd" resultType="string">
-        SELECT MAX(SLP_MAPNG_CDV) AS SLP_MAPNG_CDV
+        SELECT SLP_MAPNG_CDV
           FROM TB_CBCL_SLP_BASE_INF_BAS
-         WHERE CNDT_VARB_NM1 = #{sapPdDvCd}
-           AND NVL(CNDT_VARB_NM2,'0') = #{sellInflwChnlDtlCd}
-           AND NVL(CNDT_VARB_NM3,'0') = (CASE WHEN #{ogTpCd} = 'W01'
-                            THEN 'W01'
-                            ELSE '0' END )
+         WHERE SLP_BASE_CDV = 'CTRL_ORD_TP_CD'
+           AND CNDT_VARB_NM1 = #{sapPdDvCd}
+           AND CNDT_VARB_NM2 = (CASE WHEN #{sellInflwChnlDtlCd} IN ('1010','2010','9020','9040') THEN #{sellInflwChnlDtlCd}
+                                     ELSE '1010' END)
+           AND NVL(CNDT_VARB_NM3, 'NULL') = (CASE WHEN #{ogTpCd} = 'W01' THEN 'W01'
+                                                  ELSE 'NULL' END)
            AND SAP_BZ_TERY_CD = '1210'
+           AND ROWNUM = 1
     </select>
 
-    <select id="selectReceivingAndPaying" resultType="com.kyowon.sms.wells.web.closing.sales.dvo.WdcbSalesConfirmReceivingAndPayingDvo">
-        SELECT /*+ USE_NL(T1 T2) LEADING(T1 T2) */
-               T1.LGST_SPP_MTHD_CD AS SPP_MTHD_TP_CD /*배송방식유형코드*/
-             , T1.SAP_PLNT_CD   /*SAP플랜트코드*/
-             , SUBSTR(T2.SAP_SAVE_LCT_CD,-4) AS SAP_SAVE_LCT_CD  /*SAP저장위치코드*/
-             , T1.LGST_ITM_GD_CD    /*물류품목등급코드 -14일이나반품건이나 폐기건 찾는건데.. 입출금에서 못줄꺼 대비*/
-          FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT T1
-         INNER JOIN TB_IFIN_ITM_OSTR_AK_SEND_ETXT T2
-            ON T1.LGST_OSTR_AK_NO = T2.LGST_OSTR_AK_NO
-           AND T1.SAP_PLNT_CD = T2.SAP_PLNT_CD
-         WHERE 1=1
-           AND T1.CNTR_NO = #{cntrNo}
-           AND T1.CNTR_SN = #{cntrSn}
-         GROUP BY T1.LGST_SPP_MTHD_CD  /*배송방식유형코드*/
-             , T1.SAP_PLNT_CD   /*SAP플랜트코드*/
-             , T2.SAP_SAVE_LCT_CD  /*SAP저장위치코드*/
-             , T1.LGST_ITM_GD_CD
+    <select id="selectSapPlantCode" resultType="string">
+        SELECT CASE WHEN #{pdLclsfId} = 'PDC000000000131' /*커피원두*/
+                    THEN '2108'
+                    WHEN #{fgptYn} = 'Y' /*사은품 LNC36*/
+                    THEN '2106'
+                    WHEN #{sellTpCd} = '1'  /*일시불*/
+                    THEN (SELECT CASE WHEN S2.PD_PRP_VAL02 = 'S' THEN '2106'  /*삼성*/
+                                      WHEN #{sellTpDtlCd} = '12' THEN '2106'   /*일시불홈케어*/
+                                      WHEN (SELECT A.PD_PRP_VAL11 FROM TB_PDBS_PD_ECOM_PRP_DTL A WHERE A.PD_EXTS_PRP_GRP_CD = 'IND' AND A.DTA_DL_YN = 'N'  AND A.PD_CD = #{pdCd} AND ROWNUM = 1) = 'Y' AND S2.PD_PRP_VAL01 = '1' AND S2.PD_PRP_VAL09 IS NULL THEN '2106'  /*'환경가전 교원(설치)' */
+                                      WHEN (SELECT A.PD_PRP_VAL11 FROM TB_PDBS_PD_ECOM_PRP_DTL A WHERE A.PD_EXTS_PRP_GRP_CD = 'IND' AND A.DTA_DL_YN = 'N'  AND A.PD_CD = #{pdCd} AND ROWNUM = 1) = 'Y' AND S2.PD_PRP_VAL09 IS NOT NULL THEN '2106'   /*환경가전 업체(설치/택배)*/
+                                      ELSE '2108' END
+                            FROM TB_PDBS_PD_BAS S1
+                           INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                              ON S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                             AND S2.PD_CD = S1.PD_CD
+                             AND S2.DTA_DL_YN = 'N'
+                           WHERE S1.PD_CD  = #{pdCd}
+                             AND ROWNUM = 1)
+                    WHEN (SELECT SUBSTR(T3.CNTR_PD_STRTDT,1,6)
+                            FROM TB_SSCT_CNTR_DTL T3
+                           WHERE T3.CNTR_NO = #{cntrNo}
+                             AND T3.CNTR_SN = #{cntrSn}
+                             AND SUBSTR(T3.CNTR_DTL_STAT_CD,1,1) IN ('3','4')
+                             AND ((SUBSTR(T3.CNTR_PD_ENDDT,1,6) >= #{slClYm})
+                                 OR (T3.CNTR_PD_ENDDT IS NULL))) = #{slClYm}  AND #{sellTpDtlCd} IN ('21','23')  /*렌탈신규 - LNC44*/
+                    THEN '2106'
+                    WHEN #{sellTpDtlCd} IN ('21','23') AND #{slCanAmt} <![CDATA[<>]]> 0  /*렌탈철회 LNC43*/
+                    THEN '2106'
+                    WHEN #{sellTpDtlCd} IN ('21','23') /*나머지렌탈*/
+                    THEN '2106'
+                    WHEN #{sellTpCd} = '3'   /*멤버십*/
+                    THEN '2106'
+                    WHEN #{sellTpDtlCd} = '62'  /*LNC50*/
+                    THEN '2106'
+                    WHEN #{sellTpDtlCd} IN ('61','63')  /*LNC51*/
+                    THEN (CASE WHEN (SELECT PD_PRP_VAL09 /*파트너업체 KA1110*/ FROM TB_PDBS_PD_ECOM_PRP_DTL WHERE PD_EXTS_PRP_GRP_CD = 'SPP' AND DTA_DL_YN = 'N'  AND PD_CD = #{pdCd} AND ROWNUM = 1) IS NOT NULL /*MD상품*/
+                               THEN '2106'
+                               ELSE '2108' END )
+                    WHEN #{sellTpDtlCd} IN ('22','24','25','26') /*리스,할부*/
+                    THEN '2106'
+                    ELSE 'ERR' END AS SAP_PLNT_CD /*SAP플랜트코드*/
+          FROM DUAL
     </select>
 
-    <select id="selectSlpMapngCdv" resultType="string">
+    <select id="selectSapSaveLocationCode" resultType="string">
+        SELECT CASE WHEN #{pdLclsfId} = 'PDC000000000131' /*커피원두*/
+                    THEN '2082'
+                    WHEN #{fgptYn}= 'Y' /*사은품 LNC36*/
+                    THEN (SELECT CASE WHEN S1.PD_PRP_VAL02 = 'S' OR S1.PD_PRP_VAL09 IS NOT NULL /*삼성제품 또는 MD제품*/
+                                 THEN '2017'
+                                 ELSE '2018' END
+                                FROM TB_PDBS_PD_ECOM_PRP_DTL S1
+                               WHERE S1.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                 AND S1.DTA_DL_YN = 'N'
+                                 AND S1.PD_CD = #{pdCd}
+                             )
+                     WHEN #{sellTpCd} = '1'  /*일시불*/
+                    THEN (SELECT
+                               CASE WHEN S2.PD_PRP_VAL02 = 'S' THEN '2017'  /*삼성*/
+                                    WHEN #{sellTpDtlCd} = '12' THEN '2012'   /*일시불홈케어*/
+                                    WHEN (SELECT A.PD_PRP_VAL11 FROM TB_PDBS_PD_ECOM_PRP_DTL A WHERE A.PD_EXTS_PRP_GRP_CD = 'IND' AND A.DTA_DL_YN = 'N'  AND A.PD_CD = #{pdCd} AND ROWNUM = 1) = 'Y' AND S2.PD_PRP_VAL01 = '1' AND S2.PD_PRP_VAL09 IS NULL THEN '2018'  /*'환경가전 교원(설치)' */
+                                    WHEN (SELECT A.PD_PRP_VAL11 FROM TB_PDBS_PD_ECOM_PRP_DTL A WHERE A.PD_EXTS_PRP_GRP_CD = 'IND' AND A.DTA_DL_YN = 'N'  AND A.PD_CD = #{pdCd} AND ROWNUM = 1) = 'Y' AND S2.PD_PRP_VAL09 IS NOT NULL THEN '2017'   /*환경가전 업체(설치/택배)*/
+                                    ELSE '2082' END
+                             FROM TB_PDBS_PD_BAS S1
+                            INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                               ON S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                              AND S2.PD_CD = S1.PD_CD
+                              AND S2.DTA_DL_YN = 'N'
+                            WHERE S1.PD_CD = #{pdCd}
+                              AND ROWNUM = 1)
+                    WHEN (SELECT SUBSTR(T3.CNTR_PD_STRTDT,1,6)
+                            FROM TB_SSCT_CNTR_DTL T3
+                           WHERE T3.CNTR_NO = #{cntrNo}
+                             AND T3.CNTR_SN = #{cntrSn}
+                             AND SUBSTR(T3.CNTR_DTL_STAT_CD,1,1) IN ('3','4')
+                             AND ((SUBSTR(T3.CNTR_PD_ENDDT,1,6) >= #{slClYm})
+                                 OR (T3.CNTR_PD_ENDDT IS NULL))) = #{slClYm}  AND #{sellTpDtlCd} IN ('21','23')  /*렌탈신규 - LNC44*/
+                    THEN (SELECT CASE WHEN S2.PD_PRP_VAL02 = 'S'
+                                            THEN '2017'  /*삼성*/
+                                      WHEN (SELECT A.PD_PRP_VAL01 FROM TB_PDBS_PD_ECOM_PRP_DTL A WHERE A.PD_EXTS_PRP_GRP_CD = 'SPP' AND A.DTA_DL_YN = 'N'  AND A.PD_CD = #{pdCd} AND ROWNUM = 1) = '2'
+                                      THEN '2011'   /*택배*/
+                                            ELSE '2018' END
+                                FROM TB_PDBS_PD_BAS S1
+                               INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                  ON S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                AND S2.PD_CD = S1.PD_CD
+                                AND S2.DTA_DL_YN = 'N'
+                           WHERE S1.PD_CD = #{pdCd}
+                                AND ROWNUM = 1)
+                    WHEN #{sellTpDtlCd} IN ('21','23') AND #{slCanAmt} <![CDATA[<>]]> 0  /*렌탈철회 LNC43*/
+                    THEN (SELECT CASE WHEN S2.PD_PRP_VAL02 = 'S'
+                                            THEN '2017'  /*삼성*/
+                                      WHEN (SELECT PD_PRP_VAL01 FROM TB_PDBS_PD_ECOM_PRP_DTL WHERE PD_EXTS_PRP_GRP_CD = 'SPP' AND DTA_DL_YN = 'N'  AND PD_CD = #{pdCd} AND ROWNUM = 1) = '2'
+                                      THEN '2011'   /*택배*/
+                                            ELSE '2018' END
+                            FROM TB_PDBS_PD_BAS S1
+                           INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                              ON S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                             AND S2.PD_CD = S1.PD_CD
+                             AND S2.DTA_DL_YN = 'N'
+                           WHERE S1.PD_CD = #{pdCd}
+                                  AND ROWNUM = 1)
+                    WHEN #{sellTpDtlCd} IN ('21','23') /*나머지렌탈*/
+                    THEN '2012'
+                    WHEN #{sellTpCd} = '3'   /*멤버십*/
+                    THEN '2012'
+                    WHEN #{sellTpDtlCd} = '62'  /*LNC50*/
+                    THEN '2018'
+                    WHEN #{sellTpDtlCd} IN ('61','63')  /*LNC51*/
+                    THEN (CASE WHEN (SELECT PD_PRP_VAL09 /*파트너업체 KA1110*/ FROM TB_PDBS_PD_ECOM_PRP_DTL WHERE PD_EXTS_PRP_GRP_CD = 'SPP' AND DTA_DL_YN = 'N'  AND PD_CD = #{pdCd} AND ROWNUM = 1) IS NOT NULL /*MD상품*/
+                               THEN '2017'
+                               ELSE '2082' END )
+                    WHEN #{sellTpDtlCd} IN ('22','24','25','26') /*리스,할부*/
+                    THEN (CASE WHEN (SELECT PD_PRP_VAL11 FROM TB_PDBS_PD_ECOM_PRP_DTL WHERE PD_EXTS_PRP_GRP_CD = 'IND' AND DTA_DL_YN = 'N'  AND PD_CD = #{pdCd} AND ROWNUM = 1) = 'Y'
+                               THEN '2012'  /*환경가전*/
+                               WHEN (SELECT CASE WHEN S1.PD_PRP_VAL02 = 'S' OR S1.PD_PRP_VAL09 IS NOT NULL /*삼성제품 또는 MD제품*/
+                                            THEN 'Y' ELSE 'N' END
+                                       FROM TB_PDBS_PD_ECOM_PRP_DTL S1
+                                      WHERE S1.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                        AND S1.DTA_DL_YN = 'N'
+                                        AND S1.PD_CD = #{pdCd}
+                                    ) = 'Y'
+                               THEN '2017'
+                               WHEN (SELECT S1.PD_PRP_VAL01 FROM TB_PDBS_PD_ECOM_PRP_DTL S1 WHERE S1.PD_EXTS_PRP_GRP_CD = 'SPP' AND S1.DTA_DL_YN = 'N'  AND S1.PD_CD = #{pdCd} AND ROWNUM = 1) = '2'
+                               THEN '2011'
+                               ELSE '2018' END )
+                    ELSE 'ERR' END AS SAP_SAVE_LCT_VAL /*SAP저장위치값 */
+          FROM DUAL
+    </select>
+
+    <select id="selectSapSlTpCd" resultType="string">
         SELECT MAX(SLP_MAPNG_CDV) AS SLP_MAPNG_CDV
           FROM TB_CBCL_SLP_BASE_INF_BAS
          WHERE SLP_BASE_CDV = 'SAP_SL_TP_CD'
@@ -326,7 +440,7 @@
     </insert>
 
     <select id="selectVatTpCd" resultType="string">
-        SELECT VAT_TP_CD
+        SELECT VAT_TP_CD /*부가가치세유형코드 - 10:일반, 20:영세, 30:면세*/
           FROM TB_PDBS_PD_BAS
          WHERE PD_CD = #{pdCd}
     </select>

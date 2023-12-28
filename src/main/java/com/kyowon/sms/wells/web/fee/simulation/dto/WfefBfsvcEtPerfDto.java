@@ -20,16 +20,16 @@ public class WfefBfsvcEtPerfDto {
     @ApiModel(value = "WfefBfsvcEtPerfDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String strtPerfDt,
+        String strtPerfDt, /*시작실적일자*/
         @NotBlank
-        String endPerfDt,
-        String baseYm,
-        String prtnrNo,
+        String endPerfDt, /*종료실적일자*/
+        String baseYm, /*기준년월*/
+        String prtnrNo, /*파트너번호*/
         @NotBlank
-        String rsbDvCd,
-        String ogLevlDvCd1,
-        String ogLevlDvCd2,
-        String ogLevlDvCd3
+        String rsbDvCd, /*직책구분코드*/
+        String ogLevlDvCd1, /*조직레벨1*/
+        String ogLevlDvCd2, /*조직레벨2*/
+        String ogLevlDvCd3 /*조직레벨3*/
     ) {}
 
     // *********************************************************

@@ -76,8 +76,8 @@
                      , T5.SVPD_ITEM_GR AS ITEM_GR
                      , T1.STKR_PRNT_YN /*스티커출력여부*/
                      , T3.IST_DT /*설치일자*/
-                     , (SELECT A1.REQD_DT
-                          FROM TB_SSCT_CNTR_WELLS_DTL A1
+                     , (SELECT A1.RSG_APLC_DT
+                          FROM TB_SSCT_CNTR_RSG_PROCS_IZ A1 /* 계약해지처리내역 */
                          WHERE 1 = 1
                            AND A1.CNTR_NO = X2.CNTR_NO
                            AND A1.CNTR_SN = X2.CNTR_SN ) AS REQD_DT /*철거일자*/
@@ -89,10 +89,11 @@
                      , (CASE WHEN SUBSTR(T1.SV_BIZ_DCLSF_CD, 0, 2) = '34' AND T5.SVPD_ITEM_KND = '4' AND T1.FNL_ITM_GD_CD = 'X' THEN ''
                              WHEN X2.FRISU_YN = 'Y' THEN ''
                              WHEN SUBSTR(T1.SV_BIZ_DCLSF_CD, 0, 2) = '34' AND T5.SVPD_ITEM_KND = '4' AND (CASE WHEN X2.SELL_TP_CD = '1' THEN 'E' /*일시불(할부)판매고객*/
-                                                                                                               WHEN T9.USE_DAYS <![CDATA[<=]]> 7 AND X2.ALNCMP_CD = '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'E' /*K멤버스 7일 이하*/
-                                                                                                               WHEN T9.USE_DAYS > 7 AND X2.ALNCMP_CD = '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'R' /*K멤버스 7일 초과*/
-                                                                                                               WHEN T9.USE_DAYS <![CDATA[<=]]> 14 AND X2.ALNCMP_CD <![CDATA[<>]]> '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'E' /*K멤버스외 14일 이하*/
-                                                                                                               WHEN T9.USE_DAYS > 14 AND X2.ALNCMP_CD <![CDATA[<>]]> '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'R' /*K멤버스외 14일 초과*/
+                                                                                                               /* ASIS에서는 ALNCMP_CD(제휴사코드)가 없을경우 '' 처리가 되었는데 TOBE에서는 빈값이 아니라 NULL로 처리되어 있어서 값 비교를 위해 NVL처리를 함 */
+                                                                                                               WHEN T9.USE_DAYS <![CDATA[<=]]> 7 AND NVL(X2.ALNCMP_CD, ' ') = '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'E' /*K멤버스 7일 이하*/
+                                                                                                               WHEN T9.USE_DAYS > 7 AND NVL(X2.ALNCMP_CD, ' ') = '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'R' /*K멤버스 7일 초과*/
+                                                                                                               WHEN T9.USE_DAYS <![CDATA[<=]]> 14 AND NVL(X2.ALNCMP_CD, ' ') <![CDATA[<>]]> '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'E' /*K멤버스외 14일 이하*/
+                                                                                                               WHEN T9.USE_DAYS > 14 AND NVL(X2.ALNCMP_CD, ' ') <![CDATA[<>]]> '45' AND X2.SELL_TP_CD IN ('2', '4') THEN 'R' /*K멤버스외 14일 초과*/
                                                                                                           ELSE 'R'
                                                                                                            END ) <![CDATA[<>]]> T1.FNL_ITM_GD_CD THEN '1'
                          ELSE ''
@@ -111,7 +112,7 @@
                      , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', X2.SELL_TP_CD) AS SELL_TP_NM /*판매유형명*/
                      , F_CMZ_CD_NM('TNT_WELLS', 'PRD_MNGT_TP_CD', X2.SELL_TP_CD) AS MNGT_UNIT_NM /* 관리단위 */
                      , (CASE WHEN X2.FRISU_YN = 'Y' THEN '무료체험'
-                             WHEN X2.ALNCMP_CD = '45' THEN F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', X2.ALNCMP_CD)
+                             WHEN NVL(X2.ALNCMP_CD, ' ') = '45' THEN F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', X2.ALNCMP_CD)
                              ELSE ''
                         END) AS REFER_ARTC /*참고사항*/
                      , T1.SV_BIZ_DCLSF_CD /*서비스업무세분류코드 BA04*/
@@ -236,16 +237,15 @@
                       ON T8.WARE_NO   = T1.WK_WARE_NO
                    INNER JOIN (SELECT B.CNTR_NO, B.CNTR_SN
                                     , (CASE WHEN B.IST_DT IS NULL THEN 0
-                                            WHEN E.REQD_DT IS NOT NULL THEN TO_DATE(E.REQD_DT, 'YYYYMMDD') - TO_DATE(B.IST_DT, 'YYYYMMDD')
+                                            WHEN E.RSG_APLC_DT IS NOT NULL THEN TO_DATE(E.RSG_APLC_DT, 'YYYYMMDD') - TO_DATE(B.IST_DT, 'YYYYMMDD')
                                        ELSE TO_DATE(TO_CHAR(SYSDATE, 'YYYYMMDD'), 'YYYYMMDD') - TO_DATE(B.IST_DT, 'YYYYMMDD')
                                         END
                                       ) AS USE_DAYS
                                  FROM TB_SVPD_CST_SV_EXCN_IZ B  /*고객서비스수행내역*/
-                                INNER JOIN TB_SSCT_CNTR_WELLS_DTL E
+                                 LEFT OUTER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ E /* 계약해지처리내역 */
                                    ON B.CNTR_NO = E.CNTR_NO
                                   AND B.CNTR_SN = E.CNTR_SN
-                                WHERE 1 = 1
-                                  AND B.DTA_DL_YN = 'N'
+                                WHERE B.DTA_DL_YN = 'N'
                                 ) T9
                        ON T9.CNTR_NO = T3.CNTR_NO
                       AND T9.CNTR_SN = T3.CNTR_SN

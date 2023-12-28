@@ -77,4 +77,16 @@ public class WpshFalseVisitMgtDto {
 
     ) {}
 
+    @ApiModel("WpshFalseVisitMngtDto-SearchBranchManagerReq")
+    public record SearchBranchManagerReq(
+        @NotBlank
+        String prtnrNo,
+        @NotBlank
+        String baseYm
+    ){}
+    @ApiModel("WpshFalseVisitMngtDto-SearchBranchManagerRes")
+    public record SearchBranchManagerRes(
+        String hooPrtnrNo,  /* 조직장파트너번호 */
+        String hooPrtnrNm   /* 조직장파트너명 */
+    ){}
 }

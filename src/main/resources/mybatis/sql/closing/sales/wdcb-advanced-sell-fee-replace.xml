@@ -16,8 +16,8 @@
              , SUM(PIA_FEE_OC_AMT) AS PIA_FEE_OC_AMT  /*선급수수료발생금액*/
              , SUM(CS_RPLC_AMT) AS CS_RPLC_AMT     /*비용대체금액*/
              , SUM(CS_RPLC_AMT_CANC_BLAM) AS CS_RPLC_AMT_CANC_BLAM  /*비용대체금액 (취소분 잔액) - 취소건 선급잔액 */
-             , SUM(TTRM_CS_AMT) AS TTRM_CS_AMT /*당기비용인식액*/
-             , SUM(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액*/
+             , SUM(CS_RPLC_AMT + CS_RPLC_AMT_CANC_BLAM) AS TTRM_CS_AMT /*당기비용인식액*/
+             , SUM(PIA_SELL_FEE_CRDOVR_RES_AMT + PIA_FEE_OC_AMT - CS_RPLC_AMT - CS_RPLC_AMT_CANC_BLAM) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액*/
           FROM
              (
              SELECT OG_TP_CD  /*조직유형코드*/
@@ -32,16 +32,12 @@
                   , PIA_CS_YN    /*선급대상여부*/
                   , PIA_SELL_FEE_CRDOVR_RES_AMT   /*선급판매수수료이월잔액*/
                   , FEE_OC_AMT AS PIA_FEE_OC_AMT  /*선급수수료발생금액 - 이테이블의 금액은 모두 선급대상*/
-                  , CS_RPLC_AMT    /*비용대체금액*/
-                  , CASE WHEN CNTR_PD_ENDDT IS NOT NULL
-                         THEN FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT
-                         ELSE 0 END  AS CS_RPLC_AMT_CANC_BLAM  /*비용대체금액 (취소분 잔액) - 취소건 선급잔액 */
-                  , CASE WHEN CNTR_PD_ENDDT IS NOT NULL
-                         THEN FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT
-                         ELSE CS_RPLC_AMT END  AS TTRM_CS_AMT  /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
-                  , CASE WHEN CNTR_PD_ENDDT IS NOT NULL
-                         THEN 0
-                         ELSE FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT END AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액. 취소된 경우는 0*/
+                  , CASE WHEN CNTR_PD_ENDDT IS NULL OR SUBSTR(CNTR_PD_ENDDT,1,6) != #{baseYm} THEN CS_RPLC_AMT
+                         ELSE 0 END AS CS_RPLC_AMT   /*비용대체금액:종료일이 없거나, 해당월 종료가 아닌 경우 대상*/
+                  , CASE WHEN SUBSTR(CNTR_PD_ENDDT,1,6) = #{baseYm} THEN CS_RPLC_AMT
+                         ELSE 0 END AS CS_RPLC_AMT_CANC_BLAM  /*비용대체금액 (취소분 잔액) */
+                  , 0 AS TTRM_CS_AMT
+                  , 0 AS PIA_FEE_EOT_BLAM
                FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
               WHERE BASE_YM   = #{baseYm}   /*기준년월*/
                 <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
@@ -147,15 +143,31 @@
              , SUM(FEE_OC_AMT) AS FEE_OC_AMT /*수수료발생금액*/
              , PIA_CS_YN /*선급대상여부*/
              , SUM(PIA_SELL_FEE_CRDOVR_RES_AMT) AS PIA_SELL_FEE_CRDOVR_RES_AMT /*선급판매수수료이월잔액*/
-             , SUM(FEE_OC_AMT) AS PIA_FEE_OC_AMT /*선급수수료발생금액 - 이테이블의 금액은 모두 선급대상*/
-             , SUM(CS_RPLC_AMT) AS CS_RPLC_AMT /*비용대체금액*/
-             , SUM(CASE WHEN CNTR_PD_ENDDT IS NOT NULL THEN FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT
-                    ELSE 0 END) AS CS_RPLC_AMT_CANC_BLAM /*비용대체금액 (취소분 잔액) - 취소건 선급잔액 */
-             , SUM(CASE WHEN CNTR_PD_ENDDT IS NOT NULL THEN FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT
-                    ELSE CS_RPLC_AMT END) AS TTRM_CS_AMT /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
-             , SUM(CASE WHEN CNTR_PD_ENDDT IS NOT NULL THEN 0
-                    ELSE FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT END) AS PIA_FEE_EOT_BLAM /*선급수수료기말잔액. 취소된 경우는 0*/
-          FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
+             , SUM(PIA_FEE_OC_AMT) AS PIA_FEE_OC_AMT /*선급수수료발생금액 - 이테이블의 금액은 모두 선급대상*/
+             , SUM(CS_RPLC_AMT) AS CS_RPLC_AMT /*비용대체금액:종료일이 없거나, 해당월 종료가 아닌 경우 대상*/
+             , SUM(CS_RPLC_AMT_CANC_BLAM) AS CS_RPLC_AMT_CANC_BLAM /*비용대체금액 (취소분 잔액) - 취소건 선급잔액 */
+             , SUM(CS_RPLC_AMT + CS_RPLC_AMT_CANC_BLAM) AS TTRM_CS_AMT /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
+             , SUM(PIA_SELL_FEE_CRDOVR_RES_AMT + PIA_FEE_OC_AMT - CS_RPLC_AMT - CS_RPLC_AMT_CANC_BLAM) AS PIA_FEE_EOT_BLAM /*선급수수료기말잔액. 취소된 경우는 0*/
+          FROM (
+                SELECT BASE_YM
+                     , OG_TP_CD
+                     , SELL_TP_CD
+                     , SELL_TP_DTL_CD
+                     , PD_HCLSF_ID
+                     , PD_MCLSF_ID
+                     , PIA_CS_YN
+                     , CNTR_NO
+                     , CNTR_SN
+                     , SL_AMT
+                     , FEE_OC_AMT
+                     , PIA_SELL_FEE_CRDOVR_RES_AMT
+                     , FEE_OC_AMT AS PIA_FEE_OC_AMT
+                     , CASE WHEN CNTR_PD_ENDDT IS NULL OR SUBSTR(CNTR_PD_ENDDT,1,6) != #{baseYm} THEN CS_RPLC_AMT
+                            ELSE 0 END AS CS_RPLC_AMT
+                     , CASE WHEN SUBSTR(CNTR_PD_ENDDT,1,6) = #{baseYm} THEN CS_RPLC_AMT
+                            ELSE 0 END AS CS_RPLC_AMT_CANC_BLAM
+                FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS A1 /*선급판매수수료 비용대체기본*/
+               ) T1
          WHERE BASE_YM   = #{baseYm}   /*기준년월*/
            <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
            AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
@@ -260,7 +272,11 @@
              , CS_RPLC_AMT    /*비용대체금액*/
              , CASE WHEN 'N' = #{feeChk}   /*수수료구분 상세에 미체크 했을때 수수료코드 안보여줄것임 */
                     THEN ''
-                    ELSE (SELECT DISTINCT SRN_MARK_FEE_NM FROM TB_FEAM_FEE_BASE_DTL WHERE FEE_CD = T1.FEE_CD) END AS FEE_NM        /*수수료코드(구분)*/
+                    ELSE (SELECT SRN_MARK_FEE_NM FROM TB_FEAM_FEE_BASE_DTL
+                          WHERE FEE_CD = T1.FEE_CD
+                          AND FEE_BASE_STAT_CD = '02'
+                          AND T1.BASE_YM BETWEEN APY_STRT_YM AND APY_END_YM
+                          AND ROWNUM = 1) END AS FEE_NM        /*수수료코드(구분)*/
              , DP_SLIP_TRS_NO  /*입금전표전송번호*/
              , SAP_SLPNO       /*선급판매수수료전표번호*/
              , CASE WHEN CNTR_PD_ENDDT IS NOT NULL
@@ -325,7 +341,11 @@
              , 0 AS CS_RPLC_AMT    /*비용대체금액*/
              , CASE WHEN 'N' = #{feeChk}   /*수수료구분 상세에 미체크 했을때 */
                     THEN ''
-                    ELSE (SELECT SRN_MARK_FEE_NM FROM TB_FEAM_FEE_BASE_DTL WHERE FEE_CD = T2.FEE_CD) END  AS FEE_NM        /*수수료코드(구분)*/
+                    ELSE (SELECT SRN_MARK_FEE_NM FROM TB_FEAM_FEE_BASE_DTL
+                          WHERE FEE_CD = T2.FEE_CD
+                          AND FEE_BASE_STAT_CD = '02'
+                          AND T2.BASE_YM BETWEEN APY_STRT_YM AND APY_END_YM
+                          AND ROWNUM = 1) END  AS FEE_NM        /*수수료코드(구분)*/
              , '' AS DP_SLIP_TRS_NO  /*입금전표전송번호*/
              , '' AS SAP_SLPNO       /*선급판매수수료전표번호*/
              , T2.FEE_CTR_CNFM_AMT  AS TTRM_CS_AMT  /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
@@ -425,7 +445,7 @@
        SELECT 'N' AS PIA_CS_YN    /*선급대상여부*/
             , 0 AS SL_AMT      /*매출금액*/
             , 0 AS CS_RPLC_AMT    /*비용대체금액*/
-            , 0 AS FEE_OC_AMT
+            , NVL(SUM(T2.FEE_CTR_CNFM_AMT),0) AS FEE_OC_AMT  /*수수료발생금액*/
             , 0 AS PIA_FEE_OC_AMT
             , NVL(SUM(T2.FEE_CTR_CNFM_AMT),0) AS TTRM_CS_AMT  /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
             , 0 AS CS_RPLC_AGG_AMT   /*비용대체누계금액*/
@@ -482,10 +502,10 @@
                  , (SELECT MAX(PD_NM) FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_HCLSF_ID) AS PD_HCLSF_NM   /*상품대분류*/
                  , (SELECT MAX(PD_NM) FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_MCLSF_ID) AS PD_MCLSF_NM   /*상품중분류*/
                  , BASE_YM      /*발생년월*/
-                 , SUM(PIA_SELL_FEE_CRDOVR_RES_AMT) AS PIA_SELL_FEE_CRDOVR_RES_AMT   /*선급판매수수료이월잔액*/
-                 , SUM(FEE_OC_AMT)  AS PIA_FEE_OC_AMT          /*선급수수료발생금액*/
-                 , SUM(CS_RPLC_AMT) AS CS_RPLC_AMT             /*비용대체금액*/
-                 , SUM(FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액*/
+                 , NVL(SUM(PIA_SELL_FEE_CRDOVR_RES_AMT),0) AS PIA_SELL_FEE_CRDOVR_RES_AMT   /*선급판매수수료이월잔액*/
+                 , NVL(SUM(FEE_OC_AMT),0)  AS PIA_FEE_OC_AMT          /*선급수수료발생금액*/
+                 , NVL(SUM(CS_RPLC_AMT),0) AS CS_RPLC_AMT             /*비용대체금액*/
+                 , SUM(NVL(FEE_OC_AMT,0) + NVL(PIA_SELL_FEE_CRDOVR_RES_AMT,0) - NVL(CS_RPLC_AMT,0)) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액=이월+발생-대체금액*/
               FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1
              WHERE SUBSTR(BASE_YM,1,4) = #{baseYm}      /*기준년월 - 년이 인풋으로 들어오는것. (2023) */
                <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
@@ -711,13 +731,18 @@
     </select>
 
     <select id="selectFeeGubunCodes" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchCodeRes">
-        SELECT FEE_CD AS CODE_ID /*수수료코드*/
-             , FEE_CD || '(' || SRN_MARK_FEE_NM || ')' AS CODE_NAME   /*수수료명*/
-          FROM TB_FEAM_FEE_BASE_DTL
-         WHERE PIA_FEE_OJ_YN = 'Y'
-           AND (TO_CHAR(SYSDATE,'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM)
-           AND DTA_DL_YN = 'N'
-      ORDER BY FEE_CD
+        SELECT T1.FEE_CD AS CODE_ID
+             , T1.FEE_CD || '(' || FEE_NM || ')' AS CODE_NAME   /*수수료명*/
+             , 2 AS SEQ
+          FROM TB_FEAM_FEE_CD T1
+         INNER JOIN TB_FEAM_FEE_BASE_DTL T2
+            ON T1.FEE_CD = T2.FEE_CD
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE,'YYYYMM') BETWEEN T2.APY_STRT_YM AND T2.APY_END_YM
+           AND T2.FEE_BASE_STAT_CD = '02'
+         ORDER BY CODE_ID
     </select>
 
     <select id="selectPop" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchPopRes">
@@ -725,7 +750,7 @@
              , TO_CHAR(LAST_DAY(add_months(SYSDATE,-1)),'YYYYMMDD') AS SLIP_FTRM_DT
              , TO_CHAR(SUM(FEE_OC_AMT), 'FM999,999,999,999,990') AS FEE_OC_AMT   /*선급한매수수료총액*/
              , TO_CHAR(SUM(CS_RPLC_AMT), 'FM999,999,999,999,990') AS CS_RPLC_AMT   /*비용대체총액*/
-             , MAX(PIA_SELL_FEE_SMRY) AS PIA_SELL_FEE_SMRY   /*적요*/
+             , TO_CHAR(ADD_MONTHS(SYSDATE,-1), 'YYYY') || '년' || TO_CHAR(ADD_MONTHS(SYSDATE,-1), 'MM') || '월 선급판매수수료' AS PIA_SELL_FEE_SMRY   /*적요*/
              , MAX(DP_SLIP_TRS_NO) AS DP_SLPNO   /*전표번호*/
           FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
          WHERE BASE_YM = TO_CHAR(add_months(SYSDATE,-1),'YYYYMM')

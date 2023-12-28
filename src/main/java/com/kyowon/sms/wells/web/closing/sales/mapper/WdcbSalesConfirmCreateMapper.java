@@ -28,9 +28,7 @@ public interface WdcbSalesConfirmCreateMapper {
 
     String selectCtrlOrdTpCd(String sapPdDvCd, String sellInflwChnlDtlCd, String ogTpCd);
 
-    WdcbSalesConfirmReceivingAndPayingDvo selectReceivingAndPaying(WdcbSalesConfirmCreateDvo dvo);
-
-    String selectSlpMapngCdv(
+    String selectSapSlTpCd(
         String tempSellTpDtlCd, String tempSlRcogClsfCd, String clssVal, String slTpDvCd, String addCondition
     );
 
@@ -41,4 +39,8 @@ public interface WdcbSalesConfirmCreateMapper {
     String selectSapBizDvCd(String tempSellTpDtlCd, String tempSlRcogClsfCd, String addCondition);
 
     String selectProductEnvrYn(String pdCd);
+
+    String selectSapPlantCode(WdcbSalesConfirmCreateDvo dvo);
+
+    String selectSapSaveLocationCode(WdcbSalesConfirmCreateDvo dvo);
 }

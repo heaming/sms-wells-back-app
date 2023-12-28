@@ -202,8 +202,10 @@ public class WsniCustomerCenterInterfaceDto {
         String sdingPdNm5,
         @JsonProperty("SDING_QTY5")
         String sdingQty5,
-        @JsonProperty("VST_DT")
-        String vstDt
+        @JsonProperty("WK_DT")
+        String wkDt,
+        @JsonProperty("BSSVC_SPP_STP_DT")
+        String bssvcSppStpDt
     ) {}
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchSppVstRes")

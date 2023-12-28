@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.kyowon.sms.common.web.withdrawal.interfaces.dto.ZwdaAutoTransferChangeInterfaceDto;
+import com.kyowon.sms.common.web.withdrawal.interfaces.service.ZwdaAutoTransferChangeInterfaceService;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.service.WwdaAutoTransferInterfaceService;
 import com.kyowon.sms.wells.web.withdrawal.zcommon.constants.WdWithdrawalConst;
@@ -29,6 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 public class WwdaAutoTransferInterfaceController {
 
     private final WwdaAutoTransferInterfaceService service;
+
+    private final ZwdaAutoTransferChangeInterfaceService autoTransferChangeInterfaceService;
 
     @ApiOperation(value = "[EAI_WWDI1007] WELLS 자동이체 출금내역 조회 - W-WD-I-0006")
     @PostMapping("/payment-withdrawal-itemizations")
@@ -212,13 +216,13 @@ public class WwdaAutoTransferInterfaceController {
     public EaiWrapper saveBulkRegistrationReleases(
         @Valid
         @RequestBody
-        EaiWrapper<WwdaAutoTransferInterfaceDto.SaveReq> reqWrapper
+        EaiWrapper<ZwdaAutoTransferChangeInterfaceDto.SaveBulkReq> reqWrapper
     ) throws Exception {
         // Response용 EaiWrapper 생성
-        EaiWrapper<List<WwdaAutoTransferInterfaceDto.SaveBundleRegistrationReleaseRes>> resWrapper = reqWrapper
+        EaiWrapper<List<ZwdaAutoTransferChangeInterfaceDto.SaveBundleRegistrationReleaseRes>> resWrapper = reqWrapper
             .newResInstance();
         // 서비스 메소드 호출
-        List<WwdaAutoTransferInterfaceDto.SaveBundleRegistrationReleaseRes> res = service
+        List<ZwdaAutoTransferChangeInterfaceDto.SaveBundleRegistrationReleaseRes> res = autoTransferChangeInterfaceService
             .saveBulkRegistrationReleases(reqWrapper.getBody());
 
         // Response Body 세팅

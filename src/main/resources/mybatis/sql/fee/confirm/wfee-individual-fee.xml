@@ -31,20 +31,20 @@
              , NVL(NINC_CNT, 0) AS NINC_CNT	/*순증건수*/
              , NVL(PERF_ELHM_EXCP_FXAM, 0) AS PERF_ELHM_EXCP_FXAM	/*환경가전외정액*/
           FROM
-             ( SELECT OG.DGR3_LEVL_DG_PRTNR_NO
-                    , OG.DGR3_LEVL_DG_PRTNR_NM
-                    , PRTNR.PRTNR_NO
-                    , PRTNR.PRTNR_KNM
+             ( SELECT OG.DGR3_LEVL_DG_PRTNR_NO  /*지점대표파트너번호*/
+                    , OG.DGR3_LEVL_DG_PRTNR_NM  /*지점대표파트너명*/
+                    , PRTNR.PRTNR_NO    /*파트너번호*/
+                    , PRTNR.PRTNR_KNM   /*파트너명*/
                     , A1.RCPDT	/*접수일자*/
                     , A1.SL_DT	/*매출일자*/
                     , A2.CNTR_PD_ENDDT AS CAN_DT	/*취소일자*/
-                    , A1.CNTR_NO
-                    , (SELECT C.PD_NM FROM TB_PDBS_PD_BAS C WHERE C.DTA_DL_YN = 'N' AND C.PD_CD = A1.PD_CD) AS PD_NM
-                    , (SELECT C.CST_KNM FROM TB_CUBS_CST_BAS C WHERE C.DTA_DL_YN = 'N' AND C.CST_NO = A2.CNTR_CST_NO ) AS CST_KNM
+                    , A1.CNTR_NO    /*계약번호*/
+                    , (SELECT C.PD_NM FROM TB_PDBS_PD_BAS C WHERE C.DTA_DL_YN = 'N' AND C.PD_CD = A1.PD_CD) AS PD_NM    /*상품명*/
+                    , (SELECT C.CST_KNM FROM TB_CUBS_CST_BAS C WHERE C.DTA_DL_YN = 'N' AND C.CST_NO = A2.CNTR_CST_NO ) AS CST_KNM   /*고객명*/
                     , CASE WHEN A1.MCHN_CH_YN = 'Y' AND A1.MCHN_CH_TP_CD IN (15, 16, 19) THEN '재렌탈'
                            WHEN A1.MCHN_CH_YN = 'Y' AND A1.MCHN_CH_TP_CD IN (1, 18) THEN '기변'
                            ELSE '신규' END SALE_DIV		/*판매구분*/
-                    , A1.PERF_ATC_CD
+                    , A1.PERF_ATC_CD    /*실적항목코드*/
                     , NVL(A1.PERF_VAL, 0) AS PERF_VAL	/*실적값*/
                  FROM TB_OGBS_MM_PRTNR_IZ PRTNR	/*월파트너내역*/
                 INNER JOIN TB_OGBS_MM_OG_IZ OG	/*월조직내역*/
@@ -53,24 +53,24 @@
                   AND PRTNR.OG_ID = OG.OG_ID
                   AND OG.DTA_DL_YN = 'N'
                 INNER JOIN
-                    ( SELECT B1.CNTR_NO
-                           , B1.CNTR_SN
-                           , B1.PRTNR_NO
+                    ( SELECT B1.CNTR_NO     /*계약번호*/
+                           , B1.CNTR_SN     /*계약일련번호*/
+                           , B1.PRTNR_NO    /*파트너번호*/
                            , B2.RCPDT	/*접수일자*/
                            , B2.SL_DT	/*매출일자*/
                            , B2.CAN_DT	/*취소일자*/
-                           , B2.PD_CD
+                           , B2.PD_CD   /*상품코드*/
                            , B2.MCHN_CH_YN	/*기기변경여부*/
                            , B2.MCHN_CH_TP_CD	/*기기변경유형코드*/
                            , B1.PERF_ATC_CD	/*실적항목코드*/
-                           , B1.PERF_VAL
+                           , B1.PERF_VAL    /*실적값*/
                         FROM
                            /*인정건수*/
-                           ( SELECT CNTR_NO
-                                  , CNTR_SN
-                                  , PRTNR_NO
-                                  , 'W00P00000' AS PERF_ATC_CD
-                                  , SUM(NVL(PERF_VAL, 0)) AS PERF_VAL
+                           ( SELECT CNTR_NO     /*계약번호*/
+                                  , CNTR_SN     /*계약일련번호*/
+                                  , PRTNR_NO    /*파트너번호*/
+                                  , 'W00P00000' AS PERF_ATC_CD  /*실적항목코드*/
+                                  , SUM(NVL(PERF_VAL, 0)) AS PERF_VAL   /*실적값*/
                                FROM TB_FEAM_NTORP_CNTR_MM_CL	/*순주문파트너계약월마감*/
                               WHERE DTA_DL_YN = 'N'
                                 AND BASE_YM = #{perfYm}
@@ -85,11 +85,11 @@
                               GROUP BY CNTR_NO, CNTR_SN, PRTNR_NO
                               UNION ALL
                               /*환경가전렌탈,환경가전일시불,환경가전정액,BS인정건수*/
-                             SELECT CNTR_NO
-                                  , CNTR_SN
-                                  , PRTNR_NO
-                                  , PERF_ATC_CD
-                                  , NVL(PERF_VAL, 0) AS PERF_VAL
+                             SELECT CNTR_NO     /*계약번호*/
+                                  , CNTR_SN     /*계약일련번호*/
+                                  , PRTNR_NO    /*파트너번호*/
+                                  , PERF_ATC_CD     /*실적항목코드*/
+                                  , NVL(PERF_VAL, 0) AS PERF_VAL    /*실적값*/
                                FROM TB_FEAM_NTORP_CNTR_MM_CL	/*순주문파트너계약월마감*/
                               WHERE DTA_DL_YN = 'N'
                                 AND BASE_YM = #{perfYm}
@@ -112,10 +112,10 @@
                    ) A1
                   ON PRTNR.PRTNR_NO = A1.PRTNR_NO
                 LEFT OUTER JOIN
-                   ( SELECT B1.CNTR_NO
-                          , B1.CNTR_CST_NO
-                          , B2.CNTRW_TP_CD
-                          , CASE WHEN B2.CNTR_DTL_STAT_CD IN ('301','302','303') THEN B2.CNTR_PD_ENDDT END CNTR_PD_ENDDT
+                   ( SELECT B1.CNTR_NO  /*계약번호*/
+                          , B1.CNTR_CST_NO  /*계약고객번호*/
+                          , B2.CNTRW_TP_CD  /*계약서유형코드*/
+                          , CASE WHEN B2.CNTR_DTL_STAT_CD IN ('301','302','303') THEN B2.CNTR_PD_ENDDT END CNTR_PD_ENDDT    /*계약상품종료일자*/
                        FROM TB_SSCT_CNTR_BAS B1	/*계약기본*/
                       INNER JOIN TB_SSCT_CNTR_DTL B2 	/*계약상세*/
                          ON B1.CNTR_NO = B2.CNTR_NO

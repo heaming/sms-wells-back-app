@@ -1,7 +1,9 @@
 package com.kyowon.sms.wells.web.closing.sales.rest;
 
+import java.io.IOException;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
@@ -12,6 +14,9 @@ import com.kyowon.sms.common.web.closing.sales.service.ZdchClearingSlipCreateSer
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.*;
 import com.kyowon.sms.wells.web.closing.sales.service.WdcbBusinessAtamAdjustMgtService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto.DownloadReq;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
@@ -42,6 +47,30 @@ public class WdcbBusinessAtamAdjustMgtController {
     }
 
     /**
+     * 영업선수금 정산 관리(집계) bulk 엑셀 다운로드
+     * @param req
+     * @param response
+     * @return
+     */
+    @ApiOperation(value = "영업선수금 정산 관리(집계) bulk 엑셀 다운로드", notes = "조회조건에 따른 영업선수금 내역을 bulk 엑셀 다운로드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "dpKndCd", value = "조회구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapAlrpySlpno", value = "SAP전표번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
+    })
+    @PostMapping("/total/bulk-excel-download")
+    public void getBusinessAtamTotalsForBulkExcelDownload(
+        @RequestBody
+        DownloadReq req,
+        HttpServletResponse response
+    ) throws IOException {
+        service.getBusinessAtamTotalsForBulkExcelDownload(req, response);
+    }
+
+    /**
      * 영업선수금 정산 관리(집계)
      * @param dto
      * @return
@@ -55,12 +84,37 @@ public class WdcbBusinessAtamAdjustMgtController {
         @ApiImplicitParam(name = "sapAlrpySlpno", value = "SAP전표번호", paramType = "query"),
         @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
     })
-    @GetMapping("/total")
-    public List<SearchTotalRes> getBusinessAtamTotals(
+    @GetMapping("/total/paging")
+    public PagingResult<SearchTotalRes> getBusinessAtamTotalsPaging(
         @Valid
-        SearchReq dto
+        SearchReq dto,
+        PageInfo pageInfo
     ) {
-        return service.getBusinessAtamTotals(dto);
+        return service.getBusinessAtamTotalsPaging(dto, pageInfo);
+    }
+
+    /**
+     * 영업선수금 정산 관리(상세) bulk 엑셀 다운로드
+     * @param req
+     * @param response
+     * @return
+     */
+    @ApiOperation(value = "영업선수금 정산 관리(상세) bulk 엑셀 다운로드", notes = "조회조건에 따른 영업선수금 내역을 bulk 엑셀 다운로드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "dpKndCd", value = "조회구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapAlrpySlpno", value = "SAP전표번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
+    })
+    @PostMapping("/detail/bulk-excel-download")
+    public void getBusinessAtamDetailsForBulkExcelDownload(
+        @RequestBody
+        DownloadReq req,
+        HttpServletResponse response
+    ) throws IOException {
+        service.getBusinessAtamDetailsForBulkExcelDownload(req, response);
     }
 
     /**
@@ -77,12 +131,13 @@ public class WdcbBusinessAtamAdjustMgtController {
         @ApiImplicitParam(name = "sapAlrpySlpno", value = "SAP전표번호", paramType = "query"),
         @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
     })
-    @GetMapping("/detail")
-    public List<SearchDetailRes> getBusinessAtamDetails(
+    @GetMapping("/detail/paging")
+    public PagingResult<SearchDetailRes> getBusinessAtamDetailsPaging(
         @Valid
-        SearchReq dto
+        SearchReq dto,
+        PageInfo pageInfo
     ) {
-        return service.getBusinessAtamDetails(dto);
+        return service.getBusinessAtamDetailsPaging(dto, pageInfo);
     }
 
     /**
