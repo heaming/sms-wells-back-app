@@ -20,11 +20,11 @@ public class WfedLedrAllowanceDto {
     @ApiModel(value = "WfedLeaderAllowanceMgtDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String perfYm,
+        String perfYm, /* 실적년월 */
         @NotBlank
-        String ogTpCd,
-        String rsbDvCd,
-        String prtnrNo
+        String ogTpCd, /* 조직유형코드 */
+        String rsbDvCd, /* 직책구분코드 */
+        String prtnrNo /* 파트너번호 */
     ) {}
 
     // *********************************************************
@@ -33,15 +33,15 @@ public class WfedLedrAllowanceDto {
     // 단장 수당 관리 Search Result Dto
     @ApiModel(value = "WfedLeaderAllowanceMgtDto-SearchIndividualRes")
     public record SearchIndividualRes(
-        String dsbYm,
-        String hmnrscEmpno,
-        String ogLevlDvNm,
-        String rsbDvNm,
-        String ogNm,
-        String hgrOgCd,
-        String ogCd,
-        String prtnrKnm,
-        Integer brchCt,
+        String dsbYm, /*지급년월*/
+        String hmnrscEmpno, /*인사사원번호*/
+        String ogLevlDvNm, /*조직레벨구분명*/
+        String rsbDvNm, /*직책구분명*/
+        String ogNm, /*조직명*/
+        String hgrOgCd, /*상위조직코드*/
+        String ogCd, /*조직코드*/
+        String prtnrKnm, /*파트너명*/
+        Integer brchCt, /*지점수*/
         Integer basAwAmt, /*기본수당금액*/
         Integer hhExcpAwAmt, /*시간외수당금액 */
         Integer rsbAwAmt, /*직책수당금액*/
@@ -83,7 +83,7 @@ public class WfedLedrAllowanceDto {
         String dsbYm, /*지급년월*/
         String hmnrscEmpnoCnt, /*인원수*/
         String ogLevlDvNm, /*조직레벨구분명*/
-        String rsbDvNm,
+        String rsbDvNm, /*직책구분명*/
         Integer basAwAmt, /*기본수당금액*/
         Integer hhExcpAwAmt, /*시간외수당금액 */
         Integer rsbAwAmt, /*직책수당금액*/

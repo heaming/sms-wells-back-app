@@ -21,39 +21,39 @@ public class WfebEgerAllowanceDto {
     @ApiModel(value = "WfebEgerAllowanceDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String perfYm,
-        String feeSchdTpCd,
-        String ogLevlDvCd1,
-        String rsbDvCd,
-        String prtnrNo
+        String perfYm, /*실적년월*/
+        String feeSchdTpCd, /*수수료일정유형코드*/
+        String ogLevlDvCd1, /*조직레벨구분코드1*/
+        String rsbDvCd, /*직책구분코드*/
+        String prtnrNo /*파트너번호*/
     ) {}
 
     @ApiModel(value = "WfebEgerAllowanceDto-EditReq")
     public record EditReq(
         @NotBlank
-        String perfYm,
+        String perfYm, /*실적년월*/
         @NotBlank
-        String ogId,
-        String ogCd,
-        String rsbDvCd,
+        String ogId, /*조직ID*/
+        String ogCd, /*조직코드*/
+        String rsbDvCd, /*직책구분코드*/
         @NotBlank
-        String prtnrNo,
-        String feeCd,
-        int feeAmt
+        String prtnrNo, /*파트너번호*/
+        String feeCd, /*수수료코드*/
+        int feeAmt /*수수료금액*/
     ) {}
 
     @ApiModel(value = "WfebEgerAllowanceDto-ConfirmReq")
     public record ConfirmReq(
         @NotBlank
-        String baseYm,
+        String baseYm, /*기준년월*/
         @NotBlank
-        String ogCd,
+        String ogCd, /*조직코드*/
         @NotBlank
-        String prtnrNo,
+        String prtnrNo, /*파트너번호*/
         @NotBlank
-        String type,
+        String type, /*유형*/
         @NotBlank
-        String confirm
+        String confirm /*확정*/
     ) {}
 
     // *********************************************************
@@ -128,25 +128,25 @@ public class WfebEgerAllowanceDto {
     @ApiModel(value = "WfebEgerAllowanceDto-SearchEngineerManagerRes")
     public record SearchEngineerManagerRes(
         String ogId, /*조직id*/
-        String ogNm,
-        String ogCd,
-        String baseYm,
-        String prtnrKnm,
-        String prtnrNo,
-        String pstnDvCd,
-        String pstnDvNm,
-        String rsbDvCd,
+        String ogNm, /*조직명*/
+        String ogCd, /*조직코드*/
+        String baseYm, /*기준년월*/
+        String prtnrKnm, /*파트너명*/
+        String prtnrNo, /*파트너번호*/
+        String pstnDvCd, /*직급구분코드*/
+        String pstnDvNm, /*직급구분명*/
+        String rsbDvCd, /*직책구분코드*/
         int feeW060031, /*업적수당*/
         int feeW060032, /*자격수당*/
-        int totFee
+        int totFee /*수수료계*/
     ) {}
 
     @ApiModel("WfebEgerAllowanceDto - SearchConfirmRes")
     public record SearchConfirmRes(
-        String baseYm,
-        String ogId,
-        String ogNm,
-        String ogCd,
+        String baseYm, /*기준년월*/
+        String ogId, /*조직id*/
+        String ogNm, /*조직명*/
+        String ogCd, /*조직코드*/
         String cnrAwCnfmDtm, /*센터확정일시*/
         String cnfmBtnYn, /*확정취소 버튼 활성화 여부*/
         int totCnt, /*전체 개수*/

@@ -7,16 +7,16 @@
             <property name="paramOgTpCd" value="#{session.ogTpCd}"/>
             <property name="paramBaseYm" value="#{perfYm}"/>
         </include>
-        SELECT SUBSTR(T1.DSB_YM, 0, 4) || '-' || SUBSTR(T1.DSB_YM, 5) AS DSB_YM
-             , T1.HMNRSC_EMPNO
-             , T1.OG_LEVL_DV_NM
-             , T1.OG_NM
-             , T1.HGR_OG_CD
-             , T1.OG_CD
+        SELECT SUBSTR(T1.DSB_YM, 0, 4) || '-' || SUBSTR(T1.DSB_YM, 5) AS DSB_YM     /*지급년월*/
+             , T1.HMNRSC_EMPNO  /*인사사원번호*/
+             , T1.OG_LEVL_DV_NM     /*조직레벨구분명*/
+             , T1.OG_NM     /*조직명*/
+             , T1.HGR_OG_CD     /*상위조직코드*/
+             , T1.OG_CD     /*조직코드*/
              , CASE WHEN INSTR(T1.OG_LEVL_DV_NM ,'장') <![CDATA[<]]> 1 THEN T1.OG_LEVL_DV_NM||'장'
-               ELSE T1.OG_LEVL_DV_NM END AS RSB_DV_NM
-             , T1.PRTNR_KNM
-             , NVL(T1.BRCH_CT, 0) AS BRCH_CT
+               ELSE T1.OG_LEVL_DV_NM END AS RSB_DV_NM   /*직책구분명*/
+             , T1.PRTNR_KNM     /*파트너명*/
+             , NVL(T1.BRCH_CT, 0) AS BRCH_CT    /*지점수*/
              , NVL(T1.BAS_AW_AMT, 0) AS BAS_AW_AMT	/*기본수당금액*/
              , NVL(T1.HH_EXCP_AW_AMT, 0) AS HH_EXCP_AW_AMT	/*시간외수당금액 */
              , NVL(T1.RSB_AW_AMT, 0) AS RSB_AW_AMT	/*직책수당금액*/
@@ -51,8 +51,8 @@
              , NVL(T1.EDDTN_AMT, 0) AS EDDTN_AMT	/*기타공제금액*/
              , NVL(T1.DDTN_SUM_AMT, 0) AS DDTN_SUM_AMT	/*공제합계금액*/
              , NVL(T1.ACPY_AMT, 0) AS ACPY_AMT	/*실지급액*/
-          FROM TB_FEAM_WELS_MNGR_AW_IZ T1
-          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T2
+          FROM TB_FEAM_WELS_MNGR_AW_IZ T1   /*웰스관리자수당내역*/
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T2    /*월파트너내역*/
             ON T1.DSB_YM = T2.BASE_YM
            AND T1.HMNRSC_EMPNO = T2.PRTNR_NO
            AND T2.DTA_DL_YN = 'N'
@@ -98,10 +98,11 @@
             <property name="paramOgTpCd" value="#{session.ogTpCd}"/>
             <property name="paramBaseYm" value="#{perfYm}"/>
         </include>
-        SELECT SUBSTR(T1.DSB_YM, 0, 4) || '-' || SUBSTR(T1.DSB_YM, 5) AS DSB_YM
-             , COUNT(T1.HMNRSC_EMPNO) AS HMNRSC_EMPNO_CNT
-             , T1.OG_LEVL_DV_NM
-             , T1.OG_LEVL_DV_NM || '장' AS RSB_DV_NM
+        SELECT SUBSTR(T1.DSB_YM, 0, 4) || '-' || SUBSTR(T1.DSB_YM, 5) AS DSB_YM     /*지급년월*/
+             , COUNT(T1.HMNRSC_EMPNO) AS HMNRSC_EMPNO_CNT   /*인원수*/
+             , T1.OG_LEVL_DV_NM     /*조직레벨구분명*/
+             , CASE WHEN INSTR(T1.OG_LEVL_DV_NM ,'장') <![CDATA[<]]> 1 THEN T1.OG_LEVL_DV_NM||'장'
+               ELSE T1.OG_LEVL_DV_NM END AS RSB_DV_NM   /*직책구분명*/
              , NVL(SUM(T1.BAS_AW_AMT), 0) AS BAS_AW_AMT	/*기본수당금액*/
              , NVL(SUM(T1.HH_EXCP_AW_AMT), 0) AS HH_EXCP_AW_AMT	/*시간외수당금액 */
              , NVL(SUM(T1.RSB_AW_AMT), 0) AS RSB_AW_AMT	/*직책수당금액*/
@@ -136,18 +137,26 @@
              , NVL(SUM(T1.EDDTN_AMT), 0) AS EDDTN_AMT	/*기타공제금액*/
              , NVL(SUM(T1.DDTN_SUM_AMT), 0) AS DDTN_SUM_AMT	/*공제합계금액*/
              , NVL(SUM(T1.ACPY_AMT), 0) AS ACPY_AMT	/*실지급액*/
-          FROM TB_FEAM_WELS_MNGR_AW_IZ T1
-          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T2
+          FROM TB_FEAM_WELS_MNGR_AW_IZ T1   /*웰스관리자수당내역*/
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T2    /*월파트너내역*/
             ON T1.DSB_YM = T2.BASE_YM
            AND T1.HMNRSC_EMPNO = T2.PRTNR_NO
            AND T2.DTA_DL_YN = 'N'
          WHERE T1.DTA_DL_YN = 'N'
            AND T1.DSB_YM = #{perfYm}
-           /*로그인한 사용자의 권한에 따라 하위 조직만 조회*/
+        <if test='@MybatisUtils@equals(session.ogTpCd, "HR1")'>
+            /*로그인한 사용자의 권한에 따라 하위 조직만 조회*/
            AND EXISTS (SELECT 1
                  FROM OBJ_ORG X1
                 WHERE X1.OG_TP_CD = T2.OG_TP_CD
                   AND X1.OG_ID = T2.OG_ID)
+        </if>
+        <if test='!@MybatisUtils@equals(session.ogTpCd, "HR1")'>
+            /*로그인한 사용자의 권한에 따라 하위 조직만 조회*/
+           AND EXISTS (SELECT 1
+                 FROM OBJ_ORG X1
+                WHERE X1.OG_CD = T1.OG_CD)
+        </if>
         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
            AND T1.HMNRSC_EMPNO = #{prtnrNo}
         </if>

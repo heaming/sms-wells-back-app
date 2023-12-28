@@ -27,38 +27,38 @@ public class WfeaOrganizationNetOrderDto {
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SaveOgNetOrderReq")
     public record SaveOgNetOrderReq(
         @NotBlank
-        String perfYm,
+        String perfYm, /*실적년월*/
         @NotBlank
-        String ogTpCd,
+        String ogTpCd, /*조직유형코드*/
         @NotBlank
-        String feeTcntDvCd,
+        String feeTcntDvCd, /*수수료차수구분코드*/
         @NotBlank
-        String perfAgrgCrtDvCd,
-        String dv
+        String perfAgrgCrtDvCd, /*실적집계생성구분코드*/
+        String dv /*구분*/
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchHmstReq")
     public record SearchHmstReq(
         @NotBlank
-        String feeTcntDvCd,
-        String divCd,
-        String feePerfCd,
-        String pdctTpCd,
-        String sellTpCd,
-        String strtDt,
-        String endDt,
-        String cancStrtDt,
-        String cancEndDt,
-        String pdStrtCd,
-        String pdEndCd,
-        String pkgStrtCd,
-        String pkgEndCd,
-        String og1LevlId,
-        String og2LevlId,
-        String og3LevlId,
-        String prtnrNo,
-        String perfYm,
-        String rsbDvCd
+        String feeTcntDvCd, /*수수료차수구분코드*/
+        String divCd, /*구분*/
+        String feePerfCd, /*수수료실적코드*/
+        String pdctTpCd, /*수수료제품유형코드*/
+        String sellTpCd, /*판매유형코드*/
+        String strtDt, /*시작일자*/
+        String endDt, /*종료일자*/
+        String cancStrtDt, /*취소시작일자*/
+        String cancEndDt, /*취소종료일자*/
+        String pdStrtCd, /*상품시작코드*/
+        String pdEndCd, /*상품종료코드*/
+        String pkgStrtCd, /*패키지시작코드*/
+        String pkgEndCd, /*패키지종료코드*/
+        String og1LevlId, /*조직레벨1*/
+        String og2LevlId, /*조직레벨2*/
+        String og3LevlId, /*조직레벨3*/
+        String prtnrNo, /*파트너번호*/
+        String perfYm, /*실적년월*/
+        String rsbDvCd /*직책구분코드*/
     ) {}
 
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchMngerDetailReq")
@@ -120,26 +120,26 @@ public class WfeaOrganizationNetOrderDto {
     @ApiModel(value = "WfeaOrganizationNetOrderDto-SearchPlarReq")
     public record SearchPlarReq(
         @NotBlank
-        String inqrDvCd,
-        String feeTcntDvCd,
-        String divCd,
-        String feePerfCd,
-        String pdctTpCd,
-        String sellTpCd,
-        String strtDt,
-        String endDt,
-        String cancStrtDt,
-        String cancEndDt,
-        String pdStrtCd,
-        String pdEndCd,
-        String pkgStrtCd,
-        String pkgEndCd,
-        String og1LevlId,
-        String og2LevlId,
-        String og3LevlId,
-        String prtnrNo,
-        String perfYm,
-        String rsbDvCd
+        String inqrDvCd, /* 조회구분코드 */
+        String feeTcntDvCd, /* 수수료차수구분코드 */
+        String divCd, /* 구분코드 */
+        String feePerfCd, /*수수료실적코드*/
+        String pdctTpCd, /*수수료제품유형코드*/
+        String sellTpCd, /*판매유형코드*/
+        String strtDt, /*시작일자*/
+        String endDt, /*종료일자*/
+        String cancStrtDt, /*취소시작일자*/
+        String cancEndDt, /*취소종료일자*/
+        String pdStrtCd, /*상품시작코드*/
+        String pdEndCd, /*상품종료코드*/
+        String pkgStrtCd, /*패키지시작코드*/
+        String pkgEndCd, /*패키지종료코드*/
+        String og1LevlId, /*조직레벨1*/
+        String og2LevlId, /*조직레벨2*/
+        String og3LevlId, /*조직레벨3*/
+        String prtnrNo, /*파트너번호*/
+        String perfYm, /*실적년월*/
+        String rsbDvCd /*직책구분코드*/
     ) {}
 
     // *********************************************************

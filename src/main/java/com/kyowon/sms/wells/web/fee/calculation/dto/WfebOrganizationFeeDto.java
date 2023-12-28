@@ -11,52 +11,52 @@ public class WfebOrganizationFeeDto {
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchHmstReq")
     public record SearchHmstReq(
-        String perfYm,
-        String rsbTpCd,
-        String feeTcntDvCd,
-        String prtnrNo,
-        String ogLevl2Id,
-        String ogLevl3Id
+        String perfYm, /*실적년월*/
+        String rsbTpCd, /*직책구분코드*/
+        String feeTcntDvCd, /*수수료차수구분코드*/
+        String prtnrNo, /*파트너번호*/
+        String ogLevl2Id, /*조직레벨2*/
+        String ogLevl3Id /*조직레벨3*/
     ) {}
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchMngerReq")
     public record SearchMngerReq(
         @NotBlank
-        String perfYm,
-        String rsbDvCd,
+        String perfYm, /*실적년월*/
+        String rsbDvCd, /*직책구분코드*/
         @NotBlank
-        String feeTcntDvCd,
-        String prtnrNo,
-        String ogLevl1Id,
-        String ogLevl2Id,
-        String ogLevl3Id,
+        String feeTcntDvCd, /*수수료차수구분코드*/
+        String prtnrNo, /*파트너번호*/
+        String ogLevl1Id, /*조직레벨1*/
+        String ogLevl2Id, /*조직레벨2*/
+        String ogLevl3Id, /*조직레벨3*/
 
-        String feeCalcUnitTpCd
+        String feeCalcUnitTpCd /*수수료계산단위유형코드*/
     ) {}
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarReq")
     public record SearchPlarReq(
-        String perfYm,
-        String rsbTpCd,
-        String feeTcntDvCd,
-        String prtnrNo,
-        String ogLevl1Id,
-        String ogLevl2Id,
-        String ogLevl3Id
+        String perfYm, /*실적년월*/
+        String rsbTpCd, /*직책구분코드*/
+        String feeTcntDvCd, /*수수료차수구분코드*/
+        String prtnrNo, /*파트너번호*/
+        String ogLevl1Id, /*조직레벨1*/
+        String ogLevl2Id, /*조직레벨2*/
+        String ogLevl3Id /*조직레벨3*/
     ) {}
 
     @ApiModel(value = "WfebOrganizationFeeDto-SearchWmReq")
     public record SearchWmReq(
         @NotBlank
-        String perfYm,
-        String no
+        String perfYm, /*실적년월*/
+        String no /*번호*/
 
     ) {}
 
     @ApiModel(value = "WfebOrganizationFeeDto-SaveReq")
     public record SaveReq(
         @NotBlank
-        String perfYm
+        String perfYm /*실적년월*/
     ) {}
 
     // *********************************************************

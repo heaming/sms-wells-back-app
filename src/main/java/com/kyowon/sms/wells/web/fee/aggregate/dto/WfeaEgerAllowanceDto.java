@@ -27,8 +27,8 @@ public class WfeaEgerAllowanceDto {
     @ApiModel(value = "WfeaEgerAwPerfAgrgMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
-        String perfYm,
-        String rsbTp
+        String perfYm, /*실적년월*/
+        String rsbTp /*직책유형*/
     ) {}
 
     // *********************************************************
