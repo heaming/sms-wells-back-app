@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsManagerScheduleDto;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsManagerScheduleDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsManagerScheduleMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -31,7 +32,7 @@ public class WsncBsManagerScheduleService {
         return mapper.selectBsScheduleDateAgrg(dto);
     }
 
-    public PagingResult<WsncBsManagerScheduleDto.SearchRes> getBsScheduleDatePages(
+    public PagingResult<WsncBsManagerScheduleDvo> getBsScheduleDatePages(
         WsncBsManagerScheduleDto.SearchReq dto,
         PageInfo pageInfo
     ) {
