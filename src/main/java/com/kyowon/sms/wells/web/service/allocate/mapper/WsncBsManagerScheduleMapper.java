@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBsManagerScheduleDto;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsManagerScheduleDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -24,7 +25,7 @@ public interface WsncBsManagerScheduleMapper {
         WsncBsManagerScheduleDto.SearchReq dto
     );
 
-    PagingResult<WsncBsManagerScheduleDto.SearchRes> selectBsScheduleDatePages(
+    PagingResult<WsncBsManagerScheduleDvo> selectBsScheduleDatePages(
         WsncBsManagerScheduleDto.SearchReq dto, PageInfo pageInfo
     );
 
