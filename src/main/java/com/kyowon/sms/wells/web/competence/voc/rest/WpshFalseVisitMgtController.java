@@ -51,7 +51,7 @@ public class WpshFalseVisitMgtController {
         @Valid
         @RequestBody
         List<SaveReq> dtos
-    ) throws Exception {
+    ) {
         return SaveResponse.builder()
             .processCount(service.saveFalsevisit(dtos))
             .build();
@@ -63,7 +63,7 @@ public class WpshFalseVisitMgtController {
         @Valid
         @RequestBody
         List<RemoveReq> dtos
-    ) throws Exception {
+    ) {
         return SaveResponse.builder().processCount(service.removeFalsevisit(dtos)).build();
     }
 
@@ -79,4 +79,16 @@ public class WpshFalseVisitMgtController {
         return service.getFalsehoodsForExcelDownload(dto);
     }
 
+    @ApiOperation(value = "허위방문관리 - 지점장 정보 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true),
+    })
+    @GetMapping("/branch-manager")
+    public SearchBranchManagerRes getBranchManager(
+        @Valid
+        SearchBranchManagerReq req
+    ){
+        return service.getBranchManager(req);
+    }
 }
