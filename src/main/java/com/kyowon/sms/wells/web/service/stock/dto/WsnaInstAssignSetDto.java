@@ -15,6 +15,8 @@ public class WsnaInstAssignSetDto {
     @Builder
     @ApiModel("WsnaInstAssignSetDto-SearchReq")
     public record SearchReq(
+        String pdGrp,
+
         String itmPdCd
 
     ) {}
