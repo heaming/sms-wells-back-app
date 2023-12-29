@@ -77,7 +77,7 @@ public class WdccMonthlySalesClosingAggregationService {
         int thmSlSumAmt = Integer.parseInt(StringUtils.defaultIfEmpty(dvo.getThmSlSumAmt(), "0")); //당월매출합계금액
         if (thmSlSumAmt < 0) { // 당월매출합계금액 < 0 일때 수행
             // 초과조정금액 갱신
-            result = mapper.updateDlqBas(dvo.getThmSlSumAmt(), dvo.getCntrNo(), dvo.getCntrSn());
+            result = mapper.updateDlqBas(thmSlSumAmt * -1, dvo.getCntrNo(), dvo.getCntrSn());
             BizAssert.isTrue(result == 1, BnBondConst.MSG_ALT_SVE_ERR);
             String sellTpCd = dvo.getSellTpCd();
             String sellTpDtlCd = dvo.getSellTpDtlCd();
