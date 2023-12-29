@@ -158,7 +158,8 @@ public class WsnaMdProductReturningGoodsMgtDto {
         String logisticsPdNm,
         String logisticsPdQty,
 
-        String prtnrBzsNm
+        String prtnrBzsNm,
+        String svcTyp
 
     ) {
         public SearchRes {
@@ -287,7 +288,8 @@ public class WsnaMdProductReturningGoodsMgtDto {
         String logisticsPdCd,
         String logisticsPdNm,
         String logisticsPdQty,
-        List<WsnaPcsvReturningGoodsSaveProductDvo> products //상품 목록
+        List<WsnaPcsvReturningGoodsSaveProductDvo> products, //상품 목록
+        String svcTyp
 
     ) {}
 
