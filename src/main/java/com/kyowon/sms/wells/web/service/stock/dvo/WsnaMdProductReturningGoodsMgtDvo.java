@@ -134,5 +134,6 @@ public class WsnaMdProductReturningGoodsMgtDvo {
 
     // 택배 MD 상품 파트너업체
     String prtnrBzsNm;
+    String svcTyp;
 
 }

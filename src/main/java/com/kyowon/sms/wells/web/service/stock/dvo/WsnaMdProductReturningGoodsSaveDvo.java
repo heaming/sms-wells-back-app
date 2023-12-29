@@ -99,5 +99,6 @@ public class WsnaMdProductReturningGoodsSaveDvo {
     String logisticsPdQty;
 
     List<WsnaPcsvReturningGoodsSaveProductDvo> products;
+    String svcTyp;
 
 }
