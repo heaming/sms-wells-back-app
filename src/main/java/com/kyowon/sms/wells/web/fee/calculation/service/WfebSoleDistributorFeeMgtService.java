@@ -2,20 +2,15 @@ package com.kyowon.sms.wells.web.fee.calculation.service;
 
 import java.util.List;
 
-import com.sds.sflex.system.config.validation.BizAssert;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.common.web.fee.schedule.service.ZfeyFeeScheduleMgtService;
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.CreateReq;
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.Fee;
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.Performance;
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.SearchFeeReq;
-import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.SearchPerformanceReq;
+import com.kyowon.sms.wells.web.fee.calculation.dto.WfebSoleDistributorFeeMgtDto.*;
 import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebSoleDistributorFeeDvo;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebSoleDistributorFeeMgtMapper;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 
@@ -128,17 +123,22 @@ public class WfebSoleDistributorFeeMgtService {
         processCount += mapper.deleteAggregateNtorPerfMmCl(req);
         // 01-3. 순주문파트너계약월마감 삭제
         processCount += mapper.deleteAggregateNtorCntrMmCl(req);
+        // 01-4. 웰스순주문계약월마감 삭제
+        processCount += mapper.deleteWelsNetOrders(req);
 
         // 02. 총판 순주문파트너월마감 생성
         processCount += mapper.insertAggregateNtorMmCl(req);
 
-        // 03. 총판 순주문파트너계약월마감 생성
+        // 03. 웰스순주문계약월마감 생성
+        processCount += mapper.insertSodbtNetOrders(req);
+
+        // 04. 총판 순주문파트너계약월마감 생성
         processCount += mapper.insertAggregateNtorCntrMmCl(req);
 
-        // 04. 총판 순주문파트너실적월마감 생성
-        // 04-1. 순주문파트너실적월마감 - 개인판매 생성
+        // 05. 총판 순주문파트너실적월마감 생성
+        // 05-1. 순주문파트너실적월마감 - 개인판매 생성
         processCount += mapper.insertAggregateNtorPerfMmCl(req);
-        // 04-2. 순주문파트너실적월마감 - 조직 생성
+        // 05-2. 순주문파트너실적월마감 - 조직 생성
         processCount += mapper.insertOgAggregateNtorPerfMmCl(req);
 
         // 06. 수수료일정 갱신 API 호출 공통모듈
