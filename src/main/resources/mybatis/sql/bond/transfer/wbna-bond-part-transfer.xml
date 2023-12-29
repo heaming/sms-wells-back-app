@@ -16,9 +16,11 @@
 		 , ACTCS_DT				    /* 수임일자            */
 		 , CST_NO				    /* 고객번호            */
          , CST_NM                   /* 고객명 */
-		 , FIRST_VALUE(CLCTAM_DV_CD)
+		 , CASE WHEN CLCTAM_PSIC_KEEP_YN = 'Y' THEN CLCTAM_DV_CD /* 집금담당자유지하지 않는 경우 원래자기 집금 구분 */
+                ELSE FIRST_VALUE(CLCTAM_DV_CD)
                   OVER(PARTITION BY CST_NO
-                           ORDER BY NVL(CLCTAM_DV_CD,0) DESC, BND_TF_DT) AS CLCTAM_DV_CD  -- 교원키 기준으로 파티셔닝하고 집금구분코드, 채권이관일자 기준으로 상위 집금구분코드 부여
+                           ORDER BY NVL(CLCTAM_DV_CD,0) DESC, BND_TF_DT)
+            END AS CLCTAM_DV_CD  -- 교원키 기준으로 파티셔닝하고 집금구분코드, 채권이관일자 기준으로 상위 집금구분코드 부여
 		 , DLQ_RCK_DT			    /* 연체기산일자          */
 		 , DLQ_MCN				    /* 연체개월수           */
 		 , DLQ_AMT				    /* 연체금액            */
@@ -38,7 +40,6 @@
        AND BZ_HDQ_DV_CD = #{bzHdqDvCd}
        AND CLCTAM_DV_CD IN ('01', '02', '03', '04') /* 단기~집행까지만 나오게 */
        AND BND_CLCTN_PRP_DV_CD = '02'  /* 02:연체만 나오게 제한 */
-       AND NVL(CLCTAM_PSIC_KEEP_YN, 'N') = 'N' /* 집금담당자유지하지 않는 경우만 */
     </sql>
     <sql id ="selectCollectingAmountPartCode">
     SELECT CLCTAM_PA_CD
