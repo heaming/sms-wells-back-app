@@ -36,7 +36,9 @@ public class WsncBsManagerScheduleService {
         WsncBsManagerScheduleDto.SearchReq dto,
         PageInfo pageInfo
     ) {
-        return mapper.selectBsScheduleDatePages(dto, pageInfo);
+//        WsncBsManagerScheduleDto.SearchRes
+        PagingResult<WsncBsManagerScheduleDvo> dtos = mapper.selectBsScheduleDatePages(dto, pageInfo);
+        return dtos;
     }
 
     public List<WsncBsManagerScheduleDto.Weekres> getWeeksCodes(
