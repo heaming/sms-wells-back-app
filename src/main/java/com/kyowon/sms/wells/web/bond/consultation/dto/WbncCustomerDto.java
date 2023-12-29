@@ -183,6 +183,7 @@ public class WbncCustomerDto {
         String prtnrNo, /* 집금담당번호 */
         String prtnrNm, /*집금담당명*/
         String dfltDt, /* 채무불이행 */
+        String authRsg, /* 직권해지 */
         String lwmMoCn, /* 법조치 */
         String slStp, /* 매출중지 */
         String bndClnPsblDvCd, /* 회수가능성 */
