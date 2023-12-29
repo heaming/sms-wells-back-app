@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.common.utils.StringUtil;
-import com.sds.sflex.system.config.masking.MaskRequired;
-import com.sds.sflex.system.config.masking.MaskingType;
 
 /**
  * <pre>
@@ -62,7 +60,7 @@ public class WwdbDepositDetailDto {
         String perfDt, //실적일자
         String dpAmt, //입금액
         String fnitNm, //카드구분
-        @MaskRequired(type = MaskingType.ACCOUNT)
+        //        @MaskRequired(type = MaskingType.ACCOUNT)
         String crcdnoEncr, //카드번호
         String crdcdIstmMcn, //할부
         String crdcdAprno, //승인번호
