@@ -73,7 +73,10 @@ public class WsniCustomerCenterInterfaceDto {
         @JsonProperty("WK_PRTNR_KNM")
         String wkPrtnrKnm,
         @JsonProperty("PROM_CH_RSON_CN")
-        String promChRsonCn
+        String promChRsonCn,
+
+        @JsonProperty("FST_RGST_DTM")
+        String fstRgstDtm
     ) {}
 
     @ApiModel(value = "WsniCustomerCenterInterfaceDto-SearchCancelRes")
