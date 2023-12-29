@@ -18,6 +18,7 @@ import com.kyowon.sms.common.web.customer.common.mapper.ZcsaCustomersMapper;
 import com.kyowon.sms.common.web.customer.common.mapper.ZcscTermsMapper;
 import com.kyowon.sms.common.web.customer.common.service.ZcsaCustomerInfoService;
 import com.kyowon.sms.common.web.customer.common.service.ZcsaCustomersService;
+import com.kyowon.sms.common.web.customer.contact.dvo.ZcsaCstBasDvo;
 import com.kyowon.sms.common.web.customer.contact.dvo.ZcsaCstCtplcBasDvo;
 import com.kyowon.sms.common.web.customer.contact.mapper.ZcsaCustomerMapper;
 import com.kyowon.sms.wells.web.customer.contact.converter.WcsaCustomerInterfaceConverter;
@@ -205,6 +206,11 @@ public class WcsaCustomerInterfaceService {
         String dtaDlYn = "Y";
         String itgCstNo;
         String rgstMdfcUsrId = dvo.getRgstMdfcUsrId();
+
+        // 기존 휴대전화번호와 변경되는 휴대전화번호 비교해서 변경되었는지 확인
+        ZcsaCstBasDvo dtlDvo = converter.mapCstBasToCustomerInfoByEcc(dvo);
+        int cnt = zcsaCustomerMapper.selectPhoneChangeCheck(dtlDvo);
+
         int result;
         // 고객정보변경
         result = mapper.updateIndvCstBasEai(dvo);
@@ -214,6 +220,16 @@ public class WcsaCustomerInterfaceService {
         BizAssert.isTrue(result > 0, ERROR_MESSAGE);
         result = zcsaCustomerMapper.insertIndvCstBasInfoHistory(cstNo, strDate); // 고객정보변경이력 생성
         BizAssert.isTrue(result == 1, ERROR_MESSAGE);
+
+        // cnt > 0 이면 변경
+        if (cnt > 0) {
+            dtlDvo.setChangePhoneYn("N");
+            //고객상세 본인인증 여부 업데이트
+            zcsaCustomerMapper.updateIndvCstDtlInfo(dtlDvo); //  개인고객 상세정보 업데이트
+            zcsaCustomerMapper.updateLastIndvCstDtlInfoHistory(cstNo, endDate); // 개인고객 상세정보 이력 업데이트
+            zcsaCustomerMapper.insertIndvCstDtlInfoHistory(cstNo, strDate); //  개인고객 상세정보 이력 생성
+        }
+
         // 연락처-주소
         if (StringUtils.isNotEmpty(dvo.getAdrId())) {
             zcsaCustomerMapper.updateLastIndvCstAdrInfo(cstNo, endDate, dtaDlYn, rgstMdfcUsrId);
