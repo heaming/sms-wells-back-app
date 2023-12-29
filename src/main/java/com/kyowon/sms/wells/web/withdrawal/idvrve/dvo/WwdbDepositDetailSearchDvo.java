@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
 import com.sds.sflex.system.config.masking.MaskRequired;
 import com.sds.sflex.system.config.masking.MaskingType;
 import lombok.Getter;
@@ -46,6 +47,7 @@ public class WwdbDepositDetailSearchDvo {
     String dpAmt; //입금액
     String fnitNm; //카드구분
     @MaskRequired(type = MaskingType.ACCOUNT)
+    @DBDecField
     String crcdnoEncr; //카드번호
     String crdcdIstmMcn; //할부
     String crdcdAprno; //승인번호
