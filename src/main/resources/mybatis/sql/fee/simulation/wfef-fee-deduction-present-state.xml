@@ -8,14 +8,16 @@
              , NVL(T.DSB_OJ_AMT, 0) AS DSB_OJ_AMT 	--지급 대상금액
              , NVL(T.DDCTAM, 0) AS DDCTAM 		--공제금액
              , NVL(T.INTBS_AMT, 0) AS INTBS_AMT	--소득과표금액
-             , NVL(T.RDS_TAX, 0) AS RDS_TAX	--RDS/TAX
+             , NVL(T.RDS, 0) AS RDS	--RDS
+             , NVL(T.ERNTX, 0) AS ERNTX	--소득세
+             , NVL(T.RSDNTX, 0) AS RSDNTX	--주민세
              , NVL(T.EINSR, 0) AS EINSR			--고용보험
              , NVL(T.INDD_INSR, 0) AS INDD_INSR		--산재보험
              , NVL(T.BU_DDTN, 0) AS BU_DDTN		--부담공제
              , NVL(T.TEL_PC, 0) AS TEL_PC	--전화료/PC
              , NVL(T.REDF, 0) AS REDF	--되물림
              , NVL(T.DLQ_REDF, 0) AS DLQ_REDF --연체 되물림
-             , NVL(T.ETC_REDF, 0) AS ETC_REDF --기타 되물림
+             ,  NVL(T.ETC_REDF, 0) AS ETC_REDF --기타 되물림
              , NVL(T.MUTU_REDF, 0) AS MUTU_REDF	--상조되물림
              , NVL(T.UC_INDD_INSR, 0) AS UC_INDD_INSR	--미수 산재보험
              , NVL(T.HDQ_FRNH_EXCP, 0) AS HDQ_FRNH_EXCP	--본부비치외
@@ -33,7 +35,7 @@
                                                   AND X1.CD_ID = 'RDS_EARNR_DV_CD' --RDS소득자구분코드
                                                   AND NVL(INSTR(X1.USER_DFN_02, T.OG_TP_CD),-1) > 0) --파트너 조직유형코드
                ), 0) AS RDS_BLAM   --RDS잔액
-            , NVL((
+             , NVL((
                 SELECT NVL(D1.PNPYAM_OC_AMT_SUM,0) - NVL(D2.PNPYAM_DDCTAM_SUM,0)
                   FROM (
                     SELECT D1.PRTNR_NO
@@ -52,11 +54,11 @@
                        AND D2.DDTN_YM <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMM')
                      GROUP BY D2.PRTNR_NO) D2
                     ON D1.PRTNR_NO = D2.PRTNR_NO
-            ), 0) AS PNPYAM_BLAM    --가지급금 잔액
-            , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', T.RSB_DV_CD) RSB_DV_NM
-            , REGEXP_SUBSTR(T.OG_NM,'[^/]+', 1, 1) LEVEL2_NM
-            , REGEXP_SUBSTR(T.OG_NM,'[^/]+', 1, 2) LEVEL3_NM
-            , REGEXP_SUBSTR(T.OG_NM,'[^/]+', 1, 3) LEVEL4_NM
+             ), 0) AS PNPYAM_BLAM    --가지급금 잔액
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', T.RSB_DV_CD) RSB_DV_NM
+             , REGEXP_SUBSTR(T.OG_NM,'[^/]+', 1, 1) LEVEL2_NM
+             , REGEXP_SUBSTR(T.OG_NM,'[^/]+', 1, 2) LEVEL3_NM
+             , REGEXP_SUBSTR(T.OG_NM,'[^/]+', 1, 3) LEVEL4_NM
           FROM (SELECT OMPI.PRTNR_NO
                      , OMPI.PRTNR_KNM AS PRTNR_NM
                      , OMPI.RSB_DV_CD
@@ -64,7 +66,9 @@
                      , EFDI.DSB_OJ_AMT 	--지급 대상금액
                      , EFDI.DDCTAM 		--공제금액
                      , EFDI.INTBS_AMT    --소득과표금액
-                     , FFDI.RDS + FFDI.ERNTX + FFDI.RSDNTX AS RDS_TAX	--RDS/TAX
+                     , FFDI.RDS      --RDS
+                     , FFDI.ERNTX    --소득세
+                     , FFDI.RSDNTX   --주민세
                      , FFDI.EINSR			--고용보험
                      , FFDI.INDD_INSR		--산재보험
                      , FFDI.BU_DDTN		--부담공제
@@ -97,7 +101,7 @@
                                      WHERE DSB_YM = #{perfYm}
                                        AND CO_CD  = '2000'         -- #회사코드
                                        AND OG_TP_CD = #{ogTpCd}
-                                       AND FEE_TCNT_DV_CD = '02'  -- 수수료차수구분코드
+                                       AND FEE_TCNT_DV_CD = #{feeTcntDvCd}  -- 수수료차수구분코드
                                        AND SPMT_DSB_DV_CD = '01'  -- 추가지급구분코드
                                        AND DTA_DL_YN = 'N'        -- 데이터삭제여부
                                      GROUP BY PRTNR_NO) EFDI /*수수료지급내역*/
@@ -130,8 +134,11 @@
                                       AND AFDI.SPMT_DSB_DV_CD = FDDI.SPMT_DSB_DV_CD
                                       AND AFDI.FEE_DDTN_CRT_CD = FDDI.FEE_DDTN_CRT_CD
                                     WHERE 1=1
+                                      AND AFDI.FEE_TCNT_DV_CD = #{feeTcntDvCd}  -- 수수료차수구분코드
+                                      AND AFDI.DDTN_YM = #{perfYm}
+                                      AND AFDI.OG_TP_CD = #{ogTpCd}
                                     GROUP BY AFDI.DDTN_YM, AFDI.PRTNR_NO, AFDI.OG_TP_CD
-                                  ) FFDI
+                  ) FFDI
                     ON OMPI.PRTNR_NO = FFDI.PRTNR_NO
                    AND OMPI.BASE_YM = FFDI.DDTN_YM
                    AND OMPI.OG_TP_CD = FFDI.OG_TP_CD
@@ -141,21 +148,21 @@
                    AND OMPI.BASE_YM = #{perfYm}
                    AND OMPI.OG_TP_CD = #{ogTpCd}
                    <if test='@MybatisUtils@isNotEmpty(rsbDvCd) and rsbDvCd != "ALL" and rsbDvCd != "all"'>
-                   AND OMPI.RSB_DV_CD = #{rsbDvCd}
+                       AND OMPI.RSB_DV_CD = #{rsbDvCd}
                    </if>
                    <if test='@MybatisUtils@isNotEmpty(ogLevl1) and ogLevl1 != "ALL" and ogLevl1 != "all"'>
-                   AND OMOI.DGR1_LEVL_OG_ID = #{ogLevl1}
+                       AND OMOI.DGR1_LEVL_OG_ID = #{ogLevl1}
                    </if>
                    <if test='@MybatisUtils@isNotEmpty(ogLevl2) and ogLevl2 != "ALL" and ogLevl2 != "all"'>
-                   AND OMOI.DGR2_LEVL_OG_ID = #{ogLevl2}
+                       AND OMOI.DGR2_LEVL_OG_ID = #{ogLevl2}
                    </if>
                    <if test='@MybatisUtils@isNotEmpty(ogLevl3) and ogLevl3 != "ALL" and ogLevl3 != "all"'>
-                   AND OMOI.DGR3_LEVL_OG_ID = #{ogLevl3}
+                       AND OMOI.DGR3_LEVL_OG_ID = #{ogLevl3}
                    </if>
                    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                   AND OMPI.PRTNR_NO = #{prtnrNo}
+                       AND OMPI.PRTNR_NO = #{prtnrNo}
                    </if>
                  ORDER BY OMPI.PRTNR_NO
-            ) T
+                ) T
     </select>
 </mapper>
