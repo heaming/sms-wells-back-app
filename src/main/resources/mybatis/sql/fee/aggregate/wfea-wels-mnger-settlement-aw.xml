@@ -3,125 +3,133 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaWelsMngerSettlementAwMapper">
 
+    <sql id="selectPlarQlf">
+      SELECT THMQ.OG_TP_CD
+           , THMQ.PRTNR_NO
+           , THMQ.QLF_DV_CD
+           , NMNQ.QLF_DV_CD                                        AS M1_QLF_DV_CD /* M+1  WM 자격 */
+           , SUBSTR(THMQ.CV_DT,1,6)                                AS CV_DT /* WM전환월 */
+           , CASE WHEN TO_CHAR(SYSDATE,'YYYYMM')
+               BETWEEN THMQ.STRTDT AND THMQ.ENDDT
+                  THEN 'Y' ELSE 'N' END                            AS BZ_STAT_CD /* WM - 활동여부 */
+           , NVL(BSQ.STRTDT, THMQ.STRTDT)                          AS CNTR_DT /* 계약일 */
+           , THMQ.ENDDT                                            AS CLTN_DT
+           , NVL(FQ.FST_CNTR_DT,NVL(BSQ.STRTDT, THMQ.STRTDT))      AS FST_CNTR_DT
+           , FQ.FNL_CLTN_DT
+        FROM TB_OGPS_PLAR_QLF_CH_IZ THMQ /* 당월 플래너 자격 */
+        LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ BSQ /* BS프리매니저에서 웰스플래너로 바뀐 자격 내역 */
+          ON BSQ.OG_TP_CD = THMQ.OG_TP_CD
+         AND BSQ.PRTNR_NO = THMQ.PRTNR_NO
+         AND THMQ.QLF_DV_CD = '3'
+         AND BSQ.QLF_DV_CD = '6'
+         AND BSQ.ENDDT != '99991231'
+         AND THMQ.STRTDT = TO_CHAR(TO_DATE(BSQ.ENDDT, 'YYYYMMDD') + 1, 'YYYYMMDD')
+         AND BSQ.QLF_APLC_DV_CD IN ('1', '2')
+         AND BSQ.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ NMNQ /* 차월 플래너 자격 */
+          ON NMNQ.OG_TP_CD = THMQ.OG_TP_CD
+         AND NMNQ.PRTNR_NO = THMQ.PRTNR_NO
+         AND NMNQ.QLF_APLC_DV_CD IN ('1', '2')
+         AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm} || '01', 'YYYYMMDD'), 1)), 'YYYYMMDD') BETWEEN NMNQ.STRTDT AND NMNQ.ENDDT
+         AND NMNQ.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN (
+                SELECT PRTNR_NO
+                     , MIN(FNLQ.STRTDT) AS FST_CNTR_DT
+                     , MAX(FNLQ.ENDDT)  AS FNL_CLTN_DT
+                  FROM TB_OGPS_PLAR_QLF_CH_IZ FNLQ /* 최초계약, 최종해약 조회 */
+                 WHERE FNLQ.OG_TP_CD = 'W02'
+                   AND FNLQ.QLF_DV_CD IN ('3', '6')
+                   AND FNLQ.QLF_APLC_DV_CD IN ('1', '2')
+                   AND FNLQ.DTA_DL_YN = 'N'
+                   AND NVL(FNLQ.ENDDT, '99991231') <![CDATA[<]]> #{baseYm}
+                 GROUP BY PRTNR_NO
+             ) FQ
+          ON FQ.PRTNR_NO = THMQ.PRTNR_NO
+       WHERE 1=1
+         AND THMQ.OG_TP_CD = 'W02'
+         AND THMQ.QLF_DV_CD IN ('3','6')
+         AND TO_CHAR(LAST_DAY(TO_DATE(#{baseYm}||'01','YYYYMMDD')),'YYYYMMDD') BETWEEN THMQ.STRTDT AND THMQ.ENDDT
+         AND THMQ.QLF_APLC_DV_CD IN ('1', '2')
+         AND THMQ.DTA_DL_YN = 'N'
+    </sql>
+
     <select id="selectWelsMngers"
             resultType="com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaWelsMngerSettlementAwDto$SearchRes">
-        SELECT NVL(OG.DGR1_LEVL_OG_NM, OG.DGR1_LEVL_OG_CD) AS DGR1_LEVL_OG_NM
-             , NVL(OG.DGR2_LEVL_OG_NM, OG.DGR2_LEVL_OG_CD) AS DGR2_LEVL_OG_NM
-             , OG.OG_CD
-             , OG.BLD_NM
-             , WM.PRTNR_NO
-             , PB.PRTNR_KNM
-             , PR.RSB_DV_CD  /* 직책명 */
-             , PR.QLF_DV_CD  /* M조직 웰스매니저 자격 */
-             , W1.QLF_DV_CD AS M1_QLF_DV_CD            /* M+1  WM 자격 */
-             , WM.CV_DT /* WM전환월 */
-             , DECODE(NVL2(WM.CUR_CTNR_DT,'1','X'),'1','Y','N') AS BZ_STAT_CD  /* WM - 활동여부 */
-             , WM.CNTR_DT
-             , WM.CLTN_DT
-             , WM.FST_CNTR_DT  /* WM - 최초개시월*/
-             , WM.FNL_CLTN_DT  /* WM - 최종해약월*/
-             , ED.EDU96_YM                AS STRTUP_DT       /* 스타트업 */
-             , ED.EDU143_YM               AS PRE_STRTUP_DT   /* 프리스타트업 */
-             , NVL(W3.OPNG_CD,'9')        AS OPNG_CD
-             , #{baseYm}     AS BASE_YM
-             , #{tcntDvCd}   AS TCNT_DV_CD
-             , #{cnfmStatYn} AS CNFM_STAT_YN
-          FROM (
-                SELECT OG_TP_CD
-                     , PRTNR_NO
-                     , MAX(CASE WHEN TO_CHAR(SYSDATE,'YYYYMM') BETWEEN STRTDT AND ENDDT THEN STRTDT ELSE '' END) AS CUR_CTNR_DT /* 활동여부 확인용 현계약일 */
-                     , MAX(STRTDT)  AS CNTR_DT /* 계약일 */
-                     , CASE WHEN MAX(ENDDT) = '99991231' THEN '' ELSE MAX(ENDDT) END AS CLTN_DT   /* 해약일 */
-                     , MIN(STRTDT)                       AS FST_CNTR_DT  /* 최초계약일 */
-                     , MAX(END_PREV_DT)                  AS FNL_CLTN_DT  /* 최종해약일 */
-                     , MAX(NVL2(STRT_PREV_DT,STRTDT,'')) AS RESTRT_DT    /* 재등록개시일 */
-                     , MAX(DSB_AMT)                      AS DSB_AMT      /* 통신비지급액 */
-                     , MAX(SUBSTR(CV_DT,1,6))            AS CV_DT        /* WM전환월 */
-                  FROM (
-                        SELECT OG_TP_CD
-                             , PRTNR_NO
-                             , STRTDT
-                             , ENDDT
-                             , CV_DT
-                             , DSB_AMT
-                             , LAG(STRTDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, STRTDT)  AS STRT_PREV_DT
-                             , LAG(ENDDT) OVER(PARTITION BY PRTNR_NO ORDER BY PRTNR_NO, ENDDT)  AS END_PREV_DT
-                          FROM TB_OGPS_PLAR_QLF_CH_IZ
-                         WHERE 1=1
-                           AND OG_TP_CD  = 'W02'
-                           AND QLF_DV_CD IN ('3', '6')
-                           AND NVL(QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제  3 : 보류 제외
-                           AND DTA_DL_YN = 'N'
-                       ) A
-                   WHERE 1=1
-                   GROUP BY OG_TP_CD
-                       , PRTNR_NO
-               ) WM
-         INNER JOIN TB_OGBS_PRTNR_BAS PB
-            ON PB.OG_TP_CD = WM.OG_TP_CD
-           AND PB.PRTNR_NO = WM.PRTNR_NO
-         INNER JOIN TB_OGBS_PRTNR_DTL PD
-            ON PD.OG_TP_CD = WM.OG_TP_CD
-           AND PD.PRTNR_NO = WM.PRTNR_NO
-          LEFT JOIN TB_OGBS_MM_PRTNR_IZ PR
-            ON PR.BASE_YM = CASE WHEN NVL(PD.CLTN_DT, '99991231') >= #{baseYm} THEN #{baseYm} ELSE SUBSTR(PD.CLTN_DT,1,6) END
-           AND PR.OG_TP_CD = PD.OG_TP_CD
-           AND PR.PRTNR_NO = PD.PRTNR_NO
-          LEFT JOIN TB_OGBS_MM_OG_IZ OG
-            ON OG.BASE_YM = PR.BASE_YM
-           AND OG.OG_ID = PR.OG_ID
-          LEFT JOIN TB_OGPS_PLAR_QLF_CH_IZ W1  /* 웰스매니저 자격정보 M+1 자격 */
-            ON PR.OG_TP_CD = W1.OG_TP_CD
-           AND PR.PRTNR_NO = W1.PRTNR_NO
-           AND NVL(W1.QLF_APLC_DV_CD, '0') IN ('1', '2')  -- 승격,자격해제  3 : 보류 제외
-           AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),1)),'YYYYMMDD') BETWEEN STRTDT AND ENDDT
-           AND W1.DTA_DL_YN = 'N'
-          LEFT JOIN (
-                SELECT OG_TP_CD
-                     , PRTNR_NO
-                     , EDU96_YM
-                     , EDU143_YM
-                  FROM (
-                        SELECT A.OG_TP_CD
-                             , A.PRTNR_NO
-                             , A.EDUC_CRSE_NO
-                             , A.EDUC_CRSE_CRT_BASE_YM
-                          FROM TB_PSCA_MCPTN_EDUC_IZ A
-                         WHERE 1=1
-                         --AND A.EDUC_CRSE_CRT_BASE_YM = '202307'
-                           AND A.EDUC_CRSE_NO IN ('96','143')
-                           AND A.EDUC_CPC_ACKMT_YN = 'Y'
-                           AND A.DTA_DL_YN = 'N'
-                       ) A
-                 PIVOT ( MAX(EDUC_CRSE_CRT_BASE_YM) FOR EDUC_CRSE_NO IN ('96' AS EDU96_YM,'143' AS EDU143_YM))
-               ) ED
-            ON PR.OG_TP_CD = ED.OG_TP_CD
-           AND PR.PRTNR_NO = ED.PRTNR_NO
-          LEFT OUTER JOIN TB_FEAM_WELS_MNGER_OPNG_BAS W3    /* 웰스매니저개시기본 */
-            ON W3.BASE_YM  = #{baseYm}
-           AND PR.OG_TP_CD = W3.OG_TP_CD
-           AND PR.PRTNR_NO = W3.PRTNR_NO
-           AND W3.TCNT_DV_CD = #{tcntDvCd}
-         WHERE 1=1
-         --AND NOT (PD.QLF_DV_CD = '2' AND PD.CLTN_DT IS NULL)
-            <choose>
-                <when test="@MybatisUtils@equals(divCd, '01')">
-           AND WM.CNTR_DT LIKE #{baseYm} || '%'
-                </when>
-                <when test="@MybatisUtils@equals(divCd, '02')">
-           AND WM.CLTN_DT LIKE #{baseYm} || '%'
-                </when>
-                <when test="@MybatisUtils@equals(divCd, '03')">
-           AND WM.CLTN_DT IS NULL
-                </when>
-            </choose>
-            <if test="@MybatisUtils@isNotEmpty(rsbDvCd)">
-           AND PR.RSB_DV_CD = #{rsbDvCd}
-            </if>
-            <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
-           AND WM.PRTNR_NO = #{prtnrNo}
-            </if>
-        ORDER BY TO_NUMBER(WM.PRTNR_NO)
+            SELECT NVL(MO.DGR1_LEVL_OG_NM, MO.DGR1_LEVL_OG_CD)           AS DGR1_LEVL_OG_NM
+                 , NVL(MO.DGR2_LEVL_OG_NM, MO.DGR2_LEVL_OG_CD)           AS DGR2_LEVL_OG_NM
+                 , MO.OG_CD
+                 , MO.BLD_NM
+                 , WM.PRTNR_NO
+                 , MP.PRTNR_KNM
+                 , MP.RSB_DV_CD /* 직책명 */
+                 , WM.QLF_DV_CD /* M조직 웰스매니저 자격 */
+                 , WM.M1_QLF_DV_CD /* M+1  WM 자격 */
+                 , WM.CV_DT /* WM전환월 */
+                 , WM.BZ_STAT_CD /* WM - 활동여부 */
+                 , WM.CNTR_DT /* 계약일 */
+                 , WM.CLTN_DT /* 해약일 */
+                 , WM.FST_CNTR_DT /* 최초계약일 */
+                 , WM.FNL_CLTN_DT /* 최종해약일 */
+                 , ED.EDU96_YM                                           AS STRTUP_DT /* 스타트업 */
+                 , ED.EDU143_YM                                          AS PRE_STRTUP_DT /* 프리스타트업 */
+                 , NVL(W3.OPNG_CD, '9')                                  AS OPNG_CD
+                 , #{baseYm}                                             AS BASE_YM
+                 , #{tcntDvCd}                                           AS TCNT_DV_CD
+                 , #{cnfmStatYn}                                         AS CNFM_STAT_YN
+              FROM (
+                    <include refid="selectPlarQlf"/>
+                   ) WM
+              LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ MP
+                ON MP.BASE_YM = #{baseYm}
+               AND MP.OG_TP_CD = WM.OG_TP_CD
+               AND MP.PRTNR_NO = WM.PRTNR_NO
+              LEFT OUTER JOIN TB_OGBS_MM_OG_IZ MO
+                ON MO.BASE_YM = MP.BASE_YM
+               AND MO.OG_ID = MP.OG_ID
+              LEFT OUTER JOIN (
+                      SELECT OG_TP_CD
+                           , PRTNR_NO
+                           , EDU96_YM
+                           , EDU143_YM
+                      FROM (
+                              SELECT A.OG_TP_CD
+                                   , A.PRTNR_NO
+                                   , A.EDUC_CRSE_NO
+                                   , A.EDUC_CRSE_CRT_BASE_YM
+                                FROM TB_PSCA_MCPTN_EDUC_IZ A
+                               WHERE 1 = 1
+                                 AND A.EDUC_CRSE_NO IN ('96', '143')
+                                 AND A.EDUC_CPC_ACKMT_YN = 'Y'
+                                 AND A.DTA_DL_YN = 'N'
+                           ) A
+                     PIVOT ( MAX(EDUC_CRSE_CRT_BASE_YM) FOR EDUC_CRSE_NO IN ('96' AS EDU96_YM,'143' AS EDU143_YM))
+                   ) ED
+                ON MP.OG_TP_CD = ED.OG_TP_CD
+               AND MP.PRTNR_NO = ED.PRTNR_NO
+              LEFT OUTER JOIN TB_FEAM_WELS_MNGER_OPNG_BAS W3 /* 웰스매니저개시기본 */
+                ON W3.BASE_YM = #{baseYm}
+               AND MP.OG_TP_CD = W3.OG_TP_CD
+               AND MP.PRTNR_NO = W3.PRTNR_NO
+               AND W3.TCNT_DV_CD = #{tcntDvCd}
+             WHERE 1=1
+                <choose>
+                    <when test="@MybatisUtils@equals(divCd, '01')">
+               AND WM.CNTR_DT LIKE #{baseYm} || '%'
+                    </when>
+                    <when test="@MybatisUtils@equals(divCd, '02')">
+               AND WM.CLTN_DT LIKE #{baseYm} || '%'
+                    </when>
+                    <when test="@MybatisUtils@equals(divCd, '03')">
+               AND WM.CLTN_DT IS NULL
+                    </when>
+                </choose>
+                <if test="@MybatisUtils@isNotEmpty(rsbDvCd)">
+               AND MP.RSB_DV_CD = #{rsbDvCd}
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+               AND WM.PRTNR_NO = #{prtnrNo}
+                </if>
+             ORDER BY TO_NUMBER(WM.PRTNR_NO)
     </select>
 
     <select id='selectWelsMngersOld'
@@ -355,35 +363,49 @@
              , T1.OG_TP_CD
              , T1.PRTNR_NO
              , #{tcntDvCd}
-             , NVL( ( CASE WHEN ( CASE WHEN '202304' &lt; SUBSTR(CNTR_DT,0,6) THEN 0                           /* 계약년월 2023 04월이전 = 0 */
-                                       ELSE MONTHS_BETWEEN(TO_DATE('202304'||'01'),TO_DATE(SUBSTR(CNTR_DT,0,6)||'01'))+1   /* 계약년월 2023 04월이후 = 202304 - 계약년월 */
-                                  END
-                                ) &gt; 5 THEN '' /* 5 차월 초과자 */
-                           WHEN NVL(A1.JJ_CNT,0) != 0 THEN '' /* 지점장이상 경력자 */
-                           WHEN NVL(T1.FNL_CLTN_DT,0) = 0 /* 최종해약일자 없음 */
-                                AND NVL(B1.BSP_CNT,0) = 0  /* 수석플래너 경력없음 */
-                                THEN '1' /* 최초개시자 */
-                           WHEN NVL(B1.BSP_CNT,0) != 0  /* 수석플래너 경력있음 */
-                                AND NVL(C1.JC_CNT,0) = 0  /* 정착수수료 수령자 경력없음 */
-                                AND MONTHS_BETWEEN(TO_DATE(SUBSTR(CNTR_DT,0,6)||'01'),TO_DATE(SUBSTR(FNL_CLTN_DT,0,6)||'01')) &lt;= 12  /* 계약년월-최종해약년월 12 이하*/
-                                THEN '4'  /* 최초개시 수석경력 (수석경력자 중 수석정착수당 미수령자 ) */
-                           WHEN NVL(T1.FNL_CLTN_DT,0) = 0 /* 최종해약일자 없음 */
-                                AND NVL(B1.BSP_CNT,0) != 0  /* 수석플래너 경력있음 */
-                                THEN '2' /* 수석플래너 경력자료 재개시자로 처리 */
-                           WHEN MONTHS_BETWEEN(TO_DATE(SUBSTR(CNTR_DT,0,6)||'01'),TO_DATE(SUBSTR(FNL_CLTN_DT,0,6)||'01')) &gt; 12  /* 계약년월-최종해약년월 = 12 이상*/
-                                THEN '3' /* 해약 13개월후 재개시자는 재개시자로 처리 */
-                           ELSE ''
-                      END
-                    ),''
-                  )
+             , NVL((CASE
+                        WHEN WM.CNTR_DT IS NOT NULL AND
+                             (CASE
+                                  WHEN '202304' <![CDATA[<]]> SUBSTR(WM.CNTR_DT, 1, 6) THEN 0 /* 계약년월 2023 04월이전 = 0 */
+                                  ELSE MONTHS_BETWEEN(TO_DATE('202304' || '01'), TO_DATE(SUBSTR(WM.CNTR_DT, 1, 6) || '01')) + 1 /* 계약년월 2023 04월이후 = 202304 - 계약년월 */
+                              END) > 5 THEN '' /* 5 차월 초과자 */
+                        WHEN NVL(A1.JJ_CNT, 0) != 0 THEN '' /* 지점장이상 경력자 */
+                        WHEN WM.FNL_CLTN_DT IS NULL /* 최종해약일자 없음 */
+                            AND NVL(B1.BSP_CNT, 0) = 0 /* 수석플래너 경력없음 */
+                            THEN '1' /* 최초개시자 */
+                        WHEN WM.FNL_CLTN_DT IS NULL /* 최종해약일자 없음 */
+                            AND NVL(B1.BSP_CNT, 0) != 0 /* 수석플래너 경력있음 */
+                            AND WM.M1_QLF_DV_CD = '6' /* 차월 BS프리매니저 */
+                            THEN '1' /* 최초개시자(BS프리개시자) */
+                        WHEN WM.FNL_CLTN_DT IS NULL /* 최종해약일자 없음 */
+                            AND NVL(B1.BSP_CNT, 0) != 0 /* 수석플래너 경력있음 */
+                            AND NVL(C1.JC_CNT, 0) = 0 /* 정착수수료 수령자 경력없음 */
+                            AND WM.CNTR_DT > '20230401'
+                            THEN '4' /* 최초개시 수석경력 (수석경력자 중 수석정착수당 미수령자 ) */
+                        WHEN WM.FNL_CLTN_DT IS NULL /* 최종해약일자 없음 */
+                            AND NVL(B1.BSP_CNT, 0) != 0 /* 수석플래너 경력있음 */
+                            THEN '2' /* 수석플래너 경력자료 재개시자로 처리 */
+                        WHEN WM.FNL_CLTN_DT IS NOT NULL
+                            AND WM.CNTR_DT IS NOT NULL
+                            AND MONTHS_BETWEEN(TO_DATE(SUBSTR(WM.CNTR_DT, 1, 6) || '01'), TO_DATE(SUBSTR(WM.FNL_CLTN_DT, 1, 6) || '01')) > 12 /* 계약년월-최종해약년월 = 12 이상*/
+                            AND WM.M1_QLF_DV_CD = '3' /* 차월 웰스매니저 */
+                            THEN '3' /* 해약 13개월후 재개시자는 재개시자로 처리 */
+                        ELSE ''
+                    END), ''
+               ) AS OPNG_CD
              , CASE WHEN NVL(D1.PYD,0) != '0'
-                         AND MONTHS_BETWEEN(TO_DATE(#{baseYm},'YYYYMM'), TO_DATE(D1.PYD,'YYYYMM')) &gt;= 0
+                         AND MONTHS_BETWEEN(TO_DATE(#{baseYm},'YYYYMM'), TO_DATE(D1.PYD,'YYYYMM')) <![CDATA[>=]]> 0
                          THEN MONTHS_BETWEEN(TO_DATE(#{baseYm},'YYYYMM'), TO_DATE(D1.PYD,'YYYYMM')) + 1
                     ELSE 0
                END AS PRGS_NMN_N
              , 'N'
         <include refid="COMMON.insertSystemFieldValue"/>
           FROM TB_OGBS_MM_PRTNR_IZ T1    /* 월 파트너*/
+          LEFT OUTER JOIN (
+                 <include refid="selectPlarQlf"/>
+               ) WM
+            ON WM.OG_TP_CD = T1.OG_TP_CD
+           AND WM.PRTNR_NO = T1.PRTNR_NO
           LEFT OUTER JOIN ( SELECT PRTNR_NO
                                  , COUNT(1) AS ASP_CNT
                               FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
@@ -394,56 +416,72 @@
                              GROUP BY PRTNR_NO
                           ) AK06 /* 익월 수석플래너 대상자 조회 */
             ON T1.PRTNR_NO = AK06.PRTNR_NO
-          LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                         , COUNT(1) AS JJ_CNT
-                                      FROM TB_OGBS_MM_PRTNR_IZ
-                                     WHERE OG_TP_CD = 'W02'
-                                       AND BASE_YM &lt;= #{baseYm}         /*관리년월 = 기준년월 이하*/
-                                       AND PSTN_DV_CD &lt;= 7              /* 직급 7급 이상 */
-                                     GROUP BY PRTNR_NO
-                                  )A1   /* 지점장 이상 경력자 체크 */
+          LEFT OUTER JOIN (
+                  SELECT PRTNR_NO
+                       , COUNT(1) AS JJ_CNT
+                    FROM TB_OGBS_MM_PRTNR_IZ
+                   WHERE OG_TP_CD = 'W02'
+                     AND BASE_YM <![CDATA[<=]]> #{baseYm} /*관리년월 = 기준년월 이하*/
+                     AND PSTN_DV_CD <![CDATA[<=]]> 7 /* 직급 7급 이상 */
+                   GROUP BY PRTNR_NO
+                ) A1 /* 지점장 이상 경력자 체크 */
             ON T1.PRTNR_NO = A1.PRTNR_NO
-          LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                 , COUNT(1) AS BSP_CNT
-                              FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
-                             WHERE OG_TP_CD = 'W02'
-                               AND MNGT_YM &lt;= #{baseYm}            /*관리년월 = 기준년월 이하*/
-                               AND UPGR_DMTN_DV_CD = '01'  /*승급강등구분코드 = '승급' 현재 확인되지 않아 임시!!*/
-                             GROUP BY PRTNR_NO
-                          )B1  /* 수석플래너 경력자 체크 */
+          LEFT OUTER JOIN (
+                  SELECT PRTNR_NO
+                       , COUNT(1) AS BSP_CNT
+                    FROM TB_OGPS_PLAR_QLF_CH_IZ
+                   WHERE OG_TP_CD = 'W02'
+                     AND QLF_DV_CD = '1'
+                     AND NVL(ENDDT,'99991231') <![CDATA[<=]]> #{baseYm}
+                     AND DTA_DL_YN = 'N'
+                     AND QLF_APLC_DV_CD IN ('1','2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
+                   GROUP BY PRTNR_NO
+               )B1  /* 수석플래너 경력자 체크 */
             ON T1.PRTNR_NO = B1.PRTNR_NO
-          LEFT OUTER JOIN ( SELECT PRTNR_NO
-                                         , COUNT(1) AS JC_CNT
-                                      FROM TB_FEAM_WPTN_SV_PERF_AGRG
-                                     WHERE OG_TP_CD = 'W02'
-                                       AND BASE_YM  &gt;= '201904'
-                                       AND CL_DV_CD = '02'
-                                       AND PRTNR_SV_PERF_ATC_CD = 'SV03050101'
-                                     GROUP BY PRTNR_NO
-                                  )C1  /* 정착수수료 수령자 */
+          LEFT OUTER JOIN (
+                  SELECT CB.PRTNR_NO
+                       , COUNT(1) AS JC_CNT
+                    FROM TB_FEAM_FEE_CALC_BAS CB
+                   INNER JOIN TB_OGPS_PLAR_QLF_CH_IZ QCI
+                      ON QCI.OG_TP_CD = CB.OG_TP_CD
+                     AND QCI.QLF_DV_CD = '1'
+                     AND CB.BASE_YM BETWEEN SUBSTR(QCI.STRTDT,1,6) AND SUBSTR(QCI.ENDDT,1,6)
+                     AND QCI.DTA_DL_YN = 'N'
+                     AND QCI.QLF_APLC_DV_CD IN ('1','2')
+                     AND QCI.PRTNR_NO = CB.PRTNR_NO
+                   WHERE 1 = 1
+                     AND CB.FEE_CD IN ('W020081','W020080')
+                     AND CB.BASE_YM = CB.PERF_YM
+                     AND CB.OG_TP_CD = 'W02'
+                     AND CB.FEE_TCNT_DV_CD = '02'
+                     AND CB.OJ_DSB_YM >= '201904'
+                     AND CB.FEE_CTR_CNFM_AMT > 0
+                   GROUP BY CB.PRTNR_NO
+               ) C1  /* 정착수수료 수령자 */
             ON T1.PRTNR_NO = C1.PRTNR_NO
-          LEFT OUTER JOIN ( SELECT SUBSTR(MAX(A.CV_DT),1,6) AS PYD
-                                 , A.PRTNR_NO
-                              FROM TB_OGPS_PLAR_QLF_CH_IZ A /*플래너 자격 변경내역*/
-                             WHERE A.OG_TP_CD = 'W02'
-                               AND A.QLF_DV_CD = '3'  /* 웰스매니저 */
-                               AND A.QLF_APLC_DV_CD = '1'  /* 승급 */
-                               AND A.DTA_DL_YN = 'N'
-                             GROUP BY A.PRTNR_NO
-                          )D1
-        ON T1.PRTNR_NO = D1.PRTNR_NO
+          LEFT OUTER JOIN (
+                  SELECT SUBSTR(MAX(A.CV_DT), 1, 6) AS PYD
+                       , A.PRTNR_NO
+                    FROM TB_OGPS_PLAR_QLF_CH_IZ A /*플래너 자격 변경내역*/
+                   WHERE A.OG_TP_CD = 'W02'
+                     AND A.QLF_DV_CD = '3' /* 웰스매니저 */
+                     AND A.QLF_APLC_DV_CD = '1' /* 승급 */
+                     AND A.DTA_DL_YN = 'N'
+                   GROUP BY A.PRTNR_NO
+               ) D1
+            ON T1.PRTNR_NO = D1.PRTNR_NO
          WHERE T1.BASE_YM = #{baseYm}
            AND T1.OG_TP_CD = 'W02'
            AND T1.QLF_DV_CD IN ('2','6','3')  /* 프리매니저, BS프리매니저, 웰스매니저 */
-           AND NVL(SUBSTR(T1.CLTN_DT,0,6),'999912') &gt;= #{baseYm}  /* 해약년월 기준년월 이상 */
-           AND SUBSTR(T1.CNTR_DT,0,6) &lt;= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), 1),'YYYYMM') /* 계약년월 기준년월+1월(익월) 이하 */
-           AND ( CASE WHEN #{baseYm} &lt; SUBSTR(T1.CLTN_DT,0,6) THEN 0  /* 기준년월이 계약년월 이전이면 0 */
-                      ELSE MONTHS_BETWEEN(TO_DATE(#{baseYm}||'01'), TO_DATE(SUBSTR(T1.CNTR_DT,0,6)||'01')) + 1
+           AND NVL(SUBSTR(WM.CLTN_DT,0,6),'999912') <![CDATA[>=]]> #{baseYm}  /* 해약년월 기준년월 이상 */
+           AND SUBSTR(WM.CNTR_DT,0,6) <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), 1),'YYYYMM') /* 계약년월 기준년월+1월(익월) 이하 */
+           AND ( CASE WHEN #{baseYm} <![CDATA[<]]> SUBSTR(WM.CNTR_DT,0,6) THEN 0  /* 기준년월이 계약년월 이전이면 0 */
+                      ELSE MONTHS_BETWEEN(TO_DATE(#{baseYm}||'01'), TO_DATE(SUBSTR(WM.CNTR_DT,0,6)||'01')) + 1
                  END
-               ) &lt;= 5  /* 개시차월 (기준년월 - 계약년월+1) 이 5개월 이하 */
-           AND ( T1.BZ_STAT_CD = '1' /* 활동여부 Y */
-                 OR T1.BZ_STAT_CD != '1' /* 활동여부 N */
-                 AND ( NVL(SUBSTR(T1.CLTN_DT,0,6),'999912')  &gt; #{baseYm} /* 해약년월 기준일자 이상*/
+               ) <![CDATA[<=]]> 5  /* 개시차월 (기준년월 - 계약년월+1) 이 5개월 이하 */
+           AND ( WM.BZ_STAT_CD = 'Y' /* 활동여부 Y */
+                 OR WM.BZ_STAT_CD != 'Y' /* 활동여부 N */
+                 AND ( NVL(SUBSTR(WM.CLTN_DT,0,6),'999912')  <![CDATA[>]]> #{baseYm} /* 해약년월 기준일자 이상*/
                        OR NVL(AK06.ASP_CNT,0) != 0 /* 익월 수석플래너 대상자 */
                      )
                )
