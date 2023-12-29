@@ -4,14 +4,15 @@ import static com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.*;
 
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.common.converter.WsnyErrorCodeMgtConverter;
-import com.kyowon.sms.wells.web.service.common.dto.WsnyErrorCodeMgtDto.*;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnyErrorCodeMgtDvo;
 import com.kyowon.sms.wells.web.service.common.mapper.WsnyErrorCodeMgtMapper;
 import com.sds.sflex.common.docs.service.AttachFileService;
+import com.sds.sflex.system.config.core.util.IDGenUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -81,22 +82,18 @@ public class WsnyErrorCodeMgtService {
         int count = 0;
 
         WsnyErrorCodeMgtDvo dvo = this.converter.mapSaveReqToWsnyErrorCodeMgtDvo(req);
-        String fileId = groupId + "_BAS" + dvo.getPdCd() + dvo.getErrCn();
-        if (!dvo.getAttachFiles().isEmpty()) {
-            if (!dvo.getAttachFiles().equals(dvo.getAttachFilesBefore())) {
-                dvo.setErrImageDocId(fileId);
-            }
+        //        String fileId = groupId + "_BAS" + dvo.getPdCd() + dvo.getErrCn();
+
+        if (ObjectUtils.isNotEmpty(req.attachFiles())) {
+            String fileId = IDGenUtil.getUUID("ATG");
+            attachFileService.saveAttachFiles(groupId, fileId, req.attachFiles());
+            dvo.setErrImageDocId(fileId);
         }
+
         if (dvo.getFlag().equals("I")) {
             mapper.insertErrorCode(dvo);
         } else {
             mapper.updateErrorCode(dvo);
-        }
-
-        if (!dvo.getAttachFiles().isEmpty()) {
-            if (!dvo.getAttachFiles().equals(dvo.getAttachFilesBefore())) {
-                attachFileService.saveAttachFiles(groupId, fileId, dvo.getAttachFiles());
-            }
         }
 
         return count;
