@@ -22,13 +22,4 @@ public interface WdebAwAdsbMgtMapper {
 
     /* 재지급 대상 생성  */
     int insertAdsbObjectCreates(WdebAwAdsbMgtDvo dvo);
-
-    // TODO: 수수로 측 서비스 개발 전, 테스트용 UPDATE. 추후 개발 시, 삭제 예정
-    //    int updateAdsbObjectTemp(WdebAwAdsbMgtDvo dvo);
-
-    /* 재지급 금액 생성, TODO: 수수료쪽에서 제공 예정 */
-
-    // TODO: 수수로 측 서비스 개발 전, 재지급 중복 체크용 SELECT. 추후 로직 확인 후, 삭제 예정
-    //    int selectAdsbDupCheck(CreateReq dto);
-
 }

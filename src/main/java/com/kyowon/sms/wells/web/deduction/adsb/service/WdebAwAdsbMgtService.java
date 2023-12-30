@@ -45,11 +45,6 @@ public class WdebAwAdsbMgtService {
             int result = mapper.selectAdsbObjecConfirmCheck(dto);
             int adsbChk = 0;
 
-            // TODO: 수수로 측 서비스 개발 전, 재지급 중복 체크용 SELECT. 추후 로직 확인 후, 삭제 예정
-            //            int dupCheck = mapper.selectAdsbDupCheck(dto);
-            // TODO: 수수로 측 서비스 개발 전, 재지급 중복 체크용 SELECT. 추후 로직 확인 후, 삭제 예정
-            //            BizAssert.isTrue(dupCheck == 0, "MSG_TXT_BF_CNFM_CONF_ADSB"); // 이미 확정되어 재지급 생성이 불가합니다.
-
             // 확정된 데이터가 있으면, return
             BizAssert.isTrue(result == 0, "MSG_TXT_BF_CNFM_CONF_ADSB"); // 이미 확정되어 재지급 생성이 불가합니다.
 
