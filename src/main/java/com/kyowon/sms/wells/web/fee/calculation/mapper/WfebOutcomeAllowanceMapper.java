@@ -30,9 +30,7 @@ public interface WfebOutcomeAllowanceMapper {
     );
 
     void deleteOutcomeAllowancesManager(
-        String baseYm,
-        String ogTpCd,
-        String rsbDvCd
+        List<SaveMoReq> dtos
     );
 
     int insertOutcomeAllowancesManager(
@@ -40,9 +38,7 @@ public interface WfebOutcomeAllowanceMapper {
     );
 
     void deleteOutcomeAllowancesPlanner(
-        String baseYm,
-        String ogTpCd,
-        String rsbDvCd
+        List<SavePoReq> dtos
     );
 
     int insertOutcomeAllowancesPlanner(

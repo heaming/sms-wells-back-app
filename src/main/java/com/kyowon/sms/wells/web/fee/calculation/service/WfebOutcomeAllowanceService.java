@@ -40,20 +40,14 @@ public class WfebOutcomeAllowanceService {
     public int saveOutcomeAllowancesManager(List<SaveMoReq> dtos) {
         if (dtos.isEmpty())
             return 0;
-        String baseYm = dtos.get(0).baseYm();
-        String ogTpCd = dtos.get(0).ogTpCd();
-        String rsbDvCd = dtos.get(0).rsbDvCd();
-        mapper.deleteOutcomeAllowancesManager(baseYm, ogTpCd, rsbDvCd);
+        mapper.deleteOutcomeAllowancesManager(dtos);
         return mapper.insertOutcomeAllowancesManager(dtos);
     }
 
     public int saveOutcomeAllowancesPlanner(List<SavePoReq> dtos) {
         if (dtos.isEmpty())
             return 0;
-        String baseYm = dtos.get(0).baseYm();
-        String ogTpCd = dtos.get(0).ogTpCd();
-        String rsbDvCd = dtos.get(0).rsbDvCd();
-        mapper.deleteOutcomeAllowancesPlanner(baseYm, ogTpCd, rsbDvCd);
+        mapper.deleteOutcomeAllowancesPlanner(dtos);
         return mapper.insertOutcomeAllowancesPlanner(dtos);
     }
 }
