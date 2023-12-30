@@ -601,6 +601,8 @@
              , INTBS_AMT	/* 소득과표금액 */
              , DDCTAM	/* 공제금액 */
              , DSB_OJ_AMT	/* 지급대상금액 */
+             , ACL_ACTI_WM_ACHV_CNT /* 실활동 WM 인원 */
+             , ACL_ACTI_WM_ACHV /* 실활동 WM 달성 */
              <if test='@MybatisUtils@isNotEmpty(feeArticles)'>
              <foreach collection="feeArticles" item='feeArticle' open=', ' close='' separator=', ' >
                FEE_${feeArticle.dtaCrtFeeCd}
@@ -692,6 +694,8 @@
                     , NVL(DSB.INTBS_AMT, 0) AS INTBS_AMT	/* 소득과표금액 */
                     , NVL(DSB.DDCTAM, 0) AS DDCTAM	/* 공제금액 */
                     , NVL(DSB.DSB_OJ_AMT, 0) AS DSB_OJ_AMT	/* 지급대상금액 */
+                    , NVL(OGACL.PERF_VAL, 0) AS ACL_ACTI_WM_ACHV_CNT
+                    , CASE WHEN NVL(OGACL.PERF_VAL, 0) > 0 THEN 'Y' ELSE 'N' END AS ACL_ACTI_WM_ACHV
                     <if test='@MybatisUtils@isNotEmpty(feeArticles)'>
                      <foreach collection="feeArticles" item='feeArticle' open=', ' close='' separator=', ' >
                         NVL(FEE.FEE_${feeArticle.dtaCrtFeeCd}, 0) AS FEE_${feeArticle.dtaCrtFeeCd}
@@ -702,13 +706,20 @@
                    ON PRTNR.BASE_YM = OG.BASE_YM
                   AND PRTNR.OG_ID = OG.OG_ID
                   AND OG.DTA_DL_YN = 'N'
-                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL INDVMT	/* 파트너실적월마감 */
+                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL INDVMT	/* 파트너실적월마감 - 미팅참석 실적 */
                    ON PRTNR.BASE_YM = INDVMT.BASE_YM
                   AND PRTNR.BASE_YM = INDVMT.PERF_YM
                   AND PRTNR.OG_TP_CD = INDVMT.OG_TP_CD
                   AND PRTNR.PRTNR_NO = INDVMT.PRTNR_NO
                   AND INDVMT.FEE_TCNT_DV_CD = #{dto.feeTcntDvCd}
                   AND INDVMT.PERF_ATC_CD = 'W02P00093'    /*미팅참석일수*/
+                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL OGACL	/* 파트너실적월마감 - 실활동 인원 */
+                   ON PRTNR.BASE_YM = OGACL.BASE_YM
+                  AND PRTNR.BASE_YM = OGACL.PERF_YM
+                  AND PRTNR.OG_TP_CD = OGACL.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = OGACL.PRTNR_NO
+                  AND OGACL.FEE_TCNT_DV_CD = #{dto.feeTcntDvCd}
+                  AND OGACL.PERF_ATC_CD = 'W02P00111'    /*지점실활동인원수*/
                  LEFT OUTER JOIN
                  	( SELECT AGRG_YM
                  		   , OG_TP_CD
