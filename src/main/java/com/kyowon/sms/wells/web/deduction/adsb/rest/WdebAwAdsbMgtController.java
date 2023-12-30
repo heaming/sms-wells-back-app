@@ -36,6 +36,4 @@ public class WdebAwAdsbMgtController {
 
     }
 
-    /* 재지급 금액 생성, TODO: 수수료쪽에서 제공 예정 */
-
 }
