@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.bond.consultation.dto;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 public class WbncSameCustomerContractDto {
     // *********************************************************
@@ -36,14 +37,19 @@ public class WbncSameCustomerContractDto {
         String perfYm, /* 실적월 */
         String rentalTn, /* 차월 */
         String thmSlSumAmt, /* 매출금액 */
-        String dpAmt, /* 입금액 */
-        String atamCvAmt, /* 영업선수금액 */
+        String dpAmtFnl, /* 입금액 */
+        String prmAmt, /* 영업선수금액 */
         String dlqAmt, /* 연체금액 */
-        String dlqMcn, /* 연체개월 */
-        String dlqAddAmt, /* 연체가산금 */
-        String dlqAddDpAmt, /* 연체가산입금 */
-        String dlqAddBlam, /* 연체가산잔액 */
-        String ucAmt /* 미수금액 */
+        String dlqMcn1, /* 연체개월 */
+        String dlqAddAmt1, /* 연체가산금 */
+        String dlqAddDpAmt1, /* 연체가산입금 */
+        String dlqAddBlam1, /* 연체가산잔액 */
+        String dlqMcn2, /*연체개월 - 일시불*/
+        String dlqAmtL10, /*연체금액 - 일시불*/
+        String dlqDpAmtL10, /*연체입금금액 - 일시불*/
+        String thmChramDpAmtL10, /*당월입금금액 - 일시불*/
+        String ucAmt, /* 미수금액 */
+        String bilUcAmt /*청구미수금액*/
     ) {}
 
     // *********************************************************
@@ -54,15 +60,15 @@ public class WbncSameCustomerContractDto {
     public record FindDepositInfoRes(
         String ojAmt, /* 대상금액 */
         String rsgBorAmt, /* 위약금 */
-        String dlqAmt, /* 연체금액 */
+        String totDlqAmt, /* 총연체금액 */
         String slAggAmt, /* 매출누계 */
         String ojDpAmt, /* 대상입금 */
         String lsRntf, /* 분실료 */
-        String dlqDpAmt, /* 연체입금 */
+        String totDlqDpAmt, /* 총연체입금 */
         String dpAggAmt, /* 입금누계 */
         String ojBlam, /* 대상잔액 */
         String dlqMcn, /* 연체개월 */
-        String dlqBlam, /* 연체잔액 */
+        String totDlqBlam, /* 총연체잔액 */
         String dscAggAmt, /* 할인누계 */
         String ucAmt, /* 미수금액 */
         String thmChramAmt, /* 월요금액 */
@@ -80,12 +86,14 @@ public class WbncSameCustomerContractDto {
     // Result Dto
     // *********************************************************
     // 동일고객 계약 위약정보 조회 Find Result Dto
+    @Builder
     @ApiModel(value = "WbncSameCustomerContractDto-FindBreachOfPromiseRes")
     public record FindBreachOfPromiseRes(
-        String eotBorAmt, /* 기말위약금액 */
+        String borAmt, /* 위약금총액 */
         String dpCcamSumAmt, /* 입금위약금합계금액 */
         String borBlam, /* 위약잔액 */
         String thmSlSumAmt, /* 당월매출합계금액 */
+        String acuDpAmt, /* 누적입금금액 */
         String ucAmt, /* 미수금액 */
         String rsgBorAmt, /* 해지위약금액 */
         String rgstCostDscBorAmt, /* 등록비할인위약금액 */
@@ -95,7 +103,7 @@ public class WbncSameCustomerContractDto {
         String reqdCsBorAmt, /* 철거비용위약금액 */
         String lsRntf, /* 분실손료 */
         String rstlBorAmt, /* 재약정위약금액 */
-        String acuDpAmt /* 누적입금금액 */
+        String cntrDtlStatCd /* 현재계약상세상태코드 */
     ) {}
 
     @ApiModel(value = "EbncSameCustomerContractDto-FindSalesRes")
