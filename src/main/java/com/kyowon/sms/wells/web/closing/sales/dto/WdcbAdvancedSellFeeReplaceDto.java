@@ -73,6 +73,7 @@ public class WdcbAdvancedSellFeeReplaceDto {
         String baseYm,
         String slAmt,
         String feeOcAmt,
+        String piaFeeOcAmt,
         String feeOcYm,
         String piaCsYn,
         String piaSellFeeCrdovrResAmt,
