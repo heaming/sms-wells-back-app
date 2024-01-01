@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -97,6 +99,7 @@ public class WbncSameCustomerContractService {
         inputDvo.setCntrNo(cntrNo);
         inputDvo.setCntrSn(cntrSn);
         inputDvo.setCnfmYm(StringUtils.EMPTY);
+        inputDvo.setRqdt(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
 
         return zdcaCancellationFeeComputationWellsService.saveDelinquentDepositRefund(inputDvo);
     }

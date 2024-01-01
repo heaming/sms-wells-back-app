@@ -729,16 +729,16 @@
 		    ON T1.CST_NO = T5.CST_NO
 		  LEFT OUTER JOIN (
 		                   SELECT CNTR_NO, CNTR_SN
-		                         , SV_CS /*서비스비용*/
-		                         , SV_DP /*서비스 입금*/
-		                         , (SV_CS - SV_DP) AS SV_BLAM
+		                         , NVL(SV_CS, 0) /*서비스비용*/
+		                         , NVL(SV_DP, 0) /*서비스 입금*/
+		                         , NVL((SV_CS - SV_DP), 0) AS SV_BLAM
 		                        FROM (
 		                         SELECT
 		                          T1.CNTR_NO , T1.CNTR_SN
-		                          , (SELECT SUM(BIL_OJ_AMT) FROM TB_SVPD_SV_CS_BIL_DTL TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN) AS SV_CS
-		                          , (SELECT SUM(DP_SUM_AMT) FROM TB_SVPD_SV_CS_DP_IZ TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN) AS SV_DP
+		                          , (SELECT SUM(BIL_OJ_AMT) FROM TB_SVPD_SV_CS_BIL_DTL TT1 WHERE TT1.CST_SV_ASN_NO IN (SELECT CST_SV_ASN_NO FROM TB_SVPD_CST_SV_WK_RS_IZ TT2 WHERE SUbSTR(TT2.VST_FSH_DT,0,6) = T1.BASE_YM AND TT2.CNTR_NO = T1.CNTR_NO AND TT2.CNTR_SN = T1.CNTR_SN) ) AS SV_CS
+		                          , (SELECT SUM(DP_SUM_AMT) FROM TB_SVPD_SV_CS_DP_IZ TT1 WHERE TT1.CST_SV_ASN_NO IN (SELECT CST_SV_ASN_NO FROM TB_SVPD_CST_SV_WK_RS_IZ TT2 WHERE SUbSTR(TT2.VST_FSH_DT,0,6) = T1.BASE_YM AND TT2.CNTR_NO = T1.CNTR_NO AND TT2.CNTR_SN = T1.CNTR_SN) ) AS SV_DP
 		                         FROM TB_CBBO_BND_CNSL_BAS_IZ T1
-		                        ) WHERE SV_CS IS NOT NULL
+		                        )
 		     ) T8
 		    ON T1.CNTR_NO = T8.CNTR_NO
 		   AND T1.CNTR_SN = T8.CNTR_SN
