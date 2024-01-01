@@ -54,6 +54,17 @@ public class WdcbBusinessAtamAdjustMgtDto {
     // *********************************************************
     // Result Dto
     // *********************************************************
+    // 영업선수금 정산 관리 Summary Result Dto
+    @ApiModel("EdcbBusinessAtamAdjustMgtDto-SearchSummaryRes")
+    public record SearchSummaryRes(
+        String slBndAlrpyAmt,
+        String dpBlam,
+        String ucAmt
+    ) {}
+
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
     // 영업선수금 정산 관리 Search Result Dto
     @ApiModel("EdcbBusinessAtamAdjustMgtDto-SearchDetailRes")
     public record SearchDetailRes(

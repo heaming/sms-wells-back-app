@@ -71,6 +71,15 @@ public class WdcbBusinessAtamAdjustMgtService {
     }
 
     /**
+     * 영업선수금 정산 관리 Summary
+     * @param dto
+     * @return
+     */
+    public SearchSummaryRes getBusinessAtamSummary(SearchReq dto) {
+        return mapper.selectBusinessAtamSummary(dto);
+    }
+
+    /**
      * 영업선수금 정산 관리(상세) 엑셀 다운로드
      * @param req
      * @param response
