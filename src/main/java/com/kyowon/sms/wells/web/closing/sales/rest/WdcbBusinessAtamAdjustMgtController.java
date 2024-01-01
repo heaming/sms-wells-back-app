@@ -73,6 +73,7 @@ public class WdcbBusinessAtamAdjustMgtController {
     /**
      * 영업선수금 정산 관리(집계)
      * @param dto
+     * @param pageInfo
      * @return
      */
     @ApiOperation(value = "영업선수금 정산 관리(집계)", notes = "조회조건에 따른 영업선수금 내역을 조회")
@@ -91,6 +92,28 @@ public class WdcbBusinessAtamAdjustMgtController {
         PageInfo pageInfo
     ) {
         return service.getBusinessAtamTotalsPaging(dto, pageInfo);
+    }
+
+    /**
+     * 영업선수금 정산 관리(집계)
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "영업선수금 정산 관리(집계)", notes = "조회조건에 따른 영업선수금 내역을 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query"),
+        @ApiImplicitParam(name = "dpKndCd", value = "조회구분", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "계약상세번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapAlrpySlpno", value = "SAP전표번호", paramType = "query"),
+        @ApiImplicitParam(name = "sapPdDvCd", value = "SAP상품구분코드명", paramType = "query"),
+    })
+    @GetMapping("/summary")
+    public SearchSummaryRes getBusinessAtamTotalsSummary(
+        @Valid
+        SearchReq dto
+    ) {
+        return service.getBusinessAtamSummary(dto);
     }
 
     /**
@@ -120,6 +143,7 @@ public class WdcbBusinessAtamAdjustMgtController {
     /**
      * 영업선수금 정산 관리(상세)
      * @param dto
+     * @param pageInfo
      * @return
      */
     @ApiOperation(value = "영업선수금 정산 관리(상세)", notes = "조회조건에 따른 영업선수금 내역을 조회")
