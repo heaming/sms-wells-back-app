@@ -397,17 +397,13 @@
 
     <select id="selectDtlSummary" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchDtlSummaryRes">
          SELECT PIA_CS_YN    /*선급대상여부*/
-              , SUM(SL_AMT) AS SL_AMT     /*매출금액*/
-              , SUM(CS_RPLC_AMT) AS CS_RPLC_AMT    /*비용대체금액*/
-              , SUM(FEE_OC_AMT) AS FEE_OC_AMT
-              , SUM(FEE_OC_AMT) AS PIA_FEE_OC_AMT
-              , SUM(CASE WHEN CNTR_PD_ENDDT IS NOT NULL
-                         THEN FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT
-                         ELSE CS_RPLC_AMT END)  AS TTRM_CS_AMT  /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
-              , SUM(CS_RPLC_AGG_AMT) AS CS_RPLC_AGG_AMT   /*비용대체누계금액*/
-              , SUM(CASE WHEN CNTR_PD_ENDDT IS NOT NULL
-                         THEN 0
-                         ELSE FEE_OC_AMT - PIA_SELL_FEE_CRDOVR_RES_AMT END) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액. 취소된 경우는 0*/
+              , '' AS SL_AMT     /*매출금액*/
+              , NVL(SUM(CS_RPLC_AMT), 0) AS CS_RPLC_AMT    /*비용대체금액*/
+              , NVL(SUM(FEE_OC_AMT), 0) AS FEE_OC_AMT
+              , NVL(SUM(FEE_OC_AMT), 0) AS PIA_FEE_OC_AMT
+              , NVL(SUM(CS_RPLC_AMT), 0)  AS TTRM_CS_AMT  /*당기비용인식액 - 취소인경우 전체 선급수수료발생금액에서 비용대체누계금액을 빼면 남은 수수료금액. 정상경우는 이번달 비용대체금액 */
+              , NVL(SUM(CS_RPLC_AGG_AMT), 0) AS CS_RPLC_AGG_AMT   /*비용대체누계금액*/
+              , NVL(SUM(FEE_OC_AMT), 0) + NVL(SUM(PIA_SELL_FEE_CRDOVR_RES_AMT), 0) - NVL(SUM(CS_RPLC_AMT), 0) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액. 취소된 경우는 0*/
            FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
           WHERE BASE_YM   = #{baseYm}   /*기준년월*/
             <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
@@ -441,7 +437,7 @@
        UNION ALL
        /*선급비대상건*/
        SELECT 'N' AS PIA_CS_YN    /*선급대상여부*/
-            , 0 AS SL_AMT      /*매출금액*/
+            , '' AS SL_AMT      /*매출금액*/
             , 0 AS CS_RPLC_AMT    /*비용대체금액*/
             , NVL(SUM(T2.FEE_CTR_CNFM_AMT),0) AS FEE_OC_AMT  /*수수료발생금액*/
             , 0 AS PIA_FEE_OC_AMT
