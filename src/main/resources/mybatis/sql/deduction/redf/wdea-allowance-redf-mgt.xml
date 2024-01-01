@@ -94,14 +94,10 @@
      	     			  F.CNTR_DTL_STAT_CH_RSON_CD || '. ' || F_CMZ_CD_NM('TNT_WELLS', 'CMN_STAT_CH_RSON_CD', F.CNTR_DTL_STAT_CH_RSON_CD, 'ko')
  	     			 ELSE ''
      			  END) AS CNTR_DTL_STAT_CH_RSON_NM /*취소유형*/
-     	     , E.PERF_YM AS DLQ_YM /*연체되물림년월*/
-     	     , (SELECT MIN(X.BASE_YM) AS BASE_YM
-     	     	  FROM TB_FEAM_WELS_NRCTR_MM_CL X
-     	     	 WHERE M.BASE_YM <![CDATA[ < ]]> X.BASE_YM
-     	     	   AND X.CNTR_NO = M.CNTR_NO
-     	     	   AND X.CNTR_SN = M.CNTR_SN
-     	     	   AND X.CNTR_PERF_CRT_DV_CD <![CDATA[ > ]]> '07'
- 	     	    ) AS RDSB_YM
+     	     , CASE WHEN M.OG_TP_CD != 'W01'THEN SUBSTR(T1.REDF_DT, 1, 6)
+     	     		ELSE '' END AS DLQ_YM /*연체되물림년월*/
+     	     , CASE WHEN M.OG_TP_CD != 'W01'THEN SUBSTR(T1.ADSB_DT, 1, 6)
+     	     		ELSE '' END AS RDSB_YM /*재지급년월*/
      	     , (CASE WHEN A.SELL_TP_CD = '6' /*정기배송일 떄 ASIS 계산식, ((판매금액 - 할인금액)/서비스주기)*/
      	     		 THEN TRUNC((A.SELL_AMT - A.DSC_AMT) / A.SV_PRD)
      	     		 ELSE G.RENTAL_AMT
@@ -193,6 +189,9 @@
 			         AND M.PRTNR_NO = B.PRTNR_NO
              ) OG
             ON 1 = 1
+          LEFT OUTER JOIN TB_CBCL_REDF_ADSB_BAS T1
+            ON T1.CNTR_NO = M.CNTR_NO
+           AND T1.CNTR_SN = M.CNTR_SN
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS E /*연체기본*/
     	   ON M.CNTR_NO = E.CNTR_NO
     	  AND M.CNTR_SN = E.CNTR_SN
@@ -927,7 +926,9 @@
                               <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                               AND M.PRTNR_NO = #{prtnrNo}
                               </if>
+                              <if test='@MybatisUtils@isNotEmpty(redfAdsbTpCd)'>
                               AND M.REDF_ADSB_TP_CD = #{redfAdsbTpCd}
+                              </if>
                               <if test='@MybatisUtils@equals(ogTpCd, "W02")'>
                                   <if test='@MybatisUtils@equals(rsbDvCd, "01")'>
                                   AND M.PERF_DV_CD = '0'

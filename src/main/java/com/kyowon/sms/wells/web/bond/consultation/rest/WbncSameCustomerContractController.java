@@ -72,10 +72,7 @@ public class WbncSameCustomerContractController {
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
     })
     @GetMapping("/breach-of-promise")
-    public FindBreachOfPromiseRes getBreachOfPromise(@RequestParam
-    String bndBizDvCd, @RequestParam
-    String cntrNo, @RequestParam
-    int cntrSn) {
+    public FindBreachOfPromiseRes getBreachOfPromise(@RequestParam String bndBizDvCd, @RequestParam String cntrNo, @RequestParam int cntrSn) {
         return service.getBreachOfPromise(bndBizDvCd, cntrNo, cntrSn);
     }
 

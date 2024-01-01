@@ -1,18 +1,18 @@
 package com.kyowon.sms.wells.web.bond.consultation.service;
 
-import java.util.List;
-
+import com.kyowon.sms.common.web.closing.payment.dvo.ZdcaCancellationFeeComputationResultWellsDvo;
+import com.kyowon.sms.common.web.closing.payment.dvo.ZdcaCancellationFeeComputationWellsDvo;
+import com.kyowon.sms.common.web.closing.payment.service.ZdcaCancellationFeeComputationWellsService;
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.*;
+import com.kyowon.sms.wells.web.bond.consultation.mapper.WbncSameCustomerContractMapper;
+import com.sds.sflex.common.utils.StringUtil;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindBreachOfPromiseRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindContractRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositDtlRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositInfoRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindSalesRes;
-import com.kyowon.sms.wells.web.bond.consultation.mapper.WbncSameCustomerContractMapper;
-
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * <pre>
@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WbncSameCustomerContractService {
     private final WbncSameCustomerContractMapper mapper;
+    private final ZdcaCancellationFeeComputationWellsService zdcaCancellationFeeComputationWellsService;
 
     /**
       * 동일고객 계약내역 조회
@@ -60,7 +61,47 @@ public class WbncSameCustomerContractService {
      * @return 조회결과
      */
     public FindBreachOfPromiseRes getBreachOfPromise(String bndBizDvCd, String cntrNo, int cntrSn) {
-        return mapper.selectBreachOfPromise(bndBizDvCd, cntrNo, cntrSn);
+        var defaultBreachPromise = mapper.selectBreachOfPromise(bndBizDvCd, cntrNo, cntrSn);
+        // 고객요청해약(301), 연체해약(302) 일 경우 조회된 위약금 정보 반환
+        if (StringUtil.isNotEmpty(defaultBreachPromise.cntrDtlStatCd()) && List.of("301", "302").contains(defaultBreachPromise.cntrDtlStatCd())) {
+            return defaultBreachPromise;
+        } else {
+            // 고객요청해약(301), 연체해약(302) 이 아닐 경우 위약금 산출 서비스로 계산된 위약금 정보 반환
+            var computedBreachPromise = getBreachPromiseAmt(cntrNo, cntrSn);
+            return FindBreachOfPromiseRes.builder()
+                .borAmt(String.valueOf(computedBreachPromise.getBorAmt()))
+                .borBlam(String.valueOf(computedBreachPromise.getBorAmt()))
+                .rgstCostDscBorAmt(String.valueOf(computedBreachPromise.getRgstCostDscBorAmt()))
+                .rentalDscBorAmt(String.valueOf(computedBreachPromise.getRentalDscBorAmt()))
+                .csmbCostBorAmt(String.valueOf(computedBreachPromise.getCsmbCostBorAmt()))
+                .pBorAmt(String.valueOf(computedBreachPromise.getPBorAmt()))
+                .reqdCsBorAmt(String.valueOf(computedBreachPromise.getReqdCsBorAmt()))
+                .lsRntf(String.valueOf(computedBreachPromise.getLsRntf()))
+                .rstlBorAmt(String.valueOf(computedBreachPromise.getRstlBorAmt()))
+                .cntrDtlStatCd(defaultBreachPromise.cntrDtlStatCd()) /* 현재계약상세상태코드 */
+                .dpCcamSumAmt(defaultBreachPromise.dpCcamSumAmt()) /* 입금위약금합계금액 */
+                .thmSlSumAmt(defaultBreachPromise.thmSlSumAmt()) /* 당월매출합계금액 */
+                .acuDpAmt(defaultBreachPromise.acuDpAmt()) /* 누적입금금액 */
+                .ucAmt(defaultBreachPromise.ucAmt()) /* 미수금액 */
+                .rsgBorAmt(defaultBreachPromise.rsgBorAmt()) /* 해지위약금액 */
+                .build();
+        }
+    }
+
+    /**
+     * 위약금 산출 서비스를 통해 계산된 위약금 정보 조회
+     *
+     * @param cntrNo, cntrSn
+     * @return 동일고객 계약 위약정보 조회 결과
+     */
+    private ZdcaCancellationFeeComputationResultWellsDvo getBreachPromiseAmt(String cntrNo, int cntrSn) {
+        ZdcaCancellationFeeComputationWellsDvo inputDvo = new ZdcaCancellationFeeComputationWellsDvo();
+        inputDvo.setCntrNo(cntrNo);
+        inputDvo.setCntrSn(cntrSn);
+        inputDvo.setCnfmYm(StringUtils.EMPTY);
+        inputDvo.setRqdt(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+
+        return zdcaCancellationFeeComputationWellsService.saveDelinquentDepositRefund(inputDvo);
     }
 
     /**

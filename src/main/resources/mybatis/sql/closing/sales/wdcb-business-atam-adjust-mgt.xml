@@ -28,8 +28,12 @@
           FROM (SELECT (CASE WHEN A.SELL_TP_CD = '2' AND A.SELL_TP_DTL_CD IN ('21', '23') AND E.REF_PD_CLSF_VAL IS NOT NULL THEN '6'
                              ELSE A.SELL_TP_CD END) AS SELL_TP_CD /* 판매유형 */
                     , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
-                    , A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-                    , A.DG_CST_ID AS DG_CST_ID /* 대표고객ID */
+                    , (CASE WHEN A.SELL_TP_CD = '2' AND A.SELL_TP_DTL_CD IN ('21', '23') AND E.REF_PD_CLSF_VAL IS NOT NULL
+                            THEN 'C1' /*정기배송*/
+                            ELSE A.SAP_PD_DV_CD END)  AS SAP_PD_DV_CD  /*SAP상품구분코드*/
+		                , (CASE WHEN A.SELL_TP_CD = '2' AND A.SELL_TP_DTL_CD IN ('21', '23') AND E.REF_PD_CLSF_VAL IS NOT NULL
+                            THEN '1000000049' /*정기배송*/
+                            ELSE A.DG_CST_ID END)  AS DG_CST_ID  /*대표고객ID*/
                     , A.BASE_YM AS BASE_YM /* 기준년월 */
                     , A.CNTR_NO AS CNTR_NO /* 계약번호 */
                     , A.CNTR_SN AS CNTR_SN /* 일련번호 */
@@ -90,16 +94,13 @@
                     <if test='@MybatisUtils@isNotEmpty(sapAlrpySlpno)'>
                     AND A.SAP_ALRPY_SLPNO = #{sapAlrpySlpno}  /*SAP반제전표번호*/
                     </if>
-                    <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-                    AND A.SAP_PD_DV_CD = #{sapPdDvCd}
-                    </if>
                 <if test="@MybatisUtils@equals(dpKndCd, '2')">
                 UNION ALL
                 /* 포인트 선수금 별도 추가 */
                 SELECT A.SELL_TP_CD AS SELL_TP_CD /* 판매유형 */
                      , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
                      , A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-                     , '포인트' AS DG_CST_ID /* 대표고객ID */
+                     , '포인트선수금' AS DG_CST_ID /* 대표고객ID */
                      , A.SL_CL_YM AS BASE_YM /* 기준년월 */
                      , A.CNTR_NO AS CNTR_NO /* 계약번호 */
                      , A.CNTR_SN AS CNTR_SN /* 일련번호 */
@@ -142,13 +143,15 @@
                    <if test='@MybatisUtils@isNotEmpty(sapAlrpySlpno)'>
                    AND A.SAP_ALRPY_SLPNO = #{sapAlrpySlpno}  /*SAP반제전표번호*/
                    </if>
-                   <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-                   AND A.SAP_PD_DV_CD = #{sapPdDvCd}
-                   </if>
                 </if>
             ) T1
+            /*렌탈에 들어있는 일부(커피,원두)가 정기배송으로 강제 매핑되어야하는 문제때문에 아래조건은 밖으로 빼서 처리함. */
+            WHERE 1=1
+              <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+              AND T1.SAP_PD_DV_CD = #{sapPdDvCd}
+              </if>
      GROUP BY T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.DG_CST_ID, T1.SAP_PD_DV_CD, T1.BASE_YM
-     ORDER BY T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.DG_CST_ID, T1.SAP_PD_DV_CD, T1.BASE_YM
+     ORDER BY T1.DG_CST_ID, T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.SAP_PD_DV_CD, T1.BASE_YM  /*포인트선수금 뒤에다 놓기위함. */
     </select>
 
     <select id="selectBusinessAtamSummary" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto$SearchSummaryRes">
@@ -311,8 +314,12 @@
           FROM (SELECT (CASE WHEN A.SELL_TP_CD = '2' AND A.SELL_TP_DTL_CD IN ('21', '23') AND E.REF_PD_CLSF_VAL IS NOT NULL THEN '6'
                              ELSE A.SELL_TP_CD END) AS SELL_TP_CD /* 판매유형 */
                     , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
-                    , A.SAP_PD_DV_CD AS SAP_PD_DV_CD /* SAP상품구분코드 */
-                    , A.DG_CST_ID AS DG_CST_ID /* 대표고객ID */
+                    , (CASE WHEN A.SELL_TP_CD = '2' AND A.SELL_TP_DTL_CD IN ('21', '23') AND E.REF_PD_CLSF_VAL IS NOT NULL
+                            THEN 'C1' /*정기배송*/
+                            ELSE A.SAP_PD_DV_CD END)  AS SAP_PD_DV_CD  /*SAP상품구분코드*/
+		                , (CASE WHEN A.SELL_TP_CD = '2' AND A.SELL_TP_DTL_CD IN ('21', '23') AND E.REF_PD_CLSF_VAL IS NOT NULL
+                            THEN '1000000049' /*정기배송*/
+                            ELSE A.DG_CST_ID END)  AS DG_CST_ID  /*대표고객ID*/
                     , A.BASE_YM AS BASE_YM /* 기준년월 */
                     , A.CNTR_NO AS CNTR_NO /* 계약번호 */
                     , A.CNTR_SN AS CNTR_SN /* 일련번호 */
@@ -370,11 +377,8 @@
                     <if test="@MybatisUtils@isNotEmpty(cntrSn)">
                     AND A.CNTR_SN = #{cntrSn}          /*계약번호*/
                     </if>
-                    <if test='@MybatisUtils@isNotEmpty(sapAlrpySlpno)'>
+                    <if test="@MybatisUtils@isNotEmpty(sapAlrpySlpno)">
                     AND A.SAP_ALRPY_SLPNO = #{sapAlrpySlpno}  /*SAP반제전표번호*/
-                    </if>
-                    <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-                    AND A.SAP_PD_DV_CD = #{sapPdDvCd}
                     </if>
                 <if test="@MybatisUtils@equals(dpKndCd, '2')">
                 UNION ALL
@@ -425,11 +429,12 @@
                    <if test='@MybatisUtils@isNotEmpty(sapAlrpySlpno)'>
                    AND A.SAP_ALRPY_SLPNO = #{sapAlrpySlpno}  /*SAP반제전표번호*/
                    </if>
-                   <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-                   AND A.SAP_PD_DV_CD = #{sapPdDvCd}
-                   </if>
                 </if>
             ) T1
+            WHERE 1=1
+            <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+            AND T1.SAP_PD_DV_CD = #{sapPdDvCd}
+            </if>
      GROUP BY T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.DG_CST_ID, T1.SAP_PD_DV_CD, T1.BASE_YM, T1.CNTR_NO, T1.CNTR_SN, T1.CST_NO
      ORDER BY T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.DG_CST_ID, T1.SAP_PD_DV_CD, T1.BASE_YM, T1.CNTR_NO, T1.CNTR_SN, T1.CST_NO
     </select>

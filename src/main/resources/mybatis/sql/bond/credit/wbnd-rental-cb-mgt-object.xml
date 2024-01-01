@@ -5,7 +5,8 @@
         /* 렌탈CB 연체정보 조회 (고객번호별) */
         WITH DLQ_FST AS /*계약*/
         (
-            SELECT A.CNTR_CST_NO AS CST_NO
+            SELECT /*+ parallel(A) */
+                   A.CNTR_CST_NO AS CST_NO
               FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
              INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
                 ON B.CNTR_NO = A.CNTR_NO
@@ -38,7 +39,8 @@
         /*연체 최초 발생(교원키기준) 후 주문코드별 등록(알림톡 실패건 , 해제건 제외)*/
         , NOTY_FAIL AS    /*LC31_1*/
         (
-            SELECT A.CNTR_CST_NO AS CST_NO
+            SELECT /*+ parallel(A) */
+                   A.CNTR_CST_NO AS CST_NO
               FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
              INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
                 ON B.CNTR_NO = A.CNTR_NO
@@ -285,6 +287,14 @@
                                                         WHERE CST_NO = LC31.CST_NO
                                                           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
                                                       )
+                                       AND EXISTS (SELECT 1
+                                                    FROM TB_CBBO_BND_CNTR_BAS S1 /*T:채권계약기본*/
+                                                    WHERE 1=1
+                                                      AND S1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                                                      AND S1.CNTR_NO = LC50.CNTR_NO
+                                                      AND S1.DTA_DL_YN = 'N'
+                                                      AND S1.BND_CLCTN_PRP_RSON_CD IN ('20','3C','80')
+                                                 ) /*채권속성 중 [연체-집금관리], [위탁이관-위탁관리], [TF-집금관리] 외 모두 제외*/
                       ) TT
                 INNER JOIN TB_CUBS_CST_BAS TT2 /*T:고객기본*/
                    ON TT2.CST_NO = TT.CST_NO
@@ -315,7 +325,7 @@
                   AND TT9.RESERVED5 = TT8.BND_MSG_TP_VAL2            /*채권알림톡업무상세코드*/
                 WHERE 1=1
                   AND TT.FN_SMS_YN != 'Y'
-                  AND TT.BTD_DLQ_AMT <![CDATA[>]]> 0 /*연체금액*/
+                  AND (CASE WHEN TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT END) >= 100000 /*연체잔액*/
                ) ZZ
          WHERE 1=1
         <if test="@MybatisUtils@isNotEmpty(cstNo)">
@@ -330,14 +340,15 @@
         <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
            AND ZZ.CRAL_IDV_TNO = #{cralIdvTno}       /*휴대폰번호3*/
         </if>
-         ORDER BY ZZ.CST_NO
+         ORDER BY ZZ.CST_KNM
     </select>
 
     <select id="selectRentalCbMessageObjectsByContract" resultType="com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbDelinquentIzDvo">
         /* 렌탈CB 연체정보 조회 (계약별) */
         WITH DLQ_FST AS /*계약*/
         (
-            SELECT A.CNTR_CST_NO AS CST_NO
+            SELECT /*+ parallel(A) */
+                   A.CNTR_CST_NO AS CST_NO
               FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
              INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
                 ON B.CNTR_NO = A.CNTR_NO
@@ -370,7 +381,8 @@
         /*연체 최초 발생(교원키기준) 후 주문코드별 등록(알림톡 실패건 , 해제건 제외)*/
         , NOTY_FAIL AS    /*LC31_1*/
         (
-            SELECT A.CNTR_CST_NO AS CST_NO
+            SELECT /*+ parallel(A) */
+                   A.CNTR_CST_NO AS CST_NO
               FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
              INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
                 ON B.CNTR_NO = A.CNTR_NO
@@ -653,7 +665,15 @@
           AND TT9.RESERVED5 = TT8.BND_MSG_TP_VAL2            /*채권알림톡업무상세코드*/
         WHERE 1=1
           AND TT.FN_SMS_YN != 'Y'
-          AND TT.BTD_DLQ_AMT <![CDATA[>]]> 0 /*연체금액*/
+          AND EXISTS (SELECT 1
+                        FROM TB_CBBO_BND_CNTR_BAS S1 /*T:채권계약기본*/
+                       WHERE 1=1
+                         AND S1.BASE_YM = #{baseYm}
+                         AND S1.CNTR_NO = TT.CNTR_NO
+                         AND S1.CNTR_SN = TT5.CNTR_SN
+                         AND S1.DTA_DL_YN = 'N'
+                         AND S1.BND_CLCTN_PRP_RSON_CD IN ('20','3C','80')
+                     ) /*채권속성 중 [연체-집금관리], [위탁이관-위탁관리], [TF-집금관리] 외 모두 제외*/
         <if test="@MybatisUtils@isNotEmpty(cstNo)">
           AND TT.CST_NO = #{cstNo}                  /*고객번호*/
         </if>
@@ -666,7 +686,7 @@
         <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
           AND TT2.CRAL_IDV_TNO = #{cralIdvTno}       /*휴대폰번호3*/
         </if>
-        ORDER BY TT.CST_NO, CNTR_DTL_NO
+        ORDER BY TT2.CST_KNM, CNTR_DTL_NO
     </select>
 
     <update id="updateMessageObjectYn" >
@@ -674,7 +694,8 @@
         MERGE INTO TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ MRG_CB    /*WELLS렌탈CB연체내역*/
         USING (WITH DLQ_FST AS /*계약*/
                (
-                   SELECT A.CNTR_CST_NO AS CST_NO
+                   SELECT /*+ parallel(A) */
+                          A.CNTR_CST_NO AS CST_NO
                      FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
                     INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
                        ON B.CNTR_NO = A.CNTR_NO
@@ -707,7 +728,8 @@
                /*연체 최초 발생(교원키기준) 후 주문코드별 등록(알림톡 실패건 , 해제건 제외)*/
                , NOTY_FAIL AS    /*LC31_1*/
                (
-                   SELECT A.CNTR_CST_NO AS CST_NO
+                   SELECT /*+ parallel(A) */
+                          A.CNTR_CST_NO AS CST_NO
                      FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
                     INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
                        ON B.CNTR_NO = A.CNTR_NO
@@ -947,6 +969,14 @@
                                                                       WHERE CST_NO = LC31.CST_NO
                                                                         AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
                                                                     )
+                                                     AND EXISTS (SELECT 1
+                                                                  FROM TB_CBBO_BND_CNTR_BAS S1 /*T:채권계약기본*/
+                                                                  WHERE 1=1
+                                                                    AND S1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                                                                    AND S1.CNTR_NO = LC50.CNTR_NO
+                                                                    AND S1.DTA_DL_YN = 'N'
+                                                                    AND S1.BND_CLCTN_PRP_RSON_CD IN ('20','3C','80')
+                                                               ) /*채권속성 중 [연체-집금관리], [위탁이관-위탁관리], [TF-집금관리] 외 모두 제외*/
                                     ) TT
                               INNER JOIN TB_CUBS_CST_BAS TT2 /*T:고객기본*/
                                  ON TT2.CST_NO = TT.CST_NO
@@ -977,12 +1007,11 @@
                                 AND TT9.RESERVED5 = TT8.BND_MSG_TP_VAL2            /*채권알림톡업무상세코드*/
                               WHERE 1=1
                                 AND TT.FN_SMS_YN != 'Y'
-                                AND TT.BTD_DLQ_AMT <![CDATA[>]]> 0 /*연체금액*/
                                 AND TT.CST_NO = #{cstNo}                  /*고객번호*/
                              ) TTT
                      ) SRC
                WHERE 1=1
-                 AND SRC.DLQ_BLAM_SUM <![CDATA[>]]> 100000 /*고객별연체잔액합계 10만원 초과*/
+                 AND SRC.DLQ_BLAM_SUM <![CDATA[>=]]> 100000 /*고객별연체잔액합계 10만원 이상*/
                  AND (SRC.RENTAL_CB_RGST_DV_CD = '1' OR SRC.RENTAL_CB_RGST_DV_CD IS NULL) /*렌탈CB등록구분코드-1:발생*/
                  AND SRC.CRAL_LOCARA_TNO IS NOT NULL /*휴대폰번호 없는것 제외*/
                  AND NOT EXISTS (SELECT 1

@@ -345,60 +345,107 @@
              )
 
         WITH TARGET_LIST AS (
-            SELECT OG_ID
-              FROM
-                 ( SELECT CASE #{param.evlDvCd} WHEN 'M01' THEN T3.DGR1_LEVL_OG_ID
-                                          WHEN 'M02' THEN T3.DGR2_LEVL_OG_ID
-                                          WHEN 'M03' THEN T3.DGR3_LEVL_OG_ID
-                           ELSE T3.DGR1_LEVL_OG_ID
-                          END AS OG_ID
-                     FROM
-                        ( SELECT PRTNR_NO
-                            FROM
-                               (
-                                <foreach collection="target" item="item" separator=" UNION ALL ">
-                                    <if test='@MybatisUtils@isNotEmpty(item.calfCn)'>
-                                    ${item.calfCn}
-                                    </if>
-                                    <if test='@MybatisUtils@isNotEmpty(item.cexpCn)'>
-                                       <where>
-                                           ${item.cexpCn}
-                                       </where>
-                                    </if>
-                                    <if test='@MybatisUtils@isNotEmpty(item.qlfDvCd)'>
-                                    AND QLF_DV_CD = #{item.qlfDvCd}
-                                    </if>
-                                </foreach>
-                               )
-                           GROUP BY PRTNR_NO
-                        ) T1
-                    INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
-                       ON T2.PRTNR_NO = T1.PRTNR_NO
-                    INNER JOIN TB_OGBS_MM_OG_IZ T3
-                       ON T3.BASE_YM = T2.BASE_YM /* 기준년월 */
-                      AND T3.OG_TP_CD = T2.OG_TP_CD /* 조직유형코드 */
-                      AND T3.OG_ID = T2.OG_ID /* 조직ID */
-                      AND T3.DTA_DL_YN = 'N'
-                    WHERE T3.BASE_YM = #{param.baseYm}
-                 )
-             GROUP BY OG_ID
+           <choose>
+                <when test="@MybatisUtils@isNotEmpty(param.evlDvCd) and @MybatisUtils@equals('M03', param.evlDvCd)">
+                    SELECT PRTNR_NO
+                      FROM
+                         (
+                            <foreach collection="target" item="item" separator=" UNION ALL ">
+                                <if test='@MybatisUtils@isNotEmpty(item.calfCn)'>
+                                ${item.calfCn}
+                                </if>
+                                <if test='@MybatisUtils@isNotEmpty(item.cexpCn)'>
+                                    <where>${item.cexpCn}</where>
+                                </if>
+                            </foreach>
+                         )
+                     GROUP BY PRTNR_NO
+                </when>
+                <otherwise>
+                    SELECT OG_ID
+                      FROM
+                         ( SELECT CASE #{param.evlDvCd} WHEN 'M01' THEN T3.DGR1_LEVL_OG_ID
+                                                        WHEN 'M02' THEN T3.DGR2_LEVL_OG_ID
+                                                        WHEN 'P01' THEN T3.DGR1_LEVL_OG_ID
+                                                        WHEN 'P02' THEN T3.DGR2_LEVL_OG_ID
+                                   ELSE T3.DGR1_LEVL_OG_ID
+                                  END AS OG_ID
+                             FROM
+                                ( SELECT PRTNR_NO
+                                    FROM
+                                       (
+                                        <foreach collection="target" item="item" separator=" UNION ALL ">
+                                            <if test='@MybatisUtils@isNotEmpty(item.calfCn)'>
+                                            ${item.calfCn}
+                                            </if>
+                                            <if test='@MybatisUtils@isNotEmpty(item.cexpCn)'>
+                                               <where>
+                                                   ${item.cexpCn}
+                                               </where>
+                                            </if>
+                                            <if test='@MybatisUtils@isNotEmpty(item.qlfDvCd)'>
+                                            AND QLF_DV_CD = #{item.qlfDvCd}
+                                            </if>
+                                        </foreach>
+                                       )
+                                   GROUP BY PRTNR_NO
+                                ) T1
+                            INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
+                               ON T2.PRTNR_NO = T1.PRTNR_NO
+                            INNER JOIN TB_OGBS_MM_OG_IZ T3
+                               ON T3.BASE_YM = T2.BASE_YM /* 기준년월 */
+                              AND T3.OG_TP_CD = T2.OG_TP_CD /* 조직유형코드 */
+                              AND T3.OG_ID = T2.OG_ID /* 조직ID */
+                              AND T3.DTA_DL_YN = 'N'
+                            WHERE T3.BASE_YM = #{param.baseYm}
+                         )
+                     GROUP BY OG_ID
+                </otherwise>
+           </choose>
         )
+        <choose>
+            <when test="@MybatisUtils@isNotEmpty(param.evlDvCd) and @MybatisUtils@equals('M03', param.evlDvCd)">
+                SELECT #{param.baseYm} AS BASE_YM          /* 기준년월 */
+                     , #{param.evlOgTpCd} AS EVL_OG_TP_CD     /* 평가조직유형코드 */
+                     , T2.OG_ID
+                     , #{param.evlDvCd} AS EVL_DV_CD        /* 평가구분코드 */
+                     , #{param.evlAtcDvCd} AS EVL_ATC_DV_CD    /* 평가항목구분코드 */
+                     , #{param.evlBaseUnitN} AS EVL_BASE_UNIT_N  /* 평가기준단위수 */
+                     , #{param.cvtBasePc} AS CVT_BASE_PC      /* 환산기준점수 */
+                     , #{param.dtaDlYn} AS DTA_DL_YN        /* 데이터삭제여부 */
+                     , ( SELECT NVL(MAX(SORT_ODR), 0) + 1
+                           FROM TB_PSEV_AWD_EVL_BASE_DTL
+                          WHERE EVL_OG_TP_CD = #{param.evlOgTpCd}
+                            AND EVL_DV_CD = #{param.evlDvCd}
+                        ) AS SORT_ODR
+                     <include refid="COMMON.insertSystemFieldValue" />
+                  FROM TARGET_LIST T1
+                 INNER JOIN TB_OGBS_SPPT_OG_IZ T2
+                    ON T2.OG_TP_CD = 'W02'
+                   AND T2.PRTNR_NO = T1.PRTNR_NO
+                   AND ( #{article.baseYm} BETWEEN T2.MNGT_STRT_DT AND  T2.MNGT_END_DT
+                          OR  TO_CHAR(LAST_DAY(#{param.baseYm}||'01'),'YYYYMMDD') BETWEEN T2.MNGT_STRT_DT AND  T2.MNGT_END_DT )
+                 GROUP BY T2.OG_ID
+            </when>
+            <otherwise>
+                SELECT #{param.baseYm} AS BASE_YM          /* 기준년월 */
+                     , #{param.evlOgTpCd} AS EVL_OG_TP_CD     /* 평가조직유형코드 */
+                     , OG_ID
+                     , #{param.evlDvCd} AS EVL_DV_CD        /* 평가구분코드 */
+                     , #{param.evlAtcDvCd} AS EVL_ATC_DV_CD    /* 평가항목구분코드 */
+                     , #{param.evlBaseUnitN} AS EVL_BASE_UNIT_N  /* 평가기준단위수 */
+                     , #{param.cvtBasePc} AS CVT_BASE_PC      /* 환산기준점수 */
+                     , #{param.dtaDlYn} AS DTA_DL_YN        /* 데이터삭제여부 */
+                     , ( SELECT NVL(MAX(SORT_ODR), 0) + 1
+                           FROM TB_PSEV_AWD_EVL_BASE_DTL
+                          WHERE EVL_OG_TP_CD = #{param.evlOgTpCd}
+                            AND EVL_DV_CD = #{param.evlDvCd}
+                        ) AS SORT_ODR
+                     <include refid="COMMON.insertSystemFieldValue" />
+                  FROM TARGET_LIST T1
+            </otherwise>
+        </choose>
 
-        SELECT #{param.baseYm} AS BASE_YM          /* 기준년월 */
-             , #{param.evlOgTpCd} AS EVL_OG_TP_CD     /* 평가조직유형코드 */
-             , OG_ID
-             , #{param.evlDvCd} AS EVL_DV_CD        /* 평가구분코드 */
-             , #{param.evlAtcDvCd} AS EVL_ATC_DV_CD    /* 평가항목구분코드 */
-             , #{param.evlBaseUnitN} AS EVL_BASE_UNIT_N  /* 평가기준단위수 */
-             , #{param.cvtBasePc} AS CVT_BASE_PC      /* 환산기준점수 */
-             , #{param.dtaDlYn} AS DTA_DL_YN        /* 데이터삭제여부 */
-             , ( SELECT NVL(MAX(SORT_ODR), 0) + 1
-                   FROM TB_PSEV_AWD_EVL_BASE_DTL
-                  WHERE EVL_OG_TP_CD = #{param.evlOgTpCd}
-                    AND EVL_DV_CD = #{param.evlDvCd}
-                ) AS SORT_ODR
-             <include refid="COMMON.insertSystemFieldValue" />
-          FROM TARGET_LIST T1
     </insert>
 
     <delete id="deleteEvaluationDetail">
